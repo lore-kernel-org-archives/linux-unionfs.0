@@ -1,70 +1,43 @@
-From: David Howells <dhowells@redhat.com>
-Subject: Race in ovl_copy_up()?
-Date: Mon, 11 Aug 2014 15:37:07 +0100
-Message-ID: <24270.1407767827@warthog.procyon.org.uk>
+From: Miklos Szeredi <miklos@szeredi.hu>
+Subject: Re: Race in ovl_copy_up()?
+Date: Tue, 12 Aug 2014 11:37:15 +0200
+Message-ID: <CAJfpegtoO6wub5+diEhiVfUmj+ZxeT5wi_6EPxFJgqtXuqraog@mail.gmail.com>
+References: <24270.1407767827@warthog.procyon.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:57813 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753465AbaHKOhO (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-	Mon, 11 Aug 2014 10:37:14 -0400
-Content-ID: <24269.1407767827.1@warthog.procyon.org.uk>
+Received: from mail-qg0-f53.google.com ([209.85.192.53]:47456 "EHLO
+	mail-qg0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751764AbaHLJhQ (ORCPT
+	<rfc822;linux-unionfs@vger.kernel.org>);
+	Tue, 12 Aug 2014 05:37:16 -0400
+Received: by mail-qg0-f53.google.com with SMTP id q107so9561920qgd.12
+        for <linux-unionfs@vger.kernel.org>; Tue, 12 Aug 2014 02:37:15 -0700 (PDT)
+In-Reply-To: <24270.1407767827@warthog.procyon.org.uk>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: dhowells@redhat.com, viro@ZenIV.linux.org.uk, linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org
+To: David Howells <dhowells@redhat.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>, linux-unionfs@vger.kernel.org, Linux-Fsdevel <linux-fsdevel@vger.kernel.org>, Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-Hi Miklos,
+On Mon, Aug 11, 2014 at 4:37 PM, David Howells <dhowells@redhat.com> wrote:
 
-Looking at the following:
+> In the for-loop in the middle, if you ascend any levels at all, how are you
+> protected from racing with copy-ups taking place on those more rootwards
+> dentries?
+>
+> I can see ovl_copy_up_one() using lock_rename() on the workdir and upperdir,
+> but there's no relevant lock on the overlayfs fs.
 
-	int ovl_copy_up(struct dentry *dentry)
-	{
-		int err;
+Locking upperdir should be enough protection.
 
-		err = 0;
-		while (!err) {
-			struct dentry *next;
-			struct dentry *parent;
-			struct path lowerpath;
-			struct kstat stat;
-			enum ovl_path_type type = ovl_path_type(dentry);
+Lets say we have a race:
 
-			if (type != OVL_PATH_LOWER)
-				break;
+A: copy_up(a/b/c/d)
+B: copy_up(a/b/e/f)
 
-			next = dget(dentry);
-			/* find the topmost dentry not yet copied up */
-			for (;;) {
-				parent = dget_parent(next);
+Both ascend to "b" and try to lock "a".  The one that wins the lock
+acquisition will do the copy-up, the other one will just skip it once
+it gets the lock.
 
-				type = ovl_path_type(parent);
-				if (type != OVL_PATH_LOWER)
-					break;
-
-				dput(next);
-				next = parent;
-			}
-
-			ovl_path_lower(next, &lowerpath);
-			err = vfs_getattr(&lowerpath, &stat);
-			if (!err)
-				err = ovl_copy_up_one(parent, next, &lowerpath, &stat);
-
-			dput(parent);
-			dput(next);
-		}
-
-		return err;
-	}
-
-In the for-loop in the middle, if you ascend any levels at all, how are you
-protected from racing with copy-ups taking place on those more rootwards
-dentries?
-
-I can see ovl_copy_up_one() using lock_rename() on the workdir and upperdir,
-but there's no relevant lock on the overlayfs fs.  You stepped out of the lock
-the VFS caller holds when you ascended.
-
-David
+Thanks,
+Miklos
