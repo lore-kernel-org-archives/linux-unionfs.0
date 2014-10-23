@@ -1,55 +1,123 @@
-From: "J. R. Okajima" <hooanon05g@gmail.com>
+From: Sedat Dilek <sedat.dilek@gmail.com>
 Subject: Re: [PULL for 3.18] overlay filesystem v24
-Date: Tue, 30 Sep 2014 22:23:42 +0900
-Message-ID: <6637.1412083422@jrobl>
-References: <20140929141457.GB5011@tucsk.piliscsaba.szeredi.hu> <26822.1412028003@warthog.procyon.org.uk> <27645.1412052879@jrobl> <CAJfpeguWkWOeWYS1o2gW4P1DJhXn=enBGukPcfscd-guas7h8w@mail.gmail.com>
-Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail01-md.ns.itscom.net ([175.177.155.111]:33601 "EHLO
-	mail01-md.ns.itscom.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750955AbaI3NXq (ORCPT
-	<rfc822;linux-unionfs@vger.kernel.org>);
-	Tue, 30 Sep 2014 09:23:46 -0400
-In-Reply-To: <CAJfpeguWkWOeWYS1o2gW4P1DJhXn=enBGukPcfscd-guas7h8w@mail.gmail.com>
-Sender: linux-unionfs-owner@vger.kernel.org
-List-Id: linux-unionfs@vger.kernel.org
+Date: Thu, 23 Oct 2014 13:56:11 +0200
+Message-ID: <CA+icZUW4bennT=duj9hXq4+U5QLF7GivARA595C2KnRNzAdKAw@mail.gmail.com>
+References: <20140929141457.GB5011@tucsk.piliscsaba.szeredi.hu>
+Reply-To: sedat.dilek@gmail.com
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20140929141457.GB5011@tucsk.piliscsaba.szeredi.hu>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: David Howells <dhowells@redhat.com>, Al Viro <viro@zeniv.linux.org.uk>, Christoph Hellwig <hch@infradead.org>, Linux-Fsdevel <linux-fsdevel@vger.kernel.org>, Kernel Mailing List <linux-kernel@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Stephen Rothwell <sfr@canb.auug.org.au>, linux-unionfs@vger.kernel.org
+Cc: Al Viro <viro@zeniv.linux.org.uk>, Christoph Hellwig <hch@infradead.org>, Linux-Fsdevel <linux-fsdevel@vger.kernel.org>, Kernel Mailing List <linux-kernel@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Stephen Rothwell <sfr@canb.auug.org.au>, linux-unionfs@vger.kernel.org
+List-Id: linux-unionfs@vger.kernel.org
 
+On Mon, Sep 29, 2014 at 4:14 PM, Miklos Szeredi <miklos@szeredi.hu> wrote:
+> I'd like to propose overlayfs for inclusion into 3.18.
+>
+> Al, would you mind giving it a review?
+>
+> Git tree is here:
+>
+>   git://git.kernel.org/pub/scm/linux/kernel/git/mszeredi/vfs.git overlayfs.current
+>
 
-Miklos Szeredi:
-> It would be good to have an inode based union as well.  I suggest (as
-> I suggested many times) to try slimming aufs to a bare minimum and
-> submit that.  It may be easier to just start from scratch instead
-> trying to drop features from the existing codebase.   I'd be happy to
-> review and generally help with such an effort.
+Nice to see that the overlayfs "dream" comes true.
+overlayfs.current has now got a "review" - will there be a v25
+pull-request soonish or is overlayfs.current still in WIP?
+Where is that review process happening? On linux-fsdevel I could not
+find any informations.
 
-??
-In 2009, I have posted the "feature-reduced" version of aufs2 as
-following your advice. Also a git-branch called "aufs2-tmp-ro" was
-created whose size was a half of aufs2's. Have you ever posted your
-review comments about them?
+Some updated patches have no review credits - for example the big
+overlay filesystem patch which mentions AV's review, etc.
 
-It was 2005 when I got an idea of aufs. Its history is almost a decade.
-In my current local aufs3 develpment branch, I got about 350
-commits. And 680 and 1120 commits for aufs2 and aufs1 individually.
+Maintainers file could have a tree item pointing to your personal Git
+repository.
 
-aufs3-linux.git#aufs3.x-rcN/25lktr$ git log1 --no-merges fs/aufs/*.c | wc -l
-348
-aufs2-2.6.git#aufs2.2-stdalone-38-lktr$ git log1 --no-merges fs/aufs/*.c | wc -l
-685
-aufs1.git#master$ git log1 --no-merges aufs/fs/aufs/*.c | wc -l
-1126
+Is the documentation up2date?
 
-Of cource it won't be 2000 commits to create the patch series you
-wrote. I don't know how large the number will be but I am sure this is
-incredibly tough work both in commiting and reviewing. Is it still
-helpful and really meaningful for you to review? Don't you think it will
-be easier to review the resulted code?
-For example, this branch was created for linux-3.9 when Al Viro wrote
-about the dir mutex lock in copy-up. It has only 20 commits.
+Some files below fs/overlayfs/ have copyright pointing to year 2011 by
+Novell - needs an update?
 
-aufs3-linux.git#mainline-v3.9-rc8-20130428$ git log1 --no-merges fs/aufs/*.c | wc -l
-20
+Thought about a co-maintainer?
 
+Docs could have a pointer to the testsuite by David Howells [1]?
 
-J. R. Okajima
+...etc.
+
+- Sedat -
+
+[1] http://git.infradead.org/users/dhowells/unionmount-testsuite.git
+
+> Thanks,
+> Miklos
+>
+> ---
+> Andy Whitcroft (1):
+>       overlayfs: add statfs support
+>
+> Erez Zadok (1):
+>       overlayfs: implement show_options
+>
+> Miklos Szeredi (11):
+>       vfs: add i_op->dentry_open()
+>       vfs: export do_splice_direct() to modules
+>       vfs: export __inode_permission() to modules
+>       vfs: introduce clone_private_mount()
+>       vfs: export check_sticky()
+>       vfs: add whiteout support
+>       vfs: add RENAME_WHITEOUT
+>       ext4: support RENAME_WHITEOUT
+>       shmem: support RENAME_WHITEOUT
+>       overlay filesystem
+>       fs: limit filesystem stacking depth
+>
+> Neil Brown (1):
+>       overlay: overlay filesystem documentation
+>
+> Sedat Dilek (1):
+>       vfs: dcache: Export d_ancestor to modules
+>
+> ---
+>  Documentation/filesystems/Locking       |   2 +
+>  Documentation/filesystems/overlayfs.txt | 198 +++++++
+>  Documentation/filesystems/vfs.txt       |   7 +
+>  MAINTAINERS                             |   7 +
+>  fs/Kconfig                              |   1 +
+>  fs/Makefile                             |   1 +
+>  fs/btrfs/ioctl.c                        |  20 +-
+>  fs/dcache.c                             |   1 +
+>  fs/ecryptfs/main.c                      |   7 +
+>  fs/ext4/namei.c                         |  95 +++-
+>  fs/internal.h                           |   7 -
+>  fs/namei.c                              |  41 +-
+>  fs/namespace.c                          |  27 +
+>  fs/open.c                               |  23 +-
+>  fs/overlayfs/Kconfig                    |  10 +
+>  fs/overlayfs/Makefile                   |   7 +
+>  fs/overlayfs/copy_up.c                  | 431 +++++++++++++++
+>  fs/overlayfs/dir.c                      | 914 ++++++++++++++++++++++++++++++++
+>  fs/overlayfs/inode.c                    | 408 ++++++++++++++
+>  fs/overlayfs/overlayfs.h                | 187 +++++++
+>  fs/overlayfs/readdir.c                  | 518 ++++++++++++++++++
+>  fs/overlayfs/super.c                    | 762 ++++++++++++++++++++++++++
+>  fs/splice.c                             |   1 +
+>  include/linux/fs.h                      |  37 ++
+>  include/linux/mount.h                   |   3 +
+>  include/uapi/linux/fs.h                 |   1 +
+>  mm/shmem.c                              |  36 +-
+>  27 files changed, 3694 insertions(+), 58 deletions(-)
+>  create mode 100644 Documentation/filesystems/overlayfs.txt
+>  create mode 100644 fs/overlayfs/Kconfig
+>  create mode 100644 fs/overlayfs/Makefile
+>  create mode 100644 fs/overlayfs/copy_up.c
+>  create mode 100644 fs/overlayfs/dir.c
+>  create mode 100644 fs/overlayfs/inode.c
+>  create mode 100644 fs/overlayfs/overlayfs.h
+>  create mode 100644 fs/overlayfs/readdir.c
+>  create mode 100644 fs/overlayfs/super.c
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-fsdevel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
