@@ -1,22 +1,41 @@
 From: Miklos Szeredi <miklos@szeredi.hu>
-Subject: [PATCH] ovl: fix check for cursor
-Date: Mon, 27 Oct 2014 13:43:15 +0100
-Message-ID: <20141027124315.GA3021@tucsk.piliscsaba.szeredi.hu>
+Subject: Re: [PATCH] ovl: fix check for cursor
+Date: Mon, 27 Oct 2014 13:48:48 +0100
+Message-ID: <20141027124848.GB3021@tucsk.piliscsaba.szeredi.hu>
+References: <20141027124315.GA3021@tucsk.piliscsaba.szeredi.hu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-unionfs-owner@vger.kernel.org>
+Received: from mail-wg0-f41.google.com ([74.125.82.41]:60331 "EHLO
+	mail-wg0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751985AbaJ0Msw (ORCPT
+	<rfc822;linux-unionfs@vger.kernel.org>);
+	Mon, 27 Oct 2014 08:48:52 -0400
+Received: by mail-wg0-f41.google.com with SMTP id b13so5587102wgh.12
+        for <linux-unionfs@vger.kernel.org>; Mon, 27 Oct 2014 05:48:51 -0700 (PDT)
 Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
+In-Reply-To: <20141027124315.GA3021@tucsk.piliscsaba.szeredi.hu>
+Sender: linux-unionfs-owner@vger.kernel.org
+List-Id: linux-unionfs@vger.kernel.org
 To: Al Viro <viro@ZenIV.linux.org.uk>
 Cc: Linus Torvalds <torvalds@linux-foundation.org>, Linux-Fsdevel <linux-fsdevel@vger.kernel.org>, Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-unionfs@vger.kernel.org
-List-Id: linux-unionfs@vger.kernel.org
+
+D'oh, I must remember to review own patches *before* sending them, not after...
+
+Here's an updated one.
+
+Thanks,
+Miklos
+---
+
+Subject: ovl: fix check for cursor
+From: Miklos Szeredi <mszeredi@suse.cz>
 
 ovl_cache_entry.name is now an array not a pointer, so it makes no sense
 test for it being NULL.
 
 Detected by coverity.
 
-From: Miklos Szeredi <mszeredi@suse.cz>
 Fixes: 68bf8611076a ("overlayfs: make ovl_cache_entry->name an array instead of pointer")
 Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
 ---
@@ -42,7 +61,7 @@ Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
  	mutex_lock(&dir->d_inode->i_mutex);
  	list_for_each_entry(p, rdd->list, l_node) {
 -		if (!p->name)
-+		if (!p->is_cursor)
++		if (p->is_cursor)
  			continue;
  
  		if (p->type != DT_CHR)
