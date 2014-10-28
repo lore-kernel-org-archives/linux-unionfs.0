@@ -1,9 +1,8 @@
-From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+From: Al Viro <viro@ZenIV.linux.org.uk>
 Subject: Re: [GIT PULL] overlay filesystem v25
-Date: Mon, 27 Oct 2014 10:36:21 -0700
-Message-ID: <20141027173621.GG5718@linux.vnet.ibm.com>
-References: <20141023232539.GA4662@tucsk.piliscsaba.szeredi.hu>
- <20141024022055.GH7996@ZenIV.linux.org.uk>
+Date: Tue, 28 Oct 2014 01:12:14 +0000
+Message-ID: <20141028011214.GZ7996@ZenIV.linux.org.uk>
+References: <20141024022055.GH7996@ZenIV.linux.org.uk>
  <20141024032422.GI7996@ZenIV.linux.org.uk>
  <CAJfpegt-X_Cd8B5H65keshhhuwH2-HPpaBC30atKeS3QjaariA@mail.gmail.com>
  <20141025081845.GJ7996@ZenIV.linux.org.uk>
@@ -12,111 +11,33 @@ References: <20141023232539.GA4662@tucsk.piliscsaba.szeredi.hu>
  <CAJfpegucroRzo0NHTz=4N0WcrB2oDC0eDiZXk=aKSjc8vdYDjw@mail.gmail.com>
  <20141027155901.GE5718@linux.vnet.ibm.com>
  <20141027172800.GW7996@ZenIV.linux.org.uk>
-Reply-To: paulmck@linux.vnet.ibm.com
+ <20141027173621.GG5718@linux.vnet.ibm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from e7.ny.us.ibm.com ([32.97.182.137]:34021 "EHLO e7.ny.us.ibm.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751646AbaJ0RkM (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-	Mon, 27 Oct 2014 13:40:12 -0400
-Received: from /spool/local
-	by e7.ny.us.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
-	for <linux-unionfs@vger.kernel.org> from <paulmck@linux.vnet.ibm.com>;
-	Mon, 27 Oct 2014 13:40:12 -0400
+Received: from zeniv.linux.org.uk ([195.92.253.2]:45190 "EHLO
+	ZenIV.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752315AbaJ1BMR (ORCPT
+	<rfc822;linux-unionfs@vger.kernel.org>);
+	Mon, 27 Oct 2014 21:12:17 -0400
 Content-Disposition: inline
-In-Reply-To: <20141027172800.GW7996@ZenIV.linux.org.uk>
+In-Reply-To: <20141027173621.GG5718@linux.vnet.ibm.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Al Viro <viro@ZenIV.linux.org.uk>
+To: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
 Cc: Miklos Szeredi <miklos@szeredi.hu>, Linus Torvalds <torvalds@linux-foundation.org>, Linux-Fsdevel <linux-fsdevel@vger.kernel.org>, Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-unionfs@vger.kernel.org
 
-On Mon, Oct 27, 2014 at 05:28:01PM +0000, Al Viro wrote:
-> On Mon, Oct 27, 2014 at 08:59:01AM -0700, Paul E. McKenney wrote:
+On Mon, Oct 27, 2014 at 10:36:21AM -0700, Paul E. McKenney wrote:
+> Code making direct use of smp_read_barrier_depends() is harder to read,
+> in my experience, but good point on the sparse noise.  Maybe a new
+> lockless_dereference() primitive?  Maybe something like the following?
+> (Untested, probably does not even build.)
 > 
-> > Indeed, life is hard here.  Keep in mind that lock acquisition is not
-> > guaranteed to prevent prior operations from being reordered into the
-> > critical section, possibly as follows:
-> > 
-> > 	CPU1:
-> > 	  grab lock
-> > 	  if (!global)
-> > 	      global = p;
-> > 	  /* Assume all of CPU2's accesses happen here. */
-> > 	  p->foo = 1;
-> 
-> A bit of context: p is a local pointer to struct file here and alloc is
-> opening it...
+> #define lockless_dereference(p) \
+> ({ \
+> 	typeof(*p) *_________p1 = ACCESS_ONCE(p); \
+> 	smp_read_barrier_depends(); /* Dependency order vs. p above. */ \
+> 	_________p1; \
+> })
 
-OK, good to know.  ;-)
-
-> > This clearly allows CPU2 to execute as follows:
-> > 
-> > 	CPU2:
-> > 	  p = global; /* gets p */
-> > 	  if (p) /* non-NULL */
-> > 	  	q = p->foo; /* might not be 1 */
-> > 
-> > Not only that, on DEC Alpha, even if CPU1's accesses are ordered, CPU2's
-> > accesses can be misordered.  You need rcu_dereference() or the combination
-> > of ACCESS_ONCE() and smp_read_barrier_depends() to avoid this issue.
-> > As always, see http://www.openvms.compaq.com/wizard/wiz_2637.html for
-> > more info.
-> > 
-> > So no, there is no guarantee.  I am assuming that the lock grabbed by
-> > CPU1 guards all assignments to "global", otherwise the code needs further
-> > help.  I am further assuming that the memory pointed to by CPU1's "p"
-> > is inaccessible to any other CPU, as in CPU1 just allocated the memory.
-> > Otherwise, the assignment "p->foo = 1" is questionable.  And finally,
-> > I am assuming that p->foo stays constant once it has been made
-> > accessible to readers.
-> > 
-> > But the following should work:
-> > 
-> > 	CPU1:
-> > 	  p->foo = 1;  /* Assumes p is local. */
-> > 	  smp_mb__before_spinlock();
-> > 	  grab lock
-> > 	  if (!global)  /* Assumes lock protects all assignments to global. */
-> > 	      global = p;
-> > 
-> > 	CPU2:
-> > 	  p = rcu_dereference(global);
-> > 	  if (p)
-> > 	     q = p->foo; /* Assumes p->foo constant once visible to readers. */
-> > 	     		 /* Also assumes p and q are local. */
-> > 
-> > If the assumptions called out in the comments do not hold, you at least
-> > need ACCESS_ONCE(), and perhaps even more synchronization.  For more info
-> > on ACCESS_ONCE(), Jon's LWN article is at http://lwn.net/Articles/508991/.
-> 
-> First of all, this "p->foo = 1" is a shorthand for initialization of
-> struct file done by opening a file.  What you are saying is that it
-> can leak past the point where we stick a pointer to freshly opened
-> file into a place where another CPU can see it, but not past the
-> barrier in dropping the lock, right?
-
-Exactly!
-
-I should also add that smp_mb__before_spinlock() implies smp_wmb(), but
-nothing more.  But that is OK because smp_wmb() suffices in this case.
-
-> And you are suggesting rcu_dereference() as a way to bring the required
-> barriers in.  Ouch...  The names are really bad, but there's another
-> fun issue - rcu_dereference brings in sparse noise.  Wouldn't direct use
-> of smp_read_barrier_depends() be cleaner, anyway?
-
-Code making direct use of smp_read_barrier_depends() is harder to read,
-in my experience, but good point on the sparse noise.  Maybe a new
-lockless_dereference() primitive?  Maybe something like the following?
-(Untested, probably does not even build.)
-
-#define lockless_dereference(p) \
-({ \
-	typeof(*p) *_________p1 = ACCESS_ONCE(p); \
-	smp_read_barrier_depends(); /* Dependency order vs. p above. */ \
-	_________p1; \
-})
-
-							Thanx, Paul
-
+Hmm...  Where would you prefer to put it?  rcupdate.h?
