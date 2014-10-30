@@ -1,41 +1,38 @@
-From: David Howells <dhowells@redhat.com>
-Subject: [PATCH] Overlayfs: ovl_fill_merge() should use container_of()
+From: Miklos Szeredi <miklos@szeredi.hu>
+Subject: Re: [PATCH] Overlayfs: ovl_fill_merge() should use container_of()
  rather than direct cast
-Date: Thu, 30 Oct 2014 14:10:05 +0000
-Message-ID: <20141030141004.28203.79687.stgit@warthog.procyon.org.uk>
+Date: Thu, 30 Oct 2014 15:36:02 +0100
+Message-ID: <CAJfpegv5dqfgze-9pxDD-O19tctS-4P12NsO2oCo5SF1bqhhHA@mail.gmail.com>
+References: <20141030141004.28203.79687.stgit@warthog.procyon.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: viro@ZenIV.linux.org.uk, miklos@szeredi.hu
-Cc: dhowells@redhat.com, linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-unionfs-owner@vger.kernel.org>
+Received: from mail-qg0-f42.google.com ([209.85.192.42]:48392 "EHLO
+	mail-qg0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759963AbaJ3OgE (ORCPT
+	<rfc822;linux-unionfs@vger.kernel.org>);
+	Thu, 30 Oct 2014 10:36:04 -0400
+Received: by mail-qg0-f42.google.com with SMTP id i50so3121515qgf.15
+        for <linux-unionfs@vger.kernel.org>; Thu, 30 Oct 2014 07:36:02 -0700 (PDT)
+In-Reply-To: <20141030141004.28203.79687.stgit@warthog.procyon.org.uk>
+Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
+To: David Howells <dhowells@redhat.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>, Linux-Fsdevel <linux-fsdevel@vger.kernel.org>, linux-unionfs@vger.kernel.org, Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-ovl_fill_merge() effectively directly casts the buf pointer to an
-ovl_readdir_data struct pointer, but the pointer actually points to the
-dir_context struct contained therein.
+On Thu, Oct 30, 2014 at 3:10 PM, David Howells <dhowells@redhat.com> wrote:
+> ovl_fill_merge() effectively directly casts the buf pointer to an
+> ovl_readdir_data struct pointer, but the pointer actually points to the
+> dir_context struct contained therein.
+>
+> So use container_of() instead.
+>
+> Signed-off-by: David Howells <dhowells@redhat.com>
 
-So use container_of() instead.
+Okay, but why don't we have a typed argument of actor then?
 
-Signed-off-by: David Howells <dhowells@redhat.com>
----
+Being typeless is encouraging exactly the kind of games overlayfs is
+doing (probably copied mindlessly from some other part of the kernel).
 
- fs/overlayfs/readdir.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
-
-diff --git a/fs/overlayfs/readdir.c b/fs/overlayfs/readdir.c
-index 910553f37aca..d142c2bf8f1e 100644
---- a/fs/overlayfs/readdir.c
-+++ b/fs/overlayfs/readdir.c
-@@ -181,7 +181,9 @@ static void ovl_cache_put(struct ovl_dir_file *od, struct dentry *dentry)
- static int ovl_fill_merge(void *buf, const char *name, int namelen,
- 			  loff_t offset, u64 ino, unsigned int d_type)
- {
--	struct ovl_readdir_data *rdd = buf;
-+	struct dir_context *ctx = buf;
-+	struct ovl_readdir_data *rdd =
-+		container_of(ctx, struct ovl_readdir_data, ctx);
- 
- 	rdd->count++;
- 	if (!rdd->is_merge)
+Thanks,
+Miklos
