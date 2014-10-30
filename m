@@ -1,59 +1,41 @@
-From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-Subject: Re: [GIT PULL] overlay filesystem v25
-Date: Tue, 28 Oct 2014 16:25:57 -0700
-Message-ID: <20141028232557.GF5718@linux.vnet.ibm.com>
-References: <20141025081845.GJ7996@ZenIV.linux.org.uk>
- <CAJfpegvM8d-cizf=3KmTSFVgAYPBDp_0fQAh+G2Q87u=taXm3A@mail.gmail.com>
- <20141025170609.GK7996@ZenIV.linux.org.uk>
- <CAJfpegucroRzo0NHTz=4N0WcrB2oDC0eDiZXk=aKSjc8vdYDjw@mail.gmail.com>
- <20141027155901.GE5718@linux.vnet.ibm.com>
- <20141027172800.GW7996@ZenIV.linux.org.uk>
- <20141027173621.GG5718@linux.vnet.ibm.com>
- <20141028011214.GZ7996@ZenIV.linux.org.uk>
- <20141028041127.GM5718@linux.vnet.ibm.com>
- <20141028225512.GD7996@ZenIV.linux.org.uk>
-Reply-To: paulmck@linux.vnet.ibm.com
+From: David Howells <dhowells@redhat.com>
+Subject: [PATCH] Overlayfs: ovl_fill_merge() should use container_of()
+ rather than direct cast
+Date: Thu, 30 Oct 2014 14:10:05 +0000
+Message-ID: <20141030141004.28203.79687.stgit@warthog.procyon.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20141028225512.GD7996@ZenIV.linux.org.uk>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Al Viro <viro@ZenIV.linux.org.uk>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, Linus Torvalds <torvalds@linux-foundation.org>, Linux-Fsdevel <linux-fsdevel@vger.kernel.org>, Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-unionfs@vger.kernel.org
+To: viro@ZenIV.linux.org.uk, miklos@szeredi.hu
+Cc: dhowells@redhat.com, linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 
-On Tue, Oct 28, 2014 at 10:55:13PM +0000, Al Viro wrote:
-> On Mon, Oct 27, 2014 at 09:11:27PM -0700, Paul E. McKenney wrote:
-> > On Tue, Oct 28, 2014 at 01:12:14AM +0000, Al Viro wrote:
-> > > On Mon, Oct 27, 2014 at 10:36:21AM -0700, Paul E. McKenney wrote:
-> > > > Code making direct use of smp_read_barrier_depends() is harder to read,
-> > > > in my experience, but good point on the sparse noise.  Maybe a new
-> > > > lockless_dereference() primitive?  Maybe something like the following?
-> > > > (Untested, probably does not even build.)
-> > > > 
-> > > > #define lockless_dereference(p) \
-> > > > ({ \
-> > > > 	typeof(*p) *_________p1 = ACCESS_ONCE(p); \
-> > > > 	smp_read_barrier_depends(); /* Dependency order vs. p above. */ \
-> > > > 	_________p1; \
-> > > > })
-> > > 
-> > > Hmm...  Where would you prefer to put it?  rcupdate.h?
-> > 
-> > Good a place as any, I guess.  Please see patch below.  Left to myself,
-> > I would send this along for the next merge window, but please let me
-> > know if you would like it sooner.
-> 
-> It's needed sooner, unfortunately.  Guys, could you take a look at
-> vfs.git#for-linus and comment?
+ovl_fill_merge() effectively directly casts the buf pointer to an
+ovl_readdir_data struct pointer, but the pointer actually points to the
+dir_context struct contained therein.
 
-The version in your tree looks good.  I will drop my commit in favor
-of yours.
+So use container_of() instead.
 
-The use of lockless_dereference() and smp_mb__before_spinlock() in
-d45f00ae43 (overlayfs: barriers for opening upper-layer directory)
-looks fine to me.  Only nit is lack of space between "=" and
-lockless_dereference().
+Signed-off-by: David Howells <dhowells@redhat.com>
+---
 
-							Thanx, Paul
+ fs/overlayfs/readdir.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/fs/overlayfs/readdir.c b/fs/overlayfs/readdir.c
+index 910553f37aca..d142c2bf8f1e 100644
+--- a/fs/overlayfs/readdir.c
++++ b/fs/overlayfs/readdir.c
+@@ -181,7 +181,9 @@ static void ovl_cache_put(struct ovl_dir_file *od, struct dentry *dentry)
+ static int ovl_fill_merge(void *buf, const char *name, int namelen,
+ 			  loff_t offset, u64 ino, unsigned int d_type)
+ {
+-	struct ovl_readdir_data *rdd = buf;
++	struct dir_context *ctx = buf;
++	struct ovl_readdir_data *rdd =
++		container_of(ctx, struct ovl_readdir_data, ctx);
+ 
+ 	rdd->count++;
+ 	if (!rdd->is_merge)
