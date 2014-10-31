@@ -1,36 +1,51 @@
 From: Miklos Szeredi <miklos@szeredi.hu>
-Subject: Re: [PATCH] Overlayfs: ovl_fill_merge() should use container_of()
- rather than direct cast
-Date: Thu, 30 Oct 2014 17:37:34 +0100
-Message-ID: <20141030163734.GE3021@tucsk.piliscsaba.szeredi.hu>
+Subject: [PATCH fixed] vfs: make first argument of dir_context.actor typed
+Date: Fri, 31 Oct 2014 10:46:39 +0100
+Message-ID: <20141031094639.GF3021@tucsk.piliscsaba.szeredi.hu>
 References: <CAJfpegv5dqfgze-9pxDD-O19tctS-4P12NsO2oCo5SF1bqhhHA@mail.gmail.com>
  <20141030141004.28203.79687.stgit@warthog.procyon.org.uk>
  <5760.1414680426@warthog.procyon.org.uk>
+ <20141030163734.GE3021@tucsk.piliscsaba.szeredi.hu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-fsdevel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <5760.1414680426@warthog.procyon.org.uk>
+In-Reply-To: <20141030163734.GE3021@tucsk.piliscsaba.szeredi.hu>
 Sender: linux-fsdevel-owner@vger.kernel.org
-To: David Howells <dhowells@redhat.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>, Linux-Fsdevel <linux-fsdevel@vger.kernel.org>, linux-unionfs@vger.kernel.org, Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: Al Viro <viro@zeniv.linux.org.uk>
+Cc: David Howells <dhowells@redhat.com>, Linux-Fsdevel <linux-fsdevel@vger.kernel.org>, linux-unionfs@vger.kernel.org, Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-unionfs@vger.kernel.org
 
-On Thu, Oct 30, 2014 at 02:47:06PM +0000, David Howells wrote:
-> Miklos Szeredi <miklos@szeredi.hu> wrote:
-> 
-> > Okay, but why don't we have a typed argument of actor then?
-> 
-> You should ask that one to Al.
-
-
-Subject: vfs: make first argument of dir_context.actor typed
 From: Miklos Szeredi <mszeredi@suse.cz>
 
+Reported-by: David Howells <dhowells@redhat.com>
 Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
 ---
-diff --git a/arch/alpha/kernel/osf_sys.c b/arch/alpha/kernel/osf_sys.c
-index f9c732e18284..e51f578636a5 100644
+Here's one that actually compiles...  My only excuse for last night's one is the
+general chaos after my 2 year old drank an unknown amount of rum (he's all
+right, apparently he had the sense to refrain from excessive alcohol abuse).
+
+ arch/alpha/kernel/osf_sys.c                     |    7 ++++---
+ arch/parisc/hpux/fs.c                           |    7 ++++---
+ drivers/staging/lustre/lustre/llite/llite_nfs.c |    8 +++++---
+ fs/afs/dir.c                                    |   11 ++++++-----
+ fs/compat.c                                     |   21 +++++++++++++--------
+ fs/ecryptfs/file.c                              |    6 +++---
+ fs/exportfs/expfs.c                             |    5 +++--
+ fs/fat/dir.c                                    |    5 +++--
+ fs/gfs2/export.c                                |    8 +++++---
+ fs/hppfs/hppfs.c                                |    5 +++--
+ fs/nfsd/nfs4recover.c                           |    5 +++--
+ fs/nfsd/vfs.c                                   |   12 +++++++-----
+ fs/nfsd/vfs.h                                   |    4 ++--
+ fs/ocfs2/dir.c                                  |    8 +++++---
+ fs/ocfs2/journal.c                              |    8 +++++---
+ fs/overlayfs/readdir.c                          |    8 +++++---
+ fs/readdir.c                                    |   21 ++++++++++++---------
+ fs/reiserfs/xattr.c                             |   15 +++++++++------
+ include/linux/fs.h                              |    3 ++-
+ 19 files changed, 99 insertions(+), 68 deletions(-)
+
 --- a/arch/alpha/kernel/osf_sys.c
 +++ b/arch/alpha/kernel/osf_sys.c
 @@ -104,11 +104,12 @@ struct osf_dirent_callback {
@@ -49,8 +64,6 @@ index f9c732e18284..e51f578636a5 100644
  	unsigned int reclen = ALIGN(NAME_OFFSET + namlen + 1, sizeof(u32));
  	unsigned int d_ino;
  
-diff --git a/arch/parisc/hpux/fs.c b/arch/parisc/hpux/fs.c
-index 2bedafea3d94..97a7bf8df348 100644
 --- a/arch/parisc/hpux/fs.c
 +++ b/arch/parisc/hpux/fs.c
 @@ -56,11 +56,12 @@ struct getdents_callback {
@@ -69,11 +82,9 @@ index 2bedafea3d94..97a7bf8df348 100644
  	ino_t d_ino;
  	int reclen = ALIGN(NAME_OFFSET(dirent) + namlen + 1, sizeof(long));
  
-diff --git a/drivers/staging/lustre/lustre/llite/llite_nfs.c b/drivers/staging/lustre/lustre/llite/llite_nfs.c
-index ae3a12ab7fa1..243a7840457f 100644
 --- a/drivers/staging/lustre/lustre/llite/llite_nfs.c
 +++ b/drivers/staging/lustre/lustre/llite/llite_nfs.c
-@@ -207,13 +207,15 @@ static int ll_encode_fh(struct inode *inode, __u32 *fh, int *plen,
+@@ -207,13 +207,15 @@ static int ll_encode_fh(struct inode *in
  	return LUSTRE_NFS_FID;
  }
  
@@ -92,11 +103,20 @@ index ae3a12ab7fa1..243a7840457f 100644
  	struct lu_fid fid;
  
  	fid_le_to_cpu(&fid, &lde->lde_fid);
-diff --git a/fs/afs/dir.c b/fs/afs/dir.c
-index a1645b88fe8a..5c835c2fd9d4 100644
 --- a/fs/afs/dir.c
 +++ b/fs/afs/dir.c
-@@ -391,10 +391,11 @@ static int afs_readdir(struct file *file, struct dir_context *ctx)
+@@ -26,8 +26,8 @@ static int afs_readdir(struct file *file
+ static int afs_d_revalidate(struct dentry *dentry, unsigned int flags);
+ static int afs_d_delete(const struct dentry *dentry);
+ static void afs_d_release(struct dentry *dentry);
+-static int afs_lookup_filldir(void *_cookie, const char *name, int nlen,
+-				  loff_t fpos, u64 ino, unsigned dtype);
++static int afs_lookup_filldir(struct dir_context *ctx, const char *name,
++			      int nlen, loff_t fpos, u64 ino, unsigned dtype);
+ static int afs_create(struct inode *dir, struct dentry *dentry, umode_t mode,
+ 		      bool excl);
+ static int afs_mkdir(struct inode *dir, struct dentry *dentry, umode_t mode);
+@@ -391,10 +391,11 @@ static int afs_readdir(struct file *file
   * - if afs_dir_iterate_block() spots this function, it'll pass the FID
   *   uniquifier through dtype
   */
@@ -111,8 +131,6 @@ index a1645b88fe8a..5c835c2fd9d4 100644
  
  	_enter("{%s,%u},%s,%u,,%llu,%u",
  	       cookie->name.name, cookie->name.len, name, nlen,
-diff --git a/fs/compat.c b/fs/compat.c
-index b13df99f3534..6fd272d455e4 100644
 --- a/fs/compat.c
 +++ b/fs/compat.c
 @@ -847,10 +847,12 @@ struct compat_readdir_callback {
@@ -163,8 +181,6 @@ index b13df99f3534..6fd272d455e4 100644
  	int reclen = ALIGN(offsetof(struct linux_dirent64, d_name) + namlen + 1,
  		sizeof(u64));
  	u64 off;
-diff --git a/fs/ecryptfs/file.c b/fs/ecryptfs/file.c
-index f5bce9096555..80154ec4f8c2 100644
 --- a/fs/ecryptfs/file.c
 +++ b/fs/ecryptfs/file.c
 @@ -75,11 +75,11 @@ struct ecryptfs_getdents_callback {
@@ -182,8 +198,6 @@ index f5bce9096555..80154ec4f8c2 100644
  	size_t name_size;
  	char *name;
  	int rc;
-diff --git a/fs/exportfs/expfs.c b/fs/exportfs/expfs.c
-index b01fbfb51f43..a2b350ddd402 100644
 --- a/fs/exportfs/expfs.c
 +++ b/fs/exportfs/expfs.c
 @@ -241,10 +241,11 @@ struct getdents_callback {
@@ -200,11 +214,9 @@ index b01fbfb51f43..a2b350ddd402 100644
  	int result = 0;
  
  	buf->sequence++;
-diff --git a/fs/fat/dir.c b/fs/fat/dir.c
-index 3963ede84eb0..c5d6bb939d19 100644
 --- a/fs/fat/dir.c
 +++ b/fs/fat/dir.c
-@@ -702,10 +702,11 @@ static int fat_readdir(struct file *file, struct dir_context *ctx)
+@@ -702,10 +702,11 @@ static int fat_readdir(struct file *file
  }
  
  #define FAT_IOCTL_FILLDIR_FUNC(func, dirent_type)			   \
@@ -218,8 +230,6 @@ index 3963ede84eb0..c5d6bb939d19 100644
  	struct dirent_type __user *d1 = buf->dirent;			   \
  	struct dirent_type __user *d2 = d1 + 1;				   \
  									   \
-diff --git a/fs/gfs2/export.c b/fs/gfs2/export.c
-index 8b9b3775e2e7..c41d255b6a7b 100644
 --- a/fs/gfs2/export.c
 +++ b/fs/gfs2/export.c
 @@ -69,10 +69,12 @@ struct get_name_filldir {
@@ -238,8 +248,6 @@ index 8b9b3775e2e7..c41d255b6a7b 100644
  
  	if (inum != gnfd->inum.no_addr)
  		return 0;
-diff --git a/fs/hppfs/hppfs.c b/fs/hppfs/hppfs.c
-index 4338ff32959d..5f2755117ce7 100644
 --- a/fs/hppfs/hppfs.c
 +++ b/fs/hppfs/hppfs.c
 @@ -548,10 +548,11 @@ struct hppfs_dirent {
@@ -256,8 +264,6 @@ index 4338ff32959d..5f2755117ce7 100644
  
  	if (file_removed(dirent->dentry, name))
  		return 0;
-diff --git a/fs/nfsd/nfs4recover.c b/fs/nfsd/nfs4recover.c
-index a25490ae6c62..0e71a0dd58ca 100644
 --- a/fs/nfsd/nfs4recover.c
 +++ b/fs/nfsd/nfs4recover.c
 @@ -245,10 +245,11 @@ struct nfs4_dir_ctx {
@@ -274,8 +280,6 @@ index a25490ae6c62..0e71a0dd58ca 100644
  	struct name_list *entry;
  
  	if (namlen != HEXDIR_LEN - 1)
-diff --git a/fs/nfsd/vfs.c b/fs/nfsd/vfs.c
-index 989129e2d6ea..161d2d51b6f2 100644
 --- a/fs/nfsd/vfs.c
 +++ b/fs/nfsd/vfs.c
 @@ -1819,10 +1819,12 @@ struct readdir_data {
@@ -294,7 +298,7 @@ index 989129e2d6ea..161d2d51b6f2 100644
  	struct buffered_dirent *de = (void *)(buf->dirent + buf->used);
  	unsigned int reclen;
  
-@@ -1842,7 +1844,7 @@ static int nfsd_buffered_filldir(void *__buf, const char *name, int namlen,
+@@ -1842,7 +1844,7 @@ static int nfsd_buffered_filldir(void *_
  	return 0;
  }
  
@@ -303,7 +307,7 @@ index 989129e2d6ea..161d2d51b6f2 100644
  				    struct readdir_cd *cdp, loff_t *offsetp)
  {
  	struct buffered_dirent *de;
-@@ -1926,7 +1928,7 @@ static __be32 nfsd_buffered_readdir(struct file *file, filldir_t func,
+@@ -1926,7 +1928,7 @@ static __be32 nfsd_buffered_readdir(stru
   */
  __be32
  nfsd_readdir(struct svc_rqst *rqstp, struct svc_fh *fhp, loff_t *offsetp, 
@@ -312,8 +316,6 @@ index 989129e2d6ea..161d2d51b6f2 100644
  {
  	__be32		err;
  	struct file	*file;
-diff --git a/fs/nfsd/vfs.h b/fs/nfsd/vfs.h
-index c2ff3f14e5f6..b1796d6ee538 100644
 --- a/fs/nfsd/vfs.h
 +++ b/fs/nfsd/vfs.h
 @@ -36,7 +36,7 @@
@@ -334,8 +336,6 @@ index c2ff3f14e5f6..b1796d6ee538 100644
  __be32		nfsd_statfs(struct svc_rqst *, struct svc_fh *,
  				struct kstatfs *, int access);
  
-diff --git a/fs/ocfs2/dir.c b/fs/ocfs2/dir.c
-index 0717662b4aef..c43d9b4a1ec0 100644
 --- a/fs/ocfs2/dir.c
 +++ b/fs/ocfs2/dir.c
 @@ -2073,10 +2073,12 @@ struct ocfs2_empty_dir_priv {
@@ -354,8 +354,6 @@ index 0717662b4aef..c43d9b4a1ec0 100644
  
  	/*
  	 * Check the positions of "." and ".." records to be sure
-diff --git a/fs/ocfs2/journal.c b/fs/ocfs2/journal.c
-index 4b0c68849b36..4f502382180f 100644
 --- a/fs/ocfs2/journal.c
 +++ b/fs/ocfs2/journal.c
 @@ -1982,10 +1982,12 @@ struct ocfs2_orphan_filldir_priv {
@@ -374,11 +372,9 @@ index 4b0c68849b36..4f502382180f 100644
  	struct inode *iter;
  
  	if (name_len == 1 && !strncmp(".", name, 1))
-diff --git a/fs/overlayfs/readdir.c b/fs/overlayfs/readdir.c
-index 910553f37aca..a5f8a81317cd 100644
 --- a/fs/overlayfs/readdir.c
 +++ b/fs/overlayfs/readdir.c
-@@ -178,10 +178,12 @@ static void ovl_cache_put(struct ovl_dir_file *od, struct dentry *dentry)
+@@ -178,10 +178,12 @@ static void ovl_cache_put(struct ovl_dir
  	}
  }
  
@@ -394,8 +390,6 @@ index 910553f37aca..a5f8a81317cd 100644
  
  	rdd->count++;
  	if (!rdd->is_merge)
-diff --git a/fs/readdir.c b/fs/readdir.c
-index 33fd92208cb7..dc68bf15ed28 100644
 --- a/fs/readdir.c
 +++ b/fs/readdir.c
 @@ -74,10 +74,11 @@ struct readdir_callback {
@@ -435,7 +429,7 @@ index 33fd92208cb7..dc68bf15ed28 100644
  
 -static int filldir64(void * __buf, const char * name, int namlen, loff_t offset,
 -		     u64 ino, unsigned int d_type)
-+static int filldir64(struct dir_context ctx, const char *name, int namlen,
++static int filldir64(struct dir_context *ctx, const char *name, int namlen,
 +		     loff_t offset, u64 ino, unsigned int d_type)
  {
  	struct linux_dirent64 __user *dirent;
@@ -445,8 +439,6 @@ index 33fd92208cb7..dc68bf15ed28 100644
  	int reclen = ALIGN(offsetof(struct linux_dirent64, d_name) + namlen + 1,
  		sizeof(u64));
  
-diff --git a/fs/reiserfs/xattr.c b/fs/reiserfs/xattr.c
-index 7c36898af402..628248ce2f8b 100644
 --- a/fs/reiserfs/xattr.c
 +++ b/fs/reiserfs/xattr.c
 @@ -188,10 +188,11 @@ struct reiserfs_dentry_buf {
@@ -480,19 +472,15 @@ index 7c36898af402..628248ce2f8b 100644
  	size_t size;
  
  	if (name[0] != '.' ||
-diff --git a/include/linux/fs.h b/include/linux/fs.h
-index 4e41a4a331bb..59dd37ec6a62 100644
 --- a/include/linux/fs.h
 +++ b/include/linux/fs.h
-@@ -1464,7 +1464,10 @@ int fiemap_check_flags(struct fiemap_extent_info *fieinfo, u32 fs_flags);
+@@ -1464,7 +1464,8 @@ int fiemap_check_flags(struct fiemap_ext
   * This allows the kernel to read directories into kernel space or
   * to have different dirent layouts depending on the binary type.
   */
 -typedef int (*filldir_t)(void *, const char *, int, loff_t, u64, unsigned);
 +struct dir_context;
-+typedef int (*filldir_t)(struct dir_context *, const char *, int, loff_t, u64,
-+			 unsigned);
-+
++typedef int (*filldir_t)(struct dir_context *, const char *, int, loff_t, u64, unsigned);
  struct dir_context {
  	const filldir_t actor;
  	loff_t pos;
