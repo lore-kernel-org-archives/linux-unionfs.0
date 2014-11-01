@@ -1,28 +1,29 @@
-From: Al Viro <viro@ZenIV.linux.org.uk>
-Subject: Re: [PATCH] ovl: initialize ->is_cursor
-Date: Fri, 31 Oct 2014 21:54:29 +0000
-Message-ID: <20141031215429.GN7996@ZenIV.linux.org.uk>
-References: <20141031190242.GA19099@tucsk.piliscsaba.szeredi.hu>
+From: "A. Wan" <jm@mokwan.com>
+Subject: Re: read-only upperdir since overlayfs.v22 or later
+Date: Sat, 1 Nov 2014 06:37:13 -0700
+Message-ID: <322e0856050a21eed8ebe33b34cefebe.squirrel@www.anemaid>
+Reply-To: jm@mokwan.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from zeniv.linux.org.uk ([195.92.253.2]:54567 "EHLO
-	ZenIV.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759729AbaJaVyb (ORCPT
-	<rfc822;linux-unionfs@vger.kernel.org>);
-	Fri, 31 Oct 2014 17:54:31 -0400
-Content-Disposition: inline
-In-Reply-To: <20141031190242.GA19099@tucsk.piliscsaba.szeredi.hu>
+Received: from mx2.webnames.ca ([65.39.140.87]:46836 "EHLO mx2.webnames.ca"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756389AbaKANtO (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+	Sat, 1 Nov 2014 09:49:14 -0400
+Received: from anemaid.no-ip.org (d207-216-185-133.bchsia.telus.net [207.216.185.133]) by mx2.webnames.ca with ESMTP id cDZm2EEft9jsOQ5A for <linux-unionfs@vger.kernel.org>; Sat, 01 Nov 2014 06:37:24 -0700 (PDT)
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: Linux-Fsdevel <linux-fsdevel@vger.kernel.org>, linux-unionfs@vger.kernel.org, Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: linux-unionfs@vger.kernel.org
 
-On Fri, Oct 31, 2014 at 08:02:42PM +0100, Miklos Szeredi wrote:
-> From: Miklos Szeredi <mszeredi@suse.cz>
-> 
-> Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
-> ---
-> This goes on top of "ovl: fix check for cursor".
+Is it impossible to have a read-only upperdir with overlayfs.v22 or later
+since a read-write workdir must be on the same mount as upperdir?
 
-Applied
+Basically I would like to be able to stack more than one read-only layer
+beneath a read-write top layer.
+
+Sincerely,
+Alex Wan
+
+
+
