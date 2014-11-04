@@ -1,63 +1,41 @@
-From: Miklos Szeredi <miklos@szeredi.hu>
+From: Jordi Pujol Palomer <jordipujolp@gmail.com>
 Subject: Re: overlayfs 3.18-rc3 General protection fault
-Date: Tue, 4 Nov 2014 16:11:03 +0100
-Message-ID: <20141104151103.GA2540@tucsk.piliscsaba.szeredi.hu>
+Date: Tue, 4 Nov 2014 17:03:53 +0100
+Message-ID: <20141104170353.471e01d6@gmail.com>
 References: <20141104135408.16f70754@gmail.com>
+	<20141104151103.GA2540@tucsk.piliscsaba.szeredi.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wi0-f181.google.com ([209.85.212.181]:41018 "EHLO
-	mail-wi0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754163AbaKDPLL (ORCPT
+Received: from mail-wg0-f48.google.com ([74.125.82.48]:54787 "EHLO
+	mail-wg0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753663AbaKDQD6 convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-unionfs@vger.kernel.org>);
-	Tue, 4 Nov 2014 10:11:11 -0500
-Received: by mail-wi0-f181.google.com with SMTP id n3so9565893wiv.8
-        for <linux-unionfs@vger.kernel.org>; Tue, 04 Nov 2014 07:11:10 -0800 (PST)
-Content-Disposition: inline
-In-Reply-To: <20141104135408.16f70754@gmail.com>
+	Tue, 4 Nov 2014 11:03:58 -0500
+Received: by mail-wg0-f48.google.com with SMTP id m15so8476806wgh.35
+        for <linux-unionfs@vger.kernel.org>; Tue, 04 Nov 2014 08:03:56 -0800 (PST)
+In-Reply-To: <20141104151103.GA2540@tucsk.piliscsaba.szeredi.hu>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Jordi Pujol Palomer <jordipujolp@gmail.com>
+To: Miklos Szeredi <miklos@szeredi.hu>
 Cc: linux-unionfs@vger.kernel.org, Al Viro <viro@zeniv.linux.org.uk>
 
-On Tue, Nov 04, 2014 at 01:54:08PM +0100, Jordi Pujol Palomer wrote:
-> Hello,
-> 
-> After a little time running kernel 3.18-rc3 and
-> integrated experimental overlayfs the attached error occurs.
-> 
-> more info about the system and kernel config is available in:
-> 
-> http://jordipujol.ddns.net/debian/testing-overlayfs-3.18-rc3/
+EL Tue, 4 Nov 2014 16:11:03 +0100
+Miklos Szeredi <miklos@szeredi.hu> escrigu=C3=A9:
 
-Thanks for the report.  Could you please try the following patch, which should
-fix the Oops.
+> Thanks for the report.  Could you please try the following patch,
+> which should fix the Oops.
+
+OK, compiled and tested=20
+it works !
 
 Thanks,
-Miklos
----
 
-Subject: ovl: don't poison cursor
-From: Miklos Szeredi <mszeredi@suse.cz>
+Jordi Pujol
 
-ovl_cache_put() can be called from ovl_dir_reset() if the cache needs to be
-rebuilt.  We did list_del() on the cursor, which results in an Oops on the
-poisoned pointer in ovl_seek_cursor().
-
-Reported-by: Jordi Pujol Palomer <jordipujolp@gmail.com>
-Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
----
- fs/overlayfs/readdir.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
---- a/fs/overlayfs/readdir.c
-+++ b/fs/overlayfs/readdir.c
-@@ -168,7 +168,7 @@ static void ovl_cache_put(struct ovl_dir
- {
- 	struct ovl_dir_cache *cache = od->cache;
- 
--	list_del(&od->cursor.l_node);
-+	list_del_init(&od->cursor.l_node);
- 	WARN_ON(cache->refcount <= 0);
- 	cache->refcount--;
- 	if (!cache->refcount) {
+--
+To unsubscribe from this list: send the line "unsubscribe linux-unionfs=
+" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
