@@ -1,151 +1,179 @@
 From: Casey Schaufler <casey@schaufler-ca.com>
-Subject: Re: [PATCH 0/7] Security: Provide unioned file support
-Date: Thu, 06 Nov 2014 09:35:03 -0800
-Message-ID: <545BB147.4000100@schaufler-ca.com>
-References: <20141105154217.2555.578.stgit@warthog.procyon.org.uk>
+Subject: Re: [PATCH 1/7] Security: Provide copy-up security hooks for unioned
+ files
+Date: Thu, 06 Nov 2014 09:46:05 -0800
+Message-ID: <545BB3DD.1010607@schaufler-ca.com>
+References: <20141105154217.2555.578.stgit@warthog.procyon.org.uk> <20141105154228.2555.55814.stgit@warthog.procyon.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-security-module-owner@vger.kernel.org>
-In-Reply-To: <20141105154217.2555.578.stgit@warthog.procyon.org.uk>
+In-Reply-To: <20141105154228.2555.55814.stgit@warthog.procyon.org.uk>
 Sender: linux-security-module-owner@vger.kernel.org
 To: David Howells <dhowells@redhat.com>, linux-unionfs@vger.kernel.org, selinux@tycho.nsa.gov
-Cc: linux-fsdevel@vger.kernel.org, linux-security-module@vger.kernel.org, linux-kernel@vger.kernel.org, Casey Schaufler <casey@schaufler-ca.com>
+Cc: linux-fsdevel@vger.kernel.org, linux-security-module@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 
 On 11/5/2014 7:42 AM, David Howells wrote:
-> The attached patches provide security support for unioned files where the
-> security involves an object-label-based LSM (such as SELinux) rather than a
-> path-based LSM.
-
-I am going to have to look at this very carefully for the
-Smack implications. I cannot have a review done for several
-days. I do have some immediate comments below.
-
+> Provide two new security hooks for use with security files that are used when
+> a file is copied up between layers:
 >
-> There are two problems that need addressing:
+>  (1) security_inode_copy_up().  This is called so that the security label on
+>      the destination file can be set appropriately.
 >
->  (1) The files that the user accesses through the overlayfs filesystem don't
->      really exist there.  Overlayfs passes the accesses directly through to
->      the underlying upper or lower file by means of having the dentry_open
->      inode op redirect where file->f_path and file->f_inode point.
+>  (2) security_inode_copy_up_xattr().  This is called so that each xattr being
+>      copied up can be vetted - including modification and discard.
 >
->      This means that SELinux (or similar) will see the security label on one
->      lower layer or the other - and not the label on the overlay.  There are
->      three labels and all may be different.
->
->  (2) file->f_path *should* point at the overlay dentry and file->f_inode
->      should point at the lower layer inode.
->
-> I'm not addressing (2) in this series of patches, but will leave that to a
-> separate patch series.
->
->   
-> After some discussion with docker people, the agreed theory of operation will
-> be:
->
->  (1) The docker source (ie. the lower layer) will all be under a single label.
-
-What does this mean? Is the "lower layer" the "real" file, or something else?
-What is a "docker source"? What "single label" are you talking about, and
-where does it come from? What about LSMs that have multiple labels on a file?
-
-
->  (2) The docker root (ie. the overlay/union layer) will all be under a single,
->      but different label set on the overlay mount (and each docker root may be
->      under its own label).
-
-No. Sorry, but this is the one notion that doesn't work. A layer should
-either be label transparent or restricted by some sort of range concept.
-Giving it a label just makes it necessary to grant everyone access to objects
-with that label.
-
->
->  (3) Inodes in the overlayfs upper layer will be given the overlay label.
-
-Could you explain your terminology? I have no idea what the "overlay label"
-might be. Is it the real one on the real filesystem? What about attributes
-other than the access label? Smack has execution labels and a transmute
-attribute as well as the access label.
-
-
->
->  (4) A security_copy_up() operation will be provided to set the label on the
->      upper inode when it is created.
->
->  (5) A security_copy_up_xattr() operation will be provided to vet (and maybe
->      modify) each xattr as it is copied up.
->
->  (6) An extra label slot will be placed in struct file_security_struct to hold
->      the overlay label.
-
-Are you assuming a single overlay layer? 
-
-
->
->  (7) security_file_open() will need to be given both the overlay and lower
->      dentries.
->
->      For overlayfs, the way this probably should be done is file->f_path should
->      be set to point to the overlay dentry (thus getting /proc right) and
->      file->f_inode to the lower file and make use of d_fallthru in the overlay
->      dentry in common with unionmount.
->
->  (8) When the lower file is accessed, both the lower and overlay labels should
->      be checked and audited.
->
->  (9) When the upper file is accessed, only the overlay label needs to be
->      checked and audited.
->
-> I need someone to examine the SELinux bits and have a look to see whether I
-> need to make further checks.
-
-The Smack code, too.
-
-Oh, and I have been lead to believe that upcoming AppArmor enhancements
-could be affected as well.
-
->
->
-> The patches can be found here also:
->
-> 	http://git.kernel.org/cgit/linux/kernel/git/dhowells/linux-fs.git/log/?h=overlayfs
->
-> This is based on part of Al Viro's vfs/for-next branch.
->
-> David
+> Signed-off-by: David Howells <dhowells@redhat.com>
 > ---
-> David Howells (7):
->       Security: Provide copy-up security hooks for unioned files
->       Overlayfs: Use copy-up security hooks
->       SELinux: Stub in copy-up handling
->       Security: Pass the union-layer file path into security_file_open()
->       SELinux: Handle opening of a unioned file
->       SELinux: The copy-up operation must have read permission on the lower file
->       SELinux: Check against union and lower labels for file ops on lower files
 >
+>  include/linux/security.h |   35 +++++++++++++++++++++++++++++++++++
+>  security/capability.c    |   13 +++++++++++++
+>  security/security.c      |   13 +++++++++++++
+>  3 files changed, 61 insertions(+)
 >
->  fs/ceph/file.c                    |    3 +
->  fs/ceph/super.h                   |    1 
->  fs/cifs/cifsfs.h                  |    1 
->  fs/cifs/dir.c                     |    3 +
->  fs/namei.c                        |   11 +++--
->  fs/nfs/dir.c                      |    6 ++
->  fs/nfs/nfs4_fs.h                  |    2 -
->  fs/open.c                         |   31 ++++++++-----
->  fs/overlayfs/copy_up.c            |   12 +++++
->  fs/overlayfs/inode.c              |    8 ++-
->  include/linux/fs.h                |   16 +++++--
->  include/linux/security.h          |   43 +++++++++++++++++-
->  security/capability.c             |   17 +++++++
->  security/security.c               |   19 +++++++-
->  security/selinux/hooks.c          |   89 +++++++++++++++++++++++++++++++++++--
->  security/selinux/include/objsec.h |    1 
->  16 files changed, 228 insertions(+), 35 deletions(-)
+> diff --git a/include/linux/security.h b/include/linux/security.h
+> index ba96471c11ba..637a24c75d46 100644
+> --- a/include/linux/security.h
+> +++ b/include/linux/security.h
+> @@ -562,6 +562,24 @@ static inline void security_free_mnt_opts(struct security_mnt_opts *opts)
+>   *	@inode contains a pointer to the inode.
+>   *	@secid contains a pointer to the location where result will be saved.
+>   *	In case of failure, @secid will be set to zero.
+> + * @inode_copy_up:
+> + *	Generate the secid associated with the destination inode when a unioned
+
+NAK.
+
+You can't just deal with the access label, nor can you assume that there
+is exactly one. Don't use secids. Secids are a performance problem for
+Smack and any LSM that uses blobs directly. I don't see anything in the
+code here that involves secids. Why comment on them here?
+
+> + *	file is copied up from a lower layer to the union/overlay layer.
+> + *	@src indicates the file that is being copied up.
+> + *	@dst indicates the file that has being created by the copy up.
+> + *	Returns 0 on success or a negative error code on error.
+> + * @inode_copy_up_xattr:
+> + *	Filter/modify the xattrs being copied up when a unioned file is copied
+> + *	up from a lower layer to the union/overlay layer.
+> + *	@src indicates the file that is being copied up.
+> + *	@dst indicates the file that has being created by the copy up.
+> + *	@name indicates the name of the xattr.
+> + *	@value, *@size indicate the payload of the xattr.
+> + *	Returns 0 to accept the xattr, 1 to discard the xattr or a negative
+> + *	error code to abort the copy up.  The xattr buffer must be at least
+> + *	XATTR_SIZE_MAX in capacity and the contents may be modified and *@size
+> + *	changed appropriately.
+
+Who is going to call this? How are is the caller going to know all the xattr
+names that matter?
+
+> + *
+>   *
+>   * Security hooks for file operations
+>   *
+> @@ -1543,6 +1561,9 @@ struct security_operations {
+>  	int (*inode_setsecurity) (struct inode *inode, const char *name, const void *value, size_t size, int flags);
+>  	int (*inode_listsecurity) (struct inode *inode, char *buffer, size_t buffer_size);
+>  	void (*inode_getsecid) (const struct inode *inode, u32 *secid);
+> +	int (*inode_copy_up) (struct dentry *src, struct dentry *dst);
+> +	int (*inode_copy_up_xattr) (struct dentry *src, struct dentry *dst,
+> +				    const char *name, void *value, size_t *size);
+>  
+>  	int (*file_permission) (struct file *file, int mask);
+>  	int (*file_alloc_security) (struct file *file);
+> @@ -1823,6 +1844,10 @@ int security_inode_getsecurity(const struct inode *inode, const char *name, void
+>  int security_inode_setsecurity(struct inode *inode, const char *name, const void *value, size_t size, int flags);
+>  int security_inode_listsecurity(struct inode *inode, char *buffer, size_t buffer_size);
+>  void security_inode_getsecid(const struct inode *inode, u32 *secid);
+> +int security_inode_copy_up(struct dentry *src, struct dentry *dst);
+> +int security_inode_copy_up_xattr(struct dentry *src, struct dentry *dst,
+> +				 const char *name, void *value, size_t *size);
+> +
+>  int security_file_permission(struct file *file, int mask);
+>  int security_file_alloc(struct file *file);
+>  void security_file_free(struct file *file);
+> @@ -2264,6 +2289,16 @@ static inline void security_inode_getsecid(const struct inode *inode, u32 *secid
+>  	*secid = 0;
+>  }
+>  
+> +static inline int security_inode_copy_up(struct dentry *src, struct dentry *dst)
+> +{
+> +	return 0;
+> +}
+> +static inline int security_inode_copy_up_xattr(struct dentry *src, struct dentry *dst,
+> +					       const char *name, const void *value, size_t size)
+> +{
+> +	return 0;
+> +}
+> +
+>  static inline int security_file_permission(struct file *file, int mask)
+>  {
+>  	return 0;
+> diff --git a/security/capability.c b/security/capability.c
+> index d68c57a62bcf..6b21615d1500 100644
+> --- a/security/capability.c
+> +++ b/security/capability.c
+> @@ -245,6 +245,17 @@ static void cap_inode_getsecid(const struct inode *inode, u32 *secid)
+>  	*secid = 0;
+>  }
+>  
+> +static int cap_inode_copy_up(struct dentry *src, struct dentry *dst)
+> +{
+> +	return 0;
+> +}
+> +
+> +static int cap_inode_copy_up_xattr(struct dentry *src, struct dentry *dst,
+> +				   const char *name, void *value, size_t *size)
+> +{
+> +	return 0;
+> +}
+> +
+
+Does this mean that without LSM help no xattrs ever get copied?
+
+>  #ifdef CONFIG_SECURITY_PATH
+>  static int cap_path_mknod(struct path *dir, struct dentry *dentry, umode_t mode,
+>  			  unsigned int dev)
+> @@ -986,6 +997,8 @@ void __init security_fixup_ops(struct security_operations *ops)
+>  	set_to_cap_if_null(ops, inode_setsecurity);
+>  	set_to_cap_if_null(ops, inode_listsecurity);
+>  	set_to_cap_if_null(ops, inode_getsecid);
+> +	set_to_cap_if_null(ops, inode_copy_up);
+> +	set_to_cap_if_null(ops, inode_copy_up_xattr);
+>  #ifdef CONFIG_SECURITY_PATH
+>  	set_to_cap_if_null(ops, path_mknod);
+>  	set_to_cap_if_null(ops, path_mkdir);
+> diff --git a/security/security.c b/security/security.c
+> index 18b35c63fc0c..96e2f189ff1e 100644
+> --- a/security/security.c
+> +++ b/security/security.c
+> @@ -683,6 +683,19 @@ void security_inode_getsecid(const struct inode *inode, u32 *secid)
+>  	security_ops->inode_getsecid(inode, secid);
+>  }
+>  
+> +int security_inode_copy_up(struct dentry *src, struct dentry *dst)
+> +{
+> +	return security_ops->inode_copy_up(src, dst);
+> +}
+> +EXPORT_SYMBOL(security_inode_copy_up);
+> +
+> +int security_inode_copy_up_xattr(struct dentry *src, struct dentry *dst,
+> +				 const char *name, void *value, size_t *size)
+> +{
+> +	return security_ops->inode_copy_up_xattr(src, dst, name, value, size);
+> +}
+> +EXPORT_SYMBOL(security_inode_copy_up_xattr);
+> +
+>  int security_file_permission(struct file *file, int mask)
+>  {
+>  	int ret;
 >
 > --
-> To unsubscribe from this list: send the line "unsubscribe linux-security-module" in
+> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
 > the body of a message to majordomo@vger.kernel.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at  http://www.tux.org/lkml/
 >
 
