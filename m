@@ -1,59 +1,79 @@
 From: Paul Moore <paul@paul-moore.com>
-Subject: Re: [PATCH 2/7] Overlayfs: Use copy-up security hooks
-Date: Fri, 07 Nov 2014 16:39:21 -0500
-Message-ID: <4109261.WfcAOoSvNG@sifl>
-References: <20141105154217.2555.578.stgit@warthog.procyon.org.uk> <20141105154238.2555.85960.stgit@warthog.procyon.org.uk>
+Subject: Re: [PATCH 3/7] SELinux: Stub in copy-up handling
+Date: Fri, 07 Nov 2014 16:44:03 -0500
+Message-ID: <1791526.rYj1Ea3vWT@sifl>
+References: <20141105154217.2555.578.stgit@warthog.procyon.org.uk> <20141105154248.2555.15813.stgit@warthog.procyon.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-qa0-f46.google.com ([209.85.216.46]:42083 "EHLO
-	mail-qa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752857AbaKGVjY (ORCPT
-	<rfc822;linux-unionfs@vger.kernel.org>);
-	Fri, 7 Nov 2014 16:39:24 -0500
-Received: by mail-qa0-f46.google.com with SMTP id n8so2909228qaq.5
-        for <linux-unionfs@vger.kernel.org>; Fri, 07 Nov 2014 13:39:24 -0800 (PST)
-In-Reply-To: <20141105154238.2555.85960.stgit@warthog.procyon.org.uk>
-Sender: linux-unionfs-owner@vger.kernel.org
-List-Id: linux-unionfs@vger.kernel.org
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
+In-Reply-To: <20141105154248.2555.15813.stgit@warthog.procyon.org.uk>
+Sender: linux-fsdevel-owner@vger.kernel.org
 To: David Howells <dhowells@redhat.com>
 Cc: linux-unionfs@vger.kernel.org, selinux@tycho.nsa.gov, linux-fsdevel@vger.kernel.org, linux-security-module@vger.kernel.org, linux-kernel@vger.kernel.org
+List-Id: linux-unionfs@vger.kernel.org
 
-On Wednesday, November 05, 2014 03:42:38 PM David Howells wrote:
-> Use the copy-up security hooks previously provided to allow an LSM to adjust
-> the security on a newly created copy and to filter the xattrs copied to
-> that file copy.
+On Wednesday, November 05, 2014 03:42:48 PM David Howells wrote:
+> Provide stubs for union/overlay copy-up handling.  The xattr copy up stub
+> discards lower SELinux xattrs rather than letting them be copied up so that
+> the security label on the copy doesn't get corrupted.
 > 
 > Signed-off-by: David Howells <dhowells@redhat.com>
 > ---
 > 
->  fs/overlayfs/copy_up.c |   12 ++++++++++++
->  1 file changed, 12 insertions(+)
+>  security/selinux/hooks.c |   15 +++++++++++++++
+>  1 file changed, 15 insertions(+)
 > 
-> diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
-> index ea10a8719107..53a357d0a214 100644
-> --- a/fs/overlayfs/copy_up.c
-> +++ b/fs/overlayfs/copy_up.c
-> @@ -58,6 +58,14 @@ int ovl_copy_xattr(struct dentry *old, struct dentry
-> *new) error = size;
->  			goto out_free_value;
->  		}
-> +		error = security_inode_copy_up_xattr(old, new,
-> +						     name, value, &size);
+> diff --git a/security/selinux/hooks.c b/security/selinux/hooks.c
+> index e66314138b38..f3fe7dbbf741 100644
+> --- a/security/selinux/hooks.c
+> +++ b/security/selinux/hooks.c
+> @@ -3142,6 +3142,19 @@ static void selinux_inode_getsecid(const struct inode
+> *inode, u32 *secid) *secid = isec->sid;
+>  }
+> 
+> +static int selinux_inode_copy_up(struct dentry *src, struct dentry *dst)
+> +{
+> +	return 0;
+> +}
+> +
+> +static int selinux_inode_copy_up_xattr(struct dentry *src, struct dentry
+> ...*dst,
+> +				       const char *name, void *value, size_t *size)
+> +{
+> +	if (strcmp(name, XATTR_NAME_SELINUX) == 0)
+> +		return 1; /* Discard */
 
-So the LSM must modify the xattr in place?  I suppose that since the @value is 
-allocated to the max size it shouldn't be a problem.  Just checking ...
+I understand that this is just a stub, but I we need to discuss this at some 
+point and I figure better in this patch than elsewhere where it might get 
+lost.
 
-> +		if (error < 0)
-> +			goto out_free_value;
-> +		if (error == 1) {
-> +			error = 0;
-> +			continue; /* Discard */
-> +		}
->  		error = vfs_setxattr(new, name, value, size, 0);
->  		if (error)
->  			goto out_free_value;
+For the docker, context= mount use case (similar to SELinux/sVirt) dropping 
+the SELinux xattr is probably an okay behavior.  However, I would expect that 
+ultimately this is something we would want to control by policy and/or the 
+presence of a context= label.
+
+> +	return 0;
+> +}
+> +
+>  /* file security operations */
+> 
+>  static int selinux_revalidate_file_permission(struct file *file, int mask)
+> @@ -5868,6 +5881,8 @@ static struct security_operations selinux_ops = {
+>  	.inode_setsecurity =		selinux_inode_setsecurity,
+>  	.inode_listsecurity =		selinux_inode_listsecurity,
+>  	.inode_getsecid =		selinux_inode_getsecid,
+> +	.inode_copy_up =		selinux_inode_copy_up,
+> +	.inode_copy_up_xattr =		selinux_inode_copy_up_xattr,
+> 
+>  	.file_permission =		selinux_file_permission,
+>  	.file_alloc_security =		selinux_file_alloc_security,
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe
+> linux-security-module" in the body of a message to
+> majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
 -- 
 paul moore
