@@ -1,58 +1,59 @@
 From: Paul Moore <paul@paul-moore.com>
-Subject: Re: [PATCH 1/7] Security: Provide copy-up security hooks for unioned files
-Date: Fri, 07 Nov 2014 16:22:58 -0500
-Message-ID: <2455443.WUExuKDC0I@sifl>
-References: <20141105154217.2555.578.stgit@warthog.procyon.org.uk> <20141105154228.2555.55814.stgit@warthog.procyon.org.uk>
+Subject: Re: [PATCH 2/7] Overlayfs: Use copy-up security hooks
+Date: Fri, 07 Nov 2014 16:39:21 -0500
+Message-ID: <4109261.WfcAOoSvNG@sifl>
+References: <20141105154217.2555.578.stgit@warthog.procyon.org.uk> <20141105154238.2555.85960.stgit@warthog.procyon.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-qa0-f43.google.com ([209.85.216.43]:44704 "EHLO
-	mail-qa0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752256AbaKGVXB (ORCPT
+Received: from mail-qa0-f46.google.com ([209.85.216.46]:42083 "EHLO
+	mail-qa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752857AbaKGVjY (ORCPT
 	<rfc822;linux-unionfs@vger.kernel.org>);
-	Fri, 7 Nov 2014 16:23:01 -0500
-Received: by mail-qa0-f43.google.com with SMTP id j7so2955561qaq.30
-        for <linux-unionfs@vger.kernel.org>; Fri, 07 Nov 2014 13:23:01 -0800 (PST)
-In-Reply-To: <20141105154228.2555.55814.stgit@warthog.procyon.org.uk>
+	Fri, 7 Nov 2014 16:39:24 -0500
+Received: by mail-qa0-f46.google.com with SMTP id n8so2909228qaq.5
+        for <linux-unionfs@vger.kernel.org>; Fri, 07 Nov 2014 13:39:24 -0800 (PST)
+In-Reply-To: <20141105154238.2555.85960.stgit@warthog.procyon.org.uk>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: David Howells <dhowells@redhat.com>
 Cc: linux-unionfs@vger.kernel.org, selinux@tycho.nsa.gov, linux-fsdevel@vger.kernel.org, linux-security-module@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Wednesday, November 05, 2014 03:42:28 PM David Howells wrote:
-> Provide two new security hooks for use with security files that are used
-> when a file is copied up between layers:
+On Wednesday, November 05, 2014 03:42:38 PM David Howells wrote:
+> Use the copy-up security hooks previously provided to allow an LSM to adjust
+> the security on a newly created copy and to filter the xattrs copied to
+> that file copy.
 > 
->  (1) security_inode_copy_up().  This is called so that the security label on
-> the destination file can be set appropriately.
+> Signed-off-by: David Howells <dhowells@redhat.com>
+> ---
 > 
->  (2) security_inode_copy_up_xattr().  This is called so that each xattr
-> being copied up can be vetted - including modification and discard.
+>  fs/overlayfs/copy_up.c |   12 ++++++++++++
+>  1 file changed, 12 insertions(+)
+> 
+> diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
+> index ea10a8719107..53a357d0a214 100644
+> --- a/fs/overlayfs/copy_up.c
+> +++ b/fs/overlayfs/copy_up.c
+> @@ -58,6 +58,14 @@ int ovl_copy_xattr(struct dentry *old, struct dentry
+> *new) error = size;
+>  			goto out_free_value;
+>  		}
+> +		error = security_inode_copy_up_xattr(old, new,
+> +						     name, value, &size);
 
-This didn't occur to me earlier, but we may want to pick a different phrase to 
-use instead of "copy_up" as that has a special meaning for some security/MLS 
-folks (although strangely enough, I suspect most of these copy-on-write 
-operations will be "copy up" in the MLS sense of the word).
+So the LSM must modify the xattr in place?  I suppose that since the @value is 
+allocated to the max size it shouldn't be a problem.  Just checking ...
 
-How about "security_inode_copy_overlay" or something like that?
-
-> + * @inode_copy_up_xattr:
-> + *	Filter/modify the xattrs being copied up when a unioned file is 
-> ...copied
-> + *	up from a lower layer to the union/overlay layer.
-> + *	@src indicates the file that is being copied up.
-> + *	@dst indicates the file that has being created by the copy up.
-> + *	@name indicates the name of the xattr.
-> + *	@value, *@size indicate the payload of the xattr.
-> + *	Returns 0 to accept the xattr, 1 to discard the xattr or a negative
-> + *	error code to abort the copy up.  The xattr buffer must be at least
-> + *	XATTR_SIZE_MAX in capacity and the contents may be modified and 
-> ....*@size
-> + *	changed appropriately.
-
-Just so I'm clean, if the LSM wanted to modify the xattr it would modify 
-@value/@size and return 0?
+> +		if (error < 0)
+> +			goto out_free_value;
+> +		if (error == 1) {
+> +			error = 0;
+> +			continue; /* Discard */
+> +		}
+>  		error = vfs_setxattr(new, name, value, size, 0);
+>  		if (error)
+>  			goto out_free_value;
 
 -- 
 paul moore
