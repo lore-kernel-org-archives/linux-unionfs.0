@@ -1,162 +1,133 @@
-From: Jordi Pujol Palomer <jordipujolp@gmail.com>
-Subject: Re: [RFC PATCH] overlayfs: support more than one read-only layer
-Date: Sat, 8 Nov 2014 19:27:23 +0100
-Message-ID: <20141108192723.444cecd2@gmail.com>
-References: <20141107170242.GA333@tucsk>
+From: Casey Schaufler <casey@schaufler-ca.com>
+Subject: Re: [PATCH 0/7] Security: Provide unioned file support
+Date: Sat, 08 Nov 2014 17:31:19 -0800
+Message-ID: <545EC3E7.4040002@schaufler-ca.com>
+References: <545BC088.6080306@schaufler-ca.com> <545BB147.4000100@schaufler-ca.com> <20141105154217.2555.578.stgit@warthog.procyon.org.uk> <6108.1415296719@warthog.procyon.org.uk> <29936.1415373684@warthog.procyon.org.uk> <545D1575.2010708@redhat.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="MP_/CZvCRgycISBJtD/4VoRv0JL"
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-security-module-owner@vger.kernel.org>
-In-Reply-To: <20141107170242.GA333@tucsk>
+In-Reply-To: <545D1575.2010708@redhat.com>
 Sender: linux-security-module-owner@vger.kernel.org
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-security-module@vger.kernel.org, David Howells <dhowells@redhat.com>, Al Viro <viro@zeniv.linux.org.uk>, "A. Wan" <jm@mokwan.com>, Patrick Frisch <patrick@frischux.de>, Aaron Campbell <aaron@arbor.net>
+To: Daniel J Walsh <dwalsh@redhat.com>, David Howells <dhowells@redhat.com>
+Cc: linux-unionfs@vger.kernel.org, linux-kernel@vger.kernel.org, linux-security-module@vger.kernel.org, selinux@tycho.nsa.gov, linux-fsdevel@vger.kernel.org, Casey Schaufler <casey@schaufler-ca.com>
 List-Id: linux-unionfs@vger.kernel.org
 
---MP_/CZvCRgycISBJtD/4VoRv0JL
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: inline
+On 11/7/2014 10:54 AM, Daniel J Walsh wrote:
+> On 11/07/2014 10:21 AM, David Howells wrote:
+>> Casey Schaufler <casey@schaufler-ca.com> wrote:
+>>
+>>>>> What does this mean?
+>>>> It has been decided that for the purposes of docker, all files within the
+>>>> docker root fs will have the same label.  We'd have to provide policy
+>>>> namespacing otherwise (I think).
+>>> That's just insane. "It has been decided" by who? Obviously not people
+>>> who care about security policies. Maybe it's good enough for your
+>>> particular use case, but labeling of files has to be up to the security
+>>> module. That's what the modules are for.
+>> It has been decided by the docker people that I've dealt with.  I was
+>> expecting there to be different labels throughout a docker image, but
+>> apparently not...
+> We want the equivalent of the mount option
+> context="system_u:object_r:svirt_sandbox_file_t:s0:c1,c2"
 
-EL Fri, 7 Nov 2014 18:02:42 +0100
-Miklos Szeredi <miklos@szeredi.hu> escrigu=C3=A9:
+Which just means that the policy used in the container is going
+to have to grant access to everything running in that container
+to that context. That's fine if you want to emasculate your module
+within the container. But it requires that you do so, and that is
+wrong.
 
-> This is the first iteration of the patch, and quite possibly buggy.
-> Testing and review is welcome.
->=20
-Hello,
+> Which would label all of the content in the OVERLAYFS with this label. 
+> If we have to have a readonly label for the lower
+> level and a RW Label for the context mount then that is fine with us. 
+> The lower level can actually just reveal the label of the INODE.
+> We can take care of labeling it with a single label.
+>
+> If the context="LABEL" (Or its equivalent is not passed), it should get
+> some kind of label based on the parent directory I would guess
+> or transition rules. 
+>
+> With docker we want to treat all contents of a container with a single
+> label and then separate containers based on MCS(Svirt) separation.
 
-I did light tests on this patch applied to kernel 3.18-rc3, it works.
+That seems like a limited and rather pointless use case to me.
 
-Observations:
+>>>>> What about LSMs that have multiple labels on a file?
+>>>> Setting policy is something I'll have to leave to the docker people and the
+>>>> administrators of systems that use docker.
+>>> What does that mean? If the underlying mechanism can't do the job,
+>>> how the dickens is the administrator supposed to make it happen?
+>> I'm trying to make the kernel able to support a policy on this at all - not
+>> actually write the policy itself.  The policy may well vary depending on the
+>> installation anyway.
+>>
+>>>> But all I'm proposing is a way to give the LSM access to both the file in
+>>>> the overlay and the file in the lower fs that is leeching through into the
+>>>> overlay.
+>>> But your mechanisms are simultaneously incomplete and over specified.
+>> Well then, specify better ones!  I'm fairly certain it is incomplete and I'm
+>> *trying* to get input on how it may be improved.  I should've marked the
+>> patches [RFC] but it didn't occur to me until just after I'd sent them (of
+>> course).
 
-- option lowerdirs is an extended case of lowerdir,
-then we can use only a name for that option and discard the other,
-for compatibility with older versions may be lowerdir.
+I'd love to do so, but I'm frying too many kittens right now
+to put the effort required into making this right. I do have
+faith that this can be worked out. Sorry that I missed the implicit
+[RFC]. It helps to know that feedback is still open.
 
-- overlayfs changes fast the mount options that we should specify,
-an overlayfs version number will help the implementer to control it.
+>>
+>> Anyway, there are a number of things one has to take account of:
+>>
+>>  (1) There may be multiple 'views' or instances of a file in a union - and
+>>      each may be labelled differently.
+>>
+>>  (2) The lower file may have xattrs attached to it that represent the security
+>>      policy.
+>>
+>>  (3) The union file may have xattrs attached to it that represent the security
+>>      policy.
+>>
+>>  (4) When copying the lower file up, the xattrs representing the security
+>>      attributes of the lower file must not be written as they may incorrectly
+>>      overwrite the security attributes of the union file.
+>>
+>>  (5) There needs to be a way to set the security attributes on the union file.
+>>
+>>  (6) When setting the attributes on the union file, the LSM might need to take
+>>      account of the attributes of the lower file in their derivation.
+>>
+>>  (7) There may be no inode in the union layer on which to hang the attributes
+>>      for the upper file.
+>>
+>>  (8) struct file::f_security should be used to contain the union layer
+>>      labellage on open files that point to a lower layer.
+>>
+>>  (9) Ideally, file->f_path would point to the union layer and file->f_inode to
+>>      the lower layer when there is no upper file.  However, this is not the
+>>      case at the moment.  The file struct *only* points to the lower file or
+>>      the upper file and never both.
+>>
+>> (10) Overlayfs has an extra complication in that there are potentially three
+>>      files involved in any union.  The lower file that is the source, the
+>>      upper file that where the copy-up goes and the virtual union file in the
+>>      overlay fs that redirects to one or the other.
+>>
+>>      I've taken the approach that we assume that the upper file (if it exists)
+>>      has the same labellage as the union file.
+>>
+>>> Your proposal is a cop out. It may work in a limited set of cases.
+>>> It is not a general solution.
+>> Actually, I think the actual code interface I've proposed is pretty close to
+>> being a general solution.  I've given the LSM the information I have, it can
+>> implement a fabulous maze of specially crafted labels if it wants to - and
+>> even have multiple labels per inode or per file.  The VFS does not care.
+>>
+>> David
+>>
+>> _______________________________________________
+>> Selinux mailing list
+>> Selinux@tycho.nsa.gov
+>> To unsubscribe, send email to Selinux-leave@tycho.nsa.gov.
+>> To get help, send an email containing "help" to Selinux-request@tycho.nsa.gov.
+>
 
-- limit filesystem depth by a kernel config parameter, allowing nomax.
-
-- print more detailed error message
-
-Following patches are included to better explain some points,
-you can use the idea and make your best,
-
-Regards,
-
-Jordi Pujol
-
---MP_/CZvCRgycISBJtD/4VoRv0JL
-Content-Type: text/x-patch
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment; filename=54-overlayfs-version.patch
-
- modinfo --field=version overlayfs
- busybox modinfo -F version /lib/modules/$(uname -r)/kernel/fs/overlayfs.ko | awk '{print $NF}'
---- a/fs/overlayfs/super.c
-+++ b/fs/overlayfs/super.c
-@@ -23,6 +23,7 @@
- MODULE_AUTHOR("Miklos Szeredi <miklos@szeredi.hu>");
- MODULE_DESCRIPTION("Overlay filesystem");
- MODULE_LICENSE("GPL");
-+MODULE_VERSION(OVERLAYFS_VERSION);
- 
- #define OVERLAYFS_SUPER_MAGIC 0x794c764f
- 
---- a/fs/overlayfs/overlayfs.h
-+++ b/fs/overlayfs/overlayfs.h
-@@ -9,6 +9,8 @@
- 
- #include <linux/kernel.h>
- 
-+#define OVERLAYFS_VERSION   "25"
-+
- struct ovl_entry;
- 
- enum ovl_path_type {
-
---MP_/CZvCRgycISBJtD/4VoRv0JL
-Content-Type: text/x-patch
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment; filename=55-param-print-err-msg.patch
-
---- a/fs/overlayfs/super.c
-+++ b/fs/overlayfs/super.c
-@@ -728,7 +728,10 @@ static int ovl_fill_super(struct super_b
- 	}
- 	if (!ufs->config.upperdir &&
- 	    !ufs->config.lowerdir && !ufs->config.lowerdirs) {
--		pr_err("overlayfs: no 'upperdir', 'lowerdir' or 'lowerdirs' specified\n");
-+		pr_err("overlayfs: missing%s%s%s\n",
-+			ufs->config.upperdir ? "" : " upperdir",
-+			ufs->config.lowerdir ? "" : " lowerdir",
-+			ufs->config.lowerdirs ? "" : " lowerdirs");
- 		goto out_free_config;
- 	}
- 
-
---MP_/CZvCRgycISBJtD/4VoRv0JL
-Content-Type: text/x-patch
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename=53-fs__limit_filesystem_stacking_depth-kconfig.patch
-
---- a/include/linux/fs.h
-+++ b/include/linux/fs.h
-@@ -246,12 +246,6 @@ struct iattr {
-  */
- #include <linux/quota.h>
- 
--/*
-- * Maximum number of layers of fs stack.  Needs to be limited to
-- * prevent kernel stack overflow
-- */
--#define FILESYSTEM_MAX_STACK_DEPTH 2
--
- /** 
-  * enum positive_aop_returns - aop return codes with specific semantics
-  *
---- a/init/Kconfig
-+++ b/init/Kconfig
-@@ -44,6 +44,12 @@ config INIT_ENV_ARG_LIMIT
- 	  Maximum of each of the number of arguments and environment
- 	  variables passed to init from the kernel command line.
- 
-+config FILESYSTEM_MAX_STACK_DEPTH
-+	int "Maximum number of layers of fs stack"
-+	default 2
-+	help
-+	  Maximum number of layers of fs stack.  Needs to be limited to
-+	  prevent kernel stack overflow. Set to 0 for no limit.
- 
- config CROSS_COMPILE
- 	string "Cross-compiler tool prefix"
---- a/fs/ecryptfs/main.c
-+++ b/fs/ecryptfs/main.c
-@@ -568,8 +568,9 @@ static struct dentry *ecryptfs_mount(str
- 	s->s_magic = ECRYPTFS_SUPER_MAGIC;
- 	s->s_stack_depth = path.dentry->d_sb->s_stack_depth + 1;
- 
--	rc = -EINVAL;
--	if (s->s_stack_depth > FILESYSTEM_MAX_STACK_DEPTH) {
-+	if (CONFIG_FILESYSTEM_MAX_STACK_DEPTH > 0 &&
-+	s->s_stack_depth > CONFIG_FILESYSTEM_MAX_STACK_DEPTH) {
-+		rc = -EINVAL;
- 		pr_err("eCryptfs: maximum fs stacking depth exceeded\n");
- 		goto out_free;
- 	}
---- a/fs/overlayfs/super.c
-+++ b/fs/overlayfs/super.c
-@@ -818,7 +818,8 @@ static int ovl_fill_super(struct super_b
- 	}
- 
- 	err = -EINVAL;
--	if (sb->s_stack_depth > FILESYSTEM_MAX_STACK_DEPTH) {
-+	if (CONFIG_FILESYSTEM_MAX_STACK_DEPTH > 0 &&
-+	sb->s_stack_depth > CONFIG_FILESYSTEM_MAX_STACK_DEPTH) {
- 		pr_err("overlayfs: maximum fs stacking depth exceeded\n");
- 		goto out_put_lowerpath;
- 	}
-
---MP_/CZvCRgycISBJtD/4VoRv0JL--
