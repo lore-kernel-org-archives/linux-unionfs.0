@@ -1,79 +1,140 @@
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Subject: Re: unionfs-next branch
-Date: Fri, 14 Nov 2014 10:12:31 +1100
-Message-ID: <20141114101231.0ec5d954@canb.auug.org.au>
-References: <CAJfpegvmrSTMYdfp=Bg7ZeCX_aTDyvD57MLA67HecmLAYuFBDw@mail.gmail.com>
+From: Jordi Pujol Palomer <jordipujolp@gmail.com>
+Subject: Re: [RFC PATCH] overlayfs: support more than one read-only layer
+Date: Fri, 14 Nov 2014 09:55:11 +0100
+Message-ID: <20141114095511.789a76ac@gmail.com>
+References: <20141107170242.GA333@tucsk>
+	<20141108192723.444cecd2@gmail.com>
+	<20141110090954.GB333@tucsk>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
- boundary="Sig_/ueEC_sIdXhGv_OMY8q7Z1Ac"; protocol="application/pgp-signature"
-Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from ozlabs.org ([103.22.144.67]:57842 "EHLO ozlabs.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933920AbaKMXMi (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-	Thu, 13 Nov 2014 18:12:38 -0500
-In-Reply-To: <CAJfpegvmrSTMYdfp=Bg7ZeCX_aTDyvD57MLA67HecmLAYuFBDw@mail.gmail.com>
-Sender: linux-unionfs-owner@vger.kernel.org
-List-Id: linux-unionfs@vger.kernel.org
+Content-Type: multipart/mixed; boundary="MP_/p_vrJLhdahIXUlaTpGM6w0h"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20141110090954.GB333@tucsk>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: linux-unionfs@vger.kernel.org
+Cc: linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, David Howells <dhowells@redhat.com>, Al Viro <viro@zeniv.linux.org.uk>, "A. Wan" <jm@mokwan.com>, Patrick Frisch <patrick@frischux.de>, Aaron Campbell <aaron@arbor.net>
+List-Id: linux-unionfs@vger.kernel.org
 
---Sig_/ueEC_sIdXhGv_OMY8q7Z1Ac
-Content-Type: text/plain; charset=US-ASCII
+--MP_/p_vrJLhdahIXUlaTpGM6w0h
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
 
-Hi Miklos,
+EL Mon, 10 Nov 2014 10:09:54 +0100
+Miklos Szeredi <miklos@szeredi.hu> escrigu=C3=A9:
 
-On Thu, 13 Nov 2014 10:20:19 +0100 Miklos Szeredi <miklos@szeredi.hu> wrote:
->
-> Could you please add the following branch to -next:
->=20
->   git://git.kernel.org/pub/scm/linux/kernel/git/mszeredi/vfs.git overlayf=
-s-next
+> Maybe it wasn't clear, but the number of lower layers isn't limited by
+> FILESYSTEM_MAX_STACK_DEPTH,=20
+sorry, you have been clear, it's me that have not explained the purpose
+of that patch. This idea is also valid for the main overlayfs
+development.
+Consider that we have an encrypted partition and a live OS that
+uses overlayfs and works over it, when the OS is started already
+reaches the maximum stacking depth (2). Also, hardcoding parameters
+into the code may be annoying because a change implies creating and
+mantaining patches, otherwise when the parameter is configurable we can
+change it in a config value.
 
-Added from today with just you as the contact.
+Also, I include a patch to explain better my first statement,
+would say lowerdirs has extended the functionality of lowerdir,
+therefore we can discard the lowerdir case that only works with one
+lower layer and rename lowerdirs to lowerdir. It's more simple and all
+the functionality is preserved.=20
+Regards,
 
-Thanks for adding your subsystem tree as a participant of linux-next.  As
-you may know, this is not a judgment of your code.  The purpose of
-linux-next is for integration testing and to lower the impact of
-conflicts between subsystems in the next merge window.=20
+Jordi Pujol
 
-You will need to ensure that the patches/commits in your tree/series have
-been:
-     * submitted under GPL v2 (or later) and include the Contributor's
-        Signed-off-by,
-     * posted to the relevant mailing list,
-     * reviewed by you (or another maintainer of your subsystem tree),
-     * successfully unit tested, and=20
-     * destined for the current or next Linux merge window.
 
-Basically, this should be just what you would send to Linus (or ask him
-to fetch).  It is allowed to be rebased if you deem it necessary.
+--MP_/p_vrJLhdahIXUlaTpGM6w0h
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename=23-overlayfs_discard_specifically_support_only_one_read-only_layer.patch.txt
 
---=20
-Cheers,
-Stephen Rothwell=20
-sfr@canb.auug.org.au
+--- a/fs/overlayfs/super.c
++++ b/fs/overlayfs/super.c	2014-11-12 10:23:54.285960418 +0100
+@@ -29,7 +29,6 @@ MODULE_VERSION(OVERLAYFS_VERSION);
+ 
+ struct ovl_config {
+ 	char *lowerdir;
+-	char *lowerdirs;
+ 	char *upperdir;
+ 	char *workdir;
+ };
+@@ -497,8 +496,6 @@ static int ovl_show_options(struct seq_f
+ 
+ 	if (ufs->config.lowerdir)
+ 		seq_printf(m, ",lowerdir=%s", ufs->config.lowerdir);
+-	if (ufs->config.lowerdirs)
+-		seq_printf(m, ",lowerdirs=%s", ufs->config.lowerdirs);
+ 	if (ufs->config.upperdir) {
+ 		seq_printf(m, ",upperdir=%s", ufs->config.upperdir);
+ 		seq_printf(m, ",workdir=%s", ufs->config.workdir);
+@@ -522,7 +519,6 @@ enum {
+ 
+ static const match_table_t ovl_tokens = {
+ 	{OPT_LOWERDIR,			"lowerdir=%s"},
+-	{OPT_LOWERDIRS,			"lowerdirs=%s"},
+ 	{OPT_UPPERDIR,			"upperdir=%s"},
+ 	{OPT_WORKDIR,			"workdir=%s"},
+ 	{OPT_ERR,			NULL}
+@@ -555,13 +551,6 @@ static int ovl_parse_opt(char *opt, stru
+ 				return -ENOMEM;
+ 			break;
+ 
+-		case OPT_LOWERDIRS:
+-			kfree(config->lowerdirs);
+-			config->lowerdirs = match_strdup(&args[0]);
+-			if (!config->lowerdirs)
+-				return -ENOMEM;
+-			break;
+-
+ 		case OPT_WORKDIR:
+ 			kfree(config->workdir);
+ 			config->workdir = match_strdup(&args[0]);
+@@ -718,24 +707,18 @@ static int ovl_fill_super(struct super_b
+ 		goto out_free_config;
+ 
+ 	err = -EINVAL;
+-	if (ufs->config.lowerdir && ufs->config.lowerdirs) {
+-		pr_err("overlayfs: both 'lowerdir' and 'lowerdirs' not allowed\n");
+-		goto out_free_config;
+-	}
+ 	if (ufs->config.upperdir && !ufs->config.workdir) {
+ 		pr_err("overlayfs: missing 'workdir'\n");
+ 		goto out_free_config;
+ 	}
+ 	if (!ufs->config.upperdir &&
+-	    !ufs->config.lowerdir && !ufs->config.lowerdirs) {
+-		pr_err("overlayfs: no 'upperdir', 'lowerdir' or 'lowerdirs' specified\n");
++	    !ufs->config.lowerdir) {
++		pr_err("overlayfs: no 'upperdir' or 'lowerdir' specified\n");
+ 		goto out_free_config;
+ 	}
+ 
+ 	if (ufs->config.lowerdir) {
+-		stacklen = 1;
+-	} else if (ufs->config.lowerdirs) {
+-		char *p = ufs->config.lowerdirs;
++		char *p = ufs->config.lowerdir;
+ 
+ 		for (;;) {
+ 			stacklen++;
+@@ -780,15 +763,7 @@ static int ovl_fill_super(struct super_b
+ 	}
+ 
+ 	if (ufs->config.lowerdir) {
+-		BUG_ON(numlower >= stacklen);
+-
+-		err = ovl_lower_dir(ufs->config.lowerdir, &stack[numlower], &ufs->lower_namelen, &sb->s_stack_depth);
+-		if (err)
+-			goto out_put_workpath;
+-
+-		numlower++;
+-	} else if (ufs->config.lowerdirs) {
+-		char *p = ufs->config.lowerdirs;
++		char *p = ufs->config.lowerdir;
+ 
+ 		for (;;) {
+ 			char *next = strchr(p, ':');
 
---Sig_/ueEC_sIdXhGv_OMY8q7Z1Ac
-Content-Type: application/pgp-signature
-Content-Description: OpenPGP digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQIcBAEBCAAGBQJUZTrjAAoJEMDTa8Ir7ZwVZIcP/A7u6OlLeMPOP18wv/WTfpD0
-nZo/flhU4L2BVGtNFpwqsaPqk1t8vDMruteCB9/IlbWlKnapx0i+YANfvlFYQHWg
-UThzeamR9HLD7qAfYOvRoOy3RnrJ5svLPXdFJp+l3Iwv2gHK2Y7cAx09OiBx4RgC
-Am8EPGB8bEnFxNgyCmyHEwpt+PkKMfdMrO80EeYAfUCMtWT6IXNyUmnpg6ETPcw1
-68vINgx3VFQQKj/H1ymFWwSM4/iOOde3P4BDIyLqvc2uLABdzFgj1seosksm1JqT
-Vs/I+h+6csisoYmMBrn3yF8hJA3k3Dlo4xeI7mHwHWdthpaG1xI/zze2ZnHL48Iv
-wvr543ARiU/gjNPSdMt3QQnaTxk/bTNlgw+kNx2QmVw0p9JRlUoAOXbK+ObugZFW
-VzWr6tywmegH0m7FQct3DECfjBs/CtpnlA9Enwtw/vC6dDNqEBfTve6QUSGmCJZ5
-okQEnpU6nGUSLmAD5ADyG84WupVrKaLCBC1+wlF1tFViN5t2xP99B5pvlmRUzlC2
-rTIyRfyCsxlawSohAeLWZBFIxaZ1mSYAwgWQ6oR8oUPBgqofuiRoi43o6Y4bBVfq
-ZG5duJicKnGvbf4wQydkKiR8x2NO3MhTtt6gx0D7sEL/yjxEQhpnr5YoDYzr5ycF
-PfM0M9y0sWYmXSemHXaF
-=x1r9
------END PGP SIGNATURE-----
-
---Sig_/ueEC_sIdXhGv_OMY8q7Z1Ac--
+--MP_/p_vrJLhdahIXUlaTpGM6w0h--
