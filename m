@@ -1,49 +1,34 @@
-From: Miklos Szeredi <miklos@szeredi.hu>
-Subject: [RFC/RFT] multi-layer support for overlay filesystem
-Date: Thu, 20 Nov 2014 18:03:13 +0100
-Message-ID: <20141120170313.GC3596@tucsk>
+From: Al Viro <viro@ZenIV.linux.org.uk>
+Subject: Re: [GIT PULL] overlay filesystem fixes for 3.18
+Date: Thu, 20 Nov 2014 21:00:04 +0000
+Message-ID: <20141120210004.GQ7996@ZenIV.linux.org.uk>
+References: <20141120164531.GB3596@tucsk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-unionfs-owner@vger.kernel.org>
+Received: from zeniv.linux.org.uk ([195.92.253.2]:59619 "EHLO
+	ZenIV.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755849AbaKTVAH (ORCPT
+	<rfc822;linux-unionfs@vger.kernel.org>);
+	Thu, 20 Nov 2014 16:00:07 -0500
 Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: Al Viro <viro@ZenIV.linux.org.uk>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, Patrick Frisch <patrick@frischux.de>, Aaron Campbell <aaron@arbor.net>, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, linux-unionfs@vger.kernel.org
+In-Reply-To: <20141120164531.GB3596@tucsk>
+Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, linux-unionfs@vger.kernel.org
 
-Here's the latest patchset to support multiple read-only layers for overlayfs.
-Diffstat is against overlayfs-current branch.
+On Thu, Nov 20, 2014 at 05:45:31PM +0100, Miklos Szeredi wrote:
+> Hi Al,
+> 
+> Please pull from
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/mszeredi/vfs.git overlayfs-current
+> 
+> The biggest change is to rename the filesystem from "overlayfs" to "overlay".
+> This will allow legacy overlayfs to be easily carried by distros alongside the
+> new mainline one.  Also fix a couple of copy-up races and allow escaping comma
+> character in filenames.
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/mszeredi/vfs.git overlayfs-next
-
-I hope to have this included in 3.19.
-
-Please review and test (I can post the full patchset if someone wants that).
-
-Thanks,
-Miklos
-
----
-Miklos Szeredi (12):
-      ovl: check whiteout while reading directory
-      ovl: make path-type a bitmap
-      ovl: dont replace opaque dir
-      ovl: add mutli-layer infrastructure
-      ovl: helper to iterate layers
-      ovl: multi-layer readdir
-      ovl: multi-layer lookup
-      ovl: allow statfs if no upper layer
-      ovl: mount: change order of initialization
-      ovl: improve mount helpers
-      ovl: make upperdir optional
-      ovl: support multiple lower layers
-
----
- Documentation/filesystems/overlayfs.txt |  12 +
- fs/overlayfs/copy_up.c                  |   4 +-
- fs/overlayfs/dir.c                      |  24 +-
- fs/overlayfs/inode.c                    |   9 +-
- fs/overlayfs/overlayfs.h                |  14 +-
- fs/overlayfs/readdir.c                  | 120 +++-----
- fs/overlayfs/super.c                    | 521 ++++++++++++++++++++------------
- 7 files changed, 427 insertions(+), 277 deletions(-)
+Grabbed, will push after I get a bit of sleep (and the same regarding the
+review and comments on the other branch).
