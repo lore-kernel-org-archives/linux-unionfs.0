@@ -1,40 +1,61 @@
-From: Sedat Dilek <sedat.dilek@gmail.com>
-Subject: Re: [GIT PULL] overlay filesystem fixes for 3.18
-Date: Sat, 22 Nov 2014 09:40:00 +0100
-Message-ID: <CA+icZUVdHKhCjy+vj5UvsmRtA6cxpjVe1Jn-joqdqw6zCiQ+bw@mail.gmail.com>
-References: <20141120164531.GB3596@tucsk>
-	<CA+icZUVSdSDqUCf3+2SmGx4DfhKvxPi4ivvhNzTEnbe1j4eFQA@mail.gmail.com>
-	<CAJfpegs6iF+O9W40k+L=kmydZA7O20H6aYdwtTF1vEsq4790xw@mail.gmail.com>
-Reply-To: sedat.dilek@gmail.com
+From: hujianyang <hujianyang@huawei.com>
+Subject: Xattr issues with overlayfs
+Date: Mon, 24 Nov 2014 18:16:05 +0800
+Message-ID: <54730565.4040308@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
-In-Reply-To: <CAJfpegs6iF+O9W40k+L=kmydZA7O20H6aYdwtTF1vEsq4790xw@mail.gmail.com>
-Sender: linux-fsdevel-owner@vger.kernel.org
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: Al Viro <viro@zeniv.linux.org.uk>, Linus Torvalds <torvalds@linux-foundation.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, linux-unionfs@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-unionfs-owner@vger.kernel.org>
+Received: from szxga02-in.huawei.com ([119.145.14.65]:14840 "EHLO
+	szxga02-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752115AbaKXKQR (ORCPT
+	<rfc822;linux-unionfs@vger.kernel.org>);
+	Mon, 24 Nov 2014 05:16:17 -0500
+Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
+To: miklos@szeredi.hu
+Cc: "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, linux-unionfs@vger.kernel.org
 
-On Fri, Nov 21, 2014 at 11:50 AM, Miklos Szeredi <miklos@szeredi.hu> wrote:
-> On Fri, Nov 21, 2014 at 11:43 AM, Sedat Dilek <sedat.dilek@gmail.com> wrote:
->>>   git://git.kernel.org/pub/scm/linux/kernel/git/mszeredi/vfs.git overlayfs-current
->>>
->>
->> This seems to be the place where overlayfs-fixes are collected for a
->> git-pull request.
->> Can you add a "T:" line with the Git tree into MAINTAINERS file if
->> this is the case?
->
-> Done that already.  See "ovl: update MAINTAINERS" patch in that series.
->
+Hi Miklos,
 
-I asked for that a while ago.
-"Done" is good to hear.
+I'm learning overlayfs and finding some issues in xattr support. I
+don't know if they are real problems or misunderstandings. I wish you
+could take some time to help.
 
-What about the other stuff (see my questions in [1])?
+As is said in Documentation/filesystems/overlayfs.txt:
 
-Thanks.
+"""
+A directory is made opaque by setting the xattr "trusted.overlay.opaque"
+to "y".  Where the upper filesystem contains an opaque directory, any
+directory in the lower filesystem with the same name is ignored.
+"""
 
-- Sedat -
+I think users could set *ovl_opaque_xattr* to hide the files in lower
+directory in userspace like this:
 
-[1] http://marc.info/?l=linux-kernel&m=141406538905679&w=1
+	setxattr(path, "trusted.overlay.opaque", &value, 1, XATTR_CREATE);
+
+But It seems not true because we forbid this operation in userspace:
+
+ovl_setxattr():
+
+        if (ovl_is_private_xattr(name))
+                goto out_drop_write;
+
+
+I think current xattr operations in overlayfs including setxattr,
+getxattr, listxattr, removexattr are used for upper/lower xattrs and
+overlayfs private xattrs also.
+
+Is ovl_set/remove_opauqe() related to this?
+
+I'd like to introduce some of my work.
+
+1) Use macros to indicate overlayfs_private_xattr.
+2) Enable overlayfs_private_xattr setting an removing in userspace.
+   * I'm not clear with this one
+
+Thanks~!
+
+Hu
+
