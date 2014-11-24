@@ -1,61 +1,113 @@
 From: hujianyang <hujianyang@huawei.com>
-Subject: Xattr issues with overlayfs
-Date: Mon, 24 Nov 2014 18:16:05 +0800
-Message-ID: <54730565.4040308@huawei.com>
+Subject: [PATCH] ovl: Use macros to present ovl_xattr
+Date: Mon, 24 Nov 2014 18:25:21 +0800
+Message-ID: <54730791.2020901@huawei.com>
+References: <54730565.4040308@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from szxga02-in.huawei.com ([119.145.14.65]:14840 "EHLO
+Received: from szxga02-in.huawei.com ([119.145.14.65]:20646 "EHLO
 	szxga02-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752115AbaKXKQR (ORCPT
+	with ESMTP id S1753337AbaKXKZc (ORCPT
 	<rfc822;linux-unionfs@vger.kernel.org>);
-	Mon, 24 Nov 2014 05:16:17 -0500
+	Mon, 24 Nov 2014 05:25:32 -0500
+In-Reply-To: <54730565.4040308@huawei.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: miklos@szeredi.hu
 Cc: "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, linux-unionfs@vger.kernel.org
 
-Hi Miklos,
+This patch adds two macros:
 
-I'm learning overlayfs and finding some issues in xattr support. I
-don't know if they are real problems or misunderstandings. I wish you
-could take some time to help.
+OVL_XATTR_PRE_NAME and OVL_XATTR_PRE_LEN
 
-As is said in Documentation/filesystems/overlayfs.txt:
+to present ovl_xattr name prefix and its length. Also, a
+new macro OVL_XATTR_OPAQUE is introduced to replace old
+*ovl_opaque_xattr*.
 
-"""
-A directory is made opaque by setting the xattr "trusted.overlay.opaque"
-to "y".  Where the upper filesystem contains an opaque directory, any
-directory in the lower filesystem with the same name is ignored.
-"""
+Fix the length of "trusted.overlay." to *16*.
 
-I think users could set *ovl_opaque_xattr* to hide the files in lower
-directory in userspace like this:
+Signed-off-by: hujianyang <hujianyang@huawei.com>
+---
+ fs/overlayfs/dir.c       |    4 ++--
+ fs/overlayfs/inode.c     |    2 +-
+ fs/overlayfs/overlayfs.h |    4 +++-
+ fs/overlayfs/super.c     |    5 +----
+ 4 files changed, 7 insertions(+), 8 deletions(-)
 
-	setxattr(path, "trusted.overlay.opaque", &value, 1, XATTR_CREATE);
+diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
+index 8ffc4b9..7da3f17 100644
+--- a/fs/overlayfs/dir.c
++++ b/fs/overlayfs/dir.c
+@@ -118,14 +118,14 @@ int ovl_create_real(struct inode *dir, struct dentry *newdentry,
 
-But It seems not true because we forbid this operation in userspace:
+ static int ovl_set_opaque(struct dentry *upperdentry)
+ {
+-	return ovl_do_setxattr(upperdentry, ovl_opaque_xattr, "y", 1, 0);
++	return ovl_do_setxattr(upperdentry, OVL_XATTR_OPAQUE, "y", 1, 0);
+ }
 
-ovl_setxattr():
+ static void ovl_remove_opaque(struct dentry *upperdentry)
+ {
+ 	int err;
 
-        if (ovl_is_private_xattr(name))
-                goto out_drop_write;
+-	err = ovl_do_removexattr(upperdentry, ovl_opaque_xattr);
++	err = ovl_do_removexattr(upperdentry, OVL_XATTR_OPAQUE);
+ 	if (err) {
+ 		pr_warn("overlayfs: failed to remove opaque from '%s' (%i)\n",
+ 			upperdentry->d_name.name, err);
+diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
+index 07d74b2..b072fb5 100644
+--- a/fs/overlayfs/inode.c
++++ b/fs/overlayfs/inode.c
+@@ -205,7 +205,7 @@ static int ovl_readlink(struct dentry *dentry, char __user *buf, int bufsiz)
 
+ static bool ovl_is_private_xattr(const char *name)
+ {
+-	return strncmp(name, "trusted.overlay.", 14) == 0;
++	return strncmp(name, OVL_XATTR_PRE_NAME, OVL_XATTR_PRE_LEN) == 0;
+ }
 
-I think current xattr operations in overlayfs including setxattr,
-getxattr, listxattr, removexattr are used for upper/lower xattrs and
-overlayfs private xattrs also.
+ int ovl_setxattr(struct dentry *dentry, const char *name,
+diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
+index 814bed3..285994f 100644
+--- a/fs/overlayfs/overlayfs.h
++++ b/fs/overlayfs/overlayfs.h
+@@ -18,7 +18,9 @@ enum ovl_path_type {
+ 	OVL_PATH_LOWER,
+ };
 
-Is ovl_set/remove_opauqe() related to this?
+-extern const char *ovl_opaque_xattr;
++#define OVL_XATTR_PRE_NAME "trusted.overlay."
++#define OVL_XATTR_PRE_LEN  16
++#define OVL_XATTR_OPAQUE   OVL_XATTR_PRE_NAME"opaque"
 
-I'd like to introduce some of my work.
+ static inline int ovl_do_rmdir(struct inode *dir, struct dentry *dentry)
+ {
+diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+index f16d318..80afc7f 100644
+--- a/fs/overlayfs/super.c
++++ b/fs/overlayfs/super.c
+@@ -58,9 +58,6 @@ struct ovl_entry {
+ 	};
+ };
 
-1) Use macros to indicate overlayfs_private_xattr.
-2) Enable overlayfs_private_xattr setting an removing in userspace.
-   * I'm not clear with this one
+-const char *ovl_opaque_xattr = "trusted.overlay.opaque";
+-
+-
+ enum ovl_path_type ovl_path_type(struct dentry *dentry)
+ {
+ 	struct ovl_entry *oe = dentry->d_fsdata;
+@@ -249,7 +246,7 @@ static bool ovl_is_opaquedir(struct dentry *dentry)
+ 	if (!S_ISDIR(inode->i_mode) || !inode->i_op->getxattr)
+ 		return false;
 
-Thanks~!
+-	res = inode->i_op->getxattr(dentry, ovl_opaque_xattr, &val, 1);
++	res = inode->i_op->getxattr(dentry, OVL_XATTR_OPAQUE, &val, 1);
+ 	if (res == 1 && val == 'y')
+ 		return true;
 
-Hu
+-- 
+1.6.0.2
 
