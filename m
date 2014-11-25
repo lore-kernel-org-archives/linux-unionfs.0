@@ -1,36 +1,44 @@
 From: Miklos Szeredi <miklos@szeredi.hu>
-Subject: Re: [PULL for 3.18] overlay filesystem v24
-Date: Tue, 25 Nov 2014 15:57:58 +0100
-Message-ID: <CAJfpegvE76UbMPaoHQ8tc2tERjP_N2xiaJRwDp3yBgH2uUocdw@mail.gmail.com>
-References: <20140929141457.GB5011@tucsk.piliscsaba.szeredi.hu>
-	<CA+icZUW4bennT=duj9hXq4+U5QLF7GivARA595C2KnRNzAdKAw@mail.gmail.com>
+Subject: [PATCH] testsuite: overlayfs -> overlay
+Date: Tue, 25 Nov 2014 16:47:00 +0100
+Message-ID: <20141125154700.GB9137@tucsk.suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CA+icZUW4bennT=duj9hXq4+U5QLF7GivARA595C2KnRNzAdKAw@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sedat Dilek <sedat.dilek@gmail.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>, Christoph Hellwig <hch@infradead.org>, Linux-Fsdevel <linux-fsdevel@vger.kernel.org>, Kernel Mailing List <linux-kernel@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Stephen Rothwell <sfr@canb.auug.org.au>, linux-unionfs@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-unionfs-owner@vger.kernel.org>
+Received: from mail-wg0-f52.google.com ([74.125.82.52]:52058 "EHLO
+	mail-wg0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750781AbaKYPqu (ORCPT
+	<rfc822;linux-unionfs@vger.kernel.org>);
+	Tue, 25 Nov 2014 10:46:50 -0500
+Received: by mail-wg0-f52.google.com with SMTP id a1so1216210wgh.25
+        for <linux-unionfs@vger.kernel.org>; Tue, 25 Nov 2014 07:46:49 -0800 (PST)
+Content-Disposition: inline
+Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
+To: David Howells <dhowells@redhat.com>
+Cc: linux-unionfs@vger.kernel.org
 
-On Thu, Oct 23, 2014 at 1:56 PM, Sedat Dilek <sedat.dilek@gmail.com> wrote:
+Hello David,
 
-> Is the documentation up2date?
+Following patch fixes testsuite to use the right fstype.  This was changed in
+linux tree by
 
-Should be.  If you find any issues, please let me know (patch is also welcome).
-
-> Some files below fs/overlayfs/ have copyright pointing to year 2011 by
-> Novell - needs an update?
-
-Not even sure who's my employer at the moment ;)
-
-> Thought about a co-maintainer?
-
-No.
-
-> Docs could have a pointer to the testsuite by David Howells [1]?
-
-Sure, that's a good idea.  Patch queued.
+  ef94b1864d1e  ovl: rename filesystem type to "overlay"
 
 Thanks,
 Miklos
+
+---
+ mount_union.py |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+--- a/mount_union.py
++++ b/mount_union.py
+@@ -27,6 +27,6 @@ from tool_box import *
+         workdir = upper_mntroot + "/work"
+         os.mkdir(upperdir)
+         os.mkdir(workdir)
+-        system("mount -t overlayfs overlayfs " + union_mntroot +
++        system("mount -t overlay overlay " + union_mntroot +
+                " -olowerdir=" + lower_mntroot + ",upperdir=" + upperdir + ",workdir=" + workdir)
+         ctx.note_upper_fs(upper_mntroot, testdir)
