@@ -1,44 +1,53 @@
-From: Miklos Szeredi <miklos@szeredi.hu>
-Subject: [PATCH] testsuite: overlayfs -> overlay
-Date: Tue, 25 Nov 2014 16:47:00 +0100
-Message-ID: <20141125154700.GB9137@tucsk.suse.de>
+From: hujianyang <hujianyang@huawei.com>
+Subject: Re: Xattr issues with overlayfs
+Date: Wed, 26 Nov 2014 16:09:13 +0800
+Message-ID: <54758AA9.9020906@huawei.com>
+References: <54730565.4040308@huawei.com> <CAJfpegtvTZYk2V7a94g_CDKhw4Fn8_bS-cSJKHWHqvvU4abygg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wg0-f52.google.com ([74.125.82.52]:52058 "EHLO
-	mail-wg0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750781AbaKYPqu (ORCPT
+Received: from szxga03-in.huawei.com ([119.145.14.66]:40163 "EHLO
+	szxga03-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752113AbaKZINx (ORCPT
 	<rfc822;linux-unionfs@vger.kernel.org>);
-	Tue, 25 Nov 2014 10:46:50 -0500
-Received: by mail-wg0-f52.google.com with SMTP id a1so1216210wgh.25
-        for <linux-unionfs@vger.kernel.org>; Tue, 25 Nov 2014 07:46:49 -0800 (PST)
-Content-Disposition: inline
+	Wed, 26 Nov 2014 03:13:53 -0500
+In-Reply-To: <CAJfpegtvTZYk2V7a94g_CDKhw4Fn8_bS-cSJKHWHqvvU4abygg@mail.gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: David Howells <dhowells@redhat.com>
-Cc: linux-unionfs@vger.kernel.org
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, linux-unionfs@vger.kernel.org
 
-Hello David,
+On 2014/11/25 22:41, Miklos Szeredi wrote:
+> 
+> No, I don't think this makes any sense.  Maintenance can be done by
+> unmounting the overlay and doing modification directly on the upper
+> layer.  After this is done (adding/removing opaque flag, adding
+> removing whiteouts, etc) the overlay can be mounted again and the
+> modifications will be applied.
 
-Following patch fixes testsuite to use the right fstype.  This was changed in
-linux tree by
+Yes, we can remove overlayfs_xattr directly on upper files.
 
-  ef94b1864d1e  ovl: rename filesystem type to "overlay"
+> 
+> I don't think online modification of the internal attributes of the
+> overlay makes much sense.
+> 
+> Except maybe, maybe a privileged undelete, but even that one is
+> tricky: the whiteout was either from deletion of the lower layer or
+> the upper layer file, the later not being undeleteable.  But the two
+> cases are currently indistinguishable, so the undelete would always
+> recover the lower layer file, which is probably not what the user
+> wants and might cause more harm than good.
+>
 
-Thanks,
-Miklos
+Agree.
 
----
- mount_union.py |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Thanks for your explanation. Now I know "trusted.overlay.opaque" can
+be set in userspace, but this xattr is set on files in upper filesystem,
+not directly on files in overlayfs.
 
---- a/mount_union.py
-+++ b/mount_union.py
-@@ -27,6 +27,6 @@ from tool_box import *
-         workdir = upper_mntroot + "/work"
-         os.mkdir(upperdir)
-         os.mkdir(workdir)
--        system("mount -t overlayfs overlayfs " + union_mntroot +
-+        system("mount -t overlay overlay " + union_mntroot +
-                " -olowerdir=" + lower_mntroot + ",upperdir=" + upperdir + ",workdir=" + workdir)
-         ctx.note_upper_fs(upper_mntroot, testdir)
+
+Thanks~!
+
+Hu
+
