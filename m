@@ -1,47 +1,35 @@
-From: Miklos Szeredi <miklos@szeredi.hu>
-Subject: Re: [PATCH] ovl: Cleanup redundant blank lines
-Date: Wed, 26 Nov 2014 10:16:59 +0100
-Message-ID: <CAJfpegvUorbwcGTtw9m7hcXFv=C0=FFUMgdbRZQ+WKEtEvLZ3Q@mail.gmail.com>
-References: <54758C7B.6040402@huawei.com>
-	<54759840.3050101@huawei.com>
+From: David Howells <dhowells@redhat.com>
+Subject: Re: [PATCH 5/7] SELinux: Handle opening of a unioned file
+Date: Thu, 27 Nov 2014 14:15:23 +0000
+Message-ID: <12039.1417097723@warthog.procyon.org.uk>
+References: <545B73DE.6090101@tycho.nsa.gov> <545A51CB.6070107@tycho.nsa.gov> <20141105154217.2555.578.stgit@warthog.procyon.org.uk> <20141105154307.2555.9847.stgit@warthog.procyon.org.uk> <11463.1415275413@warthog.procyon.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="us-ascii"
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-qg0-f49.google.com ([209.85.192.49]:63262 "EHLO
-	mail-qg0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750879AbaKZJRA (ORCPT
-	<rfc822;linux-unionfs@vger.kernel.org>);
-	Wed, 26 Nov 2014 04:17:00 -0500
-Received: by mail-qg0-f49.google.com with SMTP id a108so1700726qge.8
-        for <linux-unionfs@vger.kernel.org>; Wed, 26 Nov 2014 01:16:59 -0800 (PST)
-In-Reply-To: <54759840.3050101@huawei.com>
+Received: from mx1.redhat.com ([209.132.183.28]:60928 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750927AbaK0OP3 (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+	Thu, 27 Nov 2014 09:15:29 -0500
+In-Reply-To: <545B73DE.6090101@tycho.nsa.gov>
+Content-ID: <12038.1417097723.1@warthog.procyon.org.uk>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: hujianyang <hujianyang@huawei.com>
-Cc: linux-unionfs@vger.kernel.org
+To: Stephen Smalley <sds@tycho.nsa.gov>
+Cc: dhowells@redhat.com, linux-unionfs@vger.kernel.org, selinux@tycho.nsa.gov, linux-fsdevel@vger.kernel.org, linux-security-module@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Wed, Nov 26, 2014 at 10:07 AM, hujianyang <hujianyang@huawei.com> wrote:
-> Hi Miklos,
->
-> Will you apply my previous patch "ovl: Use macros to present
-> ovl_xattr"? These two patches(previous one and this one) are
-> based on branch *overlayfs-current* and conflict with each
-> other.
->
-> I don't know which branch I should use, overlayfs-current or
-> overlayfs-next. How could I join the development?
+Stephen Smalley <sds@tycho.nsa.gov> wrote:
 
-If it's a bugfix, then do it against -current.  If it's a cleanup
-patch, like the one you did, do it against -next.
+> > The third case is the tricky one because we have to try and derive a
+> > label.  I've copied the code from the inode creation - so unless the
+> > policy changes or the parent directory inode changes, I would've thought
+> > we'd be okay.
+> 
+> Only if the filesystem ultimately calls security_inode_init_security()
+> on the new inode.
 
-> By the way, do you think we can make use of "kmem_cache" to
-> manage "struct ovl_entry"? I think it will speedup operations
-> like *ls*. I saw your work about multi-layer support. The size
-> of "struct ovl_entry" will be variable. In addition, some free
-> paths of ovl_entry rely on RCU. So maybe it's not easy.
+I'm not sure what you mean?  What new inode?
 
-With the multi-layer support in overlayfs-next "struct ovl_entry"
-becomes variable sized, so we can't use kmem_cache for it.
+The isec label derived by the code goes in the file struct, not the inode
+struct because we can only get here if there isn't an inode struct.
 
-Thanks,
-Miklos
+David
