@@ -1,26 +1,48 @@
-From: David Howells <dhowells@redhat.com>
-Subject: Re: [PATCH 5/7] SELinux: Handle opening of a unioned file
-Date: Thu, 27 Nov 2014 17:25:38 +0000
-Message-ID: <16216.1417109138@warthog.procyon.org.uk>
-References: <545A51CB.6070107@tycho.nsa.gov> <20141105154217.2555.578.stgit@warthog.procyon.org.uk> <20141105154307.2555.9847.stgit@warthog.procyon.org.uk>
+From: hujianyang <hujianyang@huawei.com>
+Subject: Cursor in readdir
+Date: Sat, 29 Nov 2014 18:11:40 +0800
+Message-ID: <54799BDC.5030201@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Return-path: <linux-security-module-owner@vger.kernel.org>
-In-Reply-To: <545A51CB.6070107@tycho.nsa.gov>
-Content-ID: <16215.1417109138.1@warthog.procyon.org.uk>
-Sender: linux-security-module-owner@vger.kernel.org
-To: Stephen Smalley <sds@tycho.nsa.gov>
-Cc: dhowells@redhat.com, linux-unionfs@vger.kernel.org, selinux@tycho.nsa.gov, linux-fsdevel@vger.kernel.org, linux-security-module@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-unionfs-owner@vger.kernel.org>
+Received: from szxga03-in.huawei.com ([119.145.14.66]:5069 "EHLO
+	szxga03-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751317AbaK2KMI (ORCPT
+	<rfc822;linux-unionfs@vger.kernel.org>);
+	Sat, 29 Nov 2014 05:12:08 -0500
+Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: linux-unionfs@vger.kernel.org
 
-Stephen Smalley <sds@tycho.nsa.gov> wrote:
+Hi Miklos,
 
-> Also, would be good to create a common helper for use here, by
-> selinux_dentry_init_security(), selinux_inode_init_security(), and
-> may_create().  Already some seeming potential for inconsistencies there.
+Sorry for disturb you. I'm confused with *cursor* in struct
+ovl_dir_file. I know this struct ovl_cache_entry *cursor* is
+presented to indicate current pos when performing readdir at
+a MERGE type directory.
 
-selinux_dentry_init_security() and selinux_inode_init_security() do something
-different depending on SECURITY_FS_USE_MNTPOINT.  Is the dentry variant wrong?
-Shouldn't it be using the mountpoint label if that flag _is_ set?
+Why this additional entry is needed? Can't we use a pointer
+to record which entry is read or is ready for reading? After
+finish reading lower and upper directories, entries in struct
+ovl_dir_cache is stabilized. Changing of directories will
+cause the later .readdir() to create a new ovl_dir_cache but
+the old cache will not be released until all the holders of
+it call .release().
 
-David
+So I think a pointer points to an entry in the entry list of
+ovl_dir_cache is enough to each process sharing the access
+of the same cache. We don't need to keep and move an special
+entry, *cursor*. That's my thought.
+
+I've considered a lot and googled some key words but found
+nothing. Did I miss something important?
+
+It will be fine if you'd like to explain the requirement of
+*cursor* in readdir. Thanks a lot~!
+
+
+Hu
+
+
