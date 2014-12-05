@@ -1,63 +1,44 @@
-From: hujianyang <hujianyang@huawei.com>
+From: Miklos Szeredi <miklos@szeredi.hu>
 Subject: Re: Cursor in readdir
-Date: Fri, 5 Dec 2014 17:47:05 +0800
-Message-ID: <54817F19.4010609@huawei.com>
-References: <54799BDC.5030201@huawei.com> <CAJfpegt5vmDG-8=CoD1-FbHoMQFmFKvPELoU6OiUULoffkb-vQ@mail.gmail.com>
+Date: Fri, 5 Dec 2014 11:50:39 +0100
+Message-ID: <CAJfpegvhvVRLO9J5R6MkgM-hqyUDD4Gq0EV9-y5FqQWObzHKiQ@mail.gmail.com>
+References: <54799BDC.5030201@huawei.com>
+	<CAJfpegt5vmDG-8=CoD1-FbHoMQFmFKvPELoU6OiUULoffkb-vQ@mail.gmail.com>
+	<54817F19.4010609@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from szxga02-in.huawei.com ([119.145.14.65]:25930 "EHLO
-	szxga02-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752893AbaLEJrU (ORCPT
+Received: from mail-qa0-f48.google.com ([209.85.216.48]:48257 "EHLO
+	mail-qa0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751021AbaLEKuk (ORCPT
 	<rfc822;linux-unionfs@vger.kernel.org>);
-	Fri, 5 Dec 2014 04:47:20 -0500
-In-Reply-To: <CAJfpegt5vmDG-8=CoD1-FbHoMQFmFKvPELoU6OiUULoffkb-vQ@mail.gmail.com>
+	Fri, 5 Dec 2014 05:50:40 -0500
+Received: by mail-qa0-f48.google.com with SMTP id v10so231651qac.7
+        for <linux-unionfs@vger.kernel.org>; Fri, 05 Dec 2014 02:50:40 -0800 (PST)
+In-Reply-To: <54817F19.4010609@huawei.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Miklos Szeredi <miklos@szeredi.hu>
+To: hujianyang <hujianyang@huawei.com>
 Cc: linux-unionfs@vger.kernel.org
 
-On 2014/12/1 23:26, Miklos Szeredi wrote:
-> On Sat, Nov 29, 2014 at 11:11 AM, hujianyang <hujianyang@huawei.com> wrote:
->> Hi Miklos,
->>
->> Sorry for disturb you. I'm confused with *cursor* in struct
->> ovl_dir_file. I know this struct ovl_cache_entry *cursor* is
->> presented to indicate current pos when performing readdir at
->> a MERGE type directory.
->>
->> Why this additional entry is needed? Can't we use a pointer
->> to record which entry is read or is ready for reading? After
->> finish reading lower and upper directories, entries in struct
->> ovl_dir_cache is stabilized. Changing of directories will
->> cause the later .readdir() to create a new ovl_dir_cache but
->> the old cache will not be released until all the holders of
->> it call .release().
->>
->> So I think a pointer points to an entry in the entry list of
->> ovl_dir_cache is enough to each process sharing the access
->> of the same cache. We don't need to keep and move an special
->> entry, *cursor*. That's my thought.
-> 
-> Cursors are safe against removal of current entry.   However, we don't
-> do that here, AFAICS, so I think you are correct in that the cursor is
-> not actually needed here.
-> 
+On Fri, Dec 5, 2014 at 10:47 AM, hujianyang <hujianyang@huawei.com> wrote:
+> On 2014/12/1 23:26, Miklos Szeredi wrote:
+>
+> Do you think it's valuable to discard the using of *cursor* and
+> use a pointer instead? Or maybe we will enable some remove
+> operations for ovl_dir_cache in the future so we should keep
+> this mechanism.
 
-Thanks~!
+Will probably need to do remove operations on merged layers as
+whiteouts anyway, which does not involve actual removal of entry.  So
+I guess the cursor won't be needed.
 
-Do you think it's valuable to discard the using of *cursor* and
-use a pointer instead? Or maybe we will enable some remove
-operations for ovl_dir_cache in the future so we should keep
-this mechanism.
+> What's your opinion? I'd like to change this part and see if
+> the usage of a pointer could speed up .readdir() on a merged
+> directory.
 
-What's your opinion? I'd like to change this part and see if
-the usage of a pointer could speed up .readdir() on a merged
-directory.
+If it's a cleanup (removes more complexity than it adds) then a patch
+is welcome.
 
-Cheers,
-
-Hu
-
-
+Thanks,
+Miklos
