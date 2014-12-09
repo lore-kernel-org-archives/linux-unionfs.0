@@ -1,56 +1,38 @@
-From: Miklos Szeredi <miklos@szeredi.hu>
-Subject: [GIT PULL] multi-layer support for overlay filesystem
-Date: Tue, 9 Dec 2014 11:37:45 +0100
-Message-ID: <20141209103745.GA32280@tucsk.suse.de>
+From: Sergey Korshunoff <seyko2@gmail.com>
+Subject: Re: aufs as root vor openvz CT
+Date: Tue, 9 Dec 2014 19:43:06 +0300
+Message-ID: <CAKG6wnZ2BooW_1V5MkJ98yELsTkRh3OnkWMyEcuRwwruG6XDGw@mail.gmail.com>
+References: <CAKG6wnaq1BwLgMNy27i8ggzt_qMnUb0KVNQg=Z85nz1LbXttUg@mail.gmail.com>
+	<29716.1405886425@jrobl>
+	<CAKG6wnYsDk8_JoG8QrHZ3ZtDicnwt__6AGTod-Ozqi5gjoZTdw@mail.gmail.com>
+	<1728348.LhyPPIypjG@xrated>
+	<9782.1406084358@jrobl>
+	<CAKG6wnYTE8YK-2OXGcBph3q4mY9zqJqRu4K-LULE0F0=RO1fAg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wg0-f51.google.com ([74.125.82.51]:34410 "EHLO
-	mail-wg0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755389AbaLIKhb (ORCPT
+Received: from mail-ig0-f171.google.com ([209.85.213.171]:44332 "EHLO
+	mail-ig0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754278AbaLIQnH (ORCPT
 	<rfc822;linux-unionfs@vger.kernel.org>);
-	Tue, 9 Dec 2014 05:37:31 -0500
-Received: by mail-wg0-f51.google.com with SMTP id x12so409803wgg.24
-        for <linux-unionfs@vger.kernel.org>; Tue, 09 Dec 2014 02:37:29 -0800 (PST)
-Content-Disposition: inline
+	Tue, 9 Dec 2014 11:43:07 -0500
+Received: by mail-ig0-f171.google.com with SMTP id z20so4841076igj.16
+        for <linux-unionfs@vger.kernel.org>; Tue, 09 Dec 2014 08:43:06 -0800 (PST)
+In-Reply-To: <CAKG6wnYTE8YK-2OXGcBph3q4mY9zqJqRu4K-LULE0F0=RO1fAg@mail.gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Al Viro <viro@ZenIV.linux.org.uk>
-Cc: linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org
+To: sfjro@users.sourceforge.net
+Cc: Hans-Peter Jansen <hpj@urpla.net>, linux-unionfs@vger.kernel.org
 
-Al,
+Succes story.
+I modified a checkpoint part of the openvz 2.6.32 kernel (cpt_mm.c)
+which handles a vma areas
+by replacing vma->vm_file with vma->vm_prfile if vma->prfile != 0.
+After that a checkpoint-restore is performed without any error.
 
-Please pull from
+I think that CRIU utils must know about that field in the vma struct
+(if there is that filed) before CRIU can suspend a container located
+inside an aufs file system.
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/mszeredi/vfs.git overlayfs-next
-
-This adds support for multiple read-only layers to overlayfs.  It also makes the
-writable upper layer optional.
-
-Thanks,
-Miklos
-
----
-Miklos Szeredi (12):
-      ovl: check whiteout while reading directory
-      ovl: make path-type a bitmap
-      ovl: dont replace opaque dir
-      ovl: add mutli-layer infrastructure
-      ovl: helper to iterate layers
-      ovl: multi-layer readdir
-      ovl: multi-layer lookup
-      ovl: allow statfs if no upper layer
-      ovl: mount: change order of initialization
-      ovl: improve mount helpers
-      ovl: make upperdir optional
-      ovl: support multiple lower layers
-
----
- Documentation/filesystems/overlayfs.txt |  12 +
- fs/overlayfs/copy_up.c                  |   4 +-
- fs/overlayfs/dir.c                      |  24 +-
- fs/overlayfs/inode.c                    |   9 +-
- fs/overlayfs/overlayfs.h                |  14 +-
- fs/overlayfs/readdir.c                  | 120 +++-----
- fs/overlayfs/super.c                    | 521 ++++++++++++++++++++------------
- 7 files changed, 427 insertions(+), 277 deletions(-)
+Another solution may be to use vma_ops in aufs and to keep
+vma->vm_file unchanged,
