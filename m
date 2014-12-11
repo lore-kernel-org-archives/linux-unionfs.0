@@ -1,47 +1,32 @@
-From: Weng Xuetian <wengxt@gmail.com>
-Subject: Problem with overlayfs and switch_root
-Date: Wed, 10 Dec 2014 15:03:40 -0500
-Message-ID: <2031284.s7T0BrCJ3o@chakra-yoga2>
+From: hujianyang <hujianyang@huawei.com>
+Subject: Re: [PATCH RFC] ovl: discard independent cursor in readdir()
+Date: Thu, 11 Dec 2014 10:04:27 +0800
+Message-ID: <5488FBAB.8050109@huawei.com>
+References: <5488222C.6080108@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-qa0-f46.google.com ([209.85.216.46]:57922 "EHLO
-	mail-qa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755088AbaLJUDm (ORCPT
+Received: from szxga01-in.huawei.com ([119.145.14.64]:11417 "EHLO
+	szxga01-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932937AbaLKCEm (ORCPT
 	<rfc822;linux-unionfs@vger.kernel.org>);
-	Wed, 10 Dec 2014 15:03:42 -0500
-Received: by mail-qa0-f46.google.com with SMTP id n8so2532369qaq.33
-        for <linux-unionfs@vger.kernel.org>; Wed, 10 Dec 2014 12:03:42 -0800 (PST)
-Received: from chakra-yoga2.localnet (sbldar101.cs.sunysb.edu. [130.245.26.101])
-        by mx.google.com with ESMTPSA id p9sm5180425qax.8.2014.12.10.12.03.40
-        for <linux-unionfs@vger.kernel.org>
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Wed, 10 Dec 2014 12:03:41 -0800 (PST)
+	Wed, 10 Dec 2014 21:04:42 -0500
+In-Reply-To: <5488222C.6080108@huawei.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: linux-unionfs@vger.kernel.org
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: linux-unionfs@vger.kernel.org
 
-Hi,
-I'm trying to port Chakra's live cd from aufs to overlayfs since overlay fs is 
-now in 3.18. Since I need multiple lowerdir support so I also grab the code 
-from overlayfs-next.
+On 2014/12/10 18:36, hujianyang wrote:
+> Since the ovl_dir_cache is stable during a directory reading, the cursor
+> of struct ovl_dir_file don't need to be an independent entry in the list
+> of a merged directory.
+> 
+> This patch changes *cursor* to a pointer which points to the entry in the
+> ovl_dir_cache. After this, we don't need to check *is_cursor* either.
+> 
 
-Before switch_root, the mount setup is:
-* squashfs is mounted at /ro_branch/root-image, /ro_branch/overlay-pkgs, 
-/ro_branch/overlay
-* tmpfs is mounted at /rw_branch
-* Overlayfs is mounted at /new_root with option lowerdir=/ro_branch/overlay-
-pkgs:/ro_branch/overlay:/ro_branch/root-
-image,upperdir=/rw_branch/uppper,workdir=/rw_branch/work .
+Sorry, there is something wrong with this patch. Please, drop it~!
 
-Then it will switch_root to /new_root .
 
-Now system boots fine, but with one strange problem, if I execute ls / , it 
-shows that there's nothing under / . But I can access files and directory with 
-full path.
-
-What's the possible problem that can cause this?
-
-Thanks,
-Xuetian
