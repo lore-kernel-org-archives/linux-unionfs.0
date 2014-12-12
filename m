@@ -1,127 +1,83 @@
-From: hujianyang <hujianyang@huawei.com>
-Subject: [PATCH RFC resend] ovl: discard independent cursor in readdir()
-Date: Thu, 11 Dec 2014 10:30:18 +0800
-Message-ID: <548901BA.3050401@huawei.com>
+From: Al Viro <viro@ZenIV.linux.org.uk>
+Subject: Re: [GIT PULL] multi-layer support for overlay filesystem
+Date: Fri, 12 Dec 2014 09:47:39 +0000
+Message-ID: <20141212094738.GB5944@ZenIV.linux.org.uk>
+References: <20141209103745.GA32280@tucsk.suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from [119.145.14.66] ([119.145.14.66]:4938 "EHLO
-	szxga03-in.huawei.com" rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org
-	with ESMTP id S933251AbaLKCbI (ORCPT
+Received: from zeniv.linux.org.uk ([195.92.253.2]:50843 "EHLO
+	ZenIV.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934631AbaLLJrl (ORCPT
 	<rfc822;linux-unionfs@vger.kernel.org>);
-	Wed, 10 Dec 2014 21:31:08 -0500
+	Fri, 12 Dec 2014 04:47:41 -0500
+Content-Disposition: inline
+In-Reply-To: <20141209103745.GA32280@tucsk.suse.de>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: linux-unionfs@vger.kernel.org
+Cc: linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Since the ovl_dir_cache is stable during a directory reading, the cursor
-of struct ovl_dir_file don't need to be an independent entry in the list
-of a merged directory.
+On Tue, Dec 09, 2014 at 11:37:45AM +0100, Miklos Szeredi wrote:
+> Al,
+> 
+> Please pull from
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/mszeredi/vfs.git overlayfs-next
+> 
+> This adds support for multiple read-only layers to overlayfs.  It also makes the
+> writable upper layer optional.
 
-This patch changes *cursor* to a pointer which points to the entry in the
-ovl_dir_cache. After this, we don't need to check *is_cursor* either.
+First of all, your checks in ovl_mount_dir_noesc() have no effect besides
+spamming the logs.  In
+        if (err) 
+                pr_err("overlayfs: failed to resolve '%s': %i\n", name, err);
+        else if (!ovl_is_allowed_fs_type(path->dentry))
+                pr_err("overlayfs: filesystem on '%s' not supported\n", name);
+        else if (!S_ISDIR(path->dentry->d_inode->i_mode))
+                pr_err("overlayfs: '%s' not a directory\n", name);
+        else   
+                err = 0;
+the fourth alternative is completely pointless and both the second and the
+third leave you with err being zero.
 
-Signed-off-by: hujianyang <hujianyang@huawei.com>
----
- fs/overlayfs/readdir.c |   33 ++++++++++++---------------------
- 1 files changed, 12 insertions(+), 21 deletions(-)
+That opens all kinds of unpleasant holes, obviously.  If you fix that by
+setting err in the 2nd and thr 3rd alternatives, you get the next problem -
+leaks on such failures.  Suppose the first ovl_mount_dir() call fails on
+those checks.  You go to out_free_config and voila - upperpath has leaked.
+The same in the second call means leaked workpath.  And those failures in
+ovl_lower_dir(), as well as failures of vfs_getattr() there, end up leaking
+vfsmount/dentry in stack[...].
 
-diff --git a/fs/overlayfs/readdir.c b/fs/overlayfs/readdir.c
-index 8087b63..b65e1ed 100644
---- a/fs/overlayfs/readdir.c
-+++ b/fs/overlayfs/readdir.c
-@@ -24,7 +24,6 @@ struct ovl_cache_entry {
- 	struct list_head l_node;
- 	struct rb_node node;
- 	bool is_whiteout;
--	bool is_cursor;
- 	char name[];
- };
+Next piece of fun: suppose you have in one of the lower layers a filesystem
+with ->lookup()-enforced upper limit on name length.  Pretty much every
+local fs has one, but... they are not all equal.  255 characters is the
+common upper limit, but e.g. jffs2 stops at 254, minixfs upper limit is
+somewhere from 14 to 60, depending upon version, etc.  You are doing a lookup
+for something that is present in upper layer, but happens to be too long for
+one of the lower layers.  Too bad - ENAMETOOLONG for you...
 
-@@ -49,7 +48,7 @@ struct ovl_dir_file {
- 	bool is_real;
- 	bool is_upper;
- 	struct ovl_dir_cache *cache;
--	struct ovl_cache_entry cursor;
-+	struct ovl_cache_entry *cursor;
- 	struct file *realfile;
- 	struct file *upperfile;
- };
-@@ -94,7 +93,6 @@ static struct ovl_cache_entry *ovl_cache_entry_new(const char *name, int len,
- 		p->type = d_type;
- 		p->ino = ino;
- 		p->is_whiteout = false;
--		p->is_cursor = false;
- 	}
+BTW, that sucker really needs cleaning up.  I seriously suspect that
+quite a few conditions in there might be redundant, but after several
+hours of staring at it I'm still not sure that I hadn't missed some
+paths in there ;-/  AFAICS, it would get cleaner if you unrolled the idx == 0
+pass out of that loop - as in "deal with ovl_path_upper() if present, then
+simple for (lower = 0; lower < oe->numlower; lower++)".  TBH, ovl_path_next()
+seems to be a bad primitive for that use and the other caller doesn't give
+a damn about upper vs. lower, so I wonder if the games with reporting that
+make any sense.  They certainly make ovl_path_next() much uglier...
 
- 	return p;
-@@ -195,7 +193,7 @@ static void ovl_cache_put(struct ovl_dir_file *od, struct dentry *dentry)
- {
- 	struct ovl_dir_cache *cache = od->cache;
+Another thing: in theory, you can get up to about 2000 (identical)
+single-letter names in lowerdirs.  Resulting arrays of struct path (i.e.
+pairs of pointers) will make allocators unhappy - 32Kb kmalloc() is
+not nice.  IMO that needs more or less sane limit enforced at mount time -
+relying on "mount data is at most one page, can't fit too much there"
+is not enough.
 
--	list_del_init(&od->cursor.l_node);
-+	od->cursor = NULL;
- 	WARN_ON(cache->refcount <= 0);
- 	cache->refcount--;
- 	if (!cache->refcount) {
-@@ -298,13 +296,12 @@ static void ovl_seek_cursor(struct ovl_dir_file *od, loff_t pos)
- 	loff_t off = 0;
+Logics in ovl_dir_read_merged() looks odd - why is the lowermost one special
+and not the uppermost?  BTW, what if you find a whiteout in the lowermost
+layer?  And while we are at it, what happens when the _upper_ layer is an
+overlayfs - how do you create whiteouts there?  That, AFAICS, applies to
+the current mainline as well...
 
- 	list_for_each_entry(p, &od->cache->entries, l_node) {
--		if (p->is_cursor)
--			continue;
- 		if (off >= pos)
- 			break;
- 		off++;
- 	}
--	list_move_tail(&od->cursor.l_node, &p->l_node);
-+	/* Curosr is safe since the cache is stable */
-+	od->cursor = p;
- }
-
- static struct ovl_dir_cache *ovl_cache_get(struct dentry *dentry)
-@@ -361,19 +358,14 @@ static int ovl_iterate(struct file *file, struct dir_context *ctx)
- 		ovl_seek_cursor(od, ctx->pos);
- 	}
-
--	while (od->cursor.l_node.next != &od->cache->entries) {
--		struct ovl_cache_entry *p;
-+	while (&od->cursor->l_node != &od->cache->entries) {
-+		struct ovl_cache_entry *p = od->cursor;
-
--		p = list_entry(od->cursor.l_node.next, struct ovl_cache_entry, l_node);
--		/* Skip cursors */
--		if (!p->is_cursor) {
--			if (!p->is_whiteout) {
--				if (!dir_emit(ctx, p->name, p->len, p->ino, p->type))
--					break;
--			}
--			ctx->pos++;
--		}
--		list_move(&od->cursor.l_node, &p->l_node);
-+		if (!p->is_whiteout)
-+			if (!dir_emit(ctx, p->name, p->len, p->ino, p->type))
-+				break;
-+		od->cursor = list_next_entry(p, l_node);
-+		ctx->pos++;
- 	}
- 	return 0;
- }
-@@ -492,11 +484,10 @@ static int ovl_dir_open(struct inode *inode, struct file *file)
- 		kfree(od);
- 		return PTR_ERR(realfile);
- 	}
--	INIT_LIST_HEAD(&od->cursor.l_node);
- 	od->realfile = realfile;
- 	od->is_real = !OVL_TYPE_MERGE(type);
- 	od->is_upper = OVL_TYPE_UPPER(type);
--	od->cursor.is_cursor = true;
-+	od->cursor = NULL;
- 	file->private_data = od;
-
- 	return 0;
--- 
-1.6.0.2
-
+Anyway, more after I get some sleep - it's nearly 5am here ;-/
