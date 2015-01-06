@@ -1,41 +1,54 @@
-From: Fabian Sturm <fabian.sturm@aduu.de>
-Subject: Multiple lower layers - presedence?
-Date: Mon, 05 Jan 2015 02:29:04 +0100
-Message-ID: <13541642.4YrjBhCzAu@debian-desktop-mine>
-References: <1997646.dsfVWM3xr5@debian-desktop-mine>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mx01.mykolab.com ([95.128.36.1]:54266 "EHLO mx04.mykolab.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752911AbbAEB3M (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-	Sun, 4 Jan 2015 20:29:12 -0500
-In-Reply-To: <1997646.dsfVWM3xr5@debian-desktop-mine>
-Sender: linux-unionfs-owner@vger.kernel.org
+From: hujianyang <hujianyang@huawei.com>
+Subject: [PATCH] ovl: Fix kernel panic while mounting overlayfs
+Date: Tue, 6 Jan 2015 12:52:13 +0800
+Message-ID: <54AB69FD.6060501@huawei.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
+Sender: linux-fsdevel-owner@vger.kernel.org
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: linux-unionfs@vger.kernel.org, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>
 List-Id: linux-unionfs@vger.kernel.org
-To: linux-unionfs@vger.kernel.org
 
-The current documentation of overlayfs states the following:
+The function ovl_fill_super() in recently multi-layer support
+version will incorrectly return 0 at error handling path and
+then cause kernel panic.
 
+This failure can be reproduced by mounting a overlayfs with
+upperdir and workdir in different mounts.
 
-Multiple lower layers
----------------------
+And also, If the memory allocation of *lower_mnt* fail, this
+function may return an zero either.
 
-Multiple lower layers can now be given using the the colon (":") as a
-separator character between the directory names.  For example:
+This patch fix this problem by setting *err* to proper error
+number before jumping to error handling path.
 
-  mount -t overlay overlay -olowerdir=/lower1:/lower2:/lower3 /merged
+Signed-off-by: hujianyang <hujianyang@huawei.com>
+---
+ fs/overlayfs/super.c |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
 
-As the example shows, "upperdir=" and "workdir=" may be omitted.  In that 
-case
-the overlay will be read-only.
+diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+index 84f3144..d50e3ed 100644
+--- a/fs/overlayfs/super.c
++++ b/fs/overlayfs/super.c
+@@ -836,6 +836,7 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
+ 		if (err)
+ 			goto out_put_upperpath;
 
++		err = -EINVAL;
+ 		if (upperpath.mnt != workpath.mnt) {
+ 			pr_err("overlayfs: workdir and upperdir must reside under the same mount\n");
+ 			goto out_put_workpath;
+@@ -894,6 +895,7 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
+ 		}
+ 	}
 
-Consider the case /lower1/A and /lower2/A exist.
-What is part of the api - that it is undefined or that one takes presedence 
-over the other?
-It would be nice to have this clarified in the documentation.
-
-Thanks,
-Fabian
++	err = -ENOMEM;
+ 	ufs->lower_mnt = kcalloc(numlower, sizeof(struct vfsmount *), GFP_KERNEL);
+ 	if (ufs->lower_mnt == NULL)
+ 		goto out_put_workdir;
+-- 
+1.6.0.2
 
