@@ -1,64 +1,56 @@
 From: hujianyang <hujianyang@huawei.com>
-Subject: Re: Multiple lower layers - presedence?
-Date: Wed, 7 Jan 2015 10:22:35 +0800
-Message-ID: <54AC986B.6030100@huawei.com>
-References: <1997646.dsfVWM3xr5@debian-desktop-mine> <13541642.4YrjBhCzAu@debian-desktop-mine> <85r3v799yw.fsf@boum.org>
+Subject: Re: [PATCH] ovl: Prevent rw remount when it should be ro mount
+Date: Wed, 7 Jan 2015 10:56:18 +0800
+Message-ID: <54ACA052.8010800@huawei.com>
+References: <1420219609-2568-1-git-send-email-waydi1@gmail.com> <54A8AC74.2060106@huawei.com> <54ABEB06.2010008@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from szxga01-in.huawei.com ([119.145.14.64]:14752 "EHLO
+Received: from szxga01-in.huawei.com ([119.145.14.64]:36653 "EHLO
 	szxga01-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756368AbbAGCXM (ORCPT
+	with ESMTP id S1758380AbbAGC4d (ORCPT
 	<rfc822;linux-unionfs@vger.kernel.org>);
-	Tue, 6 Jan 2015 21:23:12 -0500
-In-Reply-To: <85r3v799yw.fsf@boum.org>
+	Tue, 6 Jan 2015 21:56:33 -0500
+In-Reply-To: <54ABEB06.2010008@gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: intrigeri <intrigeri@boum.org>, fabian.sturm@aduu.de
-Cc: linux-unionfs@vger.kernel.org, Miklos Szeredi <miklos@szeredi.hu>
-
-On 2015/1/6 23:59, intrigeri wrote:
-> Hi,
-> 
-> Fabian Sturm wrote (05 Jan 2015 01:29:04 GMT) :
->> Consider the case /lower1/A and /lower2/A exist.
->> What is part of the api - that it is undefined or that one takes presedence 
->> over the other?
->> It would be nice to have this clarified in the documentation.
-> 
-> IMO this should be specified. I would intuitively believe that
-> a right-hand lowerdir should take precedence over any left-hand one,
-> but my intuition definitely is tainted by cultural background that not
-> everyone shares, so it's probably worth looking at how it's done in
-> aufs, to make migration easier for aufs users.
+To: Seunghun Lee <waydi1@gmail.com>
+Cc: miklos@szeredi.hu, sedat.dilek@gmail.com, richard.weinberger@gmail.com, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, linux-unionfs@vger.kernel.org
 
 Hi,
 
-It seems different in overlayfs. A left-hand lowerdir take precedence
-over any right-hand one in the option line.
+There maybe some misunderstandings here. I think your patch really
+fix an important problem, but not in correct way.
 
-For example, we have two file with same name in two lower directories.
+On 2015/1/6 22:02, Seunghun Lee wrote:
+> 
+> After patch:
+> root@qemux86:~# mount -t overlay overlay -olowerdir=lower:lower2 merged
+> mount: warning: merged seems to be mounted read-only.
+> root@qemux86:~# mount | grep overlay
+> overlay on /home/root/merged type overlay (ro,relatime,lowerdir=lower:lower2)
+> root@qemux86:~# mount -o remount,rw merged
+> mount: warning: /home/root/merged seems to be mounted read-only.
+> root@qemux86:~# mount | grep overlay
+> overlay on /home/root/merged type overlay (ro,relatime,lowerdir=lower:lower2)
+> root@qemux86:~# echo hi > merged/hi
+> -sh: merged/hi: Read-only file system
+> root@qemux86:~#
+> 
 
-/mnt/ext4/lower1 # echo lower1 > file
-/mnt/ext4/lower2 # echo lower2 > file
+If users want a rw mount, can we give them a ro mount? I think it's
+wrong, .remount_fs should refuse this request.
 
-and mount them in different order.
+So I think your .remount_fs should check both what users in userpace
+want and what kernel can offer, then realize legal requests and
+refuse illegal requests. Not changing the requests from users.
 
-/mnt # mount -t overlay overlay -o lowerdir=./ext4/lower1/:./ext4/lower2/ ./overlay
-/mnt # cat ./overlay/file
-lower1
+Further more, can we replace upper/lower/work directories or mount
+point by this .remount_fs?
 
-/mnt # mount -t overlay overlay -o lowerdir=./ext4/lower2/:./ext4/lower1/ ./overlay
-/mnt # cat ./overlay/file
-lower2
-
-It is because lowerdirs are store in a buffer which is scanned by mount
-function of overlayfs from left to right. The left most one is treat as
-the top most lowerdir and the right most lowerdir is treat as the lowest
-lowerdir.
-
-I think a definition about this is needed in the documentation.
+If you want to export a new function, I think you should considering
+more about these.
 
 Thanks,
 Hu
