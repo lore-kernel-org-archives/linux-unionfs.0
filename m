@@ -1,62 +1,110 @@
 From: Seunghun Lee <waydi1@gmail.com>
-Subject: Re: [PATCH] ovl: Prevent rw remount when it should be ro mount
-Date: Thu, 08 Jan 2015 00:04:59 +0900
-Message-ID: <54AD4B1B.1030801@gmail.com>
-References: <1420219609-2568-1-git-send-email-waydi1@gmail.com> <54A8AC74.2060106@huawei.com> <54ABEB06.2010008@gmail.com> <54ACA052.8010800@huawei.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <54ACA052.8010800@huawei.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: hujianyang <hujianyang@huawei.com>
-Cc: miklos@szeredi.hu, sedat.dilek@gmail.com, richard.weinberger@gmail.com, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, linux-unionfs@vger.kernel.org
+Subject: [PATCH] ovl: Fix condition check for workdir
+Date: Thu,  8 Jan 2015 21:41:20 +0900
+Message-ID: <1420720880-28459-1-git-send-email-waydi1@gmail.com>
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
+Sender: linux-fsdevel-owner@vger.kernel.org
+To: miklos@szeredi.hu
+Cc: linux-unionfs@vger.kernel.org, linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org, Seunghun Lee <waydi1@gmail.com>
 List-Id: linux-unionfs@vger.kernel.org
 
-Hi Hu,
+When file system is mounted read-only workdir is not needed.
 
-On 01/07/2015 11:56 AM, hujianyang wrote:
-> Hi,
->
-> There maybe some misunderstandings here. I think your patch really
-> fix an important problem, but not in correct way.
->
-> On 2015/1/6 22:02, Seunghun Lee wrote:
->> After patch:
->> root@qemux86:~# mount -t overlay overlay -olowerdir=lower:lower2 merged
->> mount: warning: merged seems to be mounted read-only.
->> root@qemux86:~# mount | grep overlay
->> overlay on /home/root/merged type overlay (ro,relatime,lowerdir=lower:lower2)
->> root@qemux86:~# mount -o remount,rw merged
->> mount: warning: /home/root/merged seems to be mounted read-only.
->> root@qemux86:~# mount | grep overlay
->> overlay on /home/root/merged type overlay (ro,relatime,lowerdir=lower:lower2)
->> root@qemux86:~# echo hi > merged/hi
->> -sh: merged/hi: Read-only file system
->> root@qemux86:~#
->>
-> If users want a rw mount, can we give them a ro mount? I think it's
-> wrong, .remount_fs should refuse this request.
->
-> So I think your .remount_fs should check both what users in userpace
-> want and what kernel can offer, then realize legal requests and
-> refuse illegal requests. Not changing the requests from users.
-Many file systems just change flags when user requests read-write remount.
-(romfs, squashfs, sysv...)
-I thought this case is similar above filesystems.
-> Further more, can we replace upper/lower/work directories or mount
-> point by this .remount_fs?
->
-> If you want to export a new function, I think you should considering
-> more about these.
->
-> Thanks,
-> Hu
->
-Yes, you are right. However, this patch is a minimal support to
-prevent kernel panic when file system is remounted to read-write mode.
-And many file systems have remount_fs function of this kind.
+Signed-off-by: Seunghun Lee <waydi1@gmail.com>
+---
+ fs/overlayfs/super.c | 35 +++++++++++++++++++++++------------
+ 1 file changed, 23 insertions(+), 12 deletions(-)
 
-I think what you mentioned is can be added later if it is necessary.
+diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+index 84f3144..4e50617 100644
+--- a/fs/overlayfs/super.c
++++ b/fs/overlayfs/super.c
+@@ -30,6 +30,7 @@ struct ovl_config {
+ 	char *lowerdir;
+ 	char *upperdir;
+ 	char *workdir;
++	bool is_rw;
+ };
+ 
+ /* private information held for overlayfs's superblock */
+@@ -515,10 +516,11 @@ static int ovl_show_options(struct seq_file *m, struct dentry *dentry)
+ 	struct ovl_fs *ufs = sb->s_fs_info;
+ 
+ 	seq_printf(m, ",lowerdir=%s", ufs->config.lowerdir);
+-	if (ufs->config.upperdir) {
++	if (ufs->config.upperdir)
+ 		seq_printf(m, ",upperdir=%s", ufs->config.upperdir);
++	if (ufs->config.is_rw)
+ 		seq_printf(m, ",workdir=%s", ufs->config.workdir);
+-	}
++
+ 	return 0;
+ }
+ 
+@@ -822,16 +824,27 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
+ 
+ 	sb->s_stack_depth = 0;
+ 	if (ufs->config.upperdir) {
+-		/* FIXME: workdir is not needed for a R/O mount */
++		err = ovl_mount_dir(ufs->config.upperdir, &upperpath);
++		if (err)
++			goto out_free_config;
++
++		sb->s_stack_depth = upperpath.mnt->mnt_sb->s_stack_depth;
++	}
++
++	/* If the upper fs is r/o or nonexistent, we mark overlayfs r/o too */
++	if (!upperpath.mnt || (upperpath.mnt->mnt_sb->s_flags & MS_RDONLY)) {
++		ufs->config.is_rw = false;
++		sb->s_flags |= MS_RDONLY;
++	} else {
++		ufs->config.is_rw = true;
++	}
++
++	if (ufs->config.is_rw) {
+ 		if (!ufs->config.workdir) {
+ 			pr_err("overlayfs: missing 'workdir'\n");
+ 			goto out_free_config;
+ 		}
+ 
+-		err = ovl_mount_dir(ufs->config.upperdir, &upperpath);
+-		if (err)
+-			goto out_free_config;
+-
+ 		err = ovl_mount_dir(ufs->config.workdir, &workpath);
+ 		if (err)
+ 			goto out_put_upperpath;
+@@ -844,8 +857,8 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
+ 			pr_err("overlayfs: workdir and upperdir must be separate subtrees\n");
+ 			goto out_put_workpath;
+ 		}
+-		sb->s_stack_depth = upperpath.mnt->mnt_sb->s_stack_depth;
+ 	}
++
+ 	err = -ENOMEM;
+ 	lowertmp = kstrdup(ufs->config.lowerdir, GFP_KERNEL);
+ 	if (!lowertmp)
+@@ -884,7 +897,9 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
+ 			pr_err("overlayfs: failed to clone upperpath\n");
+ 			goto out_put_lowerpath;
+ 		}
++	}
+ 
++	if (ufs->config.is_rw) {
+ 		ufs->workdir = ovl_workdir_create(ufs->upper_mnt, workpath.dentry);
+ 		err = PTR_ERR(ufs->workdir);
+ 		if (IS_ERR(ufs->workdir)) {
+@@ -914,10 +929,6 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
+ 		ufs->numlower++;
+ 	}
+ 
+-	/* If the upper fs is r/o or nonexistent, we mark overlayfs r/o too */
+-	if (!ufs->upper_mnt || (ufs->upper_mnt->mnt_sb->s_flags & MS_RDONLY))
+-		sb->s_flags |= MS_RDONLY;
+-
+ 	sb->s_d_op = &ovl_dentry_operations;
+ 
+ 	err = -ENOMEM;
+-- 
+2.2.1
 
-Thanks.
