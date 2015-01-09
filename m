@@ -1,133 +1,127 @@
 From: hujianyang <hujianyang@huawei.com>
-Subject: Re: [PATCH RFC resend] ovl: discard independent cursor in readdir()
-Date: Fri, 9 Jan 2015 09:43:08 +0800
-Message-ID: <54AF322C.8080601@huawei.com>
-References: <548901BA.3050401@huawei.com>
+Subject: Re: [PATCH] ovl: Fix condition check for workdir
+Date: Fri, 9 Jan 2015 10:40:32 +0800
+Message-ID: <54AF3FA0.8010808@huawei.com>
+References: <1420720880-28459-1-git-send-email-waydi1@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from szxga01-in.huawei.com ([119.145.14.64]:47351 "EHLO
-	szxga01-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753036AbbAIBnY (ORCPT
+Received: from szxga02-in.huawei.com ([119.145.14.65]:9668 "EHLO
+	szxga02-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751151AbbAICkr (ORCPT
 	<rfc822;linux-unionfs@vger.kernel.org>);
-	Thu, 8 Jan 2015 20:43:24 -0500
-In-Reply-To: <548901BA.3050401@huawei.com>
+	Thu, 8 Jan 2015 21:40:47 -0500
+In-Reply-To: <1420720880-28459-1-git-send-email-waydi1@gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: linux-unionfs@vger.kernel.org
+To: Seunghun Lee <waydi1@gmail.com>
+Cc: miklos@szeredi.hu, linux-unionfs@vger.kernel.org, linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org
 
-On 2014/12/11 10:30, hujianyang wrote:
-> Since the ovl_dir_cache is stable during a directory reading, the cursor
-> of struct ovl_dir_file don't need to be an independent entry in the list
-> of a merged directory.
+On 2015/1/8 20:41, Seunghun Lee wrote:
+> When file system is mounted read-only workdir is not needed.
 > 
-> This patch changes *cursor* to a pointer which points to the entry in the
-> ovl_dir_cache. After this, we don't need to check *is_cursor* either.
-> 
-> Signed-off-by: hujianyang <hujianyang@huawei.com>
+> Signed-off-by: Seunghun Lee <waydi1@gmail.com>
 > ---
->  fs/overlayfs/readdir.c |   33 ++++++++++++---------------------
->  1 files changed, 12 insertions(+), 21 deletions(-)
+>  fs/overlayfs/super.c | 35 +++++++++++++++++++++++------------
+>  1 file changed, 23 insertions(+), 12 deletions(-)
 > 
-> diff --git a/fs/overlayfs/readdir.c b/fs/overlayfs/readdir.c
-> index 8087b63..b65e1ed 100644
-> --- a/fs/overlayfs/readdir.c
-> +++ b/fs/overlayfs/readdir.c
-> @@ -24,7 +24,6 @@ struct ovl_cache_entry {
->  	struct list_head l_node;
->  	struct rb_node node;
->  	bool is_whiteout;
-> -	bool is_cursor;
->  	char name[];
+> diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+> index 84f3144..4e50617 100644
+> --- a/fs/overlayfs/super.c
+> +++ b/fs/overlayfs/super.c
+> @@ -30,6 +30,7 @@ struct ovl_config {
+>  	char *lowerdir;
+>  	char *upperdir;
+>  	char *workdir;
+> +	bool is_rw;
 >  };
-> 
-> @@ -49,7 +48,7 @@ struct ovl_dir_file {
->  	bool is_real;
->  	bool is_upper;
->  	struct ovl_dir_cache *cache;
-> -	struct ovl_cache_entry cursor;
-> +	struct ovl_cache_entry *cursor;
->  	struct file *realfile;
->  	struct file *upperfile;
->  };
-> @@ -94,7 +93,6 @@ static struct ovl_cache_entry *ovl_cache_entry_new(const char *name, int len,
->  		p->type = d_type;
->  		p->ino = ino;
->  		p->is_whiteout = false;
-> -		p->is_cursor = false;
->  	}
-> 
->  	return p;
-> @@ -195,7 +193,7 @@ static void ovl_cache_put(struct ovl_dir_file *od, struct dentry *dentry)
->  {
->  	struct ovl_dir_cache *cache = od->cache;
-> 
-> -	list_del_init(&od->cursor.l_node);
-> +	od->cursor = NULL;
->  	WARN_ON(cache->refcount <= 0);
->  	cache->refcount--;
->  	if (!cache->refcount) {
-> @@ -298,13 +296,12 @@ static void ovl_seek_cursor(struct ovl_dir_file *od, loff_t pos)
->  	loff_t off = 0;
-> 
->  	list_for_each_entry(p, &od->cache->entries, l_node) {
-> -		if (p->is_cursor)
-> -			continue;
->  		if (off >= pos)
->  			break;
->  		off++;
->  	}
-> -	list_move_tail(&od->cursor.l_node, &p->l_node);
-> +	/* Curosr is safe since the cache is stable */
-> +	od->cursor = p;
->  }
-> 
->  static struct ovl_dir_cache *ovl_cache_get(struct dentry *dentry)
-> @@ -361,19 +358,14 @@ static int ovl_iterate(struct file *file, struct dir_context *ctx)
->  		ovl_seek_cursor(od, ctx->pos);
->  	}
-> 
-> -	while (od->cursor.l_node.next != &od->cache->entries) {
-> -		struct ovl_cache_entry *p;
-> +	while (&od->cursor->l_node != &od->cache->entries) {
-> +		struct ovl_cache_entry *p = od->cursor;
-> 
-> -		p = list_entry(od->cursor.l_node.next, struct ovl_cache_entry, l_node);
-> -		/* Skip cursors */
-> -		if (!p->is_cursor) {
-> -			if (!p->is_whiteout) {
-> -				if (!dir_emit(ctx, p->name, p->len, p->ino, p->type))
-> -					break;
-> -			}
-> -			ctx->pos++;
-> -		}
-> -		list_move(&od->cursor.l_node, &p->l_node);
-> +		if (!p->is_whiteout)
-> +			if (!dir_emit(ctx, p->name, p->len, p->ino, p->type))
-> +				break;
-> +		od->cursor = list_next_entry(p, l_node);
-> +		ctx->pos++;
->  	}
+>  
+>  /* private information held for overlayfs's superblock */
+> @@ -515,10 +516,11 @@ static int ovl_show_options(struct seq_file *m, struct dentry *dentry)
+>  	struct ovl_fs *ufs = sb->s_fs_info;
+>  
+>  	seq_printf(m, ",lowerdir=%s", ufs->config.lowerdir);
+> -	if (ufs->config.upperdir) {
+> +	if (ufs->config.upperdir)
+>  		seq_printf(m, ",upperdir=%s", ufs->config.upperdir);
+> +	if (ufs->config.is_rw)
+>  		seq_printf(m, ",workdir=%s", ufs->config.workdir);
+> -	}
+> +
 >  	return 0;
 >  }
-> @@ -492,11 +484,10 @@ static int ovl_dir_open(struct inode *inode, struct file *file)
->  		kfree(od);
->  		return PTR_ERR(realfile);
+>  
+> @@ -822,16 +824,27 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
+>  
+>  	sb->s_stack_depth = 0;
+>  	if (ufs->config.upperdir) {
+> -		/* FIXME: workdir is not needed for a R/O mount */
+> +		err = ovl_mount_dir(ufs->config.upperdir, &upperpath);
+> +		if (err)
+> +			goto out_free_config;
+> +
+> +		sb->s_stack_depth = upperpath.mnt->mnt_sb->s_stack_depth;
+> +	}
+> +
+> +	/* If the upper fs is r/o or nonexistent, we mark overlayfs r/o too */
+> +	if (!upperpath.mnt || (upperpath.mnt->mnt_sb->s_flags & MS_RDONLY)) {
+> +		ufs->config.is_rw = false;
+> +		sb->s_flags |= MS_RDONLY;
+> +	} else {
+> +		ufs->config.is_rw = true;
+> +	}
+
+Hi Seunghun,
+
+A partition can be mounted with ro flag. I think workdir is not
+needed in this way either.
+
+> +
+> +	if (ufs->config.is_rw) {
+>  		if (!ufs->config.workdir) {
+>  			pr_err("overlayfs: missing 'workdir'\n");
+>  			goto out_free_config;
+>  		}
+>  
+> -		err = ovl_mount_dir(ufs->config.upperdir, &upperpath);
+> -		if (err)
+> -			goto out_free_config;
+> -
+>  		err = ovl_mount_dir(ufs->config.workdir, &workpath);
+>  		if (err)
+>  			goto out_put_upperpath;
+> @@ -844,8 +857,8 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
+>  			pr_err("overlayfs: workdir and upperdir must be separate subtrees\n");
+>  			goto out_put_workpath;
+>  		}
+> -		sb->s_stack_depth = upperpath.mnt->mnt_sb->s_stack_depth;
 >  	}
-> -	INIT_LIST_HEAD(&od->cursor.l_node);
->  	od->realfile = realfile;
->  	od->is_real = !OVL_TYPE_MERGE(type);
->  	od->is_upper = OVL_TYPE_UPPER(type);
-> -	od->cursor.is_cursor = true;
-> +	od->cursor = NULL;
->  	file->private_data = od;
-> 
->  	return 0;
+> +
+>  	err = -ENOMEM;
+>  	lowertmp = kstrdup(ufs->config.lowerdir, GFP_KERNEL);
+>  	if (!lowertmp)
+> @@ -884,7 +897,9 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
+>  			pr_err("overlayfs: failed to clone upperpath\n");
+>  			goto out_put_lowerpath;
+>  		}
+> +	}
+>  
+> +	if (ufs->config.is_rw) {
+>  		ufs->workdir = ovl_workdir_create(ufs->upper_mnt, workpath.dentry);
+>  		err = PTR_ERR(ufs->workdir);
+>  		if (IS_ERR(ufs->workdir)) {
+> @@ -914,10 +929,6 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
+>  		ufs->numlower++;
+>  	}
+>  
+> -	/* If the upper fs is r/o or nonexistent, we mark overlayfs r/o too */
+> -	if (!ufs->upper_mnt || (ufs->upper_mnt->mnt_sb->s_flags & MS_RDONLY))
+> -		sb->s_flags |= MS_RDONLY;
+> -
+>  	sb->s_d_op = &ovl_dentry_operations;
+>  
+>  	err = -ENOMEM;
 > 
 
-Hi Miklos,
-
-How do you feel about this cleanup?
 
