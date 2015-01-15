@@ -1,59 +1,39 @@
 From: hujianyang <hujianyang@huawei.com>
-Subject: Re: Allow non-workdir mount in overlayfs?
-Date: Wed, 14 Jan 2015 18:18:35 +0800
-Message-ID: <54B6427B.6010908@huawei.com>
-References: <54B5D862.3010600@huawei.com> <CAJfpegsCdRkw6unNM5txd8ZJvvw-X=v_LEw=iMVUvDPox1O_EA@mail.gmail.com>
+Subject: [PATCH 1/3] ovl: print error message for invalid mount options
+Date: Thu, 15 Jan 2015 13:17:36 +0800
+Message-ID: <54B74D70.3000205@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from szxga01-in.huawei.com ([119.145.14.64]:7807 "EHLO
-	szxga01-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750920AbbANKTU (ORCPT
-	<rfc822;linux-unionfs@vger.kernel.org>);
-	Wed, 14 Jan 2015 05:19:20 -0500
-In-Reply-To: <CAJfpegsCdRkw6unNM5txd8ZJvvw-X=v_LEw=iMVUvDPox1O_EA@mail.gmail.com>
-Sender: linux-unionfs-owner@vger.kernel.org
-List-Id: linux-unionfs@vger.kernel.org
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
+Sender: linux-fsdevel-owner@vger.kernel.org
 To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: Seunghun Lee <waydi1@gmail.com>, linux-unionfs@vger.kernel.org
+Cc: linux-unionfs@vger.kernel.org, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, Seunghun Lee <waydi1@gmail.com>, Fabian Sturm <fabian.sturm@aduu.de>
+List-Id: linux-unionfs@vger.kernel.org
 
-On 2015/1/14 17:55, Miklos Szeredi wrote:
-> On Wed, Jan 14, 2015 at 3:45 AM, hujianyang <hujianyang@huawei.com> wrote:
->> Hi Miklos,
->>
->> I was considering the "FIXME: workdir is not needed for a R/O mount"
->> you left in ovl_fill_super() these days.
->>
->> Actually Seunghun (Seunghun Lee <waydi1@gmail.com>) has sent a patch
->> about these problem. But I have some different ideas. I think there are
->> two ways to fix this problem. One, just remove this *FIXME*. Another,
->> Allow non-workdir mount.
->>
->> 1) Remove *FIXME*; Further, use workdir in R/W case only
->>
->> As multi-layer mount are allowed in ovl, users could initialize a R/O
->> mount by setting multi lower directories. Workdir should only be used
->> in R/W case with upperdir exist. So this *FIXME* can be removed.
->>
->> We should add some information in the code and document about this.
-> 
-> I'd vote for this.
-> 
-> If there's no workdir, just use multiple lowedirs.
-> 
-> If there is a workdir, then specify it (and overlay can still be
-> mounted R/O, possibly remounted R/W)
-> 
+Overlayfs should print an error message if an incorrect mount option
+is caught like other filesystems.
 
-Got it~!
+After this patch, improper option input could be clearly known.
 
-I'd like to send a patch about it tomorrow.
+Reported-by: Fabian Sturm <fabian.sturm@aduu.de>
+Signed-off-by: hujianyang <hujianyang@huawei.com>
+---
+ fs/overlayfs/super.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-By the way, I think we should add a error message in parse_opt,
-see the mail send by Fabian, do you agree with it?
+diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+index b90952f..ab3c8cb 100644
+--- a/fs/overlayfs/super.c
++++ b/fs/overlayfs/super.c
+@@ -615,6 +615,7 @@ static int ovl_parse_opt(char *opt, struct ovl_config *config)
+ 			break;
 
-Thanks,
-Hu
-
+ 		default:
++			pr_err("overlayfs: unrecognized mount option \"%s\" or missing value\n", p);
+ 			return -EINVAL;
+ 		}
+ 	}
+-- 
+1.6.0.2
 
