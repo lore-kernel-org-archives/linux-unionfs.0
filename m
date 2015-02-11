@@ -1,65 +1,28 @@
-From: Miklos Szeredi <miklos@szeredi.hu>
-Subject: [GIT PULL] multi-layer support for overlay filesystem
-Date: Wed, 11 Feb 2015 10:30:39 +0100
-Message-ID: <20150211093039.GA6817@tucsk.suse.de>
+From: David Howells <dhowells@redhat.com>
+Subject: Re: Support for filesystems with d_revalidate (NFS)
+Date: Wed, 11 Feb 2015 13:03:36 +0000
+Message-ID: <22229.1423659816@warthog.procyon.org.uk>
+References: <E4C1F457-0D8A-4118-9F10-819D8CCA5ADE@ornl.gov>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: Al Viro <viro@ZenIV.linux.org.uk>
-Cc: linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, torvalds@linux-foundation.org
+Content-Type: text/plain; charset="us-ascii"
+Return-path: <linux-unionfs-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:50970 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752674AbbBKNDl (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+	Wed, 11 Feb 2015 08:03:41 -0500
+In-Reply-To: <E4C1F457-0D8A-4118-9F10-819D8CCA5ADE@ornl.gov>
+Content-ID: <22228.1423659816.1@warthog.procyon.org.uk>
+Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
+To: "Caldwell, Blake A." <blakec@ornl.gov>
+Cc: dhowells@redhat.com, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>
 
-Al,
+Caldwell, Blake A. <blakec@ornl.gov> wrote:
 
-Please pull from
+> My use case for overlayfs is a NFS (v3 or v4) lowerdir, which appears
+> rejected by the code below because NFS defines d_revalidate, d_automount,
+> and d_weak_revalidate (v3 only).
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/mszeredi/vfs.git overlayfs-next
+How do you solve the file locking and fanotify problems?
 
-This adds support for multiple read-only layers to overlayfs.  It also makes the
-writable upper layer optional.
-
-This is a highly requested feature and has been in -next for the last cycle.
-
-Thanks,
-Miklos
-
----
-Miklos Szeredi (16):
-      ovl: check whiteout while reading directory
-      ovl: make path-type a bitmap
-      ovl: dont replace opaque dir
-      ovl: add mutli-layer infrastructure
-      ovl: helper to iterate layers
-      ovl: multi-layer readdir
-      ovl: multi-layer lookup
-      ovl: check whiteout on lowest layer as well
-      ovl: lookup ENAMETOOLONG on lower means ENOENT
-      ovl: allow statfs if no upper layer
-      ovl: mount: change order of initialization
-      ovl: improve mount helpers
-      ovl: make upperdir optional
-      ovl: support multiple lower layers
-      ovl: add testsuite to docs
-      ovl: document lower layer ordering
-
-Seunghun Lee (1):
-      ovl: Prevent rw remount when it should be ro mount
-
-hujianyang (5):
-      ovl: Cleanup redundant blank lines
-      ovl: Use macros to present ovl_xattr
-      ovl: Fix kernel panic while mounting overlayfs
-      ovl: Fix opaque regression in ovl_lookup
-      ovl: discard independent cursor in readdir()
-
----
- Documentation/filesystems/overlayfs.txt |  28 ++
- fs/overlayfs/copy_up.c                  |   5 +-
- fs/overlayfs/dir.c                      |  28 +-
- fs/overlayfs/inode.c                    |  12 +-
- fs/overlayfs/overlayfs.h                |  18 +-
- fs/overlayfs/readdir.c                  | 181 +++++-----
- fs/overlayfs/super.c                    | 564 +++++++++++++++++++++-----------
- 7 files changed, 517 insertions(+), 319 deletions(-)
+David
