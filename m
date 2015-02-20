@@ -1,66 +1,112 @@
-From: Al Viro <viro@ZenIV.linux.org.uk>
-Subject: Re: [GIT PULL] multi-layer support for overlay filesystem
-Date: Thu, 19 Feb 2015 07:42:04 +0000
-Message-ID: <20150219074203.GR29656@ZenIV.linux.org.uk>
-References: <20150211093039.GA6817@tucsk.suse.de>
- <20150218105903.GA5986@tucsk.suse.de>
+From: Atom2 <ariel.atom2@web2web.at>
+Subject: stat inconsistency with overlayfs
+Date: Fri, 20 Feb 2015 19:15:23 +0100
+Message-ID: <54E779BB.8030209@web2web.at>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20150218105903.GA5986@tucsk.suse.de>
-Sender: linux-fsdevel-owner@vger.kernel.org
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, torvalds@linux-foundation.org
+Content-Type: text/plain; charset=utf-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-unionfs-owner@vger.kernel.org>
+Received: from grace.univie.ac.at ([131.130.3.115]:60776 "EHLO
+	grace.univie.ac.at" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753863AbbBTSWA (ORCPT
+	<rfc822;linux-unionfs@vger.kernel.org>);
+	Fri, 20 Feb 2015 13:22:00 -0500
+Received: from joan.univie.ac.at ([131.130.3.110] helo=joan.univie.ac.at)
+	by grace.univie.ac.at with esmtps (TLSv1.2:ECDHE-RSA-AES128-GCM-SHA256:128)
+	(Exim 4.85)
+	(envelope-from <ariel.atom2@web2web.at>)
+	id 1YOs6k-00084K-BM
+	for linux-unionfs@vger.kernel.org; Fri, 20 Feb 2015 19:15:22 +0100
+Received: from zeus.herrenhauspark.com ([92.243.35.23] helo=[192.168.19.32])
+	by joan.univie.ac.at with esmtpsa (TLSv1.2:ECDHE-RSA-AES128-GCM-SHA256:128)
+	(Exim 4.85)
+	(envelope-from <ariel.atom2@web2web.at>)
+	id 1YOs6k-0005Od-49
+	for linux-unionfs@vger.kernel.org; Fri, 20 Feb 2015 19:15:22 +0100
+Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
+To: linux-unionfs@vger.kernel.org
 
-On Wed, Feb 18, 2015 at 11:59:03AM +0100, Miklos Szeredi wrote:
-> On Wed, Feb 11, 2015 at 10:30:39AM +0100, Miklos Szeredi wrote:
-> > Al,
-> > 
-> > Please pull from
-> > 
-> >   git://git.kernel.org/pub/scm/linux/kernel/git/mszeredi/vfs.git overlayfs-next
-> > 
-> > This adds support for multiple read-only layers to overlayfs.  It also makes the
-> > writable upper layer optional.
-> > 
-> > This is a highly requested feature and has been in -next for the last cycle.
-> 
-> Ping.
+I am using find with its printf "%D" option (provides the same=20
+information as stats device information "%d" - device number in decimal=
+)=20
+to figure out whether a file system entry resides in the r/o lowerdir o=
+r=20
+the r/w upperdir of an overlayfs mounted filesystem. I distinguish=20
+between the two by getting the device number from a (plain) file know t=
+o=20
+be in the upperdir.
 
-Pong.  I'm still looking through a large pile of assorted stuff, that pull
-request sitting in the queue.  Should be done with that tomorrow (as in "pull
-or reply with last-minute-found $SOMETHING_DIRE"; FWIW, the last time I looked
-at multilayer stuff was a couple of weeks ago and nothing dire had been spotted,
-so the former is more likely).
+The use case behind that is to be able to backup only files from the=20
+upperdir for several systems sharing a common lowerdir filesystem. I=20
+have used that (scripted approach via rsync) now for quiet some time an=
+d=20
+a few kernels back and it seemed to have worked very well.
 
-ObSomethingDire^H^H^H^HOddElsewhere: what happens if libfuse
-fuse_lowlevel_notify_store() is called with SPLICE_F_MOVE in flags on an
-inode that happens to be mmaped with MAP_SHARED?  Cache coherency isn't the
-main concern; I'm looking at
-        /*
-         * This is a new and locked page, it shouldn't be mapped or
-         * have any special flags on it
-         */
-        if (WARN_ON(page_mapped(oldpage)))
-                goto out_fallback_unlock;
-        if (WARN_ON(page_has_private(oldpage)))
-                goto out_fallback_unlock;
-        if (WARN_ON(PageDirty(oldpage) || PageWriteback(oldpage)))
-                goto out_fallback_unlock;
-        if (WARN_ON(PageMlocked(oldpage)))
-                goto out_fallback_unlock;
-in fuse_try_move_page() and I don't see anything to prevent those
-WARN_ON getting triggered in that case.  The call chain is
-fuse_try_move_page() <- fuse_copy_page() <- fuse_notify_store() <-
-fuse_notify() <- fuse_dev_do_write() <- fuse_dev_splice_write(),
-oldpage is obtained by
-                page = find_or_create_page(mapping, index,
-                                           mapping_gfp_mask(mapping));
-in the loop in fuse_notify_store() and that ought to be able to pick
-the pages present in MAP_SHARED mappings...
+Currently I am using kernel 3.17.7 on gentoo and I seem to observe a=20
+strange behaviour (which I do not recall to have seen before on 3.13 an=
+d=20
+3.11) with my approach as follows:
 
-What am I missing here?  FWIW, I'd been trying to resurrect SPLICE_F_MOVE
-for local filesystems, and with FUSE being the only place in the kernel
-still trying to support it...
+=2E) plain files still work and the device number is correct
+=2E) directories, however, always seem to reside in the lowerdir - even=
+=20
+thoguh they do not exist there; in fact there's not a single file in th=
+e=20
+whole filesystem hierarchy that, according to stat/find, seems to resid=
+e=20
+in the upperdir:
+
+please see the stat output for a file and a directory, both residing in=
+=20
+the same (parent) directory which is completely located in the upperdir=
+=20
+(and does not at all exist in the lowerdir):
+# stat serial
+   File: =E2=80=98serial=E2=80=99
+   Size: 17              Blocks: 8          IO Block: 4096   regular fi=
+le
+Device: ca03h/51715d    Inode: 88          Links: 1
+Access: (0644/-rw-r--r--)  Uid: (    0/    root)   Gid: (    0/    root=
+)
+Access: 2014-02-19 19:01:56.278161346 +0100
+Modify: 2014-02-19 19:01:56.278161346 +0100
+Change: 2014-02-19 19:01:56.278161346 +0100
+  Birth: -
+#
+# stat certs/
+   File: =E2=80=98certs/=E2=80=99
+   Size: 4096            Blocks: 8          IO Block: 4096   directory
+Device: dh/13d  Inode: 331140      Links: 2
+Access: (0700/drwx------)  Uid: (    0/    root)   Gid: (    0/    root=
+)
+Access: 2014-04-26 14:08:47.337968562 +0200
+Modify: 2014-02-19 18:55:58.458161346 +0100
+Change: 2014-02-19 18:55:58.458161346 +0100
+  Birth: -
+
+=46or comparision, please see the stat of /bin which only resides in th=
+e=20
+lowerdir and does not exist in the upperdir:
+# stat /bin
+   File: =E2=80=98/bin=E2=80=99
+   Size: 4096            Blocks: 8          IO Block: 4096   directory
+Device: dh/13d  Inode: 401777      Links: 2
+Access: (0755/drwxr-xr-x)  Uid: (    0/    root)   Gid: (    0/    root=
+)
+Access: 2015-02-20 17:50:24.066368607 +0100
+Modify: 2015-02-09 17:51:18.000000000 +0100
+Change: 2015-02-09 23:58:06.011825328 +0100
+  Birth: -
+
+I do not think that this is the expected behaviour and I am pretty=20
+confident that this was different on older kernels - or am I missing=20
+anything/doing anything wrong here?
+
+Thanks and regards Atom2
+--
+To unsubscribe from this list: send the line "unsubscribe linux-unionfs=
+" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
