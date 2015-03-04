@@ -1,28 +1,35 @@
-From: hujianyang <hujianyang@huawei.com>
+From: Miklos Szeredi <miklos@szeredi.hu>
 Subject: Re: stat inconsistency with overlayfs
-Date: Wed, 4 Mar 2015 10:24:00 +0800
-Message-ID: <54F66CC0.8000602@huawei.com>
-References: <54E779BB.8030209@web2web.at>	<54EEAE3A.5000006@huawei.com>	<37851744.28042779.1424933137550.JavaMail.zimbra@redhat.com>	<54F4CC02.3040808@web2web.at> <CAJfpegtV-UZmnu8HvH9RQiewv14bqpUao=OvnOCCJGhE0DXDHw@mail.gmail.com> <54F5EB8D.1080201@web2web.at>
+Date: Wed, 4 Mar 2015 12:06:43 +0100
+Message-ID: <CAJfpegvkB5KDOkyVKM=dKgb=1JiAavG1EsL2pXDKSSV+GFwydg@mail.gmail.com>
+References: <54E779BB.8030209@web2web.at>
+	<54EEAE3A.5000006@huawei.com>
+	<37851744.28042779.1424933137550.JavaMail.zimbra@redhat.com>
+	<54F4CC02.3040808@web2web.at>
+	<CAJfpegtV-UZmnu8HvH9RQiewv14bqpUao=OvnOCCJGhE0DXDHw@mail.gmail.com>
+	<54F5EB8D.1080201@web2web.at>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from szxga02-in.huawei.com ([119.145.14.65]:63195 "EHLO
-	szxga02-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757774AbbCDCYP (ORCPT
+Received: from mail-qc0-f179.google.com ([209.85.216.179]:40987 "EHLO
+	mail-qc0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758235AbbCDLGo (ORCPT
 	<rfc822;linux-unionfs@vger.kernel.org>);
-	Tue, 3 Mar 2015 21:24:15 -0500
+	Wed, 4 Mar 2015 06:06:44 -0500
+Received: by qcvx3 with SMTP id x3so7494091qcv.8
+        for <linux-unionfs@vger.kernel.org>; Wed, 04 Mar 2015 03:06:43 -0800 (PST)
 In-Reply-To: <54F5EB8D.1080201@web2web.at>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Atom2 <ariel.atom2@web2web.at>, Miklos Szeredi <miklos@szeredi.hu>
-Cc: Xu Wang <xuw@redhat.com>, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>
+To: Atom2 <ariel.atom2@web2web.at>
+Cc: Xu Wang <xuw@redhat.com>, hujianyang <hujianyang@huawei.com>, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>
 
-On 2015/3/4 1:12, Atom2 wrote:
+On Tue, Mar 3, 2015 at 6:12 PM, Atom2 <ariel.atom2@web2web.at> wrote:
 > Mikolos,
 > thanks for joining the party.
-> 
+>
 > Am 03.03.15 um 16:14 schrieb Miklos Szeredi:
+>
 >> Atom2,
 >>
 >>> The use case behind that is to be able to backup only files from the
@@ -30,54 +37,32 @@ On 2015/3/4 1:12, Atom2 wrote:
 >>> used that (scripted approach via rsync) now for quiet some time and a few
 >>> kernels back and it seemed to have worked very well.
 >>
+>>
 >> Why don't you just back up the upper directory itself instead of
 >> messing around with device numbers?
-> 
-> I am not aware of any such option, but if you could explain that a little bit more in detail, I am happy to explore other options.
-> 
-> Just for everybody to be on the same page: In my use case the r/o lowerdir's root directory is also the root of my file system (which is shared across many systems) from which (all) the systems boot. Using an initramfs during the boot process, the upperdir file system (which is different per system) is then r/w overlay-mounted over the common r/o lowerdir's root directory in order to catch any r/w access to the file system.
-> 
-> So in essence and according to my understanding there's no direct access to (only) the r/w upperdir (or only the lowerdir) from within any of the running systems other than using the device field to see where a file system entry actually exists - at least that's my current understanding.
-> 
-> But again, I am happy to learn ...
-> 
-> Regards Atom2
-> 
-> 
+>
+>
+> I am not aware of any such option, but if you could explain that a little
+> bit more in detail, I am happy to explore other options.
+>
+> Just for everybody to be on the same page: In my use case the r/o lowerdir's
+> root directory is also the root of my file system (which is shared across
+> many systems) from which (all) the systems boot. Using an initramfs during
+> the boot process, the upperdir file system (which is different per system)
+> is then r/w overlay-mounted over the common r/o lowerdir's root directory in
+> order to catch any r/w access to the file system.
+>
+> So in essence and according to my understanding there's no direct access to
+> (only) the r/w upperdir (or only the lowerdir) from within any of the
+> running systems other than using the device field to see where a file system
+> entry actually exists - at least that's my current understanding.
 
-Seems not all upper directories are accessible.
+Having access to the upperdir is just your own choice.
 
-Miklos, I didn't find the change log about device number changing, Maybe
-there are some reasons?
-
-For Atom2's requirement, I have some thoughts:
-
-The device number of Overlayfs are now different between files and
-directories, My plan is showing Overlayfs device number for upper and
-upper-merged(upper and several lower) file/dir, using
-
-"stat->dev = dentry->d_sb->s_dev"
-
-and showing lowerfs device number for a lower only file/dir.
-
-For upper non-directory files, report Overlayfs device number.
-Do not change the stat of a lower non-directory file.
-
-For upper and upper-merged directories, report Overlayfs device number as
-before. But for lower only directories, report lowerfs device number.
-
-After this, Atom2 could backup the files and directories have a device
-number equal to Overlayfs mount device number. But as Xu mentioned, this
-device number is just fake, so I don't know if there are other problems.
-
-And for multi-lower mount, an Overlayfs directory may mixed up by several
-lower directories, Atom2 seems don't want to backup this kind of directories,
-we couldn't set the device number to Overlayfs device number, maybe we
-could use the left most lowerdir device number, but that may confused with
-the lower only directories.
+Without knowing the details of how you set up the mounts I can't give
+you a concrete example, but see for example the pivot_root(8) man page
+on how to get access to your old mountpoint.  You can also use bind
+mounts to clone the upperdir into the overlay namespace.
 
 Thanks,
-Hu
-
-
-
+Miklos
