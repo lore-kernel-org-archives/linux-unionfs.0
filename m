@@ -1,44 +1,28 @@
 From: Miklos Szeredi <miklos@szeredi.hu>
-Subject: Re: Small code issue
-Date: Thu, 5 Mar 2015 17:46:17 +0100
-Message-ID: <CAJfpegsxSFPHMb-V1g2hNo8mihW6+wtZoBpvNcjiUiLQXV5V0g@mail.gmail.com>
-References: <54CF1F01.5000204@huawei.com>
+Subject: Re: [PATCH 3/3] ovl: upper fs should not be R/O
+Date: Wed, 18 Mar 2015 10:35:05 +0100
+Message-ID: <CAJfpegsaMU6QnscYmZBykCmB5Yoc5fN2EQO=D_2tJ8DYyCQzuw@mail.gmail.com>
+References: <54B74D70.3000205@huawei.com>
+	<54B74E39.8080405@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-qc0-f174.google.com ([209.85.216.174]:45746 "EHLO
-	mail-qc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757784AbbCEQqS (ORCPT
+Received: from mail-qc0-f181.google.com ([209.85.216.181]:36358 "EHLO
+	mail-qc0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754038AbbCRJfG (ORCPT
 	<rfc822;linux-unionfs@vger.kernel.org>);
-	Thu, 5 Mar 2015 11:46:18 -0500
-Received: by qcwb13 with SMTP id b13so6335140qcw.12
-        for <linux-unionfs@vger.kernel.org>; Thu, 05 Mar 2015 08:46:17 -0800 (PST)
-In-Reply-To: <54CF1F01.5000204@huawei.com>
+	Wed, 18 Mar 2015 05:35:06 -0400
+Received: by qcto4 with SMTP id o4so32658735qct.3
+        for <linux-unionfs@vger.kernel.org>; Wed, 18 Mar 2015 02:35:05 -0700 (PDT)
+In-Reply-To: <54B74E39.8080405@huawei.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: hujianyang <hujianyang@huawei.com>
-Cc: "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>
+Cc: "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, Seunghun Lee <waydi1@gmail.com>, Fabian Sturm <fabian.sturm@aduu.de>
 
-On Mon, Feb 2, 2015 at 7:53 AM, hujianyang <hujianyang@huawei.com> wrote:
-> Hi Miklos,
->
-> I was backporting overlayfs for linux 3.16 last week and
-> found a small issue in the patch:
->
-> commit c771d683: vfs: introduce clone_private_mount()
->
-> this patch adds *struct path* to include/linux/mount.h,
-> but actually *struct path* is already added to this file
-> by
->
-> commit 3064c356: death to mnt_pinned
->
->
-> It's bother to send a patch for fixing an issue like this,
-> so if you've got other same problems, you could merge
-> them with this together.
+The three patches are queued at
 
-Lets just create a separate patch.
+  git://git.kernel.org/pub/scm/linux/kernel/git/mszeredi/vfs.git overlayfs-next
 
 Thanks,
 Miklos
