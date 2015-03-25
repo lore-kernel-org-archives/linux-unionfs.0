@@ -1,39 +1,43 @@
 From: David Howells <dhowells@redhat.com>
-Subject: [PATCH 05/15] VFS: Fix up missed bits of ecryptfs to use d_inode()
-Date: Wed, 25 Mar 2015 14:44:17 +0000
-Message-ID: <20150325144417.17670.33844.stgit@warthog.procyon.org.uk>
+Subject: [PATCH 01/15] configfs: Fix inconsistent use of file_inode() vs
+ file->f_path.dentry->d_inode
+Date: Wed, 25 Mar 2015 14:43:40 +0000
+Message-ID: <20150325144340.17670.37538.stgit@warthog.procyon.org.uk>
 References: <20150325144330.17670.6959.stgit@warthog.procyon.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-unionfs-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:57362 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755197AbbCYOof (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+	Wed, 25 Mar 2015 10:44:35 -0400
 In-Reply-To: <20150325144330.17670.6959.stgit@warthog.procyon.org.uk>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: linux-unionfs-owner@vger.kernel.org
+List-Id: linux-unionfs@vger.kernel.org
 To: viro@ftp.linux.org.uk
 Cc: dhowells@redhat.com, linux-unionfs@vger.kernel.org, linux-kernel@vger.kernel.org, miklos@szeredi.hu
-List-Id: linux-unionfs@vger.kernel.org
 
-Fix up missed bits of ecryptfs to use d_inode() where the clause didn't match
-the autoconversion script RE because of brackets.
+Fix inconsistent use of file_inode() vs file->f_path.dentry->d_inode.
 
+Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
 Signed-off-by: David Howells <dhowells@redhat.com>
 ---
 
- fs/ecryptfs/inode.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/configfs/dir.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/fs/ecryptfs/inode.c b/fs/ecryptfs/inode.c
-index b08b5187f662..99e3b589edf8 100644
---- a/fs/ecryptfs/inode.c
-+++ b/fs/ecryptfs/inode.c
-@@ -681,8 +681,8 @@ static void *ecryptfs_follow_link(struct dentry *dentry, struct nameidata *nd)
- 	char *buf = ecryptfs_readlink_lower(dentry, &len);
- 	if (IS_ERR(buf))
- 		goto out;
--	fsstack_copy_attr_atime(dentry->d_inode,
--				ecryptfs_dentry_to_lower(dentry)->d_inode);
-+	fsstack_copy_attr_atime(d_inode(dentry),
-+				d_inode(ecryptfs_dentry_to_lower(dentry)));
- 	buf[len] = '\0';
- out:
- 	nd_set_link(nd, buf);
+diff --git a/fs/configfs/dir.c b/fs/configfs/dir.c
+index cf0db005d2f5..acb3d63bc9dc 100644
+--- a/fs/configfs/dir.c
++++ b/fs/configfs/dir.c
+@@ -1598,7 +1598,7 @@ static loff_t configfs_dir_lseek(struct file *file, loff_t offset, int whence)
+ 			if (offset >= 0)
+ 				break;
+ 		default:
+-			mutex_unlock(&file_inode(file)->i_mutex);
++			mutex_unlock(&dentry->d_inode->i_mutex);
+ 			return -EINVAL;
+ 	}
+ 	if (offset != file->f_pos) {
+
