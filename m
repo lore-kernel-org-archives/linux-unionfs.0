@@ -1,8 +1,8 @@
 From: David Howells <dhowells@redhat.com>
-Subject: [PATCH 15/15] VFS: Make pathwalk use d_is_reg() rather than
- S_ISREG()
-Date: Wed, 25 Mar 2015 14:45:53 +0000
-Message-ID: <20150325144553.17670.6183.stgit@warthog.procyon.org.uk>
+Subject: [PATCH 14/15] VFS: Combine inode checks with d_is_negative() and
+ d_is_positive() in pathwalk
+Date: Wed, 25 Mar 2015 14:45:44 +0000
+Message-ID: <20150325144544.17670.40558.stgit@warthog.procyon.org.uk>
 References: <20150325144330.17670.6959.stgit@warthog.procyon.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -14,27 +14,50 @@ To: viro@ftp.linux.org.uk
 Cc: dhowells@redhat.com, linux-unionfs@vger.kernel.org, linux-kernel@vger.kernel.org, miklos@szeredi.hu
 List-Id: linux-unionfs@vger.kernel.org
 
-Make pathwalk use d_is_reg() rather than S_ISREG() to determine whether to
-honour O_TRUNC.  Since this occurs after complete_walk(), the dentry type
-field cannot change and the inode pointer cannot change as we hold a ref on
-the dentry, so this should be safe.
+Where we have:
+
+    	if (!dentry->d_inode || d_is_negative(dentry)) {
+
+type constructions in pathwalk we should be able to eliminate the check of
+d_inode and rely solely on the result of d_is_negative() or d_is_positive().
+
+What we do have to take care to do is to read d_inode after calling a
+d_is_xxx() typecheck function to get the barriering right.
 
 Signed-off-by: David Howells <dhowells@redhat.com>
 ---
 
- fs/namei.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/namei.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
 diff --git a/fs/namei.c b/fs/namei.c
-index 66234b836360..5a8dee5c333e 100644
+index c83145af4bfc..66234b836360 100644
 --- a/fs/namei.c
 +++ b/fs/namei.c
-@@ -3079,7 +3079,7 @@ finish_open:
- 	error = -ENOTDIR;
- 	if ((nd->flags & LOOKUP_DIRECTORY) && !d_can_lookup(nd->path.dentry))
- 		goto out;
--	if (!S_ISREG(nd->inode->i_mode))
-+	if (!d_is_reg(nd->path.dentry))
- 		will_truncate = false;
+@@ -1586,7 +1586,7 @@ static inline int walk_component(struct nameidata *nd, struct path *path,
+ 		inode = path->dentry->d_inode;
+ 	}
+ 	err = -ENOENT;
+-	if (!inode || d_is_negative(path->dentry))
++	if (d_is_negative(path->dentry))
+ 		goto out_path_put;
  
- 	if (will_truncate) {
+ 	if (should_follow_link(path->dentry, follow)) {
+@@ -2313,7 +2313,7 @@ mountpoint_last(struct nameidata *nd, struct path *path)
+ 	mutex_unlock(&dir->d_inode->i_mutex);
+ 
+ done:
+-	if (!dentry->d_inode || d_is_negative(dentry)) {
++	if (d_is_negative(dentry)) {
+ 		error = -ENOENT;
+ 		dput(dentry);
+ 		goto out;
+@@ -3040,7 +3040,7 @@ retry_lookup:
+ finish_lookup:
+ 	/* we _can_ be in RCU mode here */
+ 	error = -ENOENT;
+-	if (!inode || d_is_negative(path->dentry)) {
++	if (d_is_negative(path->dentry)) {
+ 		path_to_nameidata(path, nd);
+ 		goto out;
+ 	}
