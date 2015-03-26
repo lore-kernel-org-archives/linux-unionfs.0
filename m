@@ -1,43 +1,48 @@
-From: David Howells <dhowells@redhat.com>
-Subject: [PATCH 07/15] VFS: AF_UNIX sockets should call mknod on the top
- layer only
-Date: Wed, 25 Mar 2015 14:44:37 +0000
-Message-ID: <20150325144437.17670.59599.stgit@warthog.procyon.org.uk>
+From: Miklos Szeredi <miklos@szeredi.hu>
+Subject: Re: [PATCH 12/15] VFS: Add owner-filesystem positive/negative dentry checks
+Date: Thu, 26 Mar 2015 14:05:07 +0100
+Message-ID: <CAJfpegue3OvFwxCUiRuGJxCMQV_jrtYoGoZywRz_kLykKbQU4w@mail.gmail.com>
 References: <20150325144330.17670.6959.stgit@warthog.procyon.org.uk>
+	<20150325144524.17670.21070.stgit@warthog.procyon.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:43593 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932304AbbCYOol (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-	Wed, 25 Mar 2015 10:44:41 -0400
-In-Reply-To: <20150325144330.17670.6959.stgit@warthog.procyon.org.uk>
-Sender: linux-unionfs-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20150325144524.17670.21070.stgit@warthog.procyon.org.uk>
+Sender: linux-kernel-owner@vger.kernel.org
+To: David Howells <dhowells@redhat.com>
+Cc: viro@ftp.linux.org.uk, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>, Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-unionfs@vger.kernel.org
-To: viro@ftp.linux.org.uk
-Cc: dhowells@redhat.com, linux-unionfs@vger.kernel.org, linux-kernel@vger.kernel.org, miklos@szeredi.hu
 
-AF_UNIX sockets should call mknod on the top layer only and should not attempt
-to modify the lower layer in a layered filesystem such as overlayfs.
+On Wed, Mar 25, 2015 at 3:45 PM, David Howells <dhowells@redhat.com> wrote:
+> Supply two functions to test whether a filesystem's own dentries are positive
+> or negative (d_really_is_positive() and d_really_is_negative()).
+>
+> The problem is that the DCACHE_ENTRY_TYPE field of dentry->d_flags may be
+> overridden by the union part of a layered filesystem and isn't thus
+> necessarily indicative of the type of dentry.
+>
+> Normally, this would involve a negative dentry (ie. ->d_inode == NULL) having
+> ->d_layer.lower pointed to a lower layer dentry, DCACHE_PINNING_LOWER set and
+> the DCACHE_ENTRY_TYPE field set to something other than DCACHE_MISS_TYPE - but
+> it could also involve, say, a DCACHE_SPECIAL_TYPE being overridden to
+> DCACHE_WHITEOUT_TYPE if a 0,0 chardev is detected in the top layer.
+>
+> However, inside a filesystem, when that fs is looking at its own dentries, it
+> probably wants to know if they are really negative or not - and doesn't care
+> about the fallthrough bits used by the union.
+>
+> To this end, a filesystem should normally use d_really_is_positive/negative()
+> when looking at its own dentries rather than d_is_positive/negative() and
+> should use d_inode() to get at the inode.
+>
+> Anyone looking at someone else's dentries (this includes pathwalk) should use
+> d_is_xxx() and d_backing_inode().
 
-Signed-off-by: David Howells <dhowells@redhat.com>
----
+I think this is confusing as hell, there needs to be more consistency
+in the naming.  E.g. d_backing_is_positive() vs. d_is_positive().   I
+know it's the other way round now, but only with a few users.  Also a
+separate include file might help, that needs explicit including to get
+the "backing" variants and which would have big fat warnings all over.
 
- net/unix/af_unix.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/net/unix/af_unix.c b/net/unix/af_unix.c
-index 526b6edab018..bd3a1cfd4b73 100644
---- a/net/unix/af_unix.c
-+++ b/net/unix/af_unix.c
-@@ -844,7 +844,7 @@ static int unix_mknod(const char *sun_path, umode_t mode, struct path *res)
- 	 */
- 	err = security_path_mknod(&path, dentry, mode, 0);
- 	if (!err) {
--		err = vfs_mknod(path.dentry->d_inode, dentry, mode, 0);
-+		err = vfs_mknod(d_inode(path.dentry), dentry, mode, 0);
- 		if (!err) {
- 			res->mnt = mntget(path.mnt);
- 			res->dentry = dget(dentry);
-
+Thanks,
+Miklos
