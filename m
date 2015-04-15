@@ -1,71 +1,60 @@
-From: Miklos Szeredi <miklos@szeredi.hu>
-Subject: Re: [PATCH 12/15] VFS: Add owner-filesystem positive/negative dentry checks
-Date: Fri, 27 Mar 2015 16:27:28 +0100
-Message-ID: <CAJfpegvjFUbigpp+kj2grnp8msHmsUkT5STvPDs1Yizj_tFzUw@mail.gmail.com>
-References: <20150325144330.17670.6959.stgit@warthog.procyon.org.uk>
-	<20150325144524.17670.21070.stgit@warthog.procyon.org.uk>
-	<CAJfpegue3OvFwxCUiRuGJxCMQV_jrtYoGoZywRz_kLykKbQU4w@mail.gmail.com>
-	<12393.1427467357@warthog.procyon.org.uk>
+From: Andrew Vagin <avagin@odin.com>
+Subject: procfs reports unexpected mnt_id and path for overlayfs files
+Date: Wed, 15 Apr 2015 11:50:14 +0300
+Message-ID: <20150415085013.GA8907@odin.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="koi8-r"
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-qg0-f53.google.com ([209.85.192.53]:35304 "EHLO
-	mail-qg0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752826AbbC0P13 (ORCPT
+Received: from relay.parallels.com ([195.214.232.42]:46799 "EHLO
+	relay.parallels.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752981AbbDOIuV (ORCPT
 	<rfc822;linux-unionfs@vger.kernel.org>);
-	Fri, 27 Mar 2015 11:27:29 -0400
-Received: by qgh3 with SMTP id 3so120676882qgh.2
-        for <linux-unionfs@vger.kernel.org>; Fri, 27 Mar 2015 08:27:28 -0700 (PDT)
-In-Reply-To: <12393.1427467357@warthog.procyon.org.uk>
+	Wed, 15 Apr 2015 04:50:21 -0400
+Content-Disposition: inline
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: David Howells <dhowells@redhat.com>
-Cc: viro@ftp.linux.org.uk, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>, Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: criu@openvz.org, linux-unionfs@vger.kernel.org, saied@google.com
 
-On Fri, Mar 27, 2015 at 3:42 PM, David Howells <dhowells@redhat.com> wrote:
-> Miklos Szeredi <miklos@szeredi.hu> wrote:
->
->> I think this is confusing as hell, there needs to be more consistency
->> in the naming.  E.g. d_backing_is_positive() vs. d_is_positive().   I
->> know it's the other way round now, but only with a few users.
->
-> Yeah.  The problem is that all of:
->
->         __d_entry_type()
->         d_is_miss()
->         d_is_whiteout()
->         d_can_lookup()
->         d_is_autodir()
->         d_is_dir()
->         d_is_symlink()
->         d_is_reg()
->         d_is_special()
->         d_is_file()
->         d_is_negative()
->         d_is_positive()
->
-> refer to the 'backing' inode (if there is one) in the case that you have a
-> unionmount and the top dentry's ->d_inode is NULL.  (Well, technically, that
-> doesn't happen in the case of directories)
+Hello Miklos and Everyone else,
 
-Looks to me we actually need two variants of all of the above, since
-most filesystems never want to refer to the backing inode.
+We have a report that a container with overlayfs can't be checkpointed.
 
->
-> Of course, if we decide we aren't going to do unionmount, certain things
-> become simpler.
->
->> Also a separate include file might help, that needs explicit including to
->> get the "backing" variants
->
-> I would like to see a 'for fs implementer' header and a 'for fs user' header
-> but Al didn't like that last time I suggested it.
->
-> However, it doesn't help with the naming since there are situations where you
-> need *both* - eg. overlayfs.
+To dump file descriptors we get information from /proc/pid/fd/ and /proc/pid/fdinfo.
 
-Not sure what you mean, the naming *must* be different even if we have
-two headers and overlayfs can just include both.
+But in case of overlayfs we see unexpected values there.
+
+/proc/PID/fdinfo/FD contains mnt_id which isn't presented in /proc/pid/mountinfo.
+/proc/PID/fd/FD does not contain an absolute path to the opened file.
+
+Can someone help to fix these issues?
+
+Here is a sequance of commands to reproduce the problem:
+
+[root@ ]# mount -t overlay overlay -olowerdir=a,upperdir=b,workdir=c z
+[root@ ]# cat /proc/self/mountinfo | grep over
+163 77 0:42 / /home/avagin/tmp/z rw,relatime shared:109 - overlay overlay rw,lowerdir=a,upperdir=b,workdir=c
+[root@ ]# ls -l /home/avagin/tmp/z/a
+-rw-r--r-- 1 root root 0 Apr 14 09:43 /home/avagin/tmp/z/a
+[root@ ]# ipython
+In [1]: fd = open("/home/avagin/tmp/z/a")
+
+In [2]: 
+[1]+  Stopped                 ipython
+[root@ ]# ps -C ipython
+  PID TTY          TIME CMD
+ 8868 pts/6    00:00:00 ipython
+[root@ ]# cat /proc/8868/fdinfo/5 
+pos:	0
+flags:	0100000
+mnt_id:	164
+
+# we expect to see mnt_id: 163
+
+[root@ ]# ls -l /proc/8868/fd/5
+lr-x------ 1 root root 64 Apr 15 11:21 /proc/8868/fd/5 -> /a
+
+# we expect to see /proc/8868/fd/5 -> /home/avagin/tmp/z/a
 
 Thanks,
-Miklos
+Andrew
