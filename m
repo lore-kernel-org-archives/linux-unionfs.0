@@ -1,44 +1,49 @@
-From: "A. Wan" <jm@mokwan.com>
+From: Iyad Qumei <iyad.qumei@lge.com>
 Subject: Re: use scenario for overlay FS
-Date: Mon, 20 Apr 2015 16:01:51 -0700
-Message-ID: <6c73aa7ee25cebcca7e5564ccc57b1e7.squirrel@www.anemaid>
+Date: Mon, 20 Apr 2015 19:31:07 -0400
+Message-ID: <55358C3B.5090708@lge.com>
 References: <553567AF.20205@lge.com>
-Reply-To: jm@mokwan.com
+ <6c73aa7ee25cebcca7e5564ccc57b1e7.squirrel@www.anemaid>
 Mime-Version: 1.0
-Content-Type: text/plain;charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mx2.webnames.ca ([65.39.140.87]:53240 "EHLO mx2.webnames.ca"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751705AbbDTXTR (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-	Mon, 20 Apr 2015 19:19:17 -0400
-Received: from anemaid.no-ip.org (d162-156-163-29.bchsia.telus.net [162.156.163.29]) by mx2.webnames.ca with ESMTP id XjthUyRnF8REe1rG for <linux-unionfs@vger.kernel.org>; Mon, 20 Apr 2015 16:02:34 -0700 (PDT)
-In-Reply-To: <553567AF.20205@lge.com>
+Received: from LGEMRELSE6Q.lge.com ([156.147.1.121]:54043 "EHLO
+	lgemrelse6q.lge.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753748AbbDTXbW (ORCPT
+	<rfc822;linux-unionfs@vger.kernel.org>);
+	Mon, 20 Apr 2015 19:31:22 -0400
+In-Reply-To: <6c73aa7ee25cebcca7e5564ccc57b1e7.squirrel@www.anemaid>
+Content-Language: en-US
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>
-Cc: "neilb@suse.de" <neilb@suse.de>, "miklos@szeredi.hu" <miklos@szeredi.hu>, Iyad Qumei <iyad.qumei@lge.com>
+To: "jm@mokwan.com" <jm@mokwan.com>, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>
+Cc: "neilb@suse.de" <neilb@suse.de>, "miklos@szeredi.hu" <miklos@szeredi.hu>
 
-> Hi Neil,
->
-> Regarding the overlayfs implementation, I am interested in overlaying
-> two squashfs file systems, read-only, and running into a problem with
-> location of the work directory:
->
->   "overlayfs: workdir and upperdir must reside under the same mount"
->
-> Since the upper directory is read-only, and it is mounted on a partition
-> as such, having writable work directory is not possible. Any suggestions
-> on how to utilize overlayfs in this scenario?
->
-> I feel this restriction is overkill for the feature.
->
-> --
-> Thanks,
-> Iyad
-
-I thought upperdir is now optional but must be read-write if one is
-specified.  Therefore if you want the whole stack read-only specify only
-lowdirs and skip the upperdir.  Correct me if I am wrong.
-
-Alex
+PiBJIHRob3VnaHQgdXBwZXJkaXIgaXMgbm93IG9wdGlvbmFsIGJ1dCBtdXN0IGJlIHJlYWQtd3Jp
+dGUgaWYgb25lIGlzDQpzcGVjaWZpZWQuDQoNCkkgaGF2ZSB0d28gZmlsZSBzeXN0ZW1zIHRoYXQg
+SSBuZWVkIHRvIGNyZWF0ZSBhIHVuaW9uIGZvci4gIFRoZSB1cHBlcmRpciANCm92ZXJyaWRlcyB0
+aGUgbG93ZXJkaXIsIGhlbmNlIHJlcGxhY2luZyBpdHMgY29udGVudC4gVGhlcmVmb3JlLCANCnJl
+Z2FyZGxlc3MgaWYgdGhlIHVwcGVyZGlyIGlzIG9wdGlvbmFsLCBJIGRvIG5lZWQgaXQgaW4gdGhp
+cyB1c2UgY2FzZS4NCg0KUGVyIHRoZSBkb2N1bWVudGF0aW9uOg0KDQogICAgIkEgcmVhZC1vbmx5
+IG92ZXJsYXkgb2YgdHdvIHJlYWQtb25seSBmaWxlc3lzdGVtcyBtYXkgdXNlIGFueSBmaWxlc3lz
+dGVtIHR5cGUuIg0KDQpJIHVuZGVyc3Rvb2QgdGhhdCBteSB1c2UgY2FzZSBpcyBwb3NzaWJsZS4g
+SG93ZXZlciwgaXQgZG9lcyBjb250cmFkaWN0IA0KdGhlIGFjdHVhbCBpbXBsZW1lbnRhdGlvbiwN
+Cg0KICAgIm92ZXJsYXlmczogd29ya2RpciBhbmQgdXBwZXJkaXIgbXVzdCByZXNpZGUgdW5kZXIg
+dGhlIHNhbWUgbW91bnQiDQoNCmFuZCB5b3VyIHN0YXRlbWVudCwgb2YgY291cnNlLg0KDQpUaGFu
+a3MsDQpJeWFkDQoNCk9uIDA0LzIwLzIwMTUgMDQ6MDEgUE0sIEEuIFdhbiB3cm90ZToNCj4+IEhp
+IE5laWwsDQo+Pg0KPj4gUmVnYXJkaW5nIHRoZSBvdmVybGF5ZnMgaW1wbGVtZW50YXRpb24sIEkg
+YW0gaW50ZXJlc3RlZCBpbiBvdmVybGF5aW5nDQo+PiB0d28gc3F1YXNoZnMgZmlsZSBzeXN0ZW1z
+LCByZWFkLW9ubHksIGFuZCBydW5uaW5nIGludG8gYSBwcm9ibGVtIHdpdGgNCj4+IGxvY2F0aW9u
+IG9mIHRoZSB3b3JrIGRpcmVjdG9yeToNCj4+DQo+PiAgICAib3ZlcmxheWZzOiB3b3JrZGlyIGFu
+ZCB1cHBlcmRpciBtdXN0IHJlc2lkZSB1bmRlciB0aGUgc2FtZSBtb3VudCINCj4+DQo+PiBTaW5j
+ZSB0aGUgdXBwZXIgZGlyZWN0b3J5IGlzIHJlYWQtb25seSwgYW5kIGl0IGlzIG1vdW50ZWQgb24g
+YSBwYXJ0aXRpb24NCj4+IGFzIHN1Y2gsIGhhdmluZyB3cml0YWJsZSB3b3JrIGRpcmVjdG9yeSBp
+cyBub3QgcG9zc2libGUuIEFueSBzdWdnZXN0aW9ucw0KPj4gb24gaG93IHRvIHV0aWxpemUgb3Zl
+cmxheWZzIGluIHRoaXMgc2NlbmFyaW8/DQo+Pg0KPj4gSSBmZWVsIHRoaXMgcmVzdHJpY3Rpb24g
+aXMgb3ZlcmtpbGwgZm9yIHRoZSBmZWF0dXJlLg0KPj4NCj4+IC0tDQo+PiBUaGFua3MsDQo+PiBJ
+eWFkDQo+IEkgdGhvdWdodCB1cHBlcmRpciBpcyBub3cgb3B0aW9uYWwgYnV0IG11c3QgYmUgcmVh
+ZC13cml0ZSBpZiBvbmUgaXMNCj4gc3BlY2lmaWVkLiAgVGhlcmVmb3JlIGlmIHlvdSB3YW50IHRo
+ZSB3aG9sZSBzdGFjayByZWFkLW9ubHkgc3BlY2lmeSBvbmx5DQo+IGxvd2RpcnMgYW5kIHNraXAg
+dGhlIHVwcGVyZGlyLiAgQ29ycmVjdCBtZSBpZiBJIGFtIHdyb25nLg0KPg0KPiBBbGV4DQo+DQo+
+DQo+DQo+DQo+DQo=
