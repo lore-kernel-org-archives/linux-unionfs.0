@@ -1,49 +1,56 @@
-From: Iyad Qumei <iyad.qumei@lge.com>
+From: "A. Wan" <jm@mokwan.com>
 Subject: Re: use scenario for overlay FS
-Date: Mon, 20 Apr 2015 19:31:07 -0400
-Message-ID: <55358C3B.5090708@lge.com>
+Date: Tue, 21 Apr 2015 08:34:46 -0700
+Message-ID: <38ef0b4c9d06fddaa46cc98977bc643a.squirrel@www.anemaid>
 References: <553567AF.20205@lge.com>
- <6c73aa7ee25cebcca7e5564ccc57b1e7.squirrel@www.anemaid>
+    <6c73aa7ee25cebcca7e5564ccc57b1e7.squirrel@www.anemaid>
+    <55358C3B.5090708@lge.com>
+Reply-To: jm@mokwan.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain;charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from LGEMRELSE6Q.lge.com ([156.147.1.121]:54043 "EHLO
-	lgemrelse6q.lge.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753748AbbDTXbW (ORCPT
-	<rfc822;linux-unionfs@vger.kernel.org>);
-	Mon, 20 Apr 2015 19:31:22 -0400
-In-Reply-To: <6c73aa7ee25cebcca7e5564ccc57b1e7.squirrel@www.anemaid>
-Content-Language: en-US
+Received: from mx2.webnames.ca ([65.39.140.87]:43819 "EHLO mx2.webnames.ca"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932753AbbDUPfe (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+	Tue, 21 Apr 2015 11:35:34 -0400
+Received: from anemaid.no-ip.org (d162-156-163-29.bchsia.telus.net [162.156.163.29]) by mx2.webnames.ca with ESMTP id 0WDbcSKbNlj7GokG for <linux-unionfs@vger.kernel.org>; Tue, 21 Apr 2015 08:35:31 -0700 (PDT)
+In-Reply-To: <55358C3B.5090708@lge.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: "jm@mokwan.com" <jm@mokwan.com>, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>
-Cc: "neilb@suse.de" <neilb@suse.de>, "miklos@szeredi.hu" <miklos@szeredi.hu>
+To: Iyad Qumei <iyad.qumei@lge.com>
+Cc: "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>, "neilb@suse.de" <neilb@suse.de>, "miklos@szeredi.hu" <miklos@szeredi.hu>
 
-PiBJIHRob3VnaHQgdXBwZXJkaXIgaXMgbm93IG9wdGlvbmFsIGJ1dCBtdXN0IGJlIHJlYWQtd3Jp
-dGUgaWYgb25lIGlzDQpzcGVjaWZpZWQuDQoNCkkgaGF2ZSB0d28gZmlsZSBzeXN0ZW1zIHRoYXQg
-SSBuZWVkIHRvIGNyZWF0ZSBhIHVuaW9uIGZvci4gIFRoZSB1cHBlcmRpciANCm92ZXJyaWRlcyB0
-aGUgbG93ZXJkaXIsIGhlbmNlIHJlcGxhY2luZyBpdHMgY29udGVudC4gVGhlcmVmb3JlLCANCnJl
-Z2FyZGxlc3MgaWYgdGhlIHVwcGVyZGlyIGlzIG9wdGlvbmFsLCBJIGRvIG5lZWQgaXQgaW4gdGhp
-cyB1c2UgY2FzZS4NCg0KUGVyIHRoZSBkb2N1bWVudGF0aW9uOg0KDQogICAgIkEgcmVhZC1vbmx5
-IG92ZXJsYXkgb2YgdHdvIHJlYWQtb25seSBmaWxlc3lzdGVtcyBtYXkgdXNlIGFueSBmaWxlc3lz
-dGVtIHR5cGUuIg0KDQpJIHVuZGVyc3Rvb2QgdGhhdCBteSB1c2UgY2FzZSBpcyBwb3NzaWJsZS4g
-SG93ZXZlciwgaXQgZG9lcyBjb250cmFkaWN0IA0KdGhlIGFjdHVhbCBpbXBsZW1lbnRhdGlvbiwN
-Cg0KICAgIm92ZXJsYXlmczogd29ya2RpciBhbmQgdXBwZXJkaXIgbXVzdCByZXNpZGUgdW5kZXIg
-dGhlIHNhbWUgbW91bnQiDQoNCmFuZCB5b3VyIHN0YXRlbWVudCwgb2YgY291cnNlLg0KDQpUaGFu
-a3MsDQpJeWFkDQoNCk9uIDA0LzIwLzIwMTUgMDQ6MDEgUE0sIEEuIFdhbiB3cm90ZToNCj4+IEhp
-IE5laWwsDQo+Pg0KPj4gUmVnYXJkaW5nIHRoZSBvdmVybGF5ZnMgaW1wbGVtZW50YXRpb24sIEkg
-YW0gaW50ZXJlc3RlZCBpbiBvdmVybGF5aW5nDQo+PiB0d28gc3F1YXNoZnMgZmlsZSBzeXN0ZW1z
-LCByZWFkLW9ubHksIGFuZCBydW5uaW5nIGludG8gYSBwcm9ibGVtIHdpdGgNCj4+IGxvY2F0aW9u
-IG9mIHRoZSB3b3JrIGRpcmVjdG9yeToNCj4+DQo+PiAgICAib3ZlcmxheWZzOiB3b3JrZGlyIGFu
-ZCB1cHBlcmRpciBtdXN0IHJlc2lkZSB1bmRlciB0aGUgc2FtZSBtb3VudCINCj4+DQo+PiBTaW5j
-ZSB0aGUgdXBwZXIgZGlyZWN0b3J5IGlzIHJlYWQtb25seSwgYW5kIGl0IGlzIG1vdW50ZWQgb24g
-YSBwYXJ0aXRpb24NCj4+IGFzIHN1Y2gsIGhhdmluZyB3cml0YWJsZSB3b3JrIGRpcmVjdG9yeSBp
-cyBub3QgcG9zc2libGUuIEFueSBzdWdnZXN0aW9ucw0KPj4gb24gaG93IHRvIHV0aWxpemUgb3Zl
-cmxheWZzIGluIHRoaXMgc2NlbmFyaW8/DQo+Pg0KPj4gSSBmZWVsIHRoaXMgcmVzdHJpY3Rpb24g
-aXMgb3ZlcmtpbGwgZm9yIHRoZSBmZWF0dXJlLg0KPj4NCj4+IC0tDQo+PiBUaGFua3MsDQo+PiBJ
-eWFkDQo+IEkgdGhvdWdodCB1cHBlcmRpciBpcyBub3cgb3B0aW9uYWwgYnV0IG11c3QgYmUgcmVh
-ZC13cml0ZSBpZiBvbmUgaXMNCj4gc3BlY2lmaWVkLiAgVGhlcmVmb3JlIGlmIHlvdSB3YW50IHRo
-ZSB3aG9sZSBzdGFjayByZWFkLW9ubHkgc3BlY2lmeSBvbmx5DQo+IGxvd2RpcnMgYW5kIHNraXAg
-dGhlIHVwcGVyZGlyLiAgQ29ycmVjdCBtZSBpZiBJIGFtIHdyb25nLg0KPg0KPiBBbGV4DQo+DQo+
-DQo+DQo+DQo+DQo=
+Iyad wrote:
+> I have two file systems that I need to create a union for.  The upperdir
+> overrides the lowerdir, hence replacing its content. Therefore,
+> regardless if the upperdir is optional, I do need it in this use case.
+>
+> Per the documentation:
+>
+>    "A read-only overlay of two read-only filesystems may use any
+> filesystem type."
+>
+> I understood that my use case is possible. However, it does contradict
+> the actual implementation,
+>
+>    "overlayfs: workdir and upperdir must reside under the same mount"
+>
+> and your statement, of course.
+>
+> Thanks,
+> Iyad
+>
+> On 04/20/2015 04:01 PM, A. Wan wrote:
+>> I thought upperdir is now optional but must be read-write if one is
+>> specified.  Therefore if you want the whole stack read-only specify only
+>> lowdirs and skip the upperdir.  Correct me if I am wrong.
+>>
+>> Alex
+
+When they made upperdir= optional they also changed lowerdir= to allow a
+(colon separated?) stack of directories.  I don't remember if they are
+stacked from left to right or right to left.  I am sure it is in the
+latest documentation.
+
+Alex
