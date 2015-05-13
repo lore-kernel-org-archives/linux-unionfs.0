@@ -1,53 +1,64 @@
-From: Vincent Batts <vbatts@gmail.com>
-Subject: Re: [PATCH] unionmount-testsuite: test rmdir of non-empty opaque dir
-Date: Wed, 13 May 2015 11:35:06 -0400
-Message-ID: <CAN6Zp5xCn2GGxkBeOopy_7QaSjkq4XjEqbKn--4kbA-GzfP-Mg@mail.gmail.com>
-References: <20150513151502.GB19583@tucsk.suse.de>
+From: Jordi Pujol Palomer <jordipujolp@gmail.com>
+Subject: Re: Overalyfs regression in 4.0
+Date: Wed, 13 May 2015 20:19:36 +0200
+Message-ID: <20150513201936.22026b44@gmail.com>
+References: <CA+5PVA5uqoJjj24oUT=KMiVfytC7yyRtOggagv-5wUUcgG8iRA@mail.gmail.com>
+	<20150513151101.GA19583@tucsk.suse.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wg0-f49.google.com ([74.125.82.49]:33485 "EHLO
-	mail-wg0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934434AbbEMPfH (ORCPT
+Received: from mail-wi0-f174.google.com ([209.85.212.174]:35695 "EHLO
+	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752956AbbEMSTl convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-unionfs@vger.kernel.org>);
-	Wed, 13 May 2015 11:35:07 -0400
-Received: by wgin8 with SMTP id n8so47796607wgi.0
-        for <linux-unionfs@vger.kernel.org>; Wed, 13 May 2015 08:35:06 -0700 (PDT)
-In-Reply-To: <20150513151502.GB19583@tucsk.suse.de>
+	Wed, 13 May 2015 14:19:41 -0400
+In-Reply-To: <20150513151101.GA19583@tucsk.suse.de>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: David Howells <dhowells@redhat.com>, Josh Boyer <jwboyer@fedoraproject.org>, linux-unionfs@vger.kernel.org
+Cc: Josh Boyer <jwboyer@fedoraproject.org>, Miklos Szeredi <mszeredi@suse.cz>, Vincent Batts <vbatts@gmail.com>, David Howells <dhowells@redhat.com>, linux-unionfs@vger.kernel.org, "Linux-Kernel@Vger. Kernel. Org" <linux-kernel@vger.kernel.org>
 
-On Wed, May 13, 2015 at 11:15 AM, Miklos Szeredi <miklos@szeredi.hu> wrote:
+Hello,
+
+Tested-by: Jordi Pujol Palomer <jordipujolp@gmail.com>
+
+Have compiled the version 4.0.3 adding this patch, it works in a
+Live OS,
+
+# rmdir /mnt/
+# mkdir -p /mnt
+# touch /mnt/file
+# rmdir /mnt/
+rmdir: failed to remove =E2=80=98/mnt/=E2=80=99: Directory not empty
+# uname -a
+Linux pcjordi 4.0.3-1-haswell-lnet-amd64 #1 SMP PREEMPT Wed May 13 19:3=
+8:19 CEST 2015 x86_64 GNU/Linux
+#=20
+
+Thanks,
+
+Jordi Pujol
+
+
+EL Wed, 13 May 2015 17:11:01 +0200
+Miklos Szeredi <miklos@szeredi.hu> escrigu=C3=A9:
+
 > ---
->  tests/rmdir.py |   16 ++++++++++++++++
->  1 file changed, 16 insertions(+)
->
-> --- a/tests/rmdir.py
-> +++ b/tests/rmdir.py
-> @@ -203,3 +203,19 @@ from errno import *
->      ctx.rmdir(sym, err=ENOTDIR)
->      ctx.rmdir(sym, err=ENOTDIR)
->      ctx.rmdir(d, err=ENOENT)
-> +
-> +# Remove an empty lower directory, recreate, populate and try to remove
-> +def subtest_16(ctx):
-> +    """Remove non-empty opaque directory"""
-> +    d = ctx.empty_dir() + ctx.termslash()
-> +    f = d + "/b"
-> +
-> +    ctx.rmdir(d)
-> +    ctx.rmdir(d, err=ENOENT)
-> +    ctx.mkdir(d, 0o755)
-> +    ctx.open_file(f, wo=1, crt=1, ex=1, write="abcq")
-> +    ctx.rmdir(d, err=ENOTEMPTY)
-> +    ctx.unlink(f)
-> +    ctx.open_file(f, ro=1, err=ENOENT)
-> +    ctx.unlink(f, err=ENOENT)
-> +    ctx.rmdir(d)
-
-
-I'm not familiar with this testsuite. The empty_dir will be on the
-lower level, and all the rmdir, mkdir and create are happening on a
-mounted union fs? I don't see where that is clear.
+> Subject: ovl: don't remove non-empty opaque directory
+> From: Miklos Szeredi <mszeredi@suse.cz>
+>=20
+> When removing an opaque directory we can't just call rmdir() to check
+> for emptyness, because the directory will need to be replaced with a
+> whiteout. The replacement is done with RENAME_EXCHANGE, which doesn't
+> check emptyness.
+>=20
+> Solution is just to check emptyness by reading the directory.  In the
+> future we could add a new rename flag to check for emptyness even for
+> RENAME_EXCHANGE to optimize this case.
+>=20
+> Reported-by: Vincent Batts <vbatts@gmail.com>
+> Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
+> Fixes: 263b4a0fee43 ("ovl: dont replace opaque dir")
+> Cc: <stable@vger.kernel.org> # v4.0+
+> ---
