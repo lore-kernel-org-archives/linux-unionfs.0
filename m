@@ -1,36 +1,45 @@
-From: David Howells <dhowells@redhat.com>
+From: Vincent Batts <vbatts@gmail.com>
 Subject: Re: [PATCH] unionmount-testsuite: test rmdir of non-empty opaque dir
-Date: Thu, 14 May 2015 11:46:43 +0100
-Message-ID: <27824.1431600403@warthog.procyon.org.uk>
-References: <CAN6Zp5xCn2GGxkBeOopy_7QaSjkq4XjEqbKn--4kbA-GzfP-Mg@mail.gmail.com> <20150513151502.GB19583@tucsk.suse.de>
+Date: Sun, 17 May 2015 16:45:52 -0400
+Message-ID: <CAN6Zp5ypohsUf8tj6BaO3oBWVJ1cMTejNvCY18aQvatGM34-xQ@mail.gmail.com>
+References: <20150513151502.GB19583@tucsk.suse.de>
+	<CAN6Zp5xCn2GGxkBeOopy_7QaSjkq4XjEqbKn--4kbA-GzfP-Mg@mail.gmail.com>
+	<27824.1431600403@warthog.procyon.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:57298 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932627AbbENKqr (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-	Thu, 14 May 2015 06:46:47 -0400
-In-Reply-To: <CAN6Zp5xCn2GGxkBeOopy_7QaSjkq4XjEqbKn--4kbA-GzfP-Mg@mail.gmail.com>
-Content-ID: <27823.1431600403.1@warthog.procyon.org.uk>
+Received: from mail-wi0-f176.google.com ([209.85.212.176]:38679 "EHLO
+	mail-wi0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751125AbbEQUpy (ORCPT
+	<rfc822;linux-unionfs@vger.kernel.org>);
+	Sun, 17 May 2015 16:45:54 -0400
+Received: by wicnf17 with SMTP id nf17so48454285wic.1
+        for <linux-unionfs@vger.kernel.org>; Sun, 17 May 2015 13:45:52 -0700 (PDT)
+In-Reply-To: <27824.1431600403@warthog.procyon.org.uk>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Vincent Batts <vbatts@gmail.com>
-Cc: dhowells@redhat.com, Miklos Szeredi <miklos@szeredi.hu>, Josh Boyer <jwboyer@fedoraproject.org>, linux-unionfs@vger.kernel.org
+To: David Howells <dhowells@redhat.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, Josh Boyer <jwboyer@fedoraproject.org>, linux-unionfs@vger.kernel.org
 
-Vincent Batts <vbatts@gmail.com> wrote:
+On Thu, May 14, 2015 at 6:46 AM, David Howells <dhowells@redhat.com> wrote:
+> Vincent Batts <vbatts@gmail.com> wrote:
+>
+>> I'm not familiar with this testsuite. The empty_dir will be on the
+>> lower level, and all the rmdir, mkdir and create are happening on a
+>> mounted union fs? I don't see where that is clear.
+>
+> That's handled by the core of the test infrastructure:
+>
+>         http://git.infradead.org/users/dhowells/unionmount-testsuite.git
+>
+> Look in the base of the git tree.
+>
+> The infrastructure creates a load of files and other objects then sets up the
+> requested union (unionmount, overlayfs or even no union at all) over them and
+> then runs all the tests.
+>
+> David
 
-> I'm not familiar with this testsuite. The empty_dir will be on the
-> lower level, and all the rmdir, mkdir and create are happening on a
-> mounted union fs? I don't see where that is clear.
+RIght on. Thanks.
 
-That's handled by the core of the test infrastructure:
-
-	http://git.infradead.org/users/dhowells/unionmount-testsuite.git
-
-Look in the base of the git tree.
-
-The infrastructure creates a load of files and other objects then sets up the
-requested union (unionmount, overlayfs or even no union at all) over them and
-then runs all the tests.
-
-David
+vb
