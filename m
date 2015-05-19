@@ -1,45 +1,131 @@
-From: Vincent Batts <vbatts@gmail.com>
-Subject: Re: [PATCH] unionmount-testsuite: test rmdir of non-empty opaque dir
-Date: Sun, 17 May 2015 16:45:52 -0400
-Message-ID: <CAN6Zp5ypohsUf8tj6BaO3oBWVJ1cMTejNvCY18aQvatGM34-xQ@mail.gmail.com>
-References: <20150513151502.GB19583@tucsk.suse.de>
-	<CAN6Zp5xCn2GGxkBeOopy_7QaSjkq4XjEqbKn--4kbA-GzfP-Mg@mail.gmail.com>
-	<27824.1431600403@warthog.procyon.org.uk>
+From: Miklos Szeredi <miklos@szeredi.hu>
+Subject: Re: linux / overlay / OpenWrt / problems with full working dir
+Date: Tue, 19 May 2015 11:03:39 +0200
+Message-ID: <20150519090339.GB9960@tucsk>
+References: <20150519075120.GL28644@medion.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wi0-f176.google.com ([209.85.212.176]:38679 "EHLO
-	mail-wi0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751125AbbEQUpy (ORCPT
+Received: from mail-wg0-f43.google.com ([74.125.82.43]:35162 "EHLO
+	mail-wg0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752292AbbESJBT (ORCPT
 	<rfc822;linux-unionfs@vger.kernel.org>);
-	Sun, 17 May 2015 16:45:54 -0400
-Received: by wicnf17 with SMTP id nf17so48454285wic.1
-        for <linux-unionfs@vger.kernel.org>; Sun, 17 May 2015 13:45:52 -0700 (PDT)
-In-Reply-To: <27824.1431600403@warthog.procyon.org.uk>
+	Tue, 19 May 2015 05:01:19 -0400
+Received: by wgfl8 with SMTP id l8so9752953wgf.2
+        for <linux-unionfs@vger.kernel.org>; Tue, 19 May 2015 02:01:17 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <20150519075120.GL28644@medion.lan>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: David Howells <dhowells@redhat.com>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, Josh Boyer <jwboyer@fedoraproject.org>, linux-unionfs@vger.kernel.org
+To: Bastian Bittorf <bittorf@bluebottle.com>
+Cc: linux-unionfs@vger.kernel.org
 
-On Thu, May 14, 2015 at 6:46 AM, David Howells <dhowells@redhat.com> wrote:
-> Vincent Batts <vbatts@gmail.com> wrote:
->
->> I'm not familiar with this testsuite. The empty_dir will be on the
->> lower level, and all the rmdir, mkdir and create are happening on a
->> mounted union fs? I don't see where that is clear.
->
-> That's handled by the core of the test infrastructure:
->
->         http://git.infradead.org/users/dhowells/unionmount-testsuite.git
->
-> Look in the base of the git tree.
->
-> The infrastructure creates a load of files and other objects then sets up the
-> requested union (unionmount, overlayfs or even no union at all) over them and
-> then runs all the tests.
->
-> David
+[linux-unionfs added to Cc]
 
-RIght on. Thanks.
+On Tue, May 19, 2015 at 09:51:20AM +0200, Bastian Bittorf wrote:
+> Hi Miklos,
+> 
+> sorry for writing directly to you, feel free to forward
+> this to the appropriate mailinglist.
+> 
+> we have a problem with mainline overlay filesystem on kernel 3.18:
+> https://dev.openwrt.org/ticket/19564
+> 
+> 2 things are odd:
+> when the working filesystem is full, overlays fails with:
+> 
+> overlayfs: failed to create directory /overlay/work/work
+> 
+> what is strange, that we call it with:
+> 
+> mount(overlay, "/mnt", "overlay", MS_NOATIME, lowerdir)
+> 
+> see here:
+> http://nbd.name/gitweb.cgi?p=fstools.git;a=blob;f=libfstools/mount.c;h=81176ce399b4cd8e2d347c0008c13dec92407f55;hb=e6004000ff15d7bd32cf5663e8690fc94d7ec747#l125
+> 
+> do you have an idea whats wrong?
+> 1) is it really needed, that we need space for creating dir "/overlay/work"?
+> 2) why does overlay need "/overlay/work/work"?
 
-vb
+The work directory is needed for atomic copy-up and similar.  It is not actually
+necessary to mount a read-only overlay.  Post 4.0 it is possible to mount the
+overlay without workdir (but even then it won't happen automatically in case the
+upper fs is full, so this should be fixed in the latest kernel too).
+
+Could you please try the following patch?  If the workdir can't be created it
+will fall back to mounting the overlay read-only.
+
+Thanks,
+Miklos
+
+---
+ fs/overlayfs/copy_up.c |    3 +++
+ fs/overlayfs/dir.c     |    9 +++++++++
+ fs/overlayfs/super.c   |   12 +++++++++---
+ 3 files changed, 21 insertions(+), 3 deletions(-)
+
+--- a/fs/overlayfs/copy_up.c
++++ b/fs/overlayfs/copy_up.c
+@@ -300,6 +300,9 @@ int ovl_copy_up_one(struct dentry *paren
+ 	struct cred *override_cred;
+ 	char *link = NULL;
+ 
++	if (WARN_ON(!workdir))
++		return -EROFS;
++
+ 	ovl_path_upper(parent, &parentpath);
+ 	upperdir = parentpath.dentry;
+ 
+--- a/fs/overlayfs/dir.c
++++ b/fs/overlayfs/dir.c
+@@ -222,6 +222,9 @@ static struct dentry *ovl_clear_empty(st
+ 	struct kstat stat;
+ 	int err;
+ 
++	if (WARN_ON(!workdir))
++		return ERR_PTR(-EROFS);
++
+ 	err = ovl_lock_rename_workdir(workdir, upperdir);
+ 	if (err)
+ 		goto out;
+@@ -322,6 +325,9 @@ static int ovl_create_over_whiteout(stru
+ 	struct dentry *newdentry;
+ 	int err;
+ 
++	if (WARN_ON(!workdir))
++		return -EROFS;
++
+ 	err = ovl_lock_rename_workdir(workdir, upperdir);
+ 	if (err)
+ 		goto out;
+@@ -506,6 +512,9 @@ static int ovl_remove_and_whiteout(struc
+ 	struct dentry *opaquedir = NULL;
+ 	int err;
+ 
++	if (WARN_ON(!workdir))
++		return -EROFS;
++
+ 	if (is_dir) {
+ 		opaquedir = ovl_check_empty_and_clear(dentry);
+ 		err = PTR_ERR(opaquedir);
+--- a/fs/overlayfs/super.c
++++ b/fs/overlayfs/super.c
+@@ -740,9 +740,15 @@ static int ovl_fill_super(struct super_b
+ 	ufs->workdir = ovl_workdir_create(ufs->upper_mnt, workpath.dentry);
+ 	err = PTR_ERR(ufs->workdir);
+ 	if (IS_ERR(ufs->workdir)) {
+-		pr_err("overlayfs: failed to create directory %s/%s\n",
+-		       ufs->config.workdir, OVL_WORKDIR_NAME);
+-		goto out_put_lower_mnt;
++		if (err == -ENOSPC || err == -EROFS) {
++			pr_warning("overlayfs: failed to work directory (%s), mounting read-only\n", err == ENOSPC ? "ENOSPC" : "EROFS");
++			sb->s_flags |= MS_RDONLY;
++			ufs->workdir = NULL;
++		} else {
++			pr_err("overlayfs: failed to create directory %s/%s\n",
++			       ufs->config.workdir, OVL_WORKDIR_NAME);
++			goto out_put_lower_mnt;
++		}
+ 	}
+ 
+ 	/*
