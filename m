@@ -1,111 +1,79 @@
-From: David Howells <dhowells@redhat.com>
-Subject: [PATCH] overlayfs: Warn on copy up if a process has a R/O fd open to the lower file
-Date: Thu, 28 May 2015 19:46:51 +0100
-Message-ID: <4954.1432838811@warthog.procyon.org.uk>
+From: Saied Kazemi <saied@google.com>
+Subject: Re: procfs reports unexpected mnt_id and path for overlayfs files
+Date: Fri, 29 May 2015 14:29:45 -0700
+Message-ID: <CA+Um-gis=3uqHXE6zUd9+CSXzuAkKWB3uWbA+g_zDDGwK8UpMg@mail.gmail.com>
+References: <20150415085013.GA8907@odin.com>
+	<CAJfpegvKvuu7mtxz+nV1qxpEddf2ZMroBaz+rkFTFVQZ2PoQRw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:43825 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752234AbbE1Sqz convert rfc822-to-8bit (ORCPT
+Received: from mail-oi0-f52.google.com ([209.85.218.52]:34243 "EHLO
+	mail-oi0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757357AbbE2V3q (ORCPT
 	<rfc822;linux-unionfs@vger.kernel.org>);
-	Thu, 28 May 2015 14:46:55 -0400
-Content-ID: <4953.1432838811.1@warthog.procyon.org.uk>
+	Fri, 29 May 2015 17:29:46 -0400
+Received: by oifu123 with SMTP id u123so66152487oif.1
+        for <linux-unionfs@vger.kernel.org>; Fri, 29 May 2015 14:29:45 -0700 (PDT)
+In-Reply-To: <CAJfpegvKvuu7mtxz+nV1qxpEddf2ZMroBaz+rkFTFVQZ2PoQRw@mail.gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: miklos@szeredi.hu, viro@ZenIV.linux.org.uk
-Cc: dhowells@redhat.com, linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: Andrew Vagin <avagin@odin.com>, CRIU <criu@openvz.org>, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>, Ross Boucher <rboucher@gmail.com>
 
-Print a warning when overlayfs copies up a file if the process that triggered
-the copy up has a R/O fd open to the lower file being copied up.
+Hi Miklos,
 
-This can help catch applications that do things like the following:
+Is there an update on this patch?  I checked OverlayFS in 4.1-rc5 and
+noticed that the issue is still there.
 
-	fd1 = open("foo", O_RDONLY);
-	fd2 = open("foo", O_RDWR);
+I also observed something interesting/confusing applying this patch to
+3.18.  When Docker 1.5 sets up a container, the path into OverlayFS
+for a bind mounted file is not visible in /proc/<pid>/mountinfo which
+means that the patch has been effective.  But when using Docker 1.7,
+the path is visible again.  See below as an example for /etc/hosts:
 
-where they expect fd1 and fd2 to refer to the same file - which will no longer
-be the case post-copy up.
+Using Docker 1.5
+# docker run -d busybox:latest ...
+# cat /proc/<pid>/mountinfo
+...
+123 114 8:2 /docker/containers/<container-id>/hosts /etc/hosts
+rw,relatime - ext4 /dev/sda2 rw,data=ordered
 
-With this patch, the following commands:
+Using Docker 1.7
+# docker run -d busybox:latest ...
+# cat /proc/<pid>/mountinfo
+...
+77 68 8:2 /docker/containers/<container-id>/hosts
+/sda2/docker/overlay/<container-id>/merged/etc/hosts rw,relatime -
+ext4 /dev/sda2 rw,data=ordered
 
-	bash 5</mnt/a/foo128
-	6<>/mnt/a/foo128
+I verified that the mount system call to set up the container's
+filesystem is identical between Docker 1.5 and 1.7.  Any idea as to
+what may be causing this problem?
 
-assuming /mnt/a/foo128 to be an un-copied up file on an overlay will produce
-the following warning in the kernel log:
+--Saied
 
-	overlayfs: Copying up foo129, but open R/O on fd 5 which will cease to
-	be coherent [pid=3818 bash]
 
-This is enabled by setting:
-
-	/sys/module/overlay/parameters/check_copy_up
-
-to 1.
-
-Signed-off-by: David Howells <dhowells@redhat.com>
----
-diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
-index 24f640441bd9..04f6f75ba4a9 100644
---- a/fs/overlayfs/copy_up.c
-+++ b/fs/overlayfs/copy_up.c
-@@ -7,6 +7,7 @@
-  * the Free Software Foundation.
-  */
- 
-+#include <linux/module.h>
- #include <linux/fs.h>
- #include <linux/slab.h>
- #include <linux/file.h>
-@@ -16,10 +17,40 @@
- #include <linux/uaccess.h>
- #include <linux/sched.h>
- #include <linux/namei.h>
-+#include <linux/fdtable.h>
- #include "overlayfs.h"
- 
- #define OVL_COPY_UP_CHUNK_SIZE (1 << 20)
- 
-+static bool __read_mostly ovl_check_copy_up;
-+module_param_named(check_copy_up, ovl_check_copy_up, bool,
-+		   S_IWUSR | S_IRUGO);
-+MODULE_PARM_DESC(ovl_check_copy_up,
-+		 "Warn on copy-up when causing process also has a R/O fd open");
-+
-+static int ovl_check_fd(const void *data, struct file *f, unsigned fd)
-+{
-+	const struct dentry *dentry = data;
-+
-+	if (f->f_path.dentry == dentry)
-+		pr_warn("overlayfs: Warning: Copying up %pD, but open R/O on fd %u which will cease to be coherent [pid=%d %s]\n",
-+			f, fd, current->pid, current->comm);
-+	return 0;
-+}
-+
-+/*
-+ * Check the fds open by this process and warn if something like the following
-+ * scenario is about to occur:
-+ *
-+ *	fd1 = open("foo", O_RDONLY);
-+ *	fd2 = open("foo", O_RDWR);
-+ */
-+static void ovl_do_check_copy_up(struct dentry *dentry)
-+{
-+	if (ovl_check_copy_up)
-+		iterate_fd(current->files, 0, ovl_check_fd, dentry);
-+}
-+
- int ovl_copy_xattr(struct dentry *old, struct dentry *new)
- {
- 	ssize_t list_size, size;
-@@ -299,6 +330,8 @@ int ovl_copy_up_one(struct dentry *parent, struct dentry *dentry,
- 	struct cred *override_cred;
- 	char *link = NULL;
- 
-+	ovl_do_check_copy_up(lowerpath->dentry);
-+
- 	ovl_path_upper(parent, &parentpath);
- 	upperdir = parentpath.dentry;
- 
+On Wed, Apr 15, 2015 at 8:07 AM, Miklos Szeredi <miklos@szeredi.hu> wrote:
+> On Wed, Apr 15, 2015 at 10:50 AM, Andrew Vagin <avagin@odin.com> wrote:
+>> Hello Miklos and Everyone else,
+>>
+>> We have a report that a container with overlayfs can't be checkpointed.
+>>
+>> To dump file descriptors we get information from /proc/pid/fd/ and /proc/pid/fdinfo.
+>>
+>> But in case of overlayfs we see unexpected values there.
+>>
+>> /proc/PID/fdinfo/FD contains mnt_id which isn't presented in /proc/pid/mountinfo.
+>> /proc/PID/fd/FD does not contain an absolute path to the opened file.
+>>
+>> Can someone help to fix these issues?
+>
+> See this:
+>
+> https://lkml.org/lkml/2015/3/20/372
+>
+> Al didn't like that patch.  But it definitely will be fixed, one way
+> or the other, in the near future.
+>
+> Thanks,
+> Miklos
