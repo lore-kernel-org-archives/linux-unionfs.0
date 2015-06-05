@@ -1,61 +1,50 @@
-From: Miklos Szeredi <miklos@szeredi.hu>
-Subject: [PATCH 1/2] ovl: don't traverse automount points
-Date: Thu,  4 Jun 2015 15:29:45 +0200
-Message-ID: <1433424586-7771-2-git-send-email-miklos@szeredi.hu>
+From: Al Viro <viro@ZenIV.linux.org.uk>
+Subject: Re: [PATCH 2/2] ovl: allow distributed fs as lower layer
+Date: Fri, 5 Jun 2015 01:07:15 +0100
+Message-ID: <20150605000715.GP7232@ZenIV.linux.org.uk>
 References: <1433424586-7771-1-git-send-email-miklos@szeredi.hu>
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
-In-Reply-To: <1433424586-7771-1-git-send-email-miklos@szeredi.hu>
-Sender: linux-fsdevel-owner@vger.kernel.org
-To: linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: sa-dev@rainbow.by, andre.roth@roche.com
+ <1433424586-7771-3-git-send-email-miklos@szeredi.hu>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-unionfs-owner@vger.kernel.org>
+Received: from zeniv.linux.org.uk ([195.92.253.2]:56009 "EHLO
+	ZenIV.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754117AbbFEAHS (ORCPT
+	<rfc822;linux-unionfs@vger.kernel.org>);
+	Thu, 4 Jun 2015 20:07:18 -0400
+Content-Disposition: inline
+In-Reply-To: <1433424586-7771-3-git-send-email-miklos@szeredi.hu>
+Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, sa-dev@rainbow.by, andre.roth@roche.com
 
-From: Miklos Szeredi <mszeredi@suse.cz>
+On Thu, Jun 04, 2015 at 03:29:46PM +0200, Miklos Szeredi wrote:
+> From: Miklos Szeredi <mszeredi@suse.cz>
+> 
+> Allow filesystems with .d_revalidate as lower layer(s), but not as upper
+> layer.
+> 
+> For local filesystems the rule was that modifications on the layers
+> directly while being part of the overlay results in undefined behavior.
+> 
+> This can easily be extended to distributed filesystems: we assume the tree
+> used as lower layer is static, which means ->d_revalidate() should always
+> return "1".  If that is not the case, return -ESTALE, don't try to work
+> around the modification.
 
-NFS and other distributed filesystems may place automount points in the
-tree.  Previoulsy overlayfs refused to mount such filesystems types (based
-on the existence of the .d_automount callback), even if the actual export
-didn't have any automount points.
+Umm...  Cosmetical point is that this
 
-It cannot be determined in advance whether the filesystem has automount
-points or not.  The solution is to allow fs with .d_automount but refuse to
-traverse any automount points encountered.
+> +static bool ovl_remote(struct dentry *root)
+> +{
+> +	const struct dentry_operations *dop = root->d_op;
+> +
+> +	return dop && (dop->d_revalidate || dop->d_weak_revalidate);
+> +}
 
-Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
----
- fs/overlayfs/super.c | 8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+is better done as
+	root->d_flags & (DCACHE_OP_REVALIDATE | DCACHE_OP_WEAK_REVALIDATE)
 
-diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-index bf8537c7f455..de9d2ee68ccf 100644
---- a/fs/overlayfs/super.c
-+++ b/fs/overlayfs/super.c
-@@ -303,6 +303,10 @@ static inline struct dentry *ovl_lookup_real(struct dentry *dir,
- 	} else if (!dentry->d_inode) {
- 		dput(dentry);
- 		dentry = NULL;
-+	} else if (dentry->d_flags & DCACHE_MANAGED_DENTRY) {
-+		dput(dentry);
-+		/* Don't support traversing automounts */
-+		dentry = ERR_PTR(-EREMOTE);
- 	}
- 	return dentry;
- }
-@@ -700,12 +704,12 @@ static bool ovl_is_allowed_fs_type(struct dentry *root)
- 
- 	/*
- 	 * We don't support:
--	 *  - automount filesystems
-+	 *  - autofs
- 	 *  - filesystems with revalidate (FIXME for lower layer)
- 	 *  - filesystems with case insensitive names
- 	 */
- 	if (dop &&
--	    (dop->d_manage || dop->d_automount ||
-+	    (dop->d_manage ||
- 	     dop->d_revalidate || dop->d_weak_revalidate ||
- 	     dop->d_compare || dop->d_hash)) {
- 		return false;
--- 
-2.1.4
-
+More interesting question is whether anything in the system relies on
+existing behaviour that follows ->d_revalidate() returning 0.  Have you
+tried to mount e.g. procfs as underlying layer and torture it for a while?
