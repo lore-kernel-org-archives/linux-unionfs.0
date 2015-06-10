@@ -1,30 +1,26 @@
 From: David Howells <dhowells@redhat.com>
-Subject: Re: Overlay filesystem doesn't feed "tail -f"
-Date: Wed, 10 Jun 2015 14:10:43 +0100
-Message-ID: <29748.1433941843@warthog.procyon.org.uk>
-References: <CA+X5Wn43D7+LKyYrz5UCm7rXvvzL84g2WNKTKHJP35EEXRyRHw@mail.gmail.com>
+Subject: Re: [PATCH] overlayfs: Warn on copy up if a process has a R/O fd open to the lower file
+Date: Wed, 10 Jun 2015 14:23:32 +0100
+Message-ID: <30048.1433942612@warthog.procyon.org.uk>
+References: <4954.1432838811@warthog.procyon.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:55925 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:38314 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964944AbbFJNKr (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-	Wed, 10 Jun 2015 09:10:47 -0400
-In-Reply-To: <CA+X5Wn43D7+LKyYrz5UCm7rXvvzL84g2WNKTKHJP35EEXRyRHw@mail.gmail.com>
-Content-ID: <29747.1433941843.1@warthog.procyon.org.uk>
+	id S933620AbbFJNXh convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-unionfs@vger.kernel.org>);
+	Wed, 10 Jun 2015 09:23:37 -0400
+In-Reply-To: <4954.1432838811@warthog.procyon.org.uk>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: james harvey <jamespharvey20@gmail.com>
-Cc: dhowells@redhat.com, linux-unionfs@vger.kernel.org
+To: miklos@szeredi.hu, viro@ZenIV.linux.org.uk
+Cc: dhowells@redhat.com, linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org
 
-james harvey <jamespharvey20@gmail.com> wrote:
 
-> If a file in an overlay merged directory is being periodically written
-> to: tail -f will not show additions if given the file in the location
-> of the merged directory; but tail -f will show additions if given the
-> file in the location of the lower directory.
+Hi Mikl=C3=B3s, Al,
 
-Yeah.  It uses inotify.  Inotify and file locking are hard things and aren't
-yet supported.
+Any thoughts on taking this upstream?
 
 David
