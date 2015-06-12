@@ -1,27 +1,33 @@
 From: David Howells <dhowells@redhat.com>
-Subject: Re: [PATCH] overlayfs: Warn on copy up if a process has a R/O fd open to the lower file
-Date: Wed, 10 Jun 2015 17:12:51 +0100
-Message-ID: <17649.1433952771@warthog.procyon.org.uk>
-References: <1433950405.375893.291973049.101362CB@webmail.messagingengine.com> <4954.1432838811@warthog.procyon.org.uk>
+Subject: Re: [PATCH 5/7] SELinux: Handle opening of a unioned file
+Date: Fri, 12 Jun 2015 16:30:54 +0100
+Message-ID: <8813.1434123054@warthog.procyon.org.uk>
+References: <16216.1417109138@warthog.procyon.org.uk> <545A51CB.6070107@tycho.nsa.gov> <20141105154217.2555.578.stgit@warthog.procyon.org.uk> <20141105154307.2555.9847.stgit@warthog.procyon.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1433950405.375893.291973049.101362CB@webmail.messagingengine.com>
-Content-ID: <17647.1433952771.1@warthog.procyon.org.uk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Colin Walters <walters@verbum.org>
-Cc: dhowells@redhat.com, miklos@szeredi.hu, viro@ZenIV.linux.org.uk, linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org
+Return-path: <linux-security-module-owner@vger.kernel.org>
+In-Reply-To: <16216.1417109138@warthog.procyon.org.uk>
+Content-ID: <8812.1434123054.1@warthog.procyon.org.uk>
+Sender: linux-security-module-owner@vger.kernel.org
+To: Stephen Smalley <sds@tycho.nsa.gov>
+Cc: dhowells@redhat.com, linux-unionfs@vger.kernel.org, selinux@tycho.nsa.gov, linux-fsdevel@vger.kernel.org, linux-security-module@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 
-Colin Walters <walters@verbum.org> wrote:
+Hi Stephen,
 
-> On Thu, May 28, 2015, at 02:46 PM, David Howells wrote:
-> > Print a warning when overlayfs copies up a file if the process that
-> > triggered the copy up has a R/O fd open to the lower file being copied up.
+David Howells <dhowells@redhat.com> wrote:
+
+> Stephen Smalley <sds@tycho.nsa.gov> wrote:
 > 
-> Why not an option to make it an error?  If one's goal is to use overlayfs
-> without apps potentially corrupting data, better to fail fast.
+> > Also, would be good to create a common helper for use here, by
+> > selinux_dentry_init_security(), selinux_inode_init_security(), and
+> > may_create().  Already some seeming potential for inconsistencies there.
+> 
+> selinux_dentry_init_security() and selinux_inode_init_security() do
+> something different depending on SECURITY_FS_USE_MNTPOINT.  Is the dentry
+> variant wrong?  Shouldn't it be using the mountpoint label if that flag _is_
+> set?
 
-That could be added.  Note that doing this isn't *necessarily* wrong though.
+Any answer to that?
 
 David
