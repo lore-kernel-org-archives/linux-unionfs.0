@@ -1,33 +1,34 @@
-From: David Howells <dhowells@redhat.com>
-Subject: Re: [PATCH 5/7] SELinux: Handle opening of a unioned file
-Date: Fri, 12 Jun 2015 16:30:54 +0100
-Message-ID: <8813.1434123054@warthog.procyon.org.uk>
-References: <16216.1417109138@warthog.procyon.org.uk> <545A51CB.6070107@tycho.nsa.gov> <20141105154217.2555.578.stgit@warthog.procyon.org.uk> <20141105154307.2555.9847.stgit@warthog.procyon.org.uk>
+From: james harvey <jamespharvey20@gmail.com>
+Subject: Mount doesn't show subvol option for btrfs
+Date: Sun, 14 Jun 2015 16:50:07 -0400
+Message-ID: <CA+X5Wn4Hs5HeHwcH1X0bZ5=NxxdcVeOdx60HC5QSTDr=hmQuyQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Return-path: <linux-security-module-owner@vger.kernel.org>
-In-Reply-To: <16216.1417109138@warthog.procyon.org.uk>
-Content-ID: <8812.1434123054.1@warthog.procyon.org.uk>
-Sender: linux-security-module-owner@vger.kernel.org
-To: Stephen Smalley <sds@tycho.nsa.gov>
-Cc: dhowells@redhat.com, linux-unionfs@vger.kernel.org, selinux@tycho.nsa.gov, linux-fsdevel@vger.kernel.org, linux-security-module@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-unionfs-owner@vger.kernel.org>
+Received: from mail-la0-f41.google.com ([209.85.215.41]:34196 "EHLO
+	mail-la0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751982AbbFNUuK (ORCPT
+	<rfc822;linux-unionfs@vger.kernel.org>);
+	Sun, 14 Jun 2015 16:50:10 -0400
+Received: by labbc20 with SMTP id bc20so10261179lab.1
+        for <linux-unionfs@vger.kernel.org>; Sun, 14 Jun 2015 13:50:08 -0700 (PDT)
+Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
+To: linux-unionfs@vger.kernel.org
 
-Hi Stephen,
+Not sure if this could be a util-linux (mount) bug instead...
 
-David Howells <dhowells@redhat.com> wrote:
+On arch, /etc/fstab includes:
 
-> Stephen Smalley <sds@tycho.nsa.gov> wrote:
-> 
-> > Also, would be good to create a common helper for use here, by
-> > selinux_dentry_init_security(), selinux_inode_init_security(), and
-> > may_create().  Already some seeming potential for inconsistencies there.
-> 
-> selinux_dentry_init_security() and selinux_inode_init_security() do
-> something different depending on SECURITY_FS_USE_MNTPOINT.  Is the dentry
-> variant wrong?  Shouldn't it be using the mountpoint label if that flag _is_
-> set?
+/dev/sda1   /.snapshots   btrfs
+rw,noatime,compress=lzo,ssd,discard,space_cache,subvol=.snapshots   0
+ 0
 
-Any answer to that?
+But mount includes:
 
-David
+/dev/sda1 on /.snapshots type btrfs
+(rw,noatime,compress=lzo,ssd,discard,space_cache)
+
+The subvol option isn't reported in mount.
+
+This happens on all of my btrfs mounts, not just .snapshots.
