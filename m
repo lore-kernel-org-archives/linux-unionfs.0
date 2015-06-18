@@ -1,224 +1,145 @@
 From: David Howells <dhowells@redhat.com>
-Subject: [PATCH 7/8] SELinux: Create a common helper to determine an inode
- label
-Date: Thu, 18 Jun 2015 14:33:10 +0100
-Message-ID: <20150618133310.12722.16624.stgit@warthog.procyon.org.uk>
+Subject: [PATCH 6/8] SELinux: Handle opening of a unioned file
+Date: Thu, 18 Jun 2015 14:33:02 +0100
+Message-ID: <20150618133302.12722.14996.stgit@warthog.procyon.org.uk>
 References: <20150618133215.12722.70352.stgit@warthog.procyon.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-security-module-owner@vger.kernel.org>
+Return-path: <linux-unionfs-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:42989 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755775AbbFRNdI (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+	Thu, 18 Jun 2015 09:33:08 -0400
 In-Reply-To: <20150618133215.12722.70352.stgit@warthog.procyon.org.uk>
-Sender: linux-security-module-owner@vger.kernel.org
+Sender: linux-unionfs-owner@vger.kernel.org
+List-Id: linux-unionfs@vger.kernel.org
 To: sds@tycho.nsa.gov, viro@zeniv.linux.org.uk, miklos@szeredi.hu
 Cc: linux-fsdevel@vger.kernel.org, dhowells@redhat.com, linux-security-module@vger.kernel.org, linux-unionfs@vger.kernel.org, linux-kernel@vger.kernel.org
-List-Id: linux-unionfs@vger.kernel.org
 
-Create a common helper function to determine the label for a new inode.  This
-is then used by:
+Handle the opening of a unioned file by trying to derive the label that would
+be attached to the union-layer inode if it doesn't exist.
 
-	- may_create()
-	- selinux_dentry_init_security()
-	- selinux_inode_init_security()
-	- selinux_file_open_union()
+If the union-layer inode does exist (as it necessarily does in overlayfs, but
+not in unionmount), we assume that it has the right label and use that.
+Otherwise we try to get it from the superblock.
 
-This will change the behaviour of the first two functions slightly, bringing
-them into line with the third.  The fourth function is newly created in a
-preceding patch and applied only in the case of a filesystem union or overlay.
+If the superblock has a globally-applied label, we use that, otherwise we try
+to transition to an appropriate label.  This union label is then stored in the
+file_security_struct.
 
-Suggested-by: Stephen Smalley <sds@tycho.nsa.gov>
+We then perform an additional check to make sure that the calling task is
+granted permission by the union-layer inode label to open the file in addition
+to a check to make sure that the task is granted permission to open the lower
+file with the lower inode label.
+
 Signed-off-by: David Howells <dhowells@redhat.com>
 ---
 
- security/selinux/hooks.c |  124 ++++++++++++++++++++++------------------------
- 1 file changed, 60 insertions(+), 64 deletions(-)
+ security/selinux/hooks.c          |   69 +++++++++++++++++++++++++++++++++++++
+ security/selinux/include/objsec.h |    1 +
+ 2 files changed, 70 insertions(+)
 
 diff --git a/security/selinux/hooks.c b/security/selinux/hooks.c
-index c4495a797eb1..7eef1032c11a 100644
+index c5d893e2ff23..c4495a797eb1 100644
 --- a/security/selinux/hooks.c
 +++ b/security/selinux/hooks.c
-@@ -1684,6 +1684,42 @@ out:
- 	return rc;
+@@ -3490,10 +3490,72 @@ static int selinux_file_receive(struct file *file)
+ 	return file_has_perm(cred, file, file_to_av(file));
  }
  
 +/*
-+ * Determine the label for an inode that might be unioned.
++ * We have a file opened on a unioned file system that falls through to a file
++ * on a lower layer.  If there is a union inode, we try to get the label from
++ * that, otherwise we need to get it from the superblock.
++ *
++ * file->f_path points to the union layer and file->f_inode points to the lower
++ * layer.
 + */
-+static int selinux_determine_inode_label(const struct inode *dir,
-+					 const struct qstr *name,
-+					 const char *caller,
-+					 u16 tclass,
-+					 u32 *_new_isid)
++static int selinux_file_open_union(struct file *file,
++				   struct file_security_struct *fsec,
++				   const struct cred *cred)
 +{
 +	const struct superblock_security_struct *sbsec;
-+	const struct inode_security_struct *dsec;
++	const struct inode_security_struct *isec, *dsec, *fisec;
 +	const struct task_security_struct *tsec = current_security();
++	struct common_audit_data ad;
++	struct dentry *union_dentry = file->f_path.dentry;
++	const struct inode *union_inode = d_inode(union_dentry);
++	const struct inode *lower_inode = file_inode(file);
++	struct dentry *dir;
 +	int rc;
 +
-+	sbsec = dir->i_sb->s_security;
++	sbsec = union_dentry->d_sb->s_security;
 +
-+	if ((sbsec->flags & SE_SBINITIALIZED) &&
++	if (union_inode) {
++		isec = union_inode->i_security;
++		fsec->union_isid = isec->sid;
++	} else if ((sbsec->flags & SE_SBINITIALIZED) &&
 +		   (sbsec->behavior == SECURITY_FS_USE_MNTPOINT)) {
-+		*_new_isid = sbsec->mntpoint_sid;
-+	} else if (tsec->create_sid) {
-+		*_new_isid = tsec->create_sid;
++		fsec->union_isid = sbsec->mntpoint_sid;
 +	} else {
-+		dsec = dir->i_security;
++		dir = dget_parent(union_dentry);
++		dsec = d_inode(dir)->i_security;
 +
-+		rc = security_transition_sid(tsec->sid, dsec->sid, tclass,
-+					     name, _new_isid);
++		rc = security_transition_sid(
++			tsec->sid, dsec->sid,
++			inode_mode_to_security_class(lower_inode->i_mode),
++			&union_dentry->d_name,
++			&fsec->union_isid);
++		dput(dir);
 +		if (rc) {
-+			pr_warn("%s:  security_transition_sid failed, rc=%d (name=%*.*s)\n",
-+				caller, -rc, name->len, name->len, name->name);
++			pr_warn("%s:  security_transition_sid failed, rc=%d (name=%pD)\n",
++				__func__, -rc, file);
 +			return rc;
 +		}
 +	}
 +
-+	return 0;
++	/* We need to check that the union file is allowed to be opened as well
++	 * as checking that the lower file is allowed to be opened.
++	 */
++	if (unlikely(IS_PRIVATE(lower_inode)))
++		return 0;
++
++	ad.type = LSM_AUDIT_DATA_PATH;
++	ad.u.path = file->f_path;
++
++	fisec = lower_inode->i_security;
++	return avc_has_perm(cred_sid(cred), fsec->union_isid, fisec->sclass,
++			    open_file_to_av(file), &ad);
 +}
 +
- /* Check whether a task can create a file. */
- static int may_create(struct inode *dir,
- 		      struct dentry *dentry,
-@@ -1700,7 +1736,6 @@ static int may_create(struct inode *dir,
- 	sbsec = dir->i_sb->s_security;
- 
- 	sid = tsec->sid;
--	newsid = tsec->create_sid;
- 
- 	ad.type = LSM_AUDIT_DATA_DENTRY;
- 	ad.u.dentry = dentry;
-@@ -1711,12 +1746,10 @@ static int may_create(struct inode *dir,
- 	if (rc)
- 		return rc;
- 
--	if (!newsid || !(sbsec->flags & SBLABEL_MNT)) {
--		rc = security_transition_sid(sid, dsec->sid, tclass,
--					     &dentry->d_name, &newsid);
--		if (rc)
--			return rc;
--	}
-+	rc = selinux_determine_inode_label(dir, &dentry->d_name, __func__,
-+					   tclass, &newsid);
-+	if (rc)
-+		return rc;
- 
- 	rc = avc_has_perm(sid, newsid, tclass, FILE__CREATE, &ad);
- 	if (rc)
-@@ -2723,32 +2756,14 @@ static int selinux_dentry_init_security(struct dentry *dentry, int mode,
- 					struct qstr *name, void **ctx,
- 					u32 *ctxlen)
+ static int selinux_file_open(struct file *file, const struct cred *cred)
  {
--	const struct cred *cred = current_cred();
--	struct task_security_struct *tsec;
--	struct inode_security_struct *dsec;
--	struct superblock_security_struct *sbsec;
--	struct inode *dir = d_backing_inode(dentry->d_parent);
- 	u32 newsid;
- 	int rc;
+ 	struct file_security_struct *fsec;
+ 	struct inode_security_struct *isec;
++	int rc;
  
--	tsec = cred->security;
--	dsec = dir->i_security;
--	sbsec = dir->i_sb->s_security;
--
--	if (tsec->create_sid && sbsec->behavior != SECURITY_FS_USE_MNTPOINT) {
--		newsid = tsec->create_sid;
--	} else {
--		rc = security_transition_sid(tsec->sid, dsec->sid,
--					     inode_mode_to_security_class(mode),
--					     name,
--					     &newsid);
--		if (rc) {
--			printk(KERN_WARNING
--				"%s: security_transition_sid failed, rc=%d\n",
--			       __func__, -rc);
--			return rc;
--		}
--	}
-+	rc = selinux_determine_inode_label(d_inode(dentry), name, __func__,
-+					   inode_mode_to_security_class(mode),
-+					   &newsid);
-+	if (rc)
-+		return rc;
- 
- 	return security_sid_to_context(newsid, (char **)ctx, ctxlen);
+ 	fsec = file->f_security;
+ 	isec = file_inode(file)->i_security;
+@@ -3514,6 +3576,13 @@ static int selinux_file_open(struct file *file, const struct cred *cred)
+ 	 * new inode label or new policy.
+ 	 * This check is not redundant - do not remove.
+ 	 */
++
++	if (d_inode(file->f_path.dentry) != file->f_inode) {
++		rc = selinux_file_open_union(file, fsec, cred);
++		if (rc < 0)
++			return rc;
++	}
++
+ 	return file_path_has_perm(cred, file, open_file_to_av(file));
  }
-@@ -2771,22 +2786,12 @@ static int selinux_inode_init_security(struct inode *inode, struct inode *dir,
- 	sid = tsec->sid;
- 	newsid = tsec->create_sid;
  
--	if ((sbsec->flags & SE_SBINITIALIZED) &&
--	    (sbsec->behavior == SECURITY_FS_USE_MNTPOINT))
--		newsid = sbsec->mntpoint_sid;
--	else if (!newsid || !(sbsec->flags & SBLABEL_MNT)) {
--		rc = security_transition_sid(sid, dsec->sid,
--					     inode_mode_to_security_class(inode->i_mode),
--					     qstr, &newsid);
--		if (rc) {
--			printk(KERN_WARNING "%s:  "
--			       "security_transition_sid failed, rc=%d (dev=%s "
--			       "ino=%ld)\n",
--			       __func__,
--			       -rc, inode->i_sb->s_id, inode->i_ino);
--			return rc;
--		}
--	}
-+	rc = selinux_determine_inode_label(
-+		dir, qstr, __func__,
-+		inode_mode_to_security_class(inode->i_mode),
-+		&newsid);
-+	if (rc)
-+		return rc;
+diff --git a/security/selinux/include/objsec.h b/security/selinux/include/objsec.h
+index 81fa718d5cb3..f088c080aa9e 100644
+--- a/security/selinux/include/objsec.h
++++ b/security/selinux/include/objsec.h
+@@ -54,6 +54,7 @@ struct file_security_struct {
+ 	u32 sid;		/* SID of open file description */
+ 	u32 fown_sid;		/* SID of file owner (for SIGIO) */
+ 	u32 isid;		/* SID of inode at the time of file open */
++	u32 union_isid;		/* SID of would-be inodes in union top (or 0) */
+ 	u32 pseqno;		/* Policy seqno at the time of file open */
+ };
  
- 	/* Possibly defer initialization to selinux_complete_init. */
- 	if (sbsec->flags & SE_SBINITIALIZED) {
-@@ -3502,9 +3507,7 @@ static int selinux_file_open_union(struct file *file,
- 				   struct file_security_struct *fsec,
- 				   const struct cred *cred)
- {
--	const struct superblock_security_struct *sbsec;
--	const struct inode_security_struct *isec, *dsec, *fisec;
--	const struct task_security_struct *tsec = current_security();
-+	const struct inode_security_struct *isec, *fisec;
- 	struct common_audit_data ad;
- 	struct dentry *union_dentry = file->f_path.dentry;
- 	const struct inode *union_inode = d_inode(union_dentry);
-@@ -3512,29 +3515,22 @@ static int selinux_file_open_union(struct file *file,
- 	struct dentry *dir;
- 	int rc;
- 
--	sbsec = union_dentry->d_sb->s_security;
--
- 	if (union_inode) {
-+		/* If we're opening an overlay inode, use the label from that
-+		 * in preference to the label on a lower inode which we might
-+		 * actually be opening.
-+		 */
- 		isec = union_inode->i_security;
- 		fsec->union_isid = isec->sid;
--	} else if ((sbsec->flags & SE_SBINITIALIZED) &&
--		   (sbsec->behavior == SECURITY_FS_USE_MNTPOINT)) {
--		fsec->union_isid = sbsec->mntpoint_sid;
- 	} else {
- 		dir = dget_parent(union_dentry);
--		dsec = d_inode(dir)->i_security;
--
--		rc = security_transition_sid(
--			tsec->sid, dsec->sid,
--			inode_mode_to_security_class(lower_inode->i_mode),
-+		rc = selinux_determine_inode_label(
-+			d_inode(dir),
- 			&union_dentry->d_name,
-+			__func__,
-+			inode_mode_to_security_class(lower_inode->i_mode),
- 			&fsec->union_isid);
- 		dput(dir);
--		if (rc) {
--			pr_warn("%s:  security_transition_sid failed, rc=%d (name=%pD)\n",
--				__func__, -rc, file);
--			return rc;
--		}
- 	}
- 
- 	/* We need to check that the union file is allowed to be opened as well
-
