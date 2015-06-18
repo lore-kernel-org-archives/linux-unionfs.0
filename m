@@ -1,21 +1,19 @@
-From: Stephen Smalley <sds@tycho.nsa.gov>
-Subject: Re: [PATCH] SELinux: Create a common helper to determine an inode
- label [ver #3]
-Date: Thu, 18 Jun 2015 14:27:01 -0400
-Message-ID: <55830D75.3070203@tycho.nsa.gov>
+From: Paul Moore <paul@paul-moore.com>
+Subject: Re: [PATCH] SELinux: Create a common helper to determine an inode label [ver #3]
+Date: Thu, 18 Jun 2015 16:35:06 -0400
+Message-ID: <9833421.4OAA7AQtgN@sifl>
 References: <6033.1434651905@warthog.procyon.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
 In-Reply-To: <6033.1434651905@warthog.procyon.org.uk>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: linux-fsdevel-owner@vger.kernel.org
 To: David Howells <dhowells@redhat.com>
-Cc: linux-fsdevel@vger.kernel.org, linux-security-module@vger.kernel.org, linux-unionfs@vger.kernel.org, linux-kernel@vger.kernel.org, SELinux <selinux@tycho.nsa.gov>, Paul Moore <paul@paul-moore.com>
+Cc: Stephen Smalley <sds@tycho.nsa.gov>, linux-fsdevel@vger.kernel.org, linux-security-module@vger.kernel.org, linux-unionfs@vger.kernel.org, linux-kernel@vger.kernel.org, SELinux <selinux@tycho.nsa.gov>
 List-Id: linux-unionfs@vger.kernel.org
 
-On 06/18/2015 02:25 PM, David Howells wrote:
->     
+On Thursday, June 18, 2015 07:25:05 PM David Howells wrote:
 > Create a common helper function to determine the label for a new inode.
 > This is then used by:
 > 
@@ -29,7 +27,9 @@ On 06/18/2015 02:25 PM, David Howells wrote:
 > Suggested-by: Stephen Smalley <sds@tycho.nsa.gov>
 > Signed-off-by: David Howells <dhowells@redhat.com>
 
-Acked-by:  Stephen Smalley <sds@tycho.nsa.gov>
+This patch looks fine to me and I think there is an advantage to merging this 
+regardless of what happens with the "unioning" work so I'm inclined to queue 
+this up now unless you would prefer to resubmit with the union patches?
 
 > ---
 > diff --git a/security/selinux/hooks.c b/security/selinux/hooks.c
@@ -39,7 +39,7 @@ Acked-by:  Stephen Smalley <sds@tycho.nsa.gov>
 > @@ -1684,6 +1684,32 @@ out:
 >  	return rc;
 >  }
->  
+> 
 > +/*
 > + * Determine the label for an inode that might be unioned.
 > + */
@@ -71,16 +71,16 @@ Acked-by:  Stephen Smalley <sds@tycho.nsa.gov>
 >  		      struct dentry *dentry,
 > @@ -1700,7 +1726,6 @@ static int may_create(struct inode *dir,
 >  	sbsec = dir->i_sb->s_security;
->  
+> 
 >  	sid = tsec->sid;
 > -	newsid = tsec->create_sid;
->  
+> 
 >  	ad.type = LSM_AUDIT_DATA_DENTRY;
 >  	ad.u.dentry = dentry;
 > @@ -1711,12 +1736,10 @@ static int may_create(struct inode *dir,
 >  	if (rc)
 >  		return rc;
->  
+> 
 > -	if (!newsid || !(sbsec->flags & SBLABEL_MNT)) {
 > -		rc = security_transition_sid(sid, dsec->sid, tclass,
 > -					     &dentry->d_name, &newsid);
@@ -91,11 +91,11 @@ Acked-by:  Stephen Smalley <sds@tycho.nsa.gov>
 > +					   &newsid);
 > +	if (rc)
 > +		return rc;
->  
+> 
 >  	rc = avc_has_perm(sid, newsid, tclass, FILE__CREATE, &ad);
 >  	if (rc)
-> @@ -2723,32 +2746,14 @@ static int selinux_dentry_init_security(struct dentry *dentry, int mode,
->  					struct qstr *name, void **ctx,
+> @@ -2723,32 +2746,14 @@ static int selinux_dentry_init_security(struct
+> dentry *dentry, int mode, struct qstr *name, void **ctx,
 >  					u32 *ctxlen)
 >  {
 > -	const struct cred *cred = current_cred();
@@ -105,7 +105,7 @@ Acked-by:  Stephen Smalley <sds@tycho.nsa.gov>
 > -	struct inode *dir = d_backing_inode(dentry->d_parent);
 >  	u32 newsid;
 >  	int rc;
->  
+> 
 > -	tsec = cred->security;
 > -	dsec = dir->i_security;
 > -	sbsec = dir->i_sb->s_security;
@@ -129,13 +129,13 @@ Acked-by:  Stephen Smalley <sds@tycho.nsa.gov>
 > +					   &newsid);
 > +	if (rc)
 > +		return rc;
->  
+> 
 >  	return security_sid_to_context(newsid, (char **)ctx, ctxlen);
 >  }
-> @@ -2771,22 +2776,12 @@ static int selinux_inode_init_security(struct inode *inode, struct inode *dir,
->  	sid = tsec->sid;
+> @@ -2771,22 +2776,12 @@ static int selinux_inode_init_security(struct inode
+> *inode, struct inode *dir, sid = tsec->sid;
 >  	newsid = tsec->create_sid;
->  
+> 
 > -	if ((sbsec->flags & SE_SBINITIALIZED) &&
 > -	    (sbsec->behavior == SECURITY_FS_USE_MNTPOINT))
 > -		newsid = sbsec->mntpoint_sid;
@@ -158,8 +158,11 @@ Acked-by:  Stephen Smalley <sds@tycho.nsa.gov>
 > +		&newsid);
 > +	if (rc)
 > +		return rc;
->  
+> 
 >  	/* Possibly defer initialization to selinux_complete_init. */
 >  	if (sbsec->flags & SE_SBINITIALIZED) {
-> 
-> 
+
+-- 
+paul moore
+www.paul-moore.com
+
