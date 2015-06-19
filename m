@@ -1,168 +1,36 @@
-From: Paul Moore <paul@paul-moore.com>
-Subject: Re: [PATCH] SELinux: Create a common helper to determine an inode label [ver #3]
-Date: Thu, 18 Jun 2015 16:35:06 -0400
-Message-ID: <9833421.4OAA7AQtgN@sifl>
-References: <6033.1434651905@warthog.procyon.org.uk>
+From: Al Viro <viro@ZenIV.linux.org.uk>
+Subject: Re: [PATCH 0/8] Security: Provide unioned file support
+Date: Fri, 19 Jun 2015 08:20:15 +0100
+Message-ID: <20150619072015.GH17109@ZenIV.linux.org.uk>
+References: <20150618133215.12722.70352.stgit@warthog.procyon.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
-In-Reply-To: <6033.1434651905@warthog.procyon.org.uk>
-Sender: linux-fsdevel-owner@vger.kernel.org
-To: David Howells <dhowells@redhat.com>
-Cc: Stephen Smalley <sds@tycho.nsa.gov>, linux-fsdevel@vger.kernel.org, linux-security-module@vger.kernel.org, linux-unionfs@vger.kernel.org, linux-kernel@vger.kernel.org, SELinux <selinux@tycho.nsa.gov>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-unionfs-owner@vger.kernel.org>
+Received: from zeniv.linux.org.uk ([195.92.253.2]:53180 "EHLO
+	ZenIV.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751178AbbFSHUV (ORCPT
+	<rfc822;linux-unionfs@vger.kernel.org>);
+	Fri, 19 Jun 2015 03:20:21 -0400
+Content-Disposition: inline
+In-Reply-To: <20150618133215.12722.70352.stgit@warthog.procyon.org.uk>
+Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
+To: David Howells <dhowells@redhat.com>
+Cc: sds@tycho.nsa.gov, miklos@szeredi.hu, linux-fsdevel@vger.kernel.org, linux-security-module@vger.kernel.org, linux-unionfs@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Thursday, June 18, 2015 07:25:05 PM David Howells wrote:
-> Create a common helper function to determine the label for a new inode.
-> This is then used by:
+On Thu, Jun 18, 2015 at 02:32:15PM +0100, David Howells wrote:
 > 
-> 	- may_create()
-> 	- selinux_dentry_init_security()
-> 	- selinux_inode_init_security()
+> The attached patches provide security support for unioned files where the
+> security involves an object-label-based LSM (such as SELinux) rather than a
+> path-based LSM.
 > 
-> This will change the behaviour of the functions slightly, bringing them all
-> into line.
+> The patches can be broken down into a number of sets:
 > 
-> Suggested-by: Stephen Smalley <sds@tycho.nsa.gov>
-> Signed-off-by: David Howells <dhowells@redhat.com>
+>  (1) A small patch to drop a lock earlier in overlayfs.  The main VFS patch
+>      touches the same code, so I put this first.
+> 
+>  (2) The main VFS patch that makes an open file struct referring to a union
+>      file have ->f_path point to the union/overlay file whilst ->f_inode and
+>      ->f_mapping refer to the subordinate file that does the actual work.
 
-This patch looks fine to me and I think there is an advantage to merging this 
-regardless of what happens with the "unioning" work so I'm inclined to queue 
-this up now unless you would prefer to resubmit with the union patches?
-
-> ---
-> diff --git a/security/selinux/hooks.c b/security/selinux/hooks.c
-> index ffa5a642629a..ec30e599fb46 100644
-> --- a/security/selinux/hooks.c
-> +++ b/security/selinux/hooks.c
-> @@ -1684,6 +1684,32 @@ out:
->  	return rc;
->  }
-> 
-> +/*
-> + * Determine the label for an inode that might be unioned.
-> + */
-> +static int selinux_determine_inode_label(const struct inode *dir,
-> +					 const struct qstr *name,
-> +					 u16 tclass,
-> +					 u32 *_new_isid)
-> +{
-> +	const struct superblock_security_struct *sbsec = dir->i_sb->s_security;
-> +	const struct inode_security_struct *dsec = dir->i_security;
-> +	const struct task_security_struct *tsec = current_security();
-> +
-> +	if ((sbsec->flags & SE_SBINITIALIZED) &&
-> +	    (sbsec->behavior == SECURITY_FS_USE_MNTPOINT)) {
-> +		*_new_isid = sbsec->mntpoint_sid;
-> +	} else if ((sbsec->flags & SBLABEL_MNT) &&
-> +		   tsec->create_sid) {
-> +		*_new_isid = tsec->create_sid;
-> +	} else {
-> +		return security_transition_sid(tsec->sid, dsec->sid, tclass,
-> +					       name, _new_isid);
-> +	}
-> +
-> +	return 0;
-> +}
-> +
->  /* Check whether a task can create a file. */
->  static int may_create(struct inode *dir,
->  		      struct dentry *dentry,
-> @@ -1700,7 +1726,6 @@ static int may_create(struct inode *dir,
->  	sbsec = dir->i_sb->s_security;
-> 
->  	sid = tsec->sid;
-> -	newsid = tsec->create_sid;
-> 
->  	ad.type = LSM_AUDIT_DATA_DENTRY;
->  	ad.u.dentry = dentry;
-> @@ -1711,12 +1736,10 @@ static int may_create(struct inode *dir,
->  	if (rc)
->  		return rc;
-> 
-> -	if (!newsid || !(sbsec->flags & SBLABEL_MNT)) {
-> -		rc = security_transition_sid(sid, dsec->sid, tclass,
-> -					     &dentry->d_name, &newsid);
-> -		if (rc)
-> -			return rc;
-> -	}
-> +	rc = selinux_determine_inode_label(dir, &dentry->d_name, tclass,
-> +					   &newsid);
-> +	if (rc)
-> +		return rc;
-> 
->  	rc = avc_has_perm(sid, newsid, tclass, FILE__CREATE, &ad);
->  	if (rc)
-> @@ -2723,32 +2746,14 @@ static int selinux_dentry_init_security(struct
-> dentry *dentry, int mode, struct qstr *name, void **ctx,
->  					u32 *ctxlen)
->  {
-> -	const struct cred *cred = current_cred();
-> -	struct task_security_struct *tsec;
-> -	struct inode_security_struct *dsec;
-> -	struct superblock_security_struct *sbsec;
-> -	struct inode *dir = d_backing_inode(dentry->d_parent);
->  	u32 newsid;
->  	int rc;
-> 
-> -	tsec = cred->security;
-> -	dsec = dir->i_security;
-> -	sbsec = dir->i_sb->s_security;
-> -
-> -	if (tsec->create_sid && sbsec->behavior != SECURITY_FS_USE_MNTPOINT) {
-> -		newsid = tsec->create_sid;
-> -	} else {
-> -		rc = security_transition_sid(tsec->sid, dsec->sid,
-> -					     inode_mode_to_security_class(mode),
-> -					     name,
-> -					     &newsid);
-> -		if (rc) {
-> -			printk(KERN_WARNING
-> -				"%s: security_transition_sid failed, rc=%d\n",
-> -			       __func__, -rc);
-> -			return rc;
-> -		}
-> -	}
-> +	rc = selinux_determine_inode_label(d_inode(dentry->d_parent), name,
-> +					   inode_mode_to_security_class(mode),
-> +					   &newsid);
-> +	if (rc)
-> +		return rc;
-> 
->  	return security_sid_to_context(newsid, (char **)ctx, ctxlen);
->  }
-> @@ -2771,22 +2776,12 @@ static int selinux_inode_init_security(struct inode
-> *inode, struct inode *dir, sid = tsec->sid;
->  	newsid = tsec->create_sid;
-> 
-> -	if ((sbsec->flags & SE_SBINITIALIZED) &&
-> -	    (sbsec->behavior == SECURITY_FS_USE_MNTPOINT))
-> -		newsid = sbsec->mntpoint_sid;
-> -	else if (!newsid || !(sbsec->flags & SBLABEL_MNT)) {
-> -		rc = security_transition_sid(sid, dsec->sid,
-> -					     inode_mode_to_security_class(inode->i_mode),
-> -					     qstr, &newsid);
-> -		if (rc) {
-> -			printk(KERN_WARNING "%s:  "
-> -			       "security_transition_sid failed, rc=%d (dev=%s "
-> -			       "ino=%ld)\n",
-> -			       __func__,
-> -			       -rc, inode->i_sb->s_id, inode->i_ino);
-> -			return rc;
-> -		}
-> -	}
-> +	rc = selinux_determine_inode_label(
-> +		dir, qstr,
-> +		inode_mode_to_security_class(inode->i_mode),
-> +		&newsid);
-> +	if (rc)
-> +		return rc;
-> 
->  	/* Possibly defer initialization to selinux_complete_init. */
->  	if (sbsec->flags & SE_SBINITIALIZED) {
-
--- 
-paul moore
-www.paul-moore.com
-
+#1 and #2 applied, will be in tomorrow vfs.git#for-next
