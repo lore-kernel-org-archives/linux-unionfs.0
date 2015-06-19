@@ -1,30 +1,23 @@
 From: David Howells <dhowells@redhat.com>
-Subject: Re: [PATCH 1/2] vfs: add file_path() helper
-Date: Fri, 19 Jun 2015 09:49:09 +0100
-Message-ID: <7199.1434703749@warthog.procyon.org.uk>
-References: <20150619082913.GB24181@tucsk>
+Subject: Re: [PATCH 0/8] Security: Provide unioned file support
+Date: Fri, 19 Jun 2015 15:04:04 +0100
+Message-ID: <13612.1434722644@warthog.procyon.org.uk>
+References: <CAJfpeguZq-1C_hnCcyrW3MCcpP4Bwe+L4gpWaOeJCqa1q8j4Hg@mail.gmail.com> <20150618133215.12722.70352.stgit@warthog.procyon.org.uk> <20150619072015.GH17109@ZenIV.linux.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:51853 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754857AbbFSItO (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-	Fri, 19 Jun 2015 04:49:14 -0400
-In-Reply-To: <20150619082913.GB24181@tucsk>
-Content-ID: <7198.1434703749.1@warthog.procyon.org.uk>
-Sender: linux-unionfs-owner@vger.kernel.org
-List-Id: linux-unionfs@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAJfpeguZq-1C_hnCcyrW3MCcpP4Bwe+L4gpWaOeJCqa1q8j4Hg@mail.gmail.com>
+Content-ID: <13611.1434722644.1@warthog.procyon.org.uk>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: dhowells@redhat.com, Al Viro <viro@ZenIV.linux.org.uk>, Linux-Fsdevel <linux-fsdevel@vger.kernel.org>, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>, Kernel Mailing List <linux-kernel@vger.kernel.org>
+Cc: dhowells@redhat.com, Al Viro <viro@zeniv.linux.org.uk>, sds@tycho.nsa.gov, Linux-Fsdevel <linux-fsdevel@vger.kernel.org>, linux-security-module@vger.kernel.org, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>, Kernel Mailing List <linux-kernel@vger.kernel.org>
+List-Id: linux-unionfs@vger.kernel.org
 
 Miklos Szeredi <miklos@szeredi.hu> wrote:
 
-> +char *file_path(struct file *filp, char *buf, int buflen)
-> +{
-> +	return d_path(&filp->f_path, buf, buflen);
-> +}
-> +EXPORT_SYMBOL(file_path);
+> What's going to happen to all those f_path.dentry uses where the
+> filesystem thinks it's getting its own dentry?
 
-Inline it?
+Hmmm...  I guess that breaks CIFS.
 
 David
