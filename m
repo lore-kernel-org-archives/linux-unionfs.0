@@ -1,23 +1,30 @@
 From: David Howells <dhowells@redhat.com>
-Subject: Re: [PATCH 0/8] Security: Provide unioned file support
-Date: Fri, 19 Jun 2015 15:04:04 +0100
-Message-ID: <13612.1434722644@warthog.procyon.org.uk>
-References: <CAJfpeguZq-1C_hnCcyrW3MCcpP4Bwe+L4gpWaOeJCqa1q8j4Hg@mail.gmail.com> <20150618133215.12722.70352.stgit@warthog.procyon.org.uk> <20150619072015.GH17109@ZenIV.linux.org.uk>
+Subject: Re: [PATCH] SELinux: Create a common helper to determine an inode label [ver #3]
+Date: Mon, 22 Jun 2015 10:41:47 +0100
+Message-ID: <9305.1434966107@warthog.procyon.org.uk>
+References: <9833421.4OAA7AQtgN@sifl> <6033.1434651905@warthog.procyon.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAJfpeguZq-1C_hnCcyrW3MCcpP4Bwe+L4gpWaOeJCqa1q8j4Hg@mail.gmail.com>
-Content-ID: <13611.1434722644.1@warthog.procyon.org.uk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: dhowells@redhat.com, Al Viro <viro@zeniv.linux.org.uk>, sds@tycho.nsa.gov, Linux-Fsdevel <linux-fsdevel@vger.kernel.org>, linux-security-module@vger.kernel.org, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>, Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-unionfs-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:51270 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932894AbbFVJlw convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-unionfs@vger.kernel.org>);
+	Mon, 22 Jun 2015 05:41:52 -0400
+In-Reply-To: <9833421.4OAA7AQtgN@sifl>
+Content-ID: <9304.1434966107.1@warthog.procyon.org.uk>
+Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
+To: Paul Moore <paul@paul-moore.com>
+Cc: dhowells@redhat.com, Stephen Smalley <sds@tycho.nsa.gov>, linux-fsdevel@vger.kernel.org, linux-security-module@vger.kernel.org, linux-unionfs@vger.kernel.org, linux-kernel@vger.kernel.org, SELinux <selinux@tycho.nsa.gov>
 
-Miklos Szeredi <miklos@szeredi.hu> wrote:
+Paul Moore <paul@paul-moore.com> wrote:
 
-> What's going to happen to all those f_path.dentry uses where the
-> filesystem thinks it's getting its own dentry?
+> This patch looks fine to me and I think there is an advantage to merging this 
+> regardless of what happens with the "unioning" work so I'm inclined to queue 
+> this up now unless you would prefer to resubmit with the union patches?
 
-Hmmm...  I guess that breaks CIFS.
+If you could queue it up now, that'd be great!
 
 David
