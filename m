@@ -1,63 +1,59 @@
-From: Jan Olszak <j.olszak@samsung.com>
-Subject: Re: Optional switching off cow in overlayfs
-Date: Wed, 24 Jun 2015 18:03:10 +0200
-Message-ID: <558AD4BE.109@samsung.com>
-References: <55893699.6090109@samsung.com> <55882AA5.10908@samsung.com>
- <5582C6C1.8080602@samsung.com> <13405.1434634748@warthog.procyon.org.uk>
- <5582D8F7.1060700@samsung.com>
- <CAJfpegsP-_MAKybYZ=uS3UCxsxL9Hv-cJ-GYrVL4h3B+tWZF9A@mail.gmail.com>
- <5588116E.20509@samsung.com>
- <CAJfpegsVqzVhq8BjCwqA+6dEZey0aNb4amnnOT_JVDfzki9v1g@mail.gmail.com>
- <55881B2A.7090106@samsung.com>
- <CAJfpegtcUt6jR7t_2Ca1osu6+-BKGtnTVVTVXEcWrqBtY0fCzA@mail.gmail.com>
- <29219.1435051659@warthog.procyon.org.uk>
- <32715.1435065828@warthog.procyon.org.uk> <5589845F.5080206@samsung.com>
+From: Xu Wang <xuw@redhat.com>
+Subject: Re: [overlayfs] lockdep splat after mounting overlayfs over
+ overlayfs
+Date: Thu, 25 Jun 2015 03:24:01 -0400 (EDT)
+Message-ID: <1919950089.30883798.1435217041129.JavaMail.zimbra@redhat.com>
+References: <558AD301.4070302@yandex-team.ru>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:21895 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752985AbbFXQDO (ORCPT
+Received: from mx4-phx2.redhat.com ([209.132.183.25]:45699 "EHLO
+	mx4-phx2.redhat.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751509AbbFYHYE convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-unionfs@vger.kernel.org>);
-	Wed, 24 Jun 2015 12:03:14 -0400
-Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
- by mailout2.w1.samsung.com
- (Oracle Communications Messaging Server 7.0.5.31.0 64bit (built May  5 2014))
- with ESMTP id <0NQG0008SHXBSH50@mailout2.w1.samsung.com> for
- linux-unionfs@vger.kernel.org; Wed, 24 Jun 2015 17:03:11 +0100 (BST)
-In-reply-to: <5589845F.5080206@samsung.com>
+	Thu, 25 Jun 2015 03:24:04 -0400
+In-Reply-To: <558AD301.4070302@yandex-team.ru>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: David Howells <dhowells@redhat.com>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>
+To: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On 06/23/2015 06:07 PM, Jan Olszak wrote:
->
-> On 06/23/2015 03:23 PM, David Howells wrote:
->> Jan Olszak <j.olszak@samsung.com> wrote:
->>
->>> Why not just say: "rename causes copy" and leave everything as it is 
->>> now.
->> That's another option - but your whole proposal was that we 
->> specifically don't
->> copy up these files IIRC.
->>
->
-> Yes, so let's modify the proposal:
->
-> Overlayfs checks xattr "trusted.overlay.cow" to switch COW off 
-> whenever it's possible.
->
-> 1. This would be an optimization/convenience option, not a security 
-> option
-> 2. By default overlayfs uses COW like it does now
-> 3. trusted.overlay.cow=="n" means:
-> - Unlink, open, setattr etc. use the original inode from lowerdir
-> - Unmodifying operations also use inode from lowerdir
-> - Other operations (rename) may copy the file if it's required by the 
-> implementation of overlayfs
->
-So does it sound upstreamable?
+> I've accidentally mounted one overlayfs over another and got obvious
+> warning from lockdep: i_mutex lockdep classes are per-fs-type.
+>=20
+> # mount -t overlay overlay 1 -o
+> upperdir=3D1_upper,workdir=3D1_work,lowerdir=3D1_lower
+> # mount -t overlay overlay 2 -o upperdir=3D2_upper,workdir=3D2_work,l=
+owerdir=3D1
+> # ls 2
 
-Jan
+This reporting is positive, we are not in deadlock situation actually. =
+The "2" dir
+of overlayfs will call iterate_dir->"1" dir of overlayfs->iterate_dir, =
+and the nest
+iterate_dir happened on the same file system, so the warning came out.
+
+We'd better make the lower and upper in different fs instance, and this=
+ warning
+will disappear.
+
+And this lockdep warning happened when the nest iterate_dir call of sam=
+e fs(I
+mean the same super block). The function check_deadlock in lockdep.c wi=
+ll
+report the nest lock of same process. If we make the 2_upper and 2_work=
+ in
+a different fs, no warning comes out.
+
+Thanks,
+
+--=20
+George Wang =E7=8E=8B=E6=97=AD
+
+Kernel Quantity Engineer
+Red Hat Software (Beijing) Co.,Ltd
+IRC:xuw
+Tel:+86-010-62608041
+Phone:15901231579
+9/F, Tower C, Raycom
