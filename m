@@ -1,58 +1,42 @@
 From: james harvey <jamespharvey20@gmail.com>
-Subject: btrfs subvolume tree (btrfs-progs feature request)
-Date: Thu, 25 Jun 2015 16:47:08 -0400
-Message-ID: <CA+X5Wn6RDsNiPXKK8RAkV5y=LqnP3wQWGPdwYYuxZ6kjGdQKjw@mail.gmail.com>
+Subject: Re: btrfs subvolume clone or fork (btrfs-progs feature request)
+Date: Thu, 25 Jun 2015 16:59:33 -0400
+Message-ID: <CA+X5Wn4Q5bOe0u2MFGo-mbrgLWgX0HGG41j5jU6qPeVxhc4PZg@mail.gmail.com>
+References: <CA+X5Wn5P2pos=piiujkLHbYR7zCXiANuKrgPT1A1NuqLTh9qMQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-la0-f48.google.com ([209.85.215.48]:36718 "EHLO
-	mail-la0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752059AbbFYUrK convert rfc822-to-8bit (ORCPT
+Received: from mail-la0-f54.google.com ([209.85.215.54]:36603 "EHLO
+	mail-la0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752036AbbFYU7f (ORCPT
 	<rfc822;linux-unionfs@vger.kernel.org>);
-	Thu, 25 Jun 2015 16:47:10 -0400
-Received: by lacny3 with SMTP id ny3so52129036lac.3
-        for <linux-unionfs@vger.kernel.org>; Thu, 25 Jun 2015 13:47:08 -0700 (PDT)
+	Thu, 25 Jun 2015 16:59:35 -0400
+Received: by lacny3 with SMTP id ny3so52292719lac.3
+        for <linux-unionfs@vger.kernel.org>; Thu, 25 Jun 2015 13:59:33 -0700 (PDT)
+In-Reply-To: <CA+X5Wn5P2pos=piiujkLHbYR7zCXiANuKrgPT1A1NuqLTh9qMQ@mail.gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: linux-unionfs@vger.kernel.org
 
-Request for new btrfs subvolume subcommand:
+Particularly useful to avoid "Invalid cross-device link" when using cp
+-ax, when source and dest are seen as different devices.
 
-tree <path>
-   Display a depth indented listing of subvolumes present in the
-filesystem <path>.
+Such as if there is a top-level subvolume mounted as /, with others
+mounted elsewhere.  Required workaround is to mount with subvolid=0 to
+/mnt, cp -ax --reflink=always /mnt/...source /mnt/...dest
 
----or---
-
-list ... --tree ...
-   ...
-   -tree
-      display subvolumes in a depth indented listing.
-
-Would (I think):
-* Display each top-level subvolume
-* Recursively display each subvolume under its parent (using top level
-ID against ID)
-
-In the format:
-/
-=E2=94=9C=E2=94=80=E2=94=80 a
-=E2=94=82   =E2=94=9C=E2=94=80=E2=94=80 1
-=E2=94=9C=E2=94=80=E2=94=80 b
-=E2=94=82   =E2=94=9C=E2=94=80=E2=94=80 1
-=E2=94=82   =E2=94=94=E2=94=80=E2=94=80 2
-=E2=94=94=E2=94=80=E2=94=80 c
-/other
-=E2=94=94=E2=94=80=E2=94=80 d
-
-The actual program "tree" does not work for this application.  It
-shows all directories and files, not just the subvolumes.  It has a
-"-d" option that only shows directories, which is better, but it still
-shows directories that are not subvolumes.
-
-"btrfs subvolume list /" can show 10 lines, with "tree -d" on a
-freshly installed system can show over 240,000 lines.
-
-I think it's more likely for btrfs-progs to be able to implement this,
-than asking tree to make btrfs-specific code.
+On Thu, Jun 25, 2015 at 4:47 PM, james harvey <jamespharvey20@gmail.com> wrote:
+> Request for new btrfs subvolume subcommand:
+>
+> clone or fork [-i <qgroupid] <source> [<dest>]<name>
+>    Create a subvolume <name> in <dest>, which is a clone or fork of source.
+>    If <dest> is not given, subvolume <name> will be created in the
+> current directory.
+>    Options
+>    -i <qgroupid>
+>       Add the newly created subvolume to a qgroup.  This option can be
+> given multiple times.
+>
+> Would (I think):
+> * btrfs subvolume create <dest-subvolume>
+> * cp -ax --reflink=always <source-subvolume>/* <dest-subvolume>/
