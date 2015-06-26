@@ -1,42 +1,71 @@
-From: james harvey <jamespharvey20@gmail.com>
-Subject: Re: btrfs subvolume clone or fork (btrfs-progs feature request)
-Date: Thu, 25 Jun 2015 16:59:33 -0400
-Message-ID: <CA+X5Wn4Q5bOe0u2MFGo-mbrgLWgX0HGG41j5jU6qPeVxhc4PZg@mail.gmail.com>
-References: <CA+X5Wn5P2pos=piiujkLHbYR7zCXiANuKrgPT1A1NuqLTh9qMQ@mail.gmail.com>
+From: Xu Wang <xuw@redhat.com>
+Subject: Re: [overlayfs] lockdep splat after mounting overlayfs over
+ overlayfs
+Date: Thu, 25 Jun 2015 23:28:20 -0400 (EDT)
+Message-ID: <1876235609.31796956.1435289300505.JavaMail.zimbra@redhat.com>
+References: <558AD301.4070302@yandex-team.ru> <1919950089.30883798.1435217041129.JavaMail.zimbra@redhat.com> <CALYGNiMPsmjd8Mttom4=-9EnXkvZqstcKaQB-MD1oHCeTzFvow@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-la0-f54.google.com ([209.85.215.54]:36603 "EHLO
-	mail-la0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752036AbbFYU7f (ORCPT
+Received: from mx4-phx2.redhat.com ([209.132.183.25]:58758 "EHLO
+	mx4-phx2.redhat.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751519AbbFZD2Z (ORCPT
 	<rfc822;linux-unionfs@vger.kernel.org>);
-	Thu, 25 Jun 2015 16:59:35 -0400
-Received: by lacny3 with SMTP id ny3so52292719lac.3
-        for <linux-unionfs@vger.kernel.org>; Thu, 25 Jun 2015 13:59:33 -0700 (PDT)
-In-Reply-To: <CA+X5Wn5P2pos=piiujkLHbYR7zCXiANuKrgPT1A1NuqLTh9qMQ@mail.gmail.com>
+	Thu, 25 Jun 2015 23:28:25 -0400
+In-Reply-To: <CALYGNiMPsmjd8Mttom4=-9EnXkvZqstcKaQB-MD1oHCeTzFvow@mail.gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: linux-unionfs@vger.kernel.org
+To: Konstantin Khlebnikov <koct9i@gmail.com>
+Cc: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>, Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Al Viro <viro@zeniv.linux.org.uk>
 
-Particularly useful to avoid "Invalid cross-device link" when using cp
--ax, when source and dest are seen as different devices.
-
-Such as if there is a top-level subvolume mounted as /, with others
-mounted elsewhere.  Required workaround is to mount with subvolid=0 to
-/mnt, cp -ax --reflink=always /mnt/...source /mnt/...dest
-
-On Thu, Jun 25, 2015 at 4:47 PM, james harvey <jamespharvey20@gmail.com> wrote:
-> Request for new btrfs subvolume subcommand:
+> On Thu, Jun 25, 2015 at 10:24 AM, Xu Wang <xuw@redhat.com> wrote:
+> >> I've accidentally mounted one overlayfs over another and got obvious
+> >> warning from lockdep: i_mutex lockdep classes are per-fs-type.
+> >>
+> >> # mount -t overlay overlay 1 -o
+> >> upperdir=1_upper,workdir=1_work,lowerdir=1_lower
+> >> # mount -t overlay overlay 2 -o upperdir=2_upper,workdir=2_work,lowerdir=1
+> >> # ls 2
+> >
+> > This reporting is positive, we are not in deadlock situation actually. The
+> > "2" dir
+> > of overlayfs will call iterate_dir->"1" dir of overlayfs->iterate_dir, and
+> > the nest
+> > iterate_dir happened on the same file system, so the warning came out.
+> >
+> > We'd better make the lower and upper in different fs instance, and this
+> > warning
+> > will disappear.
+> >
+> > And this lockdep warning happened when the nest iterate_dir call of same
+> > fs(I
+> > mean the same super block). The function check_deadlock in lockdep.c will
+> > report the nest lock of same process. If we make the 2_upper and 2_work in
+> > a different fs, no warning comes out.
+> 
+> Yep, it's not a deadlock. As I mentioned lockdep classes are per-fs-type so
+> lockdep cannot see difference between i_mutexes on different sb of the
+> same type.
+> But anyway this looks messy.
 >
-> clone or fork [-i <qgroupid] <source> [<dest>]<name>
->    Create a subvolume <name> in <dest>, which is a clone or fork of source.
->    If <dest> is not given, subvolume <name> will be created in the
-> current directory.
->    Options
->    -i <qgroupid>
->       Add the newly created subvolume to a qgroup.  This option can be
-> given multiple times.
->
-> Would (I think):
-> * btrfs subvolume create <dest-subvolume>
-> * cp -ax --reflink=always <source-subvolume>/* <dest-subvolume>/
+ 
+yes, you are right. The i_mutex_class is file_system_tye scale. I was puzzled by
+the debug_locks mechanism during my quick tests. The nest iterate_dir is overlay
+dir, neither upper nor lower.
+
+> Probably it's safer to forbid overlayfs as lower or upper mount for overlayfs
+> because this have no sense. Nesting anyway is limited by the depth of kernel
+> stack and sb->s_stack_depth.
+> 
+> Or overlayfs could detect this situation and substitute layers of underlying
+> overlayfs into its own lower layers in appropriate place.
+> 
+
+Can we add the lockdep_off/lockdep_on in this situation? For we know this is
+just the false positive reporting of lockdep.
+
+
+Thanks,
+
+Xu Wang
