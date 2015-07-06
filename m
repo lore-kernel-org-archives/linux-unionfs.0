@@ -1,44 +1,52 @@
-From: Miklos Szeredi <miklos@szeredi.hu>
-Subject: [GIT PULL] overlayfs update for 4.2
-Date: Thu, 2 Jul 2015 14:47:06 +0200
-Message-ID: <20150702124706.GA4729@tucsk.suse.de>
+From: Saied Kazemi <saied@google.com>
+Subject: Re: procfs reports unexpected mnt_id and path for overlayfs files
+Date: Mon, 6 Jul 2015 10:45:02 -0700
+Message-ID: <CA+Um-gjNDw+nCXZFFTOnPn_LPp4wHMxzLctacT10C3R5+LZrMA@mail.gmail.com>
+References: <20150415085013.GA8907@odin.com>
+	<CAJfpegvKvuu7mtxz+nV1qxpEddf2ZMroBaz+rkFTFVQZ2PoQRw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wg0-f50.google.com ([74.125.82.50]:35947 "EHLO
-	mail-wg0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753570AbbGBMq5 (ORCPT
+Received: from mail-ig0-f169.google.com ([209.85.213.169]:33204 "EHLO
+	mail-ig0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752425AbbGFRpD (ORCPT
 	<rfc822;linux-unionfs@vger.kernel.org>);
-	Thu, 2 Jul 2015 08:46:57 -0400
-Received: by wguu7 with SMTP id u7so62272317wgu.3
-        for <linux-unionfs@vger.kernel.org>; Thu, 02 Jul 2015 05:46:55 -0700 (PDT)
-Content-Disposition: inline
+	Mon, 6 Jul 2015 13:45:03 -0400
+Received: by igh16 with SMTP id 16so31356868igh.0
+        for <linux-unionfs@vger.kernel.org>; Mon, 06 Jul 2015 10:45:02 -0700 (PDT)
+In-Reply-To: <CAJfpegvKvuu7mtxz+nV1qxpEddf2ZMroBaz+rkFTFVQZ2PoQRw@mail.gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: Andrew Vagin <avagin@odin.com>, CRIU <criu@openvz.org>, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>
 
-Hi Linus,
-
-Please pull from:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/mszeredi/vfs.git overlayfs-next
-
-This relaxes the requirements on the lower layer filesystem: now ones that
-implement .d_revalidate, such as NFS, can be used.  Upper layer filesystems
-still has the "no .d_revalidate" requirement.  Also a bad interaction with jffs2
-locking has been fixed.
+Any updates on this?
 
 Thanks,
-Miklos
+--Saied
 
----
-Miklos Szeredi (3):
-      ovl: don't traverse automount points
-      ovl: allow distributed fs as lower layer
-      ovl: lookup whiteouts outside iterate_dir()
 
----
- fs/overlayfs/readdir.c |  77 +++++++++++++++++++++------------
- fs/overlayfs/super.c   | 113 +++++++++++++++++++++++++++++++++++++++----------
- 2 files changed, 139 insertions(+), 51 deletions(-)
+On Wed, Apr 15, 2015 at 8:07 AM, Miklos Szeredi <miklos@szeredi.hu> wrote:
+> On Wed, Apr 15, 2015 at 10:50 AM, Andrew Vagin <avagin@odin.com> wrote:
+>> Hello Miklos and Everyone else,
+>>
+>> We have a report that a container with overlayfs can't be checkpointed.
+>>
+>> To dump file descriptors we get information from /proc/pid/fd/ and /proc/pid/fdinfo.
+>>
+>> But in case of overlayfs we see unexpected values there.
+>>
+>> /proc/PID/fdinfo/FD contains mnt_id which isn't presented in /proc/pid/mountinfo.
+>> /proc/PID/fd/FD does not contain an absolute path to the opened file.
+>>
+>> Can someone help to fix these issues?
+>
+> See this:
+>
+> https://lkml.org/lkml/2015/3/20/372
+>
+> Al didn't like that patch.  But it definitely will be fixed, one way
+> or the other, in the near future.
+>
+> Thanks,
+> Miklos
