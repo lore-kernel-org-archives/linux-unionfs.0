@@ -1,52 +1,37 @@
-From: Miklos Szeredi <miklos@szeredi.hu>
+From: Alkis Georgopoulos <alkisg@gmail.com>
 Subject: Re: How to specify the mount points for multiple lower layers?
-Date: Wed, 12 Aug 2015 11:39:57 +0200
-Message-ID: <CAJfpegsDUDtRS81d+8e_+WQewvnZoRQ4Mfpw0qFDkdiUFe140w@mail.gmail.com>
-References: <55C319EC.4080707@gmail.com>
+Date: Wed, 12 Aug 2015 16:24:08 +0300
+Message-ID: <55CB48F8.5070605@gmail.com>
+References: <55C319EC.4080707@gmail.com> <CAJfpegsDUDtRS81d+8e_+WQewvnZoRQ4Mfpw0qFDkdiUFe140w@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=utf-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-ob0-f176.google.com ([209.85.214.176]:33203 "EHLO
-	mail-ob0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754442AbbHLJj6 (ORCPT
+Received: from mail-wi0-f171.google.com ([209.85.212.171]:33259 "EHLO
+	mail-wi0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752029AbbHLNYK (ORCPT
 	<rfc822;linux-unionfs@vger.kernel.org>);
-	Wed, 12 Aug 2015 05:39:58 -0400
-Received: by obbhe7 with SMTP id he7so8614994obb.0
-        for <linux-unionfs@vger.kernel.org>; Wed, 12 Aug 2015 02:39:58 -0700 (PDT)
-In-Reply-To: <55C319EC.4080707@gmail.com>
+	Wed, 12 Aug 2015 09:24:10 -0400
+Received: by wijp15 with SMTP id p15so217651135wij.0
+        for <linux-unionfs@vger.kernel.org>; Wed, 12 Aug 2015 06:24:09 -0700 (PDT)
+In-Reply-To: <CAJfpegsDUDtRS81d+8e_+WQewvnZoRQ4Mfpw0qFDkdiUFe140w@mail.gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Alkis Georgopoulos <alkisg@gmail.com>
+To: Miklos Szeredi <miklos@szeredi.hu>
 Cc: "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>
 
-On Thu, Aug 6, 2015 at 10:25 AM, Alkis Georgopoulos <alkisg@gmail.com> wrote:
-> From https://www.kernel.org/doc/Documentation/filesystems/overlayfs.txt:
-> mount -t overlay overlay -olowerdir=/lower1:/lower2:/lower3 /merged
+On 12/08/2015 12:39 =CE=BC=CE=BC, Miklos Szeredi wrote:
 >
-> How can I specify that I want e.g. lower2 to be mounted at merged/home?
+> Create two overlays: one for root and one for home (which includes th=
+e
+> additional home-fs).
 >
-> If all lower* layers can only be mounted at /merged, then I don't see any
-> way at all that overlayfs would allow me to combine e.g.
-> Partition  MountDir  MergedDir
-> ------------------------------
-> /dev/sda1  /root-fs  /merged
-> /dev/sda2  /home-fs  /merged/home
->
-> I even tried to create a fake directory structure like this:
-> /dev/sda2 /fakedir/home /merged
-> ...so that I would mount /dev/sda2 to /fakedir/home, and then try to use
-> lower2=/fakedir, but then I got a different issue, that overlayfs doesn't
-> include submounts, so sda2 wasn't visible at all then.
->
-> So I was unable to combine the root and home partitions to the correct paths
-> using overlayfs (I'm planning to use a tmpfs as the upper dir later on).
->
-> Any help? Thank you!
+> Does that work for you?
 
-Create two overlays: one for root and one for home (which includes the
-additional home-fs).
 
-Does that work for you?
+Yes, thank you, I wasn't able to do it with the multiple lower layers=20
+syntax,
+but I was able to do it with multiple overlayfs mounts.
 
-Thanks,
-Miklos
+Thanks!
