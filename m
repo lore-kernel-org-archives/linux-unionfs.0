@@ -1,43 +1,56 @@
-From: Neal Gompa <ngompa@fedoraproject.org>
-Subject: Issue: With an OverlayFS that has Btrfs as the upper layer, removal
- of directories silently fails
-Date: Fri, 21 Aug 2015 15:23:07 -0400
-Message-ID: <CAEg-Je9o6QTyjD7pnSiTeUgaZjN10vLRF8=EtqywCUyZmjW95Q@mail.gmail.com>
+From: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
+Subject: [PATCH RESEND 2/2] ovl: free lower_mnt array in ovl_put_super
+Date: Mon, 24 Aug 2015 15:57:19 +0300
+Message-ID: <20150824125719.6218.68404.stgit@buzz>
+References: <20150824125718.6218.9443.stgit@buzz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: miklos@szeredi.hu, Chris Mason <clm@fb.com>, jbacik@fb.com, dsterba@suse.com, linux-unionfs@vger.kernel.org, linux-btrfs@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Josh Boyer <jwboyer@redhat.com>, dhowells@redhat.com
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <20150824125718.6218.9443.stgit@buzz>
+Sender: stable-owner@vger.kernel.org
+To: Al Viro <viro@zeniv.linux.org.uk>, Miklos Szeredi <miklos@szeredi.hu>
+Cc: linux-kernel@vger.kernel.org, stable@vger.kernel.org, linux-unionfs@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 
-Hello,
+This fixes memory leak after umount.
 
-For those who have received this message twice already, I sincerely apologize.
+Kmemleak report:
 
-Yesterday I filed an issue in the CentOS bug tracker (#9297[1]) and
-the Red Hat Bugzilla (#1255512[2]) about OverlayFS with Btrfs as the
-upper layer.
+unreferenced object 0xffff8800ba791010 (size 8):
+  comm "mount", pid 2394, jiffies 4294996294 (age 53.920s)
+  hex dump (first 8 bytes):
+    20 1c 13 02 00 88 ff ff                           .......
+  backtrace:
+    [<ffffffff811f8cd4>] create_object+0x124/0x2c0
+    [<ffffffff817a059b>] kmemleak_alloc+0x7b/0xc0
+    [<ffffffff811dffe6>] __kmalloc+0x106/0x340
+    [<ffffffffa0152bfc>] ovl_fill_super+0x55c/0x9b0 [overlay]
+    [<ffffffff81200ac4>] mount_nodev+0x54/0xa0
+    [<ffffffffa0152118>] ovl_mount+0x18/0x20 [overlay]
+    [<ffffffff81201ab3>] mount_fs+0x43/0x170
+    [<ffffffff81220d34>] vfs_kern_mount+0x74/0x170
+    [<ffffffff812233ad>] do_mount+0x22d/0xdf0
+    [<ffffffff812242cb>] SyS_mount+0x7b/0xc0
+    [<ffffffff817b6bee>] entry_SYSCALL_64_fastpath+0x12/0x76
+    [<ffffffffffffffff>] 0xffffffffffffffff
 
-The issue was discovered by a colleague of mine, and we verified the
-issue exists in the EL7 kernel and mainline kernels (tested on Arch
-Linux). I additionally verified the problem exists in Fedora kernels.
+Signed-off-by: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
+Fixes: dd662667e6d3 ("ovl: add mutli-layer infrastructure")
+Cc: stable@vger.kernel.org # v4.0
+---
+ fs/overlayfs/super.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-Rather than quoting the issue, I'll just note that the issue is
-described quite well in the filed bugs noted earlier. In the linked
-bugs, there's a simple Bash script that will reliably reproduce the
-problem. While the script uses tmpfs at the lower layer, we originally
-discovered the problem with ext4 as the lower layer and verified that
-it doesn't matter which lower layer filesystem it is, the problem
-exists. Additionally, the problem doesn't exist when using ext4 as the
-upper layer.
-
-I was advised by Josh Boyer to email you guys (and the mailing lists,
-to be sure to get everyone a chance to look over it) about the
-problem, since it affects mainline.
-
-[1]: https://bugs.centos.org/view.php?id=9297
-[2]: https://bugzilla.redhat.com/show_bug.cgi?id=1255512
-
--- 
-Neal Gompa (FAS: ngompa)
+diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+index 3f90c43c3c4a..8d04b86e0680 100644
+--- a/fs/overlayfs/super.c
++++ b/fs/overlayfs/super.c
+@@ -544,6 +544,7 @@ static void ovl_put_super(struct super_block *sb)
+ 	mntput(ufs->upper_mnt);
+ 	for (i = 0; i < ufs->numlower; i++)
+ 		mntput(ufs->lower_mnt[i]);
++	kfree(ufs->lower_mnt);
+ 
+ 	kfree(ufs->config.lowerdir);
+ 	kfree(ufs->config.upperdir);
