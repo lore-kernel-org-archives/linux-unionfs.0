@@ -1,75 +1,82 @@
-Return-Path: <ngompa13@gmail.com>
-Return-Path: <ngompa13@gmail.com>
-MIME-Version: 1.0
-From: Neal Gompa <ngompa@fedoraproject.org>
-Date: Fri, 21 Aug 2015 15:17:58 -0400
-Message-ID: <CAEg-Je_AczM9EyocTwE9dQN-0Q=OgSqkkcqJKqR+E-5kjXY66Q@mail.gmail.com>
-Subject: Issue: With an OverlayFS that has Btrfs as the upper layer, removal
- of directories silently fails
-Content-Type: multipart/alternative; boundary=047d7bd6be0e80caf7051dd7225a
-To: miklos@szeredi.hu, Chris Mason <clm@fb.com>, jbacik@fb.com, dsterba@suse.com, linux-unionfs@vger.kernel.org, linux-kernel@vger.kernel.org, linux-btrfs@vger.kernel.org
-Cc: jwboyer@redhat.com, dhowells@redhat.com
-List-ID: <linux-unionfs@vger.kernel.org>
+From: xuw2015@gmail.com
+Subject: [PATCH 2/2] ovl: ovl_rename2 should do d_move by itself
+Date: Thu,  3 Sep 2015 17:12:12 +0800
+Message-ID: <1441271532-10386-2-git-send-email-xuw2015@gmail.com>
+References: <1441271532-10386-1-git-send-email-xuw2015@gmail.com>
+Return-path: <linux-unionfs-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:60683 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752922AbbICJMT (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+	Thu, 3 Sep 2015 05:12:19 -0400
+In-Reply-To: <1441271532-10386-1-git-send-email-xuw2015@gmail.com>
+Sender: linux-unionfs-owner@vger.kernel.org
+List-Id: linux-unionfs@vger.kernel.org
+To: linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
+Cc: George Wang <xuw2015@gmail.com>
 
---047d7bd6be0e80caf7051dd7225a
-Content-Type: text/plain; charset=UTF-8
+From: George Wang <xuw2015@gmail.com>
 
-Hello,
+ovl always creates new inode regardless of the fact that upper hardlink
+shares same inode. If we do rename with dentries shared inode, there is
+no real opertions, but vfs_rename will do the d_move after that.
+And an intersting result will appear. The following step will explain
+it:
 
-Yesterday I filed an issue in the CentOS bug tracker (#9297
-<https://bugs.centos.org/view.php?id=9297>) and the Red Hat Bugzilla (
-#1255512 <https://bugzilla.redhat.com/show_bug.cgi?id=1255512>) about
-OverlayFS with Btrfs as the upper layer.
+echo 1234 > src
+link src tgt
+rename(src, tgt)
+rm -f src
+rm -f tgt
 
-The issue was discovered by a colleague of mine, and we verified the issue
-exists in the EL7 kernel and mainline kernels (tested on Arch Linux). I
-additionally verified the problem exists in Fedora kernels.
+In upper level, src(upper) and tgt(upper) shares same inode; in ovl
+level, src(ovl) and tgt(ovl) uses different inode. vfs_rename did
+d_move, and dentry src(ovl) is renamed tgt, and dentry tgt(ovl) is
+released. When unlink src, a new dentry src(ovl) is created, and is
+removed, src(upper) is also removed; and then unlink tgt, renamed dentry
+src(ovl) is removed, src(upper) is also removed(but for upper fs, the
+src has already be removed).
 
-Rather than quoting the issue, I'll just note that the issue is described
-quite well in the filed bugs linked earlier. In the linked bugs, there's a
-simple Bash script that will reliably reproduce the problem. While the
-script uses tmpfs at the lower layer, we originally discovered the problem
-with ext4 as the lower layer and verified that it doesn't matter which
-lower layer filesystem it is, the problem exists. Additionally, the problem
-doesn't exist when using ext4 as the upper layer.
+ovl should call d_move/d_exchange by itself, then it can control wether
+or not does it.
 
-I was advised by Josh Boyer to email you guys (and the mailing lists, to be
-sure to get everyone a chance to look over it) about the problem, since it
-affects mainline.
+Signed-off-by: George Wang <xuw2015@gmail.com>
+---
+ fs/overlayfs/dir.c   | 10 ++++++++++
+ fs/overlayfs/super.c |  1 +
+ 2 files changed, 11 insertions(+)
 
-
+diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
+index 692ceda..1b02688 100644
+--- a/fs/overlayfs/dir.c
++++ b/fs/overlayfs/dir.c
+@@ -915,6 +915,16 @@ static int ovl_rename2(struct inode *olddir, struct dentry *old,
+ 	ovl_dentry_version_inc(old->d_parent);
+ 	ovl_dentry_version_inc(new->d_parent);
+ 
++	/*
++	 *FS_RENAME_DOES_D_MOVE is set in fs_flags, we need to do d_move/d_exchange
++	 *by ourselves. overwrite means no RENAME_EXCHANGE in flags, just do d_move;
++	 *d_exchange otherwise.
++	 */
++	if (overwrite)
++		d_move(old, new);
++	else
++		d_exchange(old, new);
++
+ out_dput:
+ 	dput(newdentry);
+ out_unlock:
+diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+index 7466ff3..0395653 100644
+--- a/fs/overlayfs/super.c
++++ b/fs/overlayfs/super.c
+@@ -1097,6 +1097,7 @@ static struct file_system_type ovl_fs_type = {
+ 	.name		= "overlay",
+ 	.mount		= ovl_mount,
+ 	.kill_sb	= kill_anon_super,
++	.fs_flags	= FS_RENAME_DOES_D_MOVE,
+ };
+ MODULE_ALIAS_FS("overlay");
+ 
 -- 
-Neal Gompa (FAS: ngompa)
-
---047d7bd6be0e80caf7051dd7225a
-Content-Type: text/html; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
-
-<div dir=3D"ltr"><div class=3D"gmail_default" style=3D"font-family:times ne=
-w roman,serif;font-size:large"><div class=3D"gmail_default">Hello,</div><di=
-v class=3D"gmail_default"><br></div><div class=3D"gmail_default">Yesterday =
-I filed an issue in the CentOS bug tracker (<a href=3D"https://bugs.centos.=
-org/view.php?id=3D9297" target=3D"_blank">#9297</a>) and the Red Hat Bugzil=
-la (<a href=3D"https://bugzilla.redhat.com/show_bug.cgi?id=3D1255512" targe=
-t=3D"_blank">#1255512</a>) about OverlayFS with Btrfs as the upper layer.</=
-div><div class=3D"gmail_default"><br></div><div class=3D"gmail_default">The=
- issue was discovered by a colleague of mine, and we verified the issue exi=
-sts in the EL7 kernel and mainline kernels (tested on Arch Linux). I additi=
-onally verified the problem exists in Fedora kernels.</div><div class=3D"gm=
-ail_default"><br></div><div class=3D"gmail_default">Rather than quoting the=
- issue, I&#39;ll just note that the issue is described quite well in the fi=
-led bugs linked earlier. In the linked bugs, there&#39;s a simple Bash scri=
-pt that will reliably reproduce the problem. While the script uses tmpfs at=
- the lower layer, we originally discovered the problem with ext4 as the low=
-er layer and verified that it doesn&#39;t matter which lower layer filesyst=
-em it is, the problem exists. Additionally, the problem doesn&#39;t exist w=
-hen using ext4 as the upper layer.</div><div class=3D"gmail_default"><br></=
-div><div class=3D"gmail_default">I was advised by Josh Boyer to email you g=
-uys (and the mailing lists, to be sure to get everyone a chance to look ove=
-r it) about the problem, since it affects mainline.</div></div><br clear=3D=
-"all"><div><br></div>-- <br><div class=3D"gmail_signature"><div dir=3D"ltr"=
->Neal Gompa (FAS: ngompa)</div></div>
-<font face=3D"yw-402608bc37fe50adb11a5899295781aeb83d248d-7a96b0ca75bbb41c4=
-791a285050ebb03--o" style=3D"display: none;"></font></div>
-
---047d7bd6be0e80caf7051dd7225a--
+1.8.3.1
