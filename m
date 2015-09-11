@@ -1,35 +1,40 @@
-From: xuw2015@gmail.com
-Subject: [PATCH 1/2] fs: export d_exchange for the fs with FS_RENAME_DOSE_D_MOVE
-Date: Thu,  3 Sep 2015 17:12:11 +0800
-Message-ID: <1441271532-10386-1-git-send-email-xuw2015@gmail.com>
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
-Sender: linux-fsdevel-owner@vger.kernel.org
-To: linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
-Cc: Geroge Wang <xuw2015@gmail.com>
+From: Alkis Georgopoulos <alkisg@gmail.com>
+Subject: Overlay issue when truncating files over 2G
+Date: Fri, 11 Sep 2015 11:05:06 +0300
+Message-ID: <55F28B32.7000001@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-unionfs-owner@vger.kernel.org>
+Received: from mail-wi0-f175.google.com ([209.85.212.175]:38785 "EHLO
+	mail-wi0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751465AbbIKIFI (ORCPT
+	<rfc822;linux-unionfs@vger.kernel.org>);
+	Fri, 11 Sep 2015 04:05:08 -0400
+Received: by wiclk2 with SMTP id lk2so48872866wic.1
+        for <linux-unionfs@vger.kernel.org>; Fri, 11 Sep 2015 01:05:07 -0700 (PDT)
+Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
+To: miklos@szeredi.hu
+Cc: linux-unionfs@vger.kernel.org, djgroos@gmail.com
 
-From: Geroge Wang <xuw2015@gmail.com>
+Hi, I think I've found an issue with overlay. Steps to reproduce:
 
-d_move is exported for specified file systems, we should export
-d_exchange also.
+# cd $(mktemp -d)
+# mkdir lower upper work root
+# truncate -s 3G lower/sparse
+# mount -t overlay -o workdir=3Dwork,upperdir=3Dupper,lowerdir=3Dlower =
+overlay=20
+work
+# truncate -s 0 work/sparse
+truncate: cannot open =E2=80=98work/sparse=E2=80=99 for writing: Value =
+too large for=20
+defined data type
 
-Signed-off-by: George Wang <xuw2015@gmail.com>
----
- fs/dcache.c | 1 +
- 1 file changed, 1 insertion(+)
+# umount work
 
-diff --git a/fs/dcache.c b/fs/dcache.c
-index 9b5fe50..a6de9b0 100644
---- a/fs/dcache.c
-+++ b/fs/dcache.c
-@@ -2694,6 +2694,7 @@ void d_exchange(struct dentry *dentry1, struct dentry *dentry2)
- 
- 	write_sequnlock(&rename_lock);
- }
-+EXPORT_SYMBOL(d_exchange);
- 
- /**
-  * d_ancestor - search for an ancestor
--- 
-1.8.3.1
+My kernel is: 3.19.0-26-generic #28~14.04.1-Ubuntu SMP
 
+Thanks,
+Alkis Georgopoulos
