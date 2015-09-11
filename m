@@ -1,15 +1,15 @@
 From: xuw2015@gmail.com
-Subject: [PATCH] ovl: add O_LARGEFILE flag when copyup files
-Date: Fri, 11 Sep 2015 17:06:45 +0800
-Message-ID: <1441962405-22278-1-git-send-email-xuw2015@gmail.com>
+Subject: [RESEND][PATCH] ovl: add O_LARGEFILE flag when copyup files
+Date: Fri, 11 Sep 2015 17:30:47 +0800
+Message-ID: <1441963847-23133-1-git-send-email-xuw2015@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:46864 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:42826 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752143AbbIKJGw (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-	Fri, 11 Sep 2015 05:06:52 -0400
+	id S1751301AbbIKJaw (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+	Fri, 11 Sep 2015 05:30:52 -0400
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: alkisg@gmail.com, miklos@szeredi.hu, linux-unionfs@vger.kernel.org
@@ -22,7 +22,13 @@ the file size larger than MAX_NON_LFS(1UL << 31 -1), will suffer
 -EOVERFLOW. We should add O_LARGEFILE flag to make it work. Following
 script can reproduct it:
 
+# cd $(mktemp -d)
+# mkdir lower upper work root
+# truncate -s 3G lower/sparse
+# mount -t overlay -o workdir=3Dwork,upperdir=3Dupper,lowerdir=3Dlower =
+overlay
 work
+# truncate -s 0 work/sparse
 truncate: cannot open =E2=80=98work/sparse=E2=80=99 for writing: Value =
 too large for
 defined data type
