@@ -1,51 +1,58 @@
 From: David Howells <dhowells@redhat.com>
-Subject: [PATCH 1/2] overlayfs: Conditionally use O_LARGEFILE in
- ovl_copy_up()
-Date: Fri, 18 Sep 2015 11:45:12 +0100
-Message-ID: <20150918104512.7696.55992.stgit@warthog.procyon.org.uk>
+Subject: [PATCH 2/2] overlayfs: Fix dentry reference leak
+Date: Fri, 18 Sep 2015 11:45:22 +0100
+Message-ID: <20150918104522.7696.6538.stgit@warthog.procyon.org.uk>
+References: <20150918104512.7696.55992.stgit@warthog.procyon.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20150918104512.7696.55992.stgit@warthog.procyon.org.uk>
 Sender: linux-kernel-owner@vger.kernel.org
 To: miklos@szeredi.hu
 Cc: dhowells@redhat.com, linux-kernel@vger.kernel.org, linux-unionfs@vger.kernel.org, viro@ZenIV.linux.org.uk
 List-Id: linux-unionfs@vger.kernel.org
 
-Open the lower file with O_LARGEFILE in ovl_copy_up() if the lower file is
->= 4GiB in size.
+In ovl_copy_up_locked(), newdentry is leaked if the function exits through
+out_cleanup as this just to out after calling ovl_cleanup() - which doesn't
+actually release the ref on newdentry.
+
+The out_cleanup segment should instead exit through out2 as certainly
+newdentry leaks - and possibly upper does also, though this isn't caught
+given the catch of newdentry.
+
+Without this fix, something like the following is seen:
+
+	BUG: Dentry ffff880023e9eb20{i=f861,n=#ffff880023e82d90} still in use (1) [unmount of tmpfs tmpfs]
+	BUG: Dentry ffff880023ece640{i=0,n=bigfile}  still in use (1) [unmount of tmpfs tmpfs]
+
+when unmounting the upper layer after an error occurred in copyup.
+
+An error can be induced by creating a big file in a lower layer with
+something like:
+
+	dd if=/dev/zero of=/lower/a/bigfile bs=65536 count=1 seek=$((0xf000))
+
+to create a large file (4.1G).  Overlay an upper layer that is too small
+(on tmpfs might do) and then induce a copy up by opening it writably.
 
 Reported-by: Ulrich Obergfell <uobergfe@redhat.com>
 Signed-off-by: David Howells <dhowells@redhat.com>
 ---
 
- fs/overlayfs/copy_up.c |    9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+ fs/overlayfs/copy_up.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
-index 84d693d37428..89b4cb3773d7 100644
+index 89b4cb3773d7..d3a5990fd2b9 100644
 --- a/fs/overlayfs/copy_up.c
 +++ b/fs/overlayfs/copy_up.c
-@@ -76,16 +76,19 @@ static int ovl_copy_up_data(struct path *old, struct path *new, loff_t len)
- 	struct file *new_file;
- 	loff_t old_pos = 0;
- 	loff_t new_pos = 0;
--	int error = 0;
-+	int error = 0, o_flag = 0;
+@@ -270,7 +270,7 @@ out:
  
- 	if (len == 0)
- 		return 0;
+ out_cleanup:
+ 	ovl_cleanup(wdir, newdentry);
+-	goto out;
++	goto out2;
+ }
  
--	old_file = ovl_path_open(old, O_RDONLY);
-+	if (i_size_read(d_inode(old->dentry)) > MAX_NON_LFS)
-+		o_flag |= O_LARGEFILE;
-+	
-+	old_file = ovl_path_open(old, o_flag | O_RDONLY);
- 	if (IS_ERR(old_file))
- 		return PTR_ERR(old_file);
- 
--	new_file = ovl_path_open(new, O_WRONLY);
-+	new_file = ovl_path_open(new, o_flag | O_WRONLY);
- 	if (IS_ERR(new_file)) {
- 		error = PTR_ERR(new_file);
- 		goto out_fput;
+ /*
