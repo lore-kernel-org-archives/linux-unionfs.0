@@ -1,7 +1,7 @@
 From: David Howells <dhowells@redhat.com>
-Subject: [PATCH 3/5] SELinux: Stub in copy-up handling
-Date: Mon, 28 Sep 2015 21:00:52 +0100
-Message-ID: <20150928200052.8141.64045.stgit@warthog.procyon.org.uk>
+Subject: [PATCH 4/5] SELinux: Handle opening of a unioned file
+Date: Mon, 28 Sep 2015 21:01:02 +0100
+Message-ID: <20150928200102.8141.53879.stgit@warthog.procyon.org.uk>
 References: <20150928200018.8141.2982.stgit@warthog.procyon.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -13,51 +13,129 @@ To: linux-unionfs@vger.kernel.org, selinux@tycho.nsa.gov
 Cc: mjg59@srcf.ucam.org, dwalsh@redhat.com, linux-kernel@vger.kernel.org, eparis@redhat.com, dhowells@redhat.com, linux-security-module@vger.kernel.org, linux-fsdevel@vger.kernel.org, sds@tycho.nsa.gov
 List-Id: linux-unionfs@vger.kernel.org
 
-Provide stubs for union/overlay copy-up handling.  The xattr copy up stub
-discards lower SELinux xattrs rather than letting them be copied up so that
-the security label on the copy doesn't get corrupted.
+Handle the opening of a unioned file by trying to derive the label that would
+be attached to the union-layer inode if it doesn't exist.
+
+If the union-layer inode does exist (as it necessarily does in overlayfs, but
+not in unionmount), we assume that it has the right label and use that.
+Otherwise we try to get it from the superblock.
+
+If the superblock has a globally-applied label, we use that, otherwise we try
+to transition to an appropriate label.  This union label is then stored in the
+file_security_struct.
+
+We then perform an additional check to make sure that the calling task is
+granted permission by the union-layer inode label to open the file in addition
+to a check to make sure that the task is granted permission to open the lower
+file with the lower inode label.
 
 Signed-off-by: David Howells <dhowells@redhat.com>
 ---
 
- security/selinux/hooks.c |   20 ++++++++++++++++++++
- 1 file changed, 20 insertions(+)
+ security/selinux/hooks.c          |   69 +++++++++++++++++++++++++++++++++++++
+ security/selinux/include/objsec.h |    1 +
+ 2 files changed, 70 insertions(+)
 
 diff --git a/security/selinux/hooks.c b/security/selinux/hooks.c
-index e4369d86e588..7c1a44d9fac3 100644
+index 7c1a44d9fac3..522b070d9e2b 100644
 --- a/security/selinux/hooks.c
 +++ b/security/selinux/hooks.c
-@@ -3190,6 +3190,24 @@ static void selinux_inode_getsecid(const struct inode *inode, u32 *secid)
- 	*secid = isec->sid;
+@@ -3520,10 +3520,72 @@ static int selinux_file_receive(struct file *file)
+ 	return file_has_perm(cred, file, file_to_av(file));
  }
  
-+static int selinux_inode_copy_up(struct dentry *src, struct dentry *dst)
++/*
++ * We have a file opened on a unioned file system that falls through to a file
++ * on a lower layer.  If there is a union inode, we try to get the label from
++ * that, otherwise we need to get it from the superblock.
++ *
++ * file->f_path points to the union layer and file->f_inode points to the lower
++ * layer.
++ */
++static int selinux_file_open_union(struct file *file,
++				   struct file_security_struct *fsec,
++				   const struct cred *cred)
 +{
-+	return 0;
-+}
++	const struct superblock_security_struct *sbsec;
++	const struct inode_security_struct *isec, *dsec, *fisec;
++	const struct task_security_struct *tsec = current_security();
++	struct common_audit_data ad;
++	struct dentry *union_dentry = file->f_path.dentry;
++	const struct inode *union_inode = d_inode(union_dentry);
++	const struct inode *lower_inode = file_inode(file);
++	struct dentry *dir;
++	int rc;
 +
-+static int selinux_inode_copy_up_xattr(struct dentry *src, struct dentry *dst,
-+				       const char *name, void *value,
-+				       size_t *size)
-+{
-+	/* The copy_up hook above sets the initial context on an inode, but we
-+	 * don't then want to overwrite it by blindly copying all the lower
-+	 * xattrs up.  Instead, we have to filter out SELinux-related xattrs.
++	sbsec = union_dentry->d_sb->s_security;
++
++	if (union_inode) {
++		isec = union_inode->i_security;
++		fsec->union_isid = isec->sid;
++	} else if ((sbsec->flags & SE_SBINITIALIZED) &&
++		   (sbsec->behavior == SECURITY_FS_USE_MNTPOINT)) {
++		fsec->union_isid = sbsec->mntpoint_sid;
++	} else {
++		dir = dget_parent(union_dentry);
++		dsec = d_inode(dir)->i_security;
++
++		rc = security_transition_sid(
++			tsec->sid, dsec->sid,
++			inode_mode_to_security_class(lower_inode->i_mode),
++			&union_dentry->d_name,
++			&fsec->union_isid);
++		dput(dir);
++		if (rc) {
++			pr_warn("%s:  security_transition_sid failed, rc=%d (name=%pD)\n",
++				__func__, -rc, file);
++			return rc;
++		}
++	}
++
++	/* We need to check that the union file is allowed to be opened as well
++	 * as checking that the lower file is allowed to be opened.
 +	 */
-+	if (strcmp(name, XATTR_NAME_SELINUX) == 0)
-+		return 1; /* Discard */
-+	return 0;
++	if (unlikely(IS_PRIVATE(lower_inode)))
++		return 0;
++
++	ad.type = LSM_AUDIT_DATA_PATH;
++	ad.u.path = file->f_path;
++
++	fisec = lower_inode->i_security;
++	return avc_has_perm(cred_sid(cred), fsec->union_isid, fisec->sclass,
++			    open_file_to_av(file), &ad);
 +}
 +
- /* file security operations */
+ static int selinux_file_open(struct file *file, const struct cred *cred)
+ {
+ 	struct file_security_struct *fsec;
+ 	struct inode_security_struct *isec;
++	int rc;
  
- static int selinux_revalidate_file_permission(struct file *file, int mask)
-@@ -5919,6 +5937,8 @@ static struct security_hook_list selinux_hooks[] = {
- 	LSM_HOOK_INIT(inode_setsecurity, selinux_inode_setsecurity),
- 	LSM_HOOK_INIT(inode_listsecurity, selinux_inode_listsecurity),
- 	LSM_HOOK_INIT(inode_getsecid, selinux_inode_getsecid),
-+	LSM_HOOK_INIT(inode_copy_up, selinux_inode_copy_up),
-+	LSM_HOOK_INIT(inode_copy_up_xattr, selinux_inode_copy_up_xattr),
+ 	fsec = file->f_security;
+ 	isec = file_inode(file)->i_security;
+@@ -3544,6 +3606,13 @@ static int selinux_file_open(struct file *file, const struct cred *cred)
+ 	 * new inode label or new policy.
+ 	 * This check is not redundant - do not remove.
+ 	 */
++
++	if (d_inode(file->f_path.dentry) != file->f_inode) {
++		rc = selinux_file_open_union(file, fsec, cred);
++		if (rc < 0)
++			return rc;
++	}
++
+ 	return file_path_has_perm(cred, file, open_file_to_av(file));
+ }
  
- 	LSM_HOOK_INIT(file_permission, selinux_file_permission),
- 	LSM_HOOK_INIT(file_alloc_security, selinux_file_alloc_security),
+diff --git a/security/selinux/include/objsec.h b/security/selinux/include/objsec.h
+index 81fa718d5cb3..f088c080aa9e 100644
+--- a/security/selinux/include/objsec.h
++++ b/security/selinux/include/objsec.h
+@@ -54,6 +54,7 @@ struct file_security_struct {
+ 	u32 sid;		/* SID of open file description */
+ 	u32 fown_sid;		/* SID of file owner (for SIGIO) */
+ 	u32 isid;		/* SID of inode at the time of file open */
++	u32 union_isid;		/* SID of would-be inodes in union top (or 0) */
+ 	u32 pseqno;		/* Policy seqno at the time of file open */
+ };
+ 
