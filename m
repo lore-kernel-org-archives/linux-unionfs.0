@@ -1,101 +1,148 @@
 From: David Howells <dhowells@redhat.com>
-Subject: [PATCH 0/5] Security: Provide unioned file support
-Date: Mon, 28 Sep 2015 21:00:18 +0100
-Message-ID: <20150928200018.8141.2982.stgit@warthog.procyon.org.uk>
+Subject: [PATCH 1/5] Security: Provide copy-up security hooks for unioned
+ files
+Date: Mon, 28 Sep 2015 21:00:30 +0100
+Message-ID: <20150928200030.8141.78762.stgit@warthog.procyon.org.uk>
+References: <20150928200018.8141.2982.stgit@warthog.procyon.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20150928200018.8141.2982.stgit@warthog.procyon.org.uk>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-unionfs@vger.kernel.org, selinux@tycho.nsa.gov
 Cc: mjg59@srcf.ucam.org, dwalsh@redhat.com, linux-kernel@vger.kernel.org, eparis@redhat.com, dhowells@redhat.com, linux-security-module@vger.kernel.org, linux-fsdevel@vger.kernel.org, sds@tycho.nsa.gov
 List-Id: linux-unionfs@vger.kernel.org
 
+Provide two new security hooks for use with security files that are used when
+a file is copied up between layers:
 
-The attached patches provide security support for unioned files where the
-security involves an object-label-based LSM (such as SELinux) rather than a
-path-based LSM.
+ (1) security_inode_copy_up().  This is called so that the security label on
+     the destination file can be set appropriately.
 
-[Note that a number of the bits that were in the original patch set are now
-upstream and I've rebased on Casey's changes to the security hook system]
+ (2) security_inode_copy_up_xattr().  This is called so that each xattr being
+     copied up can be vetted - including modification and discard.
 
-The patches can be broken down into two sets:
-
- (1) A patch to add LSM hooks to handle copy up of a file, including label
-     determination/setting and xattr filtration and a patch to have
-     overlayfs call the hooks during the copy-up procedure.
-
- (2) My SELinux implementations of these hooks.  I do three things:
-
-     (a) Don't copy up SELinux xattrs from the lower file to the upper
-     	 file.  It is assumed that the upper file will be created with the
-     	 attrs we want or the selinux_inode_copy_up() hook will set it
-     	 appropriately.
-
-	 The reason there are two separate hooks here is that
-	 selinux_inode_copy_up_xattr() might not ever be called if there
-	 aren't actually any xattrs on the lower inode.
-
-     (b) I try to derive a label to be used by file operations by, in order
-     	 of preference: using the label on the union inode if there is one
-     	 (the normal overlayfs case); using the override label set on the
-     	 superblock, if provided; or trying to derive a new label by sid
-     	 transition operation.
-
-     (c) Using the label obtained in (b) in file_has_perm() rather than
-     	 using the label on the lower inode.
-
-Now the steps I have outlined in (b) and (c) seem to be at odds with what
-Dan Walsh and Stephen Smalley want - but I'm not sure I follow what that
-is, let alone how to do it:
-
-	Wanted to bring back the original proposal.  Stephen suggested that
-	we could change back to the MLS way of handling labels.
-
-	In MCS we base the MCS label of content created by a process on the
-	containing directory.  Which means that if a process running as
-	s0:c1,c2 creates content in a directory labeled s0, it will get
-	created as s0.
-
-	In MLS if a process running as s0:c1,c2 creates content in a
-	directory it labels it s0:c1,c2.  No matter what the label of the
-	directory is.  (Well actually if the directory is not ranged the
-	process will not be able to create the content.)
-
-	We changed the default for MCS in Rawhide for about a week, when I
-	realized this was a huge problem for containers sharing content.
-	Currently if you want two containers to share the same volume
-	mount, we label the content as svirt_sandbox_file_t:s0 If one
-	process running as s0:c1,c2 creates content it gets created as s0,
-	if the second container process is running as s0:c3,c4, it can
-	still read/write the content.  If we changed the default the object
-	would get created as s0:c1,c2 and process runing as s0:c3,c4 would
-	be blocked.
-
-	So I had it reverted back to the standard MCS Mode.
-
-	If we could get the default to be MLS mode on COW file systems and
-	MCS on Volumes, we would get the best of both worlds.
-
-
-The patches can be found here on top of some fix patches:
-
-	http://git.kernel.org/cgit/linux/kernel/git/dhowells/linux-fs.git/log/?h=overlayfs
-
-David
+Signed-off-by: David Howells <dhowells@redhat.com>
 ---
-David Howells (5):
-      Security: Provide copy-up security hooks for unioned files
-      Overlayfs: Use copy-up security hooks
-      SELinux: Stub in copy-up handling
-      SELinux: Handle opening of a unioned file
-      SELinux: Check against union label for file operations
 
+ include/linux/lsm_hooks.h |   23 +++++++++++++++++++++++
+ include/linux/security.h  |   14 ++++++++++++++
+ security/security.c       |   17 +++++++++++++++++
+ 3 files changed, 54 insertions(+)
 
- fs/overlayfs/copy_up.c            |   12 ++++
- include/linux/lsm_hooks.h         |   23 ++++++++
- include/linux/security.h          |   14 +++++
- security/security.c               |   17 ++++++
- security/selinux/hooks.c          |  101 ++++++++++++++++++++++++++++++++++++-
- security/selinux/include/objsec.h |    1 
- 6 files changed, 166 insertions(+), 2 deletions(-)
+diff --git a/include/linux/lsm_hooks.h b/include/linux/lsm_hooks.h
+index ec3a6bab29de..8c0c524dd232 100644
+--- a/include/linux/lsm_hooks.h
++++ b/include/linux/lsm_hooks.h
+@@ -401,6 +401,24 @@
+  *	@inode contains a pointer to the inode.
+  *	@secid contains a pointer to the location where result will be saved.
+  *	In case of failure, @secid will be set to zero.
++ * @inode_copy_up:
++ *	Appropriately label the destination inode when a unioned file is copied
++ *	up from a lower layer to the union/overlay layer.
++ *	@src indicates the file that is being copied up.
++ *	@dst indicates the file that has being created by the copy up.
++ *	Returns 0 on success or a negative error code on error.
++ * @inode_copy_up_xattr:
++ *	Filter/modify the xattrs being copied up when a unioned file is copied
++ *	up from a lower layer to the union/overlay layer.
++ *	@src indicates the file that is being copied up.
++ *	@dst indicates the file that has being created by the copy up.
++ *	@name indicates the name of the xattr.
++ *	@value, *@size indicate the payload of the xattr.
++ *	Returns 0 to accept the xattr, 1 to discard the xattr or a negative
++ *	error code to abort the copy up.  The xattr buffer must be at least
++ *	XATTR_SIZE_MAX in capacity and the contents may be modified and *@size
++ *	changed appropriately.  Note that the caller is responsible for reading
++ *	and writing the xattrs as this hook is merely a filter.
+  *
+  * Security hooks for file operations
+  *
+@@ -1421,6 +1439,9 @@ union security_list_options {
+ 	int (*inode_listsecurity)(struct inode *inode, char *buffer,
+ 					size_t buffer_size);
+ 	void (*inode_getsecid)(const struct inode *inode, u32 *secid);
++	int (*inode_copy_up) (struct dentry *src, struct dentry *dst);
++	int (*inode_copy_up_xattr) (struct dentry *src, struct dentry *dst,
++				    const char *name, void *value, size_t *size);
+ 
+ 	int (*file_permission)(struct file *file, int mask);
+ 	int (*file_alloc_security)(struct file *file);
+@@ -1689,6 +1710,8 @@ struct security_hook_heads {
+ 	struct list_head inode_setsecurity;
+ 	struct list_head inode_listsecurity;
+ 	struct list_head inode_getsecid;
++	struct list_head inode_copy_up;
++	struct list_head inode_copy_up_xattr;
+ 	struct list_head file_permission;
+ 	struct list_head file_alloc_security;
+ 	struct list_head file_free_security;
+diff --git a/include/linux/security.h b/include/linux/security.h
+index 2f4c1f7aa7db..ec21144d8807 100644
+--- a/include/linux/security.h
++++ b/include/linux/security.h
+@@ -274,6 +274,10 @@ int security_inode_getsecurity(const struct inode *inode, const char *name, void
+ int security_inode_setsecurity(struct inode *inode, const char *name, const void *value, size_t size, int flags);
+ int security_inode_listsecurity(struct inode *inode, char *buffer, size_t buffer_size);
+ void security_inode_getsecid(const struct inode *inode, u32 *secid);
++int security_inode_copy_up(struct dentry *src, struct dentry *dst);
++int security_inode_copy_up_xattr(struct dentry *src, struct dentry *dst,
++				 const char *name, void *value, size_t *size);
++
+ int security_file_permission(struct file *file, int mask);
+ int security_file_alloc(struct file *file);
+ void security_file_free(struct file *file);
+@@ -739,6 +743,16 @@ static inline void security_inode_getsecid(const struct inode *inode, u32 *secid
+ 	*secid = 0;
+ }
+ 
++static inline int security_inode_copy_up(struct dentry *src, struct dentry *dst)
++{
++	return 0;
++}
++static inline int security_inode_copy_up_xattr(struct dentry *src, struct dentry *dst,
++					       const char *name, const void *value, size_t *size)
++{
++	return 0;
++}
++
+ static inline int security_file_permission(struct file *file, int mask)
+ {
+ 	return 0;
+diff --git a/security/security.c b/security/security.c
+index 46f405ce6b0f..e33c5d5bdc6b 100644
+--- a/security/security.c
++++ b/security/security.c
+@@ -726,6 +726,19 @@ void security_inode_getsecid(const struct inode *inode, u32 *secid)
+ 	call_void_hook(inode_getsecid, inode, secid);
+ }
+ 
++int security_inode_copy_up(struct dentry *src, struct dentry *dst)
++{
++	return call_int_hook(inode_copy_up, 0, src, dst);
++}
++EXPORT_SYMBOL(security_inode_copy_up);
++
++int security_inode_copy_up_xattr(struct dentry *src, struct dentry *dst,
++				 const char *name, void *value, size_t *size)
++{
++	return call_int_hook(inode_copy_up_xattr, 0, src, dst, name, value, size);
++}
++EXPORT_SYMBOL(security_inode_copy_up_xattr);
++
+ int security_file_permission(struct file *file, int mask)
+ {
+ 	int ret;
+@@ -1654,6 +1667,10 @@ struct security_hook_heads security_hook_heads = {
+ 		LIST_HEAD_INIT(security_hook_heads.inode_listsecurity),
+ 	.inode_getsecid =
+ 		LIST_HEAD_INIT(security_hook_heads.inode_getsecid),
++	.inode_copy_up =
++		LIST_HEAD_INIT(security_hook_heads.inode_copy_up),
++	.inode_copy_up_xattr =
++		LIST_HEAD_INIT(security_hook_heads.inode_copy_up_xattr),
+ 	.file_permission =
+ 		LIST_HEAD_INIT(security_hook_heads.file_permission),
+ 	.file_alloc_security =
