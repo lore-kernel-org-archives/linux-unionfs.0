@@ -1,8 +1,7 @@
 From: David Howells <dhowells@redhat.com>
-Subject: [PATCH 1/5] Security: Provide copy-up security hooks for unioned
- files
-Date: Mon, 28 Sep 2015 21:00:30 +0100
-Message-ID: <20150928200030.8141.78762.stgit@warthog.procyon.org.uk>
+Subject: [PATCH 2/5] Overlayfs: Use copy-up security hooks
+Date: Mon, 28 Sep 2015 21:00:41 +0100
+Message-ID: <20150928200041.8141.21790.stgit@warthog.procyon.org.uk>
 References: <20150928200018.8141.2982.stgit@warthog.procyon.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -14,135 +13,43 @@ To: linux-unionfs@vger.kernel.org, selinux@tycho.nsa.gov
 Cc: mjg59@srcf.ucam.org, dwalsh@redhat.com, linux-kernel@vger.kernel.org, eparis@redhat.com, dhowells@redhat.com, linux-security-module@vger.kernel.org, linux-fsdevel@vger.kernel.org, sds@tycho.nsa.gov
 List-Id: linux-unionfs@vger.kernel.org
 
-Provide two new security hooks for use with security files that are used when
-a file is copied up between layers:
-
- (1) security_inode_copy_up().  This is called so that the security label on
-     the destination file can be set appropriately.
-
- (2) security_inode_copy_up_xattr().  This is called so that each xattr being
-     copied up can be vetted - including modification and discard.
+Use the copy-up security hooks previously provided to allow an LSM to adjust
+the security on a newly created copy and to filter the xattrs copied to that
+file copy.
 
 Signed-off-by: David Howells <dhowells@redhat.com>
 ---
 
- include/linux/lsm_hooks.h |   23 +++++++++++++++++++++++
- include/linux/security.h  |   14 ++++++++++++++
- security/security.c       |   17 +++++++++++++++++
- 3 files changed, 54 insertions(+)
+ fs/overlayfs/copy_up.c |   12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
-diff --git a/include/linux/lsm_hooks.h b/include/linux/lsm_hooks.h
-index ec3a6bab29de..8c0c524dd232 100644
---- a/include/linux/lsm_hooks.h
-+++ b/include/linux/lsm_hooks.h
-@@ -401,6 +401,24 @@
-  *	@inode contains a pointer to the inode.
-  *	@secid contains a pointer to the location where result will be saved.
-  *	In case of failure, @secid will be set to zero.
-+ * @inode_copy_up:
-+ *	Appropriately label the destination inode when a unioned file is copied
-+ *	up from a lower layer to the union/overlay layer.
-+ *	@src indicates the file that is being copied up.
-+ *	@dst indicates the file that has being created by the copy up.
-+ *	Returns 0 on success or a negative error code on error.
-+ * @inode_copy_up_xattr:
-+ *	Filter/modify the xattrs being copied up when a unioned file is copied
-+ *	up from a lower layer to the union/overlay layer.
-+ *	@src indicates the file that is being copied up.
-+ *	@dst indicates the file that has being created by the copy up.
-+ *	@name indicates the name of the xattr.
-+ *	@value, *@size indicate the payload of the xattr.
-+ *	Returns 0 to accept the xattr, 1 to discard the xattr or a negative
-+ *	error code to abort the copy up.  The xattr buffer must be at least
-+ *	XATTR_SIZE_MAX in capacity and the contents may be modified and *@size
-+ *	changed appropriately.  Note that the caller is responsible for reading
-+ *	and writing the xattrs as this hook is merely a filter.
-  *
-  * Security hooks for file operations
-  *
-@@ -1421,6 +1439,9 @@ union security_list_options {
- 	int (*inode_listsecurity)(struct inode *inode, char *buffer,
- 					size_t buffer_size);
- 	void (*inode_getsecid)(const struct inode *inode, u32 *secid);
-+	int (*inode_copy_up) (struct dentry *src, struct dentry *dst);
-+	int (*inode_copy_up_xattr) (struct dentry *src, struct dentry *dst,
-+				    const char *name, void *value, size_t *size);
+diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
+index 871fcb67be97..865f80aa7e44 100644
+--- a/fs/overlayfs/copy_up.c
++++ b/fs/overlayfs/copy_up.c
+@@ -58,6 +58,14 @@ int ovl_copy_xattr(struct dentry *old, struct dentry *new)
+ 			error = size;
+ 			goto out_free_value;
+ 		}
++		error = security_inode_copy_up_xattr(old, new,
++						     name, value, &size);
++		if (error < 0)
++			goto out_free_value;
++		if (error == 1) {
++			error = 0;
++			continue; /* Discard */
++		}
+ 		error = vfs_setxattr(new, name, value, size, 0);
+ 		if (error)
+ 			goto out_free_value;
+@@ -223,6 +231,10 @@ static int ovl_copy_up_locked(struct dentry *workdir, struct dentry *upperdir,
+ 	if (err)
+ 		goto out2;
  
- 	int (*file_permission)(struct file *file, int mask);
- 	int (*file_alloc_security)(struct file *file);
-@@ -1689,6 +1710,8 @@ struct security_hook_heads {
- 	struct list_head inode_setsecurity;
- 	struct list_head inode_listsecurity;
- 	struct list_head inode_getsecid;
-+	struct list_head inode_copy_up;
-+	struct list_head inode_copy_up_xattr;
- 	struct list_head file_permission;
- 	struct list_head file_alloc_security;
- 	struct list_head file_free_security;
-diff --git a/include/linux/security.h b/include/linux/security.h
-index 2f4c1f7aa7db..ec21144d8807 100644
---- a/include/linux/security.h
-+++ b/include/linux/security.h
-@@ -274,6 +274,10 @@ int security_inode_getsecurity(const struct inode *inode, const char *name, void
- int security_inode_setsecurity(struct inode *inode, const char *name, const void *value, size_t size, int flags);
- int security_inode_listsecurity(struct inode *inode, char *buffer, size_t buffer_size);
- void security_inode_getsecid(const struct inode *inode, u32 *secid);
-+int security_inode_copy_up(struct dentry *src, struct dentry *dst);
-+int security_inode_copy_up_xattr(struct dentry *src, struct dentry *dst,
-+				 const char *name, void *value, size_t *size);
++	err = security_inode_copy_up(lowerpath->dentry, newdentry);
++	if (err < 0)
++		goto out_cleanup;
 +
- int security_file_permission(struct file *file, int mask);
- int security_file_alloc(struct file *file);
- void security_file_free(struct file *file);
-@@ -739,6 +743,16 @@ static inline void security_inode_getsecid(const struct inode *inode, u32 *secid
- 	*secid = 0;
- }
- 
-+static inline int security_inode_copy_up(struct dentry *src, struct dentry *dst)
-+{
-+	return 0;
-+}
-+static inline int security_inode_copy_up_xattr(struct dentry *src, struct dentry *dst,
-+					       const char *name, const void *value, size_t *size)
-+{
-+	return 0;
-+}
-+
- static inline int security_file_permission(struct file *file, int mask)
- {
- 	return 0;
-diff --git a/security/security.c b/security/security.c
-index 46f405ce6b0f..e33c5d5bdc6b 100644
---- a/security/security.c
-+++ b/security/security.c
-@@ -726,6 +726,19 @@ void security_inode_getsecid(const struct inode *inode, u32 *secid)
- 	call_void_hook(inode_getsecid, inode, secid);
- }
- 
-+int security_inode_copy_up(struct dentry *src, struct dentry *dst)
-+{
-+	return call_int_hook(inode_copy_up, 0, src, dst);
-+}
-+EXPORT_SYMBOL(security_inode_copy_up);
-+
-+int security_inode_copy_up_xattr(struct dentry *src, struct dentry *dst,
-+				 const char *name, void *value, size_t *size)
-+{
-+	return call_int_hook(inode_copy_up_xattr, 0, src, dst, name, value, size);
-+}
-+EXPORT_SYMBOL(security_inode_copy_up_xattr);
-+
- int security_file_permission(struct file *file, int mask)
- {
- 	int ret;
-@@ -1654,6 +1667,10 @@ struct security_hook_heads security_hook_heads = {
- 		LIST_HEAD_INIT(security_hook_heads.inode_listsecurity),
- 	.inode_getsecid =
- 		LIST_HEAD_INIT(security_hook_heads.inode_getsecid),
-+	.inode_copy_up =
-+		LIST_HEAD_INIT(security_hook_heads.inode_copy_up),
-+	.inode_copy_up_xattr =
-+		LIST_HEAD_INIT(security_hook_heads.inode_copy_up_xattr),
- 	.file_permission =
- 		LIST_HEAD_INIT(security_hook_heads.file_permission),
- 	.file_alloc_security =
+ 	if (S_ISREG(stat->mode)) {
+ 		struct path upperpath;
+ 		ovl_path_upper(dentry, &upperpath);
