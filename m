@@ -1,7 +1,7 @@
 From: David Howells <dhowells@redhat.com>
-Subject: [PATCH 2/5] Overlayfs: Use copy-up security hooks
-Date: Mon, 28 Sep 2015 21:00:41 +0100
-Message-ID: <20150928200041.8141.21790.stgit@warthog.procyon.org.uk>
+Subject: [PATCH 3/5] SELinux: Stub in copy-up handling
+Date: Mon, 28 Sep 2015 21:00:52 +0100
+Message-ID: <20150928200052.8141.64045.stgit@warthog.procyon.org.uk>
 References: <20150928200018.8141.2982.stgit@warthog.procyon.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -13,43 +13,51 @@ To: linux-unionfs@vger.kernel.org, selinux@tycho.nsa.gov
 Cc: mjg59@srcf.ucam.org, dwalsh@redhat.com, linux-kernel@vger.kernel.org, eparis@redhat.com, dhowells@redhat.com, linux-security-module@vger.kernel.org, linux-fsdevel@vger.kernel.org, sds@tycho.nsa.gov
 List-Id: linux-unionfs@vger.kernel.org
 
-Use the copy-up security hooks previously provided to allow an LSM to adjust
-the security on a newly created copy and to filter the xattrs copied to that
-file copy.
+Provide stubs for union/overlay copy-up handling.  The xattr copy up stub
+discards lower SELinux xattrs rather than letting them be copied up so that
+the security label on the copy doesn't get corrupted.
 
 Signed-off-by: David Howells <dhowells@redhat.com>
 ---
 
- fs/overlayfs/copy_up.c |   12 ++++++++++++
- 1 file changed, 12 insertions(+)
+ security/selinux/hooks.c |   20 ++++++++++++++++++++
+ 1 file changed, 20 insertions(+)
 
-diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
-index 871fcb67be97..865f80aa7e44 100644
---- a/fs/overlayfs/copy_up.c
-+++ b/fs/overlayfs/copy_up.c
-@@ -58,6 +58,14 @@ int ovl_copy_xattr(struct dentry *old, struct dentry *new)
- 			error = size;
- 			goto out_free_value;
- 		}
-+		error = security_inode_copy_up_xattr(old, new,
-+						     name, value, &size);
-+		if (error < 0)
-+			goto out_free_value;
-+		if (error == 1) {
-+			error = 0;
-+			continue; /* Discard */
-+		}
- 		error = vfs_setxattr(new, name, value, size, 0);
- 		if (error)
- 			goto out_free_value;
-@@ -223,6 +231,10 @@ static int ovl_copy_up_locked(struct dentry *workdir, struct dentry *upperdir,
- 	if (err)
- 		goto out2;
+diff --git a/security/selinux/hooks.c b/security/selinux/hooks.c
+index e4369d86e588..7c1a44d9fac3 100644
+--- a/security/selinux/hooks.c
++++ b/security/selinux/hooks.c
+@@ -3190,6 +3190,24 @@ static void selinux_inode_getsecid(const struct inode *inode, u32 *secid)
+ 	*secid = isec->sid;
+ }
  
-+	err = security_inode_copy_up(lowerpath->dentry, newdentry);
-+	if (err < 0)
-+		goto out_cleanup;
++static int selinux_inode_copy_up(struct dentry *src, struct dentry *dst)
++{
++	return 0;
++}
 +
- 	if (S_ISREG(stat->mode)) {
- 		struct path upperpath;
- 		ovl_path_upper(dentry, &upperpath);
++static int selinux_inode_copy_up_xattr(struct dentry *src, struct dentry *dst,
++				       const char *name, void *value,
++				       size_t *size)
++{
++	/* The copy_up hook above sets the initial context on an inode, but we
++	 * don't then want to overwrite it by blindly copying all the lower
++	 * xattrs up.  Instead, we have to filter out SELinux-related xattrs.
++	 */
++	if (strcmp(name, XATTR_NAME_SELINUX) == 0)
++		return 1; /* Discard */
++	return 0;
++}
++
+ /* file security operations */
+ 
+ static int selinux_revalidate_file_permission(struct file *file, int mask)
+@@ -5919,6 +5937,8 @@ static struct security_hook_list selinux_hooks[] = {
+ 	LSM_HOOK_INIT(inode_setsecurity, selinux_inode_setsecurity),
+ 	LSM_HOOK_INIT(inode_listsecurity, selinux_inode_listsecurity),
+ 	LSM_HOOK_INIT(inode_getsecid, selinux_inode_getsecid),
++	LSM_HOOK_INIT(inode_copy_up, selinux_inode_copy_up),
++	LSM_HOOK_INIT(inode_copy_up_xattr, selinux_inode_copy_up_xattr),
+ 
+ 	LSM_HOOK_INIT(file_permission, selinux_file_permission),
+ 	LSM_HOOK_INIT(file_alloc_security, selinux_file_alloc_security),
