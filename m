@@ -1,213 +1,75 @@
-From: Daniel J Walsh <dwalsh@redhat.com>
-Subject: Re: [PATCH 0/5] Security: Provide unioned file support
-Date: Wed, 30 Sep 2015 11:19:36 -0400
-Message-ID: <560BFD88.4050501@redhat.com>
-References: <20150928200018.8141.2982.stgit@warthog.procyon.org.uk>
- <560AFCA6.3020001@tycho.nsa.gov> <560BF47D.5020506@tycho.nsa.gov>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <560BF47D.5020506@tycho.nsa.gov>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Stephen Smalley <sds@tycho.nsa.gov>, David Howells <dhowells@redhat.com>, linux-unionfs@vger.kernel.org, selinux@tycho.nsa.gov
-Cc: linux-fsdevel@vger.kernel.org, mjg59@srcf.ucam.org, linux-security-module@vger.kernel.org, linux-kernel@vger.kernel.org, eparis@redhat.com
+From: Roman Lebedev <lebedev.ri@gmail.com>
+Subject: kernel BUG when fsync'ing file in a overlayfs merged dir, located on btrfs
+Date: Wed, 30 Sep 2015 22:57:44 +0300
+Message-ID: <1443643065-16460-1-git-send-email-lebedev.ri@gmail.com>
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
+Sender: linux-fsdevel-owner@vger.kernel.org
+To: linux-btrfs@vger.kernel.org, linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, fstests@vger.kernel.org
+Cc: Roman Lebedev <lebedev.ri@gmail.com>
 List-Id: linux-unionfs@vger.kernel.org
 
+Hello.
 
+My / is btrfs.
+To do some my local stuff more cleanly i wanted to use overlayfs, 
+but it didn't quite work.
 
-On 09/30/2015 10:41 AM, Stephen Smalley wrote:
-> On 09/29/2015 05:03 PM, Stephen Smalley wrote:
->> On 09/28/2015 04:00 PM, David Howells wrote:
->>>
->>> The attached patches provide security support for unioned files
->>> where the
->>> security involves an object-label-based LSM (such as SELinux) rather
->>> than a
->>> path-based LSM.
->>>
->>> [Note that a number of the bits that were in the original patch set
->>> are now
->>> upstream and I've rebased on Casey's changes to the security hook
->>> system]
->>>
->>> The patches can be broken down into two sets:
->>>
->>>   (1) A patch to add LSM hooks to handle copy up of a file, including
->>> label
->>>       determination/setting and xattr filtration and a patch to have
->>>       overlayfs call the hooks during the copy-up procedure.
->>>
->>>   (2) My SELinux implementations of these hooks.  I do three things:
->>>
->>>       (a) Don't copy up SELinux xattrs from the lower file to the upper
->>>            file.  It is assumed that the upper file will be created
->>> with the
->>>            attrs we want or the selinux_inode_copy_up() hook will
->>> set it
->>>            appropriately.
->>>
->>>      The reason there are two separate hooks here is that
->>>      selinux_inode_copy_up_xattr() might not ever be called if there
->>>      aren't actually any xattrs on the lower inode.
->>>
->>>       (b) I try to derive a label to be used by file operations by, in
->>> order
->>>            of preference: using the label on the union inode if there
->>> is one
->>>            (the normal overlayfs case); using the override label set
->>> on the
->>>            superblock, if provided; or trying to derive a new label by
->>> sid
->>>            transition operation.
->>>
->>>       (c) Using the label obtained in (b) in file_has_perm() rather
->>> than
->>>            using the label on the lower inode.
->>>
->>> Now the steps I have outlined in (b) and (c) seem to be at odds with
->>> what
->>> Dan Walsh and Stephen Smalley want - but I'm not sure I follow what
->>> that
->>> is, let alone how to do it:
->>>
->>>     Wanted to bring back the original proposal.  Stephen suggested that
->>>     we could change back to the MLS way of handling labels.
->>>
->>>     In MCS we base the MCS label of content created by a process on the
->>>     containing directory.  Which means that if a process running as
->>>     s0:c1,c2 creates content in a directory labeled s0, it will get
->>>     created as s0.
->>>
->>>     In MLS if a process running as s0:c1,c2 creates content in a
->>>     directory it labels it s0:c1,c2.  No matter what the label of the
->>>     directory is.  (Well actually if the directory is not ranged the
->>>     process will not be able to create the content.)
->>>
->>>     We changed the default for MCS in Rawhide for about a week, when I
->>>     realized this was a huge problem for containers sharing content.
->>>     Currently if you want two containers to share the same volume
->>>     mount, we label the content as svirt_sandbox_file_t:s0 If one
->>>     process running as s0:c1,c2 creates content it gets created as s0,
->>>     if the second container process is running as s0:c3,c4, it can
->>>     still read/write the content.  If we changed the default the object
->>>     would get created as s0:c1,c2 and process runing as s0:c3,c4 would
->>>     be blocked.
->>>
->>>     So I had it reverted back to the standard MCS Mode.
->>>
->>>     If we could get the default to be MLS mode on COW file systems and
->>>     MCS on Volumes, we would get the best of both worlds.
->>
->> How are you testing this?
->> I tried as follows:
->>
->> # Make sure we have a policy that is using xattrs to label overlay
->> inodes.
->> $ seinfo --fs_use | grep overlay
->>     fs_use_xattr overlay system_u:object_r:fs_t:s0
->>
->> # Define some types for the different directories involved.
->> $ cat overlay.te
->> policy_module(overlay, 1.0)
->>
->> type lower_t;
->> files_type(lower_t)
->>
->> type upper_t;
->> files_type(upper_t)
->>
->> type work_t;
->> files_type(work_t)
->>
->> type merged_t;
->> files_type(merged_t)
->>
->> $ make -f /usr/share/selinux/devel/Makefile overlay.pp
->> $ sudo semodule -i overlay.pp
->>
->> # Create and label the different directories involved.
->> $ mkdir lower upper work merged
->> $ chcon -t lower_t lower
->> $ chcon -t upper_t upper
->> $ chcon -t work_t work
->> $ chcon -t merged_t merged
->>
->> # Populate lower
->> $ echo "lower" > lower/a
->> $ mkdir lower/b
->>
->> # Mount overlay
->> $ sudo mount -t overlay -o lowerdir=lower,upperdir=upper,workdir=work
->> merged
->>
->> # Look at the merged dir and labels.
->> $ ls -Z merged
->> unconfined_u:object_r:lower_t:s0 a
->> unconfined_u:object_r:lower_t:s0 b
->>
->> # Write/create some files/directories.
->> $ echo "foo" >> merged/a
->> $ mkdir merged/b/c
->> $ mkdir merged/c
->>
->> # Look again.
->> $ ls -ZR merged
->> merged:
->> unconfined_u:object_r:lower_t:s0 a  unconfined_u:object_r:upper_t:s0 c
->> unconfined_u:object_r:lower_t:s0 b
->>
->> merged/b:
->> unconfined_u:object_r:work_t:s0 c
->>
->> merged/b/c:
->>
->> $ ls -ZR upper
->> upper:
->>   unconfined_u:object_r:work_t:s0 a  unconfined_u:object_r:upper_t:s0 c
->>   unconfined_u:object_r:work_t:s0 b
->>
->> upper/b:
->> unconfined_u:object_r:work_t:s0 c
->>
->> upper/b/c:
->>
->> Note that the copied-up file (a) and directory (b) are labeled lower_t
->> in the overlay, but work_t in the upper dir, and neither of those is
->> really what we want IIUC.
->>
->> And that's just the labeling question.  Then there is the question of
->> what permission checks were applied during those copy-up operations and
->> whether the current process ends up needing write permissions to them
->> all.
->
-> Also, the labels on the overlay inodes change if you umount and then
-> mount it again:
->
-> $ sudo umount merged
-> $ sudo mount -t overlay overlay -o
-> lowerdir=lower,upperdir=upper,workdir=work merged
-> $ ls -ZR merged
-> merged:
->  unconfined_u:object_r:work_t:s0 a  unconfined_u:object_r:upper_t:s0 c
->  unconfined_u:object_r:work_t:s0 b
->
-> merged/b:
-> unconfined_u:object_r:work_t:s0 c
->
-> merged/b/c:
->
-> merged/c:
->
-> It seems to me that either the copied-up files should be labeled
-> upper_t (i.e. from upperdir) or merged_t (i.e. from the overlay).  But
-> certainly not lower_t (which is supposed to be read-only to the
-> container) or work_t (which isn't supposed to be directly accessed by
-> processes in the first place).
->
-Yes lower_t should be read only and we want to transition the
-directories to upper_t, or more specifically upper_t:MCS label.
+Simple non-automatic sequence to reproduce the issue:
+ mkdir lower upper work merged
+ mount -t overlay overlay -olowerdir=lower,upperdir=upper,workdir=work merged
+ vi merged/file
+ :wq
 
-lower_t:s0 -> upper_t:s0:c1,c2
+Results in vi being killed on exit, and the following trace appears in dmesg:
 
-For Container images.
+[34304.047841] BUG: unable to handle kernel paging request at 0000000009618e56
+[34304.047846] IP: [<ffffffffa01667b6>] btrfs_sync_file+0xa6/0x350 [btrfs]
+[34304.047864] PGD 0 
+[34304.047866] Oops: 0002 [#12] SMP 
+[34304.047867] Modules linked in: overlay cpufreq_userspace cpufreq_stats cpufreq_powersave cpufreq_conservative binfmt_misc nfsd auth_rpcgss oid_registry nfs_acl nfs lockd grace fscache sunrpc fglrx(PO) nls_utf8 joydev nls_cp437 vfat fat hid_generic usbhid kvm_amd hid kvm crct10dif_pclmul crc32_pclmul ghash_clmulni_intel snd_hda_codec_realtek snd_hda_codec_generic snd_hda_codec_hdmi sha256_ssse3 sha256_generic snd_hda_intel snd_hda_codec hmac drbg ansi_cprng aesni_intel snd_hda_core aes_x86_64 mxm_wmi snd_hwdep lrw eeepc_wmi snd_pcm gf128mul asus_wmi sparse_keymap rfkill video snd_timer glue_helper sp5100_tco evdev ablk_helper e1000e ohci_pci pcspkr snd ohci_hcd xhci_pci edac_mce_amd ehci_pci serio_raw xhci_hcd soundcore fam15h_power ehci_hcd cryptd edac_core ptp pps_core usbcore k10temp 
+ i2c_piix4
+[34304.047893]  sg usb_common acpi_cpufreq wmi tpm_infineon button processor shpchp tpm_tis tpm thermal_sys tcp_yeah tcp_vegas it87 hwmon_vid loop parport_pc ppdev lp parport autofs4 crc32c_generic btrfs xor raid6_pq sd_mod crc32c_intel ahci libahci libata scsi_mod
+[34304.047905] CPU: 4 PID: 13990 Comm: vi Tainted: P      D    O    4.2.0-1-amd64 #1 Debian 4.2.1-2
+[34304.047906] Hardware name: To be filled by O.E.M. To be filled by O.E.M./CROSSHAIR V FORMULA-Z, BIOS 2201 03/23/2015
+[34304.047908] task: ffff8803d5f7f2c0 ti: ffff8806a3ec8000 task.ti: ffff8806a3ec8000
+[34304.047909] RIP: 0010:[<ffffffffa01667b6>]  [<ffffffffa01667b6>] btrfs_sync_file+0xa6/0x350 [btrfs]
+[34304.047920] RSP: 0018:ffff8806a3ecbe88  EFLAGS: 00010246
+[34304.047921] RAX: ffff8803d5f7f2c0 RBX: ffff8807b2d46600 RCX: ffffffff81a6ad00
+[34304.047922] RDX: 0000000080000000 RSI: 0000000000000000 RDI: ffff8807c19f8970
+[34304.047923] RBP: ffff8807c19f8970 R08: 0000000000000000 R09: 0000000000000001
+[34304.047924] R10: 0000000000000000 R11: 0000000000000246 R12: ffff8807c19f88c8
+[34304.047925] R13: 0000000000000000 R14: 0000000009618b22 R15: 000055cb20184a70
+[34304.047926] FS:  00007f31c5492800(0000) GS:ffff88082fd00000(0000) knlGS:0000000000000000
+[34304.047927] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+[34304.047928] CR2: 0000000009618e56 CR3: 000000044af44000 CR4: 00000000000406e0
+[34304.047929] Stack:
+[34304.047930]  0000000000000001 7fffffffffffffff ffff880403d5b918 8000000000000000
+[34304.047932]  0000000000000000 0000000000000000 000055cb20186d40 ffff8807b2d46600
+[34304.047933]  0000000000000004 ffff88044b249000 0000000000000020 ffff8807b2d46600
+[34304.047935] Call Trace:
+[34304.047939]  [<ffffffff811e7038>] ? do_fsync+0x38/0x60
+[34304.047940]  [<ffffffff811e72b0>] ? SyS_fsync+0x10/0x20
+[34304.047943]  [<ffffffff8154de72>] ? system_call_fast_compare_end+0xc/0x6b
+[34304.047944] Code: 49 8b 0f 48 85 c9 75 e9 eb b3 48 8b 44 24 08 49 8d ac 24 a8 00 00 00 48 89 ef 4c 29 e8 48 83 c0 01 48 89 44 24 18 e8 3a 59 3e e1 <f0> 41 ff 86 34 03 00 00 49 8b 84 24 70 ff ff ff 48 c1 e8 07 83 
+[34304.047959] RIP  [<ffffffffa01667b6>] btrfs_sync_file+0xa6/0x350 [btrfs]
+[34304.047970]  RSP <ffff8806a3ecbe88>
+[34304.047970] CR2: 0000000009618e56
+[34304.047972] ---[ end trace 414199893a542949 ]---
+
+I was able to create a new fstests test that reproduces my issue,
+and i'm sending it as follow-up to this message.
+
+Roman Lebedev (1):
+  fstests: generic: Test that fsync works on file in overlayfs merged
+    directory
+
+ tests/generic/111     | 80 +++++++++++++++++++++++++++++++++++++++++++++++++++
+ tests/generic/111.out |  5 ++++
+ tests/generic/group   |  1 +
+ 3 files changed, 86 insertions(+)
+ create mode 100755 tests/generic/111
+ create mode 100644 tests/generic/111.out
+
+-- 
+2.6.0
+
