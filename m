@@ -1,56 +1,62 @@
-From: Eric Sandeen <sandeen@sandeen.net>
-Subject: Re: [RFC PATCH] fstests: generic: Test that fsync works on file in
- overlayfs merged directory
-Date: Wed, 30 Sep 2015 17:07:54 -0500
-Message-ID: <560C5D3A.8010800@sandeen.net>
-References: <1443643065-16460-1-git-send-email-lebedev.ri@gmail.com>
- <1443643065-16460-2-git-send-email-lebedev.ri@gmail.com>
- <20150930215640.GH27164@dastard>
+From: Vincent Bernat <bernat@luffy.cx>
+Subject: Re: [V9fs-developer] 9p/overlayfs: read error when reading an empty file
+Date: Sat, 03 Oct 2015 19:07:01 +0200
+Message-ID: <m3pp0v51ai.fsf@neo.luffy.cx>
+References: <87oai9hui2.fsf@zoro.exoscale.ch>
+	<877fowita7.fsf@zoro.exoscale.ch> <20150817141137.GA15883@u-michard>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <fstests-owner@vger.kernel.org>
-In-Reply-To: <20150930215640.GH27164@dastard>
-Sender: fstests-owner@vger.kernel.org
-To: Dave Chinner <david@fromorbit.com>, Roman Lebedev <lebedev.ri@gmail.com>
-Cc: linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, fstests@vger.kernel.org, linux-btrfs@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-unionfs-owner@vger.kernel.org>
+Received: from bart.luffy.cx ([78.47.78.131]:45903 "EHLO bart.luffy.cx"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750750AbbJCRNJ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-unionfs@vger.kernel.org>);
+	Sat, 3 Oct 2015 13:13:09 -0400
+In-Reply-To: <20150817141137.GA15883@u-michard> (Dominique Martinet's message
+	of "Mon, 17 Aug 2015 16:11:37 +0200")
+Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
+To: Dominique Martinet <dominique.martinet@cea.fr>
+Cc: Eric Van Hensbergen <ericvh@gmail.com>, Latchesar Ionkov <lucho@ionkov.net>, Ron Minnich <rminnich@sandia.gov>, Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, David Howells <dhowells@redhat.com>, v9fs-developer@lists.sourceforge.net
 
+ =E2=9D=A6 17 ao=C3=BBt 2015 16:11 +0200, Dominique Martinet <dominique=
+=2Emartinet@cea.fr>=C2=A0:
 
-
-On 9/30/15 4:56 PM, Dave Chinner wrote:
-> On Wed, Sep 30, 2015 at 10:57:45PM +0300, Roman Lebedev wrote:
->> As per overlayfs documentation, any activity on a merged directory
->> for a application that is doing such activity should work exactly
->> as if that would be a normal, non overlayfs-merged directory.
+>> For this bug, I was able to bisect to this commit:
+>>=20
+>> 4bacc9c9234c7c8eec44f5ed4e960d9f96fa0f01 is the first bad commit
 >>
->> That is, e.g. simple fopen-fwrite-fsync-fclose sequence should
->> work just fine.
-> 
-> We have plenty of tests that do things like that.
-> 
->> But apparently it does not. Add a simple generic test to check that.
->> As of right now (linux-4.2.1) this test fails at least on btrfs.
->>
->> PS: An alternative (and probably better approach) would be to run
->> fstests test suite with TEST_DIR set to overlayfs work directory.
-> 
-> Much better is to run xfstests directly on overlayfs. THere have
-> been some patches to do that posted in the past, but those patches
-> and discussions kinda ended up going nowhere:
-> 
-> http://www.mail-archive.com/fstests@vger.kernel.org/msg00474.html
-> 
-> Perhaps you'd like to pick this up, and then overlay will by much
-> easier to test and hence likely not to have bugs like this...
+>> commit 4bacc9c9234c7c8eec44f5ed4e960d9f96fa0f01
+>> Author: David Howells <dhowells@redhat.com>
+>> Date:   Thu Jun 18 14:32:31 2015 +0100
+>>=20
+>>     overlayfs: Make f_path always point to the overlay and f_inode t=
+o the underlay
+>>=20
+>> In fact, any file reading of files present in the lower layer will l=
+ead
+>> to this. No need to try to switch root or anything complex.
+>
+> Hmm, that is going to be annoying to fix, since we use
+> file->f_path.dentry to get a new fid to the same file (clone), and
+> current code pretty much depends on that...
+>
+> I guess it used to work because file->f_op, file->f_inode and
+> file->f_path used to all be from the same layer, which isn't the case
+> anymore.
+>
+>
+> Does any overlayfs person reading this know if it's still possible to
+> get the right dentry at this point?
+> I'm sure the object exists somewhere in memory, but it could be annoy=
+ing
+> to find.
 
-Yeah, that could still be used for fun, but Zach's POV was that
-we should just have a specific overlayfs config (dictating paths
-to over/under/merge/around/through/whatever directories), a special
-mount_overlayfs helper, etc, ala NFS & CIFS.  It may actually be
-easier than what I proposed.
+Hi Dominique!
 
-If you want to take a stab at it I'm happy to help, answer questions,
-etc - I'm not sure when I'll get back to it...
-
--Eric
+Did you get any feedback on this? The problem is unfortunately still
+present in 4.3-rc3.
+--=20
+Let the machine do the dirty work.
+            - The Elements of Programming Style (Kernighan & Plauger)
