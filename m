@@ -1,62 +1,62 @@
-From: Vincent Bernat <bernat@luffy.cx>
-Subject: Re: [V9fs-developer] 9p/overlayfs: read error when reading an empty file
-Date: Sat, 03 Oct 2015 19:07:01 +0200
-Message-ID: <m3pp0v51ai.fsf@neo.luffy.cx>
+From: Dominique Martinet <asmadeus@codewreck.org>
+Subject: Re: [V9fs-developer] 9p/overlayfs: read error when reading an empty
+ file
+Date: Sat, 3 Oct 2015 21:19:55 +0200
+Message-ID: <20151003191955.GB17610@nautica>
 References: <87oai9hui2.fsf@zoro.exoscale.ch>
-	<877fowita7.fsf@zoro.exoscale.ch> <20150817141137.GA15883@u-michard>
+ <877fowita7.fsf@zoro.exoscale.ch>
+ <20150817141137.GA15883@u-michard>
+ <m3pp0v51ai.fsf@neo.luffy.cx>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from bart.luffy.cx ([78.47.78.131]:45903 "EHLO bart.luffy.cx"
+Received: from nautica.notk.org ([91.121.71.147]:47120 "EHLO nautica.notk.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750750AbbJCRNJ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-unionfs@vger.kernel.org>);
-	Sat, 3 Oct 2015 13:13:09 -0400
-In-Reply-To: <20150817141137.GA15883@u-michard> (Dominique Martinet's message
-	of "Mon, 17 Aug 2015 16:11:37 +0200")
+	id S1750911AbbJCT1u (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+	Sat, 3 Oct 2015 15:27:50 -0400
+Content-Disposition: inline
+In-Reply-To: <m3pp0v51ai.fsf@neo.luffy.cx>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Dominique Martinet <dominique.martinet@cea.fr>
-Cc: Eric Van Hensbergen <ericvh@gmail.com>, Latchesar Ionkov <lucho@ionkov.net>, Ron Minnich <rminnich@sandia.gov>, Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, David Howells <dhowells@redhat.com>, v9fs-developer@lists.sourceforge.net
+To: Vincent Bernat <bernat@luffy.cx>
+Cc: Dominique Martinet <dominique.martinet@cea.fr>, Latchesar Ionkov <lucho@ionkov.net>, Miklos Szeredi <miklos@szeredi.hu>, Eric Van Hensbergen <ericvh@gmail.com>, linux-unionfs@vger.kernel.org, David Howells <dhowells@redhat.com>, v9fs-developer@lists.sourceforge.net, Ron Minnich <rminnich@sandia.gov>
 
- =E2=9D=A6 17 ao=C3=BBt 2015 16:11 +0200, Dominique Martinet <dominique=
-=2Emartinet@cea.fr>=C2=A0:
+Vincent Bernat wrote on Sat, Oct 03, 2015:
+> Did you get any feedback on this? The problem is unfortunately still
+> present in 4.3-rc3.
 
->> For this bug, I was able to bisect to this commit:
->>=20
->> 4bacc9c9234c7c8eec44f5ed4e960d9f96fa0f01 is the first bad commit
->>
->> commit 4bacc9c9234c7c8eec44f5ed4e960d9f96fa0f01
->> Author: David Howells <dhowells@redhat.com>
->> Date:   Thu Jun 18 14:32:31 2015 +0100
->>=20
->>     overlayfs: Make f_path always point to the overlay and f_inode t=
-o the underlay
->>=20
->> In fact, any file reading of files present in the lower layer will l=
-ead
->> to this. No need to try to switch root or anything complex.
->
-> Hmm, that is going to be annoying to fix, since we use
-> file->f_path.dentry to get a new fid to the same file (clone), and
-> current code pretty much depends on that...
->
-> I guess it used to work because file->f_op, file->f_inode and
-> file->f_path used to all be from the same layer, which isn't the case
-> anymore.
->
->
-> Does any overlayfs person reading this know if it's still possible to
-> get the right dentry at this point?
-> I'm sure the object exists somewhere in memory, but it could be annoy=
-ing
-> to find.
+Sorry, haven't got any reply but I bet it is :(
 
-Hi Dominique!
+I've been meaning to ask again after a while but it slipped out of my
+head again...
 
-Did you get any feedback on this? The problem is unfortunately still
-present in 4.3-rc3.
---=20
-Let the machine do the dirty work.
-            - The Elements of Programming Style (Kernighan & Plauger)
+Basically 9P stores informations in both the inode and dentry, the
+change (4bacc9 "overlayfs: Make f_path always point to the overlay and
+f_inode to the underlay") makes it so that we get unexpected info in
+f_path->dentry->d_sb->s_fs_info and crash...
+
+
+I actually am not quite sure where the change needed belongs in the
+first place, I don't even know how the 9P layer could check if the filep
+isn't a "9p filep" in the first place, nor how it could work around it
+if it notices that's what happened, so I'm afraid I won't be of much
+help there...
+
+We probably can remove the need for dentry->d_sb->s_fs_info in this case
+(it's the 9p session info which we can get from the inode, which is also
+available) but 9p keeps a list with dentries for fids that I have no
+idea if it will make sense and/or be safe if we start mixing up overlay
+stuff in.
+Also, and worse, this only fixes the case where 9p is the underlay -- if
+someone gets the idea to use 9p as overlay then we'll get a "bad" inode
+and good dentry which will cause different problems, so once again we
+need to know where stuff comes from.
+And what about stacked overlays when 9P is in the middle, neither inode
+nor file would be "our's" ?...
+
+I'm sure I'm missing something simple and overcomplicating things, but I
+just don't have time to try to dig into the overlayfs code right now
+sorry.
+
+-- 
+Dominique
