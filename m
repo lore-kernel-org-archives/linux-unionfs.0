@@ -1,62 +1,72 @@
-From: Dominique Martinet <asmadeus@codewreck.org>
-Subject: Re: [V9fs-developer] 9p/overlayfs: read error when reading an empty
- file
-Date: Sat, 3 Oct 2015 21:19:55 +0200
-Message-ID: <20151003191955.GB17610@nautica>
-References: <87oai9hui2.fsf@zoro.exoscale.ch>
- <877fowita7.fsf@zoro.exoscale.ch>
- <20150817141137.GA15883@u-michard>
- <m3pp0v51ai.fsf@neo.luffy.cx>
+From: Alban Crequy <alban.crequy@gmail.com>
+Subject: overlayfs: regression bug from 4bacc9c9 (Make f_path always point to
+ the overlay and f_inode to the underlay)
+Date: Wed, 7 Oct 2015 14:23:23 +0200
+Message-ID: <CAMXgnP7G-6bOu==DC_q2iQkfQ5p3YjSM8j1t=d-RbHBh-V9rOA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from nautica.notk.org ([91.121.71.147]:47120 "EHLO nautica.notk.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750911AbbJCT1u (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-	Sat, 3 Oct 2015 15:27:50 -0400
-Content-Disposition: inline
-In-Reply-To: <m3pp0v51ai.fsf@neo.luffy.cx>
-Sender: linux-unionfs-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: David Howells <dhowells@redhat.com>, sds@tycho.nsa.gov, Alexander Viro <viro@zeniv.linux.org.uk>, miklos@szeredi.hu
+Cc: linux-fsdevel@vger.kernel.org, LSM <linux-security-module@vger.kernel.org>, linux-unionfs@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, =?UTF-8?Q?Iago_L=C3=B3pez_Galeiras?= <iaguis@gmail.com>
 List-Id: linux-unionfs@vger.kernel.org
-To: Vincent Bernat <bernat@luffy.cx>
-Cc: Dominique Martinet <dominique.martinet@cea.fr>, Latchesar Ionkov <lucho@ionkov.net>, Miklos Szeredi <miklos@szeredi.hu>, Eric Van Hensbergen <ericvh@gmail.com>, linux-unionfs@vger.kernel.org, David Howells <dhowells@redhat.com>, v9fs-developer@lists.sourceforge.net, Ron Minnich <rminnich@sandia.gov>
 
-Vincent Bernat wrote on Sat, Oct 03, 2015:
-> Did you get any feedback on this? The problem is unfortunately still
-> present in 4.3-rc3.
+Hi,
 
-Sorry, haven't got any reply but I bet it is :(
+I'm reporting an issue in overlay fs that was introduced in v4.2 (it
+worked on v4.1): when overlay fs is mounted inside a overlay fs, I get
+a "no such device or address" error (ENXIO) during open(). After
+adding some debug printks, I found that the ENXIO comes from
+fs/inode.c:no_open().
 
-I've been meaning to ask again after a while but it slipped out of my
-head again...
+The bug was initially reported on:
+https://github.com/coreos/rkt/issues/1537
 
-Basically 9P stores informations in both the inode and dentry, the
-change (4bacc9 "overlayfs: Make f_path always point to the overlay and
-f_inode to the underlay") makes it so that we get unexpected info in
-f_path->dentry->d_sb->s_fs_info and crash...
+The following commands can reproduce the issue:
 
+# mkdir upper lower work merged
+# mount -t overlay overlay -olowerdir=lower,upperdir=upper,workdir=work merged/
+# cd merged
+# mkdir upper2 lower2 work2 merged2
+# mount -t overlay overlay
+-olowerdir=lower2,upperdir=upper2,workdir=work2 merged2/
+# cd merged2
+# echo hello > test.txt
+bash: test.txt: No such device or address
 
-I actually am not quite sure where the change needed belongs in the
-first place, I don't even know how the 9P layer could check if the filep
-isn't a "9p filep" in the first place, nor how it could work around it
-if it notices that's what happened, so I'm afraid I won't be of much
-help there...
+For debugging purposes, I added a "BUG()" in fs/inode.c:no_open() in
+order to see the stack at the moment the ENXIO is returned:
 
-We probably can remove the need for dentry->d_sb->s_fs_info in this case
-(it's the 9p session info which we can get from the inode, which is also
-available) but 9p keeps a list with dentries for fids that I have no
-idea if it will make sense and/or be safe if we start mixing up overlay
-stuff in.
-Also, and worse, this only fixes the case where 9p is the underlay -- if
-someone gets the idea to use 9p as overlay then we'll get a "bad" inode
-and good dentry which will cause different problems, so once again we
-need to know where stuff comes from.
-And what about stacked overlays when 9P is in the middle, neither inode
-nor file would be "our's" ?...
+[    0.446166] Call Trace:
+[    0.446166]  [<ffffffff8121701f>] do_dentry_open+0x1ff/0x2f0
+[    0.446166]  [<ffffffff81232960>] ? inode_init_always+0x1b0/0x1b0
+[    0.446166]  [<ffffffff812184c6>] vfs_open+0x56/0x60
+[    0.446166]  [<ffffffff812271ee>] path_openat+0x1de/0x1250
+[    0.446166]  [<ffffffff8119ee61>] ? filemap_fault+0xb1/0x420
+[    0.446166]  [<ffffffff811bcf00>] ? __inc_zone_state+0x20/0x60
+[    0.446166]  [<ffffffff81229401>] do_filp_open+0x91/0x100
+[    0.446166]  [<ffffffff811fad03>] ? kmem_cache_alloc+0x193/0x210
+[    0.446166]  [<ffffffff81228436>] ? getname_flags+0x56/0x1f0
+[    0.446166]  [<ffffffff8123634f>] ? __alloc_fd+0x3f/0x100
+[    0.446166]  [<ffffffff8121887a>] do_sys_open+0x13a/0x230
+[    0.446166]  [<ffffffff8121898e>] SyS_open+0x1e/0x20
+[    0.446166]  [<ffffffff81790fee>] entry_SYSCALL_64_fastpath+0x12/0x71
 
-I'm sure I'm missing something simple and overcomplicating things, but I
-just don't have time to try to dig into the overlayfs code right now
-sorry.
+git-bisect found the following:
 
--- 
-Dominique
+> 4bacc9c9234c7c8eec44f5ed4e960d9f96fa0f01 is the first bad commit
+> commit 4bacc9c9234c7c8eec44f5ed4e960d9f96fa0f01
+> Author: David Howells <dhowells@redhat.com>
+> Date:   Thu Jun 18 14:32:31 2015 +0100
+>
+>     overlayfs: Make f_path always point to the overlay
+>     and f_inode to the underlay
+
+See patch (2) in https://lwn.net/Articles/648525/:
+
+> (2) The main VFS patch that makes an open file struct referring to a union
+>     file have ->f_path point to the union/overlay file whilst ->f_inode and
+>     ->f_mapping refer to the subordinate file that does the actual work.
+
+Cheers,
+Alban
