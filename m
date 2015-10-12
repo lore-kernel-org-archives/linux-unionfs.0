@@ -1,72 +1,90 @@
-From: Alban Crequy <alban.crequy@gmail.com>
-Subject: overlayfs: regression bug from 4bacc9c9 (Make f_path always point to
- the overlay and f_inode to the underlay)
-Date: Wed, 7 Oct 2015 14:23:23 +0200
-Message-ID: <CAMXgnP7G-6bOu==DC_q2iQkfQ5p3YjSM8j1t=d-RbHBh-V9rOA@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: David Howells <dhowells@redhat.com>, sds@tycho.nsa.gov, Alexander Viro <viro@zeniv.linux.org.uk>, miklos@szeredi.hu
-Cc: linux-fsdevel@vger.kernel.org, LSM <linux-security-module@vger.kernel.org>, linux-unionfs@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, =?UTF-8?Q?Iago_L=C3=B3pez_Galeiras?= <iaguis@gmail.com>
+From: Zheng Liu <gnehzuil.liu@gmail.com>
+Subject: [RFC][PATCH] ovl: count subdirs to get the correct link count
+Date: Mon, 12 Oct 2015 16:01:14 +0800
+Message-ID: <1444636874-16886-1-git-send-email-wenqing.lz@taobao.com>
+Return-path: <linux-unionfs-owner@vger.kernel.org>
+Received: from mail-pa0-f48.google.com ([209.85.220.48]:35124 "EHLO
+	mail-pa0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751116AbbJLHnE (ORCPT
+	<rfc822;linux-unionfs@vger.kernel.org>);
+	Mon, 12 Oct 2015 03:43:04 -0400
+Received: by pabve7 with SMTP id ve7so89236868pab.2
+        for <linux-unionfs@vger.kernel.org>; Mon, 12 Oct 2015 00:43:03 -0700 (PDT)
+Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
+To: linux-unionfs@vger.kernel.org, v9fs-developer@lists.sourceforge.net
+Cc: Miklos Szeredi <miklos@szeredi.hu>, Zheng Liu <wenqing.lz@taobao.com>
 
-Hi,
+From: Zheng Liu <wenqing.lz@taobao.com>
 
-I'm reporting an issue in overlay fs that was introduced in v4.2 (it
-worked on v4.1): when overlay fs is mounted inside a overlay fs, I get
-a "no such device or address" error (ENXIO) during open(). After
-adding some debug printks, I found that the ENXIO comes from
-fs/inode.c:no_open().
+This patch makes overlayfs count subdirs to get the correct link count
+because 9pfs needs this.  Otherwise, we will get a warning message from
+inc_nlink() because inode->i_nlink == 0 and inode->i_state w/o
+I_LINKABLE flag in a virtualization environment.  The warning message
+looks like as below.
 
-The bug was initially reported on:
-https://github.com/coreos/rkt/issues/1537
+------------[ cut here ]------------
+WARNING: CPU: 0 PID: 27343 at ../fs/inode.c:330 inc_nlink+0x32/0x50()
+Modules linked in:
+CPU: 0 PID: 27343 Comm: mkdir Tainted: G        W       4.1.6+ #1
+ ffffffff81540a0e ffff88046b103da8 ffffffff8120d849 ffff88046b103db8
+ ffffffff8120d897 ffff88046b103df8 ffffffff81044bbd ffff88046b2a0403
+ ffff88046b936d68 0000000000000000 ffff88046b936d68 ffff88046b2a9300
+Call Trace:
+ [<ffffffff8120d849>] __dump_stack+0x19/0x20
+ [<ffffffff8120d897>] dump_stack+0x47/0x60
+ [<ffffffff81044bbd>] warn_slowpath_common+0xad/0xe0
+ [<ffffffff81044c0a>] warn_slowpath_null+0x1a/0x20
+ [<ffffffff8117caa2>] inc_nlink+0x32/0x50
+ [<ffffffff811d3c89>] v9fs_vfs_mkdir_dotl+0x269/0x2b0
+ [<ffffffff8116f9a9>] vfs_mkdir+0x89/0xd0
+ [<ffffffff81173912>] SyS_mkdirat+0x82/0xd0
+ [<ffffffff8116dae9>] SyS_mkdir+0x19/0x20
+ [<ffffffff813b29d7>] system_call_fastpath+0x12/0x6a
+---[ end trace dd0930847ec4e6d2 ]---
 
-The following commands can reproduce the issue:
+The root cause is that overlayfs doesn't count subdirs and it reports
+a wrong link count.  From the output of stat(1) we can seen that the
+'Links' of a directory is 1, but at least it should be 2.  When creating
+a directory in 9pfs, the parent directory's inode->i_nlink is 0 and a
+WARN_ON will be triggered.
 
-# mkdir upper lower work merged
-# mount -t overlay overlay -olowerdir=lower,upperdir=upper,workdir=work merged/
-# cd merged
-# mkdir upper2 lower2 work2 merged2
-# mount -t overlay overlay
--olowerdir=lower2,upperdir=upper2,workdir=work2 merged2/
-# cd merged2
-# echo hello > test.txt
-bash: test.txt: No such device or address
+This warning can be reproduced by the following steps.
 
-For debugging purposes, I added a "BUG()" in fs/inode.c:no_open() in
-order to see the stack at the moment the ENXIO is returned:
+[In host os]
+1. build a ROOTFS for booting up a vm using 9pfs
+2. mount -t overlay -olowerdir=${lower},upperdir=${upper},workdir={work} none ${ROOTFS}/mnt
+3. run a vm using 9pfs
+   e.g. http://www.linux-kvm.org/page/9p_virtio
+[In guest os]
+4. cd /mnt
+5. mkdir 1
+6. rm -rf 1; mkdir 1
 
-[    0.446166] Call Trace:
-[    0.446166]  [<ffffffff8121701f>] do_dentry_open+0x1ff/0x2f0
-[    0.446166]  [<ffffffff81232960>] ? inode_init_always+0x1b0/0x1b0
-[    0.446166]  [<ffffffff812184c6>] vfs_open+0x56/0x60
-[    0.446166]  [<ffffffff812271ee>] path_openat+0x1de/0x1250
-[    0.446166]  [<ffffffff8119ee61>] ? filemap_fault+0xb1/0x420
-[    0.446166]  [<ffffffff811bcf00>] ? __inc_zone_state+0x20/0x60
-[    0.446166]  [<ffffffff81229401>] do_filp_open+0x91/0x100
-[    0.446166]  [<ffffffff811fad03>] ? kmem_cache_alloc+0x193/0x210
-[    0.446166]  [<ffffffff81228436>] ? getname_flags+0x56/0x1f0
-[    0.446166]  [<ffffffff8123634f>] ? __alloc_fd+0x3f/0x100
-[    0.446166]  [<ffffffff8121887a>] do_sys_open+0x13a/0x230
-[    0.446166]  [<ffffffff8121898e>] SyS_open+0x1e/0x20
-[    0.446166]  [<ffffffff81790fee>] entry_SYSCALL_64_fastpath+0x12/0x71
+Cc: Miklos Szeredi <miklos@szeredi.hu>
+Signed-off-by: Zheng Liu <wenqing.lz@taobao.com>
+---
+ fs/overlayfs/dir.c | 8 --------
+ 1 file changed, 8 deletions(-)
 
-git-bisect found the following:
-
-> 4bacc9c9234c7c8eec44f5ed4e960d9f96fa0f01 is the first bad commit
-> commit 4bacc9c9234c7c8eec44f5ed4e960d9f96fa0f01
-> Author: David Howells <dhowells@redhat.com>
-> Date:   Thu Jun 18 14:32:31 2015 +0100
->
->     overlayfs: Make f_path always point to the overlay
->     and f_inode to the underlay
-
-See patch (2) in https://lwn.net/Articles/648525/:
-
-> (2) The main VFS patch that makes an open file struct referring to a union
->     file have ->f_path point to the union/overlay file whilst ->f_inode and
->     ->f_mapping refer to the subordinate file that does the actual work.
-
-Cheers,
-Alban
+diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
+index 692ceda..fbeb841 100644
+--- a/fs/overlayfs/dir.c
++++ b/fs/overlayfs/dir.c
+@@ -147,14 +147,6 @@ static int ovl_dir_getattr(struct vfsmount *mnt, struct dentry *dentry,
+ 	stat->dev = dentry->d_sb->s_dev;
+ 	stat->ino = dentry->d_inode->i_ino;
+ 
+-	/*
+-	 * It's probably not worth it to count subdirs to get the
+-	 * correct link count.  nlink=1 seems to pacify 'find' and
+-	 * other utilities.
+-	 */
+-	if (OVL_TYPE_MERGE(type))
+-		stat->nlink = 1;
+-
+ 	return 0;
+ }
+ 
+-- 
+2.4.0.rc3.3.g6eb1401
