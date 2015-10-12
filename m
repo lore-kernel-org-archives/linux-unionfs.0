@@ -1,50 +1,62 @@
-From: Miklos Szeredi <miklos@szeredi.hu>
-Subject: Re: procfs reports unexpected mnt_id and path for overlayfs files
-Date: Mon, 12 Oct 2015 19:16:43 +0200
-Message-ID: <CAJfpegtq+HXmRKWiNacfHxLdWfsX_gKDHU=vCELL0cVzgc50uQ@mail.gmail.com>
-References: <20150415085013.GA8907@odin.com>
-	<CAJfpegvKvuu7mtxz+nV1qxpEddf2ZMroBaz+rkFTFVQZ2PoQRw@mail.gmail.com>
-	<CA+Um-gjNDw+nCXZFFTOnPn_LPp4wHMxzLctacT10C3R5+LZrMA@mail.gmail.com>
+From: Dominique Martinet <asmadeus@codewreck.org>
+Subject: Re: [V9fs-developer] 9p/overlayfs: what inodes/dentries are safe to
+ use?
+Date: Mon, 12 Oct 2015 19:47:59 +0200
+Message-ID: <20151012174759.GA31768@nautica>
+References: <CAJfpegurhotqht8apANWM1iWOw7YWb1oAcY6Nq7nKOp80jvTaQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=utf-8
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-oi0-f53.google.com ([209.85.218.53]:33499 "EHLO
-	mail-oi0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751337AbbJLRQn (ORCPT
-	<rfc822;linux-unionfs@vger.kernel.org>);
-	Mon, 12 Oct 2015 13:16:43 -0400
-Received: by oiar126 with SMTP id r126so39086334oia.0
-        for <linux-unionfs@vger.kernel.org>; Mon, 12 Oct 2015 10:16:43 -0700 (PDT)
-In-Reply-To: <CA+Um-gjNDw+nCXZFFTOnPn_LPp4wHMxzLctacT10C3R5+LZrMA@mail.gmail.com>
+Received: from nautica.notk.org ([91.121.71.147]:41085 "EHLO nautica.notk.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751661AbbJLRsQ (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+	Mon, 12 Oct 2015 13:48:16 -0400
+Content-Disposition: inline
+In-Reply-To: <CAJfpegurhotqht8apANWM1iWOw7YWb1oAcY6Nq7nKOp80jvTaQ@mail.gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Saied Kazemi <saied@google.com>
-Cc: Andrew Vagin <avagin@odin.com>, CRIU <criu@openvz.org>, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: Vincent Bernat <bernat@luffy.cx>, Dominique Martinet <dominique.martinet@cea.fr>, Latchesar Ionkov <lucho@ionkov.net>, Eric Van Hensbergen <ericvh@gmail.com>, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>, David Howells <dhowells@redhat.com>, v9fs-developer@lists.sourceforge.net, Ron Minnich <rminnich@sandia.gov>, Al Viro <viro@zeniv.linux.org.uk>
 
-On Mon, Jul 6, 2015 at 7:45 PM, Saied Kazemi <saied@google.com> wrote:
-> On Wed, Apr 15, 2015 at 8:07 AM, Miklos Szeredi <miklos@szeredi.hu> wrote:
->> On Wed, Apr 15, 2015 at 10:50 AM, Andrew Vagin <avagin@odin.com> wrote:
->>> Hello Miklos and Everyone else,
->>>
->>> We have a report that a container with overlayfs can't be checkpointed.
->>>
->>> To dump file descriptors we get information from /proc/pid/fd/ and /proc/pid/fdinfo.
->>>
->>> But in case of overlayfs we see unexpected values there.
->>>
->>> /proc/PID/fdinfo/FD contains mnt_id which isn't presented in /proc/pid/mountinfo.
->>> /proc/PID/fd/FD does not contain an absolute path to the opened file.
->>>
->>> Can someone help to fix these issues?
->>
->> See this:
->>
->> https://lkml.org/lkml/2015/3/20/372
->>
->> Al didn't like that patch.  But it definitely will be fixed, one way
->> or the other, in the near future.
+Miklos Szeredi wrote on Mon, Oct 12, 2015:
+> The solution depends on how 9p handles hard links.  If any dentry will
+> do then d_find_any_alias() will get you a dentry (any dentry) from the
+> inode.
+> 
+> Otherwise I know of no mechanism to get the backing dentry from the file.
 
-Should be fixed in 4.2.
+I've got two problems at the moment:
+ - first, 9P stores informations in the superblock (accessed
+through either dentry->d_sb->s_fs_info or inode->i_sb->...), and
+operations such as read will get passed an inode and a file (which has a
+dentry), but 9P doesn't know which to trust (if I go this right - if 9P
+is underlay then the inode is 9p's, if 9P is overlay then the dentry
+is ?)
+So we probably need a wrapper to get this right, somehow, and use it
+everywhere there's a chance we get an alien inode/dentry.
+
+ - The second problem is more inherent to the 9p protocol, that is every
+access is made through a "fid" and the client navigates through the
+filesystem tree one operation at a time ("walk") - walk will either
+"clone" a fid or get one from its parent directory (it can do more
+complex lookups but the kernel client never does)
+
+At some point we need to open a new fid to a currently open file.
+The current algorithm uses dentry->d_fsdata as a list of fids, so if we
+already have a fid pointing to the dentry we can just usethat one, or if
+there's nothing we'll either use the parent or start from scratch, but
+the point is that once again I don't know if I can "trust"
+dentry->d_fsdata to be a valid pointer or not.
+
+Safest bet would be to remove this mechanism altogether, but that's
+going to have a noticiable performance hit as we do this kind of clone
+fairly often (9p needs more 'fids' than we have 'dentries' because some
+operations will mutate or close them, so we clone pretty often)
+Otherwise if there's some kind of flag we can check to tell if THAT
+dentry is ours then we could only do this kind of lookup when that is
+set, but I don't think there is?
+
 
 Thanks,
-Miklos
+-- 
+Dominique Martinet
