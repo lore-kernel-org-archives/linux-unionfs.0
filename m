@@ -1,88 +1,49 @@
-From: vcaputo@gnugeneration.com
-Subject: [PATCH] overlayfs: use a minimal buffer in ovl_copy_xattr
-Date: Sat, 24 Oct 2015 07:19:46 -0500
-Message-ID: <20151024121946.GB22281@shells.gnugeneration.com>
+From: Miklos Szeredi <miklos@szeredi.hu>
+Subject: [GIT PULL] overlayfs bug fixes for 4.3-rc7
+Date: Thu, 29 Oct 2015 06:12:24 +0100
+Message-ID: <20151029051224.GA31673@tucsk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from shells.gnugeneration.com ([66.240.222.126]:43129 "HELO
-	shells.gnugeneration.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1750762AbbJXM01 (ORCPT
+Received: from mail-wi0-f176.google.com ([209.85.212.176]:38556 "EHLO
+	mail-wi0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751812AbbJ2FMa (ORCPT
 	<rfc822;linux-unionfs@vger.kernel.org>);
-	Sat, 24 Oct 2015 08:26:27 -0400
+	Thu, 29 Oct 2015 01:12:30 -0400
+Received: by wicll6 with SMTP id ll6so32363300wic.1
+        for <linux-unionfs@vger.kernel.org>; Wed, 28 Oct 2015 22:12:29 -0700 (PDT)
 Content-Disposition: inline
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: linux-unionfs@vger.kernel.org
-Cc: vito.caputo@coreos.com
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org
 
-Rather than always allocating the high-order XATTR_SIZE_MAX buffer
-which is costly and prone to failure, only allocate what is needed and
-realloc if necessary.
+Hi Linus,
 
-Fixes https://github.com/coreos/bugs/issues/489
+Please pull from:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/mszeredi/vfs.git overlayfs-linus
+
+This contains fixes for bugs that appeared in earlier kernels (all are marked
+for -stable).
+
+Thanks,
+Miklos
+
 ---
- fs/overlayfs/copy_up.c | 31 ++++++++++++++++++++++---------
- 1 file changed, 22 insertions(+), 9 deletions(-)
+David Howells (2):
+      ovl: use O_LARGEFILE in ovl_copy_up()
+      ovl: fix dentry reference leak
 
-diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
-index 8f66b39..9426e60 100644
---- a/fs/overlayfs/copy_up.c
-+++ b/fs/overlayfs/copy_up.c
-@@ -22,8 +22,8 @@
- 
- int ovl_copy_xattr(struct dentry *old, struct dentry *new)
- {
--	ssize_t list_size, size;
--	char *buf, *name, *value;
-+	ssize_t list_size, size, value_size = 0;
-+	char *buf, *name, *value = NULL;
- 	int error;
- 
- 	if (!old->d_inode->i_op->getxattr ||
-@@ -41,23 +41,36 @@ int ovl_copy_xattr(struct dentry *old, struct dentry *new)
- 	if (!buf)
- 		return -ENOMEM;
- 
--	error = -ENOMEM;
--	value = kmalloc(XATTR_SIZE_MAX, GFP_KERNEL);
--	if (!value)
--		goto out;
--
- 	list_size = vfs_listxattr(old, buf, list_size);
- 	if (list_size <= 0) {
- 		error = list_size;
--		goto out_free_value;
-+		goto out;
- 	}
- 
- 	for (name = buf; name < (buf + list_size); name += strlen(name) + 1) {
--		size = vfs_getxattr(old, name, value, XATTR_SIZE_MAX);
-+retry:
-+		size = vfs_getxattr(old, name, value, value_size);
-+		if (size == -ERANGE) {
-+			size = vfs_getxattr(old, name, NULL, 0);
-+		}
-+
- 		if (size <= 0) {
- 			error = size;
- 			goto out_free_value;
- 		}
-+
-+		if (size > value_size) {
-+			void *new;
-+			new = krealloc(value, size, GFP_KERNEL);
-+			if (!new) {
-+				error = -ENOMEM;
-+				goto out_free_value;
-+			}
-+			value = new;
-+			value_size = size;
-+			goto retry;
-+		}
-+
- 		error = security_inode_copy_up_xattr(old, new,
- 						     name, value, &size);
- 		if (error < 0)
--- 
-2.4.6
+Konstantin Khlebnikov (2):
+      ovl: free stack of paths in ovl_fill_super
+      ovl: free lower_mnt array in ovl_put_super
+
+Miklos Szeredi (1):
+      ovl: fix open in stacked overlay
+
+---
+ fs/overlayfs/copy_up.c | 6 +++---
+ fs/overlayfs/inode.c   | 3 +++
+ fs/overlayfs/super.c   | 2 ++
+ 3 files changed, 8 insertions(+), 3 deletions(-)
