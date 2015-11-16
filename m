@@ -1,29 +1,48 @@
-From: Miklos Szeredi <miklos-sUDqSbJrdHQHWmgEVkV9KA@public.gmane.org>
-Subject: Re: [PATCH] overlayfs: move super block magic number to magic.h
-Date: Tue, 10 Nov 2015 17:13:07 +0100
-Message-ID: <CAJfpegtE2SF+AeJs38XMytoLWqyn6B9x64RAvQdpPX8bs4LE3w@mail.gmail.com>
-References: <20151104105952.7232543a@xeon-e3>
+From: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
+Subject: [PATCH] ovl: check dentry positiveness in ovl_cleanup_whiteouts()
+Date: Mon, 16 Nov 2015 18:44:11 +0300
+Message-ID: <20151116154411.6862.28435.stgit@buzz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-api-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20151104105952.7232543a@xeon-e3>
-Sender: linux-api-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Stephen Hemminger <stephen-OTpzqLSitTUnbdJkjeBofR2eb7JE58TQ@public.gmane.org>
-Cc: Hannes Frederic Sowa <hannes-tFNcAqjVMyqKXQKiL6tip0B+6BGkLq7r@public.gmane.org>, Steven Rostedt <rostedt-nx8X9YLhiw1AfugRpC6u6w@public.gmane.org>, Al Viro <viro-RmSDqhL/yNMiFSDQTTA3OLVCufUGDwFn@public.gmane.org>, Linux API <linux-api-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-unionfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-unionfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: David Howells <dhowells@redhat.com>, Miklos Szeredi <miklos@szeredi.hu>
+Cc: Al Viro <viro@zeniv.linux.org.uk>, linux-kernel@vger.kernel.org, stable@vger.kernel.org, linux-unionfs@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 
-On Wed, Nov 4, 2015 at 7:59 PM, Stephen Hemminger
-<stephen-OTpzqLSitTUnbdJkjeBofR2eb7JE58TQ@public.gmane.org> wrote:
-> The overlayfs file system is not recognized by programs
-> like tail because the magic number is not in standard header location.
->
-> Move it so that the value will propagate on for the GNU library
-> and utilities. Needs to go in the fstatfs manual page as well.
->
-> Signed-off-by: Stephen Hemminger <stephen-OTpzqLSitTUnbdJkjeBofR2eb7JE58TQ@public.gmane.org>
+This patch fixes kernel crash at removing directory which contains
+whiteouts from lower layers.
 
-Thanks, pushed to
+Cache of directory content passed as "list" contains entries from all
+layers, including whiteouts from lower layers. So, lookup in upper dir
+(moved into work at this stage) will return negative entry. Plus this
+cache is filled long before and we can race with external removal.
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/mszeredi/vfs.git overlayfs-next
+Example:
+ mkdir -p lower0/dir lower1/dir upper work overlay
+ touch lower0/dir/a lower0/dir/b
+ mknod lower1/dir/a c 0 0
+ mount -t overlay none overlay -o lowerdir=lower1:lower0,upperdir=upper,workdir=work
+ rm -fr overlay/dir
 
-Miklos
+Signed-off-by: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
+Cc: Stable <stable@vger.kernel.org> # 3.18+
+---
+ fs/overlayfs/readdir.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/fs/overlayfs/readdir.c b/fs/overlayfs/readdir.c
+index 70e9af551600..adcb1398c481 100644
+--- a/fs/overlayfs/readdir.c
++++ b/fs/overlayfs/readdir.c
+@@ -571,7 +571,8 @@ void ovl_cleanup_whiteouts(struct dentry *upper, struct list_head *list)
+ 			       (int) PTR_ERR(dentry));
+ 			continue;
+ 		}
+-		ovl_cleanup(upper->d_inode, dentry);
++		if (dentry->d_inode)
++			ovl_cleanup(upper->d_inode, dentry);
+ 		dput(dentry);
+ 	}
+ 	mutex_unlock(&upper->d_inode->i_mutex);
