@@ -1,70 +1,39 @@
-From: Miklos Szeredi <miklos@szeredi.hu>
-Subject: Re: Question about overlayfs over fs not support dirent::ftype
-Date: Thu, 10 Dec 2015 07:58:32 +0100
-Message-ID: <20151210065832.GA4732@tucsk>
-References: <CAK_yBkOjkk_70-EvZs_TcRh9Rb7S9jwPQ=AAREHEQToZ+o5sSA@mail.gmail.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: [PATCH] overlayfs: include linux/pagemap.h for PAGE_CACHE_SIZE
+Date: Thu, 10 Dec 2015 16:10:18 +0100
+Message-ID: <7380785.3TF39KbbER@wuerfel>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-lf0-f48.google.com ([209.85.215.48]:33706 "EHLO
-	mail-lf0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753072AbbLJG4K (ORCPT
-	<rfc822;linux-unionfs@vger.kernel.org>);
-	Thu, 10 Dec 2015 01:56:10 -0500
-Received: by lfaz4 with SMTP id z4so50211503lfa.0
-        for <linux-unionfs@vger.kernel.org>; Wed, 09 Dec 2015 22:56:08 -0800 (PST)
-Content-Disposition: inline
-In-Reply-To: <CAK_yBkOjkk_70-EvZs_TcRh9Rb7S9jwPQ=AAREHEQToZ+o5sSA@mail.gmail.com>
-Sender: linux-unionfs-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: linux-unionfs@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Linzhe Lee <slayercat.subscription@gmail.com>
-Cc: linux-unionfs@vger.kernel.org
 
-On Wed, Dec 09, 2015 at 12:42:50PM +0800, Linzhe Lee wrote:
-> Hi,all
-> 
-> I got problem in using overlayfs over fs not support
-> dirent::ftype[such as xfs(-n ftype=0)]. After some dig I realized in
-> such situation, function ovl_fill_merge parameter d_type will always
-> be DT_UNKNOWN.
-> 
-> I think a warning is needed of course. But because dirent::d_type is
-> not widely supported for now. I thought If we can find a way to
-> fallback to stat() call in such a situation.  How do you think this
-> idea?
-> 
-> And, can you suggest a method to do it? I tried these method for now,
-> but none work.
-> 
->     1) Direct get struct inode* from inode::i_ino,  Stuck at not found
-> a proper abstract function to do it.
->     2) Get to known fs do not support dirent::d_type and workaround.
-> Stuck at not found how to know if fs do not support dirent::d_type
->     3) In function ctx.actor [ovl_fill_merge], use function
-> lookup_one_len to get file dirent. Stuck at lock.
-> 
-> Any thought is helpful. Thank you !
+The overlayfs has started enforcing a maximum file size, but is missing
+the header file that defines the PAGE_CACHE_SIZE constant in some
+configurations.
 
-How about the patch below?
+fs/overlayfs/super.c: In function 'ovl_fill_super':
+fs/overlayfs/super.c:939:29: error: 'PAGE_CACHE_SIZE' undeclared (first use in this function)
 
-Does that fix the issue?
-
-Thanks,
-Miklos
-
-
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Fixes: 7b1746cac878 ("ovl: setattr: check permissions before copy-up")
+Cc: <stable@vger.kernel.org>
 ---
- fs/overlayfs/readdir.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+The patch that introduced this was marked for stable, so I'm marking this
+the same way.
 
---- a/fs/overlayfs/readdir.c
-+++ b/fs/overlayfs/readdir.c
-@@ -98,7 +98,7 @@ static struct ovl_cache_entry *ovl_cache
- 	p->ino = ino;
- 	p->is_whiteout = false;
+diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+index ea94e50a3473..a4cbdf9824c7 100644
+--- a/fs/overlayfs/super.c
++++ b/fs/overlayfs/super.c
+@@ -9,6 +9,7 @@
  
--	if (d_type == DT_CHR) {
-+	if (d_type == DT_CHR || d_type == DT_UNKNOWN) {
- 		p->next_maybe_whiteout = rdd->first_maybe_whiteout;
- 		rdd->first_maybe_whiteout = p;
- 	}
+ #include <linux/fs.h>
+ #include <linux/namei.h>
++#include <linux/pagemap.h>
+ #include <linux/xattr.h>
+ #include <linux/security.h>
+ #include <linux/mount.h>
