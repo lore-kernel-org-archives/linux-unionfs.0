@@ -1,66 +1,73 @@
-From: Eryu Guan <guaneryu@gmail.com>
-Subject: [PATCH 1/2] ovl: also update attr on ovl level inode in ovl_setattr()
-Date: Fri, 11 Dec 2015 17:34:47 +0800
-Message-ID: <1449826488-2489-1-git-send-email-guaneryu@gmail.com>
+From: Linzhe Lee <slayercat.subscription@gmail.com>
+Subject: Re: Question about overlayfs over fs not support dirent::ftype
+Date: Sun, 13 Dec 2015 12:51:56 +0800
+Message-ID: <CAK_yBkOBxXaW6Z1VHV-UFjA-zS4Jor-8eu0qxAm=mYsYrgbweg@mail.gmail.com>
+References: <CAK_yBkOjkk_70-EvZs_TcRh9Rb7S9jwPQ=AAREHEQToZ+o5sSA@mail.gmail.com>
+	<20151210065832.GA4732@tucsk>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-pf0-f170.google.com ([209.85.192.170]:34081 "EHLO
-	mail-pf0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754165AbbLKJey (ORCPT
+Received: from mail-qk0-f176.google.com ([209.85.220.176]:36521 "EHLO
+	mail-qk0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751345AbbLMEv5 (ORCPT
 	<rfc822;linux-unionfs@vger.kernel.org>);
-	Fri, 11 Dec 2015 04:34:54 -0500
-Received: by pfcc203 with SMTP id c203so1584206pfc.1
-        for <linux-unionfs@vger.kernel.org>; Fri, 11 Dec 2015 01:34:53 -0800 (PST)
+	Sat, 12 Dec 2015 23:51:57 -0500
+Received: by qkht125 with SMTP id t125so94191155qkh.3
+        for <linux-unionfs@vger.kernel.org>; Sat, 12 Dec 2015 20:51:56 -0800 (PST)
+In-Reply-To: <20151210065832.GA4732@tucsk>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: linux-unionfs@vger.kernel.org
-Cc: miklos@szeredi.hu, Eryu Guan <guaneryu@gmail.com>
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: linux-unionfs@vger.kernel.org
 
-suid and sgid should be cleared when unprivileged user writes to such
-files. Overlayfs fails to do so because of the ovl level inode has no
-S_ISUID or S_ISGID set and should_remove_suid() fails to set
-ATTR_KILL_[SG]ID. xfstests generic/193 reveals the failure on overlayfs.
+This patch worked. sorry for previous false alert.
 
-echo test > /mnt/overlay/testfile
-chmod a+s /mnt/overlay/testfile
-chown test:test /mnt/overlay/testfile
-su test -c "echo > /mnt/overlay/testfile"
-
-The suid bit should be cleard after being written by test user.
-
-Fix it by updating attr on ovl level inode in ovl_setattr(), so the attr
-is consistent with inode in upper level.
-
-Signed-off-by: Eryu Guan <guaneryu@gmail.com>
----
- fs/overlayfs/inode.c | 11 +++++++++++
- 1 file changed, 11 insertions(+)
-
-diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
-index 4060ffd..dbe0815 100644
---- a/fs/overlayfs/inode.c
-+++ b/fs/overlayfs/inode.c
-@@ -50,11 +50,22 @@ int ovl_setattr(struct dentry *dentry, struct iattr *attr)
- 	if (!err) {
- 		upperdentry = ovl_dentry_upper(dentry);
- 
-+		/*
-+		 * notify_change() assumes ATTR_KILL_[SG]ID and ATTR_MODE are
-+		 * not set at the same time. Clear ATTR_MODE before we call the
-+		 * next notify_change().
-+		 */
-+		if ((attr->ia_valid & (ATTR_KILL_SUID | ATTR_KILL_SGID)) &&
-+		    (attr->ia_valid & ATTR_MODE))
-+			attr->ia_valid &= ~ATTR_MODE;
- 		mutex_lock(&upperdentry->d_inode->i_mutex);
- 		err = notify_change(upperdentry, attr, NULL);
- 		mutex_unlock(&upperdentry->d_inode->i_mutex);
- 	}
- 	ovl_drop_write(dentry);
-+	/* Also update the inode in ovl level, for consistency. */
-+	if (!err)
-+		setattr_copy(d_inode(dentry), attr);
- out:
- 	return err;
- }
--- 
-1.8.3.1
+2015-12-10 14:58 GMT+08:00 Miklos Szeredi <miklos@szeredi.hu>:
+> On Wed, Dec 09, 2015 at 12:42:50PM +0800, Linzhe Lee wrote:
+>> Hi,all
+>>
+>> I got problem in using overlayfs over fs not support
+>> dirent::ftype[such as xfs(-n ftype=0)]. After some dig I realized in
+>> such situation, function ovl_fill_merge parameter d_type will always
+>> be DT_UNKNOWN.
+>>
+>> I think a warning is needed of course. But because dirent::d_type is
+>> not widely supported for now. I thought If we can find a way to
+>> fallback to stat() call in such a situation.  How do you think this
+>> idea?
+>>
+>> And, can you suggest a method to do it? I tried these method for now,
+>> but none work.
+>>
+>>     1) Direct get struct inode* from inode::i_ino,  Stuck at not found
+>> a proper abstract function to do it.
+>>     2) Get to known fs do not support dirent::d_type and workaround.
+>> Stuck at not found how to know if fs do not support dirent::d_type
+>>     3) In function ctx.actor [ovl_fill_merge], use function
+>> lookup_one_len to get file dirent. Stuck at lock.
+>>
+>> Any thought is helpful. Thank you !
+>
+> How about the patch below?
+>
+> Does that fix the issue?
+>
+> Thanks,
+> Miklos
+>
+>
+> ---
+>  fs/overlayfs/readdir.c |    2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+>
+> --- a/fs/overlayfs/readdir.c
+> +++ b/fs/overlayfs/readdir.c
+> @@ -98,7 +98,7 @@ static struct ovl_cache_entry *ovl_cache
+>         p->ino = ino;
+>         p->is_whiteout = false;
+>
+> -       if (d_type == DT_CHR) {
+> +       if (d_type == DT_CHR || d_type == DT_UNKNOWN) {
+>                 p->next_maybe_whiteout = rdd->first_maybe_whiteout;
+>                 rdd->first_maybe_whiteout = p;
+>         }
