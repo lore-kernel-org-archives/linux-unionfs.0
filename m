@@ -1,66 +1,53 @@
-From: Dave Chinner <david@fromorbit.com>
-Subject: Re: [PATCH 2/2] overlay: test copy up files from lower dir
-Date: Tue, 12 Jan 2016 15:06:27 +1100
-Message-ID: <20160112040626.GF6033@dastard>
-References: <1452512301-22145-1-git-send-email-eguan@redhat.com>
- <1452512301-22145-2-git-send-email-eguan@redhat.com>
- <20160111203135.GA6033@dastard>
- <20160112034633.GO21019@eguan.usersys.redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Eryu Guan <eguan@redhat.com>
+Subject: [PATCH v2 1/3] common: remove all files in $SCRATCH_DEV for overlayfs in _scratch_cleanup_files()
+Date: Tue, 12 Jan 2016 16:30:26 +0800
+Message-ID: <1452587428-26305-1-git-send-email-eguan@redhat.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from ipmail04.adl6.internode.on.net ([150.101.137.141]:13743 "EHLO
-	ipmail04.adl6.internode.on.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758151AbcALEG3 (ORCPT
-	<rfc822;linux-unionfs@vger.kernel.org>);
-	Mon, 11 Jan 2016 23:06:29 -0500
-Content-Disposition: inline
-In-Reply-To: <20160112034633.GO21019@eguan.usersys.redhat.com>
+Received: from mx1.redhat.com ([209.132.183.28]:58624 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1760920AbcALIax (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+	Tue, 12 Jan 2016 03:30:53 -0500
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Eryu Guan <eguan@redhat.com>
-Cc: fstests@vger.kernel.org, linux-unionfs@vger.kernel.org
+To: fstests@vger.kernel.org
+Cc: linux-unionfs@vger.kernel.org, Eryu Guan <eguan@redhat.com>
 
-On Tue, Jan 12, 2016 at 11:46:33AM +0800, Eryu Guan wrote:
-> On Tue, Jan 12, 2016 at 07:31:35AM +1100, Dave Chinner wrote:
-> > On Mon, Jan 11, 2016 at 07:38:21PM +0800, Eryu Guan wrote:
-> > > Test copy up files from lower dir that are <, =, > 4G in size.
-> > > 
-> > > Kernel commit 0480334fa604 ("ovl: use O_LARGEFILE in ovl_copy_up()")
-> > > fixed bug when copying up large file(>4G) from lower dir.
-> > > 
-> > > Signed-off-by: Eryu Guan <eguan@redhat.com>
-> > > ---
-> > >  tests/overlay/001      | 76 ++++++++++++++++++++++++++++++++++++++++++++++++++
-> > >  tests/overlay/001.out  |  2 ++
-> > >  tests/overlay/Makefile | 20 +++++++++++++
-> > >  tests/overlay/group    |  6 ++++
-> > >  4 files changed, 104 insertions(+)
-> > >  create mode 100755 tests/overlay/001
-> > >  create mode 100644 tests/overlay/001.out
-> > >  create mode 100644 tests/overlay/Makefile
-> > >  create mode 100644 tests/overlay/group
-> > > 
-> > > diff --git a/tests/overlay/001 b/tests/overlay/001
-> > > new file mode 100755
-> > > index 0000000..5025a69
-> > > --- /dev/null
-> > > +++ b/tests/overlay/001
-> > > @@ -0,0 +1,76 @@
-> > > +#! /bin/bash
-> > > +# FS QA Test 002
-> > 
-> > 002 != 001 ;)
-> 
-> Ah, I missed that after "mv 002 001"..
+All files in lower/upper dirs should be removed for overlayfs in
+_scratch_cleanup_files(), not only files in merged dir, otherwise files
+from lower dir won't be removed.
 
-"tools/mvtest overlay/002 overlay/001" will do all that stuff for
-you now. When I get an updated sort script from Darrick, it will
-even update the group files correctly....
+Signed-off-by: Eryu Guan <eguan@redhat.com>
+---
 
-Cheers,
+No update in v2.
 
-Dave.
+ common/rc | 14 +++++++++++---
+ 1 file changed, 11 insertions(+), 3 deletions(-)
+
+diff --git a/common/rc b/common/rc
+index 5135260..75d1582 100644
+--- a/common/rc
++++ b/common/rc
+@@ -701,9 +701,17 @@ _mkfs_dev()
+ # remove all files in $SCRATCH_MNT, useful when testing on NFS/CIFS
+ _scratch_cleanup_files()
+ {
+-	_scratch_mount
+-	rm -rf $SCRATCH_MNT/*
+-	_scratch_unmount
++	case $FSTYP in
++	overlay)
++		# $SCRATCH_DEV is a valid directory in overlay case
++		rm -rf $SCRATCH_DEV/*
++		;;
++	*)
++		_scratch_mount
++		rm -rf $SCRATCH_MNT/*
++		_scratch_unmount
++		;;
++	esac
+ }
+ 
+ _scratch_mkfs()
 -- 
-Dave Chinner
-david@fromorbit.com
+1.8.3.1
