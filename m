@@ -1,121 +1,77 @@
-From: =?UTF-8?B?Um9iZXJ0IMWad2nEmWNraQ==?= <robert@swiecki.net>
-Subject: Re: GPF in overlay with ovl_rename2
-Date: Wed, 13 Jan 2016 23:09:32 +0100
-Message-ID: <CAP145pgt7ZJMLn0nzcUuO6G7OhjkLWgEXizGG5d9Uh7wx4ASbg@mail.gmail.com>
-References: <CAP145pgRmT4sxxOHYetAQ=q8KgRuMRXLKKJE02jP4AKPCi1zjQ@mail.gmail.com>
+From: "arnaud.mouiche@invoxia.com" <arnaud.mouiche@invoxia.com>
+Subject: Overlayfs with NFS lower layer is still not working
+Date: Tue, 19 Jan 2016 16:09:31 +0100
+Message-ID: <569E51AB.2040001@invoxia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-vk0-f52.google.com ([209.85.213.52]:34041 "EHLO
-	mail-vk0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932200AbcAMWJd convert rfc822-to-8bit (ORCPT
+Received: from mail-wm0-f45.google.com ([74.125.82.45]:37289 "EHLO
+	mail-wm0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753550AbcASPJf (ORCPT
 	<rfc822;linux-unionfs@vger.kernel.org>);
-	Wed, 13 Jan 2016 17:09:33 -0500
-Received: by mail-vk0-f52.google.com with SMTP id a123so239685143vkh.1
-        for <linux-unionfs@vger.kernel.org>; Wed, 13 Jan 2016 14:09:32 -0800 (PST)
-In-Reply-To: <CAP145pgRmT4sxxOHYetAQ=q8KgRuMRXLKKJE02jP4AKPCi1zjQ@mail.gmail.com>
+	Tue, 19 Jan 2016 10:09:35 -0500
+Received: by mail-wm0-f45.google.com with SMTP id n5so116910097wmn.0
+        for <linux-unionfs@vger.kernel.org>; Tue, 19 Jan 2016 07:09:34 -0800 (PST)
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org
+To: linux-unionfs@vger.kernel.org, Miklos Szeredi <miklos@szeredi.hu>
 
-Also, text/plain for the list
+Hi,
 
-Hi, there seems to be a bug in the overlay which causes a general page =
-fault.
+I'm following the progress done for supporting NFS as lower layer.
+It is still not working since ENXIO is returned on every attempt to open 
+a file (linux 4.4 + overlayfs-next branch)
 
-To replicate I used https://github.com/google/nsjail
+here is a simple example:
 
- I used kernel
+mkdir /tmp/nfs
+mount -t nfs x.x.x.x:/export/foo  -o nolock /tmp/nfs
 
-$ uname -a
-Linux jag 4.3.0-5-generic #16-Ubuntu SMP Wed Dec 16 23:33:25 UTC 2015
-x86_64 x86_64 x86_64 GNU/Linux
+mkdir -p /tmp/nv/overlay.wd
+mkdir -p /tmp/nv/upper
 
-$ ./nsjail -T /tmp -Mo --chroot /chroot/ --user 0 --group 0
---keep_caps -- /bin/sh -i
-/ # mkdir /tmp/h
-/ # mkdir /tmp/h/w
-/ # mkdir /tmp/h/u
-/ # mkdir /tmp/h/o
-/ # mount -t overlayfs -o
-lowerdir=3D/bin,upperdir=3D/tmp/h/u,workdir=3D/tmp/h/w overlay /tmp/h/o
-/ # cd /tmp/h/o
-/tmp/h/o # mv sh uuuuu
-Killed
+mkdir /tmp/ovl
+mount -t overlay overlay 
+-olowerdir=/tmp/nfs,upperdir=/tmp/nv/upper,workdir=/tmp/nv/overlay.wd 
+/tmp/ovl
 
-in dmesg
+# up to this point every thing is fine. "ls" is working. yet
 
-[176111.038478] overlayfs: ERROR - failed to whiteout '#ffff880004d9ff0=
-0'
-[176111.038511] BUG: unable to handle kernel paging request at ffffffff=
-ffffffff
-[176111.038517] IP: [<ffffffff81218e3e>] dput+0x1e/0x220
-[176111.038527] PGD 1e0f067 PUD 1e11067 PMD 0
-[176111.038533] Oops: 0000 [#2] SMP
-[176111.038537] Modules linked in: overlay nls_utf8 btrfs xor raid6_pq
-ufs qnx4 hfsplus hfs minix ntfs msdos jfs xfs libcrc32c input_leds
-pl2303 usbserial uvcvideo videobuf2_vmalloc videobuf2_memops
-videobuf2_core v4l2_common videodev media snd_usb_audio
-snd_usbmidi_lib pci_stub vboxpci(OE) vboxnetadp(OE) vboxnetflt(OE)
-vboxdrv(OE) binfmt_misc snd_hda_codec_hdmi eeepc_wmi asus_wmi
-sparse_keymap video mxm_wmi snd_hda_codec_realtek
-snd_hda_codec_generic nvidia(POE) snd_hda_intel snd_hda_codec
-serio_raw snd_hda_core edac_mce_amd snd_hwdep fam15h_power edac_core
-i2c_piix4 k10temp snd_pcm snd_seq_midi snd_seq_midi_event snd_rawmidi
-snd_seq snd_seq_device snd_timer drm snd soundcore shpchp wmi mac_hid
-kvm_amd kvm it87 hwmon_vid parport_pc ppdev lp parport autofs4 drbg
-ansi_cprng algif_skcipher af_alg dm_crypt
-[176111.038613]  uas usb_storage hid_generic usbhid hid
-crct10dif_pclmul crc32_pclmul aesni_intel aes_x86_64 lrw gf128mul
-glue_helper ablk_helper cryptd psmouse e1000e ahci ptp libahci
-pps_core fjes
-[176111.038637] CPU: 7 PID: 21179 Comm: busybox Tainted: P      D
-OE   4.3.0-5-generic #16-Ubuntu
-[176111.038645] task: ffff88042b7bc600 ti: ffff8803f2fe4000 task.ti:
-ffff8803f2fe4000
-[176111.038648] RIP: 0010:[<ffffffff81218e3e>]  [<ffffffff81218e3e>]
-dput+0x1e/0x220
-[176111.038655] RSP: 0018:ffff8803f2fe7d48  EFLAGS: 00010286
-[176111.038658] RAX: 0000000000000001 RBX: ffffffffffffffff RCX:
-0000000200000000
-[176111.038661] RDX: 0000000000000001 RSI: ffffffff81218080 RDI:
-ffffffffffffffff
-[176111.038664] RBP: ffff8803f2fe7d70 R08: 000000000000000a R09:
-0000000000000652
-[176111.038667] R10: 0000000000000000 R11: 0000000000000652 R12:
-0000000000000057
-[176111.038670] R13: 00000000ffffffff R14: 0000000000000000 R15:
-ffff880004d9ff00
-[176111.038674] FS:  00000000022cc8c0(0063) GS:ffff88043edc0000(0000)
-knlGS:00000000ef69eb40
-[176111.038677] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-[176111.038679] CR2: ffffffffffffffff CR3: 000000032ff67000 CR4:
-00000000000406e0
-[176111.038682] Stack:
-[176111.038685]  ffff88024847e600 ffff880004d9f6c0 00000000ffffffff
-0000000000000000
-[176111.038690]  ffff880004d9ff00 ffff8803f2fe7e10 ffffffffc102193e
-ffffffff8120c608
-[176111.038695]  0000000000000000 0000000000000000 0000000000000000
-ffff880427b33900
-[176111.038699] Call Trace:
-[176111.038711]  [<ffffffffc102193e>] ovl_rename2+0x78e/0x970 [overlay]
-[176111.038717]  [<ffffffff8120c608>] ? __inode_permission+0x48/0xb0
-[176111.038722]  [<ffffffff8120f3da>] vfs_rename+0x54a/0x870
-[176111.038729]  [<ffffffff8132e000>] ? security_path_rename+0x60/0xd0
-[176111.038734]  [<ffffffff8121410b>] SyS_rename+0x38b/0x3d0
-[176111.038741]  [<ffffffff817fba72>] entry_SYSCALL_64_fastpath+0x16/0x=
-71
-[176111.038744] Code: 40 00 e9 38 ff ff ff 66 0f 1f 44 00 00 0f 1f 44
-00 00 48 85 ff 74 4e 55 48 89 e5 41 57 41 56 41 55 41 54 4c 8d 67 58
-53 48 89 fb <f6> 03 08 4c 89 e7 0f 85 86 00 00 00 e8 e1 7e 1c 00 85 c0
-0f 88
-[176111.038794] RIP  [<ffffffff81218e3e>] dput+0x1e/0x220
-[176111.038800]  RSP <ffff8803f2fe7d48>
-[176111.038802] CR2: ffffffffffffffff
-[176111.038807] ---[ end trace b0f2f36c0da5e3f8 ]---
+cat /tmp/ovl/some_file_exisiting on /tmp/nfs
+cat: can't open '/tmp/ovl/some_file_exisiting': No such device or address
 
 
---=20
-Robert =C5=9Awi=C4=99cki
+I dig and I just found that it fails because every inode created by 
+ovl_lookup() are keeping the initial no_open() (fs/inode.c) method as 
+inode->i_fops->open,
+
+[<800d38f4>] (inode_init_always) from [<800d4204>] (alloc_inode+0x48/0x98)
+[<800d4204>] (alloc_inode) from [<800d5fac>] (new_inode_pseudo+0x8/0x64)
+[<800d5fac>] (new_inode_pseudo) from [<800d6014>] (new_inode+0xc/0x20)
+[<800d6014>] (new_inode) from [<80179688>] (ovl_new_inode+0x10/0xe0)
+[<80179688>] (ovl_new_inode) from [<80178ae8>] (ovl_lookup+0x1d0/0x44c)
+[<80178ae8>] (ovl_lookup) from [<800c5f00>] (lookup_real+0x30/0x4c)
+[<800c5f00>] (lookup_real) from [<800c9030>] (lookup_open+0xd8/0x184)
+[<800c9030>] (lookup_open) from [<800c9284>] (do_last+0x1a8/0x6e8)
+[<800c9284>] (do_last) from [<800c9858>] (path_openat+0x94/0x134)
+[<800c9858>] (path_openat) from [<800caec8>] (do_filp_open+0x38/0x84)
+[<800caec8>] (do_filp_open) from [<800bd604>] (do_sys_open+0x124/0x1c4)
+[<800bd604>] (do_sys_open) from [<8000ed20>] (ret_fast_syscall+0x0/0x3c)
+
+When the layer is not a remote one (eg. ramfs), d_select_inode() is 
+called before the open() call, giving a change to change i_fops content 
+with the real ones.
+But in NFS case, the i_fops switch done during d_select_inode() is not 
+done, and vfs_open() will finally call no_open() returning ENXIO.
+
+Just trying to also add a "d_select_inode" phase in 
+"ovl_reval_dentry_operations" fix this... but the system crash later 
+when the file is closed.
+Just to tell that there is still something missing...
+
+Unfortunately, I'm definitely not familiar at all with VFS & co to 
+understand exactly what is missing ;)
+
+Regards,
+Arnaud
