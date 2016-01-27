@@ -1,134 +1,75 @@
-From: Ignacy =?iso-8859-2?Q?Gaw=EAdzki?=
-	<ignacy.gawedzki@green-communications.fr>
-Subject: [PATCH 1/1] OverlayFS: Fix checking permissions during lookup.
-Date: Tue, 26 Jan 2016 09:38:34 +0100
-Message-ID: <20160126083834.GB18883@zenon.in.qult.net>
+From: "Laison Computech Inc" <danny@lamicro.com>
+Subject: NEW ARRIVALS, CISCO,CPU's,Memory, LAPTOP AND AVAYA
+Date: Wed, 27 Jan 2016 12:42:07 +0700
+Message-ID: <201601270544.AQX06505__44476.0569873781$1453951407$gmane$org@razorgate1.infokom.net>
+Reply-To: <LaisonComputer@computer4u.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-2
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain;
+	charset="Windows-1251"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from str75-3-78-193-33-39.fbxo.proxad.net ([78.193.33.39]:33064 "EHLO
-	mail.qult.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932404AbcAZIig (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-	Tue, 26 Jan 2016 03:38:36 -0500
-Received: from zenon.in.qult.net ([192.168.64.1])
-	by mail.qult.net with esmtps (TLS1.2:RSA_AES_128_CBC_SHA1:128)
-	(Exim 4.82)
-	(envelope-from <ignacy.gawedzki@green-communications.fr>)
-	id 1aNz90-0007a9-TE
-	for linux-unionfs@vger.kernel.org; Tue, 26 Jan 2016 09:38:35 +0100
-Received: from ig by zenon.in.qult.net with local (Exim 4.86)
-	(envelope-from <ignacy.gawedzki@green-communications.fr>)
-	id 1aNz90-0004vh-Ch
-	for linux-unionfs@vger.kernel.org; Tue, 26 Jan 2016 09:38:34 +0100
-Content-Disposition: inline
+Received: from razorgate1.infokom.net ([202.147.192.101]:12525 "EHLO
+	razorgate1.infokom.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965587AbcA1DXO (ORCPT
+	<rfc822;linux-unionfs@vger.kernel.org>);
+	Wed, 27 Jan 2016 22:23:14 -0500
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: linux-unionfs@vger.kernel.org
 
-Add alternate lookup_one_len_check function to fs/namei.c which does
-what lookup_one_len did until now with a boolean argument telling
-whether to check that the base directory is traversable.  Modify
-original lookup_one_len function to call the former with true as the
-last argument.
+Dear Sir/Madam,
 
-In function ovl_lookup_real, file fs/overlayfs/super.c, call
-lookup_one_len_check with false as the last argument, so that failure
-to traverse the base directory does not return -EACCES.  This should
-make lookup resolution work properly in the following setup
+Clean tested working pulls CPUs and QTYs in stock.
 
-  drwxr-xr-x lower/
-  drwx------ lower/foo/
-  drw-r--r-- lower/boo/bar
-  drwxr-xr-x upper/
-  drwxr-xr-x upper/foo/
+115  X   X5650
+65  X   E5410
+75  X   X5660
+145  X   E5530
+100  X   E5645
+40  X   X5680
+75  X   X5690
 
-when any user not being the owner of lower/foo is trying to access
-foo/bar in the mounted overlay.
+Brand new sealed  IP phones and QTYs in stock.
 
-Signed-off-by: Ignacy Gaw=EAdzki <ignacy.gawedzki@green-communications.=
-fr>
----
- fs/namei.c            | 21 ++++++++++++++++++++-
- fs/overlayfs/super.c  |  2 +-
- include/linux/namei.h |  1 +
- 3 files changed, 22 insertions(+), 2 deletions(-)
+55 x CP-7937G
+77 x CP-7942G
+54 x CP-7945G
+75 x CP-7962G
+......
+45 x Avaya 9630
+65 x Avaya 9641
+55 x Avaya 9640
 
-diff --git a/fs/namei.c b/fs/namei.c
-index f624d13..1d0aedb 100644
---- a/fs/namei.c
-+++ b/fs/namei.c
-@@ -2278,6 +2278,25 @@ EXPORT_SYMBOL(vfs_path_lookup);
-  */
- struct dentry *lookup_one_len(const char *name, struct dentry *base, i=
-nt len)
- {
-+	return lookup_one_len_check(name, base, len, true);
-+}
-+EXPORT_SYMBOL(lookup_one_len);
-+
-+/**
-+ * lookup_one_len_check - filesystem helper to lookup single pathname =
-component
-+ * @name:	pathname component to lookup
-+ * @base:	base directory to lookup from
-+ * @len:	maximum length @len should be interpreted to
-+ * @check:	whether to check that @base is itself traversable.
-+ *
-+ * Note that this routine is purely a helper for filesystem usage and =
-should
-+ * not be called by generic code.
-+ *
-+ * The caller must hold base->i_mutex.
-+ */
-+struct dentry *lookup_one_len_check(const char *name, struct dentry *b=
-ase,
-+				    int len, bool check_base)
-+{
- 	struct qstr this;
- 	unsigned int c;
- 	int err;
-@@ -2316,7 +2335,7 @@ struct dentry *lookup_one_len(const char *name, s=
-truct dentry *base, int len)
-=20
- 	return __lookup_hash(&this, base, 0);
- }
--EXPORT_SYMBOL(lookup_one_len);
-+EXPORT_SYMBOL(lookup_one_len_check);
-=20
- /**
-  * lookup_one_len_unlocked - filesystem helper to lookup single pathna=
-me component
-diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-index 8d826bd..f7a1c84 100644
---- a/fs/overlayfs/super.c
-+++ b/fs/overlayfs/super.c
-@@ -376,7 +376,7 @@ static inline struct dentry *ovl_lookup_real(struct=
- dentry *dir,
- 	struct dentry *dentry;
-=20
- 	inode_lock(dir->d_inode);
--	dentry =3D lookup_one_len(name->name, dir, name->len);
-+	dentry =3D lookup_one_len(name->name, dir, name->len, false);
- 	inode_unlock(dir->d_inode);
-=20
- 	if (IS_ERR(dentry)) {
-diff --git a/include/linux/namei.h b/include/linux/namei.h
-index d0f25d8..0af6775 100644
---- a/include/linux/namei.h
-+++ b/include/linux/namei.h
-@@ -77,6 +77,7 @@ extern struct dentry *kern_path_locked(const char *, =
-struct path *);
- extern int kern_path_mountpoint(int, const char *, struct path *, unsi=
-gned int);
-=20
- extern struct dentry *lookup_one_len(const char *, struct dentry *, in=
-t);
-+extern struct dentry *lookup_one_len_check(const char *, struct dentry=
- *, int, bool);
- extern struct dentry *lookup_one_len_unlocked(const char *, struct den=
-try *, int);
-=20
- extern int follow_down_one(struct path *);
---=20
-2.5.0
+All NIB.
+
+Here is our current stock list.
+
+ SSD drives and 750 gig 2.5" sata drives
+
+We also have
+250 x i5 dell
+133 x HP
+360 x Lenevo
+all grade A
+
+Here is the qty in stock for laptops
+ 
+150 x E6500 Dell Latitude E6500 Core 2 Duo 2.80GHz T9600 4GB 160GB DVD+/-RW Win 7
+ 60 x E6510 Dell Ltitude E6510. 15.6" Intel Core i5- M520 @ 2.40GHz. 4GB. 320GB DVD+/-RW Win 7
+30 X 8530P HP EliteBook 8530p 15.4" Laptop 2.53GHz Core 2 Duo T9400, 4GB RAM, 160GB HDD, Win
+100 x  8740W  HP EliteBook 8740w 17" 2.4Ghz Core i5 6GB 250GB Win 7 Pr
+45 x 8760W HP EliteBook 8760W 17.3" 2nd Gen Intel Core i7 2.70GHz 8GB 320GB Windows 7 Pro
+50 x DELL 6520Dell latitude e6520 15.6" i5-2520M 2.5Ghz, 8GB Ram, 500GB HD Win 7 @ $115
+120 x DELL 6420 Laptop Dell Latitude E6420 14" Intel Core i5 2.4Ghz 4GB RAM 250GB HDD DVD Win 7
+150 x T410 Lenovo ThinkPad Laptop T410s 14.1" 2.40GHz Core i5 4GB RAM 160GB Win 7
+180 x 8440P HP EliteBook 8440p 14" M520 Core i5 2.4GHz 4GB 250GB Win 7
+
+
+Let me know if you're interested. We are very open to offers and willing to work with you to make sure that we have a deal.
+
+Thank You
+Barbara Johnson
+Laison Computech Inc
+210 N Scoring Ave,
+Rialto California, 92376
+Tel: +1-657-232-7047
+Fax: +1-347-214-047
