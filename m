@@ -1,75 +1,148 @@
-From: "Laison Computech Inc" <danny@lamicro.com>
-Subject: NEW ARRIVALS, CISCO,CPU's,Memory, LAPTOP AND AVAYA
-Date: Wed, 27 Jan 2016 12:42:07 +0700
-Message-ID: <201601270544.AQX06505__44476.0569873781$1453951407$gmane$org@razorgate1.infokom.net>
-Reply-To: <LaisonComputer@computer4u.com>
+From: Konstantin Khlebnikov <koct9i@gmail.com>
+Subject: Re: [PATCH] overlay: Clear stale ->numlower state over rename operation
+Date: Fri, 29 Jan 2016 23:26:15 +0300
+Message-ID: <CALYGNiNntf1XvqL54hBgwCwFZEAsUEGmMDa-UW4JOi5X1Ba=jA@mail.gmail.com>
+References: <20160125215832.GB8948@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="Windows-1251"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from razorgate1.infokom.net ([202.147.192.101]:12525 "EHLO
-	razorgate1.infokom.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965587AbcA1DXO (ORCPT
-	<rfc822;linux-unionfs@vger.kernel.org>);
-	Wed, 27 Jan 2016 22:23:14 -0500
-Sender: linux-unionfs-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
+In-Reply-To: <20160125215832.GB8948@redhat.com>
+Sender: linux-fsdevel-owner@vger.kernel.org
+To: Vivek Goyal <vgoyal@redhat.com>
+Cc: linux-unionfs@vger.kernel.org, Miklos Szeredi <miklos@szeredi.hu>, David Howells <dhowells@redhat.com>, linux-fsdevel <linux-fsdevel@vger.kernel.org>
 List-Id: linux-unionfs@vger.kernel.org
 
-Dear Sir/Madam,
+On Tue, Jan 26, 2016 at 12:58 AM, Vivek Goyal <vgoyal@redhat.com> wrote:
+> Over rename, we don't seem to be doing anything about the ->numlower
+> state of ovl_entry and we continue to retain that. Fact of the matter
+> is that ->numlower is not valid any more and it can interfere with
+> other operations like file removal. So reset that state.
+>
+> This fixes the issue reported here.
+>
+> https://bugzilla.kernel.org/show_bug.cgi?id=109611
+>
+> A previous attempt to fix the issue was here.
+>
+> http://marc.info/?l=linux-fsdevel&m=145252052703010&w=2
+>
+> This probably is better fix than previous one.
+>
+> Here are the details of the problem. Do following.
+>
+> $ mkdir upper lower work merged upper/dir/
+> $ touch lower/test
+> $ sudo mount -t overlay overlay -olowerdir=lower,upperdir=upper,workdir=work
+> merged
+> $ mv merged/test merged/dir/
+> $ rm merged/dir/test
+> $ ls -l merged/dir/
+> /usr/bin/ls: cannot access merged/dir/test: No such file or directory
+> total 0
+> c????????? ? ? ? ?            ? test
+>
+> Basic problem seems to be that once a file has been unlinked, a
+> whiteout has been left behind which was not needed and hence it becomes
+> visible.
+>
+> whiteout is visible because parent dir is of not type MERGE, hence
+> od->is_real is set during ovl_dir_open(). And that means ovl_iterate()
+> passes on iterate handling directly to underlying fs. Underlying fs does
+> not know/filter whiteouts so it becomes visible to user.
+>
+> Why did we leave a whiteout to begin with when we should not have.
+> ovl_do_remove() checks for OVL_TYPE_PURE_UPPER() and does not leave
+> whiteout if file is pure upper. In this case file is not found to be
+> pure upper hence whiteout is left.
+>
+> So why file was not PURE_UPPER in this case? I think because dentry is
+> still carrying some leftover state which was valid before rename. For example,
+> od->numlower was set to 1 as it was a lower file. After rename, this state
+> is not valid anymore as there is no such file in lower.
 
-Clean tested working pulls CPUs and QTYs in stock.
+I've stumbled upon the same bug.
 
-115  X   X5650
-65  X   E5410
-75  X   X5660
-145  X   E5530
-100  X   E5645
-40  X   X5680
-75  X   X5690
+I'm affraid this solution is racy: ovl_path_real() works without any locks.
+__upperdentry could appear at any time, but lowerstack[0] cannot disapper.
 
-Brand new sealed  IP phones and QTYs in stock.
+I thiink the only option is keeping 'purity' status in ovl_entry independently.
+Or better call is 'haslower'. It could differ from numlower !=0 for file entries
+with upper dentry. After copy_up and rename entrly will keep references to
+lower dentry from old location but haslower will be copied from entry from
+new location.
 
-55 x CP-7937G
-77 x CP-7942G
-54 x CP-7945G
-75 x CP-7962G
-......
-45 x Avaya 9630
-65 x Avaya 9641
-55 x Avaya 9640
-
-All NIB.
-
-Here is our current stock list.
-
- SSD drives and 750 gig 2.5" sata drives
-
-We also have
-250 x i5 dell
-133 x HP
-360 x Lenevo
-all grade A
-
-Here is the qty in stock for laptops
- 
-150 x E6500 Dell Latitude E6500 Core 2 Duo 2.80GHz T9600 4GB 160GB DVD+/-RW Win 7
- 60 x E6510 Dell Ltitude E6510. 15.6" Intel Core i5- M520 @ 2.40GHz. 4GB. 320GB DVD+/-RW Win 7
-30 X 8530P HP EliteBook 8530p 15.4" Laptop 2.53GHz Core 2 Duo T9400, 4GB RAM, 160GB HDD, Win
-100 x  8740W  HP EliteBook 8740w 17" 2.4Ghz Core i5 6GB 250GB Win 7 Pr
-45 x 8760W HP EliteBook 8760W 17.3" 2nd Gen Intel Core i7 2.70GHz 8GB 320GB Windows 7 Pro
-50 x DELL 6520Dell latitude e6520 15.6" i5-2520M 2.5Ghz, 8GB Ram, 500GB HD Win 7 @ $115
-120 x DELL 6420 Laptop Dell Latitude E6420 14" Intel Core i5 2.4Ghz 4GB RAM 250GB HDD DVD Win 7
-150 x T410 Lenovo ThinkPad Laptop T410s 14.1" 2.40GHz Core i5 4GB RAM 160GB Win 7
-180 x 8440P HP EliteBook 8440p 14" M520 Core i5 2.4GHz 4GB 250GB Win 7
-
-
-Let me know if you're interested. We are very open to offers and willing to work with you to make sure that we have a deal.
-
-Thank You
-Barbara Johnson
-Laison Computech Inc
-210 N Scoring Ave,
-Rialto California, 92376
-Tel: +1-657-232-7047
-Fax: +1-347-214-047
+>
+> Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
+> ---
+>  fs/overlayfs/dir.c       | 13 +++++++++++++
+>  fs/overlayfs/overlayfs.h |  1 +
+>  fs/overlayfs/super.c     | 13 +++++++++++++
+>  3 files changed, 27 insertions(+)
+>
+> diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
+> index 692ceda..a165213 100644
+> --- a/fs/overlayfs/dir.c
+> +++ b/fs/overlayfs/dir.c
+> @@ -909,6 +909,19 @@ static int ovl_rename2(struct inode *olddir, struct dentry *old,
+>                         ovl_dentry_set_opaque(new, old_opaque);
+>         }
+>
+> +       /*
+> +        * As file/dir is being renamed, ->numlower state is stale. It
+> +        * should be ok to set it to zero as at new location file will
+> +        * be either upper/pure_upper and numlower will be zero. In
+> +        * case of directory, if destination dir is present it has to be
+> +        * empty dir and rename should be overwriting that directory and
+> +        * that should make lower level direcotry invisible hence
+> +        * numlower=0 makes sense there too.
+> +        */
+> +       ovl_free_lower(old);
+> +       if (!overwrite)
+> +               ovl_free_lower(new);
+> +
+>         if (cleanup_whiteout)
+>                 ovl_cleanup(old_upperdir->d_inode, newdentry);
+>
+> diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
+> index e17154a..d75b6a0 100644
+> --- a/fs/overlayfs/overlayfs.h
+> +++ b/fs/overlayfs/overlayfs.h
+> @@ -151,6 +151,7 @@ bool ovl_dentry_is_opaque(struct dentry *dentry);
+>  void ovl_dentry_set_opaque(struct dentry *dentry, bool opaque);
+>  bool ovl_is_whiteout(struct dentry *dentry);
+>  void ovl_dentry_update(struct dentry *dentry, struct dentry *upperdentry);
+> +void ovl_free_lower(struct dentry *dentry);
+>  struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
+>                           unsigned int flags);
+>  struct file *ovl_path_open(struct path *path, int flags);
+> diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+> index e38ee0f..31f9920 100644
+> --- a/fs/overlayfs/super.c
+> +++ b/fs/overlayfs/super.c
+> @@ -205,6 +205,19 @@ void ovl_dentry_set_opaque(struct dentry *dentry, bool opaque)
+>         oe->opaque = opaque;
+>  }
+>
+> +void ovl_free_lower(struct dentry *dentry) {
+> +       struct ovl_entry *oe = dentry->d_fsdata;
+> +       int i;
+> +
+> +       if (!oe->numlower)
+> +               return;
+> +
+> +       for (i = 0; i < oe->numlower; i++)
+> +               dput(oe->lowerstack[i].dentry);
+> +
+> +       oe->numlower = 0;
+> +}
+> +
+>  void ovl_dentry_update(struct dentry *dentry, struct dentry *upperdentry)
+>  {
+>         struct ovl_entry *oe = dentry->d_fsdata;
+> --
+> 2.1.0
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-fsdevel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
