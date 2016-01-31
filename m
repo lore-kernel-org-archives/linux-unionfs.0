@@ -1,75 +1,40 @@
 From: Konstantin Khlebnikov <koct9i@gmail.com>
-Subject: [PATCH] vfs: update atime using file->f_inode
-Date: Sun, 31 Jan 2016 16:19:46 +0300
-Message-ID: <145424638614.10446.16013603987277558993.stgit@zurg>
+Subject: [PATCH] ovl: copy new uid/gid into overlayfs runtime inode
+Date: Sun, 31 Jan 2016 16:21:29 +0300
+Message-ID: <145424648900.10573.4331586687947621230.stgit@zurg>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org, Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: linux-kernel@vger.kernel.org, Miklos Szeredi <miklos@szeredi.hu>
+Return-path: <linux-unionfs-owner@vger.kernel.org>
+Received: from mail-lf0-f41.google.com ([209.85.215.41]:36237 "EHLO
+	mail-lf0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757319AbcAaNVf (ORCPT
+	<rfc822;linux-unionfs@vger.kernel.org>);
+	Sun, 31 Jan 2016 08:21:35 -0500
+Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
+To: linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org, Miklos Szeredi <miklos@szeredi.hu>
+Cc: linux-kernel@vger.kernel.org, Alexander Viro <viro@zeniv.linux.org.uk>
 
-This fixes some cases of missing atime update for overlayfs.
+Overlayfs must update uid/gid after chown, otherwise functions
+like inode_owner_or_capable() will check user against stale uid.
+Catched by xfstests generic/087, it chowns file and calls utimes.
 
 Signed-off-by: Konstantin Khlebnikov <koct9i@gmail.com>
 ---
- fs/inode.c         |   15 +++++++++++++--
- include/linux/fs.h |    6 +-----
- 2 files changed, 14 insertions(+), 7 deletions(-)
+ fs/overlayfs/inode.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/fs/inode.c b/fs/inode.c
-index 9f62db3bcc3e..6a4dd94c0ea3 100644
---- a/fs/inode.c
-+++ b/fs/inode.c
-@@ -1631,10 +1631,9 @@ bool atime_needs_update(const struct path *path, struct inode *inode)
- 	return true;
- }
+diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
+index 49e204560655..a4ff5d0d7db9 100644
+--- a/fs/overlayfs/inode.c
++++ b/fs/overlayfs/inode.c
+@@ -65,6 +65,8 @@ int ovl_setattr(struct dentry *dentry, struct iattr *attr)
  
--void touch_atime(const struct path *path)
-+static void touch_inode_atime(const struct path *path, struct inode *inode)
- {
- 	struct vfsmount *mnt = path->mnt;
--	struct inode *inode = d_inode(path->dentry);
- 	struct timespec now;
- 
- 	if (!atime_needs_update(path, inode))
-@@ -1660,8 +1659,20 @@ void touch_atime(const struct path *path)
- skip_update:
- 	sb_end_write(inode->i_sb);
- }
-+
-+void touch_atime(const struct path *path)
-+{
-+	touch_inode_atime(path, d_inode(path->dentry));
-+}
- EXPORT_SYMBOL(touch_atime);
- 
-+void file_accessed(const struct file *file)
-+{
-+	if (!(file->f_flags & O_NOATIME))
-+		touch_inode_atime(&file->f_path, file_inode(file));
-+}
-+EXPORT_SYMBOL(file_accessed);
-+
- /*
-  * The logic we want is
-  *
-diff --git a/include/linux/fs.h b/include/linux/fs.h
-index 1a2046275cdf..22c89094a7e3 100644
---- a/include/linux/fs.h
-+++ b/include/linux/fs.h
-@@ -1951,11 +1951,7 @@ enum file_time_flags {
- 
- extern bool atime_needs_update(const struct path *, struct inode *);
- extern void touch_atime(const struct path *);
--static inline void file_accessed(struct file *file)
--{
--	if (!(file->f_flags & O_NOATIME))
--		touch_atime(&file->f_path);
--}
-+extern void file_accessed(const struct file *file);
- 
- int sync_inode(struct inode *inode, struct writeback_control *wbc);
- int sync_inode_metadata(struct inode *inode, int wait);
+ 		inode_lock(upperdentry->d_inode);
+ 		err = notify_change(upperdentry, attr, NULL);
++		if (!err)
++			ovl_copyattr(upperdentry->d_inode, dentry->d_inode);
+ 		inode_unlock(upperdentry->d_inode);
+ 	}
+ 	ovl_drop_write(dentry);
