@@ -1,40 +1,34 @@
 From: Konstantin Khlebnikov <koct9i@gmail.com>
-Subject: [PATCH] ovl: copy MS_POSIXACL flag from upper layer
-Date: Sun, 31 Jan 2016 16:22:01 +0300
-Message-ID: <145424652170.10770.5085971283841936983.stgit@zurg>
+Subject: [PATCH] ovl: fix working on distributed fs as lower layer
+Date: Sun, 31 Jan 2016 16:22:16 +0300
+Message-ID: <145424653619.10827.10119853770850679426.stgit@zurg>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-lb0-f173.google.com ([209.85.217.173]:33890 "EHLO
-	mail-lb0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757430AbcAaNWI (ORCPT
-	<rfc822;linux-unionfs@vger.kernel.org>);
-	Sun, 31 Jan 2016 08:22:08 -0500
-Sender: linux-unionfs-owner@vger.kernel.org
-List-Id: linux-unionfs@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
 To: linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org, Miklos Szeredi <miklos@szeredi.hu>
 Cc: linux-kernel@vger.kernel.org, Alexander Viro <viro@zeniv.linux.org.uk>
+List-Id: linux-unionfs@vger.kernel.org
 
-Catched by xfstests generic/319
+This adds missing .d_select_inode into alternative dentry_operations.
 
 Signed-off-by: Konstantin Khlebnikov <koct9i@gmail.com>
+Fixes: 7c03b5d45b8e ("ovl: allow distributed fs as lower layer")
+Fixes: 4bacc9c9234c ("overlayfs: Make f_path always point to the overlay and f_inode to the underlay")
 ---
- fs/overlayfs/super.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ fs/overlayfs/super.c |    1 +
+ 1 file changed, 1 insertion(+)
 
 diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-index ba28b007005e..e6ae59c7119c 100644
+index e6ae59c7119c..1a354840f262 100644
 --- a/fs/overlayfs/super.c
 +++ b/fs/overlayfs/super.c
-@@ -972,6 +972,10 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
- 			goto out_put_workpath;
- 		}
- 		sb->s_stack_depth = upperpath.mnt->mnt_sb->s_stack_depth;
-+
-+		/* Copy MS_POSIXACL flag from upper layer */
-+		sb->s_flags &= ~MS_POSIXACL;
-+		sb->s_flags |= upperpath.mnt->mnt_sb->s_flags & MS_POSIXACL;
- 	}
- 	err = -ENOMEM;
- 	lowertmp = kstrdup(ufs->config.lowerdir, GFP_KERNEL);
+@@ -343,6 +343,7 @@ static const struct dentry_operations ovl_dentry_operations = {
+ 
+ static const struct dentry_operations ovl_reval_dentry_operations = {
+ 	.d_release = ovl_dentry_release,
++	.d_select_inode = ovl_d_select_inode,
+ 	.d_revalidate = ovl_dentry_revalidate,
+ 	.d_weak_revalidate = ovl_dentry_weak_revalidate,
+ };
