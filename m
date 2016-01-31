@@ -1,109 +1,75 @@
 From: Konstantin Khlebnikov <koct9i@gmail.com>
-Subject: [PATCH] ovl: ignore lower entries when checking purity of
- non-directory entries
-Date: Sun, 31 Jan 2016 16:17:53 +0300
-Message-ID: <145424627339.27058.6895511767458306300.stgit@zurg>
+Subject: [PATCH] vfs: update atime using file->f_inode
+Date: Sun, 31 Jan 2016 16:19:46 +0300
+Message-ID: <145424638614.10446.16013603987277558993.stgit@zurg>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org
-Cc: David Howells <dhowells@redhat.com>, linux-kernel@vger.kernel.org, Vivek Goyal <vgoyal@redhat.com>
+To: linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org, Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: linux-kernel@vger.kernel.org, Miklos Szeredi <miklos@szeredi.hu>
 List-Id: linux-unionfs@vger.kernel.org
 
-After rename file dentry still holds reference to lower dentry from
-previous location. This doesn't matter for data access because data
-cames from upper dentry. But this stale lower dentry taints dentry
-at new location and turns it into non-pure upper. Such file leaves
-visible whiteout entry after remove in directory which shouldn't
-have whiteouts at all.
-
-Overlayfs already tracks pureness of file location in oe->opaque.
-This patch just uses that for detecting actual path type.
-
-Comment from Vivek Goyal's patch:
-
-Here are the details of the problem. Do following.
-
-$ mkdir upper lower work merged upper/dir/
-$ touch lower/test
-$ sudo mount -t overlay overlay -olowerdir=lower,upperdir=upper,workdir=work
-merged
-$ mv merged/test merged/dir/
-$ rm merged/dir/test
-$ ls -l merged/dir/
-/usr/bin/ls: cannot access merged/dir/test: No such file or directory
-total 0
-c????????? ? ? ? ?            ? test
-
-Basic problem seems to be that once a file has been unlinked, a
-whiteout has been left behind which was not needed and hence it becomes
-visible.
-
-whiteout is visible because parent dir is of not type MERGE, hence
-od->is_real is set during ovl_dir_open(). And that means ovl_iterate()
-passes on iterate handling directly to underlying fs. Underlying fs does
-not know/filter whiteouts so it becomes visible to user.
-
-Why did we leave a whiteout to begin with when we should not have.
-ovl_do_remove() checks for OVL_TYPE_PURE_UPPER() and does not leave
-whiteout if file is pure upper. In this case file is not found to be
-pure upper hence whiteout is left.
-
-So why file was not PURE_UPPER in this case? I think because dentry is
-still carrying some leftover state which was valid before rename. For example,
-od->numlower was set to 1 as it was a lower file. After rename, this state
-is not valid anymore as there is no such file in lower.
+This fixes some cases of missing atime update for overlayfs.
 
 Signed-off-by: Konstantin Khlebnikov <koct9i@gmail.com>
-Reported-by: Viktor Stanchev <me@viktorstanchev.com>
-Diagnosed-by: Vivek Goyal <vgoyal@redhat.com>
-Link: https://bugzilla.kernel.org/show_bug.cgi?id=109611
 ---
- fs/overlayfs/dir.c   |    7 +++++++
- fs/overlayfs/super.c |   12 +++++++-----
- 2 files changed, 14 insertions(+), 5 deletions(-)
+ fs/inode.c         |   15 +++++++++++++--
+ include/linux/fs.h |    6 +-----
+ 2 files changed, 14 insertions(+), 7 deletions(-)
 
-diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
-index ed95272d57a6..edf83f325bca 100644
---- a/fs/overlayfs/dir.c
-+++ b/fs/overlayfs/dir.c
-@@ -903,6 +903,13 @@ static int ovl_rename2(struct inode *olddir, struct dentry *old,
- 	if (!overwrite && new_is_dir && !old_opaque && new_opaque)
- 		ovl_remove_opaque(newdentry);
+diff --git a/fs/inode.c b/fs/inode.c
+index 9f62db3bcc3e..6a4dd94c0ea3 100644
+--- a/fs/inode.c
++++ b/fs/inode.c
+@@ -1631,10 +1631,9 @@ bool atime_needs_update(const struct path *path, struct inode *inode)
+ 	return true;
+ }
  
-+	/*
-+	 * Old dentry now lives in different location. Dentries in
-+	 * lowerstack are stale. We cannot drop them here because
-+	 * access to them is lockless. This could be only pure upper
-+	 * or opaque directory - numlower is zero. Or upper non-dir
-+	 * entry - its pureness is tracked by flag opaque.
-+	 */
- 	if (old_opaque != new_opaque) {
- 		ovl_dentry_set_opaque(old, new_opaque);
- 		if (!overwrite)
-diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-index 8d826bd56b26..ba28b007005e 100644
---- a/fs/overlayfs/super.c
-+++ b/fs/overlayfs/super.c
-@@ -76,12 +76,14 @@ enum ovl_path_type ovl_path_type(struct dentry *dentry)
- 	if (oe->__upperdentry) {
- 		type = __OVL_PATH_UPPER;
+-void touch_atime(const struct path *path)
++static void touch_inode_atime(const struct path *path, struct inode *inode)
+ {
+ 	struct vfsmount *mnt = path->mnt;
+-	struct inode *inode = d_inode(path->dentry);
+ 	struct timespec now;
  
--		if (oe->numlower) {
--			if (S_ISDIR(dentry->d_inode->i_mode))
--				type |= __OVL_PATH_MERGE;
--		} else if (!oe->opaque) {
-+		/*
-+		 * Non-dir dentry can hold lower dentry from previous
-+		 * location. Its purity depends only on opaque flag.
-+		 */
-+		if (oe->numlower && S_ISDIR(dentry->d_inode->i_mode))
-+			type |= __OVL_PATH_MERGE;
-+		else if (!oe->opaque)
- 			type |= __OVL_PATH_PURE;
--		}
- 	} else {
- 		if (oe->numlower > 1)
- 			type |= __OVL_PATH_MERGE;
+ 	if (!atime_needs_update(path, inode))
+@@ -1660,8 +1659,20 @@ void touch_atime(const struct path *path)
+ skip_update:
+ 	sb_end_write(inode->i_sb);
+ }
++
++void touch_atime(const struct path *path)
++{
++	touch_inode_atime(path, d_inode(path->dentry));
++}
+ EXPORT_SYMBOL(touch_atime);
+ 
++void file_accessed(const struct file *file)
++{
++	if (!(file->f_flags & O_NOATIME))
++		touch_inode_atime(&file->f_path, file_inode(file));
++}
++EXPORT_SYMBOL(file_accessed);
++
+ /*
+  * The logic we want is
+  *
+diff --git a/include/linux/fs.h b/include/linux/fs.h
+index 1a2046275cdf..22c89094a7e3 100644
+--- a/include/linux/fs.h
++++ b/include/linux/fs.h
+@@ -1951,11 +1951,7 @@ enum file_time_flags {
+ 
+ extern bool atime_needs_update(const struct path *, struct inode *);
+ extern void touch_atime(const struct path *);
+-static inline void file_accessed(struct file *file)
+-{
+-	if (!(file->f_flags & O_NOATIME))
+-		touch_atime(&file->f_path);
+-}
++extern void file_accessed(const struct file *file);
+ 
+ int sync_inode(struct inode *inode, struct writeback_control *wbc);
+ int sync_inode_metadata(struct inode *inode, int wait);
