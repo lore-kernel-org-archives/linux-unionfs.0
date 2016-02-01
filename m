@@ -1,60 +1,133 @@
-Return-Path: <leisurelysw24@gmail.com>
-MIME-Version: 1.0
-Date: Mon, 4 Jan 2016 13:03:02 +0800
-Message-ID: <CAKQB+fuYbWHm+CiYHDycrre5RZdCVKPRuqz83FnkGF2_0siz8w@mail.gmail.com>
-Subject: Question about the restrictions on overlayfs
-From: Jerry Lee <leisurelysw24@gmail.com>
-Content-Type: multipart/alternative; boundary=001a1139784c194c2005287b0969
-To: linux-unionfs@vger.kernel.org, miklos@szeredi.hu, mszeredi@suse.cz
-List-ID: <linux-unionfs@vger.kernel.org>
+From: Vivek Goyal <vgoyal@redhat.com>
+Subject: Re: [PATCH] ovl: ignore lower entries when checking purity of
+ non-directory entries
+Date: Mon, 1 Feb 2016 09:14:24 -0500
+Message-ID: <20160201141424.GA1448@redhat.com>
+References: <145424627339.27058.6895511767458306300.stgit@zurg>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-unionfs-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:52680 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932244AbcBAOO0 (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+	Mon, 1 Feb 2016 09:14:26 -0500
+Content-Disposition: inline
+In-Reply-To: <145424627339.27058.6895511767458306300.stgit@zurg>
+Sender: linux-unionfs-owner@vger.kernel.org
+List-Id: linux-unionfs@vger.kernel.org
+To: Konstantin Khlebnikov <koct9i@gmail.com>
+Cc: linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org, David Howells <dhowells@redhat.com>, linux-kernel@vger.kernel.org
 
---001a1139784c194c2005287b0969
-Content-Type: text/plain; charset=UTF-8
+On Sun, Jan 31, 2016 at 04:17:53PM +0300, Konstantin Khlebnikov wrote:
+> After rename file dentry still holds reference to lower dentry from
+> previous location. This doesn't matter for data access because data
+> cames from upper dentry. But this stale lower dentry taints dentry
+> at new location and turns it into non-pure upper. Such file leaves
+> visible whiteout entry after remove in directory which shouldn't
+> have whiteouts at all.
+> 
+> Overlayfs already tracks pureness of file location in oe->opaque.
+> This patch just uses that for detecting actual path type.
+> 
+> Comment from Vivek Goyal's patch:
+> 
+> Here are the details of the problem. Do following.
+> 
+> $ mkdir upper lower work merged upper/dir/
+> $ touch lower/test
+> $ sudo mount -t overlay overlay -olowerdir=lower,upperdir=upper,workdir=work
+> merged
+> $ mv merged/test merged/dir/
+> $ rm merged/dir/test
+> $ ls -l merged/dir/
+> /usr/bin/ls: cannot access merged/dir/test: No such file or directory
+> total 0
+> c????????? ? ? ? ?            ? test
+> 
+> Basic problem seems to be that once a file has been unlinked, a
+> whiteout has been left behind which was not needed and hence it becomes
+> visible.
+> 
+> whiteout is visible because parent dir is of not type MERGE, hence
+> od->is_real is set during ovl_dir_open(). And that means ovl_iterate()
+> passes on iterate handling directly to underlying fs. Underlying fs does
+> not know/filter whiteouts so it becomes visible to user.
+> 
+> Why did we leave a whiteout to begin with when we should not have.
+> ovl_do_remove() checks for OVL_TYPE_PURE_UPPER() and does not leave
+> whiteout if file is pure upper. In this case file is not found to be
+> pure upper hence whiteout is left.
+> 
+> So why file was not PURE_UPPER in this case? I think because dentry is
+> still carrying some leftover state which was valid before rename. For example,
+> od->numlower was set to 1 as it was a lower file. After rename, this state
+> is not valid anymore as there is no such file in lower.
+> 
+> Signed-off-by: Konstantin Khlebnikov <koct9i@gmail.com>
+> Reported-by: Viktor Stanchev <me@viktorstanchev.com>
+> Diagnosed-by: Vivek Goyal <vgoyal@redhat.com>
+> Link: https://bugzilla.kernel.org/show_bug.cgi?id=109611
 
-Hi,
+Hi Konstantin,
 
-I have a question about the restrictions on overlayfs.  When mounting
-overlayfs, it
-uses the ovl_dentry_weird() function to check whether the dentries on the
-upper file
-system has some dentry operations defined.  Here's the code:
+Thanks for the patch. This patch works for me also does not break
+unionmount-testsuite.
 
-static bool ovl_dentry_weird(struct dentry *dentry)
-{
-       return dentry->d_flags & (DCACHE_NEED_AUTOMOUNT |
-                                 DCACHE_MANAGE_TRANSIT |
-                                 DCACHE_OP_HASH |
-                                 DCACHE_OP_COMPARE);
-}
+This change also sounds reasonable to me. (given we can't free lower). So
+over rename we will be keeping references to dentries which we should
+not have to. I guess there does not seem to be a better option.
 
-What is the reason that overlayfs needs to forbid mounting on a file system
-with
-dentry operations?  Is it just to avoid mounting a case-insensitive file
-system?
+Acked-by: Vivek Goyal <vgoyal@redhat.com>
+
+Thanks
+Vivek
 
 
-Thanks.
 
---001a1139784c194c2005287b0969
-Content-Type: text/html; charset=UTF-8
-Content-Transfer-Encoding: base64
-
-PGRpdiBkaXI9Imx0ciI+PGRpdj48ZGl2PkhpLDxicj48YnI+PC9kaXY+SSBoYXZlIGEgcXVlc3Rp
-b24gYWJvdXQgdGhlIHJlc3RyaWN0aW9ucyBvbiBvdmVybGF5ZnMuwqAgV2hlbiBtb3VudGluZyBv
-dmVybGF5ZnMsIGl0IDxicj51c2VzIHRoZSBvdmxfZGVudHJ5X3dlaXJkKCkgZnVuY3Rpb24gdG8g
-Y2hlY2sgd2hldGhlciB0aGUgZGVudHJpZXMgb24gdGhlIHVwcGVyIGZpbGUgPGJyPjwvZGl2Pjxk
-aXY+c3lzdGVtIGhhcyBzb21lIGRlbnRyeSBvcGVyYXRpb25zIGRlZmluZWQuwqAgSGVyZSYjMzk7
-cyB0aGUgY29kZTo8YnI+PC9kaXY+PGRpdj48YnI+c3RhdGljIGJvb2wgb3ZsX2RlbnRyeV93ZWly
-ZChzdHJ1Y3QgZGVudHJ5ICpkZW50cnkpPGJyPns8YnI+wqDCoMKgwqDCoMKgIHJldHVybiBkZW50
-cnktJmd0O2RfZmxhZ3MgJmFtcDsgKERDQUNIRV9ORUVEX0FVVE9NT1VOVCB8PGJyPsKgwqDCoMKg
-wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqAg
-RENBQ0hFX01BTkFHRV9UUkFOU0lUIHw8YnI+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
-wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoCBEQ0FDSEVfT1BfSEFTSCB8PGJyPsKg
-wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
-oMKgwqAgRENBQ0hFX09QX0NPTVBBUkUpOzxicj59PGJyPjxicj48L2Rpdj48ZGl2PldoYXQgaXMg
-dGhlIHJlYXNvbiB0aGF0IG92ZXJsYXlmcyBuZWVkcyB0byBmb3JiaWQgbW91bnRpbmcgb24gYSBm
-aWxlIHN5c3RlbSB3aXRoIDxicj48L2Rpdj48ZGl2PmRlbnRyeSBvcGVyYXRpb25zP8KgIElzIGl0
-IGp1c3QgdG8gYXZvaWQgbW91bnRpbmcgYSBjYXNlLWluc2Vuc2l0aXZlIGZpbGUgc3lzdGVtPzxi
-cj48L2Rpdj48ZGl2Pjxicj48YnI+PC9kaXY+PGRpdj48L2Rpdj48ZGl2PlRoYW5rcy48YnI+IDwv
-ZGl2PjwvZGl2Pg0K
---001a1139784c194c2005287b0969--
+> ---
+>  fs/overlayfs/dir.c   |    7 +++++++
+>  fs/overlayfs/super.c |   12 +++++++-----
+>  2 files changed, 14 insertions(+), 5 deletions(-)
+> 
+> diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
+> index ed95272d57a6..edf83f325bca 100644
+> --- a/fs/overlayfs/dir.c
+> +++ b/fs/overlayfs/dir.c
+> @@ -903,6 +903,13 @@ static int ovl_rename2(struct inode *olddir, struct dentry *old,
+>  	if (!overwrite && new_is_dir && !old_opaque && new_opaque)
+>  		ovl_remove_opaque(newdentry);
+>  
+> +	/*
+> +	 * Old dentry now lives in different location. Dentries in
+> +	 * lowerstack are stale. We cannot drop them here because
+> +	 * access to them is lockless. This could be only pure upper
+> +	 * or opaque directory - numlower is zero. Or upper non-dir
+> +	 * entry - its pureness is tracked by flag opaque.
+> +	 */
+>  	if (old_opaque != new_opaque) {
+>  		ovl_dentry_set_opaque(old, new_opaque);
+>  		if (!overwrite)
+> diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+> index 8d826bd56b26..ba28b007005e 100644
+> --- a/fs/overlayfs/super.c
+> +++ b/fs/overlayfs/super.c
+> @@ -76,12 +76,14 @@ enum ovl_path_type ovl_path_type(struct dentry *dentry)
+>  	if (oe->__upperdentry) {
+>  		type = __OVL_PATH_UPPER;
+>  
+> -		if (oe->numlower) {
+> -			if (S_ISDIR(dentry->d_inode->i_mode))
+> -				type |= __OVL_PATH_MERGE;
+> -		} else if (!oe->opaque) {
+> +		/*
+> +		 * Non-dir dentry can hold lower dentry from previous
+> +		 * location. Its purity depends only on opaque flag.
+> +		 */
+> +		if (oe->numlower && S_ISDIR(dentry->d_inode->i_mode))
+> +			type |= __OVL_PATH_MERGE;
+> +		else if (!oe->opaque)
+>  			type |= __OVL_PATH_PURE;
+> -		}
+>  	} else {
+>  		if (oe->numlower > 1)
+>  			type |= __OVL_PATH_MERGE;
