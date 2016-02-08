@@ -1,67 +1,62 @@
-From: Ignacy =?iso-8859-2?Q?Gaw=EAdzki?=
-	<ignacy.gawedzki@green-communications.fr>
-Subject: Re: [PATCH 1/1] OverlayFS: Fix checking permissions during lookup.
-Date: Fri, 5 Feb 2016 13:29:13 +0100
-Message-ID: <20160205122913.GA1992@zenon.in.qult.net>
-References: <20160126083834.GB18883@zenon.in.qult.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-2
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Nikolay Borisov <kernel@kyup.com>
+Subject: [PATCH] ovl: Add d_select_inode op to ovl_reval_dentry_operations
+Date: Mon,  8 Feb 2016 16:52:03 +0200
+Message-ID: <1454943123-9652-1-git-send-email-kernel@kyup.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from str75-3-78-193-33-39.fbxo.proxad.net ([78.193.33.39]:33421 "EHLO
-	mail.qult.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751411AbcBEM3R (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-	Fri, 5 Feb 2016 07:29:17 -0500
-Received: from zenon.in.qult.net ([192.168.64.1])
-	by mail.qult.net with esmtps (TLS1.2:RSA_AES_128_CBC_SHA1:128)
-	(Exim 4.82)
-	(envelope-from <ignacy.gawedzki@green-communications.fr>)
-	id 1aRfVk-0003pv-El
-	for linux-unionfs@vger.kernel.org; Fri, 05 Feb 2016 13:29:16 +0100
-Received: from ig by zenon.in.qult.net with local (Exim 4.86)
-	(envelope-from <ignacy.gawedzki@green-communications.fr>)
-	id 1aRfVh-0000fZ-EH
-	for linux-unionfs@vger.kernel.org; Fri, 05 Feb 2016 13:29:13 +0100
-Content-Disposition: inline
-In-Reply-To: <20160126083834.GB18883@zenon.in.qult.net>
+Received: from mail-wm0-f50.google.com ([74.125.82.50]:35790 "EHLO
+	mail-wm0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754117AbcBHOwI (ORCPT
+	<rfc822;linux-unionfs@vger.kernel.org>);
+	Mon, 8 Feb 2016 09:52:08 -0500
+Received: by mail-wm0-f50.google.com with SMTP id c200so19191449wme.0
+        for <linux-unionfs@vger.kernel.org>; Mon, 08 Feb 2016 06:52:06 -0800 (PST)
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: linux-unionfs@vger.kernel.org
+To: miklos@szeredi.hu
+Cc: dhowells@redhat.com, linux-unionfs@vger.kernel.org, linux-kernel@vger.kernel.org, operations@siteground.com
 
-On Tue, Jan 26, 2016 at 09:38:34AM +0100, thus spake Ignacy Gawedzki:
-> Add alternate lookup_one_len_check function to fs/namei.c which does
-> what lookup_one_len did until now with a boolean argument telling
-> whether to check that the base directory is traversable.  Modify
-> original lookup_one_len function to call the former with true as the
-> last argument.
->=20
-> In function ovl_lookup_real, file fs/overlayfs/super.c, call
-> lookup_one_len_check with false as the last argument, so that failure
-> to traverse the base directory does not return -EACCES.  This should
-> make lookup resolution work properly in the following setup
->=20
->   drwxr-xr-x lower/
->   drwx------ lower/foo/
->   drw-r--r-- lower/boo/bar
->   drwxr-xr-x upper/
->   drwxr-xr-x upper/foo/
->=20
-> when any user not being the owner of lower/foo is trying to access
-> foo/bar in the mounted overlay.
+Commit daee0af5b522 ("overlayfs: Make f_path always point to the
+overlay and f_inode to the underlay") changed the way overlayed dentries
+are opened and introduced ovl_d_select_inode so that in cases when an overlayed
+file is opened its f_ops are being fetched from the underlying
+(in the case of writes the upper directory) layer.
 
-Hi everyone,
+However, by not adding this operation to the ovl_reval_dentry_operations
+this essentially disables writes to the upper layer in setups which
+use a remote (as per the check in ovl_dentry_remote) lower layers, since
+in this case ovl_reval_dentry_operations is going to be used when
+dentries are created. This results in code in vfs_open never calling
+d_select_inode to get the upper layer inode, which leads to do_dentry_open
+using the overlay inode which has empty_fops.
 
-Please forgive my insisting, but I'm really looking forward to seeing
-some confirmation that this is the right way to go.
+This patch fixes this by adding d_select_inode operation to
+ovl_reval_dentry_operations, which allows querying the correct inode
+when writing to an overlayed location, using a remote lower dir.
 
-Could someone take a look at this patch and confirm this is not going
-to wreak havoc?
+Fixes: daee0af5b522 ("overlayfs: Make f_path always point to the
+overlay and f_inode to the underlay")
 
-Thanks.
+Signed-off-by: Nikolay Borisov <kernel@kyup.com>
+---
 
-Ignacy
+This took me quite a while to catch, and so far it survives local
+testing. I'm mostly interested in knowing whether it (silently) 
+breaks stuff. 
 
---=20
-Ignacy Gaw=EAdzki
-R&D Engineer
-Green Communications
+ fs/overlayfs/super.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+index e38ee0fed24a..787e075709fa 100644
+--- a/fs/overlayfs/super.c
++++ b/fs/overlayfs/super.c
+@@ -321,6 +321,7 @@ static const struct dentry_operations ovl_dentry_operations = {
+ 
+ static const struct dentry_operations ovl_reval_dentry_operations = {
+ 	.d_release = ovl_dentry_release,
++	.d_select_inode = ovl_d_select_inode,
+ 	.d_revalidate = ovl_dentry_revalidate,
+ 	.d_weak_revalidate = ovl_dentry_weak_revalidate,
+ };
+-- 
+2.5.0
