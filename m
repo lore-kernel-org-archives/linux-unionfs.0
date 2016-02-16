@@ -1,43 +1,53 @@
-From: Eric Jones <ejones@cray.com>
-Subject: BUG? Missing dput() in ovl_permissions().
-Date: Tue, 16 Feb 2016 12:00:59 -0800
-Message-ID: <20160216200059.GH30731@cray.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: radioconfusion@gmail.com
+Subject: Overlayfs regression: NFS as lowerdir fails to read any file
+Date: Tue, 16 Feb 2016 12:15:41 -0800 (PST)
+Message-ID: <56c3836d.09a7700a.f340f.ffffa6cb@mx.google.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from [68.232.143.164] ([68.232.143.164]:14510 "EHLO
-	esa2.cray.iphmx.com" rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org
-	with ESMTP id S1752853AbcBPUCQ (ORCPT
+Received: from mail-lb0-f174.google.com ([209.85.217.174]:32942 "EHLO
+	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751872AbcBPUPn (ORCPT
 	<rfc822;linux-unionfs@vger.kernel.org>);
-	Tue, 16 Feb 2016 15:02:16 -0500
-Received: from nostradamus (nostradamus.us.cray.com [172.28.65.159])
-	by sealmr01.us.cray.com (8.14.3/8.13.8/hubv3-LastChangedRevision: 16250) with ESMTP id u1GK0xNm023748
-	for <linux-unionfs@vger.kernel.org>; Tue, 16 Feb 2016 12:00:59 -0800
-Content-Disposition: inline
+	Tue, 16 Feb 2016 15:15:43 -0500
+Received: by mail-lb0-f174.google.com with SMTP id x4so105106745lbm.0
+        for <linux-unionfs@vger.kernel.org>; Tue, 16 Feb 2016 12:15:42 -0800 (PST)
+Received: from localhost (a91-155-132-134.elisa-laajakaista.fi. [91.155.132.134])
+        by smtp.gmail.com with ESMTPSA id zk9sm4506607lbb.3.2016.02.16.12.15.41
+        for <linux-unionfs@vger.kernel.org>
+        (version=TLS1_2 cipher=AES128-SHA bits=128/128);
+        Tue, 16 Feb 2016 12:15:41 -0800 (PST)
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: linux-unionfs@vger.kernel.org
 
-I apologize for not having tested this on the latest kernel. I hit this bug in SUSE SLES12 and by inspection it still appears to be in Linus's kernel.
+Hello,
 
-Failure to free dentry. Missing dput() using default_permissions in ovl_permission().
+I think that I have found a regression/bug on overlayfs.
+I can't get NFS lowerdir working with Linux 4.4 even though it's supported without custom patching. It worked with Linux 4.1 with little custom patching (see link below).
 
-# mount overlayfs with default_permissions
-mkdir l u m
-mount -t tmpfs tmpfs u
-mount -t overlayfs -o upperdir=u,lowerdir=l,default_permissions overlayfs m
-dd if=/dev/zero of=m/test_dput bs=4096b count=1000
-df u l m
-rm m/test_dput
-df u l m
-# tmpfs space is not freed!
+How to reproduce:
+* Compile Linux 4.4 or any revision which is newer than "Commit 4bacc9 overlayfs: Make f_path always point to the overlay and f_inode to the underlay"
+* Mount nfs with default options (my share is exported with (rw,sync,no_subtree_check))
+* Mount overlay with nfs as lowerdir
+* Try to read any existing file on overlayfs
 
-umount m u
-# BUG. Dentry still in use!
+Example:
 
-It appears that there may be a missing dput() in the ovl_is_default_permissions(inode) path of ovl_permission().
+# uname -r
+4.3.0-1-amd64
+# mkdir /tmp/nfs /tmp/upper /tmp/work /tmp/merge
+# mount -o defaults 192.168.1.9:/home/shared /tmp/nfs
+# mount -t overlay overlay -olowerdir=/tmp/nfs,upperdir=/tmp/upper,workdir=/tmp/work /tmp/merge
+# mount | grep "/tmp"
+192.168.1.9:/home/shared on /tmp/nfs type nfs4 (rw,relatime,vers=4.0,rsize=524288,wsize=524288,namlen=255,hard,proto=tcp,port=0,timeo=600,retrans=2,sec=sys,clientaddr=192.168.1.15,local_lock=none,addr=192.168.1.9)
+overlay on /tmp/merge type overlay (rw,relatime,lowerdir=/tmp/nfs,upperdir=/tmp/upper,workdir=/tmp/work)
+# echo hello >/tmp/nfs/hello
+# cat /tmp/merge/hello
+cat: /tmp/merge/hello: No such device or address
 
-I hit this in SUSE because default_permissions was getting set by accident due to uninitialized data in ovl_config (kalloc vs. kzalloc). This bug is fixed upstream.
+I think my issue is same than:
+http://www.spinics.net/lists/linux-unionfs/msg00386.html
 
+NFS works as lowerdir without 4bacc9 (linux 4.1 for example) when nfs lowerdir is allowed by patching fs/overlayfs/super.c@692
+See http://www.spinics.net/lists/linux-unionfs/msg00188.html for details.
 
--Eric Jones
+Best Regards
+Jussi
