@@ -1,25 +1,46 @@
-From: Nazarov Sergey <s-nazarov@yandex.ru>
-Subject: overlayfs: DAC override capability for ovl_lookup_real(lowerdir)?
-Date: Fri, 19 Feb 2016 14:26:01 +0300
-Message-ID: <1763481455881161@web15m.yandex.ru>
+From: Andin Bren <andin.bren@gmail.com>
+Subject: overlayfs: support ecryptfs upperdir
+Date: Sun, 21 Feb 2016 19:11:56 -0500
+Message-ID: <CAM7c_2ox4zZGuh_adr27FkRDtF3aZRbg_uAt=aHaNTqp2omczA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from forward11m.cmail.yandex.net ([5.255.216.137]:45011 "EHLO
-	forward11m.cmail.yandex.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1426497AbcBSLdh (ORCPT
+Received: from mail-ig0-f174.google.com ([209.85.213.174]:34123 "EHLO
+	mail-ig0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750708AbcBVAMg (ORCPT
 	<rfc822;linux-unionfs@vger.kernel.org>);
-	Fri, 19 Feb 2016 06:33:37 -0500
-Received: from web15m.yandex.ru (web15m.yandex.ru [IPv6:2a02:6b8:0:2519::215])
-	by forward11m.cmail.yandex.net (Yandex) with ESMTP id 99BE4211F5
-	for <linux-unionfs@vger.kernel.org>; Fri, 19 Feb 2016 14:26:02 +0300 (MSK)
+	Sun, 21 Feb 2016 19:12:36 -0500
+Received: by mail-ig0-f174.google.com with SMTP id g6so75359811igt.1
+        for <linux-unionfs@vger.kernel.org>; Sun, 21 Feb 2016 16:12:35 -0800 (PST)
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: linux-unionfs@vger.kernel.org
 
-Hi! The problem is:
-if lower directory contains subdirectory foo with permissions 0700 root.root,
-upper directory contains same subdirectory with permissions 0700 user.user,
-user can't create files in unioned one (EACCES error).
-May be ovl_lookup_real for lowerdir need to have DAC_READ_SEARCH capability?
+Hello,
+
+Would it be possible for overlayfs to support being mounted with an
+upperdir on an ecryptfs filesystem?
+
+andin@box:~$ mkdir lower upper work merged
+
+andin@box:~$ sudo mount -t overlay overlay -o
+lowerdir=$HOME/lower,upperdir=$HOME/upper,workdir=$HOME/workdir merged
+mount: wrong fs type, bad option, bad superblock on overlay,
+       missing codepage or helper program, or other error
+
+       In some cases useful info is found in syslog - try
+       dmesg | tail or so
+
+andin@box:~$ tail -n 1 /var/log/syslog
+Feb 21 18:57:01 box kernel: [ 5323.931064] overlayfs: filesystem on
+'/home/andin/upper' not supported as upperdir
+
+andin@box:~$ mount|grep " / "
+/dev/sda2 on / type ext4 (rw,relatime,errors=remount-ro,data=ordered)
+
+andin@box:~$ mount|grep home
+/home/.ecryptfs/andin/.Private on /home/andin type ecryptfs
+(rw,nosuid,nodev,relatime,ecryptfs_fnek_sig=11c07678abb13aac,ecryptfs_sig=b1d3451eeea22381,ecryptfs_cipher=aes,ecryptfs_key_bytes=16,ecryptfs_unlink_sigs)
+
+Thanks,
+- Andin
