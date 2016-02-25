@@ -1,131 +1,75 @@
-From: Ignacy =?iso-8859-2?Q?Gaw=EAdzki?=
-	<ignacy.gawedzki@green-communications.fr>
-Subject: [PATCH v2 1/1] OverlayFS: Fix checking permissions during lookup.
-Date: Wed, 24 Feb 2016 14:55:52 +0100
-Message-ID: <20160224135552.GB8422@zenon.in.qult.net>
+From: Eryu Guan <guaneryu@gmail.com>
+Subject: [BUG] ltp/fcntl33 triggers NULL pointer dereference on overlayfs
+Date: Thu, 25 Feb 2016 21:27:00 +0800
+Message-ID: <20160225132700.GE29898@eguan.usersys.redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-2
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-unionfs-owner@vger.kernel.org>
+Received: from mail-pf0-f172.google.com ([209.85.192.172]:36606 "EHLO
+	mail-pf0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759644AbcBYN1G (ORCPT
+	<rfc822;linux-unionfs@vger.kernel.org>);
+	Thu, 25 Feb 2016 08:27:06 -0500
 Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-unionfs@vger.kernel.org, linux-kernel@vger.kernel.org
+Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
+To: linux-unionfs@vger.kernel.org
+Cc: linux-fsdevel@vger.kernel.org
 
-Add alternate lookup_one_len_check function to fs/namei.c which does
-what lookup_one_len did until now with a boolean argument telling
-whether to check that the base directory is traversable.  Modify
-original lookup_one_len function to call the former with true as the
-last argument.
+Hi,
 
-In function ovl_lookup_real, file fs/overlayfs/super.c, call
-lookup_one_len_check with false as the last argument, so that failure
-to traverse the base directory does not return -EACCES.  This should
-make lookup resolution work properly in the following setup
+LTP test case fcntl33[1] crashes overlayfs reliably, and git bisect
+shows the first bad commit is commit 4bacc9c9234 ("overlayfs: Make
+f_path always point to the overlay and f_inode to the underlay"). Though
+the test still fails without this patch, kernel doesn't crash.
 
-  drwxr-xr-x lower/
-  drwx------ lower/foo/
-  drw-r--r-- lower/boo/bar
-  drwxr-xr-x upper/
-  drwxr-xr-x upper/foo/
+To reproduce, compile ltp fcntl33.c test and mount overlayfs at
+/mnt/overlay and run
 
-when any user not being the owner of lower/foo is trying to access
-foo/bar in the mounted overlay.
+	TMPDIR=/mnt/overlay /path/to/fcntl33
 
-Signed-off-by: Ignacy Gaw=EAdzki <ignacy.gawedzki@green-communications.=
-fr>
----
- fs/namei.c            | 29 +++++++++++++++++++++++++----
- fs/overlayfs/super.c  |  2 +-
- include/linux/namei.h |  1 +
- 3 files changed, 27 insertions(+), 5 deletions(-)
+Thanks,
+Eryu
 
-diff --git a/fs/namei.c b/fs/namei.c
-index f624d13..f9486da 100644
---- a/fs/namei.c
-+++ b/fs/namei.c
-@@ -2278,6 +2278,25 @@ EXPORT_SYMBOL(vfs_path_lookup);
-  */
- struct dentry *lookup_one_len(const char *name, struct dentry *base, i=
-nt len)
- {
-+	return lookup_one_len_check(name, base, len, true);
-+}
-+EXPORT_SYMBOL(lookup_one_len);
-+
-+/**
-+ * lookup_one_len_check - filesystem helper to lookup single pathname =
-component
-+ * @name:	pathname component to lookup
-+ * @base:	base directory to lookup from
-+ * @len:	maximum length @len should be interpreted to
-+ * @check:	whether to check that @base is itself traversable.
-+ *
-+ * Note that this routine is purely a helper for filesystem usage and =
-should
-+ * not be called by generic code.
-+ *
-+ * The caller must hold base->i_mutex.
-+ */
-+struct dentry *lookup_one_len_check(const char *name, struct dentry *b=
-ase,
-+				    int len, bool check_base)
-+{
- 	struct qstr this;
- 	unsigned int c;
- 	int err;
-@@ -2310,13 +2329,15 @@ struct dentry *lookup_one_len(const char *name,=
- struct dentry *base, int len)
- 			return ERR_PTR(err);
- 	}
-=20
--	err =3D inode_permission(base->d_inode, MAY_EXEC);
--	if (err)
--		return ERR_PTR(err);
-+	if (check_base) {
-+		err =3D inode_permission(base->d_inode, MAY_EXEC);
-+		if (err)
-+			return ERR_PTR(err);
-+	}
-=20
- 	return __lookup_hash(&this, base, 0);
- }
--EXPORT_SYMBOL(lookup_one_len);
-+EXPORT_SYMBOL(lookup_one_len_check);
-=20
- /**
-  * lookup_one_len_unlocked - filesystem helper to lookup single pathna=
-me component
-diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-index 8d826bd..965c5dd 100644
---- a/fs/overlayfs/super.c
-+++ b/fs/overlayfs/super.c
-@@ -376,7 +376,7 @@ static inline struct dentry *ovl_lookup_real(struct=
- dentry *dir,
- 	struct dentry *dentry;
-=20
- 	inode_lock(dir->d_inode);
--	dentry =3D lookup_one_len(name->name, dir, name->len);
-+	dentry =3D lookup_one_len_check(name->name, dir, name->len, false);
- 	inode_unlock(dir->d_inode);
-=20
- 	if (IS_ERR(dentry)) {
-diff --git a/include/linux/namei.h b/include/linux/namei.h
-index d0f25d8..0af6775 100644
---- a/include/linux/namei.h
-+++ b/include/linux/namei.h
-@@ -77,6 +77,7 @@ extern struct dentry *kern_path_locked(const char *, =
-struct path *);
- extern int kern_path_mountpoint(int, const char *, struct path *, unsi=
-gned int);
-=20
- extern struct dentry *lookup_one_len(const char *, struct dentry *, in=
-t);
-+extern struct dentry *lookup_one_len_check(const char *, struct dentry=
- *, int, bool);
- extern struct dentry *lookup_one_len_unlocked(const char *, struct den=
-try *, int);
-=20
- extern int follow_down_one(struct path *);
---=20
-2.5.0
+[1] https://github.com/linux-test-project/ltp/blob/master/testcases/kernel/syscalls/fcntl/fcntl33.c
+
+[  516.179599] BUG: unable to handle kernel NULL pointer dereference at 0000000000000004
+[  516.180047] IP: [<ffffffff812bf96c>] selinux_file_send_sigiotask+0x2c/0x50
+[  516.180047] PGD dad24067 PUD db926067 PMD 0
+[  516.180047] Oops: 0000 [#1] SMP
+[  516.180047] Modules linked in: overlay ext4 mbcache jbd2 ppdev i2c_piix4 parport_pc pcspkr sg i2c_core parport virtio_balloon acpi_cpufreq nfsd auth_rpcgss nfs_acl lockd grace sunrpc ip_tables xfs libcrc32c sd_mod ata_generic pata_acpi virtio_scsi ata_piix libata virtio_pci 8139too serio_raw 8139cp virtio_ring virtio mii floppy
+[  516.180047] CPU: 3 PID: 2452 Comm: fcntl33 Not tainted 4.5.0-rc3 #26
+[  516.180047] Hardware name: Red Hat KVM, BIOS 0.5.1 01/01/2007
+[  516.180047] task: ffff880035a70000 ti: ffff8800dad4c000 task.ti: ffff8800dad4c000
+[  516.180047] RIP: 0010:[<ffffffff812bf96c>]  [<ffffffff812bf96c>] selinux_file_send_sigiotask+0x2c/0x50
+[  516.180047] RSP: 0018:ffff8800dad4fca0  EFLAGS: 00010046
+[  516.180047] RAX: 000000000000088f RBX: ffffffff81aa8960 RCX: 0000000000000040
+[  516.180047] RDX: 0000000000000000 RSI: 0000000000000000 RDI: ffff880212579480
+[  516.180047] RBP: ffff8800dad4fca0 R08: 0000000000000001 R09: 0000000000000000
+[  516.180047] R10: ffff880035c6c5b0 R11: ffffea000849c800 R12: 0000000000000000
+[  516.180047] R13: ffff880035dd3f78 R14: ffff880212579480 R15: 0000000000020003
+[  516.180047] FS:  00007f8676d9c740(0000) GS:ffff88021fd80000(0000) knlGS:0000000000000000
+[  516.180047] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+[  516.180047] CR2: 0000000000000004 CR3: 00000000dad20000 CR4: 00000000000006e0
+[  516.180047] Stack:
+[  516.180047]  ffff8800dad4fcd0 ffffffff812bbd03 ffff880212579480 0000000000000000
+[  516.180047]  0000000000000003 0000000000000001 ffff8800dad4fd90 ffffffff81221b1a
+[  516.180047]  ffff8800dad4fd3c 00000000ebcf2ab5 0000000000000004 0000000000000000
+[  516.180047] Call Trace:
+[  516.180047]  [<ffffffff812bbd03>] security_file_send_sigiotask+0x43/0x60
+[  516.180047]  [<ffffffff81221b1a>] send_sigio_to_task+0x6a/0x150
+[  516.180047]  [<ffffffff812c5503>] ? selinux_inode_permission+0xe3/0x190
+[  516.180047]  [<ffffffff81222327>] send_sigio+0xa7/0x130
+[  516.180047]  [<ffffffff81222410>] kill_fasync+0x60/0x90
+[  516.180047]  [<ffffffff8126035f>] lease_break_callback+0x1f/0x30
+[  516.180047]  [<ffffffff81262248>] __break_lease+0x148/0x460
+[  516.180047]  [<ffffffff812bb381>] ? security_inode_permission+0x41/0x60
+[  516.180047]  [<ffffffff8120d293>] vfs_truncate+0xe3/0x1a0
+[  516.180047]  [<ffffffff8120d3d5>] do_sys_truncate+0x85/0xb0
+[  516.180047]  [<ffffffff8120d56e>] SyS_truncate+0xe/0x10
+[  516.180047]  [<ffffffff816a972e>] entry_SYSCALL_64_fastpath+0x12/0x71
+[  516.180047] Code: 1f 44 00 00 55 48 8b 87 78 09 00 00 85 d2 48 8b 76 50 b9 40 00 00 00 48 89 e5 48 8b 40 78 8b 40 04 74 08 83 ea 09 83 fa 0a 76 14 <8b> 7e 04 45 31 c0 ba 02 00 00 00 89 c6 e8 d2 ee ff ff 5d c3 8b
+[  516.180047] RIP  [<ffffffff812bf96c>] selinux_file_send_sigiotask+0x2c/0x50
+[  516.180047]  RSP <ffff8800dad4fca0>
+[  516.180047] CR2: 0000000000000004
+[  516.180047] ---[ end trace e41a23595247a6af ]---
