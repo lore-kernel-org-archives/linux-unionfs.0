@@ -1,35 +1,62 @@
-From: Trond Myklebust <trond.myklebust-7I+n7zu2hftEKMMhf/gKZA@public.gmane.org>
-Subject: Re: [PATCH 3/3] nfs: Store and use inode in nfs_open_context
-Date: Tue, 1 Mar 2016 15:46:48 -0500
-Message-ID: <CAHQdGtRu2nd54+tKQLPp2tvf1MpKw4-X8ESqx-8W4_zAov7hFA@mail.gmail.com>
-References: <1456855928-29913-1-git-send-email-rgoldwyn@suse.de>
-	<1456855928-29913-4-git-send-email-rgoldwyn@suse.de>
+From: Laison Computech Inc <7sales@laiisoncomputech.com>
+Subject: CISCO AND AVAYA IP Phones
+Date: Wed, 02 Mar 2016 03:10:35 +0700
+Message-ID: <20160301210944.2CE06574BDD@srv-mta.gcmillenium.com.br>
+Reply-To: sales@laiisoncomputech.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1456855928-29913-4-git-send-email-rgoldwyn-l3A5Bk7waGM@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Goldwyn Rodrigues <rgoldwyn-l3A5Bk7waGM@public.gmane.org>
-Cc: miklos-sUDqSbJrdHQHWmgEVkV9KA@public.gmane.org, linux-unionfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux FS-devel Mailing List <linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Goldwyn Rodrigues <rgoldwyn-IBi9RG/b67k@public.gmane.org>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-unionfs-owner@vger.kernel.org>
+Received: from srv-mta.gcmillenium.com.br ([177.125.218.132]:38419 "EHLO
+	srv-mta.gcmillenium.com.br" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750843AbcCAXdj convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+	Tue, 1 Mar 2016 18:33:39 -0500
+Content-Description: Mail message body
+Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
+To: Recipients <7sales@laiisoncomputech.com>
 
-On Tue, Mar 1, 2016 at 1:12 PM, Goldwyn Rodrigues <rgoldwyn-l3A5Bk7waGM@public.gmane.org> wrote:
->
-> From: Goldwyn Rodrigues <rgoldwyn-IBi9RG/b67k@public.gmane.org>
->
-> NFS translates the inode from the dentry and uses sb from the dentry
-> parameters. However, using NFS in conjunction with overlayfs, the inodes
-> associated with dentries may be associated with overlayfs as opposed
-> to NFS. So, store inode in nfs_open_context and use d_select_inode()
-> to translate dentry to inode.
+Hi,
 
-I don't see how this helps. The dentry and dentry->d_sb that are
-associated with the open context need to be NFS namespace objects,
-otherwise all sorts of things, ranging from inode lookup to NFSv4
-state recovery are going to break.
+Clean tested working pulls CPUs and QTYs in stock.
 
-Trond
---
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+115 X X5650
+65 X E5410
+75 X X5660
+145 X E5530
+100 X E5645
+40 X X5680
+75 X X5690
+
+Brand new sealed IP phones and QTYs in stock.
+
+55 x CP-7937G
+77 x CP-7942G
+54 x CP-7945G
+75 x CP-7962G
+=2E.....
+45 x Avaya 9630
+65 x Avaya 9641
+55 x Avaya 9640=20
+
+USED IT HARDWARE FROM:
+
+=46UJITSU       IBM         SUN        HP
+QUANTUM   DELL       HDS        STK
+NETAPP      SGI         Oracle      EMC=B2
+
+3Com, ADVA, Alcatel, Brocade, Cisco,
+Cabletron, Enterasys, Extreme Networks,
+Huawei, Marconi, Nortel, Qlogic, Avaya
+
+Let me know if you're interested. We are very open to offers and willin=
+g to work with you to make sure that we have a deal.
+
+Sincerely
+Barbara Johnson
+Laison Computech Inc
+Tel: +1-657-205-7860
+=46ax: +1-347-214-0478
+Email: sales@laiisoncomputech.com
+Web: www.laisoncomputech.com
