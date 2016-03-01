@@ -1,52 +1,35 @@
-From: Goldwyn Rodrigues <rgoldwyn@suse.de>
-Subject: [PATCH 2/3] vfs: Add d_select_inode for overlayfs translation
-Date: Tue,  1 Mar 2016 12:12:07 -0600
-Message-ID: <1456855928-29913-3-git-send-email-rgoldwyn@suse.de>
+From: Trond Myklebust <trond.myklebust-7I+n7zu2hftEKMMhf/gKZA@public.gmane.org>
+Subject: Re: [PATCH 3/3] nfs: Store and use inode in nfs_open_context
+Date: Tue, 1 Mar 2016 15:46:48 -0500
+Message-ID: <CAHQdGtRu2nd54+tKQLPp2tvf1MpKw4-X8ESqx-8W4_zAov7hFA@mail.gmail.com>
 References: <1456855928-29913-1-git-send-email-rgoldwyn@suse.de>
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
-In-Reply-To: <1456855928-29913-1-git-send-email-rgoldwyn@suse.de>
-Sender: linux-fsdevel-owner@vger.kernel.org
-To: miklos@szeredi.hu
-Cc: linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-nfs@vger.kernel.org, Goldwyn Rodrigues <rgoldwyn@suse.com>
+	<1456855928-29913-4-git-send-email-rgoldwyn@suse.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1456855928-29913-4-git-send-email-rgoldwyn-l3A5Bk7waGM@public.gmane.org>
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Goldwyn Rodrigues <rgoldwyn-l3A5Bk7waGM@public.gmane.org>
+Cc: miklos-sUDqSbJrdHQHWmgEVkV9KA@public.gmane.org, linux-unionfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux FS-devel Mailing List <linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Goldwyn Rodrigues <rgoldwyn-IBi9RG/b67k@public.gmane.org>
 List-Id: linux-unionfs@vger.kernel.org
 
-From: Goldwyn Rodrigues <rgoldwyn@suse.com>
+On Tue, Mar 1, 2016 at 1:12 PM, Goldwyn Rodrigues <rgoldwyn-l3A5Bk7waGM@public.gmane.org> wrote:
+>
+> From: Goldwyn Rodrigues <rgoldwyn-IBi9RG/b67k@public.gmane.org>
+>
+> NFS translates the inode from the dentry and uses sb from the dentry
+> parameters. However, using NFS in conjunction with overlayfs, the inodes
+> associated with dentries may be associated with overlayfs as opposed
+> to NFS. So, store inode in nfs_open_context and use d_select_inode()
+> to translate dentry to inode.
 
-d_select_inode() is a helper function to translate dentry to inodes
-while using in conjunction with overlayfs so dentries evaluate to
-true lower inodes.
+I don't see how this helps. The dentry and dentry->d_sb that are
+associated with the open context need to be NFS namespace objects,
+otherwise all sorts of things, ranging from inode lookup to NFSv4
+state recovery are going to break.
 
-Signed-off-by: Goldwyn Rodrigues <rgoldwyn@suse.com>
----
- include/linux/dcache.h | 15 +++++++++++++++
- 1 file changed, 15 insertions(+)
-
-diff --git a/include/linux/dcache.h b/include/linux/dcache.h
-index 7781ce11..dbaa420 100644
---- a/include/linux/dcache.h
-+++ b/include/linux/dcache.h
-@@ -541,6 +541,21 @@ static inline struct inode *d_inode(const struct dentry *dentry)
- }
- 
- /**
-+ * d_select_inode - Get the actual inode of this dentry
-+ * @dentry: The dentry to query
-+ * @flags: open flags passed
-+ *
-+ * This is the helper to select the underlying true inode associated with
-+ * a dentry to cover cases of translating overlay filesystem.
-+ */
-+static inline struct inode *d_select_inode(struct dentry *dentry, int flags)
-+{
-+	if (dentry->d_flags & DCACHE_OP_SELECT_INODE)
-+		return dentry->d_op->d_select_inode(dentry, flags);
-+	return dentry->d_inode;
-+}
-+
-+/**
-  * d_inode_rcu - Get the actual inode of this dentry with ACCESS_ONCE()
-  * @dentry: The dentry to query
-  *
--- 
-2.6.2
-
+Trond
+--
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
