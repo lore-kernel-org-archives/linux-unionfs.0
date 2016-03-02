@@ -1,59 +1,49 @@
-From: Miklos Szeredi <miklos@szeredi.hu>
-Subject: Re: [PATCH] ovl: fix working on distributed fs as lower layer
-Date: Wed, 2 Mar 2016 15:18:58 +0100
-Message-ID: <CAJfpegtOaV+DsqGJjbqCoMCcG50DAwYGvpcn4iqR3MTUT+CCGw@mail.gmail.com>
-References: <145424653619.10827.10119853770850679426.stgit@zurg>
-	<56C57928.2010606@kyup.com>
+From: Goldwyn Rodrigues <rgoldwyn@suse.de>
+Subject: Re: [PATCH 3/3] nfs: Store and use inode in nfs_open_context
+Date: Wed, 2 Mar 2016 08:27:23 -0600
+Message-ID: <56D6F84B.5040301@suse.de>
+References: <1456855928-29913-1-git-send-email-rgoldwyn@suse.de>
+ <1456855928-29913-4-git-send-email-rgoldwyn@suse.de>
+ <CAHQdGtRu2nd54+tKQLPp2tvf1MpKw4-X8ESqx-8W4_zAov7hFA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-oi0-f51.google.com ([209.85.218.51]:35259 "EHLO
-	mail-oi0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751563AbcCBOS7 (ORCPT
-	<rfc822;linux-unionfs@vger.kernel.org>);
-	Wed, 2 Mar 2016 09:18:59 -0500
-Received: by mail-oi0-f51.google.com with SMTP id c203so61226084oia.2
-        for <linux-unionfs@vger.kernel.org>; Wed, 02 Mar 2016 06:18:59 -0800 (PST)
-In-Reply-To: <56C57928.2010606@kyup.com>
+Received: from mx2.suse.de ([195.135.220.15]:54658 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752989AbcCBO13 (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+	Wed, 2 Mar 2016 09:27:29 -0500
+In-Reply-To: <CAHQdGtRu2nd54+tKQLPp2tvf1MpKw4-X8ESqx-8W4_zAov7hFA@mail.gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Nikolay Borisov <kernel@kyup.com>
-Cc: Konstantin Khlebnikov <koct9i@gmail.com>, Linux-Fsdevel <linux-fsdevel@vger.kernel.org>, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>, Kernel Mailing List <linux-kernel@vger.kernel.org>, Alexander Viro <viro@zeniv.linux.org.uk>
+To: Trond Myklebust <trond.myklebust@primarydata.com>, Goldwyn Rodrigues <rgoldwyn@suse.de>
+Cc: miklos@szeredi.hu, linux-unionfs@vger.kernel.org, Linux FS-devel Mailing List <linux-fsdevel@vger.kernel.org>, Linux NFS Mailing List <linux-nfs@vger.kernel.org>
 
-On Thu, Feb 18, 2016 at 8:56 AM, Nikolay Borisov <kernel@kyup.com> wrote:
->
->
-> On 01/31/2016 03:22 PM, Konstantin Khlebnikov wrote:
->> This adds missing .d_select_inode into alternative dentry_operations.
+
+
+On 03/01/2016 02:46 PM, Trond Myklebust wrote:
+> On Tue, Mar 1, 2016 at 1:12 PM, Goldwyn Rodrigues <rgoldwyn@suse.de> wrote:
 >>
->> Signed-off-by: Konstantin Khlebnikov <koct9i@gmail.com>
->> Fixes: 7c03b5d45b8e ("ovl: allow distributed fs as lower layer")
->> Fixes: 4bacc9c9234c ("overlayfs: Make f_path always point to the overlay and f_inode to the underlay")
->> ---
->>  fs/overlayfs/super.c |    1 +
->>  1 file changed, 1 insertion(+)
+>> From: Goldwyn Rodrigues <rgoldwyn@suse.com>
 >>
->> diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
->> index e6ae59c7119c..1a354840f262 100644
->> --- a/fs/overlayfs/super.c
->> +++ b/fs/overlayfs/super.c
->> @@ -343,6 +343,7 @@ static const struct dentry_operations ovl_dentry_operations = {
->>
->>  static const struct dentry_operations ovl_reval_dentry_operations = {
->>       .d_release = ovl_dentry_release,
->> +     .d_select_inode = ovl_d_select_inode,
->>       .d_revalidate = ovl_dentry_revalidate,
->>       .d_weak_revalidate = ovl_dentry_weak_revalidate,
->>  };
+>> NFS translates the inode from the dentry and uses sb from the dentry
+>> parameters. However, using NFS in conjunction with overlayfs, the inodes
+>> associated with dentries may be associated with overlayfs as opposed
+>> to NFS. So, store inode in nfs_open_context and use d_select_inode()
+>> to translate dentry to inode.
 >
-> I wish I had seen this patch earlier than
-> https://marc.info/?l=linux-unionfs&m=145494313009959
->
->
-> Reviewed-by: Nikolay Borisov <kernel@kyup.com>
-> Tested-by: Nikolay Borisov <kernel@kyup.com>
+> I don't see how this helps. The dentry and dentry->d_sb that are
+> associated with the open context need to be NFS namespace objects,
+> otherwise all sorts of things, ranging from inode lookup to NFSv4
+> state recovery are going to break.
 >
 
-Thanks for the patch, queued.
+dentry evaluations and inode lookups are done by overlayfs, with the 
+help of NFS. NFS becomes a subset of overlayfs. However, you are right. 
+state recovery will break with this patch.
 
-Miklos
+Which makes me wonder: Shouldn't nfs_open_context (or any open context) 
+be with respect to an inode as opposed to a dentry?
+
+-- 
+Goldwyn
