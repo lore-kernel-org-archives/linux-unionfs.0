@@ -1,62 +1,83 @@
-From: Laison Computech Inc <7sales@laiisoncomputech.com>
-Subject: CISCO AND AVAYA IP Phones
-Date: Wed, 02 Mar 2016 03:10:35 +0700
-Message-ID: <20160301210944.2CE06574BDD@srv-mta.gcmillenium.com.br>
-Reply-To: sales@laiisoncomputech.com
+From: Miklos Szeredi <miklos@szeredi.hu>
+Subject: Re: [PATCH] ovl: ignore lower entries when checking purity of
+ non-directory entries
+Date: Wed, 2 Mar 2016 15:15:59 +0100
+Message-ID: <CAJfpegu5=CS6muunULWOqso6zdDdrqjSf4jdgieEAbr_un_cvA@mail.gmail.com>
+References: <145424627339.27058.6895511767458306300.stgit@zurg>
+	<20160201141424.GA1448@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from srv-mta.gcmillenium.com.br ([177.125.218.132]:38419 "EHLO
-	srv-mta.gcmillenium.com.br" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750843AbcCAXdj convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-	Tue, 1 Mar 2016 18:33:39 -0500
-Content-Description: Mail message body
+Received: from mail-ob0-f170.google.com ([209.85.214.170]:34946 "EHLO
+	mail-ob0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751361AbcCBOQB (ORCPT
+	<rfc822;linux-unionfs@vger.kernel.org>);
+	Wed, 2 Mar 2016 09:16:01 -0500
+Received: by mail-ob0-f170.google.com with SMTP id xx9so85906496obc.2
+        for <linux-unionfs@vger.kernel.org>; Wed, 02 Mar 2016 06:16:00 -0800 (PST)
+In-Reply-To: <20160201141424.GA1448@redhat.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Recipients <7sales@laiisoncomputech.com>
+To: Vivek Goyal <vgoyal@redhat.com>
+Cc: Konstantin Khlebnikov <koct9i@gmail.com>, Linux-Fsdevel <linux-fsdevel@vger.kernel.org>, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>, David Howells <dhowells@redhat.com>, Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-Hi,
+On Mon, Feb 1, 2016 at 3:14 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
+> On Sun, Jan 31, 2016 at 04:17:53PM +0300, Konstantin Khlebnikov wrote:
+>> After rename file dentry still holds reference to lower dentry from
+>> previous location. This doesn't matter for data access because data
+>> cames from upper dentry. But this stale lower dentry taints dentry
+>> at new location and turns it into non-pure upper. Such file leaves
+>> visible whiteout entry after remove in directory which shouldn't
+>> have whiteouts at all.
+>>
+>> Overlayfs already tracks pureness of file location in oe->opaque.
+>> This patch just uses that for detecting actual path type.
+>>
+>> Comment from Vivek Goyal's patch:
+>>
+>> Here are the details of the problem. Do following.
+>>
+>> $ mkdir upper lower work merged upper/dir/
+>> $ touch lower/test
+>> $ sudo mount -t overlay overlay -olowerdir=lower,upperdir=upper,workdir=work
+>> merged
+>> $ mv merged/test merged/dir/
+>> $ rm merged/dir/test
+>> $ ls -l merged/dir/
+>> /usr/bin/ls: cannot access merged/dir/test: No such file or directory
+>> total 0
+>> c????????? ? ? ? ?            ? test
+>>
+>> Basic problem seems to be that once a file has been unlinked, a
+>> whiteout has been left behind which was not needed and hence it becomes
+>> visible.
+>>
+>> whiteout is visible because parent dir is of not type MERGE, hence
+>> od->is_real is set during ovl_dir_open(). And that means ovl_iterate()
+>> passes on iterate handling directly to underlying fs. Underlying fs does
+>> not know/filter whiteouts so it becomes visible to user.
+>>
+>> Why did we leave a whiteout to begin with when we should not have.
+>> ovl_do_remove() checks for OVL_TYPE_PURE_UPPER() and does not leave
+>> whiteout if file is pure upper. In this case file is not found to be
+>> pure upper hence whiteout is left.
+>>
+>> So why file was not PURE_UPPER in this case? I think because dentry is
+>> still carrying some leftover state which was valid before rename. For example,
+>> od->numlower was set to 1 as it was a lower file. After rename, this state
+>> is not valid anymore as there is no such file in lower.
+>>
+>> Signed-off-by: Konstantin Khlebnikov <koct9i@gmail.com>
+>> Reported-by: Viktor Stanchev <me@viktorstanchev.com>
+>> Diagnosed-by: Vivek Goyal <vgoyal@redhat.com>
+>> Link: https://bugzilla.kernel.org/show_bug.cgi?id=109611
+>
+> Hi Konstantin,
+>
+> Thanks for the patch. This patch works for me also does not break
+> unionmount-testsuite.
 
-Clean tested working pulls CPUs and QTYs in stock.
+Thanks for the analysis and patch.  Added to the queue.
 
-115 X X5650
-65 X E5410
-75 X X5660
-145 X E5530
-100 X E5645
-40 X X5680
-75 X X5690
-
-Brand new sealed IP phones and QTYs in stock.
-
-55 x CP-7937G
-77 x CP-7942G
-54 x CP-7945G
-75 x CP-7962G
-=2E.....
-45 x Avaya 9630
-65 x Avaya 9641
-55 x Avaya 9640=20
-
-USED IT HARDWARE FROM:
-
-=46UJITSU       IBM         SUN        HP
-QUANTUM   DELL       HDS        STK
-NETAPP      SGI         Oracle      EMC=B2
-
-3Com, ADVA, Alcatel, Brocade, Cisco,
-Cabletron, Enterasys, Extreme Networks,
-Huawei, Marconi, Nortel, Qlogic, Avaya
-
-Let me know if you're interested. We are very open to offers and willin=
-g to work with you to make sure that we have a deal.
-
-Sincerely
-Barbara Johnson
-Laison Computech Inc
-Tel: +1-657-205-7860
-=46ax: +1-347-214-0478
-Email: sales@laiisoncomputech.com
-Web: www.laisoncomputech.com
+Thanks,
+Miklos
