@@ -1,38 +1,26 @@
 From: Miklos Szeredi <miklos@szeredi.hu>
-Subject: [GIT PULL] overlayfs fixes for 4.5-rc7
-Date: Mon, 7 Mar 2016 09:49:33 +0100
-Message-ID: <20160307084933.GB8655@tucsk>
+Subject: Re: [PATCH 1/4] ovl: honor flag MS_SILENT at mount
+Date: Mon, 7 Mar 2016 10:50:13 +0100
+Message-ID: <CAJfpegv3ag-dtG5cUi8tUdty0Nb7-aiV3LATX2e5E4VGTB4-bA@mail.gmail.com>
+References: <20150629171856.15730.58271.stgit@buzz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-security-module-owner@vger.kernel.org>
+In-Reply-To: <20150629171856.15730.58271.stgit@buzz>
+Sender: owner-linux-security-module@vger.kernel.org
+To: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
+Cc: Linux-Fsdevel <linux-fsdevel@vger.kernel.org>, Kernel Mailing List <linux-kernel@vger.kernel.org>, Alexander Viro <viro@zeniv.linux.org.uk>, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>, LSM <linux-security-module@vger.kernel.org>
 List-Id: linux-unionfs@vger.kernel.org
 
-Hi Linus,
+On Mon, Jun 29, 2015 at 7:18 PM, Konstantin Khlebnikov
+<khlebnikov@yandex-team.ru> wrote:
+> This patch hides error about missing lowerdir if MS_SILENT is set.
+>
+> We use mount(NULL, "/", "overlay", MS_SILENT, NULL) for testing support of
+> overlayfs: syscall returns -ENODEV if it's not supported. Otherwise kernel
+> automatically loads module and returns -EINVAL because lowerdir is missing.
 
-Please pull from:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/mszeredi/vfs.git overlayfs-linus
-
-This contains overlayfs bug fixes.  All marked as -stable material.
+Queued.
 
 Thanks,
 Miklos
-
----
-Konstantin Khlebnikov (3):
-      ovl: fix working on distributed fs as lower layer
-      ovl: ignore lower entries when checking purity of non-directory entries
-      ovl: copy new uid/gid into overlayfs runtime inode
-
-Rui Wang (1):
-      ovl: fix getcwd() failure after unsuccessful rmdir
-
----
- fs/overlayfs/dir.c   | 10 +++++++++-
- fs/overlayfs/inode.c |  2 ++
- fs/overlayfs/super.c | 13 ++++++++-----
- 3 files changed, 19 insertions(+), 6 deletions(-)
