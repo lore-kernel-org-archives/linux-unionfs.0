@@ -1,58 +1,124 @@
-From: Alexander Morozov <alexandr.morozov@docker.com>
-Subject: Re: [PATCH 0/2] Fix hardlinks in overlay
-Date: Mon, 7 Mar 2016 09:33:14 -0800
-Message-ID: <CA+EAOG6QPBr2JSRN-CfiQnW_hd7Dk6CziD=doTuF4hXj-Xoz_A@mail.gmail.com>
-References: <1444419297-16232-1-git-send-email-lk4d4@docker.com>
-	<CAJfpegun7NuWdiWP3=W1OL9+qqX8Fj1b58KbMg6cJJVgRb554Q@mail.gmail.com>
+From: Miklos Szeredi <miklos@szeredi.hu>
+Subject: [PATCH 1/2] vfs: add file_dentry()
+Date: Tue, 8 Mar 2016 16:47:16 +0100
+Message-ID: <20160308154716.GC8655@tucsk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-yk0-f170.google.com ([209.85.160.170]:36269 "EHLO
-	mail-yk0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752579AbcCGRdP (ORCPT
+Received: from mail-wm0-f52.google.com ([74.125.82.52]:37364 "EHLO
+	mail-wm0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752435AbcCHPqI (ORCPT
 	<rfc822;linux-unionfs@vger.kernel.org>);
-	Mon, 7 Mar 2016 12:33:15 -0500
-Received: by mail-yk0-f170.google.com with SMTP id 1so51205131ykg.3
-        for <linux-unionfs@vger.kernel.org>; Mon, 07 Mar 2016 09:33:14 -0800 (PST)
-In-Reply-To: <CAJfpegun7NuWdiWP3=W1OL9+qqX8Fj1b58KbMg6cJJVgRb554Q@mail.gmail.com>
+	Tue, 8 Mar 2016 10:46:08 -0500
+Received: by mail-wm0-f52.google.com with SMTP id p65so33295103wmp.0
+        for <linux-unionfs@vger.kernel.org>; Tue, 08 Mar 2016 07:46:07 -0800 (PST)
+Content-Disposition: inline
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: LKML <linux-kernel@vger.kernel.org>, Alexander Morozov <lk4d4@docker.com>, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>
+To: linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-nfs@vger.kernel.org
+Cc: Goldwyn Rodrigues <rgoldwyn@suse.de>, Trond Myklebust <trond.myklebust@primarydata.com>
 
-Sequence of calls is kern_path(filename, LOOKUP_FOLLOW, &path) ->
-filename_lookup(AT_FDCWD, getname_kernel(name), flags, path, NULL) ->
-path_lookup(nameidata *nd, flags | LOOKUP_RCU, path) -> path_init(nd,
-flags). In that function if I understand correctly nd->path is set to
-current_thread_info()->task->fs->pwd and I don't see any further
-tricks with dentry, so I suppose that
-current_thread_info()->task->fs->pwd->dentry already points to
-overlayfs dentry.
-Let me know what we can do with it.
+From: Miklos Szeredi <mszeredi@redhat.com>
 
-Thanks!
-- Alex
+Regular files opened on overlayfs will result in the file being opened on
+the underlying filesystem, while f_path points to the overlayfs
+mount/dentry.
 
-On Mon, Mar 7, 2016 at 2:49 AM, Miklos Szeredi <miklos@szeredi.hu> wrote:
-> On Fri, Oct 9, 2015 at 9:34 PM, Alexander Morozov
-> <alexandr.morozov@docker.com> wrote:
->> There were reports that overlay doesn't work very well with unix-sockets.
->> In particular you can't access unix-socket through hardlink on overlay fs.
->> Problem is that overlay creates different inodes for hardlinks and code in
->> net/unix/af_unix.c relies on inodes for unix-socket lookup. I think this
->> affects any code which relies on inodes from kern_path. There is helper
->> d_backing_inode, which I think supposed to get inodes from underlying fs
->> (for example ext4), but in current implementation it does nothing.  These
->> patches made on top of v4.3-rc4 of main linux tree (master is broken for my
->> ubuntu VM), but I tested that they applying on master and there was no
->> changes to overlay since v4.3-rc4.
->>
->> Alexander Morozov (2):
->>   fs/overlay: move update and instantiate dentry code to function
->>   fs/overlay: use same inodes for hardlinks
->
-> Problem is with lookup: how do we go from backing dentry to overlayfs
-> dentry so the inode can be shared?
->
-> Thanks,
-> Miklos
+This confuses filesystems which get the dentry from struct file and assume
+it's theirs.
+
+Add a new helper, file_dentry() [*], to get the filesystem's own dentry
+from the file.  This simply compares file_inode(file->f_path.dentry) to
+file_inode(file) and if they are equal returns file->f_path.dentry (this is
+the common, non-overlayfs case).
+
+In the uncommon case (regular file on overlayfs) it will call into
+overlayfs's ->d_native_dentry() to get the underlying dentry matching
+file_inode(file).
+
+[*] If possible, it's better simply to use file_inode() instead.
+
+Fixes: 4bacc9c9234c ("overlayfs: Make f_path always point to the overlay and f_inode to the underlay")
+Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
+Tested-by: Goldwyn Rodrigues <rgoldwyn@suse.com>
+---
+ fs/open.c              |   11 +++++++++++
+ fs/overlayfs/super.c   |   16 ++++++++++++++++
+ include/linux/dcache.h |    1 +
+ include/linux/fs.h     |    2 ++
+ 4 files changed, 30 insertions(+)
+
+--- a/include/linux/fs.h
++++ b/include/linux/fs.h
+@@ -1234,6 +1234,8 @@ static inline struct inode *file_inode(c
+ 	return f->f_inode;
+ }
+ 
++extern struct dentry *file_dentry(const struct file *file);
++
+ static inline int locks_lock_file_wait(struct file *filp, struct file_lock *fl)
+ {
+ 	return locks_lock_inode_wait(file_inode(filp), fl);
+--- a/fs/open.c
++++ b/fs/open.c
+@@ -831,6 +831,17 @@ char *file_path(struct file *filp, char
+ }
+ EXPORT_SYMBOL(file_path);
+ 
++struct dentry *file_dentry(const struct file *file)
++{
++	struct dentry *dentry = file->f_path.dentry;
++
++	if (likely(d_inode(dentry) == file_inode(file)))
++		return dentry;
++	else
++		return dentry->d_op->d_native_dentry(dentry, file_inode(file));
++}
++EXPORT_SYMBOL(file_dentry);
++
+ /**
+  * vfs_open - open the file at the given path
+  * @path: path to open
+--- a/fs/overlayfs/super.c
++++ b/fs/overlayfs/super.c
+@@ -336,14 +336,30 @@ static int ovl_dentry_weak_revalidate(st
+ 	return ret;
+ }
+ 
++static struct dentry *ovl_d_native_dentry(struct dentry *dentry,
++					 struct inode *inode)
++{
++	struct ovl_entry *oe = dentry->d_fsdata;
++	struct dentry *realentry = ovl_upperdentry_dereference(oe);
++
++	if (realentry && inode == d_inode(realentry))
++		return realentry;
++	realentry = __ovl_dentry_lower(oe);
++	if (realentry && inode == d_inode(realentry))
++		return realentry;
++	BUG();
++}
++
+ static const struct dentry_operations ovl_dentry_operations = {
+ 	.d_release = ovl_dentry_release,
+ 	.d_select_inode = ovl_d_select_inode,
++	.d_native_dentry = ovl_d_native_dentry,
+ };
+ 
+ static const struct dentry_operations ovl_reval_dentry_operations = {
+ 	.d_release = ovl_dentry_release,
+ 	.d_select_inode = ovl_d_select_inode,
++	.d_native_dentry = ovl_d_native_dentry,
+ 	.d_revalidate = ovl_dentry_revalidate,
+ 	.d_weak_revalidate = ovl_dentry_weak_revalidate,
+ };
+--- a/include/linux/dcache.h
++++ b/include/linux/dcache.h
+@@ -161,6 +161,7 @@ struct dentry_operations {
+ 	struct vfsmount *(*d_automount)(struct path *);
+ 	int (*d_manage)(struct dentry *, bool);
+ 	struct inode *(*d_select_inode)(struct dentry *, unsigned);
++	struct dentry *(*d_native_dentry)(struct dentry *, struct inode *);
+ } ____cacheline_aligned;
+ 
+ /*
