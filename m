@@ -1,140 +1,35 @@
-From: Miklos Szeredi <miklos@szeredi.hu>
-Subject: Re: [PATCH] overlayfs: Ensure upper filesystem supports d_type
-Date: Thu, 10 Mar 2016 17:05:17 +0100
-Message-ID: <20160310160517.GI8655@tucsk>
-References: <20160222142834.GA18393@redhat.com>
+From: Goldwyn Rodrigues <rgoldwyn@suse.de>
+Subject: Unmounting lower filesystem while overlayfs uses it
+Date: Thu, 10 Mar 2016 13:48:12 -0600
+Message-ID: <56E1CF7C.1010505@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wm0-f41.google.com ([74.125.82.41]:37924 "EHLO
-	mail-wm0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753079AbcCJQEK (ORCPT
-	<rfc822;linux-unionfs@vger.kernel.org>);
-	Thu, 10 Mar 2016 11:04:10 -0500
-Received: by mail-wm0-f41.google.com with SMTP id l68so34927456wml.1
-        for <linux-unionfs@vger.kernel.org>; Thu, 10 Mar 2016 08:04:09 -0800 (PST)
-Content-Disposition: inline
-In-Reply-To: <20160222142834.GA18393@redhat.com>
+Received: from mx2.suse.de ([195.135.220.15]:39335 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754898AbcCJTsP (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+	Thu, 10 Mar 2016 14:48:15 -0500
+Received: from relay2.suse.de (charybdis-ext.suse.de [195.135.220.254])
+	by mx2.suse.de (Postfix) with ESMTP id 12625ABD3
+	for <linux-unionfs@vger.kernel.org>; Thu, 10 Mar 2016 19:48:14 +0000 (UTC)
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Vivek Goyal <vgoyal@redhat.com>
-Cc: linux-unionfs@vger.kernel.org, linux-fsdevel <linux-fsdevel@vger.kernel.org>, David Howells <dhowells@redhat.com>, Dave Chinner <david@fromorbit.com>
+To: linux-unionfs@vger.kernel.org
 
-On Mon, Feb 22, 2016 at 09:28:34AM -0500, Vivek Goyal wrote:
-> During mount, make sure upper fs supports d_type otherwise error out.
-> 
-> In some instances xfs has been created with ftype=0 and there if a file
-> on lower fs is removed, overlay leaves a whiteout in upper fs but that
-> whiteout does not get filtered out and is visible to overlayfs users.
-> 
-> And reason it does not get filtered out because upper filesystem does
-> not report file type of whiteout as DT_CHR during iterate_dir().
-> 
-> So it seems to be a requirement that upper filesystem support d_type for
-> overlayfs to work properly. Do this check during mount and fail if d_type
-> is not supported.
-> 
-> Suggested-by: Dave Chinner <dchinner@redhat.com>
-> Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
+Hi,
 
-Queued.  Thanks.
+I noticed that you can continue using overlayfs while the underlying 
+filesystem is unmounted. While overlayfs continues to use and show the 
+entries from the underlying filesystem. Howerver, /proc/mounts is 
+missing the lowerdir mount entry. This could be pretty confusing for 
+users (say for example for users looking to hot swap devices)
 
-Miklos
+I traced it down to the vfs mount point being copied/cloned as opposed 
+to using the original one. Is there a reason why a new vfsmount is used 
+as opposed to using the lowerdir's vfsmount? Perhaps I did not look hard 
+enough, but I did not find any changes being made to the cloned lowerdir 
+vfsmount.
 
-
-> ---
->  fs/overlayfs/overlayfs.h |    1 +
->  fs/overlayfs/readdir.c   |   37 +++++++++++++++++++++++++++++++++++++
->  fs/overlayfs/super.c     |   15 +++++++++++++++
->  3 files changed, 53 insertions(+)
-> 
-> Index: rhvgoyal-linux/fs/overlayfs/readdir.c
-> ===================================================================
-> --- rhvgoyal-linux.orig/fs/overlayfs/readdir.c	2016-02-19 16:10:09.440000000 +0000
-> +++ rhvgoyal-linux/fs/overlayfs/readdir.c	2016-02-22 14:09:30.745000000 +0000
-> @@ -43,6 +43,7 @@ struct ovl_readdir_data {
->  	struct ovl_cache_entry *first_maybe_whiteout;
->  	int count;
->  	int err;
-> +	bool d_type_supported;
->  };
->  
->  struct ovl_dir_file {
-> @@ -577,3 +578,39 @@ void ovl_cleanup_whiteouts(struct dentry
->  	}
->  	inode_unlock(upper->d_inode);
->  }
-> +
-> +static int ovl_check_d_type(struct dir_context *ctx, const char *name,
-> +			  int namelen, loff_t offset, u64 ino,
-> +			  unsigned int d_type)
-> +{
-> +	struct ovl_readdir_data *rdd =
-> +		container_of(ctx, struct ovl_readdir_data, ctx);
-> +
-> +	/* Even if d_type is not supported, DT_DIR is returned for . and .. */
-> +	if (!strncmp(name, ".", namelen) || !strncmp(name, "..", namelen))
-> +		return 0;
-> +
-> +	if (d_type != DT_UNKNOWN)
-> +		rdd->d_type_supported = true;
-> +
-> +	return 0;
-> +}
-> +
-> +/*
-> + * Returns 1 if d_type is supported, 0 not supported/unknown. Negative values
-> + * if error is encountered.
-> + */
-> +int ovl_check_d_type_supported(struct path *realpath)
-> +{
-> +	int err;
-> +	struct ovl_readdir_data rdd = {
-> +		.ctx.actor = ovl_check_d_type,
-> +		.d_type_supported = false,
-> +	};
-> +
-> +	err = ovl_dir_read(realpath, &rdd);
-> +	if (err)
-> +		return err;
-> +
-> +	return rdd.d_type_supported;
-> +}
-> Index: rhvgoyal-linux/fs/overlayfs/overlayfs.h
-> ===================================================================
-> --- rhvgoyal-linux.orig/fs/overlayfs/overlayfs.h	2016-02-19 16:10:09.440000000 +0000
-> +++ rhvgoyal-linux/fs/overlayfs/overlayfs.h	2016-02-22 14:09:30.746000000 +0000
-> @@ -166,6 +166,7 @@ extern const struct file_operations ovl_
->  int ovl_check_empty_dir(struct dentry *dentry, struct list_head *list);
->  void ovl_cleanup_whiteouts(struct dentry *upper, struct list_head *list);
->  void ovl_cache_free(struct list_head *list);
-> +int ovl_check_d_type_supported(struct path *realpath);
->  
->  /* inode.c */
->  int ovl_setattr(struct dentry *dentry, struct iattr *attr);
-> Index: rhvgoyal-linux/fs/overlayfs/super.c
-> ===================================================================
-> --- rhvgoyal-linux.orig/fs/overlayfs/super.c	2016-02-19 16:10:09.440000000 +0000
-> +++ rhvgoyal-linux/fs/overlayfs/super.c	2016-02-22 14:09:30.746000000 +0000
-> @@ -1025,6 +1025,21 @@ static int ovl_fill_super(struct super_b
->  			sb->s_flags |= MS_RDONLY;
->  			ufs->workdir = NULL;
->  		}
-> +
-> +		/*
-> +		 * Upper should support d_type, else whiteouts are visible.
-> +		 * Given workdir and upper are on same fs, we can do
-> +		 * iterate_dir() on workdir.
-> +		 */
-> +		err = ovl_check_d_type_supported(&workpath);
-> +		if (err < 0)
-> +			goto out_put_workdir;
-> +
-> +		if (!err) {
-> +			pr_err("overlayfs: upper fs needs to support d_type.\n");
-> +			err = -EINVAL;
-> +			goto out_put_workdir;
-> +		}
->  	}
->  
->  	err = -ENOMEM;
+-- 
+Goldwyn
