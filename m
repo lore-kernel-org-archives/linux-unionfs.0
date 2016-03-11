@@ -1,70 +1,64 @@
-From: Daniel Axtens <dja@axtens.net>
-Subject: ext4_file_open: Inconsistent encryption contexts (commit ff978b09f973) breaking Docker
-Date: Fri, 11 Mar 2016 11:44:54 +1100
-Message-ID: <87io0t3ks9.fsf@gamma.ozlabs.ibm.com>
+From: Theodore Ts'o <tytso@mit.edu>
+Subject: Re: ext4_file_open: Inconsistent encryption contexts (commit
+ ff978b09f973) breaking Docker
+Date: Thu, 10 Mar 2016 21:15:06 -0500
+Message-ID: <20160311021506.GA32214@thunk.org>
+References: <87io0t3ks9.fsf@gamma.ozlabs.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-pa0-f41.google.com ([209.85.220.41]:34218 "EHLO
-	mail-pa0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932909AbcCKAo7 (ORCPT
-	<rfc822;linux-unionfs@vger.kernel.org>);
-	Thu, 10 Mar 2016 19:44:59 -0500
-Received: by mail-pa0-f41.google.com with SMTP id fe3so63290649pab.1
-        for <linux-unionfs@vger.kernel.org>; Thu, 10 Mar 2016 16:44:59 -0800 (PST)
+Received: from imap.thunk.org ([74.207.234.97]:58728 "EHLO imap.thunk.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933259AbcCKCPL (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+	Thu, 10 Mar 2016 21:15:11 -0500
+Content-Disposition: inline
+In-Reply-To: <87io0t3ks9.fsf@gamma.ozlabs.ibm.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: linux-kernel@vger.kernel.org, Theodore Ts'o <tytso@mit.edu>, linux-ext4@vger.kernel.org, viro@zeniv.linux.org.uk, miklos@szeredi.hu, linux-unionfs@vger.kernel.org
+To: Daniel Axtens <dja@axtens.net>
+Cc: linux-kernel@vger.kernel.org, linux-ext4@vger.kernel.org, viro@zeniv.linux.org.uk, miklos@szeredi.hu, linux-unionfs@vger.kernel.org
 
-Hi,
+On Fri, Mar 11, 2016 at 11:44:54AM +1100, Daniel Axtens wrote:
+> Hi,
+> 
+> Trying to run a Docker container on a mainline kernel is failing
+> intermittently, in interesting and exciting ways, such as:
+> 
+> $ docker run -it --rm --env PACKAGE=sinatra npmtest
+> operation not permitted
+> docker: Error response from daemon: Cannot start container 4fc0120a6389f25241f84527a0d31854806f6fe4fd98d019f790cea0ae7e230b: [10] System error: operation not permitted.
+> 
+> EXT4-fs warning (device sda2): ext4_file_open:402: Inconsistent encryption contexts: 27842/3691208
 
-Trying to run a Docker container on a mainline kernel is failing
-intermittently, in interesting and exciting ways, such as:
+This could only happen if the EXT4_ENCRYPT_FL flag is set.  (I assume
+you weren't actually trying to use ext4 encryption.)  The flag can't
+be set using the FS_IOC_SETFLAGS ioctl.  It can only be set using
+EXT4_IOC_SET_ENCRYPTION_POLICY.
 
-$ docker run -it --rm --env PACKAGE=sinatra npmtest
-operation not permitted
-docker: Error response from daemon: Cannot start container 4fc0120a6389f25241f84527a0d31854806f6fe4fd98d019f790cea0ae7e230b: [10] System error: operation not permitted.
+The only thing I can think of is that overlayfs is somehow setting or
+otherwise corrupting the i_flags.
 
-$ docker run -it --rm --env PACKAGE=sinatra npmtest
-Unable to find user tester
-docker: Error response from daemon: Cannot start container a28d6256cfcde750e8e4ff60fc72217b19b58160df68f55d798ea2f3000c4564: [10] System error: Unable to find user tester.
+So if you could try changing the relevant code in ext4_file_open() to
+look like this:
 
-$ docker run ...
-...
-Error: EPERM, operation not permitted '/usr/share/npm/node_modules/npmconf/node_modules/config-chain/index.js'
+	if (ext4_encrypted_inode(dir) &&
+	    !ext4_is_child_context_consistent_with_parent(dir, inode)) {
+		char tmpbuf[128];
 
-$ docker run ...
-...
-Error: EPERM, operation not permitted '/usr/lib/nodejs/form-data/form_data.js'
+		ext4_warning(inode->i_sb,
+			     "Inconsistent encryption contexts: %lu/%lu\n",
+			     (unsigned long) dir->i_ino,
+			     (unsigned long) inode->i_ino);
+		cp = d_path(&filp->f_path, tmpbuf, sizeof(tmpbuf));
+		if (!IS_ERR(cp))
+			pr_err("pathname: %s\n", cp);
+		pr_err("inode flags: %lu\n", EXT4_I(inode)->i_flags);
+		WARN_ON(1);
+		return -EPERM;
+	}
 
-$ docker run ...
-...
-/bin/bash: /usr/bin/npm: Operation not permitted
+This should give you the stack trace as well as the pathname and inode
+flag information.  This will hopefully give us a bit more context
+about how this is happening.
 
-Each of these failures is accompanied by lines in dmesg like these:
-
-EXT4-fs warning (device sda2): ext4_file_open:402: Inconsistent encryption contexts: 27842/3691208
-
-EXT4-fs warning (device sda2): ext4_file_open:402: Inconsistent encryption contexts: 41086/3128060
-
-(With different context numbers each time)
-
-Grepping for the error message took me to ff978b09f973:
-"ext4 crypto: move context consistency check to ext4_file_open()"
-which went in to mainline in rc5.
-
-A build with the source rolled back to the commit immediately before
-that doesn't exhibit the issue.
-
-Docker is using Overlay filesystems backing onto an ext4 filesystem, so
-some interaction between Overlay FS and ext4 may be the cause. I'm not
-much of a file system developer so I don't really know where to go from
-here, but I'm happy to help however I can.
-
-The machine is a ppc64le VM running Ubuntu, docker 1.11.0-dev, build
-dd32445. I've turned on most of the kernel debugging options I can think
-of and nothing interesting is showing up. fsck reports the root ext4
-filesystem is clean. If I've missed any helpful info please let me know.
-
-Regards,
-Daniel Axtens
+						- Ted
