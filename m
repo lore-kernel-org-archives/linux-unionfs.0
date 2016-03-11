@@ -1,55 +1,70 @@
-From: Theodore Ts'o <tytso@mit.edu>
-Subject: Re: Unmounting lower filesystem while overlayfs uses it
-Date: Thu, 10 Mar 2016 18:43:09 -0500
-Message-ID: <20160310234309.GB8890@thunk.org>
-References: <56E1CF7C.1010505@suse.de>
+From: Daniel Axtens <dja@axtens.net>
+Subject: ext4_file_open: Inconsistent encryption contexts (commit ff978b09f973) breaking Docker
+Date: Fri, 11 Mar 2016 11:44:54 +1100
+Message-ID: <87io0t3ks9.fsf@gamma.ozlabs.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from imap.thunk.org ([74.207.234.97]:58292 "EHLO imap.thunk.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932437AbcCJXnN (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-	Thu, 10 Mar 2016 18:43:13 -0500
-Content-Disposition: inline
-In-Reply-To: <56E1CF7C.1010505@suse.de>
+Received: from mail-pa0-f41.google.com ([209.85.220.41]:34218 "EHLO
+	mail-pa0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932909AbcCKAo7 (ORCPT
+	<rfc822;linux-unionfs@vger.kernel.org>);
+	Thu, 10 Mar 2016 19:44:59 -0500
+Received: by mail-pa0-f41.google.com with SMTP id fe3so63290649pab.1
+        for <linux-unionfs@vger.kernel.org>; Thu, 10 Mar 2016 16:44:59 -0800 (PST)
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Goldwyn Rodrigues <rgoldwyn@suse.de>
-Cc: linux-unionfs@vger.kernel.org
+To: linux-kernel@vger.kernel.org, Theodore Ts'o <tytso@mit.edu>, linux-ext4@vger.kernel.org, viro@zeniv.linux.org.uk, miklos@szeredi.hu, linux-unionfs@vger.kernel.org
 
-On Thu, Mar 10, 2016 at 01:48:12PM -0600, Goldwyn Rodrigues wrote:
-> Hi,
-> 
-> I noticed that you can continue using overlayfs while the underlying
-> filesystem is unmounted. While overlayfs continues to use and show the
-> entries from the underlying filesystem. Howerver, /proc/mounts is missing
-> the lowerdir mount entry. This could be pretty confusing for users (say for
-> example for users looking to hot swap devices)
-> 
-> I traced it down to the vfs mount point being copied/cloned as opposed to
-> using the original one. Is there a reason why a new vfsmount is used as
-> opposed to using the lowerdir's vfsmount? Perhaps I did not look hard
-> enough, but I did not find any changes being made to the cloned lowerdir
-> vfsmount.
+Hi,
 
-There are all sorts of way that users can get confused about which
-devices are mounted or not.  For example, if you are using mount
-namespaces, just because it is unmounted in *your* namespace doesn't
-mean that it isn't still mounted in some other processes's namespace.
+Trying to run a Docker container on a mainline kernel is failing
+intermittently, in interesting and exciting ways, such as:
 
-I've had at least one bug report from a Debian user when some random
-application program happened to use create its own mount namespace,
-and then when the user unmounted the file system in the normal
-(default) namespace, the file system was still mounted in the
-namespace of this daemon, and the file system only got unmounted when
-the daemon shut down (and released the namespace).
+$ docker run -it --rm --env PACKAGE=sinatra npmtest
+operation not permitted
+docker: Error response from daemon: Cannot start container 4fc0120a6389f25241f84527a0d31854806f6fe4fd98d019f790cea0ae7e230b: [10] System error: operation not permitted.
 
-So this is a much bigger problem than just one that shows up in
-unionfs or overlayfs.  It's similar to the issue where a program is
-holding an open file descriptor on a large file, and the system
-administrators gets confused space dossn't get reclaimed after he
-deletes the file.  We don't currently have the equivalent of "lsof"
-for mounts, but it should be possible to create such a thing.
+$ docker run -it --rm --env PACKAGE=sinatra npmtest
+Unable to find user tester
+docker: Error response from daemon: Cannot start container a28d6256cfcde750e8e4ff60fc72217b19b58160df68f55d798ea2f3000c4564: [10] System error: Unable to find user tester.
 
-					- Ted
-					
+$ docker run ...
+...
+Error: EPERM, operation not permitted '/usr/share/npm/node_modules/npmconf/node_modules/config-chain/index.js'
+
+$ docker run ...
+...
+Error: EPERM, operation not permitted '/usr/lib/nodejs/form-data/form_data.js'
+
+$ docker run ...
+...
+/bin/bash: /usr/bin/npm: Operation not permitted
+
+Each of these failures is accompanied by lines in dmesg like these:
+
+EXT4-fs warning (device sda2): ext4_file_open:402: Inconsistent encryption contexts: 27842/3691208
+
+EXT4-fs warning (device sda2): ext4_file_open:402: Inconsistent encryption contexts: 41086/3128060
+
+(With different context numbers each time)
+
+Grepping for the error message took me to ff978b09f973:
+"ext4 crypto: move context consistency check to ext4_file_open()"
+which went in to mainline in rc5.
+
+A build with the source rolled back to the commit immediately before
+that doesn't exhibit the issue.
+
+Docker is using Overlay filesystems backing onto an ext4 filesystem, so
+some interaction between Overlay FS and ext4 may be the cause. I'm not
+much of a file system developer so I don't really know where to go from
+here, but I'm happy to help however I can.
+
+The machine is a ppc64le VM running Ubuntu, docker 1.11.0-dev, build
+dd32445. I've turned on most of the kernel debugging options I can think
+of and nothing interesting is showing up. fsck reports the root ext4
+filesystem is clean. If I've missed any helpful info please let me know.
+
+Regards,
+Daniel Axtens
