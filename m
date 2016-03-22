@@ -1,70 +1,137 @@
 From: Miklos Szeredi <miklos@szeredi.hu>
-Subject: [PATCH] vfs: rename: check backing inode being equal
-Date: Tue, 22 Mar 2016 14:17:42 +0100
-Message-ID: <20160322131742.GC11906@tucsk>
+Subject: [PATCH 1/2] vfs: export lookup_hash() to modules
+Date: Tue, 22 Mar 2016 14:21:03 +0100
+Message-ID: <20160322132103.GD11906@tucsk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wm0-f41.google.com ([74.125.82.41]:33453 "EHLO
-	mail-wm0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758663AbcCVNQY (ORCPT
-	<rfc822;linux-unionfs@vger.kernel.org>);
-	Tue, 22 Mar 2016 09:16:24 -0400
-Received: by mail-wm0-f41.google.com with SMTP id l68so192218271wml.0
-        for <linux-unionfs@vger.kernel.org>; Tue, 22 Mar 2016 06:16:23 -0700 (PDT)
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
 Content-Disposition: inline
-Sender: linux-unionfs-owner@vger.kernel.org
-List-Id: linux-unionfs@vger.kernel.org
+Sender: linux-fsdevel-owner@vger.kernel.org
 To: Al Viro <viro@zeniv.linux.org.uk>
 Cc: linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org
+List-Id: linux-unionfs@vger.kernel.org
 
-If a file is renamed to a hardlink of itself POSIX specifies that rename(2)
-should do nothing and return success.
+Overlayfs needs lookup without inode_permission() and already has the name
+hash (in form of dentry->d_name on overlayfs dentry).  It also doesn't
+support filesystems with d_op->d_hash() so basically it only needs
+__lookup_hash() from lookup_one_len().
 
-This condition is checked in vfs_rename().  However it won't detect hard
-links on overlayfs where these are given separate inodes on the overlayfs
-layer.
-
-Overlayfs itself detects this condition and returns success without doing
-anything, but then vfs_rename() will proceed as if this was a successful
-rename (detach_mounts(), d_move()).
-
-The correct thing to do is to detect this condition before even calling
-into overlayfs.  This patch does this by checking for
-DCACHE_OP_SELECT_INODE and getting the underlying inode in that case.
+Rename __lookup_hash() to lookup_hash() and export to modules.
 
 Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
-Cc: <stable@vger.kernel.org> # v4.2+
 ---
- fs/namei.c |   13 ++++++++++++-
- 1 file changed, 12 insertions(+), 1 deletion(-)
+ fs/namei.c            |   35 ++++++++++++++++++++++++++---------
+ include/linux/namei.h |    2 ++
+ 2 files changed, 28 insertions(+), 9 deletions(-)
 
 --- a/fs/namei.c
 +++ b/fs/namei.c
-@@ -4150,6 +4150,17 @@ SYSCALL_DEFINE2(link, const char __user
- 	return sys_linkat(AT_FDCWD, oldname, AT_FDCWD, newname, 0);
+@@ -1492,8 +1492,24 @@ static struct dentry *lookup_real(struct
+ 	return dentry;
  }
  
-+static struct inode *backing_inode(struct dentry *dentry)
-+{
-+	struct inode *inode = d_inode(dentry);
-+
-+	if (inode && dentry->d_flags & DCACHE_OP_SELECT_INODE) {
-+		inode = dentry->d_op->d_select_inode(dentry, 0);
-+		WARN_ON(IS_ERR(inode));
-+	}
-+	return inode;
-+}
-+
- /**
-  * vfs_rename - rename a filesystem object
-  * @old_dir:	parent of source
-@@ -4211,7 +4222,7 @@ int vfs_rename(struct inode *old_dir, st
- 	bool new_is_dir = false;
- 	unsigned max_links = new_dir->i_sb->s_max_links;
+-static struct dentry *__lookup_hash(const struct qstr *name,
+-		struct dentry *base, unsigned int flags)
++/**
++ * lookup_hash - lookup single pathname component on already hashed name
++ * @name:	name and hash to lookup
++ * @base:	base directory to lookup from
++ * @flags:	lookup flags
++ *
++ * The name must have been verified and hashed (see lookup_one_len()).  Using
++ * this after just full_name_hash() is unsafe.
++ *
++ * This function also doesn't check for search permission on base directory.
++ *
++ * Use lookup_one_len() or lookup_one_len_unlocked() instead, unless you really
++ * know what you are doing.
++ *
++ * The caller must hold base->i_mutex.
++ */
++struct dentry *lookup_hash(const struct qstr *name,
++			   struct dentry *base, unsigned int flags)
+ {
+ 	struct dentry *dentry = lookup_dcache(name, base, flags);
  
--	if (source == target)
-+	if (backing_inode(old_dentry) == backing_inode(new_dentry))
- 		return 0;
+@@ -1506,6 +1522,7 @@ static struct dentry *__lookup_hash(cons
  
- 	error = may_delete(old_dir, old_dentry, is_dir);
+ 	return lookup_real(base->d_inode, dentry, flags);
+ }
++EXPORT_SYMBOL(lookup_hash);
+ 
+ static int lookup_fast(struct nameidata *nd,
+ 		       struct path *path, struct inode **inode,
+@@ -2229,7 +2246,7 @@ struct dentry *kern_path_locked(const ch
+ 		return ERR_PTR(-EINVAL);
+ 	}
+ 	inode_lock_nested(path->dentry->d_inode, I_MUTEX_PARENT);
+-	d = __lookup_hash(&last, path->dentry, 0);
++	d = lookup_hash(&last, path->dentry, 0);
+ 	if (IS_ERR(d)) {
+ 		inode_unlock(path->dentry->d_inode);
+ 		path_put(path);
+@@ -2313,7 +2330,7 @@ struct dentry *lookup_one_len(const char
+ 	if (err)
+ 		return ERR_PTR(err);
+ 
+-	return __lookup_hash(&this, base, 0);
++	return lookup_hash(&this, base, 0);
+ }
+ EXPORT_SYMBOL(lookup_one_len);
+ 
+@@ -3476,7 +3493,7 @@ static struct dentry *filename_create(in
+ 	 */
+ 	lookup_flags |= LOOKUP_CREATE | LOOKUP_EXCL;
+ 	inode_lock_nested(path->dentry->d_inode, I_MUTEX_PARENT);
+-	dentry = __lookup_hash(&last, path->dentry, lookup_flags);
++	dentry = lookup_hash(&last, path->dentry, lookup_flags);
+ 	if (IS_ERR(dentry))
+ 		goto unlock;
+ 
+@@ -3756,7 +3773,7 @@ static long do_rmdir(int dfd, const char
+ 		goto exit1;
+ 
+ 	inode_lock_nested(path.dentry->d_inode, I_MUTEX_PARENT);
+-	dentry = __lookup_hash(&last, path.dentry, lookup_flags);
++	dentry = lookup_hash(&last, path.dentry, lookup_flags);
+ 	error = PTR_ERR(dentry);
+ 	if (IS_ERR(dentry))
+ 		goto exit2;
+@@ -3878,7 +3895,7 @@ static long do_unlinkat(int dfd, const c
+ 		goto exit1;
+ retry_deleg:
+ 	inode_lock_nested(path.dentry->d_inode, I_MUTEX_PARENT);
+-	dentry = __lookup_hash(&last, path.dentry, lookup_flags);
++	dentry = lookup_hash(&last, path.dentry, lookup_flags);
+ 	error = PTR_ERR(dentry);
+ 	if (!IS_ERR(dentry)) {
+ 		/* Why not before? Because we want correct error value */
+@@ -4407,7 +4424,7 @@ SYSCALL_DEFINE5(renameat2, int, olddfd,
+ retry_deleg:
+ 	trap = lock_rename(new_path.dentry, old_path.dentry);
+ 
+-	old_dentry = __lookup_hash(&old_last, old_path.dentry, lookup_flags);
++	old_dentry = lookup_hash(&old_last, old_path.dentry, lookup_flags);
+ 	error = PTR_ERR(old_dentry);
+ 	if (IS_ERR(old_dentry))
+ 		goto exit3;
+@@ -4415,7 +4432,7 @@ SYSCALL_DEFINE5(renameat2, int, olddfd,
+ 	error = -ENOENT;
+ 	if (d_is_negative(old_dentry))
+ 		goto exit4;
+-	new_dentry = __lookup_hash(&new_last, new_path.dentry, lookup_flags | target_flags);
++	new_dentry = lookup_hash(&new_last, new_path.dentry, lookup_flags | target_flags);
+ 	error = PTR_ERR(new_dentry);
+ 	if (IS_ERR(new_dentry))
+ 		goto exit4;
+--- a/include/linux/namei.h
++++ b/include/linux/namei.h
+@@ -79,6 +79,8 @@ extern int kern_path_mountpoint(int, con
+ 
+ extern struct dentry *lookup_one_len(const char *, struct dentry *, int);
+ extern struct dentry *lookup_one_len_unlocked(const char *, struct dentry *, int);
++struct qstr;
++extern struct dentry *lookup_hash(const struct qstr *, struct dentry *, unsigned int);
+ 
+ extern int follow_down_one(struct path *);
+ extern int follow_down(struct path *);
