@@ -1,39 +1,49 @@
-From: David Kedogo <easter.amadu@gmail.com>
-Subject: FOR YOUR INFORMATION DEAR BENEFICIARY,
-Date: Mon, 21 Mar 2016 20:18:08 +0100
-Message-ID: <CAHWpSzV=GUafc6EEfE3pjMECmSsSbHbO-ji3KyjV3nw6Oh1bHw@mail.gmail.com>
-Reply-To: peterakupa112@gmail.com
+From: Miklos Szeredi <miklos@szeredi.hu>
+Subject: [GIT PULL] overlayfs update for 4.6
+Date: Tue, 22 Mar 2016 14:10:08 +0100
+Message-ID: <20160322131008.GB11906@tucsk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-yw0-f195.google.com ([209.85.161.195]:33352 "EHLO
-	mail-yw0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755361AbcCUTSJ (ORCPT
-	<rfc822;linux-unionfs@vger.kernel.org>);
-	Mon, 21 Mar 2016 15:18:09 -0400
-Received: by mail-yw0-f195.google.com with SMTP id a140so10187429ywe.0
-        for <linux-unionfs@vger.kernel.org>; Mon, 21 Mar 2016 12:18:09 -0700 (PDT)
-Sender: linux-unionfs-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
+Content-Disposition: inline
+Sender: linux-fsdevel-owner@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 
-FOR YOUR INFORMATION DEAR BENEFICIARY,
+Hi Linus,
 
-Your Over-due ATM Card payment of $1.5MUSD by the UN Office have
-deposited to the ATM MASTER CARD OFFICE. All you have to do now is to
-contact the Office Manager Dr. peter Akupa Boni at:
-(peterakupa112@gmail.com) and Phone number: +229 61 31 07 78  , he
-will give you direction on how you will receive your ATM MASTER CARD
-immediately.
+Please pull from:
 
-Contact person: Dr. peter Akupa,
-E-mail: (peterakupa112@gmail.com )
+  git://git.kernel.org/pub/scm/linux/kernel/git/mszeredi/vfs.git overlayfs-linus
 
-You have to also contact him with the following details:
+This contains various fixes and tweaks.
 
-1. Your full name:
-2. Your contact cell phone number:
-3. Your age:
-4. your Email
+Thanks,
+Miklos
 
-Thanks
-David Kedogo
+---
+David Howells (1):
+      ovl: Warn on copy up if a process has a R/O fd open to the lower file
+
+Konstantin Khlebnikov (1):
+      ovl: honor flag MS_SILENT at mount
+
+Miklos Szeredi (3):
+      ovl: verify upper dentry before unlink and rename
+      ovl: rename is_merge to is_lowest
+      ovl: cleanup unused var in rename2
+
+Sohom Bhattacharjee (1):
+      ovl: fixed coding style warning
+
+Vivek Goyal (1):
+      ovl: Ensure upper filesystem supports d_type
+
+---
+ fs/overlayfs/copy_up.c   | 35 +++++++++++++++++++++++++++
+ fs/overlayfs/dir.c       | 61 ++++++++++++++++++++++++++++++------------------
+ fs/overlayfs/overlayfs.h |  1 +
+ fs/overlayfs/readdir.c   | 53 ++++++++++++++++++++++++++++++++++-------
+ fs/overlayfs/super.c     | 18 +++++++++++++-
+ 5 files changed, 136 insertions(+), 32 deletions(-)
