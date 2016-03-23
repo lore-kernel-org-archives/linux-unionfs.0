@@ -1,53 +1,192 @@
 From: Miklos Szeredi <miklos@szeredi.hu>
-Subject: [PATCH 2/2] ovl: ignore permissions on underlying lookup
-Date: Tue, 22 Mar 2016 14:23:02 +0100
-Message-ID: <20160322132302.GE11906@tucsk>
-References: <20160322132103.GD11906@tucsk>
+Subject: [PATCH v2] fs: add file_dentry()
+Date: Wed, 23 Mar 2016 14:36:06 +0100
+Message-ID: <20160323133606.GF11906@tucsk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-unionfs-owner@vger.kernel.org>
+Received: from mail-lf0-f42.google.com ([209.85.215.42]:33847 "EHLO
+	mail-lf0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754217AbcCWNfK (ORCPT
+	<rfc822;linux-unionfs@vger.kernel.org>);
+	Wed, 23 Mar 2016 09:35:10 -0400
+Received: by mail-lf0-f42.google.com with SMTP id c62so8459509lfc.1
+        for <linux-unionfs@vger.kernel.org>; Wed, 23 Mar 2016 06:35:09 -0700 (PDT)
 Content-Disposition: inline
-In-Reply-To: <20160322132103.GD11906@tucsk>
-Sender: linux-fsdevel-owner@vger.kernel.org
-To: Al Viro <viro@zeniv.linux.org.uk>
-Cc: linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org
+Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
+To: Al Viro <viro@zeniv.linux.org.uk>
+Cc: linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org, David Howells <dhowells@redhat.com>, Goldwyn Rodrigues <rgoldwyn@suse.com>, Trond Myklebust <trond.myklebust@primarydata.com>, Theodore Ts'o <tytso@mit.edu>, Daniel Axtens <dja@axtens.net>, stable@vger.kernel.org
 
-Generally permission checking is not necessary when overlayfs looks up =
-a
-dentry on one of the underlying layers, since search permission on base
-directory was already checked in ovl_permission().
+This series fixes bugs in nfs and ext4 due to 4bacc9c9234c ("overlayfs:
+Make f_path always point to the overlay and f_inode to the underlay").
 
-More specifically using lookup_one_len() causes a problem when the lowe=
-r
-directory lacks search permission for a specific user while the upper
-directory does have search permission.  Since lookups are cached, this
-causes inconsistency in behavior: success depends on who did the first
-lookup.
+Regular files opened on overlayfs will result in the file being opened on
+the underlying filesystem, while f_path points to the overlayfs
+mount/dentry.
 
-So instead use lookup_hash() which doesn't do the permission check.
+This confuses filesystems which get the dentry from struct file and assume
+it's theirs.
 
-Reported-by: Ignacy Gaw=C4=99dzki <ignacy.gawedzki@green-communications=
-=2Efr>
+Add a new helper, file_dentry() [*], to get the filesystem's own dentry
+from the file.  This checks file->f_path.dentry->d_flags against
+DCACHE_OP_REAL, and returns file->f_path.dentry if DCACHE_OP_REAL is not
+set (this is the common, non-overlayfs case).
+
+In the uncommon case it will call into overlayfs's ->d_real() to get the
+underlying dentry, matching file_inode(file).
+
+The reason we need to check against the inode is that if the file is copied
+up while being open, d_real() would return the upper dentry, while the open
+file comes from the lower dentry.
+
+[*] If possible, it's better simply to use file_inode() instead.
+
 Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
+Tested-by: Goldwyn Rodrigues <rgoldwyn@suse.com>
+Reviewed-by: Trond Myklebust <trond.myklebust@primarydata.com>
+Cc: <stable@vger.kernel.org> # v4.2
+Cc: David Howells <dhowells@redhat.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Theodore Ts'o <tytso@mit.edu>
+Cc: Daniel Axtens <dja@axtens.net>
 ---
- fs/overlayfs/super.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+changes in v2:
 
+ - rename method to d_op->d_real()
+ - check d_flag instead of comparing inode for base dentry
+ - ovl_d_real() now handles recursion
+ - WARN instead of BUG and be more verbose
+ - add d_real() helper too
+
+ fs/dcache.c            |    5 ++++-
+ fs/overlayfs/super.c   |   33 +++++++++++++++++++++++++++++++++
+ include/linux/dcache.h |   10 ++++++++++
+ include/linux/fs.h     |   10 ++++++++++
+ 4 files changed, 57 insertions(+), 1 deletion(-)
+
+--- a/fs/dcache.c
++++ b/fs/dcache.c
+@@ -1667,7 +1667,8 @@ void d_set_d_op(struct dentry *dentry, c
+ 				DCACHE_OP_REVALIDATE	|
+ 				DCACHE_OP_WEAK_REVALIDATE	|
+ 				DCACHE_OP_DELETE	|
+-				DCACHE_OP_SELECT_INODE));
++				DCACHE_OP_SELECT_INODE	|
++				DCACHE_OP_REAL));
+ 	dentry->d_op = op;
+ 	if (!op)
+ 		return;
+@@ -1685,6 +1686,8 @@ void d_set_d_op(struct dentry *dentry, c
+ 		dentry->d_flags |= DCACHE_OP_PRUNE;
+ 	if (op->d_select_inode)
+ 		dentry->d_flags |= DCACHE_OP_SELECT_INODE;
++	if (op->d_real)
++		dentry->d_flags |= DCACHE_OP_REAL;
+ 
+ }
+ EXPORT_SYMBOL(d_set_d_op);
+--- a/include/linux/dcache.h
++++ b/include/linux/dcache.h
+@@ -161,6 +161,7 @@ struct dentry_operations {
+ 	struct vfsmount *(*d_automount)(struct path *);
+ 	int (*d_manage)(struct dentry *, bool);
+ 	struct inode *(*d_select_inode)(struct dentry *, unsigned);
++	struct dentry *(*d_real)(struct dentry *, struct inode *);
+ } ____cacheline_aligned;
+ 
+ /*
+@@ -229,6 +230,7 @@ struct dentry_operations {
+ #define DCACHE_OP_SELECT_INODE		0x02000000 /* Unioned entry: dcache op selects inode */
+ 
+ #define DCACHE_ENCRYPTED_WITH_KEY	0x04000000 /* dir is encrypted with a valid key */
++#define DCACHE_OP_REAL			0x08000000
+ 
+ extern seqlock_t rename_lock;
+ 
+@@ -555,4 +557,12 @@ static inline struct dentry *d_backing_d
+ 	return upper;
+ }
+ 
++static inline struct dentry *d_real(struct dentry *dentry)
++{
++	if (unlikely(dentry->d_flags & DCACHE_OP_REAL))
++		return dentry->d_op->d_real(dentry, NULL);
++	else
++		return dentry;
++}
++
+ #endif	/* __LINUX_DCACHE_H */
 --- a/fs/overlayfs/super.c
 +++ b/fs/overlayfs/super.c
-@@ -379,7 +379,7 @@ static inline struct dentry *ovl_lookup_
- 	struct dentry *dentry;
-=20
- 	inode_lock(dir->d_inode);
--	dentry =3D lookup_one_len(name->name, dir, name->len);
-+	dentry =3D lookup_hash(name, dir, 0);
- 	inode_unlock(dir->d_inode);
-=20
- 	if (IS_ERR(dentry)) {
---
-To unsubscribe from this list: send the line "unsubscribe linux-fsdevel=
-" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+@@ -295,6 +295,37 @@ static void ovl_dentry_release(struct de
+ 	}
+ }
+ 
++static struct dentry *ovl_d_real(struct dentry *dentry, struct inode *inode)
++{
++	struct dentry *real;
++
++	if (d_is_dir(dentry)) {
++		if (!inode || inode == d_inode(dentry))
++			return dentry;
++		goto bug;
++	}
++
++	real = ovl_dentry_upper(dentry);
++	if (real && (!inode || inode == d_inode(real)))
++		return real;
++
++	real = ovl_dentry_lower(dentry);
++	if (!real)
++		goto bug;
++
++	if (!inode || inode == d_inode(real))
++		return real;
++
++	/* Handle recursion */
++	if (real->d_flags & DCACHE_OP_REAL)
++		return real->d_op->d_real(real, inode);
++
++bug:
++	WARN(1, "ovl_d_real(%pd4, %s:%lu\n): real dentry not found\n", dentry,
++	     inode ? inode->i_sb->s_id : "NULL", inode ? inode->i_ino : 0);
++	return dentry;
++}
++
+ static int ovl_dentry_revalidate(struct dentry *dentry, unsigned int flags)
+ {
+ 	struct ovl_entry *oe = dentry->d_fsdata;
+@@ -339,11 +370,13 @@ static int ovl_dentry_weak_revalidate(st
+ static const struct dentry_operations ovl_dentry_operations = {
+ 	.d_release = ovl_dentry_release,
+ 	.d_select_inode = ovl_d_select_inode,
++	.d_real = ovl_d_real,
+ };
+ 
+ static const struct dentry_operations ovl_reval_dentry_operations = {
+ 	.d_release = ovl_dentry_release,
+ 	.d_select_inode = ovl_d_select_inode,
++	.d_real = ovl_d_real,
+ 	.d_revalidate = ovl_dentry_revalidate,
+ 	.d_weak_revalidate = ovl_dentry_weak_revalidate,
+ };
+--- a/include/linux/fs.h
++++ b/include/linux/fs.h
+@@ -1241,6 +1241,16 @@ static inline struct inode *file_inode(c
+ 	return f->f_inode;
+ }
+ 
++static inline struct dentry *file_dentry(const struct file *file)
++{
++	struct dentry *dentry = file->f_path.dentry;
++
++	if (unlikely(dentry->d_flags & DCACHE_OP_REAL))
++		return dentry->d_op->d_real(dentry, file_inode(file));
++	else
++		return dentry;
++}
++
+ static inline int locks_lock_file_wait(struct file *filp, struct file_lock *fl)
+ {
+ 	return locks_lock_inode_wait(file_inode(filp), fl);
