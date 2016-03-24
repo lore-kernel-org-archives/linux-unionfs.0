@@ -1,87 +1,96 @@
-From: Laison@seymour.toledo.br, Computech@seymour.toledo.br,
-	"Inc <support"@ensuretech.com
-Subject: CISCO IP PHONES AND CPU's
-Date: Thu, 24 Mar 2016 02:12:05 +0700
-Message-ID: <20160323203604.8ADE1A7B4B__41427.2625385367$1458768351$gmane$org@seymour.toledo.br>
-Reply-To: sales@laisoncomputertech.us
+From: Al Viro <viro@ZenIV.linux.org.uk>
+Subject: Re: kernel BUG when fsync'ing file in a overlayfs merged dir,
+ located on btrfs
+Date: Thu, 24 Mar 2016 15:20:43 +0000
+Message-ID: <20160324152043.GA22781@ZenIV.linux.org.uk>
+References: <1443643065-16460-1-git-send-email-lebedev.ri@gmail.com>
+ <563C171F.30702@jeffm.io>
+ <20151106031845.GV22011@ZenIV.linux.org.uk>
+ <563C26AE.1020403@jeffm.io>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from seymour.toledo.br ([200.148.142.55]:47443 "EHLO
-	seymour.toledo.br" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756587AbcCWVYv convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-unionfs@vger.kernel.org>);
-	Wed, 23 Mar 2016 17:24:51 -0400
-Content-Description: Mail message body
-Sender: linux-unionfs-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-btrfs-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <563C26AE.1020403@jeffm.io>
+Sender: linux-btrfs-owner@vger.kernel.org
+To: Jeff Mahoney <jeffm@jeffm.io>
+Cc: Roman Lebedev <lebedev.ri@gmail.com>, David Howells <dhowells@redhat.com>, linux-btrfs@vger.kernel.org, linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, fstests@vger.kernel.org, Filipe Manana <fdmanana@suse.com>
 List-Id: linux-unionfs@vger.kernel.org
-To: Recipients <support@ensuretech.com>
 
-Hi,
+On Thu, Nov 05, 2015 at 11:03:58PM -0500, Jeff Mahoney wrote:
 
-Our Stock list.
+> I suppose the irony here is that, AFAIK, that code is to ensure a file
+> doesn't get lost between transactions due to rename.
+> 
+> Isn't the file->f_path.dentry relationship stable otherwise, though? The
+> name might change and the parent might change but the dentry that the
+> file points to won't.
 
-Brand NEW
-96 x Cisco 7900 IP Phone
-87 x Unified IP Phone 6900
-12 x Unified IP Phone 8900
-76 x Unified IP Phone 9900
-55 x Unified IP Phone 8800
-67 x Cisco 1921
-67 x Cisco 1941
-56 x Cisco CP-7961G 7961G
-34 x Cisco CP-7971G-GE 7971G
-19 x Cisco Unified IP Conference Station 7937G Model: 7937 CP-7937G
-20 x Cisco CP-7975G 7975G
+Sure, it is stable.  But that doesn't guarantee anything about the
+ancestors.
 
-Brand New Sealed :
+btrfs_log_inode_parent() is a mess.  Look at that loop you've got there:
 
-23 x  CISCO1921-SEC/K9
-Conditions: Brand New Sealed
-Description: CISCO 1921 Security Bundle w/SEC license PAK
+       while (1) {
+                if (!parent || d_really_is_negative(parent) || sb != d_inode(parent)->i_sb)
+                        break;
 
-45 x CISCO1921/K9
-Conditions: Brand New Sealed
-Description: CISCO 1921 Modular Router, 2 GE, 2 EHWIC slots, 512DRAM, IP Base
+Really?  NULL from dget_parent()?  A negative from dget_parent()?  Sodding
+superblock changing from transition to parent?
 
-(1)  WS-C4500X-16SFP+
-Serial number:  JAE183501L3
-US&#36;2600
+                inode = d_inode(parent);
+                if (root != BTRFS_I(inode)->root)
+                        break;
 
-(1)  WS-C3850-48PW-S
-Serial number:  FCW1823C0EW
-US&#36;2650
+Umm...  Something like crossing a snapshot boundary?
 
-(1)  WS-X6908-10G-2T
-Serial number:  SAL1620CKUB
-US&#36;3650
+                if (BTRFS_I(inode)->generation > last_committed) {  
+                        ret = btrfs_log_inode(trans, root, inode,
+                                              LOG_INODE_EXISTS,
+                                              0, LLONG_MAX, ctx);
+                        if (ret)
+                                goto end_trans;
+                }
+                if (IS_ROOT(parent))
+                        break;
 
-(1)  ASR1000-ESP10
-Serial number:  JAE181306C3
-US&#36;3800
+                parent = dget_parent(parent);
+                dput(old_parent);
+                old_parent = parent;
+        }
 
-(1)  AIR-CT5508-250-K9   (this is new but box is open!)
-Serial number:  FCW1521L038
-US&#36;4000
+Note that there's not a damn thing to guarantee that those directories have
+anything to do with your file - race with rename(2) easily could've sent you
+chasing the wrong chain of ancestors.  Incidentally, what will happen if
+you do that fsync() to an unlinked file?  It still has ->d_parent pointing
+to the what used to be its parent (quite possibly itself already rmdir'ed and
+pinned down by that reference; inode is still busy, as if we'd done open and
+rmdir).  Is that what those checks are attempting to catch?  And what happens
+if rmdir happens between the check and btrfs_log_inode()?
 
-CPUs part number below
+The thing is, playing with ancestors of opened file is very easy to get
+wrong, regardless of overlayfs involvement.  And this code is anything
+but clear.  I don't know btrfs guts enough to be able to tell how much
+can actually break (as opposed to adding wrong inodes to transaction),
+but I would really suggest taking a good look at what's going on there...
 
-89 x  X5650
+> I did find a few other places where that assumption happens without any
+> questionable traversals.  Sure, all three are in file systems unlikely
+> to be used with overlayfs.
+> 
+> ocfs2_prepare_inode_for_write uses file->f_path.dentry for
+> should_remove_suid (due to needing to do it early since cluster locking
+> is unknown in setattr, according to the commit).  Having
+> should_remove_suid operate on an inode would solve that easily.
 
-975 x  X5660
+Can't do - there are filesystems that _need_ dentry for ->setattr().
 
-150 x  X5680
+> cifs_new_fileinfo keeps a reference to the dentry but it seems to be
+> used mostly to access the inode except for the nasty-looking call to
+> build_path_from_dentry in cifs_reopen_file, which I won't be touching.
+> That does look like a questionable traversal, especially with the "we
+> can't take the rename lock here" comment.
 
-265 x  X5690
-
-Kindly make your price offers.
-
-Sincerely
-Barbara Johnson
-Laison Computech
-210 N Scoring Ave,
-Rialto California, 92376
-Tel: +1-657-232-7047
-Fax: +1-347-214-0478
-Email: sales@laisoncomputertech.us
+cifs uses fs-root-relative pathnames in protocol; nothing to do there.
+Where do you see that comment, BTW?  It uses read_seqbegin/read_seqretry
+on rename_lock there...
