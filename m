@@ -1,108 +1,356 @@
-From: Julia Lawall <julia.lawall@lip6.fr>
-Subject: Re: [PATCH] fs: overlayfs: override creds with the ones from the
- superblock mounter (fwd)
-Date: Thu, 7 Apr 2016 15:36:26 +0200 (CEST)
-Message-ID: <alpine.DEB.2.10.1604071534500.3169@hadrien>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail3-relais-sop.national.inria.fr ([192.134.164.104]:65019
-	"EHLO mail3-relais-sop.national.inria.fr" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752423AbcDGNgk (ORCPT
-	<rfc822;linux-unionfs@vger.kernel.org>);
-	Thu, 7 Apr 2016 09:36:40 -0400
-Sender: linux-unionfs-owner@vger.kernel.org
+From: Antonio Murdaca <amurdaca@redhat.com>
+Subject: [PATCH v2] fs: overlayfs: override creds with the ones from the superblock mounter
+Date: Thu,  7 Apr 2016 15:48:25 +0200
+Message-ID: <1460036905-23473-1-git-send-email-runcom@redhat.com>
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
+Sender: linux-fsdevel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: julia.lawall@lip6.fr, linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, miklos@szeredi.hu, vgoyal@redhat.com, ebiederm@redhat.com, seth.forshee@canonical.com, luis.henriques@canonical.com
 List-Id: linux-unionfs@vger.kernel.org
-To: Antonio Murdaca <amurdaca@redhat.com>
-Cc: linux-kernel@vger.kernel.org, linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, miklos@szeredi.hu, vgoyal@redhat.com, ebiederm@redhat.com, seth.forshee@canonical.com, luis.henriques@canonical.com, kbuild-all@01.org
 
-The goto out_free_oe on line 1119 looks problematic.
+In user namespace the whiteout creation fails with -EPERM because the
+current process isn't capable(CAP_SYS_ADMIN) when setting xattr.
 
-julia
+A simple reproducer:
 
----------- Forwarded message ----------
-Date: Thu, 7 Apr 2016 21:31:44 +0800
-From: kbuild test robot <fengguang.wu@intel.com>
-To: kbuild@01.org
-Cc: Julia Lawall <julia.lawall@lip6.fr>
-Subject: Re: [PATCH] fs: overlayfs: override creds with the ones from the
-    superblock mounter
+$ mkdir upper lower work merged lower/dir
+$ sudo mount -t overlay overlay -olowerdir=lower,upperdir=upper,workdir=work merged
+$ unshare -m -p -f -U -r bash
 
-Hi Antonio,
+Now as root in the user namespace:
 
-[auto build test WARNING on v4.6-rc2]
-[also build test WARNING on next-20160407]
-[if your patch is applied to the wrong git tree, please drop us a note to help improving the system]
+\# touch merged/dir/{1,2,3} # this will force a copy up of lower/dir
+\# rm -fR merged/*
 
-url:    https://github.com/0day-ci/linux/commits/Antonio-Murdaca/fs-overlayfs-override-creds-with-the-ones-from-the-superblock-mounter/20160407-205959
-:::::: branch date: 32 minutes ago
-:::::: commit date: 32 minutes ago
+This ends up failing with -EPERM after the files in dir has been
+correctly deleted:
 
->> fs/overlayfs/super.c:1142:7-15: ERROR: reference preceded by free on line 1103
-   fs/overlayfs/super.c:1139:12-17: ERROR: reference preceded by free on line 1110
-   fs/overlayfs/super.c:1140:7-12: ERROR: reference preceded by free on line 1110
+unlinkat(4, "2", 0)                     = 0
+unlinkat(4, "1", 0)                     = 0
+unlinkat(4, "3", 0)                     = 0
+close(4)                                = 0
+unlinkat(AT_FDCWD, "merged/dir", AT_REMOVEDIR) = -1 EPERM (Operation not
+permitted)
 
-git remote add linux-review https://github.com/0day-ci/linux
-git remote update linux-review
-git checkout c9c3d05e9c7164d4203b022a3800462beda044b6
-vim +1142 fs/overlayfs/super.c
+Interestingly, if you don't place files in merged/dir you can remove it,
+meaning if upper/dir does not exist, creating the char device file works
+properly in that same location.
 
-3b7a9a24 Miklos Szeredi        2014-12-13  1097  		goto out_free_oe;
-e9be9d5e Miklos Szeredi        2014-10-24  1098
-e9be9d5e Miklos Szeredi        2014-10-24  1099  	mntput(upperpath.mnt);
-a78d9f0d Miklos Szeredi        2014-12-13  1100  	for (i = 0; i < numlower; i++)
-a78d9f0d Miklos Szeredi        2014-12-13  1101  		mntput(stack[i].mnt);
-e9be9d5e Miklos Szeredi        2014-10-24  1102  	path_put(&workpath);
-a78d9f0d Miklos Szeredi        2014-12-13 @1103  	kfree(lowertmp);
-e9be9d5e Miklos Szeredi        2014-10-24  1104
-e9be9d5e Miklos Szeredi        2014-10-24  1105  	oe->__upperdentry = upperpath.dentry;
-a78d9f0d Miklos Szeredi        2014-12-13  1106  	for (i = 0; i < numlower; i++) {
-a78d9f0d Miklos Szeredi        2014-12-13  1107  		oe->lowerstack[i].dentry = stack[i].dentry;
-a78d9f0d Miklos Szeredi        2014-12-13  1108  		oe->lowerstack[i].mnt = ufs->lower_mnt[i];
-a78d9f0d Miklos Szeredi        2014-12-13  1109  	}
-0f95502a Konstantin Khlebnikov 2015-08-24  1110  	kfree(stack);
-e9be9d5e Miklos Szeredi        2014-10-24  1111
-e9be9d5e Miklos Szeredi        2014-10-24  1112  	root_dentry->d_fsdata = oe;
-e9be9d5e Miklos Szeredi        2014-10-24  1113
-ed06e069 Miklos Szeredi        2015-12-09  1114  	ovl_copyattr(ovl_dentry_real(root_dentry)->d_inode,
-ed06e069 Miklos Szeredi        2015-12-09  1115  		     root_dentry->d_inode);
-ed06e069 Miklos Szeredi        2015-12-09  1116
-c9c3d05e Antonio Murdaca       2016-04-07  1117  	ufs->creator_cred = prepare_creds();
-c9c3d05e Antonio Murdaca       2016-04-07  1118  	if (!ufs->creator_cred)
-c9c3d05e Antonio Murdaca       2016-04-07  1119  		goto out_free_oe;
-c9c3d05e Antonio Murdaca       2016-04-07  1120
-cc259639 Andy Whitcroft        2014-10-24  1121  	sb->s_magic = OVERLAYFS_SUPER_MAGIC;
-e9be9d5e Miklos Szeredi        2014-10-24  1122  	sb->s_op = &ovl_super_operations;
-e9be9d5e Miklos Szeredi        2014-10-24  1123  	sb->s_root = root_dentry;
-e9be9d5e Miklos Szeredi        2014-10-24  1124  	sb->s_fs_info = ufs;
-e9be9d5e Miklos Szeredi        2014-10-24  1125
-e9be9d5e Miklos Szeredi        2014-10-24  1126  	return 0;
-e9be9d5e Miklos Szeredi        2014-10-24  1127
-3b7a9a24 Miklos Szeredi        2014-12-13  1128  out_free_oe:
-3b7a9a24 Miklos Szeredi        2014-12-13  1129  	kfree(oe);
-e9be9d5e Miklos Szeredi        2014-10-24  1130  out_put_lower_mnt:
-dd662667 Miklos Szeredi        2014-12-13  1131  	for (i = 0; i < ufs->numlower; i++)
-dd662667 Miklos Szeredi        2014-12-13  1132  		mntput(ufs->lower_mnt[i]);
-dd662667 Miklos Szeredi        2014-12-13  1133  	kfree(ufs->lower_mnt);
-3b7a9a24 Miklos Szeredi        2014-12-13  1134  out_put_workdir:
-3b7a9a24 Miklos Szeredi        2014-12-13  1135  	dput(ufs->workdir);
-e9be9d5e Miklos Szeredi        2014-10-24  1136  	mntput(ufs->upper_mnt);
-e9be9d5e Miklos Szeredi        2014-10-24  1137  out_put_lowerpath:
-a78d9f0d Miklos Szeredi        2014-12-13  1138  	for (i = 0; i < numlower; i++)
-a78d9f0d Miklos Szeredi        2014-12-13  1139  		path_put(&stack[i]);
-a78d9f0d Miklos Szeredi        2014-12-13  1140  	kfree(stack);
-a78d9f0d Miklos Szeredi        2014-12-13  1141  out_free_lowertmp:
-a78d9f0d Miklos Szeredi        2014-12-13 @1142  	kfree(lowertmp);
-3b7a9a24 Miklos Szeredi        2014-12-13  1143  out_put_workpath:
-3b7a9a24 Miklos Szeredi        2014-12-13  1144  	path_put(&workpath);
-e9be9d5e Miklos Szeredi        2014-10-24  1145  out_put_upperpath:
+This patch uses ovl_sb_creator_cred() to get the cred struct from the
+superblock mounter and override the old cred with these new ones so
+that the whiteout creation is possible because overlay is wrong in
+assuming that the creds it will get with prepare_creds will be in the
+initial user namespace.
+The old cap_raise game is removed in favor of just overriding the old
+cred struct.
 
-:::::: The code at line 1142 was first introduced by commit
-:::::: a78d9f0d5d5ca9054703376c7c23c901807ddd87 ovl: support multiple lower layers
+This patch also drops from ovl_copy_up_one() the following two lines:
 
-:::::: TO: Miklos Szeredi <mszeredi@suse.cz>
-:::::: CC: Miklos Szeredi <mszeredi@suse.cz>
+override_cred->fsuid = stat->uid;
+override_cred->fsgid = stat->gid;
 
+This is because the correct uid and gid are taken directly with the
+stat struct and correctly set with ovl_set_attr().
+
+Signed-off-by: Antonio Murdaca <runcom@redhat.com>
 ---
-0-DAY kernel test infrastructure                Open Source Technology Center
-https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
+
+Changes since v1:
+
+ * move ufs->creator_cred check up
+
+ fs/overlayfs/copy_up.c   | 29 +++-------------------
+ fs/overlayfs/dir.c       | 63 ++++++------------------------------------------
+ fs/overlayfs/overlayfs.h |  1 +
+ fs/overlayfs/readdir.c   | 15 +++---------
+ fs/overlayfs/super.c     | 14 +++++++++++
+ 5 files changed, 30 insertions(+), 92 deletions(-)
+
+diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
+index cc514da..429c5ba 100644
+--- a/fs/overlayfs/copy_up.c
++++ b/fs/overlayfs/copy_up.c
+@@ -19,6 +19,7 @@
+ #include <linux/namei.h>
+ #include <linux/fdtable.h>
+ #include <linux/ratelimit.h>
++#include <linux/user_namespace.h>
+ #include "overlayfs.h"
+ 
+ #define OVL_COPY_UP_CHUNK_SIZE (1 << 20)
+@@ -336,8 +337,8 @@ int ovl_copy_up_one(struct dentry *parent, struct dentry *dentry,
+ 	struct dentry *upperdir;
+ 	struct dentry *upperdentry;
+ 	const struct cred *old_cred;
+-	struct cred *override_cred;
+ 	char *link = NULL;
++	const struct cred *sb_creator_cred = ovl_sb_creator_cred(dentry->d_sb);
+ 
+ 	if (WARN_ON(!workdir))
+ 		return -EROFS;
+@@ -357,28 +358,7 @@ int ovl_copy_up_one(struct dentry *parent, struct dentry *dentry,
+ 			return PTR_ERR(link);
+ 	}
+ 
+-	err = -ENOMEM;
+-	override_cred = prepare_creds();
+-	if (!override_cred)
+-		goto out_free_link;
+-
+-	override_cred->fsuid = stat->uid;
+-	override_cred->fsgid = stat->gid;
+-	/*
+-	 * CAP_SYS_ADMIN for copying up extended attributes
+-	 * CAP_DAC_OVERRIDE for create
+-	 * CAP_FOWNER for chmod, timestamp update
+-	 * CAP_FSETID for chmod
+-	 * CAP_CHOWN for chown
+-	 * CAP_MKNOD for mknod
+-	 */
+-	cap_raise(override_cred->cap_effective, CAP_SYS_ADMIN);
+-	cap_raise(override_cred->cap_effective, CAP_DAC_OVERRIDE);
+-	cap_raise(override_cred->cap_effective, CAP_FOWNER);
+-	cap_raise(override_cred->cap_effective, CAP_FSETID);
+-	cap_raise(override_cred->cap_effective, CAP_CHOWN);
+-	cap_raise(override_cred->cap_effective, CAP_MKNOD);
+-	old_cred = override_creds(override_cred);
++	old_cred = override_creds(sb_creator_cred);
+ 
+ 	err = -EIO;
+ 	if (lock_rename(workdir, upperdir) != NULL) {
+@@ -398,12 +378,11 @@ int ovl_copy_up_one(struct dentry *parent, struct dentry *dentry,
+ 		/* Restore timestamps on parent (best effort) */
+ 		ovl_set_timestamps(upperdir, &pstat);
+ 	}
++
+ out_unlock:
+ 	unlock_rename(workdir, upperdir);
+ 	revert_creds(old_cred);
+-	put_cred(override_cred);
+ 
+-out_free_link:
+ 	if (link)
+ 		free_page((unsigned long) link);
+ 
+diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
+index b3fc0a3..6d26b1d 100644
+--- a/fs/overlayfs/dir.c
++++ b/fs/overlayfs/dir.c
+@@ -405,28 +405,14 @@ static int ovl_create_or_link(struct dentry *dentry, int mode, dev_t rdev,
+ 		err = ovl_create_upper(dentry, inode, &stat, link, hardlink);
+ 	} else {
+ 		const struct cred *old_cred;
+-		struct cred *override_cred;
++		const struct cred *sb_creator_cred = ovl_sb_creator_cred(dentry->d_sb);
+ 
+-		err = -ENOMEM;
+-		override_cred = prepare_creds();
+-		if (!override_cred)
+-			goto out_iput;
+-
+-		/*
+-		 * CAP_SYS_ADMIN for setting opaque xattr
+-		 * CAP_DAC_OVERRIDE for create in workdir, rename
+-		 * CAP_FOWNER for removing whiteout from sticky dir
+-		 */
+-		cap_raise(override_cred->cap_effective, CAP_SYS_ADMIN);
+-		cap_raise(override_cred->cap_effective, CAP_DAC_OVERRIDE);
+-		cap_raise(override_cred->cap_effective, CAP_FOWNER);
+-		old_cred = override_creds(override_cred);
++		old_cred = override_creds(sb_creator_cred);
+ 
+ 		err = ovl_create_over_whiteout(dentry, inode, &stat, link,
+ 					       hardlink);
+ 
+ 		revert_creds(old_cred);
+-		put_cred(override_cred);
+ 	}
+ 
+ 	if (!err)
+@@ -663,31 +649,13 @@ static int ovl_do_remove(struct dentry *dentry, bool is_dir)
+ 		err = ovl_remove_upper(dentry, is_dir);
+ 	} else {
+ 		const struct cred *old_cred;
+-		struct cred *override_cred;
++		const struct cred *sb_creator_cred = ovl_sb_creator_cred(dentry->d_sb);
+ 
+-		err = -ENOMEM;
+-		override_cred = prepare_creds();
+-		if (!override_cred)
+-			goto out_drop_write;
+-
+-		/*
+-		 * CAP_SYS_ADMIN for setting xattr on whiteout, opaque dir
+-		 * CAP_DAC_OVERRIDE for create in workdir, rename
+-		 * CAP_FOWNER for removing whiteout from sticky dir
+-		 * CAP_FSETID for chmod of opaque dir
+-		 * CAP_CHOWN for chown of opaque dir
+-		 */
+-		cap_raise(override_cred->cap_effective, CAP_SYS_ADMIN);
+-		cap_raise(override_cred->cap_effective, CAP_DAC_OVERRIDE);
+-		cap_raise(override_cred->cap_effective, CAP_FOWNER);
+-		cap_raise(override_cred->cap_effective, CAP_FSETID);
+-		cap_raise(override_cred->cap_effective, CAP_CHOWN);
+-		old_cred = override_creds(override_cred);
++		old_cred = override_creds(sb_creator_cred);
+ 
+ 		err = ovl_remove_and_whiteout(dentry, is_dir);
+ 
+ 		revert_creds(old_cred);
+-		put_cred(override_cred);
+ 	}
+ out_drop_write:
+ 	ovl_drop_write(dentry);
+@@ -725,7 +693,7 @@ static int ovl_rename2(struct inode *olddir, struct dentry *old,
+ 	bool new_is_dir = false;
+ 	struct dentry *opaquedir = NULL;
+ 	const struct cred *old_cred = NULL;
+-	struct cred *override_cred = NULL;
++	const struct cred *sb_creator_cred = NULL;
+ 
+ 	err = -EINVAL;
+ 	if (flags & ~(RENAME_EXCHANGE | RENAME_NOREPLACE))
+@@ -795,24 +763,8 @@ static int ovl_rename2(struct inode *olddir, struct dentry *old,
+ 	new_opaque = !OVL_TYPE_PURE_UPPER(new_type);
+ 
+ 	if (old_opaque || new_opaque) {
+-		err = -ENOMEM;
+-		override_cred = prepare_creds();
+-		if (!override_cred)
+-			goto out_drop_write;
+-
+-		/*
+-		 * CAP_SYS_ADMIN for setting xattr on whiteout, opaque dir
+-		 * CAP_DAC_OVERRIDE for create in workdir
+-		 * CAP_FOWNER for removing whiteout from sticky dir
+-		 * CAP_FSETID for chmod of opaque dir
+-		 * CAP_CHOWN for chown of opaque dir
+-		 */
+-		cap_raise(override_cred->cap_effective, CAP_SYS_ADMIN);
+-		cap_raise(override_cred->cap_effective, CAP_DAC_OVERRIDE);
+-		cap_raise(override_cred->cap_effective, CAP_FOWNER);
+-		cap_raise(override_cred->cap_effective, CAP_FSETID);
+-		cap_raise(override_cred->cap_effective, CAP_CHOWN);
+-		old_cred = override_creds(override_cred);
++		sb_creator_cred = ovl_sb_creator_cred(old->d_sb);
++		old_cred = override_creds(sb_creator_cred);
+ 	}
+ 
+ 	if (overwrite && OVL_TYPE_MERGE_OR_LOWER(new_type) && new_is_dir) {
+@@ -945,7 +897,6 @@ out_unlock:
+ out_revert_creds:
+ 	if (old_opaque || new_opaque) {
+ 		revert_creds(old_cred);
+-		put_cred(override_cred);
+ 	}
+ out_drop_write:
+ 	ovl_drop_write(old);
+diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
+index 6a7090f..b9fb3f9 100644
+--- a/fs/overlayfs/overlayfs.h
++++ b/fs/overlayfs/overlayfs.h
+@@ -153,6 +153,7 @@ void ovl_drop_write(struct dentry *dentry);
+ bool ovl_dentry_is_opaque(struct dentry *dentry);
+ void ovl_dentry_set_opaque(struct dentry *dentry, bool opaque);
+ bool ovl_is_whiteout(struct dentry *dentry);
++const struct cred *ovl_sb_creator_cred(struct super_block *sb);
+ void ovl_dentry_update(struct dentry *dentry, struct dentry *upperdentry);
+ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
+ 			  unsigned int flags);
+diff --git a/fs/overlayfs/readdir.c b/fs/overlayfs/readdir.c
+index 6ec1e43..f2d2e00 100644
+--- a/fs/overlayfs/readdir.c
++++ b/fs/overlayfs/readdir.c
+@@ -36,6 +36,7 @@ struct ovl_dir_cache {
+ 
+ struct ovl_readdir_data {
+ 	struct dir_context ctx;
++	struct dentry *dentry;
+ 	bool is_lowest;
+ 	struct rb_root root;
+ 	struct list_head *list;
+@@ -206,17 +207,9 @@ static int ovl_check_whiteouts(struct dentry *dir, struct ovl_readdir_data *rdd)
+ 	struct ovl_cache_entry *p;
+ 	struct dentry *dentry;
+ 	const struct cred *old_cred;
+-	struct cred *override_cred;
+-
+-	override_cred = prepare_creds();
+-	if (!override_cred)
+-		return -ENOMEM;
++	const struct cred *sb_creator_cred = ovl_sb_creator_cred(rdd->dentry->d_sb);
+ 
+-	/*
+-	 * CAP_DAC_OVERRIDE for lookup
+-	 */
+-	cap_raise(override_cred->cap_effective, CAP_DAC_OVERRIDE);
+-	old_cred = override_creds(override_cred);
++	old_cred = override_creds(sb_creator_cred);
+ 
+ 	err = mutex_lock_killable(&dir->d_inode->i_mutex);
+ 	if (!err) {
+@@ -232,7 +225,6 @@ static int ovl_check_whiteouts(struct dentry *dir, struct ovl_readdir_data *rdd)
+ 		inode_unlock(dir->d_inode);
+ 	}
+ 	revert_creds(old_cred);
+-	put_cred(override_cred);
+ 
+ 	return err;
+ }
+@@ -288,6 +280,7 @@ static int ovl_dir_read_merged(struct dentry *dentry, struct list_head *list)
+ 	struct path realpath;
+ 	struct ovl_readdir_data rdd = {
+ 		.ctx.actor = ovl_fill_merge,
++		.dentry = dentry,
+ 		.list = list,
+ 		.root = RB_ROOT,
+ 		.is_lowest = false,
+diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+index 42c74bb..9508b22 100644
+--- a/fs/overlayfs/super.c
++++ b/fs/overlayfs/super.c
+@@ -42,6 +42,8 @@ struct ovl_fs {
+ 	long lower_namelen;
+ 	/* pathnames of lower and upper dirs, for show_options */
+ 	struct ovl_config config;
++	/* creds of process who forced instantiation of super block */
++	const struct cred *creator_cred;
+ };
+ 
+ struct ovl_dir_cache;
+@@ -265,6 +267,13 @@ bool ovl_is_whiteout(struct dentry *dentry)
+ 	return inode && IS_WHITEOUT(inode);
+ }
+ 
++const struct cred *ovl_sb_creator_cred(struct super_block *sb)
++{
++	struct ovl_fs *ofs = sb->s_fs_info;
++
++	return ofs->creator_cred;
++}
++
+ static bool ovl_is_opaquedir(struct dentry *dentry)
+ {
+ 	int res;
+@@ -605,6 +614,7 @@ static void ovl_put_super(struct super_block *sb)
+ 	kfree(ufs->config.lowerdir);
+ 	kfree(ufs->config.upperdir);
+ 	kfree(ufs->config.workdir);
++	put_cred(ufs->creator_cred);
+ 	kfree(ufs);
+ }
+ 
+@@ -1119,6 +1129,10 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
+ 	if (!root_dentry)
+ 		goto out_free_oe;
+ 
++	ufs->creator_cred = prepare_creds();
++	if (!ufs->creator_cred)
++		goto out_free_oe;
++
+ 	mntput(upperpath.mnt);
+ 	for (i = 0; i < numlower; i++)
+ 		mntput(stack[i].mnt);
+-- 
+2.5.5
+
