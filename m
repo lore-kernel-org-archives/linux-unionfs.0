@@ -1,7 +1,7 @@
 From: Andreas Gruenbacher <agruenba@redhat.com>
-Subject: [RFC 2/8] overlayfs: Switch to generic xattr handlers
-Date: Tue,  3 May 2016 00:45:12 +0200
-Message-ID: <1462229118-13123-3-git-send-email-agruenba@redhat.com>
+Subject: [RFC 3/8] fuse: Switch to generic xattr handlers
+Date: Tue,  3 May 2016 00:45:13 +0200
+Message-ID: <1462229118-13123-4-git-send-email-agruenba@redhat.com>
 References: <1462229118-13123-1-git-send-email-agruenba@redhat.com>
 Return-path: <linux-fsdevel-owner@vger.kernel.org>
 In-Reply-To: <1462229118-13123-1-git-send-email-agruenba@redhat.com>
@@ -12,162 +12,122 @@ List-Id: linux-unionfs@vger.kernel.org
 
 Signed-off-by: Andreas Gruenbacher <agruenba@redhat.com>
 ---
- fs/overlayfs/dir.c       |  6 +++---
- fs/overlayfs/inode.c     | 52 ++++++++++++++++++++++++++++++++++++++----------
- fs/overlayfs/overlayfs.h |  6 +-----
- fs/overlayfs/super.c     |  1 +
- 4 files changed, 46 insertions(+), 19 deletions(-)
+ fs/fuse/dir.c    | 49 ++++++++++++++++++++++++++++++++++++++++---------
+ fs/fuse/fuse_i.h |  2 ++
+ fs/fuse/inode.c  |  1 +
+ 3 files changed, 43 insertions(+), 9 deletions(-)
 
-diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
-index b3fc0a3..16ba0f8 100644
---- a/fs/overlayfs/dir.c
-+++ b/fs/overlayfs/dir.c
-@@ -967,8 +967,8 @@ const struct inode_operations ovl_dir_inode_operations = {
- 	.mknod		= ovl_mknod,
- 	.permission	= ovl_permission,
- 	.getattr	= ovl_dir_getattr,
--	.setxattr	= ovl_setxattr,
--	.getxattr	= ovl_getxattr,
+diff --git a/fs/fuse/dir.c b/fs/fuse/dir.c
+index b618527..c36b3a3 100644
+--- a/fs/fuse/dir.c
++++ b/fs/fuse/dir.c
+@@ -13,6 +13,7 @@
+ #include <linux/sched.h>
+ #include <linux/namei.h>
+ #include <linux/slab.h>
++#include <linux/xattr.h>
+ 
+ static bool fuse_use_readdirplus(struct inode *dir, struct dir_context *ctx)
+ {
+@@ -1883,10 +1884,10 @@ static const struct inode_operations fuse_dir_inode_operations = {
+ 	.mknod		= fuse_mknod,
+ 	.permission	= fuse_permission,
+ 	.getattr	= fuse_getattr,
+-	.setxattr	= fuse_setxattr,
+-	.getxattr	= fuse_getxattr,
 +	.setxattr	= generic_setxattr,
 +	.getxattr	= generic_getxattr,
- 	.listxattr	= ovl_listxattr,
--	.removexattr	= ovl_removexattr,
-+	.removexattr	= generic_removexattr,
- };
-diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
-index c7b31a0..d08c926 100644
---- a/fs/overlayfs/inode.c
-+++ b/fs/overlayfs/inode.c
-@@ -210,8 +210,8 @@ static bool ovl_is_private_xattr(const char *name)
- 	return strncmp(name, OVL_XATTR_PRE_NAME, OVL_XATTR_PRE_LEN) == 0;
- }
- 
--int ovl_setxattr(struct dentry *dentry, const char *name,
--		 const void *value, size_t size, int flags)
-+static int ovl_setxattr(struct dentry *dentry, const char *name,
-+			const void *value, size_t size, int flags)
- {
- 	int err;
- 	struct dentry *upperdentry;
-@@ -246,8 +246,8 @@ static bool ovl_need_xattr_filter(struct dentry *dentry,
- 		return false;
- }
- 
--ssize_t ovl_getxattr(struct dentry *dentry, struct inode *inode,
--		     const char *name, void *value, size_t size)
-+static ssize_t ovl_getxattr(struct dentry *dentry, struct inode *inode,
-+			    const char *name, void *value, size_t size)
- {
- 	struct path realpath;
- 	enum ovl_path_type type = ovl_path_real(dentry, &realpath);
-@@ -290,7 +290,7 @@ ssize_t ovl_listxattr(struct dentry *dentry, char *list, size_t size)
- 	return res;
- }
- 
--int ovl_removexattr(struct dentry *dentry, const char *name)
-+static int ovl_removexattr(struct dentry *dentry, const char *name)
- {
- 	int err;
- 	struct path realpath;
-@@ -374,10 +374,10 @@ static const struct inode_operations ovl_file_inode_operations = {
- 	.setattr	= ovl_setattr,
- 	.permission	= ovl_permission,
- 	.getattr	= ovl_getattr,
--	.setxattr	= ovl_setxattr,
--	.getxattr	= ovl_getxattr,
-+	.setxattr	= generic_setxattr,
-+	.getxattr	= generic_getxattr,
- 	.listxattr	= ovl_listxattr,
--	.removexattr	= ovl_removexattr,
+ 	.listxattr	= fuse_listxattr,
+-	.removexattr	= fuse_removexattr,
 +	.removexattr	= generic_removexattr,
  };
  
- static const struct inode_operations ovl_symlink_inode_operations = {
-@@ -385,10 +385,10 @@ static const struct inode_operations ovl_symlink_inode_operations = {
- 	.get_link	= ovl_get_link,
- 	.readlink	= ovl_readlink,
- 	.getattr	= ovl_getattr,
--	.setxattr	= ovl_setxattr,
--	.getxattr	= ovl_getxattr,
+ static const struct file_operations fuse_dir_operations = {
+@@ -1904,10 +1905,10 @@ static const struct inode_operations fuse_common_inode_operations = {
+ 	.setattr	= fuse_setattr,
+ 	.permission	= fuse_permission,
+ 	.getattr	= fuse_getattr,
+-	.setxattr	= fuse_setxattr,
+-	.getxattr	= fuse_getxattr,
 +	.setxattr	= generic_setxattr,
 +	.getxattr	= generic_getxattr,
- 	.listxattr	= ovl_listxattr,
--	.removexattr	= ovl_removexattr,
+ 	.listxattr	= fuse_listxattr,
+-	.removexattr	= fuse_removexattr,
 +	.removexattr	= generic_removexattr,
  };
  
- struct inode *ovl_new_inode(struct super_block *sb, umode_t mode,
-@@ -433,3 +433,33 @@ struct inode *ovl_new_inode(struct super_block *sb, umode_t mode,
+ static const struct inode_operations fuse_symlink_inode_operations = {
+@@ -1915,10 +1916,10 @@ static const struct inode_operations fuse_symlink_inode_operations = {
+ 	.get_link	= fuse_get_link,
+ 	.readlink	= generic_readlink,
+ 	.getattr	= fuse_getattr,
+-	.setxattr	= fuse_setxattr,
+-	.getxattr	= fuse_getxattr,
++	.setxattr	= generic_setxattr,
++	.getxattr	= generic_getxattr,
+ 	.listxattr	= fuse_listxattr,
+-	.removexattr	= fuse_removexattr,
++	.removexattr	= generic_removexattr,
+ };
  
- 	return inode;
+ void fuse_init_common(struct inode *inode)
+@@ -1936,3 +1937,33 @@ void fuse_init_symlink(struct inode *inode)
+ {
+ 	inode->i_op = &fuse_symlink_inode_operations;
  }
 +
-+static int ovl_xattr_get(const struct xattr_handler *handler,
-+			 struct dentry *dentry, struct inode *inode,
-+			 const char *name, void *buffer, size_t size)
++static int fuse_xattr_get(const struct xattr_handler *handler,
++		          struct dentry *dentry, struct inode *inode,
++		          const char *name, void *buffer, size_t size)
 +{
-+	return ovl_getxattr(dentry, inode, name, buffer, size);
++       return fuse_getxattr(dentry, inode, name, buffer, size);
 +}
 +
-+static int ovl_xattr_set(const struct xattr_handler *handler,
-+                             struct dentry *dentry, const char *name,
-+                             const void *value, size_t size, int flags)
++static int fuse_xattr_set(const struct xattr_handler *handler,
++		          struct dentry *dentry, const char *name,
++		          const void *value, size_t size, int flags)
 +{
-+	if (value)
-+		return ovl_setxattr(dentry, name, value, size, flags);
-+	else {
++       if (value)
++		return fuse_setxattr(dentry, name, value, size, flags);
++       else {
 +		BUG_ON(flags != XATTR_REPLACE);
-+		return ovl_removexattr(dentry, name);
-+	}
++		return fuse_removexattr(dentry, name);
++       }
 +}
 +
-+const struct xattr_handler ovl_xattr_handler = {
-+	.prefix = "",  /* match anything */
-+	.get = ovl_xattr_get,
-+	.set = ovl_xattr_set,
++const struct xattr_handler fuse_xattr_handler = {
++       .prefix = "",  /* match anything */
++       .get = fuse_xattr_get,
++       .set = fuse_xattr_set,
 +};
 +
-+const struct xattr_handler *ovl_xattr_handlers[] = {
-+	&ovl_xattr_handler,
-+	NULL
++const struct xattr_handler *fuse_xattr_handlers[] = {
++       &fuse_xattr_handler,
++       NULL
 +};
-diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-index 99ec4b0..b7528e5 100644
---- a/fs/overlayfs/overlayfs.h
-+++ b/fs/overlayfs/overlayfs.h
-@@ -171,12 +171,7 @@ int ovl_check_d_type_supported(struct path *realpath);
- /* inode.c */
- int ovl_setattr(struct dentry *dentry, struct iattr *attr);
- int ovl_permission(struct inode *inode, int mask);
--int ovl_setxattr(struct dentry *dentry, const char *name,
--		 const void *value, size_t size, int flags);
--ssize_t ovl_getxattr(struct dentry *dentry, struct inode *inode,
--		     const char *name, void *value, size_t size);
- ssize_t ovl_listxattr(struct dentry *dentry, char *list, size_t size);
--int ovl_removexattr(struct dentry *dentry, const char *name);
- struct inode *ovl_d_select_inode(struct dentry *dentry, unsigned file_flags);
+diff --git a/fs/fuse/fuse_i.h b/fs/fuse/fuse_i.h
+index eddbe02..acf3481 100644
+--- a/fs/fuse/fuse_i.h
++++ b/fs/fuse/fuse_i.h
+@@ -956,4 +956,6 @@ int fuse_do_setattr(struct inode *inode, struct iattr *attr,
  
- struct inode *ovl_new_inode(struct super_block *sb, umode_t mode,
-@@ -186,6 +181,7 @@ static inline void ovl_copyattr(struct inode *from, struct inode *to)
- 	to->i_uid = from->i_uid;
- 	to->i_gid = from->i_gid;
- }
-+extern const struct xattr_handler *ovl_xattr_handlers[];
+ void fuse_set_initialized(struct fuse_conn *fc);
  
- /* dir.c */
- extern const struct inode_operations ovl_dir_inode_operations;
-diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-index 14cab38..46073fc 100644
---- a/fs/overlayfs/super.c
-+++ b/fs/overlayfs/super.c
-@@ -1106,6 +1106,7 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
- 
- 	sb->s_magic = OVERLAYFS_SUPER_MAGIC;
- 	sb->s_op = &ovl_super_operations;
-+	sb->s_xattr = ovl_xattr_handlers;
- 	sb->s_root = root_dentry;
- 	sb->s_fs_info = ufs;
- 
++extern const struct xattr_handler *fuse_xattr_handlers[];
++
+ #endif /* _FS_FUSE_I_H */
+diff --git a/fs/fuse/inode.c b/fs/fuse/inode.c
+index 4d69d5c..24d9669 100644
+--- a/fs/fuse/inode.c
++++ b/fs/fuse/inode.c
+@@ -1058,6 +1058,7 @@ static int fuse_fill_super(struct super_block *sb, void *data, int silent)
+ 	}
+ 	sb->s_magic = FUSE_SUPER_MAGIC;
+ 	sb->s_op = &fuse_super_operations;
++	sb->s_xattr = fuse_xattr_handlers;
+ 	sb->s_maxbytes = MAX_LFS_FILESIZE;
+ 	sb->s_time_gran = 1;
+ 	sb->s_export_op = &fuse_export_operations;
 -- 
 2.5.5
 
