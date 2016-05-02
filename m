@@ -1,133 +1,79 @@
 From: Andreas Gruenbacher <agruenba@redhat.com>
-Subject: [RFC 3/8] fuse: Switch to generic xattr handlers
-Date: Tue,  3 May 2016 00:45:13 +0200
-Message-ID: <1462229118-13123-4-git-send-email-agruenba@redhat.com>
+Subject: [RFC 4/8] evm: Turn evm_update_evmxattr into void function
+Date: Tue,  3 May 2016 00:45:14 +0200
+Message-ID: <1462229118-13123-5-git-send-email-agruenba@redhat.com>
 References: <1462229118-13123-1-git-send-email-agruenba@redhat.com>
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
+Return-path: <linux-unionfs-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:35088 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755239AbcEBWp5 (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+	Mon, 2 May 2016 18:45:57 -0400
 In-Reply-To: <1462229118-13123-1-git-send-email-agruenba@redhat.com>
-Sender: linux-fsdevel-owner@vger.kernel.org
+Sender: linux-unionfs-owner@vger.kernel.org
+List-Id: linux-unionfs@vger.kernel.org
 To: Alexander Viro <viro@zeniv.linux.org.uk>
 Cc: Andreas Gruenbacher <agruenba@redhat.com>, linux-fsdevel@vger.kernel.org, Tyler Hicks <tyhicks@canonical.com>, ecryptfs@vger.kernel.org, Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, fuse-devel@lists.sourceforge.net, Mimi Zohar <zohar@linux.vnet.ibm.com>, linux-ima-devel@lists.sourceforge.net, linux-security-module@vger.kernel.org, David Howells <dhowells@redhat.com>, Serge Hallyn <serge.hallyn@canonical.com>, Dmitry Kasatkin <dmitry.kasatkin@gmail.com>, Paul Moore <paul@paul-moore.com>, Stephen Smalley <sds@tycho.nsa.gov>, Eric Paris <eparis@parisplace.org>, Casey Schaufler <casey@schaufler-ca.com>
-List-Id: linux-unionfs@vger.kernel.org
+
+The return value of evm_update_evmxattr is never used.
 
 Signed-off-by: Andreas Gruenbacher <agruenba@redhat.com>
 ---
- fs/fuse/dir.c    | 49 ++++++++++++++++++++++++++++++++++++++++---------
- fs/fuse/fuse_i.h |  2 ++
- fs/fuse/inode.c  |  1 +
- 3 files changed, 43 insertions(+), 9 deletions(-)
+ security/integrity/evm/evm.h        |  7 +++----
+ security/integrity/evm/evm_crypto.c | 14 ++++++--------
+ 2 files changed, 9 insertions(+), 12 deletions(-)
 
-diff --git a/fs/fuse/dir.c b/fs/fuse/dir.c
-index b618527..c36b3a3 100644
---- a/fs/fuse/dir.c
-+++ b/fs/fuse/dir.c
-@@ -13,6 +13,7 @@
- #include <linux/sched.h>
- #include <linux/namei.h>
- #include <linux/slab.h>
-+#include <linux/xattr.h>
+diff --git a/security/integrity/evm/evm.h b/security/integrity/evm/evm.h
+index f5f1272..8b1cef07 100644
+--- a/security/integrity/evm/evm.h
++++ b/security/integrity/evm/evm.h
+@@ -39,10 +39,9 @@ extern struct crypto_shash *hash_tfm;
+ extern char *evm_config_xattrnames[];
  
- static bool fuse_use_readdirplus(struct inode *dir, struct dir_context *ctx)
+ int evm_init_key(void);
+-int evm_update_evmxattr(struct dentry *dentry,
+-			const char *req_xattr_name,
+-			const char *req_xattr_value,
+-			size_t req_xattr_value_len);
++void evm_update_evmxattr(struct dentry *dentry, const char *req_xattr_name,
++			 const char *req_xattr_value,
++			 size_t req_xattr_value_len);
+ int evm_calc_hmac(struct dentry *dentry, const char *req_xattr_name,
+ 		  const char *req_xattr_value,
+ 		  size_t req_xattr_value_len, char *digest);
+diff --git a/security/integrity/evm/evm_crypto.c b/security/integrity/evm/evm_crypto.c
+index 30b6b7d0..3ac6407 100644
+--- a/security/integrity/evm/evm_crypto.c
++++ b/security/integrity/evm/evm_crypto.c
+@@ -239,24 +239,22 @@ int evm_calc_hash(struct dentry *dentry, const char *req_xattr_name,
+  *
+  * Expects to be called with i_mutex locked.
+  */
+-int evm_update_evmxattr(struct dentry *dentry, const char *xattr_name,
+-			const char *xattr_value, size_t xattr_value_len)
++void evm_update_evmxattr(struct dentry *dentry, const char *xattr_name,
++			 const char *xattr_value, size_t xattr_value_len)
  {
-@@ -1883,10 +1884,10 @@ static const struct inode_operations fuse_dir_inode_operations = {
- 	.mknod		= fuse_mknod,
- 	.permission	= fuse_permission,
- 	.getattr	= fuse_getattr,
--	.setxattr	= fuse_setxattr,
--	.getxattr	= fuse_getxattr,
-+	.setxattr	= generic_setxattr,
-+	.getxattr	= generic_getxattr,
- 	.listxattr	= fuse_listxattr,
--	.removexattr	= fuse_removexattr,
-+	.removexattr	= generic_removexattr,
- };
+ 	struct inode *inode = d_backing_inode(dentry);
+ 	struct evm_ima_xattr_data xattr_data;
+-	int rc = 0;
++	int rc;
  
- static const struct file_operations fuse_dir_operations = {
-@@ -1904,10 +1905,10 @@ static const struct inode_operations fuse_common_inode_operations = {
- 	.setattr	= fuse_setattr,
- 	.permission	= fuse_permission,
- 	.getattr	= fuse_getattr,
--	.setxattr	= fuse_setxattr,
--	.getxattr	= fuse_getxattr,
-+	.setxattr	= generic_setxattr,
-+	.getxattr	= generic_getxattr,
- 	.listxattr	= fuse_listxattr,
--	.removexattr	= fuse_removexattr,
-+	.removexattr	= generic_removexattr,
- };
- 
- static const struct inode_operations fuse_symlink_inode_operations = {
-@@ -1915,10 +1916,10 @@ static const struct inode_operations fuse_symlink_inode_operations = {
- 	.get_link	= fuse_get_link,
- 	.readlink	= generic_readlink,
- 	.getattr	= fuse_getattr,
--	.setxattr	= fuse_setxattr,
--	.getxattr	= fuse_getxattr,
-+	.setxattr	= generic_setxattr,
-+	.getxattr	= generic_getxattr,
- 	.listxattr	= fuse_listxattr,
--	.removexattr	= fuse_removexattr,
-+	.removexattr	= generic_removexattr,
- };
- 
- void fuse_init_common(struct inode *inode)
-@@ -1936,3 +1937,33 @@ void fuse_init_symlink(struct inode *inode)
- {
- 	inode->i_op = &fuse_symlink_inode_operations;
- }
-+
-+static int fuse_xattr_get(const struct xattr_handler *handler,
-+		          struct dentry *dentry, struct inode *inode,
-+		          const char *name, void *buffer, size_t size)
-+{
-+       return fuse_getxattr(dentry, inode, name, buffer, size);
-+}
-+
-+static int fuse_xattr_set(const struct xattr_handler *handler,
-+		          struct dentry *dentry, const char *name,
-+		          const void *value, size_t size, int flags)
-+{
-+       if (value)
-+		return fuse_setxattr(dentry, name, value, size, flags);
-+       else {
-+		BUG_ON(flags != XATTR_REPLACE);
-+		return fuse_removexattr(dentry, name);
-+       }
-+}
-+
-+const struct xattr_handler fuse_xattr_handler = {
-+       .prefix = "",  /* match anything */
-+       .get = fuse_xattr_get,
-+       .set = fuse_xattr_set,
-+};
-+
-+const struct xattr_handler *fuse_xattr_handlers[] = {
-+       &fuse_xattr_handler,
-+       NULL
-+};
-diff --git a/fs/fuse/fuse_i.h b/fs/fuse/fuse_i.h
-index eddbe02..acf3481 100644
---- a/fs/fuse/fuse_i.h
-+++ b/fs/fuse/fuse_i.h
-@@ -956,4 +956,6 @@ int fuse_do_setattr(struct inode *inode, struct iattr *attr,
- 
- void fuse_set_initialized(struct fuse_conn *fc);
- 
-+extern const struct xattr_handler *fuse_xattr_handlers[];
-+
- #endif /* _FS_FUSE_I_H */
-diff --git a/fs/fuse/inode.c b/fs/fuse/inode.c
-index 4d69d5c..24d9669 100644
---- a/fs/fuse/inode.c
-+++ b/fs/fuse/inode.c
-@@ -1058,6 +1058,7 @@ static int fuse_fill_super(struct super_block *sb, void *data, int silent)
+ 	rc = evm_calc_hmac(dentry, xattr_name, xattr_value,
+ 			   xattr_value_len, xattr_data.digest);
+ 	if (rc == 0) {
+ 		xattr_data.type = EVM_XATTR_HMAC;
+-		rc = __vfs_setxattr_noperm(dentry, XATTR_NAME_EVM,
+-					   &xattr_data,
+-					   sizeof(xattr_data), 0);
++		__vfs_setxattr_noperm(dentry, XATTR_NAME_EVM, &xattr_data,
++				      sizeof(xattr_data), 0);
+ 	} else if (rc == -ENODATA && inode->i_op->removexattr) {
+-		rc = inode->i_op->removexattr(dentry, XATTR_NAME_EVM);
++		inode->i_op->removexattr(dentry, XATTR_NAME_EVM);
  	}
- 	sb->s_magic = FUSE_SUPER_MAGIC;
- 	sb->s_op = &fuse_super_operations;
-+	sb->s_xattr = fuse_xattr_handlers;
- 	sb->s_maxbytes = MAX_LFS_FILESIZE;
- 	sb->s_time_gran = 1;
- 	sb->s_export_op = &fuse_export_operations;
+-	return rc;
+ }
+ 
+ int evm_init_hmac(struct inode *inode, const struct xattr *lsm_xattr,
 -- 
 2.5.5
-
