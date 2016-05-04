@@ -1,35 +1,29 @@
-From: Miklos Szeredi <miklos@szeredi.hu>
-Subject: [GIT PULL] overlayfs fixes for 4.6-rc7
-Date: Tue, 3 May 2016 22:04:03 +0200
-Message-ID: <20160503200403.GB10623@veci.piliscsaba.szeredi.hu>
+From: James Morris <jmorris@namei.org>
+Subject: Re: [RFC 4/8] evm: Turn evm_update_evmxattr into void function
+Date: Wed, 4 May 2016 17:23:23 +1000 (AEST)
+Message-ID: <alpine.LRH.2.20.1605041722290.13639@namei.org>
+References: <1462229118-13123-1-git-send-email-agruenba@redhat.com> <1462229118-13123-5-git-send-email-agruenba@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: Al Viro <viro@zeniv.linux.org.uk>
-Cc: linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Return-path: <linux-unionfs-owner@vger.kernel.org>
+Received: from tundra.namei.org ([65.99.196.166]:46698 "EHLO namei.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751478AbcEDHX4 (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+	Wed, 4 May 2016 03:23:56 -0400
+In-Reply-To: <1462229118-13123-5-git-send-email-agruenba@redhat.com>
+Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
+To: Andreas Gruenbacher <agruenba@redhat.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>, linux-fsdevel@vger.kernel.org, Tyler Hicks <tyhicks@canonical.com>, ecryptfs@vger.kernel.org, Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, fuse-devel@lists.sourceforge.net, Mimi Zohar <zohar@linux.vnet.ibm.com>, linux-ima-devel@lists.sourceforge.net, linux-security-module@vger.kernel.org, David Howells <dhowells@redhat.com>, Serge Hallyn <serge.hallyn@canonical.com>, Dmitry Kasatkin <dmitry.kasatkin@gmail.com>, Paul Moore <paul@paul-moore.com>, Stephen Smalley <sds@tycho.nsa.gov>, Eric Paris <eparis@parisplace.org>, Casey Schaufler <casey@schaufler-ca.com>
 
-Hi Al,
+On Tue, 3 May 2016, Andreas Gruenbacher wrote:
 
-Please pull from:
+> The return value of evm_update_evmxattr is never used.
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/mszeredi/vfs.git overlayfs-next
+Perhaps it should be used, otherwise there are potential silent failure 
+paths in the EVM code.
 
-This fixes two issues with overlayfs.
 
-Thanks,
-Miklos
-
----
-Miklos Szeredi (3):
-      vfs: rename: check backing inode being equal
-      vfs: export lookup_hash() to modules
-      ovl: ignore permissions on underlying lookup
-
----
- fs/namei.c            | 48 ++++++++++++++++++++++++++++++++++++++----------
- fs/overlayfs/super.c  |  2 +-
- include/linux/namei.h |  2 ++
- 3 files changed, 41 insertions(+), 11 deletions(-)
+-- 
+James Morris
+<jmorris@namei.org>
