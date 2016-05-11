@@ -1,43 +1,43 @@
-From: Al Viro <viro@ZenIV.linux.org.uk>
+From: Miklos Szeredi <miklos@szeredi.hu>
 Subject: Re: [GIT PULL] overlayfs fixes for 4.6-rc7
-Date: Wed, 11 May 2016 05:07:51 +0100
-Message-ID: <20160511040751.GO2694@ZenIV.linux.org.uk>
+Date: Wed, 11 May 2016 10:11:01 +0200
+Message-ID: <CAJfpegtUzOmSdn49GosxUjxE5ZVYF10ViNx69zu2yfvW73SO2Q@mail.gmail.com>
 References: <20160503200403.GB10623@veci.piliscsaba.szeredi.hu>
- <20160510152704.GK2694@ZenIV.linux.org.uk>
- <20160510202458.GD10623@veci.piliscsaba.szeredi.hu>
- <20160510232342.GE10623@veci.piliscsaba.szeredi.hu>
+	<20160510152704.GK2694@ZenIV.linux.org.uk>
+	<20160510202458.GD10623@veci.piliscsaba.szeredi.hu>
+	<20160510232342.GE10623@veci.piliscsaba.szeredi.hu>
+	<20160511040751.GO2694@ZenIV.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from zeniv.linux.org.uk ([195.92.253.2]:59588 "EHLO
-	ZenIV.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750737AbcEKEHx (ORCPT
-	<rfc822;linux-unionfs@vger.kernel.org>);
-	Wed, 11 May 2016 00:07:53 -0400
-Content-Disposition: inline
-In-Reply-To: <20160510232342.GE10623@veci.piliscsaba.szeredi.hu>
-Sender: linux-unionfs-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20160511040751.GO2694@ZenIV.linux.org.uk>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux-Fsdevel <linux-fsdevel@vger.kernel.org>, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>
 List-Id: linux-unionfs@vger.kernel.org
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org
 
-On Wed, May 11, 2016 at 01:23:42AM +0200, Miklos Szeredi wrote:
-> Hi Al,
-> 
-> Hopefully this addresses your concerns.  I couldn't find a better name for
-> lookup_hash(), after all it's just that.
-> 
-> Please pull:
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/mszeredi/vfs.git overlayfs-linus
-> 
-> ---
-> Miklos Szeredi (4):
->       vfs: add vfs_select_inode() helper
+On Wed, May 11, 2016 at 6:07 AM, Al Viro <viro@zeniv.linux.org.uk> wrote:
+> On Wed, May 11, 2016 at 01:23:42AM +0200, Miklos Szeredi wrote:
+>> Hi Al,
+>>
+>> Hopefully this addresses your concerns.  I couldn't find a better name for
+>> lookup_hash(), after all it's just that.
+>>
+>> Please pull:
+>>
+>>   git://git.kernel.org/pub/scm/linux/kernel/git/mszeredi/vfs.git overlayfs-linus
+>>
+>> ---
+>> Miklos Szeredi (4):
+>>       vfs: add vfs_select_inode() helper
+>
+> B0rken - for one thing, you've lost file->f_path = *path in vfs_open(), for
+> another this thing belongs in dcache.h as static inline.  Fixed, pushed
+> as vfs.git#ovl-fixes, merged into #for-linus.
+>
+> If you have any objections against the current state of that branch, please
+> yell.
 
-B0rken - for one thing, you've lost file->f_path = *path in vfs_open(), for
-another this thing belongs in dcache.h as static inline.  Fixed, pushed
-as vfs.git#ovl-fixes, merged into #for-linus.
+No objections.  Thanks for the fix.
 
-If you have any objections against the current state of that branch, please
-yell.
+Miklos
