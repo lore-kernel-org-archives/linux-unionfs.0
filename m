@@ -1,34 +1,28 @@
-From: Mimi Zohar <zohar@linux.vnet.ibm.com>
+From: Andy Whitcroft <apw@canonical.com>
 Subject: Re: [PATCH v3 1/1] ovl: setxattr: don't deadlock when called from
  ima_fix_xattr.
-Date: Fri, 20 May 2016 10:21:27 -0400
-Message-ID: <1463754087.2763.17.camel@linux.vnet.ibm.com>
+Date: Fri, 20 May 2016 16:18:42 +0100
+Message-ID: <20160520151842.GJ3722@brain>
 References: <1463611500.2465.22.camel@linux.vnet.ibm.com>
-	 <1463725718-2461-1-git-send-email-kli@iki.fi>
+ <1463725718-2461-1-git-send-email-kli@iki.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from e23smtp05.au.ibm.com ([202.81.31.147]:40633 "EHLO
-	e23smtp05.au.ibm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752415AbcETOWY (ORCPT
+Received: from mail-wm0-f47.google.com ([74.125.82.47]:35995 "EHLO
+	mail-wm0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752792AbcETPSp (ORCPT
 	<rfc822;linux-unionfs@vger.kernel.org>);
-	Fri, 20 May 2016 10:22:24 -0400
-Received: from localhost
-	by e23smtp05.au.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
-	for <linux-unionfs@vger.kernel.org> from <zohar@linux.vnet.ibm.com>;
-	Sat, 21 May 2016 00:22:21 +1000
+	Fri, 20 May 2016 11:18:45 -0400
+Received: by mail-wm0-f47.google.com with SMTP id n129so276588802wmn.1
+        for <linux-unionfs@vger.kernel.org>; Fri, 20 May 2016 08:18:45 -0700 (PDT)
+Content-Disposition: inline
 In-Reply-To: <1463725718-2461-1-git-send-email-kli@iki.fi>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: Krisztian Litkey <kli@iki.fi>
-Cc: linux-unionfs@vger.kernel.org, Krisztian Litkey <krisztian.litkey@intel.com>, linux-security-module <linux-security-module@vger.kernel.org>, Al Viro <viro@ZenIV.linux.org.uk>
+Cc: linux-unionfs@vger.kernel.org, zohar@linux.vnet.ibm.com, Krisztian Litkey <krisztian.litkey@intel.com>
 
-Hi Krisztian,
-
-cc'ing  LSM and AL for comments
-
-On Fri, 2016-05-20 at 02:28 -0400, Krisztian Litkey wrote:
+On Fri, May 20, 2016 at 02:28:38AM -0400, Krisztian Litkey wrote:
 > IMA tracks the integrity of files by hashing the file content
 > and storing the hash in an IMA-specific extended attribute
 > (security.ima). When a file opened for writing is closed by
@@ -62,11 +56,11 @@ On Fri, 2016-05-20 at 02:28 -0400, Krisztian Litkey wrote:
 > +
 > +	if (ovl_is_private_xattr(name))
 > +		return -EPERM;
-> 
+>  
 >  	err = ovl_want_write(dentry);
 >  	if (err)
 >  		goto out;
-> 
+>  
 > -	err = -EPERM;
 > -	if (ovl_is_private_xattr(name))
 > -		goto out_drop_write;
@@ -76,7 +70,7 @@ On Fri, 2016-05-20 at 02:28 -0400, Krisztian Litkey wrote:
 > -		goto out_drop_write;
 > +	if (!err)
 > +		upper = ovl_dentry_upper(dentry);
-> 
+>  
 > -	upperdentry = ovl_dentry_upper(dentry);
 > -	err = vfs_setxattr(upperdentry, name, value, size, flags);
 > -
@@ -88,18 +82,13 @@ On Fri, 2016-05-20 at 02:28 -0400, Krisztian Litkey wrote:
 > +
 > +	if (mutex_is_locked(&upper->d_inode->i_mutex))
 > +		err = __vfs_setxattr_noperm(upper, name, value, size, flags);
-
-As far as I'm aware, the only time that i_mutex is taken, is during
-__fput() when IMA writes security.ima.   Previous versions of this patch
-checked whether the xattr being written was security.ima.  It would
-probably be a good idea not to make that assumption here.   The question
-is what should happen if the i_mutex is locked, but the xattr isn't
-security.ima.  At minimum it should be audited.  Al, any comments?
-
-Mimi
-
 > +	else
 > +		err = vfs_setxattr(upper, name, value, size, flags);
 >  out:
 >  	return err;
->  }
+
+This is making the assumption that it is us who have locked it already.
+What if it is not, what if it is another thread? It being locked does
+not tell us it is us locking it and that it will remain locked does it?
+
+-apw
