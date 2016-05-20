@@ -1,287 +1,68 @@
 From: Andreas Gruenbacher <agruenba@redhat.com>
-Subject: [PATCH v2 04/18] kernfs: Switch to generic xattr handlers
-Date: Fri, 20 May 2016 13:14:21 +0200
-Message-ID: <1463742875-9836-5-git-send-email-agruenba@redhat.com>
+Subject: [PATCH v2 05/18] sockfs: getxattr: Fail with -EOPNOTSUPP for invalid attribute names
+Date: Fri, 20 May 2016 13:14:22 +0200
+Message-ID: <1463742875-9836-6-git-send-email-agruenba@redhat.com>
 References: <1463742875-9836-1-git-send-email-agruenba@redhat.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:34968 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:34778 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932953AbcETLPQ (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-	Fri, 20 May 2016 07:15:16 -0400
+	id S932970AbcETLPX (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+	Fri, 20 May 2016 07:15:23 -0400
 In-Reply-To: <1463742875-9836-1-git-send-email-agruenba@redhat.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: Alexander Viro <viro@zeniv.linux.org.uk>
 Cc: Andreas Gruenbacher <agruenba@redhat.com>, linux-fsdevel@vger.kernel.org, Tyler Hicks <tyhicks@canonical.com>, ecryptfs@vger.kernel.org, Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, Mimi Zohar <zohar@linux.vnet.ibm.com>, linux-ima-devel@lists.sourceforge.net, linux-security-module@vger.kernel.org, David Howells <dhowells@redhat.com>, Serge Hallyn <serge.hallyn@canonical.com>, Dmitry Kasatkin <dmitry.kasatkin@gmail.com>, Paul Moore <paul@paul-moore.com>, Stephen Smalley <sds@tycho.nsa.gov>, Eric Paris <eparis@parisplace.org>, Casey Schaufler <casey@schaufler-ca.com>, Oleg Drokin <oleg.drokin@intel.com>, Andreas Dilger <andreas.dilger@intel.com>
 
-Signed-off-by: Andreas Gruenbacher <agruenba@redhat.com>
-Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Acked-by: Tejun Heo <tj@kernel.org>
----
- fs/kernfs/dir.c             |   6 +-
- fs/kernfs/inode.c           | 156 +++++++++++++++++++++++---------------------
- fs/kernfs/kernfs-internal.h |   6 +-
- fs/kernfs/mount.c           |   1 +
- fs/kernfs/symlink.c         |   6 +-
- 5 files changed, 91 insertions(+), 84 deletions(-)
+The standard return value for unsupported attribute names is
+-EOPNOTSUPP, as opposed to undefined but supported attributes
+(-ENODATA).
 
-diff --git a/fs/kernfs/dir.c b/fs/kernfs/dir.c
-index 68a4431..8e69385b 100644
---- a/fs/kernfs/dir.c
-+++ b/fs/kernfs/dir.c
-@@ -1125,9 +1125,9 @@ const struct inode_operations kernfs_dir_iops = {
- 	.permission	= kernfs_iop_permission,
- 	.setattr	= kernfs_iop_setattr,
- 	.getattr	= kernfs_iop_getattr,
--	.setxattr	= kernfs_iop_setxattr,
--	.removexattr	= kernfs_iop_removexattr,
--	.getxattr	= kernfs_iop_getxattr,
-+	.setxattr	= generic_setxattr,
-+	.removexattr	= generic_removexattr,
-+	.getxattr	= generic_getxattr,
- 	.listxattr	= kernfs_iop_listxattr,
- 
- 	.mkdir		= kernfs_iop_mkdir,
-diff --git a/fs/kernfs/inode.c b/fs/kernfs/inode.c
-index b524722..300a07a 100644
---- a/fs/kernfs/inode.c
-+++ b/fs/kernfs/inode.c
-@@ -28,9 +28,9 @@ static const struct inode_operations kernfs_iops = {
- 	.permission	= kernfs_iop_permission,
- 	.setattr	= kernfs_iop_setattr,
- 	.getattr	= kernfs_iop_getattr,
--	.setxattr	= kernfs_iop_setxattr,
--	.removexattr	= kernfs_iop_removexattr,
--	.getxattr	= kernfs_iop_getxattr,
-+	.setxattr	= generic_setxattr,
-+	.removexattr	= generic_removexattr,
-+	.getxattr	= generic_getxattr,
- 	.listxattr	= kernfs_iop_listxattr,
- };
- 
-@@ -135,17 +135,12 @@ out:
- 	return error;
- }
- 
--static int kernfs_node_setsecdata(struct kernfs_node *kn, void **secdata,
-+static int kernfs_node_setsecdata(struct kernfs_iattrs *attrs, void **secdata,
- 				  u32 *secdata_len)
+Also, fail for attribute names like "system.sockprotonameXXX" and
+simplify the code a bit.
+
+Signed-off-by: Andreas Gruenbacher <agruenba@redhat.com>
+---
+ net/socket.c | 24 ++++++------------------
+ 1 file changed, 6 insertions(+), 18 deletions(-)
+
+diff --git a/net/socket.c b/net/socket.c
+index e7793f5..5aa572f 100644
+--- a/net/socket.c
++++ b/net/socket.c
+@@ -469,27 +469,15 @@ static struct socket *sockfd_lookup_light(int fd, int *err, int *fput_needed)
+ static ssize_t sockfs_getxattr(struct dentry *dentry, struct inode *inode,
+ 			       const char *name, void *value, size_t size)
  {
--	struct kernfs_iattrs *attrs;
- 	void *old_secdata;
- 	size_t old_secdata_len;
- 
--	attrs = kernfs_iattrs(kn);
--	if (!attrs)
--		return -ENOMEM;
--
- 	old_secdata = attrs->ia_secdata;
- 	old_secdata_len = attrs->ia_secdata_len;
- 
-@@ -157,70 +152,6 @@ static int kernfs_node_setsecdata(struct kernfs_node *kn, void **secdata,
- 	return 0;
- }
- 
--int kernfs_iop_setxattr(struct dentry *dentry, const char *name,
--			const void *value, size_t size, int flags)
--{
--	struct kernfs_node *kn = dentry->d_fsdata;
--	struct kernfs_iattrs *attrs;
--	void *secdata;
+-	const char *proto_name;
+-	size_t proto_size;
 -	int error;
--	u32 secdata_len = 0;
 -
--	attrs = kernfs_iattrs(kn);
--	if (!attrs)
--		return -ENOMEM;
+-	error = -ENODATA;
+-	if (!strncmp(name, XATTR_NAME_SOCKPROTONAME, XATTR_NAME_SOCKPROTONAME_LEN)) {
+-		proto_name = dentry->d_name.name;
+-		proto_size = strlen(proto_name);
 -
--	if (!strncmp(name, XATTR_SECURITY_PREFIX, XATTR_SECURITY_PREFIX_LEN)) {
--		const char *suffix = name + XATTR_SECURITY_PREFIX_LEN;
--		error = security_inode_setsecurity(d_inode(dentry), suffix,
--						value, size, flags);
--		if (error)
--			return error;
--		error = security_inode_getsecctx(d_inode(dentry),
--						&secdata, &secdata_len);
--		if (error)
--			return error;
++	if (!strcmp(name, XATTR_NAME_SOCKPROTONAME)) {
+ 		if (value) {
+-			error = -ERANGE;
+-			if (proto_size + 1 > size)
+-				goto out;
 -
--		mutex_lock(&kernfs_mutex);
--		error = kernfs_node_setsecdata(kn, &secdata, &secdata_len);
--		mutex_unlock(&kernfs_mutex);
+-			strncpy(value, proto_name, proto_size + 1);
++			if (dentry->d_name.len + 1 > size)
++				return -ERANGE;
++			memcpy(value, dentry->d_name.name, dentry->d_name.len + 1);
+ 		}
+-		error = proto_size + 1;
++		return dentry->d_name.len + 1;
+ 	}
 -
--		if (secdata)
--			security_release_secctx(secdata, secdata_len);
--		return error;
--	} else if (!strncmp(name, XATTR_TRUSTED_PREFIX, XATTR_TRUSTED_PREFIX_LEN)) {
--		return simple_xattr_set(&attrs->xattrs, name, value, size,
--					flags);
--	}
--
--	return -EINVAL;
--}
--
--int kernfs_iop_removexattr(struct dentry *dentry, const char *name)
--{
--	struct kernfs_node *kn = dentry->d_fsdata;
--	struct kernfs_iattrs *attrs;
--
--	attrs = kernfs_iattrs(kn);
--	if (!attrs)
--		return -ENOMEM;
--
--	return simple_xattr_set(&attrs->xattrs, name, NULL, 0, XATTR_REPLACE);
--}
--
--ssize_t kernfs_iop_getxattr(struct dentry *unused, struct inode *inode,
--			    const char *name, void *buf, size_t size)
--{
--	struct kernfs_node *kn = inode->i_private;
--	struct kernfs_iattrs *attrs;
--
--	attrs = kernfs_iattrs(kn);
--	if (!attrs)
--		return -ENOMEM;
--
--	return simple_xattr_get(&attrs->xattrs, name, buf, size);
--}
--
- ssize_t kernfs_iop_listxattr(struct dentry *dentry, char *buf, size_t size)
- {
- 	struct kernfs_node *kn = dentry->d_fsdata;
-@@ -370,3 +301,82 @@ int kernfs_iop_permission(struct inode *inode, int mask)
- 
- 	return generic_permission(inode, mask);
- }
-+
-+static int kernfs_xattr_get(const struct xattr_handler *handler,
-+			    struct dentry *unused, struct inode *inode,
-+			    const char *suffix, void *value, size_t size)
-+{
-+	const char *name = xattr_full_name(handler, suffix);
-+	struct kernfs_node *kn = inode->i_private;
-+	struct kernfs_iattrs *attrs;
-+
-+	attrs = kernfs_iattrs(kn);
-+	if (!attrs)
-+		return -ENOMEM;
-+
-+	return simple_xattr_get(&attrs->xattrs, name, value, size);
-+}
-+
-+static int kernfs_xattr_set(const struct xattr_handler *handler,
-+			    struct dentry *dentry, const char *suffix,
-+			    const void *value, size_t size, int flags)
-+{
-+	const char *name = xattr_full_name(handler, suffix);
-+	struct kernfs_node *kn = dentry->d_fsdata;
-+	struct kernfs_iattrs *attrs;
-+
-+	attrs = kernfs_iattrs(kn);
-+	if (!attrs)
-+		return -ENOMEM;
-+
-+	return simple_xattr_set(&attrs->xattrs, name, value, size, flags);
-+}
-+
-+const struct xattr_handler kernfs_trusted_xattr_handler = {
-+	.prefix = XATTR_TRUSTED_PREFIX,
-+	.get = kernfs_xattr_get,
-+	.set = kernfs_xattr_set,
-+};
-+
-+static int kernfs_security_xattr_set(const struct xattr_handler *handler,
-+				     struct dentry *dentry, const char *suffix,
-+				     const void *value, size_t size, int flags)
-+{
-+	struct kernfs_node *kn = dentry->d_fsdata;
-+	struct inode *inode = d_inode(dentry);
-+	struct kernfs_iattrs *attrs;
-+	void *secdata;
-+	u32 secdata_len = 0;
-+	int error;
-+
-+	attrs = kernfs_iattrs(kn);
-+	if (!attrs)
-+		return -ENOMEM;
-+
-+	error = security_inode_setsecurity(inode, suffix, value, size, flags);
-+	if (error)
-+		return error;
-+	error = security_inode_getsecctx(inode, &secdata, &secdata_len);
-+	if (error)
-+		return error;
-+
-+	mutex_lock(&kernfs_mutex);
-+	error = kernfs_node_setsecdata(attrs, &secdata, &secdata_len);
-+	mutex_unlock(&kernfs_mutex);
-+
-+	if (secdata)
-+		security_release_secctx(secdata, secdata_len);
-+	return error;
-+}
-+
-+const struct xattr_handler kernfs_security_xattr_handler = {
-+	.prefix = XATTR_SECURITY_PREFIX,
-+	.get = kernfs_xattr_get,
-+	.set = kernfs_security_xattr_set,
-+};
-+
-+const struct xattr_handler *kernfs_xattr_handlers[] = {
-+	&kernfs_trusted_xattr_handler,
-+	&kernfs_security_xattr_handler,
-+	NULL
-+};
-diff --git a/fs/kernfs/kernfs-internal.h b/fs/kernfs/kernfs-internal.h
-index 45c9192..bfd551b 100644
---- a/fs/kernfs/kernfs-internal.h
-+++ b/fs/kernfs/kernfs-internal.h
-@@ -76,16 +76,12 @@ extern struct kmem_cache *kernfs_node_cache;
- /*
-  * inode.c
-  */
-+extern const struct xattr_handler *kernfs_xattr_handlers[];
- void kernfs_evict_inode(struct inode *inode);
- int kernfs_iop_permission(struct inode *inode, int mask);
- int kernfs_iop_setattr(struct dentry *dentry, struct iattr *iattr);
- int kernfs_iop_getattr(struct vfsmount *mnt, struct dentry *dentry,
- 		       struct kstat *stat);
--int kernfs_iop_setxattr(struct dentry *dentry, const char *name, const void *value,
--			size_t size, int flags);
--int kernfs_iop_removexattr(struct dentry *dentry, const char *name);
--ssize_t kernfs_iop_getxattr(struct dentry *dentry, struct inode *inode,
--			    const char *name, void *buf, size_t size);
- ssize_t kernfs_iop_listxattr(struct dentry *dentry, char *buf, size_t size);
- 
- /*
-diff --git a/fs/kernfs/mount.c b/fs/kernfs/mount.c
-index 63534f5..9c225d7 100644
---- a/fs/kernfs/mount.c
-+++ b/fs/kernfs/mount.c
-@@ -156,6 +156,7 @@ static int kernfs_fill_super(struct super_block *sb, unsigned long magic)
- 	sb->s_blocksize_bits = PAGE_SHIFT;
- 	sb->s_magic = magic;
- 	sb->s_op = &kernfs_sops;
-+	sb->s_xattr = kernfs_xattr_handlers;
- 	sb->s_time_gran = 1;
- 
- 	/* get root inode, initialize and unlock it */
-diff --git a/fs/kernfs/symlink.c b/fs/kernfs/symlink.c
-index 117b8b3..549a14c7 100644
---- a/fs/kernfs/symlink.c
-+++ b/fs/kernfs/symlink.c
-@@ -134,9 +134,9 @@ static const char *kernfs_iop_get_link(struct dentry *dentry,
+-out:
+-	return error;
++	return -EOPNOTSUPP;
  }
  
- const struct inode_operations kernfs_symlink_iops = {
--	.setxattr	= kernfs_iop_setxattr,
--	.removexattr	= kernfs_iop_removexattr,
--	.getxattr	= kernfs_iop_getxattr,
-+	.setxattr	= generic_setxattr,
-+	.removexattr	= generic_removexattr,
-+	.getxattr	= generic_getxattr,
- 	.listxattr	= kernfs_iop_listxattr,
- 	.readlink	= generic_readlink,
- 	.get_link	= kernfs_iop_get_link,
+ static ssize_t sockfs_listxattr(struct dentry *dentry, char *buffer,
 -- 
 2.5.5
