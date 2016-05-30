@@ -1,285 +1,1268 @@
 From: Andreas Gruenbacher <agruenba@redhat.com>
-Subject: [PATCH v3 16/17] xattr: Stop calling {get,set,remove}xattr inode operations
-Date: Mon, 30 May 2016 10:57:32 +0200
-Message-ID: <1464598653-3656-17-git-send-email-agruenba@redhat.com>
+Subject: [PATCH v3 17/17] vfs: Remove {get,set,remove}xattr inode operations
+Date: Mon, 30 May 2016 10:57:33 +0200
+Message-ID: <1464598653-3656-18-git-send-email-agruenba@redhat.com>
 References: <1464598653-3656-1-git-send-email-agruenba@redhat.com>
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
+Return-path: <linux-unionfs-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:58385 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932141AbcE3I7y (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+	Mon, 30 May 2016 04:59:54 -0400
 In-Reply-To: <1464598653-3656-1-git-send-email-agruenba@redhat.com>
-Sender: linux-fsdevel-owner@vger.kernel.org
+Sender: linux-unionfs-owner@vger.kernel.org
+List-Id: linux-unionfs@vger.kernel.org
 To: Alexander Viro <viro@zeniv.linux.org.uk>
 Cc: Andreas Gruenbacher <agruenba@redhat.com>, linux-fsdevel@vger.kernel.org, Tyler Hicks <tyhicks@canonical.com>, ecryptfs@vger.kernel.org, Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, Mimi Zohar <zohar@linux.vnet.ibm.com>, linux-ima-devel@lists.sourceforge.net, linux-security-module@vger.kernel.org, David Howells <dhowells@redhat.com>, Serge Hallyn <serge.hallyn@canonical.com>, Dmitry Kasatkin <dmitry.kasatkin@gmail.com>, Paul Moore <paul@paul-moore.com>, Stephen Smalley <sds@tycho.nsa.gov>, Eric Paris <eparis@parisplace.org>, Casey Schaufler <casey@schaufler-ca.com>, Oleg Drokin <oleg.drokin@intel.com>, Andreas Dilger <andreas.dilger@intel.com>
-List-Id: linux-unionfs@vger.kernel.org
 
-All filesystems that support xattrs by now do so via xattr handlers.
-They all define sb->s_xattr, and their getxattr, setxattr, and
-removexattr inode operations use the generic inode operations.  On
-filesystems that don't support xattrs, the xattr inode operations are
-all NULL, and sb->s_xattr is also NULL.
-
-This means that we can remove the getxattr, setxattr, and removexattr
-inode operations and directly call the generic handlers, or better,
-inline expand those handlers into fs/xattr.c.
-
-Filesystems that do not support xattrs on some inodes should clear the
-IOP_XATTR i_opflags flag in those inodes.  (Right now, some filesystems
-have checks to disable xattrs on some inodes in the ->list, ->get, and
-->set xattr handler operations instead.)  The IOP_XATTR flag is
-automatically cleared in inodes of filesystems that don't have xattr
-support.
+These inode operations are no longer used; remove them.
 
 Signed-off-by: Andreas Gruenbacher <agruenba@redhat.com>
 ---
- Documentation/filesystems/Locking | 24 +++++++++++++-----
- Documentation/filesystems/vfs.txt | 45 ++++++++++++++++++++++-----------
- fs/xattr.c                        | 52 +++++++++++++++++++++++++--------------
- 3 files changed, 82 insertions(+), 39 deletions(-)
+ fs/9p/vfs_inode_dotl.c |  9 ---------
+ fs/btrfs/inode.c       | 12 ------------
+ fs/ceph/dir.c          |  3 ---
+ fs/ceph/inode.c        |  6 ------
+ fs/cifs/cifsfs.c       |  9 ---------
+ fs/ecryptfs/inode.c    |  9 ---------
+ fs/ext2/file.c         |  3 ---
+ fs/ext2/namei.c        |  6 ------
+ fs/ext2/symlink.c      |  6 ------
+ fs/ext4/file.c         |  3 ---
+ fs/ext4/namei.c        |  6 ------
+ fs/ext4/symlink.c      |  9 ---------
+ fs/f2fs/file.c         |  3 ---
+ fs/f2fs/namei.c        | 12 ------------
+ fs/fuse/dir.c          |  9 ---------
+ fs/gfs2/inode.c        |  9 ---------
+ fs/hfs/inode.c         |  2 --
+ fs/hfsplus/dir.c       |  3 ---
+ fs/hfsplus/inode.c     |  3 ---
+ fs/jffs2/dir.c         |  3 ---
+ fs/jffs2/file.c        |  3 ---
+ fs/jffs2/symlink.c     |  3 ---
+ fs/jfs/file.c          |  3 ---
+ fs/jfs/namei.c         |  3 ---
+ fs/jfs/symlink.c       |  6 ------
+ fs/kernfs/dir.c        |  3 ---
+ fs/kernfs/inode.c      |  3 ---
+ fs/kernfs/symlink.c    |  3 ---
+ fs/nfs/nfs3proc.c      |  6 ------
+ fs/nfs/nfs4proc.c      |  6 ------
+ fs/ocfs2/file.c        |  3 ---
+ fs/ocfs2/namei.c       |  3 ---
+ fs/ocfs2/symlink.c     |  3 ---
+ fs/orangefs/inode.c    |  3 ---
+ fs/orangefs/namei.c    |  3 ---
+ fs/orangefs/symlink.c  |  1 -
+ fs/overlayfs/dir.c     |  3 ---
+ fs/overlayfs/inode.c   |  6 ------
+ fs/reiserfs/file.c     |  3 ---
+ fs/reiserfs/namei.c    |  9 ---------
+ fs/squashfs/inode.c    |  1 -
+ fs/squashfs/namei.c    |  1 -
+ fs/squashfs/symlink.c  |  1 -
+ fs/squashfs/xattr.h    |  1 -
+ fs/ubifs/dir.c         |  3 ---
+ fs/ubifs/file.c        |  6 ------
+ fs/xattr.c             | 53 --------------------------------------------------
+ fs/xfs/xfs_iops.c      | 15 --------------
+ include/linux/fs.h     |  5 -----
+ include/linux/xattr.h  |  4 ----
+ mm/shmem.c             | 15 --------------
+ net/socket.c           |  1 -
+ 52 files changed, 307 deletions(-)
 
-diff --git a/Documentation/filesystems/Locking b/Documentation/filesystems/Locking
-index 75eea7c..b958926 100644
---- a/Documentation/filesystems/Locking
-+++ b/Documentation/filesystems/Locking
-@@ -56,10 +56,7 @@ prototypes:
- 	int (*get_acl)(struct inode *, int);
- 	int (*setattr) (struct dentry *, struct iattr *);
- 	int (*getattr) (struct vfsmount *, struct dentry *, struct kstat *);
--	int (*setxattr) (struct dentry *, const char *,const void *,size_t,int);
--	ssize_t (*getxattr) (struct dentry *, const char *, void *, size_t);
- 	ssize_t (*listxattr) (struct dentry *, char *, size_t);
--	int (*removexattr) (struct dentry *, const char *);
- 	int (*fiemap)(struct inode *, struct fiemap_extent_info *, u64 start, u64 len);
- 	void (*update_time)(struct inode *, struct timespec *, int);
- 	int (*atomic_open)(struct inode *, struct dentry *,
-@@ -87,16 +84,14 @@ setattr:	yes
- permission:	no (may not block if called in rcu-walk mode)
- get_acl:	no
- getattr:	no
--setxattr:	yes
--getxattr:	no
- listxattr:	no
--removexattr:	yes
- fiemap:		no
- update_time:	no
- atomic_open:	yes
- tmpfile:	no
- dentry_open:	no
+diff --git a/fs/9p/vfs_inode_dotl.c b/fs/9p/vfs_inode_dotl.c
+index a34702c..f0f36b8 100644
+--- a/fs/9p/vfs_inode_dotl.c
++++ b/fs/9p/vfs_inode_dotl.c
+@@ -973,9 +973,6 @@ const struct inode_operations v9fs_dir_inode_operations_dotl = {
+ 	.rename = v9fs_vfs_rename,
+ 	.getattr = v9fs_vfs_getattr_dotl,
+ 	.setattr = v9fs_vfs_setattr_dotl,
+-	.setxattr = generic_setxattr,
+-	.getxattr = generic_getxattr,
+-	.removexattr = generic_removexattr,
+ 	.listxattr = v9fs_listxattr,
+ 	.get_acl = v9fs_iop_get_acl,
+ };
+@@ -983,9 +980,6 @@ const struct inode_operations v9fs_dir_inode_operations_dotl = {
+ const struct inode_operations v9fs_file_inode_operations_dotl = {
+ 	.getattr = v9fs_vfs_getattr_dotl,
+ 	.setattr = v9fs_vfs_setattr_dotl,
+-	.setxattr = generic_setxattr,
+-	.getxattr = generic_getxattr,
+-	.removexattr = generic_removexattr,
+ 	.listxattr = v9fs_listxattr,
+ 	.get_acl = v9fs_iop_get_acl,
+ };
+@@ -995,8 +989,5 @@ const struct inode_operations v9fs_symlink_inode_operations_dotl = {
+ 	.get_link = v9fs_vfs_get_link_dotl,
+ 	.getattr = v9fs_vfs_getattr_dotl,
+ 	.setattr = v9fs_vfs_setattr_dotl,
+-	.setxattr = generic_setxattr,
+-	.getxattr = generic_getxattr,
+-	.removexattr = generic_removexattr,
+ 	.listxattr = v9fs_listxattr,
+ };
+diff --git a/fs/btrfs/inode.c b/fs/btrfs/inode.c
+index 2704995..0f084e2 100644
+--- a/fs/btrfs/inode.c
++++ b/fs/btrfs/inode.c
+@@ -10493,10 +10493,7 @@ static const struct inode_operations btrfs_dir_inode_operations = {
+ 	.symlink	= btrfs_symlink,
+ 	.setattr	= btrfs_setattr,
+ 	.mknod		= btrfs_mknod,
+-	.setxattr	= generic_setxattr,
+-	.getxattr	= generic_getxattr,
+ 	.listxattr	= btrfs_listxattr,
+-	.removexattr	= generic_removexattr,
+ 	.permission	= btrfs_permission,
+ 	.get_acl	= btrfs_get_acl,
+ 	.set_acl	= btrfs_set_acl,
+@@ -10570,10 +10567,7 @@ static const struct address_space_operations btrfs_symlink_aops = {
+ static const struct inode_operations btrfs_file_inode_operations = {
+ 	.getattr	= btrfs_getattr,
+ 	.setattr	= btrfs_setattr,
+-	.setxattr	= generic_setxattr,
+-	.getxattr	= generic_getxattr,
+ 	.listxattr      = btrfs_listxattr,
+-	.removexattr	= generic_removexattr,
+ 	.permission	= btrfs_permission,
+ 	.fiemap		= btrfs_fiemap,
+ 	.get_acl	= btrfs_get_acl,
+@@ -10584,10 +10578,7 @@ static const struct inode_operations btrfs_special_inode_operations = {
+ 	.getattr	= btrfs_getattr,
+ 	.setattr	= btrfs_setattr,
+ 	.permission	= btrfs_permission,
+-	.setxattr	= generic_setxattr,
+-	.getxattr	= generic_getxattr,
+ 	.listxattr	= btrfs_listxattr,
+-	.removexattr	= generic_removexattr,
+ 	.get_acl	= btrfs_get_acl,
+ 	.set_acl	= btrfs_set_acl,
+ 	.update_time	= btrfs_update_time,
+@@ -10598,10 +10589,7 @@ static const struct inode_operations btrfs_symlink_inode_operations = {
+ 	.getattr	= btrfs_getattr,
+ 	.setattr	= btrfs_setattr,
+ 	.permission	= btrfs_permission,
+-	.setxattr	= generic_setxattr,
+-	.getxattr	= generic_getxattr,
+ 	.listxattr	= btrfs_listxattr,
+-	.removexattr	= generic_removexattr,
+ 	.update_time	= btrfs_update_time,
+ };
  
-+
- 	Additionally, ->rmdir(), ->unlink() and ->rename() have ->i_mutex on
- victim.
- 	cross-directory ->rename() and rename2() has (per-superblock)
-@@ -105,6 +100,23 @@ victim.
- See Documentation/filesystems/directory-locking for more detailed discussion
- of the locking scheme for directory operations.
+diff --git a/fs/ceph/dir.c b/fs/ceph/dir.c
+index 6e0fedf..70fd1aa 100644
+--- a/fs/ceph/dir.c
++++ b/fs/ceph/dir.c
+@@ -1463,10 +1463,7 @@ const struct inode_operations ceph_dir_iops = {
+ 	.permission = ceph_permission,
+ 	.getattr = ceph_getattr,
+ 	.setattr = ceph_setattr,
+-	.setxattr = generic_setxattr,
+-	.getxattr = generic_getxattr,
+ 	.listxattr = ceph_listxattr,
+-	.removexattr = generic_removexattr,
+ 	.get_acl = ceph_get_acl,
+ 	.set_acl = ceph_set_acl,
+ 	.mknod = ceph_mknod,
+diff --git a/fs/ceph/inode.c b/fs/ceph/inode.c
+index f059b59..4c41726 100644
+--- a/fs/ceph/inode.c
++++ b/fs/ceph/inode.c
+@@ -94,10 +94,7 @@ const struct inode_operations ceph_file_iops = {
+ 	.permission = ceph_permission,
+ 	.setattr = ceph_setattr,
+ 	.getattr = ceph_getattr,
+-	.setxattr = generic_setxattr,
+-	.getxattr = generic_getxattr,
+ 	.listxattr = ceph_listxattr,
+-	.removexattr = generic_removexattr,
+ 	.get_acl = ceph_get_acl,
+ 	.set_acl = ceph_set_acl,
+ };
+@@ -1861,10 +1858,7 @@ static const struct inode_operations ceph_symlink_iops = {
+ 	.get_link = simple_get_link,
+ 	.setattr = ceph_setattr,
+ 	.getattr = ceph_getattr,
+-	.setxattr = generic_setxattr,
+-	.getxattr = generic_getxattr,
+ 	.listxattr = ceph_listxattr,
+-	.removexattr = generic_removexattr,
+ };
  
-+----------------------- xattr_handler operations -----------------------
-+protoypes:
-+	bool (*list)(struct dentry *dentry);
-+	int (*get)(const struct xattr_handler *handler, struct dentry *dentry,
-+		   struct inode *inode, const char *name, void *buffer,
-+		   size_t size);
-+	int (*set)(const struct xattr_handler *handler, struct dentry *dentry,
-+		   struct inode *inode, const char *name, const void *buffer,
-+		   size_t size, int flags);
-+
-+locking rules:
-+	all may block
-+		i_mutex(inode)
-+list:		no
-+get:		no
-+set:		yes
-+
- --------------------------- super_operations ---------------------------
- prototypes:
- 	struct inode *(*alloc_inode)(struct super_block *sb);
-diff --git a/Documentation/filesystems/vfs.txt b/Documentation/filesystems/vfs.txt
-index c61a223..65988f7 100644
---- a/Documentation/filesystems/vfs.txt
-+++ b/Documentation/filesystems/vfs.txt
-@@ -323,6 +323,35 @@ Whoever sets up the inode is responsible for filling in the "i_op" field. This
- is a pointer to a "struct inode_operations" which describes the methods that
- can be performed on individual inodes.
+ int __ceph_setattr(struct inode *inode, struct iattr *attr)
+diff --git a/fs/cifs/cifsfs.c b/fs/cifs/cifsfs.c
+index 5d8b7ed..6f6d338 100644
+--- a/fs/cifs/cifsfs.c
++++ b/fs/cifs/cifsfs.c
+@@ -893,30 +893,21 @@ const struct inode_operations cifs_dir_inode_ops = {
+ 	.setattr = cifs_setattr,
+ 	.symlink = cifs_symlink,
+ 	.mknod   = cifs_mknod,
+-	.setxattr = generic_setxattr,
+-	.getxattr = generic_getxattr,
+ 	.listxattr = cifs_listxattr,
+-	.removexattr = generic_removexattr,
+ };
  
-+struct xattr_handlers
-+---------------------
-+
-+On filesystems that support extended attributes (xattrs), the s_xattr
-+superblock field points to a NULL-terminated array of xattr handlers.  Extended
-+attributes are name:value pairs.
-+
-+  name: Indicates that the handler matches attributes with the specified name
-+	(such as "system.posix_acl_access"); the prefix field must be NULL.
-+
-+  prefix: Indicates that the handler matches all attributes with the specified
-+	name prefix (such as "user."); the name field must be NULL.
-+
-+  list: Determine if attributes matching this xattr handler should be listed
-+	for a particular dentry.  Used by some listxattr implementations like
-+	generic_listxattr.
-+
-+  get: Called by the VFS to get the value of a particular extended attribute.
-+	This method is called by the getxattr(2) system call.
-+
-+  set: Called by the VFS to set the value of a particular extended attribute.
-+	When the new value is NULL, called to remove a particular extended
-+	attribute.  This method is called by the the setxattr(2) and
-+	removexattr(2) system calls.
-+
-+When none of the xattr handlers of a filesystem match the specified attribute
-+name or when a filesystem doesn't support extended attributes, the various
-+*xattr(2) system calls return -EOPNOTSUPP.
-+
+ const struct inode_operations cifs_file_inode_ops = {
+ 	.setattr = cifs_setattr,
+ 	.getattr = cifs_getattr,
+ 	.permission = cifs_permission,
+-	.setxattr = generic_setxattr,
+-	.getxattr = generic_getxattr,
+ 	.listxattr = cifs_listxattr,
+-	.removexattr = generic_removexattr,
+ };
  
- The Inode Object
- ================
-@@ -356,10 +385,7 @@ struct inode_operations {
- 	int (*get_acl)(struct inode *, int);
- 	int (*setattr) (struct dentry *, struct iattr *);
- 	int (*getattr) (struct vfsmount *mnt, struct dentry *, struct kstat *);
--	int (*setxattr) (struct dentry *, const char *,const void *,size_t,int);
--	ssize_t (*getxattr) (struct dentry *, const char *, void *, size_t);
- 	ssize_t (*listxattr) (struct dentry *, char *, size_t);
--	int (*removexattr) (struct dentry *, const char *);
- 	void (*update_time)(struct inode *, struct timespec *, int);
- 	int (*atomic_open)(struct inode *, struct dentry *, struct file *,
- 			unsigned open_flag, umode_t create_mode, int *opened);
-@@ -464,19 +490,8 @@ otherwise noted.
-   getattr: called by the VFS to get attributes of a file. This method
-   	is called by stat(2) and related system calls.
+ const struct inode_operations cifs_symlink_inode_ops = {
+ 	.readlink = generic_readlink,
+ 	.get_link = cifs_get_link,
+ 	.permission = cifs_permission,
+-	.setxattr = generic_setxattr,
+-	.getxattr = generic_getxattr,
+ 	.listxattr = cifs_listxattr,
+-	.removexattr = generic_removexattr,
+ };
  
--  setxattr: called by the VFS to set an extended attribute for a file.
--  	Extended attribute is a name:value pair associated with an
--  	inode. This method is called by setxattr(2) system call.
--
--  getxattr: called by the VFS to retrieve the value of an extended
--  	attribute name. This method is called by getxattr(2) function
--  	call.
--
-   listxattr: called by the VFS to list all extended attributes for a
--  	given file. This method is called by listxattr(2) system call.
--
--  removexattr: called by the VFS to remove an extended attribute from
--  	a file. This method is called by removexattr(2) system call.
-+	given file. This method is called by the listxattr(2) system call.
+ static int cifs_clone_file_range(struct file *src_file, loff_t off,
+diff --git a/fs/ecryptfs/inode.c b/fs/ecryptfs/inode.c
+index 32fee25..3f2575d 100644
+--- a/fs/ecryptfs/inode.c
++++ b/fs/ecryptfs/inode.c
+@@ -1090,10 +1090,7 @@ const struct inode_operations ecryptfs_symlink_iops = {
+ 	.permission = ecryptfs_permission,
+ 	.setattr = ecryptfs_setattr,
+ 	.getattr = ecryptfs_getattr_link,
+-	.setxattr = generic_setxattr,
+-	.getxattr = generic_getxattr,
+ 	.listxattr = ecryptfs_listxattr,
+-	.removexattr = generic_removexattr
+ };
  
-   update_time: called by the VFS to update a specific time or the i_version of
-   	an inode.  If this is not defined the VFS will update the inode itself
+ const struct inode_operations ecryptfs_dir_iops = {
+@@ -1108,20 +1105,14 @@ const struct inode_operations ecryptfs_dir_iops = {
+ 	.rename = ecryptfs_rename,
+ 	.permission = ecryptfs_permission,
+ 	.setattr = ecryptfs_setattr,
+-	.setxattr = generic_setxattr,
+-	.getxattr = generic_getxattr,
+ 	.listxattr = ecryptfs_listxattr,
+-	.removexattr = generic_removexattr
+ };
+ 
+ const struct inode_operations ecryptfs_main_iops = {
+ 	.permission = ecryptfs_permission,
+ 	.setattr = ecryptfs_setattr,
+ 	.getattr = ecryptfs_getattr,
+-	.setxattr = generic_setxattr,
+-	.getxattr = generic_getxattr,
+ 	.listxattr = ecryptfs_listxattr,
+-	.removexattr = generic_removexattr
+ };
+ 
+ static int ecryptfs_xattr_get(const struct xattr_handler *handler,
+diff --git a/fs/ext2/file.c b/fs/ext2/file.c
+index 868c023..83cf515 100644
+--- a/fs/ext2/file.c
++++ b/fs/ext2/file.c
+@@ -178,10 +178,7 @@ const struct file_operations ext2_file_operations = {
+ 
+ const struct inode_operations ext2_file_inode_operations = {
+ #ifdef CONFIG_EXT2_FS_XATTR
+-	.setxattr	= generic_setxattr,
+-	.getxattr	= generic_getxattr,
+ 	.listxattr	= ext2_listxattr,
+-	.removexattr	= generic_removexattr,
+ #endif
+ 	.setattr	= ext2_setattr,
+ 	.get_acl	= ext2_get_acl,
+diff --git a/fs/ext2/namei.c b/fs/ext2/namei.c
+index d446203..ff32ea7 100644
+--- a/fs/ext2/namei.c
++++ b/fs/ext2/namei.c
+@@ -428,10 +428,7 @@ const struct inode_operations ext2_dir_inode_operations = {
+ 	.mknod		= ext2_mknod,
+ 	.rename		= ext2_rename,
+ #ifdef CONFIG_EXT2_FS_XATTR
+-	.setxattr	= generic_setxattr,
+-	.getxattr	= generic_getxattr,
+ 	.listxattr	= ext2_listxattr,
+-	.removexattr	= generic_removexattr,
+ #endif
+ 	.setattr	= ext2_setattr,
+ 	.get_acl	= ext2_get_acl,
+@@ -441,10 +438,7 @@ const struct inode_operations ext2_dir_inode_operations = {
+ 
+ const struct inode_operations ext2_special_inode_operations = {
+ #ifdef CONFIG_EXT2_FS_XATTR
+-	.setxattr	= generic_setxattr,
+-	.getxattr	= generic_getxattr,
+ 	.listxattr	= ext2_listxattr,
+-	.removexattr	= generic_removexattr,
+ #endif
+ 	.setattr	= ext2_setattr,
+ 	.get_acl	= ext2_get_acl,
+diff --git a/fs/ext2/symlink.c b/fs/ext2/symlink.c
+index 3495d8a..8437b19 100644
+--- a/fs/ext2/symlink.c
++++ b/fs/ext2/symlink.c
+@@ -25,10 +25,7 @@ const struct inode_operations ext2_symlink_inode_operations = {
+ 	.get_link	= page_get_link,
+ 	.setattr	= ext2_setattr,
+ #ifdef CONFIG_EXT2_FS_XATTR
+-	.setxattr	= generic_setxattr,
+-	.getxattr	= generic_getxattr,
+ 	.listxattr	= ext2_listxattr,
+-	.removexattr	= generic_removexattr,
+ #endif
+ };
+  
+@@ -37,9 +34,6 @@ const struct inode_operations ext2_fast_symlink_inode_operations = {
+ 	.get_link	= simple_get_link,
+ 	.setattr	= ext2_setattr,
+ #ifdef CONFIG_EXT2_FS_XATTR
+-	.setxattr	= generic_setxattr,
+-	.getxattr	= generic_getxattr,
+ 	.listxattr	= ext2_listxattr,
+-	.removexattr	= generic_removexattr,
+ #endif
+ };
+diff --git a/fs/ext4/file.c b/fs/ext4/file.c
+index df44c87..3a25ddb 100644
+--- a/fs/ext4/file.c
++++ b/fs/ext4/file.c
+@@ -711,10 +711,7 @@ const struct file_operations ext4_file_operations = {
+ const struct inode_operations ext4_file_inode_operations = {
+ 	.setattr	= ext4_setattr,
+ 	.getattr	= ext4_getattr,
+-	.setxattr	= generic_setxattr,
+-	.getxattr	= generic_getxattr,
+ 	.listxattr	= ext4_listxattr,
+-	.removexattr	= generic_removexattr,
+ 	.get_acl	= ext4_get_acl,
+ 	.set_acl	= ext4_set_acl,
+ 	.fiemap		= ext4_fiemap,
+diff --git a/fs/ext4/namei.c b/fs/ext4/namei.c
+index ec4c399..007a166 100644
+--- a/fs/ext4/namei.c
++++ b/fs/ext4/namei.c
+@@ -3887,10 +3887,7 @@ const struct inode_operations ext4_dir_inode_operations = {
+ 	.tmpfile	= ext4_tmpfile,
+ 	.rename2	= ext4_rename2,
+ 	.setattr	= ext4_setattr,
+-	.setxattr	= generic_setxattr,
+-	.getxattr	= generic_getxattr,
+ 	.listxattr	= ext4_listxattr,
+-	.removexattr	= generic_removexattr,
+ 	.get_acl	= ext4_get_acl,
+ 	.set_acl	= ext4_set_acl,
+ 	.fiemap         = ext4_fiemap,
+@@ -3898,10 +3895,7 @@ const struct inode_operations ext4_dir_inode_operations = {
+ 
+ const struct inode_operations ext4_special_inode_operations = {
+ 	.setattr	= ext4_setattr,
+-	.setxattr	= generic_setxattr,
+-	.getxattr	= generic_getxattr,
+ 	.listxattr	= ext4_listxattr,
+-	.removexattr	= generic_removexattr,
+ 	.get_acl	= ext4_get_acl,
+ 	.set_acl	= ext4_set_acl,
+ };
+diff --git a/fs/ext4/symlink.c b/fs/ext4/symlink.c
+index 75ed5c2..65fa087 100644
+--- a/fs/ext4/symlink.c
++++ b/fs/ext4/symlink.c
+@@ -94,10 +94,7 @@ const struct inode_operations ext4_encrypted_symlink_inode_operations = {
+ 	.readlink	= generic_readlink,
+ 	.get_link	= ext4_encrypted_get_link,
+ 	.setattr	= ext4_setattr,
+-	.setxattr	= generic_setxattr,
+-	.getxattr	= generic_getxattr,
+ 	.listxattr	= ext4_listxattr,
+-	.removexattr	= generic_removexattr,
+ };
+ #endif
+ 
+@@ -105,18 +102,12 @@ const struct inode_operations ext4_symlink_inode_operations = {
+ 	.readlink	= generic_readlink,
+ 	.get_link	= page_get_link,
+ 	.setattr	= ext4_setattr,
+-	.setxattr	= generic_setxattr,
+-	.getxattr	= generic_getxattr,
+ 	.listxattr	= ext4_listxattr,
+-	.removexattr	= generic_removexattr,
+ };
+ 
+ const struct inode_operations ext4_fast_symlink_inode_operations = {
+ 	.readlink	= generic_readlink,
+ 	.get_link	= simple_get_link,
+ 	.setattr	= ext4_setattr,
+-	.setxattr	= generic_setxattr,
+-	.getxattr	= generic_getxattr,
+ 	.listxattr	= ext4_listxattr,
+-	.removexattr	= generic_removexattr,
+ };
+diff --git a/fs/f2fs/file.c b/fs/f2fs/file.c
+index f4c0086..3dbe74c 100644
+--- a/fs/f2fs/file.c
++++ b/fs/f2fs/file.c
+@@ -740,10 +740,7 @@ const struct inode_operations f2fs_file_inode_operations = {
+ 	.get_acl	= f2fs_get_acl,
+ 	.set_acl	= f2fs_set_acl,
+ #ifdef CONFIG_F2FS_FS_XATTR
+-	.setxattr	= generic_setxattr,
+-	.getxattr	= generic_getxattr,
+ 	.listxattr	= f2fs_listxattr,
+-	.removexattr	= generic_removexattr,
+ #endif
+ 	.fiemap		= f2fs_fiemap,
+ };
+diff --git a/fs/f2fs/namei.c b/fs/f2fs/namei.c
+index 324ed38..10d098c 100644
+--- a/fs/f2fs/namei.c
++++ b/fs/f2fs/namei.c
+@@ -1066,10 +1066,7 @@ const struct inode_operations f2fs_encrypted_symlink_inode_operations = {
+ 	.getattr	= f2fs_getattr,
+ 	.setattr	= f2fs_setattr,
+ #ifdef CONFIG_F2FS_FS_XATTR
+-	.setxattr	= generic_setxattr,
+-	.getxattr	= generic_getxattr,
+ 	.listxattr	= f2fs_listxattr,
+-	.removexattr	= generic_removexattr,
+ #endif
+ };
+ 
+@@ -1089,10 +1086,7 @@ const struct inode_operations f2fs_dir_inode_operations = {
+ 	.get_acl	= f2fs_get_acl,
+ 	.set_acl	= f2fs_set_acl,
+ #ifdef CONFIG_F2FS_FS_XATTR
+-	.setxattr	= generic_setxattr,
+-	.getxattr	= generic_getxattr,
+ 	.listxattr	= f2fs_listxattr,
+-	.removexattr	= generic_removexattr,
+ #endif
+ };
+ 
+@@ -1102,10 +1096,7 @@ const struct inode_operations f2fs_symlink_inode_operations = {
+ 	.getattr	= f2fs_getattr,
+ 	.setattr	= f2fs_setattr,
+ #ifdef CONFIG_F2FS_FS_XATTR
+-	.setxattr	= generic_setxattr,
+-	.getxattr	= generic_getxattr,
+ 	.listxattr	= f2fs_listxattr,
+-	.removexattr	= generic_removexattr,
+ #endif
+ };
+ 
+@@ -1115,9 +1106,6 @@ const struct inode_operations f2fs_special_inode_operations = {
+ 	.get_acl	= f2fs_get_acl,
+ 	.set_acl	= f2fs_set_acl,
+ #ifdef CONFIG_F2FS_FS_XATTR
+-	.setxattr       = generic_setxattr,
+-	.getxattr       = generic_getxattr,
+ 	.listxattr	= f2fs_listxattr,
+-	.removexattr    = generic_removexattr,
+ #endif
+ };
+diff --git a/fs/fuse/dir.c b/fs/fuse/dir.c
+index b44177a7..59e65bc 100644
+--- a/fs/fuse/dir.c
++++ b/fs/fuse/dir.c
+@@ -1878,10 +1878,7 @@ static const struct inode_operations fuse_dir_inode_operations = {
+ 	.mknod		= fuse_mknod,
+ 	.permission	= fuse_permission,
+ 	.getattr	= fuse_getattr,
+-	.setxattr	= generic_setxattr,
+-	.getxattr	= generic_getxattr,
+ 	.listxattr	= fuse_listxattr,
+-	.removexattr	= generic_removexattr,
+ };
+ 
+ static const struct file_operations fuse_dir_operations = {
+@@ -1899,10 +1896,7 @@ static const struct inode_operations fuse_common_inode_operations = {
+ 	.setattr	= fuse_setattr,
+ 	.permission	= fuse_permission,
+ 	.getattr	= fuse_getattr,
+-	.setxattr	= generic_setxattr,
+-	.getxattr	= generic_getxattr,
+ 	.listxattr	= fuse_listxattr,
+-	.removexattr	= generic_removexattr,
+ };
+ 
+ static const struct inode_operations fuse_symlink_inode_operations = {
+@@ -1910,10 +1904,7 @@ static const struct inode_operations fuse_symlink_inode_operations = {
+ 	.get_link	= fuse_get_link,
+ 	.readlink	= generic_readlink,
+ 	.getattr	= fuse_getattr,
+-	.setxattr	= generic_setxattr,
+-	.getxattr	= generic_getxattr,
+ 	.listxattr	= fuse_listxattr,
+-	.removexattr	= generic_removexattr,
+ };
+ 
+ void fuse_init_common(struct inode *inode)
+diff --git a/fs/gfs2/inode.c b/fs/gfs2/inode.c
+index 21dc784..c454bae 100644
+--- a/fs/gfs2/inode.c
++++ b/fs/gfs2/inode.c
+@@ -1994,10 +1994,7 @@ const struct inode_operations gfs2_file_iops = {
+ 	.permission = gfs2_permission,
+ 	.setattr = gfs2_setattr,
+ 	.getattr = gfs2_getattr,
+-	.setxattr = generic_setxattr,
+-	.getxattr = generic_getxattr,
+ 	.listxattr = gfs2_listxattr,
+-	.removexattr = generic_removexattr,
+ 	.fiemap = gfs2_fiemap,
+ 	.get_acl = gfs2_get_acl,
+ 	.set_acl = gfs2_set_acl,
+@@ -2016,10 +2013,7 @@ const struct inode_operations gfs2_dir_iops = {
+ 	.permission = gfs2_permission,
+ 	.setattr = gfs2_setattr,
+ 	.getattr = gfs2_getattr,
+-	.setxattr = generic_setxattr,
+-	.getxattr = generic_getxattr,
+ 	.listxattr = gfs2_listxattr,
+-	.removexattr = generic_removexattr,
+ 	.fiemap = gfs2_fiemap,
+ 	.get_acl = gfs2_get_acl,
+ 	.set_acl = gfs2_set_acl,
+@@ -2032,10 +2026,7 @@ const struct inode_operations gfs2_symlink_iops = {
+ 	.permission = gfs2_permission,
+ 	.setattr = gfs2_setattr,
+ 	.getattr = gfs2_getattr,
+-	.setxattr = generic_setxattr,
+-	.getxattr = generic_getxattr,
+ 	.listxattr = gfs2_listxattr,
+-	.removexattr = generic_removexattr,
+ 	.fiemap = gfs2_fiemap,
+ };
+ 
+diff --git a/fs/hfs/inode.c b/fs/hfs/inode.c
+index d7f833f..85961fc 100644
+--- a/fs/hfs/inode.c
++++ b/fs/hfs/inode.c
+@@ -688,7 +688,5 @@ static const struct file_operations hfs_file_operations = {
+ static const struct inode_operations hfs_file_inode_operations = {
+ 	.lookup		= hfs_file_lookup,
+ 	.setattr	= hfs_inode_setattr,
+-	.setxattr	= generic_setxattr,
+-	.getxattr	= generic_getxattr,
+ 	.listxattr	= generic_listxattr,
+ };
+diff --git a/fs/hfsplus/dir.c b/fs/hfsplus/dir.c
+index 42e1286..9cbe430 100644
+--- a/fs/hfsplus/dir.c
++++ b/fs/hfsplus/dir.c
+@@ -562,10 +562,7 @@ const struct inode_operations hfsplus_dir_inode_operations = {
+ 	.symlink		= hfsplus_symlink,
+ 	.mknod			= hfsplus_mknod,
+ 	.rename			= hfsplus_rename,
+-	.setxattr		= generic_setxattr,
+-	.getxattr		= generic_getxattr,
+ 	.listxattr		= hfsplus_listxattr,
+-	.removexattr		= generic_removexattr,
+ #ifdef CONFIG_HFSPLUS_FS_POSIX_ACL
+ 	.get_acl		= hfsplus_get_posix_acl,
+ 	.set_acl		= hfsplus_set_posix_acl,
+diff --git a/fs/hfsplus/inode.c b/fs/hfsplus/inode.c
+index ef9fefe..f5baee5 100644
+--- a/fs/hfsplus/inode.c
++++ b/fs/hfsplus/inode.c
+@@ -333,10 +333,7 @@ int hfsplus_file_fsync(struct file *file, loff_t start, loff_t end,
+ 
+ static const struct inode_operations hfsplus_file_inode_operations = {
+ 	.setattr	= hfsplus_setattr,
+-	.setxattr	= generic_setxattr,
+-	.getxattr	= generic_getxattr,
+ 	.listxattr	= hfsplus_listxattr,
+-	.removexattr	= generic_removexattr,
+ #ifdef CONFIG_HFSPLUS_FS_POSIX_ACL
+ 	.get_acl	= hfsplus_get_posix_acl,
+ 	.set_acl	= hfsplus_set_posix_acl,
+diff --git a/fs/jffs2/dir.c b/fs/jffs2/dir.c
+index db84191..56cf89c 100644
+--- a/fs/jffs2/dir.c
++++ b/fs/jffs2/dir.c
+@@ -61,10 +61,7 @@ const struct inode_operations jffs2_dir_inode_operations =
+ 	.get_acl =	jffs2_get_acl,
+ 	.set_acl =	jffs2_set_acl,
+ 	.setattr =	jffs2_setattr,
+-	.setxattr =	generic_setxattr,
+-	.getxattr =	generic_getxattr,
+ 	.listxattr =	jffs2_listxattr,
+-	.removexattr =	generic_removexattr
+ };
+ 
+ /***********************************************************************/
+diff --git a/fs/jffs2/file.c b/fs/jffs2/file.c
+index fdf9e1c..c12476e 100644
+--- a/fs/jffs2/file.c
++++ b/fs/jffs2/file.c
+@@ -66,10 +66,7 @@ const struct inode_operations jffs2_file_inode_operations =
+ 	.get_acl =	jffs2_get_acl,
+ 	.set_acl =	jffs2_set_acl,
+ 	.setattr =	jffs2_setattr,
+-	.setxattr =	generic_setxattr,
+-	.getxattr =	generic_getxattr,
+ 	.listxattr =	jffs2_listxattr,
+-	.removexattr =	generic_removexattr
+ };
+ 
+ const struct address_space_operations jffs2_file_address_operations =
+diff --git a/fs/jffs2/symlink.c b/fs/jffs2/symlink.c
+index afe2d75..8f3f085 100644
+--- a/fs/jffs2/symlink.c
++++ b/fs/jffs2/symlink.c
+@@ -16,8 +16,5 @@ const struct inode_operations jffs2_symlink_inode_operations =
+ 	.readlink =	generic_readlink,
+ 	.get_link =	simple_get_link,
+ 	.setattr =	jffs2_setattr,
+-	.setxattr =	generic_setxattr,
+-	.getxattr =	generic_getxattr,
+ 	.listxattr =	jffs2_listxattr,
+-	.removexattr =	generic_removexattr
+ };
+diff --git a/fs/jfs/file.c b/fs/jfs/file.c
+index 7f1a585..f6eb041 100644
+--- a/fs/jfs/file.c
++++ b/fs/jfs/file.c
+@@ -140,10 +140,7 @@ int jfs_setattr(struct dentry *dentry, struct iattr *iattr)
+ }
+ 
+ const struct inode_operations jfs_file_inode_operations = {
+-	.setxattr	= generic_setxattr,
+-	.getxattr	= generic_getxattr,
+ 	.listxattr	= jfs_listxattr,
+-	.removexattr	= generic_removexattr,
+ 	.setattr	= jfs_setattr,
+ #ifdef CONFIG_JFS_POSIX_ACL
+ 	.get_acl	= jfs_get_acl,
+diff --git a/fs/jfs/namei.c b/fs/jfs/namei.c
+index 539dedd..cdaacec 100644
+--- a/fs/jfs/namei.c
++++ b/fs/jfs/namei.c
+@@ -1537,10 +1537,7 @@ const struct inode_operations jfs_dir_inode_operations = {
+ 	.rmdir		= jfs_rmdir,
+ 	.mknod		= jfs_mknod,
+ 	.rename		= jfs_rename,
+-	.setxattr	= generic_setxattr,
+-	.getxattr	= generic_getxattr,
+ 	.listxattr	= jfs_listxattr,
+-	.removexattr	= generic_removexattr,
+ 	.setattr	= jfs_setattr,
+ #ifdef CONFIG_JFS_POSIX_ACL
+ 	.get_acl	= jfs_get_acl,
+diff --git a/fs/jfs/symlink.c b/fs/jfs/symlink.c
+index c94c7e4..c82404f 100644
+--- a/fs/jfs/symlink.c
++++ b/fs/jfs/symlink.c
+@@ -25,19 +25,13 @@ const struct inode_operations jfs_fast_symlink_inode_operations = {
+ 	.readlink	= generic_readlink,
+ 	.get_link	= simple_get_link,
+ 	.setattr	= jfs_setattr,
+-	.setxattr	= generic_setxattr,
+-	.getxattr	= generic_getxattr,
+ 	.listxattr	= jfs_listxattr,
+-	.removexattr	= generic_removexattr,
+ };
+ 
+ const struct inode_operations jfs_symlink_inode_operations = {
+ 	.readlink	= generic_readlink,
+ 	.get_link	= page_get_link,
+ 	.setattr	= jfs_setattr,
+-	.setxattr	= generic_setxattr,
+-	.getxattr	= generic_getxattr,
+ 	.listxattr	= jfs_listxattr,
+-	.removexattr	= generic_removexattr,
+ };
+ 
+diff --git a/fs/kernfs/dir.c b/fs/kernfs/dir.c
+index 320d8a9..b98855b 100644
+--- a/fs/kernfs/dir.c
++++ b/fs/kernfs/dir.c
+@@ -1126,9 +1126,6 @@ const struct inode_operations kernfs_dir_iops = {
+ 	.permission	= kernfs_iop_permission,
+ 	.setattr	= kernfs_iop_setattr,
+ 	.getattr	= kernfs_iop_getattr,
+-	.setxattr	= generic_setxattr,
+-	.removexattr	= generic_removexattr,
+-	.getxattr	= generic_getxattr,
+ 	.listxattr	= kernfs_iop_listxattr,
+ 
+ 	.mkdir		= kernfs_iop_mkdir,
+diff --git a/fs/kernfs/inode.c b/fs/kernfs/inode.c
+index 6bc8754..2b735ce 100644
+--- a/fs/kernfs/inode.c
++++ b/fs/kernfs/inode.c
+@@ -28,9 +28,6 @@ static const struct inode_operations kernfs_iops = {
+ 	.permission	= kernfs_iop_permission,
+ 	.setattr	= kernfs_iop_setattr,
+ 	.getattr	= kernfs_iop_getattr,
+-	.setxattr	= generic_setxattr,
+-	.removexattr	= generic_removexattr,
+-	.getxattr	= generic_getxattr,
+ 	.listxattr	= kernfs_iop_listxattr,
+ };
+ 
+diff --git a/fs/kernfs/symlink.c b/fs/kernfs/symlink.c
+index 549a14c7..9b43ca0 100644
+--- a/fs/kernfs/symlink.c
++++ b/fs/kernfs/symlink.c
+@@ -134,9 +134,6 @@ static const char *kernfs_iop_get_link(struct dentry *dentry,
+ }
+ 
+ const struct inode_operations kernfs_symlink_iops = {
+-	.setxattr	= generic_setxattr,
+-	.removexattr	= generic_removexattr,
+-	.getxattr	= generic_getxattr,
+ 	.listxattr	= kernfs_iop_listxattr,
+ 	.readlink	= generic_readlink,
+ 	.get_link	= kernfs_iop_get_link,
+diff --git a/fs/nfs/nfs3proc.c b/fs/nfs/nfs3proc.c
+index cb28cce..0be4e42 100644
+--- a/fs/nfs/nfs3proc.c
++++ b/fs/nfs/nfs3proc.c
+@@ -899,9 +899,6 @@ static const struct inode_operations nfs3_dir_inode_operations = {
+ 	.setattr	= nfs_setattr,
+ #ifdef CONFIG_NFS_V3_ACL
+ 	.listxattr	= nfs3_listxattr,
+-	.getxattr	= generic_getxattr,
+-	.setxattr	= generic_setxattr,
+-	.removexattr	= generic_removexattr,
+ 	.get_acl	= nfs3_get_acl,
+ 	.set_acl	= nfs3_set_acl,
+ #endif
+@@ -913,9 +910,6 @@ static const struct inode_operations nfs3_file_inode_operations = {
+ 	.setattr	= nfs_setattr,
+ #ifdef CONFIG_NFS_V3_ACL
+ 	.listxattr	= nfs3_listxattr,
+-	.getxattr	= generic_getxattr,
+-	.setxattr	= generic_setxattr,
+-	.removexattr	= generic_removexattr,
+ 	.get_acl	= nfs3_get_acl,
+ 	.set_acl	= nfs3_set_acl,
+ #endif
+diff --git a/fs/nfs/nfs4proc.c b/fs/nfs/nfs4proc.c
+index de97567..1e6b319 100644
+--- a/fs/nfs/nfs4proc.c
++++ b/fs/nfs/nfs4proc.c
+@@ -8865,20 +8865,14 @@ static const struct inode_operations nfs4_dir_inode_operations = {
+ 	.permission	= nfs_permission,
+ 	.getattr	= nfs_getattr,
+ 	.setattr	= nfs_setattr,
+-	.getxattr	= generic_getxattr,
+-	.setxattr	= generic_setxattr,
+ 	.listxattr	= nfs4_listxattr,
+-	.removexattr	= generic_removexattr,
+ };
+ 
+ static const struct inode_operations nfs4_file_inode_operations = {
+ 	.permission	= nfs_permission,
+ 	.getattr	= nfs_getattr,
+ 	.setattr	= nfs_setattr,
+-	.getxattr	= generic_getxattr,
+-	.setxattr	= generic_setxattr,
+ 	.listxattr	= nfs4_listxattr,
+-	.removexattr	= generic_removexattr,
+ };
+ 
+ const struct nfs_rpc_ops nfs_v4_clientops = {
+diff --git a/fs/ocfs2/file.c b/fs/ocfs2/file.c
+index 4e7b0dc..baf291b 100644
+--- a/fs/ocfs2/file.c
++++ b/fs/ocfs2/file.c
+@@ -2460,10 +2460,7 @@ const struct inode_operations ocfs2_file_iops = {
+ 	.setattr	= ocfs2_setattr,
+ 	.getattr	= ocfs2_getattr,
+ 	.permission	= ocfs2_permission,
+-	.setxattr	= generic_setxattr,
+-	.getxattr	= generic_getxattr,
+ 	.listxattr	= ocfs2_listxattr,
+-	.removexattr	= generic_removexattr,
+ 	.fiemap		= ocfs2_fiemap,
+ 	.get_acl	= ocfs2_iop_get_acl,
+ 	.set_acl	= ocfs2_iop_set_acl,
+diff --git a/fs/ocfs2/namei.c b/fs/ocfs2/namei.c
+index a8f1225..6cc043e 100644
+--- a/fs/ocfs2/namei.c
++++ b/fs/ocfs2/namei.c
+@@ -2913,10 +2913,7 @@ const struct inode_operations ocfs2_dir_iops = {
+ 	.setattr	= ocfs2_setattr,
+ 	.getattr	= ocfs2_getattr,
+ 	.permission	= ocfs2_permission,
+-	.setxattr	= generic_setxattr,
+-	.getxattr	= generic_getxattr,
+ 	.listxattr	= ocfs2_listxattr,
+-	.removexattr	= generic_removexattr,
+ 	.fiemap         = ocfs2_fiemap,
+ 	.get_acl	= ocfs2_iop_get_acl,
+ 	.set_acl	= ocfs2_iop_set_acl,
+diff --git a/fs/ocfs2/symlink.c b/fs/ocfs2/symlink.c
+index 6c2a3e3..6ad8eec 100644
+--- a/fs/ocfs2/symlink.c
++++ b/fs/ocfs2/symlink.c
+@@ -91,9 +91,6 @@ const struct inode_operations ocfs2_symlink_inode_operations = {
+ 	.get_link	= page_get_link,
+ 	.getattr	= ocfs2_getattr,
+ 	.setattr	= ocfs2_setattr,
+-	.setxattr	= generic_setxattr,
+-	.getxattr	= generic_getxattr,
+ 	.listxattr	= ocfs2_listxattr,
+-	.removexattr	= generic_removexattr,
+ 	.fiemap		= ocfs2_fiemap,
+ };
+diff --git a/fs/orangefs/inode.c b/fs/orangefs/inode.c
+index 85640e9..80b1b35 100644
+--- a/fs/orangefs/inode.c
++++ b/fs/orangefs/inode.c
+@@ -299,10 +299,7 @@ struct inode_operations orangefs_file_inode_operations = {
+ 	.set_acl = orangefs_set_acl,
+ 	.setattr = orangefs_setattr,
+ 	.getattr = orangefs_getattr,
+-	.setxattr = generic_setxattr,
+-	.getxattr = generic_getxattr,
+ 	.listxattr = orangefs_listxattr,
+-	.removexattr = generic_removexattr,
+ 	.permission = orangefs_permission,
+ };
+ 
+diff --git a/fs/orangefs/namei.c b/fs/orangefs/namei.c
+index 5a60c50..d396d03 100644
+--- a/fs/orangefs/namei.c
++++ b/fs/orangefs/namei.c
+@@ -454,9 +454,6 @@ struct inode_operations orangefs_dir_inode_operations = {
+ 	.rename = orangefs_rename,
+ 	.setattr = orangefs_setattr,
+ 	.getattr = orangefs_getattr,
+-	.setxattr = generic_setxattr,
+-	.getxattr = generic_getxattr,
+-	.removexattr = generic_removexattr,
+ 	.listxattr = orangefs_listxattr,
+ 	.permission = orangefs_permission,
+ };
+diff --git a/fs/orangefs/symlink.c b/fs/orangefs/symlink.c
+index 6418dd6..dade1ef 100644
+--- a/fs/orangefs/symlink.c
++++ b/fs/orangefs/symlink.c
+@@ -14,6 +14,5 @@ struct inode_operations orangefs_symlink_inode_operations = {
+ 	.setattr = orangefs_setattr,
+ 	.getattr = orangefs_getattr,
+ 	.listxattr = orangefs_listxattr,
+-	.setxattr = generic_setxattr,
+ 	.permission = orangefs_permission,
+ };
+diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
+index 450bc74..83d26c5 100644
+--- a/fs/overlayfs/dir.c
++++ b/fs/overlayfs/dir.c
+@@ -910,8 +910,5 @@ const struct inode_operations ovl_dir_inode_operations = {
+ 	.mknod		= ovl_mknod,
+ 	.permission	= ovl_permission,
+ 	.getattr	= ovl_dir_getattr,
+-	.setxattr	= generic_setxattr,
+-	.getxattr	= generic_getxattr,
+ 	.listxattr	= ovl_listxattr,
+-	.removexattr	= generic_removexattr,
+ };
+diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
+index 6c9f1fb..3659c04 100644
+--- a/fs/overlayfs/inode.c
++++ b/fs/overlayfs/inode.c
+@@ -374,10 +374,7 @@ static const struct inode_operations ovl_file_inode_operations = {
+ 	.setattr	= ovl_setattr,
+ 	.permission	= ovl_permission,
+ 	.getattr	= ovl_getattr,
+-	.setxattr	= generic_setxattr,
+-	.getxattr	= generic_getxattr,
+ 	.listxattr	= ovl_listxattr,
+-	.removexattr	= generic_removexattr,
+ };
+ 
+ static const struct inode_operations ovl_symlink_inode_operations = {
+@@ -385,10 +382,7 @@ static const struct inode_operations ovl_symlink_inode_operations = {
+ 	.get_link	= ovl_get_link,
+ 	.readlink	= ovl_readlink,
+ 	.getattr	= ovl_getattr,
+-	.setxattr	= generic_setxattr,
+-	.getxattr	= generic_getxattr,
+ 	.listxattr	= ovl_listxattr,
+-	.removexattr	= generic_removexattr,
+ };
+ 
+ struct inode *ovl_new_inode(struct super_block *sb, umode_t mode,
+diff --git a/fs/reiserfs/file.c b/fs/reiserfs/file.c
+index 90f815b..2f8c5c9 100644
+--- a/fs/reiserfs/file.c
++++ b/fs/reiserfs/file.c
+@@ -260,10 +260,7 @@ const struct file_operations reiserfs_file_operations = {
+ 
+ const struct inode_operations reiserfs_file_inode_operations = {
+ 	.setattr = reiserfs_setattr,
+-	.setxattr = generic_setxattr,
+-	.getxattr = generic_getxattr,
+ 	.listxattr = reiserfs_listxattr,
+-	.removexattr = generic_removexattr,
+ 	.permission = reiserfs_permission,
+ 	.get_acl = reiserfs_get_acl,
+ 	.set_acl = reiserfs_set_acl,
+diff --git a/fs/reiserfs/namei.c b/fs/reiserfs/namei.c
+index 8a36696..fd7d060 100644
+--- a/fs/reiserfs/namei.c
++++ b/fs/reiserfs/namei.c
+@@ -1650,10 +1650,7 @@ const struct inode_operations reiserfs_dir_inode_operations = {
+ 	.mknod = reiserfs_mknod,
+ 	.rename = reiserfs_rename,
+ 	.setattr = reiserfs_setattr,
+-	.setxattr = generic_setxattr,
+-	.getxattr = generic_getxattr,
+ 	.listxattr = reiserfs_listxattr,
+-	.removexattr = generic_removexattr,
+ 	.permission = reiserfs_permission,
+ 	.get_acl = reiserfs_get_acl,
+ 	.set_acl = reiserfs_set_acl,
+@@ -1667,10 +1664,7 @@ const struct inode_operations reiserfs_symlink_inode_operations = {
+ 	.readlink = generic_readlink,
+ 	.get_link	= page_get_link,
+ 	.setattr = reiserfs_setattr,
+-	.setxattr = generic_setxattr,
+-	.getxattr = generic_getxattr,
+ 	.listxattr = reiserfs_listxattr,
+-	.removexattr = generic_removexattr,
+ 	.permission = reiserfs_permission,
+ };
+ 
+@@ -1679,10 +1673,7 @@ const struct inode_operations reiserfs_symlink_inode_operations = {
+  */
+ const struct inode_operations reiserfs_special_inode_operations = {
+ 	.setattr = reiserfs_setattr,
+-	.setxattr = generic_setxattr,
+-	.getxattr = generic_getxattr,
+ 	.listxattr = reiserfs_listxattr,
+-	.removexattr = generic_removexattr,
+ 	.permission = reiserfs_permission,
+ 	.get_acl = reiserfs_get_acl,
+ 	.set_acl = reiserfs_set_acl,
+diff --git a/fs/squashfs/inode.c b/fs/squashfs/inode.c
+index 0927b1e..e9793b1 100644
+--- a/fs/squashfs/inode.c
++++ b/fs/squashfs/inode.c
+@@ -425,7 +425,6 @@ failed_read:
+ 
+ 
+ const struct inode_operations squashfs_inode_ops = {
+-	.getxattr = generic_getxattr,
+ 	.listxattr = squashfs_listxattr
+ };
+ 
+diff --git a/fs/squashfs/namei.c b/fs/squashfs/namei.c
+index 67cad77..40c10d9 100644
+--- a/fs/squashfs/namei.c
++++ b/fs/squashfs/namei.c
+@@ -247,6 +247,5 @@ failed:
+ 
+ const struct inode_operations squashfs_dir_inode_ops = {
+ 	.lookup = squashfs_lookup,
+-	.getxattr = generic_getxattr,
+ 	.listxattr = squashfs_listxattr
+ };
+diff --git a/fs/squashfs/symlink.c b/fs/squashfs/symlink.c
+index d688ef4..79b9c31 100644
+--- a/fs/squashfs/symlink.c
++++ b/fs/squashfs/symlink.c
+@@ -120,7 +120,6 @@ const struct address_space_operations squashfs_symlink_aops = {
+ const struct inode_operations squashfs_symlink_inode_ops = {
+ 	.readlink = generic_readlink,
+ 	.get_link = page_get_link,
+-	.getxattr = generic_getxattr,
+ 	.listxattr = squashfs_listxattr
+ };
+ 
+diff --git a/fs/squashfs/xattr.h b/fs/squashfs/xattr.h
+index c83f5d9..afe70f8 100644
+--- a/fs/squashfs/xattr.h
++++ b/fs/squashfs/xattr.h
+@@ -42,6 +42,5 @@ static inline int squashfs_xattr_lookup(struct super_block *sb,
+ 	return 0;
+ }
+ #define squashfs_listxattr NULL
+-#define generic_getxattr NULL
+ #define squashfs_xattr_handlers NULL
+ #endif
+diff --git a/fs/ubifs/dir.c b/fs/ubifs/dir.c
+index 4b86d3a..1d55aea 100644
+--- a/fs/ubifs/dir.c
++++ b/fs/ubifs/dir.c
+@@ -1182,10 +1182,7 @@ const struct inode_operations ubifs_dir_inode_operations = {
+ 	.rename      = ubifs_rename,
+ 	.setattr     = ubifs_setattr,
+ 	.getattr     = ubifs_getattr,
+-	.setxattr    = generic_setxattr,
+-	.getxattr    = generic_getxattr,
+ 	.listxattr   = ubifs_listxattr,
+-	.removexattr = generic_removexattr,
+ #ifdef CONFIG_UBIFS_ATIME_SUPPORT
+ 	.update_time = ubifs_update_time,
+ #endif
+diff --git a/fs/ubifs/file.c b/fs/ubifs/file.c
+index 0831697..ffdc4b2 100644
+--- a/fs/ubifs/file.c
++++ b/fs/ubifs/file.c
+@@ -1597,10 +1597,7 @@ const struct address_space_operations ubifs_file_address_operations = {
+ const struct inode_operations ubifs_file_inode_operations = {
+ 	.setattr     = ubifs_setattr,
+ 	.getattr     = ubifs_getattr,
+-	.setxattr    = generic_setxattr,
+-	.getxattr    = generic_getxattr,
+ 	.listxattr   = ubifs_listxattr,
+-	.removexattr = generic_removexattr,
+ #ifdef CONFIG_UBIFS_ATIME_SUPPORT
+ 	.update_time = ubifs_update_time,
+ #endif
+@@ -1611,10 +1608,7 @@ const struct inode_operations ubifs_symlink_inode_operations = {
+ 	.get_link    = simple_get_link,
+ 	.setattr     = ubifs_setattr,
+ 	.getattr     = ubifs_getattr,
+-	.setxattr    = generic_setxattr,
+-	.getxattr    = generic_getxattr,
+ 	.listxattr   = ubifs_listxattr,
+-	.removexattr = generic_removexattr,
+ #ifdef CONFIG_UBIFS_ATIME_SUPPORT
+ 	.update_time = ubifs_update_time,
+ #endif
 diff --git a/fs/xattr.c b/fs/xattr.c
-index 8ffc93e..5bda06c 100644
+index 5bda06c..8df6ccf 100644
 --- a/fs/xattr.c
 +++ b/fs/xattr.c
-@@ -36,12 +36,9 @@ strcmp_prefix(const char *a, const char *a_prefix)
+@@ -734,22 +734,6 @@ SYSCALL_DEFINE2(fremovexattr, int, fd, const char __user *, name)
+ }
  
  /*
-  * In order to implement different sets of xattr operations for each xattr
-- * prefix with the generic xattr API, a filesystem should create a
-- * null-terminated array of struct xattr_handler (one for each prefix) and
-- * hang a pointer to it off of the s_xattr field of the superblock.
-- *
-- * The generic_fooxattr() functions will use this list to dispatch xattr
-- * operations to the correct xattr_handler.
-+ * prefix, a filesystem should create a null-terminated array of struct
-+ * xattr_handler (one for each prefix) and hang a pointer to it off of the
-+ * s_xattr field of the superblock.
-  */
- #define for_each_xattr_handler(handlers, handler)		\
- 	if (handlers)						\
-@@ -133,9 +130,16 @@ int
- __vfs_setxattr(struct dentry *dentry, struct inode *inode, const char *name,
- 	       const void *value, size_t size, int flags)
- {
--	if (!inode->i_op->setxattr)
-+	const struct xattr_handler *handler;
-+
-+	handler = xattr_resolve_name(inode, &name);
-+	if (IS_ERR(handler))
-+		return PTR_ERR(handler);
-+	if (!handler->set)
- 		return -EOPNOTSUPP;
--	return inode->i_op->setxattr(dentry, inode, name, value, size, flags);
-+	if (size == 0)
-+		value = "";  /* empty EA, do not remove */
-+	return handler->set(handler, dentry, inode, name, value, size, flags);
- }
- EXPORT_SYMBOL(__vfs_setxattr);
- 
-@@ -165,7 +169,7 @@ int __vfs_setxattr_noperm(struct dentry *dentry, const char *name,
- 
- 	if (issec)
- 		inode->i_flags &= ~S_NOSEC;
--	if (inode->i_op->setxattr) {
-+	if (inode->i_opflags & IOP_XATTR) {
- 		error = __vfs_setxattr(dentry, inode, name, value, size, flags);
- 		if (!error) {
- 			fsnotify_xattr(dentry);
-@@ -250,6 +254,7 @@ ssize_t
- vfs_getxattr_alloc(struct dentry *dentry, const char *name, char **xattr_value,
- 		   size_t xattr_size, gfp_t flags)
- {
-+	const struct xattr_handler *handler;
- 	struct inode *inode = dentry->d_inode;
- 	char *value = *xattr_value;
- 	int error;
-@@ -258,10 +263,12 @@ vfs_getxattr_alloc(struct dentry *dentry, const char *name, char **xattr_value,
- 	if (error)
- 		return error;
- 
--	if (!inode->i_op->getxattr)
-+	handler = xattr_resolve_name(inode, &name);
-+	if (IS_ERR(handler))
-+		return PTR_ERR(handler);
-+	if (!handler->get)
- 		return -EOPNOTSUPP;
+- * Find the handler for the prefix and dispatch its get() operation.
+- */
+-ssize_t
+-generic_getxattr(struct dentry *dentry, struct inode *inode,
+-		 const char *name, void *buffer, size_t size)
+-{
+-	const struct xattr_handler *handler;
 -
--	error = inode->i_op->getxattr(dentry, inode, name, NULL, 0);
-+	error = handler->get(handler, dentry, inode, name, NULL, 0);
- 	if (error < 0)
- 		return error;
- 
-@@ -272,7 +279,7 @@ vfs_getxattr_alloc(struct dentry *dentry, const char *name, char **xattr_value,
- 		memset(value, 0, error + 1);
+-	handler = xattr_resolve_name(inode, &name);
+-	if (IS_ERR(handler))
+-		return PTR_ERR(handler);
+-	return handler->get(handler, dentry, inode,
+-			    name, buffer, size);
+-}
+-
+-/*
+  * Combine the results of the list() operation from every xattr_handler in the
+  * list.
+  */
+@@ -785,44 +769,7 @@ generic_listxattr(struct dentry *dentry, char *buffer, size_t buffer_size)
  	}
- 
--	error = inode->i_op->getxattr(dentry, inode, name, value, error);
-+	error = handler->get(handler, dentry, inode, name, value, error);
- 	*xattr_value = value;
- 	return error;
+ 	return size;
  }
-@@ -281,9 +288,14 @@ ssize_t
- __vfs_getxattr(struct dentry *dentry, struct inode *inode, const char *name,
- 	       void *value, size_t size)
- {
--	if (!inode->i_op->getxattr)
-+	const struct xattr_handler *handler;
-+
-+	handler = xattr_resolve_name(inode, &name);
-+	if (IS_ERR(handler))
-+		return PTR_ERR(handler);
-+	if (!handler->get)
- 		return -EOPNOTSUPP;
--	return inode->i_op->getxattr(dentry, inode, name, value, size);
-+	return handler->get(handler, dentry, inode, name, value, size);
- }
- EXPORT_SYMBOL(__vfs_getxattr);
+-
+-/*
+- * Find the handler for the prefix and dispatch its set() operation.
+- */
+-int
+-generic_setxattr(struct dentry *dentry, struct inode *inode, const char *name,
+-		 const void *value, size_t size, int flags)
+-{
+-	const struct xattr_handler *handler;
+-
+-	if (size == 0)
+-		value = "";  /* empty EA, do not remove */
+-	handler = xattr_resolve_name(inode, &name);
+-	if (IS_ERR(handler))
+-		return PTR_ERR(handler);
+-	return handler->set(handler, dentry, inode, name, value, size, flags);
+-}
+-
+-/*
+- * Find the handler for the prefix and dispatch its set() operation to remove
+- * any associated extended attribute.
+- */
+-int
+-generic_removexattr(struct dentry *dentry, const char *name)
+-{
+-	const struct xattr_handler *handler;
+-
+-	handler = xattr_resolve_name(d_inode(dentry), &name);
+-	if (IS_ERR(handler))
+-		return PTR_ERR(handler);
+-	return handler->set(handler, dentry, d_inode(dentry), name, NULL,
+-			    0, XATTR_REPLACE);
+-}
+-
+-EXPORT_SYMBOL(generic_getxattr);
+ EXPORT_SYMBOL(generic_listxattr);
+-EXPORT_SYMBOL(generic_setxattr);
+-EXPORT_SYMBOL(generic_removexattr);
  
-@@ -342,11 +354,15 @@ EXPORT_SYMBOL_GPL(vfs_listxattr);
- int
- __vfs_removexattr(struct dentry *dentry, const char *name)
- {
--	struct inode *inode = dentry->d_inode;
-+	struct inode *inode = d_inode(dentry);
-+	const struct xattr_handler *handler;
+ /**
+  * xattr_full_name  -  Compute full attribute name from suffix
+diff --git a/fs/xfs/xfs_iops.c b/fs/xfs/xfs_iops.c
+index c5d4eba..2786cfd 100644
+--- a/fs/xfs/xfs_iops.c
++++ b/fs/xfs/xfs_iops.c
+@@ -1098,9 +1098,6 @@ static const struct inode_operations xfs_inode_operations = {
+ 	.set_acl		= xfs_set_acl,
+ 	.getattr		= xfs_vn_getattr,
+ 	.setattr		= xfs_vn_setattr,
+-	.setxattr		= generic_setxattr,
+-	.getxattr		= generic_getxattr,
+-	.removexattr		= generic_removexattr,
+ 	.listxattr		= xfs_vn_listxattr,
+ 	.fiemap			= xfs_vn_fiemap,
+ 	.update_time		= xfs_vn_update_time,
+@@ -1126,9 +1123,6 @@ static const struct inode_operations xfs_dir_inode_operations = {
+ 	.set_acl		= xfs_set_acl,
+ 	.getattr		= xfs_vn_getattr,
+ 	.setattr		= xfs_vn_setattr,
+-	.setxattr		= generic_setxattr,
+-	.getxattr		= generic_getxattr,
+-	.removexattr		= generic_removexattr,
+ 	.listxattr		= xfs_vn_listxattr,
+ 	.update_time		= xfs_vn_update_time,
+ 	.tmpfile		= xfs_vn_tmpfile,
+@@ -1154,9 +1148,6 @@ static const struct inode_operations xfs_dir_ci_inode_operations = {
+ 	.set_acl		= xfs_set_acl,
+ 	.getattr		= xfs_vn_getattr,
+ 	.setattr		= xfs_vn_setattr,
+-	.setxattr		= generic_setxattr,
+-	.getxattr		= generic_getxattr,
+-	.removexattr		= generic_removexattr,
+ 	.listxattr		= xfs_vn_listxattr,
+ 	.update_time		= xfs_vn_update_time,
+ 	.tmpfile		= xfs_vn_tmpfile,
+@@ -1167,9 +1158,6 @@ static const struct inode_operations xfs_symlink_inode_operations = {
+ 	.get_link		= xfs_vn_get_link,
+ 	.getattr		= xfs_vn_getattr,
+ 	.setattr		= xfs_vn_setattr,
+-	.setxattr		= generic_setxattr,
+-	.getxattr		= generic_getxattr,
+-	.removexattr		= generic_removexattr,
+ 	.listxattr		= xfs_vn_listxattr,
+ 	.update_time		= xfs_vn_update_time,
+ };
+@@ -1179,9 +1167,6 @@ static const struct inode_operations xfs_inline_symlink_inode_operations = {
+ 	.get_link		= xfs_vn_get_link_inline,
+ 	.getattr		= xfs_vn_getattr,
+ 	.setattr		= xfs_vn_setattr,
+-	.setxattr		= generic_setxattr,
+-	.getxattr		= generic_getxattr,
+-	.removexattr		= generic_removexattr,
+ 	.listxattr		= xfs_vn_listxattr,
+ 	.update_time		= xfs_vn_update_time,
+ };
+diff --git a/include/linux/fs.h b/include/linux/fs.h
+index 365e212..2241e41 100644
+--- a/include/linux/fs.h
++++ b/include/linux/fs.h
+@@ -1730,12 +1730,7 @@ struct inode_operations {
+ 			struct inode *, struct dentry *, unsigned int);
+ 	int (*setattr) (struct dentry *, struct iattr *);
+ 	int (*getattr) (struct vfsmount *mnt, struct dentry *, struct kstat *);
+-	int (*setxattr) (struct dentry *, struct inode *,
+-			 const char *, const void *, size_t, int);
+-	ssize_t (*getxattr) (struct dentry *, struct inode *,
+-			     const char *, void *, size_t);
+ 	ssize_t (*listxattr) (struct dentry *, char *, size_t);
+-	int (*removexattr) (struct dentry *, const char *);
+ 	int (*fiemap)(struct inode *, struct fiemap_extent_info *, u64 start,
+ 		      u64 len);
+ 	int (*update_time)(struct inode *, struct timespec *, int);
+diff --git a/include/linux/xattr.h b/include/linux/xattr.h
+index 6ae6b2e..e77605a 100644
+--- a/include/linux/xattr.h
++++ b/include/linux/xattr.h
+@@ -55,11 +55,7 @@ int vfs_setxattr(struct dentry *, const char *, const void *, size_t, int);
+ int __vfs_removexattr(struct dentry *, const char *);
+ int vfs_removexattr(struct dentry *, const char *);
  
--	if (!inode->i_op->removexattr)
-+	handler = xattr_resolve_name(inode, &name);
-+	if (IS_ERR(handler))
-+		return PTR_ERR(handler);
-+	if (!handler->set)
- 		return -EOPNOTSUPP;
--	return inode->i_op->removexattr(dentry, name);
-+	return handler->set(handler, dentry, inode, name, NULL, 0, XATTR_REPLACE);
+-ssize_t generic_getxattr(struct dentry *dentry, struct inode *inode, const char *name, void *buffer, size_t size);
+ ssize_t generic_listxattr(struct dentry *dentry, char *buffer, size_t buffer_size);
+-int generic_setxattr(struct dentry *dentry, struct inode *inode,
+-		     const char *name, const void *value, size_t size, int flags);
+-int generic_removexattr(struct dentry *dentry, const char *name);
+ ssize_t vfs_getxattr_alloc(struct dentry *dentry, const char *name,
+ 			   char **xattr_value, size_t size, gfp_t flags);
+ 
+diff --git a/mm/shmem.c b/mm/shmem.c
+index a361449..d205891 100644
+--- a/mm/shmem.c
++++ b/mm/shmem.c
+@@ -2688,10 +2688,7 @@ static const struct inode_operations shmem_short_symlink_operations = {
+ 	.readlink	= generic_readlink,
+ 	.get_link	= simple_get_link,
+ #ifdef CONFIG_TMPFS_XATTR
+-	.setxattr	= generic_setxattr,
+-	.getxattr	= generic_getxattr,
+ 	.listxattr	= shmem_listxattr,
+-	.removexattr	= generic_removexattr,
+ #endif
+ };
+ 
+@@ -2699,10 +2696,7 @@ static const struct inode_operations shmem_symlink_inode_operations = {
+ 	.readlink	= generic_readlink,
+ 	.get_link	= shmem_get_link,
+ #ifdef CONFIG_TMPFS_XATTR
+-	.setxattr	= generic_setxattr,
+-	.getxattr	= generic_getxattr,
+ 	.listxattr	= shmem_listxattr,
+-	.removexattr	= generic_removexattr,
+ #endif
+ };
+ 
+@@ -3174,10 +3168,7 @@ static const struct inode_operations shmem_inode_operations = {
+ 	.getattr	= shmem_getattr,
+ 	.setattr	= shmem_setattr,
+ #ifdef CONFIG_TMPFS_XATTR
+-	.setxattr	= generic_setxattr,
+-	.getxattr	= generic_getxattr,
+ 	.listxattr	= shmem_listxattr,
+-	.removexattr	= generic_removexattr,
+ 	.set_acl	= simple_set_acl,
+ #endif
+ };
+@@ -3196,10 +3187,7 @@ static const struct inode_operations shmem_dir_inode_operations = {
+ 	.tmpfile	= shmem_tmpfile,
+ #endif
+ #ifdef CONFIG_TMPFS_XATTR
+-	.setxattr	= generic_setxattr,
+-	.getxattr	= generic_getxattr,
+ 	.listxattr	= shmem_listxattr,
+-	.removexattr	= generic_removexattr,
+ #endif
+ #ifdef CONFIG_TMPFS_POSIX_ACL
+ 	.setattr	= shmem_setattr,
+@@ -3209,10 +3197,7 @@ static const struct inode_operations shmem_dir_inode_operations = {
+ 
+ static const struct inode_operations shmem_special_inode_operations = {
+ #ifdef CONFIG_TMPFS_XATTR
+-	.setxattr	= generic_setxattr,
+-	.getxattr	= generic_getxattr,
+ 	.listxattr	= shmem_listxattr,
+-	.removexattr	= generic_removexattr,
+ #endif
+ #ifdef CONFIG_TMPFS_POSIX_ACL
+ 	.setattr	= shmem_setattr,
+diff --git a/net/socket.c b/net/socket.c
+index be5463f..af9a513 100644
+--- a/net/socket.c
++++ b/net/socket.c
+@@ -519,7 +519,6 @@ static ssize_t sockfs_listxattr(struct dentry *dentry, char *buffer,
  }
- EXPORT_SYMBOL(__vfs_removexattr);
+ 
+ static const struct inode_operations sockfs_inode_ops = {
+-	.getxattr = generic_getxattr,
+ 	.listxattr = sockfs_listxattr,
+ };
  
 -- 
 2.5.5
-
