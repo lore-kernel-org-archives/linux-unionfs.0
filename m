@@ -1,38 +1,68 @@
 From: Andreas Gruenbacher <agruenba@redhat.com>
-Subject: [PATCH v3 01/17] xattr: Remove unnecessary NULL attribute name check
-Date: Mon, 30 May 2016 10:57:17 +0200
-Message-ID: <1464598653-3656-2-git-send-email-agruenba@redhat.com>
+Subject: [PATCH v3 05/17] sockfs: getxattr: Fail with -EOPNOTSUPP for invalid attribute names
+Date: Mon, 30 May 2016 10:57:21 +0200
+Message-ID: <1464598653-3656-6-git-send-email-agruenba@redhat.com>
 References: <1464598653-3656-1-git-send-email-agruenba@redhat.com>
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
+Return-path: <linux-unionfs-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:50595 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932360AbcE3I6V (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+	Mon, 30 May 2016 04:58:21 -0400
 In-Reply-To: <1464598653-3656-1-git-send-email-agruenba@redhat.com>
-Sender: linux-fsdevel-owner@vger.kernel.org
+Sender: linux-unionfs-owner@vger.kernel.org
+List-Id: linux-unionfs@vger.kernel.org
 To: Alexander Viro <viro@zeniv.linux.org.uk>
 Cc: Andreas Gruenbacher <agruenba@redhat.com>, linux-fsdevel@vger.kernel.org, Tyler Hicks <tyhicks@canonical.com>, ecryptfs@vger.kernel.org, Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, Mimi Zohar <zohar@linux.vnet.ibm.com>, linux-ima-devel@lists.sourceforge.net, linux-security-module@vger.kernel.org, David Howells <dhowells@redhat.com>, Serge Hallyn <serge.hallyn@canonical.com>, Dmitry Kasatkin <dmitry.kasatkin@gmail.com>, Paul Moore <paul@paul-moore.com>, Stephen Smalley <sds@tycho.nsa.gov>, Eric Paris <eparis@parisplace.org>, Casey Schaufler <casey@schaufler-ca.com>, Oleg Drokin <oleg.drokin@intel.com>, Andreas Dilger <andreas.dilger@intel.com>
-List-Id: linux-unionfs@vger.kernel.org
 
-When NULL is passed to one of the xattr system calls as the attribute
-name, copying that name from user space already fails with -EFAULT;
-xattr_resolve_name is never called with a NULL attribute name.
+The standard return value for unsupported attribute names is
+-EOPNOTSUPP, as opposed to undefined but supported attributes
+(-ENODATA).
+
+Also, fail for attribute names like "system.sockprotonameXXX" and
+simplify the code a bit.
 
 Signed-off-by: Andreas Gruenbacher <agruenba@redhat.com>
 ---
- fs/xattr.c | 3 ---
- 1 file changed, 3 deletions(-)
+ net/socket.c | 24 ++++++------------------
+ 1 file changed, 6 insertions(+), 18 deletions(-)
 
-diff --git a/fs/xattr.c b/fs/xattr.c
-index 4beafc4..75f9f14 100644
---- a/fs/xattr.c
-+++ b/fs/xattr.c
-@@ -668,9 +668,6 @@ xattr_resolve_name(const struct xattr_handler **handlers, const char **name)
+diff --git a/net/socket.c b/net/socket.c
+index a1bd161..9b3dca6 100644
+--- a/net/socket.c
++++ b/net/socket.c
+@@ -469,27 +469,15 @@ static struct socket *sockfd_lookup_light(int fd, int *err, int *fput_needed)
+ static ssize_t sockfs_getxattr(struct dentry *dentry, struct inode *inode,
+ 			       const char *name, void *value, size_t size)
  {
- 	const struct xattr_handler *handler;
- 
--	if (!*name)
--		return ERR_PTR(-EINVAL);
+-	const char *proto_name;
+-	size_t proto_size;
+-	int error;
 -
- 	for_each_xattr_handler(handlers, handler) {
- 		const char *n;
+-	error = -ENODATA;
+-	if (!strncmp(name, XATTR_NAME_SOCKPROTONAME, XATTR_NAME_SOCKPROTONAME_LEN)) {
+-		proto_name = dentry->d_name.name;
+-		proto_size = strlen(proto_name);
+-
++	if (!strcmp(name, XATTR_NAME_SOCKPROTONAME)) {
+ 		if (value) {
+-			error = -ERANGE;
+-			if (proto_size + 1 > size)
+-				goto out;
+-
+-			strncpy(value, proto_name, proto_size + 1);
++			if (dentry->d_name.len + 1 > size)
++				return -ERANGE;
++			memcpy(value, dentry->d_name.name, dentry->d_name.len + 1);
+ 		}
+-		error = proto_size + 1;
++		return dentry->d_name.len + 1;
+ 	}
+-
+-out:
+-	return error;
++	return -EOPNOTSUPP;
+ }
  
+ static ssize_t sockfs_listxattr(struct dentry *dentry, char *buffer,
 -- 
 2.5.5
-
