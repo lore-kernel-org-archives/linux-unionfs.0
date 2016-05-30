@@ -1,313 +1,99 @@
-From: Sedat Dilek <sedat.dilek@gmail.com>
-Subject: Re: [PATCH v3 00/17] Xattr inode operation removal
-Date: Mon, 30 May 2016 14:56:24 +0200
-Message-ID: <CA+icZUVmB1pSuG1_3-nkiKjoDH9UrvUEsZjy8hS6_+Y2yDyruA@mail.gmail.com>
-References: <1464598653-3656-1-git-send-email-agruenba@redhat.com>
-	<CA+icZUXGxsw-g1W8QzwuFx=8UTnxzQD9UsNEH2PHCGrqW=0xdA@mail.gmail.com>
-	<CAHc6FU6gZHEcrqvyKdKJbFVrd0L8=M2ynm2GD6tQx32fzTjD=g@mail.gmail.com>
-Reply-To: sedat.dilek@gmail.com
+From: Miklos Szeredi <miklos@szeredi.hu>
+Subject: Re: [PATCH v3 1/1] ovl: setxattr: don't deadlock when called from
+ ima_fix_xattr.
+Date: Mon, 30 May 2016 16:10:15 +0200
+Message-ID: <20160530141015.GC5758@veci.piliscsaba.szeredi.hu>
+References: <1463611500.2465.22.camel@linux.vnet.ibm.com>
+ <1463725718-2461-1-git-send-email-kli@iki.fi>
+ <1463754087.2763.17.camel@linux.vnet.ibm.com>
+ <20160520162937.GU14480@ZenIV.linux.org.uk>
+ <1463763633.2763.34.camel@linux.vnet.ibm.com>
+ <CAH4bDXjHjPSYAoQB8VODcDG2MRz30ZQqtrm+x7BWG-2X8qhGAg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary=94eb2c123230bb46d705340ec81b
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-vk0-f65.google.com ([209.85.213.65]:35296 "EHLO
-	mail-vk0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754755AbcE3M40 (ORCPT
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:32857 "EHLO
+	mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754783AbcE3OKW (ORCPT
 	<rfc822;linux-unionfs@vger.kernel.org>);
-	Mon, 30 May 2016 08:56:26 -0400
-In-Reply-To: <CAHc6FU6gZHEcrqvyKdKJbFVrd0L8=M2ynm2GD6tQx32fzTjD=g@mail.gmail.com>
+	Mon, 30 May 2016 10:10:22 -0400
+Received: by mail-wm0-f66.google.com with SMTP id a136so23166179wme.0
+        for <linux-unionfs@vger.kernel.org>; Mon, 30 May 2016 07:10:21 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <CAH4bDXjHjPSYAoQB8VODcDG2MRz30ZQqtrm+x7BWG-2X8qhGAg@mail.gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Andreas Gruenbacher <agruenba@redhat.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Tyler Hicks <tyhicks@canonical.com>, ecryptfs@vger.kernel.org, Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, Mimi Zohar <zohar@linux.vnet.ibm.com>, linux-ima-devel@lists.sourceforge.net, LSM <linux-security-module@vger.kernel.org>, David Howells <dhowells@redhat.com>, Serge Hallyn <serge.hallyn@canonical.com>, Dmitry Kasatkin <dmitry.kasatkin@gmail.com>, Paul Moore <paul@paul-moore.com>, Stephen Smalley <sds@tycho.nsa.gov>, Eric Paris <eparis@parisplace.org>, Casey Schaufler <casey@schaufler-ca.com>, Oleg Drokin <oleg.drokin@intel.com>, Andreas Dilger <andreas.dilger@intel.com>
+To: Krisztian Litkey <kli@iki.fi>
+Cc: Mimi Zohar <zohar@linux.vnet.ibm.com>, Al Viro <viro@zeniv.linux.org.uk>, linux-unionfs@vger.kernel.org, Krisztian Litkey <krisztian.litkey@intel.com>, linux-security-module <linux-security-module@vger.kernel.org>, linux-kernel@vger.kernel.org
 
---94eb2c123230bb46d705340ec81b
-Content-Type: text/plain; charset=UTF-8
+On Fri, May 20, 2016 at 11:53:18PM +0300, Krisztian Litkey wrote:
+> On Fri, May 20, 2016 at 8:00 PM, Mimi Zohar <zohar@linux.vnet.ibm.com> wrote:
 
-On 5/30/16, Andreas Gruenbacher <agruenba@redhat.com> wrote:
-> On Mon, May 30, 2016 at 11:54 AM, Sedat Dilek <sedat.dilek@gmail.com>
-> wrote:
->> On 5/30/16, Andreas Gruenbacher <agruenba@redhat.com> wrote:
->>> This is version 3 of the xattr inode operation removal patch series. The
->>> patches are available in git form at:
->>>
->>>
->>> https://git.kernel.org/cgit/linux/kernel/git/agruen/linux.git/log/?h=work.xattr
-> [...]
->>>
->> Hi,
->>
->> I pulled in agruen/linux.git#work.xattr on top of Linux v4.7-rc1 and
->> noticed...
->>
->>  92 files changed, 563 insertions(+), 703 deletions(-)
->>
->> So this is on top of Linux v4.7-rc1+?
->
-> Well, I've actually rebased the patches on top of commit b02b1fbd
-> which is the current mainline and one merge after v4.7-rc1, but the
-> few scsi commits in between -rc1 and b02b1fbd are completely
-> unrelated. You can easily see that in git.
->
+> > We deferred __fput() back in 2012 in order for IMA to safely take the
+> > i_mutex and write security.ima.   Writing the security.ima xattr now
+> > triggers overlayfs to write the xattr, but overlayfs doesn't
+> > differentiate between callers - as a result of userspace or as described
+> > here in __fput().   All calls to ovl_setxattr() should call vfs_sexattr,
+> > except the one triggered by __fput().   Refer to the original lockdep
+> > report -
+> > http://thread.gmane.org/gmane.linux.file-systems.union/640
 
-I have seen the scsi changes when I ran my script which generates a
-patchset where latest "git-tag in Linus tree" is the base, here
-v4.7-rc1.
+Looks like more fallout from 4bacc9c9234c ("overlayfs: Make f_path always point
+to the overlay and f_inode to the underlay").
 
->> I am here on Ubuntu/precise AMD64 realized as a WUBI-installation.
->> So I use fuse, loop-device and ext4-fs.
->>
->> Not sure, how to test your patchset.
->> Can you give some instructions on a testcase/usecase?
->
-> The patches potentially affect xattrs and anthing that's xattr based,
-> like POSIX ACLs, SELinux, and Smack. There are some POSX ACL tests in
-> xfstests. The basic xattr functionality can of course be checked with
-> getfattr / setfattr. Other than that, I can probably only refer you to
-> the code itself.
->
+Not sure what we want here.  Doing everything on the underlying dentry/inode
+would be trivial (see attached patch).
 
-Here I have LTP v20160126 installed.
+Question is, can we get setxattr() on file opened for O_RDONLY?  If so, then
+that could fail on overlayfs (lower layer is read-only).
 
-# cat /opt/ltp/Version
-20160126
+Thanks,
+Miklos
 
-I ran acl_test01 (which I hacked a bit)...
+---
+From: Miklos Szeredi <mszeredi@redhat.com>
+Subject: ima: use file_path()
 
-# LC_ALL=C ./runltp -s acl_test01 | tee acl_test01.log
+Ima tries to call ->setxattr() on overlayfs dentry after having locked
+underlying inode, which results in a deadlock.
 
-# cat results/LTP_RUN_ON-2016_05_30-14h_52m_29s.log
-Test Start Time: Mon May 30 14:52:30 2016
------------------------------------------
-Testcase                       Result     Exit Value
---------                       ------     ----------
-acl_test01                     PASS       0
+Reported-by: Krisztian Litkey <kli@iki.fi>
+Fixes: 4bacc9c9234c ("overlayfs: Make f_path always point to the overlay and f_inode to the underlay")
+Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
+Cc: <stable@vger.kernel.org> # v4.2
+---
+ security/integrity/ima/ima_appraise.c |    4 ++--
+ security/integrity/ima/ima_main.c     |    2 +-
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
------------------------------------------------
-Total Tests: 1
-Total Skipped Tests: 0
-Total Failures: 0
-Kernel Version: 4.7.0-rc1-2-iniza-small
-Machine Architecture: x86_64
-Hostname: fambox
-
-...and it looks good.
-
->> Booting into a kernel with your patchset looks fine to me - on the 1st
->> sight.
->
-> Okay, thanks.
->
-
-Cannot say if this helps you.
-
-- Sedat -
-
-P.S.: Hacking acl_test01
-
-# diff -uprN ./testcases/bin/acl_test01.orig ./testcases/bin/acl_test01
---- ./testcases/bin/acl_test01.orig     2016-03-27 21:45:00.768007420 +0200
-+++ ./testcases/bin/acl_test01  2016-05-30 14:41:50.195986299 +0200
-@@ -41,8 +41,6 @@ export TCID=acltest01
- export TST_TOTAL=5
- export TST_COUNT=1
-
--. test.sh
--
- TMP=${TMP:=/tmp}
-
- TEST_USER1="acltest1"
-@@ -54,6 +52,8 @@ FILE_ACL="$TMP/tacl/mount-ext3/test_file
- FILE_ACL_LINK="$TMP/tacl/mount-ext3/test_file_link"
- TCbin=`pwd`
-
-+. $TCbin/test.sh
-+
- COMMAND=$(command -v "getenforce" "setenforce" |wc -l)
- if [ $COMMAND -eq 2 ]; then
-        SELINUX=$(getenforce)
-
-- EOT -
-
---94eb2c123230bb46d705340ec81b
-Content-Type: application/octet-stream; name="acl_test01.log"
-Content-Disposition: attachment; filename="acl_test01.log"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: file1
-
-SU5GTzogY3JlYXRpbmcgL29wdC9sdHAvcmVzdWx0cyBkaXJlY3RvcnkKCiAgICBJTkZPOiBubyBj
-b21tYW5kIGZpbGVzIHdlcmUgcHJvdmlkZWQuIFdpbGwgZXhlY3V0ZSB0aGUgZm9sbG93aW5nCiAg
-ICAgICAgICBydW50ZXN0IHNjZW5hcmlvIGZpbGVzOgoKc3lzY2FsbHMgZnMgZnNfcGVybXNfc2lt
-cGxlIGZzeCBkaW8gaW8gbW0gaXBjIHNjaGVkIG1hdGggbnB0bCBwdHkgY29udGFpbmVycyBmc19i
-aW5kIGNvbnRyb2xsZXJzIGZpbGVjYXBzIGNhcF9ib3VuZHMgZmNudGwtbG9ja3Rlc3RzIGNvbm5l
-Y3RvcnMgYWRtaW5fdG9vbHMgdGltZXJzIHBvd2VyX21hbmFnZW1lbnRfdGVzdHMgbnVtYSBodWdl
-dGxiIGNvbW1hbmRzIGh5cGVydGhyZWFkaW5nIGtlcm5lbF9taXNjIG1vZHVsZXMgZnNfZXh0NCBw
-aXBlcyBkbWFfdGhyZWFkX2Rpb3Rlc3QgY2FuIGNwdWhvdHBsdWcgaXB2Nl9saWIgaW5wdXQgCgpD
-aGVja2luZyBmb3IgcmVxdWlyZWQgdXNlci9ncm91cCBpZHMKCidub2JvZHknIHVzZXIgaWQgYW5k
-IGdyb3VwIGZvdW5kLgonYmluJyB1c2VyIGlkIGFuZCBncm91cCBmb3VuZC4KJ2RhZW1vbicgdXNl
-ciBpZCBhbmQgZ3JvdXAgZm91bmQuClVzZXJzIGdyb3VwIGZvdW5kLgpTeXMgZ3JvdXAgZm91bmQu
-ClJlcXVpcmVkIHVzZXJzL2dyb3VwcyBleGlzdC4KSWYgc29tZSBmaWVsZHMgYXJlIGVtcHR5IG9y
-IGxvb2sgdW51c3VhbCB5b3UgbWF5IGhhdmUgYW4gb2xkIHZlcnNpb24uCkNvbXBhcmUgdG8gdGhl
-IGN1cnJlbnQgbWluaW1hbCByZXF1aXJlbWVudHMgaW4gRG9jdW1lbnRhdGlvbi9DaGFuZ2VzLgog
-CkRJU1RSSUJfSUQ9VWJ1bnR1CkRJU1RSSUJfUkVMRUFTRT0xMi4wNApESVNUUklCX0NPREVOQU1F
-PXByZWNpc2UKRElTVFJJQl9ERVNDUklQVElPTj0iVWJ1bnR1IDEyLjA0LjUgTFRTIgpOQU1FPSJV
-YnVudHUiClZFUlNJT049IjEyLjA0LjUgTFRTLCBQcmVjaXNlIFBhbmdvbGluIgpJRD11YnVudHUK
-SURfTElLRT1kZWJpYW4KUFJFVFRZX05BTUU9IlVidW50dSBwcmVjaXNlICgxMi4wNC41IExUUyki
-ClZFUlNJT05fSUQ9IjEyLjA0IgpMaW51eCBmYW1ib3ggNC43LjAtcmMxLTItaW5pemEtc21hbGwg
-IzEgU01QIE1vbiBNYXkgMzAgMTE6MzY6MTEgQ0VTVCAyMDE2IHg4Nl82NCB4ODZfNjQgeDg2XzY0
-IEdOVS9MaW51eAogCkdudSBDICAgICAgICAgICAgICAgICAgZ2NjIChVYnVudHUgNC45LjItMHVi
-dW50dTF+MTIuMDQpIDQuOS4yCkdudSBtYWtlICAgICAgICAgICAgICAgMy44MQp1dGlsLWxpbnV4
-ICAgICAgICAgICAgIGxpbnV4IDIuMjAuMQptb3VudCAgICAgICAgICAgICAgICAgIGxpbnV4IDIu
-MjAuMSAod2l0aCBsaWJibGtpZCBhbmQgc2VsaW51eCBzdXBwb3J0KQptb2R1dGlscyAgICAgICAg
-ICAgICAgIDYKZTJmc3Byb2dzICAgICAgICAgICAgICAxLjQyClBQUCAgICAgICAgICAgICAgICAg
-ICAgMi40LjUKTGludXggQyBMaWJyYXJ5ICAgICAgICA+IGxpYmMuMi4xNQpEeW5hbWljIGxpbmtl
-ciAobGRkKSAgIDIuMTUKUHJvY3BzICAgICAgICAgICAgICAgICAzLjIuOApOZXQtdG9vbHMgICAg
-ICAgICAgICAgIDEuNjAKaXByb3V0ZTIgICAgICAgICAgICAgIGlwcm91dGUyLXNzMTIxMjExCkti
-ZCAgICAgICAgICAgICAgICAgICAgMS4xNS4yClNoLXV0aWxzICAgICAgICAgICAgICAgOC4xMwpN
-b2R1bGVzIExvYWRlZCAgICAgICAgIHBwcF9kZWZsYXRlIGJzZF9jb21wIHBwcF9hc3luYyBjcmNf
-Y2NpdHQgb3B0aW9uIGNkY19ldGhlciB1c2JuZXQgdXNiX3d3YW4gdXNic2VyaWFsIGJuZXAgYXJj
-NCByZmNvbW0gaXdsZHZtIG1hYzgwMjExIHV2Y3ZpZGVvIHBhcnBvcnRfcGMgcHBkZXYgaTkxNSBz
-bmRfaGRhX2NvZGVjX2hkbWkgc25kX2hkYV9jb2RlY19yZWFsdGVrIHZpZGVvYnVmMl92bWFsbG9j
-IHNuZF9oZGFfY29kZWNfZ2VuZXJpYyB2aWRlb2J1ZjJfbWVtb3BzIHNuZF9oZGFfaW50ZWwga3Zt
-X2ludGVsIHZpZGVvYnVmMl92NGwyIHNuZF9oZGFfY29kZWMgam95ZGV2IHZpZGVvYnVmMl9jb3Jl
-IGt2bSB2aWRlb2RldiB1c2Jfc3RvcmFnZSBzbmRfaHdkZXAgc25kX2hkYV9jb3JlIGJ0dXNiIHNu
-ZF9wY20gYnRydGwgaTJjX2FsZ29fYml0IGl3bHdpZmkgYnRiY20gZHJtX2ttc19oZWxwZXIgaXJx
-YnlwYXNzIHNuZF9zZXFfbWlkaSBidGludGVsIGJsdWV0b290aCBwc21vdXNlIHNuZF9zZXFfbWlk
-aV9ldmVudCBzeXNjb3B5YXJlYSBzbmRfcmF3bWlkaSBzeXNmaWxscmVjdCBzbmRfc2VxIHNhbXN1
-bmdfbGFwdG9wIHN5c2ltZ2JsdCBzZXJpb19yYXcgc25kX3RpbWVyIGZiX3N5c19mb3BzIGNmZzgw
-MjExIHNuZF9zZXFfZGV2aWNlIGRybSBscGNfaWNoIHNuZCBzb3VuZGNvcmUgd21pIGludGVsX3Jz
-dCB2aWRlbyBtYWNfaGlkIGFjcGlfY3B1ZnJlcSBiaW5mbXRfbWlzYyBscCBwYXJwb3J0IGhpZF9n
-ZW5lcmljIHVzYmhpZCBoaWQgcjgxNjkgbWlpCgpmcmVlIHJlcG9ydHM6CiAgICAgICAgICAgICB0
-b3RhbCAgICAgICB1c2VkICAgICAgIGZyZWUgICAgIHNoYXJlZCAgICBidWZmZXJzICAgICBjYWNo
-ZWQKTWVtOiAgICAgICAzOTI0NDg4ICAgIDM3NzA5MjQgICAgIDE1MzU2NCAgICAgICAgICAwICAg
-IDE1MDg5NDAgICAgMTc3NzY0OAotLysgYnVmZmVycy9jYWNoZTogICAgIDQ4NDMzNiAgICAzNDQw
-MTUyClN3YXA6ICAgICAgIDI2MjE0MCAgICAgICAgICAwICAgICAyNjIxNDAKCi9wcm9jL2NwdWlu
-Zm8KcHJvY2Vzc29yCTogMAp2ZW5kb3JfaWQJOiBHZW51aW5lSW50ZWwKY3B1IGZhbWlseQk6IDYK
-bW9kZWwJCTogNDIKbW9kZWwgbmFtZQk6IEludGVsKFIpIENvcmUoVE0pIGk1LTI0NjdNIENQVSBA
-IDEuNjBHSHoKc3RlcHBpbmcJOiA3Cm1pY3JvY29kZQk6IDB4MjgKY3B1IE1IegkJOiAxNjAxLjAw
-MApjYWNoZSBzaXplCTogMzA3MiBLQgpwaHlzaWNhbCBpZAk6IDAKc2libGluZ3MJOiA0CmNvcmUg
-aWQJCTogMApjcHUgY29yZXMJOiAyCmFwaWNpZAkJOiAwCmluaXRpYWwgYXBpY2lkCTogMApmcHUJ
-CTogeWVzCmZwdV9leGNlcHRpb24JOiB5ZXMKY3B1aWQgbGV2ZWwJOiAxMwp3cAkJOiB5ZXMKZmxh
-Z3MJCTogZnB1IHZtZSBkZSBwc2UgdHNjIG1zciBwYWUgbWNlIGN4OCBhcGljIHNlcCBtdHJyIHBn
-ZSBtY2EgY21vdiBwYXQgcHNlMzYgY2xmbHVzaCBkdHMgYWNwaSBtbXggZnhzciBzc2Ugc3NlMiBz
-cyBodCB0bSBwYmUgc3lzY2FsbCBueCByZHRzY3AgbG0gY29uc3RhbnRfdHNjIGFyY2hfcGVyZm1v
-biBwZWJzIGJ0cyBub3BsIHh0b3BvbG9neSBub25zdG9wX3RzYyBhcGVyZm1wZXJmIGVhZ2VyZnB1
-IHBuaSBwY2xtdWxxZHEgZHRlczY0IG1vbml0b3IgZHNfY3BsIHZteCBlc3QgdG0yIHNzc2UzIGN4
-MTYgeHRwciBwZGNtIHBjaWQgc3NlNF8xIHNzZTRfMiB4MmFwaWMgcG9wY250IHRzY19kZWFkbGlu
-ZV90aW1lciBhZXMgeHNhdmUgYXZ4IGxhaGZfbG0gZXBiIHRwcl9zaGFkb3cgdm5taSBmbGV4cHJp
-b3JpdHkgZXB0IHZwaWQgeHNhdmVvcHQgZHRoZXJtIGlkYSBhcmF0IHBsbiBwdHMKYnVncwkJOgpi
-b2dvbWlwcwk6IDMxOTIuNzcKY2xmbHVzaCBzaXplCTogNjQKY2FjaGVfYWxpZ25tZW50CTogNjQK
-YWRkcmVzcyBzaXplcwk6IDM2IGJpdHMgcGh5c2ljYWwsIDQ4IGJpdHMgdmlydHVhbApwb3dlciBt
-YW5hZ2VtZW50OgoKcHJvY2Vzc29yCTogMQp2ZW5kb3JfaWQJOiBHZW51aW5lSW50ZWwKY3B1IGZh
-bWlseQk6IDYKbW9kZWwJCTogNDIKbW9kZWwgbmFtZQk6IEludGVsKFIpIENvcmUoVE0pIGk1LTI0
-NjdNIENQVSBAIDEuNjBHSHoKc3RlcHBpbmcJOiA3Cm1pY3JvY29kZQk6IDB4MjgKY3B1IE1IegkJ
-OiAxMzAwLjAwMApjYWNoZSBzaXplCTogMzA3MiBLQgpwaHlzaWNhbCBpZAk6IDAKc2libGluZ3MJ
-OiA0CmNvcmUgaWQJCTogMApjcHUgY29yZXMJOiAyCmFwaWNpZAkJOiAxCmluaXRpYWwgYXBpY2lk
-CTogMQpmcHUJCTogeWVzCmZwdV9leGNlcHRpb24JOiB5ZXMKY3B1aWQgbGV2ZWwJOiAxMwp3cAkJ
-OiB5ZXMKZmxhZ3MJCTogZnB1IHZtZSBkZSBwc2UgdHNjIG1zciBwYWUgbWNlIGN4OCBhcGljIHNl
-cCBtdHJyIHBnZSBtY2EgY21vdiBwYXQgcHNlMzYgY2xmbHVzaCBkdHMgYWNwaSBtbXggZnhzciBz
-c2Ugc3NlMiBzcyBodCB0bSBwYmUgc3lzY2FsbCBueCByZHRzY3AgbG0gY29uc3RhbnRfdHNjIGFy
-Y2hfcGVyZm1vbiBwZWJzIGJ0cyBub3BsIHh0b3BvbG9neSBub25zdG9wX3RzYyBhcGVyZm1wZXJm
-IGVhZ2VyZnB1IHBuaSBwY2xtdWxxZHEgZHRlczY0IG1vbml0b3IgZHNfY3BsIHZteCBlc3QgdG0y
-IHNzc2UzIGN4MTYgeHRwciBwZGNtIHBjaWQgc3NlNF8xIHNzZTRfMiB4MmFwaWMgcG9wY250IHRz
-Y19kZWFkbGluZV90aW1lciBhZXMgeHNhdmUgYXZ4IGxhaGZfbG0gZXBiIHRwcl9zaGFkb3cgdm5t
-aSBmbGV4cHJpb3JpdHkgZXB0IHZwaWQgeHNhdmVvcHQgZHRoZXJtIGlkYSBhcmF0IHBsbiBwdHMK
-YnVncwkJOgpib2dvbWlwcwk6IDMxOTkuNzYKY2xmbHVzaCBzaXplCTogNjQKY2FjaGVfYWxpZ25t
-ZW50CTogNjQKYWRkcmVzcyBzaXplcwk6IDM2IGJpdHMgcGh5c2ljYWwsIDQ4IGJpdHMgdmlydHVh
-bApwb3dlciBtYW5hZ2VtZW50OgoKcHJvY2Vzc29yCTogMgp2ZW5kb3JfaWQJOiBHZW51aW5lSW50
-ZWwKY3B1IGZhbWlseQk6IDYKbW9kZWwJCTogNDIKbW9kZWwgbmFtZQk6IEludGVsKFIpIENvcmUo
-VE0pIGk1LTI0NjdNIENQVSBAIDEuNjBHSHoKc3RlcHBpbmcJOiA3Cm1pY3JvY29kZQk6IDB4MjgK
-Y3B1IE1IegkJOiAxNjAxLjAwMApjYWNoZSBzaXplCTogMzA3MiBLQgpwaHlzaWNhbCBpZAk6IDAK
-c2libGluZ3MJOiA0CmNvcmUgaWQJCTogMQpjcHUgY29yZXMJOiAyCmFwaWNpZAkJOiAyCmluaXRp
-YWwgYXBpY2lkCTogMgpmcHUJCTogeWVzCmZwdV9leGNlcHRpb24JOiB5ZXMKY3B1aWQgbGV2ZWwJ
-OiAxMwp3cAkJOiB5ZXMKZmxhZ3MJCTogZnB1IHZtZSBkZSBwc2UgdHNjIG1zciBwYWUgbWNlIGN4
-OCBhcGljIHNlcCBtdHJyIHBnZSBtY2EgY21vdiBwYXQgcHNlMzYgY2xmbHVzaCBkdHMgYWNwaSBt
-bXggZnhzciBzc2Ugc3NlMiBzcyBodCB0bSBwYmUgc3lzY2FsbCBueCByZHRzY3AgbG0gY29uc3Rh
-bnRfdHNjIGFyY2hfcGVyZm1vbiBwZWJzIGJ0cyBub3BsIHh0b3BvbG9neSBub25zdG9wX3RzYyBh
-cGVyZm1wZXJmIGVhZ2VyZnB1IHBuaSBwY2xtdWxxZHEgZHRlczY0IG1vbml0b3IgZHNfY3BsIHZt
-eCBlc3QgdG0yIHNzc2UzIGN4MTYgeHRwciBwZGNtIHBjaWQgc3NlNF8xIHNzZTRfMiB4MmFwaWMg
-cG9wY250IHRzY19kZWFkbGluZV90aW1lciBhZXMgeHNhdmUgYXZ4IGxhaGZfbG0gZXBiIHRwcl9z
-aGFkb3cgdm5taSBmbGV4cHJpb3JpdHkgZXB0IHZwaWQgeHNhdmVvcHQgZHRoZXJtIGlkYSBhcmF0
-IHBsbiBwdHMKYnVncwkJOgpib2dvbWlwcwk6IDMxOTcuMDkKY2xmbHVzaCBzaXplCTogNjQKY2Fj
-aGVfYWxpZ25tZW50CTogNjQKYWRkcmVzcyBzaXplcwk6IDM2IGJpdHMgcGh5c2ljYWwsIDQ4IGJp
-dHMgdmlydHVhbApwb3dlciBtYW5hZ2VtZW50OgoKcHJvY2Vzc29yCTogMwp2ZW5kb3JfaWQJOiBH
-ZW51aW5lSW50ZWwKY3B1IGZhbWlseQk6IDYKbW9kZWwJCTogNDIKbW9kZWwgbmFtZQk6IEludGVs
-KFIpIENvcmUoVE0pIGk1LTI0NjdNIENQVSBAIDEuNjBHSHoKc3RlcHBpbmcJOiA3Cm1pY3JvY29k
-ZQk6IDB4MjgKY3B1IE1IegkJOiAxNjAxLjAwMApjYWNoZSBzaXplCTogMzA3MiBLQgpwaHlzaWNh
-bCBpZAk6IDAKc2libGluZ3MJOiA0CmNvcmUgaWQJCTogMQpjcHUgY29yZXMJOiAyCmFwaWNpZAkJ
-OiAzCmluaXRpYWwgYXBpY2lkCTogMwpmcHUJCTogeWVzCmZwdV9leGNlcHRpb24JOiB5ZXMKY3B1
-aWQgbGV2ZWwJOiAxMwp3cAkJOiB5ZXMKZmxhZ3MJCTogZnB1IHZtZSBkZSBwc2UgdHNjIG1zciBw
-YWUgbWNlIGN4OCBhcGljIHNlcCBtdHJyIHBnZSBtY2EgY21vdiBwYXQgcHNlMzYgY2xmbHVzaCBk
-dHMgYWNwaSBtbXggZnhzciBzc2Ugc3NlMiBzcyBodCB0bSBwYmUgc3lzY2FsbCBueCByZHRzY3Ag
-bG0gY29uc3RhbnRfdHNjIGFyY2hfcGVyZm1vbiBwZWJzIGJ0cyBub3BsIHh0b3BvbG9neSBub25z
-dG9wX3RzYyBhcGVyZm1wZXJmIGVhZ2VyZnB1IHBuaSBwY2xtdWxxZHEgZHRlczY0IG1vbml0b3Ig
-ZHNfY3BsIHZteCBlc3QgdG0yIHNzc2UzIGN4MTYgeHRwciBwZGNtIHBjaWQgc3NlNF8xIHNzZTRf
-MiB4MmFwaWMgcG9wY250IHRzY19kZWFkbGluZV90aW1lciBhZXMgeHNhdmUgYXZ4IGxhaGZfbG0g
-ZXBiIHRwcl9zaGFkb3cgdm5taSBmbGV4cHJpb3JpdHkgZXB0IHZwaWQgeHNhdmVvcHQgZHRoZXJt
-IGlkYSBhcmF0IHBsbiBwdHMKYnVncwkJOgpib2dvbWlwcwk6IDMxOTcuMjkKY2xmbHVzaCBzaXpl
-CTogNjQKY2FjaGVfYWxpZ25tZW50CTogNjQKYWRkcmVzcyBzaXplcwk6IDM2IGJpdHMgcGh5c2lj
-YWwsIDQ4IGJpdHMgdmlydHVhbApwb3dlciBtYW5hZ2VtZW50OgoKbm8gYmlnIGJsb2NrIGRldmlj
-ZSB3YXMgc3BlY2lmaWVkIG9uIGNvbW1hbmRsaW5lLgpUZXN0cyB3aGljaCByZXF1aXJlIGEgYmln
-IGJsb2NrIGRldmljZSBhcmUgZGlzYWJsZWQuCllvdSBjYW4gc3BlY2lmeSBpdCB3aXRoIG9wdGlv
-biAtegpDT01NQU5EOiAgICAvb3B0L2x0cC9iaW4vbHRwLXBhbiAgLWUgLVMgICAtYSA4MDc4ICAg
-ICAtbiA4MDc4ICAtcCAgLWYgL3RtcC9sdHAtWEdaYnVkOU05SS9hbGx0ZXN0cyAtbCAvb3B0L2x0
-cC9yZXN1bHRzL0xUUF9SVU5fT04tMjAxNl8wNV8zMC0xNGhfNTJtXzI5cy5sb2cgIC1DIC9vcHQv
-bHRwL291dHB1dC9MVFBfUlVOX09OLTIwMTZfMDVfMzAtMTRoXzUybV8yOXMuZmFpbGVkIC1UIC9v
-cHQvbHRwL291dHB1dC9MVFBfUlVOX09OLTIwMTZfMDVfMzAtMTRoXzUybV8yOXMudGNvbmYKSU5G
-TzogUmVzdHJpY3RlZCB0byBhY2xfdGVzdDAxCkxPRyBGaWxlOiAvb3B0L2x0cC9yZXN1bHRzL0xU
-UF9SVU5fT04tMjAxNl8wNV8zMC0xNGhfNTJtXzI5cy5sb2cKRkFJTEVEIENPTU1BTkQgRmlsZTog
-L29wdC9sdHAvb3V0cHV0L0xUUF9SVU5fT04tMjAxNl8wNV8zMC0xNGhfNTJtXzI5cy5mYWlsZWQK
-VENPTkYgQ09NTUFORCBGaWxlOiAvb3B0L2x0cC9vdXRwdXQvTFRQX1JVTl9PTi0yMDE2XzA1XzMw
-LTE0aF81Mm1fMjlzLnRjb25mClJ1bm5pbmcgdGVzdHMuLi4uLi4uCjw8PHRlc3Rfc3RhcnQ+Pj4K
-dGFnPWFjbF90ZXN0MDEgc3RpbWU9MTQ2NDYxMjc1MApjbWRsaW5lPSJleHBvcnQgVENiaW49JExU
-UFJPT1QvdGVzdGNhc2VzL2JpbjthY2xfdGVzdDAxIgpjb250YWN0cz0iIgphbmFseXNpcz1leGl0
-Cjw8PHRlc3Rfb3V0cHV0Pj4+CjEwMjQwKzAgcmVjb3JkcyBpbgoxMDI0MCswIHJlY29yZHMgb3V0
-CjEwNDg1NzYwIGJ5dGVzICgxMCBNQikgY29waWVkLCAwLjEwMDYzNSBzLCAxMDQgTUIvcwpta2Uy
-ZnMgMS40MiAoMjktTm92LTIwMTEpCkRpc2NhcmRpbmcgZGV2aWNlIGJsb2NrczogIDEwMjQvMTAy
-NDAICAgICAgICAgICCAgICAgICAgICAgCAgICAgICAgICAhkb25lICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgIApGaWxlc3lzdGVtIGxhYmVsPQpPUyB0eXBlOiBMaW51eApCbG9jayBzaXplPTEw
-MjQgKGxvZz0wKQpGcmFnbWVudCBzaXplPTEwMjQgKGxvZz0wKQpTdHJpZGU9MCBibG9ja3MsIFN0
-cmlwZSB3aWR0aD0wIGJsb2NrcwoyNTYwIGlub2RlcywgMTAyNDAgYmxvY2tzCjUxMiBibG9ja3Mg
-KDUuMDAlKSByZXNlcnZlZCBmb3IgdGhlIHN1cGVyIHVzZXIKRmlyc3QgZGF0YSBibG9jaz0xCk1h
-eGltdW0gZmlsZXN5c3RlbSBibG9ja3M9MTA0ODU3NjAKMiBibG9jayBncm91cHMKODE5MiBibG9j
-a3MgcGVyIGdyb3VwLCA4MTkyIGZyYWdtZW50cyBwZXIgZ3JvdXAKMTI4MCBpbm9kZXMgcGVyIGdy
-b3VwClN1cGVyYmxvY2sgYmFja3VwcyBzdG9yZWQgb24gYmxvY2tzOiAKCTgxOTMKCkFsbG9jYXRp
-bmcgZ3JvdXAgdGFibGVzOiAwLzIICAgxLzIICAggICAICAhkb25lICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgIApXcml0aW5nIGlub2RlIHRhYmxlczogMC8yCAgIMS8yCAgIICAgCAgIZG9uZSAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAKQ3JlYXRpbmcgam91cm5hbCAoMTAyNCBibG9ja3Mp
-OiBkb25lCldyaXRpbmcgc3VwZXJibG9ja3MgYW5kIGZpbGVzeXN0ZW0gYWNjb3VudGluZyBpbmZv
-cm1hdGlvbjogMC8yCAgIMS8yCAgIICAgCAgIZG9uZQoKClRFU1RJTkcgQUNMUyBGT1IgVVNFUiBy
-b290ClRyeWluZyBleHRlbmRlZCBhY2xzIGZvciBmaWxlcwphY2x0ZXN0MDEgMSBUUEFTUyA6IEV4
-dGVuZGVkIGFjbHMgZm9yIGZpbGVzLgpUcnlpbmcgZXh0ZW5kZWQgYWNscyBmb3IgZmlsZSBsaW5r
-cwphY2x0ZXN0MDEgMiBUUEFTUyA6IEV4dGVuZGVkIGFjbHMgZm9yIGxpbmtzLgoKClRFU1RJTkcg
-QUNMUyBGT1IgMk5EIFVTRVIgYWNsdGVzdDEKVHJ5aW5nIGV4dGVuZGVkIGFjbHMgZm9yIGZpbGVz
-CmFjbHRlc3QwMSAxIFRQQVNTIDogRXh0ZW5kZWQgYWNscyBmb3IgZmlsZXMuClRyeWluZyBleHRl
-bmRlZCBhY2xzIGZvciBmaWxlIGxpbmtzCmFjbHRlc3QwMSAyIFRQQVNTIDogRXh0ZW5kZWQgYWNs
-cyBmb3IgbGlua3MuCgovZGV2L2xvb3AyIG9uIC90bXAvbHRwLVhHWmJ1ZDlNOUkvdGFjbC9tb3Vu
-dC1leHQzIHR5cGUgZXh0MyAocncscmVsYXRpbWUsZGF0YT1vcmRlcmVkKQpsb29wOiBjYW4ndCBk
-ZWxldGUgZGV2aWNlIC9kZXYvbG9vcDI6IE5vIHN1Y2ggZGV2aWNlIG9yIGFkZHJlc3MKbG9vcDog
-Y2FuJ3QgZGVsZXRlIGRldmljZSAvZGV2L2xvb3AyOiBObyBzdWNoIGRldmljZSBvciBhZGRyZXNz
-CmluY3JlbWVudGluZyBzdG9wCjw8PGV4ZWN1dGlvbl9zdGF0dXM+Pj4KaW5pdGlhdGlvbl9zdGF0
-dXM9Im9rIgpkdXJhdGlvbj00IHRlcm1pbmF0aW9uX3R5cGU9ZXhpdGVkIHRlcm1pbmF0aW9uX2lk
-PTAgY29yZWZpbGU9bm8KY3V0aW1lPTYgY3N0aW1lPTQ2Cjw8PHRlc3RfZW5kPj4+CklORk86IGx0
-cC1wYW4gcmVwb3J0ZWQgYWxsIHRlc3RzIFBBU1MKTFRQIFZlcnNpb246IDIwMTYwMTI2CgogICAg
-ICAgIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMj
-IyMjIyMjIyMjCgogICAgICAgICAgICBEb25lIGV4ZWN1dGluZyB0ZXN0Y2FzZXMuCiAgICAgICAg
-ICAgIExUUCBWZXJzaW9uOiAgMjAxNjAxMjYKICAgICAgICMjIyMjIyMjIyMjIyMjIyMjIyMjIyMj
-IyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIwoK
---94eb2c123230bb46d705340ec81b
-Content-Type: application/octet-stream;
-	name="LTP_RUN_ON-2016_05_30-14h_52m_29s.log"
-Content-Disposition: attachment;
-	filename="LTP_RUN_ON-2016_05_30-14h_52m_29s.log"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: file2
-
-VGVzdCBTdGFydCBUaW1lOiBNb24gTWF5IDMwIDE0OjUyOjMwIDIwMTYKLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KVGVzdGNhc2UgICAgICAgICAgICAgICAgICAgICAg
-IFJlc3VsdCAgICAgRXhpdCBWYWx1ZQotLS0tLS0tLSAgICAgICAgICAgICAgICAgICAgICAgLS0t
-LS0tICAgICAtLS0tLS0tLS0tCmFjbF90ZXN0MDEgICAgICAgICAgICAgICAgICAgICBQQVNTICAg
-ICAgIDAgICAgCgotLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LQpUb3RhbCBUZXN0czogMQpUb3RhbCBTa2lwcGVkIFRlc3RzOiAwClRvdGFsIEZhaWx1cmVzOiAw
-Cktlcm5lbCBWZXJzaW9uOiA0LjcuMC1yYzEtMi1pbml6YS1zbWFsbApNYWNoaW5lIEFyY2hpdGVj
-dHVyZTogeDg2XzY0Ckhvc3RuYW1lOiBmYW1ib3gKCg==
---94eb2c123230bb46d705340ec81b--
+--- a/security/integrity/ima/ima_main.c
++++ b/security/integrity/ima/ima_main.c
+@@ -222,7 +222,7 @@ static int process_measurement(struct fi
+ 	if ((action & IMA_APPRAISE_SUBMASK) ||
+ 		    strcmp(template_desc->name, IMA_TEMPLATE_IMA_NAME) != 0)
+ 		/* read 'security.ima' */
+-		xattr_len = ima_read_xattr(file->f_path.dentry, &xattr_value);
++		xattr_len = ima_read_xattr(file_dentry(file), &xattr_value);
+ 
+ 	hash_algo = ima_get_hash_algo(xattr_value, xattr_len);
+ 
+--- a/security/integrity/ima/ima_appraise.c
++++ b/security/integrity/ima/ima_appraise.c
+@@ -190,7 +190,7 @@ int ima_appraise_measurement(enum ima_ho
+ {
+ 	static const char op[] = "appraise_data";
+ 	char *cause = "unknown";
+-	struct dentry *dentry = file->f_path.dentry;
++	struct dentry *dentry = file_dentry(file);
+ 	struct inode *inode = d_backing_inode(dentry);
+ 	enum integrity_status status = INTEGRITY_UNKNOWN;
+ 	int rc = xattr_len, hash_start = 0;
+@@ -295,7 +295,7 @@ int ima_appraise_measurement(enum ima_ho
+  */
+ void ima_update_xattr(struct integrity_iint_cache *iint, struct file *file)
+ {
+-	struct dentry *dentry = file->f_path.dentry;
++	struct dentry *dentry = file_dentry(file);
+ 	int rc = 0;
+ 
+ 	/* do not collect and update hash for digital signatures */
