@@ -2,7 +2,7 @@ From: Mimi Zohar <zohar@linux.vnet.ibm.com>
 Subject: Re: [PATCH v3 1/1] ovl: setxattr: don't deadlock when called from
  ima_fix_xattr.
 Date: Mon, 30 May 2016 22:15:31 -0400
-Message-ID: <201605310216.u4V2DXns044960@mx0a-001b2d01.pphosted.com>
+Message-ID: <201605310216.u4V2DWqx044900@mx0a-001b2d01.pphosted.com>
 References: <1463611500.2465.22.camel@linux.vnet.ibm.com>
 	 <1463725718-2461-1-git-send-email-kli@iki.fi>
 	 <1463754087.2763.17.camel@linux.vnet.ibm.com>
@@ -14,9 +14,9 @@ References: <1463611500.2465.22.camel@linux.vnet.ibm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-security-module-owner@vger.kernel.org>
 In-Reply-To: <20160530165007.GA14480@ZenIV.linux.org.uk>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: owner-linux-security-module@vger.kernel.org
 To: Al Viro <viro@ZenIV.linux.org.uk>
 Cc: Miklos Szeredi <miklos@szeredi.hu>, Krisztian Litkey <kli@iki.fi>, linux-unionfs@vger.kernel.org, Krisztian Litkey <krisztian.litkey@intel.com>, linux-security-module <linux-security-module@vger.kernel.org>, linux-kernel@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
@@ -54,3 +54,5 @@ Isn't i_mutex required?
 > the body of a message to majordomo@vger.kernel.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
 > 
+
+
