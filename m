@@ -1,50 +1,61 @@
-From: Mimi Zohar <zohar@linux.vnet.ibm.com>
-Subject: Re: [PATCH v3 1/1] ovl: setxattr: don't deadlock when called from
- ima_fix_xattr.
-Date: Mon, 30 May 2016 22:29:18 -0400
-Message-ID: <201605310229.u4V2T5GC044177@mx0a-001b2d01.pphosted.com>
-References: <1463611500.2465.22.camel@linux.vnet.ibm.com>
-	 <1463725718-2461-1-git-send-email-kli@iki.fi>
-	 <1463754087.2763.17.camel@linux.vnet.ibm.com>
-	 <20160520162937.GU14480@ZenIV.linux.org.uk>
-	 <1463763633.2763.34.camel@linux.vnet.ibm.com>
-	 <CAH4bDXjHjPSYAoQB8VODcDG2MRz30ZQqtrm+x7BWG-2X8qhGAg@mail.gmail.com>
-	 <20160530141015.GC5758@veci.piliscsaba.szeredi.hu>
+From: Andrea <ass3mbler@gmail.com>
+Subject: ext4 with encryption, error "overlayfs: filesystem on [...] not
+ supported as upperdir"
+Date: Tue, 31 May 2016 15:20:38 +0200
+Message-ID: <CAE6L1VppFednd52B5cfiDW6d-KeC6QedGOD6EMZS6ub0F4VKKA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-security-module-owner@vger.kernel.org>
-In-Reply-To: <20160530141015.GC5758@veci.piliscsaba.szeredi.hu>
-Sender: owner-linux-security-module@vger.kernel.org
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: Krisztian Litkey <kli@iki.fi>, Al Viro <viro@zeniv.linux.org.uk>, linux-unionfs@vger.kernel.org, Krisztian Litkey <krisztian.litkey@intel.com>, linux-security-module <linux-security-module@vger.kernel.org>, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-unionfs-owner@vger.kernel.org>
+Received: from mail-yw0-f171.google.com ([209.85.161.171]:34539 "EHLO
+	mail-yw0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752026AbcEaNUo (ORCPT
+	<rfc822;linux-unionfs@vger.kernel.org>);
+	Tue, 31 May 2016 09:20:44 -0400
+Received: by mail-yw0-f171.google.com with SMTP id c127so187725518ywb.1
+        for <linux-unionfs@vger.kernel.org>; Tue, 31 May 2016 06:20:43 -0700 (PDT)
+Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
+To: linux-unionfs@vger.kernel.org
 
-On Mon, 2016-05-30 at 16:10 +0200, Miklos Szeredi wrote:
-> On Fri, May 20, 2016 at 11:53:18PM +0300, Krisztian Litkey wrote:
-> > On Fri, May 20, 2016 at 8:00 PM, Mimi Zohar <zohar@linux.vnet.ibm.com> wrote:
-> 
-> > > We deferred __fput() back in 2012 in order for IMA to safely take the
-> > > i_mutex and write security.ima.   Writing the security.ima xattr now
-> > > triggers overlayfs to write the xattr, but overlayfs doesn't
-> > > differentiate between callers - as a result of userspace or as described
-> > > here in __fput().   All calls to ovl_setxattr() should call vfs_sexattr,
-> > > except the one triggered by __fput().   Refer to the original lockdep
-> > > report -
-> > > http://thread.gmane.org/gmane.linux.file-systems.union/640
-> 
-> Looks like more fallout from 4bacc9c9234c ("overlayfs: Make f_path always point
-> to the overlay and f_inode to the underlay").
-> 
-> Not sure what we want here.  Doing everything on the underlying dentry/inode
-> would be trivial (see attached patch).
-> 
-> Question is, can we get setxattr() on file opened for O_RDONLY?  If so, then
-> that could fail on overlayfs (lower layer is read-only).
+Hello,
 
-Normally only after a file has been modified is the xattr written.
-However in "fix" mode, the xattr would be written for files opened
-read-only (eg. bprm, mmap execute).
+I'm trying to store a Docker graph directory in a ext4 encypted dir
+(/mnt/drbd0/docker):
 
-Mimi
+- /dev/drbd0 <- ext4 partition
+- /dev/drbd0 -> mounted on /mnt/drbd0
+- /mnt/drbd0/docker <- dir encrypted with ext4 std encryption
 
+The Docker daemon runs ok, pulls the images layers as needed but it's
+unable to mount the ovl. The kernel used is a mainline pure v4.6
+manually compiled and running on a standard Gentoo installation.
+
+the relevant error line in dmseg are (i.e.)
+
+/mnt/drbd0/docker/overlay/446f76c928f35f1e30228c79e89faae2c5c57a814109b602a318e02f264a5e50-init/upper'
+not supported as upperdir
+
+The same error is given even if I use another unencrypted directory on
+the same partition as my graph directory. Moreover, manually testing
+with this procedure:
+
+- cd /mnt/drbd0/test <- unencryped dir
+- mkdir lower upper work merged
+- mount -t overlay overlay -olowerdir=lower,upperdir=upper,workdir=work merged
+
+gives exactly the same error. If I run the same procedures (docker
+and/or the manual test) after formatting the same partition (but
+keeping the encryption disabled) everything works perfectly.
+
+Looking at the code, as far as I'm able to understand, it seems that
+the check for the dentry flags (DCACHE_OP_REVALIDATE |
+DCACHE_OP_WEAK_REVALIDATE) in the ovl_dentry_remote() call (file:
+super.c, line 871) fails and the mount procedure is then aborted.
+Maybe I have to change some flags on the ext4 fs and I'm missing
+something?
+
+Could someone please give me some hint?
+
+Thank you in advance and best regards,
+
+Andrew
