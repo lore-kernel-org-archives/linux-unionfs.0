@@ -1,55 +1,42 @@
-Return-Path: <zohar@linux.vnet.ibm.com>
-Message-Id: <201605310216.u4V2Dbdl006715@mx0a-001b2d01.pphosted.com>
-Subject: Re: [PATCH v3 1/1] ovl: setxattr: don't deadlock when called from
- ima_fix_xattr.
-From: Mimi Zohar <zohar@linux.vnet.ibm.com>
-Date: Mon, 30 May 2016 22:15:31 -0400
-In-Reply-To: <20160530165007.GA14480@ZenIV.linux.org.uk>
-References: <1463611500.2465.22.camel@linux.vnet.ibm.com>
-	 <1463725718-2461-1-git-send-email-kli@iki.fi>
-	 <1463754087.2763.17.camel@linux.vnet.ibm.com>
-	 <20160520162937.GU14480@ZenIV.linux.org.uk>
-	 <1463763633.2763.34.camel@linux.vnet.ibm.com>
-	 <CAH4bDXjHjPSYAoQB8VODcDG2MRz30ZQqtrm+x7BWG-2X8qhGAg@mail.gmail.com>
-	 <20160530141015.GC5758@veci.piliscsaba.szeredi.hu>
-	 <20160530165007.GA14480@ZenIV.linux.org.uk>
-Content-Type: text/plain; charset="UTF-8"
+From: Badhri Jagan Sridharan <badhri@google.com>
+Subject: Is selinux expected to work on overlayfs ?
+Date: Tue, 31 May 2016 22:55:50 -0700
+Message-ID: <CAPTae5+yS2QvTz=sw+Jm-xt39srms4nEvxQz8yj2z=2TGV56bw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
-To: Al Viro <viro@ZenIV.linux.org.uk>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, Krisztian Litkey <kli@iki.fi>, linux-unionfs@vger.kernel.org, Krisztian Litkey <krisztian.litkey@intel.com>, linux-security-module <linux-security-module@vger.kernel.org>, linux-kernel@vger.kernel.org
-List-ID: <linux-unionfs@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-unionfs-owner@vger.kernel.org>
+Received: from mail-vk0-f49.google.com ([209.85.213.49]:36359 "EHLO
+	mail-vk0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757243AbcFAFzv (ORCPT
+	<rfc822;linux-unionfs@vger.kernel.org>);
+	Wed, 1 Jun 2016 01:55:51 -0400
+Received: by mail-vk0-f49.google.com with SMTP id a6so12644724vkg.3
+        for <linux-unionfs@vger.kernel.org>; Tue, 31 May 2016 22:55:51 -0700 (PDT)
+Sender: linux-unionfs-owner@vger.kernel.org
+List-Id: linux-unionfs@vger.kernel.org
+To: linux-unionfs@vger.kernel.org
+Cc: miklos@szeredi.hu
 
-On Mon, 2016-05-30 at 17:50 +0100, Al Viro wrote:
-> 	Only tangentially related, but... that bug had been discussed,
-> without any results: the fallback in ima_d_path() to ->d_name.name is
-> completely broken.  There is no warranty whatsoever that dentry won't be
-> renamed, with its earlier (too long to be embedded into dentry itself)
-> ->d_name.name getting freed.  Right under your code.
+Hi,
 
-Isn't i_mutex required?
+I am playing with overlays in one of our development boards.
+The kernel is based of 3.18..
 
-> 
-> 	Could we please get rid of that thing?  "A message in a near-oom
-> situation might be less informative than we'd like" is better than
-> "this code might end up dereferencing freed memory".
-> 
-> 	Another similar bug is in ima_collect_measurement() -
->         const char *filename = file->f_path.dentry->d_name.name;
-> 	...
->                 integrity_audit_msg(AUDIT_INTEGRITY_DATA, inode,
->                                     filename, "collect_data", audit_cause,
-> with no warranty whatsoever that you are not passing a pointer to freed
-> memory.  The same goes for ima_eventname_init_common() -
->         if (event_data->file) {
->                 cur_filename = event_data->file->f_path.dentry->d_name.name;
->                 cur_filename_len = strlen(cur_filename);
->         } else  
-> ...
->         return ima_write_template_field_data(cur_filename, cur_filename_len,
->                                              DATA_FMT_STRING, field_data);
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-security-module" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+I notice that the selinux label becomes corrupted (unlabeled) once
+overlayfs is mounted.
+
+/ # ls -Z /system/bin/vold
+u:object_r:vold_exec:s0 /system/bin/vold
+/ # mount -t overlay -o lowerdir=/system,upperdir=/cache/upper,
+workdir=/cache/working overlayfs /system
+/ # ls -Z /system/bin/vold
+u:object_r:unlabeled:s0 /system/bin/vold
+
+https://lwn.net/Articles/636943/ article quotes that the selinux issues have
+been solved for overlayfs. Since the target is running on 3.18 kernel I am
+wondering whether porting the recent patches on overlayfs would solve the
+issue ? Or this behavior is expected for overlayfs..
+
+Any pointers is much appreciated !!
+
+Thanks.
