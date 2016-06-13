@@ -1,120 +1,69 @@
-From: Alessio Igor Bogani <alessioigorbogani@gmail.com>
-Subject: WARNING and OOPS using 9p with overlay
-Date: Thu, 9 Jun 2016 14:36:48 +0200
-Message-ID: <CAPk1OjE6exSg2OA5y-K6=2hdNzto3_UyBhn2QT_YRBVbc5g2wQ@mail.gmail.com>
+From: =?UTF-8?B?QW5kcsOp?= Roth <neolynx@gmail.com>
+Subject: NFS/ro: mv: cannot move 'foo' to a subdirectory of itself, 'bar'
+Date: Mon, 13 Jun 2016 13:07:10 +0200
+Message-ID: <20160613130710.57321936@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-qt0-f178.google.com ([209.85.216.178]:34816 "EHLO
-	mail-qt0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751638AbcFIMon (ORCPT
+Received: from mail-wm0-f45.google.com ([74.125.82.45]:35031 "EHLO
+	mail-wm0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1422670AbcFMLHP convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-unionfs@vger.kernel.org>);
-	Thu, 9 Jun 2016 08:44:43 -0400
-Received: by mail-qt0-f178.google.com with SMTP id 9so9892954qtg.2
-        for <linux-unionfs@vger.kernel.org>; Thu, 09 Jun 2016 05:44:42 -0700 (PDT)
+	Mon, 13 Jun 2016 07:07:15 -0400
+Received: by mail-wm0-f45.google.com with SMTP id v199so73036175wmv.0
+        for <linux-unionfs@vger.kernel.org>; Mon, 13 Jun 2016 04:07:14 -0700 (PDT)
+Received: from localhost (215.180.105.92.dynamic.wline.res.cust.swisscom.ch. [92.105.180.215])
+        by smtp.gmail.com with ESMTPSA id wb10sm27040643wjc.8.2016.06.13.04.07.12
+        for <linux-unionfs@vger.kernel.org>
+        (version=TLSv1/SSLv3 cipher=OTHER);
+        Mon, 13 Jun 2016 04:07:12 -0700 (PDT)
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Miklos Szeredi <miklos@szeredi.hu>, Eric Van Hensbergen <ericvh@gmail.com>, Ron Minnich <rminnich@sandia.gov>, Latchesar Ionkov <lucho@ionkov.net>
-Cc: v9fs-developer@lists.sourceforge.net, linux-unionfs@vger.kernel.org
+To: linux-unionfs@vger.kernel.org
 
-Hi All,
 
-I obtain this warning message mounting a 9p filesystem using overlay:
+Hello,
 
-------------[ cut here ]------------
-WARNING: CPU: 0 PID: 110 at /fs/inode.c:337 inc_nlink+0x74/0x78
-Modules linked in:
-CPU: 0 PID: 110 Comm: mount Not tainted 4.7.0-rc2 #2
-Hardware name: Generic AM33XX (Flattened Device Tree)
-[<c010ff7c>] (unwind_backtrace) from [<c010c6dc>] (show_stack+0x20/0x24)
-[<c010c6dc>] (show_stack) from [<c04a9848>] (dump_stack+0x24/0x28)
-[<c04a9848>] (dump_stack) from [<c012d130>] (__warn+0xf4/0x10c)
-[<c012d130>] (__warn) from [<c012d218>] (warn_slowpath_null+0x30/0x38)
-[<c012d218>] (warn_slowpath_null) from [<c024f990>] (inc_nlink+0x74/0x78)
-[<c024f990>] (inc_nlink) from [<c0373a70>] (v9fs_vfs_mkdir_dotl+0x140/0x1dc)
-[<c0373a70>] (v9fs_vfs_mkdir_dotl) from [<c0240220>] (vfs_mkdir+0xc0/0x10c)
-[<c0240220>] (vfs_mkdir) from [<c036e3a4>] (ovl_create_real+0xc4/0x100)
-[<c036e3a4>] (ovl_create_real) from [<c036ccf0>] (ovl_fill_super+0x984/0x9a8)
-[<c036ccf0>] (ovl_fill_super) from [<c0236d00>] (mount_nodev+0x54/0xac)
-[<c0236d00>] (mount_nodev) from [<c036bcec>] (ovl_mount+0x24/0x28)
-[<c036bcec>] (ovl_mount) from [<c0237d30>] (mount_fs+0x54/0x170)
-[<c0237d30>] (mount_fs) from [<c0255a00>] (vfs_kern_mount+0x58/0x124)
-[<c0255a00>] (vfs_kern_mount) from [<c025911c>] (do_mount+0x1f0/0xd1c)
-[<c025911c>] (do_mount) from [<c0259f8c>] (SyS_mount+0x84/0xac)
-[<c0259f8c>] (SyS_mount) from [<c0108160>] (ret_fast_syscall+0x0/0x3c)
----[ end trace 87b507e269adb5b5 ]---
+I try to use overlay for network boot clients using an NFS read-only
+filesystem. This works pretty well, except renaming files with the mv
+command fails:
 
-So executing `cat README.txt` inside the overlayed mountpoint brings me to:
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D
+# ls -l
+-rw-r--r-- 1 root root 785 Mar 27  2016 foo
 
-Unable to handle kernel NULL pointer dereference at virtual address 00000008
-pgd = cdd20000
-[00000008] *pgd=8dd74831, *pte=00000000, *ppte=00000000
-Internal error: Oops: 17 [#1] PREEMPT ARM
-Modules linked in:
-CPU: 0 PID: 114 Comm: cat Tainted: G        W       4.7.0-rc2 #2
-Hardware name: Generic AM33XX (Flattened Device Tree)
-task: cdae9000 ti: cdd3a000 task.ti: cdd3a000
-PC is at idr_get_empty_slot+0x18/0x3a4
-LR is at idr_alloc+0xc0/0x11c
-pc : [<c04aad20>]    lr : [<c04ab16c>]    psr: 600b0093
-sp : cdd3bc70  ip : cdd3bcb8  fp : cdd3bcb4
-r10: 00000000  r9 : 00000000  r8 : 00000001
-r7 : 00000000  r6 : cdd3bcc4  r5 : 200b0013  r4 : 00000000
-r3 : 02000000  r2 : cdd3bcc4  r1 : 00000000  r0 : 00000000
-Flags: nZCv  IRQs off  FIQs on  Mode SVC_32  ISA ARM  Segment none
-Control: 10c5387d  Table: 8dd20019  DAC: 00000051
-Process cat (pid: 114, stack limit = 0xcdd3a210)
-Stack: (0xcdd3bc70 to 0xcdd3c000)
-bc60:                                     cfeb7494 cfeb7484 cdd3bca4 cdd3bc88
-bc80: c01d6344 c0174870 cda7d6b0 00000000 200b0013 cdd3bcc4 00000000 00000000
-bca0: 00000000 00000000 cdd3bcfc cdd3bcb8 c04ab16c c04aad14 00000000 cdd3bcc8
-bcc0: c04c61b4 c04c6064 cdd3bcfc cdd3bcd8 c04aa22c c04c61a4 c0fabe28 00000000
-bce0: 200b0013 00000000 cdd4b800 00000000 cdd3bd1c cdd3bd00 c08c195c c04ab0b8
-bd00: 02000000 00000000 cdd6a2c0 cdd94c88 cdd3bd3c cdd3bd20 c08c017c c08c1914
-bd20: 00000000 cdd94c8c cdd94c88 00000000 cdd3bd7c cdd3bd40 c08c04cc c08c0144
-bd40: 00008000 00000000 cdd27780 cd3ddb28 cdd4b800 00000000 00000000 cdd27780
-bd60: cd3ddb28 cdd4b800 00000000 00000000 cdd3bd8c cdd3bd80 c03765f4 c08c0498
-bd80: cdd3bdbc cdd3bd90 c0374900 c03765d0 c045dfd8 c027a1ac 00000000 cdd27780
-bda0: cdd27788 c037485c cd3ddb28 cdd9e880 cdd3bdec cdd3bdc0 c0230fa8 c0374868
-bdc0: cdd9e880 cdd27780 cdd3bea8 00000000 00000000 cdd3bea8 00000000 00000000
-bde0: cdd3be0c cdd3bdf0 c0232240 c0230de8 c02400e4 cdd9e880 00000000 cdd3bf5c
-be00: cdd3bea4 cdd3be10 c024277c c02321e0 c01155bc c01517b0 cdd3bebc cdd3be28
-be20: c020a0d0 c0115560 00000000 00000000 00000000 cfeb54e0 fffffdfa cdd3a000
-be40: cdd27780 00000000 00000000 00000004 cd3d9330 00000041 cdd22db8 00000000
-be60: 00000002 cd3db3d0 cdd68e50 cd3da3b8 cdc7e630 b6fd1000 cdc7ea50 00000003
-be80: cdd3bf5c cdd3bea8 00000001 c0108368 cdd3a000 00000000 cdd3bf4c cdd3bea8
-bea0: c0244308 c0242224 cdd68e50 cd3da3b8 a4a3e205 0000000a cdd77010 c0165310
-bec0: 00000000 c0f217d4 cd3db3d0 00000101 00000002 00000040 00000000 00000000
-bee0: 00000000 cdd3bee8 00000003 cd88da80 cd88da94 00000000 00000400 c02543f4
-bf00: cdd3bf3c cdd3bf10 c02543f4 c01517b0 00000000 00000000 cdd77000 00000000
-bf20: 00000005 c0108368 ffffff9c 00000000 00000003 ffffff9c cdd77000 00000005
-bf40: cdd3bf94 cdd3bf50 c02325a8 c02442a4 cdd3bf6c cdd3bf60 c0235834 00000000
-bf60: cdd30000 00000004 00000100 00000001 bec37e88 bec37f72 0000000a 00000005
-bf80: c0108368 cdd3a000 cdd3bfa4 cdd3bf98 c0232684 c0232498 00000000 cdd3bfa8
-bfa0: c0108160 c0232664 bec37e88 bec37f72 bec37f72 00000000 000001b6 0000004d
-bfc0: bec37e88 bec37f72 0000000a 00000005 00093ac0 bec37f72 00093af4 00000000
-bfe0: 00000000 bec37cc4 00010f1c b6ec435c 600b0010 bec37f72 8fef6861 8fef6c61
-[<c04aad20>] (idr_get_empty_slot) from [<c04ab16c>] (idr_alloc+0xc0/0x11c)
-[<c04ab16c>] (idr_alloc) from [<c08c195c>] (p9_idpool_get+0x54/0xd8)
-[<c08c195c>] (p9_idpool_get) from [<c08c017c>] (p9_fid_create+0x44/0x110)
-[<c08c017c>] (p9_fid_create) from [<c08c04cc>] (p9_client_walk+0x40/0x228)
-[<c08c04cc>] (p9_client_walk) from [<c03765f4>] (v9fs_fid_clone+0x30/0x38)
-[<c03765f4>] (v9fs_fid_clone) from [<c0374900>] (v9fs_file_open+0xa4/0x150)
-[<c0374900>] (v9fs_file_open) from [<c0230fa8>] (do_dentry_open+0x1cc/0x31c)
-[<c0230fa8>] (do_dentry_open) from [<c0232240>] (vfs_open+0x6c/0x90)
-[<c0232240>] (vfs_open) from [<c024277c>] (path_openat+0x564/0x120c)
-[<c024277c>] (path_openat) from [<c0244308>] (do_filp_open+0x70/0xd4)
-[<c0244308>] (do_filp_open) from [<c02325a8>] (do_sys_open+0x11c/0x1cc)
-[<c02325a8>] (do_sys_open) from [<c0232684>] (SyS_open+0x2c/0x30)
-[<c0232684>] (SyS_open) from [<c0108160>] (ret_fast_syscall+0x0/0x3c)
-Code: e24cb004 e24dd01c e3a08001 e1a09000 (e5907008)
----[ end trace 87b507e269adb5b6 ]---
-note: cat[114] exited with preempt_count 2
-Segmentation fault
+# mv foo bar
+mv: cannot move 'foo' to a subdirectory of itself, 'bar'
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D
 
-Is 9p supposed to work with overlay?
+I mount the overlay filesystem as follows in the initrd, where /root is
+already mounted read-only from NFS:
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D
+mkdir /writable
+mkfs.ext2 /dev/ram0 >/dev/null
+mount -n /dev/ram0 /writable >/dev/null
 
-Thanks!
+mkdir /writable/upper
+mkdir /writable/work
 
-Ciao,
-Alessio
+modprobe overlay
+mount -t overlay overlay -olowerdir=3D/root,upperdir=3D/writable/upper,=
+workdir=3D/writable/work,default_permissions /root
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D
+
+kernel version is 4.7.0-rc2, git cloned from
+git://git.kernel.org/pub/scm/linux/kernel/git/mszeredi/vfs.git,
+using the overlayfs-next branch.
+
+is this a bug ?
+can I help anything debugging fixing this ?
+
+
+Regards,
+
+ Andr=C3=A9
