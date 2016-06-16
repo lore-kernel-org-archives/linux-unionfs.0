@@ -1,49 +1,74 @@
 From: Miklos Szeredi <miklos@szeredi.hu>
-Subject: [GIT PULL] overlayfs fixes for 4.7-rc3
-Date: Thu, 16 Jun 2016 09:32:08 +0200
-Message-ID: <20160616073208.GB11993@veci.piliscsaba.szeredi.hu>
+Subject: Re: NFS/ro: mv: cannot move 'foo' to a subdirectory of itself, 'bar'
+Date: Thu, 16 Jun 2016 14:30:50 +0200
+Message-ID: <CAJfpegsxnqOpDUDHwKd4p+ZJMkBTAVKgjpNBhNqP0e2uZvrkVQ@mail.gmail.com>
+References: <20160613130710.57321936@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:33305 "EHLO
-	mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752597AbcFPHcM (ORCPT
+Received: from mail-oi0-f42.google.com ([209.85.218.42]:34234 "EHLO
+	mail-oi0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752492AbcFPMav convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-unionfs@vger.kernel.org>);
-	Thu, 16 Jun 2016 03:32:12 -0400
-Received: by mail-wm0-f68.google.com with SMTP id r5so9223639wmr.0
-        for <linux-unionfs@vger.kernel.org>; Thu, 16 Jun 2016 00:32:12 -0700 (PDT)
-Content-Disposition: inline
+	Thu, 16 Jun 2016 08:30:51 -0400
+Received: by mail-oi0-f42.google.com with SMTP id d132so66255860oig.1
+        for <linux-unionfs@vger.kernel.org>; Thu, 16 Jun 2016 05:30:51 -0700 (PDT)
+In-Reply-To: <20160613130710.57321936@gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org
+To: =?UTF-8?Q?Andr=C3=A9_Roth?= <neolynx@gmail.com>
+Cc: "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>
 
-Hi Linus,
+On Mon, Jun 13, 2016 at 1:07 PM, Andr=C3=A9 Roth <neolynx@gmail.com> wr=
+ote:
+>
+> Hello,
+>
+> I try to use overlay for network boot clients using an NFS read-only
+> filesystem. This works pretty well, except renaming files with the mv
+> command fails:
+>
+> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D
+> # ls -l
+> -rw-r--r-- 1 root root 785 Mar 27  2016 foo
+>
+> # mv foo bar
+> mv: cannot move 'foo' to a subdirectory of itself, 'bar'
+> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D
+>
+> I mount the overlay filesystem as follows in the initrd, where /root =
+is
+> already mounted read-only from NFS:
+> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D
+> mkdir /writable
+> mkfs.ext2 /dev/ram0 >/dev/null
+> mount -n /dev/ram0 /writable >/dev/null
+>
+> mkdir /writable/upper
+> mkdir /writable/work
+>
+> modprobe overlay
+> mount -t overlay overlay -olowerdir=3D/root,upperdir=3D/writable/uppe=
+r,workdir=3D/writable/work,default_permissions /root
+> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D
+>
+> kernel version is 4.7.0-rc2, git cloned from
+> git://git.kernel.org/pub/scm/linux/kernel/git/mszeredi/vfs.git,
+> using the overlayfs-next branch.
+>
+> is this a bug ?
+> can I help anything debugging fixing this ?
 
-Please pull from:
+ # echo 'module overlay +mp' > /sys/kernel/debug/dynamic_debug/control
+ # strace -o /tmp/strace mv foo bar
+ # dmesg | grep overlay > /tmp/debug
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/mszeredi/vfs.git overlayfs-linus
-
-This contains two regression fixes: one for the xattr API update and one for
-using the mounter's creds in file creation in overlayfs.  There's also a fix for
-a bug in handling hard linked AF_UNIX sockets that's been there from day one.
-This fix is overlayfs only despite the fact that it touches code outside the
-overlay filesystem: d_real() is an identity function for all except overlay
-dentries.
+And post the /tmp/strace and /tmp/debug files.
 
 Thanks,
 Miklos
-
----
-Miklos Szeredi (4):
-      vfs: add d_real_inode() helper
-      af_unix: fix hard linked sockets on overlay
-      ovl: xattr filter fix
-      ovl: fix uid/gid when creating over whiteout
-
----
- fs/overlayfs/dir.c     | 13 +++++++++++--
- fs/overlayfs/inode.c   | 26 ++++++--------------------
- include/linux/dcache.h | 12 ++++++++++++
- net/unix/af_unix.c     |  6 +++---
- 4 files changed, 32 insertions(+), 25 deletions(-)
