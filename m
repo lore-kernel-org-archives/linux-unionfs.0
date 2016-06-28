@@ -1,138 +1,182 @@
-From: Eryu Guan <eguan@redhat.com>
-Subject: Re: [PATCH 2/2] overlay: remove dir which contains whiteout from
- lower dir
-Date: Thu, 30 Jun 2016 20:03:40 +0800
-Message-ID: <20160630120340.GB23649@eguan.usersys.redhat.com>
-References: <1467207574-11082-1-git-send-email-eguan@redhat.com>
- <1467207574-11082-2-git-send-email-eguan@redhat.com>
- <20160630074101.GB10883@xzhoul.usersys.redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:39285 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751810AbcF3MDn (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-	Thu, 30 Jun 2016 08:03:43 -0400
-Content-Disposition: inline
-In-Reply-To: <20160630074101.GB10883@xzhoul.usersys.redhat.com>
-Sender: linux-unionfs-owner@vger.kernel.org
-List-Id: linux-unionfs@vger.kernel.org
-To: Xiong Zhou <xzhou@redhat.com>
-Cc: fstests@vger.kernel.org, linux-unionfs@vger.kernel.org
+Return-Path: <alessioigorbogani@gmail.com>
+MIME-Version: 1.0
+In-Reply-To: <20160627185431.GA2388@veci.piliscsaba.szeredi.hu>
+References: <CAPk1OjHwxm_=+rBNXMLXbJvyNGVaGKV0sd_-0RThY-FnTTBALA@mail.gmail.com>
+	<20160627185431.GA2388@veci.piliscsaba.szeredi.hu>
+Date: Tue, 28 Jun 2016 17:13:00 +0200
+Message-ID: <CAPk1OjH1AqJdp_7z8wYbZTg3s+vDOfeqL2QV7gv7XSZ3PwWGSA@mail.gmail.com>
+Subject: Re: Problem with two overlayed 9p filesystems
+From: Alessio Igor Bogani <alessioigorbogani@gmail.com>
+Content-Type: multipart/alternative; boundary=001a1149993a91f6fc0536581219
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: Eric Van Hensbergen <ericvh@gmail.com>, Ron Minnich <rminnich@sandia.gov>, Latchesar Ionkov <lucho@ionkov.net>, v9fs-developer@lists.sourceforge.net, linux-unionfs@vger.kernel.org, LFSDEV <linux-fsdevel@vger.kernel.org>, Alexander Viro <viro@zeniv.linux.org.uk>
+List-ID: <linux-unionfs@vger.kernel.org>
 
-On Thu, Jun 30, 2016 at 03:41:01PM +0800, Xiong Zhou wrote:
-> On Wed, Jun 29, 2016 at 09:39:34PM +0800, Eryu Guan wrote:
-> > Test the removal of a dir which contains whiteout from lower dir,
-> > which could crash the kernel.
-> > 
-> > The following kernel commit fixed this issue
-> > 84889d4 ovl: check dentry positiveness in ovl_cleanup_whiteouts()
-> 
-> Tested and ack these 2 cases.
-> 
-> One minor thought down there.
+--001a1149993a91f6fc0536581219
+Content-Type: text/plain; charset=UTF-8
 
-Thanks!
+Miklos,
 
-> 
-> 
-> > 
-> > Signed-off-by: Eryu Guan <eguan@redhat.com>
-> > ---
-> >  tests/overlay/010     | 78 +++++++++++++++++++++++++++++++++++++++++++++++++++
-> >  tests/overlay/010.out |  2 ++
-> >  tests/overlay/group   |  1 +
-> >  3 files changed, 81 insertions(+)
-> >  create mode 100755 tests/overlay/010
-> >  create mode 100644 tests/overlay/010.out
-> > 
-> > diff --git a/tests/overlay/010 b/tests/overlay/010
-> > new file mode 100755
-> > index 0000000..5d1c2bd
-> > --- /dev/null
-> > +++ b/tests/overlay/010
-> > @@ -0,0 +1,78 @@
-> > +#! /bin/bash
-> > +# FS QA Test 010
-> > +#
-> > +# Remove dir which contains whiteout from lower dir.
-> > +#
-> > +# The following kernel commit fixed the kernel crash on the removal
-> > +# 84889d4 ovl: check dentry positiveness in ovl_cleanup_whiteouts()
-> > +#
-> > +#-----------------------------------------------------------------------
-> > +# Copyright (c) 2016 Red Hat Inc.  All Rights Reserved.
-> > +#
-> > +# This program is free software; you can redistribute it and/or
-> > +# modify it under the terms of the GNU General Public License as
-> > +# published by the Free Software Foundation.
-> > +#
-> > +# This program is distributed in the hope that it would be useful,
-> > +# but WITHOUT ANY WARRANTY; without even the implied warranty of
-> > +# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> > +# GNU General Public License for more details.
-> > +#
-> > +# You should have received a copy of the GNU General Public License
-> > +# along with this program; if not, write the Free Software Foundation,
-> > +# Inc.,  51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-> > +#-----------------------------------------------------------------------
-> > +#
-> > +
-> > +seq=`basename $0`
-> > +seqres=$RESULT_DIR/$seq
-> > +echo "QA output created by $seq"
-> > +
-> > +here=`pwd`
-> > +tmp=/tmp/$$
-> > +status=1	# failure is the default!
-> > +trap "_cleanup; exit \$status" 0 1 2 3 15
-> > +
-> > +_cleanup()
-> > +{
-> > +	cd /
-> > +	rm -f $tmp.*
-> > +}
-> > +
-> > +# get standard environment, filters and checks
-> > +. ./common/rc
-> > +. ./common/filter
-> > +
-> > +rm -f $seqres.full
-> > +
-> > +# real QA test starts here
-> > +_supported_fs overlay
-> > +_supported_os Linux
-> > +_require_scratch
-> > +
-> > +# Remove all files from previous tests
-> > +_scratch_mkfs
-> > +
-> > +# Need two lower dirs in this test, and we mount overlay ourselves,
-> > +# create upper and workdir as well
-> > +lowerdir1=$SCRATCH_DEV/$OVERLAY_LOWER_DIR.1
-> > +lowerdir2=$SCRATCH_DEV/$OVERLAY_LOWER_DIR.2
-> > +upperdir=$SCRATCH_DEV/$OVERLAY_UPPER_DIR
-> > +workdir=$SCRATCH_DEV/$OVERLAY_WORK_DIR
-> > +mkdir -p $lowerdir1 $lowerdir2 $upperdir $workdir
-> > +
-> > +# One lowerdir contains test dir and test files, the other contains whiteout
-> > +mkdir -p $lowerdir1/testdir $lowerdir2/testdir
-> > +touch $lowerdir1/testdir/a $lowerdir1/testdir/b
-> > +mknod $lowerdir2/testdir/a c 0 0
-> > +
-> > +# Mount overlayfs and remove testdir, which led to kernel crash
-> > +$MOUNT_PROG -t overlay -o lowerdir=$lowerdir2:$lowerdir1 \
-> > +	    -o upperdir=$upperdir,workdir=$workdir \
-> > +	    $SCRATCH_DEV $SCRATCH_MNT
-> > +rm -rf $SCRATCH_MNT/testdir
-> 
-> sleep 1 second here ?  Or we could panic after "Pass all 1 tests"
-> printed. [untested..]
+On 27 June 2016 at 20:54, Miklos Szeredi <miklos@szeredi.hu> wrote:
+> On Mon, Jun 27, 2016 at 04:30:59PM +0200, Alessio Igor Bogani wrote:
+>> Hi,
+>>
+>> Using v4.0 I used to put two 9p or two ext4 filesystems in overlay.
+>> Now with v4.7-rc5 I can still put two ext4 filesystems in overlay but
+>> not two 9p filesystems anymore. In the later I obtain the following
+>> error executing a simple "cat overlay/test.txt".
+>>
+>> Bisecting results in the first offending commit
+>> 4bacc9c9234c7c8eec44f5ed4e960d9f96fa0f01 which though contains only
+>
+> Please try the following patch.
+>
+> Thanks,
+> Miklos
+>
+> diff --git a/fs/9p/vfs_file.c b/fs/9p/vfs_file.c
+> index b84c291ba1eb..d7b78d531e63 100644
+> --- a/fs/9p/vfs_file.c
+> +++ b/fs/9p/vfs_file.c
+> @@ -74,7 +74,7 @@ int v9fs_file_open(struct inode *inode, struct file
+*file)
+> v9fs_proto_dotu(v9ses));
+> fid = file->private_data;
+> if (!fid) {
+> - fid = v9fs_fid_clone(file->f_path.dentry);
+> + fid = v9fs_fid_clone(file_dentry(file));
+> if (IS_ERR(fid))
+> return PTR_ERR(fid);
+>
+> @@ -100,7 +100,7 @@ int v9fs_file_open(struct inode *inode, struct file
+*file)
+> * because we want write after unlink usecase
+> * to work.
+> */
+> - fid = v9fs_writeback_fid(file->f_path.dentry);
+> + fid = v9fs_writeback_fid(file_dentry(file));
+> if (IS_ERR(fid)) {
+> err = PTR_ERR(fid);
+> mutex_unlock(&v9inode->v_mutex);
+> @@ -516,7 +516,7 @@ v9fs_mmap_file_mmap(struct file *filp, struct
+vm_area_struct *vma)
+> * because we want write after unlink usecase
+> * to work.
+> */
+> - fid = v9fs_writeback_fid(filp->f_path.dentry);
+> + fid = v9fs_writeback_fid(file_dentry(filp));
+> if (IS_ERR(fid)) {
+> retval = PTR_ERR(fid);
+> mutex_unlock(&v9inode->v_mutex);
 
-I think this is fine. Latest upstream kernel has this bug fixed, we
-don't want to waste extra second waiting for it to "fail". And if it
-crashed the kernel, we have to looked at it anyway and would find it is
-this test triggered the crash easily.
+Your patch works!
 
-Thanks,
-Eryu
+In the dmesg output there is a WARNING but the system is still working:
+
+[ 7.454660] ------------[ cut here ]------------
+[ 7.454774] WARNING: CPU: 0 PID: 123 at /home/alessio/linux/fs/inode.c:337
+inc_nlink+0x74/0x78
+[ 7.454792] Modules linked in:
+[ 7.454842] CPU: 0 PID: 123 Comm: mkdir Not tainted 4.7.0-rc5 #2
+[ 7.454859] Hardware name: Generic AM33XX (Flattened Device Tree)
+[ 7.454961] [<c010ff7c>] (unwind_backtrace) from [<c010c6dc>]
+(show_stack+0x20/0x24)
+[ 7.455017] [<c010c6dc>] (show_stack) from [<c04a9dc8>]
+(dump_stack+0x24/0x28)
+[ 7.455076] [<c04a9dc8>] (dump_stack) from [<c012d150>] (__warn+0xf4/0x10c)
+[ 7.455117] [<c012d150>] (__warn) from [<c012d238>]
+(warn_slowpath_null+0x30/0x38)
+[ 7.455155] [<c012d238>] (warn_slowpath_null) from [<c024fb88>]
+(inc_nlink+0x74/0x78)
+[ 7.455212] [<c024fb88>] (inc_nlink) from [<c0373b48>]
+(v9fs_vfs_mkdir_dotl+0x140/0x1dc)
+[ 7.455262] [<c0373b48>] (v9fs_vfs_mkdir_dotl) from [<c0240420>]
+(vfs_mkdir+0xc0/0x10c)
+[ 7.455305] [<c0240420>] (vfs_mkdir) from [<c0244844>]
+(SyS_mkdirat+0x78/0xc4)
+[ 7.455341] [<c0244844>] (SyS_mkdirat) from [<c02448b4>]
+(SyS_mkdir+0x24/0x28)
+[ 7.455378] [<c02448b4>] (SyS_mkdir) from [<c0108160>]
+(ret_fast_syscall+0x0/0x3c)
+[ 7.455400] ---[ end trace a878e09ce9f6bbd7 ]---
+
+Thank you very much!
+
+Ciao,
+Alessio
+
+--001a1149993a91f6fc0536581219
+Content-Type: text/html; charset=UTF-8
+
+<p dir="ltr">Miklos,</p>
+<p dir="ltr">On 27 June 2016 at 20:54, Miklos Szeredi &lt;<a href="mailto:miklos@szeredi.hu">miklos@szeredi.hu</a>&gt; wrote:<br>
+&gt; On Mon, Jun 27, 2016 at 04:30:59PM +0200, Alessio Igor Bogani wrote:<br>
+&gt;&gt; Hi,<br>
+&gt;&gt;<br>
+&gt;&gt; Using v4.0 I used to put two 9p or two ext4 filesystems in overlay.<br>
+&gt;&gt; Now with v4.7-rc5 I can still put two ext4 filesystems in overlay but<br>
+&gt;&gt; not two 9p filesystems anymore. In the later I obtain the following<br>
+&gt;&gt; error executing a simple &quot;cat overlay/test.txt&quot;.<br>
+&gt;&gt;<br>
+&gt;&gt; Bisecting results in the first offending commit<br>
+&gt;&gt; 4bacc9c9234c7c8eec44f5ed4e960d9f96fa0f01 which though contains only<br>
+&gt;<br>
+&gt; Please try the following patch.<br>
+&gt;<br>
+&gt; Thanks,<br>
+&gt; Miklos<br>
+&gt;<br>
+&gt; diff --git a/fs/9p/vfs_file.c b/fs/9p/vfs_file.c<br>
+&gt; index b84c291ba1eb..d7b78d531e63 100644<br>
+&gt; --- a/fs/9p/vfs_file.c<br>
+&gt; +++ b/fs/9p/vfs_file.c<br>
+&gt; @@ -74,7 +74,7 @@ int v9fs_file_open(struct inode *inode, struct file *file)<br>
+&gt; v9fs_proto_dotu(v9ses));<br>
+&gt; fid = file-&gt;private_data;<br>
+&gt; if (!fid) {<br>
+&gt; - fid = v9fs_fid_clone(file-&gt;f_path.dentry);<br>
+&gt; + fid = v9fs_fid_clone(file_dentry(file));<br>
+&gt; if (IS_ERR(fid))<br>
+&gt; return PTR_ERR(fid);<br>
+&gt;<br>
+&gt; @@ -100,7 +100,7 @@ int v9fs_file_open(struct inode *inode, struct file *file)<br>
+&gt; * because we want write after unlink usecase<br>
+&gt; * to work.<br>
+&gt; */<br>
+&gt; - fid = v9fs_writeback_fid(file-&gt;f_path.dentry);<br>
+&gt; + fid = v9fs_writeback_fid(file_dentry(file));<br>
+&gt; if (IS_ERR(fid)) {<br>
+&gt; err = PTR_ERR(fid);<br>
+&gt; mutex_unlock(&amp;v9inode-&gt;v_mutex);<br>
+&gt; @@ -516,7 +516,7 @@ v9fs_mmap_file_mmap(struct file *filp, struct vm_area_struct *vma)<br>
+&gt; * because we want write after unlink usecase<br>
+&gt; * to work.<br>
+&gt; */<br>
+&gt; - fid = v9fs_writeback_fid(filp-&gt;f_path.dentry);<br>
+&gt; + fid = v9fs_writeback_fid(file_dentry(filp));<br>
+&gt; if (IS_ERR(fid)) {<br>
+&gt; retval = PTR_ERR(fid);<br>
+&gt; mutex_unlock(&amp;v9inode-&gt;v_mutex);</p>
+<p dir="ltr">Your patch works!</p>
+<p dir="ltr">In the dmesg output there is a WARNING but the system is still working:</p>
+<p dir="ltr">[ 7.454660] ------------[ cut here ]------------<br>
+[ 7.454774] WARNING: CPU: 0 PID: 123 at /home/alessio/linux/fs/inode.c:337 inc_nlink+0x74/0x78<br>
+[ 7.454792] Modules linked in:<br>
+[ 7.454842] CPU: 0 PID: 123 Comm: mkdir Not tainted 4.7.0-rc5 #2<br>
+[ 7.454859] Hardware name: Generic AM33XX (Flattened Device Tree)<br>
+[ 7.454961] [&lt;c010ff7c&gt;] (unwind_backtrace) from [&lt;c010c6dc&gt;] (show_stack+0x20/0x24)<br>
+[ 7.455017] [&lt;c010c6dc&gt;] (show_stack) from [&lt;c04a9dc8&gt;] (dump_stack+0x24/0x28)<br>
+[ 7.455076] [&lt;c04a9dc8&gt;] (dump_stack) from [&lt;c012d150&gt;] (__warn+0xf4/0x10c)<br>
+[ 7.455117] [&lt;c012d150&gt;] (__warn) from [&lt;c012d238&gt;] (warn_slowpath_null+0x30/0x38)<br>
+[ 7.455155] [&lt;c012d238&gt;] (warn_slowpath_null) from [&lt;c024fb88&gt;] (inc_nlink+0x74/0x78)<br>
+[ 7.455212] [&lt;c024fb88&gt;] (inc_nlink) from [&lt;c0373b48&gt;] (v9fs_vfs_mkdir_dotl+0x140/0x1dc)<br>
+[ 7.455262] [&lt;c0373b48&gt;] (v9fs_vfs_mkdir_dotl) from [&lt;c0240420&gt;] (vfs_mkdir+0xc0/0x10c)<br>
+[ 7.455305] [&lt;c0240420&gt;] (vfs_mkdir) from [&lt;c0244844&gt;] (SyS_mkdirat+0x78/0xc4)<br>
+[ 7.455341] [&lt;c0244844&gt;] (SyS_mkdirat) from [&lt;c02448b4&gt;] (SyS_mkdir+0x24/0x28)<br>
+[ 7.455378] [&lt;c02448b4&gt;] (SyS_mkdir) from [&lt;c0108160&gt;] (ret_fast_syscall+0x0/0x3c)<br>
+[ 7.455400] ---[ end trace a878e09ce9f6bbd7 ]---</p>
+<p dir="ltr">Thank you very much!</p>
+<p dir="ltr">Ciao,<br>
+Alessio</p>
+
+--001a1149993a91f6fc0536581219--
