@@ -1,107 +1,61 @@
 From: Miklos Szeredi <miklos@szeredi.hu>
-Subject: Re: =?utf-8?B?cmV0cnnvvJpbUEFUQ0hdIGZpeCBl?= =?utf-8?Q?rror?=
- =?utf-8?Q?=3A?= a bin file can truncate itself while running on overlayfs
-Date: Wed, 29 Jun 2016 16:03:18 +0200
-Message-ID: <20160629140318.GA3936@veci.piliscsaba.szeredi.hu>
-References: <1466590388-4914-1-git-send-email-zhangaihua1@huawei.com>
- <57707C2E.2080500@huawei.com>
+Subject: Re: NFS/ro: mv: cannot move 'foo' to a subdirectory of itself, 'bar'
+Date: Wed, 29 Jun 2016 16:21:56 +0200
+Message-ID: <CAJfpegs2F1oDaBrZnfg=UK1NyefU=TnY7eF+rssCM_0XsL5H4A@mail.gmail.com>
+References: <20160613130710.57321936@gmail.com> <CAJfpegsxnqOpDUDHwKd4p+ZJMkBTAVKgjpNBhNqP0e2uZvrkVQ@mail.gmail.com>
+ <20160618133204.2c98c65a@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <57707C2E.2080500@huawei.com>
-Sender: linux-fsdevel-owner@vger.kernel.org
-To: Zhang AiHua <zhangaihua1@huawei.com>
-Cc: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, linux-unionfs@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-unionfs-owner@vger.kernel.org>
+Received: from mail-ob0-f169.google.com ([209.85.214.169]:32845 "EHLO
+	mail-ob0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752013AbcF2OV6 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-unionfs@vger.kernel.org>);
+	Wed, 29 Jun 2016 10:21:58 -0400
+Received: by mail-ob0-f169.google.com with SMTP id xn17so27639506obc.0
+        for <linux-unionfs@vger.kernel.org>; Wed, 29 Jun 2016 07:21:58 -0700 (PDT)
+In-Reply-To: <20160618133204.2c98c65a@gmail.com>
+Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
+To: =?UTF-8?Q?Andr=C3=A9_Roth?= <neolynx@gmail.com>
+Cc: "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>
 
-Hi,
+On Sat, Jun 18, 2016 at 1:32 PM, Andr=C3=A9 Roth <neolynx@gmail.com> wr=
+ote:
+>
+> Hello,
+>
+>>  # echo 'module overlay +mp' > /sys/kernel/debug/dynamic_debug/contr=
+ol
+>>  # strace -o /tmp/strace mv foo bar
+>>  # dmesg | grep overlay > /tmp/debug
+>>
+>> And post the /tmp/strace and /tmp/debug files.
+>
+> # strace -o /tmp/strace mv OVERLAYFS foo
+> mv: cannot move =E2=80=98OVERLAYFS=E2=80=99 to a subdirectory of itse=
+lf, =E2=80=98foo=E2=80=99
+>
+> files attached...
 
-Thanks for the report and the testcase.
+Overlayfs cannot create a whiteout on the upper fs.
 
-Here's a patch using a different approach (overlayfs philosophy is to minimize
-VFS footprint).
+Do you have
+
+  CONFIG_EXT4_USE_FOR_EXT2=3Dy
+
+in your kernel's .config?  If not, then you should.
+
+You'll also need
+
+  a4859d75944a ("ovl: fix dentry leak for default_permissions")
+
+from the overlayfs-linus branch of
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/mszeredi/vfs.git
+
+otherwise "default_permissions" will misbehave.
 
 Thanks,
 Miklos
----
-
-From: Miklos Szeredi <mszeredi@redhat.com>
-Subject: ovl: get_write_access() in truncate
-
-When truncating a file we should check write access on the underlying
-inode.  And we should do so on the lower file as well (before copy-up) for
-consistency.
-
-Original patch and test case by Aihua Zhang.
-
- - - >o >o - - test.c - - >o >o - -
-#include <stdio.h>
-#include <errno.h>
-#include <unistd.h>
-
-int main(int argc, char *argv[])
-{
-	int ret;
-
-	ret = truncate(argv[0], 4096);
-	if (ret != -1) {
-		fprintf(stderr, "truncate(argv[0]) should have failed\n");
-		return 1;
-	}
-	if (errno != ETXTBSY) {
-		perror("truncate(argv[0])");
-		return 1;
-	}
-
-	return 0;
-}
- - - >o >o - - >o >o - - >o >o - -
-
-Reported-by: Aihua Zhang <zhangaihua1@huawei.com>
-Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
-Cc: <stable@vger.kernel.org>
----
- fs/overlayfs/inode.c |   21 +++++++++++++++++++++
- 1 file changed, 21 insertions(+)
-
---- a/fs/overlayfs/inode.c
-+++ b/fs/overlayfs/inode.c
-@@ -59,16 +59,37 @@ int ovl_setattr(struct dentry *dentry, s
- 	if (err)
- 		goto out;
- 
-+	if (attr->ia_valid & ATTR_SIZE) {
-+		struct inode *realinode = d_inode(ovl_dentry_real(dentry));
-+
-+		err = -ETXTBSY;
-+		if (atomic_read(&realinode->i_writecount) < 0)
-+			goto out_drop_write;
-+	}
-+
- 	err = ovl_copy_up(dentry);
- 	if (!err) {
-+		struct inode *winode = NULL;
-+
- 		upperdentry = ovl_dentry_upper(dentry);
- 
-+		if (attr->ia_valid & ATTR_SIZE) {
-+			winode = d_inode(upperdentry);
-+			err = get_write_access(winode);
-+			if (err)
-+				goto out_drop_write;
-+		}
-+
- 		inode_lock(upperdentry->d_inode);
- 		err = notify_change(upperdentry, attr, NULL);
- 		if (!err)
- 			ovl_copyattr(upperdentry->d_inode, dentry->d_inode);
- 		inode_unlock(upperdentry->d_inode);
-+
-+		if (winode)
-+			put_write_access(winode);
- 	}
-+out_drop_write:
- 	ovl_drop_write(dentry);
- out:
- 	return err;
