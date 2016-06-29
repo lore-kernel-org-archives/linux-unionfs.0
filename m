@@ -1,43 +1,46 @@
 From: Eryu Guan <eguan@redhat.com>
-Subject: [PATCH 2/2] overlay: remove dir which contains whiteout from lower dir
-Date: Wed, 29 Jun 2016 21:39:34 +0800
-Message-ID: <1467207574-11082-2-git-send-email-eguan@redhat.com>
-References: <1467207574-11082-1-git-send-email-eguan@redhat.com>
-Return-path: <fstests-owner@vger.kernel.org>
-In-Reply-To: <1467207574-11082-1-git-send-email-eguan@redhat.com>
-Sender: fstests-owner@vger.kernel.org
+Subject: [PATCH 1/2] overlay: dentry leak for default_permissions mount option
+Date: Wed, 29 Jun 2016 21:39:33 +0800
+Message-ID: <1467207574-11082-1-git-send-email-eguan@redhat.com>
+Return-path: <linux-unionfs-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:52307 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752719AbcF2Nly (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+	Wed, 29 Jun 2016 09:41:54 -0400
+Sender: linux-unionfs-owner@vger.kernel.org
+List-Id: linux-unionfs@vger.kernel.org
 To: fstests@vger.kernel.org
 Cc: linux-unionfs@vger.kernel.org, xzhou@redhat.com, Eryu Guan <eguan@redhat.com>
-List-Id: linux-unionfs@vger.kernel.org
 
-Test the removal of a dir which contains whiteout from lower dir,
-which could crash the kernel.
+overlayfs was leaking dentry on non-directories when using the
+'default_permissions' mount option, which resulted in "BUG Dentry
+still in use".
 
-The following kernel commit fixed this issue
-84889d4 ovl: check dentry positiveness in ovl_cleanup_whiteouts()
+The following kernel commit fixed it:
+ovl: fix dentry leak for default_permissions
 
 Signed-off-by: Eryu Guan <eguan@redhat.com>
 ---
- tests/overlay/010     | 78 +++++++++++++++++++++++++++++++++++++++++++++++++++
- tests/overlay/010.out |  2 ++
+ tests/overlay/009     | 68 +++++++++++++++++++++++++++++++++++++++++++++++++++
+ tests/overlay/009.out |  2 ++
  tests/overlay/group   |  1 +
- 3 files changed, 81 insertions(+)
- create mode 100755 tests/overlay/010
- create mode 100644 tests/overlay/010.out
+ 3 files changed, 71 insertions(+)
+ create mode 100755 tests/overlay/009
+ create mode 100644 tests/overlay/009.out
 
-diff --git a/tests/overlay/010 b/tests/overlay/010
+diff --git a/tests/overlay/009 b/tests/overlay/009
 new file mode 100755
-index 0000000..5d1c2bd
+index 0000000..de94ca4
 --- /dev/null
-+++ b/tests/overlay/010
-@@ -0,0 +1,78 @@
++++ b/tests/overlay/009
+@@ -0,0 +1,68 @@
 +#! /bin/bash
-+# FS QA Test 010
++# FS QA Test 009
 +#
-+# Remove dir which contains whiteout from lower dir.
++# dentry leak for default_permissions mount option
 +#
-+# The following kernel commit fixed the kernel crash on the removal
-+# 84889d4 ovl: check dentry positiveness in ovl_cleanup_whiteouts()
++# This is fixed by kernel commit named as
++# ovl: fix dentry leak for default_permissions
 +#
 +#-----------------------------------------------------------------------
 +# Copyright (c) 2016 Red Hat Inc.  All Rights Reserved.
@@ -86,45 +89,35 @@ index 0000000..5d1c2bd
 +# Remove all files from previous tests
 +_scratch_mkfs
 +
-+# Need two lower dirs in this test, and we mount overlay ourselves,
-+# create upper and workdir as well
-+lowerdir1=$SCRATCH_DEV/$OVERLAY_LOWER_DIR.1
-+lowerdir2=$SCRATCH_DEV/$OVERLAY_LOWER_DIR.2
-+upperdir=$SCRATCH_DEV/$OVERLAY_UPPER_DIR
-+workdir=$SCRATCH_DEV/$OVERLAY_WORK_DIR
-+mkdir -p $lowerdir1 $lowerdir2 $upperdir $workdir
++# Create test file in lowerdir
++lowerdir=$SCRATCH_DEV/$OVERLAY_LOWER_DIR
++mkdir -p $lowerdir
++touch $lowerdir/testfile
 +
-+# One lowerdir contains test dir and test files, the other contains whiteout
-+mkdir -p $lowerdir1/testdir $lowerdir2/testdir
-+touch $lowerdir1/testdir/a $lowerdir1/testdir/b
-+mknod $lowerdir2/testdir/a c 0 0
++# mount overlay with default_permissions option, get a reference on the dentry
++_scratch_mount -o default_permissions
++cat $SCRATCH_MNT/testfile
 +
-+# Mount overlayfs and remove testdir, which led to kernel crash
-+$MOUNT_PROG -t overlay -o lowerdir=$lowerdir2:$lowerdir1 \
-+	    -o upperdir=$upperdir,workdir=$workdir \
-+	    $SCRATCH_DEV $SCRATCH_MNT
-+rm -rf $SCRATCH_MNT/testdir
-+
-+# success, all done
++# overlay will be unmounted by test harness and kernel BUG if dentry leaked
 +echo "Silence is golden"
 +status=0
 +exit
-diff --git a/tests/overlay/010.out b/tests/overlay/010.out
+diff --git a/tests/overlay/009.out b/tests/overlay/009.out
 new file mode 100644
-index 0000000..1d83a8d
+index 0000000..7e97715
 --- /dev/null
-+++ b/tests/overlay/010.out
++++ b/tests/overlay/009.out
 @@ -0,0 +1,2 @@
-+QA output created by 010
++QA output created by 009
 +Silence is golden
 diff --git a/tests/overlay/group b/tests/overlay/group
-index 3f08cd3..06cdb7e 100644
+index 874bfdd..3f08cd3 100644
 --- a/tests/overlay/group
 +++ b/tests/overlay/group
-@@ -12,3 +12,4 @@
+@@ -11,3 +11,4 @@
+ 006 auto quick copyup whiteout
  007 auto quick
  008 auto quick whiteout
- 009 auto quick
-+010 auto quick whiteout
++009 auto quick
 -- 
 2.7.4
