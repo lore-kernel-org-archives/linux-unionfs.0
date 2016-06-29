@@ -1,123 +1,107 @@
-From: Eryu Guan <eguan@redhat.com>
-Subject: [PATCH 1/2] overlay: dentry leak for default_permissions mount option
-Date: Wed, 29 Jun 2016 21:39:33 +0800
-Message-ID: <1467207574-11082-1-git-send-email-eguan@redhat.com>
-Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:52307 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752719AbcF2Nly (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-	Wed, 29 Jun 2016 09:41:54 -0400
-Sender: linux-unionfs-owner@vger.kernel.org
+From: Miklos Szeredi <miklos@szeredi.hu>
+Subject: Re: =?utf-8?B?cmV0cnnvvJpbUEFUQ0hdIGZpeCBl?= =?utf-8?Q?rror?=
+ =?utf-8?Q?=3A?= a bin file can truncate itself while running on overlayfs
+Date: Wed, 29 Jun 2016 16:03:18 +0200
+Message-ID: <20160629140318.GA3936@veci.piliscsaba.szeredi.hu>
+References: <1466590388-4914-1-git-send-email-zhangaihua1@huawei.com>
+ <57707C2E.2080500@huawei.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <57707C2E.2080500@huawei.com>
+Sender: linux-fsdevel-owner@vger.kernel.org
+To: Zhang AiHua <zhangaihua1@huawei.com>
+Cc: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, linux-unionfs@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: fstests@vger.kernel.org
-Cc: linux-unionfs@vger.kernel.org, xzhou@redhat.com, Eryu Guan <eguan@redhat.com>
 
-overlayfs was leaking dentry on non-directories when using the
-'default_permissions' mount option, which resulted in "BUG Dentry
-still in use".
+Hi,
 
-The following kernel commit fixed it:
-ovl: fix dentry leak for default_permissions
+Thanks for the report and the testcase.
 
-Signed-off-by: Eryu Guan <eguan@redhat.com>
+Here's a patch using a different approach (overlayfs philosophy is to minimize
+VFS footprint).
+
+Thanks,
+Miklos
 ---
- tests/overlay/009     | 68 +++++++++++++++++++++++++++++++++++++++++++++++++++
- tests/overlay/009.out |  2 ++
- tests/overlay/group   |  1 +
- 3 files changed, 71 insertions(+)
- create mode 100755 tests/overlay/009
- create mode 100644 tests/overlay/009.out
 
-diff --git a/tests/overlay/009 b/tests/overlay/009
-new file mode 100755
-index 0000000..de94ca4
---- /dev/null
-+++ b/tests/overlay/009
-@@ -0,0 +1,68 @@
-+#! /bin/bash
-+# FS QA Test 009
-+#
-+# dentry leak for default_permissions mount option
-+#
-+# This is fixed by kernel commit named as
-+# ovl: fix dentry leak for default_permissions
-+#
-+#-----------------------------------------------------------------------
-+# Copyright (c) 2016 Red Hat Inc.  All Rights Reserved.
-+#
-+# This program is free software; you can redistribute it and/or
-+# modify it under the terms of the GNU General Public License as
-+# published by the Free Software Foundation.
-+#
-+# This program is distributed in the hope that it would be useful,
-+# but WITHOUT ANY WARRANTY; without even the implied warranty of
-+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+# GNU General Public License for more details.
-+#
-+# You should have received a copy of the GNU General Public License
-+# along with this program; if not, write the Free Software Foundation,
-+# Inc.,  51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-+#-----------------------------------------------------------------------
-+#
+From: Miklos Szeredi <mszeredi@redhat.com>
+Subject: ovl: get_write_access() in truncate
+
+When truncating a file we should check write access on the underlying
+inode.  And we should do so on the lower file as well (before copy-up) for
+consistency.
+
+Original patch and test case by Aihua Zhang.
+
+ - - >o >o - - test.c - - >o >o - -
+#include <stdio.h>
+#include <errno.h>
+#include <unistd.h>
+
+int main(int argc, char *argv[])
+{
+	int ret;
+
+	ret = truncate(argv[0], 4096);
+	if (ret != -1) {
+		fprintf(stderr, "truncate(argv[0]) should have failed\n");
+		return 1;
+	}
+	if (errno != ETXTBSY) {
+		perror("truncate(argv[0])");
+		return 1;
+	}
+
+	return 0;
+}
+ - - >o >o - - >o >o - - >o >o - -
+
+Reported-by: Aihua Zhang <zhangaihua1@huawei.com>
+Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
+Cc: <stable@vger.kernel.org>
+---
+ fs/overlayfs/inode.c |   21 +++++++++++++++++++++
+ 1 file changed, 21 insertions(+)
+
+--- a/fs/overlayfs/inode.c
++++ b/fs/overlayfs/inode.c
+@@ -59,16 +59,37 @@ int ovl_setattr(struct dentry *dentry, s
+ 	if (err)
+ 		goto out;
+ 
++	if (attr->ia_valid & ATTR_SIZE) {
++		struct inode *realinode = d_inode(ovl_dentry_real(dentry));
 +
-+seq=`basename $0`
-+seqres=$RESULT_DIR/$seq
-+echo "QA output created by $seq"
++		err = -ETXTBSY;
++		if (atomic_read(&realinode->i_writecount) < 0)
++			goto out_drop_write;
++	}
 +
-+here=`pwd`
-+tmp=/tmp/$$
-+status=1	# failure is the default!
-+trap "_cleanup; exit \$status" 0 1 2 3 15
+ 	err = ovl_copy_up(dentry);
+ 	if (!err) {
++		struct inode *winode = NULL;
 +
-+_cleanup()
-+{
-+	cd /
-+	rm -f $tmp.*
-+}
+ 		upperdentry = ovl_dentry_upper(dentry);
+ 
++		if (attr->ia_valid & ATTR_SIZE) {
++			winode = d_inode(upperdentry);
++			err = get_write_access(winode);
++			if (err)
++				goto out_drop_write;
++		}
 +
-+# get standard environment, filters and checks
-+. ./common/rc
-+. ./common/filter
+ 		inode_lock(upperdentry->d_inode);
+ 		err = notify_change(upperdentry, attr, NULL);
+ 		if (!err)
+ 			ovl_copyattr(upperdentry->d_inode, dentry->d_inode);
+ 		inode_unlock(upperdentry->d_inode);
 +
-+rm -f $seqres.full
-+
-+# real QA test starts here
-+_supported_fs overlay
-+_supported_os Linux
-+_require_scratch
-+
-+# Remove all files from previous tests
-+_scratch_mkfs
-+
-+# Create test file in lowerdir
-+lowerdir=$SCRATCH_DEV/$OVERLAY_LOWER_DIR
-+mkdir -p $lowerdir
-+touch $lowerdir/testfile
-+
-+# mount overlay with default_permissions option, get a reference on the dentry
-+_scratch_mount -o default_permissions
-+cat $SCRATCH_MNT/testfile
-+
-+# overlay will be unmounted by test harness and kernel BUG if dentry leaked
-+echo "Silence is golden"
-+status=0
-+exit
-diff --git a/tests/overlay/009.out b/tests/overlay/009.out
-new file mode 100644
-index 0000000..7e97715
---- /dev/null
-+++ b/tests/overlay/009.out
-@@ -0,0 +1,2 @@
-+QA output created by 009
-+Silence is golden
-diff --git a/tests/overlay/group b/tests/overlay/group
-index 874bfdd..3f08cd3 100644
---- a/tests/overlay/group
-+++ b/tests/overlay/group
-@@ -11,3 +11,4 @@
- 006 auto quick copyup whiteout
- 007 auto quick
- 008 auto quick whiteout
-+009 auto quick
--- 
-2.7.4
++		if (winode)
++			put_write_access(winode);
+ 	}
++out_drop_write:
+ 	ovl_drop_write(dentry);
+ out:
+ 	return err;
