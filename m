@@ -1,106 +1,130 @@
-From: Alessio Igor Bogani <alessioigorbogani@gmail.com>
-Subject: Re: Problem with two overlayed 9p filesystems
-Date: Tue, 28 Jun 2016 14:11:28 +0200
-Message-ID: <CAPk1OjHePfz=WjSr=ivdeWKH-674AEcm7eMJnDGzx_tvgw_Auw@mail.gmail.com>
-References: <CAPk1OjHwxm_=+rBNXMLXbJvyNGVaGKV0sd_-0RThY-FnTTBALA@mail.gmail.com>
- <20160627185431.GA2388@veci.piliscsaba.szeredi.hu>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-qk0-f194.google.com ([209.85.220.194]:35820 "EHLO
-	mail-qk0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751158AbcF1MLa (ORCPT
-	<rfc822;linux-unionfs@vger.kernel.org>);
-	Tue, 28 Jun 2016 08:11:30 -0400
-In-Reply-To: <20160627185431.GA2388@veci.piliscsaba.szeredi.hu>
-Sender: linux-unionfs-owner@vger.kernel.org
+From: Eryu Guan <eguan@redhat.com>
+Subject: [PATCH 2/2] overlay: remove dir which contains whiteout from lower dir
+Date: Wed, 29 Jun 2016 21:39:34 +0800
+Message-ID: <1467207574-11082-2-git-send-email-eguan@redhat.com>
+References: <1467207574-11082-1-git-send-email-eguan@redhat.com>
+Return-path: <fstests-owner@vger.kernel.org>
+In-Reply-To: <1467207574-11082-1-git-send-email-eguan@redhat.com>
+Sender: fstests-owner@vger.kernel.org
+To: fstests@vger.kernel.org
+Cc: linux-unionfs@vger.kernel.org, xzhou@redhat.com, Eryu Guan <eguan@redhat.com>
 List-Id: linux-unionfs@vger.kernel.org
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: Eric Van Hensbergen <ericvh@gmail.com>, Ron Minnich <rminnich@sandia.gov>, Latchesar Ionkov <lucho@ionkov.net>, v9fs-developer@lists.sourceforge.net, linux-unionfs@vger.kernel.org, LFSDEV <linux-fsdevel@vger.kernel.org>, Alexander Viro <viro@zeniv.linux.org.uk>
 
-Miklos,
+Test the removal of a dir which contains whiteout from lower dir,
+which could crash the kernel.
 
-On 27 June 2016 at 20:54, Miklos Szeredi <miklos@szeredi.hu> wrote:
-> On Mon, Jun 27, 2016 at 04:30:59PM +0200, Alessio Igor Bogani wrote:
->> Hi,
->>
->> Using v4.0 I used to put two 9p or two ext4 filesystems in overlay.
->> Now with v4.7-rc5 I can still put two ext4 filesystems in overlay but
->> not two 9p filesystems anymore. In the later I obtain the following
->> error executing a simple "cat overlay/test.txt".
->>
->> Bisecting results in the first offending commit
->> 4bacc9c9234c7c8eec44f5ed4e960d9f96fa0f01 which though contains only
->
-> Please try the following patch.
->
-> Thanks,
-> Miklos
->
-> diff --git a/fs/9p/vfs_file.c b/fs/9p/vfs_file.c
-> index b84c291ba1eb..d7b78d531e63 100644
-> --- a/fs/9p/vfs_file.c
-> +++ b/fs/9p/vfs_file.c
-> @@ -74,7 +74,7 @@ int v9fs_file_open(struct inode *inode, struct file *file)
->                                         v9fs_proto_dotu(v9ses));
->         fid = file->private_data;
->         if (!fid) {
-> -               fid = v9fs_fid_clone(file->f_path.dentry);
-> +               fid = v9fs_fid_clone(file_dentry(file));
->                 if (IS_ERR(fid))
->                         return PTR_ERR(fid);
->
-> @@ -100,7 +100,7 @@ int v9fs_file_open(struct inode *inode, struct file *file)
->                  * because we want write after unlink usecase
->                  * to work.
->                  */
-> -               fid = v9fs_writeback_fid(file->f_path.dentry);
-> +               fid = v9fs_writeback_fid(file_dentry(file));
->                 if (IS_ERR(fid)) {
->                         err = PTR_ERR(fid);
->                         mutex_unlock(&v9inode->v_mutex);
-> @@ -516,7 +516,7 @@ v9fs_mmap_file_mmap(struct file *filp, struct vm_area_struct *vma)
->                  * because we want write after unlink usecase
->                  * to work.
->                  */
-> -               fid = v9fs_writeback_fid(filp->f_path.dentry);
-> +               fid = v9fs_writeback_fid(file_dentry(filp));
->                 if (IS_ERR(fid)) {
->                         retval = PTR_ERR(fid);
->                         mutex_unlock(&v9inode->v_mutex);
+The following kernel commit fixed this issue
+84889d4 ovl: check dentry positiveness in ovl_cleanup_whiteouts()
 
-Your patch works!
+Signed-off-by: Eryu Guan <eguan@redhat.com>
+---
+ tests/overlay/010     | 78 +++++++++++++++++++++++++++++++++++++++++++++++++++
+ tests/overlay/010.out |  2 ++
+ tests/overlay/group   |  1 +
+ 3 files changed, 81 insertions(+)
+ create mode 100755 tests/overlay/010
+ create mode 100644 tests/overlay/010.out
 
-In the dmesg output there is a WARNING but the system is still working:
-
-[    7.454660] ------------[ cut here ]------------
-[    7.454774] WARNING: CPU: 0 PID: 123 at
-/home/alessio/linux/fs/inode.c:337 inc_nlink+0x74/0x78
-[    7.454792] Modules linked in:
-[    7.454842] CPU: 0 PID: 123 Comm: mkdir Not tainted 4.7.0-rc5 #2
-[    7.454859] Hardware name: Generic AM33XX (Flattened Device Tree)
-[    7.454961] [<c010ff7c>] (unwind_backtrace) from [<c010c6dc>]
-(show_stack+0x20/0x24)
-[    7.455017] [<c010c6dc>] (show_stack) from [<c04a9dc8>]
-(dump_stack+0x24/0x28)
-[    7.455076] [<c04a9dc8>] (dump_stack) from [<c012d150>] (__warn+0xf4/0x10c)
-[    7.455117] [<c012d150>] (__warn) from [<c012d238>]
-(warn_slowpath_null+0x30/0x38)
-[    7.455155] [<c012d238>] (warn_slowpath_null) from [<c024fb88>]
-(inc_nlink+0x74/0x78)
-[    7.455212] [<c024fb88>] (inc_nlink) from [<c0373b48>]
-(v9fs_vfs_mkdir_dotl+0x140/0x1dc)
-[    7.455262] [<c0373b48>] (v9fs_vfs_mkdir_dotl) from [<c0240420>]
-(vfs_mkdir+0xc0/0x10c)
-[    7.455305] [<c0240420>] (vfs_mkdir) from [<c0244844>]
-(SyS_mkdirat+0x78/0xc4)
-[    7.455341] [<c0244844>] (SyS_mkdirat) from [<c02448b4>]
-(SyS_mkdir+0x24/0x28)
-[    7.455378] [<c02448b4>] (SyS_mkdir) from [<c0108160>]
-(ret_fast_syscall+0x0/0x3c)
-[    7.455400] ---[ end trace a878e09ce9f6bbd7 ]---
-
-Thank you very much!
-
-Ciao,
-Alessio
+diff --git a/tests/overlay/010 b/tests/overlay/010
+new file mode 100755
+index 0000000..5d1c2bd
+--- /dev/null
++++ b/tests/overlay/010
+@@ -0,0 +1,78 @@
++#! /bin/bash
++# FS QA Test 010
++#
++# Remove dir which contains whiteout from lower dir.
++#
++# The following kernel commit fixed the kernel crash on the removal
++# 84889d4 ovl: check dentry positiveness in ovl_cleanup_whiteouts()
++#
++#-----------------------------------------------------------------------
++# Copyright (c) 2016 Red Hat Inc.  All Rights Reserved.
++#
++# This program is free software; you can redistribute it and/or
++# modify it under the terms of the GNU General Public License as
++# published by the Free Software Foundation.
++#
++# This program is distributed in the hope that it would be useful,
++# but WITHOUT ANY WARRANTY; without even the implied warranty of
++# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++# GNU General Public License for more details.
++#
++# You should have received a copy of the GNU General Public License
++# along with this program; if not, write the Free Software Foundation,
++# Inc.,  51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
++#-----------------------------------------------------------------------
++#
++
++seq=`basename $0`
++seqres=$RESULT_DIR/$seq
++echo "QA output created by $seq"
++
++here=`pwd`
++tmp=/tmp/$$
++status=1	# failure is the default!
++trap "_cleanup; exit \$status" 0 1 2 3 15
++
++_cleanup()
++{
++	cd /
++	rm -f $tmp.*
++}
++
++# get standard environment, filters and checks
++. ./common/rc
++. ./common/filter
++
++rm -f $seqres.full
++
++# real QA test starts here
++_supported_fs overlay
++_supported_os Linux
++_require_scratch
++
++# Remove all files from previous tests
++_scratch_mkfs
++
++# Need two lower dirs in this test, and we mount overlay ourselves,
++# create upper and workdir as well
++lowerdir1=$SCRATCH_DEV/$OVERLAY_LOWER_DIR.1
++lowerdir2=$SCRATCH_DEV/$OVERLAY_LOWER_DIR.2
++upperdir=$SCRATCH_DEV/$OVERLAY_UPPER_DIR
++workdir=$SCRATCH_DEV/$OVERLAY_WORK_DIR
++mkdir -p $lowerdir1 $lowerdir2 $upperdir $workdir
++
++# One lowerdir contains test dir and test files, the other contains whiteout
++mkdir -p $lowerdir1/testdir $lowerdir2/testdir
++touch $lowerdir1/testdir/a $lowerdir1/testdir/b
++mknod $lowerdir2/testdir/a c 0 0
++
++# Mount overlayfs and remove testdir, which led to kernel crash
++$MOUNT_PROG -t overlay -o lowerdir=$lowerdir2:$lowerdir1 \
++	    -o upperdir=$upperdir,workdir=$workdir \
++	    $SCRATCH_DEV $SCRATCH_MNT
++rm -rf $SCRATCH_MNT/testdir
++
++# success, all done
++echo "Silence is golden"
++status=0
++exit
+diff --git a/tests/overlay/010.out b/tests/overlay/010.out
+new file mode 100644
+index 0000000..1d83a8d
+--- /dev/null
++++ b/tests/overlay/010.out
+@@ -0,0 +1,2 @@
++QA output created by 010
++Silence is golden
+diff --git a/tests/overlay/group b/tests/overlay/group
+index 3f08cd3..06cdb7e 100644
+--- a/tests/overlay/group
++++ b/tests/overlay/group
+@@ -12,3 +12,4 @@
+ 007 auto quick
+ 008 auto quick whiteout
+ 009 auto quick
++010 auto quick whiteout
+-- 
+2.7.4
