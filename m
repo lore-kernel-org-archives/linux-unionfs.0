@@ -1,155 +1,119 @@
-From: Vivek Goyal <vgoyal@redhat.com>
-Subject: Re: [PATCH 5/5] overlayfs: Use vfs_getxattr_noperm() for real inode
-Date: Tue, 5 Jul 2016 17:16:38 -0400
-Message-ID: <20160705211638.GH17987@redhat.com>
+From: Casey Schaufler <casey@schaufler-ca.com>
+Subject: Re: [PATCH 2/5] security,overlayfs: Provide security hook for copy up
+ of xattrs for overlay file
+Date: Tue, 5 Jul 2016 14:34:43 -0700
+Message-ID: <93ab3b87-a9c7-b792-2253-07aa2d03681e@schaufler-ca.com>
 References: <1467733854-6314-1-git-send-email-vgoyal@redhat.com>
- <1467733854-6314-6-git-send-email-vgoyal@redhat.com>
- <b62a4ca9-3f75-b662-108b-1dec85c40ba1@schaufler-ca.com>
+ <1467733854-6314-3-git-send-email-vgoyal@redhat.com>
+ <bc7c8147-465e-791d-ce5a-1a194eb67228@schaufler-ca.com>
+ <20160705211502.GG17987@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <b62a4ca9-3f75-b662-108b-1dec85c40ba1@schaufler-ca.com>
-Sender: linux-fsdevel-owner@vger.kernel.org
-To: Casey Schaufler <casey@schaufler-ca.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20160705211502.GG17987@redhat.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Vivek Goyal <vgoyal@redhat.com>
 Cc: miklos@szeredi.hu, sds@tycho.nsa.gov, linux-kernel@vger.kernel.org, linux-unionfs@vger.kernel.org, linux-security-module@vger.kernel.org, dwalsh@redhat.com, dhowells@redhat.com, pmoore@redhat.com, viro@ZenIV.linux.org.uk, linux-fsdevel@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 
-On Tue, Jul 05, 2016 at 01:29:39PM -0700, Casey Schaufler wrote:
-> On 7/5/2016 8:50 AM, Vivek Goyal wrote:
-> > ovl_getxattr() currently uses vfs_getxattr() on realinode. This fails
-> > if mounter does not have DAC/MAC permission to access getxattr.
-> >
-> > Specifically this becomes a problem when selinux is trying to initialize
-> > overlay inode and does ->getxattr(overlay_inode). A task might trigger
-> > initialization of overlay inode and we will access real inode xattr in the
-> > context of mounter and if mounter does not have permissions, then inode
-> > selinux context initialization fails and inode is labeled as unlabeled_t.
-> >
-> > One way to deal with it is to let SELinux do getxattr checks both on
-> > overlay inode and underlying inode and overlay can call vfs_getxattr_noperm()
-> > to make sure when selinux is trying to initialize label on inode, it does
-> > not go through checks on lower levels and initialization is successful.
-> > And after inode initialization, SELinux will make sure task has getatttr
-> > permission.
-> >
-> > One issue with this approach is that it does not work for directories as
-> > d_real() returns the overlay dentry for directories and not the underlying
-> > directory dentry.
-> >
-> > Another way to deal with it to introduce another function pointer in
-> > inode_operations, say getxattr_noperm(), which is responsible to get
-> > xattr without any checks. SELinux initialization code will call this
-> > first if it is available on inode. So user space code path will call
-> > ->getxattr() and that will go through checks and SELinux internal
-> > initialization will call ->getxattr_noperm() and that will not
-> > go through checks.
-> >
-> > For now, I am just converting ovl_getxattr() to get xattr without
-> > any checks on underlying inode. That means it is possible for
-> > a task to get xattr of a file/dir on lower/upper through overlay mount
-> > while it is not possible outside overlay mount.
-> >
-> > If this is a major concern, I can look into implementing getxattr_noperm().
-> 
-> This is a major concern.
+On 7/5/2016 2:15 PM, Vivek Goyal wrote:
+> On Tue, Jul 05, 2016 at 01:22:22PM -0700, Casey Schaufler wrote:
+>> On 7/5/2016 8:50 AM, Vivek Goyal wrote:
+>>> Provide a security hook which is called when xattrs of a file are being
+>>> copied up. This hook is called once for each xattr and one can either
+>>> accept or reject xattr. If 0 is returned, xattr will be copied up, if 1
+>>> is returned, xattr will not be copied up and if negative error code
+>>> is returned, copy up will be aborted.
+>>>
+>>> In SELinux, label of lower file is not copied up. File already has been
+>>> set with right label at the time of creation and we don't want to overwrite
+>>> that label.
+>>>
+>>> Signed-off-by: David Howells <dhowells@redhat.com>
+>>> Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
+>>> ---
+>>>  fs/overlayfs/copy_up.c    |  8 ++++++++
+>>>  include/linux/lsm_hooks.h | 13 +++++++++++++
+>>>  include/linux/security.h  | 10 ++++++++++
+>>>  security/security.c       |  9 +++++++++
+>>>  security/selinux/hooks.c  | 14 ++++++++++++++
+>>>  5 files changed, 54 insertions(+)
+>>>
+>>> diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
+>>> index 90dc362..2c31938 100644
+>>> --- a/fs/overlayfs/copy_up.c
+>>> +++ b/fs/overlayfs/copy_up.c
+>>> @@ -103,6 +103,14 @@ retry:
+>>>  			goto retry;
+>>>  		}
+>>>  
+>>> +		error = security_inode_copy_up_xattr(old, new,
+>>> +						     name, value, size);
+>>> +		if (error < 0)
+>>> +			break;
+>>> +		if (error == 1) {
+>>> +			error = 0;
+>>> +			continue; /* Discard */
+>>> +		}
+>>>  		error = vfs_setxattr(new, name, value, size, 0);
+>>>  		if (error)
+>>>  			break;
+>>> diff --git a/include/linux/lsm_hooks.h b/include/linux/lsm_hooks.h
+>>> index fcde9b9..2a8ee8c 100644
+>>> --- a/include/linux/lsm_hooks.h
+>>> +++ b/include/linux/lsm_hooks.h
+>>> @@ -412,6 +412,16 @@
+>>>   *	@src indicates the union dentry of file that is being copied up.
+>>>   *	@old indicates the pointer to old_cred returned to caller.
+>>>   *	Returns 0 on success or a negative error code on error.
+>>> + * @inode_copy_up_xattr:
+>>> + *	Filter the xattrs being copied up when a unioned file is copied
+>>> + *	up from a lower layer to the union/overlay layer.
+>>> + *	@src indicates the file that is being copied up.
+>>> + *	@dst indicates the file that has being created by the copy up.
+>>> + *	@name indicates the name of the xattr.
+>>> + *	@value, @size indicate the payload of the xattr.
+>>> + *	Returns 0 to accept the xattr, 1 to discard the xattr or a negative
+>>> + *	error code to abort the copy up. Note that the caller is responsible
+>>> + *	for reading and writing the xattrs as this hook is merely a filter.
+>> The return should be -EOPNOTSUPP from security modules that don't
+>> support the attribute "name". This will make it possible to support
+>> multiple modules that provide attributes. (patches pending)
+> Hmm.., Sorry I did not understand this one. 
+>
+> So all modules will not understand all xattrs. So if they start returning
+> -EOPNOTSUPP, then as per current implementation, copy up operation will
+> be aborted. 
 
-Hmm.., In that case I will write patch to provide another inode operation
-getxattr_noperm() and a wrapper which falls back to getxattr() if noperm
-variant is not defined. That should take care of this issue.
+Yes, the infrastructure code will have to change to deal with the
+tri-state returns. That's also true of several other hooks.
 
-Thanks
-Vivek
-> 
-> >
-> > Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
-> > ---
-> >  fs/overlayfs/inode.c  |  7 +------
-> >  fs/xattr.c            | 28 +++++++++++++++++++---------
-> >  include/linux/xattr.h |  1 +
-> >  3 files changed, 21 insertions(+), 15 deletions(-)
-> >
-> > diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
-> > index 36dfd86..a5d3320 100644
-> > --- a/fs/overlayfs/inode.c
-> > +++ b/fs/overlayfs/inode.c
-> > @@ -233,16 +233,11 @@ ssize_t ovl_getxattr(struct dentry *dentry, struct inode *inode,
-> >  		     const char *name, void *value, size_t size)
-> >  {
-> >  	struct dentry *realdentry = ovl_dentry_real(dentry);
-> > -	ssize_t sz;
-> > -	const struct cred *old_cred;
-> >  
-> >  	if (ovl_is_private_xattr(name))
-> >  		return -ENODATA;
-> >  
-> > -	old_cred = ovl_override_creds(dentry->d_sb);
-> > -	sz = vfs_getxattr(realdentry, name, value, size);
-> > -	revert_creds(old_cred);
-> > -	return size;
-> > +	return vfs_getxattr_noperm(realdentry, name, value, size);
-> >  }
-> >  
-> >  ssize_t ovl_listxattr(struct dentry *dentry, char *list, size_t size)
-> > diff --git a/fs/xattr.c b/fs/xattr.c
-> > index 4beafc4..973e18c 100644
-> > --- a/fs/xattr.c
-> > +++ b/fs/xattr.c
-> > @@ -209,19 +209,11 @@ vfs_getxattr_alloc(struct dentry *dentry, const char *name, char **xattr_value,
-> >  }
-> >  
-> >  ssize_t
-> > -vfs_getxattr(struct dentry *dentry, const char *name, void *value, size_t size)
-> > +vfs_getxattr_noperm(struct dentry *dentry, const char *name, void *value, size_t size)
-> >  {
-> >  	struct inode *inode = dentry->d_inode;
-> >  	int error;
-> >  
-> > -	error = xattr_permission(inode, name, MAY_READ);
-> > -	if (error)
-> > -		return error;
-> > -
-> > -	error = security_inode_getxattr(dentry, name);
-> > -	if (error)
-> > -		return error;
-> > -
-> >  	if (!strncmp(name, XATTR_SECURITY_PREFIX,
-> >  				XATTR_SECURITY_PREFIX_LEN)) {
-> >  		const char *suffix = name + XATTR_SECURITY_PREFIX_LEN;
-> > @@ -242,6 +234,24 @@ nolsm:
-> >  
-> >  	return error;
-> >  }
-> > +EXPORT_SYMBOL_GPL(vfs_getxattr_noperm);
-> > +
-> > +ssize_t
-> > +vfs_getxattr(struct dentry *dentry, const char *name, void *value, size_t size)
-> > +{
-> > +	struct inode *inode = dentry->d_inode;
-> > +	int error;
-> > +
-> > +	error = xattr_permission(inode, name, MAY_READ);
-> > +	if (error)
-> > +		return error;
-> > +
-> > +	error = security_inode_getxattr(dentry, name);
-> > +	if (error)
-> > +		return error;
-> > +
-> > +	return vfs_getxattr_noperm(dentry, name, value, size);
-> > +}
-> >  EXPORT_SYMBOL_GPL(vfs_getxattr);
-> >  
-> >  ssize_t
-> > diff --git a/include/linux/xattr.h b/include/linux/xattr.h
-> > index 94079ba..832a6b6 100644
-> > --- a/include/linux/xattr.h
-> > +++ b/include/linux/xattr.h
-> > @@ -47,6 +47,7 @@ struct xattr {
-> >  
-> >  ssize_t xattr_getsecurity(struct inode *, const char *, void *, size_t);
-> >  ssize_t vfs_getxattr(struct dentry *, const char *, void *, size_t);
-> > +ssize_t vfs_getxattr_noperm(struct dentry *, const char *, void *, size_t);
-> >  ssize_t vfs_listxattr(struct dentry *d, char *list, size_t size);
-> >  int __vfs_setxattr_noperm(struct dentry *, const char *, const void *, size_t, int);
-> >  int vfs_setxattr(struct dentry *, const char *, const void *, size_t, int);
+> Current implementation relies on that a security module, returns 0 if
+> every thing is "name" xattr should be copied up or lsm does not care.
+> Negative error code is returned only if something is wrong. Given every
+> lsm will not understand/care about all the xattrs, we can't return 
+> error code if lsm does not own/understand the "name". In fact
+> call_int_hook() will bail out the very first time negative error code
+> is returned. 
+>
+> IOW, current implementation will work with multiple modules providing
+> implementation for same hook as long as module returns 0 for the xattrs
+> it does not understand. 
+
+There have to be four states. I own this attribute, and want you
+to use it. I own this attribute and I want you to ignore it. I don't
+own this attribute. I own this attribute and something went terribly
+wrong, such as running out of memory.
+
+>
+> I guess I am missing something. Can you please elaborate a little more.
+>
+>> If the only use to which this hook is put is to identify attributes
+>> that should be discarded it's unnecessary overhead to pass the
+>> parameters that are never used.
+> Ok, I will get rid of extra parameters. If somebody needs these, it can
+> be added later.
+>
+> Vivek
+>
