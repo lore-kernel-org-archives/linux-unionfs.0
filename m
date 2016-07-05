@@ -1,204 +1,201 @@
 From: Vivek Goyal <vgoyal@redhat.com>
-Subject: [PATCH 4/5] overlayfs: Correctly label newly created file over whiteout
-Date: Tue,  5 Jul 2016 11:50:53 -0400
-Message-ID: <1467733854-6314-5-git-send-email-vgoyal@redhat.com>
+Subject: [PATCH 1/5] security, overlayfs: provide copy up security hook for unioned files
+Date: Tue,  5 Jul 2016 11:50:50 -0400
+Message-ID: <1467733854-6314-2-git-send-email-vgoyal@redhat.com>
 References: <1467733854-6314-1-git-send-email-vgoyal@redhat.com>
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
+Return-path: <linux-unionfs-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:59665 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752543AbcGEPvs (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+	Tue, 5 Jul 2016 11:51:48 -0400
 In-Reply-To: <1467733854-6314-1-git-send-email-vgoyal@redhat.com>
-Sender: linux-fsdevel-owner@vger.kernel.org
+Sender: linux-unionfs-owner@vger.kernel.org
+List-Id: linux-unionfs@vger.kernel.org
 To: miklos@szeredi.hu, sds@tycho.nsa.gov, linux-kernel@vger.kernel.org, linux-unionfs@vger.kernel.org, linux-security-module@vger.kernel.org
 Cc: dwalsh@redhat.com, dhowells@redhat.com, pmoore@redhat.com, viro@ZenIV.linux.org.uk, vgoyal@redhat.com, linux-fsdevel@vger.kernel.org
-List-Id: linux-unionfs@vger.kernel.org
 
-During a new file creation, we have switched to mounter's creds for actual
-file creation. Also if there is a whiteout present, then file will be
-created in work/ dir and then renamed in upper. In none of the cases file
-will be labeled as we want it to be.
+Provide a security hook to label new file correctly when a file is copied
+up from lower layer to upper layer of a overlay/union mount.
 
-Newly created file's labels should be such that as if task had created file
-in upper/.
+This hook can prepare and switch to a new set of creds which are suitable
+for new file creation during copy up. Caller should revert to old creds
+after file creation.
 
-This patch introduces a new hook which determines the label dentry will
-get if it had been created by task in upper and sets the secid of label
-in passed set of creds. Caller makes use of these new creds for file
-creation.
+In SELinux, newly copied up file gets same label as lower file for
+non-context mounts. But it gets label specified in mount option context=
+for context mounts.
 
 Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
 ---
- fs/overlayfs/dir.c        | 10 ++++++++++
- include/linux/lsm_hooks.h | 15 +++++++++++++++
- include/linux/security.h  | 12 ++++++++++++
- security/security.c       | 11 +++++++++++
- security/selinux/hooks.c  | 22 ++++++++++++++++++++++
- 5 files changed, 70 insertions(+)
+ fs/overlayfs/copy_up.c    |  8 ++++++++
+ include/linux/lsm_hooks.h | 13 +++++++++++++
+ include/linux/security.h  |  6 ++++++
+ security/security.c       |  8 ++++++++
+ security/selinux/hooks.c  | 27 +++++++++++++++++++++++++++
+ 5 files changed, 62 insertions(+)
 
-diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
-index 4cdeb74..f94872f 100644
---- a/fs/overlayfs/dir.c
-+++ b/fs/overlayfs/dir.c
-@@ -433,6 +433,15 @@ static int ovl_create_or_link(struct dentry *dentry, int mode, dev_t rdev,
- 	if (override_cred) {
- 		override_cred->fsuid = inode->i_uid;
- 		override_cred->fsgid = inode->i_gid;
-+		if (!hardlink) {
-+			err = security_dentry_create_files_as(dentry,
-+					mode, &dentry->d_name, old_cred,
-+					override_cred);
-+			if (err) {
-+				put_cred(override_cred);
-+				goto out_revert_creds;
-+			}
-+		}
- 		put_cred(override_creds(override_cred));
- 		put_cred(override_cred);
+diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
+index 80aa6f1..90dc362 100644
+--- a/fs/overlayfs/copy_up.c
++++ b/fs/overlayfs/copy_up.c
+@@ -246,6 +246,7 @@ static int ovl_copy_up_locked(struct dentry *workdir, struct dentry *upperdir,
+ 	struct dentry *upper = NULL;
+ 	umode_t mode = stat->mode;
+ 	int err;
++	const struct cred *old_creds = NULL;
  
-@@ -443,6 +452,7 @@ static int ovl_create_or_link(struct dentry *dentry, int mode, dev_t rdev,
- 			err = ovl_create_over_whiteout(dentry, inode, &stat,
- 							link, hardlink);
- 	}
-+out_revert_creds:
- 	revert_creds(old_cred);
- 	if (!err) {
- 		struct inode *realinode = d_inode(ovl_dentry_upper(dentry));
+ 	newdentry = ovl_lookup_temp(workdir, dentry);
+ 	err = PTR_ERR(newdentry);
+@@ -258,10 +259,17 @@ static int ovl_copy_up_locked(struct dentry *workdir, struct dentry *upperdir,
+ 	if (IS_ERR(upper))
+ 		goto out1;
+ 
++	err = security_inode_copy_up(dentry, &old_creds);
++	if (err < 0)
++		goto out2;
++
+ 	/* Can't properly set mode on creation because of the umask */
+ 	stat->mode &= S_IFMT;
+ 	err = ovl_create_real(wdir, newdentry, stat, link, NULL, true);
+ 	stat->mode = mode;
++	if (old_creds)
++		revert_creds(old_creds);
++
+ 	if (err)
+ 		goto out2;
+ 
 diff --git a/include/linux/lsm_hooks.h b/include/linux/lsm_hooks.h
-index 2a8ee8c..cc5099f 100644
+index 7ae3976..fcde9b9 100644
 --- a/include/linux/lsm_hooks.h
 +++ b/include/linux/lsm_hooks.h
-@@ -151,6 +151,16 @@
-  *	@name name of the last path component used to create file
-  *	@ctx pointer to place the pointer to the resulting context in.
-  *	@ctxlen point to place the length of the resulting context.
-+ * @dentry_create_files_as:
-+ *	Compute a context for a dentry as the inode is not yet available
-+ *	and set that context in passed in creds so that new files are
-+ *	created using that context. Context is calculated using the
-+ *	passed in creds and not the creds of the caller.
-+ *	@dentry dentry to use in calculating the context.
-+ *	@mode mode used to determine resource type.
-+ *	@name name of the last path component used to create file
-+ * 	@old creds which should be used for context calculation
-+ * 	@new creds to modify
+@@ -401,6 +401,17 @@
+  *	@inode contains a pointer to the inode.
+  *	@secid contains a pointer to the location where result will be saved.
+  *	In case of failure, @secid will be set to zero.
++ * @inode_copy_up:
++ *	A file is about to be copied up from lower layer to upper layer of
++ *	overlay filesystem. Prepare a new set of creds and set file creation
++ *	secid in such a way so that copied up file gets the appropriate
++ *	label. Switch to this newly prepared creds and return old creds. This
++ *	returns with only one reference to newly prepared creds. So as soon
++ *	as caller calls revert_cred(old_creds), creds allocated by this hook
++ *	should be freed.
++ *	@src indicates the union dentry of file that is being copied up.
++ *	@old indicates the pointer to old_cred returned to caller.
++ *	Returns 0 on success or a negative error code on error.
   *
+  * Security hooks for file operations
   *
-  * Security hooks for inode operations.
-@@ -1379,6 +1389,10 @@ union security_list_options {
- 	int (*dentry_init_security)(struct dentry *dentry, int mode,
- 					struct qstr *name, void **ctx,
- 					u32 *ctxlen);
-+	int (*dentry_create_files_as)(struct dentry *dentry, int mode,
-+					struct qstr *name,
-+					const struct cred *old,
-+					struct cred *new);
+@@ -1425,6 +1436,7 @@ union security_list_options {
+ 	int (*inode_listsecurity)(struct inode *inode, char *buffer,
+ 					size_t buffer_size);
+ 	void (*inode_getsecid)(struct inode *inode, u32 *secid);
++	int (*inode_copy_up) (struct dentry *src, const struct cred **old);
  
- 
- #ifdef CONFIG_SECURITY_PATH
-@@ -1680,6 +1694,7 @@ struct security_hook_heads {
- 	struct list_head sb_clone_mnt_opts;
- 	struct list_head sb_parse_opts_str;
- 	struct list_head dentry_init_security;
-+	struct list_head dentry_create_files_as;
- #ifdef CONFIG_SECURITY_PATH
- 	struct list_head path_unlink;
- 	struct list_head path_mkdir;
+ 	int (*file_permission)(struct file *file, int mask);
+ 	int (*file_alloc_security)(struct file *file);
+@@ -1696,6 +1708,7 @@ struct security_hook_heads {
+ 	struct list_head inode_setsecurity;
+ 	struct list_head inode_listsecurity;
+ 	struct list_head inode_getsecid;
++	struct list_head inode_copy_up;
+ 	struct list_head file_permission;
+ 	struct list_head file_alloc_security;
+ 	struct list_head file_free_security;
 diff --git a/include/linux/security.h b/include/linux/security.h
-index 663ca15..90713e5 100644
+index 14df373..3445df2 100644
 --- a/include/linux/security.h
 +++ b/include/linux/security.h
-@@ -242,6 +242,10 @@ int security_sb_parse_opts_str(char *options, struct security_mnt_opts *opts);
- int security_dentry_init_security(struct dentry *dentry, int mode,
- 					struct qstr *name, void **ctx,
- 					u32 *ctxlen);
-+int security_dentry_create_files_as(struct dentry *dentry, int mode,
-+					struct qstr *name,
-+					const struct cred *old,
-+					struct cred *new);
- 
- int security_inode_alloc(struct inode *inode);
- void security_inode_free(struct inode *inode);
-@@ -601,6 +605,14 @@ static inline int security_dentry_init_security(struct dentry *dentry,
- 	return -EOPNOTSUPP;
+@@ -282,6 +282,7 @@ int security_inode_getsecurity(struct inode *inode, const char *name, void **buf
+ int security_inode_setsecurity(struct inode *inode, const char *name, const void *value, size_t size, int flags);
+ int security_inode_listsecurity(struct inode *inode, char *buffer, size_t buffer_size);
+ void security_inode_getsecid(struct inode *inode, u32 *secid);
++int security_inode_copy_up(struct dentry *src, const struct cred **old);
+ int security_file_permission(struct file *file, int mask);
+ int security_file_alloc(struct file *file);
+ void security_file_free(struct file *file);
+@@ -758,6 +759,11 @@ static inline void security_inode_getsecid(struct inode *inode, u32 *secid)
+ 	*secid = 0;
  }
  
-+static inline int security_dentry_create_files_as(struct dentry *dentry,
-+						  int mode, struct qstr *name,
-+						  const struct cred *old,
-+						  struct cred *new)
++static inline int security_inode_copy_up(struct dentry *src, struct dentry *dst)
 +{
 +	return 0;
 +}
 +
- 
- static inline int security_inode_init_security(struct inode *inode,
- 						struct inode *dir,
+ static inline int security_file_permission(struct file *file, int mask)
+ {
+ 	return 0;
 diff --git a/security/security.c b/security/security.c
-index 87712c6..810642a 100644
+index 7095693..7c1ce29 100644
 --- a/security/security.c
 +++ b/security/security.c
-@@ -364,6 +364,15 @@ int security_dentry_init_security(struct dentry *dentry, int mode,
+@@ -727,6 +727,12 @@ void security_inode_getsecid(struct inode *inode, u32 *secid)
+ 	call_void_hook(inode_getsecid, inode, secid);
  }
- EXPORT_SYMBOL(security_dentry_init_security);
  
-+int security_dentry_create_files_as(struct dentry *dentry, int mode,
-+					struct qstr *name,
-+					const struct cred *old, struct cred *new)
++int security_inode_copy_up(struct dentry *src, const struct cred **old)
 +{
-+	return call_int_hook(dentry_create_files_as, 0, dentry, mode,
-+				name, old, new);
++	return call_int_hook(inode_copy_up, 0, src, old);
 +}
-+EXPORT_SYMBOL(security_dentry_create_files_as);
++EXPORT_SYMBOL(security_inode_copy_up);
 +
- int security_inode_init_security(struct inode *inode, struct inode *dir,
- 				 const struct qstr *qstr,
- 				 const initxattrs initxattrs, void *fs_data)
-@@ -1615,6 +1624,8 @@ struct security_hook_heads security_hook_heads = {
- 		LIST_HEAD_INIT(security_hook_heads.sb_parse_opts_str),
- 	.dentry_init_security =
- 		LIST_HEAD_INIT(security_hook_heads.dentry_init_security),
-+	.dentry_create_files_as =
-+		LIST_HEAD_INIT(security_hook_heads.dentry_create_files_as),
- #ifdef CONFIG_SECURITY_PATH
- 	.path_unlink =	LIST_HEAD_INIT(security_hook_heads.path_unlink),
- 	.path_mkdir =	LIST_HEAD_INIT(security_hook_heads.path_mkdir),
+ int security_file_permission(struct file *file, int mask)
+ {
+ 	int ret;
+@@ -1663,6 +1669,8 @@ struct security_hook_heads security_hook_heads = {
+ 		LIST_HEAD_INIT(security_hook_heads.inode_listsecurity),
+ 	.inode_getsecid =
+ 		LIST_HEAD_INIT(security_hook_heads.inode_getsecid),
++	.inode_copy_up =
++		LIST_HEAD_INIT(security_hook_heads.inode_copy_up),
+ 	.file_permission =
+ 		LIST_HEAD_INIT(security_hook_heads.file_permission),
+ 	.file_alloc_security =
 diff --git a/security/selinux/hooks.c b/security/selinux/hooks.c
-index 86a07ed..7f83ea4 100644
+index a86d537..1b1a1e5 100644
 --- a/security/selinux/hooks.c
 +++ b/security/selinux/hooks.c
-@@ -2825,6 +2825,27 @@ static int selinux_dentry_init_security(struct dentry *dentry, int mode,
- 	return security_sid_to_context(newsid, (char **)ctx, ctxlen);
+@@ -3270,6 +3270,32 @@ static void selinux_inode_getsecid(struct inode *inode, u32 *secid)
+ 	*secid = isec->sid;
  }
  
-+static int selinux_dentry_create_files_as(struct dentry *dentry, int mode,
-+					  struct qstr *name,
-+					  const struct cred *old,
-+					  struct cred *new)
++static int selinux_inode_copy_up(struct dentry *src, const struct cred **old)
 +{
-+	u32 newsid;
-+	int rc;
++	u32 sid;
++	struct cred *new_creds;
 +	struct task_security_struct *tsec;
 +
-+	rc = selinux_determine_inode_label(old->security,
-+					   d_inode(dentry->d_parent), name,
-+					   inode_mode_to_security_class(mode),
-+					   &newsid);
-+	if (rc)
-+		return rc;
++	new_creds = prepare_creds();
++	if (!new_creds)
++		return -ENOMEM;
 +
-+	tsec = new->security;
-+	tsec->create_sid = newsid;
++	/* Get label from overlay inode and set it in create_sid */
++	selinux_inode_getsecid(d_inode(src), &sid);
++	tsec = new_creds->security;
++	tsec->create_sid = sid;
++	*old = override_creds(new_creds);
++
++	/*
++	 * At this point of time we have 2 refs on new_creds. One by
++	 * prepare_creds and other by override_creds. Drop one reference
++	 * so that as soon as caller calls revert_creds(old), this cred
++	 * will be freed.
++	 */
++	put_cred(new_creds);
 +	return 0;
 +}
 +
- static int selinux_inode_init_security(struct inode *inode, struct inode *dir,
- 				       const struct qstr *qstr,
- 				       const char **name,
-@@ -6070,6 +6091,7 @@ static struct security_hook_list selinux_hooks[] = {
- 	LSM_HOOK_INIT(sb_parse_opts_str, selinux_parse_opts_str),
+ /* file security operations */
  
- 	LSM_HOOK_INIT(dentry_init_security, selinux_dentry_init_security),
-+	LSM_HOOK_INIT(dentry_create_files_as, selinux_dentry_create_files_as),
+ static int selinux_revalidate_file_permission(struct file *file, int mask)
+@@ -6056,6 +6082,7 @@ static struct security_hook_list selinux_hooks[] = {
+ 	LSM_HOOK_INIT(inode_setsecurity, selinux_inode_setsecurity),
+ 	LSM_HOOK_INIT(inode_listsecurity, selinux_inode_listsecurity),
+ 	LSM_HOOK_INIT(inode_getsecid, selinux_inode_getsecid),
++	LSM_HOOK_INIT(inode_copy_up, selinux_inode_copy_up),
  
- 	LSM_HOOK_INIT(inode_alloc_security, selinux_inode_alloc_security),
- 	LSM_HOOK_INIT(inode_free_security, selinux_inode_free_security),
+ 	LSM_HOOK_INIT(file_permission, selinux_file_permission),
+ 	LSM_HOOK_INIT(file_alloc_security, selinux_file_alloc_security),
 -- 
 2.7.4
-
