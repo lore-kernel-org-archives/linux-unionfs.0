@@ -1,308 +1,258 @@
-From: kbuild test robot <lkp@intel.com>
+From: Vivek Goyal <vgoyal@redhat.com>
 Subject: Re: [PATCH 1/5] security, overlayfs: provide copy up security hook
  for unioned files
-Date: Wed, 6 Jul 2016 01:20:34 +0800
-Message-ID: <201607060144.qDIEVafR%fengguang.wu@intel.com>
+Date: Tue, 5 Jul 2016 13:43:32 -0400
+Message-ID: <20160705174332.GD17987@redhat.com>
 References: <1467733854-6314-2-git-send-email-vgoyal@redhat.com>
+ <201607060050.E436x91f%fengguang.wu@intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="LZvS9be/3tNcYl/X"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:62449 "EHLO mga09.intel.com"
+Received: from mx1.redhat.com ([209.132.183.28]:46985 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755314AbcGERV6 (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-	Tue, 5 Jul 2016 13:21:58 -0400
+	id S1751407AbcGERne (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+	Tue, 5 Jul 2016 13:43:34 -0400
 Content-Disposition: inline
-In-Reply-To: <1467733854-6314-2-git-send-email-vgoyal@redhat.com>
+In-Reply-To: <201607060050.E436x91f%fengguang.wu@intel.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-Cc: kbuild-all@01.org, miklos@szeredi.hu, sds@tycho.nsa.gov, linux-kernel@vger.kernel.org, linux-unionfs@vger.kernel.org, linux-security-module@vger.kernel.org, dwalsh@redhat.com, dhowells@redhat.com, pmoore@redhat.com, viro@ZenIV.linux.org.uk, vgoyal@redhat.com, linux-fsdevel@vger.kernel.org
+To: kbuild test robot <lkp@intel.com>
+Cc: kbuild-all@01.org, miklos@szeredi.hu, sds@tycho.nsa.gov, linux-kernel@vger.kernel.org, linux-unionfs@vger.kernel.org, linux-security-module@vger.kernel.org, dwalsh@redhat.com, dhowells@redhat.com, pmoore@redhat.com, viro@ZenIV.linux.org.uk, linux-fsdevel@vger.kernel.org
+
+On Wed, Jul 06, 2016 at 12:53:57AM +0800, kbuild test robot wrote:
+> Hi,
+> 
+> [auto build test ERROR on miklos-vfs/overlayfs-next]
+> [also build test ERROR on v4.7-rc6 next-20160705]
+> [if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
+> 
+> url:    https://github.com/0day-ci/linux/commits/Vivek-Goyal/Overlayfs-SELinux-Support/20160706-000037
+> base:   https://git.kernel.org/pub/scm/linux/kernel/git/mszeredi/vfs.git overlayfs-next
+> config: i386-randconfig-s0-201627 (attached as .config)
+> compiler: gcc-6 (Debian 6.1.1-1) 6.1.1 20160430
+> reproduce:
+>         # save the attached .config to linux build tree
+>         make ARCH=i386 
+> 
+> All errors (new ones prefixed by >>):
+> 
+>    fs/overlayfs/copy_up.c: In function 'ovl_copy_up_locked':
+> >> fs/overlayfs/copy_up.c:262:39: error: passing argument 2 of 'security_inode_copy_up' from incompatible pointer type [-Werror=incompatible-pointer-types]
+>      err = security_inode_copy_up(dentry, &old_creds);
+>                                           ^
+>    In file included from fs/overlayfs/copy_up.c:16:0:
+>    include/linux/security.h:762:19: note: expected 'struct dentry *' but argument is of type 'const struct cred **'
+>     static inline int security_inode_copy_up(struct dentry *src, struct dentry *dst)
+>                       ^~~~~~~~~~~~~~~~~~~~~~
+>    cc1: some warnings being treated as errors
+> 
+> vim +/security_inode_copy_up +262 fs/overlayfs/copy_up.c
+> 
+>    256		upper = lookup_one_len(dentry->d_name.name, upperdir,
+>    257				       dentry->d_name.len);
+>    258		err = PTR_ERR(upper);
+>    259		if (IS_ERR(upper))
+>    260			goto out1;
+>    261	
+>  > 262		err = security_inode_copy_up(dentry, &old_creds);
+>    263		if (err < 0)
+>    264			goto out2;
+>    265	
+> 
+> ---
+> 0-DAY kernel test infrastructure                Open Source Technology Center
+> https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
+
+Oops, wrong function signatures for CONFIG_SECURITY=n. Following is the
+new patch attached.
+
+Vivek
 
 
---LZvS9be/3tNcYl/X
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Subject: security, overlayfs: provide copy up security hook for unioned files
 
-Hi,
+Provide a security hook to label new file correctly when a file is copied
+up from lower layer to upper layer of a overlay/union mount.
 
-[auto build test WARNING on miklos-vfs/overlayfs-next]
-[also build test WARNING on v4.7-rc6 next-20160705]
-[if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
+This hook can prepare and switch to a new set of creds which are suitable
+for new file creation during copy up. Caller should revert to old creds
+after file creation.
 
-url:    https://github.com/0day-ci/linux/commits/Vivek-Goyal/Overlayfs-SELinux-Support/20160706-000037
-base:   https://git.kernel.org/pub/scm/linux/kernel/git/mszeredi/vfs.git overlayfs-next
-config: m68k-sun3_defconfig (attached as .config)
-compiler: m68k-linux-gcc (GCC) 4.9.0
-reproduce:
-        wget https://git.kernel.org/cgit/linux/kernel/git/wfg/lkp-tests.git/plain/sbin/make.cross -O ~/bin/make.cross
-        chmod +x ~/bin/make.cross
-        # save the attached .config to linux build tree
-        make.cross ARCH=m68k 
+In SELinux, newly copied up file gets same label as lower file for
+non-context mounts. But it gets label specified in mount option context=
+for context mounts.
 
-All warnings (new ones prefixed by >>):
-
-   fs/overlayfs/copy_up.c: In function 'ovl_copy_up_locked':
->> fs/overlayfs/copy_up.c:262:8: warning: passing argument 2 of 'security_inode_copy_up' from incompatible pointer type
-     err = security_inode_copy_up(dentry, &old_creds);
-           ^
-   In file included from fs/overlayfs/copy_up.c:16:0:
-   include/linux/security.h:762:19: note: expected 'struct dentry *' but argument is of type 'const struct cred **'
-    static inline int security_inode_copy_up(struct dentry *src, struct dentry *dst)
-                      ^
-
-vim +/security_inode_copy_up +262 fs/overlayfs/copy_up.c
-
-   246		struct dentry *upper = NULL;
-   247		umode_t mode = stat->mode;
-   248		int err;
-   249		const struct cred *old_creds = NULL;
-   250	
-   251		newdentry = ovl_lookup_temp(workdir, dentry);
-   252		err = PTR_ERR(newdentry);
-   253		if (IS_ERR(newdentry))
-   254			goto out;
-   255	
-   256		upper = lookup_one_len(dentry->d_name.name, upperdir,
-   257				       dentry->d_name.len);
-   258		err = PTR_ERR(upper);
-   259		if (IS_ERR(upper))
-   260			goto out1;
-   261	
- > 262		err = security_inode_copy_up(dentry, &old_creds);
-   263		if (err < 0)
-   264			goto out2;
-   265	
-   266		/* Can't properly set mode on creation because of the umask */
-   267		stat->mode &= S_IFMT;
-   268		err = ovl_create_real(wdir, newdentry, stat, link, NULL, true);
-   269		stat->mode = mode;
-   270		if (old_creds)
-
+Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
 ---
-0-DAY kernel test infrastructure                Open Source Technology Center
-https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
 
---LZvS9be/3tNcYl/X
-Content-Type: application/octet-stream
-Content-Disposition: attachment; filename=".config.gz"
-Content-Transfer-Encoding: base64
+ fs/overlayfs/copy_up.c    |    8 ++++++++
+ include/linux/lsm_hooks.h |   13 +++++++++++++
+ include/linux/security.h  |    7 +++++++
+ security/security.c       |    8 ++++++++
+ security/selinux/hooks.c  |   27 +++++++++++++++++++++++++++
+ 5 files changed, 63 insertions(+)
 
-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
-mKcW+x8BCcHJnLUAAA==
-
---LZvS9be/3tNcYl/X--
+Index: rhvgoyal-linux/include/linux/lsm_hooks.h
+===================================================================
+--- rhvgoyal-linux.orig/include/linux/lsm_hooks.h	2016-07-05 13:31:45.988514243 -0400
++++ rhvgoyal-linux/include/linux/lsm_hooks.h	2016-07-05 13:31:47.917514243 -0400
+@@ -401,6 +401,17 @@
+  *	@inode contains a pointer to the inode.
+  *	@secid contains a pointer to the location where result will be saved.
+  *	In case of failure, @secid will be set to zero.
++ * @inode_copy_up:
++ *	A file is about to be copied up from lower layer to upper layer of
++ *	overlay filesystem. Prepare a new set of creds and set file creation
++ *	secid in such a way so that copied up file gets the appropriate
++ *	label. Switch to this newly prepared creds and return old creds. This
++ *	returns with only one reference to newly prepared creds. So as soon
++ *	as caller calls revert_cred(old_creds), creds allocated by this hook
++ *	should be freed.
++ *	@src indicates the union dentry of file that is being copied up.
++ *	@old indicates the pointer to old_cred returned to caller.
++ *	Returns 0 on success or a negative error code on error.
+  *
+  * Security hooks for file operations
+  *
+@@ -1425,6 +1436,7 @@ union security_list_options {
+ 	int (*inode_listsecurity)(struct inode *inode, char *buffer,
+ 					size_t buffer_size);
+ 	void (*inode_getsecid)(struct inode *inode, u32 *secid);
++	int (*inode_copy_up) (struct dentry *src, const struct cred **old);
+ 
+ 	int (*file_permission)(struct file *file, int mask);
+ 	int (*file_alloc_security)(struct file *file);
+@@ -1696,6 +1708,7 @@ struct security_hook_heads {
+ 	struct list_head inode_setsecurity;
+ 	struct list_head inode_listsecurity;
+ 	struct list_head inode_getsecid;
++	struct list_head inode_copy_up;
+ 	struct list_head file_permission;
+ 	struct list_head file_alloc_security;
+ 	struct list_head file_free_security;
+Index: rhvgoyal-linux/include/linux/security.h
+===================================================================
+--- rhvgoyal-linux.orig/include/linux/security.h	2016-07-05 13:31:45.988514243 -0400
++++ rhvgoyal-linux/include/linux/security.h	2016-07-05 13:32:45.954514243 -0400
+@@ -282,6 +282,7 @@ int security_inode_getsecurity(struct in
+ int security_inode_setsecurity(struct inode *inode, const char *name, const void *value, size_t size, int flags);
+ int security_inode_listsecurity(struct inode *inode, char *buffer, size_t buffer_size);
+ void security_inode_getsecid(struct inode *inode, u32 *secid);
++int security_inode_copy_up(struct dentry *src, const struct cred **old);
+ int security_file_permission(struct file *file, int mask);
+ int security_file_alloc(struct file *file);
+ void security_file_free(struct file *file);
+@@ -758,6 +759,12 @@ static inline void security_inode_getsec
+ 	*secid = 0;
+ }
+ 
++static inline int security_inode_copy_up(struct dentry *src,
++					 const struct cred **old)
++{
++	return 0;
++}
++
+ static inline int security_file_permission(struct file *file, int mask)
+ {
+ 	return 0;
+Index: rhvgoyal-linux/security/security.c
+===================================================================
+--- rhvgoyal-linux.orig/security/security.c	2016-07-05 13:31:45.990514243 -0400
++++ rhvgoyal-linux/security/security.c	2016-07-05 13:31:47.920514243 -0400
+@@ -727,6 +727,12 @@ void security_inode_getsecid(struct inod
+ 	call_void_hook(inode_getsecid, inode, secid);
+ }
+ 
++int security_inode_copy_up(struct dentry *src, const struct cred **old)
++{
++	return call_int_hook(inode_copy_up, 0, src, old);
++}
++EXPORT_SYMBOL(security_inode_copy_up);
++
+ int security_file_permission(struct file *file, int mask)
+ {
+ 	int ret;
+@@ -1663,6 +1669,8 @@ struct security_hook_heads security_hook
+ 		LIST_HEAD_INIT(security_hook_heads.inode_listsecurity),
+ 	.inode_getsecid =
+ 		LIST_HEAD_INIT(security_hook_heads.inode_getsecid),
++	.inode_copy_up =
++		LIST_HEAD_INIT(security_hook_heads.inode_copy_up),
+ 	.file_permission =
+ 		LIST_HEAD_INIT(security_hook_heads.file_permission),
+ 	.file_alloc_security =
+Index: rhvgoyal-linux/fs/overlayfs/copy_up.c
+===================================================================
+--- rhvgoyal-linux.orig/fs/overlayfs/copy_up.c	2016-07-05 13:31:45.985514243 -0400
++++ rhvgoyal-linux/fs/overlayfs/copy_up.c	2016-07-05 13:31:47.921514243 -0400
+@@ -246,6 +246,7 @@ static int ovl_copy_up_locked(struct den
+ 	struct dentry *upper = NULL;
+ 	umode_t mode = stat->mode;
+ 	int err;
++	const struct cred *old_creds = NULL;
+ 
+ 	newdentry = ovl_lookup_temp(workdir, dentry);
+ 	err = PTR_ERR(newdentry);
+@@ -258,10 +259,17 @@ static int ovl_copy_up_locked(struct den
+ 	if (IS_ERR(upper))
+ 		goto out1;
+ 
++	err = security_inode_copy_up(dentry, &old_creds);
++	if (err < 0)
++		goto out2;
++
+ 	/* Can't properly set mode on creation because of the umask */
+ 	stat->mode &= S_IFMT;
+ 	err = ovl_create_real(wdir, newdentry, stat, link, NULL, true);
+ 	stat->mode = mode;
++	if (old_creds)
++		revert_creds(old_creds);
++
+ 	if (err)
+ 		goto out2;
+ 
+Index: rhvgoyal-linux/security/selinux/hooks.c
+===================================================================
+--- rhvgoyal-linux.orig/security/selinux/hooks.c	2016-07-05 13:31:45.992514243 -0400
++++ rhvgoyal-linux/security/selinux/hooks.c	2016-07-05 13:31:47.923514243 -0400
+@@ -3270,6 +3270,32 @@ static void selinux_inode_getsecid(struc
+ 	*secid = isec->sid;
+ }
+ 
++static int selinux_inode_copy_up(struct dentry *src, const struct cred **old)
++{
++	u32 sid;
++	struct cred *new_creds;
++	struct task_security_struct *tsec;
++
++	new_creds = prepare_creds();
++	if (!new_creds)
++		return -ENOMEM;
++
++	/* Get label from overlay inode and set it in create_sid */
++	selinux_inode_getsecid(d_inode(src), &sid);
++	tsec = new_creds->security;
++	tsec->create_sid = sid;
++	*old = override_creds(new_creds);
++
++	/*
++	 * At this point of time we have 2 refs on new_creds. One by
++	 * prepare_creds and other by override_creds. Drop one reference
++	 * so that as soon as caller calls revert_creds(old), this cred
++	 * will be freed.
++	 */
++	put_cred(new_creds);
++	return 0;
++}
++
+ /* file security operations */
+ 
+ static int selinux_revalidate_file_permission(struct file *file, int mask)
+@@ -6056,6 +6082,7 @@ static struct security_hook_list selinux
+ 	LSM_HOOK_INIT(inode_setsecurity, selinux_inode_setsecurity),
+ 	LSM_HOOK_INIT(inode_listsecurity, selinux_inode_listsecurity),
+ 	LSM_HOOK_INIT(inode_getsecid, selinux_inode_getsecid),
++	LSM_HOOK_INIT(inode_copy_up, selinux_inode_copy_up),
+ 
+ 	LSM_HOOK_INIT(file_permission, selinux_file_permission),
+ 	LSM_HOOK_INIT(file_alloc_security, selinux_file_alloc_security),
