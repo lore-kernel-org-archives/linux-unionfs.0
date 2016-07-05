@@ -1,144 +1,76 @@
 From: Vivek Goyal <vgoyal@redhat.com>
-Subject: [PATCH 5/5] overlayfs: Use vfs_getxattr_noperm() for real inode
-Date: Tue,  5 Jul 2016 11:50:54 -0400
-Message-ID: <1467733854-6314-6-git-send-email-vgoyal@redhat.com>
+Subject: [PATCH 3/5] selinux: Pass security pointer to determine_inode_label()
+Date: Tue,  5 Jul 2016 11:50:52 -0400
+Message-ID: <1467733854-6314-4-git-send-email-vgoyal@redhat.com>
 References: <1467733854-6314-1-git-send-email-vgoyal@redhat.com>
-Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:42297 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754856AbcGEPvs (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-	Tue, 5 Jul 2016 11:51:48 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1467733854-6314-1-git-send-email-vgoyal@redhat.com>
-Sender: linux-unionfs-owner@vger.kernel.org
-List-Id: linux-unionfs@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: miklos@szeredi.hu, sds@tycho.nsa.gov, linux-kernel@vger.kernel.org, linux-unionfs@vger.kernel.org, linux-security-module@vger.kernel.org
 Cc: dwalsh@redhat.com, dhowells@redhat.com, pmoore@redhat.com, viro@ZenIV.linux.org.uk, vgoyal@redhat.com, linux-fsdevel@vger.kernel.org
+List-Id: linux-unionfs@vger.kernel.org
 
-ovl_getxattr() currently uses vfs_getxattr() on realinode. This fails
-if mounter does not have DAC/MAC permission to access getxattr.
-
-Specifically this becomes a problem when selinux is trying to initialize
-overlay inode and does ->getxattr(overlay_inode). A task might trigger
-initialization of overlay inode and we will access real inode xattr in the
-context of mounter and if mounter does not have permissions, then inode
-selinux context initialization fails and inode is labeled as unlabeled_t.
-
-One way to deal with it is to let SELinux do getxattr checks both on
-overlay inode and underlying inode and overlay can call vfs_getxattr_noperm()
-to make sure when selinux is trying to initialize label on inode, it does
-not go through checks on lower levels and initialization is successful.
-And after inode initialization, SELinux will make sure task has getatttr
-permission.
-
-One issue with this approach is that it does not work for directories as
-d_real() returns the overlay dentry for directories and not the underlying
-directory dentry.
-
-Another way to deal with it to introduce another function pointer in
-inode_operations, say getxattr_noperm(), which is responsible to get
-xattr without any checks. SELinux initialization code will call this
-first if it is available on inode. So user space code path will call
-->getxattr() and that will go through checks and SELinux internal
-initialization will call ->getxattr_noperm() and that will not
-go through checks.
-
-For now, I am just converting ovl_getxattr() to get xattr without
-any checks on underlying inode. That means it is possible for
-a task to get xattr of a file/dir on lower/upper through overlay mount
-while it is not possible outside overlay mount.
-
-If this is a major concern, I can look into implementing getxattr_noperm().
+Right now selinux_determine_inode_label() works on security pointer of
+current task. Soon I need this to work on a security pointer retrieved
+from a set of creds. So start passing in a pointer and caller can decide
+where to fetch security pointer from.
 
 Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
 ---
- fs/overlayfs/inode.c  |  7 +------
- fs/xattr.c            | 28 +++++++++++++++++++---------
- include/linux/xattr.h |  1 +
- 3 files changed, 21 insertions(+), 15 deletions(-)
+ security/selinux/hooks.c | 17 +++++++++--------
+ 1 file changed, 9 insertions(+), 8 deletions(-)
 
-diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
-index 36dfd86..a5d3320 100644
---- a/fs/overlayfs/inode.c
-+++ b/fs/overlayfs/inode.c
-@@ -233,16 +233,11 @@ ssize_t ovl_getxattr(struct dentry *dentry, struct inode *inode,
- 		     const char *name, void *value, size_t size)
+diff --git a/security/selinux/hooks.c b/security/selinux/hooks.c
+index c68223c..86a07ed 100644
+--- a/security/selinux/hooks.c
++++ b/security/selinux/hooks.c
+@@ -1785,13 +1785,13 @@ out:
+ /*
+  * Determine the label for an inode that might be unioned.
+  */
+-static int selinux_determine_inode_label(struct inode *dir,
+-					 const struct qstr *name,
+-					 u16 tclass,
++static int selinux_determine_inode_label(const void *security,
++					 struct inode *dir,
++					 const struct qstr *name, u16 tclass,
+ 					 u32 *_new_isid)
  {
- 	struct dentry *realdentry = ovl_dentry_real(dentry);
--	ssize_t sz;
--	const struct cred *old_cred;
+ 	const struct superblock_security_struct *sbsec = dir->i_sb->s_security;
+-	const struct task_security_struct *tsec = current_security();
++	const struct task_security_struct *tsec = security;
  
- 	if (ovl_is_private_xattr(name))
- 		return -ENODATA;
+ 	if ((sbsec->flags & SE_SBINITIALIZED) &&
+ 	    (sbsec->behavior == SECURITY_FS_USE_MNTPOINT)) {
+@@ -1834,8 +1834,8 @@ static int may_create(struct inode *dir,
+ 	if (rc)
+ 		return rc;
  
--	old_cred = ovl_override_creds(dentry->d_sb);
--	sz = vfs_getxattr(realdentry, name, value, size);
--	revert_creds(old_cred);
--	return size;
-+	return vfs_getxattr_noperm(realdentry, name, value, size);
- }
+-	rc = selinux_determine_inode_label(dir, &dentry->d_name, tclass,
+-					   &newsid);
++	rc = selinux_determine_inode_label(current_security(), dir,
++					   &dentry->d_name, tclass, &newsid);
+ 	if (rc)
+ 		return rc;
  
- ssize_t ovl_listxattr(struct dentry *dentry, char *list, size_t size)
-diff --git a/fs/xattr.c b/fs/xattr.c
-index 4beafc4..973e18c 100644
---- a/fs/xattr.c
-+++ b/fs/xattr.c
-@@ -209,19 +209,11 @@ vfs_getxattr_alloc(struct dentry *dentry, const char *name, char **xattr_value,
- }
+@@ -2815,7 +2815,8 @@ static int selinux_dentry_init_security(struct dentry *dentry, int mode,
+ 	u32 newsid;
+ 	int rc;
  
- ssize_t
--vfs_getxattr(struct dentry *dentry, const char *name, void *value, size_t size)
-+vfs_getxattr_noperm(struct dentry *dentry, const char *name, void *value, size_t size)
- {
- 	struct inode *inode = dentry->d_inode;
- 	int error;
+-	rc = selinux_determine_inode_label(d_inode(dentry->d_parent), name,
++	rc = selinux_determine_inode_label(current_security(),
++					   d_inode(dentry->d_parent), name,
+ 					   inode_mode_to_security_class(mode),
+ 					   &newsid);
+ 	if (rc)
+@@ -2840,7 +2841,7 @@ static int selinux_inode_init_security(struct inode *inode, struct inode *dir,
+ 	sid = tsec->sid;
+ 	newsid = tsec->create_sid;
  
--	error = xattr_permission(inode, name, MAY_READ);
--	if (error)
--		return error;
--
--	error = security_inode_getxattr(dentry, name);
--	if (error)
--		return error;
--
- 	if (!strncmp(name, XATTR_SECURITY_PREFIX,
- 				XATTR_SECURITY_PREFIX_LEN)) {
- 		const char *suffix = name + XATTR_SECURITY_PREFIX_LEN;
-@@ -242,6 +234,24 @@ nolsm:
- 
- 	return error;
- }
-+EXPORT_SYMBOL_GPL(vfs_getxattr_noperm);
-+
-+ssize_t
-+vfs_getxattr(struct dentry *dentry, const char *name, void *value, size_t size)
-+{
-+	struct inode *inode = dentry->d_inode;
-+	int error;
-+
-+	error = xattr_permission(inode, name, MAY_READ);
-+	if (error)
-+		return error;
-+
-+	error = security_inode_getxattr(dentry, name);
-+	if (error)
-+		return error;
-+
-+	return vfs_getxattr_noperm(dentry, name, value, size);
-+}
- EXPORT_SYMBOL_GPL(vfs_getxattr);
- 
- ssize_t
-diff --git a/include/linux/xattr.h b/include/linux/xattr.h
-index 94079ba..832a6b6 100644
---- a/include/linux/xattr.h
-+++ b/include/linux/xattr.h
-@@ -47,6 +47,7 @@ struct xattr {
- 
- ssize_t xattr_getsecurity(struct inode *, const char *, void *, size_t);
- ssize_t vfs_getxattr(struct dentry *, const char *, void *, size_t);
-+ssize_t vfs_getxattr_noperm(struct dentry *, const char *, void *, size_t);
- ssize_t vfs_listxattr(struct dentry *d, char *list, size_t size);
- int __vfs_setxattr_noperm(struct dentry *, const char *, const void *, size_t, int);
- int vfs_setxattr(struct dentry *, const char *, const void *, size_t, int);
+-	rc = selinux_determine_inode_label(
++	rc = selinux_determine_inode_label(current_security(),
+ 		dir, qstr,
+ 		inode_mode_to_security_class(inode->i_mode),
+ 		&newsid);
 -- 
 2.7.4
