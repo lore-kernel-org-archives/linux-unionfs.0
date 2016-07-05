@@ -1,119 +1,96 @@
-From: Casey Schaufler <casey@schaufler-ca.com>
-Subject: Re: [PATCH 2/5] security,overlayfs: Provide security hook for copy up
- of xattrs for overlay file
-Date: Tue, 5 Jul 2016 14:34:43 -0700
-Message-ID: <93ab3b87-a9c7-b792-2253-07aa2d03681e@schaufler-ca.com>
-References: <1467733854-6314-1-git-send-email-vgoyal@redhat.com>
- <1467733854-6314-3-git-send-email-vgoyal@redhat.com>
- <bc7c8147-465e-791d-ce5a-1a194eb67228@schaufler-ca.com>
- <20160705211502.GG17987@redhat.com>
+From: Paul Moore <pmoore@redhat.com>
+Subject: Re: [PATCH 1/5] security, overlayfs: provide copy up security hook
+ for unioned files
+Date: Tue, 5 Jul 2016 17:35:22 -0400
+Message-ID: <CAGH-Kgui7diECNuPahg-6_6q2T8HsyRvJERAO8xTcM0nYPQxiQ@mail.gmail.com>
+References: <1467733854-6314-1-git-send-email-vgoyal@redhat.com> <1467733854-6314-2-git-send-email-vgoyal@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160705211502.GG17987@redhat.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Vivek Goyal <vgoyal@redhat.com>
-Cc: miklos@szeredi.hu, sds@tycho.nsa.gov, linux-kernel@vger.kernel.org, linux-unionfs@vger.kernel.org, linux-security-module@vger.kernel.org, dwalsh@redhat.com, dhowells@redhat.com, pmoore@redhat.com, viro@ZenIV.linux.org.uk, linux-fsdevel@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-unionfs-owner@vger.kernel.org>
+Received: from mail-oi0-f50.google.com ([209.85.218.50]:33503 "EHLO
+	mail-oi0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755572AbcGEVfY (ORCPT
+	<rfc822;linux-unionfs@vger.kernel.org>);
+	Tue, 5 Jul 2016 17:35:24 -0400
+Received: by mail-oi0-f50.google.com with SMTP id u201so247145158oie.0
+        for <linux-unionfs@vger.kernel.org>; Tue, 05 Jul 2016 14:35:24 -0700 (PDT)
+In-Reply-To: <1467733854-6314-2-git-send-email-vgoyal@redhat.com>
+Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
+To: Vivek Goyal <vgoyal@redhat.com>
+Cc: miklos@szeredi.hu, sds@tycho.nsa.gov, linux-kernel@vger.kernel.org, linux-unionfs@vger.kernel.org, linux-security-module@vger.kernel.org, dwalsh@redhat.com, dhowells@redhat.com, viro@zeniv.linux.org.uk, linux-fsdevel@vger.kernel.org
 
-On 7/5/2016 2:15 PM, Vivek Goyal wrote:
-> On Tue, Jul 05, 2016 at 01:22:22PM -0700, Casey Schaufler wrote:
->> On 7/5/2016 8:50 AM, Vivek Goyal wrote:
->>> Provide a security hook which is called when xattrs of a file are being
->>> copied up. This hook is called once for each xattr and one can either
->>> accept or reject xattr. If 0 is returned, xattr will be copied up, if 1
->>> is returned, xattr will not be copied up and if negative error code
->>> is returned, copy up will be aborted.
->>>
->>> In SELinux, label of lower file is not copied up. File already has been
->>> set with right label at the time of creation and we don't want to overwrite
->>> that label.
->>>
->>> Signed-off-by: David Howells <dhowells@redhat.com>
->>> Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
->>> ---
->>>  fs/overlayfs/copy_up.c    |  8 ++++++++
->>>  include/linux/lsm_hooks.h | 13 +++++++++++++
->>>  include/linux/security.h  | 10 ++++++++++
->>>  security/security.c       |  9 +++++++++
->>>  security/selinux/hooks.c  | 14 ++++++++++++++
->>>  5 files changed, 54 insertions(+)
->>>
->>> diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
->>> index 90dc362..2c31938 100644
->>> --- a/fs/overlayfs/copy_up.c
->>> +++ b/fs/overlayfs/copy_up.c
->>> @@ -103,6 +103,14 @@ retry:
->>>  			goto retry;
->>>  		}
->>>  
->>> +		error = security_inode_copy_up_xattr(old, new,
->>> +						     name, value, size);
->>> +		if (error < 0)
->>> +			break;
->>> +		if (error == 1) {
->>> +			error = 0;
->>> +			continue; /* Discard */
->>> +		}
->>>  		error = vfs_setxattr(new, name, value, size, 0);
->>>  		if (error)
->>>  			break;
->>> diff --git a/include/linux/lsm_hooks.h b/include/linux/lsm_hooks.h
->>> index fcde9b9..2a8ee8c 100644
->>> --- a/include/linux/lsm_hooks.h
->>> +++ b/include/linux/lsm_hooks.h
->>> @@ -412,6 +412,16 @@
->>>   *	@src indicates the union dentry of file that is being copied up.
->>>   *	@old indicates the pointer to old_cred returned to caller.
->>>   *	Returns 0 on success or a negative error code on error.
->>> + * @inode_copy_up_xattr:
->>> + *	Filter the xattrs being copied up when a unioned file is copied
->>> + *	up from a lower layer to the union/overlay layer.
->>> + *	@src indicates the file that is being copied up.
->>> + *	@dst indicates the file that has being created by the copy up.
->>> + *	@name indicates the name of the xattr.
->>> + *	@value, @size indicate the payload of the xattr.
->>> + *	Returns 0 to accept the xattr, 1 to discard the xattr or a negative
->>> + *	error code to abort the copy up. Note that the caller is responsible
->>> + *	for reading and writing the xattrs as this hook is merely a filter.
->> The return should be -EOPNOTSUPP from security modules that don't
->> support the attribute "name". This will make it possible to support
->> multiple modules that provide attributes. (patches pending)
-> Hmm.., Sorry I did not understand this one. 
+On Tue, Jul 5, 2016 at 11:50 AM, Vivek Goyal <vgoyal@redhat.com> wrote:
+> Provide a security hook to label new file correctly when a file is copied
+> up from lower layer to upper layer of a overlay/union mount.
 >
-> So all modules will not understand all xattrs. So if they start returning
-> -EOPNOTSUPP, then as per current implementation, copy up operation will
-> be aborted. 
+> This hook can prepare and switch to a new set of creds which are suitable
+> for new file creation during copy up. Caller should revert to old creds
+> after file creation.
+>
+> In SELinux, newly copied up file gets same label as lower file for
+> non-context mounts. But it gets label specified in mount option context=
+> for context mounts.
+>
+> Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
+> ---
+>  fs/overlayfs/copy_up.c    |  8 ++++++++
+>  include/linux/lsm_hooks.h | 13 +++++++++++++
+>  include/linux/security.h  |  6 ++++++
+>  security/security.c       |  8 ++++++++
+>  security/selinux/hooks.c  | 27 +++++++++++++++++++++++++++
+>  5 files changed, 62 insertions(+)
 
-Yes, the infrastructure code will have to change to deal with the
-tri-state returns. That's also true of several other hooks.
+..
 
-> Current implementation relies on that a security module, returns 0 if
-> every thing is "name" xattr should be copied up or lsm does not care.
-> Negative error code is returned only if something is wrong. Given every
-> lsm will not understand/care about all the xattrs, we can't return 
-> error code if lsm does not own/understand the "name". In fact
-> call_int_hook() will bail out the very first time negative error code
-> is returned. 
+> diff --git a/security/selinux/hooks.c b/security/selinux/hooks.c
+> index a86d537..1b1a1e5 100644
+> --- a/security/selinux/hooks.c
+> +++ b/security/selinux/hooks.c
+> @@ -3270,6 +3270,32 @@ static void selinux_inode_getsecid(struct inode *inode, u32 *secid)
+>         *secid = isec->sid;
+>  }
 >
-> IOW, current implementation will work with multiple modules providing
-> implementation for same hook as long as module returns 0 for the xattrs
-> it does not understand. 
+> +static int selinux_inode_copy_up(struct dentry *src, const struct cred **old)
+> +{
+> +       u32 sid;
+> +       struct cred *new_creds;
+> +       struct task_security_struct *tsec;
+> +
+> +       new_creds = prepare_creds();
+> +       if (!new_creds)
+> +               return -ENOMEM;
+> +
+> +       /* Get label from overlay inode and set it in create_sid */
+> +       selinux_inode_getsecid(d_inode(src), &sid);
+> +       tsec = new_creds->security;
+> +       tsec->create_sid = sid;
+> +       *old = override_creds(new_creds);
+> +
+> +       /*
+> +        * At this point of time we have 2 refs on new_creds. One by
+> +        * prepare_creds and other by override_creds. Drop one reference
+> +        * so that as soon as caller calls revert_creds(old), this cred
+> +        * will be freed.
+> +        */
+> +       put_cred(new_creds);
+> +       return 0;
+> +}
 
-There have to be four states. I own this attribute, and want you
-to use it. I own this attribute and I want you to ignore it. I don't
-own this attribute. I own this attribute and something went terribly
-wrong, such as running out of memory.
+One quick point of clarification: in addition to the SELinux specific
+comments in lsm_hooks.h, I think it would be a good idea if the
+SELinux hook implementation, e.g. security/selinux/hooks.c, was in its
+own patch and not part of the hook definition.
 
->
-> I guess I am missing something. Can you please elaborate a little more.
->
->> If the only use to which this hook is put is to identify attributes
->> that should be discarded it's unnecessary overhead to pass the
->> parameters that are never used.
-> Ok, I will get rid of extra parameters. If somebody needs these, it can
-> be added later.
->
-> Vivek
->
+Beyond that, I'm not overly excited about reusing create_sid for this
+purpose.  I understand why you did it, but what if the process had
+explicitly set create_sid?  I think I would prefer the creation of a
+new field (create_up_sid?) to track this new label and then add an
+additional check to selinux_inode_init_security() to prefer the
+existing create_sid to this new field when both are set.
+
+Sound reasonable?
+
+-- 
+paul moore
+security @ redhat
