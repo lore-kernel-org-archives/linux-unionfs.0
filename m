@@ -1,91 +1,129 @@
-From: Miklos Szeredi <miklos@szeredi.hu>
-Subject: Re: [PATCH 5/5] overlayfs: Use vfs_getxattr_noperm() for real inode
-Date: Wed, 6 Jul 2016 16:58:37 +0200
-Message-ID: <CAJfpegv6QnpFM-pPwAUtqYCHVP2f18htQj1TfcxQDFephXO23g@mail.gmail.com>
+From: Vivek Goyal <vgoyal@redhat.com>
+Subject: Re: [PATCH 2/5] security,overlayfs: Provide security hook for copy
+ up of xattrs for overlay file
+Date: Wed, 6 Jul 2016 13:09:00 -0400
+Message-ID: <20160706170900.GB11176@redhat.com>
 References: <1467733854-6314-1-git-send-email-vgoyal@redhat.com>
- <1467733854-6314-6-git-send-email-vgoyal@redhat.com> <b62a4ca9-3f75-b662-108b-1dec85c40ba1@schaufler-ca.com>
- <20160705211638.GH17987@redhat.com> <CAJfpegv7Hd8VHt0-q44FGpucR5VfRDVviy6vpCVO2n4W85bTJg@mail.gmail.com>
- <20160706105408.GB6550@redhat.com>
+ <1467733854-6314-3-git-send-email-vgoyal@redhat.com>
+ <bc7c8147-465e-791d-ce5a-1a194eb67228@schaufler-ca.com>
+ <20160705211502.GG17987@redhat.com>
+ <93ab3b87-a9c7-b792-2253-07aa2d03681e@schaufler-ca.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-oi0-f68.google.com ([209.85.218.68]:34094 "EHLO
-	mail-oi0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753724AbcGFO6j (ORCPT
-	<rfc822;linux-unionfs@vger.kernel.org>);
-	Wed, 6 Jul 2016 10:58:39 -0400
-Received: by mail-oi0-f68.google.com with SMTP id s17so32679179oih.1
-        for <linux-unionfs@vger.kernel.org>; Wed, 06 Jul 2016 07:58:38 -0700 (PDT)
-In-Reply-To: <20160706105408.GB6550@redhat.com>
-Sender: linux-unionfs-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-security-module-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <93ab3b87-a9c7-b792-2253-07aa2d03681e@schaufler-ca.com>
+Sender: owner-linux-security-module@vger.kernel.org
+To: Casey Schaufler <casey@schaufler-ca.com>
+Cc: miklos@szeredi.hu, sds@tycho.nsa.gov, linux-kernel@vger.kernel.org, linux-unionfs@vger.kernel.org, linux-security-module@vger.kernel.org, dwalsh@redhat.com, dhowells@redhat.com, pmoore@redhat.com, viro@ZenIV.linux.org.uk, linux-fsdevel@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Vivek Goyal <vgoyal@redhat.com>
-Cc: Casey Schaufler <casey@schaufler-ca.com>, Stephen Smalley <sds@tycho.nsa.gov>, linux-kernel@vger.kernel.org, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>, LSM <linux-security-module@vger.kernel.org>, Daniel J Walsh <dwalsh@redhat.com>, David Howells <dhowells@redhat.com>, pmoore@redhat.com, Al Viro <viro@zeniv.linux.org.uk>, linux-fsdevel@vger.kernel.org
 
-On Wed, Jul 6, 2016 at 12:54 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
-> On Wed, Jul 06, 2016 at 06:36:49AM +0200, Miklos Szeredi wrote:
->> On Tue, Jul 5, 2016 at 11:16 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
->> > On Tue, Jul 05, 2016 at 01:29:39PM -0700, Casey Schaufler wrote:
->> >> On 7/5/2016 8:50 AM, Vivek Goyal wrote:
->> >> > ovl_getxattr() currently uses vfs_getxattr() on realinode. This fails
->> >> > if mounter does not have DAC/MAC permission to access getxattr.
->> >> >
->> >> > Specifically this becomes a problem when selinux is trying to initialize
->> >> > overlay inode and does ->getxattr(overlay_inode). A task might trigger
->> >> > initialization of overlay inode and we will access real inode xattr in the
->> >> > context of mounter and if mounter does not have permissions, then inode
->> >> > selinux context initialization fails and inode is labeled as unlabeled_t.
->> >> >
->> >> > One way to deal with it is to let SELinux do getxattr checks both on
->> >> > overlay inode and underlying inode and overlay can call vfs_getxattr_noperm()
->> >> > to make sure when selinux is trying to initialize label on inode, it does
->> >> > not go through checks on lower levels and initialization is successful.
->> >> > And after inode initialization, SELinux will make sure task has getatttr
->> >> > permission.
->> >> >
->> >> > One issue with this approach is that it does not work for directories as
->> >> > d_real() returns the overlay dentry for directories and not the underlying
->> >> > directory dentry.
->> >> >
->> >> > Another way to deal with it to introduce another function pointer in
->> >> > inode_operations, say getxattr_noperm(), which is responsible to get
->> >> > xattr without any checks. SELinux initialization code will call this
->> >> > first if it is available on inode. So user space code path will call
->> >> > ->getxattr() and that will go through checks and SELinux internal
->> >> > initialization will call ->getxattr_noperm() and that will not
->> >> > go through checks.
->> >> >
->> >> > For now, I am just converting ovl_getxattr() to get xattr without
->> >> > any checks on underlying inode. That means it is possible for
->> >> > a task to get xattr of a file/dir on lower/upper through overlay mount
->> >> > while it is not possible outside overlay mount.
->> >> >
->> >> > If this is a major concern, I can look into implementing getxattr_noperm().
->> >>
->> >> This is a major concern.
->> >
->> > Hmm.., In that case I will write patch to provide another inode operation
->> > getxattr_noperm() and a wrapper which falls back to getxattr() if noperm
->> > variant is not defined. That should take care of this issue.
->>
->> That's not going to fly.  A slighly better, but still quite ugly
->> solution would be to add a "flags" arg to the current ->getxattr()
->> callback indicating whether the caller wants permission checking
->> inside the call or not.
->>
->
-> Ok, will try that.
->
->> But we already have the current->creds.  Can't that be used to control
->> the permission checking done by the callback?
->
-> Sorry, did not get how to use current->creds to control permission
-> checking.
+On Tue, Jul 05, 2016 at 02:34:43PM -0700, Casey Schaufler wrote:
+> On 7/5/2016 2:15 PM, Vivek Goyal wrote:
+> > On Tue, Jul 05, 2016 at 01:22:22PM -0700, Casey Schaufler wrote:
+> >> On 7/5/2016 8:50 AM, Vivek Goyal wrote:
+> >>> Provide a security hook which is called when xattrs of a file are being
+> >>> copied up. This hook is called once for each xattr and one can either
+> >>> accept or reject xattr. If 0 is returned, xattr will be copied up, if 1
+> >>> is returned, xattr will not be copied up and if negative error code
+> >>> is returned, copy up will be aborted.
+> >>>
+> >>> In SELinux, label of lower file is not copied up. File already has been
+> >>> set with right label at the time of creation and we don't want to overwrite
+> >>> that label.
+> >>>
+> >>> Signed-off-by: David Howells <dhowells@redhat.com>
+> >>> Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
+> >>> ---
+> >>>  fs/overlayfs/copy_up.c    |  8 ++++++++
+> >>>  include/linux/lsm_hooks.h | 13 +++++++++++++
+> >>>  include/linux/security.h  | 10 ++++++++++
+> >>>  security/security.c       |  9 +++++++++
+> >>>  security/selinux/hooks.c  | 14 ++++++++++++++
+> >>>  5 files changed, 54 insertions(+)
+> >>>
+> >>> diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
+> >>> index 90dc362..2c31938 100644
+> >>> --- a/fs/overlayfs/copy_up.c
+> >>> +++ b/fs/overlayfs/copy_up.c
+> >>> @@ -103,6 +103,14 @@ retry:
+> >>>  			goto retry;
+> >>>  		}
+> >>>  
+> >>> +		error = security_inode_copy_up_xattr(old, new,
+> >>> +						     name, value, size);
+> >>> +		if (error < 0)
+> >>> +			break;
+> >>> +		if (error == 1) {
+> >>> +			error = 0;
+> >>> +			continue; /* Discard */
+> >>> +		}
+> >>>  		error = vfs_setxattr(new, name, value, size, 0);
+> >>>  		if (error)
+> >>>  			break;
+> >>> diff --git a/include/linux/lsm_hooks.h b/include/linux/lsm_hooks.h
+> >>> index fcde9b9..2a8ee8c 100644
+> >>> --- a/include/linux/lsm_hooks.h
+> >>> +++ b/include/linux/lsm_hooks.h
+> >>> @@ -412,6 +412,16 @@
+> >>>   *	@src indicates the union dentry of file that is being copied up.
+> >>>   *	@old indicates the pointer to old_cred returned to caller.
+> >>>   *	Returns 0 on success or a negative error code on error.
+> >>> + * @inode_copy_up_xattr:
+> >>> + *	Filter the xattrs being copied up when a unioned file is copied
+> >>> + *	up from a lower layer to the union/overlay layer.
+> >>> + *	@src indicates the file that is being copied up.
+> >>> + *	@dst indicates the file that has being created by the copy up.
+> >>> + *	@name indicates the name of the xattr.
+> >>> + *	@value, @size indicate the payload of the xattr.
+> >>> + *	Returns 0 to accept the xattr, 1 to discard the xattr or a negative
+> >>> + *	error code to abort the copy up. Note that the caller is responsible
+> >>> + *	for reading and writing the xattrs as this hook is merely a filter.
+> >> The return should be -EOPNOTSUPP from security modules that don't
+> >> support the attribute "name". This will make it possible to support
+> >> multiple modules that provide attributes. (patches pending)
+> > Hmm.., Sorry I did not understand this one. 
+> >
+> > So all modules will not understand all xattrs. So if they start returning
+> > -EOPNOTSUPP, then as per current implementation, copy up operation will
+> > be aborted. 
+> 
+> Yes, the infrastructure code will have to change to deal with the
+> tri-state returns. That's also true of several other hooks.
+> 
+> > Current implementation relies on that a security module, returns 0 if
+> > every thing is "name" xattr should be copied up or lsm does not care.
+> > Negative error code is returned only if something is wrong. Given every
+> > lsm will not understand/care about all the xattrs, we can't return 
+> > error code if lsm does not own/understand the "name". In fact
+> > call_int_hook() will bail out the very first time negative error code
+> > is returned. 
+> >
+> > IOW, current implementation will work with multiple modules providing
+> > implementation for same hook as long as module returns 0 for the xattrs
+> > it does not understand. 
+> 
+> There have to be four states. I own this attribute, and want you
+> to use it. I own this attribute and I want you to ignore it. I don't
+> own this attribute. I own this attribute and something went terribly
+> wrong, such as running out of memory.
 
-I'm not sure about the details either.  But current->creds *is* the
-context provided for the VFS and filesystems to check permissions.  It
-might make sense to use that to indicate to overlayfs that permission
-should not be checked.
+Ok, so we have 3 states currently and we should have four.
 
-Thanks,
-Miklos
+I own this attribute and want you to use it ---> Return 0
+I own this attribute and want you to ignore it --> Return 1
+I don't own this attribute --> -EOPNOTSUPP
+Something went terribly wrong --> Negative error code.
+
+I can modify call_int_hook() to continue if -EOPNOTSUPP is returned. And
+if none of the LSMs claimed xattr, caller will get -EOPNOTSUPP.
+
+But what is caller supposed to do with it. There might be xattrs which
+are just user data (user.foo) and aborting copying up will not make sense.
+That means caller will continue to copy up anyway and treat -EOPNOTSUPP
+as success.
+
+IOW, What are we going to gain by introducing this extra state when none
+of the LSMs claims to know about the xattr name passed in.
+
+Vivek
