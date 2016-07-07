@@ -1,86 +1,116 @@
-From: <zhangaihua1@huawei.com>
-Subject: [PATCH] ovl:support fsinotify on overlayfs.
-Date: Thu, 7 Jul 2016 15:37:53 +0800
-Message-ID: <1467877073-32109-1-git-send-email-zhangaihua1@huawei.com>
+From: Vivek Goyal <vgoyal@redhat.com>
+Subject: Re: [PATCH 5/5] overlayfs: Use vfs_getxattr_noperm() for real inode
+Date: Thu, 7 Jul 2016 14:35:54 -0400
+Message-ID: <20160707183554.GB11036@redhat.com>
+References: <1467733854-6314-1-git-send-email-vgoyal@redhat.com>
+ <1467733854-6314-6-git-send-email-vgoyal@redhat.com>
+ <b62a4ca9-3f75-b662-108b-1dec85c40ba1@schaufler-ca.com>
+ <20160705211638.GH17987@redhat.com>
+ <CAJfpegv7Hd8VHt0-q44FGpucR5VfRDVviy6vpCVO2n4W85bTJg@mail.gmail.com>
+ <20160706105408.GB6550@redhat.com>
+ <CAJfpegv6QnpFM-pPwAUtqYCHVP2f18htQj1TfcxQDFephXO23g@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, linux-unionfs@vger.kernel.org
-Cc: zhangaihua <zhangaihua1@huawei.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CAJfpegv6QnpFM-pPwAUtqYCHVP2f18htQj1TfcxQDFephXO23g@mail.gmail.com>
+Sender: linux-fsdevel-owner@vger.kernel.org
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: Casey Schaufler <casey@schaufler-ca.com>, Stephen Smalley <sds@tycho.nsa.gov>, linux-kernel@vger.kernel.org, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>, LSM <linux-security-module@vger.kernel.org>, Daniel J Walsh <dwalsh@redhat.com>, David Howells <dhowells@redhat.com>, pmoore@redhat.com, Al Viro <viro@zeniv.linux.org.uk>, linux-fsdevel@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 
-From: zhangaihua <zhangaihua1@huawei.com>
+On Wed, Jul 06, 2016 at 04:58:37PM +0200, Miklos Szeredi wrote:
+> On Wed, Jul 6, 2016 at 12:54 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
+> > On Wed, Jul 06, 2016 at 06:36:49AM +0200, Miklos Szeredi wrote:
+> >> On Tue, Jul 5, 2016 at 11:16 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
+> >> > On Tue, Jul 05, 2016 at 01:29:39PM -0700, Casey Schaufler wrote:
+> >> >> On 7/5/2016 8:50 AM, Vivek Goyal wrote:
+> >> >> > ovl_getxattr() currently uses vfs_getxattr() on realinode. This fails
+> >> >> > if mounter does not have DAC/MAC permission to access getxattr.
+> >> >> >
+> >> >> > Specifically this becomes a problem when selinux is trying to initialize
+> >> >> > overlay inode and does ->getxattr(overlay_inode). A task might trigger
+> >> >> > initialization of overlay inode and we will access real inode xattr in the
+> >> >> > context of mounter and if mounter does not have permissions, then inode
+> >> >> > selinux context initialization fails and inode is labeled as unlabeled_t.
+> >> >> >
+> >> >> > One way to deal with it is to let SELinux do getxattr checks both on
+> >> >> > overlay inode and underlying inode and overlay can call vfs_getxattr_noperm()
+> >> >> > to make sure when selinux is trying to initialize label on inode, it does
+> >> >> > not go through checks on lower levels and initialization is successful.
+> >> >> > And after inode initialization, SELinux will make sure task has getatttr
+> >> >> > permission.
+> >> >> >
+> >> >> > One issue with this approach is that it does not work for directories as
+> >> >> > d_real() returns the overlay dentry for directories and not the underlying
+> >> >> > directory dentry.
+> >> >> >
+> >> >> > Another way to deal with it to introduce another function pointer in
+> >> >> > inode_operations, say getxattr_noperm(), which is responsible to get
+> >> >> > xattr without any checks. SELinux initialization code will call this
+> >> >> > first if it is available on inode. So user space code path will call
+> >> >> > ->getxattr() and that will go through checks and SELinux internal
+> >> >> > initialization will call ->getxattr_noperm() and that will not
+> >> >> > go through checks.
+> >> >> >
+> >> >> > For now, I am just converting ovl_getxattr() to get xattr without
+> >> >> > any checks on underlying inode. That means it is possible for
+> >> >> > a task to get xattr of a file/dir on lower/upper through overlay mount
+> >> >> > while it is not possible outside overlay mount.
+> >> >> >
+> >> >> > If this is a major concern, I can look into implementing getxattr_noperm().
+> >> >>
+> >> >> This is a major concern.
+> >> >
+> >> > Hmm.., In that case I will write patch to provide another inode operation
+> >> > getxattr_noperm() and a wrapper which falls back to getxattr() if noperm
+> >> > variant is not defined. That should take care of this issue.
+> >>
+> >> That's not going to fly.  A slighly better, but still quite ugly
+> >> solution would be to add a "flags" arg to the current ->getxattr()
+> >> callback indicating whether the caller wants permission checking
+> >> inside the call or not.
+> >>
+> >
+> > Ok, will try that.
+> >
+> >> But we already have the current->creds.  Can't that be used to control
+> >> the permission checking done by the callback?
+> >
+> > Sorry, did not get how to use current->creds to control permission
+> > checking.
+> 
+> I'm not sure about the details either.  But current->creds *is* the
+> context provided for the VFS and filesystems to check permissions.  It
+> might make sense to use that to indicate to overlayfs that permission
+> should not be checked.
 
-fix the inode to suppoert fsinotify, the inode should point
-to overlay rather than upper.
+That sounds like raising capabilities of task temporarily to do
+getxattr(). But AFAIK, there is no cap which will override SELinux checks.
 
-before patch:
-[root@localhost bin]# ./inotify01
-inotify01    1  TPASS  :  get event: wd=1 mask=4 cookie=0 len=0
-inotify01    2  TFAIL  :  inotify01.c:185: didn't get event: mask=20
-inotify01    3  TFAIL  :  inotify01.c:185: didn't get event: mask=1
-inotify01    4  TFAIL  :  inotify01.c:185: didn't get event: mask=10
-inotify01    5  TFAIL  :  inotify01.c:185: didn't get event: mask=20
-inotify01    6  TFAIL  :  inotify01.c:185: didn't get event: mask=2
-inotify01    7  TFAIL  :  inotify01.c:185: didn't get event: mask=8
+I am taking a step back re-thinking about the problem.
 
-after patch:
-[root@localhost bin]# ./inotify01
-inotify01    1  TPASS  :  get event: wd=1 mask=4 cookie=0 len=0
-inotify01    2  TPASS  :  get event: wd=1 mask=20 cookie=0 len=0
-inotify01    3  TPASS  :  get event: wd=1 mask=1 cookie=0 len=0
-inotify01    4  TPASS  :  get event: wd=1 mask=10 cookie=0 len=0
-inotify01    5  TPASS  :  get event: wd=1 mask=20 cookie=0 len=0
-inotify01    6  TPASS  :  get event: wd=1 mask=2 cookie=0 len=0
-inotify01    7  TPASS  :  get event: wd=1 mask=8 cookie=0 len=0
+- For context mounts this is not a problem at all as overlay inode will
+  get its label from context= mount option and we will not call into
+  ovl_getxattr().
 
-Signed-off-by: Aihua Zhang <zhangaihua1@huawei.com>
----
- include/linux/fsnotify.h |    8 ++++----
- 1 files changed, 4 insertions(+), 4 deletions(-)
+- For non-context mounts this is a problem only if mounter is not
+  privileged enough to do getattr. And that's not going to be a common
+  case either.
 
-diff --git a/include/linux/fsnotify.h b/include/linux/fsnotify.h
-index 7ee1774..ccd8395 100644
---- a/include/linux/fsnotify.h
-+++ b/include/linux/fsnotify.h
-@@ -194,7 +194,7 @@ static inline void fsnotify_mkdir(struct inode *inode, struct dentry *dentry)
- static inline void fsnotify_access(struct file *file)
- {
- 	struct path *path = &file->f_path;
--	struct inode *inode = file_inode(file);
-+	struct inode *inode = path->dentry->d_inode;
- 	__u32 mask = FS_ACCESS;
- 
- 	if (S_ISDIR(inode->i_mode))
-@@ -212,8 +212,8 @@ static inline void fsnotify_access(struct file *file)
- static inline void fsnotify_modify(struct file *file)
- {
- 	struct path *path = &file->f_path;
--	struct inode *inode = file_inode(file);
-+	struct inode *inode = path->dentry->d_inode;
-	 __u32 mask = FS_MODIFY; 
+IOW, this does not look like a common case. And if getxattr() fails,
+SELinux already seems to mark inode as unlabeled_t. And my understanding
+is that task can't access unlabeled_t anyway, so there is no information
+leak.
 
- 	if (S_ISDIR(inode->i_mode))
- 		mask |= FS_ISDIR;
-@@ -230,7 +230,7 @@ static inline void fsnotify_modify(struct file *file)
- static inline void fsnotify_open(struct file *file)
- {
- 	struct path *path = &file->f_path;
--	struct inode *inode = file_inode(file);
-+	struct inode *inode = path->dentry->d_inode;
- 	__u32 mask = FS_OPEN;
- 
- 	if (S_ISDIR(inode->i_mode))
-@@ -246,8 +246,8 @@ static inline void fsnotify_open(struct file *file)
- static inline void fsnotify_close(struct file *file)
- {
- 	struct path *path = &file->f_path;
--	struct inode *inode = file_inode(file);
-+	struct inode *inode = path->dentry->d_inode;
-	fmode_t mode = file->f_mode;
- 	__u32 mask = (mode & FMODE_WRITE) ? FS_CLOSE_WRITE : FS_CLOSE_NOWRITE;
- 
- 	if (S_ISDIR(inode->i_mode))
--- 
-1.7.1
+So for now, why not leave it as it is. Only side affect I seem to see 
+is following warnings on console.
+
+SELinux: inode_doinit_with_dentry:  getxattr returned 13 for dev=overlay ino=29147
+
+This is for information purposes only and given getxattr() can fail in
+stacked configuration, I think we can change this to KERN_DEBUG instead
+of KERN_WARNING.
+
+Thanks
+Vivek
