@@ -1,116 +1,90 @@
 From: Vivek Goyal <vgoyal@redhat.com>
-Subject: Re: [PATCH 5/5] overlayfs: Use vfs_getxattr_noperm() for real inode
-Date: Thu, 7 Jul 2016 14:35:54 -0400
-Message-ID: <20160707183554.GB11036@redhat.com>
+Subject: Re: [PATCH 1/5] security, overlayfs: provide copy up security hook
+ for unioned files
+Date: Thu, 7 Jul 2016 16:33:29 -0400
+Message-ID: <20160707203329.GD11036@redhat.com>
 References: <1467733854-6314-1-git-send-email-vgoyal@redhat.com>
- <1467733854-6314-6-git-send-email-vgoyal@redhat.com>
- <b62a4ca9-3f75-b662-108b-1dec85c40ba1@schaufler-ca.com>
- <20160705211638.GH17987@redhat.com>
- <CAJfpegv7Hd8VHt0-q44FGpucR5VfRDVviy6vpCVO2n4W85bTJg@mail.gmail.com>
- <20160706105408.GB6550@redhat.com>
- <CAJfpegv6QnpFM-pPwAUtqYCHVP2f18htQj1TfcxQDFephXO23g@mail.gmail.com>
+ <1467733854-6314-2-git-send-email-vgoyal@redhat.com>
+ <63906f0e-25cf-266b-6df9-18317f1e7c59@schaufler-ca.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
+Return-path: <linux-unionfs-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:46560 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751193AbcGGUlG (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+	Thu, 7 Jul 2016 16:41:06 -0400
 Content-Disposition: inline
-In-Reply-To: <CAJfpegv6QnpFM-pPwAUtqYCHVP2f18htQj1TfcxQDFephXO23g@mail.gmail.com>
-Sender: linux-fsdevel-owner@vger.kernel.org
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: Casey Schaufler <casey@schaufler-ca.com>, Stephen Smalley <sds@tycho.nsa.gov>, linux-kernel@vger.kernel.org, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>, LSM <linux-security-module@vger.kernel.org>, Daniel J Walsh <dwalsh@redhat.com>, David Howells <dhowells@redhat.com>, pmoore@redhat.com, Al Viro <viro@zeniv.linux.org.uk>, linux-fsdevel@vger.kernel.org
+In-Reply-To: <63906f0e-25cf-266b-6df9-18317f1e7c59@schaufler-ca.com>
+Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
+To: Casey Schaufler <casey@schaufler-ca.com>
+Cc: miklos@szeredi.hu, sds@tycho.nsa.gov, linux-kernel@vger.kernel.org, linux-unionfs@vger.kernel.org, linux-security-module@vger.kernel.org, dwalsh@redhat.com, dhowells@redhat.com, pmoore@redhat.com, viro@ZenIV.linux.org.uk, linux-fsdevel@vger.kernel.org
 
-On Wed, Jul 06, 2016 at 04:58:37PM +0200, Miklos Szeredi wrote:
-> On Wed, Jul 6, 2016 at 12:54 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
-> > On Wed, Jul 06, 2016 at 06:36:49AM +0200, Miklos Szeredi wrote:
-> >> On Tue, Jul 5, 2016 at 11:16 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
-> >> > On Tue, Jul 05, 2016 at 01:29:39PM -0700, Casey Schaufler wrote:
-> >> >> On 7/5/2016 8:50 AM, Vivek Goyal wrote:
-> >> >> > ovl_getxattr() currently uses vfs_getxattr() on realinode. This fails
-> >> >> > if mounter does not have DAC/MAC permission to access getxattr.
-> >> >> >
-> >> >> > Specifically this becomes a problem when selinux is trying to initialize
-> >> >> > overlay inode and does ->getxattr(overlay_inode). A task might trigger
-> >> >> > initialization of overlay inode and we will access real inode xattr in the
-> >> >> > context of mounter and if mounter does not have permissions, then inode
-> >> >> > selinux context initialization fails and inode is labeled as unlabeled_t.
-> >> >> >
-> >> >> > One way to deal with it is to let SELinux do getxattr checks both on
-> >> >> > overlay inode and underlying inode and overlay can call vfs_getxattr_noperm()
-> >> >> > to make sure when selinux is trying to initialize label on inode, it does
-> >> >> > not go through checks on lower levels and initialization is successful.
-> >> >> > And after inode initialization, SELinux will make sure task has getatttr
-> >> >> > permission.
-> >> >> >
-> >> >> > One issue with this approach is that it does not work for directories as
-> >> >> > d_real() returns the overlay dentry for directories and not the underlying
-> >> >> > directory dentry.
-> >> >> >
-> >> >> > Another way to deal with it to introduce another function pointer in
-> >> >> > inode_operations, say getxattr_noperm(), which is responsible to get
-> >> >> > xattr without any checks. SELinux initialization code will call this
-> >> >> > first if it is available on inode. So user space code path will call
-> >> >> > ->getxattr() and that will go through checks and SELinux internal
-> >> >> > initialization will call ->getxattr_noperm() and that will not
-> >> >> > go through checks.
-> >> >> >
-> >> >> > For now, I am just converting ovl_getxattr() to get xattr without
-> >> >> > any checks on underlying inode. That means it is possible for
-> >> >> > a task to get xattr of a file/dir on lower/upper through overlay mount
-> >> >> > while it is not possible outside overlay mount.
-> >> >> >
-> >> >> > If this is a major concern, I can look into implementing getxattr_noperm().
-> >> >>
-> >> >> This is a major concern.
-> >> >
-> >> > Hmm.., In that case I will write patch to provide another inode operation
-> >> > getxattr_noperm() and a wrapper which falls back to getxattr() if noperm
-> >> > variant is not defined. That should take care of this issue.
-> >>
-> >> That's not going to fly.  A slighly better, but still quite ugly
-> >> solution would be to add a "flags" arg to the current ->getxattr()
-> >> callback indicating whether the caller wants permission checking
-> >> inside the call or not.
-> >>
-> >
-> > Ok, will try that.
-> >
-> >> But we already have the current->creds.  Can't that be used to control
-> >> the permission checking done by the callback?
-> >
-> > Sorry, did not get how to use current->creds to control permission
-> > checking.
+On Tue, Jul 05, 2016 at 12:36:17PM -0700, Casey Schaufler wrote:
 > 
-> I'm not sure about the details either.  But current->creds *is* the
-> context provided for the VFS and filesystems to check permissions.  It
-> might make sense to use that to indicate to overlayfs that permission
-> should not be checked.
+> On 7/5/2016 8:50 AM, Vivek Goyal wrote:
+> > Provide a security hook to label new file correctly when a file is copied
+> > up from lower layer to upper layer of a overlay/union mount.
+> >
+> > This hook can prepare and switch to a new set of creds which are suitable
+> > for new file creation during copy up. Caller should revert to old creds
+> > after file creation.
+> >
+> > In SELinux, newly copied up file gets same label as lower file for
+> > non-context mounts. But it gets label specified in mount option context=
+> > for context mounts.
+> >
+> > Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
+> > ---
+> >  fs/overlayfs/copy_up.c    |  8 ++++++++
+> >  include/linux/lsm_hooks.h | 13 +++++++++++++
+> >  include/linux/security.h  |  6 ++++++
+> >  security/security.c       |  8 ++++++++
+> >  security/selinux/hooks.c  | 27 +++++++++++++++++++++++++++
+> >  5 files changed, 62 insertions(+)
+> >
+> > diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
+> > index 80aa6f1..90dc362 100644
+> > --- a/fs/overlayfs/copy_up.c
+> > +++ b/fs/overlayfs/copy_up.c
+> > @@ -246,6 +246,7 @@ static int ovl_copy_up_locked(struct dentry *workdir, struct dentry *upperdir,
+> >  	struct dentry *upper = NULL;
+> >  	umode_t mode = stat->mode;
+> >  	int err;
+> > +	const struct cred *old_creds = NULL;
+> >  
+> >  	newdentry = ovl_lookup_temp(workdir, dentry);
+> >  	err = PTR_ERR(newdentry);
+> > @@ -258,10 +259,17 @@ static int ovl_copy_up_locked(struct dentry *workdir, struct dentry *upperdir,
+> >  	if (IS_ERR(upper))
+> >  		goto out1;
+> >  
+> > +	err = security_inode_copy_up(dentry, &old_creds);
+> > +	if (err < 0)
+> > +		goto out2;
+> > +
+> >  	/* Can't properly set mode on creation because of the umask */
+> >  	stat->mode &= S_IFMT;
+> >  	err = ovl_create_real(wdir, newdentry, stat, link, NULL, true);
+> >  	stat->mode = mode;
+> > +	if (old_creds)
+> > +		revert_creds(old_creds);
+> > +
+> >  	if (err)
+> >  		goto out2;
+> 
+> I don't much care for the way part of the credential manipulation
+> is done in the caller and part is done the the security module.
+> If the caller is going to restore the old state, the caller should
+> save the old state. 
 
-That sounds like raising capabilities of task temporarily to do
-getxattr(). But AFAIK, there is no cap which will override SELinux checks.
+One advantage of current patches is that we switch to new creds only if
+it is needed. For example, if there are no LSMs loaded, then there is
+no need to modify creds and make a switch to new creds.
 
-I am taking a step back re-thinking about the problem.
-
-- For context mounts this is not a problem at all as overlay inode will
-  get its label from context= mount option and we will not call into
-  ovl_getxattr().
-
-- For non-context mounts this is a problem only if mounter is not
-  privileged enough to do getattr. And that's not going to be a common
-  case either.
-
-IOW, this does not look like a common case. And if getxattr() fails,
-SELinux already seems to mark inode as unlabeled_t. And my understanding
-is that task can't access unlabeled_t anyway, so there is no information
-leak.
-
-So for now, why not leave it as it is. Only side affect I seem to see 
-is following warnings on console.
-
-SELinux: inode_doinit_with_dentry:  getxattr returned 13 for dev=overlay ino=29147
-
-This is for information purposes only and given getxattr() can fail in
-stacked configuration, I think we can change this to KERN_DEBUG instead
-of KERN_WARNING.
+But if I start allocating new creds and save old state in caller, then
+caller always has to do it (irrespective of the fact whether any LSM
+modified the creds or not).
 
 Thanks
 Vivek
