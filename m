@@ -1,259 +1,116 @@
-From: Casey Schaufler <casey@schaufler-ca.com>
-Subject: Re: [PATCH 1/5] security, overlayfs: provide copy up security hook
- for unioned files
-Date: Fri, 8 Jul 2016 08:34:17 -0700
-Message-ID: <2f2d480d-5fab-82aa-c77f-c3b3f5bb7d0e@schaufler-ca.com>
-References: <1467733854-6314-1-git-send-email-vgoyal@redhat.com>
- <1467733854-6314-2-git-send-email-vgoyal@redhat.com>
- <63906f0e-25cf-266b-6df9-18317f1e7c59@schaufler-ca.com>
- <20160707203329.GD11036@redhat.com>
- <2e7462e4-c84b-a6cf-74d3-35bf68048a61@schaufler-ca.com>
- <CAJfpegvQ8-fhdV-emzwhZX90k_Ray9imQTp0Cg5y+zRu3OAH3A@mail.gmail.com>
- <20160708124534.GA7732@redhat.com> <20160708134257.GB7732@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160708134257.GB7732@redhat.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Vivek Goyal <vgoyal@redhat.com>, Miklos Szeredi <miklos@szeredi.hu>
-Cc: Stephen Smalley <sds@tycho.nsa.gov>, linux-kernel@vger.kernel.org, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>, LSM <linux-security-module@vger.kernel.org>, Daniel J Walsh <dwalsh@redhat.com>, David Howells <dhowells@redhat.com>, pmoore@redhat.com, Al Viro <viro@zeniv.linux.org.uk>, linux-fsdevel@vger.kernel.org
+From: Vivek Goyal <vgoyal@redhat.com>
+Subject: [RFC PATCH 0/7][V2] Overlayfs SELinux Support
+Date: Fri,  8 Jul 2016 12:19:35 -0400
+Message-ID: <1467994782-26474-1-git-send-email-vgoyal@redhat.com>
+Return-path: <linux-unionfs-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:33320 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755814AbcGHQUD (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+	Fri, 8 Jul 2016 12:20:03 -0400
+Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
+To: miklos@szeredi.hu, sds@tycho.nsa.gov, pmoore@redhat.com, casey@schaufler-ca.com, linux-kernel@vger.kernel.org, linux-unionfs@vger.kernel.org, linux-security-module@vger.kernel.org
+Cc: dwalsh@redhat.com, dhowells@redhat.com, viro@ZenIV.linux.org.uk, vgoyal@redhat.com, linux-fsdevel@vger.kernel.org
 
-On 7/8/2016 6:42 AM, Vivek Goyal wrote:
-> On Fri, Jul 08, 2016 at 08:45:34AM -0400, Vivek Goyal wrote:
->
-> [..]
->>>>>> I don't much care for the way part of the credential manipulation
->>>>>> is done in the caller and part is done the the security module.
->>>>>> If the caller is going to restore the old state, the caller should
->>>>>> save the old state.
->>> Conversely if the SM is setting the state it should restore it.
->>> This needs yet another hook, but that's fine, I think.
->>>
->>>>> One advantage of current patches is that we switch to new creds only if
->>>>> it is needed. For example, if there are no LSMs loaded,
->>>> Point.
->>>>
->>>>>  then there is
->>>>> no need to modify creds and make a switch to new creds.
->>>> I'm not a fan of cred flipping. There are too many ways for it to go
->>>> wrong. Consider interrupts. I assume you've ruled that out as a possibility
->>>> in the caller, but I still think the practice is dangerous.
->>>>
->>>> I greatly prefer "create and set attributes" to "change cred, create and
->>>> reset cred". I know that has it's own set of problems, including races
->>>> and faking privilege.
->>> Yeah, we've talked about this. The races can be eliminated by always
->>> doing the create in a the temporary "workdir" area and atomically
->>> renaming to the final destination after everything has been set up.
->>> OTOH that has a performance impact that the cred flipping eliminates.
->>>
->>>>> But if I start allocating new creds and save old state in caller, then
->>>>> caller always has to do it (irrespective of the fact whether any LSM
->>>>> modified the creds or not).
->>>> It starts getting messy when I have two modules that want to
->>>> change change the credential. Each module will have to check to
->>>> see if a module called before it has allocated a new cred.
->>> Doesn't seem to me too difficult: check if *credp == NULL and allocate
->>> if so.  Can even invent a heper for this if needed.
->> Right. I like this approach. So cred allocation happens in LSM and
->> switching to new creds and freeing of new creds is done by caller.
->>
->> That way, if no new creds are allocated, then caller does not have to
->> switch creds. Also all LSMs can work on single copy of newly allocated
->> cred and modify it. Also all LSMs can check if creds have already been
->> allocated otherwise allocate new one.
-> How about something like this. This should allow stacking modules nicely
-> at the same time if no LSMs are loaded or LSM decide not to allocate new
-> creds,there is no need to switch creds.
->
->
-> Subject: security, overlayfs: provide copy up security hook for unioned files
->
-> Provide a security hook to label new file correctly when a file is copied
-> up from lower layer to upper layer of a overlay/union mount.
->
-> This hook can prepare a new set of creds which are suitable for new file
-> creation during copy up. Caller will use new creds to create file and then
-> revert back to old creds and release new creds.
->
-> Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
+Hi,
 
-I like this better. 
+Please find attached the V2 of patches. I have take care of feedback from
+round 1.
 
-> ---
->
->  fs/overlayfs/copy_up.c    |   18 ++++++++++++++++++
->  include/linux/lsm_hooks.h |   11 +++++++++++
->  include/linux/security.h  |    6 ++++++
->  security/security.c       |    8 ++++++++
->  security/selinux/hooks.c  |   21 +++++++++++++++++++++
->  5 files changed, 64 insertions(+)
->
-> Index: rhvgoyal-linux/include/linux/lsm_hooks.h
-> ===================================================================
-> --- rhvgoyal-linux.orig/include/linux/lsm_hooks.h	2016-07-07 15:43:57.885498096 -0400
-> +++ rhvgoyal-linux/include/linux/lsm_hooks.h	2016-07-08 09:39:22.052676141 -0400
-> @@ -401,6 +401,15 @@
->   *	@inode contains a pointer to the inode.
->   *	@secid contains a pointer to the location where result will be saved.
->   *	In case of failure, @secid will be set to zero.
-> + * @inode_copy_up:
-> + *	A file is about to be copied up from lower layer to upper layer of
-> + *	overlay filesystem. Security module can prepare a set of new creds
-> + *	and modify as need be and return new creds. Caller will switch to
-> + *	new creds temporarily to create new file and release newly allocated
-> + *	creds.
-> + *	@src indicates the union dentry of file that is being copied up.
-> + *	@new pointer to pointer to return newly allocated creds.
-> + *	Returns 0 on success or a negative error code on error.
->   *
->   * Security hooks for file operations
->   *
-> @@ -1425,6 +1434,7 @@ union security_list_options {
->  	int (*inode_listsecurity)(struct inode *inode, char *buffer,
->  					size_t buffer_size);
->  	void (*inode_getsecid)(struct inode *inode, u32 *secid);
-> +	int (*inode_copy_up) (struct dentry *src, struct cred **new);
->  
->  	int (*file_permission)(struct file *file, int mask);
->  	int (*file_alloc_security)(struct file *file);
-> @@ -1696,6 +1706,7 @@ struct security_hook_heads {
->  	struct list_head inode_setsecurity;
->  	struct list_head inode_listsecurity;
->  	struct list_head inode_getsecid;
-> +	struct list_head inode_copy_up;
->  	struct list_head file_permission;
->  	struct list_head file_alloc_security;
->  	struct list_head file_free_security;
-> Index: rhvgoyal-linux/include/linux/security.h
-> ===================================================================
-> --- rhvgoyal-linux.orig/include/linux/security.h	2016-07-07 15:43:57.885498096 -0400
-> +++ rhvgoyal-linux/include/linux/security.h	2016-07-08 09:39:22.052676141 -0400
-> @@ -282,6 +282,7 @@ int security_inode_getsecurity(struct in
->  int security_inode_setsecurity(struct inode *inode, const char *name, const void *value, size_t size, int flags);
->  int security_inode_listsecurity(struct inode *inode, char *buffer, size_t buffer_size);
->  void security_inode_getsecid(struct inode *inode, u32 *secid);
-> +int security_inode_copy_up(struct dentry *src, struct cred **new);
->  int security_file_permission(struct file *file, int mask);
->  int security_file_alloc(struct file *file);
->  void security_file_free(struct file *file);
-> @@ -758,6 +759,11 @@ static inline void security_inode_getsec
->  	*secid = 0;
->  }
->  
-> +static inline int security_inode_copy_up(struct dentry *src, struct cred **new)
-> +{
-> +	return 0;
-> +}
-> +
->  static inline int security_file_permission(struct file *file, int mask)
->  {
->  	return 0;
-> Index: rhvgoyal-linux/security/security.c
-> ===================================================================
-> --- rhvgoyal-linux.orig/security/security.c	2016-07-07 15:43:57.885498096 -0400
-> +++ rhvgoyal-linux/security/security.c	2016-07-08 09:39:22.052676141 -0400
-> @@ -727,6 +727,12 @@ void security_inode_getsecid(struct inod
->  	call_void_hook(inode_getsecid, inode, secid);
->  }
->  
-> +int security_inode_copy_up(struct dentry *src, struct cred **new)
-> +{
-> +	return call_int_hook(inode_copy_up, 0, src, new);
-> +}
-> +EXPORT_SYMBOL(security_inode_copy_up);
-> +
->  int security_file_permission(struct file *file, int mask)
->  {
->  	int ret;
-> @@ -1663,6 +1669,8 @@ struct security_hook_heads security_hook
->  		LIST_HEAD_INIT(security_hook_heads.inode_listsecurity),
->  	.inode_getsecid =
->  		LIST_HEAD_INIT(security_hook_heads.inode_getsecid),
-> +	.inode_copy_up =
-> +		LIST_HEAD_INIT(security_hook_heads.inode_copy_up),
->  	.file_permission =
->  		LIST_HEAD_INIT(security_hook_heads.file_permission),
->  	.file_alloc_security =
-> Index: rhvgoyal-linux/fs/overlayfs/copy_up.c
-> ===================================================================
-> --- rhvgoyal-linux.orig/fs/overlayfs/copy_up.c	2016-07-07 15:43:57.885498096 -0400
-> +++ rhvgoyal-linux/fs/overlayfs/copy_up.c	2016-07-08 09:39:22.052676141 -0400
-> @@ -246,6 +246,8 @@ static int ovl_copy_up_locked(struct den
->  	struct dentry *upper = NULL;
->  	umode_t mode = stat->mode;
->  	int err;
-> +	const struct cred *old_creds = NULL;
-> +	struct cred *new_creds = NULL;
->  
->  	newdentry = ovl_lookup_temp(workdir, dentry);
->  	err = PTR_ERR(newdentry);
-> @@ -258,10 +260,26 @@ static int ovl_copy_up_locked(struct den
->  	if (IS_ERR(upper))
->  		goto out1;
->  
-> +	err = security_inode_copy_up(dentry, &new_creds);
-> +	if (err < 0) {
-> +		if (new_creds)
-> +			put_cred(new_creds);
-> +		goto out2;
-> +	}
-> +
-> +	if (new_creds)
-> +		old_creds = override_creds(new_creds);
-> +
->  	/* Can't properly set mode on creation because of the umask */
->  	stat->mode &= S_IFMT;
->  	err = ovl_create_real(wdir, newdentry, stat, link, NULL, true);
->  	stat->mode = mode;
-> +
-> +	if (new_creds) {
-> +		revert_creds(old_creds);
-> +		put_cred(new_creds);
-> +	}
-> +
->  	if (err)
->  		goto out2;
->  
-> Index: rhvgoyal-linux/security/selinux/hooks.c
-> ===================================================================
-> --- rhvgoyal-linux.orig/security/selinux/hooks.c	2016-07-08 09:39:24.261676141 -0400
-> +++ rhvgoyal-linux/security/selinux/hooks.c	2016-07-08 09:39:32.651676141 -0400
-> @@ -3270,6 +3270,26 @@ static void selinux_inode_getsecid(struc
->  	*secid = isec->sid;
->  }
->  
-> +static int selinux_inode_copy_up(struct dentry *src, struct cred **new)
-> +{
-> +	u32 sid;
-> +	struct task_security_struct *tsec;
-> +	struct cred *new_creds = *new;
-> +
-> +	if (new_creds == NULL) {
-> +		new_creds = prepare_creds();
-> +		if (!new_creds)
-> +			return -ENOMEM;
-> +	}
-> +
-> +	tsec = new_creds->security;
-> +	/* Get label from overlay inode and set it in create_sid */
-> +	selinux_inode_getsecid(d_inode(src), &sid);
-> +	tsec->create_sid = sid;
-> +	*new = new_creds;
-> +	return 0;
-> +}
-> +
->  /* file security operations */
->  
->  static int selinux_revalidate_file_permission(struct file *file, int mask)
-> @@ -6056,6 +6076,7 @@ static struct security_hook_list selinux
->  	LSM_HOOK_INIT(inode_setsecurity, selinux_inode_setsecurity),
->  	LSM_HOOK_INIT(inode_listsecurity, selinux_inode_listsecurity),
->  	LSM_HOOK_INIT(inode_getsecid, selinux_inode_getsecid),
-> +	LSM_HOOK_INIT(inode_copy_up, selinux_inode_copy_up),
->  
->  	LSM_HOOK_INIT(file_permission, selinux_file_permission),
->  	LSM_HOOK_INIT(file_alloc_security, selinux_file_alloc_security),
->
+Following are the changes since V1.
+
+- Broke down patches as mentioned by paul moore.
+
+- Dropped last patch of the series where we skipped permission checks in
+  ovl_getxattr(). Now there should not be any info leak. This means in
+  some uncommon configurations (non-context mount where mounter can't do
+  getattr on underlying file), overlay inode selinux label will be
+  labeled unlabeled_t and there will be warning on console about this
+  every time it happens.
+
+- Modified security_inode_copy_up() and security_inode_copy_up_xattr() as
+  mentioned by Casey.
+
+Original description of patches follows.
+
+Following are RFC patches to support SELinux with overlayfs. I started
+with David Howells's latest posting on this topic and started modifying
+patches. These patches apply on top of overlayfs-next branch of miklos
+vfs git tree.
+
+git://git.kernel.org/pub/scm/linux/kernel/git/mszeredi/vfs.git overlayfs-next
+
+These patches can be pulled from my branch too.
+
+https://github.com/rhvgoyal/linux/commits/overlayfs-selinux-mounter-next
+
+Thanks to Dan Walsh, Stephen Smalley and Miklos Szeredi for numerous
+conversation and ideas in helping figuring out what one reasonable
+implementation might look like.
+
+Dan Walsh has been writing tests for selinux overlayfs in selinux-testsuite.
+These patches pass those tests except one. I think that test/policy need
+to be fixed. 
+
+https://github.com/rhatdan/selinux-testsuite/commits/master
+
+Posting these patches for review and comments.
+
+These patches introduce 3 new security hooks.
+
+- security_inode_copy_up(), is called when a file is copied up. This hook
+  prepares a new set of cred which is used for copy up operation. And
+  new set of creds are prepared so that ->create_sid can be set appropriately
+  and newly created file is labeled properly. 
+
+  When a file is copied up, label of lower file is retained except for the
+  case of context= mount where new file gets the label from context= option.
+
+- security_inode_copy_up_xattr(), is called when xattrs of a file are
+  being copied up. Before this we already called security_inode_copy_up()
+  and created new file and copied up data. That means file already got
+  labeled properly and there is no need to take SELINUX xattr of lower
+  file and overwrite the upper file xattr. So this hook is used to avoid
+  copying up of SELINUX xattr.
+
+- dentry_create_files_as(), is called when a new file is about to be created.
+  This hook determines what the label of the file should be if task had
+  created that file in upper/ and sets create_sid accordingly in the passed
+  in creds.
+
+  Normal transition rules don't work for the case of context mounts as
+  underlying file system is not aware of context option which only overlay
+  layer is aware of. For non-context mounts, creation can happen in work/
+  dir first and then file might be renamed into upper/, and it might get
+  label based on work/ dir. So this hooks helps avoiding all these issues.
+
+  When a new file is created in upper/, it gets its label based on transition
+  rules. For the case of context mount, it gets the label from context=
+  option.
+
+Any feedback is welcome.
+
+Thanks
+Vivek
+ 
+Vivek Goyal (7):
+  security, overlayfs: provide copy up security hook for unioned files
+  selinux: Implementation for inode_copy_up() hook
+  security,overlayfs: Provide security hook for copy up of xattrs for
+    overlay file
+  selinux: Implementation for inode_copy_up_xattr() hook
+  selinux: Pass security pointer to determine_inode_label()
+  security, overlayfs: Provide hook to correctly label newly created
+    files
+  selinux: Implement dentry_create_files_as() hook
+
+ fs/overlayfs/copy_up.c    | 25 +++++++++++++++
+ fs/overlayfs/dir.c        | 10 ++++++
+ include/linux/lsm_hooks.h | 36 ++++++++++++++++++++++
+ include/linux/security.h  | 24 +++++++++++++++
+ security/security.c       | 27 ++++++++++++++++
+ security/selinux/hooks.c  | 78 +++++++++++++++++++++++++++++++++++++++++------
+ 6 files changed, 191 insertions(+), 9 deletions(-)
+
+-- 
+2.7.4
