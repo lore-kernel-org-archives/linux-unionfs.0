@@ -1,137 +1,210 @@
-From: Vivek Goyal <vgoyal@redhat.com>
-Subject: [PATCH 3/7] security,overlayfs: Provide security hook for copy up of xattrs for overlay file
-Date: Fri,  8 Jul 2016 12:19:38 -0400
-Message-ID: <1467994782-26474-4-git-send-email-vgoyal@redhat.com>
-References: <1467994782-26474-1-git-send-email-vgoyal@redhat.com>
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
-In-Reply-To: <1467994782-26474-1-git-send-email-vgoyal@redhat.com>
-Sender: linux-fsdevel-owner@vger.kernel.org
-To: miklos@szeredi.hu, sds@tycho.nsa.gov, pmoore@redhat.com, casey@schaufler-ca.com, linux-kernel@vger.kernel.org, linux-unionfs@vger.kernel.org, linux-security-module@vger.kernel.org
-Cc: dwalsh@redhat.com, dhowells@redhat.com, viro@ZenIV.linux.org.uk, vgoyal@redhat.com, linux-fsdevel@vger.kernel.org
+From: kbuild test robot <lkp@intel.com>
+Subject: Re: [PATCH 3/7] security,overlayfs: Provide security hook for copy
+ up of xattrs for overlay file
+Date: Sat, 9 Jul 2016 01:41:38 +0800
+Message-ID: <201607090113.z0EuiSaT%fengguang.wu@intel.com>
+References: <1467994782-26474-4-git-send-email-vgoyal@redhat.com>
+Mime-Version: 1.0
+Content-Type: multipart/mixed; boundary="jRHKVT23PllUwdXP"
+Return-path: <linux-unionfs-owner@vger.kernel.org>
+Received: from mga02.intel.com ([134.134.136.20]:26984 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932185AbcGHRmk (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+	Fri, 8 Jul 2016 13:42:40 -0400
+Content-Disposition: inline
+In-Reply-To: <1467994782-26474-4-git-send-email-vgoyal@redhat.com>
+Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
+Cc: kbuild-all@01.org, miklos@szeredi.hu, sds@tycho.nsa.gov, pmoore@redhat.com, casey@schaufler-ca.com, linux-kernel@vger.kernel.org, linux-unionfs@vger.kernel.org, linux-security-module@vger.kernel.org, dwalsh@redhat.com, dhowells@redhat.com, viro@ZenIV.linux.org.uk, vgoyal@redhat.com, linux-fsdevel@vger.kernel.org
 
-Provide a security hook which is called when xattrs of a file are being
-copied up. This hook is called once for each xattr and LSM can return 0
-to access the xattr, 1 to reject xattr, -EOPNOTSUPP if none of the lsms
-claim to know xattr and a negative error code if something went terribly
-wrong.
 
-If 0 or -EOPNOTSUPP is returned, xattr will be copied up, if 1 is returned,
-xattr will not be copied up and if negative error code is returned, copy up
-will be aborted.
+--jRHKVT23PllUwdXP
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Signed-off-by: David Howells <dhowells@redhat.com>
-Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
+Hi,
+
+[auto build test ERROR on next-20160708]
+[also build test ERROR on v4.7-rc6]
+[cannot apply to pcmoore-selinux/next security/next v4.7-rc6 v4.7-rc5 v4.7-rc4]
+[if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
+
+url:    https://github.com/0day-ci/linux/commits/Vivek-Goyal/Overlayfs-SELinux-Support/20160709-002635
+config: mips-gpr_defconfig (attached as .config)
+compiler: mips-linux-gnu-gcc (Debian 5.3.1-8) 5.3.1 20160205
+reproduce:
+        wget https://git.kernel.org/cgit/linux/kernel/git/wfg/lkp-tests.git/plain/sbin/make.cross -O ~/bin/make.cross
+        chmod +x ~/bin/make.cross
+        # save the attached .config to linux build tree
+        make.cross ARCH=mips 
+
+All errors (new ones prefixed by >>):
+
+   In file included from arch/mips/kernel/ptrace.c:27:0:
+   include/linux/security.h: In function 'security_inode_copy_up_xattr':
+>> include/linux/security.h:770:2: error: statement with no effect [-Werror=unused-value]
+     -EOPNOTSUPP;
+     ^
+   include/linux/security.h:771:1: error: no return statement in function returning non-void [-Werror=return-type]
+    }
+    ^
+   cc1: all warnings being treated as errors
+
+vim +770 include/linux/security.h
+
+   764	{
+   765		return 0;
+   766	}
+   767	
+   768	static inline int security_inode_copy_up_xattr(const char *name)
+   769	{
+ > 770		-EOPNOTSUPP;
+   771	}
+   772	
+   773	static inline int security_file_permission(struct file *file, int mask)
+
 ---
- fs/overlayfs/copy_up.c    |  7 +++++++
- include/linux/lsm_hooks.h | 10 ++++++++++
- include/linux/security.h  |  6 ++++++
- security/security.c       |  8 ++++++++
- 4 files changed, 31 insertions(+)
+0-DAY kernel test infrastructure                Open Source Technology Center
+https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
 
-diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
-index 8ebea18..68cefb2 100644
---- a/fs/overlayfs/copy_up.c
-+++ b/fs/overlayfs/copy_up.c
-@@ -103,6 +103,13 @@ retry:
- 			goto retry;
- 		}
- 
-+		error = security_inode_copy_up_xattr(name);
-+		if (error < 0 && error != -EOPNOTSUPP)
-+			break;
-+		if (error == 1) {
-+			error = 0;
-+			continue; /* Discard */
-+		}
- 		error = vfs_setxattr(new, name, value, size, 0);
- 		if (error)
- 			break;
-diff --git a/include/linux/lsm_hooks.h b/include/linux/lsm_hooks.h
-index c1f95be..84caead 100644
---- a/include/linux/lsm_hooks.h
-+++ b/include/linux/lsm_hooks.h
-@@ -410,6 +410,14 @@
-  *	@src indicates the union dentry of file that is being copied up.
-  *	@new pointer to pointer to return newly allocated creds.
-  *	Returns 0 on success or a negative error code on error.
-+ * @inode_copy_up_xattr:
-+ *	Filter the xattrs being copied up when a unioned file is copied
-+ *	up from a lower layer to the union/overlay layer.
-+ *	@name indicates the name of the xattr.
-+ *	Returns 0 to accept the xattr, 1 to discard the xattr, -EOPNOTSUPP if
-+ *	security module does not know about attribute or a negative error code
-+ *	to abort the copy up. Note that the caller is responsible for reading
-+ *	and writing the xattrs as this hook is merely a filter.
-  *
-  * Security hooks for file operations
-  *
-@@ -1435,6 +1443,7 @@ union security_list_options {
- 					size_t buffer_size);
- 	void (*inode_getsecid)(struct inode *inode, u32 *secid);
- 	int (*inode_copy_up) (struct dentry *src, struct cred **new);
-+	int (*inode_copy_up_xattr) (const char *name);
- 
- 	int (*file_permission)(struct file *file, int mask);
- 	int (*file_alloc_security)(struct file *file);
-@@ -1707,6 +1716,7 @@ struct security_hook_heads {
- 	struct list_head inode_listsecurity;
- 	struct list_head inode_getsecid;
- 	struct list_head inode_copy_up;
-+	struct list_head inode_copy_up_xattr;
- 	struct list_head file_permission;
- 	struct list_head file_alloc_security;
- 	struct list_head file_free_security;
-diff --git a/include/linux/security.h b/include/linux/security.h
-index c976d79..08d3191 100644
---- a/include/linux/security.h
-+++ b/include/linux/security.h
-@@ -283,6 +283,7 @@ int security_inode_setsecurity(struct inode *inode, const char *name, const void
- int security_inode_listsecurity(struct inode *inode, char *buffer, size_t buffer_size);
- void security_inode_getsecid(struct inode *inode, u32 *secid);
- int security_inode_copy_up(struct dentry *src, struct cred **new);
-+int security_inode_copy_up_xattr(const char *name);
- int security_file_permission(struct file *file, int mask);
- int security_file_alloc(struct file *file);
- void security_file_free(struct file *file);
-@@ -764,6 +765,11 @@ static inline int security_inode_copy_up(struct dentry *src, struct cred **new)
- 	return 0;
- }
- 
-+static inline int security_inode_copy_up_xattr(const char *name)
-+{
-+	-EOPNOTSUPP;
-+}
-+
- static inline int security_file_permission(struct file *file, int mask)
- {
- 	return 0;
-diff --git a/security/security.c b/security/security.c
-index 3d142aa..3321e31 100644
---- a/security/security.c
-+++ b/security/security.c
-@@ -733,6 +733,12 @@ int security_inode_copy_up(struct dentry *src, struct cred **new)
- }
- EXPORT_SYMBOL(security_inode_copy_up);
- 
-+int security_inode_copy_up_xattr(const char *name)
-+{
-+	return call_int_hook(inode_copy_up_xattr, -EOPNOTSUPP, name);
-+}
-+EXPORT_SYMBOL(security_inode_copy_up_xattr);
-+
- int security_file_permission(struct file *file, int mask)
- {
- 	int ret;
-@@ -1671,6 +1677,8 @@ struct security_hook_heads security_hook_heads = {
- 		LIST_HEAD_INIT(security_hook_heads.inode_getsecid),
- 	.inode_copy_up =
- 		LIST_HEAD_INIT(security_hook_heads.inode_copy_up),
-+	.inode_copy_up_xattr =
-+		LIST_HEAD_INIT(security_hook_heads.inode_copy_up_xattr),
- 	.file_permission =
- 		LIST_HEAD_INIT(security_hook_heads.file_permission),
- 	.file_alloc_security =
--- 
-2.7.4
+--jRHKVT23PllUwdXP
+Content-Type: application/octet-stream
+Content-Disposition: attachment; filename=".config.gz"
+Content-Transfer-Encoding: base64
 
+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
+
+--jRHKVT23PllUwdXP--
