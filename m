@@ -1,158 +1,72 @@
-From: Stephen Smalley <sds@tycho.nsa.gov>
-Subject: Re: [PATCH 3/7] security,overlayfs: Provide security hook for copy up
- of xattrs for overlay file
-Date: Mon, 11 Jul 2016 11:31:47 -0400
-Message-ID: <2277404e-d91a-7190-ccbd-96e668ea95dd@tycho.nsa.gov>
+From: Vivek Goyal <vgoyal@redhat.com>
+Subject: Re: [PATCH 1/7] security, overlayfs: provide copy up security hook
+ for unioned files
+Date: Mon, 11 Jul 2016 12:54:23 -0400
+Message-ID: <20160711165423.GB7728@redhat.com>
 References: <1467994782-26474-1-git-send-email-vgoyal@redhat.com>
- <1467994782-26474-4-git-send-email-vgoyal@redhat.com>
+ <1467994782-26474-2-git-send-email-vgoyal@redhat.com>
+ <26a1232e-09b2-e89b-22c3-7414dd11e79c@tycho.nsa.gov>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from emsm-gh1-uea10.nsa.gov ([8.44.101.8]:18180 "EHLO
-	emsm-gh1-uea10.nsa.gov" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1030735AbcGKPaQ (ORCPT
-	<rfc822;linux-unionfs@vger.kernel.org>);
-	Mon, 11 Jul 2016 11:30:16 -0400
-In-Reply-To: <1467994782-26474-4-git-send-email-vgoyal@redhat.com>
+Received: from mx1.redhat.com ([209.132.183.28]:47784 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755249AbcGKQyZ (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+	Mon, 11 Jul 2016 12:54:25 -0400
+Content-Disposition: inline
+In-Reply-To: <26a1232e-09b2-e89b-22c3-7414dd11e79c@tycho.nsa.gov>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Vivek Goyal <vgoyal@redhat.com>, miklos@szeredi.hu, pmoore@redhat.com, casey@schaufler-ca.com, linux-kernel@vger.kernel.org, linux-unionfs@vger.kernel.org, linux-security-module@vger.kernel.org
-Cc: dwalsh@redhat.com, dhowells@redhat.com, viro@ZenIV.linux.org.uk, linux-fsdevel@vger.kernel.org
+To: Stephen Smalley <sds@tycho.nsa.gov>
+Cc: miklos@szeredi.hu, pmoore@redhat.com, casey@schaufler-ca.com, linux-kernel@vger.kernel.org, linux-unionfs@vger.kernel.org, linux-security-module@vger.kernel.org, dwalsh@redhat.com, dhowells@redhat.com, viro@ZenIV.linux.org.uk, linux-fsdevel@vger.kernel.org
 
-On 07/08/2016 12:19 PM, Vivek Goyal wrote:
-> Provide a security hook which is called when xattrs of a file are being
-> copied up. This hook is called once for each xattr and LSM can return 0
-> to access the xattr, 1 to reject xattr, -EOPNOTSUPP if none of the lsms
-> claim to know xattr and a negative error code if something went terribly
-> wrong.
-
-0 if the security module wants the xattr to be copied up, 1 if the
-security module wants the xattr to be discarded on the copy, -EOPNOTSUPP
-if the security module does not handle/manage the xattr, or a -errno
-upon an error.
-
+On Mon, Jul 11, 2016 at 11:24:26AM -0400, Stephen Smalley wrote:
+> On 07/08/2016 12:19 PM, Vivek Goyal wrote:
+> > Provide a security hook to label new file correctly when a file is copied
+> > up from lower layer to upper layer of a overlay/union mount.
+> > 
+> > This hook can prepare a new set of creds which are suitable for new file
+> > creation during copy up. Caller will use new creds to create file and then
+> > revert back to old creds and release new creds.
+> > 
+> > Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
+> > ---
+> >  fs/overlayfs/copy_up.c    | 18 ++++++++++++++++++
+> >  include/linux/lsm_hooks.h | 11 +++++++++++
+> >  include/linux/security.h  |  6 ++++++
+> >  security/security.c       |  8 ++++++++
+> >  4 files changed, 43 insertions(+)
+> > 
+> > diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
+> > index 80aa6f1..8ebea18 100644
+> > --- a/fs/overlayfs/copy_up.c
+> > +++ b/fs/overlayfs/copy_up.c
+> > @@ -246,6 +246,8 @@ static int ovl_copy_up_locked(struct dentry *workdir, struct dentry *upperdir,
+> >  	struct dentry *upper = NULL;
+> >  	umode_t mode = stat->mode;
+> >  	int err;
+> > +	const struct cred *old_creds = NULL;
+> > +	struct cred *new_creds = NULL;
+> >  
+> >  	newdentry = ovl_lookup_temp(workdir, dentry);
+> >  	err = PTR_ERR(newdentry);
+> > @@ -258,10 +260,26 @@ static int ovl_copy_up_locked(struct dentry *workdir, struct dentry *upperdir,
+> >  	if (IS_ERR(upper))
+> >  		goto out1;
+> >  
+> > +	err = security_inode_copy_up(dentry, &new_creds);
+> > +	if (err < 0) {
+> > +		if (new_creds)
+> > +			put_cred(new_creds);
 > 
-> If 0 or -EOPNOTSUPP is returned, xattr will be copied up, if 1 is returned,
-> xattr will not be copied up and if negative error code is returned, copy up
-> will be aborted.
+> Why do we need a put_cred() here?
 
-Not sure I understand the benefit of the 0 vs -EOPNOTSUPP distinction.
+Being paranoid for the case of stacked modules. Say first module allocated
+creds but second module returned error, in that case creds will have to
+be freed.
 
-> 
-> Signed-off-by: David Howells <dhowells@redhat.com>
-> Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
-> ---
->  fs/overlayfs/copy_up.c    |  7 +++++++
->  include/linux/lsm_hooks.h | 10 ++++++++++
->  include/linux/security.h  |  6 ++++++
->  security/security.c       |  8 ++++++++
->  4 files changed, 31 insertions(+)
-> 
-> diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
-> index 8ebea18..68cefb2 100644
-> --- a/fs/overlayfs/copy_up.c
-> +++ b/fs/overlayfs/copy_up.c
-> @@ -103,6 +103,13 @@ retry:
->  			goto retry;
->  		}
->  
-> +		error = security_inode_copy_up_xattr(name);
-> +		if (error < 0 && error != -EOPNOTSUPP)
-> +			break;
-> +		if (error == 1) {
-> +			error = 0;
-> +			continue; /* Discard */
-> +		}
->  		error = vfs_setxattr(new, name, value, size, 0);
->  		if (error)
->  			break;
-> diff --git a/include/linux/lsm_hooks.h b/include/linux/lsm_hooks.h
-> index c1f95be..84caead 100644
-> --- a/include/linux/lsm_hooks.h
-> +++ b/include/linux/lsm_hooks.h
-> @@ -410,6 +410,14 @@
->   *	@src indicates the union dentry of file that is being copied up.
->   *	@new pointer to pointer to return newly allocated creds.
->   *	Returns 0 on success or a negative error code on error.
-> + * @inode_copy_up_xattr:
-> + *	Filter the xattrs being copied up when a unioned file is copied
-> + *	up from a lower layer to the union/overlay layer.
-> + *	@name indicates the name of the xattr.
-> + *	Returns 0 to accept the xattr, 1 to discard the xattr, -EOPNOTSUPP if
-> + *	security module does not know about attribute or a negative error code
-> + *	to abort the copy up. Note that the caller is responsible for reading
-> + *	and writing the xattrs as this hook is merely a filter.
->   *
->   * Security hooks for file operations
->   *
-> @@ -1435,6 +1443,7 @@ union security_list_options {
->  					size_t buffer_size);
->  	void (*inode_getsecid)(struct inode *inode, u32 *secid);
->  	int (*inode_copy_up) (struct dentry *src, struct cred **new);
-> +	int (*inode_copy_up_xattr) (const char *name);
->  
->  	int (*file_permission)(struct file *file, int mask);
->  	int (*file_alloc_security)(struct file *file);
-> @@ -1707,6 +1716,7 @@ struct security_hook_heads {
->  	struct list_head inode_listsecurity;
->  	struct list_head inode_getsecid;
->  	struct list_head inode_copy_up;
-> +	struct list_head inode_copy_up_xattr;
->  	struct list_head file_permission;
->  	struct list_head file_alloc_security;
->  	struct list_head file_free_security;
-> diff --git a/include/linux/security.h b/include/linux/security.h
-> index c976d79..08d3191 100644
-> --- a/include/linux/security.h
-> +++ b/include/linux/security.h
-> @@ -283,6 +283,7 @@ int security_inode_setsecurity(struct inode *inode, const char *name, const void
->  int security_inode_listsecurity(struct inode *inode, char *buffer, size_t buffer_size);
->  void security_inode_getsecid(struct inode *inode, u32 *secid);
->  int security_inode_copy_up(struct dentry *src, struct cred **new);
-> +int security_inode_copy_up_xattr(const char *name);
->  int security_file_permission(struct file *file, int mask);
->  int security_file_alloc(struct file *file);
->  void security_file_free(struct file *file);
-> @@ -764,6 +765,11 @@ static inline int security_inode_copy_up(struct dentry *src, struct cred **new)
->  	return 0;
->  }
->  
-> +static inline int security_inode_copy_up_xattr(const char *name)
-> +{
-> +	-EOPNOTSUPP;
+I can get rid of it for now and if in future two LSMs implement this hook,
+one can change it, if need be.
 
-return?
-
-> +}
-> +
->  static inline int security_file_permission(struct file *file, int mask)
->  {
->  	return 0;
-> diff --git a/security/security.c b/security/security.c
-> index 3d142aa..3321e31 100644
-> --- a/security/security.c
-> +++ b/security/security.c
-> @@ -733,6 +733,12 @@ int security_inode_copy_up(struct dentry *src, struct cred **new)
->  }
->  EXPORT_SYMBOL(security_inode_copy_up);
->  
-> +int security_inode_copy_up_xattr(const char *name)
-> +{
-> +	return call_int_hook(inode_copy_up_xattr, -EOPNOTSUPP, name);
-> +}
-> +EXPORT_SYMBOL(security_inode_copy_up_xattr);
-> +
->  int security_file_permission(struct file *file, int mask)
->  {
->  	int ret;
-> @@ -1671,6 +1677,8 @@ struct security_hook_heads security_hook_heads = {
->  		LIST_HEAD_INIT(security_hook_heads.inode_getsecid),
->  	.inode_copy_up =
->  		LIST_HEAD_INIT(security_hook_heads.inode_copy_up),
-> +	.inode_copy_up_xattr =
-> +		LIST_HEAD_INIT(security_hook_heads.inode_copy_up_xattr),
->  	.file_permission =
->  		LIST_HEAD_INIT(security_hook_heads.file_permission),
->  	.file_alloc_security =
-> 
+Thanks
+Vivek
