@@ -1,40 +1,56 @@
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Subject: Re: [PATCH 3/7] security,overlayfs: Provide security hook for copy
- up of xattrs for overlay file
-Date: Tue, 12 Jul 2016 10:02:03 +1000
-Message-ID: <20160712100203.0c644871@canb.auug.org.au>
-References: <1467994782-26474-4-git-send-email-vgoyal@redhat.com>
-	<201607090113.z0EuiSaT%fengguang.wu@intel.com>
-	<20160711134004.GA7728@redhat.com>
+From: Andrey Melnikov <temnota.am@gmail.com>
+Subject: Re: [PATCH] Fix overlayfs inotify interaction
+Date: Wed, 13 Jul 2016 00:01:53 +0300
+Message-ID: <CA+PODjrncMt=vPkFun5eMFH02AAnMh89rFpcyhiu4ne_r1fVVA@mail.gmail.com>
+References: <20160630105956.GA9949@ppc.Dlink>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160711134004.GA7728@redhat.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Vivek Goyal <vgoyal@redhat.com>
-Cc: kbuild test robot <lkp@intel.com>, kbuild-all@01.org, miklos@szeredi.hu, sds@tycho.nsa.gov, pmoore@redhat.com, casey@schaufler-ca.com, linux-kernel@vger.kernel.org, linux-unionfs@vger.kernel.org, linux-security-module@vger.kernel.org, dwalsh@redhat.com, dhowells@redhat.com, viro@ZenIV.linux.org.uk, linux-fsdevel@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-unionfs-owner@vger.kernel.org>
+Received: from mail-lf0-f66.google.com ([209.85.215.66]:32959 "EHLO
+	mail-lf0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750770AbcGLVCH (ORCPT
+	<rfc822;linux-unionfs@vger.kernel.org>);
+	Tue, 12 Jul 2016 17:02:07 -0400
+Received: by mail-lf0-f66.google.com with SMTP id f93so2186336lfi.0
+        for <linux-unionfs@vger.kernel.org>; Tue, 12 Jul 2016 14:02:00 -0700 (PDT)
+In-Reply-To: <20160630105956.GA9949@ppc.Dlink>
+Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
+To: Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org
 
-Hi Vivek,
+Ping.
 
-On Mon, 11 Jul 2016 09:40:04 -0400 Vivek Goyal <vgoyal@redhat.com> wrote:
+2016-06-30 14:04 GMT+03:00 Andrey Jr. Melnikov <temnota.am@gmail.com>:
+>  Fix overlayfs inotify interaction - use d_real_inode() helper
+>  to resolve real (underlying) inode. Without this inotify is not functional on
+>  overlayfs.
 >
-> On Sat, Jul 09, 2016 at 01:41:38AM +0800, kbuild test robot wrote:
-> > Hi,
-> > 
-> > [auto build test ERROR on next-20160708]
-> > [also build test ERROR on v4.7-rc6]
-> > [cannot apply to pcmoore-selinux/next security/next v4.7-rc6 v4.7-rc5 v4.7-rc4]
-> > [if your patch is applied to the wrong git tree, please drop us a note to help improve the system]  
-> 
-> These patches should be applied on top of overlayfs-next branch of
-> miklos's vfs tree.
-> 
-> git://git.kernel.org/pub/scm/linux/kernel/git/mszeredi/vfs.git overlayfs-next
-
-That is included in linux-next ...
-
--- 
-Cheers,
-Stephen Rothwell
+> Signed-off-by: Andrey Jr. Melnikov <temnota.am@gmail.com>
+>
+> ---
+> Runtime tested with inotifywait in monitor mode to confirm event generation.
+>
+> cd /tmp/ && mkdir dest upper lower work
+> mount -t overlay none dest -o upperdir=upper/,lowerdir=lower/,workdir=work/
+> while /bin/true; do echo test >>/tmp/dest/lower-data; sleep 5; done &
+> inotifywait -m /tmp/dest/lower-data
+>
+>  fs/notify/inotify/inotify_user.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+>
+> diff --git a/fs/notify/inotify/inotify_user.c b/fs/notify/inotify/inotify_user.c
+> index b8d08d0..592ce16 100644
+> --- a/fs/notify/inotify/inotify_user.c
+> +++ b/fs/notify/inotify/inotify_user.c
+> @@ -742,7 +742,7 @@ SYSCALL_DEFINE3(inotify_add_watch, int, fd, const char __user *, pathname,
+>                 goto fput_and_out;
+>
+>         /* inode held in place by reference to path; group by fget on fd */
+> -       inode = path.dentry->d_inode;
+> +       inode = d_real_inode(path.dentry);
+>         group = f.file->private_data;
+>
+>         /* create/update an inode mark */
+> --
+> 2.8.1
+>
