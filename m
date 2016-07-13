@@ -1,66 +1,89 @@
-From: Vivek Goyal <vgoyal@redhat.com>
-Subject: Re: [PATCH 1/9] security, overlayfs: provide copy up security hook
- for unioned files
-Date: Wed, 13 Jul 2016 10:56:30 -0400
-Message-ID: <20160713145630.GE16900@redhat.com>
+From: Stephen Smalley <sds@tycho.nsa.gov>
+Subject: Re: [PATCH 5/9] selinux: Pass security pointer to
+ determine_inode_label()
+Date: Wed, 13 Jul 2016 10:56:56 -0400
+Message-ID: <b91a8f90-6127-b68e-563e-bf9814ed4a8e@tycho.nsa.gov>
 References: <1468421095-22322-1-git-send-email-vgoyal@redhat.com>
- <1468421095-22322-2-git-send-email-vgoyal@redhat.com>
- <eecf35d9-707b-5dab-e3e8-273cf221d135@tycho.nsa.gov>
+ <1468421095-22322-6-git-send-email-vgoyal@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <eecf35d9-707b-5dab-e3e8-273cf221d135@tycho.nsa.gov>
-Sender: linux-fsdevel-owner@vger.kernel.org
-To: Stephen Smalley <sds@tycho.nsa.gov>
-Cc: miklos@szeredi.hu, pmoore@redhat.com, casey@schaufler-ca.com, linux-kernel@vger.kernel.org, linux-unionfs@vger.kernel.org, linux-security-module@vger.kernel.org, dwalsh@redhat.com, dhowells@redhat.com, viro@ZenIV.linux.org.uk, linux-fsdevel@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-unionfs-owner@vger.kernel.org>
+Received: from smtp.nsa.gov ([8.44.101.9]:60782 "EHLO emsm-gh1-uea11.nsa.gov"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751136AbcGMO6h (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+	Wed, 13 Jul 2016 10:58:37 -0400
+In-Reply-To: <1468421095-22322-6-git-send-email-vgoyal@redhat.com>
+Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
+To: Vivek Goyal <vgoyal@redhat.com>, miklos@szeredi.hu, pmoore@redhat.com, casey@schaufler-ca.com, linux-kernel@vger.kernel.org, linux-unionfs@vger.kernel.org, linux-security-module@vger.kernel.org
+Cc: dwalsh@redhat.com, dhowells@redhat.com, viro@ZenIV.linux.org.uk, linux-fsdevel@vger.kernel.org
 
-On Wed, Jul 13, 2016 at 10:52:34AM -0400, Stephen Smalley wrote:
-> On 07/13/2016 10:44 AM, Vivek Goyal wrote:
-> > Provide a security hook to label new file correctly when a file is copied
-> > up from lower layer to upper layer of a overlay/union mount.
-> > 
-> > This hook can prepare a new set of creds which are suitable for new file
-> > creation during copy up. Caller will use new creds to create file and then
-> > revert back to old creds and release new creds.
-> > 
-> > Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
-> > ---
-> >  fs/overlayfs/copy_up.c    | 18 ++++++++++++++++++
-> >  include/linux/lsm_hooks.h | 11 +++++++++++
-> >  include/linux/security.h  |  6 ++++++
-> >  security/security.c       |  8 ++++++++
-> >  4 files changed, 43 insertions(+)
-> > 
-> > diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
-> > index 80aa6f1..8ebea18 100644
-> > --- a/fs/overlayfs/copy_up.c
-> > +++ b/fs/overlayfs/copy_up.c
-> > @@ -246,6 +246,8 @@ static int ovl_copy_up_locked(struct dentry *workdir, struct dentry *upperdir,
-> >  	struct dentry *upper = NULL;
-> >  	umode_t mode = stat->mode;
-> >  	int err;
-> > +	const struct cred *old_creds = NULL;
-> > +	struct cred *new_creds = NULL;
-> >  
-> >  	newdentry = ovl_lookup_temp(workdir, dentry);
-> >  	err = PTR_ERR(newdentry);
-> > @@ -258,10 +260,26 @@ static int ovl_copy_up_locked(struct dentry *workdir, struct dentry *upperdir,
-> >  	if (IS_ERR(upper))
-> >  		goto out1;
-> >  
-> > +	err = security_inode_copy_up(dentry, &new_creds);
-> > +	if (err < 0) {
-> > +		if (new_creds)
-> > +			put_cred(new_creds);
+On 07/13/2016 10:44 AM, Vivek Goyal wrote:
+> Right now selinux_determine_inode_label() works on security pointer of
+> current task. Soon I need this to work on a security pointer retrieved
+> from a set of creds. So start passing in a pointer and caller can decide
+> where to fetch security pointer from.
 > 
-> I think this is a mistake, diverges from how other hooks handle error
-> conditions (if the hook allocates, the hook or the security
-> infrastructure is responsible for freeing on error return, not the
-> caller), and will be prone to double free errors.
+> Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
 
-Ok, I will get rid of it and assume LSM infrastructure will be responsible
-for freeing this in case of error.
+Acked-by: Stephen Smalley <sds@tycho.nsa.gov>
 
-Vivek
+> ---
+>  security/selinux/hooks.c | 19 ++++++++++---------
+>  1 file changed, 10 insertions(+), 9 deletions(-)
+> 
+> diff --git a/security/selinux/hooks.c b/security/selinux/hooks.c
+> index 4fda548..ae11fd9 100644
+> --- a/security/selinux/hooks.c
+> +++ b/security/selinux/hooks.c
+> @@ -1785,13 +1785,13 @@ out:
+>  /*
+>   * Determine the label for an inode that might be unioned.
+>   */
+> -static int selinux_determine_inode_label(struct inode *dir,
+> -					 const struct qstr *name,
+> -					 u16 tclass,
+> -					 u32 *_new_isid)
+> +static int
+> +selinux_determine_inode_label(const struct task_security_struct *tsec,
+> +				 struct inode *dir,
+> +				 const struct qstr *name, u16 tclass,
+> +				 u32 *_new_isid)
+>  {
+>  	const struct superblock_security_struct *sbsec = dir->i_sb->s_security;
+> -	const struct task_security_struct *tsec = current_security();
+>  
+>  	if ((sbsec->flags & SE_SBINITIALIZED) &&
+>  	    (sbsec->behavior == SECURITY_FS_USE_MNTPOINT)) {
+> @@ -1834,8 +1834,8 @@ static int may_create(struct inode *dir,
+>  	if (rc)
+>  		return rc;
+>  
+> -	rc = selinux_determine_inode_label(dir, &dentry->d_name, tclass,
+> -					   &newsid);
+> +	rc = selinux_determine_inode_label(current_security(), dir,
+> +					   &dentry->d_name, tclass, &newsid);
+>  	if (rc)
+>  		return rc;
+>  
+> @@ -2815,7 +2815,8 @@ static int selinux_dentry_init_security(struct dentry *dentry, int mode,
+>  	u32 newsid;
+>  	int rc;
+>  
+> -	rc = selinux_determine_inode_label(d_inode(dentry->d_parent), name,
+> +	rc = selinux_determine_inode_label(current_security(),
+> +					   d_inode(dentry->d_parent), name,
+>  					   inode_mode_to_security_class(mode),
+>  					   &newsid);
+>  	if (rc)
+> @@ -2840,7 +2841,7 @@ static int selinux_inode_init_security(struct inode *inode, struct inode *dir,
+>  	sid = tsec->sid;
+>  	newsid = tsec->create_sid;
+>  
+> -	rc = selinux_determine_inode_label(
+> +	rc = selinux_determine_inode_label(current_security(),
+>  		dir, qstr,
+>  		inode_mode_to_security_class(inode->i_mode),
+>  		&newsid);
+> 
