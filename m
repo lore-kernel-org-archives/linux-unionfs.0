@@ -1,59 +1,112 @@
 From: Vivek Goyal <vgoyal@redhat.com>
-Subject: [PATCH 4/9] selinux: Implementation for inode_copy_up_xattr() hook
-Date: Wed, 13 Jul 2016 10:44:50 -0400
-Message-ID: <1468421095-22322-5-git-send-email-vgoyal@redhat.com>
-References: <1468421095-22322-1-git-send-email-vgoyal@redhat.com>
-Return-path: <linux-security-module-owner@vger.kernel.org>
-In-Reply-To: <1468421095-22322-1-git-send-email-vgoyal@redhat.com>
-Sender: owner-linux-security-module@vger.kernel.org
+Subject: [RFC PATCH 0/9][V3] Overlayfs SELinux Support
+Date: Wed, 13 Jul 2016 10:44:46 -0400
+Message-ID: <1468421095-22322-1-git-send-email-vgoyal@redhat.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
 To: miklos@szeredi.hu, sds@tycho.nsa.gov, pmoore@redhat.com, casey@schaufler-ca.com, linux-kernel@vger.kernel.org, linux-unionfs@vger.kernel.org, linux-security-module@vger.kernel.org
 Cc: dwalsh@redhat.com, dhowells@redhat.com, viro@ZenIV.linux.org.uk, vgoyal@redhat.com, linux-fsdevel@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 
-When a file is copied up in overlay, we have already created file on upper/
-with right label and there is no need to copy up selinux label/xattr from
-lower file to upper file. In fact in case of context mount, we don't want
-to copy up label as newly created file got its label from context= option.
+Hi All,
 
-Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
----
- security/selinux/hooks.c | 16 ++++++++++++++++
- 1 file changed, 16 insertions(+)
+Please find attached the V3 of patches. Changes since V2 are as follows.
 
-diff --git a/security/selinux/hooks.c b/security/selinux/hooks.c
-index c82ee54..4fda548 100644
---- a/security/selinux/hooks.c
-+++ b/security/selinux/hooks.c
-@@ -3290,6 +3290,21 @@ static int selinux_inode_copy_up(struct dentry *src, struct cred **new)
- 	return 0;
- }
- 
-+static int selinux_inode_copy_up_xattr(const char *name)
-+{
-+	/* The copy_up hook above sets the initial context on an inode, but we
-+	 * don't then want to overwrite it by blindly copying all the lower
-+	 * xattrs up.  Instead, we have to filter out SELinux-related xattrs.
-+	 */
-+	if (strcmp(name, XATTR_NAME_SELINUX) == 0)
-+		return 1; /* Discard */
-+	/*
-+	 * Any other attribute apart from SELINUX is not claimed, supported
-+	 * by selinux.
-+	 */
-+	return -EOPNOTSUPP;
-+}
-+
- /* file security operations */
- 
- static int selinux_revalidate_file_permission(struct file *file, int mask)
-@@ -6077,6 +6092,7 @@ static struct security_hook_list selinux_hooks[] = {
- 	LSM_HOOK_INIT(inode_listsecurity, selinux_inode_listsecurity),
- 	LSM_HOOK_INIT(inode_getsecid, selinux_inode_getsecid),
- 	LSM_HOOK_INIT(inode_copy_up, selinux_inode_copy_up),
-+	LSM_HOOK_INIT(inode_copy_up_xattr, selinux_inode_copy_up_xattr),
- 
- 	LSM_HOOK_INIT(file_permission, selinux_file_permission),
- 	LSM_HOOK_INIT(file_alloc_security, selinux_file_alloc_security),
+- Fixed the build issue with CONFIG_SECURITY=n.
+
+- Dan Walsh was writing more tests for selinux-testsuite and noted couple
+  of issues. I have fixed those issues and added two more patches in series.
+
+  1. We are resetting MAY_WRITE check for lower inode assuming file will
+     be coiped up. But this is not true for special_file() as these files
+     are not copied up. So checks should not be reset in case of special
+     file.
+
+  2. We are resetting MAY_WRITE check for lower inode assuming file will
+     be copied up. But this also should mean that mounter has permission
+     to MAY_READ lower file for copy up to succeed. So add MAY_READ
+     check while resetting MAY_WRITE.
+
+Original description of patches follows.
+
+Following are RFC patches to support SELinux with overlayfs. I started
+with David Howells's latest posting on this topic and started modifying
+patches. These patches apply on top of overlayfs-next branch of miklos
+vfs git tree.
+
+git://git.kernel.org/pub/scm/linux/kernel/git/mszeredi/vfs.git overlayfs-next
+
+These patches can be pulled from my branch too.
+
+https://github.com/rhvgoyal/linux/commits/overlayfs-selinux-mounter-next
+
+Thanks to Dan Walsh, Stephen Smalley and Miklos Szeredi for numerous
+conversation and ideas in helping figuring out what one reasonable
+implementation might look like.
+
+Dan Walsh has been writing tests for selinux overlayfs in selinux-testsuite.
+These patches pass those tests now
+
+https://github.com/rhatdan/selinux-testsuite/commits/master
+
+Posting these patches for review and comments.
+
+These patches introduce 3 new security hooks.
+
+- security_inode_copy_up(), is called when a file is copied up. This hook
+  prepares a new set of cred which is used for copy up operation. And
+  new set of creds are prepared so that ->create_sid can be set appropriately
+  and newly created file is labeled properly. 
+
+  When a file is copied up, label of lower file is retained except for the
+  case of context= mount where new file gets the label from context= option.
+
+- security_inode_copy_up_xattr(), is called when xattrs of a file are
+  being copied up. Before this we already called security_inode_copy_up()
+  and created new file and copied up data. That means file already got
+  labeled properly and there is no need to take SELINUX xattr of lower
+  file and overwrite the upper file xattr. So this hook is used to avoid
+  copying up of SELINUX xattr.
+
+- dentry_create_files_as(), is called when a new file is about to be created.
+  This hook determines what the label of the file should be if task had
+  created that file in upper/ and sets create_sid accordingly in the passed
+  in creds.
+
+  Normal transition rules don't work for the case of context mounts as
+  underlying file system is not aware of context option which only overlay
+  layer is aware of. For non-context mounts, creation can happen in work/
+  dir first and then file might be renamed into upper/, and it might get
+  label based on work/ dir. So this hooks helps avoiding all these issues.
+
+  When a new file is created in upper/, it gets its label based on transition
+  rules. For the case of context mount, it gets the label from context=
+  option.
+
+Any feedback is welcome.
+
+
+Vivek Goyal (9):
+  security, overlayfs: provide copy up security hook for unioned files
+  selinux: Implementation for inode_copy_up() hook
+  security,overlayfs: Provide security hook for copy up of xattrs for
+    overlay file
+  selinux: Implementation for inode_copy_up_xattr() hook
+  selinux: Pass security pointer to determine_inode_label()
+  security, overlayfs: Provide hook to correctly label newly created
+    files
+  selinux: Implement dentry_create_files_as() hook
+  overlayfs: Dilute permission checks on lower only if not special file
+  overlayfs: Append MAY_READ when diluting write checks
+
+ fs/overlayfs/copy_up.c    | 25 +++++++++++++++
+ fs/overlayfs/dir.c        | 10 ++++++
+ fs/overlayfs/inode.c      |  9 ++++--
+ include/linux/lsm_hooks.h | 36 ++++++++++++++++++++++
+ include/linux/security.h  | 24 +++++++++++++++
+ security/security.c       | 27 ++++++++++++++++
+ security/selinux/hooks.c  | 78 +++++++++++++++++++++++++++++++++++++++++------
+ 7 files changed, 198 insertions(+), 11 deletions(-)
+
 -- 
 2.7.4
-
