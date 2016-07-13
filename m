@@ -1,7 +1,7 @@
 From: Vivek Goyal <vgoyal@redhat.com>
-Subject: [PATCH 2/9] selinux: Implementation for inode_copy_up() hook
-Date: Wed, 13 Jul 2016 10:44:48 -0400
-Message-ID: <1468421095-22322-3-git-send-email-vgoyal@redhat.com>
+Subject: [PATCH 7/9] selinux: Implement dentry_create_files_as() hook
+Date: Wed, 13 Jul 2016 10:44:53 -0400
+Message-ID: <1468421095-22322-8-git-send-email-vgoyal@redhat.com>
 References: <1468421095-22322-1-git-send-email-vgoyal@redhat.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1468421095-22322-1-git-send-email-vgoyal@redhat.com>
@@ -10,58 +10,56 @@ To: miklos@szeredi.hu, sds@tycho.nsa.gov, pmoore@redhat.com, casey@schaufler-ca.
 Cc: dwalsh@redhat.com, dhowells@redhat.com, viro@ZenIV.linux.org.uk, vgoyal@redhat.com, linux-fsdevel@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 
-A file is being copied up for overlay file system. Prepare a new set of
-creds and set create_sid appropriately so that new file is created with
-appropriate label.
+Calculate what would be the label of newly created file and set that secid
+in the passed creds.
 
-Overlay inode has right label for both context and non-context mount
-cases. In case of non-context mount, overlay inode will have the label
-of lower file and in case of context mount, overlay inode will have
-the label from context= mount option.
+Context of the task which is actually creating file is retrieved from
+set of creds passed in. (old->security).
 
 Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
 ---
- security/selinux/hooks.c | 21 +++++++++++++++++++++
- 1 file changed, 21 insertions(+)
+ security/selinux/hooks.c | 22 ++++++++++++++++++++++
+ 1 file changed, 22 insertions(+)
 
 diff --git a/security/selinux/hooks.c b/security/selinux/hooks.c
-index a86d537..c82ee54 100644
+index ae11fd9..77eb5a8 100644
 --- a/security/selinux/hooks.c
 +++ b/security/selinux/hooks.c
-@@ -3270,6 +3270,26 @@ static void selinux_inode_getsecid(struct inode *inode, u32 *secid)
- 	*secid = isec->sid;
+@@ -2825,6 +2825,27 @@ static int selinux_dentry_init_security(struct dentry *dentry, int mode,
+ 	return security_sid_to_context(newsid, (char **)ctx, ctxlen);
  }
  
-+static int selinux_inode_copy_up(struct dentry *src, struct cred **new)
++static int selinux_dentry_create_files_as(struct dentry *dentry, int mode,
++					  struct qstr *name,
++					  const struct cred *old,
++					  struct cred *new)
 +{
-+	u32 sid;
++	u32 newsid;
++	int rc;
 +	struct task_security_struct *tsec;
-+	struct cred *new_creds = *new;
 +
-+	if (new_creds == NULL) {
-+		new_creds = prepare_creds();
-+		if (!new_creds)
-+			return -ENOMEM;
-+	}
++	rc = selinux_determine_inode_label(old->security,
++					   d_inode(dentry->d_parent), name,
++					   inode_mode_to_security_class(mode),
++					   &newsid);
++	if (rc)
++		return rc;
 +
-+	tsec = new_creds->security;
-+	/* Get label from overlay inode and set it in create_sid */
-+	selinux_inode_getsecid(d_inode(src), &sid);
-+	tsec->create_sid = sid;
-+	*new = new_creds;
++	tsec = new->security;
++	tsec->create_sid = newsid;
 +	return 0;
 +}
 +
- /* file security operations */
+ static int selinux_inode_init_security(struct inode *inode, struct inode *dir,
+ 				       const struct qstr *qstr,
+ 				       const char **name,
+@@ -6066,6 +6087,7 @@ static struct security_hook_list selinux_hooks[] = {
+ 	LSM_HOOK_INIT(sb_parse_opts_str, selinux_parse_opts_str),
  
- static int selinux_revalidate_file_permission(struct file *file, int mask)
-@@ -6056,6 +6076,7 @@ static struct security_hook_list selinux_hooks[] = {
- 	LSM_HOOK_INIT(inode_setsecurity, selinux_inode_setsecurity),
- 	LSM_HOOK_INIT(inode_listsecurity, selinux_inode_listsecurity),
- 	LSM_HOOK_INIT(inode_getsecid, selinux_inode_getsecid),
-+	LSM_HOOK_INIT(inode_copy_up, selinux_inode_copy_up),
+ 	LSM_HOOK_INIT(dentry_init_security, selinux_dentry_init_security),
++	LSM_HOOK_INIT(dentry_create_files_as, selinux_dentry_create_files_as),
  
- 	LSM_HOOK_INIT(file_permission, selinux_file_permission),
- 	LSM_HOOK_INIT(file_alloc_security, selinux_file_alloc_security),
+ 	LSM_HOOK_INIT(inode_alloc_security, selinux_inode_alloc_security),
+ 	LSM_HOOK_INIT(inode_free_security, selinux_inode_free_security),
 -- 
 2.7.4
