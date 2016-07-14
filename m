@@ -1,141 +1,73 @@
-From: Stephen Smalley <sds@tycho.nsa.gov>
-Subject: Re: [PATCH 3/9] security,overlayfs: Provide security hook for copy up
- of xattrs for overlay file
-Date: Thu, 14 Jul 2016 10:20:21 -0400
-Message-ID: <6213922b-c2e8-3a79-b13f-86c78d77e829@tycho.nsa.gov>
-References: <1468421095-22322-1-git-send-email-vgoyal@redhat.com>
- <1468421095-22322-4-git-send-email-vgoyal@redhat.com>
+From: Miklos Szeredi <miklos@szeredi.hu>
+Subject: (unknown)
+Date: Thu, 14 Jul 2016 16:22:20 +0200
+Message-ID: <CAJfpegvnc7CcfAmyNY5wt6u0ExOnr0kNnf+OmFU-Yky-dxoNAQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1468421095-22322-4-git-send-email-vgoyal@redhat.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Vivek Goyal <vgoyal@redhat.com>, miklos@szeredi.hu, pmoore@redhat.com, casey@schaufler-ca.com, linux-kernel@vger.kernel.org, linux-unionfs@vger.kernel.org, linux-security-module@vger.kernel.org
-Cc: dwalsh@redhat.com, dhowells@redhat.com, viro@ZenIV.linux.org.uk, linux-fsdevel@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-unionfs-owner@vger.kernel.org>
+Received: from mail-oi0-f54.google.com ([209.85.218.54]:36248 "EHLO
+	mail-oi0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750983AbcGNOWW (ORCPT
+	<rfc822;linux-unionfs@vger.kernel.org>);
+	Thu, 14 Jul 2016 10:22:22 -0400
+Received: by mail-oi0-f54.google.com with SMTP id w18so119388722oiw.3
+        for <linux-unionfs@vger.kernel.org>; Thu, 14 Jul 2016 07:22:22 -0700 (PDT)
+Subject: 
+Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
+To: Andrey Melnikov <temnota.am@gmail.com>
+Cc: "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>, zhangaihua <zhangaihua1@huawei.com>
 
-On 07/13/2016 10:44 AM, Vivek Goyal wrote:
-> Provide a security hook which is called when xattrs of a file are being
-> copied up. This hook is called once for each xattr and LSM can return
-> 0 if the security module wants the xattr to be copied up, 1 if the
-> security module wants the xattr to be discarded on the copy, -EOPNOTSUPP
-> if the security module does not handle/manage the xattr, or a -errno
-> upon an error.
-> 
-> Signed-off-by: David Howells <dhowells@redhat.com>
-> Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
+On Thu, Jul 14, 2016 at 12:08 PM, Andrey Melnikov <temnota.am@gmail.com> wrote:
+> 2016-07-14 12:53 GMT+03:00 Miklos Szeredi <miklos@szeredi.hu>:
+>> On Thu, Jul 14, 2016 at 11:42 AM, Andrey Melnikov <temnota.am@gmail.com> wrote:
+>>> 2016-07-14 12:23 GMT+03:00 Miklos Szeredi <miklos@szeredi.hu>:
+>>>> On Tue, Jul 12, 2016 at 11:01 PM, Andrey Melnikov <temnota.am@gmail.com> wrote:
+>>>>> Ping.
+>>>>>
+>>>>> 2016-06-30 14:04 GMT+03:00 Andrey Jr. Melnikov <temnota.am@gmail.com>:
+>>>>>>  Fix overlayfs inotify interaction - use d_real_inode() helper
+>>>>>>  to resolve real (underlying) inode. Without this inotify is not functional on
+>>>>>>  overlayfs.
+>>>>
+>>>> Have you tried the alternative patch from Aihua Zhang:
+>>>>   https://lkml.org/lkml/2016/7/7/83
+>>>
+>>> No. My patch add small overhead, lookup inode once when add inotify
+>>> watch, this patch - lookup inode on each operation. For what?
+>>
+>> I'm afraid that your patch won't work for all notifications (like
+>> directory modification).
+>
+> It work with dir's too:
 
-Acked-by: Stephen Smalley <sds@tycho.nsa.gov>
+Digging deeper into this...
 
-> ---
->  fs/overlayfs/copy_up.c    |  7 +++++++
->  include/linux/lsm_hooks.h | 10 ++++++++++
->  include/linux/security.h  |  6 ++++++
->  security/security.c       |  8 ++++++++
->  4 files changed, 31 insertions(+)
-> 
-> diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
-> index 8ebea18..68cefb2 100644
-> --- a/fs/overlayfs/copy_up.c
-> +++ b/fs/overlayfs/copy_up.c
-> @@ -103,6 +103,13 @@ retry:
->  			goto retry;
->  		}
->  
-> +		error = security_inode_copy_up_xattr(name);
-> +		if (error < 0 && error != -EOPNOTSUPP)
-> +			break;
-> +		if (error == 1) {
-> +			error = 0;
-> +			continue; /* Discard */
-> +		}
->  		error = vfs_setxattr(new, name, value, size, 0);
->  		if (error)
->  			break;
-> diff --git a/include/linux/lsm_hooks.h b/include/linux/lsm_hooks.h
-> index c1f95be..84caead 100644
-> --- a/include/linux/lsm_hooks.h
-> +++ b/include/linux/lsm_hooks.h
-> @@ -410,6 +410,14 @@
->   *	@src indicates the union dentry of file that is being copied up.
->   *	@new pointer to pointer to return newly allocated creds.
->   *	Returns 0 on success or a negative error code on error.
-> + * @inode_copy_up_xattr:
-> + *	Filter the xattrs being copied up when a unioned file is copied
-> + *	up from a lower layer to the union/overlay layer.
-> + *	@name indicates the name of the xattr.
-> + *	Returns 0 to accept the xattr, 1 to discard the xattr, -EOPNOTSUPP if
-> + *	security module does not know about attribute or a negative error code
-> + *	to abort the copy up. Note that the caller is responsible for reading
-> + *	and writing the xattrs as this hook is merely a filter.
->   *
->   * Security hooks for file operations
->   *
-> @@ -1435,6 +1443,7 @@ union security_list_options {
->  					size_t buffer_size);
->  	void (*inode_getsecid)(struct inode *inode, u32 *secid);
->  	int (*inode_copy_up) (struct dentry *src, struct cred **new);
-> +	int (*inode_copy_up_xattr) (const char *name);
->  
->  	int (*file_permission)(struct file *file, int mask);
->  	int (*file_alloc_security)(struct file *file);
-> @@ -1707,6 +1716,7 @@ struct security_hook_heads {
->  	struct list_head inode_listsecurity;
->  	struct list_head inode_getsecid;
->  	struct list_head inode_copy_up;
-> +	struct list_head inode_copy_up_xattr;
->  	struct list_head file_permission;
->  	struct list_head file_alloc_security;
->  	struct list_head file_free_security;
-> diff --git a/include/linux/security.h b/include/linux/security.h
-> index c976d79..4a3b8bc 100644
-> --- a/include/linux/security.h
-> +++ b/include/linux/security.h
-> @@ -283,6 +283,7 @@ int security_inode_setsecurity(struct inode *inode, const char *name, const void
->  int security_inode_listsecurity(struct inode *inode, char *buffer, size_t buffer_size);
->  void security_inode_getsecid(struct inode *inode, u32 *secid);
->  int security_inode_copy_up(struct dentry *src, struct cred **new);
-> +int security_inode_copy_up_xattr(const char *name);
->  int security_file_permission(struct file *file, int mask);
->  int security_file_alloc(struct file *file);
->  void security_file_free(struct file *file);
-> @@ -764,6 +765,11 @@ static inline int security_inode_copy_up(struct dentry *src, struct cred **new)
->  	return 0;
->  }
->  
-> +static inline int security_inode_copy_up_xattr(const char *name)
-> +{
-> +	return -EOPNOTSUPP;
-> +}
-> +
->  static inline int security_file_permission(struct file *file, int mask)
->  {
->  	return 0;
-> diff --git a/security/security.c b/security/security.c
-> index 3d142aa..3321e31 100644
-> --- a/security/security.c
-> +++ b/security/security.c
-> @@ -733,6 +733,12 @@ int security_inode_copy_up(struct dentry *src, struct cred **new)
->  }
->  EXPORT_SYMBOL(security_inode_copy_up);
->  
-> +int security_inode_copy_up_xattr(const char *name)
-> +{
-> +	return call_int_hook(inode_copy_up_xattr, -EOPNOTSUPP, name);
-> +}
-> +EXPORT_SYMBOL(security_inode_copy_up_xattr);
-> +
->  int security_file_permission(struct file *file, int mask)
->  {
->  	int ret;
-> @@ -1671,6 +1677,8 @@ struct security_hook_heads security_hook_heads = {
->  		LIST_HEAD_INIT(security_hook_heads.inode_getsecid),
->  	.inode_copy_up =
->  		LIST_HEAD_INIT(security_hook_heads.inode_copy_up),
-> +	.inode_copy_up_xattr =
-> +		LIST_HEAD_INIT(security_hook_heads.inode_copy_up_xattr),
->  	.file_permission =
->  		LIST_HEAD_INIT(security_hook_heads.file_permission),
->  	.file_alloc_security =
-> 
+Both patches appear to fix most of the problems with inotify on
+overlayfs. However Aihua's solution looks better for several reasons.
+
+To understand why, we need to look at what the patches do conceptually:
+
+Andrey's patch: when a watch is placed on file on overlayfs it
+actually makes inotify watch the real underlying file.  This is only
+true for non-directories.  For directories it still watches the
+overlay inode.
+
+Aihua's patch: when an event occurs it directs it to the overlay inode
+instead of the real underlying inode
+
+The biggest plus for Aihua's patch is that it will work even if the
+file was first on the lower layer and then copied up, while the watch
+is there.  This is because the  watch is on the overlay inode, which
+stays the same through the copy-up.
+
+Other pluses are that it automatically works for fanotify/dnotify as well.
+
+It does have a small performance impact due to the extra pointer
+dereference, but that shouldn't be an issue in real life.
+
+I checked the relevant testcases in LTP and inotify04 is still failing
+with Aihua's patch, which needs to be looked into.
+
+Thanks,
+Miklos
