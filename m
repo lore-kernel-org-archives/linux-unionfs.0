@@ -1,78 +1,66 @@
-From: Miklos Szeredi <miklos@szeredi.hu>
-Subject: Re: [PATCH] Fix overlayfs inotify interaction
-Date: Thu, 14 Jul 2016 11:53:05 +0200
-Message-ID: <CAJfpegtVVJb5d=EoRqx_3x03PFqL_=fcQfyAM=kJh3kpVd7NMw@mail.gmail.com>
-References: <20160630105956.GA9949@ppc.Dlink> <CA+PODjrncMt=vPkFun5eMFH02AAnMh89rFpcyhiu4ne_r1fVVA@mail.gmail.com>
- <CAJfpegtgUOa1pB7SLWbL4tL4_=062LN12em2nS-oFiUJt-n0fg@mail.gmail.com> <CA+PODjrvb5_ZdVCBfObx9HxZzy6rABpTm=ftEsFxJHSAYJTwOQ@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: [PATCH] ovl: fix link error without POSIX ACL
+Date: Thu, 14 Jul 2016 11:54:58 +0200
+Message-ID: <20160714095512.768359-1-arnd@arndb.de>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-oi0-f66.google.com ([209.85.218.66]:35069 "EHLO
-	mail-oi0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750739AbcGNJxH (ORCPT
+Received: from mout.kundenserver.de ([212.227.17.24]:52115 "EHLO
+	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751058AbcGNJzY (ORCPT
 	<rfc822;linux-unionfs@vger.kernel.org>);
-	Thu, 14 Jul 2016 05:53:07 -0400
-Received: by mail-oi0-f66.google.com with SMTP id w143so6394786oiw.2
-        for <linux-unionfs@vger.kernel.org>; Thu, 14 Jul 2016 02:53:06 -0700 (PDT)
-In-Reply-To: <CA+PODjrvb5_ZdVCBfObx9HxZzy6rABpTm=ftEsFxJHSAYJTwOQ@mail.gmail.com>
+	Thu, 14 Jul 2016 05:55:24 -0400
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Andrey Melnikov <temnota.am@gmail.com>
-Cc: "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>, zhangaihua <zhangaihua1@huawei.com>
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: Arnd Bergmann <arnd@arndb.de>, Konstantin Khlebnikov <khlebnikov@yandex-team.ru>, Vivek Goyal <vgoyal@redhat.com>, linux-unionfs@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Thu, Jul 14, 2016 at 11:42 AM, Andrey Melnikov <temnota.am@gmail.com> wrote:
-> 2016-07-14 12:23 GMT+03:00 Miklos Szeredi <miklos@szeredi.hu>:
->> On Tue, Jul 12, 2016 at 11:01 PM, Andrey Melnikov <temnota.am@gmail.com> wrote:
->>> Ping.
->>>
->>> 2016-06-30 14:04 GMT+03:00 Andrey Jr. Melnikov <temnota.am@gmail.com>:
->>>>  Fix overlayfs inotify interaction - use d_real_inode() helper
->>>>  to resolve real (underlying) inode. Without this inotify is not functional on
->>>>  overlayfs.
->>
->> Have you tried the alternative patch from Aihua Zhang:
->>   https://lkml.org/lkml/2016/7/7/83
->
-> No. My patch add small overhead, lookup inode once when add inotify
-> watch, this patch - lookup inode on each operation. For what?
+The latest fix for ACL on overlayfs introduced a link error:
 
-I'm afraid that your patch won't work for all notifications (like
-directory modification).
+fs/built-in.o: In function `ovl_posix_acl_xattr_set':
+file.c:(.text+0x6b320): undefined reference to `posix_acl_from_xattr'
 
-Thanks,
-Miklos
+posix_acl_from_xattr doesn't have a 'static inline' implementation when
+CONFIG_FS_POSIX_ACL is disabled, and I could not come up with an obvious
+way to do it.
 
+This instead avoids the link error by defining two sets of ACL operations
+and letting the compiler drop one of the two at compile time depending
+on CONFIG_FS_POSIX_ACL. This avoids all references to the ACL code,
+also leading to smaller code.
 
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Fixes: f9bc66ad93b8 ("ovl: fix POSIX ACL setting")
+---
+ fs/overlayfs/super.c | 11 ++++++++++-
+ 1 file changed, 10 insertions(+), 1 deletion(-)
 
-
->
->>>>
->>>> Signed-off-by: Andrey Jr. Melnikov <temnota.am@gmail.com>
->>>>
->>>> ---
->>>> Runtime tested with inotifywait in monitor mode to confirm event generation.
->>>>
->>>> cd /tmp/ && mkdir dest upper lower work
->>>> mount -t overlay none dest -o upperdir=upper/,lowerdir=lower/,workdir=work/
->>>> while /bin/true; do echo test >>/tmp/dest/lower-data; sleep 5; done &
->>>> inotifywait -m /tmp/dest/lower-data
->>>>
->>>>  fs/notify/inotify/inotify_user.c | 2 +-
->>>>  1 file changed, 1 insertion(+), 1 deletion(-)
->>>>
->>>> diff --git a/fs/notify/inotify/inotify_user.c b/fs/notify/inotify/inotify_user.c
->>>> index b8d08d0..592ce16 100644
->>>> --- a/fs/notify/inotify/inotify_user.c
->>>> +++ b/fs/notify/inotify/inotify_user.c
->>>> @@ -742,7 +742,7 @@ SYSCALL_DEFINE3(inotify_add_watch, int, fd, const char __user *, pathname,
->>>>                 goto fput_and_out;
->>>>
->>>>         /* inode held in place by reference to path; group by fget on fd */
->>>> -       inode = path.dentry->d_inode;
->>>> +       inode = d_real_inode(path.dentry);
->>>>         group = f.file->private_data;
->>>>
->>>>         /* create/update an inode mark */
->>>> --
->>>> 2.8.1
->>>>
+diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+index 17f17885a530..9709f32d13d3 100644
+--- a/fs/overlayfs/super.c
++++ b/fs/overlayfs/super.c
+@@ -1056,6 +1056,12 @@ static const struct xattr_handler *ovl_xattr_handlers[] = {
+ 	NULL
+ };
+ 
++static const struct xattr_handler *ovl_xattr_noacl_handlers[] = {
++	&ovl_own_xattr_handler,
++	&ovl_other_xattr_handler,
++	NULL,
++};
++
+ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
+ {
+ 	struct path upperpath = { NULL, NULL };
+@@ -1268,7 +1274,10 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
+ 
+ 	sb->s_magic = OVERLAYFS_SUPER_MAGIC;
+ 	sb->s_op = &ovl_super_operations;
+-	sb->s_xattr = ovl_xattr_handlers;
++	if (IS_ENABLED(CONFIG_FS_POSIX_ACL))
++		sb->s_xattr = ovl_xattr_handlers;
++	else
++		sb->s_xattr = ovl_xattr_noacl_handlers;
+ 	sb->s_root = root_dentry;
+ 	sb->s_fs_info = ufs;
+ 	sb->s_flags |= MS_POSIXACL;
+-- 
+2.9.0
