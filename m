@@ -1,110 +1,92 @@
 From: Miklos Szeredi <mszeredi@redhat.com>
-Subject: [RFC PATCH] vfs: update ovl inode before relatime check
-Date: Tue, 19 Jul 2016 14:38:41 +0200
-Message-ID: <1468931921-26746-1-git-send-email-mszeredi@redhat.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Al Viro <viro@zeniv.linux.org.uk>
-Cc: linux-unionfs@vger.kernel.org, linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org
+Subject: [RFC PATCH] fsnotify: support overlayfs
+Date: Tue, 19 Jul 2016 14:45:15 +0200
+Message-ID: <1468932315-27384-1-git-send-email-mszeredi@redhat.com>
+Return-path: <linux-unionfs-owner@vger.kernel.org>
+Received: from mail-wm0-f43.google.com ([74.125.82.43]:33678 "EHLO
+	mail-wm0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753249AbcGSMpS (ORCPT
+	<rfc822;linux-unionfs@vger.kernel.org>);
+	Tue, 19 Jul 2016 08:45:18 -0400
+Received: by mail-wm0-f43.google.com with SMTP id r190so25982364wmr.0
+        for <linux-unionfs@vger.kernel.org>; Tue, 19 Jul 2016 05:45:18 -0700 (PDT)
+Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
+To: Eric Paris <eparis@redhat.com>, Al Viro <viro@zeniv.linux.org.uk>
+Cc: linux-unionfs@vger.kernel.org, linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org, Aihua Zhang <zhangaihua1@huawei.com>
 
-On overlayfs relatime_need_update() needs inode times to be correct on
-overlay inode.  But i_mtime and i_ctime are updated by filesystem code on
-underlying inode only, so they will be out-of-date on the overlay inode.
+From: Aihua Zhang <zhangaihua1@huawei.com>
 
-This patch copies the times from the underlying inode if needed.  This
-can't be done if called from RCU lookup (link following) but link m/ctime
-are not updated by fs, so this is all right.
+When an event occurs direct it to the overlay inode instead of the real
+underlying inode.
 
-This patch doesn't change functionality for anything but overlayfs.
+This will work even if the file was first on the lower layer and then
+copied up, while the watch is there.  This is because the watch is on the
+overlay inode, which stays the same through the copy-up.
 
+For filesystems other than overlayfs this is a no-op, except for the
+performance impact of an extra pointer dereferece.
+
+Verified to work correctly with the inotify/fanotify tests in LTP.
+
+Signed-off-by: Aihua Zhang <zhangaihua1@huawei.com>
 Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
 ---
- fs/inode.c | 38 ++++++++++++++++++++++++++++++++------
- 1 file changed, 32 insertions(+), 6 deletions(-)
+ include/linux/fsnotify.h | 14 +++++++++-----
+ 1 file changed, 9 insertions(+), 5 deletions(-)
 
-diff --git a/fs/inode.c b/fs/inode.c
-index 4ccbc21b30ce..6a2d447c8775 100644
---- a/fs/inode.c
-+++ b/fs/inode.c
-@@ -1534,16 +1534,36 @@ sector_t bmap(struct inode *inode, sector_t block)
- EXPORT_SYMBOL(bmap);
- 
- /*
-+ * Update times in overlayed inode from underlying real inode
-+ */
-+static void update_ovl_inode_times(struct dentry *dentry, struct inode *inode,
-+			       bool rcu)
-+{
-+	if (!rcu) {
-+		struct inode *realinode = d_real_inode(dentry);
-+
-+		if (unlikely(inode != realinode)) {
-+			inode->i_mtime = realinode->i_mtime;
-+			inode->i_ctime = realinode->i_ctime;
-+			WARN_ON_ONCE(!timespec_equal(&inode->i_atime,
-+						     &realinode->i_atime));
-+		}
-+	}
-+}
-+
-+/*
-  * With relative atime, only update atime if the previous atime is
-  * earlier than either the ctime or mtime or if at least a day has
-  * passed since the last atime update.
-  */
--static int relatime_need_update(struct vfsmount *mnt, struct inode *inode,
--			     struct timespec now)
-+static int relatime_need_update(const struct path *path, struct inode *inode,
-+				struct timespec now, bool rcu)
+diff --git a/include/linux/fsnotify.h b/include/linux/fsnotify.h
+index 0141f257d67b..bca822bb3ce3 100644
+--- a/include/linux/fsnotify.h
++++ b/include/linux/fsnotify.h
+@@ -29,7 +29,11 @@ static inline int fsnotify_parent(struct path *path, struct dentry *dentry, __u3
+ static inline int fsnotify_perm(struct file *file, int mask)
  {
+ 	struct path *path = &file->f_path;
+-	struct inode *inode = file_inode(file);
++	/*
++	 * Do not use file_inode() here or anywhere in this file to get the
++	 * inode.  That would break *notity on overlayfs.
++	 */
++	struct inode *inode = path->dentry->d_inode;
+ 	__u32 fsnotify_mask = 0;
+ 	int ret;
  
--	if (!(mnt->mnt_flags & MNT_RELATIME))
-+	if (!(path->mnt->mnt_flags & MNT_RELATIME))
- 		return 1;
-+
-+	update_ovl_inode_times(path->dentry, inode, rcu);
- 	/*
- 	 * Is mtime younger than atime? If yes, update atime:
- 	 */
-@@ -1610,7 +1630,8 @@ static int update_time(struct inode *inode, struct timespec *time, int flags)
-  *	This function automatically handles read only file systems and media,
-  *	as well as the "noatime" flag and inode specific "noatime" markers.
-  */
--bool atime_needs_update(const struct path *path, struct inode *inode)
-+static bool __atime_needs_update(const struct path *path, struct inode *inode,
-+				 bool rcu)
+@@ -185,7 +189,7 @@ static inline void fsnotify_mkdir(struct inode *inode, struct dentry *dentry)
+ static inline void fsnotify_access(struct file *file)
  {
- 	struct vfsmount *mnt = path->mnt;
- 	struct timespec now;
-@@ -1629,7 +1650,7 @@ bool atime_needs_update(const struct path *path, struct inode *inode)
+ 	struct path *path = &file->f_path;
+-	struct inode *inode = file_inode(file);
++	struct inode *inode = path->dentry->d_inode;
+ 	__u32 mask = FS_ACCESS;
  
- 	now = current_fs_time(inode->i_sb);
- 
--	if (!relatime_need_update(mnt, inode, now))
-+	if (!relatime_need_update(path, inode, now, rcu))
- 		return false;
- 
- 	if (timespec_equal(&inode->i_atime, &now))
-@@ -1638,13 +1659,18 @@ bool atime_needs_update(const struct path *path, struct inode *inode)
- 	return true;
- }
- 
-+bool atime_needs_update(const struct path *path, struct inode *inode)
-+{
-+	return __atime_needs_update(path, inode, true);
-+}
-+
- void touch_atime(const struct path *path)
+ 	if (S_ISDIR(inode->i_mode))
+@@ -203,7 +207,7 @@ static inline void fsnotify_access(struct file *file)
+ static inline void fsnotify_modify(struct file *file)
  {
- 	struct vfsmount *mnt = path->mnt;
- 	struct inode *inode = d_inode(path->dentry);
- 	struct timespec now;
+ 	struct path *path = &file->f_path;
+-	struct inode *inode = file_inode(file);
++	struct inode *inode = path->dentry->d_inode;
+ 	__u32 mask = FS_MODIFY;
  
--	if (!atime_needs_update(path, inode))
-+	if (!__atime_needs_update(path, inode, false))
- 		return;
+ 	if (S_ISDIR(inode->i_mode))
+@@ -221,7 +225,7 @@ static inline void fsnotify_modify(struct file *file)
+ static inline void fsnotify_open(struct file *file)
+ {
+ 	struct path *path = &file->f_path;
+-	struct inode *inode = file_inode(file);
++	struct inode *inode = path->dentry->d_inode;
+ 	__u32 mask = FS_OPEN;
  
- 	if (!sb_start_write_trylock(inode->i_sb))
+ 	if (S_ISDIR(inode->i_mode))
+@@ -237,7 +241,7 @@ static inline void fsnotify_open(struct file *file)
+ static inline void fsnotify_close(struct file *file)
+ {
+ 	struct path *path = &file->f_path;
+-	struct inode *inode = file_inode(file);
++	struct inode *inode = path->dentry->d_inode;
+ 	fmode_t mode = file->f_mode;
+ 	__u32 mask = (mode & FMODE_WRITE) ? FS_CLOSE_WRITE : FS_CLOSE_NOWRITE;
+ 
 -- 
 2.5.5
