@@ -1,26 +1,50 @@
-From: James Morris <jmorris@namei.org>
-Subject: Re: [RFC PATCH 0/9][V3] Overlayfs SELinux Support
-Date: Fri, 22 Jul 2016 09:09:18 +1000 (AEST)
-Message-ID: <alpine.LRH.2.20.1607220908560.27200@namei.org>
-References: <1468421095-22322-1-git-send-email-vgoyal@redhat.com> <CAHC9VhR7YM+VPXVO=no3bDsj4w5HZz1DiJZR5XajCEfMSYF6=g@mail.gmail.com>
+From: Vito Caputo <vito.caputo@coreos.com>
+Subject: Stable inode numbers
+Date: Thu, 21 Jul 2016 16:33:38 -0700
+Message-ID: <CAKp8XJ41QeG03E_AW4cxsuyp4-uxrPWAkhKc60OMp3vK2YAADA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Return-path: <linux-security-module-owner@vger.kernel.org>
-In-Reply-To: <CAHC9VhR7YM+VPXVO=no3bDsj4w5HZz1DiJZR5XajCEfMSYF6=g@mail.gmail.com>
-Sender: owner-linux-security-module@vger.kernel.org
-To: Paul Moore <paul@paul-moore.com>
-Cc: Vivek Goyal <vgoyal@redhat.com>, miklos@szeredi.hu, Stephen Smalley <sds@tycho.nsa.gov>, Paul Moore <pmoore@redhat.com>, casey@schaufler-ca.com, linux-kernel@vger.kernel.org, linux-unionfs@vger.kernel.org, linux-security-module@vger.kernel.org, Dan Walsh <dwalsh@redhat.com>, dhowells@redhat.com, viro@zeniv.linux.org.uk, linux-fsdevel@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-unionfs-owner@vger.kernel.org>
+Received: from mail-io0-f182.google.com ([209.85.223.182]:33341 "EHLO
+	mail-io0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751951AbcGUXdj (ORCPT
+	<rfc822;linux-unionfs@vger.kernel.org>);
+	Thu, 21 Jul 2016 19:33:39 -0400
+Received: by mail-io0-f182.google.com with SMTP id 38so90476812iol.0
+        for <linux-unionfs@vger.kernel.org>; Thu, 21 Jul 2016 16:33:39 -0700 (PDT)
+Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
+To: linux-unionfs@vger.kernel.org
 
-On Thu, 21 Jul 2016, Paul Moore wrote:
+Hello list,
 
-> James, assuming the overlayfs-next branch is pulled during the merge
-> window, can you rebase your linux-security#next branch to v4.8-rc1
-> once Linus tags it?
+We're receiving bug reports from users simply untarring archives onto overlayfs
+mounts (docker + overlayfs) where tar fails with "Directory renamed before its
+status could be extracted" errors.
 
-Yep.
+This is triggered in GNU tar when the inode number of an ancestor directory
+changes unexpectedly in the deferred application of ancestral metadata.
 
--- 
-James Morris
-<jmorris@namei.org>
+It's not consistently reproducible, but in a slightly memory-constrained vm it
+is very easy to reproduce.
 
+What appears to be happening is the tar extraction activity is churning through
+the kernel's cache so a subsequent lookup of the directory in question returns
+a new inode number.  One can easily simulate this using `stat` and `echo 2 >
+/proc/sys/vm/drop_caches` to observe the overlayfs inode number change across
+the cache drop.
+
+The seemingly erratic nature of this failure is particularly frustrating for
+users, as it gives the impression things _should_ work and just randomly aren't
+due to a bug.  Scrutiny of the overlayfs implementation reveals that unstable
+inode numbers is intentional, and spurious failures of applications which
+notice intersecting relevant cache evictions should be expected.
+
+Are there any plans or strategies for changing this situation in overlayfs?
+
+I can think of a few potential solutions, but they all tend to revolve around
+persistently allocating inode numbers on first lookup, which of course requires
+both space and time overlayfs currently elides.
+
+Cheers,
+Vito Caputo
