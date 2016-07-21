@@ -1,41 +1,58 @@
-From: Miklos Szeredi <mszeredi@redhat.com>
-Subject: [RFC PATCH v2 2/3] vfs: make argument of d_real_inode() const
-Date: Thu, 21 Jul 2016 15:53:35 +0200
-Message-ID: <1469109216-24353-3-git-send-email-mszeredi@redhat.com>
+From: Jeff Layton <jlayton@poochiereds.net>
+Subject: Re: [RFC PATCH v2 0/3] fix overlayfs locks and leases
+Date: Thu, 21 Jul 2016 16:19:33 -0400
+Message-ID: <1469132373.2189.5.camel@poochiereds.net>
 References: <1469109216-24353-1-git-send-email-mszeredi@redhat.com>
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1469109216-24353-1-git-send-email-mszeredi@redhat.com>
-Sender: linux-fsdevel-owner@vger.kernel.org
-To: Jeff Layton <jlayton@poochiereds.net>, "J. Bruce Fields" <bfields@fieldses.org>, Al Viro <viro@zeniv.linux.org.uk>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Miklos Szeredi <mszeredi@redhat.com>, "J. Bruce Fields" <bfields@fieldses.org>, Al Viro <viro@zeniv.linux.org.uk>
 Cc: linux-unionfs@vger.kernel.org, linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 
-d_op->d_real() leaves the dentry alone except if the third argument is
-non-zero.  Unfortunately very difficult to explain to the compiler without
-a cast.
+On Thu, 2016-07-21 at 15:53 +0200, Miklos Szeredi wrote:
+> I've split out the writecount handling and changed it around so that
+> underlying layers are consistent and yet leases work correctly on
+> overlayfs.
+>=20
+> Also pushed to the tip of
+>=20
+> =C2=A0 git://git.kernel.org/pub/scm/linux/kernel/git/mszeredi/vfs.git=
+ overlayfs-next
+>=20
+> Thanks,
+> Miklos
+> ---
+>=20
+> Miklos Szeredi (3):
+> =C2=A0 locks: fix file locking on overlayfs
+> =C2=A0 vfs: make argument of d_real_inode() const
+> =C2=A0 vfs: do get_write_access() on upper layer of overlayfs
+>=20
+> =C2=A0fs/locks.c=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=
+=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0| 53 ++++++++++++++++++++++++++++--------=
+-------------
+> =C2=A0fs/namespace.c=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
+=A0=C2=A0|=C2=A0=C2=A02 +-
+> =C2=A0fs/open.c=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=
+=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0| 17 +++++++++++++---
+> =C2=A0fs/overlayfs/super.c=C2=A0=C2=A0=C2=A0=C2=A0|=C2=A0=C2=A02 +-
+> =C2=A0include/linux/dcache.h=C2=A0=C2=A0|=C2=A0=C2=A05 +++--
+> =C2=A0include/linux/fs.h=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0| 16 ++++=
++++++++++--
+> =C2=A0include/uapi/linux/fs.h |=C2=A0=C2=A01 +
+> =C2=A07 files changed, 64 insertions(+), 32 deletions(-)
+>=20
 
-Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
----
- include/linux/dcache.h | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+Looks pretty sane overall.
 
-diff --git a/include/linux/dcache.h b/include/linux/dcache.h
-index 14df83609c7f..b965751c6b71 100644
---- a/include/linux/dcache.h
-+++ b/include/linux/dcache.h
-@@ -583,9 +583,10 @@ static inline struct dentry *d_real(struct dentry *dentry,
-  * If dentry is on an union/overlay, then return the underlying, real inode.
-  * Otherwise return d_inode().
-  */
--static inline struct inode *d_real_inode(struct dentry *dentry)
-+static inline struct inode *d_real_inode(const struct dentry *dentry)
- {
--	return d_backing_inode(d_real(dentry, NULL, 0));
-+	/* This usage of d_real() results in const dentry */
-+	return d_backing_inode(d_real((struct dentry *) dentry, NULL, 0));
- }
- 
- 
--- 
-2.5.5
+Also, when I mentioned accessing the writable layer in openwrt in the
+last set, I forgot that you typically only do reads on it, so the
+writecount wouldn't be affected in the case of accessing to do backups.
+So, I'm not sure I had a legit objection to the earlier patch, but I
+think this looks a little cleaner anyway:
 
+Acked-by: Jeff Layton <jlayton@poochiereds.net>
