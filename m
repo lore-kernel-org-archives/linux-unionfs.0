@@ -1,47 +1,84 @@
-From: Miklos Szeredi <miklos@szeredi.hu>
-Subject: [GIT PULL] overlayfs fixes for 4.7-final
-Date: Fri, 22 Jul 2016 21:52:19 +0200
-Message-ID: <20160722195219.GD20504@veci.piliscsaba.szeredi.hu>
+From: Vito Caputo <vito.caputo@coreos.com>
+Subject: Re: Stable inode numbers
+Date: Fri, 22 Jul 2016 13:55:56 -0700
+Message-ID: <CAKp8XJ4Lfx06of5D4aVkg2up77xESZ9cy0z2PGn1g6-AoHvE8g@mail.gmail.com>
+References: <CAKp8XJ41QeG03E_AW4cxsuyp4-uxrPWAkhKc60OMp3vK2YAADA@mail.gmail.com>
+ <20160722121503.GC20504@veci.piliscsaba.szeredi.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:33430 "EHLO
-	mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753105AbcGVTwY (ORCPT
+Received: from mail-io0-f176.google.com ([209.85.223.176]:33498 "EHLO
+	mail-io0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750745AbcGVUz5 (ORCPT
 	<rfc822;linux-unionfs@vger.kernel.org>);
-	Fri, 22 Jul 2016 15:52:24 -0400
-Received: by mail-wm0-f68.google.com with SMTP id o80so7449022wme.0
-        for <linux-unionfs@vger.kernel.org>; Fri, 22 Jul 2016 12:52:23 -0700 (PDT)
-Content-Disposition: inline
+	Fri, 22 Jul 2016 16:55:57 -0400
+Received: by mail-io0-f176.google.com with SMTP id 38so115759413iol.0
+        for <linux-unionfs@vger.kernel.org>; Fri, 22 Jul 2016 13:55:57 -0700 (PDT)
+In-Reply-To: <20160722121503.GC20504@veci.piliscsaba.szeredi.hu>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: linux-unionfs@vger.kernel.org
 
-Hi Linus,
+On Fri, Jul 22, 2016 at 5:15 AM, Miklos Szeredi <miklos@szeredi.hu> wrote:
+> On Thu, Jul 21, 2016 at 04:33:38PM -0700, Vito Caputo wrote:
+>> Hello list,
+>>
+>> We're receiving bug reports from users simply untarring archives onto overlayfs
+>> mounts (docker + overlayfs) where tar fails with "Directory renamed before its
+>> status could be extracted" errors.
+>>
+>> This is triggered in GNU tar when the inode number of an ancestor directory
+>> changes unexpectedly in the deferred application of ancestral metadata.
+>>
+>> It's not consistently reproducible, but in a slightly memory-constrained vm it
+>> is very easy to reproduce.
+>>
+>> What appears to be happening is the tar extraction activity is churning through
+>> the kernel's cache so a subsequent lookup of the directory in question returns
+>> a new inode number.  One can easily simulate this using `stat` and `echo 2 >
+>> /proc/sys/vm/drop_caches` to observe the overlayfs inode number change across
+>> the cache drop.
+>>
+>> The seemingly erratic nature of this failure is particularly frustrating for
+>> users, as it gives the impression things _should_ work and just randomly aren't
+>> due to a bug.  Scrutiny of the overlayfs implementation reveals that unstable
+>> inode numbers is intentional, and spurious failures of applications which
+>> notice intersecting relevant cache evictions should be expected.
+>>
+>> Are there any plans or strategies for changing this situation in overlayfs?
+>>
+>> I can think of a few potential solutions, but they all tend to revolve around
+>> persistently allocating inode numbers on first lookup, which of course requires
+>> both space and time overlayfs currently elides.
+>
+> Hmm, I haven't thought about this problem yet.
+>
+> Maybe we are better off returning the underlying dev/ino in stat (which is
+> persistent long term, but not persistent during copy-up).  This would be
+> cheating a bit, since stat would then return the same numbers for the overlay
+> directory and the underlying directory, which can be different (unlike
+> non-directories, which overlayfs returns verbatim).
+>
+> Can you please try the following patch.  It passes unionmount-testsuite with the
+> layering check disabled.
+>
 
-Please pull from:
+The patch eliminates the errors from tar in the test I've been using
+to reproduce the user-reported issues.  However, I'm doubtful of it
+being a satisfactory general solution because the inode number of a
+pre-existing directory which undergoes copy-up spuriously changes.
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/mszeredi/vfs.git overlayfs-linus
+There's probably a scenario where this still upsets tar when
+extracting over an partial tree pre-existing in the lower layer,
+adding names to existing directories, causing their inode numbers to
+change.
 
-This contains a fix for a potential crash/corruption issue and another where the
-suid/sgid bits weren't cleared on write.
+The relevant code where tar detects these shenanigans may be seen here:
+http://git.savannah.gnu.org/cgit/tar.git/tree/src/extract.c#n867
+
+Perhaps we can come up with a better, more general solution without
+adding substantial complexity or overhead?
 
 Thanks,
-Miklos
-
----
-Maxim Patlasov (1):
-      ovl: verify upper dentry in ovl_remove_and_whiteout()
-
-Miklos Szeredi (1):
-      ovl: handle ATTR_KILL*
-
-Vivek Goyal (1):
-      ovl: Copy up underlying inode's ->i_mode to overlay inode
-
----
- fs/overlayfs/dir.c       | 54 +++++++++++++++++++++---------------------------
- fs/overlayfs/inode.c     |  6 ++++--
- fs/overlayfs/overlayfs.h |  1 +
- 3 files changed, 29 insertions(+), 32 deletions(-)
+Vito Caputo
