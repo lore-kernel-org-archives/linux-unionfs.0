@@ -1,43 +1,47 @@
-From: Paul Moore <paul@paul-moore.com>
-Subject: Re: [RFC PATCH 0/9][V3] Overlayfs SELinux Support
-Date: Fri, 22 Jul 2016 11:33:50 -0400
-Message-ID: <CAHC9VhSDOcbQgn+2HRSDc4E0=5ddq3SfDicwQy-e3t_hCh65Ug@mail.gmail.com>
-References: <1468421095-22322-1-git-send-email-vgoyal@redhat.com>
- <CAHC9VhR7YM+VPXVO=no3bDsj4w5HZz1DiJZR5XajCEfMSYF6=g@mail.gmail.com> <CAJfpegtdy=yRGvxmZyvLdnYHBLdft6zzaLE5EvpCzguNcMVZvQ@mail.gmail.com>
+From: Miklos Szeredi <miklos@szeredi.hu>
+Subject: [GIT PULL] overlayfs fixes for 4.7-final
+Date: Fri, 22 Jul 2016 21:52:19 +0200
+Message-ID: <20160722195219.GD20504@veci.piliscsaba.szeredi.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
-In-Reply-To: <CAJfpegtdy=yRGvxmZyvLdnYHBLdft6zzaLE5EvpCzguNcMVZvQ@mail.gmail.com>
-Sender: linux-fsdevel-owner@vger.kernel.org
-To: Miklos Szeredi <miklos@szeredi.hu>, James Morris <jmorris@namei.org>
-Cc: Vivek Goyal <vgoyal@redhat.com>, Stephen Smalley <sds@tycho.nsa.gov>, Paul Moore <pmoore@redhat.com>, Casey Schaufler <casey@schaufler-ca.com>, linux-kernel@vger.kernel.org, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>, LSM <linux-security-module@vger.kernel.org>, Dan Walsh <dwalsh@redhat.com>, David Howells <dhowells@redhat.com>, Al Viro <viro@zeniv.linux.org.uk>, linux-fsdevel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-unionfs-owner@vger.kernel.org>
+Received: from mail-wm0-f68.google.com ([74.125.82.68]:33430 "EHLO
+	mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753105AbcGVTwY (ORCPT
+	<rfc822;linux-unionfs@vger.kernel.org>);
+	Fri, 22 Jul 2016 15:52:24 -0400
+Received: by mail-wm0-f68.google.com with SMTP id o80so7449022wme.0
+        for <linux-unionfs@vger.kernel.org>; Fri, 22 Jul 2016 12:52:23 -0700 (PDT)
+Content-Disposition: inline
+Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org
 
-On Thu, Jul 21, 2016 at 7:09 PM, James Morris <jmorris@namei.org> wrote:
-> On Thu, 21 Jul 2016, Paul Moore wrote:
->> James, assuming the overlayfs-next branch is pulled during the merge
->> window, can you rebase your linux-security#next branch to v4.8-rc1
->> once Linus tags it?
->
-> Yep.
+Hi Linus,
 
-On Fri, Jul 22, 2016 at 3:05 AM, Miklos Szeredi <miklos@szeredi.hu> wrote:
-> On Thu, Jul 21, 2016 at 11:16 PM, Paul Moore <paul@paul-moore.com> wrote:
->> Hi Vivek,
->>
->> These patches look fine to me, thanks for all your hard work and to
->> everyone who helped review and provide feedback.  I have tagged these
->> patches for merging into the SELinux next branch after this merge
->> window.
->>
->> Miklos, this patchset depends on patches in your overlayfs-next
->> branch, I assume you're pushing that branch during the upcoming merge
->> window?
->
-> Yes, that's the plan.
+Please pull from:
 
-Great, thanks.
+  git://git.kernel.org/pub/scm/linux/kernel/git/mszeredi/vfs.git overlayfs-linus
 
--- 
-paul moore
-www.paul-moore.com
+This contains a fix for a potential crash/corruption issue and another where the
+suid/sgid bits weren't cleared on write.
+
+Thanks,
+Miklos
+
+---
+Maxim Patlasov (1):
+      ovl: verify upper dentry in ovl_remove_and_whiteout()
+
+Miklos Szeredi (1):
+      ovl: handle ATTR_KILL*
+
+Vivek Goyal (1):
+      ovl: Copy up underlying inode's ->i_mode to overlay inode
+
+---
+ fs/overlayfs/dir.c       | 54 +++++++++++++++++++++---------------------------
+ fs/overlayfs/inode.c     |  6 ++++--
+ fs/overlayfs/overlayfs.h |  1 +
+ 3 files changed, 29 insertions(+), 32 deletions(-)
