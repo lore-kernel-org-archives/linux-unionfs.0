@@ -1,43 +1,46 @@
 From: Eryu Guan <eguan@redhat.com>
-Subject: [PATCH 1/3] overlay: dump overlay private xattr
-Date: Tue, 26 Jul 2016 01:27:48 +0800
-Message-ID: <1469467670-22287-1-git-send-email-eguan@redhat.com>
+Subject: [PATCH 2/3] overlay: remove stale file from upperdir
+Date: Tue, 26 Jul 2016 01:27:49 +0800
+Message-ID: <1469467670-22287-2-git-send-email-eguan@redhat.com>
+References: <1469467670-22287-1-git-send-email-eguan@redhat.com>
 Return-path: <fstests-owner@vger.kernel.org>
+In-Reply-To: <1469467670-22287-1-git-send-email-eguan@redhat.com>
 Sender: fstests-owner@vger.kernel.org
 To: fstests@vger.kernel.org
 Cc: linux-unionfs@vger.kernel.org, xzhou@redhat.com, Eryu Guan <eguan@redhat.com>
 List-Id: linux-unionfs@vger.kernel.org
 
-Test dump overlay private xattr on overlayfs with multiple lower
-dirs. All the lower layers, except the lowest one, should honor
-overlay private xattr "trusted.overlay", which means it should not
-be visible to user.
+The upper dentry may become stale before we remove it from overlay,
+e.g. file was removed from upperdir directly, which triggered
+warning/oops in ovl_remove_and_whiteout().
 
-Commit b581755b1c56 ("ovl: xattr filter fix") fixed this issue.
+Commit cfc9fde0b07c ("ovl: verify upper dentry in
+ovl_remove_and_whiteout()") fixed this issue.
 
 Signed-off-by: Eryu Guan <eguan@redhat.com>
 ---
- tests/overlay/011     | 79 +++++++++++++++++++++++++++++++++++++++++++++++++++
- tests/overlay/011.out |  2 ++
+ tests/overlay/012     | 77 +++++++++++++++++++++++++++++++++++++++++++++++++++
+ tests/overlay/012.out |  2 ++
  tests/overlay/group   |  1 +
- 3 files changed, 82 insertions(+)
- create mode 100755 tests/overlay/011
- create mode 100644 tests/overlay/011.out
+ 3 files changed, 80 insertions(+)
+ create mode 100755 tests/overlay/012
+ create mode 100644 tests/overlay/012.out
 
-diff --git a/tests/overlay/011 b/tests/overlay/011
+diff --git a/tests/overlay/012 b/tests/overlay/012
 new file mode 100755
-index 0000000..4b697b8
+index 0000000..cfe16f2
 --- /dev/null
-+++ b/tests/overlay/011
-@@ -0,0 +1,79 @@
++++ b/tests/overlay/012
+@@ -0,0 +1,77 @@
 +#! /bin/bash
-+# FS QA Test 011
++# FS QA Test 012
 +#
-+# test overlay private xattr on overlayfs with multiple lower dirs, all the
-+# lower layers except the lowest one should honor overlay private xattr
-+# "trusted.overlay", which means it should not be visible to user.
++# The upper dentry may become stale before we remove it from
++# overlay, e.g. file was removed from upperdir directly, which
++# triggered warning/oops in ovl_remove_and_whiteout().
 +#
-+# Commit b581755b1c56 ("ovl: xattr filter fix") fixed this issue.
++# Commit cfc9fde0b07c ("ovl: verify upper dentry in
++# ovl_remove_and_whiteout()") fixed this issue.
 +#
 +#-----------------------------------------------------------------------
 +# Copyright (c) 2016 Red Hat Inc.  All Rights Reserved.
@@ -75,56 +78,53 @@ index 0000000..4b697b8
 +# get standard environment, filters and checks
 +. ./common/rc
 +. ./common/filter
-+. ./common/attr
 +
 +rm -f $seqres.full
 +
 +# real QA test starts here
 +_supported_fs overlay
 +_supported_os Linux
-+_require_test
 +_require_scratch
-+_require_attrs
 +
-+# Remove all files from previous tests
++# remove all files from previous runs
 +_scratch_mkfs
 +
-+# Create test dir on upper and make it opaque by setting proper xattr
 +lowerdir=$SCRATCH_DEV/$OVERLAY_LOWER_DIR
 +upperdir=$SCRATCH_DEV/$OVERLAY_UPPER_DIR
-+mkdir -p $lowerdir/testdir
-+mkdir -p $upperdir/testdir
-+$SETFATTR_PROG -n "trusted.overlay.opaque" -v "y" $upperdir/testdir
++mkdir -p $lowerdir/test
 +
-+# mount overlay with multiple lowerdirs, with $lowerdir as the lowest dir and
-+# $upperdir overlaid on top of $lowerdir, so that "trusted.overlay.opaque"
-+# xattr should be honored and should not be listed
-+# mount readonly, because there's no upper and workdir
-+$MOUNT_PROG -t overlay -o ro -o lowerdir=$upperdir:$lowerdir none $SCRATCH_MNT
++_scratch_mount
 +
-+# Dump trusted.overlay xattr, we should not see the "opaque" xattr
-+$GETFATTR_PROG -d -m overlay $SCRATCH_MNT/testdir
-+echo "Silence is golden"
++# remove test file to create a whiteout
++rmdir $SCRATCH_MNT/test
++
++# create the test file again and remove it from upperdir directly, make the
++# upper dentry become stale
++touch $SCRATCH_MNT/test
++rm $upperdir/test
++# try to remove test file from overlay dir, trigger ovl_remove_and_whiteout, it
++# should see stale file handle error, and no warnings/oops are expected.
++rm $SCRATCH_MNT/test 2>&1 | _filter_scratch
 +
 +# success, all done
 +status=0
 +exit
-diff --git a/tests/overlay/011.out b/tests/overlay/011.out
+diff --git a/tests/overlay/012.out b/tests/overlay/012.out
 new file mode 100644
-index 0000000..62e0251
+index 0000000..1bfa147
 --- /dev/null
-+++ b/tests/overlay/011.out
++++ b/tests/overlay/012.out
 @@ -0,0 +1,2 @@
-+QA output created by 011
-+Silence is golden
++QA output created by 012
++rm: cannot remove 'SCRATCH_MNT/test': Stale file handle
 diff --git a/tests/overlay/group b/tests/overlay/group
-index 06cdb7e..acd8ac4 100644
+index acd8ac4..103e2e1 100644
 --- a/tests/overlay/group
 +++ b/tests/overlay/group
-@@ -13,3 +13,4 @@
- 008 auto quick whiteout
+@@ -14,3 +14,4 @@
  009 auto quick
  010 auto quick whiteout
-+011 auto quick
+ 011 auto quick
++012 auto quick
 -- 
 2.7.4
