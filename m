@@ -1,75 +1,39 @@
-From: Miklos Szeredi <miklos@szeredi.hu>
-Subject: [GIT PULL] overlayfs update for 4.8
-Date: Fri, 29 Jul 2016 13:20:24 +0200
-Message-ID: <20160729112024.GB25404@veci.piliscsaba.szeredi.hu>
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Subject: Re: [GIT PULL] overlayfs update for 4.8
+Date: Fri, 29 Jul 2016 12:26:46 -0700
+Message-ID: <CA+55aFzUvF4ENbAygX+YGuvCnk7qmG8Z4JpiS_H6zmtz8hZZag@mail.gmail.com>
+References: <20160729112024.GB25404@veci.piliscsaba.szeredi.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
-Content-Disposition: inline
-Sender: linux-fsdevel-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-unionfs-owner@vger.kernel.org>
+Received: from mail-oi0-f66.google.com ([209.85.218.66]:35287 "EHLO
+	mail-oi0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750923AbcG2T0x (ORCPT
+	<rfc822;linux-unionfs@vger.kernel.org>);
+	Fri, 29 Jul 2016 15:26:53 -0400
+In-Reply-To: <20160729112024.GB25404@veci.piliscsaba.szeredi.hu>
+Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, linux-unionfs@vger.kernel.org
 
-Hi Linus,
+On Fri, Jul 29, 2016 at 4:20 AM, Miklos Szeredi <miklos@szeredi.hu> wrote:
+>
+> First of all, this fixes a regression in overlayfs introduced by the dentry hash
+> salting.  I've moved the patch fixing this to the front of the queue, so if (god
+> forbid) something needs to be bisected in overlayfs this regression won't
+> interfere with that.
 
-Please pull from:
+Thanks, I had missed that completely, and while I build overlayfs for
+testing, I don't have any actual tests of it.
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/mszeredi/vfs.git overlayfs-linus
+I decided to just remove the whole "lookup_hash()" helper again, not
+only because it's now not longer used, but because it clearly isn't a
+good interface with the hash of the name depending on the base
+directory.
 
-First of all, this fixes a regression in overlayfs introduced by the dentry hash
-salting.  I've moved the patch fixing this to the front of the queue, so if (god
-forbid) something needs to be bisected in overlayfs this regression won't
-interfere with that.
-
-The biggest part is preparation for selinux support, done by Vivek Goyal.
-Essentially this makes all operations on underlying filesystems be done with
-credentials of mounter.  This makes everything nicely consistent.
-
-There are also fixes for a number of known and recently discovered non-standard
-behavior (thanks to Eryu Guan for testing and improving the test suites).
+The lookup_hash() creation commit still reverted cleanly, so I just did that.
 
 Thanks,
-Miklos
 
----
-Al Viro (1):
-      qstr: constify instances in overlayfs
-
-Andreas Gruenbacher (1):
-      ovl: store ovl_entry in inode->i_private for all inodes
-
-Miklos Szeredi (13):
-      ovl: check mounter creds on underlying lookup
-      ovl: use generic_delete_inode
-      ovl: simplify permission checking
-      ovl: fix sgid on directory
-      ovl: update atime on upper
-      ovl: permission: return ECHILD instead of ENOENT
-      ovl: store real inode pointer in ->i_private
-      ovl: share inode for hard link
-      ovl: fix POSIX ACL setting
-      ovl: fix warning
-      ovl: disallow overlayfs as upperdir
-      ovl: clear nlink on rmdir
-      ovl: simplify empty checking
-
-Vivek Goyal (7):
-      ovl: move some common code in a function
-      ovl: define ->get_acl() for overlay inodes
-      ovl: modify ovl_permission() to do checks on two inodes
-      ovl: do operations on underlying file system in mounter's context
-      ovl: do not require mounter to have MAY_WRITE on lower
-      ovl: dilute permission checks on lower only if not special file
-      ovl: append MAY_READ when diluting write checks
-
-Wei Yongjun (1):
-      ovl: remove duplicated include from super.c
-
----
- fs/overlayfs/copy_up.c   |   1 +
- fs/overlayfs/dir.c       | 226 +++++++++++++++++++++++++------------------
- fs/overlayfs/inode.c     | 246 ++++++++++++++++++++++++++++-------------------
- fs/overlayfs/overlayfs.h |  30 ++++--
- fs/overlayfs/super.c     | 178 +++++++++++++++++++++++++++-------
- 5 files changed, 445 insertions(+), 236 deletions(-)
+            Linus
