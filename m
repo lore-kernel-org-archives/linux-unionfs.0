@@ -1,62 +1,46 @@
 From: Miklos Szeredi <miklos@szeredi.hu>
-Subject: Re: [PATCH] ovl: whiteout of lower dir should't dispaly in merge dir.
-Date: Mon, 8 Aug 2016 11:28:11 +0200
-Message-ID: <CAJfpegu1tT0ac=t85SurZ1+-9ZH9PzNp6RdVd2fJvMGkGeKrGg@mail.gmail.com>
-References: <1470647922-23721-1-git-send-email-zhangaihua1@huawei.com>
+Subject: Re: [RFC PATCH 0/9][V3] Overlayfs SELinux Support
+Date: Mon, 8 Aug 2016 14:46:51 +0200
+Message-ID: <CAJfpeguBtH=_q8KVCn-g5i9+PSMG5xj8Q+591JeF9TMF9BCnBg@mail.gmail.com>
+References: <1468421095-22322-1-git-send-email-vgoyal@redhat.com>
+ <CAHC9VhR7YM+VPXVO=no3bDsj4w5HZz1DiJZR5XajCEfMSYF6=g@mail.gmail.com>
+ <CAJfpegtdy=yRGvxmZyvLdnYHBLdft6zzaLE5EvpCzguNcMVZvQ@mail.gmail.com> <CAHC9VhSDOcbQgn+2HRSDc4E0=5ddq3SfDicwQy-e3t_hCh65Ug@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1470647922-23721-1-git-send-email-zhangaihua1@huawei.com>
+In-Reply-To: <CAHC9VhSDOcbQgn+2HRSDc4E0=5ddq3SfDicwQy-e3t_hCh65Ug@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Zhang AiHua <zhangaihua1@huawei.com>
-Cc: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>
+To: Paul Moore <paul@paul-moore.com>
+Cc: James Morris <jmorris@namei.org>, Vivek Goyal <vgoyal@redhat.com>, Stephen Smalley <sds@tycho.nsa.gov>, Paul Moore <pmoore@redhat.com>, Casey Schaufler <casey@schaufler-ca.com>, linux-kernel@vger.kernel.org, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>, LSM <linux-security-module@vger.kernel.org>, Dan Walsh <dwalsh@redhat.com>, David Howells <dhowells@redhat.com>, Al Viro <viro@zeniv.linux.org.uk>, linux-fsdevel@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 
-On Mon, Aug 8, 2016 at 11:18 AM,  <zhangaihua1@huawei.com> wrote:
-> From: Aihua Zhang <zhangaihua1@huawei.com>
+On Fri, Jul 22, 2016 at 5:33 PM, Paul Moore <paul@paul-moore.com> wrote:
+> On Thu, Jul 21, 2016 at 7:09 PM, James Morris <jmorris@namei.org> wrote:
+>> On Thu, 21 Jul 2016, Paul Moore wrote:
+>>> James, assuming the overlayfs-next branch is pulled during the merge
+>>> window, can you rebase your linux-security#next branch to v4.8-rc1
+>>> once Linus tags it?
+>>
+>> Yep.
 >
-> mount -t overlay overlay -olowerdir=/lower,upperdir=/upper,workdir=/workdir  /merge
-> ls /lower/test_dir
-> whiteout
+> On Fri, Jul 22, 2016 at 3:05 AM, Miklos Szeredi <miklos@szeredi.hu> wrote:
+>> On Thu, Jul 21, 2016 at 11:16 PM, Paul Moore <paul@paul-moore.com> wrote:
+>>> Hi Vivek,
+>>>
+>>> These patches look fine to me, thanks for all your hard work and to
+>>> everyone who helped review and provide feedback.  I have tagged these
+>>> patches for merging into the SELinux next branch after this merge
+>>> window.
+>>>
+>>> Miklos, this patchset depends on patches in your overlayfs-next
+>>> branch, I assume you're pushing that branch during the upcoming merge
+>>> window?
+>>
+>> Yes, that's the plan.
 >
-> ls /merge/test_dir
-> whiteout   ------should't display here
->
-> this patch fixed it.
+> Great, thanks.
 
-Your patch makes the performance of readdir() for the common case
-worse for no good reason.  There's no way a whiteout can end up on the
-lowest layer, so there's no point in trying to filter one out.
-
-NACK.
+Base patches are now in v4.8-rc1.
 
 Thanks,
 Miklos
-
-
->
-> Signed-off-by: Aihua Zhang <zhangaihua1@huawei.com>
-> ---
->  fs/overlayfs/readdir.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
->
-> diff --git a/fs/overlayfs/readdir.c b/fs/overlayfs/readdir.c
-> index cf37fc7..21cd5a4 100644
-> --- a/fs/overlayfs/readdir.c
-> +++ b/fs/overlayfs/readdir.c
-> @@ -362,7 +362,7 @@ static int ovl_iterate(struct file *file, struct dir_context *ctx)
->         if (!ctx->pos)
->                 ovl_dir_reset(file);
->
-> -       if (od->is_real)
-> +       if ((od->is_real) && (od->is_upper))
->                 return iterate_dir(od->realfile, ctx);
->
->         if (!od->cache) {
-> --
-> 1.7.1
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-unionfs" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
