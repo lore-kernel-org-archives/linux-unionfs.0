@@ -1,68 +1,165 @@
-From: Zhang AiHua <zhangaihua1@huawei.com>
-Subject: =?UTF-8?Q?retry=ef=bc=9a_[PATCH]_ovl:_fix_inode_in_utimes=5fcommon_?=
- =?UTF-8?Q?on_overlayfs.?=
-Date: Tue, 9 Aug 2016 11:00:03 +0800
-Message-ID: <57A94733.8090502@huawei.com>
-References: <1469779579-28423-1-git-send-email-zhangaihua1@huawei.com>
+From: Xiong Zhou <xzhou@redhat.com>
+Subject: Re: [PATCH] overlay: copy-up lowerdir which has opaque xattr set
+Date: Tue, 9 Aug 2016 12:09:46 +0800
+Message-ID: <20160809040946.uxfx4ggalhvyw53j@xzhoul.usersys.redhat.com>
+References: <1470677033-7035-1-git-send-email-eguan@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="gbk"; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from szxga02-in.huawei.com ([119.145.14.65]:60169 "EHLO
-	szxga02-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752345AbcHIDAp (ORCPT
-	<rfc822;linux-unionfs@vger.kernel.org>);
-	Mon, 8 Aug 2016 23:00:45 -0400
-In-Reply-To: <1469779579-28423-1-git-send-email-zhangaihua1@huawei.com>
+Received: from mx1.redhat.com ([209.132.183.28]:39544 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751914AbcHIEJs (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+	Tue, 9 Aug 2016 00:09:48 -0400
+Content-Disposition: inline
+In-Reply-To: <1470677033-7035-1-git-send-email-eguan@redhat.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: linux-unionfs@vger.kernel.org
+To: Eryu Guan <eguan@redhat.com>
+Cc: fstests@vger.kernel.org, linux-unionfs@vger.kernel.org, xzhou@redhat.com
 
+On Tue, Aug 09, 2016 at 01:23:53AM +0800, Eryu Guan wrote:
+> When copying up a directory with opaque xattr set, the xattr was
+> copied up as well, after a remount the opaque flag is honored so the
+> copied-up directory is treated as opaque, which causes files created
+> in the lowerdir to be hidden when using multiple lower directories.
 
+Tested and ack.
 
+Thanks,
+Xiong
 
--------- 转发的消息 --------
-主题: [PATCH] ovl: fix inode in utimes_common on overlayfs.
-日期: Fri, 29 Jul 2016 16:06:19 +0800
-发件人: zhangaihua1@huawei.com
-收件人: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, linux-unionfs@vger.kernel.org
-抄送: Aihua Zhang <zhangaihua1@huawei.com>
-
-From: Aihua Zhang <zhangaihua1@huawei.com>
-
-the check IS_IMMUTABLE(inode) is invalid in utimes_commmon,
-the inode should point to upper rather than merge.
-
-the patch also fix the error in LTP(utimensat01).
-
-Signed-off-by: Aihua Zhang <zhangaihua1@huawei.com>
----
-  fs/utimes.c |    3 ++-
-  1 files changed, 2 insertions(+), 1 deletions(-)
-
-diff --git a/fs/utimes.c b/fs/utimes.c
-index 85c40f4..1813a62 100644
---- a/fs/utimes.c
-+++ b/fs/utimes.c
-@@ -53,6 +53,7 @@ static int utimes_common(struct path *path, struct timespec *times)
-  	int error;
-  	struct iattr newattrs;
-  	struct inode *inode = path->dentry->d_inode;
-+	struct inode *real_inode = d_real(path->dentry)->d_inode;
-  	struct inode *delegated_inode = NULL;
-
-  	error = mnt_want_write(path->mnt);
-@@ -93,7 +94,7 @@ static int utimes_common(struct path *path, struct timespec *times)
-  		 * inode_change_ok() won't do it.
-  		 */
-  		error = -EACCES;
--                if (IS_IMMUTABLE(inode))
-+                if (IS_IMMUTABLE(real_inode))
-  			goto mnt_drop_write_and_out;
-
-  		if (!inode_owner_or_capable(inode)) {
--- 
-1.7.1
-
-
-.
+> 
+> This is fixed by "ovl: don't copy up opaqueness".
+> 
+> Signed-off-by: Eryu Guan <eguan@redhat.com>
+> ---
+>  tests/overlay/014     | 96 +++++++++++++++++++++++++++++++++++++++++++++++++++
+>  tests/overlay/014.out |  3 ++
+>  tests/overlay/group   |  1 +
+>  3 files changed, 100 insertions(+)
+>  create mode 100755 tests/overlay/014
+>  create mode 100644 tests/overlay/014.out
+> 
+> diff --git a/tests/overlay/014 b/tests/overlay/014
+> new file mode 100755
+> index 0000000..d9d8b5d
+> --- /dev/null
+> +++ b/tests/overlay/014
+> @@ -0,0 +1,96 @@
+> +#! /bin/bash
+> +# FS QA Test 014
+> +#
+> +# Test copy-up of lowerdir with opaque xattr set.
+> +#
+> +# When copying up a directory with opaque xattr set, the xattr was copied up as
+> +# well, after a remount the opaque flag is honored so the copied-up directory
+> +# is treated as opaque, which causes files created in the lowerdir to be hidden
+> +# when using multiple lower directories.
+> +#
+> +# This is fixed by "ovl: don't copy up opaqueness".
+> +#
+> +#-----------------------------------------------------------------------
+> +# Copyright (c) 2016 Red Hat Inc. All Rights Reserved.
+> +#
+> +# This program is free software; you can redistribute it and/or
+> +# modify it under the terms of the GNU General Public License as
+> +# published by the Free Software Foundation.
+> +#
+> +# This program is distributed in the hope that it would be useful,
+> +# but WITHOUT ANY WARRANTY; without even the implied warranty of
+> +# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> +# GNU General Public License for more details.
+> +#
+> +# You should have received a copy of the GNU General Public License
+> +# along with this program; if not, write the Free Software Foundation,
+> +# Inc.,  51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+> +#-----------------------------------------------------------------------
+> +#
+> +
+> +seq=`basename $0`
+> +seqres=$RESULT_DIR/$seq
+> +echo "QA output created by $seq"
+> +
+> +here=`pwd`
+> +tmp=/tmp/$$
+> +status=1	# failure is the default!
+> +trap "_cleanup; exit \$status" 0 1 2 3 15
+> +
+> +_cleanup()
+> +{
+> +	cd /
+> +	rm -f $tmp.*
+> +}
+> +
+> +# get standard environment, filters and checks
+> +. ./common/rc
+> +. ./common/filter
+> +. ./common/attr
+> +
+> +# remove previous $seqres.full before test
+> +rm -f $seqres.full
+> +
+> +# real QA test starts here
+> +_supported_fs overlay
+> +_supported_os Linux
+> +_require_test
+> +_require_scratch
+> +_require_attrs
+> +
+> +# Remove all files from previous tests
+> +_scratch_mkfs
+> +
+> +# Create multiple lowerdirs and upperdir, workdir, and testdir on lowerdir
+> +lowerdir1=$SCRATCH_DEV/lower1
+> +lowerdir2=$SCRATCH_DEV/lower2
+> +upperdir=$SCRATCH_DEV/upper
+> +workdir=$SCRATCH_DEV/workdir
+> +mkdir -p $lowerdir1 $lowerdir2 $upperdir $workdir
+> +mkdir -p $lowerdir1/testdir/d
+> +
+> +# mount overlay with $lowerdir2 as upperdir, and remove & recreate testdir,
+> +# make testdir on $lowerdir2 opaque
+> +$MOUNT_PROG -t overlay -o lowerdir=$lowerdir1,upperdir=$lowerdir2 \
+> +	-o workdir=$workdir none $SCRATCH_MNT
+> +rm -rf $SCRATCH_MNT/testdir
+> +mkdir -p $SCRATCH_MNT/testdir/visibledir
+> +$UMOUNT_PROG $SCRATCH_MNT
+> +
+> +# mount overlay again, with lowerdir1 and lowerdir2 as multiple lowerdirs,
+> +# and create a new file in testdir, triggers copyup from lowerdir,
+> +# copyup should not copy overlayfs private xattr
+> +$MOUNT_PROG -t overlay -o lowerdir=$lowerdir2:$lowerdir1,upperdir=$upperdir \
+> +	-o workdir=$workdir none $SCRATCH_MNT
+> +touch $SCRATCH_MNT/testdir/visiblefile
+> +
+> +# umount and mount overlay again, buggy kernel treats the copied-up dir as
+> +# opaque, visibledir is not seen in merged dir.
+> +$UMOUNT_PROG $SCRATCH_MNT
+> +$MOUNT_PROG -t overlay -o lowerdir=$lowerdir2:$lowerdir1,upperdir=$upperdir \
+> +	-o workdir=$workdir none $SCRATCH_MNT
+> +ls $SCRATCH_MNT/testdir
+> +
+> +# success, all done
+> +status=0
+> +exit
+> diff --git a/tests/overlay/014.out b/tests/overlay/014.out
+> new file mode 100644
+> index 0000000..ec09c4d
+> --- /dev/null
+> +++ b/tests/overlay/014.out
+> @@ -0,0 +1,3 @@
+> +QA output created by 014
+> +visibledir
+> +visiblefile
+> diff --git a/tests/overlay/group b/tests/overlay/group
+> index 5c80566..71eaadb 100644
+> --- a/tests/overlay/group
+> +++ b/tests/overlay/group
+> @@ -16,3 +16,4 @@
+>  011 auto quick
+>  012 auto quick
+>  013 auto quick
+> +014 auto quick copyup
+> -- 
+> 2.7.4
+> 
