@@ -1,15 +1,16 @@
-From: Xiong Zhou <xzhou@redhat.com>
+From: Dave Chinner <david@fromorbit.com>
 Subject: Re: [PATCH] overlay: copy-up lowerdir which has opaque xattr set
-Date: Tue, 9 Aug 2016 12:09:46 +0800
-Message-ID: <20160809040946.uxfx4ggalhvyw53j@xzhoul.usersys.redhat.com>
+Date: Tue, 9 Aug 2016 16:37:30 +1000
+Message-ID: <20160809063730.GG19025@dastard>
 References: <1470677033-7035-1-git-send-email-eguan@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:39544 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751914AbcHIEJs (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-	Tue, 9 Aug 2016 00:09:48 -0400
+Received: from ipmail05.adl6.internode.on.net ([150.101.137.143]:37060 "EHLO
+	ipmail05.adl6.internode.on.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752171AbcHIGhd (ORCPT
+	<rfc822;linux-unionfs@vger.kernel.org>);
+	Tue, 9 Aug 2016 02:37:33 -0400
 Content-Disposition: inline
 In-Reply-To: <1470677033-7035-1-git-send-email-eguan@redhat.com>
 Sender: linux-unionfs-owner@vger.kernel.org
@@ -22,12 +23,6 @@ On Tue, Aug 09, 2016 at 01:23:53AM +0800, Eryu Guan wrote:
 > copied up as well, after a remount the opaque flag is honored so the
 > copied-up directory is treated as opaque, which causes files created
 > in the lowerdir to be hidden when using multiple lower directories.
-
-Tested and ack.
-
-Thanks,
-Xiong
-
 > 
 > This is fixed by "ovl: don't copy up opaqueness".
 > 
@@ -121,45 +116,23 @@ Xiong
 > +# make testdir on $lowerdir2 opaque
 > +$MOUNT_PROG -t overlay -o lowerdir=$lowerdir1,upperdir=$lowerdir2 \
 > +	-o workdir=$workdir none $SCRATCH_MNT
+
+We really need a _overlay_scratch_mount_dirs() function here. i.e.
+
+_overlay_scratch_mount_dirs $lowerdir $upperdir $workdir
+
+and factor the _overlay_scratch_mount/_overlay_mount code to
+use a single implemention of _overlay_mount_dirs()....
+
 > +rm -rf $SCRATCH_MNT/testdir
 > +mkdir -p $SCRATCH_MNT/testdir/visibledir
 > +$UMOUNT_PROG $SCRATCH_MNT
-> +
-> +# mount overlay again, with lowerdir1 and lowerdir2 as multiple lowerdirs,
-> +# and create a new file in testdir, triggers copyup from lowerdir,
-> +# copyup should not copy overlayfs private xattr
-> +$MOUNT_PROG -t overlay -o lowerdir=$lowerdir2:$lowerdir1,upperdir=$upperdir \
-> +	-o workdir=$workdir none $SCRATCH_MNT
-> +touch $SCRATCH_MNT/testdir/visiblefile
-> +
-> +# umount and mount overlay again, buggy kernel treats the copied-up dir as
-> +# opaque, visibledir is not seen in merged dir.
-> +$UMOUNT_PROG $SCRATCH_MNT
-> +$MOUNT_PROG -t overlay -o lowerdir=$lowerdir2:$lowerdir1,upperdir=$upperdir \
-> +	-o workdir=$workdir none $SCRATCH_MNT
-> +ls $SCRATCH_MNT/testdir
-> +
-> +# success, all done
-> +status=0
-> +exit
-> diff --git a/tests/overlay/014.out b/tests/overlay/014.out
-> new file mode 100644
-> index 0000000..ec09c4d
-> --- /dev/null
-> +++ b/tests/overlay/014.out
-> @@ -0,0 +1,3 @@
-> +QA output created by 014
-> +visibledir
-> +visiblefile
-> diff --git a/tests/overlay/group b/tests/overlay/group
-> index 5c80566..71eaadb 100644
-> --- a/tests/overlay/group
-> +++ b/tests/overlay/group
-> @@ -16,3 +16,4 @@
->  011 auto quick
->  012 auto quick
->  013 auto quick
-> +014 auto quick copyup
-> -- 
-> 2.7.4
-> 
+
+_overlay_scratch_unmount
+
+Cheers,
+
+Dave.
+-- 
+Dave Chinner
+david@fromorbit.com
