@@ -1,7 +1,7 @@
 From: Daniel J Walsh <dwalsh@redhat.com>
 Subject: Re: [RFC PATCH 0/9][V3] Overlayfs SELinux Support
-Date: Thu, 11 Aug 2016 08:39:32 -0400
-Message-ID: <40ce13d0-e116-2edf-c383-80aaec2d2412@redhat.com>
+Date: Thu, 11 Aug 2016 10:06:46 -0400
+Message-ID: <6a67eee9-9722-d12d-03a1-af1214bbd2e0@redhat.com>
 References: <1468421095-22322-1-git-send-email-vgoyal@redhat.com>
  <CAHC9VhR7YM+VPXVO=no3bDsj4w5HZz1DiJZR5XajCEfMSYF6=g@mail.gmail.com>
  <CAHC9VhSPj61__P=esyYHhEfQyGKBLZjcoPi1QBFbeRdA2qdNeA@mail.gmail.com>
@@ -12,16 +12,12 @@ References: <1468421095-22322-1-git-send-email-vgoyal@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:51824 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752469AbcHKMje (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-	Thu, 11 Aug 2016 08:39:34 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <CAHC9VhTpq=KCKYs-QUw61=DX5Rqq1Gc2gYA_FYQdrqgHHUrnYA@mail.gmail.com>
-Sender: linux-unionfs-owner@vger.kernel.org
-List-Id: linux-unionfs@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: Paul Moore <paul@paul-moore.com>, Miklos Szeredi <miklos@szeredi.hu>, Vivek Goyal <vgoyal@redhat.com>, Stephen Smalley <sds@tycho.nsa.gov>
 Cc: Paul Moore <pmoore@redhat.com>, James Morris <jmorris@namei.org>, Casey Schaufler <casey@schaufler-ca.com>, linux-kernel@vger.kernel.org, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>, LSM <linux-security-module@vger.kernel.org>, David Howells <dhowells@redhat.com>, Al Viro <viro@zeniv.linux.org.uk>, linux-fsdevel@vger.kernel.org
+List-Id: linux-unionfs@vger.kernel.org
 
 
 
@@ -58,4 +54,5 @@ On 08/11/2016 08:36 AM, Paul Moore wrote:
 > SELinux/overlayfs patches included.  The link above has instructions
 > on enabling the COPR repo on your system.
 >
-Awesome,  I will try this out in Rawhide now.
+Looks great.  Passes the test suite, and I have a patched version of docker
+now running with overlay backend.
