@@ -1,45 +1,61 @@
-From: oc <oc@yunify.com>
-Subject: [PATCH] overlayfs: Make dir inode always point to the underlay
-Date: Fri, 12 Aug 2016 15:34:51 +0800
-Message-ID: <4b4580e4-8bec-bfba-cd94-1d531a2f06cc@yunify.com>
+From: Miklos Szeredi <miklos@szeredi.hu>
+Subject: Re: [PATCH] overlayfs: Make dir inode always point to the underlay
+Date: Mon, 15 Aug 2016 11:08:15 +0200
+Message-ID: <20160815090815.GH25404@veci.piliscsaba.szeredi.hu>
+References: <4b4580e4-8bec-bfba-cd94-1d531a2f06cc@yunify.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from m97136.qiye.163.com ([220.181.97.136]:4611 "EHLO
-	m97136.qiye.163.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751258AbcHLHlx (ORCPT
+Received: from mail-wm0-f68.google.com ([74.125.82.68]:35947 "EHLO
+	mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752802AbcHOJIU (ORCPT
 	<rfc822;linux-unionfs@vger.kernel.org>);
-	Fri, 12 Aug 2016 03:41:53 -0400
+	Mon, 15 Aug 2016 05:08:20 -0400
+Received: by mail-wm0-f68.google.com with SMTP id i138so9985801wmf.3
+        for <linux-unionfs@vger.kernel.org>; Mon, 15 Aug 2016 02:08:19 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <4b4580e4-8bec-bfba-cd94-1d531a2f06cc@yunify.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: linux-unionfs@vger.kernel.org, miklos@szeredi.hu, dhowells@redhat.com, trivial@kernel.org
+To: oc <oc@yunify.com>
+Cc: linux-unionfs@vger.kernel.org, dhowells@redhat.com, trivial@kernel.org, vito.caputo@coreos.com
 
-Since file inode points to the underlay from ovl_path_real method, the dir
-inode should also point to the one from underlay. This issue introduced
-problem when live migrates a container instance using criu, which need to
-convert inotify inode entry to file path, because inotify point to the real
-inode in underlay.
+[This is *far* from being a trivial patch,  please don't treat it as such]
 
-Signed-off-by: Chen Haiquan <oc@yunify.com>
----
-  fs/overlayfs/dir.c | 3 ---
-  1 file changed, 3 deletions(-)
+On Fri, Aug 12, 2016 at 03:34:51PM +0800, oc wrote:
+> Since file inode points to the underlay from ovl_path_real method, the dir
+> inode should also point to the one from underlay. This issue introduced
+> problem when live migrates a container instance using criu, which need to
+> convert inotify inode entry to file path, because inotify point to the real
+> inode in underlay.
 
-diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
-index 12bcd07b9e32..a06f23d325ec 100644
---- a/fs/overlayfs/dir.c
-+++ b/fs/overlayfs/dir.c
-@@ -147,9 +147,6 @@ static int ovl_dir_getattr(struct vfsmount *mnt, 
-struct dentry *dentry,
-         if (err)
-                 return err;
+Not quite sure what the problem is here.  It is true that inotify is currently
+broken.  There's a fix pending for that here:
 
--       stat->dev = dentry->d_sb->s_dev;
--       stat->ino = dentry->d_inode->i_ino;
--
-         /*
-          * It's probably not worth it to count subdirs to get the
-          * correct link count.  nlink=1 seems to pacify 'find' and
--- 
-2.7.4
+  https://git.kernel.org/cgit/linux/kernel/git/mszeredi/vfs.git/commit/?h=overlayfs-next&id=09557932babf3462125749212bc1cde574404fbb
+
+There's also an issue with inode numbers being unstable for directories:
+
+  http://marc.info/?t=146914417200002&r=1&w=2
+
+As explained in that thread the problem with always using the underlying
+inode/dev is that it makes the inode number change when the directory is copied
+up.
+
+So there are multiple, somewhat conflicting requirements here and it would be
+good to have a solution that everyone is happy with and is unlikely to break
+existing setups.
+
+Does the last patch in the above thread work for you?
+
+And what about if you additionally do
+
+-stat->dev = lowerstat.dev;
++stat->dev = dentry->d_sb->s_dev;
+
+?
+
+Vito, could you also please supply feedback on those patches?
+
+Thanks,
+Miklos
