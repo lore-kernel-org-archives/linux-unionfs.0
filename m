@@ -1,7 +1,7 @@
 From: oc <oc@yunify.com>
 Subject: Re: [PATCH] overlayfs: Make dir inode always point to the underlay
-Date: Tue, 16 Aug 2016 11:43:43 +0800
-Message-ID: <03ef2383-2a24-d88c-a372-d993b80951a4@yunify.com>
+Date: Tue, 16 Aug 2016 11:43:53 +0800
+Message-ID: <4a9ca862-9445-500e-e0ca-c5753584d9b7@yunify.com>
 References: <4b4580e4-8bec-bfba-cd94-1d531a2f06cc@yunify.com>
  <20160815090815.GH25404@veci.piliscsaba.szeredi.hu>
  <CAKp8XJ413FtvzCSvCQBbwwwvkF0Kz9mWj31X3igk66oVn-1yoQ@mail.gmail.com>
@@ -9,11 +9,11 @@ Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from m97131.qiye.163.com ([220.181.97.131]:33570 "EHLO
+Received: from m97131.qiye.163.com ([220.181.97.131]:33937 "EHLO
 	m97131.qiye.163.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752742AbcHPDvG (ORCPT
+	with ESMTP id S1753049AbcHPDvO (ORCPT
 	<rfc822;linux-unionfs@vger.kernel.org>);
-	Mon, 15 Aug 2016 23:51:06 -0400
+	Mon, 15 Aug 2016 23:51:14 -0400
 In-Reply-To: <CAKp8XJ413FtvzCSvCQBbwwwvkF0Kz9mWj31X3igk66oVn-1yoQ@mail.gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
@@ -40,7 +40,7 @@ the one for real directory, probably the
 the upper layer, overlayfs need to return the real inode to get criu 
 working.
 
-It  is a conflicting requirements to you. What do you think on this?
+It  is a conflicting requirement to you. What do you think on this?
 
 
 在 2016年08月16日 08:14, Vito Caputo 写道:
