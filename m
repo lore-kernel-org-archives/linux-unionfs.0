@@ -1,34 +1,35 @@
-From: Colin King <colin.king@canonical.com>
-Subject: [PATCH] ovl: fix spelling mistake: "directries" -> "directories"
-Date: Thu, 18 Aug 2016 16:58:35 +0100
-Message-ID: <1471535915-15918-1-git-send-email-colin.king@canonical.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org
+From: Andreas Gruenbacher <agruenba@redhat.com>
+Subject: [PATCH 0/4] ovl: xattr fixes / improvements
+Date: Mon, 22 Aug 2016 20:06:30 +0200
+Message-ID: <1471889194-31218-1-git-send-email-agruenba@redhat.com>
+Return-path: <linux-unionfs-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:54826 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1755160AbcHVSGi (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Mon, 22 Aug 2016 14:06:38 -0400
+Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: linux-unionfs@vger.kernel.org, Andreas Gruenbacher <agruenba@redhat.com>
 
-From: Colin Ian King <colin.king@canonical.com>
+Here are some overlayfs fixes.  The first and third should definitely go
+in for 4.8; the second is a mere cleanup; the fourth could go in later
+but shouldn't hurt now, either.
 
-trivial fix to spelling mistake in pr_err message
+Thanks,
+Andreas
 
-Signed-off-by: Colin Ian King <colin.king@canonical.com>
----
- fs/overlayfs/super.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Andreas Gruenbacher (4):
+  ovl: Fix OVL_XATTR_PREFIX
+  ovl: Get rid of ovl_xattr_noacl_handlers array
+  ovl: Switch to generic_removexattr
+  ovl: Switch to generic_getxattr
 
-diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-index 0f824f5..92eb43d 100644
---- a/fs/overlayfs/super.c
-+++ b/fs/overlayfs/super.c
-@@ -1132,7 +1132,7 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
- 	err = -EINVAL;
- 	stacklen = ovl_split_lowerdirs(lowertmp);
- 	if (stacklen > OVL_MAX_STACK) {
--		pr_err("overlayfs: too many lower directries, limit is %d\n",
-+		pr_err("overlayfs: too many lower directories, limit is %d\n",
- 		       OVL_MAX_STACK);
- 		goto out_free_lowertmp;
- 	} else if (!ufs->config.upperdir && stacklen == 1) {
+ fs/overlayfs/dir.c       |  4 +--
+ fs/overlayfs/inode.c     | 90 ++++++++++++++----------------------------------
+ fs/overlayfs/overlayfs.h | 12 +++----
+ fs/overlayfs/super.c     | 65 ++++++++++++++++++++++------------
+ 4 files changed, 74 insertions(+), 97 deletions(-)
+
 -- 
-2.8.1
+2.7.4
