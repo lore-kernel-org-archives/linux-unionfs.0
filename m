@@ -1,7 +1,7 @@
 From: Andreas Gruenbacher <agruenba@redhat.com>
-Subject: [PATCH v4 16/20] libfs: Use IOP_XATTR flag for empty directory handling
-Date: Mon, 22 Aug 2016 23:22:04 +0200
-Message-ID: <1471900928-21588-17-git-send-email-agruenba@redhat.com>
+Subject: [PATCH v4 14/20] vfs: Add IOP_XATTR inode operations flag
+Date: Mon, 22 Aug 2016 23:22:02 +0200
+Message-ID: <1471900928-21588-15-git-send-email-agruenba@redhat.com>
 References: <1471900928-21588-1-git-send-email-agruenba@redhat.com>
 Return-path: <ecryptfs-owner@vger.kernel.org>
 In-Reply-To: <1471900928-21588-1-git-send-email-agruenba@redhat.com>
@@ -10,60 +10,97 @@ To: Alexander Viro <viro@zeniv.linux.org.uk>
 Cc: Andreas Gruenbacher <agruenba@redhat.com>, linux-fsdevel@vger.kernel.org, Tyler Hicks <tyhicks@canonical.com>, ecryptfs@vger.kernel.org, Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, David Howells <dhowells@redhat.com>, Serge Hallyn <serge.hallyn@canonical.com>, Dmitry Kasatkin <dmitry.kasatkin@gmail.com>, linux-ima-devel@lists.sourceforge.net, Paul Moore <paul@paul-moore.com>, Stephen Smalley <sds@tycho.nsa.gov>, Eric Paris <eparis@parisplace.org>, Casey Schaufler <casey@schaufler-ca.com>, Oleg Drokin <oleg.drokin@intel.com>, Andreas Dilger <andreas.dilger@intel.com>
 List-Id: linux-unionfs@vger.kernel.org
 
-Instead of special xattr inode operations, use the IOP_XATTR inode
-operations flag for the special libfs empty directories.
+The IOP_XATTR inode operations flag in inode->i_opflags indicates that
+the inode has xattr support.  The flag is automatically set by
+new_inode() on filesystems with xattr support (where sb->s_xattr is
+defined), and cleared otherwise.  Filesystems can explicitly clear it
+for inodes that should not have xattr support.
 
 Signed-off-by: Andreas Gruenbacher <agruenba@redhat.com>
 ---
- fs/libfs.c | 22 +---------------------
- 1 file changed, 1 insertion(+), 21 deletions(-)
+ fs/inode.c         |  2 ++
+ fs/xattr.c         | 12 ++++++++----
+ include/linux/fs.h |  1 +
+ 3 files changed, 11 insertions(+), 4 deletions(-)
 
-diff --git a/fs/libfs.c b/fs/libfs.c
-index cfa9576..b322d75 100644
---- a/fs/libfs.c
-+++ b/fs/libfs.c
-@@ -1150,24 +1150,6 @@ static int empty_dir_setattr(struct dentry *dentry, struct iattr *attr)
- 	return -EPERM;
- }
- 
--static int empty_dir_setxattr(struct dentry *dentry, struct inode *inode,
--			      const char *name, const void *value,
--			      size_t size, int flags)
--{
--	return -EOPNOTSUPP;
--}
--
--static ssize_t empty_dir_getxattr(struct dentry *dentry, struct inode *inode,
--				  const char *name, void *value, size_t size)
--{
--	return -EOPNOTSUPP;
--}
--
--static int empty_dir_removexattr(struct dentry *dentry, const char *name)
--{
--	return -EOPNOTSUPP;
--}
--
- static ssize_t empty_dir_listxattr(struct dentry *dentry, char *list, size_t size)
+diff --git a/fs/inode.c b/fs/inode.c
+index 7e3ef3a..705f860 100644
+--- a/fs/inode.c
++++ b/fs/inode.c
+@@ -140,6 +140,8 @@ int inode_init_always(struct super_block *sb, struct inode *inode)
+ 	inode->i_fop = &no_open_fops;
+ 	inode->__i_nlink = 1;
+ 	inode->i_opflags = 0;
++	if (sb->s_xattr)
++		inode->i_opflags |= IOP_XATTR;
+ 	i_uid_write(inode, 0);
+ 	i_gid_write(inode, 0);
+ 	atomic_set(&inode->i_writecount, 0);
+diff --git a/fs/xattr.c b/fs/xattr.c
+index bb3cbbf..38b52a3 100644
+--- a/fs/xattr.c
++++ b/fs/xattr.c
+@@ -53,10 +53,13 @@ strcmp_prefix(const char *a, const char *a_prefix)
+  * Find the xattr_handler with the matching prefix.
+  */
+ static const struct xattr_handler *
+-xattr_resolve_name(const struct xattr_handler **handlers, const char **name)
++xattr_resolve_name(struct inode *inode, const char **name)
  {
- 	return -EOPNOTSUPP;
-@@ -1178,9 +1160,6 @@ static const struct inode_operations empty_dir_inode_operations = {
- 	.permission	= generic_permission,
- 	.setattr	= empty_dir_setattr,
- 	.getattr	= empty_dir_getattr,
--	.setxattr	= empty_dir_setxattr,
--	.getxattr	= empty_dir_getxattr,
--	.removexattr	= empty_dir_removexattr,
- 	.listxattr	= empty_dir_listxattr,
- };
++	const struct xattr_handler **handlers = inode->i_sb->s_xattr;
+ 	const struct xattr_handler *handler;
  
-@@ -1216,6 +1195,7 @@ void make_empty_dir_inode(struct inode *inode)
- 	inode->i_blocks = 0;
++	if (!(inode->i_opflags & IOP_XATTR))
++		return ERR_PTR(-EOPNOTSUPP);
+ 	for_each_xattr_handler(handlers, handler) {
+ 		const char *n;
  
- 	inode->i_op = &empty_dir_inode_operations;
-+	inode->i_opflags &= ~IOP_XATTR;
- 	inode->i_fop = &empty_dir_operations;
+@@ -298,6 +301,7 @@ nolsm:
+ 		error = -EOPNOTSUPP;
+ 
+ 	return error;
++
  }
+ EXPORT_SYMBOL_GPL(vfs_getxattr);
  
+@@ -700,7 +704,7 @@ generic_getxattr(struct dentry *dentry, struct inode *inode,
+ {
+ 	const struct xattr_handler *handler;
+ 
+-	handler = xattr_resolve_name(dentry->d_sb->s_xattr, &name);
++	handler = xattr_resolve_name(inode, &name);
+ 	if (IS_ERR(handler))
+ 		return PTR_ERR(handler);
+ 	return handler->get(handler, dentry, inode,
+@@ -755,7 +759,7 @@ generic_setxattr(struct dentry *dentry, struct inode *inode, const char *name,
+ 
+ 	if (size == 0)
+ 		value = "";  /* empty EA, do not remove */
+-	handler = xattr_resolve_name(dentry->d_sb->s_xattr, &name);
++	handler = xattr_resolve_name(inode, &name);
+ 	if (IS_ERR(handler))
+ 		return PTR_ERR(handler);
+ 	return handler->set(handler, dentry, inode, name, value, size, flags);
+@@ -770,7 +774,7 @@ generic_removexattr(struct dentry *dentry, const char *name)
+ {
+ 	const struct xattr_handler *handler;
+ 
+-	handler = xattr_resolve_name(dentry->d_sb->s_xattr, &name);
++	handler = xattr_resolve_name(d_inode(dentry), &name);
+ 	if (IS_ERR(handler))
+ 		return PTR_ERR(handler);
+ 	return handler->set(handler, dentry, d_inode(dentry), name, NULL,
+diff --git a/include/linux/fs.h b/include/linux/fs.h
+index 022aa88..c97a20c 100644
+--- a/include/linux/fs.h
++++ b/include/linux/fs.h
+@@ -590,6 +590,7 @@ is_uncached_acl(struct posix_acl *acl)
+ #define IOP_FASTPERM	0x0001
+ #define IOP_LOOKUP	0x0002
+ #define IOP_NOFOLLOW	0x0004
++#define IOP_XATTR	0x0008
+ 
+ /*
+  * Keep mostly read-only and often accessed (especially for
 -- 
 2.7.4
