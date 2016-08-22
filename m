@@ -1,160 +1,69 @@
 From: Andreas Gruenbacher <agruenba@redhat.com>
-Subject: [PATCH v4 12/20] fuse: Switch to generic xattr handlers
-Date: Mon, 22 Aug 2016 23:22:00 +0200
-Message-ID: <1471900928-21588-13-git-send-email-agruenba@redhat.com>
+Subject: [PATCH v4 16/20] libfs: Use IOP_XATTR flag for empty directory handling
+Date: Mon, 22 Aug 2016 23:22:04 +0200
+Message-ID: <1471900928-21588-17-git-send-email-agruenba@redhat.com>
 References: <1471900928-21588-1-git-send-email-agruenba@redhat.com>
-Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:57424 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754155AbcHVVY1 (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 22 Aug 2016 17:24:27 -0400
+Return-path: <ecryptfs-owner@vger.kernel.org>
 In-Reply-To: <1471900928-21588-1-git-send-email-agruenba@redhat.com>
-Sender: linux-unionfs-owner@vger.kernel.org
-List-Id: linux-unionfs@vger.kernel.org
+Sender: ecryptfs-owner@vger.kernel.org
 To: Alexander Viro <viro@zeniv.linux.org.uk>
 Cc: Andreas Gruenbacher <agruenba@redhat.com>, linux-fsdevel@vger.kernel.org, Tyler Hicks <tyhicks@canonical.com>, ecryptfs@vger.kernel.org, Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, David Howells <dhowells@redhat.com>, Serge Hallyn <serge.hallyn@canonical.com>, Dmitry Kasatkin <dmitry.kasatkin@gmail.com>, linux-ima-devel@lists.sourceforge.net, Paul Moore <paul@paul-moore.com>, Stephen Smalley <sds@tycho.nsa.gov>, Eric Paris <eparis@parisplace.org>, Casey Schaufler <casey@schaufler-ca.com>, Oleg Drokin <oleg.drokin@intel.com>, Andreas Dilger <andreas.dilger@intel.com>
+List-Id: linux-unionfs@vger.kernel.org
+
+Instead of special xattr inode operations, use the IOP_XATTR inode
+operations flag for the special libfs empty directories.
 
 Signed-off-by: Andreas Gruenbacher <agruenba@redhat.com>
 ---
- fs/fuse/dir.c    | 58 ++++++++++++++++++++++++++++++++++++++++++--------------
- fs/fuse/fuse_i.h |  2 ++
- fs/fuse/inode.c  |  1 +
- 3 files changed, 47 insertions(+), 14 deletions(-)
+ fs/libfs.c | 22 +---------------------
+ 1 file changed, 1 insertion(+), 21 deletions(-)
 
-diff --git a/fs/fuse/dir.c b/fs/fuse/dir.c
-index c47b778..3408a37 100644
---- a/fs/fuse/dir.c
-+++ b/fs/fuse/dir.c
-@@ -13,6 +13,7 @@
- #include <linux/sched.h>
- #include <linux/namei.h>
- #include <linux/slab.h>
-+#include <linux/xattr.h>
- 
- static bool fuse_use_readdirplus(struct inode *dir, struct dir_context *ctx)
- {
-@@ -1724,9 +1725,8 @@ static int fuse_getattr(struct vfsmount *mnt, struct dentry *entry,
- 	return fuse_update_attributes(inode, stat, NULL, NULL);
+diff --git a/fs/libfs.c b/fs/libfs.c
+index cfa9576..b322d75 100644
+--- a/fs/libfs.c
++++ b/fs/libfs.c
+@@ -1150,24 +1150,6 @@ static int empty_dir_setattr(struct dentry *dentry, struct iattr *attr)
+ 	return -EPERM;
  }
  
--static int fuse_setxattr(struct dentry *unused, struct inode *inode,
--			 const char *name, const void *value,
--			 size_t size, int flags)
-+static int fuse_setxattr(struct inode *inode, const char *name,
-+			 const void *value, size_t size, int flags)
+-static int empty_dir_setxattr(struct dentry *dentry, struct inode *inode,
+-			      const char *name, const void *value,
+-			      size_t size, int flags)
+-{
+-	return -EOPNOTSUPP;
+-}
+-
+-static ssize_t empty_dir_getxattr(struct dentry *dentry, struct inode *inode,
+-				  const char *name, void *value, size_t size)
+-{
+-	return -EOPNOTSUPP;
+-}
+-
+-static int empty_dir_removexattr(struct dentry *dentry, const char *name)
+-{
+-	return -EOPNOTSUPP;
+-}
+-
+ static ssize_t empty_dir_listxattr(struct dentry *dentry, char *list, size_t size)
  {
- 	struct fuse_conn *fc = get_fuse_conn(inode);
- 	FUSE_ARGS(args);
-@@ -1843,9 +1843,8 @@ static ssize_t fuse_listxattr(struct dentry *entry, char *list, size_t size)
- 	return ret;
+ 	return -EOPNOTSUPP;
+@@ -1178,9 +1160,6 @@ static const struct inode_operations empty_dir_inode_operations = {
+ 	.permission	= generic_permission,
+ 	.setattr	= empty_dir_setattr,
+ 	.getattr	= empty_dir_getattr,
+-	.setxattr	= empty_dir_setxattr,
+-	.getxattr	= empty_dir_getxattr,
+-	.removexattr	= empty_dir_removexattr,
+ 	.listxattr	= empty_dir_listxattr,
+ };
+ 
+@@ -1216,6 +1195,7 @@ void make_empty_dir_inode(struct inode *inode)
+ 	inode->i_blocks = 0;
+ 
+ 	inode->i_op = &empty_dir_inode_operations;
++	inode->i_opflags &= ~IOP_XATTR;
+ 	inode->i_fop = &empty_dir_operations;
  }
  
--static int fuse_removexattr(struct dentry *entry, const char *name)
-+static int fuse_removexattr(struct inode *inode, const char *name)
- {
--	struct inode *inode = d_inode(entry);
- 	struct fuse_conn *fc = get_fuse_conn(inode);
- 	FUSE_ARGS(args);
- 	int err;
-@@ -1884,10 +1883,10 @@ static const struct inode_operations fuse_dir_inode_operations = {
- 	.mknod		= fuse_mknod,
- 	.permission	= fuse_permission,
- 	.getattr	= fuse_getattr,
--	.setxattr	= fuse_setxattr,
--	.getxattr	= fuse_getxattr,
-+	.setxattr	= generic_setxattr,
-+	.getxattr	= generic_getxattr,
- 	.listxattr	= fuse_listxattr,
--	.removexattr	= fuse_removexattr,
-+	.removexattr	= generic_removexattr,
- };
- 
- static const struct file_operations fuse_dir_operations = {
-@@ -1905,10 +1904,10 @@ static const struct inode_operations fuse_common_inode_operations = {
- 	.setattr	= fuse_setattr,
- 	.permission	= fuse_permission,
- 	.getattr	= fuse_getattr,
--	.setxattr	= fuse_setxattr,
--	.getxattr	= fuse_getxattr,
-+	.setxattr	= generic_setxattr,
-+	.getxattr	= generic_getxattr,
- 	.listxattr	= fuse_listxattr,
--	.removexattr	= fuse_removexattr,
-+	.removexattr	= generic_removexattr,
- };
- 
- static const struct inode_operations fuse_symlink_inode_operations = {
-@@ -1916,10 +1915,10 @@ static const struct inode_operations fuse_symlink_inode_operations = {
- 	.get_link	= fuse_get_link,
- 	.readlink	= generic_readlink,
- 	.getattr	= fuse_getattr,
--	.setxattr	= fuse_setxattr,
--	.getxattr	= fuse_getxattr,
-+	.setxattr	= generic_setxattr,
-+	.getxattr	= generic_getxattr,
- 	.listxattr	= fuse_listxattr,
--	.removexattr	= fuse_removexattr,
-+	.removexattr	= generic_removexattr,
- };
- 
- void fuse_init_common(struct inode *inode)
-@@ -1937,3 +1936,34 @@ void fuse_init_symlink(struct inode *inode)
- {
- 	inode->i_op = &fuse_symlink_inode_operations;
- }
-+
-+static int fuse_xattr_get(const struct xattr_handler *handler,
-+		          struct dentry *dentry, struct inode *inode,
-+		          const char *name, void *buffer, size_t size)
-+{
-+       return fuse_getxattr(dentry, inode, name, buffer, size);
-+}
-+
-+static int fuse_xattr_set(const struct xattr_handler *handler,
-+		          struct dentry *dentry, struct inode *inode,
-+			  const char *name, const void *value, size_t size,
-+			  int flags)
-+{
-+       if (value)
-+		return fuse_setxattr(inode, name, value, size, flags);
-+       else {
-+		BUG_ON(flags != XATTR_REPLACE);
-+		return fuse_removexattr(inode, name);
-+       }
-+}
-+
-+const struct xattr_handler fuse_xattr_handler = {
-+       .prefix = "",  /* match anything */
-+       .get = fuse_xattr_get,
-+       .set = fuse_xattr_set,
-+};
-+
-+const struct xattr_handler *fuse_xattr_handlers[] = {
-+       &fuse_xattr_handler,
-+       NULL
-+};
-diff --git a/fs/fuse/fuse_i.h b/fs/fuse/fuse_i.h
-index d98d8cc..87938dc 100644
---- a/fs/fuse/fuse_i.h
-+++ b/fs/fuse/fuse_i.h
-@@ -966,4 +966,6 @@ void fuse_set_initialized(struct fuse_conn *fc);
- void fuse_unlock_inode(struct inode *inode);
- void fuse_lock_inode(struct inode *inode);
- 
-+extern const struct xattr_handler *fuse_xattr_handlers[];
-+
- #endif /* _FS_FUSE_I_H */
-diff --git a/fs/fuse/inode.c b/fs/fuse/inode.c
-index 4e05b51..1e535f3 100644
---- a/fs/fuse/inode.c
-+++ b/fs/fuse/inode.c
-@@ -1071,6 +1071,7 @@ static int fuse_fill_super(struct super_block *sb, void *data, int silent)
- 	}
- 	sb->s_magic = FUSE_SUPER_MAGIC;
- 	sb->s_op = &fuse_super_operations;
-+	sb->s_xattr = fuse_xattr_handlers;
- 	sb->s_maxbytes = MAX_LFS_FILESIZE;
- 	sb->s_time_gran = 1;
- 	sb->s_export_op = &fuse_export_operations;
 -- 
 2.7.4
