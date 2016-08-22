@@ -1,106 +1,219 @@
 From: Andreas Gruenbacher <agruenba@redhat.com>
-Subject: [PATCH v4 14/20] vfs: Add IOP_XATTR inode operations flag
-Date: Mon, 22 Aug 2016 23:22:02 +0200
-Message-ID: <1471900928-21588-15-git-send-email-agruenba@redhat.com>
+Subject: [PATCH v4 07/20] hfs: Switch to generic xattr handlers
+Date: Mon, 22 Aug 2016 23:21:55 +0200
+Message-ID: <1471900928-21588-8-git-send-email-agruenba@redhat.com>
 References: <1471900928-21588-1-git-send-email-agruenba@redhat.com>
-Return-path: <ecryptfs-owner@vger.kernel.org>
+Return-path: <linux-unionfs-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:54562 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751640AbcHVVcH (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Mon, 22 Aug 2016 17:32:07 -0400
 In-Reply-To: <1471900928-21588-1-git-send-email-agruenba@redhat.com>
-Sender: ecryptfs-owner@vger.kernel.org
+Sender: linux-unionfs-owner@vger.kernel.org
+List-Id: linux-unionfs@vger.kernel.org
 To: Alexander Viro <viro@zeniv.linux.org.uk>
 Cc: Andreas Gruenbacher <agruenba@redhat.com>, linux-fsdevel@vger.kernel.org, Tyler Hicks <tyhicks@canonical.com>, ecryptfs@vger.kernel.org, Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, David Howells <dhowells@redhat.com>, Serge Hallyn <serge.hallyn@canonical.com>, Dmitry Kasatkin <dmitry.kasatkin@gmail.com>, linux-ima-devel@lists.sourceforge.net, Paul Moore <paul@paul-moore.com>, Stephen Smalley <sds@tycho.nsa.gov>, Eric Paris <eparis@parisplace.org>, Casey Schaufler <casey@schaufler-ca.com>, Oleg Drokin <oleg.drokin@intel.com>, Andreas Dilger <andreas.dilger@intel.com>
-List-Id: linux-unionfs@vger.kernel.org
-
-The IOP_XATTR inode operations flag in inode->i_opflags indicates that
-the inode has xattr support.  The flag is automatically set by
-new_inode() on filesystems with xattr support (where sb->s_xattr is
-defined), and cleared otherwise.  Filesystems can explicitly clear it
-for inodes that should not have xattr support.
 
 Signed-off-by: Andreas Gruenbacher <agruenba@redhat.com>
 ---
- fs/inode.c         |  2 ++
- fs/xattr.c         | 12 ++++++++----
- include/linux/fs.h |  1 +
- 3 files changed, 11 insertions(+), 4 deletions(-)
+ fs/hfs/attr.c   | 83 +++++++++++++++++++++++++++++++++++++++------------------
+ fs/hfs/hfs_fs.h |  6 +----
+ fs/hfs/inode.c  |  7 ++---
+ fs/hfs/super.c  |  1 +
+ 4 files changed, 63 insertions(+), 34 deletions(-)
 
-diff --git a/fs/inode.c b/fs/inode.c
-index 7e3ef3a..705f860 100644
---- a/fs/inode.c
-+++ b/fs/inode.c
-@@ -140,6 +140,8 @@ int inode_init_always(struct super_block *sb, struct inode *inode)
- 	inode->i_fop = &no_open_fops;
- 	inode->__i_nlink = 1;
- 	inode->i_opflags = 0;
-+	if (sb->s_xattr)
-+		inode->i_opflags |= IOP_XATTR;
- 	i_uid_write(inode, 0);
- 	i_gid_write(inode, 0);
- 	atomic_set(&inode->i_writecount, 0);
-diff --git a/fs/xattr.c b/fs/xattr.c
-index bb3cbbf..38b52a3 100644
---- a/fs/xattr.c
-+++ b/fs/xattr.c
-@@ -53,10 +53,13 @@ strcmp_prefix(const char *a, const char *a_prefix)
-  * Find the xattr_handler with the matching prefix.
-  */
- static const struct xattr_handler *
--xattr_resolve_name(const struct xattr_handler **handlers, const char **name)
-+xattr_resolve_name(struct inode *inode, const char **name)
- {
-+	const struct xattr_handler **handlers = inode->i_sb->s_xattr;
- 	const struct xattr_handler *handler;
+diff --git a/fs/hfs/attr.c b/fs/hfs/attr.c
+index d9a8691..0933600 100644
+--- a/fs/hfs/attr.c
++++ b/fs/hfs/attr.c
+@@ -13,9 +13,13 @@
+ #include "hfs_fs.h"
+ #include "btree.h"
  
-+	if (!(inode->i_opflags & IOP_XATTR))
-+		return ERR_PTR(-EOPNOTSUPP);
- 	for_each_xattr_handler(handlers, handler) {
- 		const char *n;
- 
-@@ -298,6 +301,7 @@ nolsm:
- 		error = -EOPNOTSUPP;
- 
- 	return error;
+-int hfs_setxattr(struct dentry *unused, struct inode *inode,
+-		 const char *name, const void *value,
+-		 size_t size, int flags)
++enum hfs_xattr_type {
++	HFS_TYPE,
++	HFS_CREATOR,
++};
 +
++static int __hfs_setxattr(struct inode *inode, enum hfs_xattr_type type,
++			  const void *value, size_t size, int flags)
+ {
+ 	struct hfs_find_data fd;
+ 	hfs_cat_rec rec;
+@@ -36,18 +40,22 @@ int hfs_setxattr(struct dentry *unused, struct inode *inode,
+ 			sizeof(struct hfs_cat_file));
+ 	file = &rec.file;
+ 
+-	if (!strcmp(name, "hfs.type")) {
++	switch (type) {
++	case HFS_TYPE:
+ 		if (size == 4)
+ 			memcpy(&file->UsrWds.fdType, value, 4);
+ 		else
+ 			res = -ERANGE;
+-	} else if (!strcmp(name, "hfs.creator")) {
++		break;
++
++	case HFS_CREATOR:
+ 		if (size == 4)
+ 			memcpy(&file->UsrWds.fdCreator, value, 4);
+ 		else
+ 			res = -ERANGE;
+-	} else
+-		res = -EOPNOTSUPP;
++		break;
++	}
++
+ 	if (!res)
+ 		hfs_bnode_write(fd.bnode, &rec, fd.entryoffset,
+ 				sizeof(struct hfs_cat_file));
+@@ -56,8 +64,8 @@ out:
+ 	return res;
  }
- EXPORT_SYMBOL_GPL(vfs_getxattr);
  
-@@ -700,7 +704,7 @@ generic_getxattr(struct dentry *dentry, struct inode *inode,
+-ssize_t hfs_getxattr(struct dentry *unused, struct inode *inode,
+-		     const char *name, void *value, size_t size)
++static ssize_t __hfs_getxattr(struct inode *inode, enum hfs_xattr_type type,
++			      void *value, size_t size)
  {
- 	const struct xattr_handler *handler;
+ 	struct hfs_find_data fd;
+ 	hfs_cat_rec rec;
+@@ -80,41 +88,64 @@ ssize_t hfs_getxattr(struct dentry *unused, struct inode *inode,
+ 	}
+ 	file = &rec.file;
  
--	handler = xattr_resolve_name(dentry->d_sb->s_xattr, &name);
-+	handler = xattr_resolve_name(inode, &name);
- 	if (IS_ERR(handler))
- 		return PTR_ERR(handler);
- 	return handler->get(handler, dentry, inode,
-@@ -755,7 +759,7 @@ generic_setxattr(struct dentry *dentry, struct inode *inode, const char *name,
+-	if (!strcmp(name, "hfs.type")) {
++	switch (type) {
++	case HFS_TYPE:
+ 		if (size >= 4) {
+ 			memcpy(value, &file->UsrWds.fdType, 4);
+ 			res = 4;
+ 		} else
+ 			res = size ? -ERANGE : 4;
+-	} else if (!strcmp(name, "hfs.creator")) {
++		break;
++
++	case HFS_CREATOR:
+ 		if (size >= 4) {
+ 			memcpy(value, &file->UsrWds.fdCreator, 4);
+ 			res = 4;
+ 		} else
+ 			res = size ? -ERANGE : 4;
+-	} else
+-		res = -ENODATA;
++		break;
++	}
++
+ out:
+ 	if (size)
+ 		hfs_find_exit(&fd);
+ 	return res;
+ }
  
- 	if (size == 0)
- 		value = "";  /* empty EA, do not remove */
--	handler = xattr_resolve_name(dentry->d_sb->s_xattr, &name);
-+	handler = xattr_resolve_name(inode, &name);
- 	if (IS_ERR(handler))
- 		return PTR_ERR(handler);
- 	return handler->set(handler, dentry, inode, name, value, size, flags);
-@@ -770,7 +774,7 @@ generic_removexattr(struct dentry *dentry, const char *name)
+-#define HFS_ATTRLIST_SIZE (sizeof("hfs.creator")+sizeof("hfs.type"))
+-
+-ssize_t hfs_listxattr(struct dentry *dentry, char *buffer, size_t size)
++static int hfs_xattr_get(const struct xattr_handler *handler,
++			 struct dentry *unused, struct inode *inode,
++			 const char *name, void *value, size_t size)
  {
- 	const struct xattr_handler *handler;
+-	struct inode *inode = d_inode(dentry);
++	return __hfs_getxattr(inode, handler->flags, value, size);
++}
  
--	handler = xattr_resolve_name(dentry->d_sb->s_xattr, &name);
-+	handler = xattr_resolve_name(d_inode(dentry), &name);
- 	if (IS_ERR(handler))
- 		return PTR_ERR(handler);
- 	return handler->set(handler, dentry, d_inode(dentry), name, NULL,
-diff --git a/include/linux/fs.h b/include/linux/fs.h
-index 022aa88..c97a20c 100644
---- a/include/linux/fs.h
-+++ b/include/linux/fs.h
-@@ -590,6 +590,7 @@ is_uncached_acl(struct posix_acl *acl)
- #define IOP_FASTPERM	0x0001
- #define IOP_LOOKUP	0x0002
- #define IOP_NOFOLLOW	0x0004
-+#define IOP_XATTR	0x0008
+-	if (!S_ISREG(inode->i_mode) || HFS_IS_RSRC(inode))
++static int hfs_xattr_set(const struct xattr_handler *handler,
++			 struct dentry *unused, struct inode *inode,
++			 const char *name, const void *value, size_t size,
++			 int flags)
++{
++	if (!value)
+ 		return -EOPNOTSUPP;
  
- /*
-  * Keep mostly read-only and often accessed (especially for
+-	if (!buffer || !size)
+-		return HFS_ATTRLIST_SIZE;
+-	if (size < HFS_ATTRLIST_SIZE)
+-		return -ERANGE;
+-	strcpy(buffer, "hfs.type");
+-	strcpy(buffer + sizeof("hfs.type"), "hfs.creator");
+-
+-	return HFS_ATTRLIST_SIZE;
++	return __hfs_setxattr(inode, handler->flags, value, size, flags);
+ }
++
++static const struct xattr_handler hfs_creator_handler = {
++	.name = "hfs.creator",
++	.flags = HFS_CREATOR,
++	.get = hfs_xattr_get,
++	.set = hfs_xattr_set,
++};
++
++static const struct xattr_handler hfs_type_handler = {
++	.name = "hfs.type",
++	.flags = HFS_TYPE,
++	.get = hfs_xattr_get,
++	.set = hfs_xattr_set,
++};
++
++const struct xattr_handler *hfs_xattr_handlers[] = {
++	&hfs_creator_handler,
++	&hfs_type_handler,
++	NULL
++};
+diff --git a/fs/hfs/hfs_fs.h b/fs/hfs/hfs_fs.h
+index 16f5172..4cdec5a 100644
+--- a/fs/hfs/hfs_fs.h
++++ b/fs/hfs/hfs_fs.h
+@@ -212,11 +212,7 @@ extern void hfs_evict_inode(struct inode *);
+ extern void hfs_delete_inode(struct inode *);
+ 
+ /* attr.c */
+-extern int hfs_setxattr(struct dentry *dentry, struct inode *inode, const char *name,
+-			const void *value, size_t size, int flags);
+-extern ssize_t hfs_getxattr(struct dentry *dentry, struct inode *inode,
+-			    const char *name, void *value, size_t size);
+-extern ssize_t hfs_listxattr(struct dentry *dentry, char *buffer, size_t size);
++extern const struct xattr_handler *hfs_xattr_handlers[];
+ 
+ /* mdb.c */
+ extern int hfs_mdb_get(struct super_block *);
+diff --git a/fs/hfs/inode.c b/fs/hfs/inode.c
+index c6a3241..7f44f1a 100644
+--- a/fs/hfs/inode.c
++++ b/fs/hfs/inode.c
+@@ -15,6 +15,7 @@
+ #include <linux/mpage.h>
+ #include <linux/sched.h>
+ #include <linux/uio.h>
++#include <linux/xattr.h>
+ 
+ #include "hfs_fs.h"
+ #include "btree.h"
+@@ -687,7 +688,7 @@ static const struct file_operations hfs_file_operations = {
+ static const struct inode_operations hfs_file_inode_operations = {
+ 	.lookup		= hfs_file_lookup,
+ 	.setattr	= hfs_inode_setattr,
+-	.setxattr	= hfs_setxattr,
+-	.getxattr	= hfs_getxattr,
+-	.listxattr	= hfs_listxattr,
++	.setxattr	= generic_setxattr,
++	.getxattr	= generic_getxattr,
++	.listxattr	= generic_listxattr,
+ };
+diff --git a/fs/hfs/super.c b/fs/hfs/super.c
+index 1ca95c2..bf6304a 100644
+--- a/fs/hfs/super.c
++++ b/fs/hfs/super.c
+@@ -406,6 +406,7 @@ static int hfs_fill_super(struct super_block *sb, void *data, int silent)
+ 	}
+ 
+ 	sb->s_op = &hfs_super_operations;
++	sb->s_xattr = hfs_xattr_handlers;
+ 	sb->s_flags |= MS_NODIRATIME;
+ 	mutex_init(&sbi->bitmap_lock);
+ 
 -- 
 2.7.4
