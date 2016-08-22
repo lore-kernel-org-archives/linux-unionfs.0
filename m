@@ -1,41 +1,103 @@
 From: Andreas Gruenbacher <agruenba@redhat.com>
-Subject: [PATCH v4 05/20] xattr: Remove unnecessary NULL attribute name check
-Date: Mon, 22 Aug 2016 23:21:53 +0200
-Message-ID: <1471900928-21588-6-git-send-email-agruenba@redhat.com>
+Subject: [PATCH v4 06/20] jffs2: Remove jffs2_{get,set,remove}xattr macros
+Date: Mon, 22 Aug 2016 23:21:54 +0200
+Message-ID: <1471900928-21588-7-git-send-email-agruenba@redhat.com>
 References: <1471900928-21588-1-git-send-email-agruenba@redhat.com>
-Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:48054 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754998AbcHVVWm (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 22 Aug 2016 17:22:42 -0400
+Return-path: <ecryptfs-owner@vger.kernel.org>
 In-Reply-To: <1471900928-21588-1-git-send-email-agruenba@redhat.com>
-Sender: linux-unionfs-owner@vger.kernel.org
-List-Id: linux-unionfs@vger.kernel.org
+Sender: ecryptfs-owner@vger.kernel.org
 To: Alexander Viro <viro@zeniv.linux.org.uk>
 Cc: Andreas Gruenbacher <agruenba@redhat.com>, linux-fsdevel@vger.kernel.org, Tyler Hicks <tyhicks@canonical.com>, ecryptfs@vger.kernel.org, Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, David Howells <dhowells@redhat.com>, Serge Hallyn <serge.hallyn@canonical.com>, Dmitry Kasatkin <dmitry.kasatkin@gmail.com>, linux-ima-devel@lists.sourceforge.net, Paul Moore <paul@paul-moore.com>, Stephen Smalley <sds@tycho.nsa.gov>, Eric Paris <eparis@parisplace.org>, Casey Schaufler <casey@schaufler-ca.com>, Oleg Drokin <oleg.drokin@intel.com>, Andreas Dilger <andreas.dilger@intel.com>
+List-Id: linux-unionfs@vger.kernel.org
 
-When NULL is passed to one of the xattr system calls as the attribute
-name, copying that name from user space already fails with -EFAULT;
-xattr_resolve_name is never called with a NULL attribute name.
+When CONFIG_JFFS2_FS_XATTR is off, jffs2_xattr_handlers is defined as
+NULL. With sb->s_xattr == NULL, the generic_{get,set,remove}xattr
+functions produce the same result as setting the {get,set,remove}xattr
+inode operations to NULL, so there is no need for these macros.
 
 Signed-off-by: Andreas Gruenbacher <agruenba@redhat.com>
 ---
- fs/xattr.c | 3 ---
- 1 file changed, 3 deletions(-)
+ fs/jffs2/dir.c     | 6 +++---
+ fs/jffs2/file.c    | 6 +++---
+ fs/jffs2/symlink.c | 6 +++---
+ fs/jffs2/xattr.h   | 6 ------
+ 4 files changed, 9 insertions(+), 15 deletions(-)
 
-diff --git a/fs/xattr.c b/fs/xattr.c
-index c243905..1f72c92 100644
---- a/fs/xattr.c
-+++ b/fs/xattr.c
-@@ -675,9 +675,6 @@ xattr_resolve_name(const struct xattr_handler **handlers, const char **name)
- {
- 	const struct xattr_handler *handler;
+diff --git a/fs/jffs2/dir.c b/fs/jffs2/dir.c
+index 30eb33ff..8aa2f89 100644
+--- a/fs/jffs2/dir.c
++++ b/fs/jffs2/dir.c
+@@ -61,10 +61,10 @@ const struct inode_operations jffs2_dir_inode_operations =
+ 	.get_acl =	jffs2_get_acl,
+ 	.set_acl =	jffs2_set_acl,
+ 	.setattr =	jffs2_setattr,
+-	.setxattr =	jffs2_setxattr,
+-	.getxattr =	jffs2_getxattr,
++	.setxattr =	generic_setxattr,
++	.getxattr =	generic_getxattr,
+ 	.listxattr =	jffs2_listxattr,
+-	.removexattr =	jffs2_removexattr
++	.removexattr =	generic_removexattr
+ };
  
--	if (!*name)
--		return ERR_PTR(-EINVAL);
--
- 	for_each_xattr_handler(handlers, handler) {
- 		const char *n;
+ /***********************************************************************/
+diff --git a/fs/jffs2/file.c b/fs/jffs2/file.c
+index 0e62dec..fdf9e1c 100644
+--- a/fs/jffs2/file.c
++++ b/fs/jffs2/file.c
+@@ -66,10 +66,10 @@ const struct inode_operations jffs2_file_inode_operations =
+ 	.get_acl =	jffs2_get_acl,
+ 	.set_acl =	jffs2_set_acl,
+ 	.setattr =	jffs2_setattr,
+-	.setxattr =	jffs2_setxattr,
+-	.getxattr =	jffs2_getxattr,
++	.setxattr =	generic_setxattr,
++	.getxattr =	generic_getxattr,
+ 	.listxattr =	jffs2_listxattr,
+-	.removexattr =	jffs2_removexattr
++	.removexattr =	generic_removexattr
+ };
+ 
+ const struct address_space_operations jffs2_file_address_operations =
+diff --git a/fs/jffs2/symlink.c b/fs/jffs2/symlink.c
+index 2cabd64..afe2d75 100644
+--- a/fs/jffs2/symlink.c
++++ b/fs/jffs2/symlink.c
+@@ -16,8 +16,8 @@ const struct inode_operations jffs2_symlink_inode_operations =
+ 	.readlink =	generic_readlink,
+ 	.get_link =	simple_get_link,
+ 	.setattr =	jffs2_setattr,
+-	.setxattr =	jffs2_setxattr,
+-	.getxattr =	jffs2_getxattr,
++	.setxattr =	generic_setxattr,
++	.getxattr =	generic_getxattr,
+ 	.listxattr =	jffs2_listxattr,
+-	.removexattr =	jffs2_removexattr
++	.removexattr =	generic_removexattr
+ };
+diff --git a/fs/jffs2/xattr.h b/fs/jffs2/xattr.h
+index 467ff37..720007b 100644
+--- a/fs/jffs2/xattr.h
++++ b/fs/jffs2/xattr.h
+@@ -99,9 +99,6 @@ extern const struct xattr_handler jffs2_user_xattr_handler;
+ extern const struct xattr_handler jffs2_trusted_xattr_handler;
+ 
+ extern ssize_t jffs2_listxattr(struct dentry *, char *, size_t);
+-#define jffs2_getxattr		generic_getxattr
+-#define jffs2_setxattr		generic_setxattr
+-#define jffs2_removexattr	generic_removexattr
+ 
+ #else
+ 
+@@ -116,9 +113,6 @@ extern ssize_t jffs2_listxattr(struct dentry *, char *, size_t);
+ 
+ #define jffs2_xattr_handlers	NULL
+ #define jffs2_listxattr		NULL
+-#define jffs2_getxattr		NULL
+-#define jffs2_setxattr		NULL
+-#define jffs2_removexattr	NULL
+ 
+ #endif /* CONFIG_JFFS2_FS_XATTR */
  
 -- 
 2.7.4
