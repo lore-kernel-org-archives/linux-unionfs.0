@@ -1,54 +1,99 @@
 From: Andreas Gruenbacher <agruenba@redhat.com>
-Subject: [PATCH v4 01/20] ovl: Fix OVL_XATTR_PREFIX
-Date: Mon, 22 Aug 2016 23:21:49 +0200
-Message-ID: <1471900928-21588-2-git-send-email-agruenba@redhat.com>
+Subject: [PATCH v4 02/20] ovl: Get rid of ovl_xattr_noacl_handlers array
+Date: Mon, 22 Aug 2016 23:21:50 +0200
+Message-ID: <1471900928-21588-3-git-send-email-agruenba@redhat.com>
 References: <1471900928-21588-1-git-send-email-agruenba@redhat.com>
-Return-path: <ecryptfs-owner@vger.kernel.org>
+Return-path: <linux-unionfs-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:51528 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1755546AbcHVVW1 (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Mon, 22 Aug 2016 17:22:27 -0400
 In-Reply-To: <1471900928-21588-1-git-send-email-agruenba@redhat.com>
-Sender: ecryptfs-owner@vger.kernel.org
+Sender: linux-unionfs-owner@vger.kernel.org
+List-Id: linux-unionfs@vger.kernel.org
 To: Alexander Viro <viro@zeniv.linux.org.uk>
 Cc: Andreas Gruenbacher <agruenba@redhat.com>, linux-fsdevel@vger.kernel.org, Tyler Hicks <tyhicks@canonical.com>, ecryptfs@vger.kernel.org, Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, David Howells <dhowells@redhat.com>, Serge Hallyn <serge.hallyn@canonical.com>, Dmitry Kasatkin <dmitry.kasatkin@gmail.com>, linux-ima-devel@lists.sourceforge.net, Paul Moore <paul@paul-moore.com>, Stephen Smalley <sds@tycho.nsa.gov>, Eric Paris <eparis@parisplace.org>, Casey Schaufler <casey@schaufler-ca.com>, Oleg Drokin <oleg.drokin@intel.com>, Andreas Dilger <andreas.dilger@intel.com>
-List-Id: linux-unionfs@vger.kernel.org
 
-Make sure ovl_own_xattr_handler only matches attribute names starting
-with "overlay.", not "overlayXXX".
+Use an ordinary #ifdef to conditionally include the POSIX ACL handlers
+in ovl_xattr_handlers, like the other filesystems do.  Flag the code
+that is now only used conditionally with __maybe_unused.
 
 Signed-off-by: Andreas Gruenbacher <agruenba@redhat.com>
 ---
- fs/overlayfs/inode.c     | 5 ++---
- fs/overlayfs/overlayfs.h | 4 ++--
- 2 files changed, 4 insertions(+), 5 deletions(-)
+ fs/overlayfs/super.c | 28 ++++++++++++----------------
+ 1 file changed, 12 insertions(+), 16 deletions(-)
 
-diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
-index 1b885c1..859e42c 100644
---- a/fs/overlayfs/inode.c
-+++ b/fs/overlayfs/inode.c
-@@ -193,9 +193,8 @@ static int ovl_readlink(struct dentry *dentry, char __user *buf, int bufsiz)
- 
- static bool ovl_is_private_xattr(const char *name)
- {
--#define OVL_XATTR_PRE_NAME OVL_XATTR_PREFIX "."
--	return strncmp(name, OVL_XATTR_PRE_NAME,
--		       sizeof(OVL_XATTR_PRE_NAME) - 1) == 0;
-+	return strncmp(name, OVL_XATTR_PREFIX,
-+		       sizeof(OVL_XATTR_PREFIX) - 1) == 0;
+diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+index 4036132..e2b555d 100644
+--- a/fs/overlayfs/super.c
++++ b/fs/overlayfs/super.c
+@@ -967,10 +967,11 @@ static unsigned int ovl_split_lowerdirs(char *str)
+ 	return ctr;
  }
  
- int ovl_setxattr(struct dentry *dentry, struct inode *inode,
-diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-index e4f5c95..77fd667 100644
---- a/fs/overlayfs/overlayfs.h
-+++ b/fs/overlayfs/overlayfs.h
-@@ -24,8 +24,8 @@ enum ovl_path_type {
- 	(OVL_TYPE_MERGE(type) || !OVL_TYPE_UPPER(type))
+-static int ovl_posix_acl_xattr_set(const struct xattr_handler *handler,
+-				   struct dentry *dentry, struct inode *inode,
+-				   const char *name, const void *value,
+-				   size_t size, int flags)
++static int __maybe_unused
++ovl_posix_acl_xattr_set(const struct xattr_handler *handler,
++			struct dentry *dentry, struct inode *inode,
++			const char *name, const void *value,
++			size_t size, int flags)
+ {
+ 	struct dentry *workdir = ovl_workdir(dentry);
+ 	struct inode *realinode = ovl_inode_real(inode, NULL);
+@@ -1021,13 +1022,15 @@ static int ovl_own_xattr_set(const struct xattr_handler *handler,
+ 	return -EPERM;
+ }
  
+-static const struct xattr_handler ovl_posix_acl_access_xattr_handler = {
++static const struct xattr_handler __maybe_unused
++ovl_posix_acl_access_xattr_handler = {
+ 	.name = XATTR_NAME_POSIX_ACL_ACCESS,
+ 	.flags = ACL_TYPE_ACCESS,
+ 	.set = ovl_posix_acl_xattr_set,
+ };
  
--#define OVL_XATTR_PREFIX XATTR_TRUSTED_PREFIX "overlay"
--#define OVL_XATTR_OPAQUE OVL_XATTR_PREFIX ".opaque"
-+#define OVL_XATTR_PREFIX XATTR_TRUSTED_PREFIX "overlay."
-+#define OVL_XATTR_OPAQUE OVL_XATTR_PREFIX "opaque"
+-static const struct xattr_handler ovl_posix_acl_default_xattr_handler = {
++static const struct xattr_handler __maybe_unused
++ovl_posix_acl_default_xattr_handler = {
+ 	.name = XATTR_NAME_POSIX_ACL_DEFAULT,
+ 	.flags = ACL_TYPE_DEFAULT,
+ 	.set = ovl_posix_acl_xattr_set,
+@@ -1044,19 +1047,15 @@ static const struct xattr_handler ovl_other_xattr_handler = {
+ };
  
- #define OVL_ISUPPER_MASK 1UL
+ static const struct xattr_handler *ovl_xattr_handlers[] = {
++#ifdef CONFIG_FS_POSIX_ACL
+ 	&ovl_posix_acl_access_xattr_handler,
+ 	&ovl_posix_acl_default_xattr_handler,
++#endif
+ 	&ovl_own_xattr_handler,
+ 	&ovl_other_xattr_handler,
+ 	NULL
+ };
  
+-static const struct xattr_handler *ovl_xattr_noacl_handlers[] = {
+-	&ovl_own_xattr_handler,
+-	&ovl_other_xattr_handler,
+-	NULL,
+-};
+-
+ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
+ {
+ 	struct path upperpath = { NULL, NULL };
+@@ -1269,10 +1268,7 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
+ 
+ 	sb->s_magic = OVERLAYFS_SUPER_MAGIC;
+ 	sb->s_op = &ovl_super_operations;
+-	if (IS_ENABLED(CONFIG_FS_POSIX_ACL))
+-		sb->s_xattr = ovl_xattr_handlers;
+-	else
+-		sb->s_xattr = ovl_xattr_noacl_handlers;
++	sb->s_xattr = ovl_xattr_handlers;
+ 	sb->s_root = root_dentry;
+ 	sb->s_fs_info = ufs;
+ 	sb->s_flags |= MS_POSIXACL;
 -- 
 2.7.4
