@@ -1,194 +1,112 @@
-From: Andreas Gruenbacher <agruenba@redhat.com>
-Subject: [PATCH] lustre: Switch to generic xattr handlers
-Date: Tue, 23 Aug 2016 11:57:13 +0200
-Message-ID: <1471946233-6846-1-git-send-email-agruenba@redhat.com>
-References: <1471900928-21588-1-git-send-email-agruenba@redhat.com>
-Return-path: <ecryptfs-owner@vger.kernel.org>
-In-Reply-To: <1471900928-21588-1-git-send-email-agruenba@redhat.com>
-Sender: ecryptfs-owner@vger.kernel.org
-To: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Andreas Gruenbacher <agruenba@redhat.com>, linux-fsdevel@vger.kernel.org, Tyler Hicks <tyhicks@canonical.com>, ecryptfs@vger.kernel.org, Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, David Howells <dhowells@redhat.com>, Serge Hallyn <serge@hallyn.com>, Dmitry Kasatkin <dmitry.kasatkin@gmail.com>, linux-ima-devel@lists.sourceforge.net, Paul Moore <paul@paul-moore.com>, Stephen Smalley <sds@tycho.nsa.gov>, Eric Paris <eparis@parisplace.org>, Casey Schaufler <casey@schaufler-ca.com>, Oleg Drokin <oleg.drokin@intel.com>, Andreas Dilger <andreas.dilger@intel.com>
+From: Miklos Szeredi <miklos@szeredi.hu>
+Subject: Re: [PATCH 3/4] ovl: Switch to generic_removexattr
+Date: Tue, 23 Aug 2016 13:00:14 +0200
+Message-ID: <CAJfpegv1dqA9x+gQVDBywZmerrr1BBQ=B6pOkPduusyr_o=-jA@mail.gmail.com>
+References: <1471889194-31218-1-git-send-email-agruenba@redhat.com> <1471889194-31218-4-git-send-email-agruenba@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-unionfs-owner@vger.kernel.org>
+Received: from mail-oi0-f68.google.com ([209.85.218.68]:35366 "EHLO
+        mail-oi0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1757283AbcHWLMG (ORCPT
+        <rfc822;linux-unionfs@vger.kernel.org>);
+        Tue, 23 Aug 2016 07:12:06 -0400
+Received: by mail-oi0-f68.google.com with SMTP id e80so2309493oig.2
+        for <linux-unionfs@vger.kernel.org>; Tue, 23 Aug 2016 04:12:06 -0700 (PDT)
+In-Reply-To: <1471889194-31218-4-git-send-email-agruenba@redhat.com>
+Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
+To: Andreas Gruenbacher <agruenba@redhat.com>
+Cc: "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>
 
-This was still missing from the "xattr inode operation removal" patch queue.
-I've updated the git tree as well:
+On Mon, Aug 22, 2016 at 8:06 PM, Andreas Gruenbacher
+<agruenba@redhat.com> wrote:
+> Commit d837a49b switches from iop->setxattr from ovl_setxattr to
+> generic_setxattr, so switch from ovl_removexattr to generic_removexattr
+> as well.  As far as permission checking goes, the same rules should
+> apply in either case.
+>
+> While doing that, rename ovl_setxattr to ovl_xattr_set to indicate that
+> this is not an iop->setxattr implementation and remove the unused inode
+> argument.
+>
+> Move ovl_other_xattr_set above ovl_own_xattr_set so that they match the
+> order of handlers in ovl_xattr_handlers.
+>
+> Signed-off-by: Andreas Gruenbacher <agruenba@redhat.com>
+> ---
+>  fs/overlayfs/dir.c       |  2 +-
+>  fs/overlayfs/inode.c     | 65 ++++++++++++++++--------------------------------
+>  fs/overlayfs/overlayfs.h |  6 ++---
+>  fs/overlayfs/super.c     | 18 +++++++-------
+>  4 files changed, 33 insertions(+), 58 deletions(-)
+>
+> diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
+> index 12bcd07..7823480 100644
+> --- a/fs/overlayfs/dir.c
+> +++ b/fs/overlayfs/dir.c
+> @@ -952,7 +952,7 @@ const struct inode_operations ovl_dir_inode_operations = {
+>         .setxattr       = generic_setxattr,
+>         .getxattr       = ovl_getxattr,
+>         .listxattr      = ovl_listxattr,
+> -       .removexattr    = ovl_removexattr,
+> +       .removexattr    = generic_removexattr,
+>         .get_acl        = ovl_get_acl,
+>         .update_time    = ovl_update_time,
+>  };
+> diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
+> index 859e42c..4f348ca 100644
+> --- a/fs/overlayfs/inode.c
+> +++ b/fs/overlayfs/inode.c
+> @@ -197,25 +197,38 @@ static bool ovl_is_private_xattr(const char *name)
+>                        sizeof(OVL_XATTR_PREFIX) - 1) == 0;
+>  }
+>
+> -int ovl_setxattr(struct dentry *dentry, struct inode *inode,
+> -                const char *name, const void *value,
+> -                size_t size, int flags)
+> +int ovl_xattr_set(struct dentry *dentry, const char *name, const void *value,
+> +                 size_t size, int flags)
+>  {
+>         int err;
+> -       struct dentry *upperdentry;
+> +       struct path realpath;
+> +       enum ovl_path_type type = ovl_path_real(dentry, &realpath);
+>         const struct cred *old_cred;
+>
+>         err = ovl_want_write(dentry);
+>         if (err)
+>                 goto out;
+>
+> +       if (!value && !OVL_TYPE_UPPER(type)) {
+> +               err = vfs_getxattr(realpath.dentry, name, NULL, 0);
+> +               if (err < 0)
+> +                       goto out_drop_write;
+> +       }
+> +
+>         err = ovl_copy_up(dentry);
+>         if (err)
+>                 goto out_drop_write;
+>
+> -       upperdentry = ovl_dentry_upper(dentry);
+> +       if (!OVL_TYPE_UPPER(type))
+> +               ovl_path_upper(dentry, &realpath);
+> +
+>         old_cred = ovl_override_creds(dentry->d_sb);
+> -       err = vfs_setxattr(upperdentry, name, value, size, flags);
+> +       if (value)
+> +               err = vfs_setxattr(realpath.dentry, name, value, size, flags);
+> +       else {
+> +               BUG_ON(flags != XATTR_REPLACE);
+> +               err = vfs_removexattr(realpath.dentry, name);
+> +       }
 
-  https://git.kernel.org/cgit/linux/kernel/git/agruen/linux.git/log/?h=work.xattr
+Hmm, setxattr(8) says that a zero length value is permitted and
+indeed, setxatt() in fs/xattr.c handles that case, but passes a NULL
+value.   At that point it becomes impossible to differentiate the two
+cases (and the BUG_ON could trigger too, AFAICS).
+
+Am I missing something?
 
 Thanks,
-Andreas
-
-Signed-off-by: Andreas Gruenbacher <agruenba@redhat.com>
----
- drivers/staging/lustre/lustre/llite/file.c         |  3 --
- .../staging/lustre/lustre/llite/llite_internal.h   |  7 ++--
- drivers/staging/lustre/lustre/llite/llite_lib.c    |  1 +
- drivers/staging/lustre/lustre/llite/namei.c        |  6 ----
- drivers/staging/lustre/lustre/llite/symlink.c      |  3 --
- drivers/staging/lustre/lustre/llite/xattr.c        | 42 +++++++++++++++++++---
- 6 files changed, 40 insertions(+), 22 deletions(-)
-
-diff --git a/drivers/staging/lustre/lustre/llite/file.c b/drivers/staging/lustre/lustre/llite/file.c
-index 57281b9..e8c81e8 100644
---- a/drivers/staging/lustre/lustre/llite/file.c
-+++ b/drivers/staging/lustre/lustre/llite/file.c
-@@ -3213,10 +3213,7 @@ const struct inode_operations ll_file_inode_operations = {
- 	.setattr	= ll_setattr,
- 	.getattr	= ll_getattr,
- 	.permission	= ll_inode_permission,
--	.setxattr	= ll_setxattr,
--	.getxattr	= ll_getxattr,
- 	.listxattr	= ll_listxattr,
--	.removexattr	= ll_removexattr,
- 	.fiemap		= ll_fiemap,
- 	.get_acl	= ll_get_acl,
- };
-diff --git a/drivers/staging/lustre/lustre/llite/llite_internal.h b/drivers/staging/lustre/lustre/llite/llite_internal.h
-index 4d6d589..8695aca 100644
---- a/drivers/staging/lustre/lustre/llite/llite_internal.h
-+++ b/drivers/staging/lustre/lustre/llite/llite_internal.h
-@@ -933,12 +933,9 @@ static inline __u64 ll_file_maxbytes(struct inode *inode)
- }
- 
- /* llite/xattr.c */
--int ll_setxattr(struct dentry *dentry, struct inode *inode,
--		const char *name, const void *value, size_t size, int flags);
--ssize_t ll_getxattr(struct dentry *dentry, struct inode *inode,
--		    const char *name, void *buffer, size_t size);
-+struct xattr_handler;
-+extern const struct xattr_handler *lustre_xattr_handlers[];
- ssize_t ll_listxattr(struct dentry *dentry, char *buffer, size_t size);
--int ll_removexattr(struct dentry *dentry, const char *name);
- 
- /**
-  * Common IO arguments for various VFS I/O interfaces.
-diff --git a/drivers/staging/lustre/lustre/llite/llite_lib.c b/drivers/staging/lustre/lustre/llite/llite_lib.c
-index 546063e..81f4fe9 100644
---- a/drivers/staging/lustre/lustre/llite/llite_lib.c
-+++ b/drivers/staging/lustre/lustre/llite/llite_lib.c
-@@ -421,6 +421,7 @@ static int client_common_fill_super(struct super_block *sb, char *md, char *dt,
- #if THREAD_SIZE >= 8192 /*b=17630*/
- 	sb->s_export_op = &lustre_export_operations;
- #endif
-+	sb->s_xattr = lustre_xattr_handlers;
- 
- 	/* make root inode
- 	 * XXX: move this to after cbd setup?
-diff --git a/drivers/staging/lustre/lustre/llite/namei.c b/drivers/staging/lustre/lustre/llite/namei.c
-index 3664bfd..53467b2 100644
---- a/drivers/staging/lustre/lustre/llite/namei.c
-+++ b/drivers/staging/lustre/lustre/llite/namei.c
-@@ -1101,10 +1101,7 @@ const struct inode_operations ll_dir_inode_operations = {
- 	.setattr	    = ll_setattr,
- 	.getattr	    = ll_getattr,
- 	.permission	 = ll_inode_permission,
--	.setxattr	   = ll_setxattr,
--	.getxattr	   = ll_getxattr,
- 	.listxattr	  = ll_listxattr,
--	.removexattr	= ll_removexattr,
- 	.get_acl	    = ll_get_acl,
- };
- 
-@@ -1112,9 +1109,6 @@ const struct inode_operations ll_special_inode_operations = {
- 	.setattr	= ll_setattr,
- 	.getattr	= ll_getattr,
- 	.permission     = ll_inode_permission,
--	.setxattr       = ll_setxattr,
--	.getxattr       = ll_getxattr,
- 	.listxattr      = ll_listxattr,
--	.removexattr    = ll_removexattr,
- 	.get_acl	    = ll_get_acl,
- };
-diff --git a/drivers/staging/lustre/lustre/llite/symlink.c b/drivers/staging/lustre/lustre/llite/symlink.c
-index 8c8bdfe..d82dab2 100644
---- a/drivers/staging/lustre/lustre/llite/symlink.c
-+++ b/drivers/staging/lustre/lustre/llite/symlink.c
-@@ -155,8 +155,5 @@ const struct inode_operations ll_fast_symlink_inode_operations = {
- 	.get_link	= ll_get_link,
- 	.getattr	= ll_getattr,
- 	.permission	= ll_inode_permission,
--	.setxattr	= ll_setxattr,
--	.getxattr	= ll_getxattr,
- 	.listxattr	= ll_listxattr,
--	.removexattr	= ll_removexattr,
- };
-diff --git a/drivers/staging/lustre/lustre/llite/xattr.c b/drivers/staging/lustre/lustre/llite/xattr.c
-index 98303cf..f43f523 100644
---- a/drivers/staging/lustre/lustre/llite/xattr.c
-+++ b/drivers/staging/lustre/lustre/llite/xattr.c
-@@ -34,6 +34,7 @@
- #include <linux/sched.h>
- #include <linux/mm.h>
- #include <linux/selinux.h>
-+#include <linux/xattr.h>
- 
- #define DEBUG_SUBSYSTEM S_LLITE
- 
-@@ -149,8 +150,9 @@ int ll_setxattr_common(struct inode *inode, const char *name,
- 	return 0;
- }
- 
--int ll_setxattr(struct dentry *dentry, struct inode *inode,
--		const char *name, const void *value, size_t size, int flags)
-+static int ll_setxattr(struct dentry *dentry, struct inode *inode,
-+		       const char *name, const void *value, size_t size,
-+		       int flags)
- {
- 	LASSERT(inode);
- 	LASSERT(name);
-@@ -202,7 +204,7 @@ int ll_setxattr(struct dentry *dentry, struct inode *inode,
- 				  OBD_MD_FLXATTR);
- }
- 
--int ll_removexattr(struct dentry *dentry, const char *name)
-+static int ll_removexattr(struct dentry *dentry, const char *name)
- {
- 	struct inode *inode = d_inode(dentry);
- 
-@@ -351,8 +353,8 @@ out:
- 	return rc;
- }
- 
--ssize_t ll_getxattr(struct dentry *dentry, struct inode *inode,
--		    const char *name, void *buffer, size_t size)
-+static ssize_t ll_getxattr(struct dentry *dentry, struct inode *inode,
-+			   const char *name, void *buffer, size_t size)
- {
- 	LASSERT(inode);
- 	LASSERT(name);
-@@ -518,3 +520,33 @@ out:
- 
- 	return rc;
- }
-+
-+static int lustre_xattr_get(const struct xattr_handler *handler,
-+			    struct dentry *dentry, struct inode *inode,
-+			    const char *name, void *buffer, size_t size)
-+{
-+	return ll_getxattr(dentry, inode, name, buffer, size);
-+}
-+
-+static int lustre_xattr_set(const struct xattr_handler *handler,
-+			    struct dentry *dentry, struct inode *inode,
-+			    const char *name, const void *value, size_t size,
-+			    int flags)
-+{
-+	if (!value) {
-+		BUG_ON(flags != XATTR_REPLACE);
-+		return ll_removexattr(dentry, name);
-+	}
-+	return ll_setxattr(dentry, inode, name, value, size, flags);
-+}
-+
-+const struct xattr_handler lustre_xattr_handler = {
-+	.prefix = "",  /* match anything */
-+	.get = lustre_xattr_get,
-+	.set = lustre_xattr_set,
-+};
-+
-+const struct xattr_handler *lustre_xattr_handlers[] = {
-+	&lustre_xattr_handler,
-+	NULL
-+};
--- 
-2.7.4
+Miklos
