@@ -1,153 +1,88 @@
-From: Eryu Guan <eguan@redhat.com>
-Subject: [PATCH] overlay: sgid inheritance over whiteout
-Date: Thu, 25 Aug 2016 16:16:12 +0800
-Message-ID: <1472112972-11919-1-git-send-email-eguan@redhat.com>
+From: Eryu Guan <guaneryu@gmail.com>
+Subject: [PATCH] ovl: fix sgid inhertance over whiteout
+Date: Thu, 25 Aug 2016 16:15:02 +0800
+Message-ID: <1472112902-11767-1-git-send-email-guaneryu@gmail.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:45514 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1755634AbcHYIQe (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+Received: from mail-pa0-f67.google.com ([209.85.220.67]:35186 "EHLO
+        mail-pa0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753631AbcHYIQe (ORCPT
+        <rfc822;linux-unionfs@vger.kernel.org>);
         Thu, 25 Aug 2016 04:16:34 -0400
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: fstests@vger.kernel.org
-Cc: linux-unionfs@vger.kernel.org, Eryu Guan <eguan@redhat.com>
+To: linux-unionfs@vger.kernel.org
+Cc: linux-fsdevel@vger.kernel.org, Eryu Guan <guaneryu@gmail.com>
 
-Newly created files and dirs should inherit sgit bit from parent
-dir, no matter the new files & dirs are created over whiteout or
-not.
+In commit bb0d2b8ad296 ("ovl: fix sgid on directory"), mode of newly
+created files & dirs over whiteout was updated to pickup sgid bit. But
+it used stat->mode directly, which could not be the correct mode,
+because stat->mode could be tailored against umask.
 
-Signed-off-by: Eryu Guan <eguan@redhat.com>
+This can be demonstrated by the following script:
+
+umask 022
+mkdir -p lower/dir upper work mnt
+chown test:test lower/dir
+chmod 2775 lower/dir
+touch lower/dir/testdir
+touch lower/dir/testfile
+
+mount -t overlay -olowerdir=lower,upperdir=upper,workdir=work none mnt
+rm -f mnt/dir/testdir
+mkdir mnt/dir/testdir
+rm -f mnt/dir/testfile
+touch mnt/dir/testfile
+touch mnt/dir/newfile
+ls -l mnt/dir
+
+-rw-r--r--. 1 root test 0 Aug 25 15:45 newfile
+drwxrwsrwx. 2 root test 6 Aug 25 15:45 testdir
+-rw-rw-rw-. 1 root test 0 Aug 25 15:45 testfile
+
+testdir and testfile are created over whiteout, the modes contain write
+permission for group and other, but they shouldn't, like 'newfile'.
+
+Fix it by resetting mode against upperdir inode using
+inode_init_owner().
+
+Fixes: bb0d2b8ad296 ("ovl: fix sgid on directory")
+Signed-off-by: Eryu Guan <guaneryu@gmail.com>
 ---
- tests/overlay/015     | 97 +++++++++++++++++++++++++++++++++++++++++++++++++++
- tests/overlay/015.out |  6 ++++
- tests/overlay/group   |  1 +
- 3 files changed, 104 insertions(+)
- create mode 100755 tests/overlay/015
- create mode 100644 tests/overlay/015.out
 
-diff --git a/tests/overlay/015 b/tests/overlay/015
-new file mode 100755
-index 0000000..c39caed
---- /dev/null
-+++ b/tests/overlay/015
-@@ -0,0 +1,97 @@
-+#! /bin/bash
-+# FS QA Test 015
-+#
-+# SGID bit inheritance over whiteout.
-+#
-+#-----------------------------------------------------------------------
-+# Copyright (c) 2016 Red Hat Inc.  All Rights Reserved.
-+#
-+# This program is free software; you can redistribute it and/or
-+# modify it under the terms of the GNU General Public License as
-+# published by the Free Software Foundation.
-+#
-+# This program is distributed in the hope that it would be useful,
-+# but WITHOUT ANY WARRANTY; without even the implied warranty of
-+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+# GNU General Public License for more details.
-+#
-+# You should have received a copy of the GNU General Public License
-+# along with this program; if not, write the Free Software Foundation,
-+# Inc.,  51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-+#-----------------------------------------------------------------------
-+#
-+
-+seq=`basename $0`
-+seqres=$RESULT_DIR/$seq
-+echo "QA output created by $seq"
-+
-+here=`pwd`
-+tmp=/tmp/$$
-+status=1	# failure is the default!
-+trap "_cleanup; exit \$status" 0 1 2 3 15
-+
-+_cleanup()
-+{
-+	cd /
-+	rm -f $tmp.*
-+}
-+
-+# get standard environment, filters and checks
-+. ./common/rc
-+. ./common/filter
-+
-+# remove previous $seqres.full before test
-+rm -f $seqres.full
-+
-+# real QA test starts here
-+_supported_fs overlay
-+_supported_os Linux
-+_require_scratch
-+_require_user
-+_require_group
-+
-+# Remove all files from previous tests
-+_scratch_mkfs
-+
-+# set umask to make output deterministic
-+umask 022
-+
-+# Create test dir in lower dir and set sgid bit
-+lowerdir=$SCRATCH_DEV/$OVERLAY_LOWER_DIR
-+mkdir -p $lowerdir/dir
-+chown $qa_user:$qa_group $lowerdir/dir
-+chmod 2775 $lowerdir/dir
-+touch $lowerdir/dir/testdir
-+touch $lowerdir/dir/testfile
-+touch $lowerdir/dir/hardlink
-+
-+# mount overlayfs, create new file and dir in parent dir with sgid bit set, new
-+# files and dirs all should inherit the sgid bit and the group
-+_scratch_mount
-+
-+# new dir
-+mkdir $SCRATCH_MNT/dir/newdir
-+stat -c "%A %G" $SCRATCH_MNT/dir/newdir
-+
-+# new file
-+touch $SCRATCH_MNT/dir/newfile
-+stat -c "%A %G" $SCRATCH_MNT/dir/newfile
-+
-+# new dir over whiteout
-+rm -f $SCRATCH_MNT/dir/testdir
-+mkdir $SCRATCH_MNT/dir/testdir
-+stat -c "%A %G" $SCRATCH_MNT/dir/testdir
-+
-+# new file over whiteout
-+rm -f $SCRATCH_MNT/dir/testfile
-+touch $SCRATCH_MNT/dir/testfile
-+stat -c "%A %G" $SCRATCH_MNT/dir/testfile
-+
-+# new hardlink over whiteout
-+rm -f $SCRATCH_MNT/dir/hardlink
-+ln $SCRATCH_MNT/dir/testfile $SCRATCH_MNT/dir/hardlink
-+stat -c "%A %G" $SCRATCH_MNT/dir/hardlink
-+
-+# success, all done
-+status=0
-+exit
-diff --git a/tests/overlay/015.out b/tests/overlay/015.out
-new file mode 100644
-index 0000000..263509d
---- /dev/null
-+++ b/tests/overlay/015.out
-@@ -0,0 +1,6 @@
-+QA output created by 015
-+drwxr-sr-x fsgqa
-+-rw-r--r-- fsgqa
-+drwxr-sr-x fsgqa
-+-rw-r--r-- fsgqa
-+-rw-r--r-- fsgqa
-diff --git a/tests/overlay/group b/tests/overlay/group
-index 71eaadb..84850b1 100644
---- a/tests/overlay/group
-+++ b/tests/overlay/group
-@@ -17,3 +17,4 @@
- 012 auto quick
- 013 auto quick
- 014 auto quick copyup
-+015 auto quick whiteout
+A new fstests test case followed to fstests list.
+
+ fs/overlayfs/dir.c | 14 ++++++++------
+ 1 file changed, 8 insertions(+), 6 deletions(-)
+
+diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
+index 12bcd07..9a5e716 100644
+--- a/fs/overlayfs/dir.c
++++ b/fs/overlayfs/dir.c
+@@ -370,17 +370,19 @@ static int ovl_create_over_whiteout(struct dentry *dentry, struct inode *inode,
+ 		goto out_dput2;
+ 
+ 	/*
+-	 * mode could have been mutilated due to umask (e.g. sgid directory)
++	 * mode could lose sgid bit if upperdir has it set, because workdir has
++	 * no sgid. Reset mode against upperdir.
+ 	 */
+-	if (!hardlink &&
+-	    !S_ISLNK(stat->mode) && newdentry->d_inode->i_mode != stat->mode) {
++	if (!hardlink && !S_ISLNK(stat->mode)) {
++		struct inode *newinode = newdentry->d_inode;
+ 		struct iattr attr = {
+ 			.ia_valid = ATTR_MODE,
+-			.ia_mode = stat->mode,
+ 		};
+-		inode_lock(newdentry->d_inode);
++		inode_init_owner(newinode, udir, newinode->i_mode);
++		attr.ia_mode = newinode->i_mode;
++		inode_lock(newinode);
+ 		err = notify_change(newdentry, &attr, NULL);
+-		inode_unlock(newdentry->d_inode);
++		inode_unlock(newinode);
+ 		if (err)
+ 			goto out_cleanup;
+ 	}
 -- 
 2.7.4
