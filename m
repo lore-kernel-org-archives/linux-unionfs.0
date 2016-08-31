@@ -1,257 +1,170 @@
-From: Eryu Guan <guaneryu@gmail.com>
-Subject: Re: [PATCH] ovl: fix sgid inhertance over whiteout
-Date: Fri, 26 Aug 2016 18:48:16 +0800
-Message-ID: <20160826104816.GB2462@eguan.usersys.redhat.com>
-References: <1472112902-11767-1-git-send-email-guaneryu@gmail.com>
- <20160826095049.GJ25404@veci.piliscsaba.szeredi.hu>
+From: Eryu Guan <eguan@redhat.com>
+Subject: Re: [PATCH] overlay: sgid inheritance over whiteout
+Date: Wed, 31 Aug 2016 17:45:54 +0800
+Message-ID: <20160831094554.GV27776@eguan.usersys.redhat.com>
+References: <1472112972-11919-1-git-send-email-eguan@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-pa0-f65.google.com ([209.85.220.65]:35719 "EHLO
-        mail-pa0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751503AbcHZKs7 (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 26 Aug 2016 06:48:59 -0400
+Received: from mx1.redhat.com ([209.132.183.28]:36008 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1759075AbcHaJqB (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Wed, 31 Aug 2016 05:46:01 -0400
 Content-Disposition: inline
-In-Reply-To: <20160826095049.GJ25404@veci.piliscsaba.szeredi.hu>
+In-Reply-To: <1472112972-11919-1-git-send-email-eguan@redhat.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
+To: fstests@vger.kernel.org
+Cc: linux-unionfs@vger.kernel.org
 
-On Fri, Aug 26, 2016 at 11:50:49AM +0200, Miklos Szeredi wrote:
-> On Thu, Aug 25, 2016 at 04:15:02PM +0800, Eryu Guan wrote:
-> > In commit bb0d2b8ad296 ("ovl: fix sgid on directory"), mode of newly
-> > created files & dirs over whiteout was updated to pickup sgid bit. But
-> > it used stat->mode directly, which could not be the correct mode,
-> > because stat->mode could be tailored against umask.
-> > 
-> > This can be demonstrated by the following script:
-> > 
-> > umask 022
-> > mkdir -p lower/dir upper work mnt
-> > chown test:test lower/dir
-> > chmod 2775 lower/dir
-> > touch lower/dir/testdir
-> > touch lower/dir/testfile
-> > 
-> > mount -t overlay -olowerdir=lower,upperdir=upper,workdir=work none mnt
-> > rm -f mnt/dir/testdir
-> > mkdir mnt/dir/testdir
-> > rm -f mnt/dir/testfile
-> > touch mnt/dir/testfile
-> > touch mnt/dir/newfile
-> > ls -l mnt/dir
-> > 
-> > -rw-r--r--. 1 root test 0 Aug 25 15:45 newfile
-> > drwxrwsrwx. 2 root test 6 Aug 25 15:45 testdir
-> > -rw-rw-rw-. 1 root test 0 Aug 25 15:45 testfile
-> > 
-> > testdir and testfile are created over whiteout, the modes contain write
-> > permission for group and other, but they shouldn't, like 'newfile'.
+On Thu, Aug 25, 2016 at 04:16:12PM +0800, Eryu Guan wrote:
+> Newly created files and dirs should inherit sgit bit from parent
+> dir, no matter the new files & dirs are created over whiteout or
+> not.
 > 
-> Hi Eryu,
-> 
-> Yeah, the reson is that we fail to take umask into account.  And that's due to
-> 
-> +       sb->s_flags |= MS_POSIXACL;
-> 
-> in 39a25b2b3762 ("ovl: define ->get_acl() for overlay inodes").
-> 
-> Your patch works around this by relying on the mode of the file created in
-> workdir, but this only solves part of the problem, and is also not very clean,
-> since inode_init_owner() should only be called inode of the filesystem itself,
-> not for foreign inodes.
-> 
-> The below patch should fix this together with the default posix acl inheritance,
-> which also has an effect on mode of created inode.
+> Signed-off-by: Eryu Guan <eguan@redhat.com>
 
-I tested this patch and it passed my test case.
-
-> 
-> It would be nice to get complete test coverage for file creation which is quite
-> complicated and apparently bug prone.  Variables to test for:
-
-Thanks, I'll look into them and try to generate test cases for fstests.
-Some cases have been covered by existing cases, I'll focus on create
-over whiteout.
+And please someone help review this patch?
 
 Thanks,
 Eryu
 
-> 
-> 1) create over whiteout or not
-> 
->    - behavior shouldn't change but different codepaths are taken
-> 
-> 2) creating directory, nodirectory, symlink or hard link
-> 
->    - hard link: no new inode is created, attributes, ACL, etc. of old inode are
->      not changed
-> 
->    - symlink has fix mode
-> 
->    - if neither sgid or default ACL on parent then create mode calculated based
->      on supplied mode and umask
-> 
->    - otherwise see below
-> 
-> 3) parent has sgid or not
-> 
->    - if sgid is set AND creating directory then inherit sgid
-> 
->    - if sgid is set then inherit group
-> 
-> 4) parent has default ACL or not
-> 
->    - if parent has default ACL and creating a directory then inherit default ACL
-> 
->    - if parent has default ACL then set mode and access ACL based on default ACL
->      of parent
-> 
-> 5) underlying filsystem sets MS_POSIXACL or not
-> 
->    - codepaths might differ; shouldn't change behavior
-> 
->    - unfrortunately I don't think there's a filesystem that supports overlayfs
->      upperdir but not POSIX ACL, so this needs separate kernel configs to test.
-> 
-> So that's quite a few independent parameters, resulting in lots of cases.  I
-> guess it's easier to write a generic test case which can test all combinations
-> above, than to write individual test cases by hand.
-> 
-> Thanks,
-> Miklos
-> ----
-> 
-> From: Miklos Szeredi <mszeredi@redhat.com>
-> Subject: ovl: handle umask and posix_acl_default correctly on creation
-> 
-> Setting MS_POSIXACL in sb->s_flags has the side effect of passing mode to
-> create functions without masking against umask.
-> 
-> Another problem when creating over a whiteout is that the default posix acl
-> is not inherited from the parent dir (because the real parent dir at the
-> time of creation is the work directory).
-> 
-> Fix these problems by:
-> 
->  a) If upper fs does not have MS_POSIXACL, then mask mode with umask.
-> 
->  b) If creating over a whiteout, call posix_acl_create() to get the
->  inherited acls.  After creation (but before moving to the final
->  destination) set these acls on the created file.  posix_acl_create() also
->  updates the file creation mode as appropriate.
-> 
-> Fixes: 39a25b2b3762 ("ovl: define ->get_acl() for overlay inodes")
-> Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
 > ---
->  fs/overlayfs/dir.c |   56 +++++++++++++++++++++++++++++++++++++++++++++++++++++
->  1 file changed, 56 insertions(+)
+>  tests/overlay/015     | 97 +++++++++++++++++++++++++++++++++++++++++++++++++++
+>  tests/overlay/015.out |  6 ++++
+>  tests/overlay/group   |  1 +
+>  3 files changed, 104 insertions(+)
+>  create mode 100755 tests/overlay/015
+>  create mode 100644 tests/overlay/015.out
 > 
-> --- a/fs/overlayfs/dir.c
-> +++ b/fs/overlayfs/dir.c
-> @@ -12,6 +12,8 @@
->  #include <linux/xattr.h>
->  #include <linux/security.h>
->  #include <linux/cred.h>
-> +#include <linux/posix_acl.h>
-> +#include <linux/posix_acl_xattr.h>
->  #include "overlayfs.h"
->  
->  void ovl_cleanup(struct inode *wdir, struct dentry *wdentry)
-> @@ -186,6 +188,9 @@ static int ovl_create_upper(struct dentr
->  	struct dentry *newdentry;
->  	int err;
->  
-> +	if (!hardlink && !IS_POSIXACL(udir))
-> +		stat->mode &= ~current_umask();
+> diff --git a/tests/overlay/015 b/tests/overlay/015
+> new file mode 100755
+> index 0000000..c39caed
+> --- /dev/null
+> +++ b/tests/overlay/015
+> @@ -0,0 +1,97 @@
+> +#! /bin/bash
+> +# FS QA Test 015
+> +#
+> +# SGID bit inheritance over whiteout.
+> +#
+> +#-----------------------------------------------------------------------
+> +# Copyright (c) 2016 Red Hat Inc.  All Rights Reserved.
+> +#
+> +# This program is free software; you can redistribute it and/or
+> +# modify it under the terms of the GNU General Public License as
+> +# published by the Free Software Foundation.
+> +#
+> +# This program is distributed in the hope that it would be useful,
+> +# but WITHOUT ANY WARRANTY; without even the implied warranty of
+> +# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> +# GNU General Public License for more details.
+> +#
+> +# You should have received a copy of the GNU General Public License
+> +# along with this program; if not, write the Free Software Foundation,
+> +# Inc.,  51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+> +#-----------------------------------------------------------------------
+> +#
 > +
->  	inode_lock_nested(udir, I_MUTEX_PARENT);
->  	newdentry = lookup_one_len(dentry->d_name.name, upperdir,
->  				   dentry->d_name.len);
-> @@ -335,6 +340,32 @@ static struct dentry *ovl_check_empty_an
->  	return ret;
->  }
->  
-> +static int ovl_set_upper_acl(struct dentry *upperdentry, const char *name,
-> +			     const struct posix_acl *acl)
+> +seq=`basename $0`
+> +seqres=$RESULT_DIR/$seq
+> +echo "QA output created by $seq"
+> +
+> +here=`pwd`
+> +tmp=/tmp/$$
+> +status=1	# failure is the default!
+> +trap "_cleanup; exit \$status" 0 1 2 3 15
+> +
+> +_cleanup()
 > +{
-> +	void *buffer;
-> +	size_t size;
-> +	int err;
-> +
-> +	if (!IS_ENABLED(CONFIG_FS_POSIX_ACL) || !acl)
-> +		return 0;
-> +
-> +	size = posix_acl_to_xattr(NULL, acl, NULL, 0);
-> +	buffer = kmalloc(size, GFP_KERNEL);
-> +	if (!buffer)
-> +		return -ENOMEM;
-> +
-> +	size = posix_acl_to_xattr(&init_user_ns, acl, buffer, size);
-> +	err = size;
-> +	if (err < 0)
-> +		goto out_free;
-> +
-> +	err = vfs_setxattr(upperdentry, name, buffer, size, XATTR_CREATE);
-> +out_free:
-> +	kfree(buffer);
-> +	return err;
+> +	cd /
+> +	rm -f $tmp.*
 > +}
 > +
->  static int ovl_create_over_whiteout(struct dentry *dentry, struct inode *inode,
->  				    struct kstat *stat, const char *link,
->  				    struct dentry *hardlink)
-> @@ -346,10 +377,20 @@ static int ovl_create_over_whiteout(stru
->  	struct dentry *upper;
->  	struct dentry *newdentry;
->  	int err;
-> +	struct posix_acl *acl, *default_acl;
->  
->  	if (WARN_ON(!workdir))
->  		return -EROFS;
->  
-> +	if (!hardlink) {
-> +		if (!IS_POSIXACL(udir))
-> +			stat->mode &= ~current_umask();
+> +# get standard environment, filters and checks
+> +. ./common/rc
+> +. ./common/filter
 > +
-> +		err = posix_acl_create(udir, &stat->mode, &default_acl, &acl);
-> +		if (err)
-> +			return err;
-> +	}
+> +# remove previous $seqres.full before test
+> +rm -f $seqres.full
 > +
->  	err = ovl_lock_rename_workdir(workdir, upperdir);
->  	if (err)
->  		goto out;
-> @@ -384,6 +425,17 @@ static int ovl_create_over_whiteout(stru
->  		if (err)
->  			goto out_cleanup;
->  	}
-> +	if (!hardlink) {
-> +		err = ovl_set_upper_acl(newdentry, XATTR_NAME_POSIX_ACL_ACCESS,
-> +					acl);
-> +		if (err)
-> +			goto out_cleanup;
+> +# real QA test starts here
+> +_supported_fs overlay
+> +_supported_os Linux
+> +_require_scratch
+> +_require_user
+> +_require_group
 > +
-> +		err = ovl_set_upper_acl(newdentry, XATTR_NAME_POSIX_ACL_DEFAULT,
-> +					default_acl);
-> +		if (err)
-> +			goto out_cleanup;
-> +	}
->  
->  	if (!hardlink && S_ISDIR(stat->mode)) {
->  		err = ovl_set_opaque(newdentry);
-> @@ -410,6 +462,10 @@ static int ovl_create_over_whiteout(stru
->  out_unlock:
->  	unlock_rename(workdir, upperdir);
->  out:
-> +	if (!hardlink) {
-> +		posix_acl_release(acl);
-> +		posix_acl_release(default_acl);
-> +	}
->  	return err;
->  
->  out_cleanup:
+> +# Remove all files from previous tests
+> +_scratch_mkfs
+> +
+> +# set umask to make output deterministic
+> +umask 022
+> +
+> +# Create test dir in lower dir and set sgid bit
+> +lowerdir=$SCRATCH_DEV/$OVERLAY_LOWER_DIR
+> +mkdir -p $lowerdir/dir
+> +chown $qa_user:$qa_group $lowerdir/dir
+> +chmod 2775 $lowerdir/dir
+> +touch $lowerdir/dir/testdir
+> +touch $lowerdir/dir/testfile
+> +touch $lowerdir/dir/hardlink
+> +
+> +# mount overlayfs, create new file and dir in parent dir with sgid bit set, new
+> +# files and dirs all should inherit the sgid bit and the group
+> +_scratch_mount
+> +
+> +# new dir
+> +mkdir $SCRATCH_MNT/dir/newdir
+> +stat -c "%A %G" $SCRATCH_MNT/dir/newdir
+> +
+> +# new file
+> +touch $SCRATCH_MNT/dir/newfile
+> +stat -c "%A %G" $SCRATCH_MNT/dir/newfile
+> +
+> +# new dir over whiteout
+> +rm -f $SCRATCH_MNT/dir/testdir
+> +mkdir $SCRATCH_MNT/dir/testdir
+> +stat -c "%A %G" $SCRATCH_MNT/dir/testdir
+> +
+> +# new file over whiteout
+> +rm -f $SCRATCH_MNT/dir/testfile
+> +touch $SCRATCH_MNT/dir/testfile
+> +stat -c "%A %G" $SCRATCH_MNT/dir/testfile
+> +
+> +# new hardlink over whiteout
+> +rm -f $SCRATCH_MNT/dir/hardlink
+> +ln $SCRATCH_MNT/dir/testfile $SCRATCH_MNT/dir/hardlink
+> +stat -c "%A %G" $SCRATCH_MNT/dir/hardlink
+> +
+> +# success, all done
+> +status=0
+> +exit
+> diff --git a/tests/overlay/015.out b/tests/overlay/015.out
+> new file mode 100644
+> index 0000000..263509d
+> --- /dev/null
+> +++ b/tests/overlay/015.out
+> @@ -0,0 +1,6 @@
+> +QA output created by 015
+> +drwxr-sr-x fsgqa
+> +-rw-r--r-- fsgqa
+> +drwxr-sr-x fsgqa
+> +-rw-r--r-- fsgqa
+> +-rw-r--r-- fsgqa
+> diff --git a/tests/overlay/group b/tests/overlay/group
+> index 71eaadb..84850b1 100644
+> --- a/tests/overlay/group
+> +++ b/tests/overlay/group
+> @@ -17,3 +17,4 @@
+>  012 auto quick
+>  013 auto quick
+>  014 auto quick copyup
+> +015 auto quick whiteout
+> -- 
+> 2.7.4
 > 
-> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe fstests" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
