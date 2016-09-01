@@ -1,170 +1,82 @@
-From: Eryu Guan <eguan@redhat.com>
-Subject: Re: [PATCH] overlay: sgid inheritance over whiteout
-Date: Wed, 31 Aug 2016 17:45:54 +0800
-Message-ID: <20160831094554.GV27776@eguan.usersys.redhat.com>
-References: <1472112972-11919-1-git-send-email-eguan@redhat.com>
+From: Dave Chinner <david@fromorbit.com>
+Subject: Re: [PATCH 1/2] common/rc: introduce _overlay_mount_dirs helper
+Date: Thu, 1 Sep 2016 10:16:29 +1000
+Message-ID: <20160901001629.GA30056@dastard>
+References: <1470741381-32610-1-git-send-email-eguan@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:36008 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1759075AbcHaJqB (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 31 Aug 2016 05:46:01 -0400
+Received: from ipmail05.adl6.internode.on.net ([150.101.137.143]:55131 "EHLO
+        ipmail05.adl6.internode.on.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753880AbcIAAQg (ORCPT
+        <rfc822;linux-unionfs@vger.kernel.org>);
+        Wed, 31 Aug 2016 20:16:36 -0400
 Content-Disposition: inline
-In-Reply-To: <1472112972-11919-1-git-send-email-eguan@redhat.com>
+In-Reply-To: <1470741381-32610-1-git-send-email-eguan@redhat.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: fstests@vger.kernel.org
-Cc: linux-unionfs@vger.kernel.org
+To: Eryu Guan <eguan@redhat.com>
+Cc: fstests@vger.kernel.org, linux-unionfs@vger.kernel.org
 
-On Thu, Aug 25, 2016 at 04:16:12PM +0800, Eryu Guan wrote:
-> Newly created files and dirs should inherit sgit bit from parent
-> dir, no matter the new files & dirs are created over whiteout or
-> not.
+On Tue, Aug 09, 2016 at 07:16:20PM +0800, Eryu Guan wrote:
+> Introduce a new _overlay_mount_dirs() helper to do the actual
+> overlay mount operation and factor _overlay_scratch_mount and
+> _overlay_mount code to use a single implemention of
+> _overlay_mount_dirs(). Also convert all bare mount of overlay in
+> tests to use it.
 > 
+> Suggested-by: Dave Chinner <dchinner@redhat.com>
 > Signed-off-by: Eryu Guan <eguan@redhat.com>
-
-And please someone help review this patch?
-
-Thanks,
-Eryu
-
 > ---
->  tests/overlay/015     | 97 +++++++++++++++++++++++++++++++++++++++++++++++++++
->  tests/overlay/015.out |  6 ++++
->  tests/overlay/group   |  1 +
->  3 files changed, 104 insertions(+)
->  create mode 100755 tests/overlay/015
->  create mode 100644 tests/overlay/015.out
+>  common/rc         | 21 +++++++++++++++------
+>  tests/overlay/005 |  6 ++----
+>  tests/overlay/010 |  5 ++---
+>  3 files changed, 19 insertions(+), 13 deletions(-)
 > 
-> diff --git a/tests/overlay/015 b/tests/overlay/015
-> new file mode 100755
-> index 0000000..c39caed
-> --- /dev/null
-> +++ b/tests/overlay/015
-> @@ -0,0 +1,97 @@
-> +#! /bin/bash
-> +# FS QA Test 015
-> +#
-> +# SGID bit inheritance over whiteout.
-> +#
-> +#-----------------------------------------------------------------------
-> +# Copyright (c) 2016 Red Hat Inc.  All Rights Reserved.
-> +#
-> +# This program is free software; you can redistribute it and/or
-> +# modify it under the terms of the GNU General Public License as
-> +# published by the Free Software Foundation.
-> +#
-> +# This program is distributed in the hope that it would be useful,
-> +# but WITHOUT ANY WARRANTY; without even the implied warranty of
-> +# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> +# GNU General Public License for more details.
-> +#
-> +# You should have received a copy of the GNU General Public License
-> +# along with this program; if not, write the Free Software Foundation,
-> +# Inc.,  51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-> +#-----------------------------------------------------------------------
-> +#
-> +
-> +seq=`basename $0`
-> +seqres=$RESULT_DIR/$seq
-> +echo "QA output created by $seq"
-> +
-> +here=`pwd`
-> +tmp=/tmp/$$
-> +status=1	# failure is the default!
-> +trap "_cleanup; exit \$status" 0 1 2 3 15
-> +
-> +_cleanup()
+> diff --git a/common/rc b/common/rc
+> index b19b698..6c1c3ff 100644
+> --- a/common/rc
+> +++ b/common/rc
+> @@ -266,6 +266,18 @@ _scratch_mount_options()
+>  					$SCRATCH_DEV $SCRATCH_MNT
+>  }
+>  
+> +# helper function to do the actual overlayfs mount operation
+> +_overlay_mount_dirs()
 > +{
-> +	cd /
-> +	rm -f $tmp.*
+> +	local lowerdir=$1
+> +	local upperdir=$2
+> +	local workdir=$3
+> +	shift 3
+> +
+> +	$MOUNT_PROG -t overlay -o lowerdir=$lowerdir -o upperdir=$upperdir \
+> +		    -o workdir=$workdir $*
 > +}
 > +
-> +# get standard environment, filters and checks
-> +. ./common/rc
-> +. ./common/filter
-> +
-> +# remove previous $seqres.full before test
-> +rm -f $seqres.full
-> +
-> +# real QA test starts here
-> +_supported_fs overlay
-> +_supported_os Linux
-> +_require_scratch
-> +_require_user
-> +_require_group
-> +
-> +# Remove all files from previous tests
-> +_scratch_mkfs
-> +
-> +# set umask to make output deterministic
-> +umask 022
-> +
-> +# Create test dir in lower dir and set sgid bit
-> +lowerdir=$SCRATCH_DEV/$OVERLAY_LOWER_DIR
-> +mkdir -p $lowerdir/dir
-> +chown $qa_user:$qa_group $lowerdir/dir
-> +chmod 2775 $lowerdir/dir
-> +touch $lowerdir/dir/testdir
-> +touch $lowerdir/dir/testfile
-> +touch $lowerdir/dir/hardlink
-> +
-> +# mount overlayfs, create new file and dir in parent dir with sgid bit set, new
-> +# files and dirs all should inherit the sgid bit and the group
-> +_scratch_mount
-> +
-> +# new dir
-> +mkdir $SCRATCH_MNT/dir/newdir
-> +stat -c "%A %G" $SCRATCH_MNT/dir/newdir
-> +
-> +# new file
-> +touch $SCRATCH_MNT/dir/newfile
-> +stat -c "%A %G" $SCRATCH_MNT/dir/newfile
-> +
-> +# new dir over whiteout
-> +rm -f $SCRATCH_MNT/dir/testdir
-> +mkdir $SCRATCH_MNT/dir/testdir
-> +stat -c "%A %G" $SCRATCH_MNT/dir/testdir
-> +
-> +# new file over whiteout
-> +rm -f $SCRATCH_MNT/dir/testfile
-> +touch $SCRATCH_MNT/dir/testfile
-> +stat -c "%A %G" $SCRATCH_MNT/dir/testfile
-> +
-> +# new hardlink over whiteout
-> +rm -f $SCRATCH_MNT/dir/hardlink
-> +ln $SCRATCH_MNT/dir/testfile $SCRATCH_MNT/dir/hardlink
-> +stat -c "%A %G" $SCRATCH_MNT/dir/hardlink
-> +
-> +# success, all done
-> +status=0
-> +exit
-> diff --git a/tests/overlay/015.out b/tests/overlay/015.out
-> new file mode 100644
-> index 0000000..263509d
-> --- /dev/null
-> +++ b/tests/overlay/015.out
-> @@ -0,0 +1,6 @@
-> +QA output created by 015
-> +drwxr-sr-x fsgqa
-> +-rw-r--r-- fsgqa
-> +drwxr-sr-x fsgqa
-> +-rw-r--r-- fsgqa
-> +-rw-r--r-- fsgqa
-> diff --git a/tests/overlay/group b/tests/overlay/group
-> index 71eaadb..84850b1 100644
-> --- a/tests/overlay/group
-> +++ b/tests/overlay/group
-> @@ -17,3 +17,4 @@
->  012 auto quick
->  013 auto quick
->  014 auto quick copyup
-> +015 auto quick whiteout
-> -- 
-> 2.7.4
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe fstests" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>  # Given a dir, set up 3 subdirectories and mount on the given mnt.
+>  # The dir is used as the mount device so it can be seen from df or mount
+>  _overlay_mount()
+> @@ -293,12 +305,9 @@ _overlay_mount()
+>  	mkdir -p $dir/$OVERLAY_LOWER_DIR
+>  	mkdir -p $dir/$OVERLAY_WORK_DIR
+>  
+> -	$MOUNT_PROG -t overlay $SELINUX_MOUNT_OPTIONS \
+> -		    -o lowerdir=$dir/$OVERLAY_LOWER_DIR \
+> -		    -o upperdir=$dir/$OVERLAY_UPPER_DIR \
+> -		    -o workdir=$dir/$OVERLAY_WORK_DIR   \
+> -		    $OVERLAY_MOUNT_OPTIONS $* \
+> -		    $dir $mnt
+> +	_overlay_mount_dirs $dir/$OVERLAY_LOWER_DIR $dir/$OVERLAY_UPPER_DIR \
+> +			    $dir/$OVERLAY_WORK_DIR $OVERLAY_MOUNT_OPTIONS $* \
+> +			    $dir $mnt
+
+This drops SELINUX_MOUNT_OPTIONS from the mount options. I'd suggest
+this option should be moved inside _overlay_mount_dirs() so they are
+always applied to overlayfs mounts if set.
+
+Cheers,
+
+Dave.
+-- 
+Dave Chinner
+david@fromorbit.com
