@@ -1,92 +1,71 @@
-From: Miklos Szeredi <miklos@szeredi.hu>
-Subject: Re: overlayfs stopped working in v4.8-rc4-359-g4b30b6d
-Date: Mon, 5 Sep 2016 14:11:43 +0200
-Message-ID: <20160905121143.GN25404@veci.piliscsaba.szeredi.hu>
-References: <E1bgKVE-0007is-60@tux00.mathematik.uni-freiburg.de>
+From: =?UTF-8?B?UmFmYcWCIE1pxYJlY2tp?= <zajec5@gmail.com>
+Subject: overlayfs + ubifs: power cut results in "failed to create directory
+ /overlay/work/work (errno: 17); mounting read-only"
+Date: Tue, 6 Sep 2016 12:46:30 +0200
+Message-ID: <58c7c482-9a51-73d1-7694-e1928f3bedb0@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wm0-f67.google.com ([74.125.82.67]:34264 "EHLO
-        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754418AbcIEMLs (ORCPT
+Received: from mail-lf0-f65.google.com ([209.85.215.65]:35147 "EHLO
+        mail-lf0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753873AbcIFKqe (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 5 Sep 2016 08:11:48 -0400
-Received: by mail-wm0-f67.google.com with SMTP id w12so3562751wmf.1
-        for <linux-unionfs@vger.kernel.org>; Mon, 05 Sep 2016 05:11:47 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <E1bgKVE-0007is-60@tux00.mathematik.uni-freiburg.de>
+        Tue, 6 Sep 2016 06:46:34 -0400
+Received: by mail-lf0-f65.google.com with SMTP id s64so874505lfs.2
+        for <linux-unionfs@vger.kernel.org>; Tue, 06 Sep 2016 03:46:33 -0700 (PDT)
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: ziegler@uni-freiburg.de
-Cc: linux-unionfs@vger.kernel.org
+To: Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, Richard Weinberger <richard@nod.at>, Artem Bityutskiy <dedekind1@gmail.com>, Adrian Hunter <adrian.hunter@intel.com>, linux-mtd@lists.infradead.org
+Cc: lede-dev@lists.infradead.org
 
-On Sun, Sep 04, 2016 at 01:37:36AM +0200, ziegler@uni-freiburg.de wrote:
-> Dear Miklos,
-> 
-> overlayfs works still in  v4.8-rc4, but not longer in the newest kernel:
-> 
-> 
-> If the four directories test_lowerdir,test/upperd, test/workd,
-> test_mountdir exist, the command
-> 
->   mount -t overlay -o lowerdir=test_lowerdir,upperdir=test/upperd,workdir=test/workd,noatime overlay test_mountdir
-> 
-> does not produce a writable files system. The kernel says:
-> 
-> 
->   kernel: overlayfs: failed to create directory /root/test/workd/work (errno: 95); mounting read-only
-> 
-> 
-> I bisected between v4.8-rc4 and v4.8-rc4-359-g4b30b6d and found
-> 
->   c11b9fdd6a612f376a5e886505f1c54c16d8c380
->   Author: Miklos Szeredi <mszeredi@redhat.com>
->   Date:   Thu Sep 1 11:11:59 2016 +0200
-> 
->     ovl: remove posix_acl_default from workdir
-> 
-> responsible. Reverting this makes overlayfs work again.
->
+Hi,
 
-Thanks for spotting this bug!
+In LEDE/OpenWrt we use UBI with two volumes: "rootfs" and "rootfs_data". With
+rootfs mounted at / we mount rootfs_data volume at /overlay and then use
+overlayfs to combine these two.
 
-The following patch should fix it.  Pushed to overlayfs-linus branch of
-git://git.kernel.org/pub/scm/linux/kernel/git/mszeredi/vfs.git
+1) Before:
+/dev/root on / type squashfs (ro,relatime)
+/dev/ubi0_1 on /overlay type ubifs (rw,noatime)
 
-Thanks,
-Miklos
----
+2) Mounting overlayfs
+mount("overlayfs:/overlay", "/mnt", "overlay", MS_NOATIME, "lowerdir=/,upperdir=/overlay/upper,workdir=/overlay/work")
 
-From: Miklos Szeredi <mszeredi@redhat.com>
-Subject: ovl: fix workdir creation
+3) After:
+/dev/root on / type squashfs (ro,relatime)
+/dev/ubi0_1 on /overlay type ubifs (rw,noatime)
+overlayfs:/overlay on /mnt type overlay (ro,noatime,lowerdir=/,upperdir=/overlay/upper,workdir=/overlay/work)
 
-Workdir creation fails in latest kernel.
+It works fine as long as there aren't unexpected power cuts. I can easily break
+it in a well-reproducible way by doing:
+date > bar.txt && rm foo.sh
+sleep 2s
+[power cut]
 
-Fix by allowing EOPNOTSUPP as a valid return value from
-vfs_removexattr(XATTR_NAME_POSIX_ACL_*).  Upper filesystem may not support
-ACL and still be perfectly able to support overlayfs.
+On the next boot LEDE/OpenWrt script calls the same mount function but it
+results in:
+[   10.017235] overlayfs: failed to create directory /overlay/work/work (errno: 17); mounting read-only
 
-Reported-by: Martin Ziegler <ziegler@uni-freiburg.de>
-Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
-Fixes: c11b9fdd6a61 ("ovl: remove posix_acl_default from workdir")
-Cc: <stable@vger.kernel.org>
----
- fs/overlayfs/super.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+I tracked that error and got a following forward trace for it:
+ovl_fill_super
+ovl_workdir_create
+ovl_cleanup
+vfs_rmdir
+ubifs_rmdir
+check_dir_empty
 
---- a/fs/overlayfs/super.c
-+++ b/fs/overlayfs/super.c
-@@ -835,11 +835,11 @@ static struct dentry *ovl_workdir_create
- 			goto out_dput;
- 
- 		err = vfs_removexattr(work, XATTR_NAME_POSIX_ACL_DEFAULT);
--		if (err && err != -ENODATA)
-+		if (err && err != -ENODATA && err != -EOPNOTSUPP)
- 			goto out_dput;
- 
- 		err = vfs_removexattr(work, XATTR_NAME_POSIX_ACL_ACCESS);
--		if (err && err != -ENODATA)
-+		if (err && err != -ENODATA && err != -EOPNOTSUPP)
- 			goto out_dput;
- 
- 		/* Clear any inherited mode bits */
+In other words mounting overlayfs fails because ubifs refuses to remove
+work/work as this directory is not empty. On a clean boot /overlay/work/work is
+empty and everything works fine but after a power cut I can see
+/overlay/work/work/#c752f2a8 file.
+
+I don't really know anything about overlayfs and its workdir, I just expected
+overlayfs to recover from such situation on its own. FWIW after a power cut and
+reboot my bar.txt is an empty file and foo.sh still exists.
+
+Does it sound like an overlayfs issue to you? Can you think of some way of
+fixing this?
+
+-- 
+Rafał
