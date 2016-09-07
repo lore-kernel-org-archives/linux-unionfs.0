@@ -1,69 +1,128 @@
-From: Miklos Szeredi <miklos@szeredi.hu>
-Subject: Re: overlayfs + ubifs: power cut results in "failed to create
- directory /overlay/work/work (errno: 17); mounting read-only"
-Date: Wed, 7 Sep 2016 10:28:02 +0200
-Message-ID: <CAJfpegv9EwrZJnAi45ck4Cy+UiPQX1L4ztNjdAn-TzGCJqkk7g@mail.gmail.com>
-References: <58c7c482-9a51-73d1-7694-e1928f3bedb0@gmail.com>
- <d56ee9a9-5246-a609-b8ca-1c8dee322f46@nod.at> <CAJfpegt_Rw0O7mmP4scNPObAokwiNGs7m9ez1-tmjndOZDMXBg@mail.gmail.com>
- <CACna6rzJi37CYg86YgT+age8ebWX6BtpoEbz7uM18-QiWFvDxQ@mail.gmail.com> <CACna6rwSGU6WLZwVnd+x1iOjHOoNmhrBOCcvS-b1KDXs9gVF0Q@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-oi0-f44.google.com ([209.85.218.44]:36802 "EHLO
-        mail-oi0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754265AbcIGI2D (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 7 Sep 2016 04:28:03 -0400
-Received: by mail-oi0-f44.google.com with SMTP id w78so15676187oie.3
-        for <linux-unionfs@vger.kernel.org>; Wed, 07 Sep 2016 01:28:03 -0700 (PDT)
-In-Reply-To: <CACna6rwSGU6WLZwVnd+x1iOjHOoNmhrBOCcvS-b1KDXs9gVF0Q@mail.gmail.com>
-Sender: linux-unionfs-owner@vger.kernel.org
+From: Eryu Guan <eguan@redhat.com>
+Subject: [PATCH] generic: simple permission check on hard links
+Date: Wed,  7 Sep 2016 18:26:09 +0800
+Message-ID: <1473243969-12326-1-git-send-email-eguan@redhat.com>
+Return-path: <fstests-owner@vger.kernel.org>
+Sender: fstests-owner@vger.kernel.org
+To: fstests@vger.kernel.org
+Cc: linux-unionfs@vger.kernel.org, Eryu Guan <eguan@redhat.com>
 List-Id: linux-unionfs@vger.kernel.org
-To: =?UTF-8?B?UmFmYcWCIE1pxYJlY2tp?= <zajec5@gmail.com>
-Cc: Richard Weinberger <richard@nod.at>, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>, Artem Bityutskiy <dedekind1@gmail.com>, Adrian Hunter <adrian.hunter@intel.com>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, LEDE Development List <lede-dev@lists.infradead.org>
 
-On Tue, Sep 6, 2016 at 5:53 PM, Rafa=C5=82 Mi=C5=82ecki <zajec5@gmail.com> =
-wrote:
-> On 6 September 2016 at 14:56, Rafa=C5=82 Mi=C5=82ecki <zajec5@gmail.com> =
-wrote:
->> On 6 September 2016 at 14:50, Miklos Szeredi <miklos@szeredi.hu> wrote:
->>> On Tue, Sep 6, 2016 at 1:59 PM, Richard Weinberger <richard@nod.at> wro=
-te:
->>>> overlayfs does not issue a recursive rm on workdir, AFAICT you are sup=
-posed to cleanup
->>>> workdir yourself before mounting.
->>>> Miklos?
->>>
->>> Fixed in 4.8-rc5 by
->>>
->>> eea2fb4851e9 ("ovl: proper cleanup of workdir")
->>>
->>> I think it's better if kernel does the cleanup, but if it's easier to
->>> upgrade userspace, then that's a valid workaround.
->>
->> Oh, this should solve my problem! It seems it didn't git stable
->> kernels yet, but I can backport it on my own for now.
->
-> I tried backporting it to 4.4, but it appears it won't be that
-> trivial. Your patch ("ovl: proper cleanup of workdir") uses e.g.
-> inode_lock_nested which is available in 4.5+. Commit that added this
-> function: 5955102c9984f ("wrappers for ->i_mutex access") wasn't
-> marked for stable, so I guess your patch won't go into 4.4 at all.
->
-> I don't expect any magic solution for this, just saying, leaving a
-> note for reference.
+Overlayfs had a bug that hardlinks don't share inode, if
+chmod/chown/etc. is performed on one of the links then the inode
+belonging to the other one won't be updated. The following patch
+fixed this issue:
 
-Conversion is trivial, in fact:
+51f7e52 ovl: share inode for hard link
 
-#define inode_lock(inode) mutex_lock(&(inode)->i_mutex)
-#define inode_unlock(inode) mutex_unlock(&(inode)->i_mutex)
-#define inode_trylock(inode) mutex_trylock(&(inode)->i_mutex)
-#define inode_lock_nested(inode, subclass)
-mutex_lock_nested(&(inode)->i_mutex, subclass)
+This is a simple test that has nothing overlayfs specific, so make
+it a generic test.
 
-And Greg promised to put these defines into -stable for easier
-backport experience.
+Signed-off-by: Eryu Guan <eguan@redhat.com>
+---
+ tests/generic/377     | 73 +++++++++++++++++++++++++++++++++++++++++++++++++++
+ tests/generic/377.out |  3 +++
+ tests/generic/group   |  1 +
+ 3 files changed, 77 insertions(+)
+ create mode 100755 tests/generic/377
+ create mode 100644 tests/generic/377.out
 
-Thanks,
-Miklos
+diff --git a/tests/generic/377 b/tests/generic/377
+new file mode 100755
+index 0000000..2e0b1fd
+--- /dev/null
++++ b/tests/generic/377
+@@ -0,0 +1,73 @@
++#! /bin/bash
++# FS QA Test 377
++#
++# Simple permission check on hard links.
++#
++# Overlayfs had a bug that hardlinks don't share inode, if chmod/chown/etc.
++# is performed on one of the links then the inode belonging to the other
++# one won't be updated. The following patch fixed this issue
++#
++# 51f7e52 ovl: share inode for hard link
++#
++#-----------------------------------------------------------------------
++# Copyright (c) 2016 Red Hat Inc.  All Rights Reserved.
++#
++# This program is free software; you can redistribute it and/or
++# modify it under the terms of the GNU General Public License as
++# published by the Free Software Foundation.
++#
++# This program is distributed in the hope that it would be useful,
++# but WITHOUT ANY WARRANTY; without even the implied warranty of
++# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++# GNU General Public License for more details.
++#
++# You should have received a copy of the GNU General Public License
++# along with this program; if not, write the Free Software Foundation,
++# Inc.,  51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
++#-----------------------------------------------------------------------
++#
++
++seq=`basename $0`
++seqres=$RESULT_DIR/$seq
++echo "QA output created by $seq"
++
++here=`pwd`
++tmp=/tmp/$$
++status=1	# failure is the default!
++trap "_cleanup; exit \$status" 0 1 2 3 15
++
++_cleanup()
++{
++	cd /
++	rm -f $tmp.*
++}
++
++# get standard environment, filters and checks
++. ./common/rc
++. ./common/filter
++
++# remove previous $seqres.full before test
++rm -f $seqres.full
++
++# real QA test starts here
++_supported_fs generic
++_supported_os IRIX Linux
++_require_test
++_require_user
++
++# Setup testfile and its hardlink
++testfile=$TEST_DIR/testfile.$seq
++testlink=$testfile.hardlink
++rm -f $testfile $testlink
++echo "You should not see this" >$testfile
++ln $testfile $testlink
++
++# remove read permission from testfile and unprivileged user should have no
++# permission to read testfile and hardlink
++chmod -r $testfile
++_user_do "cat $testfile"
++_user_do "cat $testlink"
++
++# success, all done
++status=0
++exit
+diff --git a/tests/generic/377.out b/tests/generic/377.out
+new file mode 100644
+index 0000000..8833788
+--- /dev/null
++++ b/tests/generic/377.out
+@@ -0,0 +1,3 @@
++QA output created by 377
++Permission denied
++Permission denied
+diff --git a/tests/generic/group b/tests/generic/group
+index a81d126..4209300 100644
+--- a/tests/generic/group
++++ b/tests/generic/group
+@@ -380,3 +380,4 @@
+ 374 auto quick clone dedupe
+ 375 auto quick acl
+ 376 auto quick metadata
++377 auto quick metadata
+-- 
+2.7.4
