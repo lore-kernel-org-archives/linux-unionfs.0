@@ -1,31 +1,23 @@
-From: Miklos Szeredi <miklos@szeredi.hu>
-Subject: [GIT PULL] overlayfs fix for 4.8-rc5
-Date: Fri, 9 Sep 2016 21:37:09 +0200
-Message-ID: <20160909193709.GO25404@veci.piliscsaba.szeredi.hu>
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Subject: Re: [GIT PULL] overlayfs fix for 4.8-rc5
+Date: Fri, 9 Sep 2016 12:58:50 -0700
+Message-ID: <CA+55aFxX-UbDjL8R1beqP_ZE6-eXJMgnuvPZmJQxA9n-3srEQQ@mail.gmail.com>
+References: <20160909193709.GO25404@veci.piliscsaba.szeredi.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
+In-Reply-To: <20160909193709.GO25404@veci.piliscsaba.szeredi.hu>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, linux-unionfs@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 
-Hi Linus,
+On Fri, Sep 9, 2016 at 12:37 PM, Miklos Szeredi <miklos@szeredi.hu> wrote:
+>
+> This fixes a regression caused by the last pull request.
 
-Please pull from:
+So why are you checking error numbers one by one?
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/mszeredi/vfs.git overlayfs-linus
+Why is an error not just always an error?
 
-This fixes a regression caused by the last pull request.
-
-Thanks,
-Miklos
-
----
-Miklos Szeredi (1):
-      ovl: fix workdir creation
-
----
- fs/overlayfs/super.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+              Linus
