@@ -1,70 +1,67 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH v2 1/4] vfs: allow vfs_clone_file_range() across mount points
-Date: Mon, 12 Sep 2016 18:06:40 +0300
-Message-ID: <1473692803-11964-2-git-send-email-amir73il@gmail.com>
+Subject: [PATCH v2 4/4] ovl: use vfs_copy_file_range() to copy up file data
+Date: Mon, 12 Sep 2016 18:06:43 +0300
+Message-ID: <1473692803-11964-5-git-send-email-amir73il@gmail.com>
 References: <1473348594-31425-1-git-send-email-amir73il@gmail.com>
  <1473692803-11964-1-git-send-email-amir73il@gmail.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:35251 "EHLO
-        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1759817AbcILPHY (ORCPT
+Received: from mail-wm0-f67.google.com ([74.125.82.67]:36471 "EHLO
+        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932765AbcILPH3 (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 12 Sep 2016 11:07:24 -0400
+        Mon, 12 Sep 2016 11:07:29 -0400
 In-Reply-To: <1473692803-11964-1-git-send-email-amir73il@gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: Miklos Szeredi <miklos@szeredi.hu>, Dave Chinner <david@fromorbit.com>, linux-unionfs@vger.kernel.org
 Cc: Christoph Hellwig <hch@lst.de>, linux-xfs@vger.kernel.org, "Darrick J . Wong" <darrick.wong@oracle.com>, linux-fsdevel@vger.kernel.org
 
-FICLONE/FICLONERANGE ioctls return -EXDEV if src and dest
-files are not on the same mount point.
-Practically, clone only requires that src and dest files
-are on the same file system.
+Use vfs_copy_file_range() helper instead of calling do_splice_direct()
+when copying up file data.
+When copying up within the same fs, which supports copy_file_range(),
+fs implementation can be more efficient then do_splice_direct().
+vfs_copy_file_range() helper falls back to do_splice_direct() if
+it cannot use the file system's copy_file_range() implementation.
 
-Move the check for same mount point to ioctl code and keep
-only the check for same super block in the vfs helper.
+Tested correct behavior when lower and upper are on:
+1. same ext4 (copy)
+2. same xfs + reflink patches + mkfs.xfs (copy)
+3. same xfs + reflink patches + mkfs.xfs -m reflink=1 (clone)
+4. different xfs + reflink patches + mkfs.xfs -m reflink=1 (copy)
 
-A following patch is going to use the vfs_clone_file_range()
-helper in overlayfs to copy up between lower and upper
-mount points on the same file system.
+For comparison, on my laptop, xfstest overlay/001 (copy up of large
+sparse files) takes less than 1 second in the xfs reflink setup vs.
+25 seconds on the rest of the setups.
 
 Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- fs/ioctl.c      | 2 ++
- fs/read_write.c | 8 ++++++--
- 2 files changed, 8 insertions(+), 2 deletions(-)
+ fs/overlayfs/copy_up.c | 9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
-diff --git a/fs/ioctl.c b/fs/ioctl.c
-index c415668..34d2994 100644
---- a/fs/ioctl.c
-+++ b/fs/ioctl.c
-@@ -223,6 +223,8 @@ static long ioctl_file_clone(struct file *dst_file, unsigned long srcfd,
+diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
+index e432d7e..32ea54f 100644
+--- a/fs/overlayfs/copy_up.c
++++ b/fs/overlayfs/copy_up.c
+@@ -159,15 +159,16 @@ static int ovl_copy_up_data(struct path *old, struct path *new, loff_t len)
+ 			break;
+ 		}
  
- 	if (!src_file.file)
- 		return -EBADF;
-+	if (src_file.file->f_path.mnt != dst_file->f_path.mnt)
-+		return -EXDEV;
- 	ret = vfs_clone_file_range(src_file.file, off, dst_file, destoff, olen);
- 	fdput(src_file);
- 	return ret;
-diff --git a/fs/read_write.c b/fs/read_write.c
-index 66215a7..9dc6e52 100644
---- a/fs/read_write.c
-+++ b/fs/read_write.c
-@@ -1628,8 +1628,12 @@ int vfs_clone_file_range(struct file *file_in, loff_t pos_in,
- 	struct inode *inode_out = file_inode(file_out);
- 	int ret;
+-		bytes = do_splice_direct(old_file, &old_pos,
+-					 new_file, &new_pos,
+-					 this_len, SPLICE_F_MOVE);
++		bytes = vfs_copy_file_range(old_file, old_pos,
++					    new_file, new_pos,
++					    this_len, 0);
+ 		if (bytes <= 0) {
+ 			error = bytes;
+ 			break;
+ 		}
+-		WARN_ON(old_pos != new_pos);
  
--	if (inode_in->i_sb != inode_out->i_sb ||
--	    file_in->f_path.mnt != file_out->f_path.mnt)
-+	/*
-+	 * FICLONE/FICLONERANGE ioctls enforce that src and dest files
-+	 * are on the same mount point. Practically, they only need
-+	 * to be on the same file system.
-+	 */
-+	if (inode_in->i_sb != inode_out->i_sb)
- 		return -EXDEV;
++		old_pos += bytes;
++		new_pos += bytes;
+ 		len -= bytes;
+ 	}
  
- 	if (S_ISDIR(inode_in->i_mode) || S_ISDIR(inode_out->i_mode))
 -- 
 2.7.4
