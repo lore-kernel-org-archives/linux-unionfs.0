@@ -1,67 +1,73 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH v2 4/4] ovl: use vfs_copy_file_range() to copy up file data
-Date: Mon, 12 Sep 2016 18:06:43 +0300
-Message-ID: <1473692803-11964-5-git-send-email-amir73il@gmail.com>
+Subject: [PATCH v2 3/4] vfs: allow vfs_copy_file_range() across file systems
+Date: Mon, 12 Sep 2016 18:06:42 +0300
+Message-ID: <1473692803-11964-4-git-send-email-amir73il@gmail.com>
 References: <1473348594-31425-1-git-send-email-amir73il@gmail.com>
  <1473692803-11964-1-git-send-email-amir73il@gmail.com>
-Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wm0-f67.google.com ([74.125.82.67]:36471 "EHLO
-        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932765AbcILPH3 (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 12 Sep 2016 11:07:29 -0400
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
 In-Reply-To: <1473692803-11964-1-git-send-email-amir73il@gmail.com>
-Sender: linux-unionfs-owner@vger.kernel.org
-List-Id: linux-unionfs@vger.kernel.org
+Sender: linux-fsdevel-owner@vger.kernel.org
 To: Miklos Szeredi <miklos@szeredi.hu>, Dave Chinner <david@fromorbit.com>, linux-unionfs@vger.kernel.org
 Cc: Christoph Hellwig <hch@lst.de>, linux-xfs@vger.kernel.org, "Darrick J . Wong" <darrick.wong@oracle.com>, linux-fsdevel@vger.kernel.org
+List-Id: linux-unionfs@vger.kernel.org
 
-Use vfs_copy_file_range() helper instead of calling do_splice_direct()
-when copying up file data.
-When copying up within the same fs, which supports copy_file_range(),
-fs implementation can be more efficient then do_splice_direct().
-vfs_copy_file_range() helper falls back to do_splice_direct() if
-it cannot use the file system's copy_file_range() implementation.
+copy_file_range syscall returns -EXDEV if src and dest
+file are not on the same file system.
+The vfs_copy_file_range() helper, however, knows how to copy
+across file systems with do_splice_direct().
 
-Tested correct behavior when lower and upper are on:
-1. same ext4 (copy)
-2. same xfs + reflink patches + mkfs.xfs (copy)
-3. same xfs + reflink patches + mkfs.xfs -m reflink=1 (clone)
-4. different xfs + reflink patches + mkfs.xfs -m reflink=1 (copy)
+Move the enforcement of same file system from the vfs helper
+to the syscall code.
 
-For comparison, on my laptop, xfstest overlay/001 (copy up of large
-sparse files) takes less than 1 second in the xfs reflink setup vs.
-25 seconds on the rest of the setups.
+A following patch is going to use the vfs_copy_file_range()
+helper in overlayfs to copy up between lower and upper
+not on the same file system.
 
 Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- fs/overlayfs/copy_up.c | 9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ fs/read_write.c | 15 ++++++++++-----
+ 1 file changed, 10 insertions(+), 5 deletions(-)
 
-diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
-index e432d7e..32ea54f 100644
---- a/fs/overlayfs/copy_up.c
-+++ b/fs/overlayfs/copy_up.c
-@@ -159,15 +159,16 @@ static int ovl_copy_up_data(struct path *old, struct path *new, loff_t len)
- 			break;
- 		}
+diff --git a/fs/read_write.c b/fs/read_write.c
+index 9dc6e52..c4675c6 100644
+--- a/fs/read_write.c
++++ b/fs/read_write.c
+@@ -1502,10 +1502,6 @@ ssize_t vfs_copy_file_range(struct file *file_in, loff_t pos_in,
+ 	    (file_out->f_flags & O_APPEND))
+ 		return -EBADF;
  
--		bytes = do_splice_direct(old_file, &old_pos,
--					 new_file, &new_pos,
--					 this_len, SPLICE_F_MOVE);
-+		bytes = vfs_copy_file_range(old_file, old_pos,
-+					    new_file, new_pos,
-+					    this_len, 0);
- 		if (bytes <= 0) {
- 			error = bytes;
- 			break;
- 		}
--		WARN_ON(old_pos != new_pos);
+-	/* this could be relaxed once a method supports cross-fs copies */
+-	if (inode_in->i_sb != inode_out->i_sb)
+-		return -EXDEV;
+-
+ 	if (len == 0)
+ 		return 0;
  
-+		old_pos += bytes;
-+		new_pos += bytes;
- 		len -= bytes;
+@@ -1514,7 +1510,8 @@ ssize_t vfs_copy_file_range(struct file *file_in, loff_t pos_in,
+ 		return ret;
+ 
+ 	ret = -EOPNOTSUPP;
+-	if (file_out->f_op->copy_file_range)
++	if (inode_in->i_sb == inode_out->i_sb &&
++			file_out->f_op->copy_file_range)
+ 		ret = file_out->f_op->copy_file_range(file_in, pos_in, file_out,
+ 						      pos_out, len, flags);
+ 	if (ret == -EOPNOTSUPP)
+@@ -1569,6 +1566,14 @@ SYSCALL_DEFINE6(copy_file_range, int, fd_in, loff_t __user *, off_in,
+ 		pos_out = f_out.file->f_pos;
  	}
  
++	/*
++	 * FIXME: should copy_file_range syscall enforce that src and
++	 * dest files are on the same mount point or only on the same
++	 * file system? none of the above?
++	 */
++	if (file_inode(f_in.file)->i_sb != file_inode(f_out.file)->i_sb)
++		return -EXDEV;
++
+ 	ret = vfs_copy_file_range(f_in.file, pos_in, f_out.file, pos_out, len,
+ 				  flags);
+ 	if (ret > 0) {
 -- 
 2.7.4
+
