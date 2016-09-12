@@ -1,73 +1,117 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH v2 3/4] vfs: allow vfs_copy_file_range() across file systems
-Date: Mon, 12 Sep 2016 18:06:42 +0300
-Message-ID: <1473692803-11964-4-git-send-email-amir73il@gmail.com>
+Subject: Re: [PATCH] ovl: use copy_file_range for copy up if possible
+Date: Mon, 12 Sep 2016 18:37:52 +0300
+Message-ID: <CAOQ4uxgejiNz6LtNUYNygCG0ix7RhLKSq0Lgyu4K1cOataVvzg@mail.gmail.com>
 References: <1473348594-31425-1-git-send-email-amir73il@gmail.com>
- <1473692803-11964-1-git-send-email-amir73il@gmail.com>
+ <20160908202511.GV30056@dastard> <CAOQ4uxigN71Evm_mhFzijtDaXAvKQqstryvNoBEL7=Uwgt5xFg@mail.gmail.com>
+ <20160909075439.GE30056@dastard> <CAOQ4uxguEpSeq5A==gGCcVocY=5xSO+cEcUNr2GDYAbjvx4+Dw@mail.gmail.com>
+ <20160909235221.GH30056@dastard> <CAOQ4uxhzigks7Jyx_SdBTFq8S3CpoTcXbgAFS79OiHXj42EjYg@mail.gmail.com>
+ <20160911221128.GK30056@dastard> <CAOQ4uxj6bF2AXiiVGiRc6VfXhF42CW805iQNZTb+e_-KOsBdzQ@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-fsdevel-owner@vger.kernel.org>
-In-Reply-To: <1473692803-11964-1-git-send-email-amir73il@gmail.com>
+In-Reply-To: <CAOQ4uxj6bF2AXiiVGiRc6VfXhF42CW805iQNZTb+e_-KOsBdzQ@mail.gmail.com>
 Sender: linux-fsdevel-owner@vger.kernel.org
-To: Miklos Szeredi <miklos@szeredi.hu>, Dave Chinner <david@fromorbit.com>, linux-unionfs@vger.kernel.org
-Cc: Christoph Hellwig <hch@lst.de>, linux-xfs@vger.kernel.org, "Darrick J . Wong" <darrick.wong@oracle.com>, linux-fsdevel@vger.kernel.org
+To: Dave Chinner <david@fromorbit.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, "Darrick J . Wong" <darrick.wong@oracle.com>, linux-unionfs@vger.kernel.org, linux-xfs@vger.kernel.org, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Christoph Hellwig <hch@lst.de>
 List-Id: linux-unionfs@vger.kernel.org
 
-copy_file_range syscall returns -EXDEV if src and dest
-file are not on the same file system.
-The vfs_copy_file_range() helper, however, knows how to copy
-across file systems with do_splice_direct().
+On Mon, Sep 12, 2016 at 9:52 AM, Amir Goldstein <amir73il@gmail.com> wrote:
+> On Mon, Sep 12, 2016 at 1:11 AM, Dave Chinner <david@fromorbit.com> wrote:
+>> On Sat, Sep 10, 2016 at 09:54:59PM +0300, Amir Goldstein wrote:
+>>> On Sat, Sep 10, 2016 at 2:52 AM, Dave Chinner <david@fromorbit.com> wrote:
+>>>
+>>> > You can test whether this is supported at mount time, so you do a
+>>> > simply flag test at copyup to determine if a clone should be
+>>> > attempted or not.
+>>> >
+>>>
+>>> I am not sure that would not be over optimization.
+>>> I am already checking for the obvious reason for clone to fail in copyup -
+>>> different i_sb.
+>>
+>> Again, please don't do that.  Call vfs_clone_file_range() as it
+>> checks a whole lot more stuff that can cause a clone to fail. And it
+>> makes sure that the write references to the mnt are taken so that
+>> things like freeze and remount-ro behave correctly while a clone is
+>> in progress.
+>>
+>
+> OK
+>
 
-Move the enforcement of same file system from the vfs helper
-to the syscall code.
+Dave,
 
-A following patch is going to use the vfs_copy_file_range()
-helper in overlayfs to copy up between lower and upper
-not on the same file system.
+I just sent out v2 patch series that follows your suggestions (I hope).
+Please note that inside vfs_copy_file_range() I *did* add a pre-condition
+of different i_sb *before* calling into ->copy_file_range().
+The reason is that not all fs check for different i_sb inside the implementation
+(i.e. nfs) and since I removed same i_sb constrain from vfs_copy_file_range()
+I wanted to make sure that different i_sb case always ends up with
+do_splice_direct()
+and never propagates into the fs implementation where consequences are unknown.
 
-Signed-off-by: Amir Goldstein <amir73il@gmail.com>
----
- fs/read_write.c | 15 ++++++++++-----
- 1 file changed, 10 insertions(+), 5 deletions(-)
+Please reply on new patch set if you disagree.
+Thanks,
 
-diff --git a/fs/read_write.c b/fs/read_write.c
-index 9dc6e52..c4675c6 100644
---- a/fs/read_write.c
-+++ b/fs/read_write.c
-@@ -1502,10 +1502,6 @@ ssize_t vfs_copy_file_range(struct file *file_in, loff_t pos_in,
- 	    (file_out->f_flags & O_APPEND))
- 		return -EBADF;
- 
--	/* this could be relaxed once a method supports cross-fs copies */
--	if (inode_in->i_sb != inode_out->i_sb)
--		return -EXDEV;
--
- 	if (len == 0)
- 		return 0;
- 
-@@ -1514,7 +1510,8 @@ ssize_t vfs_copy_file_range(struct file *file_in, loff_t pos_in,
- 		return ret;
- 
- 	ret = -EOPNOTSUPP;
--	if (file_out->f_op->copy_file_range)
-+	if (inode_in->i_sb == inode_out->i_sb &&
-+			file_out->f_op->copy_file_range)
- 		ret = file_out->f_op->copy_file_range(file_in, pos_in, file_out,
- 						      pos_out, len, flags);
- 	if (ret == -EOPNOTSUPP)
-@@ -1569,6 +1566,14 @@ SYSCALL_DEFINE6(copy_file_range, int, fd_in, loff_t __user *, off_in,
- 		pos_out = f_out.file->f_pos;
- 	}
- 
-+	/*
-+	 * FIXME: should copy_file_range syscall enforce that src and
-+	 * dest files are on the same mount point or only on the same
-+	 * file system? none of the above?
-+	 */
-+	if (file_inode(f_in.file)->i_sb != file_inode(f_out.file)->i_sb)
-+		return -EXDEV;
-+
- 	ret = vfs_copy_file_range(f_in.file, pos_in, f_out.file, pos_out, len,
- 				  flags);
- 	if (ret > 0) {
--- 
-2.7.4
+Amir.
 
+>>> After all, if I just call clone_file_range() once and it fails, then we are back
+>>> to copying and that is going to make the cost of calling clone insignificant.
+>>
+>> Apart from the fact that the ->clone_file_range() calls assume that
+>> all the validity checks have already been done by the caller, which
+>> you are not doing.
+>>
+>>> > If cloning fails or is not supported, then try vfs_copy_file_range()
+>>> > to do an optimised iterative partial range file copy.  Finally, try
+>>> > a slow, iterative partial range file copies using
+>>> > do_splice_direct(). This part can be wholly handled by
+>>> > vfs_copy_file_range() - this 'not supported' fallback doesn't need
+>>> > to be implemented every time someone wants to copy data between two
+>>> > files...
+>>>
+>>> You do realize that vfs_copy_file_range() itself does the 'not
+>>> supported' fallback
+>>> and if I do call it iteratively, then there will be a lot more 'not
+>>> supported' attempts
+>>> then there are in my current patch.
+>>
+>> No shit, Sherlock. But you're concentrating on the wrong thing -
+>> the overhead of checking if .clone_file_range/.copy_file_range is
+>> implemented and can be executed is effectively zero compared to
+>> copying any amount of data.
+>>
+>> IOWs, Amir, you're trying to *optimise the wrong thing*. It's the
+>> data copy that is costly and needs to be optimised, not the
+>> iteration or the checks done to determine what type of clone/copy
+>> can be executed. Shortcuts around generic helpers like you are
+>> proposing are more costly in the long run because code like this is
+>> much more likely to contain/mask bugs that only appear months or
+>> years later when something else is changed. Case in point: the mnt
+>> write references that need to be taken before calling
+>> clone/copy_file_range()....
+>>
+>> Please, just use vfs_clone_file_range() and vfs_copy_file_range()
+>> and only fall back to a slower method if the error returned is
+>> -EOPNOTSUPP. For any other error, the copy should fail, not be
+>> ignored.
+>>
+>
+> Obviously, you meant to check for -EOPNOTSUPP or -EXDEV
+>
+>>> But regardless, as I wrote to Christoph, changing the
+>>> vfs_copy_file_range() helper
+>>> and changing users of do_splice to use it like you suggested sounds
+>>> like it may be the right thing to do, but without consensus, I am a bit hesitant
+>>> to make those changes. I am definitely willing to draft the patch and test it
+>>> if I get more ACKs on the idea.
+>>
+>> Send a patch - that's the only way you'll get anyone to comment
+>> on it.
+>>
+>
+> Will do.
+>
+> Thanks,
+> Amir.
