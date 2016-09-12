@@ -1,104 +1,89 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [PATCH] ovl: use copy_file_range for copy up if possible
-Date: Mon, 12 Sep 2016 09:52:59 +0300
-Message-ID: <CAOQ4uxj6bF2AXiiVGiRc6VfXhF42CW805iQNZTb+e_-KOsBdzQ@mail.gmail.com>
+Subject: [PATCH v2 0/4] ovl: efficient copy up by reflink
+Date: Mon, 12 Sep 2016 18:06:39 +0300
+Message-ID: <1473692803-11964-1-git-send-email-amir73il@gmail.com>
 References: <1473348594-31425-1-git-send-email-amir73il@gmail.com>
- <20160908202511.GV30056@dastard> <CAOQ4uxigN71Evm_mhFzijtDaXAvKQqstryvNoBEL7=Uwgt5xFg@mail.gmail.com>
- <20160909075439.GE30056@dastard> <CAOQ4uxguEpSeq5A==gGCcVocY=5xSO+cEcUNr2GDYAbjvx4+Dw@mail.gmail.com>
- <20160909235221.GH30056@dastard> <CAOQ4uxhzigks7Jyx_SdBTFq8S3CpoTcXbgAFS79OiHXj42EjYg@mail.gmail.com>
- <20160911221128.GK30056@dastard>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wm0-f45.google.com ([74.125.82.45]:37846 "EHLO
-        mail-wm0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754396AbcILGxC (ORCPT
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:34643 "EHLO
+        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1759566AbcILPHW (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 12 Sep 2016 02:53:02 -0400
-In-Reply-To: <20160911221128.GK30056@dastard>
+        Mon, 12 Sep 2016 11:07:22 -0400
+In-Reply-To: <1473348594-31425-1-git-send-email-amir73il@gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Dave Chinner <david@fromorbit.com>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, "Darrick J . Wong" <darrick.wong@oracle.com>, linux-unionfs@vger.kernel.org, linux-xfs@vger.kernel.org, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Christoph Hellwig <hch@lst.de>
+To: Miklos Szeredi <miklos@szeredi.hu>, Dave Chinner <david@fromorbit.com>, linux-unionfs@vger.kernel.org
+Cc: Christoph Hellwig <hch@lst.de>, linux-xfs@vger.kernel.org, "Darrick J . Wong" <darrick.wong@oracle.com>, linux-fsdevel@vger.kernel.org
 
-On Mon, Sep 12, 2016 at 1:11 AM, Dave Chinner <david@fromorbit.com> wrote:
-> On Sat, Sep 10, 2016 at 09:54:59PM +0300, Amir Goldstein wrote:
->> On Sat, Sep 10, 2016 at 2:52 AM, Dave Chinner <david@fromorbit.com> wrote:
->>
->> > You can test whether this is supported at mount time, so you do a
->> > simply flag test at copyup to determine if a clone should be
->> > attempted or not.
->> >
->>
->> I am not sure that would not be over optimization.
->> I am already checking for the obvious reason for clone to fail in copyup -
->> different i_sb.
->
-> Again, please don't do that.  Call vfs_clone_file_range() as it
-> checks a whole lot more stuff that can cause a clone to fail. And it
-> makes sure that the write references to the mnt are taken so that
-> things like freeze and remount-ro behave correctly while a clone is
-> in progress.
->
+Btrfs has file reflink support and XFS is about to gain
+file reflink support soon. It is very useful to use reflink
+to implement copy up of regular file data when possible.
 
-OK
+For example, on my laptop, xfstest overlay/001 (copy up of 4G
+sparse files) takes less than 1 second with copy up by reflink
+vs. 25 seconds with regular copy up.
 
->> After all, if I just call clone_file_range() once and it fails, then we are back
->> to copying and that is going to make the cost of calling clone insignificant.
->
-> Apart from the fact that the ->clone_file_range() calls assume that
-> all the validity checks have already been done by the caller, which
-> you are not doing.
->
->> > If cloning fails or is not supported, then try vfs_copy_file_range()
->> > to do an optimised iterative partial range file copy.  Finally, try
->> > a slow, iterative partial range file copies using
->> > do_splice_direct(). This part can be wholly handled by
->> > vfs_copy_file_range() - this 'not supported' fallback doesn't need
->> > to be implemented every time someone wants to copy data between two
->> > files...
->>
->> You do realize that vfs_copy_file_range() itself does the 'not
->> supported' fallback
->> and if I do call it iteratively, then there will be a lot more 'not
->> supported' attempts
->> then there are in my current patch.
->
-> No shit, Sherlock. But you're concentrating on the wrong thing -
-> the overhead of checking if .clone_file_range/.copy_file_range is
-> implemented and can be executed is effectively zero compared to
-> copying any amount of data.
->
-> IOWs, Amir, you're trying to *optimise the wrong thing*. It's the
-> data copy that is costly and needs to be optimised, not the
-> iteration or the checks done to determine what type of clone/copy
-> can be executed. Shortcuts around generic helpers like you are
-> proposing are more costly in the long run because code like this is
-> much more likely to contain/mask bugs that only appear months or
-> years later when something else is changed. Case in point: the mnt
-> write references that need to be taken before calling
-> clone/copy_file_range()....
->
-> Please, just use vfs_clone_file_range() and vfs_copy_file_range()
-> and only fall back to a slower method if the error returned is
-> -EOPNOTSUPP. For any other error, the copy should fail, not be
-> ignored.
->
+This series includes two pairs of patches:
+- patches 1,2 utilize the clone_file_range() API
+- patches 3,4 utilize the copy_file_range() API
 
-Obviously, you meant to check for -EOPNOTSUPP or -EXDEV
+The two pairs of patches are independent of each other.
+They were each tested separately and both tested together.
+All combinations passed the unionmount-testsuite (over tmpfs)
+All combinations passed the overlay/??? xfstests over the
+following underlying fs:
+1. ext4 (copy up)
+2. xfs + reflink patches + mkfs.xfs (copy up)
+3. xfs + reflink patches + mkfs.xfs -m reflink=1 (reflink up)
 
->> But regardless, as I wrote to Christoph, changing the
->> vfs_copy_file_range() helper
->> and changing users of do_splice to use it like you suggested sounds
->> like it may be the right thing to do, but without consensus, I am a bit hesitant
->> to make those changes. I am definitely willing to draft the patch and test it
->> if I get more ACKs on the idea.
->
-> Send a patch - that's the only way you'll get anyone to comment
-> on it.
->
+Dave Chinner suggested the following implementation for copy up,
+which I implemented in this series:
+1. try to clone_file_range() entire length
+2. fallback to trying copy_file_range() in small chunks
+3. fallback to do_splice_direct() in small chunks
 
-Will do.
+This is a good general implementation to cover the future use cases of
+file systems that can do either clone_file_range() or copy_file_range().
+However, currently, the only in-tree file systems that support
+clone/copy_file_range are btrfs, xfs (soon), cifs and nfs.
+btrfs and xfs use the same implementation for clone and copy range,
+so the copy_file_range() step is never needed.
+cifs supports only clone_file_range() so copy_file_range() step is moot.
+nfs does have a different implementation for clone_file_range() and
+copy_file_range(), but nfs is not supported as upper layer for overlayfs
+at the moment.
 
-Thanks,
+Please pick patches 1,2 for clear and immediate benefit to copy up
+performance on filesystems with reflink support.
+
+Please consider picking patches 3,4 additionally for future generations
+and for code consolidation into vfs helpers.
+
+Cheers,
 Amir.
+
+V2:
+- Re-factor vfs helpers so they can be called from copy up
+- Single call to vfs_clone_file_range() and fallback to
+  vfs_copy_file_range() loop
+
+V1:
+- Replace iteravite call to copy_file_range() with
+  a single call to clone_file_range()
+
+V0:
+- Call clone_file_range() and fallback to do_splice_direct()
+
+Amir Goldstein (4):
+  vfs: allow vfs_clone_file_range() across mount points
+  ovl: use vfs_clone_file_range() for copy up if possible
+  vfs: allow vfs_copy_file_range() across file systems
+  ovl: use vfs_copy_file_range() to copy up file data
+
+ fs/ioctl.c             |  2 ++
+ fs/overlayfs/copy_up.c | 19 +++++++++++++++----
+ fs/read_write.c        | 23 ++++++++++++++++-------
+ 3 files changed, 33 insertions(+), 11 deletions(-)
+
+-- 
+2.7.4
