@@ -1,83 +1,80 @@
-From: Dave Chinner <david@fromorbit.com>
-Subject: Re: [PATCH v2 4/4] ovl: use vfs_copy_file_range() to copy up file
- data
-Date: Tue, 13 Sep 2016 10:11:47 +1000
-Message-ID: <20160913001147.GO22388@dastard>
+From: Amir Goldstein <amir73il@gmail.com>
+Subject: Re: [PATCH v2 2/4] ovl: use vfs_clone_file_range() for copy up if possible
+Date: Tue, 13 Sep 2016 09:47:08 +0300
+Message-ID: <CAOQ4uxhZSKgYyXjime6xLm_rG-coKM4d7mYi1LbfU9w6p9E7gg@mail.gmail.com>
 References: <1473348594-31425-1-git-send-email-amir73il@gmail.com>
- <1473692803-11964-1-git-send-email-amir73il@gmail.com>
- <1473692803-11964-5-git-send-email-amir73il@gmail.com>
+ <1473692803-11964-1-git-send-email-amir73il@gmail.com> <1473692803-11964-3-git-send-email-amir73il@gmail.com>
+ <20160913000225.GM22388@dastard>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-fsdevel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1473692803-11964-5-git-send-email-amir73il@gmail.com>
+In-Reply-To: <20160913000225.GM22388@dastard>
 Sender: linux-fsdevel-owner@vger.kernel.org
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, Christoph Hellwig <hch@lst.de>, linux-xfs@vger.kernel.org, "Darrick J . Wong" <darrick.wong@oracle.com>, linux-fsdevel@vger.kernel.org
+To: Dave Chinner <david@fromorbit.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, Christoph Hellwig <hch@lst.de>, linux-xfs@vger.kernel.org, "Darrick J . Wong" <darrick.wong@oracle.com>, linux-fsdevel <linux-fsdevel@vger.kernel.org>
 List-Id: linux-unionfs@vger.kernel.org
 
-On Mon, Sep 12, 2016 at 06:06:43PM +0300, Amir Goldstein wrote:
-> Use vfs_copy_file_range() helper instead of calling do_splice_direct()
-> when copying up file data.
-> When copying up within the same fs, which supports copy_file_range(),
-> fs implementation can be more efficient then do_splice_direct().
-> vfs_copy_file_range() helper falls back to do_splice_direct() if
-> it cannot use the file system's copy_file_range() implementation.
-> 
-> Tested correct behavior when lower and upper are on:
-> 1. same ext4 (copy)
-> 2. same xfs + reflink patches + mkfs.xfs (copy)
-> 3. same xfs + reflink patches + mkfs.xfs -m reflink=1 (clone)
-> 4. different xfs + reflink patches + mkfs.xfs -m reflink=1 (copy)
-> 
-> For comparison, on my laptop, xfstest overlay/001 (copy up of large
-> sparse files) takes less than 1 second in the xfs reflink setup vs.
-> 25 seconds on the rest of the setups.
+On Tue, Sep 13, 2016 at 3:02 AM, Dave Chinner <david@fromorbit.com> wrote:
+> On Mon, Sep 12, 2016 at 06:06:41PM +0300, Amir Goldstein wrote:
+>> When copying up within the same fs, try to use vfs_clone_file_range().
+>> This is very efficient when lower and upper are on the same fs
+>> with file reflink support. If vfs_clone_file_range() fails because
+>> lower and upper are not on the same fs or if fs has no reflink support,
+>> copy up falls back to the regular data copy code.
+>>
+>> Tested correct behavior when lower and upper are on:
+>> 1. same ext4 (copy)
+>> 2. same xfs + reflink patches + mkfs.xfs (copy)
+>> 3. same xfs + reflink patches + mkfs.xfs -m reflink=1 (clone)
+>> 4. different xfs + reflink patches + mkfs.xfs -m reflink=1 (copy)
+>>
+>> For comparison, on my laptop, xfstest overlay/001 (copy up of large
+>> sparse files) takes less than 1 second in the xfs reflink setup vs.
+>> 25 seconds on the rest of the setups.
+>>
+>> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+>> ---
+>>  fs/overlayfs/copy_up.c | 10 ++++++++++
+>>  1 file changed, 10 insertions(+)
+>>
+>> diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
+>> index 43fdc27..e432d7e 100644
+>> --- a/fs/overlayfs/copy_up.c
+>> +++ b/fs/overlayfs/copy_up.c
+>> @@ -136,6 +136,16 @@ static int ovl_copy_up_data(struct path *old, struct path *new, loff_t len)
+>>               goto out_fput;
+>>       }
+>>
+>> +     /*
+>> +      * Try to use clone_file_range to clone up within the same fs.
+>> +      * On failure to clone entire file, fallback to copy loop.
+>> +      */
+>> +     error = vfs_clone_file_range(old_file, 0, new_file, 0, len);
+>> +     if (error == -EXDEV || error == -EOPNOTSUPP)
+>> +             error = 0;
+>> +     else
+>> +             len = 0;
+>> +
+>>       /* FIXME: copy up sparse files efficiently */
+>>       while (len) {
+>>               size_t this_len = OVL_COPY_UP_CHUNK_SIZE;
+>
+> That's nasty. Just use a goto to skip the code that doesn't need to
+> be run if vfs_clone_file_range() succeeds. This is much better, IMO:
 
-This is now stale, right? the reflink is done from the
-vfs_clone_file_range() call added in an earlier patch, not this
-change....
+OK, but I prefer to write up explicit comments for all cases.
 
-> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
-> ---
->  fs/overlayfs/copy_up.c | 9 +++++----
->  1 file changed, 5 insertions(+), 4 deletions(-)
-> 
-> diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
-> index e432d7e..32ea54f 100644
-> --- a/fs/overlayfs/copy_up.c
-> +++ b/fs/overlayfs/copy_up.c
-> @@ -159,15 +159,16 @@ static int ovl_copy_up_data(struct path *old, struct path *new, loff_t len)
->  			break;
->  		}
->  
-> -		bytes = do_splice_direct(old_file, &old_pos,
-> -					 new_file, &new_pos,
-> -					 this_len, SPLICE_F_MOVE);
-> +		bytes = vfs_copy_file_range(old_file, old_pos,
-> +					    new_file, new_pos,
-> +					    this_len, 0);
->  		if (bytes <= 0) {
->  			error = bytes;
->  			break;
->  		}
-> -		WARN_ON(old_pos != new_pos);
->  
-> +		old_pos += bytes;
-> +		new_pos += bytes;
->  		len -= bytes;
->  	}
-
-Patch does not remove the
-
-	/* FIXME: copy up sparse files efficiently */
-
-comment. Efficient copying of sparse files is something
-vfs_copy_file_range() should do internally....
-
-Cheers,
-
-Dave.
--- 
-Dave Chinner
-david@fromorbit.com
+>
+>         if (!error)
+>                 goto out_done;
+>         if (error != -EXDEV && error != -EOPNOTSUPP)
+>                 goto out_error;
+>
+>         /* Can't clone, so now we try to copy the data */
+>
+> Cheers,
+>
+> Dave.
+> --
+> Dave Chinner
+> david@fromorbit.com
