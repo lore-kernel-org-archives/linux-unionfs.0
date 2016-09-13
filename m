@@ -1,99 +1,106 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [PATCH v2 3/4] vfs: allow vfs_copy_file_range() across file systems
-Date: Tue, 13 Sep 2016 10:01:04 +0300
-Message-ID: <CAOQ4uxgGdshhiA+FJqYrPEqkh3R6=-6jPcO4yygJqEkVUPd1jA@mail.gmail.com>
+Subject: Re: [PATCH v2 4/4] ovl: use vfs_copy_file_range() to copy up file data
+Date: Tue, 13 Sep 2016 10:26:59 +0300
+Message-ID: <CAOQ4uxgbtGV-qJz=+wZL5w533Cb+kPDGJOUd9GVni_oxS0_Cvg@mail.gmail.com>
 References: <1473348594-31425-1-git-send-email-amir73il@gmail.com>
- <1473692803-11964-1-git-send-email-amir73il@gmail.com> <1473692803-11964-4-git-send-email-amir73il@gmail.com>
- <20160913000811.GN22388@dastard>
+ <1473692803-11964-1-git-send-email-amir73il@gmail.com> <1473692803-11964-5-git-send-email-amir73il@gmail.com>
+ <20160913001147.GO22388@dastard>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:33104 "EHLO
+Received: from mail-wm0-f68.google.com ([74.125.82.68]:34609 "EHLO
         mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750940AbcIMHBG (ORCPT
+        with ESMTP id S1753410AbcIMH1C (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 13 Sep 2016 03:01:06 -0400
-In-Reply-To: <20160913000811.GN22388@dastard>
+        Tue, 13 Sep 2016 03:27:02 -0400
+In-Reply-To: <20160913001147.GO22388@dastard>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: Dave Chinner <david@fromorbit.com>
 Cc: Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, Christoph Hellwig <hch@lst.de>, linux-xfs@vger.kernel.org, "Darrick J . Wong" <darrick.wong@oracle.com>, linux-fsdevel <linux-fsdevel@vger.kernel.org>
 
-On Tue, Sep 13, 2016 at 3:08 AM, Dave Chinner <david@fromorbit.com> wrote:
-> On Mon, Sep 12, 2016 at 06:06:42PM +0300, Amir Goldstein wrote:
->> copy_file_range syscall returns -EXDEV if src and dest
->> file are not on the same file system.
->> The vfs_copy_file_range() helper, however, knows how to copy
->> across file systems with do_splice_direct().
+On Tue, Sep 13, 2016 at 3:11 AM, Dave Chinner <david@fromorbit.com> wrote:
+> On Mon, Sep 12, 2016 at 06:06:43PM +0300, Amir Goldstein wrote:
+>> Use vfs_copy_file_range() helper instead of calling do_splice_direct()
+>> when copying up file data.
+>> When copying up within the same fs, which supports copy_file_range(),
+>> fs implementation can be more efficient then do_splice_direct().
+>> vfs_copy_file_range() helper falls back to do_splice_direct() if
+>> it cannot use the file system's copy_file_range() implementation.
 >>
->> Move the enforcement of same file system from the vfs helper
->> to the syscall code.
+>> Tested correct behavior when lower and upper are on:
+>> 1. same ext4 (copy)
+>> 2. same xfs + reflink patches + mkfs.xfs (copy)
+>> 3. same xfs + reflink patches + mkfs.xfs -m reflink=1 (clone)
+>> 4. different xfs + reflink patches + mkfs.xfs -m reflink=1 (copy)
 >>
->> A following patch is going to use the vfs_copy_file_range()
->> helper in overlayfs to copy up between lower and upper
->> not on the same file system.
->>
+>> For comparison, on my laptop, xfstest overlay/001 (copy up of large
+>> sparse files) takes less than 1 second in the xfs reflink setup vs.
+>> 25 seconds on the rest of the setups.
+>
+> This is now stale, right? the reflink is done from the
+> vfs_clone_file_range() call added in an earlier patch, not this
+> change....
+
+Well.. that depends on the definition of "now"
+as patch 4/4 you are correct, but as I wrote in the cover letter
+I tested patches 3,4 independently of patches 1,2
+otherwise, patches 3,4 would be adding moot code
+or rather a simple re-factoring.
+
+So now it boils down to a process question:
+should patches 3,4 be merged, even though no one can properly test the
+'fallback to chunk copy range' case
+with any of the in-tree filesystems (without modifying them first)?
+
+I could be presenting patch 4 as a simple re-factoring
+(use vfs copy range helper instead of using do_splice_direct)
+which makes for a cleaner code.
+But the fact that it changes behavior in a subtle way
+(hopefully for the best) without anyone noticing this change far into
+the future is somewhat troubling.
+
+Your thoughts?
+
+>
 >> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 >> ---
->>  fs/read_write.c | 15 ++++++++++-----
->>  1 file changed, 10 insertions(+), 5 deletions(-)
+>>  fs/overlayfs/copy_up.c | 9 +++++----
+>>  1 file changed, 5 insertions(+), 4 deletions(-)
 >>
->> diff --git a/fs/read_write.c b/fs/read_write.c
->> index 9dc6e52..c4675c6 100644
->> --- a/fs/read_write.c
->> +++ b/fs/read_write.c
->> @@ -1502,10 +1502,6 @@ ssize_t vfs_copy_file_range(struct file *file_in, loff_t pos_in,
->>           (file_out->f_flags & O_APPEND))
->>               return -EBADF;
+>> diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
+>> index e432d7e..32ea54f 100644
+>> --- a/fs/overlayfs/copy_up.c
+>> +++ b/fs/overlayfs/copy_up.c
+>> @@ -159,15 +159,16 @@ static int ovl_copy_up_data(struct path *old, struct path *new, loff_t len)
+>>                       break;
+>>               }
 >>
->> -     /* this could be relaxed once a method supports cross-fs copies */
->> -     if (inode_in->i_sb != inode_out->i_sb)
->> -             return -EXDEV;
->> -
->>       if (len == 0)
->>               return 0;
+>> -             bytes = do_splice_direct(old_file, &old_pos,
+>> -                                      new_file, &new_pos,
+>> -                                      this_len, SPLICE_F_MOVE);
+>> +             bytes = vfs_copy_file_range(old_file, old_pos,
+>> +                                         new_file, new_pos,
+>> +                                         this_len, 0);
+>>               if (bytes <= 0) {
+>>                       error = bytes;
+>>                       break;
+>>               }
+>> -             WARN_ON(old_pos != new_pos);
 >>
->> @@ -1514,7 +1510,8 @@ ssize_t vfs_copy_file_range(struct file *file_in, loff_t pos_in,
->>               return ret;
->>
->>       ret = -EOPNOTSUPP;
->> -     if (file_out->f_op->copy_file_range)
->> +     if (inode_in->i_sb == inode_out->i_sb &&
->> +                     file_out->f_op->copy_file_range)
->>               ret = file_out->f_op->copy_file_range(file_in, pos_in, file_out,
->>                                                     pos_out, len, flags);
->
-> Indenting is wrong, and you dropped an important comment. i.e
-> copy_file_range() still doesn't support cross fs copies.....
-
-OK. moved the comment down this this same i_sb test
-
->
->>       if (ret == -EOPNOTSUPP)
->> @@ -1569,6 +1566,14 @@ SYSCALL_DEFINE6(copy_file_range, int, fd_in, loff_t __user *, off_in,
->>               pos_out = f_out.file->f_pos;
+>> +             old_pos += bytes;
+>> +             new_pos += bytes;
+>>               len -= bytes;
 >>       }
->>
->> +     /*
->> +      * FIXME: should copy_file_range syscall enforce that src and
->> +      * dest files are on the same mount point or only on the same
->> +      * file system? none of the above?
->> +      */
->> +     if (file_inode(f_in.file)->i_sb != file_inode(f_out.file)->i_sb)
->> +             return -EXDEV;
 >
-> For the purposes of this patch, it should simply do what it already
-> does. If there's a API semantic change that needs to be made, then
-> get that sorted out now rather than adding a "fixme" comment that
-> will simply be ignored....
+> Patch does not remove the
+>
+>         /* FIXME: copy up sparse files efficiently */
+>
+> comment. Efficient copying of sparse files is something
+> vfs_copy_file_range() should do internally....
 
-How about:
-
-        /*
-         * vfs_copy_file_range() can do cross-fs copy, but we want to
-         * fulfill the guaranty to userland that copy_file_range syscall
-         * does not allow cross-fs copy
-         */
+Moved the comment into vfs_copy_file_range()
 
 Cheers,
 Amir.
