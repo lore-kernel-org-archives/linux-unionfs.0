@@ -1,80 +1,99 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [PATCH v2 2/4] ovl: use vfs_clone_file_range() for copy up if possible
-Date: Tue, 13 Sep 2016 09:47:08 +0300
-Message-ID: <CAOQ4uxhZSKgYyXjime6xLm_rG-coKM4d7mYi1LbfU9w6p9E7gg@mail.gmail.com>
+Subject: Re: [PATCH v2 3/4] vfs: allow vfs_copy_file_range() across file systems
+Date: Tue, 13 Sep 2016 10:01:04 +0300
+Message-ID: <CAOQ4uxgGdshhiA+FJqYrPEqkh3R6=-6jPcO4yygJqEkVUPd1jA@mail.gmail.com>
 References: <1473348594-31425-1-git-send-email-amir73il@gmail.com>
- <1473692803-11964-1-git-send-email-amir73il@gmail.com> <1473692803-11964-3-git-send-email-amir73il@gmail.com>
- <20160913000225.GM22388@dastard>
+ <1473692803-11964-1-git-send-email-amir73il@gmail.com> <1473692803-11964-4-git-send-email-amir73il@gmail.com>
+ <20160913000811.GN22388@dastard>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
-In-Reply-To: <20160913000225.GM22388@dastard>
-Sender: linux-fsdevel-owner@vger.kernel.org
+Return-path: <linux-unionfs-owner@vger.kernel.org>
+Received: from mail-wm0-f68.google.com ([74.125.82.68]:33104 "EHLO
+        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750940AbcIMHBG (ORCPT
+        <rfc822;linux-unionfs@vger.kernel.org>);
+        Tue, 13 Sep 2016 03:01:06 -0400
+In-Reply-To: <20160913000811.GN22388@dastard>
+Sender: linux-unionfs-owner@vger.kernel.org
+List-Id: linux-unionfs@vger.kernel.org
 To: Dave Chinner <david@fromorbit.com>
 Cc: Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, Christoph Hellwig <hch@lst.de>, linux-xfs@vger.kernel.org, "Darrick J . Wong" <darrick.wong@oracle.com>, linux-fsdevel <linux-fsdevel@vger.kernel.org>
-List-Id: linux-unionfs@vger.kernel.org
 
-On Tue, Sep 13, 2016 at 3:02 AM, Dave Chinner <david@fromorbit.com> wrote:
-> On Mon, Sep 12, 2016 at 06:06:41PM +0300, Amir Goldstein wrote:
->> When copying up within the same fs, try to use vfs_clone_file_range().
->> This is very efficient when lower and upper are on the same fs
->> with file reflink support. If vfs_clone_file_range() fails because
->> lower and upper are not on the same fs or if fs has no reflink support,
->> copy up falls back to the regular data copy code.
+On Tue, Sep 13, 2016 at 3:08 AM, Dave Chinner <david@fromorbit.com> wrote:
+> On Mon, Sep 12, 2016 at 06:06:42PM +0300, Amir Goldstein wrote:
+>> copy_file_range syscall returns -EXDEV if src and dest
+>> file are not on the same file system.
+>> The vfs_copy_file_range() helper, however, knows how to copy
+>> across file systems with do_splice_direct().
 >>
->> Tested correct behavior when lower and upper are on:
->> 1. same ext4 (copy)
->> 2. same xfs + reflink patches + mkfs.xfs (copy)
->> 3. same xfs + reflink patches + mkfs.xfs -m reflink=1 (clone)
->> 4. different xfs + reflink patches + mkfs.xfs -m reflink=1 (copy)
+>> Move the enforcement of same file system from the vfs helper
+>> to the syscall code.
 >>
->> For comparison, on my laptop, xfstest overlay/001 (copy up of large
->> sparse files) takes less than 1 second in the xfs reflink setup vs.
->> 25 seconds on the rest of the setups.
+>> A following patch is going to use the vfs_copy_file_range()
+>> helper in overlayfs to copy up between lower and upper
+>> not on the same file system.
 >>
 >> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 >> ---
->>  fs/overlayfs/copy_up.c | 10 ++++++++++
->>  1 file changed, 10 insertions(+)
+>>  fs/read_write.c | 15 ++++++++++-----
+>>  1 file changed, 10 insertions(+), 5 deletions(-)
 >>
->> diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
->> index 43fdc27..e432d7e 100644
->> --- a/fs/overlayfs/copy_up.c
->> +++ b/fs/overlayfs/copy_up.c
->> @@ -136,6 +136,16 @@ static int ovl_copy_up_data(struct path *old, struct path *new, loff_t len)
->>               goto out_fput;
+>> diff --git a/fs/read_write.c b/fs/read_write.c
+>> index 9dc6e52..c4675c6 100644
+>> --- a/fs/read_write.c
+>> +++ b/fs/read_write.c
+>> @@ -1502,10 +1502,6 @@ ssize_t vfs_copy_file_range(struct file *file_in, loff_t pos_in,
+>>           (file_out->f_flags & O_APPEND))
+>>               return -EBADF;
+>>
+>> -     /* this could be relaxed once a method supports cross-fs copies */
+>> -     if (inode_in->i_sb != inode_out->i_sb)
+>> -             return -EXDEV;
+>> -
+>>       if (len == 0)
+>>               return 0;
+>>
+>> @@ -1514,7 +1510,8 @@ ssize_t vfs_copy_file_range(struct file *file_in, loff_t pos_in,
+>>               return ret;
+>>
+>>       ret = -EOPNOTSUPP;
+>> -     if (file_out->f_op->copy_file_range)
+>> +     if (inode_in->i_sb == inode_out->i_sb &&
+>> +                     file_out->f_op->copy_file_range)
+>>               ret = file_out->f_op->copy_file_range(file_in, pos_in, file_out,
+>>                                                     pos_out, len, flags);
+>
+> Indenting is wrong, and you dropped an important comment. i.e
+> copy_file_range() still doesn't support cross fs copies.....
+
+OK. moved the comment down this this same i_sb test
+
+>
+>>       if (ret == -EOPNOTSUPP)
+>> @@ -1569,6 +1566,14 @@ SYSCALL_DEFINE6(copy_file_range, int, fd_in, loff_t __user *, off_in,
+>>               pos_out = f_out.file->f_pos;
 >>       }
 >>
 >> +     /*
->> +      * Try to use clone_file_range to clone up within the same fs.
->> +      * On failure to clone entire file, fallback to copy loop.
+>> +      * FIXME: should copy_file_range syscall enforce that src and
+>> +      * dest files are on the same mount point or only on the same
+>> +      * file system? none of the above?
 >> +      */
->> +     error = vfs_clone_file_range(old_file, 0, new_file, 0, len);
->> +     if (error == -EXDEV || error == -EOPNOTSUPP)
->> +             error = 0;
->> +     else
->> +             len = 0;
->> +
->>       /* FIXME: copy up sparse files efficiently */
->>       while (len) {
->>               size_t this_len = OVL_COPY_UP_CHUNK_SIZE;
+>> +     if (file_inode(f_in.file)->i_sb != file_inode(f_out.file)->i_sb)
+>> +             return -EXDEV;
 >
-> That's nasty. Just use a goto to skip the code that doesn't need to
-> be run if vfs_clone_file_range() succeeds. This is much better, IMO:
+> For the purposes of this patch, it should simply do what it already
+> does. If there's a API semantic change that needs to be made, then
+> get that sorted out now rather than adding a "fixme" comment that
+> will simply be ignored....
 
-OK, but I prefer to write up explicit comments for all cases.
+How about:
 
->
->         if (!error)
->                 goto out_done;
->         if (error != -EXDEV && error != -EOPNOTSUPP)
->                 goto out_error;
->
->         /* Can't clone, so now we try to copy the data */
->
-> Cheers,
->
-> Dave.
-> --
-> Dave Chinner
-> david@fromorbit.com
+        /*
+         * vfs_copy_file_range() can do cross-fs copy, but we want to
+         * fulfill the guaranty to userland that copy_file_range syscall
+         * does not allow cross-fs copy
+         */
+
+Cheers,
+Amir.
