@@ -1,37 +1,108 @@
-From: Miklos Szeredi <miklos@szeredi.hu>
-Subject: Re: [PATCH] ovl: avoid setting uninitialized creds
-Date: Mon, 19 Sep 2016 16:53:14 +0200
-Message-ID: <CAJfpegtpmP+tZ4cQHEO7tOpA0aLBfc1x-mrrpO5m4+pzaAc+Jw@mail.gmail.com>
-References: <20160919123859.1335236-1-arnd@arndb.de>
+From: Amir Goldstein <amir73il@gmail.com>
+Subject: Re: [PATCH v3 0/4] ovl: efficient copy up by reflink
+Date: Mon, 19 Sep 2016 21:55:19 +0300
+Message-ID: <CAOQ4uxhg=JVmh7K6=YGzJc=4jemt-VUVdqXJcN-AdF4-=yjkyA@mail.gmail.com>
+References: <1473856994-27463-1-git-send-email-amir73il@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-oi0-f65.google.com ([209.85.218.65]:36177 "EHLO
-        mail-oi0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750974AbcISOxQ (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 19 Sep 2016 10:53:16 -0400
-Received: by mail-oi0-f65.google.com with SMTP id i193so3501948oib.3
-        for <linux-unionfs@vger.kernel.org>; Mon, 19 Sep 2016 07:53:15 -0700 (PDT)
-In-Reply-To: <20160919123859.1335236-1-arnd@arndb.de>
-Sender: linux-unionfs-owner@vger.kernel.org
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
+In-Reply-To: <1473856994-27463-1-git-send-email-amir73il@gmail.com>
+Sender: linux-fsdevel-owner@vger.kernel.org
+To: Miklos Szeredi <miklos@szeredi.hu>, Dave Chinner <david@fromorbit.com>, linux-unionfs@vger.kernel.org, Christoph Hellwig <hch@lst.de>
+Cc: linux-xfs@vger.kernel.org, "Darrick J . Wong" <darrick.wong@oracle.com>, linux-fsdevel <linux-fsdevel@vger.kernel.org>
 List-Id: linux-unionfs@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Vivek Goyal <vgoyal@redhat.com>, Al Viro <viro@zeniv.linux.org.uk>, Andreas Gruenbacher <agruenba@redhat.com>, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>, linux-kernel@vger.kernel.org
 
-On Mon, Sep 19, 2016 at 2:38 PM, Arnd Bergmann <arnd@arndb.de> wrote:
-> If the call to ovl_copy_up() fails, we now call revert_creds on
-> an uninitialized structure after a recent patch, as found
-> by "gcc -Wmayby-uninitialized":
+On Wed, Sep 14, 2016 at 3:43 PM, Amir Goldstein <amir73il@gmail.com> wrote:
+> This is the 3rd revision of implementing overlayfs
+> copy up by reflink.
 >
-> fs/overlayfs/inode.c: In function 'ovl_open_maybe_copy_up':
-> fs/overlayfs/inode.c:39:2: error: 'old_cred' may be used uninitialized in this function [-Werror=maybe-uninitialized]
-> fs/overlayfs/inode.c:22:21: note: 'old_cred' was declared here
+
+Ping.
+
+Dave, Christoph,
+
+Get I get your Acks please?
+
+Miklos,
+
+Can you please look at least at patches 1,2
+
+Thanks!
+Amir.
+
+> Btrfs has file reflink support and XFS is about to gain
+> file reflink support soon. It is very useful to use reflink
+> to implement copy up of regular file data when possible.
 >
-> This changes the code back to not call revert_creds unless
-> we have already called ovl_override_creds().
-
-Thanks.   Slightly reworked fix folded into original patch and pushed out.
-
-Thanks,
-Miklos
+> For example, on my laptop, xfstest overlay/001 (copy up of 4G
+> sparse files) takes less than 1 second with copy up by reflink
+> vs. 25 seconds with regular copy up.
+>
+> This series includes two pairs of patches:
+> - patches 1,2 utilize the clone_file_range() API
+> - patches 3,4 utilize the copy_file_range() API
+>
+> The two pairs of patches are independent of each other.
+> They were each tested separately and both tested together.
+> All combinations passed the unionmount-testsuite (over tmpfs)
+> All combinations passed the overlay/??? xfstests over the
+> following underlying fs:
+> 1. ext4 (copy up)
+> 2. xfs + reflink patches + mkfs.xfs (copy up)
+> 3. xfs + reflink patches + mkfs.xfs -m reflink=1 (reflink up)
+>
+> Dave Chinner suggested the following implementation for copy up,
+> which I implemented in this series:
+> 1. try to clone_file_range() entire length
+> 2. fallback to trying copy_file_range() in small chunks
+> 3. fallback to do_splice_direct() in small chunks
+>
+> This is a good general implementation to cover the future use cases of
+> file systems that can do either clone_file_range() or copy_file_range().
+> However, currently, the only in-tree file systems that support
+> clone/copy_file_range are btrfs, xfs (soon), cifs and nfs.
+> btrfs and xfs use the same implementation for clone and copy range,
+> so the copy_file_range() step is never needed.
+> cifs supports only clone_file_range() so copy_file_range() step is moot.
+> nfs does have a different implementation for clone_file_range() and
+> copy_file_range(), but nfs is not supported as upper layer for overlayfs
+> at the moment.
+>
+> Please pick patches 1,2 for clear and immediate benefit to copy up
+> performance on filesystems with reflink support.
+>
+> Please consider picking patches 3,4 additionally for future generations
+> and for code consolidation into vfs helpers.
+>
+> Cheers,
+> Amir.
+>
+> V3:
+> - Address style comments from Dave Chinner
+>
+> V2:
+> - Re-factor vfs helpers so they can be called from copy up
+> - Single call to vfs_clone_file_range() and fallback to
+>   vfs_copy_file_range() loop
+>
+> V1:
+> - Replace iteravite call to copy_file_range() with
+>   a single call to clone_file_range()
+>
+> V0:
+> - Call clone_file_range() and fallback to do_splice_direct()
+>
+> Amir Goldstein (4):
+>   vfs: allow vfs_clone_file_range() across mount points
+>   ovl: use vfs_clone_file_range() for copy up if possible
+>   vfs: allow vfs_copy_file_range() across file systems
+>   ovl: use vfs_copy_file_range() to copy up file data
+>
+>  fs/ioctl.c             |  2 ++
+>  fs/overlayfs/copy_up.c | 22 ++++++++++++++++------
+>  fs/read_write.c        | 25 ++++++++++++++++++-------
+>  3 files changed, 36 insertions(+), 13 deletions(-)
+>
+> --
+> 2.7.4
+>
