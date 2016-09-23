@@ -1,100 +1,101 @@
-From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH v4 0/4] ovl: efficient copy up by reflink
-Date: Fri, 23 Sep 2016 11:38:09 +0300
-Message-ID: <1474619892-5113-1-git-send-email-amir73il@gmail.com>
+From: "Darrick J. Wong" <darrick.wong@oracle.com>
+Subject: Re: [PATCH v3 3/4] vfs: allow vfs_copy_file_range() across file
+ systems
+Date: Fri, 23 Sep 2016 08:19:22 -0700
+Message-ID: <20160923151921.GM9314@birch.djwong.org>
+References: <1473856994-27463-1-git-send-email-amir73il@gmail.com>
+ <1473856994-27463-4-git-send-email-amir73il@gmail.com>
+ <CAOQ4uxiZBE_2qy86b6x19opLcGbMzhtqrWBkFZqHeQnZgHtJfQ@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:33997 "EHLO
-        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751731AbcIWIiq (ORCPT
+Received: from userp1040.oracle.com ([156.151.31.81]:42126 "EHLO
+        userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1035308AbcIWPTq (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 23 Sep 2016 04:38:46 -0400
+        Fri, 23 Sep 2016 11:19:46 -0400
+Content-Disposition: inline
+In-Reply-To: <CAOQ4uxiZBE_2qy86b6x19opLcGbMzhtqrWBkFZqHeQnZgHtJfQ@mail.gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Miklos Szeredi <miklos@szeredi.hu>, Dave Chinner <david@fromorbit.com>, Christoph Hellwig <hch@lst.de>, linux-unionfs@vger.kernel.org
-Cc: Al Viro <viro@zeniv.linux.org.uk>, linux-xfs@vger.kernel.org, "Darrick J . Wong" <darrick.wong@oracle.com>, linux-fsdevel@vger.kernel.org
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, Dave Chinner <david@fromorbit.com>, linux-unionfs@vger.kernel.org, Christoph Hellwig <hch@lst.de>, linux-xfs@vger.kernel.org, linux-fsdevel <linux-fsdevel@vger.kernel.org>
 
-This is the 4rd revision of implementing overlayfs
-copy up by reflink.
+On Fri, Sep 23, 2016 at 10:57:56AM +0300, Amir Goldstein wrote:
+> On Wed, Sep 14, 2016 at 3:43 PM, Amir Goldstein <amir73il@gmail.com> wrote:
+> > copy_file_range syscall returns -EXDEV if src and dest
+> > file are not on the same file system.
+> > The vfs_copy_file_range() helper, however, knows how to copy
+> > across file systems with do_splice_direct().
+> >
+> > Move the enforcement of same file system from the vfs helper
+> > to the syscall code.
+> >
+> > A following patch is going to use the vfs_copy_file_range()
+> > helper in overlayfs to copy up between lower and upper
+> > not on the same file system.
+> >
+> > Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+> > ---
+> >  fs/read_write.c | 16 +++++++++++-----
+> >  1 file changed, 11 insertions(+), 5 deletions(-)
+> >
+> > diff --git a/fs/read_write.c b/fs/read_write.c
+> > index 9dc6e52..6975fe8 100644
+> > --- a/fs/read_write.c
+> > +++ b/fs/read_write.c
+> > @@ -1502,10 +1502,6 @@ ssize_t vfs_copy_file_range(struct file *file_in, loff_t pos_in,
+> >             (file_out->f_flags & O_APPEND))
+> >                 return -EBADF;
+> >
+> > -       /* this could be relaxed once a method supports cross-fs copies */
+> > -       if (inode_in->i_sb != inode_out->i_sb)
+> > -               return -EXDEV;
+> > -
+> >         if (len == 0)
+> >                 return 0;
+> >
+> > @@ -1514,7 +1510,9 @@ ssize_t vfs_copy_file_range(struct file *file_in, loff_t pos_in,
+> >                 return ret;
+> >
+> >         ret = -EOPNOTSUPP;
+> > -       if (file_out->f_op->copy_file_range)
+> > +       /* copy_file_range() method does not support cross-fs copies */
+> > +       if (inode_in->i_sb == inode_out->i_sb &&
+> > +           file_out->f_op->copy_file_range)
+> >                 ret = file_out->f_op->copy_file_range(file_in, pos_in, file_out,
+> >                                                       pos_out, len, flags);
+> >         if (ret == -EOPNOTSUPP)
+> > @@ -1569,6 +1567,14 @@ SYSCALL_DEFINE6(copy_file_range, int, fd_in, loff_t __user *, off_in,
+> >                 pos_out = f_out.file->f_pos;
+> >         }
+> >
+> > +       /*
+> > +        * vfs_copy_file_range() can do cross-fs copy, but we want to
+> > +        * fulfill the guaranty to userland that copy_file_range syscall
+> > +        * does not allow cross-fs copy
+> > +        */
+> > +       if (file_inode(f_in.file)->i_sb != file_inode(f_out.file)->i_sb)
+> > +               return -EXDEV;
+> 
+> Oops, that was supposed to be goto out;
+> Anyway, I am holding back on the vfs_copy_file_range() patches sub set
+> until I have a reliable test on xfs to fall back from clone to copy range
 
-Btrfs has file reflink support and XFS is about to gain
-file reflink support soon. It is very useful to use reflink
-to implement copy up of regular file data when possible.
+I could just create another error injection point that'll make XFS pretend
+that it's out of space.
 
-For example, on my laptop, xfstest overlay/001 (copy up of 4G
-sparse files) takes less than 1 second with copy up by reflink
-vs. 25 seconds with regular copy up.
+--D
 
-This series includes 3 patches:
-- patches 1,2 are re-factoring patches to allow using the
-  vfs_clone_file_range() helper from file system code.
-- patch 3 utilizes the helper for overlay copy up
-
-These changes passed the unionmount-testsuite (over tmpfs)
-They passed the overlay/??? xfstests over the following underlying fs:
-1. ext4 (copy up)
-2. xfs + reflink patches + mkfs.xfs (copy up)
-3. xfs + reflink patches + mkfs.xfs -m reflink=1 (reflink up)
-
-Dave Chinner suggested the following implementation for copy up:
-1. try to clone_file_range() entire length
-2. fallback to trying copy_file_range() in small chunks
-3. fallback to do_splice_direct() in small chunks
-
-This is a good general implementation to cover the future use cases of
-filesystems that can do either clone_file_range() or copy_file_range()
-and for filesystems that may fail clone_file_range() and succeed
-to copy_file_range().
-
-However, currently, the only in-tree file systems that support
-clone/copy_file_range are btrfs, xfs (soon), cifs and nfs.
-btrfs and xfs use the same implementation for clone and copy range,
-so copy_file_range() in small chunks is only useful in extreme
-ENOSPC cases.
-cifs supports only clone_file_range() so copy_file_range() step is moot.
-nfs does have a different implementation for clone_file_range() and
-copy_file_range(), but neither nfs nor cifs are supported as lower layer
-for overlayfs.
-
-For this posting, I decided to leave out the copy_file_range() patches
-until a reliable use case to test them presents itself.
-
-Miklos,
-
-Please pick these patches to your tree for clear and immediate benefit to
-copy up performance on filesystems with reflink support.
-
-Thanks,
-Amir.
-
-V4:
-- Fix recursive mnt_want_write()
-- Leave out the vfs_copy_file_range() patches
-
-V3:
-- Address style comments from Dave Chinner
-
-V2:
-- Re-factor vfs helpers so they can be called from copy up
-- Single call to vfs_clone_file_range() and fallback to
-  vfs_copy_file_range() loop
-
-V1:
-- Replace iteravite call to copy_file_range() with
-  a single call to clone_file_range()
-
-V0:
-- Call clone_file_range() and fallback to do_splice_direct()
-
-
-Amir Goldstein (3):
-  vfs: allow vfs_clone_file_range() across mount points
-  vfs: call vfs_clone_file_range() under mnt_want_write()
-  ovl: use vfs_clone_file_range() for copy up if possible
-
- fs/ioctl.c             | 11 +++++++++++
- fs/overlayfs/copy_up.c |  8 ++++++++
- fs/read_write.c        | 13 ++++++-------
- 3 files changed, 25 insertions(+), 7 deletions(-)
-
--- 
-2.7.4
+> 
+> > +
+> >         ret = vfs_copy_file_range(f_in.file, pos_in, f_out.file, pos_out, len,
+> >                                   flags);
+> >         if (ret > 0) {
+> > --
+> > 2.7.4
+> >
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-xfs" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
