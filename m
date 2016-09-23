@@ -1,37 +1,81 @@
-From: Zhang AiHua <zhangaihua1@huawei.com>
-Subject: Hi, Is this a problem?
-Date: Fri, 23 Sep 2016 15:05:39 +0800
-Message-ID: <57E4D443.2040502@huawei.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Subject: Re: [PATCH v3 3/4] vfs: allow vfs_copy_file_range() across file systems
+Date: Fri, 23 Sep 2016 10:57:56 +0300
+Message-ID: <CAOQ4uxiZBE_2qy86b6x19opLcGbMzhtqrWBkFZqHeQnZgHtJfQ@mail.gmail.com>
+References: <1473856994-27463-1-git-send-email-amir73il@gmail.com> <1473856994-27463-4-git-send-email-amir73il@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="gbk"; format=flowed
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from szxga03-in.huawei.com ([119.145.14.66]:21256 "EHLO
-        szxga03-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753989AbcIWHJV (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 23 Sep 2016 03:09:21 -0400
-Sender: linux-unionfs-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
+In-Reply-To: <1473856994-27463-4-git-send-email-amir73il@gmail.com>
+Sender: linux-fsdevel-owner@vger.kernel.org
+To: Miklos Szeredi <miklos@szeredi.hu>, Dave Chinner <david@fromorbit.com>, linux-unionfs@vger.kernel.org
+Cc: Christoph Hellwig <hch@lst.de>, linux-xfs@vger.kernel.org, "Darrick J . Wong" <darrick.wong@oracle.com>, linux-fsdevel <linux-fsdevel@vger.kernel.org>
 List-Id: linux-unionfs@vger.kernel.org
-To: linux-unionfs@vger.kernel.org
 
-mount£º
-overlay on /tmp type overlay (rw,relatime,lowerdir=/home/zah/lower,upperdir=/home/zah/upper,workdir=/home/zah/workdir)
-/dev/mapper/fedora-home on /home type ext4 (rw,relatime,data=ordered)
+On Wed, Sep 14, 2016 at 3:43 PM, Amir Goldstein <amir73il@gmail.com> wrote:
+> copy_file_range syscall returns -EXDEV if src and dest
+> file are not on the same file system.
+> The vfs_copy_file_range() helper, however, knows how to copy
+> across file systems with do_splice_direct().
+>
+> Move the enforcement of same file system from the vfs helper
+> to the syscall code.
+>
+> A following patch is going to use the vfs_copy_file_range()
+> helper in overlayfs to copy up between lower and upper
+> not on the same file system.
+>
+> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+> ---
+>  fs/read_write.c | 16 +++++++++++-----
+>  1 file changed, 11 insertions(+), 5 deletions(-)
+>
+> diff --git a/fs/read_write.c b/fs/read_write.c
+> index 9dc6e52..6975fe8 100644
+> --- a/fs/read_write.c
+> +++ b/fs/read_write.c
+> @@ -1502,10 +1502,6 @@ ssize_t vfs_copy_file_range(struct file *file_in, loff_t pos_in,
+>             (file_out->f_flags & O_APPEND))
+>                 return -EBADF;
+>
+> -       /* this could be relaxed once a method supports cross-fs copies */
+> -       if (inode_in->i_sb != inode_out->i_sb)
+> -               return -EXDEV;
+> -
+>         if (len == 0)
+>                 return 0;
+>
+> @@ -1514,7 +1510,9 @@ ssize_t vfs_copy_file_range(struct file *file_in, loff_t pos_in,
+>                 return ret;
+>
+>         ret = -EOPNOTSUPP;
+> -       if (file_out->f_op->copy_file_range)
+> +       /* copy_file_range() method does not support cross-fs copies */
+> +       if (inode_in->i_sb == inode_out->i_sb &&
+> +           file_out->f_op->copy_file_range)
+>                 ret = file_out->f_op->copy_file_range(file_in, pos_in, file_out,
+>                                                       pos_out, len, flags);
+>         if (ret == -EOPNOTSUPP)
+> @@ -1569,6 +1567,14 @@ SYSCALL_DEFINE6(copy_file_range, int, fd_in, loff_t __user *, off_in,
+>                 pos_out = f_out.file->f_pos;
+>         }
+>
+> +       /*
+> +        * vfs_copy_file_range() can do cross-fs copy, but we want to
+> +        * fulfill the guaranty to userland that copy_file_range syscall
+> +        * does not allow cross-fs copy
+> +        */
+> +       if (file_inode(f_in.file)->i_sb != file_inode(f_out.file)->i_sb)
+> +               return -EXDEV;
 
-problem as below:
-[root@localhost tmp]# mkdir zzz
-[root@localhost tmp]# chown -R zah zzz
-[root@localhost tmp]# su zah
-mktemp: failed to create file via template â€?tmp/.colorlsXXXâ€? Permission denied
-bash: $TMP: ambiguous redirect
-[zah@localhost tmp]$
-[zah@localhost tmp]$
-[zah@localhost tmp]$
-[zah@localhost tmp]$ ls -alt |grep zzz
-drwxr-xr-x   2 zah  root   4096 Sep 24 02:03 zzz
-[zah@localhost tmp]$ rm -fr zzz
-rm: cannot remove â€˜zzzâ€? Permission denied
-[zah@localhost tmp]$
+Oops, that was supposed to be goto out;
+Anyway, I am holding back on the vfs_copy_file_range() patches sub set
+until I have a reliable test on xfs to fall back from clone to copy range
 
-Is this a problem?
+> +
+>         ret = vfs_copy_file_range(f_in.file, pos_in, f_out.file, pos_out, len,
+>                                   flags);
+>         if (ret > 0) {
+> --
+> 2.7.4
+>
