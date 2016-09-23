@@ -1,53 +1,65 @@
-From: Miklos Szeredi <miklos@szeredi.hu>
-Subject: Re: Hi, Is this a problem?
-Date: Fri, 23 Sep 2016 10:16:36 +0200
-Message-ID: <CAJfpegtQd+zZK0bKmZ5OS4_A4QwGOsdPy8kiduAs2vOL5QWncg@mail.gmail.com>
-References: <57E4D443.2040502@huawei.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-oi0-f41.google.com ([209.85.218.41]:34174 "EHLO
-        mail-oi0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932454AbcIWIQi (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 23 Sep 2016 04:16:38 -0400
-Received: by mail-oi0-f41.google.com with SMTP id a62so126608493oib.1
-        for <linux-unionfs@vger.kernel.org>; Fri, 23 Sep 2016 01:16:37 -0700 (PDT)
-In-Reply-To: <57E4D443.2040502@huawei.com>
-Sender: linux-unionfs-owner@vger.kernel.org
+From: Amir Goldstein <amir73il@gmail.com>
+Subject: [PATCH v4 1/3] vfs: allow vfs_clone_file_range() across mount points
+Date: Fri, 23 Sep 2016 11:38:10 +0300
+Message-ID: <1474619892-5113-2-git-send-email-amir73il@gmail.com>
+References: <1474619892-5113-1-git-send-email-amir73il@gmail.com>
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
+In-Reply-To: <1474619892-5113-1-git-send-email-amir73il@gmail.com>
+Sender: linux-fsdevel-owner@vger.kernel.org
+To: Miklos Szeredi <miklos@szeredi.hu>, Dave Chinner <david@fromorbit.com>, Christoph Hellwig <hch@lst.de>, linux-unionfs@vger.kernel.org
+Cc: Al Viro <viro@zeniv.linux.org.uk>, linux-xfs@vger.kernel.org, "Darrick J . Wong" <darrick.wong@oracle.com>, linux-fsdevel@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Zhang AiHua <zhangaihua1@huawei.com>
-Cc: "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>
 
-On Fri, Sep 23, 2016 at 9:05 AM, Zhang AiHua <zhangaihua1@huawei.com> wrote=
-:
-> mount=EF=BC=9A
-> overlay on /tmp type overlay
-> (rw,relatime,lowerdir=3D/home/zah/lower,upperdir=3D/home/zah/upper,workdi=
-r=3D/home/zah/workdir)
-> /dev/mapper/fedora-home on /home type ext4 (rw,relatime,data=3Dordered)
->
-> problem as below:
-> [root@localhost tmp]# mkdir zzz
-> [root@localhost tmp]# chown -R zah zzz
-> [root@localhost tmp]# su zah
-> mktemp: failed to create file via template =E9=88=A5?tmp/.colorlsXXX=E9=
-=88=A5? Permission
-> denied
-> bash: $TMP: ambiguous redirect
-> [zah@localhost tmp]$
-> [zah@localhost tmp]$
-> [zah@localhost tmp]$
-> [zah@localhost tmp]$ ls -alt |grep zzz
-> drwxr-xr-x   2 zah  root   4096 Sep 24 02:03 zzz
-> [zah@localhost tmp]$ rm -fr zzz
-> rm: cannot remove =E9=88=A5=E6=A6=B8zz=E9=88=A5? Permission denied
-> [zah@localhost tmp]$
->
-> Is this a problem?
+FICLONE/FICLONERANGE ioctls return -EXDEV if src and dest
+files are not on the same mount point.
+Practically, clone only requires that src and dest files
+are on the same file system.
 
-Depends on what the permissions are on tmp.
+Move the check for same mount point to ioctl handler and keep
+only the check for same super block in the vfs helper.
 
-Thanks,
-Miklos
+A following patch is going to use the vfs_clone_file_range()
+helper in overlayfs to copy up between lower and upper
+mount points on the same file system.
+
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+---
+ fs/ioctl.c      | 2 ++
+ fs/read_write.c | 8 ++++++--
+ 2 files changed, 8 insertions(+), 2 deletions(-)
+
+diff --git a/fs/ioctl.c b/fs/ioctl.c
+index c415668..34d2994 100644
+--- a/fs/ioctl.c
++++ b/fs/ioctl.c
+@@ -223,6 +223,8 @@ static long ioctl_file_clone(struct file *dst_file, unsigned long srcfd,
+ 
+ 	if (!src_file.file)
+ 		return -EBADF;
++	if (src_file.file->f_path.mnt != dst_file->f_path.mnt)
++		return -EXDEV;
+ 	ret = vfs_clone_file_range(src_file.file, off, dst_file, destoff, olen);
+ 	fdput(src_file);
+ 	return ret;
+diff --git a/fs/read_write.c b/fs/read_write.c
+index 66215a7..9dc6e52 100644
+--- a/fs/read_write.c
++++ b/fs/read_write.c
+@@ -1628,8 +1628,12 @@ int vfs_clone_file_range(struct file *file_in, loff_t pos_in,
+ 	struct inode *inode_out = file_inode(file_out);
+ 	int ret;
+ 
+-	if (inode_in->i_sb != inode_out->i_sb ||
+-	    file_in->f_path.mnt != file_out->f_path.mnt)
++	/*
++	 * FICLONE/FICLONERANGE ioctls enforce that src and dest files
++	 * are on the same mount point. Practically, they only need
++	 * to be on the same file system.
++	 */
++	if (inode_in->i_sb != inode_out->i_sb)
+ 		return -EXDEV;
+ 
+ 	if (S_ISDIR(inode_in->i_mode) || S_ISDIR(inode_out->i_mode))
+-- 
+2.7.4
+
