@@ -1,8 +1,8 @@
 From: "Darrick J. Wong" <darrick.wong@oracle.com>
 Subject: Re: [PATCH v3 3/4] vfs: allow vfs_copy_file_range() across file
  systems
-Date: Sat, 24 Sep 2016 08:06:35 -0700
-Message-ID: <20160924150635.GO9314@birch.djwong.org>
+Date: Mon, 26 Sep 2016 09:33:13 -0700
+Message-ID: <20160926163313.GP9314@birch.djwong.org>
 References: <1473856994-27463-1-git-send-email-amir73il@gmail.com>
  <1473856994-27463-4-git-send-email-amir73il@gmail.com>
  <CAOQ4uxiZBE_2qy86b6x19opLcGbMzhtqrWBkFZqHeQnZgHtJfQ@mail.gmail.com>
@@ -11,11 +11,11 @@ References: <1473856994-27463-1-git-send-email-amir73il@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from userp1040.oracle.com ([156.151.31.81]:43539 "EHLO
-        userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753315AbcIXPGt (ORCPT
+Received: from aserp1040.oracle.com ([141.146.126.69]:42067 "EHLO
+        aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S966279AbcIZQd3 (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Sat, 24 Sep 2016 11:06:49 -0400
+        Mon, 26 Sep 2016 12:33:29 -0400
 Content-Disposition: inline
 In-Reply-To: <CAOQ4uxidPrUho=BTjzEjKqDXXwX605bDSfpXoVUh=YXU0=EHCg@mail.gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
@@ -106,17 +106,18 @@ On Fri, Sep 23, 2016 at 09:52:42PM +0300, Amir Goldstein wrote:
 > fall back from
 > failing full reflink to partial copy partial reflink.
 
-You could change XFS_RANDOM_AG_RESV_CRITICAL to a non-1 value to make it
-fail randomly (instead of all the time) and reflink a sparse file with a
-large number of extents.  This...
+The error injector (as far as I know) cannot inject errors only for a
+specific AG.  However, since your goal is to have the reflink partially
+succeed, I could set up the injector to fail only a fraction of the
+time.  The difficulty here is that what we /probably/ need is to have it
+ENOSPC after N extents, where 0 < N <= nr_file_extents.  Tricky since
+the probabilistic nature means that it could inject during the first
+XFS_TEST_ERROR call.
 
-#define XFS_RANDOM_AG_RESV_CRITICAL 2
-
-...would make it fail half the time.
+Or change the function such that the error injector function only gets
+called if the file offset > 0.  Then you can prepare a specially crafted
+file such that you'll always get at least a partial reflink before
+ENOSPC.  Note that the reflink functions won't return where an error
+happened, so you'll end up recopying the entire range regardless.
 
 --D
-
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-xfs" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
