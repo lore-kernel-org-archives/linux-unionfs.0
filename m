@@ -1,7 +1,7 @@
 From: Andreas Gruenbacher <agruenba@redhat.com>
-Subject: [PATCH v5 04/17] kernfs: Switch to generic xattr handlers
-Date: Wed, 28 Sep 2016 16:57:50 +0200
-Message-ID: <1475074683-26971-5-git-send-email-agruenba@redhat.com>
+Subject: [PATCH v5 03/17] hfs: Switch to generic xattr handlers
+Date: Wed, 28 Sep 2016 16:57:49 +0200
+Message-ID: <1475074683-26971-4-git-send-email-agruenba@redhat.com>
 References: <1475074683-26971-1-git-send-email-agruenba@redhat.com>
 Return-path: <ecryptfs-owner@vger.kernel.org>
 In-Reply-To: <1475074683-26971-1-git-send-email-agruenba@redhat.com>
@@ -11,276 +11,205 @@ Cc: Andreas Gruenbacher <agruenba@redhat.com>, linux-fsdevel@vger.kernel.org, Ty
 List-Id: linux-unionfs@vger.kernel.org
 
 Signed-off-by: Andreas Gruenbacher <agruenba@redhat.com>
-Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Acked-by: Tejun Heo <tj@kernel.org>
 ---
- fs/kernfs/dir.c             |   6 +-
- fs/kernfs/inode.c           | 158 +++++++++++++++++++++++---------------------
- fs/kernfs/kernfs-internal.h |   7 +-
- fs/kernfs/mount.c           |   1 +
- fs/kernfs/symlink.c         |   6 +-
- 5 files changed, 92 insertions(+), 86 deletions(-)
+ fs/hfs/attr.c   | 83 +++++++++++++++++++++++++++++++++++++++------------------
+ fs/hfs/hfs_fs.h |  6 +----
+ fs/hfs/inode.c  |  7 ++---
+ fs/hfs/super.c  |  1 +
+ 4 files changed, 63 insertions(+), 34 deletions(-)
 
-diff --git a/fs/kernfs/dir.c b/fs/kernfs/dir.c
-index e57174d..a6e430a 100644
---- a/fs/kernfs/dir.c
-+++ b/fs/kernfs/dir.c
-@@ -1126,9 +1126,9 @@ const struct inode_operations kernfs_dir_iops = {
- 	.permission	= kernfs_iop_permission,
- 	.setattr	= kernfs_iop_setattr,
- 	.getattr	= kernfs_iop_getattr,
--	.setxattr	= kernfs_iop_setxattr,
--	.removexattr	= kernfs_iop_removexattr,
--	.getxattr	= kernfs_iop_getxattr,
-+	.setxattr	= generic_setxattr,
-+	.removexattr	= generic_removexattr,
-+	.getxattr	= generic_getxattr,
- 	.listxattr	= kernfs_iop_listxattr,
+diff --git a/fs/hfs/attr.c b/fs/hfs/attr.c
+index d9a8691..0933600 100644
+--- a/fs/hfs/attr.c
++++ b/fs/hfs/attr.c
+@@ -13,9 +13,13 @@
+ #include "hfs_fs.h"
+ #include "btree.h"
  
- 	.mkdir		= kernfs_iop_mkdir,
-diff --git a/fs/kernfs/inode.c b/fs/kernfs/inode.c
-index 63b925d..6bc8754 100644
---- a/fs/kernfs/inode.c
-+++ b/fs/kernfs/inode.c
-@@ -28,9 +28,9 @@ static const struct inode_operations kernfs_iops = {
- 	.permission	= kernfs_iop_permission,
- 	.setattr	= kernfs_iop_setattr,
- 	.getattr	= kernfs_iop_getattr,
--	.setxattr	= kernfs_iop_setxattr,
--	.removexattr	= kernfs_iop_removexattr,
--	.getxattr	= kernfs_iop_getxattr,
-+	.setxattr	= generic_setxattr,
-+	.removexattr	= generic_removexattr,
-+	.getxattr	= generic_getxattr,
- 	.listxattr	= kernfs_iop_listxattr,
- };
- 
-@@ -138,17 +138,12 @@ out:
- 	return error;
- }
- 
--static int kernfs_node_setsecdata(struct kernfs_node *kn, void **secdata,
-+static int kernfs_node_setsecdata(struct kernfs_iattrs *attrs, void **secdata,
- 				  u32 *secdata_len)
- {
--	struct kernfs_iattrs *attrs;
- 	void *old_secdata;
- 	size_t old_secdata_len;
- 
--	attrs = kernfs_iattrs(kn);
--	if (!attrs)
--		return -ENOMEM;
--
- 	old_secdata = attrs->ia_secdata;
- 	old_secdata_len = attrs->ia_secdata_len;
- 
-@@ -160,71 +155,6 @@ static int kernfs_node_setsecdata(struct kernfs_node *kn, void **secdata,
- 	return 0;
- }
- 
--int kernfs_iop_setxattr(struct dentry *unused, struct inode *inode,
--			const char *name, const void *value,
--			size_t size, int flags)
--{
--	struct kernfs_node *kn = inode->i_private;
--	struct kernfs_iattrs *attrs;
--	void *secdata;
--	int error;
--	u32 secdata_len = 0;
--
--	attrs = kernfs_iattrs(kn);
--	if (!attrs)
--		return -ENOMEM;
--
--	if (!strncmp(name, XATTR_SECURITY_PREFIX, XATTR_SECURITY_PREFIX_LEN)) {
--		const char *suffix = name + XATTR_SECURITY_PREFIX_LEN;
--		error = security_inode_setsecurity(inode, suffix,
--						value, size, flags);
--		if (error)
--			return error;
--		error = security_inode_getsecctx(inode,
--						&secdata, &secdata_len);
--		if (error)
--			return error;
--
--		mutex_lock(&kernfs_mutex);
--		error = kernfs_node_setsecdata(kn, &secdata, &secdata_len);
--		mutex_unlock(&kernfs_mutex);
--
--		if (secdata)
--			security_release_secctx(secdata, secdata_len);
--		return error;
--	} else if (!strncmp(name, XATTR_TRUSTED_PREFIX, XATTR_TRUSTED_PREFIX_LEN)) {
--		return simple_xattr_set(&attrs->xattrs, name, value, size,
--					flags);
--	}
--
--	return -EINVAL;
--}
--
--int kernfs_iop_removexattr(struct dentry *dentry, const char *name)
--{
--	struct kernfs_node *kn = dentry->d_fsdata;
--	struct kernfs_iattrs *attrs;
--
--	attrs = kernfs_iattrs(kn);
--	if (!attrs)
--		return -ENOMEM;
--
--	return simple_xattr_set(&attrs->xattrs, name, NULL, 0, XATTR_REPLACE);
--}
--
--ssize_t kernfs_iop_getxattr(struct dentry *unused, struct inode *inode,
--			    const char *name, void *buf, size_t size)
--{
--	struct kernfs_node *kn = inode->i_private;
--	struct kernfs_iattrs *attrs;
--
--	attrs = kernfs_iattrs(kn);
--	if (!attrs)
--		return -ENOMEM;
--
--	return simple_xattr_get(&attrs->xattrs, name, buf, size);
--}
--
- ssize_t kernfs_iop_listxattr(struct dentry *dentry, char *buf, size_t size)
- {
- 	struct kernfs_node *kn = dentry->d_fsdata;
-@@ -376,3 +306,83 @@ int kernfs_iop_permission(struct inode *inode, int mask)
- 
- 	return generic_permission(inode, mask);
- }
-+
-+static int kernfs_xattr_get(const struct xattr_handler *handler,
-+			    struct dentry *unused, struct inode *inode,
-+			    const char *suffix, void *value, size_t size)
-+{
-+	const char *name = xattr_full_name(handler, suffix);
-+	struct kernfs_node *kn = inode->i_private;
-+	struct kernfs_iattrs *attrs;
-+
-+	attrs = kernfs_iattrs(kn);
-+	if (!attrs)
-+		return -ENOMEM;
-+
-+	return simple_xattr_get(&attrs->xattrs, name, value, size);
-+}
-+
-+static int kernfs_xattr_set(const struct xattr_handler *handler,
-+			    struct dentry *unused, struct inode *inode,
-+			    const char *suffix, const void *value,
-+			    size_t size, int flags)
-+{
-+	const char *name = xattr_full_name(handler, suffix);
-+	struct kernfs_node *kn = inode->i_private;
-+	struct kernfs_iattrs *attrs;
-+
-+	attrs = kernfs_iattrs(kn);
-+	if (!attrs)
-+		return -ENOMEM;
-+
-+	return simple_xattr_set(&attrs->xattrs, name, value, size, flags);
-+}
-+
-+const struct xattr_handler kernfs_trusted_xattr_handler = {
-+	.prefix = XATTR_TRUSTED_PREFIX,
-+	.get = kernfs_xattr_get,
-+	.set = kernfs_xattr_set,
+-int hfs_setxattr(struct dentry *unused, struct inode *inode,
+-		 const char *name, const void *value,
+-		 size_t size, int flags)
++enum hfs_xattr_type {
++	HFS_TYPE,
++	HFS_CREATOR,
 +};
 +
-+static int kernfs_security_xattr_set(const struct xattr_handler *handler,
-+				     struct dentry *unused, struct inode *inode,
-+				     const char *suffix, const void *value,
-+				     size_t size, int flags)
-+{
-+	struct kernfs_node *kn = inode->i_private;
-+	struct kernfs_iattrs *attrs;
-+	void *secdata;
-+	u32 secdata_len = 0;
-+	int error;
++static int __hfs_setxattr(struct inode *inode, enum hfs_xattr_type type,
++			  const void *value, size_t size, int flags)
+ {
+ 	struct hfs_find_data fd;
+ 	hfs_cat_rec rec;
+@@ -36,18 +40,22 @@ int hfs_setxattr(struct dentry *unused, struct inode *inode,
+ 			sizeof(struct hfs_cat_file));
+ 	file = &rec.file;
+ 
+-	if (!strcmp(name, "hfs.type")) {
++	switch (type) {
++	case HFS_TYPE:
+ 		if (size == 4)
+ 			memcpy(&file->UsrWds.fdType, value, 4);
+ 		else
+ 			res = -ERANGE;
+-	} else if (!strcmp(name, "hfs.creator")) {
++		break;
 +
-+	attrs = kernfs_iattrs(kn);
-+	if (!attrs)
-+		return -ENOMEM;
++	case HFS_CREATOR:
+ 		if (size == 4)
+ 			memcpy(&file->UsrWds.fdCreator, value, 4);
+ 		else
+ 			res = -ERANGE;
+-	} else
+-		res = -EOPNOTSUPP;
++		break;
++	}
 +
-+	error = security_inode_setsecurity(inode, suffix, value, size, flags);
-+	if (error)
-+		return error;
-+	error = security_inode_getsecctx(inode, &secdata, &secdata_len);
-+	if (error)
-+		return error;
+ 	if (!res)
+ 		hfs_bnode_write(fd.bnode, &rec, fd.entryoffset,
+ 				sizeof(struct hfs_cat_file));
+@@ -56,8 +64,8 @@ out:
+ 	return res;
+ }
+ 
+-ssize_t hfs_getxattr(struct dentry *unused, struct inode *inode,
+-		     const char *name, void *value, size_t size)
++static ssize_t __hfs_getxattr(struct inode *inode, enum hfs_xattr_type type,
++			      void *value, size_t size)
+ {
+ 	struct hfs_find_data fd;
+ 	hfs_cat_rec rec;
+@@ -80,41 +88,64 @@ ssize_t hfs_getxattr(struct dentry *unused, struct inode *inode,
+ 	}
+ 	file = &rec.file;
+ 
+-	if (!strcmp(name, "hfs.type")) {
++	switch (type) {
++	case HFS_TYPE:
+ 		if (size >= 4) {
+ 			memcpy(value, &file->UsrWds.fdType, 4);
+ 			res = 4;
+ 		} else
+ 			res = size ? -ERANGE : 4;
+-	} else if (!strcmp(name, "hfs.creator")) {
++		break;
 +
-+	mutex_lock(&kernfs_mutex);
-+	error = kernfs_node_setsecdata(attrs, &secdata, &secdata_len);
-+	mutex_unlock(&kernfs_mutex);
++	case HFS_CREATOR:
+ 		if (size >= 4) {
+ 			memcpy(value, &file->UsrWds.fdCreator, 4);
+ 			res = 4;
+ 		} else
+ 			res = size ? -ERANGE : 4;
+-	} else
+-		res = -ENODATA;
++		break;
++	}
 +
-+	if (secdata)
-+		security_release_secctx(secdata, secdata_len);
-+	return error;
+ out:
+ 	if (size)
+ 		hfs_find_exit(&fd);
+ 	return res;
+ }
+ 
+-#define HFS_ATTRLIST_SIZE (sizeof("hfs.creator")+sizeof("hfs.type"))
+-
+-ssize_t hfs_listxattr(struct dentry *dentry, char *buffer, size_t size)
++static int hfs_xattr_get(const struct xattr_handler *handler,
++			 struct dentry *unused, struct inode *inode,
++			 const char *name, void *value, size_t size)
+ {
+-	struct inode *inode = d_inode(dentry);
++	return __hfs_getxattr(inode, handler->flags, value, size);
 +}
+ 
+-	if (!S_ISREG(inode->i_mode) || HFS_IS_RSRC(inode))
++static int hfs_xattr_set(const struct xattr_handler *handler,
++			 struct dentry *unused, struct inode *inode,
++			 const char *name, const void *value, size_t size,
++			 int flags)
++{
++	if (!value)
+ 		return -EOPNOTSUPP;
+ 
+-	if (!buffer || !size)
+-		return HFS_ATTRLIST_SIZE;
+-	if (size < HFS_ATTRLIST_SIZE)
+-		return -ERANGE;
+-	strcpy(buffer, "hfs.type");
+-	strcpy(buffer + sizeof("hfs.type"), "hfs.creator");
+-
+-	return HFS_ATTRLIST_SIZE;
++	return __hfs_setxattr(inode, handler->flags, value, size, flags);
+ }
 +
-+const struct xattr_handler kernfs_security_xattr_handler = {
-+	.prefix = XATTR_SECURITY_PREFIX,
-+	.get = kernfs_xattr_get,
-+	.set = kernfs_security_xattr_set,
++static const struct xattr_handler hfs_creator_handler = {
++	.name = "hfs.creator",
++	.flags = HFS_CREATOR,
++	.get = hfs_xattr_get,
++	.set = hfs_xattr_set,
 +};
 +
-+const struct xattr_handler *kernfs_xattr_handlers[] = {
-+	&kernfs_trusted_xattr_handler,
-+	&kernfs_security_xattr_handler,
++static const struct xattr_handler hfs_type_handler = {
++	.name = "hfs.type",
++	.flags = HFS_TYPE,
++	.get = hfs_xattr_get,
++	.set = hfs_xattr_set,
++};
++
++const struct xattr_handler *hfs_xattr_handlers[] = {
++	&hfs_creator_handler,
++	&hfs_type_handler,
 +	NULL
 +};
-diff --git a/fs/kernfs/kernfs-internal.h b/fs/kernfs/kernfs-internal.h
-index 3715923..bfd551b 100644
---- a/fs/kernfs/kernfs-internal.h
-+++ b/fs/kernfs/kernfs-internal.h
-@@ -76,17 +76,12 @@ extern struct kmem_cache *kernfs_node_cache;
- /*
-  * inode.c
-  */
-+extern const struct xattr_handler *kernfs_xattr_handlers[];
- void kernfs_evict_inode(struct inode *inode);
- int kernfs_iop_permission(struct inode *inode, int mask);
- int kernfs_iop_setattr(struct dentry *dentry, struct iattr *iattr);
- int kernfs_iop_getattr(struct vfsmount *mnt, struct dentry *dentry,
- 		       struct kstat *stat);
--int kernfs_iop_setxattr(struct dentry *dentry, struct inode *inode,
--			const char *name, const void *value,
--			size_t size, int flags);
--int kernfs_iop_removexattr(struct dentry *dentry, const char *name);
--ssize_t kernfs_iop_getxattr(struct dentry *dentry, struct inode *inode,
--			    const char *name, void *buf, size_t size);
- ssize_t kernfs_iop_listxattr(struct dentry *dentry, char *buf, size_t size);
+diff --git a/fs/hfs/hfs_fs.h b/fs/hfs/hfs_fs.h
+index 16f5172..4cdec5a 100644
+--- a/fs/hfs/hfs_fs.h
++++ b/fs/hfs/hfs_fs.h
+@@ -212,11 +212,7 @@ extern void hfs_evict_inode(struct inode *);
+ extern void hfs_delete_inode(struct inode *);
  
- /*
-diff --git a/fs/kernfs/mount.c b/fs/kernfs/mount.c
-index b3d73ad..d5b149a 100644
---- a/fs/kernfs/mount.c
-+++ b/fs/kernfs/mount.c
-@@ -158,6 +158,7 @@ static int kernfs_fill_super(struct super_block *sb, unsigned long magic)
- 	sb->s_blocksize_bits = PAGE_SHIFT;
- 	sb->s_magic = magic;
- 	sb->s_op = &kernfs_sops;
-+	sb->s_xattr = kernfs_xattr_handlers;
- 	sb->s_time_gran = 1;
+ /* attr.c */
+-extern int hfs_setxattr(struct dentry *dentry, struct inode *inode, const char *name,
+-			const void *value, size_t size, int flags);
+-extern ssize_t hfs_getxattr(struct dentry *dentry, struct inode *inode,
+-			    const char *name, void *value, size_t size);
+-extern ssize_t hfs_listxattr(struct dentry *dentry, char *buffer, size_t size);
++extern const struct xattr_handler *hfs_xattr_handlers[];
  
- 	/* get root inode, initialize and unlock it */
-diff --git a/fs/kernfs/symlink.c b/fs/kernfs/symlink.c
-index 117b8b3..549a14c7 100644
---- a/fs/kernfs/symlink.c
-+++ b/fs/kernfs/symlink.c
-@@ -134,9 +134,9 @@ static const char *kernfs_iop_get_link(struct dentry *dentry,
- }
+ /* mdb.c */
+ extern int hfs_mdb_get(struct super_block *);
+diff --git a/fs/hfs/inode.c b/fs/hfs/inode.c
+index c6a3241..7f44f1a 100644
+--- a/fs/hfs/inode.c
++++ b/fs/hfs/inode.c
+@@ -15,6 +15,7 @@
+ #include <linux/mpage.h>
+ #include <linux/sched.h>
+ #include <linux/uio.h>
++#include <linux/xattr.h>
  
- const struct inode_operations kernfs_symlink_iops = {
--	.setxattr	= kernfs_iop_setxattr,
--	.removexattr	= kernfs_iop_removexattr,
--	.getxattr	= kernfs_iop_getxattr,
+ #include "hfs_fs.h"
+ #include "btree.h"
+@@ -687,7 +688,7 @@ static const struct file_operations hfs_file_operations = {
+ static const struct inode_operations hfs_file_inode_operations = {
+ 	.lookup		= hfs_file_lookup,
+ 	.setattr	= hfs_inode_setattr,
+-	.setxattr	= hfs_setxattr,
+-	.getxattr	= hfs_getxattr,
+-	.listxattr	= hfs_listxattr,
 +	.setxattr	= generic_setxattr,
-+	.removexattr	= generic_removexattr,
 +	.getxattr	= generic_getxattr,
- 	.listxattr	= kernfs_iop_listxattr,
- 	.readlink	= generic_readlink,
- 	.get_link	= kernfs_iop_get_link,
++	.listxattr	= generic_listxattr,
+ };
+diff --git a/fs/hfs/super.c b/fs/hfs/super.c
+index 1ca95c2..bf6304a 100644
+--- a/fs/hfs/super.c
++++ b/fs/hfs/super.c
+@@ -406,6 +406,7 @@ static int hfs_fill_super(struct super_block *sb, void *data, int silent)
+ 	}
+ 
+ 	sb->s_op = &hfs_super_operations;
++	sb->s_xattr = hfs_xattr_handlers;
+ 	sb->s_flags |= MS_NODIRATIME;
+ 	mutex_init(&sbi->bitmap_lock);
+ 
 -- 
 2.7.4
