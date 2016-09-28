@@ -1,138 +1,108 @@
 From: Andreas Gruenbacher <agruenba@redhat.com>
-Subject: [PATCH v5 10/17] vfs: Move xattr_resolve_name to the front of fs/xattr.c
-Date: Wed, 28 Sep 2016 16:57:56 +0200
-Message-ID: <1475074683-26971-11-git-send-email-agruenba@redhat.com>
+Subject: [PATCH v5 12/17] vfs: Use IOP_XATTR flag for bad-inode handling
+Date: Wed, 28 Sep 2016 16:57:58 +0200
+Message-ID: <1475074683-26971-13-git-send-email-agruenba@redhat.com>
 References: <1475074683-26971-1-git-send-email-agruenba@redhat.com>
-Return-path: <ecryptfs-owner@vger.kernel.org>
+Return-path: <linux-unionfs-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:48446 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S932700AbcI1O7J (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Wed, 28 Sep 2016 10:59:09 -0400
 In-Reply-To: <1475074683-26971-1-git-send-email-agruenba@redhat.com>
-Sender: ecryptfs-owner@vger.kernel.org
+Sender: linux-unionfs-owner@vger.kernel.org
+List-Id: linux-unionfs@vger.kernel.org
 To: Alexander Viro <viro@zeniv.linux.org.uk>
 Cc: Andreas Gruenbacher <agruenba@redhat.com>, linux-fsdevel@vger.kernel.org, Tyler Hicks <tyhicks@canonical.com>, ecryptfs@vger.kernel.org, linux-unionfs@vger.kernel.org, David Howells <dhowells@redhat.com>, Serge Hallyn <serge@hallyn.com>, Dmitry Kasatkin <dmitry.kasatkin@gmail.com>, linux-ima-devel@lists.sourceforge.net, Paul Moore <paul@paul-moore.com>, Stephen Smalley <sds@tycho.nsa.gov>, Eric Paris <eparis@parisplace.org>, Casey Schaufler <casey@schaufler-ca.com>, Oleg Drokin <oleg.drokin@intel.com>, Andreas Dilger <andreas.dilger@intel.com>
-List-Id: linux-unionfs@vger.kernel.org
+
+With this change, all the xattr handler based operations will produce an
+-EIO result for bad inodes, and we no longer only depend on inode->i_op
+to be set to bad_inode_ops.
 
 Signed-off-by: Andreas Gruenbacher <agruenba@redhat.com>
 ---
- fs/xattr.c | 101 ++++++++++++++++++++++++++++++-------------------------------
- 1 file changed, 50 insertions(+), 51 deletions(-)
+ fs/bad_inode.c | 21 +--------------------
+ fs/xattr.c     |  8 +++++++-
+ 2 files changed, 8 insertions(+), 21 deletions(-)
 
-diff --git a/fs/xattr.c b/fs/xattr.c
-index 1f72c92..bb3cbbf 100644
---- a/fs/xattr.c
-+++ b/fs/xattr.c
-@@ -24,6 +24,56 @@
- 
- #include <asm/uaccess.h>
- 
-+static const char *
-+strcmp_prefix(const char *a, const char *a_prefix)
-+{
-+	while (*a_prefix && *a == *a_prefix) {
-+		a++;
-+		a_prefix++;
-+	}
-+	return *a_prefix ? NULL : a;
-+}
-+
-+/*
-+ * In order to implement different sets of xattr operations for each xattr
-+ * prefix with the generic xattr API, a filesystem should create a
-+ * null-terminated array of struct xattr_handler (one for each prefix) and
-+ * hang a pointer to it off of the s_xattr field of the superblock.
-+ *
-+ * The generic_fooxattr() functions will use this list to dispatch xattr
-+ * operations to the correct xattr_handler.
-+ */
-+#define for_each_xattr_handler(handlers, handler)		\
-+	if (handlers)						\
-+		for ((handler) = *(handlers)++;			\
-+			(handler) != NULL;			\
-+			(handler) = *(handlers)++)
-+
-+/*
-+ * Find the xattr_handler with the matching prefix.
-+ */
-+static const struct xattr_handler *
-+xattr_resolve_name(const struct xattr_handler **handlers, const char **name)
-+{
-+	const struct xattr_handler *handler;
-+
-+	for_each_xattr_handler(handlers, handler) {
-+		const char *n;
-+
-+		n = strcmp_prefix(*name, xattr_prefix(handler));
-+		if (n) {
-+			if (!handler->prefix ^ !*n) {
-+				if (*n)
-+					continue;
-+				return ERR_PTR(-EINVAL);
-+			}
-+			*name = n;
-+			return handler;
-+		}
-+	}
-+	return ERR_PTR(-EOPNOTSUPP);
-+}
-+
- /*
-  * Check permissions for extended attribute access.  This is a bit complicated
-  * because different namespaces have very different rules.
-@@ -641,57 +691,6 @@ SYSCALL_DEFINE2(fremovexattr, int, fd, const char __user *, name)
- 	return error;
+diff --git a/fs/bad_inode.c b/fs/bad_inode.c
+index 3ba385e..7bb153c 100644
+--- a/fs/bad_inode.c
++++ b/fs/bad_inode.c
+@@ -100,29 +100,12 @@ static int bad_inode_setattr(struct dentry *direntry, struct iattr *attrs)
+ 	return -EIO;
  }
  
--
--static const char *
--strcmp_prefix(const char *a, const char *a_prefix)
+-static int bad_inode_setxattr(struct dentry *dentry, struct inode *inode,
+-		const char *name, const void *value, size_t size, int flags)
 -{
--	while (*a_prefix && *a == *a_prefix) {
--		a++;
--		a_prefix++;
--	}
--	return *a_prefix ? NULL : a;
+-	return -EIO;
 -}
 -
--/*
-- * In order to implement different sets of xattr operations for each xattr
-- * prefix with the generic xattr API, a filesystem should create a
-- * null-terminated array of struct xattr_handler (one for each prefix) and
-- * hang a pointer to it off of the s_xattr field of the superblock.
-- *
-- * The generic_fooxattr() functions will use this list to dispatch xattr
-- * operations to the correct xattr_handler.
-- */
--#define for_each_xattr_handler(handlers, handler)		\
--	if (handlers)						\
--		for ((handler) = *(handlers)++;			\
--			(handler) != NULL;			\
--			(handler) = *(handlers)++)
--
--/*
-- * Find the xattr_handler with the matching prefix.
-- */
--static const struct xattr_handler *
--xattr_resolve_name(const struct xattr_handler **handlers, const char **name)
+-static ssize_t bad_inode_getxattr(struct dentry *dentry, struct inode *inode,
+-			const char *name, void *buffer, size_t size)
 -{
--	const struct xattr_handler *handler;
--
--	for_each_xattr_handler(handlers, handler) {
--		const char *n;
--
--		n = strcmp_prefix(*name, xattr_prefix(handler));
--		if (n) {
--			if (!handler->prefix ^ !*n) {
--				if (*n)
--					continue;
--				return ERR_PTR(-EINVAL);
--			}
--			*name = n;
--			return handler;
--		}
--	}
--	return ERR_PTR(-EOPNOTSUPP);
+-	return -EIO;
 -}
 -
- /*
-  * Find the handler for the prefix and dispatch its get() operation.
-  */
+ static ssize_t bad_inode_listxattr(struct dentry *dentry, char *buffer,
+ 			size_t buffer_size)
+ {
+ 	return -EIO;
+ }
+ 
+-static int bad_inode_removexattr(struct dentry *dentry, const char *name)
+-{
+-	return -EIO;
+-}
+-
+ static const struct inode_operations bad_inode_ops =
+ {
+ 	.create		= bad_inode_create,
+@@ -142,10 +125,7 @@ static const struct inode_operations bad_inode_ops =
+ 	.permission	= bad_inode_permission,
+ 	.getattr	= bad_inode_getattr,
+ 	.setattr	= bad_inode_setattr,
+-	.setxattr	= bad_inode_setxattr,
+-	.getxattr	= bad_inode_getxattr,
+ 	.listxattr	= bad_inode_listxattr,
+-	.removexattr	= bad_inode_removexattr,
+ };
+ 
+ 
+@@ -175,6 +155,7 @@ void make_bad_inode(struct inode *inode)
+ 	inode->i_atime = inode->i_mtime = inode->i_ctime =
+ 		current_fs_time(inode->i_sb);
+ 	inode->i_op = &bad_inode_ops;	
++	inode->i_opflags &= ~IOP_XATTR;
+ 	inode->i_fop = &bad_file_ops;	
+ }
+ EXPORT_SYMBOL(make_bad_inode);
+diff --git a/fs/xattr.c b/fs/xattr.c
+index 38b52a3..1f5d0b4 100644
+--- a/fs/xattr.c
++++ b/fs/xattr.c
+@@ -58,8 +58,11 @@ xattr_resolve_name(struct inode *inode, const char **name)
+ 	const struct xattr_handler **handlers = inode->i_sb->s_xattr;
+ 	const struct xattr_handler *handler;
+ 
+-	if (!(inode->i_opflags & IOP_XATTR))
++	if (!(inode->i_opflags & IOP_XATTR)) {
++		if (unlikely(is_bad_inode(inode)))
++			return ERR_PTR(-EIO);
+ 		return ERR_PTR(-EOPNOTSUPP);
++	}
+ 	for_each_xattr_handler(handlers, handler) {
+ 		const char *n;
+ 
+@@ -168,6 +171,9 @@ int __vfs_setxattr_noperm(struct dentry *dentry, const char *name,
+ 		}
+ 	} else if (issec) {
+ 		const char *suffix = name + XATTR_SECURITY_PREFIX_LEN;
++
++		if (unlikely(is_bad_inode(inode)))
++			return -EIO;
+ 		error = security_inode_setsecurity(inode, suffix, value,
+ 						   size, flags);
+ 		if (!error)
 -- 
 2.7.4
