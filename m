@@ -1,167 +1,160 @@
 From: Andreas Gruenbacher <agruenba@redhat.com>
-Subject: [PATCH v5 06/17] sockfs: Get rid of getxattr iop
-Date: Wed, 28 Sep 2016 16:57:52 +0200
-Message-ID: <1475074683-26971-7-git-send-email-agruenba@redhat.com>
+Subject: [PATCH v5 08/17] fuse: Switch to generic xattr handlers
+Date: Wed, 28 Sep 2016 16:57:54 +0200
+Message-ID: <1475074683-26971-9-git-send-email-agruenba@redhat.com>
 References: <1475074683-26971-1-git-send-email-agruenba@redhat.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:58864 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:49480 "EHLO mx1.redhat.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932700AbcI1O6k (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 28 Sep 2016 10:58:40 -0400
+        id S932700AbcI1O6u (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Wed, 28 Sep 2016 10:58:50 -0400
 In-Reply-To: <1475074683-26971-1-git-send-email-agruenba@redhat.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: Alexander Viro <viro@zeniv.linux.org.uk>
 Cc: Andreas Gruenbacher <agruenba@redhat.com>, linux-fsdevel@vger.kernel.org, Tyler Hicks <tyhicks@canonical.com>, ecryptfs@vger.kernel.org, linux-unionfs@vger.kernel.org, David Howells <dhowells@redhat.com>, Serge Hallyn <serge@hallyn.com>, Dmitry Kasatkin <dmitry.kasatkin@gmail.com>, linux-ima-devel@lists.sourceforge.net, Paul Moore <paul@paul-moore.com>, Stephen Smalley <sds@tycho.nsa.gov>, Eric Paris <eparis@parisplace.org>, Casey Schaufler <casey@schaufler-ca.com>, Oleg Drokin <oleg.drokin@intel.com>, Andreas Dilger <andreas.dilger@intel.com>
 
-If we allow pseudo-filesystems created with mount_pseudo to have xattr
-handlers, we can replace sockfs_getxattr with a sockfs_xattr_get handler
-to use the xattr handler name parsing.
-
 Signed-off-by: Andreas Gruenbacher <agruenba@redhat.com>
 ---
- fs/libfs.c         |  7 ++++---
- include/linux/fs.h | 17 +++++++++++++----
- net/socket.c       | 50 ++++++++++++++++++++++++++++++--------------------
- 3 files changed, 47 insertions(+), 27 deletions(-)
+ fs/fuse/dir.c    | 58 ++++++++++++++++++++++++++++++++++++++++++--------------
+ fs/fuse/fuse_i.h |  2 ++
+ fs/fuse/inode.c  |  1 +
+ 3 files changed, 47 insertions(+), 14 deletions(-)
 
-diff --git a/fs/libfs.c b/fs/libfs.c
-index 74dc8b9..cfa9576 100644
---- a/fs/libfs.c
-+++ b/fs/libfs.c
-@@ -236,8 +236,8 @@ static const struct super_operations simple_super_operations = {
-  * Common helper for pseudo-filesystems (sockfs, pipefs, bdev - stuff that
-  * will never be mountable)
-  */
--struct dentry *mount_pseudo(struct file_system_type *fs_type, char *name,
--	const struct super_operations *ops,
-+struct dentry *mount_pseudo_xattr(struct file_system_type *fs_type, char *name,
-+	const struct super_operations *ops, const struct xattr_handler **xattr,
- 	const struct dentry_operations *dops, unsigned long magic)
+diff --git a/fs/fuse/dir.c b/fs/fuse/dir.c
+index c47b778..3408a37 100644
+--- a/fs/fuse/dir.c
++++ b/fs/fuse/dir.c
+@@ -13,6 +13,7 @@
+ #include <linux/sched.h>
+ #include <linux/namei.h>
+ #include <linux/slab.h>
++#include <linux/xattr.h>
+ 
+ static bool fuse_use_readdirplus(struct inode *dir, struct dir_context *ctx)
  {
- 	struct super_block *s;
-@@ -254,6 +254,7 @@ struct dentry *mount_pseudo(struct file_system_type *fs_type, char *name,
- 	s->s_blocksize_bits = PAGE_SHIFT;
- 	s->s_magic = magic;
- 	s->s_op = ops ? ops : &simple_super_operations;
-+	s->s_xattr = xattr;
- 	s->s_time_gran = 1;
- 	root = new_inode(s);
- 	if (!root)
-@@ -281,7 +282,7 @@ Enomem:
- 	deactivate_locked_super(s);
- 	return ERR_PTR(-ENOMEM);
+@@ -1724,9 +1725,8 @@ static int fuse_getattr(struct vfsmount *mnt, struct dentry *entry,
+ 	return fuse_update_attributes(inode, stat, NULL, NULL);
  }
--EXPORT_SYMBOL(mount_pseudo);
-+EXPORT_SYMBOL(mount_pseudo_xattr);
  
- int simple_open(struct inode *inode, struct file *file)
+-static int fuse_setxattr(struct dentry *unused, struct inode *inode,
+-			 const char *name, const void *value,
+-			 size_t size, int flags)
++static int fuse_setxattr(struct inode *inode, const char *name,
++			 const void *value, size_t size, int flags)
  {
-diff --git a/include/linux/fs.h b/include/linux/fs.h
-index 901e25d..7540e87 100644
---- a/include/linux/fs.h
-+++ b/include/linux/fs.h
-@@ -2075,10 +2075,19 @@ struct super_block *sget(struct file_system_type *type,
- 			int (*test)(struct super_block *,void *),
- 			int (*set)(struct super_block *,void *),
- 			int flags, void *data);
--extern struct dentry *mount_pseudo(struct file_system_type *, char *,
--	const struct super_operations *ops,
--	const struct dentry_operations *dops,
--	unsigned long);
-+extern struct dentry *mount_pseudo_xattr(struct file_system_type *, char *,
-+					 const struct super_operations *ops,
-+					 const struct xattr_handler **xattr,
-+					 const struct dentry_operations *dops,
-+					 unsigned long);
-+
-+static inline struct dentry *
-+mount_pseudo(struct file_system_type *fs_type, char *name,
-+	     const struct super_operations *ops,
-+	     const struct dentry_operations *dops, unsigned long magic)
-+{
-+	return mount_pseudo_xattr(fs_type, name, ops, NULL, dops, magic);
-+}
+ 	struct fuse_conn *fc = get_fuse_conn(inode);
+ 	FUSE_ARGS(args);
+@@ -1843,9 +1843,8 @@ static ssize_t fuse_listxattr(struct dentry *entry, char *list, size_t size)
+ 	return ret;
+ }
  
- /* Alas, no aliases. Too much hassle with bringing module.h everywhere */
- #define fops_get(fops) \
-diff --git a/net/socket.c b/net/socket.c
-index 9b3dca6..976f7324 100644
---- a/net/socket.c
-+++ b/net/socket.c
-@@ -320,11 +320,38 @@ static const struct dentry_operations sockfs_dentry_operations = {
- 	.d_dname  = sockfs_dname,
+-static int fuse_removexattr(struct dentry *entry, const char *name)
++static int fuse_removexattr(struct inode *inode, const char *name)
+ {
+-	struct inode *inode = d_inode(entry);
+ 	struct fuse_conn *fc = get_fuse_conn(inode);
+ 	FUSE_ARGS(args);
+ 	int err;
+@@ -1884,10 +1883,10 @@ static const struct inode_operations fuse_dir_inode_operations = {
+ 	.mknod		= fuse_mknod,
+ 	.permission	= fuse_permission,
+ 	.getattr	= fuse_getattr,
+-	.setxattr	= fuse_setxattr,
+-	.getxattr	= fuse_getxattr,
++	.setxattr	= generic_setxattr,
++	.getxattr	= generic_getxattr,
+ 	.listxattr	= fuse_listxattr,
+-	.removexattr	= fuse_removexattr,
++	.removexattr	= generic_removexattr,
  };
  
-+static int sockfs_xattr_get(const struct xattr_handler *handler,
-+			    struct dentry *dentry, struct inode *inode,
-+			    const char *suffix, void *value, size_t size)
-+{
-+	if (value) {
-+		if (dentry->d_name.len + 1 > size)
-+			return -ERANGE;
-+		memcpy(value, dentry->d_name.name, dentry->d_name.len + 1);
-+	}
-+	return dentry->d_name.len + 1;
-+}
-+
-+#define XATTR_SOCKPROTONAME_SUFFIX "sockprotoname"
-+#define XATTR_NAME_SOCKPROTONAME (XATTR_SYSTEM_PREFIX XATTR_SOCKPROTONAME_SUFFIX)
-+#define XATTR_NAME_SOCKPROTONAME_LEN (sizeof(XATTR_NAME_SOCKPROTONAME)-1)
-+
-+static const struct xattr_handler sockfs_xattr_handler = {
-+	.name = XATTR_NAME_SOCKPROTONAME,
-+	.get = sockfs_xattr_get,
-+};
-+
-+static const struct xattr_handler *sockfs_xattr_handlers[] = {
-+	&sockfs_xattr_handler,
-+	NULL
-+};
-+
- static struct dentry *sockfs_mount(struct file_system_type *fs_type,
- 			 int flags, const char *dev_name, void *data)
- {
--	return mount_pseudo(fs_type, "socket:", &sockfs_ops,
--		&sockfs_dentry_operations, SOCKFS_MAGIC);
-+	return mount_pseudo_xattr(fs_type, "socket:", &sockfs_ops,
-+				  sockfs_xattr_handlers,
-+				  &sockfs_dentry_operations, SOCKFS_MAGIC);
- }
- 
- static struct vfsmount *sock_mnt __read_mostly;
-@@ -463,23 +490,6 @@ static struct socket *sockfd_lookup_light(int fd, int *err, int *fput_needed)
- 	return NULL;
- }
- 
--#define XATTR_SOCKPROTONAME_SUFFIX "sockprotoname"
--#define XATTR_NAME_SOCKPROTONAME (XATTR_SYSTEM_PREFIX XATTR_SOCKPROTONAME_SUFFIX)
--#define XATTR_NAME_SOCKPROTONAME_LEN (sizeof(XATTR_NAME_SOCKPROTONAME)-1)
--static ssize_t sockfs_getxattr(struct dentry *dentry, struct inode *inode,
--			       const char *name, void *value, size_t size)
--{
--	if (!strcmp(name, XATTR_NAME_SOCKPROTONAME)) {
--		if (value) {
--			if (dentry->d_name.len + 1 > size)
--				return -ERANGE;
--			memcpy(value, dentry->d_name.name, dentry->d_name.len + 1);
--		}
--		return dentry->d_name.len + 1;
--	}
--	return -EOPNOTSUPP;
--}
--
- static ssize_t sockfs_listxattr(struct dentry *dentry, char *buffer,
- 				size_t size)
- {
-@@ -509,7 +519,7 @@ static ssize_t sockfs_listxattr(struct dentry *dentry, char *buffer,
- }
- 
- static const struct inode_operations sockfs_inode_ops = {
--	.getxattr = sockfs_getxattr,
-+	.getxattr = generic_getxattr,
- 	.listxattr = sockfs_listxattr,
+ static const struct file_operations fuse_dir_operations = {
+@@ -1905,10 +1904,10 @@ static const struct inode_operations fuse_common_inode_operations = {
+ 	.setattr	= fuse_setattr,
+ 	.permission	= fuse_permission,
+ 	.getattr	= fuse_getattr,
+-	.setxattr	= fuse_setxattr,
+-	.getxattr	= fuse_getxattr,
++	.setxattr	= generic_setxattr,
++	.getxattr	= generic_getxattr,
+ 	.listxattr	= fuse_listxattr,
+-	.removexattr	= fuse_removexattr,
++	.removexattr	= generic_removexattr,
  };
  
+ static const struct inode_operations fuse_symlink_inode_operations = {
+@@ -1916,10 +1915,10 @@ static const struct inode_operations fuse_symlink_inode_operations = {
+ 	.get_link	= fuse_get_link,
+ 	.readlink	= generic_readlink,
+ 	.getattr	= fuse_getattr,
+-	.setxattr	= fuse_setxattr,
+-	.getxattr	= fuse_getxattr,
++	.setxattr	= generic_setxattr,
++	.getxattr	= generic_getxattr,
+ 	.listxattr	= fuse_listxattr,
+-	.removexattr	= fuse_removexattr,
++	.removexattr	= generic_removexattr,
+ };
+ 
+ void fuse_init_common(struct inode *inode)
+@@ -1937,3 +1936,34 @@ void fuse_init_symlink(struct inode *inode)
+ {
+ 	inode->i_op = &fuse_symlink_inode_operations;
+ }
++
++static int fuse_xattr_get(const struct xattr_handler *handler,
++		          struct dentry *dentry, struct inode *inode,
++		          const char *name, void *buffer, size_t size)
++{
++       return fuse_getxattr(dentry, inode, name, buffer, size);
++}
++
++static int fuse_xattr_set(const struct xattr_handler *handler,
++		          struct dentry *dentry, struct inode *inode,
++			  const char *name, const void *value, size_t size,
++			  int flags)
++{
++       if (value)
++		return fuse_setxattr(inode, name, value, size, flags);
++       else {
++		BUG_ON(flags != XATTR_REPLACE);
++		return fuse_removexattr(inode, name);
++       }
++}
++
++const struct xattr_handler fuse_xattr_handler = {
++       .prefix = "",  /* match anything */
++       .get = fuse_xattr_get,
++       .set = fuse_xattr_set,
++};
++
++const struct xattr_handler *fuse_xattr_handlers[] = {
++       &fuse_xattr_handler,
++       NULL
++};
+diff --git a/fs/fuse/fuse_i.h b/fs/fuse/fuse_i.h
+index d98d8cc..87938dc 100644
+--- a/fs/fuse/fuse_i.h
++++ b/fs/fuse/fuse_i.h
+@@ -966,4 +966,6 @@ void fuse_set_initialized(struct fuse_conn *fc);
+ void fuse_unlock_inode(struct inode *inode);
+ void fuse_lock_inode(struct inode *inode);
+ 
++extern const struct xattr_handler *fuse_xattr_handlers[];
++
+ #endif /* _FS_FUSE_I_H */
+diff --git a/fs/fuse/inode.c b/fs/fuse/inode.c
+index 4e05b51..1e535f3 100644
+--- a/fs/fuse/inode.c
++++ b/fs/fuse/inode.c
+@@ -1071,6 +1071,7 @@ static int fuse_fill_super(struct super_block *sb, void *data, int silent)
+ 	}
+ 	sb->s_magic = FUSE_SUPER_MAGIC;
+ 	sb->s_op = &fuse_super_operations;
++	sb->s_xattr = fuse_xattr_handlers;
+ 	sb->s_maxbytes = MAX_LFS_FILESIZE;
+ 	sb->s_time_gran = 1;
+ 	sb->s_export_op = &fuse_export_operations;
 -- 
 2.7.4
