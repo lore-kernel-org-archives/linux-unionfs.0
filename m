@@ -1,160 +1,186 @@
 From: Andreas Gruenbacher <agruenba@redhat.com>
-Subject: [PATCH v5 08/17] fuse: Switch to generic xattr handlers
-Date: Wed, 28 Sep 2016 16:57:54 +0200
-Message-ID: <1475074683-26971-9-git-send-email-agruenba@redhat.com>
+Subject: [PATCH v5 09/17] lustre: Switch to generic xattr handlers
+Date: Wed, 28 Sep 2016 16:57:55 +0200
+Message-ID: <1475074683-26971-10-git-send-email-agruenba@redhat.com>
 References: <1475074683-26971-1-git-send-email-agruenba@redhat.com>
-Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:49480 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932700AbcI1O6u (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 28 Sep 2016 10:58:50 -0400
+Return-path: <ecryptfs-owner@vger.kernel.org>
 In-Reply-To: <1475074683-26971-1-git-send-email-agruenba@redhat.com>
-Sender: linux-unionfs-owner@vger.kernel.org
-List-Id: linux-unionfs@vger.kernel.org
+Sender: ecryptfs-owner@vger.kernel.org
 To: Alexander Viro <viro@zeniv.linux.org.uk>
 Cc: Andreas Gruenbacher <agruenba@redhat.com>, linux-fsdevel@vger.kernel.org, Tyler Hicks <tyhicks@canonical.com>, ecryptfs@vger.kernel.org, linux-unionfs@vger.kernel.org, David Howells <dhowells@redhat.com>, Serge Hallyn <serge@hallyn.com>, Dmitry Kasatkin <dmitry.kasatkin@gmail.com>, linux-ima-devel@lists.sourceforge.net, Paul Moore <paul@paul-moore.com>, Stephen Smalley <sds@tycho.nsa.gov>, Eric Paris <eparis@parisplace.org>, Casey Schaufler <casey@schaufler-ca.com>, Oleg Drokin <oleg.drokin@intel.com>, Andreas Dilger <andreas.dilger@intel.com>
+List-Id: linux-unionfs@vger.kernel.org
 
 Signed-off-by: Andreas Gruenbacher <agruenba@redhat.com>
 ---
- fs/fuse/dir.c    | 58 ++++++++++++++++++++++++++++++++++++++++++--------------
- fs/fuse/fuse_i.h |  2 ++
- fs/fuse/inode.c  |  1 +
- 3 files changed, 47 insertions(+), 14 deletions(-)
+ drivers/staging/lustre/lustre/llite/file.c         |  3 --
+ .../staging/lustre/lustre/llite/llite_internal.h   |  7 ++--
+ drivers/staging/lustre/lustre/llite/llite_lib.c    |  1 +
+ drivers/staging/lustre/lustre/llite/namei.c        |  6 ----
+ drivers/staging/lustre/lustre/llite/symlink.c      |  3 --
+ drivers/staging/lustre/lustre/llite/xattr.c        | 42 +++++++++++++++++++---
+ 6 files changed, 40 insertions(+), 22 deletions(-)
 
-diff --git a/fs/fuse/dir.c b/fs/fuse/dir.c
-index c47b778..3408a37 100644
---- a/fs/fuse/dir.c
-+++ b/fs/fuse/dir.c
-@@ -13,6 +13,7 @@
+diff --git a/drivers/staging/lustre/lustre/llite/file.c b/drivers/staging/lustre/lustre/llite/file.c
+index 57281b9..e8c81e8 100644
+--- a/drivers/staging/lustre/lustre/llite/file.c
++++ b/drivers/staging/lustre/lustre/llite/file.c
+@@ -3213,10 +3213,7 @@ const struct inode_operations ll_file_inode_operations = {
+ 	.setattr	= ll_setattr,
+ 	.getattr	= ll_getattr,
+ 	.permission	= ll_inode_permission,
+-	.setxattr	= ll_setxattr,
+-	.getxattr	= ll_getxattr,
+ 	.listxattr	= ll_listxattr,
+-	.removexattr	= ll_removexattr,
+ 	.fiemap		= ll_fiemap,
+ 	.get_acl	= ll_get_acl,
+ };
+diff --git a/drivers/staging/lustre/lustre/llite/llite_internal.h b/drivers/staging/lustre/lustre/llite/llite_internal.h
+index 4d6d589..8695aca 100644
+--- a/drivers/staging/lustre/lustre/llite/llite_internal.h
++++ b/drivers/staging/lustre/lustre/llite/llite_internal.h
+@@ -933,12 +933,9 @@ static inline __u64 ll_file_maxbytes(struct inode *inode)
+ }
+ 
+ /* llite/xattr.c */
+-int ll_setxattr(struct dentry *dentry, struct inode *inode,
+-		const char *name, const void *value, size_t size, int flags);
+-ssize_t ll_getxattr(struct dentry *dentry, struct inode *inode,
+-		    const char *name, void *buffer, size_t size);
++struct xattr_handler;
++extern const struct xattr_handler *lustre_xattr_handlers[];
+ ssize_t ll_listxattr(struct dentry *dentry, char *buffer, size_t size);
+-int ll_removexattr(struct dentry *dentry, const char *name);
+ 
+ /**
+  * Common IO arguments for various VFS I/O interfaces.
+diff --git a/drivers/staging/lustre/lustre/llite/llite_lib.c b/drivers/staging/lustre/lustre/llite/llite_lib.c
+index 546063e..81f4fe9 100644
+--- a/drivers/staging/lustre/lustre/llite/llite_lib.c
++++ b/drivers/staging/lustre/lustre/llite/llite_lib.c
+@@ -421,6 +421,7 @@ static int client_common_fill_super(struct super_block *sb, char *md, char *dt,
+ #if THREAD_SIZE >= 8192 /*b=17630*/
+ 	sb->s_export_op = &lustre_export_operations;
+ #endif
++	sb->s_xattr = lustre_xattr_handlers;
+ 
+ 	/* make root inode
+ 	 * XXX: move this to after cbd setup?
+diff --git a/drivers/staging/lustre/lustre/llite/namei.c b/drivers/staging/lustre/lustre/llite/namei.c
+index 2c4dc69..f9822403 100644
+--- a/drivers/staging/lustre/lustre/llite/namei.c
++++ b/drivers/staging/lustre/lustre/llite/namei.c
+@@ -1106,10 +1106,7 @@ const struct inode_operations ll_dir_inode_operations = {
+ 	.setattr	    = ll_setattr,
+ 	.getattr	    = ll_getattr,
+ 	.permission	 = ll_inode_permission,
+-	.setxattr	   = ll_setxattr,
+-	.getxattr	   = ll_getxattr,
+ 	.listxattr	  = ll_listxattr,
+-	.removexattr	= ll_removexattr,
+ 	.get_acl	    = ll_get_acl,
+ };
+ 
+@@ -1117,9 +1114,6 @@ const struct inode_operations ll_special_inode_operations = {
+ 	.setattr	= ll_setattr,
+ 	.getattr	= ll_getattr,
+ 	.permission     = ll_inode_permission,
+-	.setxattr       = ll_setxattr,
+-	.getxattr       = ll_getxattr,
+ 	.listxattr      = ll_listxattr,
+-	.removexattr    = ll_removexattr,
+ 	.get_acl	    = ll_get_acl,
+ };
+diff --git a/drivers/staging/lustre/lustre/llite/symlink.c b/drivers/staging/lustre/lustre/llite/symlink.c
+index 8c8bdfe..d82dab2 100644
+--- a/drivers/staging/lustre/lustre/llite/symlink.c
++++ b/drivers/staging/lustre/lustre/llite/symlink.c
+@@ -155,8 +155,5 @@ const struct inode_operations ll_fast_symlink_inode_operations = {
+ 	.get_link	= ll_get_link,
+ 	.getattr	= ll_getattr,
+ 	.permission	= ll_inode_permission,
+-	.setxattr	= ll_setxattr,
+-	.getxattr	= ll_getxattr,
+ 	.listxattr	= ll_listxattr,
+-	.removexattr	= ll_removexattr,
+ };
+diff --git a/drivers/staging/lustre/lustre/llite/xattr.c b/drivers/staging/lustre/lustre/llite/xattr.c
+index 98303cf..f43f523 100644
+--- a/drivers/staging/lustre/lustre/llite/xattr.c
++++ b/drivers/staging/lustre/lustre/llite/xattr.c
+@@ -34,6 +34,7 @@
  #include <linux/sched.h>
- #include <linux/namei.h>
- #include <linux/slab.h>
+ #include <linux/mm.h>
+ #include <linux/selinux.h>
 +#include <linux/xattr.h>
  
- static bool fuse_use_readdirplus(struct inode *dir, struct dir_context *ctx)
- {
-@@ -1724,9 +1725,8 @@ static int fuse_getattr(struct vfsmount *mnt, struct dentry *entry,
- 	return fuse_update_attributes(inode, stat, NULL, NULL);
+ #define DEBUG_SUBSYSTEM S_LLITE
+ 
+@@ -149,8 +150,9 @@ int ll_setxattr_common(struct inode *inode, const char *name,
+ 	return 0;
  }
  
--static int fuse_setxattr(struct dentry *unused, struct inode *inode,
--			 const char *name, const void *value,
--			 size_t size, int flags)
-+static int fuse_setxattr(struct inode *inode, const char *name,
-+			 const void *value, size_t size, int flags)
+-int ll_setxattr(struct dentry *dentry, struct inode *inode,
+-		const char *name, const void *value, size_t size, int flags)
++static int ll_setxattr(struct dentry *dentry, struct inode *inode,
++		       const char *name, const void *value, size_t size,
++		       int flags)
  {
- 	struct fuse_conn *fc = get_fuse_conn(inode);
- 	FUSE_ARGS(args);
-@@ -1843,9 +1843,8 @@ static ssize_t fuse_listxattr(struct dentry *entry, char *list, size_t size)
- 	return ret;
+ 	LASSERT(inode);
+ 	LASSERT(name);
+@@ -202,7 +204,7 @@ int ll_setxattr(struct dentry *dentry, struct inode *inode,
+ 				  OBD_MD_FLXATTR);
  }
  
--static int fuse_removexattr(struct dentry *entry, const char *name)
-+static int fuse_removexattr(struct inode *inode, const char *name)
+-int ll_removexattr(struct dentry *dentry, const char *name)
++static int ll_removexattr(struct dentry *dentry, const char *name)
  {
--	struct inode *inode = d_inode(entry);
- 	struct fuse_conn *fc = get_fuse_conn(inode);
- 	FUSE_ARGS(args);
- 	int err;
-@@ -1884,10 +1883,10 @@ static const struct inode_operations fuse_dir_inode_operations = {
- 	.mknod		= fuse_mknod,
- 	.permission	= fuse_permission,
- 	.getattr	= fuse_getattr,
--	.setxattr	= fuse_setxattr,
--	.getxattr	= fuse_getxattr,
-+	.setxattr	= generic_setxattr,
-+	.getxattr	= generic_getxattr,
- 	.listxattr	= fuse_listxattr,
--	.removexattr	= fuse_removexattr,
-+	.removexattr	= generic_removexattr,
- };
+ 	struct inode *inode = d_inode(dentry);
  
- static const struct file_operations fuse_dir_operations = {
-@@ -1905,10 +1904,10 @@ static const struct inode_operations fuse_common_inode_operations = {
- 	.setattr	= fuse_setattr,
- 	.permission	= fuse_permission,
- 	.getattr	= fuse_getattr,
--	.setxattr	= fuse_setxattr,
--	.getxattr	= fuse_getxattr,
-+	.setxattr	= generic_setxattr,
-+	.getxattr	= generic_getxattr,
- 	.listxattr	= fuse_listxattr,
--	.removexattr	= fuse_removexattr,
-+	.removexattr	= generic_removexattr,
- };
+@@ -351,8 +353,8 @@ out:
+ 	return rc;
+ }
  
- static const struct inode_operations fuse_symlink_inode_operations = {
-@@ -1916,10 +1915,10 @@ static const struct inode_operations fuse_symlink_inode_operations = {
- 	.get_link	= fuse_get_link,
- 	.readlink	= generic_readlink,
- 	.getattr	= fuse_getattr,
--	.setxattr	= fuse_setxattr,
--	.getxattr	= fuse_getxattr,
-+	.setxattr	= generic_setxattr,
-+	.getxattr	= generic_getxattr,
- 	.listxattr	= fuse_listxattr,
--	.removexattr	= fuse_removexattr,
-+	.removexattr	= generic_removexattr,
- };
- 
- void fuse_init_common(struct inode *inode)
-@@ -1937,3 +1936,34 @@ void fuse_init_symlink(struct inode *inode)
+-ssize_t ll_getxattr(struct dentry *dentry, struct inode *inode,
+-		    const char *name, void *buffer, size_t size)
++static ssize_t ll_getxattr(struct dentry *dentry, struct inode *inode,
++			   const char *name, void *buffer, size_t size)
  {
- 	inode->i_op = &fuse_symlink_inode_operations;
+ 	LASSERT(inode);
+ 	LASSERT(name);
+@@ -518,3 +520,33 @@ out:
+ 
+ 	return rc;
  }
 +
-+static int fuse_xattr_get(const struct xattr_handler *handler,
-+		          struct dentry *dentry, struct inode *inode,
-+		          const char *name, void *buffer, size_t size)
++static int lustre_xattr_get(const struct xattr_handler *handler,
++			    struct dentry *dentry, struct inode *inode,
++			    const char *name, void *buffer, size_t size)
 +{
-+       return fuse_getxattr(dentry, inode, name, buffer, size);
++	return ll_getxattr(dentry, inode, name, buffer, size);
 +}
 +
-+static int fuse_xattr_set(const struct xattr_handler *handler,
-+		          struct dentry *dentry, struct inode *inode,
-+			  const char *name, const void *value, size_t size,
-+			  int flags)
++static int lustre_xattr_set(const struct xattr_handler *handler,
++			    struct dentry *dentry, struct inode *inode,
++			    const char *name, const void *value, size_t size,
++			    int flags)
 +{
-+       if (value)
-+		return fuse_setxattr(inode, name, value, size, flags);
-+       else {
++	if (!value) {
 +		BUG_ON(flags != XATTR_REPLACE);
-+		return fuse_removexattr(inode, name);
-+       }
++		return ll_removexattr(dentry, name);
++	}
++	return ll_setxattr(dentry, inode, name, value, size, flags);
 +}
 +
-+const struct xattr_handler fuse_xattr_handler = {
-+       .prefix = "",  /* match anything */
-+       .get = fuse_xattr_get,
-+       .set = fuse_xattr_set,
++const struct xattr_handler lustre_xattr_handler = {
++	.prefix = "",  /* match anything */
++	.get = lustre_xattr_get,
++	.set = lustre_xattr_set,
 +};
 +
-+const struct xattr_handler *fuse_xattr_handlers[] = {
-+       &fuse_xattr_handler,
-+       NULL
++const struct xattr_handler *lustre_xattr_handlers[] = {
++	&lustre_xattr_handler,
++	NULL
 +};
-diff --git a/fs/fuse/fuse_i.h b/fs/fuse/fuse_i.h
-index d98d8cc..87938dc 100644
---- a/fs/fuse/fuse_i.h
-+++ b/fs/fuse/fuse_i.h
-@@ -966,4 +966,6 @@ void fuse_set_initialized(struct fuse_conn *fc);
- void fuse_unlock_inode(struct inode *inode);
- void fuse_lock_inode(struct inode *inode);
- 
-+extern const struct xattr_handler *fuse_xattr_handlers[];
-+
- #endif /* _FS_FUSE_I_H */
-diff --git a/fs/fuse/inode.c b/fs/fuse/inode.c
-index 4e05b51..1e535f3 100644
---- a/fs/fuse/inode.c
-+++ b/fs/fuse/inode.c
-@@ -1071,6 +1071,7 @@ static int fuse_fill_super(struct super_block *sb, void *data, int silent)
- 	}
- 	sb->s_magic = FUSE_SUPER_MAGIC;
- 	sb->s_op = &fuse_super_operations;
-+	sb->s_xattr = fuse_xattr_handlers;
- 	sb->s_maxbytes = MAX_LFS_FILESIZE;
- 	sb->s_time_gran = 1;
- 	sb->s_export_op = &fuse_export_operations;
 -- 
 2.7.4
