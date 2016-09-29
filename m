@@ -1,90 +1,37 @@
-From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [PATCH v3 2/4] ovl: use vfs_clone_file_range() for copy up if possible
-Date: Thu, 29 Sep 2016 12:00:44 +0300
-Message-ID: <CAOQ4uxhht5OFOxypn-0LzwaVSqsQPNo0rTsdWp-ubzvw0a=1PQ@mail.gmail.com>
-References: <1473856994-27463-1-git-send-email-amir73il@gmail.com>
- <1473856994-27463-3-git-send-email-amir73il@gmail.com> <CAJfpegvtCf7mPanvmhU8vmoyQTUsVo-O0bpNxwnt4abkJ5ZD6Q@mail.gmail.com>
- <CAOQ4uxjEUghU=-RDBOn5zg6hrM1pn1FseEspO8hCLcSnH4WNGA@mail.gmail.com> <CAJfpegsmc5a5=X11OZZ2__ghOBbe4kdWge10EFBEAG+ftrGGJQ@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
-In-Reply-To: <CAJfpegsmc5a5=X11OZZ2__ghOBbe4kdWge10EFBEAG+ftrGGJQ@mail.gmail.com>
-Sender: linux-fsdevel-owner@vger.kernel.org
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: Dave Chinner <david@fromorbit.com>, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>, Christoph Hellwig <hch@lst.de>, linux-xfs@vger.kernel.org, "Darrick J . Wong" <darrick.wong@oracle.com>, linux-fsdevel <linux-fsdevel@vger.kernel.org>
+From: Andreas Gruenbacher <agruenba@redhat.com>
+Subject: [PATCH v6 01/16] xattr: Remove unnecessary NULL attribute name check
+Date: Thu, 29 Sep 2016 17:48:30 +0200
+Message-ID: <1475164125-28635-2-git-send-email-agruenba@redhat.com>
+References: <1475164125-28635-1-git-send-email-agruenba@redhat.com>
+Return-path: <ecryptfs-owner@vger.kernel.org>
+In-Reply-To: <1475164125-28635-1-git-send-email-agruenba@redhat.com>
+Sender: ecryptfs-owner@vger.kernel.org
+To: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Andreas Gruenbacher <agruenba@redhat.com>, linux-fsdevel@vger.kernel.org, Tyler Hicks <tyhicks@canonical.com>, ecryptfs@vger.kernel.org, linux-unionfs@vger.kernel.org, David Howells <dhowells@redhat.com>, Serge Hallyn <serge@hallyn.com>, Dmitry Kasatkin <dmitry.kasatkin@gmail.com>, linux-ima-devel@lists.sourceforge.net, Paul Moore <paul@paul-moore.com>, Stephen Smalley <sds@tycho.nsa.gov>, Eric Paris <eparis@parisplace.org>, Casey Schaufler <casey@schaufler-ca.com>, Oleg Drokin <oleg.drokin@intel.com>, Andreas Dilger <andreas.dilger@intel.com>
 List-Id: linux-unionfs@vger.kernel.org
 
-On Wed, Sep 21, 2016 at 9:29 PM, Miklos Szeredi <miklos@szeredi.hu> wrote:
-> On Wed, Sep 21, 2016 at 7:01 PM, Amir Goldstein <amir73il@gmail.com> wrote:
->> On Wed, Sep 21, 2016 at 6:09 PM, Miklos Szeredi <miklos@szeredi.hu> wrote:
->>> On Wed, Sep 14, 2016 at 2:43 PM, Amir Goldstein <amir73il@gmail.com> wrote:
->>>> When copying up within the same fs, try to use vfs_clone_file_range().
->>>> This is very efficient when lower and upper are on the same fs
->>>> with file reflink support. If vfs_clone_file_range() fails because
->>>> lower and upper are not on the same fs or if fs has no reflink support,
->>>> copy up falls back to the regular data copy code.
->>>>
->>>> Tested correct behavior when lower and upper are on:
->>>> 1. same ext4 (copy)
->>>> 2. same xfs + reflink patches + mkfs.xfs (copy)
->>>> 3. same xfs + reflink patches + mkfs.xfs -m reflink=1 (reflink)
->>>> 4. different xfs + reflink patches + mkfs.xfs -m reflink=1 (copy)
->>>>
->>>> For comparison, on my laptop, xfstest overlay/001 (copy up of large
->>>> sparse files) takes less than 1 second in the xfs reflink setup vs.
->>>> 25 seconds on the rest of the setups.
->>>>
->>>> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
->>>> ---
->>>>  fs/overlayfs/copy_up.c | 12 +++++++++++-
->>>>  1 file changed, 11 insertions(+), 1 deletion(-)
->>>>
->>>> diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
->>>> index 43fdc27..ba039f8 100644
->>>> --- a/fs/overlayfs/copy_up.c
->>>> +++ b/fs/overlayfs/copy_up.c
->>>> @@ -136,6 +136,16 @@ static int ovl_copy_up_data(struct path *old, struct path *new, loff_t len)
->>>>                 goto out_fput;
->>>>         }
->>>>
->>>> +       /* Try to use clone_file_range to clone up within the same fs */
->>>> +       error = vfs_clone_file_range(old_file, 0, new_file, 0, len);
->>>> +       if (!error)
->>>> +               goto out;
->>>> +       /* If we can clone but clone failed - abort */
->>>> +       if (error != -EXDEV && error != -EOPNOTSUPP)
->>>> +               goto out;
->>>
->>> Would be safer to fall back on any error.
->>>
->>
->> Agreed. Dave, since you suggested the 'softer' fall back, do you have
->> any objections?
->>
->>> Otherwise ACK.
->>>
->>
->> Will you be taking this to your tree?
->
-> Sure I can take it.
->
+When NULL is passed to one of the xattr system calls as the attribute
+name, copying that name from user space already fails with -EFAULT;
+xattr_resolve_name is never called with a NULL attribute name.
 
-Miklos,
+Signed-off-by: Andreas Gruenbacher <agruenba@redhat.com>
+---
+ fs/xattr.c | 3 ---
+ 1 file changed, 3 deletions(-)
 
-Will you be able to queue v4 patches for 4.9?
-
-Thanks,
-Amir.
-
->>
->> Please note that this patch depends on patch v3 1/4,
->> because vfs_clone_file_range() in current mainline
->> fails to clone from lower to upper due to upper and lower being
->> private mount clones
->> and therefore not the same f_path.mnt.
->
-> Right.  I didn't do a thorough audit of ->clone_file_range()
-> implementations, but 1/4 is probably OK.
->
-> Thanks,
-> Miklos
+diff --git a/fs/xattr.c b/fs/xattr.c
+index c243905..1f72c92 100644
+--- a/fs/xattr.c
++++ b/fs/xattr.c
+@@ -675,9 +675,6 @@ xattr_resolve_name(const struct xattr_handler **handlers, const char **name)
+ {
+ 	const struct xattr_handler *handler;
+ 
+-	if (!*name)
+-		return ERR_PTR(-EINVAL);
+-
+ 	for_each_xattr_handler(handlers, handler) {
+ 		const char *n;
+ 
+-- 
+2.7.4
