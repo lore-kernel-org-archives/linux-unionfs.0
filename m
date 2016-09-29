@@ -1,199 +1,90 @@
-From: "Dilger, Andreas" <andreas.dilger@intel.com>
-Subject: Re: [PATCH v5 09/17] lustre: Switch to generic xattr handlers
-Date: Wed, 28 Sep 2016 22:40:33 +0000
-Message-ID: <9C2B00F5-4526-45D2-A53A-890F1639B1CD@intel.com>
-References: <1475074683-26971-1-git-send-email-agruenba@redhat.com>
- <1475074683-26971-10-git-send-email-agruenba@redhat.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Subject: Re: [PATCH v3 2/4] ovl: use vfs_clone_file_range() for copy up if possible
+Date: Thu, 29 Sep 2016 12:00:44 +0300
+Message-ID: <CAOQ4uxhht5OFOxypn-0LzwaVSqsQPNo0rTsdWp-ubzvw0a=1PQ@mail.gmail.com>
+References: <1473856994-27463-1-git-send-email-amir73il@gmail.com>
+ <1473856994-27463-3-git-send-email-amir73il@gmail.com> <CAJfpegvtCf7mPanvmhU8vmoyQTUsVo-O0bpNxwnt4abkJ5ZD6Q@mail.gmail.com>
+ <CAOQ4uxjEUghU=-RDBOn5zg6hrM1pn1FseEspO8hCLcSnH4WNGA@mail.gmail.com> <CAJfpegsmc5a5=X11OZZ2__ghOBbe4kdWge10EFBEAG+ftrGGJQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-fsdevel-owner@vger.kernel.org>
-In-Reply-To: <1475074683-26971-10-git-send-email-agruenba@redhat.com>
-Content-Language: en-US
-Content-ID: <58DD341EAD8A5A47AD22605BFB19B38B@intel.com>
+In-Reply-To: <CAJfpegsmc5a5=X11OZZ2__ghOBbe4kdWge10EFBEAG+ftrGGJQ@mail.gmail.com>
 Sender: linux-fsdevel-owner@vger.kernel.org
-To: Andreas Gruenbacher <agruenba@redhat.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, Tyler Hicks <tyhicks@canonical.com>, "ecryptfs@vger.kernel.org" <ecryptfs@vger.kernel.org>, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>, David Howells <dhowells@redhat.com>, Serge Hallyn <serge@hallyn.com>, James Simmons <jsimmons@infradead.org>, Dmitry Kasatkin <dmitry.kasatkin@gmail.com>, "linux-ima-devel@lists.sourceforge.net" <linux-ima-devel@lists.sourceforge.net>, Paul Moore <paul@paul-moore.com>, Stephen Smalley <sds@tycho.nsa.gov>, Eric Paris <eparis@parisplace.org>, Casey Schaufler <casey@schaufler-ca.com>, "Drokin, Oleg" <oleg.drokin@intel.com>
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: Dave Chinner <david@fromorbit.com>, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>, Christoph Hellwig <hch@lst.de>, linux-xfs@vger.kernel.org, "Darrick J . Wong" <darrick.wong@oracle.com>, linux-fsdevel <linux-fsdevel@vger.kernel.org>
 List-Id: linux-unionfs@vger.kernel.org
 
-On Sep 28, 2016, at 08:57, Andreas Gruenbacher <agruenba@redhat.com> wrote:
-> 
-> Signed-off-by: Andreas Gruenbacher <agruenba@redhat.com>
+On Wed, Sep 21, 2016 at 9:29 PM, Miklos Szeredi <miklos@szeredi.hu> wrote:
+> On Wed, Sep 21, 2016 at 7:01 PM, Amir Goldstein <amir73il@gmail.com> wrote:
+>> On Wed, Sep 21, 2016 at 6:09 PM, Miklos Szeredi <miklos@szeredi.hu> wrote:
+>>> On Wed, Sep 14, 2016 at 2:43 PM, Amir Goldstein <amir73il@gmail.com> wrote:
+>>>> When copying up within the same fs, try to use vfs_clone_file_range().
+>>>> This is very efficient when lower and upper are on the same fs
+>>>> with file reflink support. If vfs_clone_file_range() fails because
+>>>> lower and upper are not on the same fs or if fs has no reflink support,
+>>>> copy up falls back to the regular data copy code.
+>>>>
+>>>> Tested correct behavior when lower and upper are on:
+>>>> 1. same ext4 (copy)
+>>>> 2. same xfs + reflink patches + mkfs.xfs (copy)
+>>>> 3. same xfs + reflink patches + mkfs.xfs -m reflink=1 (reflink)
+>>>> 4. different xfs + reflink patches + mkfs.xfs -m reflink=1 (copy)
+>>>>
+>>>> For comparison, on my laptop, xfstest overlay/001 (copy up of large
+>>>> sparse files) takes less than 1 second in the xfs reflink setup vs.
+>>>> 25 seconds on the rest of the setups.
+>>>>
+>>>> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+>>>> ---
+>>>>  fs/overlayfs/copy_up.c | 12 +++++++++++-
+>>>>  1 file changed, 11 insertions(+), 1 deletion(-)
+>>>>
+>>>> diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
+>>>> index 43fdc27..ba039f8 100644
+>>>> --- a/fs/overlayfs/copy_up.c
+>>>> +++ b/fs/overlayfs/copy_up.c
+>>>> @@ -136,6 +136,16 @@ static int ovl_copy_up_data(struct path *old, struct path *new, loff_t len)
+>>>>                 goto out_fput;
+>>>>         }
+>>>>
+>>>> +       /* Try to use clone_file_range to clone up within the same fs */
+>>>> +       error = vfs_clone_file_range(old_file, 0, new_file, 0, len);
+>>>> +       if (!error)
+>>>> +               goto out;
+>>>> +       /* If we can clone but clone failed - abort */
+>>>> +       if (error != -EXDEV && error != -EOPNOTSUPP)
+>>>> +               goto out;
+>>>
+>>> Would be safer to fall back on any error.
+>>>
+>>
+>> Agreed. Dave, since you suggested the 'softer' fall back, do you have
+>> any objections?
+>>
+>>> Otherwise ACK.
+>>>
+>>
+>> Will you be taking this to your tree?
+>
+> Sure I can take it.
+>
 
-Reviewed-by: Andreas Dilger <andreas.dilger@intel.com>
+Miklos,
 
-> ---
-> drivers/staging/lustre/lustre/llite/file.c         |  3 --
-> .../staging/lustre/lustre/llite/llite_internal.h   |  7 ++--
-> drivers/staging/lustre/lustre/llite/llite_lib.c    |  1 +
-> drivers/staging/lustre/lustre/llite/namei.c        |  6 ----
-> drivers/staging/lustre/lustre/llite/symlink.c      |  3 --
-> drivers/staging/lustre/lustre/llite/xattr.c        | 42 +++++++++++++++++++---
-> 6 files changed, 40 insertions(+), 22 deletions(-)
-> 
-> diff --git a/drivers/staging/lustre/lustre/llite/file.c b/drivers/staging/lustre/lustre/llite/file.c
-> index 57281b9..e8c81e8 100644
-> --- a/drivers/staging/lustre/lustre/llite/file.c
-> +++ b/drivers/staging/lustre/lustre/llite/file.c
-> @@ -3213,10 +3213,7 @@ const struct inode_operations ll_file_inode_operations = {
-> 	.setattr	= ll_setattr,
-> 	.getattr	= ll_getattr,
-> 	.permission	= ll_inode_permission,
-> -	.setxattr	= ll_setxattr,
-> -	.getxattr	= ll_getxattr,
-> 	.listxattr	= ll_listxattr,
-> -	.removexattr	= ll_removexattr,
-> 	.fiemap		= ll_fiemap,
-> 	.get_acl	= ll_get_acl,
-> };
-> diff --git a/drivers/staging/lustre/lustre/llite/llite_internal.h b/drivers/staging/lustre/lustre/llite/llite_internal.h
-> index 4d6d589..8695aca 100644
-> --- a/drivers/staging/lustre/lustre/llite/llite_internal.h
-> +++ b/drivers/staging/lustre/lustre/llite/llite_internal.h
-> @@ -933,12 +933,9 @@ static inline __u64 ll_file_maxbytes(struct inode *inode)
-> }
-> 
-> /* llite/xattr.c */
-> -int ll_setxattr(struct dentry *dentry, struct inode *inode,
-> -		const char *name, const void *value, size_t size, int flags);
-> -ssize_t ll_getxattr(struct dentry *dentry, struct inode *inode,
-> -		    const char *name, void *buffer, size_t size);
-> +struct xattr_handler;
-> +extern const struct xattr_handler *lustre_xattr_handlers[];
-> ssize_t ll_listxattr(struct dentry *dentry, char *buffer, size_t size);
-> -int ll_removexattr(struct dentry *dentry, const char *name);
-> 
-> /**
->  * Common IO arguments for various VFS I/O interfaces.
-> diff --git a/drivers/staging/lustre/lustre/llite/llite_lib.c b/drivers/staging/lustre/lustre/llite/llite_lib.c
-> index 546063e..81f4fe9 100644
-> --- a/drivers/staging/lustre/lustre/llite/llite_lib.c
-> +++ b/drivers/staging/lustre/lustre/llite/llite_lib.c
-> @@ -421,6 +421,7 @@ static int client_common_fill_super(struct super_block *sb, char *md, char *dt,
-> #if THREAD_SIZE >= 8192 /*b=17630*/
-> 	sb->s_export_op = &lustre_export_operations;
-> #endif
-> +	sb->s_xattr = lustre_xattr_handlers;
-> 
-> 	/* make root inode
-> 	 * XXX: move this to after cbd setup?
-> diff --git a/drivers/staging/lustre/lustre/llite/namei.c b/drivers/staging/lustre/lustre/llite/namei.c
-> index 2c4dc69..f9822403 100644
-> --- a/drivers/staging/lustre/lustre/llite/namei.c
-> +++ b/drivers/staging/lustre/lustre/llite/namei.c
-> @@ -1106,10 +1106,7 @@ const struct inode_operations ll_dir_inode_operations = {
-> 	.setattr	    = ll_setattr,
-> 	.getattr	    = ll_getattr,
-> 	.permission	 = ll_inode_permission,
-> -	.setxattr	   = ll_setxattr,
-> -	.getxattr	   = ll_getxattr,
-> 	.listxattr	  = ll_listxattr,
-> -	.removexattr	= ll_removexattr,
-> 	.get_acl	    = ll_get_acl,
-> };
-> 
-> @@ -1117,9 +1114,6 @@ const struct inode_operations ll_special_inode_operations = {
-> 	.setattr	= ll_setattr,
-> 	.getattr	= ll_getattr,
-> 	.permission     = ll_inode_permission,
-> -	.setxattr       = ll_setxattr,
-> -	.getxattr       = ll_getxattr,
-> 	.listxattr      = ll_listxattr,
-> -	.removexattr    = ll_removexattr,
-> 	.get_acl	    = ll_get_acl,
-> };
-> diff --git a/drivers/staging/lustre/lustre/llite/symlink.c b/drivers/staging/lustre/lustre/llite/symlink.c
-> index 8c8bdfe..d82dab2 100644
-> --- a/drivers/staging/lustre/lustre/llite/symlink.c
-> +++ b/drivers/staging/lustre/lustre/llite/symlink.c
-> @@ -155,8 +155,5 @@ const struct inode_operations ll_fast_symlink_inode_operations = {
-> 	.get_link	= ll_get_link,
-> 	.getattr	= ll_getattr,
-> 	.permission	= ll_inode_permission,
-> -	.setxattr	= ll_setxattr,
-> -	.getxattr	= ll_getxattr,
-> 	.listxattr	= ll_listxattr,
-> -	.removexattr	= ll_removexattr,
-> };
-> diff --git a/drivers/staging/lustre/lustre/llite/xattr.c b/drivers/staging/lustre/lustre/llite/xattr.c
-> index 98303cf..f43f523 100644
-> --- a/drivers/staging/lustre/lustre/llite/xattr.c
-> +++ b/drivers/staging/lustre/lustre/llite/xattr.c
-> @@ -34,6 +34,7 @@
-> #include <linux/sched.h>
-> #include <linux/mm.h>
-> #include <linux/selinux.h>
-> +#include <linux/xattr.h>
-> 
-> #define DEBUG_SUBSYSTEM S_LLITE
-> 
-> @@ -149,8 +150,9 @@ int ll_setxattr_common(struct inode *inode, const char *name,
-> 	return 0;
-> }
-> 
-> -int ll_setxattr(struct dentry *dentry, struct inode *inode,
-> -		const char *name, const void *value, size_t size, int flags)
-> +static int ll_setxattr(struct dentry *dentry, struct inode *inode,
-> +		       const char *name, const void *value, size_t size,
-> +		       int flags)
-> {
-> 	LASSERT(inode);
-> 	LASSERT(name);
-> @@ -202,7 +204,7 @@ int ll_setxattr(struct dentry *dentry, struct inode *inode,
-> 				  OBD_MD_FLXATTR);
-> }
-> 
-> -int ll_removexattr(struct dentry *dentry, const char *name)
-> +static int ll_removexattr(struct dentry *dentry, const char *name)
-> {
-> 	struct inode *inode = d_inode(dentry);
-> 
-> @@ -351,8 +353,8 @@ out:
-> 	return rc;
-> }
-> 
-> -ssize_t ll_getxattr(struct dentry *dentry, struct inode *inode,
-> -		    const char *name, void *buffer, size_t size)
-> +static ssize_t ll_getxattr(struct dentry *dentry, struct inode *inode,
-> +			   const char *name, void *buffer, size_t size)
-> {
-> 	LASSERT(inode);
-> 	LASSERT(name);
-> @@ -518,3 +520,33 @@ out:
-> 
-> 	return rc;
-> }
-> +
-> +static int lustre_xattr_get(const struct xattr_handler *handler,
-> +			    struct dentry *dentry, struct inode *inode,
-> +			    const char *name, void *buffer, size_t size)
-> +{
-> +	return ll_getxattr(dentry, inode, name, buffer, size);
-> +}
-> +
-> +static int lustre_xattr_set(const struct xattr_handler *handler,
-> +			    struct dentry *dentry, struct inode *inode,
-> +			    const char *name, const void *value, size_t size,
-> +			    int flags)
-> +{
-> +	if (!value) {
-> +		BUG_ON(flags != XATTR_REPLACE);
-> +		return ll_removexattr(dentry, name);
-> +	}
-> +	return ll_setxattr(dentry, inode, name, value, size, flags);
-> +}
-> +
-> +const struct xattr_handler lustre_xattr_handler = {
-> +	.prefix = "",  /* match anything */
-> +	.get = lustre_xattr_get,
-> +	.set = lustre_xattr_set,
-> +};
-> +
-> +const struct xattr_handler *lustre_xattr_handlers[] = {
-> +	&lustre_xattr_handler,
-> +	NULL
-> +};
-> -- 
-> 2.7.4
-> 
+Will you be able to queue v4 patches for 4.9?
 
+Thanks,
+Amir.
+
+>>
+>> Please note that this patch depends on patch v3 1/4,
+>> because vfs_clone_file_range() in current mainline
+>> fails to clone from lower to upper due to upper and lower being
+>> private mount clones
+>> and therefore not the same f_path.mnt.
+>
+> Right.  I didn't do a thorough audit of ->clone_file_range()
+> implementations, but 1/4 is probably OK.
+>
+> Thanks,
+> Miklos
