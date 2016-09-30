@@ -1,39 +1,27 @@
-From: Andreas Gruenbacher <agruenba@redhat.com>
-Subject: Re: [PATCH v6 05/16] sockfs: getxattr: Fail with -EOPNOTSUPP for
- invalid attribute names
-Date: Thu, 29 Sep 2016 22:35:30 +0200
-Message-ID: <CAHc6FU4U2vqq2ZQ6BGxwmqTx9GtJgRs3d5QGnwJqkifd__JJqw@mail.gmail.com>
-References: <1475164125-28635-1-git-send-email-agruenba@redhat.com>
- <1475164125-28635-6-git-send-email-agruenba@redhat.com> <20160929202424.GA9499@infradead.org>
+From: Miklos Szeredi <miklos@szeredi.hu>
+Subject: Re: [PATCH v3 2/4] ovl: use vfs_clone_file_range() for copy up if possible
+Date: Fri, 30 Sep 2016 13:14:55 +0200
+Message-ID: <CAJfpegvFeOuY7o_m+P93mDdvBs5GquqOwauqENTqZ3MOaR0K0A@mail.gmail.com>
+References: <1473856994-27463-1-git-send-email-amir73il@gmail.com>
+ <1473856994-27463-3-git-send-email-amir73il@gmail.com> <CAJfpegvtCf7mPanvmhU8vmoyQTUsVo-O0bpNxwnt4abkJ5ZD6Q@mail.gmail.com>
+ <CAOQ4uxjEUghU=-RDBOn5zg6hrM1pn1FseEspO8hCLcSnH4WNGA@mail.gmail.com>
+ <CAJfpegsmc5a5=X11OZZ2__ghOBbe4kdWge10EFBEAG+ftrGGJQ@mail.gmail.com> <CAOQ4uxhht5OFOxypn-0LzwaVSqsQPNo0rTsdWp-ubzvw0a=1PQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-ua0-f175.google.com ([209.85.217.175]:35483 "EHLO
-        mail-ua0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755499AbcI2Ufc (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 29 Sep 2016 16:35:32 -0400
-Received: by mail-ua0-f175.google.com with SMTP id q42so76751273uaq.2
-        for <linux-unionfs@vger.kernel.org>; Thu, 29 Sep 2016 13:35:31 -0700 (PDT)
-In-Reply-To: <20160929202424.GA9499@infradead.org>
-Sender: linux-unionfs-owner@vger.kernel.org
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
+In-Reply-To: <CAOQ4uxhht5OFOxypn-0LzwaVSqsQPNo0rTsdWp-ubzvw0a=1PQ@mail.gmail.com>
+Sender: linux-fsdevel-owner@vger.kernel.org
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: Dave Chinner <david@fromorbit.com>, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>, Christoph Hellwig <hch@lst.de>, linux-xfs <linux-xfs@vger.kernel.org>, "Darrick J . Wong" <darrick.wong@oracle.com>, linux-fsdevel <linux-fsdevel@vger.kernel.org>
 List-Id: linux-unionfs@vger.kernel.org
-To: Christoph Hellwig <hch@infradead.org>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Tyler Hicks <tyhicks@canonical.com>, ecryptfs@vger.kernel.org, linux-unionfs@vger.kernel.org, David Howells <dhowells@redhat.com>, Serge Hallyn <serge@hallyn.com>, Dmitry Kasatkin <dmitry.kasatkin@gmail.com>, linux-ima-devel@lists.sourceforge.net, Paul Moore <paul@paul-moore.com>, Stephen Smalley <sds@tycho.nsa.gov>, Eric Paris <eparis@parisplace.org>, Casey Schaufler <casey@schaufler-ca.com>, Oleg Drokin <oleg.drokin@intel.com>, Andreas Dilger <andreas.dilger@intel.com>
 
-On Thu, Sep 29, 2016 at 10:24 PM, Christoph Hellwig <hch@infradead.org> wrote:
-> On Thu, Sep 29, 2016 at 05:48:34PM +0200, Andreas Gruenbacher wrote:
->> The standard return value for unsupported attribute names is
->> -EOPNOTSUPP, as opposed to undefined but supported attributes
->> (-ENODATA).
->>
->> Also, fail for attribute names like "system.sockprotonameXXX" and
->> simplify the code a bit.
->
-> The only sensible thing to do with this xattr abuse is to remove it
-> entirely..
+On Thu, Sep 29, 2016 at 11:00 AM, Amir Goldstein <amir73il@gmail.com> wrote:
 
-It's quite weird, indeed. Does it have users though?
+> Will you be able to queue v4 patches for 4.9?
+
+Queued to
+
+ git://git.kernel.org/pub/scm/linux/kernel/git/mszeredi/vfs.git #overlayfs-next
 
 Thanks,
-Andreas
+Miklos
