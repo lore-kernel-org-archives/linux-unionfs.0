@@ -1,16 +1,16 @@
 From: Al Viro <viro@ZenIV.linux.org.uk>
 Subject: Re: [GIT PULL] overlayfs update for 4.9
-Date: Wed, 5 Oct 2016 21:06:35 +0100
-Message-ID: <20161005200635.GF19539@ZenIV.linux.org.uk>
+Date: Thu, 6 Oct 2016 00:49:28 +0100
+Message-ID: <20161005234928.GJ19539@ZenIV.linux.org.uk>
 References: <20161005195210.GC31239@veci.piliscsaba.szeredi.hu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from zeniv.linux.org.uk ([195.92.253.2]:42976 "EHLO
+Received: from zeniv.linux.org.uk ([195.92.253.2]:45256 "EHLO
         ZenIV.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753977AbcJEUGh (ORCPT
+        with ESMTP id S932190AbcJEXtb (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 5 Oct 2016 16:06:37 -0400
+        Wed, 5 Oct 2016 19:49:31 -0400
 Content-Disposition: inline
 In-Reply-To: <20161005195210.GC31239@veci.piliscsaba.szeredi.hu>
 Sender: linux-unionfs-owner@vger.kernel.org
@@ -34,4 +34,5 @@ On Wed, Oct 05, 2016 at 09:52:10PM +0200, Miklos Szeredi wrote:
 >    overlay sb;
 >  - allow vfs_clone_file_range() to be called by overlayfs.
 
-Give me about an hour, OK?
+Could you explain why e.g. fsetxattr() needs a different treatment in
+"vfs: mnt_want_write_file() should freeze protect underlying sb"?
