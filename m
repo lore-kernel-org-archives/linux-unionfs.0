@@ -1,48 +1,28 @@
-From: Miklos Szeredi <miklos@szeredi.hu>
-Subject: Re: [GIT PULL] overlayfs update for 4.9
-Date: Thu, 6 Oct 2016 10:01:35 +0200
-Message-ID: <CAJfpegv3TxLbp9TsbXaPdjCFmVDKpvx2y0phSCfjd3B1jcgx4w@mail.gmail.com>
-References: <20161005195210.GC31239@veci.piliscsaba.szeredi.hu> <20161005234928.GJ19539@ZenIV.linux.org.uk>
+From: Al Viro <viro@ZenIV.linux.org.uk>
+Subject: Re: [PATCH v6 15/16] xattr: Stop calling {get,set,remove}xattr inode
+ operations
+Date: Thu, 6 Oct 2016 22:27:57 +0100
+Message-ID: <20161006212756.GK19539@ZenIV.linux.org.uk>
+References: <1475164125-28635-1-git-send-email-agruenba@redhat.com>
+ <1475164125-28635-16-git-send-email-agruenba@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-oi0-f65.google.com ([209.85.218.65]:36847 "EHLO
-        mail-oi0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751594AbcJFIBh (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 6 Oct 2016 04:01:37 -0400
-Received: by mail-oi0-f65.google.com with SMTP id h186so780362oia.3
-        for <linux-unionfs@vger.kernel.org>; Thu, 06 Oct 2016 01:01:37 -0700 (PDT)
-In-Reply-To: <20161005234928.GJ19539@ZenIV.linux.org.uk>
-Sender: linux-unionfs-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1475164125-28635-16-git-send-email-agruenba@redhat.com>
+Sender: linux-fsdevel-owner@vger.kernel.org
+To: Andreas Gruenbacher <agruenba@redhat.com>
+Cc: linux-fsdevel@vger.kernel.org, Tyler Hicks <tyhicks@canonical.com>, ecryptfs@vger.kernel.org, linux-unionfs@vger.kernel.org, David Howells <dhowells@redhat.com>, Serge Hallyn <serge@hallyn.com>, Dmitry Kasatkin <dmitry.kasatkin@gmail.com>, linux-ima-devel@lists.sourceforge.net, Paul Moore <paul@paul-moore.com>, Stephen Smalley <sds@tycho.nsa.gov>, Eric Paris <eparis@parisplace.org>, Casey Schaufler <casey@schaufler-ca.com>, Oleg Drokin <oleg.drokin@intel.com>, Andreas Dilger <andreas.dilger@intel.com>
 List-Id: linux-unionfs@vger.kernel.org
-To: Al Viro <viro@zeniv.linux.org.uk>
-Cc: linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>
 
-On Thu, Oct 6, 2016 at 1:49 AM, Al Viro <viro@zeniv.linux.org.uk> wrote:
-> On Wed, Oct 05, 2016 at 09:52:10PM +0200, Miklos Szeredi wrote:
->> Hi Al,
->>
->> Please pull from:
->>
->>   git://git.kernel.org/pub/scm/linux/kernel/git/mszeredi/vfs.git overlayfs-viro
->>
->> This has an assortment of fixes and cleanups for overlayfs.
->>
->> It also touches the VFS:
->>
->>  - add the vfs_get_link() helper for calling i_op->get_link();
->>  - fix mnt_want_write_file() to freeze protect the underlying sb instead of
->>    overlay sb;
->>  - allow vfs_clone_file_range() to be called by overlayfs.
->
-> Could you explain why e.g. fsetxattr() needs a different treatment in
-> "vfs: mnt_want_write_file() should freeze protect underlying sb"?
+On Thu, Sep 29, 2016 at 05:48:44PM +0200, Andreas Gruenbacher wrote:
+> In squashfs and sockfs, add ->set xattr handler operations so that the
+> VFS can call ->set without a NULL check.
+  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ 
+> +	if (!handler->set)
+>  		return -EOPNOTSUPP;
 
-Because setxattr is an i_op, not a f_op, so it's overlayfs that's
-going to be called and will do the freeze protect on underlying layer
-(not to mention, that it might be a different underlying sb that will
-get the freeze protection in the end, due to copy up)
-
-Thanks,
-Miklos
+What's the point adding those ->set() instances?  You *do* check for
+NULL ->set (which is cheaper than indirect call anyway, so it is the
+right thing to do), so...
