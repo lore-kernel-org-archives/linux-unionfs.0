@@ -1,143 +1,49 @@
-From: =?iso-8859-2?b?VmFyZ2926O1r?= Pavol <xvargo01@stud.fit.vutbr.cz>
-Subject: Operation not permitted when removing file in stacked overlayfs
-Date: Tue, 11 Oct 2016 15:34:37 +0200
-Message-ID: <20161011153437.460515c6wphl8p65@email.fit.vutbr.cz>
+From: Miklos Szeredi <miklos@szeredi.hu>
+Subject: Re: [GIT PULL] overlayfs update for 4.9
+Date: Tue, 11 Oct 2016 21:49:42 +0200
+Message-ID: <CAJfpegvQ_24e-mdsazxS5PwVpZ5sBkGfeidk=59Xaw1eJvt1tA@mail.gmail.com>
+References: <20161005195210.GC31239@veci.piliscsaba.szeredi.hu>
+ <20161005234928.GJ19539@ZenIV.linux.org.uk> <CAJfpegv3TxLbp9TsbXaPdjCFmVDKpvx2y0phSCfjd3B1jcgx4w@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
- charset=ISO-8859-2;
- DelSp="Yes";
- format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from eva.fit.vutbr.cz ([147.229.176.14]:45605 "EHLO eva.fit.vutbr.cz"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751537AbcJKNsJ (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 11 Oct 2016 09:48:09 -0400
-Received: from fit.vutbr.cz (hermina.fit.vutbr.cz [147.229.9.15])
-        by eva.fit.vutbr.cz (8.15.2/8.15.2) with ESMTP id u9BDYbes017873
-        for <linux-unionfs@vger.kernel.org>; Tue, 11 Oct 2016 15:34:38 +0200 (CEST)
-Content-Disposition: inline
-Sender: linux-unionfs-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
+In-Reply-To: <CAJfpegv3TxLbp9TsbXaPdjCFmVDKpvx2y0phSCfjd3B1jcgx4w@mail.gmail.com>
+Sender: linux-fsdevel-owner@vger.kernel.org
+To: Al Viro <viro@zeniv.linux.org.uk>
+Cc: linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>
 List-Id: linux-unionfs@vger.kernel.org
-To: linux-unionfs@vger.kernel.org
 
-I cannot remove any file in stacked overlayfs. As far as I know,  
-two-layer stacking should work in newer kernel versions.
+On Thu, Oct 6, 2016 at 10:01 AM, Miklos Szeredi <miklos@szeredi.hu> wrote:
+> On Thu, Oct 6, 2016 at 1:49 AM, Al Viro <viro@zeniv.linux.org.uk> wrote:
+>> On Wed, Oct 05, 2016 at 09:52:10PM +0200, Miklos Szeredi wrote:
+>>> Hi Al,
+>>>
+>>> Please pull from:
+>>>
+>>>   git://git.kernel.org/pub/scm/linux/kernel/git/mszeredi/vfs.git overlayfs-viro
+>>>
+>>> This has an assortment of fixes and cleanups for overlayfs.
+>>>
+>>> It also touches the VFS:
+>>>
+>>>  - add the vfs_get_link() helper for calling i_op->get_link();
+>>>  - fix mnt_want_write_file() to freeze protect the underlying sb instead of
+>>>    overlay sb;
+>>>  - allow vfs_clone_file_range() to be called by overlayfs.
+>>
+>> Could you explain why e.g. fsetxattr() needs a different treatment in
+>> "vfs: mnt_want_write_file() should freeze protect underlying sb"?
+>
+> Because setxattr is an i_op, not a f_op, so it's overlayfs that's
+> going to be called and will do the freeze protect on underlying layer
+> (not to mention, that it might be a different underlying sb that will
+> get the freeze protection in the end, due to copy up)
 
-root ~# uname -a
-Linux pallly_hp 4.7.1-1-ARCH #1 SMP PREEMPT Wed Aug 17 08:13:35 CEST  
-2016 x86_64 GNU/Linux
+Hi Al,
 
-This is the reproduction script:
+Are you okay with the VFS changes in there?  If so could you please
+pull and send to Linus?  Or I can send the pull request to Linus
+directly, whichever you prefer.
 
-#! /bin/bash
-
-mkdir ovl-test
-pushd ovl-test
-
-mkdir -p merged overlay/{upper/{merged,overlay/{upper,work}},work} lower/lower
-touch lower/lower/foo
-
-tree
-
-mount -t overlay -o  
-lowerdir=lower,upperdir=overlay/upper,workdir=overlay/work overlay  
-merged
-
-tree
-
-cd merged
-mount -t overlay -o  
-lowerdir=lower,upperdir=overlay/upper,workdir=overlay/work overlay  
-merged
-
-tree
-
-strace rm merged/foo > /tmp/out
-
-popd
-umount ovl-test/merged{/merged,}
-
-rm -r ovl-test
-
-Output:
-
-execve("/usr/bin/rm", ["rm", "merged/foo"], [/* 25 vars */]) = 0
-brk(NULL)                               = 0x1d6c000
-access("/etc/ld.so.preload", R_OK)      = -1 ENOENT (No such file or  
-directory)
-open("/etc/ld.so.cache", O_RDONLY|O_CLOEXEC) = 3
-fstat(3, {st_mode=S_IFREG|0644, st_size=188775, ...}) = 0
-mmap(NULL, 188775, PROT_READ, MAP_PRIVATE, 3, 0) = 0x7f2dca0b6000
-close(3)                                = 0
-open("/usr/lib/libc.so.6", O_RDONLY|O_CLOEXEC) = 3
-read(3,  
-"\177ELF\2\1\1\3\0\0\0\0\0\0\0\0\3\0>\0\1\0\0\0\260\3\2\0\0\0\0\0"...,  
-832) = 832
-fstat(3, {st_mode=S_IFREG|0755, st_size=1951744, ...}) = 0
-mmap(NULL, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1,  
-0) = 0x7f2dca0b4000
-mmap(NULL, 3791152, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3,  
-0) = 0x7f2dc9b25000
-mprotect(0x7f2dc9cba000, 2093056, PROT_NONE) = 0
-mmap(0x7f2dc9eb9000, 24576, PROT_READ|PROT_WRITE,  
-MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x194000) = 0x7f2dc9eb9000
-mmap(0x7f2dc9ebf000, 14640, PROT_READ|PROT_WRITE,  
-MAP_PRIVATE|MAP_FIXED|MAP_ANONYMOUS, -1, 0) = 0x7f2dc9ebf000
-close(3)                                = 0
-arch_prctl(ARCH_SET_FS, 0x7f2dca0b5480) = 0
-mprotect(0x7f2dc9eb9000, 16384, PROT_READ) = 0
-mprotect(0x60d000, 4096, PROT_READ)     = 0
-mprotect(0x7f2dca0e5000, 4096, PROT_READ) = 0
-munmap(0x7f2dca0b6000, 188775)          = 0
-brk(NULL)                               = 0x1d6c000
-brk(0x1d8d000)                          = 0x1d8d000
-open("/usr/lib/locale/locale-archive", O_RDONLY|O_CLOEXEC) = 3
-fstat(3, {st_mode=S_IFREG|0644, st_size=1669168, ...}) = 0
-mmap(NULL, 1669168, PROT_READ, MAP_PRIVATE, 3, 0) = 0x7f2dc9f1c000
-close(3)                                = 0
-ioctl(0, TCGETS, {B38400 opost isig icanon echo ...}) = 0
-newfstatat(AT_FDCWD, "merged/foo", {st_mode=S_IFREG|0644, st_size=0,  
-...}, AT_SYMLINK_NOFOLLOW) = 0
-geteuid()                               = 0
-unlinkat(AT_FDCWD, "merged/foo", 0)     = -1 EPERM (Operation not permitted)
-open("/usr/share/locale/locale.alias", O_RDONLY|O_CLOEXEC) = 3
-fstat(3, {st_mode=S_IFREG|0644, st_size=2997, ...}) = 0
-read(3, "# Locale name alias data base.\n#"..., 4096) = 2997
-read(3, "", 4096)                       = 0
-close(3)                                = 0
-open("/usr/share/locale/en_US.UTF-8/LC_MESSAGES/coreutils.mo",  
-O_RDONLY) = -1 ENOENT (No such file or directory)
-open("/usr/share/locale/en_US.utf8/LC_MESSAGES/coreutils.mo",  
-O_RDONLY) = -1 ENOENT (No such file or directory)
-open("/usr/share/locale/en_US/LC_MESSAGES/coreutils.mo", O_RDONLY) =  
--1 ENOENT (No such file or directory)
-open("/usr/share/locale/en.UTF-8/LC_MESSAGES/coreutils.mo", O_RDONLY)  
-= -1 ENOENT (No such file or directory)
-open("/usr/share/locale/en.utf8/LC_MESSAGES/coreutils.mo", O_RDONLY) =  
--1 ENOENT (No such file or directory)
-open("/usr/share/locale/en/LC_MESSAGES/coreutils.mo", O_RDONLY) = -1  
-ENOENT (No such file or directory)
-write(2, "rm: ", 4rm: )                     = 4
-write(2, "cannot remove 'merged/foo'", 26cannot remove 'merged/foo') = 26
-open("/usr/share/locale/en_US.UTF-8/LC_MESSAGES/libc.mo", O_RDONLY) =  
--1 ENOENT (No such file or directory)
-open("/usr/share/locale/en_US.utf8/LC_MESSAGES/libc.mo", O_RDONLY) =  
--1 ENOENT (No such file or directory)
-open("/usr/share/locale/en_US/LC_MESSAGES/libc.mo", O_RDONLY) = -1  
-ENOENT (No such file or directory)
-open("/usr/share/locale/en.UTF-8/LC_MESSAGES/libc.mo", O_RDONLY) = -1  
-ENOENT (No such file or directory)
-open("/usr/share/locale/en.utf8/LC_MESSAGES/libc.mo", O_RDONLY) = -1  
-ENOENT (No such file or directory)
-open("/usr/share/locale/en/LC_MESSAGES/libc.mo", O_RDONLY) = -1 ENOENT  
-(No such file or directory)
-write(2, ": Operation not permitted", 25: Operation not permitted) = 25
-write(2, "\n", 1
-)                       = 1
-lseek(0, 0, SEEK_CUR)                   = -1 ESPIPE (Illegal seek)
-close(0)                                = 0
-close(1)                                = 0
-close(2)                                = 0
-exit_group(1)                           = ?
-+++ exited with 1 +++
+Thanks,
+Miklos
