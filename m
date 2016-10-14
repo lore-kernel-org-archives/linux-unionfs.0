@@ -1,39 +1,68 @@
-From: Sedat Dilek <sedat.dilek@gmail.com>
+From: Amir Goldstein <amir73il@gmail.com>
 Subject: Re: [GIT PULL] overlayfs update for 4.9
-Date: Fri, 14 Oct 2016 08:19:53 +0200
-Message-ID: <CA+icZUV4yBkfY20ss43kjnCBFeyNz8pjuHHyFyMiB2Mgb7vL5A@mail.gmail.com>
+Date: Fri, 14 Oct 2016 09:48:14 +0300
+Message-ID: <CAOQ4uxiSMVfUG7mVT6WC2eBtF-XOSM1WrSBnxo0Dkr1fy=ZJeg@mail.gmail.com>
 References: <20161013143751.GE31239@veci.piliscsaba.szeredi.hu> <CA+55aFyEtF-t5rbbOtAz1+Rdxcbbt+CTrWJWPg1+TViq+DoLCQ@mail.gmail.com>
-Reply-To: sedat.dilek@gmail.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <CA+55aFyEtF-t5rbbOtAz1+Rdxcbbt+CTrWJWPg1+TViq+DoLCQ@mail.gmail.com>
-Sender: linux-fsdevel-owner@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: Linus Torvalds <torvalds@linux-foundation.org>
 Cc: Miklos Szeredi <miklos@szeredi.hu>, Al Viro <viro@zeniv.linux.org.uk>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, linux-unionfs@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 
-On Fri, Oct 14, 2016 at 6:03 AM, Linus Torvalds
+On Fri, Oct 14, 2016 at 7:03 AM, Linus Torvalds
 <torvalds@linux-foundation.org> wrote:
 > On Thu, Oct 13, 2016 at 7:37 AM, Miklos Szeredi <miklos@szeredi.hu> wrote:
 >>
 >> Please pull from:
 >
 > No.
-[...]
+>
+> Or rather, I pulled and then immediately unpulled. When I look at the
+> diff, I saw an obvious bug in the very first chunk. I'm not going to
+> pull something that is this obviously buggy and untested.
+>
+> Your change to fs/ioctl.c to add a -EXDEV error case very clearly
+> leaks a reference to 'src_file'.
+
+On the charge of writing obviously buggy code I plead guilty :-/
+On the charge of not testing my code I plead not guilty.
+I exercised the FICLONERANGE intensively with the xfstests clone test group
+and never experienced any problem and any warning running with all
+relevant kernel debugging enabled.
+
+So how come this leak went unnoticed?
+Because fdget (__fget_light) does not take a reference if the fd is not shared.
+
+So what can we do to catch silly mistakes like this one earlier and
+without relying
+on Linus's spidy senses?
+Writing xfstests to test all fd interfaces with cloned fds? Is this a
+scalable solution?
+Or maybe it's best to add a trivial CONFIG_DEBUG_FDGET that will always
+skip the no refcount optimization?
+
+To me the second option seems preferred from engineering pov
+I can post this simple patch if you guys agree to this solution.
+
+>
 > It's too late in the merge window for this to be fixed up any more.
 > This has been a painful enough merge window for me that I'm not going
 > to play around with obviously buggy pull requests.
 >
 
-( Cannot say much to the BROKEN stuff. )
-Be gracious/clement/merciful/mild...
-I expect Miklos will fix that.
-AFAICS, Linux v4.9 is getting a LTS version.
-And think of the complex correlations in the (v)fs-trees.
-Cannot say if there are better strategies to cook all that stuff together.
-[ It was a pain in the ass to convince responsibles to get OverlayFS upstream. ]
+It has been a rocky merge window and I apologize for adding this last straw
+and pooping the party for the entire overlay pull request.
+In the hope that this may help to sweeten your verdict -
+I just got my hands on a brand new testing machine, which is dedicated
+to stress testing file systems on the latest rc.
 
-- Sedat -
+Amir.
 
-P.S.: It's a long time I played with SquashFS/OverlayFS.
+>                   Linus
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-unionfs" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
