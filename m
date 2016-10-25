@@ -1,147 +1,61 @@
-From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [PATCH 1/3] ovl: check fs features
-Date: Tue, 25 Oct 2016 14:24:56 +0300
-Message-ID: <CAOQ4uxjeP0J=rmC8fHScnKoMHiF7Bmm7k-Y0sf2YFf-OcxJx4w@mail.gmail.com>
-References: <1477380887-21333-1-git-send-email-mszeredi@redhat.com> <1477380887-21333-2-git-send-email-mszeredi@redhat.com>
+From: Raphael Hertzog <hertzog@debian.org>
+Subject: Re: [PATCH 3/3] ovl: redirect on rename-dir
+Date: Tue, 25 Oct 2016 13:57:48 +0200
+Message-ID: <20161025115748.ydhkkp5cfcdnjzwn@home.ouaza.com>
+References: <1477380887-21333-1-git-send-email-mszeredi@redhat.com>
+ <1477380887-21333-4-git-send-email-mszeredi@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <1477380887-21333-2-git-send-email-mszeredi@redhat.com>
-Sender: stable-owner@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1477380887-21333-4-git-send-email-mszeredi@redhat.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Miklos Szeredi <mszeredi@redhat.com>
-Cc: linux-unionfs@vger.kernel.org, Guillem Jover <guillem@debian.org>, Raphael Hertzog <hertzog@debian.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>, stable@vger.kernel.org
+Cc: linux-unionfs@vger.kernel.org, Guillem Jover <guillem@debian.org>, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 
-On Tue, Oct 25, 2016 at 10:34 AM, Miklos Szeredi <mszeredi@redhat.com> wrote:
-> To allow adding new, backward incompatible features to overlayfs, we need a
-> way to store the list of features in the overlay.  This is done via
-> "trusted.overlay.features" xattr on the root of the upper layer (or one of
-> the lower layers, that previously acted as an upper layer).  It's a comma
-> separated list of case sensitive strings.
->
-> If an overlay has an unknown feature, mount shall return an error.  So
-> mechanism should only be used for backward incompatible features.
+Hello Miklos,
 
-So maybe be explicit and call the attribute trusted.overlay.incompat_features,
-to allow future addition of compat and rocompat feature sets?
+thanks for your work on this patch set!
 
->
-> This patch doesn't add any features.  If the "trusted.overlay.features"
-> xattr contains a non-empty list, then return EINVAL error for the mount.
->
-> Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
-> Cc: <stable@vger.kernel.org>
-> ---
->  Documentation/filesystems/overlayfs.txt | 12 ++++++++++
->  fs/overlayfs/overlayfs.h                |  1 +
->  fs/overlayfs/super.c                    | 41 +++++++++++++++++++++++++++++++++
->  3 files changed, 54 insertions(+)
->
-> diff --git a/Documentation/filesystems/overlayfs.txt b/Documentation/filesystems/overlayfs.txt
-> index 7aeb8e8d80cf..5108425157ac 100644
-> --- a/Documentation/filesystems/overlayfs.txt
-> +++ b/Documentation/filesystems/overlayfs.txt
-> @@ -175,6 +175,18 @@ The specified lower directories will be stacked beginning from the
->  rightmost one and going left.  In the above example lower1 will be the
->  top, lower2 the middle and lower3 the bottom layer.
->
-> +Filesystem features
-> +-------------------
+On Tue, 25 Oct 2016, Miklos Szeredi wrote:
+> +renaming directories
+> +--------------------
 > +
-> +Features are enabled via "trusted.overlay.features" xattr on the root of the
-> +upper layer.  E.g. the following command can be used to enable features "foo"
-> +and "bar" on the overlay:
+> +When renaming a directory that is on the lower layer or merged (i.e. the
+> +directory was not created on the upper layer to start with) overlayfs can
+> +handle it in two different ways:
 > +
-> +  setfattr -n "trusted.overlay.features" -v "foo,bar" /upper
-> +  mount -t overlay overlay -olowerdir=/lower,upperdir=/upper,\
-> +workdir=/work /merged
+> +1) return EXDEV error: this error is returned by rename(2) when trying to
+> +   move a file or directory across filesystem boundaries.  Hence
+> +   applications are usually prepared to hande this error (mv(1) for example
+> +   recursively copies the directory tree).  This is the default behavior.
 > +
-> +If an overlay has an unknown feature, mount shall return an error.
->
->  Non-standard behavior
->  ---------------------
-> diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-> index f6e4d3539a25..d61d5b9d0d91 100644
-> --- a/fs/overlayfs/overlayfs.h
-> +++ b/fs/overlayfs/overlayfs.h
-> @@ -19,6 +19,7 @@ enum ovl_path_type {
->
->  #define OVL_XATTR_PREFIX XATTR_TRUSTED_PREFIX "overlay."
->  #define OVL_XATTR_OPAQUE OVL_XATTR_PREFIX "opaque"
-> +#define OVL_XATTR_FEATURES OVL_XATTR_PREFIX "features"
->
->  #define OVL_ISUPPER_MASK 1UL
->
-> diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-> index 30263a541fd5..d6dc8d905d00 100644
-> --- a/fs/overlayfs/super.c
-> +++ b/fs/overlayfs/super.c
-> @@ -397,6 +397,39 @@ static struct dentry *ovl_workdir_create(struct vfsmount *mnt,
->         goto out_unlock;
->  }
->
-> +static int ovl_check_features(struct dentry *root)
-> +{
-> +       int res;
-> +       char *buf, *tmp, *p;
-> +
-> +       res = vfs_getxattr(root, OVL_XATTR_FEATURES, NULL, 0);
-> +       if (res <= 0) {
-> +               if (res == -EOPNOTSUPP || res == -ENODATA)
-> +                       res = 0;
-> +               return res;
-> +       }
-> +
-> +       buf = kmalloc(res + 1, GFP_TEMPORARY);
-> +       if (!buf)
-> +               return -ENOMEM;
-> +
-> +       res = vfs_getxattr(root, OVL_XATTR_FEATURES, buf, res);
-> +       if (res <= 0)
-> +               goto out_free;
-> +
-> +       buf[res] = '\0';
-> +       res = 0;
-> +       tmp = buf;
-> +       while ((p = strsep(&tmp, ",")) != NULL) {
-> +               res = -EINVAL;
-> +               pr_err("overlayfs: feature '%s' not supported\n", p);
-> +       }
-> +out_free:
-> +       kfree(buf);
-> +
-> +       return res;
-> +}
-> +
->  static void ovl_unescape(char *s)
->  {
->         char *d = s;
-> @@ -471,6 +504,10 @@ static int ovl_lower_dir(const char *name, struct path *path, long *namelen,
->         if (err)
->                 goto out;
->
-> +       err = ovl_check_features(path->dentry);
-> +       if (err)
-> +               goto out_put;
-> +
->         err = vfs_statfs(path, &statfs);
->         if (err) {
->                 pr_err("overlayfs: statfs failed on '%s'\n", name);
-> @@ -693,6 +730,10 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
->                         goto out_put_upperpath;
->                 }
->
-> +               err = ovl_check_features(upperpath.dentry);
-> +               if (err)
-> +                       goto out_put_upperpath;
-> +
->                 err = ovl_mount_dir(ufs->config.workdir, &workpath);
->                 if (err)
->                         goto out_put_upperpath;
-> --
-> 2.5.5
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-unionfs" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> +2) If the "redirect_dir" feature is enabled, then the directory will be
+> +   copied up (but not the contents).  Then the "trusted.overlay.redirect"
+> +   extended attribute is set to the path of the original location from the
+> +   root of the overlay.  Finally the directory is moved to the new
+> +   location.
+
+>From this, I understand that we will have to add "redirect_dir" to the
+mount options for this feature to work. Is there any reason why you
+put this as an opt-in feature?
+
+Do you plan to make it the default in the future when it has been
+available for a while?
+
+Barring any regression introduced by your patch, it seems that the feature
+is best available by default since it allows legitimate operations to
+succeed that are otherwise refused. I understand that it makes it
+impossible to mount the overlay filesystem with an older kernel but is
+that problem more widespread than the one we're fixing here?  On my side,
+overlayfs is only used in scenarios where the kernel is always the same
+(or newer compared to what created the initial filesystem).
+
+Cheers,
+-- 
+Raphaël Hertzog ◈ Debian Developer
+
+Support Debian LTS: http://www.freexian.com/services/debian-lts.html
+Learn to master Debian: http://debian-handbook.info/get/
