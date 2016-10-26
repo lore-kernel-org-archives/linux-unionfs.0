@@ -1,94 +1,50 @@
 From: Miklos Szeredi <miklos@szeredi.hu>
-Subject: Re: [PATCH] ovl: check for emptiness of redirect dir
-Date: Wed, 26 Oct 2016 12:45:19 +0200
-Message-ID: <CAJfpegur95qHLSp8q7W3rpE9Z-8csf+zUuX3VyeK3YFiN7O2JA@mail.gmail.com>
-References: <1477380887-21333-1-git-send-email-mszeredi@redhat.com> <1477474446-13429-1-git-send-email-amir73il@gmail.com>
+Subject: Re: [PATCH 3/3] ovl: redirect on rename-dir
+Date: Wed, 26 Oct 2016 13:12:57 +0200
+Message-ID: <CAJfpegu97ce6LtMeKSHqDxZGAtCJUGgYUwOwYm9P6p8XtNXf_A@mail.gmail.com>
+References: <1477380887-21333-1-git-send-email-mszeredi@redhat.com>
+ <1477380887-21333-4-git-send-email-mszeredi@redhat.com> <20161025115748.ydhkkp5cfcdnjzwn@home.ouaza.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
-In-Reply-To: <1477474446-13429-1-git-send-email-amir73il@gmail.com>
-Sender: linux-fsdevel-owner@vger.kernel.org
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: Guillem Jover <guillem@debian.org>, Raphael Hertzog <hertzog@debian.org>, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>, linux-fsdevel@vger.kernel.org
+Return-path: <linux-unionfs-owner@vger.kernel.org>
+Received: from mail-oi0-f68.google.com ([209.85.218.68]:34004 "EHLO
+        mail-oi0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754525AbcJZLNN (ORCPT
+        <rfc822;linux-unionfs@vger.kernel.org>);
+        Wed, 26 Oct 2016 07:13:13 -0400
+Received: by mail-oi0-f68.google.com with SMTP id p136so10694054oic.1
+        for <linux-unionfs@vger.kernel.org>; Wed, 26 Oct 2016 04:12:59 -0700 (PDT)
+In-Reply-To: <20161025115748.ydhkkp5cfcdnjzwn@home.ouaza.com>
+Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
+To: Raphael Hertzog <hertzog@debian.org>
+Cc: Miklos Szeredi <mszeredi@redhat.com>, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>, Guillem Jover <guillem@debian.org>, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Wed, Oct 26, 2016 at 11:34 AM, Amir Goldstein <amir73il@gmail.com> wrote:
-> Before introducing redirect_dir feature, the condition
-> !ovl_lower_positive(dentry) for a directory, implied that
-> it is a pure upper directory, which may be removed if empty.
->
-> Now that directory can be redirect, it is possible that
-> upper does not cover any lower (i.e. !ovl_lower_positive(dentry)),
-> but the directory is a merge (with redirected path) and maybe
-> non empty.
->
-> Check for this case in ovl_remove_upper().
->
-> This change fixes the following test case from rename-pop-dir.py
-> of unionmount-testsuite:
->
->     """Remove dir and rename old name"""
->     d = ctx.non_empty_dir()
->     d2 = ctx.no_dir()
->
->     ctx.rmdir(d, err=ENOTEMPTY)
->     ctx.rename(d, d2)
->     ctx.rmdir(d, err=ENOENT)
->     ctx.rmdir(d2, err=ENOTEMPTY)
->
-> ./run --ov rename-pop-dir
-> /mnt/a/no_dir103: Expected error (Directory not empty) was not produced
->
-> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
-> ---
->  fs/overlayfs/dir.c | 31 ++++++++++++++++++++++---------
->  1 file changed, 22 insertions(+), 9 deletions(-)
->
-> diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
-> index 065e021..d750ed9 100644
-> --- a/fs/overlayfs/dir.c
-> +++ b/fs/overlayfs/dir.c
-> @@ -672,9 +672,18 @@ static int ovl_remove_upper(struct dentry *dentry, bool is_dir)
->  {
->         struct dentry *upperdir = ovl_dentry_upper(dentry->d_parent);
->         struct inode *dir = upperdir->d_inode;
-> -       struct dentry *upper;
-> +       struct dentry *upper = NULL;
-> +       struct dentry *opaquedir = NULL;
->         int err;
->
-> +       /* Redirect dir can be !ovl_lower_positive && OVL_TYPE_MERGE */
-> +       if (is_dir && ovl_dentry_is_redirect(dentry)) {
-> +               opaquedir = ovl_check_empty_and_clear(dentry);
-> +               err = PTR_ERR(opaquedir);
-> +               if (IS_ERR(opaquedir))
-> +                       return err;
-> +       }
-> +
->         inode_lock_nested(dir, I_MUTEX_PARENT);
->         upper = lookup_one_len(dentry->d_name.name, upperdir,
->                                dentry->d_name.len);
-> @@ -683,14 +692,15 @@ static int ovl_remove_upper(struct dentry *dentry, bool is_dir)
->                 goto out_unlock;
->
->         err = -ESTALE;
-> -       if (upper == ovl_dentry_upper(dentry)) {
-> -               if (is_dir)
-> -                       err = vfs_rmdir(dir, upper);
-> -               else
-> -                       err = vfs_unlink(dir, upper, NULL);
-> -               ovl_dentry_version_inc(dentry->d_parent);
-> -       }
-> -       dput(upper);
-> +       if ((opaquedir && upper != opaquedir) ||
-> +            upper != ovl_dentry_upper(dentry))
+On Tue, Oct 25, 2016 at 1:57 PM, Raphael Hertzog <hertzog@debian.org> wrote:
 
-This will always error out for the opaquedir case.  So it needs to be:
+> Do you plan to make it the default in the future when it has been
+> available for a while?
+>
+> Barring any regression introduced by your patch, it seems that the feature
+> is best available by default since it allows legitimate operations to
+> succeed that are otherwise refused. I understand that it makes it
+> impossible to mount the overlay filesystem with an older kernel but is
+> that problem more widespread than the one we're fixing here?  On my side,
+> overlayfs is only used in scenarios where the kernel is always the same
+> (or newer compared to what created the initial filesystem).
 
-    if ((opaquedir && upper != opaquedir) ||
-        (!opaquedir && upper != ovl_dentry_upper(dentry)))
+I think it would be safe to make it the default if upperdir is empty.
+Nonempty implies that it was created with old kernel (or it was
+crafted by hand).   But there should be a way to explicitly turn it
+off;  either because of the need for backward compatibility or because
+the old format is simply easier to work with for humans.
 
-Pushed to "redirect" branch with this fix.
+How about:
+
+- If upper is nonempty, then leave redirect feature alone except when
+mount option "-oredirect=on" is used to force enabling it.
+- If upper is empty, then enable redirect feature except when mount
+option "-oredirect=off" is used to force disabling it.
 
 Thanks,
 Miklos
