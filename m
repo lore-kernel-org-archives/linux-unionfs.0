@@ -1,50 +1,78 @@
 From: Miklos Szeredi <miklos@szeredi.hu>
 Subject: Re: [PATCH 3/3] ovl: redirect on rename-dir
-Date: Wed, 26 Oct 2016 13:12:57 +0200
-Message-ID: <CAJfpegu97ce6LtMeKSHqDxZGAtCJUGgYUwOwYm9P6p8XtNXf_A@mail.gmail.com>
+Date: Wed, 26 Oct 2016 13:26:45 +0200
+Message-ID: <CAJfpegs+NDycOda67y5-8zDYHk90gxdQuQsRQ2pLq58UcUqa9A@mail.gmail.com>
 References: <1477380887-21333-1-git-send-email-mszeredi@redhat.com>
- <1477380887-21333-4-git-send-email-mszeredi@redhat.com> <20161025115748.ydhkkp5cfcdnjzwn@home.ouaza.com>
+ <1477380887-21333-4-git-send-email-mszeredi@redhat.com> <CAOQ4uxhTOw9vHVSQURakYgamXMxXDTnZYFjUDZYx1Hnf=TA9dA@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-oi0-f68.google.com ([209.85.218.68]:34004 "EHLO
-        mail-oi0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754525AbcJZLNN (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 26 Oct 2016 07:13:13 -0400
-Received: by mail-oi0-f68.google.com with SMTP id p136so10694054oic.1
-        for <linux-unionfs@vger.kernel.org>; Wed, 26 Oct 2016 04:12:59 -0700 (PDT)
-In-Reply-To: <20161025115748.ydhkkp5cfcdnjzwn@home.ouaza.com>
-Sender: linux-unionfs-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAOQ4uxhTOw9vHVSQURakYgamXMxXDTnZYFjUDZYx1Hnf=TA9dA@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: Miklos Szeredi <mszeredi@redhat.com>, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>, Guillem Jover <guillem@debian.org>, Raphael Hertzog <hertzog@debian.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>
 List-Id: linux-unionfs@vger.kernel.org
-To: Raphael Hertzog <hertzog@debian.org>
-Cc: Miklos Szeredi <mszeredi@redhat.com>, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>, Guillem Jover <guillem@debian.org>, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Tue, Oct 25, 2016 at 1:57 PM, Raphael Hertzog <hertzog@debian.org> wrote:
+On Tue, Oct 25, 2016 at 2:49 PM, Amir Goldstein <amir73il@gmail.com> wrote:
 
-> Do you plan to make it the default in the future when it has been
-> available for a while?
+>> @@ -880,31 +913,34 @@ static int ovl_rename(struct inode *olddir, struct dentry *old,
+>>         if (WARN_ON(olddentry->d_inode == newdentry->d_inode))
+>>                 goto out_dput;
+>>
+>> -       if (is_dir && !old_opaque && ovl_lower_positive(new)) {
+>> -               err = ovl_set_opaque(olddentry);
+>> -               if (err)
+>> -                       goto out_dput;
+>> -               ovl_dentry_set_opaque(old, true);
+>> +       if (is_dir) {
+>> +               if (ovl_type_merge_or_lower(old)) {
+>> +                       err = ovl_set_redirect(old);
 >
-> Barring any regression introduced by your patch, it seems that the feature
-> is best available by default since it allows legitimate operations to
-> succeed that are otherwise refused. I understand that it makes it
-> impossible to mount the overlay filesystem with an older kernel but is
-> that problem more widespread than the one we're fixing here?  On my side,
-> overlayfs is only used in scenarios where the kernel is always the same
-> (or newer compared to what created the initial filesystem).
+> There is a fair chance of getting ENOSPC/EDQUOT here and confuse user space.
+> Would it be better to convert these non fatal errors with EXDEV, so
+> user space will
+> gracefully fallback to recursive rename/clone/copy?
 
-I think it would be safe to make it the default if upperdir is empty.
-Nonempty implies that it was created with old kernel (or it was
-crafted by hand).   But there should be a way to explicitly turn it
-off;  either because of the need for backward compatibility or because
-the old format is simply easier to work with for humans.
+Recursive copy up will surely consume more space than an xattr?
 
-How about:
+>> @@ -162,6 +223,23 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
+>>                 stack[ctr].dentry = this;
+>>                 stack[ctr].mnt = lowerpath.mnt;
+>>                 ctr++;
+>> +
+>> +               if (!stop && i != poe->numlower - 1 &&
+>> +                   d_is_dir(this) && ovl_redirect_dir(dentry->d_sb)) {
+>> +                       err = ovl_check_redirect(this, &redirect);
+>> +                       if (err)
+>> +                               goto out_put;
+>> +
+>> +                       if (redirect && poe != dentry->d_sb->s_root->d_fsdata) {
+>> +                               poe = dentry->d_sb->s_root->d_fsdata;
+>> +
+>
+> Now you are about to continue looping until new value of poe->numlower,
+> which is >= then olf value of poe->numlower, but 'stack' was allocated
+> according to old value of poe->numlower, so aren't you in danger of
+> overflowing it?
+>
+> Please add a comment to explain the purpose of this loop rewind.
 
-- If upper is nonempty, then leave redirect feature alone except when
-mount option "-oredirect=on" is used to force enabling it.
-- If upper is empty, then enable redirect feature except when mount
-option "-oredirect=off" is used to force disabling it.
+We are jumping to a stack possibly wider than the current one and need
+to find the layer where to continue the downward traversal.  I'll add
+the comment.
+
+BTW I don't remember having tested this, so it might possibly be
+buggy.  Automatic multi-layer testing would really be good.  What we
+basically need is:
+
+ - create normal (two layer) overlay (with interesting constructs,
+whiteout, opaque dir, redirect)
+ - umount
+ - create three layer overlay where the two lower layers come from the
+previous upper/lower layers
+ - do more interesting things
+
+There's one such test in xfstests but it would be good to have more.
 
 Thanks,
 Miklos
