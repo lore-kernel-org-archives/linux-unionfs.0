@@ -1,75 +1,55 @@
-From: Miklos Szeredi <miklos@szeredi.hu>
-Subject: Re: [PATCH v2] ovl: update S_ISGID when setting posix ACLs
-Date: Fri, 28 Oct 2016 14:54:57 +0200
-Message-ID: <20161028125457.GA8412@veci.piliscsaba.szeredi.hu>
-References: <1477501840-25066-1-git-send-email-amir73il@gmail.com>
- <1477506616-14061-1-git-send-email-amir73il@gmail.com>
- <20161027223742.GC4819@redhat.com>
- <CAOQ4uxiSf+9u0P1s5--uj19ubrJYrUWH_WM2FPbpvH9yApoZyQ@mail.gmail.com>
+From: Raphael Hertzog <hertzog@debian.org>
+Subject: Re: [PATCH 3/3] ovl: redirect on rename-dir
+Date: Fri, 28 Oct 2016 14:56:20 +0200
+Message-ID: <20161028125620.uusbhlcwncmicvab@home.ouaza.com>
+References: <1477380887-21333-1-git-send-email-mszeredi@redhat.com>
+ <1477380887-21333-4-git-send-email-mszeredi@redhat.com>
+ <20161025115748.ydhkkp5cfcdnjzwn@home.ouaza.com>
+ <CAJfpegu97ce6LtMeKSHqDxZGAtCJUGgYUwOwYm9P6p8XtNXf_A@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-unionfs-owner@vger.kernel.org>
+Received: from mail.vm.ouaza.com ([212.83.178.2]:33946 "EHLO mail.vm.ouaza.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1754617AbcJ1M4Y (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Fri, 28 Oct 2016 08:56:24 -0400
 Content-Disposition: inline
-In-Reply-To: <CAOQ4uxiSf+9u0P1s5--uj19ubrJYrUWH_WM2FPbpvH9yApoZyQ@mail.gmail.com>
-Sender: linux-fsdevel-owner@vger.kernel.org
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: Vivek Goyal <vgoyal@redhat.com>, Andreas Gruenbacher <agruenba@redhat.com>, linux-unionfs@vger.kernel.org, linux-fsdevel <linux-fsdevel@vger.kernel.org>
+In-Reply-To: <CAJfpegu97ce6LtMeKSHqDxZGAtCJUGgYUwOwYm9P6p8XtNXf_A@mail.gmail.com>
+Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: Miklos Szeredi <mszeredi@redhat.com>, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>, Guillem Jover <guillem@debian.org>, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Fri, Oct 28, 2016 at 07:47:12AM +0300, Amir Goldstein wrote:
-> On Fri, Oct 28, 2016 at 1:37 AM, Vivek Goyal <vgoyal@redhat.com> wrote:
-> > On Wed, Oct 26, 2016 at 09:30:16PM +0300, Amir Goldstein wrote:
-> >> Since operations on upper are performed using mounter's credentials,
-> >> we need to call posix_acl_update_mode() with current credentials on
-> >> overlay inode to possibly copy-up and clear setgid bit, before setting
-> >> posix ACLs on upper inode.
-> >>
-> >> Also wrap posix acl handlers with #ifdef CONFIG_FS_POSIX_ACL to
-> >> avoid compiler warning for implicit declaration of function
-> >> 'posix_acl_update_mode' on build without that config option.
-> >>
-> >> This change fixes xfstest generic/375, which failed to clear the
-> >> setgid bit in the following test case over overlayfs:
-> >>
-> >>   touch $testfile
-> >>   chown 100:100 $testfile
-> >>   chmod 2755 $testfile
-> >>   _runas -u 100 -g 101 -- setfacl -m u::rwx,g::rwx,o::rwx $testfile
+Hi,
 
-Instead of calculating and setting the equivalent mode in overlayfs code (as
-well as in the upper layer later), how about just clearing the sgid bit when
-necessary?
+On Wed, 26 Oct 2016, Miklos Szeredi wrote:
+> On Tue, Oct 25, 2016 at 1:57 PM, Raphael Hertzog <hertzog@debian.org> wrote:
 
-Untested patch follows.
+[ redirect feature enabled by default ]
 
-Thanks,
-Miklos
+> I think it would be safe to make it the default if upperdir is empty.
+> Nonempty implies that it was created with old kernel (or it was
+> crafted by hand).   But there should be a way to explicitly turn it
+> off;  either because of the need for backward compatibility or because
+> the old format is simply easier to work with for humans.
+> 
+> How about:
+> 
+> - If upper is nonempty, then leave redirect feature alone except when
+> mount option "-oredirect=on" is used to force enabling it.
+> - If upper is empty, then enable redirect feature except when mount
+> option "-oredirect=off" is used to force disabling it.
 
----
- fs/overlayfs/super.c |   15 +++++++++++++++
- 1 file changed, 15 insertions(+)
+Looks good, but is there some stickyness of the setting? My use case is
+schroot and it always starts with an empty upperdir when I create a
+temporary/throw-away chroot but if I reboot the machine, then it's possible
+that schroot will remount the overlayfs with a non-empty upperdir
+(the temporary chroot is preserved until I explicitly end the chroot).
 
---- a/fs/overlayfs/super.c
-+++ b/fs/overlayfs/super.c
-@@ -562,6 +562,21 @@ ovl_posix_acl_xattr_set(const struct xat
- 
- 	posix_acl_release(acl);
- 
-+	/*
-+	 * Check if sgid bit needs to be cleared (actual setacl operation will
-+	 * be done with mounter's capabilities and so that won't do it for us).
-+	 */
-+	if (unlikely(inode->i_mode & S_ISGID) &&
-+	    handler->flags == ACL_TYPE_ACCESS &&
-+	    !in_group_p(inode->i_gid) &&
-+	    !capable_wrt_inode_uidgid(inode, CAP_FSETID)) {
-+		struct iattr iattr = { .ia_valid = ATTR_KILL_SGID };
-+
-+		err = ovl_setattr(dentry, &iattr);
-+		if (err)
-+			return err;
-+	}
-+
- 	err = ovl_xattr_set(dentry, handler->name, value, size, flags);
- 	if (!err)
- 		ovl_copyattr(ovl_inode_real(inode, NULL), inode);
+Cheers,
+-- 
+Raphaël Hertzog ◈ Debian Developer
+
+Support Debian LTS: http://www.freexian.com/services/debian-lts.html
+Learn to master Debian: http://debian-handbook.info/get/
