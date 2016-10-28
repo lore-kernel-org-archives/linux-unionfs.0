@@ -1,80 +1,87 @@
-From: Al Viro <viro@ZenIV.linux.org.uk>
-Subject: Re: [PATCH 3/3] ovl: redirect on rename-dir
-Date: Fri, 28 Oct 2016 17:15:34 +0100
-Message-ID: <20161028161534.GM19539@ZenIV.linux.org.uk>
-References: <1477380887-21333-1-git-send-email-mszeredi@redhat.com>
- <1477380887-21333-4-git-send-email-mszeredi@redhat.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Subject: Re: [PATCH v2] ovl: update S_ISGID when setting posix ACLs
+Date: Fri, 28 Oct 2016 22:22:33 +0300
+Message-ID: <CAOQ4uxhoL2xfv6QxpJVq3cJde0DR4AFFoCtvRmOH_JTqDFaE=A@mail.gmail.com>
+References: <1477501840-25066-1-git-send-email-amir73il@gmail.com>
+ <1477506616-14061-1-git-send-email-amir73il@gmail.com> <20161027223742.GC4819@redhat.com>
+ <CAOQ4uxiSf+9u0P1s5--uj19ubrJYrUWH_WM2FPbpvH9yApoZyQ@mail.gmail.com> <20161028125457.GA8412@veci.piliscsaba.szeredi.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from zeniv.linux.org.uk ([195.92.253.2]:39692 "EHLO
-        ZenIV.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756322AbcJ1QPh (ORCPT
+Received: from mail-wm0-f68.google.com ([74.125.82.68]:35925 "EHLO
+        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1756330AbcJ1TWg (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 28 Oct 2016 12:15:37 -0400
-Content-Disposition: inline
-In-Reply-To: <1477380887-21333-4-git-send-email-mszeredi@redhat.com>
+        Fri, 28 Oct 2016 15:22:36 -0400
+In-Reply-To: <20161028125457.GA8412@veci.piliscsaba.szeredi.hu>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Miklos Szeredi <mszeredi@redhat.com>
-Cc: linux-unionfs@vger.kernel.org, Guillem Jover <guillem@debian.org>, Raphael Hertzog <hertzog@debian.org>, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: Vivek Goyal <vgoyal@redhat.com>, Andreas Gruenbacher <agruenba@redhat.com>, linux-unionfs@vger.kernel.org, linux-fsdevel <linux-fsdevel@vger.kernel.org>
 
-On Tue, Oct 25, 2016 at 09:34:47AM +0200, Miklos Szeredi wrote:
-> Current code returns EXDEV when a directory would need to be copied up to
-> move.  We could copy up the directory tree in this case, but there's
-> another solution: point to old lower directory from moved upper directory.
-> 
-> This is achieved with a "trusted.overlay.redirect" xattr storing the path
-> relative to the root of the overlay.  After such attribute has been set,
-> the directory can be moved without further actions required.
-> 
-> This is a backward incompatible feature, old kernels won't be able to
-> correctly mount an overlay containing redirected directories.
+On Fri, Oct 28, 2016 at 3:54 PM, Miklos Szeredi <miklos@szeredi.hu> wrote:
+> On Fri, Oct 28, 2016 at 07:47:12AM +0300, Amir Goldstein wrote:
+>> On Fri, Oct 28, 2016 at 1:37 AM, Vivek Goyal <vgoyal@redhat.com> wrote:
+>> > On Wed, Oct 26, 2016 at 09:30:16PM +0300, Amir Goldstein wrote:
+>> >> Since operations on upper are performed using mounter's credentials,
+>> >> we need to call posix_acl_update_mode() with current credentials on
+>> >> overlay inode to possibly copy-up and clear setgid bit, before setting
+>> >> posix ACLs on upper inode.
+>> >>
+>> >> Also wrap posix acl handlers with #ifdef CONFIG_FS_POSIX_ACL to
+>> >> avoid compiler warning for implicit declaration of function
+>> >> 'posix_acl_update_mode' on build without that config option.
+>> >>
+>> >> This change fixes xfstest generic/375, which failed to clear the
+>> >> setgid bit in the following test case over overlayfs:
+>> >>
+>> >>   touch $testfile
+>> >>   chown 100:100 $testfile
+>> >>   chmod 2755 $testfile
+>> >>   _runas -u 100 -g 101 -- setfacl -m u::rwx,g::rwx,o::rwx $testfile
+>
+> Instead of calculating and setting the equivalent mode in overlayfs code (as
+> well as in the upper layer later), how about just clearing the sgid bit when
+> necessary?
+>
+> Untested patch follows.
+>
 
-> +			err = vfs_path_lookup(lowerpath.dentry, lowerpath.mnt,
-> +					      redirect, 0, &thispath);
+Tested your patch. It fixes generic/375 and passes xfs/pjd/union tests.
+You may re-cycle my commit message (relevant parts) and either keep
+my Signed-off-by or add Tested-by me
+
+Thanks,
+Amir.
+
+> Thanks,
+> Miklos
+>
+> ---
+>  fs/overlayfs/super.c |   15 +++++++++++++++
+>  1 file changed, 15 insertions(+)
+>
+> --- a/fs/overlayfs/super.c
+> +++ b/fs/overlayfs/super.c
+> @@ -562,6 +562,21 @@ ovl_posix_acl_xattr_set(const struct xat
+>
+>         posix_acl_release(acl);
+>
+> +       /*
+> +        * Check if sgid bit needs to be cleared (actual setacl operation will
+> +        * be done with mounter's capabilities and so that won't do it for us).
+> +        */
+> +       if (unlikely(inode->i_mode & S_ISGID) &&
+> +           handler->flags == ACL_TYPE_ACCESS &&
+> +           !in_group_p(inode->i_gid) &&
+> +           !capable_wrt_inode_uidgid(inode, CAP_FSETID)) {
+> +               struct iattr iattr = { .ia_valid = ATTR_KILL_SGID };
 > +
-> +			if (err) {
-> +				if (err == -ENOENT || err == -ENAMETOOLONG)
-> +					this = NULL;
-> +			} else {
-> +				this = thispath.dentry;
-> +				mntput(thispath.mnt);
-> +				if (!this->d_inode) {
-> +					dput(this);
-> +					this = NULL;
-> +				} else if (ovl_dentry_weird(this)) {
-> +					dput(this);
-> +					err = -EREMOTE;
-> +				}
-> +			}
-
-I'm not happy with that one - you are relying upon the fairly subtle
-assertions here.
-	1)  Had lowerpath.mnt *not* been a privately cloned one with nothing
-mounted on it, you would've been screwed.
-	2) Had that thing contained a "jumper" symlink (a-la procfs ones),
-you would've been screwed.  Currently only procfs has those, and it would've
-been rejected before getting there, but this is brittle and non-obvious.
-	3) Any automount point in there (nfs4 referrals, etc.) can
-break the assumption that nothing could've been mounted on it.  And _that_
-might have not been stepped onto; back when the path had been stored, there'd
-been no automount point at all, so we have avoided ovl_dentry_weird() rejects,
-and by now nothing on the path had been visited yet, so ovl_dentry_weird()
-didn't have a chance to trigger.  Note that calling it on the last dentry
-is no good - we might have crossed the automount point in the middle of that
-path, so this last dentry might be nice and shiny - and on another filesystem.
-So unlike (1) and (2) it's not just a fishy-looking thing that happens to
-work for non-local reasons; AFAICS, it's actually a bug.
-
-I'm not sure if vfs_path_lookup() is the right tool here.  It might be
-usable for making such a tool, but as it is you are setting one hell of
-a trap for yourself...
-
-It might be made to work, if we figure out the right semantics for disabling
-symlinks on per-vfsmount basis (and no, the posted nolinks patches are not
-it) and mark these private clones with that and with similar "disable
-automount traversals" flag (again, needs the right semantics; the area is
-convoluted as it is).  But in that case I would strongly recommend adding
-an exported wrapper around vfs_path_lookup() that would verify that these
-flags *are* set.
+> +               err = ovl_setattr(dentry, &iattr);
+> +               if (err)
+> +                       return err;
+> +       }
+> +
+>         err = ovl_xattr_set(dentry, handler->name, value, size, flags);
+>         if (!err)
+>                 ovl_copyattr(ovl_inode_real(inode, NULL), inode);
