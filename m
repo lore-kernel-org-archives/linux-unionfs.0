@@ -1,59 +1,83 @@
-From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [PATCH 3/3] ovl: redirect on rename-dir
-Date: Mon, 31 Oct 2016 00:00:27 +0200
-Message-ID: <CAOQ4uxgqGkioGZ9=rG3+m-SQEBCGH-9zvsC0-+KtRP0yuL0jRQ@mail.gmail.com>
-References: <1477380887-21333-1-git-send-email-mszeredi@redhat.com>
- <1477380887-21333-4-git-send-email-mszeredi@redhat.com> <CAOQ4uxhTOw9vHVSQURakYgamXMxXDTnZYFjUDZYx1Hnf=TA9dA@mail.gmail.com>
- <CAJfpegs+NDycOda67y5-8zDYHk90gxdQuQsRQ2pLq58UcUqa9A@mail.gmail.com>
+From: Miklos Szeredi <miklos@szeredi.hu>
+Subject: Re: ACL test failures on overlayfs over tmpfs
+Date: Mon, 31 Oct 2016 14:51:44 +0100
+Message-ID: <20161031135144.GB8412@veci.piliscsaba.szeredi.hu>
+References: <CAOQ4uxgFBZumexGm0qtN70qwmYraxMMEzHgSLHHzT1ZYUnn-hw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
-In-Reply-To: <CAJfpegs+NDycOda67y5-8zDYHk90gxdQuQsRQ2pLq58UcUqa9A@mail.gmail.com>
-Sender: linux-fsdevel-owner@vger.kernel.org
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: Miklos Szeredi <mszeredi@redhat.com>, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>, Guillem Jover <guillem@debian.org>, Raphael Hertzog <hertzog@debian.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-unionfs-owner@vger.kernel.org>
+Received: from mail-wm0-f68.google.com ([74.125.82.68]:33634 "EHLO
+        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S943171AbcJaNvu (ORCPT
+        <rfc822;linux-unionfs@vger.kernel.org>);
+        Mon, 31 Oct 2016 09:51:50 -0400
+Received: by mail-wm0-f68.google.com with SMTP id m83so18516196wmc.0
+        for <linux-unionfs@vger.kernel.org>; Mon, 31 Oct 2016 06:51:49 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <CAOQ4uxgFBZumexGm0qtN70qwmYraxMMEzHgSLHHzT1ZYUnn-hw@mail.gmail.com>
+Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: Andreas Gruenbacher <agruenba@redhat.com>, Vivek Goyal <vgoyal@redhat.com>, linux-unionfs@vger.kernel.org
 
-On Wed, Oct 26, 2016 at 2:26 PM, Miklos Szeredi <miklos@szeredi.hu> wrote:
->
+On Sun, Oct 30, 2016 at 03:35:04PM +0200, Amir Goldstein wrote:
+> Hi guys,
+> 
+> I recently learned about a set of ACL tests that were added
+> by Tuxera to pjdtests. I pushed a branch to my github with
+> some fixes to build and run on recent Linux:
+> 
+> https://github.com/amir73il/pjdfstest.git #tuxera-acl-tests
+> 
+> While the set of ACL tests pass on overlayfs over xfs/ext4
+> some fail on overlayfs over tmpfs.
+> Below is a snippet from one of the failed tests.
+> The test setup grants read-only access to a 'foreign' user
+> and write-only access to a 'foreign' group (i.e. not the owner).
+> 
+> The return value from the 4 open statements at the bottom
+> of the test are correct when run on tmpfs/xfs/ext4 and they
+> are correct when run on overlayfs over xfs/ext4.
+> 
+> However, when running the same test on overlayfs over tmpfs
+> (both lower and upper) all 4 open statements fail with EACCESS
+> as if the ACL permission grant for the foreign user/group are skipped.
+> 
+> I tried following the permission checks code and got lost.
+> 
+> Can you shed some light on this for me?
 
-...
+Following patch should fix it.
 
->
-> BTW I don't remember having tested this, so it might possibly be
-> buggy.  Automatic multi-layer testing would really be good.  What we
-> basically need is:
->
->  - create normal (two layer) overlay (with interesting constructs,
-> whiteout, opaque dir, redirect)
->  - umount
->  - create three layer overlay where the two lower layers come from the
-> previous upper/lower layers
->  - do more interesting things
->
-> There's one such test in xfstests but it would be good to have more.
->
+Pushed, with a bunch of other fixes, to #overlayfs-linus.
 
-I have a POC for generic addition of layers for unionmount-testsuite
-I pushed it to my github:
-https://github.com/amir73il/unionmount-testsuite.git #ovl_rename_dir
+Thanks,
+Miklos
 
-remount(ctx) rotates upper to top of lower layers and adds a new upper layer
-For now, remount(ctx) is called after successful mkdir and rename dir to
-catch directory redirect bugs.
+---
+From: Miklos Szeredi <mszeredi@redhat.com>
+Subject: ovl: fix get_acl() on tmpfs
 
-As it happens, it is very easy to find a bug, because it is enough to
-just umount an mount the overlay without even adding a new layer
-after directory rename to corrupt the overlayfs lookup.
+tmpfs doesn't have ->get_acl() because it only uses cached acls.
 
-Almost every rename-*-dir test demonstrates the problem
+This fixes the acl tests in pjdfstest when tmpfs is used as the upper layer
+of the overlay.
 
-Going forward, I intend to hook the remount(ctx) event
-in a cleaner way, so for every VFS op in every subtest,
-it is possible to configure a test where the operation happens:
-- without any remount
-- with umount + mount
-- with umount + mount with a new layer
+Reported-by: Amir Goldstein <amir73il@gmail.com>
+Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
+---
+ fs/overlayfs/inode.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
-Cheers,
-Amir.
+--- a/fs/overlayfs/inode.c
++++ b/fs/overlayfs/inode.c
+@@ -270,9 +270,6 @@ struct posix_acl *ovl_get_acl(struct ino
+ 	if (!IS_ENABLED(CONFIG_FS_POSIX_ACL) || !IS_POSIXACL(realinode))
+ 		return NULL;
+ 
+-	if (!realinode->i_op->get_acl)
+-		return NULL;
+-
+ 	old_cred = ovl_override_creds(inode->i_sb);
+ 	acl = get_acl(realinode, type);
+ 	revert_creds(old_cred);
