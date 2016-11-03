@@ -1,79 +1,59 @@
-From: Miklos Szeredi <miklos@szeredi.hu>
-Subject: Re: [PATCH 3/3] ovl: redirect on rename-dir
-Date: Thu, 3 Nov 2016 16:50:43 +0100
-Message-ID: <CAJfpegs9zoTXiqaYV0=sQqXqD9_owqFiOkrwBkOrZ2yYpFEk2g@mail.gmail.com>
-References: <1477380887-21333-1-git-send-email-mszeredi@redhat.com>
- <1477380887-21333-4-git-send-email-mszeredi@redhat.com> <20161028161534.GM19539@ZenIV.linux.org.uk>
+From: Amir Goldstein <amir73il@gmail.com>
+Subject: Re: [PATCH] vfs: fix vfs_clone_file_range() for overlayfs files
+Date: Thu, 3 Nov 2016 21:02:05 +0200
+Message-ID: <CAOQ4uxgu=6gzno3u6r2_CSRnGGwsRMWnvt_n4JwGbCre=g8hNA@mail.gmail.com>
+References: <1477510441-24861-1-git-send-email-amir73il@gmail.com>
+ <CAJfpegtfa5fBozu7GFFtB+eEHKxdmsg6byysVcLGiWuXHtfL2w@mail.gmail.com> <CAOQ4uxixNBOM3jmJKpp6q33kO3hbG1wYTPCj6Pp7ghJ0B-zvtw@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20161028161534.GM19539@ZenIV.linux.org.uk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Miklos Szeredi <mszeredi@redhat.com>, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>, Guillem Jover <guillem@debian.org>, Raphael Hertzog <hertzog@debian.org>, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org
+Return-path: <linux-unionfs-owner@vger.kernel.org>
+Received: from mail-wm0-f67.google.com ([74.125.82.67]:34456 "EHLO
+        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751648AbcKCTCI (ORCPT
+        <rfc822;linux-unionfs@vger.kernel.org>);
+        Thu, 3 Nov 2016 15:02:08 -0400
+In-Reply-To: <CAOQ4uxixNBOM3jmJKpp6q33kO3hbG1wYTPCj6Pp7ghJ0B-zvtw@mail.gmail.com>
+Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: Al Viro <viro@zeniv.linux.org.uk>, Christoph Hellwig <hch@lst.de>, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>
 
-On Fri, Oct 28, 2016 at 6:15 PM, Al Viro <viro@zeniv.linux.org.uk> wrote:
-> On Tue, Oct 25, 2016 at 09:34:47AM +0200, Miklos Szeredi wrote:
->> Current code returns EXDEV when a directory would need to be copied up to
->> move.  We could copy up the directory tree in this case, but there's
->> another solution: point to old lower directory from moved upper directory.
+On Fri, Oct 28, 2016 at 6:25 PM, Amir Goldstein <amir73il@gmail.com> wrote:
+> On Fri, Oct 28, 2016 at 5:25 PM, Miklos Szeredi <miklos@szeredi.hu> wrote:
+>> On Wed, Oct 26, 2016 at 9:34 PM, Amir Goldstein <amir73il@gmail.com> wrote:
+>>> With overlayfs, it is wrong to compare file_inode(inode)->i_sb
+>>> of regular files with those of non-regular files, because the
+>>> former reference the real (upper/lower) sb and the latter reference
+>>> the overlayfs sb.
+>>>
+>>> Move the test for same super block after the sanity tests for
+>>> clone range of directory and non-regular file.
 >>
->> This is achieved with a "trusted.overlay.redirect" xattr storing the path
->> relative to the root of the overlay.  After such attribute has been set,
->> the directory can be moved without further actions required.
+>> Better:  compare ->f_path.dentry->d_sb instead of file_inode()->i_sb.
+>> We don't want to be mixing files that come from overlayfs and ones
+>> that come from the underlying layers.
+>
+> That's not a good option.
+> When source file is in lower and dest file is in upper, then clone range
+> should go forward iff both lower and upper inodes are on the same sb.
+> The test as it is checks for this properly.
+>
+
+Ping.
+
+Do you have any more question about this change?
+Do you mind queuing this up for next along with the rest of the
+clone_file_range() changes?
+
+It'd be nice to have all xfstests pass for overlayfs on 4.10...
+
 >>
->> This is a backward incompatible feature, old kernels won't be able to
->> correctly mount an overlay containing redirected directories.
+>> BTW, would it be worthwhile adding clone_file_range() support to overlayfs?
+>>
 >
->> +                     err = vfs_path_lookup(lowerpath.dentry, lowerpath.mnt,
->> +                                           redirect, 0, &thispath);
->> +
->> +                     if (err) {
->> +                             if (err == -ENOENT || err == -ENAMETOOLONG)
->> +                                     this = NULL;
->> +                     } else {
->> +                             this = thispath.dentry;
->> +                             mntput(thispath.mnt);
->> +                             if (!this->d_inode) {
->> +                                     dput(this);
->> +                                     this = NULL;
->> +                             } else if (ovl_dentry_weird(this)) {
->> +                                     dput(this);
->> +                                     err = -EREMOTE;
->> +                             }
->> +                     }
+> There is nothing to add. It works quite well because clone_file_range works
+> on inode level. In fact, the entire 'clone' group of xfstests passes
+> with overlayfs
+> of lower and upper on the same XFS filesystem (with reflink support).
 >
-> I'm not happy with that one - you are relying upon the fairly subtle
-> assertions here.
->         1)  Had lowerpath.mnt *not* been a privately cloned one with nothing
-> mounted on it, you would've been screwed.
->         2) Had that thing contained a "jumper" symlink (a-la procfs ones),
-> you would've been screwed.  Currently only procfs has those, and it would've
-> been rejected before getting there, but this is brittle and non-obvious.
->         3) Any automount point in there (nfs4 referrals, etc.) can
-> break the assumption that nothing could've been mounted on it.  And _that_
-> might have not been stepped onto; back when the path had been stored, there'd
-> been no automount point at all, so we have avoided ovl_dentry_weird() rejects,
-> and by now nothing on the path had been visited yet, so ovl_dentry_weird()
-> didn't have a chance to trigger.  Note that calling it on the last dentry
-> is no good - we might have crossed the automount point in the middle of that
-> path, so this last dentry might be nice and shiny - and on another filesystem.
-> So unlike (1) and (2) it's not just a fishy-looking thing that happens to
-> work for non-local reasons; AFAICS, it's actually a bug.
->
-> I'm not sure if vfs_path_lookup() is the right tool here.  It might be
-> usable for making such a tool, but as it is you are setting one hell of
-> a trap for yourself...
-
-Agreed, it's not the right tool.   A custom loop of lookup_one_len's
-should work much better and doesn't add all that much complexity.
-Updated patch pushed to:
-
-git://git.kernel.org/pub/scm/linux/kernel/git/mszeredi/vfs.git #redirect
-
-This version also passes the recycling tests by Amir and enables the
-redirect feature by default on an empty upperdir.
-
-Thanks,
-Miklos
+> Amir.
