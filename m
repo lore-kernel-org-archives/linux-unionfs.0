@@ -1,55 +1,118 @@
-From: Miklos Szeredi <miklos@szeredi.hu>
-Subject: Re: [PATCH] vfs: fix vfs_clone_file_range() for overlayfs files
-Date: Thu, 3 Nov 2016 21:57:14 +0100
-Message-ID: <CAJfpegue2=jjFMdkVw0njcn=wDLnwzABikQ03s_vdKZb=ZtEcg@mail.gmail.com>
-References: <1477510441-24861-1-git-send-email-amir73il@gmail.com>
- <CAJfpegtfa5fBozu7GFFtB+eEHKxdmsg6byysVcLGiWuXHtfL2w@mail.gmail.com>
- <CAOQ4uxixNBOM3jmJKpp6q33kO3hbG1wYTPCj6Pp7ghJ0B-zvtw@mail.gmail.com> <CAOQ4uxgu=6gzno3u6r2_CSRnGGwsRMWnvt_n4JwGbCre=g8hNA@mail.gmail.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Subject: Re: [PATCH 3/3] ovl: redirect on rename-dir
+Date: Fri, 4 Nov 2016 11:29:58 +0200
+Message-ID: <CAOQ4uxgK9+Nwxtj9GCHp-fFg7Gsu0HMA2-MeguBJ=BWxQATWmw@mail.gmail.com>
+References: <1477380887-21333-1-git-send-email-mszeredi@redhat.com>
+ <1477380887-21333-4-git-send-email-mszeredi@redhat.com> <20161028161534.GM19539@ZenIV.linux.org.uk>
+ <CAJfpegs9zoTXiqaYV0=sQqXqD9_owqFiOkrwBkOrZ2yYpFEk2g@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-oi0-f68.google.com ([209.85.218.68]:32885 "EHLO
-        mail-oi0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1758308AbcKCU5Q (ORCPT
+Received: from mail-wm0-f67.google.com ([74.125.82.67]:35173 "EHLO
+        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752329AbcKDJaA (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 3 Nov 2016 16:57:16 -0400
-Received: by mail-oi0-f68.google.com with SMTP id x4so8859660oix.0
-        for <linux-unionfs@vger.kernel.org>; Thu, 03 Nov 2016 13:57:16 -0700 (PDT)
-In-Reply-To: <CAOQ4uxgu=6gzno3u6r2_CSRnGGwsRMWnvt_n4JwGbCre=g8hNA@mail.gmail.com>
+        Fri, 4 Nov 2016 05:30:00 -0400
+In-Reply-To: <CAJfpegs9zoTXiqaYV0=sQqXqD9_owqFiOkrwBkOrZ2yYpFEk2g@mail.gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>, Christoph Hellwig <hch@lst.de>, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: Al Viro <viro@zeniv.linux.org.uk>, Miklos Szeredi <mszeredi@redhat.com>, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>, Guillem Jover <guillem@debian.org>, Raphael Hertzog <hertzog@debian.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>
 
-On Thu, Nov 3, 2016 at 8:02 PM, Amir Goldstein <amir73il@gmail.com> wrote:
-> On Fri, Oct 28, 2016 at 6:25 PM, Amir Goldstein <amir73il@gmail.com> wrote:
->> On Fri, Oct 28, 2016 at 5:25 PM, Miklos Szeredi <miklos@szeredi.hu> wrote:
->>> On Wed, Oct 26, 2016 at 9:34 PM, Amir Goldstein <amir73il@gmail.com> wrote:
->>>> With overlayfs, it is wrong to compare file_inode(inode)->i_sb
->>>> of regular files with those of non-regular files, because the
->>>> former reference the real (upper/lower) sb and the latter reference
->>>> the overlayfs sb.
->>>>
->>>> Move the test for same super block after the sanity tests for
->>>> clone range of directory and non-regular file.
->>>
->>> Better:  compare ->f_path.dentry->d_sb instead of file_inode()->i_sb.
->>> We don't want to be mixing files that come from overlayfs and ones
->>> that come from the underlying layers.
+On Thu, Nov 3, 2016 at 5:50 PM, Miklos Szeredi <miklos@szeredi.hu> wrote:
+> On Fri, Oct 28, 2016 at 6:15 PM, Al Viro <viro@zeniv.linux.org.uk> wrote:
+>> On Tue, Oct 25, 2016 at 09:34:47AM +0200, Miklos Szeredi wrote:
+...
 >>
->> That's not a good option.
->> When source file is in lower and dest file is in upper, then clone range
->> should go forward iff both lower and upper inodes are on the same sb.
->> The test as it is checks for this properly.
->>
+>> I'm not sure if vfs_path_lookup() is the right tool here.  It might be
+>> usable for making such a tool, but as it is you are setting one hell of
+>> a trap for yourself...
 >
-> Ping.
+> Agreed, it's not the right tool.   A custom loop of lookup_one_len's
+> should work much better and doesn't add all that much complexity.
+> Updated patch pushed to:
 >
-> Do you have any more question about this change?
-> Do you mind queuing this up for next along with the rest of the
-> clone_file_range() changes?
+> git://git.kernel.org/pub/scm/linux/kernel/git/mszeredi/vfs.git #redirect
+>
+> This version also passes the recycling tests by Amir and enables the
+> redirect feature by default on an empty upperdir.
+>
 
-Applied and pushed to #overlayfs-next.
+Miklos,
 
-Thanks,
-Miklos
+You did not address my comment about the 'stack' allocation overflow
+in ovl_lookup
+I believe the (possible) overflow is demonstrated by the following debug patch:
+
+diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
+index c7cacbb..7171bfb 100644
+--- a/fs/overlayfs/namei.c
++++ b/fs/overlayfs/namei.c
+@@ -231,5 +231,7 @@ struct dentry *ovl_lookup(struct inode *dir,
+struct dentry *dentry,
+                                goto out_put;
+
+                        if (redirect && poe != dentry->d_sb->s_root->d_fsdata) {
++                               int stackroom = poe->numlower - ctr;
++
+                                poe = dentry->d_sb->s_root->d_fsdata;
+
+@@ -238,6 +240,8 @@ struct dentry *ovl_lookup(struct inode *dir,
+struct dentry *dentry,
+                                                break;
+                                if (WARN_ON(i == poe->numlower))
+                                        break;
++                               if (WARN_ON(poe->numlower - i - 1 > stackroom))
++                                       break;
+                        }
+                }
+        }
+-- 
+2.7.4
+
+In cases where a directory is moved into another directory with merge history
+shorter then total number of layers,
+lookup will need to grow the 'stack' while redirecting.
+Bug will be hit only after remount or dcache drop, which was the
+reason I wrote the
+recycle test in the first place...
+
+I instrumented unionmount-tests with test name prints to kmsg (a la xfstests)
+Pushed to https://github.com/amir73il/unionmount-testsuite.git #ovl_rename_dir
+
+And as you can see, 5 subtests hit the overflow warning.
+
+[ 1759.692281] TEST rename-new-dir.py:161: Rename empty dir over
+removed empty lower dir
+[ 1759.747217] WARNING: CPU: 0 PID: 9065 at
+/home/amir/src/linux/fs/overlayfs/namei.c:271 ovl_lookup+0x81d/0x870
+[overlay]
+
+[ 1759.748887] TEST rename-new-dir.py:172: Rename empty dir over
+removed populated lower dir
+[ 1759.836195] WARNING: CPU: 2 PID: 9065 at
+/home/amir/src/linux/fs/overlayfs/namei.c:271 ovl_lookup+0x81d/0x870
+[overlay]
+
+[ 1763.519285] TEST rename-new-pop-dir.py:170: Rename new dir over
+removed unioned empty dir
+[ 1763.592055] WARNING: CPU: 3 PID: 9065 at
+/home/amir/src/linux/fs/overlayfs/namei.c:271 ovl_lookup+0x81d/0x870
+[overlay]
+
+[ 1763.592989] TEST rename-new-pop-dir.py:183: Rename new dir over
+removed unioned dir, different files
+[ 1763.658290] WARNING: CPU: 3 PID: 9065 at
+/home/amir/src/linux/fs/overlayfs/namei.c:271 ovl_lookup+0x81d/0x870
+[overlay]
+
+[ 1763.660379] TEST rename-new-pop-dir.py:197: Rename new dir over
+removed unioned dir, same files
+[ 1763.731482] WARNING: CPU: 0 PID: 9065 at
+/home/amir/src/linux/fs/overlayfs/namei.c:271 ovl_lookup+0x81d/0x870
+[overlay]
+
+I hope I am not missing anything.
+
+Cheers,
+Amir.
