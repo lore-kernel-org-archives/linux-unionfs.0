@@ -1,42 +1,32 @@
-From: Miklos Szeredi <miklos@szeredi.hu>
-Subject: Re: [PATCH 3/3] ovl: redirect on rename-dir
-Date: Fri, 4 Nov 2016 14:48:22 +0100
-Message-ID: <CAJfpegs=u6vvM2pr48KOfRubruZwrVXUT3vWcTAknGJrt1nRDw@mail.gmail.com>
-References: <1477380887-21333-1-git-send-email-mszeredi@redhat.com>
- <1477380887-21333-4-git-send-email-mszeredi@redhat.com> <20161028161534.GM19539@ZenIV.linux.org.uk>
- <CAJfpegs9zoTXiqaYV0=sQqXqD9_owqFiOkrwBkOrZ2yYpFEk2g@mail.gmail.com> <CAOQ4uxgK9+Nwxtj9GCHp-fFg7Gsu0HMA2-MeguBJ=BWxQATWmw@mail.gmail.com>
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Subject: Re: [GIT PULL] overlayfs fixes for 4.9-rc3
+Date: Fri, 4 Nov 2016 20:06:02 -0700
+Message-ID: <CA+55aFx7bsMNKMfxaxXuw=E13H5dQpGQHdNgBKKt_JKyL2eGeQ@mail.gmail.com>
+References: <20161104093050.GB1839@veci.piliscsaba.szeredi.hu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAOQ4uxgK9+Nwxtj9GCHp-fFg7Gsu0HMA2-MeguBJ=BWxQATWmw@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>, Miklos Szeredi <mszeredi@redhat.com>, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>, Guillem Jover <guillem@debian.org>, Raphael Hertzog <hertzog@debian.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
+In-Reply-To: <20161104093050.GB1839@veci.piliscsaba.szeredi.hu>
+Sender: linux-fsdevel-owner@vger.kernel.org
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, linux-unionfs@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 
-On Fri, Nov 4, 2016 at 10:29 AM, Amir Goldstein <amir73il@gmail.com> wrote:
+On Fri, Nov 4, 2016 at 2:30 AM, Miklos Szeredi <miklos@szeredi.hu> wrote:
+>
+> Also introduce the concept of feature flags to allow backward incompatible
+> changes to the overlay format.  This should have been there from day one; the
+> best we can do now is backport to stable kernels.  Add the check for features
+> without adding any actual features yet.
 
-> You did not address my comment about the 'stack' allocation overflow
-> in ovl_lookup
-> I believe the (possible) overflow is demonstrated by the following debug patch:
+No. I pulled the three other commits, but not that last one.
 
-Oops, missed that.  Good spotting!
+That feature just seems to actively *encourage* backwards incompatible
+features. It's a bad idea. Don't do it. If we've been able to do
+without it so far, then why should we suddenly start doing things like
+this?
 
-And there's more shit that unionfs-testsuite didn't discover (not even
-involving multiple layers):
+So I don't agree that it should have been there since day one, it just
+shouldn't exist at all.
 
-rm -rf /lower /upper /work
-mkdir -p /lower/a/b/c /upper /work
-mount -t overlay overlay -oupperdir=/upper,lowerdir=/lower,workdir=/work /mnt
-mv /mnt/a /mnt/z
-mv /mnt/z/b /mnt/q
-ls /mnt/q
-umount /mnt
-mount -t overlay overlay -oupperdir=/upper,lowerdir=/lower,workdir=/work /mnt
-ls /mnt/q
-umount /mnt
-
-Next update coming up...
-
-Thanks,
-Miklos
+                  Linus
