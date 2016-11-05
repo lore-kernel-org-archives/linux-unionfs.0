@@ -1,46 +1,48 @@
-From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [PATCH 1/3] ovl: check fs features
-Date: Sat, 5 Nov 2016 22:40:40 +0200
-Message-ID: <CAOQ4uxizPVbaKNXuiTMH0AsGkFqSdXfXsouecyzqyZrNpB+Qhg@mail.gmail.com>
-References: <1477380887-21333-1-git-send-email-mszeredi@redhat.com>
- <1477380887-21333-2-git-send-email-mszeredi@redhat.com> <CAOQ4uxjeP0J=rmC8fHScnKoMHiF7Bmm7k-Y0sf2YFf-OcxJx4w@mail.gmail.com>
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Subject: Re: [GIT PULL] overlayfs fixes for 4.9-rc3
+Date: Sat, 5 Nov 2016 14:30:21 -0700
+Message-ID: <CA+55aFzn7RvHfbYkRmJZ2LWbAVHGBSPoAMQNkKh7DsOYX82_9w@mail.gmail.com>
+References: <20161104093050.GB1839@veci.piliscsaba.szeredi.hu>
+ <CA+55aFx7bsMNKMfxaxXuw=E13H5dQpGQHdNgBKKt_JKyL2eGeQ@mail.gmail.com>
+ <CAOQ4uxjsfAwpvKj1PXvR+_DWKm0HxF7sn1j7QfTzXWquvvXvTQ@mail.gmail.com>
+ <CA+55aFwseoebvgSvi8sHswESOGnLknh+d6_aYAknwPFQbtp7hg@mail.gmail.com> <CAJfpegs6e_K7y-CPj4dm1qtoF6h1z0dFrXHxJSc8TsV=ckuEbA@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:33694 "EHLO
-        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755844AbcKEUkn (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Sat, 5 Nov 2016 16:40:43 -0400
-In-Reply-To: <CAOQ4uxjeP0J=rmC8fHScnKoMHiF7Bmm7k-Y0sf2YFf-OcxJx4w@mail.gmail.com>
-Sender: linux-unionfs-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAJfpegs6e_K7y-CPj4dm1qtoF6h1z0dFrXHxJSc8TsV=ckuEbA@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: Amir Goldstein <amir73il@gmail.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>
 List-Id: linux-unionfs@vger.kernel.org
-To: Miklos Szeredi <mszeredi@redhat.com>
-Cc: linux-unionfs@vger.kernel.org, Guillem Jover <guillem@debian.org>, Raphael Hertzog <hertzog@debian.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>, stable@vger.kernel.org
 
-On Tue, Oct 25, 2016 at 2:24 PM, Amir Goldstein <amir73il@gmail.com> wrote:
-> On Tue, Oct 25, 2016 at 10:34 AM, Miklos Szeredi <mszeredi@redhat.com> wrote:
->> To allow adding new, backward incompatible features to overlayfs, we need a
->> way to store the list of features in the overlay.  This is done via
->> "trusted.overlay.features" xattr on the root of the upper layer (or one of
->> the lower layers, that previously acted as an upper layer).  It's a comma
->> separated list of case sensitive strings.
->>
->> If an overlay has an unknown feature, mount shall return an error.  So
->> mechanism should only be used for backward incompatible features.
+On Sat, Nov 5, 2016 at 12:45 PM, Miklos Szeredi <miklos@szeredi.hu> wrote:
 >
-> So maybe be explicit and call the attribute trusted.overlay.incompat_features,
-> to allow future addition of compat and rocompat feature sets?
+> The feature that would be introduced is this: allow directory renames
+> to work without having to recursively copy-up the subtree.  Whatever
+> mechanism is devised to do this will be backward incompatible.  Maybe
+> it's a misguided idea, but it's been through several rounds of reviews
+> on the relevant mailing lists and there weren't any objections (yet).
 >
+> And the thing is, backward incompatibility is less of an issue for
+> overlayfs than for normal filesystems, because it's usually not
+> something people store their root filesystems on, and if so they can
+> simply not turn off this feature.
 
-On top of the proposed features xattr,
-for the sake of being backward compatible with old kernels,
-how about creating a file 3 levels down from work dir (e.g. /work/work/a/b/c)
-This would cause old kernels to mount overlay read-only,
-which is sufficient to keep them from corrupting the redirect structure.
+(a) that should be explained
 
-And once again, I suggest learning from the elders fs, who have
-successfully gone through many on-disk format upgrades,
-and copy the design of the feature trio (compat/incompat/rocompat)
+(b) that has nothing to do with being marked for stable
 
-Amir.
+(c) that new doesn't actually explain in any way why you'd want
+"feature flags" thing, for exactly the same "backwards incompatibility
+is less of an issue" reason that you state.
+
+Why not "just do it", in other words. For exactly the reasons you say.
+Make it a mount option that people can choose to use or not.
+
+> overlayfs relies on xattr to create opaque directories
+
+Yes and no. It relies on it for THAT ONE FEATURE, which you don't have
+to use. As far as I can tell, overlayfs does *not* rely on xattrs in
+general.
+
+               Linus
