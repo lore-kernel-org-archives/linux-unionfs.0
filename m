@@ -1,34 +1,60 @@
-From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH 1/2] test-appliance: add xfs/reflink config
-Date: Sun,  6 Nov 2016 12:23:16 +0200
-Message-ID: <1478427797-8969-2-git-send-email-amir73il@gmail.com>
-References: <1478427797-8969-1-git-send-email-amir73il@gmail.com>
-Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:36205 "EHLO
-        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751932AbcKFMTs (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Sun, 6 Nov 2016 07:19:48 -0500
-In-Reply-To: <1478427797-8969-1-git-send-email-amir73il@gmail.com>
-Sender: linux-unionfs-owner@vger.kernel.org
+From: Konstantin Khlebnikov <koct9i@gmail.com>
+Subject: Re: [PATCH 3/3] ovl: redirect on rename-dir
+Date: Sun, 6 Nov 2016 22:14:47 +0300
+Message-ID: <CALYGNiN_Hj+4Kf4HJihu5OEkNFU+zzioz5Cc1oHpJ8Wggi0M8Q@mail.gmail.com>
+References: <1477380887-21333-1-git-send-email-mszeredi@redhat.com>
+ <1477380887-21333-4-git-send-email-mszeredi@redhat.com> <20161025115748.ydhkkp5cfcdnjzwn@home.ouaza.com>
+ <CAJfpegu97ce6LtMeKSHqDxZGAtCJUGgYUwOwYm9P6p8XtNXf_A@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAJfpegu97ce6LtMeKSHqDxZGAtCJUGgYUwOwYm9P6p8XtNXf_A@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: Raphael Hertzog <hertzog@debian.org>, Miklos Szeredi <mszeredi@redhat.com>, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>, Guillem Jover <guillem@debian.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-unionfs@vger.kernel.org
-To: Theodore Ts'o <tytso@mit.edu>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, "Darrick J . Wong" <darrick.wong@oracle.com>, linux-unionfs@vger.kernel.org, fstests@vger.kernel.org
 
-Signed-off-by: Amir Goldstein <amir73il@gmail.com>
----
- kvm-xfstests/test-appliance/files/root/fs/xfs/cfg/reflink | 3 +++
- 1 file changed, 3 insertions(+)
- create mode 100644 kvm-xfstests/test-appliance/files/root/fs/xfs/cfg/reflink
+On Wed, Oct 26, 2016 at 2:12 PM, Miklos Szeredi <miklos@szeredi.hu> wrote:
+> On Tue, Oct 25, 2016 at 1:57 PM, Raphael Hertzog <hertzog@debian.org> wrote:
+>
+>> Do you plan to make it the default in the future when it has been
+>> available for a while?
+>>
+>> Barring any regression introduced by your patch, it seems that the feature
+>> is best available by default since it allows legitimate operations to
+>> succeed that are otherwise refused. I understand that it makes it
+>> impossible to mount the overlay filesystem with an older kernel but is
+>> that problem more widespread than the one we're fixing here?  On my side,
+>> overlayfs is only used in scenarios where the kernel is always the same
+>> (or newer compared to what created the initial filesystem).
+>
+> I think it would be safe to make it the default if upperdir is empty.
+> Nonempty implies that it was created with old kernel (or it was
+> crafted by hand).   But there should be a way to explicitly turn it
+> off;  either because of the need for backward compatibility or because
+> the old format is simply easier to work with for humans.
+>
+> How about:
+>
+> - If upper is nonempty, then leave redirect feature alone except when
+> mount option "-oredirect=on" is used to force enabling it.
+> - If upper is empty, then enable redirect feature except when mount
+> option "-oredirect=off" is used to force disabling it.
 
-diff --git a/kvm-xfstests/test-appliance/files/root/fs/xfs/cfg/reflink b/kvm-xfstests/test-appliance/files/root/fs/xfs/cfg/reflink
-new file mode 100644
-index 0000000..f4e9ecb
---- /dev/null
-+++ b/kvm-xfstests/test-appliance/files/root/fs/xfs/cfg/reflink
-@@ -0,0 +1,3 @@
-+SIZE=small
-+export XFS_MKFS_OPTIONS="-m rmapbt=1,reflink=1"
-+TESTNAME="XFS reflink"
--- 
-2.7.4
+I don't like this empty-nonempty upper logic.
+
+I think this feature should be off by default and be enabled
+explicitly in mount option.
+Available features could be listed in sysfs /sys/fs/overlay/..., like ext4 does.
+
+Overlayfs mounting anyway is complicated operation.
+User must know a lot about it and provide persistent state for each mount:
+list layers in correct order, work and uppder directory on the same disk, etc.
+Enabled features is a part of this state.
+
+Probably this could be solved in userspace tool "mount.overlay" - it could load
+features and layers from config file or xattr and set required mount
+options automatically.
+
+--
+Konstantin
