@@ -1,39 +1,51 @@
-From: Theodore Ts'o <tytso@mit.edu>
-Subject: Re: [PATCH 0/2] xfstests-bld: improve overlayfs testing
-Date: Mon, 7 Nov 2016 12:29:07 -0500
-Message-ID: <20161107172907.4ybnqk32jkb32uio@thunk.org>
-References: <1478427797-8969-1-git-send-email-amir73il@gmail.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Subject: Re: [PATCH 3/3] ovl: redirect on rename-dir
+Date: Mon, 7 Nov 2016 15:38:19 +0200
+Message-ID: <CAOQ4uxgzwh55eM19ebfKv6+F8gyHJTN1QRK6R9qALUGmFd1k0g@mail.gmail.com>
+References: <1477380887-21333-1-git-send-email-mszeredi@redhat.com>
+ <1477380887-21333-4-git-send-email-mszeredi@redhat.com> <20161025115748.ydhkkp5cfcdnjzwn@home.ouaza.com>
+ <CAJfpegu97ce6LtMeKSHqDxZGAtCJUGgYUwOwYm9P6p8XtNXf_A@mail.gmail.com>
+ <CALYGNiN_Hj+4Kf4HJihu5OEkNFU+zzioz5Cc1oHpJ8Wggi0M8Q@mail.gmail.com>
+ <CAJfpegvzsjWBL5nu7SQt2kp7efjGMpb9L2JMxzXPXUTdDnft0Q@mail.gmail.com>
+ <CALYGNiOfcuM55458mZoUd4r789z7nVs7Yj0vAA5Qo=BetTJA0Q@mail.gmail.com>
+ <CAJfpeguB-RRFbuwy=csPxoByKC=FTxYyuvnm+rmfTUmkVX+K9w@mail.gmail.com> <CALYGNiMXhvGOq0P-NG_1jMyN7qp+1+UJ8qihp6wVr0xAKjNHsQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <fstests-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1478427797-8969-1-git-send-email-amir73il@gmail.com>
-Sender: fstests-owner@vger.kernel.org
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, "Darrick J . Wong" <darrick.wong@oracle.com>, linux-unionfs@vger.kernel.org, fstests@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CALYGNiMXhvGOq0P-NG_1jMyN7qp+1+UJ8qihp6wVr0xAKjNHsQ@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Konstantin Khlebnikov <koct9i@gmail.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, Raphael Hertzog <hertzog@debian.org>, Miklos Szeredi <mszeredi@redhat.com>, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>, Guillem Jover <guillem@debian.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-unionfs@vger.kernel.org
 
-On Sun, Nov 06, 2016 at 12:23:15PM +0200, Amir Goldstein wrote:
-> Hi Ted,
-> 
-> Following are the changes to xfstests-bld I have been using to test overlayfs.
-> 
-> xfstests master branch just got updated with several fixes to overlay/* tests.
-> One overlayfs bug that was caught by generic/375 was fixed for 4.9-rc4 and one
-> that was caught by generic/157 is queued on overlayfs-next branch.
-> 
-> With these changes to test-appliance, one can test drive overlayfs clone-up
-> over xfs with reflink support. Xfs with reflink support was merged to 4.9-rc1
-> and relevant xfsprogs changes are queued on xfsprogs for-next branch.
-> Overlayfs clone-up is queued on overlayfs-next branch.
-> 
-> Decided to have a little fun and send this one out to you also via github PR.
+On Mon, Nov 7, 2016 at 12:08 PM, Konstantin Khlebnikov <koct9i@gmail.com> wrote:
+> On Mon, Nov 7, 2016 at 1:04 PM, Miklos Szeredi <miklos@szeredi.hu> wrote:
+>> On Mon, Nov 7, 2016 at 10:58 AM, Konstantin Khlebnikov <koct9i@gmail.com> wrote:
+>>
+>>> I've stumbled on somehow related problem - concurrent copy-ups are
+>>> strictly serialized by rename locks.
+>>> Obviously, file copying could be done in parallel: locks are required
+>>> only for final rename.
+>>> Because of that overlay slower that aufs for some workloads.
+>>
+>> Easy to fix: for each copy up create a separate subdir of "work".
+>> Then the contention is only for the time of creating the subdir, which
+>> is very short.
+>
+> Yeah, but lock_rename() also takes per-sb s_vfs_rename_mutex (kludge by Al Viro)
+> I think proper synchronization for concurrent copy-up (for example
+> round flag on ovl_entry) and  locking rename only for rename could be
+> better.
 
-Thanks, merged.
+Removing s_vfs_rename_mutex from copy-up path is something I have been
+pondering about.
+Assuming that I understand Al's comment above vfs_rename() correctly,
+the sole purpose of per-sb serialization is to prevent loop creations.
+However, how can one create a loop by moving a non-directory?
+So it looks like at least for the non-dir copy up case, a much finer grained
+lock is in order.
 
-> Thanks for setting up xfstests-bld.
-> It has been a great help in bringing up my test env.
+Anyway, it's on my todo list, as concurrent operation performance on overlayfs
+is important to out use case.
 
-Great, I'm glad it's been useful for you!
-
-						- Ted
+Amir.
