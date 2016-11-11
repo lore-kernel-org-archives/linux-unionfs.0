@@ -1,7 +1,7 @@
-From: Miklos Szeredi <miklos@szeredi.hu>
+From: Amir Goldstein <amir73il@gmail.com>
 Subject: Re: [PATCH 3/3] ovl: redirect on rename-dir
-Date: Fri, 11 Nov 2016 11:06:18 +0100
-Message-ID: <CAJfpegtLoz92gmNEkB87tR-o6iQJ_4ESjeXg5A0JLanOepgENA@mail.gmail.com>
+Date: Fri, 11 Nov 2016 14:42:19 +0200
+Message-ID: <CAOQ4uxgpsmO9bMU1Bu0aVLot+0zVpQ-OHytH017o2F8_1Hb0cQ@mail.gmail.com>
 References: <1477380887-21333-1-git-send-email-mszeredi@redhat.com>
  <1477380887-21333-4-git-send-email-mszeredi@redhat.com> <20161025115748.ydhkkp5cfcdnjzwn@home.ouaza.com>
  <CAJfpegu97ce6LtMeKSHqDxZGAtCJUGgYUwOwYm9P6p8XtNXf_A@mail.gmail.com>
@@ -11,63 +11,80 @@ References: <1477380887-21333-1-git-send-email-mszeredi@redhat.com>
  <CAJfpeguB-RRFbuwy=csPxoByKC=FTxYyuvnm+rmfTUmkVX+K9w@mail.gmail.com>
  <CALYGNiMXhvGOq0P-NG_1jMyN7qp+1+UJ8qihp6wVr0xAKjNHsQ@mail.gmail.com>
  <CAOQ4uxgzwh55eM19ebfKv6+F8gyHJTN1QRK6R9qALUGmFd1k0g@mail.gmail.com>
- <CAOQ4uxiqT0xrARYUUR4BtE9RTdGD+-qTq0Mbs94Tv6NWe5Gm9Q@mail.gmail.com> <CALYGNiP+Sv40_HODSppgYr-puAzBupFWa9TJxHTLo9yA-ARE=A@mail.gmail.com>
+ <CAOQ4uxiqT0xrARYUUR4BtE9RTdGD+-qTq0Mbs94Tv6NWe5Gm9Q@mail.gmail.com>
+ <CALYGNiP+Sv40_HODSppgYr-puAzBupFWa9TJxHTLo9yA-ARE=A@mail.gmail.com> <CAJfpegtLoz92gmNEkB87tR-o6iQJ_4ESjeXg5A0JLanOepgENA@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CALYGNiP+Sv40_HODSppgYr-puAzBupFWa9TJxHTLo9yA-ARE=A@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Konstantin Khlebnikov <koct9i@gmail.com>
-Cc: Amir Goldstein <amir73il@gmail.com>, Raphael Hertzog <hertzog@debian.org>, Miklos Szeredi <mszeredi@redhat.com>, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>, Guillem Jover <guillem@debian.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Return-path: <linux-unionfs-owner@vger.kernel.org>
+Received: from mail-wm0-f67.google.com ([74.125.82.67]:36612 "EHLO
+        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1756553AbcKKMmW (ORCPT
+        <rfc822;linux-unionfs@vger.kernel.org>);
+        Fri, 11 Nov 2016 07:42:22 -0500
+In-Reply-To: <CAJfpegtLoz92gmNEkB87tR-o6iQJ_4ESjeXg5A0JLanOepgENA@mail.gmail.com>
+Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: Konstantin Khlebnikov <koct9i@gmail.com>, Raphael Hertzog <hertzog@debian.org>, Miklos Szeredi <mszeredi@redhat.com>, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>, Guillem Jover <guillem@debian.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-On Fri, Nov 11, 2016 at 10:46 AM, Konstantin Khlebnikov
-<koct9i@gmail.com> wrote:
-> On Fri, Nov 11, 2016 at 1:56 AM, Amir Goldstein <amir73il@gmail.com> wrote:
->> On Mon, Nov 7, 2016 at 3:38 PM, Amir Goldstein <amir73il@gmail.com> wrote:
->>> On Mon, Nov 7, 2016 at 12:08 PM, Konstantin Khlebnikov <koct9i@gmail.com> wrote:
->>>> On Mon, Nov 7, 2016 at 1:04 PM, Miklos Szeredi <miklos@szeredi.hu> wrote:
->>>>> On Mon, Nov 7, 2016 at 10:58 AM, Konstantin Khlebnikov <koct9i@gmail.com> wrote:
+On Fri, Nov 11, 2016 at 12:06 PM, Miklos Szeredi <miklos@szeredi.hu> wrote:
+> On Fri, Nov 11, 2016 at 10:46 AM, Konstantin Khlebnikov
+> <koct9i@gmail.com> wrote:
+>> On Fri, Nov 11, 2016 at 1:56 AM, Amir Goldstein <amir73il@gmail.com> wrote:
+>>> On Mon, Nov 7, 2016 at 3:38 PM, Amir Goldstein <amir73il@gmail.com> wrote:
+>>>> On Mon, Nov 7, 2016 at 12:08 PM, Konstantin Khlebnikov <koct9i@gmail.com> wrote:
+>>>>> On Mon, Nov 7, 2016 at 1:04 PM, Miklos Szeredi <miklos@szeredi.hu> wrote:
+>>>>>> On Mon, Nov 7, 2016 at 10:58 AM, Konstantin Khlebnikov <koct9i@gmail.com> wrote:
+>>>>>>
+>>>>>>> I've stumbled on somehow related problem - concurrent copy-ups are
+>>>>>>> strictly serialized by rename locks.
+>>>>>>> Obviously, file copying could be done in parallel: locks are required
+>>>>>>> only for final rename.
+>>>>>>> Because of that overlay slower that aufs for some workloads.
+>>>>>>
+>>>>>> Easy to fix: for each copy up create a separate subdir of "work".
+>>>>>> Then the contention is only for the time of creating the subdir, which
+>>>>>> is very short.
 >>>>>
->>>>>> I've stumbled on somehow related problem - concurrent copy-ups are
->>>>>> strictly serialized by rename locks.
->>>>>> Obviously, file copying could be done in parallel: locks are required
->>>>>> only for final rename.
->>>>>> Because of that overlay slower that aufs for some workloads.
->>>>>
->>>>> Easy to fix: for each copy up create a separate subdir of "work".
->>>>> Then the contention is only for the time of creating the subdir, which
->>>>> is very short.
+>>>>> Yeah, but lock_rename() also takes per-sb s_vfs_rename_mutex (kludge by Al Viro)
+>>>>> I think proper synchronization for concurrent copy-up (for example
+>>>>> round flag on ovl_entry) and  locking rename only for rename could be
+>>>>> better.
 >>>>
->>>> Yeah, but lock_rename() also takes per-sb s_vfs_rename_mutex (kludge by Al Viro)
->>>> I think proper synchronization for concurrent copy-up (for example
->>>> round flag on ovl_entry) and  locking rename only for rename could be
->>>> better.
+>>>> Removing s_vfs_rename_mutex from copy-up path is something I have been
+>>>> pondering about.
+>>>> Assuming that I understand Al's comment above vfs_rename() correctly,
+>>>> the sole purpose of per-sb serialization is to prevent loop creations.
+>>>> However, how can one create a loop by moving a non-directory?
+>>>> So it looks like at least for the non-dir copy up case, a much finer grained
+>>>> lock is in order.
+>>>>
 >>>
->>> Removing s_vfs_rename_mutex from copy-up path is something I have been
->>> pondering about.
->>> Assuming that I understand Al's comment above vfs_rename() correctly,
->>> the sole purpose of per-sb serialization is to prevent loop creations.
->>> However, how can one create a loop by moving a non-directory?
->>> So it looks like at least for the non-dir copy up case, a much finer grained
->>> lock is in order.
+>>>
+>>> I posted patches to relax the s_vfs_rename_mutex for copy-up and
+>>> whiteout in some use cases.
+>>>
+>>> Konstantin,
+>>>
+>>> It would be useful to know if those patches help with your use case.
 >>>
 >>
->>
->> I posted patches to relax the s_vfs_rename_mutex for copy-up and
->> whiteout in some use cases.
->>
->> Konstantin,
->>
->> It would be useful to know if those patches help with your use case.
->>
+>> Well.. I think relaxing only s_vfs_rename_mutex wouldn't help much here.
+>> Copying is still serialized by i_mutex on workdir?
+>> Data copying should be done without rename locks at all.
 >
-> Well.. I think relaxing only s_vfs_rename_mutex wouldn't help much here.
-> Copying is still serialized by i_mutex on workdir?
-> Data copying should be done without rename locks at all.
+> We do need something to prevent multiple copy-ups starting up in
+> parallel on the same file, though.
+>
 
-We do need something to prevent multiple copy-ups starting up in
-parallel on the same file, though.
+I guess an inode_lock on the copy-up victim should suffice?
+I will look into it as soon as I am done with profiling.
+So far I ran only 2 rm -rf threads on 2 different overlay mounts
+on the same underlying fs
+and s_vfs_rename_mutex was contended about ~4% of the time.
 
-Thanks,
-Miklos
+In this test, copy-up is not dominant - only ~2% for the directory
+copy-ups, but vfs_whiteouts take 20% and the vfs_rename itself 10%,
+both with s_vfs_rename_mutex held.
+
+Amir.
