@@ -1,46 +1,47 @@
-From: Al Viro <viro@ZenIV.linux.org.uk>
-Subject: Re: [RFC][PATH 4/4] ovl: relax lock_rename when moving files between
- work and upper dir
-Date: Fri, 11 Nov 2016 00:27:56 +0000
-Message-ID: <20161111002756.GP19539@ZenIV.linux.org.uk>
-References: <1478817883-27662-1-git-send-email-amir73il@gmail.com>
- <1478817883-27662-5-git-send-email-amir73il@gmail.com>
- <20161110230221.GL19539@ZenIV.linux.org.uk>
- <20161110230557.GM19539@ZenIV.linux.org.uk>
- <CAOQ4uxiW=FjRoAaumkjA=5b83rr3Cfu=Yk5nqsDx-qCenHGu3A@mail.gmail.com>
- <20161110231757.GN19539@ZenIV.linux.org.uk>
- <CAOQ4uxgDhyy1z4xJgvA7c_mPvaYiNhi22DHpYM4X2SODtSwP1Q@mail.gmail.com>
- <20161110235444.GO19539@ZenIV.linux.org.uk>
- <CAOQ4uxiR6wsk97jQ43hu=hkJ1JQRaerSSEwjVr8tX6ia-yfOgA@mail.gmail.com>
+From: Konstantin Khlebnikov <koct9i@gmail.com>
+Subject: Re: [PATCH 3/3] ovl: redirect on rename-dir
+Date: Fri, 11 Nov 2016 12:41:34 +0300
+Message-ID: <CALYGNiP9=-FH3Xy5RMjsOg8GbDGDQRSnppuE_UEidehy=fpinA@mail.gmail.com>
+References: <1477380887-21333-1-git-send-email-mszeredi@redhat.com>
+ <1477380887-21333-4-git-send-email-mszeredi@redhat.com> <20161025115748.ydhkkp5cfcdnjzwn@home.ouaza.com>
+ <CAJfpegu97ce6LtMeKSHqDxZGAtCJUGgYUwOwYm9P6p8XtNXf_A@mail.gmail.com>
+ <CALYGNiN_Hj+4Kf4HJihu5OEkNFU+zzioz5Cc1oHpJ8Wggi0M8Q@mail.gmail.com>
+ <20161107110319.7goz3ym3e6fu5lag@home.ouaza.com> <CALYGNiP=BjxrU9YLL=bGJ5yXSefGMWEAU8ni23mUipL3frjhzA@mail.gmail.com>
+ <20161107134215.2v5leafss2mamim5@home.ouaza.com> <CAJfpeguvHgWuefxfB76qPh8xGW74tuB1q3kgXvEBw5qY80xz-w@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from zeniv.linux.org.uk ([195.92.253.2]:46558 "EHLO
-        ZenIV.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S965311AbcKKA17 (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 10 Nov 2016 19:27:59 -0500
-Content-Disposition: inline
-In-Reply-To: <CAOQ4uxiR6wsk97jQ43hu=hkJ1JQRaerSSEwjVr8tX6ia-yfOgA@mail.gmail.com>
-Sender: linux-unionfs-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAJfpeguvHgWuefxfB76qPh8xGW74tuB1q3kgXvEBw5qY80xz-w@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: Raphael Hertzog <hertzog@debian.org>, Miklos Szeredi <mszeredi@redhat.com>, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>, Guillem Jover <guillem@debian.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-unionfs@vger.kernel.org
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, Konstantin Khlebnikov <koct9i@gmail.com>, linux-unionfs@vger.kernel.org, linux-fsdevel <linux-fsdevel@vger.kernel.org>
 
-On Fri, Nov 11, 2016 at 02:11:56AM +0200, Amir Goldstein wrote:
-> Yeah, I wrote in the cover letter that I did not generate performance
-> numbers yet,
-> which is a must for this sort of work, and that I am hoping to get some feedback
-> from testers.
-> But the serialization I am trying to avoid is between copy-ups and whiteouts of
-> different overlay mounts, all on the same fs, which is the case with
-> docker/rocket
-> containers.
-> 
-> Not ruling out that I am barking up the wrong tree. The burden of
-> proof is on me.
+On Fri, Nov 11, 2016 at 1:39 AM, Miklos Szeredi <miklos@szeredi.hu> wrote:
+> New version is at:
+>
+> git://git.kernel.org/pub/scm/linux/kernel/git/mszeredi/vfs.git #redirect
+>
+> News:
+> - it actually should work in all cases
+> - when rename is not cross directory, just store the new name instead
+> of a full path, as suggested by Amir
+> - when redirect path is too long fall back to EXDEV (the max length
+> should probably be a module param)
+>
+> About turning the feature on or off.  Yes, maybe the empty checking is
+> too complicated.  Going one simpler:
+>
+>  - default to old behavior, turn on with mount option
+>  - add module option and kernel compile option to turn on the feature by default
+>
+> I guess distros wil simply enable this by default, since back
+> compatibility is basically a non-issue.
 
-Surely, the copying of data itself is outside of that lock, isn't it?
-And renames proper, especially if there is any kind of contention going on,
-will be on the metadata hot in cache, so I would really like to see the
-actual evidence of contention-related performance issues...
+Looks good.
+
+I suppose module parameter exposed in /sys/module/overlay/parameters/ could be
+documented as recommended way for detecting presence of that feature.
+
+--
+Konstantin
