@@ -1,91 +1,144 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [RFC][PATH 4/4] ovl: relax lock_rename when moving files between
- work and upper dir
-Date: Fri, 11 Nov 2016 20:07:28 +0200
-Message-ID: <CAOQ4uxgnuj8i_AO-aPFswjH2+8T-q=q5Q98Rsn2pkfz0u2rUNQ@mail.gmail.com>
-References: <20161110230557.GM19539@ZenIV.linux.org.uk> <CAOQ4uxiW=FjRoAaumkjA=5b83rr3Cfu=Yk5nqsDx-qCenHGu3A@mail.gmail.com>
- <20161110231757.GN19539@ZenIV.linux.org.uk> <CAOQ4uxgDhyy1z4xJgvA7c_mPvaYiNhi22DHpYM4X2SODtSwP1Q@mail.gmail.com>
- <20161110235444.GO19539@ZenIV.linux.org.uk> <CAOQ4uxiR6wsk97jQ43hu=hkJ1JQRaerSSEwjVr8tX6ia-yfOgA@mail.gmail.com>
- <20161111002756.GP19539@ZenIV.linux.org.uk> <CAOQ4uxibJf7BVSOeRdfcE7VtU2rkrii=Pu9OL0uZPavpudODeQ@mail.gmail.com>
- <20161111154034.GR19539@ZenIV.linux.org.uk> <CAOQ4uxgU3Pv_SRJhfOGVevuGop=fQ=rPK01UO0ccgy1yEM_hJA@mail.gmail.com>
- <20161111172737.GS19539@ZenIV.linux.org.uk>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
-In-Reply-To: <20161111172737.GS19539@ZenIV.linux.org.uk>
-Sender: linux-fsdevel-owner@vger.kernel.org
-To: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, Konstantin Khlebnikov <koct9i@gmail.com>, linux-unionfs@vger.kernel.org, linux-fsdevel <linux-fsdevel@vger.kernel.org>
+Subject: [RFC][PATCH 2/4] ovl: add helper ovl_dentry_is_upper()
+Date: Sat, 12 Nov 2016 21:36:02 +0200
+Message-ID: <1478979364-10355-3-git-send-email-amir73il@gmail.com>
+References: <1478979364-10355-1-git-send-email-amir73il@gmail.com>
+Return-path: <linux-unionfs-owner@vger.kernel.org>
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:35152 "EHLO
+        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S966813AbcKLTgk (ORCPT
+        <rfc822;linux-unionfs@vger.kernel.org>);
+        Sat, 12 Nov 2016 14:36:40 -0500
+In-Reply-To: <1478979364-10355-1-git-send-email-amir73il@gmail.com>
+Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: Konstantin Khlebnikov <koct9i@gmail.com>, Al Viro <viro@zeniv.linux.org.uk>, linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
 
-On Fri, Nov 11, 2016 at 7:27 PM, Al Viro <viro@zeniv.linux.org.uk> wrote:
-> On Fri, Nov 11, 2016 at 06:17:07PM +0200, Amir Goldstein wrote:
->
->> I'm afraid so.
->> It seems to me that most of the time, lock_rename() is being used in
->> overlayfs for no better alternative to lock 2 directories (work+upper).
->>
->> My suggestion is a small modification to the overlayfs locking scheme.
->> ---Instead of this:
->> assert(lock_rename(workdir, upperdir) != NULL));
->>    copy_up(src, tmp);
->>    vfs_rename(tmp, dst);
->> unlock_rename(workdir, upperdir);
->>
->> +++Use this:
->> assert(lock_rename(workdir, upperdir) != NULL));
->> mutex_unlock(s_vfs_rename_mutex);
->>    copy_up(src, tmp);
->> inode_unlock(upperdir);
->> inode_unlock(workdir);
->> assert(lock_rename(workdir, upperdir) != NULL));
->>   vfs_rename(tmp, dst);
->> unlock_rename(workdir, upperdir);
->>
->> Miklos,
->>
->> Do you see any problem with the proposed scheme?
->> Anything that can go wrong while releasing the workdir lock before vfs_rename()?
->
-> Huh???
->
-> ->rename() definitely counts upon parents being locked; please, read the
-> damn Documentation/filesystems/locking, it's there for a reason.
->
+Add a simple helper to find out if an overlay entry is upper,
+and use instead of the cumbersome expression
+OVL_TYPE_UPPER(ovl_path_type(dentry)).
 
-I know it does. lock_rename() before vfs_rename() re-aquires the parent locks.
-The reason I am unlocking them is to be able to re-take s_vfs_rename_mutex
-and 2 parent dirs in correct order.
+Use the helper in all the places that call ovl_dentry_upper(dentry)
+without dereferencing the returned entry.
 
-> The real question is why the fsck do you need to lock the workdir for the
-> duration of copying at all.  O_TMPFILE open + writes there doesn't need
-> lock_rename() *or* parents being locked.  You need the parent locked when
-> you link the sucker in place, but that's it.  IDGI...
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+---
+ fs/overlayfs/copy_up.c   | 11 ++++-------
+ fs/overlayfs/dir.c       |  4 ++--
+ fs/overlayfs/overlayfs.h |  1 +
+ fs/overlayfs/readdir.c   |  2 +-
+ fs/overlayfs/util.c      |  7 +++++++
+ 5 files changed, 15 insertions(+), 10 deletions(-)
 
-I am starting to understand the reasons of how the current locking scheme for
-copy up became to be what it is.
-
-It stems from the fact the the parent upper dir is used as the synchronization
-object to avoid double copy up (and my suggested scheme does not preserve
-that). Then workdir needs to be locked before we link the temp file.
-And then we cannot lock upperdir->workdir in that order without holding
-s_vfs_rename_mutex while we do that, so the whole locking became
-lock_rename() over the whole thing.
-
-I can see the following solution:
-
-For regular file copy up, don't use workdir at all, use O_TMPFILE instead
-then only need to take upperdir lock and it can be the synchronization
-object for the entire copy-up, which also allows for concurrent copy up
-to different directories.
-
-For non-regular file copy up, use workdir as it is used now and take
-lock_rename() for the entire copy up as it is now.
-
-If upper fs does not support O_TMPFILE, we can resort to the
-contending copy-up.
-
-I am working on a RFC patch. Will send it out over weekend.
-Bare with me guys, I'll get it right eventually...
-
-Amir.
+diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
+index f18c1a6..7e67512 100644
+--- a/fs/overlayfs/copy_up.c
++++ b/fs/overlayfs/copy_up.c
+@@ -346,7 +346,6 @@ int ovl_copy_up_one(struct dentry *parent, struct dentry *dentry,
+ 	struct path parentpath;
+ 	struct dentry *lowerdentry = lowerpath->dentry;
+ 	struct dentry *upperdir;
+-	struct dentry *upperdentry;
+ 	const char *link = NULL;
+ 
+ 	if (WARN_ON(!workdir))
+@@ -372,8 +371,8 @@ int ovl_copy_up_one(struct dentry *parent, struct dentry *dentry,
+ 		pr_err("overlayfs: failed to lock workdir+upperdir\n");
+ 		goto out_unlock;
+ 	}
+-	upperdentry = ovl_dentry_upper(dentry);
+-	if (upperdentry) {
++
++	if (ovl_dentry_is_upper(dentry)) {
+ 		/* Raced with another copy-up?  Nothing to do, then... */
+ 		err = 0;
+ 		goto out_unlock;
+@@ -402,9 +401,8 @@ int ovl_copy_up(struct dentry *dentry)
+ 		struct dentry *parent;
+ 		struct path lowerpath;
+ 		struct kstat stat;
+-		enum ovl_path_type type = ovl_path_type(dentry);
+ 
+-		if (OVL_TYPE_UPPER(type))
++		if (ovl_dentry_is_upper(dentry))
+ 			break;
+ 
+ 		next = dget(dentry);
+@@ -412,8 +410,7 @@ int ovl_copy_up(struct dentry *dentry)
+ 		for (;;) {
+ 			parent = dget_parent(next);
+ 
+-			type = ovl_path_type(parent);
+-			if (OVL_TYPE_UPPER(type))
++			if (ovl_dentry_is_upper(parent))
+ 				break;
+ 
+ 			dput(next);
+diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
+index f24b6b9..100dce5 100644
+--- a/fs/overlayfs/dir.c
++++ b/fs/overlayfs/dir.c
+@@ -631,7 +631,7 @@ static int ovl_remove_and_whiteout(struct dentry *dentry, bool is_dir)
+ 
+ 	err = -ESTALE;
+ 	if ((opaquedir && upper != opaquedir) ||
+-	    (!opaquedir && ovl_dentry_upper(dentry) &&
++	    (!opaquedir && ovl_dentry_is_upper(dentry) &&
+ 	     upper != ovl_dentry_upper(dentry))) {
+ 		goto out_dput_upper;
+ 	}
+@@ -858,7 +858,7 @@ static int ovl_rename(struct inode *olddir, struct dentry *old,
+ 	new_opaque = ovl_dentry_is_opaque(new);
+ 
+ 	err = -ESTALE;
+-	if (ovl_dentry_upper(new)) {
++	if (ovl_dentry_is_upper(new)) {
+ 		if (opaquedir) {
+ 			if (newdentry != opaquedir)
+ 				goto out_dput;
+diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
+index f6e4d35..421fd50 100644
+--- a/fs/overlayfs/overlayfs.h
++++ b/fs/overlayfs/overlayfs.h
+@@ -156,6 +156,7 @@ void ovl_set_dir_cache(struct dentry *dentry, struct ovl_dir_cache *cache);
+ bool ovl_dentry_is_opaque(struct dentry *dentry);
+ bool ovl_dentry_is_whiteout(struct dentry *dentry);
+ void ovl_dentry_set_opaque(struct dentry *dentry, bool opaque);
++bool ovl_dentry_is_upper(struct dentry *dentry);
+ void ovl_dentry_update(struct dentry *dentry, struct dentry *upperdentry);
+ void ovl_inode_init(struct inode *inode, struct inode *realinode,
+ 		    bool is_upper);
+diff --git a/fs/overlayfs/readdir.c b/fs/overlayfs/readdir.c
+index f241b4e..857f24b 100644
+--- a/fs/overlayfs/readdir.c
++++ b/fs/overlayfs/readdir.c
+@@ -437,7 +437,7 @@ static int ovl_dir_fsync(struct file *file, loff_t start, loff_t end,
+ 	/*
+ 	 * Need to check if we started out being a lower dir, but got copied up
+ 	 */
+-	if (!od->is_upper && OVL_TYPE_UPPER(ovl_path_type(dentry))) {
++	if (!od->is_upper && ovl_dentry_is_upper(dentry)) {
+ 		struct inode *inode = file_inode(file);
+ 
+ 		realfile = lockless_dereference(od->upperfile);
+diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
+index 0d45a84..9a8071a 100644
+--- a/fs/overlayfs/util.c
++++ b/fs/overlayfs/util.c
+@@ -121,6 +121,13 @@ struct dentry *ovl_dentry_upper(struct dentry *dentry)
+ 	return ovl_upperdentry_dereference(oe);
+ }
+ 
++bool ovl_dentry_is_upper(struct dentry *dentry)
++{
++	struct ovl_entry *oe = dentry->d_fsdata;
++
++	return (oe->__upperdentry != NULL);
++}
++
+ static struct dentry *__ovl_dentry_lower(struct ovl_entry *oe)
+ {
+ 	return oe->numlower ? oe->lowerstack[0].dentry : NULL;
+-- 
+2.7.4
