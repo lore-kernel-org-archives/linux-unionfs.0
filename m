@@ -1,141 +1,79 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [RFC][PATCH 3/4] ovl: fold ovl_copy_up_truncate() into ovl_copy_up()
-Date: Sat, 12 Nov 2016 21:36:03 +0200
-Message-ID: <1478979364-10355-4-git-send-email-amir73il@gmail.com>
-References: <1478979364-10355-1-git-send-email-amir73il@gmail.com>
-Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:34046 "EHLO
-        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S966816AbcKLTgm (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Sat, 12 Nov 2016 14:36:42 -0500
-In-Reply-To: <1478979364-10355-1-git-send-email-amir73il@gmail.com>
-Sender: linux-unionfs-owner@vger.kernel.org
+Subject: Re: [RFC][PATH 4/4] ovl: relax lock_rename when moving files between
+ work and upper dir
+Date: Sat, 12 Nov 2016 21:45:17 +0200
+Message-ID: <CAOQ4uxgV5iBczUdH_VLu8KC_SkBU0ibqf8o=8+iHbdc5gACAGA@mail.gmail.com>
+References: <20161110230557.GM19539@ZenIV.linux.org.uk> <CAOQ4uxiW=FjRoAaumkjA=5b83rr3Cfu=Yk5nqsDx-qCenHGu3A@mail.gmail.com>
+ <20161110231757.GN19539@ZenIV.linux.org.uk> <CAOQ4uxgDhyy1z4xJgvA7c_mPvaYiNhi22DHpYM4X2SODtSwP1Q@mail.gmail.com>
+ <20161110235444.GO19539@ZenIV.linux.org.uk> <CAOQ4uxiR6wsk97jQ43hu=hkJ1JQRaerSSEwjVr8tX6ia-yfOgA@mail.gmail.com>
+ <20161111002756.GP19539@ZenIV.linux.org.uk> <CAOQ4uxibJf7BVSOeRdfcE7VtU2rkrii=Pu9OL0uZPavpudODeQ@mail.gmail.com>
+ <20161111154034.GR19539@ZenIV.linux.org.uk> <CAOQ4uxgU3Pv_SRJhfOGVevuGop=fQ=rPK01UO0ccgy1yEM_hJA@mail.gmail.com>
+ <20161111172737.GS19539@ZenIV.linux.org.uk> <CAOQ4uxgnuj8i_AO-aPFswjH2+8T-q=q5Q98Rsn2pkfz0u2rUNQ@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
+In-Reply-To: <CAOQ4uxgnuj8i_AO-aPFswjH2+8T-q=q5Q98Rsn2pkfz0u2rUNQ@mail.gmail.com>
+Sender: linux-fsdevel-owner@vger.kernel.org
+To: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, Konstantin Khlebnikov <koct9i@gmail.com>, linux-unionfs@vger.kernel.org, linux-fsdevel <linux-fsdevel@vger.kernel.org>
 List-Id: linux-unionfs@vger.kernel.org
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: Konstantin Khlebnikov <koct9i@gmail.com>, Al Viro <viro@zeniv.linux.org.uk>, linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
 
-This removes code duplication and is prep work
-for fixing up copy up locking.
+On Fri, Nov 11, 2016 at 8:07 PM, Amir Goldstein <amir73il@gmail.com> wrote:
+> On Fri, Nov 11, 2016 at 7:27 PM, Al Viro <viro@zeniv.linux.org.uk> wrote:
+>> On Fri, Nov 11, 2016 at 06:17:07PM +0200, Amir Goldstein wrote:
+>>
+>>> I'm afraid so.
+>>> It seems to me that most of the time, lock_rename() is being used in
+>>> overlayfs for no better alternative to lock 2 directories (work+upper).
+>>>
+>> Huh???
+>>
+>> ->rename() definitely counts upon parents being locked; please, read the
+>> damn Documentation/filesystems/locking, it's there for a reason.
+>>
+>
+> I know it does. lock_rename() before vfs_rename() re-aquires the parent locks.
+> The reason I am unlocking them is to be able to re-take s_vfs_rename_mutex
+> and 2 parent dirs in correct order.
+>
+>> The real question is why the fsck do you need to lock the workdir for the
+>> duration of copying at all.  O_TMPFILE open + writes there doesn't need
+>> lock_rename() *or* parents being locked.  You need the parent locked when
+>> you link the sucker in place, but that's it.  IDGI...
+>
+> I am starting to understand the reasons of how the current locking scheme for
+> copy up became to be what it is.
+>
+> It stems from the fact the the parent upper dir is used as the synchronization
+> object to avoid double copy up (and my suggested scheme does not preserve
+> that). Then workdir needs to be locked before we link the temp file.
+> And then we cannot lock upperdir->workdir in that order without holding
+> s_vfs_rename_mutex while we do that, so the whole locking became
+> lock_rename() over the whole thing.
+>
+> I can see the following solution:
+>
+> For regular file copy up, don't use workdir at all, use O_TMPFILE instead
+> then only need to take upperdir lock and it can be the synchronization
+> object for the entire copy-up, which also allows for concurrent copy up
+> to different directories.
+>
+> For non-regular file copy up, use workdir as it is used now and take
+> lock_rename() for the entire copy up as it is now.
+>
+> If upper fs does not support O_TMPFILE, we can resort to the
+> contending copy-up.
+>
+> I am working on a RFC patch. Will send it out over weekend.
+> Bare with me guys, I'll get it right eventually...
+>
 
-Signed-off-by: Amir Goldstein <amir73il@gmail.com>
----
- fs/overlayfs/copy_up.c   | 19 ++++++++++++++++---
- fs/overlayfs/inode.c     | 33 +--------------------------------
- fs/overlayfs/overlayfs.h |  3 +--
- 3 files changed, 18 insertions(+), 37 deletions(-)
+I posted the new patches. They are much simpler than my previous attempt.
+I did not go for the O_TMPFILE solution because I found a solution
+that IMO is simple and clean without changing too much code.
 
-diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
-index 7e67512..a16127b 100644
---- a/fs/overlayfs/copy_up.c
-+++ b/fs/overlayfs/copy_up.c
-@@ -336,8 +336,8 @@ static int ovl_copy_up_locked(struct dentry *workdir, struct dentry *upperdir,
-  * d_parent it is possible that the copy up will lock the old parent.  At
-  * that point the file will have already been copied up anyway.
-  */
--int ovl_copy_up_one(struct dentry *parent, struct dentry *dentry,
--		    struct path *lowerpath, struct kstat *stat)
-+static int ovl_copy_up_one(struct dentry *parent, struct dentry *dentry,
-+			   struct path *lowerpath, struct kstat *stat)
- {
- 	DEFINE_DELAYED_CALL(done);
- 	struct dentry *workdir = ovl_workdir(dentry);
-@@ -391,7 +391,7 @@ int ovl_copy_up_one(struct dentry *parent, struct dentry *dentry,
- 	return err;
- }
- 
--int ovl_copy_up(struct dentry *dentry)
-+static int __ovl_copy_up(struct dentry *dentry, int flags)
- {
- 	int err = 0;
- 	const struct cred *old_cred = ovl_override_creds(dentry->d_sb);
-@@ -419,6 +419,9 @@ int ovl_copy_up(struct dentry *dentry)
- 
- 		ovl_path_lower(next, &lowerpath);
- 		err = vfs_getattr(&lowerpath, &stat);
-+		/* maybe truncate regular file. this has no effect on dirs */
-+		if (flags & O_TRUNC)
-+			stat.size = 0;
- 		if (!err)
- 			err = ovl_copy_up_one(parent, next, &lowerpath, &stat);
- 
-@@ -429,3 +432,13 @@ int ovl_copy_up(struct dentry *dentry)
- 
- 	return err;
- }
-+
-+int ovl_copy_up(struct dentry *dentry)
-+{
-+	return __ovl_copy_up(dentry, 0);
-+}
-+
-+int ovl_copy_up_open(struct dentry *dentry, int flags)
-+{
-+	return __ovl_copy_up(dentry, flags);
-+}
-diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
-index a10e948..7abae00 100644
---- a/fs/overlayfs/inode.c
-+++ b/fs/overlayfs/inode.c
-@@ -13,34 +13,6 @@
- #include <linux/posix_acl.h>
- #include "overlayfs.h"
- 
--static int ovl_copy_up_truncate(struct dentry *dentry)
--{
--	int err;
--	struct dentry *parent;
--	struct kstat stat;
--	struct path lowerpath;
--	const struct cred *old_cred;
--
--	parent = dget_parent(dentry);
--	err = ovl_copy_up(parent);
--	if (err)
--		goto out_dput_parent;
--
--	ovl_path_lower(dentry, &lowerpath);
--
--	old_cred = ovl_override_creds(dentry->d_sb);
--	err = vfs_getattr(&lowerpath, &stat);
--	if (!err) {
--		stat.size = 0;
--		err = ovl_copy_up_one(parent, dentry, &lowerpath, &stat);
--	}
--	revert_creds(old_cred);
--
--out_dput_parent:
--	dput(parent);
--	return err;
--}
--
- int ovl_setattr(struct dentry *dentry, struct iattr *attr)
- {
- 	int err;
-@@ -281,10 +253,7 @@ int ovl_open_maybe_copy_up(struct dentry *dentry, unsigned int file_flags)
- 	if (ovl_open_need_copy_up(file_flags, type, realpath.dentry)) {
- 		err = ovl_want_write(dentry);
- 		if (!err) {
--			if (file_flags & O_TRUNC)
--				err = ovl_copy_up_truncate(dentry);
--			else
--				err = ovl_copy_up(dentry);
-+			err = ovl_copy_up_open(dentry, file_flags);
- 			ovl_drop_write(dentry);
- 		}
- 	}
-diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-index 421fd50..1a2f9a5 100644
---- a/fs/overlayfs/overlayfs.h
-+++ b/fs/overlayfs/overlayfs.h
-@@ -215,7 +215,6 @@ void ovl_cleanup(struct inode *dir, struct dentry *dentry);
- 
- /* copy_up.c */
- int ovl_copy_up(struct dentry *dentry);
--int ovl_copy_up_one(struct dentry *parent, struct dentry *dentry,
--		    struct path *lowerpath, struct kstat *stat);
-+int ovl_copy_up_open(struct dentry *dentry, int flags);
- int ovl_copy_xattr(struct dentry *old, struct dentry *new);
- int ovl_set_attr(struct dentry *upper, struct kstat *stat);
--- 
-2.7.4
+In a nut shell, the overlay inode is used to synchronize copy up
+regular files (outside the existing locks), so lock_rename can be dropped
+for the period of copying data and re-acquired before the final rename.
+
+Amir.
