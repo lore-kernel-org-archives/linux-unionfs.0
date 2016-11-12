@@ -1,100 +1,198 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [RFC][PATCH 1/4] vfs: update documentation for inode operation locking rules
-Date: Sat, 12 Nov 2016 21:36:01 +0200
-Message-ID: <1478979364-10355-2-git-send-email-amir73il@gmail.com>
+Subject: [RFC][PATCH 4/4] ovl: allow concurrent copy up data of different files
+Date: Sat, 12 Nov 2016 21:36:04 +0200
+Message-ID: <1478979364-10355-5-git-send-email-amir73il@gmail.com>
 References: <1478979364-10355-1-git-send-email-amir73il@gmail.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wm0-f65.google.com ([74.125.82.65]:34009 "EHLO
+Received: from mail-wm0-f65.google.com ([74.125.82.65]:34069 "EHLO
         mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S966793AbcKLTgi (ORCPT
+        with ESMTP id S966902AbcKLTgp (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Sat, 12 Nov 2016 14:36:38 -0500
+        Sat, 12 Nov 2016 14:36:45 -0500
 In-Reply-To: <1478979364-10355-1-git-send-email-amir73il@gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: Miklos Szeredi <miklos@szeredi.hu>
 Cc: Konstantin Khlebnikov <koct9i@gmail.com>, Al Viro <viro@zeniv.linux.org.uk>, linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
 
-- Remove obsolete truncate operation prototype
-- Reorder prototypes mostly by their order in inode_operations struct
-- Match locking rules order to prototypes order
-- Add missing rule for set_acl operation
-- Fix indentation
+Currently, all copy operations are serialized by taking the
+lock_rename(workdir, upperdir) locks for the entire copy up
+operation, including the data copy up.
+
+Copying up data may take a long time with large files and
+holding s_vfs_rename_mutex during that time blocks all
+rename and copy up operations on the entire underlying fs.
+
+This change addresses this problem by changing the copy up
+locking scheme for different types of files as follows.
+
+Directories:
+  <maybe> inode_lock(ovl_inode)
+    lock_rename(workdir, upperdir)
+      copy up dir to workdir
+      move dir to upperdir
+
+Special and zero size files:
+  inode_lock(ovl_inode)
+    lock_rename(workdir, upperdir)
+      copy up file to workdir (no data)
+      move file to upperdir
+
+Regular files with data:
+  inode_lock(ovl_inode)
+    lock_rename(workdir, upperdir)
+      copy up file to workdir (no data)
+    unlock_rename(workdir, upperdir)
+      copy data to file in workdir
+    lock_rename(workdir, upperdir)
+      move file to upperdir
 
 Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- Documentation/filesystems/Locking | 27 ++++++++++++++-------------
- 1 file changed, 14 insertions(+), 13 deletions(-)
+ fs/overlayfs/copy_up.c | 70 +++++++++++++++++++++++++++++++++++++++++++++++---
+ fs/overlayfs/inode.c   |  3 +++
+ 2 files changed, 69 insertions(+), 4 deletions(-)
 
-diff --git a/Documentation/filesystems/Locking b/Documentation/filesystems/Locking
-index 14cdc10..0e35b16 100644
---- a/Documentation/filesystems/Locking
-+++ b/Documentation/filesystems/Locking
-@@ -42,8 +42,11 @@ d_real		no		no		yes 		no
+diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
+index a16127b..1b9705e 100644
+--- a/fs/overlayfs/copy_up.c
++++ b/fs/overlayfs/copy_up.c
+@@ -230,6 +230,44 @@ int ovl_set_attr(struct dentry *upperdentry, struct kstat *stat)
+ 	return err;
+ }
  
- --------------------------- inode_operations --------------------------- 
- prototypes:
--	int (*create) (struct inode *,struct dentry *,umode_t, bool);
- 	struct dentry * (*lookup) (struct inode *,struct dentry *, unsigned int);
-+	int (*permission) (struct inode *, int);
-+	int (*readlink) (struct dentry *, char __user *,int);
-+	const char *(*get_link) (struct dentry *, struct inode *, void **);
-+	int (*create) (struct inode *,struct dentry *,umode_t, bool);
- 	int (*link) (struct dentry *,struct inode *,struct dentry *);
- 	int (*unlink) (struct inode *,struct dentry *);
- 	int (*symlink) (struct inode *,struct dentry *,const char *);
-@@ -52,11 +55,6 @@ prototypes:
- 	int (*mknod) (struct inode *,struct dentry *,umode_t,dev_t);
- 	int (*rename) (struct inode *, struct dentry *,
- 			struct inode *, struct dentry *, unsigned int);
--	int (*readlink) (struct dentry *, char __user *,int);
--	const char *(*get_link) (struct dentry *, struct inode *, void **);
--	void (*truncate) (struct inode *);
--	int (*permission) (struct inode *, int, unsigned int);
--	int (*get_acl)(struct inode *, int);
- 	int (*setattr) (struct dentry *, struct iattr *);
- 	int (*getattr) (struct vfsmount *, struct dentry *, struct kstat *);
- 	ssize_t (*listxattr) (struct dentry *, char *, size_t);
-@@ -66,30 +64,33 @@ prototypes:
- 				struct file *, unsigned open_flag,
- 				umode_t create_mode, int *opened);
- 	int (*tmpfile) (struct inode *, struct dentry *, umode_t);
-+	int (*set_acl) (struct inode *, struct posix_acl *, int);
-+	struct posix_acl *(*get_acl)(struct inode *, int);
++/*
++ * Called with dentry->d_inode lock held only for the last (leaf) copy up
++ * from __ovl_copy_up(), so it is NOT held when called for ancestor
++ * directory from __ovl_copy_up()
++ *
++ * Called with lock_rename(workdir, upperdir) locks held.
++ *
++ * lock_rename() locks remain locked throughout the copy up
++ * of non regular files and zero sized regular files.
++ *
++ * lock_rename() locks are released during ovl_copy_up_data()
++ * of non zero sized regular files. During this time, the overlay
++ * dentry->d_inode lock is still held to avoid concurrent
++ * copy up of files with data.
++ *
++ * Maybe a better description of this locking scheme:
++ *
++ * Directories:
++ *   <maybe> inode_lock(ovl_inode)
++ *     lock_rename(workdir, upperdir)
++ *       copy up dir to workdir
++ *       move dir to upperdir
++ *
++ * Special and zero size files:
++ *   inode_lock(ovl_inode)
++ *     lock_rename(workdir, upperdir)
++ *       copy up file to workdir (no data)
++ *       move file to upperdir
++ *
++ * Regular files with data:
++ *  inode_lock(ovl_inode)
++ *    lock_rename(workdir, upperdir)
++ *      copy up file to workdir (no data)
++ *    unlock_rename(workdir, upperdir)
++ *      copy data to file in workdir
++ *    lock_rename(workdir, upperdir)
++ *      move file to upperdir
++ */
+ static int ovl_copy_up_locked(struct dentry *workdir, struct dentry *upperdir,
+ 			      struct dentry *dentry, struct path *lowerpath,
+ 			      struct kstat *stat, const char *link)
+@@ -274,16 +312,39 @@ static int ovl_copy_up_locked(struct dentry *workdir, struct dentry *upperdir,
+ 	if (err)
+ 		goto out2;
  
- locking rules:
- 	all may block
- 		i_mutex(inode)
- lookup:		yes
-+permission:	no (may not block if called in rcu-walk mode)
-+readlink:	no
-+get_link:	no
- create:		yes
- link:		yes (both)
--mknod:		yes
-+unlink:		yes (both)
- symlink:	yes
- mkdir:		yes
--unlink:		yes (both)
- rmdir:		yes (both)	(see below)
--rename:	yes (all)	(see below)
--readlink:	no
--get_link:	no
-+mknod:		yes
-+rename:		yes (all)	(see below)
- setattr:	yes
--permission:	no (may not block if called in rcu-walk mode)
--get_acl:	no
- getattr:	no
- listxattr:	no
- fiemap:		no
- update_time:	no
- atomic_open:	yes
- tmpfile:	no
-+set_acl:	yes
-+get_acl:	no
+-	if (S_ISREG(stat->mode)) {
++	if (S_ISREG(stat->mode) && stat->size > 0) {
+ 		struct path upperpath;
  
+ 		ovl_path_upper(dentry, &upperpath);
+ 		BUG_ON(upperpath.dentry != NULL);
+ 		upperpath.dentry = newdentry;
  
- 	Additionally, ->rmdir(), ->unlink() and ->rename() have ->i_mutex on
++		/*
++		 * Release rename locks, because copy data may take a long time,
++		 * and holding s_vfs_rename_mutex will block all rename and
++		 * copy up operations on the entire underlying fs.
++		 * We still hold the overlay inode lock to avoid concurrent
++		 * copy up of this file.
++		 */
++		unlock_rename(workdir, upperdir);
++
+ 		err = ovl_copy_up_data(lowerpath, &upperpath, stat->size);
++
++		/*
++		 * Re-aquire rename locks, before moving copied file into place.
++		 */
++		if (unlikely(lock_rename(workdir, upperdir) != NULL)) {
++			pr_err("overlayfs: failed to re-aquire lock_rename\n");
++			err = -EIO;
++		}
++
+ 		if (err)
+ 			goto out_cleanup;
++
++		if (WARN_ON(ovl_dentry_is_upper(dentry))) {
++			/* Raced with another copy-up? This shouldn't happen */
++			goto out_cleanup;
++		}
+ 	}
+ 
+ 	err = ovl_copy_xattr(lowerpath->dentry, newdentry);
+@@ -366,15 +427,14 @@ static int ovl_copy_up_one(struct dentry *parent, struct dentry *dentry,
+ 			return PTR_ERR(link);
+ 	}
+ 
+-	err = -EIO;
+-	if (lock_rename(workdir, upperdir) != NULL) {
++	if (unlikely(lock_rename(workdir, upperdir) != NULL)) {
+ 		pr_err("overlayfs: failed to lock workdir+upperdir\n");
++		err = -EIO;
+ 		goto out_unlock;
+ 	}
+ 
+ 	if (ovl_dentry_is_upper(dentry)) {
+ 		/* Raced with another copy-up?  Nothing to do, then... */
+-		err = 0;
+ 		goto out_unlock;
+ 	}
+ 
+@@ -433,11 +493,13 @@ static int __ovl_copy_up(struct dentry *dentry, int flags)
+ 	return err;
+ }
+ 
++/* Called with dentry->d_inode lock held */
+ int ovl_copy_up(struct dentry *dentry)
+ {
+ 	return __ovl_copy_up(dentry, 0);
+ }
+ 
++/* Called with dentry->d_inode lock held */
+ int ovl_copy_up_open(struct dentry *dentry, int flags)
+ {
+ 	return __ovl_copy_up(dentry, flags);
+diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
+index 7abae00..532b0d5 100644
+--- a/fs/overlayfs/inode.c
++++ b/fs/overlayfs/inode.c
+@@ -251,11 +251,14 @@ int ovl_open_maybe_copy_up(struct dentry *dentry, unsigned int file_flags)
+ 
+ 	type = ovl_path_real(dentry, &realpath);
+ 	if (ovl_open_need_copy_up(file_flags, type, realpath.dentry)) {
++		/* Take the overlay inode lock to avoid concurrent copy-up */
++		inode_lock(dentry->d_inode);
+ 		err = ovl_want_write(dentry);
+ 		if (!err) {
+ 			err = ovl_copy_up_open(dentry, file_flags);
+ 			ovl_drop_write(dentry);
+ 		}
++		inode_unlock(dentry->d_inode);
+ 	}
+ 
+ 	return err;
 -- 
 2.7.4
