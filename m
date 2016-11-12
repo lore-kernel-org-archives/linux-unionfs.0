@@ -1,198 +1,141 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [RFC][PATCH 4/4] ovl: allow concurrent copy up data of different files
-Date: Sat, 12 Nov 2016 21:36:04 +0200
-Message-ID: <1478979364-10355-5-git-send-email-amir73il@gmail.com>
+Subject: [RFC][PATCH 3/4] ovl: fold ovl_copy_up_truncate() into ovl_copy_up()
+Date: Sat, 12 Nov 2016 21:36:03 +0200
+Message-ID: <1478979364-10355-4-git-send-email-amir73il@gmail.com>
 References: <1478979364-10355-1-git-send-email-amir73il@gmail.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wm0-f65.google.com ([74.125.82.65]:34069 "EHLO
-        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S966902AbcKLTgp (ORCPT
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:34046 "EHLO
+        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S966816AbcKLTgm (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Sat, 12 Nov 2016 14:36:45 -0500
+        Sat, 12 Nov 2016 14:36:42 -0500
 In-Reply-To: <1478979364-10355-1-git-send-email-amir73il@gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: Miklos Szeredi <miklos@szeredi.hu>
 Cc: Konstantin Khlebnikov <koct9i@gmail.com>, Al Viro <viro@zeniv.linux.org.uk>, linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
 
-Currently, all copy operations are serialized by taking the
-lock_rename(workdir, upperdir) locks for the entire copy up
-operation, including the data copy up.
-
-Copying up data may take a long time with large files and
-holding s_vfs_rename_mutex during that time blocks all
-rename and copy up operations on the entire underlying fs.
-
-This change addresses this problem by changing the copy up
-locking scheme for different types of files as follows.
-
-Directories:
-  <maybe> inode_lock(ovl_inode)
-    lock_rename(workdir, upperdir)
-      copy up dir to workdir
-      move dir to upperdir
-
-Special and zero size files:
-  inode_lock(ovl_inode)
-    lock_rename(workdir, upperdir)
-      copy up file to workdir (no data)
-      move file to upperdir
-
-Regular files with data:
-  inode_lock(ovl_inode)
-    lock_rename(workdir, upperdir)
-      copy up file to workdir (no data)
-    unlock_rename(workdir, upperdir)
-      copy data to file in workdir
-    lock_rename(workdir, upperdir)
-      move file to upperdir
+This removes code duplication and is prep work
+for fixing up copy up locking.
 
 Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- fs/overlayfs/copy_up.c | 70 +++++++++++++++++++++++++++++++++++++++++++++++---
- fs/overlayfs/inode.c   |  3 +++
- 2 files changed, 69 insertions(+), 4 deletions(-)
+ fs/overlayfs/copy_up.c   | 19 ++++++++++++++++---
+ fs/overlayfs/inode.c     | 33 +--------------------------------
+ fs/overlayfs/overlayfs.h |  3 +--
+ 3 files changed, 18 insertions(+), 37 deletions(-)
 
 diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
-index a16127b..1b9705e 100644
+index 7e67512..a16127b 100644
 --- a/fs/overlayfs/copy_up.c
 +++ b/fs/overlayfs/copy_up.c
-@@ -230,6 +230,44 @@ int ovl_set_attr(struct dentry *upperdentry, struct kstat *stat)
+@@ -336,8 +336,8 @@ static int ovl_copy_up_locked(struct dentry *workdir, struct dentry *upperdir,
+  * d_parent it is possible that the copy up will lock the old parent.  At
+  * that point the file will have already been copied up anyway.
+  */
+-int ovl_copy_up_one(struct dentry *parent, struct dentry *dentry,
+-		    struct path *lowerpath, struct kstat *stat)
++static int ovl_copy_up_one(struct dentry *parent, struct dentry *dentry,
++			   struct path *lowerpath, struct kstat *stat)
+ {
+ 	DEFINE_DELAYED_CALL(done);
+ 	struct dentry *workdir = ovl_workdir(dentry);
+@@ -391,7 +391,7 @@ int ovl_copy_up_one(struct dentry *parent, struct dentry *dentry,
  	return err;
  }
  
-+/*
-+ * Called with dentry->d_inode lock held only for the last (leaf) copy up
-+ * from __ovl_copy_up(), so it is NOT held when called for ancestor
-+ * directory from __ovl_copy_up()
-+ *
-+ * Called with lock_rename(workdir, upperdir) locks held.
-+ *
-+ * lock_rename() locks remain locked throughout the copy up
-+ * of non regular files and zero sized regular files.
-+ *
-+ * lock_rename() locks are released during ovl_copy_up_data()
-+ * of non zero sized regular files. During this time, the overlay
-+ * dentry->d_inode lock is still held to avoid concurrent
-+ * copy up of files with data.
-+ *
-+ * Maybe a better description of this locking scheme:
-+ *
-+ * Directories:
-+ *   <maybe> inode_lock(ovl_inode)
-+ *     lock_rename(workdir, upperdir)
-+ *       copy up dir to workdir
-+ *       move dir to upperdir
-+ *
-+ * Special and zero size files:
-+ *   inode_lock(ovl_inode)
-+ *     lock_rename(workdir, upperdir)
-+ *       copy up file to workdir (no data)
-+ *       move file to upperdir
-+ *
-+ * Regular files with data:
-+ *  inode_lock(ovl_inode)
-+ *    lock_rename(workdir, upperdir)
-+ *      copy up file to workdir (no data)
-+ *    unlock_rename(workdir, upperdir)
-+ *      copy data to file in workdir
-+ *    lock_rename(workdir, upperdir)
-+ *      move file to upperdir
-+ */
- static int ovl_copy_up_locked(struct dentry *workdir, struct dentry *upperdir,
- 			      struct dentry *dentry, struct path *lowerpath,
- 			      struct kstat *stat, const char *link)
-@@ -274,16 +312,39 @@ static int ovl_copy_up_locked(struct dentry *workdir, struct dentry *upperdir,
- 	if (err)
- 		goto out2;
+-int ovl_copy_up(struct dentry *dentry)
++static int __ovl_copy_up(struct dentry *dentry, int flags)
+ {
+ 	int err = 0;
+ 	const struct cred *old_cred = ovl_override_creds(dentry->d_sb);
+@@ -419,6 +419,9 @@ int ovl_copy_up(struct dentry *dentry)
  
--	if (S_ISREG(stat->mode)) {
-+	if (S_ISREG(stat->mode) && stat->size > 0) {
- 		struct path upperpath;
+ 		ovl_path_lower(next, &lowerpath);
+ 		err = vfs_getattr(&lowerpath, &stat);
++		/* maybe truncate regular file. this has no effect on dirs */
++		if (flags & O_TRUNC)
++			stat.size = 0;
+ 		if (!err)
+ 			err = ovl_copy_up_one(parent, next, &lowerpath, &stat);
  
- 		ovl_path_upper(dentry, &upperpath);
- 		BUG_ON(upperpath.dentry != NULL);
- 		upperpath.dentry = newdentry;
+@@ -429,3 +432,13 @@ int ovl_copy_up(struct dentry *dentry)
  
-+		/*
-+		 * Release rename locks, because copy data may take a long time,
-+		 * and holding s_vfs_rename_mutex will block all rename and
-+		 * copy up operations on the entire underlying fs.
-+		 * We still hold the overlay inode lock to avoid concurrent
-+		 * copy up of this file.
-+		 */
-+		unlock_rename(workdir, upperdir);
-+
- 		err = ovl_copy_up_data(lowerpath, &upperpath, stat->size);
-+
-+		/*
-+		 * Re-aquire rename locks, before moving copied file into place.
-+		 */
-+		if (unlikely(lock_rename(workdir, upperdir) != NULL)) {
-+			pr_err("overlayfs: failed to re-aquire lock_rename\n");
-+			err = -EIO;
-+		}
-+
- 		if (err)
- 			goto out_cleanup;
-+
-+		if (WARN_ON(ovl_dentry_is_upper(dentry))) {
-+			/* Raced with another copy-up? This shouldn't happen */
-+			goto out_cleanup;
-+		}
- 	}
- 
- 	err = ovl_copy_xattr(lowerpath->dentry, newdentry);
-@@ -366,15 +427,14 @@ static int ovl_copy_up_one(struct dentry *parent, struct dentry *dentry,
- 			return PTR_ERR(link);
- 	}
- 
--	err = -EIO;
--	if (lock_rename(workdir, upperdir) != NULL) {
-+	if (unlikely(lock_rename(workdir, upperdir) != NULL)) {
- 		pr_err("overlayfs: failed to lock workdir+upperdir\n");
-+		err = -EIO;
- 		goto out_unlock;
- 	}
- 
- 	if (ovl_dentry_is_upper(dentry)) {
- 		/* Raced with another copy-up?  Nothing to do, then... */
--		err = 0;
- 		goto out_unlock;
- 	}
- 
-@@ -433,11 +493,13 @@ static int __ovl_copy_up(struct dentry *dentry, int flags)
  	return err;
  }
- 
-+/* Called with dentry->d_inode lock held */
- int ovl_copy_up(struct dentry *dentry)
- {
- 	return __ovl_copy_up(dentry, 0);
- }
- 
-+/* Called with dentry->d_inode lock held */
- int ovl_copy_up_open(struct dentry *dentry, int flags)
- {
- 	return __ovl_copy_up(dentry, flags);
++
++int ovl_copy_up(struct dentry *dentry)
++{
++	return __ovl_copy_up(dentry, 0);
++}
++
++int ovl_copy_up_open(struct dentry *dentry, int flags)
++{
++	return __ovl_copy_up(dentry, flags);
++}
 diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
-index 7abae00..532b0d5 100644
+index a10e948..7abae00 100644
 --- a/fs/overlayfs/inode.c
 +++ b/fs/overlayfs/inode.c
-@@ -251,11 +251,14 @@ int ovl_open_maybe_copy_up(struct dentry *dentry, unsigned int file_flags)
+@@ -13,34 +13,6 @@
+ #include <linux/posix_acl.h>
+ #include "overlayfs.h"
  
- 	type = ovl_path_real(dentry, &realpath);
+-static int ovl_copy_up_truncate(struct dentry *dentry)
+-{
+-	int err;
+-	struct dentry *parent;
+-	struct kstat stat;
+-	struct path lowerpath;
+-	const struct cred *old_cred;
+-
+-	parent = dget_parent(dentry);
+-	err = ovl_copy_up(parent);
+-	if (err)
+-		goto out_dput_parent;
+-
+-	ovl_path_lower(dentry, &lowerpath);
+-
+-	old_cred = ovl_override_creds(dentry->d_sb);
+-	err = vfs_getattr(&lowerpath, &stat);
+-	if (!err) {
+-		stat.size = 0;
+-		err = ovl_copy_up_one(parent, dentry, &lowerpath, &stat);
+-	}
+-	revert_creds(old_cred);
+-
+-out_dput_parent:
+-	dput(parent);
+-	return err;
+-}
+-
+ int ovl_setattr(struct dentry *dentry, struct iattr *attr)
+ {
+ 	int err;
+@@ -281,10 +253,7 @@ int ovl_open_maybe_copy_up(struct dentry *dentry, unsigned int file_flags)
  	if (ovl_open_need_copy_up(file_flags, type, realpath.dentry)) {
-+		/* Take the overlay inode lock to avoid concurrent copy-up */
-+		inode_lock(dentry->d_inode);
  		err = ovl_want_write(dentry);
  		if (!err) {
- 			err = ovl_copy_up_open(dentry, file_flags);
+-			if (file_flags & O_TRUNC)
+-				err = ovl_copy_up_truncate(dentry);
+-			else
+-				err = ovl_copy_up(dentry);
++			err = ovl_copy_up_open(dentry, file_flags);
  			ovl_drop_write(dentry);
  		}
-+		inode_unlock(dentry->d_inode);
  	}
+diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
+index 421fd50..1a2f9a5 100644
+--- a/fs/overlayfs/overlayfs.h
++++ b/fs/overlayfs/overlayfs.h
+@@ -215,7 +215,6 @@ void ovl_cleanup(struct inode *dir, struct dentry *dentry);
  
- 	return err;
+ /* copy_up.c */
+ int ovl_copy_up(struct dentry *dentry);
+-int ovl_copy_up_one(struct dentry *parent, struct dentry *dentry,
+-		    struct path *lowerpath, struct kstat *stat);
++int ovl_copy_up_open(struct dentry *dentry, int flags);
+ int ovl_copy_xattr(struct dentry *old, struct dentry *new);
+ int ovl_set_attr(struct dentry *upper, struct kstat *stat);
 -- 
 2.7.4
