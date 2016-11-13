@@ -1,79 +1,88 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [RFC][PATH 4/4] ovl: relax lock_rename when moving files between
- work and upper dir
-Date: Sat, 12 Nov 2016 21:45:17 +0200
-Message-ID: <CAOQ4uxgV5iBczUdH_VLu8KC_SkBU0ibqf8o=8+iHbdc5gACAGA@mail.gmail.com>
-References: <20161110230557.GM19539@ZenIV.linux.org.uk> <CAOQ4uxiW=FjRoAaumkjA=5b83rr3Cfu=Yk5nqsDx-qCenHGu3A@mail.gmail.com>
- <20161110231757.GN19539@ZenIV.linux.org.uk> <CAOQ4uxgDhyy1z4xJgvA7c_mPvaYiNhi22DHpYM4X2SODtSwP1Q@mail.gmail.com>
- <20161110235444.GO19539@ZenIV.linux.org.uk> <CAOQ4uxiR6wsk97jQ43hu=hkJ1JQRaerSSEwjVr8tX6ia-yfOgA@mail.gmail.com>
- <20161111002756.GP19539@ZenIV.linux.org.uk> <CAOQ4uxibJf7BVSOeRdfcE7VtU2rkrii=Pu9OL0uZPavpudODeQ@mail.gmail.com>
- <20161111154034.GR19539@ZenIV.linux.org.uk> <CAOQ4uxgU3Pv_SRJhfOGVevuGop=fQ=rPK01UO0ccgy1yEM_hJA@mail.gmail.com>
- <20161111172737.GS19539@ZenIV.linux.org.uk> <CAOQ4uxgnuj8i_AO-aPFswjH2+8T-q=q5Q98Rsn2pkfz0u2rUNQ@mail.gmail.com>
+Subject: Re: [PATCH 3/3] ovl: redirect on rename-dir
+Date: Sun, 13 Nov 2016 11:11:37 +0200
+Message-ID: <CAOQ4uxgmjXjpECMXcF3YVqocLh7siVtiSh-NiPqNExNG=wKp7Q@mail.gmail.com>
+References: <1477380887-21333-1-git-send-email-mszeredi@redhat.com>
+ <1477380887-21333-4-git-send-email-mszeredi@redhat.com> <20161025115748.ydhkkp5cfcdnjzwn@home.ouaza.com>
+ <CAJfpegu97ce6LtMeKSHqDxZGAtCJUGgYUwOwYm9P6p8XtNXf_A@mail.gmail.com>
+ <CALYGNiN_Hj+4Kf4HJihu5OEkNFU+zzioz5Cc1oHpJ8Wggi0M8Q@mail.gmail.com>
+ <CAJfpegvzsjWBL5nu7SQt2kp7efjGMpb9L2JMxzXPXUTdDnft0Q@mail.gmail.com>
+ <CALYGNiOfcuM55458mZoUd4r789z7nVs7Yj0vAA5Qo=BetTJA0Q@mail.gmail.com>
+ <CAJfpeguB-RRFbuwy=csPxoByKC=FTxYyuvnm+rmfTUmkVX+K9w@mail.gmail.com>
+ <CALYGNiMXhvGOq0P-NG_1jMyN7qp+1+UJ8qihp6wVr0xAKjNHsQ@mail.gmail.com>
+ <CAOQ4uxgzwh55eM19ebfKv6+F8gyHJTN1QRK6R9qALUGmFd1k0g@mail.gmail.com>
+ <CAOQ4uxiqT0xrARYUUR4BtE9RTdGD+-qTq0Mbs94Tv6NWe5Gm9Q@mail.gmail.com>
+ <CALYGNiP+Sv40_HODSppgYr-puAzBupFWa9TJxHTLo9yA-ARE=A@mail.gmail.com>
+ <CAJfpegtLoz92gmNEkB87tR-o6iQJ_4ESjeXg5A0JLanOepgENA@mail.gmail.com> <CAOQ4uxgpsmO9bMU1Bu0aVLot+0zVpQ-OHytH017o2F8_1Hb0cQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
-In-Reply-To: <CAOQ4uxgnuj8i_AO-aPFswjH2+8T-q=q5Q98Rsn2pkfz0u2rUNQ@mail.gmail.com>
-Sender: linux-fsdevel-owner@vger.kernel.org
-To: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, Konstantin Khlebnikov <koct9i@gmail.com>, linux-unionfs@vger.kernel.org, linux-fsdevel <linux-fsdevel@vger.kernel.org>
+Return-path: <linux-unionfs-owner@vger.kernel.org>
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:36822 "EHLO
+        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932857AbcKMJLl (ORCPT
+        <rfc822;linux-unionfs@vger.kernel.org>);
+        Sun, 13 Nov 2016 04:11:41 -0500
+In-Reply-To: <CAOQ4uxgpsmO9bMU1Bu0aVLot+0zVpQ-OHytH017o2F8_1Hb0cQ@mail.gmail.com>
+Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: Konstantin Khlebnikov <koct9i@gmail.com>, Raphael Hertzog <hertzog@debian.org>, Miklos Szeredi <mszeredi@redhat.com>, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>, Guillem Jover <guillem@debian.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-On Fri, Nov 11, 2016 at 8:07 PM, Amir Goldstein <amir73il@gmail.com> wrote:
-> On Fri, Nov 11, 2016 at 7:27 PM, Al Viro <viro@zeniv.linux.org.uk> wrote:
->> On Fri, Nov 11, 2016 at 06:17:07PM +0200, Amir Goldstein wrote:
->>
->>> I'm afraid so.
->>> It seems to me that most of the time, lock_rename() is being used in
->>> overlayfs for no better alternative to lock 2 directories (work+upper).
+On Fri, Nov 11, 2016 at 2:42 PM, Amir Goldstein <amir73il@gmail.com> wrote:
+> On Fri, Nov 11, 2016 at 12:06 PM, Miklos Szeredi <miklos@szeredi.hu> wrote:
+>> On Fri, Nov 11, 2016 at 10:46 AM, Konstantin Khlebnikov
+>> <koct9i@gmail.com> wrote:
+>>> On Fri, Nov 11, 2016 at 1:56 AM, Amir Goldstein <amir73il@gmail.com> wrote:
+>>>> On Mon, Nov 7, 2016 at 3:38 PM, Amir Goldstein <amir73il@gmail.com> wrote:
+>>>>> On Mon, Nov 7, 2016 at 12:08 PM, Konstantin Khlebnikov <koct9i@gmail.com> wrote:
+>>>>>> On Mon, Nov 7, 2016 at 1:04 PM, Miklos Szeredi <miklos@szeredi.hu> wrote:
+>>>>>>> On Mon, Nov 7, 2016 at 10:58 AM, Konstantin Khlebnikov <koct9i@gmail.com> wrote:
+>>>>>>>
+>>>>>>>> I've stumbled on somehow related problem - concurrent copy-ups are
+>>>>>>>> strictly serialized by rename locks.
+>>>>>>>> Obviously, file copying could be done in parallel: locks are required
+>>>>>>>> only for final rename.
+>>>>>>>> Because of that overlay slower that aufs for some workloads.
+>>>>>>>
+>>>>>>> Easy to fix: for each copy up create a separate subdir of "work".
+>>>>>>> Then the contention is only for the time of creating the subdir, which
+>>>>>>> is very short.
+>>>>>>
+>>>>>> Yeah, but lock_rename() also takes per-sb s_vfs_rename_mutex (kludge by Al Viro)
+>>>>>> I think proper synchronization for concurrent copy-up (for example
+>>>>>> round flag on ovl_entry) and  locking rename only for rename could be
+>>>>>> better.
+>>>>>
+>>>>> Removing s_vfs_rename_mutex from copy-up path is something I have been
+>>>>> pondering about.
+>>>>> Assuming that I understand Al's comment above vfs_rename() correctly,
+>>>>> the sole purpose of per-sb serialization is to prevent loop creations.
+>>>>> However, how can one create a loop by moving a non-directory?
+>>>>> So it looks like at least for the non-dir copy up case, a much finer grained
+>>>>> lock is in order.
+>>>>>
+>>>>
+>>>>
+>>>> I posted patches to relax the s_vfs_rename_mutex for copy-up and
+>>>> whiteout in some use cases.
+>>>>
+>>>> Konstantin,
+>>>>
+>>>> It would be useful to know if those patches help with your use case.
+>>>>
 >>>
->> Huh???
+>>> Well.. I think relaxing only s_vfs_rename_mutex wouldn't help much here.
+>>> Copying is still serialized by i_mutex on workdir?
+>>> Data copying should be done without rename locks at all.
 >>
->> ->rename() definitely counts upon parents being locked; please, read the
->> damn Documentation/filesystems/locking, it's there for a reason.
+>> We do need something to prevent multiple copy-ups starting up in
+>> parallel on the same file, though.
 >>
 >
-> I know it does. lock_rename() before vfs_rename() re-aquires the parent locks.
-> The reason I am unlocking them is to be able to re-take s_vfs_rename_mutex
-> and 2 parent dirs in correct order.
->
->> The real question is why the fsck do you need to lock the workdir for the
->> duration of copying at all.  O_TMPFILE open + writes there doesn't need
->> lock_rename() *or* parents being locked.  You need the parent locked when
->> you link the sucker in place, but that's it.  IDGI...
->
-> I am starting to understand the reasons of how the current locking scheme for
-> copy up became to be what it is.
->
-> It stems from the fact the the parent upper dir is used as the synchronization
-> object to avoid double copy up (and my suggested scheme does not preserve
-> that). Then workdir needs to be locked before we link the temp file.
-> And then we cannot lock upperdir->workdir in that order without holding
-> s_vfs_rename_mutex while we do that, so the whole locking became
-> lock_rename() over the whole thing.
->
-> I can see the following solution:
->
-> For regular file copy up, don't use workdir at all, use O_TMPFILE instead
-> then only need to take upperdir lock and it can be the synchronization
-> object for the entire copy-up, which also allows for concurrent copy up
-> to different directories.
->
-> For non-regular file copy up, use workdir as it is used now and take
-> lock_rename() for the entire copy up as it is now.
->
-> If upper fs does not support O_TMPFILE, we can resort to the
-> contending copy-up.
->
-> I am working on a RFC patch. Will send it out over weekend.
-> Bare with me guys, I'll get it right eventually...
->
+> I guess an inode_lock on the copy-up victim should suffice?
 
-I posted the new patches. They are much simpler than my previous attempt.
-I did not go for the O_TMPFILE solution because I found a solution
-that IMO is simple and clean without changing too much code.
-
-In a nut shell, the overlay inode is used to synchronize copy up
-regular files (outside the existing locks), so lock_rename can be dropped
-for the period of copying data and re-acquired before the final rename.
+Just to follow up on this hijacked thread.
+I posted patches to lock the overlay inode of copied up file
+and relaxed the lock_rename during data copy up.
 
 Amir.
