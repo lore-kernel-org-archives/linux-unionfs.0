@@ -1,92 +1,52 @@
-From: "Darrick J. Wong" <darrick.wong@oracle.com>
-Subject: Re: [PATCH] generic: use bind mount instead of 2nd _scratch_mount
-Date: Sun, 13 Nov 2016 15:29:57 -0800
-Message-ID: <20161113232957.GF21519@birch.djwong.org>
-References: <1479044977-28972-1-git-send-email-amir73il@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from aserp1040.oracle.com ([141.146.126.69]:41294 "EHLO
-        aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S935184AbcKMXaG (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Sun, 13 Nov 2016 18:30:06 -0500
-Content-Disposition: inline
-In-Reply-To: <1479044977-28972-1-git-send-email-amir73il@gmail.com>
-Sender: linux-unionfs-owner@vger.kernel.org
+From: Quorum Laval <quorum.laval@gmail.com>
+Subject: [PATCH] ovl: fix issue with nftw(3) with FTW_MOUNT flag set
+Date: Mon, 14 Nov 2016 14:27:13 +0100
+Message-ID: <1479130033-8357-1-git-send-email-quorum.laval@gmail.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: miklos@szeredi.hu
+Cc: vmlinuz386@gmail.com, linux-unionfs@vger.kernel.org, linux-kernel@vger.kernel.org, quorum.laval@gmail.com
 List-Id: linux-unionfs@vger.kernel.org
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: Eryu Guan <eguan@redhat.com>, Miklos Szeredi <miklos@szeredi.hu>, Xiong Zhou <xzhou@redhat.com>, linux-unionfs@vger.kernel.org, fstests@vger.kernel.org
 
-On Sun, Nov 13, 2016 at 03:49:37PM +0200, Amir Goldstein wrote:
-> generic/373 and generic/374 test that cross-mountpoint reflink/dedupe
-> fail with EXDEV.
-> 
-> For this test, _scratch_mount is called a 2nd time with same mount
-> arguments, but a different value of SCRATCH_MNT.
-> 
-> This practice is incorrect for overlayfs, which should not be using
-> the same upper/work dirs on two different overlay super blocks.
-> 
-> Change the test to use bind mount instead, which results in the
-> expected setup for both block device mount and overlay mount.
+>From glibc2-24/io/ftw.c:
 
-Looks ok,
-Reviewed-by: Darrick J. Wong <darrick.wong@oracle.com>
+<snippet>
 
---D
+if (result == 0
+      && (flag == FTW_NS
+          || !(data->flags & FTW_MOUNT) || st.st_dev == data->dev))
 
-> 
-> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
-> ---
->  tests/generic/373 | 4 ++--
->  tests/generic/374 | 4 ++--
->  2 files changed, 4 insertions(+), 4 deletions(-)
-> 
-> diff --git a/tests/generic/373 b/tests/generic/373
-> index cf585ba..d74324e 100755
-> --- a/tests/generic/373
-> +++ b/tests/generic/373
-> @@ -64,7 +64,7 @@ blksz=65536
->  sz=$((blksz * blocks))
->  
->  echo "Mount otherdir"
-> -SCRATCH_MNT=$otherdir _scratch_mount
-> +mount --bind $SCRATCH_MNT $otherdir
->  
->  echo "Create file"
->  _pwrite_byte 0x61 0 $sz $testdir/file >> $seqres.full
-> @@ -82,7 +82,7 @@ md5sum $testdir/file | _filter_scratch
->  test -e $othertestdir/otherfile && echo "otherfile should not exist"
->  
->  echo "Unmount otherdir"
-> -SCRATCH_MNT=$otherdir _scratch_unmount
-> +umount $otherdir
->  rm -rf $otherdir
->  
->  # success, all done
-> diff --git a/tests/generic/374 b/tests/generic/374
-> index 0173c13..4546cc5 100755
-> --- a/tests/generic/374
-> +++ b/tests/generic/374
-> @@ -63,7 +63,7 @@ blksz=65536
->  sz=$((blocks * blksz))
->  
->  echo "Mount otherdir"
-> -SCRATCH_MNT=$otherdir _scratch_mount
-> +mount --bind $SCRATCH_MNT $otherdir
->  
->  echo "Create file"
->  _pwrite_byte 0x61 0 $sz $testdir/file >> $seqres.full
-> @@ -80,7 +80,7 @@ echo "Check output"
->  md5sum $testdir/file $othertestdir/otherfile | filter_md5
->  
->  echo "Unmount otherdir"
-> -SCRATCH_MNT=$otherdir _scratch_unmount
-> +umount $otherdir
->  rm -rf $otherdir
->  
->  # success, all done
-> -- 
-> 2.7.4
-> 
+<snippet>
+
+st.st_dev == data->dev is false in the cases of non-directory objects,
+since st_dev is reported from upper/lower filesystem and ->dev is
+reported from overlayfs [0]. So when FTW_NS and FTW_MOUNT are
+positionned, non-directory objects will not be reported by nftw(3) [1]. The patch
+fixes this.
+
+[0] Documentation/filesystems/overlayfs.txt
+[1] https://bugzilla.kernel.org/show_bug.cgi?id=114951
+
+Signed-off-by: Quorum Laval <quorum.laval@gmail.com>
+Reported-by: Gerardo Exequiel Pozzi <vmlinuz386@gmail.com>
+---
+ fs/overlayfs/inode.c | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
+index 7fb53d0..565a7a9 100644
+--- a/fs/overlayfs/inode.c
++++ b/fs/overlayfs/inode.c
+@@ -116,6 +116,10 @@ static int ovl_getattr(struct vfsmount *mnt, struct dentry *dentry,
+ 	old_cred = ovl_override_creds(dentry->d_sb);
+ 	err = vfs_getattr(&realpath, stat);
+ 	revert_creds(old_cred);
++
++	stat->dev = dentry->d_sb->s_dev;
++	stat->ino = dentry->d_inode->i_ino;
++
+ 	return err;
+ }
+ 
+-- 
+2.7.4
