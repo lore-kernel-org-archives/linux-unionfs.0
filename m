@@ -1,7 +1,7 @@
 From: Quorum Laval <quorum.laval@gmail.com>
-Subject: [PATCH] ovl: fix issue with nftw(3) with FTW_MOUNT flag set
-Date: Mon, 14 Nov 2016 14:27:13 +0100
-Message-ID: <1479130033-8357-1-git-send-email-quorum.laval@gmail.com>
+Subject: [PATCH v2] ovl: fix issue with nftw(3) with FTW_MOUNT flag set
+Date: Mon, 14 Nov 2016 15:22:54 +0100
+Message-ID: <1479133374-9292-1-git-send-email-quorum.laval@gmail.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: miklos@szeredi.hu
@@ -20,7 +20,7 @@ if (result == 0
 
 st.st_dev == data->dev is false in the cases of non-directory objects,
 since st_dev is reported from upper/lower filesystem and ->dev is
-reported from overlayfs [0]. So when FTW_NS and FTW_MOUNT are
+reported from overlayfs [0]. So when flag is not equal to FTW_NS and FTW_MOUNT is
 positionned, non-directory objects will not be reported by nftw(3) [1]. The patch
 fixes this.
 
