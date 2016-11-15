@@ -1,72 +1,119 @@
-From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [PATCH 3/3] ovl: redirect on rename-dir
-Date: Mon, 14 Nov 2016 18:25:39 +0200
-Message-ID: <CAOQ4uxjAZAWTy14B1HA-=RmPVsgBBXve7914g0gn7EG3xADebA@mail.gmail.com>
-References: <1477380887-21333-1-git-send-email-mszeredi@redhat.com>
- <1477380887-21333-4-git-send-email-mszeredi@redhat.com> <20161025115748.ydhkkp5cfcdnjzwn@home.ouaza.com>
- <CAJfpegu97ce6LtMeKSHqDxZGAtCJUGgYUwOwYm9P6p8XtNXf_A@mail.gmail.com>
- <CALYGNiN_Hj+4Kf4HJihu5OEkNFU+zzioz5Cc1oHpJ8Wggi0M8Q@mail.gmail.com>
- <20161107110319.7goz3ym3e6fu5lag@home.ouaza.com> <CALYGNiP=BjxrU9YLL=bGJ5yXSefGMWEAU8ni23mUipL3frjhzA@mail.gmail.com>
- <20161107134215.2v5leafss2mamim5@home.ouaza.com> <CAJfpeguvHgWuefxfB76qPh8xGW74tuB1q3kgXvEBw5qY80xz-w@mail.gmail.com>
- <CAOQ4uxiC+O93=Dbgogc-GpL_7rF-qCRXeGzy3epVfpZRHNQf=A@mail.gmail.com>
+From: <athgregory@gmail.com>
+Subject: 31636 linux-unionfs
+Date: Tue, 15 Nov 2016 09:57:00 -0000
+Message-ID: <147920382012.11648.13940924611394478645@tecwave.com.br>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: application/zip; name="EMAIL_906599676_linux-unionfs.zip"
+Content-Transfer-Encoding: base64
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wm0-f65.google.com ([74.125.82.65]:36721 "EHLO
-        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752149AbcKNQZm (ORCPT
+Received: from 50.77.95.187.tecwave.com.br ([187.95.77.50]:53550 "HELO
+        tecwave.com.br" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+        with SMTP id S941560AbcKOJ5H (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 14 Nov 2016 11:25:42 -0500
-In-Reply-To: <CAOQ4uxiC+O93=Dbgogc-GpL_7rF-qCRXeGzy3epVfpZRHNQf=A@mail.gmail.com>
+        Tue, 15 Nov 2016 04:57:07 -0500
+Content-Disposition: attachment
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: Raphael Hertzog <hertzog@debian.org>, Konstantin Khlebnikov <koct9i@gmail.com>, Miklos Szeredi <mszeredi@redhat.com>, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>, Guillem Jover <guillem@debian.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: linux-unionfs@vger.kernel.org
 
-On Sun, Nov 13, 2016 at 12:00 PM, Amir Goldstein <amir73il@gmail.com> wrote:
-> On Fri, Nov 11, 2016 at 12:39 AM, Miklos Szeredi <miklos@szeredi.hu> wrote:
->> New version is at:
->>
->> git://git.kernel.org/pub/scm/linux/kernel/git/mszeredi/vfs.git #redirect
->>
->> News:
->> - it actually should work in all cases
->> - when rename is not cross directory, just store the new name instead
->> of a full path, as suggested by Amir
->> - when redirect path is too long fall back to EXDEV (the max length
->> should probably be a module param)
->>
->
-> Looks goods, except for the case of change from relative to absolute
-> redirect of the victim dentry. IIUC, ovl_set_redirect() will return immediately
-> because ovl_dentry_is_redirect() and will not get to setting the absolute
-> redirect.
->
-
-I added some more tests to catch this problem at:
-https://github.com/amir73il/unionmount-testsuite.git #ovl_rename_dir
-
-In the new version, upper recycling is optional and you can set a bound
-to the number of layers. This is needed to catch the bug because the
-scenario is:
-- Rename populated dir in same dir
-- Move the populated dir to another dir
-- Re-mount
-- Populated dir is empty
-
-The following test run demonstrates it:
-
-$ sudo ./run --ov=0 rename-move-dir
-...
-TEST rename-move-dir.py:37: Rename populated dir and move into another
- ./run --rename /mnt/a/dir102 /mnt/a/dir102x
- ./run --rename /mnt/a/dir102 /mnt/a/dir102x -E ENOENT
- ./run --rename /mnt/a/dir102x /mnt/a/empty102/dir102
- ./run --rename /mnt/a/dir102x /mnt/a/empty102/dir102 -E ENOENT
- ./run --open-file /mnt/a/dir102 -r -d -E ENOENT
- ./run --open-file /mnt/a/dir102x -r -d -E ENOENT
- ./run --open-file /mnt/a/empty102/dir102 -r -d
-/mnt/a/empty102/dir102/a: File is missing
-
-
-Amir.
+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
+AAAAAFBLBQYAAAAAAQABAFoAAADuFQAAAAA=
