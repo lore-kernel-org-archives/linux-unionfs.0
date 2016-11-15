@@ -1,221 +1,129 @@
-From: Vivek Goyal <vgoyal@redhat.com>
-Subject: Re: [RFC][PATCH 4/4] ovl: allow concurrent copy up data of different
- files
-Date: Tue, 15 Nov 2016 10:56:43 -0500
-Message-ID: <20161115155643.GA25389@redhat.com>
-References: <1478979364-10355-1-git-send-email-amir73il@gmail.com>
- <1478979364-10355-5-git-send-email-amir73il@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1478979364-10355-5-git-send-email-amir73il@gmail.com>
-Sender: linux-fsdevel-owner@vger.kernel.org
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, Konstantin Khlebnikov <koct9i@gmail.com>, Al Viro <viro@zeniv.linux.org.uk>, linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
+From: Quorum Laval <quorum.laval@gmail.com>
+Subject: [PATCH 1/2] ovl: use kernel facility for copying attributes
+Date: Tue, 15 Nov 2016 17:54:53 +0100
+Message-ID: <1479228894-10533-1-git-send-email-quorum.laval@gmail.com>
+Return-path: <linux-unionfs-owner@vger.kernel.org>
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:36236 "EHLO
+        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752090AbcKOQzH (ORCPT
+        <rfc822;linux-unionfs@vger.kernel.org>);
+        Tue, 15 Nov 2016 11:55:07 -0500
+Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
+To: miklos@szeredi.hu
+Cc: Quorum Laval <quorum.laval@gmail.com>, linux-unionfs@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Sat, Nov 12, 2016 at 09:36:04PM +0200, Amir Goldstein wrote:
-> Currently, all copy operations are serialized by taking the
-> lock_rename(workdir, upperdir) locks for the entire copy up
-> operation, including the data copy up.
-> 
-> Copying up data may take a long time with large files and
-> holding s_vfs_rename_mutex during that time blocks all
-> rename and copy up operations on the entire underlying fs.
-> 
-> This change addresses this problem by changing the copy up
-> locking scheme for different types of files as follows.
-> 
-> Directories:
->   <maybe> inode_lock(ovl_inode)
+Replace ovl_copyattr() by fsstack_copy_attr_all() and drop the definition of
+the former.
 
-Hi Amir,
+Signed-off-by: Quorum Laval <quorum.laval@gmail.com>
+---
+ fs/overlayfs/dir.c       | 3 ++-
+ fs/overlayfs/inode.c     | 3 ++-
+ fs/overlayfs/overlayfs.h | 9 ---------
+ fs/overlayfs/super.c     | 7 ++++---
+ 4 files changed, 8 insertions(+), 14 deletions(-)
 
-What does <maybe> mean here? Is it optional?
-
->     lock_rename(workdir, upperdir)
->       copy up dir to workdir
->       move dir to upperdir
-> 
-> Special and zero size files:
->   inode_lock(ovl_inode)
->     lock_rename(workdir, upperdir)
->       copy up file to workdir (no data)
->       move file to upperdir
-> 
-
-If we are copying up directories and special and zero file under
-lock_rename() and don't drop it during the whole operation, then
-why do we need to take ovl_inode lock.
-
-IOW, current code seems to be just doing lock_rename(workdir, upperdir)
-for the copy up operation. But now this new code also requires
-inode_lock(ovl_inode) and I am trying to understand why.
-
-Thanks
-Vivek
-
-> Regular files with data:
->   inode_lock(ovl_inode)
->     lock_rename(workdir, upperdir)
->       copy up file to workdir (no data)
->     unlock_rename(workdir, upperdir)
->       copy data to file in workdir
->     lock_rename(workdir, upperdir)
->       move file to upperdir
-> 
-> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
-> ---
->  fs/overlayfs/copy_up.c | 70 +++++++++++++++++++++++++++++++++++++++++++++++---
->  fs/overlayfs/inode.c   |  3 +++
->  2 files changed, 69 insertions(+), 4 deletions(-)
-> 
-> diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
-> index a16127b..1b9705e 100644
-> --- a/fs/overlayfs/copy_up.c
-> +++ b/fs/overlayfs/copy_up.c
-> @@ -230,6 +230,44 @@ int ovl_set_attr(struct dentry *upperdentry, struct kstat *stat)
->  	return err;
->  }
->  
-> +/*
-> + * Called with dentry->d_inode lock held only for the last (leaf) copy up
-> + * from __ovl_copy_up(), so it is NOT held when called for ancestor
-> + * directory from __ovl_copy_up()
-> + *
-> + * Called with lock_rename(workdir, upperdir) locks held.
-> + *
-> + * lock_rename() locks remain locked throughout the copy up
-> + * of non regular files and zero sized regular files.
-> + *
-> + * lock_rename() locks are released during ovl_copy_up_data()
-> + * of non zero sized regular files. During this time, the overlay
-> + * dentry->d_inode lock is still held to avoid concurrent
-> + * copy up of files with data.
-> + *
-> + * Maybe a better description of this locking scheme:
-> + *
-> + * Directories:
-> + *   <maybe> inode_lock(ovl_inode)
-> + *     lock_rename(workdir, upperdir)
-> + *       copy up dir to workdir
-> + *       move dir to upperdir
-> + *
-> + * Special and zero size files:
-> + *   inode_lock(ovl_inode)
-> + *     lock_rename(workdir, upperdir)
-> + *       copy up file to workdir (no data)
-> + *       move file to upperdir
-> + *
-> + * Regular files with data:
-> + *  inode_lock(ovl_inode)
-> + *    lock_rename(workdir, upperdir)
-> + *      copy up file to workdir (no data)
-> + *    unlock_rename(workdir, upperdir)
-> + *      copy data to file in workdir
-> + *    lock_rename(workdir, upperdir)
-> + *      move file to upperdir
-> + */
->  static int ovl_copy_up_locked(struct dentry *workdir, struct dentry *upperdir,
->  			      struct dentry *dentry, struct path *lowerpath,
->  			      struct kstat *stat, const char *link)
-> @@ -274,16 +312,39 @@ static int ovl_copy_up_locked(struct dentry *workdir, struct dentry *upperdir,
->  	if (err)
->  		goto out2;
->  
-> -	if (S_ISREG(stat->mode)) {
-> +	if (S_ISREG(stat->mode) && stat->size > 0) {
->  		struct path upperpath;
->  
->  		ovl_path_upper(dentry, &upperpath);
->  		BUG_ON(upperpath.dentry != NULL);
->  		upperpath.dentry = newdentry;
->  
-> +		/*
-> +		 * Release rename locks, because copy data may take a long time,
-> +		 * and holding s_vfs_rename_mutex will block all rename and
-> +		 * copy up operations on the entire underlying fs.
-> +		 * We still hold the overlay inode lock to avoid concurrent
-> +		 * copy up of this file.
-> +		 */
-> +		unlock_rename(workdir, upperdir);
-> +
->  		err = ovl_copy_up_data(lowerpath, &upperpath, stat->size);
-> +
-> +		/*
-> +		 * Re-aquire rename locks, before moving copied file into place.
-> +		 */
-> +		if (unlikely(lock_rename(workdir, upperdir) != NULL)) {
-> +			pr_err("overlayfs: failed to re-aquire lock_rename\n");
-> +			err = -EIO;
-> +		}
-> +
->  		if (err)
->  			goto out_cleanup;
-> +
-> +		if (WARN_ON(ovl_dentry_is_upper(dentry))) {
-> +			/* Raced with another copy-up? This shouldn't happen */
-> +			goto out_cleanup;
-> +		}
->  	}
->  
->  	err = ovl_copy_xattr(lowerpath->dentry, newdentry);
-> @@ -366,15 +427,14 @@ static int ovl_copy_up_one(struct dentry *parent, struct dentry *dentry,
->  			return PTR_ERR(link);
->  	}
->  
-> -	err = -EIO;
-> -	if (lock_rename(workdir, upperdir) != NULL) {
-> +	if (unlikely(lock_rename(workdir, upperdir) != NULL)) {
->  		pr_err("overlayfs: failed to lock workdir+upperdir\n");
-> +		err = -EIO;
->  		goto out_unlock;
->  	}
->  
->  	if (ovl_dentry_is_upper(dentry)) {
->  		/* Raced with another copy-up?  Nothing to do, then... */
-> -		err = 0;
->  		goto out_unlock;
->  	}
->  
-> @@ -433,11 +493,13 @@ static int __ovl_copy_up(struct dentry *dentry, int flags)
->  	return err;
->  }
->  
-> +/* Called with dentry->d_inode lock held */
->  int ovl_copy_up(struct dentry *dentry)
->  {
->  	return __ovl_copy_up(dentry, 0);
->  }
->  
-> +/* Called with dentry->d_inode lock held */
->  int ovl_copy_up_open(struct dentry *dentry, int flags)
->  {
->  	return __ovl_copy_up(dentry, flags);
-> diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
-> index 7abae00..532b0d5 100644
-> --- a/fs/overlayfs/inode.c
-> +++ b/fs/overlayfs/inode.c
-> @@ -251,11 +251,14 @@ int ovl_open_maybe_copy_up(struct dentry *dentry, unsigned int file_flags)
->  
->  	type = ovl_path_real(dentry, &realpath);
->  	if (ovl_open_need_copy_up(file_flags, type, realpath.dentry)) {
-> +		/* Take the overlay inode lock to avoid concurrent copy-up */
-> +		inode_lock(dentry->d_inode);
->  		err = ovl_want_write(dentry);
->  		if (!err) {
->  			err = ovl_copy_up_open(dentry, file_flags);
->  			ovl_drop_write(dentry);
->  		}
-> +		inode_unlock(dentry->d_inode);
->  	}
->  
->  	return err;
-> -- 
-> 2.7.4
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-unionfs" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
+index 306b6c1..dbe0153 100644
+--- a/fs/overlayfs/dir.c
++++ b/fs/overlayfs/dir.c
+@@ -15,6 +15,7 @@
+ #include <linux/posix_acl.h>
+ #include <linux/posix_acl_xattr.h>
+ #include <linux/atomic.h>
++#include <linux/fs_stack.h>
+ #include "overlayfs.h"
+ 
+ void ovl_cleanup(struct inode *wdir, struct dentry *wdentry)
+@@ -174,7 +175,7 @@ static void ovl_instantiate(struct dentry *dentry, struct inode *inode,
+ 	ovl_dentry_update(dentry, newdentry);
+ 	if (!hardlink) {
+ 		ovl_inode_update(inode, d_inode(newdentry));
+-		ovl_copyattr(newdentry->d_inode, inode);
++		fsstack_copy_attr_all(inode, newdentry->d_inode);
+ 	} else {
+ 		WARN_ON(ovl_inode_real(inode, NULL) != d_inode(newdentry));
+ 		inc_nlink(inode);
+diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
+index 7fb53d0..540caa6 100644
+--- a/fs/overlayfs/inode.c
++++ b/fs/overlayfs/inode.c
+@@ -11,6 +11,7 @@
+ #include <linux/slab.h>
+ #include <linux/xattr.h>
+ #include <linux/posix_acl.h>
++#include <linux/fs_stack.h>
+ #include "overlayfs.h"
+ 
+ static int ovl_copy_up_truncate(struct dentry *dentry)
+@@ -93,7 +94,7 @@ int ovl_setattr(struct dentry *dentry, struct iattr *attr)
+ 		err = notify_change(upperdentry, attr, NULL);
+ 		revert_creds(old_cred);
+ 		if (!err)
+-			ovl_copyattr(upperdentry->d_inode, dentry->d_inode);
++			fsstack_copy_attr_all(dentry->d_inode, upperdentry->d_inode);
+ 		inode_unlock(upperdentry->d_inode);
+ 
+ 		if (winode)
+diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
+index e218e74..9f15785 100644
+--- a/fs/overlayfs/overlayfs.h
++++ b/fs/overlayfs/overlayfs.h
+@@ -197,15 +197,6 @@ bool ovl_is_private_xattr(const char *name);
+ 
+ struct inode *ovl_new_inode(struct super_block *sb, umode_t mode);
+ struct inode *ovl_get_inode(struct super_block *sb, struct inode *realinode);
+-static inline void ovl_copyattr(struct inode *from, struct inode *to)
+-{
+-	to->i_uid = from->i_uid;
+-	to->i_gid = from->i_gid;
+-	to->i_mode = from->i_mode;
+-	to->i_atime = from->i_atime;
+-	to->i_mtime = from->i_mtime;
+-	to->i_ctime = from->i_ctime;
+-}
+ 
+ /* dir.c */
+ extern const struct inode_operations ovl_dir_inode_operations;
+diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+index edd46a0..91a3a60 100644
+--- a/fs/overlayfs/super.c
++++ b/fs/overlayfs/super.c
+@@ -20,6 +20,7 @@
+ #include <linux/statfs.h>
+ #include <linux/seq_file.h>
+ #include <linux/posix_acl_xattr.h>
++#include <linux/fs_stack.h>
+ #include "overlayfs.h"
+ 
+ MODULE_AUTHOR("Miklos Szeredi <miklos@szeredi.hu>");
+@@ -581,7 +582,7 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
+ 		}
+ 		if (!inode)
+ 			goto out_free_oe;
+-		ovl_copyattr(realdentry->d_inode, inode);
++		fsstack_copy_attr_all(inode, realdentry->d_inode);
+ 	}
+ 
+ 	revert_creds(old_cred);
+@@ -1054,7 +1055,7 @@ ovl_posix_acl_xattr_set(const struct xattr_handler *handler,
+ 
+ 	err = ovl_xattr_set(dentry, handler->name, value, size, flags);
+ 	if (!err)
+-		ovl_copyattr(ovl_inode_real(inode, NULL), inode);
++		fsstack_copy_attr_all(inode, ovl_inode_real(inode, NULL));
+ 
+ 	return err;
+ 
+@@ -1345,7 +1346,7 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
+ 
+ 	realinode = d_inode(ovl_dentry_real(root_dentry));
+ 	ovl_inode_init(d_inode(root_dentry), realinode, !!upperpath.dentry);
+-	ovl_copyattr(realinode, d_inode(root_dentry));
++	fsstack_copy_attr_all(d_inode(root_dentry), realinode);
+ 
+ 	sb->s_root = root_dentry;
+ 
+-- 
+2.7.4
