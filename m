@@ -1,119 +1,221 @@
-From: <athgregory@gmail.com>
-Subject: 31636 linux-unionfs
-Date: Tue, 15 Nov 2016 09:57:00 -0000
-Message-ID: <147920382012.11648.13940924611394478645@tecwave.com.br>
+From: Vivek Goyal <vgoyal@redhat.com>
+Subject: Re: [RFC][PATCH 4/4] ovl: allow concurrent copy up data of different
+ files
+Date: Tue, 15 Nov 2016 10:56:43 -0500
+Message-ID: <20161115155643.GA25389@redhat.com>
+References: <1478979364-10355-1-git-send-email-amir73il@gmail.com>
+ <1478979364-10355-5-git-send-email-amir73il@gmail.com>
 Mime-Version: 1.0
-Content-Type: application/zip; name="EMAIL_906599676_linux-unionfs.zip"
-Content-Transfer-Encoding: base64
-Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from 50.77.95.187.tecwave.com.br ([187.95.77.50]:53550 "HELO
-        tecwave.com.br" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-        with SMTP id S941560AbcKOJ5H (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 15 Nov 2016 04:57:07 -0500
-Content-Disposition: attachment
-Sender: linux-unionfs-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1478979364-10355-5-git-send-email-amir73il@gmail.com>
+Sender: linux-fsdevel-owner@vger.kernel.org
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, Konstantin Khlebnikov <koct9i@gmail.com>, Al Viro <viro@zeniv.linux.org.uk>, linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: linux-unionfs@vger.kernel.org
 
-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
-AAAAAFBLBQYAAAAAAQABAFoAAADuFQAAAAA=
+On Sat, Nov 12, 2016 at 09:36:04PM +0200, Amir Goldstein wrote:
+> Currently, all copy operations are serialized by taking the
+> lock_rename(workdir, upperdir) locks for the entire copy up
+> operation, including the data copy up.
+> 
+> Copying up data may take a long time with large files and
+> holding s_vfs_rename_mutex during that time blocks all
+> rename and copy up operations on the entire underlying fs.
+> 
+> This change addresses this problem by changing the copy up
+> locking scheme for different types of files as follows.
+> 
+> Directories:
+>   <maybe> inode_lock(ovl_inode)
+
+Hi Amir,
+
+What does <maybe> mean here? Is it optional?
+
+>     lock_rename(workdir, upperdir)
+>       copy up dir to workdir
+>       move dir to upperdir
+> 
+> Special and zero size files:
+>   inode_lock(ovl_inode)
+>     lock_rename(workdir, upperdir)
+>       copy up file to workdir (no data)
+>       move file to upperdir
+> 
+
+If we are copying up directories and special and zero file under
+lock_rename() and don't drop it during the whole operation, then
+why do we need to take ovl_inode lock.
+
+IOW, current code seems to be just doing lock_rename(workdir, upperdir)
+for the copy up operation. But now this new code also requires
+inode_lock(ovl_inode) and I am trying to understand why.
+
+Thanks
+Vivek
+
+> Regular files with data:
+>   inode_lock(ovl_inode)
+>     lock_rename(workdir, upperdir)
+>       copy up file to workdir (no data)
+>     unlock_rename(workdir, upperdir)
+>       copy data to file in workdir
+>     lock_rename(workdir, upperdir)
+>       move file to upperdir
+> 
+> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+> ---
+>  fs/overlayfs/copy_up.c | 70 +++++++++++++++++++++++++++++++++++++++++++++++---
+>  fs/overlayfs/inode.c   |  3 +++
+>  2 files changed, 69 insertions(+), 4 deletions(-)
+> 
+> diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
+> index a16127b..1b9705e 100644
+> --- a/fs/overlayfs/copy_up.c
+> +++ b/fs/overlayfs/copy_up.c
+> @@ -230,6 +230,44 @@ int ovl_set_attr(struct dentry *upperdentry, struct kstat *stat)
+>  	return err;
+>  }
+>  
+> +/*
+> + * Called with dentry->d_inode lock held only for the last (leaf) copy up
+> + * from __ovl_copy_up(), so it is NOT held when called for ancestor
+> + * directory from __ovl_copy_up()
+> + *
+> + * Called with lock_rename(workdir, upperdir) locks held.
+> + *
+> + * lock_rename() locks remain locked throughout the copy up
+> + * of non regular files and zero sized regular files.
+> + *
+> + * lock_rename() locks are released during ovl_copy_up_data()
+> + * of non zero sized regular files. During this time, the overlay
+> + * dentry->d_inode lock is still held to avoid concurrent
+> + * copy up of files with data.
+> + *
+> + * Maybe a better description of this locking scheme:
+> + *
+> + * Directories:
+> + *   <maybe> inode_lock(ovl_inode)
+> + *     lock_rename(workdir, upperdir)
+> + *       copy up dir to workdir
+> + *       move dir to upperdir
+> + *
+> + * Special and zero size files:
+> + *   inode_lock(ovl_inode)
+> + *     lock_rename(workdir, upperdir)
+> + *       copy up file to workdir (no data)
+> + *       move file to upperdir
+> + *
+> + * Regular files with data:
+> + *  inode_lock(ovl_inode)
+> + *    lock_rename(workdir, upperdir)
+> + *      copy up file to workdir (no data)
+> + *    unlock_rename(workdir, upperdir)
+> + *      copy data to file in workdir
+> + *    lock_rename(workdir, upperdir)
+> + *      move file to upperdir
+> + */
+>  static int ovl_copy_up_locked(struct dentry *workdir, struct dentry *upperdir,
+>  			      struct dentry *dentry, struct path *lowerpath,
+>  			      struct kstat *stat, const char *link)
+> @@ -274,16 +312,39 @@ static int ovl_copy_up_locked(struct dentry *workdir, struct dentry *upperdir,
+>  	if (err)
+>  		goto out2;
+>  
+> -	if (S_ISREG(stat->mode)) {
+> +	if (S_ISREG(stat->mode) && stat->size > 0) {
+>  		struct path upperpath;
+>  
+>  		ovl_path_upper(dentry, &upperpath);
+>  		BUG_ON(upperpath.dentry != NULL);
+>  		upperpath.dentry = newdentry;
+>  
+> +		/*
+> +		 * Release rename locks, because copy data may take a long time,
+> +		 * and holding s_vfs_rename_mutex will block all rename and
+> +		 * copy up operations on the entire underlying fs.
+> +		 * We still hold the overlay inode lock to avoid concurrent
+> +		 * copy up of this file.
+> +		 */
+> +		unlock_rename(workdir, upperdir);
+> +
+>  		err = ovl_copy_up_data(lowerpath, &upperpath, stat->size);
+> +
+> +		/*
+> +		 * Re-aquire rename locks, before moving copied file into place.
+> +		 */
+> +		if (unlikely(lock_rename(workdir, upperdir) != NULL)) {
+> +			pr_err("overlayfs: failed to re-aquire lock_rename\n");
+> +			err = -EIO;
+> +		}
+> +
+>  		if (err)
+>  			goto out_cleanup;
+> +
+> +		if (WARN_ON(ovl_dentry_is_upper(dentry))) {
+> +			/* Raced with another copy-up? This shouldn't happen */
+> +			goto out_cleanup;
+> +		}
+>  	}
+>  
+>  	err = ovl_copy_xattr(lowerpath->dentry, newdentry);
+> @@ -366,15 +427,14 @@ static int ovl_copy_up_one(struct dentry *parent, struct dentry *dentry,
+>  			return PTR_ERR(link);
+>  	}
+>  
+> -	err = -EIO;
+> -	if (lock_rename(workdir, upperdir) != NULL) {
+> +	if (unlikely(lock_rename(workdir, upperdir) != NULL)) {
+>  		pr_err("overlayfs: failed to lock workdir+upperdir\n");
+> +		err = -EIO;
+>  		goto out_unlock;
+>  	}
+>  
+>  	if (ovl_dentry_is_upper(dentry)) {
+>  		/* Raced with another copy-up?  Nothing to do, then... */
+> -		err = 0;
+>  		goto out_unlock;
+>  	}
+>  
+> @@ -433,11 +493,13 @@ static int __ovl_copy_up(struct dentry *dentry, int flags)
+>  	return err;
+>  }
+>  
+> +/* Called with dentry->d_inode lock held */
+>  int ovl_copy_up(struct dentry *dentry)
+>  {
+>  	return __ovl_copy_up(dentry, 0);
+>  }
+>  
+> +/* Called with dentry->d_inode lock held */
+>  int ovl_copy_up_open(struct dentry *dentry, int flags)
+>  {
+>  	return __ovl_copy_up(dentry, flags);
+> diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
+> index 7abae00..532b0d5 100644
+> --- a/fs/overlayfs/inode.c
+> +++ b/fs/overlayfs/inode.c
+> @@ -251,11 +251,14 @@ int ovl_open_maybe_copy_up(struct dentry *dentry, unsigned int file_flags)
+>  
+>  	type = ovl_path_real(dentry, &realpath);
+>  	if (ovl_open_need_copy_up(file_flags, type, realpath.dentry)) {
+> +		/* Take the overlay inode lock to avoid concurrent copy-up */
+> +		inode_lock(dentry->d_inode);
+>  		err = ovl_want_write(dentry);
+>  		if (!err) {
+>  			err = ovl_copy_up_open(dentry, file_flags);
+>  			ovl_drop_write(dentry);
+>  		}
+> +		inode_unlock(dentry->d_inode);
+>  	}
+>  
+>  	return err;
+> -- 
+> 2.7.4
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-unionfs" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
