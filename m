@@ -1,7 +1,7 @@
-From: Amir Goldstein <amir73il@gmail.com>
+From: Miklos Szeredi <miklos@szeredi.hu>
 Subject: Re: [PATCH 3/3] ovl: redirect on rename-dir
-Date: Sun, 20 Nov 2016 13:39:35 +0200
-Message-ID: <CAOQ4uxjJ7Nk1CAxbzQv=gctB_zDP7wx-ac3PMb=OshgujYeUgA@mail.gmail.com>
+Date: Mon, 21 Nov 2016 10:54:41 +0100
+Message-ID: <CAJfpegtZ_86Axi9Ffrdzhkgy9gvd-bUnWMXwhGo-LRAegTWd8w@mail.gmail.com>
 References: <1477380887-21333-1-git-send-email-mszeredi@redhat.com>
  <1477380887-21333-4-git-send-email-mszeredi@redhat.com> <20161025115748.ydhkkp5cfcdnjzwn@home.ouaza.com>
  <CAJfpegu97ce6LtMeKSHqDxZGAtCJUGgYUwOwYm9P6p8XtNXf_A@mail.gmail.com>
@@ -14,91 +14,29 @@ References: <1477380887-21333-1-git-send-email-mszeredi@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wj0-f196.google.com ([209.85.210.196]:33506 "EHLO
-        mail-wj0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752060AbcKTL6G (ORCPT
+Received: from mail-oi0-f51.google.com ([209.85.218.51]:36614 "EHLO
+        mail-oi0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752580AbcKUJyo (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Sun, 20 Nov 2016 06:58:06 -0500
+        Mon, 21 Nov 2016 04:54:44 -0500
+Received: by mail-oi0-f51.google.com with SMTP id v84so154567644oie.3
+        for <linux-unionfs@vger.kernel.org>; Mon, 21 Nov 2016 01:54:43 -0800 (PST)
 In-Reply-To: <CAOQ4uxjD60ZqjXYq345SEjg79V89NvM8bUGt1=CUSiQHyQcBkA@mail.gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Miklos Szeredi <miklos@szeredi.hu>
+To: Amir Goldstein <amir73il@gmail.com>
 Cc: Raphael Hertzog <hertzog@debian.org>, Konstantin Khlebnikov <koct9i@gmail.com>, Miklos Szeredi <mszeredi@redhat.com>, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>, Guillem Jover <guillem@debian.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-On Fri, Nov 18, 2016 at 5:37 PM, Amir Goldstein <amir73il@gmail.com> wrote:
-> On Thu, Nov 17, 2016 at 12:00 AM, Miklos Szeredi <miklos@szeredi.hu> wrote:
->>
->> On Mon, Nov 14, 2016 at 5:25 PM, Amir Goldstein <amir73il@gmail.com> wrote:
->> > On Sun, Nov 13, 2016 at 12:00 PM, Amir Goldstein <amir73il@gmail.com> wrote:
->>
->> >> Looks goods, except for the case of change from relative to absolute
->> >> redirect of the victim dentry. IIUC, ovl_set_redirect() will return immediately
->> >> because ovl_dentry_is_redirect() and will not get to setting the absolute
->> >> redirect.
->> >>
->> >
->> > I added some more tests to catch this problem at:
->> > https://github.com/amir73il/unionmount-testsuite.git #ovl_rename_dir
->>
->> Thanks for testing.
->>
->> Force pushed updated version to the usual place:
->>
->>    git://git.kernel.org/pub/scm/linux/kernel/git/mszeredi/vfs.git #redirect
->>
->
+On Fri, Nov 18, 2016 at 4:37 PM, Amir Goldstein <amir73il@gmail.com> wrote:
+
 > Found one typo and one bug in error that can cause crash on dput(ERR_PTR(err)):
->
-> diff --git a/fs/overlayfs/Kconfig b/fs/overlayfs/Kconfig
-> index 21ddac7..0daac51 100644
-> --- a/fs/overlayfs/Kconfig
-> +++ b/fs/overlayfs/Kconfig
-> @@ -15,7 +15,7 @@ config OVERLAY_FS_REDIRECT_DIR
->         help
->           If this config option is enabled then overlay filesystems will use
->           redirects when renaming directories by default.  In this case it is
-> -         still possible possible to turn off redirects globally with the
-> +         still possible to turn off redirects globally with the
->           "redirect_dir=off" module option or on a filesystem instance basis
->           with the "redirect_dir=off" mount option.
->
-> diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
-> index 5eaa9f9..a19fc5c 100644
-> --- a/fs/overlayfs/namei.c
-> +++ b/fs/overlayfs/namei.c
-> @@ -105,11 +105,12 @@ static int ovl_lookup_single(struct dentry
-> *base, struct ovl_lookup_data *d,
->
->         this = lookup_one_len_unlocked(name, base, namelen);
->         if (IS_ERR(this)) {
-> -               if (PTR_ERR(this) == -ENOENT ||
-> -                   PTR_ERR(this) == -ENAMETOOLONG) {
-> +               err = PTR_ERR(this);
-> +               if (err == -ENOENT || err == -ENAMETOOLONG) {
->                         this = NULL;
-> +                       goto out;
->                 }
-> -               goto out;
-> +               return err;
->         }
->         if (!this->d_inode)
->                 goto put_and_out;
->
 
-I just realized that this bug is already in overlayfs-next, so posted
-a patch to fix it.
+Thanks.
 
->> This also has the xattr feature thing replaced with mount option,
->> module param and kernel config option.
->>
->
-> I like the kernel config/module param/mount option for
-> enabling/disabling the feature.
->
-> But I still think that we should write the features xattr on the first
-> redirect rename.
-> The features xattr tell us what can be found on the layer, so we would
-> be wise to
-> keep it around for all sorts of backward compatibility aspect.
->
-> Amir.
+Fixes force pushed to overlayfs-next.
+
+Also pushed the redirect patches to overlayfs-next, as they seem to
+have matured enough.
+
+Thanks,
+Miklos
