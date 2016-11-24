@@ -1,50 +1,40 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: [PATCH] overlayfs: fix ovl_get_redirect() error handling
-Date: Tue, 22 Nov 2016 15:29:13 +0100
-Message-ID: <20161122142921.1801734-1-arnd@arndb.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.126.134]:63695 "EHLO
-        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933360AbcKVO3i (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 22 Nov 2016 09:29:38 -0500
-Sender: linux-unionfs-owner@vger.kernel.org
+From: Miklos Szeredi <mszeredi@redhat.com>
+Subject: [PATCH 0/7] overlayfs: fix ro/rw fd data inconsistecies
+Date: Thu, 24 Nov 2016 11:55:36 +0100
+Message-ID: <1479984944-1017-1-git-send-email-mszeredi@redhat.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-unionfs@vger.kernel.org
+Cc: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: Arnd Bergmann <arnd@arndb.de>, Vivek Goyal <vgoyal@redhat.com>, Andreas Gruenbacher <agruenba@redhat.com>, Al Viro <viro@zeniv.linux.org.uk>, Konstantin Khlebnikov <koct9i@gmail.com>, Antonio Murdaca <amurdaca@redhat.com>, Maxim Patlasov <mpatlasov@virtuozzo.com>, linux-unionfs@vger.kernel.org, linux-kernel@vger.kernel.org
 
-The newly introduced ovl_get_redirect() function returns an unintialized
-variable when kmalloc() fails:
+A file is opened for read-only, opened read-write (resulting in a copy up)
+and modified.  The data read back from the the read-only fd will be stale
+in this case (the read-only file descriptor still refers to the lower,
+unmodified file).
 
-fs/overlayfs/dir.c: In function ‘ovl_set_redirect’:
-fs/overlayfs/overlayfs.h:92:6: error: ‘ret’ may be used uninitialized in this function [-Werror=maybe-uninitialized]
+This patchset fixes issues related to this corner case.
 
-This makes it return -ENOMEM instead.
-
-Fixes: 496654b0792e ("ovl: redirect on rename-dir")
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+The VFS impact is minimal and performance in the non-corner cases shouldn't
+suffer.
 ---
- fs/overlayfs/dir.c | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+Miklos Szeredi (7):
+  vfs: allow overlayfs to intercept file ops
+  vfs: export filp_clone_open()
+  mm: ovl: copy-up on MAP_SHARED
+  ovl: add infrastructure for intercepting file ops
+  ovl: intercept read_iter
+  ovl: intercept mmap
+  ovl: intercept fsync
 
-diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
-index bc7c62c7a72f..fb9fce0112f0 100644
---- a/fs/overlayfs/dir.c
-+++ b/fs/overlayfs/dir.c
-@@ -798,8 +798,10 @@ static char *ovl_get_redirect(struct dentry *dentry, bool samedir)
- 	}
- 
- 	buf = kmalloc(buflen, GFP_TEMPORARY);
--	if (!buf)
-+	if (!buf) {
-+		ret = ERR_PTR(-ENOMEM);
- 		goto out;
-+	}
- 
- 	buflen--;
- 	buf[buflen] = '\0';
+ fs/internal.h            |   1 -
+ fs/open.c                |   2 +-
+ fs/overlayfs/inode.c     | 225 +++++++++++++++++++++++++++++++++++++++++++++++
+ fs/overlayfs/overlayfs.h |   2 +
+ fs/overlayfs/super.c     |   1 +
+ include/linux/fs.h       |   1 +
+ mm/util.c                |  22 +++++
+ 7 files changed, 252 insertions(+), 2 deletions(-)
+
 -- 
-2.9.0
+2.5.5
