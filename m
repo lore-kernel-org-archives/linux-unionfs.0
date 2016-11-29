@@ -1,74 +1,54 @@
-From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [POC/RFC PATCH] overlayfs: constant inode numbers
-Date: Tue, 29 Nov 2016 14:03:06 +0200
-Message-ID: <CAOQ4uxj2yMwY_eCdc0+6U0QP1ckm5aPw5x6xtMz+WdHvJ4bFTg@mail.gmail.com>
-References: <20161125212934.GB2622@veci.piliscsaba.szeredi.hu>
- <CAOQ4uxgSvo_v37aLJb8FK3c5sDqCkN2XWOd783UXaomdVAvsEQ@mail.gmail.com>
- <CAOQ4uxi2Ko-G2nA_bSWT8juuss9aS9ZfiBWS95RrdfBy30Tozg@mail.gmail.com>
- <CAOQ4uxjAODFk2L7d9P+br8wOY9NW5qKH3aaRC=umBfCGPeyxkg@mail.gmail.com>
- <CAJfpegvrRF7ZS+Shx6Q8L2BsbYpX3x3UEXkPn=3oEWs2zMP+eA@mail.gmail.com>
- <CAOQ4uxgSHah2OpbgW2nrDXjwXob=_ypjz9dbmHUO-1QrfwooXg@mail.gmail.com>
- <CAJfpeguTp4AwcnouMAse1=seG=LboW68eNfRjMiEpeaBjxuYQQ@mail.gmail.com> <CAOQ4uxhzRkPM6aOkksMsKU1V6tdsUxhObAD938PEUPKYPp6B5Q@mail.gmail.com>
+From: Miklos Szeredi <miklos@szeredi.hu>
+Subject: Re: [PATCH] ovl: show non default redirect_dir mount option
+Date: Tue, 29 Nov 2016 22:09:40 +0100
+Message-ID: <CAJfpegve58zQXxs2Bx5tf1_z+zrcpjNq6Sz7-LgaL2yz+9jhkw@mail.gmail.com>
+References: <1479808029-16934-1-git-send-email-amir73il@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
-In-Reply-To: <CAOQ4uxhzRkPM6aOkksMsKU1V6tdsUxhObAD938PEUPKYPp6B5Q@mail.gmail.com>
-Sender: linux-fsdevel-owner@vger.kernel.org
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>
+Return-path: <linux-unionfs-owner@vger.kernel.org>
+Received: from mail-oi0-f66.google.com ([209.85.218.66]:36595 "EHLO
+        mail-oi0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755127AbcK2VJr (ORCPT
+        <rfc822;linux-unionfs@vger.kernel.org>);
+        Tue, 29 Nov 2016 16:09:47 -0500
+Received: by mail-oi0-f66.google.com with SMTP id u15so20243560oie.3
+        for <linux-unionfs@vger.kernel.org>; Tue, 29 Nov 2016 13:09:46 -0800 (PST)
+In-Reply-To: <1479808029-16934-1-git-send-email-amir73il@gmail.com>
+Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>
 
-On Tue, Nov 29, 2016 at 1:34 PM, Amir Goldstein <amir73il@gmail.com> wrote:
-> On Tue, Nov 29, 2016 at 12:16 PM, Miklos Szeredi <miklos@szeredi.hu> wrote:
->> On Mon, Nov 28, 2016 at 12:56 PM, Amir Goldstein <amir73il@gmail.com> wrote:
->>
->> [...]
->>
->>
->>> Well, not sure if you noticed my redirect_fh (rediect by file handle) work.
->>> If differs from redirect by path in 2 major ways:
->>> 1. Like OVL_XATTR_INO, redirect is set on copy up (but only for dirs)
->>> 2. Lookup is much simpler (and most likely faster) then full path lookup
->>>
->>> It would be trivial to set oe->ino of merged dir from lower most entry in
->>> ovl_lookup().
->>
->> Okay.  In fact always using the handle looks like a better option
->> overall.  File handle should be unique for the lifetime of the
->> filesystem, while inode numbers may be reused.
->>
->> Biggest drawback of the file handle based redirects is exactly that:
->> makes backing up the overlay basically impossible, since file handles
->> won't work after a backup + restore.  But as an optimization, in
->> addition to path based redirects it would work fine and provide a good
->> way to get the stable ino.
->>
+On Tue, Nov 22, 2016 at 10:47 AM, Amir Goldstein <amir73il@gmail.com> wrote:
+> When redirect_dir option is turned off or on by mount
+> option to override the module default param value,
+> show the value of redirect_dir in /proc/mounts.
+
+Added.
+
+Thanks,
+Miklos
+
 >
-> Not sure that I understand what you are suggesting, but I would be happy
-> to make the needed adjustments to redirect_fh per your request if you clarify
-> what you mean. From what I understand:
+> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+> ---
+>  fs/overlayfs/super.c | 3 +++
+>  1 file changed, 3 insertions(+)
 >
-> 1. If redirect_dir=fh (and supported by layers), store lower handle
->     on dir copy up in new xattr OVL_XATTR_FH
-> 2. In ovl_rename(), set OVL_XATTR_REDIRECT regardless of OVL_XATTR_FH
-> 3. In ovl_lookup_single(), carry both d.redirct and d.redirect_fh to next layer
-> 4. In ovl_lookup_layer(), lookup by handle first then by path
+> diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+> index 2aa2da4..82c54ca 100644
+> --- a/fs/overlayfs/super.c
+> +++ b/fs/overlayfs/super.c
+> @@ -228,6 +228,9 @@ static int ovl_show_options(struct seq_file *m, struct dentry *dentry)
+>         }
+>         if (ufs->config.default_permissions)
+>                 seq_puts(m, ",default_permissions");
+> +       if (ufs->config.redirect_dir != ovl_redirect_dir_default)
+> +               seq_printf(m, ",redirect_dir=%s",
+> +                          ufs->config.redirect_dir ? "on" : "off");
+>         return 0;
+>  }
 >
-> Mind you that unlike OVL_XATTR_INO, OVL_XATTR_FH points to *next* inode
-> rather then *lowest* inode, so it does not really improve anything wrt
-> getting the
-> stable inode. Stable inode of merged dir is available after lookup in
-> oe->lowerstack[oe->numlower - 1].dentry->d_inode->i_ino
-> regardless of whether lookup was by handle or by path or no redirect at all, so
-> not sure what you meant by "... and provide a good way to get the stable ino."
-> Either I managed to confuse you, or I am missing something?
+> --
+> 2.7.4
 >
-
-Perhaps you meant for non-dir:
-
-5. If redirect_dir=fh, *propagate* lowest-handle on non-dir copy up
-6. In ovl_lookup() of non-dir, decode lowest-handle to set oe->ino
-
-This is a good way to avoid stale OVL_XATTR_INO after backup+restore.
-
-Amir.
