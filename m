@@ -1,62 +1,92 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [PATCH v2] ovl: create directories inside merged parent opaque
-Date: Wed, 30 Nov 2016 16:49:05 +0200
-Message-ID: <CAOQ4uxjnoShKJ1ZU_iWU8b4bds1FOYmA=0BoDymo37y-84yWcw@mail.gmail.com>
-References: <CAJfpegs--UYZrZG4KM8uigs5nL-Q_jD3+ssvQMRRSOK4HPWpsw@mail.gmail.com>
- <1479747454-2273-1-git-send-email-amir73il@gmail.com> <CAJfpegtG8z1AN8SXQG3e=dXCMwa58AdL8pyOYnffE-85X04+Dw@mail.gmail.com>
- <CAOQ4uxg=jxigmh--+VprmQGeORftvc6uMhXz1cK7mtE7FrD=7Q@mail.gmail.com> <CAJfpegtbrpEQWkH6J6FNsJc70AUNt5KrvkVcK7P4KMqP=LH4Yg@mail.gmail.com>
+Subject: Re: [POC/RFC PATCH] overlayfs: constant inode numbers
+Date: Wed, 30 Nov 2016 17:05:25 +0200
+Message-ID: <CAOQ4uxjX=ewaCPjTUmvyynpZAwE1g_qf-+nE05zz5OFq99f+kw@mail.gmail.com>
+References: <20161125212934.GB2622@veci.piliscsaba.szeredi.hu>
+ <CAOQ4uxgSvo_v37aLJb8FK3c5sDqCkN2XWOd783UXaomdVAvsEQ@mail.gmail.com>
+ <CAOQ4uxi2Ko-G2nA_bSWT8juuss9aS9ZfiBWS95RrdfBy30Tozg@mail.gmail.com>
+ <CAOQ4uxjAODFk2L7d9P+br8wOY9NW5qKH3aaRC=umBfCGPeyxkg@mail.gmail.com>
+ <CAJfpegvrRF7ZS+Shx6Q8L2BsbYpX3x3UEXkPn=3oEWs2zMP+eA@mail.gmail.com>
+ <CAOQ4uxgSHah2OpbgW2nrDXjwXob=_ypjz9dbmHUO-1QrfwooXg@mail.gmail.com>
+ <CAJfpeguTp4AwcnouMAse1=seG=LboW68eNfRjMiEpeaBjxuYQQ@mail.gmail.com>
+ <CAOQ4uxhzRkPM6aOkksMsKU1V6tdsUxhObAD938PEUPKYPp6B5Q@mail.gmail.com>
+ <CAOQ4uxj2yMwY_eCdc0+6U0QP1ckm5aPw5x6xtMz+WdHvJ4bFTg@mail.gmail.com> <CAJfpegtRNQAebLbz2F2zV8asqt31m7Lrgc+ya28UZU1e8E1oEw@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wj0-f196.google.com ([209.85.210.196]:34850 "EHLO
-        mail-wj0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932454AbcK3OtH (ORCPT
+Received: from mail-wm0-f67.google.com ([74.125.82.67]:34361 "EHLO
+        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933648AbcK3PF2 (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 30 Nov 2016 09:49:07 -0500
-Received: by mail-wj0-f196.google.com with SMTP id he10so8273869wjc.2
-        for <linux-unionfs@vger.kernel.org>; Wed, 30 Nov 2016 06:49:07 -0800 (PST)
-In-Reply-To: <CAJfpegtbrpEQWkH6J6FNsJc70AUNt5KrvkVcK7P4KMqP=LH4Yg@mail.gmail.com>
+        Wed, 30 Nov 2016 10:05:28 -0500
+In-Reply-To: <CAJfpegtRNQAebLbz2F2zV8asqt31m7Lrgc+ya28UZU1e8E1oEw@mail.gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>
+Cc: "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>
 
-On Wed, Nov 30, 2016 at 4:19 PM, Miklos Szeredi <miklos@szeredi.hu> wrote:
-> On Wed, Nov 30, 2016 at 1:58 PM, Amir Goldstein <amir73il@gmail.com> wrote:
+On Tue, Nov 29, 2016 at 11:49 PM, Miklos Szeredi <miklos@szeredi.hu> wrote:
+> On Tue, Nov 29, 2016 at 1:03 PM, Amir Goldstein <amir73il@gmail.com> wrote:
+...
+> I meant that we can unify OVL_XATTR_INO  with "redirect/fh"
+> functionality and get something good out of it.
+>
+>> Perhaps you meant for non-dir:
 >>
->> In case you are still interested, I rebase concurrent copy up
->> on top of overlay-rorw and pushed to branch #concurrent_copyup
->> on my github, with slightly improved commit message.
->> But I guess this merge window is crowded enough already and
->> I personally much rather see rorw merged than concurrent copy up.
+>> 5. If redirect_dir=fh, *propagate* lowest-handle on non-dir copy up
+>> 6. In ovl_lookup() of non-dir, decode lowest-handle to set oe->ino
 >
-> My problem with the concurrent copy up is the complexity of locking
-> rules.  Why not do some sort of overlay private lock here?
+> Yes.
 >
-> If a mutex is deemed too expensive, then just a bool "copying" in
-> ovl_entry and a waitq in ovl_fs in would do.
+> OVL_XATTR_FH would be safe to ignore, so this is back and forward
+> compatible..  And the cost is probably not prohitive, since copy ups
+> should be relatively rare.
+>
+> After a backup + restore it is not expected that we get back the old
+> inode numbers so it's fine to ignore the stale file handles.
 >
 
-I am quite certain that I was not able to explain my change properly
-and that if you understood it you wouldn't call it complex.
-If anything, it simplifies the locking rules.
+FYI, there are 2 interesting corner case of "semi stale" handles:
+- Copy of layers to same fs (without deleting old layers)
+- Old layers are deleted but an old deleted file is still open
 
-Before my change, there is no clear definition of which locks are held
-when calling ovl_copy_up(), but for all call sites besides
-ovl_open_maybe_copy_up(), the overlay inode is already locked (by vfs).
+I have handled both these cases in the last version of redirect_fh
+that I pushed yesterday, but not 100% sure that I handled them
+correctly.
 
-My change only aligns the ovl_open_maybe_copy_up() case with the
-rest of the code paths by taking the inode lock before calling ovl_copy_up()
-and then the locking requirements for entry to ovl_copy_up() are
-uniform across the code (and documented).
+Anyway, I will get to work on adjusting redirect_fh for use by
+stable inodes.
 
-So why invent a new private lock when the overlay inode lock is perfectly
-valid for the job?
+> The following issues are left:
+>
+>  - performance of readdir;
 
-After we have the inode lock in place, lock_rename() is taken when it is
-needed for a specific operation (when either upperdir or workdir need to
-be locked), so releasing it for data copy up is just a free gift.
+Here is one very simple optimization for WIP:
+@@ -157,6 +157,8 @@ static int ovl_fill_lowest(struct ovl_readdir_data *rdd,
+                list_move_tail(&p->l_node, &rdd->middle);
+        } else {
+                p = ovl_cache_entry_new(rdd, name, namelen, ino, d_type);
++               if (p)
++                       p->ino = ino;
 
-Hope that I managed to clarify rather then confuse more.
+For non-lowets entry, we can provide mount option 'readdir_ino'.
+With readdir_ino, readdir pays a penalty of getxattr for any non-lowest
+entry (either OVL_XATTR_FH or OVL_XATTR_INO).
+Without readdir_ino, readdir will get d_ino = 0, in which case, at least
+`find <path> --inum=<n>` does the right thing (fallback to fstat for
+this dirent).
+
+>  - what to do if not all layers are on the same fs;
+
+Same as what I did for redirect_fh - turn the feature off.
+We can also export this state in /proc/mounts options and maybe allow to
+explicitly turn off stable inodes, but I don't think that we should, because
+there shouldn't be a program which relies on inode numbers NOT being stable.
+
+>  - hard link copy ups.
+>
+
+I'll start by setting up a TODO Wiki page and writing xfstests for all those
+issues. Maybe even track them on github..
 
 Amir.
