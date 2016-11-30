@@ -1,33 +1,40 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [PATCH v2] ovl: create directories inside merged parent opaque
-Date: Wed, 30 Nov 2016 18:06:57 +0200
-Message-ID: <CAOQ4uxgWrQ6f_Gj7kNgCgaw-SM_wWY4KPRniVesjVsMGUr6YTw@mail.gmail.com>
-References: <CAJfpegs--UYZrZG4KM8uigs5nL-Q_jD3+ssvQMRRSOK4HPWpsw@mail.gmail.com>
- <1479747454-2273-1-git-send-email-amir73il@gmail.com> <CAJfpegtG8z1AN8SXQG3e=dXCMwa58AdL8pyOYnffE-85X04+Dw@mail.gmail.com>
- <CAOQ4uxg=jxigmh--+VprmQGeORftvc6uMhXz1cK7mtE7FrD=7Q@mail.gmail.com> <CAJfpegtbrpEQWkH6J6FNsJc70AUNt5KrvkVcK7P4KMqP=LH4Yg@mail.gmail.com>
+Subject: Re: [POC/RFC PATCH] overlayfs: constant inode numbers
+Date: Wed, 30 Nov 2016 18:36:18 +0200
+Message-ID: <CAOQ4uxgrcJxYN86zMFYU7zVofwTihJ_RkNW+1mkdS9C3zQxamQ@mail.gmail.com>
+References: <20161125212934.GB2622@veci.piliscsaba.szeredi.hu>
+ <CAOQ4uxgSvo_v37aLJb8FK3c5sDqCkN2XWOd783UXaomdVAvsEQ@mail.gmail.com>
+ <CAOQ4uxi2Ko-G2nA_bSWT8juuss9aS9ZfiBWS95RrdfBy30Tozg@mail.gmail.com>
+ <CAOQ4uxjAODFk2L7d9P+br8wOY9NW5qKH3aaRC=umBfCGPeyxkg@mail.gmail.com>
+ <CAJfpegvrRF7ZS+Shx6Q8L2BsbYpX3x3UEXkPn=3oEWs2zMP+eA@mail.gmail.com>
+ <CAOQ4uxgSHah2OpbgW2nrDXjwXob=_ypjz9dbmHUO-1QrfwooXg@mail.gmail.com>
+ <CAJfpeguTp4AwcnouMAse1=seG=LboW68eNfRjMiEpeaBjxuYQQ@mail.gmail.com>
+ <CAOQ4uxhzRkPM6aOkksMsKU1V6tdsUxhObAD938PEUPKYPp6B5Q@mail.gmail.com>
+ <CAOQ4uxj2yMwY_eCdc0+6U0QP1ckm5aPw5x6xtMz+WdHvJ4bFTg@mail.gmail.com>
+ <CAJfpegtRNQAebLbz2F2zV8asqt31m7Lrgc+ya28UZU1e8E1oEw@mail.gmail.com> <CAOQ4uxjX=ewaCPjTUmvyynpZAwE1g_qf-+nE05zz5OFq99f+kw@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wj0-f169.google.com ([209.85.210.169]:35497 "EHLO
-        mail-wj0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753958AbcK3QG7 (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 30 Nov 2016 11:06:59 -0500
-Received: by mail-wj0-f169.google.com with SMTP id v7so178780876wjy.2
-        for <linux-unionfs@vger.kernel.org>; Wed, 30 Nov 2016 08:06:59 -0800 (PST)
-In-Reply-To: <CAJfpegtbrpEQWkH6J6FNsJc70AUNt5KrvkVcK7P4KMqP=LH4Yg@mail.gmail.com>
-Sender: linux-unionfs-owner@vger.kernel.org
-List-Id: linux-unionfs@vger.kernel.org
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
+In-Reply-To: <CAOQ4uxjX=ewaCPjTUmvyynpZAwE1g_qf-+nE05zz5OFq99f+kw@mail.gmail.com>
+Sender: linux-fsdevel-owner@vger.kernel.org
 To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>
+Cc: "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>
+List-Id: linux-unionfs@vger.kernel.org
 
-On Wed, Nov 30, 2016 at 4:19 PM, Miklos Szeredi <miklos@szeredi.hu> wrote:
-> On Wed, Nov 30, 2016 at 1:58 PM, Amir Goldstein <amir73il@gmail.com> wrote:
-
->>
->> Nice cleanup. FYI, you left me as sole S-O-B on the change.
+On Wed, Nov 30, 2016 at 5:05 PM, Amir Goldstein <amir73il@gmail.com> wrote:
+...
+> For non-lowets entry, we can provide mount option 'readdir_ino'.
+> With readdir_ino, readdir pays a penalty of getxattr for any non-lowest
+> entry (either OVL_XATTR_FH or OVL_XATTR_INO).
+> Without readdir_ino, readdir will get d_ino = 0, in which case, at least
+> `find <path> --inum=<n>` does the right thing (fallback to fstat for
+> this dirent).
 >
-> Okay, fixed.
->
 
-Not pushed? yet?
+Well, I was wrong about findutils. The -inum filter seems to fail to find
+the file if d_ino is set to 0.
+That's at least the case for findutils 4.4.2 that I have on debian and
+4.7.0-git that I built myself.
+Now I have a simple command line to use for the xfstest...
+
+Amir.
