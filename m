@@ -1,7 +1,7 @@
 From: Miklos Szeredi <mszeredi@redhat.com>
-Subject: [PATCH 5/8] ovl: intercept read_iter
-Date: Thu,  1 Dec 2016 11:15:00 +0100
-Message-ID: <1480587303-25088-6-git-send-email-mszeredi@redhat.com>
+Subject: [PATCH 3/8] mm: ovl: copy-up on MAP_SHARED
+Date: Thu,  1 Dec 2016 11:14:58 +0100
+Message-ID: <1480587303-25088-4-git-send-email-mszeredi@redhat.com>
 References: <1480587303-25088-1-git-send-email-mszeredi@redhat.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1480587303-25088-1-git-send-email-mszeredi@redhat.com>
@@ -10,87 +10,60 @@ To: Al Viro <viro@zeniv.linux.org.uk>
 Cc: linux-unionfs@vger.kernel.org, linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 
-...in order to handle the corner case when the file is copyied up after
-being opened read-only.
+A corner case of a corner case is when
 
-Can be verified with the following script:
+ - file opened for O_RDONLY
+ - which is then memory mapped SHARED
+ - file opened for O_WRONLY
+ - contents modified
+ - contents read back though the shared mapping
 
- - 8< - - - - - 8< - - - - - 8< - - - - - 8< - - - -
-cd /
-rm -rf /tmp/ovl-rorw-test
-mkdir /tmp/ovl-rorw-test
-cd /tmp/ovl-rorw-test
-mkdir -p mnt lower upper work
-echo baba > lower/foo
-mount -t overlay overlay -olowerdir=lower,upperdir=upper,workdir=work mnt
-exec 3< mnt/foo
-echo bubu > mnt/foo
-cat <&3
-exec 3>&-
-umount mnt
- - 8< - - - - - 8< - - - - - 8< - - - - - 8< - - - -
+Unfortunately it looks very difficult to do anything about the established
+shared map after the file is copied up.  Instead when a read-only file is
+mapped shared overlayfs copies up the file before actually doing the map.
+This may result in unnecessary copy-ups (but so may copy-up on open(O_RDWR)
+for exampe).
 
-Correct output is "bubu", incorrect output is "baba".
+We can revisit this later if it turns out to be a performance problem in
+real life.
 
 Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
 ---
- fs/overlayfs/inode.c | 29 ++++++++++++++++++++++++++++-
- 1 file changed, 28 insertions(+), 1 deletion(-)
+ mm/util.c | 22 ++++++++++++++++++++++
+ 1 file changed, 22 insertions(+)
 
-diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
-index e98e3323c330..a2d5b3d03e14 100644
---- a/fs/overlayfs/inode.c
-+++ b/fs/overlayfs/inode.c
-@@ -12,6 +12,7 @@
- #include <linux/xattr.h>
- #include <linux/posix_acl.h>
- #include <linux/module.h>
-+#include <linux/file.h>
- #include <linux/hashtable.h>
- #include "overlayfs.h"
+diff --git a/mm/util.c b/mm/util.c
+index 1a41553db866..449272271840 100644
+--- a/mm/util.c
++++ b/mm/util.c
+@@ -300,6 +300,28 @@ unsigned long vm_mmap_pgoff(struct file *file, unsigned long addr,
  
-@@ -368,6 +369,29 @@ void ovl_cleanup_fops_htable(void)
- 		   __ofop->orig_fops->call;				 \
- 	})
- 
-+static bool ovl_file_is_lower(struct file *file)
-+{
-+	return !OVL_TYPE_UPPER(ovl_path_type(file->f_path.dentry));
-+}
+ 	ret = security_mmap_file(file, prot, flag);
+ 	if (!ret) {
++		/*
++		 * Special treatment for overlayfs:
++		 *
++		 * Take MAP_SHARED/PROT_READ as hint about future writes to the
++		 * file (through another file descriptor).  Caller might not
++		 * have had such an intent, but we hope MAP_PRIVATE will be used
++		 * in most such cases.
++		 *
++		 * If we don't copy up now and the file is modified, it becomes
++		 * really difficult to change the mapping to match that of the
++		 * file's content later.
++		 *
++		 * Copy up needs to be done without mmap_sem since it takes vfs
++		 * locks which would potentially deadlock under mmap_sem.
++		 */
++		if ((flag & MAP_SHARED) && !(prot & PROT_WRITE) && file) {
++			void *p = d_real(file->f_path.dentry, NULL, O_WRONLY);
 +
-+static ssize_t ovl_read_iter(struct kiocb *iocb, struct iov_iter *to)
-+{
-+	struct file *file = iocb->ki_filp;
-+	ssize_t ret;
++			if (IS_ERR(p))
++				return PTR_ERR(p);
++		}
 +
-+	if (likely(ovl_file_is_lower(file)))
-+		return OVL_CALL_REAL_FOP(file, read_iter(iocb, to));
-+
-+	file = filp_clone_open(file);
-+	if (IS_ERR(file))
-+		return PTR_ERR(file);
-+
-+	ret = vfs_iter_read(file, to, &iocb->ki_pos);
-+	fput(file);
-+
-+	return ret;
-+}
-+
- static struct ovl_fops *ovl_fops_find(const struct file_operations *orig)
- {
- 	struct ovl_fops *ofop;
-@@ -406,8 +430,11 @@ static struct ovl_fops *ovl_fops_get(struct file *file)
- 	ofop->magic = OVL_FOPS_MAGIC;
- 	ofop->orig_fops = fops_get(orig);
- 
-+	/* Intercept these: */
-+	if (orig->read_iter)
-+		ofop->fops.read_iter = ovl_read_iter;
-+
- 	/* These will need to be intercepted: */
--	ofop->fops.read_iter = orig->read_iter;
- 	ofop->fops.mmap = orig->mmap;
- 	ofop->fops.fsync = orig->fsync;
- 
+ 		if (down_write_killable(&mm->mmap_sem))
+ 			return -EINTR;
+ 		ret = do_mmap_pgoff(file, addr, len, prot, flag, pgoff,
 -- 
 2.5.5
