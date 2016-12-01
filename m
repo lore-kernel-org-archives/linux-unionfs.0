@@ -1,7 +1,7 @@
 From: Miklos Szeredi <mszeredi@redhat.com>
-Subject: [PATCH 4/8] ovl: add infrastructure for intercepting file ops
-Date: Thu,  1 Dec 2016 11:14:59 +0100
-Message-ID: <1480587303-25088-5-git-send-email-mszeredi@redhat.com>
+Subject: [PATCH 8/8] Revert "ovl: Warn on copy up if a process has a R/O fd open to the lower file"
+Date: Thu,  1 Dec 2016 11:15:03 +0100
+Message-ID: <1480587303-25088-9-git-send-email-mszeredi@redhat.com>
 References: <1480587303-25088-1-git-send-email-mszeredi@redhat.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1480587303-25088-1-git-send-email-mszeredi@redhat.com>
@@ -10,273 +10,78 @@ To: Al Viro <viro@zeniv.linux.org.uk>
 Cc: linux-unionfs@vger.kernel.org, linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 
-Overlayfs needs to intercept a few file operations in order to properly
-handle the following corner case:
+This reverts commit fb5bb2c3b73df060d588b6521de5ab03589283f7.
 
- - file X is in overlayfs;
-
- - X resides on a lower (read-only) layer
-	the lower file is L;
-
- - X is opened with O_RDONLY ->
-	L is opened -> 'rofd';
-
- - X is opened with O_WRONLY ->
-	this results in L being copied up to the upper layer file U
-	U is opened -> 'rwfd';
-
- - write to 'rwfd' modifying U;
-
- - read from 'rofd' gets data from unmodified L;
-
-While this is a rare occurrence, it has been known to cause problems.  To
-prevent such inconsistencies, allow intercepting read operations and fix
-them up in the unlikely case that it's needed.
-
-This patch adds an ovl_fops structure that is going to contain the pieces
-necessary for intercepting file operations:
-
- a) a new file_operations structure, based on the original but changing
-    those operations that need to be intercepted;
-
- b) a pointer to the origin f_op.  Intercepted operations will normally
-    just call the original, unless the file was copied up;
-
- c) a hash table entry to hook this up for reuse in subsequent opens.
-
-The hash table is small (32 buckets) since there will only be a few
-different file operations used (basically the number of different
-filesystems used as lower layer of overlay).  The key to the has table is
-the original fops pointer.
-
-Insertion is done under a global mutex.  There will only be one insertion
-event for each unique underlying file_operations structure, so this is
-going to be rare.
-
-The hash table is accessed using rcu, so this will add minimal overhead to
-opens.  The override fops are removed only at module exit time, so we don't
-even have to be worry about read-side rcu locking.
-
-There are a few assumption this scheme makes about file operation
-structures supplied by filesystems:
-
- 1) the lifetime of the structures is equal to the lifetime of the
-    filesystem module; ensure this by holding a ref to the
-    sb->s_type->owner (normal filesystems don't fill in f_ops->owner).
-    This means that once a filesystem has been used as lower layer of
-    overlayfs its module cannot be removed until the overlay module itself
-    is removed.  I don't believe this will be a problem.
-
- 2) Filesystems should not make use of f_op in any way except possibly
-    replacing it in ->open.  Overlayfs itself breaks this assumption, but
-    recursion is handled by ->d_real so this is not an issue.  Add a
-    ->magic field to the override fops structure to verify that the
-    filesystem didn't mess with file->f_op.
+The check is no longer needed since the effected corner case is now handled
+correctly by overlayfs.
 
 Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
 ---
- fs/overlayfs/inode.c     | 146 ++++++++++++++++++++++++++++++++++++++++++++++-
- fs/overlayfs/overlayfs.h |   2 +
- fs/overlayfs/super.c     |   1 +
- 3 files changed, 148 insertions(+), 1 deletion(-)
+ fs/overlayfs/copy_up.c | 34 ----------------------------------
+ 1 file changed, 34 deletions(-)
 
-diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
-index 1981a5514f51..e98e3323c330 100644
---- a/fs/overlayfs/inode.c
-+++ b/fs/overlayfs/inode.c
-@@ -12,6 +12,7 @@
- #include <linux/xattr.h>
- #include <linux/posix_acl.h>
- #include <linux/module.h>
-+#include <linux/hashtable.h>
+diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
+index 6c3aaf45e9cf..7bf7167ba61e 100644
+--- a/fs/overlayfs/copy_up.c
++++ b/fs/overlayfs/copy_up.c
+@@ -7,7 +7,6 @@
+  * the Free Software Foundation.
+  */
+ 
+-#include <linux/module.h>
+ #include <linux/fs.h>
+ #include <linux/slab.h>
+ #include <linux/file.h>
+@@ -17,41 +16,10 @@
+ #include <linux/uaccess.h>
+ #include <linux/sched.h>
+ #include <linux/namei.h>
+-#include <linux/fdtable.h>
+-#include <linux/ratelimit.h>
  #include "overlayfs.h"
  
- static int ovl_copy_up_truncate(struct dentry *dentry)
-@@ -334,16 +335,159 @@ static const struct inode_operations ovl_symlink_inode_operations = {
- 	.update_time	= ovl_update_time,
- };
+ #define OVL_COPY_UP_CHUNK_SIZE (1 << 20)
  
-+static DEFINE_READ_MOSTLY_HASHTABLE(ovl_fops_htable, 5);
-+static DEFINE_MUTEX(ovl_fops_mutex);
-+
-+#define OVL_FOPS_MAGIC 0x73706f462a6c764f
-+
-+struct ovl_fops {
-+	struct module *owner;
-+	struct file_operations fops;
-+	u64 magic;
-+	const struct file_operations *orig_fops;
-+	struct hlist_node entry;
-+};
-+
-+void ovl_cleanup_fops_htable(void)
-+{
-+	int bkt;
-+	struct hlist_node *tmp;
-+	struct ovl_fops *ofop;
-+
-+	hash_for_each_safe(ovl_fops_htable, bkt, tmp, ofop, entry) {
-+		module_put(ofop->owner);
-+		fops_put(ofop->orig_fops);
-+		kfree(ofop);
-+	}
-+}
-+
-+#define OVL_CALL_REAL_FOP(file, call) \
-+	({ struct ovl_fops *__ofop =					 \
-+			container_of(file->f_op, struct ovl_fops, fops); \
-+	   WARN_ON(__ofop->magic != OVL_FOPS_MAGIC) ? -EIO :		 \
-+		   __ofop->orig_fops->call;				 \
-+	})
-+
-+static struct ovl_fops *ovl_fops_find(const struct file_operations *orig)
-+{
-+	struct ovl_fops *ofop;
-+
-+	hash_for_each_possible_rcu(ovl_fops_htable, ofop, entry, (long) orig) {
-+		if (ofop->orig_fops == orig)
-+			return ofop;
-+	}
-+	return NULL;
-+}
-+
-+static struct ovl_fops *ovl_fops_get(struct file *file)
-+{
-+	const struct file_operations *orig = file->f_op;
-+	struct ovl_fops *ofop = ovl_fops_find(orig);
-+
-+	if (likely(ofop))
-+		return ofop;
-+
-+	mutex_lock(&ovl_fops_mutex);
-+	ofop = ovl_fops_find(orig);
-+	if (ofop)
-+		goto out_unlock;
-+
-+	ofop = kzalloc(sizeof(struct ovl_fops), GFP_KERNEL);
-+	if (!ofop)
-+		goto out_unlock;
-+
-+	/*
-+	 * FS don't usually fill in fops->owner, so grab ref to filesystem's
-+	 * module as well.
-+	 */
-+	ofop->owner = file_inode(file)->i_sb->s_type->owner;
-+	__module_get(ofop->owner);
-+
-+	ofop->magic = OVL_FOPS_MAGIC;
-+	ofop->orig_fops = fops_get(orig);
-+
-+	/* These will need to be intercepted: */
-+	ofop->fops.read_iter = orig->read_iter;
-+	ofop->fops.mmap = orig->mmap;
-+	ofop->fops.fsync = orig->fsync;
-+
-+	/*
-+	 * These should be intercepted, but they are very unlikely to be
-+	 * a problem in practice.  Leave them alone for now.
-+	 */
-+	ofop->fops.copy_file_range = orig->copy_file_range;
-+	ofop->fops.clone_file_range = orig->clone_file_range;
-+	ofop->fops.dedupe_file_range = orig->dedupe_file_range;
-+
-+	/* Don't intercept these: */
-+	ofop->fops.llseek = orig->llseek;
-+	ofop->fops.unlocked_ioctl = orig->unlocked_ioctl;
-+	ofop->fops.compat_ioctl = orig->compat_ioctl;
-+	ofop->fops.flush = orig->flush;
-+	ofop->fops.release = orig->release;
-+	ofop->fops.get_unmapped_area = orig->get_unmapped_area;
-+	ofop->fops.check_flags = orig->check_flags;
-+
-+	/* splice_read should be generic_file_splice_read */
-+	WARN_ON(orig->splice_read != generic_file_splice_read);
-+	ofop->fops.splice_read = generic_file_splice_read;
-+
-+	/* These make no sense for "normal" files: */
-+	WARN_ON(orig->read);
-+	WARN_ON(orig->iterate);
-+	WARN_ON(orig->iterate_shared);
-+	WARN_ON(orig->poll);
-+	WARN_ON(orig->fasync);
-+	WARN_ON(orig->show_fdinfo);
-+
-+	/*
-+	 * Don't add those which are unneeded for O_RDONLY:
-+	 *
-+	 *  write
-+	 *  write_iter
-+	 *  splice_write
-+	 *  sendpage
-+	 *  fallocate
-+	 *
-+	 * Locking operations are already intercepted by vfs for ovl:
-+	 *
-+	 *  lock
-+	 *  flock
-+	 *  setlease
-+	 */
-+
-+	hash_add_rcu(ovl_fops_htable, &ofop->entry, (long) orig);
-+
-+out_unlock:
-+	mutex_unlock(&ovl_fops_mutex);
-+
-+	return ofop;
-+}
-+
- static int ovl_open(struct inode *inode, struct file *file)
+-static bool __read_mostly ovl_check_copy_up;
+-module_param_named(check_copy_up, ovl_check_copy_up, bool,
+-		   S_IWUSR | S_IRUGO);
+-MODULE_PARM_DESC(ovl_check_copy_up,
+-		 "Warn on copy-up when causing process also has a R/O fd open");
+-
+-static int ovl_check_fd(const void *data, struct file *f, unsigned int fd)
+-{
+-	const struct dentry *dentry = data;
+-
+-	if (f->f_inode == d_inode(dentry))
+-		pr_warn_ratelimited("overlayfs: Warning: Copying up %pD, but open R/O on fd %u which will cease to be coherent [pid=%d %s]\n",
+-				    f, fd, current->pid, current->comm);
+-	return 0;
+-}
+-
+-/*
+- * Check the fds open by this process and warn if something like the following
+- * scenario is about to occur:
+- *
+- *	fd1 = open("foo", O_RDONLY);
+- *	fd2 = open("foo", O_RDWR);
+- */
+-static void ovl_do_check_copy_up(struct dentry *dentry)
+-{
+-	if (ovl_check_copy_up)
+-		iterate_fd(current->files, 0, ovl_check_fd, dentry);
+-}
+-
+ int ovl_copy_xattr(struct dentry *old, struct dentry *new)
  {
- 	int ret = 0;
-+	struct ovl_fops *ofop;
-+	bool isupper = OVL_TYPE_UPPER(ovl_path_type(file->f_path.dentry));
+ 	ssize_t list_size, size, value_size = 0;
+@@ -339,8 +307,6 @@ int ovl_copy_up_one(struct dentry *parent, struct dentry *dentry,
+ 	if (WARN_ON(!workdir))
+ 		return -EROFS;
  
- 	/* Want fops from real inode */
- 	replace_fops(file, inode->i_fop);
- 	if (file->f_op->open)
- 		ret = file->f_op->open(inode, file);
+-	ovl_do_check_copy_up(lowerdentry);
+-
+ 	ovl_path_upper(parent, &parentpath);
+ 	upperdir = parentpath.dentry;
  
--	return ret;
-+	/* No need to override fops for upper */
-+	if (isupper || ret)
-+		return ret;
-+
-+	ofop = ovl_fops_get(file);
-+	if (unlikely(!ofop)) {
-+		if (file->f_op->release)
-+			file->f_op->release(inode, file);
-+		return -ENOMEM;
-+	}
-+	replace_fops(file, &ofop->fops);
-+
-+	return 0;
- }
- 
- static const struct file_operations ovl_file_operations = {
-diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-index a83de5d5b8a0..a305083112f9 100644
---- a/fs/overlayfs/overlayfs.h
-+++ b/fs/overlayfs/overlayfs.h
-@@ -209,6 +209,8 @@ static inline void ovl_copyattr(struct inode *from, struct inode *to)
- 	to->i_ctime = from->i_ctime;
- }
- 
-+void ovl_cleanup_fops_htable(void);
-+
- /* dir.c */
- extern const struct inode_operations ovl_dir_inode_operations;
- struct dentry *ovl_lookup_temp(struct dentry *workdir, struct dentry *dentry);
-diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-index 4bd1e9c7246f..f9a2021c9abb 100644
---- a/fs/overlayfs/super.c
-+++ b/fs/overlayfs/super.c
-@@ -963,6 +963,7 @@ static int __init ovl_init(void)
- static void __exit ovl_exit(void)
- {
- 	unregister_filesystem(&ovl_fs_type);
-+	ovl_cleanup_fops_htable();
- }
- 
- module_init(ovl_init);
 -- 
 2.5.5
