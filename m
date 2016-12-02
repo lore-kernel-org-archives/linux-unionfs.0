@@ -1,7 +1,7 @@
-From: Eryu Guan <eguan@redhat.com>
+From: Dave Chinner <david@fromorbit.com>
 Subject: Re: [PATCH] overlay: test ro/rw fd data inconsistecies
-Date: Fri, 2 Dec 2016 13:42:31 +0800
-Message-ID: <20161202054231.GI29149@eguan.usersys.redhat.com>
+Date: Fri, 2 Dec 2016 17:49:54 +1100
+Message-ID: <20161202064954.GI11750@dastard>
 References: <1480018332-16567-1-git-send-email-amir73il@gmail.com>
  <CAOQ4uxgEgNJtFfauUTXAr9YedbJeNFrZaWAUbEJUzycf=r3Emw@mail.gmail.com>
  <20161129113715.GN22989@eguan.usersys.redhat.com>
@@ -9,16 +9,17 @@ References: <1480018332-16567-1-git-send-email-amir73il@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:51696 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751970AbcLBFmd (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 2 Dec 2016 00:42:33 -0500
+Received: from ipmail06.adl2.internode.on.net ([150.101.137.129]:17363 "EHLO
+        ipmail06.adl2.internode.on.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751418AbcLBGuA (ORCPT
+        <rfc822;linux-unionfs@vger.kernel.org>);
+        Fri, 2 Dec 2016 01:50:00 -0500
 Content-Disposition: inline
 In-Reply-To: <CAOQ4uxjSZuKocjcLdn6eWmJJdRqYrXonoq0Czvk-UCH6aWfseA@mail.gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: Amir Goldstein <amir73il@gmail.com>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, fstests <fstests@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>
+Cc: Eryu Guan <eguan@redhat.com>, Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, fstests <fstests@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>
 
 On Thu, Dec 01, 2016 at 06:42:00PM +0200, Amir Goldstein wrote:
 > On Tue, Nov 29, 2016 at 1:37 PM, Eryu Guan <eguan@redhat.com> wrote:
@@ -69,86 +70,57 @@ On Thu, Dec 01, 2016 at 06:42:00PM +0200, Amir Goldstein wrote:
 > Have you any idea why in one setup I see the commands echoed
 > to output and not in the other?
 
-I'm also using latest for-next branch, so I didn't notice this issue
-either. I guess xfs_io changed its behavior on when to print \n in
-interactive mode, but I didn't dig into the history.
+I think there's a bug somewhere in xfs_io to do with command line
+repetition of the open command. That is:
 
-> 
+# xfs_io
+xfs_io> open foo
+xfs_io> open -r foo
+xfs_io> print
+ 000  foo            (foreign,non-sync,non-direct,read-write)
+ [001] foo            (foreign,non-sync,non-direct,read-only)
+xfs_io> 
+
+Shows we have two open files, the second being read only.
+
+Fromteh command line, opening a read-only file:
+
+# xfs_io -r -c file foo
+[000] foo            (foreign,non-sync,non-direct,read-only)
+#
+
+But if we try to open a second file from the CLI:
+
+sudo xfs_io -r -c "open -f bar" -c print foo
+bar: Too many open files
+[000] foo            (foreign,non-sync,non-direct,read-only)
+ 001  bar            (foreign,non-sync,non-direct,read-write)
+ 002  bar            (foreign,non-sync,non-direct,read-write)
+ 003  bar            (foreign,non-sync,non-direct,read-write)
+ 004  bar            (foreign,non-sync,non-direct,read-write)
+ 005  bar            (foreign,non-sync,non-direct,read-write)
+ 006  bar            (foreign,non-sync,non-direct,read-write)
+.....
+
+It just falls into an endless loop opening the file until we run out
+fd space.
+
+Oh, there's bugs all over the place here - Ok, I think the command
+loop handling is broken - it's making my head hurt right now.
+Functions that don't set CMD_FLAG_GLOBAL have problems with not
+breaking out of the args processing loop. I'll deal with this on
+Monday, not at beer o'clock on Friday afternoon.
+
 > I realize that the use of redirecting commands from here document
 > to xfs_io has not been used in xfstests before, but I could not find
 > another way to use 'open' commands, which are needed for this test.
-> 
-> Amir.
-> 
-> overlay/016      - output mismatch (see
-> /home/amir/src/xfstests-dev/results//overlay/016.out.bad)
->     --- tests/overlay/016.out   2016-12-01 12:19:02.710370574 +0200
->     +++ /home/amir/src/xfstests-dev/results//overlay/016.out.bad
->  2016-12-01 18:29:23.684327009 +0200
->     @@ -1,12 +1,22 @@
->      QA output created by 016
->     -xfs_io> xfs_io> xfs_io> wrote 16/16 bytes at offset 0
->     +xfs_io> open -r foo
->     +xfs_io> open foo
->     +xfs_io> pwrite -S 0x61 0 16
->     +wrote 16/16 bytes at offset 0
->      XXX Bytes, X ops; XX:XX:XX.X (XXX YYY/sec and XXX ops/sec)
->     ...
 
-I did find a better way to call open either, but if all we care about is
-the output from reading the file, then we can check that explicitly and
-ignore other outputs. e.g. 
+Let's fix xfs_io rather than hack yet another whacky way to execute
+xfs_io into xfstests...
 
---- a/tests/overlay/016
-+++ b/tests/overlay/016
-@@ -61,6 +61,8 @@ mkdir -p $lowerdir
- echo "This is old news" > $lowerdir/foo
- echo "This is old news" > $lowerdir/bar
- 
-+echo "Silence is golden"
-+
- _scratch_mount
- 
- cd $SCRATCH_MNT
-@@ -72,7 +74,7 @@ cd $SCRATCH_MNT
- # write to rwfd
- # read from rofd
- #
--$XFS_IO_PROG << EOF | _filter_xfs_io
-+$XFS_IO_PROG << EOF | grep "old"
- open -r foo
- open foo
- pwrite -S 0x61 0 16
-@@ -86,7 +88,7 @@ EOF
- # write to rwfd
- # read from mapped memory
- #
--$XFS_IO_PROG << EOF | _filter_xfs_io
-+$XFS_IO_PROG << EOF | grep "old"
- open -r bar
- mmap -r 0 16
- open bar
-diff --git a/tests/overlay/016.out b/tests/overlay/016.out
-index 52b8cd7..aa2526b 100644
---- a/tests/overlay/016.out
-+++ b/tests/overlay/016.out
-@@ -1,12 +1,2 @@
- QA output created by 016
--xfs_io> xfs_io> xfs_io> wrote 16/16 bytes at offset 0
--XXX Bytes, X ops; XX:XX:XX.X (XXX YYY/sec and XXX ops/sec)
--xfs_io> [000] foo            (foreign,non-sync,non-direct,read-only)
-- 001  foo            (foreign,non-sync,non-direct,read-write)
--xfs_io> 00000000:  61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61  aaaaaaaaaaaaaaaa
--read 16/16 bytes at offset 0
--XXX Bytes, X ops; XX:XX:XX.X (XXX YYY/sec and XXX ops/sec)
--xfs_io> xfs_io> xfs_io> xfs_io> xfs_io> wrote 16/16 bytes at offset 0
--XXX Bytes, X ops; XX:XX:XX.X (XXX YYY/sec and XXX ops/sec)
--xfs_io> 00000000:  61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61  aaaaaaaaaaaaaaaa
--xfs_io> 
-\ No newline at end of file
-+Silence is golden
+Cheers,
 
-This should work for both old and new version of xfs_io.
-
-Thanks,
-Eryu
+Dave.
+-- 
+Dave Chinner
+david@fromorbit.com
