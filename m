@@ -1,156 +1,136 @@
-From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [RFC][PATCH 3/4] ovl: fold ovl_copy_up_truncate() into ovl_copy_up()
-Date: Sat, 3 Dec 2016 19:04:25 +0200
-Message-ID: <CAOQ4uxhDq2sbsOXMj3Ry08p75fPmX3ua2qam_Anef9PbZe=wgA@mail.gmail.com>
-References: <1478979364-10355-1-git-send-email-amir73il@gmail.com> <1478979364-10355-4-git-send-email-amir73il@gmail.com>
+From: Dave Chinner <david@fromorbit.com>
+Subject: Re: [PATCH] overlay: test ro/rw fd data inconsistecies
+Date: Mon, 5 Dec 2016 10:10:36 +1100
+Message-ID: <20161204231036.GA21916@dastard>
+References: <1480018332-16567-1-git-send-email-amir73il@gmail.com>
+ <CAOQ4uxgEgNJtFfauUTXAr9YedbJeNFrZaWAUbEJUzycf=r3Emw@mail.gmail.com>
+ <20161129113715.GN22989@eguan.usersys.redhat.com>
+ <CAOQ4uxjSZuKocjcLdn6eWmJJdRqYrXonoq0Czvk-UCH6aWfseA@mail.gmail.com>
+ <20161202064954.GI11750@dastard>
+ <CAOQ4uxi7UnJPCZS-Vg17=4U+0VPz4BvM0MDcrfaaFG+Y9Z9TgQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wj0-f194.google.com ([209.85.210.194]:34088 "EHLO
-        mail-wj0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753224AbcLCRE2 (ORCPT
+Received: from ipmail05.adl6.internode.on.net ([150.101.137.143]:25412 "EHLO
+        ipmail05.adl6.internode.on.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751070AbcLDXKm (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Sat, 3 Dec 2016 12:04:28 -0500
-In-Reply-To: <1478979364-10355-4-git-send-email-amir73il@gmail.com>
+        Sun, 4 Dec 2016 18:10:42 -0500
+Content-Disposition: inline
+In-Reply-To: <CAOQ4uxi7UnJPCZS-Vg17=4U+0VPz4BvM0MDcrfaaFG+Y9Z9TgQ@mail.gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: Konstantin Khlebnikov <koct9i@gmail.com>, Al Viro <viro@zeniv.linux.org.uk>, linux-unionfs@vger.kernel.org, linux-fsdevel <linux-fsdevel@vger.kernel.org>
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: Eryu Guan <eguan@redhat.com>, Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, fstests <fstests@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>
 
-On Sat, Nov 12, 2016 at 9:36 PM, Amir Goldstein <amir73il@gmail.com> wrote:
-> This removes code duplication and is prep work
-> for fixing up copy up locking.
->
+On Fri, Dec 02, 2016 at 10:13:33AM +0200, Amir Goldstein wrote:
+> On Fri, Dec 2, 2016 at 8:49 AM, Dave Chinner <david@fromorbit.com> wrote:
+> > On Thu, Dec 01, 2016 at 06:42:00PM +0200, Amir Goldstein wrote:
+> ...
+> >
+> > I think there's a bug somewhere in xfs_io to do with command line
+> > repetition of the open command. That is:
+> >
+> > # xfs_io
+> > xfs_io> open foo
+> > xfs_io> open -r foo
+> > xfs_io> print
+> >  000  foo            (foreign,non-sync,non-direct,read-write)
+> >  [001] foo            (foreign,non-sync,non-direct,read-only)
+> > xfs_io>
+> >
+> > Shows we have two open files, the second being read only.
+> >
+> > From the command line, opening a read-only file:
+> >
+> > # xfs_io -r -c file foo
+> > [000] foo            (foreign,non-sync,non-direct,read-only)
+> > #
+> >
+> > But if we try to open a second file from the CLI:
+> >
+> > sudo xfs_io -r -c "open -f bar" -c print foo
+> > bar: Too many open files
+> > [000] foo            (foreign,non-sync,non-direct,read-only)
+> >  001  bar            (foreign,non-sync,non-direct,read-write)
+> >  002  bar            (foreign,non-sync,non-direct,read-write)
+> >  003  bar            (foreign,non-sync,non-direct,read-write)
+> >  004  bar            (foreign,non-sync,non-direct,read-write)
+> >  005  bar            (foreign,non-sync,non-direct,read-write)
+> >  006  bar            (foreign,non-sync,non-direct,read-write)
+> > .....
+> >
+> > It just falls into an endless loop opening the file until we run out
+> > fd space.
+> >
+> > Oh, there's bugs all over the place here - Ok, I think the command
+> > loop handling is broken - it's making my head hurt right now.
+> > Functions that don't set CMD_FLAG_GLOBAL have problems with not
+> > breaking out of the args processing loop. I'll deal with this on
+> > Monday, not at beer o'clock on Friday afternoon.
+> >
+> >> I realize that the use of redirecting commands from here document
+> >> to xfs_io has not been used in xfstests before, but I could not find
+> >> another way to use 'open' commands, which are needed for this test.
+> >
+> > Let's fix xfs_io rather than hack yet another whacky way to execute
+> > xfs_io into xfstests...
+> >
+> 
+> I have started going down that path, because I initially mistaken
+> xfs_io -c to be similar to bash -c, but then I realized it is quite different.
+> xfs_io -c CMD1 -c CMD2 FILE1 FILE2 iterates CMD1, CMD2 on FILE1
+> and then on FILE2.
+> As long as this semantic holds, it is going to difficult be to support
+> -c "open file", without resorting to spaghetti code and confusing users.
 
-Miklos,
+That's what I mean - that functionality is busted in xfs_io. the
+CMD_FLAG_GLOBAL set on various commands controls this iteration
+functionality, and it's not set on the open command so it tries to
+run iteratively when run from the CLI and so behaves differently
+(and incorrectly) comapred to interactive mode.  That's /one/ of the
+bugs that needs fixing.
 
-Please consider applying this prep patch even though
-you NACKed the concurrent copy up patch.
+The other problem is that the function return values for almost all
+commands are wrong for the multi-iterator case, and that is what is
+leading to the endless repeat loop problem. The issue here is that
+the interactive/CMD_FLAG_GLOBAL mode requires 0 for "command
+completed, prompt for next command", and 1 for "error, terminate".
+In comparison, the iterative mode which calls the same functions
+requires 0 for "process next command arg" and 1 for "process next
+command". All of the functions return values required by the
+interactive/CMD_FLAG_GLOBAL mode, and so don't so the right thing in
+iterative mode....
 
-It is net code deduplication and its also a good prep work
-to any other locking scheme change for concurrent copy up.
+> Incidentally, xfs_io does not advertise the "run all command per file"
+> behavior, so not sure why it was done for and if anybody relies on it.
 
-Amir.
+Not everything in xfs_io is documented in the man page as it's
+always been a developer tool and the historic, sharp "cut you into
+little pieces" bleedy bits that aren't useful to typical users
+simply never got documented. This may be one of them, but I need to
+go look at the history to determine if it was added intentionally,
+or...
 
-> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
-> ---
->  fs/overlayfs/copy_up.c   | 19 ++++++++++++++++---
->  fs/overlayfs/inode.c     | 33 +--------------------------------
->  fs/overlayfs/overlayfs.h |  3 +--
->  3 files changed, 18 insertions(+), 37 deletions(-)
->
-> diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
-> index 7e67512..a16127b 100644
-> --- a/fs/overlayfs/copy_up.c
-> +++ b/fs/overlayfs/copy_up.c
-> @@ -336,8 +336,8 @@ static int ovl_copy_up_locked(struct dentry *workdir, struct dentry *upperdir,
->   * d_parent it is possible that the copy up will lock the old parent.  At
->   * that point the file will have already been copied up anyway.
->   */
-> -int ovl_copy_up_one(struct dentry *parent, struct dentry *dentry,
-> -                   struct path *lowerpath, struct kstat *stat)
-> +static int ovl_copy_up_one(struct dentry *parent, struct dentry *dentry,
-> +                          struct path *lowerpath, struct kstat *stat)
->  {
->         DEFINE_DELAYED_CALL(done);
->         struct dentry *workdir = ovl_workdir(dentry);
-> @@ -391,7 +391,7 @@ int ovl_copy_up_one(struct dentry *parent, struct dentry *dentry,
->         return err;
->  }
->
-> -int ovl_copy_up(struct dentry *dentry)
-> +static int __ovl_copy_up(struct dentry *dentry, int flags)
->  {
->         int err = 0;
->         const struct cred *old_cred = ovl_override_creds(dentry->d_sb);
-> @@ -419,6 +419,9 @@ int ovl_copy_up(struct dentry *dentry)
->
->                 ovl_path_lower(next, &lowerpath);
->                 err = vfs_getattr(&lowerpath, &stat);
-> +               /* maybe truncate regular file. this has no effect on dirs */
-> +               if (flags & O_TRUNC)
-> +                       stat.size = 0;
->                 if (!err)
->                         err = ovl_copy_up_one(parent, next, &lowerpath, &stat);
->
-> @@ -429,3 +432,13 @@ int ovl_copy_up(struct dentry *dentry)
->
->         return err;
->  }
-> +
-> +int ovl_copy_up(struct dentry *dentry)
-> +{
-> +       return __ovl_copy_up(dentry, 0);
-> +}
-> +
-> +int ovl_copy_up_open(struct dentry *dentry, int flags)
-> +{
-> +       return __ovl_copy_up(dentry, flags);
-> +}
-> diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
-> index a10e948..7abae00 100644
-> --- a/fs/overlayfs/inode.c
-> +++ b/fs/overlayfs/inode.c
-> @@ -13,34 +13,6 @@
->  #include <linux/posix_acl.h>
->  #include "overlayfs.h"
->
-> -static int ovl_copy_up_truncate(struct dentry *dentry)
-> -{
-> -       int err;
-> -       struct dentry *parent;
-> -       struct kstat stat;
-> -       struct path lowerpath;
-> -       const struct cred *old_cred;
-> -
-> -       parent = dget_parent(dentry);
-> -       err = ovl_copy_up(parent);
-> -       if (err)
-> -               goto out_dput_parent;
-> -
-> -       ovl_path_lower(dentry, &lowerpath);
-> -
-> -       old_cred = ovl_override_creds(dentry->d_sb);
-> -       err = vfs_getattr(&lowerpath, &stat);
-> -       if (!err) {
-> -               stat.size = 0;
-> -               err = ovl_copy_up_one(parent, dentry, &lowerpath, &stat);
-> -       }
-> -       revert_creds(old_cred);
-> -
-> -out_dput_parent:
-> -       dput(parent);
-> -       return err;
-> -}
-> -
->  int ovl_setattr(struct dentry *dentry, struct iattr *attr)
->  {
->         int err;
-> @@ -281,10 +253,7 @@ int ovl_open_maybe_copy_up(struct dentry *dentry, unsigned int file_flags)
->         if (ovl_open_need_copy_up(file_flags, type, realpath.dentry)) {
->                 err = ovl_want_write(dentry);
->                 if (!err) {
-> -                       if (file_flags & O_TRUNC)
-> -                               err = ovl_copy_up_truncate(dentry);
-> -                       else
-> -                               err = ovl_copy_up(dentry);
-> +                       err = ovl_copy_up_open(dentry, file_flags);
->                         ovl_drop_write(dentry);
->                 }
->         }
-> diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-> index 421fd50..1a2f9a5 100644
-> --- a/fs/overlayfs/overlayfs.h
-> +++ b/fs/overlayfs/overlayfs.h
-> @@ -215,7 +215,6 @@ void ovl_cleanup(struct inode *dir, struct dentry *dentry);
->
->  /* copy_up.c */
->  int ovl_copy_up(struct dentry *dentry);
-> -int ovl_copy_up_one(struct dentry *parent, struct dentry *dentry,
-> -                   struct path *lowerpath, struct kstat *stat);
-> +int ovl_copy_up_open(struct dentry *dentry, int flags);
->  int ovl_copy_xattr(struct dentry *old, struct dentry *new);
->  int ovl_set_attr(struct dentry *upper, struct kstat *stat);
-> --
-> 2.7.4
->
+> I did not notice any tests that make use of multiple file args for xfs_io,
+> but it wasn't easy to grep for this practice.
+
+... it's just an unexpected interaction with common functionality
+provided by libxcmd that is present to support xfs_quota
+requirements, not xfs_io. Hence there's every chance that it's use
+in xfs_io is simply incorrect and never intended, and you're the
+first person to ever trip over it.
+
+The solution may simply be that we add CMD_FLAG_GLOBAL to
+every command in xfs_io, but I'm not sure yet.
+
+> If you have a preference for solution I can execute the work.
+
+Always fix the broken tool first.
+
+Cheers,
+
+Dave.
+-- 
+Dave Chinner
+david@fromorbit.com
