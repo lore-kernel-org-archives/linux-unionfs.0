@@ -1,55 +1,58 @@
-From: Patrick Plagwitz <Patrick_Plagwitz@web.de>
-Subject: [PATCH] overlayfs: ignore empty NFSv4 ACLs in ext4 upperdir
-Date: Mon, 5 Dec 2016 01:51:58 +0100
-Message-ID: <5a6862bd-924d-25e4-2a8e-ba4f51e66604@web.de>
+From: Amir Goldstein <amir73il@gmail.com>
+Subject: Re: [PATCH] overlay: test ro/rw fd data inconsistecies
+Date: Mon, 5 Dec 2016 09:01:57 +0200
+Message-ID: <CAOQ4uxgcJvfC1DuZ25oiZ680TbrsiYckma_aeiJH4hFE+=UiWw@mail.gmail.com>
+References: <1480018332-16567-1-git-send-email-amir73il@gmail.com>
+ <CAOQ4uxgEgNJtFfauUTXAr9YedbJeNFrZaWAUbEJUzycf=r3Emw@mail.gmail.com>
+ <20161129113715.GN22989@eguan.usersys.redhat.com> <CAOQ4uxjSZuKocjcLdn6eWmJJdRqYrXonoq0Czvk-UCH6aWfseA@mail.gmail.com>
+ <20161202064954.GI11750@dastard> <CAOQ4uxi7UnJPCZS-Vg17=4U+0VPz4BvM0MDcrfaaFG+Y9Z9TgQ@mail.gmail.com>
+ <20161204231036.GA21916@dastard>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.17.11]:54678 "EHLO mout.web.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750995AbcLEAw7 (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Sun, 4 Dec 2016 19:52:59 -0500
+Received: from mail-wj0-f195.google.com ([209.85.210.195]:35192 "EHLO
+        mail-wj0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752031AbcLEHCA (ORCPT
+        <rfc822;linux-unionfs@vger.kernel.org>);
+        Mon, 5 Dec 2016 02:02:00 -0500
+In-Reply-To: <20161204231036.GA21916@dastard>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: linux-unionfs@vger.kernel.org, miklos@szeredi.hu
+To: Dave Chinner <david@fromorbit.com>
+Cc: Eryu Guan <eguan@redhat.com>, Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, fstests <fstests@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>
 
-Mounting an overlayfs with an NFSv4 lowerdir and an ext4 upperdir causes copy_up operations, specifically the function copy_up.c:ovl_copy_xattr, to fail with EOPNOTSUPP.
-For example, having the following folders:
+On Mon, Dec 5, 2016 at 1:10 AM, Dave Chinner <david@fromorbit.com> wrote:
+> On Fri, Dec 02, 2016 at 10:13:33AM +0200
 
-|- nfs <- NFSv4 is mounted here
-|--|- folder
-|- root <- ext4 is mounted here
-|- work <- also ext4
-|- merged <- overlay is mounted here with
-             lowerdir=nfs,upperdir=root,workdir=work
+...
+>
+> ... it's just an unexpected interaction with common functionality
+> provided by libxcmd that is present to support xfs_quota
+> requirements, not xfs_io. Hence there's every chance that it's use
+> in xfs_io is simply incorrect and never intended, and you're the
+> first person to ever trip over it.
+>
+> The solution may simply be that we add CMD_FLAG_GLOBAL to
+> every command in xfs_io, but I'm not sure yet.
+>
+>> If you have a preference for solution I can execute the work.
+>
+> Always fix the broken tool first.
+>
 
-And calling
-# touch merged/folder/file
-will print
-touch: cannot touch 'merged/folder/file': Operation not supported
+The question was if I need to fix the run command per file or kill it.
 
-This is because NFS returns the xattr system.nfs4_acl with an empty value even if no NFS ACLs are in use in the lower filesystem. Trying to set this xattr in the upperdir
-fails because ext4 does not support it.
+Anyway, I came up with a very simple patch that enabled running
+xfs_io -c <cmd> without any <file> args.
+In that case, it is easy to understand what the user wants and commands
+are just run once as if they where input in the interactive shell.
 
-Fix this by explicitly checking for the name of the xattr and an empty value and ignoring EOPNOTSUPP if both things match.
+This is good enough for my test case and should be a good change
+for xfs_io all in all.
 
-Signed-off-by: Patrick Plagwitz <patrick_plagwitz@web.de>
----
-Maybe NFS could be changed to not return empty system.nfs4_acl values, I don't know. In any case, to support upperdir ext4 + lowerdir NFSv4, returning the error code from
-vfs_setxattr with this xattr name must be avoided as long as the value is empty.
+Patch on its way.
 
-diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
-index 36795ee..505b86e 100644
---- a/fs/overlayfs/copy_up.c
-+++ b/fs/overlayfs/copy_up.c
-@@ -123,6 +123,9 @@ int ovl_copy_xattr(struct dentry *old, struct dentry *new)
-                        continue; /* Discard */
-                }
-                error = vfs_setxattr(new, name, value, size, 0);
-+               if (error == -EOPNOTSUPP && *value == '\0' &&
-+                               strcmp(name, "system.nfs4_acl") == 0)
-+                       error = 0;
-                if (error)
-                        break;
-        }
+I will let you decide how to handle the undocumented/unused/broken
+case of multiple files and "open" command.
+
+Amir.
