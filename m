@@ -1,84 +1,51 @@
-From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: Overlayfs snapshots pre announce
-Date: Tue, 6 Dec 2016 13:14:02 +0200
-Message-ID: <CAOQ4uxjuFvsnSp_=m9cT4UnBCxiOrTfHCH9irF7JuH+-oZbv4A@mail.gmail.com>
-References: <CAOQ4uxjXpd_Fy3vBfzcXZYudPoZyXkrLEofLNQ0YPB6HeD9ZgA@mail.gmail.com>
- <CAJfpegsLuy5DjeGEeEs3=RgBkWuku9PSesN1Dk=5pKtS_zHdkg@mail.gmail.com>
- <CAJfpegtJ7pZNZA3op7iZwCPynYcSCGB6EZ3rZrmdc3zSKucdpA@mail.gmail.com>
- <CAOQ4uxi1-aC8YiBSxSvCzu7-8TJRGjwAn6DBgV3wWF+Vpwf5Ww@mail.gmail.com>
- <CAOQ4uxh-ZNDcv7sAxX-yaCN=_LLK6qRWpA6w3LScsL6K5S0vWA@mail.gmail.com> <CAJfpegva_u_PnhM+GtopuRF1-Oj9sq7orK3Ao3MLwtHiASPXqg@mail.gmail.com>
+From: Andreas Gruenbacher <agruenba-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH] overlayfs: ignore empty NFSv4 ACLs in ext4 upperdir
+Date: Tue, 6 Dec 2016 14:18:31 +0100
+Message-ID: <CAHc6FU4JQ28BFZE9_8A06gtkMvvKDzFmw9=ceNPYvnMXEimDMw@mail.gmail.com>
+References: <5a6862bd-924d-25e4-2a8e-ba4f51e66604@web.de> <CAJfpeguwUtRWRGmNmimNp-FXzWqMCCQMb24iWPu0w_J0_rOnnw@mail.gmail.com>
+ <20161205151933.GA17517@fieldses.org> <CAJfpegtpkavseTFLspaC7svbvHRq-0-7jvyh63+DK5iWHTGnaQ@mail.gmail.com>
+ <20161205162559.GB17517@fieldses.org> <CAHpGcMKHjic6L+J0qvMYNG9hVCcDO1hEpx4BiEk0ZCKDV39BmA@mail.gmail.com>
+ <266c571f-e4e2-7c61-5ee2-8ece0c2d06e9@web.de> <CAHpGcMKmtppfn7PVrGKEEtVphuLV=YQ2GDYKOqje4ZANhzSgDw@mail.gmail.com>
+ <CAHpGcMKjscfhmrAhwGes0ag2xTkbpFvCO6eiLL_rHz87XE-ZmA@mail.gmail.com> <CAJfpegvRFGOc31gVuYzanzWJ=mYSgRgtAaPhYNxZwHin3Wc0Gw@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wm0-f52.google.com ([74.125.82.52]:36070 "EHLO
-        mail-wm0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753160AbcLFLXC (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 6 Dec 2016 06:23:02 -0500
-Received: by mail-wm0-f52.google.com with SMTP id g23so124898558wme.1
-        for <linux-unionfs@vger.kernel.org>; Tue, 06 Dec 2016 03:22:54 -0800 (PST)
-In-Reply-To: <CAJfpegva_u_PnhM+GtopuRF1-Oj9sq7orK3Ao3MLwtHiASPXqg@mail.gmail.com>
-Sender: linux-unionfs-owner@vger.kernel.org
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CAJfpegvRFGOc31gVuYzanzWJ=mYSgRgtAaPhYNxZwHin3Wc0Gw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Miklos Szeredi <miklos-sUDqSbJrdHQHWmgEVkV9KA@public.gmane.org>
+Cc: =?UTF-8?Q?Andreas_Gr=C3=BCnbacher?= <andreas.gruenbacher-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Patrick Plagwitz <Patrick_Plagwitz-S0/GAf8tV78@public.gmane.org>, "J. Bruce Fields" <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>, "linux-unionfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-unionfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux NFS list <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux FS-devel Mailing List <linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-unionfs@vger.kernel.org
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>
 
-On Tue, Dec 6, 2016 at 12:41 PM, Miklos Szeredi <miklos@szeredi.hu> wrote:
-> On Mon, Dec 5, 2016 at 2:39 PM, Amir Goldstein <amir73il@gmail.com> wrote:
+On Tue, Dec 6, 2016 at 11:08 AM, Miklos Szeredi <miklos-sUDqSbJrdHQHWmgEVkV9KA@public.gmane.org> wrote:
+> On Tue, Dec 6, 2016 at 12:24 AM, Andreas Grünbacher
+> <andreas.gruenbacher-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+>> 2016-12-06 0:19 GMT+01:00 Andreas Grünbacher <andreas.gruenbacher-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>:
 >
->> FYI, I implemented ./run --sn=N test
->> for recycling N snapshot as described above.
+>>> It's not hard to come up with a heuristic that determines if a
+>>> system.nfs4_acl value is equivalent to a file mode, and to ignore the
+>>> attribute in that case. (The file mode is transmitted in its own
+>>> attribute already, so actually converting .) That way, overlayfs could
+>>> still fail copying up files that have an actual ACL. It's still an
+>>> ugly hack ...
 >>
->> 3 directory rename tests (rename-move-dir, rename-pop-dir,
->> rename-new-pop-dir) fail on snapshot consistency after 1 recycle
->> due to a problem I failed to anticipate - redirect by file handle skips
->> all middle layers and goes directly to master.
+>> Actually, that kind of heuristic would make sense in the NFS client
+>> which could then hide the "system.nfs4_acl" attribute.
 >
-> Not sure I understand.   How does redirect/fh skip middle layers?  We
-> need to merge contents of all layers, so skipping middle layers does
-> not sound correct.
+> Even simpler would be if knfsd didn't send the attribute if not
+> necessary.  Looks like there's code actively creating the nfs4_acl on
+> the wire even if the filesystem had none:
 >
+>     pacl = get_acl(inode, ACL_TYPE_ACCESS);
+>     if (!pacl)
+>         pacl = posix_acl_from_mode(inode->i_mode, GFP_KERNEL);
+>
+> What's the point?
 
-OK. it's easy enough to understand it if you realize why snapshots
-MUST use redirect_fh and not as optimization.
+That's how the protocol is specified. (I'm not saying that that's very helpful.)
 
-With standard overlay, when you rename a dir in upper you must set
-redirect (path and/or fh) *before* the first rename and never have to
-deal with it on subsequent renames.
-
-With reverse overlay, the same trick won't work. It is not feasible
-to update redirect (by path) on upper dir on every rename of lower dir.
-And there is no way to do it atomically with the lower rename.
-So redirect_fh comes to the rescue. upper dir gets the lower fh
-*before* the first lower dir rename. Then all subsequent lower dir
-renames are invariant to the stored fh. snapshot lookup can always
-find lower dir by fh, regardless on how many times it was renamed.
-Removal of lower dir, BTW, will result in ESTALE which translates to
-ENOENT in layers lookup, so result is pure upper dir for snapshot.
-
-All this works quite well for a single snapshot, but breaks with the
-second snapshot. upper/0 is rotated to the top level of the snapshots
-stack and upper/1 becomes the 'master' snapshot.
-Subsequent renames of lower dir will trigger copy up to upper/1 with
-storing of lower dir fh. But the new directory created in upper/1 is not
-referenced by fh from upper/0. The lower directory is.
-
-As for solution. *If* we had an efficient way to lookup
-"which inode in this layer represents inode X in lower layer",
-then we would have a solution for:
-1. Reverse redirect dir (lookup the inode in upper/1 which represents
-    the lower dir inode that we have from fh stored in upper/0)
-2. Hardlinks copy up (did we already copy up another alias of inode X
-    to this layer)
-3. Stable file handles for NFS export (lookup the upper most
-    representation of lower inode X)
-4. Optimized readdir d_ino (requires the opposite map "which inode
-    in lower is the base for inode Y in this layer).
-
-So as far as I can tell, all the problem above are bound together
-by the need for inode map indexing. Not sure if you think that's a good
-idea, whether you can think of another idea or what's the best way
-to implement such a map would be.
-
-As usual, hope I was able to clarify rather then complicate further..
-Amir.
+Andreas
+--
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
