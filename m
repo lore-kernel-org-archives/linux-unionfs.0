@@ -1,62 +1,243 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH] ovl: fix reStructuredText syntax errors in documentation
-Date: Thu,  8 Dec 2016 09:49:51 +0200
-Message-ID: <1481183391-30405-1-git-send-email-amir73il@gmail.com>
+Subject: [POC/RFC][PATCH] ovl: overlayfs snapshots documentation
+Date: Thu,  8 Dec 2016 10:00:43 +0200
+Message-ID: <1481184043-30634-1-git-send-email-amir73il@gmail.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wm0-f65.google.com ([74.125.82.65]:36389 "EHLO
-        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750822AbcLHHuO (ORCPT
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:35916 "EHLO
+        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750813AbcLHIBH (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 8 Dec 2016 02:50:14 -0500
+        Thu, 8 Dec 2016 03:01:07 -0500
+Received: by mail-wm0-f66.google.com with SMTP id m203so1801508wma.3
+        for <linux-unionfs@vger.kernel.org>; Thu, 08 Dec 2016 00:01:07 -0800 (PST)
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: NeilBrown <neilb@suse.com>, Jonathan Corbet <corbet@lwn.net>, linux-unionfs@vger.kernel.org, linux-doc@vger.kernel.org
+Cc: NeilBrown <neilb@suse.com>, linux-unionfs@vger.kernel.org
 
-- Fix broken long line block quote
-- Fix missing newline before bullets list
-- Use correct numbered list syntax
+Document the overlayfs snapshots feature.
 
 Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- Documentation/filesystems/overlayfs.txt | 7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ Documentation/filesystems/overlayfs-snapshots.txt | 197 ++++++++++++++++++++++
+ 1 file changed, 197 insertions(+)
+ create mode 100644 Documentation/filesystems/overlayfs-snapshots.txt
 
-diff --git a/Documentation/filesystems/overlayfs.txt b/Documentation/filesystems/overlayfs.txt
-index fb6f307..634d03e 100644
---- a/Documentation/filesystems/overlayfs.txt
-+++ b/Documentation/filesystems/overlayfs.txt
-@@ -66,7 +66,7 @@ At mount time, the two directories given as mount options "lowerdir" and
- "upperdir" are combined into a merged directory:
- 
-   mount -t overlay overlay -olowerdir=/lower,upperdir=/upper,\
--workdir=/work /merged
-+  workdir=/work /merged
- 
- The "workdir" needs to be an empty directory on the same filesystem
- as upperdir.
-@@ -118,6 +118,7 @@ programs.
- 
- seek offsets are assigned sequentially when the directories are read.
- Thus if
+Hi all,
+
+I am posting this document in full to make it easier for those who
+would like to comment inline, but it is also available for reading in pretty
+formatting on wiki:
+https://github.com/amir73il/overlayfs/wiki/Snapshots-overview
+
+This is actually v2, after already incorporating some typo fixes
+from Niel Brown - Thanks!
+
+Amir.
+
+
+diff --git a/Documentation/filesystems/overlayfs-snapshots.txt b/Documentation/filesystems/overlayfs-snapshots.txt
+new file mode 100644
+index 0000000..4d6025f
+--- /dev/null
++++ b/Documentation/filesystems/overlayfs-snapshots.txt
+@@ -0,0 +1,197 @@
++Written by: Amir Goldstein
 +
-   - read part of a directory
-   - remember an offset, and close the directory
-   - re-open the directory some time later
-@@ -137,12 +138,12 @@ When renaming a directory that is on the lower layer or merged (i.e. the
- directory was not created on the upper layer to start with) overlayfs can
- handle it in two different ways:
- 
--1) return EXDEV error: this error is returned by rename(2) when trying to
++See Documentation/filesystems/overlayfs.txt for required background.
++
++Overlayfs Snapshots
++===================
++
++This document describes the overlayfs snapshots feature.
++
++Snapshot overlay
++----------------
++
++A 'snapshot overlay' may be thought of as a 'reverse overlay'.
++It looks exactly like a regular overlay mount with one 'lower' layer
++and one 'upper' layer, combined into a unified view, e.g.:
++
++  mount -t overlay snap0 -olowerdir=/lower,upperdir=/upper/0,\
++  workdir=/work /snap/0
++
++Although the mount looks the same and has similar characteristics to
++a regular overlay mount, it is used in a non conventional way for a
++different use case.
++
++With a regular overlay mount, the lower layer is expected to remain
++unchanged, while upper layer is modified to contain all changes
++performed on the union overlay mount.
++
++With a snapshot overlay mount, lower layer is allowed to change,
++while upper layer is modified to 'cover up' on these changes by
++creating copies of the original objects, before they are modified
++in the lower layer.
++
++The result is that the content of the snapshot overlay remains
++constant and therefore, can be used as a snapshot in time of the
++lower layer at the time that the snapshot overlay was mounted.
++
++As with regular overlay, the st_dev and st_ino fields of an
++object in the snapshot overlay may change during the life time
++of that object, but its content shall remain constant.
++
++
++Snapshot mount
++--------------
++
++The secret sauce that is responsible of 'covering up' before lower layer
++changes is the 'snapshot mount'. A 'snapshot mount', although similar by
++name, is not the same as a 'snapshot overlay'. In fact, it is not an
++overlay at all.
++
++The snapshot mount acts as a shim over the lower layer to intercept
++filesystem operations before modifying the lower layer objects and precede
++those operations with "copy up" to upper layer.
++
++A snapshot mount takes 2 mount options: 'snapshot=' and 'upperdir='.
++The 'snapshot=' mount option points to a snapshot overlay mount point.
++The 'upperdir=' mount option points to the lower dir of the snapshot overlay.
++For example:
++
++  mount -t snapshot current -oupperdir=/lower,snapshot=/snap/0 /lower
++
++In this example, the snapshot mount is mounted at /lower, on top of the
++underlying filesystem, so any future access to /lower directory will not go
++unnoticed.
++
++Notice that the file system type used for the snapshot mount is 'snapshot'
++and not 'overlay'. This distinction is merely a way to identify the role
++of the mount. Under the hood, the snapshot mount super block operations
++are somewhat different then the standard overlayfs super block operations,
++because they serve a different purpose.
++
++The most notably different operation is d_real().  Like, the standard
++overlayfs d_real() it will trigger copy up, before any change to an object.
++Unlike standard overlayfs d_real(), it always returns the same dentry
++is was given as input. So when an application opens a file in /lower it
++will really always get a direct handle to the file is lower.
++
++As a result, filesystem operations on the snapshot mount should not exhibit
++any of the overlayfs non standard behavior patterns.
++
++
++Underlying filesystem
++---------------------
++
++The upper and lower directories of a snapshot overlay must be on the
++same underlying filesystem.  The underlying filesystem must be supported
++for an overlay upper layer, so it must be writable and must be a local
++filesystem with extended attributes support.
++
++On top of these standard overlayfs requirements, the underlying filesystem
++must also support NFS export operations, so it could use the "redirect_fh"
++feature (see "Renaming directories" section).
++
++
++Readdir
++-------
++
++Readdir from a snapshot overlay is very similar to readdir from a regular
++overlay of single upper and single lower with one exception -
++lower directory may have been deleted, so whiteouts in an upper dir
++need to be hidden, also when there is no lower directory.
++
++Readdir from the snapshot mount is a native readdir of the lower dir.
++
++
++Renaming directories
++--------------------
++
++When renaming a directory in the lower layer, snapshot mount can handle it
++in two different ways:
++
 +1. return EXDEV error: this error is returned by rename(2) when trying to
-    move a file or directory across filesystem boundaries.  Hence
-    applications are usually prepared to hande this error (mv(1) for example
-    recursively copies the directory tree).  This is the default behavior.
- 
--2) If the "redirect_dir" feature is enabled, then the directory will be
-+2. If the "redirect_dir" feature is enabled, then the directory will be
-    copied up (but not the contents).  Then the "trusted.overlay.redirect"
-    extended attribute is set to the path of the original location from the
-    root of the overlay.  Finally the directory is moved to the new
++   move a file or directory across filesystem boundaries.  Hence
++   applications are usually prepared to handle this error (mv(1) for example
++   recursively copies the directory tree).  This is the default behavior.
++
++2. If the "redirect_fh" feature is enabled, then the file handle of the lower
++   directory will be stored in an extended attribute "trusted.overlay.fh" on
++   the copied up directory.  The file handle is then used to lookup the lower
++   directory when reading from the snapshot overlay.  This lookup method is
++   invariant to lower directory renames.
++
++
++Implicit opaque directory
++-------------------------
++
++With regular overlay, when a new directory is created in upper on top of
++a whited out object, that directory is marked as opaque to prevent merging
++it with lower directories of the same name.
++
++With snapshot overlay, a similar result is achieved implicitly from the
++"redirect_fh" feature. When a lower directory has been deleted and a new
++object of the same name created in its place, the file handle stored in
++the upper directory, that used to lookup the lower directory becomes stale.
++
++When the snapshot overlay lookup reaches a stale directory file handle, it
++treats it as if the upper directory is opaque to get the expected result
++of not exposing the new objects in lower in the snapshot overlay.
++
++
++Explicit whiteouts
++------------------
++
++In order to support create and mkdir in lower without the risk of those
++objects being exposed in the snapshot overlay, whiteouts need to be created
++in upper prior to creating objects in lower.
++
++Explicit whiteout is requested from the overlay mount by passing a
++negative dentry and non zero open flags to d_real().  d_real() is
++normally used to request a copy up of a file from lower to upper before
++opening the file for write.  Similarly, the new API means "copy nothing
++to upper before it changes to something".
++
++
++Multiple snapshots
++------------------
++
++An overlayfs mount may be stacked on top of another (lower) overlayfs
++mount, but only a single level of nesting is allowed. Together with
++the underlying filesystem at level 0, this amounts to the maximum allowed
++filesystem stack depth of 2.
++
++To get a view of anything but the latest snapshot overlay, a single
++overlayfs mount is stacked on top of the latest snapshot overlay and
++the historic upper layers are used as lower layers in reverse order,
++oldest upper layer on top. For example, to get a view at time 2 from
++the latest snapshot overlay at time 4:
++
++  mount -t overlay snap2 -olowerdir=/upper/2:/upper/3:/snap/4 /snap/2
++
++As the example shows, "upperdir=" and "workdir=" are omitted, so the
++stacked overlay mount is read-only.
++
++Similarly, we could mount more nested snapshot overlays to get a view
++of the lower dir at any other snapshot time, e.g.:
++
++  mount -t overlay snap3 -olowerdir=/upper/3:/snap/4 /snap/3
++
++NOTE, that all these mounts will become stale once /snap/4 is no
++longer the latest snapshot and they will have to be remounted with
++the new latest snapshot as the lowest layer in order to revalidate
++their content, e.g.:
++
++  mount -t overlay snap3 -olowerdir=/upper/3:/upper/4:/snap/5 /snap/3
++
++
++Testsuite
++---------
++
++There is a fork of the testsuite developed by David Howells, with support
++for testing overlayfs snapshots at:
++
++  https://github.com/amir73il/unionmount-testsuite.git
++
++Run as root:
++
++  # cd unionmount-testsuite
++  # ./run --sn
 -- 
 2.7.4
