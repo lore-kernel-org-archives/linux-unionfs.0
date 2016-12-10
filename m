@@ -1,17 +1,17 @@
 From: Miklos Szeredi <miklos@szeredi.hu>
-Subject: [GIT PULL] readlink cleanup
-Date: Sat, 10 Dec 2016 21:41:45 +0100
-Message-ID: <20161210204145.GK2622@veci.piliscsaba.szeredi.hu>
+Subject: [GIT PULL] overlayfs update for 4.10
+Date: Sat, 10 Dec 2016 21:49:26 +0100
+Message-ID: <20161210204926.GL2622@veci.piliscsaba.szeredi.hu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:33881 "EHLO
+Received: from mail-wm0-f68.google.com ([74.125.82.68]:32916 "EHLO
         mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751962AbcLJUlt (ORCPT
+        with ESMTP id S1752165AbcLJUta (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Sat, 10 Dec 2016 15:41:49 -0500
-Received: by mail-wm0-f68.google.com with SMTP id g23so2980267wme.1
-        for <linux-unionfs@vger.kernel.org>; Sat, 10 Dec 2016 12:41:48 -0800 (PST)
+        Sat, 10 Dec 2016 15:49:30 -0500
+Received: by mail-wm0-f68.google.com with SMTP id u144so2995303wmu.0
+        for <linux-unionfs@vger.kernel.org>; Sat, 10 Dec 2016 12:49:30 -0800 (PST)
 Content-Disposition: inline
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
@@ -20,87 +20,95 @@ Cc: linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-unionfs@v
 
 Hi Al,
 
-Please pull from:
+I usually send overlayfs pulls directly to Linus, but it it suits you, please
+feel free to pull from:
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/mszeredi/vfs.git readlink
+  git://git.kernel.org/pub/scm/linux/kernel/git/mszeredi/vfs.git overlayfs-linus
 
-This is a rework of the readlink cleanup patchset.  Now readlink(2) does the
-following:
+This update contains:
 
- - if i_op->readlink() is non-NULL (only proc and afs mountpoints for now) then
-   it calls that;
- - otherwise call i_op->get_link();
- - signature of ->readlink() now matches that of ->get_link();
-
-This is against the #misc branch (the stats look better that way ;)
+ - try to clone on copy-up;
+ - allow renaming a directory;
+ - fix data inconsistency of read-only fds after copy up;
+ - misc cleanups and fixes.
 
 Thanks,
 Miklos
 
 ---
-Miklos Szeredi (10):
-      ecryptfs: use vfs_get_link()
-      proc/self: use generic_readlink
-      vfs: replace calling i_op->readlink with vfs_readlink()
-      vfs: default to generic_readlink()
-      vfs: remove ".readlink = generic_readlink" assignments
-      vfs: make generic_readlink() static
-      vfs: convert ->readlink to same signature as ->get_link
-      vfs: remove page_readlink()
-      vfs: make readlink_copy() static
-      nsfs: clean up ns_get_name() interface
+Al Viro (1):
+      ovl: clean up kstat usage
+
+Amir Goldstein (9):
+      vfs: allow vfs_clone_file_range() across mount points
+      vfs: call vfs_clone_file_range() under freeze protection
+      vfs: fix vfs_clone_file_range() for overlayfs files
+      ovl: use vfs_clone_file_range() for copy up if possible
+      ovl: fix nested overlayfs mount
+      ovl: check for emptiness of redirect dir
+      ovl: show redirect_dir mount option
+      ovl: create directories inside merged parent opaque
+      ovl: fold ovl_copy_up_truncate() into ovl_copy_up()
+
+Geliang Tang (1):
+      ovl: fix return value of ovl_fill_super
+
+Miklos Szeredi (32):
+      Revert "af_unix: fix hard linked sockets on overlay"
+      Revert "vfs: rename: check backing inode being equal"
+      vfs: no mnt_want_write_file() in vfs_{copy,clone}_file_range()
+      vfs: allow overlayfs to intercept file ops
+      vfs: export filp_clone_open()
+      mm: ovl: copy-up on MAP_SHARED
+      ovl: update doc
+      Revert "ovl: get_write_access() in truncate"
+      ovl: rename ovl_rename2() to ovl_rename()
+      ovl: treat special files like a regular fs
+      ovl: don't check rename to self
+      ovl: don't check sticky
+      ovl: add ovl_dentry_is_whiteout()
+      ovl: check lower existence when removing
+      ovl: get rid of PURE type
+      ovl: rename: simplify handling of lower/merged directory
+      ovl: check lower existence of rename target
+      ovl: simplify lookup
+      ovl: use d_is_dir()
+      ovl: split super.c
+      ovl: check namelen
+      ovl: consolidate lookup for underlying layers
+      ovl: lookup redirects
+      ovl: redirect on rename-dir
+      ovl: allow redirect_dir to default to "on"
+      ovl: allow setting max size of redirect
+      ovl: opaque cleanup
+      ovl: add infrastructure for intercepting file ops
+      ovl: intercept read_iter
+      ovl: intercept mmap
+      ovl: intercept fsync
+      Revert "ovl: Warn on copy up if a process has a R/O fd open to the lower file"
 
 ---
- Documentation/filesystems/Locking             |  6 +--
- Documentation/filesystems/porting             |  7 ++++
- Documentation/filesystems/vfs.txt             | 14 ++++---
- drivers/staging/lustre/lustre/llite/symlink.c |  1 -
- fs/9p/vfs_inode.c                             |  1 -
- fs/9p/vfs_inode_dotl.c                        |  1 -
- fs/affs/symlink.c                             |  1 -
- fs/afs/mntpt.c                                |  2 +-
- fs/autofs4/symlink.c                          |  1 -
- fs/bad_inode.c                                |  8 +---
- fs/btrfs/inode.c                              |  1 -
- fs/ceph/inode.c                               |  1 -
- fs/cifs/cifsfs.c                              |  1 -
- fs/coda/cnode.c                               |  1 -
- fs/configfs/symlink.c                         |  1 -
- fs/ecryptfs/inode.c                           | 30 ++++++--------
- fs/ext2/symlink.c                             |  2 -
- fs/ext4/symlink.c                             |  3 --
- fs/f2fs/namei.c                               |  2 -
- fs/fuse/dir.c                                 |  1 -
- fs/gfs2/inode.c                               |  1 -
- fs/hostfs/hostfs_kern.c                       |  1 -
- fs/jffs2/symlink.c                            |  1 -
- fs/jfs/symlink.c                              |  2 -
- fs/kernfs/symlink.c                           |  1 -
- fs/libfs.c                                    |  1 -
- fs/minix/inode.c                              |  1 -
- fs/namei.c                                    | 58 ++++++++++++++++-----------
- fs/ncpfs/inode.c                              |  1 -
- fs/nfs/symlink.c                              |  1 -
- fs/nfsd/nfs4xdr.c                             |  8 ++--
- fs/nfsd/vfs.c                                 |  6 +--
- fs/nilfs2/namei.c                             |  1 -
- fs/nsfs.c                                     | 17 ++++++--
- fs/ocfs2/symlink.c                            |  1 -
- fs/orangefs/symlink.c                         |  1 -
- fs/overlayfs/inode.c                          |  1 -
- fs/proc/base.c                                | 57 +++++++++-----------------
- fs/proc/inode.c                               |  1 -
- fs/proc/namespaces.c                          | 13 +++---
- fs/proc/self.c                                | 13 ------
- fs/proc/thread_self.c                         | 14 -------
- fs/reiserfs/namei.c                           |  1 -
- fs/squashfs/symlink.c                         |  1 -
- fs/stat.c                                     |  8 ++--
- fs/sysv/inode.c                               |  1 -
- fs/ubifs/file.c                               |  1 -
- fs/xfs/xfs_ioctl.c                            |  4 +-
- fs/xfs/xfs_iops.c                             |  2 -
- include/linux/fs.h                            |  9 ++---
- include/linux/proc_ns.h                       |  4 +-
- mm/shmem.c                                    |  2 -
- 52 files changed, 124 insertions(+), 195 deletions(-)
+ Documentation/filesystems/overlayfs.txt |  23 +-
+ fs/internal.h                           |   1 -
+ fs/ioctl.c                              |   6 +-
+ fs/namei.c                              |   6 +-
+ fs/nfsd/vfs.c                           |   3 +-
+ fs/open.c                               |   2 +-
+ fs/overlayfs/Kconfig                    |  14 +
+ fs/overlayfs/Makefile                   |   2 +-
+ fs/overlayfs/copy_up.c                  |  95 ++----
+ fs/overlayfs/dir.c                      | 375 ++++++++++++---------
+ fs/overlayfs/inode.c                    | 305 +++++++++++++----
+ fs/overlayfs/namei.c                    | 401 +++++++++++++++++++++++
+ fs/overlayfs/overlayfs.h                |  64 ++--
+ fs/overlayfs/ovl_entry.h                |  53 +++
+ fs/overlayfs/super.c                    | 558 ++++----------------------------
+ fs/overlayfs/util.c                     | 265 +++++++++++++++
+ fs/read_write.c                         |  23 +-
+ include/linux/fs.h                      |  14 +
+ mm/util.c                               |  22 ++
+ net/unix/af_unix.c                      |   6 +-
+ 20 files changed, 1391 insertions(+), 847 deletions(-)
+ create mode 100644 fs/overlayfs/namei.c
+ create mode 100644 fs/overlayfs/ovl_entry.h
+ create mode 100644 fs/overlayfs/util.c
