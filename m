@@ -1,114 +1,75 @@
-From: Miklos Szeredi <miklos@szeredi.hu>
-Subject: [GIT PULL] overlayfs update for 4.10
-Date: Sat, 10 Dec 2016 21:49:26 +0100
-Message-ID: <20161210204926.GL2622@veci.piliscsaba.szeredi.hu>
+From: Al Viro <viro@ZenIV.linux.org.uk>
+Subject: Re: [GIT PULL] overlayfs update for 4.10
+Date: Sun, 11 Dec 2016 02:12:23 +0000
+Message-ID: <20161211021218.GK1555@ZenIV.linux.org.uk>
+References: <20161210204926.GL2622@veci.piliscsaba.szeredi.hu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:32916 "EHLO
-        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752165AbcLJUta (ORCPT
+Received: from zeniv.linux.org.uk ([195.92.253.2]:49950 "EHLO
+        ZenIV.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751364AbcLKCMf (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Sat, 10 Dec 2016 15:49:30 -0500
-Received: by mail-wm0-f68.google.com with SMTP id u144so2995303wmu.0
-        for <linux-unionfs@vger.kernel.org>; Sat, 10 Dec 2016 12:49:30 -0800 (PST)
+        Sat, 10 Dec 2016 21:12:35 -0500
 Content-Disposition: inline
+In-Reply-To: <20161210204926.GL2622@veci.piliscsaba.szeredi.hu>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Al Viro <viro@zeniv.linux.org.uk>
+To: Miklos Szeredi <miklos@szeredi.hu>
 Cc: linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org
 
-Hi Al,
+On Sat, Dec 10, 2016 at 09:49:26PM +0100, Miklos Szeredi wrote:
+> Hi Al,
+> 
+> I usually send overlayfs pulls directly to Linus, but it it suits you, please
+> feel free to pull from:
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/mszeredi/vfs.git overlayfs-linus
+> 
+> This update contains:
+> 
+>  - try to clone on copy-up;
+>  - allow renaming a directory;
+>  - fix data inconsistency of read-only fds after copy up;
+>  - misc cleanups and fixes.
 
-I usually send overlayfs pulls directly to Linus, but it it suits you, please
-feel free to pull from:
+	Miklos, I'm very tempted to just let Linus do the... explaining
+why "ovl: add infrastructure for intercepting file ops" is not nicely done.
+It relies upon so damn many subtle things that result is a minefield for
+any later work.  If nothing else, you've just created a magical place that
+will have to be modified every time somebody adds a method.  Moreover, ->open()
+instances have every right to expect that nothing will change ->f_op after
+they return, period.  That includes things like later comparisons of ->f_op
+with known pointers, etc.
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/mszeredi/vfs.git overlayfs-linus
+Worse, there's nothing to prohibit embedding file_operations into an object
+with lifetime shorter than that of a module.  Your approach will blow up on
+those.  Sure, at the moment all of them live on weird filesystems that will be
+(hopefully) rejected before you get to that point.  With no promise whatsoever
+that this situation will persist.
 
-This update contains:
+overlayfs is already one hell of a special snowflake, but this is just plain
+ridiculous - that sticks its fingers into so many places that making sure they
+don't get squashed will be very hard.  IMO that kind of stuff is on the
+"this should be handled by VFS or not at all" side of things, and I'm not
+at all sure that doing that anywhere is a good idea.
 
- - try to clone on copy-up;
- - allow renaming a directory;
- - fix data inconsistency of read-only fds after copy up;
- - misc cleanups and fixes.
+PS: macros like
++#define OVL_CALL_REAL_FOP(file, call) \
++       ({ struct ovl_fops *__ofop =                                     \
++                       container_of(file->f_op, struct ovl_fops, fops); \
++          WARN_ON(__ofop->magic != OVL_FOPS_MAGIC) ? -EIO :             \
++                  __ofop->orig_fops->call;                              \
++       })
 
-Thanks,
-Miklos
+with uses along the lines of
++               return OVL_CALL_REAL_FOP(file,
++                                        fsync(file, start, end, datasync));
+make some things (like, you know, "find all places where a method could
+be called") harder for no good reason.
 
----
-Al Viro (1):
-      ovl: clean up kstat usage
-
-Amir Goldstein (9):
-      vfs: allow vfs_clone_file_range() across mount points
-      vfs: call vfs_clone_file_range() under freeze protection
-      vfs: fix vfs_clone_file_range() for overlayfs files
-      ovl: use vfs_clone_file_range() for copy up if possible
-      ovl: fix nested overlayfs mount
-      ovl: check for emptiness of redirect dir
-      ovl: show redirect_dir mount option
-      ovl: create directories inside merged parent opaque
-      ovl: fold ovl_copy_up_truncate() into ovl_copy_up()
-
-Geliang Tang (1):
-      ovl: fix return value of ovl_fill_super
-
-Miklos Szeredi (32):
-      Revert "af_unix: fix hard linked sockets on overlay"
-      Revert "vfs: rename: check backing inode being equal"
-      vfs: no mnt_want_write_file() in vfs_{copy,clone}_file_range()
-      vfs: allow overlayfs to intercept file ops
-      vfs: export filp_clone_open()
-      mm: ovl: copy-up on MAP_SHARED
-      ovl: update doc
-      Revert "ovl: get_write_access() in truncate"
-      ovl: rename ovl_rename2() to ovl_rename()
-      ovl: treat special files like a regular fs
-      ovl: don't check rename to self
-      ovl: don't check sticky
-      ovl: add ovl_dentry_is_whiteout()
-      ovl: check lower existence when removing
-      ovl: get rid of PURE type
-      ovl: rename: simplify handling of lower/merged directory
-      ovl: check lower existence of rename target
-      ovl: simplify lookup
-      ovl: use d_is_dir()
-      ovl: split super.c
-      ovl: check namelen
-      ovl: consolidate lookup for underlying layers
-      ovl: lookup redirects
-      ovl: redirect on rename-dir
-      ovl: allow redirect_dir to default to "on"
-      ovl: allow setting max size of redirect
-      ovl: opaque cleanup
-      ovl: add infrastructure for intercepting file ops
-      ovl: intercept read_iter
-      ovl: intercept mmap
-      ovl: intercept fsync
-      Revert "ovl: Warn on copy up if a process has a R/O fd open to the lower file"
-
----
- Documentation/filesystems/overlayfs.txt |  23 +-
- fs/internal.h                           |   1 -
- fs/ioctl.c                              |   6 +-
- fs/namei.c                              |   6 +-
- fs/nfsd/vfs.c                           |   3 +-
- fs/open.c                               |   2 +-
- fs/overlayfs/Kconfig                    |  14 +
- fs/overlayfs/Makefile                   |   2 +-
- fs/overlayfs/copy_up.c                  |  95 ++----
- fs/overlayfs/dir.c                      | 375 ++++++++++++---------
- fs/overlayfs/inode.c                    | 305 +++++++++++++----
- fs/overlayfs/namei.c                    | 401 +++++++++++++++++++++++
- fs/overlayfs/overlayfs.h                |  64 ++--
- fs/overlayfs/ovl_entry.h                |  53 +++
- fs/overlayfs/super.c                    | 558 ++++----------------------------
- fs/overlayfs/util.c                     | 265 +++++++++++++++
- fs/read_write.c                         |  23 +-
- include/linux/fs.h                      |  14 +
- mm/util.c                               |  22 ++
- net/unix/af_unix.c                      |   6 +-
- 20 files changed, 1391 insertions(+), 847 deletions(-)
- create mode 100644 fs/overlayfs/namei.c
- create mode 100644 fs/overlayfs/ovl_entry.h
- create mode 100644 fs/overlayfs/util.c
+While we are at it,
++               module_put(ofop->owner);
++               fops_put(ofop->orig_fops);
+is wrong - if that was the last reference to a module, your fops_put()
+might very well try and access a vfree'd area...
