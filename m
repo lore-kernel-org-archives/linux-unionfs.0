@@ -1,99 +1,155 @@
-From: Miklos Szeredi <miklos@szeredi.hu>
-Subject: Re: [GIT PULL] overlayfs update for 4.10
-Date: Sun, 11 Dec 2016 14:51:15 +0100
-Message-ID: <CAJfpegtfaZM4GAJSom9YqCv=hB8e7CGOcKzcyWtCqPtoDo-b=w@mail.gmail.com>
-References: <20161210204926.GL2622@veci.piliscsaba.szeredi.hu> <20161211021218.GK1555@ZenIV.linux.org.uk>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+From: Amir Goldstein <amir73il@gmail.com>
+Subject: [PATCH] overlay: test unstable inode number
+Date: Sun, 11 Dec 2016 18:38:00 +0200
+Message-ID: <1481474280-3821-1-git-send-email-amir73il@gmail.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-oi0-f65.google.com ([209.85.218.65]:35628 "EHLO
-        mail-oi0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753220AbcLKNvR (ORCPT
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:35989 "EHLO
+        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753367AbcLKQi1 (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Sun, 11 Dec 2016 08:51:17 -0500
-Received: by mail-oi0-f65.google.com with SMTP id v84so7892889oie.2
-        for <linux-unionfs@vger.kernel.org>; Sun, 11 Dec 2016 05:51:17 -0800 (PST)
-In-Reply-To: <20161211021218.GK1555@ZenIV.linux.org.uk>
+        Sun, 11 Dec 2016 11:38:27 -0500
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Al Viro <viro@zeniv.linux.org.uk>
-Cc: linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>
+To: Eryu Guan <eguan@redhat.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, fstests@vger.kernel.org
 
-On Sun, Dec 11, 2016 at 3:12 AM, Al Viro <viro@zeniv.linux.org.uk> wrote:
-> On Sat, Dec 10, 2016 at 09:49:26PM +0100, Miklos Szeredi wrote:
->> Hi Al,
->>
->> I usually send overlayfs pulls directly to Linus, but it it suits you, please
->> feel free to pull from:
->>
->>   git://git.kernel.org/pub/scm/linux/kernel/git/mszeredi/vfs.git overlayfs-linus
->>
->> This update contains:
->>
->>  - try to clone on copy-up;
->>  - allow renaming a directory;
->>  - fix data inconsistency of read-only fds after copy up;
->>  - misc cleanups and fixes.
->
->         Miklos, I'm very tempted to just let Linus do the... explaining
-> why "ovl: add infrastructure for intercepting file ops" is not nicely done.
-> It relies upon so damn many subtle things that result is a minefield for
-> any later work.  If nothing else, you've just created a magical place that
-> will have to be modified every time somebody adds a method.  Moreover, ->open()
-> instances have every right to expect that nothing will change ->f_op after
-> they return, period.  That includes things like later comparisons of ->f_op
-> with known pointers, etc.
->
-> Worse, there's nothing to prohibit embedding file_operations into an object
-> with lifetime shorter than that of a module.  Your approach will blow up on
-> those.  Sure, at the moment all of them live on weird filesystems that will be
-> (hopefully) rejected before you get to that point.  With no promise whatsoever
-> that this situation will persist.
->
-> overlayfs is already one hell of a special snowflake, but this is just plain
-> ridiculous - that sticks its fingers into so many places that making sure they
-> don't get squashed will be very hard.  IMO that kind of stuff is on the
-> "this should be handled by VFS or not at all" side of things, and I'm not
-> at all sure that doing that anywhere is a good idea.
+Introduce a new test to demonstrate a known issue with overlayfs:
+- stat file A shows inode number X
+- modify A to trigger copy up
+- stat file A shows inode number Y != X
 
-Let me just argue back with what happened with f_path.  We've seen the
-breakage, and still nothing guarantees that filesystems won't assume
-f_path.dentry isn't theirs.   This isn't much different IMO, except I
-suspect the fallout from this will be much much smaller than from the
-f_path change.  Having said that, I can try fixing in the VFS but I
-suspect you won't like it much better.
+Also test if d_ino of readdir entries changes after copy up.
 
-And I tend to agree with you about the usefulness of this whole
-change.  However (intelligent) people will argue about not building on
-overlayfs because it's "not a POSIX fs" having quirks like this.  So
-it's really the perception that needs to be fixed, and AFAICS the only
-way to fix that is to fix the quirks.
+There is a POC patch by Miklos Szeredi that fixes this issue.
+---
+ tests/overlay/018     | 96 +++++++++++++++++++++++++++++++++++++++++++++++++++
+ tests/overlay/018.out |  5 +++
+ tests/overlay/group   |  1 +
+ 3 files changed, 102 insertions(+)
+ create mode 100755 tests/overlay/018
+ create mode 100644 tests/overlay/018.out
 
-
-> PS: macros like
-> +#define OVL_CALL_REAL_FOP(file, call) \
-> +       ({ struct ovl_fops *__ofop =                                     \
-> +                       container_of(file->f_op, struct ovl_fops, fops); \
-> +          WARN_ON(__ofop->magic != OVL_FOPS_MAGIC) ? -EIO :             \
-> +                  __ofop->orig_fops->call;                              \
-> +       })
->
-> with uses along the lines of
-> +               return OVL_CALL_REAL_FOP(file,
-> +                                        fsync(file, start, end, datasync));
-> make some things (like, you know, "find all places where a method could
-> be called") harder for no good reason.
-
-Makes sense.  I can expand them inline.
-
->
-> While we are at it,
-> +               module_put(ofop->owner);
-> +               fops_put(ofop->orig_fops);
-> is wrong - if that was the last reference to a module, your fops_put()
-> might very well try and access a vfree'd area...
-
-Yeah the order is wrong.  Will fix.
-
-Thanks,
-Miklos
+diff --git a/tests/overlay/018 b/tests/overlay/018
+new file mode 100755
+index 0000000..4b358e5
+--- /dev/null
++++ b/tests/overlay/018
+@@ -0,0 +1,96 @@
++#! /bin/bash
++# FSQA Test No. 018
++#
++# Test unstable inode number
++#
++# This simple test demonstrates a known issue with overlayfs:
++# - stat file A shows inode number X
++# - modify A to trigger copy up
++# - stat file A shows inode number Y != X
++#
++# Also test if d_ino of readdir entries changes after copy up.
++#
++#-----------------------------------------------------------------------
++#
++# Copyright (C) 2016 CTERA Networks. All Rights Reserved.
++# Author: Amir Goldstein <amir73il@gmail.com>
++#
++# This program is free software; you can redistribute it and/or
++# modify it under the terms of the GNU General Public License as
++# published by the Free Software Foundation.
++#
++# This program is distributed in the hope that it would be useful,
++# but WITHOUT ANY WARRANTY; without even the implied warranty of
++# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++# GNU General Public License for more details.
++#
++# You should have received a copy of the GNU General Public License
++# along with this program; if not, write the Free Software Foundation,
++# Inc.,  51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
++#-----------------------------------------------------------------------
++#
++
++seq=`basename $0`
++seqres=$RESULT_DIR/$seq
++echo "QA output created by $seq"
++
++tmp=/tmp/$$
++status=1	# failure is the default!
++trap "_cleanup; exit \$status" 0 1 2 3 15
++
++_cleanup()
++{
++	cd /
++	rm -f $tmp.*
++}
++
++# get standard environment, filters and checks
++. ./common/rc
++. ./common/filter
++
++# real QA test starts here
++_supported_fs overlay
++_supported_os Linux
++_require_scratch
++
++rm -f $seqres.full
++
++_scratch_mkfs >>$seqres.full 2>&1
++
++# Create our test files
++lowerdir=$SCRATCH_DEV/$OVERLAY_LOWER_DIR
++mkdir -p $lowerdir
++mkdir $lowerdir/dir
++touch $lowerdir/file
++ln -s $lowerdir/file $lowerdir/symlink
++mkfifo $lowerdir/fifo
++
++
++_scratch_mount
++
++cd $SCRATCH_MNT
++
++rm -f $tmp.before $tmp.after
++
++# Test stable stat(2) st_ino
++
++# Record inode numbers before and after copy up
++for f in dir file symlink fifo; do
++	ls -id $f >> $tmp.before
++	# chown -h modifies all those file types
++	chown -h fsgqa $f
++	ls -id $f >> $tmp.after
++done
++
++# Test stable readdir(3)/getdents(2) d_ino
++
++# find by inode number - expect to find file by inode number
++cat $tmp.before | while read ino f; do
++	find $f -inum $ino -maxdepth 0
++done
++
++# Compare before..after - expect silence
++diff $tmp.before $tmp.after
++
++status=0
++exit
+diff --git a/tests/overlay/018.out b/tests/overlay/018.out
+new file mode 100644
+index 0000000..75e80e7
+--- /dev/null
++++ b/tests/overlay/018.out
+@@ -0,0 +1,5 @@
++QA output created by 018
++dir
++file
++symlink
++fifo
+diff --git a/tests/overlay/group b/tests/overlay/group
+index 5740d2a..683b2fc 100644
+--- a/tests/overlay/group
++++ b/tests/overlay/group
+@@ -19,3 +19,4 @@
+ 014 auto quick copyup
+ 015 auto quick whiteout
+ 016 auto quick
++018 auto quick
+-- 
+2.7.4
