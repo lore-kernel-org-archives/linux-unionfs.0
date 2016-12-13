@@ -1,205 +1,164 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [PATCH] overlay: test hardlink breakage on copy up
-Date: Tue, 13 Dec 2016 06:24:43 +0200
-Message-ID: <CAOQ4uxhvR_hDVpvQNsD4eDZ-0XxuoCbCDLaYkejuELp08Zm21g@mail.gmail.com>
-References: <1481538561-10558-1-git-send-email-amir73il@gmail.com> <20161213033550.GG29149@eguan.usersys.redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Subject: [PATCH] overlay/01[6,8]: do not cd into $SCRATCH_MNT
+Date: Tue, 13 Dec 2016 07:05:02 +0200
+Message-ID: <1481605502-8361-1-git-send-email-amir73il@gmail.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:34077 "EHLO
-        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752488AbcLMEYp (ORCPT
+Received: from mail-wj0-f193.google.com ([209.85.210.193]:35900 "EHLO
+        mail-wj0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750703AbcLMFFZ (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 12 Dec 2016 23:24:45 -0500
-In-Reply-To: <20161213033550.GG29149@eguan.usersys.redhat.com>
+        Tue, 13 Dec 2016 00:05:25 -0500
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Eryu Guan <eguan@redhat.com>, Miklos Szeredi <miklos@szeredi.hu>
-Cc: linux-unionfs@vger.kernel.org, fstests <fstests@vger.kernel.org>
+To: Eryu Guan <eguan@redhat.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, fstests@vger.kernel.org
 
-On Tue, Dec 13, 2016 at 5:35 AM, Eryu Guan <eguan@redhat.com> wrote:
-> On Mon, Dec 12, 2016 at 12:29:21PM +0200, Amir Goldstein wrote:
->> Introduce a new test to demonstrate a known issue with overlayfs:
->> - file A and B are hardlinked in lower
->> - modify A to trigger copy up
->> - file A is no longer a hardlink of file B
->>
->> There is no fix for this issue at this time.
->
-> Is this something we want to fix eventually?
+- Avoid cd into $SCRATCH_MNT
+- Cleanup unneeded _cleanup()
 
-This is a question for Miklos to answer, but here is a quote from him
-on the stable inode POC thread:
-https://marc.info/?l=linux-unionfs&m=148045641305234&w=3
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+---
+ tests/overlay/016     | 21 +++++++--------------
+ tests/overlay/016.out |  4 ++--
+ tests/overlay/018     | 10 ++++------
+ tests/overlay/018.out | 12 ++++++------
+ 4 files changed, 19 insertions(+), 28 deletions(-)
 
-"...
-The following issues are left:
- - performance of readdir;
- - what to do if not all layers are on the same fs;
- - hard link copy ups.
-"
-
-> If not, do we want a test
-> that is failing forever? I ask because I heard that this is something
-> not easy/worth fixing, at least low priority. But things may change now.
->
-
-And another quote from Miklos on an answer to similar question on
-the overlay/016 tests thread:
-https://marc.info/?l=fstests&m=148041025721866&w=3
-
-"...
-> What is the preferred timing for merging these sort of tests?
-> Is it productive to have these tests merged before a fix is merged to master?
-> Before a fix is queued for next?
-> Before a fix is available?
-
-IMO adding a test doesn't hurt, it'll just indicate that the current
-version is broken.  It doesn't have to have any synchronization with
-the actual fix.
-"
-
-
->>
->> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
->> ---
->>  tests/overlay/019     | 88 +++++++++++++++++++++++++++++++++++++++++++++++++++
->>  tests/overlay/019.out |  2 ++
->>  tests/overlay/group   |  1 +
->>  3 files changed, 91 insertions(+)
->>  create mode 100755 tests/overlay/019
->>  create mode 100644 tests/overlay/019.out
->>
->> diff --git a/tests/overlay/019 b/tests/overlay/019
->> new file mode 100755
->> index 0000000..382e4ee
->> --- /dev/null
->> +++ b/tests/overlay/019
->> @@ -0,0 +1,88 @@
->> +#! /bin/bash
->> +# FSQA Test No. 019
->> +#
->> +# Test hardlink breakage
->> +#
->> +# This simple test demonstrates a known issue with overlayfs:
->> +# - file A and B are hardlinked in lower
->> +# - modify A to trigger copy up
->> +# - file A is no longer a hardlink of file B
->> +#
->> +#-----------------------------------------------------------------------
->> +#
->> +# Copyright (C) 2016 CTERA Networks. All Rights Reserved.
->> +# Author: Amir Goldstein <amir73il@gmail.com>
->> +#
->> +# This program is free software; you can redistribute it and/or
->> +# modify it under the terms of the GNU General Public License as
->> +# published by the Free Software Foundation.
->> +#
->> +# This program is distributed in the hope that it would be useful,
->> +# but WITHOUT ANY WARRANTY; without even the implied warranty of
->> +# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
->> +# GNU General Public License for more details.
->> +#
->> +# You should have received a copy of the GNU General Public License
->> +# along with this program; if not, write the Free Software Foundation,
->> +# Inc.,  51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
->> +#-----------------------------------------------------------------------
->> +#
->> +
->> +seq=`basename $0`
->> +seqres=$RESULT_DIR/$seq
->> +echo "QA output created by $seq"
->> +
->> +tmp=/tmp/$$
->> +status=1     # failure is the default!
->> +trap "_cleanup; exit \$status" 0 1 2 3 15
->> +
->> +_cleanup()
->> +{
->> +     cd /
->> +     rm -f $tmp.*
->> +}
->> +
->> +# get standard environment, filters and checks
->> +. ./common/rc
->> +. ./common/filter
->> +
->> +# real QA test starts here
->> +_supported_fs overlay
->> +_supported_os Linux
->> +_require_scratch
->> +
->> +rm -f $seqres.full
->> +
->> +_scratch_mkfs >>$seqres.full 2>&1
->> +
->> +# Create 2 hardlinked files in lower
->> +lowerdir=$SCRATCH_DEV/$OVERLAY_LOWER_DIR
->> +mkdir -p $lowerdir
->> +echo "patient zero" >> $lowerdir/foo
->> +ln $lowerdir/foo $lowerdir/bar
->> +
->> +
->> +_scratch_mount
->> +
->> +cd $SCRATCH_MNT
->
-> It's uncommon to cd to $SCRATCH_MNT in fstests, if it can be done
-> without doing so. Usually we do
->
-> testfile1=$SCRATCH_MNT/foo
-> testfile2=$SCRATCH_MNT/bar
->
-> <do tests on $testfile1 and $testfile2>
->
-> Can this test be updated in this way? And patch "overlay: test unstable
-> inode number"? Sorry that I forgot about this yesterday..
->
-
-No problem.
-
-> Thanks!
->
-> Eryu
->
->> +
->> +rm -f $tmp.before $tmp.after
->> +
->> +# Record inode number and nlink before copy up
->> +ls -li foo bar | awk '{ print $1, $3 }' > $tmp.before
->> +
->> +# Modify content of one of the hardlinks
->> +echo "mutated" >> foo
->> +
->> +# Record inode number and nlink after copy up
->> +ls -li foo bar | awk '{ print $1, $3 }' > $tmp.after
->> +
->> +# Compare ino/nlink before..after - expect silence
->> +diff $tmp.before $tmp.after
->> +
->> +# Compare content of files - expect silence
->> +diff foo bar
->> +
->> +echo "Silence is golden"
->> +status=0
->> +exit
->> diff --git a/tests/overlay/019.out b/tests/overlay/019.out
->> new file mode 100644
->> index 0000000..163484b
->> --- /dev/null
->> +++ b/tests/overlay/019.out
->> @@ -0,0 +1,2 @@
->> +QA output created by 019
->> +Silence is golden
->> diff --git a/tests/overlay/group b/tests/overlay/group
->> index fb6610d..f266b0a 100644
->> --- a/tests/overlay/group
->> +++ b/tests/overlay/group
->> @@ -20,3 +20,4 @@
->>  015 auto quick whiteout
->>  016 auto quick copyup
->>  018 auto quick copyup
->> +019 auto quick copyup
->> --
->> 2.7.4
->>
+diff --git a/tests/overlay/016 b/tests/overlay/016
+index 041ab3d..c37a0d4 100755
+--- a/tests/overlay/016
++++ b/tests/overlay/016
+@@ -32,15 +32,9 @@ seq=`basename $0`
+ seqres=$RESULT_DIR/$seq
+ echo "QA output created by $seq"
+ 
+-tmp=/tmp/$$
+ status=1	# failure is the default!
+-trap "_cleanup; exit \$status" 0 1 2 3 15
++trap "exit \$status" 0 1 2 3 15
+ 
+-_cleanup()
+-{
+-	cd /
+-	rm -f $tmp.*
+-}
+ 
+ # get standard environment, filters and checks
+ . ./common/rc
+@@ -64,7 +58,6 @@ echo "This is old news" > $lowerdir/bar
+ 
+ _scratch_mount
+ 
+-cd $SCRATCH_MNT
+ 
+ #
+ # case #1:
+@@ -73,12 +66,12 @@ cd $SCRATCH_MNT
+ # write to rwfd
+ # read from rofd
+ #
+-$XFS_IO_PROG -r foo \
+-	-C "open foo" \
++$XFS_IO_PROG -r $SCRATCH_MNT/foo \
++	-C "open $SCRATCH_MNT/foo" \
+ 	-C "pwrite -S 0x61 0 16" \
+ 	-C "file 0" \
+ 	-C "pread -v 0 16" \
+-| _filter_xfs_io
++| _filter_xfs_io | _filter_scratch
+ 
+ #
+ # case #2:
+@@ -86,12 +79,12 @@ $XFS_IO_PROG -r foo \
+ # write to rwfd
+ # read from mapped memory
+ #
+-$XFS_IO_PROG -r bar \
++$XFS_IO_PROG -r $SCRATCH_MNT/bar \
+ 	-C "mmap -r 0 16" \
+-	-C "open bar" \
++	-C "open $SCRATCH_MNT/bar" \
+ 	-C "pwrite -S 0x61 0 16" \
+ 	-C "mread -v 0 16" \
+-| _filter_xfs_io
++| _filter_xfs_io | _filter_scratch
+ 
+ status=0
+ exit
+diff --git a/tests/overlay/016.out b/tests/overlay/016.out
+index c49f8dc..a28aaa6 100644
+--- a/tests/overlay/016.out
++++ b/tests/overlay/016.out
+@@ -1,8 +1,8 @@
+ QA output created by 016
+ wrote 16/16 bytes at offset 0
+ XXX Bytes, X ops; XX:XX:XX.X (XXX YYY/sec and XXX ops/sec)
+-[000] foo            (foreign,non-sync,non-direct,read-only)
+- 001  foo            (foreign,non-sync,non-direct,read-write)
++[000] SCRATCH_MNT/foo (foreign,non-sync,non-direct,read-only)
++ 001  SCRATCH_MNT/foo (foreign,non-sync,non-direct,read-write)
+ 00000000:  61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61  aaaaaaaaaaaaaaaa
+ read 16/16 bytes at offset 0
+ XXX Bytes, X ops; XX:XX:XX.X (XXX YYY/sec and XXX ops/sec)
+diff --git a/tests/overlay/018 b/tests/overlay/018
+index 230245b..92fb63d 100755
+--- a/tests/overlay/018
++++ b/tests/overlay/018
+@@ -40,7 +40,6 @@ trap "_cleanup; exit \$status" 0 1 2 3 15
+ 
+ _cleanup()
+ {
+-	cd /
+ 	rm -f $tmp.*
+ }
+ 
+@@ -73,7 +72,6 @@ mknod $lowerdir/fifo p
+ 
+ _scratch_mount
+ 
+-cd $SCRATCH_MNT
+ 
+ rm -f $tmp.before $tmp.after
+ 
+@@ -81,17 +79,17 @@ rm -f $tmp.before $tmp.after
+ 
+ # Record inode numbers before and after copy up
+ for f in dir file symlink chrdev blkdev fifo; do
+-	ls -id $f >> $tmp.before
++	ls -id $SCRATCH_MNT/$f >> $tmp.before
+ 	# chown -h modifies all those file types
+-	chown -h 100 $f
+-	ls -id $f >> $tmp.after
++	chown -h 100 $SCRATCH_MNT/$f
++	ls -id $SCRATCH_MNT/$f >> $tmp.after
+ done
+ 
+ # Test stable readdir(3)/getdents(2) d_ino
+ 
+ # find by inode number - expect to find file by inode number
+ cat $tmp.before | while read ino f; do
+-	find $f -inum $ino -maxdepth 0
++	find $f -inum $ino -maxdepth 0 | _filter_scratch
+ done
+ 
+ # Compare before..after - expect silence
+diff --git a/tests/overlay/018.out b/tests/overlay/018.out
+index bf4bce8..0e5132c 100644
+--- a/tests/overlay/018.out
++++ b/tests/overlay/018.out
+@@ -1,7 +1,7 @@
+ QA output created by 018
+-dir
+-file
+-symlink
+-chrdev
+-blkdev
+-fifo
++SCRATCH_MNT/dir
++SCRATCH_MNT/file
++SCRATCH_MNT/symlink
++SCRATCH_MNT/chrdev
++SCRATCH_MNT/blkdev
++SCRATCH_MNT/fifo
+-- 
+2.7.4
