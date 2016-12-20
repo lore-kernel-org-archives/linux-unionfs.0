@@ -1,37 +1,66 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [PATCH] generic/396: test correct d_type value
-Date: Mon, 19 Dec 2016 18:26:05 +0200
-Message-ID: <CAOQ4uxiGJ-aq0aaqFYHfMSuSynGT3moym=HhSaWsOW+bZgMZqg@mail.gmail.com>
-References: <1482164108-19389-1-git-send-email-amir73il@gmail.com> <20161219162247.GA12627@infradead.org>
+Subject: Re: [RFC][PATCH 11/11] xfs: use common file type conversion
+Date: Tue, 20 Dec 2016 08:17:51 +0200
+Message-ID: <CAOQ4uxhsTqGd7Q18NG8nAGQFrbYRzZJd_A9My8AyjJGbyPvh4Q@mail.gmail.com>
+References: <1482178268-22883-1-git-send-email-amir73il@gmail.com>
+ <1482178268-22883-12-git-send-email-amir73il@gmail.com> <20161219215539.GD7311@birch.djwong.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-oi0-f65.google.com ([209.85.218.65]:34694 "EHLO
-        mail-oi0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755407AbcLSQ0G (ORCPT
+Received: from mail-oi0-f68.google.com ([209.85.218.68]:36116 "EHLO
+        mail-oi0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1757364AbcLTGRx (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 19 Dec 2016 11:26:06 -0500
-In-Reply-To: <20161219162247.GA12627@infradead.org>
+        Tue, 20 Dec 2016 01:17:53 -0500
+In-Reply-To: <20161219215539.GD7311@birch.djwong.org>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Christoph Hellwig <hch@infradead.org>
-Cc: Eryu Guan <eguan@redhat.com>, Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, fstests <fstests@vger.kernel.org>
+To: "Darrick J. Wong" <darrick.wong@oracle.com>
+Cc: Jan Kara <jack@suse.com>, Theodore Ts'o <tytso@mit.edu>, Dave Chinner <david@fromorbit.com>, Chris Mason <clm@fb.com>, Boaz Harrosh <boaz@plexistor.com>, Jaegeuk Kim <jaegeuk@kernel.org>, Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>, Mark Fasheh <mfasheh@versity.com>, Evgeniy Dushistov <dushistov@mail.ru>, Al Viro <viro@zeniv.linux.org.uk>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org
 
-On Mon, Dec 19, 2016 at 6:22 PM, Christoph Hellwig <hch@infradead.org> wrote:
-> On Mon, Dec 19, 2016 at 06:15:08PM +0200, Amir Goldstein wrote:
->> Verify correct d_type values of dir enrties.
+[adding linux-unionfs]
+
+On Mon, Dec 19, 2016 at 11:55 PM, Darrick J. Wong
+<darrick.wong@oracle.com> wrote:
+> On Mon, Dec 19, 2016 at 10:11:08PM +0200, Amir Goldstein wrote:
+>> deduplicate the xfs file type conversion implementation.
 >>
->> This test would fail for file systems with no d_type support,
->> but I have no idea how to test d_type support in a generic way,
->> without confusing a bug of d_type = DT_UNKNOWN with no support.
+>> xfs readdir code may expose DT_WHT type to user if that
+>> type was set on disk, but xfs code never set a file type
+>> of WHT on disk.
+>>
+>> If it is acceptable to expose to user DT_UNKNOWN in case
+>> WHT type somehow got to disk, then xfs_dir3_filetype_table
+>> could also be replaced with the common fs_dtype() helper.
 >
-> XFS v4 without the rare ftype feature is such a file system.
+> AFAIK XFS has never actually written XFS_DIR3_FT_WHT to disk.
+> I see that overlayfs whiteouts are now some sort of weird
+> chardev with rdev == 0, so I guess overlayfs doesn't either...?
 >
-> We'll need to detect it, and I think a large enough directory where
-> all entries but . and .. are DT_UNKNOWN should be a clear indicator.
->
-> If that's a bug it's clearly not distinguishable from a non-buggy fs :)
 
-For xfs and ext* I know how to test if the feature is enabled and I probably
-should do that. The question is what to do with the rest of the fs.
-I can do the heuristic test you suggested...
+Nope. overlayfs calls vfs_whiteout() which calls i_op->mknod(.. S_IFCHR, 0)
+So AFAIK, there is no evidence of DT_WHT even being use in Linux.
+
+>From overlayfs perspective, it could have been nice if conversion functions
+took mode+rdev instead of just mode and produced the DT_WHT value,
+but it is not all that easy to know how applications would react to this change.
+
+I suppose there shouldn't be a problem to expose DT_WHT d_type in
+iterate_dir() and convert it to DT_CHR in getdents' filldir().
+It will be beneficial to overlayfs in case of a directory with tons of
+whiteouts,
+not having to stat all those inodes is a big win.
+Not sure how common this use case is, but it is quite easy for users to
+get to this sort of state when using inefficient container layouts.
+
+How about xfs_repair? will it complain if it sees DT_WHT and a chardev
+inode? does it check at all that the type and mode match?
+
+Being able to play with these sort of mode+rdev+? generic conversions
+is one of the reasons I proposed the common DT_ implementation.
+
+Since XFS already has that WHT bit reserved on-disk I may as well
+post some POC to use it correctly, so overlayfs can benefit from DT_WHT
+in the best case scenario.
+
+Amir.
