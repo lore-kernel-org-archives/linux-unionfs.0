@@ -1,66 +1,133 @@
-From: Amir Goldstein <amir73il@gmail.com>
-Subject: overlayfs freeze and remount
-Date: Tue, 20 Dec 2016 21:58:29 +0200
-Message-ID: <CAOQ4uxg07or5Zs8LGc8toPxcCLuvxKkHBy3MWucJrdQ5NEmSDw@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+From: Theodore Ts'o <tytso@mit.edu>
+Subject: [PATCH -v2] overlay: stress test changes to top and bottom layers simultaneously
+Date: Thu, 22 Dec 2016 11:43:10 -0500
+Message-ID: <20161222164310.9615-1-tytso@mit.edu>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-oi0-f67.google.com ([209.85.218.67]:35935 "EHLO
-        mail-oi0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752252AbcLTT6a (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 20 Dec 2016 14:58:30 -0500
-Received: by mail-oi0-f67.google.com with SMTP id u15so25435618oie.3
-        for <linux-unionfs@vger.kernel.org>; Tue, 20 Dec 2016 11:58:30 -0800 (PST)
+Received: from imap.thunk.org ([74.207.234.97]:44568 "EHLO imap.thunk.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1758750AbcLVQnP (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Thu, 22 Dec 2016 11:43:15 -0500
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: linux-unionfs@vger.kernel.org
+To: fstests@vger.kernel.org
+Cc: linux-unionfs@vger.kernel.org, Theodore Ts'o <tytso@mit.edu>
 
-Hi Miklos,
+Introduce a test which runs fsstress on the top and bottom overlayfs
+directories simultaneously to find potential races that plagued wrapfs
+derived file systems.
 
-It's time for me to move on to live snapshot take.
+Signed-off-by: Theodore Ts'o <tytso@mit.edu>
+---
+ tests/overlay/019     | 81 +++++++++++++++++++++++++++++++++++++++++++++++++++
+ tests/overlay/019.out |  2 ++
+ tests/overlay/group   |  1 +
+ 3 files changed, 84 insertions(+)
+ create mode 100644 tests/overlay/019
+ create mode 100644 tests/overlay/019.out
 
-The way I see it, in general lines:
-[-] sort out (and test) freezing of overlay sb
-[-] on remount, if options indicate new snapshot= value,
-    freeze overlay sb
-    increment ofs->generation (NEW)
-    increment root oe->generation (NEW)
-    rcu update of ofs->snap_mnt
-    rcu update of root oe->_snapdentry
-    unfreeze overlay sb
-[-] implement d_revalidate ops for snapshot mount
-    invalidate dentry if oe->generation < ofs->generation
-    invalidate dentry if oe->_snapdentry->d_sb !=
-ofs->snapshot_mnt->mnt_sb (that's a nested overlay sb)
-    I'm pretty sure that revalidate may be called on rcu read side. right?
-    lookup will find and set the new oe->_snapdentry, eventually
-resulting in new copy ups
-
-Basically, for the snapshot mount that should be enough, because the
-inodes themselves are always the actual lower inodes. only thing that
-needs to be reset on snapshot take is the state of (already copied to
-upper or not), which is the revalidating of oe->_snapdentry.
-
-I have 2 questions for you:
-1. Does any of this make sense to you? Do you see a wall I am going to hit?
-2. Is any of this work applicable for overlayfs outside the scope of my project?
-
-For example, do you think it would be interesting to "rotate" a new
-upper on a live overlayfs mount?
-Doing so would practically provide snapshots for overlayfs based containers.
-not the reverse ones I am working on, just rotate live upper.
-
-If you think that is interesting, I will try to approach the
-freeze+remount implementation with the "rotate upper" feature in mind.
-
-Dealing with open files is the next step and it is going to be more challenging.
-For snapshot mount, taking snapshot does not require changing real inode,
-but for overlay upper rotate it does, so fixing that will take more file ops
-intercepting and that is going to be outside the scope for my initial
-implementation.
-
-Thoughts? :-?
-
-Amir.
+diff --git a/tests/overlay/019 b/tests/overlay/019
+new file mode 100644
+index 00000000..1daf830f
+--- /dev/null
++++ b/tests/overlay/019
+@@ -0,0 +1,81 @@
++#! /bin/bash
++# FS QA Test 019
++#
++# Run fsstress on lower dir and top dir at the same time
++#
++
++seq=`basename $0`
++seqres=$RESULT_DIR/$seq
++echo "QA output created by $seq"
++
++here=`pwd`
++tmp=/tmp/$$
++status=1	# failure is the default!
++trap "_cleanup; exit \$status" 0 1 2 3 15
++
++_cleanup()
++{
++	cd /
++	rm -f $tmp.*
++}
++
++# get standard environment, filters and checks
++. ./common/rc
++. ./common/filter
++
++# remove previous $seqres.full before test
++rm -f $seqres.full
++
++# real QA test starts here
++_supported_fs overlay
++_supported_os Linux
++_require_scratch
++
++# Remove all files from previous tests
++_scratch_mkfs
++
++lowerdir=$SCRATCH_DEV/$OVERLAY_LOWER_DIR
++mkdir -p $lowerdir
++
++_scratch_mount
++
++echo "Silence is golden"
++
++d_low=$lowerdir/fsstress
++d_top=$SCRATCH_MNT/fsstress
++mkdir -p $d_low $d_top
++
++echo $FSSTRESS_PROG -s 42 -d $d_low -p 4 -n 1000 -l100 -v > $seqres.full.1
++$FSSTRESS_PROG -s 42 -d $d_low -p 4 -n 1000 -l100 -v >> $seqres.full.1 2>&1 &
++
++echo $FSSTRESS_PROG -s 42 -d $d_top -p 4 -n 1000 -l100 -v > $seqres.full.2
++$FSSTRESS_PROG -s 42 -d $d_top -p 4 -n 1000 -l100 -v >> $seqres.full.2 2>&1 &
++
++ret=0
++if ! wait %1
++then
++        echo "--------------------------------------"       >>$seqres.full.1
++	echo "fsstress on lower directory returned $? - see $seqres.full.1"
++        echo "--------------------------------------"       >>$seqres.full.1
++	ret=1
++fi
++
++if ! wait %2
++then
++        echo "--------------------------------------"       >>$seqres.full.2
++	echo "fsstress on overlay directory returned $? - see $seqres.full.2"
++        echo "--------------------------------------"       >>$seqres.full.2
++	ret=1
++fi
++
++cat $seqres.full.1 $seqres.full.2 > $seqres.full
++rm $seqres.full.1 $seqres.full.2
++
++if [ "$ret" -eq 1 ]
++then
++	status=1
++else
++	status=0
++fi
++
++exit $status
+diff --git a/tests/overlay/019.out b/tests/overlay/019.out
+new file mode 100644
+index 00000000..163484bc
+--- /dev/null
++++ b/tests/overlay/019.out
+@@ -0,0 +1,2 @@
++QA output created by 019
++Silence is golden
+diff --git a/tests/overlay/group b/tests/overlay/group
+index 74822cbf..f8de84be 100644
+--- a/tests/overlay/group
++++ b/tests/overlay/group
+@@ -21,3 +21,4 @@
+ 016 auto quick copyup
+ 017 auto quick copyup
+ 018 auto quick copyup
++019 quick stress
+-- 
+2.11.0.rc0.7.gbe5a750
