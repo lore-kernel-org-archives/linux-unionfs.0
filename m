@@ -1,79 +1,135 @@
-From: Amir Goldstein <amir73il@gmail.com>
-Subject: [RFC][PATCH 3/4] ovl: use RENAME_DT_UNKNOWN to optimize stable d_inode
-Date: Thu, 22 Dec 2016 19:25:34 +0200
-Message-ID: <1482427535-12801-4-git-send-email-amir73il@gmail.com>
-References: <1482427535-12801-1-git-send-email-amir73il@gmail.com>
+From: Theodore Ts'o <tytso@mit.edu>
+Subject: [PATCH -v3] overlay: stress test changes to top and bottom layers simultaneously
+Date: Thu, 22 Dec 2016 14:53:46 -0500
+Message-ID: <20161222195346.16842-1-tytso@mit.edu>
+References: <CAOQ4uxjbYwCBEV_sC98yd9j4rkNrcf+okcVhZB-9JL_sbyAzmw@mail.gmail.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wm0-f65.google.com ([74.125.82.65]:34118 "EHLO
-        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S941660AbcLVRZ7 (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 22 Dec 2016 12:25:59 -0500
-Received: by mail-wm0-f65.google.com with SMTP id g23so37393688wme.1
-        for <linux-unionfs@vger.kernel.org>; Thu, 22 Dec 2016 09:25:58 -0800 (PST)
-In-Reply-To: <1482427535-12801-1-git-send-email-amir73il@gmail.com>
+Received: from imap.thunk.org ([74.207.234.97]:47824 "EHLO imap.thunk.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1761226AbcLVTx5 (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Thu, 22 Dec 2016 14:53:57 -0500
+In-Reply-To: <CAOQ4uxjbYwCBEV_sC98yd9j4rkNrcf+okcVhZB-9JL_sbyAzmw@mail.gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: linux-unionfs@vger.kernel.org
+To: fstests@vger.kernel.org
+Cc: linux-unionfs@vger.kernel.org, Theodore Ts'o <tytso@mit.edu>
 
-Try to use the new vfs rename flag RENAME_DT_UNKNOWN, to request
-from underlying file system to mark copy up directory entries as
-DT_UNKNOWN instead of their actual file type.
+Introduce a test which runs fsstress on the top and bottom overlayfs
+directories simultaneously to find potential races that plagued wrapfs
+derived file systems.
 
-When copy ups are classified as DT_UNKNOWN, ovl_dir_read_merged() can
-distinguish between copy up to opaque objects without having to check
-the extended attribute trusted.overlay.inode on the iterated entries.
-
-This will allow to know if upper d_inode value needs to be substitued
-with lower d_inode value.
-
-Because this is only done for optimization, it is not a problem
-if file system does not respect the new RENAME_DT_UNKNOWN flag, which
-is most likely the case, so we retry the rename without the flag.
-
-This patch does not implement the actual optimization.
-
-Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+Signed-off-by: Theodore Ts'o <tytso@mit.edu>
 ---
- fs/overlayfs/copy_up.c   | 8 +++++++-
- fs/overlayfs/overlayfs.h | 5 +++++
- 2 files changed, 12 insertions(+), 1 deletion(-)
+ tests/overlay/019     | 81 +++++++++++++++++++++++++++++++++++++++++++++++++++
+ tests/overlay/019.out |  2 ++
+ tests/overlay/group   |  1 +
+ 3 files changed, 84 insertions(+)
+ create mode 100644 tests/overlay/019
+ create mode 100644 tests/overlay/019.out
 
-diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
-index f57043d..bcbcef5 100644
---- a/fs/overlayfs/copy_up.c
-+++ b/fs/overlayfs/copy_up.c
-@@ -298,7 +298,13 @@ static int ovl_copy_up_locked(struct dentry *workdir, struct dentry *upperdir,
- 	if (err)
- 		goto out_cleanup;
- 
--	err = ovl_do_rename(wdir, newdentry, udir, upper, 0);
-+	/*
-+	 * Mark copy up objects in upper as DT_UNKNOWN, so it easy to
-+	 * distinguish them from opaque objects in iterate_dir().
-+	 * File system repair tools may re-classify the file type
-+	 * and that will break optimization, but not functionality.
-+	 */
-+	err = ovl_do_rename(wdir, newdentry, udir, upper, RENAME_DT_UNKNOWN);
- 	if (err)
- 		goto out_cleanup;
- 
-diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-index 8af450b..54162c0 100644
---- a/fs/overlayfs/overlayfs.h
-+++ b/fs/overlayfs/overlayfs.h
-@@ -113,6 +113,11 @@ static inline int ovl_do_rename(struct inode *olddir, struct dentry *olddentry,
- 
- 	err = vfs_rename(olddir, olddentry, newdir, newdentry, NULL, flags);
- 
-+	/* retry without RENAME_VFS_DTYPE if fs does not support it */
-+	if (err == -EINVAL && (flags & RENAME_VFS_DTYPE))
-+		err = vfs_rename(olddir, olddentry, newdir, newdentry, NULL,
-+				 flags & RENAME_UAPI_MASK);
+diff --git a/tests/overlay/019 b/tests/overlay/019
+new file mode 100644
+index 00000000..1daf830f
+--- /dev/null
++++ b/tests/overlay/019
+@@ -0,0 +1,81 @@
++#! /bin/bash
++# FS QA Test 019
++#
++# Run fsstress on lower dir and top dir at the same time
++#
 +
- 	if (err) {
- 		pr_debug("...rename(%pd2, %pd2, ...) = %i\n",
- 			 olddentry, newdentry, err);
++seq=`basename $0`
++seqres=$RESULT_DIR/$seq
++echo "QA output created by $seq"
++
++here=`pwd`
++tmp=/tmp/$$
++status=1	# failure is the default!
++trap "_cleanup; exit \$status" 0 1 2 3 15
++
++_cleanup()
++{
++	cd /
++	rm -f $tmp.*
++}
++
++# get standard environment, filters and checks
++. ./common/rc
++. ./common/filter
++
++# remove previous $seqres.full before test
++rm -f $seqres.full
++
++# real QA test starts here
++_supported_fs overlay
++_supported_os Linux
++_require_scratch
++
++# Remove all files from previous tests
++_scratch_mkfs
++
++lowerdir=$SCRATCH_DEV/$OVERLAY_LOWER_DIR
++mkdir -p $lowerdir
++
++_scratch_mount
++
++echo "Silence is golden"
++
++d_low=$lowerdir/fsstress
++d_top=$SCRATCH_MNT/fsstress
++mkdir -p $d_low $d_top
++
++echo $FSSTRESS_PROG -s 42 -d $d_low -p 4 -n 1000 -l100 -v > $seqres.full.1
++$FSSTRESS_PROG -s 42 -d $d_low -p 4 -n 1000 -l100 -v >> $seqres.full.1 2>&1 &
++
++echo $FSSTRESS_PROG -s 42 -d $d_top -p 4 -n 1000 -l100 -v > $seqres.full.2
++$FSSTRESS_PROG -s 42 -d $d_top -p 4 -n 1000 -l100 -v >> $seqres.full.2 2>&1 &
++
++ret=0
++if ! wait %1
++then
++        echo "--------------------------------------"       >>$seqres.full.1
++	echo "fsstress on lower directory returned $? - see $seqres.full.1"
++        echo "--------------------------------------"       >>$seqres.full.1
++	ret=1
++fi
++
++if ! wait %2
++then
++        echo "--------------------------------------"       >>$seqres.full.2
++	echo "fsstress on overlay directory returned $? - see $seqres.full.2"
++        echo "--------------------------------------"       >>$seqres.full.2
++	ret=1
++fi
++
++cat $seqres.full.1 $seqres.full.2 > $seqres.full
++rm $seqres.full.1 $seqres.full.2
++
++if [ "$ret" -eq 1 ]
++then
++	status=1
++else
++	status=0
++fi
++
++exit $status
+diff --git a/tests/overlay/019.out b/tests/overlay/019.out
+new file mode 100644
+index 00000000..163484bc
+--- /dev/null
++++ b/tests/overlay/019.out
+@@ -0,0 +1,2 @@
++QA output created by 019
++Silence is golden
+diff --git a/tests/overlay/group b/tests/overlay/group
+index 74822cbf..f8de84be 100644
+--- a/tests/overlay/group
++++ b/tests/overlay/group
+@@ -21,3 +21,4 @@
+ 016 auto quick copyup
+ 017 auto quick copyup
+ 018 auto quick copyup
++019 quick stress
 -- 
-2.7.4
+2.11.0.rc0.7.gbe5a750
