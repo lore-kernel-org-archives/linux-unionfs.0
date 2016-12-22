@@ -1,140 +1,85 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [PATCH -v2] overlay: stress test changes to top and bottom layers simultaneously
-Date: Thu, 22 Dec 2016 19:25:37 +0200
-Message-ID: <CAOQ4uxjbYwCBEV_sC98yd9j4rkNrcf+okcVhZB-9JL_sbyAzmw@mail.gmail.com>
-References: <20161222164310.9615-1-tytso@mit.edu>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Subject: [RFC][PATCH 0/4] ovl: optimize dir iteration
+Date: Thu, 22 Dec 2016 19:25:31 +0200
+Message-ID: <1482427535-12801-1-git-send-email-amir73il@gmail.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-oi0-f53.google.com ([209.85.218.53]:33093 "EHLO
-        mail-oi0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S941660AbcLVRZo (ORCPT
+Received: from mail-wm0-f65.google.com ([74.125.82.65]:35144 "EHLO
+        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S941660AbcLVRZz (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 22 Dec 2016 12:25:44 -0500
-In-Reply-To: <20161222164310.9615-1-tytso@mit.edu>
+        Thu, 22 Dec 2016 12:25:55 -0500
+Received: by mail-wm0-f65.google.com with SMTP id l2so11813991wml.2
+        for <linux-unionfs@vger.kernel.org>; Thu, 22 Dec 2016 09:25:55 -0800 (PST)
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Theodore Ts'o <tytso@mit.edu>
-Cc: fstests <fstests@vger.kernel.org>, linux-unionfs@vger.kernel.org
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: linux-unionfs@vger.kernel.org
 
-On Thu, Dec 22, 2016 at 6:43 PM, Theodore Ts'o <tytso@mit.edu> wrote:
-> Introduce a test which runs fsstress on the top and bottom overlayfs
-> directories simultaneously to find potential races that plagued wrapfs
-> derived file systems.
->
-> Signed-off-by: Theodore Ts'o <tytso@mit.edu>
-> ---
->  tests/overlay/019     | 81 +++++++++++++++++++++++++++++++++++++++++++++++++++
->  tests/overlay/019.out |  2 ++
->  tests/overlay/group   |  1 +
->  3 files changed, 84 insertions(+)
->  create mode 100644 tests/overlay/019
->  create mode 100644 tests/overlay/019.out
->
-> diff --git a/tests/overlay/019 b/tests/overlay/019
-> new file mode 100644
-> index 00000000..1daf830f
-> --- /dev/null
-> +++ b/tests/overlay/019
-> @@ -0,0 +1,81 @@
-> +#! /bin/bash
-> +# FS QA Test 019
-> +#
-> +# Run fsstress on lower dir and top dir at the same time
-> +#
-> +
-> +seq=`basename $0`
-> +seqres=$RESULT_DIR/$seq
-> +echo "QA output created by $seq"
-> +
-> +here=`pwd`
-> +tmp=/tmp/$$
-> +status=1       # failure is the default!
-> +trap "_cleanup; exit \$status" 0 1 2 3 15
-> +
-> +_cleanup()
-> +{
-> +       cd /
-> +       rm -f $tmp.*
-> +}
-> +
-> +# get standard environment, filters and checks
-> +. ./common/rc
-> +. ./common/filter
-> +
-> +# remove previous $seqres.full before test
-> +rm -f $seqres.full
-> +
-> +# real QA test starts here
-> +_supported_fs overlay
-> +_supported_os Linux
-> +_require_scratch
-> +
-> +# Remove all files from previous tests
-> +_scratch_mkfs
-> +
-> +lowerdir=$SCRATCH_DEV/$OVERLAY_LOWER_DIR
-> +mkdir -p $lowerdir
-> +
-> +_scratch_mount
-> +
-> +echo "Silence is golden"
-> +
-> +d_low=$lowerdir/fsstress
-> +d_top=$SCRATCH_MNT/fsstress
-> +mkdir -p $d_low $d_top
-> +
-> +echo $FSSTRESS_PROG -s 42 -d $d_low -p 4 -n 1000 -l100 -v > $seqres.full.1
-> +$FSSTRESS_PROG -s 42 -d $d_low -p 4 -n 1000 -l100 -v >> $seqres.full.1 2>&1 &
-> +
-> +echo $FSSTRESS_PROG -s 42 -d $d_top -p 4 -n 1000 -l100 -v > $seqres.full.2
-> +$FSSTRESS_PROG -s 42 -d $d_top -p 4 -n 1000 -l100 -v >> $seqres.full.2 2>&1 &
-> +
-> +ret=0
-> +if ! wait %1
-> +then
-> +        echo "--------------------------------------"       >>$seqres.full.1
-> +       echo "fsstress on lower directory returned $? - see $seqres.full.1"
-> +        echo "--------------------------------------"       >>$seqres.full.1
-> +       ret=1
-> +fi
-> +
-> +if ! wait %2
-> +then
-> +        echo "--------------------------------------"       >>$seqres.full.2
-> +       echo "fsstress on overlay directory returned $? - see $seqres.full.2"
-> +        echo "--------------------------------------"       >>$seqres.full.2
-> +       ret=1
-> +fi
-> +
-> +cat $seqres.full.1 $seqres.full.2 > $seqres.full
-> +rm $seqres.full.1 $seqres.full.2
-> +
-> +if [ "$ret" -eq 1 ]
-> +then
-> +       status=1
-> +else
-> +       status=0
-> +fi
-> +
-> +exit $status
-> diff --git a/tests/overlay/019.out b/tests/overlay/019.out
-> new file mode 100644
-> index 00000000..163484bc
-> --- /dev/null
-> +++ b/tests/overlay/019.out
-> @@ -0,0 +1,2 @@
-> +QA output created by 019
-> +Silence is golden
-> diff --git a/tests/overlay/group b/tests/overlay/group
-> index 74822cbf..f8de84be 100644
-> --- a/tests/overlay/group
-> +++ b/tests/overlay/group
-> @@ -21,3 +21,4 @@
->  016 auto quick copyup
->  017 auto quick copyup
->  018 auto quick copyup
-> +019 quick stress
+Miklos,
 
-You probably meant:
-019 auto stress
+This patch series implements dir iteration optimizations
+using fs support for setting file types on rename.
+
+Implementing support for xfs was very easy, although this
+is just a demo patch, because proper support would require
+a new feature flag and relaxing xfs_repair file type checks.
+
+The xfs patch is based on top of my cleanup series, but is
+not dependent on it in any significant way.
+
+I tested on the following setup of upper/lower on same base xfs:
+
+/dev-lower_layer on /base type xfs (rw,relatime,attr2,inode64,noquota)
+/dev-lower_layer on /lower type xfs (rw,relatime,attr2,inode64,noquota)
+/dev-lower_layer on /upper type xfs (rw,relatime,attr2,inode64,noquota)
+overlay on /mnt type overlay (rw,relatime,lowerdir=/lower,upperdir=/upper/0,workdir=/upper/work)
+
+Generated some whiteouts some copy ups and some opaque objects:
+
+root@kvm-xfstests:~# rm /mnt/a/pointless100 
+root@kvm-xfstests:~# rmdir /mnt/a/empty100
+root@kvm-xfstests:~# touch /mnt/a/foo100 
+root@kvm-xfstests:~# touch /mnt/a/dir100 
+root@kvm-xfstests:~# touch /mnt/a/newfile
+root@kvm-xfstests:~# mkdir /mnt/a/newdir
+
+Used this tool I introduced to xfstests to print the resulting dtypes:
+
+root@kvm-xfstests:~# ./xfstests/src/t_dir_type /upper/0/a/
+. d
+.. d
+pointless100 w
+empty100 w
+foo100 u
+dir100 u
+newfile f
+newdir d
+
+
+What do you think of the proposed rename API?
+To me, it makes some sense, because a request to re-classify
+a directory entry is like a request to re-index it, which
+is basically what rename is about. It may even make sense
+to be able to call the rename API for changing dtype,
+without changing the name/parent at all.
+
+Amir.
+
+Amir Goldstein (4):
+  vfs: add RENAME_VFS_DTYPE vfs_rename() flag
+  xfs: support RENAME_VFS_DTYPE flag
+  ovl: use RENAME_DT_UNKNOWN to optimize stable d_inode
+  ovl: use RENAME_DT_WHT to optimize ovl_dir_read_merged()
+
+ fs/overlayfs/copy_up.c   |  8 +++++++-
+ fs/overlayfs/dir.c       | 12 +++++++++---
+ fs/overlayfs/overlayfs.h |  5 +++++
+ fs/overlayfs/readdir.c   |  2 +-
+ fs/xfs/libxfs/xfs_dir2.c |  1 +
+ fs/xfs/xfs_iops.c        | 11 ++++++++---
+ include/linux/fs.h       | 30 ++++++++++++++++++++++++++++++
+ include/uapi/linux/fs.h  |  4 ++++
+ 8 files changed, 65 insertions(+), 8 deletions(-)
+
+-- 
+2.7.4
