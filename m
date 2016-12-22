@@ -1,91 +1,79 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [RFC][PATCH 4/4] ovl: use RENAME_DT_WHT to optimize ovl_dir_read_merged()
-Date: Thu, 22 Dec 2016 19:25:35 +0200
-Message-ID: <1482427535-12801-5-git-send-email-amir73il@gmail.com>
+Subject: [RFC][PATCH 3/4] ovl: use RENAME_DT_UNKNOWN to optimize stable d_inode
+Date: Thu, 22 Dec 2016 19:25:34 +0200
+Message-ID: <1482427535-12801-4-git-send-email-amir73il@gmail.com>
 References: <1482427535-12801-1-git-send-email-amir73il@gmail.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wj0-f195.google.com ([209.85.210.195]:33998 "EHLO
-        mail-wj0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S941680AbcLVR0A (ORCPT
+Received: from mail-wm0-f65.google.com ([74.125.82.65]:34118 "EHLO
+        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S941660AbcLVRZ7 (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 22 Dec 2016 12:26:00 -0500
-Received: by mail-wj0-f195.google.com with SMTP id ez4so2624578wjd.1
-        for <linux-unionfs@vger.kernel.org>; Thu, 22 Dec 2016 09:25:59 -0800 (PST)
+        Thu, 22 Dec 2016 12:25:59 -0500
+Received: by mail-wm0-f65.google.com with SMTP id g23so37393688wme.1
+        for <linux-unionfs@vger.kernel.org>; Thu, 22 Dec 2016 09:25:58 -0800 (PST)
 In-Reply-To: <1482427535-12801-1-git-send-email-amir73il@gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: Miklos Szeredi <miklos@szeredi.hu>
 Cc: linux-unionfs@vger.kernel.org
 
-Try to use the new vfs rename flag RENAME_DT_WHT, to request from
-underlying file system to mark whiteout directory entries as DT_WHT
-instead of DT_CHR.
+Try to use the new vfs rename flag RENAME_DT_UNKNOWN, to request
+from underlying file system to mark copy up directory entries as
+DT_UNKNOWN instead of their actual file type.
 
-When whiteouts are classified as DT_WHT, ovl_dir_read_merged() can
-distinguish between whiteouts to real character devices without
-having to stat the suspect inodes.
+When copy ups are classified as DT_UNKNOWN, ovl_dir_read_merged() can
+distinguish between copy up to opaque objects without having to check
+the extended attribute trusted.overlay.inode on the iterated entries.
+
+This will allow to know if upper d_inode value needs to be substitued
+with lower d_inode value.
 
 Because this is only done for optimization, it is not a problem
-if file system does not respect the new RENAME_DT_WHT flag, which
+if file system does not respect the new RENAME_DT_UNKNOWN flag, which
 is most likely the case, so we retry the rename without the flag.
 
-Even if DT_WHT type is set on rename using an experimental file
-system patch, file system repair tools may later re-classify the
-file type. That would break the optimization, but will not break
-the functionality of ovl_dir_read_merged().
+This patch does not implement the actual optimization.
 
 Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- fs/overlayfs/dir.c     | 12 +++++++++---
- fs/overlayfs/readdir.c |  2 +-
- 2 files changed, 10 insertions(+), 4 deletions(-)
+ fs/overlayfs/copy_up.c   | 8 +++++++-
+ fs/overlayfs/overlayfs.h | 5 +++++
+ 2 files changed, 12 insertions(+), 1 deletion(-)
 
-diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
-index 16e06dd..0e1c3f2 100644
---- a/fs/overlayfs/dir.c
-+++ b/fs/overlayfs/dir.c
-@@ -630,7 +630,13 @@ static int ovl_remove_and_whiteout(struct dentry *dentry, bool is_dir)
- 	struct dentry *upper;
- 	struct dentry *opaquedir = NULL;
- 	int err;
--	int flags = 0;
+diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
+index f57043d..bcbcef5 100644
+--- a/fs/overlayfs/copy_up.c
++++ b/fs/overlayfs/copy_up.c
+@@ -298,7 +298,13 @@ static int ovl_copy_up_locked(struct dentry *workdir, struct dentry *upperdir,
+ 	if (err)
+ 		goto out_cleanup;
+ 
+-	err = ovl_do_rename(wdir, newdentry, udir, upper, 0);
 +	/*
-+	 * Mark whiteout objects as DT_WHT instead of DT_CHR, so it easy
-+	 * to distinguish them real character devices in iterate_dir().
++	 * Mark copy up objects in upper as DT_UNKNOWN, so it easy to
++	 * distinguish them from opaque objects in iterate_dir().
 +	 * File system repair tools may re-classify the file type
 +	 * and that will break optimization, but not functionality.
 +	 */
-+	int flags = RENAME_DT_WHT;
- 
- 	if (WARN_ON(!workdir))
- 		return -EROFS;
-@@ -665,12 +671,12 @@ static int ovl_remove_and_whiteout(struct dentry *dentry, bool is_dir)
- 		goto out_dput_upper;
- 
- 	if (d_is_dir(upper))
--		flags = RENAME_EXCHANGE;
-+		flags |= RENAME_EXCHANGE;
- 
- 	err = ovl_do_rename(wdir, whiteout, udir, upper, flags);
++	err = ovl_do_rename(wdir, newdentry, udir, upper, RENAME_DT_UNKNOWN);
  	if (err)
- 		goto kill_whiteout;
--	if (flags)
-+	if (flags & RENAME_EXCHANGE)
- 		ovl_cleanup(wdir, upper);
+ 		goto out_cleanup;
  
- 	ovl_dentry_version_inc(dentry->d_parent);
-diff --git a/fs/overlayfs/readdir.c b/fs/overlayfs/readdir.c
-index f241b4e..32c5c96 100644
---- a/fs/overlayfs/readdir.c
-+++ b/fs/overlayfs/readdir.c
-@@ -98,7 +98,7 @@ static struct ovl_cache_entry *ovl_cache_entry_new(struct ovl_readdir_data *rdd,
- 	p->len = len;
- 	p->type = d_type;
- 	p->ino = ino;
--	p->is_whiteout = false;
-+	p->is_whiteout = (d_type == DT_WHT);
+diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
+index 8af450b..54162c0 100644
+--- a/fs/overlayfs/overlayfs.h
++++ b/fs/overlayfs/overlayfs.h
+@@ -113,6 +113,11 @@ static inline int ovl_do_rename(struct inode *olddir, struct dentry *olddentry,
  
- 	if (d_type == DT_CHR) {
- 		p->next_maybe_whiteout = rdd->first_maybe_whiteout;
+ 	err = vfs_rename(olddir, olddentry, newdir, newdentry, NULL, flags);
+ 
++	/* retry without RENAME_VFS_DTYPE if fs does not support it */
++	if (err == -EINVAL && (flags & RENAME_VFS_DTYPE))
++		err = vfs_rename(olddir, olddentry, newdir, newdentry, NULL,
++				 flags & RENAME_UAPI_MASK);
++
+ 	if (err) {
+ 		pr_debug("...rename(%pd2, %pd2, ...) = %i\n",
+ 			 olddentry, newdentry, err);
 -- 
 2.7.4
