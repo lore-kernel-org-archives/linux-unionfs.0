@@ -1,97 +1,77 @@
-Return-Path: <fosterstewart1951@gmail.com>
-MIME-Version: 1.0
-References: <20161210204926.GL2622@veci.piliscsaba.szeredi.hu>
- <20161211021218.GK1555@ZenIV.linux.org.uk> <CAJfpegtfaZM4GAJSom9YqCv=hB8e7CGOcKzcyWtCqPtoDo-b=w@mail.gmail.com>
-In-Reply-To: <CAJfpegtfaZM4GAJSom9YqCv=hB8e7CGOcKzcyWtCqPtoDo-b=w@mail.gmail.com>
-From: William Stewart <fosterstewart1951@gmail.com>
-Date: Sun, 11 Dec 2016 15:21:11 +0000
-Message-ID: <CAJGLF+W3Q03rmWysr3ieDa1UCQ+4UbWBu47SWKqVWQxudwLMJA@mail.gmail.com>
-Subject: Re: 2.0.1.7 your special quote ndfM please do not bother me about
- this anymore
-Content-Type: multipart/alternative; boundary=001a113fe98226f6060543638a06
-To: Al Viro <viro@zeniv.linux.org.uk>, Miklos Szeredi <miklos@szeredi.hu>
-Cc: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>
-List-ID: <linux-unionfs@vger.kernel.org>
-
---001a113fe98226f6060543638a06
+From: Amir Goldstein <amir73il@gmail.com>
+Subject: Re: LXC+overlayfs in unprivileged mode
+Date: Sun, 1 Jan 2017 10:51:26 +0200
+Message-ID: <CAOQ4uxi51_0C_-YVz_UYUbOWW3rSjmKv4NUkyxq0oCaWexZ6hw@mail.gmail.com>
+References: <CAHrUA37sR6ea6UNJZjbAHPWwkoTbtEg7Uq8Z1war9ODA23qcSw@mail.gmail.com>
+Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-unionfs-owner@vger.kernel.org>
+Received: from mail-oi0-f65.google.com ([209.85.218.65]:34126 "EHLO
+        mail-oi0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751350AbdAAIv1 (ORCPT
+        <rfc822;linux-unionfs@vger.kernel.org>);
+        Sun, 1 Jan 2017 03:51:27 -0500
+In-Reply-To: <CAHrUA37sR6ea6UNJZjbAHPWwkoTbtEg7Uq8Z1war9ODA23qcSw@mail.gmail.com>
+Sender: linux-unionfs-owner@vger.kernel.org
+List-Id: linux-unionfs@vger.kernel.org
+To: linasvepstas@gmail.com
+Cc: Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Vivek Goyal <vgoyal@redhat.com>, Seth Forshee <seth.forshee@canonical.com>, "Eric W. Biederman" <ebiederm@xmission.com>
 
-On Sun, Dec 11, 2016 at 10:14 AM Miklos Szeredi <miklos@szeredi.hu> wrote:
+On Sat, Dec 31, 2016 at 7:42 PM, Linas Vepstas <linasvepstas@gmail.com> wrote:
+> Hi,
+>
+> I tripped across an LXC bug that actually appears to be an overlayfs
+> security feature (maybe) and was wondering how to clarify the status
+> of the code. Apparently, Ubuntu is carrying patches that enable this
+> function, and so the question is if these or something more appropriate
+> can be pulled into the mainline kernel or into overlayfs (or perhaps they
+> have been already; the situation is confusing).
+>
 
->
->
->
->
->
->
-> Congratulations William
->
->
-> Walk-In Bathtubs. Financing and Rebates available today!
->
-> Click here <http://go.tua.one/ib5jG>
->
->
->
->
->
->
->
->
->
->
->
->
->
-> <http://go.tua.one/ib5jG>
->
->
->
->
->
->
-> <http://go.tua.one/SZy7f>
->
->
->
-> <http://go.tua.one/SZy7f>To OPT_OUT,Please Click Here....
-> <http://go.tua.one/Qyr5o>
->
->
->
->
->
-> dkej
->
-> --
-Sent from Gmail Mobile
+The foundations for mount from unprivileged user namespace were merged
+to kernel v4.8, you can read more about it in Eric's pull request:
+https://lkml.org/lkml/2016/7/26/297
 
---001a113fe98226f6060543638a06
-Content-Type: text/html; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+Seth Forshee was working on these vfs changes to allow fuse mount in
+unprivileged user namespace:
+https://lwn.net/Articles/685239/
 
-<div><br><div class=3D"gmail_quote"><div>On Sun, Dec 11, 2016 at 10:14 AM M=
-iklos Szeredi &lt;<a href=3D"mailto:miklos@szeredi.hu">miklos@szeredi.hu</a=
->&gt; wrote:<br></div><blockquote class=3D"gmail_quote" style=3D"margin:0 0=
- 0 .8ex;border-left:1px #ccc solid;padding-left:1ex"><br><table align=3D"ce=
-nter" class=3D"gmail_msg"><td><br><tbody><tr><td><p class=3D"gmail_msg"><br=
-><br></p><center class=3D"gmail_msg"><br><br><a href=3D"http://go.tua.one/i=
-b5jG" class=3D"gmail_msg" target=3D"_blank"><font color=3D"black" size=3D"6=
-" class=3D"gmail_msg">Congratulations William<br class=3D"gmail_msg"><br cl=
-ass=3D"gmail_msg"><br class=3D"gmail_msg">Walk-In Bathtubs. Financing and R=
-ebates available today!<br class=3D"gmail_msg"><br class=3D"gmail_msg"><fon=
-t color=3D"#FF0000" size=3D"5" class=3D"gmail_msg">Click here</font></font>=
-</a></center><p></p><br><br><br class=3D"gmail_msg"><br><br><a href=3D"http=
-://go.tua.one/ib5jG" class=3D"gmail_msg" target=3D"_blank"><br><br><img src=
-=3D"http://go.tua.one/BQbDT" class=3D"gmail_msg"><br><br><br class=3D"gmail=
-_msg"><br><br></a><a href=3D"http://go.tua.one/SZy7f" class=3D"gmail_msg" t=
-arget=3D"_blank"><br><br><img src=3D"http://go.tua.one/lCDrE" class=3D"gmai=
-l_msg"><br><br><br class=3D"gmail_msg"><br><br></a><p class=3D"gmail_msg"><=
-a href=3D"http://go.tua.one/SZy7f" class=3D"gmail_msg" target=3D"_blank"><b=
-r><br></a><a href=3D"http://go.tua.one/Qyr5o" class=3D"gmail_msg" target=3D=
-"_blank">To OPT_OUT,Please Click Here....</a></p><br><br><br class=3D"gmail=
-_msg"><br><br></td></tr></tbody></td></table>dkej<br class=3D"gmail_msg"><b=
-r></blockquote></div></div><div dir=3D"ltr">-- <br></div><div data-smartmai=
-l=3D"gmail_signature">Sent from Gmail Mobile</div>
+Not sure about the status of the work on fuse mount?
 
---001a113fe98226f6060543638a06--
+> The issue is that LXC+overlayfs seems to not work in an unprivileged
+> container. A more detailed description, with a particularly simple test
+> case is given in https://github.com/lxc/lxc/issues/1370#issuecomment269845311
+> Based on searches through google, it seems likely that the reason it
+> does not work is due to one or more privilege-escalation exploits,
+> except that these may or may not be patched already... thus this email.
+>
+> Any advice on how to proceed?
+
+Not sure what you want to achieve?
+If you just want to enable overlayfs mount in unprivileged container on
+your own kernel at your own risk (i.e. of exposure to exploits), you should
+probably use latest kernel and carry this (untested!) patch:
+
+static struct file_system_type ovl_fs_type = {
+        .owner          = THIS_MODULE,
+        .name           = "overlay",
++       .fs_flags       = FS_USERNS_MOUNT,
+        .mount          = ovl_mount,
+        .kill_sb        = kill_anon_super,
+};
+
+If you want to get this patch up-streamed, you "only" need to prove
+there are no more privilege-escalation exploits in overlayfs, like the one
+you referenced above...
+
+Because it is going be quite hard to provide that proof, it is much more
+likely to see this patch in a distribution (e.g. Ubuntu) that is willing to
+compromise security for a feature, then to see this feature enabled upstream.
+
+On the bright side, sanitizing overlayfs for unprivileged container mount
+is probably a much closer goal then sanitizing a blockdev filesystem for
+unprivileged container (loop) mount.
+
+I hope my brief was accurate. Seth/Eric/Miklos, please correct me if it wasn't.
+
+Amir.
