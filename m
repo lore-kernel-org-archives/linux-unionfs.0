@@ -1,22 +1,31 @@
-From: "Dr. David White" <"wd."@eagle.ocn.ne.jp>
-Subject: Urgent Please;;
-Date: Tue, 3 Jan 2017 02:34:44 +0900 (JST)
-Message-ID: <196117354.116392318.1483378484299.JavaMail.root__43307.544096797$1483379801$gmane$org@eagle.ocn.ne.jp>
-Reply-To: "Dr. David White" <david_white34@mynet.com>
+From: Vivek Goyal <vgoyal@redhat.com>
+Subject: Re: LXC+overlayfs in unprivileged mode
+Date: Tue, 3 Jan 2017 08:48:06 -0500
+Message-ID: <20170103134806.GA29807@redhat.com>
+References: <CAHrUA37sR6ea6UNJZjbAHPWwkoTbtEg7Uq8Z1war9ODA23qcSw@mail.gmail.com>
+ <CAOQ4uxi51_0C_-YVz_UYUbOWW3rSjmKv4NUkyxq0oCaWexZ6hw@mail.gmail.com>
+ <CAHrUA3575TN8g9xZYrxShapjXy9M1ZWn8BEeZkK65zUJuPOffw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-2022-JP
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mbkd0128.ocn.ad.jp ([153.149.230.29]:33607 "EHLO
-        mbkd0128.ocn.ad.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756103AbdABR4V (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 2 Jan 2017 12:56:21 -0500
-Sender: linux-unionfs-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CAHrUA3575TN8g9xZYrxShapjXy9M1ZWn8BEeZkK65zUJuPOffw@mail.gmail.com>
+Sender: linux-fsdevel-owner@vger.kernel.org
+To: Linas Vepstas <linasvepstas@gmail.com>
+Cc: Amir Goldstein <amir73il@gmail.com>, Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Seth Forshee <seth.forshee@canonical.com>, "Eric W. Biederman" <ebiederm@xmission.com>
 List-Id: linux-unionfs@vger.kernel.org
 
-Dear,
-With due respect to your person and much sincerity of purpose. I have a business proposal which I will like to handle with you and $14.5 Million USD is involve. But be rest assured that everything is legal and risk free as I have concluded all the arrangements and the legal papers that will back the transaction up. Kindly indicate your interest as to enable me tell you more detail of the proposal. Waiting for your urgent response.
+On Sun, Jan 01, 2017 at 02:32:20PM -0600, Linas Vepstas wrote:
 
-Yours Faithfully,
-Dr. David White
+[..]
+> It's somehow ironic that the push for user-space mounts and containers
+> comes from this general fuzzy sensation that they are somehow "safer",
+> yet the changes to enable this provide a new attack surface for
+> privilege escalation. Funny world we live in. :-)  Happy New Year!
+
+Only if unprivileged users want to be able to mount overlayfs. Otherwise, a
+privileged user can just mount overlayfs on host and bind mount that
+inside container (this is what docker does). And then you don't have
+to worry about allowing unprivileged users to be able to allow mounting.
+
+Vivek
