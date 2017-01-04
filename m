@@ -1,129 +1,60 @@
-From: Xiong Zhou <xzhou@redhat.com>
-Subject: [PATCH] overlay: copy up and remove from another namespace
-Date: Wed,  4 Jan 2017 16:59:11 +0800
-Message-ID: <1483520351-26897-1-git-send-email-xzhou@redhat.com>
+From: Vivek Goyal <vgoyal@redhat.com>
+Subject: Re: LXC+overlayfs in unprivileged mode
+Date: Wed, 4 Jan 2017 08:49:25 -0500
+Message-ID: <20170104134924.GC25158@redhat.com>
+References: <CAHrUA37sR6ea6UNJZjbAHPWwkoTbtEg7Uq8Z1war9ODA23qcSw@mail.gmail.com>
+ <CAOQ4uxi51_0C_-YVz_UYUbOWW3rSjmKv4NUkyxq0oCaWexZ6hw@mail.gmail.com>
+ <CAHrUA3575TN8g9xZYrxShapjXy9M1ZWn8BEeZkK65zUJuPOffw@mail.gmail.com>
+ <20170103134806.GA29807@redhat.com>
+ <CAHrUA37+RWKXNCLuoyDufg+g3-TG5bLgSa_XwK5htmvb-omCcw@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:56544 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:33782 "EHLO mx1.redhat.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753302AbdADI7l (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 4 Jan 2017 03:59:41 -0500
+        id S1753339AbdADNtZ (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Wed, 4 Jan 2017 08:49:25 -0500
+Content-Disposition: inline
+In-Reply-To: <CAHrUA37+RWKXNCLuoyDufg+g3-TG5bLgSa_XwK5htmvb-omCcw@mail.gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: fstests@vger.kernel.org
-Cc: linux-unionfs@vger.kernel.org, amurdaca@redhat.com, Xiong Zhou <xzhou@redhat.com>
+To: Linas Vepstas <linasvepstas@gmail.com>
+Cc: Amir Goldstein <amir73il@gmail.com>, Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Seth Forshee <seth.forshee@canonical.com>, "Eric W. Biederman" <ebiederm@xmission.com>
 
-Via unshare, copy up dir from lower dir then remove
-them in another unshared namespace.
+On Tue, Jan 03, 2017 at 10:08:25AM -0600, Linas Vepstas wrote:
+> On Tue, Jan 3, 2017 at 7:48 AM, Vivek Goyal <vgoyal@redhat.com> wrote:
+> > On Sun, Jan 01, 2017 at 02:32:20PM -0600, Linas Vepstas wrote:
+> >
+> > [..]
+> >> It's somehow ironic that the push for user-space mounts and containers
+> >> comes from this general fuzzy sensation that they are somehow "safer",
+> >> yet the changes to enable this provide a new attack surface for
+> >> privilege escalation. Funny world we live in. :-)  Happy New Year!
+> >
+> > Only if unprivileged users want to be able to mount overlayfs. Otherwise, a
+> > privileged user can just mount overlayfs on host and bind mount that
+> > inside container (this is what docker does). And then you don't have
+> > to worry about allowing unprivileged users to be able to allow mounting.
+> 
+> :-(   The way that Ubuntu solves this is to carry patches to allow user-space
+> mounts.  Debian doesn't, which is how I tripped across this.  Anyway, Docker
+> and LXC are very different beasts: Docker makes for great demos, and
+> can get the occasional newbie going, but is kind of klunky and awkward
+> in real-life deployments.  It certainly fails to provide the ease-of-use and
+> flexibility that LXC offers.   (Docker tries to solve two unrelated problems,
+> and it handles both of them poorly: one problem is containerization, the
+> other problem is container build. LXC solves the first problem much more
+> elegantly, and completely ignores the second problem, which, in general,
+> is easily solved with shell scripts, so what was the point of Docker
+> reinventing a new kind of shell, badly?)
 
-This would fail before v4.7 kernel with EPERM.
+I will not go into comparing LXC and Docker. For me, I do think that they
+handled the ease of use case very well. I just had to run two commands
+to get a container running.
 
-Kernel commit 3fe6e52f
-  ovl: override creds with the ones from the superblock mounter
-fixed this issue, with this reproducer provided. Original
-reproducer was written by commit author:
-Antonio Murdaca <amurdaca@redhat.com>
+- yum install docker
+- docker run -ti fedora bash
 
-Signed-off-by: Xiong Zhou <xzhou@redhat.com>
----
- tests/overlay/020     | 70 +++++++++++++++++++++++++++++++++++++++++++++++++++
- tests/overlay/020.out |  2 ++
- tests/overlay/group   |  1 +
- 3 files changed, 73 insertions(+)
- create mode 100755 tests/overlay/020
- create mode 100644 tests/overlay/020.out
+I think LXC vs Docker conversation is besides the point for this thread.
 
-diff --git a/tests/overlay/020 b/tests/overlay/020
-new file mode 100755
-index 0000000..4afd40a
---- /dev/null
-+++ b/tests/overlay/020
-@@ -0,0 +1,70 @@
-+#! /bin/bash
-+# FS QA Test 020
-+#
-+# Reproducer from kernel commit 3fe6e52
-+#    ovl: override creds with the ones from the superblock mounter
-+# Testing ovl copyup/namespace/cred issue.
-+#
-+#-----------------------------------------------------------------------
-+# Copyright (c) 2016 Red Hat Inc. All Rights Reserved.
-+#
-+# This program is free software; you can redistribute it and/or
-+# modify it under the terms of the GNU General Public License as
-+# published by the Free Software Foundation.
-+#
-+# This program is distributed in the hope that it would be useful,
-+# but WITHOUT ANY WARRANTY; without even the implied warranty of
-+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+# GNU General Public License for more details.
-+#
-+# You should have received a copy of the GNU General Public License
-+# along with this program; if not, write the Free Software Foundation,
-+# Inc.,  51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-+#-----------------------------------------------------------------------
-+#
-+
-+seq=`basename $0`
-+seqres=$RESULT_DIR/$seq
-+echo "QA output created by $seq"
-+
-+here=`pwd`
-+tmp=/tmp/$$
-+status=1	# failure is the default!
-+trap "_cleanup; exit \$status" 0 1 2 3 15
-+
-+_cleanup()
-+{
-+	cd /
-+	rm -f $tmp.*
-+}
-+
-+# get standard environment, filters and checks
-+. ./common/rc
-+. ./common/filter
-+
-+# remove previous $seqres.full before test
-+rm -f $seqres.full
-+
-+# real QA test starts here
-+
-+# Modify as appropriate.
-+_supported_fs overlay
-+_supported_os Linux
-+_require_scratch
-+
-+# Remove all files from previous tests
-+_scratch_mkfs
-+
-+lowerdir=$SCRATCH_DEV/$OVERLAY_LOWER_DIR
-+mkdir -p $lowerdir/dir
-+
-+_scratch_mount
-+
-+unshare -m -p -f -U -r bash -c \
-+	"touch $SCRATCH_MNT/dir/{1,2,3}; rm -fR $SCRATCH_MNT/*"
-+
-+echo "Silence is golden"
-+
-+# success, all done
-+status=0
-+exit
-diff --git a/tests/overlay/020.out b/tests/overlay/020.out
-new file mode 100644
-index 0000000..20d7944
---- /dev/null
-+++ b/tests/overlay/020.out
-@@ -0,0 +1,2 @@
-+QA output created by 020
-+Silence is golden
-diff --git a/tests/overlay/group b/tests/overlay/group
-index 66f780f..684ed45 100644
---- a/tests/overlay/group
-+++ b/tests/overlay/group
-@@ -22,3 +22,4 @@
- 017 auto quick copyup
- 018 auto quick copyup
- 019 auto stress
-+020 auto quick copyup perms
--- 
-1.8.3.1
+Vivek
