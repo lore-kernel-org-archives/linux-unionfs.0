@@ -1,60 +1,98 @@
-From: Vivek Goyal <vgoyal@redhat.com>
-Subject: Re: LXC+overlayfs in unprivileged mode
-Date: Wed, 4 Jan 2017 08:49:25 -0500
-Message-ID: <20170104134924.GC25158@redhat.com>
-References: <CAHrUA37sR6ea6UNJZjbAHPWwkoTbtEg7Uq8Z1war9ODA23qcSw@mail.gmail.com>
- <CAOQ4uxi51_0C_-YVz_UYUbOWW3rSjmKv4NUkyxq0oCaWexZ6hw@mail.gmail.com>
- <CAHrUA3575TN8g9xZYrxShapjXy9M1ZWn8BEeZkK65zUJuPOffw@mail.gmail.com>
- <20170103134806.GA29807@redhat.com>
- <CAHrUA37+RWKXNCLuoyDufg+g3-TG5bLgSa_XwK5htmvb-omCcw@mail.gmail.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Subject: Re: overlayfs freeze and remount
+Date: Fri, 6 Jan 2017 14:38:59 +0200
+Message-ID: <CAOQ4uxj+2rkxb8W=5it7s_+LA-==uaJayQqZKZH=y_bbf5jd8w@mail.gmail.com>
+References: <CAOQ4uxg07or5Zs8LGc8toPxcCLuvxKkHBy3MWucJrdQ5NEmSDw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:33782 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753339AbdADNtZ (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 4 Jan 2017 08:49:25 -0500
-Content-Disposition: inline
-In-Reply-To: <CAHrUA37+RWKXNCLuoyDufg+g3-TG5bLgSa_XwK5htmvb-omCcw@mail.gmail.com>
+Received: from mail-oi0-f66.google.com ([209.85.218.66]:33792 "EHLO
+        mail-oi0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S935102AbdAFMjq (ORCPT
+        <rfc822;linux-unionfs@vger.kernel.org>);
+        Fri, 6 Jan 2017 07:39:46 -0500
+Received: by mail-oi0-f66.google.com with SMTP id 3so54326717oih.1
+        for <linux-unionfs@vger.kernel.org>; Fri, 06 Jan 2017 04:39:01 -0800 (PST)
+In-Reply-To: <CAOQ4uxg07or5Zs8LGc8toPxcCLuvxKkHBy3MWucJrdQ5NEmSDw@mail.gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Linas Vepstas <linasvepstas@gmail.com>
-Cc: Amir Goldstein <amir73il@gmail.com>, Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Seth Forshee <seth.forshee@canonical.com>, "Eric W. Biederman" <ebiederm@xmission.com>
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: linux-unionfs@vger.kernel.org
 
-On Tue, Jan 03, 2017 at 10:08:25AM -0600, Linas Vepstas wrote:
-> On Tue, Jan 3, 2017 at 7:48 AM, Vivek Goyal <vgoyal@redhat.com> wrote:
-> > On Sun, Jan 01, 2017 at 02:32:20PM -0600, Linas Vepstas wrote:
-> >
-> > [..]
-> >> It's somehow ironic that the push for user-space mounts and containers
-> >> comes from this general fuzzy sensation that they are somehow "safer",
-> >> yet the changes to enable this provide a new attack surface for
-> >> privilege escalation. Funny world we live in. :-)  Happy New Year!
-> >
-> > Only if unprivileged users want to be able to mount overlayfs. Otherwise, a
-> > privileged user can just mount overlayfs on host and bind mount that
-> > inside container (this is what docker does). And then you don't have
-> > to worry about allowing unprivileged users to be able to allow mounting.
-> 
-> :-(   The way that Ubuntu solves this is to carry patches to allow user-space
-> mounts.  Debian doesn't, which is how I tripped across this.  Anyway, Docker
-> and LXC are very different beasts: Docker makes for great demos, and
-> can get the occasional newbie going, but is kind of klunky and awkward
-> in real-life deployments.  It certainly fails to provide the ease-of-use and
-> flexibility that LXC offers.   (Docker tries to solve two unrelated problems,
-> and it handles both of them poorly: one problem is containerization, the
-> other problem is container build. LXC solves the first problem much more
-> elegantly, and completely ignores the second problem, which, in general,
-> is easily solved with shell scripts, so what was the point of Docker
-> reinventing a new kind of shell, badly?)
+On Tue, Dec 20, 2016 at 9:58 PM, Amir Goldstein <amir73il@gmail.com> wrote:
+>
+> Hi Miklos,
+>
+> It's time for me to move on to live snapshot take.
 
-I will not go into comparing LXC and Docker. For me, I do think that they
-handled the ease of use case very well. I just had to run two commands
-to get a container running.
+Miklos,
 
-- yum install docker
-- docker run -ti fedora bash
+I implemented snapshot take without umount/mount.
+Tested with unionmount testsuite with recycling.
 
-I think LXC vs Docker conversation is besides the point for this thread.
+If you have some interest and/or some time I could really
+use a quick review of the dentry revalidation code:
+https://github.com/amir73il/linux/commits/ovl_snapshot-next
 
-Vivek
+BTW, do you know what you have planned for overlayfs for 4.11?
+sorting out the rorw fd inconsistency? anything else?
+
+Cheers,
+Amir.
+
+>
+> The way I see it, in general lines:
+> [-] sort out (and test) freezing of overlay sb
+> [-] on remount, if options indicate new snapshot= value,
+>     freeze overlay sb
+
+Should be done before remount. Not implemented yet.
+
+>     increment ofs->generation (NEW)
+>     increment root oe->generation (NEW)
+
+Decided it's not needed.
+
+>     rcu update of ofs->snap_mnt
+>     rcu update of root oe->_snapdentry
+
+Hope I got this right...
+
+>     unfreeze overlay sb
+> [-] implement d_revalidate ops for snapshot mount
+>     invalidate dentry if oe->generation < ofs->generation
+>     invalidate dentry if oe->_snapdentry->d_sb !=
+> ofs->snapshot_mnt->mnt_sb (that's a nested overlay sb)
+>     I'm pretty sure that revalidate may be called on rcu read side. right?
+>     lookup will find and set the new oe->_snapdentry, eventually
+> resulting in new copy ups
+
+That seems to work fine. I also handled the case of revalidate under LOOKUP_RCU.
+
+>
+> Basically, for the snapshot mount that should be enough, because the
+> inodes themselves are always the actual lower inodes. only thing that
+> needs to be reset on snapshot take is the state of (already copied to
+> upper or not), which is the revalidating of oe->_snapdentry.
+>
+> I have 2 questions for you:
+> 1. Does any of this make sense to you? Do you see a wall I am going to hit?
+> 2. Is any of this work applicable for overlayfs outside the scope of my project?
+>
+> For example, do you think it would be interesting to "rotate" a new
+> upper on a live overlayfs mount?
+> Doing so would practically provide snapshots for overlayfs based containers.
+> not the reverse ones I am working on, just rotate live upper.
+>
+> If you think that is interesting, I will try to approach the
+> freeze+remount implementation with the "rotate upper" feature in mind.
+>
+> Dealing with open files is the next step and it is going to be more challenging.
+> For snapshot mount, taking snapshot does not require changing real inode,
+> but for overlay upper rotate it does, so fixing that will take more file ops
+> intercepting and that is going to be outside the scope for my initial
+> implementation.
+>
+> Thoughts? :-?
+>
+> Amir.
