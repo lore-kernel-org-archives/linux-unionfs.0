@@ -1,98 +1,117 @@
-From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: overlayfs freeze and remount
-Date: Fri, 6 Jan 2017 14:38:59 +0200
-Message-ID: <CAOQ4uxj+2rkxb8W=5it7s_+LA-==uaJayQqZKZH=y_bbf5jd8w@mail.gmail.com>
-References: <CAOQ4uxg07or5Zs8LGc8toPxcCLuvxKkHBy3MWucJrdQ5NEmSDw@mail.gmail.com>
+From: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
+Subject: [PATCH] ovl: do not ignore disk quota if current task is not
+ privileged
+Date: Tue, 10 Jan 2017 14:26:48 +0300
+Message-ID: <148404760886.4400.14907571208759802396.stgit@buzz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-oi0-f66.google.com ([209.85.218.66]:33792 "EHLO
-        mail-oi0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S935102AbdAFMjq (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 6 Jan 2017 07:39:46 -0500
-Received: by mail-oi0-f66.google.com with SMTP id 3so54326717oih.1
-        for <linux-unionfs@vger.kernel.org>; Fri, 06 Jan 2017 04:39:01 -0800 (PST)
-In-Reply-To: <CAOQ4uxg07or5Zs8LGc8toPxcCLuvxKkHBy3MWucJrdQ5NEmSDw@mail.gmail.com>
-Sender: linux-unionfs-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, linux-unionfs@vger.kernel.org
+Cc: Vivek Goyal <vgoyal@redhat.com>, Miklos Szeredi <miklos@szeredi.hu>
 List-Id: linux-unionfs@vger.kernel.org
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: linux-unionfs@vger.kernel.org
 
-On Tue, Dec 20, 2016 at 9:58 PM, Amir Goldstein <amir73il@gmail.com> wrote:
->
-> Hi Miklos,
->
-> It's time for me to move on to live snapshot take.
+If overlay was mounted by root then quota set for upper layer does not work
+because overlay now always use mounter's credentials for operations.
 
-Miklos,
+This patch adds second copy of credentials without CAP_SYS_RESOURCE and
+use it if current task doesn't have this capability in mounter's user-ns.
+This affects creation new files, whiteouts, and copy-up operations.
 
-I implemented snapshot take without umount/mount.
-Tested with unionmount testsuite with recycling.
+Now quota limits are ignored only if both mounter and current task have
+capability CAP_SYS_RESOURCE in root user namespace.
 
-If you have some interest and/or some time I could really
-use a quick review of the dentry revalidation code:
-https://github.com/amir73il/linux/commits/ovl_snapshot-next
+Signed-off-by: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
+Fixes: 1175b6b8d963 ("ovl: do operations on underlying file system in mounter's context")
+Cc: Vivek Goyal <vgoyal@redhat.com>
+Cc: Miklos Szeredi <mszeredi@redhat.com>
+---
+ fs/overlayfs/ovl_entry.h |    2 ++
+ fs/overlayfs/super.c     |   13 ++++++++++++-
+ fs/overlayfs/util.c      |   10 +++++++++-
+ 3 files changed, 23 insertions(+), 2 deletions(-)
 
-BTW, do you know what you have planned for overlayfs for 4.11?
-sorting out the rorw fd inconsistency? anything else?
-
-Cheers,
-Amir.
-
->
-> The way I see it, in general lines:
-> [-] sort out (and test) freezing of overlay sb
-> [-] on remount, if options indicate new snapshot= value,
->     freeze overlay sb
-
-Should be done before remount. Not implemented yet.
-
->     increment ofs->generation (NEW)
->     increment root oe->generation (NEW)
-
-Decided it's not needed.
-
->     rcu update of ofs->snap_mnt
->     rcu update of root oe->_snapdentry
-
-Hope I got this right...
-
->     unfreeze overlay sb
-> [-] implement d_revalidate ops for snapshot mount
->     invalidate dentry if oe->generation < ofs->generation
->     invalidate dentry if oe->_snapdentry->d_sb !=
-> ofs->snapshot_mnt->mnt_sb (that's a nested overlay sb)
->     I'm pretty sure that revalidate may be called on rcu read side. right?
->     lookup will find and set the new oe->_snapdentry, eventually
-> resulting in new copy ups
-
-That seems to work fine. I also handled the case of revalidate under LOOKUP_RCU.
-
->
-> Basically, for the snapshot mount that should be enough, because the
-> inodes themselves are always the actual lower inodes. only thing that
-> needs to be reset on snapshot take is the state of (already copied to
-> upper or not), which is the revalidating of oe->_snapdentry.
->
-> I have 2 questions for you:
-> 1. Does any of this make sense to you? Do you see a wall I am going to hit?
-> 2. Is any of this work applicable for overlayfs outside the scope of my project?
->
-> For example, do you think it would be interesting to "rotate" a new
-> upper on a live overlayfs mount?
-> Doing so would practically provide snapshots for overlayfs based containers.
-> not the reverse ones I am working on, just rotate live upper.
->
-> If you think that is interesting, I will try to approach the
-> freeze+remount implementation with the "rotate upper" feature in mind.
->
-> Dealing with open files is the next step and it is going to be more challenging.
-> For snapshot mount, taking snapshot does not require changing real inode,
-> but for overlay upper rotate it does, so fixing that will take more file ops
-> intercepting and that is going to be outside the scope for my initial
-> implementation.
->
-> Thoughts? :-?
->
-> Amir.
+diff --git a/fs/overlayfs/ovl_entry.h b/fs/overlayfs/ovl_entry.h
+index d14bca1850d9..55eb3b08e292 100644
+--- a/fs/overlayfs/ovl_entry.h
++++ b/fs/overlayfs/ovl_entry.h
+@@ -27,6 +27,8 @@ struct ovl_fs {
+ 	struct ovl_config config;
+ 	/* creds of process who forced instantiation of super block */
+ 	const struct cred *creator_cred;
++	/* the same credentials without CAP_SYS_RESOURCE */
++	const struct cred *creator_cred_unpriv;
+ };
+ 
+ /* private information held for every overlayfs dentry */
+diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+index 20f48abbb82f..6a15693641e0 100644
+--- a/fs/overlayfs/super.c
++++ b/fs/overlayfs/super.c
+@@ -157,6 +157,7 @@ static void ovl_put_super(struct super_block *sb)
+ 	kfree(ufs->config.upperdir);
+ 	kfree(ufs->config.workdir);
+ 	put_cred(ufs->creator_cred);
++	put_cred(ufs->creator_cred_unpriv);
+ 	kfree(ufs);
+ }
+ 
+@@ -701,6 +702,7 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
+ 	unsigned int stacklen = 0;
+ 	unsigned int i;
+ 	bool remote = false;
++	struct cred *cred;
+ 	int err;
+ 
+ 	err = -ENOMEM;
+@@ -874,10 +876,17 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
+ 	if (!ufs->creator_cred)
+ 		goto out_put_lower_mnt;
+ 
++	cred = prepare_creds();
++	if (!cred)
++		goto out_put_cred;
++
++	ufs->creator_cred_unpriv = cred;
++	cap_lower(cred->cap_effective, CAP_SYS_RESOURCE);
++
+ 	err = -ENOMEM;
+ 	oe = ovl_alloc_entry(numlower);
+ 	if (!oe)
+-		goto out_put_cred;
++		goto out_put_cred_unpriv;
+ 
+ 	sb->s_magic = OVERLAYFS_SUPER_MAGIC;
+ 	sb->s_op = &ovl_super_operations;
+@@ -914,6 +923,8 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
+ 
+ out_free_oe:
+ 	kfree(oe);
++out_put_cred_unpriv:
++	put_cred(ufs->creator_cred_unpriv);
+ out_put_cred:
+ 	put_cred(ufs->creator_cred);
+ out_put_lower_mnt:
+diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
+index 952286f4826c..92f60096c5da 100644
+--- a/fs/overlayfs/util.c
++++ b/fs/overlayfs/util.c
+@@ -35,8 +35,16 @@ struct dentry *ovl_workdir(struct dentry *dentry)
+ const struct cred *ovl_override_creds(struct super_block *sb)
+ {
+ 	struct ovl_fs *ofs = sb->s_fs_info;
++	const struct cred *cred = ofs->creator_cred;
+ 
+-	return override_creds(ofs->creator_cred);
++	/*
++	 * Do not override quota inode limit if current task is not
++	 * capable to do that in mounter's user namespace.
++	 */
++	if (!ns_capable_noaudit(cred->user_ns, CAP_SYS_RESOURCE))
++		cred = ofs->creator_cred_unpriv;
++
++	return override_creds(cred);
+ }
+ 
+ struct ovl_entry *ovl_alloc_entry(unsigned int numlower)
