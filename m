@@ -1,87 +1,60 @@
 From: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
-Subject: Re: [PATCH] ovl: do not ignore disk quota if current task is not
- privileged
-Date: Tue, 10 Jan 2017 21:30:11 +0300
-Message-ID: <9c3fa4c5-3ee2-886a-10d2-179fd49e4829@yandex-team.ru>
+Subject: [PATCH v2] ovl: drop CAP_SYS_RESOURCE from saved mounter's
+ credentials
+Date: Tue, 10 Jan 2017 21:30:21 +0300
+Message-ID: <148407302133.16047.411379729888561193.stgit@buzz>
 References: <148404760886.4400.14907571208759802396.stgit@buzz>
- <20170110144610.GC23108@redhat.com>
- <CAJfpegsMM3k3-uEV4MefpC7QMyhJ+uR4tGnBzJockZa8P-5fZw@mail.gmail.com>
- <859c4d99-dc1d-312b-6c60-23749cea4495@yandex-team.ru>
- <CAOQ4uxgYT+dKabuVu7JWWvc7A=s3DCm+n=MrXoM0GcC==UOgBQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from forwardcorp1h.cmail.yandex.net ([87.250.230.216]:57172 "EHLO
-        forwardcorp1h.cmail.yandex.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752035AbdAJSaP (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 10 Jan 2017 13:30:15 -0500
-In-Reply-To: <CAOQ4uxgYT+dKabuVu7JWWvc7A=s3DCm+n=MrXoM0GcC==UOgBQ@mail.gmail.com>
-Sender: linux-unionfs-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <148404760886.4400.14907571208759802396.stgit@buzz>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, linux-unionfs@vger.kernel.org
+Cc: Amir Goldstein <amir73il@gmail.com>, Vivek Goyal <vgoyal@redhat.com>, Miklos Szeredi <miklos@szeredi.hu>
 List-Id: linux-unionfs@vger.kernel.org
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, Vivek Goyal <vgoyal@redhat.com>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>
 
-On 10.01.2017 21:11, Amir Goldstein wrote:
-> On Tue, Jan 10, 2017 at 6:34 PM, Konstantin Khlebnikov
-> <khlebnikov@yandex-team.ru> wrote:
->>
->> On 10.01.2017 18:57, Miklos Szeredi wrote:
->>>
->>> On Tue, Jan 10, 2017 at 3:46 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
->>>>
->>>> On Tue, Jan 10, 2017 at 02:26:48PM +0300, Konstantin Khlebnikov wrote:
->>>>>
->>>>> If overlay was mounted by root then quota set for upper layer does not work
->>>>> because overlay now always use mounter's credentials for operations.
->>>>>
->>>>> This patch adds second copy of credentials without CAP_SYS_RESOURCE and
->>>>> use it if current task doesn't have this capability in mounter's user-ns.
->>>>> This affects creation new files, whiteouts, and copy-up operations.
->>>>>
->>>>> Now quota limits are ignored only if both mounter and current task have
->>>>> capability CAP_SYS_RESOURCE in root user namespace.
->>>>
->>>>
->>>> This makes sense to me. I too would like quota to take effect for
->>>> containers on overlay.
->>>
->>>
->>> At first sight I hated this patch.  It breaks the nice concept that
->>> underlying filesystems are just storage for the overlay and don't care
->>> about caller's privileges (as a block device wouldn't care about
->>> caller's privileges when allocating space).
->>>
->>> However I don't see a good way around this, so...
->>
->>
->> Another solution: just always drop CAP_SYS_RESOURCE from capabilities.
->>
->
-> That sounds like a better (and simpler) solution.
->
-> Let overlayfs support mount options noquota|quota (default configurable
-> from Kconfig and module param) and 'quota' means drop CAP_SYS_RESOURCE.
+If overlay was mounted by root then quota set for upper layer does not work
+because overlay now always use mounter's credentials for operations.
+Also overlay might deplete reserved space and inodes in ext4.
 
-Too complicated for me. Let's drop it unconditionally. See v2 patch.
+This patch drops capability SYS_RESOURCE from saved credentials.
+This affects creation new files, whiteouts, and copy-up operations.
 
->
->
->>> Looks like this also has effect on reserving space in ext4, not sure
->>> what that entails.
->>
->>
->> Yes, CAP_SYS_RESOURCE allows to use reserved space and inodes.
->>
->
-> That's really not good. It's beyond disobeying user quotas, because
-> file system may get to unrecoverable state when corruption is detected
-> and already filled the root reserved space.
->
-> Amir.
->
+Signed-off-by: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
+Fixes: 1175b6b8d963 ("ovl: do operations on underlying file system in mounter's context")
+Cc: Vivek Goyal <vgoyal@redhat.com>
+Cc: Miklos Szeredi <mszeredi@redhat.com>
+---
+ fs/overlayfs/super.c |    9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
 
-
--- 
-Konstantin
+diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+index 20f48abbb82f..8dba982e1af5 100644
+--- a/fs/overlayfs/super.c
++++ b/fs/overlayfs/super.c
+@@ -701,6 +701,7 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
+ 	unsigned int stacklen = 0;
+ 	unsigned int i;
+ 	bool remote = false;
++	struct cred *cred;
+ 	int err;
+ 
+ 	err = -ENOMEM;
+@@ -870,10 +871,14 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
+ 	else
+ 		sb->s_d_op = &ovl_dentry_operations;
+ 
+-	ufs->creator_cred = prepare_creds();
+-	if (!ufs->creator_cred)
++	cred = prepare_creds();
++	if (!cred)
+ 		goto out_put_lower_mnt;
+ 
++	/* Never override disk quota limits or use reserved space */
++	cap_lower(cred->cap_effective, CAP_SYS_RESOURCE);
++	ufs->creator_cred = cred;
++
+ 	err = -ENOMEM;
+ 	oe = ovl_alloc_entry(numlower);
+ 	if (!oe)
