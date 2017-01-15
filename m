@@ -1,156 +1,237 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH 4/6] ovl: copy up regular file using O_TMPFILE
-Date: Sun, 15 Jan 2017 15:57:30 +0200
-Message-ID: <1484488652-611-5-git-send-email-amir73il@gmail.com>
-References: <1484488652-611-1-git-send-email-amir73il@gmail.com>
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
-In-Reply-To: <1484488652-611-1-git-send-email-amir73il@gmail.com>
-Sender: linux-fsdevel-owner@vger.kernel.org
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: Al Viro <viro@zeniv.linux.org.uk>, linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
+Subject: [PATCH] overlay: test concurrent copy up
+Date: Sun, 15 Jan 2017 16:56:59 +0200
+Message-ID: <1484492219-13675-1-git-send-email-amir73il@gmail.com>
+Return-path: <linux-unionfs-owner@vger.kernel.org>
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:35368 "EHLO
+        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751036AbdAOO5T (ORCPT
+        <rfc822;linux-unionfs@vger.kernel.org>);
+        Sun, 15 Jan 2017 09:57:19 -0500
+Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
+To: Eryu Guan <eguan@redhat.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, fstests@vger.kernel.org
 
-In preparation for concurrent copy up, implement copy up
-of regular file as O_TMPFILE that is linked to upperdir
-instead of a file in workdir that is moved to upperdir.
+Run 4 process pairs, each competing over copy up of 1K files
+in 1 directory. One opponent touches all files in the directory
+and the other truncates all files in the directory.
 
-Suggested-by: Al Viro <viro@zeniv.linux.org.uk>
+This test does NOT check for concurrent copy up support. It only
+fails on unexpected errors of any of the touch/truncate operations.
+
+The test full output should demonstrate the expected results -
+for kernel with concurrent copy up support, truncate workers are
+not delayed by touch workers. As a result, truncate workers will
+finish their work much sooner than a test run without concurrent
+copy up support.
+
 Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- fs/overlayfs/copy_up.c   | 28 +++++++++++++++++++++-------
- fs/overlayfs/overlayfs.h |  2 ++
- fs/overlayfs/util.c      | 20 ++++++++++++++++++++
- 3 files changed, 43 insertions(+), 7 deletions(-)
+ tests/overlay/021     | 162 ++++++++++++++++++++++++++++++++++++++++++++++++++
+ tests/overlay/021.out |   2 +
+ tests/overlay/group   |   1 +
+ 3 files changed, 165 insertions(+)
+ create mode 100755 tests/overlay/021
+ create mode 100644 tests/overlay/021.out
 
-diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
-index 429990a..d3b6c15 100644
---- a/fs/overlayfs/copy_up.c
-+++ b/fs/overlayfs/copy_up.c
-@@ -20,6 +20,7 @@
- #include <linux/fdtable.h>
- #include <linux/ratelimit.h>
- #include "overlayfs.h"
-+#include "ovl_entry.h"
- 
- #define OVL_COPY_UP_CHUNK_SIZE (1 << 20)
- 
-@@ -232,7 +233,8 @@ int ovl_set_attr(struct dentry *upperdentry, struct kstat *stat)
- 
- static int ovl_copy_up_locked(struct dentry *workdir, struct dentry *upperdir,
- 			      struct dentry *dentry, struct path *lowerpath,
--			      struct kstat *stat, const char *link)
-+			      struct kstat *stat, const char *link,
-+			      bool tmpfile)
- {
- 	struct inode *wdir = workdir->d_inode;
- 	struct inode *udir = upperdir->d_inode;
-@@ -262,12 +264,17 @@ static int ovl_copy_up_locked(struct dentry *workdir, struct dentry *upperdir,
- 	if (new_creds)
- 		old_creds = override_creds(new_creds);
- 
--	temp = ovl_lookup_temp(workdir, dentry);
-+	if (tmpfile)
-+		temp = ovl_alloc_tmpfile(upperdir, stat->mode);
-+	else
-+		temp = ovl_lookup_temp(workdir, dentry);
- 	err = PTR_ERR(temp);
- 	if (IS_ERR(temp))
- 		goto out1;
- 
--	err = ovl_create_real(wdir, temp, &cattr, NULL, true);
-+	err = 0;
-+	if (!tmpfile)
-+		err = ovl_create_real(wdir, temp, &cattr, NULL, true);
- 
- 	if (new_creds) {
- 		revert_creds(old_creds);
-@@ -299,11 +306,14 @@ static int ovl_copy_up_locked(struct dentry *workdir, struct dentry *upperdir,
- 	if (err)
- 		goto out_cleanup;
- 
--	err = ovl_do_rename(wdir, temp, udir, upper, 0);
-+	if (tmpfile)
-+		err = ovl_link_tmpfile(temp, udir, upper);
-+	else
-+		err = ovl_do_rename(wdir, temp, udir, upper, 0);
- 	if (err)
- 		goto out_cleanup;
- 
--	newdentry = dget(temp);
-+	newdentry = dget(tmpfile ? upper : temp);
- 	ovl_dentry_update(dentry, newdentry);
- 	ovl_inode_update(d_inode(dentry), d_inode(newdentry));
- out2:
-@@ -314,7 +324,8 @@ static int ovl_copy_up_locked(struct dentry *workdir, struct dentry *upperdir,
- 	return err;
- 
- out_cleanup:
--	ovl_cleanup(wdir, temp);
-+	if (!tmpfile)
-+		ovl_cleanup(wdir, temp);
- 	goto out2;
- }
- 
-@@ -338,6 +349,9 @@ static int ovl_copy_up_one(struct dentry *parent, struct dentry *dentry,
- 	struct dentry *lowerdentry = lowerpath->dentry;
- 	struct dentry *upperdir;
- 	const char *link = NULL;
-+	struct ovl_fs *ofs = dentry->d_sb->s_fs_info;
-+	/* Should we copyup with O_TMPFILE or with workdir? */
-+	bool tmpfile = S_ISREG(stat->mode) && ofs->tmpfile;
- 
- 	if (WARN_ON(!workdir))
- 		return -EROFS;
-@@ -369,7 +383,7 @@ static int ovl_copy_up_one(struct dentry *parent, struct dentry *dentry,
- 	}
- 
- 	err = ovl_copy_up_locked(workdir, upperdir, dentry, lowerpath,
--				 stat, link);
-+				 stat, link, tmpfile);
- 	if (!err) {
- 		/* Restore timestamps on parent (best effort) */
- 		ovl_set_timestamps(upperdir, &pstat);
-diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-index 190b03f..59d1c38 100644
---- a/fs/overlayfs/overlayfs.h
-+++ b/fs/overlayfs/overlayfs.h
-@@ -178,6 +178,8 @@ u64 ovl_dentry_version_get(struct dentry *dentry);
- bool ovl_is_whiteout(struct dentry *dentry);
- struct file *ovl_path_open(struct path *path, int flags);
- struct dentry *ovl_alloc_tmpfile(struct dentry *parent, umode_t mode);
-+int ovl_link_tmpfile(struct dentry *temp, struct inode *dir,
-+		     struct dentry *dentry);
- 
- /* namei.c */
- int ovl_path_next(int idx, struct dentry *dentry, struct path *path);
-diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
-index e6facb1..0fbf41c 100644
---- a/fs/overlayfs/util.c
-+++ b/fs/overlayfs/util.c
-@@ -281,3 +281,23 @@ struct dentry *ovl_alloc_tmpfile(struct dentry *parent, umode_t mode)
- 
- 	return temp;
- }
+Eryu,
+
+I wrote this test to excercise "ovl: concurrent copy up", but it does not
+require concurrent copy up support to run, nor does it fail due to lack of
+concurrent copy up support (it may run a bit slower), so there is nothing
+blocking from merging this test for kernel 4.9.
+
+Note that although I used fsstress to create/truncate a bunch of files,
+this is by no means a stress test, so I did not add it to stress group.
+It is rather 'quick', less than half the time of the 'quick' overlay/001.
+
+Amir.
+
+diff --git a/tests/overlay/021 b/tests/overlay/021
+new file mode 100755
+index 0000000..3140cc6
+--- /dev/null
++++ b/tests/overlay/021
+@@ -0,0 +1,162 @@
++#! /bin/bash
++# FS QA Test 021
++#
++# test concurrent copy up
++#
++#-----------------------------------------------------------------------
++# Copyright (c) 2016 Google, Inc.  All Rights Reserved.
++#
++# This program is free software; you can redistribute it and/or
++# modify it under the terms of the GNU General Public License as
++# published by the Free Software Foundation.
++#
++# This program is distributed in the hope that it would be useful,
++# but WITHOUT ANY WARRANTY; without even the implied warranty of
++# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++# GNU General Public License for more details.
++#
++# You should have received a copy of the GNU General Public License
++# along with this program; if not, write the Free Software Foundation,
++# Inc.,  51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
++#-----------------------------------------------------------------------
++#
 +
-+int ovl_link_tmpfile(struct dentry *temp, struct inode *dir,
-+		     struct dentry *dentry)
++seq=`basename $0`
++seqres=$RESULT_DIR/$seq
++echo "QA output created by $seq"
++
++here=`pwd`
++tmp=/tmp/$$
++status=1	# failure is the default!
++trap "_cleanup; exit \$status" 0 1 2 3 15
++
++_cleanup()
 +{
-+	struct inode *inode = temp->d_inode;
-+	int err;
-+
-+	if (WARN_ON_ONCE(!inode || inode->i_nlink))
-+		return -ENOENT;
-+
-+	/* Make tempfile linkable */
-+	spin_lock(&inode->i_lock);
-+	if (!inode->i_nlink)
-+		inode->i_state |= I_LINKABLE;
-+	spin_unlock(&inode->i_lock);
-+
-+	err = ovl_do_link(temp, dir, dentry, true);
-+
-+	return err;
++	cd /
++	rm -f $tmp.*
 +}
++
++# get standard environment, filters and checks
++. ./common/rc
++. ./common/filter
++
++# remove previous $seqres.full before test
++rm -f $seqres.full
++
++# real QA test starts here
++_supported_fs overlay
++_supported_os Linux
++_require_scratch
++
++# Remove all files from previous tests
++_scratch_mkfs
++
++# overlay copy_up doesn't deal with sparse file well, holes will be filled by
++# zeros, so for the worst case of hitting all the copy up bomb files, we need
++# (64*(16+32+64+128)M) free space on $SCRATCH_DEV.
++# However, triggering more than a total of 16 copy up bombs would require
++# really fast data copy (clone up doesn't take up space at all), so let's be
++# conservative and reserve space for 16 data copy ups per directory.
++_require_fs_space $SCRATCH_DEV $((16*(16+32+64+128)*1024))
++
++lowerdir=$SCRATCH_DEV/$OVERLAY_LOWER_DIR
++mkdir -p $lowerdir
++
++_scratch_mount
++
++echo "Silence is golden"
++
++testdir=arena
++d_low=$lowerdir/$testdir
++d_top=$SCRATCH_MNT/$testdir
++mkdir -p $d_low
++
++# Create 4K empty files in 4 directories
++echo $FSSTRESS_PROG -d $d_low -p 4 -z -f creat=1 -n 1024 -v >> $seqres.full
++$FSSTRESS_PROG -d $d_low -p 4 -z -f creat=1 -n 1024 -v >> $seqres.full 2>&1
++echo "--------------------------------------"       >> $seqres.full
++echo "Created 1K files in lower directory.  "       >> $seqres.full
++
++# Plant 64 copy up bombs in each directory
++for f in $d_low/p0/*0; do truncate -s 128M $f ;done
++for f in $d_low/p1/*4; do truncate -s 64M $f ;done
++for f in $d_low/p2/*8; do truncate -s 32M $f ;done
++for f in $d_low/p3/*b; do truncate -s 16M $f ;done
++echo "Created 64*4 copy up bombs.           "       >> $seqres.full
++echo "--------------------------------------"       >> $seqres.full
++
++#
++# Run 2 process teams - 4 pairs of rival processes
++# Each process pair competing on copy up of 1K files in 1 directory.
++# Team 'touch' players touch all files in readdir order.
++# Team 'truncate' players truncates all files in numeric (name) order.
++#
++# If player from team 'touch' reaches a copy up bomb before player
++# from team 'truncate' does, the copy up of (sparse) data will delay
++# the end of the process pair match.
++#
++# If copy up of bomb is not concurrent with other copy ups, then
++# 'touch' player p0 with the largest copy up bombs will delay players
++# of both teams and all matches will take longer.
++#
++# If copy up is concurrent with copy ups in different directories,
++# process pair 3 match will be over first and process pair 0 match
++# will be over last.
++#
++# If copy up of data is concurrent with other copy ups on the same directory,
++# then all the 'touch' team players will finish far behind their 'truncate'
++# opponenets.
++#
++# This test doesn't verify any of those conditions, it will only fail
++# on unexpected errors of any of the touch/truncate operations.
++# The test full output should demonstrate the expected game results,
++# as described above and depending on concurrent copy up support in kernel.
++#
++cd $d_top
++echo "--------------------------------------"       >> $seqres.full
++echo "Go team touch!!                       "       >> $seqres.full
++find p0 -type f -print -exec touch {} \; >> $seqres.full 2>&1 &
++find p1 -type f -print -exec touch {} \; >> $seqres.full 2>&1 &
++find p2 -type f -print -exec touch {} \; >> $seqres.full 2>&1 &
++find p3 -type f -print -exec touch {} \; >> $seqres.full 2>&1 &
++cd - > /dev/null
++
++# Give team 'touch' a 1 second head start.
++# Team 'truncate' players should catch up after few copy up bombs.
++sleep 1
++echo "--------------------------------------"       >> $seqres.full
++echo "Go team truncate!!                    "       >> $seqres.full
++# Give team 'touch' a 1 second head start.
++# Team 'truncate' players should catch up after few copy up bombs.
++sleep 1
++$FSSTRESS_PROG -d $d_top -p 4 -z -f creat=1 -n 1024 -v >> $seqres.full 2>&1 &
++
++err=0
++if ! wait %1; then
++	echo "Player p0/touch returned $? - see $seqres.full"
++	err=1
++fi
++
++if ! wait %2; then
++	echo "Player p1/touch returned $? - see $seqres.full"
++	err=1
++fi
++
++if ! wait %3; then
++	echo "Player p2/touch returned $? - see $seqres.full"
++	err=1
++fi
++
++if ! wait %4; then
++	echo "Player p3/touch returned $? - see $seqres.full"
++	err=1
++fi
++
++if ! wait %5; then
++	echo "Team truncate returned $? - see $seqres.full"
++	err=1
++fi
++
++status=$err
++
++exit $status
+diff --git a/tests/overlay/021.out b/tests/overlay/021.out
+new file mode 100644
+index 0000000..09f4062
+--- /dev/null
++++ b/tests/overlay/021.out
+@@ -0,0 +1,2 @@
++QA output created by 021
++Silence is golden
+diff --git a/tests/overlay/group b/tests/overlay/group
+index 684ed45..5bcc25e 100644
+--- a/tests/overlay/group
++++ b/tests/overlay/group
+@@ -23,3 +23,4 @@
+ 018 auto quick copyup
+ 019 auto stress
+ 020 auto quick copyup perms
++021 auto quick copyup
 -- 
 2.7.4
-
