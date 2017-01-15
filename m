@@ -1,32 +1,73 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [RFC][PATH 4/4] ovl: relax lock_rename when moving files between
- work and upper dir
-Date: Thu, 12 Jan 2017 20:18:03 +0200
-Message-ID: <CAOQ4uxjq0frWu+fidmkJKjPDV5wtvhNPCPC1-xqaPJiOt8+toQ@mail.gmail.com>
-References: <CAOQ4uxgDhyy1z4xJgvA7c_mPvaYiNhi22DHpYM4X2SODtSwP1Q@mail.gmail.com>
- <20161110235444.GO19539@ZenIV.linux.org.uk> <CAOQ4uxiR6wsk97jQ43hu=hkJ1JQRaerSSEwjVr8tX6ia-yfOgA@mail.gmail.com>
- <20161111002756.GP19539@ZenIV.linux.org.uk> <CAOQ4uxibJf7BVSOeRdfcE7VtU2rkrii=Pu9OL0uZPavpudODeQ@mail.gmail.com>
- <20161111154034.GR19539@ZenIV.linux.org.uk> <CAOQ4uxgU3Pv_SRJhfOGVevuGop=fQ=rPK01UO0ccgy1yEM_hJA@mail.gmail.com>
- <20161111172737.GS19539@ZenIV.linux.org.uk> <CAJfpeguTOvO9P+khKxOX_-SBjePzeLqUqQ2B9sBszjamD3wWvA@mail.gmail.com>
- <CAOQ4uxhrGRPg68SRQhyS=_PEe9SO9fkFv_=GUSELr_A=HSH0FQ@mail.gmail.com> <20170112100056.GF27207@veci.piliscsaba.szeredi.hu>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
-In-Reply-To: <20170112100056.GF27207@veci.piliscsaba.szeredi.hu>
-Sender: linux-fsdevel-owner@vger.kernel.org
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: Al Viro <viro@zeniv.linux.org.uk>, Konstantin Khlebnikov <koct9i@gmail.com>, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>
+Subject: [PATCH 0/6] ovl: concurrent copy up
+Date: Sun, 15 Jan 2017 15:57:26 +0200
+Message-ID: <1484488652-611-1-git-send-email-amir73il@gmail.com>
+Return-path: <linux-unionfs-owner@vger.kernel.org>
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:35680 "EHLO
+        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750991AbdAON5u (ORCPT
+        <rfc822;linux-unionfs@vger.kernel.org>);
+        Sun, 15 Jan 2017 08:57:50 -0500
+Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: Al Viro <viro@zeniv.linux.org.uk>, linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
 
-On Thu, Jan 12, 2017 at 12:00 PM, Miklos Szeredi <miklos@szeredi.hu> wrote:
-> On Thu, Jan 12, 2017 at 07:42:22AM +0200, Amir Goldstein wrote:
->> I think you suggested here to use a waitqueue for pending copyups?
->> Did you mean a waitqueue per overlay parent directory inode or
->> did you mean something else?
->
-> Something like this:
->
+Miklos,
 
-That's a useful answer :)
-I'll give it a try.
-Thanks!
+This is my 2nd attempt to implement concurrent copy up
+in overlayfs (3rd if you count the DCACHE_DELETE_LOCK flop).
+
+It's not tagged as V2, because there is nothing in common
+between the previous attempt and this one.
+
+This work is based on Al's suggestion to use O_TMPFILE
+for regular files and your very helpful waitqueue patch.
+
+Patches 1-4 implement copy up of regular file using O_TMPFILE.
+Since there is more common then different code wrt O_TMPFILE
+vs. workdir+rename, I opted to keep ovl_copy_up_one() and
+copy_up_one_locked() functions with a few 'if (tmpfile) else'
+sprinkled around. It may be better to clone copy_up_one_locked()?
+
+Patch 5 is the waitqueue patch you sent me. My only additions are
+init_waitqueue_head() and wake_up_lock(), so I kept you as author.
+
+Patch 6 puts it all together. Once again, in an attempt to keep
+more common code, I added a few 'if (tmpfile)' and kept the locking
+code generic, by assigning workdir = upperdir. I thought you may not
+approve with this trick, but couldn't resist trying.
+
+Beyond this simple test:
+$ touch /lower/{empty,4g}
+$ truncate -s 4g /lower/4g
+$ touch /mnt/4g &  # takes a while
+$ touch /mnt/empty # exits immediately
+$ touch /mnt/4g    # blocks until %1 completes and can be interrupted
+
+I also wrote xfstest overlay/021 which exercises concurrent copy up
+using 8 processes on 4 directories and 4K files.
+
+Amir.
+
+Amir Goldstein (5):
+  vfs: create vfs helper vfs_tmpfile()
+  ovl: check if upperdir fs supports O_TMPFILE
+  ovl: rearrange code in ovl_copy_up_locked()
+  ovl: copy up regular file using O_TMPFILE
+  ovl: concurrent copy up of regular files
+
+Miklos Szeredi (1):
+  ovl: introduce copy up waitqueue
+
+ fs/namei.c               | 26 +++++++++-------
+ fs/overlayfs/copy_up.c   | 78 +++++++++++++++++++++++++++++++++++-------------
+ fs/overlayfs/overlayfs.h | 13 ++++++++
+ fs/overlayfs/ovl_entry.h |  3 ++
+ fs/overlayfs/super.c     | 11 +++++++
+ fs/overlayfs/util.c      | 68 +++++++++++++++++++++++++++++++++++++++++
+ include/linux/fs.h       |  1 +
+ 7 files changed, 170 insertions(+), 30 deletions(-)
+
+-- 
+2.7.4
