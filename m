@@ -1,127 +1,113 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH 3/6] ovl: rearrange code in ovl_copy_up_locked()
-Date: Sun, 15 Jan 2017 15:57:29 +0200
-Message-ID: <1484488652-611-4-git-send-email-amir73il@gmail.com>
+Subject: [PATCH 5/6] ovl: introduce copy up waitqueue
+Date: Sun, 15 Jan 2017 15:57:31 +0200
+Message-ID: <1484488652-611-6-git-send-email-amir73il@gmail.com>
 References: <1484488652-611-1-git-send-email-amir73il@gmail.com>
-Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:35761 "EHLO
-        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751120AbdAON5z (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Sun, 15 Jan 2017 08:57:55 -0500
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
 In-Reply-To: <1484488652-611-1-git-send-email-amir73il@gmail.com>
-Sender: linux-unionfs-owner@vger.kernel.org
-List-Id: linux-unionfs@vger.kernel.org
+Sender: linux-fsdevel-owner@vger.kernel.org
 To: Miklos Szeredi <miklos@szeredi.hu>
 Cc: Al Viro <viro@zeniv.linux.org.uk>, linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
+List-Id: linux-unionfs@vger.kernel.org
 
-As preparation to implementing copy up with O_TMPFILE,
-name the variable for dentry final rename 'temp' and
-assign it to 'newdentry' only after rename.
+From: Miklos Szeredi <miklos@szeredi.hu>
 
-Also lookup upper dentry before looking up temp dentry,
-because that is more convenient for upcoming change.
+The overlay sb 'copyup_wq' and overlay inode 'copying' condition
+variable are about to replace the upper sb rename_lock, as finer
+grained synchronization objects for concurrent copy up.
 
+Suggested-by: Miklos Szeredi <miklos@szeredi.hu>
 Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- fs/overlayfs/copy_up.c | 37 +++++++++++++++++++------------------
- 1 file changed, 19 insertions(+), 18 deletions(-)
+ fs/overlayfs/overlayfs.h |  2 ++
+ fs/overlayfs/ovl_entry.h |  2 ++
+ fs/overlayfs/super.c     |  1 +
+ fs/overlayfs/util.c      | 30 ++++++++++++++++++++++++++++++
+ 4 files changed, 35 insertions(+)
 
-diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
-index f57043d..429990a 100644
---- a/fs/overlayfs/copy_up.c
-+++ b/fs/overlayfs/copy_up.c
-@@ -238,6 +238,7 @@ static int ovl_copy_up_locked(struct dentry *workdir, struct dentry *upperdir,
- 	struct inode *udir = upperdir->d_inode;
- 	struct dentry *newdentry = NULL;
- 	struct dentry *upper = NULL;
-+	struct dentry *temp = NULL;
- 	int err;
- 	const struct cred *old_creds = NULL;
- 	struct cred *new_creds = NULL;
-@@ -248,25 +249,25 @@ static int ovl_copy_up_locked(struct dentry *workdir, struct dentry *upperdir,
- 		.link = link
+diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
+index 59d1c38..131efb7 100644
+--- a/fs/overlayfs/overlayfs.h
++++ b/fs/overlayfs/overlayfs.h
+@@ -180,6 +180,8 @@ struct file *ovl_path_open(struct path *path, int flags);
+ struct dentry *ovl_alloc_tmpfile(struct dentry *parent, umode_t mode);
+ int ovl_link_tmpfile(struct dentry *temp, struct inode *dir,
+ 		     struct dentry *dentry);
++int ovl_copy_up_start(struct dentry *dentry);
++void ovl_copy_up_end(struct dentry *dentry);
+ 
+ /* namei.c */
+ int ovl_path_next(int idx, struct dentry *dentry, struct path *path);
+diff --git a/fs/overlayfs/ovl_entry.h b/fs/overlayfs/ovl_entry.h
+index 65f24000..59614fa 100644
+--- a/fs/overlayfs/ovl_entry.h
++++ b/fs/overlayfs/ovl_entry.h
+@@ -28,6 +28,7 @@ struct ovl_fs {
+ 	/* creds of process who forced instantiation of super block */
+ 	const struct cred *creator_cred;
+ 	bool tmpfile;
++	wait_queue_head_t copyup_wq;
+ };
+ 
+ /* private information held for every overlayfs dentry */
+@@ -39,6 +40,7 @@ struct ovl_entry {
+ 			u64 version;
+ 			const char *redirect;
+ 			bool opaque;
++			bool copying;
+ 		};
+ 		struct rcu_head rcu;
  	};
+diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+index a6c42f5..4a9f489 100644
+--- a/fs/overlayfs/super.c
++++ b/fs/overlayfs/super.c
+@@ -708,6 +708,7 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
+ 	if (!ufs)
+ 		goto out;
  
--	newdentry = ovl_lookup_temp(workdir, dentry);
--	err = PTR_ERR(newdentry);
--	if (IS_ERR(newdentry))
--		goto out;
--
- 	upper = lookup_one_len(dentry->d_name.name, upperdir,
- 			       dentry->d_name.len);
- 	err = PTR_ERR(upper);
- 	if (IS_ERR(upper))
--		goto out1;
-+		goto out;
- 
- 	err = security_inode_copy_up(dentry, &new_creds);
- 	if (err < 0)
--		goto out2;
-+		goto out1;
- 
- 	if (new_creds)
- 		old_creds = override_creds(new_creds);
- 
--	err = ovl_create_real(wdir, newdentry, &cattr, NULL, true);
-+	temp = ovl_lookup_temp(workdir, dentry);
-+	err = PTR_ERR(temp);
-+	if (IS_ERR(temp))
-+		goto out1;
-+
-+	err = ovl_create_real(wdir, temp, &cattr, NULL, true);
- 
- 	if (new_creds) {
- 		revert_creds(old_creds);
-@@ -281,39 +282,39 @@ static int ovl_copy_up_locked(struct dentry *workdir, struct dentry *upperdir,
- 
- 		ovl_path_upper(dentry, &upperpath);
- 		BUG_ON(upperpath.dentry != NULL);
--		upperpath.dentry = newdentry;
-+		upperpath.dentry = temp;
- 
- 		err = ovl_copy_up_data(lowerpath, &upperpath, stat->size);
- 		if (err)
- 			goto out_cleanup;
- 	}
- 
--	err = ovl_copy_xattr(lowerpath->dentry, newdentry);
-+	err = ovl_copy_xattr(lowerpath->dentry, temp);
++	init_waitqueue_head(&ufs->copyup_wq);
+ 	ufs->config.redirect_dir = ovl_redirect_dir_def;
+ 	err = ovl_parse_opt((char *) data, &ufs->config);
  	if (err)
- 		goto out_cleanup;
+diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
+index 0fbf41c..f361b47 100644
+--- a/fs/overlayfs/util.c
++++ b/fs/overlayfs/util.c
+@@ -301,3 +301,33 @@ int ovl_link_tmpfile(struct dentry *temp, struct inode *dir,
  
--	inode_lock(newdentry->d_inode);
--	err = ovl_set_attr(newdentry, stat);
--	inode_unlock(newdentry->d_inode);
-+	inode_lock(temp->d_inode);
-+	err = ovl_set_attr(temp, stat);
-+	inode_unlock(temp->d_inode);
- 	if (err)
- 		goto out_cleanup;
- 
--	err = ovl_do_rename(wdir, newdentry, udir, upper, 0);
-+	err = ovl_do_rename(wdir, temp, udir, upper, 0);
- 	if (err)
- 		goto out_cleanup;
- 
-+	newdentry = dget(temp);
- 	ovl_dentry_update(dentry, newdentry);
- 	ovl_inode_update(d_inode(dentry), d_inode(newdentry));
--	newdentry = NULL;
- out2:
--	dput(upper);
-+	dput(temp);
- out1:
--	dput(newdentry);
-+	dput(upper);
- out:
  	return err;
- 
- out_cleanup:
--	ovl_cleanup(wdir, newdentry);
-+	ovl_cleanup(wdir, temp);
- 	goto out2;
  }
- 
++
++int ovl_copy_up_start(struct dentry *dentry)
++{
++	struct ovl_fs *ofs = dentry->d_sb->s_fs_info;
++	struct ovl_entry *oe = dentry->d_fsdata;
++	int err;
++
++	spin_lock(&ofs->copyup_wq.lock);
++	err = wait_event_interruptible_locked(ofs->copyup_wq, !oe->copying);
++	if (!err) {
++		if (oe->__upperdentry)
++			err = 1; /* Already copied up */
++		else
++			oe->copying = true;
++	}
++	spin_unlock(&ofs->copyup_wq.lock);
++
++	return err;
++}
++
++void ovl_copy_up_end(struct dentry *dentry)
++{
++	struct ovl_fs *ofs = dentry->d_sb->s_fs_info;
++	struct ovl_entry *oe = dentry->d_fsdata;
++
++	spin_lock(&ofs->copyup_wq.lock);
++	oe->copying = false;
++	wake_up_locked(&ofs->copyup_wq);
++	spin_unlock(&ofs->copyup_wq.lock);
++}
 -- 
 2.7.4
+
