@@ -1,98 +1,38 @@
-From: Miklos Szeredi <miklos@szeredi.hu>
-Subject: Re: [PATCH 6/6] ovl: concurrent copy up of regular files
-Date: Mon, 16 Jan 2017 12:05:59 +0100
-Message-ID: <CAJfpegva4NT=ssF5AQvh24Qdijuff--EKJ7PyP1TXN7qf5HMCw@mail.gmail.com>
-References: <1484488652-611-1-git-send-email-amir73il@gmail.com> <1484488652-611-7-git-send-email-amir73il@gmail.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Subject: Re: [PATCH 1/6] vfs: create vfs helper vfs_tmpfile()
+Date: Mon, 16 Jan 2017 13:19:58 +0200
+Message-ID: <CAOQ4uxiPbLCadeRXa19kwF82PVsU75HRCUksjytwkH3qa-ZewQ@mail.gmail.com>
+References: <1484488652-611-1-git-send-email-amir73il@gmail.com>
+ <1484488652-611-2-git-send-email-amir73il@gmail.com> <CAJfpegtj7Hmxfmbm=GcNQRgXzpO88pzi5cqk-O1V6QGgCgLMWw@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-ot0-f193.google.com ([74.125.82.193]:32933 "EHLO
-        mail-ot0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750994AbdAPLGB (ORCPT
+Received: from mail-ot0-f195.google.com ([74.125.82.195]:34379 "EHLO
+        mail-ot0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751150AbdAPLUA (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 16 Jan 2017 06:06:01 -0500
-Received: by mail-ot0-f193.google.com with SMTP id f9so6217970otd.0
-        for <linux-unionfs@vger.kernel.org>; Mon, 16 Jan 2017 03:06:01 -0800 (PST)
-In-Reply-To: <1484488652-611-7-git-send-email-amir73il@gmail.com>
+        Mon, 16 Jan 2017 06:20:00 -0500
+In-Reply-To: <CAJfpegtj7Hmxfmbm=GcNQRgXzpO88pzi5cqk-O1V6QGgCgLMWw@mail.gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>, linux-fsdevel@vger.kernel.org
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: Al Viro <viro@zeniv.linux.org.uk>, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>
 
-On Sun, Jan 15, 2017 at 2:57 PM, Amir Goldstein <amir73il@gmail.com> wrote:
-> Now that copy up of regular file is done using O_TMPFILE,
-> we don't need to hold rename_lock throughout copy up.
+On Mon, Jan 16, 2017 at 1:00 PM, Miklos Szeredi <miklos@szeredi.hu> wrote:
+> On Sun, Jan 15, 2017 at 2:57 PM, Amir Goldstein <amir73il@gmail.com> wrote:
+>> Factor out some common vfs bits from do_tmpfile()
+>> to be used by overlayfs for concurrent copy up.
 >
-> Use the copy up waitqueue to synchronize concurrent copy up
-> of the same file. Different regular files can be copied up
-> concurrently.
+> I'm wondering whether the vfs helper should do everything except the
+> path lookup and the open: d_alloc(), ->tmpfile() and setting
+> I_LINKABLE.   This will also aid in doing a ->tmpfile() for overlayfs.
 >
-> The upper dir inode_lock is taken instead of rename_lock,
-> because it is needed for lookup and later for linking the
-> temp file, but it is released while copying up data.
->
-> Suggested-by: Al Viro <viro@zeniv.linux.org.uk>
-> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
-> ---
->  fs/overlayfs/copy_up.c | 23 +++++++++++++++++++++++
->  1 file changed, 23 insertions(+)
->
-> diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
-> index d3b6c15..ddf5e2d 100644
-> --- a/fs/overlayfs/copy_up.c
-> +++ b/fs/overlayfs/copy_up.c
-> @@ -291,7 +291,14 @@ static int ovl_copy_up_locked(struct dentry *workdir, struct dentry *upperdir,
->                 BUG_ON(upperpath.dentry != NULL);
->                 upperpath.dentry = temp;
->
-> +               if (tmpfile)
-> +                       inode_unlock(udir);
-> +
->                 err = ovl_copy_up_data(lowerpath, &upperpath, stat->size);
-> +
-> +               if (tmpfile)
-> +                       inode_lock_nested(udir, I_MUTEX_PARENT);
-> +
->                 if (err)
->                         goto out_cleanup;
->         }
-> @@ -371,6 +378,19 @@ static int ovl_copy_up_one(struct dentry *parent, struct dentry *dentry,
->                         return PTR_ERR(link);
->         }
->
-> +       if (tmpfile) {
-> +               err = ovl_copy_up_start(dentry);
-> +               /* err < 0: interrupted, err > 0: raced with another copy-up */
-> +               if (unlikely(err)) {
-> +                       pr_debug("ovl_copy_up_start(%pd2) = %i\n", dentry, err);
-> +                       if (err > 0)
-> +                               err = 0;
-> +                       goto out_done;
-> +               }
-> +               /* lock_rename/unlock_rename will lock/unlock only upperdir */
-> +               workdir = upperdir;
 
-Unnecessary obfuscation.   Just do lock_inode(); ovl_copy_up_locked();
-unlokc_inode();.
-
-Thanks,
-Miklos
-
-> +       }
-> +
->         err = -EIO;
->         if (lock_rename(workdir, upperdir) != NULL) {
->                 pr_err("overlayfs: failed to lock workdir+upperdir\n");
-> @@ -390,6 +410,9 @@ static int ovl_copy_up_one(struct dentry *parent, struct dentry *dentry,
->         }
->  out_unlock:
->         unlock_rename(workdir, upperdir);
-> +       if (tmpfile)
-> +               ovl_copy_up_end(dentry);
-> +out_done:
->         do_delayed_call(&done);
->
->         return err;
-> --
-> 2.7.4
->
+I started with that, but slowly trimmed it down to this minimal version.
+First, mnt_want_write() can't be in there.
+Then dentry * return value would be a strange deviation from other vfs_ helpers.
+Lastly, all the open related operations are already performed by
+ovl_path_open() and I did not want to make an exception,
+so I resorted to doing d_alloc in ovl_alloc_tmpfile(), which becomes
+a drop-in replacement for ovl_lookup_temp() and set LINKABLE in
+ovl_link_tmpfile(), which becomes a drop-in replacement for ovl_do_rename().
