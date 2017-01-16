@@ -1,89 +1,137 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH v3 2/6] ovl: check if upperdir fs supports O_TMPFILE
-Date: Mon, 16 Jan 2017 19:46:01 +0200
-Message-ID: <1484588765-9397-3-git-send-email-amir73il@gmail.com>
+Subject: [PATCH v3 1/6] vfs: create vfs helper vfs_tmpfile()
+Date: Mon, 16 Jan 2017 19:46:00 +0200
+Message-ID: <1484588765-9397-2-git-send-email-amir73il@gmail.com>
 References: <1484588765-9397-1-git-send-email-amir73il@gmail.com>
-Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wm0-f65.google.com ([74.125.82.65]:35218 "EHLO
-        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750858AbdAPRq1 (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 16 Jan 2017 12:46:27 -0500
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
 In-Reply-To: <1484588765-9397-1-git-send-email-amir73il@gmail.com>
-Sender: linux-unionfs-owner@vger.kernel.org
-List-Id: linux-unionfs@vger.kernel.org
+Sender: linux-fsdevel-owner@vger.kernel.org
 To: Miklos Szeredi <miklos@szeredi.hu>
 Cc: Al Viro <viro@zeniv.linux.org.uk>, linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
+List-Id: linux-unionfs@vger.kernel.org
 
-This is needed for choosing between concurrent copyup
-using O_TMPFILE and legacy copyup using workdir+rename.
+Factor out some common vfs bits from do_tmpfile()
+to be used by overlayfs for concurrent copy up.
 
 Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- fs/overlayfs/overlayfs.h |  9 +++++++++
- fs/overlayfs/ovl_entry.h |  1 +
- fs/overlayfs/super.c     | 10 ++++++++++
- 3 files changed, 20 insertions(+)
+ fs/namei.c         | 66 +++++++++++++++++++++++++++++++++++-------------------
+ include/linux/fs.h |  3 +++
+ 2 files changed, 46 insertions(+), 23 deletions(-)
 
-diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-index 8af450b..d5984c4 100644
---- a/fs/overlayfs/overlayfs.h
-+++ b/fs/overlayfs/overlayfs.h
-@@ -127,6 +127,15 @@ static inline int ovl_do_whiteout(struct inode *dir, struct dentry *dentry)
- 	return err;
+diff --git a/fs/namei.c b/fs/namei.c
+index ad74877..3e7c7a6 100644
+--- a/fs/namei.c
++++ b/fs/namei.c
+@@ -3353,11 +3353,49 @@ static int do_last(struct nameidata *nd,
+ 	return error;
  }
  
-+static inline struct dentry *ovl_do_tmpfile(struct dentry *dentry, umode_t mode)
++struct dentry *vfs_tmpfile(struct inode *dir, struct dentry *dentry,
++			   umode_t mode, int open_flag)
 +{
-+	struct dentry *ret = vfs_tmpfile(dentry->d_inode, dentry, mode, 0);
-+	int err = IS_ERR(ret) ? PTR_ERR(ret) : 0;
++	static const struct qstr name = QSTR_INIT("/", 1);
++	struct dentry *child = NULL;
++	struct inode *inode;
++	int error;
 +
-+	pr_debug("tmpfile(%pd2, 0%o) = %i\n", dentry, mode, err);
-+	return ret;
++	/* we want directory to be writable */
++	error = inode_permission(dir, MAY_WRITE | MAY_EXEC);
++	if (error)
++		goto out_err;
++	error = -EOPNOTSUPP;
++	if (!dir->i_op->tmpfile)
++		goto out_err;
++	error = -ENOMEM;
++	child = d_alloc(dentry, &name);
++	if (unlikely(!child))
++		goto out_err;
++	error = dir->i_op->tmpfile(dir, child, mode);
++	if (error)
++		goto out_err;
++	error = -ENOENT;
++	inode = child->d_inode;
++	if (unlikely(!inode))
++		goto out_err;
++	if (!(open_flag & O_EXCL)) {
++		spin_lock(&inode->i_lock);
++		inode->i_state |= I_LINKABLE;
++		spin_unlock(&inode->i_lock);
++	}
++	return child;
++
++out_err:
++	dput(child);
++	return ERR_PTR(error);
 +}
++EXPORT_SYMBOL(vfs_tmpfile);
 +
- static inline struct inode *ovl_inode_real(struct inode *inode, bool *is_upper)
+ static int do_tmpfile(struct nameidata *nd, unsigned flags,
+ 		const struct open_flags *op,
+ 		struct file *file, int *opened)
  {
- 	unsigned long x = (unsigned long) READ_ONCE(inode->i_private);
-diff --git a/fs/overlayfs/ovl_entry.h b/fs/overlayfs/ovl_entry.h
-index d14bca1..65f24000 100644
---- a/fs/overlayfs/ovl_entry.h
-+++ b/fs/overlayfs/ovl_entry.h
-@@ -27,6 +27,7 @@ struct ovl_fs {
- 	struct ovl_config config;
- 	/* creds of process who forced instantiation of super block */
- 	const struct cred *creator_cred;
-+	bool tmpfile;
- };
+-	static const struct qstr name = QSTR_INIT("/", 1);
+ 	struct dentry *child;
+ 	struct inode *dir;
+ 	struct path path;
+@@ -3368,24 +3406,12 @@ static int do_tmpfile(struct nameidata *nd, unsigned flags,
+ 	if (unlikely(error))
+ 		goto out;
+ 	dir = path.dentry->d_inode;
+-	/* we want directory to be writable */
+-	error = inode_permission(dir, MAY_WRITE | MAY_EXEC);
+-	if (error)
+-		goto out2;
+-	if (!dir->i_op->tmpfile) {
+-		error = -EOPNOTSUPP;
+-		goto out2;
+-	}
+-	child = d_alloc(path.dentry, &name);
+-	if (unlikely(!child)) {
+-		error = -ENOMEM;
++	child = vfs_tmpfile(dir, path.dentry, op->mode, op->open_flag);
++	error = PTR_ERR(child);
++	if (unlikely(IS_ERR(child)))
+ 		goto out2;
+-	}
+ 	dput(path.dentry);
+ 	path.dentry = child;
+-	error = dir->i_op->tmpfile(dir, child, op->mode);
+-	if (error)
+-		goto out2;
+ 	audit_inode(nd->name, child, 0);
+ 	/* Don't check for other permissions, the inode was just created */
+ 	error = may_open(&path, 0, op->open_flag);
+@@ -3396,14 +3422,8 @@ static int do_tmpfile(struct nameidata *nd, unsigned flags,
+ 	if (error)
+ 		goto out2;
+ 	error = open_check_o_direct(file);
+-	if (error) {
++	if (error)
+ 		fput(file);
+-	} else if (!(op->open_flag & O_EXCL)) {
+-		struct inode *inode = file_inode(file);
+-		spin_lock(&inode->i_lock);
+-		inode->i_state |= I_LINKABLE;
+-		spin_unlock(&inode->i_lock);
+-	}
+ out2:
+ 	mnt_drop_write(path.mnt);
+ out:
+diff --git a/include/linux/fs.h b/include/linux/fs.h
+index 2ba0743..8c7cbcb 100644
+--- a/include/linux/fs.h
++++ b/include/linux/fs.h
+@@ -1561,6 +1561,9 @@ extern int vfs_unlink(struct inode *, struct dentry *, struct inode **);
+ extern int vfs_rename(struct inode *, struct dentry *, struct inode *, struct dentry *, struct inode **, unsigned int);
+ extern int vfs_whiteout(struct inode *, struct dentry *);
  
- /* private information held for every overlayfs dentry */
-diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-index 20f48ab..ff05065 100644
---- a/fs/overlayfs/super.c
-+++ b/fs/overlayfs/super.c
-@@ -825,6 +825,8 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
- 		 * creation of workdir in previous step.
- 		 */
- 		if (ufs->workdir) {
-+			struct dentry *temp;
++extern struct dentry *vfs_tmpfile(struct inode *dir, struct dentry *dentry,
++				  umode_t mode, int open_flag);
 +
- 			err = ovl_check_d_type_supported(&workpath);
- 			if (err < 0)
- 				goto out_put_workdir;
-@@ -836,6 +838,14 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
- 			 */
- 			if (!err)
- 				pr_warn("overlayfs: upper fs needs to support d_type.\n");
-+
-+			/* Check if upper/work fs supports O_TMPFILE */
-+			temp = ovl_do_tmpfile(ufs->workdir, S_IFREG | 0);
-+			ufs->tmpfile = !IS_ERR(temp);
-+			if (ufs->tmpfile)
-+				dput(temp);
-+			else
-+				pr_warn("overlayfs: upper fs does not support tmpfile.\n");
- 		}
- 	}
- 
+ /*
+  * VFS file helper functions.
+  */
 -- 
 2.7.4
+
