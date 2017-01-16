@@ -1,67 +1,115 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH v3 0/6] ovl: concurrent copy up
-Date: Mon, 16 Jan 2017 19:45:59 +0200
-Message-ID: <1484588765-9397-1-git-send-email-amir73il@gmail.com>
+Subject: [PATCH v3 5/6] ovl: introduce copy up waitqueue
+Date: Mon, 16 Jan 2017 19:46:04 +0200
+Message-ID: <1484588765-9397-6-git-send-email-amir73il@gmail.com>
+References: <1484588765-9397-1-git-send-email-amir73il@gmail.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:33127 "EHLO
-        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750770AbdAPRqV (ORCPT
+Received: from mail-wm0-f68.google.com ([74.125.82.68]:33310 "EHLO
+        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751051AbdAPRqe (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 16 Jan 2017 12:46:21 -0500
+        Mon, 16 Jan 2017 12:46:34 -0500
+In-Reply-To: <1484588765-9397-1-git-send-email-amir73il@gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: Miklos Szeredi <miklos@szeredi.hu>
 Cc: Al Viro <viro@zeniv.linux.org.uk>, linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
 
-Miklos,
+The overlay sb 'copyup_wq' and overlay inode 'copying' condition
+variable are about to replace the upper sb rename_lock, as finer
+grained synchronization objects for concurrent copy up.
 
-Your comments about vfs_tmpfile() were very valuable.
-This patchset looks more neat than v1.
+Suggested-by: Miklos Szeredi <miklos@szeredi.hu>
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+---
+ fs/overlayfs/overlayfs.h |  2 ++
+ fs/overlayfs/ovl_entry.h |  2 ++
+ fs/overlayfs/super.c     |  1 +
+ fs/overlayfs/util.c      | 30 ++++++++++++++++++++++++++++++
+ 4 files changed, 35 insertions(+)
 
-Patches 1 is the vfs_tmpfile() helper.
-
-Patches 2-4 implement copy up of regular file with the helper.
-
-Patch 5 is the waitqueue patch you sent me.
-
-Patch 6 puts the pieces together for concurrent copy up.
-
-Tested concurrent copy up with this simple test:
-$ touch /lower/{empty,4g}
-$ truncate -s 4g /lower/4g
-$ touch /mnt/4g &  # takes a while
-$ touch /mnt/empty # exits immediately
-$ touch /mnt/4g    # blocks until %1 completes and can be interrupted
-
-Tested vfs_tmpfile() with generic/004 and generic/389.
-
-Tested with the new overlay/021 which exercises concurrent copy up
-using 8 processes on 4 directories and 4K files.
-
-v2:
-- Move more code into vfs_tmpfile() helper
-- Withdraw the workdir = upperdir hack
-
-v1:
-- Initial version
-
-
-Amir Goldstein (6):
-  vfs: create vfs helper vfs_tmpfile()
-  ovl: check if upperdir fs supports O_TMPFILE
-  ovl: rearrange code in ovl_copy_up_locked()
-  ovl: copy up regular file using O_TMPFILE
-  ovl: introduce copy up waitqueue
-  ovl: concurrent copy up of regular files
-
- fs/namei.c               | 66 +++++++++++++++++++++++-------------
- fs/overlayfs/copy_up.c   | 88 +++++++++++++++++++++++++++++++++++-------------
- fs/overlayfs/overlayfs.h | 11 ++++++
- fs/overlayfs/ovl_entry.h |  3 ++
- fs/overlayfs/super.c     | 11 ++++++
- fs/overlayfs/util.c      | 30 +++++++++++++++++
- include/linux/fs.h       |  3 ++
- 7 files changed, 165 insertions(+), 47 deletions(-)
-
+diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
+index d5984c4..c997dc8 100644
+--- a/fs/overlayfs/overlayfs.h
++++ b/fs/overlayfs/overlayfs.h
+@@ -178,6 +178,8 @@ void ovl_dentry_version_inc(struct dentry *dentry);
+ u64 ovl_dentry_version_get(struct dentry *dentry);
+ bool ovl_is_whiteout(struct dentry *dentry);
+ struct file *ovl_path_open(struct path *path, int flags);
++int ovl_copy_up_start(struct dentry *dentry);
++void ovl_copy_up_end(struct dentry *dentry);
+ 
+ /* namei.c */
+ int ovl_path_next(int idx, struct dentry *dentry, struct path *path);
+diff --git a/fs/overlayfs/ovl_entry.h b/fs/overlayfs/ovl_entry.h
+index 65f24000..59614fa 100644
+--- a/fs/overlayfs/ovl_entry.h
++++ b/fs/overlayfs/ovl_entry.h
+@@ -28,6 +28,7 @@ struct ovl_fs {
+ 	/* creds of process who forced instantiation of super block */
+ 	const struct cred *creator_cred;
+ 	bool tmpfile;
++	wait_queue_head_t copyup_wq;
+ };
+ 
+ /* private information held for every overlayfs dentry */
+@@ -39,6 +40,7 @@ struct ovl_entry {
+ 			u64 version;
+ 			const char *redirect;
+ 			bool opaque;
++			bool copying;
+ 		};
+ 		struct rcu_head rcu;
+ 	};
+diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+index ff05065..6792bb7 100644
+--- a/fs/overlayfs/super.c
++++ b/fs/overlayfs/super.c
+@@ -708,6 +708,7 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
+ 	if (!ufs)
+ 		goto out;
+ 
++	init_waitqueue_head(&ufs->copyup_wq);
+ 	ufs->config.redirect_dir = ovl_redirect_dir_def;
+ 	err = ovl_parse_opt((char *) data, &ufs->config);
+ 	if (err)
+diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
+index 952286f..01157d6 100644
+--- a/fs/overlayfs/util.c
++++ b/fs/overlayfs/util.c
+@@ -263,3 +263,33 @@ struct file *ovl_path_open(struct path *path, int flags)
+ {
+ 	return dentry_open(path, flags | O_NOATIME, current_cred());
+ }
++
++int ovl_copy_up_start(struct dentry *dentry)
++{
++	struct ovl_fs *ofs = dentry->d_sb->s_fs_info;
++	struct ovl_entry *oe = dentry->d_fsdata;
++	int err;
++
++	spin_lock(&ofs->copyup_wq.lock);
++	err = wait_event_interruptible_locked(ofs->copyup_wq, !oe->copying);
++	if (!err) {
++		if (oe->__upperdentry)
++			err = 1; /* Already copied up */
++		else
++			oe->copying = true;
++	}
++	spin_unlock(&ofs->copyup_wq.lock);
++
++	return err;
++}
++
++void ovl_copy_up_end(struct dentry *dentry)
++{
++	struct ovl_fs *ofs = dentry->d_sb->s_fs_info;
++	struct ovl_entry *oe = dentry->d_fsdata;
++
++	spin_lock(&ofs->copyup_wq.lock);
++	oe->copying = false;
++	wake_up_locked(&ofs->copyup_wq);
++	spin_unlock(&ofs->copyup_wq.lock);
++}
 -- 
 2.7.4
