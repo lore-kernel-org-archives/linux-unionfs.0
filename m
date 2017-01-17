@@ -1,152 +1,85 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH v4 3/6] ovl: rearrange code in ovl_copy_up_locked()
-Date: Tue, 17 Jan 2017 06:34:54 +0200
-Message-ID: <1484627697-17262-4-git-send-email-amir73il@gmail.com>
+Subject: [PATCH v4 2/6] ovl: check if upperdir fs supports O_TMPFILE
+Date: Tue, 17 Jan 2017 06:34:53 +0200
+Message-ID: <1484627697-17262-3-git-send-email-amir73il@gmail.com>
 References: <1484627697-17262-1-git-send-email-amir73il@gmail.com>
-Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:36595 "EHLO
-        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751144AbdAQEg0 (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 16 Jan 2017 23:36:26 -0500
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
 In-Reply-To: <1484627697-17262-1-git-send-email-amir73il@gmail.com>
-Sender: linux-unionfs-owner@vger.kernel.org
-List-Id: linux-unionfs@vger.kernel.org
+Sender: linux-fsdevel-owner@vger.kernel.org
 To: Miklos Szeredi <miklos@szeredi.hu>
 Cc: Al Viro <viro@zeniv.linux.org.uk>, linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
+List-Id: linux-unionfs@vger.kernel.org
 
-As preparation to implementing copy up with O_TMPFILE,
-name the variable for dentry before final rename 'temp' and
-assign it to 'newdentry' only after rename.
-
-Also lookup upper dentry before looking up temp dentry and
-move ovl_set_timestamps() into ovl_copy_up_locked(), because
-that is going to be more convenient for upcoming change.
+This is needed for choosing between concurrent copyup
+using O_TMPFILE and legacy copyup using workdir+rename.
 
 Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- fs/overlayfs/copy_up.c | 49 +++++++++++++++++++++++++------------------------
- 1 file changed, 25 insertions(+), 24 deletions(-)
+ fs/overlayfs/overlayfs.h |  9 +++++++++
+ fs/overlayfs/ovl_entry.h |  1 +
+ fs/overlayfs/super.c     | 10 ++++++++++
+ 3 files changed, 20 insertions(+)
 
-diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
-index f57043d..01e3327 100644
---- a/fs/overlayfs/copy_up.c
-+++ b/fs/overlayfs/copy_up.c
-@@ -232,12 +232,14 @@ int ovl_set_attr(struct dentry *upperdentry, struct kstat *stat)
- 
- static int ovl_copy_up_locked(struct dentry *workdir, struct dentry *upperdir,
- 			      struct dentry *dentry, struct path *lowerpath,
--			      struct kstat *stat, const char *link)
-+			      struct kstat *stat, const char *link,
-+			      struct kstat *pstat)
- {
- 	struct inode *wdir = workdir->d_inode;
- 	struct inode *udir = upperdir->d_inode;
- 	struct dentry *newdentry = NULL;
- 	struct dentry *upper = NULL;
-+	struct dentry *temp = NULL;
- 	int err;
- 	const struct cred *old_creds = NULL;
- 	struct cred *new_creds = NULL;
-@@ -248,25 +250,25 @@ static int ovl_copy_up_locked(struct dentry *workdir, struct dentry *upperdir,
- 		.link = link
- 	};
- 
--	newdentry = ovl_lookup_temp(workdir, dentry);
--	err = PTR_ERR(newdentry);
--	if (IS_ERR(newdentry))
--		goto out;
--
- 	upper = lookup_one_len(dentry->d_name.name, upperdir,
- 			       dentry->d_name.len);
- 	err = PTR_ERR(upper);
- 	if (IS_ERR(upper))
--		goto out1;
-+		goto out;
- 
- 	err = security_inode_copy_up(dentry, &new_creds);
- 	if (err < 0)
--		goto out2;
-+		goto out1;
- 
- 	if (new_creds)
- 		old_creds = override_creds(new_creds);
- 
--	err = ovl_create_real(wdir, newdentry, &cattr, NULL, true);
-+	temp = ovl_lookup_temp(workdir, dentry);
-+	err = PTR_ERR(temp);
-+	if (IS_ERR(temp))
-+		goto out1;
-+
-+	err = ovl_create_real(wdir, temp, &cattr, NULL, true);
- 
- 	if (new_creds) {
- 		revert_creds(old_creds);
-@@ -281,39 +283,42 @@ static int ovl_copy_up_locked(struct dentry *workdir, struct dentry *upperdir,
- 
- 		ovl_path_upper(dentry, &upperpath);
- 		BUG_ON(upperpath.dentry != NULL);
--		upperpath.dentry = newdentry;
-+		upperpath.dentry = temp;
- 
- 		err = ovl_copy_up_data(lowerpath, &upperpath, stat->size);
- 		if (err)
- 			goto out_cleanup;
- 	}
- 
--	err = ovl_copy_xattr(lowerpath->dentry, newdentry);
-+	err = ovl_copy_xattr(lowerpath->dentry, temp);
- 	if (err)
- 		goto out_cleanup;
- 
--	inode_lock(newdentry->d_inode);
--	err = ovl_set_attr(newdentry, stat);
--	inode_unlock(newdentry->d_inode);
-+	inode_lock(temp->d_inode);
-+	err = ovl_set_attr(temp, stat);
-+	inode_unlock(temp->d_inode);
- 	if (err)
- 		goto out_cleanup;
- 
--	err = ovl_do_rename(wdir, newdentry, udir, upper, 0);
-+	err = ovl_do_rename(wdir, temp, udir, upper, 0);
- 	if (err)
- 		goto out_cleanup;
- 
-+	newdentry = dget(temp);
- 	ovl_dentry_update(dentry, newdentry);
- 	ovl_inode_update(d_inode(dentry), d_inode(newdentry));
--	newdentry = NULL;
-+
-+	/* Restore timestamps on parent (best effort) */
-+	ovl_set_timestamps(upperdir, pstat);
- out2:
--	dput(upper);
-+	dput(temp);
- out1:
--	dput(newdentry);
-+	dput(upper);
- out:
+diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
+index 8af450b..3822a90 100644
+--- a/fs/overlayfs/overlayfs.h
++++ b/fs/overlayfs/overlayfs.h
+@@ -127,6 +127,15 @@ static inline int ovl_do_whiteout(struct inode *dir, struct dentry *dentry)
  	return err;
- 
- out_cleanup:
--	ovl_cleanup(wdir, newdentry);
-+	ovl_cleanup(wdir, temp);
- 	goto out2;
  }
  
-@@ -368,11 +373,7 @@ static int ovl_copy_up_one(struct dentry *parent, struct dentry *dentry,
++static inline struct dentry *ovl_do_tmpfile(struct dentry *dentry, umode_t mode)
++{
++	struct dentry *ret = vfs_tmpfile(dentry, mode, 0);
++	int err = IS_ERR(ret) ? PTR_ERR(ret) : 0;
++
++	pr_debug("tmpfile(%pd2, 0%o) = %i\n", dentry, mode, err);
++	return ret;
++}
++
+ static inline struct inode *ovl_inode_real(struct inode *inode, bool *is_upper)
+ {
+ 	unsigned long x = (unsigned long) READ_ONCE(inode->i_private);
+diff --git a/fs/overlayfs/ovl_entry.h b/fs/overlayfs/ovl_entry.h
+index d14bca1..65f24000 100644
+--- a/fs/overlayfs/ovl_entry.h
++++ b/fs/overlayfs/ovl_entry.h
+@@ -27,6 +27,7 @@ struct ovl_fs {
+ 	struct ovl_config config;
+ 	/* creds of process who forced instantiation of super block */
+ 	const struct cred *creator_cred;
++	bool tmpfile;
+ };
+ 
+ /* private information held for every overlayfs dentry */
+diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+index 20f48ab..ff05065 100644
+--- a/fs/overlayfs/super.c
++++ b/fs/overlayfs/super.c
+@@ -825,6 +825,8 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
+ 		 * creation of workdir in previous step.
+ 		 */
+ 		if (ufs->workdir) {
++			struct dentry *temp;
++
+ 			err = ovl_check_d_type_supported(&workpath);
+ 			if (err < 0)
+ 				goto out_put_workdir;
+@@ -836,6 +838,14 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
+ 			 */
+ 			if (!err)
+ 				pr_warn("overlayfs: upper fs needs to support d_type.\n");
++
++			/* Check if upper/work fs supports O_TMPFILE */
++			temp = ovl_do_tmpfile(ufs->workdir, S_IFREG | 0);
++			ufs->tmpfile = !IS_ERR(temp);
++			if (ufs->tmpfile)
++				dput(temp);
++			else
++				pr_warn("overlayfs: upper fs does not support tmpfile.\n");
+ 		}
  	}
  
- 	err = ovl_copy_up_locked(workdir, upperdir, dentry, lowerpath,
--				 stat, link);
--	if (!err) {
--		/* Restore timestamps on parent (best effort) */
--		ovl_set_timestamps(upperdir, &pstat);
--	}
-+				 stat, link, &pstat);
- out_unlock:
- 	unlock_rename(workdir, upperdir);
- 	do_delayed_call(&done);
 -- 
 2.7.4
+
