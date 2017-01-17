@@ -1,116 +1,106 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH v4 4/6] ovl: copy up regular file using O_TMPFILE
-Date: Tue, 17 Jan 2017 06:34:55 +0200
-Message-ID: <1484627697-17262-5-git-send-email-amir73il@gmail.com>
-References: <1484627697-17262-1-git-send-email-amir73il@gmail.com>
+Subject: [PATCH] ovl: fix possible use after free on redirect dir lookup
+Date: Tue, 17 Jan 2017 14:34:58 +0200
+Message-ID: <1484656498-5265-1-git-send-email-amir73il@gmail.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wm0-f65.google.com ([74.125.82.65]:35189 "EHLO
-        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751146AbdAQEg0 (ORCPT
+Received: from mail-wm0-f68.google.com ([74.125.82.68]:35931 "EHLO
+        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751336AbdAQMfP (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 16 Jan 2017 23:36:26 -0500
-In-Reply-To: <1484627697-17262-1-git-send-email-amir73il@gmail.com>
+        Tue, 17 Jan 2017 07:35:15 -0500
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: Al Viro <viro@zeniv.linux.org.uk>, linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
+Cc: linux-unionfs@vger.kernel.org, "stable [v4.9]" <stable@vger.kernel.org>
 
-In preparation for concurrent copy up, implement copy up
-of regular file as O_TMPFILE that is linked to upperdir
-instead of a file in workdir that is moved to upperdir.
+ovl_lookup_layer() iterates on path elements of d->name.name
+but also frees and allocates a new pointer for d->name.name.
 
-Suggested-by: Al Viro <viro@zeniv.linux.org.uk>
+For the case of lookup in upper layer, the initial d->name.name
+pointer is stable (dentry->d_name), but for lower layers, the
+initial d->name.name can be d->redirect, which can be freed during
+iteration.
+
+Make a copy of initial d->name.name before iterating it and reset
+the iteration pointer to point inside the newly allocated d->redirect
+path after lookup of every element in the path.
+
+cc: stable [v4.9] <stable@vger.kernel.org>
 Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- fs/overlayfs/copy_up.c | 27 ++++++++++++++++++++-------
- 1 file changed, 20 insertions(+), 7 deletions(-)
 
-diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
-index 01e3327..6e39e90 100644
---- a/fs/overlayfs/copy_up.c
-+++ b/fs/overlayfs/copy_up.c
-@@ -20,6 +20,7 @@
- #include <linux/fdtable.h>
- #include <linux/ratelimit.h>
- #include "overlayfs.h"
-+#include "ovl_entry.h"
- 
- #define OVL_COPY_UP_CHUNK_SIZE (1 << 20)
- 
-@@ -233,7 +234,7 @@ int ovl_set_attr(struct dentry *upperdentry, struct kstat *stat)
- static int ovl_copy_up_locked(struct dentry *workdir, struct dentry *upperdir,
- 			      struct dentry *dentry, struct path *lowerpath,
- 			      struct kstat *stat, const char *link,
--			      struct kstat *pstat)
-+			      struct kstat *pstat, bool tmpfile)
+Miklos,
+
+I have not written a test case to prove this bug yet, just had
+a WTF moment while working on redirect_fh.
+
+Am I missing something??
+
+Will try to add a test case to reproduce.
+
+Amir.
+
+ fs/overlayfs/namei.c | 33 +++++++++++++++++++++++----------
+ 1 file changed, 23 insertions(+), 10 deletions(-)
+
+diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
+index 9ad48d9..9cb589c 100644
+--- a/fs/overlayfs/namei.c
++++ b/fs/overlayfs/namei.c
+@@ -154,6 +154,7 @@ static int ovl_lookup_single(struct dentry *base, struct ovl_lookup_data *d,
+ static int ovl_lookup_layer(struct dentry *base, struct ovl_lookup_data *d,
+ 			    struct dentry **ret)
  {
- 	struct inode *wdir = workdir->d_inode;
- 	struct inode *udir = upperdir->d_inode;
-@@ -263,12 +264,17 @@ static int ovl_copy_up_locked(struct dentry *workdir, struct dentry *upperdir,
- 	if (new_creds)
- 		old_creds = override_creds(new_creds);
++	struct qstr name = d->name;
+ 	const char *s = d->name.name;
+ 	struct dentry *dentry = NULL;
+ 	int err;
+@@ -162,24 +163,36 @@ static int ovl_lookup_layer(struct dentry *base, struct ovl_lookup_data *d,
+ 		return ovl_lookup_single(base, d, d->name.name, d->name.len,
+ 					 0, "", ret);
  
--	temp = ovl_lookup_temp(workdir, dentry);
-+	if (tmpfile)
-+		temp = ovl_do_tmpfile(upperdir, stat->mode);
-+	else
-+		temp = ovl_lookup_temp(workdir, dentry);
- 	err = PTR_ERR(temp);
- 	if (IS_ERR(temp))
- 		goto out1;
++	/* ovl_lookup_single() -> ovl_check_redirect() may free d->name.name */
++	s = name.name = kstrdup(d->name.name, GFP_KERNEL);
++	if (!s)
++		return -ENOMEM;
++
+ 	while (*s++ == '/' && !IS_ERR_OR_NULL(base) && d_can_lookup(base)) {
+-		const char *next = strchrnul(s, '/');
++		const char *post = strchrnul(s, '/');
+ 		size_t slen = strlen(s);
++		size_t postlen = slen - (post - s);
  
--	err = ovl_create_real(wdir, temp, &cattr, NULL, true);
+-		if (WARN_ON(slen > d->name.len) ||
+-		    WARN_ON(strcmp(d->name.name + d->name.len - slen, s)))
+-			return -EIO;
+-
+-		err = ovl_lookup_single(base, d, s, next - s,
+-					d->name.len - slen, next, &base);
++		err = ovl_lookup_single(base, d, s, post - s,
++					d->name.len - slen, post, &base);
+ 		dput(dentry);
+ 		if (err)
+-			return err;
++			goto out_err;
+ 		dentry = base;
+-		s = next;
++
++		/* d->name.name may be a new string with modified prefix */
++		s = d->name.name + d->name.len - postlen;
++		err = -EIO;
++		if (WARN_ON(postlen > name.len) ||
++		    WARN_ON(strcmp(name.name + name.len - postlen, s)))
++			goto out_err;
+ 	}
++
+ 	*ret = dentry;
+-	return 0;
 +	err = 0;
-+	if (!tmpfile)
-+		err = ovl_create_real(wdir, temp, &cattr, NULL, true);
- 
- 	if (new_creds) {
- 		revert_creds(old_creds);
-@@ -300,11 +306,14 @@ static int ovl_copy_up_locked(struct dentry *workdir, struct dentry *upperdir,
- 	if (err)
- 		goto out_cleanup;
- 
--	err = ovl_do_rename(wdir, temp, udir, upper, 0);
-+	if (tmpfile)
-+		err = ovl_do_link(temp, udir, upper, true);
-+	else
-+		err = ovl_do_rename(wdir, temp, udir, upper, 0);
- 	if (err)
- 		goto out_cleanup;
- 
--	newdentry = dget(temp);
-+	newdentry = dget(tmpfile ? upper : temp);
- 	ovl_dentry_update(dentry, newdentry);
- 	ovl_inode_update(d_inode(dentry), d_inode(newdentry));
- 
-@@ -318,7 +327,8 @@ static int ovl_copy_up_locked(struct dentry *workdir, struct dentry *upperdir,
- 	return err;
- 
- out_cleanup:
--	ovl_cleanup(wdir, temp);
-+	if (!tmpfile)
-+		ovl_cleanup(wdir, temp);
- 	goto out2;
++out_err:
++	kfree(name.name);
++	return err;
  }
  
-@@ -342,6 +352,9 @@ static int ovl_copy_up_one(struct dentry *parent, struct dentry *dentry,
- 	struct dentry *lowerdentry = lowerpath->dentry;
- 	struct dentry *upperdir;
- 	const char *link = NULL;
-+	struct ovl_fs *ofs = dentry->d_sb->s_fs_info;
-+	/* Should we copyup with O_TMPFILE or with workdir? */
-+	bool tmpfile = S_ISREG(stat->mode) && ofs->tmpfile;
- 
- 	if (WARN_ON(!workdir))
- 		return -EROFS;
-@@ -373,7 +386,7 @@ static int ovl_copy_up_one(struct dentry *parent, struct dentry *dentry,
- 	}
- 
- 	err = ovl_copy_up_locked(workdir, upperdir, dentry, lowerpath,
--				 stat, link, &pstat);
-+				 stat, link, &pstat, tmpfile);
- out_unlock:
- 	unlock_rename(workdir, upperdir);
- 	do_delayed_call(&done);
+ /*
 -- 
 2.7.4
