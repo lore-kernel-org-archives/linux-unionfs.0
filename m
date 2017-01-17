@@ -1,12 +1,12 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH v4 5/6] ovl: introduce copy up waitqueue
-Date: Tue, 17 Jan 2017 06:34:56 +0200
-Message-ID: <1484627697-17262-6-git-send-email-amir73il@gmail.com>
+Subject: [PATCH v4 1/6] vfs: create vfs helper vfs_tmpfile()
+Date: Tue, 17 Jan 2017 06:34:52 +0200
+Message-ID: <1484627697-17262-2-git-send-email-amir73il@gmail.com>
 References: <1484627697-17262-1-git-send-email-amir73il@gmail.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wm0-f67.google.com ([74.125.82.67]:35199 "EHLO
-        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751152AbdAQEg0 (ORCPT
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:34483 "EHLO
+        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751137AbdAQEg0 (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
         Mon, 16 Jan 2017 23:36:26 -0500
 In-Reply-To: <1484627697-17262-1-git-send-email-amir73il@gmail.com>
@@ -15,101 +15,131 @@ List-Id: linux-unionfs@vger.kernel.org
 To: Miklos Szeredi <miklos@szeredi.hu>
 Cc: Al Viro <viro@zeniv.linux.org.uk>, linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
 
-The overlay sb 'copyup_wq' and overlay inode 'copying' condition
-variable are about to replace the upper sb rename_lock, as finer
-grained synchronization objects for concurrent copy up.
+Factor out some common vfs bits from do_tmpfile()
+to be used by overlayfs for concurrent copy up.
 
-Suggested-by: Miklos Szeredi <miklos@szeredi.hu>
 Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+cc: Al Viro <viro@zeniv.linux.org.uk>
 ---
- fs/overlayfs/overlayfs.h |  2 ++
- fs/overlayfs/ovl_entry.h |  2 ++
- fs/overlayfs/super.c     |  1 +
- fs/overlayfs/util.c      | 30 ++++++++++++++++++++++++++++++
- 4 files changed, 35 insertions(+)
+ fs/namei.c         | 68 ++++++++++++++++++++++++++++++++++--------------------
+ include/linux/fs.h |  3 +++
+ 2 files changed, 46 insertions(+), 25 deletions(-)
 
-diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-index 3822a90..741dc0b 100644
---- a/fs/overlayfs/overlayfs.h
-+++ b/fs/overlayfs/overlayfs.h
-@@ -178,6 +178,8 @@ void ovl_dentry_version_inc(struct dentry *dentry);
- u64 ovl_dentry_version_get(struct dentry *dentry);
- bool ovl_is_whiteout(struct dentry *dentry);
- struct file *ovl_path_open(struct path *path, int flags);
-+int ovl_copy_up_start(struct dentry *dentry);
-+void ovl_copy_up_end(struct dentry *dentry);
- 
- /* namei.c */
- int ovl_path_next(int idx, struct dentry *dentry, struct path *path);
-diff --git a/fs/overlayfs/ovl_entry.h b/fs/overlayfs/ovl_entry.h
-index 65f24000..59614fa 100644
---- a/fs/overlayfs/ovl_entry.h
-+++ b/fs/overlayfs/ovl_entry.h
-@@ -28,6 +28,7 @@ struct ovl_fs {
- 	/* creds of process who forced instantiation of super block */
- 	const struct cred *creator_cred;
- 	bool tmpfile;
-+	wait_queue_head_t copyup_wq;
- };
- 
- /* private information held for every overlayfs dentry */
-@@ -39,6 +40,7 @@ struct ovl_entry {
- 			u64 version;
- 			const char *redirect;
- 			bool opaque;
-+			bool copying;
- 		};
- 		struct rcu_head rcu;
- 	};
-diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-index ff05065..6792bb7 100644
---- a/fs/overlayfs/super.c
-+++ b/fs/overlayfs/super.c
-@@ -708,6 +708,7 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
- 	if (!ufs)
- 		goto out;
- 
-+	init_waitqueue_head(&ufs->copyup_wq);
- 	ufs->config.redirect_dir = ovl_redirect_dir_def;
- 	err = ovl_parse_opt((char *) data, &ufs->config);
- 	if (err)
-diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
-index 952286f..01157d6 100644
---- a/fs/overlayfs/util.c
-+++ b/fs/overlayfs/util.c
-@@ -263,3 +263,33 @@ struct file *ovl_path_open(struct path *path, int flags)
- {
- 	return dentry_open(path, flags | O_NOATIME, current_cred());
+diff --git a/fs/namei.c b/fs/namei.c
+index ad74877..7d87699 100644
+--- a/fs/namei.c
++++ b/fs/namei.c
+@@ -3353,13 +3353,50 @@ static int do_last(struct nameidata *nd,
+ 	return error;
  }
-+
-+int ovl_copy_up_start(struct dentry *dentry)
+ 
++struct dentry *vfs_tmpfile(struct dentry *dentry, umode_t mode, int open_flag)
 +{
-+	struct ovl_fs *ofs = dentry->d_sb->s_fs_info;
-+	struct ovl_entry *oe = dentry->d_fsdata;
-+	int err;
++	static const struct qstr name = QSTR_INIT("/", 1);
++	struct dentry *child = NULL;
++	struct inode *dir = dentry->d_inode;
++	struct inode *inode;
++	int error;
 +
-+	spin_lock(&ofs->copyup_wq.lock);
-+	err = wait_event_interruptible_locked(ofs->copyup_wq, !oe->copying);
-+	if (!err) {
-+		if (oe->__upperdentry)
-+			err = 1; /* Already copied up */
-+		else
-+			oe->copying = true;
++	/* we want directory to be writable */
++	error = inode_permission(dir, MAY_WRITE | MAY_EXEC);
++	if (error)
++		goto out_err;
++	error = -EOPNOTSUPP;
++	if (!dir->i_op->tmpfile)
++		goto out_err;
++	error = -ENOMEM;
++	child = d_alloc(dentry, &name);
++	if (unlikely(!child))
++		goto out_err;
++	error = dir->i_op->tmpfile(dir, child, mode);
++	if (error)
++		goto out_err;
++	error = -ENOENT;
++	inode = child->d_inode;
++	if (unlikely(!inode))
++		goto out_err;
++	if (!(open_flag & O_EXCL)) {
++		spin_lock(&inode->i_lock);
++		inode->i_state |= I_LINKABLE;
++		spin_unlock(&inode->i_lock);
 +	}
-+	spin_unlock(&ofs->copyup_wq.lock);
++	return child;
 +
-+	return err;
++out_err:
++	dput(child);
++	return ERR_PTR(error);
 +}
++EXPORT_SYMBOL(vfs_tmpfile);
 +
-+void ovl_copy_up_end(struct dentry *dentry)
-+{
-+	struct ovl_fs *ofs = dentry->d_sb->s_fs_info;
-+	struct ovl_entry *oe = dentry->d_fsdata;
+ static int do_tmpfile(struct nameidata *nd, unsigned flags,
+ 		const struct open_flags *op,
+ 		struct file *file, int *opened)
+ {
+-	static const struct qstr name = QSTR_INIT("/", 1);
+ 	struct dentry *child;
+-	struct inode *dir;
+ 	struct path path;
+ 	int error = path_lookupat(nd, flags | LOOKUP_DIRECTORY, &path);
+ 	if (unlikely(error))
+@@ -3367,25 +3404,12 @@ static int do_tmpfile(struct nameidata *nd, unsigned flags,
+ 	error = mnt_want_write(path.mnt);
+ 	if (unlikely(error))
+ 		goto out;
+-	dir = path.dentry->d_inode;
+-	/* we want directory to be writable */
+-	error = inode_permission(dir, MAY_WRITE | MAY_EXEC);
+-	if (error)
+-		goto out2;
+-	if (!dir->i_op->tmpfile) {
+-		error = -EOPNOTSUPP;
+-		goto out2;
+-	}
+-	child = d_alloc(path.dentry, &name);
+-	if (unlikely(!child)) {
+-		error = -ENOMEM;
++	child = vfs_tmpfile(path.dentry, op->mode, op->open_flag);
++	error = PTR_ERR(child);
++	if (unlikely(IS_ERR(child)))
+ 		goto out2;
+-	}
+ 	dput(path.dentry);
+ 	path.dentry = child;
+-	error = dir->i_op->tmpfile(dir, child, op->mode);
+-	if (error)
+-		goto out2;
+ 	audit_inode(nd->name, child, 0);
+ 	/* Don't check for other permissions, the inode was just created */
+ 	error = may_open(&path, 0, op->open_flag);
+@@ -3396,14 +3420,8 @@ static int do_tmpfile(struct nameidata *nd, unsigned flags,
+ 	if (error)
+ 		goto out2;
+ 	error = open_check_o_direct(file);
+-	if (error) {
++	if (error)
+ 		fput(file);
+-	} else if (!(op->open_flag & O_EXCL)) {
+-		struct inode *inode = file_inode(file);
+-		spin_lock(&inode->i_lock);
+-		inode->i_state |= I_LINKABLE;
+-		spin_unlock(&inode->i_lock);
+-	}
+ out2:
+ 	mnt_drop_write(path.mnt);
+ out:
+diff --git a/include/linux/fs.h b/include/linux/fs.h
+index 2ba0743..4a7f3cc 100644
+--- a/include/linux/fs.h
++++ b/include/linux/fs.h
+@@ -1561,6 +1561,9 @@ extern int vfs_unlink(struct inode *, struct dentry *, struct inode **);
+ extern int vfs_rename(struct inode *, struct dentry *, struct inode *, struct dentry *, struct inode **, unsigned int);
+ extern int vfs_whiteout(struct inode *, struct dentry *);
+ 
++extern struct dentry *vfs_tmpfile(struct dentry *dentry, umode_t mode,
++				  int open_flag);
 +
-+	spin_lock(&ofs->copyup_wq.lock);
-+	oe->copying = false;
-+	wake_up_locked(&ofs->copyup_wq);
-+	spin_unlock(&ofs->copyup_wq.lock);
-+}
+ /*
+  * VFS file helper functions.
+  */
 -- 
 2.7.4
