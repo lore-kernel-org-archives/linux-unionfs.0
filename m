@@ -1,152 +1,152 @@
-From: Miklos Szeredi <miklos@szeredi.hu>
-Subject: Re: [PATCH v3 1/6] vfs: create vfs helper vfs_tmpfile()
-Date: Mon, 16 Jan 2017 20:47:32 +0100
-Message-ID: <CAJfpegsDzNot=z8oP7DecuXtNkYPYOejDWWXs6KjD6=Le=Wohg@mail.gmail.com>
-References: <1484588765-9397-1-git-send-email-amir73il@gmail.com> <1484588765-9397-2-git-send-email-amir73il@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
-In-Reply-To: <1484588765-9397-2-git-send-email-amir73il@gmail.com>
-Sender: linux-fsdevel-owner@vger.kernel.org
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>, linux-fsdevel@vger.kernel.org
+From: Amir Goldstein <amir73il@gmail.com>
+Subject: [PATCH v4 3/6] ovl: rearrange code in ovl_copy_up_locked()
+Date: Tue, 17 Jan 2017 06:34:54 +0200
+Message-ID: <1484627697-17262-4-git-send-email-amir73il@gmail.com>
+References: <1484627697-17262-1-git-send-email-amir73il@gmail.com>
+Return-path: <linux-unionfs-owner@vger.kernel.org>
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:36595 "EHLO
+        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751144AbdAQEg0 (ORCPT
+        <rfc822;linux-unionfs@vger.kernel.org>);
+        Mon, 16 Jan 2017 23:36:26 -0500
+In-Reply-To: <1484627697-17262-1-git-send-email-amir73il@gmail.com>
+Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: Al Viro <viro@zeniv.linux.org.uk>, linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
 
-On Mon, Jan 16, 2017 at 6:46 PM, Amir Goldstein <amir73il@gmail.com> wrote:
-> Factor out some common vfs bits from do_tmpfile()
-> to be used by overlayfs for concurrent copy up.
->
-> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
-> ---
->  fs/namei.c         | 66 +++++++++++++++++++++++++++++++++++-------------------
->  include/linux/fs.h |  3 +++
->  2 files changed, 46 insertions(+), 23 deletions(-)
->
-> diff --git a/fs/namei.c b/fs/namei.c
-> index ad74877..3e7c7a6 100644
-> --- a/fs/namei.c
-> +++ b/fs/namei.c
-> @@ -3353,11 +3353,49 @@ static int do_last(struct nameidata *nd,
->         return error;
->  }
->
-> +struct dentry *vfs_tmpfile(struct inode *dir, struct dentry *dentry,
+As preparation to implementing copy up with O_TMPFILE,
+name the variable for dentry before final rename 'temp' and
+assign it to 'newdentry' only after rename.
 
-dir and dentry refer to the same thing; can just pass the dentry.
+Also lookup upper dentry before looking up temp dentry and
+move ovl_set_timestamps() into ovl_copy_up_locked(), because
+that is going to be more convenient for upcoming change.
 
-> +                          umode_t mode, int open_flag)
-> +{
-> +       static const struct qstr name = QSTR_INIT("/", 1);
-> +       struct dentry *child = NULL;
-> +       struct inode *inode;
-> +       int error;
-> +
-> +       /* we want directory to be writable */
-> +       error = inode_permission(dir, MAY_WRITE | MAY_EXEC);
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+---
+ fs/overlayfs/copy_up.c | 49 +++++++++++++++++++++++++------------------------
+ 1 file changed, 25 insertions(+), 24 deletions(-)
 
-This is not in the scope of this patch, but shoudln't we be using
-may_create() here?   Or at least a variant without the audit thing...
-
-Al?
-
-Thanks,
-Miklos
-
-> +       if (error)
-> +               goto out_err;
-> +       error = -EOPNOTSUPP;
-> +       if (!dir->i_op->tmpfile)
-> +               goto out_err;
-> +       error = -ENOMEM;
-> +       child = d_alloc(dentry, &name);
-> +       if (unlikely(!child))
-> +               goto out_err;
-> +       error = dir->i_op->tmpfile(dir, child, mode);
-> +       if (error)
-> +               goto out_err;
-> +       error = -ENOENT;
-> +       inode = child->d_inode;
-> +       if (unlikely(!inode))
-> +               goto out_err;
-> +       if (!(open_flag & O_EXCL)) {
-> +               spin_lock(&inode->i_lock);
-> +               inode->i_state |= I_LINKABLE;
-> +               spin_unlock(&inode->i_lock);
-> +       }
-> +       return child;
-> +
-> +out_err:
-> +       dput(child);
-> +       return ERR_PTR(error);
-> +}
-> +EXPORT_SYMBOL(vfs_tmpfile);
-> +
->  static int do_tmpfile(struct nameidata *nd, unsigned flags,
->                 const struct open_flags *op,
->                 struct file *file, int *opened)
->  {
-> -       static const struct qstr name = QSTR_INIT("/", 1);
->         struct dentry *child;
->         struct inode *dir;
->         struct path path;
-> @@ -3368,24 +3406,12 @@ static int do_tmpfile(struct nameidata *nd, unsigned flags,
->         if (unlikely(error))
->                 goto out;
->         dir = path.dentry->d_inode;
-> -       /* we want directory to be writable */
-> -       error = inode_permission(dir, MAY_WRITE | MAY_EXEC);
-> -       if (error)
-> -               goto out2;
-> -       if (!dir->i_op->tmpfile) {
-> -               error = -EOPNOTSUPP;
-> -               goto out2;
-> -       }
-> -       child = d_alloc(path.dentry, &name);
-> -       if (unlikely(!child)) {
-> -               error = -ENOMEM;
-> +       child = vfs_tmpfile(dir, path.dentry, op->mode, op->open_flag);
-> +       error = PTR_ERR(child);
-> +       if (unlikely(IS_ERR(child)))
->                 goto out2;
-> -       }
->         dput(path.dentry);
->         path.dentry = child;
-> -       error = dir->i_op->tmpfile(dir, child, op->mode);
-> -       if (error)
-> -               goto out2;
->         audit_inode(nd->name, child, 0);
->         /* Don't check for other permissions, the inode was just created */
->         error = may_open(&path, 0, op->open_flag);
-> @@ -3396,14 +3422,8 @@ static int do_tmpfile(struct nameidata *nd, unsigned flags,
->         if (error)
->                 goto out2;
->         error = open_check_o_direct(file);
-> -       if (error) {
-> +       if (error)
->                 fput(file);
-> -       } else if (!(op->open_flag & O_EXCL)) {
-> -               struct inode *inode = file_inode(file);
-> -               spin_lock(&inode->i_lock);
-> -               inode->i_state |= I_LINKABLE;
-> -               spin_unlock(&inode->i_lock);
-> -       }
->  out2:
->         mnt_drop_write(path.mnt);
->  out:
-> diff --git a/include/linux/fs.h b/include/linux/fs.h
-> index 2ba0743..8c7cbcb 100644
-> --- a/include/linux/fs.h
-> +++ b/include/linux/fs.h
-> @@ -1561,6 +1561,9 @@ extern int vfs_unlink(struct inode *, struct dentry *, struct inode **);
->  extern int vfs_rename(struct inode *, struct dentry *, struct inode *, struct dentry *, struct inode **, unsigned int);
->  extern int vfs_whiteout(struct inode *, struct dentry *);
->
-> +extern struct dentry *vfs_tmpfile(struct inode *dir, struct dentry *dentry,
-> +                                 umode_t mode, int open_flag);
-> +
->  /*
->   * VFS file helper functions.
->   */
-> --
-> 2.7.4
->
+diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
+index f57043d..01e3327 100644
+--- a/fs/overlayfs/copy_up.c
++++ b/fs/overlayfs/copy_up.c
+@@ -232,12 +232,14 @@ int ovl_set_attr(struct dentry *upperdentry, struct kstat *stat)
+ 
+ static int ovl_copy_up_locked(struct dentry *workdir, struct dentry *upperdir,
+ 			      struct dentry *dentry, struct path *lowerpath,
+-			      struct kstat *stat, const char *link)
++			      struct kstat *stat, const char *link,
++			      struct kstat *pstat)
+ {
+ 	struct inode *wdir = workdir->d_inode;
+ 	struct inode *udir = upperdir->d_inode;
+ 	struct dentry *newdentry = NULL;
+ 	struct dentry *upper = NULL;
++	struct dentry *temp = NULL;
+ 	int err;
+ 	const struct cred *old_creds = NULL;
+ 	struct cred *new_creds = NULL;
+@@ -248,25 +250,25 @@ static int ovl_copy_up_locked(struct dentry *workdir, struct dentry *upperdir,
+ 		.link = link
+ 	};
+ 
+-	newdentry = ovl_lookup_temp(workdir, dentry);
+-	err = PTR_ERR(newdentry);
+-	if (IS_ERR(newdentry))
+-		goto out;
+-
+ 	upper = lookup_one_len(dentry->d_name.name, upperdir,
+ 			       dentry->d_name.len);
+ 	err = PTR_ERR(upper);
+ 	if (IS_ERR(upper))
+-		goto out1;
++		goto out;
+ 
+ 	err = security_inode_copy_up(dentry, &new_creds);
+ 	if (err < 0)
+-		goto out2;
++		goto out1;
+ 
+ 	if (new_creds)
+ 		old_creds = override_creds(new_creds);
+ 
+-	err = ovl_create_real(wdir, newdentry, &cattr, NULL, true);
++	temp = ovl_lookup_temp(workdir, dentry);
++	err = PTR_ERR(temp);
++	if (IS_ERR(temp))
++		goto out1;
++
++	err = ovl_create_real(wdir, temp, &cattr, NULL, true);
+ 
+ 	if (new_creds) {
+ 		revert_creds(old_creds);
+@@ -281,39 +283,42 @@ static int ovl_copy_up_locked(struct dentry *workdir, struct dentry *upperdir,
+ 
+ 		ovl_path_upper(dentry, &upperpath);
+ 		BUG_ON(upperpath.dentry != NULL);
+-		upperpath.dentry = newdentry;
++		upperpath.dentry = temp;
+ 
+ 		err = ovl_copy_up_data(lowerpath, &upperpath, stat->size);
+ 		if (err)
+ 			goto out_cleanup;
+ 	}
+ 
+-	err = ovl_copy_xattr(lowerpath->dentry, newdentry);
++	err = ovl_copy_xattr(lowerpath->dentry, temp);
+ 	if (err)
+ 		goto out_cleanup;
+ 
+-	inode_lock(newdentry->d_inode);
+-	err = ovl_set_attr(newdentry, stat);
+-	inode_unlock(newdentry->d_inode);
++	inode_lock(temp->d_inode);
++	err = ovl_set_attr(temp, stat);
++	inode_unlock(temp->d_inode);
+ 	if (err)
+ 		goto out_cleanup;
+ 
+-	err = ovl_do_rename(wdir, newdentry, udir, upper, 0);
++	err = ovl_do_rename(wdir, temp, udir, upper, 0);
+ 	if (err)
+ 		goto out_cleanup;
+ 
++	newdentry = dget(temp);
+ 	ovl_dentry_update(dentry, newdentry);
+ 	ovl_inode_update(d_inode(dentry), d_inode(newdentry));
+-	newdentry = NULL;
++
++	/* Restore timestamps on parent (best effort) */
++	ovl_set_timestamps(upperdir, pstat);
+ out2:
+-	dput(upper);
++	dput(temp);
+ out1:
+-	dput(newdentry);
++	dput(upper);
+ out:
+ 	return err;
+ 
+ out_cleanup:
+-	ovl_cleanup(wdir, newdentry);
++	ovl_cleanup(wdir, temp);
+ 	goto out2;
+ }
+ 
+@@ -368,11 +373,7 @@ static int ovl_copy_up_one(struct dentry *parent, struct dentry *dentry,
+ 	}
+ 
+ 	err = ovl_copy_up_locked(workdir, upperdir, dentry, lowerpath,
+-				 stat, link);
+-	if (!err) {
+-		/* Restore timestamps on parent (best effort) */
+-		ovl_set_timestamps(upperdir, &pstat);
+-	}
++				 stat, link, &pstat);
+ out_unlock:
+ 	unlock_rename(workdir, upperdir);
+ 	do_delayed_call(&done);
+-- 
+2.7.4
