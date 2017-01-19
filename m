@@ -1,35 +1,60 @@
-From: Miklos Szeredi <miklos@szeredi.hu>
-Subject: Re: [PATCH v2] ovl: fix possible use after free on redirect dir lookup
-Date: Wed, 18 Jan 2017 15:55:42 +0100
-Message-ID: <CAJfpegvmARfd-S6Zbqcru9z4EWf=BU2uBwdJhM-MRRD+_DEOdw@mail.gmail.com>
-References: <1484656498-5265-1-git-send-email-amir73il@gmail.com>
- <1484727330-7260-1-git-send-email-amir73il@gmail.com> <20170118103834.GG27207@veci.piliscsaba.szeredi.hu>
- <CAOQ4uxjihZFvNiJBf2DVKgJ6mVJwsNK0LPGtC-mtfd8g3AdnLA@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+From: Amir Goldstein <amir73il@gmail.com>
+Subject: [PATCH 1/2] ovl: support freeze/thaw super
+Date: Thu, 19 Jan 2017 14:13:27 +0200
+Message-ID: <1484828008-27507-2-git-send-email-amir73il@gmail.com>
+References: <1484828008-27507-1-git-send-email-amir73il@gmail.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-ot0-f178.google.com ([74.125.82.178]:35577 "EHLO
-        mail-ot0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753176AbdARPER (ORCPT
+Received: from mail-wm0-f65.google.com ([74.125.82.65]:36066 "EHLO
+        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752194AbdASMNu (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 18 Jan 2017 10:04:17 -0500
-Received: by mail-ot0-f178.google.com with SMTP id 65so10566803otq.2
-        for <linux-unionfs@vger.kernel.org>; Wed, 18 Jan 2017 07:04:17 -0800 (PST)
-In-Reply-To: <CAOQ4uxjihZFvNiJBf2DVKgJ6mVJwsNK0LPGtC-mtfd8g3AdnLA@mail.gmail.com>
+        Thu, 19 Jan 2017 07:13:50 -0500
+In-Reply-To: <1484828008-27507-1-git-send-email-amir73il@gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: Jan Kara <jack@suse.com>, Al Viro <viro@zeniv.linux.org.uk>, linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
 
-On Wed, Jan 18, 2017 at 12:40 PM, Amir Goldstein <amir73il@gmail.com> wrote:
-> On Wed, Jan 18, 2017 at 12:38 PM, Miklos Szeredi <miklos@szeredi.hu> wrote:
+freeze/thaw of upper is all that is needed.
 
->> Only compile tested.  Please let me know if this works or not.
->>
->
-> It works.
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+---
+ fs/overlayfs/super.c | 16 ++++++++++++++++
+ 1 file changed, 16 insertions(+)
 
-Asserts added and pushed.
-
-Thanks,
-Miklos
+diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+index 6792bb7..0f8a9c8 100644
+--- a/fs/overlayfs/super.c
++++ b/fs/overlayfs/super.c
+@@ -160,6 +160,20 @@ static void ovl_put_super(struct super_block *sb)
+ 	kfree(ufs);
+ }
+ 
++static int ovl_freeze(struct super_block *sb)
++{
++	struct ovl_fs *ufs = sb->s_fs_info;
++
++	return ufs->upper_mnt ? freeze_super(ufs->upper_mnt->mnt_sb) : 0;
++}
++
++static int ovl_unfreeze(struct super_block *sb)
++{
++	struct ovl_fs *ufs = sb->s_fs_info;
++
++	return ufs->upper_mnt ? thaw_super(ufs->upper_mnt->mnt_sb) : 0;
++}
++
+ /**
+  * ovl_statfs
+  * @sb: The overlayfs super block
+@@ -222,6 +236,8 @@ static int ovl_remount(struct super_block *sb, int *flags, char *data)
+ 
+ static const struct super_operations ovl_super_operations = {
+ 	.put_super	= ovl_put_super,
++	.freeze_fs	= ovl_freeze,
++	.unfreeze_fs	= ovl_unfreeze,
+ 	.statfs		= ovl_statfs,
+ 	.show_options	= ovl_show_options,
+ 	.remount_fs	= ovl_remount,
+-- 
+2.7.4
