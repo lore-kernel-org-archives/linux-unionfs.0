@@ -1,67 +1,58 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH 2/2] ovl: properly implement sync_filesystem()
-Date: Thu, 19 Jan 2017 14:13:28 +0200
-Message-ID: <1484828008-27507-3-git-send-email-amir73il@gmail.com>
+Subject: Re: [PATCH 0/2] overlayfs: support freeze/thaw/syncfs
+Date: Thu, 19 Jan 2017 21:03:12 +0200
+Message-ID: <CAOQ4uxiktC6xgZML8G6X56fTKV1bU9qY1CgvWSTODW9bvJPP0Q@mail.gmail.com>
 References: <1484828008-27507-1-git-send-email-amir73il@gmail.com>
-Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wm0-f65.google.com ([74.125.82.65]:33439 "EHLO
-        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752237AbdASMN4 (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 19 Jan 2017 07:13:56 -0500
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
 In-Reply-To: <1484828008-27507-1-git-send-email-amir73il@gmail.com>
-Sender: linux-unionfs-owner@vger.kernel.org
+Sender: linux-fsdevel-owner@vger.kernel.org
+To: Miklos Szeredi <miklos@szeredi.hu>, Jan Kara <jack@suse.com>
+Cc: linux-unionfs@vger.kernel.org, linux-fsdevel <linux-fsdevel@vger.kernel.org>
 List-Id: linux-unionfs@vger.kernel.org
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: Jan Kara <jack@suse.com>, Al Viro <viro@zeniv.linux.org.uk>, linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
 
-overlayfs syncs all inode pages on sync_filesystem(), but it also
-needs to call s_op->sync_fs() of upper fs for metadata sync.
+On Thu, Jan 19, 2017 at 2:13 PM, Amir Goldstein <amir73il@gmail.com> wrote:
+> Miklos,
+>
+> I implemented freeze/thaw of overlayfs, because I need it for
+> overlay snapshots (CoW decision is made before mnt_wat_write(upper)
+> and I need to serialize it with snapshot take).
+>
 
-This should fix correctness of syncfs(2) and fsfreeze(8).
+Miklos, Jan,
 
-Signed-off-by: Amir Goldstein <amir73il@gmail.com>
----
- fs/overlayfs/super.c | 20 ++++++++++++++++++++
- 1 file changed, 20 insertions(+)
+I would be grateful if you guys could help me clarify something wrt
+freezefs vs. remount.
+I hope you may be able to enlighten me with just the information
+provided in this email
+without having to dive into overlayfs snapshot details.
 
-diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-index 0f8a9c8..5dc1d42 100644
---- a/fs/overlayfs/super.c
-+++ b/fs/overlayfs/super.c
-@@ -160,6 +160,25 @@ static void ovl_put_super(struct super_block *sb)
- 	kfree(ufs);
- }
- 
-+static int ovl_sync_fs(struct super_block *sb, int wait)
-+{
-+	struct ovl_fs *ufs = sb->s_fs_info;
-+	struct super_block *upper_sb;
-+	int ret;
-+
-+	if (!ufs->upper_mnt)
-+		return 0;
-+	upper_sb = ufs->upper_mnt->mnt_sb;
-+	if (!upper_sb->s_op->sync_fs)
-+		return 0;
-+
-+	/* real inodes have already been synced by sync_filesystem(ovl_sb) */
-+	down_read(&upper_sb->s_umount);
-+	ret = upper_sb->s_op->sync_fs(upper_sb, wait);
-+	up_read(&upper_sb->s_umount);
-+	return ret;
-+}
-+
- static int ovl_freeze(struct super_block *sb)
- {
- 	struct ovl_fs *ufs = sb->s_fs_info;
-@@ -236,6 +255,7 @@ static int ovl_remount(struct super_block *sb, int *flags, char *data)
- 
- static const struct super_operations ovl_super_operations = {
- 	.put_super	= ovl_put_super,
-+	.sync_fs	= ovl_sync_fs,
- 	.freeze_fs	= ovl_freeze,
- 	.unfreeze_fs	= ovl_unfreeze,
- 	.statfs		= ovl_statfs,
--- 
-2.7.4
+I implemented 'snapshot take' for overlayfs snapshots using a command like:
+mount -o remount,snapshot=/snap/N /mnt
+
+The 'snapshot take' moment from overlayfs writers perspective is when
+a single pointer
+is modified via rcu_assign_pointer(ufs->__snapmnt, snapmnt):
+
+https://github.com/amir73il/linux/commit/f0d6759efb7a6281ecc55dcdf33837568f71d29a
+
+I chose to use the remount_fs() API because it is convenient and make sense from
+user POV, but I could also use some IOCTL API for snapshot take.
+
+For consistency of snapshot from application POV, I need to do:
+fsfreeze -f
+snapshot take
+fsfreeze -u
+
+But then I cannot use the remount_fs() API which requires that fs be unfrozen.
+
+Can you please explain why do_remount_sb() requires that fs be unfrozen?
+
+Would it be possible to relax this requirement depending on remount flags?
+
+The reason I ask is because overlay remount does not do any writes nor
+call mnt_want_write() for that matter.
+
+Thanks,
+Amir.
