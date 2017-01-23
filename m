@@ -1,79 +1,71 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [PATCH 1/2] ovl: support freeze/thaw super
-Date: Mon, 23 Jan 2017 10:47:41 +0200
-Message-ID: <CAOQ4uxg-i0SMXRTDdPS2GxWKUYDKAu30wT9bjXX1Gd2CzeJ2Yg@mail.gmail.com>
-References: <1484828008-27507-1-git-send-email-amir73il@gmail.com> <1484828008-27507-2-git-send-email-amir73il@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Subject: [RFC][PATCH v2 1/3] vfs: freeze protect overlay inode on file_start_write()
+Date: Mon, 23 Jan 2017 14:32:20 +0200
+Message-ID: <1485174742-15866-2-git-send-email-amir73il@gmail.com>
+References: <1485174742-15866-1-git-send-email-amir73il@gmail.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-oi0-f66.google.com ([209.85.218.66]:36205 "EHLO
-        mail-oi0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750703AbdAWIrm (ORCPT
+Received: from mail-wm0-f67.google.com ([74.125.82.67]:35482 "EHLO
+        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751207AbdAWMdM (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 23 Jan 2017 03:47:42 -0500
-In-Reply-To: <1484828008-27507-2-git-send-email-amir73il@gmail.com>
+        Mon, 23 Jan 2017 07:33:12 -0500
+In-Reply-To: <1485174742-15866-1-git-send-email-amir73il@gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: Jan Kara <jack@suse.com>, Al Viro <viro@zeniv.linux.org.uk>, linux-unionfs@vger.kernel.org, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Pavel Emelyanov <xemul@virtuozzo.com>
+Cc: Jan Kara <jack@suse.com>, Al Viro <viro@zeniv.linux.org.uk>, linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
 
-On Thu, Jan 19, 2017 at 2:13 PM, Amir Goldstein <amir73il@gmail.com> wrote:
-> freeze/thaw of upper is all that is needed.
->
+Before writing to overlay file, need to check if either overlay
+or upper fs are frozen.
+This allows freezing overlayfs mount independently of freezing
+underlying fs.
 
-Miklos,
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+---
+ include/linux/fs.h | 17 ++++++++++++++++-
+ 1 file changed, 16 insertions(+), 1 deletion(-)
 
-Looking at it again, I believe that not even that is needed.
-Having fixed ovl_sync_fs() with patch #2, ovl_freeze()
-and ovl_unfreeze() need to be NOP. Am I right?
-
-In fact, freezing upper fs, when many overlayfs mounts
-share the same base fs (a-la docker) would be quite lame.
-
-WRT other use cases of freezing overlayfs, I am not sure
-if it is needed for correctness of docker checkpoint/restart?
-
-Pavel?
-
-> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
-> ---
->  fs/overlayfs/super.c | 16 ++++++++++++++++
->  1 file changed, 16 insertions(+)
->
-> diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-> index 6792bb7..0f8a9c8 100644
-> --- a/fs/overlayfs/super.c
-> +++ b/fs/overlayfs/super.c
-> @@ -160,6 +160,20 @@ static void ovl_put_super(struct super_block *sb)
->         kfree(ufs);
->  }
->
-> +static int ovl_freeze(struct super_block *sb)
-> +{
-> +       struct ovl_fs *ufs = sb->s_fs_info;
-> +
-> +       return ufs->upper_mnt ? freeze_super(ufs->upper_mnt->mnt_sb) : 0;
-> +}
-> +
-> +static int ovl_unfreeze(struct super_block *sb)
-> +{
-> +       struct ovl_fs *ufs = sb->s_fs_info;
-> +
-> +       return ufs->upper_mnt ? thaw_super(ufs->upper_mnt->mnt_sb) : 0;
-> +}
-> +
->  /**
->   * ovl_statfs
->   * @sb: The overlayfs super block
-> @@ -222,6 +236,8 @@ static int ovl_remount(struct super_block *sb, int *flags, char *data)
->
->  static const struct super_operations ovl_super_operations = {
->         .put_super      = ovl_put_super,
-> +       .freeze_fs      = ovl_freeze,
-> +       .unfreeze_fs    = ovl_unfreeze,
->         .statfs         = ovl_statfs,
->         .show_options   = ovl_show_options,
->         .remount_fs     = ovl_remount,
-> --
-> 2.7.4
->
+diff --git a/include/linux/fs.h b/include/linux/fs.h
+index 4a7f3cc..71811be 100644
+--- a/include/linux/fs.h
++++ b/include/linux/fs.h
+@@ -2547,14 +2547,26 @@ static inline void file_start_write(struct file *file)
+ {
+ 	if (!S_ISREG(file_inode(file)->i_mode))
+ 		return;
++	__sb_start_write(locks_inode(file)->i_sb, SB_FREEZE_WRITE, true);
++	if (likely(locks_inode(file) == file_inode(file)))
++		return;
+ 	__sb_start_write(file_inode(file)->i_sb, SB_FREEZE_WRITE, true);
++
+ }
+ 
+ static inline bool file_start_write_trylock(struct file *file)
+ {
++	int ret;
++
+ 	if (!S_ISREG(file_inode(file)->i_mode))
+ 		return true;
+-	return __sb_start_write(file_inode(file)->i_sb, SB_FREEZE_WRITE, false);
++	ret = __sb_start_write(locks_inode(file)->i_sb, SB_FREEZE_WRITE, false);
++	if (!ret || likely(locks_inode(file) == file_inode(file)))
++		return ret;
++	ret = __sb_start_write(file_inode(file)->i_sb, SB_FREEZE_WRITE, false);
++	if (!ret)
++		__sb_end_write(locks_inode(file)->i_sb, SB_FREEZE_WRITE);
++	return ret;
+ }
+ 
+ static inline void file_end_write(struct file *file)
+@@ -2562,6 +2574,9 @@ static inline void file_end_write(struct file *file)
+ 	if (!S_ISREG(file_inode(file)->i_mode))
+ 		return;
+ 	__sb_end_write(file_inode(file)->i_sb, SB_FREEZE_WRITE);
++	if (likely(locks_inode(file) == file_inode(file)))
++		return;
++	__sb_end_write(locks_inode(file)->i_sb, SB_FREEZE_WRITE);
+ }
+ 
+ /*
+-- 
+2.7.4
