@@ -1,71 +1,84 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [RFC][PATCH v2 1/3] vfs: freeze protect overlay inode on file_start_write()
-Date: Mon, 23 Jan 2017 14:32:20 +0200
-Message-ID: <1485174742-15866-2-git-send-email-amir73il@gmail.com>
+Subject: [RFC][PATCH v2 2/3] ovl: properly implement sync_filesystem()
+Date: Mon, 23 Jan 2017 14:32:21 +0200
+Message-ID: <1485174742-15866-3-git-send-email-amir73il@gmail.com>
 References: <1485174742-15866-1-git-send-email-amir73il@gmail.com>
-Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wm0-f67.google.com ([74.125.82.67]:35482 "EHLO
-        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751207AbdAWMdM (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 23 Jan 2017 07:33:12 -0500
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
 In-Reply-To: <1485174742-15866-1-git-send-email-amir73il@gmail.com>
-Sender: linux-unionfs-owner@vger.kernel.org
-List-Id: linux-unionfs@vger.kernel.org
+Sender: linux-fsdevel-owner@vger.kernel.org
 To: Miklos Szeredi <miklos@szeredi.hu>
 Cc: Jan Kara <jack@suse.com>, Al Viro <viro@zeniv.linux.org.uk>, linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
+List-Id: linux-unionfs@vger.kernel.org
 
-Before writing to overlay file, need to check if either overlay
-or upper fs are frozen.
-This allows freezing overlayfs mount independently of freezing
-underlying fs.
+overlayfs syncs all inode pages on sync_filesystem(), but it also
+needs to call s_op->sync_fs() of upper fs for metadata sync.
+
+This fixes correctness of syncfs(2) as demonstrated by following
+xfs specific test:
+
+xfs_sync_stats()
+{
+	echo $1
+	echo -n "xfs_log_force = "
+	grep log /proc/fs/xfs/stat  | awk '{ print $5 }'
+}
+
+xfs_sync_stats "before touch"
+touch x
+xfs_sync_stats "after touch"
+xfs_io -c syncfs .
+xfs_sync_stats "after syncfs"
+xfs_io -c fsync x
+xfs_sync_stats "after fsync"
+xfs_io -c fsync x
+xfs_sync_stats "after fsync #2"
+
+When this test is run in overlay mount over xfs, log force
+count does not increase with syncfs command.
 
 Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- include/linux/fs.h | 17 ++++++++++++++++-
- 1 file changed, 16 insertions(+), 1 deletion(-)
+ fs/overlayfs/super.c | 20 ++++++++++++++++++++
+ 1 file changed, 20 insertions(+)
 
-diff --git a/include/linux/fs.h b/include/linux/fs.h
-index 4a7f3cc..71811be 100644
---- a/include/linux/fs.h
-+++ b/include/linux/fs.h
-@@ -2547,14 +2547,26 @@ static inline void file_start_write(struct file *file)
- {
- 	if (!S_ISREG(file_inode(file)->i_mode))
- 		return;
-+	__sb_start_write(locks_inode(file)->i_sb, SB_FREEZE_WRITE, true);
-+	if (likely(locks_inode(file) == file_inode(file)))
-+		return;
- 	__sb_start_write(file_inode(file)->i_sb, SB_FREEZE_WRITE, true);
-+
+diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+index 6792bb7..346f668 100644
+--- a/fs/overlayfs/super.c
++++ b/fs/overlayfs/super.c
+@@ -160,6 +160,25 @@ static void ovl_put_super(struct super_block *sb)
+ 	kfree(ufs);
  }
  
- static inline bool file_start_write_trylock(struct file *file)
- {
++static int ovl_sync_fs(struct super_block *sb, int wait)
++{
++	struct ovl_fs *ufs = sb->s_fs_info;
++	struct super_block *upper_sb;
 +	int ret;
 +
- 	if (!S_ISREG(file_inode(file)->i_mode))
- 		return true;
--	return __sb_start_write(file_inode(file)->i_sb, SB_FREEZE_WRITE, false);
-+	ret = __sb_start_write(locks_inode(file)->i_sb, SB_FREEZE_WRITE, false);
-+	if (!ret || likely(locks_inode(file) == file_inode(file)))
-+		return ret;
-+	ret = __sb_start_write(file_inode(file)->i_sb, SB_FREEZE_WRITE, false);
-+	if (!ret)
-+		__sb_end_write(locks_inode(file)->i_sb, SB_FREEZE_WRITE);
++	if (!ufs->upper_mnt)
++		return 0;
++	upper_sb = ufs->upper_mnt->mnt_sb;
++	if (!upper_sb->s_op->sync_fs)
++		return 0;
++
++	/* real inodes have already been synced by sync_filesystem(ovl_sb) */
++	down_read(&upper_sb->s_umount);
++	ret = upper_sb->s_op->sync_fs(upper_sb, wait);
++	up_read(&upper_sb->s_umount);
 +	return ret;
- }
++}
++
+ /**
+  * ovl_statfs
+  * @sb: The overlayfs super block
+@@ -222,6 +241,7 @@ static int ovl_remount(struct super_block *sb, int *flags, char *data)
  
- static inline void file_end_write(struct file *file)
-@@ -2562,6 +2574,9 @@ static inline void file_end_write(struct file *file)
- 	if (!S_ISREG(file_inode(file)->i_mode))
- 		return;
- 	__sb_end_write(file_inode(file)->i_sb, SB_FREEZE_WRITE);
-+	if (likely(locks_inode(file) == file_inode(file)))
-+		return;
-+	__sb_end_write(locks_inode(file)->i_sb, SB_FREEZE_WRITE);
- }
- 
- /*
+ static const struct super_operations ovl_super_operations = {
+ 	.put_super	= ovl_put_super,
++	.sync_fs	= ovl_sync_fs,
+ 	.statfs		= ovl_statfs,
+ 	.show_options	= ovl_show_options,
+ 	.remount_fs	= ovl_remount,
 -- 
 2.7.4
+
