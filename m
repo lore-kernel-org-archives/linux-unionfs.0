@@ -1,68 +1,104 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [RFC][PATCH v2 4/4] vfs: wrap write f_ops with file_{start,end}_write()
-Date: Fri, 27 Jan 2017 19:29:00 +0200
-Message-ID: <CAOQ4uxgiNMt_2yoh4w92GGoHZ1T9dnoCVDhoqe8dX0sKCkpd7w@mail.gmail.com>
-References: <1485174742-15866-2-git-send-email-amir73il@gmail.com>
- <1485200596-14057-1-git-send-email-amir73il@gmail.com> <CAJfpegsL3P-2k=dSWP9XiWKZA3Ywbo0a8TSQ_uS9RkJjqRywRQ@mail.gmail.com>
- <CAOQ4uxhKFgp3Qhm_TnLrkzSzGkxa4iiOzZ+sejVXLXcCqGPEYg@mail.gmail.com> <CAOQ4uxiVvhkqg5dUjRvvXr1d9K46Wp8yoXg4+abShdH0ae71NA@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-ot0-f194.google.com ([74.125.82.194]:35601 "EHLO
-        mail-ot0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934062AbdA0R3L (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 27 Jan 2017 12:29:11 -0500
-In-Reply-To: <CAOQ4uxiVvhkqg5dUjRvvXr1d9K46Wp8yoXg4+abShdH0ae71NA@mail.gmail.com>
-Sender: linux-unionfs-owner@vger.kernel.org
+Subject: [PATCH v3] ovl: properly implement sync_fs()
+Date: Fri, 27 Jan 2017 19:41:29 +0200
+Message-ID: <1485538889-14240-1-git-send-email-amir73il@gmail.com>
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
+Sender: linux-fsdevel-owner@vger.kernel.org
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: Jan Kara <jack@suse.com>, Christoph Hellwig <hch@lst.de>, Al Viro <viro@zeniv.linux.org.uk>, linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Miklos Szeredi <miklos@szeredi.hu>, "Michael Kerrisk (man-pages)" <mtk.manpages@gmail.com>
-Cc: Jan Kara <jack@suse.com>, Al Viro <viro@zeniv.linux.org.uk>, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Christoph Hellwig <hch@lst.de>, "Darrick J. Wong" <darrick.wong@oracle.com>
 
-On Fri, Jan 27, 2017 at 6:20 PM, Amir Goldstein <amir73il@gmail.com> wrote:
-> On Fri, Jan 27, 2017 at 1:50 PM, Amir Goldstein <amir73il@gmail.com> wrote:
->> On Fri, Jan 27, 2017 at 1:09 PM, Miklos Szeredi <miklos@szeredi.hu> wrote:
->>> On Mon, Jan 23, 2017 at 8:43 PM, Amir Goldstein <amir73il@gmail.com> wrote:
->>>> Before calling write f_ops, call file_start_write() instead
->>>> of sb_start_write().
->>>>
->>>> This ensures freeze protection for both overlay and upper fs
->>>> when file is open from an overlayfs mount.
->>>>
->>>> Replace {sb,file}_start_write() for {copy,clone}_file_range() and
->>>> for fallocate().
->>>>
+overlayfs syncs all inode pages on sync_filesystem(), but it also
+needs to call s_op->sync_fs() of upper fs for metadata sync.
 
+This fixes correctness of syncfs(2) as demonstrated by following
+xfs specific test:
 
-Oh boy! there is more.
+xfs_sync_stats()
+{
+	echo $1
+	echo -n "xfs_log_force = "
+	grep log /proc/fs/xfs/stat  | awk '{ print $5 }'
+}
 
-IIUC, file_start_write() is in order were write to regular file should get
-freeze protection and write to special file should not.
+xfs_sync_stats "before touch"
+touch x
+xfs_sync_stats "after touch"
+xfs_io -c syncfs .
+xfs_sync_stats "after syncfs"
+xfs_io -c fsync x
+xfs_sync_stats "after fsync"
+xfs_io -c fsync x
+xfs_sync_stats "after fsync #2"
 
-So after eliminating dedup_range from this patch, from the 3 remaining ops:
-fallocate(), clone_file_range() and copy_file_range() all have nice stories.
+When this test is run in overlay mount over xfs, log force
+count does not increase with syncfs command.
 
-fallocate() can operate or regular file directory and blockdev.
-blockdev does not call for freeze protection, if we use file_start_write()
-fs that supports fallocate on directory (anybody?) will not get freeze
-protection.
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+---
+ fs/overlayfs/super.c | 20 ++++++++++++++++++++
+ 1 file changed, 20 insertions(+)
 
-clone_file_range() operates only on regular file, so file_start_write() seems
-in order. especially if clone_range() is ever extended to operate on blockdev,
-which does not sound such a far fetched idea.
+Miklos,
 
-copy_file_range() looks like it was meant to operate only on regular files,
-but neither syscall nor vfs helper actually check that.
+Re-posting this one proven bug fix detached from the overlay freeze series
+that needs more work.
 
-Jan,
-Would it make sense to add directory to file types for which file_start_write()
-gets freeze protection to cover the fallocate() case correctly?
+If you have some free cycles, I would love to get some feedback on
+the change "vfs: freeze protect overlay inode on file_start_write()"
 
-Christoph,
-To your understanding, is it correct to add the IS_REG check in
-vfs_copy_file_range()?
+Thanks,
+Amir.
 
-Michael,
-man page for copy_file_range(2) does not explicitly mention regular files
-but it seems implied and also EINVAL does not mention the case of
-fd is not a regular file, which is how xfs (and probably other fs too) respond.
+v3:
+- Added reviewed-by hch
+- Detached from ovl freeze series
+
+v2:
+- Add test case to commit msg
+
+v1:
+- Same code as v3
+
+diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+index 6792bb7..346f668 100644
+--- a/fs/overlayfs/super.c
++++ b/fs/overlayfs/super.c
+@@ -160,6 +160,25 @@ static void ovl_put_super(struct super_block *sb)
+ 	kfree(ufs);
+ }
+ 
++static int ovl_sync_fs(struct super_block *sb, int wait)
++{
++	struct ovl_fs *ufs = sb->s_fs_info;
++	struct super_block *upper_sb;
++	int ret;
++
++	if (!ufs->upper_mnt)
++		return 0;
++	upper_sb = ufs->upper_mnt->mnt_sb;
++	if (!upper_sb->s_op->sync_fs)
++		return 0;
++
++	/* real inodes have already been synced by sync_filesystem(ovl_sb) */
++	down_read(&upper_sb->s_umount);
++	ret = upper_sb->s_op->sync_fs(upper_sb, wait);
++	up_read(&upper_sb->s_umount);
++	return ret;
++}
++
+ /**
+  * ovl_statfs
+  * @sb: The overlayfs super block
+@@ -222,6 +241,7 @@ static int ovl_remount(struct super_block *sb, int *flags, char *data)
+ 
+ static const struct super_operations ovl_super_operations = {
+ 	.put_super	= ovl_put_super,
++	.sync_fs	= ovl_sync_fs,
+ 	.statfs		= ovl_statfs,
+ 	.show_options	= ovl_show_options,
+ 	.remount_fs	= ovl_remount,
+-- 
+2.7.4
+
