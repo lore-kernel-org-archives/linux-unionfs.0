@@ -1,28 +1,225 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [PATCH 2/2] ovl: properly implement sync_filesystem()
-Date: Wed, 25 Jan 2017 19:51:02 +0200
-Message-ID: <CAOQ4uxgN=VMQHBfT155S8upa7wF4g-bwNqLT+s225bAZeHkPtg@mail.gmail.com>
-References: <1484828008-27507-1-git-send-email-amir73il@gmail.com>
- <1484828008-27507-3-git-send-email-amir73il@gmail.com> <20170124171454.GA31414@infradead.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
-In-Reply-To: <20170124171454.GA31414@infradead.org>
-Sender: linux-fsdevel-owner@vger.kernel.org
-To: Christoph Hellwig <hch@infradead.org>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, Jan Kara <jack@suse.com>, Al Viro <viro@zeniv.linux.org.uk>, linux-unionfs@vger.kernel.org, linux-fsdevel <linux-fsdevel@vger.kernel.org>
+Subject: [PATCH v2 3/3] overlay: mount/unmount base fs before/after running tests
+Date: Fri, 27 Jan 2017 10:56:05 +0200
+Message-ID: <1485507365-29012-4-git-send-email-amir73il@gmail.com>
+References: <1485507365-29012-1-git-send-email-amir73il@gmail.com>
+Return-path: <linux-unionfs-owner@vger.kernel.org>
+Received: from mail-wm0-f65.google.com ([74.125.82.65]:33031 "EHLO
+        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754581AbdA0JXe (ORCPT
+        <rfc822;linux-unionfs@vger.kernel.org>);
+        Fri, 27 Jan 2017 04:23:34 -0500
+In-Reply-To: <1485507365-29012-1-git-send-email-amir73il@gmail.com>
+Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
+To: Eryu Guan <eguan@redhat.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, fstests@vger.kernel.org
 
-On Tue, Jan 24, 2017 at 7:14 PM, Christoph Hellwig <hch@infradead.org> wrote:
-> s/sync_filesystem()/->sync_fs/ in the subject?
->
+Optionally configure TEST/SCRATCH_BASE_DEV, for overlay base fs
+to be mounted/unmounted before/after running tests. For example:
 
-Sure. Thanks.
++export TEST_BASE_DEV=/dev/mapper/base-test
+export TEST_BASE_MNT=/mnt/base/test
++export SCRATCH_BASE_DEV=/dev/mapper/base-scratch
+export SCRATCH_BASE_MNT=/mnt/base/scratch
+export TEST_DIR=/mnt/test
+export SCRATCH_MNT=/mnt/scratch
+export FSTYP=overlay
 
-Just waiting for feedback from Miklos before I decide if I re-post
-with or without
- overlay freeze support.
+With this change, the base fs is mounted before running tests,
+unmounted after running tests and recycled on _test_cycle_mount
+along with the overlay mounts.
+This helps catching overlayfs bugs related to leaking objects in
+underlying (base) fs.
 
-> Otherwise this looks fine to me:
->
-> Reviewed-by: Christoph Hellwig <hch@lst.de>
+The standard way that overlay tests work is:
+- _scratch_mkfs
+- setup lower/upper dir files
+- _scratch_mount (or custom overlay mount)
+- (sometimes) _scratch_unmount/_scratch_mount recycle
+
+To preserve expected tests behavior, the semantics are:
+- _scratch_mkfs mounts the base fs, cleans the lower/upper dirs and
+  keeps base fs mounted.
+- _scratch_mount mounts or recycles base fs and mounts overlay
+- _scratch_unmount unmounts overlay and base fs
+
+Tests that use _scratch_unmount to unmount a custom overlay mount
+and expect to have access to overlay base dir, were converted to use
+explicit umount $SCRATCH_MNT instead.
+---
+ common/config     |  6 +++++-
+ common/rc         | 42 ++++++++++++++++++++++++++++++++++++++++++
+ tests/overlay/003 |  3 ++-
+ tests/overlay/004 |  3 ++-
+ tests/overlay/014 |  5 +++--
+ 5 files changed, 54 insertions(+), 5 deletions(-)
+
+diff --git a/common/config b/common/config
+index db5721c..f431a8d 100644
+--- a/common/config
++++ b/common/config
+@@ -35,7 +35,9 @@
+ # RMT_TAPE_DEV -    the remote tape device for the xfsdump tests
+ # RMT_IRIXTAPE_DEV- the IRIX remote tape device for the xfsdump tests
+ # RMT_TAPE_USER -   remote user for tape device
++# TEST_BASE_DEV -   device for base fs containing overlay test dirs
+ # TEST_BASE_MNT -   mount point for base fs of overlay test dirs
++# SCRATCH_BASE_DEV- device for base fs containing overlay scratch dirs
+ # SCRATCH_BASE_MNT- mount point for base fs of overlay scratch dirs
+ #
+ # - These can be added to $HOST_CONFIG_DIR (witch default to ./config)
+@@ -470,11 +472,12 @@ _config_overlay()
+ 	[ -z "$TEST_DEV" ] || export TEST_BASE_DIR="$TEST_DEV"
+ 	[ -z "$SCRATCH_DEV" ] || export SCRATCH_BASE_DIR="$SCRATCH_DEV"
+ 
+-	# 2. set SCRATCH/TEST_BASE_MNT to configure base fs.
++	# 2. set SCRATCH/TEST_BASE_DEV/MNT to configure base fs.
+ 	#    SCRATCH/TEST_DEV are derived from SCRATCH/TEST_BASE_MNT
+ 	#    and therein, overlay fs directories will be created.
+ 	[ -n "$TEST_BASE_MNT" ] || return
+ 
++	_check_device TEST_BASE_DEV optional $TEST_BASE_DEV
+ 	if [ ! -d "$TEST_BASE_MNT" ]; then
+ 		echo "common/config: Error: \$TEST_BASE_MNT ($TEST_BASE_MNT) is not a directory"
+ 		exit 1
+@@ -486,6 +489,7 @@ _config_overlay()
+ 
+ 	[ -n "$SCRATCH_BASE_MNT" ] || return
+ 
++	_check_device SCRATCH_BASE_DEV optional $SCRATCH_BASE_DEV
+ 	if [ ! -d "$SCRATCH_BASE_MNT" ]; then
+ 		echo "common/config: Error: \$SCRATCH_BASE_MNT ($SCRATCH_BASE_MNT) is not a directory"
+ 		exit 1
+diff --git a/common/rc b/common/rc
+index f5ab869..5033ed4 100644
+--- a/common/rc
++++ b/common/rc
+@@ -320,24 +320,62 @@ _overlay_mount()
+ 			    $SELINUX_MOUNT_OPTIONS $* $dir $mnt
+ }
+ 
++_overlay_test_base_mount()
++{
++	if [ -n "$TEST_BASE_DEV" -a -n "$TEST_BASE_MNT" ]; then
++		_mount $TEST_BASE_MOUNT_OPTIONS \
++			$SELINUX_MOUNT_OPTIONS \
++			$TEST_BASE_DEV $TEST_BASE_MNT
++	fi
++}
++
+ _overlay_test_mount()
+ {
++	_overlay_test_base_mount
+ 	_overlay_mount $TEST_BASE_DIR $TEST_DIR $*
+ }
+ 
++_overlay_scratch_base_mount()
++{
++	if [ -n "$SCRATCH_BASE_DEV" -a -n "$SCRATCH_BASE_MNT" ]; then
++		_mount $SCRATCH_BASE_MOUNT_OPTIONS \
++			$SELINUX_MOUNT_OPTIONS \
++			$SCRATCH_BASE_DEV $SCRATCH_BASE_MNT
++	fi
++}
++
++_overlay_scratch_base_unmount()
++{
++	if [ -n "$SCRATCH_BASE_DEV" -a -n "$SCRATCH_BASE_MNT" ]; then
++		$UMOUNT_PROG $SCRATCH_BASE_MNT
++	fi
++}
++
+ _overlay_scratch_mount()
+ {
++	# base fs may be mounted after overlay mkfs
++	_overlay_scratch_base_unmount 2>/dev/null
++	_overlay_scratch_base_mount
+ 	_overlay_mount $SCRATCH_BASE_DIR $SCRATCH_MNT $*
+ }
+ 
++_overlay_test_base_unmount()
++{
++	if [ -n "$TEST_BASE_DEV" -a -n "$TEST_BASE_MNT" ]; then
++		$UMOUNT_PROG $TEST_BASE_MNT
++	fi
++}
++
+ _overlay_test_unmount()
+ {
+ 	$UMOUNT_PROG $TEST_DIR
++	_overlay_test_base_unmount
+ }
+ 
+ _overlay_scratch_unmount()
+ {
+ 	$UMOUNT_PROG $SCRATCH_MNT
++	_overlay_scratch_base_unmount
+ }
+ 
+ _scratch_mount()
+@@ -643,7 +681,11 @@ _scratch_cleanup_files()
+ 	overlay)
+ 		# Avoid rm -rf /* if we messed up
+ 		[ -n "$SCRATCH_BASE_DIR" ] || return
++		# overlay 'mkfs' needs to make sure base fs is mounted and clean
++		_overlay_scratch_base_unmount 2>/dev/null
++		_overlay_scratch_base_mount
+ 		rm -rf $SCRATCH_BASE_DIR/*
++		# leave base fs mouted so tests can setup lower dir
+ 		;;
+ 	*)
+ 		[ -n "$SCRATCH_MNT" ] || return
+diff --git a/tests/overlay/003 b/tests/overlay/003
+index bb59700..81aea85 100755
+--- a/tests/overlay/003
++++ b/tests/overlay/003
+@@ -89,7 +89,8 @@ rm -rf ${SCRATCH_MNT}/*
+ # nothing should be listed
+ ls ${SCRATCH_MNT}/
+ 
+-_scratch_unmount
++# unmount overlayfs but not base fs
++$UMOUNT_PROG $SCRATCH_MNT
+ 
+ rm -rf $lowerdir
+ echo "Silence is golden"
+diff --git a/tests/overlay/004 b/tests/overlay/004
+index 6d78f9f..26ac547 100755
+--- a/tests/overlay/004
++++ b/tests/overlay/004
+@@ -85,7 +85,8 @@ _user_do "chmod g+t ${SCRATCH_MNT}/attr_file2 > /dev/null 2>&1"
+ _user_do "chmod u-X ${SCRATCH_MNT}/attr_file2 > /dev/null 2>&1"
+ stat -c %a ${SCRATCH_MNT}/attr_file2
+ 
+-_scratch_unmount
++# unmount overlayfs but not base fs
++$UMOUNT_PROG $SCRATCH_MNT
+ 
+ # check mode bits of the file that has been copied up, and
+ # the file that should not have been copied up.
+diff --git a/tests/overlay/014 b/tests/overlay/014
+index 7426c31..6519432 100755
+--- a/tests/overlay/014
++++ b/tests/overlay/014
+@@ -73,7 +73,8 @@ mkdir -p $lowerdir1/testdir/d
+ _overlay_mount_dirs $lowerdir1 $lowerdir2 $workdir $SCRATCH_BASE_DIR $SCRATCH_MNT
+ rm -rf $SCRATCH_MNT/testdir
+ mkdir -p $SCRATCH_MNT/testdir/visibledir
+-_scratch_unmount
++# unmount overlayfs but not base fs
++$UMOUNT_PROG $SCRATCH_MNT
+ 
+ # mount overlay again, with lowerdir1 and lowerdir2 as multiple lowerdirs,
+ # and create a new file in testdir, triggers copyup from lowerdir,
+@@ -84,7 +85,7 @@ touch $SCRATCH_MNT/testdir/visiblefile
+ 
+ # umount and mount overlay again, buggy kernel treats the copied-up dir as
+ # opaque, visibledir is not seen in merged dir.
+-_scratch_unmount
++$UMOUNT_PROG $SCRATCH_MNT
+ _overlay_mount_dirs "$lowerdir2:$lowerdir1" $upperdir $workdir \
+ 		    $SCRATCH_BASE_DIR $SCRATCH_MNT
+ ls $SCRATCH_MNT/testdir
+-- 
+2.7.4
