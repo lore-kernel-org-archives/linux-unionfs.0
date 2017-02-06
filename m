@@ -1,47 +1,44 @@
-From: Jan Kara <jack@suse.cz>
-Subject: Re: [PATCH 0/2] overlayfs: support freeze/thaw/syncfs
-Date: Fri, 20 Jan 2017 09:50:35 +0100
-Message-ID: <20170120085035.GC14115@quack2.suse.cz>
-References: <1484828008-27507-1-git-send-email-amir73il@gmail.com>
+From: "zhangyi (F)" <yi.zhang@huawei.com>
+Subject: ovlfs: cannot read latest data from read only fd
+Date: Mon, 6 Feb 2017 20:32:36 +0800
+Message-ID: <f2adbe41-8896-ce9c-32e1-219c43e3f85a@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1484828008-27507-1-git-send-email-amir73il@gmail.com>
-Sender: linux-fsdevel-owner@vger.kernel.org
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, Jan Kara <jack@suse.com>, Al Viro <viro@zeniv.linux.org.uk>, linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
+Content-Type: text/plain; charset="gbk"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-unionfs-owner@vger.kernel.org>
+Received: from szxga03-in.huawei.com ([119.145.14.66]:17456 "EHLO
+        szxga03-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751468AbdBFMc4 (ORCPT
+        <rfc822;linux-unionfs@vger.kernel.org>);
+        Mon, 6 Feb 2017 07:32:56 -0500
+Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
+To: linux-unionfs@vger.kernel.org, miklos@szeredi.hu
+Cc: yi.zhang@huawei.com, miaoxie@huawei.com, yuchangchun1@huawei.com
 
-Hi,
+Hi:
+We found that we cannot read the latest data from an opened file(eg: "testfile") in overlayfs
+which was opened in read-only mode(this file was originally located in the lowerdir and
+mapped in the mergedir, and then was copied to upperdir when someone added some data later).
 
-On Thu 19-01-17 14:13:26, Amir Goldstein wrote:
-> I implemented freeze/thaw of overlayfs, because I need it for
-> overlay snapshots (CoW decision is made before mnt_wat_write(upper)
-> and I need to serialize it with snapshot take).
-> 
-> Not sure if there are other use cases for overlayfs freeze??
-> 
-> Tested freeze stress with xfstest generic/068 generic/390.
-> 
-> While staring at the code, I realized that syncfs(2) for overlayfs
-> seems broken.  It looks like only inodes are synced and upper fs
-> metadata is not being flushed, but I could be wrong.
-> 
-> Tested sync sanity with -g quick (although no test calls syncfs directly).
-> Tested the usual unionmount sanity over xfs and over tmpfs.
-> 
-> I am not sure exactly how to write a test case to verify this alleged
-> breakage?
-> 
-> Jan,
-> 
-> Can you please have a look?
+	For example:
 
-So I don't really understand overlayfs but from my 10000 feet view your
-changes make sense to me...
+	lower: testfile(empty)
+	upper: empty
+	work: empty
+	merge: empty
+	
+	mount -t overlay -o lowerdir=lower,upperdir=upper,workdir=work overlayfs merge
 
-								Honza
--- 
-Jan Kara <jack@suse.com>
-SUSE Labs, CR
+	1) fd1 = open("merge/testfile", O_RDONLY);
+	2) fd2 = open("merge/testfile", O_WRONLY | O_APPEND);
+           then we write some new data to fd2.
+	3) read data form fd1.
+
+	expect results: we read data which was written used by fd2.
+	reality results: nothing.
+
+We cannot read data from the copied file in the upperdir use fd1, so do we need to fix it?
+
+Thanks,
+zhangyi
