@@ -1,122 +1,164 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH v3 0/9] fstests: new way to run overlay tests
-Date: Sun, 12 Feb 2017 22:43:35 +0200
-Message-ID: <1486932224-17075-1-git-send-email-amir73il@gmail.com>
+Subject: [PATCH v3 1/9] fstests: sanity check that test partitions are not mounted elsewhere
+Date: Sun, 12 Feb 2017 22:43:36 +0200
+Message-ID: <1486932224-17075-2-git-send-email-amir73il@gmail.com>
+References: <1486932224-17075-1-git-send-email-amir73il@gmail.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wr0-f196.google.com ([209.85.128.196]:34225 "EHLO
-        mail-wr0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750882AbdBLUny (ORCPT
+Received: from mail-wr0-f194.google.com ([209.85.128.194]:36523 "EHLO
+        mail-wr0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751000AbdBLUnz (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Sun, 12 Feb 2017 15:43:54 -0500
+        Sun, 12 Feb 2017 15:43:55 -0500
+In-Reply-To: <1486932224-17075-1-git-send-email-amir73il@gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: Eryu Guan <eguan@redhat.com>
 Cc: Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, fstests@vger.kernel.org
 
-Hi Eryu and all,
+When $TEST_DEV is mounted at a different location then $TEST_DIR,
+_require_test() aborts the test with an error:
+ TEST_DEV=/dev/sda5 is mounted but not on TEST_DIR=/mnt/test
 
-The reason I started this work was to help catch overlayfs bugs
-related to leaking objects in underlying (base) fs.
+There are several problems with current sanity check:
+1. the output of the error is mixed into out.bad and hard to see
+2. the test partition is unmounted at the end of the test regardless
+   of the fact that it not pass the sanity that we have exclusivity
+3. scratch partition has a similar sanity check in _require_scratch(),
+   but we may not get to it, because $SCRATCH_DEV is unmounted prior
+   to running the tests (which could unmount another mount point).
 
-As a by-product, following Eryu's comments on v2, configuring
-xfstest to run overlay tests over any file system is now easier then ever.
+To solve all these problems, introduce a helper _check_mounted_on().
+It checks if a device is mounted on a given mount point and optionally
+checks the mounted fs type.
 
-With this change, all you have to do to run overlay tests if you
-already have a local.config setup to test a local file system is:
- ./check -overlay
+The sanity checks in _require_scratch() and _require_test() are
+converted to use the helper and gain the check for correct fs type.
 
-It uses existing local.config that was setup to run tests on
-the base fs (e.g. xfs) and you can run './check' and './check -overlay'
-without re-formatting the test partitions and without changing the
-config file.
+The helper is used in init_rc() to sanity check both test and scratch
+partitions, before tests are run and before $SCRATCH_DEV is unmounted.
 
-The legacy overlayfs configuration, where TEST_DEV is a directory
-still works, but it should be deprecated.
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+---
+ common/rc | 83 +++++++++++++++++++++++++++++++++++++--------------------------
+ 1 file changed, 49 insertions(+), 34 deletions(-)
 
-I tested ./check -overlay -g quick with both legacy overlay configuration
-and the new base fs configuration.
-
-Until now, overlay test configuration was not documented at all.
-I updated README per Eryu's request and tried to keep the documentation
-short and simple.
-
-Also updated README.config-sections with an easy example how to
-interleave overlay tests on every base fs in the multi section config
-file.
-
-I honestly think that it is important for file system developers these days,
-to test changes to their file systems with -overlay, to verify no breakage
-is caused when their file systems are used as base fs to overlay containers.
-I dare to say, that it is probably more important than testing 1k block size,
-which most of the maintainers do test with regularly.
-
-Some of the bugs I fixed in patches 1-3 indicate that people have not
-been 'stress testing' the xfstest config file and all of its gloious
-configurable options.  I tried to run with some basic configurations
-to check my changes, but I doubt that I have covered more then a small
-fraction of the configurations that people are using.
-
-I would very much appreciate if anyone could test these changes with their
-own set of configuration, with or without adding overlay tests into the mix.
-You can get the branch for testing from my github tree [1].
-
-Thanks,
-Amir.
-
-[1] https://github.com/amir73il/xfstests/tree/ovl_base_fs
-
-v3:
-- Mount cycle base test fs
-- Fix bugs in non overlay specific sanity checks
-- Run -overlay test with existing config file of base fs
-- Run overlay tests per base fs by adding overlay config sections
-
-v2:
-- Test and scratch base dirs each have thier own base fs
-- Support mount cycles of base fs for scratch tests
-
-v1:
-- Both test and scratch base dirs on a single base fs
-
-
-Amir Goldstein (9):
-  fstests: sanity check that test partitions are not mounted elsewhere
-  fstests: use _test_mount() consistently
-  fstests: canonicalize mount points on every config section
-  overlay: rename OVERLAY_LOWER/UPPER/WORK_DIR
-  overlay: allow SCRATCH_DEV to be the base fs mount point
-  overlay: configure TEST/SCRATCH vars to base fs
-  overlay: use OVL_BASE_SCRATCH_MNT instead of SCRATCH_DEV
-  overlay: fix test and scratch filters for overlay base fs
-  overlay: mount/unmount base fs before/after running tests
-
- README                 |  16 +++--
- README.config-sections |   6 ++
- check                  |  24 +++----
- common/config          | 121 +++++++++++++++++++++++++++-----
- common/filter          |   7 +-
- common/rc              | 184 +++++++++++++++++++++++++++++++++++--------------
- tests/overlay/001      |   7 +-
- tests/overlay/002      |   2 +-
- tests/overlay/003      |   5 +-
- tests/overlay/004      |   7 +-
- tests/overlay/005      |  30 ++++----
- tests/overlay/006      |  10 +--
- tests/overlay/008      |   8 +--
- tests/overlay/009      |   2 +-
- tests/overlay/010      |  10 +--
- tests/overlay/011      |   6 +-
- tests/overlay/012      |   4 +-
- tests/overlay/013      |   4 +-
- tests/overlay/014      |  19 ++---
- tests/overlay/015      |   2 +-
- tests/overlay/016      |   2 +-
- tests/overlay/017      |   2 +-
- tests/overlay/018      |   2 +-
- tests/overlay/019      |   2 +-
- tests/overlay/020      |   2 +-
- tests/overlay/021      |   6 +-
- 26 files changed, 333 insertions(+), 157 deletions(-)
-
+diff --git a/common/rc b/common/rc
+index 76515e2..d831b17 100644
+--- a/common/rc
++++ b/common/rc
+@@ -1319,6 +1319,43 @@ _supported_os()
+     _notrun "not suitable for this OS: $HOSTOS"
+ }
+ 
++# check if a FS on a device is mounted
++# if so, verify that it is mounted on mount point
++# if fstype is given as argument, verify that it is also
++# mounted with correct fs type
++#
++_check_mounted_on()
++{
++	local devname=$1
++	local dev=$2
++	local mntname=$3
++	local mnt=$4
++	local type=$5
++
++	# Note that we use -F here so grep doesn't try to interpret an NFS over
++	# IPv6 server as a regular expression
++	local mount_rec=`_mount | grep -F "$dev"`
++	[ -n "$mount_rec" ] || return 1
++
++	# if it's mounted, make sure its on $mnt
++	if ! (echo $mount_rec | grep -q "$mnt")
++	then
++		echo "$devname=$dev is mounted but not on $mntname=$mnt - aborting"
++		echo "Already mounted result:"
++		echo $mount_rec
++		exit 1
++	fi
++
++	if [ -n "$type" -a "`_fs_type $dev`" != "$type" ]
++	then
++		echo "$devname=$dev is mounted but not a type $type filesystem"
++		# raw $DF_PROG cannot handle NFS/CIFS/overlay correctly
++		_df_device $dev
++		exit 1
++	fi
++	return 0
++}
++
+ # this test needs a scratch partition - check we're ok & unmount it
+ # No post-test check of the device is required. e.g. the test intentionally
+ # finishes the test with the filesystem in a corrupt state
+@@ -1373,21 +1410,9 @@ _require_scratch_nocheck()
+ 		 ;;
+     esac
+ 
+-    # mounted?
+-    # Note that we use -F here so grep doesn't try to interpret an NFS over
+-    # IPv6 server as a regular expression.
+-    mount_rec=`_mount | grep -F $SCRATCH_DEV`
+-    if [ "$mount_rec" ]
++    if _check_mounted_on SCRATCH_DEV $SCRATCH_DEV SCRATCH_MNT $SCRATCH_MNT
+     then
+-        # if it's mounted, make sure its on $SCRATCH_MNT
+-        if ! echo $mount_rec | grep -q $SCRATCH_MNT
+-        then
+-            echo "\$SCRATCH_DEV=$SCRATCH_DEV is mounted but not on \$SCRATCH_MNT=$SCRATCH_MNT - aborting"
+-            echo "Already mounted result:"
+-            echo $mount_rec
+-            exit 1
+-        fi
+-        # and then unmount it
++        # if it's mounted, unmount it
+         if ! _scratch_unmount
+         then
+             echo "failed to unmount $SCRATCH_DEV"
+@@ -1458,21 +1483,8 @@ _require_test()
+ 		 ;;
+     esac
+ 
+-    # mounted?
+-    # Note that we use -F here so grep doesn't try to interpret an NFS over
+-    # IPv6 server as a regular expression.
+-    mount_rec=`_mount | grep -F $TEST_DEV`
+-    if [ "$mount_rec" ]
++    if ! _check_mounted_on TEST_DEV $TEST_DEV TEST_DIR $TEST_DIR
+     then
+-        # if it's mounted, make sure its on $TEST_DIR
+-        if ! echo $mount_rec | grep -q $TEST_DIR
+-        then
+-            echo "\$TEST_DEV=$TEST_DEV is mounted but not on \$TEST_DIR=$TEST_DIR - aborting"
+-            echo "Already mounted result:"
+-            echo $mount_rec
+-            exit 1
+-        fi
+-    else
+ 	out=`_mount_or_remount_rw "$MOUNT_OPTIONS" $TEST_DEV $TEST_DIR`
+ 	if [ $? -ne 1 ]; then
+ 		echo $out
+@@ -3075,13 +3087,16 @@ init_rc()
+ 		fi
+ 	fi
+ 
+-	if [ "`_fs_type $TEST_DEV`" != "$FSTYP" ]
+-	then
+-		echo "common/rc: Error: \$TEST_DEV ($TEST_DEV) is not a MOUNTED $FSTYP filesystem"
+-		# raw $DF_PROG cannot handle NFS/CIFS/overlay correctly
+-		_df_device $TEST_DEV
+-		exit 1
++	# Sanity check that TEST partition is not mounted at another mount point
++	# or as another fs type
++	_check_mounted_on TEST_DEV $TEST_DEV TEST_DIR $TEST_DIR $FSTYP
++	if [ -n "$SCRATCH_DEV" ]; then
++		# Sanity check that SCRATCH partition is not mounted at another
++		# mount point, because it is about to be unmounted and formatted.
++		# Another fs type for scratch is fine (bye bye old fs type).
++		_check_mounted_on SCRATCH_DEV $SCRATCH_DEV SCRATCH_MNT $SCRATCH_MNT
+ 	fi
++
+ 	# Figure out if we need to add -F ("foreign", deprecated) option to xfs_io
+ 	$XFS_IO_PROG -c stat $TEST_DIR 2>&1 | grep -q "is not on an XFS filesystem" && \
+ 		export XFS_IO_PROG="$XFS_IO_PROG -F"
 -- 
 2.7.4
