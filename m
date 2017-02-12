@@ -1,7 +1,7 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH v3 2/9] fstests: use _test_mount() consistently
-Date: Sun, 12 Feb 2017 22:43:37 +0200
-Message-ID: <1486932224-17075-3-git-send-email-amir73il@gmail.com>
+Subject: [PATCH v3 5/9] overlay: allow SCRATCH_DEV to be the base fs mount point
+Date: Sun, 12 Feb 2017 22:43:40 +0200
+Message-ID: <1486932224-17075-6-git-send-email-amir73il@gmail.com>
 References: <1486932224-17075-1-git-send-email-amir73il@gmail.com>
 Return-path: <fstests-owner@vger.kernel.org>
 In-Reply-To: <1486932224-17075-1-git-send-email-amir73il@gmail.com>
@@ -10,102 +10,44 @@ To: Eryu Guan <eguan@redhat.com>
 Cc: Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, fstests@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 
-On start of every test run and on every test, in init_rc() helper,
-the test partition is verified to be mounted, or is mounted by
-the helper _test_mount().
+When configure SCRATCH_DEV to a mount point (and not to a directory therein)
+then user will get a false positive error in scratch tests:
 
-_test_mount() uses mount options $TEST_FS_MOUNT_OPTS and not
-$MOUNT_OPTIONS like _scratch_mount() does.
+ $SCRATCH_DEV=/mnt/base/scratch is mounted but not on $SCRATCH_MNT=/mnt/scratch
+ Already mounted result:
+ /dev/sda6 on /mnt/base/scratch type xfs (rw,relatime,attr2,inode64,noquota)
 
-_test_cycle_mount(), which is called by some tests uses the
-_test_mount() helper as well.
-
-Contrary to those cases, in _require_test() helper, if test
-partition is not mounted, the helper _mount_or_remount_rw()
-is called to mount the test partition with $MOUNT_OPTIONS.
-Although this should never happen, because of the test in
-init_rc(), this case is inconsistent with the rest of the code,
-so it has been changed to use _test_mount() as it should.
-
-When running tests with a multi section configuration, and
-either FSTYP or MOUNT_OPTIONS change between sections, the
-helper _test_unmount() is called to unmount the old test mount
-and then _mount_or_remount_rw() is called to mount it again
-with new FSTYP and/or MOUNT_OPTIONS.
-This is again inconsistent with the rest of the code, so
-was changed to use _test_mount() and instead of checking
-if MOUNT_OPTIONS have changed between sections, we check if
-TEST_FS_MOUNT_OPTS were changed between sections.
-Otherwise, we can leave the test partition mounted.
-
-This change is needed to support overlay base fs mount
-and for multi section config files which include overlay FSTYP.
+This is due to the wrong `grep -F $SCRATCH_DEV` which matches the mount
+point instead of the device in that mount.
+Fix _check_mounted_on() to grep the pattern "$dev on " and "$dev on $mnt"
+instead of just grepping for "$dev" and "$mnt" without the " on " anchor.
 
 Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- check     | 22 ++++++++++------------
- common/rc |  6 +++---
- 2 files changed, 13 insertions(+), 15 deletions(-)
+ common/rc | 8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
-diff --git a/check b/check
-index 5a93c94..ec9798a 100755
---- a/check
-+++ b/check
-@@ -474,7 +474,7 @@ fi
- 
- for section in $HOST_OPTIONS_SECTIONS; do
- 	OLD_FSTYP=$FSTYP
--	OLD_MOUNT_OPTIONS=$MOUNT_OPTIONS
-+	OLD_TEST_FS_MOUNT_OPTS=$TEST_FS_MOUNT_OPTS
- 	get_next_config $section
- 
- 	# Do we need to run only some sections ?
-@@ -527,20 +527,18 @@ for section in $HOST_OPTIONS_SECTIONS; do
- 			status=1
- 			exit
- 		fi
--		out=`_mount_or_remount_rw "$MOUNT_OPTIONS" $TEST_DEV $TEST_DIR`
--		if [ $? -ne 1 ]; then
--			echo $out
--			status=1
--			exit
-+		if ! _test_mount
-+		then
-+			echo "check: failed to mount $TEST_DEV on $TEST_DIR"
-+			exit 1
- 		fi
- 		_prepare_test_list
--	elif [ "$OLD_MOUNT_OPTIONS" != "$MOUNT_OPTIONS" ]; then
-+	elif [ "$OLD_TEST_FS_MOUNT_OPTS" != "$TEST_FS_MOUNT_OPTS" ]; then
- 		_test_unmount 2> /dev/null
--		out=`_mount_or_remount_rw "$MOUNT_OPTIONS" $TEST_DEV $TEST_DIR`
--		if [ $? -ne 1 ]; then
--			echo $out
--			status=1
--			exit
-+		if ! _test_mount
-+		then
-+			echo "check: failed to mount $TEST_DEV on $TEST_DIR"
-+			exit 1
- 		fi
- 	fi
- 
 diff --git a/common/rc b/common/rc
-index d831b17..00afb31 100644
+index 2827ff4..4e0cbdf 100644
 --- a/common/rc
 +++ b/common/rc
-@@ -1485,9 +1485,9 @@ _require_test()
+@@ -1340,12 +1340,14 @@ _check_mounted_on()
+ 	local type=$5
  
-     if ! _check_mounted_on TEST_DEV $TEST_DEV TEST_DIR $TEST_DIR
-     then
--	out=`_mount_or_remount_rw "$MOUNT_OPTIONS" $TEST_DEV $TEST_DIR`
--	if [ $? -ne 1 ]; then
--		echo $out
-+	if ! _test_mount
-+	then
-+		echo "!!! failed to mount $TEST_DEV on $TEST_DIR"
- 		exit 1
- 	fi
-     fi
+ 	# Note that we use -F here so grep doesn't try to interpret an NFS over
+-	# IPv6 server as a regular expression
+-	local mount_rec=`_mount | grep -F "$dev"`
++	# IPv6 server as a regular expression.  Because of that, we cannot use
++	# ^$dev so we use "$dev on " to avoid matching $dev to mount point field
++	# for overlay case, where $dev is a directory.
++	local mount_rec=`_mount | grep -F "$dev on "`
+ 	[ -n "$mount_rec" ] || return 1
+ 
+ 	# if it's mounted, make sure its on $mnt
+-	if ! (echo $mount_rec | grep -q "$mnt")
++	if ! (echo $mount_rec | grep -q "$dev on $mnt")
+ 	then
+ 		echo "$devname=$dev is mounted but not on $mntname=$mnt - aborting"
+ 		echo "Already mounted result:"
 -- 
 2.7.4
