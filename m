@@ -1,109 +1,89 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [PATCH v3 6/9] overlay: configure TEST/SCRATCH vars to base fs
-Date: Mon, 13 Feb 2017 22:31:30 +0200
-Message-ID: <CAOQ4uxjgGN5zxv-AG4qnz+46M9+JK8AaU+-1m4DTfx=YDTPc=w@mail.gmail.com>
-References: <1486932224-17075-1-git-send-email-amir73il@gmail.com>
- <1486932224-17075-7-git-send-email-amir73il@gmail.com> <20170213112824.GH24562@eguan.usersys.redhat.com>
+Subject: Re: [PATCH v3 8/9] overlay: fix test and scratch filters for overlay
+ base fs
+Date: Mon, 13 Feb 2017 22:39:35 +0200
+Message-ID: <CAOQ4uxiUa5Ws=7J2hT9U=z2iMBfJ4Kec9YrTC_s4egy=9m6XwA@mail.gmail.com>
+References: <1486932224-17075-1-git-send-email-amir73il@gmail.com> <1486932224-17075-9-git-send-email-amir73il@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-oi0-f66.google.com ([209.85.218.66]:34431 "EHLO
-        mail-oi0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751578AbdBMUbb (ORCPT
+Received: from mail-ot0-f196.google.com ([74.125.82.196]:34798 "EHLO
+        mail-ot0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752282AbdBMUjh (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 13 Feb 2017 15:31:31 -0500
-In-Reply-To: <20170213112824.GH24562@eguan.usersys.redhat.com>
+        Mon, 13 Feb 2017 15:39:37 -0500
+In-Reply-To: <1486932224-17075-9-git-send-email-amir73il@gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: Eryu Guan <eguan@redhat.com>
 Cc: Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, fstests <fstests@vger.kernel.org>
 
-On Mon, Feb 13, 2017 at 1:28 PM, Eryu Guan <eguan@redhat.com> wrote:
-> On Sun, Feb 12, 2017 at 10:43:41PM +0200, Amir Goldstein wrote:
->> Instead of setting the vars TEST/SCRATCH_DEV to overlay base dirs,
->> allow setting them to block devices to configure the base fs partition,
->> where overlay dirs will be created.
->>
->> For example, the following config file can be used to run tests on
->> xfs test/scratch partitions:
->>
->>  TEST_DEV=/dev/sda5
->>  TEST_DIR=/mnt/test
->>  SCRATCH_DEV=/dev/sda6
->>  SCRATCH_MNT=/mnt/scratch
->>  FSTYP=xfs
->>
->> Using the same config file, but executing './check -overlay' will
->> use the same partitions as base fs for overlayfs directories
->> and set TEST_DIR/SCRATCH_MNT values to overlay mount points, i.e.:
->> /mnt/test/ovl-mnt and /mnt/scratch/ovl-mnt.
->>
->> The base fs should be pre-formatted and mounted when starting the test.
->> An upcoming change is going to support mount/umount of base fs.
->>
->> The new OVL_BASE_SCRATCH/TEST_* vars are set to point at the
->> overlayfs base dirs in either legacy or new config method.
->> Tests should always use these vars and not the legacy SCRATCH/TEST_DEV
->> vars when referring to overlay base dir.
->>
->> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
->> ---
-...
->>
->>  # Parse config section options. This function will parse all the configuration
->> @@ -516,6 +574,15 @@ get_next_config() {
->>               unset SCRATCH_DEV
->>       fi
->>
->> +     # We might have overriden TEST/SCRATCH vars with overlay base dir in the
->> +     # previous run, so restore them to original values stored in OVL_BASE_*
->> +     if [ "$FSTYP" == "overlay" ]; then
->> +             [ -z "$OVL_BASE_TEST_DEV" ] || export TEST_DEV=$OVL_BASE_TEST_DEV
->> +             [ -z "$OVL_BASE_TEST_DIR" ] || export TEST_DIR=$OVL_BASE_TEST_DIR
->> +             [ -z "$OVL_BASE_SCRATCH_DEV" ] || export SCRATCH_DEV=$OVL_BASE_SCRATCH_DEV
->> +             [ -z "$OVL_BASE_SCRATCH_MNT" ] || export SCRATCH_MNT=$OVL_BASE_SCRATCH_MNT
->> +     fi
->> +
->>       parse_config_section $1
->>
->>       if [ ! -z "$OLD_FSTYP" ] && [ $OLD_FSTYP != $FSTYP ]; then
->> @@ -544,6 +611,12 @@ get_next_config() {
->>               export RESULT_BASE="$here/results/"
->>       fi
->>
->> +     # Override FSTYP from config when running ./check -overlay
->> +     # and maybe derive overlay TEST/SCRATCH from base fs values
->> +     if [ "$OVERLAY" == "true" -o "$FSTYP" == "overlay" ]; then
->> +             _config_overlay
->> +     fi
->> +
+On Sun, Feb 12, 2017 at 10:43 PM, Amir Goldstein <amir73il@gmail.com> wrote:
+> When configuring overlay base fs, TEST_DEV/DIR and SCRATCH_DEV/MNT
+> are derived from the base fs mount points, where *_DEV are the
+> path of the base fs mount point and TEST_DIR/SCRATCH_MNT are
+> a directory under the base fs mount point.
 >
-> If I have SCRATCH_DEV_POOL defined, e.g.
->
-> TEST_DEV=/dev/sda5
-> TEST_DIR=/mnt/testarea/test
-> SCRATCH_DEV_POOL="/dev/sda6 /dev/sda7"
-> SCRATCH_MNT=/mnt/testarea/scratch
->
-> I got error like:
->
-> [root@dhcp-66-86-11 xfstests]# ./check -overlay overlay/002
-> common/config: SCRATCH_DEV (/dev/sda6) is not a directory for overlay
->
-> Because we obtain SCRATCH_DEV from SCRATCH_DEV_POOL after we call
-> _config_overlay, and SCRATCH_DEV is not set when configing overlay, so
-> SCRATCH_DEV stays as a block device and fails _check_device.
->
-> Moving the SCRATCH_DEV_POOL handling just after "unset SCRATCH_DEV"
-> fixes this problem for me.
+> This means that the overlay DEV paths are prefixes of the overlay
+> mount points.
+> Fix the test and sctach filters to try and match TEST_DIR/SCRATCH_MNT
+> first and only then try and match the shorter *_DEV.
 >
 
-Right, I didn't test this setup. It appears to me that SCRATCH_DEV_POOL handling
-should be *after* parse_config_section for multi section config, where
-SCRATCH_DEV_POOL is assigned a new value in current section??
+And who would have thought that MNT could also be a substr of DEV?
+Well is kvm-xfstests it is!
 
-Can you check if SCRATCH_DEV_POOL handling could be moved right before
-_config_overlay?
+I will have to check for echo $SCRATCH_DEV | grep $SCRATCH_MNT
+and vice versa explicitly before deciding which filter order to use.
 
-I'm not really sure how that configuration should be working with
-overlay anyway.
+FSTYP         -- xfs (debug)
+PLATFORM      -- Linux/x86_64 kvm-xfstests 4.9.0-debug-12264-g60ae0f1
+MKFS_OPTIONS  -- -f -m rmapbt=1,reflink=1 /dev/vdc
+MOUNT_OPTIONS -- /dev/vdc /vdc
+
+ [20:36:04] - output mismatch (see
+/results/xfs/results-reflink/generic/050.out.bad)
+    --- tests/generic/050.out 2017-02-13 08:36:18.000000000 +0000
+    +++ /results/xfs/results-reflink/generic/050.out.bad 2017-02-13
+20:36:04.054172980 +0000
+    @@ -1,7 +1,7 @@
+     QA output created by 050
+     setting device read-only
+     mounting read-only block device:
+    -mount: SCRATCH_DEV is write-protected, mounting read-only
+    +mount: /devSCRATCH_MNT is write-protected, mounting read-only
+     touching file on read-only filesystem (should fail)
+     touch: cannot touch 'SCRATCH_MNT/foo': Read-only file system
+    ...
+
+
+> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+> ---
+>  common/filter | 7 ++++---
+>  1 file changed, 4 insertions(+), 3 deletions(-)
+>
+> diff --git a/common/filter b/common/filter
+> index 4328159..ef20ea6 100644
+> --- a/common/filter
+> +++ b/common/filter
+> @@ -280,13 +280,14 @@ _filter_xfs_io_pages_modified()
+>
+>  _filter_test_dir()
+>  {
+> -       sed -e "s,$TEST_DEV,TEST_DEV,g" -e "s,$TEST_DIR,TEST_DIR,g"
+> +       sed -e "s,$TEST_DIR,TEST_DIR,g" \
+> +           -e "s,$TEST_DEV,TEST_DEV,g"
+>  }
+>
+>  _filter_scratch()
+>  {
+> -       sed -e "s,$SCRATCH_DEV,SCRATCH_DEV,g" \
+> -           -e "s,$SCRATCH_MNT,SCRATCH_MNT,g" \
+> +       sed -e "s,$SCRATCH_MNT,SCRATCH_MNT,g" \
+> +           -e "s,$SCRATCH_DEV,SCRATCH_DEV,g" \
+>             -e "/.use_space/d"
+>  }
+>
+> --
+> 2.7.4
+>
