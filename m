@@ -1,103 +1,107 @@
-From: Eryu Guan <eguan@redhat.com>
-Subject: Re: [PATCH v3 9/9] overlay: mount/unmount base fs before/after
- running tests
-Date: Mon, 13 Feb 2017 19:31:38 +0800
-Message-ID: <20170213113138.GI24562@eguan.usersys.redhat.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Subject: Re: [PATCH v3 1/9] fstests: sanity check that test partitions are not
+ mounted elsewhere
+Date: Mon, 13 Feb 2017 13:44:42 +0200
+Message-ID: <CAOQ4uxiWwVCN07yxwWQbp5Yi011TYV509RqWov9+szJnmP5NkA@mail.gmail.com>
 References: <1486932224-17075-1-git-send-email-amir73il@gmail.com>
- <1486932224-17075-10-git-send-email-amir73il@gmail.com>
+ <1486932224-17075-2-git-send-email-amir73il@gmail.com> <20170213111053.GF24562@eguan.usersys.redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:45878 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752188AbdBMLbj (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 13 Feb 2017 06:31:39 -0500
-Content-Disposition: inline
-In-Reply-To: <1486932224-17075-10-git-send-email-amir73il@gmail.com>
+Received: from mail-ot0-f196.google.com ([74.125.82.196]:32923 "EHLO
+        mail-ot0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751652AbdBMLoo (ORCPT
+        <rfc822;linux-unionfs@vger.kernel.org>);
+        Mon, 13 Feb 2017 06:44:44 -0500
+In-Reply-To: <20170213111053.GF24562@eguan.usersys.redhat.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, fstests@vger.kernel.org
+To: Eryu Guan <eguan@redhat.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, fstests <fstests@vger.kernel.org>
 
-On Sun, Feb 12, 2017 at 10:43:44PM +0200, Amir Goldstein wrote:
-> When TEST/SCRATCH_DEV are configured to the base fs block device,
-> use this information to mount base fs before running tests,
-> unmount it after running tests and cycle on _test_cycle_mount
-> along with the overlay mounts.
-> 
-> This helps catching overlayfs bugs related to leaking objects in
-> underlying (base) fs.
-> 
-> To preserve expected tests behavior, the semantics are:
-> - _scratch_mkfs mounts the base fs, cleans all files, creates
->   lower/upper dirs and keeps base fs mounted
-> - _scratch_mount mounts base fs (if needed) and mounts overlay
-> - _scratch_unmount unmounts overlay and base fs
-> 
-> Tests that use _scratch_unmount to unmount a custom overlay mount
-> and expect to have access to overlay base dir, were fixed to use
-> explicit umount $SCRATCH_MNT instead.
-> 
-> The overlay test itself, does not support formatting the base fs.
-> However, it is possible to add overlay sections to a multi section
-> config file after every base fs configuration, to run the overlay
-> tests with the file system that was created on the test partitions
-> in the previous section (see example in README.config-sections).
-> 
-> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
-> ---
->  README.config-sections |  6 ++++++
->  common/rc              | 55 ++++++++++++++++++++++++++++++++++++++++++++++++--
->  tests/overlay/003      |  3 ++-
->  tests/overlay/004      |  3 ++-
->  tests/overlay/014      |  5 +++--
->  5 files changed, 66 insertions(+), 6 deletions(-)
-> 
-> diff --git a/README.config-sections b/README.config-sections
-> index df7c929..d45d6da 100644
-> --- a/README.config-sections
-> +++ b/README.config-sections
-> @@ -102,6 +102,9 @@ MKFS_OPTIONS="-q -F -b4096"
->  FSTYP=ext4
->  RESULT_BASE="`pwd`/results/`date +%d%m%y_%H%M%S`"
->  
-> +[ext4_overlay]
-> +FSTYP=overlay
-> +
->  [ext4_1k_block_size]
->  MKFS_OPTIONS="-q -F -b1024"
->  
-> @@ -112,6 +115,9 @@ MKFS_OPTIONS="-q -F -b4096 -O ^has_journal"
->  MKFS_OPTIONS="-f"
->  FSTYP=xfs
->  
-> +[xfs_overlay]
-> +FSTYP=overlay
-> +
->  [ext3_filesystem]
->  FSTYP=ext3
->  MOUNT_OPTIONS="-o noatime"
-> diff --git a/common/rc b/common/rc
-> index 74168ea..e9ac0df 100644
-> --- a/common/rc
-> +++ b/common/rc
-> @@ -328,24 +328,70 @@ _overlay_mount()
->  			    $SELINUX_MOUNT_OPTIONS $* $dir $mnt
->  }
->  
-> +_overlay_base_test_mount()
-> +{
-> +	if [ -z "$OVL_BASE_TEST_DEV" -o -z "$OVL_BASE_TEST_DIR" ] || \
-> +		_check_mounted_on OVL_BASE_TEST_DEV $OVL_BASE_TEST_DEV \
-> +				OVL_BASE_TEST_DIR $OVL_BASE_TEST_DIR
-> +	then
-> +		return 0
-> +	fi
-> +
-> +	_mount $OVL_BASE_MOUNT_OPTIONS \
+On Mon, Feb 13, 2017 at 1:10 PM, Eryu Guan <eguan@redhat.com> wrote:
+> On Sun, Feb 12, 2017 at 10:43:36PM +0200, Amir Goldstein wrote:
+>> When $TEST_DEV is mounted at a different location then $TEST_DIR,
+>> _require_test() aborts the test with an error:
+>>  TEST_DEV=/dev/sda5 is mounted but not on TEST_DIR=/mnt/test
+>>
+>> There are several problems with current sanity check:
+>> 1. the output of the error is mixed into out.bad and hard to see
+>> 2. the test partition is unmounted at the end of the test regardless
+>>    of the fact that it not pass the sanity that we have exclusivity
+>> 3. scratch partition has a similar sanity check in _require_scratch(),
+>>    but we may not get to it, because $SCRATCH_DEV is unmounted prior
+>>    to running the tests (which could unmount another mount point).
+>>
+>> To solve all these problems, introduce a helper _check_mounted_on().
+>> It checks if a device is mounted on a given mount point and optionally
+>> checks the mounted fs type.
+>>
+>> The sanity checks in _require_scratch() and _require_test() are
+>> converted to use the helper and gain the check for correct fs type.
+>>
+>> The helper is used in init_rc() to sanity check both test and scratch
+>> partitions, before tests are run and before $SCRATCH_DEV is unmounted.
+>>
+>> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+>> ---
+>>  common/rc | 83 +++++++++++++++++++++++++++++++++++++--------------------------
+>>  1 file changed, 49 insertions(+), 34 deletions(-)
 
-OVL_BASE_MOUNT_OPTIONS is from MOUNT_OPTIONS, which is used for scratch
-mount. Do we need a ovl base counter part of TEST_FS_MOUNT_OPTS?
+...
 
-Thanks,
-Eryu
+> My test configs look like:
+>
+> TEST_DEV=/dev/sda5
+> SCRATCH_DEV=/dev/sda6
+> TEST_DIR=/mnt/testarea/test
+> SCRATCH_MNT=/mnt/testarea/scratch
+>
+> and if I mount SCRATCH_DEV at /mnt/xfs (or some other mountpoints rather
+> than SCRATCH_MNT), ./check -overlay overlay/??? isn't able to detect
+> this mis-configuration.
+>
+> [root@dhcp-66-86-11 xfstests]# ./check  -overlay overlay/002
+> FSTYP         -- overlay
+> PLATFORM      -- Linux/x86_64 dhcp-66-86-11 4.10.0-rc7
+> MKFS_OPTIONS  -- /mnt/testarea/scratch
+> MOUNT_OPTIONS -- -o context=system_u:object_r:nfs_t:s0 -o lowerdir=/mnt/testarea/scratch/ovl-lower,upperdir=/mnt/testarea/scratch/ovl-upper,workdir=/mnt/testarea/scratch/ovl-work
+>
+> [root@dhcp-66-86-11 xfstests]#
+>
+> And nothing useful was printed. This is because my rootfs has no
+> filetype support, but the _notrun message is redirected to a file in
+> check, as
+>
+> "if ! _scratch_mkfs >$tmp.err 2>&1"
+>
+> Adding _check_mounted_on against OVL_BASE_TEST/SCRATCH_DEV here could
+> fix it for me.
+>
+
+Actually, there that test already exists in:
+
+_scratch_mkfs
+  _scratch_cleanup_files
+    _overlay_base_scratch_mount
+      _check_mounted_on
+
+Only I forgot to cleanup an unneeded _overlay_base_scratch_unmount()
+from _scratch_cleanup_files()..
+
+@@ -698,8 +698,6 @@ _scratch_cleanup_files()
+        overlay)
+                # Avoid rm -rf /* if we messed up
+                [ -n "$OVL_BASE_SCRATCH_MNT" ] || return 1
+-               # overlay 'mkfs' needs to make sure base fs is mounted and clean
+-               _overlay_base_scratch_unmount 2>/dev/null
+                _overlay_base_scratch_mount
+                rm -rf $OVL_BASE_SCRATCH_MNT/*
+                _overlay_mkdirs $OVL_BASE_SCRATCH_MNT
+
+With this patch, test does abort for _check_mounted_on() failure,
+(please verify)
+but output is still lost inside tmp.err.
+To fix this I would need to not exit 1 inside _check_mounted_on() but
+always by callers.
+Is that what you prefer that I do?
