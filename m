@@ -1,120 +1,142 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [PATCH v3 0/9] fstests: new way to run overlay tests
-Date: Tue, 14 Feb 2017 08:15:22 +0200
-Message-ID: <CAOQ4uxgjNe86U5FZ-MZCrSve7M47iMsJDax6FYBkyO4+JK-iig@mail.gmail.com>
+Subject: Re: [PATCH v3 9/9] overlay: mount/unmount base fs before/after
+ running tests
+Date: Tue, 14 Feb 2017 08:43:36 +0200
+Message-ID: <CAOQ4uxj131n=dadiuCzJZWTTC0Jkw=Bdpp1QpX=keBOOySYySg@mail.gmail.com>
 References: <1486932224-17075-1-git-send-email-amir73il@gmail.com>
- <20170213041924.r5nho3xdkydzff6k@XZHOUW.usersys.redhat.com>
- <CAOQ4uxihrEX5M0EYB-9ni90GPb3em1AbowFY+BvPZ3jtoigq4g@mail.gmail.com> <20170214044028.y45ai2dwzm7qx3k5@XZHOUW.usersys.redhat.com>
+ <1486932224-17075-10-git-send-email-amir73il@gmail.com> <20170214002356.dxrmf5jzwr6sivlu@thunk.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-ot0-f195.google.com ([74.125.82.195]:33959 "EHLO
+Received: from mail-ot0-f195.google.com ([74.125.82.195]:35985 "EHLO
         mail-ot0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751927AbdBNGPX (ORCPT
+        with ESMTP id S1752306AbdBNGni (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 14 Feb 2017 01:15:23 -0500
-In-Reply-To: <20170214044028.y45ai2dwzm7qx3k5@XZHOUW.usersys.redhat.com>
+        Tue, 14 Feb 2017 01:43:38 -0500
+In-Reply-To: <20170214002356.dxrmf5jzwr6sivlu@thunk.org>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Xiong Zhou <xzhou@redhat.com>
+To: Theodore Ts'o <tytso@mit.edu>
 Cc: Eryu Guan <eguan@redhat.com>, Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, fstests <fstests@vger.kernel.org>
 
-On Tue, Feb 14, 2017 at 6:40 AM, Xiong Zhou <xzhou@redhat.com> wrote:
-> On Mon, Feb 13, 2017 at 07:37:45AM +0200, Amir Goldstein wrote:
->> On Mon, Feb 13, 2017 at 6:19 AM, Xiong Zhou <xzhou@redhat.com> wrote:
->> > On Sun, Feb 12, 2017 at 10:43:35PM +0200, Amir Goldstein wrote:
->> >> Hi Eryu and all,
->> >>
->> >> The reason I started this work was to help catch overlayfs bugs
->> >> related to leaking objects in underlying (base) fs.
->> >
->> > So firstly, what's wrong with the existing way exactly ?
->> >
->>
->> One of the reasons that xfstests cycle mounts scratch partition
->> is that some bugs, such as object leaking bugs, are only discovered
->> when trying to unmount the file system.
->>
->> With overlayfs tests the cycling of overlay mount can detect bugs
->> related to overlayfs objects leaking, but not to base fs objects leaking.
->> OTOH, some bugs may be triggered in base fs when used under
->> overlayfs, but not when tests are run directly over the fs.
->>
->> The solution is to cycle mount both overlay mount and the base fs
->> underneath it to detect all those bugs.
+On Tue, Feb 14, 2017 at 2:23 AM, Theodore Ts'o <tytso@mit.edu> wrote:
+> On Sun, Feb 12, 2017 at 10:43:44PM +0200, Amir Goldstein wrote:
+>> When TEST/SCRATCH_DEV are configured to the base fs block device,
+>> use this information to mount base fs before running tests,
+>> unmount it after running tests and cycle on _test_cycle_mount
+>> along with the overlay mounts.
 >
-> Good job.
->
->>
->> I started off (in V1) with a more complex way to manually configure
->> OVL_BASE_TEST_DEV, OVL_BASE_TEST_DIR, etc, but that
->> became very cumbersome.
->>
->> Eryu pointed out the over complication of this configuration, so
->> I decided to re-think the "old way", which I always thought was
->> a bit hackish.
->>
->> The "new way" enables running overlay tests over a range of
->> base fs configurations, which was not possible before without
->> using external scripts to wrap xfstests.
->>
->> But above all, the "new way" represents a different perspective
->> of overlayfs testing - testing overlayfs independently of the
->> underlying fs is doing half the job.
->>
->> You may say that overlayfs is closer to "MOUNT_OPTIONS"
->> then it is to "FSTYP". The truth is somewhere in the middle,
->> but the fact is that running a single "overlay" test does not cut it.
->> To tests overlay thoroughly, one would need to test overlay over
->> xfs, ext4, btrfs and to test xfs thoroughly, one would need to test
->> xfs, xfs+reflink, xfs+overlay, xfs+reflink+overlay, etc.
->>
->> The new way provides an easy way to configure those tests,
->> using semantics that people are used to when testing multiple
->> flavors of configurations.
->
-> I'd like more comments or document for these NEW configurations, other
-> than one or two lines in Examples.
->
-> In other words, what kind of configuration your patches bringing
-> support to ?
+> So I don't normally use the multi-section config file --- and I
+> confess the exact semantics of the config file, and how things are
+> inherited across sections has always been confusing to me (there are
+> bits of README.config-sections which seem to be mutually
+> contradictory[1]).  So apologies in advance, but when you have
+> something like this:
 >
 
-There are 2 parts for this answer:
+Indeed. Multi section config does not give the tester super power.
+Tester needs to know what she is doing.
+As I replied on the linux-fsdevel thread, I found out that interleaving
+overlay sections post non-overlay sections work and thought
+it may be useful for some, so I added the example.
+I do not intend to fix problems with multi section config + overlay
+so I may as well remove that example and leave this a useful but
+undocumented feature.
 
-1. Single section config file
-====================
+Having written that disclaimer, I will go on to answer your questions.
 
-The answer here is there is no new configuration.
-All you need to do is forget everything you knew about old overlay test config.
+>> diff --git a/README.config-sections b/README.config-sections
+>> index df7c929..d45d6da 100644
+>> --- a/README.config-sections
+>> +++ b/README.config-sections
+>> @@ -102,6 +102,9 @@ MKFS_OPTIONS="-q -F -b4096"
+>>  FSTYP=ext4
+>>  RESULT_BASE="`pwd`/results/`date +%d%m%y_%H%M%S`"
+>>
+>> +[ext4_overlay]
+>> +FSTYP=overlay
+>> +
+>>  [ext4_1k_block_size]
+>>  MKFS_OPTIONS="-q -F -b1024"
+>
+> How do you know that the base file system type should be ext4?  Is it
+> because the previous file system type in a previous config section
+> (OLD_FSTYP in the check script) is ext4?
+>
 
-Take an existing test configuration you have and already use:
-     TEST_DEV=/dev/sda5
-     TEST_DIR=/mnt/test
-     SCRATCH_DEV=/dev/sda6
-     SCRATCH_MNT=/mnt/scratch
-     FSTYP=xfs
-
-and just run './check -overlay' whenever you want to test overlayfs
-and './check' whenever you want to test native fs.
-
-I could add more and more examples to README, but it's not like
-README tells you much about how to use other configurations.
-IMO, these 3 lines sums it up well:
-
+Correct. The only thing that overlay does not do is format the base fs,
+as the README says:
         - for overlay tests: ./check -overlay [test(s)]
           The TEST and SCRATCH partitions should be pre-formatted
           with another base fs, where the overlay dirs will be created
 
-2. Multi section config file
-===================
+> If so, what happens if the first sectionis FSTYP=overlay.  Also, what
+> happens previous sections are skipped?  Suppose you have a config file
+> that looks like this:
+>
+> [ext4]
+> ...
+> FSTYP=ext4
+>
+> [ext4_overlay]
+> FSTYP=overlay
+>
+> [xfs]
+> ...
+> FSTYP=xfs
+>
+> [xfs_overlay]
+> FSTYP=overlay
+>
+> What is supposed to happen (and what does happen) if the user runs:
+>
+> ./check -s xfs_overlay
+>
+> or
+>
+> ./check -s ext4 -s xfs_overlay
+>
+> ?
 
-Honestly, I never intended to make it work and there are many combinations
-of sections that do not work today and some that will not work with overlay
-(see email from Ted about patch 9/9)
+You know what will happen :-) only bad things.
 
-I just realized that it may be useful to some and added the example howto
-add overlay sections post non-overlay section, but I do not intend to fix
-problems with this sort of setup, so I might as well remove the example
-and leave this an undocumented feature for people who understand
-how multi section works.
+> Speaking more generally, I'm not a big fan of the config file approach
+> for handling iterations, because of the fact that previous sections
+> will have side effects on follow-on sections, and I'm interested in
+> adding support for test sharding, where different file system test
+> scenarios are run on different GCE VM's, and the ambiguities of how
+> variables are carried over from one section to another makes life hard.
+>
+> It also makes it hard to have multiple file system developers editing
+> a single config file since you have to worry about side effects.
+> Having separate files and separate directories for differnt file
+> system types means that patch collisions are much less likely to have
+> unanticipated side effects, or cause merge conflicts for that matter.
+> I recognize that the local config file is not something that is
+> intended to be managed centrally, but I acutally *like* the fact that
+> I can separate file system test scenarios (and where I want to have a
+> common understanding across ext4 file system developers for what the
+> "bigalloc_1k" test scenario means), from the details of the local
+> hardware configuration.
+>
+
+It seems to me that multi section config file is not the right tool for
+the job to test many types of file systems, but it may be useful
+for testing different MKFS/MOUNT options for the same FSTYP.
+
+For that purpose, if interleaving overlay section is helpful,
+it could be used, but what won't work correctly is './check -overlay'
+because it will not mkfs base fs when changing sections.
+
+Actually, it may not be that hard to add support for mkfs of base
+fs so check -overlay on multi section config will work, but I did
+not know if that was an important use case.
+
+Therefore, the feedback from prospect overlay testers and
+the configurations that they use is important.
+What would be your config if you were to test overlay?
+P.S. I still did not get around to migrate kvm-xfstests to use new config,
+but I will. For now patch 8/9 breaks some tests in kvm-xfstests
+(old config) so I still need to fix that.
+
+Amir.
