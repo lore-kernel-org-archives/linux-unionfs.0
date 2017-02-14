@@ -1,97 +1,46 @@
-From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: overlayfs: allowing for changes to lowerdir
-Date: Tue, 14 Feb 2017 16:01:45 +0200
-Message-ID: <CAOQ4uxiBmFdcueorKV7zwPLCDq4DE+H8x=8H1f7+3v3zysW9qA@mail.gmail.com>
-References: <CA+ZH+jFBAaRi6VPmf3PBdDZQQMOaT6WUByATqaw1QL5M9+-dxg@mail.gmail.com>
+From: Theodore Ts'o <tytso@mit.edu>
+Subject: Re: [PATCH v3 9/9] overlay: mount/unmount base fs before/after
+ running tests
+Date: Tue, 14 Feb 2017 12:07:57 -0500
+Message-ID: <20170214170757.nuhxnvhtctreelxt@thunk.org>
+References: <1486932224-17075-1-git-send-email-amir73il@gmail.com>
+ <1486932224-17075-10-git-send-email-amir73il@gmail.com>
+ <20170214002356.dxrmf5jzwr6sivlu@thunk.org>
+ <CAOQ4uxj131n=dadiuCzJZWTTC0Jkw=Bdpp1QpX=keBOOySYySg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-ot0-f173.google.com ([74.125.82.173]:33285 "EHLO
-        mail-ot0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753221AbdBNOBw (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 14 Feb 2017 09:01:52 -0500
-In-Reply-To: <CA+ZH+jFBAaRi6VPmf3PBdDZQQMOaT6WUByATqaw1QL5M9+-dxg@mail.gmail.com>
+Received: from imap.thunk.org ([74.207.234.97]:39630 "EHLO imap.thunk.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1755002AbdBNRIQ (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Tue, 14 Feb 2017 12:08:16 -0500
+Content-Disposition: inline
+In-Reply-To: <CAOQ4uxj131n=dadiuCzJZWTTC0Jkw=Bdpp1QpX=keBOOySYySg@mail.gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Josh England <jjengla@gmail.com>
-Cc: linux-fsdevel <linux-fsdevel@vger.kernel.org>, linux-unionfs@vger.kernel.org, Miklos Szeredi <mszeredi@redhat.com>
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: Eryu Guan <eguan@redhat.com>, Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, fstests <fstests@vger.kernel.org>
 
-On Mon, Feb 13, 2017 at 11:41 PM, Josh England <jjengla@gmail.com> wrote:
-> So here's the use case:  lowerdir is an NFS mounted root filesystem
-> (shared by a bunch of nodes).  upperdir is a tmpfs RAM disk to allow
-> for writes to happen.  This works great with the caveat being I cannot
-> make 'live' changes to the root filesystem, which poses the problem.
-> Any access to a changed file causes a 'Stale file handle' error.
->
-> With some experimenting, I've discovered that remounting the overlay
-> filesystem (mount -o remount / /)  registers any changes that have
-> been made to the lower NFS filesystem.  In addition, dumping cache
-> (via /proc/sys/vm/drop_caches) also makes the stale file handle errors
-> go away and reads pass through to the lower dir and correctly show
-> changes.
->
-> I'd like to make this use case feasible by allowing changes to the NFS
-> lowerdir to work more or less transparently.  It seems like if the
-> overlay did not do any caching at all, all reads would fall through to
-> either the upperdir ram disk or the NFS lower, which is precisely what
-> I want.
->
-> So, let me pose this somewhat naive question:  Would it be possible to
-> simply disable any cacheing performed by the overlay to force all
-> reads to go to either the tmpfs upper or the (VFS-cached) NFS lower?
-> Would this be enough to accomplish my goal of being able to change the
-> lowerdir of an active overlayfs?
->
+On Tue, Feb 14, 2017 at 08:43:36AM +0200, Amir Goldstein wrote:
+> 
+> Correct. The only thing that overlay does not do is format the base fs,
+> as the README says:
+>         - for overlay tests: ./check -overlay [test(s)]
+>           The TEST and SCRATCH partitions should be pre-formatted
+>           with another base fs, where the overlay dirs will be created
+> 
 
-There is no need to disable caching. There is already a mechanism
-in place in VFS to revalidate inode cache entries.
-NFS implements d_revalidate() and overlayfs implements d_revalidate()
-by calling into the lower fs d_revalidate().
+So this means that if I only want to do the equivalent of:
 
-However overlayfs intentionally errors when lower entry has been modified.
-(see: 7c03b5d ovl: allow distributed fs as lower layer)
+   gce-xfstests -c overlay generic/013
 
-You can try this (untested) patch to revert this behavior, just to see if it
-works for your use case, but it won't change this fact
-from Documentation/filesystems/overlayfs.txt:
-" Changes to the underlying filesystems while part of a mounted overlay
-filesystem are not allowed.  If the underlying filesystem is changed,
-the behavior of the overlay is undefined, though it will not result in
-a crash or deadlock."
+as part of a bisection search, it's impossible to do this via the
+config file and "./check -s ext4-overlay generic/013" alone.  Someone
+who wants to do this will have to use their own wrapper script to
+format the base file system with the proper file system.
 
-Specifically, renaming directories and files in lower that were already
-copied up is going to have a weird outcome.
+Correct?
 
-Also, the situation with changing files in lower remote fs could be worse
-than changing files on lower local fs, simply because right now, this
-use case is not tested (i.e. it results in ESTALE).
+Which is fine, I have my own wrapper script system.  :-)
 
-I believe that fixing this use case, if at all possible, would require quite
-a bit of work, a lot of documentation (about expected behavior) and
-even more testing.
-
-Amir.
-
-diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-index e8ef9d1..6806ef3 100644
---- a/fs/overlayfs/super.c
-+++ b/fs/overlayfs/super.c
-@@ -106,16 +106,11 @@ static int ovl_dentry_revalidate(struct dentry
-*dentry, unsigned int flags)
-
-                if (d->d_flags & DCACHE_OP_REVALIDATE) {
-                        ret = d->d_op->d_revalidate(d, flags);
--                       if (ret < 0)
-+                       if (ret =< 0)
-                                return ret;
--                       if (!ret) {
--                               if (!(flags & LOOKUP_RCU))
--                                       d_invalidate(d);
--                               return -ESTALE;
--                       }
-                }
-        }
--       return 1;
-+       return ret;
- }
+      	       	      	     	     	    - Ted
