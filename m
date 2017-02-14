@@ -1,95 +1,157 @@
-From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [PATCH v3 1/9] fstests: sanity check that test partitions are not
- mounted elsewhere
-Date: Tue, 14 Feb 2017 10:05:12 +0200
-Message-ID: <CAOQ4uxhLSAPApRy-SJpJGiP2xdjmpO0NLBYjzX_gCzfKqg7k_g@mail.gmail.com>
+From: Xiong Zhou <xzhou@redhat.com>
+Subject: Re: [PATCH v3 0/9] fstests: new way to run overlay tests
+Date: Tue, 14 Feb 2017 17:25:11 +0800
+Message-ID: <20170214092511.3b4i3c5i36o446lr@XZHOUW.usersys.redhat.com>
 References: <1486932224-17075-1-git-send-email-amir73il@gmail.com>
- <1486932224-17075-2-git-send-email-amir73il@gmail.com> <20170213111053.GF24562@eguan.usersys.redhat.com>
- <CAOQ4uxiWwVCN07yxwWQbp5Yi011TYV509RqWov9+szJnmP5NkA@mail.gmail.com>
- <CAOQ4uxg-DS7+j0DLLr20nZGrA6752D2ZUhfQeHPz5hGDb=DRfA@mail.gmail.com>
- <20170214055114.GK24562@eguan.usersys.redhat.com> <CAOQ4uxgQzWWQu+9yP12F4uaMD9L9qRQXU9HVrgcv8P2arP1kdQ@mail.gmail.com>
- <20170214072351.GL24562@eguan.usersys.redhat.com>
+ <20170213041924.r5nho3xdkydzff6k@XZHOUW.usersys.redhat.com>
+ <CAOQ4uxihrEX5M0EYB-9ni90GPb3em1AbowFY+BvPZ3jtoigq4g@mail.gmail.com>
+ <20170214044028.y45ai2dwzm7qx3k5@XZHOUW.usersys.redhat.com>
+ <CAOQ4uxgjNe86U5FZ-MZCrSve7M47iMsJDax6FYBkyO4+JK-iig@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-oi0-f68.google.com ([209.85.218.68]:32997 "EHLO
-        mail-oi0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751637AbdBNIFO (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 14 Feb 2017 03:05:14 -0500
-In-Reply-To: <20170214072351.GL24562@eguan.usersys.redhat.com>
+Received: from mx1.redhat.com ([209.132.183.28]:57340 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753031AbdBNJZM (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Tue, 14 Feb 2017 04:25:12 -0500
+Content-Disposition: inline
+In-Reply-To: <CAOQ4uxgjNe86U5FZ-MZCrSve7M47iMsJDax6FYBkyO4+JK-iig@mail.gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Eryu Guan <eguan@redhat.com>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, fstests <fstests@vger.kernel.org>
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: Xiong Zhou <xzhou@redhat.com>, Eryu Guan <eguan@redhat.com>, Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, fstests <fstests@vger.kernel.org>
 
-On Tue, Feb 14, 2017 at 9:23 AM, Eryu Guan <eguan@redhat.com> wrote:
-> On Tue, Feb 14, 2017 at 08:02:27AM +0200, Amir Goldstein wrote:
-> [snip]
->> >> >> My test configs look like:
->> >> >>
->> >> >> TEST_DEV=/dev/sda5
->> >> >> SCRATCH_DEV=/dev/sda6
->> >> >> TEST_DIR=/mnt/testarea/test
->> >> >> SCRATCH_MNT=/mnt/testarea/scratch
->> >> >>
->> >> >> and if I mount SCRATCH_DEV at /mnt/xfs (or some other mountpoints rather
->> >> >> than SCRATCH_MNT), ./check -overlay overlay/??? isn't able to detect
->> >> >> this mis-configuration.
->> >> >>
->> >> >> [root@dhcp-66-86-11 xfstests]# ./check  -overlay overlay/002
->> >> >> FSTYP         -- overlay
->> >> >> PLATFORM      -- Linux/x86_64 dhcp-66-86-11 4.10.0-rc7
->> >> >> MKFS_OPTIONS  -- /mnt/testarea/scratch
->> >> >> MOUNT_OPTIONS -- -o context=system_u:object_r:nfs_t:s0 -o lowerdir=/mnt/testarea/scratch/ovl-lower,upperdir=/mnt/testarea/scratch/ovl-upper,workdir=/mnt/testarea/scratch/ovl-work
->> >> >>
->> >> >> [root@dhcp-66-86-11 xfstests]#
->> >> >>
->> >> >> And nothing useful was printed. This is because my rootfs has no
->> >> >> filetype support, but the _notrun message is redirected to a file in
->> >> >> check, as
->> >> >>
->> >> >> "if ! _scratch_mkfs >$tmp.err 2>&1"
->> >> >>
->> >> >> Adding _check_mounted_on against OVL_BASE_TEST/SCRATCH_DEV here could
->> >> >> fix it for me.
->> >> >>
->> >> >
->> >> > Actually, there that test already exists in:
->> >> >
->> >> > _scratch_mkfs
->> >> >   _scratch_cleanup_files
->> >> >     _overlay_base_scratch_mount
->> >> >       _check_mounted_on
->> >
->> > Hmm, I don't think this kind of basic config sanity check belongs here,
->> > this should be done in config and env setup time. (So I think
->> > _overlay_mount should be fixed too, that _supports_filetype check
->> > doesn't belong there either.)
->> >
->> > How about adding these checks in init_rc, along with other
->> > _check_mounted_on checks against TEST_DEV and SCRATCH_DEV?
->> >
->>
->> Yes, that makes sense.
->>
->> But I still wonder how "exit 1" from within helpers should be handled
->> from check when stdout/err are redirected to $tmp.err.
->> Trying to catch the config error earlier is a good practice, but
->> it won't ensure against the same type of problem in the future.
->>
->> What did you think about my approach to store mkfs output in  $check_err
->> var instead of $tmp.err file and spew $check_err in _wrapup?
->> BTW I tries 'cat $tmp.err' in _wrapup, but output is still redirected to
->> $tmp.err while in trap, so cat says: "cat: input file is output file".
->
-> I don't think we need to worry about that or handle it. IMO, if we
-> redirect a helper that does "exit", we're doing something wrong, so
-> either fix the redirection or fix the helper (just return not exit).
->
-> I went through helpers in common/rc roughly, except the _overlay_mount
-> issue, seems we don't have other such problems right now :)
->
+On Tue, Feb 14, 2017 at 08:15:22AM +0200, Amir Goldstein wrote:
+> On Tue, Feb 14, 2017 at 6:40 AM, Xiong Zhou <xzhou@redhat.com> wrote:
+> > On Mon, Feb 13, 2017 at 07:37:45AM +0200, Amir Goldstein wrote:
+> >> On Mon, Feb 13, 2017 at 6:19 AM, Xiong Zhou <xzhou@redhat.com> wrote:
+> >> > On Sun, Feb 12, 2017 at 10:43:35PM +0200, Amir Goldstein wrote:
+> >> >> Hi Eryu and all,
+> >> >>
+> >> >> The reason I started this work was to help catch overlayfs bugs
+> >> >> related to leaking objects in underlying (base) fs.
+> >> >
+> >> > So firstly, what's wrong with the existing way exactly ?
+> >> >
+> >>
+> >> One of the reasons that xfstests cycle mounts scratch partition
+> >> is that some bugs, such as object leaking bugs, are only discovered
+> >> when trying to unmount the file system.
+> >>
+> >> With overlayfs tests the cycling of overlay mount can detect bugs
+> >> related to overlayfs objects leaking, but not to base fs objects leaking.
+> >> OTOH, some bugs may be triggered in base fs when used under
+> >> overlayfs, but not when tests are run directly over the fs.
+> >>
+> >> The solution is to cycle mount both overlay mount and the base fs
+> >> underneath it to detect all those bugs.
+> >
+> > Good job.
+> >
+> >>
+> >> I started off (in V1) with a more complex way to manually configure
+> >> OVL_BASE_TEST_DEV, OVL_BASE_TEST_DIR, etc, but that
+> >> became very cumbersome.
+> >>
+> >> Eryu pointed out the over complication of this configuration, so
+> >> I decided to re-think the "old way", which I always thought was
+> >> a bit hackish.
+> >>
+> >> The "new way" enables running overlay tests over a range of
+> >> base fs configurations, which was not possible before without
+> >> using external scripts to wrap xfstests.
+> >>
+> >> But above all, the "new way" represents a different perspective
+> >> of overlayfs testing - testing overlayfs independently of the
+> >> underlying fs is doing half the job.
+> >>
+> >> You may say that overlayfs is closer to "MOUNT_OPTIONS"
+> >> then it is to "FSTYP". The truth is somewhere in the middle,
+> >> but the fact is that running a single "overlay" test does not cut it.
+> >> To tests overlay thoroughly, one would need to test overlay over
+> >> xfs, ext4, btrfs and to test xfs thoroughly, one would need to test
+> >> xfs, xfs+reflink, xfs+overlay, xfs+reflink+overlay, etc.
+> >>
+> >> The new way provides an easy way to configure those tests,
+> >> using semantics that people are used to when testing multiple
+> >> flavors of configurations.
+> >
+> > I'd like more comments or document for these NEW configurations, other
+> > than one or two lines in Examples.
+> >
+> > In other words, what kind of configuration your patches bringing
+> > support to ?
+> >
+> 
+> There are 2 parts for this answer:
+> 
+> 1. Single section config file
+> ====================
+> 
+> The answer here is there is no new configuration.
+> All you need to do is forget everything you knew about old overlay test config.
 
-OK. less work for me :)
-I'll just fix the helper then.
+That's okay, i just need to know what I am testing for. With a
+"new way" to run tests, how I can control my test configuration
+with the config file, what every line in the config file means
+to the "new way".
+
+> 
+> Take an existing test configuration you have and already use:
+>      TEST_DEV=/dev/sda5
+>      TEST_DIR=/mnt/test
+>      SCRATCH_DEV=/dev/sda6
+>      SCRATCH_MNT=/mnt/scratch
+>      FSTYP=xfs
+> 
+> and just run './check -overlay' whenever you want to test overlayfs
+> and './check' whenever you want to test native fs.
+> 
+> I could add more and more examples to README, but it's not like
+> README tells you much about how to use other configurations.
+
+Agree. It's fair enough to keep this "how the new way interprets
+old config file" in commit message. Ya.. finally i found that..
+
+Still I think you can add more config examples in commit message
+or somewhere, for your saying:
+> >> To tests overlay thoroughly, one would need to test overlay over
+> >> xfs, ext4, btrfs and to test xfs thoroughly, one would need to test
+> >> xfs, xfs+reflink, xfs+overlay, xfs+reflink+overlay, etc.
+> >>
+> >> The new way provides an easy way to configure those tests,
+> >> using semantics that people are used to when testing multiple
+> >> flavors of configurations.
+
+Then people can test your code with your examples. Ya, i'am lazy :)
+
+I guess -overlay option consider FSTYP as fs type for base fs.
+While with above config file FSTYP=xfs,
+if /dev/sda{5,6} are formated as ext4 fs before running,
+./check -overlay generic/001 will test with base fs as ext4,
+(I don't get what i config for)
+./check generic/001 will stop test "wrong fs type".
+
+Yes, it's human error. It's great if -overlay option can also stop
+test as general, to correct this error.
+
+Thanks for you time and Sorry for my bad questions.
+
+> IMO, these 3 lines sums it up well:
+> 
+>         - for overlay tests: ./check -overlay [test(s)]
+>           The TEST and SCRATCH partitions should be pre-formatted
+>           with another base fs, where the overlay dirs will be created
+> 
+> 2. Multi section config file
+> ===================
+> 
+> Honestly, I never intended to make it work and there are many combinations
+> of sections that do not work today and some that will not work with overlay
+> (see email from Ted about patch 9/9)
+> 
+> I just realized that it may be useful to some and added the example howto
+> add overlay sections post non-overlay section, but I do not intend to fix
+> problems with this sort of setup, so I might as well remove the example
+> and leave this an undocumented feature for people who understand
+> how multi section works.
