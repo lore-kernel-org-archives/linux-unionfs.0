@@ -1,163 +1,137 @@
-From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [PATCH v3 0/9] fstests: new way to run overlay tests
-Date: Tue, 14 Feb 2017 11:51:35 +0200
-Message-ID: <CAOQ4uxh5c0WkNL8Q1GRpQBFXQmH-n2OASbw=xi5SOicSjTrprQ@mail.gmail.com>
+From: Eryu Guan <eguan@redhat.com>
+Subject: Re: [PATCH v3 6/9] overlay: configure TEST/SCRATCH vars to base fs
+Date: Tue, 14 Feb 2017 19:03:15 +0800
+Message-ID: <20170214110315.GN24562@eguan.usersys.redhat.com>
 References: <1486932224-17075-1-git-send-email-amir73il@gmail.com>
- <20170213041924.r5nho3xdkydzff6k@XZHOUW.usersys.redhat.com>
- <CAOQ4uxihrEX5M0EYB-9ni90GPb3em1AbowFY+BvPZ3jtoigq4g@mail.gmail.com>
- <20170214044028.y45ai2dwzm7qx3k5@XZHOUW.usersys.redhat.com>
- <CAOQ4uxgjNe86U5FZ-MZCrSve7M47iMsJDax6FYBkyO4+JK-iig@mail.gmail.com> <20170214092511.3b4i3c5i36o446lr@XZHOUW.usersys.redhat.com>
+ <1486932224-17075-7-git-send-email-amir73il@gmail.com>
+ <20170213112824.GH24562@eguan.usersys.redhat.com>
+ <CAOQ4uxjgGN5zxv-AG4qnz+46M9+JK8AaU+-1m4DTfx=YDTPc=w@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-oi0-f66.google.com ([209.85.218.66]:34115 "EHLO
-        mail-oi0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753460AbdBNJvg (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 14 Feb 2017 04:51:36 -0500
-In-Reply-To: <20170214092511.3b4i3c5i36o446lr@XZHOUW.usersys.redhat.com>
+Received: from mx1.redhat.com ([209.132.183.28]:37526 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753098AbdBNLDQ (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Tue, 14 Feb 2017 06:03:16 -0500
+Content-Disposition: inline
+In-Reply-To: <CAOQ4uxjgGN5zxv-AG4qnz+46M9+JK8AaU+-1m4DTfx=YDTPc=w@mail.gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Xiong Zhou <xzhou@redhat.com>
-Cc: Eryu Guan <eguan@redhat.com>, Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, fstests <fstests@vger.kernel.org>
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, fstests <fstests@vger.kernel.org>
 
-On Tue, Feb 14, 2017 at 11:25 AM, Xiong Zhou <xzhou@redhat.com> wrote:
-> On Tue, Feb 14, 2017 at 08:15:22AM +0200, Amir Goldstein wrote:
->> On Tue, Feb 14, 2017 at 6:40 AM, Xiong Zhou <xzhou@redhat.com> wrote:
->> > On Mon, Feb 13, 2017 at 07:37:45AM +0200, Amir Goldstein wrote:
->> >> On Mon, Feb 13, 2017 at 6:19 AM, Xiong Zhou <xzhou@redhat.com> wrote:
->> >> > On Sun, Feb 12, 2017 at 10:43:35PM +0200, Amir Goldstein wrote:
->> >> >> Hi Eryu and all,
->> >> >>
->> >> >> The reason I started this work was to help catch overlayfs bugs
->> >> >> related to leaking objects in underlying (base) fs.
->> >> >
->> >> > So firstly, what's wrong with the existing way exactly ?
->> >> >
->> >>
->> >> One of the reasons that xfstests cycle mounts scratch partition
->> >> is that some bugs, such as object leaking bugs, are only discovered
->> >> when trying to unmount the file system.
->> >>
->> >> With overlayfs tests the cycling of overlay mount can detect bugs
->> >> related to overlayfs objects leaking, but not to base fs objects leaking.
->> >> OTOH, some bugs may be triggered in base fs when used under
->> >> overlayfs, but not when tests are run directly over the fs.
->> >>
->> >> The solution is to cycle mount both overlay mount and the base fs
->> >> underneath it to detect all those bugs.
->> >
->> > Good job.
->> >
->> >>
->> >> I started off (in V1) with a more complex way to manually configure
->> >> OVL_BASE_TEST_DEV, OVL_BASE_TEST_DIR, etc, but that
->> >> became very cumbersome.
->> >>
->> >> Eryu pointed out the over complication of this configuration, so
->> >> I decided to re-think the "old way", which I always thought was
->> >> a bit hackish.
->> >>
->> >> The "new way" enables running overlay tests over a range of
->> >> base fs configurations, which was not possible before without
->> >> using external scripts to wrap xfstests.
->> >>
->> >> But above all, the "new way" represents a different perspective
->> >> of overlayfs testing - testing overlayfs independently of the
->> >> underlying fs is doing half the job.
->> >>
->> >> You may say that overlayfs is closer to "MOUNT_OPTIONS"
->> >> then it is to "FSTYP". The truth is somewhere in the middle,
->> >> but the fact is that running a single "overlay" test does not cut it.
->> >> To tests overlay thoroughly, one would need to test overlay over
->> >> xfs, ext4, btrfs and to test xfs thoroughly, one would need to test
->> >> xfs, xfs+reflink, xfs+overlay, xfs+reflink+overlay, etc.
->> >>
->> >> The new way provides an easy way to configure those tests,
->> >> using semantics that people are used to when testing multiple
->> >> flavors of configurations.
->> >
->> > I'd like more comments or document for these NEW configurations, other
->> > than one or two lines in Examples.
->> >
->> > In other words, what kind of configuration your patches bringing
->> > support to ?
->> >
->>
->> There are 2 parts for this answer:
->>
->> 1. Single section config file
->> ====================
->>
->> The answer here is there is no new configuration.
->> All you need to do is forget everything you knew about old overlay test config.
->
-> That's okay, i just need to know what I am testing for. With a
-> "new way" to run tests, how I can control my test configuration
-> with the config file, what every line in the config file means
-> to the "new way".
->
+On Mon, Feb 13, 2017 at 10:31:30PM +0200, Amir Goldstein wrote:
+> On Mon, Feb 13, 2017 at 1:28 PM, Eryu Guan <eguan@redhat.com> wrote:
+> > On Sun, Feb 12, 2017 at 10:43:41PM +0200, Amir Goldstein wrote:
+> >> Instead of setting the vars TEST/SCRATCH_DEV to overlay base dirs,
+> >> allow setting them to block devices to configure the base fs partition,
+> >> where overlay dirs will be created.
+> >>
+> >> For example, the following config file can be used to run tests on
+> >> xfs test/scratch partitions:
+> >>
+> >>  TEST_DEV=/dev/sda5
+> >>  TEST_DIR=/mnt/test
+> >>  SCRATCH_DEV=/dev/sda6
+> >>  SCRATCH_MNT=/mnt/scratch
+> >>  FSTYP=xfs
+> >>
+> >> Using the same config file, but executing './check -overlay' will
+> >> use the same partitions as base fs for overlayfs directories
+> >> and set TEST_DIR/SCRATCH_MNT values to overlay mount points, i.e.:
+> >> /mnt/test/ovl-mnt and /mnt/scratch/ovl-mnt.
+> >>
+> >> The base fs should be pre-formatted and mounted when starting the test.
+> >> An upcoming change is going to support mount/umount of base fs.
+> >>
+> >> The new OVL_BASE_SCRATCH/TEST_* vars are set to point at the
+> >> overlayfs base dirs in either legacy or new config method.
+> >> Tests should always use these vars and not the legacy SCRATCH/TEST_DEV
+> >> vars when referring to overlay base dir.
+> >>
+> >> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+> >> ---
+> ...
+> >>
+> >>  # Parse config section options. This function will parse all the configuration
+> >> @@ -516,6 +574,15 @@ get_next_config() {
+> >>               unset SCRATCH_DEV
+> >>       fi
+> >>
+> >> +     # We might have overriden TEST/SCRATCH vars with overlay base dir in the
+> >> +     # previous run, so restore them to original values stored in OVL_BASE_*
+> >> +     if [ "$FSTYP" == "overlay" ]; then
+> >> +             [ -z "$OVL_BASE_TEST_DEV" ] || export TEST_DEV=$OVL_BASE_TEST_DEV
+> >> +             [ -z "$OVL_BASE_TEST_DIR" ] || export TEST_DIR=$OVL_BASE_TEST_DIR
+> >> +             [ -z "$OVL_BASE_SCRATCH_DEV" ] || export SCRATCH_DEV=$OVL_BASE_SCRATCH_DEV
+> >> +             [ -z "$OVL_BASE_SCRATCH_MNT" ] || export SCRATCH_MNT=$OVL_BASE_SCRATCH_MNT
+> >> +     fi
+> >> +
+> >>       parse_config_section $1
+> >>
+> >>       if [ ! -z "$OLD_FSTYP" ] && [ $OLD_FSTYP != $FSTYP ]; then
+> >> @@ -544,6 +611,12 @@ get_next_config() {
+> >>               export RESULT_BASE="$here/results/"
+> >>       fi
+> >>
+> >> +     # Override FSTYP from config when running ./check -overlay
+> >> +     # and maybe derive overlay TEST/SCRATCH from base fs values
+> >> +     if [ "$OVERLAY" == "true" -o "$FSTYP" == "overlay" ]; then
+> >> +             _config_overlay
+> >> +     fi
+> >> +
+> >
+> > If I have SCRATCH_DEV_POOL defined, e.g.
+> >
+> > TEST_DEV=/dev/sda5
+> > TEST_DIR=/mnt/testarea/test
+> > SCRATCH_DEV_POOL="/dev/sda6 /dev/sda7"
+> > SCRATCH_MNT=/mnt/testarea/scratch
+> >
+> > I got error like:
+> >
+> > [root@dhcp-66-86-11 xfstests]# ./check -overlay overlay/002
+> > common/config: SCRATCH_DEV (/dev/sda6) is not a directory for overlay
+> >
+> > Because we obtain SCRATCH_DEV from SCRATCH_DEV_POOL after we call
+> > _config_overlay, and SCRATCH_DEV is not set when configing overlay, so
+> > SCRATCH_DEV stays as a block device and fails _check_device.
+> >
+> > Moving the SCRATCH_DEV_POOL handling just after "unset SCRATCH_DEV"
+> > fixes this problem for me.
 
-All the lines in config mean exactly what they meant before
-and they all refer to the configuration on the base fs partitions.
-There are some vars that are ignored for -overlay run, like MKFS_OPTIONS
-I can document that, but this is implied from
-"The TEST and SCRATCH partitions should be pre-formatted"
+Seems this only works for multi-section config, not standalone
+local.config file..
 
->>
->> Take an existing test configuration you have and already use:
->>      TEST_DEV=/dev/sda5
->>      TEST_DIR=/mnt/test
->>      SCRATCH_DEV=/dev/sda6
->>      SCRATCH_MNT=/mnt/scratch
->>      FSTYP=xfs
->>
->> and just run './check -overlay' whenever you want to test overlayfs
->> and './check' whenever you want to test native fs.
->>
->> I could add more and more examples to README, but it's not like
->> README tells you much about how to use other configurations.
->
-> Agree. It's fair enough to keep this "how the new way interprets
-> old config file" in commit message. Ya.. finally i found that..
+> >
+> 
+> Right, I didn't test this setup. It appears to me that SCRATCH_DEV_POOL handling
+> should be *after* parse_config_section for multi section config, where
+> SCRATCH_DEV_POOL is assigned a new value in current section??
 
-"old way" was never documented and Eryu want to deprecate it
-so I see no reason to document how old configuration is supported
-it suffice to say that current change should not break existing
-config files of  users that test overlay
+I set SCRATCH_DEV_POOL as a default var, so it's inherited by all
+sections.
 
->
-> Still I think you can add more config examples in commit message
-> or somewhere, for your saying:
->> >> To tests overlay thoroughly, one would need to test overlay over
->> >> xfs, ext4, btrfs and to test xfs thoroughly, one would need to test
->> >> xfs, xfs+reflink, xfs+overlay, xfs+reflink+overlay, etc.
->> >>
->> >> The new way provides an easy way to configure those tests,
->> >> using semantics that people are used to when testing multiple
->> >> flavors of configurations.
->
-> Then people can test your code with your examples. Ya, i'am lazy :)
->
-> I guess -overlay option consider FSTYP as fs type for base fs.
-> While with above config file FSTYP=xfs,
-> if /dev/sda{5,6} are formated as ext4 fs before running,
-> ./check -overlay generic/001 will test with base fs as ext4,
-> (I don't get what i config for)
-> ./check generic/001 will stop test "wrong fs type".
->
-> Yes, it's human error. It's great if -overlay option can also stop
-> test as general, to correct this error.
->
+> 
+> Can you check if SCRATCH_DEV_POOL handling could be moved right before
+> _config_overlay?
 
-I now regret getting into the multi section example.
-I will withdraw any support for this scenario.
+No, test results show that it should be before restoring TEST_DEV/DIR
+etc. from previous run, this hunk:
 
-> Thanks for you time and Sorry for my bad questions.
->
+        # We might have overriden TEST/SCRATCH vars with overlay base dir in the
+        # previous run, so restore them to original values stored in OVL_BASE_*
+        if [ "$FSTYP" == "overlay" ]; then
+	...
 
-Not at all. Serves me right for publishing instructions to a half baked feature.
+> 
+> I'm not really sure how that configuration should be working with
+> overlay anyway.
 
-Thanks for keeping me honest!
+In general, I think SCRATCH_DEV_POOL should be handled just after
+reading in configs, as what you said. But multi-section config (maybe
+and the new overlayfs config) makes things more complex, and my brain
+stops working today..
 
-Amir.
+Thanks,
+Eryu
