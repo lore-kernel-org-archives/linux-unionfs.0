@@ -1,137 +1,97 @@
-From: Eryu Guan <eguan@redhat.com>
-Subject: Re: [PATCH v3 6/9] overlay: configure TEST/SCRATCH vars to base fs
-Date: Tue, 14 Feb 2017 19:03:15 +0800
-Message-ID: <20170214110315.GN24562@eguan.usersys.redhat.com>
-References: <1486932224-17075-1-git-send-email-amir73il@gmail.com>
- <1486932224-17075-7-git-send-email-amir73il@gmail.com>
- <20170213112824.GH24562@eguan.usersys.redhat.com>
- <CAOQ4uxjgGN5zxv-AG4qnz+46M9+JK8AaU+-1m4DTfx=YDTPc=w@mail.gmail.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Subject: Re: overlayfs: allowing for changes to lowerdir
+Date: Tue, 14 Feb 2017 16:01:45 +0200
+Message-ID: <CAOQ4uxiBmFdcueorKV7zwPLCDq4DE+H8x=8H1f7+3v3zysW9qA@mail.gmail.com>
+References: <CA+ZH+jFBAaRi6VPmf3PBdDZQQMOaT6WUByATqaw1QL5M9+-dxg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:37526 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753098AbdBNLDQ (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 14 Feb 2017 06:03:16 -0500
-Content-Disposition: inline
-In-Reply-To: <CAOQ4uxjgGN5zxv-AG4qnz+46M9+JK8AaU+-1m4DTfx=YDTPc=w@mail.gmail.com>
+Received: from mail-ot0-f173.google.com ([74.125.82.173]:33285 "EHLO
+        mail-ot0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753221AbdBNOBw (ORCPT
+        <rfc822;linux-unionfs@vger.kernel.org>);
+        Tue, 14 Feb 2017 09:01:52 -0500
+In-Reply-To: <CA+ZH+jFBAaRi6VPmf3PBdDZQQMOaT6WUByATqaw1QL5M9+-dxg@mail.gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, fstests <fstests@vger.kernel.org>
+To: Josh England <jjengla@gmail.com>
+Cc: linux-fsdevel <linux-fsdevel@vger.kernel.org>, linux-unionfs@vger.kernel.org, Miklos Szeredi <mszeredi@redhat.com>
 
-On Mon, Feb 13, 2017 at 10:31:30PM +0200, Amir Goldstein wrote:
-> On Mon, Feb 13, 2017 at 1:28 PM, Eryu Guan <eguan@redhat.com> wrote:
-> > On Sun, Feb 12, 2017 at 10:43:41PM +0200, Amir Goldstein wrote:
-> >> Instead of setting the vars TEST/SCRATCH_DEV to overlay base dirs,
-> >> allow setting them to block devices to configure the base fs partition,
-> >> where overlay dirs will be created.
-> >>
-> >> For example, the following config file can be used to run tests on
-> >> xfs test/scratch partitions:
-> >>
-> >>  TEST_DEV=/dev/sda5
-> >>  TEST_DIR=/mnt/test
-> >>  SCRATCH_DEV=/dev/sda6
-> >>  SCRATCH_MNT=/mnt/scratch
-> >>  FSTYP=xfs
-> >>
-> >> Using the same config file, but executing './check -overlay' will
-> >> use the same partitions as base fs for overlayfs directories
-> >> and set TEST_DIR/SCRATCH_MNT values to overlay mount points, i.e.:
-> >> /mnt/test/ovl-mnt and /mnt/scratch/ovl-mnt.
-> >>
-> >> The base fs should be pre-formatted and mounted when starting the test.
-> >> An upcoming change is going to support mount/umount of base fs.
-> >>
-> >> The new OVL_BASE_SCRATCH/TEST_* vars are set to point at the
-> >> overlayfs base dirs in either legacy or new config method.
-> >> Tests should always use these vars and not the legacy SCRATCH/TEST_DEV
-> >> vars when referring to overlay base dir.
-> >>
-> >> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
-> >> ---
-> ...
-> >>
-> >>  # Parse config section options. This function will parse all the configuration
-> >> @@ -516,6 +574,15 @@ get_next_config() {
-> >>               unset SCRATCH_DEV
-> >>       fi
-> >>
-> >> +     # We might have overriden TEST/SCRATCH vars with overlay base dir in the
-> >> +     # previous run, so restore them to original values stored in OVL_BASE_*
-> >> +     if [ "$FSTYP" == "overlay" ]; then
-> >> +             [ -z "$OVL_BASE_TEST_DEV" ] || export TEST_DEV=$OVL_BASE_TEST_DEV
-> >> +             [ -z "$OVL_BASE_TEST_DIR" ] || export TEST_DIR=$OVL_BASE_TEST_DIR
-> >> +             [ -z "$OVL_BASE_SCRATCH_DEV" ] || export SCRATCH_DEV=$OVL_BASE_SCRATCH_DEV
-> >> +             [ -z "$OVL_BASE_SCRATCH_MNT" ] || export SCRATCH_MNT=$OVL_BASE_SCRATCH_MNT
-> >> +     fi
-> >> +
-> >>       parse_config_section $1
-> >>
-> >>       if [ ! -z "$OLD_FSTYP" ] && [ $OLD_FSTYP != $FSTYP ]; then
-> >> @@ -544,6 +611,12 @@ get_next_config() {
-> >>               export RESULT_BASE="$here/results/"
-> >>       fi
-> >>
-> >> +     # Override FSTYP from config when running ./check -overlay
-> >> +     # and maybe derive overlay TEST/SCRATCH from base fs values
-> >> +     if [ "$OVERLAY" == "true" -o "$FSTYP" == "overlay" ]; then
-> >> +             _config_overlay
-> >> +     fi
-> >> +
-> >
-> > If I have SCRATCH_DEV_POOL defined, e.g.
-> >
-> > TEST_DEV=/dev/sda5
-> > TEST_DIR=/mnt/testarea/test
-> > SCRATCH_DEV_POOL="/dev/sda6 /dev/sda7"
-> > SCRATCH_MNT=/mnt/testarea/scratch
-> >
-> > I got error like:
-> >
-> > [root@dhcp-66-86-11 xfstests]# ./check -overlay overlay/002
-> > common/config: SCRATCH_DEV (/dev/sda6) is not a directory for overlay
-> >
-> > Because we obtain SCRATCH_DEV from SCRATCH_DEV_POOL after we call
-> > _config_overlay, and SCRATCH_DEV is not set when configing overlay, so
-> > SCRATCH_DEV stays as a block device and fails _check_device.
-> >
-> > Moving the SCRATCH_DEV_POOL handling just after "unset SCRATCH_DEV"
-> > fixes this problem for me.
+On Mon, Feb 13, 2017 at 11:41 PM, Josh England <jjengla@gmail.com> wrote:
+> So here's the use case:  lowerdir is an NFS mounted root filesystem
+> (shared by a bunch of nodes).  upperdir is a tmpfs RAM disk to allow
+> for writes to happen.  This works great with the caveat being I cannot
+> make 'live' changes to the root filesystem, which poses the problem.
+> Any access to a changed file causes a 'Stale file handle' error.
+>
+> With some experimenting, I've discovered that remounting the overlay
+> filesystem (mount -o remount / /)  registers any changes that have
+> been made to the lower NFS filesystem.  In addition, dumping cache
+> (via /proc/sys/vm/drop_caches) also makes the stale file handle errors
+> go away and reads pass through to the lower dir and correctly show
+> changes.
+>
+> I'd like to make this use case feasible by allowing changes to the NFS
+> lowerdir to work more or less transparently.  It seems like if the
+> overlay did not do any caching at all, all reads would fall through to
+> either the upperdir ram disk or the NFS lower, which is precisely what
+> I want.
+>
+> So, let me pose this somewhat naive question:  Would it be possible to
+> simply disable any cacheing performed by the overlay to force all
+> reads to go to either the tmpfs upper or the (VFS-cached) NFS lower?
+> Would this be enough to accomplish my goal of being able to change the
+> lowerdir of an active overlayfs?
+>
 
-Seems this only works for multi-section config, not standalone
-local.config file..
+There is no need to disable caching. There is already a mechanism
+in place in VFS to revalidate inode cache entries.
+NFS implements d_revalidate() and overlayfs implements d_revalidate()
+by calling into the lower fs d_revalidate().
 
-> >
-> 
-> Right, I didn't test this setup. It appears to me that SCRATCH_DEV_POOL handling
-> should be *after* parse_config_section for multi section config, where
-> SCRATCH_DEV_POOL is assigned a new value in current section??
+However overlayfs intentionally errors when lower entry has been modified.
+(see: 7c03b5d ovl: allow distributed fs as lower layer)
 
-I set SCRATCH_DEV_POOL as a default var, so it's inherited by all
-sections.
+You can try this (untested) patch to revert this behavior, just to see if it
+works for your use case, but it won't change this fact
+from Documentation/filesystems/overlayfs.txt:
+" Changes to the underlying filesystems while part of a mounted overlay
+filesystem are not allowed.  If the underlying filesystem is changed,
+the behavior of the overlay is undefined, though it will not result in
+a crash or deadlock."
 
-> 
-> Can you check if SCRATCH_DEV_POOL handling could be moved right before
-> _config_overlay?
+Specifically, renaming directories and files in lower that were already
+copied up is going to have a weird outcome.
 
-No, test results show that it should be before restoring TEST_DEV/DIR
-etc. from previous run, this hunk:
+Also, the situation with changing files in lower remote fs could be worse
+than changing files on lower local fs, simply because right now, this
+use case is not tested (i.e. it results in ESTALE).
 
-        # We might have overriden TEST/SCRATCH vars with overlay base dir in the
-        # previous run, so restore them to original values stored in OVL_BASE_*
-        if [ "$FSTYP" == "overlay" ]; then
-	...
+I believe that fixing this use case, if at all possible, would require quite
+a bit of work, a lot of documentation (about expected behavior) and
+even more testing.
 
-> 
-> I'm not really sure how that configuration should be working with
-> overlay anyway.
+Amir.
 
-In general, I think SCRATCH_DEV_POOL should be handled just after
-reading in configs, as what you said. But multi-section config (maybe
-and the new overlayfs config) makes things more complex, and my brain
-stops working today..
+diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+index e8ef9d1..6806ef3 100644
+--- a/fs/overlayfs/super.c
++++ b/fs/overlayfs/super.c
+@@ -106,16 +106,11 @@ static int ovl_dentry_revalidate(struct dentry
+*dentry, unsigned int flags)
 
-Thanks,
-Eryu
+                if (d->d_flags & DCACHE_OP_REVALIDATE) {
+                        ret = d->d_op->d_revalidate(d, flags);
+-                       if (ret < 0)
++                       if (ret =< 0)
+                                return ret;
+-                       if (!ret) {
+-                               if (!(flags & LOOKUP_RCU))
+-                                       d_invalidate(d);
+-                               return -ESTALE;
+-                       }
+                }
+        }
+-       return 1;
++       return ret;
+ }
