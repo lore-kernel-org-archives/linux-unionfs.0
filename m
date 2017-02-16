@@ -1,53 +1,76 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH v4 10/10] generic/064: access SCRATCH_MNT after _scratch_mount
-Date: Thu, 16 Feb 2017 21:57:08 +0200
-Message-ID: <1487275028-29885-11-git-send-email-amir73il@gmail.com>
+Subject: [PATCH v4 08/10] overlay: fix test and scratch filters for overlay base fs
+Date: Thu, 16 Feb 2017 21:57:06 +0200
+Message-ID: <1487275028-29885-9-git-send-email-amir73il@gmail.com>
 References: <1487275028-29885-1-git-send-email-amir73il@gmail.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wr0-f196.google.com ([209.85.128.196]:34523 "EHLO
-        mail-wr0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932344AbdBPT5g (ORCPT
+Received: from mail-wm0-f68.google.com ([74.125.82.68]:35916 "EHLO
+        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932344AbdBPT5d (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 16 Feb 2017 14:57:36 -0500
+        Thu, 16 Feb 2017 14:57:33 -0500
 In-Reply-To: <1487275028-29885-1-git-send-email-amir73il@gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: Eryu Guan <eguan@redhat.com>
 Cc: Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, fstests@vger.kernel.org
 
-Test is calling _get_block_size $SCRATCH_MNT before
-_scratch_mount. This results in block size of the
-wrong fs and a failure with overlay base fs setup.
+When configuring overlay base fs, TEST_DEV/DIR and SCRATCH_DEV/MNT
+are derived from the base fs mount points, where *_DEV are the
+path of the base fs mount point and TEST_DIR/SCRATCH_MNT are
+a directory under the base fs mount point.
+
+This means that the overlay DEV paths are prefixes of the overlay
+mount points.
+Fix the test and sctach filters to check if TEST_DEV/SCRATCH_DEV is
+a substring of TEST_DIR/SCRATCH_MNT and try and match the longer
+string first.
 
 Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- tests/generic/064 | 10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+ common/filter | 26 ++++++++++++++++++++++----
+ 1 file changed, 22 insertions(+), 4 deletions(-)
 
-diff --git a/tests/generic/064 b/tests/generic/064
-index 8cd31b3..156485e 100755
---- a/tests/generic/064
-+++ b/tests/generic/064
-@@ -46,14 +46,16 @@ _require_scratch
- _require_xfs_io_command "fiemap"
- _require_xfs_io_command "finsert"
- _require_xfs_io_command "fcollapse"
--src=$SCRATCH_MNT/testfile
--dest=$SCRATCH_MNT/testfile.dest
--BLOCKS=100
--BSIZE=`_get_block_size $SCRATCH_MNT`
-+
- rm -f $seqres.full
+diff --git a/common/filter b/common/filter
+index 4328159..010f080 100644
+--- a/common/filter
++++ b/common/filter
+@@ -280,14 +280,32 @@ _filter_xfs_io_pages_modified()
  
- _scratch_mkfs >> $seqres.full 2>&1 || _fail "mkfs failed"
- _scratch_mount || _fail "mount failed"
-+
-+src=$SCRATCH_MNT/testfile
-+dest=$SCRATCH_MNT/testfile.dest
-+BLOCKS=100
-+BSIZE=`_get_block_size $SCRATCH_MNT`
- length=$(($BLOCKS * $BSIZE))
+ _filter_test_dir()
+ {
+-	sed -e "s,$TEST_DEV,TEST_DEV,g" -e "s,$TEST_DIR,TEST_DIR,g"
++	if ( echo $TEST_DIR | grep -q $TEST_DEV ); then
++		# TEST_DEV is substr of TEST_DIR (e.g. /mnt and /mnt/ovl-mnt)
++		# substitute TEST_DIR first
++		sed -e "s,$TEST_DIR,TEST_DIR,g" \
++		    -e "s,$TEST_DEV,TEST_DEV,g"
++	else
++		# TEST_DIR maybe a substr of TEST_DIR (e.g. /vdc and /dev/vdc)
++		# substitute TEST_DEV first
++		sed -e "s,$TEST_DEV,TEST_DEV,g" \
++		    -e "s,$TEST_DIR,TEST_DIR,g"
++	fi
+ }
  
- # Write file
+ _filter_scratch()
+ {
+-	sed -e "s,$SCRATCH_DEV,SCRATCH_DEV,g" \
+-	    -e "s,$SCRATCH_MNT,SCRATCH_MNT,g" \
+-	    -e "/.use_space/d"
++	if ( echo $SCRATCH_MNT | grep -q $SCRATCH_DEV ); then
++		# SCRATCH_DEV is substr of SCRATCH_MNT
++		sed -e "s,$SCRATCH_MNT,SCRATCH_MNT,g" \
++		    -e "s,$SCRATCH_DEV,SCRATCH_DEV,g" \
++		    -e "/.use_space/d"
++	else
++		# SCRATCH_MNT maybe a substr of SCRATCH_DEV
++		sed -e "s,$SCRATCH_DEV,SCRATCH_DEV,g" \
++		    -e "s,$SCRATCH_MNT,SCRATCH_MNT,g" \
++		    -e "/.use_space/d"
++	fi
+ }
+ 
+ # Turn any device in the scratch pool into SCRATCH_DEV
 -- 
 2.7.4
