@@ -1,154 +1,118 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [PATCH v3 0/9] fstests: new way to run overlay tests
-Date: Thu, 16 Feb 2017 11:02:43 +0200
-Message-ID: <CAOQ4uxgHj2w+SAPsSGeBfTGLGgniMjdZcFUsqOt_jTDULgVPFg@mail.gmail.com>
-References: <1486932224-17075-1-git-send-email-amir73il@gmail.com> <20170213110215.GE24562@eguan.usersys.redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <fstests-owner@vger.kernel.org>
-In-Reply-To: <20170213110215.GE24562@eguan.usersys.redhat.com>
-Sender: fstests-owner@vger.kernel.org
-To: Eryu Guan <eguan@redhat.com>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, fstests <fstests@vger.kernel.org>, Theodore Tso <tytso@mit.edu>
+Subject: [PATCH v4 0/10] fstests: new way to run overlay tests
+Date: Thu, 16 Feb 2017 21:56:58 +0200
+Message-ID: <1487275028-29885-1-git-send-email-amir73il@gmail.com>
+Return-path: <linux-unionfs-owner@vger.kernel.org>
+Received: from mail-wr0-f196.google.com ([209.85.128.196]:34459 "EHLO
+        mail-wr0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932344AbdBPT5U (ORCPT
+        <rfc822;linux-unionfs@vger.kernel.org>);
+        Thu, 16 Feb 2017 14:57:20 -0500
+Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
+To: Eryu Guan <eguan@redhat.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, fstests@vger.kernel.org
 
-On Mon, Feb 13, 2017 at 1:02 PM, Eryu Guan <eguan@redhat.com> wrote:
-> On Sun, Feb 12, 2017 at 10:43:35PM +0200, Amir Goldstein wrote:
->> Hi Eryu and all,
->>
->> The reason I started this work was to help catch overlayfs bugs
->> related to leaking objects in underlying (base) fs.
->>
->> As a by-product, following Eryu's comments on v2, configuring
->> xfstest to run overlay tests over any file system is now easier then ever.
->>
->> With this change, all you have to do to run overlay tests if you
->> already have a local.config setup to test a local file system is:
->>  ./check -overlay
->>
->> It uses existing local.config that was setup to run tests on
->> the base fs (e.g. xfs) and you can run './check' and './check -overlay'
->> without re-formatting the test partitions and without changing the
->> config file.
->
-> This sounds handy to me, thanks a lot for the improvements!
->
-> The patchset looks fine to me overall, some minor comments go to
-> individual patch.
->
-> And I want to leave these patches sitting in the list for a longer time
-> for broader review, as it's quite an invasive update.
->
->>
->> The legacy overlayfs configuration, where TEST_DEV is a directory
->> still works, but it should be deprecated.
->>
->> I tested ./check -overlay -g quick with both legacy overlay configuration
->> and the new base fs configuration.
->>
->> Until now, overlay test configuration was not documented at all.
->> I updated README per Eryu's request and tried to keep the documentation
->> short and simple.
->
-> Thanks!
->
->>
->> Also updated README.config-sections with an easy example how to
->> interleave overlay tests on every base fs in the multi section config
->> file.
->>
->> I honestly think that it is important for file system developers these days,
->> to test changes to their file systems with -overlay, to verify no breakage
->> is caused when their file systems are used as base fs to overlay containers.
->> I dare to say, that it is probably more important than testing 1k block size,
->> which most of the maintainers do test with regularly.
->>
->> Some of the bugs I fixed in patches 1-3 indicate that people have not
->> been 'stress testing' the xfstest config file and all of its gloious
->> configurable options.  I tried to run with some basic configurations
->> to check my changes, but I doubt that I have covered more then a small
->> fraction of the configurations that people are using.
->>
->> I would very much appreciate if anyone could test these changes with their
->> own set of configuration, with or without adding overlay tests into the mix.
->> You can get the branch for testing from my github tree [1].
->
-> I hit a bug if I defined SCRATCH_DEV_POOL for btrfs, I'll describe the
-> details in reply to patch 6/9.
->
+Hi Eryu and all,
 
-Eryu,
+This is the 4th revision of new overlayfs config.
+The main motivation of this work is to help catch overlayfs bugs
+related to leaking objects in underlying (base) fs.
 
-Tested that SCRATCH_DEV_POOL works with single/multi section config.
-Tested "old" and "new" overlay config.
-Tested -overlay with single/multi section config.
-Tested kvm-xfstests -c overlay.
+With this change, all you have to do to run overlay tests if you
+already have a local.config setup to test a local file system is:
+ ./check -overlay
 
-I will write up some README.overlay with examples for supported configs
-and re-post patches later today.
+It uses existing local.config that was setup to run tests on
+the base fs (e.g. xfs) and you can run './check' and './check -overlay'
+without re-formatting the test partitions and without changing the
+config file.
 
-In the mean while, I pushed V4 patches to github [1].
-If you have some time, please give it a quick sanity check
-with your configs.
+The legacy overlayfs configuration, where TEST_DEV is a directory
+still works, but it should be deprecated.
+
+I tested ./check -overlay -g quick with both legacy overlay configuration
+and the new base fs configuration.
+
+Until now, overlay test configuration was not documented at all.
+I updated README per Eryu's request and tried to keep the documentation
+short and simple.
+
+Also added README.overlay with some easy example for config files
+to use with -overlay.
+
+I would very much appreciate if anyone could test these changes with their
+own set of configuration, with or without adding overlay tests into the mix.
+You can get the branch for testing from my github tree [1].
 
 Thanks,
 Amir.
 
 [1] https://github.com/amir73il/xfstests/tree/ovl_base_fs
 
->> v3:
->> - Mount cycle base test fs
->> - Fix bugs in non overlay specific sanity checks
->> - Run -overlay test with existing config file of base fs
->> - Run overlay tests per base fs by adding overlay config sections
->>
->> v2:
->> - Test and scratch base dirs each have thier own base fs
->> - Support mount cycles of base fs for scratch tests
->>
->> v1:
->> - Both test and scratch base dirs on a single base fs
->>
->>
->> Amir Goldstein (9):
->>   fstests: sanity check that test partitions are not mounted elsewhere
->>   fstests: use _test_mount() consistently
->>   fstests: canonicalize mount points on every config section
->>   overlay: rename OVERLAY_LOWER/UPPER/WORK_DIR
->>   overlay: allow SCRATCH_DEV to be the base fs mount point
->>   overlay: configure TEST/SCRATCH vars to base fs
->>   overlay: use OVL_BASE_SCRATCH_MNT instead of SCRATCH_DEV
->>   overlay: fix test and scratch filters for overlay base fs
->>   overlay: mount/unmount base fs before/after running tests
->>
->>  README                 |  16 +++--
->>  README.config-sections |   6 ++
->>  check                  |  24 +++----
->>  common/config          | 121 +++++++++++++++++++++++++++-----
->>  common/filter          |   7 +-
->>  common/rc              | 184 +++++++++++++++++++++++++++++++++++--------------
->>  tests/overlay/001      |   7 +-
->>  tests/overlay/002      |   2 +-
->>  tests/overlay/003      |   5 +-
->>  tests/overlay/004      |   7 +-
->>  tests/overlay/005      |  30 ++++----
->>  tests/overlay/006      |  10 +--
->>  tests/overlay/008      |   8 +--
->>  tests/overlay/009      |   2 +-
->>  tests/overlay/010      |  10 +--
->>  tests/overlay/011      |   6 +-
->>  tests/overlay/012      |   4 +-
->>  tests/overlay/013      |   4 +-
->>  tests/overlay/014      |  19 ++---
->>  tests/overlay/015      |   2 +-
->>  tests/overlay/016      |   2 +-
->>  tests/overlay/017      |   2 +-
->>  tests/overlay/018      |   2 +-
->>  tests/overlay/019      |   2 +-
->>  tests/overlay/020      |   2 +-
->>  tests/overlay/021      |   6 +-
->>  26 files changed, 333 insertions(+), 157 deletions(-)
->>
->> --
->> 2.7.4
->>
+v4:
+- Address review comments from Eryu
+- Fix sanity checks for already mounted scratch base fs
+- Fix handling of SCRATCH_DEV_POOL
+- Fix problems when run in kvm-xfstests
+- Add README.overlay with example config files
+- Remove documentation for overlay config sections
+
+v3:
+- Mount cycle base test fs
+- Fix bugs in non overlay specific sanity checks
+- Run -overlay test with existing config file of base fs
+- Run overlay tests per base fs by adding overlay config sections
+
+v2:
+- Test and scratch base dirs each have thier own base fs
+- Support mount cycles of base fs for scratch tests
+
+v1:
+- Both test and scratch base dirs on a single base fs
+
+
+Amir Goldstein (10):
+  fstests: sanity check that test partitions are not mounted elsewhere
+  fstests: use _test_mount() consistently
+  fstests: canonicalize mount points on every config section
+  overlay: rename OVERLAY_LOWER/UPPER/WORK_DIR
+  overlay: allow SCRATCH_DEV to be the base fs mount point
+  overlay: configure TEST/SCRATCH vars to base fs
+  overlay: use OVL_BASE_SCRATCH_MNT instead of SCRATCH_DEV
+  overlay: fix test and scratch filters for overlay base fs
+  overlay: mount/unmount base fs before/after running tests
+  generic/064: access SCRATCH_MNT after _scratch_mount
+
+ README            |  16 +++--
+ README.overlay    |  46 ++++++++++++
+ check             |  18 ++---
+ common/config     | 160 ++++++++++++++++++++++++++++++++++++------
+ common/filter     |  26 +++++--
+ common/rc         | 206 +++++++++++++++++++++++++++++++++++++++---------------
+ tests/generic/064 |  10 +--
+ tests/overlay/001 |   7 +-
+ tests/overlay/002 |   2 +-
+ tests/overlay/003 |   5 +-
+ tests/overlay/004 |   7 +-
+ tests/overlay/005 |  30 ++++----
+ tests/overlay/006 |  10 +--
+ tests/overlay/008 |   8 +--
+ tests/overlay/009 |   2 +-
+ tests/overlay/010 |  10 +--
+ tests/overlay/011 |   6 +-
+ tests/overlay/012 |   4 +-
+ tests/overlay/013 |   4 +-
+ tests/overlay/014 |  19 ++---
+ tests/overlay/015 |   2 +-
+ tests/overlay/016 |   2 +-
+ tests/overlay/017 |   2 +-
+ tests/overlay/018 |   2 +-
+ tests/overlay/019 |   2 +-
+ tests/overlay/020 |   2 +-
+ tests/overlay/021 |   6 +-
+ 27 files changed, 450 insertions(+), 164 deletions(-)
+ create mode 100644 README.overlay
+
+-- 
+2.7.4
