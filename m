@@ -1,81 +1,107 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [PATCH v3 9/9] overlay: mount/unmount base fs before/after
- running tests
-Date: Thu, 16 Feb 2017 10:50:20 +0200
-Message-ID: <CAOQ4uxgxWg2o2co8L4fcje0yKrNN7gv3V90t7d=CFrsT4fbD+Q@mail.gmail.com>
+Subject: Re: [PATCH v3 1/9] fstests: sanity check that test partitions are not
+ mounted elsewhere
+Date: Thu, 16 Feb 2017 10:53:47 +0200
+Message-ID: <CAOQ4uxhaNrRqp=k=wvrp_4iSx1Hay2x5Pg3FFX+gTXSRLXfh1Q@mail.gmail.com>
 References: <1486932224-17075-1-git-send-email-amir73il@gmail.com>
- <1486932224-17075-10-git-send-email-amir73il@gmail.com> <20170214002356.dxrmf5jzwr6sivlu@thunk.org>
- <CAOQ4uxj131n=dadiuCzJZWTTC0Jkw=Bdpp1QpX=keBOOySYySg@mail.gmail.com>
- <20170214170757.nuhxnvhtctreelxt@thunk.org> <CAOQ4uxgV++ZdecBfUth2TN4A451hP_7UXRkBkgVhOTEwCzhNMA@mail.gmail.com>
+ <1486932224-17075-2-git-send-email-amir73il@gmail.com> <20170213111053.GF24562@eguan.usersys.redhat.com>
+ <CAOQ4uxiWwVCN07yxwWQbp5Yi011TYV509RqWov9+szJnmP5NkA@mail.gmail.com>
+ <CAOQ4uxg-DS7+j0DLLr20nZGrA6752D2ZUhfQeHPz5hGDb=DRfA@mail.gmail.com> <20170214055114.GK24562@eguan.usersys.redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-ot0-f196.google.com ([74.125.82.196]:35884 "EHLO
-        mail-ot0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753625AbdBPIuV (ORCPT
+Received: from mail-oi0-f67.google.com ([209.85.218.67]:36425 "EHLO
+        mail-oi0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752527AbdBPIxs (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 16 Feb 2017 03:50:21 -0500
-In-Reply-To: <CAOQ4uxgV++ZdecBfUth2TN4A451hP_7UXRkBkgVhOTEwCzhNMA@mail.gmail.com>
+        Thu, 16 Feb 2017 03:53:48 -0500
+In-Reply-To: <20170214055114.GK24562@eguan.usersys.redhat.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Theodore Ts'o <tytso@mit.edu>
-Cc: Eryu Guan <eguan@redhat.com>, Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, fstests <fstests@vger.kernel.org>
+To: Eryu Guan <eguan@redhat.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, fstests <fstests@vger.kernel.org>
 
-On Tue, Feb 14, 2017 at 7:55 PM, Amir Goldstein <amir73il@gmail.com> wrote:
-> On Tue, Feb 14, 2017 at 7:07 PM, Theodore Ts'o <tytso@mit.edu> wrote:
->> On Tue, Feb 14, 2017 at 08:43:36AM +0200, Amir Goldstein wrote:
->>>
->>> Correct. The only thing that overlay does not do is format the base fs,
->>> as the README says:
->>>         - for overlay tests: ./check -overlay [test(s)]
->>>           The TEST and SCRATCH partitions should be pre-formatted
->>>           with another base fs, where the overlay dirs will be created
->>>
->>
->> So this means that if I only want to do the equivalent of:
->>
->>    gce-xfstests -c overlay generic/013
->>
->> as part of a bisection search, it's impossible to do this via the
->> config file and "./check -s ext4-overlay generic/013" alone.  Someone
->> who wants to do this will have to use their own wrapper script to
->> format the base file system with the proper file system.
->>
->> Correct?
->>
+On Tue, Feb 14, 2017 at 7:51 AM, Eryu Guan <eguan@redhat.com> wrote:
+> On Mon, Feb 13, 2017 at 03:33:23PM +0200, Amir Goldstein wrote:
+>> On Mon, Feb 13, 2017 at 1:44 PM, Amir Goldstein <amir73il@gmail.com> wrote:
+>> > On Mon, Feb 13, 2017 at 1:10 PM, Eryu Guan <eguan@redhat.com> wrote:
+>> >> On Sun, Feb 12, 2017 at 10:43:36PM +0200, Amir Goldstein wrote:
+>> >>> When $TEST_DEV is mounted at a different location then $TEST_DIR,
+>> >>> _require_test() aborts the test with an error:
+>> >>>  TEST_DEV=/dev/sda5 is mounted but not on TEST_DIR=/mnt/test
+>> >>>
+>> >>> There are several problems with current sanity check:
+>> >>> 1. the output of the error is mixed into out.bad and hard to see
+>> >>> 2. the test partition is unmounted at the end of the test regardless
+>> >>>    of the fact that it not pass the sanity that we have exclusivity
+>> >>> 3. scratch partition has a similar sanity check in _require_scratch(),
+>> >>>    but we may not get to it, because $SCRATCH_DEV is unmounted prior
+>> >>>    to running the tests (which could unmount another mount point).
+>> >>>
+>> >>> To solve all these problems, introduce a helper _check_mounted_on().
+>> >>> It checks if a device is mounted on a given mount point and optionally
+>> >>> checks the mounted fs type.
+>> >>>
+>> >>> The sanity checks in _require_scratch() and _require_test() are
+>> >>> converted to use the helper and gain the check for correct fs type.
+>> >>>
+>> >>> The helper is used in init_rc() to sanity check both test and scratch
+>> >>> partitions, before tests are run and before $SCRATCH_DEV is unmounted.
+>> >>>
+>> >>> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+>> >>> ---
+>> >>>  common/rc | 83 +++++++++++++++++++++++++++++++++++++--------------------------
+>> >>>  1 file changed, 49 insertions(+), 34 deletions(-)
+>> >
+>> > ...
+>> >
+>> >> My test configs look like:
+>> >>
+>> >> TEST_DEV=/dev/sda5
+>> >> SCRATCH_DEV=/dev/sda6
+>> >> TEST_DIR=/mnt/testarea/test
+>> >> SCRATCH_MNT=/mnt/testarea/scratch
+>> >>
+>> >> and if I mount SCRATCH_DEV at /mnt/xfs (or some other mountpoints rather
+>> >> than SCRATCH_MNT), ./check -overlay overlay/??? isn't able to detect
+>> >> this mis-configuration.
+>> >>
+>> >> [root@dhcp-66-86-11 xfstests]# ./check  -overlay overlay/002
+>> >> FSTYP         -- overlay
+>> >> PLATFORM      -- Linux/x86_64 dhcp-66-86-11 4.10.0-rc7
+>> >> MKFS_OPTIONS  -- /mnt/testarea/scratch
+>> >> MOUNT_OPTIONS -- -o context=system_u:object_r:nfs_t:s0 -o lowerdir=/mnt/testarea/scratch/ovl-lower,upperdir=/mnt/testarea/scratch/ovl-upper,workdir=/mnt/testarea/scratch/ovl-work
+>> >>
+>> >> [root@dhcp-66-86-11 xfstests]#
+>> >>
+>> >> And nothing useful was printed. This is because my rootfs has no
+>> >> filetype support, but the _notrun message is redirected to a file in
+>> >> check, as
+>> >>
+>> >> "if ! _scratch_mkfs >$tmp.err 2>&1"
+>> >>
+>> >> Adding _check_mounted_on against OVL_BASE_TEST/SCRATCH_DEV here could
+>> >> fix it for me.
+>> >>
+>> >
+>> > Actually, there that test already exists in:
+>> >
+>> > _scratch_mkfs
+>> >   _scratch_cleanup_files
+>> >     _overlay_base_scratch_mount
+>> >       _check_mounted_on
 >
-> Correct.
+> Hmm, I don't think this kind of basic config sanity check belongs here,
+> this should be done in config and env setup time. (So I think
+> _overlay_mount should be fixed too, that _supports_filetype check
+> doesn't belong there either.)
 >
-> I guess it wouldn't be that hard to add mkfs/fsck support for base fs,
-> but for now my budget to deal with this is over. I may get to it another
-> time.
+> How about adding these checks in init_rc, along with other
+> _check_mounted_on checks against TEST_DEV and SCRATCH_DEV?
 >
->> Which is fine, I have my own wrapper script system.  :-)
->>
->
-> Do we have something like:
-> ./check -s ext4 --setup-only
->
-> Should we have something like this?
->
-> Will this do the trick?
-> ./check -s ext4 -n generic/013
 
-FYI, for upcoming V4, I recalled the support for overlay sections
-(i.e. it is an undocumented feature), but verified that multi section can run
-with -overlay, as long as the sections only change mount options, e.g.:
-
-[xfs]
-TEST_DEV=/dev/sda5
-TEST_DIR=/mnt/test
-SCRATCH_DEV=/dev/sda6
-SCRATCH_MNT=/mnt/scratch
-MKFS_OPTIONS="-f -m rmapbt=1,reflink=1"
-FSTYP=xfs
-
-[xfs_pquota]
-MOUNT_OPTIONS="-o pquota"
-TEST_FS_MOUNT_OPTS="-o noatime"
-OVERLAY_MOUNT_OPTIONS="-o redirect_dir=off"
-
-I will collect some of these example in README.overlay
+Sorry, I tried adding those base fs tests in init_rc, but it got too
+complicated.
+So in V4, I left the sanity checks inside _overlay_base_scratch_mount and
+modified the _check_mounted_on helper to not exit and return error values
+which callers acts upon.
