@@ -1,176 +1,64 @@
 From: Miklos Szeredi <mszeredi@redhat.com>
-Subject: [PATCH 7/9] ovl: intercept mmap on overlay files
-Date: Fri, 17 Feb 2017 17:09:36 +0100
-Message-ID: <1487347778-18596-8-git-send-email-mszeredi@redhat.com>
+Subject: [PATCH 8/9] vfs: use helper for calling f_op->fsync()
+Date: Fri, 17 Feb 2017 17:09:37 +0100
+Message-ID: <1487347778-18596-9-git-send-email-mszeredi@redhat.com>
 References: <1487347778-18596-1-git-send-email-mszeredi@redhat.com>
-Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wm0-f52.google.com ([74.125.82.52]:36809 "EHLO
-        mail-wm0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934329AbdBQQJx (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 17 Feb 2017 11:09:53 -0500
-Received: by mail-wm0-f52.google.com with SMTP id c85so19395165wmi.1
-        for <linux-unionfs@vger.kernel.org>; Fri, 17 Feb 2017 08:09:52 -0800 (PST)
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1487347778-18596-1-git-send-email-mszeredi@redhat.com>
-Sender: linux-unionfs-owner@vger.kernel.org
-List-Id: linux-unionfs@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: Al Viro <viro@zeniv.linux.org.uk>
 Cc: linux-unionfs@vger.kernel.org, linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org
-
-... in order to handle the corner case when the file is copied up after
-being opened read-only and mapped shared.
-
-Can be verified with the following script:
-
- - 8< - - - - - 8< - - - - - 8< - - - - - 8< - - - -
-cd /
-rm -rf /tmp/ovl-rorw-test
-mkdir /tmp/ovl-rorw-test
-cd /tmp/ovl-rorw-test
-cat << EOF > rorw-map.c
-#include <fcntl.h>
-#include <unistd.h>
-#include <string.h>
-#include <err.h>
-#include <sys/mman.h>
-
-int main(int argc, char *argv[])
-{
-        int rofd, rwfd;
-        int ret;
-        char buf[4];
-        char *addr;
-
-        rofd = open(argv[1], O_RDONLY);
-        if (rofd == -1)
-                err(1, "ro open");
-
-        addr = mmap(NULL, 4, PROT_READ, MAP_SHARED, rofd, 0);
-        if (addr == MAP_FAILED)
-                err(1, "ro mmap");
-
-        if (memcmp(addr, "bubu", 4) == 0)
-                errx(1, "identical startup data");
-
-        rwfd = open(argv[1], O_WRONLY);
-        if (rwfd == -1)
-                err(1, "rw open");
-
-        ret = write(rwfd, "bubu", 4);
-        if (ret == -1)
-                err(1, "write");
-        if (ret < 4)
-                errx(1, "short write");
-
-        if (memcmp(addr, "bubu", 4) != 0)
-                errx(1, "bad mmap data");
-
-        ret = read(rofd, buf, 4);
-        if (ret == -1)
-                err(1, "read");
-        if (ret < 4)
-                errx(1, "short read");
-        if (memcmp(buf, "bubu", 4) != 0)
-                errx(1, "bad read data");
-
-        return 0;
-}
-EOF
-gcc -o rorw-map rorw-map.c
-mkdir -p mnt lower upper work
-echo baba > lower/foo
-mount -t overlay overlay -olowerdir=lower,upperdir=upper,workdir=work mnt
-./rorw-map mnt/foo
-umount mnt
- - 8< - - - - - 8< - - - - - 8< - - - - - 8< - - - -
-
-No output means success, "rorw-map: bad mmap data" means failure.
+List-Id: linux-unionfs@vger.kernel.org
 
 Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
 ---
- fs/overlay_util.c            | 19 +++++++++++++++++++
- include/linux/fs.h           |  3 +++
- include/linux/overlay_util.h |  2 ++
- mm/mmap.c                    |  3 +++
- 4 files changed, 27 insertions(+)
+ fs/sync.c          | 2 +-
+ include/linux/fs.h | 6 ++++++
+ ipc/shm.c          | 2 +-
+ 3 files changed, 8 insertions(+), 2 deletions(-)
 
-diff --git a/fs/overlay_util.c b/fs/overlay_util.c
-index 0daff19bad0b..063f8c5719d1 100644
---- a/fs/overlay_util.c
-+++ b/fs/overlay_util.c
-@@ -10,6 +10,7 @@
- #include <linux/overlay_util.h>
- #include <linux/fs.h>
- #include <linux/file.h>
-+#include <linux/mm.h>
- #include "internal.h"
- 
- static bool overlay_file_consistent(struct file *file)
-@@ -36,4 +37,22 @@ ssize_t overlay_read_iter(struct file *file, struct kiocb *kio,
+diff --git a/fs/sync.c b/fs/sync.c
+index 2a54c1f22035..11ba023434b1 100644
+--- a/fs/sync.c
++++ b/fs/sync.c
+@@ -192,7 +192,7 @@ int vfs_fsync_range(struct file *file, loff_t start, loff_t end, int datasync)
+ 		spin_unlock(&inode->i_lock);
+ 		mark_inode_dirty_sync(inode);
+ 	}
+-	return file->f_op->fsync(file, start, end, datasync);
++	return call_fsync(file, start, end, datasync);
  }
- EXPORT_SYMBOL(overlay_read_iter);
+ EXPORT_SYMBOL(vfs_fsync_range);
  
-+int overlay_mmap(struct file *file, struct vm_area_struct *vma)
-+{
-+	if (unlikely(!overlay_file_consistent(file))) {
-+		file = filp_clone_open(file);
-+		if (IS_ERR(file))
-+			return PTR_ERR(file);
-+
-+		fput(vma->vm_file);
-+		/* transfer ref: */
-+		vma->vm_file = file;
-+
-+		if (!file->f_op->mmap)
-+			return -ENODEV;
-+	}
-+	return file->f_op->mmap(file, vma);
-+}
-+EXPORT_SYMBOL(overlay_mmap);
-+
- #endif /* IS_ENABLED(CONFIG_OVERLAY_FS) */
 diff --git a/include/linux/fs.h b/include/linux/fs.h
-index 4728c5178f3f..6e74b726c3ca 100644
+index 6e74b726c3ca..1293005de2e3 100644
 --- a/include/linux/fs.h
 +++ b/include/linux/fs.h
-@@ -1739,6 +1739,9 @@ static inline ssize_t call_write_iter(struct file *file, struct kiocb *kio,
- 
- static inline int call_mmap(struct file *file, struct vm_area_struct *vma)
- {
-+	if (unlikely(is_overlay_file(file)))
-+		return overlay_mmap(file, vma);
-+
+@@ -1745,6 +1745,12 @@ static inline int call_mmap(struct file *file, struct vm_area_struct *vma)
  	return file->f_op->mmap(file, vma);
  }
  
-diff --git a/include/linux/overlay_util.h b/include/linux/overlay_util.h
-index 886be9003bf3..2cd66bc316cc 100644
---- a/include/linux/overlay_util.h
-+++ b/include/linux/overlay_util.h
-@@ -6,8 +6,10 @@
- struct file;
- struct kiocb;
- struct iov_iter;
-+struct vm_area_struct;
++static inline int call_fsync(struct file *file, loff_t start, loff_t end,
++			     int datasync)
++{
++	return file->f_op->fsync(file, start, end, datasync);
++}
++
+ ssize_t rw_copy_check_uvector(int type, const struct iovec __user * uvector,
+ 			      unsigned long nr_segs, unsigned long fast_segs,
+ 			      struct iovec *fast_pointer,
+diff --git a/ipc/shm.c b/ipc/shm.c
+index 4329fe3ef594..258aff2e03bb 100644
+--- a/ipc/shm.c
++++ b/ipc/shm.c
+@@ -452,7 +452,7 @@ static int shm_fsync(struct file *file, loff_t start, loff_t end, int datasync)
  
- extern ssize_t overlay_read_iter(struct file *file, struct kiocb *kio,
- 				 struct iov_iter *iter);
-+extern int overlay_mmap(struct file *file, struct vm_area_struct *vma);
- 
- #endif /* _LINUX_OVERLAY_FS_H */
-diff --git a/mm/mmap.c b/mm/mmap.c
-index 3714aa4e6f81..c43dfe1846d1 100644
---- a/mm/mmap.c
-+++ b/mm/mmap.c
-@@ -1746,6 +1746,9 @@ unsigned long mmap_region(struct file *file, unsigned long addr,
- 	return error;
+ 	if (!sfd->file->f_op->fsync)
+ 		return -EINVAL;
+-	return sfd->file->f_op->fsync(sfd->file, start, end, datasync);
++	return call_fsync(sfd->file, start, end, datasync);
  }
  
-+/*
-+ * Overlay needs special handling after copy-up
-+ */
- unsigned long unmapped_area(struct vm_unmapped_area_info *info)
- {
- 	/*
+ static long shm_fallocate(struct file *file, int mode, loff_t offset,
 -- 
 2.5.5
