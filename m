@@ -1,70 +1,156 @@
 From: Miklos Szeredi <mszeredi@redhat.com>
-Subject: [PATCH 5/9] mm: ovl: copy-up on MAP_SHARED
-Date: Fri, 17 Feb 2017 17:09:34 +0100
-Message-ID: <1487347778-18596-6-git-send-email-mszeredi@redhat.com>
+Subject: [PATCH 3/9] vfs: use helpers for calling f_op->{read,write}_iter()
+Date: Fri, 17 Feb 2017 17:09:32 +0100
+Message-ID: <1487347778-18596-4-git-send-email-mszeredi@redhat.com>
 References: <1487347778-18596-1-git-send-email-mszeredi@redhat.com>
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
+Return-path: <linux-unionfs-owner@vger.kernel.org>
+Received: from mail-wr0-f177.google.com ([209.85.128.177]:34116 "EHLO
+        mail-wr0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S934564AbdBQQJr (ORCPT
+        <rfc822;linux-unionfs@vger.kernel.org>);
+        Fri, 17 Feb 2017 11:09:47 -0500
+Received: by mail-wr0-f177.google.com with SMTP id z61so32489328wrc.1
+        for <linux-unionfs@vger.kernel.org>; Fri, 17 Feb 2017 08:09:46 -0800 (PST)
 In-Reply-To: <1487347778-18596-1-git-send-email-mszeredi@redhat.com>
-Sender: linux-fsdevel-owner@vger.kernel.org
+Sender: linux-unionfs-owner@vger.kernel.org
+List-Id: linux-unionfs@vger.kernel.org
 To: Al Viro <viro@zeniv.linux.org.uk>
 Cc: linux-unionfs@vger.kernel.org, linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org
-List-Id: linux-unionfs@vger.kernel.org
-
-A corner case of a corner case is when
-
- - file opened for O_RDONLY
- - which is then memory mapped SHARED
- - file opened for O_WRONLY
- - contents modified
- - contents read back though the shared mapping
-
-Unfortunately it looks very difficult to do anything about the established
-shared map after the file is copied up.  Instead when a read-only file is
-mapped shared overlayfs copies up the file before actually doing the map.
-This may result in unnecessary copy-ups (but so may copy-up on open(O_RDWR)
-for exampe).
-
-We can revisit this later if it turns out to be a performance problem in
-real life.
 
 Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
-Tested-by: Amir Goldstein <amir73il@gmail.com>
 ---
- mm/util.c | 22 ++++++++++++++++++++++
- 1 file changed, 22 insertions(+)
+ drivers/block/loop.c |  4 ++--
+ fs/aio.c             |  4 ++--
+ fs/read_write.c      | 12 ++++++------
+ fs/splice.c          |  2 +-
+ include/linux/fs.h   | 12 ++++++++++++
+ 5 files changed, 23 insertions(+), 11 deletions(-)
 
-diff --git a/mm/util.c b/mm/util.c
-index 3cb2164f4099..6cea1c4f27f3 100644
---- a/mm/util.c
-+++ b/mm/util.c
-@@ -300,6 +300,28 @@ unsigned long vm_mmap_pgoff(struct file *file, unsigned long addr,
+diff --git a/drivers/block/loop.c b/drivers/block/loop.c
+index f347285c67ec..2cf2903a0715 100644
+--- a/drivers/block/loop.c
++++ b/drivers/block/loop.c
+@@ -501,9 +501,9 @@ static int lo_rw_aio(struct loop_device *lo, struct loop_cmd *cmd,
+ 	cmd->iocb.ki_flags = IOCB_DIRECT;
  
- 	ret = security_mmap_file(file, prot, flag);
+ 	if (rw == WRITE)
+-		ret = file->f_op->write_iter(&cmd->iocb, &iter);
++		ret = call_write_iter(file, &cmd->iocb, &iter);
+ 	else
+-		ret = file->f_op->read_iter(&cmd->iocb, &iter);
++		ret = call_read_iter(file, &cmd->iocb, &iter);
+ 
+ 	if (ret != -EIOCBQUEUED)
+ 		cmd->iocb.ki_complete(&cmd->iocb, ret, 0);
+diff --git a/fs/aio.c b/fs/aio.c
+index 873b4ca82ccb..63e97f3168e7 100644
+--- a/fs/aio.c
++++ b/fs/aio.c
+@@ -1495,7 +1495,7 @@ static ssize_t aio_read(struct kiocb *req, struct iocb *iocb, bool vectored,
+ 		return ret;
+ 	ret = rw_verify_area(READ, file, &req->ki_pos, iov_iter_count(&iter));
+ 	if (!ret)
+-		ret = aio_ret(req, file->f_op->read_iter(req, &iter));
++		ret = aio_ret(req, call_read_iter(file, req, &iter));
+ 	kfree(iovec);
+ 	return ret;
+ }
+@@ -1520,7 +1520,7 @@ static ssize_t aio_write(struct kiocb *req, struct iocb *iocb, bool vectored,
  	if (!ret) {
-+		/*
-+		 * Special treatment for overlayfs:
-+		 *
-+		 * Take MAP_SHARED/PROT_READ as hint about future writes to the
-+		 * file (through another file descriptor).  Caller might not
-+		 * have had such an intent, but we hope MAP_PRIVATE will be used
-+		 * in most such cases.
-+		 *
-+		 * If we don't copy up now and the file is modified, it becomes
-+		 * really difficult to change the mapping to match that of the
-+		 * file's content later.
-+		 *
-+		 * Copy up needs to be done without mmap_sem since it takes vfs
-+		 * locks which would potentially deadlock under mmap_sem.
-+		 */
-+		if ((flag & MAP_SHARED) && !(prot & PROT_WRITE) && file) {
-+			void *p = d_real(file->f_path.dentry, NULL, O_WRONLY);
+ 		req->ki_flags |= IOCB_WRITE;
+ 		file_start_write(file);
+-		ret = aio_ret(req, file->f_op->write_iter(req, &iter));
++		ret = aio_ret(req, call_write_iter(file, req, &iter));
+ 		/*
+ 		 * We release freeze protection in aio_complete().  Fool lockdep
+ 		 * by telling it the lock got released so that it doesn't
+diff --git a/fs/read_write.c b/fs/read_write.c
+index c9da4492a462..0d697cc15717 100644
+--- a/fs/read_write.c
++++ b/fs/read_write.c
+@@ -367,7 +367,7 @@ ssize_t vfs_iter_read(struct file *file, struct iov_iter *iter, loff_t *ppos)
+ 	kiocb.ki_pos = *ppos;
+ 
+ 	iter->type |= READ;
+-	ret = file->f_op->read_iter(&kiocb, iter);
++	ret = call_read_iter(file, &kiocb, iter);
+ 	BUG_ON(ret == -EIOCBQUEUED);
+ 	if (ret > 0)
+ 		*ppos = kiocb.ki_pos;
+@@ -387,7 +387,7 @@ ssize_t vfs_iter_write(struct file *file, struct iov_iter *iter, loff_t *ppos)
+ 	kiocb.ki_pos = *ppos;
+ 
+ 	iter->type |= WRITE;
+-	ret = file->f_op->write_iter(&kiocb, iter);
++	ret = call_write_iter(file, &kiocb, iter);
+ 	BUG_ON(ret == -EIOCBQUEUED);
+ 	if (ret > 0)
+ 		*ppos = kiocb.ki_pos;
+@@ -436,7 +436,7 @@ static ssize_t new_sync_read(struct file *filp, char __user *buf, size_t len, lo
+ 	kiocb.ki_pos = *ppos;
+ 	iov_iter_init(&iter, READ, &iov, 1, len);
+ 
+-	ret = filp->f_op->read_iter(&kiocb, &iter);
++	ret = call_read_iter(filp, &kiocb, &iter);
+ 	BUG_ON(ret == -EIOCBQUEUED);
+ 	*ppos = kiocb.ki_pos;
+ 	return ret;
+@@ -493,7 +493,7 @@ static ssize_t new_sync_write(struct file *filp, const char __user *buf, size_t
+ 	kiocb.ki_pos = *ppos;
+ 	iov_iter_init(&iter, WRITE, &iov, 1, len);
+ 
+-	ret = filp->f_op->write_iter(&kiocb, &iter);
++	ret = call_write_iter(filp, &kiocb, &iter);
+ 	BUG_ON(ret == -EIOCBQUEUED);
+ 	if (ret > 0)
+ 		*ppos = kiocb.ki_pos;
+@@ -690,9 +690,9 @@ static ssize_t do_iter_readv_writev(struct file *filp, struct iov_iter *iter,
+ 	kiocb.ki_pos = *ppos;
+ 
+ 	if (type == READ)
+-		ret = filp->f_op->read_iter(&kiocb, iter);
++		ret = call_read_iter(filp, &kiocb, iter);
+ 	else
+-		ret = filp->f_op->write_iter(&kiocb, iter);
++		ret = call_write_iter(filp, &kiocb, iter);
+ 	BUG_ON(ret == -EIOCBQUEUED);
+ 	*ppos = kiocb.ki_pos;
+ 	return ret;
+diff --git a/fs/splice.c b/fs/splice.c
+index 873d83104e79..6518f058bd7f 100644
+--- a/fs/splice.c
++++ b/fs/splice.c
+@@ -306,7 +306,7 @@ ssize_t generic_file_splice_read(struct file *in, loff_t *ppos,
+ 	idx = to.idx;
+ 	init_sync_kiocb(&kiocb, in);
+ 	kiocb.ki_pos = *ppos;
+-	ret = in->f_op->read_iter(&kiocb, &to);
++	ret = call_read_iter(in, &kiocb, &to);
+ 	if (ret > 0) {
+ 		*ppos = kiocb.ki_pos;
+ 		file_accessed(in);
+diff --git a/include/linux/fs.h b/include/linux/fs.h
+index 2ba074328894..efdaad954b70 100644
+--- a/include/linux/fs.h
++++ b/include/linux/fs.h
+@@ -1712,6 +1712,18 @@ struct inode_operations {
+ 	int (*set_acl)(struct inode *, struct posix_acl *, int);
+ } ____cacheline_aligned;
+ 
++static inline ssize_t call_read_iter(struct file *file, struct kiocb *kio,
++				     struct iov_iter *iter)
++{
++	return file->f_op->read_iter(kio, iter);
++}
 +
-+			if (IS_ERR(p))
-+				return PTR_ERR(p);
-+		}
++static inline ssize_t call_write_iter(struct file *file, struct kiocb *kio,
++				      struct iov_iter *iter)
++{
++	return file->f_op->write_iter(kio, iter);
++}
 +
- 		if (down_write_killable(&mm->mmap_sem))
- 			return -EINTR;
- 		ret = do_mmap_pgoff(file, addr, len, prot, flag, pgoff,
+ ssize_t rw_copy_check_uvector(int type, const struct iovec __user * uvector,
+ 			      unsigned long nr_segs, unsigned long fast_segs,
+ 			      struct iovec *fast_pointer,
 -- 
 2.5.5
