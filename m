@@ -1,112 +1,176 @@
 From: Miklos Szeredi <mszeredi@redhat.com>
-Subject: [PATCH 2/9] vfs: pass type instead of fn to do_{loop,iter}_readv_writev()
-Date: Fri, 17 Feb 2017 17:09:31 +0100
-Message-ID: <1487347778-18596-3-git-send-email-mszeredi@redhat.com>
+Subject: [PATCH 7/9] ovl: intercept mmap on overlay files
+Date: Fri, 17 Feb 2017 17:09:36 +0100
+Message-ID: <1487347778-18596-8-git-send-email-mszeredi@redhat.com>
 References: <1487347778-18596-1-git-send-email-mszeredi@redhat.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-unionfs-owner@vger.kernel.org>
+Received: from mail-wm0-f52.google.com ([74.125.82.52]:36809 "EHLO
+        mail-wm0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S934329AbdBQQJx (ORCPT
+        <rfc822;linux-unionfs@vger.kernel.org>);
+        Fri, 17 Feb 2017 11:09:53 -0500
+Received: by mail-wm0-f52.google.com with SMTP id c85so19395165wmi.1
+        for <linux-unionfs@vger.kernel.org>; Fri, 17 Feb 2017 08:09:52 -0800 (PST)
 In-Reply-To: <1487347778-18596-1-git-send-email-mszeredi@redhat.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: linux-unionfs-owner@vger.kernel.org
+List-Id: linux-unionfs@vger.kernel.org
 To: Al Viro <viro@zeniv.linux.org.uk>
 Cc: linux-unionfs@vger.kernel.org, linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org
-List-Id: linux-unionfs@vger.kernel.org
+
+... in order to handle the corner case when the file is copied up after
+being opened read-only and mapped shared.
+
+Can be verified with the following script:
+
+ - 8< - - - - - 8< - - - - - 8< - - - - - 8< - - - -
+cd /
+rm -rf /tmp/ovl-rorw-test
+mkdir /tmp/ovl-rorw-test
+cd /tmp/ovl-rorw-test
+cat << EOF > rorw-map.c
+#include <fcntl.h>
+#include <unistd.h>
+#include <string.h>
+#include <err.h>
+#include <sys/mman.h>
+
+int main(int argc, char *argv[])
+{
+        int rofd, rwfd;
+        int ret;
+        char buf[4];
+        char *addr;
+
+        rofd = open(argv[1], O_RDONLY);
+        if (rofd == -1)
+                err(1, "ro open");
+
+        addr = mmap(NULL, 4, PROT_READ, MAP_SHARED, rofd, 0);
+        if (addr == MAP_FAILED)
+                err(1, "ro mmap");
+
+        if (memcmp(addr, "bubu", 4) == 0)
+                errx(1, "identical startup data");
+
+        rwfd = open(argv[1], O_WRONLY);
+        if (rwfd == -1)
+                err(1, "rw open");
+
+        ret = write(rwfd, "bubu", 4);
+        if (ret == -1)
+                err(1, "write");
+        if (ret < 4)
+                errx(1, "short write");
+
+        if (memcmp(addr, "bubu", 4) != 0)
+                errx(1, "bad mmap data");
+
+        ret = read(rofd, buf, 4);
+        if (ret == -1)
+                err(1, "read");
+        if (ret < 4)
+                errx(1, "short read");
+        if (memcmp(buf, "bubu", 4) != 0)
+                errx(1, "bad read data");
+
+        return 0;
+}
+EOF
+gcc -o rorw-map rorw-map.c
+mkdir -p mnt lower upper work
+echo baba > lower/foo
+mount -t overlay overlay -olowerdir=lower,upperdir=upper,workdir=work mnt
+./rorw-map mnt/foo
+umount mnt
+ - 8< - - - - - 8< - - - - - 8< - - - - - 8< - - - -
+
+No output means success, "rorw-map: bad mmap data" means failure.
 
 Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
 ---
- fs/read_write.c | 37 ++++++++++++++++++-------------------
- 1 file changed, 18 insertions(+), 19 deletions(-)
+ fs/overlay_util.c            | 19 +++++++++++++++++++
+ include/linux/fs.h           |  3 +++
+ include/linux/overlay_util.h |  2 ++
+ mm/mmap.c                    |  3 +++
+ 4 files changed, 27 insertions(+)
 
-diff --git a/fs/read_write.c b/fs/read_write.c
-index b7cf7e2cb8c5..c9da4492a462 100644
---- a/fs/read_write.c
-+++ b/fs/read_write.c
-@@ -23,9 +23,6 @@
- #include <linux/uaccess.h>
- #include <asm/unistd.h>
+diff --git a/fs/overlay_util.c b/fs/overlay_util.c
+index 0daff19bad0b..063f8c5719d1 100644
+--- a/fs/overlay_util.c
++++ b/fs/overlay_util.c
+@@ -10,6 +10,7 @@
+ #include <linux/overlay_util.h>
+ #include <linux/fs.h>
+ #include <linux/file.h>
++#include <linux/mm.h>
+ #include "internal.h"
  
--typedef ssize_t (*io_fn_t)(struct file *, char __user *, size_t, loff_t *);
--typedef ssize_t (*iter_fn_t)(struct kiocb *, struct iov_iter *);
--
- const struct file_operations generic_ro_fops = {
- 	.llseek		= generic_file_llseek,
- 	.read_iter	= generic_file_read_iter,
-@@ -675,7 +672,7 @@ unsigned long iov_shorten(struct iovec *iov, unsigned long nr_segs, size_t to)
- EXPORT_SYMBOL(iov_shorten);
+ static bool overlay_file_consistent(struct file *file)
+@@ -36,4 +37,22 @@ ssize_t overlay_read_iter(struct file *file, struct kiocb *kio,
+ }
+ EXPORT_SYMBOL(overlay_read_iter);
  
- static ssize_t do_iter_readv_writev(struct file *filp, struct iov_iter *iter,
--		loff_t *ppos, iter_fn_t fn, int flags)
-+		loff_t *ppos, int type, int flags)
++int overlay_mmap(struct file *file, struct vm_area_struct *vma)
++{
++	if (unlikely(!overlay_file_consistent(file))) {
++		file = filp_clone_open(file);
++		if (IS_ERR(file))
++			return PTR_ERR(file);
++
++		fput(vma->vm_file);
++		/* transfer ref: */
++		vma->vm_file = file;
++
++		if (!file->f_op->mmap)
++			return -ENODEV;
++	}
++	return file->f_op->mmap(file, vma);
++}
++EXPORT_SYMBOL(overlay_mmap);
++
+ #endif /* IS_ENABLED(CONFIG_OVERLAY_FS) */
+diff --git a/include/linux/fs.h b/include/linux/fs.h
+index 4728c5178f3f..6e74b726c3ca 100644
+--- a/include/linux/fs.h
++++ b/include/linux/fs.h
+@@ -1739,6 +1739,9 @@ static inline ssize_t call_write_iter(struct file *file, struct kiocb *kio,
+ 
+ static inline int call_mmap(struct file *file, struct vm_area_struct *vma)
  {
- 	struct kiocb kiocb;
- 	ssize_t ret;
-@@ -692,7 +689,10 @@ static ssize_t do_iter_readv_writev(struct file *filp, struct iov_iter *iter,
- 		kiocb.ki_flags |= (IOCB_DSYNC | IOCB_SYNC);
- 	kiocb.ki_pos = *ppos;
++	if (unlikely(is_overlay_file(file)))
++		return overlay_mmap(file, vma);
++
+ 	return file->f_op->mmap(file, vma);
+ }
  
--	ret = fn(&kiocb, iter);
-+	if (type == READ)
-+		ret = filp->f_op->read_iter(&kiocb, iter);
-+	else
-+		ret = filp->f_op->write_iter(&kiocb, iter);
- 	BUG_ON(ret == -EIOCBQUEUED);
- 	*ppos = kiocb.ki_pos;
- 	return ret;
-@@ -700,7 +700,7 @@ static ssize_t do_iter_readv_writev(struct file *filp, struct iov_iter *iter,
+diff --git a/include/linux/overlay_util.h b/include/linux/overlay_util.h
+index 886be9003bf3..2cd66bc316cc 100644
+--- a/include/linux/overlay_util.h
++++ b/include/linux/overlay_util.h
+@@ -6,8 +6,10 @@
+ struct file;
+ struct kiocb;
+ struct iov_iter;
++struct vm_area_struct;
  
- /* Do it by hand, with file-ops */
- static ssize_t do_loop_readv_writev(struct file *filp, struct iov_iter *iter,
--		loff_t *ppos, io_fn_t fn, int flags)
-+		loff_t *ppos, int type, int flags)
+ extern ssize_t overlay_read_iter(struct file *file, struct kiocb *kio,
+ 				 struct iov_iter *iter);
++extern int overlay_mmap(struct file *file, struct vm_area_struct *vma);
+ 
+ #endif /* _LINUX_OVERLAY_FS_H */
+diff --git a/mm/mmap.c b/mm/mmap.c
+index 3714aa4e6f81..c43dfe1846d1 100644
+--- a/mm/mmap.c
++++ b/mm/mmap.c
+@@ -1746,6 +1746,9 @@ unsigned long mmap_region(struct file *file, unsigned long addr,
+ 	return error;
+ }
+ 
++/*
++ * Overlay needs special handling after copy-up
++ */
+ unsigned long unmapped_area(struct vm_unmapped_area_info *info)
  {
- 	ssize_t ret = 0;
- 
-@@ -711,7 +711,13 @@ static ssize_t do_loop_readv_writev(struct file *filp, struct iov_iter *iter,
- 		struct iovec iovec = iov_iter_iovec(iter);
- 		ssize_t nr;
- 
--		nr = fn(filp, iovec.iov_base, iovec.iov_len, ppos);
-+		if (type == READ) {
-+			nr = filp->f_op->read(filp, iovec.iov_base,
-+					      iovec.iov_len, ppos);
-+		} else {
-+			nr = filp->f_op->write(filp, iovec.iov_base,
-+					       iovec.iov_len, ppos);
-+		}
- 
- 		if (nr < 0) {
- 			if (!ret)
-@@ -839,8 +845,6 @@ static ssize_t __do_readv_writev(int type, struct file *file,
- {
- 	size_t tot_len;
- 	ssize_t ret = 0;
--	io_fn_t fn;
--	iter_fn_t iter_fn;
- 
- 	tot_len = iov_iter_count(iter);
- 	if (!tot_len)
-@@ -849,19 +853,14 @@ static ssize_t __do_readv_writev(int type, struct file *file,
- 	if (ret < 0)
- 		goto out;
- 
--	if (type == READ) {
--		fn = file->f_op->read;
--		iter_fn = file->f_op->read_iter;
--	} else {
--		fn = (io_fn_t)file->f_op->write;
--		iter_fn = file->f_op->write_iter;
-+	if (type != READ)
- 		file_start_write(file);
--	}
- 
--	if (iter_fn)
--		ret = do_iter_readv_writev(file, iter, pos, iter_fn, flags);
-+	if ((type == READ && file->f_op->read_iter) ||
-+	    (type == WRITE && file->f_op->write_iter))
-+		ret = do_iter_readv_writev(file, iter, pos, type, flags);
- 	else
--		ret = do_loop_readv_writev(file, iter, pos, fn, flags);
-+		ret = do_loop_readv_writev(file, iter, pos, type, flags);
- 
- 	if (type != READ)
- 		file_end_write(file);
+ 	/*
 -- 
 2.5.5
