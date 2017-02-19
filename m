@@ -1,153 +1,45 @@
-From: Miklos Szeredi <mszeredi@redhat.com>
-Subject: [PATCH 1/9] vfs: extract common parts of {compat_,}do_readv_writev()
-Date: Fri, 17 Feb 2017 17:09:30 +0100
-Message-ID: <1487347778-18596-2-git-send-email-mszeredi@redhat.com>
-References: <1487347778-18596-1-git-send-email-mszeredi@redhat.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1487347778-18596-1-git-send-email-mszeredi@redhat.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Al Viro <viro@zeniv.linux.org.uk>
-Cc: linux-unionfs@vger.kernel.org, linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org
+From: Al Viro <viro@ZenIV.linux.org.uk>
+Subject: Re: [PATCH v3 1/6] vfs: create vfs helper vfs_tmpfile()
+Date: Sun, 19 Feb 2017 03:27:45 +0000
+Message-ID: <20170219032743.GH29622@ZenIV.linux.org.uk>
+References: <1484588765-9397-1-git-send-email-amir73il@gmail.com>
+ <1484588765-9397-2-git-send-email-amir73il@gmail.com>
+ <CAJfpegsDzNot=z8oP7DecuXtNkYPYOejDWWXs6KjD6=Le=Wohg@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-unionfs-owner@vger.kernel.org>
+Received: from zeniv.linux.org.uk ([195.92.253.2]:55876 "EHLO
+        ZenIV.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751012AbdBSD2h (ORCPT
+        <rfc822;linux-unionfs@vger.kernel.org>);
+        Sat, 18 Feb 2017 22:28:37 -0500
+Content-Disposition: inline
+In-Reply-To: <CAJfpegsDzNot=z8oP7DecuXtNkYPYOejDWWXs6KjD6=Le=Wohg@mail.gmail.com>
+Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: Amir Goldstein <amir73il@gmail.com>, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>, linux-fsdevel@vger.kernel.org
 
-Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
----
- fs/read_write.c | 80 +++++++++++++++++++++------------------------------------
- 1 file changed, 29 insertions(+), 51 deletions(-)
+On Mon, Jan 16, 2017 at 08:47:32PM +0100, Miklos Szeredi wrote:
 
-diff --git a/fs/read_write.c b/fs/read_write.c
-index 5816d4c4cab0..b7cf7e2cb8c5 100644
---- a/fs/read_write.c
-+++ b/fs/read_write.c
-@@ -834,25 +834,15 @@ ssize_t rw_copy_check_uvector(int type, const struct iovec __user * uvector,
- 	return ret;
- }
- 
--static ssize_t do_readv_writev(int type, struct file *file,
--			       const struct iovec __user * uvector,
--			       unsigned long nr_segs, loff_t *pos,
--			       int flags)
-+static ssize_t __do_readv_writev(int type, struct file *file,
-+				 struct iov_iter *iter, loff_t *pos, int flags)
- {
- 	size_t tot_len;
--	struct iovec iovstack[UIO_FASTIOV];
--	struct iovec *iov = iovstack;
--	struct iov_iter iter;
--	ssize_t ret;
-+	ssize_t ret = 0;
- 	io_fn_t fn;
- 	iter_fn_t iter_fn;
- 
--	ret = import_iovec(type, uvector, nr_segs,
--			   ARRAY_SIZE(iovstack), &iov, &iter);
--	if (ret < 0)
--		return ret;
--
--	tot_len = iov_iter_count(&iter);
-+	tot_len = iov_iter_count(iter);
- 	if (!tot_len)
- 		goto out;
- 	ret = rw_verify_area(type, file, pos, tot_len);
-@@ -869,15 +859,14 @@ static ssize_t do_readv_writev(int type, struct file *file,
- 	}
- 
- 	if (iter_fn)
--		ret = do_iter_readv_writev(file, &iter, pos, iter_fn, flags);
-+		ret = do_iter_readv_writev(file, iter, pos, iter_fn, flags);
- 	else
--		ret = do_loop_readv_writev(file, &iter, pos, fn, flags);
-+		ret = do_loop_readv_writev(file, iter, pos, fn, flags);
- 
- 	if (type != READ)
- 		file_end_write(file);
- 
- out:
--	kfree(iov);
- 	if ((ret + (type == READ)) > 0) {
- 		if (type == READ)
- 			fsnotify_access(file);
-@@ -887,6 +876,27 @@ static ssize_t do_readv_writev(int type, struct file *file,
- 	return ret;
- }
- 
-+static ssize_t do_readv_writev(int type, struct file *file,
-+			       const struct iovec __user *uvector,
-+			       unsigned long nr_segs, loff_t *pos,
-+			       int flags)
-+{
-+	struct iovec iovstack[UIO_FASTIOV];
-+	struct iovec *iov = iovstack;
-+	struct iov_iter iter;
-+	ssize_t ret;
-+
-+	ret = import_iovec(type, uvector, nr_segs,
-+			   ARRAY_SIZE(iovstack), &iov, &iter);
-+	if (ret < 0)
-+		return ret;
-+
-+	ret = __do_readv_writev(type, file, &iter, pos, flags);
-+	kfree(iov);
-+
-+	return ret;
-+}
-+
- ssize_t vfs_readv(struct file *file, const struct iovec __user *vec,
- 		  unsigned long vlen, loff_t *pos, int flags)
- {
-@@ -1064,51 +1074,19 @@ static ssize_t compat_do_readv_writev(int type, struct file *file,
- 			       unsigned long nr_segs, loff_t *pos,
- 			       int flags)
- {
--	compat_ssize_t tot_len;
- 	struct iovec iovstack[UIO_FASTIOV];
- 	struct iovec *iov = iovstack;
- 	struct iov_iter iter;
- 	ssize_t ret;
--	io_fn_t fn;
--	iter_fn_t iter_fn;
- 
- 	ret = compat_import_iovec(type, uvector, nr_segs,
- 				  UIO_FASTIOV, &iov, &iter);
- 	if (ret < 0)
- 		return ret;
- 
--	tot_len = iov_iter_count(&iter);
--	if (!tot_len)
--		goto out;
--	ret = rw_verify_area(type, file, pos, tot_len);
--	if (ret < 0)
--		goto out;
--
--	if (type == READ) {
--		fn = file->f_op->read;
--		iter_fn = file->f_op->read_iter;
--	} else {
--		fn = (io_fn_t)file->f_op->write;
--		iter_fn = file->f_op->write_iter;
--		file_start_write(file);
--	}
--
--	if (iter_fn)
--		ret = do_iter_readv_writev(file, &iter, pos, iter_fn, flags);
--	else
--		ret = do_loop_readv_writev(file, &iter, pos, fn, flags);
--
--	if (type != READ)
--		file_end_write(file);
--
--out:
-+	ret = __do_readv_writev(type, file, &iter, pos, flags);
- 	kfree(iov);
--	if ((ret + (type == READ)) > 0) {
--		if (type == READ)
--			fsnotify_access(file);
--		else
--			fsnotify_modify(file);
--	}
-+
- 	return ret;
- }
- 
--- 
-2.5.5
+> > +                          umode_t mode, int open_flag)
+> > +{
+> > +       static const struct qstr name = QSTR_INIT("/", 1);
+> > +       struct dentry *child = NULL;
+> > +       struct inode *inode;
+> > +       int error;
+> > +
+> > +       /* we want directory to be writable */
+> > +       error = inode_permission(dir, MAY_WRITE | MAY_EXEC);
+> 
+> This is not in the scope of this patch, but shoudln't we be using
+> may_create() here?   Or at least a variant without the audit thing...
+> 
+> Al?
+
+may_create() expects directory + child dentry; here we have only parent.
+IS_DEADDIR is rather pointless here - directory is not locked, for
+starters, so rmdir might happen right under you.  Or right after you've
+returned from your function, for that matter.  userns checks...
+FWIW, no such checks are done in ->atomic_open() paths, so I'm not sure
+how much are those worth...
