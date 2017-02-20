@@ -1,46 +1,47 @@
 From: Xiong Zhou <xzhou@redhat.com>
-Subject: [xfstests v3 4/8] overlay: permission check with cached acls in tmpfs
-Date: Mon, 20 Feb 2017 16:48:40 +0800
-Message-ID: <1487580524-21503-5-git-send-email-xzhou@redhat.com>
+Subject: [xfstests v3 3/8] overlay: test workdir cleanup in mounting
+Date: Mon, 20 Feb 2017 16:48:39 +0800
+Message-ID: <1487580524-21503-4-git-send-email-xzhou@redhat.com>
 References: <1487580524-21503-1-git-send-email-xzhou@redhat.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:44042 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:42344 "EHLO mx1.redhat.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752326AbdBTItI (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 20 Feb 2017 03:49:08 -0500
+        id S1752370AbdBTItQ (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Mon, 20 Feb 2017 03:49:16 -0500
 In-Reply-To: <1487580524-21503-1-git-send-email-xzhou@redhat.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: fstests@vger.kernel.org
 Cc: linux-unionfs@vger.kernel.org, mszeredi@redhat.com, Xiong Zhou <xzhou@redhat.com>
 
-tmpfs does not implement ->get_acl method, overlayfs
-need to get its cached acls in permission check when
-lower or upper fs is tmpfs.
+"work" directory in workdir should be cleaned up
+and recreated while overlayfs mounting. Or overlayfs
+will be mounted read-only.
 
 CC: Miklos Szeredi <mszeredi@redhat.com>
 Signed-off-by: Xiong Zhou <xzhou@redhat.com>
 ---
- tests/overlay/025     | 85 +++++++++++++++++++++++++++++++++++++++++++++++++++
- tests/overlay/025.out |  2 ++
+ tests/overlay/024     | 80 +++++++++++++++++++++++++++++++++++++++++++++++++++
+ tests/overlay/024.out |  2 ++
  tests/overlay/group   |  1 +
- 3 files changed, 88 insertions(+)
- create mode 100755 tests/overlay/025
- create mode 100644 tests/overlay/025.out
+ 3 files changed, 83 insertions(+)
+ create mode 100755 tests/overlay/024
+ create mode 100644 tests/overlay/024.out
 
-diff --git a/tests/overlay/025 b/tests/overlay/025
+diff --git a/tests/overlay/024 b/tests/overlay/024
 new file mode 100755
-index 0000000..69d7f91
+index 0000000..2dbef12
 --- /dev/null
-+++ b/tests/overlay/025
-@@ -0,0 +1,85 @@
++++ b/tests/overlay/024
+@@ -0,0 +1,80 @@
 +#! /bin/bash
-+# FS QA Test 025
++# FS QA Test 024
 +#
-+# Overlayfs failed to get posix acls if lower or upper
-+# fs is tmpfs.
-+# Kernel commit below fixed it.
-+# 5201dc449e4b ovl: use cached acl on underlying layer
++# "work" directory under workdir should be cleaned up
++# well on overlayfs startup, or overlayfs will be mounted
++# read-only.
++# Kernel commit below fixes it.
++# eea2fb4851e9 ovl: proper cleanup of workdir
 +#
 +# This reproducer was originally written by
 +#     Miklos Szeredi <mszeredi@redhat.com>
@@ -75,9 +76,6 @@ index 0000000..69d7f91
 +_cleanup()
 +{
 +	cd /
-+	$UMOUNT_PROG $tmp/tmpfs/mnt
-+	$UMOUNT_PROG $tmp/tmpfs
-+	rm -rf $tmp
 +	rm -f $tmp.*
 +}
 +
@@ -93,48 +91,45 @@ index 0000000..69d7f91
 +# Modify as appropriate.
 +_supported_fs overlay
 +_supported_os Linux
-+_require_user
++_require_scratch
 +
-+# create a tmpfs under $tmp
-+mkdir -p $tmp/tmpfs
-+$MOUNT_PROG -t tmpfs tmpfs $tmp/tmpfs || \
-+  _notrun "this test requires a valid tmpfs"
++# Remove all files from previous tests
++_scratch_mkfs
 +
-+pushd $tmp/tmpfs > /dev/null 2>&1
++# making workdir
++wkdir=$SCRATCH_DEV/$OVERLAY_WORK_DIR
++mkdir -p $wkdir/work/foo
 +
-+mkdir -p lower upper work mnt
-+mkdir -p -m 0 upper/testd
-+# grant permission for $qa_user
-+setfacl -m u:$qa_user:rx upper/testd
++_scratch_mount
 +
-+# mount overlay using dirs in tmpfs
-+_overlay_mount_dirs lower upper work overlay mnt
++# try writing to mountpoint
++touch $SCRATCH_MNT/bar
 +
-+popd > /dev/null 2>&1
-+
-+# user accessing test dir, should be Okay
-+_user_do "ls $tmp/tmpfs/mnt/testd"
-+
-+echo "Silence is golden"
++# checking work dir is clean
++if [ -e $wkdir/work/foo ] ; then
++	echo "work dir is not clean"
++else
++	echo "Silence is golden"
++fi
 +# success, all done
 +status=0
 +exit
-diff --git a/tests/overlay/025.out b/tests/overlay/025.out
+diff --git a/tests/overlay/024.out b/tests/overlay/024.out
 new file mode 100644
-index 0000000..3d70951
+index 0000000..fd6fbb1
 --- /dev/null
-+++ b/tests/overlay/025.out
++++ b/tests/overlay/024.out
 @@ -0,0 +1,2 @@
-+QA output created by 025
++QA output created by 024
 +Silence is golden
 diff --git a/tests/overlay/group b/tests/overlay/group
-index 0563a04..82fe69e 100644
+index 09da1be..0563a04 100644
 --- a/tests/overlay/group
 +++ b/tests/overlay/group
-@@ -27,3 +27,4 @@
+@@ -26,3 +26,4 @@
+ 021 auto quick copyup
  022 auto quick
  023 auto quick attr
- 024 auto quick
-+025 auto quick attr
++024 auto quick
 -- 
 1.8.3.1
