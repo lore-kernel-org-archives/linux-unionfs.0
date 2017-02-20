@@ -1,46 +1,45 @@
 From: Xiong Zhou <xzhou@redhat.com>
-Subject: [xfstests v3 7/8] overlay: test flock after copied up
-Date: Mon, 20 Feb 2017 16:48:43 +0800
-Message-ID: <1487580524-21503-8-git-send-email-xzhou@redhat.com>
+Subject: [xfstests v3 5/8] overlay: filter out xattr starts with "trusted.overlay."
+Date: Mon, 20 Feb 2017 16:48:41 +0800
+Message-ID: <1487580524-21503-6-git-send-email-xzhou@redhat.com>
 References: <1487580524-21503-1-git-send-email-xzhou@redhat.com>
-Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:49162 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752374AbdBTItQ (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 20 Feb 2017 03:49:16 -0500
+Return-path: <fstests-owner@vger.kernel.org>
 In-Reply-To: <1487580524-21503-1-git-send-email-xzhou@redhat.com>
-Sender: linux-unionfs-owner@vger.kernel.org
-List-Id: linux-unionfs@vger.kernel.org
+Sender: fstests-owner@vger.kernel.org
 To: fstests@vger.kernel.org
 Cc: linux-unionfs@vger.kernel.org, mszeredi@redhat.com, Xiong Zhou <xzhou@redhat.com>
+List-Id: linux-unionfs@vger.kernel.org
 
-Locks of file in lower dir should working after it's
-been copied up.
+Not "trusted.overlay".
+  "trusted.overlayxxx" is allowed.
+  "trusted.overlay.xxx" is not allowed.
 
 CC: Miklos Szeredi <mszeredi@redhat.com>
 Signed-off-by: Xiong Zhou <xzhou@redhat.com>
 ---
- tests/overlay/028     | 80 +++++++++++++++++++++++++++++++++++++++++++++++++++
- tests/overlay/028.out |  2 ++
+ tests/overlay/026     | 99 +++++++++++++++++++++++++++++++++++++++++++++++++++
+ tests/overlay/026.out |  5 +++
  tests/overlay/group   |  1 +
- 3 files changed, 83 insertions(+)
- create mode 100755 tests/overlay/028
- create mode 100644 tests/overlay/028.out
+ 3 files changed, 105 insertions(+)
+ create mode 100755 tests/overlay/026
+ create mode 100644 tests/overlay/026.out
 
-diff --git a/tests/overlay/028 b/tests/overlay/028
+diff --git a/tests/overlay/026 b/tests/overlay/026
 new file mode 100755
-index 0000000..cf0b77a
+index 0000000..86f73ea
 --- /dev/null
-+++ b/tests/overlay/028
-@@ -0,0 +1,80 @@
++++ b/tests/overlay/026
+@@ -0,0 +1,99 @@
 +#! /bin/bash
-+# FS QA Test 028
++# FS QA Test 026
 +#
-+# When file in lower dir is locked and it's been copied up,
-+# make sure the lock is working in overlayfs.
++# Overlayfs should only filter out xattr starting with
++# "trusted.overlay.", not "trusted.overlay".
++# Setting xattrs like "trusted.overlay.xxx" is not allowed.
++# Setting xattrs like "trusted.overlayxxx" is allowed.
 +#
 +# Kernel commit below fixed it.
-+# c568d68341be locks: fix file locking on overlayfs
++# fe2b75952347 ovl: Fix OVL_XATTR_PREFIX
 +#
 +# This reproducer was originally written by
 +#     Miklos Szeredi <mszeredi@redhat.com>
@@ -80,6 +79,7 @@ index 0000000..cf0b77a
 +
 +# get standard environment, filters and checks
 +. ./common/rc
++. ./common/attr
 +. ./common/filter
 +
 +# remove previous $seqres.full before test
@@ -91,44 +91,63 @@ index 0000000..cf0b77a
 +_supported_fs overlay
 +_supported_os Linux
 +_require_scratch
++_require_attrs
 +
 +# Remove all files from previous tests
 +_scratch_mkfs
 +
-+lowerdir=$SCRATCH_DEV/$OVERLAY_LOWER_DIR
-+mkdir -p $lowerdir
-+touch $lowerdir/foo
-+
 +# Mounting overlay
 +_scratch_mount
++touch $SCRATCH_MNT/testf0
++touch $SCRATCH_MNT/testf1
 +
-+# Testing copyup and flock
-+flock $SCRATCH_MNT/foo sleep 3 &
-+# flock in subshell should fail with no output
-+(sleep 1; echo bar > $SCRATCH_MNT/foo; \
-+  flock -n $SCRATCH_MNT/foo echo LOCKED)
++# {s,g}etfattr of "trusted.overlayxxx" should work.
++$SETFATTR_PROG -n "trusted.overlayfsrz" -v "n" \
++  $SCRATCH_MNT/testf0
 +
-+wait
-+echo "Silence is golden"
++$GETFATTR_PROG -n "trusted.overlayfsrz" $SCRATCH_MNT/testf0 \
++  2>&1 | sed -e "s,${SCRATCH_MNT#/},SCRATCH_MNT,g" \
++	     -e "/Removing leading/ d" \
++	     -e "/^$/ d"
++
++# {s,g}etfattr of "trusted.overlay.xxx" should fail.
++# The errno returned varies between kernel versions,
++#            v4.3       v4.7       v4.8      v4.10
++# setfattr  not perm  not perm   not perm   not supp
++# getfattr  no attr   no attr    not perm   not supp
++#
++# Checking the latest(not supported).
++#
++$SETFATTR_PROG -n "trusted.overlay.fsz" -v "n" \
++  $SCRATCH_MNT/testf1 2>&1 | \
++  sed -e "s,${SCRATCH_MNT},SCRATCH_MNT,g" \
++
++$GETFATTR_PROG -n "trusted.overlay.fsz" \
++  $SCRATCH_MNT/testf1 2>&1 | \
++  sed -e "s,${SCRATCH_MNT},SCRATCH_MNT,g" \
++
 +# success, all done
 +status=0
 +exit
-diff --git a/tests/overlay/028.out b/tests/overlay/028.out
+diff --git a/tests/overlay/026.out b/tests/overlay/026.out
 new file mode 100644
-index 0000000..2615f73
+index 0000000..94da51b
 --- /dev/null
-+++ b/tests/overlay/028.out
-@@ -0,0 +1,2 @@
-+QA output created by 028
-+Silence is golden
++++ b/tests/overlay/026.out
+@@ -0,0 +1,5 @@
++QA output created by 026
++# file: SCRATCH_MNT/testf0
++trusted.overlayfsrz="n"
++setfattr: SCRATCH_MNT/testf1: Operation not supported
++SCRATCH_MNT/testf1: trusted.overlay.fsz: Operation not supported
 diff --git a/tests/overlay/group b/tests/overlay/group
-index 4db6751..cf058fc 100644
+index 82fe69e..92afa8d 100644
 --- a/tests/overlay/group
 +++ b/tests/overlay/group
-@@ -30,3 +30,4 @@
+@@ -28,3 +28,4 @@
+ 023 auto quick attr
+ 024 auto quick
  025 auto quick attr
- 026 auto attr quick
- 027 auto quick perms
-+028 auto copyup quick
++026 auto attr quick
 -- 
 1.8.3.1
