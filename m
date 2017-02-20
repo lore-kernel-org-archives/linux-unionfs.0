@@ -1,12 +1,12 @@
 From: Xiong Zhou <xzhou@redhat.com>
-Subject: [xfstests v3 3/8] overlay: test workdir cleanup in mounting
-Date: Mon, 20 Feb 2017 16:48:39 +0800
-Message-ID: <1487580524-21503-4-git-send-email-xzhou@redhat.com>
+Subject: [xfstests v3 7/8] overlay: test flock after copied up
+Date: Mon, 20 Feb 2017 16:48:43 +0800
+Message-ID: <1487580524-21503-8-git-send-email-xzhou@redhat.com>
 References: <1487580524-21503-1-git-send-email-xzhou@redhat.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:42344 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:49162 "EHLO mx1.redhat.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752370AbdBTItQ (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        id S1752374AbdBTItQ (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
         Mon, 20 Feb 2017 03:49:16 -0500
 In-Reply-To: <1487580524-21503-1-git-send-email-xzhou@redhat.com>
 Sender: linux-unionfs-owner@vger.kernel.org
@@ -14,34 +14,33 @@ List-Id: linux-unionfs@vger.kernel.org
 To: fstests@vger.kernel.org
 Cc: linux-unionfs@vger.kernel.org, mszeredi@redhat.com, Xiong Zhou <xzhou@redhat.com>
 
-"work" directory in workdir should be cleaned up
-and recreated while overlayfs mounting. Or overlayfs
-will be mounted read-only.
+Locks of file in lower dir should working after it's
+been copied up.
 
 CC: Miklos Szeredi <mszeredi@redhat.com>
 Signed-off-by: Xiong Zhou <xzhou@redhat.com>
 ---
- tests/overlay/024     | 80 +++++++++++++++++++++++++++++++++++++++++++++++++++
- tests/overlay/024.out |  2 ++
+ tests/overlay/028     | 80 +++++++++++++++++++++++++++++++++++++++++++++++++++
+ tests/overlay/028.out |  2 ++
  tests/overlay/group   |  1 +
  3 files changed, 83 insertions(+)
- create mode 100755 tests/overlay/024
- create mode 100644 tests/overlay/024.out
+ create mode 100755 tests/overlay/028
+ create mode 100644 tests/overlay/028.out
 
-diff --git a/tests/overlay/024 b/tests/overlay/024
+diff --git a/tests/overlay/028 b/tests/overlay/028
 new file mode 100755
-index 0000000..2dbef12
+index 0000000..cf0b77a
 --- /dev/null
-+++ b/tests/overlay/024
++++ b/tests/overlay/028
 @@ -0,0 +1,80 @@
 +#! /bin/bash
-+# FS QA Test 024
++# FS QA Test 028
 +#
-+# "work" directory under workdir should be cleaned up
-+# well on overlayfs startup, or overlayfs will be mounted
-+# read-only.
-+# Kernel commit below fixes it.
-+# eea2fb4851e9 ovl: proper cleanup of workdir
++# When file in lower dir is locked and it's been copied up,
++# make sure the lock is working in overlayfs.
++#
++# Kernel commit below fixed it.
++# c568d68341be locks: fix file locking on overlayfs
 +#
 +# This reproducer was originally written by
 +#     Miklos Szeredi <mszeredi@redhat.com>
@@ -96,40 +95,40 @@ index 0000000..2dbef12
 +# Remove all files from previous tests
 +_scratch_mkfs
 +
-+# making workdir
-+wkdir=$SCRATCH_DEV/$OVERLAY_WORK_DIR
-+mkdir -p $wkdir/work/foo
++lowerdir=$SCRATCH_DEV/$OVERLAY_LOWER_DIR
++mkdir -p $lowerdir
++touch $lowerdir/foo
 +
++# Mounting overlay
 +_scratch_mount
 +
-+# try writing to mountpoint
-+touch $SCRATCH_MNT/bar
++# Testing copyup and flock
++flock $SCRATCH_MNT/foo sleep 3 &
++# flock in subshell should fail with no output
++(sleep 1; echo bar > $SCRATCH_MNT/foo; \
++  flock -n $SCRATCH_MNT/foo echo LOCKED)
 +
-+# checking work dir is clean
-+if [ -e $wkdir/work/foo ] ; then
-+	echo "work dir is not clean"
-+else
-+	echo "Silence is golden"
-+fi
++wait
++echo "Silence is golden"
 +# success, all done
 +status=0
 +exit
-diff --git a/tests/overlay/024.out b/tests/overlay/024.out
+diff --git a/tests/overlay/028.out b/tests/overlay/028.out
 new file mode 100644
-index 0000000..fd6fbb1
+index 0000000..2615f73
 --- /dev/null
-+++ b/tests/overlay/024.out
++++ b/tests/overlay/028.out
 @@ -0,0 +1,2 @@
-+QA output created by 024
++QA output created by 028
 +Silence is golden
 diff --git a/tests/overlay/group b/tests/overlay/group
-index 09da1be..0563a04 100644
+index 4db6751..cf058fc 100644
 --- a/tests/overlay/group
 +++ b/tests/overlay/group
-@@ -26,3 +26,4 @@
- 021 auto quick copyup
- 022 auto quick
- 023 auto quick attr
-+024 auto quick
+@@ -30,3 +30,4 @@
+ 025 auto quick attr
+ 026 auto attr quick
+ 027 auto quick perms
++028 auto copyup quick
 -- 
 1.8.3.1
