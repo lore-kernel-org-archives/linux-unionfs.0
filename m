@@ -1,51 +1,45 @@
 From: Xiong Zhou <xzhou@redhat.com>
-Subject: [xfstests v3 2/8] overlay: work dir in overlay inherits no ACLs
-Date: Mon, 20 Feb 2017 16:48:38 +0800
-Message-ID: <1487580524-21503-3-git-send-email-xzhou@redhat.com>
+Subject: [xfstests v3 1/8] overlay: disallow overlayfs as upperdir
+Date: Mon, 20 Feb 2017 16:48:37 +0800
+Message-ID: <1487580524-21503-2-git-send-email-xzhou@redhat.com>
 References: <1487580524-21503-1-git-send-email-xzhou@redhat.com>
-Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:52008 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752336AbdBTItJ (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 20 Feb 2017 03:49:09 -0500
+Return-path: <fstests-owner@vger.kernel.org>
 In-Reply-To: <1487580524-21503-1-git-send-email-xzhou@redhat.com>
-Sender: linux-unionfs-owner@vger.kernel.org
-List-Id: linux-unionfs@vger.kernel.org
+Sender: fstests-owner@vger.kernel.org
 To: fstests@vger.kernel.org
 Cc: linux-unionfs@vger.kernel.org, mszeredi@redhat.com, Xiong Zhou <xzhou@redhat.com>
+List-Id: linux-unionfs@vger.kernel.org
 
-They should be cleaned while mounting overlayfs.
+Using overlayfs dir as upperdir to mount another
+overlayfs should fail.
 
 CC: Miklos Szeredi <mszeredi@redhat.com>
 Signed-off-by: Xiong Zhou <xzhou@redhat.com>
 ---
- tests/overlay/023     | 81 +++++++++++++++++++++++++++++++++++++++++++++++++++
- tests/overlay/023.out |  8 +++++
+ tests/overlay/022     | 82 +++++++++++++++++++++++++++++++++++++++++++++++++++
+ tests/overlay/022.out |  2 ++
  tests/overlay/group   |  1 +
- 3 files changed, 90 insertions(+)
- create mode 100755 tests/overlay/023
- create mode 100644 tests/overlay/023.out
+ 3 files changed, 85 insertions(+)
+ create mode 100755 tests/overlay/022
+ create mode 100644 tests/overlay/022.out
 
-diff --git a/tests/overlay/023 b/tests/overlay/023
+diff --git a/tests/overlay/022 b/tests/overlay/022
 new file mode 100755
-index 0000000..9f4ace5
+index 0000000..817ee63
 --- /dev/null
-+++ b/tests/overlay/023
-@@ -0,0 +1,81 @@
++++ b/tests/overlay/022
+@@ -0,0 +1,82 @@
 +#! /bin/bash
-+# FS QA Test 023
++# FS QA Test 022
 +#
-+# The "work" directory in an overlyfs workdir should not inherit
-+# ACL attrs from workdir.
-+# Kernel commits below fix it.
-+#   c11b9fdd6a61 ovl: remove posix_acl_default from workdir
-+#   e1ff3dd1ae52 ovl: fix workdir creation
++# Regression test for kernel commit:
++#     76bc8e2 ovl: disallow overlayfs as upperdir
 +#
 +# This reproducer was originally written by
 +#     Miklos Szeredi <mszeredi@redhat.com>
 +#
 +#-----------------------------------------------------------------------
-+# Copyright (c) 2017 Red Hat Inc.  All Rights Reserved.
++# Copyright (c) 2017 Red Hat Inc. All Rights Reserved.
 +#
 +# This program is free software; you can redistribute it and/or
 +# modify it under the terms of the GNU General Public License as
@@ -74,13 +68,14 @@ index 0000000..9f4ace5
 +_cleanup()
 +{
 +	cd /
++	$UMOUNT_PROG $tmp/mnt > /dev/null 2>&1
++	rm -rf $tmp
 +	rm -f $tmp.*
 +}
 +
 +# get standard environment, filters and checks
 +. ./common/rc
 +. ./common/filter
-+. ./common/attr
 +
 +# remove previous $seqres.full before test
 +rm -f $seqres.full
@@ -90,51 +85,48 @@ index 0000000..9f4ace5
 +# Modify as appropriate.
 +_supported_fs overlay
 +_supported_os Linux
-+_require_acls
 +_require_scratch
 +
 +# Remove all files from previous tests
 +_scratch_mkfs
 +
-+# setting acls before mount
-+wkdir=$SCRATCH_DEV/$OVERLAY_WORK_DIR
-+mkdir -p $wkdir
-+setfacl -d -m o::rwx $wkdir
-+
++upperdir=$SCRATCH_DEV/$OVERLAY_UPPER_DIR
++mkdir -p $upperdir/upper
++mkdir -p $upperdir/work
++# mount overlay with dirs in upper
 +_scratch_mount
 +
-+# getting acls and doing a non-common filter,
-+# since getfacl will remove leading / from absolute
-+# path names.
-+getfacl $wkdir/work 2>&1 | \
-+	sed -e "s,${wkdir#/},wkdir,g" \
-+	    -e "/Removing leading/ d"
++mkdir -p $tmp/{lower,mnt}
++# mount overlay using upper from another overlay upper
++# should fail
++_overlay_mount_dirs $tmp/lower $SCRATCH_MNT/upper \
++  $SCRATCH_MNT/work overlay $tmp/mnt > /dev/null 2>&1
++if [ $? -ne 0 ] ; then
++	echo "Silence is golden"
++else
++	echo "Test Fail"
++	echo "Overlay upperdir can't be another overlay upperdir"
++fi
 +
 +# success, all done
 +status=0
 +exit
-diff --git a/tests/overlay/023.out b/tests/overlay/023.out
+diff --git a/tests/overlay/022.out b/tests/overlay/022.out
 new file mode 100644
-index 0000000..3bdaca4
+index 0000000..394c6a7
 --- /dev/null
-+++ b/tests/overlay/023.out
-@@ -0,0 +1,8 @@
-+QA output created by 023
-+# file: wkdir/work
-+# owner: root
-+# group: root
-+user::---
-+group::---
-+other::---
-+
++++ b/tests/overlay/022.out
+@@ -0,0 +1,2 @@
++QA output created by 022
++Silence is golden
 diff --git a/tests/overlay/group b/tests/overlay/group
-index 45768f5..09da1be 100644
+index 5bcc25e..45768f5 100644
 --- a/tests/overlay/group
 +++ b/tests/overlay/group
-@@ -25,3 +25,4 @@
+@@ -24,3 +24,4 @@
+ 019 auto stress
  020 auto quick copyup perms
  021 auto quick copyup
- 022 auto quick
-+023 auto quick attr
++022 auto quick
 -- 
 1.8.3.1
