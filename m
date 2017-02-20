@@ -1,67 +1,140 @@
 From: Xiong Zhou <xzhou@redhat.com>
-Subject: [xfstests v3 0/8] bunch of overlay tests
-Date: Mon, 20 Feb 2017 16:48:36 +0800
-Message-ID: <1487580524-21503-1-git-send-email-xzhou@redhat.com>
+Subject: [xfstests v3 2/8] overlay: work dir in overlay inherits no ACLs
+Date: Mon, 20 Feb 2017 16:48:38 +0800
+Message-ID: <1487580524-21503-3-git-send-email-xzhou@redhat.com>
+References: <1487580524-21503-1-git-send-email-xzhou@redhat.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:59632 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:52008 "EHLO mx1.redhat.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752307AbdBTIs7 (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 20 Feb 2017 03:48:59 -0500
+        id S1752336AbdBTItJ (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Mon, 20 Feb 2017 03:49:09 -0500
+In-Reply-To: <1487580524-21503-1-git-send-email-xzhou@redhat.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: fstests@vger.kernel.org
 Cc: linux-unionfs@vger.kernel.org, mszeredi@redhat.com, Xiong Zhou <xzhou@redhat.com>
 
-v3:
-  cc linux-unionfs
-  rm -rf $tmp in cleanup
-  checking exact errno in set/getfattr case
-  sleep less in flock case
+They should be cleaned while mounting overlayfs.
 
-Xiong Zhou (8):
-  overlay: disallow overlayfs as upperdir
-  overlay: work dir in overlay inherits no ACLs
-  overlay: test workdir cleanup in mounting
-  overlay: permission check with cached acls in tmpfs
-  overlay: filter out xattr starts with "trusted.overlay."
-  overlay: can not change underlying immutable file
-  overlay: test flock after copied up
-  overlay: accessing stacked overlayfs files
-
- tests/overlay/022     |  82 +++++++++++++++++++++++++++++++++++++++++
- tests/overlay/022.out |   2 +
- tests/overlay/023     |  81 ++++++++++++++++++++++++++++++++++++++++
- tests/overlay/023.out |   8 ++++
- tests/overlay/024     |  80 ++++++++++++++++++++++++++++++++++++++++
- tests/overlay/024.out |   2 +
- tests/overlay/025     |  85 ++++++++++++++++++++++++++++++++++++++++++
- tests/overlay/025.out |   2 +
- tests/overlay/026     |  99 +++++++++++++++++++++++++++++++++++++++++++++++++
- tests/overlay/026.out |   5 +++
- tests/overlay/027     |  87 +++++++++++++++++++++++++++++++++++++++++++
- tests/overlay/027.out |   2 +
- tests/overlay/028     |  80 ++++++++++++++++++++++++++++++++++++++++
- tests/overlay/028.out |   2 +
- tests/overlay/029     | 100 ++++++++++++++++++++++++++++++++++++++++++++++++++
- tests/overlay/029.out |   5 +++
- tests/overlay/group   |   8 ++++
- 17 files changed, 730 insertions(+)
- create mode 100755 tests/overlay/022
- create mode 100644 tests/overlay/022.out
+CC: Miklos Szeredi <mszeredi@redhat.com>
+Signed-off-by: Xiong Zhou <xzhou@redhat.com>
+---
+ tests/overlay/023     | 81 +++++++++++++++++++++++++++++++++++++++++++++++++++
+ tests/overlay/023.out |  8 +++++
+ tests/overlay/group   |  1 +
+ 3 files changed, 90 insertions(+)
  create mode 100755 tests/overlay/023
  create mode 100644 tests/overlay/023.out
- create mode 100755 tests/overlay/024
- create mode 100644 tests/overlay/024.out
- create mode 100755 tests/overlay/025
- create mode 100644 tests/overlay/025.out
- create mode 100755 tests/overlay/026
- create mode 100644 tests/overlay/026.out
- create mode 100755 tests/overlay/027
- create mode 100644 tests/overlay/027.out
- create mode 100755 tests/overlay/028
- create mode 100644 tests/overlay/028.out
- create mode 100755 tests/overlay/029
- create mode 100644 tests/overlay/029.out
 
+diff --git a/tests/overlay/023 b/tests/overlay/023
+new file mode 100755
+index 0000000..9f4ace5
+--- /dev/null
++++ b/tests/overlay/023
+@@ -0,0 +1,81 @@
++#! /bin/bash
++# FS QA Test 023
++#
++# The "work" directory in an overlyfs workdir should not inherit
++# ACL attrs from workdir.
++# Kernel commits below fix it.
++#   c11b9fdd6a61 ovl: remove posix_acl_default from workdir
++#   e1ff3dd1ae52 ovl: fix workdir creation
++#
++# This reproducer was originally written by
++#     Miklos Szeredi <mszeredi@redhat.com>
++#
++#-----------------------------------------------------------------------
++# Copyright (c) 2017 Red Hat Inc.  All Rights Reserved.
++#
++# This program is free software; you can redistribute it and/or
++# modify it under the terms of the GNU General Public License as
++# published by the Free Software Foundation.
++#
++# This program is distributed in the hope that it would be useful,
++# but WITHOUT ANY WARRANTY; without even the implied warranty of
++# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++# GNU General Public License for more details.
++#
++# You should have received a copy of the GNU General Public License
++# along with this program; if not, write the Free Software Foundation,
++# Inc.,  51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
++#-----------------------------------------------------------------------
++#
++
++seq=`basename $0`
++seqres=$RESULT_DIR/$seq
++echo "QA output created by $seq"
++
++here=`pwd`
++tmp=/tmp/$$
++status=1	# failure is the default!
++trap "_cleanup; exit \$status" 0 1 2 3 15
++
++_cleanup()
++{
++	cd /
++	rm -f $tmp.*
++}
++
++# get standard environment, filters and checks
++. ./common/rc
++. ./common/filter
++. ./common/attr
++
++# remove previous $seqres.full before test
++rm -f $seqres.full
++
++# real QA test starts here
++
++# Modify as appropriate.
++_supported_fs overlay
++_supported_os Linux
++_require_acls
++_require_scratch
++
++# Remove all files from previous tests
++_scratch_mkfs
++
++# setting acls before mount
++wkdir=$SCRATCH_DEV/$OVERLAY_WORK_DIR
++mkdir -p $wkdir
++setfacl -d -m o::rwx $wkdir
++
++_scratch_mount
++
++# getting acls and doing a non-common filter,
++# since getfacl will remove leading / from absolute
++# path names.
++getfacl $wkdir/work 2>&1 | \
++	sed -e "s,${wkdir#/},wkdir,g" \
++	    -e "/Removing leading/ d"
++
++# success, all done
++status=0
++exit
+diff --git a/tests/overlay/023.out b/tests/overlay/023.out
+new file mode 100644
+index 0000000..3bdaca4
+--- /dev/null
++++ b/tests/overlay/023.out
+@@ -0,0 +1,8 @@
++QA output created by 023
++# file: wkdir/work
++# owner: root
++# group: root
++user::---
++group::---
++other::---
++
+diff --git a/tests/overlay/group b/tests/overlay/group
+index 45768f5..09da1be 100644
+--- a/tests/overlay/group
++++ b/tests/overlay/group
+@@ -25,3 +25,4 @@
+ 020 auto quick copyup perms
+ 021 auto quick copyup
+ 022 auto quick
++023 auto quick attr
 -- 
 1.8.3.1
