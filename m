@@ -1,98 +1,138 @@
-From: Miklos Szeredi <miklos@szeredi.hu>
-Subject: Re: [PATCH 4/9] vfs: intercept reads to overlay files
-Date: Mon, 20 Feb 2017 09:52:27 +0100
-Message-ID: <CAJfpeguwBHYEZv8e7i_qrwWLtKJm2vmTpUCbZZ5HtQdBYLhs9Q@mail.gmail.com>
-References: <1487347778-18596-1-git-send-email-mszeredi@redhat.com>
- <1487347778-18596-5-git-send-email-mszeredi@redhat.com> <D39694FF47DA2A43B120BF3DF6163E7A10CD2335@DGGEMA504-MBX.china.huawei.com>
- <f50a5892-eccf-0865-96ad-337114a6944e@huawei.com>
+From: Eryu Guan <eguan@redhat.com>
+Subject: Re: [PATCH v4 0/10] fstests: new way to run overlay tests
+Date: Mon, 20 Feb 2017 18:30:28 +0800
+Message-ID: <20170220103028.GJ24562@eguan.usersys.redhat.com>
+References: <1487275028-29885-1-git-send-email-amir73il@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-ot0-f193.google.com ([74.125.82.193]:35709 "EHLO
-        mail-ot0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751565AbdBTIw3 (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 20 Feb 2017 03:52:29 -0500
-Received: by mail-ot0-f193.google.com with SMTP id y13so10190721oty.2
-        for <linux-unionfs@vger.kernel.org>; Mon, 20 Feb 2017 00:52:29 -0800 (PST)
-In-Reply-To: <f50a5892-eccf-0865-96ad-337114a6944e@huawei.com>
+Received: from mx1.redhat.com ([209.132.183.28]:23407 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752703AbdBTKa3 (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Mon, 20 Feb 2017 05:30:29 -0500
+Content-Disposition: inline
+In-Reply-To: <1487275028-29885-1-git-send-email-amir73il@gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: "zhangyi (F)" <yi.zhang@huawei.com>
-Cc: Miklos Szeredi <mszeredi@redhat.com>, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>, linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org, Al Viro <viro@zeniv.linux.org.uk>, miaoxie@huawei.com
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, fstests@vger.kernel.org
 
-On Mon, Feb 20, 2017 at 8:47 AM, zhangyi (F) <yi.zhang@huawei.com> wrote:
-> On 2017/2/18 00:10, Miklos Szeredi wrote:
->> diff --git a/fs/open.c b/fs/open.c
->> index 9921f70bc5ca..4916ccff29f5 100644
->> --- a/fs/open.c
->> +++ b/fs/open.c
->> @@ -762,6 +762,8 @@ static int do_dentry_open(struct file *f,
->>       if ((f->f_mode & FMODE_WRITE) &&
->>            likely(f->f_op->write || f->f_op->write_iter))
->>               f->f_mode |= FMODE_CAN_WRITE;
->> +     if (unlikely(d_inode(f->f_path.dentry) != inode))
->> +             f->f_mode |= FMODE_OVERLAY;
->
-> Can we just add flag to the "readonly && not copied" file, not all overlayfs files?
-> Beacuse we just want to check the ro file before copied-up.
+Hi Amir,
 
-Can't do it without adding new infrastructure.  Likely not worth it.
+On Thu, Feb 16, 2017 at 09:56:58PM +0200, Amir Goldstein wrote:
+> Hi Eryu and all,
+> 
+> This is the 4th revision of new overlayfs config.
+> The main motivation of this work is to help catch overlayfs bugs
+> related to leaking objects in underlying (base) fs.
 
->
->>       f->f_flags &= ~(O_CREAT | O_EXCL | O_NOCTTY | O_TRUNC);
->>
->> diff --git a/fs/overlay_util.c b/fs/overlay_util.c new file mode 100644 index 000000000000..0daff19bad0b
->> --- /dev/null
->> +++ b/fs/overlay_util.c
->> @@ -0,0 +1,39 @@
->> +/*
->> + * Copyright (C) 2017 Red Hat, Inc.
->> + *
->> + * This program is free software; you can redistribute it and/or modify
->> +it
->> + * under the terms of the GNU General Public License version 2 as
->> +published by
->> + * the Free Software Foundation.
->> + */
->> +#if IS_ENABLED(CONFIG_OVERLAY_FS)
->> +
->> +#include <linux/overlay_util.h>
->> +#include <linux/fs.h>
->> +#include <linux/file.h>
->> +#include "internal.h"
->> +
->> +static bool overlay_file_consistent(struct file *file) {
->> +     return d_real_inode(file->f_path.dentry) == file_inode(file); }
->> +
->> +ssize_t overlay_read_iter(struct file *file, struct kiocb *kio,
->> +                       struct iov_iter *iter)
->> +{
->> +     ssize_t ret;
->> +
->> +     if (likely(overlay_file_consistent(file)))
->> +             return file->f_op->read_iter(kio, iter);
->> +
->> +     file = filp_clone_open(file);
->> +     if (IS_ERR(file))
->> +             return PTR_ERR(file);
->> +
->> +     ret = vfs_iter_read(file, iter, &kio->ki_pos);
->> +     fput(file);
->> +
->> +     return ret;
->> +}
->> +EXPORT_SYMBOL(overlay_read_iter);
->
-> Can we try to replace the old file with the new file, and then clear the f_mode flag we added?
-> If so, we can avoid opening file for each reading call and avoid copied file consistency check.
+Thank you so much for your work! I went through the patches and they
+look fine to me, I didn't find anything obviously wrong. Now I'm doing
+more tests with both new & legacy configs.
 
-Could probably try replacing file in fd table.  But no point in doing
-so without having an actual real life use case that would benefit from
-that.  AFAIK there's no such thing.
-
-And there are other pointers to file that can't be replaced, so this
-fallback would need to be kept around.
+And again, since this is quite a invasive update, I'd like to let it sit
+in the list for longer time for broader review. Any comments/ideas are
+appreciated!
 
 Thanks,
-Miklos
+Eryu
+
+> 
+> With this change, all you have to do to run overlay tests if you
+> already have a local.config setup to test a local file system is:
+>  ./check -overlay
+> 
+> It uses existing local.config that was setup to run tests on
+> the base fs (e.g. xfs) and you can run './check' and './check -overlay'
+> without re-formatting the test partitions and without changing the
+> config file.
+> 
+> The legacy overlayfs configuration, where TEST_DEV is a directory
+> still works, but it should be deprecated.
+> 
+> I tested ./check -overlay -g quick with both legacy overlay configuration
+> and the new base fs configuration.
+> 
+> Until now, overlay test configuration was not documented at all.
+> I updated README per Eryu's request and tried to keep the documentation
+> short and simple.
+> 
+> Also added README.overlay with some easy example for config files
+> to use with -overlay.
+> 
+> I would very much appreciate if anyone could test these changes with their
+> own set of configuration, with or without adding overlay tests into the mix.
+> You can get the branch for testing from my github tree [1].
+> 
+> Thanks,
+> Amir.
+> 
+> [1] https://github.com/amir73il/xfstests/tree/ovl_base_fs
+> 
+> v4:
+> - Address review comments from Eryu
+> - Fix sanity checks for already mounted scratch base fs
+> - Fix handling of SCRATCH_DEV_POOL
+> - Fix problems when run in kvm-xfstests
+> - Add README.overlay with example config files
+> - Remove documentation for overlay config sections
+> 
+> v3:
+> - Mount cycle base test fs
+> - Fix bugs in non overlay specific sanity checks
+> - Run -overlay test with existing config file of base fs
+> - Run overlay tests per base fs by adding overlay config sections
+> 
+> v2:
+> - Test and scratch base dirs each have thier own base fs
+> - Support mount cycles of base fs for scratch tests
+> 
+> v1:
+> - Both test and scratch base dirs on a single base fs
+> 
+> 
+> Amir Goldstein (10):
+>   fstests: sanity check that test partitions are not mounted elsewhere
+>   fstests: use _test_mount() consistently
+>   fstests: canonicalize mount points on every config section
+>   overlay: rename OVERLAY_LOWER/UPPER/WORK_DIR
+>   overlay: allow SCRATCH_DEV to be the base fs mount point
+>   overlay: configure TEST/SCRATCH vars to base fs
+>   overlay: use OVL_BASE_SCRATCH_MNT instead of SCRATCH_DEV
+>   overlay: fix test and scratch filters for overlay base fs
+>   overlay: mount/unmount base fs before/after running tests
+>   generic/064: access SCRATCH_MNT after _scratch_mount
+> 
+>  README            |  16 +++--
+>  README.overlay    |  46 ++++++++++++
+>  check             |  18 ++---
+>  common/config     | 160 ++++++++++++++++++++++++++++++++++++------
+>  common/filter     |  26 +++++--
+>  common/rc         | 206 +++++++++++++++++++++++++++++++++++++++---------------
+>  tests/generic/064 |  10 +--
+>  tests/overlay/001 |   7 +-
+>  tests/overlay/002 |   2 +-
+>  tests/overlay/003 |   5 +-
+>  tests/overlay/004 |   7 +-
+>  tests/overlay/005 |  30 ++++----
+>  tests/overlay/006 |  10 +--
+>  tests/overlay/008 |   8 +--
+>  tests/overlay/009 |   2 +-
+>  tests/overlay/010 |  10 +--
+>  tests/overlay/011 |   6 +-
+>  tests/overlay/012 |   4 +-
+>  tests/overlay/013 |   4 +-
+>  tests/overlay/014 |  19 ++---
+>  tests/overlay/015 |   2 +-
+>  tests/overlay/016 |   2 +-
+>  tests/overlay/017 |   2 +-
+>  tests/overlay/018 |   2 +-
+>  tests/overlay/019 |   2 +-
+>  tests/overlay/020 |   2 +-
+>  tests/overlay/021 |   6 +-
+>  27 files changed, 450 insertions(+), 164 deletions(-)
+>  create mode 100644 README.overlay
+> 
+> -- 
+> 2.7.4
+> 
