@@ -1,7 +1,7 @@
 From: Xiong Zhou <xzhou@redhat.com>
-Subject: [xfstests v3 5/8] overlay: filter out xattr starts with "trusted.overlay."
-Date: Mon, 20 Feb 2017 16:48:41 +0800
-Message-ID: <1487580524-21503-6-git-send-email-xzhou@redhat.com>
+Subject: [xfstests v3 8/8] overlay: accessing stacked overlayfs files
+Date: Mon, 20 Feb 2017 16:48:44 +0800
+Message-ID: <1487580524-21503-9-git-send-email-xzhou@redhat.com>
 References: <1487580524-21503-1-git-send-email-xzhou@redhat.com>
 Return-path: <fstests-owner@vger.kernel.org>
 In-Reply-To: <1487580524-21503-1-git-send-email-xzhou@redhat.com>
@@ -10,36 +10,35 @@ To: fstests@vger.kernel.org
 Cc: linux-unionfs@vger.kernel.org, mszeredi@redhat.com, Xiong Zhou <xzhou@redhat.com>
 List-Id: linux-unionfs@vger.kernel.org
 
-Not "trusted.overlay".
-  "trusted.overlayxxx" is allowed.
-  "trusted.overlay.xxx" is not allowed.
+Lower dir comes from another overlayfs dir, then
+accessing files in it should work.
 
 CC: Miklos Szeredi <mszeredi@redhat.com>
 Signed-off-by: Xiong Zhou <xzhou@redhat.com>
 ---
- tests/overlay/026     | 99 +++++++++++++++++++++++++++++++++++++++++++++++++++
- tests/overlay/026.out |  5 +++
- tests/overlay/group   |  1 +
- 3 files changed, 105 insertions(+)
- create mode 100755 tests/overlay/026
- create mode 100644 tests/overlay/026.out
+ tests/overlay/029     | 100 ++++++++++++++++++++++++++++++++++++++++++++++++++
+ tests/overlay/029.out |   5 +++
+ tests/overlay/group   |   1 +
+ 3 files changed, 106 insertions(+)
+ create mode 100755 tests/overlay/029
+ create mode 100644 tests/overlay/029.out
 
-diff --git a/tests/overlay/026 b/tests/overlay/026
+diff --git a/tests/overlay/029 b/tests/overlay/029
 new file mode 100755
-index 0000000..86f73ea
+index 0000000..902a84c
 --- /dev/null
-+++ b/tests/overlay/026
-@@ -0,0 +1,99 @@
++++ b/tests/overlay/029
+@@ -0,0 +1,100 @@
 +#! /bin/bash
-+# FS QA Test 026
++# FS QA Test 029
 +#
-+# Overlayfs should only filter out xattr starting with
-+# "trusted.overlay.", not "trusted.overlay".
-+# Setting xattrs like "trusted.overlay.xxx" is not allowed.
-+# Setting xattrs like "trusted.overlayxxx" is allowed.
++# There are dirs/files in lower dir and upper dir before
++# mounting overlayfs. After mounting, use dir in overlayfs
++# mountpoint as lowerdir to mount another overlayfs, then
++# access old files through the second overlayfs. It was
++# not working, kernel commit below fixed it.
 +#
-+# Kernel commit below fixed it.
-+# fe2b75952347 ovl: Fix OVL_XATTR_PREFIX
++# c4fcfc1619ea ovl: fix d_real() for stacked fs
 +#
 +# This reproducer was originally written by
 +#     Miklos Szeredi <mszeredi@redhat.com>
@@ -74,12 +73,13 @@ index 0000000..86f73ea
 +_cleanup()
 +{
 +	cd /
++	$UMOUNT_PROG $tmp/mnt
++	rm -rf $tmp
 +	rm -f $tmp.*
 +}
 +
 +# get standard environment, filters and checks
 +. ./common/rc
-+. ./common/attr
 +. ./common/filter
 +
 +# remove previous $seqres.full before test
@@ -91,63 +91,63 @@ index 0000000..86f73ea
 +_supported_fs overlay
 +_supported_os Linux
 +_require_scratch
-+_require_attrs
 +
 +# Remove all files from previous tests
 +_scratch_mkfs
 +
-+# Mounting overlay
++# Preparing files
++upperdir=$SCRATCH_DEV/$OVERLAY_UPPER_DIR
++lowerdir=$SCRATCH_DEV/$OVERLAY_LOWER_DIR
++mkdir -p $upperdir/up
++echo foo > $upperdir/up/foo
++mkdir -p $lowerdir/low
++echo bar > $lowerdir/low/bar
++
++# mount overlay in SCRATCH_MNT
 +_scratch_mount
-+touch $SCRATCH_MNT/testf0
-+touch $SCRATCH_MNT/testf1
 +
-+# {s,g}etfattr of "trusted.overlayxxx" should work.
-+$SETFATTR_PROG -n "trusted.overlayfsrz" -v "n" \
-+  $SCRATCH_MNT/testf0
++mkdir -p $tmp/{upper,mnt,work}
++# mount overlay again using upper dir from SCRATCH_MNT dir
++_overlay_mount_dirs $SCRATCH_MNT/up $tmp/{upper,work} \
++  overlay $tmp/mnt
++# accessing file in the second mount
++cat $tmp/mnt/foo
++$UMOUNT_PROG $tmp/mnt
 +
-+$GETFATTR_PROG -n "trusted.overlayfsrz" $SCRATCH_MNT/testf0 \
-+  2>&1 | sed -e "s,${SCRATCH_MNT#/},SCRATCH_MNT,g" \
-+	     -e "/Removing leading/ d" \
-+	     -e "/^$/ d"
++# mount overlay again using lower dir from SCRATCH_MNT dir
++_overlay_mount_dirs $SCRATCH_MNT/low $tmp/{upper,work} \
++  overlay $tmp/mnt
++cat $tmp/mnt/bar
++$UMOUNT_PROG $tmp/mnt
 +
-+# {s,g}etfattr of "trusted.overlay.xxx" should fail.
-+# The errno returned varies between kernel versions,
-+#            v4.3       v4.7       v4.8      v4.10
-+# setfattr  not perm  not perm   not perm   not supp
-+# getfattr  no attr   no attr    not perm   not supp
-+#
-+# Checking the latest(not supported).
-+#
-+$SETFATTR_PROG -n "trusted.overlay.fsz" -v "n" \
-+  $SCRATCH_MNT/testf1 2>&1 | \
-+  sed -e "s,${SCRATCH_MNT},SCRATCH_MNT,g" \
-+
-+$GETFATTR_PROG -n "trusted.overlay.fsz" \
-+  $SCRATCH_MNT/testf1 2>&1 | \
-+  sed -e "s,${SCRATCH_MNT},SCRATCH_MNT,g" \
++# mount overlay again using SCRATCH_MNT dir
++_overlay_mount_dirs $SCRATCH_MNT/ $tmp/{upper,work} \
++  overlay $tmp/mnt
++cat $tmp/mnt/up/foo
++cat $tmp/mnt/low/bar
 +
 +# success, all done
 +status=0
 +exit
-diff --git a/tests/overlay/026.out b/tests/overlay/026.out
+diff --git a/tests/overlay/029.out b/tests/overlay/029.out
 new file mode 100644
-index 0000000..94da51b
+index 0000000..e7f192c
 --- /dev/null
-+++ b/tests/overlay/026.out
++++ b/tests/overlay/029.out
 @@ -0,0 +1,5 @@
-+QA output created by 026
-+# file: SCRATCH_MNT/testf0
-+trusted.overlayfsrz="n"
-+setfattr: SCRATCH_MNT/testf1: Operation not supported
-+SCRATCH_MNT/testf1: trusted.overlay.fsz: Operation not supported
++QA output created by 029
++foo
++bar
++foo
++bar
 diff --git a/tests/overlay/group b/tests/overlay/group
-index 82fe69e..92afa8d 100644
+index cf058fc..7e72a30 100644
 --- a/tests/overlay/group
 +++ b/tests/overlay/group
-@@ -28,3 +28,4 @@
- 023 auto quick attr
- 024 auto quick
- 025 auto quick attr
-+026 auto attr quick
+@@ -31,3 +31,4 @@
+ 026 auto attr quick
+ 027 auto quick perms
+ 028 auto copyup quick
++029 auto quick
 -- 
 1.8.3.1
