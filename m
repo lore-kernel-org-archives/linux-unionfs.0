@@ -1,45 +1,46 @@
 From: Xiong Zhou <xzhou@redhat.com>
-Subject: [xfstests v3 6/8] overlay: can not change underlying immutable file
-Date: Mon, 20 Feb 2017 16:48:42 +0800
-Message-ID: <1487580524-21503-7-git-send-email-xzhou@redhat.com>
+Subject: [xfstests v3 4/8] overlay: permission check with cached acls in tmpfs
+Date: Mon, 20 Feb 2017 16:48:40 +0800
+Message-ID: <1487580524-21503-5-git-send-email-xzhou@redhat.com>
 References: <1487580524-21503-1-git-send-email-xzhou@redhat.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:53948 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:44042 "EHLO mx1.redhat.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751082AbdBTItO (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 20 Feb 2017 03:49:14 -0500
+        id S1752326AbdBTItI (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Mon, 20 Feb 2017 03:49:08 -0500
 In-Reply-To: <1487580524-21503-1-git-send-email-xzhou@redhat.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: fstests@vger.kernel.org
 Cc: linux-unionfs@vger.kernel.org, mszeredi@redhat.com, Xiong Zhou <xzhou@redhat.com>
 
-Even timestamp change by touch.
+tmpfs does not implement ->get_acl method, overlayfs
+need to get its cached acls in permission check when
+lower or upper fs is tmpfs.
 
 CC: Miklos Szeredi <mszeredi@redhat.com>
 Signed-off-by: Xiong Zhou <xzhou@redhat.com>
 ---
- tests/overlay/027     | 87 +++++++++++++++++++++++++++++++++++++++++++++++++++
- tests/overlay/027.out |  2 ++
+ tests/overlay/025     | 85 +++++++++++++++++++++++++++++++++++++++++++++++++++
+ tests/overlay/025.out |  2 ++
  tests/overlay/group   |  1 +
- 3 files changed, 90 insertions(+)
- create mode 100755 tests/overlay/027
- create mode 100644 tests/overlay/027.out
+ 3 files changed, 88 insertions(+)
+ create mode 100755 tests/overlay/025
+ create mode 100644 tests/overlay/025.out
 
-diff --git a/tests/overlay/027 b/tests/overlay/027
+diff --git a/tests/overlay/025 b/tests/overlay/025
 new file mode 100755
-index 0000000..4bb0329
+index 0000000..69d7f91
 --- /dev/null
-+++ b/tests/overlay/027
-@@ -0,0 +1,87 @@
++++ b/tests/overlay/025
+@@ -0,0 +1,85 @@
 +#! /bin/bash
-+# FS QA Test 027
++# FS QA Test 025
 +#
-+# If underlying upper file is immutable, it should stays
-+# untouchable in the overlayfs mount.
-+#
++# Overlayfs failed to get posix acls if lower or upper
++# fs is tmpfs.
 +# Kernel commit below fixed it.
-+# f2b20f6ee842 vfs: move permission checking into ...
++# 5201dc449e4b ovl: use cached acl on underlying layer
 +#
 +# This reproducer was originally written by
 +#     Miklos Szeredi <mszeredi@redhat.com>
@@ -74,7 +75,9 @@ index 0000000..4bb0329
 +_cleanup()
 +{
 +	cd /
-+	$CHATTR_PROG -i $upperdir/foo
++	$UMOUNT_PROG $tmp/tmpfs/mnt
++	$UMOUNT_PROG $tmp/tmpfs
++	rm -rf $tmp
 +	rm -f $tmp.*
 +}
 +
@@ -90,51 +93,48 @@ index 0000000..4bb0329
 +# Modify as appropriate.
 +_supported_fs overlay
 +_supported_os Linux
-+_require_scratch
-+_require_chattr
++_require_user
 +
-+# Remove all files from previous tests
-+_scratch_mkfs
++# create a tmpfs under $tmp
++mkdir -p $tmp/tmpfs
++$MOUNT_PROG -t tmpfs tmpfs $tmp/tmpfs || \
++  _notrun "this test requires a valid tmpfs"
 +
-+# Preparing immutable file
-+upperdir=$SCRATCH_DEV/$OVERLAY_UPPER_DIR
-+mkdir -p $upperdir
-+touch $upperdir/foo
-+$CHATTR_PROG +i $upperdir/foo
++pushd $tmp/tmpfs > /dev/null 2>&1
 +
-+# Mounting overlay
-+_scratch_mount
++mkdir -p lower upper work mnt
++mkdir -p -m 0 upper/testd
++# grant permission for $qa_user
++setfacl -m u:$qa_user:rx upper/testd
 +
-+# Touching immutable file in overlay, should fail.
-+# Not filtering output here because of errno returned
-+# varies among kernel versions:
-+#   touch: setting times of 'foo': Operation not permitted
-+#   touch: cannot touch 'foo': Permission denied
-+if touch $SCRATCH_MNT/foo > /dev/null 2>&1 ; then
-+	echo "Test Fail, you can't change an immutable file"
-+else
-+	echo "Silence is golden"
-+fi
++# mount overlay using dirs in tmpfs
++_overlay_mount_dirs lower upper work overlay mnt
 +
++popd > /dev/null 2>&1
++
++# user accessing test dir, should be Okay
++_user_do "ls $tmp/tmpfs/mnt/testd"
++
++echo "Silence is golden"
 +# success, all done
 +status=0
 +exit
-diff --git a/tests/overlay/027.out b/tests/overlay/027.out
+diff --git a/tests/overlay/025.out b/tests/overlay/025.out
 new file mode 100644
-index 0000000..ef78cda
+index 0000000..3d70951
 --- /dev/null
-+++ b/tests/overlay/027.out
++++ b/tests/overlay/025.out
 @@ -0,0 +1,2 @@
-+QA output created by 027
++QA output created by 025
 +Silence is golden
 diff --git a/tests/overlay/group b/tests/overlay/group
-index 92afa8d..4db6751 100644
+index 0563a04..82fe69e 100644
 --- a/tests/overlay/group
 +++ b/tests/overlay/group
-@@ -29,3 +29,4 @@
+@@ -27,3 +27,4 @@
+ 022 auto quick
+ 023 auto quick attr
  024 auto quick
- 025 auto quick attr
- 026 auto attr quick
-+027 auto quick perms
++025 auto quick attr
 -- 
 1.8.3.1
