@@ -1,50 +1,52 @@
 From: Eryu Guan <eguan@redhat.com>
-Subject: Re: [xfstests v3 2/8] overlay: work dir in overlay inherits no ACLs
-Date: Tue, 21 Feb 2017 14:04:12 +0800
-Message-ID: <20170221060412.GP24562@eguan.usersys.redhat.com>
+Subject: Re: [xfstests v3 4/8] overlay: permission check with cached acls in
+ tmpfs
+Date: Tue, 21 Feb 2017 14:18:10 +0800
+Message-ID: <20170221061810.GQ24562@eguan.usersys.redhat.com>
 References: <1487580524-21503-1-git-send-email-xzhou@redhat.com>
- <1487580524-21503-3-git-send-email-xzhou@redhat.com>
+ <1487580524-21503-5-git-send-email-xzhou@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:39808 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:53792 "EHLO mx1.redhat.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751018AbdBUGEO (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 21 Feb 2017 01:04:14 -0500
+        id S1751043AbdBUGSM (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Tue, 21 Feb 2017 01:18:12 -0500
 Content-Disposition: inline
-In-Reply-To: <1487580524-21503-3-git-send-email-xzhou@redhat.com>
+In-Reply-To: <1487580524-21503-5-git-send-email-xzhou@redhat.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: Xiong Zhou <xzhou@redhat.com>
 Cc: fstests@vger.kernel.org, linux-unionfs@vger.kernel.org, mszeredi@redhat.com
 
-On Mon, Feb 20, 2017 at 04:48:38PM +0800, Xiong Zhou wrote:
-> They should be cleaned while mounting overlayfs.
+On Mon, Feb 20, 2017 at 04:48:40PM +0800, Xiong Zhou wrote:
+> tmpfs does not implement ->get_acl method, overlayfs
+> need to get its cached acls in permission check when
+> lower or upper fs is tmpfs.
 > 
 > CC: Miklos Szeredi <mszeredi@redhat.com>
 > Signed-off-by: Xiong Zhou <xzhou@redhat.com>
 > ---
->  tests/overlay/023     | 81 +++++++++++++++++++++++++++++++++++++++++++++++++++
->  tests/overlay/023.out |  8 +++++
+>  tests/overlay/025     | 85 +++++++++++++++++++++++++++++++++++++++++++++++++++
+>  tests/overlay/025.out |  2 ++
 >  tests/overlay/group   |  1 +
->  3 files changed, 90 insertions(+)
->  create mode 100755 tests/overlay/023
->  create mode 100644 tests/overlay/023.out
+>  3 files changed, 88 insertions(+)
+>  create mode 100755 tests/overlay/025
+>  create mode 100644 tests/overlay/025.out
 > 
-> diff --git a/tests/overlay/023 b/tests/overlay/023
+> diff --git a/tests/overlay/025 b/tests/overlay/025
 > new file mode 100755
-> index 0000000..9f4ace5
+> index 0000000..69d7f91
 > --- /dev/null
-> +++ b/tests/overlay/023
-> @@ -0,0 +1,81 @@
+> +++ b/tests/overlay/025
+> @@ -0,0 +1,85 @@
 > +#! /bin/bash
-> +# FS QA Test 023
+> +# FS QA Test 025
 > +#
-> +# The "work" directory in an overlyfs workdir should not inherit
-> +# ACL attrs from workdir.
-> +# Kernel commits below fix it.
-> +#   c11b9fdd6a61 ovl: remove posix_acl_default from workdir
-> +#   e1ff3dd1ae52 ovl: fix workdir creation
+> +# Overlayfs failed to get posix acls if lower or upper
+> +# fs is tmpfs.
+> +# Kernel commit below fixed it.
+> +# 5201dc449e4b ovl: use cached acl on underlying layer
 > +#
 > +# This reproducer was originally written by
 > +#     Miklos Szeredi <mszeredi@redhat.com>
@@ -79,13 +81,15 @@ On Mon, Feb 20, 2017 at 04:48:38PM +0800, Xiong Zhou wrote:
 > +_cleanup()
 > +{
 > +	cd /
+> +	$UMOUNT_PROG $tmp/tmpfs/mnt
+> +	$UMOUNT_PROG $tmp/tmpfs
+> +	rm -rf $tmp
 > +	rm -f $tmp.*
 > +}
 > +
 > +# get standard environment, filters and checks
 > +. ./common/rc
 > +. ./common/filter
-> +. ./common/attr
 > +
 > +# remove previous $seqres.full before test
 > +rm -f $seqres.full
@@ -95,60 +99,68 @@ On Mon, Feb 20, 2017 at 04:48:38PM +0800, Xiong Zhou wrote:
 > +# Modify as appropriate.
 > +_supported_fs overlay
 > +_supported_os Linux
-> +_require_acls
-> +_require_scratch
+> +_require_user
 > +
-> +# Remove all files from previous tests
-> +_scratch_mkfs
-> +
-> +# setting acls before mount
-> +wkdir=$SCRATCH_DEV/$OVERLAY_WORK_DIR
-> +mkdir -p $wkdir
-> +setfacl -d -m o::rwx $wkdir
-> +
-> +_scratch_mount
-> +
-> +# getting acls and doing a non-common filter,
-> +# since getfacl will remove leading / from absolute
-> +# path names.
-> +getfacl $wkdir/work 2>&1 | \
-> +	sed -e "s,${wkdir#/},wkdir,g" \
-> +	    -e "/Removing leading/ d"
+> +# create a tmpfs under $tmp
+> +mkdir -p $tmp/tmpfs
 
-You could use "-p" or "--absolute-names" option of getfacl to not strip
-leading "/", which could simplify sed filter a bit. This applies to
-other acl related tests in this patchset too.
+Better to create temporary mount point in $TEST_DIR.
+
+> +$MOUNT_PROG -t tmpfs tmpfs $tmp/tmpfs || \
+> +  _notrun "this test requires a valid tmpfs"
+
+Introduce a new helper _require_tmpfs()?
+
+> +
+> +pushd $tmp/tmpfs > /dev/null 2>&1
+
+Avoid pushd to a dir if possible.
+
+lower=$some_dir/lower
+upper=$some_dir/upper
+work=$some_dir/work
+mnt=$some_dir/mnt
+mkdir -p $lower $upper $work $mnt
+...
 
 Thanks,
 Eryu
 
 > +
+> +mkdir -p lower upper work mnt
+> +mkdir -p -m 0 upper/testd
+> +# grant permission for $qa_user
+> +setfacl -m u:$qa_user:rx upper/testd
+> +
+> +# mount overlay using dirs in tmpfs
+> +_overlay_mount_dirs lower upper work overlay mnt
+> +
+> +popd > /dev/null 2>&1
+> +
+> +# user accessing test dir, should be Okay
+> +_user_do "ls $tmp/tmpfs/mnt/testd"
+> +
+> +echo "Silence is golden"
 > +# success, all done
 > +status=0
 > +exit
-> diff --git a/tests/overlay/023.out b/tests/overlay/023.out
+> diff --git a/tests/overlay/025.out b/tests/overlay/025.out
 > new file mode 100644
-> index 0000000..3bdaca4
+> index 0000000..3d70951
 > --- /dev/null
-> +++ b/tests/overlay/023.out
-> @@ -0,0 +1,8 @@
-> +QA output created by 023
-> +# file: wkdir/work
-> +# owner: root
-> +# group: root
-> +user::---
-> +group::---
-> +other::---
-> +
+> +++ b/tests/overlay/025.out
+> @@ -0,0 +1,2 @@
+> +QA output created by 025
+> +Silence is golden
 > diff --git a/tests/overlay/group b/tests/overlay/group
-> index 45768f5..09da1be 100644
+> index 0563a04..82fe69e 100644
 > --- a/tests/overlay/group
 > +++ b/tests/overlay/group
-> @@ -25,3 +25,4 @@
->  020 auto quick copyup perms
->  021 auto quick copyup
+> @@ -27,3 +27,4 @@
 >  022 auto quick
-> +023 auto quick attr
+>  023 auto quick attr
+>  024 auto quick
+> +025 auto quick attr
 > -- 
 > 1.8.3.1
 > 
