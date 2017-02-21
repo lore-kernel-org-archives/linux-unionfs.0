@@ -1,42 +1,97 @@
-From: Miklos Szeredi <miklos@szeredi.hu>
-Subject: Re: [PATCH 0/9] overlay: fix inconsistency of ro file after copy-up
-Date: Mon, 20 Feb 2017 16:16:04 +0100
-Message-ID: <CAJfpegt-2s5v_X9j9wfLwyHNN-FrDjor4R9wM-AgwXdqYWCsYA@mail.gmail.com>
-References: <1487347778-18596-1-git-send-email-mszeredi@redhat.com> <20170219091430.GL29622@ZenIV.linux.org.uk>
+From: Eryu Guan <eguan@redhat.com>
+Subject: Re: [xfstests v3 0/8] bunch of overlay tests
+Date: Tue, 21 Feb 2017 13:23:33 +0800
+Message-ID: <20170221052333.GO24562@eguan.usersys.redhat.com>
+References: <1487580524-21503-1-git-send-email-xzhou@redhat.com>
+ <CAOQ4uxhzYPkp3YHEuGHrvQ8+0SCmQuiXDO=2osOAga2NEWeZUw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-ot0-f195.google.com ([74.125.82.195]:33925 "EHLO
-        mail-ot0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752707AbdBTPQe (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 20 Feb 2017 10:16:34 -0500
-Received: by mail-ot0-f195.google.com with SMTP id w44so1141966otw.1
-        for <linux-unionfs@vger.kernel.org>; Mon, 20 Feb 2017 07:16:05 -0800 (PST)
-In-Reply-To: <20170219091430.GL29622@ZenIV.linux.org.uk>
+Received: from mx1.redhat.com ([209.132.183.28]:44528 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750896AbdBUFXf (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Tue, 21 Feb 2017 00:23:35 -0500
+Content-Disposition: inline
+In-Reply-To: <CAOQ4uxhzYPkp3YHEuGHrvQ8+0SCmQuiXDO=2osOAga2NEWeZUw@mail.gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Miklos Szeredi <mszeredi@redhat.com>, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>, linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org, David Howells <dhowells@redhat.com>, "J. Bruce Fields" <bfields@fieldses.org>, Jeff Layton <jlayton@poochiereds.net>
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: Xiong Zhou <xzhou@redhat.com>, fstests@vger.kernel.org, linux-unionfs@vger.kernel.org
 
-On Sun, Feb 19, 2017 at 10:14 AM, Al Viro <viro@zeniv.linux.org.uk> wrote:
+On Mon, Feb 20, 2017 at 01:37:57PM +0200, Amir Goldstein wrote:
+> On my mobile email client so can't post to the list, but ACK on the series.
 
-> This is one hell of a DoS vector - it's really easy to eat tons of struct
-> file that way.  Preparatory parts of that series make sense on their own,
-> but your "let's allocate a struct file, call ->open() and schedule that
-> struct file for closing upon the exit to userland on each kernel_read()"
-> is not.
-
-Found a couple of instances of this pattern (haven't looked very hard,
-possibly there's more):
-
-nfsd_read()
-cachefiles_write_page()
-
-How come this hasn't been a problem for them?
-
-Would flush_delayed_fput() work here?  I couldn't really find what the
-locking issues with synchronous fputs were.
+Thanks for the review! I'll give them some test runs and queue them in
+stage tree.
 
 Thanks,
-Miklos
+Eryu
+
+> 
+> Cheers,
+> Amir.
+> 
+> On Feb 20, 2017 9:49 AM, "Xiong Zhou" <xzhou@redhat.com> wrote:
+> 
+>     v3:
+>       cc linux-unionfs
+>       rm -rf $tmp in cleanup
+>       checking exact errno in set/getfattr case
+>       sleep less in flock case
+> 
+>     Xiong Zhou (8):
+>       overlay: disallow overlayfs as upperdir
+>       overlay: work dir in overlay inherits no ACLs
+>       overlay: test workdir cleanup in mounting
+>       overlay: permission check with cached acls in tmpfs
+>       overlay: filter out xattr starts with "trusted.overlay."
+>       overlay: can not change underlying immutable file
+>       overlay: test flock after copied up
+>       overlay: accessing stacked overlayfs files
+> 
+>      tests/overlay/022     |  82 +++++++++++++++++++++++++++++++++++++++++
+>      tests/overlay/022.out |   2 +
+>      tests/overlay/023     |  81 ++++++++++++++++++++++++++++++++++++++++
+>      tests/overlay/023.out |   8 ++++
+>      tests/overlay/024     |  80 ++++++++++++++++++++++++++++++++++++++++
+>      tests/overlay/024.out |   2 +
+>      tests/overlay/025     |  85 ++++++++++++++++++++++++++++++++++++++++++
+>      tests/overlay/025.out |   2 +
+>      tests/overlay/026     |  99 ++++++++++++++++++++++++++++++
+>     +++++++++++++++++++
+>      tests/overlay/026.out |   5 +++
+>      tests/overlay/027     |  87 +++++++++++++++++++++++++++++++++++++++++++
+>      tests/overlay/027.out |   2 +
+>      tests/overlay/028     |  80 ++++++++++++++++++++++++++++++++++++++++
+>      tests/overlay/028.out |   2 +
+>      tests/overlay/029     | 100 ++++++++++++++++++++++++++++++
+>     ++++++++++++++++++++
+>      tests/overlay/029.out |   5 +++
+>      tests/overlay/group   |   8 ++++
+>      17 files changed, 730 insertions(+)
+>      create mode 100755 tests/overlay/022
+>      create mode 100644 tests/overlay/022.out
+>      create mode 100755 tests/overlay/023
+>      create mode 100644 tests/overlay/023.out
+>      create mode 100755 tests/overlay/024
+>      create mode 100644 tests/overlay/024.out
+>      create mode 100755 tests/overlay/025
+>      create mode 100644 tests/overlay/025.out
+>      create mode 100755 tests/overlay/026
+>      create mode 100644 tests/overlay/026.out
+>      create mode 100755 tests/overlay/027
+>      create mode 100644 tests/overlay/027.out
+>      create mode 100755 tests/overlay/028
+>      create mode 100644 tests/overlay/028.out
+>      create mode 100755 tests/overlay/029
+>      create mode 100644 tests/overlay/029.out
+> 
+>     --
+>     1.8.3.1
+> 
+>     --
+>     To unsubscribe from this list: send the line "unsubscribe fstests" in
+>     the body of a message to majordomo@vger.kernel.org
+>     More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
