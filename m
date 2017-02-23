@@ -1,68 +1,68 @@
 From: Xiong Zhou <xzhou@redhat.com>
-Subject: [xfstests v4 4/8] overlay: permission check with cached acls in tmpfs
-Date: Thu, 23 Feb 2017 17:42:42 +0800
-Message-ID: <1487842966-30986-5-git-send-email-xzhou@redhat.com>
+Subject: [xfstests v4 5/8] overlay: filter out xattr starts with "trusted.overlay."
+Date: Thu, 23 Feb 2017 17:42:43 +0800
+Message-ID: <1487842966-30986-6-git-send-email-xzhou@redhat.com>
 References: <1487842966-30986-1-git-send-email-xzhou@redhat.com>
-Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:54594 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751192AbdBWJna (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 23 Feb 2017 04:43:30 -0500
+Return-path: <fstests-owner@vger.kernel.org>
 In-Reply-To: <1487842966-30986-1-git-send-email-xzhou@redhat.com>
-Sender: linux-unionfs-owner@vger.kernel.org
-List-Id: linux-unionfs@vger.kernel.org
+Sender: fstests-owner@vger.kernel.org
 To: fstests@vger.kernel.org
 Cc: linux-unionfs@vger.kernel.org, mszeredi@redhat.com, Xiong Zhou <xzhou@redhat.com>
+List-Id: linux-unionfs@vger.kernel.org
 
-tmpfs does not implement ->get_acl method, overlayfs
-need to get its cached acls in permission check when
-lower or upper fs is tmpfs.
+Overlayfs should only filter out xattr starting with
+"trusted.overlay.", not "trusted.overlay".
+
+Setting xattrs like "trusted.overlay.xxx" is not allowed.
+Setting xattrs like "trusted.overlayxxx" is allowed.
+
+v4.8-rc1 introduced a regression that we can't set xattrs
+like "trusted.overlayxxx".  Kernel commit below fixed it
+in v4.8:
+  fe2b75952347 ovl: Fix OVL_XATTR_PREFIX
+
+This case tests both get/set of these 2 kinds of xattrs.
+
+Pattern "trusted.overlay.xxx" should fail, however the
+errno returned by set/get varies among kernel versions.
+
+Pattern "trusted.overlayxxx" shold always work.
 
 CC: Miklos Szeredi <mszeredi@redhat.com>
 Signed-off-by: Xiong Zhou <xzhou@redhat.com>
 ---
- common/rc             | 10 +++++++
- tests/overlay/025     | 81 +++++++++++++++++++++++++++++++++++++++++++++++++++
- tests/overlay/025.out |  2 ++
- tests/overlay/group   |  1 +
- 4 files changed, 94 insertions(+)
- create mode 100755 tests/overlay/025
- create mode 100644 tests/overlay/025.out
+ tests/overlay/026     | 110 ++++++++++++++++++++++++++++++++++++++++++++++++++
+ tests/overlay/026.out |   6 +++
+ tests/overlay/group   |   1 +
+ 3 files changed, 117 insertions(+)
+ create mode 100755 tests/overlay/026
+ create mode 100644 tests/overlay/026.out
 
-diff --git a/common/rc b/common/rc
-index ec59b88..b58f7c6 100644
---- a/common/rc
-+++ b/common/rc
-@@ -3297,6 +3297,16 @@ _get_fs_sysfs_attr()
- }
- 
- 
-+# Attempt to mount tmpfs at given directory in $1.
-+#
-+# Example:
-+# _require_and_mount_tmpfs $tmpdir
-+#
-+_require_and_mount_tmpfs()
-+{
-+	$MOUNT_PROG -t tmpfs tmpfs $1 || \
-+		_notrun "this test requires valid tmpfs"
-+}
- 
- init_rc
- 
-diff --git a/tests/overlay/025 b/tests/overlay/025
+diff --git a/tests/overlay/026 b/tests/overlay/026
 new file mode 100755
-index 0000000..3c9f843
+index 0000000..55adbad
 --- /dev/null
-+++ b/tests/overlay/025
-@@ -0,0 +1,81 @@
++++ b/tests/overlay/026
+@@ -0,0 +1,110 @@
 +#! /bin/bash
-+# FS QA Test 025
++# FS QA Test 026
 +#
-+# Overlayfs failed to get posix acls if lower or upper
-+# fs is tmpfs.
-+# Kernel commit below fixed it.
-+# 5201dc449e4b ovl: use cached acl on underlying layer
++# Overlayfs should only filter out xattr starting with
++# "trusted.overlay.", not "trusted.overlay".
++#
++# Setting xattrs like "trusted.overlay.xxx" is not allowed.
++# Setting xattrs like "trusted.overlayxxx" is allowed.
++#
++# v4.8-rc1 introduced a regression that we can't set xattrs
++# like "trusted.overlayxxx".  Kernel commit below fixed it
++# in v4.8:
++#   fe2b75952347 ovl: Fix OVL_XATTR_PREFIX
++#
++# This case tests both get/set of these 2 kinds of xattrs.
++#
++# Pattern "trusted.overlay.xxx" should fail, however the
++# errno returned by set/get varies among kernel versions.
++# Pattern "trusted.overlayxxx" shold always work.
 +#
 +# This reproducer was originally written by
 +#     Miklos Szeredi <mszeredi@redhat.com>
@@ -97,14 +97,12 @@ index 0000000..3c9f843
 +_cleanup()
 +{
 +	cd /
-+	$UMOUNT_PROG $tmpfsdir/mnt
-+	$UMOUNT_PROG $tmpfsdir
-+	rm -rf $tmpfsdir
 +	rm -f $tmp.*
 +}
 +
 +# get standard environment, filters and checks
 +. ./common/rc
++. ./common/attr
 +. ./common/filter
 +
 +# remove previous $seqres.full before test
@@ -115,44 +113,67 @@ index 0000000..3c9f843
 +# Modify as appropriate.
 +_supported_fs overlay
 +_supported_os Linux
-+_require_user
++_require_scratch
++_require_attrs
 +
-+# create a tmpfs in $TEST_DIR
-+tmpfsdir=$TEST_DIR/tmpfs
-+mkdir -p $tmpfsdir
-+_require_and_mount_tmpfs $tmpfsdir
++# Remove all files from previous tests
++_scratch_mkfs
 +
-+mkdir -p $tmpfsdir/{lower,upper,work,mnt}
-+mkdir -p -m 0 $tmpfsdir/upper/testd
-+# grant permission for $qa_user
-+setfacl -m u:$qa_user:rx $tmpfsdir/upper/testd
++# Mounting overlay
++_scratch_mount
++touch $SCRATCH_MNT/testf0
++touch $SCRATCH_MNT/testf1
 +
-+# mount overlay using dirs in tmpfs
-+_overlay_mount_dirs $tmpfsdir/{lower,upper,work,overlay,mnt}
++# {s,g}etfattr of "trusted.overlayxxx" should work.
++#            v4.3/6/7    v4.8-rc1   v4.8  v4.10
++# setfattr    ok         not perm    ok    ok
++# getfattr    ok         no attr     ok    ok
++#
++$SETFATTR_PROG -n "trusted.overlayfsrz" -v "n" \
++  $SCRATCH_MNT/testf0 2>&1 | _filter_scratch
 +
-+# user accessing test dir, should be OKay
-+_user_do "ls $tmpfsdir/mnt/testd"
++$GETFATTR_PROG --absolute-names -n "trusted.overlayfsrz" \
++  $SCRATCH_MNT/testf0 2>&1 | _filter_scratch
 +
-+echo "Silence is golden"
++# {s,g}etfattr of "trusted.overlay.xxx" should fail.
++# The errno returned varies among kernel versions,
++#            v4.3/7   v4.8-rc1    v4.8       v4.10
++# setfattr  not perm  not perm   not perm   not supp
++# getfattr  no attr   no attr    not perm   not supp
++#
++# Consider "Operation not {supported,permitted}" pass.
++#
++$SETFATTR_PROG -n "trusted.overlay.fsz" -v "n" \
++  $SCRATCH_MNT/testf1 2>&1 | _filter_scratch | \
++  sed -e 's/permitted/supported/g'
++
++$GETFATTR_PROG --absolute-names -n "trusted.overlay.fsz" \
++  $SCRATCH_MNT/testf1 2>&1 | _filter_scratch | \
++  sed -e 's/permitted/supported/g'
++
 +# success, all done
 +status=0
 +exit
-diff --git a/tests/overlay/025.out b/tests/overlay/025.out
+diff --git a/tests/overlay/026.out b/tests/overlay/026.out
 new file mode 100644
-index 0000000..3d70951
+index 0000000..c4572d6
 --- /dev/null
-+++ b/tests/overlay/025.out
-@@ -0,0 +1,2 @@
-+QA output created by 025
-+Silence is golden
++++ b/tests/overlay/026.out
+@@ -0,0 +1,6 @@
++QA output created by 026
++# file: SCRATCH_MNT/testf0
++trusted.overlayfsrz="n"
++
++setfattr: SCRATCH_MNT/testf1: Operation not supported
++SCRATCH_MNT/testf1: trusted.overlay.fsz: Operation not supported
 diff --git a/tests/overlay/group b/tests/overlay/group
-index 0563a04..82fe69e 100644
+index 82fe69e..92afa8d 100644
 --- a/tests/overlay/group
 +++ b/tests/overlay/group
-@@ -27,3 +27,4 @@
- 022 auto quick
+@@ -28,3 +28,4 @@
  023 auto quick attr
  024 auto quick
-+025 auto quick attr
+ 025 auto quick attr
++026 auto attr quick
 -- 
 1.8.3.1
