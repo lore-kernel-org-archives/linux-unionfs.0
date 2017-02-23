@@ -1,41 +1,59 @@
 From: Xiong Zhou <xzhou@redhat.com>
-Subject: [xfstests v4 2/8] overlay: work dir in overlay inherits no ACLs
-Date: Thu, 23 Feb 2017 17:42:40 +0800
-Message-ID: <1487842966-30986-3-git-send-email-xzhou@redhat.com>
+Subject: [xfstests v4 7/8] overlay: test flock after copied up
+Date: Thu, 23 Feb 2017 17:42:45 +0800
+Message-ID: <1487842966-30986-8-git-send-email-xzhou@redhat.com>
 References: <1487842966-30986-1-git-send-email-xzhou@redhat.com>
-Return-path: <fstests-owner@vger.kernel.org>
+Return-path: <linux-unionfs-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:46546 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751198AbdBWJna (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Thu, 23 Feb 2017 04:43:30 -0500
 In-Reply-To: <1487842966-30986-1-git-send-email-xzhou@redhat.com>
-Sender: fstests-owner@vger.kernel.org
+Sender: linux-unionfs-owner@vger.kernel.org
+List-Id: linux-unionfs@vger.kernel.org
 To: fstests@vger.kernel.org
 Cc: linux-unionfs@vger.kernel.org, mszeredi@redhat.com, Xiong Zhou <xzhou@redhat.com>
-List-Id: linux-unionfs@vger.kernel.org
 
-They should be cleaned while mounting overlayfs.
+Locks of file in lower dir should working after it's
+been copied up.
 
 CC: Miklos Szeredi <mszeredi@redhat.com>
 Signed-off-by: Xiong Zhou <xzhou@redhat.com>
 ---
- tests/overlay/023     | 79 +++++++++++++++++++++++++++++++++++++++++++++++++++
- tests/overlay/023.out |  8 ++++++
+ common/config         |  1 +
+ tests/overlay/028     | 81 +++++++++++++++++++++++++++++++++++++++++++++++++++
+ tests/overlay/028.out |  2 ++
  tests/overlay/group   |  1 +
- 3 files changed, 88 insertions(+)
- create mode 100755 tests/overlay/023
- create mode 100644 tests/overlay/023.out
+ 4 files changed, 85 insertions(+)
+ create mode 100755 tests/overlay/028
+ create mode 100644 tests/overlay/028.out
 
-diff --git a/tests/overlay/023 b/tests/overlay/023
+diff --git a/common/config b/common/config
+index fa89f42..3ef401b 100644
+--- a/common/config
++++ b/common/config
+@@ -204,6 +204,7 @@ export GETRICHACL_PROG="`set_prog_path getrichacl`"
+ export SETRICHACL_PROG="`set_prog_path setrichacl`"
+ export KEYCTL_PROG="`set_prog_path keyctl`"
+ export XZ_PROG="`set_prog_path xz`"
++export FLOCK_PROG="`set_prog_path flock`"
+ 
+ # use 'udevadm settle' or 'udevsettle' to wait for lv to be settled.
+ # newer systems have udevadm command but older systems like RHEL5 don't.
+diff --git a/tests/overlay/028 b/tests/overlay/028
 new file mode 100755
-index 0000000..0d0da93
+index 0000000..6045e09
 --- /dev/null
-+++ b/tests/overlay/023
-@@ -0,0 +1,79 @@
++++ b/tests/overlay/028
+@@ -0,0 +1,81 @@
 +#! /bin/bash
-+# FS QA Test 023
++# FS QA Test 028
 +#
-+# The "work" directory in an overlyfs workdir should not inherit
-+# ACL attrs from workdir.
-+# Kernel commits below fix it.
-+#   c11b9fdd6a61 ovl: remove posix_acl_default from workdir
-+#   e1ff3dd1ae52 ovl: fix workdir creation
++# When file in lower dir is locked and it's been copied up,
++# make sure the lock is working in overlayfs.
++#
++# Kernel commit below fixed it.
++# c568d68341be locks: fix file locking on overlayfs
 +#
 +# This reproducer was originally written by
 +#     Miklos Szeredi <mszeredi@redhat.com>
@@ -76,7 +94,6 @@ index 0000000..0d0da93
 +# get standard environment, filters and checks
 +. ./common/rc
 +. ./common/filter
-+. ./common/attr
 +
 +# remove previous $seqres.full before test
 +rm -f $seqres.full
@@ -86,49 +103,46 @@ index 0000000..0d0da93
 +# Modify as appropriate.
 +_supported_fs overlay
 +_supported_os Linux
-+_require_acls
 +_require_scratch
++_require_command "$FLOCK_PROG" flock
 +
 +# Remove all files from previous tests
 +_scratch_mkfs
 +
-+# setting acls before mount
-+wkdir=$SCRATCH_DEV/$OVERLAY_WORK_DIR
-+mkdir -p $wkdir
-+setfacl -d -m o::rwx $wkdir
++lowerdir=$SCRATCH_DEV/$OVERLAY_LOWER_DIR
++mkdir -p $lowerdir
++touch $lowerdir/foo
 +
++# Mounting overlay
 +_scratch_mount
 +
-+# getting acls and doing a non-common filter,
-+# since getfacl will remove leading / from absolute
-+# path names.
-+getfacl -p $wkdir/work 2>&1 | _filter_scratch
++# Testing copyup and flock
++flock $SCRATCH_MNT/foo sleep 3 &
++# flock in subshell should fail with no output
++(sleep 1; echo bar > $SCRATCH_MNT/foo; \
++  flock -n $SCRATCH_MNT/foo echo LOCKED)
 +
++wait
++echo "Silence is golden"
 +# success, all done
 +status=0
 +exit
-diff --git a/tests/overlay/023.out b/tests/overlay/023.out
+diff --git a/tests/overlay/028.out b/tests/overlay/028.out
 new file mode 100644
-index 0000000..a1a3c37
+index 0000000..2615f73
 --- /dev/null
-+++ b/tests/overlay/023.out
-@@ -0,0 +1,8 @@
-+QA output created by 023
-+# file: SCRATCH_DEV/work/work
-+# owner: root
-+# group: root
-+user::---
-+group::---
-+other::---
-+
++++ b/tests/overlay/028.out
+@@ -0,0 +1,2 @@
++QA output created by 028
++Silence is golden
 diff --git a/tests/overlay/group b/tests/overlay/group
-index 45768f5..09da1be 100644
+index 4db6751..cf058fc 100644
 --- a/tests/overlay/group
 +++ b/tests/overlay/group
-@@ -25,3 +25,4 @@
- 020 auto quick copyup perms
- 021 auto quick copyup
- 022 auto quick
-+023 auto quick attr
+@@ -30,3 +30,4 @@
+ 025 auto quick attr
+ 026 auto attr quick
+ 027 auto quick perms
++028 auto copyup quick
 -- 
 1.8.3.1
