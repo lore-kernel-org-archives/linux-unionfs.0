@@ -1,7 +1,7 @@
 From: Xiong Zhou <xzhou@redhat.com>
-Subject: [xfstests v4 5/8] overlay: filter out xattr starts with "trusted.overlay."
-Date: Thu, 23 Feb 2017 17:42:43 +0800
-Message-ID: <1487842966-30986-6-git-send-email-xzhou@redhat.com>
+Subject: [xfstests v4 2/8] overlay: work dir in overlay inherits no ACLs
+Date: Thu, 23 Feb 2017 17:42:40 +0800
+Message-ID: <1487842966-30986-3-git-send-email-xzhou@redhat.com>
 References: <1487842966-30986-1-git-send-email-xzhou@redhat.com>
 Return-path: <fstests-owner@vger.kernel.org>
 In-Reply-To: <1487842966-30986-1-git-send-email-xzhou@redhat.com>
@@ -10,59 +10,32 @@ To: fstests@vger.kernel.org
 Cc: linux-unionfs@vger.kernel.org, mszeredi@redhat.com, Xiong Zhou <xzhou@redhat.com>
 List-Id: linux-unionfs@vger.kernel.org
 
-Overlayfs should only filter out xattr starting with
-"trusted.overlay.", not "trusted.overlay".
-
-Setting xattrs like "trusted.overlay.xxx" is not allowed.
-Setting xattrs like "trusted.overlayxxx" is allowed.
-
-v4.8-rc1 introduced a regression that we can't set xattrs
-like "trusted.overlayxxx".  Kernel commit below fixed it
-in v4.8:
-  fe2b75952347 ovl: Fix OVL_XATTR_PREFIX
-
-This case tests both get/set of these 2 kinds of xattrs.
-
-Pattern "trusted.overlay.xxx" should fail, however the
-errno returned by set/get varies among kernel versions.
-
-Pattern "trusted.overlayxxx" shold always work.
+They should be cleaned while mounting overlayfs.
 
 CC: Miklos Szeredi <mszeredi@redhat.com>
 Signed-off-by: Xiong Zhou <xzhou@redhat.com>
 ---
- tests/overlay/026     | 110 ++++++++++++++++++++++++++++++++++++++++++++++++++
- tests/overlay/026.out |   6 +++
- tests/overlay/group   |   1 +
- 3 files changed, 117 insertions(+)
- create mode 100755 tests/overlay/026
- create mode 100644 tests/overlay/026.out
+ tests/overlay/023     | 79 +++++++++++++++++++++++++++++++++++++++++++++++++++
+ tests/overlay/023.out |  8 ++++++
+ tests/overlay/group   |  1 +
+ 3 files changed, 88 insertions(+)
+ create mode 100755 tests/overlay/023
+ create mode 100644 tests/overlay/023.out
 
-diff --git a/tests/overlay/026 b/tests/overlay/026
+diff --git a/tests/overlay/023 b/tests/overlay/023
 new file mode 100755
-index 0000000..55adbad
+index 0000000..0d0da93
 --- /dev/null
-+++ b/tests/overlay/026
-@@ -0,0 +1,110 @@
++++ b/tests/overlay/023
+@@ -0,0 +1,79 @@
 +#! /bin/bash
-+# FS QA Test 026
++# FS QA Test 023
 +#
-+# Overlayfs should only filter out xattr starting with
-+# "trusted.overlay.", not "trusted.overlay".
-+#
-+# Setting xattrs like "trusted.overlay.xxx" is not allowed.
-+# Setting xattrs like "trusted.overlayxxx" is allowed.
-+#
-+# v4.8-rc1 introduced a regression that we can't set xattrs
-+# like "trusted.overlayxxx".  Kernel commit below fixed it
-+# in v4.8:
-+#   fe2b75952347 ovl: Fix OVL_XATTR_PREFIX
-+#
-+# This case tests both get/set of these 2 kinds of xattrs.
-+#
-+# Pattern "trusted.overlay.xxx" should fail, however the
-+# errno returned by set/get varies among kernel versions.
-+# Pattern "trusted.overlayxxx" shold always work.
++# The "work" directory in an overlyfs workdir should not inherit
++# ACL attrs from workdir.
++# Kernel commits below fix it.
++#   c11b9fdd6a61 ovl: remove posix_acl_default from workdir
++#   e1ff3dd1ae52 ovl: fix workdir creation
 +#
 +# This reproducer was originally written by
 +#     Miklos Szeredi <mszeredi@redhat.com>
@@ -102,8 +75,8 @@ index 0000000..55adbad
 +
 +# get standard environment, filters and checks
 +. ./common/rc
-+. ./common/attr
 +. ./common/filter
++. ./common/attr
 +
 +# remove previous $seqres.full before test
 +rm -f $seqres.full
@@ -113,67 +86,49 @@ index 0000000..55adbad
 +# Modify as appropriate.
 +_supported_fs overlay
 +_supported_os Linux
++_require_acls
 +_require_scratch
-+_require_attrs
 +
 +# Remove all files from previous tests
 +_scratch_mkfs
 +
-+# Mounting overlay
++# setting acls before mount
++wkdir=$SCRATCH_DEV/$OVERLAY_WORK_DIR
++mkdir -p $wkdir
++setfacl -d -m o::rwx $wkdir
++
 +_scratch_mount
-+touch $SCRATCH_MNT/testf0
-+touch $SCRATCH_MNT/testf1
 +
-+# {s,g}etfattr of "trusted.overlayxxx" should work.
-+#            v4.3/6/7    v4.8-rc1   v4.8  v4.10
-+# setfattr    ok         not perm    ok    ok
-+# getfattr    ok         no attr     ok    ok
-+#
-+$SETFATTR_PROG -n "trusted.overlayfsrz" -v "n" \
-+  $SCRATCH_MNT/testf0 2>&1 | _filter_scratch
-+
-+$GETFATTR_PROG --absolute-names -n "trusted.overlayfsrz" \
-+  $SCRATCH_MNT/testf0 2>&1 | _filter_scratch
-+
-+# {s,g}etfattr of "trusted.overlay.xxx" should fail.
-+# The errno returned varies among kernel versions,
-+#            v4.3/7   v4.8-rc1    v4.8       v4.10
-+# setfattr  not perm  not perm   not perm   not supp
-+# getfattr  no attr   no attr    not perm   not supp
-+#
-+# Consider "Operation not {supported,permitted}" pass.
-+#
-+$SETFATTR_PROG -n "trusted.overlay.fsz" -v "n" \
-+  $SCRATCH_MNT/testf1 2>&1 | _filter_scratch | \
-+  sed -e 's/permitted/supported/g'
-+
-+$GETFATTR_PROG --absolute-names -n "trusted.overlay.fsz" \
-+  $SCRATCH_MNT/testf1 2>&1 | _filter_scratch | \
-+  sed -e 's/permitted/supported/g'
++# getting acls and doing a non-common filter,
++# since getfacl will remove leading / from absolute
++# path names.
++getfacl -p $wkdir/work 2>&1 | _filter_scratch
 +
 +# success, all done
 +status=0
 +exit
-diff --git a/tests/overlay/026.out b/tests/overlay/026.out
+diff --git a/tests/overlay/023.out b/tests/overlay/023.out
 new file mode 100644
-index 0000000..c4572d6
+index 0000000..a1a3c37
 --- /dev/null
-+++ b/tests/overlay/026.out
-@@ -0,0 +1,6 @@
-+QA output created by 026
-+# file: SCRATCH_MNT/testf0
-+trusted.overlayfsrz="n"
++++ b/tests/overlay/023.out
+@@ -0,0 +1,8 @@
++QA output created by 023
++# file: SCRATCH_DEV/work/work
++# owner: root
++# group: root
++user::---
++group::---
++other::---
 +
-+setfattr: SCRATCH_MNT/testf1: Operation not supported
-+SCRATCH_MNT/testf1: trusted.overlay.fsz: Operation not supported
 diff --git a/tests/overlay/group b/tests/overlay/group
-index 82fe69e..92afa8d 100644
+index 45768f5..09da1be 100644
 --- a/tests/overlay/group
 +++ b/tests/overlay/group
-@@ -28,3 +28,4 @@
- 023 auto quick attr
- 024 auto quick
- 025 auto quick attr
-+026 auto attr quick
+@@ -25,3 +25,4 @@
+ 020 auto quick copyup perms
+ 021 auto quick copyup
+ 022 auto quick
++023 auto quick attr
 -- 
 1.8.3.1
