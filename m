@@ -1,76 +1,53 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH v5 04/10] fstests: fix test and scratch filters for overlapping DEV/MNT paths
-Date: Tue, 28 Feb 2017 14:18:31 +0200
-Message-ID: <1488284317-3119-5-git-send-email-amir73il@gmail.com>
+Subject: [PATCH v5 05/10] fstests: allow overlay SCRATCH_DEV to be a base fs mount point
+Date: Tue, 28 Feb 2017 14:18:32 +0200
+Message-ID: <1488284317-3119-6-git-send-email-amir73il@gmail.com>
 References: <1488284317-3119-1-git-send-email-amir73il@gmail.com>
-Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wr0-f193.google.com ([209.85.128.193]:34203 "EHLO
-        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751768AbdB1MUQ (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 28 Feb 2017 07:20:16 -0500
+Return-path: <fstests-owner@vger.kernel.org>
 In-Reply-To: <1488284317-3119-1-git-send-email-amir73il@gmail.com>
-Sender: linux-unionfs-owner@vger.kernel.org
-List-Id: linux-unionfs@vger.kernel.org
+Sender: fstests-owner@vger.kernel.org
 To: Eryu Guan <eguan@redhat.com>
 Cc: Miklos Szeredi <miklos@szeredi.hu>, Xiong Zhou <xzhou@redhat.com>, linux-unionfs@vger.kernel.org, fstests@vger.kernel.org
+List-Id: linux-unionfs@vger.kernel.org
 
-When configuring overlay base fs, TEST_DEV/DIR and SCRATCH_DEV/MNT
-are derived from the base fs mount points, where *_DEV are the
-path of the base fs mount point and TEST_DIR/SCRATCH_MNT are
-a directory under the base fs mount point.
+When configure SCRATCH_DEV to a mount point (and not to a directory therein)
+then user will get a false positive error in scratch tests:
 
-This means that the overlay DEV paths are prefixes of the overlay
-mount points.
-Fix the test and sctach filters to check if TEST_DEV/SCRATCH_DEV is
-a substring of TEST_DIR/SCRATCH_MNT and try and match the longer
-string first.
+ $SCRATCH_DEV=/mnt/base/scratch is mounted but not on $SCRATCH_MNT=/mnt/scratch
+ Already mounted result:
+ /dev/sda6 on /mnt/base/scratch type xfs (rw,relatime,attr2,inode64,noquota)
+
+This is due to the wrong `grep -F $SCRATCH_DEV` which matches the mount
+point instead of the device in that mount.
+Fix _check_mounted_on() to grep the pattern "$dev on " and "$dev on $mnt"
+instead of just grepping for "$dev" and "$mnt" without the " on " anchor.
 
 Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- common/filter | 26 ++++++++++++++++++++++----
- 1 file changed, 22 insertions(+), 4 deletions(-)
+ common/rc | 8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
-diff --git a/common/filter b/common/filter
-index 4328159..010f080 100644
---- a/common/filter
-+++ b/common/filter
-@@ -280,14 +280,32 @@ _filter_xfs_io_pages_modified()
+diff --git a/common/rc b/common/rc
+index 4fa211a..fb88ffa 100644
+--- a/common/rc
++++ b/common/rc
+@@ -1368,12 +1368,14 @@ _check_mounted_on()
+ 	local type=$5
  
- _filter_test_dir()
- {
--	sed -e "s,$TEST_DEV,TEST_DEV,g" -e "s,$TEST_DIR,TEST_DIR,g"
-+	if ( echo $TEST_DIR | grep -q $TEST_DEV ); then
-+		# TEST_DEV is substr of TEST_DIR (e.g. /mnt and /mnt/ovl-mnt)
-+		# substitute TEST_DIR first
-+		sed -e "s,$TEST_DIR,TEST_DIR,g" \
-+		    -e "s,$TEST_DEV,TEST_DEV,g"
-+	else
-+		# TEST_DIR maybe a substr of TEST_DIR (e.g. /vdc and /dev/vdc)
-+		# substitute TEST_DEV first
-+		sed -e "s,$TEST_DEV,TEST_DEV,g" \
-+		    -e "s,$TEST_DIR,TEST_DIR,g"
-+	fi
- }
+ 	# Note that we use -F here so grep doesn't try to interpret an NFS over
+-	# IPv6 server as a regular expression
+-	local mount_rec=`_mount | grep -F "$dev"`
++	# IPv6 server as a regular expression.  Because of that, we cannot use
++	# ^$dev so we use "$dev on " to avoid matching $dev to mount point field
++	# for overlay case, where $dev is a directory.
++	local mount_rec=`_mount | grep -F "$dev on "`
+ 	[ -n "$mount_rec" ] || return 1 # 1 = not mounted
  
- _filter_scratch()
- {
--	sed -e "s,$SCRATCH_DEV,SCRATCH_DEV,g" \
--	    -e "s,$SCRATCH_MNT,SCRATCH_MNT,g" \
--	    -e "/.use_space/d"
-+	if ( echo $SCRATCH_MNT | grep -q $SCRATCH_DEV ); then
-+		# SCRATCH_DEV is substr of SCRATCH_MNT
-+		sed -e "s,$SCRATCH_MNT,SCRATCH_MNT,g" \
-+		    -e "s,$SCRATCH_DEV,SCRATCH_DEV,g" \
-+		    -e "/.use_space/d"
-+	else
-+		# SCRATCH_MNT maybe a substr of SCRATCH_DEV
-+		sed -e "s,$SCRATCH_DEV,SCRATCH_DEV,g" \
-+		    -e "s,$SCRATCH_MNT,SCRATCH_MNT,g" \
-+		    -e "/.use_space/d"
-+	fi
- }
- 
- # Turn any device in the scratch pool into SCRATCH_DEV
+ 	# if it's mounted, make sure its on $mnt
+-	if ! (echo $mount_rec | grep -q "$mnt")
++	if ! (echo $mount_rec | grep -q "$dev on $mnt")
+ 	then
+ 		echo "$devname=$dev is mounted but not on $mntname=$mnt - aborting"
+ 		echo "Already mounted result:"
 -- 
 2.7.4
