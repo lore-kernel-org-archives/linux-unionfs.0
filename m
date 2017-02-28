@@ -1,12 +1,12 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH v5 07/10] overlay: rename OVERLAY_LOWER/UPPER/WORK_DIR
-Date: Tue, 28 Feb 2017 14:18:34 +0200
-Message-ID: <1488284317-3119-8-git-send-email-amir73il@gmail.com>
+Subject: [PATCH v5 01/10] fstests: sanity check that test partitions are not mounted elsewhere
+Date: Tue, 28 Feb 2017 14:18:28 +0200
+Message-ID: <1488284317-3119-2-git-send-email-amir73il@gmail.com>
 References: <1488284317-3119-1-git-send-email-amir73il@gmail.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wr0-f195.google.com ([209.85.128.195]:33765 "EHLO
-        mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751989AbdB1MUQ (ORCPT
+Received: from mail-wr0-f194.google.com ([209.85.128.194]:36564 "EHLO
+        mail-wr0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751598AbdB1MUQ (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
         Tue, 28 Feb 2017 07:20:16 -0500
 In-Reply-To: <1488284317-3119-1-git-send-email-amir73il@gmail.com>
@@ -15,505 +15,157 @@ List-Id: linux-unionfs@vger.kernel.org
 To: Eryu Guan <eguan@redhat.com>
 Cc: Miklos Szeredi <miklos@szeredi.hu>, Xiong Zhou <xzhou@redhat.com>, linux-unionfs@vger.kernel.org, fstests@vger.kernel.org
 
-As preparation step for configuring test/scratch base fs
-for overlay tests:
+When $TEST_DEV is mounted at a different location then $TEST_DIR,
+_require_test() aborts the test with an error:
+ TEST_DEV=/dev/sda5 is mounted but not on TEST_DIR=/mnt/test
 
-- Rename OVERLAY_LOWER/UPPER/WORK_DIR => OVL_LOWER/UPPER/WORK
-  because we want to use OVL_ prefix for all base fs vars
+There are several problems with current sanity check:
+1. the output of the error is mixed into out.bad and hard to see
+2. the test partition is unmounted at the end of the test regardless
+   of the fact that it not pass the sanity that we have exclusivity
+3. scratch partition has a similar sanity check in _require_scratch(),
+   but we may not get to it, because $SCRATCH_DEV is unmounted prior
+   to running the tests (which could unmount another mount point).
 
-- Prepend "ovl-" prefix to lower/upper/work path values to
-  isolate the overlay test dirs when running on a base fs
-  that is also used to run non overlay tests
+To solve all these problems, introduce a helper _check_mounted_on().
+It checks if a device is mounted on a given mount point and optionally
+checks the mounted fs type.
 
-- Make those vars values non-configurable, because lower/upper/work
-  directory names are an internal test detail which should
-  not concern the user and because we wish to simplify
-  and document the overlay tests setup
+The sanity checks in _require_scratch() and _require_test() are
+converted to use the helper and gain the check for correct fs type.
 
-- Add helper _filter_ovl_dirs and use it to filter output
-  of test overlay/023 which matches the constant string "work"
+The helper is used in init_rc() to sanity check both test and scratch
+partitions, before tests are run and before $SCRATCH_DEV is unmounted.
 
 Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- common/config         |  8 +++++---
- common/filter         |  7 +++++++
- common/rc             | 19 +++++++++++++------
- tests/overlay/001     |  2 +-
- tests/overlay/002     |  2 +-
- tests/overlay/003     |  2 +-
- tests/overlay/004     |  4 ++--
- tests/overlay/006     | 10 +++++-----
- tests/overlay/008     |  8 ++++----
- tests/overlay/009     |  2 +-
- tests/overlay/010     |  8 ++++----
- tests/overlay/011     |  4 ++--
- tests/overlay/012     |  4 ++--
- tests/overlay/013     |  4 ++--
- tests/overlay/015     |  2 +-
- tests/overlay/016     |  2 +-
- tests/overlay/017     |  2 +-
- tests/overlay/018     |  2 +-
- tests/overlay/019     |  2 +-
- tests/overlay/020     |  2 +-
- tests/overlay/021     |  2 +-
- tests/overlay/022     |  2 +-
- tests/overlay/023     |  4 ++--
- tests/overlay/023.out |  2 +-
- tests/overlay/024     |  2 +-
- tests/overlay/027     |  2 +-
- tests/overlay/028     |  2 +-
- tests/overlay/029     |  4 ++--
- 28 files changed, 66 insertions(+), 50 deletions(-)
+ common/rc | 90 +++++++++++++++++++++++++++++++++++++++------------------------
+ 1 file changed, 56 insertions(+), 34 deletions(-)
 
-diff --git a/common/config b/common/config
-index c402576..d09cac1 100644
---- a/common/config
-+++ b/common/config
-@@ -77,9 +77,11 @@ export XFS_MKFS_OPTIONS=${XFS_MKFS_OPTIONS:=-bsize=4096}
- export TIME_FACTOR=${TIME_FACTOR:=1}
- export LOAD_FACTOR=${LOAD_FACTOR:=1}
- export DEBUGFS_MNT=${DEBUGFS_MNT:="/sys/kernel/debug"}
--export OVERLAY_UPPER_DIR=${OVERLAY_UPPER_DIR:="upper"}
--export OVERLAY_LOWER_DIR=${OVERLAY_LOWER_DIR:="lower"}
--export OVERLAY_WORK_DIR=${OVERLAY_WORK_DIR:="work"}
-+
-+# some constants for overlayfs setup
-+export OVL_UPPER="ovl-upper"
-+export OVL_LOWER="ovl-lower"
-+export OVL_WORK="ovl-work"
- 
- export PWD=`pwd`
- #export DEBUG=${DEBUG:=...} # arbitrary CFLAGS really.
-diff --git a/common/filter b/common/filter
-index 010f080..1ceb346 100644
---- a/common/filter
-+++ b/common/filter
-@@ -424,5 +424,12 @@ _filter_lostfound()
- 	sed -e '/^lost+found$/d'
- }
- 
-+_filter_ovl_dirs()
-+{
-+	sed -e "s,$OVL_LOWER,OVL_LOWER,g" \
-+	    -e "s,$OVL_UPPER,OVL_UPPER,g" \
-+	    -e "s,$OVL_WORK,OVL_WORK,g"
-+}
-+
- # make sure this script returns success
- /bin/true
 diff --git a/common/rc b/common/rc
-index fb88ffa..cca046b 100644
+index 8f23334..dab3cb2 100644
 --- a/common/rc
 +++ b/common/rc
-@@ -277,7 +277,7 @@ _common_dev_mount_options()
- 
- _overlay_basic_mount_options()
- {
--	echo "-o lowerdir=$1/$OVERLAY_LOWER_DIR,upperdir=$1/$OVERLAY_UPPER_DIR,workdir=$1/$OVERLAY_WORK_DIR"
-+	echo "-o lowerdir=$1/$OVL_LOWER,upperdir=$1/$OVL_UPPER,workdir=$1/$OVL_WORK"
+@@ -1354,6 +1354,43 @@ _supported_os()
+     _notrun "not suitable for this OS: $HOSTOS"
  }
  
- _overlay_mount_options()
-@@ -336,6 +336,15 @@ _overlay_mount_dirs()
- 		    -o workdir=$workdir $*
- }
- 
-+_overlay_mkdirs()
++# check if a FS on a device is mounted
++# if so, verify that it is mounted on mount point
++# if fstype is given as argument, verify that it is also
++# mounted with correct fs type
++#
++_check_mounted_on()
 +{
-+	local dir=$1
++	local devname=$1
++	local dev=$2
++	local mntname=$3
++	local mnt=$4
++	local type=$5
 +
-+	mkdir -p $dir/$OVL_UPPER
-+	mkdir -p $dir/$OVL_LOWER
-+	mkdir -p $dir/$OVL_WORK
++	# Note that we use -F here so grep doesn't try to interpret an NFS over
++	# IPv6 server as a regular expression
++	local mount_rec=`_mount | grep -F "$dev"`
++	[ -n "$mount_rec" ] || return 1 # 1 = not mounted
++
++	# if it's mounted, make sure its on $mnt
++	if ! (echo $mount_rec | grep -q "$mnt")
++	then
++		echo "$devname=$dev is mounted but not on $mntname=$mnt - aborting"
++		echo "Already mounted result:"
++		echo $mount_rec
++		return 2 # 2 = mounted on wrong mnt
++	fi
++
++	if [ -n "$type" -a "`_fs_type $dev`" != "$type" ]
++	then
++		echo "$devname=$dev is mounted but not a type $type filesystem"
++		# raw $DF_PROG cannot handle NFS/CIFS/overlay correctly
++		_df_device $dev
++		return 3 # 3 = mounted as wrong type
++	fi
++	return 0 # 0 = mounted as expected
 +}
 +
- # Given a dir, set up 3 subdirectories and mount on the given mnt.
- # The dir is used as the mount device so it can be seen from df or mount
- _overlay_mount()
-@@ -346,12 +355,10 @@ _overlay_mount()
+ # this test needs a scratch partition - check we're ok & unmount it
+ # No post-test check of the device is required. e.g. the test intentionally
+ # finishes the test with the filesystem in a corrupt state
+@@ -1408,21 +1445,12 @@ _require_scratch_nocheck()
+ 		 ;;
+     esac
  
- 	_supports_filetype $dir || _notrun "upper fs needs to support d_type"
+-    # mounted?
+-    # Note that we use -F here so grep doesn't try to interpret an NFS over
+-    # IPv6 server as a regular expression.
+-    mount_rec=`_mount | grep -F $SCRATCH_DEV`
+-    if [ "$mount_rec" ]
++    _check_mounted_on SCRATCH_DEV $SCRATCH_DEV SCRATCH_MNT $SCRATCH_MNT
++    local err=$?
++    [ $err -le 1 ] || exit 1
++    if [ $err -eq 0 ]
+     then
+-        # if it's mounted, make sure its on $SCRATCH_MNT
+-        if ! echo $mount_rec | grep -q $SCRATCH_MNT
+-        then
+-            echo "\$SCRATCH_DEV=$SCRATCH_DEV is mounted but not on \$SCRATCH_MNT=$SCRATCH_MNT - aborting"
+-            echo "Already mounted result:"
+-            echo $mount_rec
+-            exit 1
+-        fi
+-        # and then unmount it
++        # if it's mounted, unmount it
+         if ! _scratch_unmount
+         then
+             echo "failed to unmount $SCRATCH_DEV"
+@@ -1493,21 +1521,11 @@ _require_test()
+ 		 ;;
+     esac
  
--	mkdir -p $dir/$OVERLAY_UPPER_DIR
--	mkdir -p $dir/$OVERLAY_LOWER_DIR
--	mkdir -p $dir/$OVERLAY_WORK_DIR
-+	_overlay_mkdirs $dir
+-    # mounted?
+-    # Note that we use -F here so grep doesn't try to interpret an NFS over
+-    # IPv6 server as a regular expression.
+-    mount_rec=`_mount | grep -F $TEST_DEV`
+-    if [ "$mount_rec" ]
++    _check_mounted_on TEST_DEV $TEST_DEV TEST_DIR $TEST_DIR
++    local err=$?
++    [ $err -le 1 ] || exit 1
++    if [ $err -ne 0 ]
+     then
+-        # if it's mounted, make sure its on $TEST_DIR
+-        if ! echo $mount_rec | grep -q $TEST_DIR
+-        then
+-            echo "\$TEST_DEV=$TEST_DEV is mounted but not on \$TEST_DIR=$TEST_DIR - aborting"
+-            echo "Already mounted result:"
+-            echo $mount_rec
+-            exit 1
+-        fi
+-    else
+ 	out=`_mount_or_remount_rw "$MOUNT_OPTIONS" $TEST_DEV $TEST_DIR`
+ 	if [ $? -ne 1 ]; then
+ 		echo $out
+@@ -3132,13 +3150,17 @@ init_rc()
+ 		fi
+ 	fi
  
--	_overlay_mount_dirs $dir/$OVERLAY_LOWER_DIR $dir/$OVERLAY_UPPER_DIR \
--			    $dir/$OVERLAY_WORK_DIR $OVERLAY_MOUNT_OPTIONS \
-+	_overlay_mount_dirs $dir/$OVL_LOWER $dir/$OVL_UPPER \
-+			    $dir/$OVL_WORK $OVERLAY_MOUNT_OPTIONS \
- 			    $SELINUX_MOUNT_OPTIONS $* $dir $mnt
- }
- 
-diff --git a/tests/overlay/001 b/tests/overlay/001
-index 7be9ae5..099ddd5 100755
---- a/tests/overlay/001
-+++ b/tests/overlay/001
-@@ -60,7 +60,7 @@ _scratch_mkfs
- _require_fs_space $SCRATCH_DEV $((4*1024*1024*2 + 8))
- 
- # Create test files with different sizes in lower dir
--lowerdir=$SCRATCH_DEV/$OVERLAY_LOWER_DIR
-+lowerdir=$SCRATCH_DEV/$OVL_LOWER
- mkdir -p $lowerdir
- touch $lowerdir/zero_size
- $XFS_IO_PROG -fc "pwrite 0 4k" $lowerdir/less_than_4g >>$seqres.full
-diff --git a/tests/overlay/002 b/tests/overlay/002
-index ec7874e..eaf9a91 100755
---- a/tests/overlay/002
-+++ b/tests/overlay/002
-@@ -59,7 +59,7 @@ _require_scratch
- _scratch_mkfs
- 
- # Create our test file.
--lowerdir=$SCRATCH_DEV/$OVERLAY_LOWER_DIR
-+lowerdir=$SCRATCH_DEV/$OVL_LOWER
- mkdir -p $lowerdir
- touch $lowerdir/foobar
- 
-diff --git a/tests/overlay/003 b/tests/overlay/003
-index fbc242a..5e610c8 100755
---- a/tests/overlay/003
-+++ b/tests/overlay/003
-@@ -60,7 +60,7 @@ _require_scratch
- _scratch_mkfs
- 
- # Create test files dirs in lower dir
--lowerdir=${SCRATCH_DEV}/${OVERLAY_LOWER_DIR}
-+lowerdir=${SCRATCH_DEV}/${OVL_LOWER}
- mkdir -p $lowerdir
- 
- touch ${lowerdir}/test_file
-diff --git a/tests/overlay/004 b/tests/overlay/004
-index 4075094..8da5170 100755
---- a/tests/overlay/004
-+++ b/tests/overlay/004
-@@ -53,8 +53,8 @@ _require_user
- _scratch_mkfs
- 
- # Create test file in lower dir
--lowerdir=${SCRATCH_DEV}/${OVERLAY_LOWER_DIR}
--upperdir=${SCRATCH_DEV}/${OVERLAY_UPPER_DIR}
-+lowerdir=${SCRATCH_DEV}/${OVL_LOWER}
-+upperdir=${SCRATCH_DEV}/${OVL_UPPER}
- mkdir -p $lowerdir
- touch ${lowerdir}/attr_file1
- chmod 000 ${lowerdir}/attr_file1
-diff --git a/tests/overlay/006 b/tests/overlay/006
-index 31f11ef..55fc2dd 100755
---- a/tests/overlay/006
-+++ b/tests/overlay/006
-@@ -57,15 +57,15 @@ echo "Silence is golden"
- _scratch_mkfs
- 
- # Create test file/dir before mount
--mkdir $SCRATCH_DEV/$OVERLAY_LOWER_DIR
--mkdir $SCRATCH_DEV/$OVERLAY_UPPER_DIR
--touch $SCRATCH_DEV/$OVERLAY_LOWER_DIR/lowertestfile
--mkdir $SCRATCH_DEV/$OVERLAY_UPPER_DIR/uppertestdir
-+mkdir -p $SCRATCH_DEV/$OVL_LOWER
-+mkdir -p $SCRATCH_DEV/$OVL_UPPER
-+touch $SCRATCH_DEV/$OVL_LOWER/lowertestfile
-+mkdir $SCRATCH_DEV/$OVL_UPPER/uppertestdir
- 
- _scratch_mount
- 
- # rename lowertestfile to uppertestdir, this triggers copyup and creates
--# whiteout in $OVERLAY_UPPER_DIR
-+# whiteout in $OVL_UPPER
- mv $SCRATCH_MNT/lowertestfile $SCRATCH_MNT/uppertestdir
- # the lowertestfile can be removed
- rm $SCRATCH_MNT/uppertestdir/lowertestfile
-diff --git a/tests/overlay/008 b/tests/overlay/008
-index cb8667c..b81cff8 100755
---- a/tests/overlay/008
-+++ b/tests/overlay/008
-@@ -56,14 +56,14 @@ _require_user
- _scratch_mkfs
- 
- # Create test file on lower dir, and chown to fsgqa user
--lowerdir=$SCRATCH_DEV/$OVERLAY_LOWER_DIR
--mkdir $lowerdir
-+lowerdir=$SCRATCH_DEV/$OVL_LOWER
-+mkdir -p $lowerdir
- touch $lowerdir/testfile
- chown fsgqa:fsgqa $lowerdir/testfile
- 
- # chown upperdir to fsgqa user, so new file/dir can be created by the user
--upperdir=$SCRATCH_DEV/$OVERLAY_UPPER_DIR
--mkdir $upperdir
-+upperdir=$SCRATCH_DEV/$OVL_UPPER
-+mkdir -p $upperdir
- chown fsgqa:fsgqa $upperdir
- 
- _scratch_mount
-diff --git a/tests/overlay/009 b/tests/overlay/009
-index de94ca4..bdac6b7 100755
---- a/tests/overlay/009
-+++ b/tests/overlay/009
-@@ -54,7 +54,7 @@ _require_scratch
- _scratch_mkfs
- 
- # Create test file in lowerdir
--lowerdir=$SCRATCH_DEV/$OVERLAY_LOWER_DIR
-+lowerdir=$SCRATCH_DEV/$OVL_LOWER
- mkdir -p $lowerdir
- touch $lowerdir/testfile
- 
-diff --git a/tests/overlay/010 b/tests/overlay/010
-index a302d74..5882db9 100755
---- a/tests/overlay/010
-+++ b/tests/overlay/010
-@@ -55,10 +55,10 @@ _scratch_mkfs
- 
- # Need two lower dirs in this test, and we mount overlay ourselves,
- # create upper and workdir as well
--lowerdir1=$SCRATCH_DEV/$OVERLAY_LOWER_DIR.1
--lowerdir2=$SCRATCH_DEV/$OVERLAY_LOWER_DIR.2
--upperdir=$SCRATCH_DEV/$OVERLAY_UPPER_DIR
--workdir=$SCRATCH_DEV/$OVERLAY_WORK_DIR
-+lowerdir1=$SCRATCH_DEV/$OVL_LOWER.1
-+lowerdir2=$SCRATCH_DEV/$OVL_LOWER.2
-+upperdir=$SCRATCH_DEV/$OVL_UPPER
-+workdir=$SCRATCH_DEV/$OVL_WORK
- mkdir -p $lowerdir1 $lowerdir2 $upperdir $workdir
- 
- # One lowerdir contains test dir and test files, the other contains whiteout
-diff --git a/tests/overlay/011 b/tests/overlay/011
-index 4b697b8..1d6c44a 100755
---- a/tests/overlay/011
-+++ b/tests/overlay/011
-@@ -58,8 +58,8 @@ _require_attrs
- _scratch_mkfs
- 
- # Create test dir on upper and make it opaque by setting proper xattr
--lowerdir=$SCRATCH_DEV/$OVERLAY_LOWER_DIR
--upperdir=$SCRATCH_DEV/$OVERLAY_UPPER_DIR
-+lowerdir=$SCRATCH_DEV/$OVL_LOWER
-+upperdir=$SCRATCH_DEV/$OVL_UPPER
- mkdir -p $lowerdir/testdir
- mkdir -p $upperdir/testdir
- $SETFATTR_PROG -n "trusted.overlay.opaque" -v "y" $upperdir/testdir
-diff --git a/tests/overlay/012 b/tests/overlay/012
-index cfe16f2..1c4f7c6 100755
---- a/tests/overlay/012
-+++ b/tests/overlay/012
-@@ -55,8 +55,8 @@ _require_scratch
- # remove all files from previous runs
- _scratch_mkfs
- 
--lowerdir=$SCRATCH_DEV/$OVERLAY_LOWER_DIR
--upperdir=$SCRATCH_DEV/$OVERLAY_UPPER_DIR
-+lowerdir=$SCRATCH_DEV/$OVL_LOWER
-+upperdir=$SCRATCH_DEV/$OVL_UPPER
- mkdir -p $lowerdir/test
- 
- _scratch_mount
-diff --git a/tests/overlay/013 b/tests/overlay/013
-index e99e10a..536e981 100755
---- a/tests/overlay/013
-+++ b/tests/overlay/013
-@@ -54,8 +54,8 @@ _require_test_program "t_truncate_self"
- _scratch_mkfs
- 
- # copy test program to lower and upper dir
--lowerdir=$SCRATCH_DEV/$OVERLAY_LOWER_DIR
--upperdir=$SCRATCH_DEV/$OVERLAY_UPPER_DIR
-+lowerdir=$SCRATCH_DEV/$OVL_LOWER
-+upperdir=$SCRATCH_DEV/$OVL_UPPER
- mkdir -p $lowerdir
- mkdir -p $upperdir
- cp $here/src/t_truncate_self $lowerdir/test_lower
-diff --git a/tests/overlay/015 b/tests/overlay/015
-index c39caed..0e09e0c 100755
---- a/tests/overlay/015
-+++ b/tests/overlay/015
-@@ -57,7 +57,7 @@ _scratch_mkfs
- umask 022
- 
- # Create test dir in lower dir and set sgid bit
--lowerdir=$SCRATCH_DEV/$OVERLAY_LOWER_DIR
-+lowerdir=$SCRATCH_DEV/$OVL_LOWER
- mkdir -p $lowerdir/dir
- chown $qa_user:$qa_group $lowerdir/dir
- chmod 2775 $lowerdir/dir
-diff --git a/tests/overlay/016 b/tests/overlay/016
-index cffcde7..c678ea4 100755
---- a/tests/overlay/016
-+++ b/tests/overlay/016
-@@ -57,7 +57,7 @@ rm -f $seqres.full
- _scratch_mkfs >>$seqres.full 2>&1
- 
- # Create our test files.
--lowerdir=$SCRATCH_DEV/$OVERLAY_LOWER_DIR
-+lowerdir=$SCRATCH_DEV/$OVL_LOWER
- mkdir -p $lowerdir
- echo "This is old news" > $lowerdir/foo
- echo "This is old news" > $lowerdir/bar
-diff --git a/tests/overlay/017 b/tests/overlay/017
-index 5330de2..6b12722 100755
---- a/tests/overlay/017
-+++ b/tests/overlay/017
-@@ -60,7 +60,7 @@ _scratch_mkfs >>$seqres.full 2>&1
- # Not dealing with hardlinks here, because there is more to test
- # then stable inode number.
- # Hardlinks will get a test of their own.
--lowerdir=$SCRATCH_DEV/$OVERLAY_LOWER_DIR
-+lowerdir=$SCRATCH_DEV/$OVL_LOWER
- mkdir -p $lowerdir
- mkdir $lowerdir/dir
- touch $lowerdir/file
-diff --git a/tests/overlay/018 b/tests/overlay/018
-index df631fc..37bf11c 100755
---- a/tests/overlay/018
-+++ b/tests/overlay/018
-@@ -55,7 +55,7 @@ rm -f $seqres.full
- _scratch_mkfs >>$seqres.full 2>&1
- 
- # Create 2 hardlinked files in lower
--lowerdir=$SCRATCH_DEV/$OVERLAY_LOWER_DIR
-+lowerdir=$SCRATCH_DEV/$OVL_LOWER
- mkdir -p $lowerdir
- echo "patient zero" >> $lowerdir/foo
- ln $lowerdir/foo $lowerdir/bar
-diff --git a/tests/overlay/019 b/tests/overlay/019
-index 41ce63b..9177acb 100755
---- a/tests/overlay/019
-+++ b/tests/overlay/019
-@@ -51,7 +51,7 @@ _require_scratch
- # Remove all files from previous tests
- _scratch_mkfs
- 
--lowerdir=$SCRATCH_DEV/$OVERLAY_LOWER_DIR
-+lowerdir=$SCRATCH_DEV/$OVL_LOWER
- mkdir -p $lowerdir
- 
- _scratch_mount
-diff --git a/tests/overlay/020 b/tests/overlay/020
-index 4afd40a..3cd0f05 100755
---- a/tests/overlay/020
-+++ b/tests/overlay/020
-@@ -55,7 +55,7 @@ _require_scratch
- # Remove all files from previous tests
- _scratch_mkfs
- 
--lowerdir=$SCRATCH_DEV/$OVERLAY_LOWER_DIR
-+lowerdir=$SCRATCH_DEV/$OVL_LOWER
- mkdir -p $lowerdir/dir
- 
- _scratch_mount
-diff --git a/tests/overlay/021 b/tests/overlay/021
-index c79bb01..c6d68aa 100755
---- a/tests/overlay/021
-+++ b/tests/overlay/021
-@@ -60,7 +60,7 @@ _scratch_mkfs
- # conservative and reserve space for 16 data copy ups per directory.
- _require_fs_space $SCRATCH_DEV $((16*(16+32+64+128)*1024))
- 
--lowerdir=$SCRATCH_DEV/$OVERLAY_LOWER_DIR
-+lowerdir=$SCRATCH_DEV/$OVL_LOWER
- mkdir -p $lowerdir
- 
- testdir=arena
-diff --git a/tests/overlay/022 b/tests/overlay/022
-index 817ee63..46034ea 100755
---- a/tests/overlay/022
-+++ b/tests/overlay/022
-@@ -59,7 +59,7 @@ _require_scratch
- # Remove all files from previous tests
- _scratch_mkfs
- 
--upperdir=$SCRATCH_DEV/$OVERLAY_UPPER_DIR
-+upperdir=$SCRATCH_DEV/$OVL_UPPER
- mkdir -p $upperdir/upper
- mkdir -p $upperdir/work
- # mount overlay with dirs in upper
-diff --git a/tests/overlay/023 b/tests/overlay/023
-index ab49e18..c855d16 100755
---- a/tests/overlay/023
-+++ b/tests/overlay/023
-@@ -63,14 +63,14 @@ _require_scratch
- _scratch_mkfs
- 
- # setting acls before mount
--wkdir=$SCRATCH_DEV/$OVERLAY_WORK_DIR
-+wkdir=$SCRATCH_DEV/$OVL_WORK
- mkdir -p $wkdir
- setfacl -d -m o::rwx $wkdir
- 
- _scratch_mount
- 
- # getting acls, ACL set on workdir should be cleaned
--getfacl -p $wkdir/work 2>&1 | _filter_scratch
-+getfacl -p $wkdir/work 2>&1 | _filter_scratch | _filter_ovl_dirs
- 
- # success, all done
- status=0
-diff --git a/tests/overlay/023.out b/tests/overlay/023.out
-index a1a3c37..4a243c5 100644
---- a/tests/overlay/023.out
-+++ b/tests/overlay/023.out
-@@ -1,5 +1,5 @@
- QA output created by 023
--# file: SCRATCH_DEV/work/work
-+# file: SCRATCH_DEV/OVL_WORK/work
- # owner: root
- # group: root
- user::---
-diff --git a/tests/overlay/024 b/tests/overlay/024
-index 2dbef12..25195f7 100755
---- a/tests/overlay/024
-+++ b/tests/overlay/024
-@@ -61,7 +61,7 @@ _require_scratch
- _scratch_mkfs
- 
- # making workdir
--wkdir=$SCRATCH_DEV/$OVERLAY_WORK_DIR
-+wkdir=$SCRATCH_DEV/$OVL_WORK
- mkdir -p $wkdir/work/foo
- 
- _scratch_mount
-diff --git a/tests/overlay/027 b/tests/overlay/027
-index 4bb0329..1c77956 100755
---- a/tests/overlay/027
-+++ b/tests/overlay/027
-@@ -63,7 +63,7 @@ _require_chattr
- _scratch_mkfs
- 
- # Preparing immutable file
--upperdir=$SCRATCH_DEV/$OVERLAY_UPPER_DIR
-+upperdir=$SCRATCH_DEV/$OVL_UPPER
- mkdir -p $upperdir
- touch $upperdir/foo
- $CHATTR_PROG +i $upperdir/foo
-diff --git a/tests/overlay/028 b/tests/overlay/028
-index 6045e09..ad610e2 100755
---- a/tests/overlay/028
-+++ b/tests/overlay/028
-@@ -61,7 +61,7 @@ _require_command "$FLOCK_PROG" flock
- # Remove all files from previous tests
- _scratch_mkfs
- 
--lowerdir=$SCRATCH_DEV/$OVERLAY_LOWER_DIR
-+lowerdir=$SCRATCH_DEV/$OVL_LOWER
- mkdir -p $lowerdir
- touch $lowerdir/foo
- 
-diff --git a/tests/overlay/029 b/tests/overlay/029
-index 902a84c..8dce6b3 100755
---- a/tests/overlay/029
-+++ b/tests/overlay/029
-@@ -65,8 +65,8 @@ _require_scratch
- _scratch_mkfs
- 
- # Preparing files
--upperdir=$SCRATCH_DEV/$OVERLAY_UPPER_DIR
--lowerdir=$SCRATCH_DEV/$OVERLAY_LOWER_DIR
-+upperdir=$SCRATCH_DEV/$OVL_UPPER
-+lowerdir=$SCRATCH_DEV/$OVL_LOWER
- mkdir -p $upperdir/up
- echo foo > $upperdir/up/foo
- mkdir -p $lowerdir/low
+-	if [ "`_fs_type $TEST_DEV`" != "$FSTYP" ]
+-	then
+-		echo "common/rc: Error: \$TEST_DEV ($TEST_DEV) is not a MOUNTED $FSTYP filesystem"
+-		# raw $DF_PROG cannot handle NFS/CIFS/overlay correctly
+-		_df_device $TEST_DEV
+-		exit 1
++	# Sanity check that TEST partition is not mounted at another mount point
++	# or as another fs type
++	_check_mounted_on TEST_DEV $TEST_DEV TEST_DIR $TEST_DIR $FSTYP || exit 1
++	if [ -n "$SCRATCH_DEV" ]; then
++		# Sanity check that SCRATCH partition is not mounted at another
++		# mount point, because it is about to be unmounted and formatted.
++		# Another fs type for scratch is fine (bye bye old fs type).
++		_check_mounted_on SCRATCH_DEV $SCRATCH_DEV SCRATCH_MNT $SCRATCH_MNT
++		[ $? -le 1 ] || exit 1
+ 	fi
++
+ 	# Figure out if we need to add -F ("foreign", deprecated) option to xfs_io
+ 	$XFS_IO_PROG -c stat $TEST_DIR 2>&1 | grep -q "is not on an XFS filesystem" && \
+ 		export XFS_IO_PROG="$XFS_IO_PROG -F"
 -- 
 2.7.4
