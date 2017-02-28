@@ -1,125 +1,93 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: overlayfs: allowing for changes to lowerdir
-Date: Mon, 27 Feb 2017 12:40:48 +0200
-Message-ID: <CAOQ4uxh5OVadTPLM-jw5J_6sRKBFv0WB_CTMdy68fe3dxtYsKA@mail.gmail.com>
-References: <CA+ZH+jFBAaRi6VPmf3PBdDZQQMOaT6WUByATqaw1QL5M9+-dxg@mail.gmail.com>
- <CAOQ4uxiBmFdcueorKV7zwPLCDq4DE+H8x=8H1f7+3v3zysW9qA@mail.gmail.com> <CA+ZH+jH9yoB5_wxyff088Fsm2-g5=oO1ECimHVo7u2SKVK4AAw@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-ot0-f193.google.com ([74.125.82.193]:34370 "EHLO
-        mail-ot0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751637AbdB0Krr (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 27 Feb 2017 05:47:47 -0500
-In-Reply-To: <CA+ZH+jH9yoB5_wxyff088Fsm2-g5=oO1ECimHVo7u2SKVK4AAw@mail.gmail.com>
-Sender: linux-unionfs-owner@vger.kernel.org
+Subject: [PATCH v5 03/10] fstests: canonicalize mount points on every config section
+Date: Tue, 28 Feb 2017 14:18:30 +0200
+Message-ID: <1488284317-3119-4-git-send-email-amir73il@gmail.com>
+References: <1488284317-3119-1-git-send-email-amir73il@gmail.com>
+Return-path: <fstests-owner@vger.kernel.org>
+In-Reply-To: <1488284317-3119-1-git-send-email-amir73il@gmail.com>
+Sender: fstests-owner@vger.kernel.org
+To: Eryu Guan <eguan@redhat.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, Xiong Zhou <xzhou@redhat.com>, linux-unionfs@vger.kernel.org, fstests@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Josh England <jjengla@gmail.com>
-Cc: linux-fsdevel <linux-fsdevel@vger.kernel.org>, linux-unionfs@vger.kernel.org, Miklos Szeredi <mszeredi@redhat.com>
 
-On Wed, Feb 22, 2017 at 1:08 AM, Josh England <jjengla@gmail.com> wrote:
-> Amir,
->
-> After playing with it some, this patch seems to provide precisely the
-> behavior I need for my use case.  Do you think it makes sense to turn
-> this behavior into a module parameter (eg: allow_revalidate)?
->
+Create helper _canonicalize_mountpoint() to check and canonicalize
+a mount point path.
+Use helper to canonicalize TEST_DIR and SCRATCH_MNT after parse
+of every config section.
 
-I don't know, because I don't know the reason that Miklos chose to error
-on revalidate of remote lower fs.
-But it would be strange to introduce a feature that changes one undefined
-behavior (maybe ESTALE) with another undefined behavior.
+This is needed for overlay base fs mount.
 
-It may be easier if you can argue for a use case which does have
-defined behavior,
-for example, lower fs has some directory subtrees that are not
-modified via overlayfs
-and only modified directry via lower fs.
-I think this *may* result in defined behavior over lower remote fs,
-but can't tell for sure.
-Anyway, you will have to argue why such a setup is useful.
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+---
+ common/config | 34 +++++++++++++++++++++-------------
+ 1 file changed, 21 insertions(+), 13 deletions(-)
 
-
-> -JE
->
->
-> On Tue, Feb 14, 2017 at 6:01 AM, Amir Goldstein <amir73il@gmail.com> wrote:
->> On Mon, Feb 13, 2017 at 11:41 PM, Josh England <jjengla@gmail.com> wrote:
->>> So here's the use case:  lowerdir is an NFS mounted root filesystem
->>> (shared by a bunch of nodes).  upperdir is a tmpfs RAM disk to allow
->>> for writes to happen.  This works great with the caveat being I cannot
->>> make 'live' changes to the root filesystem, which poses the problem.
->>> Any access to a changed file causes a 'Stale file handle' error.
->>>
->>> With some experimenting, I've discovered that remounting the overlay
->>> filesystem (mount -o remount / /)  registers any changes that have
->>> been made to the lower NFS filesystem.  In addition, dumping cache
->>> (via /proc/sys/vm/drop_caches) also makes the stale file handle errors
->>> go away and reads pass through to the lower dir and correctly show
->>> changes.
->>>
->>> I'd like to make this use case feasible by allowing changes to the NFS
->>> lowerdir to work more or less transparently.  It seems like if the
->>> overlay did not do any caching at all, all reads would fall through to
->>> either the upperdir ram disk or the NFS lower, which is precisely what
->>> I want.
->>>
->>> So, let me pose this somewhat naive question:  Would it be possible to
->>> simply disable any cacheing performed by the overlay to force all
->>> reads to go to either the tmpfs upper or the (VFS-cached) NFS lower?
->>> Would this be enough to accomplish my goal of being able to change the
->>> lowerdir of an active overlayfs?
->>>
->>
->> There is no need to disable caching. There is already a mechanism
->> in place in VFS to revalidate inode cache entries.
->> NFS implements d_revalidate() and overlayfs implements d_revalidate()
->> by calling into the lower fs d_revalidate().
->>
->> However overlayfs intentionally errors when lower entry has been modified.
->> (see: 7c03b5d ovl: allow distributed fs as lower layer)
->>
->> You can try this (untested) patch to revert this behavior, just to see if it
->> works for your use case, but it won't change this fact
->> from Documentation/filesystems/overlayfs.txt:
->> " Changes to the underlying filesystems while part of a mounted overlay
->> filesystem are not allowed.  If the underlying filesystem is changed,
->> the behavior of the overlay is undefined, though it will not result in
->> a crash or deadlock."
->>
->> Specifically, renaming directories and files in lower that were already
->> copied up is going to have a weird outcome.
->>
->> Also, the situation with changing files in lower remote fs could be worse
->> than changing files on lower local fs, simply because right now, this
->> use case is not tested (i.e. it results in ESTALE).
->>
->> I believe that fixing this use case, if at all possible, would require quite
->> a bit of work, a lot of documentation (about expected behavior) and
->> even more testing.
->>
->> Amir.
->>
->> diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
->> index e8ef9d1..6806ef3 100644
->> --- a/fs/overlayfs/super.c
->> +++ b/fs/overlayfs/super.c
->> @@ -106,16 +106,11 @@ static int ovl_dentry_revalidate(struct dentry
->> *dentry, unsigned int flags)
->>
->>                 if (d->d_flags & DCACHE_OP_REVALIDATE) {
->>                         ret = d->d_op->d_revalidate(d, flags);
->> -                       if (ret < 0)
->> +                       if (ret =< 0)
->>                                 return ret;
->> -                       if (!ret) {
->> -                               if (!(flags & LOOKUP_RCU))
->> -                                       d_invalidate(d);
->> -                               return -ESTALE;
->> -                       }
->>                 }
->>         }
->> -       return 1;
->> +       return ret;
->>  }
+diff --git a/common/config b/common/config
+index 3ef401b..c402576 100644
+--- a/common/config
++++ b/common/config
+@@ -455,6 +455,20 @@ _check_device()
+ 	fi
+ }
+ 
++# check and return a canonical mount point path
++_canonicalize_mountpoint()
++{
++	local name=$1
++	local dir=$2
++
++	if [ ! -d "$dir" ]; then
++		_fatal "common/config: $name ($dir) is not a directory"
++	fi
++
++	# this follows symlinks and removes all trailing "/"s
++	readlink -e "$dir"
++}
++
+ # Parse config section options. This function will parse all the configuration
+ # within a single section which name is passed as an argument. For section
+ # name format see comments in get_config_sections().
+@@ -543,10 +557,7 @@ get_next_config() {
+ 	fi
+ 
+ 	_check_device TEST_DEV required $TEST_DEV
+-	if [ ! -d "$TEST_DIR" ]; then
+-		echo "common/config: Error: \$TEST_DIR ($TEST_DIR) is not a directory"
+-		exit 1
+-	fi
++	export TEST_DIR=`_canonicalize_mountpoint TEST_DIR $TEST_DIR`
+ 
+ 	# a btrfs tester will set only SCRATCH_DEV_POOL, we will put first of its dev
+ 	# to SCRATCH_DEV and rest to SCRATCH_DEV_POOL to maintain the backward compatibility
+@@ -561,10 +572,7 @@ get_next_config() {
+ 	fi
+ 
+ 	_check_device SCRATCH_DEV optional $SCRATCH_DEV
+-	if [ ! -z "$SCRATCH_MNT" -a ! -d "$SCRATCH_MNT" ]; then
+-		echo "common/config: Error: \$SCRATCH_MNT ($SCRATCH_MNT) is not a directory"
+-		exit 1
+-	fi
++	export SCRATCH_MNT=`_canonicalize_mountpoint SCRATCH_MNT $SCRATCH_MNT`
+ 
+ 	if [ -n "$USE_EXTERNAL" ]; then
+ 		_check_device TEST_RTDEV optional $TEST_RTDEV
+@@ -591,12 +599,12 @@ if [ -z "$CONFIG_INCLUDED" ]; then
+ 	[ -z "$TEST_FS_MOUNT_OPTS" ] && _test_mount_opts
+ 	[ -z "$MKFS_OPTIONS" ] && _mkfs_opts
+ 	[ -z "$FSCK_OPTIONS" ] && _fsck_opts
++else
++	# canonicalize the mount points
++	# this follows symlinks and removes all trailing "/"s
++	export TEST_DIR=`_canonicalize_mountpoint TEST_DIR $TEST_DIR`
++	export SCRATCH_MNT=`_canonicalize_mountpoint SCRATCH_MNT $SCRATCH_MNT`
+ fi
+ 
+-# canonicalize the mount points
+-# this follows symlinks and removes all trailing "/"s
+-export TEST_DIR=`readlink -e "$TEST_DIR"`
+-export SCRATCH_MNT=`readlink -e "$SCRATCH_MNT"`
+-
+ # make sure this script returns success
+ /bin/true
+-- 
+2.7.4
