@@ -1,7 +1,7 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH v5 05/10] fstests: allow overlay SCRATCH_DEV to be a base fs mount point
-Date: Tue, 28 Feb 2017 14:18:32 +0200
-Message-ID: <1488284317-3119-6-git-send-email-amir73il@gmail.com>
+Subject: [PATCH v5 06/10] generic/064: access SCRATCH_MNT after _scratch_mount
+Date: Tue, 28 Feb 2017 14:18:33 +0200
+Message-ID: <1488284317-3119-7-git-send-email-amir73il@gmail.com>
 References: <1488284317-3119-1-git-send-email-amir73il@gmail.com>
 Return-path: <fstests-owner@vger.kernel.org>
 In-Reply-To: <1488284317-3119-1-git-send-email-amir73il@gmail.com>
@@ -10,44 +10,39 @@ To: Eryu Guan <eguan@redhat.com>
 Cc: Miklos Szeredi <miklos@szeredi.hu>, Xiong Zhou <xzhou@redhat.com>, linux-unionfs@vger.kernel.org, fstests@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 
-When configure SCRATCH_DEV to a mount point (and not to a directory therein)
-then user will get a false positive error in scratch tests:
-
- $SCRATCH_DEV=/mnt/base/scratch is mounted but not on $SCRATCH_MNT=/mnt/scratch
- Already mounted result:
- /dev/sda6 on /mnt/base/scratch type xfs (rw,relatime,attr2,inode64,noquota)
-
-This is due to the wrong `grep -F $SCRATCH_DEV` which matches the mount
-point instead of the device in that mount.
-Fix _check_mounted_on() to grep the pattern "$dev on " and "$dev on $mnt"
-instead of just grepping for "$dev" and "$mnt" without the " on " anchor.
+Test is calling _get_block_size $SCRATCH_MNT before
+_scratch_mount. This results in block size of the
+wrong fs and a failure with overlay base fs setup.
 
 Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- common/rc | 8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+ tests/generic/064 | 10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-diff --git a/common/rc b/common/rc
-index 4fa211a..fb88ffa 100644
---- a/common/rc
-+++ b/common/rc
-@@ -1368,12 +1368,14 @@ _check_mounted_on()
- 	local type=$5
+diff --git a/tests/generic/064 b/tests/generic/064
+index 8cd31b3..156485e 100755
+--- a/tests/generic/064
++++ b/tests/generic/064
+@@ -46,14 +46,16 @@ _require_scratch
+ _require_xfs_io_command "fiemap"
+ _require_xfs_io_command "finsert"
+ _require_xfs_io_command "fcollapse"
+-src=$SCRATCH_MNT/testfile
+-dest=$SCRATCH_MNT/testfile.dest
+-BLOCKS=100
+-BSIZE=`_get_block_size $SCRATCH_MNT`
++
+ rm -f $seqres.full
  
- 	# Note that we use -F here so grep doesn't try to interpret an NFS over
--	# IPv6 server as a regular expression
--	local mount_rec=`_mount | grep -F "$dev"`
-+	# IPv6 server as a regular expression.  Because of that, we cannot use
-+	# ^$dev so we use "$dev on " to avoid matching $dev to mount point field
-+	# for overlay case, where $dev is a directory.
-+	local mount_rec=`_mount | grep -F "$dev on "`
- 	[ -n "$mount_rec" ] || return 1 # 1 = not mounted
+ _scratch_mkfs >> $seqres.full 2>&1 || _fail "mkfs failed"
+ _scratch_mount || _fail "mount failed"
++
++src=$SCRATCH_MNT/testfile
++dest=$SCRATCH_MNT/testfile.dest
++BLOCKS=100
++BSIZE=`_get_block_size $SCRATCH_MNT`
+ length=$(($BLOCKS * $BSIZE))
  
- 	# if it's mounted, make sure its on $mnt
--	if ! (echo $mount_rec | grep -q "$mnt")
-+	if ! (echo $mount_rec | grep -q "$dev on $mnt")
- 	then
- 		echo "$devname=$dev is mounted but not on $mntname=$mnt - aborting"
- 		echo "Already mounted result:"
+ # Write file
 -- 
 2.7.4
