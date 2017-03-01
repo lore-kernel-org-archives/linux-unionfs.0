@@ -1,60 +1,40 @@
-From: Eryu Guan <eguan@redhat.com>
-Subject: Re: [PATCH v5 0/10] fstests: new way to run overlay tests
-Date: Wed, 1 Mar 2017 11:47:36 +0800
-Message-ID: <20170301034736.GC14226@eguan.usersys.redhat.com>
-References: <1488284317-3119-1-git-send-email-amir73il@gmail.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Subject: Re: overlayfs: allowing for changes to lowerdir
+Date: Wed, 1 Mar 2017 13:15:17 +0200
+Message-ID: <CAOQ4uxgW1O6dyHtP40qZPWJg3e4DaOw+Ar0T5-7iGz3pao8ORQ@mail.gmail.com>
+References: <CA+ZH+jFBAaRi6VPmf3PBdDZQQMOaT6WUByATqaw1QL5M9+-dxg@mail.gmail.com>
+ <CAOQ4uxiBmFdcueorKV7zwPLCDq4DE+H8x=8H1f7+3v3zysW9qA@mail.gmail.com>
+ <CA+ZH+jH9yoB5_wxyff088Fsm2-g5=oO1ECimHVo7u2SKVK4AAw@mail.gmail.com>
+ <CAOQ4uxh5OVadTPLM-jw5J_6sRKBFv0WB_CTMdy68fe3dxtYsKA@mail.gmail.com>
+ <CA+ZH+jE0k2hKoWTMZ2g-5vfU95OFxbW=WxGEC-umQM51vcC1gQ@mail.gmail.com> <20170228194457.GU29622@ZenIV.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:60760 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751824AbdCAErM (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 28 Feb 2017 23:47:12 -0500
-Content-Disposition: inline
-In-Reply-To: <1488284317-3119-1-git-send-email-amir73il@gmail.com>
-Sender: linux-unionfs-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
+In-Reply-To: <20170228194457.GU29622@ZenIV.linux.org.uk>
+Sender: linux-fsdevel-owner@vger.kernel.org
+To: Al Viro <viro@zeniv.linux.org.uk>, Miklos Szeredi <mszeredi@redhat.com>
+Cc: Josh England <jjengla@gmail.com>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, linux-unionfs@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, Xiong Zhou <xzhou@redhat.com>, linux-unionfs@vger.kernel.org, fstests@vger.kernel.org
 
-On Tue, Feb 28, 2017 at 02:18:27PM +0200, Amir Goldstein wrote:
-> Hi Eryu,
-> 
-> I rebased my branch to your master and made some minor adaptations
-> to Xiong's new tests. Also reordered the patches:
+On Tue, Feb 28, 2017 at 9:44 PM, Al Viro <viro@zeniv.linux.org.uk> wrote:
+> On Tue, Feb 28, 2017 at 11:08:31AM -0800, Josh England wrote:
+>
+>> The behavior I've noted so far from this patch seems to be very well
+>> defined and follows the rule of least surprise (at least for me).  I
+>> can change files/directories in the shared root and the changes are
+>> instantly visible to all clients.  If a file/directory has been copied
+>> up on the client that change takes precedence over changes in the
+>> lower.  Deletes work as expected.  I haven't found a downside yet.
+>
+> Try to do something that invalidates a directory in underlying layer
+> with stuff in overlay on its subdirectories.
 
-Thanks for the resending! I was about to ask for it :)
+That's an interesting test to run, but why does ovl_dentry_revalidate()
+need to return 1/-ESTALE instead of ret?
+Why not propagate the return values 0 and -ECHILD from NFS?
 
-> 
-> - patches 1-6 are generic fixes and re-factoring - if you wish,
->   you can merge them before the overlay config changes.
-> 
-> - patches 7-10 implement the new overlay config. patches 7 and 10
->   include adaptations of Xiong's new tests to new config.
-> 
-> This is the 5th revision of new overlayfs config.
-> The main motivation of this work is to help catch overlayfs bugs
-> related to leaking objects in underlying (base) fs.
-> 
-> With this change, all you have to do to run overlay tests if you
-> already have a local.config setup to test a local file system is:
->  ./check -overlay
-> 
-> See README.overlay for some examples of config files to use with -overlay.
-> 
-> The legacy overlayfs configuration, where TEST_DEV is a directory
-> still works, but it should be deprecated.
-> 
-> Tested ./check -overlay -g quick with both legacy overlay configuration
-> and the new base fs configuration.
-> 
-> Eryu wished to keep these changes soaking on the list for while,
-> so for those who can help with testing, you can get pull the branch
-> for testing from my github tree [1].
+After all, NFS lower directory inode can be invalidated after lookup
+and then other overlayfs ops (e.g. readdir) could fail with -ESTALE
+just the same as those ops would fail directly over NFS. No?
 
-I was planning to pull them in via this week's update, if there's no
-objections.
-
-Thanks again for the work!
-
-Eryu
+What am I missing?
