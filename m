@@ -1,106 +1,153 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [xfstests v4 8/8] overlay: accessing stacked overlayfs files
-Date: Fri, 3 Mar 2017 10:19:52 +0200
-Message-ID: <CAOQ4uxgDpd_i=p6ECaL2kkvcSRDrpj9xRLQbRWrhGvGCF2BGgQ@mail.gmail.com>
-References: <1487842966-30986-1-git-send-email-xzhou@redhat.com> <1487842966-30986-9-git-send-email-xzhou@redhat.com>
+Subject: Re: [PATCH v4] ovl: lockdep annotate of nested stacked overlayfs
+ inode lock
+Date: Fri, 3 Mar 2017 10:22:37 +0200
+Message-ID: <CAOQ4uxgENJ9ggpnCm7X9nQrFjQXXfCzCgOd2NPGJyUPYkE6F+Q@mail.gmail.com>
+References: <1484129266-8968-1-git-send-email-amir73il@gmail.com>
+ <CAOQ4uxhy_4ymrya5AMZ3AvFU0t4u+ytV6QOcAB9oriiAwNuCSg@mail.gmail.com> <CAOQ4uxjOePL4zEhtDZG634MkkKvrP3AvYwnv_78EWo2ZVBKgGQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-ot0-f195.google.com ([74.125.82.195]:36554 "EHLO
-        mail-ot0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751834AbdCCIVx (ORCPT
+Received: from mail-ot0-f196.google.com ([74.125.82.196]:34991 "EHLO
+        mail-ot0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751843AbdCCKO4 (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 3 Mar 2017 03:21:53 -0500
-In-Reply-To: <1487842966-30986-9-git-send-email-xzhou@redhat.com>
+        Fri, 3 Mar 2017 05:14:56 -0500
+Received: by mail-ot0-f196.google.com with SMTP id a12so8013454ota.2
+        for <linux-unionfs@vger.kernel.org>; Fri, 03 Mar 2017 02:14:50 -0800 (PST)
+In-Reply-To: <CAOQ4uxjOePL4zEhtDZG634MkkKvrP3AvYwnv_78EWo2ZVBKgGQ@mail.gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Xiong Zhou <xzhou@redhat.com>, Eryu Guan <eguan@redhat.com>
-Cc: fstests <fstests@vger.kernel.org>, linux-unionfs@vger.kernel.org, Miklos Szeredi <mszeredi@redhat.com>
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: linux-unionfs@vger.kernel.org, Xiong Zhou <xzhou@redhat.com>
 
-On Thu, Feb 23, 2017 at 11:42 AM, Xiong Zhou <xzhou@redhat.com> wrote:
-> Lower dir comes from another overlayfs dir, then
-> accessing files in it should work.
+On Wed, Feb 8, 2017 at 9:42 AM, Amir Goldstein <amir73il@gmail.com> wrote:
+> On Tue, Jan 31, 2017 at 9:15 AM, Amir Goldstein <amir73il@gmail.com> wrote:
+>> On Wed, Jan 11, 2017 at 12:07 PM, Amir Goldstein <amir73il@gmail.com> wrote:
+>>> An overlayfs instance can be the lower layer of another overlayfs
+>>> instance. This setup triggers a lockdep splat of possible recursive
+>>> locking of sb->s_type->i_mutex_key in iterate_dir(). Trimmed snip:
+>>>
+>>>  [ INFO: possible recursive locking detected ]
+>>>  bash/2468 is trying to acquire lock:
+>>>   &sb->s_type->i_mutex_key#14, at: iterate_dir+0x7d/0x15c
+>>>  but task is already holding lock:
+>>>   &sb->s_type->i_mutex_key#14, at: iterate_dir+0x7d/0x15c
+>>>
+>>> One problem observed with this splat is that ovl_new_inode()
+>>> does not call lockdep_annotate_inode_mutex_key() to annotate
+>>> the dir inode lock as &sb->s_type->i_mutex_dir_key like other
+>>> fs do.
+>>>
+>>> The other problem is that the 2 nested levels of overlayfs inode
+>>> lock are annotated using the same key, which is the cause of the
+>>> false positive lockdep warning.
+>>>
+>>> Fix this by annotating overlayfs inode lock in ovl_fill_inode()
+>>> according to stack level of the super block instance and use
+>>> different key for dir vs. non-dir like other fs do.
+>>>
+>>> Here is an edited snip from /proc/lockdep_chains after
+>>> iterate_dir() of nested overlayfs:
+>>>
+>>>  [...] &ovl_i_mutex_dir_key[depth]   (stack_depth=2)
+>>>  [...] &ovl_i_mutex_dir_key[depth]#2 (stack_depth=1)
+>>>  [...] &type->i_mutex_dir_key        (stack_depth=0)
+>>>
+>>> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+>>> ---
+>>>  fs/overlayfs/inode.c | 38 ++++++++++++++++++++++++++++++++++++++
+>>>  1 file changed, 38 insertions(+)
+>>>
+>>> v4:
+>>> - further simplify by removing unneeded ofs->nested
+>>>
+>>
+>> Miklos,
+>>
+>> This patch version addresses your review comments from previous merge cycle
+>> and it has zero impact without CONFIG_LOCKDEP as you requested.
+>>
 >
-> CC: Miklos Szeredi <mszeredi@redhat.com>
-> Signed-off-by: Xiong Zhou <xzhou@redhat.com>
-> ---
+> Ping.
+>
+> Would you mind queuing this one as well for 4.11?
+>
 
-FYI, this test triggers a false positive lockdep splat.
-I did not notice it earlier, because I carry a fix patch that Miklos
-did not pick up yet.
+Ping^2
 
-The fix patch is here:
-http://www.spinics.net/lists/linux-unionfs/msg01428.html
+This fixes a false positive lockdep splat on new xfstest overlay/029.
 
-overlay/029 [08:14:06]
-=============================================
-[ INFO: possible recursive locking detected ]
-4.9.0-debug-12264-g60ae0f1 #426 Not tainted
----------------------------------------------
-cat/3367 is trying to acquire lock:
- (&sb->s_type->i_mutex_key#15){.+.+.+}, at: [<ffffffff81217858>]
-lookup_slow+0x81/0x185
-
-but task is already holding lock:
- (&sb->s_type->i_mutex_key#15){.+.+.+}, at: [<ffffffff8121b955>]
-do_last+0x179/0x608
-
-other info that might help us debug this:
- Possible unsafe locking scenario:
-
-       CPU0
-       ----
-  lock(&sb->s_type->i_mutex_key#15);
-  lock(&sb->s_type->i_mutex_key#15);
-
- *** DEADLOCK ***
-
- May be due to missing lock nesting notation
-
-1 lock held by cat/3367:
- #0:  (&sb->s_type->i_mutex_key#15){.+.+.+}, at: [<ffffffff8121b955>]
-do_last+0x179/0x608
-
-stack backtrace:
-CPU: 0 PID: 3367 Comm: cat Not tainted 4.9.0-debug-12264-g60ae0f1 #426
-Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS
-Ubuntu-1.8.2-1ubuntu1 04/01/2014
-Call Trace:
- dump_stack+0x85/0xbe
- __lock_acquire+0x1082/0x153f
- ? mark_held_locks+0x5e/0x74
- lock_acquire+0x13b/0x1d6
- ? lock_acquire+0x13b/0x1d6
- ? lookup_slow+0x81/0x185
- down_read+0x43/0x9a
- ? lookup_slow+0x81/0x185
- lookup_slow+0x81/0x185
- lookup_one_len_unlocked+0xca/0xdc
- ovl_lookup_single+0x30/0x2c6
- ? ovl_lookup+0x158/0x414
- ovl_lookup_layer+0x46/0x137
- ovl_lookup+0x1b5/0x414
- ? __d_lookup+0x22a/0x23c
- lookup_open+0x44c/0x622
- ? lookup_open+0x44c/0x622
- ? rwsem_down_read_failed+0x25/0x164
- do_last+0x196/0x608
- ? path_init+0x2d9/0x681
- path_openat+0x285/0x30c
- ? __might_fault+0x37/0x84
- do_filp_open+0x4d/0xa3
- ? sched_clock+0x9/0xd
- ? __alloc_fd+0x1af/0x1c1
- ? _raw_spin_unlock+0x27/0x31
- do_sys_open+0x13c/0x1cb
- ? do_sys_open+0x13c/0x1cb
- SyS_open+0x1e/0x20
- entry_SYSCALL_64_fastpath+0x1f/0xc2
-RIP: 0033:0x7f253e9d7960
-RSP: 002b:00007fff5caeba48 EFLAGS: 00000246 ORIG_RAX: 0000000000000002
-RAX: ffffffffffffffda RBX: 00007fff5caebca8 RCX: 00007f253e9d7960
-RDX: 0000000000020000 RSI: 0000000000000000 RDI: 00007fff5caee235
-RBP: 0000000000001000 R08: 0000000000000000 R09: 0000000000000000
-R10: 00007fff5caeb810 R11: 0000000000000246 R12: 00000000004025a6
-R13: 00007fff5caebca0 R14: 0000000000000000 R15: 0000000000000000
- [08:14:07] 1s
+> Thanks,
+> Amir.
+>
+>>
+>>> v3:
+>>> - discard different annotation for nesting level 0
+>>> - compile away without CONFIG_LOCKDEP
+>>>
+>>> v2:
+>>> - specific implementation in overlayfs
+>>>
+>>> v1:
+>>> - generic implemetnation in vfs
+>>>
+>>> diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
+>>> index 08643ac..b954622 100644
+>>> --- a/fs/overlayfs/inode.c
+>>> +++ b/fs/overlayfs/inode.c
+>>> @@ -301,6 +301,42 @@ static const struct inode_operations ovl_symlink_inode_operations = {
+>>>         .update_time    = ovl_update_time,
+>>>  };
+>>>
+>>> +/*
+>>> + * It is possible to stack overlayfs instance on top of another
+>>> + * overlayfs instance as lower layer. We need to annonate the
+>>> + * stackable i_mutex locks according to stack level of the super
+>>> + * block instance. An overlayfs instance can never be in stack
+>>> + * depth 0 (there is always a real fs below it).  An overlayfs
+>>> + * inode lock will use the lockdep annotaion ovl_i_mutex_key[depth].
+>>> + *
+>>> + * For example, here is a snip from /proc/lockdep_chains after
+>>> + * dir_iterate of nested overlayfs:
+>>> + *
+>>> + * [...] &ovl_i_mutex_dir_key[depth]   (stack_depth=2)
+>>> + * [...] &ovl_i_mutex_dir_key[depth]#2 (stack_depth=1)
+>>> + * [...] &type->i_mutex_dir_key        (stack_depth=0)
+>>> + */
+>>> +
+>>> +static struct lock_class_key ovl_i_mutex_key[FILESYSTEM_MAX_STACK_DEPTH];
+>>> +static struct lock_class_key ovl_i_mutex_dir_key[FILESYSTEM_MAX_STACK_DEPTH];
+>>> +
+>>> +static inline void ovl_lockdep_annotate_inode_mutex_key(struct inode *inode)
+>>> +{
+>>> +#ifdef CONFIG_LOCKDEP
+>>> +       int depth = inode->i_sb->s_stack_depth - 1;
+>>> +
+>>> +       if (WARN_ON_ONCE(depth < 0))
+>>> +               depth = 0;
+>>> +
+>>> +       if (S_ISDIR(inode->i_mode))
+>>> +               lockdep_set_class(&inode->i_rwsem,
+>>> +                                 &ovl_i_mutex_dir_key[depth]);
+>>> +       else
+>>> +               lockdep_set_class(&inode->i_rwsem,
+>>> +                                 &ovl_i_mutex_key[depth]);
+>>> +#endif
+>>> +}
+>>> +
+>>>  static void ovl_fill_inode(struct inode *inode, umode_t mode, dev_t rdev)
+>>>  {
+>>>         inode->i_ino = get_next_ino();
+>>> @@ -310,6 +346,8 @@ static void ovl_fill_inode(struct inode *inode, umode_t mode, dev_t rdev)
+>>>         inode->i_acl = inode->i_default_acl = ACL_DONT_CACHE;
+>>>  #endif
+>>>
+>>> +       ovl_lockdep_annotate_inode_mutex_key(inode);
+>>> +
+>>>         switch (mode & S_IFMT) {
+>>>         case S_IFREG:
+>>>                 inode->i_op = &ovl_file_inode_operations;
+>>> --
+>>> 2.7.4
+>>>
