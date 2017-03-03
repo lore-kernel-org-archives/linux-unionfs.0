@@ -1,153 +1,45 @@
-From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [PATCH v4] ovl: lockdep annotate of nested stacked overlayfs
- inode lock
-Date: Fri, 3 Mar 2017 10:22:37 +0200
-Message-ID: <CAOQ4uxgENJ9ggpnCm7X9nQrFjQXXfCzCgOd2NPGJyUPYkE6F+Q@mail.gmail.com>
-References: <1484129266-8968-1-git-send-email-amir73il@gmail.com>
- <CAOQ4uxhy_4ymrya5AMZ3AvFU0t4u+ytV6QOcAB9oriiAwNuCSg@mail.gmail.com> <CAOQ4uxjOePL4zEhtDZG634MkkKvrP3AvYwnv_78EWo2ZVBKgGQ@mail.gmail.com>
+From: Miklos Szeredi <miklos@szeredi.hu>
+Subject: [GIT PULL] overlayfs update for 4.11
+Date: Fri, 3 Mar 2017 11:39:03 +0100
+Message-ID: <20170303103903.GA30961@veci.piliscsaba.szeredi.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-ot0-f196.google.com ([74.125.82.196]:34991 "EHLO
-        mail-ot0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751843AbdCCKO4 (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 3 Mar 2017 05:14:56 -0500
-Received: by mail-ot0-f196.google.com with SMTP id a12so8013454ota.2
-        for <linux-unionfs@vger.kernel.org>; Fri, 03 Mar 2017 02:14:50 -0800 (PST)
-In-Reply-To: <CAOQ4uxjOePL4zEhtDZG634MkkKvrP3AvYwnv_78EWo2ZVBKgGQ@mail.gmail.com>
-Sender: linux-unionfs-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+Sender: linux-kernel-owner@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: linux-unionfs@vger.kernel.org, Xiong Zhou <xzhou@redhat.com>
 
-On Wed, Feb 8, 2017 at 9:42 AM, Amir Goldstein <amir73il@gmail.com> wrote:
-> On Tue, Jan 31, 2017 at 9:15 AM, Amir Goldstein <amir73il@gmail.com> wrote:
->> On Wed, Jan 11, 2017 at 12:07 PM, Amir Goldstein <amir73il@gmail.com> wrote:
->>> An overlayfs instance can be the lower layer of another overlayfs
->>> instance. This setup triggers a lockdep splat of possible recursive
->>> locking of sb->s_type->i_mutex_key in iterate_dir(). Trimmed snip:
->>>
->>>  [ INFO: possible recursive locking detected ]
->>>  bash/2468 is trying to acquire lock:
->>>   &sb->s_type->i_mutex_key#14, at: iterate_dir+0x7d/0x15c
->>>  but task is already holding lock:
->>>   &sb->s_type->i_mutex_key#14, at: iterate_dir+0x7d/0x15c
->>>
->>> One problem observed with this splat is that ovl_new_inode()
->>> does not call lockdep_annotate_inode_mutex_key() to annotate
->>> the dir inode lock as &sb->s_type->i_mutex_dir_key like other
->>> fs do.
->>>
->>> The other problem is that the 2 nested levels of overlayfs inode
->>> lock are annotated using the same key, which is the cause of the
->>> false positive lockdep warning.
->>>
->>> Fix this by annotating overlayfs inode lock in ovl_fill_inode()
->>> according to stack level of the super block instance and use
->>> different key for dir vs. non-dir like other fs do.
->>>
->>> Here is an edited snip from /proc/lockdep_chains after
->>> iterate_dir() of nested overlayfs:
->>>
->>>  [...] &ovl_i_mutex_dir_key[depth]   (stack_depth=2)
->>>  [...] &ovl_i_mutex_dir_key[depth]#2 (stack_depth=1)
->>>  [...] &type->i_mutex_dir_key        (stack_depth=0)
->>>
->>> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
->>> ---
->>>  fs/overlayfs/inode.c | 38 ++++++++++++++++++++++++++++++++++++++
->>>  1 file changed, 38 insertions(+)
->>>
->>> v4:
->>> - further simplify by removing unneeded ofs->nested
->>>
->>
->> Miklos,
->>
->> This patch version addresses your review comments from previous merge cycle
->> and it has zero impact without CONFIG_LOCKDEP as you requested.
->>
->
-> Ping.
->
-> Would you mind queuing this one as well for 4.11?
->
+Hi Linus,
 
-Ping^2
+Please pull from:
 
-This fixes a false positive lockdep splat on new xfstest overlay/029.
+  git://git.kernel.org/pub/scm/linux/kernel/git/mszeredi/vfs.git overlayfs-linus
 
-> Thanks,
-> Amir.
->
->>
->>> v3:
->>> - discard different annotation for nesting level 0
->>> - compile away without CONFIG_LOCKDEP
->>>
->>> v2:
->>> - specific implementation in overlayfs
->>>
->>> v1:
->>> - generic implemetnation in vfs
->>>
->>> diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
->>> index 08643ac..b954622 100644
->>> --- a/fs/overlayfs/inode.c
->>> +++ b/fs/overlayfs/inode.c
->>> @@ -301,6 +301,42 @@ static const struct inode_operations ovl_symlink_inode_operations = {
->>>         .update_time    = ovl_update_time,
->>>  };
->>>
->>> +/*
->>> + * It is possible to stack overlayfs instance on top of another
->>> + * overlayfs instance as lower layer. We need to annonate the
->>> + * stackable i_mutex locks according to stack level of the super
->>> + * block instance. An overlayfs instance can never be in stack
->>> + * depth 0 (there is always a real fs below it).  An overlayfs
->>> + * inode lock will use the lockdep annotaion ovl_i_mutex_key[depth].
->>> + *
->>> + * For example, here is a snip from /proc/lockdep_chains after
->>> + * dir_iterate of nested overlayfs:
->>> + *
->>> + * [...] &ovl_i_mutex_dir_key[depth]   (stack_depth=2)
->>> + * [...] &ovl_i_mutex_dir_key[depth]#2 (stack_depth=1)
->>> + * [...] &type->i_mutex_dir_key        (stack_depth=0)
->>> + */
->>> +
->>> +static struct lock_class_key ovl_i_mutex_key[FILESYSTEM_MAX_STACK_DEPTH];
->>> +static struct lock_class_key ovl_i_mutex_dir_key[FILESYSTEM_MAX_STACK_DEPTH];
->>> +
->>> +static inline void ovl_lockdep_annotate_inode_mutex_key(struct inode *inode)
->>> +{
->>> +#ifdef CONFIG_LOCKDEP
->>> +       int depth = inode->i_sb->s_stack_depth - 1;
->>> +
->>> +       if (WARN_ON_ONCE(depth < 0))
->>> +               depth = 0;
->>> +
->>> +       if (S_ISDIR(inode->i_mode))
->>> +               lockdep_set_class(&inode->i_rwsem,
->>> +                                 &ovl_i_mutex_dir_key[depth]);
->>> +       else
->>> +               lockdep_set_class(&inode->i_rwsem,
->>> +                                 &ovl_i_mutex_key[depth]);
->>> +#endif
->>> +}
->>> +
->>>  static void ovl_fill_inode(struct inode *inode, umode_t mode, dev_t rdev)
->>>  {
->>>         inode->i_ino = get_next_ino();
->>> @@ -310,6 +346,8 @@ static void ovl_fill_inode(struct inode *inode, umode_t mode, dev_t rdev)
->>>         inode->i_acl = inode->i_default_acl = ACL_DONT_CACHE;
->>>  #endif
->>>
->>> +       ovl_lockdep_annotate_inode_mutex_key(inode);
->>> +
->>>         switch (mode & S_IFMT) {
->>>         case S_IFREG:
->>>                 inode->i_op = &ovl_file_inode_operations;
->>> --
->>> 2.7.4
->>>
+Because copy up can take a long time, serialized copy ups could be a big
+performance bottleneck. This update allows concurrent copy up of regular files
+eliminating this potential problem.  There are also minor fixes.
+
+Thanks,
+Miklos
+
+---
+Amir Goldstein (6):
+      ovl: check if upperdir fs supports O_TMPFILE
+      ovl: rearrange code in ovl_copy_up_locked()
+      ovl: copy up regular file using O_TMPFILE
+      ovl: introduce copy up waitqueue
+      ovl: concurrent copy up of regular files
+      ovl: properly implement sync_filesystem()
+
+Konstantin Khlebnikov (1):
+      ovl: drop CAP_SYS_RESOURCE from saved mounter's credentials
+
+---
+ fs/overlayfs/copy_up.c   | 91 +++++++++++++++++++++++++++++++++++-------------
+ fs/overlayfs/overlayfs.h | 11 ++++++
+ fs/overlayfs/ovl_entry.h |  3 ++
+ fs/overlayfs/super.c     | 39 +++++++++++++++++++--
+ fs/overlayfs/util.c      | 30 ++++++++++++++++
+ 5 files changed, 147 insertions(+), 27 deletions(-)
