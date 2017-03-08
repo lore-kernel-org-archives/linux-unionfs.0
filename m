@@ -1,188 +1,114 @@
-From: Miklos Szeredi <miklos@szeredi.hu>
-Subject: Re: [PATCH 0/9] overlay: fix inconsistency of ro file after copy-up
-Date: Tue, 7 Mar 2017 17:26:43 +0100
-Message-ID: <20170307162643.GC30961@veci.piliscsaba.szeredi.hu>
-References: <1487347778-18596-1-git-send-email-mszeredi@redhat.com>
- <20170219091430.GL29622@ZenIV.linux.org.uk>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20170219091430.GL29622@ZenIV.linux.org.uk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Al Viro <viro@ZenIV.linux.org.uk>
-Cc: Miklos Szeredi <mszeredi@redhat.com>, linux-unionfs@vger.kernel.org, linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org
+From: Amir Goldstein <amir73il@gmail.com>
+Subject: [PATCH v5] ovl: lockdep annotate of nested stacked overlayfs inode lock
+Date: Wed,  8 Mar 2017 10:41:06 +0200
+Message-ID: <1488962466-3264-1-git-send-email-amir73il@gmail.com>
+Return-path: <linux-unionfs-owner@vger.kernel.org>
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:35175 "EHLO
+        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750740AbdCHJJ0 (ORCPT
+        <rfc822;linux-unionfs@vger.kernel.org>);
+        Wed, 8 Mar 2017 04:09:26 -0500
+Received: by mail-wm0-f66.google.com with SMTP id z63so4897942wmg.2
+        for <linux-unionfs@vger.kernel.org>; Wed, 08 Mar 2017 01:09:24 -0800 (PST)
+Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: linux-unionfs@vger.kernel.org
 
-On Sun, Feb 19, 2017 at 09:14:41AM +0000, Al Viro wrote:
-> On Fri, Feb 17, 2017 at 05:09:29PM +0100, Miklos Szeredi wrote:
-> > A file is opened for read-only, opened read-write (resulting in a copy up)
-> > and modified.  The data read back from the the read-only fd will be stale
-> > in this case (the read-only file descriptor still refers to the lower,
-> > unmodified file).
-> > 
-> > This patchset fixes issues related to this corner case.  This is a
-> > requirement from various parties for accepting overlayfs as a "POSIX"
-> > filesystem.
-> > 
-> > When an operation (read, mmap, fsync) is done on an overlay fd opened
-> > read-only that is referring to a lower file, check if it has been copied up
-> > in the mean time.  If so, open the upper file and use that for the operation.
-> > 
-> > To make the performance impact minimal for non-overlay case, use a flag in
-> > file->f_mode to indicate that this is an overlay file.
-> 
-> This is one hell of a DoS vector - it's really easy to eat tons of struct
-> file that way.  Preparatory parts of that series make sense on their own,
-> but your "let's allocate a struct file, call ->open() and schedule that
-> struct file for closing upon the exit to userland on each kernel_read()"
-> is not.
+An overlayfs instance can be the lower layer of another overlayfs
+instance. This setup triggers a lockdep splat of possible recursive
+locking of sb->s_type->i_mutex_key in iterate_dir(). Trimmed snip:
 
-How about this?  Do you see a problem with calling __fput() synchronously here?
+ [ INFO: possible recursive locking detected ]
+ bash/2468 is trying to acquire lock:
+  &sb->s_type->i_mutex_key#14, at: iterate_dir+0x7d/0x15c
+ but task is already holding lock:
+  &sb->s_type->i_mutex_key#14, at: iterate_dir+0x7d/0x15c
 
-Thanks,
-Miklos
+One problem observed with this splat is that ovl_new_inode()
+does not call lockdep_annotate_inode_mutex_key() to annotate
+the dir inode lock as &sb->s_type->i_mutex_dir_key like other
+fs do.
 
+The other problem is that the 2 nested levels of overlayfs inode
+lock are annotated using the same key, which is the cause of the
+false positive lockdep warning.
+
+Fix this by annotating overlayfs inode lock in ovl_fill_inode()
+according to stack level of the super block instance and use
+different key for dir vs. non-dir like other fs do.
+
+Here is an edited snip from /proc/lockdep_chains after
+iterate_dir() of nested overlayfs:
+
+ [...] &ovl_i_mutex_dir_key[depth]   (stack_depth=2)
+ [...] &ovl_i_mutex_dir_key[depth]#2 (stack_depth=1)
+ [...] &type->i_mutex_dir_key        (stack_depth=0)
+
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- fs/Makefile                  |    2 -
- fs/file_table.c              |    2 -
- fs/internal.h                |    1 
- fs/overlay_util.c            |   53 +++++++++++++++++++++++++++++++++++++++++++
- include/linux/fs.h           |   11 ++++++++
- include/linux/overlay_util.h |   13 ++++++++++
- 6 files changed, 80 insertions(+), 2 deletions(-)
+v4 -> v5:
+- Fix compiltion warning on build without CONFIG_LOCKDEP
+- Define OVL_MAX_NESTING instead of using FILESYSTEM_MAX_STACK_DEPTH directly
 
---- a/include/linux/fs.h
-+++ b/include/linux/fs.h
-@@ -31,6 +31,7 @@
- #include <linux/workqueue.h>
- #include <linux/percpu-rwsem.h>
- #include <linux/delayed_call.h>
-+#include <linux/overlay_util.h>
+ fs/overlayfs/inode.c | 38 ++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 38 insertions(+)
+
+diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
+index f8fe6bf..328d8c5 100644
+--- a/fs/overlayfs/inode.c
++++ b/fs/overlayfs/inode.c
+@@ -303,6 +303,42 @@ static const struct inode_operations ovl_symlink_inode_operations = {
+ 	.update_time	= ovl_update_time,
+ };
  
- #include <asm/byteorder.h>
- #include <uapi/linux/fs.h>
-@@ -1721,9 +1722,19 @@ struct inode_operations {
- 	int (*set_acl)(struct inode *, struct posix_acl *, int);
- } ____cacheline_aligned;
- 
-+
-+static inline bool overlay_file_inconsistent(struct file *file)
-+{
-+	return unlikely(file->f_path.dentry->d_flags & DCACHE_OP_REAL) &&
-+		unlikely(d_real_inode(file->f_path.dentry) != file_inode(file));
-+}
-+
- static inline ssize_t call_read_iter(struct file *file, struct kiocb *kio,
- 				     struct iov_iter *iter)
- {
-+	if (overlay_file_inconsistent(file))
-+		return overlay_read_iter(file, kio, iter);
-+
- 	return file->f_op->read_iter(kio, iter);
- }
- 
---- a/fs/Makefile
-+++ b/fs/Makefile
-@@ -11,7 +11,7 @@ obj-y :=	open.o read_write.o file_table.
- 		attr.o bad_inode.o file.o filesystems.o namespace.o \
- 		seq_file.o xattr.o libfs.o fs-writeback.o \
- 		pnode.o splice.o sync.o utimes.o \
--		stack.o fs_struct.o statfs.o fs_pin.o nsfs.o
-+		stack.o fs_struct.o statfs.o fs_pin.o nsfs.o overlay_util.o
- 
- ifeq ($(CONFIG_BLOCK),y)
- obj-y +=	buffer.o block_dev.o direct-io.o mpage.o
---- /dev/null
-+++ b/fs/overlay_util.c
-@@ -0,0 +1,53 @@
 +/*
-+ * Copyright (C) 2017 Red Hat, Inc.
++ * It is possible to stack overlayfs instance on top of another
++ * overlayfs instance as lower layer. We need to annonate the
++ * stackable i_mutex locks according to stack level of the super
++ * block instance. An overlayfs instance can never be in stack
++ * depth 0 (there is always a real fs below it).  An overlayfs
++ * inode lock will use the lockdep annotaion 'ovl_i_mutex_key[depth]'.
 + *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms of the GNU General Public License version 2 as published by
-+ * the Free Software Foundation.
-+ */
-+
-+#include <linux/overlay_util.h>
-+#include <linux/fs.h>
-+#include <linux/file.h>
-+#include "internal.h"
-+
-+static struct file *overlay_clone_file(struct file *file)
-+{
-+	file = filp_clone_open(file);
-+	if (!IS_ERR(file))
-+		file->f_mode |= FMODE_NONOTIFY;
-+
-+	return file;
-+}
-+
-+/*
-+ * Do the release synchronously.  Otherwise we'd have a DoS problem when doing
-+ * multiple reads (e.g. through kernel_read()) and only releasing the cloned
-+ * files when returning to userspace.
++ * For example, here is a snip from /proc/lockdep_chains after
++ * dir_iterate of nested overlayfs:
 + *
-+ * There's no risk of final dput or final mntput happening, since caller holds
-+ * ref to both through the original file.
++ * [...] &ovl_i_mutex_dir_key[depth]   (stack_depth=2)
++ * [...] &ovl_i_mutex_dir_key[depth]#2 (stack_depth=1)
++ * [...] &type->i_mutex_dir_key        (stack_depth=0)
 + */
-+static void overlay_put_cloned_file(struct file *file)
-+{
-+	if (WARN_ON(!atomic_long_dec_and_test(&file->f_count)))
-+		return;
++#define OVL_MAX_NESTING FILESYSTEM_MAX_STACK_DEPTH
 +
-+	__fput(file);
++static inline void ovl_lockdep_annotate_inode_mutex_key(struct inode *inode)
++{
++#ifdef CONFIG_LOCKDEP
++	static struct lock_class_key ovl_i_mutex_key[OVL_MAX_NESTING];
++	static struct lock_class_key ovl_i_mutex_dir_key[OVL_MAX_NESTING];
++	int depth = inode->i_sb->s_stack_depth - 1;
++
++	if (WARN_ON_ONCE(depth < 0))
++		depth = 0;
++
++	if (S_ISDIR(inode->i_mode))
++		lockdep_set_class(&inode->i_rwsem,
++				  &ovl_i_mutex_dir_key[depth]);
++	else
++		lockdep_set_class(&inode->i_rwsem,
++				  &ovl_i_mutex_key[depth]);
++#endif
 +}
 +
-+ssize_t overlay_read_iter(struct file *file, struct kiocb *kio,
-+			  struct iov_iter *iter)
-+{
-+	ssize_t ret;
-+
-+	file = overlay_clone_file(file);
-+	if (IS_ERR(file))
-+		return PTR_ERR(file);
-+
-+	ret = vfs_iter_read(file, iter, &kio->ki_pos);
-+	overlay_put_cloned_file(file);
-+
-+	return ret;
-+}
-+EXPORT_SYMBOL(overlay_read_iter);
---- /dev/null
-+++ b/include/linux/overlay_util.h
-@@ -0,0 +1,13 @@
-+#ifndef _LINUX_OVERLAY_FS_H
-+#define _LINUX_OVERLAY_FS_H
-+
-+#include <linux/types.h>
-+
-+struct file;
-+struct kiocb;
-+struct iov_iter;
-+
-+extern ssize_t overlay_read_iter(struct file *file, struct kiocb *kio,
-+				 struct iov_iter *iter);
-+
-+#endif /* _LINUX_OVERLAY_FS_H */
---- a/fs/file_table.c
-+++ b/fs/file_table.c
-@@ -184,7 +184,7 @@ EXPORT_SYMBOL(alloc_file);
- 
- /* the real guts of fput() - releasing the last reference to file
-  */
--static void __fput(struct file *file)
-+void __fput(struct file *file)
+ static void ovl_fill_inode(struct inode *inode, umode_t mode, dev_t rdev)
  {
- 	struct dentry *dentry = file->f_path.dentry;
- 	struct vfsmount *mnt = file->f_path.mnt;
---- a/fs/internal.h
-+++ b/fs/internal.h
-@@ -83,6 +83,7 @@ extern void chroot_fs_refs(const struct
-  * file_table.c
-  */
- extern struct file *get_empty_filp(void);
-+extern void __fput(struct file *);
+ 	inode->i_ino = get_next_ino();
+@@ -312,6 +348,8 @@ static void ovl_fill_inode(struct inode *inode, umode_t mode, dev_t rdev)
+ 	inode->i_acl = inode->i_default_acl = ACL_DONT_CACHE;
+ #endif
  
- /*
-  * super.c
++	ovl_lockdep_annotate_inode_mutex_key(inode);
++
+ 	switch (mode & S_IFMT) {
+ 	case S_IFREG:
+ 		inode->i_op = &ovl_file_inode_operations;
+-- 
+2.7.4
