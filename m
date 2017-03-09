@@ -1,114 +1,100 @@
-From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH v5] ovl: lockdep annotate of nested stacked overlayfs inode lock
-Date: Wed,  8 Mar 2017 10:41:06 +0200
-Message-ID: <1488962466-3264-1-git-send-email-amir73il@gmail.com>
+From: Miklos Szeredi <miklos@szeredi.hu>
+Subject: Re: overlayfs: allowing for changes to lowerdir
+Date: Thu, 9 Mar 2017 11:37:26 +0100
+Message-ID: <CAJfpegtLZXJLqaOmiFJLrG-P0cMRAAdNLu4rdRJVr5axRPHMWg@mail.gmail.com>
+References: <CA+ZH+jFBAaRi6VPmf3PBdDZQQMOaT6WUByATqaw1QL5M9+-dxg@mail.gmail.com>
+ <CAOQ4uxiBmFdcueorKV7zwPLCDq4DE+H8x=8H1f7+3v3zysW9qA@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:35175 "EHLO
-        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750740AbdCHJJ0 (ORCPT
+Received: from mail-oi0-f41.google.com ([209.85.218.41]:35044 "EHLO
+        mail-oi0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753047AbdCIKiM (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 8 Mar 2017 04:09:26 -0500
-Received: by mail-wm0-f66.google.com with SMTP id z63so4897942wmg.2
-        for <linux-unionfs@vger.kernel.org>; Wed, 08 Mar 2017 01:09:24 -0800 (PST)
+        Thu, 9 Mar 2017 05:38:12 -0500
+Received: by mail-oi0-f41.google.com with SMTP id 62so34275936oih.2
+        for <linux-unionfs@vger.kernel.org>; Thu, 09 Mar 2017 02:37:27 -0800 (PST)
+In-Reply-To: <CAOQ4uxiBmFdcueorKV7zwPLCDq4DE+H8x=8H1f7+3v3zysW9qA@mail.gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: linux-unionfs@vger.kernel.org
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: Josh England <jjengla@gmail.com>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>
 
-An overlayfs instance can be the lower layer of another overlayfs
-instance. This setup triggers a lockdep splat of possible recursive
-locking of sb->s_type->i_mutex_key in iterate_dir(). Trimmed snip:
+On Tue, Feb 14, 2017 at 3:01 PM, Amir Goldstein <amir73il@gmail.com> wrote:
+> On Mon, Feb 13, 2017 at 11:41 PM, Josh England <jjengla@gmail.com> wrote:
+>> So here's the use case:  lowerdir is an NFS mounted root filesystem
+>> (shared by a bunch of nodes).  upperdir is a tmpfs RAM disk to allow
+>> for writes to happen.  This works great with the caveat being I cannot
+>> make 'live' changes to the root filesystem, which poses the problem.
+>> Any access to a changed file causes a 'Stale file handle' error.
+>>
+>> With some experimenting, I've discovered that remounting the overlay
+>> filesystem (mount -o remount / /)  registers any changes that have
+>> been made to the lower NFS filesystem.  In addition, dumping cache
+>> (via /proc/sys/vm/drop_caches) also makes the stale file handle errors
+>> go away and reads pass through to the lower dir and correctly show
+>> changes.
+>>
+>> I'd like to make this use case feasible by allowing changes to the NFS
+>> lowerdir to work more or less transparently.  It seems like if the
+>> overlay did not do any caching at all, all reads would fall through to
+>> either the upperdir ram disk or the NFS lower, which is precisely what
+>> I want.
+>>
+>> So, let me pose this somewhat naive question:  Would it be possible to
+>> simply disable any cacheing performed by the overlay to force all
+>> reads to go to either the tmpfs upper or the (VFS-cached) NFS lower?
+>> Would this be enough to accomplish my goal of being able to change the
+>> lowerdir of an active overlayfs?
+>>
+>
+> There is no need to disable caching. There is already a mechanism
+> in place in VFS to revalidate inode cache entries.
+> NFS implements d_revalidate() and overlayfs implements d_revalidate()
+> by calling into the lower fs d_revalidate().
+>
+> However overlayfs intentionally errors when lower entry has been modified.
+> (see: 7c03b5d ovl: allow distributed fs as lower layer)
+>
+> You can try this (untested) patch to revert this behavior, just to see if it
+> works for your use case, but it won't change this fact
+> from Documentation/filesystems/overlayfs.txt:
+> " Changes to the underlying filesystems while part of a mounted overlay
+> filesystem are not allowed.  If the underlying filesystem is changed,
+> the behavior of the overlay is undefined, though it will not result in
+> a crash or deadlock."
 
- [ INFO: possible recursive locking detected ]
- bash/2468 is trying to acquire lock:
-  &sb->s_type->i_mutex_key#14, at: iterate_dir+0x7d/0x15c
- but task is already holding lock:
-  &sb->s_type->i_mutex_key#14, at: iterate_dir+0x7d/0x15c
+Best way to keep things simple is to only add functionality when
+someone actually needs it (and can test it).  This has been the design
+policy in overlayfs and it worked wonderfully.
 
-One problem observed with this splat is that ovl_new_inode()
-does not call lockdep_annotate_inode_mutex_key() to annotate
-the dir inode lock as &sb->s_type->i_mutex_dir_key like other
-fs do.
+So we could probably fix the undefined behavior in the above case to
+some extent.
 
-The other problem is that the 2 nested levels of overlayfs inode
-lock are annotated using the same key, which is the cause of the
-false positive lockdep warning.
+>
+> Specifically, renaming directories and files in lower that were already
+> copied up is going to have a weird outcome.
+>
+> Also, the situation with changing files in lower remote fs could be worse
+> than changing files on lower local fs, simply because right now, this
+> use case is not tested (i.e. it results in ESTALE).
+>
+> I believe that fixing this use case, if at all possible, would require quite
+> a bit of work, a lot of documentation (about expected behavior) and
+> even more testing.
 
-Fix this by annotating overlayfs inode lock in ovl_fill_inode()
-according to stack level of the super block instance and use
-different key for dir vs. non-dir like other fs do.
+Well, your patch seems to be safe:  if remote fs says something
+changed, throw away node and subtree on the overlay level.
 
-Here is an edited snip from /proc/lockdep_chains after
-iterate_dir() of nested overlayfs:
+We could introduce the same thing for local fs.  Just need to verify
+in .d_revalidate() that underlying dentry's parent and name matches
+overlay dentry's parent and name.  It's an overhead, and makes no
+sense in the case when we know the lower layers won't change, so it
+may be best to keep this check optional.
 
- [...] &ovl_i_mutex_dir_key[depth]   (stack_depth=2)
- [...] &ovl_i_mutex_dir_key[depth]#2 (stack_depth=1)
- [...] &type->i_mutex_dir_key        (stack_depth=0)
+Note, that overlay would still return ESTALE if the change on the
+lower layer happens on a dentry already looked up (e.g. cwd, open
+file, race of lookup with rename on underlying layer).  Same as NFS.
 
-Signed-off-by: Amir Goldstein <amir73il@gmail.com>
----
-v4 -> v5:
-- Fix compiltion warning on build without CONFIG_LOCKDEP
-- Define OVL_MAX_NESTING instead of using FILESYSTEM_MAX_STACK_DEPTH directly
-
- fs/overlayfs/inode.c | 38 ++++++++++++++++++++++++++++++++++++++
- 1 file changed, 38 insertions(+)
-
-diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
-index f8fe6bf..328d8c5 100644
---- a/fs/overlayfs/inode.c
-+++ b/fs/overlayfs/inode.c
-@@ -303,6 +303,42 @@ static const struct inode_operations ovl_symlink_inode_operations = {
- 	.update_time	= ovl_update_time,
- };
- 
-+/*
-+ * It is possible to stack overlayfs instance on top of another
-+ * overlayfs instance as lower layer. We need to annonate the
-+ * stackable i_mutex locks according to stack level of the super
-+ * block instance. An overlayfs instance can never be in stack
-+ * depth 0 (there is always a real fs below it).  An overlayfs
-+ * inode lock will use the lockdep annotaion 'ovl_i_mutex_key[depth]'.
-+ *
-+ * For example, here is a snip from /proc/lockdep_chains after
-+ * dir_iterate of nested overlayfs:
-+ *
-+ * [...] &ovl_i_mutex_dir_key[depth]   (stack_depth=2)
-+ * [...] &ovl_i_mutex_dir_key[depth]#2 (stack_depth=1)
-+ * [...] &type->i_mutex_dir_key        (stack_depth=0)
-+ */
-+#define OVL_MAX_NESTING FILESYSTEM_MAX_STACK_DEPTH
-+
-+static inline void ovl_lockdep_annotate_inode_mutex_key(struct inode *inode)
-+{
-+#ifdef CONFIG_LOCKDEP
-+	static struct lock_class_key ovl_i_mutex_key[OVL_MAX_NESTING];
-+	static struct lock_class_key ovl_i_mutex_dir_key[OVL_MAX_NESTING];
-+	int depth = inode->i_sb->s_stack_depth - 1;
-+
-+	if (WARN_ON_ONCE(depth < 0))
-+		depth = 0;
-+
-+	if (S_ISDIR(inode->i_mode))
-+		lockdep_set_class(&inode->i_rwsem,
-+				  &ovl_i_mutex_dir_key[depth]);
-+	else
-+		lockdep_set_class(&inode->i_rwsem,
-+				  &ovl_i_mutex_key[depth]);
-+#endif
-+}
-+
- static void ovl_fill_inode(struct inode *inode, umode_t mode, dev_t rdev)
- {
- 	inode->i_ino = get_next_ino();
-@@ -312,6 +348,8 @@ static void ovl_fill_inode(struct inode *inode, umode_t mode, dev_t rdev)
- 	inode->i_acl = inode->i_default_acl = ACL_DONT_CACHE;
- #endif
- 
-+	ovl_lockdep_annotate_inode_mutex_key(inode);
-+
- 	switch (mode & S_IFMT) {
- 	case S_IFREG:
- 		inode->i_op = &ovl_file_inode_operations;
--- 
-2.7.4
+Thanks,
+Miklos
