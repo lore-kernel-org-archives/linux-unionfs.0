@@ -1,102 +1,62 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: overlayfs: allowing for changes to lowerdir
-Date: Thu, 9 Mar 2017 13:22:32 +0200
-Message-ID: <CAOQ4uxgBzyEU5iqX5kYKYUZqS09UiETN4Syxh_-rocAKQwNvOQ@mail.gmail.com>
-References: <CA+ZH+jFBAaRi6VPmf3PBdDZQQMOaT6WUByATqaw1QL5M9+-dxg@mail.gmail.com>
- <CAOQ4uxiBmFdcueorKV7zwPLCDq4DE+H8x=8H1f7+3v3zysW9qA@mail.gmail.com> <CAJfpegtLZXJLqaOmiFJLrG-P0cMRAAdNLu4rdRJVr5axRPHMWg@mail.gmail.com>
+Subject: Re: New kvm-xfstests images uploaded
+Date: Thu, 9 Mar 2017 14:29:34 +0200
+Message-ID: <CAOQ4uxiHM1UTAPRt6ambvbnL8eOqT3U2hbsrLJTTJ+wSVFOc-g@mail.gmail.com>
+References: <20170306055827.omfoahfisn44l6bc@thunk.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-ot0-f181.google.com ([74.125.82.181]:34307 "EHLO
-        mail-ot0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752625AbdCILXd (ORCPT
+Received: from mail-ot0-f174.google.com ([74.125.82.174]:35549 "EHLO
+        mail-ot0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752157AbdCIM3g (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 9 Mar 2017 06:23:33 -0500
-In-Reply-To: <CAJfpegtLZXJLqaOmiFJLrG-P0cMRAAdNLu4rdRJVr5axRPHMWg@mail.gmail.com>
+        Thu, 9 Mar 2017 07:29:36 -0500
+In-Reply-To: <20170306055827.omfoahfisn44l6bc@thunk.org>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: Josh England <jjengla@gmail.com>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>
+To: Theodore Ts'o <tytso@mit.edu>
+Cc: linux-fstests@vger.kernel.org, linux-unionfs@vger.kernel.org, Eryu Guan <eguan@redhat.com>
 
-On Thu, Mar 9, 2017 at 12:37 PM, Miklos Szeredi <miklos@szeredi.hu> wrote:
-> On Tue, Feb 14, 2017 at 3:01 PM, Amir Goldstein <amir73il@gmail.com> wrote:
->> On Mon, Feb 13, 2017 at 11:41 PM, Josh England <jjengla@gmail.com> wrote:
->>> So here's the use case:  lowerdir is an NFS mounted root filesystem
->>> (shared by a bunch of nodes).  upperdir is a tmpfs RAM disk to allow
->>> for writes to happen.  This works great with the caveat being I cannot
->>> make 'live' changes to the root filesystem, which poses the problem.
->>> Any access to a changed file causes a 'Stale file handle' error.
->>>
->>> With some experimenting, I've discovered that remounting the overlay
->>> filesystem (mount -o remount / /)  registers any changes that have
->>> been made to the lower NFS filesystem.  In addition, dumping cache
->>> (via /proc/sys/vm/drop_caches) also makes the stale file handle errors
->>> go away and reads pass through to the lower dir and correctly show
->>> changes.
->>>
->>> I'd like to make this use case feasible by allowing changes to the NFS
->>> lowerdir to work more or less transparently.  It seems like if the
->>> overlay did not do any caching at all, all reads would fall through to
->>> either the upperdir ram disk or the NFS lower, which is precisely what
->>> I want.
->>>
->>> So, let me pose this somewhat naive question:  Would it be possible to
->>> simply disable any cacheing performed by the overlay to force all
->>> reads to go to either the tmpfs upper or the (VFS-cached) NFS lower?
->>> Would this be enough to accomplish my goal of being able to change the
->>> lowerdir of an active overlayfs?
->>>
->>
->> There is no need to disable caching. There is already a mechanism
->> in place in VFS to revalidate inode cache entries.
->> NFS implements d_revalidate() and overlayfs implements d_revalidate()
->> by calling into the lower fs d_revalidate().
->>
->> However overlayfs intentionally errors when lower entry has been modified.
->> (see: 7c03b5d ovl: allow distributed fs as lower layer)
->>
->> You can try this (untested) patch to revert this behavior, just to see if it
->> works for your use case, but it won't change this fact
->> from Documentation/filesystems/overlayfs.txt:
->> " Changes to the underlying filesystems while part of a mounted overlay
->> filesystem are not allowed.  If the underlying filesystem is changed,
->> the behavior of the overlay is undefined, though it will not result in
->> a crash or deadlock."
+On Mon, Mar 6, 2017 at 7:58 AM, Theodore Ts'o <tytso@mit.edu> wrote:
+> I've uploaded a new kvm-xfstests image at:
 >
-> Best way to keep things simple is to only add functionality when
-> someone actually needs it (and can test it).  This has been the design
-> policy in overlayfs and it worked wonderfully.
+> https://www.kernel.org/pub/linux/kernel/people/tytso/kvm-xfstests
 >
-> So we could probably fix the undefined behavior in the above case to
-> some extent.
+> This has the latest xfstests, xfsprogs, and e2fsprogs update, as well
+> as changes to help debug problems in the journal_lazy patches:
 >
->>
->> Specifically, renaming directories and files in lower that were already
->> copied up is going to have a weird outcome.
->>
->> Also, the situation with changing files in lower remote fs could be worse
->> than changing files on lower local fs, simply because right now, this
->> use case is not tested (i.e. it results in ESTALE).
->>
->> I believe that fixing this use case, if at all possible, would require quite
->> a bit of work, a lot of documentation (about expected behavior) and
->> even more testing.
->
-> Well, your patch seems to be safe:  if remote fs says something
-> changed, throw away node and subtree on the overlay level.
->
-> We could introduce the same thing for local fs.  Just need to verify
-> in .d_revalidate() that underlying dentry's parent and name matches
-> overlay dentry's parent and name.  It's an overhead, and makes no
-> sense in the case when we know the lower layers won't change, so it
-> may be best to keep this check optional.
->
-> Note, that overlay would still return ESTALE if the change on the
-> lower layer happens on a dentry already looked up (e.g. cwd, open
-> file, race of lookup with rename on underlying layer).  Same as NFS.
->
+> e2fsprogs       v1.43.4-27-g686994eb (Fri, 3 Mar 2017 10:02:14 -0500)
+> fio             fio-2.17-1-g54441e7 (Wed, 18 Jan 2017 08:18:28 -0700)
+> quota           e0b6335 (Thu, 9 Feb 2017 11:55:45 +0100)
+> stress-ng       4ad62e1 (Mon, 27 Feb 2017 14:28:36 -0500)
+> xfsprogs        v4.10.0-rc1 (Wed, 15 Feb 2017 21:48:31 -0600)
+> xfstests-bld    032c8c3 (Fri, 3 Mar 2017 21:03:05 -0500)
+> xfstests        linux-v3.8-1414-g999e3f6 (Sun, 5 Mar 2017 19:11:35 -0500)
 
-Naturally.
+Ted,
 
-Could you explain what was the reason for special casing (ret == 0)
-in ovl_dentry_revalidate()?
+That is not an xfstests commit (is it??)
+
+The reason I am asking is because I want to change kvm-xfstests
+overlay cfg scripts to use the new xfstests overlay config. e.g.::
+
+SIZE=large
+export TEST_DEV=$LG_TST_DEV
+export TEST_DIR=$LG_TST_MNT
+export SCRATCH_DEV=$LG_SCR_DEV
+export SCRATCH_MNT=$LG_SCR_MNT
+
+The benefit of this setup is (quoting myself) "to help catch overlayfs bugs
+related to leaking objects in underlying (base) fs", because with this
+setup, base fs is cycle mounted after every test.
+
+This change requires xfstests commit
+33e4199 ("overlay: use OVL_BASE_SCRATCH_MNT instead of SCRATCH_DEV")
+
+Currently, xfstests-bld default config file does not even include a
+default value
+for XFSTESTS_COMMIT.
+
+Should I just go on and send you a patch and let you (and other
+xfstests-bld users)
+worry about using a recent enough version of xfstests?
