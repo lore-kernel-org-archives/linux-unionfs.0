@@ -1,130 +1,135 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH 2/6] ovl: cram opaque boolean into type flags
-Date: Wed, 29 Mar 2017 17:36:02 +0300
-Message-ID: <1490798166-22310-3-git-send-email-amir73il@gmail.com>
+Subject: [PATCH 4/6] ovl: check if clone from lower to upper is supported
+Date: Wed, 29 Mar 2017 17:36:04 +0300
+Message-ID: <1490798166-22310-5-git-send-email-amir73il@gmail.com>
 References: <1490798166-22310-1-git-send-email-amir73il@gmail.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wr0-f195.google.com ([209.85.128.195]:34767 "EHLO
-        mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751583AbdC2OgF (ORCPT
+Received: from mail-wr0-f194.google.com ([209.85.128.194]:34803 "EHLO
+        mail-wr0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751843AbdC2OgI (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 29 Mar 2017 10:36:05 -0400
-Received: by mail-wr0-f195.google.com with SMTP id w43so3559573wrb.1
-        for <linux-unionfs@vger.kernel.org>; Wed, 29 Mar 2017 07:36:04 -0700 (PDT)
+        Wed, 29 Mar 2017 10:36:08 -0400
+Received: by mail-wr0-f194.google.com with SMTP id w43so3559874wrb.1
+        for <linux-unionfs@vger.kernel.org>; Wed, 29 Mar 2017 07:36:06 -0700 (PDT)
 In-Reply-To: <1490798166-22310-1-git-send-email-amir73il@gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: Miklos Szeredi <miklos@szeredi.hu>
 Cc: linux-unionfs@vger.kernel.org
 
-Like the other type flags, 'opaque' is a state discovered in lookup,
-set on certain ops (e.g.: create, rename) and never cleared.
+Currently copy up will always try to clone and fall back
+to copy if clone fails.
 
-We would like to add more state info to ovl_entry soon (for const ino)
-and this state info would be added as type flags. It makes little sense
-to have the 'opaque' state occupy a boolean, so drop the boolean member
-of ovl_entry and use a type bit to represent opaqueness.
+Check clone support during mount time and don't try to clone
+up if clone is not supported.
 
 Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- fs/overlayfs/namei.c     | 9 +++++----
- fs/overlayfs/overlayfs.h | 2 ++
- fs/overlayfs/ovl_entry.h | 1 -
- fs/overlayfs/util.c      | 5 +++--
- 4 files changed, 10 insertions(+), 7 deletions(-)
+ fs/overlayfs/copy_up.c   | 23 ++++++++++++++---------
+ fs/overlayfs/ovl_entry.h |  1 +
+ fs/overlayfs/super.c     | 11 ++++++++---
+ 3 files changed, 23 insertions(+), 12 deletions(-)
 
-diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
-index 9d7884d..cc9e041 100644
---- a/fs/overlayfs/namei.c
-+++ b/fs/overlayfs/namei.c
-@@ -224,7 +224,7 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
- 	struct dentry *upperdir, *upperdentry = NULL;
- 	unsigned int ctr = 0;
- 	struct inode *inode = NULL;
--	bool upperopaque = false;
-+	enum ovl_path_type type = 0;
- 	char *upperredirect = NULL;
- 	struct dentry *this;
- 	unsigned int i;
-@@ -261,7 +261,8 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
- 			if (d.redirect[0] == '/')
- 				poe = dentry->d_sb->s_root->d_fsdata;
+diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
+index 906ea6c..3053e33 100644
+--- a/fs/overlayfs/copy_up.c
++++ b/fs/overlayfs/copy_up.c
+@@ -134,7 +134,8 @@ int ovl_copy_xattr(struct dentry *old, struct dentry *new)
+ 	return error;
+ }
+ 
+-static int ovl_copy_up_data(struct path *old, struct path *new, loff_t len)
++static int ovl_copy_up_data(struct path *old, struct path *new, loff_t len,
++			    bool cloneup)
+ {
+ 	struct file *old_file;
+ 	struct file *new_file;
+@@ -155,12 +156,15 @@ static int ovl_copy_up_data(struct path *old, struct path *new, loff_t len)
+ 		goto out_fput;
+ 	}
+ 
+-	/* Try to use clone_file_range to clone up within the same fs */
+-	error = vfs_clone_file_range(old_file, 0, new_file, 0, len);
+-	if (!error)
+-		goto out;
+-	/* Couldn't clone, so now we try to copy the data */
+-	error = 0;
++	if (cloneup) {
++		/* Try to use clone_file_range to clone up within the same fs */
++		error = vfs_clone_file_range(old_file, 0, new_file, 0, len);
++		if (!error)
++			goto out;
++
++		/* Couldn't clone, so now we try to copy the data */
++		error = 0;
++	}
+ 
+ 	/* FIXME: copy up sparse files efficiently */
+ 	while (len) {
+@@ -251,6 +255,7 @@ static int ovl_copy_up_locked(struct dentry *workdir, struct dentry *upperdir,
+ 		.rdev = stat->rdev,
+ 		.link = link
+ 	};
++	struct ovl_fs *ofs = dentry->d_sb->s_fs_info;
+ 
+ 	upper = lookup_one_len(dentry->d_name.name, upperdir,
+ 			       dentry->d_name.len);
+@@ -295,11 +300,11 @@ static int ovl_copy_up_locked(struct dentry *workdir, struct dentry *upperdir,
+ 		if (tmpfile) {
+ 			inode_unlock(udir);
+ 			err = ovl_copy_up_data(lowerpath, &upperpath,
+-					       stat->size);
++					       stat->size, ofs->cloneup);
+ 			inode_lock_nested(udir, I_MUTEX_PARENT);
+ 		} else {
+ 			err = ovl_copy_up_data(lowerpath, &upperpath,
+-					       stat->size);
++					       stat->size, ofs->cloneup);
  		}
--		upperopaque = d.opaque;
-+		if (d.opaque)
-+			type |= __OVL_PATH_OPAQUE;
- 	}
  
- 	if (!d.stop && poe->numlower) {
-@@ -331,7 +332,7 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
- 	}
- 
- 	revert_creds(old_cred);
--	oe->opaque = upperopaque;
-+	oe->__type = type;
- 	oe->redirect = upperredirect;
- 	oe->__upperdentry = upperdentry;
- 	memcpy(oe->lowerstack, stack, sizeof(struct path) * ctr);
-@@ -372,7 +373,7 @@ bool ovl_lower_positive(struct dentry *dentry)
- 	 * whiteout.
- 	 */
- 	if (!dentry->d_inode)
--		return oe->opaque;
-+		return OVL_TYPE_OPAQUE(oe->__type);
- 
- 	/* Negative upper -> positive lower */
- 	if (!oe->__upperdentry)
-diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-index 51419b5..079051e 100644
---- a/fs/overlayfs/overlayfs.h
-+++ b/fs/overlayfs/overlayfs.h
-@@ -12,10 +12,12 @@
- enum ovl_path_type {
- 	__OVL_PATH_UPPER	= (1 << 0),
- 	__OVL_PATH_MERGE	= (1 << 1),
-+	__OVL_PATH_OPAQUE	= (1 << 2),
- };
- 
- #define OVL_TYPE_UPPER(type)	((type) & __OVL_PATH_UPPER)
- #define OVL_TYPE_MERGE(type)	((type) & __OVL_PATH_MERGE)
-+#define OVL_TYPE_OPAQUE(type)	((type) & __OVL_PATH_OPAQUE)
- 
- #define OVL_XATTR_PREFIX XATTR_TRUSTED_PREFIX "overlay."
- #define OVL_XATTR_OPAQUE OVL_XATTR_PREFIX "opaque"
+ 		if (err)
 diff --git a/fs/overlayfs/ovl_entry.h b/fs/overlayfs/ovl_entry.h
-index 293be5f..12c4922 100644
+index 0e159c3..fb1210d 100644
 --- a/fs/overlayfs/ovl_entry.h
 +++ b/fs/overlayfs/ovl_entry.h
-@@ -41,7 +41,6 @@ struct ovl_entry {
- 		struct {
- 			u64 version;
- 			const char *redirect;
--			bool opaque;
- 			bool copying;
- 		};
- 		struct rcu_head rcu;
-diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
-index aaef2e28..159e851 100644
---- a/fs/overlayfs/util.c
-+++ b/fs/overlayfs/util.c
-@@ -179,7 +179,8 @@ void ovl_set_dir_cache(struct dentry *dentry, struct ovl_dir_cache *cache)
- bool ovl_dentry_is_opaque(struct dentry *dentry)
- {
- 	struct ovl_entry *oe = dentry->d_fsdata;
--	return oe->opaque;
-+
-+	return OVL_TYPE_OPAQUE(oe->__type);
- }
+@@ -29,6 +29,7 @@ struct ovl_fs {
+ 	const struct cred *creator_cred;
+ 	bool tmpfile;	/* upper supports O_TMPFILE */
+ 	bool samefs;	/* all layers on same fs */
++	bool cloneup;	/* can clone from lower to upper */
+ 	wait_queue_head_t copyup_wq;
+ };
  
- bool ovl_dentry_is_whiteout(struct dentry *dentry)
-@@ -191,7 +192,7 @@ void ovl_dentry_set_opaque(struct dentry *dentry)
- {
- 	struct ovl_entry *oe = dentry->d_fsdata;
+diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+index b8a83e8..75b93d6 100644
+--- a/fs/overlayfs/super.c
++++ b/fs/overlayfs/super.c
+@@ -865,10 +865,15 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
+ 			/* Check if upper/work fs supports O_TMPFILE */
+ 			temp = ovl_do_tmpfile(ufs->workdir, S_IFREG | 0);
+ 			ufs->tmpfile = !IS_ERR(temp);
+-			if (ufs->tmpfile)
++			if (ufs->tmpfile) {
++				/* Check if upper/work supports clone */
++				if (temp->d_inode && temp->d_inode->i_fop &&
++				    temp->d_inode->i_fop->clone_file_range)
++					ufs->cloneup = true;
+ 				dput(temp);
+-			else
++			} else {
+ 				pr_warn("overlayfs: upper fs does not support tmpfile.\n");
++			}
+ 		}
+ 	}
  
--	oe->opaque = true;
-+	oe->__type |= __OVL_PATH_OPAQUE;
- }
+@@ -898,7 +903,7 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
+ 		/* Check if all layers on same sb */
+ 		if ((ufs->upper_mnt && ufs->upper_mnt->mnt_sb != mnt->mnt_sb) ||
+ 		    (i > 0 && ufs->lower_mnt[0]->mnt_sb != mnt->mnt_sb))
+-			ufs->samefs = false;
++			ufs->cloneup = ufs->samefs = false;
+ 	}
  
- bool ovl_redirect_dir(struct super_block *sb)
+ 	/* If the upper fs is nonexistent, we mark overlayfs r/o too */
 -- 
 2.7.4
