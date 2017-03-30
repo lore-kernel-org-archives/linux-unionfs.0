@@ -1,93 +1,101 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: Question about ovl_dentry_weird
-Date: Thu, 30 Mar 2017 11:52:45 +0300
-Message-ID: <CAOQ4uxjCa1XSg_VhirsUj78CAxa5=r=AXnKpOSF09dUU4Wg6=Q@mail.gmail.com>
-References: <f3a67b6a-b8fb-78ab-fadd-504fa5d76a10@huawei.com>
- <CAOQ4uxhvrAefbxcYXv5JfBmKN==8Yo7QKiaFAa6YS8VSfpvf=A@mail.gmail.com> <a64cfa4b-f56a-2c30-e621-d28e40056944@huawei.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+Subject: [PATCH 7/7] ovl: prevent copy on read if no upper/work dir
+Date: Thu, 30 Mar 2017 14:26:20 +0300
+Message-ID: <1490873180-7433-1-git-send-email-amir73il@gmail.com>
+References: <1490798166-22310-1-git-send-email-amir73il@gmail.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-oi0-f42.google.com ([209.85.218.42]:34456 "EHLO
-        mail-oi0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750995AbdC3Iwr (ORCPT
+Received: from mail-wr0-f193.google.com ([209.85.128.193]:33002 "EHLO
+        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753898AbdC3L0Q (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 30 Mar 2017 04:52:47 -0400
-Received: by mail-oi0-f42.google.com with SMTP id o67so24416835oib.1
-        for <linux-unionfs@vger.kernel.org>; Thu, 30 Mar 2017 01:52:46 -0700 (PDT)
-In-Reply-To: <a64cfa4b-f56a-2c30-e621-d28e40056944@huawei.com>
+        Thu, 30 Mar 2017 07:26:16 -0400
+Received: by mail-wr0-f193.google.com with SMTP id u18so11205480wrc.0
+        for <linux-unionfs@vger.kernel.org>; Thu, 30 Mar 2017 04:26:15 -0700 (PDT)
+In-Reply-To: <1490798166-22310-1-git-send-email-amir73il@gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: "zhangyi (F)" <yi.zhang@huawei.com>
-Cc: linux-unionfs@vger.kernel.org, miaoxie@huawei.com, laiyuanyuan.lai@huawei.com, Miklos Szeredi <miklos@szeredi.hu>
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: linux-unionfs@vger.kernel.org
 
-On Thu, Mar 30, 2017 at 11:22 AM, zhangyi (F) <yi.zhang@huawei.com> wrote:
->
->
-> On 2017/3/30 15:03, Amir Goldstein wrote:
->>> Hi:
->>> Current overlayfs does not support underlying filesystem which have "we=
-ird" d_flags (like DCACHE_OP_HASH=EF=BC=8C
->>> DCACHE_OP_COMPARE, DCACHE_OP_REVALIDATE, etc). So we cannot support fs =
-have it's own d_hash, d_compare and
->>> d_revalidate functions.
->>
->> Not accurate. d_revalidate() is allowed for lower, but not for upper
->> (ovl_dentry_remote()).
->>
->
-> Thank you for the corrections, I see it in the ovl_lower_dir().
->
->>>
->>> Do you have a TODO plan to support it in a future version ?
->>>
->>
->> Which of the constrains is relevant to your use case? (which of the flag=
-s)
->> Do you need it for lower / upper or both?
->> Is it a proprietary file system of a known one you need to support?
->>
->
-> We want to use d_hash(), d_compare() and d_revalidate() to our own propri=
-etary file system
-> (not a remote fs, not widely used, and it's file name is case-insensitive=
-) for lower
-> and upper both, and we also need to use d_revalidate() to do some special=
- handling.
->
-> I see there were many other rarely used=EF=BC=88?=EF=BC=89file systems al=
-so use d_hash(), d_compare(),
-> d_revalidate() in kernel(such as hfs, jfs, fat, etc.), they are also not =
-supportted by ovlfs.
-> So I would like to know are these file systems need to support in future =
-?
->
+On ro mount there are only ro fd's, so all fd's of the same file
+are always consistent on a ro overlay mount.  But, if overlay can
+be later remounted rw, we need to copy on read anyway, so that
+ro fd that was opened during ro mount will be consistent with
+rw fd that is opened after remount rw.
 
-I see you are not the first that requested this feature:
-https://lkml.org/lkml/2014/10/28/1049
+Therefore, we need to disable consistent_fd feature only in case
+there are no upper/work dirs, so overlay can never be mounted rw.
 
-The solution for the general case is (too?) complex.
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+---
 
-However, for the case of all layers on the same fs, where d_hash()
-d_compare() are consistent
-across all layers, I guess this is doable and even not that hard to do.
+Miklos,
 
-The 'samefs' case is an interesting case, because it is commonly used
-by container
-managers (e.g. dockerd).
+Patch 5 should have prevented copy on read for ro mount,
+but forgot to do so.
 
-I've just posted the first overlayfs feature that depends on 'samefs'
-https://marc.info/?l=3Dlinux-unionfs&m=3D149079818122019&w=3D2
-and I have plans to develop more features for 'samefs' case (e.g. NFS expor=
-t).
+This extra patch relaxes the ro mount constrain and also
+enforces the stronger contrain of no copy up if no upper/work.
 
-I don't mind writing a POC patch for you to test your use case, but I
-will ask you
-to first write a test which mixes case insensitive names in
-lower/upper, so this patch
-can be properly tested.
-An xfstest overlay test is greatly preferred.
-I can test it with overlayfs over vfat.
+If you're ok with the patch series, I can either fold this
+patch into patch 5 or fix patch 5 and keep this one separate.
 
-Thanks,
 Amir.
+
+ fs/overlayfs/super.c | 20 ++++++++++++++++----
+ 1 file changed, 16 insertions(+), 4 deletions(-)
+
+diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+index ef159f8..688c0b0 100644
+--- a/fs/overlayfs/super.c
++++ b/fs/overlayfs/super.c
+@@ -222,6 +222,12 @@ static int ovl_statfs(struct dentry *dentry, struct kstatfs *buf)
+ 	return err;
+ }
+ 
++/* Will this overlay be forced to mount/remount ro? */
++static bool ovl_force_readonly(struct ovl_fs *ufs)
++{
++	return (!ufs->upper_mnt || !ufs->workdir);
++}
++
+ /**
+  * ovl_show_options
+  *
+@@ -243,7 +249,7 @@ static int ovl_show_options(struct seq_file *m, struct dentry *dentry)
+ 	if (ufs->config.redirect_dir != ovl_redirect_dir_def)
+ 		seq_printf(m, ",redirect_dir=%s",
+ 			   ufs->config.redirect_dir ? "on" : "off");
+-	if (!(sb->s_flags & MS_RDONLY) &&
++	if (!ovl_force_readonly(ufs) &&
+ 	    ufs->config.consistent_fd != ovl_consistent_fd_def)
+ 		seq_printf(m, ",consistent_fd=%s",
+ 			   ufs->config.consistent_fd ? "on" : "off");
+@@ -254,7 +260,7 @@ static int ovl_remount(struct super_block *sb, int *flags, char *data)
+ {
+ 	struct ovl_fs *ufs = sb->s_fs_info;
+ 
+-	if (!(*flags & MS_RDONLY) && (!ufs->upper_mnt || !ufs->workdir))
++	if (!(*flags & MS_RDONLY) && ovl_force_readonly(ufs))
+ 		return -EROFS;
+ 
+ 	return 0;
+@@ -942,8 +948,14 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
+ 	if (!ufs->upper_mnt)
+ 		sb->s_flags |= MS_RDONLY;
+ 
+-	/* Copy on read for consistent fd depends on clone support */
+-	if (!ufs->cloneup)
++	/*
++	 * Copy on read for consistent fd depends on clone support.
++	 * On ro mount fd is always consistent, but if overlay can be
++	 * later remounted rw, we need to copy on read anyway, so that
++	 * ro fd that was opened during ro mount will be consistent with
++	 * rw fd that is opened after remount rw.
++	 */
++	if (!ufs->cloneup || ovl_force_readonly(ufs))
+ 		ufs->config.consistent_fd = false;
+ 
+ 	if (remote)
+-- 
+2.7.4
