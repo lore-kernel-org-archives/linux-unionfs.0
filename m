@@ -1,47 +1,50 @@
-From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: Question about ovl_dentry_weird
-Date: Thu, 30 Mar 2017 10:03:14 +0300
-Message-ID: <CAOQ4uxhvrAefbxcYXv5JfBmKN==8Yo7QKiaFAa6YS8VSfpvf=A@mail.gmail.com>
-References: <f3a67b6a-b8fb-78ab-fadd-504fa5d76a10@huawei.com>
+From: Richard Weinberger <richard@nod.at>
+Subject: Re: [REGRESSION 4.11] Commit d8514d8edb5b ("ovl: copy up regular file
+ using O_TMPFILE") breaks ubifs
+Date: Thu, 30 Mar 2017 09:18:17 +0200
+Message-ID: <fd48872f-cd40-c236-37c4-0ed7d445380a@nod.at>
+References: <20170328100107.25095af6@gmail.com>
+ <CAOQ4uxisw5vWYsdMTNemw=MqNyS2nxfAUkg+UfoGmbE3-he1Ug@mail.gmail.com>
+ <20170328124545.3c4b87ff@gmail.com>
+ <CAOQ4uxgNfuLN93owdCUJ=9VcU4DKGVEKkEGT7siiem8quVwCsQ@mail.gmail.com>
+ <20170328132818.05871b73@gmail.com>
+ <CAOQ4uxiC=RXPwSy7NGt+Ri=Eie4-_WsUPk7Sy-sh9RdrGQuesw@mail.gmail.com>
+ <20170328141621.6bb2d639@gmail.com>
+ <CAOQ4uxg0xRchsNOh1jtbyEdyDDqV3ToCvo=+QuCsD6duGJU_ZQ@mail.gmail.com>
+ <20170329232648.0b5bc1e9@gmail.com>
+ <33155efb-2c42-a7e9-b867-06760b1e1495@nod.at>
+ <20170330075337.2ab52f3d@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-oi0-f47.google.com ([209.85.218.47]:33403 "EHLO
-        mail-oi0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932181AbdC3HDQ (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 30 Mar 2017 03:03:16 -0400
-Received: by mail-oi0-f47.google.com with SMTP id b187so21853372oif.0
-        for <linux-unionfs@vger.kernel.org>; Thu, 30 Mar 2017 00:03:15 -0700 (PDT)
-In-Reply-To: <f3a67b6a-b8fb-78ab-fadd-504fa5d76a10@huawei.com>
+Received: from b.ns.miles-group.at ([95.130.255.144]:44723 "EHLO radon.swed.at"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S933021AbdC3HSX (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Thu, 30 Mar 2017 03:18:23 -0400
+In-Reply-To: <20170330075337.2ab52f3d@gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: "zhangyi (F)" <yi.zhang@huawei.com>
-Cc: linux-unionfs@vger.kernel.org, miaoxie@huawei.com, laiyuanyuan.lai@huawei.com, Miklos Szeredi <miklos@szeredi.hu>
+To: Ralph Sennhauser <ralph.sennhauser@gmail.com>
+Cc: Amir Goldstein <amir73il@gmail.com>, Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>, linux-mtd@lists.infradead.org, regressions@leemhuis.info, Artem Bityutskiy <dedekind1@gmail.com>, Adrian Hunter <adrian.hunter@intel.com>, David Oberhollenzer <goliath@sigma-star.at>
 
-On Thu, Mar 30, 2017 at 9:48 AM, zhangyi (F) <yi.zhang@huawei.com> wrote:
-> Hi:
-> Current overlayfs does not support underlying filesystem which have "weir=
-d" d_flags (like DCACHE_OP_HASH=EF=BC=8C
-> DCACHE_OP_COMPARE, DCACHE_OP_REVALIDATE, etc). So we cannot support fs ha=
-ve it's own d_hash, d_compare and
-> d_revalidate functions.
+Ralph,
 
-Not accurate. d_revalidate() is allowed for lower, but not for upper
-(ovl_dentry_remote()).
+Am 30.03.2017 um 07:53 schrieb Ralph Sennhauser:
+> With this patch I'm no longer able to reproduce _this_ issue, however,
+> rename no longer works either:
+> 
+>   # mv /etc/config/wireless /etc/config/wireless.back
+>   mv: can't rename '/etc/config/wireless': Invalid argument
+>   # ls /etc/config/wireless
+>   /etc/config/wireless
+>   # rm /etc/config/wireless
+>   # ls /etc/config/wireless
+>   ls: /etc/config/wireless: No such file or directory
+> 
 
-I can't say I understand why upper is not allowed to be remote, so this mig=
-ht
-be fixed if there is a need and there is a tester.
-
->
-> Do you have a TODO plan to support it in a future version ?
->
-
-Which of the constrains is relevant to your use case? (which of the flags)
-Do you need it for lower / upper or both?
-Is it a proprietary file system of a known one you need to support?
+Please apply this one too:
+http://lists.infradead.org/pipermail/linux-mtd/2017-March/072613.html
 
 Thanks,
-Amir.
+//richard
