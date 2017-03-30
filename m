@@ -1,356 +1,146 @@
-From: Vivek Goyal <vgoyal@redhat.com>
-Subject: Re: [PATCH 5/6] ovl: copy on read with consistent_fd feature
-Date: Fri, 31 Mar 2017 13:58:43 -0400
-Message-ID: <20170331175843.GB3681@redhat.com>
-References: <1490798166-22310-1-git-send-email-amir73il@gmail.com>
- <1490798166-22310-6-git-send-email-amir73il@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:36921 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S933341AbdCaR6q (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 31 Mar 2017 13:58:46 -0400
-Content-Disposition: inline
-In-Reply-To: <1490798166-22310-6-git-send-email-amir73il@gmail.com>
-Sender: linux-unionfs-owner@vger.kernel.org
-List-Id: linux-unionfs@vger.kernel.org
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org
+Return-Path: <richard@nod.at>
+Date: Thu, 30 Mar 2017 08:56:57 +0200
+Subject: =?US-ASCII?Q?AW:_Re:_[REGRESSION_4.11]?=
+ =?US-ASCII?Q?_Commit_d8514d8edb5b_("ovl:?=
+ =?US-ASCII?Q?_copy_up_regular=0D__file_using_O=5FTMPFILE")_breaks_ubifs?=
+Message-ID: <pt0j2tw5gavgsksyh1yovnel.1490857017978@email.android.com>
+From: Richard Weinberger <richard@nod.at>
+MIME-Version: 1.0
+Content-Type: multipart/alternative; boundary="--_com.android.email_577081703482150"
+To: Ralph Sennhauser <ralph.sennhauser@gmail.com>
+Cc: Amir Goldstein <amir73il@gmail.com>, Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>, linux-mtd@lists.infradead.org, regressions@leemhuis.info, Artem Bityutskiy <dedekind1@gmail.com>, Adrian Hunter <adrian.hunter@intel.com>, David Oberhollenzer <goliath@sigma-star.at>
+List-ID: <linux-unionfs@vger.kernel.org>
 
-On Wed, Mar 29, 2017 at 05:36:05PM +0300, Amir Goldstein wrote:
-> Overlayfs copies up a file when the file is opened for write.  Writes
-> to the returned file descriptor are not visible to file descriptors
-> that were opened for read prior to copy up.
-> 
-> If this config option is enabled then overlay filesystems will default
-> to copy up a file that is opened for read to avoid this inconsistency.
-> In this case, it is still possible to turn off consistent fd globally
-> with the "consistent_fd=off" module option or on a filesystem instance
-> basis with the "consistent_fd=off" mount option.
+----_com.android.email_577081703482150
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: base64
 
-Hi Amir,
+CiAgICAKUmFscGgsClBsZWFzZSBhcHBseSB0aGlzIGZpeDpodHRwOi8vbGlzdHMuaW5mcmFkZWFk
+Lm9yZy9waXBlcm1haWwvbGludXgtbXRkLzIwMTctTWFyY2gvMDcyNjEzLmh0bWwKCgpWb24gbWVp
+bmVtIFNhbXN1bmcgR2Vyw6R0IGdlc2VuZGV0LgoKLS0tLS0tLS0gVXJzcHLDvG5nbGljaGUgTmFj
+aHJpY2h0IC0tLS0tLS0tClZvbjogUmFscGggU2VubmhhdXNlciA8cmFscGguc2VubmhhdXNlckBn
+bWFpbC5jb20+IApEYXR1bTogMzAuMDMuMTcgIDA3OjUzICAoR01UKzAxOjAwKSAKQW46IFJpY2hh
+cmQgV2VpbmJlcmdlciA8cmljaGFyZEBub2QuYXQ+IApDYzogQW1pciBHb2xkc3RlaW4gPGFtaXI3
+M2lsQGdtYWlsLmNvbT4sIE1pa2xvcyBTemVyZWRpIDxtaWtsb3NAc3plcmVkaS5odT4sIGxpbnV4
+LXVuaW9uZnNAdmdlci5rZXJuZWwub3JnLCBsaW51eC1rZXJuZWwgPGxpbnV4LWtlcm5lbEB2Z2Vy
+Lmtlcm5lbC5vcmc+LCBsaW51eC1tdGRAbGlzdHMuaW5mcmFkZWFkLm9yZywgcmVncmVzc2lvbnNA
+bGVlbWh1aXMuaW5mbywgQXJ0ZW0gQml0eXV0c2tpeSA8ZGVkZWtpbmQxQGdtYWlsLmNvbT4sIEFk
+cmlhbiBIdW50ZXIgPGFkcmlhbi5odW50ZXJAaW50ZWwuY29tPiwgRGF2aWQgT2JlcmhvbGxlbnpl
+ciA8Z29saWF0aEBzaWdtYS1zdGFyLmF0PiAKQmV0cmVmZjogUmU6IFtSRUdSRVNTSU9OIDQuMTFd
+IENvbW1pdCBkODUxNGQ4ZWRiNWIgKCJvdmw6IGNvcHkgdXAgcmVndWxhcg0mbmJzcDsgZmlsZSB1
+c2luZyBPX1RNUEZJTEUiKSBicmVha3MgdWJpZnMgCgpIaSBSaWNoYXJkLAoKT24gVGh1LCAzMCBN
+YXIgMjAxNyAwMDoxNTozMSArMDIwMApSaWNoYXJkIFdlaW5iZXJnZXIgPHJpY2hhcmRAbm9kLmF0
+PiB3cm90ZToKCj4gUmFscGgsCj4gCj4gQW0gMjkuMDMuMjAxNyB1bSAyMzoyNiBzY2hyaWViIFJh
+bHBoIFNlbm5oYXVzZXI6Cj4gPj4gIyBjcmVhdGUgYW5kIGxpbmsgYSB0bXBmaWxlIC0gdGhlbiBy
+ZW1vdmUgaXQKPiA+PiBzdWRvIHJtIC1yZiBmb287IHN1ZG8geGZzX2lvIC1UIC1jICJmbGluayBm
+b28iIC4gOyBscyAtbCBmb287IHN1ZG8KPiA+PiBybSBmb2/CoCAKPiA+IAo+ID4gbmV4dC0yMDE3
+MDMyOCwgb2J2aW91c2x5IHdpdGhvdXQgeW91ciBwYXRjaDoKPiA+IAo+ID7CoMKgICMgeGZzX2lv
+IC1UIC1jICJmbGluayBmb28iIC4KPiA+wqDCoCAuOiBOb3Qgc3VwcG9ydGVkwqAgCj4gCj4gLVQg
+dGVsbHMgeGZzX2lvIHRvIGNyZWF0ZSBhIHRtcGZpbGUgYnV0IHlvdSBoYXZlIGl0IGRpc2FibGVk
+IGluIFVCSUZTLgoKQmFzaCBoaXN0b3J5IHNheXMgSSBib290ZWQgdGhlIG90aGVyIHBhcnRpdGlv
+biB0aGFuIEkgZmxhc2hlZCAodW5hbWUKanVzdCBoYXBwZW5lZCB0byBtYXRjaCksIHRoZSBkb3du
+c2lkZSBvZiB0aGUgZHVhbCBib290IGxheW91dC4gOikKCsKgICMgcm0gLXJmIGZvbwrCoCAjIHhm
+c19pbyAtVCAtYyAiZmxpbmsgZm9vIiAuCsKgICMgbHMgLWwgZm9vCsKgIC1ydy0tLS0tLS3CoMKg
+wqAgMSByb290wqDCoMKgwqAgcm9vdMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoCAwIE1hciAzMCAw
+MjowMCBmb28KwqAgIyBybSBmb28KwqAgW8KgIDMwNS4wMDE0MzZdIFVCSUZTIGVycm9yICh1Ymkw
+OjAgcGlkIDI0OTMpOiB1Ymlmc19hZGRfb3JwaGFuOiBvcnBoYW5lZCB0d2ljZQoKSG93ZXZlciwg
+dW5saWtlIHdpdGggdGhlIG92ZXJsYXkgc2V0dXAgdGhlIGZpbGVzeXN0ZW0gY2FuIGJlIG1vdW50
+ZWQKanVzdCBmaW5lIHdpdGhvdXQgaW1lZGlhdGx5IHZpc2libGUgc2lkZSBlZmZlY3RzLgoKPiAK
+PiBBbnl3YXksIGNhbiB5b3UgcGxlYXNlIHRlc3QgdGhlIGF0dGFjaGVkIHBhdGNoPwo+IEFtaXIg
+d2FzIHJpZ2h0LCBVQklGUyBtaXNzZXMgYSBjb3JuZXIgY2FzZSBpbiB1Ymlmc19saW5rKCkuIDst
+XAo+IAo+IEkgdGhpbmsgSSB1bmRlcnN0YW5kIGFsc28gd2h5IHdlIG5ldmVyIG5vdGljZWQgdGhp
+cyBpbiB4ZnN0ZXN0cywKPiBVQklGUyBwcmludHMgb25seSBhIG5vbi1mYXRhbCBlcnJvciB3aGls
+ZSB1bW91bnRpbmcgdGhlIGZpbGVzeXN0ZW0gaW4KPiB0aGlzIGNhc2UuIEJ1dCB3aWxsIHRlc3Qg
+dG9tb3Jyb3cgaW4gbW9yZSBkZXRhaWwsIG5lZWQgc29tZSBzbGVlcCBub3cuCj4gCj4gZGlmZiAt
+LWdpdCBhL2ZzL3ViaWZzL2Rpci5jIGIvZnMvdWJpZnMvZGlyLmMKPiBpbmRleCAzMDgyNWQ4ODJh
+YTkuLjk1ZTM0OGEyZGEyOSAxMDA2NDQKPiAtLS0gYS9mcy91Ymlmcy9kaXIuYwo+ICsrKyBiL2Zz
+L3ViaWZzL2Rpci5jCj4gQEAgLTc0OCw2ICs3NDgsOSBAQCBzdGF0aWMgaW50IHViaWZzX2xpbmso
+c3RydWN0IGRlbnRyeSAqb2xkX2RlbnRyeSwKPiBzdHJ1Y3QgaW5vZGUgKmRpciwgZ290byBvdXRf
+Zm5hbWU7Cj4gCj7CoCAJbG9ja18yX2lub2RlcyhkaXIsIGlub2RlKTsKPiArCWlmIChpbm9kZS0+
+aV9ubGluayA9PSAwKQo+ICsJCXViaWZzX2RlbGV0ZV9vcnBoYW4oYywgaW5vZGUtPmlfaW5vKTsK
+PiArCj7CoCAJaW5jX25saW5rKGlub2RlKTsKPsKgIAlpaG9sZChpbm9kZSk7Cj7CoCAJaW5vZGUt
+PmlfY3RpbWUgPSB1Ymlmc19jdXJyZW50X3RpbWUoaW5vZGUpOwo+IAo+IFRoYW5rcywKPiAvL3Jp
+Y2hhcmQKCldpdGggdGhpcyBwYXRjaCBJJ20gbm8gbG9uZ2VyIGFibGUgdG8gcmVwcm9kdWNlIF90
+aGlzXyBpc3N1ZSwgaG93ZXZlciwKcmVuYW1lIG5vIGxvbmdlciB3b3JrcyBlaXRoZXI6CgrCoCAj
+IG12IC9ldGMvY29uZmlnL3dpcmVsZXNzIC9ldGMvY29uZmlnL3dpcmVsZXNzLmJhY2sKwqAgbXY6
+IGNhbid0IHJlbmFtZSAnL2V0Yy9jb25maWcvd2lyZWxlc3MnOiBJbnZhbGlkIGFyZ3VtZW50CsKg
+ICMgbHMgL2V0Yy9jb25maWcvd2lyZWxlc3MKwqAgL2V0Yy9jb25maWcvd2lyZWxlc3MKwqAgIyBy
+bSAvZXRjL2NvbmZpZy93aXJlbGVzcwrCoCAjIGxzIC9ldGMvY29uZmlnL3dpcmVsZXNzCsKgIGxz
+OiAvZXRjL2NvbmZpZy93aXJlbGVzczogTm8gc3VjaCBmaWxlIG9yIGRpcmVjdG9yeQoKClRoYW5r
+cwpSYWxwaAo=
 
-So all readers will pay a small cost of copying up file always (as temp
-file). I am curious to know if that cost is significant.
+----_com.android.email_577081703482150
+Content-Type: text/html; charset=utf-8
+Content-Transfer-Encoding: base64
 
-Are there any other downsides of opting in for this behavior by default.
-I am assuming page cache usage will not be higher due to clone operation.
+PGh0bWw+PGhlYWQ+PG1ldGEgaHR0cC1lcXVpdj0iQ29udGVudC1UeXBlIiBjb250ZW50PSJ0ZXh0
+L2h0bWw7IGNoYXJzZXQ9VVRGLTgiPjwvaGVhZD48Ym9keT4KICAgIAo8ZGl2PlJhbHBoLDwvZGl2
+PjxkaXY+PGJyPjwvZGl2PjxkaXY+UGxlYXNlIGFwcGx5IHRoaXMgZml4OjwvZGl2PjxkaXY+aHR0
+cDovL2xpc3RzLmluZnJhZGVhZC5vcmcvcGlwZXJtYWlsL2xpbnV4LW10ZC8yMDE3LU1hcmNoLzA3
+MjYxMy5odG1sPC9kaXY+PGRpdj48YnI+PC9kaXY+PGRpdj48YnI+PC9kaXY+PGRpdj48YnI+PC9k
+aXY+PGRpdiBpZD0iY29tcG9zZXJfc2lnbmF0dXJlIj48ZGl2IHN0eWxlPSJmb250LXNpemU6ODgl
+O2NvbG9yOiMzNjRmNjciIGRpcj0iYXV0byI+Vm9uIG1laW5lbSBTYW1zdW5nIEdlcsOkdCBnZXNl
+bmRldC48L2Rpdj48L2Rpdj48YnI+PGJyPi0tLS0tLS0tIFVyc3Byw7xuZ2xpY2hlIE5hY2hyaWNo
+dCAtLS0tLS0tLTxicj5Wb246IFJhbHBoIFNlbm5oYXVzZXIgJmx0O3JhbHBoLnNlbm5oYXVzZXJA
+Z21haWwuY29tJmd0OyA8YnI+RGF0dW06IDMwLjAzLjE3ICAwNzo1MyAgKEdNVCswMTowMCkgPGJy
+PkFuOiBSaWNoYXJkIFdlaW5iZXJnZXIgJmx0O3JpY2hhcmRAbm9kLmF0Jmd0OyA8YnI+Q2M6IEFt
+aXIgR29sZHN0ZWluICZsdDthbWlyNzNpbEBnbWFpbC5jb20mZ3Q7LCBNaWtsb3MgU3plcmVkaSAm
+bHQ7bWlrbG9zQHN6ZXJlZGkuaHUmZ3Q7LCBsaW51eC11bmlvbmZzQHZnZXIua2VybmVsLm9yZywg
+bGludXgta2VybmVsICZsdDtsaW51eC1rZXJuZWxAdmdlci5rZXJuZWwub3JnJmd0OywgbGludXgt
+bXRkQGxpc3RzLmluZnJhZGVhZC5vcmcsIHJlZ3Jlc3Npb25zQGxlZW1odWlzLmluZm8sIEFydGVt
+IEJpdHl1dHNraXkgJmx0O2RlZGVraW5kMUBnbWFpbC5jb20mZ3Q7LCBBZHJpYW4gSHVudGVyICZs
+dDthZHJpYW4uaHVudGVyQGludGVsLmNvbSZndDssIERhdmlkIE9iZXJob2xsZW56ZXIgJmx0O2dv
+bGlhdGhAc2lnbWEtc3Rhci5hdCZndDsgPGJyPkJldHJlZmY6IFJlOiBbUkVHUkVTU0lPTiA0LjEx
+XSBDb21taXQgZDg1MTRkOGVkYjViICgib3ZsOiBjb3B5IHVwIHJlZ3VsYXINJm5ic3A7IGZpbGUg
+dXNpbmcgT19UTVBGSUxFIikgYnJlYWtzIHViaWZzIDxicj48YnI+SGkgUmljaGFyZCw8YnI+PGJy
+Pk9uIFRodSwgMzAgTWFyIDIwMTcgMDA6MTU6MzEgKzAyMDA8YnI+UmljaGFyZCBXZWluYmVyZ2Vy
+ICZsdDtyaWNoYXJkQG5vZC5hdCZndDsgd3JvdGU6PGJyPjxicj4mZ3Q7IFJhbHBoLDxicj4mZ3Q7
+IDxicj4mZ3Q7IEFtIDI5LjAzLjIwMTcgdW0gMjM6MjYgc2NocmllYiBSYWxwaCBTZW5uaGF1c2Vy
+Ojxicj4mZ3Q7ICZndDsmZ3Q7ICMgY3JlYXRlIGFuZCBsaW5rIGEgdG1wZmlsZSAtIHRoZW4gcmVt
+b3ZlIGl0PGJyPiZndDsgJmd0OyZndDsgc3VkbyBybSAtcmYgZm9vOyBzdWRvIHhmc19pbyAtVCAt
+YyAiZmxpbmsgZm9vIiAuIDsgbHMgLWwgZm9vOyBzdWRvPGJyPiZndDsgJmd0OyZndDsgcm0gZm9v
+Jm5ic3A7IDxicj4mZ3Q7ICZndDsgPGJyPiZndDsgJmd0OyBuZXh0LTIwMTcwMzI4LCBvYnZpb3Vz
+bHkgd2l0aG91dCB5b3VyIHBhdGNoOjxicj4mZ3Q7ICZndDsgPGJyPiZndDsgJmd0OyZuYnNwOyZu
+YnNwOyAjIHhmc19pbyAtVCAtYyAiZmxpbmsgZm9vIiAuPGJyPiZndDsgJmd0OyZuYnNwOyZuYnNw
+OyAuOiBOb3Qgc3VwcG9ydGVkJm5ic3A7IDxicj4mZ3Q7IDxicj4mZ3Q7IC1UIHRlbGxzIHhmc19p
+byB0byBjcmVhdGUgYSB0bXBmaWxlIGJ1dCB5b3UgaGF2ZSBpdCBkaXNhYmxlZCBpbiBVQklGUy48
+YnI+PGJyPkJhc2ggaGlzdG9yeSBzYXlzIEkgYm9vdGVkIHRoZSBvdGhlciBwYXJ0aXRpb24gdGhh
+biBJIGZsYXNoZWQgKHVuYW1lPGJyPmp1c3QgaGFwcGVuZWQgdG8gbWF0Y2gpLCB0aGUgZG93bnNp
+ZGUgb2YgdGhlIGR1YWwgYm9vdCBsYXlvdXQuIDopPGJyPjxicj4mbmJzcDsgIyBybSAtcmYgZm9v
+PGJyPiZuYnNwOyAjIHhmc19pbyAtVCAtYyAiZmxpbmsgZm9vIiAuPGJyPiZuYnNwOyAjIGxzIC1s
+IGZvbzxicj4mbmJzcDsgLXJ3LS0tLS0tLSZuYnNwOyZuYnNwOyZuYnNwOyAxIHJvb3QmbmJzcDsm
+bmJzcDsmbmJzcDsmbmJzcDsgcm9vdCZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNw
+OyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyAwIE1hciAzMCAwMjowMCBmb288
+YnI+Jm5ic3A7ICMgcm0gZm9vPGJyPiZuYnNwOyBbJm5ic3A7IDMwNS4wMDE0MzZdIFVCSUZTIGVy
+cm9yICh1YmkwOjAgcGlkIDI0OTMpOiB1Ymlmc19hZGRfb3JwaGFuOiBvcnBoYW5lZCB0d2ljZTxi
+cj48YnI+SG93ZXZlciwgdW5saWtlIHdpdGggdGhlIG92ZXJsYXkgc2V0dXAgdGhlIGZpbGVzeXN0
+ZW0gY2FuIGJlIG1vdW50ZWQ8YnI+anVzdCBmaW5lIHdpdGhvdXQgaW1lZGlhdGx5IHZpc2libGUg
+c2lkZSBlZmZlY3RzLjxicj48YnI+Jmd0OyA8YnI+Jmd0OyBBbnl3YXksIGNhbiB5b3UgcGxlYXNl
+IHRlc3QgdGhlIGF0dGFjaGVkIHBhdGNoPzxicj4mZ3Q7IEFtaXIgd2FzIHJpZ2h0LCBVQklGUyBt
+aXNzZXMgYSBjb3JuZXIgY2FzZSBpbiB1Ymlmc19saW5rKCkuIDstXDxicj4mZ3Q7IDxicj4mZ3Q7
+IEkgdGhpbmsgSSB1bmRlcnN0YW5kIGFsc28gd2h5IHdlIG5ldmVyIG5vdGljZWQgdGhpcyBpbiB4
+ZnN0ZXN0cyw8YnI+Jmd0OyBVQklGUyBwcmludHMgb25seSBhIG5vbi1mYXRhbCBlcnJvciB3aGls
+ZSB1bW91bnRpbmcgdGhlIGZpbGVzeXN0ZW0gaW48YnI+Jmd0OyB0aGlzIGNhc2UuIEJ1dCB3aWxs
+IHRlc3QgdG9tb3Jyb3cgaW4gbW9yZSBkZXRhaWwsIG5lZWQgc29tZSBzbGVlcCBub3cuPGJyPiZn
+dDsgPGJyPiZndDsgZGlmZiAtLWdpdCBhL2ZzL3ViaWZzL2Rpci5jIGIvZnMvdWJpZnMvZGlyLmM8
+YnI+Jmd0OyBpbmRleCAzMDgyNWQ4ODJhYTkuLjk1ZTM0OGEyZGEyOSAxMDA2NDQ8YnI+Jmd0OyAt
+LS0gYS9mcy91Ymlmcy9kaXIuYzxicj4mZ3Q7ICsrKyBiL2ZzL3ViaWZzL2Rpci5jPGJyPiZndDsg
+QEAgLTc0OCw2ICs3NDgsOSBAQCBzdGF0aWMgaW50IHViaWZzX2xpbmsoc3RydWN0IGRlbnRyeSAq
+b2xkX2RlbnRyeSw8YnI+Jmd0OyBzdHJ1Y3QgaW5vZGUgKmRpciwgZ290byBvdXRfZm5hbWU7PGJy
+PiZndDsgPGJyPiZndDsmbmJzcDsgCWxvY2tfMl9pbm9kZXMoZGlyLCBpbm9kZSk7PGJyPiZndDsg
+KwlpZiAoaW5vZGUtJmd0O2lfbmxpbmsgPT0gMCk8YnI+Jmd0OyArCQl1Ymlmc19kZWxldGVfb3Jw
+aGFuKGMsIGlub2RlLSZndDtpX2lubyk7PGJyPiZndDsgKzxicj4mZ3Q7Jm5ic3A7IAlpbmNfbmxp
+bmsoaW5vZGUpOzxicj4mZ3Q7Jm5ic3A7IAlpaG9sZChpbm9kZSk7PGJyPiZndDsmbmJzcDsgCWlu
+b2RlLSZndDtpX2N0aW1lID0gdWJpZnNfY3VycmVudF90aW1lKGlub2RlKTs8YnI+Jmd0OyA8YnI+
+Jmd0OyBUaGFua3MsPGJyPiZndDsgLy9yaWNoYXJkPGJyPjxicj5XaXRoIHRoaXMgcGF0Y2ggSSdt
+IG5vIGxvbmdlciBhYmxlIHRvIHJlcHJvZHVjZSBfdGhpc18gaXNzdWUsIGhvd2V2ZXIsPGJyPnJl
+bmFtZSBubyBsb25nZXIgd29ya3MgZWl0aGVyOjxicj48YnI+Jm5ic3A7ICMgbXYgL2V0Yy9jb25m
+aWcvd2lyZWxlc3MgL2V0Yy9jb25maWcvd2lyZWxlc3MuYmFjazxicj4mbmJzcDsgbXY6IGNhbid0
+IHJlbmFtZSAnL2V0Yy9jb25maWcvd2lyZWxlc3MnOiBJbnZhbGlkIGFyZ3VtZW50PGJyPiZuYnNw
+OyAjIGxzIC9ldGMvY29uZmlnL3dpcmVsZXNzPGJyPiZuYnNwOyAvZXRjL2NvbmZpZy93aXJlbGVz
+czxicj4mbmJzcDsgIyBybSAvZXRjL2NvbmZpZy93aXJlbGVzczxicj4mbmJzcDsgIyBscyAvZXRj
+L2NvbmZpZy93aXJlbGVzczxicj4mbmJzcDsgbHM6IC9ldGMvY29uZmlnL3dpcmVsZXNzOiBObyBz
+dWNoIGZpbGUgb3IgZGlyZWN0b3J5PGJyPjxicj48YnI+VGhhbmtzPGJyPlJhbHBoPGJyPjwvYm9k
+eT48L2h0bWw+
 
-Vivek
-
-
-> 
-> The feature will not be turned on for an overlay mount unless all
-> the layers are on the same underlying filesystem and this filesystem
-> supports clone.
-> 
-> This introduces a slight change in d_real() semantics. Now d_real()
-> may return an error with NULL inode argument also in the zero open
-> flags case. vfs API documentation has been updated.
-> 
-> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
-> ---
->  Documentation/filesystems/vfs.txt | 13 ++++++-------
->  fs/overlayfs/Kconfig              | 18 ++++++++++++++++++
->  fs/overlayfs/inode.c              | 27 ++++++++++++++++-----------
->  fs/overlayfs/overlayfs.h          |  4 +++-
->  fs/overlayfs/ovl_entry.h          |  2 ++
->  fs/overlayfs/super.c              | 37 +++++++++++++++++++++++++++++++++----
->  fs/overlayfs/util.c               |  7 +++++++
->  7 files changed, 85 insertions(+), 23 deletions(-)
-> 
-> diff --git a/Documentation/filesystems/vfs.txt b/Documentation/filesystems/vfs.txt
-> index 5692117..0dd317b 100644
-> --- a/Documentation/filesystems/vfs.txt
-> +++ b/Documentation/filesystems/vfs.txt
-> @@ -1088,22 +1088,21 @@ struct dentry_operations {
->  	dentry being transited from.
->  
->    d_real: overlay/union type filesystems implement this method to return one of
-> -	the underlying dentries hidden by the overlay.  It is used in three
-> +	the underlying dentries hidden by the overlay.  It is used in two
->  	different modes:
->  
->  	Called from open it may need to copy-up the file depending on the
-> -	supplied open flags.  This mode is selected with a non-zero flags
-> -	argument.  In this mode the d_real method can return an error.
-> +	supplied open flags.  It returns the upper real dentry if file was
-> +	copied up or the topmost real underlying dentry otherwise.
-> +	This mode is selected with a NULL inode argument.
-> +	In this mode the d_real method can return an error.
->  
->  	Called from file_dentry() it returns the real dentry matching the inode
->  	argument.  The real dentry may be from a lower layer already copied up,
->  	but still referenced from the file.  This mode is selected with a
->  	non-NULL inode argument.  This will always succeed.
->  
-> -	With NULL inode and zero flags the topmost real underlying dentry is
-> -	returned.  This will always succeed.
-> -
-> -	This method is never called with both non-NULL inode and non-zero flags.
-> +	This method is never called with non-NULL inode and non-zero open flags.
->  
->  Each dentry has a pointer to its parent dentry, as well as a hash list
->  of child dentries. Child dentries are basically like files in a
-> diff --git a/fs/overlayfs/Kconfig b/fs/overlayfs/Kconfig
-> index 0daac51..7425862 100644
-> --- a/fs/overlayfs/Kconfig
-> +++ b/fs/overlayfs/Kconfig
-> @@ -22,3 +22,21 @@ config OVERLAY_FS_REDIRECT_DIR
->  	  Note, that redirects are not backward compatible.  That is, mounting
->  	  an overlay which has redirects on a kernel that doesn't support this
->  	  feature will have unexpected results.
-> +
-> +config OVERLAY_FS_CONSISTENT_FD
-> +	bool "Overlayfs: turn on consistent fd feature by default"
-> +	depends on OVERLAY_FS
-> +	help
-> +	  Overlayfs copies up a file when the file is opened for write.  Writes
-> +          to the returned file descriptor are not visible to file descriptors
-> +          that were opened for read prior to copy up.
-> +
-> +          If this config option is enabled then overlay filesystems will default
-> +          to copy up a file that is opened for read to avoid this inconsistency.
-> +          In this case, it is still possible to turn off consistent fd globally
-> +          with the "consistent_fd=off" module option or on a filesystem instance
-> +          basis with the "consistent_fd=off" mount option.
-> +
-> +          The feature will not be turned on for an overlay mount unless all
-> +          the layers are on the same underlying filesystem and this filesystem
-> +          supports clone.
-> diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
-> index 17b8418..f2f55e1 100644
-> --- a/fs/overlayfs/inode.c
-> +++ b/fs/overlayfs/inode.c
-> @@ -231,7 +231,7 @@ struct posix_acl *ovl_get_acl(struct inode *inode, int type)
->  }
->  
->  static bool ovl_open_need_copy_up(int flags, enum ovl_path_type type,
-> -				  struct dentry *realdentry)
-> +				  struct dentry *realdentry, bool rocopyup)
->  {
->  	if (OVL_TYPE_UPPER(type))
->  		return false;
-> @@ -239,25 +239,30 @@ static bool ovl_open_need_copy_up(int flags, enum ovl_path_type type,
->  	if (special_file(realdentry->d_inode->i_mode))
->  		return false;
->  
-> +	/* Copy up on open for read for consistent fd */
-> +	if (rocopyup)
-> +		return true;
-> +
->  	if (!(OPEN_FMODE(flags) & FMODE_WRITE) && !(flags & O_TRUNC))
->  		return false;
->  
->  	return true;
->  }
->  
-> -int ovl_open_maybe_copy_up(struct dentry *dentry, unsigned int file_flags)
-> +int ovl_open_maybe_copy_up(struct dentry *dentry, unsigned int file_flags,
-> +			   bool rocopyup)
->  {
->  	int err = 0;
->  	struct path realpath;
-> -	enum ovl_path_type type;
-> -
-> -	type = ovl_path_real(dentry, &realpath);
-> -	if (ovl_open_need_copy_up(file_flags, type, realpath.dentry)) {
-> -		err = ovl_want_write(dentry);
-> -		if (!err) {
-> -			err = ovl_copy_up_flags(dentry, file_flags);
-> -			ovl_drop_write(dentry);
-> -		}
-> +	enum ovl_path_type type = ovl_path_real(dentry, &realpath);
-> +
-> +	if (!ovl_open_need_copy_up(file_flags, type, realpath.dentry, rocopyup))
-> +		return 0;
-> +
-> +	err = ovl_want_write(dentry);
-> +	if (!err) {
-> +		err = ovl_copy_up_flags(dentry, file_flags);
-> +		ovl_drop_write(dentry);
->  	}
->  
->  	return err;
-> diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-> index 079051e..d13ad5f 100644
-> --- a/fs/overlayfs/overlayfs.h
-> +++ b/fs/overlayfs/overlayfs.h
-> @@ -169,6 +169,7 @@ void ovl_set_dir_cache(struct dentry *dentry, struct ovl_dir_cache *cache);
->  bool ovl_dentry_is_opaque(struct dentry *dentry);
->  bool ovl_dentry_is_whiteout(struct dentry *dentry);
->  void ovl_dentry_set_opaque(struct dentry *dentry);
-> +bool ovl_consistent_fd(struct super_block *sb);
->  bool ovl_redirect_dir(struct super_block *sb);
->  void ovl_clear_redirect_dir(struct super_block *sb);
->  const char *ovl_dentry_get_redirect(struct dentry *dentry);
-> @@ -207,7 +208,8 @@ int ovl_xattr_get(struct dentry *dentry, const char *name,
->  		  void *value, size_t size);
->  ssize_t ovl_listxattr(struct dentry *dentry, char *list, size_t size);
->  struct posix_acl *ovl_get_acl(struct inode *inode, int type);
-> -int ovl_open_maybe_copy_up(struct dentry *dentry, unsigned int file_flags);
-> +int ovl_open_maybe_copy_up(struct dentry *dentry, unsigned int file_flags,
-> +			   bool rocopyup);
->  int ovl_update_time(struct inode *inode, struct timespec *ts, int flags);
->  bool ovl_is_private_xattr(const char *name);
->  
-> diff --git a/fs/overlayfs/ovl_entry.h b/fs/overlayfs/ovl_entry.h
-> index fb1210d..c11a72d 100644
-> --- a/fs/overlayfs/ovl_entry.h
-> +++ b/fs/overlayfs/ovl_entry.h
-> @@ -14,6 +14,7 @@ struct ovl_config {
->  	char *workdir;
->  	bool default_permissions;
->  	bool redirect_dir;
-> +	bool consistent_fd;
->  };
->  
->  /* private information held for overlayfs's superblock */
-> @@ -30,6 +31,7 @@ struct ovl_fs {
->  	bool tmpfile;	/* upper supports O_TMPFILE */
->  	bool samefs;	/* all layers on same fs */
->  	bool cloneup;	/* can clone from lower to upper */
-> +	bool rocopyup;	/* copy up on open for read */
->  	wait_queue_head_t copyup_wq;
->  };
->  
-> diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-> index 75b93d6..e5fd53a 100644
-> --- a/fs/overlayfs/super.c
-> +++ b/fs/overlayfs/super.c
-> @@ -34,6 +34,11 @@ module_param_named(redirect_dir, ovl_redirect_dir_def, bool, 0644);
->  MODULE_PARM_DESC(ovl_redirect_dir_def,
->  		 "Default to on or off for the redirect_dir feature");
->  
-> +static bool ovl_consistent_fd_def = IS_ENABLED(CONFIG_OVERLAY_FS_CONSISTENT_FD);
-> +module_param_named(consistent_fd, ovl_consistent_fd_def, bool, 0644);
-> +MODULE_PARM_DESC(ovl_consistent_fd_def,
-> +		 "Default to on or off for the consistent_fd feature");
-> +
->  static void ovl_dentry_release(struct dentry *dentry)
->  {
->  	struct ovl_entry *oe = dentry->d_fsdata;
-> @@ -54,6 +59,10 @@ static struct dentry *ovl_d_real(struct dentry *dentry,
->  				 unsigned int open_flags)
->  {
->  	struct dentry *real;
-> +	bool rocopyup = !inode && ovl_consistent_fd(dentry->d_sb);
-> +
-> +	if (WARN_ON(open_flags && inode))
-> +		return dentry;
->  
->  	if (!d_is_reg(dentry)) {
->  		if (!inode || inode == d_inode(dentry))
-> @@ -64,8 +73,8 @@ static struct dentry *ovl_d_real(struct dentry *dentry,
->  	if (d_is_negative(dentry))
->  		return dentry;
->  
-> -	if (open_flags) {
-> -		int err = ovl_open_maybe_copy_up(dentry, open_flags);
-> +	if (open_flags || rocopyup) {
-> +		int err = ovl_open_maybe_copy_up(dentry, open_flags, rocopyup);
->  
->  		if (err)
->  			return ERR_PTR(err);
-> @@ -227,6 +236,10 @@ static int ovl_show_options(struct seq_file *m, struct dentry *dentry)
->  	if (ufs->config.redirect_dir != ovl_redirect_dir_def)
->  		seq_printf(m, ",redirect_dir=%s",
->  			   ufs->config.redirect_dir ? "on" : "off");
-> +	if (!(sb->s_flags & MS_RDONLY) &&
-> +	    ufs->config.consistent_fd != ovl_consistent_fd_def)
-> +		seq_printf(m, ",consistent_fd=%s",
-> +			   ufs->config.consistent_fd ? "on" : "off");
->  	return 0;
->  }
->  
-> @@ -256,6 +269,8 @@ enum {
->  	OPT_DEFAULT_PERMISSIONS,
->  	OPT_REDIRECT_DIR_ON,
->  	OPT_REDIRECT_DIR_OFF,
-> +	OPT_CONSISTENT_FD_ON,
-> +	OPT_CONSISTENT_FD_OFF,
->  	OPT_ERR,
->  };
->  
-> @@ -266,6 +281,8 @@ static const match_table_t ovl_tokens = {
->  	{OPT_DEFAULT_PERMISSIONS,	"default_permissions"},
->  	{OPT_REDIRECT_DIR_ON,		"redirect_dir=on"},
->  	{OPT_REDIRECT_DIR_OFF,		"redirect_dir=off"},
-> +	{OPT_CONSISTENT_FD_ON,		"consistent_fd=on"},
-> +	{OPT_CONSISTENT_FD_OFF,		"consistent_fd=off"},
->  	{OPT_ERR,			NULL}
->  };
->  
-> @@ -338,6 +355,14 @@ static int ovl_parse_opt(char *opt, struct ovl_config *config)
->  			config->redirect_dir = false;
->  			break;
->  
-> +		case OPT_CONSISTENT_FD_ON:
-> +			config->consistent_fd = true;
-> +			break;
-> +
-> +		case OPT_CONSISTENT_FD_OFF:
-> +			config->consistent_fd = false;
-> +			break;
-> +
->  		default:
->  			pr_err("overlayfs: unrecognized mount option \"%s\" or missing value\n", p);
->  			return -EINVAL;
-> @@ -732,6 +757,7 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
->  
->  	init_waitqueue_head(&ufs->copyup_wq);
->  	ufs->config.redirect_dir = ovl_redirect_dir_def;
-> +	ufs->config.consistent_fd = ovl_consistent_fd_def;
->  	err = ovl_parse_opt((char *) data, &ufs->config);
->  	if (err)
->  		goto out_free_config;
-> @@ -862,11 +888,10 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
->  			if (!err)
->  				pr_warn("overlayfs: upper fs needs to support d_type.\n");
->  
-> -			/* Check if upper/work fs supports O_TMPFILE */
-> +			/* Check if upper fs supports O_TMPFILE and clone */
->  			temp = ovl_do_tmpfile(ufs->workdir, S_IFREG | 0);
->  			ufs->tmpfile = !IS_ERR(temp);
->  			if (ufs->tmpfile) {
-> -				/* Check if upper/work supports clone */
->  				if (temp->d_inode && temp->d_inode->i_fop &&
->  				    temp->d_inode->i_fop->clone_file_range)
->  					ufs->cloneup = true;
-> @@ -910,6 +935,10 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
->  	if (!ufs->upper_mnt)
->  		sb->s_flags |= MS_RDONLY;
->  
-> +	/* Copy on read for consistent fd depends on clone support */
-> +	if (!ufs->cloneup)
-> +		ufs->config.consistent_fd = false;
-> +
->  	if (remote)
->  		sb->s_d_op = &ovl_reval_dentry_operations;
->  	else
-> diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
-> index 159e851..be0a993 100644
-> --- a/fs/overlayfs/util.c
-> +++ b/fs/overlayfs/util.c
-> @@ -195,6 +195,13 @@ void ovl_dentry_set_opaque(struct dentry *dentry)
->  	oe->__type |= __OVL_PATH_OPAQUE;
->  }
->  
-> +bool ovl_consistent_fd(struct super_block *sb)
-> +{
-> +	struct ovl_fs *ofs = sb->s_fs_info;
-> +
-> +	return ofs->config.consistent_fd;
-> +}
-> +
->  bool ovl_redirect_dir(struct super_block *sb)
->  {
->  	struct ovl_fs *ofs = sb->s_fs_info;
-> -- 
-> 2.7.4
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-unionfs" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+----_com.android.email_577081703482150--
