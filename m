@@ -1,134 +1,54 @@
-From: Ralph Sennhauser <ralph.sennhauser@gmail.com>
-Subject: Re: [REGRESSION 4.11] Commit d8514d8edb5b ("ovl: copy up regular
- file using O_TMPFILE") breaks ubifs
-Date: Thu, 30 Mar 2017 09:28:31 +0200
-Message-ID: <20170330092831.6c88f362@gmail.com>
-References: <pt0j2tw5gavgsksyh1yovnel.1490857017978@email.android.com>
+From: "zhangyi (F)" <yi.zhang@huawei.com>
+Subject: Re: Question about ovl_dentry_weird
+Date: Thu, 30 Mar 2017 16:22:59 +0800
+Message-ID: <a64cfa4b-f56a-2c30-e621-d28e40056944@huawei.com>
+References: <f3a67b6a-b8fb-78ab-fadd-504fa5d76a10@huawei.com>
+ <CAOQ4uxhvrAefbxcYXv5JfBmKN==8Yo7QKiaFAa6YS8VSfpvf=A@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wr0-f193.google.com ([209.85.128.193]:36746 "EHLO
-        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932651AbdC3H2g (ORCPT
+Received: from szxga01-in.huawei.com ([45.249.212.187]:4814 "EHLO
+        dggrg01-dlp.huawei.com" rhost-flags-OK-FAIL-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1754330AbdC3IXQ (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 30 Mar 2017 03:28:36 -0400
-In-Reply-To: <pt0j2tw5gavgsksyh1yovnel.1490857017978@email.android.com>
+        Thu, 30 Mar 2017 04:23:16 -0400
+In-Reply-To: <CAOQ4uxhvrAefbxcYXv5JfBmKN==8Yo7QKiaFAa6YS8VSfpvf=A@mail.gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Richard Weinberger <richard@nod.at>
-Cc: Amir Goldstein <amir73il@gmail.com>, Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>, linux-mtd@lists.infradead.org, regressions@leemhuis.info, Artem Bityutskiy <dedekind1@gmail.com>, Adrian Hunter <adrian.hunter@intel.com>, David Oberhollenzer <goliath@sigma-star.at>
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: linux-unionfs@vger.kernel.org, miaoxie@huawei.com, laiyuanyuan.lai@huawei.com, Miklos Szeredi <miklos@szeredi.hu>
 
-Hi Richard,
 
-On Thu, 30 Mar 2017 08:56:57 +0200
-Richard Weinberger <richard@nod.at> wrote:
 
->    =20
-> Ralph,
-> Please apply this
-> fix:http://lists.infradead.org/pipermail/linux-mtd/2017-March/072613.html
->=20
+On 2017/3/30 15:03, Amir Goldstein wrote:
+>> Hi:
+>> Current overlayfs does not support underlying filesystem which have "weird" d_flags (like DCACHE_OP_HASH，
+>> DCACHE_OP_COMPARE, DCACHE_OP_REVALIDATE, etc). So we cannot support fs have it's own d_hash, d_compare and
+>> d_revalidate functions.
+> 
+> Not accurate. d_revalidate() is allowed for lower, but not for upper
+> (ovl_dentry_remote()).
+> 
 
-No longer able to observe an issue with this one on top. The two
-patches seem all that was needed to get things back to a working state.
+Thank you for the corrections, I see it in the ovl_lower_dir().
 
-Do you want me to test anything else than linux-next?
+>>
+>> Do you have a TODO plan to support it in a future version ?
+>>
+> 
+> Which of the constrains is relevant to your use case? (which of the flags)
+> Do you need it for lower / upper or both?
+> Is it a proprietary file system of a known one you need to support?
+> 
 
-Thanks
-Ralph
+We want to use d_hash(), d_compare() and d_revalidate() to our own proprietary file system
+(not a remote fs, not widely used, and it's file name is case-insensitive) for lower
+and upper both, and we also need to use d_revalidate() to do some special handling.
 
->=20
-> Von meinem Samsung Ger=C3=A4t gesendet.
->=20
-> -------- Urspr=C3=BCngliche Nachricht --------
-> Von: Ralph Sennhauser <ralph.sennhauser@gmail.com>=20
-> Datum: 30.03.17  07:53  (GMT+01:00)=20
-> An: Richard Weinberger <richard@nod.at>=20
-> Cc: Amir Goldstein <amir73il@gmail.com>, Miklos Szeredi
-> <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, linux-kernel
-> <linux-kernel@vger.kernel.org>, linux-mtd@lists.infradead.org,
-> regressions@leemhuis.info, Artem Bityutskiy <dedekind1@gmail.com>,
-> Adrian Hunter <adrian.hunter@intel.com>, David Oberhollenzer
-> <goliath@sigma-star.at> Betreff: Re: [REGRESSION 4.11] Commit
-> d8514d8edb5b ("ovl: copy up regular=0D&nbsp; file using O_TMPFILE") break=
-s ubifs=20
->=20
-> Hi Richard,
->=20
-> On Thu, 30 Mar 2017 00:15:31 +0200
-> Richard Weinberger <richard@nod.at> wrote:
->=20
-> > Ralph,
-> >=20
-> > Am 29.03.2017 um 23:26 schrieb Ralph Sennhauser: =20
-> > >> # create and link a tmpfile - then remove it
-> > >> sudo rm -rf foo; sudo xfs_io -T -c "flink foo" . ; ls -l foo;
-> > >> sudo rm foo=C2=A0  =20
-> > >=20
-> > > next-20170328, obviously without your patch:
-> > >=20
-> > >=C2=A0=C2=A0 # xfs_io -T -c "flink foo" .
-> > >=C2=A0=C2=A0 .: Not supported=C2=A0  =20
-> >=20
-> > -T tells xfs_io to create a tmpfile but you have it disabled in
-> > UBIFS. =20
->=20
-> Bash history says I booted the other partition than I flashed (uname
-> just happened to match), the downside of the dual boot layout. :)
->=20
-> =C2=A0 # rm -rf foo
-> =C2=A0 # xfs_io -T -c "flink foo" .
-> =C2=A0 # ls -l foo
-> =C2=A0 -rw-------=C2=A0=C2=A0=C2=A0 1 root=C2=A0=C2=A0=C2=A0=C2=A0 root=
-=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 0 =
-Mar 30 02:00 foo
-> =C2=A0 # rm foo
-> =C2=A0 [=C2=A0 305.001436] UBIFS error (ubi0:0 pid 2493): ubifs_add_orpha=
-n:
-> orphaned twice
->=20
-> However, unlike with the overlay setup the filesystem can be mounted
-> just fine without imediatly visible side effects.
->=20
-> >=20
-> > Anyway, can you please test the attached patch?
-> > Amir was right, UBIFS misses a corner case in ubifs_link(). ;-\
-> >=20
-> > I think I understand also why we never noticed this in xfstests,
-> > UBIFS prints only a non-fatal error while umounting the filesystem
-> > in this case. But will test tomorrow in more detail, need some
-> > sleep now.
-> >=20
-> > diff --git a/fs/ubifs/dir.c b/fs/ubifs/dir.c
-> > index 30825d882aa9..95e348a2da29 100644
-> > --- a/fs/ubifs/dir.c
-> > +++ b/fs/ubifs/dir.c
-> > @@ -748,6 +748,9 @@ static int ubifs_link(struct dentry *old_dentry,
-> > struct inode *dir, goto out_fname;
-> >=20
-> >=C2=A0 	lock_2_inodes(dir, inode);
-> > +	if (inode->i_nlink =3D=3D 0)
-> > +		ubifs_delete_orphan(c, inode->i_ino);
-> > +
-> >=C2=A0 	inc_nlink(inode);
-> >=C2=A0 	ihold(inode);
-> >=C2=A0 	inode->i_ctime =3D ubifs_current_time(inode);
-> >=20
-> > Thanks,
-> > //richard =20
->=20
-> With this patch I'm no longer able to reproduce _this_ issue, however,
-> rename no longer works either:
->=20
-> =C2=A0 # mv /etc/config/wireless /etc/config/wireless.back
-> =C2=A0 mv: can't rename '/etc/config/wireless': Invalid argument
-> =C2=A0 # ls /etc/config/wireless
-> =C2=A0 /etc/config/wireless
-> =C2=A0 # rm /etc/config/wireless
-> =C2=A0 # ls /etc/config/wireless
-> =C2=A0 ls: /etc/config/wireless: No such file or directory
->=20
->=20
-> Thanks
-> Ralph
+I see there were many other rarely used（?）file systems also use d_hash(), d_compare(),
+d_revalidate() in kernel(such as hfs, jfs, fat, etc.), they are also not supportted by ovlfs.
+So I would like to know are these file systems need to support in future ?
+
+Thanks,
+ZhangYi.
