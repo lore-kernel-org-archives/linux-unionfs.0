@@ -1,42 +1,74 @@
-From: Rock Lee <rockdotlee@gmail.com>
-Subject: A whiteout device shows up in a overlayfs root directory.
-Date: Fri, 31 Mar 2017 10:52:43 +0800
-Message-ID: <CAL-1w2tNqdxB91Qg_SVsxsru9zhUpMmbWTkSf5nE3FbjozMjAg@mail.gmail.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Subject: Re: A whiteout device shows up in a overlayfs root directory.
+Date: Fri, 31 Mar 2017 11:34:56 +0300
+Message-ID: <CAOQ4uxjfz_VzS45brX=jDQsn9nnsTukPF+C08XZ_A-cvAe-iMA@mail.gmail.com>
+References: <CAL-1w2tNqdxB91Qg_SVsxsru9zhUpMmbWTkSf5nE3FbjozMjAg@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: base64
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-yb0-f173.google.com ([209.85.213.173]:33377 "EHLO
-        mail-yb0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751056AbdCaCwp (ORCPT
+Received: from mail-io0-f171.google.com ([209.85.223.171]:33944 "EHLO
+        mail-io0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751733AbdCaIe6 (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 30 Mar 2017 22:52:45 -0400
-Received: by mail-yb0-f173.google.com with SMTP id l201so3422081ybf.0
-        for <linux-unionfs@vger.kernel.org>; Thu, 30 Mar 2017 19:52:44 -0700 (PDT)
+        Fri, 31 Mar 2017 04:34:58 -0400
+Received: by mail-io0-f171.google.com with SMTP id b140so35409437iof.1
+        for <linux-unionfs@vger.kernel.org>; Fri, 31 Mar 2017 01:34:57 -0700 (PDT)
+In-Reply-To: <CAL-1w2tNqdxB91Qg_SVsxsru9zhUpMmbWTkSf5nE3FbjozMjAg@mail.gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: linux-unionfs@vger.kernel.org
+To: Rock Lee <rockdotlee@gmail.com>
+Cc: linux-unionfs@vger.kernel.org
 
-SGksIGFsbDoNCldoZW4gSSAibHMiIGEgb3ZlcmxheWZzIGRpcmVjdG9yeSB3aGljaCBoYXMgYSB3
-aGl0ZW91dCBkZXZpY2UgaW4gaXQncyB1cHBlciBkaXIsDQphbmQgZ290IGEgc3RyYW5nZSBvdXRw
-dXQgbGlrZSB0aGlzIChhYWEgaXMgYSB3aGl0ZW91dCBpbiB1cHBlcik6DQoNCltFVE8gdGVzdF0j
-IGxsIC1pDQogbHM6IGNhbm5vdCBhY2Nlc3MgJ2FhYSc6IE5vIHN1Y2ggZmlsZSBvciBkaXJlY3Rv
-cnkNCnRvdGFsIDMNCiAgICAgPyA/Pz8/Pz8/Pz8/ID8gPyAgICA/ICAgICAgPyAgICAgICAgICAg
-ID8gYWFhDQoxNTc2MzMgZHJ3eHIteHIteCAxIHJvb3Qgcm9vdCAgOTYgM+aciCAgMzEgMjAxNyBo
-ZWxsbw0KMTU3NjM0IGRyd3hyLXhyLXggMiByb290IHJvb3QgIDk2IDPmnIggIDMxIDIwMTcgb3Bl
-bg0KMTU3NjMyIGRyd3hyLXhyLXggMSByb290IHJvb3QgMTI4IDPmnIggIDI5IDA0OjU0IHNzaA0K
-DQpCdXQgaWYgSSB1c2UgInRyZWUiIHRvIGxpc3QgdGhlIGZpbGVzICwgdGhlcmUgaXMgbm8gd2hp
-dGVvdXQgZGV2aWNlIGluDQp0aGUgdGVzdChvdmVybGF5ZnMgcm9vdCBkaXIpLg0KSSBnb3QgdGhp
-cyBvdXRwdXQgYW5kIGl0IHNlZW1zIE9LLg0KDQpbRVRPIHVzYl0jIHRyZWUNCi4NCuKUnOKUgOKU
-gCBsb3dlcg0K4pSCICAg4pSc4pSA4pSAIGFhYQ0K4pSCICAg4pSc4pSA4pSAIGhlbGxvDQrilIIg
-ICDilIIgICDilJTilIDilIAgdXUNCuKUgiAgIOKUlOKUgOKUgCBzc2gNCuKUnOKUgOKUgCB0ZXN0
-DQrilIIgICDilJzilIDilIAgaGVsbG8NCuKUgiAgIOKUnOKUgOKUgCBvcGVuDQrilIIgICDilIIg
-ICDilJTilIDilIAgdXUNCuKUgiAgIOKUlOKUgOKUgCBzc2gNCuKUgiAgICAgICDilJzilIDilIAg
-YWFhDQrilIIgICAgICAg4pSU4pSA4pSAIGJiYg0K4pSc4pSA4pSAIHVwcGVyDQrilIIgICDilJzi
-lIDilIAgYWFhDQrilIIgICDilJzilIDilIAgaGVsbG8NCuKUgiAgIOKUgiAgIOKUlOKUgOKUgCB1
-dQ0K4pSCICAg4pSc4pSA4pSAIG9wZW4NCuKUgiAgIOKUgiAgIOKUlOKUgOKUgCB1dQ0K4pSCICAg
-4pSU4pSA4pSAIHNzaA0K4pSCICAgICAgIOKUnOKUgOKUgCBhYWENCuKUgiAgICAgICDilJTilIDi
-lIAgYmJiDQoNCg0KSWYgSSBhbSBjb3JyZWN0LCBJIHRoaW5rIGlmIHRoZSB1cHBlciBkaXIgaGFz
-IGEgd2hpdG91dCwgYW5kIHRoZSByb290DQpkaXJlY3Rvcnkgb2Ygb3ZlcmxheWZzDQpzaG91bGQg
-bm90IHNlZSB0aGlzIFdISVRFT1VUIERFViBub3IgdGhlIGZpbGUgaW4gdGhlIGxvd2VyIGRpciB3
-aXRoDQp0aGUgc2FtZSBuYW1lLg0KSXMgdGhpcyBhIG92ZXJsYXlmcyBidWcgPz8/DQo=
+On Fri, Mar 31, 2017 at 5:52 AM, Rock Lee <rockdotlee@gmail.com> wrote:
+> Hi, all:
+> When I "ls" a overlayfs directory which has a whiteout device in it's upp=
+er dir,
+> and got a strange output like this (aaa is a whiteout in upper):
+>
+> [ETO test]# ll -i
+>  ls: cannot access 'aaa': No such file or directory
+> total 3
+>      ? ?????????? ? ?    ?      ?            ? aaa
+> 157633 drwxr-xr-x 1 root root  96 3=E6=9C=88  31 2017 hello
+> 157634 drwxr-xr-x 2 root root  96 3=E6=9C=88  31 2017 open
+> 157632 drwxr-xr-x 1 root root 128 3=E6=9C=88  29 04:54 ssh
+>
+> But if I use "tree" to list the files , there is no whiteout device in
+> the test(overlayfs root dir).
+> I got this output and it seems OK.
+>
+> [ETO usb]# tree
+> .
+> =E2=94=9C=E2=94=80=E2=94=80 lower
+> =E2=94=82   =E2=94=9C=E2=94=80=E2=94=80 aaa
+> =E2=94=82   =E2=94=9C=E2=94=80=E2=94=80 hello
+> =E2=94=82   =E2=94=82   =E2=94=94=E2=94=80=E2=94=80 uu
+> =E2=94=82   =E2=94=94=E2=94=80=E2=94=80 ssh
+> =E2=94=9C=E2=94=80=E2=94=80 test
+> =E2=94=82   =E2=94=9C=E2=94=80=E2=94=80 hello
+> =E2=94=82   =E2=94=9C=E2=94=80=E2=94=80 open
+> =E2=94=82   =E2=94=82   =E2=94=94=E2=94=80=E2=94=80 uu
+> =E2=94=82   =E2=94=94=E2=94=80=E2=94=80 ssh
+> =E2=94=82       =E2=94=9C=E2=94=80=E2=94=80 aaa
+> =E2=94=82       =E2=94=94=E2=94=80=E2=94=80 bbb
+> =E2=94=9C=E2=94=80=E2=94=80 upper
+> =E2=94=82   =E2=94=9C=E2=94=80=E2=94=80 aaa
+> =E2=94=82   =E2=94=9C=E2=94=80=E2=94=80 hello
+> =E2=94=82   =E2=94=82   =E2=94=94=E2=94=80=E2=94=80 uu
+> =E2=94=82   =E2=94=9C=E2=94=80=E2=94=80 open
+> =E2=94=82   =E2=94=82   =E2=94=94=E2=94=80=E2=94=80 uu
+> =E2=94=82   =E2=94=94=E2=94=80=E2=94=80 ssh
+> =E2=94=82       =E2=94=9C=E2=94=80=E2=94=80 aaa
+> =E2=94=82       =E2=94=94=E2=94=80=E2=94=80 bbb
+>
+>
+> If I am correct, I think if the upper dir has a whitout, and the root
+> directory of overlayfs
+> should not see this WHITEOUT DEV nor the file in the lower dir with
+> the same name.
+> Is this a overlayfs bug ???
+
+Yes. Could be a bug.
+Please report it to the maintainer of the distro you are using, unless
+you are seeing this bug on a mainline kernel?
