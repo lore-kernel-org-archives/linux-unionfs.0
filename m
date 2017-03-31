@@ -1,88 +1,42 @@
-From: "zhangyi (F)" <yi.zhang@huawei.com>
-Subject: Re: Question about ovl_dentry_weird
-Date: Thu, 30 Mar 2017 19:58:49 +0800
-Message-ID: <b32b9303-37a6-f798-e529-edee774bcc0b@huawei.com>
-References: <f3a67b6a-b8fb-78ab-fadd-504fa5d76a10@huawei.com>
- <CAOQ4uxhvrAefbxcYXv5JfBmKN==8Yo7QKiaFAa6YS8VSfpvf=A@mail.gmail.com>
- <a64cfa4b-f56a-2c30-e621-d28e40056944@huawei.com>
- <CAOQ4uxjCa1XSg_VhirsUj78CAxa5=r=AXnKpOSF09dUU4Wg6=Q@mail.gmail.com>
+From: Rock Lee <rockdotlee@gmail.com>
+Subject: A whiteout device shows up in a overlayfs root directory.
+Date: Fri, 31 Mar 2017 10:52:43 +0800
+Message-ID: <CAL-1w2tNqdxB91Qg_SVsxsru9zhUpMmbWTkSf5nE3FbjozMjAg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: base64
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from szxga01-in.huawei.com ([45.249.212.187]:4823 "EHLO
-        dggrg01-dlp.huawei.com" rhost-flags-OK-FAIL-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751217AbdC3L6x (ORCPT
+Received: from mail-yb0-f173.google.com ([209.85.213.173]:33377 "EHLO
+        mail-yb0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751056AbdCaCwp (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 30 Mar 2017 07:58:53 -0400
-In-Reply-To: <CAOQ4uxjCa1XSg_VhirsUj78CAxa5=r=AXnKpOSF09dUU4Wg6=Q@mail.gmail.com>
+        Thu, 30 Mar 2017 22:52:45 -0400
+Received: by mail-yb0-f173.google.com with SMTP id l201so3422081ybf.0
+        for <linux-unionfs@vger.kernel.org>; Thu, 30 Mar 2017 19:52:44 -0700 (PDT)
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: linux-unionfs@vger.kernel.org, miaoxie@huawei.com, laiyuanyuan.lai@huawei.com, Miklos Szeredi <miklos@szeredi.hu>
+To: linux-unionfs@vger.kernel.org
 
-
-
-on 2017/3/30 16:52, Amir Goldstein wrote:
-> On Thu, Mar 30, 2017 at 11:22 AM, zhangyi (F) <yi.zhang@huawei.com> wrote:
->> On 2017/3/30 15:03, Amir Goldstein wrote:
->>>> Hi:
->>>> Current overlayfs does not support underlying filesystem which have "weird" d_flags (like DCACHE_OP_HASH，
->>>> DCACHE_OP_COMPARE, DCACHE_OP_REVALIDATE, etc). So we cannot support fs have it's own d_hash, d_compare and
->>>> d_revalidate functions.
->>>
->>> Not accurate. d_revalidate() is allowed for lower, but not for upper
->>> (ovl_dentry_remote()).
->>>
->>
->> Thank you for the corrections, I see it in the ovl_lower_dir().
->>
->>>>
->>>> Do you have a TODO plan to support it in a future version ?
->>>>
->>>
->>> Which of the constrains is relevant to your use case? (which of the flags)
->>> Do you need it for lower / upper or both?
->>> Is it a proprietary file system of a known one you need to support?
->>>
->>
->> We want to use d_hash(), d_compare() and d_revalidate() to our own proprietary file system
->> (not a remote fs, not widely used, and it's file name is case-insensitive) for lower
->> and upper both, and we also need to use d_revalidate() to do some special handling.
->>
->> I see there were many other rarely used（?）file systems also use d_hash(), d_compare(),
->> d_revalidate() in kernel(such as hfs, jfs, fat, etc.), they are also not supportted by ovlfs.
->> So I would like to know are these file systems need to support in future ?
->>
-> 
-> I see you are not the first that requested this feature:
-> https://lkml.org/lkml/2014/10/28/1049
-> 
-> The solution for the general case is (too?) complex.
-> 
-> However, for the case of all layers on the same fs, where d_hash()
-> d_compare() are consistent
-> across all layers, I guess this is doable and even not that hard to do.
-> 
-> The 'samefs' case is an interesting case, because it is commonly used
-> by container
-> managers (e.g. dockerd).
-> 
-> I've just posted the first overlayfs feature that depends on 'samefs'
-> https://marc.info/?l=linux-unionfs&m=149079818122019&w=2
-> and I have plans to develop more features for 'samefs' case (e.g. NFS export).
-> 
-> I don't mind writing a POC patch for you to test your use case, but I
-> will ask you
-> to first write a test which mixes case insensitive names in
-> lower/upper, so this patch
-> can be properly tested.
-> An xfstest overlay test is greatly preferred.
-> I can test it with overlayfs over vfat.
-> 
-
-Thank you for your support. Now we are not make a decision whether to modify the
-underlying file system or the overlayfs. If so, we can plan to write and test it.
-
-Thanks,
-ZhangYi.
+SGksIGFsbDoNCldoZW4gSSAibHMiIGEgb3ZlcmxheWZzIGRpcmVjdG9yeSB3aGljaCBoYXMgYSB3
+aGl0ZW91dCBkZXZpY2UgaW4gaXQncyB1cHBlciBkaXIsDQphbmQgZ290IGEgc3RyYW5nZSBvdXRw
+dXQgbGlrZSB0aGlzIChhYWEgaXMgYSB3aGl0ZW91dCBpbiB1cHBlcik6DQoNCltFVE8gdGVzdF0j
+IGxsIC1pDQogbHM6IGNhbm5vdCBhY2Nlc3MgJ2FhYSc6IE5vIHN1Y2ggZmlsZSBvciBkaXJlY3Rv
+cnkNCnRvdGFsIDMNCiAgICAgPyA/Pz8/Pz8/Pz8/ID8gPyAgICA/ICAgICAgPyAgICAgICAgICAg
+ID8gYWFhDQoxNTc2MzMgZHJ3eHIteHIteCAxIHJvb3Qgcm9vdCAgOTYgM+aciCAgMzEgMjAxNyBo
+ZWxsbw0KMTU3NjM0IGRyd3hyLXhyLXggMiByb290IHJvb3QgIDk2IDPmnIggIDMxIDIwMTcgb3Bl
+bg0KMTU3NjMyIGRyd3hyLXhyLXggMSByb290IHJvb3QgMTI4IDPmnIggIDI5IDA0OjU0IHNzaA0K
+DQpCdXQgaWYgSSB1c2UgInRyZWUiIHRvIGxpc3QgdGhlIGZpbGVzICwgdGhlcmUgaXMgbm8gd2hp
+dGVvdXQgZGV2aWNlIGluDQp0aGUgdGVzdChvdmVybGF5ZnMgcm9vdCBkaXIpLg0KSSBnb3QgdGhp
+cyBvdXRwdXQgYW5kIGl0IHNlZW1zIE9LLg0KDQpbRVRPIHVzYl0jIHRyZWUNCi4NCuKUnOKUgOKU
+gCBsb3dlcg0K4pSCICAg4pSc4pSA4pSAIGFhYQ0K4pSCICAg4pSc4pSA4pSAIGhlbGxvDQrilIIg
+ICDilIIgICDilJTilIDilIAgdXUNCuKUgiAgIOKUlOKUgOKUgCBzc2gNCuKUnOKUgOKUgCB0ZXN0
+DQrilIIgICDilJzilIDilIAgaGVsbG8NCuKUgiAgIOKUnOKUgOKUgCBvcGVuDQrilIIgICDilIIg
+ICDilJTilIDilIAgdXUNCuKUgiAgIOKUlOKUgOKUgCBzc2gNCuKUgiAgICAgICDilJzilIDilIAg
+YWFhDQrilIIgICAgICAg4pSU4pSA4pSAIGJiYg0K4pSc4pSA4pSAIHVwcGVyDQrilIIgICDilJzi
+lIDilIAgYWFhDQrilIIgICDilJzilIDilIAgaGVsbG8NCuKUgiAgIOKUgiAgIOKUlOKUgOKUgCB1
+dQ0K4pSCICAg4pSc4pSA4pSAIG9wZW4NCuKUgiAgIOKUgiAgIOKUlOKUgOKUgCB1dQ0K4pSCICAg
+4pSU4pSA4pSAIHNzaA0K4pSCICAgICAgIOKUnOKUgOKUgCBhYWENCuKUgiAgICAgICDilJTilIDi
+lIAgYmJiDQoNCg0KSWYgSSBhbSBjb3JyZWN0LCBJIHRoaW5rIGlmIHRoZSB1cHBlciBkaXIgaGFz
+IGEgd2hpdG91dCwgYW5kIHRoZSByb290DQpkaXJlY3Rvcnkgb2Ygb3ZlcmxheWZzDQpzaG91bGQg
+bm90IHNlZSB0aGlzIFdISVRFT1VUIERFViBub3IgdGhlIGZpbGUgaW4gdGhlIGxvd2VyIGRpciB3
+aXRoDQp0aGUgc2FtZSBuYW1lLg0KSXMgdGhpcyBhIG92ZXJsYXlmcyBidWcgPz8/DQo=
