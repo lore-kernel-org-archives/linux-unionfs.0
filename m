@@ -1,170 +1,96 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH v2] overlay/030: test immutable and append-only upper files
-Date: Wed,  5 Apr 2017 15:09:27 +0300
-Message-ID: <1491394167-31409-1-git-send-email-amir73il@gmail.com>
-References: <1491389271-24726-2-git-send-email-amir73il@gmail.com>
+Subject: Re: [PATCH 5/6] ovl: copy on read with consistent_fd feature
+Date: Wed, 5 Apr 2017 16:20:28 +0300
+Message-ID: <CAOQ4uxj_P9ohwwy2sGGrJkNcWfV89C34g0qkY-RGdWoPxfY7Dw@mail.gmail.com>
+References: <1490798166-22310-1-git-send-email-amir73il@gmail.com>
+ <1490798166-22310-6-git-send-email-amir73il@gmail.com> <20170331175843.GB3681@redhat.com>
+ <CAOQ4uxjgjp8EdZzjuC7QeCQ66YO5fvtWAMiFyjPZw1npQQXHLw@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wr0-f195.google.com ([209.85.128.195]:35719 "EHLO
-        mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752287AbdDEMJY (ORCPT
+Received: from mail-oi0-f54.google.com ([209.85.218.54]:34564 "EHLO
+        mail-oi0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753722AbdDENUa (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 5 Apr 2017 08:09:24 -0400
-In-Reply-To: <1491389271-24726-2-git-send-email-amir73il@gmail.com>
+        Wed, 5 Apr 2017 09:20:30 -0400
+Received: by mail-oi0-f54.google.com with SMTP id d2so14672462oig.1
+        for <linux-unionfs@vger.kernel.org>; Wed, 05 Apr 2017 06:20:29 -0700 (PDT)
+In-Reply-To: <CAOQ4uxjgjp8EdZzjuC7QeCQ66YO5fvtWAMiFyjPZw1npQQXHLw@mail.gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Eryu Guan <eguan@redhat.com>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, Xiong Zhou <xzhou@redhat.com>, linux-unionfs@vger.kernel.org, fstests@vger.kernel.org
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: linux-unionfs@vger.kernel.org, Vivek Goyal <vgoyal@redhat.com>
 
-Run the t_immutable test program for immutable/append-only files
-and directories in an overlayfs upper directory.
+On Sat, Apr 1, 2017 at 12:27 PM, Amir Goldstein <amir73il@gmail.com> wrote:
+> On Fri, Mar 31, 2017 at 8:58 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
+>> On Wed, Mar 29, 2017 at 05:36:05PM +0300, Amir Goldstein wrote:
+>>> Overlayfs copies up a file when the file is opened for write.  Writes
+>>> to the returned file descriptor are not visible to file descriptors
+>>> that were opened for read prior to copy up.
+>>>
+>>> If this config option is enabled then overlay filesystems will default
+>>> to copy up a file that is opened for read to avoid this inconsistency.
+>>> In this case, it is still possible to turn off consistent fd globally
+>>> with the "consistent_fd=off" module option or on a filesystem instance
+>>> basis with the "consistent_fd=off" mount option.
+>>
+>> Hi Amir,
+>>
+>
+> Hi Vivek,
+>
+>> So all readers will pay a small cost of copying up file always (as temp
+>> file). I am curious to know if that cost is significant.
+>>
+>
+[...]
+>> Are there any other downsides of opting in for this behavior by default.
+>> I am assuming page cache usage will not be higher due to clone operation.
+>>
+>
+> Sadly, page cache is not shared between cloned file.
+> That's something Miklos is trying to look into.
+>
+> So at this point, enabling consistent_fd should be done only for
+> use cases that really care about consistent fd and willing to pay
+> the cost of clone, extra usage of page cache and
+> the extra I/O of reading those pages.
+>
 
-This test is similar and was derived from generic/079, but
-the original test is _notrun on overlay mount because FS_IOC_GETFLAGS
-FS_IOC_SETFLAGS ioctls fail on overlay directory inodes.
+Miklos,
 
-Signed-off-by: Amir Goldstein <amir73il@gmail.com>
----
- tests/generic/079     |  6 ++---
- tests/overlay/030     | 73 +++++++++++++++++++++++++++++++++++++++++++++++++++
- tests/overlay/030.out |  5 ++++
- tests/overlay/group   |  1 +
- 4 files changed, 81 insertions(+), 4 deletions(-)
- create mode 100755 tests/overlay/030
- create mode 100644 tests/overlay/030.out
+Did you get a change to look at the patches?
+Is this aligned with what you had in mind?
 
-Eryu,
+Also, wrt Vivek's question on other impacts, I forgot to mention
+that "temp read-only copy up" does an actual copy up of parent directory
+ancestry, which does not go away when file is closed.
 
-Here is v2 with fixes to your comments.
+Which means that it may make sense to couple consistent_fd feature
+with your old proposal to opt-in for copy up directory on getattr:
+http://www.spinics.net/lists/linux-unionfs/msg00862.html
 
-I also changed generic/079 to use modern _require_* statements.
-and removed _scratch_unmount from its cleanup callback.
+The logic being: if you care about ro/rw consistency and willing to pay
+the cost of copy up of every parent dir of a file that has ever been read,
+perhaps the extra cost of copy up dir on getattr is a small extra to pay
+to get a bit more consistency?
+
+Or perhaps you think that the cost of parent ancestry copy up
+for open for read is too expensive to begin with and I should try to
+get rid of this cost?
+
+There are a few reasons I chose to copy up parents on rocopyup:
+1. It keeps the code simpler (more code reuse with rw tmpfile copy up)
+2. vfs_tmpfile() checks inode_permission(MAY_WRITE | MAY_EXEC)
+    on parent dir inode and passes the inode to i_op->tmpfile().
+    it's not clear to me if that dir inode is really important or if I
+could just
+    pass workdir inode or something(?)
+3. inode_lock_nested(upperdir->d_inode) is used to serialize ro upper
+    copy up with rw upper copy up -
+    damn! not only should I have used copyup_wq for that purpose, but
+    also I think I got the rocopyup-rocopyup race completely wrong :-/
+
+I'll await your feedback on the series before I fix this race.
 
 Amir.
-
-diff --git a/tests/generic/079 b/tests/generic/079
-index 5cceeba..c2db6bf 100755
---- a/tests/generic/079
-+++ b/tests/generic/079
-@@ -37,7 +37,6 @@ _cleanup()
-     cd /
-     echo "*** cleaning up"
-     $timmutable -r $SCRATCH_MNT/$seq
--    _scratch_unmount
- }
- 
- # get standard environment, filters and checks
-@@ -48,11 +47,10 @@ _cleanup()
- _supported_fs generic
- _supported_os Linux
- 
--_require_chattr i
-+_require_chattr ia
-+_require_test_program "t_immutable"
- _require_scratch
- 
--[ -x $timmutable ] || _notrun "t_immutable was not built for this platform"
--
- # real QA test starts here
- _scratch_mkfs >/dev/null 2>&1 || _fail "mkfs failed"
- _scratch_mount || _fail "mount failed"
-diff --git a/tests/overlay/030 b/tests/overlay/030
-new file mode 100755
-index 0000000..bbce140
---- /dev/null
-+++ b/tests/overlay/030
-@@ -0,0 +1,73 @@
-+#! /bin/bash
-+# FS QA Test No. 030
-+#
-+# Run the t_immutable test program for immutable/append-only files
-+# and directories in an overlayfs upper directory.
-+#
-+# This test is similar and was derived from generic/079, but
-+# the original test is _notrun on overlay mount because FS_IOC_GETFLAGS
-+# FS_IOC_SETFLAGS ioctls fail on overlay directory inodes.
-+#
-+#-----------------------------------------------------------------------
-+# Copyright (C) 2017 CTERA Networks. All Rights Reserved.
-+# Author: Amir Goldstein <amir73il@gmail.com>
-+#
-+# This program is free software; you can redistribute it and/or
-+# modify it under the terms of the GNU General Public License as
-+# published by the Free Software Foundation.
-+#
-+# This program is distributed in the hope that it would be useful,
-+# but WITHOUT ANY WARRANTY; without even the implied warranty of
-+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+# GNU General Public License for more details.
-+#
-+# You should have received a copy of the GNU General Public License
-+# along with this program; if not, write the Free Software Foundation,
-+# Inc.,  51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-+#
-+#-----------------------------------------------------------------------
-+#
-+
-+seq=`basename $0`
-+seqres=$RESULT_DIR/$seq
-+echo "QA output created by $seq"
-+
-+here=`pwd`
-+timmutable=$here/src/t_immutable
-+upperdir=$OVL_BASE_SCRATCH_MNT/$OVL_UPPER
-+tmp=/tmp/$$
-+status=1	# failure is the default!
-+trap "_cleanup; exit \$status" 0 1 2 3 15
-+
-+_cleanup()
-+{
-+	$timmutable -r $upperdir/t_immutable &> /dev/null
-+	rm -f $tmp.*
-+}
-+
-+# get standard environment, filters and checks
-+. ./common/rc
-+. ./common/filter
-+
-+_supported_fs overlay
-+_supported_os Linux
-+
-+_require_chattr ia
-+_require_test_program "t_immutable"
-+_require_scratch
-+
-+_scratch_mkfs
-+
-+# Preparing immutable files in uppper dir
-+mkdir -p $upperdir
-+$timmutable -C $upperdir/t_immutable >$tmp.out 2>&1
-+if grep -q -e 'Operation not supported' -e "Inappropriate ioctl" $tmp.out; then
-+	_notrun "Setting immutable/append flag not supported"
-+fi
-+
-+_scratch_mount
-+
-+# Test immutability of files in overlay
-+$timmutable $SCRATCH_MNT/t_immutable 2>&1
-+status=$?
-+exit
-diff --git a/tests/overlay/030.out b/tests/overlay/030.out
-new file mode 100644
-index 0000000..57ba0cd
---- /dev/null
-+++ b/tests/overlay/030.out
-@@ -0,0 +1,5 @@
-+QA output created by 030
-+testing immutable...PASS.
-+testing append-only...PASS.
-+testing immutable as non-root...PASS.
-+testing append-only as non-root...PASS.
-diff --git a/tests/overlay/group b/tests/overlay/group
-index 7e72a30..c5048c4 100644
---- a/tests/overlay/group
-+++ b/tests/overlay/group
-@@ -32,3 +32,4 @@
- 027 auto quick perms
- 028 auto copyup quick
- 029 auto quick
-+030 auto quick perms
--- 
-2.7.4
