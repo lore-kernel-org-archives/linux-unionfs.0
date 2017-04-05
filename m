@@ -1,96 +1,147 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [PATCH 5/6] ovl: copy on read with consistent_fd feature
-Date: Wed, 5 Apr 2017 16:20:28 +0300
-Message-ID: <CAOQ4uxj_P9ohwwy2sGGrJkNcWfV89C34g0qkY-RGdWoPxfY7Dw@mail.gmail.com>
-References: <1490798166-22310-1-git-send-email-amir73il@gmail.com>
- <1490798166-22310-6-git-send-email-amir73il@gmail.com> <20170331175843.GB3681@redhat.com>
- <CAOQ4uxjgjp8EdZzjuC7QeCQ66YO5fvtWAMiFyjPZw1npQQXHLw@mail.gmail.com>
+Subject: Re: [PATCH v3 4/6] ovl: copy up regular file using O_TMPFILE
+Date: Wed, 5 Apr 2017 21:32:36 +0300
+Message-ID: <CAOQ4uxiLgcpvz4hcFJdcYETokbQ=88nS4fA3_F4k8faCR=ia_g@mail.gmail.com>
+References: <1484588765-9397-1-git-send-email-amir73il@gmail.com> <1484588765-9397-5-git-send-email-amir73il@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-oi0-f54.google.com ([209.85.218.54]:34564 "EHLO
-        mail-oi0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753722AbdDENUa (ORCPT
+Received: from mail-oi0-f65.google.com ([209.85.218.65]:35210 "EHLO
+        mail-oi0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753861AbdDESci (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 5 Apr 2017 09:20:30 -0400
-Received: by mail-oi0-f54.google.com with SMTP id d2so14672462oig.1
-        for <linux-unionfs@vger.kernel.org>; Wed, 05 Apr 2017 06:20:29 -0700 (PDT)
-In-Reply-To: <CAOQ4uxjgjp8EdZzjuC7QeCQ66YO5fvtWAMiFyjPZw1npQQXHLw@mail.gmail.com>
+        Wed, 5 Apr 2017 14:32:38 -0400
+In-Reply-To: <1484588765-9397-5-git-send-email-amir73il@gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: linux-unionfs@vger.kernel.org, Vivek Goyal <vgoyal@redhat.com>
+To: Vivek Goyal <vgoyal@redhat.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>, linux-unionfs@vger.kernel.org, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>
 
-On Sat, Apr 1, 2017 at 12:27 PM, Amir Goldstein <amir73il@gmail.com> wrote:
-> On Fri, Mar 31, 2017 at 8:58 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
->> On Wed, Mar 29, 2017 at 05:36:05PM +0300, Amir Goldstein wrote:
->>> Overlayfs copies up a file when the file is opened for write.  Writes
->>> to the returned file descriptor are not visible to file descriptors
->>> that were opened for read prior to copy up.
->>>
->>> If this config option is enabled then overlay filesystems will default
->>> to copy up a file that is opened for read to avoid this inconsistency.
->>> In this case, it is still possible to turn off consistent fd globally
->>> with the "consistent_fd=off" module option or on a filesystem instance
->>> basis with the "consistent_fd=off" mount option.
->>
->> Hi Amir,
->>
->
-> Hi Vivek,
->
->> So all readers will pay a small cost of copying up file always (as temp
->> file). I am curious to know if that cost is significant.
->>
->
-[...]
->> Are there any other downsides of opting in for this behavior by default.
->> I am assuming page cache usage will not be higher due to clone operation.
->>
->
-> Sadly, page cache is not shared between cloned file.
-> That's something Miklos is trying to look into.
->
-> So at this point, enabling consistent_fd should be done only for
-> use cases that really care about consistent fd and willing to pay
-> the cost of clone, extra usage of page cache and
-> the extra I/O of reading those pages.
+On Mon, Jan 16, 2017 at 7:46 PM, Amir Goldstein <amir73il@gmail.com> wrote:
+> In preparation for concurrent copy up, implement copy up
+> of regular file as O_TMPFILE that is linked to upperdir
+> instead of a file in workdir that is moved to upperdir.
 >
 
-Miklos,
+Hi Vivek,
 
-Did you get a change to look at the patches?
-Is this aligned with what you had in mind?
+This commit is already in v4.11-rc1 and I haven't heard any complains.
+But I wanted to ask all the same.
 
-Also, wrt Vivek's question on other impacts, I forgot to mention
-that "temp read-only copy up" does an actual copy up of parent directory
-ancestry, which does not go away when file is closed.
+With this commit the semantics of security checks are modified a bit.
 
-Which means that it may make sense to couple consistent_fd feature
-with your old proposal to opt-in for copy up directory on getattr:
-http://www.spinics.net/lists/linux-unionfs/msg00862.html
+Before this change it was:
+- Create temp file in workdir and negative dentry in upperdir with
+  security_inode_copy_up() creds
+- Move temp file to upperdir with mounter creds
 
-The logic being: if you care about ro/rw consistency and willing to pay
-the cost of copy up of every parent dir of a file that has ever been read,
-perhaps the extra cost of copy up dir on getattr is a small extra to pay
-to get a bit more consistency?
+After this change it is:
+- Create an O_TMPFILE and negative dentry in upperdir with
+  security_inode_copy_up() creds
+- Link O_TMPFILE to upperdir with mounter creds
 
-Or perhaps you think that the cost of parent ancestry copy up
-for open for read is too expensive to begin with and I should try to
-get rid of this cost?
+Is this equivalent as far as SELinux goes?
+Does it mean that users may have to fix their sepolicy in some way?
 
-There are a few reasons I chose to copy up parents on rocopyup:
-1. It keeps the code simpler (more code reuse with rw tmpfile copy up)
-2. vfs_tmpfile() checks inode_permission(MAY_WRITE | MAY_EXEC)
-    on parent dir inode and passes the inode to i_op->tmpfile().
-    it's not clear to me if that dir inode is really important or if I
-could just
-    pass workdir inode or something(?)
-3. inode_lock_nested(upperdir->d_inode) is used to serialize ro upper
-    copy up with rw upper copy up -
-    damn! not only should I have used copyup_wq for that purpose, but
-    also I think I got the rocopyup-rocopyup race completely wrong :-/
+Were you able to verify that there are no overlay+selinux regression
+with v4.11-rc1? I just don't have selinux in my test setup...
 
-I'll await your feedback on the series before I fix this race.
-
+Thanks,
 Amir.
+
+> Suggested-by: Al Viro <viro@zeniv.linux.org.uk>
+> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+> ---
+>  fs/overlayfs/copy_up.c | 27 ++++++++++++++++++++-------
+>  1 file changed, 20 insertions(+), 7 deletions(-)
+>
+> diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
+> index 01e3327..6e39e90 100644
+> --- a/fs/overlayfs/copy_up.c
+> +++ b/fs/overlayfs/copy_up.c
+> @@ -20,6 +20,7 @@
+>  #include <linux/fdtable.h>
+>  #include <linux/ratelimit.h>
+>  #include "overlayfs.h"
+> +#include "ovl_entry.h"
+>
+>  #define OVL_COPY_UP_CHUNK_SIZE (1 << 20)
+>
+> @@ -233,7 +234,7 @@ int ovl_set_attr(struct dentry *upperdentry, struct kstat *stat)
+>  static int ovl_copy_up_locked(struct dentry *workdir, struct dentry *upperdir,
+>                               struct dentry *dentry, struct path *lowerpath,
+>                               struct kstat *stat, const char *link,
+> -                             struct kstat *pstat)
+> +                             struct kstat *pstat, bool tmpfile)
+>  {
+>         struct inode *wdir = workdir->d_inode;
+>         struct inode *udir = upperdir->d_inode;
+> @@ -263,12 +264,17 @@ static int ovl_copy_up_locked(struct dentry *workdir, struct dentry *upperdir,
+>         if (new_creds)
+>                 old_creds = override_creds(new_creds);
+>
+> -       temp = ovl_lookup_temp(workdir, dentry);
+> +       if (tmpfile)
+> +               temp = ovl_do_tmpfile(upperdir, stat->mode);
+> +       else
+> +               temp = ovl_lookup_temp(workdir, dentry);
+>         err = PTR_ERR(temp);
+>         if (IS_ERR(temp))
+>                 goto out1;
+>
+> -       err = ovl_create_real(wdir, temp, &cattr, NULL, true);
+> +       err = 0;
+> +       if (!tmpfile)
+> +               err = ovl_create_real(wdir, temp, &cattr, NULL, true);
+>
+>         if (new_creds) {
+>                 revert_creds(old_creds);
+> @@ -300,11 +306,14 @@ static int ovl_copy_up_locked(struct dentry *workdir, struct dentry *upperdir,
+>         if (err)
+>                 goto out_cleanup;
+>
+> -       err = ovl_do_rename(wdir, temp, udir, upper, 0);
+> +       if (tmpfile)
+> +               err = ovl_do_link(temp, udir, upper, true);
+> +       else
+> +               err = ovl_do_rename(wdir, temp, udir, upper, 0);
+>         if (err)
+>                 goto out_cleanup;
+>
+> -       newdentry = dget(temp);
+> +       newdentry = dget(tmpfile ? upper : temp);
+>         ovl_dentry_update(dentry, newdentry);
+>         ovl_inode_update(d_inode(dentry), d_inode(newdentry));
+>
+> @@ -318,7 +327,8 @@ static int ovl_copy_up_locked(struct dentry *workdir, struct dentry *upperdir,
+>         return err;
+>
+>  out_cleanup:
+> -       ovl_cleanup(wdir, temp);
+> +       if (!tmpfile)
+> +               ovl_cleanup(wdir, temp);
+>         goto out2;
+>  }
+>
+> @@ -342,6 +352,9 @@ static int ovl_copy_up_one(struct dentry *parent, struct dentry *dentry,
+>         struct dentry *lowerdentry = lowerpath->dentry;
+>         struct dentry *upperdir;
+>         const char *link = NULL;
+> +       struct ovl_fs *ofs = dentry->d_sb->s_fs_info;
+> +       /* Should we copyup with O_TMPFILE or with workdir? */
+> +       bool tmpfile = S_ISREG(stat->mode) && ofs->tmpfile;
+>
+>         if (WARN_ON(!workdir))
+>                 return -EROFS;
+> @@ -373,7 +386,7 @@ static int ovl_copy_up_one(struct dentry *parent, struct dentry *dentry,
+>         }
+>
+>         err = ovl_copy_up_locked(workdir, upperdir, dentry, lowerpath,
+> -                                stat, link, &pstat);
+> +                                stat, link, &pstat, tmpfile);
+>  out_unlock:
+>         unlock_rename(workdir, upperdir);
+>         do_delayed_call(&done);
+> --
+> 2.7.4
+>
