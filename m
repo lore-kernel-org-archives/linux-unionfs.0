@@ -1,83 +1,82 @@
-From: Tycho Andersen <tycho@docker.com>
-Subject: Re: [PATCH 1/2] ovl: support freeze/thaw super
-Date: Tue, 4 Apr 2017 13:07:52 -0600
-Message-ID: <20170404190752.ocpdom2nkg7bvni3@docker>
-References: <1484828008-27507-1-git-send-email-amir73il@gmail.com>
- <1484828008-27507-2-git-send-email-amir73il@gmail.com>
- <CAOQ4uxg-i0SMXRTDdPS2GxWKUYDKAu30wT9bjXX1Gd2CzeJ2Yg@mail.gmail.com>
- <588603D7.4060500@virtuozzo.com>
- <CAOQ4uxjoqSXOKTsp4n+NoRjcAs9qSQYc8dJgsAk3HN0jkhTUZw@mail.gmail.com>
- <20170404174752.GA15675@mail.hallyn.com>
- <20170404180146.v2pdsytu6pyqk3fl@docker>
- <CAOQ4uxjKoW88XgrMEd2hAAVyDnB8Mw3cgLEaSsQB_=Lkcd4stg@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Amir Goldstein <amir73il@gmail.com>
+Subject: [PATCH 1/2] fstests: _require_chattr() must get an input arg
+Date: Wed,  5 Apr 2017 13:47:50 +0300
+Message-ID: <1491389271-24726-1-git-send-email-amir73il@gmail.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-it0-f46.google.com ([209.85.214.46]:37113 "EHLO
-        mail-it0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753065AbdDDTHz (ORCPT
+Received: from mail-wr0-f193.google.com ([209.85.128.193]:34688 "EHLO
+        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933219AbdDEKrr (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 4 Apr 2017 15:07:55 -0400
-Received: by mail-it0-f46.google.com with SMTP id a140so34381683ita.0
-        for <linux-unionfs@vger.kernel.org>; Tue, 04 Apr 2017 12:07:55 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <CAOQ4uxjKoW88XgrMEd2hAAVyDnB8Mw3cgLEaSsQB_=Lkcd4stg@mail.gmail.com>
+        Wed, 5 Apr 2017 06:47:47 -0400
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: "Serge E. Hallyn" <serge@hallyn.com>, Stephane Graber <stgraber@ubuntu.com>, Miklos Szeredi <miklos@szeredi.hu>, Jan Kara <jack@suse.com>, Al Viro <viro@zeniv.linux.org.uk>, linux-unionfs@vger.kernel.org, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Pavel Emelyanov <xemul@virtuozzo.com>
+To: Eryu Guan <eguan@redhat.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, Xiong Zhou <xzhou@redhat.com>, linux-unionfs@vger.kernel.org, fstests@vger.kernel.org
 
-On Tue, Apr 04, 2017 at 09:59:16PM +0300, Amir Goldstein wrote:
-> On Tue, Apr 4, 2017 at 9:01 PM, Tycho Andersen <tycho@docker.com> wrote:
-> > On Tue, Apr 04, 2017 at 12:47:52PM -0500, Serge E. Hallyn wrote:
-> >> > Would lxc-snapshot gain anything from the ability to fsfreeze an overlay
-> >> > mount?
-> >>
-> >> lxc-snapshot only works on stopped containers.  'lxc snapshot' can do live
-> >> snapshots using criu.  Tycho, does that do anything right now to freeze the
-> >> fs?
-> >
-> > Not that I'm aware of (CRIU might, but we don't in liblxc).
-> >
-> >> I'm not sure that freezing all the tasks is necessarily enough to settle
-> >> the fs, but I assume you're doing something about that already?
-> >
-> > I suspect it's not, but we're not doing anything besides freezing the
-> > tasks. In fact, we freeze the tasks by using the freezer cgroup,
-> > which itself is buggy, since the freezer cgroup can race with various
-> > filesystems. So, freezing tasks is hard, and I haven't even thought
-> > about how to freeze the fs for real :)
-> >
-> > But in any case, an fs freezing primitive does sound useful for
-> > checkpoint restore, assuming that we're right and freezing the tasks
-> > is simply not enough.
-> >
-> 
-> So I already asked Pavel that question and he said that freezing
-> the tasks is enough. I am not convinced it is really enough to bring
-> a file system image (i.e. underlying blockdev) to a quiescent state,
-> but I think it may be enough for getting a stable view of the mounted
-> file system, so the files could be dumped somewhere.
-> I am guessing is what lxc snapshot does?
+_require_chattr() was never intended to be called without an input
+argument (specifying the required attribute to set).
 
-Yes, lxc snapshot is basically just a frontend for CRIU.
+However, calling it without input arguments did work and error
+was silently discarded into full test output.
 
-> I still didn't understand wrt lxc snapshot, is there a use case for
-> taking live snapshots without using CRIU? (because freezer cgroup
-> mentioned races or whatnot?).
+Fix the function to abort on missing input argument and fix the
+only test that called _require_chattr() with no input argument.
 
-No, I think CRIU is the only project that will ever attempt to do
-checkpoint restore this way ;-). CRIU supports two different ways of
-freezing tasks: one using the freezer cgroup and one without. The one
-without doesn't work against fork bombs very well, and the one with
-doesn't work because of some filesystems. So it's mostly a container
-engine implementation choice which to use.
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+---
+ common/rc         | 25 ++++++++++++++-----------
+ tests/overlay/027 |  2 +-
+ 2 files changed, 15 insertions(+), 12 deletions(-)
 
-> It's definitely possible with btrfs and if my overlayfs freeze patches
-> are not terribly wrong, then it should be easy with overlayfs as well.
-> Does lxc snapshot already support live snapshot of btrfs container?
-
-Yes, it does. It freezes the tasks via the cgroup freezer and then
-does a btrfs snapshot of the filesystem once the tasks are frozen.
-
-Tycho
+diff --git a/common/rc b/common/rc
+index e1ab2c6..ae3add3 100644
+--- a/common/rc
++++ b/common/rc
+@@ -3134,18 +3134,21 @@ _require_test_lsattr()
+ 
+ _require_chattr()
+ {
+-    attribute=$1
+-
+-    touch $TEST_DIR/syscalltest
+-    chattr "+$attribute" $TEST_DIR/syscalltest > $TEST_DIR/syscalltest.out 2>&1
+-    status=$?
+-    chattr "-$attribute" $TEST_DIR/syscalltest > $TEST_DIR/syscalltest.out 2>&1
+-    if [ "$status" -ne 0 ]; then
+-      _notrun "file system doesn't support chattr +$attribute"
+-    fi
+-    cat $TEST_DIR/syscalltest.out >> $seqres.full
++	if [ -z "$1" ]; then
++		echo "Usage: _require_chattr <attr>"
++		exit 1
++	fi
++	local attribute=$1
+ 
+-    rm -f $TEST_DIR/syscalltest.out
++	touch $TEST_DIR/syscalltest
++	chattr "+$attribute" $TEST_DIR/syscalltest > $TEST_DIR/syscalltest.out 2>&1
++	status=$?
++	chattr "-$attribute" $TEST_DIR/syscalltest > $TEST_DIR/syscalltest.out 2>&1
++	if [ "$status" -ne 0 ]; then
++		_notrun "file system doesn't support chattr +$attribute"
++	fi
++	cat $TEST_DIR/syscalltest.out >> $seqres.full
++	rm -f $TEST_DIR/syscalltest.out
+ }
+ 
+ _get_total_inode()
+diff --git a/tests/overlay/027 b/tests/overlay/027
+index 10111b7..90da4e7 100755
+--- a/tests/overlay/027
++++ b/tests/overlay/027
+@@ -57,7 +57,7 @@ rm -f $seqres.full
+ _supported_fs overlay
+ _supported_os Linux
+ _require_scratch
+-_require_chattr
++_require_chattr i
+ 
+ # Remove all files from previous tests
+ _scratch_mkfs
+-- 
+2.7.4
