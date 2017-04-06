@@ -1,61 +1,97 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [PATCH 1/4] vfs: ftruncate freeze protect backing inode
-Date: Thu, 6 Apr 2017 18:42:48 +0300
-Message-ID: <CAOQ4uxjkhHJb-r3eeADUjy=WsY_+gMOPNkTGkj_OHF4R5zZa4g@mail.gmail.com>
-References: <1491466429-30333-1-git-send-email-amir73il@gmail.com> <1491466429-30333-2-git-send-email-amir73il@gmail.com>
+Subject: Re: [PATCH 0/6] ovl: consistent_fd feature
+Date: Thu, 6 Apr 2017 19:25:31 +0300
+Message-ID: <CAOQ4uxispHXxq8qO9GHEyQm9nLWUiG9CfMzP59hffYM5OPB4DA@mail.gmail.com>
+References: <1490798166-22310-1-git-send-email-amir73il@gmail.com>
+ <CAOQ4uxgcOD0DEZse2hWRWopDdBPsb+f=XX0SPQirbX_WGmLR-w@mail.gmail.com>
+ <CAJfpegsidjjP_DPpAGAjUtOZEw70nu5jnoTO5E+yzPkONG4X9A@mail.gmail.com> <CAJfpegugsV8Lzwwiz5BncAnTVc2tPdYcG7eGrVhChcfc6CtBfw@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
-In-Reply-To: <1491466429-30333-2-git-send-email-amir73il@gmail.com>
-Sender: linux-fsdevel-owner@vger.kernel.org
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: Jan Kara <jack@suse.com>, Al Viro <viro@zeniv.linux.org.uk>, linux-unionfs@vger.kernel.org, linux-fsdevel <linux-fsdevel@vger.kernel.org>
+Return-path: <linux-unionfs-owner@vger.kernel.org>
+Received: from mail-oi0-f66.google.com ([209.85.218.66]:35231 "EHLO
+        mail-oi0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933197AbdDFQZc (ORCPT
+        <rfc822;linux-unionfs@vger.kernel.org>);
+        Thu, 6 Apr 2017 12:25:32 -0400
+Received: by mail-oi0-f66.google.com with SMTP id d2so7836540oig.2
+        for <linux-unionfs@vger.kernel.org>; Thu, 06 Apr 2017 09:25:32 -0700 (PDT)
+In-Reply-To: <CAJfpegugsV8Lzwwiz5BncAnTVc2tPdYcG7eGrVhChcfc6CtBfw@mail.gmail.com>
+Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>
 
-On Thu, Apr 6, 2017 at 11:13 AM, Amir Goldstein <amir73il@gmail.com> wrote:
-> ftruncate an overlayfs inode was wrongly freeze protecting the
-> overlay file system instead of the backing file system.
+On Thu, Apr 6, 2017 at 6:37 PM, Miklos Szeredi <miklos@szeredi.hu> wrote:
+> On Thu, Apr 6, 2017 at 5:20 PM, Miklos Szeredi <miklos@szeredi.hu> wrote:
+>> On Thu, Mar 30, 2017 at 1:34 PM, Amir Goldstein <amir73il@gmail.com> wrote:
 >
-> Use file_start_write() instead of sb_start_write(), which
-> does the right thing and will also freeze protect both overlay and
-> backing fs when the time comes.
->
-> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
-> ---
->  fs/open.c | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
->
-> diff --git a/fs/open.c b/fs/open.c
-> index 949cef2..53b1b33 100644
-> --- a/fs/open.c
-> +++ b/fs/open.c
-> @@ -196,13 +196,13 @@ static long do_sys_ftruncate(unsigned int fd, loff_t length, int small)
->         if (IS_APPEND(inode))
->                 goto out_putf;
->
-> -       sb_start_write(inode->i_sb);
-> +       file_start_write(f.file);
+>> Simplest solution is to keep mapping in the upper inode itself
+>> (xattr).  Takes care of removal automatically.  Can be cached in
+>> ovl_entry.  Makes readdir() really inefficient... need to cache
+>> whether mapping needed for any directory entries in directory, which
+>> complicates rename.
 
-Nah! this is wrong.
-Should be mnt_want_write_file(f.file)
+This feels right.
+We anyway store a lot of cache per directory dentry, the extra mapping
+doesn't sound so bad.
+rename is heavy anyway ;-)
+And its got the sb wide lock so we don't have to worry about that stuff...
 
-At the time of this patch mnt_want_write_file(f.file) translated to
-sb_start_write(inode->i_sb)
-but when next patch is going to change inode = file_inode(f.file)
-sb_start_write(inode->i_sb) will no longer be correct
-and mnt_want_write_file(f.file) is nicer than sb_start_write(locks_inode(f.file)
+>>
+>> The other idea is to store the database separately from the upper tree
+>> (this is what aufs does, apparently).  This works for reverse mapping
+>> as well.  Makes all operations (except rename) more complicated.
 
+This feels wrong.
+Makes me not want to look at this future code...
 
->         error = locks_verify_truncate(inode, f.file, length);
->         if (!error)
->                 error = security_path_truncate(&f.file->f_path);
->         if (!error)
->                 error = do_truncate(dentry, length, ATTR_MTIME|ATTR_CTIME, f.file);
-> -       sb_end_write(inode->i_sb);
-> +       file_end_write(f.file);
->  out_putf:
->         fdput(f);
->  out:
-> --
-> 2.7.4
+>> Keeping whole mapping in kernel memory is prone to resource hogging
+>> and DoS.   Could have a bitmap created by hashing the ino's that are
+>> in the map and setting the bit for those.  Then only reach out to the
+>> disk db if there's a possibility of hit.  Would still need to design
+>> an efficient way to store and access the data in the db (and I have
+>> zero experience with that sort of thing).
 >
+> Hmm, could actually combine the two ideas:
+>
+> Store mapping just in upper inode, walk upper tree on mount and fill
+> in bitmap.  Update bitmap as we go.
+>
+
+Right. You only need a local directory mapping at readdir time, so
+only need to scan that dir inodes into the dir_cache.
+Instead of invalidating the entire dir cache on every dir operation,
+we can try to do something more subtle, so most of the inode mapping
+would be preserved.
+
+> Reverse mapping still needs out-of-band solution, since walking the
+> whole upper tree each time we need to find a reverse map doesn't look
+> like a good solution.
+>
+
+Yes. but remember the optimization we talked about in LSF:
+
+At least for userspace NFS daemon that need to use the open_by_handle_at()
+API, with a handle it got from name_to_handle_at(), the handle contains
+the parent inode and it is possible to reconstruct the path from the handle.
+
+This means that short of redirected directories and hardlinked files, you get
+get lower path from handle and then look up the same path in overlay mount
+to restore the original dentry.
+
+So you never need reverse mapping for directories that were not redirected.
+As for files that are not hardlinks for which kernel nfsd holds a handle without
+parent inode... need to see how bad it could be if nfsd used a non unique
+handle (which includes parent ino), but had a compare_handle() op from fs
+to canonalize the handles.
+
+If restricting reverse mapping to just redirected dirs and hardlinked files
+that becomes something that can live in memory (??) and the cost of keeping
+a persistent store may be simple enough.
+
+I am thinking linked list of redirect_fh stored in upper inodes (of copy up
+hardlinks and redirected dirs). Loading the list at mount is just
+traversing the list
+and chaining all inodes in memory.
+upper remove may need to update one (prev) inode and copy up (or redirect)
+may need to update one (tail) inode.
