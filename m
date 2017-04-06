@@ -1,70 +1,46 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH 3/4] vfs: truncate check IS_APPEND() on backing inode
-Date: Thu,  6 Apr 2017 11:13:48 +0300
-Message-ID: <1491466429-30333-4-git-send-email-amir73il@gmail.com>
+Subject: [PATCH 4/4] vfs: open check IS_APPEND() on backing inode
+Date: Thu,  6 Apr 2017 11:13:49 +0300
+Message-ID: <1491466429-30333-5-git-send-email-amir73il@gmail.com>
 References: <1491466429-30333-1-git-send-email-amir73il@gmail.com>
-Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wr0-f193.google.com ([209.85.128.193]:33657 "EHLO
-        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751764AbdDFINu (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 6 Apr 2017 04:13:50 -0400
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
 In-Reply-To: <1491466429-30333-1-git-send-email-amir73il@gmail.com>
-Sender: linux-unionfs-owner@vger.kernel.org
-List-Id: linux-unionfs@vger.kernel.org
+Sender: linux-fsdevel-owner@vger.kernel.org
 To: Miklos Szeredi <miklos@szeredi.hu>
 Cc: Jan Kara <jack@suse.com>, Al Viro <viro@zeniv.linux.org.uk>, linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
+List-Id: linux-unionfs@vger.kernel.org
 
-truncate an overlayfs inode was checking IS_APPEND() on
-overlay inode, but overlay inode does not have the S_APPEND
-flag and IS_APPEND() is always checked on backing inode in
-other places.
+For overlay file open, check IS_APPEND() on real backing inode
+inside vfs_open(), because the overlay inode does not have the
+S_APPEND flag.
 
-Move the IS_APPEND() check to after we have the upperdentry
-and use the d_backing_inode() macro to explicitly highlight
-the places where the backing inode is used.
+This seems like the wrong place for this check.
+Probably better to propagate S_APPEND flag to overlay inode.
 
 Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- fs/open.c | 12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ fs/open.c | 9 +++++++++
+ 1 file changed, 9 insertions(+)
 
 diff --git a/fs/open.c b/fs/open.c
-index 0e3c12b..baf67cd 100644
+index baf67cd..8f1754d 100644
 --- a/fs/open.c
 +++ b/fs/open.c
-@@ -87,10 +87,6 @@ long vfs_truncate(const struct path *path, loff_t length)
- 	if (error)
- 		goto mnt_drop_write_and_out;
+@@ -859,6 +859,15 @@ int vfs_open(const struct path *path, struct file *file,
+ 	if (IS_ERR(dentry))
+ 		return PTR_ERR(dentry);
  
--	error = -EPERM;
--	if (IS_APPEND(inode))
--		goto mnt_drop_write_and_out;
--
- 	/*
- 	 * If this is an overlayfs then do as if opening the file so we get
- 	 * write access on the upper inode, not on the overlay inode.  For
-@@ -101,7 +97,11 @@ long vfs_truncate(const struct path *path, loff_t length)
- 	if (IS_ERR(upperdentry))
- 		goto mnt_drop_write_and_out;
- 
--	error = get_write_access(upperdentry->d_inode);
-+	error = -EPERM;
-+	if (IS_APPEND(d_backing_inode(upperdentry)))
-+		goto mnt_drop_write_and_out;
++	/* Check append-only open flags also against real inode */
++	if (dentry != path->dentry && IS_APPEND(d_backing_inode(dentry))) {
++		if  ((file->f_flags & O_ACCMODE) != O_RDONLY &&
++		     !(file->f_flags & O_APPEND))
++			return -EPERM;
++		if (file->f_flags & O_TRUNC)
++			return -EPERM;
++	}
 +
-+	error = get_write_access(d_backing_inode(upperdentry));
- 	if (error)
- 		goto mnt_drop_write_and_out;
- 
-@@ -120,7 +120,7 @@ long vfs_truncate(const struct path *path, loff_t length)
- 		error = do_truncate(path->dentry, length, 0, NULL);
- 
- put_write_and_out:
--	put_write_access(upperdentry->d_inode);
-+	put_write_access(d_backing_inode(upperdentry));
- mnt_drop_write_and_out:
- 	mnt_drop_write(path->mnt);
- out:
+ 	file->f_path = *path;
+ 	return do_dentry_open(file, d_backing_inode(dentry), NULL, cred);
+ }
 -- 
 2.7.4
