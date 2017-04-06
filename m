@@ -1,51 +1,77 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH v3 2/3] generic/079: use _require_test_program
-Date: Thu,  6 Apr 2017 08:43:53 +0300
-Message-ID: <1491457434-7359-2-git-send-email-amir73il@gmail.com>
-References: <1491457434-7359-1-git-send-email-amir73il@gmail.com>
-Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wr0-f195.google.com ([209.85.128.195]:33206 "EHLO
-        mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755332AbdDFFnu (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 6 Apr 2017 01:43:50 -0400
-In-Reply-To: <1491457434-7359-1-git-send-email-amir73il@gmail.com>
-Sender: linux-unionfs-owner@vger.kernel.org
-List-Id: linux-unionfs@vger.kernel.org
+Subject: [PATCH v4 1/3] fstests: _require_chattr() must get an input arg
+Date: Thu,  6 Apr 2017 08:49:18 +0300
+Message-ID: <1491457760-9240-1-git-send-email-amir73il@gmail.com>
+Return-path: <fstests-owner@vger.kernel.org>
+Sender: fstests-owner@vger.kernel.org
 To: Eryu Guan <eguan@redhat.com>
 Cc: Miklos Szeredi <miklos@szeredi.hu>, Xiong Zhou <xzhou@redhat.com>, linux-unionfs@vger.kernel.org, fstests@vger.kernel.org
+List-Id: linux-unionfs@vger.kernel.org
 
-use _require_test_program helper and remove unneeded _scratch_unmount
-from _cleanup.
+_require_chattr() was never intended to be called without an input
+argument (specifiying the required attribute to set).
+
+However, calling it without input arguments did work and error
+was silently discarded into full test output.
+
+Fix the function to abort on missing input argument and fix the
+only test that called _require_chattr() with no input argument.
 
 Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- tests/generic/079 | 4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ common/rc         | 25 ++++++++++++++-----------
+ tests/overlay/027 |  2 +-
+ 2 files changed, 15 insertions(+), 12 deletions(-)
 
-diff --git a/tests/generic/079 b/tests/generic/079
-index 97b4812..c2db6bf 100755
---- a/tests/generic/079
-+++ b/tests/generic/079
-@@ -37,7 +37,6 @@ _cleanup()
-     cd /
-     echo "*** cleaning up"
-     $timmutable -r $SCRATCH_MNT/$seq
--    _scratch_unmount
+diff --git a/common/rc b/common/rc
+index e1ab2c6..ae3add3 100644
+--- a/common/rc
++++ b/common/rc
+@@ -3134,18 +3134,21 @@ _require_test_lsattr()
+ 
+ _require_chattr()
+ {
+-    attribute=$1
+-
+-    touch $TEST_DIR/syscalltest
+-    chattr "+$attribute" $TEST_DIR/syscalltest > $TEST_DIR/syscalltest.out 2>&1
+-    status=$?
+-    chattr "-$attribute" $TEST_DIR/syscalltest > $TEST_DIR/syscalltest.out 2>&1
+-    if [ "$status" -ne 0 ]; then
+-      _notrun "file system doesn't support chattr +$attribute"
+-    fi
+-    cat $TEST_DIR/syscalltest.out >> $seqres.full
++	if [ -z "$1" ]; then
++		echo "Usage: _require_chattr <attr>"
++		exit 1
++	fi
++	local attribute=$1
+ 
+-    rm -f $TEST_DIR/syscalltest.out
++	touch $TEST_DIR/syscalltest
++	chattr "+$attribute" $TEST_DIR/syscalltest > $TEST_DIR/syscalltest.out 2>&1
++	status=$?
++	chattr "-$attribute" $TEST_DIR/syscalltest > $TEST_DIR/syscalltest.out 2>&1
++	if [ "$status" -ne 0 ]; then
++		_notrun "file system doesn't support chattr +$attribute"
++	fi
++	cat $TEST_DIR/syscalltest.out >> $seqres.full
++	rm -f $TEST_DIR/syscalltest.out
  }
  
- # get standard environment, filters and checks
-@@ -49,10 +48,9 @@ _supported_fs generic
+ _get_total_inode()
+diff --git a/tests/overlay/027 b/tests/overlay/027
+index 10111b7..90da4e7 100755
+--- a/tests/overlay/027
++++ b/tests/overlay/027
+@@ -57,7 +57,7 @@ rm -f $seqres.full
+ _supported_fs overlay
  _supported_os Linux
- 
- _require_chattr ia
-+_require_test_program "t_immutable"
  _require_scratch
+-_require_chattr
++_require_chattr i
  
--[ -x $timmutable ] || _notrun "t_immutable was not built for this platform"
--
- # real QA test starts here
- _scratch_mkfs >/dev/null 2>&1 || _fail "mkfs failed"
- _scratch_mount || _fail "mount failed"
+ # Remove all files from previous tests
+ _scratch_mkfs
 -- 
 2.7.4
