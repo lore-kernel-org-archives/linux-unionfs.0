@@ -1,103 +1,86 @@
-From: Trond Myklebust <trondmy@primarydata.com>
-Subject: Re: overlayfs NFS export
-Date: Fri, 7 Apr 2017 16:02:28 +0000
-Message-ID: <1491580946.12269.5.camel@primarydata.com>
-References: <CAOQ4uxhpKFhksVJTgWyy5YRzunLiQjf9TTgFO_EfBSdWvBfxWg@mail.gmail.com>
-         <1491577054.10609.1.camel@primarydata.com>
-         <CAJfpegu5hkHM7z4UWhoNhoXBJ9ZmmA8EpAaoThxRe45cCSDeAQ@mail.gmail.com>
-         <1491579981.12269.1.camel@primarydata.com>
-         <CAOQ4uxg1r5yeSntm_nHb0WJqJe-v-yBsTq1TMTj_XcjZVwPiBA@mail.gmail.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Subject: Re: [PATCH v2 1/3] vfs: ftruncate check IS_APPEND() on real inode
+Date: Fri, 7 Apr 2017 19:03:38 +0300
+Message-ID: <CAOQ4uxgJVzaQAWjPrjFG2s7F=jgZrCmBQhdTKg87OJx2QAp4Aw@mail.gmail.com>
+References: <1491555701-16608-1-git-send-email-amir73il@gmail.com>
+ <1491555701-16608-2-git-send-email-amir73il@gmail.com> <CAJfpegvRd7gwVj0iT9OfT7Vxx2=4vHUjDg4rYm31iFpNCQjgmg@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: base64
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from us-smtp-delivery-194.mimecast.com ([63.128.21.194]:46085 "EHLO
-        us-smtp-delivery-194.mimecast.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753883AbdDGQCf (ORCPT
+Received: from mail-oi0-f67.google.com ([209.85.218.67]:34392 "EHLO
+        mail-oi0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755989AbdDGQDj (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 7 Apr 2017 12:02:35 -0400
-In-Reply-To: <CAOQ4uxg1r5yeSntm_nHb0WJqJe-v-yBsTq1TMTj_XcjZVwPiBA@mail.gmail.com>
-Content-Language: en-US
-Content-ID: <54B85F78FCE28344B5B6C47FB2B0BD3B@namprd11.prod.outlook.com>
+        Fri, 7 Apr 2017 12:03:39 -0400
+In-Reply-To: <CAJfpegvRd7gwVj0iT9OfT7Vxx2=4vHUjDg4rYm31iFpNCQjgmg@mail.gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: "amir73il@gmail.com" <amir73il@gmail.com>
-Cc: "bfields@fieldses.org" <bfields@fieldses.org>, "viro@zeniv.linux.org.uk" <viro@zeniv.linux.org.uk>, "miklos@szeredi.hu" <miklos@szeredi.hu>, "jlayton@poochiereds.net" <jlayton@poochiereds.net>, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: Al Viro <viro@zeniv.linux.org.uk>, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>
 
-T24gRnJpLCAyMDE3LTA0LTA3IGF0IDE4OjU4ICswMzAwLCBBbWlyIEdvbGRzdGVpbiB3cm90ZToN
-Cj4gT24gRnJpLCBBcHIgNywgMjAxNyBhdCA2OjQ2IFBNLCBUcm9uZCBNeWtsZWJ1c3QgPHRyb25k
-bXlAcHJpbWFyeWRhdGEuDQo+IGNvbT4gd3JvdGU6DQo+ID4gT24gRnJpLCAyMDE3LTA0LTA3IGF0
-IDE3OjI4ICswMjAwLCBNaWtsb3MgU3plcmVkaSB3cm90ZToNCj4gPiA+IE9uIEZyaSwgQXByIDcs
-IDIwMTcgYXQgNDo1NyBQTSwgVHJvbmQgTXlrbGVidXN0IDx0cm9uZG15QHByaW1hcnlkDQo+ID4g
-PiBhdGEuDQo+ID4gPiBjb20+IHdyb3RlOg0KPiA+ID4gDQo+ID4gPiA+IFdoYXQgaXMgdGhlIHBy
-b2JsZW0geW91IGFyZSB0cnlpbmcgdG8gc29sdmU/DQo+ID4gPiANCj4gPiA+IFRoZSBwcm9ibGVt
-IGlzIGdldHRpbmcgYSBwZXJzaXN0ZW50IGZpbGUgaGFuZGxlIGZvciBvdmVybGF5ZnMNCj4gPiA+
-IGZpbGVzLg0KPiA+ID4gDQo+ID4gPiBPbmUgaWRlYSBzdWdnZXN0ZWQgYnkgVmlybyBpcyB0byBj
-cmVhdGUgYSBkdW1teSBpbm9kZSBvbiB0aGUNCj4gPiA+IHVwcGVyDQo+ID4gPiBsYXllciB3aGVu
-ZXZlciB3ZSBsb29rIHVwIGEgZGVudHJ5IGluIHRoZSBvdmVybGF5DQo+ID4gPiBmaWxlc3lzdGVt
-LsKgwqBUaGVuDQo+ID4gPiB3ZQ0KPiA+ID4gaGF2ZSBhbiBpbm9kZSBudW1iZXIgcmVzZXJ2ZWQg
-Zm9yIHRoZSBmaWxlIGlmIGl0IG5lZWRzIHRvIGJlDQo+ID4gPiBjb3BpZWQNCj4gPiA+IHVwLiBU
-aGlzIHNvbHZlcyB0aGUgZmlsZSBoYW5kbGUgcHJvYmxlbSwgc2luY2Ugd2UgY2FuIGdlbmVyYXRl
-IGENCj4gPiA+IHBhdGgNCj4gPiA+IGZyb20gdGhlIGZpbGUgaGFuZGxlIGFuZCBmcm9tIHRoZXJl
-IGdldCB0aGUgb3JpZ2luYWwgbG93ZXIgbGF5ZXINCj4gPiA+IGZpbGUNCj4gPiA+IChhc3N1bWVz
-IHRoZSBmaWxlIGhhbmRsZSBoYXMgdGhlIHBhcmVudCBoYW5kbGUgZW5jb2RlZCBhcw0KPiA+ID4g
-d2VsbCkuwqDCoElmDQo+ID4gPiB0aGUgZmlsZSBpcyBjb3BpZWQgdXAsIHRoZSBmaWxlIGlzIG5v
-IGxvbmdlciBhc3NpY2lhdGVkIHdpdGggdGhlDQo+ID4gPiBsb3dlcg0KPiA+ID4gbGF5ZXIsIHdl
-IGp1c3QgbmVlZCB0byB1c2UgdGhlIHVwcGVyIGlub2RlLCB0aGlzIHdvcmtzIHRvby7CoMKgQW5k
-DQo+ID4gPiBhbHNvDQo+ID4gPiBmaWxlcyBjcmVhdGVkIG9uIHRoZSB1cHBlciB3b3JrIGZpbmUu
-DQo+ID4gPiANCj4gPiANCj4gPiBXaHkgZG8geW91IG5lZWQgdGhlIHBhcmVudCBkaXJlY3Rvcnkg
-dG8gYmUgZW5jb2RlZCBhcyB3ZWxsPyBEb2Vzbid0DQo+ID4gZmhfdG9fZGVudHJ5KCkgc3VmZmlj
-ZT8NCj4gPiANCj4gDQo+IFB1dCBpdCBzaW1wbHksIHlvdSBlbmNvZGVkIGEgZmlsZSAvbW50L0Ev
-YiB3aGljaCBpcyBmb3VuZCBhdA0KPiAvbG93ZXIvQS9iIGFuZCB3aGVuIHlvdSBsYXRlciBjb21l
-IHdpdGggdGhpcyBoYW5kbGUsIHlvdSBuZWVkIHRvDQo+IGNoZWNrIG5vdCBvbmx5IHRoYXQgdGhl
-IG9yaWdpbmFsIGxvd2VyIGlub2RlIGlzIG5vdCBzdGFsZSAodHJpdmlhbCksDQo+IGJ1dCBhbHNv
-IHRoYXQgdGhlcmUgaXMgbm8gbmV3IGZpbGUgb3Igd2hpdGVvdXQgYXQgcGF0aCAvdXBwZXIvQS9i
-Lg0KPiBzbyB5b3UgY2FuIGRvIHRoaXMgYnkgY29udmVydGluZyBoYW5kbGUgdG8gcGF0aCBhbmQg
-dGhlbiBsb29raW5nDQo+IHVwIHNhbWUgaW4gL3VwcGVyLiBldmVyeXRoaW5nIGJyZWFrcyB3aGVu
-IHVwcGVyIGRpcnMgZ2V0IHJlbmFtZWQuLi4NCg0KT25seSBpZiB0aGUgY2xpZW50IGFza3MgeW91
-IHRvIGxvb2t1cCB0aGF0IGZpbGUgaW4gdGhhdCBkaXJlY3RvcnksIGluDQp3aGljaCBjYXNlIGl0
-IHdpbGwgc3VwcGx5IHlvdSB3aXRoIGEgZmlsZWhhbmRsZSBmb3IgdGhhdCBkaXJlY3RvcnkuDQoN
-Cj4gDQo+ID4gVGhlIHRoaW5nIGlzIHRoYXQgZm9yIGFsbCBuYW1lc3BhY2UgcmVsYXRlZCBvcGVy
-YXRpb25zIChta2RpcigpLA0KPiA+IHJtZGlyKCksIG9wZW4oT19DUkVBVEUpLCB1bmxpbmssLi4u
-KSB0aGUgY2xpZW50IHdpbGwgc3VwcGx5IHRoZQ0KPiA+IHBhcmVudA0KPiA+IGZpbGVoYW5kbGUs
-IHNvIHRob3NlIG9wZXJhdGlvbnMgc2hvdWxkIG5vdCBub3JtYWxseSBzdWZmZXIuDQo+ID4gDQo+
-ID4gVGhlIG9ubHkgb3BlcmF0aW9uIHRoYXQgd291bGQgYmUgYSBwcm9ibGVtIGlzIHdoZW4geW91
-IGhhdmUgdG8gY29weQ0KPiA+IHVwDQo+ID4gYSByZWd1bGFyIGZpbGUsIGJ1dCBmb3IgdGhhdCBj
-YXNlIG92ZXJsYXlmcyBuZWVkcyB0byBnZW5lcmF0ZQ0KPiA+IGRlbnRyaWVzDQo+ID4gZm9yIF9h
-bGxfIGhhcmRsaW5rcyB0byB0aGF0IGZpbGUsIGluIHRoZSB1cHBlciBsYXllciwgbm8/DQo+IA0K
-PiBOZWVkcyB0by4uLiBidXQgaXQgYmxvb2R5IHdlbGwgZG9lc24ndC4gVGhhdCdzIG9uZSBvZiB0
-aGUgaGFyZGVzdA0KPiBpc3N1ZXMuDQo+IA0KPiA+IA0KPiA+ID4gVGhlIG9ubHkgbGl0dGxlIHBy
-b2JsZW0gaXMgdGhhdCB3ZSBhcmUgY3JlYXRpbmcgbG90cyBvZiBpbm9kZXMgb24NCj4gPiA+IGRp
-c2sNCj4gPiA+IGFuZCBtZW1vcnkgdGhhdCB1bnRpbCBub3cgd2UgaGF2ZW4ndC7CoMKgQ3VycmVu
-dGx5IG92ZXJsYXlmcyBvbmx5DQo+ID4gPiBtb2RpZmllcyB1cHBlciBsYXllciBpZiB0aGVyZSdz
-IGEgZ29vZCByZWFzb24gdG8gYmVsaWV2ZSB0aGF0DQo+ID4gPiB0aGVyZQ0KPiA+ID4gaXMNCj4g
-PiA+IHJlYWxseSBnb2luZyB0byBiZSBtb2RpZmljYXRpb24gKGUuZy4gd2hlbiBmaWxlIGlzIG9w
-ZW5lZCBmb3INCj4gPiA+IHdyaXRlKS4NCj4gPiA+IA0KPiA+ID4gVGhlIGFsdGVybmF0aXZlIGlz
-IGdlbmVyYXRlIGZpbGUgaGFuZGxlIGZyb20gbG93ZXIgZmlsZSAoaWYgb24NCj4gPiA+IGxvd2Vy
-KQ0KPiA+ID4gYW5kIGZyb20gdXBwZXIgZmlsZSAoaWYgb24gdXBwZXIpLsKgwqDCoFRoZSBpc3N1
-ZSBpcyBpZiB0aGUgZmlsZSBpcw0KPiA+ID4gY29waWVkIHVwIGFuZCBnb2VzIGZyb20gbG93ZXIg
-dG8gdXBwZXIuwqDCoEluIHRoYXQgY2FzZSB3ZSBuZWVkIHRvDQo+ID4gPiBmaW5kDQo+ID4gPiB0
-aGUgdXBwZXIgZmlsZSBmcm9tIHRoZSBoYW5kbGUgZ2VuZXJhdGVkIGZyb20gdGhlIGxvd2VyDQo+
-ID4gPiBmaWxlLsKgwqDCoFRoaXMNCj4gPiA+IHdvcmtzIGFzIGxvbmcgYXMgdGhlIHVwcGVyIGZp
-bGUgaGFzbid0IGJlZW4gcmVuYW1lZCwgc2FtZSB3YXkgd2UNCj4gPiA+IGZvdW5kDQo+ID4gPiB0
-aGUgbG93ZXIgZnJvbSB0aGUgdXBwZXIgVmlybydzIHNjaGVtZTogZ2VuZXJhdGUgcGF0aCBmcm9t
-IGxvd2VyDQo+ID4gPiBmaWxlDQo+ID4gPiBoYW5kbGUgYW5kIGxvb2sgdXAgaW4gb3ZlcmxheS7C
-oMKgV2hlbiBjb3BpZWQgdXAgZmlsZSBpcyByZW5hbWVkLA0KPiA+ID4gdGhpcw0KPiA+ID4gZG9l
-c24ndCB3b3JrIGFueW1vcmUsIHNvIHdlIG5lZWQgYSBtYXBwaW5nIGZyb20gbG93ZXItaGFuZGxl
-IHRvDQo+ID4gPiB1cHBlci1oYW5kbGUuDQo+ID4gPiANCj4gPiANCj4gPiBHZW5lcmF0aW5nIGZp
-bGVoYW5kbGVzIGZyb20gdGhlIG5hbWVzcGFjZSBpcyBhIG5pZ2h0bWFyZS4gSXQgb25seQ0KPiA+
-IHdvcmtzDQo+IA0KPiBZb3UgbWVhbiBnZW5lcmF0aW5nIGEgcGF0aCBmcm9tIGZpbGVoYW5kbGU/
-IG9yIGdlbmVyYXRpbmcgYQ0KPiBmaWxlaGFuZGxlDQo+IHdpdGggcGFyZW50IHNvIGl0IGNhbiBi
-ZSByZWNvbm5lY3RlZD8NCg0KSSBtZWFuIGlmIHlvdSBlbmNvZGUgdGhlIHBhdGggaW4gdGhlIGZp
-bGVoYW5kbGUsIHlvdSdyZSBib3JrZWQuIFRoZSANCndob2xlIHB1cnBvc2Ugb2YgZmlsZWhhbmRs
-ZXMgaXMgdG8gcHJvdmlkZSBzb21ldGhpbmcgdGhhdCBpcw0KaW5kZXBlbmRlbnQgb2YgdGhlIHBh
-dGggc28gdGhhdCBQT1NJWCBzZW1hbnRpY3MgY2FuIGJlIHByb3ZpZGVkLg0KDQo+ID4gaWYgeW91
-IGhhdmUgc3RyaWN0IG5vbi1QT1NJWC1jb21wYXRpYmxlIHJ1bGVzIGFib3V0IG5vdCBiZWluZyBh
-YmxlDQo+ID4gdG8NCj4gPiBtb2RpZnkgdGhlIHBhcmVudCBvZiBhIHN1YnRyZWUgaWYgdGhlcmUg
-aXMgYSBmaWxlIGluIHVzZSBpbiB0aGF0DQo+ID4gc3VidHJlZS4gWW91IGNhbiB0aGVyZWZvcmUg
-bWFrZSBpdCB3b3JrIGlmIHRoZSB1bmRlcmx5aW5nDQo+ID4gZmlsZXN5c3RlbSBpcw0KPiA+IHNv
-bWV0aGluZyBsaWtlIE5URlMsIGJ1dCBub3QgaWYgeW91IHdhbnQgUE9TSVggc2VtYW50aWNzLg0K
-PiA+IA0KPiANCj4gVGhpcyB3YXMgb3ZlcmxheWZzIHByaW9yIHRvIHY0LjEwLiB0b28gYmFkIHdl
-IGZpeGVkIGl0IDstKQ0KPiANCj4gQW1pci4NCj4gDQotLSANClRyb25kIE15a2xlYnVzdA0KTGlu
-dXggTkZTIGNsaWVudCBtYWludGFpbmVyLCBQcmltYXJ5RGF0YQ0KdHJvbmQubXlrbGVidXN0QHBy
-aW1hcnlkYXRhLmNvbQ0K
+On Fri, Apr 7, 2017 at 4:10 PM, Miklos Szeredi <miklos@szeredi.hu> wrote:
+> On Fri, Apr 7, 2017 at 11:01 AM, Amir Goldstein <amir73il@gmail.com> wrote:
+>> ftruncate an overlayfs inode was checking IS_APPEND() on
+>> overlay inode, but overlay inode does not have the S_APPEND flag.
+>>
+>> Set 'inode' var to file_inode() so all checks are performed on
+>> the real inode and use the overlay inode/sb explicitly for
+>> freeze protection and file lock checks.
+>
+> If you'd just add the file_inode() to the IS_APPEND check then the
+> patch would look a lot less complicated and the effect should be
+> exactly the same.  Am I missing something?
+>
+
+Technically you are right.
+Social engineering wise, its quite hard to look at a random
+vfs function and say what 'inode' stands.
+
+I surveyed some functions and found that in most cases
+where file->f_inode is set a local var named inode stands
+for file_inode() and locks_inode() is the exception, so this
+patch brings do_sys_ftruncate() into compliance.
+
+
+> Thanks,
+> Miklos
+>
+>>
+>> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+>> ---
+>>  fs/open.c | 8 ++++----
+>>  1 file changed, 4 insertions(+), 4 deletions(-)
+>>
+>> diff --git a/fs/open.c b/fs/open.c
+>> index 949cef2..b7d5ab1 100644
+>> --- a/fs/open.c
+>> +++ b/fs/open.c
+>> @@ -182,7 +182,7 @@ static long do_sys_ftruncate(unsigned int fd, loff_t length, int small)
+>>                 small = 0;
+>>
+>>         dentry = f.file->f_path.dentry;
+>> -       inode = dentry->d_inode;
+>> +       inode = file_inode(f.file);
+>>         error = -EINVAL;
+>>         if (!S_ISREG(inode->i_mode) || !(f.file->f_mode & FMODE_WRITE))
+>>                 goto out_putf;
+>> @@ -196,13 +196,13 @@ static long do_sys_ftruncate(unsigned int fd, loff_t length, int small)
+>>         if (IS_APPEND(inode))
+>>                 goto out_putf;
+>>
+>> -       sb_start_write(inode->i_sb);
+>> -       error = locks_verify_truncate(inode, f.file, length);
+>> +       sb_start_write(dentry->d_sb);
+>> +       error = locks_verify_truncate(d_inode(dentry), f.file, length);
+>>         if (!error)
+>>                 error = security_path_truncate(&f.file->f_path);
+>>         if (!error)
+>>                 error = do_truncate(dentry, length, ATTR_MTIME|ATTR_CTIME, f.file);
+>> -       sb_end_write(inode->i_sb);
+>> +       sb_end_write(dentry->d_sb);
+>>  out_putf:
+>>         fdput(f);
+>>  out:
+>> --
+>> 2.7.4
+>>
