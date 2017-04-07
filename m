@@ -1,98 +1,89 @@
-From: Miklos Szeredi <miklos@szeredi.hu>
-Subject: Re: [PATCH v2 3/3] ovl: check IS_APPEND() on real upper inode
-Date: Fri, 7 Apr 2017 15:33:13 +0200
-Message-ID: <CAJfpegtkq=2KQz0-6JujiRqt7GurzjBO0Rj75ky5saEVLYdFHQ@mail.gmail.com>
-References: <1491555701-16608-1-git-send-email-amir73il@gmail.com> <1491555701-16608-4-git-send-email-amir73il@gmail.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Subject: Re: overlayfs NFS export
+Date: Fri, 7 Apr 2017 17:29:53 +0300
+Message-ID: <CAOQ4uxhpKFhksVJTgWyy5YRzunLiQjf9TTgFO_EfBSdWvBfxWg@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
-In-Reply-To: <1491555701-16608-4-git-send-email-amir73il@gmail.com>
-Sender: linux-fsdevel-owner@vger.kernel.org
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>, linux-fsdevel@vger.kernel.org
+Return-path: <linux-unionfs-owner@vger.kernel.org>
+Received: from mail-oi0-f66.google.com ([209.85.218.66]:32923 "EHLO
+        mail-oi0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933865AbdDGOaJ (ORCPT
+        <rfc822;linux-unionfs@vger.kernel.org>);
+        Fri, 7 Apr 2017 10:30:09 -0400
+Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Al Viro <viro@zeniv.linux.org.uk>, "J. Bruce Fields" <bfields@fieldses.org>, Jeff Layton <jlayton@poochiereds.net>, Trond Myklebust <trond.myklebust@primarydata.com>
 
-On Fri, Apr 7, 2017 at 11:01 AM, Amir Goldstein <amir73il@gmail.com> wrote:
-> For overlay file open, check IS_APPEND() on the real upper inode
-> inside d_real(), because the overlay inode does not have the
-> S_APPEND flag and IS_APPEND() can only be checked at open time.
->
-> Note that because overlayfs does not copy up the chattr inode flags
-> (i.e. S_APPEND, S_IMMUTABLE), the IS_APPEND() check is only relevant
-> for upper inodes that were set with chattr +a and not to lower
-> inodes that had chattr +a before copy up.
+[changing the subject and adding more NFS guys so they can shoot my
+idea down if it is too dumb to live]
 
-Okay.   Maybe rename ovl_may_open() to ovl_check_append_only(),
-because that what it does.
+On Fri, Apr 7, 2017 at 4:03 PM, Miklos Szeredi <miklos@szeredi.hu> wrote:
+> On Fri, Apr 7, 2017 at 12:47 PM, Amir Goldstein <amir73il@gmail.com> wrote:
+>
+>> Come to think about it, NFS export of regular file don't need to
+>> follow renames at all:
+>> - The handle for a regular file is always the handle for the real
+>> lower or upper inode
+>> - To decode a handle, create an O_TMPFILE style overlay dentry, which
+>> is not linked
+>>   to any path in overlay, but has the _upperdentry/lowerstack setup
+>
+> I don't think nfs will allow such a scheme.  NFS3 server is stateless,
+> which means there's no open/close in the protocol.   Hence we can't
+> copy-up on open(O_WR*) and return a different file handle for writing.
+> If client looks up a file currently on lower and we return file handle
+> based on lower file, then we must be able to decode that handle after
+> the file has been copied up and even after rename.  And this must work
+> reliably even if the overlay dentry is no longer in the dcache.
+>
+> So there's no option, other than to have a reverse mapping somewhere.
+>
 
-Thanks,
-Miklos
+Either I am missing something or you are.
 
->
-> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
-> ---
->  fs/overlayfs/super.c | 30 +++++++++++++++++++++++++++---
->  1 file changed, 27 insertions(+), 3 deletions(-)
->
-> diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-> index c9e70d3..13806b8 100644
-> --- a/fs/overlayfs/super.c
-> +++ b/fs/overlayfs/super.c
-> @@ -49,11 +49,30 @@ static void ovl_dentry_release(struct dentry *dentry)
->         }
->  }
->
-> +static int ovl_may_open(struct dentry *dentry, int flag)
-> +{
-> +       struct inode *inode = dentry->d_inode;
-> +
-> +       /*
-> +        * This test was moot in vfs may_open() because overlay inode does
-> +        * not have the S_APPEND flag
-> +        */
-> +       if (IS_APPEND(inode)) {
-> +               if  ((flag & O_ACCMODE) != O_RDONLY && !(flag & O_APPEND))
-> +                       return -EPERM;
-> +               if (flag & O_TRUNC)
-> +                       return -EPERM;
-> +       }
-> +
-> +       return 0;
-> +}
-> +
->  static struct dentry *ovl_d_real(struct dentry *dentry,
->                                  const struct inode *inode,
->                                  unsigned int open_flags)
->  {
->         struct dentry *real;
-> +       int err;
->
->         if (!d_is_reg(dentry)) {
->                 if (!inode || inode == d_inode(dentry))
-> @@ -65,15 +84,20 @@ static struct dentry *ovl_d_real(struct dentry *dentry,
->                 return dentry;
->
->         if (open_flags) {
-> -               int err = ovl_open_maybe_copy_up(dentry, open_flags);
-> -
-> +               err = ovl_open_maybe_copy_up(dentry, open_flags);
->                 if (err)
->                         return ERR_PTR(err);
->         }
->
->         real = ovl_dentry_upper(dentry);
-> -       if (real && (!inode || inode == d_inode(real)))
-> +       if (real && (!inode || inode == d_inode(real))) {
-> +               if (!inode) {
-> +                       err = ovl_may_open(real, open_flags);
-> +                       if (err)
-> +                               return ERR_PTR(err);
-> +               }
->                 return real;
-> +       }
->
->         real = ovl_dentry_lower(dentry);
->         if (!real)
-> --
-> 2.7.4
->
+Consider this scenario:
+
+On server:
+- touch a
+- ln a b
+
+On NFS client:
+- rofd = open("a", O_RDONLY)
+
+On server
+- rm a
+- reboot
+
+NFS client must be able to continue to work with rofd
+even after reboot and even after original file was unlinked.
+
+Furthermore, on server:
+- rm b
+
+NFS client must continue to work with rofd even though
+NFS server is stateless and even though inode is now
+nlink = 0.
+That is possible because fs will instantiate a disconnected
+dentry when decoding the file handle is there is no dentry
+already in cache.
+
+So what I am saying is that when nfsd tries to decode
+a handle from overlay mount, and there is no mathcing
+overlay dentry in cache (with the lower ino of course)
+then we instantiate a new disconnected dentry without
+lookup and set its _upperdenry or lowerstack according
+to the knowledge that we found the handle in underlying
+fs and we checked if it is a decedent of lower_mnt[i] or
+upper_mnt.
+
+When NFS client opens a new rwfd it WILL get a different
+handle, but it WILL really be a different file then the rofd,
+so that sounds like a good thing?
+
+I realize it may sound complicated, but redirect_fh patch
+has already all the needed parts in place for this, so the
+proof if what I am saying is right or wrong will be in whether
+or not I am able to present a working POC...
+
+Amir.
