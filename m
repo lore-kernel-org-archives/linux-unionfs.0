@@ -1,108 +1,44 @@
-From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [PATCH v2 3/3] ovl: check IS_APPEND() on real upper inode
-Date: Fri, 7 Apr 2017 19:19:09 +0300
-Message-ID: <CAOQ4uxhCN3UngJ9mz=SsGrm_x2FFFpZce8L_uDuU3cyQ5wkxpw@mail.gmail.com>
-References: <1491555701-16608-1-git-send-email-amir73il@gmail.com>
- <1491555701-16608-4-git-send-email-amir73il@gmail.com> <CAJfpegtkq=2KQz0-6JujiRqt7GurzjBO0Rj75ky5saEVLYdFHQ@mail.gmail.com>
+From: Trond Myklebust <trondmy@primarydata.com>
+Subject: Re: overlayfs NFS export
+Date: Fri, 7 Apr 2017 16:21:06 +0000
+Message-ID: <1491582063.12269.7.camel@primarydata.com>
+References: <CAOQ4uxhpKFhksVJTgWyy5YRzunLiQjf9TTgFO_EfBSdWvBfxWg@mail.gmail.com>
+         <1491577054.10609.1.camel@primarydata.com>
+         <CAJfpegu5hkHM7z4UWhoNhoXBJ9ZmmA8EpAaoThxRe45cCSDeAQ@mail.gmail.com>
+         <CAOQ4uxgnvfZUdWfTsPMfjsvht9tEZi04GVyg=VzUNAWHyD=g_A@mail.gmail.com>
+         <1491580705.12269.3.camel@primarydata.com>
+         <CAOQ4uxg9MwAffRcwavhRJy+TO9LS=tNKmuy3QHyio5yHGJRN0A@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: base64
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-oi0-f67.google.com ([209.85.218.67]:35811 "EHLO
-        mail-oi0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933588AbdDGQTK (ORCPT
+Received: from us-smtp-delivery-194.mimecast.com ([216.205.24.194]:47218 "EHLO
+        us-smtp-delivery-194.mimecast.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S934224AbdDGQVR (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 7 Apr 2017 12:19:10 -0400
-In-Reply-To: <CAJfpegtkq=2KQz0-6JujiRqt7GurzjBO0Rj75ky5saEVLYdFHQ@mail.gmail.com>
+        Fri, 7 Apr 2017 12:21:17 -0400
+In-Reply-To: <CAOQ4uxg9MwAffRcwavhRJy+TO9LS=tNKmuy3QHyio5yHGJRN0A@mail.gmail.com>
+Content-Language: en-US
+Content-ID: <E87494E26C0E234F846BD6B30A4A7B19@namprd11.prod.outlook.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: Al Viro <viro@zeniv.linux.org.uk>, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>
+To: "amir73il@gmail.com" <amir73il@gmail.com>
+Cc: "bfields@fieldses.org" <bfields@fieldses.org>, "viro@zeniv.linux.org.uk" <viro@zeniv.linux.org.uk>, "miklos@szeredi.hu" <miklos@szeredi.hu>, "jlayton@poochiereds.net" <jlayton@poochiereds.net>, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>
 
-On Fri, Apr 7, 2017 at 4:33 PM, Miklos Szeredi <miklos@szeredi.hu> wrote:
-> On Fri, Apr 7, 2017 at 11:01 AM, Amir Goldstein <amir73il@gmail.com> wrote:
->> For overlay file open, check IS_APPEND() on the real upper inode
->> inside d_real(), because the overlay inode does not have the
->> S_APPEND flag and IS_APPEND() can only be checked at open time.
->>
->> Note that because overlayfs does not copy up the chattr inode flags
->> (i.e. S_APPEND, S_IMMUTABLE), the IS_APPEND() check is only relevant
->> for upper inodes that were set with chattr +a and not to lower
->> inodes that had chattr +a before copy up.
->
-> Okay.   Maybe rename ovl_may_open() to ovl_check_append_only(),
-> because that what it does.
-
-Agree. Also I can pass the inode instead of dentry.
-
->
-> Thanks,
-> Miklos
->
->>
->> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
->> ---
->>  fs/overlayfs/super.c | 30 +++++++++++++++++++++++++++---
->>  1 file changed, 27 insertions(+), 3 deletions(-)
->>
->> diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
->> index c9e70d3..13806b8 100644
->> --- a/fs/overlayfs/super.c
->> +++ b/fs/overlayfs/super.c
->> @@ -49,11 +49,30 @@ static void ovl_dentry_release(struct dentry *dentry)
->>         }
->>  }
->>
->> +static int ovl_may_open(struct dentry *dentry, int flag)
->> +{
->> +       struct inode *inode = dentry->d_inode;
->> +
->> +       /*
->> +        * This test was moot in vfs may_open() because overlay inode does
->> +        * not have the S_APPEND flag
->> +        */
->> +       if (IS_APPEND(inode)) {
->> +               if  ((flag & O_ACCMODE) != O_RDONLY && !(flag & O_APPEND))
->> +                       return -EPERM;
->> +               if (flag & O_TRUNC)
->> +                       return -EPERM;
->> +       }
->> +
->> +       return 0;
->> +}
->> +
->>  static struct dentry *ovl_d_real(struct dentry *dentry,
->>                                  const struct inode *inode,
->>                                  unsigned int open_flags)
->>  {
->>         struct dentry *real;
->> +       int err;
->>
->>         if (!d_is_reg(dentry)) {
->>                 if (!inode || inode == d_inode(dentry))
->> @@ -65,15 +84,20 @@ static struct dentry *ovl_d_real(struct dentry *dentry,
->>                 return dentry;
->>
->>         if (open_flags) {
->> -               int err = ovl_open_maybe_copy_up(dentry, open_flags);
->> -
->> +               err = ovl_open_maybe_copy_up(dentry, open_flags);
->>                 if (err)
->>                         return ERR_PTR(err);
->>         }
->>
->>         real = ovl_dentry_upper(dentry);
->> -       if (real && (!inode || inode == d_inode(real)))
->> +       if (real && (!inode || inode == d_inode(real))) {
->> +               if (!inode) {
->> +                       err = ovl_may_open(real, open_flags);
->> +                       if (err)
->> +                               return ERR_PTR(err);
->> +               }
->>                 return real;
->> +       }
->>
->>         real = ovl_dentry_lower(dentry);
->>         if (!real)
->> --
->> 2.7.4
->>
+T24gRnJpLCAyMDE3LTA0LTA3IGF0IDE5OjEwICswMzAwLCBBbWlyIEdvbGRzdGVpbiB3cm90ZQ0K
+PiANCj4gVGhlIG1vc3QgaW1wb3J0YW50IHBvaW50IHRvIHVuZGVyc3RhbmQgaXMgdGhpczoNCj4g
+DQo+IElmIHNlcnZlciBvcGVucyBhIGZpbGUgZm9yIHdyaXRlIGl0IHdpbGwgdHJpZ2dlciBhIGNv
+cHkgdXANCj4gYW5kIHRoZSBmaWxlIGhhbmRsZSByZXR1cm5lZCB3aWxsIGJlIHBlcnNpc3RlbnQg
+YW5kIGZpbmFsLg0KPiANCj4gVGhlIG9ubHkgcHJvYmxlbSBpcyB0aGF0IHdoZW4gc2VydmVyIG9w
+ZW5zIGEgZmlsZSBmb3INCj4gcmVhZCAqYmVmb3JlKiBpdCBvcGVucyB0aGUgc2FtZSBmaWxlIGZv
+ciB3cml0ZSwgdGhlIHJldHVybmVkDQo+IGhhbmRsZSB3b3VsZCBiZSBkaWZmZXJlbnQsIGJlY2F1
+c2UgZmlyc3Qgb3BlbiBmb3Igd3JpdGUNCj4gY3JlYXRlcyBhIG5ldyBmaWxlIGFuZCB0aGUgb2xk
+IGZpbGUgcmVtYWlucyBhIHpvbWJpZQ0KPiAoYXMgZmFyIGFzIG5mc2QgaXMgY29uY2VybmVkKSBv
+bmx5IG5mc2QgaXMgYWJsZSB0byB0byBhY2Nlc3MNCj4gdGhlIG9sZCBmaWxlIGFuZCBvbmx5IGZv
+ciByZWFkLg0KDQpUaGF0IHdpbGwgYnJlYWsgdGhlIGNsaWVudC4gQXMgTWlrbG9zIGFscmVhZHkg
+dG9sZCB5b3UsIE5GU3YzIGlzDQpzdGF0ZWxlc3MsIHNvIHRoZSBjbGllbnQgd29uJ3QgYmUgc2Vu
+ZGluZyB5b3UgYW4gT1BFTiwgYW5kIHdvbid0DQphY3R1YWxseSBoaXQgYSBwcm9ibGVtIHVudGls
+IGl0IHRyaWVzIHRvIHNlbmQgYSBXUklURSwgaW4gd2hpY2ggY2FzZQ0KdGhlIHJlc3VsdGluZyBF
+U1RBTEUgZXJyb3Igd2lsbCBiZSBwcm9wYWdhdGVkIHRvIHRoZSBhcHBsaWNhdGlvbi4NCg0KLS0g
+DQpUcm9uZCBNeWtsZWJ1c3QNCkxpbnV4IE5GUyBjbGllbnQgbWFpbnRhaW5lciwgUHJpbWFyeURh
+dGENCnRyb25kLm15a2xlYnVzdEBwcmltYXJ5ZGF0YS5jb20NCg==
