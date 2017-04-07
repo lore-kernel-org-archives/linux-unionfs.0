@@ -1,44 +1,67 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH v2 0/3] ovl: fix IS_APPEND() checks
-Date: Fri,  7 Apr 2017 12:01:38 +0300
-Message-ID: <1491555701-16608-1-git-send-email-amir73il@gmail.com>
+Subject: [PATCH v2 2/3] vfs: truncate check IS_APPEND() on real inode
+Date: Fri,  7 Apr 2017 12:01:40 +0300
+Message-ID: <1491555701-16608-3-git-send-email-amir73il@gmail.com>
+References: <1491555701-16608-1-git-send-email-amir73il@gmail.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wr0-f196.google.com ([209.85.128.196]:33803 "EHLO
-        mail-wr0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754675AbdDGJBi (ORCPT
+Received: from mail-wr0-f193.google.com ([209.85.128.193]:35056 "EHLO
+        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1756059AbdDGJBm (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 7 Apr 2017 05:01:38 -0400
+        Fri, 7 Apr 2017 05:01:42 -0400
+In-Reply-To: <1491555701-16608-1-git-send-email-amir73il@gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: Miklos Szeredi <miklos@szeredi.hu>
 Cc: Al Viro <viro@zeniv.linux.org.uk>, linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
 
-Miklos,
+truncate an overlayfs inode was checking IS_APPEND() on
+overlay inode, but overlay inode does not have the S_APPEND flag.
 
-This series fixes the append-only violations found by the new
-xfstest overlay/030.
+Move the IS_APPEND() check to after we have the upperdentry
+and pass it the real upper inode.
 
-I got rid of the wrong patch to convert sb_start_write() to
-file_start_write() and moved the open flag checks into
-ovl_d_real().
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+---
+ fs/open.c | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-Amir.
-
-v2:
-- move open check to ovl_d_real()
-- discard wrong patch to file_start_write() in ftruncate()
-
-v1:
-- fix checks in [f]truncate and vfs_open()
-
-Amir Goldstein (3):
-  vfs: ftruncate check IS_APPEND() on real inode
-  vfs: truncate check IS_APPEND() on real inode
-  ovl: check IS_APPEND() on real upper inode
-
- fs/open.c            | 20 ++++++++++----------
- fs/overlayfs/super.c | 30 +++++++++++++++++++++++++++---
- 2 files changed, 37 insertions(+), 13 deletions(-)
-
+diff --git a/fs/open.c b/fs/open.c
+index b7d5ab1..425db52 100644
+--- a/fs/open.c
++++ b/fs/open.c
+@@ -87,10 +87,6 @@ long vfs_truncate(const struct path *path, loff_t length)
+ 	if (error)
+ 		goto mnt_drop_write_and_out;
+ 
+-	error = -EPERM;
+-	if (IS_APPEND(inode))
+-		goto mnt_drop_write_and_out;
+-
+ 	/*
+ 	 * If this is an overlayfs then do as if opening the file so we get
+ 	 * write access on the upper inode, not on the overlay inode.  For
+@@ -101,7 +97,11 @@ long vfs_truncate(const struct path *path, loff_t length)
+ 	if (IS_ERR(upperdentry))
+ 		goto mnt_drop_write_and_out;
+ 
+-	error = get_write_access(upperdentry->d_inode);
++	error = -EPERM;
++	if (IS_APPEND(d_inode(upperdentry)))
++		goto mnt_drop_write_and_out;
++
++	error = get_write_access(d_inode(upperdentry));
+ 	if (error)
+ 		goto mnt_drop_write_and_out;
+ 
+@@ -120,7 +120,7 @@ long vfs_truncate(const struct path *path, loff_t length)
+ 		error = do_truncate(path->dentry, length, 0, NULL);
+ 
+ put_write_and_out:
+-	put_write_access(upperdentry->d_inode);
++	put_write_access(d_inode(upperdentry));
+ mnt_drop_write_and_out:
+ 	mnt_drop_write(path->mnt);
+ out:
 -- 
 2.7.4
