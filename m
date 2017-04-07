@@ -1,73 +1,98 @@
-From: Trond Myklebust <trondmy@primarydata.com>
+From: Amir Goldstein <amir73il@gmail.com>
 Subject: Re: overlayfs NFS export
-Date: Fri, 7 Apr 2017 15:46:25 +0000
-Message-ID: <1491579981.12269.1.camel@primarydata.com>
+Date: Fri, 7 Apr 2017 18:58:37 +0300
+Message-ID: <CAOQ4uxg1r5yeSntm_nHb0WJqJe-v-yBsTq1TMTj_XcjZVwPiBA@mail.gmail.com>
 References: <CAOQ4uxhpKFhksVJTgWyy5YRzunLiQjf9TTgFO_EfBSdWvBfxWg@mail.gmail.com>
-         <1491577054.10609.1.camel@primarydata.com>
-         <CAJfpegu5hkHM7z4UWhoNhoXBJ9ZmmA8EpAaoThxRe45cCSDeAQ@mail.gmail.com>
+ <1491577054.10609.1.camel@primarydata.com> <CAJfpegu5hkHM7z4UWhoNhoXBJ9ZmmA8EpAaoThxRe45cCSDeAQ@mail.gmail.com>
+ <1491579981.12269.1.camel@primarydata.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: base64
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from us-smtp-delivery-194.mimecast.com ([63.128.21.194]:51067 "EHLO
-        us-smtp-delivery-194.mimecast.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S933735AbdDGPqc (ORCPT
+Received: from mail-oi0-f42.google.com ([209.85.218.42]:32923 "EHLO
+        mail-oi0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933105AbdDGP6i (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 7 Apr 2017 11:46:32 -0400
-In-Reply-To: <CAJfpegu5hkHM7z4UWhoNhoXBJ9ZmmA8EpAaoThxRe45cCSDeAQ@mail.gmail.com>
-Content-Language: en-US
-Content-ID: <33B0D517256981418B2E540D46F0607F@namprd11.prod.outlook.com>
+        Fri, 7 Apr 2017 11:58:38 -0400
+In-Reply-To: <1491579981.12269.1.camel@primarydata.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: "miklos@szeredi.hu" <miklos@szeredi.hu>
-Cc: "bfields@fieldses.org" <bfields@fieldses.org>, "viro@zeniv.linux.org.uk" <viro@zeniv.linux.org.uk>, "jlayton@poochiereds.net" <jlayton@poochiereds.net>, "amir73il@gmail.com" <amir73il@gmail.com>, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>
+To: Trond Myklebust <trondmy@primarydata.com>
+Cc: "miklos@szeredi.hu" <miklos@szeredi.hu>, "bfields@fieldses.org" <bfields@fieldses.org>, "viro@zeniv.linux.org.uk" <viro@zeniv.linux.org.uk>, "jlayton@poochiereds.net" <jlayton@poochiereds.net>, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>
 
-T24gRnJpLCAyMDE3LTA0LTA3IGF0IDE3OjI4ICswMjAwLCBNaWtsb3MgU3plcmVkaSB3cm90ZToN
-Cj4gT24gRnJpLCBBcHIgNywgMjAxNyBhdCA0OjU3IFBNLCBUcm9uZCBNeWtsZWJ1c3QgPHRyb25k
-bXlAcHJpbWFyeWRhdGEuDQo+IGNvbT4gd3JvdGU6DQo+IA0KPiA+IFdoYXQgaXMgdGhlIHByb2Js
-ZW0geW91IGFyZSB0cnlpbmcgdG8gc29sdmU/DQo+IA0KPiBUaGUgcHJvYmxlbSBpcyBnZXR0aW5n
-IGEgcGVyc2lzdGVudCBmaWxlIGhhbmRsZSBmb3Igb3ZlcmxheWZzIGZpbGVzLg0KPiANCj4gT25l
-IGlkZWEgc3VnZ2VzdGVkIGJ5IFZpcm8gaXMgdG8gY3JlYXRlIGEgZHVtbXkgaW5vZGUgb24gdGhl
-IHVwcGVyDQo+IGxheWVyIHdoZW5ldmVyIHdlIGxvb2sgdXAgYSBkZW50cnkgaW4gdGhlIG92ZXJs
-YXkgZmlsZXN5c3RlbS7CoMKgVGhlbg0KPiB3ZQ0KPiBoYXZlIGFuIGlub2RlIG51bWJlciByZXNl
-cnZlZCBmb3IgdGhlIGZpbGUgaWYgaXQgbmVlZHMgdG8gYmUgY29waWVkDQo+IHVwLiBUaGlzIHNv
-bHZlcyB0aGUgZmlsZSBoYW5kbGUgcHJvYmxlbSwgc2luY2Ugd2UgY2FuIGdlbmVyYXRlIGEgcGF0
-aA0KPiBmcm9tIHRoZSBmaWxlIGhhbmRsZSBhbmQgZnJvbSB0aGVyZSBnZXQgdGhlIG9yaWdpbmFs
-IGxvd2VyIGxheWVyIGZpbGUNCj4gKGFzc3VtZXMgdGhlIGZpbGUgaGFuZGxlIGhhcyB0aGUgcGFy
-ZW50IGhhbmRsZSBlbmNvZGVkIGFzIHdlbGwpLsKgwqBJZg0KPiB0aGUgZmlsZSBpcyBjb3BpZWQg
-dXAsIHRoZSBmaWxlIGlzIG5vIGxvbmdlciBhc3NpY2lhdGVkIHdpdGggdGhlDQo+IGxvd2VyDQo+
-IGxheWVyLCB3ZSBqdXN0IG5lZWQgdG8gdXNlIHRoZSB1cHBlciBpbm9kZSwgdGhpcyB3b3JrcyB0
-b28uwqDCoEFuZCBhbHNvDQo+IGZpbGVzIGNyZWF0ZWQgb24gdGhlIHVwcGVyIHdvcmsgZmluZS4N
-Cj4gDQoNCldoeSBkbyB5b3UgbmVlZCB0aGUgcGFyZW50IGRpcmVjdG9yeSB0byBiZSBlbmNvZGVk
-IGFzIHdlbGw/IERvZXNuJ3QNCmZoX3RvX2RlbnRyeSgpIHN1ZmZpY2U/DQoNClRoZSB0aGluZyBp
-cyB0aGF0IGZvciBhbGwgbmFtZXNwYWNlIHJlbGF0ZWQgb3BlcmF0aW9ucyAobWtkaXIoKSwNCnJt
-ZGlyKCksIG9wZW4oT19DUkVBVEUpLCB1bmxpbmssLi4uKSB0aGUgY2xpZW50IHdpbGwgc3VwcGx5
-IHRoZSBwYXJlbnQNCmZpbGVoYW5kbGUsIHNvIHRob3NlIG9wZXJhdGlvbnMgc2hvdWxkIG5vdCBu
-b3JtYWxseSBzdWZmZXIuDQoNClRoZSBvbmx5IG9wZXJhdGlvbiB0aGF0IHdvdWxkIGJlIGEgcHJv
-YmxlbSBpcyB3aGVuIHlvdSBoYXZlIHRvIGNvcHkgdXANCmEgcmVndWxhciBmaWxlLCBidXQgZm9y
-IHRoYXQgY2FzZSBvdmVybGF5ZnMgbmVlZHMgdG8gZ2VuZXJhdGUgZGVudHJpZXMNCmZvciBfYWxs
-XyBoYXJkbGlua3MgdG8gdGhhdCBmaWxlLCBpbiB0aGUgdXBwZXIgbGF5ZXIsIG5vPw0KDQo+IFRo
-ZSBvbmx5IGxpdHRsZSBwcm9ibGVtIGlzIHRoYXQgd2UgYXJlIGNyZWF0aW5nIGxvdHMgb2YgaW5v
-ZGVzIG9uDQo+IGRpc2sNCj4gYW5kIG1lbW9yeSB0aGF0IHVudGlsIG5vdyB3ZSBoYXZlbid0LsKg
-wqBDdXJyZW50bHkgb3ZlcmxheWZzIG9ubHkNCj4gbW9kaWZpZXMgdXBwZXIgbGF5ZXIgaWYgdGhl
-cmUncyBhIGdvb2QgcmVhc29uIHRvIGJlbGlldmUgdGhhdCB0aGVyZQ0KPiBpcw0KPiByZWFsbHkg
-Z29pbmcgdG8gYmUgbW9kaWZpY2F0aW9uIChlLmcuIHdoZW4gZmlsZSBpcyBvcGVuZWQgZm9yIHdy
-aXRlKS4NCj4gDQo+IFRoZSBhbHRlcm5hdGl2ZSBpcyBnZW5lcmF0ZSBmaWxlIGhhbmRsZSBmcm9t
-IGxvd2VyIGZpbGUgKGlmIG9uIGxvd2VyKQ0KPiBhbmQgZnJvbSB1cHBlciBmaWxlIChpZiBvbiB1
-cHBlcikuwqDCoMKgVGhlIGlzc3VlIGlzIGlmIHRoZSBmaWxlIGlzDQo+IGNvcGllZCB1cCBhbmQg
-Z29lcyBmcm9tIGxvd2VyIHRvIHVwcGVyLsKgwqBJbiB0aGF0IGNhc2Ugd2UgbmVlZCB0byBmaW5k
-DQo+IHRoZSB1cHBlciBmaWxlIGZyb20gdGhlIGhhbmRsZSBnZW5lcmF0ZWQgZnJvbSB0aGUgbG93
-ZXIgZmlsZS7CoMKgwqBUaGlzDQo+IHdvcmtzIGFzIGxvbmcgYXMgdGhlIHVwcGVyIGZpbGUgaGFz
-bid0IGJlZW4gcmVuYW1lZCwgc2FtZSB3YXkgd2UNCj4gZm91bmQNCj4gdGhlIGxvd2VyIGZyb20g
-dGhlIHVwcGVyIFZpcm8ncyBzY2hlbWU6IGdlbmVyYXRlIHBhdGggZnJvbSBsb3dlciBmaWxlDQo+
-IGhhbmRsZSBhbmQgbG9vayB1cCBpbiBvdmVybGF5LsKgwqBXaGVuIGNvcGllZCB1cCBmaWxlIGlz
-IHJlbmFtZWQsIHRoaXMNCj4gZG9lc24ndCB3b3JrIGFueW1vcmUsIHNvIHdlIG5lZWQgYSBtYXBw
-aW5nIGZyb20gbG93ZXItaGFuZGxlIHRvDQo+IHVwcGVyLWhhbmRsZS4NCj4gDQpHZW5lcmF0aW5n
-IGZpbGVoYW5kbGVzIGZyb20gdGhlIG5hbWVzcGFjZSBpcyBhIG5pZ2h0bWFyZS4gSXQgb25seSB3
-b3Jrcw0KaWYgeW91IGhhdmUgc3RyaWN0IG5vbi1QT1NJWC1jb21wYXRpYmxlIHJ1bGVzIGFib3V0
-IG5vdCBiZWluZyBhYmxlIHRvDQptb2RpZnkgdGhlIHBhcmVudCBvZiBhIHN1YnRyZWUgaWYgdGhl
-cmUgaXMgYSBmaWxlIGluIHVzZSBpbiB0aGF0DQpzdWJ0cmVlLiBZb3UgY2FuIHRoZXJlZm9yZSBt
-YWtlIGl0IHdvcmsgaWYgdGhlIHVuZGVybHlpbmcgZmlsZXN5c3RlbSBpcw0Kc29tZXRoaW5nIGxp
-a2UgTlRGUywgYnV0IG5vdCBpZiB5b3Ugd2FudCBQT1NJWCBzZW1hbnRpY3MuDQoNCi0tIA0KVHJv
-bmQgTXlrbGVidXN0DQpMaW51eCBORlMgY2xpZW50IG1haW50YWluZXIsIFByaW1hcnlEYXRhDQp0
-cm9uZC5teWtsZWJ1c3RAcHJpbWFyeWRhdGEuY29tDQo=
+On Fri, Apr 7, 2017 at 6:46 PM, Trond Myklebust <trondmy@primarydata.com> wrote:
+> On Fri, 2017-04-07 at 17:28 +0200, Miklos Szeredi wrote:
+>> On Fri, Apr 7, 2017 at 4:57 PM, Trond Myklebust <trondmy@primarydata.
+>> com> wrote:
+>>
+>> > What is the problem you are trying to solve?
+>>
+>> The problem is getting a persistent file handle for overlayfs files.
+>>
+>> One idea suggested by Viro is to create a dummy inode on the upper
+>> layer whenever we look up a dentry in the overlay filesystem.  Then
+>> we
+>> have an inode number reserved for the file if it needs to be copied
+>> up. This solves the file handle problem, since we can generate a path
+>> from the file handle and from there get the original lower layer file
+>> (assumes the file handle has the parent handle encoded as well).  If
+>> the file is copied up, the file is no longer assiciated with the
+>> lower
+>> layer, we just need to use the upper inode, this works too.  And also
+>> files created on the upper work fine.
+>>
+>
+> Why do you need the parent directory to be encoded as well? Doesn't
+> fh_to_dentry() suffice?
+>
+
+Put it simply, you encoded a file /mnt/A/b which is found at
+/lower/A/b and when you later come with this handle, you need to
+check not only that the original lower inode is not stale (trivial),
+but also that there is no new file or whiteout at path /upper/A/b.
+so you can do this by converting handle to path and then looking
+up same in /upper. everything breaks when upper dirs get renamed...
+
+
+> The thing is that for all namespace related operations (mkdir(),
+> rmdir(), open(O_CREATE), unlink,...) the client will supply the parent
+> filehandle, so those operations should not normally suffer.
+>
+> The only operation that would be a problem is when you have to copy up
+> a regular file, but for that case overlayfs needs to generate dentries
+> for _all_ hardlinks to that file, in the upper layer, no?
+
+Needs to... but it bloody well doesn't. That's one of the hardest issues.
+
+>
+>> The only little problem is that we are creating lots of inodes on
+>> disk
+>> and memory that until now we haven't.  Currently overlayfs only
+>> modifies upper layer if there's a good reason to believe that there
+>> is
+>> really going to be modification (e.g. when file is opened for write).
+>>
+>> The alternative is generate file handle from lower file (if on lower)
+>> and from upper file (if on upper).   The issue is if the file is
+>> copied up and goes from lower to upper.  In that case we need to find
+>> the upper file from the handle generated from the lower file.   This
+>> works as long as the upper file hasn't been renamed, same way we
+>> found
+>> the lower from the upper Viro's scheme: generate path from lower file
+>> handle and look up in overlay.  When copied up file is renamed, this
+>> doesn't work anymore, so we need a mapping from lower-handle to
+>> upper-handle.
+>>
+> Generating filehandles from the namespace is a nightmare. It only works
+
+You mean generating a path from filehandle? or generating a filehandle
+with parent so it can be reconnected?
+
+> if you have strict non-POSIX-compatible rules about not being able to
+> modify the parent of a subtree if there is a file in use in that
+> subtree. You can therefore make it work if the underlying filesystem is
+> something like NTFS, but not if you want POSIX semantics.
+>
+
+This was overlayfs prior to v4.10. too bad we fixed it ;-)
+
+Amir.
