@@ -1,75 +1,161 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [PATCH 0/6] ovl: consistent_fd feature
-Date: Fri, 7 Apr 2017 18:07:14 +0300
-Message-ID: <CAOQ4uxgtnF-ziZTsRt8xnokr66+rQnTQvTJ4gBYozPgUoE0P9Q@mail.gmail.com>
-References: <1490798166-22310-1-git-send-email-amir73il@gmail.com>
- <CAOQ4uxgcOD0DEZse2hWRWopDdBPsb+f=XX0SPQirbX_WGmLR-w@mail.gmail.com>
- <CAJfpegsidjjP_DPpAGAjUtOZEw70nu5jnoTO5E+yzPkONG4X9A@mail.gmail.com>
- <CAJfpegugsV8Lzwwiz5BncAnTVc2tPdYcG7eGrVhChcfc6CtBfw@mail.gmail.com>
- <CAOQ4uxispHXxq8qO9GHEyQm9nLWUiG9CfMzP59hffYM5OPB4DA@mail.gmail.com>
- <CAJfpeguDJrtJn1bkM03pxH0eo=K81dFYm7OP3QSpBCj6aWZZhA@mail.gmail.com>
- <CAJfpegupcgWcP3yC=8Lpe-=m=oq_7f2OR9f14+p+ug+67gWBPA@mail.gmail.com>
- <CAOQ4uxjbfBOvHMwe0xRdXox8Uy3XwdaxJmQpiYDVBT8854z4+w@mail.gmail.com> <CAJfpegts8UjOXYLoUyn9m-tLK7fXyFH=mmm3J3vAZ4U_Xm9=XQ@mail.gmail.com>
+Subject: Re: overlayfs NFS export
+Date: Fri, 7 Apr 2017 18:26:59 +0300
+Message-ID: <CAOQ4uxhqTUtu_+pDTWHPi5iZb_BYxobxyQ7BfyqVdaM6HzMpPw@mail.gmail.com>
+References: <CAOQ4uxhpKFhksVJTgWyy5YRzunLiQjf9TTgFO_EfBSdWvBfxWg@mail.gmail.com>
+ <1491576837.2745.19.camel@poochiereds.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-oi0-f65.google.com ([209.85.218.65]:34885 "EHLO
-        mail-oi0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751425AbdDGPHP (ORCPT
+Received: from mail-oi0-f44.google.com ([209.85.218.44]:35996 "EHLO
+        mail-oi0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754686AbdDGP1A (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 7 Apr 2017 11:07:15 -0400
-Received: by mail-oi0-f65.google.com with SMTP id g204so2305402oib.2
-        for <linux-unionfs@vger.kernel.org>; Fri, 07 Apr 2017 08:07:15 -0700 (PDT)
-In-Reply-To: <CAJfpegts8UjOXYLoUyn9m-tLK7fXyFH=mmm3J3vAZ4U_Xm9=XQ@mail.gmail.com>
+        Fri, 7 Apr 2017 11:27:00 -0400
+In-Reply-To: <1491576837.2745.19.camel@poochiereds.net>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>
+To: Jeff Layton <jlayton@poochiereds.net>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Al Viro <viro@zeniv.linux.org.uk>, "J. Bruce Fields" <bfields@fieldses.org>, Trond Myklebust <trond.myklebust@primarydata.com>
 
-On Fri, Apr 7, 2017 at 4:03 PM, Miklos Szeredi <miklos@szeredi.hu> wrote:
+On Fri, Apr 7, 2017 at 5:53 PM, Jeff Layton <jlayton@poochiereds.net> wrote:
+> On Fri, 2017-04-07 at 17:29 +0300, Amir Goldstein wrote:
+>> [changing the subject and adding more NFS guys so they can shoot my
+>> idea down if it is too dumb to live]
+>>
+>> On Fri, Apr 7, 2017 at 4:03 PM, Miklos Szeredi <miklos@szeredi.hu> wrote:
+>> > On Fri, Apr 7, 2017 at 12:47 PM, Amir Goldstein <amir73il@gmail.com> wrote:
+>> >
+>> > > Come to think about it, NFS export of regular file don't need to
+>> > > follow renames at all:
+>> > > - The handle for a regular file is always the handle for the real
+>> > > lower or upper inode
+>> > > - To decode a handle, create an O_TMPFILE style overlay dentry, which
+>> > > is not linked
+>> > >   to any path in overlay, but has the _upperdentry/lowerstack setup
+>> >
+>> > I don't think nfs will allow such a scheme.  NFS3 server is stateless,
+>> > which means there's no open/close in the protocol.   Hence we can't
+>> > copy-up on open(O_WR*) and return a different file handle for writing.
+>> > If client looks up a file currently on lower and we return file handle
+>> > based on lower file, then we must be able to decode that handle after
+>> > the file has been copied up and even after rename.  And this must work
+>> > reliably even if the overlay dentry is no longer in the dcache.
+>> >
+>> > So there's no option, other than to have a reverse mapping somewhere.
+>> >
+>>
+>> Either I am missing something or you are.
+>>
+>> Consider this scenario:
+>>
+>> On server:
+>> - touch a
+>> - ln a b
+>>
+>> On NFS client:
+>> - rofd = open("a", O_RDONLY)
+>>
+>> On server
+>> - rm a
+>> - reboot
+>>
+>> NFS client must be able to continue to work with rofd
+>> even after reboot and even after original file was unlinked.
+>>
 >
+> Sure, it'll still work here. The inode still exists because of "b".
 >
-> One more idea:  do it out-of-band (e.g. under workdir) but do it as a
-> plain directory tree shadowing the lower trees that contains the
-> forward redirect information.  It spares us the implementation of the
-> database, since the filesystem does it for us.  Yes, it can get out of
-> sync with the overlay, but so can any mapping in-band or out-of-band.
+>> Furthermore, on server:
+>> - rm b
+>>
+>> NFS client must continue to work with rofd even though
+>> NFS server is stateless and even though inode is now
+>> nlink = 0.
+>
+> No, at that point the server will probably just kill the inode and
+> you'll start getting back -ESTALE when you try to use that filehandle.
+> With NFSv2/3, there is no guarantee that the server will have bothered
+> to open it after reboot but before you removed it here.
 >
 
-I like this.
+Yes, I forgot to say that another process on server keeps the
+inode alive.
+Just stressing the point that if overlay provides a disconected
+dentry to nfsd its not going to be a new thing.
 
-"don't implement a database of files, because filesystem is already
-a super complex and optimized database of files metadata" is a
-design concept I feel strongly about.
+>> That is possible because fs will instantiate a disconnected
+>> dentry when decoding the file handle is there is no dentry
+>> already in cache.
+>>
+>> So what I am saying is that when nfsd tries to decode
+>> a handle from overlay mount, and there is no mathcing
+>> overlay dentry in cache (with the lower ino of course)
+>> then we instantiate a new disconnected dentry without
+>> lookup and set its _upperdenry or lowerstack according
+>> to the knowledge that we found the handle in underlying
+>> fs and we checked if it is a decedent of lower_mnt[i] or
+>> upper_mnt.
+>>
+>> When NFS client opens a new rwfd it WILL get a different
+>> handle, but it WILL really be a different file then the rofd,
+>> so that sounds like a good thing?
+>>
+>
+> An "open" with NFSv3 is basically a NFS LOOKUP or maybe a GETATTR call.
+> Again, the protocol is stateless, so in practice we open the inode each
+> time we service a READ or WRITE RPC.
 
-It always bothered me that is_lower_positive() is not cached
-in a single place.
+Yes, but you open the inode using a filehandle from the client right?
+otherwise whats exportfs for?
 
-I am not concerned about getting out of sync to to an
-implementation bug.
-I am concerned about not being able to program power fail safe
-code that does not require calling fsync for metadata operations.
+>
+> How is knfsd to know that you want to access the r/o or r/w inode there
+> and thus give you the right filehandle?
+>
 
-Because the shadow directory existence is not a problem
-we can safely create it anytime before upper rename
-and if we set a redirect_fh on the shadow dir, we can also
-do that anytime before rename and we are also safe wrt
-upper rmdir.
+Its not knfsd business to know that.
+With overlayfs the first ro handle will have the lower inode
+and second rw handle will have the upper inode
+trying to open by handle from ro handle will get you
+a disconnected overlay dentry pointing to lower inode
+and trying to open by handle from rw handle will
+get you a disconnected overlay dentry pointing to
+upper inode.
 
-So forget the linked list construct.
-Shadow tree on-disk construct is better in all aspects
-and it is easier to debug.
+Again, with overlayfs those are 2 different files
+whose data may not be consistent at all.
 
-You do realize that this feature is RO_COMPATIBLE
-because if workdir will have nested dirs overlay in
-old kernel will be mounted readonly (at least from some
-kernel version), which makes me like this idea even more :-)
+This trick does circumvent the locks_inode() helper
+that was added to make sure that ro and rw files
+lock the same (overlay) object... hmm
 
-Several lower layers complicates things a bit because
-path A could have different forward redirects to different
-upper dirs from different lower layers.
+>> I realize it may sound complicated, but redirect_fh patch
+>> has already all the needed parts in place for this, so the
+>> proof if what I am saying is right or wrong will be in whether
+>> or not I am able to present a working POC...
+>>
+>
+> Sounds like an interesting experiment either way. It may be simpler to
+> think about generating some sort of synthetic filehandles that can
+> dispatch requests to the right inode depending on the context of the
+> call?
 
-I can try to do a POC that assumes there are no redirects
-in the lower layers and then see how we proceed from there.
+parent ino info is enough to find which layer the handle came from,
+but as I understood in LSF, knfsd does not want to get the parent
+ino is encoding (for uniqueness of hardlinks), so i need to see about that.
+
+>
+> Not sure I understand overlayfs well enough to have that make sense.
+> --
+
+Not sure I understand NFS well enough ;-)
+trying to bring the two parties a bit closer to understand what
+it will take for overlayfs to play well with NFS.
+
+Suppose that NFSv3 is a hard problem for overlayfs,
+Is that an option to play well only with NFSv4.
+Is there a way for nfsd to query fs exportfs capabilities
+and export v4 only? is that a thing?
 
 Amir.
