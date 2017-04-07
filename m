@@ -1,77 +1,73 @@
-From: Amir Goldstein <amir73il@gmail.com>
+From: Trond Myklebust <trondmy@primarydata.com>
 Subject: Re: overlayfs NFS export
-Date: Fri, 7 Apr 2017 18:45:57 +0300
-Message-ID: <CAOQ4uxgnvfZUdWfTsPMfjsvht9tEZi04GVyg=VzUNAWHyD=g_A@mail.gmail.com>
+Date: Fri, 7 Apr 2017 15:46:25 +0000
+Message-ID: <1491579981.12269.1.camel@primarydata.com>
 References: <CAOQ4uxhpKFhksVJTgWyy5YRzunLiQjf9TTgFO_EfBSdWvBfxWg@mail.gmail.com>
- <1491577054.10609.1.camel@primarydata.com> <CAJfpegu5hkHM7z4UWhoNhoXBJ9ZmmA8EpAaoThxRe45cCSDeAQ@mail.gmail.com>
+         <1491577054.10609.1.camel@primarydata.com>
+         <CAJfpegu5hkHM7z4UWhoNhoXBJ9ZmmA8EpAaoThxRe45cCSDeAQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: base64
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-oi0-f42.google.com ([209.85.218.42]:35893 "EHLO
-        mail-oi0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755599AbdDGPp6 (ORCPT
+Received: from us-smtp-delivery-194.mimecast.com ([63.128.21.194]:51067 "EHLO
+        us-smtp-delivery-194.mimecast.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S933735AbdDGPqc (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 7 Apr 2017 11:45:58 -0400
+        Fri, 7 Apr 2017 11:46:32 -0400
 In-Reply-To: <CAJfpegu5hkHM7z4UWhoNhoXBJ9ZmmA8EpAaoThxRe45cCSDeAQ@mail.gmail.com>
+Content-Language: en-US
+Content-ID: <33B0D517256981418B2E540D46F0607F@namprd11.prod.outlook.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: Trond Myklebust <trondmy@primarydata.com>, "bfields@fieldses.org" <bfields@fieldses.org>, "viro@zeniv.linux.org.uk" <viro@zeniv.linux.org.uk>, "jlayton@poochiereds.net" <jlayton@poochiereds.net>, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>
+To: "miklos@szeredi.hu" <miklos@szeredi.hu>
+Cc: "bfields@fieldses.org" <bfields@fieldses.org>, "viro@zeniv.linux.org.uk" <viro@zeniv.linux.org.uk>, "jlayton@poochiereds.net" <jlayton@poochiereds.net>, "amir73il@gmail.com" <amir73il@gmail.com>, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>
 
-On Fri, Apr 7, 2017 at 6:28 PM, Miklos Szeredi <miklos@szeredi.hu> wrote:
-> On Fri, Apr 7, 2017 at 4:57 PM, Trond Myklebust <trondmy@primarydata.com> wrote:
->
->> What is the problem you are trying to solve?
->
-> The problem is getting a persistent file handle for overlayfs files.
-
-That is only part of the problem and the point I was trying to
-explore is that we don't need to solve it at all (see below).
-
-The other part of the problem is getting a persistent handle for
-overlayfs directories.
-
-Why this second problem is hard is too difficult to explain to
-non-overlayfs folks, but Miklos and I started playing around with an idea.
-
->
-> One idea suggested by Viro is to create a dummy inode on the upper
-> layer whenever we look up a dentry in the overlay filesystem.  Then we
-
-So that idea is not relevant for directories (I think)
-
-> have an inode number reserved for the file if it needs to be copied
-> up. This solves the file handle problem, since we can generate a path
-> from the file handle and from there get the original lower layer file
-> (assumes the file handle has the parent handle encoded as well).  If
-
-Apparently, that is not the case with knfsd, but it doesn't matter
-for directory handles which can always be reconnceted.
-
-> the file is copied up, the file is no longer assiciated with the lower
-> layer, we just need to use the upper inode, this works too.  And also
-> files created on the upper work fine.
->
-> The only little problem is that we are creating lots of inodes on disk
-> and memory that until now we haven't.  Currently overlayfs only
-> modifies upper layer if there's a good reason to believe that there is
-> really going to be modification (e.g. when file is opened for write).
->
-> The alternative is generate file handle from lower file (if on lower)
-> and from upper file (if on upper).   The issue is if the file is
-> copied up and goes from lower to upper.  In that case we need to find
-> the upper file from the handle generated from the lower file.   This
-
-So why do we really need to find the upper in that case?
-If we follow my idea, then NFS read request with lower handle
-may be served from lower inode and NFS write request with a
-lower handle will get ESTALE and will try to lookup by path
-(I suppose?).
-That's probably more consistent then what local processes get
-from overlayfs.
-
-I realize I don't have all the pieces in my head yet... still trying
-to collect them on the go.
-
-Thanks for your patience guys,
-Amir.
+T24gRnJpLCAyMDE3LTA0LTA3IGF0IDE3OjI4ICswMjAwLCBNaWtsb3MgU3plcmVkaSB3cm90ZToN
+Cj4gT24gRnJpLCBBcHIgNywgMjAxNyBhdCA0OjU3IFBNLCBUcm9uZCBNeWtsZWJ1c3QgPHRyb25k
+bXlAcHJpbWFyeWRhdGEuDQo+IGNvbT4gd3JvdGU6DQo+IA0KPiA+IFdoYXQgaXMgdGhlIHByb2Js
+ZW0geW91IGFyZSB0cnlpbmcgdG8gc29sdmU/DQo+IA0KPiBUaGUgcHJvYmxlbSBpcyBnZXR0aW5n
+IGEgcGVyc2lzdGVudCBmaWxlIGhhbmRsZSBmb3Igb3ZlcmxheWZzIGZpbGVzLg0KPiANCj4gT25l
+IGlkZWEgc3VnZ2VzdGVkIGJ5IFZpcm8gaXMgdG8gY3JlYXRlIGEgZHVtbXkgaW5vZGUgb24gdGhl
+IHVwcGVyDQo+IGxheWVyIHdoZW5ldmVyIHdlIGxvb2sgdXAgYSBkZW50cnkgaW4gdGhlIG92ZXJs
+YXkgZmlsZXN5c3RlbS7CoMKgVGhlbg0KPiB3ZQ0KPiBoYXZlIGFuIGlub2RlIG51bWJlciByZXNl
+cnZlZCBmb3IgdGhlIGZpbGUgaWYgaXQgbmVlZHMgdG8gYmUgY29waWVkDQo+IHVwLiBUaGlzIHNv
+bHZlcyB0aGUgZmlsZSBoYW5kbGUgcHJvYmxlbSwgc2luY2Ugd2UgY2FuIGdlbmVyYXRlIGEgcGF0
+aA0KPiBmcm9tIHRoZSBmaWxlIGhhbmRsZSBhbmQgZnJvbSB0aGVyZSBnZXQgdGhlIG9yaWdpbmFs
+IGxvd2VyIGxheWVyIGZpbGUNCj4gKGFzc3VtZXMgdGhlIGZpbGUgaGFuZGxlIGhhcyB0aGUgcGFy
+ZW50IGhhbmRsZSBlbmNvZGVkIGFzIHdlbGwpLsKgwqBJZg0KPiB0aGUgZmlsZSBpcyBjb3BpZWQg
+dXAsIHRoZSBmaWxlIGlzIG5vIGxvbmdlciBhc3NpY2lhdGVkIHdpdGggdGhlDQo+IGxvd2VyDQo+
+IGxheWVyLCB3ZSBqdXN0IG5lZWQgdG8gdXNlIHRoZSB1cHBlciBpbm9kZSwgdGhpcyB3b3JrcyB0
+b28uwqDCoEFuZCBhbHNvDQo+IGZpbGVzIGNyZWF0ZWQgb24gdGhlIHVwcGVyIHdvcmsgZmluZS4N
+Cj4gDQoNCldoeSBkbyB5b3UgbmVlZCB0aGUgcGFyZW50IGRpcmVjdG9yeSB0byBiZSBlbmNvZGVk
+IGFzIHdlbGw/IERvZXNuJ3QNCmZoX3RvX2RlbnRyeSgpIHN1ZmZpY2U/DQoNClRoZSB0aGluZyBp
+cyB0aGF0IGZvciBhbGwgbmFtZXNwYWNlIHJlbGF0ZWQgb3BlcmF0aW9ucyAobWtkaXIoKSwNCnJt
+ZGlyKCksIG9wZW4oT19DUkVBVEUpLCB1bmxpbmssLi4uKSB0aGUgY2xpZW50IHdpbGwgc3VwcGx5
+IHRoZSBwYXJlbnQNCmZpbGVoYW5kbGUsIHNvIHRob3NlIG9wZXJhdGlvbnMgc2hvdWxkIG5vdCBu
+b3JtYWxseSBzdWZmZXIuDQoNClRoZSBvbmx5IG9wZXJhdGlvbiB0aGF0IHdvdWxkIGJlIGEgcHJv
+YmxlbSBpcyB3aGVuIHlvdSBoYXZlIHRvIGNvcHkgdXANCmEgcmVndWxhciBmaWxlLCBidXQgZm9y
+IHRoYXQgY2FzZSBvdmVybGF5ZnMgbmVlZHMgdG8gZ2VuZXJhdGUgZGVudHJpZXMNCmZvciBfYWxs
+XyBoYXJkbGlua3MgdG8gdGhhdCBmaWxlLCBpbiB0aGUgdXBwZXIgbGF5ZXIsIG5vPw0KDQo+IFRo
+ZSBvbmx5IGxpdHRsZSBwcm9ibGVtIGlzIHRoYXQgd2UgYXJlIGNyZWF0aW5nIGxvdHMgb2YgaW5v
+ZGVzIG9uDQo+IGRpc2sNCj4gYW5kIG1lbW9yeSB0aGF0IHVudGlsIG5vdyB3ZSBoYXZlbid0LsKg
+wqBDdXJyZW50bHkgb3ZlcmxheWZzIG9ubHkNCj4gbW9kaWZpZXMgdXBwZXIgbGF5ZXIgaWYgdGhl
+cmUncyBhIGdvb2QgcmVhc29uIHRvIGJlbGlldmUgdGhhdCB0aGVyZQ0KPiBpcw0KPiByZWFsbHkg
+Z29pbmcgdG8gYmUgbW9kaWZpY2F0aW9uIChlLmcuIHdoZW4gZmlsZSBpcyBvcGVuZWQgZm9yIHdy
+aXRlKS4NCj4gDQo+IFRoZSBhbHRlcm5hdGl2ZSBpcyBnZW5lcmF0ZSBmaWxlIGhhbmRsZSBmcm9t
+IGxvd2VyIGZpbGUgKGlmIG9uIGxvd2VyKQ0KPiBhbmQgZnJvbSB1cHBlciBmaWxlIChpZiBvbiB1
+cHBlcikuwqDCoMKgVGhlIGlzc3VlIGlzIGlmIHRoZSBmaWxlIGlzDQo+IGNvcGllZCB1cCBhbmQg
+Z29lcyBmcm9tIGxvd2VyIHRvIHVwcGVyLsKgwqBJbiB0aGF0IGNhc2Ugd2UgbmVlZCB0byBmaW5k
+DQo+IHRoZSB1cHBlciBmaWxlIGZyb20gdGhlIGhhbmRsZSBnZW5lcmF0ZWQgZnJvbSB0aGUgbG93
+ZXIgZmlsZS7CoMKgwqBUaGlzDQo+IHdvcmtzIGFzIGxvbmcgYXMgdGhlIHVwcGVyIGZpbGUgaGFz
+bid0IGJlZW4gcmVuYW1lZCwgc2FtZSB3YXkgd2UNCj4gZm91bmQNCj4gdGhlIGxvd2VyIGZyb20g
+dGhlIHVwcGVyIFZpcm8ncyBzY2hlbWU6IGdlbmVyYXRlIHBhdGggZnJvbSBsb3dlciBmaWxlDQo+
+IGhhbmRsZSBhbmQgbG9vayB1cCBpbiBvdmVybGF5LsKgwqBXaGVuIGNvcGllZCB1cCBmaWxlIGlz
+IHJlbmFtZWQsIHRoaXMNCj4gZG9lc24ndCB3b3JrIGFueW1vcmUsIHNvIHdlIG5lZWQgYSBtYXBw
+aW5nIGZyb20gbG93ZXItaGFuZGxlIHRvDQo+IHVwcGVyLWhhbmRsZS4NCj4gDQpHZW5lcmF0aW5n
+IGZpbGVoYW5kbGVzIGZyb20gdGhlIG5hbWVzcGFjZSBpcyBhIG5pZ2h0bWFyZS4gSXQgb25seSB3
+b3Jrcw0KaWYgeW91IGhhdmUgc3RyaWN0IG5vbi1QT1NJWC1jb21wYXRpYmxlIHJ1bGVzIGFib3V0
+IG5vdCBiZWluZyBhYmxlIHRvDQptb2RpZnkgdGhlIHBhcmVudCBvZiBhIHN1YnRyZWUgaWYgdGhl
+cmUgaXMgYSBmaWxlIGluIHVzZSBpbiB0aGF0DQpzdWJ0cmVlLiBZb3UgY2FuIHRoZXJlZm9yZSBt
+YWtlIGl0IHdvcmsgaWYgdGhlIHVuZGVybHlpbmcgZmlsZXN5c3RlbSBpcw0Kc29tZXRoaW5nIGxp
+a2UgTlRGUywgYnV0IG5vdCBpZiB5b3Ugd2FudCBQT1NJWCBzZW1hbnRpY3MuDQoNCi0tIA0KVHJv
+bmQgTXlrbGVidXN0DQpMaW51eCBORlMgY2xpZW50IG1haW50YWluZXIsIFByaW1hcnlEYXRhDQp0
+cm9uZC5teWtsZWJ1c3RAcHJpbWFyeWRhdGEuY29tDQo=
