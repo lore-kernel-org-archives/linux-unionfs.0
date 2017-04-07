@@ -1,85 +1,75 @@
-From: Trond Myklebust <trondmy@primarydata.com>
-Subject: Re: overlayfs NFS export
-Date: Fri, 7 Apr 2017 14:57:37 +0000
-Message-ID: <1491577054.10609.1.camel@primarydata.com>
-References: <CAOQ4uxhpKFhksVJTgWyy5YRzunLiQjf9TTgFO_EfBSdWvBfxWg@mail.gmail.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Subject: Re: [PATCH 0/6] ovl: consistent_fd feature
+Date: Fri, 7 Apr 2017 18:07:14 +0300
+Message-ID: <CAOQ4uxgtnF-ziZTsRt8xnokr66+rQnTQvTJ4gBYozPgUoE0P9Q@mail.gmail.com>
+References: <1490798166-22310-1-git-send-email-amir73il@gmail.com>
+ <CAOQ4uxgcOD0DEZse2hWRWopDdBPsb+f=XX0SPQirbX_WGmLR-w@mail.gmail.com>
+ <CAJfpegsidjjP_DPpAGAjUtOZEw70nu5jnoTO5E+yzPkONG4X9A@mail.gmail.com>
+ <CAJfpegugsV8Lzwwiz5BncAnTVc2tPdYcG7eGrVhChcfc6CtBfw@mail.gmail.com>
+ <CAOQ4uxispHXxq8qO9GHEyQm9nLWUiG9CfMzP59hffYM5OPB4DA@mail.gmail.com>
+ <CAJfpeguDJrtJn1bkM03pxH0eo=K81dFYm7OP3QSpBCj6aWZZhA@mail.gmail.com>
+ <CAJfpegupcgWcP3yC=8Lpe-=m=oq_7f2OR9f14+p+ug+67gWBPA@mail.gmail.com>
+ <CAOQ4uxjbfBOvHMwe0xRdXox8Uy3XwdaxJmQpiYDVBT8854z4+w@mail.gmail.com> <CAJfpegts8UjOXYLoUyn9m-tLK7fXyFH=mmm3J3vAZ4U_Xm9=XQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: base64
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from us-smtp-delivery-194.mimecast.com ([63.128.21.194]:29919 "EHLO
-        us-smtp-delivery-194.mimecast.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S933982AbdDGO5o (ORCPT
+Received: from mail-oi0-f65.google.com ([209.85.218.65]:34885 "EHLO
+        mail-oi0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751425AbdDGPHP (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 7 Apr 2017 10:57:44 -0400
-In-Reply-To: <CAOQ4uxhpKFhksVJTgWyy5YRzunLiQjf9TTgFO_EfBSdWvBfxWg@mail.gmail.com>
-Content-Language: en-US
-Content-ID: <5D3734DBBE6F1F4599C96C06151F1C7A@namprd11.prod.outlook.com>
+        Fri, 7 Apr 2017 11:07:15 -0400
+Received: by mail-oi0-f65.google.com with SMTP id g204so2305402oib.2
+        for <linux-unionfs@vger.kernel.org>; Fri, 07 Apr 2017 08:07:15 -0700 (PDT)
+In-Reply-To: <CAJfpegts8UjOXYLoUyn9m-tLK7fXyFH=mmm3J3vAZ4U_Xm9=XQ@mail.gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: "miklos@szeredi.hu" <miklos@szeredi.hu>, "amir73il@gmail.com" <amir73il@gmail.com>
-Cc: "bfields@fieldses.org" <bfields@fieldses.org>, "viro@zeniv.linux.org.uk" <viro@zeniv.linux.org.uk>, "jlayton@poochiereds.net" <jlayton@poochiereds.net>, Trond Myklebust <trondmy@primarydata.com>, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>
 
-T24gRnJpLCAyMDE3LTA0LTA3IGF0IDE3OjI5ICswMzAwLCBBbWlyIEdvbGRzdGVpbiB3cm90ZToN
-Cj4gW2NoYW5naW5nIHRoZSBzdWJqZWN0IGFuZCBhZGRpbmcgbW9yZSBORlMgZ3V5cyBzbyB0aGV5
-IGNhbiBzaG9vdCBteQ0KPiBpZGVhIGRvd24gaWYgaXQgaXMgdG9vIGR1bWIgdG8gbGl2ZV0NCj4g
-DQo+IE9uIEZyaSwgQXByIDcsIDIwMTcgYXQgNDowMyBQTSwgTWlrbG9zIFN6ZXJlZGkgPG1pa2xv
-c0BzemVyZWRpLmh1Pg0KPiB3cm90ZToNCj4gPiBPbiBGcmksIEFwciA3LCAyMDE3IGF0IDEyOjQ3
-IFBNLCBBbWlyIEdvbGRzdGVpbiA8YW1pcjczaWxAZ21haWwuY29tDQo+ID4gPiB3cm90ZToNCj4g
-PiANCj4gPiA+IENvbWUgdG8gdGhpbmsgYWJvdXQgaXQsIE5GUyBleHBvcnQgb2YgcmVndWxhciBm
-aWxlIGRvbid0IG5lZWQgdG8NCj4gPiA+IGZvbGxvdyByZW5hbWVzIGF0IGFsbDoNCj4gPiA+IC0g
-VGhlIGhhbmRsZSBmb3IgYSByZWd1bGFyIGZpbGUgaXMgYWx3YXlzIHRoZSBoYW5kbGUgZm9yIHRo
-ZSByZWFsDQo+ID4gPiBsb3dlciBvciB1cHBlciBpbm9kZQ0KPiA+ID4gLSBUbyBkZWNvZGUgYSBo
-YW5kbGUsIGNyZWF0ZSBhbiBPX1RNUEZJTEUgc3R5bGUgb3ZlcmxheSBkZW50cnksDQo+ID4gPiB3
-aGljaA0KPiA+ID4gaXMgbm90IGxpbmtlZA0KPiA+ID4gwqAgdG8gYW55IHBhdGggaW4gb3Zlcmxh
-eSwgYnV0IGhhcyB0aGUgX3VwcGVyZGVudHJ5L2xvd2Vyc3RhY2sNCj4gPiA+IHNldHVwDQo+ID4g
-DQo+ID4gSSBkb24ndCB0aGluayBuZnMgd2lsbCBhbGxvdyBzdWNoIGEgc2NoZW1lLsKgwqBORlMz
-IHNlcnZlciBpcw0KPiA+IHN0YXRlbGVzcywNCj4gPiB3aGljaCBtZWFucyB0aGVyZSdzIG5vIG9w
-ZW4vY2xvc2UgaW4gdGhlIHByb3RvY29sLsKgwqDCoEhlbmNlIHdlIGNhbid0DQo+ID4gY29weS11
-cCBvbiBvcGVuKE9fV1IqKSBhbmQgcmV0dXJuIGEgZGlmZmVyZW50IGZpbGUgaGFuZGxlIGZvcg0K
-PiA+IHdyaXRpbmcuDQo+ID4gSWYgY2xpZW50IGxvb2tzIHVwIGEgZmlsZSBjdXJyZW50bHkgb24g
-bG93ZXIgYW5kIHdlIHJldHVybiBmaWxlDQo+ID4gaGFuZGxlDQo+ID4gYmFzZWQgb24gbG93ZXIg
-ZmlsZSwgdGhlbiB3ZSBtdXN0IGJlIGFibGUgdG8gZGVjb2RlIHRoYXQgaGFuZGxlDQo+ID4gYWZ0
-ZXINCj4gPiB0aGUgZmlsZSBoYXMgYmVlbiBjb3BpZWQgdXAgYW5kIGV2ZW4gYWZ0ZXIgcmVuYW1l
-LsKgwqBBbmQgdGhpcyBtdXN0DQo+ID4gd29yaw0KPiA+IHJlbGlhYmx5IGV2ZW4gaWYgdGhlIG92
-ZXJsYXkgZGVudHJ5IGlzIG5vIGxvbmdlciBpbiB0aGUgZGNhY2hlLg0KPiA+IA0KPiA+IFNvIHRo
-ZXJlJ3Mgbm8gb3B0aW9uLCBvdGhlciB0aGFuIHRvIGhhdmUgYSByZXZlcnNlIG1hcHBpbmcNCj4g
-PiBzb21ld2hlcmUuDQo+ID4gDQo+IA0KPiBFaXRoZXIgSSBhbSBtaXNzaW5nIHNvbWV0aGluZyBv
-ciB5b3UgYXJlLg0KPiANCj4gQ29uc2lkZXIgdGhpcyBzY2VuYXJpbzoNCj4gDQo+IE9uIHNlcnZl
-cjoNCj4gLSB0b3VjaCBhDQo+IC0gbG4gYSBiDQo+IA0KPiBPbiBORlMgY2xpZW50Og0KPiAtIHJv
-ZmQgPSBvcGVuKCJhIiwgT19SRE9OTFkpDQo+IA0KPiBPbiBzZXJ2ZXINCj4gLSBybSBhDQo+IC0g
-cmVib290DQo+IA0KPiBORlMgY2xpZW50IG11c3QgYmUgYWJsZSB0byBjb250aW51ZSB0byB3b3Jr
-IHdpdGggcm9mZA0KPiBldmVuIGFmdGVyIHJlYm9vdCBhbmQgZXZlbiBhZnRlciBvcmlnaW5hbCBm
-aWxlIHdhcyB1bmxpbmtlZC4NCj4gDQo+IEZ1cnRoZXJtb3JlLCBvbiBzZXJ2ZXI6DQo+IC0gcm0g
-Yg0KPiANCj4gTkZTIGNsaWVudCBtdXN0IGNvbnRpbnVlIHRvIHdvcmsgd2l0aCByb2ZkIGV2ZW4g
-dGhvdWdoDQo+IE5GUyBzZXJ2ZXIgaXMgc3RhdGVsZXNzIGFuZCBldmVuIHRob3VnaCBpbm9kZSBp
-cyBub3cNCj4gbmxpbmsgPSAwLg0KPiBUaGF0IGlzIHBvc3NpYmxlIGJlY2F1c2UgZnMgd2lsbCBp
-bnN0YW50aWF0ZSBhIGRpc2Nvbm5lY3RlZA0KPiBkZW50cnkgd2hlbiBkZWNvZGluZyB0aGUgZmls
-ZSBoYW5kbGUgaXMgdGhlcmUgaXMgbm8gZGVudHJ5DQo+IGFscmVhZHkgaW4gY2FjaGUuDQo+IA0K
-PiBTbyB3aGF0IEkgYW0gc2F5aW5nIGlzIHRoYXQgd2hlbiBuZnNkIHRyaWVzIHRvIGRlY29kZQ0K
-PiBhIGhhbmRsZSBmcm9tIG92ZXJsYXkgbW91bnQsIGFuZCB0aGVyZSBpcyBubyBtYXRoY2luZw0K
-PiBvdmVybGF5IGRlbnRyeSBpbiBjYWNoZSAod2l0aCB0aGUgbG93ZXIgaW5vIG9mIGNvdXJzZSkN
-Cj4gdGhlbiB3ZSBpbnN0YW50aWF0ZSBhIG5ldyBkaXNjb25uZWN0ZWQgZGVudHJ5IHdpdGhvdXQN
-Cj4gbG9va3VwIGFuZCBzZXQgaXRzIF91cHBlcmRlbnJ5IG9yIGxvd2Vyc3RhY2sgYWNjb3JkaW5n
-DQo+IHRvIHRoZSBrbm93bGVkZ2UgdGhhdCB3ZSBmb3VuZCB0aGUgaGFuZGxlIGluIHVuZGVybHlp
-bmcNCj4gZnMgYW5kIHdlIGNoZWNrZWQgaWYgaXQgaXMgYSBkZWNlZGVudCBvZiBsb3dlcl9tbnRb
-aV0gb3INCj4gdXBwZXJfbW50Lg0KPiANCj4gV2hlbiBORlMgY2xpZW50IG9wZW5zIGEgbmV3IHJ3
-ZmQgaXQgV0lMTCBnZXQgYSBkaWZmZXJlbnQNCj4gaGFuZGxlLCBidXQgaXQgV0lMTCByZWFsbHkg
-YmUgYSBkaWZmZXJlbnQgZmlsZSB0aGVuIHRoZSByb2ZkLA0KPiBzbyB0aGF0IHNvdW5kcyBsaWtl
-IGEgZ29vZCB0aGluZz8NCj4gDQo+IEkgcmVhbGl6ZSBpdCBtYXkgc291bmQgY29tcGxpY2F0ZWQs
-IGJ1dCByZWRpcmVjdF9maCBwYXRjaA0KPiBoYXMgYWxyZWFkeSBhbGwgdGhlIG5lZWRlZCBwYXJ0
-cyBpbiBwbGFjZSBmb3IgdGhpcywgc28gdGhlDQo+IHByb29mIGlmIHdoYXQgSSBhbSBzYXlpbmcg
-aXMgcmlnaHQgb3Igd3Jvbmcgd2lsbCBiZSBpbiB3aGV0aGVyDQo+IG9yIG5vdCBJIGFtIGFibGUg
-dG8gcHJlc2VudCBhIHdvcmtpbmcgUE9DLi4uDQo+IA0KDQpXaGF0IGlzIHRoZSBwcm9ibGVtIHlv
-dSBhcmUgdHJ5aW5nIHRvIHNvbHZlPw0KDQpBcyBmYXIgYXMgdGhlIE5GUyBwcm90b2NvbCBpcyBj
-b25jZXJuZWQsIGlmIDIgZmlsZWhhbmRsZXPCoHRoYXQNCm9yaWdpbmF0ZSBmcm9tIHRoZSBzYW1l
-IHNlcnZlciBhcmUgZXF1YWwgKGkuZS4gYSBieXRlLWJ5LWJ5dGUNCmNvbXBhcmlzb24gb2YgdGhl
-aXIgY29udGVudHMgc2hvd3MgYSBtYXRjaCksIHRoZW4gdGhleSBNVVNUIHJlZmVyIHRvDQp0aGUg
-c2FtZSBmaWxlLg0KDQpPbiB0aGUgb3RoZXIgaGFuZCwgaWYgdGhlIGZpbGVoYW5kbGVzIGRpZmZl
-ciwgdGhlbiB0aGV5IGFyZSBfdHJlYXRlZF8NCmJ5IGJvdGggdGhlIGNsaWVudCBhbmQgdGhlIHNl
-cnZlciBhcyBpZiB0aGV5IHdlcmUgcG9pbnRpbmcgdG8gZGlmZmVyZW50DQpmaWxlcyAoZXZlbiBp
-ZiB0aGF0IGlzIG5vdCB0aGUgY2FzZSkuIFRoYXQgcHJpbmNpcGxlIGlzIGV2ZW4gZW5jb2RlZCBp
-bg0KdGhlIE5GU3Y0IHByb3RvY29sLCB3aGVyZSBpdCBpcyBhIHJlcXVpcmVtZW50IHRoYXQgZmls
-ZSBzdGF0ZSBpcw0KYXR0YWNoZWQgdG8gdGhlIGZpbGVoYW5kbGUuDQoNCi0tIA0KVHJvbmQgTXlr
-bGVidXN0DQpMaW51eCBORlMgY2xpZW50IG1haW50YWluZXIsIFByaW1hcnlEYXRhDQp0cm9uZC5t
-eWtsZWJ1c3RAcHJpbWFyeWRhdGEuY29tDQo=
+On Fri, Apr 7, 2017 at 4:03 PM, Miklos Szeredi <miklos@szeredi.hu> wrote:
+>
+>
+> One more idea:  do it out-of-band (e.g. under workdir) but do it as a
+> plain directory tree shadowing the lower trees that contains the
+> forward redirect information.  It spares us the implementation of the
+> database, since the filesystem does it for us.  Yes, it can get out of
+> sync with the overlay, but so can any mapping in-band or out-of-band.
+>
+
+I like this.
+
+"don't implement a database of files, because filesystem is already
+a super complex and optimized database of files metadata" is a
+design concept I feel strongly about.
+
+It always bothered me that is_lower_positive() is not cached
+in a single place.
+
+I am not concerned about getting out of sync to to an
+implementation bug.
+I am concerned about not being able to program power fail safe
+code that does not require calling fsync for metadata operations.
+
+Because the shadow directory existence is not a problem
+we can safely create it anytime before upper rename
+and if we set a redirect_fh on the shadow dir, we can also
+do that anytime before rename and we are also safe wrt
+upper rmdir.
+
+So forget the linked list construct.
+Shadow tree on-disk construct is better in all aspects
+and it is easier to debug.
+
+You do realize that this feature is RO_COMPATIBLE
+because if workdir will have nested dirs overlay in
+old kernel will be mounted readonly (at least from some
+kernel version), which makes me like this idea even more :-)
+
+Several lower layers complicates things a bit because
+path A could have different forward redirects to different
+upper dirs from different lower layers.
+
+I can try to do a POC that assumes there are no redirects
+in the lower layers and then see how we proceed from there.
+
+Amir.
