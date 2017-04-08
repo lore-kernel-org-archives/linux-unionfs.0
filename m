@@ -1,87 +1,48 @@
-From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: overlayfs NFS export
-Date: Fri, 7 Apr 2017 21:53:44 +0300
-Message-ID: <CAOQ4uxgNsKrhveUqPntRJO2AOaf=c3ffN+djKUuxdTSNVqfLdA@mail.gmail.com>
-References: <CAOQ4uxhpKFhksVJTgWyy5YRzunLiQjf9TTgFO_EfBSdWvBfxWg@mail.gmail.com>
- <1491577054.10609.1.camel@primarydata.com> <CAJfpegu5hkHM7z4UWhoNhoXBJ9ZmmA8EpAaoThxRe45cCSDeAQ@mail.gmail.com>
- <CAOQ4uxgnvfZUdWfTsPMfjsvht9tEZi04GVyg=VzUNAWHyD=g_A@mail.gmail.com>
- <1491580705.12269.3.camel@primarydata.com> <CAOQ4uxg9MwAffRcwavhRJy+TO9LS=tNKmuy3QHyio5yHGJRN0A@mail.gmail.com>
- <1491583630.2745.23.camel@poochiereds.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
-In-Reply-To: <1491583630.2745.23.camel@poochiereds.net>
-Sender: linux-fsdevel-owner@vger.kernel.org
-To: Jeff Layton <jlayton@poochiereds.net>
-Cc: Trond Myklebust <trondmy@primarydata.com>, "miklos@szeredi.hu" <miklos@szeredi.hu>, "bfields@fieldses.org" <bfields@fieldses.org>, "viro@zeniv.linux.org.uk" <viro@zeniv.linux.org.uk>, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>
+From: "J. R. Okajima" <hooanon05g@gmail.com>
+Subject: Re: [PATCH 0/6] ovl: consistent_fd feature
+Date: Sat, 08 Apr 2017 12:03:24 +0900
+Message-ID: <19134.1491620604@jrobl>
+References: <1490798166-22310-1-git-send-email-amir73il@gmail.com> <CAOQ4uxgcOD0DEZse2hWRWopDdBPsb+f=XX0SPQirbX_WGmLR-w@mail.gmail.com> <CAJfpegsidjjP_DPpAGAjUtOZEw70nu5jnoTO5E+yzPkONG4X9A@mail.gmail.com>
+Return-path: <linux-unionfs-owner@vger.kernel.org>
+Received: from mail02-md.ns.itscom.net ([175.177.155.112]:47213 "EHLO
+        mail02-md.ns.itscom.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750717AbdDHDDd (ORCPT
+        <rfc822;linux-unionfs@vger.kernel.org>);
+        Fri, 7 Apr 2017 23:03:33 -0400
+In-Reply-To: <CAJfpegsidjjP_DPpAGAjUtOZEw70nu5jnoTO5E+yzPkONG4X9A@mail.gmail.com>
+Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: Amir Goldstein <amir73il@gmail.com>, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>
 
-On Fri, Apr 7, 2017 at 7:47 PM, Jeff Layton <jlayton@poochiereds.net> wrote:
-> On Fri, 2017-04-07 at 19:10 +0300, Amir Goldstein wrote:
->> On Fri, Apr 7, 2017 at 6:58 PM, Trond Myklebust <trondmy@primarydata.com> wrote:
->> > On Fri, 2017-04-07 at 18:45 +0300, Amir Goldstein wrote:
->> > > On Fri, Apr 7, 2017 at 6:28 PM, Miklos Szeredi <miklos@szeredi.hu>
-...
->> > >
->> > > So why do we really need to find the upper in that case?
->> > > If we follow my idea, then NFS read request with lower handle
->> > > may be served from lower inode and NFS write request with a
->> > > lower handle will get ESTALE and will try to lookup by path
->> > > (I suppose?).
->> > >
->> >
->> > The client will never try to recover from an ESTALE error that is
->> > returned on a file it has already opened. That would cause data
->> > corruption if the user were to do something like 'rm foo; touch foo' on
->> > the server; writes that were intended for the old file would suddenly
->> > be written to the new one in violation of POSIX I/O rules.
->> >
->> >
->> > IOW: In the case where WRITE returns ESTALE, that error will result in
->> > the client returning EIO to the application on the next write() or
->> > fsync() or close(). That error will persist; a retry will not clear
->> > it.
->> >
->>
->> The most important point to understand is this:
->>
->> If server opens a file for write it will trigger a copy up
->> and the file handle returned will be persistent and final.
->>
->> The only problem is that when server opens a file for
->> read *before* it opens the same file for write, the returned
->> handle would be different, because first open for write
->> creates a new file and the old file remains a zombie
->> (as far as nfsd is concerned) only nfsd is able to to access
->> the old file and only for read.
->
-> Once a copy-up occurs, then I expect it'd look to the client like the
-> file had been renamed-over. You're getting back a different dentry/inode
-> pair on lookup, right? Eventually the client will revalidate the parent
-> directory inode, see that something has changed and redo the lookup for
-> the thing. New opens would go to the copied-up inode after that point.
->
+Miklos Szeredi:
+> The other idea is to store the database separately from the upper tree
+> (this is what aufs does, apparently).  This works for reverse mapping
+> as well.  Makes all operations (except rename) more complicated.
+> Keeping whole mapping in kernel memory is prone to resource hogging
+> and DoS.   Could have a bitmap created by hashing the ino's that are
+	:::
 
-That is correct. And makes me wonder how bad applications over nfs
-client behave in case of file having been renamed over? which seems
-to be an equivalent case to copy up.
+I am afraid you are misunderstanding a little.
+Aufs XINO (external inode number translation table) is a simple regular
+file.
+- created and unlinked in mounting aufs, kept in-use.
+- the default path is "<first writable layer>/.aufs.xino".
+- users can change the path by a mount option "xino=..."
+- users can change the path on the fly by remounting anytime.
+- users can stop using XINO by a mount/remount option "noxino"
 
-But it's time to look for real solutions and not try to work around them...
+It should not be a kernel memory pressure (unless users put XINO on
+tmpfs or something).
 
-> In any case, nfsd will usually only hold the r/o file open if some
-> client was holding that file open. So, it sounds like you'll end up
-> projecting that weird overlayfs "read open before write open" corner
-> case across the wire, but it would otherwise "work".
-> --
-> Jeff Layton <jlayton@poochiereds.net>
->
-> [1] Side question: does the parent directory's mtime get updated when
-> there is a copy-up? The client might not notice that its dentries are
-> now invalid afterward unless it does.
->
+XINO is not a so complicated operation. Receiving the inum on the layer
+fs, returns the aufs inum. Its maintenance simply follows the lifetime of
+aufs inode.
+- in creating aufs inode, the mapping of the layer fs inum and the aufs
+  inum is added.
+- in destroying aufs inode, if the link count of the layer fs inode is
+  zero, then the mapping is removed.
+- in copy-up, the mapping is added obviously.
 
-Yes, because the parent directory is the upper directory where the
-upper file gets copied to.
 
-Thanks,
-Amir.
+J. R. Okajima
