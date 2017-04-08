@@ -1,48 +1,48 @@
-From: "J. R. Okajima" <hooanon05g@gmail.com>
-Subject: Re: [PATCH 0/6] ovl: consistent_fd feature
-Date: Sat, 08 Apr 2017 12:03:24 +0900
-Message-ID: <19134.1491620604@jrobl>
-References: <1490798166-22310-1-git-send-email-amir73il@gmail.com> <CAOQ4uxgcOD0DEZse2hWRWopDdBPsb+f=XX0SPQirbX_WGmLR-w@mail.gmail.com> <CAJfpegsidjjP_DPpAGAjUtOZEw70nu5jnoTO5E+yzPkONG4X9A@mail.gmail.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Subject: [PATCH v3 0/2] ovl: fix IS_APPEND() checks
+Date: Sat,  8 Apr 2017 14:49:05 +0300
+Message-ID: <1491652147-19794-1-git-send-email-amir73il@gmail.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail02-md.ns.itscom.net ([175.177.155.112]:47213 "EHLO
-        mail02-md.ns.itscom.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750717AbdDHDDd (ORCPT
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:35431 "EHLO
+        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751841AbdDHLtB (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 7 Apr 2017 23:03:33 -0400
-In-Reply-To: <CAJfpegsidjjP_DPpAGAjUtOZEw70nu5jnoTO5E+yzPkONG4X9A@mail.gmail.com>
+        Sat, 8 Apr 2017 07:49:01 -0400
+Received: by mail-wm0-f66.google.com with SMTP id d79so2191145wmi.2
+        for <linux-unionfs@vger.kernel.org>; Sat, 08 Apr 2017 04:49:01 -0700 (PDT)
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: Amir Goldstein <amir73il@gmail.com>, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>
+Cc: linux-unionfs@vger.kernel.org
 
-Miklos Szeredi:
-> The other idea is to store the database separately from the upper tree
-> (this is what aufs does, apparently).  This works for reverse mapping
-> as well.  Makes all operations (except rename) more complicated.
-> Keeping whole mapping in kernel memory is prone to resource hogging
-> and DoS.   Could have a bitmap created by hashing the ino's that are
-	:::
+Miklos,
 
-I am afraid you are misunderstanding a little.
-Aufs XINO (external inode number translation table) is a simple regular
-file.
-- created and unlinked in mounting aufs, kept in-use.
-- the default path is "<first writable layer>/.aufs.xino".
-- users can change the path by a mount option "xino=..."
-- users can change the path on the fly by remounting anytime.
-- users can stop using XINO by a mount/remount option "noxino"
+This series fixes the append-only violations found by the new
+xfstest overlay/030.
 
-It should not be a kernel memory pressure (unless users put XINO on
-tmpfs or something).
+I addressed your comments on v2 and removed the patch to vfs_truncate()
+because d_real() already takes cares of IS_APPEND().
 
-XINO is not a so complicated operation. Receiving the inum on the layer
-fs, returns the aufs inum. Its maintenance simply follows the lifetime of
-aufs inode.
-- in creating aufs inode, the mapping of the layer fs inum and the aufs
-  inum is added.
-- in destroying aufs inode, if the link count of the layer fs inode is
-  zero, then the mapping is removed.
-- in copy-up, the mapping is added obviously.
+Amir.
 
+v3:
+- address comments by Miklos
+- discard unneeded patch to vfs_truncate()
 
-J. R. Okajima
+v2:
+- move open check to ovl_d_real()
+- discard wrong patch to file_start_write() in ftruncate()
+
+v1:
+- fix checks in [f]truncate and vfs_open()
+
+Amir Goldstein (2):
+  vfs: ftruncate check IS_APPEND() on real upper inode
+  ovl: check IS_APPEND() on real upper inode
+
+ fs/open.c            |  3 ++-
+ fs/overlayfs/super.c | 28 +++++++++++++++++++++++++---
+ 2 files changed, 27 insertions(+), 4 deletions(-)
+
+-- 
+2.7.4
