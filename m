@@ -1,366 +1,345 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [RFC][PATCH 03/13] ovl: lookup redirect by file handle
-Date: Mon, 17 Apr 2017 02:59:33 +0300
-Message-ID: <1492387183-18847-4-git-send-email-amir73il@gmail.com>
+Subject: [RFC][PATCH 02/13] ovl: redirect dir by file handle on copy up
+Date: Mon, 17 Apr 2017 02:59:32 +0300
+Message-ID: <1492387183-18847-3-git-send-email-amir73il@gmail.com>
 References: <1492387183-18847-1-git-send-email-amir73il@gmail.com>
-Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:36543 "EHLO
-        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755141AbdDPX7l (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Sun, 16 Apr 2017 19:59:41 -0400
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
 In-Reply-To: <1492387183-18847-1-git-send-email-amir73il@gmail.com>
-Sender: linux-unionfs-owner@vger.kernel.org
-List-Id: linux-unionfs@vger.kernel.org
+Sender: linux-fsdevel-owner@vger.kernel.org
 To: Miklos Szeredi <miklos@szeredi.hu>
 Cc: Al Viro <viro@zeniv.linux.org.uk>, linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
+List-Id: linux-unionfs@vger.kernel.org
 
-When redirect_fh feature is enabled and when underlying
-layers are all on the same fs, construct the dentry stack
-of a merged dir by following a file handle chain of all
-merged dir layers.
+When mounted with mount option redirect_dir=fh,
+every copy up of lower directory stores the lower
+dir file handle in overlay.fh xattr of upper dir.
 
-When overlay.fh xattr is found in upper inode, instead
-of lookup of the dentry in next lower layer by name,
-try to get it by calling exportfs_decode_fh().
+This method has some advantages over absolute path redirect:
+- it is more compact in stored xattr size
+- it is not limited by lengths of full paths
+- lookup redirect is more efficient for very nested directories
 
-On failure to follow file handle from upper to lower, fall back
-to regular name lookup with or without path redirect.
+It also has some disadvantages over absolute path redirect:
+- it requires that all lower layers are on the same file system,
+  which support exportfs ops
+- file handles will become stale if overlay lower directories
+  were to be copied to another location
 
-On failure to decode file handle from middle layer, after
-already following file handle from upper, there is no fall back
-to lookup by name.
+Therefore, redirect by file handle is considered an optimization
+and file handle is stored on copy up in addition to setting
+redirect by path on rename.
 
 Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- fs/overlayfs/namei.c     | 167 +++++++++++++++++++++++++++++++++++++++++++----
- fs/overlayfs/overlayfs.h |   1 +
- fs/overlayfs/util.c      |  14 ++++
- 3 files changed, 168 insertions(+), 14 deletions(-)
+ fs/overlayfs/Kconfig     | 16 +++++++++
+ fs/overlayfs/copy_up.c   | 87 ++++++++++++++++++++++++++++++++++++++++++++++++
+ fs/overlayfs/overlayfs.h | 15 +++++++++
+ fs/overlayfs/ovl_entry.h |  1 +
+ fs/overlayfs/super.c     | 28 ++++++++++++++--
+ fs/overlayfs/util.c      | 14 ++++++++
+ 6 files changed, 159 insertions(+), 2 deletions(-)
 
-diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
-index b8b0778..fcb7c15 100644
---- a/fs/overlayfs/namei.c
-+++ b/fs/overlayfs/namei.c
-@@ -9,9 +9,11 @@
- 
- #include <linux/fs.h>
- #include <linux/cred.h>
-+#include <linux/mount.h>
+diff --git a/fs/overlayfs/Kconfig b/fs/overlayfs/Kconfig
+index 0daac51..351b61a 100644
+--- a/fs/overlayfs/Kconfig
++++ b/fs/overlayfs/Kconfig
+@@ -22,3 +22,19 @@ config OVERLAY_FS_REDIRECT_DIR
+ 	  Note, that redirects are not backward compatible.  That is, mounting
+ 	  an overlay which has redirects on a kernel that doesn't support this
+ 	  feature will have unexpected results.
++
++config OVERLAY_FS_REDIRECT_FH
++	bool "Overlayfs: turn on redirect by file handle by default"
++	depends on OVERLAY_FS_REDIRECT_DIR
++	help
++	  If this config option is enabled then overlay filesystems will use
++	  redirect by file handle for merged directories by default.  It is
++	  also possible to turn on redirect by file handle globally with the
++	  "redirect_fh=on" module option or on a filesystem instance basis
++	  with the "redirect_dir=fh" mount option.
++
++	  Redirect by file handle provides faster lookup compared to redirect
++	  by absolute path, but it only works when all layers are on the same
++	  underlying file system that supports NFS export ops.  Redirect by
++	  file handle breaks if layers are taken offline and copied to another
++	  location.  In that case, lookup falls back to redirect by path.
+diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
+index 906ea6c..428dc26 100644
+--- a/fs/overlayfs/copy_up.c
++++ b/fs/overlayfs/copy_up.c
+@@ -20,6 +20,7 @@
  #include <linux/namei.h>
- #include <linux/xattr.h>
+ #include <linux/fdtable.h>
  #include <linux/ratelimit.h>
 +#include <linux/exportfs.h>
  #include "overlayfs.h"
  #include "ovl_entry.h"
  
-@@ -21,7 +23,10 @@ struct ovl_lookup_data {
- 	bool opaque;
- 	bool stop;
- 	bool last;
--	char *redirect;
-+	bool by_path;		/* redirect by path */
-+	bool by_fh;		/* redirect by file handle */
-+	char *redirect;		/* path to follow */
-+	struct ovl_fh *fh;	/* file handle to follow */
- };
- 
- static int ovl_check_redirect(struct dentry *dentry, struct ovl_lookup_data *d,
-@@ -81,6 +86,41 @@ static int ovl_check_redirect(struct dentry *dentry, struct ovl_lookup_data *d,
- 	goto err_free;
- }
- 
-+static int ovl_check_redirect_fh(struct dentry *dentry, struct ovl_lookup_data *d)
-+{
-+	int res;
-+	void *buf = NULL;
-+
-+	res = vfs_getxattr(dentry, OVL_XATTR_FH, NULL, 0);
-+	if (res < 0) {
-+		if (res == -ENODATA || res == -EOPNOTSUPP)
-+			return 0;
-+		goto fail;
-+	}
-+	buf = kzalloc(res, GFP_TEMPORARY);
-+	if (!buf)
-+		return -ENOMEM;
-+
-+	if (res == 0)
-+		goto fail;
-+
-+	res = vfs_getxattr(dentry, OVL_XATTR_FH, buf, res);
-+	if (res < 0 || !ovl_redirect_fh_ok(buf, res))
-+		goto fail;
-+
-+	kfree(d->fh);
-+	d->fh = buf;
-+
-+	return 0;
-+
-+err_free:
-+	kfree(buf);
-+	return 0;
-+fail:
-+	pr_warn_ratelimited("overlayfs: failed to get file handle (%i)\n", res);
-+	goto err_free;
-+}
-+
- static bool ovl_is_opaquedir(struct dentry *dentry)
- {
- 	int res;
-@@ -96,22 +136,76 @@ static bool ovl_is_opaquedir(struct dentry *dentry)
- 	return false;
- }
- 
-+/* Check if p1 is connected with a chain of hashed dentries to p2 */
-+static bool ovl_is_lookable(struct dentry *p1, struct dentry *p2)
-+{
-+	struct dentry *p;
-+
-+	for (p = p2; !IS_ROOT(p); p = p->d_parent) {
-+		if (d_unhashed(p))
-+			return false;
-+		if (p->d_parent == p1)
-+			return true;
-+	}
-+	return false;
-+}
-+
-+/* Check if dentry is reachable from mnt via path lookup */
-+static int ovl_dentry_under_mnt(void *ctx, struct dentry *dentry)
-+{
-+	struct vfsmount *mnt = ctx;
-+
-+	return ovl_is_lookable(mnt->mnt_root, dentry);
-+}
-+
-+static struct dentry *ovl_lookup_fh(struct vfsmount *mnt,
-+				    const struct ovl_fh *fh)
-+{
-+	int bytes = (fh->len - offsetof(struct ovl_fh, fid));
-+
-+	/*
-+	 * Several layers can be on the same fs and decoded dentry may be in
-+	 * either one of those layers. We are looking for a match of dentry
-+	 * and mnt to find out to which layer the decoded dentry belongs to.
-+	 */
-+	return exportfs_decode_fh(mnt, (struct fid *)fh->fid,
-+				  bytes >> 2, (int)fh->type,
-+				  ovl_dentry_under_mnt, mnt);
-+}
-+
- static int ovl_lookup_single(struct dentry *base, struct ovl_lookup_data *d,
- 			     const char *name, unsigned int namelen,
- 			     size_t prelen, const char *post,
--			     struct dentry **ret)
-+			     struct vfsmount *mnt, struct dentry **ret)
- {
- 	struct dentry *this;
- 	int err;
- 
--	this = lookup_one_len_unlocked(name, base, namelen);
-+	/*
-+	 * Lookup of upper is with null d->fh.
-+	 * Lookup of lower is either by_fh with non-null d->fh
-+	 * or by_path with null d->fh.
-+	 */
-+	if (d->fh)
-+		this = ovl_lookup_fh(mnt, d->fh);
-+	else
-+		this = lookup_one_len_unlocked(name, base, namelen);
- 	if (IS_ERR(this)) {
- 		err = PTR_ERR(this);
- 		this = NULL;
- 		if (err == -ENOENT || err == -ENAMETOOLONG)
- 			goto out;
-+		if (d->fh && err == -ESTALE)
-+			goto out;
- 		goto out_err;
- 	}
-+
-+	/* Lower found by file handle - don't follow that handle again */
-+	if (d->fh) {
-+		kfree(d->fh);
-+		d->fh = NULL;
-+	}
-+
- 	if (!this->d_inode)
- 		goto put_and_out;
- 
-@@ -135,9 +229,18 @@ static int ovl_lookup_single(struct dentry *base, struct ovl_lookup_data *d,
- 		d->stop = d->opaque = true;
- 		goto out;
- 	}
--	err = ovl_check_redirect(this, d, prelen, post);
--	if (err)
--		goto out_err;
-+	if (d->last)
-+		goto out;
-+	if (d->by_fh) {
-+		err = ovl_check_redirect_fh(this, d);
-+		if (err)
-+			goto out_err;
-+	}
-+	if (d->by_path) {
-+		err = ovl_check_redirect(this, d, prelen, post);
-+		if (err)
-+			goto out_err;
-+	}
- out:
- 	*ret = this;
- 	return 0;
-@@ -152,6 +255,12 @@ static int ovl_lookup_single(struct dentry *base, struct ovl_lookup_data *d,
+@@ -232,6 +233,80 @@ int ovl_set_attr(struct dentry *upperdentry, struct kstat *stat)
  	return err;
  }
  
-+static int ovl_lookup_layer_fh(struct path *path, struct ovl_lookup_data *d,
-+			       struct dentry **ret)
++static struct ovl_fh *ovl_get_redirect_fh(struct dentry *lower)
 +{
-+	return ovl_lookup_single(path->dentry, d, "", 0, 0, "", path->mnt, ret);
++	const struct export_operations *nop = lower->d_sb->s_export_op;
++	struct ovl_fh *fh;
++	int fh_type, fh_len, dwords;
++	void *buf, *ret;
++	int buflen = MAX_HANDLE_SZ;
++
++	/* Do not encode file handle if we cannot decode it later */
++	if (!nop || !nop->fh_to_dentry) {
++		pr_info("overlay: redirect by file handle not supported "
++			"by lower - turning off redirect\n");
++		return ERR_PTR(-EOPNOTSUPP);
++	}
++
++	buf = kmalloc(buflen, GFP_TEMPORARY);
++	if (!buf)
++		return ERR_PTR(-ENOMEM);
++
++	fh = buf;
++	dwords = (buflen - offsetof(struct ovl_fh, fid)) >> 2;
++	fh_type = exportfs_encode_fh(lower,
++				     (struct fid *)fh->fid,
++				     &dwords, 0);
++	fh_len = (dwords << 2) + offsetof(struct ovl_fh, fid);
++
++	ret = ERR_PTR(-EOVERFLOW);
++	if (fh_len > buflen || fh_type <= 0 || fh_type == FILEID_INVALID)
++		goto out;
++
++	fh->version = OVL_FH_VERSION;
++	fh->magic = OVL_FH_MAGIC;
++	fh->type = fh_type;
++	fh->len = fh_len;
++
++	ret = kmalloc(fh_len, GFP_KERNEL);
++	if (!ret) {
++		ret = ERR_PTR(-ENOMEM);
++		goto out;
++	}
++
++	memcpy(ret, buf, fh_len);
++out:
++	kfree(buf);
++	return ret;
 +}
 +
- static int ovl_lookup_layer(struct dentry *base, struct ovl_lookup_data *d,
- 			    struct dentry **ret)
- {
-@@ -162,7 +271,7 @@ static int ovl_lookup_layer(struct dentry *base, struct ovl_lookup_data *d,
- 
- 	if (d->name.name[0] != '/')
- 		return ovl_lookup_single(base, d, d->name.name, d->name.len,
--					 0, "", ret);
-+					 0, "", NULL, ret);
- 
- 	while (!IS_ERR_OR_NULL(base) && d_can_lookup(base)) {
- 		const char *s = d->name.name + d->name.len - rem;
-@@ -175,7 +284,7 @@ static int ovl_lookup_layer(struct dentry *base, struct ovl_lookup_data *d,
- 			return -EIO;
- 
- 		err = ovl_lookup_single(base, d, s, thislen,
--					d->name.len - rem, next, &base);
-+					d->name.len - rem, next, NULL, &base);
- 		dput(dentry);
- 		if (err)
- 			return err;
-@@ -220,6 +329,7 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
- 	const struct cred *old_cred;
- 	struct ovl_fs *ofs = dentry->d_sb->s_fs_info;
- 	struct ovl_entry *poe = dentry->d_parent->d_fsdata;
-+	struct ovl_entry *roe = dentry->d_sb->s_root->d_fsdata;
- 	struct path *stack = NULL;
- 	struct dentry *upperdir, *upperdentry = NULL;
- 	unsigned int ctr = 0;
-@@ -235,7 +345,10 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
- 		.opaque = false,
- 		.stop = false,
- 		.last = !poe->numlower,
-+		.by_path = true,
-+		.by_fh = ofs->config.redirect_fh,
- 		.redirect = NULL,
-+		.fh = NULL,
- 	};
- 
- 	if (dentry->d_name.len > ofs->namelen)
-@@ -259,12 +372,12 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
- 			if (!upperredirect)
- 				goto out_put_upper;
- 			if (d.redirect[0] == '/')
--				poe = dentry->d_sb->s_root->d_fsdata;
-+				poe = roe;
- 		}
- 		upperopaque = d.opaque;
- 	}
- 
--	if (!d.stop && poe->numlower) {
-+	if (!d.stop && (poe->numlower || d.fh)) {
- 		err = -ENOMEM;
- 		stack = kcalloc(ofs->numlower, sizeof(struct path),
- 				GFP_TEMPORARY);
-@@ -272,6 +385,33 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
- 			goto out_put_upper;
- 	}
- 
-+	/* Try to lookup lower layers by file handle (at root) */
-+	d.by_path = false;
-+	for (i = 0; !d.stop && d.fh && i < roe->numlower; i++) {
-+		struct path lowerpath = roe->lowerstack[i];
++static int ovl_set_redirect_fh(struct dentry *dentry, struct dentry *upper)
++{
++	int err;
++	const struct ovl_fh *fh;
 +
-+		d.last = i == roe->numlower - 1;
-+		err = ovl_lookup_layer_fh(&lowerpath, &d, &this);
++	fh = ovl_get_redirect_fh(ovl_dentry_lower(dentry));
++	err = PTR_ERR(fh);
++	if (IS_ERR(fh))
++		goto out_err;
++
++	err = ovl_do_setxattr(upper, OVL_XATTR_FH, fh, fh->len, 0);
++	if (err)
++		goto out_free;
++
++	return 0;
++
++out_free:
++	kfree(fh);
++out_err:
++	if (err == -EOPNOTSUPP) {
++		ovl_clear_redirect_fh(dentry->d_sb);
++		return 0;
++	}
++	pr_warn_ratelimited("overlay: failed to set redirect fh (%i)\n", err);
++	return err;
++}
++
+ static int ovl_copy_up_locked(struct dentry *workdir, struct dentry *upperdir,
+ 			      struct dentry *dentry, struct path *lowerpath,
+ 			      struct kstat *stat, const char *link,
+@@ -316,6 +391,18 @@ static int ovl_copy_up_locked(struct dentry *workdir, struct dentry *upperdir,
+ 	if (err)
+ 		goto out_cleanup;
+ 
++	if (S_ISDIR(stat->mode) &&
++	    ovl_redirect_dir(dentry->d_sb) &&
++	    ovl_redirect_fh(dentry->d_sb)) {
++		/*
++		 * Store file handle of lower dir in upper dir xattr to
++		 * create a chain of file handles for merged dir stack
++		 */
++		err = ovl_set_redirect_fh(dentry, temp);
 +		if (err)
-+			goto out_put;
-+
-+		if (!this)
-+			continue;
-+
-+		stack[ctr].dentry = this;
-+		stack[ctr].mnt = lowerpath.mnt;
-+		ctr++;
++			goto out_cleanup;
 +	}
 +
-+	/* Fallback to lookup lower layers by name (at parent) */
-+	if (ctr) {
-+		d.stop = true;
-+	} else {
-+		d.by_path = true;
-+		d.by_fh = false;
-+		kfree(d.fh);
-+		d.fh = NULL;
-+	}
- 	for (i = 0; !d.stop && i < poe->numlower; i++) {
- 		struct path lowerpath = poe->lowerstack[i];
- 
-@@ -290,10 +430,8 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
- 		if (d.stop)
- 			break;
- 
--		if (d.redirect &&
--		    d.redirect[0] == '/' &&
--		    poe != dentry->d_sb->s_root->d_fsdata) {
--			poe = dentry->d_sb->s_root->d_fsdata;
-+		if (d.redirect && d.redirect[0] == '/' && poe != roe) {
-+			poe = roe;
- 
- 			/* Find the current layer on the root dentry */
- 			for (i = 0; i < poe->numlower; i++)
-@@ -352,6 +490,7 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
- 	dput(upperdentry);
- 	kfree(upperredirect);
- out:
-+	kfree(d.fh);
- 	kfree(d.redirect);
- 	revert_creds(old_cred);
- 	return ERR_PTR(err);
+ 	if (tmpfile)
+ 		err = ovl_do_link(temp, udir, upper, true);
+ 	else
 diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-index 49be199..6257c5b 100644
+index c851158..49be199 100644
 --- a/fs/overlayfs/overlayfs.h
 +++ b/fs/overlayfs/overlayfs.h
-@@ -186,6 +186,7 @@ const char *ovl_dentry_get_redirect(struct dentry *dentry);
+@@ -20,6 +20,7 @@ enum ovl_path_type {
+ #define OVL_XATTR_PREFIX XATTR_TRUSTED_PREFIX "overlay."
+ #define OVL_XATTR_OPAQUE OVL_XATTR_PREFIX "opaque"
+ #define OVL_XATTR_REDIRECT OVL_XATTR_PREFIX "redirect"
++#define OVL_XATTR_FH OVL_XATTR_PREFIX "fh"
+ 
+ #define OVL_ISUPPER_MASK 1UL
+ 
+@@ -146,6 +147,18 @@ static inline struct inode *ovl_inode_real(struct inode *inode, bool *is_upper)
+ 	return (struct inode *) (x & ~OVL_ISUPPER_MASK);
+ }
+ 
++/* redirect data format for redirect by file handle */
++struct ovl_fh {
++	unsigned char version;	/* 0 */
++	unsigned char magic;	/* 0xfb */
++	unsigned char len;	/* size of this header + size of fid */
++	unsigned char type;	/* fid_type of fid */
++	unsigned char fid[0];	/* file identifier */
++} __packed;
++
++#define OVL_FH_VERSION	0
++#define OVL_FH_MAGIC	0xfb
++
+ /* util.c */
+ int ovl_want_write(struct dentry *dentry);
+ void ovl_drop_write(struct dentry *dentry);
+@@ -171,6 +184,8 @@ bool ovl_redirect_dir(struct super_block *sb);
+ void ovl_clear_redirect_dir(struct super_block *sb);
+ const char *ovl_dentry_get_redirect(struct dentry *dentry);
  void ovl_dentry_set_redirect(struct dentry *dentry, const char *redirect);
- bool ovl_redirect_fh(struct super_block *sb);
- void ovl_clear_redirect_fh(struct super_block *sb);
-+bool ovl_redirect_fh_ok(const char *redirect, size_t size);
++bool ovl_redirect_fh(struct super_block *sb);
++void ovl_clear_redirect_fh(struct super_block *sb);
  void ovl_dentry_update(struct dentry *dentry, struct dentry *upperdentry);
  void ovl_inode_init(struct inode *inode, struct inode *realinode,
  		    bool is_upper);
-diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
-index 17530c5..6538ec5 100644
---- a/fs/overlayfs/util.c
-+++ b/fs/overlayfs/util.c
-@@ -229,6 +229,20 @@ void ovl_clear_redirect_fh(struct super_block *sb)
- 	ofs->config.redirect_fh = false;
+diff --git a/fs/overlayfs/ovl_entry.h b/fs/overlayfs/ovl_entry.h
+index e294f22..cf22992 100644
+--- a/fs/overlayfs/ovl_entry.h
++++ b/fs/overlayfs/ovl_entry.h
+@@ -14,6 +14,7 @@ struct ovl_config {
+ 	char *workdir;
+ 	bool default_permissions;
+ 	bool redirect_dir;
++	bool redirect_fh;
+ };
+ 
+ /* private information held for overlayfs's superblock */
+diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+index 79500d9..3036b2d 100644
+--- a/fs/overlayfs/super.c
++++ b/fs/overlayfs/super.c
+@@ -17,6 +17,7 @@
+ #include <linux/statfs.h>
+ #include <linux/seq_file.h>
+ #include <linux/posix_acl_xattr.h>
++#include <linux/exportfs.h>
+ #include "overlayfs.h"
+ #include "ovl_entry.h"
+ 
+@@ -34,6 +35,12 @@ module_param_named(redirect_dir, ovl_redirect_dir_def, bool, 0644);
+ MODULE_PARM_DESC(ovl_redirect_dir_def,
+ 		 "Default to on or off for the redirect_dir feature");
+ 
++static bool ovl_redirect_fh_def =
++	    IS_ENABLED(CONFIG_OVERLAY_FS_REDIRECT_FH);
++module_param_named(redirect_fh, ovl_redirect_fh_def, bool, 0644);
++MODULE_PARM_DESC(ovl_redirect_fh_def,
++		 "Default to on or off for redirect by file handle");
++
+ static void ovl_dentry_release(struct dentry *dentry)
+ {
+ 	struct ovl_entry *oe = dentry->d_fsdata;
+@@ -246,9 +253,11 @@ static int ovl_show_options(struct seq_file *m, struct dentry *dentry)
+ 	}
+ 	if (ufs->config.default_permissions)
+ 		seq_puts(m, ",default_permissions");
+-	if (ufs->config.redirect_dir != ovl_redirect_dir_def)
++	if (ufs->config.redirect_dir != ovl_redirect_dir_def ||
++	    ufs->config.redirect_fh != ovl_redirect_fh_def)
+ 		seq_printf(m, ",redirect_dir=%s",
+-			   ufs->config.redirect_dir ? "on" : "off");
++			   !ufs->config.redirect_dir ? "off" :
++			   ufs->config.redirect_fh ? "fh" : "on");
+ 	return 0;
  }
  
-+bool ovl_redirect_fh_ok(const char *redirect, size_t size)
+@@ -278,6 +287,7 @@ enum {
+ 	OPT_DEFAULT_PERMISSIONS,
+ 	OPT_REDIRECT_DIR_ON,
+ 	OPT_REDIRECT_DIR_OFF,
++	OPT_REDIRECT_DIR_FH,
+ 	OPT_ERR,
+ };
+ 
+@@ -288,6 +298,7 @@ static const match_table_t ovl_tokens = {
+ 	{OPT_DEFAULT_PERMISSIONS,	"default_permissions"},
+ 	{OPT_REDIRECT_DIR_ON,		"redirect_dir=on"},
+ 	{OPT_REDIRECT_DIR_OFF,		"redirect_dir=off"},
++	{OPT_REDIRECT_DIR_FH,		"redirect_dir=fh"},
+ 	{OPT_ERR,			NULL}
+ };
+ 
+@@ -354,10 +365,17 @@ static int ovl_parse_opt(char *opt, struct ovl_config *config)
+ 
+ 		case OPT_REDIRECT_DIR_ON:
+ 			config->redirect_dir = true;
++			config->redirect_fh = false;
+ 			break;
+ 
+ 		case OPT_REDIRECT_DIR_OFF:
+ 			config->redirect_dir = false;
++			config->redirect_fh = false;
++			break;
++
++		case OPT_REDIRECT_DIR_FH:
++			config->redirect_dir = true;
++			config->redirect_fh = true;
+ 			break;
+ 
+ 		default:
+@@ -754,6 +772,7 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
+ 
+ 	init_waitqueue_head(&ufs->copyup_wq);
+ 	ufs->config.redirect_dir = ovl_redirect_dir_def;
++	ufs->config.redirect_fh = ovl_redirect_fh_def;
+ 	err = ovl_parse_opt((char *) data, &ufs->config);
+ 	if (err)
+ 		goto out_free_config;
+@@ -934,6 +953,11 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
+ 	else
+ 		sb->s_d_op = &ovl_dentry_operations;
+ 
++	/* Redirect by fhandle only if all layers on same sb with export ops */
++	if (!ufs->same_sb || !ufs->same_sb->s_export_op ||
++	    !ufs->same_sb->s_export_op->fh_to_dentry)
++		ufs->config.redirect_fh = false;
++
+ 	ufs->creator_cred = cred = prepare_creds();
+ 	if (!cred)
+ 		goto out_put_lower_mnt;
+diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
+index dcebef0..17530c5 100644
+--- a/fs/overlayfs/util.c
++++ b/fs/overlayfs/util.c
+@@ -215,6 +215,20 @@ void ovl_dentry_set_redirect(struct dentry *dentry, const char *redirect)
+ 	oe->redirect = redirect;
+ }
+ 
++bool ovl_redirect_fh(struct super_block *sb)
 +{
-+	struct ovl_fh *fh = (void *)redirect;
++	struct ovl_fs *ofs = sb->s_fs_info;
 +
-+	if (size < sizeof(struct ovl_fh) || size < fh->len)
-+		return false;
++	return ofs->config.redirect_fh;
++}
 +
-+	if (fh->version > OVL_FH_VERSION ||
-+	    fh->magic != OVL_FH_MAGIC)
-+		return false;
++void ovl_clear_redirect_fh(struct super_block *sb)
++{
++	struct ovl_fs *ofs = sb->s_fs_info;
 +
-+	return true;
++	ofs->config.redirect_fh = false;
 +}
 +
  void ovl_dentry_update(struct dentry *dentry, struct dentry *upperdentry)
