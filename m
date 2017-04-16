@@ -1,39 +1,54 @@
-From: Richard Weinberger <richard@nod.at>
-Subject: Re: copy up questions
-Date: Sun, 9 Apr 2017 13:37:24 +0200
-Message-ID: <53e761f4-b615-15c7-8a1b-cb70a5535629@nod.at>
-References: <CAL-1w2sXhnGVW5-3AyUgSjEy4ebk1ftDzoaadhn9n4_Qf7kD8A@mail.gmail.com>
- <CAOQ4uxgWAOqUNHaNBTtL49PEshQuL9SAa9Ec0F63J-LM8KH7Uw@mail.gmail.com>
+From: <athgregory@gmail.com>
+Subject: (unknown)
+Date: Sun, 16 Apr 2017 19:08:21 -0000
+Message-ID: <149236970142.20709.9271263955780632379@ispfr.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: application/zip; name="EMAIL_50905992227158_linux-unionfs.zip"
+Content-Transfer-Encoding: base64
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from b.ns.miles-group.at ([95.130.255.144]:44723 "EHLO radon.swed.at"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1752067AbdDILh2 (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Sun, 9 Apr 2017 07:37:28 -0400
-In-Reply-To: <CAOQ4uxgWAOqUNHaNBTtL49PEshQuL9SAa9Ec0F63J-LM8KH7Uw@mail.gmail.com>
+Received: from 94-247-177-33.ispfr.net ([94.247.177.33]:49238 "HELO ispfr.net"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
+        id S1756597AbdDPTIY (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Sun, 16 Apr 2017 15:08:24 -0400
+Content-Disposition: attachment
+Subject: 
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Amir Goldstein <amir73il@gmail.com>, Rock Lee <rockdotlee@gmail.com>
-Cc: linux-unionfs@vger.kernel.org
+To: linux-unionfs <linux-unionfs@vger.kernel.org>
 
-Amir, Rock Lee,
-
-Am 09.04.2017 um 10:43 schrieb Amir Goldstein:
- > Well, that's a question for UBIFS folks [cc: Richard] , but I can tell
-> you this much
-> b-tree structure is a good starting point for reflink, but that
-> doesn't mean that
-> the implementation of reflink is trivial.
-
-UBIFS is older than reflinks and UBIFS has no machinery for this feature.
-Mostly because nobody really wanted this feature. In combination with overlayfs
-it makes now sense to support that.
-I agree with Amir that B-Trees are a good start but UBIFS will lacks some
-bits to support that, for example reverse block maps.
-
-Doable, sure. On a rainy weekend, no. :-)
-
-Thanks,
-//richard
+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
+BgAAAAABAAEAWwAAAG0HAAAAAA==
