@@ -1,83 +1,49 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [RFC][PATCH 05/13] ovl: lookup stable inode by file handle
-Date: Mon, 17 Apr 2017 02:59:35 +0300
-Message-ID: <1492387183-18847-6-git-send-email-amir73il@gmail.com>
+Subject: [RFC][PATCH 04/13] ovl: store file handle of stable inode
+Date: Mon, 17 Apr 2017 02:59:34 +0300
+Message-ID: <1492387183-18847-5-git-send-email-amir73il@gmail.com>
 References: <1492387183-18847-1-git-send-email-amir73il@gmail.com>
-Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wm0-f65.google.com ([74.125.82.65]:34626 "EHLO
-        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756797AbdDPX7n (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Sun, 16 Apr 2017 19:59:43 -0400
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
 In-Reply-To: <1492387183-18847-1-git-send-email-amir73il@gmail.com>
-Sender: linux-unionfs-owner@vger.kernel.org
-List-Id: linux-unionfs@vger.kernel.org
+Sender: linux-fsdevel-owner@vger.kernel.org
 To: Miklos Szeredi <miklos@szeredi.hu>
 Cc: Al Viro <viro@zeniv.linux.org.uk>, linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
+List-Id: linux-unionfs@vger.kernel.org
 
-When non directory upper has overlay.fh xattr, lookup that
-file handle in lower layers to find the stable inode it refers to.
+Sometimes it is interesting to know if an upper file is pure
+upper or a copy up target, and if it is a copy up target, it
+may be interesting to know which is the copy up origin.
+
+One such case is nfs export, where we need to have persistent
+and consistent file handles across copy up.
+
+Store the lower inode file handle in upper inode xattr on copy up
+to use it later for these cases.
 
 Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- fs/overlayfs/namei.c | 30 ++++++++++++++++++++++--------
- 1 file changed, 22 insertions(+), 8 deletions(-)
+ fs/overlayfs/copy_up.c | 8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
 
-diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
-index fcb7c15..42b6030 100644
---- a/fs/overlayfs/namei.c
-+++ b/fs/overlayfs/namei.c
-@@ -204,6 +204,9 @@ static int ovl_lookup_single(struct dentry *base, struct ovl_lookup_data *d,
- 	if (d->fh) {
- 		kfree(d->fh);
- 		d->fh = NULL;
-+		/* Follow once by file handle for non-dir */
-+		if (!d->is_dir)
-+			d->by_fh = false;
- 	}
+diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
+index 428dc26..77a8715 100644
+--- a/fs/overlayfs/copy_up.c
++++ b/fs/overlayfs/copy_up.c
+@@ -391,12 +391,10 @@ static int ovl_copy_up_locked(struct dentry *workdir, struct dentry *upperdir,
+ 	if (err)
+ 		goto out_cleanup;
  
- 	if (!this->d_inode)
-@@ -219,15 +222,21 @@ static int ovl_lookup_single(struct dentry *base, struct ovl_lookup_data *d,
- 		goto put_and_out;
- 	}
- 	if (!d_can_lookup(this)) {
--		d->stop = true;
--		if (d->is_dir)
-+		if (d->is_dir) {
-+			d->stop = true;
- 			goto put_and_out;
--		goto out;
--	}
--	d->is_dir = true;
--	if (!d->last && ovl_is_opaquedir(this)) {
--		d->stop = d->opaque = true;
--		goto out;
-+		}
-+		/* Lookup stable inode of non-dir by file handle */
-+		if (!d->by_fh) {
-+			d->stop = true;
-+			goto out;
-+		}
-+	} else {
-+		d->is_dir = true;
-+		if (!d->last && ovl_is_opaquedir(this)) {
-+			d->stop = d->opaque = true;
-+			goto out;
-+		}
- 	}
- 	if (d->last)
- 		goto out;
-@@ -236,6 +245,11 @@ static int ovl_lookup_single(struct dentry *base, struct ovl_lookup_data *d,
- 		if (err)
- 			goto out_err;
- 	}
-+	/* No redirect fh for non-dir means pure upper */
-+	if (!d->is_dir) {
-+		d->stop = !d->fh;
-+		goto out;
-+	}
- 	if (d->by_path) {
- 		err = ovl_check_redirect(this, d, prelen, post);
+-	if (S_ISDIR(stat->mode) &&
+-	    ovl_redirect_dir(dentry->d_sb) &&
+-	    ovl_redirect_fh(dentry->d_sb)) {
++	if (ovl_redirect_fh(dentry->d_sb)) {
+ 		/*
+-		 * Store file handle of lower dir in upper dir xattr to
+-		 * create a chain of file handles for merged dir stack
++		 * Store file handle of lower inode in upper inode xattr to
++		 * allow lookup of stable (pre copy up) inode
+ 		 */
+ 		err = ovl_set_redirect_fh(dentry, temp);
  		if (err)
 -- 
 2.7.4
