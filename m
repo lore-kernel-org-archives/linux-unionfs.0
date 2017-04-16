@@ -1,82 +1,108 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [RFC][PATCH 09/13] ovl: inherit overlay inode ino/generation from real inode
-Date: Mon, 17 Apr 2017 02:59:39 +0300
-Message-ID: <1492387183-18847-10-git-send-email-amir73il@gmail.com>
+Subject: [RFC][PATCH 08/13] ovl: allow hashing non upper inodes
+Date: Mon, 17 Apr 2017 02:59:38 +0300
+Message-ID: <1492387183-18847-9-git-send-email-amir73il@gmail.com>
 References: <1492387183-18847-1-git-send-email-amir73il@gmail.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wm0-f67.google.com ([74.125.82.67]:34651 "EHLO
-        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756845AbdDPX7t (ORCPT
+Received: from mail-wm0-f65.google.com ([74.125.82.65]:36571 "EHLO
+        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1756758AbdDPX7s (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Sun, 16 Apr 2017 19:59:49 -0400
+        Sun, 16 Apr 2017 19:59:48 -0400
 In-Reply-To: <1492387183-18847-1-git-send-email-amir73il@gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: Miklos Szeredi <miklos@szeredi.hu>
 Cc: Al Viro <viro@zeniv.linux.org.uk>, linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
 
-When all layers are on same fs, initialize overlay inode with
-ino/generation of a real inode.
-
-Move initialization of overlay inode ino from ovl_fill_inode()
-to when real inode is available, but before a new inode is inserted
-to hash.
-
-This does not affect the result of stat(2) of an overlay file,
-which always returns the current real inode number.
-
-The overlay ino is going to be used for overlay inodes lookup
-by stable inode.
+As preparation for hashing all overlay inodes, pass is_upper to
+ovl_get_inode() and the iget5_locked() callbacks, instead of assuming
+that the hashed inode is upper.
 
 Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- fs/overlayfs/inode.c | 13 ++++++++++++-
- 1 file changed, 12 insertions(+), 1 deletion(-)
+ fs/overlayfs/inode.c     | 11 ++++++-----
+ fs/overlayfs/namei.c     |  2 +-
+ fs/overlayfs/overlayfs.h |  7 +++++--
+ 3 files changed, 12 insertions(+), 8 deletions(-)
 
 diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
-index 9a429ed..f7d89cf 100644
+index a6d7c44..9a429ed 100644
 --- a/fs/overlayfs/inode.c
 +++ b/fs/overlayfs/inode.c
-@@ -340,7 +340,6 @@ static inline void ovl_lockdep_annotate_inode_mutex_key(struct inode *inode)
+@@ -416,22 +416,23 @@ void ovl_inode_update(struct inode *inode, struct inode *upperinode)
  
- static void ovl_fill_inode(struct inode *inode, umode_t mode, dev_t rdev)
+ static int ovl_inode_test(struct inode *inode, void *data)
  {
--	inode->i_ino = get_next_ino();
- 	inode->i_mode = mode;
- 	inode->i_flags |= S_NOCMTIME;
- #ifdef CONFIG_FS_POSIX_ACL
-@@ -393,6 +392,16 @@ static void ovl_set_inode_data(struct inode *inode, struct inode *realinode,
- 	WRITE_ONCE(inode->i_private, ovl_inode_data(realinode, is_upper));
+-	return ovl_inode_real(inode, NULL) == data;
++	return ovl_inode_real(inode, NULL) == OVL_INODE_REAL(data);
  }
- 
-+static void ovl_inode_init_ino(struct inode *inode, struct inode *realinode)
-+{
-+	if (ovl_same_sb(inode->i_sb)) {
-+		inode->i_ino = realinode->i_ino;
-+		inode->i_generation = realinode->i_generation;
-+	} else {
-+		inode->i_ino = get_next_ino();
-+	}
-+}
-+
- static void ovl_insert_inode_hash(struct inode *inode, struct inode *realinode)
- {
- 	WARN_ON(!inode_unhashed(inode));
-@@ -401,6 +410,7 @@ static void ovl_insert_inode_hash(struct inode *inode, struct inode *realinode)
- 
- void ovl_inode_init(struct inode *inode, struct inode *realinode, bool is_upper)
- {
-+	ovl_inode_init_ino(inode, realinode);
- 	ovl_set_inode_data(inode, realinode, is_upper);
- 	if (is_upper && !S_ISDIR(realinode->i_mode))
- 		ovl_insert_inode_hash(inode, realinode);
-@@ -421,6 +431,7 @@ static int ovl_inode_test(struct inode *inode, void *data)
  
  static int ovl_inode_set(struct inode *inode, void *data)
  {
-+	ovl_inode_init_ino(inode, OVL_INODE_REAL(data));
- 	WRITE_ONCE(inode->i_private, data);
+-	ovl_set_inode_data(inode, data, true);
++	WRITE_ONCE(inode->i_private, data);
  	return 0;
  }
+ 
+-struct inode *ovl_get_inode(struct super_block *sb, struct inode *realinode)
+-
++struct inode *ovl_get_inode(struct super_block *sb, struct inode *realinode,
++			    bool is_upper)
+ {
+ 	struct inode *inode;
+ 
+ 	inode = iget5_locked(sb, (unsigned long) realinode,
+-			     ovl_inode_test, ovl_inode_set, realinode);
++			     ovl_inode_test, ovl_inode_set,
++			     ovl_inode_data(realinode, is_upper));
+ 	if (inode && inode->i_state & I_NEW) {
+ 		ovl_fill_inode(inode, realinode->i_mode, realinode->i_rdev);
+ 		set_nlink(inode, realinode->i_nlink);
+diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
+index 42b6030..9569ded 100644
+--- a/fs/overlayfs/namei.c
++++ b/fs/overlayfs/namei.c
+@@ -470,7 +470,7 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
+ 
+ 		err = -ENOMEM;
+ 		if (upperdentry && !d_is_dir(upperdentry)) {
+-			inode = ovl_get_inode(dentry->d_sb, realinode);
++			inode = ovl_get_inode(dentry->d_sb, realinode, true);
+ 		} else {
+ 			inode = ovl_new_inode(dentry->d_sb, realinode->i_mode,
+ 					      realinode->i_rdev);
+diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
+index f9d2d77..dacee9e 100644
+--- a/fs/overlayfs/overlayfs.h
++++ b/fs/overlayfs/overlayfs.h
+@@ -23,6 +23,8 @@ enum ovl_path_type {
+ #define OVL_XATTR_FH OVL_XATTR_PREFIX "fh"
+ 
+ #define OVL_ISUPPER_MASK 1UL
++#define OVL_INODE_REAL(x) ((struct inode *) \
++			   ((unsigned long)x & ~OVL_ISUPPER_MASK))
+ 
+ static inline int ovl_do_rmdir(struct inode *dir, struct dentry *dentry)
+ {
+@@ -144,7 +146,7 @@ static inline struct inode *ovl_inode_real(struct inode *inode, bool *is_upper)
+ 	if (is_upper)
+ 		*is_upper = x & OVL_ISUPPER_MASK;
+ 
+-	return (struct inode *) (x & ~OVL_ISUPPER_MASK);
++	return OVL_INODE_REAL(x);
+ }
+ 
+ /* redirect data format for redirect by file handle */
+@@ -226,7 +228,8 @@ struct inode *ovl_new_inode(struct super_block *sb, umode_t mode, dev_t rdev);
+ void ovl_inode_init(struct inode *inode, struct inode *realinode,
+ 		    bool is_upper);
+ void ovl_inode_update(struct inode *inode, struct inode *upperinode);
+-struct inode *ovl_get_inode(struct super_block *sb, struct inode *realinode);
++struct inode *ovl_get_inode(struct super_block *sb, struct inode *realinode,
++			    bool is_upper);
+ 
+ static inline void ovl_copyattr(struct inode *from, struct inode *to)
+ {
 -- 
 2.7.4
