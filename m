@@ -1,57 +1,61 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: Questions about redirect_fd feature
-Date: Tue, 18 Apr 2017 17:16:49 +0300
-Message-ID: <CAOQ4uxi-8OTHAicvAmDoUA3DUf4a-ajWko5qmO6PUYra7-5PyA@mail.gmail.com>
-References: <CAL-1w2uGpuFNCLycjUNNrWDZkdrtkZDGAkEtMOT7E34wdZYwtw@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Subject: [PATCH 0/4] fstests: generic test for NFS handles
+Date: Tue, 18 Apr 2017 21:17:20 +0300
+Message-ID: <1492539444-25938-1-git-send-email-amir73il@gmail.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-oi0-f54.google.com ([209.85.218.54]:36442 "EHLO
-        mail-oi0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753040AbdDROQu (ORCPT
+Received: from mail-wr0-f195.google.com ([209.85.128.195]:35648 "EHLO
+        mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751456AbdDRSRQ (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 18 Apr 2017 10:16:50 -0400
-Received: by mail-oi0-f54.google.com with SMTP id r203so178293812oib.3
-        for <linux-unionfs@vger.kernel.org>; Tue, 18 Apr 2017 07:16:50 -0700 (PDT)
-In-Reply-To: <CAL-1w2uGpuFNCLycjUNNrWDZkdrtkZDGAkEtMOT7E34wdZYwtw@mail.gmail.com>
+        Tue, 18 Apr 2017 14:17:16 -0400
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Rock Lee <rockdotlee@gmail.com>
-Cc: linux-unionfs@vger.kernel.org
+To: Eryu Guan <eguan@redhat.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, Trond Myklebust <trondmy@primarydata.com>, Jeff Layton <jlayton@poochiereds.net>, "J . Bruce Fields" <bfields@fieldses.org>, fstests@vger.kernel.org, linux-unionfs@vger.kernel.org
 
-On Tue, Apr 18, 2017 at 3:59 PM, Rock Lee <rockdotlee@gmail.com> wrote:
-> Hi, Amir
-> I am a little confused. redirect_fd feature needs to wrt a file handle
+Eryu,
 
-typo: redirect_fh (not to be confused with consistent_fd)
+I am working on NFS export support for overlayfs [1].
+Before testing with NFS client I wanted to test the file handle API,
+but apparently xfstests have only tests for the XFS specific ioctl.
 
-> to a xattr in upper dir, but what are the advantages ? Because it is
-> faster to lookup than ordinary lookup ? Could you please give me some
-> hints about why redirect by file handle is faster ?
+So I converted the stale_handle xfs/238 test to a generic test and
+added some more test cases to it. 
 
-There are some use cases where lookup by fh could be faster than
-by path because it just needs one inode lookup (by ino) as opposed
-to name lookup per path element (e.g. in path /a/b/c/d/e/f/g/h/i/g/k)
-and also redirect by path is limited to certain path length (which is less
-than MAX_PATH).
+On the bright side, if I disable the drop_caches in the test, the
+test already passes on overlayfs in my test branch, but I still have
+some work to do for full NFS export support.
 
-But to be honest, those optimizations are not  the reason I needed
-redirect_fh. My reasons are related to overlayfs snapshots and it
-not easy to explain.
+When I am done with that, I will add some more overlay specific
+exportfs tests (e.g. export handle from lower and decode after copy up).
 
-In my recent submission of "stable inode" feature, redirect_fh is used
-to track the origin of non-dir copy up files.
-That is an easier motivation to explain and that is the strongest advantage
-that overlayfs gains from redirect_fh.
+In the mean while, running this new test on overlayfs yields:
 
->
-> BTW, there are too few comments in the overlayfs code which makes me
-> very hard to understand.
->
+generic/426 3s ... [not run] overlay does not support NFS export
 
-I can only say that my comment to code ratio is only slightly better than
-Miklos's ;-)
-I'll do my best to improve.
+Tested this on ext4, xfs, btrfs, tmpfs.
 
 Thanks,
 Amir.
+
+[1] https://github.com/amir73il/linux/commits/ovl-nfs-export
+
+Amir Goldstein (4):
+  src/open_by_handle: helper to test open_by_handle_at() syscall
+  src/open_by_handle: flexible usage options
+  fstests: add helper _require_exportfs
+  fstests: add generic test for file handles
+
+ common/rc             |   9 +++
+ src/Makefile          |   2 +-
+ src/open_by_handle.c  | 212 ++++++++++++++++++++++++++++++++++++++++++++++++++
+ tests/generic/426     |  73 +++++++++++++++++
+ tests/generic/426.out |   2 +
+ tests/generic/group   |   1 +
+ 6 files changed, 298 insertions(+), 1 deletion(-)
+ create mode 100644 src/open_by_handle.c
+ create mode 100755 tests/generic/426
+ create mode 100644 tests/generic/426.out
+
+-- 
+2.7.4
