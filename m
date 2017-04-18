@@ -1,253 +1,274 @@
-From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [PATCH 2/4] src/open_by_handle: flexible usage options
-Date: Tue, 18 Apr 2017 22:22:20 +0300
-Message-ID: <CAOQ4uxiXmx9N_y3gHGXxtBM8bySwG_GaeGRBjX4qNf1tyGzUcA@mail.gmail.com>
+From: "J . Bruce Fields" <bfields@fieldses.org>
+Subject: Re: [PATCH 1/4] src/open_by_handle: helper to test
+ open_by_handle_at() syscall
+Date: Tue, 18 Apr 2017 15:33:19 -0400
+Message-ID: <20170418193319.GK6208@fieldses.org>
 References: <1492539444-25938-1-git-send-email-amir73il@gmail.com>
- <1492539444-25938-3-git-send-email-amir73il@gmail.com> <20170418191417.GJ6208@fieldses.org>
+ <1492539444-25938-2-git-send-email-amir73il@gmail.com>
+ <20170418185526.GI6208@fieldses.org>
+ <CAOQ4uxiXev+tB-eKysAcO+fbXsmbjTdkf3j9JKZndnwwVCcFww@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-oi0-f67.google.com ([209.85.218.67]:35178 "EHLO
-        mail-oi0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755483AbdDRTWV (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 18 Apr 2017 15:22:21 -0400
-In-Reply-To: <20170418191417.GJ6208@fieldses.org>
+Received: from fieldses.org ([173.255.197.46]:36038 "EHLO fieldses.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753552AbdDRTdU (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Tue, 18 Apr 2017 15:33:20 -0400
+Content-Disposition: inline
+In-Reply-To: <CAOQ4uxiXev+tB-eKysAcO+fbXsmbjTdkf3j9JKZndnwwVCcFww@mail.gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: "J . Bruce Fields" <bfields@fieldses.org>
+To: Amir Goldstein <amir73il@gmail.com>
 Cc: Eryu Guan <eguan@redhat.com>, Miklos Szeredi <miklos@szeredi.hu>, Trond Myklebust <trondmy@primarydata.com>, Jeff Layton <jlayton@poochiereds.net>, fstests <fstests@vger.kernel.org>, linux-unionfs@vger.kernel.org
 
-On Tue, Apr 18, 2017 at 10:14 PM, J . Bruce Fields <bfields@fieldses.org> wrote:
-> On Tue, Apr 18, 2017 at 09:17:22PM +0300, Amir Goldstein wrote:
->> More usage options for testing open_by_handle, which are needed
->> for testing stable handles across copy up in overlayfs.
->>
->> usage: open_by_handle [-c|-l|-u|-d] <test_dir> [num_files]
->>
->> Examples:
->>
->> 1. Create N test files (nlink=1) under test_dir and exit:
->>  $ open_by_handle -c <test_dir> [N]
->>
->> 2. Get file handles, drop caches and try to open by handle
->>    (expects success):
->>  $ open_by_handle <test_dir> [N]
->>
->> 3. Get file handles, create hardlinks to test files (nlink=2),
->>    drop caches and try to open by handle (expects success):
->>  $ open_by_handle -l <test_dir> [N]
->
-> I guess I don't see the point of this particular test case.  It might be
-> more interesting if it then unlinked the original names, to test for the
-> case when a filesystem depends on the filename or parent directory being
-> encoded in the filehandle?
->
-> Or maybe you are doing that in one of these tests, I'm not sure I follow
-> the descriptions.
->
+On Tue, Apr 18, 2017 at 10:13:14PM +0300, Amir Goldstein wrote:
+> On Tue, Apr 18, 2017 at 9:55 PM, J . Bruce Fields <bfields@fieldses.org> wrote:
+> > On Tue, Apr 18, 2017 at 09:17:21PM +0300, Amir Goldstein wrote:
+> >> This is a clone of src/stale_handle.c test that uses generic
+> >> open_by_handle_at() syscall instead of the xfs specific ioctl.
+> >>
+> >> No test is using this helper yet.
+> >>
+> >> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+> >> ---
+> >>  src/Makefile         |   2 +-
+> >>  src/open_by_handle.c | 145 +++++++++++++++++++++++++++++++++++++++++++++++++++
+> >>  2 files changed, 146 insertions(+), 1 deletion(-)
+> >>  create mode 100644 src/open_by_handle.c
+> >>
+> >> diff --git a/src/Makefile b/src/Makefile
+> >> index e62d7a9..6b38e77 100644
+> >> --- a/src/Makefile
+> >> +++ b/src/Makefile
+> >> @@ -22,7 +22,7 @@ LINUX_TARGETS = xfsctl bstat t_mtab getdevicesize preallo_rw_pattern_reader \
+> >>       seek_copy_test t_readdir_1 t_readdir_2 fsync-tester nsexec cloner \
+> >>       renameat2 t_getcwd e4compact test-nextquota punch-alternating \
+> >>       attr-list-by-handle-cursor-test listxattr dio-interleaved t_dir_type \
+> >> -     dio-invalidate-cache stat_test
+> >> +     dio-invalidate-cache stat_test open_by_handle
+> >>
+> >>  SUBDIRS =
+> >>
+> >> diff --git a/src/open_by_handle.c b/src/open_by_handle.c
+> >> new file mode 100644
+> >> index 0000000..8f04865
+> >> --- /dev/null
+> >> +++ b/src/open_by_handle.c
+> >> @@ -0,0 +1,145 @@
+> >> +/*
+> >> + * open_by_handle.c - attempt to create a file handle and open it
+> >> + *                    with open_by_handle_at() syscall
+> >> + *
+> >> + * Copyright (C) 2017 CTERA Networks. All Rights Reserved.
+> >> + * Author: Amir Goldstein <amir73il@gmail.com>
+> >> + *
+> >> + * from:
+> >> + *  stale_handle.c
+> >> + *
+> >> + *  Copyright (C) 2010 Red Hat, Inc. All Rights reserved.
+> >> + *
+> >> + *  This program is free software; you can redistribute it and/or modify
+> >> + *  it under the terms of the GNU General Public License as published by
+> >> + *  the Free Software Foundation; either version 2 of the License, or
+> >> + *  (at your option) any later version.
+> >> + *
+> >> + *  This program is distributed in the hope that it will be useful,
+> >> + *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+> >> + *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> >> + *  GNU General Public License for more details.
+> >> + *
+> >> + *  You should have received a copy of the GNU General Public License
+> >> + *  along with this program; if not, write to the Free Software
+> >> + *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+> >> + */
+> >> +
+> >> +#define TEST_UTIME
+> >> +
+> >> +#include <stdio.h>
+> >> +#include <stdlib.h>
+> >> +#include <string.h>
+> >> +#include <fcntl.h>
+> >> +#include <unistd.h>
+> >> +#include <sys/stat.h>
+> >> +#include <sys/types.h>
+> >> +#include <errno.h>
+> >> +#include <linux/limits.h>
+> >> +
+> >> +#define NUMFILES 1024
+> >> +
+> >> +struct handle {
+> >> +     struct file_handle fh;
+> >> +     unsigned char fid[MAX_HANDLE_SZ];
+> >> +} handle[NUMFILES];
+> >> +
+> >> +int main(int argc, char **argv)
+> >> +{
+> >> +     int     i;
+> >> +     int     fd;
+> >> +     int     ret;
+> >> +     int     failed = 0;
+> >> +     char    fname[PATH_MAX];
+> >> +     char    *test_dir;
+> >> +     int     mount_fd, mount_id;
+> >> +
+> >> +     if (argc != 2) {
+> >> +             fprintf(stderr, "usage: open_by_handle <test_dir>\n");
+> >> +             return EXIT_FAILURE;
+> >> +     }
+> >> +
+> >> +     test_dir = argv[1];
+> >> +     mount_fd = open(test_dir, O_RDONLY|O_DIRECTORY);
+> >> +     if (mount_fd < 0) {
+> >> +             perror("open test_dir");
+> >> +             return EXIT_FAILURE;
+> >> +     }
+> >> +
+> >> +     /*
+> >> +      * create a large number of files to force allocation of new inode
+> >> +      * chunks on disk.
+> >> +      */
+> >> +     for (i=0; i < NUMFILES; i++) {
+> >> +             sprintf(fname, "%s/file%06d", test_dir, i);
+> >> +             fd = open(fname, O_RDWR | O_CREAT | O_TRUNC, 0644);
+> >> +             if (fd < 0) {
+> >> +                     printf("Warning (%s,%d), open(%s) failed.\n", __FILE__, __LINE__, fname);
+> >> +                     perror(fname);
+> >> +                     return EXIT_FAILURE;
+> >> +             }
+> >> +             close(fd);
+> >> +     }
+> >> +
+> >> +     /* sync to get the new inodes to hit the disk */
+> >> +     sync();
+> >> +
+> >> +     /* create the handles */
+> >> +     for (i=0; i < NUMFILES; i++) {
+> >> +             sprintf(fname, "%s/file%06d", test_dir, i);
+> >> +             handle[i].fh.handle_bytes = MAX_HANDLE_SZ;
+> >> +             ret = name_to_handle_at(AT_FDCWD, fname, &handle[i].fh, &mount_id, 0);
+> >> +             if (ret < 0) {
+> >> +                     perror("name_to_handle");
+> >> +                     return EXIT_FAILURE;
+> >> +             }
+> >> +     }
+> >> +
+> >> +     /* unlink the files */
+> >> +     for (i=0; i < NUMFILES; i++) {
+> >> +             sprintf(fname, "%s/file%06d", test_dir, i);
+> >> +             ret = unlink(fname);
+> >> +             if (ret < 0) {
+> >> +                     perror("unlink");
+> >> +                     return EXIT_FAILURE;
+> >> +             }
+> >> +     }
+> >> +
+> >> +     /* sync to get log forced for unlink transactions to hit the disk */
+> >> +     sync();
+> >> +
+> >> +     /* sync once more FTW */
+> >> +     sync();
+> >> +
+> >> +     /*
+> >> +      * now drop the caches so that unlinked inodes are reclaimed and
+> >> +      * buftarg page cache is emptied so that the inode cluster has to be
+> >> +      * fetched from disk again for the open_by_handle() call.
+> >> +      */
+> >> +     ret = system("echo 3 > /proc/sys/vm/drop_caches");
+> >> +     if (ret < 0) {
+> >> +             perror("drop_caches");
+> >> +             return EXIT_FAILURE;
+> >
+> > By the way, I noticed some time ago in kernel commit 75a6f82a0d10 that
+> > Al uses a remount for this instead of drop_caches; I wonder if that has
+> > any advantages or if it just amounts to the same thing?
+> >
+> 
+> It is not the same thing. drop_caches is less powerful.
+> For example an inotify watch can keep an inode in cache, but umount
+> will remove that watch and evict the inode.
+> There are probably more examples.
+> In any case, after umount you *know* all caches are gone.
+> After drop caches you don't know that.
 
-I am doing that, but with 2 separate invocations:
-open_by_handle -l <test_dir> [N]
-open_by_handle -u <test_dir> [N]
+OK. Yes, I ran into that drop_caches behavior when trying to do some
+similar testing--I had to create a lot of extra entries if I wanted to
+be sure some of them would be evicted.  So maybe the remount trick would
+make it easier to get reproduceable results.
 
--u differs from -d because it expects the handle to be opened.
+(By the way, the particular odd test I was doing was in the
+deep-fh-lookup script in:
 
-The reason I separated -l (link) and -u (unlink) is because
-for overlayfs I need to test linking in lower layer and unlinking
-from overlay.
+	git://linux-nfs.org/~bfields/fragments.git
 
-I guess my intentions will become more clear after I post some
-overlay specific tests.
-It's kind of weird for me to post these tests when overlay
-doesn't have exportfs support yet, but I may do it anyway.
+It tries to stress the code that reconnects a dentry to its parents
+after it's looked up by filehandle, so it creates a very deep directory
+hierarchy, gets the filehandle, drops caches, then tries to look up by
+filehandle.  I meant to add that to xfstests and never got around to
+it.)
 
+> I plan to modify this test later to store handles into a dump file and read them
+> from the file later, so the drop_caches part will be done by the test script
+> that will also be able to do remount (as it should).
+> 
+> But for now, I just copied that test as it is from stale_handle.c, because
+> it is sufficient for my immediate needs.
+> 
+> BTW, I wanted to ask you guys, going forward with my implementation,
+> is there any NFS testsuite I should use to validate exporting overlayfs?
 
->
->> 4. Get file handles, unlink test files w/o the hardlinks (nlink=1),
->>    drop caches and try to open by handle (expects success):
->>  $ open_by_handle -u <test_dir> [N]
->>
->> 5. Get file handles, unlink test files and hardlinks (nlink=0),
->>    drop caches and try to open by handle (expects failure):
->>  $ open_by_handle -d <test_dir> [N]
->>
->> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
->> ---
->>  src/open_by_handle.c | 93 ++++++++++++++++++++++++++++++++++++++++++++--------
->>  1 file changed, 80 insertions(+), 13 deletions(-)
->>
->> diff --git a/src/open_by_handle.c b/src/open_by_handle.c
->> index 8f04865..c33a4aa 100644
->> --- a/src/open_by_handle.c
->> +++ b/src/open_by_handle.c
->> @@ -37,12 +37,12 @@
->>  #include <errno.h>
->>  #include <linux/limits.h>
->>
->> -#define NUMFILES 1024
->> +#define MAXFILES 1024
->>
->>  struct handle {
->>       struct file_handle fh;
->>       unsigned char fid[MAX_HANDLE_SZ];
->> -} handle[NUMFILES];
->> +} handle[MAXFILES];
->>
->>  int main(int argc, char **argv)
->>  {
->> @@ -51,18 +51,60 @@ int main(int argc, char **argv)
->>       int     ret;
->>       int     failed = 0;
->>       char    fname[PATH_MAX];
->> +     char    fname2[PATH_MAX];
->>       char    *test_dir;
->>       int     mount_fd, mount_id;
->> +     int     argi = 1, numfiles = 1;
->> +     int     create = 0, delete = 0, nlink = 1;
->>
->> -     if (argc != 2) {
->> -             fprintf(stderr, "usage: open_by_handle <test_dir>\n");
->> +     if (argc < 2 || argc > 4) {
->> +usage:
->> +             fprintf(stderr, "usage: open_by_handle [-c|-l|-u|-d] <test_dir> [num_files]\n");
->> +             fprintf(stderr, "\n");
->> +             fprintf(stderr, "open_by_handle -c <test_dir> [N] - create N test files under test_dir, get file handles and exit\n");
->> +             fprintf(stderr, "open_by_handle    <test_dir> [N] - get file handles, drop caches and try to open by handle (expects success)\n");
->> +             fprintf(stderr, "open_by_handle -l <test_dir> [N] - get file handles, create hardlinks to test files (nlink=2), drop caches and try to open by handle (expects success)\n");
->> +             fprintf(stderr, "open_by_handle -u <test_dir> [N] - get file handles, unlink test files w/o hardlinks (nlink=1), drop caches and try to open by handle (expects success)\n");
->> +             fprintf(stderr, "open_by_handle -d <test_dir> [N] - get file handles, unlink test files and hardlinks (nlink=0), drop caches and try to open by handle (expects failure)\n");
->>               return EXIT_FAILURE;
->>       }
->>
->> -     test_dir = argv[1];
->> +     if (argv[1][0] == '-') {
->> +             if (argv[1][2])
->> +                     goto usage;
->> +             switch (argv[1][1]) {
->> +             case 'c':
->> +                     create = 1;
->> +                     break;
->> +             case 'l':
->> +                     nlink = 2;
->> +                     break;
->> +             case 'u':
->> +                     delete = 1;
->> +                     nlink = 1;
->> +                     break;
->> +             case 'd':
->> +                     delete = 1;
->> +                     nlink = 0;
->> +                     break;
->> +             default:
->> +                     fprintf(stderr, "illegal option '%s'\n", argv[1]);
->> +             case 'h':
->> +                     goto usage;
->> +             }
->> +             argi++;
->> +     }
->> +     test_dir = argv[argi++];
->> +     if (argc > argi)
->> +             numfiles = atoi(argv[argi]);
->> +     if (!numfiles || numfiles > MAXFILES) {
->> +             fprintf(stderr, "illegal value '%s' for num_files\n", argv[argi]);
->> +             goto usage;
->> +     }
->> +
->>       mount_fd = open(test_dir, O_RDONLY|O_DIRECTORY);
->>       if (mount_fd < 0) {
->> -             perror("open test_dir");
->> +             perror(test_dir);
->>               return EXIT_FAILURE;
->>       }
->>
->> @@ -70,8 +112,9 @@ int main(int argc, char **argv)
->>        * create a large number of files to force allocation of new inode
->>        * chunks on disk.
->>        */
->> -     for (i=0; i < NUMFILES; i++) {
->> +     for (i=0; create && i < numfiles; i++) {
->>               sprintf(fname, "%s/file%06d", test_dir, i);
->> +             sprintf(fname2, "%s/link%06d", test_dir, i);
->>               fd = open(fname, O_RDWR | O_CREAT | O_TRUNC, 0644);
->>               if (fd < 0) {
->>                       printf("Warning (%s,%d), open(%s) failed.\n", __FILE__, __LINE__, fname);
->> @@ -79,13 +122,14 @@ int main(int argc, char **argv)
->>                       return EXIT_FAILURE;
->>               }
->>               close(fd);
->> +             ret = unlink(fname2);
->>       }
->>
->>       /* sync to get the new inodes to hit the disk */
->>       sync();
->>
->>       /* create the handles */
->> -     for (i=0; i < NUMFILES; i++) {
->> +     for (i=0; i < numfiles; i++) {
->>               sprintf(fname, "%s/file%06d", test_dir, i);
->>               handle[i].fh.handle_bytes = MAX_HANDLE_SZ;
->>               ret = name_to_handle_at(AT_FDCWD, fname, &handle[i].fh, &mount_id, 0);
->> @@ -95,14 +139,32 @@ int main(int argc, char **argv)
->>               }
->>       }
->>
->> +     /* after creating test set only check that fs supports exportfs */
->> +     if (create)
->> +             return EXIT_SUCCESS;
->> +
->> +     /* hardlink the files */
->> +     for (i=0; nlink > 1 && i < numfiles; i++) {
->> +             sprintf(fname, "%s/file%06d", test_dir, i);
->> +             sprintf(fname2, "%s/link%06d", test_dir, i);
->> +             ret = link(fname, fname2);
->> +             if (ret < 0) {
->> +                     perror("link");
->> +                     return EXIT_FAILURE;
->> +             }
->> +     }
->> +
->>       /* unlink the files */
->> -     for (i=0; i < NUMFILES; i++) {
->> +     for (i=0; delete && i < numfiles; i++) {
->>               sprintf(fname, "%s/file%06d", test_dir, i);
->> +             sprintf(fname2, "%s/link%06d", test_dir, i);
->>               ret = unlink(fname);
->>               if (ret < 0) {
->>                       perror("unlink");
->>                       return EXIT_FAILURE;
->>               }
->> +             if (!nlink)
->> +                     ret = unlink(fname2);
->>       }
->>
->>       /* sync to get log forced for unlink transactions to hit the disk */
->> @@ -126,17 +188,22 @@ int main(int argc, char **argv)
->>        * now try to open the files by the stored handles. Expecting ENOENT
->>        * for all of them.
->>        */
->> -     for (i=0; i < NUMFILES; i++) {
->> +     for (i=0; i < numfiles; i++) {
->>               errno = 0;
->>               fd = open_by_handle_at(mount_fd, &handle[i].fh, O_RDWR);
->> -             if (fd < 0 && (errno == ENOENT || errno == ESTALE)) {
->> +             if (nlink && fd >= 0) {
->> +                     close(fd);
->> +                     continue;
->> +             } else if (!nlink && fd < 0 && (errno == ENOENT || errno == ESTALE)) {
->>                       continue;
->>               }
->>               if (fd >= 0) {
->>                       printf("open_by_handle(%d) opened an unlinked file!\n", i);
->>                       close(fd);
->> -             } else
->> -                     printf("open_by_handle(%d) returned %d incorrectly on an unlinked file!\n", i, errno);
->> +             } else {
->> +                     printf("open_by_handle(%d) returned %d incorrectly on %s file!\n", i, errno,
->> +                                     nlink ? "a linked" : "an unlinked");
->> +             }
->>               failed++;
->>       }
->>       if (failed)
->> --
->> 2.7.4
+You can use xfstests, actually, there's a "check -nfs" option.  We also
+use connectathon and pynfs.  I have some crufty scripts to run those at
+git://linux-nfs.org/~bfields/testd.git.  You probably don't want to use
+those scripts, but maybe the commandlines under
+bin/do-{xfstests,pynfs,cthon} might be useful.
+
+> And another question for my curiosity -
+> Right now on my test branch, NFS handles work well as long as caches
+> are not dropped.
+> Am I right to assume that on normal workloads, handles are always
+> served from cache? meaning that NFS LOOKUP populates the
+> inode/dentry cache and all later decodes are served from cache?
+ 
+Ugh.  I seem to recall filesystems that depended on that, or used to;
+maybe fat?  Looking at git.... Yes, see 21b6633d516c.  I guess you could
+read that changelog and/or google for any mailing-list mentions of that
+work to see if they had any particular motivation.
+
+Note also with NFS it's normally expected that you can reboot the server
+without consequences worse than applications hanging during the reboot.
+
+> Is it useful to have this basic support for these 'normal' workloads
+> without having full support (you get ESTALE if inode is not in cache)?
+
+I'd personally be terrified to depend on inodes staying in cache, and
+certainly wouldn't want to be put in the position of having to support
+such behavior.  But I don't have any actual data on how often it would
+fail.
+
+--b.
+
+> >> +     }
+> >> +
+> >> +     /*
+> >> +      * now try to open the files by the stored handles. Expecting ENOENT
+> >> +      * for all of them.
+> >> +      */
+> >> +     for (i=0; i < NUMFILES; i++) {
+> >> +             errno = 0;
+> >> +             fd = open_by_handle_at(mount_fd, &handle[i].fh, O_RDWR);
+> >> +             if (fd < 0 && (errno == ENOENT || errno == ESTALE)) {
+> >> +                     continue;
+> >> +             }
+> >> +             if (fd >= 0) {
+> >> +                     printf("open_by_handle(%d) opened an unlinked file!\n", i);
+> >> +                     close(fd);
+> >> +             } else
+> >> +                     printf("open_by_handle(%d) returned %d incorrectly on an unlinked file!\n", i, errno);
+> >> +             failed++;
+> >> +     }
+> >> +     if (failed)
+> >> +             return EXIT_FAILURE;
+> >> +     return EXIT_SUCCESS;
+> >> +}
+> >> --
+> >> 2.7.4
