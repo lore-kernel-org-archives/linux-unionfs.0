@@ -1,131 +1,64 @@
-From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH v2 4/4] fstests: add generic test for file handles
-Date: Wed, 19 Apr 2017 19:29:19 +0300
-Message-ID: <1492619359-24763-5-git-send-email-amir73il@gmail.com>
-References: <1492619359-24763-1-git-send-email-amir73il@gmail.com>
+From: "Darrick J. Wong" <darrick.wong@oracle.com>
+Subject: Re: [RFC][PATCH 00/13] overlayfs stable inodes
+Date: Wed, 19 Apr 2017 15:58:37 -0700
+Message-ID: <20170419225837.GE5205@birch.djwong.org>
+References: <1492387183-18847-1-git-send-email-amir73il@gmail.com>
+ <CAOQ4uxgtiDr9GEgjAsRHLeOo=HTobf-qwZ0bZLyjrhLyNiTt4A@mail.gmail.com>
+ <CAJfpegsQTd8SgHRFcuEJMgjLjNW45vyuUiPPKZLC4bv_OJOmGA@mail.gmail.com>
+ <CAOQ4uxh1VmeB1WGuP4sXyzR0oeQ_ux2hd+9vXM=UbsL+cxTwXQ@mail.gmail.com>
+ <CAJfpegumzAZbvyWgfYaLtG1L7LF_Ob2zgA55Hz5H5Ctv7DoJ=Q@mail.gmail.com>
+ <CAOQ4uxi0vRsyY2jrS_baaZ3n+d0Fx+6fDWj2Wm=4ZEGAZGHzDQ@mail.gmail.com>
+ <CAJfpegsDMfM066PvoQup5SwS3exmfM23+2EWiUsuGROZvN3H_g@mail.gmail.com>
+ <CAOQ4uxjWvgKr02-D-HwnGwrpoq165W++aOxddRUHhDFvv8bB7w@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wr0-f193.google.com ([209.85.128.193]:34735 "EHLO
-        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S937977AbdDSQ3R (ORCPT
+Received: from aserp1040.oracle.com ([141.146.126.69]:35872 "EHLO
+        aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S937565AbdDSW6t (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 19 Apr 2017 12:29:17 -0400
-In-Reply-To: <1492619359-24763-1-git-send-email-amir73il@gmail.com>
+        Wed, 19 Apr 2017 18:58:49 -0400
+Content-Disposition: inline
+In-Reply-To: <CAOQ4uxjWvgKr02-D-HwnGwrpoq165W++aOxddRUHhDFvv8bB7w@mail.gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Eryu Guan <eguan@redhat.com>
-Cc: Trond Myklebust <trondmy@primarydata.com>, Jeff Layton <jlayton@poochiereds.net>, "J . Bruce Fields" <bfields@fieldses.org>, David Howells <dhowells@redhat.com>, Miklos Szeredi <miklos@szeredi.hu>, fstests@vger.kernel.org, linux-unionfs@vger.kernel.org
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, Al Viro <viro@zeniv.linux.org.uk>, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Vivek Goyal <vgoyal@redhat.com>
 
-Cloned from xfs specific test xfs/238, which checks
-stale file handles of deleted files.
+On Wed, Apr 19, 2017 at 06:17:15PM +0300, Amir Goldstein wrote:
+> On Wed, Apr 19, 2017 at 6:01 PM, Miklos Szeredi <miklos@szeredi.hu> wrote:
+> > On Wed, Apr 19, 2017 at 4:46 PM, Amir Goldstein <amir73il@gmail.com> wrote:
+> >> Well, if you are lucky you can run into a filesystem that exports
+> >> a file handle of type FILEID_INO32_GEN, then you *know* you're
+> >> good to go. ext* will do that and xfs that was forever mounted with
+> >> -o inode32.
+> >> Even with xfs -o inode64, it will not use the MSB ino bits unless
+> >> you are in the exabytes fs sizes.
 
-This test uses the generic open_by_handle_at() syscall
-and also tests for non-stale file handles of linked files.
+I think it only takes really big AGs for it to start using the >32 bit parts.
 
-Signed-off-by: Amir Goldstein <amir73il@gmail.com>
----
- tests/generic/426     | 74 +++++++++++++++++++++++++++++++++++++++++++++++++++
- tests/generic/426.out |  2 ++
- tests/generic/group   |  1 +
- 3 files changed, 77 insertions(+)
- create mode 100755 tests/generic/426
- create mode 100644 tests/generic/426.out
+> >
+> > Could filesystems export a max-ino property in their sb?  That would
+> > help with doing this properly.
+> >
+> 
+> Sounds reasonable, but as max-ino usually derived from filesystem size
+> and filesystems can grow size online, you will need to query both the
+> 'soft' ino limit (without growing fs) and the 'hard' ino limit.
+> 
+> Darrick,
+> 
+> Are there bits in GETFSMAP to provide this info?
 
-diff --git a/tests/generic/426 b/tests/generic/426
-new file mode 100755
-index 0000000..c39c165
---- /dev/null
-+++ b/tests/generic/426
-@@ -0,0 +1,74 @@
-+#! /bin/bash
-+# FS QA Test No. 426
-+#
-+# Check stale handles pointing to unlinked files
-+# and non-stale handles pointing to linked files
-+#
-+#-----------------------------------------------------------------------
-+# Copyright (C) 2017 CTERA Networks. All Rights Reserved.
-+# Author: Amir Goldstein <amir73il@gmail.com>
-+#
-+# This program is free software; you can redistribute it and/or
-+# modify it under the terms of the GNU General Public License as
-+# published by the Free Software Foundation.
-+#
-+# This program is distributed in the hope that it would be useful,
-+# but WITHOUT ANY WARRANTY; without even the implied warranty of
-+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+# GNU General Public License for more details.
-+#
-+# You should have received a copy of the GNU General Public License
-+# along with this program; if not, write the Free Software Foundation,
-+# Inc.,  51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-+#-----------------------------------------------------------------------
-+#
-+
-+seq=`basename $0`
-+seqres=$RESULT_DIR/$seq
-+echo "QA output created by $seq"
-+
-+here=`pwd`
-+tmp=/tmp/$$
-+status=1	# failure is the default!
-+trap "_cleanup; exit \$status" 0 1 2 3 15
-+
-+_cleanup()
-+{
-+    cd /
-+    rm -f $tmp.*
-+}
-+
-+# get standard environment, filters and checks
-+. ./common/rc
-+. ./common/filter
-+
-+# real QA test starts here
-+
-+# Modify as appropriate.
-+_supported_fs generic
-+_supported_os Linux
-+# _require_exportfs already requires open_by_handle, but let's not count on it
-+_require_test_program "open_by_handle"
-+_require_exportfs
-+
-+numfiles=1024
-+testdir=$TEST_DIR/$seq-dir
-+mkdir -p $testdir
-+
-+# Check stale handles to deleted files
-+rm -f $testdir/*
-+src/open_by_handle -c $testdir $numfiles
-+src/open_by_handle -d $testdir $numfiles
-+
-+# Check non-stale handles to linked files
-+rm -f $testdir/*
-+src/open_by_handle -c $testdir $numfiles
-+src/open_by_handle    $testdir $numfiles
-+
-+# Check non-stale handles to files that were hardlinked and original deleted
-+src/open_by_handle -l $testdir $numfiles
-+src/open_by_handle -u $testdir $numfiles
-+
-+echo "Silence is golden"
-+status=$?
-+exit
-diff --git a/tests/generic/426.out b/tests/generic/426.out
-new file mode 100644
-index 0000000..777cbcd
---- /dev/null
-+++ b/tests/generic/426.out
-@@ -0,0 +1,2 @@
-+QA output created by 426
-+Silence is golden
-diff --git a/tests/generic/group b/tests/generic/group
-index 6d6e4f6..f29009c 100644
---- a/tests/generic/group
-+++ b/tests/generic/group
-@@ -428,3 +428,4 @@
- 423 auto quick
- 424 auto quick
- 425 auto quick attr
-+426 auto quick exportfs
--- 
-2.7.4
+Nope.  I suppose there could be a way to find out the theoretical
+maximum inode number for a filesystem (statvfsx, etc.) but on the other
+hand I can also see the other fs developers not wanting to expose that
+information for fear that someone will start using the upper bits (inode
+numbers should just be a 64-bit cookie we hand to users, right?) and
+then they'll have to resort to all sorts of trickery to avoid breaking
+things if they ever /do/ want to use those high bits that have been
+claimed by someone else.
+
+/me wonders what you're trying to accomplish?
+
+--D
