@@ -1,48 +1,88 @@
-From: Eryu Guan <eguan@redhat.com>
-Subject: Re: [PATCH 4/4] fstests: add generic test for file handles
-Date: Wed, 19 Apr 2017 18:41:42 +0800
-Message-ID: <20170419104142.GW8951@eguan.usersys.redhat.com>
-References: <1492539444-25938-1-git-send-email-amir73il@gmail.com>
- <1492539444-25938-5-git-send-email-amir73il@gmail.com>
- <20170419095533.GQ8951@eguan.usersys.redhat.com>
- <CAOQ4uxhngqyVR20iT+0-4jyk_e9VXgP7zsSQp3tuN=c_A-MYaA@mail.gmail.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Subject: Re: Overlayfs reverse mapping
+Date: Wed, 19 Apr 2017 14:34:03 +0300
+Message-ID: <CAOQ4uxid0C3PLnfopBWAtWkNqyuMkickoUrZzDmj6-bEOWCDcA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:51796 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1761416AbdDSKlp (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 19 Apr 2017 06:41:45 -0400
-Content-Disposition: inline
-In-Reply-To: <CAOQ4uxhngqyVR20iT+0-4jyk_e9VXgP7zsSQp3tuN=c_A-MYaA@mail.gmail.com>
+Received: from mail-oi0-f53.google.com ([209.85.218.53]:36067 "EHLO
+        mail-oi0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1760702AbdDSLeE (ORCPT
+        <rfc822;linux-unionfs@vger.kernel.org>);
+        Wed, 19 Apr 2017 07:34:04 -0400
+Received: by mail-oi0-f53.google.com with SMTP id r203so23660138oib.3
+        for <linux-unionfs@vger.kernel.org>; Wed, 19 Apr 2017 04:34:04 -0700 (PDT)
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, Trond Myklebust <trondmy@primarydata.com>, Jeff Layton <jlayton@poochiereds.net>, "J . Bruce Fields" <bfields@fieldses.org>, fstests <fstests@vger.kernel.org>, linux-unionfs@vger.kernel.org
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>
 
-On Wed, Apr 19, 2017 at 01:07:47PM +0300, Amir Goldstein wrote:
-...
-> > So how about remove all the files and call "open_by_handle -c ..."
-> > before each test? e.g. (I use testdir and don't remove lost+found dir
-> > because extN needs it for fsck)
-> >
-> 
-> Sure. Makes sense.
-> Going forward, as you might have guessed, I am going to add
-> _scratch_cycle_mount to the mix.
-> 
-> 
-> > testdir=$SCRATCH_MNT/testdir
-> 
-> So I copied using SCRATCH_MNT from xfs/238, but I wonder if
-> I should go with thsi instead:
-> testdir=$TEST_DIR/$seq
-> 
-> Maybe some fs is vulnerable to exporting handles from an ages fs
-> who knows... Any opinion?
+On Fri, Apr 7, 2017 at 4:03 PM, Miklos Szeredi <miklos@szeredi.hu> wrote:
+> On Fri, Apr 7, 2017 at 12:47 PM, Amir Goldstein <amir73il@gmail.com> wrote:
+>
+>> Come to think about it, NFS export of regular file don't need to
+>> follow renames at all:
+>> - The handle for a regular file is always the handle for the real
+>> lower or upper inode
+>> - To decode a handle, create an O_TMPFILE style overlay dentry, which
+>> is not linked
+>>   to any path in overlay, but has the _upperdentry/lowerstack setup
+>
+> I don't think nfs will allow such a scheme.  NFS3 server is stateless,
+> which means there's no open/close in the protocol.   Hence we can't
+> copy-up on open(O_WR*) and return a different file handle for writing.
+> If client looks up a file currently on lower and we return file handle
+> based on lower file, then we must be able to decode that handle after
+> the file has been copied up and even after rename.  And this must work
+> reliably even if the overlay dentry is no longer in the dcache.
+>
+> So there's no option, other than to have a reverse mapping somewhere.
+>
+> One more idea:  do it out-of-band (e.g. under workdir) but do it as a
+> plain directory tree shadowing the lower trees that contains the
+> forward redirect information.  It spares us the implementation of the
+> database, since the filesystem does it for us.  Yes, it can get out of
+> sync with the overlay, but so can any mapping in-band or out-of-band.
+>
 
-Hmm, I have no strong preference on this, seems TEST_DIR should be
-sufficient for the test and we can get rid of one test requirement.
+Miklos,
+
+I started looking into reverse mapping (to compliment the stable inode work)
+
+I am contemplating a scheme similar to your suggestion, but instead of
+a shadow directory tree, index forward redirects by stable inode number
+and store upper and lower redirects as xattr, e.g.:
+
+workdir/inodes/#100
+
+contains xattrs:
+overlay.fh - fh of lower inode (whose ino is 100)
+overlay.redirect - path of lower inode (so fh and stale ino can be
+fixed after copying layers)
+overlay.upper - fh of upper inode
+overlay.path - path (*) of upper (so upper fh can be fixed after copying layers)
+
+(*) upper path can get out of sync with upper fh in case
+     of crash during rename. on mount, if upper fh is valid,
+     path should be fixed.
+
+I am still trying to see if for non-dirs it makes sense for inodes/#100
+to be a hardlink to upper inode.
+It saves the indirection to upper fh and hardlinks would be preserved
+with rsync and tar.
+
+This would require linking temp to inodes/#100 before linking it to
+upper dir and we would need to turn inodes/#100 into a whiteout
+(or truncate it) on ovl_evict_inode() operation.
+
+We need the "inode whiteout" around for a quick indication
+that the NFS handle (of overlay inode 100) became stale.
+We can also deduce that the handle became stale by looking up
+the lower path in overlay and getting a negative dentry or one
+with lower dentry that doesn't point to inode 100, but the
+"inode whiteout" make this case easier to handle.
+
+If you see any major flaw in this design please shout.
 
 Thanks,
-Eryu
+Amir.
