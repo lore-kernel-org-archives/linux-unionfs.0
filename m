@@ -1,75 +1,69 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: Overlayfs reverse mapping
-Date: Thu, 20 Apr 2017 12:22:00 +0300
-Message-ID: <CAOQ4uxhTaY4N5_02kg+5fK0nYLFyEKVVFfWtO5AeC33Qc7CNDw@mail.gmail.com>
-References: <CAOQ4uxid0C3PLnfopBWAtWkNqyuMkickoUrZzDmj6-bEOWCDcA@mail.gmail.com>
- <CAJfpegtWH0P87mYMRB+sLpa0RSOVjvo4Ph1DH8E41UJiyJjiKw@mail.gmail.com>
+Subject: Re: [PATCH v3 0/2] ovl: fix IS_APPEND() checks
+Date: Thu, 20 Apr 2017 15:19:13 +0300
+Message-ID: <CAOQ4uxhe2Ec9fB2x4ovx5CCxXQKw+CV7a+zdjk6JBo4Vj1aWOw@mail.gmail.com>
+References: <1491652147-19794-1-git-send-email-amir73il@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-oi0-f47.google.com ([209.85.218.47]:32875 "EHLO
-        mail-oi0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S941662AbdDTJWH (ORCPT
+Received: from mail-oi0-f68.google.com ([209.85.218.68]:35914 "EHLO
+        mail-oi0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S942842AbdDTMTO (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 20 Apr 2017 05:22:07 -0400
-Received: by mail-oi0-f47.google.com with SMTP id y11so10100256oie.0
-        for <linux-unionfs@vger.kernel.org>; Thu, 20 Apr 2017 02:22:01 -0700 (PDT)
-In-Reply-To: <CAJfpegtWH0P87mYMRB+sLpa0RSOVjvo4Ph1DH8E41UJiyJjiKw@mail.gmail.com>
+        Thu, 20 Apr 2017 08:19:14 -0400
+Received: by mail-oi0-f68.google.com with SMTP id a3so3667151oii.3
+        for <linux-unionfs@vger.kernel.org>; Thu, 20 Apr 2017 05:19:14 -0700 (PDT)
+In-Reply-To: <1491652147-19794-1-git-send-email-amir73il@gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>
+Cc: linux-unionfs@vger.kernel.org
 
-On Wed, Apr 19, 2017 at 4:15 PM, Miklos Szeredi <miklos@szeredi.hu> wrote:
-> On Wed, Apr 19, 2017 at 1:34 PM, Amir Goldstein <amir73il@gmail.com> wrote:
+On Sat, Apr 8, 2017 at 2:49 PM, Amir Goldstein <amir73il@gmail.com> wrote:
+> Miklos,
 >
->> I am contemplating a scheme similar to your suggestion, but instead of
->> a shadow directory tree, index forward redirects by stable inode number
->> and store upper and lower redirects as xattr, e.g.:
->>
->> workdir/inodes/#100
+> This series fixes the append-only violations found by the new
+> xfstest overlay/030.
 >
-> Interesting idea.
-
-I wanted to run another idea by you.
-Instead of storing the overlay inode index under workdir/inodes,
-store it under upperdir/lost+found.
-
-Crazy? think about it..
-- User applications won't touch that dir, because it is already reserved
-  for use by mkfs/fsck tools.
-- It is actually going to be used by a future fsck.overlay tool, to reindex
-  after layers migration.
-- Taking the analogy to traditional lost+found even further, the
-   files found in traditional lost+found are also named #<ino> and
-   when you open them you get an fd to the inode.
-   In case of hardlinked #<ino> (non-dir) you will actually get the
-   same behavior as the traditional lost+found, except that inodes
-   could have nlink > 1. directory inode entries could appear as
-   empty dir to user or they could be stored as whiteouts, so user
-   doesn't see them.
-- This keeps workdir content volatile (and not only workdir/work)
-   it may matter because container managers would pack upper
-   dir when committing changes to an image, but they would not
-   pack workdir (I think).
-
-
->
->> contains xattrs:
->> overlay.fh - fh of lower inode (whose ino is 100)
->> overlay.redirect - path of lower inode (so fh and stale ino can be
->> fixed after copying layers)
->> overlay.upper - fh of upper inode
->> overlay.path - path (*) of upper (so upper fh can be fixed after copying layers)
->
-> I get ".redirect" and ".upper" but not the others.  In fact the lower
-> fh can actually be used to generate the name of the file, so we don't
-> have to encode lower ino separately into the overlay fh.
+> I addressed your comments on v2 and removed the patch to vfs_truncate()
+> because d_real() already takes cares of IS_APPEND().
 >
 
-Forgot to CC the list when I wrote that you are right.
-We don't need overlay.fh on the inode entry and
-overlay.path may be needed for a later "commit before migrate"
-tool, but don't need to worry about that now.
+Miklos,
 
+I know I bombed you with patches to review and
+you are probably still catching up on your emails.
+
+Since 4.11 release is around the corner, wanted to
+ping you on these fix patches from 2 weeks ago,
+so they have some time to soak in -next.
+
+V3 turned out to be quite simple and not controversial IMO.
+
+Thanks,
 Amir.
+
+> Amir.
+>
+> v3:
+> - address comments by Miklos
+> - discard unneeded patch to vfs_truncate()
+>
+> v2:
+> - move open check to ovl_d_real()
+> - discard wrong patch to file_start_write() in ftruncate()
+>
+> v1:
+> - fix checks in [f]truncate and vfs_open()
+>
+> Amir Goldstein (2):
+>   vfs: ftruncate check IS_APPEND() on real upper inode
+>   ovl: check IS_APPEND() on real upper inode
+>
+>  fs/open.c            |  3 ++-
+>  fs/overlayfs/super.c | 28 +++++++++++++++++++++++++---
+>  2 files changed, 27 insertions(+), 4 deletions(-)
+>
+> --
+> 2.7.4
+>
