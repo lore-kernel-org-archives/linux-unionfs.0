@@ -1,48 +1,40 @@
-From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: Overlayfs reverse mapping
-Date: Fri, 21 Apr 2017 22:42:18 +0300
-Message-ID: <CAOQ4uxgfTFL54DPdOYz6GjYK0u8zxcOr-Q6jbi4w=5eotvbDyw@mail.gmail.com>
-References: <CAOQ4uxid0C3PLnfopBWAtWkNqyuMkickoUrZzDmj6-bEOWCDcA@mail.gmail.com>
- <CAJfpegtWH0P87mYMRB+sLpa0RSOVjvo4Ph1DH8E41UJiyJjiKw@mail.gmail.com>
- <CAOQ4uxhTaY4N5_02kg+5fK0nYLFyEKVVFfWtO5AeC33Qc7CNDw@mail.gmail.com>
- <CAJfpegv7kR-zDaE2wfD5e=_yUVnxDLMe28okMm3tTrURjLT1XQ@mail.gmail.com>
- <5399.1492800261@jrobl> <CAOQ4uxiBKku_jh8bbCvB1L9TytdcqDUuJSnjCREsc+nacYngtw@mail.gmail.com>
- <7402.1492803287@jrobl>
+From: Rock Lee <rockdotlee@gmail.com>
+Subject: Re: [PATCH v2 2/4] src/open_by_handle: program to exercise
+ open_by_handle_at() syscall
+Date: Sat, 22 Apr 2017 15:55:19 +0800
+Message-ID: <CAL-1w2vnz0tWHZh4KJnaeaYzN5+=fvfZM6WG2TwcCZsH7WDJZQ@mail.gmail.com>
+References: <1492619359-24763-1-git-send-email-amir73il@gmail.com> <1492619359-24763-3-git-send-email-amir73il@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-oi0-f41.google.com ([209.85.218.41]:33999 "EHLO
-        mail-oi0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1425470AbdDUTmT (ORCPT
+Received: from mail-yb0-f174.google.com ([209.85.213.174]:33245 "EHLO
+        mail-yb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1042885AbdDVHzV (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 21 Apr 2017 15:42:19 -0400
-Received: by mail-oi0-f41.google.com with SMTP id x184so110280704oia.1
-        for <linux-unionfs@vger.kernel.org>; Fri, 21 Apr 2017 12:42:19 -0700 (PDT)
-In-Reply-To: <7402.1492803287@jrobl>
+        Sat, 22 Apr 2017 03:55:21 -0400
+In-Reply-To: <1492619359-24763-3-git-send-email-amir73il@gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: "J. R. Okajima" <hooanon05g@gmail.com>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: Eryu Guan <eguan@redhat.com>, Trond Myklebust <trondmy@primarydata.com>, Jeff Layton <jlayton@poochiereds.net>, "J . Bruce Fields" <bfields@fieldses.org>, David Howells <dhowells@redhat.com>, Miklos Szeredi <miklos@szeredi.hu>, fstests@vger.kernel.org, linux-unionfs@vger.kernel.org
 
-On Fri, Apr 21, 2017 at 10:34 PM, J. R. Okajima <hooanon05g@gmail.com> wrote:
-> Amir Goldstein:
->> That would be names of files reserved for use by fs that user
->> cannot use (i.e. .wh. files). Miklos did not  mean that aufs handles
->> lost+found, but that it lives without a problem with reserved filenames.
->
-> Ah, reserving a filename prefix ".wh.". I see.
-> Thanx for the explanation.
->
-> By the way, putting extra things under lost+found is not a good idea I
-> think.
-> Have you ever tried restoring files manually from lost+found?
-> When an administrator meets such case, he will digging lost+found and
-> copy the files one by one with guessing the filenames. If he is not sure
-> what the file is, then he may leave it under lost+found.
-> For such case, the entries related to overlayfs will be left, and the
-> administrator will spend some sleepless nights with thinking "What are
-> these files? How can I restore them?"
->
->
+Hi, Amir:
 
-Yeh, it's not a good idea. I needed to hear that out loud ;-)
+> +       /*
+> +        * now drop the caches so that unlinked inodes are reclaimed and
+> +        * buftarg page cache is emptied so that the inode cluster has to be
+> +        * fetched from disk again for the open_by_handle() call.
+> +        */
+> +       ret = system("echo 3 > /proc/sys/vm/drop_caches");
+> +       if (ret < 0) {
+> +               perror("drop_caches");
+> +               return EXIT_FAILURE;
+> +       }
+> +
+
+The original value of  /proc/sys/vm/drop_caches is 0 in my rpi3. After
+this test, it turns to 3. Is it necessary to restore it ?
+
+-- 
+Cheers,
+Rock
