@@ -1,69 +1,59 @@
-From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [PATCH v2 01/11] ovl: store path type in dentry
-Date: Mon, 24 Apr 2017 16:10:30 +0300
-Message-ID: <CAOQ4uxjBnoCfCr4os16Vehv8-LVQm9acKBGq7ud-YQ=ptZ9B3g@mail.gmail.com>
-References: <1493025256-27188-1-git-send-email-amir73il@gmail.com>
- <1493025256-27188-2-git-send-email-amir73il@gmail.com> <20170424125921.GA18180@redhat.com>
+From: kbuild test robot <lkp@intel.com>
+Subject: Re: [PATCH v2 04/11] ovl: store file handle of lower inode on copy up
+Date: Mon, 24 Apr 2017 21:32:24 +0800
+Message-ID: <201704242153.XQhZVb57%fengguang.wu@intel.com>
+References: <1493025256-27188-5-git-send-email-amir73il@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-yw0-f194.google.com ([209.85.161.194]:35307 "EHLO
-        mail-yw0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1170689AbdDXNKc (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 24 Apr 2017 09:10:32 -0400
-In-Reply-To: <20170424125921.GA18180@redhat.com>
+Received: from mga03.intel.com ([134.134.136.65]:48643 "EHLO mga03.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1171007AbdDXNdM (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Mon, 24 Apr 2017 09:33:12 -0400
+Content-Disposition: inline
+In-Reply-To: <1493025256-27188-5-git-send-email-amir73il@gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Vivek Goyal <vgoyal@redhat.com>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, Al Viro <viro@zeniv.linux.org.uk>, linux-unionfs@vger.kernel.org, linux-fsdevel <linux-fsdevel@vger.kernel.org>
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: kbuild-all@01.org, Miklos Szeredi <miklos@szeredi.hu>, Vivek Goyal <vgoyal@redhat.com>, Al Viro <viro@zeniv.linux.org.uk>, linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
 
-On Mon, Apr 24, 2017 at 3:59 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
->
-> On Mon, Apr 24, 2017 at 12:14:06PM +0300, Amir Goldstein wrote:
->
-> [..]
-> > diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-> > index c072a0c..671bac0 100644
-> > --- a/fs/overlayfs/super.c
-> > +++ b/fs/overlayfs/super.c
-> > @@ -961,6 +961,7 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
-> >       kfree(stack);
-> >
-> >       root_dentry->d_fsdata = oe;
-> > +     ovl_update_type(root_dentry, true);
-> >
-> >       realinode = d_inode(ovl_dentry_real(root_dentry));
-> >       ovl_inode_init(d_inode(root_dentry), realinode, !!upperpath.dentry);
-> > diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
-> > index 1953986..6a857fb 100644
-> > --- a/fs/overlayfs/util.c
-> > +++ b/fs/overlayfs/util.c
-> > @@ -70,21 +70,38 @@ bool ovl_dentry_weird(struct dentry *dentry)
-> >  enum ovl_path_type ovl_path_type(struct dentry *dentry)
-> >  {
-> >       struct ovl_entry *oe = dentry->d_fsdata;
-> > -     enum ovl_path_type type = 0;
-> > +     enum ovl_path_type type = oe->__type;
-> >
-> > -     if (oe->__upperdentry) {
-> > -             type = __OVL_PATH_UPPER;
-> > +     /* Matches smp_wmb() in ovl_update_type() */
-> > +     smp_rmb();
-> > +     return type;
->
-> Hi Amir,
->
-> I never manage to understand barriers so I will ask. Why this barrier is
-> required and what can go wrong if we don't use this barrier.
->
+Hi Amir,
 
-Hi Vivek,
+[auto build test WARNING on miklos-vfs/overlayfs-next]
+[also build test WARNING on v4.11-rc8 next-20170424]
+[if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
 
-Miklos was kind enough to answer that question for me when he made
-the comment about missing memmory barrier on v1 of the patch:
-http://www.spinics.net/lists/linux-unionfs/msg01687.html
+url:    https://github.com/0day-ci/linux/commits/Amir-Goldstein/overlayfs-constant-inode-numbers/20170424-175555
+base:   https://git.kernel.org/pub/scm/linux/kernel/git/mszeredi/vfs.git overlayfs-next
 
-Whether or not I got it right, we shall see shortly ;-)
 
-Amir.
+coccinelle warnings: (new ones prefixed by >>)
+
+>> fs/overlayfs/copy_up.c:309:7-14: ERROR: PTR_ERR applied after initialization to constant on line 299
+
+vim +309 fs/overlayfs/copy_up.c
+
+   293		.len = sizeof(struct ovl_fh),
+   294	};
+   295	
+   296	static int ovl_set_lower_fh(struct dentry *dentry, struct dentry *upper)
+   297	{
+   298		int err;
+ > 299		const struct ovl_fh *fh = NULL;
+   300	
+   301		if (ovl_redirect_fh(dentry->d_sb))
+   302			fh = ovl_get_fh(ovl_dentry_lower(dentry));
+   303		/*
+   304		 * On failure to encode lower fh, store an invalid 'null' fh, so
+   305		 * we can always use the overlay.fh xattr to distignuish between
+   306		 * a copy up and a pure upper inode.  If lower fs does not support
+   307		 * encoding fh, don't try to encode again.
+   308		 */
+ > 309		err = PTR_ERR(fh);
+   310		if (IS_ERR_OR_NULL(fh)) {
+   311			if (err == -EOPNOTSUPP) {
+   312				pr_warn("overlay: file handle not supported by lower - turning off redirect_fh\n");
+
+---
+0-DAY kernel test infrastructure                Open Source Technology Center
+https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
