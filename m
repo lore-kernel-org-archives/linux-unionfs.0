@@ -1,75 +1,62 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [PATCH v2 04/11] ovl: store file handle of lower inode on copy up
-Date: Mon, 24 Apr 2017 16:57:13 +0300
-Message-ID: <CAOQ4uxi98NobOt3wck2_ona-dsS6OMJSHr+iDANVHi0vkge=oQ@mail.gmail.com>
-References: <1493025256-27188-5-git-send-email-amir73il@gmail.com> <201704242153.XQhZVb57%fengguang.wu@intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Subject: [PATCH v2 12/12] ovl: persistent inode numbers for hardlinks
+Date: Mon, 24 Apr 2017 21:40:47 +0300
+Message-ID: <1493059247-17120-1-git-send-email-amir73il@gmail.com>
+References: <1493025256-27188-1-git-send-email-amir73il@gmail.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-yw0-f196.google.com ([209.85.161.196]:35900 "EHLO
-        mail-yw0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1171420AbdDXN5P (ORCPT
+Received: from mail-wr0-f193.google.com ([209.85.128.193]:35707 "EHLO
+        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S968979AbdDXSki (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 24 Apr 2017 09:57:15 -0400
-In-Reply-To: <201704242153.XQhZVb57%fengguang.wu@intel.com>
+        Mon, 24 Apr 2017 14:40:38 -0400
+In-Reply-To: <1493025256-27188-1-git-send-email-amir73il@gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: kbuild test robot <lkp@intel.com>
-Cc: kbuild-all@01.org, Miklos Szeredi <miklos@szeredi.hu>, Vivek Goyal <vgoyal@redhat.com>, Al Viro <viro@zeniv.linux.org.uk>, linux-unionfs@vger.kernel.org, linux-fsdevel <linux-fsdevel@vger.kernel.org>
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: Vivek Goyal <vgoyal@redhat.com>, Al Viro <viro@zeniv.linux.org.uk>, linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
 
-On Mon, Apr 24, 2017 at 4:32 PM, kbuild test robot <lkp@intel.com> wrote:
-> Hi Amir,
->
-> [auto build test WARNING on miklos-vfs/overlayfs-next]
-> [also build test WARNING on v4.11-rc8 next-20170424]
-> [if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
->
-> url:    https://github.com/0day-ci/linux/commits/Amir-Goldstein/overlayfs-constant-inode-numbers/20170424-175555
-> base:   https://git.kernel.org/pub/scm/linux/kernel/git/mszeredi/vfs.git overlayfs-next
->
->
-> coccinelle warnings: (new ones prefixed by >>)
->
->>> fs/overlayfs/copy_up.c:309:7-14: ERROR: PTR_ERR applied after initialization to constant on line 299
+An upper type non directory dentry that is a copy up target
+should have a reference to its lower copy up origin.
 
-Why is this wrong?
-The pointer tested is not const - it's referenced data is.
+There are three ways for an upper type dentry to be instantiated:
+1. A lower type dentry that is being copied up
+2. An entry that is found in upper dir by ovl_lookup()
+3. A negative dentry is hardlinked to an upper type dentry
 
-Anyway, this pointed out another thing worth a warning:
-The static variable null_fh was meant to be const.
-I wonder if coccinelle has a way to figure out this pattern?
-I guess not.
+In the first case, the lower reference is set before copy up.
+In the second case, the lower reference is found by ovl_lookup().
+In the last case of hardlinked upper dentry, it is not easy to
+update the lower reference of the negative dentry.  Instead,
+drop the newly hardlinked negative dentry from dcache and let
+the next access call ovl_lookup() to find its lower reference.
 
-> > 289 static struct ovl_fh null_fh = {
->   290    .version = OVL_FH_VERSION,
->   291    .magic = OVL_FH_MAGIC,
->   292    .type = FILEID_INVALID,
+This makes sure that the inode number reported by stat(2) after
+the hardlink is created is the same inode number that will be
+reported by stat(2) after mount cycle, which is the inode number
+of the lower copy up origin of the hardlink source.
 
->
-> vim +309 fs/overlayfs/copy_up.c
->
+NOTE that this does not fix breaking of lower hardlinks on copy
+up, but it will result in stat(2) reporting the same inode number
+for all the upper broken hardlinks.
 
->    293          .len = sizeof(struct ovl_fh),
->    294  };
->    295
->    296  static int ovl_set_lower_fh(struct dentry *dentry, struct dentry *upper)
->    297  {
->    298          int err;
->  > 299          const struct ovl_fh *fh = NULL;
->    300
->    301          if (ovl_redirect_fh(dentry->d_sb))
->    302                  fh = ovl_get_fh(ovl_dentry_lower(dentry));
->    303          /*
->    304           * On failure to encode lower fh, store an invalid 'null' fh, so
->    305           * we can always use the overlay.fh xattr to distignuish between
->    306           * a copy up and a pure upper inode.  If lower fs does not support
->    307           * encoding fh, don't try to encode again.
->    308           */
->  > 309          err = PTR_ERR(fh);
->    310          if (IS_ERR_OR_NULL(fh)) {
->    311                  if (err == -EOPNOTSUPP) {
->    312                          pr_warn("overlay: file handle not supported by lower - turning off redirect_fh\n");
->
-> ---
-> 0-DAY kernel test infrastructure                Open Source Technology Center
-> https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+---
+ fs/overlayfs/dir.c | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
+index 03854abf7..6ef35e8 100644
+--- a/fs/overlayfs/dir.c
++++ b/fs/overlayfs/dir.c
+@@ -197,6 +197,9 @@ static void ovl_instantiate(struct dentry *dentry, struct inode *inode,
+ 		inc_nlink(inode);
+ 	}
+ 	d_instantiate(dentry, inode);
++	/* Force lookup of new upper hardlink to find its lower */
++	if (hardlink)
++		d_drop(dentry);
+ }
+ 
+ static bool ovl_type_merge(struct dentry *dentry)
+-- 
+2.7.4
