@@ -1,126 +1,119 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH v2 02/11] ovl: cram opaque boolean into type flags
-Date: Mon, 24 Apr 2017 12:14:07 +0300
-Message-ID: <1493025256-27188-3-git-send-email-amir73il@gmail.com>
+Subject: [PATCH v2 03/11] ovl: check if all layers are on the same fs
+Date: Mon, 24 Apr 2017 12:14:08 +0300
+Message-ID: <1493025256-27188-4-git-send-email-amir73il@gmail.com>
 References: <1493025256-27188-1-git-send-email-amir73il@gmail.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wm0-f67.google.com ([74.125.82.67]:36504 "EHLO
-        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1167636AbdDXJOM (ORCPT
+Received: from mail-wr0-f195.google.com ([209.85.128.195]:33408 "EHLO
+        mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1167700AbdDXJOO (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 24 Apr 2017 05:14:12 -0400
+        Mon, 24 Apr 2017 05:14:14 -0400
 In-Reply-To: <1493025256-27188-1-git-send-email-amir73il@gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: Miklos Szeredi <miklos@szeredi.hu>
 Cc: Vivek Goyal <vgoyal@redhat.com>, Al Viro <viro@zeniv.linux.org.uk>, linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
 
-We are going to add more state info to ovl_entry soon (for const ino)
-and this state info would be added as type flags.
+Some features can only work when all lower layers are on the same fs
+and some features require that upper layer is also on the same fs.
+Test those conditions during mount time, so features can check them later.
 
-It makes sense to treat 'opaque' in a similar way, so instead of using
-a boolean member in ovl_entry use a type bit to represent opaqueness.
+Add helper ovl_same_lower_sb() to return the common super block in case
+all lower layers are on the same fs and helper ovl_same_sb() to return
+the super block common to all layers.
 
 Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- fs/overlayfs/namei.c     | 9 +++++----
- fs/overlayfs/overlayfs.h | 2 ++
- fs/overlayfs/ovl_entry.h | 1 -
- fs/overlayfs/util.c      | 5 +++--
- 4 files changed, 10 insertions(+), 7 deletions(-)
+ fs/overlayfs/overlayfs.h |  2 ++
+ fs/overlayfs/ovl_entry.h |  3 +++
+ fs/overlayfs/super.c     |  9 +++++++++
+ fs/overlayfs/util.c      | 14 ++++++++++++++
+ 4 files changed, 28 insertions(+)
 
-diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
-index 8788fd7..d660177 100644
---- a/fs/overlayfs/namei.c
-+++ b/fs/overlayfs/namei.c
-@@ -224,7 +224,7 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
- 	struct dentry *upperdir, *upperdentry = NULL;
- 	unsigned int ctr = 0;
- 	struct inode *inode = NULL;
--	bool upperopaque = false;
-+	enum ovl_path_type type = 0;
- 	char *upperredirect = NULL;
- 	struct dentry *this;
- 	unsigned int i;
-@@ -261,7 +261,8 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
- 			if (d.redirect[0] == '/')
- 				poe = dentry->d_sb->s_root->d_fsdata;
- 		}
--		upperopaque = d.opaque;
-+		if (d.opaque)
-+			type |= __OVL_PATH_OPAQUE;
- 	}
- 
- 	if (!d.stop && poe->numlower) {
-@@ -331,7 +332,7 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
- 	}
- 
- 	revert_creds(old_cred);
--	oe->opaque = upperopaque;
-+	oe->__type = type;
- 	oe->redirect = upperredirect;
- 	oe->__upperdentry = upperdentry;
- 	memcpy(oe->lowerstack, stack, sizeof(struct path) * ctr);
-@@ -372,7 +373,7 @@ bool ovl_lower_positive(struct dentry *dentry)
- 	 * whiteout.
- 	 */
- 	if (!dentry->d_inode)
--		return oe->opaque;
-+		return OVL_TYPE_OPAQUE(oe->__type);
- 
- 	/* Negative upper -> positive lower */
- 	if (!oe->__upperdentry)
 diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-index e90a548..9420101 100644
+index 9420101..48d0dae 100644
 --- a/fs/overlayfs/overlayfs.h
 +++ b/fs/overlayfs/overlayfs.h
-@@ -12,10 +12,12 @@
- enum ovl_path_type {
- 	__OVL_PATH_UPPER	= (1 << 0),
- 	__OVL_PATH_MERGE	= (1 << 1),
-+	__OVL_PATH_OPAQUE	= (1 << 2),
- };
- 
- #define OVL_TYPE_UPPER(type)	((type) & __OVL_PATH_UPPER)
- #define OVL_TYPE_MERGE(type)	((type) & __OVL_PATH_MERGE)
-+#define OVL_TYPE_OPAQUE(type)	((type) & __OVL_PATH_OPAQUE)
- 
- #define OVL_XATTR_PREFIX XATTR_TRUSTED_PREFIX "overlay."
- #define OVL_XATTR_OPAQUE OVL_XATTR_PREFIX "opaque"
+@@ -153,6 +153,8 @@ int ovl_want_write(struct dentry *dentry);
+ void ovl_drop_write(struct dentry *dentry);
+ struct dentry *ovl_workdir(struct dentry *dentry);
+ const struct cred *ovl_override_creds(struct super_block *sb);
++struct super_block *ovl_same_lower_sb(struct super_block *sb);
++struct super_block *ovl_same_sb(struct super_block *sb);
+ struct ovl_entry *ovl_alloc_entry(unsigned int numlower);
+ bool ovl_dentry_remote(struct dentry *dentry);
+ bool ovl_dentry_weird(struct dentry *dentry);
 diff --git a/fs/overlayfs/ovl_entry.h b/fs/overlayfs/ovl_entry.h
-index 293be5f..12c4922 100644
+index 12c4922..41708bf 100644
 --- a/fs/overlayfs/ovl_entry.h
 +++ b/fs/overlayfs/ovl_entry.h
-@@ -41,7 +41,6 @@ struct ovl_entry {
- 		struct {
- 			u64 version;
- 			const char *redirect;
--			bool opaque;
- 			bool copying;
- 		};
- 		struct rcu_head rcu;
+@@ -29,6 +29,9 @@ struct ovl_fs {
+ 	const struct cred *creator_cred;
+ 	bool tmpfile;
+ 	wait_queue_head_t copyup_wq;
++	/* sb common to all (or all lower) layers */
++	struct super_block *same_lower_sb;
++	struct super_block *same_sb;
+ };
+ 
+ enum ovl_path_type;
+diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+index 671bac0..b8830ee 100644
+--- a/fs/overlayfs/super.c
++++ b/fs/overlayfs/super.c
+@@ -898,6 +898,7 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
+ 	ufs->lower_mnt = kcalloc(numlower, sizeof(struct vfsmount *), GFP_KERNEL);
+ 	if (ufs->lower_mnt == NULL)
+ 		goto out_put_workdir;
++
+ 	for (i = 0; i < numlower; i++) {
+ 		struct vfsmount *mnt = clone_private_mount(&stack[i]);
+ 
+@@ -914,11 +915,19 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
+ 
+ 		ufs->lower_mnt[ufs->numlower] = mnt;
+ 		ufs->numlower++;
++
++		/* Check if all lower layers are on same sb */
++		if (i == 0)
++			ufs->same_lower_sb = mnt->mnt_sb;
++		else if (ufs->same_lower_sb != mnt->mnt_sb)
++			ufs->same_lower_sb = NULL;
+ 	}
+ 
+ 	/* If the upper fs is nonexistent, we mark overlayfs r/o too */
+ 	if (!ufs->upper_mnt)
+ 		sb->s_flags |= MS_RDONLY;
++	else if (ufs->upper_mnt->mnt_sb == ufs->same_lower_sb)
++		ufs->same_sb = ufs->same_lower_sb;
+ 
+ 	if (remote)
+ 		sb->s_d_op = &ovl_reval_dentry_operations;
 diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
-index 6a857fb..dce4141 100644
+index dce4141..43dcdf5 100644
 --- a/fs/overlayfs/util.c
 +++ b/fs/overlayfs/util.c
-@@ -181,7 +181,8 @@ void ovl_set_dir_cache(struct dentry *dentry, struct ovl_dir_cache *cache)
- bool ovl_dentry_is_opaque(struct dentry *dentry)
- {
- 	struct ovl_entry *oe = dentry->d_fsdata;
--	return oe->opaque;
+@@ -41,6 +41,20 @@ const struct cred *ovl_override_creds(struct super_block *sb)
+ 	return override_creds(ofs->creator_cred);
+ }
+ 
++struct super_block *ovl_same_lower_sb(struct super_block *sb)
++{
++	struct ovl_fs *ofs = sb->s_fs_info;
 +
-+	return OVL_TYPE_OPAQUE(oe->__type);
- }
- 
- bool ovl_dentry_is_whiteout(struct dentry *dentry)
-@@ -193,7 +194,7 @@ void ovl_dentry_set_opaque(struct dentry *dentry)
++	return ofs->same_lower_sb;
++}
++
++struct super_block *ovl_same_sb(struct super_block *sb)
++{
++	struct ovl_fs *ofs = sb->s_fs_info;
++
++	return ofs->same_sb;
++}
++
+ struct ovl_entry *ovl_alloc_entry(unsigned int numlower)
  {
- 	struct ovl_entry *oe = dentry->d_fsdata;
- 
--	oe->opaque = true;
-+	oe->__type |= __OVL_PATH_OPAQUE;
- }
- 
- bool ovl_redirect_dir(struct super_block *sb)
+ 	size_t size = offsetof(struct ovl_entry, lowerstack[numlower]);
 -- 
 2.7.4
