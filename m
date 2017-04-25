@@ -1,123 +1,47 @@
-From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [PATCH v2 00/11] overlayfs constant inode numbers
-Date: Tue, 25 Apr 2017 17:20:37 +0300
-Message-ID: <CAOQ4uxgxxgTvZ8AV5yGTpwDMnf+=gbd0hRKA0jtjdrCPGFaHcQ@mail.gmail.com>
-References: <1493025256-27188-1-git-send-email-amir73il@gmail.com>
- <20170425121620.GB11500@redhat.com> <CAOQ4uxhvx1OqYgDb9g4G4_YTA_e-coSAyg2H09+zpDOkBzJYag@mail.gmail.com>
- <20170425125223.GC11500@redhat.com> <CAOQ4uxgrnTp_qi6HL+hrQF=xP6zrnOtDyq312UHQPSYp9-3x6w@mail.gmail.com>
- <20170425132908.GD11500@redhat.com> <CAOQ4uxhu8PbYEabX3Zwt_e030Dkmrxx1dftdVxXx_e+ipZfwVg@mail.gmail.com>
- <20170425135351.GE11500@redhat.com>
+From: Miklos Szeredi <miklos@szeredi.hu>
+Subject: Re: [PATCH v2 04/11] ovl: store file handle of lower inode on copy up
+Date: Tue, 25 Apr 2017 16:53:45 +0200
+Message-ID: <CAJfpegt=mVd7kCB2CwX4TDbnaKcHdxMnEfD9eTMHx8ZRNQ0WyA@mail.gmail.com>
+References: <1493025256-27188-1-git-send-email-amir73il@gmail.com> <1493025256-27188-5-git-send-email-amir73il@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-oi0-f65.google.com ([209.85.218.65]:33130 "EHLO
-        mail-oi0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1946451AbdDYOUj (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 25 Apr 2017 10:20:39 -0400
-In-Reply-To: <20170425135351.GE11500@redhat.com>
-Sender: linux-unionfs-owner@vger.kernel.org
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
+In-Reply-To: <1493025256-27188-5-git-send-email-amir73il@gmail.com>
+Sender: linux-fsdevel-owner@vger.kernel.org
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: Vivek Goyal <vgoyal@redhat.com>, Al Viro <viro@zeniv.linux.org.uk>, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>, linux-fsdevel@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Vivek Goyal <vgoyal@redhat.com>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, Al Viro <viro@zeniv.linux.org.uk>, linux-unionfs@vger.kernel.org, linux-fsdevel <linux-fsdevel@vger.kernel.org>, David Howells <dhowells@redhat.com>
 
-On Tue, Apr 25, 2017 at 4:53 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
-> On Tue, Apr 25, 2017 at 04:49:00PM +0300, Amir Goldstein wrote:
->> On Tue, Apr 25, 2017 at 4:29 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
->> > On Tue, Apr 25, 2017 at 04:23:28PM +0300, Amir Goldstein wrote:
->> >> On Tue, Apr 25, 2017 at 3:52 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
->> >> > On Tue, Apr 25, 2017 at 03:41:56PM +0300, Amir Goldstein wrote:
->> >> >> On Tue, Apr 25, 2017 at 3:16 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
->> >> >> > On Mon, Apr 24, 2017 at 12:14:05PM +0300, Amir Goldstein wrote:
->> >> >> >> Miklos,
->> >> >> >>
->> >> >> >> Following your comments on the 'stable inodes' series from last week,
->> >> >> >> this series fixes constant inode numbers for stat(2) with any layer
->> >> >> >> configuration.
->> >> >> >>
->> >> >> >> For the case of all *lower* layers on same fs that supports NFS export,
->> >> >> >> redirect by file handle will be used to optimize the lookup of the copy
->> >> >> >> up origin of non-dir inode.
->> >> >> >
->> >> >> > I was trying to run unionmount-testsuite (original from dhowells) and I
->> >> >> > disabled layer check. Looks like empty directory rename test fails.
->> >> >> >
->> >> >> > ***
->> >> >> > *** ./run --ov --ts=0 rename-empty-dir
->> >> >> > ***
->> >> >> > TEST rename-empty-dir.py:10: Rename empty dir and rename back
->> >> >> >  ./run --rename /mnt/a/empty100 /mnt/a/no_dir100
->> >> >> >  /mnt/a/empty100: Unexpected error: Invalid cross-device link
->> >> >> >
->> >> >>
->> >> >> Strange... I can't find code in recent times when this used to work
->> >> >> It certainly doesn't look like it should work with kernel v4.10
->> >> >> and redirect_dir=off.
->> >> >> I couldn't the point of regression by looking at the change log.
->> >> >> You'd need to bisect to find the regression patch.
->> >> >>
->> >> >> Are you not compiling kernel with redirect_dir?
->> >> >> CONFIG_OVERLAY_FS_REDIRECT_DIR=y
->> >> >
->> >> > I noticed that I am running with REDIRECT_DIR=n.
->> >> >
->> >> > I also re-ran the tests without your patches and test is still broken. So
->> >> > it is not due to your current patch series.
->> >> >
->> >> > It has been long time since I ran these tests. I suspect that we might
->> >> > have changed this behavior during redirect directory patches.
->> >> >
->> >> > So question is, is this a regression or expected behavior. That is with
->> >> > REDIRECT_DIR=n, renames of empty directory will be denied too.
->> >> >
->> >>
->> >> It must be a regression, although I can't think why anyone would care.
->> >> If one really cares about renaming lower empty directories, why not enable
->> >> REDIRECT_DIR?
->> >
->> > I will enable it now. I just had an old config and ran into this.
->> >
->> > But this does raise the question unionmount-testsuite need to be
->> > maintained somewhere so that it acts as a baseline to figure out if
->> > new patches broke some existing tests.
->> >
->> > I can go by the tree you are maintaining but currently that's broken too
->> > with REDIRECT_DIR=n.
->> >
->>
->> Right.
->> I have given some though about what's the best way to handle this.
->> Probably need a test flag --noredirect. I'll add this to my TODO...
->>
->> BTW, I try to keep the branch overlayfs-devel uptodate for testing
->> latest features. It could be rebased, but I'll make an effort not to.
->> If there is a need for a more stable non-rewindable branch, let me know.
+On Mon, Apr 24, 2017 at 11:14 AM, Amir Goldstein <amir73il@gmail.com> wrote:
+> Sometimes it is interesting to know if an upper file is pure
+> upper or a copy up target, and if it is a copy up target, it
+> may be interesting to find the copy up origin.
 >
-> I think would be good if you maintain "master" branch of your tree up
-> to date and hopefully that's stable so that later git pull does not talk
-> about conflicts. We can then use your tree for setting a baseline and
-> detecting regressions.
+> This will be used to preserve lower inode numbers across copy up.
 >
-> CCing Dave Howells, in case he is interested in continuing to update his
-> tree as overlayfs kernel development takes place.
+> Store the lower inode file handle in upper inode xattr overlay.fh
+> on copy up to use it later for these cases.
 >
+> On failure to encode lower file handle, store an invalid 'null'
+> handle, so we can always use the overlay.fh xattr to distignuish
+> between a copy up and a pure upper inode.
+>
+> If lower fs does not support NFS export ops or if not all lower
+> layers are on the same fs, don't try to encode a lower file handle
+> and use the 'null' handle instead.
 
-OK. declaring branch master on my tree 'ff-only':
-https://github.com/amir73il/unionmount-testsuite/tree/master
+Decoding fh on wrong fs is going to result in "interesting"
+posibilities, so I think we should be storing some kind of identifier
+about the layer from the very start.
 
-Last commit is set to:
-060af33 run --ov --samefs uses lower/upper on same fs
+The trivial way to do that would be to encode the filesystem's UUID
+into the stored fh.  Problem seems to be that only ext4 is setting
+sb->s_uuid.  Probably not too hard to fix the others.
 
-This commit contains instructions also how to setup unionmount-testsuite
-on non tmpfs, which is very useful for being in touch with reality.
+When decoding, trivial to check in the samefs case, but we'd need a
+table for the uuid->layer lookup for the non-samefs case. But that can
+wait, I'd be content with just having the infrastructure there and
+just using it to verify the handle for now.
 
-It is recommended to test at least with the following flag combinations:
-./run --ov # tmpfs not same for lower/upper
-./run --ov=0 # same as above with cycle mount after mkdir/rename
-./run --ov --samefs # tmpfs or configured base fs, same for lower and upper
-./run --ov=0 --samefs # same as above with cycle mount after mkdir/rename
-
-Mind you that testing constant inode work still requires branch overlayfs-devel
-with the fix to check_layers() and more goodies.
-
-Amir.
+Thanks,
+Miklos
