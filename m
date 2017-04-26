@@ -1,53 +1,40 @@
-From: Miklos Szeredi <miklos@szeredi.hu>
-Subject: Re: [PATCH] ovl: do not set overlay.opaque on non-dir create
-Date: Wed, 26 Apr 2017 15:56:15 +0200
-Message-ID: <CAJfpegtPddGm_CjLd4OX-AmfnHzrwnL3AVcQ9M5iO3ysa5mdgg@mail.gmail.com>
-References: <1493062000-10208-1-git-send-email-amir73il@gmail.com>
+From: Marko Rauhamaa <marko.rauhamaa@f-secure.com>
+Subject: Re: [PATCH] ovl: don't expose EOPENSTALE to userspace
+Date: Wed, 26 Apr 2017 17:06:49 +0300
+Message-ID: <8737cv5kli.fsf@drapion.f-secure.com>
+References: <1493128675-24331-1-git-send-email-amir73il@gmail.com>
+        <20170426134731.GB5214@veci.piliscsaba.szeredi.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-oi0-f68.google.com ([209.85.218.68]:33746 "EHLO
-        mail-oi0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S3000817AbdDZN4R (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 26 Apr 2017 09:56:17 -0400
-Received: by mail-oi0-f68.google.com with SMTP id w12so294043oiw.0
-        for <linux-unionfs@vger.kernel.org>; Wed, 26 Apr 2017 06:56:17 -0700 (PDT)
-In-Reply-To: <1493062000-10208-1-git-send-email-amir73il@gmail.com>
-Sender: linux-unionfs-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
+In-Reply-To: <20170426134731.GB5214@veci.piliscsaba.szeredi.hu> (Miklos
+        Szeredi's message of "Wed, 26 Apr 2017 15:47:31 +0200")
+Sender: linux-fsdevel-owner@vger.kernel.org
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: Amir Goldstein <amir73il@gmail.com>, Trond Myklebust <trondmy@primarydata.com>, Jeff Layton <jlayton@poochiereds.net>, "J . Bruce Fields" <bfields@fieldses.org>, Tyler Hicks <tyhicks@canonical.com>, Al Viro <viro@zeniv.linux.org.uk>, linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, stable@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>
 
-On Mon, Apr 24, 2017 at 9:26 PM, Amir Goldstein <amir73il@gmail.com> wrote:
-> The optimization for opaque dir create was wrongly being applied
-> also to non-dir create.
->
-> Fixes: 97c684cc9110 ("ovl: create directories inside merged parent opaque")
-> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
-> Cc: <stable@vger.kernel.org> # v4.10
+Miklos Szeredi <miklos@szeredi.hu>:
 
-Thanks, applied.
+> I'm looking at the EOPENSTALE story and it very much looks like we can
+> just replace the single use with ESTALE and handle the lookup retry
+> logic nuances inside the lookup code...
 
-Miklos
+The fanotify problem is not simply a matter of choosing a POSIX name for
+an error. The question is, what problems should an fanotify application
+be prepared to handle and what should it do about them?
 
-> ---
->  fs/overlayfs/dir.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
->
-> diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
-> index 6ef35e8..5d64550 100644
-> --- a/fs/overlayfs/dir.c
-> +++ b/fs/overlayfs/dir.c
-> @@ -228,7 +228,7 @@ static int ovl_create_upper(struct dentry *dentry, struct inode *inode,
->         if (err)
->                 goto out_dput;
->
-> -       if (ovl_type_merge(dentry->d_parent)) {
-> +       if (ovl_type_merge(dentry->d_parent) && d_is_dir(newdentry)) {
->                 /* Setting opaque here is just an optimization, allow to fail */
->                 ovl_set_opaque(dentry, newdentry);
->         }
-> --
-> 2.7.4
->
+Since a misbehaving fanotify application is likely to hang the entire
+operating system, it needs very clear guidelines for correct behavior.
+In particular, when the application does a read(2) on an fanotify file
+descriptor and gets back an error code, how is the application to
+recover gracefully and safely?
+
+Amir's patch shields the fanotify application from EOPENSTALE. I would
+very much like an extensive list of errors that read(2) on a fanotify fd
+can return. As it stands, I'm only aware of EAGAIN in the nonblocking
+case and EINTR in the blocking case -- and even those haven't been
+explicitly documented.
+
+
+Marko
