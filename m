@@ -1,94 +1,126 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH v3 00/16] overlayfs constant inode numbers
-Date: Thu, 27 Apr 2017 00:35:02 +0300
-Message-ID: <1493242518-15266-1-git-send-email-amir73il@gmail.com>
+Subject: [PATCH v3 02/16] ovl: cram opaque boolean into type flags
+Date: Thu, 27 Apr 2017 00:35:04 +0300
+Message-ID: <1493242518-15266-3-git-send-email-amir73il@gmail.com>
+References: <1493242518-15266-1-git-send-email-amir73il@gmail.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:36721 "EHLO
-        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1030837AbdDZVfK (ORCPT
+Received: from mail-wm0-f67.google.com ([74.125.82.67]:35388 "EHLO
+        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1030841AbdDZVfS (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 26 Apr 2017 17:35:10 -0400
+        Wed, 26 Apr 2017 17:35:18 -0400
+In-Reply-To: <1493242518-15266-1-git-send-email-amir73il@gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: Miklos Szeredi <miklos@szeredi.hu>
 Cc: Vivek Goyal <vgoyal@redhat.com>, Al Viro <viro@zeniv.linux.org.uk>, linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
 
-Miklos,
+We are going to add more state info to ovl_entry soon (for const ino)
+and this state info would be added as type flags.
 
-This is v3 series of redirect by file handle and constant inode numbers.
-this series fixes constant inode numbers for stat(2) with any layer
-configuration.
+It makes sense to treat 'opaque' in a similar way, so instead of using
+a boolean member in ovl_entry use a type bit to represent opaqueness.
 
-For the case of all *lower* layers on same fs that supports NFS export,
-redirect by file handle will be used to optimize the lookup of the copy
-up origin of non-dir inode.
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+---
+ fs/overlayfs/namei.c     | 9 +++++----
+ fs/overlayfs/overlayfs.h | 2 ++
+ fs/overlayfs/ovl_entry.h | 1 -
+ fs/overlayfs/util.c      | 5 +++--
+ 4 files changed, 10 insertions(+), 7 deletions(-)
 
-For the case of *all* layers on same fs, overlayfs also gains:
-- Persistent inode numbers for directories
-- Consistent st_dev for all overlay objects
-
-Consistcy of stat(2) st_ino with readdir(3) d_ino is NOT addressed by
-this series. It will be addressed for the 'samefs' configuration by the
-follow up 'stable inode' work, which is also going to address preserving
-hardlinks on copy up.
-
-This series is available for testing on [1].
-unionmount-testsuite was instrumented to verify constant inode numbers
-after rename/link and mount cycle [2].
-
-Tested the following layer configurations:
- ./run --ov{,=0,=1} {,--samefs}
-
-The following test fails the constant inode number verification of upper
-hardlink in the non-same-lower-fs configuration:
- ./run --ov=1 hard-link
-
-xfstest overlay/017 was added a check for constant and persistent inode
-numbers across rename and mount cycle [3].
-Tested also ./check -overlay -g quick.
-
-Changes since v2:
-- Storing uuid of lower origin (and root fh for now)
-- Re-factor ovl_lookup_single() (per your comment)
-- Verify uuid of same_lower_sb (allow zero uuid)
-- Find layer by root fh (see how you feel about that)
-- d_drop() ovl_link() target (please comment on that)
-- Updated overlayfs.txt
-
-Amir.
-
-[1] https://github.com/amir73il/linux/commits/ovl-constino
-[2] https://github.com/amir73il/unionmount-testsuite/commits/overlayfs-devel
-[3] https://github.com/amir73il/xfstests/commits/overlayfs-devel
-
-Amir Goldstein (16):
-  ovl: store path type in dentry
-  ovl: cram opaque boolean into type flags
-  ovl: check if all layers are on the same fs
-  ovl: store file handle of lower inode on copy up
-  ovl: use an auxiliary var for overlay root entry
-  ovl: factor out ovl_lookup_data()
-  ovl: lookup redirect by file handle
-  ovl: validate lower layer uuid and root on redirect by fh
-  ovl: lookup non-dir inode copy up origin
-  ovl: set the COPYUP type flag for non-dirs
-  ovl: redirect non-dir by path on rename
-  ovl: constant st_ino/st_dev across copy up
-  ovl: persistent inode number for directories
-  ovl: fix du --one-file-system on overlay mount
-  ovl: persistent inode numbers for hardlinks
-  ovl: update documentation w.r.t. constant inode numbers
-
- Documentation/filesystems/overlayfs.txt |  19 +-
- fs/overlayfs/copy_up.c                  | 142 +++++++++++++++
- fs/overlayfs/dir.c                      |  31 +++-
- fs/overlayfs/inode.c                    |  21 ++-
- fs/overlayfs/namei.c                    | 311 ++++++++++++++++++++++++++++----
- fs/overlayfs/overlayfs.h                |  37 ++++
- fs/overlayfs/ovl_entry.h                |   9 +-
- fs/overlayfs/super.c                    |  24 +++
- fs/overlayfs/util.c                     |  83 ++++++++-
- 9 files changed, 622 insertions(+), 55 deletions(-)
-
+diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
+index 8788fd7..d660177 100644
+--- a/fs/overlayfs/namei.c
++++ b/fs/overlayfs/namei.c
+@@ -224,7 +224,7 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
+ 	struct dentry *upperdir, *upperdentry = NULL;
+ 	unsigned int ctr = 0;
+ 	struct inode *inode = NULL;
+-	bool upperopaque = false;
++	enum ovl_path_type type = 0;
+ 	char *upperredirect = NULL;
+ 	struct dentry *this;
+ 	unsigned int i;
+@@ -261,7 +261,8 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
+ 			if (d.redirect[0] == '/')
+ 				poe = dentry->d_sb->s_root->d_fsdata;
+ 		}
+-		upperopaque = d.opaque;
++		if (d.opaque)
++			type |= __OVL_PATH_OPAQUE;
+ 	}
+ 
+ 	if (!d.stop && poe->numlower) {
+@@ -331,7 +332,7 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
+ 	}
+ 
+ 	revert_creds(old_cred);
+-	oe->opaque = upperopaque;
++	oe->__type = type;
+ 	oe->redirect = upperredirect;
+ 	oe->__upperdentry = upperdentry;
+ 	memcpy(oe->lowerstack, stack, sizeof(struct path) * ctr);
+@@ -372,7 +373,7 @@ bool ovl_lower_positive(struct dentry *dentry)
+ 	 * whiteout.
+ 	 */
+ 	if (!dentry->d_inode)
+-		return oe->opaque;
++		return OVL_TYPE_OPAQUE(oe->__type);
+ 
+ 	/* Negative upper -> positive lower */
+ 	if (!oe->__upperdentry)
+diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
+index e90a548..9420101 100644
+--- a/fs/overlayfs/overlayfs.h
++++ b/fs/overlayfs/overlayfs.h
+@@ -12,10 +12,12 @@
+ enum ovl_path_type {
+ 	__OVL_PATH_UPPER	= (1 << 0),
+ 	__OVL_PATH_MERGE	= (1 << 1),
++	__OVL_PATH_OPAQUE	= (1 << 2),
+ };
+ 
+ #define OVL_TYPE_UPPER(type)	((type) & __OVL_PATH_UPPER)
+ #define OVL_TYPE_MERGE(type)	((type) & __OVL_PATH_MERGE)
++#define OVL_TYPE_OPAQUE(type)	((type) & __OVL_PATH_OPAQUE)
+ 
+ #define OVL_XATTR_PREFIX XATTR_TRUSTED_PREFIX "overlay."
+ #define OVL_XATTR_OPAQUE OVL_XATTR_PREFIX "opaque"
+diff --git a/fs/overlayfs/ovl_entry.h b/fs/overlayfs/ovl_entry.h
+index 293be5f..12c4922 100644
+--- a/fs/overlayfs/ovl_entry.h
++++ b/fs/overlayfs/ovl_entry.h
+@@ -41,7 +41,6 @@ struct ovl_entry {
+ 		struct {
+ 			u64 version;
+ 			const char *redirect;
+-			bool opaque;
+ 			bool copying;
+ 		};
+ 		struct rcu_head rcu;
+diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
+index bbd6074..88cfc2a 100644
+--- a/fs/overlayfs/util.c
++++ b/fs/overlayfs/util.c
+@@ -181,7 +181,8 @@ void ovl_set_dir_cache(struct dentry *dentry, struct ovl_dir_cache *cache)
+ bool ovl_dentry_is_opaque(struct dentry *dentry)
+ {
+ 	struct ovl_entry *oe = dentry->d_fsdata;
+-	return oe->opaque;
++
++	return OVL_TYPE_OPAQUE(oe->__type);
+ }
+ 
+ bool ovl_dentry_is_whiteout(struct dentry *dentry)
+@@ -193,7 +194,7 @@ void ovl_dentry_set_opaque(struct dentry *dentry)
+ {
+ 	struct ovl_entry *oe = dentry->d_fsdata;
+ 
+-	oe->opaque = true;
++	oe->__type |= __OVL_PATH_OPAQUE;
+ }
+ 
+ bool ovl_redirect_dir(struct super_block *sb)
 -- 
 2.7.4
