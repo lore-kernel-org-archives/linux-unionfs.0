@@ -1,50 +1,68 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [PATCH v2 07/11] ovl: set the COPYUP type flag for non-dirs
-Date: Wed, 26 Apr 2017 18:02:18 +0300
-Message-ID: <CAOQ4uxiGjBRygytHvG-dozG5OZbQ-YQe=4oSYd4F9oKwtEBbZQ@mail.gmail.com>
-References: <1493025256-27188-1-git-send-email-amir73il@gmail.com>
- <1493025256-27188-8-git-send-email-amir73il@gmail.com> <CAJfpegt4kwmWmyUhY0RAzvSegbBHdKO6ZWuUXdQWtWdz2eSvOA@mail.gmail.com>
- <CAJfpegsF6W94qrEs_LjuCw+2vJ+Vvyvj2vwXWr5+6GNZGT59kg@mail.gmail.com>
+Subject: Re: [PATCH] ovl: don't expose EOPENSTALE to userspace
+Date: Wed, 26 Apr 2017 18:45:54 +0300
+Message-ID: <CAOQ4uxiODuLDYLouWJppgPkew16tTeOTxk+UTmP6Bdt2fJY6Mw@mail.gmail.com>
+References: <1493128675-24331-1-git-send-email-amir73il@gmail.com>
+ <20170426134731.GB5214@veci.piliscsaba.szeredi.hu> <8737cv5kli.fsf@drapion.f-secure.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
-In-Reply-To: <CAJfpegsF6W94qrEs_LjuCw+2vJ+Vvyvj2vwXWr5+6GNZGT59kg@mail.gmail.com>
-Sender: linux-fsdevel-owner@vger.kernel.org
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: Vivek Goyal <vgoyal@redhat.com>, Al Viro <viro@zeniv.linux.org.uk>, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>
+Return-path: <linux-unionfs-owner@vger.kernel.org>
+Received: from mail-oi0-f46.google.com ([209.85.218.46]:36314 "EHLO
+        mail-oi0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S936823AbdDZPqG (ORCPT
+        <rfc822;linux-unionfs@vger.kernel.org>);
+        Wed, 26 Apr 2017 11:46:06 -0400
+In-Reply-To: <8737cv5kli.fsf@drapion.f-secure.com>
+Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
+To: Marko Rauhamaa <marko.rauhamaa@f-secure.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, Trond Myklebust <trondmy@primarydata.com>, Jeff Layton <jlayton@poochiereds.net>, "J . Bruce Fields" <bfields@fieldses.org>, Tyler Hicks <tyhicks@canonical.com>, Al Viro <viro@zeniv.linux.org.uk>, linux-unionfs@vger.kernel.org, linux-fsdevel <linux-fsdevel@vger.kernel.org>, "stable [v4.9]" <stable@vger.kernel.org>
 
-On Wed, Apr 26, 2017 at 5:53 PM, Miklos Szeredi <miklos@szeredi.hu> wrote:
-> On Wed, Apr 26, 2017 at 4:40 PM, Miklos Szeredi <miklos@szeredi.hu> wrote:
+On Wed, Apr 26, 2017 at 5:06 PM, Marko Rauhamaa
+<marko.rauhamaa@f-secure.com> wrote:
+> Miklos Szeredi <miklos@szeredi.hu>:
 >
->> The reason I think the COPYUP vs. MERGE distinction is needed is the
->> ovl_check_empty_and_clear() thing.  It starts with a merged directory
->> with some whiteouts in it and exchanges it with an empty and opaque
->> directory.   Normally the empty directory will be deleted immediately,
->> but if something fails during the deletion, then it will remain there.
->>   The overlay is left in a consistent state, but the association with
->> the original inode should still remain, so it will have COPYUP but not
->> MERGE.
+>> I'm looking at the EOPENSTALE story and it very much looks like we can
+>> just replace the single use with ESTALE and handle the lookup retry
+>> logic nuances inside the lookup code...
 >
-> One more thought: we could introduce a separate "overlay.merge"
-> attribute that is the exact opposite of "overlay.opaque".
-> "overlay.merge" would imply "overlay.fh" but "overlay.fh" would not
-> imply "overlay.merge".
+> The fanotify problem is not simply a matter of choosing a POSIX name for
+> an error. The question is, what problems should an fanotify application
+> be prepared to handle and what should it do about them?
 >
-> It would allow us to optionally get rid of "overlay.opaque" when back
-> compatibility is not needed.
+> Since a misbehaving fanotify application is likely to hang the entire
+> operating system, it needs very clear guidelines for correct behavior.
+> In particular, when the application does a read(2) on an fanotify file
+> descriptor and gets back an error code, how is the application to
+> recover gracefully and safely?
 >
-> It would also allow a new feature: on metadata only updates of regular
-> files we wouldn't need to copy up the data.
+> Amir's patch shields the fanotify application from EOPENSTALE. I would
+> very much like an extensive list of errors that read(2) on a fanotify fd
+> can return. As it stands, I'm only aware of EAGAIN in the nonblocking
+> case and EINTR in the blocking case -- and even those haven't been
+> explicitly documented.
 >
 
-So you intend to set overlay.merge for non-dir?
-How is it different from overlay.fh then?
-With it's new name, overlay.origin.fh indicates that there is a copy
-up origin below us. Either directly below us, or at overlay.redirect.
-We can also try to follow to origin by fh, but that is only an optimization -
-an important optimization IMO, because file rename are more common
-than dir renames and lookup stable inode by fh in a deep directory
-with many layers will be much more efficient by fh.
+There are more error that you can get same way that you got
+EOPENSTALE. The fact that I filtered EOPENSTALE is fixing a POSIX bug,
+but it does not fix the general problem you described.
 
-Are we understanding each other w.r.t. overlay.merge vs overlay.fh?
+For example, I know you can get ENODEV, because I got it on
+out test env. This is the case of a "stale device node" - by the time
+you get to read an access event generated on a device file, the device
+that this file represents does not exists and cannot be opened.
+
+As with the case of EOPENSTALE, your app should just read again
+when that happens.
+
+You can either get the error from read() or not. This is documented in
+man page:
+       *  If  a  call  to  read(2) processes multiple events from the fanotify
+          queue and an error occurs, the return value will be the total length
+          of the events successfully copied to the user-space buffer before
+          the error occurred.  The return value will not be -1, and errno will
+          not be set.  Thus, the reading application has no way to
+detect the error.
+
+
+Amir.
