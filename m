@@ -1,255 +1,169 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [PATCH v3 04/16] ovl: store file handle of lower inode on copy up
-Date: Thu, 27 Apr 2017 10:46:50 +0300
-Message-ID: <CAOQ4uxgkezHZhSHCYcyz0jTcZ9r=oMOgaASZzgAhB267bXy2AQ@mail.gmail.com>
-References: <1493242518-15266-1-git-send-email-amir73il@gmail.com>
- <1493242518-15266-5-git-send-email-amir73il@gmail.com> <CAJfpegukDqh8VUQtTTjXnxZtDHktMzg_ZVRHfaWGRq-oSNxkPA@mail.gmail.com>
+Subject: Re: [PATCH v3 08/16] ovl: validate lower layer uuid and root on
+ redirect by fh
+Date: Thu, 27 Apr 2017 10:15:52 +0300
+Message-ID: <CAOQ4uxgEchbkZmgB8WXA0okLZE_2ArGc=U5JmSfYJ3+eA2_OZQ@mail.gmail.com>
+References: <1493242518-15266-1-git-send-email-amir73il@gmail.com> <1493242518-15266-9-git-send-email-amir73il@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-oi0-f66.google.com ([209.85.218.66]:35490 "EHLO
+Received: from mail-oi0-f66.google.com ([209.85.218.66]:35803 "EHLO
         mail-oi0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S966264AbdD0Hqv (ORCPT
+        with ESMTP id S932589AbdD0HPx (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 27 Apr 2017 03:46:51 -0400
-In-Reply-To: <CAJfpegukDqh8VUQtTTjXnxZtDHktMzg_ZVRHfaWGRq-oSNxkPA@mail.gmail.com>
+        Thu, 27 Apr 2017 03:15:53 -0400
+In-Reply-To: <1493242518-15266-9-git-send-email-amir73il@gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: Vivek Goyal <vgoyal@redhat.com>, Al Viro <viro@zeniv.linux.org.uk>, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>
+Cc: Vivek Goyal <vgoyal@redhat.com>, Al Viro <viro@zeniv.linux.org.uk>, linux-unionfs@vger.kernel.org, linux-fsdevel <linux-fsdevel@vger.kernel.org>
 
-On Thu, Apr 27, 2017 at 10:23 AM, Miklos Szeredi <miklos@szeredi.hu> wrote:
-> On Wed, Apr 26, 2017 at 11:35 PM, Amir Goldstein <amir73il@gmail.com> wrote:
->> Sometimes it is interesting to know if an upper file is pure
->> upper or a copy up target, and if it is a copy up target, it
->> may be interesting to find the copy up origin.
->>
->> This will be used to preserve lower inode numbers across copy up.
->>
->> Store the lower inode file handle in upper inode extended attribute
->> overlay.origin.fh on copy up to use it later for these cases.
->> Store the lower layer root file handle and lower filesystem uuid in
->> overlay.origin.root and overlay.origin.uuid, to validate that we
->> are looking for the origin file in the original layer.
->>
->> On failure to encode lower file handle, store an invalid 'null'
->> handle, so we can always use the overlay.origin.fh xattr to tell
->> between a copy up and a pure upper inode.
->>
->> If lower fs does not support NFS export ops or if not all lower
->> layers are on the same fs, don't try to encode a lower file handle
->> and use the 'null' handle instead.
->>
->> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
->> ---
->>  fs/overlayfs/copy_up.c   | 142 +++++++++++++++++++++++++++++++++++++++++++++++
->>  fs/overlayfs/overlayfs.h |  29 ++++++++++
->>  fs/overlayfs/ovl_entry.h |   2 +
->>  fs/overlayfs/super.c     |  14 +++++
->>  fs/overlayfs/util.c      |  14 +++++
->>  5 files changed, 201 insertions(+)
->>
->> diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
->> index 906ea6c..7cc7aea 100644
->> --- a/fs/overlayfs/copy_up.c
->> +++ b/fs/overlayfs/copy_up.c
->> @@ -20,6 +20,8 @@
->>  #include <linux/namei.h>
->>  #include <linux/fdtable.h>
->>  #include <linux/ratelimit.h>
->> +#include <linux/mount.h>
->> +#include <linux/exportfs.h>
->>  #include "overlayfs.h"
->>  #include "ovl_entry.h"
->>
->> @@ -232,6 +234,138 @@ int ovl_set_attr(struct dentry *upperdentry, struct kstat *stat)
->>         return err;
->>  }
->>
->> +static bool ovl_can_decode_fh(struct super_block *sb)
->> +{
->> +       return sb->s_export_op && sb->s_export_op->fh_to_dentry;
->> +}
->> +
->> +static struct ovl_fh *ovl_decode_fh(struct dentry *lower)
->> +{
->> +       struct ovl_fh *fh;
->> +       int fh_type, fh_len, dwords;
->> +       void *buf = NULL;
->> +       void *ret = NULL;
->> +       int buflen = MAX_HANDLE_SZ;
->> +       int err;
->> +
->> +       err = -EOPNOTSUPP;
->> +       /* Do not encode file handle if we cannot decode it later */
->> +       if (!ovl_can_decode_fh(lower->d_sb))
->> +               goto out_err;
->> +
->> +       err = -ENOMEM;
->> +       buf = kmalloc(buflen, GFP_TEMPORARY);
->> +       if (!buf)
->> +               goto out_err;
->> +
->> +       fh = buf;
->> +       dwords = (buflen - offsetof(struct ovl_fh, fid)) >> 2;
->> +       fh_type = exportfs_encode_fh(lower,
->> +                                    (struct fid *)fh->fid,
->> +                                    &dwords, 1);
->> +       fh_len = (dwords << 2) + offsetof(struct ovl_fh, fid);
->> +
->> +       err = -EOVERFLOW;
->> +       if (fh_len > buflen || fh_type <= 0 || fh_type == FILEID_INVALID)
->> +               goto out_err;
->> +
->> +       fh->version = OVL_FH_VERSION;
->> +       fh->magic = OVL_FH_MAGIC;
->> +       fh->type = fh_type;
->> +       fh->len = fh_len;
->> +
->> +       err = -ENOMEM;
->> +       ret = kmalloc(fh_len, GFP_KERNEL);
->> +       if (!ret)
->> +               goto out_err;
->> +
->> +       memcpy(ret, buf, fh_len);
->> +
->> +       kfree(buf);
->> +       return ret;
->> +
->> +out_err:
->> +       pr_warn_ratelimited("overlay: failed to get redirect fh (%i)\n", err);
->> +       kfree(buf);
->> +       kfree(ret);
->> +       return ERR_PTR(err);
->> +}
->> +
->> +static const struct ovl_fh null_fh = {
->> +       .version = OVL_FH_VERSION,
->> +       .magic = OVL_FH_MAGIC,
->> +       .type = FILEID_INVALID,
->> +       .len = sizeof(struct ovl_fh),
->> +};
->> +
->> +static int ovl_set_origin(struct dentry *dentry, struct dentry *upper)
->> +{
->> +       struct path lowerpath;
->> +       struct super_block *lower_sb;
->> +       const struct ovl_fh *fh = NULL;
->> +       const struct ovl_fh *rootfh = NULL;
->> +       int err;
->> +
->> +       ovl_path_lower(dentry, &lowerpath);
->> +       if (WARN_ON(!lowerpath.mnt))
->> +               return -EIO;
->> +
->> +       /*
->> +        * Encoding a lower file handle where several layers are on the
->> +        * same fs, require ecoding the layer root as well, because when
->> +        * decoding the lower file handle we must provide the lowermnt.
->> +        */
->> +       lower_sb = lowerpath.mnt->mnt_sb;
->> +       if (ovl_redirect_fh(dentry->d_sb) && ovl_can_decode_fh(lower_sb)) {
->> +               fh = ovl_decode_fh(lowerpath.dentry);
->> +               rootfh = ovl_decode_fh(lowerpath.mnt->mnt_root);
->> +       }
->> +       /*
->> +        * On failure to encode lower fh, store an invalid 'null' fh, so
->> +        * we can use the overlay.origin.fh xattr to distignuish between
->> +        * a copy up and a pure upper inode.  If lower fs does not support
->> +        * encoding fh, don't try to encode again (for any lower layer).
->> +        */
->> +       err = 0;
->> +       if (IS_ERR_OR_NULL(fh)) {
->> +               err = PTR_ERR(fh);
->> +               fh = &null_fh;
->> +       }
->> +       if (IS_ERR_OR_NULL(rootfh)) {
->> +               if (err != -EOPNOTSUPP)
->> +                       err = PTR_ERR(rootfh);
->> +               rootfh = NULL;
->> +       }
->> +       if (err == -EOPNOTSUPP) {
->> +               pr_warn("overlay: file handle not supported by lower - turning off redirect_fh\n");
->> +               ovl_clear_redirect_fh(dentry->d_sb);
->> +       }
->> +
->> +       err = ovl_do_setxattr(upper, OVL_XATTR_ORIGIN_FH, fh, fh->len, 0);
->> +       if (err)
->> +               goto out_err;
->> +
->> +       if (rootfh) {
->> +               err = ovl_do_setxattr(upper, OVL_XATTR_ORIGIN_ROOT, rootfh,
->> +                                     rootfh->len, 0);
->> +       }
->> +       if (err)
->> +               goto out_err;
->> +
->> +       if (fh != &null_fh) {
->> +               err = ovl_do_setxattr(upper, OVL_XATTR_ORIGIN_UUID,
->> +                                     lower_sb->s_uuid,
->> +                                     sizeof(lower_sb->s_uuid), 0);
->> +       }
->> +
->> +out_err:
->> +       if (fh != &null_fh)
->> +               kfree(fh);
->> +       return err;
->> +       if (rootfh != &null_fh)
->> +               kfree(rootfh);
->> +}
->> +
->>  static int ovl_copy_up_locked(struct dentry *workdir, struct dentry *upperdir,
->>                               struct dentry *dentry, struct path *lowerpath,
->>                               struct kstat *stat, const char *link,
->> @@ -316,6 +450,14 @@ static int ovl_copy_up_locked(struct dentry *workdir, struct dentry *upperdir,
->>         if (err)
->>                 goto out_cleanup;
->>
->> +       /*
->> +        * Store identifier of lower inode in upper inode xattr to
->> +        * allow lookup of the copy up origin inode.
->> +        */
->> +       err = ovl_set_origin(dentry, temp);
->> +       if (err)
->> +               goto out_cleanup;
->> +
->>         if (tmpfile)
->>                 err = ovl_do_link(temp, udir, upper, true);
->>         else
->> diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
->> index 48d0dae..2395dd7 100644
->> --- a/fs/overlayfs/overlayfs.h
->> +++ b/fs/overlayfs/overlayfs.h
->> @@ -22,6 +22,33 @@ enum ovl_path_type {
->>  #define OVL_XATTR_PREFIX XATTR_TRUSTED_PREFIX "overlay."
->>  #define OVL_XATTR_OPAQUE OVL_XATTR_PREFIX "opaque"
->>  #define OVL_XATTR_REDIRECT OVL_XATTR_PREFIX "redirect"
->> +/*
->> + * The tuple origin.{fh,layer,uuid} is a universal unique identifier
->> + * for a copy up origin, where:
->> + * origin.fh   - exported file handle of the lower file
->> + * origin.root - exported file handle of the lower layer root
->> + * origin.uuid - uuid of the lower filesystem
->> + *
->> + * origin.{fh,root} are stored in format of a variable length binary blob
->> + * with struct ovl_fh header (total blob size up to 20 bytes).
->> + * uuid is stored in raw format (16 bytes) as published by sb->s_uuid.
->> + */
->> +#define OVL_XATTR_ORIGIN_      OVL_XATTR_PREFIX "origin."
->> +#define OVL_XATTR_ORIGIN_FH    OVL_XATTR_ORIGIN_ "fh"
->> +#define OVL_XATTR_ORIGIN_ROOT  OVL_XATTR_ORIGIN_ "root"
->> +#define OVL_XATTR_ORIGIN_UUID  OVL_XATTR_ORIGIN_ "uuid"
+On Thu, Apr 27, 2017 at 12:35 AM, Amir Goldstein <amir73il@gmail.com> wrote:
+> On copy up, we store xattr overlay.origin.uuid and
+> overlay.origin.root along with overlay.origin.fh.
 >
+> Before decoding the file handle at overlay.origin.fh verify:
+> - All lower layers are on the same fs
+> - UUID of lower fs matches the stored uuid
 >
-> What do we gain by having these in separate xattrs?
+> If there are more than one lower layer, find the lower layer mount
+> in which origin.fh should be decoded by decoding origin.root and
+> matching the result to a lower layer root dentry.
 >
-> They are binary blobs anyway, and fh is structured so it could
-> incorporate the others as well.   And "overlay.origin" would be a good
-> name for the combo.
+> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+> ---
+>  fs/overlayfs/namei.c | 76 +++++++++++++++++++++++++++++++++++++++++++++++++++-
+>  1 file changed, 75 insertions(+), 1 deletion(-)
 >
+> diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
+> index 28d54e3..970d8158 100644
+> --- a/fs/overlayfs/namei.c
+> +++ b/fs/overlayfs/namei.c
+> @@ -27,6 +27,8 @@ struct ovl_lookup_data {
+>         char *redirect;         /* - path to follow */
+>         bool by_fh;             /* redirect by file handle: */
+>         struct ovl_fh *fh;      /* - file handle to follow */
+> +       struct ovl_fh *rootfh;  /* - file handle of layer root */
+> +       unsigned char uuid[16]; /* - uuid of layer filesystem */
+>  };
+>
+>  static int ovl_check_redirect(struct dentry *dentry, struct ovl_lookup_data *d,
+> @@ -121,8 +123,24 @@ static struct ovl_fh *ovl_get_fh(struct dentry *dentry, const char *name)
+>  static int ovl_check_redirect_fh(struct dentry *dentry,
+>                                  struct ovl_lookup_data *d)
+>  {
+> +       int res;
+> +
+>         kfree(d->fh);
+>         d->fh = ovl_get_fh(dentry, OVL_XATTR_ORIGIN_FH);
+> +       kfree(d->rootfh);
+> +       d->rootfh = ovl_get_fh(dentry, OVL_XATTR_ORIGIN_ROOT);
+> +
+> +       res = vfs_getxattr(dentry, OVL_XATTR_ORIGIN_UUID, d->uuid,
+> +                          sizeof(d->uuid));
+> +       if (res == sizeof(d->uuid))
+> +               return 0;
+> +
+> +       if (res != -ENODATA && res != -EOPNOTSUPP) {
+> +               pr_warn_ratelimited("overlayfs: failed to get %s (%i)\n",
+> +                                   OVL_XATTR_ORIGIN_UUID, res);
+> +       }
+> +
+> +       memset(d->uuid, 0, sizeof(d->uuid));
+>         return 0;
+>  }
+>
+> @@ -130,6 +148,9 @@ static void ovl_reset_redirect_fh(struct ovl_lookup_data *d)
+>  {
+>         kfree(d->fh);
+>         d->fh = NULL;
+> +       kfree(d->rootfh);
+> +       d->rootfh = NULL;
+> +       memset(d->uuid, 0, sizeof(d->uuid));
+>  }
+>
+>  static bool ovl_is_opaquedir(struct dentry *dentry)
+> @@ -309,6 +330,53 @@ static int ovl_lookup_layer_fh(struct vfsmount *mnt, struct ovl_lookup_data *d,
+>         return ovl_lookup_data(this, d, 0, "", ret);
+>  }
+>
+> +static int ovl_is_dir(void *ctx, struct dentry *dentry)
+> +{
+> +       return d_is_dir(dentry);
+> +}
+> +
+> +/* Find lower layer index by layer root file handle and uuid */
+> +static int ovl_find_layer_by_fh(struct dentry *dentry, struct ovl_lookup_data *d)
+> +{
+> +       struct ovl_entry *roe = dentry->d_sb->s_root->d_fsdata;
+> +       struct super_block *lower_sb = ovl_same_lower_sb(dentry->d_sb);
+> +       struct dentry *this;
+> +       int i;
+> +
+> +       /*
+> +        * For now, we only support lookup by fh for all lower layers on the
+> +        * same sb.  Not all filesystems set sb->s_uuid.  For those who don't
+> +        * this code will compare zeros, which at least ensures us that the
+> +        * file handles are not crossing from filesystem with sb->s_uuid to
+> +        * a filesystem without sb->s_uuid and vice versa.
 
-I agree. I felt more elegant this way, especially since origin.root
-is optional, but it can also be optional in a binary blob.
-I'll change it for v4.
+Nah. On second thought, it's better to disable redirect_fh at mount time
+if lower s_uuid is NULL.
 
-Amir.
+> +        */
+> +       if (!lower_sb || memcmp(lower_sb->s_uuid, &d->uuid, sizeof(d->uuid)))
+> +               return -1;
+> +
+> +       /* Don't bother verifying rootfh with a single lower layer */
+> +       if (roe->numlower == 1)
+> +               return 0;
+> +
+> +       /*
+> +        * Layer root dentries are pinned, there are no aliases for dirs, and
+> +        * all lower layers are on the same sb.  If rootfh is correct,
+> +        * exportfs_decode_fh() will find it in dcache and return the only
+> +        * instance, regardless of the mnt argument and we can compare the
+> +        * returned pointer with the pointers in lowerstack.
+> +        */
+> +       this = ovl_decode_fh(roe->lowerstack[0].mnt, d->rootfh, ovl_is_dir);
+> +       if (IS_ERR(this))
+> +               return -1;
+> +
+> +       for (i = 0; i < roe->numlower; i++) {
+> +               if (this == roe->lowerstack[i].dentry)
+> +                       break;
+> +       }
+> +
+> +       dput(this);
+> +       return i < roe->numlower ? i : -1;
+> +}
+> +
+>  /*
+>   * Returns next layer in stack starting from top.
+>   * Returns -1 if this is the last layer.
+> @@ -357,6 +425,7 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
+>                 .redirect = NULL,
+>                 .by_fh = true,
+>                 .fh = NULL,
+> +               .rootfh = NULL,
+>         };
+>
+>         if (dentry->d_name.len > ofs->namelen)
+> @@ -405,8 +474,13 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
+>         /* Try to lookup lower layers by file handle */
+>         d.by_path = false;
+>         if (!d.stop && d.fh) {
+> -               struct vfsmount *lowermnt = roe->lowerstack[0].mnt;
+> +               struct vfsmount *lowermnt;
+> +               int layer = ovl_find_layer_by_fh(dentry, &d);
+> +
+> +               if (layer < 0 || layer >= roe->numlower)
+> +                       goto lookup_by_path;
+>
+> +               lowermnt = roe->lowerstack[layer].mnt;
+>                 d.last = true;
+>                 err = ovl_lookup_layer_fh(lowermnt, &d, &this);
+>                 if (err)
+> --
+> 2.7.4
+>
