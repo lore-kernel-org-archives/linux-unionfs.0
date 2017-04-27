@@ -1,7 +1,7 @@
-From: Amir Goldstein <amir73il@gmail.com>
+From: Miklos Szeredi <miklos@szeredi.hu>
 Subject: Re: [PATCH v2 05/11] ovl: lookup redirect by file handle
-Date: Thu, 27 Apr 2017 12:22:30 +0300
-Message-ID: <CAOQ4uxjztbvMFmJTumfJH=S-SZ0mJUMfLV1UD-M4-sY23n5Lrg@mail.gmail.com>
+Date: Thu, 27 Apr 2017 11:26:12 +0200
+Message-ID: <CAJfpegt9-w_2wQ_Y94w8AcuHYtzJ1fW6n21=eQPbyYqsNawOpQ@mail.gmail.com>
 References: <1493025256-27188-1-git-send-email-amir73il@gmail.com>
  <1493025256-27188-6-git-send-email-amir73il@gmail.com> <CAJfpegtz0emDRTHDrq0CrSZXAcovrLAAsX+-WkPGDRbyZD5vOw@mail.gmail.com>
  <CAOQ4uxhu4LVJ-MAjH6McK31MYZ8__RkjCoK31kqJ-7fA2gu+SA@mail.gmail.com>
@@ -16,18 +16,20 @@ References: <1493025256-27188-1-git-send-email-amir73il@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-oi0-f65.google.com ([209.85.218.65]:36701 "EHLO
-        mail-oi0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1032291AbdD0JWb (ORCPT
+Received: from mail-oi0-f68.google.com ([209.85.218.68]:35890 "EHLO
+        mail-oi0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1032036AbdD0J0O (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 27 Apr 2017 05:22:31 -0400
+        Thu, 27 Apr 2017 05:26:14 -0400
+Received: by mail-oi0-f68.google.com with SMTP id a3so5936059oii.3
+        for <linux-unionfs@vger.kernel.org>; Thu, 27 Apr 2017 02:26:14 -0700 (PDT)
 In-Reply-To: <CAJfpegtAx_KXb6v0dBAD0AJvLeTCFF1X4rfdAptn0xPqRHiLBQ@mail.gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Miklos Szeredi <miklos@szeredi.hu>
+To: Amir Goldstein <amir73il@gmail.com>
 Cc: Vivek Goyal <vgoyal@redhat.com>, Al Viro <viro@zeniv.linux.org.uk>, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>
 
-On Thu, Apr 27, 2017 at 10:48 AM, Miklos Szeredi <miklos@szeredi.hu> wrote:
+On Thu, Apr 27, 2017 at 9:48 AM, Miklos Szeredi <miklos@szeredi.hu> wrote:
 > On Thu, Apr 27, 2017 at 8:27 AM, Amir Goldstein <amir73il@gmail.com> wrote:
 >
 >> Let me try to explain the problem with a worse case, but not
@@ -53,26 +55,19 @@ On Thu, Apr 27, 2017 at 10:48 AM, Miklos Szeredi <miklos@szeredi.hu> wrote:
 > To answer my own question in the prev mail: we need to decode the fh
 > and not just blindly use the inum to prevent issues with
 > copied/mutilited/etc lower layers.
->
 
-I was going to refer you to this example when reading you question
-in prev email. That's what we get for no read/write barriers in emails ;-)
+Hmm, this is absurd.  Why are we going to all this trouble to find the
+origin inode though decoding the file handle when this thing was meant
+to be an *optimization*?  Without redirect, we can look up origin just
+like we do for merge dirs.  Way faster than decoding a connected
+dentry, which is going to result in a readdir of the parent directory
+and whatnot.  The only thing we need is a bool "was this copied" flag.
 
-> And yes, in the copied case decoding origin.root first would be a good
-> optimization that couldn't be done without it.
->
+For moved files, decoding the fh might be an optimization over walking
+the redirect, but that depends on a various factors, and it might also
+be a lot slower...  But it's needed for the snapshot case, right?
 
-Good, so we seem to have an agreement w.r.t. the lookup fh patch.
-
-I've already applied a change to disable redirect_fh if lower s_uuid is
-zeros and I verified that it works as expected by running the hard-link
-constant inode test that relies on redirect_fh over xfs mounted with
--o nouuid.
-
-I will be posting the enhanced xfstest for constant inodes later today.
-
-Let me know when are are done reviewing the series, so I can rework it
-with the binary blob change you requested.
+Am I missing something?
 
 Thanks,
-Amir.
+Miklos
