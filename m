@@ -1,29 +1,43 @@
-From: David Howells <dhowells@redhat.com>
+From: Eric Sandeen <sandeen@sandeen.net>
 Subject: Re: [PATCH] xfs: publish UUID in struct super_block
-Date: Thu, 27 Apr 2017 14:22:05 +0100
-Message-ID: <12937.1493299325@warthog.procyon.org.uk>
-References: <CAOQ4uxgzd35J8ii8WWifrjHowkKwTZh7=zmN5Q3Qx4ADEKtqXQ@mail.gmail.com> <1493279911-2936-1-git-send-email-amir73il@gmail.com> <20170427075946.GA22284@lst.de> <5818.1493297821@warthog.procyon.org.uk>
+Date: Thu, 27 Apr 2017 08:50:24 -0500
+Message-ID: <9958b109-8b83-c39c-b6f3-249ffe3f812c@sandeen.net>
+References: <CAOQ4uxgzd35J8ii8WWifrjHowkKwTZh7=zmN5Q3Qx4ADEKtqXQ@mail.gmail.com>
+ <1493279911-2936-1-git-send-email-amir73il@gmail.com>
+ <20170427075946.GA22284@lst.de> <5818.1493297821@warthog.procyon.org.uk>
+ <12937.1493299325@warthog.procyon.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:34140 "EHLO mx1.redhat.com"
+Received: from sandeen.net ([63.231.237.45]:36192 "EHLO sandeen.net"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S934088AbdD0NWM (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 27 Apr 2017 09:22:12 -0400
-In-Reply-To: <CAOQ4uxgzd35J8ii8WWifrjHowkKwTZh7=zmN5Q3Qx4ADEKtqXQ@mail.gmail.com>
-Content-ID: <12936.1493299325.1@warthog.procyon.org.uk>
+        id S1034315AbdD0Nu0 (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Thu, 27 Apr 2017 09:50:26 -0400
+In-Reply-To: <12937.1493299325@warthog.procyon.org.uk>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: dhowells@redhat.com, Christoph Hellwig <hch@lst.de>, "Darrick J . Wong" <darrick.wong@oracle.com>, Miklos Szeredi <miklos@szeredi.hu>, Vivek Goyal <vgoyal@redhat.com>, Al Viro <viro@zeniv.linux.org.uk>, linux-xfs <linux-xfs@vger.kernel.org>, linux-unionfs@vger.kernel.org, linux-fsdevel <linux-fsdevel@vger.kernel.org>
+To: David Howells <dhowells@redhat.com>, Amir Goldstein <amir73il@gmail.com>
+Cc: Christoph Hellwig <hch@lst.de>, "Darrick J . Wong" <darrick.wong@oracle.com>, Miklos Szeredi <miklos@szeredi.hu>, Vivek Goyal <vgoyal@redhat.com>, Al Viro <viro@zeniv.linux.org.uk>, linux-xfs <linux-xfs@vger.kernel.org>, linux-unionfs@vger.kernel.org, linux-fsdevel <linux-fsdevel@vger.kernel.org>
 
-Amir Goldstein <amir73il@gmail.com> wrote:
 
-> You mean if it is NULL_UUID_LE? Yes, that is what I do now.
-> Christoph suggested that this is not robust enough.
-> I'm rather indifferent about the need of a flag.
 
-I was thinking more that s_uuid would be a NULL pointer if the fs doesn't have
-a uuid.
+On 4/27/17 8:22 AM, David Howells wrote:
+> Amir Goldstein <amir73il@gmail.com> wrote:
+> 
+>> You mean if it is NULL_UUID_LE? Yes, that is what I do now.
+>> Christoph suggested that this is not robust enough.
+>> I'm rather indifferent about the need of a flag.
+> 
+> I was thinking more that s_uuid would be a NULL pointer if the fs doesn't have
+> a uuid.
 
-David
+but s_uuid in the vfs superblock isn't a pointer:
+
+        u8 s_uuid[16];                          /* UUID */
+
+(or am I missing your point?)
+
+-Eric
+
+> David
