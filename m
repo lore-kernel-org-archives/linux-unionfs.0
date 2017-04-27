@@ -1,41 +1,39 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [PATCH] xfs: publish UUID in struct super_block
-Date: Thu, 27 Apr 2017 11:36:53 +0300
-Message-ID: <CAOQ4uxhz89Z_tr=HsQtdSxYK2zKqx3-8bXZ0qFoNyOXdoAfkRA@mail.gmail.com>
-References: <1493279911-2936-1-git-send-email-amir73il@gmail.com>
- <20170427075946.GA22284@lst.de> <CAOQ4uxjKT3CNVR7rJysdFY+EdudPyz-u5RL8Rkk+eqSj9MAcNw@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
-In-Reply-To: <CAOQ4uxjKT3CNVR7rJysdFY+EdudPyz-u5RL8Rkk+eqSj9MAcNw@mail.gmail.com>
-Sender: linux-fsdevel-owner@vger.kernel.org
-To: Christoph Hellwig <hch@lst.de>, "Darrick J . Wong" <darrick.wong@oracle.com>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, Vivek Goyal <vgoyal@redhat.com>, Al Viro <viro@zeniv.linux.org.uk>, linux-xfs <linux-xfs@vger.kernel.org>, linux-unionfs@vger.kernel.org, linux-fsdevel <linux-fsdevel@vger.kernel.org>
+Subject: [PATCH 3/5] f2fs: set the super block SB_I_HAVE_UUID flag
+Date: Thu, 27 Apr 2017 11:59:32 +0300
+Message-ID: <1493283574-1497-4-git-send-email-amir73il@gmail.com>
+References: <1493283574-1497-1-git-send-email-amir73il@gmail.com>
+Return-path: <linux-unionfs-owner@vger.kernel.org>
+Received: from mail-wr0-f194.google.com ([209.85.128.194]:36745 "EHLO
+        mail-wr0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S968301AbdD0I7c (ORCPT
+        <rfc822;linux-unionfs@vger.kernel.org>);
+        Thu, 27 Apr 2017 04:59:32 -0400
+In-Reply-To: <1493283574-1497-1-git-send-email-amir73il@gmail.com>
+Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: "Darrick J . Wong" <darrick.wong@oracle.com>, Christoph Hellwig <hch@lst.de>, Theodore Ts'o <tytso@mit.edu>, Jaegeuk Kim <jaegeuk@kernel.org>, Mark Fasheh <mfasheh@versity.com>, Al Viro <viro@zeniv.linux.org.uk>, linux-xfs@vger.kernel.org, linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
 
-On Thu, Apr 27, 2017 at 11:01 AM, Amir Goldstein <amir73il@gmail.com> wrote:
-> On Thu, Apr 27, 2017 at 10:59 AM, Christoph Hellwig <hch@lst.de> wrote:
->> On Thu, Apr 27, 2017 at 10:58:31AM +0300, Amir Goldstein wrote:
->>> Unless mounted with nouuid, copy the uuid of the filesystem to
->>> struct super block s_uuid field, as several other filesystems do.
->>
->> This looks okay ... ish.
->>
->> Until we have a flag in the superblock that a given fs fills out s_uuid
->> no one can rely on it.  So please add the infrastructure that consumers
->> can actually make use of it while you're at it.
->
-> All right. makes sense. will do.
+Let consumers (i.e. overlayfs) know that the content of the field
+sb->s_uuid is valid.
 
-Darrick,
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+---
+ fs/f2fs/super.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-While I am working on the infrastructure that Christoph requested,
-please consider this patch as is for now, because:
-1. Other filesystems do set s_uuid anyway
-2. For my use case, I do check for NULL (zeros) value of s_uuid
-    and this is pretty good validation if UUID has been filled
-3. I do anticipate bikeshedding on the proposed infrastructure,
-    mainly because of #2 above
-
-Cheers,
-Amir.
+diff --git a/fs/f2fs/super.c b/fs/f2fs/super.c
+index 96fe8ed..9dca352 100644
+--- a/fs/f2fs/super.c
++++ b/fs/f2fs/super.c
+@@ -1911,6 +1911,7 @@ static int f2fs_fill_super(struct super_block *sb, void *data, int silent)
+ 	sb->s_flags = (sb->s_flags & ~MS_POSIXACL) |
+ 		(test_opt(sbi, POSIX_ACL) ? MS_POSIXACL : 0);
+ 	memcpy(sb->s_uuid, raw_super->uuid, sizeof(raw_super->uuid));
++	sb->s_iflags |= SB_I_HAVE_UUID;
+ 
+ 	/* init f2fs-specific super block info */
+ 	sbi->valid_super_block = valid_super_block;
+-- 
+2.7.4
