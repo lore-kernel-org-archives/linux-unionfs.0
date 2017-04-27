@@ -1,7 +1,7 @@
 From: Miklos Szeredi <miklos@szeredi.hu>
 Subject: Re: [PATCH v2 05/11] ovl: lookup redirect by file handle
-Date: Thu, 27 Apr 2017 09:40:09 +0200
-Message-ID: <CAJfpeguFhjAjm6+vqQ8i7nZMKHbm59--biOXA27FMbvYfT4jmw@mail.gmail.com>
+Date: Thu, 27 Apr 2017 09:48:23 +0200
+Message-ID: <CAJfpegtAx_KXb6v0dBAD0AJvLeTCFF1X4rfdAptn0xPqRHiLBQ@mail.gmail.com>
 References: <1493025256-27188-1-git-send-email-amir73il@gmail.com>
  <1493025256-27188-6-git-send-email-amir73il@gmail.com> <CAJfpegtz0emDRTHDrq0CrSZXAcovrLAAsX+-WkPGDRbyZD5vOw@mail.gmail.com>
  <CAOQ4uxhu4LVJ-MAjH6McK31MYZ8__RkjCoK31kqJ-7fA2gu+SA@mail.gmail.com>
@@ -10,61 +10,55 @@ References: <1493025256-27188-1-git-send-email-amir73il@gmail.com>
  <CAOQ4uxgPpnnc5dC+PSuOOWdpnobdKZNzgBzmbeW4Lw6P8_--hg@mail.gmail.com>
  <CAJfpeguaePn++tZBvd-2Z68a_8WGfy7EuWLzODyv60E45C6WSQ@mail.gmail.com>
  <CAOQ4uxiozume+xj4KHiDTwqgWmmXKL+6Ksw1EDWXuZYDFa2KVQ@mail.gmail.com>
- <CAJfpegtv4kN4d7ti5f5p=51aQk8U2UT9xdsvZkYoXWOfQ5BNcQ@mail.gmail.com> <CAOQ4uxhi4GReBbBzd8NdCJ+emzMEa1COYAtcaKziMiaZAV96uw@mail.gmail.com>
+ <CAJfpegtv4kN4d7ti5f5p=51aQk8U2UT9xdsvZkYoXWOfQ5BNcQ@mail.gmail.com>
+ <CAOQ4uxhi4GReBbBzd8NdCJ+emzMEa1COYAtcaKziMiaZAV96uw@mail.gmail.com> <CAOQ4uxiGzp2G3qSC7be3nVnvjYJZuHAmY7Q1Oc+jM+pZWtuHig@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-fsdevel-owner@vger.kernel.org>
-In-Reply-To: <CAOQ4uxhi4GReBbBzd8NdCJ+emzMEa1COYAtcaKziMiaZAV96uw@mail.gmail.com>
+In-Reply-To: <CAOQ4uxiGzp2G3qSC7be3nVnvjYJZuHAmY7Q1Oc+jM+pZWtuHig@mail.gmail.com>
 Sender: linux-fsdevel-owner@vger.kernel.org
 To: Amir Goldstein <amir73il@gmail.com>
 Cc: Vivek Goyal <vgoyal@redhat.com>, Al Viro <viro@zeniv.linux.org.uk>, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>
 List-Id: linux-unionfs@vger.kernel.org
 
-On Wed, Apr 26, 2017 at 4:51 PM, Amir Goldstein <amir73il@gmail.com> wrote:
-> On Wed, Apr 26, 2017 at 3:15 PM, Miklos Szeredi <miklos@szeredi.hu> wrote:
+On Thu, Apr 27, 2017 at 8:27 AM, Amir Goldstein <amir73il@gmail.com> wrote:
 
->> I don't have good feelings about storing the root fh just because we
->> don't special case the layer root anywhere yet, and I wouldn't want to
->> do that unless there's a good reason.
->>
+> Let me try to explain the problem with a worse case, but not
+> improbable example:
 >
-> There are a few reasons for origin.root, not sure if they are good:
-> 1. lookup is O(numlower+depth) instead of O(numlower*depth)
-
-We can optimize to O(numlower+depth) even without origin.root.
-
-> 2. origin.uuid validates that we are still on the same sb
->     origin.root validates that we are still using the same lower dirs
->     and that files from old lower were not moved around to find themselves
->     inside a different lower dir
-
-Parent is encoded in the fh, so that makes it resistant to moving. See
-the exportfs_get_name() trickery to get a non-dir connected.  It's
-needed whether we have origin.root or not.  And yes, it's pretty
-heavyweight.   Wondering if it's worth the trouble, since we are not
-actually going to use the lower inode for anything else than getting
-the inode number.  And then we could just store the inode number
-instead of the fh, and be rid of this mess.
-
-If file is moved to another layer by moving an ancestor directory then
-we won't detect that.  Question is: do we care?  It's definitely in
-the "you messed with lower dirs, you keep the pieces" territory.
-
-> 3. hardlinks between layers (!!!) will still get to the right layer
-
-Even without origin.root it should get the right layer, since we are
-encoding the parent in the fh.
-
-> I personally think that reason #1 is the important one, but I think we
-> disagree on the technical details of exportfs_decode_fh() and we
-> need to sort this out.
+> Suppose I have an overlay with deep file at /a/b/c/.../z
+> Suppose the layers are at /old/{lower,upper} I copy them
+> over to /new/{lower,upper} and mount the overlay at new path.
 >
-> Here is my untested implementation of find layer by uuid/rootfh
-> with the relevant comments. Maybe it helps you point out what
-> I am missing or what you are missing:
+> Suppose that dcache is fully populated under /new and fully
+> evicted under /old.
+>
+> When trying to decode the file handle for z, exportfs_decode_fh()
+> will call the file system to actually read all directories a..z from disk
+> in order to reconnect the dentry of old z all the way up to /old
+> and it will do that *before* calling the acceptable() callback.
+>
+> Alternatively, if we first try to decode the file handle for /old/lower,
+> decoding will be very fast (most likely already in cache) and we will
+> not have to continue to decoding z and reading all directories a..z
+> from disk.
 
-Yeah, it simplifies the implementation.  But implementation is
-secondary to interface...
+To answer my own question in the prev mail: we need to decode the fh
+and not just blindly use the inum to prevent issues with
+copied/mutilited/etc lower layers.
 
-Thanks,
-Miklos
+And yes, in the copied case decoding origin.root first would be a good
+optimization that couldn't be done without it.
+
+> Wait, what do you mean by "we don't special case the layer root?"
+> Do you mean that we could mount an overlay at a subdir path?
+> i.e. in the example below, we could mount an overlay with
+> upperdir=/new/upper/a/b/c,lowerdir=/new/lower/a/b/c?
+>
+> If this is what you mean then it is not true that we don't special case
+> layer root. We do it with path redirect relative to layer root.
+> If anything, we should be storing origin.root along with overlay.redirect
+> in order to verify that we are not redirecting into the wrong relative
+> path.
+
+Yeah, you're right, we are special casing layer root.
