@@ -1,64 +1,51 @@
-From: Miklos Szeredi <miklos@szeredi.hu>
-Subject: Re: [PATCH v2 05/11] ovl: lookup redirect by file handle
-Date: Thu, 27 Apr 2017 09:48:23 +0200
-Message-ID: <CAJfpegtAx_KXb6v0dBAD0AJvLeTCFF1X4rfdAptn0xPqRHiLBQ@mail.gmail.com>
-References: <1493025256-27188-1-git-send-email-amir73il@gmail.com>
- <1493025256-27188-6-git-send-email-amir73il@gmail.com> <CAJfpegtz0emDRTHDrq0CrSZXAcovrLAAsX+-WkPGDRbyZD5vOw@mail.gmail.com>
- <CAOQ4uxhu4LVJ-MAjH6McK31MYZ8__RkjCoK31kqJ-7fA2gu+SA@mail.gmail.com>
- <CAOQ4uxiGwd-h2kJVLKkbyBC9YD_a=19ta1HB0F9KueqL_Pr3XA@mail.gmail.com>
- <CAJfpegssdQ4E=uY3bq8zgXLHZsOQaJXpMWtCZ+V=yVM8vmcw5w@mail.gmail.com>
- <CAOQ4uxgPpnnc5dC+PSuOOWdpnobdKZNzgBzmbeW4Lw6P8_--hg@mail.gmail.com>
- <CAJfpeguaePn++tZBvd-2Z68a_8WGfy7EuWLzODyv60E45C6WSQ@mail.gmail.com>
- <CAOQ4uxiozume+xj4KHiDTwqgWmmXKL+6Ksw1EDWXuZYDFa2KVQ@mail.gmail.com>
- <CAJfpegtv4kN4d7ti5f5p=51aQk8U2UT9xdsvZkYoXWOfQ5BNcQ@mail.gmail.com>
- <CAOQ4uxhi4GReBbBzd8NdCJ+emzMEa1COYAtcaKziMiaZAV96uw@mail.gmail.com> <CAOQ4uxiGzp2G3qSC7be3nVnvjYJZuHAmY7Q1Oc+jM+pZWtuHig@mail.gmail.com>
+From: Marko Rauhamaa <marko.rauhamaa@f-secure.com>
+Subject: Re: [PATCH] ovl: don't expose EOPENSTALE to userspace
+Date: Thu, 27 Apr 2017 10:40:57 +0300
+Message-ID: <87tw5a47sm.fsf@drapion.f-secure.com>
+References: <1493128675-24331-1-git-send-email-amir73il@gmail.com>
+        <20170426134731.GB5214@veci.piliscsaba.szeredi.hu>
+        <8737cv5kli.fsf@drapion.f-secure.com>
+        <CAOQ4uxiODuLDYLouWJppgPkew16tTeOTxk+UTmP6Bdt2fJY6Mw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain
 Return-path: <linux-fsdevel-owner@vger.kernel.org>
-In-Reply-To: <CAOQ4uxiGzp2G3qSC7be3nVnvjYJZuHAmY7Q1Oc+jM+pZWtuHig@mail.gmail.com>
+In-Reply-To: <CAOQ4uxiODuLDYLouWJppgPkew16tTeOTxk+UTmP6Bdt2fJY6Mw@mail.gmail.com>
+        (Amir Goldstein's message of "Wed, 26 Apr 2017 18:45:54 +0300")
 Sender: linux-fsdevel-owner@vger.kernel.org
 To: Amir Goldstein <amir73il@gmail.com>
-Cc: Vivek Goyal <vgoyal@redhat.com>, Al Viro <viro@zeniv.linux.org.uk>, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, Trond Myklebust <trondmy@primarydata.com>, Jeff Layton <jlayton@poochiereds.net>, "J . Bruce Fields" <bfields@fieldses.org>, Tyler Hicks <tyhicks@canonical.com>, Al Viro <viro@zeniv.linux.org.uk>, linux-unionfs@vger.kernel.org, linux-fsdevel <linux-fsdevel@vger.kernel.org>, "stable [v4.9]" <stable@vger.kernel.org>
 List-Id: linux-unionfs@vger.kernel.org
 
-On Thu, Apr 27, 2017 at 8:27 AM, Amir Goldstein <amir73il@gmail.com> wrote:
-
-> Let me try to explain the problem with a worse case, but not
-> improbable example:
+Amir Goldstein <amir73il@gmail.com>:
+> There are more error that you can get same way that you got
+> EOPENSTALE. The fact that I filtered EOPENSTALE is fixing a POSIX bug,
+> but it does not fix the general problem you described.
 >
-> Suppose I have an overlay with deep file at /a/b/c/.../z
-> Suppose the layers are at /old/{lower,upper} I copy them
-> over to /new/{lower,upper} and mount the overlay at new path.
+> For example, I know you can get ENODEV, because I got it on
+> out test env. This is the case of a "stale device node" - by the time
+> you get to read an access event generated on a device file, the device
+> that this file represents does not exists and cannot be opened.
 >
-> Suppose that dcache is fully populated under /new and fully
-> evicted under /old.
->
-> When trying to decode the file handle for z, exportfs_decode_fh()
-> will call the file system to actually read all directories a..z from disk
-> in order to reconnect the dentry of old z all the way up to /old
-> and it will do that *before* calling the acceptable() callback.
->
-> Alternatively, if we first try to decode the file handle for /old/lower,
-> decoding will be very fast (most likely already in cache) and we will
-> not have to continue to decoding z and reading all directories a..z
-> from disk.
+> As with the case of EOPENSTALE, your app should just read again
+> when that happens.
 
-To answer my own question in the prev mail: we need to decode the fh
-and not just blindly use the inum to prevent issues with
-copied/mutilited/etc lower layers.
+Thing is, I must treat every unknown error value as critical and exit.
+That's because the problem might be persistent and spinning in a read
+loop hangs the system.
 
-And yes, in the copied case decoding origin.root first would be a good
-optimization that couldn't be done without it.
+Unless, of course, the system call API explicitly declares all problems
+as transient and tells the application to retry indefinitely. ENODEV
+certainly doesn't have the ring of a transient error.
 
-> Wait, what do you mean by "we don't special case the layer root?"
-> Do you mean that we could mount an overlay at a subdir path?
-> i.e. in the example below, we could mount an overlay with
-> upperdir=/new/upper/a/b/c,lowerdir=/new/lower/a/b/c?
->
-> If this is what you mean then it is not true that we don't special case
-> layer root. We do it with path redirect relative to layer root.
-> If anything, we should be storing origin.root along with overlay.redirect
-> in order to verify that we are not redirecting into the wrong relative
-> path.
+I don't really see why read(2) on the fanotify fd should return any
+random errors. The fanotify fd is purely a software device and should
+only have a fixed, documented set of failure modes. The other file
+descriptor (metadata->fd) is tied to a real file and could fail in a
+million ways; that's understandable.
 
-Yeah, you're right, we are special casing layer root.
+
+Marko
+
+-- 
++358 44 990 4795
+Skype: marko.rauhamaa_f-secure
