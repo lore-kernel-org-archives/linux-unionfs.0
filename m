@@ -1,73 +1,58 @@
 From: Miklos Szeredi <miklos@szeredi.hu>
-Subject: Re: [PATCH v2 05/11] ovl: lookup redirect by file handle
-Date: Thu, 27 Apr 2017 11:26:12 +0200
-Message-ID: <CAJfpegt9-w_2wQ_Y94w8AcuHYtzJ1fW6n21=eQPbyYqsNawOpQ@mail.gmail.com>
+Subject: Re: [PATCH v2 07/11] ovl: set the COPYUP type flag for non-dirs
+Date: Thu, 27 Apr 2017 11:32:57 +0200
+Message-ID: <CAJfpeguvf8gA7Zc2mfUTT0H76gSKJu72xcMJg4VjVgT8kF3PYw@mail.gmail.com>
 References: <1493025256-27188-1-git-send-email-amir73il@gmail.com>
- <1493025256-27188-6-git-send-email-amir73il@gmail.com> <CAJfpegtz0emDRTHDrq0CrSZXAcovrLAAsX+-WkPGDRbyZD5vOw@mail.gmail.com>
- <CAOQ4uxhu4LVJ-MAjH6McK31MYZ8__RkjCoK31kqJ-7fA2gu+SA@mail.gmail.com>
- <CAOQ4uxiGwd-h2kJVLKkbyBC9YD_a=19ta1HB0F9KueqL_Pr3XA@mail.gmail.com>
- <CAJfpegssdQ4E=uY3bq8zgXLHZsOQaJXpMWtCZ+V=yVM8vmcw5w@mail.gmail.com>
- <CAOQ4uxgPpnnc5dC+PSuOOWdpnobdKZNzgBzmbeW4Lw6P8_--hg@mail.gmail.com>
- <CAJfpeguaePn++tZBvd-2Z68a_8WGfy7EuWLzODyv60E45C6WSQ@mail.gmail.com>
- <CAOQ4uxiozume+xj4KHiDTwqgWmmXKL+6Ksw1EDWXuZYDFa2KVQ@mail.gmail.com>
- <CAJfpegtv4kN4d7ti5f5p=51aQk8U2UT9xdsvZkYoXWOfQ5BNcQ@mail.gmail.com>
- <CAOQ4uxhi4GReBbBzd8NdCJ+emzMEa1COYAtcaKziMiaZAV96uw@mail.gmail.com>
- <CAOQ4uxiGzp2G3qSC7be3nVnvjYJZuHAmY7Q1Oc+jM+pZWtuHig@mail.gmail.com> <CAJfpegtAx_KXb6v0dBAD0AJvLeTCFF1X4rfdAptn0xPqRHiLBQ@mail.gmail.com>
+ <1493025256-27188-8-git-send-email-amir73il@gmail.com> <CAJfpegt4kwmWmyUhY0RAzvSegbBHdKO6ZWuUXdQWtWdz2eSvOA@mail.gmail.com>
+ <CAJfpegsF6W94qrEs_LjuCw+2vJ+Vvyvj2vwXWr5+6GNZGT59kg@mail.gmail.com> <CAOQ4uxiGjBRygytHvG-dozG5OZbQ-YQe=4oSYd4F9oKwtEBbZQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-oi0-f68.google.com ([209.85.218.68]:35890 "EHLO
-        mail-oi0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1032036AbdD0J0O (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 27 Apr 2017 05:26:14 -0400
-Received: by mail-oi0-f68.google.com with SMTP id a3so5936059oii.3
-        for <linux-unionfs@vger.kernel.org>; Thu, 27 Apr 2017 02:26:14 -0700 (PDT)
-In-Reply-To: <CAJfpegtAx_KXb6v0dBAD0AJvLeTCFF1X4rfdAptn0xPqRHiLBQ@mail.gmail.com>
-Sender: linux-unionfs-owner@vger.kernel.org
-List-Id: linux-unionfs@vger.kernel.org
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
+In-Reply-To: <CAOQ4uxiGjBRygytHvG-dozG5OZbQ-YQe=4oSYd4F9oKwtEBbZQ@mail.gmail.com>
+Sender: linux-fsdevel-owner@vger.kernel.org
 To: Amir Goldstein <amir73il@gmail.com>
 Cc: Vivek Goyal <vgoyal@redhat.com>, Al Viro <viro@zeniv.linux.org.uk>, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>
+List-Id: linux-unionfs@vger.kernel.org
 
-On Thu, Apr 27, 2017 at 9:48 AM, Miklos Szeredi <miklos@szeredi.hu> wrote:
-> On Thu, Apr 27, 2017 at 8:27 AM, Amir Goldstein <amir73il@gmail.com> wrote:
+On Wed, Apr 26, 2017 at 5:02 PM, Amir Goldstein <amir73il@gmail.com> wrote:
+> On Wed, Apr 26, 2017 at 5:53 PM, Miklos Szeredi <miklos@szeredi.hu> wrote:
+>> On Wed, Apr 26, 2017 at 4:40 PM, Miklos Szeredi <miklos@szeredi.hu> wrote:
+>>
+>>> The reason I think the COPYUP vs. MERGE distinction is needed is the
+>>> ovl_check_empty_and_clear() thing.  It starts with a merged directory
+>>> with some whiteouts in it and exchanges it with an empty and opaque
+>>> directory.   Normally the empty directory will be deleted immediately,
+>>> but if something fails during the deletion, then it will remain there.
+>>>   The overlay is left in a consistent state, but the association with
+>>> the original inode should still remain, so it will have COPYUP but not
+>>> MERGE.
+>>
+>> One more thought: we could introduce a separate "overlay.merge"
+>> attribute that is the exact opposite of "overlay.opaque".
+>> "overlay.merge" would imply "overlay.fh" but "overlay.fh" would not
+>> imply "overlay.merge".
+>>
+>> It would allow us to optionally get rid of "overlay.opaque" when back
+>> compatibility is not needed.
+>>
+>> It would also allow a new feature: on metadata only updates of regular
+>> files we wouldn't need to copy up the data.
+>>
 >
->> Let me try to explain the problem with a worse case, but not
->> improbable example:
->>
->> Suppose I have an overlay with deep file at /a/b/c/.../z
->> Suppose the layers are at /old/{lower,upper} I copy them
->> over to /new/{lower,upper} and mount the overlay at new path.
->>
->> Suppose that dcache is fully populated under /new and fully
->> evicted under /old.
->>
->> When trying to decode the file handle for z, exportfs_decode_fh()
->> will call the file system to actually read all directories a..z from disk
->> in order to reconnect the dentry of old z all the way up to /old
->> and it will do that *before* calling the acceptable() callback.
->>
->> Alternatively, if we first try to decode the file handle for /old/lower,
->> decoding will be very fast (most likely already in cache) and we will
->> not have to continue to decoding z and reading all directories a..z
->> from disk.
->
-> To answer my own question in the prev mail: we need to decode the fh
-> and not just blindly use the inum to prevent issues with
-> copied/mutilited/etc lower layers.
+> So you intend to set overlay.merge for non-dir?
 
-Hmm, this is absurd.  Why are we going to all this trouble to find the
-origin inode though decoding the file handle when this thing was meant
-to be an *optimization*?  Without redirect, we can look up origin just
-like we do for merge dirs.  Way faster than decoding a connected
-dentry, which is going to result in a readdir of the parent directory
-and whatnot.  The only thing we need is a bool "was this copied" flag.
+Nope, not by default.
 
-For moved files, decoding the fh might be an optimization over walking
-the redirect, but that depends on a various factors, and it might also
-be a lot slower...  But it's needed for the snapshot case, right?
+> How is it different from overlay.fh then?
 
-Am I missing something?
+It would make sense for regular files for the non-samefs or non-clone
+fs cases if only metadata (attr, xattr) are modified but data is not.
+We'd create an empty file with the copied up metadata and
+"overlay.merge" set indicating that the data I/O should still be
+redirected to the origin, while metadata is kept in the copied up
+file.  This can be upgraded to a fully copied-up file later.
+
+Not something for this series, obviously.
 
 Thanks,
 Miklos
