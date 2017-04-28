@@ -1,103 +1,61 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [PATCH v2 05/11] ovl: lookup redirect by file handle
-Date: Fri, 28 Apr 2017 11:15:41 +0300
-Message-ID: <CAOQ4uxi6MGAdMqupMsOAuK4NDsJT1ZS1apYXyFpFO_Myy2PRGg@mail.gmail.com>
-References: <1493025256-27188-1-git-send-email-amir73il@gmail.com>
- <1493025256-27188-6-git-send-email-amir73il@gmail.com> <CAJfpegtz0emDRTHDrq0CrSZXAcovrLAAsX+-WkPGDRbyZD5vOw@mail.gmail.com>
- <CAOQ4uxhu4LVJ-MAjH6McK31MYZ8__RkjCoK31kqJ-7fA2gu+SA@mail.gmail.com>
- <CAOQ4uxiGwd-h2kJVLKkbyBC9YD_a=19ta1HB0F9KueqL_Pr3XA@mail.gmail.com>
- <CAJfpegssdQ4E=uY3bq8zgXLHZsOQaJXpMWtCZ+V=yVM8vmcw5w@mail.gmail.com>
- <CAOQ4uxgPpnnc5dC+PSuOOWdpnobdKZNzgBzmbeW4Lw6P8_--hg@mail.gmail.com>
- <CAJfpeguaePn++tZBvd-2Z68a_8WGfy7EuWLzODyv60E45C6WSQ@mail.gmail.com>
- <CAOQ4uxiozume+xj4KHiDTwqgWmmXKL+6Ksw1EDWXuZYDFa2KVQ@mail.gmail.com>
- <CAJfpegtv4kN4d7ti5f5p=51aQk8U2UT9xdsvZkYoXWOfQ5BNcQ@mail.gmail.com>
- <CAOQ4uxhi4GReBbBzd8NdCJ+emzMEa1COYAtcaKziMiaZAV96uw@mail.gmail.com>
- <CAOQ4uxiGzp2G3qSC7be3nVnvjYJZuHAmY7Q1Oc+jM+pZWtuHig@mail.gmail.com>
- <CAJfpegtAx_KXb6v0dBAD0AJvLeTCFF1X4rfdAptn0xPqRHiLBQ@mail.gmail.com>
- <CAJfpegt9-w_2wQ_Y94w8AcuHYtzJ1fW6n21=eQPbyYqsNawOpQ@mail.gmail.com>
- <CAOQ4uxiweaqzR3eT-StgtDFAHBuYhGRvAJE6v=XpH33MevpmoA@mail.gmail.com>
- <CAJfpegtTJmcLVrLOeQbhu4Q6sM0Mi_FRgr+vStF0k95QsWm5uQ@mail.gmail.com>
- <CAOQ4uxhQFis+uDL9KbiJ87hNU=QRsjHn6O4LShnt6JJFaOtNuA@mail.gmail.com>
- <CAJfpegv4kbUU1+t6+ZApQmnzbOEo-qiHOTy3Dj0Zh84zw9JeUw@mail.gmail.com>
- <CAOQ4uxjkwPwBF7F+Hrf0J_-s1fdCnBPC4wYd04fDtF8wSRaT_Q@mail.gmail.com>
- <CAOQ4uxjGFRXHNNXtyqm0DAdakbSj0yc+sJLcFMmB+VUkMhk0pQ@mail.gmail.com> <CAJfpegtXZyX6aubi_TPP_532pb_y+Vv987U08pYkE2SPE0hOuw@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Subject: [PATCH v2 3/6] overlay/017: use af_unix to create socket test file
+Date: Fri, 28 Apr 2017 11:24:45 +0300
+Message-ID: <1493367888-26550-4-git-send-email-amir73il@gmail.com>
+References: <1493367888-26550-1-git-send-email-amir73il@gmail.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-io0-f182.google.com ([209.85.223.182]:33168 "EHLO
-        mail-io0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752174AbdD1IPn (ORCPT
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:34962 "EHLO
+        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1034747AbdD1IYp (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 28 Apr 2017 04:15:43 -0400
-Received: by mail-io0-f182.google.com with SMTP id k87so54348724ioi.0
-        for <linux-unionfs@vger.kernel.org>; Fri, 28 Apr 2017 01:15:43 -0700 (PDT)
-In-Reply-To: <CAJfpegtXZyX6aubi_TPP_532pb_y+Vv987U08pYkE2SPE0hOuw@mail.gmail.com>
+        Fri, 28 Apr 2017 04:24:45 -0400
+In-Reply-To: <1493367888-26550-1-git-send-email-amir73il@gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>, Vivek Goyal <vgoyal@redhat.com>
+To: Eryu Guan <eguan@redhat.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, Xiong Zhou <xzhou@redhat.com>, linux-unionfs@vger.kernel.org, fstests@vger.kernel.org
 
-On Fri, Apr 28, 2017 at 10:55 AM, Miklos Szeredi <miklos@szeredi.hu> wrote:
-> On Fri, Apr 28, 2017 at 9:25 AM, Amir Goldstein <amir73il@gmail.com> wrote:
->> With all recent conclusions, do you see a reason to keep origin root fh?
->
-> No, I'm quite happy if we don't :)
->
->> For snapshots I need just one thing -
->> Verify that origin.fh matches the lower of merge dir that was found by path.
->> The verification is very cheap (only encode the found dentry), so we may
->> do it in any configuration, just don't know how to act upon it.
->>
->> What to do in case verification fails may need configuration option.
->> For snapshots I need a 'strict' policy meaning that "stale lower" equals
->> "implicit opaque", but that will not do the right thing for copied layers case.
->>
->> The way I have it now in my snapshot patches is overload on the redirect_dir
->> mount option and add a value redirect_dir=fh. The build time and module
->> options are still boolean, but -o redirect_dir=fh sets config->redirect_dir=true
->> and config->redirect_fh=true.
->> config->redirect_fh can later be set to false if the prerequisite (samefs etc)
->> don't apply.
->>
->> I may need to separate the general ofs->redirect_fh capabiltiy from the mount
->> configuration (i.e. config->redirect_dir_fh or make
->> config->redirect_dir an enum).
->>
->> I could also add more policy options for redirect_dir, i.e.:
->> off - pre v4.10 compat
->> on - v4.10 compat (path only)
->> path - same as on, just to explicitly mention for when knowingly copying layers
->> fh - snapshot case, fh must be verified
->> auto - (the default?) best effort w.r.t lower dir renames -
->> lookup by path, verify fh, if fails try to lookup by fh, if fails use
->> path result anyway.
->>
->> I realize you prefer the "minimum configuration" policy, but I'm afraid we
->> are at a cross road of letting the user decide. No?
->
-> Is this only about dirs though?
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+---
+ tests/overlay/017 | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-Well, we could add configuration options to decide if and how to follow
-and verify fh for non-dir, but:
-
-1. We agreed that trying to follow fh for non-dir is a no-loose situation
-    for !redirect and hot cache case and a probable win for redirect with
-    cold case
-2. For snapshots the behavior should be the same -
-    use the lower ino if you can find and hold lower inode
-    use upper ino otherwise (i.e. snapshots are not binding the inode
-    numbers forever)
-
-So I see no reason, going forward, to provide a user configuration
-for the lookup of non-dir.
-
->
-> For now I'd just add a "verify_lower" option defaulting to off and not
-> expand "redirect_dir".  That should take care of the snapshot case,
-> right?
->
-
-Right.
-
-Thanks,
-Amir.
+diff --git a/tests/overlay/017 b/tests/overlay/017
+index e04690c..779907d 100755
+--- a/tests/overlay/017
++++ b/tests/overlay/017
+@@ -34,6 +34,7 @@ seq=`basename $0`
+ seqres=$RESULT_DIR/$seq
+ echo "QA output created by $seq"
+ 
++here=`pwd`
+ tmp=/tmp/$$
+ status=1	# failure is the default!
+ trap "_cleanup; exit \$status" 0 1 2 3 15
+@@ -52,6 +53,7 @@ _cleanup()
+ _supported_fs overlay
+ _supported_os Linux
+ _require_scratch
++_require_test_program "af_unix"
+ 
+ rm -f $seqres.full
+ 
+@@ -68,6 +70,7 @@ ln -s $lowerdir/file $lowerdir/symlink
+ mknod $lowerdir/chrdev c 1 1
+ mknod $lowerdir/blkdev b 1 1
+ mknod $lowerdir/fifo p
++$here/src/af_unix $lowerdir/socket
+ 
+ 
+ _scratch_mount
+@@ -78,7 +81,7 @@ rm -f $tmp.*
+ # Test stable stat(2) st_ino
+ 
+ # Record inode numbers before and after copy up
+-for f in dir file symlink chrdev blkdev fifo; do
++for f in dir file symlink chrdev blkdev fifo socket; do
+ 	ls -id $SCRATCH_MNT/$f >> $tmp.before
+ 	# chown -h modifies all those file types
+ 	chown -h 100 $SCRATCH_MNT/$f
+-- 
+2.7.4
