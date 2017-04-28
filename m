@@ -1,69 +1,73 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [PATCH v2 05/11] ovl: lookup redirect by file handle
-Date: Fri, 28 Apr 2017 12:57:48 +0300
-Message-ID: <CAOQ4uxj8mzjkkF38tTCPG0_rzV2Ok19c3XjkqNeF56mfiqo9Hg@mail.gmail.com>
-References: <1493025256-27188-1-git-send-email-amir73il@gmail.com>
- <1493025256-27188-6-git-send-email-amir73il@gmail.com> <CAJfpegtz0emDRTHDrq0CrSZXAcovrLAAsX+-WkPGDRbyZD5vOw@mail.gmail.com>
- <CAOQ4uxhu4LVJ-MAjH6McK31MYZ8__RkjCoK31kqJ-7fA2gu+SA@mail.gmail.com>
- <CAOQ4uxiGwd-h2kJVLKkbyBC9YD_a=19ta1HB0F9KueqL_Pr3XA@mail.gmail.com>
- <CAJfpegssdQ4E=uY3bq8zgXLHZsOQaJXpMWtCZ+V=yVM8vmcw5w@mail.gmail.com>
- <CAOQ4uxgPpnnc5dC+PSuOOWdpnobdKZNzgBzmbeW4Lw6P8_--hg@mail.gmail.com>
- <CAJfpeguaePn++tZBvd-2Z68a_8WGfy7EuWLzODyv60E45C6WSQ@mail.gmail.com>
- <CAOQ4uxiozume+xj4KHiDTwqgWmmXKL+6Ksw1EDWXuZYDFa2KVQ@mail.gmail.com>
- <CAJfpegtv4kN4d7ti5f5p=51aQk8U2UT9xdsvZkYoXWOfQ5BNcQ@mail.gmail.com>
- <CAOQ4uxhi4GReBbBzd8NdCJ+emzMEa1COYAtcaKziMiaZAV96uw@mail.gmail.com>
- <CAOQ4uxiGzp2G3qSC7be3nVnvjYJZuHAmY7Q1Oc+jM+pZWtuHig@mail.gmail.com>
- <CAJfpegtAx_KXb6v0dBAD0AJvLeTCFF1X4rfdAptn0xPqRHiLBQ@mail.gmail.com>
- <CAJfpegt9-w_2wQ_Y94w8AcuHYtzJ1fW6n21=eQPbyYqsNawOpQ@mail.gmail.com>
- <CAOQ4uxiweaqzR3eT-StgtDFAHBuYhGRvAJE6v=XpH33MevpmoA@mail.gmail.com>
- <CAJfpegtTJmcLVrLOeQbhu4Q6sM0Mi_FRgr+vStF0k95QsWm5uQ@mail.gmail.com>
- <CAOQ4uxhQFis+uDL9KbiJ87hNU=QRsjHn6O4LShnt6JJFaOtNuA@mail.gmail.com>
- <CAJfpegv4kbUU1+t6+ZApQmnzbOEo-qiHOTy3Dj0Zh84zw9JeUw@mail.gmail.com>
- <CAOQ4uxjkwPwBF7F+Hrf0J_-s1fdCnBPC4wYd04fDtF8wSRaT_Q@mail.gmail.com>
- <CAOQ4uxjGFRXHNNXtyqm0DAdakbSj0yc+sJLcFMmB+VUkMhk0pQ@mail.gmail.com>
- <CAJfpegtXZyX6aubi_TPP_532pb_y+Vv987U08pYkE2SPE0hOuw@mail.gmail.com>
- <CAOQ4uxi6MGAdMqupMsOAuK4NDsJT1ZS1apYXyFpFO_Myy2PRGg@mail.gmail.com> <CAJfpegtUXhHyVQV4mszcvrW-SGPYJG+5V40azjusvnRUtAN=8Q@mail.gmail.com>
+Subject: Re: [PATCH v2 4/6] overlay/017: create helpers to record and check
+ inode numbers
+Date: Fri, 28 Apr 2017 13:04:08 +0300
+Message-ID: <CAOQ4uxiTJDQj4YNnaHY6AYvYAv+QF+bE4EPWC0K09hyNU6k4oA@mail.gmail.com>
+References: <1493367888-26550-1-git-send-email-amir73il@gmail.com>
+ <1493367888-26550-5-git-send-email-amir73il@gmail.com> <20170428092402.GQ26397@eguan.usersys.redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-io0-f195.google.com ([209.85.223.195]:32791 "EHLO
-        mail-io0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1946532AbdD1J5u (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 28 Apr 2017 05:57:50 -0400
-Received: by mail-io0-f195.google.com with SMTP id k87so9907644ioi.0
-        for <linux-unionfs@vger.kernel.org>; Fri, 28 Apr 2017 02:57:50 -0700 (PDT)
-In-Reply-To: <CAJfpegtUXhHyVQV4mszcvrW-SGPYJG+5V40azjusvnRUtAN=8Q@mail.gmail.com>
-Sender: linux-unionfs-owner@vger.kernel.org
+Return-path: <fstests-owner@vger.kernel.org>
+In-Reply-To: <20170428092402.GQ26397@eguan.usersys.redhat.com>
+Sender: fstests-owner@vger.kernel.org
+To: Eryu Guan <eguan@redhat.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, Xiong Zhou <xzhou@redhat.com>, linux-unionfs@vger.kernel.org, fstests <fstests@vger.kernel.org>
 List-Id: linux-unionfs@vger.kernel.org
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>, Vivek Goyal <vgoyal@redhat.com>
 
-On Fri, Apr 28, 2017 at 12:37 PM, Miklos Szeredi <miklos@szeredi.hu> wrote:
-> On Fri, Apr 28, 2017 at 10:15 AM, Amir Goldstein <amir73il@gmail.com> wrote:
->
->> Well, we could add configuration options to decide if and how to follow
->> and verify fh for non-dir, but:
+On Fri, Apr 28, 2017 at 12:24 PM, Eryu Guan <eguan@redhat.com> wrote:
+> On Fri, Apr 28, 2017 at 11:24:46AM +0300, Amir Goldstein wrote:
+>> Use helpers to records and check inode numbers so we can repeat
+>> the same test after rename and mount cycle.
 >>
->> 1. We agreed that trying to follow fh for non-dir is a no-loose situation
->>     for !redirect and hot cache case and a probable win for redirect with
->>     cold case
+>> Suggested-by: Eryu Guan <eguan@redhat.com>
+>> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+>> ---
+>>  tests/overlay/017 | 57 ++++++++++++++++++++++++++++++++++++++++---------------
+>>  1 file changed, 42 insertions(+), 15 deletions(-)
+>>
+>> diff --git a/tests/overlay/017 b/tests/overlay/017
+>> index 779907d..3ff429f 100755
+>> --- a/tests/overlay/017
+>> +++ b/tests/overlay/017
+>> @@ -72,32 +72,59 @@ mknod $lowerdir/blkdev b 1 1
+>>  mknod $lowerdir/fifo p
+>>  $here/src/af_unix $lowerdir/socket
+>>
+>> +FILES="dir file symlink chrdev blkdev fifo socket"
+>> +
+>> +# Record inode numbers in format <ino> <basename>
+>> +function record_inode_numbers()
+>> +{
+>> +     dir=$1
+>> +     outfile=$2
+>> +
+>> +     for f in $FILES; do
+>> +             ls -id $dir/$f
+>> +     done | \
+>> +     while read ino file; do
+>> +             echo $ino `basename $file` >> $outfile
+>> +     done
+>> +}
+>> +
+>> +# Check inode numbers match recorder inode numbers
+>> +function check_inode_numbers()
+>> +{
+>> +     dir=$1
+>> +     before=$2
+>> +     after=$2
+>              ^^^ $3
+> Otherwise looks good to me. I can fix this typo at commit time.
+
+Oh boy! That's a lousy test :-)
+Now I wonder why the test failed when I ran it on kernel v4.10
+(when feeding after to find -inum)... something for me to check.
+
 >
-> Okay.  That also means that redirect is not actually needed for
-> non-dir.  Well, except for the weird case of having to reconstruct a
-> reverse mapping after copying the layers in order to properly handle
-> copy up of hardlinks on the lower layer.  But lets not care about that
-> for now (or ever, probably).
+> But I've already kicked off release testing for this week's update,
+> I'll queue these patches for next update.
 >
 
-It's needed for when we can't lookup by fh:
-- lower has NULL uuid
-- !same_lower_sb (may be relaxed going forward)
+Sure. No rush on my end.
 
-Heh, it's hard too keep track of it all ;-)
-
-Once all the dust is settled, I'll sit down to write a 'Redirect by file handle'
-section for  Documentation/filesystems/overlayfs.txt that will summarize
-all cases.
-
+Thanks,
 Amir.
