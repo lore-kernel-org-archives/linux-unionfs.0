@@ -1,7 +1,7 @@
-From: Miklos Szeredi <miklos@szeredi.hu>
+From: Amir Goldstein <amir73il@gmail.com>
 Subject: Re: [PATCH v2 05/11] ovl: lookup redirect by file handle
-Date: Fri, 28 Apr 2017 11:37:07 +0200
-Message-ID: <CAJfpegtUXhHyVQV4mszcvrW-SGPYJG+5V40azjusvnRUtAN=8Q@mail.gmail.com>
+Date: Fri, 28 Apr 2017 12:57:48 +0300
+Message-ID: <CAOQ4uxj8mzjkkF38tTCPG0_rzV2Ok19c3XjkqNeF56mfiqo9Hg@mail.gmail.com>
 References: <1493025256-27188-1-git-send-email-amir73il@gmail.com>
  <1493025256-27188-6-git-send-email-amir73il@gmail.com> <CAJfpegtz0emDRTHDrq0CrSZXAcovrLAAsX+-WkPGDRbyZD5vOw@mail.gmail.com>
  <CAOQ4uxhu4LVJ-MAjH6McK31MYZ8__RkjCoK31kqJ-7fA2gu+SA@mail.gmail.com>
@@ -21,47 +21,49 @@ References: <1493025256-27188-1-git-send-email-amir73il@gmail.com>
  <CAJfpegv4kbUU1+t6+ZApQmnzbOEo-qiHOTy3Dj0Zh84zw9JeUw@mail.gmail.com>
  <CAOQ4uxjkwPwBF7F+Hrf0J_-s1fdCnBPC4wYd04fDtF8wSRaT_Q@mail.gmail.com>
  <CAOQ4uxjGFRXHNNXtyqm0DAdakbSj0yc+sJLcFMmB+VUkMhk0pQ@mail.gmail.com>
- <CAJfpegtXZyX6aubi_TPP_532pb_y+Vv987U08pYkE2SPE0hOuw@mail.gmail.com> <CAOQ4uxi6MGAdMqupMsOAuK4NDsJT1ZS1apYXyFpFO_Myy2PRGg@mail.gmail.com>
+ <CAJfpegtXZyX6aubi_TPP_532pb_y+Vv987U08pYkE2SPE0hOuw@mail.gmail.com>
+ <CAOQ4uxi6MGAdMqupMsOAuK4NDsJT1ZS1apYXyFpFO_Myy2PRGg@mail.gmail.com> <CAJfpegtUXhHyVQV4mszcvrW-SGPYJG+5V40azjusvnRUtAN=8Q@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-it0-f47.google.com ([209.85.214.47]:35476 "EHLO
-        mail-it0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754990AbdD1JhT (ORCPT
+Received: from mail-io0-f195.google.com ([209.85.223.195]:32791 "EHLO
+        mail-io0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1946532AbdD1J5u (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 28 Apr 2017 05:37:19 -0400
-Received: by mail-it0-f47.google.com with SMTP id 70so32428137ita.0
-        for <linux-unionfs@vger.kernel.org>; Fri, 28 Apr 2017 02:37:14 -0700 (PDT)
-In-Reply-To: <CAOQ4uxi6MGAdMqupMsOAuK4NDsJT1ZS1apYXyFpFO_Myy2PRGg@mail.gmail.com>
+        Fri, 28 Apr 2017 05:57:50 -0400
+Received: by mail-io0-f195.google.com with SMTP id k87so9907644ioi.0
+        for <linux-unionfs@vger.kernel.org>; Fri, 28 Apr 2017 02:57:50 -0700 (PDT)
+In-Reply-To: <CAJfpegtUXhHyVQV4mszcvrW-SGPYJG+5V40azjusvnRUtAN=8Q@mail.gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Amir Goldstein <amir73il@gmail.com>
+To: Miklos Szeredi <miklos@szeredi.hu>
 Cc: "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>, Vivek Goyal <vgoyal@redhat.com>
 
-On Fri, Apr 28, 2017 at 10:15 AM, Amir Goldstein <amir73il@gmail.com> wrote:
-
-> Well, we could add configuration options to decide if and how to follow
-> and verify fh for non-dir, but:
+On Fri, Apr 28, 2017 at 12:37 PM, Miklos Szeredi <miklos@szeredi.hu> wrote:
+> On Fri, Apr 28, 2017 at 10:15 AM, Amir Goldstein <amir73il@gmail.com> wrote:
 >
-> 1. We agreed that trying to follow fh for non-dir is a no-loose situation
->     for !redirect and hot cache case and a probable win for redirect with
->     cold case
-
-Okay.  That also means that redirect is not actually needed for
-non-dir.  Well, except for the weird case of having to reconstruct a
-reverse mapping after copying the layers in order to properly handle
-copy up of hardlinks on the lower layer.  But lets not care about that
-for now (or ever, probably).
-
-> 2. For snapshots the behavior should be the same -
->     use the lower ino if you can find and hold lower inode
->     use upper ino otherwise (i.e. snapshots are not binding the inode
->     numbers forever)
+>> Well, we could add configuration options to decide if and how to follow
+>> and verify fh for non-dir, but:
+>>
+>> 1. We agreed that trying to follow fh for non-dir is a no-loose situation
+>>     for !redirect and hot cache case and a probable win for redirect with
+>>     cold case
 >
-> So I see no reason, going forward, to provide a user configuration
-> for the lookup of non-dir.
+> Okay.  That also means that redirect is not actually needed for
+> non-dir.  Well, except for the weird case of having to reconstruct a
+> reverse mapping after copying the layers in order to properly handle
+> copy up of hardlinks on the lower layer.  But lets not care about that
+> for now (or ever, probably).
+>
 
-Good.
+It's needed for when we can't lookup by fh:
+- lower has NULL uuid
+- !same_lower_sb (may be relaxed going forward)
 
-Thanks,
-Miklos
+Heh, it's hard too keep track of it all ;-)
+
+Once all the dust is settled, I'll sit down to write a 'Redirect by file handle'
+section for  Documentation/filesystems/overlayfs.txt that will summarize
+all cases.
+
+Amir.
