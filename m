@@ -1,108 +1,77 @@
-From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [PATCH 4/5] overlay/017: verify constant inode number after rename
-Date: Fri, 28 Apr 2017 08:50:04 +0300
-Message-ID: <CAOQ4uxgOUhQH3q5DgRk8kETi_BGbZxyfX7=xqgGAXKXzc6FGCA@mail.gmail.com>
+From: Eryu Guan <eguan@redhat.com>
+Subject: Re: [PATCH 1/5] overlay/017: silence test output
+Date: Fri, 28 Apr 2017 13:50:35 +0800
+Message-ID: <20170428055035.GN26397@eguan.usersys.redhat.com>
 References: <1493305775-12559-1-git-send-email-amir73il@gmail.com>
- <1493305775-12559-5-git-send-email-amir73il@gmail.com> <20170428054720.GM26397@eguan.usersys.redhat.com>
+ <1493305775-12559-2-git-send-email-amir73il@gmail.com>
+ <20170428053633.GL26397@eguan.usersys.redhat.com>
+ <CAOQ4uxiQ__f4eoZT+qyszHPK7KwuW+NbDfFz3E=d6+nkSEKVRg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-io0-f196.google.com ([209.85.223.196]:33506 "EHLO
-        mail-io0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1163902AbdD1FuP (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 28 Apr 2017 01:50:15 -0400
-In-Reply-To: <20170428054720.GM26397@eguan.usersys.redhat.com>
+Received: from mx1.redhat.com ([209.132.183.28]:36974 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1163902AbdD1Fuh (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Fri, 28 Apr 2017 01:50:37 -0400
+Content-Disposition: inline
+In-Reply-To: <CAOQ4uxiQ__f4eoZT+qyszHPK7KwuW+NbDfFz3E=d6+nkSEKVRg@mail.gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Eryu Guan <eguan@redhat.com>
+To: Amir Goldstein <amir73il@gmail.com>
 Cc: Miklos Szeredi <miklos@szeredi.hu>, Xiong Zhou <xzhou@redhat.com>, linux-unionfs@vger.kernel.org, fstests <fstests@vger.kernel.org>
 
-On Fri, Apr 28, 2017 at 8:47 AM, Eryu Guan <eguan@redhat.com> wrote:
-> On Thu, Apr 27, 2017 at 06:09:34PM +0300, Amir Goldstein wrote:
->> The test verifies constant inode number after copy up.
->> Verify that inode number remains constant also after rename
->> and drop caches (when overlayfs needs to find the lower
->> inodes in another location).
->>
->> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
->> ---
->>  tests/overlay/017 | 22 ++++++++++++++++++----
->>  1 file changed, 18 insertions(+), 4 deletions(-)
->>
->> diff --git a/tests/overlay/017 b/tests/overlay/017
->> index f3bf454..1cf684d 100755
->> --- a/tests/overlay/017
->> +++ b/tests/overlay/017
->> @@ -8,7 +8,8 @@
->>  # - modify A to trigger copy up
->>  # - stat file A shows inode number Y != X
->>  #
->> -# Also test if d_ino of readdir entries changes after copy up.
->> +# Also test if d_ino of readdir entries changes after copy up
->> +# and if inode numbers persist after rename and drop caches.
->>  #
->>  #-----------------------------------------------------------------------
->>  #
->> @@ -94,6 +95,8 @@ _scratch_mount
->>
->>
->>  rm -f $tmp.*
->> +testdir=$SCRATCH_MNT/test
->> +mkdir -p $testdir
->>
->>  # Test stable stat(2) st_ino
->>
->> @@ -106,18 +109,29 @@ for f in $FILES; do
->>  done
->>
->>  # Record inode numbers after copy up
->> -record_inode_numbers $SCRATCH_MNT $tmp.after
->> +record_inode_numbers $SCRATCH_MNT $tmp.after_copyup
->
-> inode numbers are saved after copyup and will be tested by diff with
-> $tmp.before, but find (d_ino) is not tested after a pure copyup...
->
->> +
->> +for f in $FILES; do
->> +     # move to another dir
->> +     mv $SCRATCH_MNT/$f $testdir/
->> +done
->> +
->> +echo 3 > /proc/sys/vm/drop_caches
->> +
->> +# Record inode numbers after rename and drop caches
->> +record_inode_numbers $testdir $tmp.after_move
->>
->>  # Test stable readdir(3)/getdents(2) d_ino
->>
->>  # find by inode number - expect to find file by inode number
->>  cat $tmp.before | while read ino f; do
->> -     find $SCRATCH_MNT/ -inum $ino -maxdepth 1 | grep -q $f || \
->> +     find $testdir/ -inum $ino -maxdepth 1 | grep -q $f || \
->>               echo "$f not found by ino $ino"
->>  done
->
-> it's only tested here, after a rename and a drop_caches.
->
-> IMO, it's better to test both find and stat after each operation that
-> would cause inode number change. So how about factoring out a helper
-> that does this inode number check (find and diff), and calling it after
-> each operation?
->
-> e.g. a new helper called check_inode_number(), then
->
-> <create files>
-> <copyup>
-> check_inode_number [with necessary args]
-> <rename>
-> check_inode_number
-> <drop_caches>
-> check_inode_number
-> <cycle mount>
-> check_inode_number
->
+On Fri, Apr 28, 2017 at 08:45:22AM +0300, Amir Goldstein wrote:
+> On Fri, Apr 28, 2017 at 8:36 AM, Eryu Guan <eguan@redhat.com> wrote:
+> > On Thu, Apr 27, 2017 at 06:09:31PM +0300, Amir Goldstein wrote:
+> >> Change test to output golden silence on success.
+> >
+> > Some words on why this change is needed would be good.
+> >
+> >>
+> >> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+> >> ---
+> >>  tests/overlay/017     | 4 +++-
+> >>  tests/overlay/017.out | 7 +------
+> >>  2 files changed, 4 insertions(+), 7 deletions(-)
+> >>
+> >> diff --git a/tests/overlay/017 b/tests/overlay/017
+> >> index 5ca3040..d6ba2ae 100755
+> >> --- a/tests/overlay/017
+> >> +++ b/tests/overlay/017
+> >> @@ -89,11 +89,13 @@ done
+> >>
+> >>  # find by inode number - expect to find file by inode number
+> >>  cat $tmp.before | while read ino f; do
+> >> -     find $f -inum $ino -maxdepth 0 | _filter_scratch
+> >> +     find $SCRATCH_MNT/ -inum $ino -maxdepth 1 | grep -q $f || \
+> >> +             echo "$f not found by ino $ino"
+> >
+> > Hmm, if I run this find command manually, I got warning about -maxdepth
+> > position.
+> >
+> > # find `pwd` -inum 3932421 -maxdepth 1
+> > find: warning: you have specified the -maxdepth option after a non-option argument -inum, but options are not positional (-maxdepth affects tests specified before it as well as those specified after it).  Please specify options before other arguments.
+> >
+> > /root/xfstests/check
+> >
+> > Move -maxdepth option just after find path works fine
+> >
+> > # find `pwd` -maxdepth 1 -inum 3932421
+> > /root/xfstests/check
+> >
+> > But I'm not sure why I didn't see this warning by running overlay/017..
+> 
+> man find...
+> 
+> "The default behavior corresponds to -warn if standard input is a tty,
+> and to -nowarn otherwise."
 
+That explains, thanks!
 
-Yes, that would be much better.
-Thanks!
+Eryu
+
+> 
+> > Anyway, moving -maxdepth around seems better to me.
+> >
+> 
+> Sure.
