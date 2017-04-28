@@ -1,74 +1,49 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [PATCH v2 4/6] overlay/017: create helpers to record and check
- inode numbers
-Date: Fri, 28 Apr 2017 13:53:29 +0300
-Message-ID: <CAOQ4uxju70vY9ZCYWqFkN-UCZBd76UHnnVP58f836gtYZZ1Pow@mail.gmail.com>
-References: <1493367888-26550-1-git-send-email-amir73il@gmail.com>
- <1493367888-26550-5-git-send-email-amir73il@gmail.com> <20170428092402.GQ26397@eguan.usersys.redhat.com>
- <CAOQ4uxiTJDQj4YNnaHY6AYvYAv+QF+bE4EPWC0K09hyNU6k4oA@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Subject: [PATCH v2] xfs: publish UUID in struct super_block
+Date: Fri, 28 Apr 2017 17:00:01 +0300
+Message-ID: <1493388001-15879-1-git-send-email-amir73il@gmail.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-io0-f195.google.com ([209.85.223.195]:33108 "EHLO
-        mail-io0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932768AbdD1Kxa (ORCPT
+Received: from mail-wr0-f196.google.com ([209.85.128.196]:35491 "EHLO
+        mail-wr0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1423433AbdD1N7y (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 28 Apr 2017 06:53:30 -0400
-In-Reply-To: <CAOQ4uxiTJDQj4YNnaHY6AYvYAv+QF+bE4EPWC0K09hyNU6k4oA@mail.gmail.com>
+        Fri, 28 Apr 2017 09:59:54 -0400
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Eryu Guan <eguan@redhat.com>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, Xiong Zhou <xzhou@redhat.com>, linux-unionfs@vger.kernel.org, fstests <fstests@vger.kernel.org>
+To: "Darrick J . Wong" <darrick.wong@oracle.com>
+Cc: Christoph Hellwig <hch@lst.de>, Miklos Szeredi <miklos@szeredi.hu>, Vivek Goyal <vgoyal@redhat.com>, Al Viro <viro@zeniv.linux.org.uk>, linux-xfs@vger.kernel.org, linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
 
-On Fri, Apr 28, 2017 at 1:04 PM, Amir Goldstein <amir73il@gmail.com> wrote:
-> On Fri, Apr 28, 2017 at 12:24 PM, Eryu Guan <eguan@redhat.com> wrote:
->> On Fri, Apr 28, 2017 at 11:24:46AM +0300, Amir Goldstein wrote:
->>> Use helpers to records and check inode numbers so we can repeat
->>> the same test after rename and mount cycle.
->>>
->>> Suggested-by: Eryu Guan <eguan@redhat.com>
->>> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
->>> ---
->>>  tests/overlay/017 | 57 ++++++++++++++++++++++++++++++++++++++++---------------
->>>  1 file changed, 42 insertions(+), 15 deletions(-)
->>>
->>> diff --git a/tests/overlay/017 b/tests/overlay/017
->>> index 779907d..3ff429f 100755
->>> --- a/tests/overlay/017
->>> +++ b/tests/overlay/017
->>> @@ -72,32 +72,59 @@ mknod $lowerdir/blkdev b 1 1
->>>  mknod $lowerdir/fifo p
->>>  $here/src/af_unix $lowerdir/socket
->>>
->>> +FILES="dir file symlink chrdev blkdev fifo socket"
->>> +
->>> +# Record inode numbers in format <ino> <basename>
->>> +function record_inode_numbers()
->>> +{
->>> +     dir=$1
->>> +     outfile=$2
->>> +
->>> +     for f in $FILES; do
->>> +             ls -id $dir/$f
->>> +     done | \
->>> +     while read ino file; do
->>> +             echo $ino `basename $file` >> $outfile
->>> +     done
->>> +}
->>> +
->>> +# Check inode numbers match recorder inode numbers
->>> +function check_inode_numbers()
->>> +{
->>> +     dir=$1
->>> +     before=$2
->>> +     after=$2
->>              ^^^ $3
->> Otherwise looks good to me. I can fix this typo at commit time.
->
-> Oh boy! That's a lousy test :-)
-> Now I wonder why the test failed when I ran it on kernel v4.10
-> (when feeding after to find -inum)... something for me to check.
->
+Copy the uuid of the filesystem to struct super_block s_uuid field,
+as several other filesystems already do.  Copy regardless of the nouuid
+mount option, because other filesystems also do not guaranty uniqueness
+of the s_uuid field in super_block struct.
 
-Ah. got it. 'after' inode number where appended to $tmp.before,
-so find was also looking by the before inodes.
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+---
+ fs/xfs/xfs_mount.c | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+Darrick,
+
+Per your request I moved the copy above nouuid check.
+
+Cheers,
+Amir.
+
+diff --git a/fs/xfs/xfs_mount.c b/fs/xfs/xfs_mount.c
+index 450bde6..4c0d8d7 100644
+--- a/fs/xfs/xfs_mount.c
++++ b/fs/xfs/xfs_mount.c
+@@ -73,6 +73,10 @@ xfs_uuid_mount(
+ 	uuid_t			*uuid = &mp->m_sb.sb_uuid;
+ 	int			hole, i;
+ 
++	/* Publish UUID in struct super_block */
++	BUILD_BUG_ON(sizeof(mp->m_super->s_uuid) != sizeof(uuid_t));
++	memcpy(&mp->m_super->s_uuid, uuid, sizeof(uuid_t));
++
+ 	if (mp->m_flags & XFS_MOUNT_NOUUID)
+ 		return 0;
+ 
+-- 
+2.7.4
