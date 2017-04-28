@@ -1,78 +1,65 @@
-From: Amir Goldstein <amir73il@gmail.com>
+From: Eryu Guan <eguan@redhat.com>
 Subject: Re: [PATCH 1/5] overlay/017: silence test output
-Date: Fri, 28 Apr 2017 09:34:18 +0300
-Message-ID: <CAOQ4uxisjtWLnHxXg+PbaJjFOmY7ZFEkF+ggsWB+54FSHvMLjA@mail.gmail.com>
+Date: Fri, 28 Apr 2017 14:50:51 +0800
+Message-ID: <20170428065051.GO26397@eguan.usersys.redhat.com>
 References: <1493305775-12559-1-git-send-email-amir73il@gmail.com>
- <1493305775-12559-2-git-send-email-amir73il@gmail.com> <20170428053633.GL26397@eguan.usersys.redhat.com>
- <CAOQ4uxiQ__f4eoZT+qyszHPK7KwuW+NbDfFz3E=d6+nkSEKVRg@mail.gmail.com> <20170428055035.GN26397@eguan.usersys.redhat.com>
+ <1493305775-12559-2-git-send-email-amir73il@gmail.com>
+ <20170428053633.GL26397@eguan.usersys.redhat.com>
+ <CAOQ4uxiQ__f4eoZT+qyszHPK7KwuW+NbDfFz3E=d6+nkSEKVRg@mail.gmail.com>
+ <20170428055035.GN26397@eguan.usersys.redhat.com>
+ <CAOQ4uxisjtWLnHxXg+PbaJjFOmY7ZFEkF+ggsWB+54FSHvMLjA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-io0-f195.google.com ([209.85.223.195]:34739 "EHLO
-        mail-io0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S964804AbdD1GeT (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 28 Apr 2017 02:34:19 -0400
-In-Reply-To: <20170428055035.GN26397@eguan.usersys.redhat.com>
+Received: from mx1.redhat.com ([209.132.183.28]:44836 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S938590AbdD1Guy (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Fri, 28 Apr 2017 02:50:54 -0400
+Content-Disposition: inline
+In-Reply-To: <CAOQ4uxisjtWLnHxXg+PbaJjFOmY7ZFEkF+ggsWB+54FSHvMLjA@mail.gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Eryu Guan <eguan@redhat.com>
+To: Amir Goldstein <amir73il@gmail.com>
 Cc: Miklos Szeredi <miklos@szeredi.hu>, Xiong Zhou <xzhou@redhat.com>, linux-unionfs@vger.kernel.org, fstests <fstests@vger.kernel.org>
 
-On Fri, Apr 28, 2017 at 8:50 AM, Eryu Guan <eguan@redhat.com> wrote:
-> On Fri, Apr 28, 2017 at 08:45:22AM +0300, Amir Goldstein wrote:
->> On Fri, Apr 28, 2017 at 8:36 AM, Eryu Guan <eguan@redhat.com> wrote:
->> > On Thu, Apr 27, 2017 at 06:09:31PM +0300, Amir Goldstein wrote:
->> >> Change test to output golden silence on success.
->> >
->> > Some words on why this change is needed would be good.
->> >
->> >>
->> >> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
->> >> ---
->> >>  tests/overlay/017     | 4 +++-
->> >>  tests/overlay/017.out | 7 +------
->> >>  2 files changed, 4 insertions(+), 7 deletions(-)
->> >>
->> >> diff --git a/tests/overlay/017 b/tests/overlay/017
->> >> index 5ca3040..d6ba2ae 100755
->> >> --- a/tests/overlay/017
->> >> +++ b/tests/overlay/017
->> >> @@ -89,11 +89,13 @@ done
->> >>
->> >>  # find by inode number - expect to find file by inode number
->> >>  cat $tmp.before | while read ino f; do
->> >> -     find $f -inum $ino -maxdepth 0 | _filter_scratch
->> >> +     find $SCRATCH_MNT/ -inum $ino -maxdepth 1 | grep -q $f || \
->> >> +             echo "$f not found by ino $ino"
->> >
->> > Hmm, if I run this find command manually, I got warning about -maxdepth
->> > position.
->> >
->> > # find `pwd` -inum 3932421 -maxdepth 1
->> > find: warning: you have specified the -maxdepth option after a non-option argument -inum, but options are not positional (-maxdepth affects tests specified before it as well as those specified after it).  Please specify options before other arguments.
->> >
->> > /root/xfstests/check
->> >
->> > Move -maxdepth option just after find path works fine
->> >
->> > # find `pwd` -maxdepth 1 -inum 3932421
->> > /root/xfstests/check
->> >
->> > But I'm not sure why I didn't see this warning by running overlay/017..
->>
->> man find...
->>
->> "The default behavior corresponds to -warn if standard input is a tty,
->> and to -nowarn otherwise."
->
-> That explains, thanks!
->
+On Fri, Apr 28, 2017 at 09:34:18AM +0300, Amir Goldstein wrote:
+> In your setup does strace find `pwd` -maxdepth 1 -inum 3932421
+> show newfstatat  for each inode?
+> It should be doing stat only for dirs according to the code and
+> Enabled features of find --version.
+> Not sure why it does newfstatat for every inode on my kvm machine...
+> 
+> Amir.
 
-In your setup does strace find `pwd` -maxdepth 1 -inum 3932421
-show newfstatat  for each inode?
-It should be doing stat only for dirs according to the code and
-Enabled features of find --version.
-Not sure why it does newfstatat for every inode on my kvm machine...
+My find only calls newfstatat on dirs, find version
+findutils-4.5.11-5.el7.x86_64
 
-Amir.
+# strace find `pwd` -maxdepth 1 -inum 3932421 2>&1 | grep newfstatat
+newfstatat(AT_FDCWD, "/root/xfstests", {st_mode=S_IFDIR|0755, st_size=4096, ...}, AT_SYMLINK_NOFOLLOW) = 0
+newfstatat(AT_FDCWD, "/root/xfstests", {st_mode=S_IFDIR|0755, st_size=4096, ...}, AT_SYMLINK_NOFOLLOW) = 0
+newfstatat(5, "testlogs", {st_mode=S_IFDIR|0755, st_size=4096, ...}, AT_SYMLINK_NOFOLLOW) = 0
+newfstatat(5, "tests", {st_mode=S_IFDIR|0775, st_size=4096, ...}, AT_SYMLINK_NOFOLLOW) = 0
+newfstatat(5, "btrfsstress-v5", {st_mode=S_IFDIR|0755, st_size=4096, ...}, AT_SYMLINK_NOFOLLOW) = 0
+newfstatat(5, "testpatch", {st_mode=S_IFDIR|0755, st_size=4096, ...}, AT_SYMLINK_NOFOLLOW) = 0
+newfstatat(5, "btrfsstress-v4", {st_mode=S_IFDIR|0755, st_size=4096, ...}, AT_SYMLINK_NOFOLLOW) = 0
+newfstatat(5, "include", {st_mode=S_IFDIR|0775, st_size=4096, ...}, AT_SYMLINK_NOFOLLOW) = 0
+newfstatat(5, "ltp", {st_mode=S_IFDIR|0775, st_size=4096, ...}, AT_SYMLINK_NOFOLLOW) = 0
+newfstatat(5, "autom4te.cache", {st_mode=S_IFDIR|0755, st_size=4096, ...}, AT_SYMLINK_NOFOLLOW) = 0
+newfstatat(5, "btrfsstress", {st_mode=S_IFDIR|0755, st_size=4096, ...}, AT_SYMLINK_NOFOLLOW) = 0
+newfstatat(5, "crash", {st_mode=S_IFDIR|0775, st_size=4096, ...}, AT_SYMLINK_NOFOLLOW) = 0
+newfstatat(5, "build", {st_mode=S_IFDIR|0775, st_size=4096, ...}, AT_SYMLINK_NOFOLLOW) = 0
+newfstatat(5, "tools", {st_mode=S_IFDIR|0775, st_size=4096, ...}, AT_SYMLINK_NOFOLLOW) = 0
+newfstatat(5, "lib", {st_mode=S_IFDIR|0775, st_size=4096, ...}, AT_SYMLINK_NOFOLLOW) = 0
+newfstatat(5, "btrfsstress-v2", {st_mode=S_IFDIR|0755, st_size=4096, ...}, AT_SYMLINK_NOFOLLOW) = 0
+newfstatat(5, ".git", {st_mode=S_IFDIR|0775, st_size=4096, ...}, AT_SYMLINK_NOFOLLOW) = 0
+newfstatat(5, "configs", {st_mode=S_IFDIR|0775, st_size=4096, ...}, AT_SYMLINK_NOFOLLOW) = 0
+newfstatat(5, "dmapi", {st_mode=S_IFDIR|0775, st_size=4096, ...}, AT_SYMLINK_NOFOLLOW) = 0
+newfstatat(5, "patches", {st_mode=S_IFDIR|0755, st_size=4096, ...}, AT_SYMLINK_NOFOLLOW) = 0
+newfstatat(5, "btrfsstress-v3", {st_mode=S_IFDIR|0755, st_size=4096, ...}, AT_SYMLINK_NOFOLLOW) = 0
+newfstatat(5, "src", {st_mode=S_IFDIR|0775, st_size=12288, ...}, AT_SYMLINK_NOFOLLOW) = 0
+newfstatat(5, "results", {st_mode=S_IFDIR|0755, st_size=4096, ...}, AT_SYMLINK_NOFOLLOW) = 0
+newfstatat(5, "m4", {st_mode=S_IFDIR|0775, st_size=4096, ...}, AT_SYMLINK_NOFOLLOW) = 0
+newfstatat(5, "doc", {st_mode=S_IFDIR|0775, st_size=4096, ...}, AT_SYMLINK_NOFOLLOW) = 0
+newfstatat(5, "common", {st_mode=S_IFDIR|0775, st_size=4096, ...}, AT_SYMLINK_NOFOLLOW) = 0
+
+Eryu
