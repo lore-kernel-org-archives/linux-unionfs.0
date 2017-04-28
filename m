@@ -1,77 +1,51 @@
-From: Eryu Guan <eguan@redhat.com>
-Subject: Re: [PATCH 1/5] overlay/017: silence test output
-Date: Fri, 28 Apr 2017 13:50:35 +0800
-Message-ID: <20170428055035.GN26397@eguan.usersys.redhat.com>
-References: <1493305775-12559-1-git-send-email-amir73il@gmail.com>
- <1493305775-12559-2-git-send-email-amir73il@gmail.com>
- <20170428053633.GL26397@eguan.usersys.redhat.com>
- <CAOQ4uxiQ__f4eoZT+qyszHPK7KwuW+NbDfFz3E=d6+nkSEKVRg@mail.gmail.com>
+From: "Darrick J. Wong" <darrick.wong@oracle.com>
+Subject: Re: [PATCH] xfs: publish UUID in struct super_block
+Date: Thu, 27 Apr 2017 22:56:58 -0700
+Message-ID: <20170428055658.GD22884@birch.djwong.org>
+References: <1493279911-2936-1-git-send-email-amir73il@gmail.com>
+ <20170427193118.GH23371@birch.djwong.org>
+ <984c6ee4-9ece-7424-420f-1fc26faca378@sandeen.net>
+ <20170428054945.rg54cm5yftfuqfsf@brain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:36974 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1163902AbdD1Fuh (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 28 Apr 2017 01:50:37 -0400
+Received: from aserp1040.oracle.com ([141.146.126.69]:41536 "EHLO
+        aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1756559AbdD1F5N (ORCPT
+        <rfc822;linux-unionfs@vger.kernel.org>);
+        Fri, 28 Apr 2017 01:57:13 -0400
 Content-Disposition: inline
-In-Reply-To: <CAOQ4uxiQ__f4eoZT+qyszHPK7KwuW+NbDfFz3E=d6+nkSEKVRg@mail.gmail.com>
+In-Reply-To: <20170428054945.rg54cm5yftfuqfsf@brain>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, Xiong Zhou <xzhou@redhat.com>, linux-unionfs@vger.kernel.org, fstests <fstests@vger.kernel.org>
+To: Andy Whitcroft <apw@canonical.com>
+Cc: Eric Sandeen <sandeen@sandeen.net>, Amir Goldstein <amir73il@gmail.com>, Christoph Hellwig <hch@lst.de>, Miklos Szeredi <miklos@szeredi.hu>, Vivek Goyal <vgoyal@redhat.com>, Al Viro <viro@zeniv.linux.org.uk>, linux-xfs@vger.kernel.org, linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
 
-On Fri, Apr 28, 2017 at 08:45:22AM +0300, Amir Goldstein wrote:
-> On Fri, Apr 28, 2017 at 8:36 AM, Eryu Guan <eguan@redhat.com> wrote:
-> > On Thu, Apr 27, 2017 at 06:09:31PM +0300, Amir Goldstein wrote:
-> >> Change test to output golden silence on success.
-> >
-> > Some words on why this change is needed would be good.
-> >
-> >>
-> >> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
-> >> ---
-> >>  tests/overlay/017     | 4 +++-
-> >>  tests/overlay/017.out | 7 +------
-> >>  2 files changed, 4 insertions(+), 7 deletions(-)
-> >>
-> >> diff --git a/tests/overlay/017 b/tests/overlay/017
-> >> index 5ca3040..d6ba2ae 100755
-> >> --- a/tests/overlay/017
-> >> +++ b/tests/overlay/017
-> >> @@ -89,11 +89,13 @@ done
-> >>
-> >>  # find by inode number - expect to find file by inode number
-> >>  cat $tmp.before | while read ino f; do
-> >> -     find $f -inum $ino -maxdepth 0 | _filter_scratch
-> >> +     find $SCRATCH_MNT/ -inum $ino -maxdepth 1 | grep -q $f || \
-> >> +             echo "$f not found by ino $ino"
-> >
-> > Hmm, if I run this find command manually, I got warning about -maxdepth
-> > position.
-> >
-> > # find `pwd` -inum 3932421 -maxdepth 1
-> > find: warning: you have specified the -maxdepth option after a non-option argument -inum, but options are not positional (-maxdepth affects tests specified before it as well as those specified after it).  Please specify options before other arguments.
-> >
-> > /root/xfstests/check
-> >
-> > Move -maxdepth option just after find path works fine
-> >
-> > # find `pwd` -maxdepth 1 -inum 3932421
-> > /root/xfstests/check
-> >
-> > But I'm not sure why I didn't see this warning by running overlay/017..
+On Fri, Apr 28, 2017 at 06:49:45AM +0100, Andy Whitcroft wrote:
+> On Thu, Apr 27, 2017 at 03:30:35PM -0500, Eric Sandeen wrote:
 > 
-> man find...
+> > It'd be trivial to make that a vfs function and set a flag on the vfs super
+> > if the UUID is not unique.  Would that be worthwhile?  I can send a patch 
+> > if so.
 > 
-> "The default behavior corresponds to -warn if standard input is a tty,
-> and to -nowarn otherwise."
+> This only tells you that the UUID it has is unique now.  As you are
+> contemplating storing them in the FS they have to be unique in space
+> _and_ time.  No check you can do now can tell you if the UUID is unique
+> for all time.  Right ?
 
-That explains, thanks!
+Well, since we're talking about all time: "probably" :P
 
-Eryu
+That said, Eric was talking about a refactoring of one of XFS's mount
+time checks that errors out if there's already a mounted fs with the
+same uuid.  We use it to avoid catastrophic mounting of the same fs from
+multiple (misconfigured) multipaths/snapshots/volumes/whatever on the
+same machine.  Not sure if that's useful for Amir's case.
+
+--D
 
 > 
-> > Anyway, moving -maxdepth around seems better to me.
-> >
-> 
-> Sure.
+> -apw
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-xfs" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
