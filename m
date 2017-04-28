@@ -1,7 +1,7 @@
-From: Amir Goldstein <amir73il@gmail.com>
+From: Miklos Szeredi <miklos@szeredi.hu>
 Subject: Re: [PATCH v2 05/11] ovl: lookup redirect by file handle
-Date: Fri, 28 Apr 2017 10:25:31 +0300
-Message-ID: <CAOQ4uxjGFRXHNNXtyqm0DAdakbSj0yc+sJLcFMmB+VUkMhk0pQ@mail.gmail.com>
+Date: Fri, 28 Apr 2017 09:55:03 +0200
+Message-ID: <CAJfpegtXZyX6aubi_TPP_532pb_y+Vv987U08pYkE2SPE0hOuw@mail.gmail.com>
 References: <1493025256-27188-1-git-send-email-amir73il@gmail.com>
  <1493025256-27188-6-git-send-email-amir73il@gmail.com> <CAJfpegtz0emDRTHDrq0CrSZXAcovrLAAsX+-WkPGDRbyZD5vOw@mail.gmail.com>
  <CAOQ4uxhu4LVJ-MAjH6McK31MYZ8__RkjCoK31kqJ-7fA2gu+SA@mail.gmail.com>
@@ -18,73 +18,68 @@ References: <1493025256-27188-1-git-send-email-amir73il@gmail.com>
  <CAOQ4uxiweaqzR3eT-StgtDFAHBuYhGRvAJE6v=XpH33MevpmoA@mail.gmail.com>
  <CAJfpegtTJmcLVrLOeQbhu4Q6sM0Mi_FRgr+vStF0k95QsWm5uQ@mail.gmail.com>
  <CAOQ4uxhQFis+uDL9KbiJ87hNU=QRsjHn6O4LShnt6JJFaOtNuA@mail.gmail.com>
- <CAJfpegv4kbUU1+t6+ZApQmnzbOEo-qiHOTy3Dj0Zh84zw9JeUw@mail.gmail.com> <CAOQ4uxjkwPwBF7F+Hrf0J_-s1fdCnBPC4wYd04fDtF8wSRaT_Q@mail.gmail.com>
+ <CAJfpegv4kbUU1+t6+ZApQmnzbOEo-qiHOTy3Dj0Zh84zw9JeUw@mail.gmail.com>
+ <CAOQ4uxjkwPwBF7F+Hrf0J_-s1fdCnBPC4wYd04fDtF8wSRaT_Q@mail.gmail.com> <CAOQ4uxjGFRXHNNXtyqm0DAdakbSj0yc+sJLcFMmB+VUkMhk0pQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-io0-f182.google.com ([209.85.223.182]:36060 "EHLO
+Received: from mail-io0-f182.google.com ([209.85.223.182]:33067 "EHLO
         mail-io0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933195AbdD1HZd (ORCPT
+        with ESMTP id S1164115AbdD1HzF (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 28 Apr 2017 03:25:33 -0400
-Received: by mail-io0-f182.google.com with SMTP id p80so52651228iop.3
-        for <linux-unionfs@vger.kernel.org>; Fri, 28 Apr 2017 00:25:32 -0700 (PDT)
-In-Reply-To: <CAOQ4uxjkwPwBF7F+Hrf0J_-s1fdCnBPC4wYd04fDtF8wSRaT_Q@mail.gmail.com>
+        Fri, 28 Apr 2017 03:55:05 -0400
+Received: by mail-io0-f182.google.com with SMTP id k87so53750493ioi.0
+        for <linux-unionfs@vger.kernel.org>; Fri, 28 Apr 2017 00:55:05 -0700 (PDT)
+In-Reply-To: <CAOQ4uxjGFRXHNNXtyqm0DAdakbSj0yc+sJLcFMmB+VUkMhk0pQ@mail.gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: linux-unionfs@vger.kernel.org, Vivek Goyal <vgoyal@redhat.com>
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>, Vivek Goyal <vgoyal@redhat.com>
 
-[Removed some CC from list to reduce spam over side question]
+On Fri, Apr 28, 2017 at 9:25 AM, Amir Goldstein <amir73il@gmail.com> wrote:
+> With all recent conclusions, do you see a reason to keep origin root fh?
 
-On Thu, Apr 27, 2017 at 7:08 PM, Amir Goldstein <amir73il@gmail.com> wrote:
+No, I'm quite happy if we don't :)
 
+> For snapshots I need just one thing -
+> Verify that origin.fh matches the lower of merge dir that was found by path.
+> The verification is very cheap (only encode the found dentry), so we may
+> do it in any configuration, just don't know how to act upon it.
 >
-> So to list everything for v4 in one place:
+> What to do in case verification fails may need configuration option.
+> For snapshots I need a 'strict' policy meaning that "stale lower" equals
+> "implicit opaque", but that will not do the right thing for copied layers case.
 >
-> 5. store uuid together with lower fh inside struct ovl_fh (in overlay.origin)
-> There does not seem to be a reason to store root fh though for non-dir
-> and its not relevant for for lookup of dir for snapshot case either (single
-> lower layer case)
+> The way I have it now in my snapshot patches is overload on the redirect_dir
+> mount option and add a value redirect_dir=fh. The build time and module
+> options are still boolean, but -o redirect_dir=fh sets config->redirect_dir=true
+> and config->redirect_fh=true.
+> config->redirect_fh can later be set to false if the prerequisite (samefs etc)
+> don't apply.
 >
+> I may need to separate the general ofs->redirect_fh capabiltiy from the mount
+> configuration (i.e. config->redirect_dir_fh or make
+> config->redirect_dir an enum).
+>
+> I could also add more policy options for redirect_dir, i.e.:
+> off - pre v4.10 compat
+> on - v4.10 compat (path only)
+> path - same as on, just to explicitly mention for when knowingly copying layers
+> fh - snapshot case, fh must be verified
+> auto - (the default?) best effort w.r.t lower dir renames -
+> lookup by path, verify fh, if fails try to lookup by fh, if fails use
+> path result anyway.
+>
+> I realize you prefer the "minimum configuration" policy, but I'm afraid we
+> are at a cross road of letting the user decide. No?
 
-Miklos,
+Is this only about dirs though?
 
-I see you are online so I might as well ask now again to make sure
-(because our weekends are not aligned).
+For now I'd just add a "verify_lower" option defaulting to off and not
+expand "redirect_dir".  That should take care of the snapshot case,
+right?
 
-With all recent conclusions, do you see a reason to keep origin root fh?
+The more complicated things can come later.
 
-For snapshots I need just one thing -
-Verify that origin.fh matches the lower of merge dir that was found by path.
-The verification is very cheap (only encode the found dentry), so we may
-do it in any configuration, just don't know how to act upon it.
-
-What to do in case verification fails may need configuration option.
-For snapshots I need a 'strict' policy meaning that "stale lower" equals
-"implicit opaque", but that will not do the right thing for copied layers case.
-
-The way I have it now in my snapshot patches is overload on the redirect_dir
-mount option and add a value redirect_dir=fh. The build time and module
-options are still boolean, but -o redirect_dir=fh sets config->redirect_dir=true
-and config->redirect_fh=true.
-config->redirect_fh can later be set to false if the prerequisite (samefs etc)
-don't apply.
-
-I may need to separate the general ofs->redirect_fh capabiltiy from the mount
-configuration (i.e. config->redirect_dir_fh or make
-config->redirect_dir an enum).
-
-I could also add more policy options for redirect_dir, i.e.:
-off - pre v4.10 compat
-on - v4.10 compat (path only)
-path - same as on, just to explicitly mention for when knowingly copying layers
-fh - snapshot case, fh must be verified
-auto - (the default?) best effort w.r.t lower dir renames -
-lookup by path, verify fh, if fails try to lookup by fh, if fails use
-path result anyway.
-
-I realize you prefer the "minimum configuration" policy, but I'm afraid we
-are at a cross road of letting the user decide. No?
-
-Amir.
+Thanks,
+Miklos
