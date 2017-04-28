@@ -1,65 +1,90 @@
-From: Eryu Guan <eguan@redhat.com>
-Subject: Re: [PATCH 1/5] overlay/017: silence test output
-Date: Fri, 28 Apr 2017 14:50:51 +0800
-Message-ID: <20170428065051.GO26397@eguan.usersys.redhat.com>
-References: <1493305775-12559-1-git-send-email-amir73il@gmail.com>
- <1493305775-12559-2-git-send-email-amir73il@gmail.com>
- <20170428053633.GL26397@eguan.usersys.redhat.com>
- <CAOQ4uxiQ__f4eoZT+qyszHPK7KwuW+NbDfFz3E=d6+nkSEKVRg@mail.gmail.com>
- <20170428055035.GN26397@eguan.usersys.redhat.com>
- <CAOQ4uxisjtWLnHxXg+PbaJjFOmY7ZFEkF+ggsWB+54FSHvMLjA@mail.gmail.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Subject: Re: [PATCH v2 05/11] ovl: lookup redirect by file handle
+Date: Fri, 28 Apr 2017 10:25:31 +0300
+Message-ID: <CAOQ4uxjGFRXHNNXtyqm0DAdakbSj0yc+sJLcFMmB+VUkMhk0pQ@mail.gmail.com>
+References: <1493025256-27188-1-git-send-email-amir73il@gmail.com>
+ <1493025256-27188-6-git-send-email-amir73il@gmail.com> <CAJfpegtz0emDRTHDrq0CrSZXAcovrLAAsX+-WkPGDRbyZD5vOw@mail.gmail.com>
+ <CAOQ4uxhu4LVJ-MAjH6McK31MYZ8__RkjCoK31kqJ-7fA2gu+SA@mail.gmail.com>
+ <CAOQ4uxiGwd-h2kJVLKkbyBC9YD_a=19ta1HB0F9KueqL_Pr3XA@mail.gmail.com>
+ <CAJfpegssdQ4E=uY3bq8zgXLHZsOQaJXpMWtCZ+V=yVM8vmcw5w@mail.gmail.com>
+ <CAOQ4uxgPpnnc5dC+PSuOOWdpnobdKZNzgBzmbeW4Lw6P8_--hg@mail.gmail.com>
+ <CAJfpeguaePn++tZBvd-2Z68a_8WGfy7EuWLzODyv60E45C6WSQ@mail.gmail.com>
+ <CAOQ4uxiozume+xj4KHiDTwqgWmmXKL+6Ksw1EDWXuZYDFa2KVQ@mail.gmail.com>
+ <CAJfpegtv4kN4d7ti5f5p=51aQk8U2UT9xdsvZkYoXWOfQ5BNcQ@mail.gmail.com>
+ <CAOQ4uxhi4GReBbBzd8NdCJ+emzMEa1COYAtcaKziMiaZAV96uw@mail.gmail.com>
+ <CAOQ4uxiGzp2G3qSC7be3nVnvjYJZuHAmY7Q1Oc+jM+pZWtuHig@mail.gmail.com>
+ <CAJfpegtAx_KXb6v0dBAD0AJvLeTCFF1X4rfdAptn0xPqRHiLBQ@mail.gmail.com>
+ <CAJfpegt9-w_2wQ_Y94w8AcuHYtzJ1fW6n21=eQPbyYqsNawOpQ@mail.gmail.com>
+ <CAOQ4uxiweaqzR3eT-StgtDFAHBuYhGRvAJE6v=XpH33MevpmoA@mail.gmail.com>
+ <CAJfpegtTJmcLVrLOeQbhu4Q6sM0Mi_FRgr+vStF0k95QsWm5uQ@mail.gmail.com>
+ <CAOQ4uxhQFis+uDL9KbiJ87hNU=QRsjHn6O4LShnt6JJFaOtNuA@mail.gmail.com>
+ <CAJfpegv4kbUU1+t6+ZApQmnzbOEo-qiHOTy3Dj0Zh84zw9JeUw@mail.gmail.com> <CAOQ4uxjkwPwBF7F+Hrf0J_-s1fdCnBPC4wYd04fDtF8wSRaT_Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:44836 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S938590AbdD1Guy (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 28 Apr 2017 02:50:54 -0400
-Content-Disposition: inline
-In-Reply-To: <CAOQ4uxisjtWLnHxXg+PbaJjFOmY7ZFEkF+ggsWB+54FSHvMLjA@mail.gmail.com>
+Received: from mail-io0-f182.google.com ([209.85.223.182]:36060 "EHLO
+        mail-io0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933195AbdD1HZd (ORCPT
+        <rfc822;linux-unionfs@vger.kernel.org>);
+        Fri, 28 Apr 2017 03:25:33 -0400
+Received: by mail-io0-f182.google.com with SMTP id p80so52651228iop.3
+        for <linux-unionfs@vger.kernel.org>; Fri, 28 Apr 2017 00:25:32 -0700 (PDT)
+In-Reply-To: <CAOQ4uxjkwPwBF7F+Hrf0J_-s1fdCnBPC4wYd04fDtF8wSRaT_Q@mail.gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, Xiong Zhou <xzhou@redhat.com>, linux-unionfs@vger.kernel.org, fstests <fstests@vger.kernel.org>
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: linux-unionfs@vger.kernel.org, Vivek Goyal <vgoyal@redhat.com>
 
-On Fri, Apr 28, 2017 at 09:34:18AM +0300, Amir Goldstein wrote:
-> In your setup does strace find `pwd` -maxdepth 1 -inum 3932421
-> show newfstatat  for each inode?
-> It should be doing stat only for dirs according to the code and
-> Enabled features of find --version.
-> Not sure why it does newfstatat for every inode on my kvm machine...
-> 
-> Amir.
+[Removed some CC from list to reduce spam over side question]
 
-My find only calls newfstatat on dirs, find version
-findutils-4.5.11-5.el7.x86_64
+On Thu, Apr 27, 2017 at 7:08 PM, Amir Goldstein <amir73il@gmail.com> wrote:
 
-# strace find `pwd` -maxdepth 1 -inum 3932421 2>&1 | grep newfstatat
-newfstatat(AT_FDCWD, "/root/xfstests", {st_mode=S_IFDIR|0755, st_size=4096, ...}, AT_SYMLINK_NOFOLLOW) = 0
-newfstatat(AT_FDCWD, "/root/xfstests", {st_mode=S_IFDIR|0755, st_size=4096, ...}, AT_SYMLINK_NOFOLLOW) = 0
-newfstatat(5, "testlogs", {st_mode=S_IFDIR|0755, st_size=4096, ...}, AT_SYMLINK_NOFOLLOW) = 0
-newfstatat(5, "tests", {st_mode=S_IFDIR|0775, st_size=4096, ...}, AT_SYMLINK_NOFOLLOW) = 0
-newfstatat(5, "btrfsstress-v5", {st_mode=S_IFDIR|0755, st_size=4096, ...}, AT_SYMLINK_NOFOLLOW) = 0
-newfstatat(5, "testpatch", {st_mode=S_IFDIR|0755, st_size=4096, ...}, AT_SYMLINK_NOFOLLOW) = 0
-newfstatat(5, "btrfsstress-v4", {st_mode=S_IFDIR|0755, st_size=4096, ...}, AT_SYMLINK_NOFOLLOW) = 0
-newfstatat(5, "include", {st_mode=S_IFDIR|0775, st_size=4096, ...}, AT_SYMLINK_NOFOLLOW) = 0
-newfstatat(5, "ltp", {st_mode=S_IFDIR|0775, st_size=4096, ...}, AT_SYMLINK_NOFOLLOW) = 0
-newfstatat(5, "autom4te.cache", {st_mode=S_IFDIR|0755, st_size=4096, ...}, AT_SYMLINK_NOFOLLOW) = 0
-newfstatat(5, "btrfsstress", {st_mode=S_IFDIR|0755, st_size=4096, ...}, AT_SYMLINK_NOFOLLOW) = 0
-newfstatat(5, "crash", {st_mode=S_IFDIR|0775, st_size=4096, ...}, AT_SYMLINK_NOFOLLOW) = 0
-newfstatat(5, "build", {st_mode=S_IFDIR|0775, st_size=4096, ...}, AT_SYMLINK_NOFOLLOW) = 0
-newfstatat(5, "tools", {st_mode=S_IFDIR|0775, st_size=4096, ...}, AT_SYMLINK_NOFOLLOW) = 0
-newfstatat(5, "lib", {st_mode=S_IFDIR|0775, st_size=4096, ...}, AT_SYMLINK_NOFOLLOW) = 0
-newfstatat(5, "btrfsstress-v2", {st_mode=S_IFDIR|0755, st_size=4096, ...}, AT_SYMLINK_NOFOLLOW) = 0
-newfstatat(5, ".git", {st_mode=S_IFDIR|0775, st_size=4096, ...}, AT_SYMLINK_NOFOLLOW) = 0
-newfstatat(5, "configs", {st_mode=S_IFDIR|0775, st_size=4096, ...}, AT_SYMLINK_NOFOLLOW) = 0
-newfstatat(5, "dmapi", {st_mode=S_IFDIR|0775, st_size=4096, ...}, AT_SYMLINK_NOFOLLOW) = 0
-newfstatat(5, "patches", {st_mode=S_IFDIR|0755, st_size=4096, ...}, AT_SYMLINK_NOFOLLOW) = 0
-newfstatat(5, "btrfsstress-v3", {st_mode=S_IFDIR|0755, st_size=4096, ...}, AT_SYMLINK_NOFOLLOW) = 0
-newfstatat(5, "src", {st_mode=S_IFDIR|0775, st_size=12288, ...}, AT_SYMLINK_NOFOLLOW) = 0
-newfstatat(5, "results", {st_mode=S_IFDIR|0755, st_size=4096, ...}, AT_SYMLINK_NOFOLLOW) = 0
-newfstatat(5, "m4", {st_mode=S_IFDIR|0775, st_size=4096, ...}, AT_SYMLINK_NOFOLLOW) = 0
-newfstatat(5, "doc", {st_mode=S_IFDIR|0775, st_size=4096, ...}, AT_SYMLINK_NOFOLLOW) = 0
-newfstatat(5, "common", {st_mode=S_IFDIR|0775, st_size=4096, ...}, AT_SYMLINK_NOFOLLOW) = 0
+>
+> So to list everything for v4 in one place:
+>
+> 5. store uuid together with lower fh inside struct ovl_fh (in overlay.origin)
+> There does not seem to be a reason to store root fh though for non-dir
+> and its not relevant for for lookup of dir for snapshot case either (single
+> lower layer case)
+>
 
-Eryu
+Miklos,
+
+I see you are online so I might as well ask now again to make sure
+(because our weekends are not aligned).
+
+With all recent conclusions, do you see a reason to keep origin root fh?
+
+For snapshots I need just one thing -
+Verify that origin.fh matches the lower of merge dir that was found by path.
+The verification is very cheap (only encode the found dentry), so we may
+do it in any configuration, just don't know how to act upon it.
+
+What to do in case verification fails may need configuration option.
+For snapshots I need a 'strict' policy meaning that "stale lower" equals
+"implicit opaque", but that will not do the right thing for copied layers case.
+
+The way I have it now in my snapshot patches is overload on the redirect_dir
+mount option and add a value redirect_dir=fh. The build time and module
+options are still boolean, but -o redirect_dir=fh sets config->redirect_dir=true
+and config->redirect_fh=true.
+config->redirect_fh can later be set to false if the prerequisite (samefs etc)
+don't apply.
+
+I may need to separate the general ofs->redirect_fh capabiltiy from the mount
+configuration (i.e. config->redirect_dir_fh or make
+config->redirect_dir an enum).
+
+I could also add more policy options for redirect_dir, i.e.:
+off - pre v4.10 compat
+on - v4.10 compat (path only)
+path - same as on, just to explicitly mention for when knowingly copying layers
+fh - snapshot case, fh must be verified
+auto - (the default?) best effort w.r.t lower dir renames -
+lookup by path, verify fh, if fails try to lookup by fh, if fails use
+path result anyway.
+
+I realize you prefer the "minimum configuration" policy, but I'm afraid we
+are at a cross road of letting the user decide. No?
+
+Amir.
