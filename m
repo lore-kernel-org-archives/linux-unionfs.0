@@ -1,66 +1,63 @@
-From: "Darrick J. Wong" <darrick.wong@oracle.com>
-Subject: Re: [PATCH v2] xfs: publish UUID in struct super_block
-Date: Fri, 28 Apr 2017 08:13:09 -0700
-Message-ID: <20170428151309.GE22884@birch.djwong.org>
-References: <1493388001-15879-1-git-send-email-amir73il@gmail.com>
+From: Dave Chinner <david@fromorbit.com>
+Subject: Re: [PATCH 0/5] VFS API for getting filesystem's UUID
+Date: Sun, 30 Apr 2017 09:01:59 +1000
+Message-ID: <20170429230159.GM12369@dastard>
+References: <1493283574-1497-1-git-send-email-amir73il@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from aserp1040.oracle.com ([141.146.126.69]:38329 "EHLO
-        aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1034329AbdD1PNU (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 28 Apr 2017 11:13:20 -0400
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1493388001-15879-1-git-send-email-amir73il@gmail.com>
-Sender: linux-unionfs-owner@vger.kernel.org
-List-Id: linux-unionfs@vger.kernel.org
+In-Reply-To: <1493283574-1497-1-git-send-email-amir73il@gmail.com>
+Sender: linux-fsdevel-owner@vger.kernel.org
 To: Amir Goldstein <amir73il@gmail.com>
-Cc: Christoph Hellwig <hch@lst.de>, Miklos Szeredi <miklos@szeredi.hu>, Vivek Goyal <vgoyal@redhat.com>, Al Viro <viro@zeniv.linux.org.uk>, linux-xfs@vger.kernel.org, linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
+Cc: Miklos Szeredi <miklos@szeredi.hu>, "Darrick J . Wong" <darrick.wong@oracle.com>, Christoph Hellwig <hch@lst.de>, Theodore Ts'o <tytso@mit.edu>, Jaegeuk Kim <jaegeuk@kernel.org>, Mark Fasheh <mfasheh@versity.com>, Al Viro <viro@zeniv.linux.org.uk>, linux-xfs@vger.kernel.org, linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
+List-Id: linux-unionfs@vger.kernel.org
 
-On Fri, Apr 28, 2017 at 05:00:01PM +0300, Amir Goldstein wrote:
-> Copy the uuid of the filesystem to struct super_block s_uuid field,
-> as several other filesystems already do.  Copy regardless of the nouuid
-> mount option, because other filesystems also do not guaranty uniqueness
-> of the s_uuid field in super_block struct.
+On Thu, Apr 27, 2017 at 11:59:29AM +0300, Amir Goldstein wrote:
+> Miklos,
 > 
-> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
-
-Looks ok,
-Reviewed-by: Darrick J. Wong <darrick.wong@oracle.com>
-
---D
-
-> ---
->  fs/xfs/xfs_mount.c | 4 ++++
->  1 file changed, 4 insertions(+)
+> As you observed, the sb->s_uuid field is not always filled by filesystems.
 > 
-> Darrick,
+> Consumers, like overlayfs, that wish to use this field can check if is
+> zeroed out as an indication for valid value.
 > 
-> Per your request I moved the copy above nouuid check.
+> Christoph suggested to make the test more explicit and require the
+> filesystems that fill the s_uuid field to set a super block flag.
 > 
-> Cheers,
+> Do you agree with the proposed API?
+> 
+> The first patch in the series defines the flag.
+> If you push this patch through your tree to Al or Linus, then filesystem
+> maintainers could later pick the individual patches to their trees.
+> 
+> The xfs patch is based on a patch I already sent to Darrick for filling
+> out the s_uuid field.
+> 
+> Thanks,
 > Amir.
 > 
-> diff --git a/fs/xfs/xfs_mount.c b/fs/xfs/xfs_mount.c
-> index 450bde6..4c0d8d7 100644
-> --- a/fs/xfs/xfs_mount.c
-> +++ b/fs/xfs/xfs_mount.c
-> @@ -73,6 +73,10 @@ xfs_uuid_mount(
->  	uuid_t			*uuid = &mp->m_sb.sb_uuid;
->  	int			hole, i;
->  
-> +	/* Publish UUID in struct super_block */
-> +	BUILD_BUG_ON(sizeof(mp->m_super->s_uuid) != sizeof(uuid_t));
-> +	memcpy(&mp->m_super->s_uuid, uuid, sizeof(uuid_t));
-> +
->  	if (mp->m_flags & XFS_MOUNT_NOUUID)
->  		return 0;
->  
-> -- 
-> 2.7.4
+> Amir Goldstein (5):
+>   vfs: define a flag to indicate sb->s_uuid is available
+>   ext4: set the super block SB_I_HAVE_UUID flag
+>   f2fs: set the super block SB_I_HAVE_UUID flag
+>   ocfs2: set the super block SB_I_HAVE_UUID flag
+>   xfs: set the super block SB_I_HAVE_UUID flag
 > 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-xfs" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>  fs/ext4/super.c    | 1 +
+>  fs/f2fs/super.c    | 1 +
+>  fs/ocfs2/super.c   | 1 +
+>  fs/xfs/xfs_mount.c | 1 +
+>  include/linux/fs.h | 3 +++
+>  5 files changed, 7 insertions(+)
+
+Doesn't this make the struct export_opierations .get_uuid method
+somewhat redundant?  Shouldn't that now be replaced with generic
+functions that looks at SB_I_HAVE_UUID before allowing PNFS export
+is allowed and then just use s_uuid directly in the PNFS code?
+
+Cheers,
+
+Dave.
+-- 
+Dave Chinner
+david@fromorbit.com
