@@ -1,63 +1,62 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH v4 11/15] ovl: persistent inode number for directories
-Date: Mon,  1 May 2017 16:42:02 +0300
-Message-ID: <1493646126-10101-12-git-send-email-amir73il@gmail.com>
+Subject: [PATCH v4 13/15] ovl: persistent inode numbers for upper hardlinks
+Date: Mon,  1 May 2017 16:42:04 +0300
+Message-ID: <1493646126-10101-14-git-send-email-amir73il@gmail.com>
 References: <1493646126-10101-1-git-send-email-amir73il@gmail.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wr0-f195.google.com ([209.85.128.195]:35713 "EHLO
-        mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S642154AbdEANmS (ORCPT
+Received: from mail-wr0-f194.google.com ([209.85.128.194]:33676 "EHLO
+        mail-wr0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1425255AbdEANmW (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 1 May 2017 09:42:18 -0400
+        Mon, 1 May 2017 09:42:22 -0400
 In-Reply-To: <1493646126-10101-1-git-send-email-amir73il@gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: Miklos Szeredi <miklos@szeredi.hu>
 Cc: Vivek Goyal <vgoyal@redhat.com>, Al Viro <viro@zeniv.linux.org.uk>, linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
 
-stat(2) on overlay directories reports the overlay temp inode
-number, which is constant across copy up, but is not persistent.
+An upper type non directory dentry that is a copy up target
+should have a reference to its lower copy up origin.
 
-When all layers are on the same fs, report the copy up origin inode
-number for directories.
+There are three ways for an upper type dentry to be instantiated:
+1. A lower type dentry that is being copied up
+2. An entry that is found in upper dir by ovl_lookup()
+3. A negative dentry is hardlinked to an upper type dentry
 
-This inode number is persistent, unique across the overlay mount and
-constant across copy up.
+In the first case, the lower reference is set before copy up.
+In the second case, the lower reference is found by ovl_lookup().
+In the last case of hardlinked upper dentry, it is not easy to
+update the lower reference of the negative dentry.  Instead,
+drop the newly hardlinked negative dentry from dcache and let
+the next access call ovl_lookup() to find its lower reference.
+
+This makes sure that the inode number reported by stat(2) after
+the hardlink is created is the same inode number that will be
+reported by stat(2) after mount cycle, which is the inode number
+of the lower copy up origin of the hardlink source.
+
+NOTE that this does not fix breaking of lower hardlinks on copy
+up, but only fixes the case of lower nlink == 1, whose upper copy
+up inode is hardlinked in upper dir.
 
 Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- fs/overlayfs/dir.c | 18 +++++++++++++++++-
- 1 file changed, 17 insertions(+), 1 deletion(-)
+ fs/overlayfs/dir.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
 diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
-index bfabc65..17aa007 100644
+index 17aa007..d275fa3 100644
 --- a/fs/overlayfs/dir.c
 +++ b/fs/overlayfs/dir.c
-@@ -154,8 +154,24 @@ static int ovl_dir_getattr(const struct path *path, struct kstat *stat,
- 	if (err)
- 		return err;
+@@ -198,6 +198,9 @@ static void ovl_instantiate(struct dentry *dentry, struct inode *inode,
+ 		inc_nlink(inode);
+ 	}
+ 	d_instantiate(dentry, inode);
++	/* Force lookup of new upper hardlink to find its lower */
++	if (hardlink)
++		d_drop(dentry);
+ }
  
-+	/*
-+	 * Always use the overlay st_dev for directories, so 'find -xdev' will
-+	 * scan the entire overlay mount and won't cross the overlay mount
-+	 * boundaries.
-+	 */
- 	stat->dev = dentry->d_sb->s_dev;
--	stat->ino = dentry->d_inode->i_ino;
-+	/*
-+	 * When all layers are not on the same fs, the pair real st_ino and
-+	 * overlay st_dev is not unique, so use the non persistent overlay
-+	 * st_ino.
-+	 *
-+	 * When all layers are on the same fs, use the copy up origin st_ino,
-+	 * which is persistent, unique and constant across copy up.
-+	 */
-+	if (!ovl_same_sb(dentry->d_sb))
-+		stat->ino = dentry->d_inode->i_ino;
-+	else if (OVL_TYPE_UPPER(type) && OVL_TYPE_MERGE(type))
-+		stat->ino = ovl_dentry_lower(dentry)->d_inode->i_ino;
- 
- 	/*
- 	 * It's probably not worth it to count subdirs to get the
+ static bool ovl_type_merge(struct dentry *dentry)
 -- 
 2.7.4
