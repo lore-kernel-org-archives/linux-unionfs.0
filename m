@@ -1,42 +1,24 @@
-From: Amir Goldstein <amir73il@gmail.com>
+From: Christoph Hellwig <hch@lst.de>
 Subject: Re: [PATCH v2] xfs: publish UUID in struct super_block
-Date: Tue, 2 May 2017 17:13:56 +0300
-Message-ID: <CAOQ4uxjKbgCwhV4iBNVyfmS5+iR3o1BPF+PDj7YmrPP-qTv1eA@mail.gmail.com>
-References: <1493388001-15879-1-git-send-email-amir73il@gmail.com> <20170502073019.GD11582@lst.de>
+Date: Tue, 2 May 2017 16:17:51 +0200
+Message-ID: <20170502141751.GA21564@lst.de>
+References: <1493388001-15879-1-git-send-email-amir73il@gmail.com> <20170502073019.GD11582@lst.de> <CAOQ4uxjKbgCwhV4iBNVyfmS5+iR3o1BPF+PDj7YmrPP-qTv1eA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-it0-f68.google.com ([209.85.214.68]:36790 "EHLO
-        mail-it0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750735AbdEBON5 (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 2 May 2017 10:13:57 -0400
-In-Reply-To: <20170502073019.GD11582@lst.de>
-Sender: linux-unionfs-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CAOQ4uxjKbgCwhV4iBNVyfmS5+iR3o1BPF+PDj7YmrPP-qTv1eA@mail.gmail.com>
+Sender: linux-fsdevel-owner@vger.kernel.org
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: Christoph Hellwig <hch@lst.de>, "Darrick J . Wong" <darrick.wong@oracle.com>, Miklos Szeredi <miklos@szeredi.hu>, Vivek Goyal <vgoyal@redhat.com>, Al Viro <viro@zeniv.linux.org.uk>, linux-xfs <linux-xfs@vger.kernel.org>, linux-unionfs@vger.kernel.org, linux-fsdevel <linux-fsdevel@vger.kernel.org>
 List-Id: linux-unionfs@vger.kernel.org
-To: Christoph Hellwig <hch@lst.de>
-Cc: "Darrick J . Wong" <darrick.wong@oracle.com>, Miklos Szeredi <miklos@szeredi.hu>, Vivek Goyal <vgoyal@redhat.com>, Al Viro <viro@zeniv.linux.org.uk>, linux-xfs <linux-xfs@vger.kernel.org>, linux-unionfs@vger.kernel.org, linux-fsdevel <linux-fsdevel@vger.kernel.org>
 
-On Tue, May 2, 2017 at 10:30 AM, Christoph Hellwig <hch@lst.de> wrote:
-> On Fri, Apr 28, 2017 at 05:00:01PM +0300, Amir Goldstein wrote:
->> Copy the uuid of the filesystem to struct super_block s_uuid field,
->> as several other filesystems already do.  Copy regardless of the nouuid
->> mount option, because other filesystems also do not guaranty uniqueness
->> of the s_uuid field in super_block struct.
->
-> No guaranteeing uniqueness will create problems, don't do that.
+On Tue, May 02, 2017 at 05:13:56PM +0300, Amir Goldstein wrote:
+> How can it create problems if uniqueness is not guaranteed with
+> Current s_uuid? Even if we did make the xfs uuid table code generic
+> It couldn't be the vfs default. Filesystems will have to opt in.
 
-How can it create problems if uniqueness is not guaranteed with
-Current s_uuid? Even if we did make the xfs uuid table code generic
-It couldn't be the vfs default. Filesystems will have to opt in.
+It creates problems if you e.g. mount an ext4 fs and a dm snaphot of
+it.  The non-XFS file systems are simply buggy in this regard.
 
->
-> Other file system didn't use to do the uuid table check that XFS did
-> either, and that's a fatal bug.  In the long run we'll need to move
-> this check to the VFS now that we have s_uuid.
->
-> Also while checking for a nul uuid is probably ok we need to formalize
-> that at least that the check is needed.  Preferably by adding a little
-> inline helper for it, and documenting it.
-
-Makes sense. I'll post a patch.
+Non-uniqueue uuids are an absolute no-go.
