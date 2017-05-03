@@ -1,93 +1,103 @@
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: Re: [RFC][PATCH] linux/uuid.h: hoist uuid_is_null() helper from
- libnvdimm
-Date: Wed, 03 May 2017 14:00:33 +0300
-Message-ID: <1493809233.30052.1.camel@linux.intel.com>
-References: <1493756363-5113-1-git-send-email-amir73il@gmail.com>
-         <1493802823.4154.3.camel@linux.intel.com>
-         <CAOQ4uxh4Ysg9Q_K2sK9zefvid3hvzswDKxSa-QTN9_D0fAWvyQ@mail.gmail.com>
+From: "zhangyi (F)" <yi.zhang@huawei.com>
+Subject: Re: [PATCH] ovl: fix visible whiteout on not merged dir
+Date: Wed, 3 May 2017 19:25:43 +0800
+Message-ID: <cd632f46-3d8c-87ec-332a-d8bb205f1c71@huawei.com>
+References: <1493797155-43637-1-git-send-email-yi.zhang@huawei.com>
+ <CAOQ4uxiiVxZt+bQ-vo7QAekm8KP51uGx87h=hyYVRRLfyyNySA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mga04.intel.com ([192.55.52.120]:14560 "EHLO mga04.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751061AbdECLDj (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 3 May 2017 07:03:39 -0400
-In-Reply-To: <CAOQ4uxh4Ysg9Q_K2sK9zefvid3hvzswDKxSa-QTN9_D0fAWvyQ@mail.gmail.com>
+Received: from szxga02-in.huawei.com ([45.249.212.188]:5856 "EHLO
+        szxga02-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752854AbdECLZy (ORCPT
+        <rfc822;linux-unionfs@vger.kernel.org>);
+        Wed, 3 May 2017 07:25:54 -0400
+In-Reply-To: <CAOQ4uxiiVxZt+bQ-vo7QAekm8KP51uGx87h=hyYVRRLfyyNySA@mail.gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: Amir Goldstein <amir73il@gmail.com>
-Cc: Christoph Hellwig <hch@lst.de>, Miklos Szeredi <miklos@szeredi.hu>, Mimi Zohar <zohar@linux.vnet.ibm.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Richard Weinberger <richard@nod.at>, "Darrick J . Wong" <darrick.wong@oracle.com>, Mark Fasheh <mfasheh@versity.com>, Al Viro <viro@zeniv.linux.org.uk>, linux-xfs <linux-xfs@vger.kernel.org>, linux-unionfs@vger.kernel.org, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Dan Williams <dan.j.williams@intel.com>, David Howells <dhowells@redhat.com>
+Cc: linux-unionfs@vger.kernel.org, Miklos Szeredi <miklos@szeredi.hu>, miaoxie@huawei.com, zhaohongjiang@huawei.com
 
-On Wed, 2017-05-03 at 13:05 +0300, Amir Goldstein wrote:
-> On Wed, May 3, 2017 at 12:13 PM, Andy Shevchenko
-> <andriy.shevchenko@linux.intel.com> wrote:
-> > On Tue, 2017-05-02 at 23:19 +0300, Amir Goldstein wrote:
-> > > We need a helper for VFS to check if struct super_block field
-> > > s_uuid
-> > > was filled by the filesystem, before consumers can use it.
-> > > 
-> > > The libnvdimm code already has a private helper to check if uuid
-> > > is
-> > > null
-> > > and the helper name is not using a private namespace prefix, which
-> > > prevents us from using the same helper name as a common function.
-> > > 
-> > 
-> > Hmm...
-> > Have you checked my branch here:
-> > https://bitbucket.org/andy-shev/linux/branch/topic%2Fuuid
-> > ?
-> > 
+
+
+on 2017/5/3 16:38, Amir Goldstein wrote:
+> On Wed, May 3, 2017 at 10:39 AM, zhangyi (F) <yi.zhang@huawei.com> wrote:
+>> When we mount overlayfs which have whiteout on the directory that
+>> are not merged(single lower or upper layer only), the whiteout will
+>> be visible on the merge layer, because of readdir on this directory
+>> is simply handled by the underlying directory.
+>>
 > 
-> Hi Andy,
+> Hi Zhang,
 > 
-> No I have not seen your patches. When do you plan to post them?
-
-Some of them had been sent in different series recently and ~year ago.
-Some need to be polished and tested first.
-
-So, somewhere in the future for sure.
-
-> > Probably not.
-> > I have number of patches to make UUID API used kernel wide.
-> > 
+> I am interested in one specific use case of visible whiteouts in non-merge
+> dir and that is the use case of a lower dir that has been deleted leaving
+> upper with possible visible whiteouts.
 > 
-> That looks nice, but I see you did not get to converting many other
-> users that represent uuid as u8[16], like libnvdimm, bluetooth,
-> various filesystems and users of sb->s_uuid (IMA).
-
-Yes, my main goal is to make ACPI glue layer to use UUID API.
-
-I didn't touch and I won't touch filesystems since it's a huge area
-which I have no knowledge of.
-
-For the rest I might be interested to do, but have no time.
-
+> With some of my patches related to constant inode numbers, that use case
+> could be fixed simply by replacing OVL_TYPE_MERGE in readdir.c with
+> OVL_TYPE_COPYUP. Every dir that has *ever* been copied up is marked
+> with an xattr overlay.origin, which may or may not be uptodate, but will
+> forever indicate that this is a 'suspect impure' directory.
 > 
-> > ...including helpers for null UUID check:
-> > https://bitbucket.org/andy-shev/linux/commits/79029ebe2c32830f82effc
-> > 0f0b
-> > 62cce2b6eb7fdb?at=topic/uuid
-> > 
+> My question is whether this solution is sufficient to cover your use cases
+> and if not, where and how did those whiteouts get to your lower/upper
+> impure directory?
 > 
-> I wouldn't mind using is_null_uuid_le(sb->s_uuid) myself and that is
-> how
-> I implemented the test in my current patch set, but I can hear the
-> voices of
-> those saying that there should be a 'natural' helper uuid_is_null(u8
-> *) for the
-> users that represent uuid as u8[16] (i.e. filesystems and sb->s_uuid).
+> You patch does provide extra optimization for 'purifying' a 'suspect impure'
+> directory, but:
+> 1. Not sure if that optimization is that important.
+> 2. Upcoming changes related to constant inode numbers will have to use
+>     ovl_dir_read_merged() for 'suspect impure' dir, not only if that dir may
+>     contain whiteouts, but also if that dir may contain copyups, namely files
+>     with overlay.origin, which may need to report non-real d_ino.
+> 
 
-u8 * doesn't represent UUID as a type.
-Perhaps we need to reflect this in the name of the function somehow.
+  I think there are three(or more) cases can cause this problem:
+  1. Some one create whiteouts in lower/upper's single subdir manually(as my
+     reproducer show) and then mount overlayfs;
+  2. User create whiteouts in upper's opaque dir manualy and remount
+     overlayfs.
+     For example:
+     mkdir -p low/dir up/dir work merge
+     mount -t overlay -o lowerdir=low,upperdir=up,workdir=work overlayfs merge
+     rm -rf merge/dir
+     mkdir merge/dir
+     umount merge
+     mknod up/dir/aa c 0 0
+     mount -t overlay -o lowerdir=low,upperdir=up,workdir=work overlayfs merge
+     ls -l merge/dir
 
-> Also, I suggest naming your helpers uuid_{le|be}_is_null() to maintain
-> the uuid_* naming convention with other helpers you added to uuid.h.
+        ls: cannot access merge/dir/aa: No such file or directory
+        total 0
+        c????????? ? ? ? ?            ? aa
 
-I'm open to a name that satisfies most of us. So, no objections here.
+  3. User clean lower dir and remount overlayfs (as you interested in).
 
--- 
-Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Intel Finland Oy
+  If we use OVL_TYPE_COPYUP in readdir.c, we can find out 'suspect impure'
+  directory in the third case only, we still can not make sure dir have
+  whiteout or not. Especially in the first case, we even haven't any
+  information to deduce it's 'suspect' or not. (Am I miss something ?)
+
+  I want to find a way to fix this and minimize the performance impact,
+  so I use the merged flow in ovl_iterate() to 'purifying' the dir is 'pure'
+  or not, if this dir is not merged and don't have whiteout, no need to create
+  dir cache.
+
+  I didn't find a better way, if it's not important, can we use the merged
+  flow to all directories and remove the is_real flag (not handled by
+  underlying directory)? or other better solutions?
+
+> Isn't is_real (or is_pure) redundant?, i.e.:
+>             od->is_real = !OVL_TYPE_MERGE(type) && ovl_dir_pure(dentry);
+> 
+> You always && them together and the only place you use them separately
+> is ovl_dir_reset(), but you also check OVL_TYPE_MERGE(type) and
+> ovl_dir_pure(dentry) in that function anyway, so you could just reset
+> od->real to the definition above.
+> 
+  Indeed, thanks for your suggestion.
+
+Thanks,
+zhangyi
