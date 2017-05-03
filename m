@@ -1,38 +1,76 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [RFC][PATCH] linux/uuid.h: hoist uuid_is_null() helper from libnvdimm
-Date: Wed, 3 May 2017 21:34:51 +0300
-Message-ID: <CAOQ4uxg6=X8GVfWBBYwYLHyNcx7E856kEFM339abLsVEbWzi_Q@mail.gmail.com>
-References: <1493756363-5113-1-git-send-email-amir73il@gmail.com>
- <1493802823.4154.3.camel@linux.intel.com> <CAOQ4uxh4Ysg9Q_K2sK9zefvid3hvzswDKxSa-QTN9_D0fAWvyQ@mail.gmail.com>
- <1493809233.30052.1.camel@linux.intel.com> <CAOQ4uxj3ppxm4LC6xr54n6GUF1T=yhQ4-5YJfbjXcBJugVENZQ@mail.gmail.com>
- <1493829352.30052.6.camel@linux.intel.com> <1493831747.30052.10.camel@linux.intel.com>
+Subject: Re: [PATCH v4 00/15] overlayfs constant inode numbers
+Date: Wed, 3 May 2017 23:01:47 +0300
+Message-ID: <CAOQ4uxgprhDhRzWyTEYUaYKdvUeYWNSafreu1r3TA-2r7xg-aA@mail.gmail.com>
+References: <1493646126-10101-1-git-send-email-amir73il@gmail.com>
+ <CAJfpegs4SnbHVTa43Wy9R=_3XRMwwnXN9SCKCpq42F-19g9LnQ@mail.gmail.com> <CAOQ4uxi4sjY=q4q=kU7vtJEKASUwO9DE3Xa61GMe9wEOHQ-f1g@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-io0-f172.google.com ([209.85.223.172]:32852 "EHLO
-        mail-io0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751618AbdECSey (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 3 May 2017 14:34:54 -0400
-In-Reply-To: <1493831747.30052.10.camel@linux.intel.com>
-Sender: linux-unionfs-owner@vger.kernel.org
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
+In-Reply-To: <CAOQ4uxi4sjY=q4q=kU7vtJEKASUwO9DE3Xa61GMe9wEOHQ-f1g@mail.gmail.com>
+Sender: linux-fsdevel-owner@vger.kernel.org
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: Vivek Goyal <vgoyal@redhat.com>, Al Viro <viro@zeniv.linux.org.uk>, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>
 List-Id: linux-unionfs@vger.kernel.org
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Christoph Hellwig <hch@lst.de>, Miklos Szeredi <miklos@szeredi.hu>, Mimi Zohar <zohar@linux.vnet.ibm.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Richard Weinberger <richard@nod.at>, "Darrick J . Wong" <darrick.wong@oracle.com>, Mark Fasheh <mfasheh@versity.com>, Al Viro <viro@zeniv.linux.org.uk>, linux-xfs <linux-xfs@vger.kernel.org>, linux-unionfs@vger.kernel.org, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Dan Williams <dan.j.williams@intel.com>, David Howells <dhowells@redhat.com>, Theodore Tso <tytso@mit.edu>
 
-On Wed, May 3, 2017 at 8:15 PM, Andy Shevchenko
-<andriy.shevchenko@linux.intel.com> wrote:
+On Wed, May 3, 2017 at 6:46 PM, Amir Goldstein <amir73il@gmail.com> wrote:
+> On Wed, May 3, 2017 at 6:43 PM, Miklos Szeredi <miklos@szeredi.hu> wrote:
+>> On Mon, May 1, 2017 at 3:41 PM, Amir Goldstein <amir73il@gmail.com> wrote:
+>>> Miklos,
+>>>
+>>> This is v4 series of redirect by file handle and constant inode numbers.
+>>> this series fixes constant inode numbers for stat(2) for overlayfs
+>>> configuration of all layers on the same fs.
+>>
+>> Great work.
+>>
+>> I did some mutilation (aka. simplification) and pushed the result to
+>> overlayfs-constino.v5
+>>
 
+Simplified indeed!
+
+>> No time to check if it works or not, so probably not...
+
+Oh but it does :-)
+Passed on my tests.
+I pushed branch master of unionmunt-tests for testing constino,
+so you can use that if you like,
+because my overlayfs-devel branch already plays with verify_lower.
+
+Anyway, I see that you relaxed the uuid_is_null() constrain, so now
+you can also test ./run --ov=0 --samefs
+with (default) tmpfs, although that is not really stress testing fh decoding..
+
+>> tomorrow, but if you have time, please feel free to test and review my
+>> changes.
+>>
 >
-> By the way, notice that uuid_v1 type (which had been moved to uuid.h
-> already) is the same what xfs uses as uuid_t.
->
-> So, helpers against it we can prefix with uuid_v1_[foo_bar()].
->
 
-I really don't see why we can't use the exact same helpers
-found in fs/xfs/uuid.c and uuid_t as well for that matter.
+Reviewed.
 
-They are mostly similar to the libuuid API that filesystems
-tools use in userspace and they don't collide with your
-uuid_{le|be} helpers.
+Specifically:
+ACK for simplifications of "store file handle of lower inode on copy up"
+ACK for simplifications of "lookup non-dir copy-up-origin by file handle"
+
+One bug here:
+
++       if (IS_ERR(origin)) {
++               if (origin == ERR_PTR(-ESTALE))
++                       origin = NULL;
++       }
++       if (ovl_dentry_weird(origin) ||
+
+Should be else if.
+xfstest overlay/019 (fsstress) hits NULL pointer deref at ovl_dentry_weird()
+
++           ((d_inode(origin)->i_mode ^ d_inode(dentry)->i_mode) & S_IFMT)) {
++               dput(origin);
++               origin = NULL;
++               goto invalid;
++       }
++
+
+
+Thanks!
+Amir.
