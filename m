@@ -1,59 +1,40 @@
-From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [PATCH v4 00/15] overlayfs constant inode numbers
-Date: Thu, 4 May 2017 17:14:04 +0300
-Message-ID: <CAOQ4uxiYF3QxB2ksQRJDqSrxJ3Lm8MfEe8AF+mp0v7dBrSopLA@mail.gmail.com>
-References: <1493646126-10101-1-git-send-email-amir73il@gmail.com>
- <CAJfpegs4SnbHVTa43Wy9R=_3XRMwwnXN9SCKCpq42F-19g9LnQ@mail.gmail.com>
- <CAOQ4uxi4sjY=q4q=kU7vtJEKASUwO9DE3Xa61GMe9wEOHQ-f1g@mail.gmail.com>
- <CAOQ4uxgprhDhRzWyTEYUaYKdvUeYWNSafreu1r3TA-2r7xg-aA@mail.gmail.com>
- <CAJfpegss1jrd0LZkCOkaiQe06ECwH0atneVg3xa_YWXiG4UDOw@mail.gmail.com>
- <CAJfpeguVxbEQLqnz6t1sjbG5J5hWpqgqOw7qdtEZGSxd7j+y4A@mail.gmail.com>
- <CAOQ4uxiwumOLyVgzoT4pR_Lv08aGreZQNN-xW4OEpYCyxBHffg@mail.gmail.com>
- <CAOQ4uxi_h8cs67GyT3XnnQD0CoZEAA-TqBiTCsjPxHGxN9ZK7A@mail.gmail.com> <CAJfpegsDnUuPped_LJY_QfS1zqqoQ5=dW5H5yjU55mxkAawHCQ@mail.gmail.com>
+From: David Howells <dhowells@redhat.com>
+Subject: Re: [PATCH v2 2/8] xfs: re-define uuid_t as common struct uuid_v1
+Date: Thu, 04 May 2017 15:16:10 +0100
+Message-ID: <23808.1493907370@warthog.procyon.org.uk>
+References: <20170504133417.GD17222@lst.de> <1493904383-2187-1-git-send-email-amir73il@gmail.com> <1493904383-2187-3-git-send-email-amir73il@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="us-ascii"
 Return-path: <linux-fsdevel-owner@vger.kernel.org>
-In-Reply-To: <CAJfpegsDnUuPped_LJY_QfS1zqqoQ5=dW5H5yjU55mxkAawHCQ@mail.gmail.com>
+In-Reply-To: <20170504133417.GD17222@lst.de>
+Content-ID: <23807.1493907370.1@warthog.procyon.org.uk>
 Sender: linux-fsdevel-owner@vger.kernel.org
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: Vivek Goyal <vgoyal@redhat.com>, Al Viro <viro@zeniv.linux.org.uk>, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>
+To: Christoph Hellwig <hch@lst.de>
+Cc: dhowells@redhat.com, Amir Goldstein <amir73il@gmail.com>, "Darrick J . Wong" <darrick.wong@oracle.com>, Miklos Szeredi <miklos@szeredi.hu>, Theodore Tso <tytso@mit.edu>, Richard Weinberger <richard@nod.at>, Mark Fasheh <mfasheh@versity.com>, Dan Williams <dan.j.williams@intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Shaohua Li <shli@kernel.org>, Al Viro <viro@zeniv.linux.org.uk>, linux-xfs@vger.kernel.org, linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 
-On Thu, May 4, 2017 at 3:10 PM, Miklos Szeredi <miklos@szeredi.hu> wrote:
-> On Thu, May 4, 2017 at 1:59 PM, Amir Goldstein <amir73il@gmail.com> wrote:
->
->> If you do like the idea, let me know if you want me to send a patch on
->> top of v5.
->>
->> Do you plan to push v5 (+ "else if" bugfix) to overlayfs-next?
->>
->> If we go for my solution to endianess, we can add that patch
->> as a fix patch (same goes for null uuid).
->
-> I don't think doing the checks once per mount gets us much.  Bytes are
-> cheap, checks are cheap, why add complexity?
->
+Christoph Hellwig <hch@lst.de> wrote:
 
-I should ask myslef that question more often...
+> I'm not sure this really is a good idea.  uuid_v1 currently is only
+> used by afs.  I'd much rather switch both afs and xfs to use the
+> uuid_be type (which might as well grow the standard uuid_t name while
+> we're at it), and use accessors that do the byte-array access for
+> the very few places that care about the interpretation.
 
-> Pushed .v6 with these fixes.  Takes care of future fixes to file
-> handle byte order by allowing CPU independent byte order as well.
->
+Leave struct uuid_v1 as is please.  The AFS protocol XDR encodes the fields as
+delineated in the struct:
 
-One minor review comment.
+		r->time_low			= b[0];
+		r->time_mid			= htons(ntohl(b[1]));
+		r->time_hi_and_version		= htons(ntohl(b[2]));
+		r->clock_seq_hi_and_reserved 	= ntohl(b[3]);
+		r->clock_seq_low		= ntohl(b[4]);
 
-I used uuid_le_cmp(*uuid, NULL_UUID_LE) arbitrarily in my original patch,
-but if we want to stick to semantic sb->s_uuid is probably more accurately
-described as uuid_be, because filesystems most likely copy it in raw format
-from disk.
+		for (loop = 0; loop < 6; loop++)
+			r->node[loop] = ntohl(b[loop + 5]);
 
-This is purely semantic of course, but if you think that matters, may as well
-replace uuid_le with uuid_be.
+Yeah, I know it's crazy to do it like this on the wire rather than just encode
+it as a 16-byte blob, but that's what someone defined it as...  Trying to use
+the uuid_be struct instead just makes things more messy.
 
-> I'd like to push to overlayfs-next if it appears to work and passes tests.
->
-
-Reviewed and passed all tests.
-
-Cheers,
-Amir.
+David
