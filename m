@@ -1,80 +1,68 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH v2 4/8] xfs: namespace the helper uuid_getnodeuniq()
-Date: Thu,  4 May 2017 16:26:19 +0300
-Message-ID: <1493904383-2187-5-git-send-email-amir73il@gmail.com>
+Subject: [PATCH v2 5/8] md: namespace private helper names
+Date: Thu,  4 May 2017 16:26:20 +0300
+Message-ID: <1493904383-2187-6-git-send-email-amir73il@gmail.com>
 References: <1493904383-2187-1-git-send-email-amir73il@gmail.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wr0-f193.google.com ([209.85.128.193]:34250 "EHLO
-        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752687AbdEDN0Y (ORCPT
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:34462 "EHLO
+        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753283AbdEDN01 (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 4 May 2017 09:26:24 -0400
+        Thu, 4 May 2017 09:26:27 -0400
 In-Reply-To: <1493904383-2187-1-git-send-email-amir73il@gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: "Darrick J . Wong" <darrick.wong@oracle.com>
 Cc: Christoph Hellwig <hch@lst.de>, Miklos Szeredi <miklos@szeredi.hu>, Theodore Tso <tytso@mit.edu>, Richard Weinberger <richard@nod.at>, Mark Fasheh <mfasheh@versity.com>, Dan Williams <dan.j.williams@intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, David Howells <dhowells@redhat.com>, Shaohua Li <shli@kernel.org>, Al Viro <viro@zeniv.linux.org.uk>, linux-xfs@vger.kernel.org, linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
 
-uuid_getnodeuniq(), as the comment says, 'is not in any way
-a standard or condoned UUID function'.
+The md private helper uuid_equal() collides with a generic helper
+of the same name.
 
-Therefore, prefix the helper name with xfs_ to differentiate it
-from the rest of the common uuid_ helpers.
+Rename the md private helper to md_uuid_equal() and do the same for
+md_sb_equal().
 
-The uuid_ helpers are about to be hoisted to lib/uuid.c.
-
+Cc: Shaohua Li <shli@kernel.org>
 Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- fs/xfs/uuid.c      | 4 ++--
- fs/xfs/uuid.h      | 2 +-
- fs/xfs/xfs_mount.c | 2 +-
- 3 files changed, 4 insertions(+), 4 deletions(-)
+ drivers/md/md.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/fs/xfs/uuid.c b/fs/xfs/uuid.c
-index 7bb4fb8..16958e7 100644
---- a/fs/xfs/uuid.c
-+++ b/fs/xfs/uuid.c
-@@ -18,13 +18,13 @@
- #include <xfs.h>
+diff --git a/drivers/md/md.c b/drivers/md/md.c
+index 548d1b8..e3a5163 100644
+--- a/drivers/md/md.c
++++ b/drivers/md/md.c
+@@ -821,7 +821,7 @@ static int read_disk_sb(struct md_rdev *rdev, int size)
+ 	return -EINVAL;
+ }
  
- /*
-- * uuid_getnodeuniq - obtain the node unique fields of a UUID.
-+ * xfs_uuid_getnodeuniq - obtain the node unique fields of a UUID.
-  *
-  * This is not in any way a standard or condoned UUID function;
-  * it just something that's needed for user-level file handles.
-  */
- void
--uuid_getnodeuniq(uuid_t *uuid, int fsid [2])
-+xfs_uuid_getnodeuniq(uuid_t *uuid, int fsid[2])
+-static int uuid_equal(mdp_super_t *sb1, mdp_super_t *sb2)
++static int md_uuid_equal(mdp_super_t *sb1, mdp_super_t *sb2)
  {
- 	fsid[0] = (uuid->clock_seq_hi_and_reserved << 24) |
- 		  (uuid->clock_seq_low << 16) |
-diff --git a/fs/xfs/uuid.h b/fs/xfs/uuid.h
-index 0e3ecd0..b40dee7 100644
---- a/fs/xfs/uuid.h
-+++ b/fs/xfs/uuid.h
-@@ -22,7 +22,7 @@
+ 	return	sb1->set_uuid0 == sb2->set_uuid0 &&
+ 		sb1->set_uuid1 == sb2->set_uuid1 &&
+@@ -829,7 +829,7 @@ static int uuid_equal(mdp_super_t *sb1, mdp_super_t *sb2)
+ 		sb1->set_uuid3 == sb2->set_uuid3;
+ }
  
- extern int uuid_is_nil(uuid_t *uuid);
- extern int uuid_equal(uuid_t *uuid1, uuid_t *uuid2);
--extern void uuid_getnodeuniq(uuid_t *uuid, int fsid [2]);
-+extern void xfs_uuid_getnodeuniq(uuid_t *uuid, int fsid[2]);
- 
- static inline void
- uuid_copy(uuid_t *dst, uuid_t *src)
-diff --git a/fs/xfs/xfs_mount.c b/fs/xfs/xfs_mount.c
-index 4c0d8d7..f4fdce7 100644
---- a/fs/xfs/xfs_mount.c
-+++ b/fs/xfs/xfs_mount.c
-@@ -794,7 +794,7 @@ xfs_mountfs(
- 	 *  Copies the low order bits of the timestamp and the randomly
- 	 *  set "sequence" number out of a UUID.
- 	 */
--	uuid_getnodeuniq(&sbp->sb_uuid, mp->m_fixedfsid);
-+	xfs_uuid_getnodeuniq(&sbp->sb_uuid, mp->m_fixedfsid);
- 
- 	mp->m_dmevmask = 0;	/* not persistent; set after each mount */
- 
+-static int sb_equal(mdp_super_t *sb1, mdp_super_t *sb2)
++static int md_sb_equal(mdp_super_t *sb1, mdp_super_t *sb2)
+ {
+ 	int ret;
+ 	mdp_super_t *tmp1, *tmp2;
+@@ -1021,12 +1021,12 @@ static int super_90_load(struct md_rdev *rdev, struct md_rdev *refdev, int minor
+ 	} else {
+ 		__u64 ev1, ev2;
+ 		mdp_super_t *refsb = page_address(refdev->sb_page);
+-		if (!uuid_equal(refsb, sb)) {
++		if (!md_uuid_equal(refsb, sb)) {
+ 			pr_warn("md: %s has different UUID to %s\n",
+ 				b, bdevname(refdev->bdev,b2));
+ 			goto abort;
+ 		}
+-		if (!sb_equal(refsb, sb)) {
++		if (!md_sb_equal(refsb, sb)) {
+ 			pr_warn("md: %s has same UUID but different superblock to %s\n",
+ 				b, bdevname(refdev->bdev, b2));
+ 			goto abort;
 -- 
 2.7.4
