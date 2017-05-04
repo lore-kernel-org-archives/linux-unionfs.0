@@ -1,56 +1,85 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [RFC][PATCH] linux/uuid.h: hoist uuid_is_null() helper from libnvdimm
-Date: Thu, 4 May 2017 11:39:01 +0300
-Message-ID: <CAOQ4uxjKzf1HeryjxSbA6qUiqF8G9ZoH0DBfVo-Uo361+MH1Fw@mail.gmail.com>
-References: <1493756363-5113-1-git-send-email-amir73il@gmail.com>
- <1493802823.4154.3.camel@linux.intel.com> <CAOQ4uxh4Ysg9Q_K2sK9zefvid3hvzswDKxSa-QTN9_D0fAWvyQ@mail.gmail.com>
- <1493809233.30052.1.camel@linux.intel.com> <CAOQ4uxj3ppxm4LC6xr54n6GUF1T=yhQ4-5YJfbjXcBJugVENZQ@mail.gmail.com>
- <1493829352.30052.6.camel@linux.intel.com> <1493831747.30052.10.camel@linux.intel.com>
- <CAOQ4uxg6=X8GVfWBBYwYLHyNcx7E856kEFM339abLsVEbWzi_Q@mail.gmail.com> <1493886085.30052.14.camel@linux.intel.com>
+Subject: Re: [PATCH] ovl: fix visible whiteout on not merged dir
+Date: Thu, 4 May 2017 12:03:12 +0300
+Message-ID: <CAOQ4uxgkeFwSNy9cHfTyXbfBJymfB6-KORtSyjFhGVkX2awd1w@mail.gmail.com>
+References: <1493797155-43637-1-git-send-email-yi.zhang@huawei.com>
+ <CAOQ4uxiiVxZt+bQ-vo7QAekm8KP51uGx87h=hyYVRRLfyyNySA@mail.gmail.com>
+ <cd632f46-3d8c-87ec-332a-d8bb205f1c71@huawei.com> <CAOQ4uxhXDx9PcTVX1bGkn=b1g02zUQ3+=MC_b6sqLwGhoF21Xg@mail.gmail.com>
+ <580c8b09-1d3c-94d6-4d07-2a4a21a2dc59@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-io0-f196.google.com ([209.85.223.196]:34217 "EHLO
-        mail-io0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751790AbdEDIjC (ORCPT
+Received: from mail-io0-f179.google.com ([209.85.223.179]:34133 "EHLO
+        mail-io0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750773AbdEDJDO (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 4 May 2017 04:39:02 -0400
-In-Reply-To: <1493886085.30052.14.camel@linux.intel.com>
+        Thu, 4 May 2017 05:03:14 -0400
+Received: by mail-io0-f179.google.com with SMTP id k91so14265412ioi.1
+        for <linux-unionfs@vger.kernel.org>; Thu, 04 May 2017 02:03:13 -0700 (PDT)
+In-Reply-To: <580c8b09-1d3c-94d6-4d07-2a4a21a2dc59@huawei.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Christoph Hellwig <hch@lst.de>, Miklos Szeredi <miklos@szeredi.hu>, Mimi Zohar <zohar@linux.vnet.ibm.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Richard Weinberger <richard@nod.at>, "Darrick J . Wong" <darrick.wong@oracle.com>, Mark Fasheh <mfasheh@versity.com>, Al Viro <viro@zeniv.linux.org.uk>, linux-xfs <linux-xfs@vger.kernel.org>, linux-unionfs@vger.kernel.org, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Dan Williams <dan.j.williams@intel.com>, David Howells <dhowells@redhat.com>, Theodore Tso <tytso@mit.edu>
+To: "zhangyi (F)" <yi.zhang@huawei.com>
+Cc: linux-unionfs@vger.kernel.org, Miklos Szeredi <miklos@szeredi.hu>, miaoxie@huawei.com, zhaohongjiang@huawei.com
 
-On Thu, May 4, 2017 at 11:21 AM, Andy Shevchenko
-<andriy.shevchenko@linux.intel.com> wrote:
-> On Wed, 2017-05-03 at 21:34 +0300, Amir Goldstein wrote:
->> On Wed, May 3, 2017 at 8:15 PM, Andy Shevchenko
->> <andriy.shevchenko@linux.intel.com> wrote:
->>
->> >
->> > By the way, notice that uuid_v1 type (which had been moved to uuid.h
->> > already) is the same what xfs uses as uuid_t.
->> >
->> > So, helpers against it we can prefix with uuid_v1_[foo_bar()].
->> >
->>
->> I really don't see why we can't use the exact same helpers
->> found in fs/xfs/uuid.c and uuid_t as well for that matter.
+On Thu, May 4, 2017 at 11:36 AM, zhangyi (F) <yi.zhang@huawei.com> wrote:
+
+>   Hi Amir:
 >
-> Does it make sense to have two types that defines the same?
+>   Thanks for your valuable time.
 >
->> They are mostly similar to the libuuid API that filesystems
->> tools use in userspace and they don't collide with your
->> uuid_{le|be} helpers.
+>   I just found this problem inadvertently when I did some tests.
+>   Indeed, cases 1 and 2 may not happen unless user hand crafted, and
+>   I don't have these use cases.:)
+
+That's what I thought.
+
 >
-> Okay, if you are insisting just move them to the header, we may simplify
-> it later, though I think that there is no makes sense to do any effort
-> that will be neglected in the future (so, just movement is fine, but
-> using it elsewhere I prefer to have 1 type and const for parameters).
+>   I saw your patches pushed to overlayfs-constino.v5 last night and V3.
+>   We can use OVL_TYPE_COPYUP to figure out dir that has *ever* been copied up,
+>   and use the merged flow in ovl_iterate() for these directories.
 >
 
-Preparing to post a series with
+Yes, but keep in mind that OVL_TYPE_COPYUP from v3 did not make it into v5
+and it's not trivial to add it back.
 
-typedef struct uuid_v1 uuid_t;
+After I rebase my OVL_TYPE_COPYUP patches over v5 I'll make the patch
+to replace is_real = !OVL_TYPE_MERGE() with !OVL_TYPE_COPYUP()
+and let you know so you can test it.
 
-I think you'll like it... stay tuned.
+>   I have another two ideas, please assess:
+>
+>   1. I think we can use an xattr 'overlay.whiteout' to count the whiteouts
+>      the OVL_TYPE_COPYUP dir have. We increase count in ovl_remove_and_whiteout()
+>      and decrease count in ovl_create_over_whiteout(), so we can make sure
+>      the dir have created whiteout or not more accurate.(is it necessary ?)
+
+It's not going to be easy to update overlay.whiteout 'atomically',
+because you need to update it either before or after creating/removing
+whiteout and both possibilities can get it out of sync.
+
+A simpler optimization would be to set an 'overlay.impure' xattr on a directory
+*before* creating the first whiteout AND before creating/moving a COPYUP object
+into the dir (so only creating uppers leave the upper dir pure).
+
+So there is no process of purifying a dir, but an upper dir is pure until proven
+otherwise by ovl_set_dir_impure() (or by finding 'overlay.impure').
+
+With that optimization, we can set:
+is_real = !OVL_TYPE_MERGE() && !ovl_dir_impure();
+
+very similar to your suggestion (but with a twist)
+
+For my use case (lower dirs can disappear underneath) this sort of
+optimization can be useful.
+
+>
+>   2. Can we read underlying dir entry and get rid of whiteout every time for
+>      the 'impure' dircetory, not execute the merged flow ? It will save
+>      memory usage.
+>
+
+Did not understand this questions.
+
+Cheers,
+Amir.
