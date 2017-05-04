@@ -1,47 +1,78 @@
-From: Miklos Szeredi <miklos@szeredi.hu>
-Subject: Re: [PATCH v4 00/15] overlayfs constant inode numbers
-Date: Thu, 4 May 2017 14:10:01 +0200
-Message-ID: <CAJfpegsDnUuPped_LJY_QfS1zqqoQ5=dW5H5yjU55mxkAawHCQ@mail.gmail.com>
-References: <1493646126-10101-1-git-send-email-amir73il@gmail.com>
- <CAJfpegs4SnbHVTa43Wy9R=_3XRMwwnXN9SCKCpq42F-19g9LnQ@mail.gmail.com>
- <CAOQ4uxi4sjY=q4q=kU7vtJEKASUwO9DE3Xa61GMe9wEOHQ-f1g@mail.gmail.com>
- <CAOQ4uxgprhDhRzWyTEYUaYKdvUeYWNSafreu1r3TA-2r7xg-aA@mail.gmail.com>
- <CAJfpegss1jrd0LZkCOkaiQe06ECwH0atneVg3xa_YWXiG4UDOw@mail.gmail.com>
- <CAJfpeguVxbEQLqnz6t1sjbG5J5hWpqgqOw7qdtEZGSxd7j+y4A@mail.gmail.com>
- <CAOQ4uxiwumOLyVgzoT4pR_Lv08aGreZQNN-xW4OEpYCyxBHffg@mail.gmail.com> <CAOQ4uxi_h8cs67GyT3XnnQD0CoZEAA-TqBiTCsjPxHGxN9ZK7A@mail.gmail.com>
+From: "zhangyi (F)" <yi.zhang@huawei.com>
+Subject: Re: [PATCH] ovl: fix visible whiteout on not merged dir
+Date: Thu, 4 May 2017 20:10:57 +0800
+Message-ID: <9ac40576-fb08-6529-706f-6dd4de772257@huawei.com>
+References: <1493797155-43637-1-git-send-email-yi.zhang@huawei.com>
+ <CAOQ4uxiiVxZt+bQ-vo7QAekm8KP51uGx87h=hyYVRRLfyyNySA@mail.gmail.com>
+ <cd632f46-3d8c-87ec-332a-d8bb205f1c71@huawei.com>
+ <CAOQ4uxhXDx9PcTVX1bGkn=b1g02zUQ3+=MC_b6sqLwGhoF21Xg@mail.gmail.com>
+ <580c8b09-1d3c-94d6-4d07-2a4a21a2dc59@huawei.com>
+ <CAOQ4uxgkeFwSNy9cHfTyXbfBJymfB6-KORtSyjFhGVkX2awd1w@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-io0-f193.google.com ([209.85.223.193]:35299 "EHLO
-        mail-io0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751942AbdEDMKD (ORCPT
+Received: from szxga03-in.huawei.com ([45.249.212.189]:5929 "EHLO
+        szxga03-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751942AbdEDMLd (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 4 May 2017 08:10:03 -0400
-Received: by mail-io0-f193.google.com with SMTP id v34so3247199iov.2
-        for <linux-unionfs@vger.kernel.org>; Thu, 04 May 2017 05:10:03 -0700 (PDT)
-In-Reply-To: <CAOQ4uxi_h8cs67GyT3XnnQD0CoZEAA-TqBiTCsjPxHGxN9ZK7A@mail.gmail.com>
+        Thu, 4 May 2017 08:11:33 -0400
+In-Reply-To: <CAOQ4uxgkeFwSNy9cHfTyXbfBJymfB6-KORtSyjFhGVkX2awd1w@mail.gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: Amir Goldstein <amir73il@gmail.com>
-Cc: Vivek Goyal <vgoyal@redhat.com>, Al Viro <viro@zeniv.linux.org.uk>, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>
+Cc: linux-unionfs@vger.kernel.org, Miklos Szeredi <miklos@szeredi.hu>, miaoxie@huawei.com, zhaohongjiang@huawei.com
 
-On Thu, May 4, 2017 at 1:59 PM, Amir Goldstein <amir73il@gmail.com> wrote:
+On 2017/5/4 17:03, Amir Goldstein wrote:
+> On Thu, May 4, 2017 at 11:36 AM, zhangyi (F) <yi.zhang@huawei.com> wrote:
+>>
+>>   2. Can we read underlying dir entry and get rid of whiteout every time for
+>>      the 'impure' dircetory, not execute the merged flow ? It will save
+>>      memory usage.
+>>
+> Did not understand this questions.
+> 
 
-> If you do like the idea, let me know if you want me to send a patch on
-> top of v5.
->
-> Do you plan to push v5 (+ "else if" bugfix) to overlayfs-next?
->
-> If we go for my solution to endianess, we can add that patch
-> as a fix patch (same goes for null uuid).
+Sorry, I didn't make it clear. I mean if we set is_real = !OVL_TYPE_COPYUP()
+or is_real = !OVL_TYPE_MERGE() && !ovl_dir_impure() (with optimization),
+it will create ovl_dir_cache and ovl_cache_entry when we read COPYUP directory
+or 'impure' dircetory in ovl_iterate() flow (as merged dir does). This will
+cause bloated memory usage and some performance overhead, because this dir
+is only exist in one layer(not merged), so I think it's don't need ovl_dir_cache.
+(cost too much ?)
 
-I don't think doing the checks once per mount gets us much.  Bytes are
-cheap, checks are cheap, why add complexity?
+Can we find a way to avoid cache use, I find two ways(maybe too complex):
+1. Make a wapper ovl_iterate_dir_impure(), it read the underlaying dir entry
+   and get rid of whiteout entry, and use this function to deal the COPYUP or
+   or 'impure' branch in ovl_iterate() like follow example:
 
-Pushed .v6 with these fixes.  Takes care of future fixes to file
-handle byte order by allowing CPU independent byte order as well.
+static int ovl_iterate(struct file *file, struct dir_context *ctx)
 
-I'd like to push to overlayfs-next if it appears to work and passes tests.
+     	if (od->is_real)
+		return iterate_dir(od->realfile, ctx);
++	else if (!OVL_TYPE_MERGE && COPYUP)
++		return ovl_iterate_dir_impure(od->realfile, ctx);
+
+2. Add a flag in struct dir_context, let underlying filesystem to return what we
+   want to read, like follow example:
+
+#define DIR_CONTEXT_HIDE_WHITEOUT  (1 << 0)
+
+struct dir_context {
+	const filldir_t actor;
++	unsigned int flag;
+	loff_t pos;
+};
+
+static int ovl_iterate(struct file *file, struct dir_context *ctx)
+
+	if (od->is_real)   /* is_real = !OVL_TYPE_MERGE() */
+		return iterate_dir(od->realfile, ctx);
+
+And then let underlying filesystem deal with DIR_CONTEXT_HIDE_WHITEOUT
+flag. If take on this solution, we can cover all cases, OVL_TYPE_COPYUP
+and pure check are also not required. It changes too greate, but has
+a good expansibility (flag can be used by other demand in the future).
 
 Thanks,
-Miklos
+ZhangYi.
