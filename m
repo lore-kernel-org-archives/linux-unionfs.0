@@ -1,81 +1,103 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH v2 6/8] linux/uuid.h: hoist helpers uuid_equal() and uuid_copy() from xfs
-Date: Thu,  4 May 2017 16:26:21 +0300
-Message-ID: <1493904383-2187-7-git-send-email-amir73il@gmail.com>
+Subject: [PATCH v2 7/8] linux/uuid.h: hoist uuid_is_null() helper from libnvdimm
+Date: Thu,  4 May 2017 16:26:22 +0300
+Message-ID: <1493904383-2187-8-git-send-email-amir73il@gmail.com>
 References: <1493904383-2187-1-git-send-email-amir73il@gmail.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wm0-f67.google.com ([74.125.82.67]:34891 "EHLO
-        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751904AbdEDN02 (ORCPT
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:34978 "EHLO
+        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753558AbdEDN0a (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 4 May 2017 09:26:28 -0400
+        Thu, 4 May 2017 09:26:30 -0400
 In-Reply-To: <1493904383-2187-1-git-send-email-amir73il@gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: "Darrick J . Wong" <darrick.wong@oracle.com>
 Cc: Christoph Hellwig <hch@lst.de>, Miklos Szeredi <miklos@szeredi.hu>, Theodore Tso <tytso@mit.edu>, Richard Weinberger <richard@nod.at>, Mark Fasheh <mfasheh@versity.com>, Dan Williams <dan.j.williams@intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, David Howells <dhowells@redhat.com>, Shaohua Li <shli@kernel.org>, Al Viro <viro@zeniv.linux.org.uk>, linux-xfs@vger.kernel.org, linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
 
-These helper are used to compare and copy two uuid_t type objects.
+Hoist the libnvdimm helper as an inline helper to linux/uuid.h
+using an auxiliary const variable uuid_null in lib/uuid.c.
 
+The common helper uses the new abstract type uuid_t* instead of
+u8*.
+
+Suggested-by: Christoph Hellwig <hch@lst.de>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: David Howells <dhowells@redhat.com>
 Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- fs/xfs/uuid.c        |  6 ------
- fs/xfs/uuid.h        |  7 -------
- include/linux/uuid.h | 10 ++++++++++
- 3 files changed, 10 insertions(+), 13 deletions(-)
+ drivers/nvdimm/btt_devs.c | 10 ++--------
+ include/linux/uuid.h      |  7 +++++++
+ lib/uuid.c                |  3 +++
+ 3 files changed, 12 insertions(+), 8 deletions(-)
 
-diff --git a/fs/xfs/uuid.c b/fs/xfs/uuid.c
-index 16958e7..d41fa68 100644
---- a/fs/xfs/uuid.c
-+++ b/fs/xfs/uuid.c
-@@ -45,9 +45,3 @@ uuid_is_nil(uuid_t *uuid)
- 		if (*cp++) return 0;	/* not nil */
- 	return 1;	/* is nil */
+diff --git a/drivers/nvdimm/btt_devs.c b/drivers/nvdimm/btt_devs.c
+index 97dd292..f52c66d 100644
+--- a/drivers/nvdimm/btt_devs.c
++++ b/drivers/nvdimm/btt_devs.c
+@@ -17,6 +17,7 @@
+ #include <linux/slab.h>
+ #include <linux/fs.h>
+ #include <linux/mm.h>
++#include <linux/uuid.h>
+ #include "nd-core.h"
+ #include "btt.h"
+ #include "nd.h"
+@@ -222,13 +223,6 @@ struct device *nd_btt_create(struct nd_region *nd_region)
+ 	return dev;
  }
+ 
+-static bool uuid_is_null(u8 *uuid)
+-{
+-	static const u8 null_uuid[16];
 -
--int
--uuid_equal(uuid_t *uuid1, uuid_t *uuid2)
--{
--	return memcmp(uuid1, uuid2, sizeof(uuid_t)) ? 0 : 1;
--}
-diff --git a/fs/xfs/uuid.h b/fs/xfs/uuid.h
-index b40dee7..4911905 100644
---- a/fs/xfs/uuid.h
-+++ b/fs/xfs/uuid.h
-@@ -21,13 +21,6 @@
- #include <linux/uuid.h>
- 
- extern int uuid_is_nil(uuid_t *uuid);
--extern int uuid_equal(uuid_t *uuid1, uuid_t *uuid2);
- extern void xfs_uuid_getnodeuniq(uuid_t *uuid, int fsid[2]);
- 
--static inline void
--uuid_copy(uuid_t *dst, uuid_t *src)
--{
--	memcpy(dst, src, sizeof(uuid_t));
+-	return (memcmp(uuid, null_uuid, 16) == 0);
 -}
 -
- #endif	/* __XFS_SUPPORT_UUID_H__ */
+ /**
+  * nd_btt_arena_is_valid - check if the metadata layout is valid
+  * @nd_btt:	device with BTT geometry and backing device info
+@@ -249,7 +243,7 @@ bool nd_btt_arena_is_valid(struct nd_btt *nd_btt, struct btt_sb *super)
+ 	if (memcmp(super->signature, BTT_SIG, BTT_SIG_LEN) != 0)
+ 		return false;
+ 
+-	if (!uuid_is_null(super->parent_uuid))
++	if (!uuid_is_null((uuid_t *)super->parent_uuid))
+ 		if (memcmp(super->parent_uuid, parent_uuid, 16) != 0)
+ 			return false;
+ 
 diff --git a/include/linux/uuid.h b/include/linux/uuid.h
-index 02253f0..a1dd9cc 100644
+index a1dd9cc..a617ccf 100644
 --- a/include/linux/uuid.h
 +++ b/include/linux/uuid.h
-@@ -58,6 +58,16 @@ static inline int uuid_be_cmp(const uuid_be u1, const uuid_be u2)
- 	return memcmp(&u1, &u2, sizeof(uuid_be));
+@@ -68,6 +68,13 @@ static inline void uuid_copy(uuid_t *dst, const uuid_t *src)
+ 	memcpy(dst, src, sizeof(uuid_t));
  }
  
-+static inline bool uuid_equal(const uuid_t *u1, const uuid_t *u2)
-+{
-+	return (memcmp(u1, u2, sizeof(uuid_t)) == 0);
-+}
++extern const uuid_t uuid_null;
 +
-+static inline void uuid_copy(uuid_t *dst, const uuid_t *src)
++static inline bool uuid_is_null(uuid_t *uuid)
 +{
-+	memcpy(dst, src, sizeof(uuid_t));
++	return uuid_equal(uuid, &uuid_null);
 +}
 +
  void generate_random_uuid(unsigned char uuid[16]);
  
  extern void uuid_le_gen(uuid_le *u);
+diff --git a/lib/uuid.c b/lib/uuid.c
+index 37687af..17d0360 100644
+--- a/lib/uuid.c
++++ b/lib/uuid.c
+@@ -21,6 +21,9 @@
+ #include <linux/uuid.h>
+ #include <linux/random.h>
+ 
++const uuid_t uuid_null;
++EXPORT_SYMBOL(uuid_null);
++
+ const u8 uuid_le_index[16] = {3,2,1,0,5,4,7,6,8,9,10,11,12,13,14,15};
+ EXPORT_SYMBOL(uuid_le_index);
+ const u8 uuid_be_index[16] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15};
 -- 
 2.7.4
