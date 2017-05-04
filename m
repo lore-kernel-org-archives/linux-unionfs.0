@@ -1,76 +1,41 @@
-From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [PATCH v4 00/15] overlayfs constant inode numbers
-Date: Wed, 3 May 2017 23:01:47 +0300
-Message-ID: <CAOQ4uxgprhDhRzWyTEYUaYKdvUeYWNSafreu1r3TA-2r7xg-aA@mail.gmail.com>
-References: <1493646126-10101-1-git-send-email-amir73il@gmail.com>
- <CAJfpegs4SnbHVTa43Wy9R=_3XRMwwnXN9SCKCpq42F-19g9LnQ@mail.gmail.com> <CAOQ4uxi4sjY=q4q=kU7vtJEKASUwO9DE3Xa61GMe9wEOHQ-f1g@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
-In-Reply-To: <CAOQ4uxi4sjY=q4q=kU7vtJEKASUwO9DE3Xa61GMe9wEOHQ-f1g@mail.gmail.com>
-Sender: linux-fsdevel-owner@vger.kernel.org
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: Vivek Goyal <vgoyal@redhat.com>, Al Viro <viro@zeniv.linux.org.uk>, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>
+From: Rock Lee <rockdotlee@gmail.com>
+Subject: [PATCH] ovl: fix dir cache leak for ovl_cache_get
+Date: Thu,  4 May 2017 00:07:13 -0700
+Message-ID: <1493881633-3451-1-git-send-email-rockdotlee@gmail.com>
+Return-path: <linux-unionfs-owner@vger.kernel.org>
+Received: from mail-pf0-f194.google.com ([209.85.192.194]:35812 "EHLO
+        mail-pf0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750941AbdEDHHW (ORCPT
+        <rfc822;linux-unionfs@vger.kernel.org>);
+        Thu, 4 May 2017 03:07:22 -0400
+Received: by mail-pf0-f194.google.com with SMTP id u26so180038pfd.2
+        for <linux-unionfs@vger.kernel.org>; Thu, 04 May 2017 00:07:22 -0700 (PDT)
+Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
+To: miklos@szeredi.hu
+Cc: amir73il@gmail.com, linux-unionfs@vger.kernel.org, Rock Lee <rockdotlee@gmail.com>
 
-On Wed, May 3, 2017 at 6:46 PM, Amir Goldstein <amir73il@gmail.com> wrote:
-> On Wed, May 3, 2017 at 6:43 PM, Miklos Szeredi <miklos@szeredi.hu> wrote:
->> On Mon, May 1, 2017 at 3:41 PM, Amir Goldstein <amir73il@gmail.com> wrote:
->>> Miklos,
->>>
->>> This is v4 series of redirect by file handle and constant inode numbers.
->>> this series fixes constant inode numbers for stat(2) for overlayfs
->>> configuration of all layers on the same fs.
->>
->> Great work.
->>
->> I did some mutilation (aka. simplification) and pushed the result to
->> overlayfs-constino.v5
->>
+In ovl_cache_get, there is a chance that ovl_dentry_version_get and
+cache->version are not equal. Before set the cache to NULL, free it
+first.
 
-Simplified indeed!
+Signed-off-by: Rock Lee <rockdotlee@gmail.com>
+---
+ fs/overlayfs/readdir.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
->> No time to check if it works or not, so probably not...
-
-Oh but it does :-)
-Passed on my tests.
-I pushed branch master of unionmunt-tests for testing constino,
-so you can use that if you like,
-because my overlayfs-devel branch already plays with verify_lower.
-
-Anyway, I see that you relaxed the uuid_is_null() constrain, so now
-you can also test ./run --ov=0 --samefs
-with (default) tmpfs, although that is not really stress testing fh decoding..
-
->> tomorrow, but if you have time, please feel free to test and review my
->> changes.
->>
->
-
-Reviewed.
-
-Specifically:
-ACK for simplifications of "store file handle of lower inode on copy up"
-ACK for simplifications of "lookup non-dir copy-up-origin by file handle"
-
-One bug here:
-
-+       if (IS_ERR(origin)) {
-+               if (origin == ERR_PTR(-ESTALE))
-+                       origin = NULL;
-+       }
-+       if (ovl_dentry_weird(origin) ||
-
-Should be else if.
-xfstest overlay/019 (fsstress) hits NULL pointer deref at ovl_dentry_weird()
-
-+           ((d_inode(origin)->i_mode ^ d_inode(dentry)->i_mode) & S_IFMT)) {
-+               dput(origin);
-+               origin = NULL;
-+               goto invalid;
-+       }
+diff --git a/fs/overlayfs/readdir.c b/fs/overlayfs/readdir.c
+index f241b4e..b3af3d3 100644
+--- a/fs/overlayfs/readdir.c
++++ b/fs/overlayfs/readdir.c
+@@ -331,6 +331,8 @@ static struct ovl_dir_cache *ovl_cache_get(struct dentry *dentry)
+ 		cache->refcount++;
+ 		return cache;
+ 	}
 +
-
-
-Thanks!
-Amir.
++	kfree(cache);
+ 	ovl_set_dir_cache(dentry, NULL);
+ 
+ 	cache = kzalloc(sizeof(struct ovl_dir_cache), GFP_KERNEL);
+-- 
+1.9.1
