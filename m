@@ -1,95 +1,55 @@
-From: Miklos Szeredi <miklos@szeredi.hu>
-Subject: Re: [PATCH v4 00/15] overlayfs constant inode numbers
-Date: Thu, 4 May 2017 10:24:55 +0200
-Message-ID: <CAJfpegss1jrd0LZkCOkaiQe06ECwH0atneVg3xa_YWXiG4UDOw@mail.gmail.com>
-References: <1493646126-10101-1-git-send-email-amir73il@gmail.com>
- <CAJfpegs4SnbHVTa43Wy9R=_3XRMwwnXN9SCKCpq42F-19g9LnQ@mail.gmail.com>
- <CAOQ4uxi4sjY=q4q=kU7vtJEKASUwO9DE3Xa61GMe9wEOHQ-f1g@mail.gmail.com> <CAOQ4uxgprhDhRzWyTEYUaYKdvUeYWNSafreu1r3TA-2r7xg-aA@mail.gmail.com>
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: Re: [RFC][PATCH] linux/uuid.h: hoist uuid_is_null() helper from
+ libnvdimm
+Date: Thu, 04 May 2017 11:21:25 +0300
+Message-ID: <1493886085.30052.14.camel@linux.intel.com>
+References: <1493756363-5113-1-git-send-email-amir73il@gmail.com>
+         <1493802823.4154.3.camel@linux.intel.com>
+         <CAOQ4uxh4Ysg9Q_K2sK9zefvid3hvzswDKxSa-QTN9_D0fAWvyQ@mail.gmail.com>
+         <1493809233.30052.1.camel@linux.intel.com>
+         <CAOQ4uxj3ppxm4LC6xr54n6GUF1T=yhQ4-5YJfbjXcBJugVENZQ@mail.gmail.com>
+         <1493829352.30052.6.camel@linux.intel.com>
+         <1493831747.30052.10.camel@linux.intel.com>
+         <CAOQ4uxg6=X8GVfWBBYwYLHyNcx7E856kEFM339abLsVEbWzi_Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-io0-f194.google.com ([209.85.223.194]:36389 "EHLO
-        mail-io0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750864AbdEDIY5 (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 4 May 2017 04:24:57 -0400
-Received: by mail-io0-f194.google.com with SMTP id x86so2093070ioe.3
-        for <linux-unionfs@vger.kernel.org>; Thu, 04 May 2017 01:24:57 -0700 (PDT)
-In-Reply-To: <CAOQ4uxgprhDhRzWyTEYUaYKdvUeYWNSafreu1r3TA-2r7xg-aA@mail.gmail.com>
+Received: from mga07.intel.com ([134.134.136.100]:33095 "EHLO mga07.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750786AbdEDI0C (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Thu, 4 May 2017 04:26:02 -0400
+In-Reply-To: <CAOQ4uxg6=X8GVfWBBYwYLHyNcx7E856kEFM339abLsVEbWzi_Q@mail.gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: Amir Goldstein <amir73il@gmail.com>
-Cc: Vivek Goyal <vgoyal@redhat.com>, Al Viro <viro@zeniv.linux.org.uk>, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>
+Cc: Christoph Hellwig <hch@lst.de>, Miklos Szeredi <miklos@szeredi.hu>, Mimi Zohar <zohar@linux.vnet.ibm.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Richard Weinberger <richard@nod.at>, "Darrick J . Wong" <darrick.wong@oracle.com>, Mark Fasheh <mfasheh@versity.com>, Al Viro <viro@zeniv.linux.org.uk>, linux-xfs <linux-xfs@vger.kernel.org>, linux-unionfs@vger.kernel.org, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Dan Williams <dan.j.williams@intel.com>, David Howells <dhowells@redhat.com>, Theodore Tso <tytso@mit.edu>
 
-On Wed, May 3, 2017 at 10:01 PM, Amir Goldstein <amir73il@gmail.com> wrote:
-> On Wed, May 3, 2017 at 6:46 PM, Amir Goldstein <amir73il@gmail.com> wrote:
->> On Wed, May 3, 2017 at 6:43 PM, Miklos Szeredi <miklos@szeredi.hu> wrote:
->>> On Mon, May 1, 2017 at 3:41 PM, Amir Goldstein <amir73il@gmail.com> wrote:
->>>> Miklos,
->>>>
->>>> This is v4 series of redirect by file handle and constant inode numbers.
->>>> this series fixes constant inode numbers for stat(2) for overlayfs
->>>> configuration of all layers on the same fs.
->>>
->>> Great work.
->>>
->>> I did some mutilation (aka. simplification) and pushed the result to
->>> overlayfs-constino.v5
->>>
->
-> Simplified indeed!
->
->>> No time to check if it works or not, so probably not...
->
-> Oh but it does :-)
-> Passed on my tests.
-> I pushed branch master of unionmunt-tests for testing constino,
-> so you can use that if you like,
-> because my overlayfs-devel branch already plays with verify_lower.
->
-> Anyway, I see that you relaxed the uuid_is_null() constrain, so now
+On Wed, 2017-05-03 at 21:34 +0300, Amir Goldstein wrote:
+> On Wed, May 3, 2017 at 8:15 PM, Andy Shevchenko
+> <andriy.shevchenko@linux.intel.com> wrote:
+> 
+> > 
+> > By the way, notice that uuid_v1 type (which had been moved to uuid.h
+> > already) is the same what xfs uses as uuid_t.
+> > 
+> > So, helpers against it we can prefix with uuid_v1_[foo_bar()].
+> > 
+> 
+> I really don't see why we can't use the exact same helpers
+> found in fs/xfs/uuid.c and uuid_t as well for that matter.
 
-Wasn't intentional; will restore it...
+Does it make sense to have two types that defines the same?
 
-> you can also test ./run --ov=0 --samefs
-> with (default) tmpfs, although that is not really stress testing fh decoding..
+> They are mostly similar to the libuuid API that filesystems
+> tools use in userspace and they don't collide with your
+> uuid_{le|be} helpers.
 
-Lets just add s_uuid to tmpfs, should be trivial.
+Okay, if you are insisting just move them to the header, we may simplify
+it later, though I think that there is no makes sense to do any effort
+that will be neglected in the future (so, just movement is fine, but
+using it elsewhere I prefer to have 1 type and const for parameters).
 
->
->>> tomorrow, but if you have time, please feel free to test and review my
->>> changes.
->>>
->>
->
-> Reviewed.
-
-Thanks.
-
->
-> Specifically:
-> ACK for simplifications of "store file handle of lower inode on copy up"
-> ACK for simplifications of "lookup non-dir copy-up-origin by file handle"
->
-> One bug here:
->
-> +       if (IS_ERR(origin)) {
-> +               if (origin == ERR_PTR(-ESTALE))
-> +                       origin = NULL;
-> +       }
-> +       if (ovl_dentry_weird(origin) ||
->
-> Should be else if.
-> xfstest overlay/019 (fsstress) hits NULL pointer deref at ovl_dentry_weird()
->
-> +           ((d_inode(origin)->i_mode ^ d_inode(dentry)->i_mode) & S_IFMT)) {
-> +               dput(origin);
-> +               origin = NULL;
-> +               goto invalid;
-> +       }
-> +
-
-Right, will fix.
-
-Thanks,
-Miklos
+-- 
+Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Intel Finland Oy
