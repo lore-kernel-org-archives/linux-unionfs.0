@@ -1,40 +1,57 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [PATCH v4 00/15] overlayfs constant inode numbers
-Date: Fri, 5 May 2017 10:55:13 +0300
-Message-ID: <CAOQ4uxhy0+XG-J5YUqyi0ZWnuc5m=z_Jy1JQfv=-5VfduAiERQ@mail.gmail.com>
-References: <1493646126-10101-1-git-send-email-amir73il@gmail.com>
- <CAJfpegs4SnbHVTa43Wy9R=_3XRMwwnXN9SCKCpq42F-19g9LnQ@mail.gmail.com>
- <CAOQ4uxi4sjY=q4q=kU7vtJEKASUwO9DE3Xa61GMe9wEOHQ-f1g@mail.gmail.com>
- <CAOQ4uxgprhDhRzWyTEYUaYKdvUeYWNSafreu1r3TA-2r7xg-aA@mail.gmail.com>
- <CAJfpegss1jrd0LZkCOkaiQe06ECwH0atneVg3xa_YWXiG4UDOw@mail.gmail.com>
- <CAJfpeguVxbEQLqnz6t1sjbG5J5hWpqgqOw7qdtEZGSxd7j+y4A@mail.gmail.com>
- <CAOQ4uxiwumOLyVgzoT4pR_Lv08aGreZQNN-xW4OEpYCyxBHffg@mail.gmail.com>
- <CAOQ4uxi_h8cs67GyT3XnnQD0CoZEAA-TqBiTCsjPxHGxN9ZK7A@mail.gmail.com>
- <CAJfpegsDnUuPped_LJY_QfS1zqqoQ5=dW5H5yjU55mxkAawHCQ@mail.gmail.com>
- <CAOQ4uxiYF3QxB2ksQRJDqSrxJ3Lm8MfEe8AF+mp0v7dBrSopLA@mail.gmail.com>
- <CAJfpegtZHOO2oB8YSeQoEHiXK-aTYOw_083riABQmiZ_75m92Q@mail.gmail.com> <CAOQ4uxitv9FcZO9Ch-3dx0vPZTpZMxcRo=WmCRxj7fUqNJqCGg@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Subject: [PATCH] tmpfs: generate random sb->s_uuid
+Date: Fri,  5 May 2017 12:44:28 +0300
+Message-ID: <1493977468-21143-1-git-send-email-amir73il@gmail.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-io0-f175.google.com ([209.85.223.175]:36146 "EHLO
-        mail-io0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753338AbdEEHza (ORCPT
+Received: from mail-wr0-f193.google.com ([209.85.128.193]:33177 "EHLO
+        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751235AbdEEJoY (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 5 May 2017 03:55:30 -0400
-In-Reply-To: <CAOQ4uxitv9FcZO9Ch-3dx0vPZTpZMxcRo=WmCRxj7fUqNJqCGg@mail.gmail.com>
+        Fri, 5 May 2017 05:44:24 -0400
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: Vivek Goyal <vgoyal@redhat.com>, Al Viro <viro@zeniv.linux.org.uk>, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>
+Cc: Al Viro <viro@zeniv.linux.org.uk>, linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, Hugh Dickins <hughd@google.com>, Andrew Morton <akpm@linux-foundation.org>
 
-On Fri, May 5, 2017 at 10:25 AM, Amir Goldstein <amir73il@gmail.com> wrote:
->
-> You also forgot to mention in changes since v6:
->
->    - store 'null' fh instead of 'invalid' fh
+This is used by overlayfs to encode intrasystem unique file handles.
 
-And w.r.t. that change, the following comment in ovl_get_origin()
-is a bit confusing now, because the comment referring to
-'invalid' file handles was removed from the function.
+Suggested-by: Miklos Szeredi <mszeredi@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+---
+ mm/shmem.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-/* Treat empty origin as "invalid" */
+Miklos,
+
+Attached the simple patch you suggested.
+With this patch the unionmount-testsuite run:
+./run --ov=0 --samefs
+
+Passes with (default) tmpfs as samefs.
+
+Hugh,
+
+Can you please Ack.
+
+FYI, both xfs and ubifs have patches queued to export thier on-disk
+uuid to sb->s_uuid.
+
+Thanks,
+Amir.
+
+diff --git a/mm/shmem.c b/mm/shmem.c
+index e67d6ba..b73f832 100644
+--- a/mm/shmem.c
++++ b/mm/shmem.c
+@@ -3761,6 +3761,7 @@ int shmem_fill_super(struct super_block *sb, void *data, int silent)
+ #ifdef CONFIG_TMPFS_POSIX_ACL
+ 	sb->s_flags |= MS_POSIXACL;
+ #endif
++	generate_random_uuid(sb->s_uuid);
+ 
+ 	inode = shmem_get_inode(sb, NULL, S_IFDIR | sbinfo->mode, 0, VM_NORESERVE);
+ 	if (!inode)
+-- 
+2.7.4
