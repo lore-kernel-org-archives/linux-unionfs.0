@@ -1,67 +1,72 @@
-From: Miklos Szeredi <miklos@szeredi.hu>
-Subject: [GIT PULL] overlayfs update for 4.12
-Date: Wed, 10 May 2017 15:39:58 +0200
-Message-ID: <20170510133958.GB25454@veci.piliscsaba.szeredi.hu>
+From: Amir Goldstein <amir73il@gmail.com>
+Subject: Re: [PATCH v4 00/15] overlayfs constant inode numbers
+Date: Wed, 10 May 2017 19:00:58 +0300
+Message-ID: <CAOQ4uxi6PVnDGRS9x9uZPFhMZg=tqOgbR1PJbmAg_ruk4aF_TQ@mail.gmail.com>
+References: <1493646126-10101-1-git-send-email-amir73il@gmail.com>
+ <CAJfpegs4SnbHVTa43Wy9R=_3XRMwwnXN9SCKCpq42F-19g9LnQ@mail.gmail.com>
+ <CAOQ4uxi4sjY=q4q=kU7vtJEKASUwO9DE3Xa61GMe9wEOHQ-f1g@mail.gmail.com>
+ <CAOQ4uxgprhDhRzWyTEYUaYKdvUeYWNSafreu1r3TA-2r7xg-aA@mail.gmail.com>
+ <CAJfpegss1jrd0LZkCOkaiQe06ECwH0atneVg3xa_YWXiG4UDOw@mail.gmail.com>
+ <CAJfpeguVxbEQLqnz6t1sjbG5J5hWpqgqOw7qdtEZGSxd7j+y4A@mail.gmail.com>
+ <CAOQ4uxiwumOLyVgzoT4pR_Lv08aGreZQNN-xW4OEpYCyxBHffg@mail.gmail.com>
+ <CAOQ4uxi_h8cs67GyT3XnnQD0CoZEAA-TqBiTCsjPxHGxN9ZK7A@mail.gmail.com>
+ <CAJfpegsDnUuPped_LJY_QfS1zqqoQ5=dW5H5yjU55mxkAawHCQ@mail.gmail.com>
+ <CAOQ4uxiYF3QxB2ksQRJDqSrxJ3Lm8MfEe8AF+mp0v7dBrSopLA@mail.gmail.com>
+ <CAJfpegtZHOO2oB8YSeQoEHiXK-aTYOw_083riABQmiZ_75m92Q@mail.gmail.com>
+ <CAOQ4uxitv9FcZO9Ch-3dx0vPZTpZMxcRo=WmCRxj7fUqNJqCGg@mail.gmail.com>
+ <CAOQ4uxhy0+XG-J5YUqyi0ZWnuc5m=z_Jy1JQfv=-5VfduAiERQ@mail.gmail.com>
+ <CAJfpegug-JQdJxKcn93vWQdrFFJZ4dBm3SgAooF2V2i29UzRJw@mail.gmail.com>
+ <CAOQ4uxipBEAsRQdUcWuDEZDutvG3Yrb4J2sHHRwu9Qgc5x4H2A@mail.gmail.com>
+ <CAOQ4uxhZxzTNqRo4xZxHeE1wOM=SdNAVrAdLh=BFMbuRnRKt7Q@mail.gmail.com> <CAJfpegu3sWEGR1nkjSviFDXajqiMnJxXnDa4Qh2RjuP8AB8DLA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-unionfs-owner@vger.kernel.org>
+Received: from mail-oi0-f42.google.com ([209.85.218.42]:35966 "EHLO
+        mail-oi0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752602AbdEJQBA (ORCPT
+        <rfc822;linux-unionfs@vger.kernel.org>);
+        Wed, 10 May 2017 12:01:00 -0400
+In-Reply-To: <CAJfpegu3sWEGR1nkjSviFDXajqiMnJxXnDa4Qh2RjuP8AB8DLA@mail.gmail.com>
+Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: Vivek Goyal <vgoyal@redhat.com>, Al Viro <viro@zeniv.linux.org.uk>, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>
 
-Hi Linus,
+On Wed, May 10, 2017 at 12:21 PM, Miklos Szeredi <miklos@szeredi.hu> wrote:
+[...]
+>
+> My plan is to send a pull request to Linus for the const ino stuff,
+> and then leave the rest to 4.13.
+>
+> This is the list I have in my head for what's missing:
+>
+> - lookup origin dir for snapshots
+> - const ino for non-samefs
+> - correct d_ino for copied up entries
+> - NFS export support
+> - hardlink unbreaking
+[...]
+>
+> The non-starred ones don't seem too hard and should aim for 4.13.
+>
 
-Please pull from:
+Just to clarify, did you mean that we should aim for NFS export and hardlinks
+for 4.13 for samefs? or non-samefs?
+Because I can see how non-samefs is possible, but complicates the reverse
+inode map, so I rather start with samefs.
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/mszeredi/vfs.git overlayfs-linus
+It turns out that constant d_ino wasn't that hard.
+It's quite an isolated patch based on your old overlay.ino POC, see:
+https://github.com/amir73il/linux/tree/ovl-constino
 
-The biggest part of this is making st_dev/st_ino on the overlay behave like a
-normal filesystem (i.e. st_ino doesn't change on copy up, st_dev is the same for
-all files and directories).  Currently this only works if all layers are on the
-same filesystem, but future work will move the general case towards more sane
-behavior.
+Basically, it's working and I also have xfstests to verify it,
+which I will post those and the patch later.
 
-There are also miscellaneous fixes, including fixes to handling append-only
-files.  There's a small change in the VFS, but that only has an effect on
-overlayfs, since otherwise file->f_path.dentry->inode and file_inode(file) are
-always the same.
+I think that the toll on readdir performance is not such a big problem,
+because stat'ing the dir entries is served from cache, so 'ls -lR' is
+not going to suffer, only 'find -ino' with cold cache will suffer.
 
-Thanks,
-Miklos
+There is still room for optimization for iterating 'very pure upper' dirs
+(with no copy ups in them).
 
----
-Amir Goldstein (13):
-      ovl: lockdep annotate of nested stacked overlayfs inode lock
-      vfs: ftruncate check IS_APPEND() on real upper inode
-      ovl: check IS_APPEND() on real upper inode
-      ovl: do not set overlay.opaque on non-dir create
-      ovl: check if all layers are on the same fs
-      ovl: store file handle of lower inode on copy up
-      ovl: use an auxiliary var for overlay root entry
-      ovl: lookup non-dir copy-up-origin by file handle
-      ovl: set the ORIGIN type flag
-      ovl: persistent inode number for directories
-      ovl: constant st_ino/st_dev across copy up
-      ovl: persistent inode numbers for upper hardlinks
-      ovl: update documentation w.r.t. constant inode numbers
-
-Kees Cook (1):
-      ovl: Use designated initializers
-
-Miklos Szeredi (1):
-      ovl: merge getattr for dir and nondir
-
----
- Documentation/filesystems/overlayfs.txt |   9 +-
- fs/open.c                               |   3 +-
- fs/overlayfs/copy_up.c                  |  82 +++++++++++++++++++
- fs/overlayfs/dir.c                      |  37 ++-------
- fs/overlayfs/inode.c                    | 103 ++++++++++++++++++++++-
- fs/overlayfs/namei.c                    | 141 ++++++++++++++++++++++++++++++--
- fs/overlayfs/overlayfs.h                |  41 ++++++++++
- fs/overlayfs/ovl_entry.h                |   2 +
- fs/overlayfs/super.c                    |  40 +++++++--
- fs/overlayfs/util.c                     |  19 +++--
- 10 files changed, 425 insertions(+), 52 deletions(-)
+Amir.
