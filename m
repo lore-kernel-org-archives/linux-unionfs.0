@@ -1,49 +1,64 @@
-From: Hugh Dickins <hughd@google.com>
-Subject: Re: [PATCH] tmpfs: generate random sb->s_uuid
-Date: Tue, 9 May 2017 19:51:40 -0700 (PDT)
-Message-ID: <alpine.LSU.2.11.1705091937590.3043@eggly.anvils>
-References: <1493977468-21143-1-git-send-email-amir73il@gmail.com> <20170505100126.GA20759@infradead.org> <CAOQ4uxj7mtowTij45_Zh8ixhbNARxZG+YQ_UmHuoVR6AFTPHGg@mail.gmail.com> <20170509090216.GA28421@infradead.org> <003edfbe-b3ac-0075-0f38-cd8e4bef4a7e@nod.at>
- <CAOQ4uxjXX5nAHu0PVfM_mPi9wMtoDjf-XpBO6reMZPXQoW8mMw@mail.gmail.com> <0f4814d3-e13b-4fb8-151d-652ce2fed6b4@nod.at> <CAOQ4uxi5Rkz4LuU0nHQjsowLsC3jMgLG6Dmk9G8v7f78JywOSw@mail.gmail.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Subject: Re: [PATCH v4 00/15] overlayfs constant inode numbers
+Date: Wed, 10 May 2017 11:58:50 +0300
+Message-ID: <CAOQ4uxhZxzTNqRo4xZxHeE1wOM=SdNAVrAdLh=BFMbuRnRKt7Q@mail.gmail.com>
+References: <1493646126-10101-1-git-send-email-amir73il@gmail.com>
+ <CAJfpegs4SnbHVTa43Wy9R=_3XRMwwnXN9SCKCpq42F-19g9LnQ@mail.gmail.com>
+ <CAOQ4uxi4sjY=q4q=kU7vtJEKASUwO9DE3Xa61GMe9wEOHQ-f1g@mail.gmail.com>
+ <CAOQ4uxgprhDhRzWyTEYUaYKdvUeYWNSafreu1r3TA-2r7xg-aA@mail.gmail.com>
+ <CAJfpegss1jrd0LZkCOkaiQe06ECwH0atneVg3xa_YWXiG4UDOw@mail.gmail.com>
+ <CAJfpeguVxbEQLqnz6t1sjbG5J5hWpqgqOw7qdtEZGSxd7j+y4A@mail.gmail.com>
+ <CAOQ4uxiwumOLyVgzoT4pR_Lv08aGreZQNN-xW4OEpYCyxBHffg@mail.gmail.com>
+ <CAOQ4uxi_h8cs67GyT3XnnQD0CoZEAA-TqBiTCsjPxHGxN9ZK7A@mail.gmail.com>
+ <CAJfpegsDnUuPped_LJY_QfS1zqqoQ5=dW5H5yjU55mxkAawHCQ@mail.gmail.com>
+ <CAOQ4uxiYF3QxB2ksQRJDqSrxJ3Lm8MfEe8AF+mp0v7dBrSopLA@mail.gmail.com>
+ <CAJfpegtZHOO2oB8YSeQoEHiXK-aTYOw_083riABQmiZ_75m92Q@mail.gmail.com>
+ <CAOQ4uxitv9FcZO9Ch-3dx0vPZTpZMxcRo=WmCRxj7fUqNJqCGg@mail.gmail.com>
+ <CAOQ4uxhy0+XG-J5YUqyi0ZWnuc5m=z_Jy1JQfv=-5VfduAiERQ@mail.gmail.com>
+ <CAJfpegug-JQdJxKcn93vWQdrFFJZ4dBm3SgAooF2V2i29UzRJw@mail.gmail.com> <CAOQ4uxipBEAsRQdUcWuDEZDutvG3Yrb4J2sHHRwu9Qgc5x4H2A@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-pg0-f43.google.com ([74.125.83.43]:33447 "EHLO
-        mail-pg0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750946AbdEJCvz (ORCPT
+Received: from mail-oi0-f49.google.com ([209.85.218.49]:34121 "EHLO
+        mail-oi0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752519AbdEJI6w (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 9 May 2017 22:51:55 -0400
-Received: by mail-pg0-f43.google.com with SMTP id u187so9132032pgb.0
-        for <linux-unionfs@vger.kernel.org>; Tue, 09 May 2017 19:51:55 -0700 (PDT)
-In-Reply-To: <CAOQ4uxi5Rkz4LuU0nHQjsowLsC3jMgLG6Dmk9G8v7f78JywOSw@mail.gmail.com>
+        Wed, 10 May 2017 04:58:52 -0400
+In-Reply-To: <CAOQ4uxipBEAsRQdUcWuDEZDutvG3Yrb4J2sHHRwu9Qgc5x4H2A@mail.gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: Richard Weinberger <richard@nod.at>, Christoph Hellwig <hch@infradead.org>, Miklos Szeredi <miklos@szeredi.hu>, Al Viro <viro@zeniv.linux.org.uk>, linux-unionfs@vger.kernel.org, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Hugh Dickins <hughd@google.com>, Andrew Morton <akpm@linux-foundation.org>, Oleksij Rempel <ore@pengutronix.de>
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: Vivek Goyal <vgoyal@redhat.com>, Al Viro <viro@zeniv.linux.org.uk>, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>
 
-On Tue, 9 May 2017, Amir Goldstein wrote:
-> On Tue, May 9, 2017 at 1:09 PM, Richard Weinberger <richard@nod.at> wrote:
-> 
-> >
-> > Well, maybe we need a new feature flag in UBIFS that the UUID is now usable.
-> 
-> Don't think you will need that, as I wrote, none of the proposed changes have
-> impact on on-disk uuid format and as Oleksij answered, for EVM/IMA checking
-> uuid is an opt-in feature.
-> 
-> >
-> > My POV is easy, I'm nervous about all this changes and the rush behind them.
-> > And when Christoph raises concerns, I'm especially careful.
-> > That's why I'm taking the UBIFS ->s_uuid patch for 4.13 after I had enough
-> > time to verify and think.
-> 
-> Understood your POV :)
+On Fri, May 5, 2017 at 12:58 PM, Amir Goldstein <amir73il@gmail.com> wrote:
+> On Fri, May 5, 2017 at 12:53 PM, Miklos Szeredi <miklos@szeredi.hu> wrote:
+>> On Fri, May 5, 2017 at 9:55 AM, Amir Goldstein <amir73il@gmail.com> wrote:
+>>> On Fri, May 5, 2017 at 10:25 AM, Amir Goldstein <amir73il@gmail.com> wrote:
+>>>>
+>>>> You also forgot to mention in changes since v6:
+>>>>
+>>>>    - store 'null' fh instead of 'invalid' fh
+>>>
+>>> And w.r.t. that change, the following comment in ovl_get_origin()
+>>> is a bit confusing now, because the comment referring to
+>>> 'invalid' file handles was removed from the function.
+>>>
+>>> /* Treat empty origin as "invalid" */
+>>
+>> Okay, with cosmetic fixes pushed to overlayfs-next.
+>
+> Looks good.
+>
 
-Thanks a lot for including tmpfs in your enhancements,
-and mercifully I don't have to worry much about on-disk compatibility :)
-but even so I share Richard's point of view: if Christoph has some
-alignment in mind here, then I don't see why the rush to push something
-else in right now - and the 0day robot seems to agree that it's rushed.
+Miklos,
 
-A welcome addition to tmpfs once fs is agreed on the way to go - thanks.
+FYI, I have implemented verify_lower mount option:
+https://github.com/amir73il/linux/commits/ovl-verify-lower
+and tested it below overlay snapshots tests, so for what its worth,
+'store file handle' and 'lookup file handle' from overlayfs-next
+(merged to current master) have now been also exercised with lots
+of lower changes and mount cycles.
 
-Hugh
+Is it too soon to nudge you about the pull request? ;-)
+
+Amir.
