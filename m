@@ -1,72 +1,50 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [PATCH v4 00/15] overlayfs constant inode numbers
-Date: Wed, 10 May 2017 19:00:58 +0300
-Message-ID: <CAOQ4uxi6PVnDGRS9x9uZPFhMZg=tqOgbR1PJbmAg_ruk4aF_TQ@mail.gmail.com>
-References: <1493646126-10101-1-git-send-email-amir73il@gmail.com>
- <CAJfpegs4SnbHVTa43Wy9R=_3XRMwwnXN9SCKCpq42F-19g9LnQ@mail.gmail.com>
- <CAOQ4uxi4sjY=q4q=kU7vtJEKASUwO9DE3Xa61GMe9wEOHQ-f1g@mail.gmail.com>
- <CAOQ4uxgprhDhRzWyTEYUaYKdvUeYWNSafreu1r3TA-2r7xg-aA@mail.gmail.com>
- <CAJfpegss1jrd0LZkCOkaiQe06ECwH0atneVg3xa_YWXiG4UDOw@mail.gmail.com>
- <CAJfpeguVxbEQLqnz6t1sjbG5J5hWpqgqOw7qdtEZGSxd7j+y4A@mail.gmail.com>
- <CAOQ4uxiwumOLyVgzoT4pR_Lv08aGreZQNN-xW4OEpYCyxBHffg@mail.gmail.com>
- <CAOQ4uxi_h8cs67GyT3XnnQD0CoZEAA-TqBiTCsjPxHGxN9ZK7A@mail.gmail.com>
- <CAJfpegsDnUuPped_LJY_QfS1zqqoQ5=dW5H5yjU55mxkAawHCQ@mail.gmail.com>
- <CAOQ4uxiYF3QxB2ksQRJDqSrxJ3Lm8MfEe8AF+mp0v7dBrSopLA@mail.gmail.com>
- <CAJfpegtZHOO2oB8YSeQoEHiXK-aTYOw_083riABQmiZ_75m92Q@mail.gmail.com>
- <CAOQ4uxitv9FcZO9Ch-3dx0vPZTpZMxcRo=WmCRxj7fUqNJqCGg@mail.gmail.com>
- <CAOQ4uxhy0+XG-J5YUqyi0ZWnuc5m=z_Jy1JQfv=-5VfduAiERQ@mail.gmail.com>
- <CAJfpegug-JQdJxKcn93vWQdrFFJZ4dBm3SgAooF2V2i29UzRJw@mail.gmail.com>
- <CAOQ4uxipBEAsRQdUcWuDEZDutvG3Yrb4J2sHHRwu9Qgc5x4H2A@mail.gmail.com>
- <CAOQ4uxhZxzTNqRo4xZxHeE1wOM=SdNAVrAdLh=BFMbuRnRKt7Q@mail.gmail.com> <CAJfpegu3sWEGR1nkjSviFDXajqiMnJxXnDa4Qh2RjuP8AB8DLA@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-oi0-f42.google.com ([209.85.218.42]:35966 "EHLO
-        mail-oi0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752602AbdEJQBA (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 10 May 2017 12:01:00 -0400
-In-Reply-To: <CAJfpegu3sWEGR1nkjSviFDXajqiMnJxXnDa4Qh2RjuP8AB8DLA@mail.gmail.com>
-Sender: linux-unionfs-owner@vger.kernel.org
+Subject: [PATCH 2/4] overlay/017: use t_dir_type to find file by d_ino
+Date: Thu, 11 May 2017 09:55:08 +0300
+Message-ID: <1494485710-2400-3-git-send-email-amir73il@gmail.com>
+References: <1494485710-2400-1-git-send-email-amir73il@gmail.com>
+Return-path: <fstests-owner@vger.kernel.org>
+In-Reply-To: <1494485710-2400-1-git-send-email-amir73il@gmail.com>
+Sender: fstests-owner@vger.kernel.org
+To: Eryu Guan <eguan@redhat.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, Xiong Zhou <xzhou@redhat.com>, linux-unionfs@vger.kernel.org, fstests@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: Vivek Goyal <vgoyal@redhat.com>, Al Viro <viro@zeniv.linux.org.uk>, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>
 
-On Wed, May 10, 2017 at 12:21 PM, Miklos Szeredi <miklos@szeredi.hu> wrote:
-[...]
->
-> My plan is to send a pull request to Linus for the const ino stuff,
-> and then leave the rest to 4.13.
->
-> This is the list I have in my head for what's missing:
->
-> - lookup origin dir for snapshots
-> - const ino for non-samefs
-> - correct d_ino for copied up entries
-> - NFS export support
-> - hardlink unbreaking
-[...]
->
-> The non-starred ones don't seem too hard and should aim for 4.13.
->
+'find -ino' is this test was supposed to filter files by inode number
+that was recorded with 'ls -i' to compare st_ino returned by stat(2)
+with d_ino returned by getdents64(2).
 
-Just to clarify, did you mean that we should aim for NFS export and hardlinks
-for 4.13 for samefs? or non-samefs?
-Because I can see how non-samefs is possible, but complicates the reverse
-inode map, so I rather start with samefs.
+It turns out that on some systems, 'find -ino' uses stat(2) for
+filtering by inode number, which is not what we want.
 
-It turns out that constant d_ino wasn't that hard.
-It's quite an isolated patch based on your old overlay.ino POC, see:
-https://github.com/amir73il/linux/tree/ovl-constino
+Use the auxiliary program t_dir_type to filter files by inode number
+instead.
 
-Basically, it's working and I also have xfstests to verify it,
-which I will post those and the patch later.
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+---
+ tests/overlay/017 | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-I think that the toll on readdir performance is not such a big problem,
-because stat'ing the dir entries is served from cache, so 'ls -lR' is
-not going to suffer, only 'find -ino' with cold cache will suffer.
-
-There is still room for optimization for iterating 'very pure upper' dirs
-(with no copy ups in them).
-
-Amir.
+diff --git a/tests/overlay/017 b/tests/overlay/017
+index fabfbb5..bb467f7 100755
+--- a/tests/overlay/017
++++ b/tests/overlay/017
+@@ -56,6 +56,7 @@ _supported_fs overlay
+ _supported_os Linux
+ _require_scratch
+ _require_test_program "af_unix"
++_require_test_program "t_dir_type"
+ 
+ rm -f $seqres.full
+ 
+@@ -107,7 +108,7 @@ function check_inode_numbers()
+ 	# Test constant readdir(3)/getdents(2) d_ino -
+ 	#   Expect to find file by inode number
+ 	cat $before | while read ino f; do
+-		find $dir/ -maxdepth 1 -inum $ino | grep -q $f || \
++		$here/src/t_dir_type $dir $ino | grep -q $f || \
+ 			echo "$f not found by ino $ino (from $before)"
+ 	done
+ }
+-- 
+2.7.4
