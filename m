@@ -1,43 +1,56 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH 0/4] overlay/017: fix false negatives
-Date: Thu, 11 May 2017 09:55:06 +0300
-Message-ID: <1494485710-2400-1-git-send-email-amir73il@gmail.com>
+Subject: [PATCH 3/4] overlay/017: test consistent st_ino/d_ino for hardlinks
+Date: Thu, 11 May 2017 09:55:09 +0300
+Message-ID: <1494485710-2400-4-git-send-email-amir73il@gmail.com>
+References: <1494485710-2400-1-git-send-email-amir73il@gmail.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:34972 "EHLO
-        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751028AbdEKGy6 (ORCPT
+Received: from mail-wr0-f196.google.com ([209.85.128.196]:34554 "EHLO
+        mail-wr0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754757AbdEKGzH (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 11 May 2017 02:54:58 -0400
+        Thu, 11 May 2017 02:55:07 -0400
+In-Reply-To: <1494485710-2400-1-git-send-email-amir73il@gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: Eryu Guan <eguan@redhat.com>
 Cc: Miklos Szeredi <miklos@szeredi.hu>, Xiong Zhou <xzhou@redhat.com>, linux-unionfs@vger.kernel.org, fstests@vger.kernel.org
 
-Eryu,
+Currently hardlinks do not preserve the inode number across copy up,
+so hardlinks did not participate in this test so far.
 
-With current mainline master branch, overlay/017 may pass on some systems
-(e.g. kvm-xfstests) due to a bug in the test, which I already reported.
+Stay honest and let the test verify what is was meant to verify and
+let it fail because of the fact that hardlinks inode numbers are not
+constant across copy up.
 
-This series fixes the test back to failing by using the auxiliary program
-t_dir_type instead of 'find' whose behavior is system dependent.
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+---
+ tests/overlay/017 | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-I also removed the exception of testing hardlinks, so now the test really
-tests what it was meant to test (constant inode number across copy up)
-without any discounts for special cases.
-
-Amir.
-
-Amir Goldstein (4):
-  src/t_dir_type: support filtering by inode number
-  overlay/017: use t_dir_type to find file by d_ino
-  overlay/017: test consistent st_ino/d_ino for hardlinks
-  overlay: tag tests 016-018 as experimental
-
- doc/auxiliary-programs.txt |  7 +++++++
- src/t_dir_type.c           | 11 ++++++++---
- tests/overlay/017          |  9 +++++----
- tests/overlay/group        |  6 +++---
- 4 files changed, 23 insertions(+), 10 deletions(-)
-
+diff --git a/tests/overlay/017 b/tests/overlay/017
+index bb467f7..e9c8525 100755
+--- a/tests/overlay/017
++++ b/tests/overlay/017
+@@ -63,8 +63,6 @@ rm -f $seqres.full
+ _scratch_mkfs >>$seqres.full 2>&1
+ 
+ # Create our test files.
+-# Not dealing with hardlinks here, when hardlinks are broken they
+-# should not preserve the inode number.
+ lowerdir=$OVL_BASE_SCRATCH_MNT/$OVL_LOWER
+ mkdir -p $lowerdir
+ mkdir $lowerdir/dir
+@@ -74,8 +72,10 @@ mknod $lowerdir/chrdev c 1 1
+ mknod $lowerdir/blkdev b 1 1
+ mknod $lowerdir/fifo p
+ $here/src/af_unix $lowerdir/socket
++touch $lowerdir/hardlink1
++ln $lowerdir/hardlink1 $lowerdir/hardlink2
+ 
+-FILES="dir file symlink chrdev blkdev fifo socket"
++FILES="dir file symlink chrdev blkdev fifo socket hardlink1 hardlink2"
+ 
+ # Record inode numbers in format <ino> <basename>
+ function record_inode_numbers()
 -- 
 2.7.4
