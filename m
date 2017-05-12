@@ -1,44 +1,32 @@
-From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [PATCH 4/4] overlay: tag tests 016-018 as experimental
-Date: Fri, 12 May 2017 09:16:05 +0300
-Message-ID: <CAOQ4uxiNew=sKkz5RFs7b9fgjYM5-Fj4Y09Qg4bsX2TvvMiZwQ@mail.gmail.com>
-References: <1494485710-2400-1-git-send-email-amir73il@gmail.com>
- <1494485710-2400-5-git-send-email-amir73il@gmail.com> <20170512040145.GJ7250@eguan.usersys.redhat.com>
+From: "Thomas Credit Firm" <miorellana@salud.gob.sv>
+Subject: APPLY FOR YOUR URGENT LOAN AT 2%
+Date: Fri, 12 May 2017 11:53:56 +0100
+Message-ID: <20170512105410.0245F4807243__46127.1331682385$1494587160$gmane$org@mail.salud.gob.sv>
+Reply-To: thomascreditfirm@gmail.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-oi0-f65.google.com ([209.85.218.65]:36384 "EHLO
-        mail-oi0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755816AbdELGQG (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 12 May 2017 02:16:06 -0400
-In-Reply-To: <20170512040145.GJ7250@eguan.usersys.redhat.com>
+Received: from mail.salud.gob.sv ([190.5.143.2]:34356 "EHLO mail.salud.gob.sv"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S932184AbdELLFv (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Fri, 12 May 2017 07:05:51 -0400
+Content-Description: Mail message body
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Eryu Guan <eguan@redhat.com>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, Xiong Zhou <xzhou@redhat.com>, linux-unionfs@vger.kernel.org, fstests <fstests@vger.kernel.org>
+To: receipt <miorellana@salud.gob.sv>
 
-On Fri, May 12, 2017 at 7:01 AM, Eryu Guan <eguan@redhat.com> wrote:
-> On Thu, May 11, 2017 at 09:55:10AM +0300, Amir Goldstein wrote:
->> The tests 016-018 were added to track overlayfs 'Non-standard behavior'
->> as are documented in Documentation/filesystems/overlayfs.txt, with the
->> intention of fixing those behaviors 'some day'.
->>
->> While that day seems to be seen in the horizon, at least for test 017,
->> it may take a while longer for all those tests to pass.
->> Add those tests to group 'experimental' so at least this special status
->> is published somehow.
->>
->> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
->
-> The first three patches look good to me, but I'm a bit reluctant on
-> merging this one.
->
-> To me, this new 'experimental' group serves as an indication of "this
-> test is known to fail". But this info already can be found in commit
-> logs and comments of these tests. Also fstests had been pushing back
-> attempts to add "known issue" support in the past. So I'd rather drop
-> this patch.
->
-Perfectly fine by me.
-I have no problem remembering that those tests fail and why ;)
+* Do you need an urgent loan? We offer all kinds of loan
+* Very fast and urgent transfer to your bank account. 
+* Payment begins (6) months after you get the money in your bank account 
+* Low interest rates 2% 
+* Payment of long-term (1-30 years) duration 
+For more information and loan application form through the Contact now 
+
+E-mail:  Thomascreditfirm@gmail.com 
+Thomas B. Dawson 
+THOMAS CREDIT FIRM
+
+---
+This email has been checked for viruses by Avast antivirus software.
+https://www.avast.com/antivirus
