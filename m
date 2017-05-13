@@ -1,32 +1,47 @@
-From: "Thomas Credit Firm" <miorellana@salud.gob.sv>
-Subject: APPLY FOR YOUR URGENT LOAN AT 2%
-Date: Fri, 12 May 2017 11:53:56 +0100
-Message-ID: <20170512105410.0245F4807243__46127.1331682385$1494587160$gmane$org@mail.salud.gob.sv>
-Reply-To: thomascreditfirm@gmail.com
-Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+From: Florian Fainelli <f.fainelli@gmail.com>
+Subject: [PATCH] ovl: Select EXPORTFS for exportfs_{en,de}code_fh
+Date: Fri, 12 May 2017 19:17:57 -0700
+Message-ID: <20170513021757.2356-1-f.fainelli@gmail.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail.salud.gob.sv ([190.5.143.2]:34356 "EHLO mail.salud.gob.sv"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932184AbdELLFv (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 12 May 2017 07:05:51 -0400
-Content-Description: Mail message body
+Received: from mail-oi0-f67.google.com ([209.85.218.67]:36556 "EHLO
+        mail-oi0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751398AbdEMCSC (ORCPT
+        <rfc822;linux-unionfs@vger.kernel.org>);
+        Fri, 12 May 2017 22:18:02 -0400
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: receipt <miorellana@salud.gob.sv>
+To: linux-kernel@vger.kernel.org
+Cc: amir73il@gmail.com, Florian Fainelli <f.fainelli@gmail.com>, Miklos Szeredi <miklos@szeredi.hu>, "open list:OVERLAY FILESYSTEM" <linux-unionfs@vger.kernel.org>
 
-* Do you need an urgent loan? We offer all kinds of loan
-* Very fast and urgent transfer to your bank account. 
-* Payment begins (6) months after you get the money in your bank account 
-* Low interest rates 2% 
-* Payment of long-term (1-30 years) duration 
-For more information and loan application form through the Contact now 
+fs/overlayfs/namei.c now calls exportfs_decode_fh() and
+fs/overlayfs/copy_up.c calls exportfs_encode_fh() but misses an EXPORTFS
+select which results in the following build error:
 
-E-mail:  Thomascreditfirm@gmail.com 
-Thomas B. Dawson 
-THOMAS CREDIT FIRM
+fs/built-in.o: In function `ovl_get_origin':
+/home/florian/dev/linux/fs/overlayfs/namei.c:141: undefined reference to
+`exportfs_decode_fh'
+fs/built-in.o: In function `ovl_encode_fh':
+/home/florian/dev/linux/fs/overlayfs/copy_up.c:253: undefined reference
+to `exportfs_encode_fh'
+Makefile:997: recipe for target 'vmlinux' failed
 
+Fixes: a9d019573e88 ("ovl: lookup non-dir copy-up-origin by file handle")
+Fixes: 3a1e819b4e80 ("ovl: store file handle of lower inode on copy up")
+Signed-off-by: Florian Fainelli <f.fainelli@gmail.com>
 ---
-This email has been checked for viruses by Avast antivirus software.
-https://www.avast.com/antivirus
+ fs/overlayfs/Kconfig | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/fs/overlayfs/Kconfig b/fs/overlayfs/Kconfig
+index 0daac5112f7a..c0c9683934b7 100644
+--- a/fs/overlayfs/Kconfig
++++ b/fs/overlayfs/Kconfig
+@@ -1,5 +1,6 @@
+ config OVERLAY_FS
+ 	tristate "Overlay filesystem support"
++	select EXPORTFS
+ 	help
+ 	  An overlay filesystem combines two filesystems - an 'upper' filesystem
+ 	  and a 'lower' filesystem.  When a name exists in both filesystems, the
+-- 
+2.11.0
