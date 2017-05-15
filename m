@@ -1,48 +1,67 @@
-From: Miklos Szeredi <miklos@szeredi.hu>
-Subject: Re: [PATCH] ovl: select EXPORTFS
-Date: Mon, 15 May 2017 11:21:55 +0200
-Message-ID: <CAJfpegsr+E4kYgbkL2ccfbQnKwiSHh5GEyQrjRvkJtruTnjE0g@mail.gmail.com>
-References: <20170511113437.2564112-1-arnd@arndb.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20170511113437.2564112-1-arnd@arndb.de>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>, linux-kernel@vger.kernel.org
+From: ziegler@uni-freiburg.de
+Subject: overlayfs in 4.12-rc1. Files in lower become unwritable in the overlay
+Date: Mon, 15 May 2017 17:41:28 +0200
+Message-ID: <E1dAI7k-0006Fd-6q@tux00.mathematik.uni-freiburg.de>
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-unionfs-owner@vger.kernel.org>
+Received: from email.mathematik.uni-freiburg.de ([132.230.30.5]:47116 "EHLO
+        email.mathematik.uni-freiburg.de" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750999AbdEOQTi (ORCPT
+        <rfc822;linux-unionfs@vger.kernel.org>);
+        Mon, 15 May 2017 12:19:38 -0400
+Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
+To: linux-unionfs@vger.kernel.org
+Cc: Miklos Szeredi <miklos@szeredi.hu>
 
-On Thu, May 11, 2017 at 1:34 PM, Arnd Bergmann <arnd@arndb.de> wrote:
-> We get a link error when EXPORTFS is not enabled:
->
-> ERROR: "exportfs_encode_fh" [fs/overlayfs/overlay.ko] undefined!
-> ERROR: "exportfs_decode_fh" [fs/overlayfs/overlay.ko] undefined!
->
-> This adds a Kconfig 'select' statement for overlayfs, the same way that
-> it is done for the other users of exportfs.
->
-> Fixes: 3a1e819b4e80 ("ovl: store file handle of lower inode on copy up")
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 
-Thanks, applied.
+How to reproduce: Make sure that the kernel is compiled with
+CONFIG_TMPFS_XATTR not set. (Otherwise, as Miklos suggested, the bug
+does not occur)
 
-Miklos
+Start with a directory "lower" (btrfs in my case) containing an empty
+file "x", and three empty directories "upper", "workdir", "over" on
+"/tmp" (tmpfs). Then mount the overlayfs
 
-> ---
->  fs/overlayfs/Kconfig | 1 +
->  1 file changed, 1 insertion(+)
->
-> diff --git a/fs/overlayfs/Kconfig b/fs/overlayfs/Kconfig
-> index 0daac5112f7a..c0c9683934b7 100644
-> --- a/fs/overlayfs/Kconfig
-> +++ b/fs/overlayfs/Kconfig
-> @@ -1,5 +1,6 @@
->  config OVERLAY_FS
->         tristate "Overlay filesystem support"
-> +       select EXPORTFS
->         help
->           An overlay filesystem combines two filesystems - an 'upper' filesystem
->           and a 'lower' filesystem.  When a name exists in both filesystems, the
-> --
-> 2.9.0
->
+   sudo mount -t overlay -o \
+     lowerdir=lower,upperdir=/tmp/upper,workdir=/tmp/workdir overlay \
+     /tmp/over
+
+Then the commands
+
+   sudo touch /tmp/over/x
+   sudo mv /tmp/over/x /tmp/over/z
+
+fail:
+  touch: cannot touch '/tmp/over/x': Operation not supported
+  mv: cannot move '/tmp/over/x' to '/tmp/over/z': Operation not
+  supported
+
+despite the permissions
+
+  -rw-r--r-- 1 ziegler ziegler 0 Mai 14 12:27 /tmp/over/y
+
+------------------------------------------------------------------
+
+------------------------------------------------------------------
+
+Bisection between 4.11.0 and 4.12-rc1 yielded
+
+commit 3a1e819b4e80216e00ef6a4dfe67fa142450c5e1
+Author: Amir Goldstein <amir73il@gmail.com>
+Date:   Thu Mar 30 15:22:16 2017 +0300
+
+    ovl: store file handle of lower inode on copy up
+
+as responsible for this.
+
+------------------------------------------------------------------
+
+
+------------------------------------------------------------------
+
+
+Regards,
+
+Martin
