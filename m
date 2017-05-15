@@ -1,89 +1,48 @@
-From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [PATCH 2/2] ovl: constant d_ino across copy up
-Date: Sat, 13 May 2017 17:25:32 +0300
-Message-ID: <CAOQ4uxg3_wLfcCGEn4XjdaCJS8uU3FFYVXRRhzUcSE+rggQ9xA@mail.gmail.com>
-References: <1494510147-18658-1-git-send-email-amir73il@gmail.com> <1494510147-18658-3-git-send-email-amir73il@gmail.com>
+From: Miklos Szeredi <miklos@szeredi.hu>
+Subject: Re: [PATCH] ovl: select EXPORTFS
+Date: Mon, 15 May 2017 11:21:55 +0200
+Message-ID: <CAJfpegsr+E4kYgbkL2ccfbQnKwiSHh5GEyQrjRvkJtruTnjE0g@mail.gmail.com>
+References: <20170511113437.2564112-1-arnd@arndb.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-oi0-f65.google.com ([209.85.218.65]:34774 "EHLO
-        mail-oi0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752301AbdEMOZd (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Sat, 13 May 2017 10:25:33 -0400
-Received: by mail-oi0-f65.google.com with SMTP id w10so12824193oif.1
-        for <linux-unionfs@vger.kernel.org>; Sat, 13 May 2017 07:25:33 -0700 (PDT)
-In-Reply-To: <1494510147-18658-3-git-send-email-amir73il@gmail.com>
-Sender: linux-unionfs-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20170511113437.2564112-1-arnd@arndb.de>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>, linux-kernel@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: Vivek Goyal <vgoyal@redhat.com>, "open list:OVERLAY FILESYSTEM" <linux-unionfs@vger.kernel.org>
 
-On Thu, May 11, 2017 at 4:42 PM, Amir Goldstein <amir73il@gmail.com> wrote:
-> This patch is based on an earlier POC by Miklos Szeredi.
+On Thu, May 11, 2017 at 1:34 PM, Arnd Bergmann <arnd@arndb.de> wrote:
+> We get a link error when EXPORTFS is not enabled:
 >
-> When all layers are on the same fs, and iterating a directory which
-> may contain copy up entries, call vfs_getattr() on the overlay entries
-> to make sure that d_ino will be consistent with st_ino from stat(2).
+> ERROR: "exportfs_encode_fh" [fs/overlayfs/overlay.ko] undefined!
+> ERROR: "exportfs_decode_fh" [fs/overlayfs/overlay.ko] undefined!
 >
-[...]
+> This adds a Kconfig 'select' statement for overlayfs, the same way that
+> it is done for the other users of exportfs.
 >
-> +/*
-> + * Set d_ino for upper entries. Non-upper entries should always report
-> + * the uppermost real inode ino and should not call this function.
-> + *
-> + * When not all layer are on same fs, report real ino also for upper.
-> + *
-> + * When all layers are on the same fs, and upper has a reference to
-> + * copy up origin, call vfs_getattr() on the overlay entry to make
-> + * sure that d_ino will be consistent with st_ino from stat(2).
-> + */
-> +static int ovl_cache_update_ino(struct path *path, struct ovl_cache_entry *p)
-> +
-> +{
-> +       struct dentry *dir = path->dentry;
-> +       struct dentry *this = NULL;
-> +       enum ovl_path_type type;
-> +       u64 ino = p->real_ino;
-> +       int err = 0;
-> +
-> +       if (!ovl_same_sb(dir->d_sb) || WARN_ON(p->idx))
-> +               goto out;
-> +
-> +       if (p->name[0] == '.') {
-> +               if (p->len == 1) {
-> +                       this = dget(dir);
-> +                       goto get;
-> +               }
-> +               if (p->len == 2 && p->name[1] == '.') {
-> +                       /* we shall not be moved */
-> +                       this = dget(dir->d_parent);
-> +                       goto get;
-> +               }
-> +       }
-> +       this = lookup_one_len(p->name, dir, p->len);
+> Fixes: 3a1e819b4e80 ("ovl: store file handle of lower inode on copy up")
+> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 
-Mmm... that reeks of layer violation, but I can't find anything obvious
-that could go wrong from calling lookup on overlay dir here, is there?
+Thanks, applied.
 
-It's just so convenient to use overlay lookup here, get the overlay
-entry from cache and stat it, so I can't think of a better alternative.
+Miklos
 
-BTW, couldn't find anything obviously wrong with stat'ing overlay
-dir and dir->d_parent here either, is there?
-
-> +get:
-> +       type = ovl_path_type(this);
-> +       if (OVL_TYPE_ORIGIN(type)) {
-> +               struct kstat stat;
-> +               struct path statpath = *path;
-> +
-> +               statpath.dentry = this;
-> +               err = vfs_getattr(&statpath, &stat, STATX_INO, 0);
-> +               if (err)
-> +                       goto fail;
-> +
-> +               WARN_ON_ONCE(dir->d_sb->s_dev != stat.dev);
-> +               ino = stat.ino;
-> +       }
-> +
+> ---
+>  fs/overlayfs/Kconfig | 1 +
+>  1 file changed, 1 insertion(+)
+>
+> diff --git a/fs/overlayfs/Kconfig b/fs/overlayfs/Kconfig
+> index 0daac5112f7a..c0c9683934b7 100644
+> --- a/fs/overlayfs/Kconfig
+> +++ b/fs/overlayfs/Kconfig
+> @@ -1,5 +1,6 @@
+>  config OVERLAY_FS
+>         tristate "Overlay filesystem support"
+> +       select EXPORTFS
+>         help
+>           An overlay filesystem combines two filesystems - an 'upper' filesystem
+>           and a 'lower' filesystem.  When a name exists in both filesystems, the
+> --
+> 2.9.0
+>
