@@ -1,54 +1,35 @@
-From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH] ovl: fix creds leak in copy up error path
-Date: Tue, 16 May 2017 08:45:46 +0300
-Message-ID: <1494913546-2723-1-git-send-email-amir73il@gmail.com>
+From: Miklos Szeredi <miklos@szeredi.hu>
+Subject: Re: overlayfs in 4.12-rc1. Files in lower become unwritable in the overlay
+Date: Tue, 16 May 2017 09:02:18 +0200
+Message-ID: <CAJfpegtf4QXFPJ60ra767iA1o_NPmjO10WaaVSG_-5RZgCfT+w@mail.gmail.com>
+References: <E1dAI7k-0006Fd-6q@tux00.mathematik.uni-freiburg.de>
+ <CAJfpegs_FGhA4yj=W6eraLrw4GAavTv1-Zxwj27XM4QgGvo-_Q@mail.gmail.com> <CAOQ4uxiyx5n60vuSU+zxCsGVF6Si3rNWaGLyYzv=Ky5md2RDUQ@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wm0-f67.google.com ([74.125.82.67]:36855 "EHLO
-        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751017AbdEPFpd (ORCPT
+Received: from mail-oi0-f44.google.com ([209.85.218.44]:33485 "EHLO
+        mail-oi0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751156AbdEPHCU (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 16 May 2017 01:45:33 -0400
+        Tue, 16 May 2017 03:02:20 -0400
+Received: by mail-oi0-f44.google.com with SMTP id w10so14351294oif.0
+        for <linux-unionfs@vger.kernel.org>; Tue, 16 May 2017 00:02:20 -0700 (PDT)
+In-Reply-To: <CAOQ4uxiyx5n60vuSU+zxCsGVF6Si3rNWaGLyYzv=Ky5md2RDUQ@mail.gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: linux-unionfs@vger.kernel.org, "# v4 . 11" <stable@vger.kernel.org>
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: Martin Ziegler <ziegler@uni-freiburg.de>, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>
 
-Fixes: 42f269b92540 ("ovl: rearrange code in ovl_copy_up_locked()")
-Cc: <stable@vger.kernel.org> # v4.11
-Signed-off-by: Amir Goldstein <amir73il@gmail.com>
----
- fs/overlayfs/copy_up.c | 11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
+On Mon, May 15, 2017 at 11:52 PM, Amir Goldstein <amir73il@gmail.com> wrote:
+> On Mon, May 15, 2017 at 8:57 PM, Miklos Szeredi <miklos@szeredi.hu> wrote:
 
-Miklos,
+>> Thanks for the report.  Fix pushed to overlayfs-next branch of
+>> git://git.kernel.org/pub/scm/linux/kernel/git/mszeredi/vfs.git
+>>
+>
+> I don't see the fix on the branch..
 
-Found that fall out while trying to 'simplify' this function. (see WIP at
-https://github.com/amir73il/linux/commits/ovl-index-dir).
+Sorry, forgot to push.  Done now.
 
-Amir.
-
-diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
-index 9008ab9..061a844 100644
---- a/fs/overlayfs/copy_up.c
-+++ b/fs/overlayfs/copy_up.c
-@@ -343,12 +343,13 @@ static int ovl_copy_up_locked(struct dentry *workdir, struct dentry *upperdir,
- 		temp = ovl_do_tmpfile(upperdir, stat->mode);
- 	else
- 		temp = ovl_lookup_temp(workdir, dentry);
--	err = PTR_ERR(temp);
--	if (IS_ERR(temp))
--		goto out1;
--
- 	err = 0;
--	if (!tmpfile)
-+	if (IS_ERR(temp)) {
-+		err = PTR_ERR(temp);
-+		temp = NULL;
-+	}
-+
-+	if (!err && !tmpfile)
- 		err = ovl_create_real(wdir, temp, &cattr, NULL, true);
- 
- 	if (new_creds) {
--- 
-2.7.4
+Thanks,
+Miklos
