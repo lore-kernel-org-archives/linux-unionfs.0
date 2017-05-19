@@ -1,85 +1,39 @@
-From: Miklos Szeredi <miklos@szeredi.hu>
-Subject: Re: [WIP][RFC] questions about overlay index dir design
-Date: Fri, 19 May 2017 16:16:54 +0200
-Message-ID: <CAJfpegvUpKh69HTAEN+DUJo3Kwrum_dhmK+jDCOb3LQDCVqVLw@mail.gmail.com>
-References: <CAOQ4uxgTG5JhmAb2hQF0ZoyFAfdOCSPDcScNL=8y7xJ1sXiHJg@mail.gmail.com>
- <CAOQ4uxgM6iJEnm8kLhHV6_cmjqN02hhPP20iuZ4eRwaK7+KV=Q@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+From: Amir Goldstein <amir73il@gmail.com>
+Subject: [PATCH v2 0/3] ovl: consistent st_ino/d_ino
+Date: Fri, 19 May 2017 18:27:18 +0300
+Message-ID: <1495207641-11213-1-git-send-email-amir73il@gmail.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-oi0-f42.google.com ([209.85.218.42]:33134 "EHLO
-        mail-oi0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751049AbdESOQ4 (ORCPT
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:34032 "EHLO
+        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750749AbdESP1V (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 19 May 2017 10:16:56 -0400
-Received: by mail-oi0-f42.google.com with SMTP id w10so93804342oif.0
-        for <linux-unionfs@vger.kernel.org>; Fri, 19 May 2017 07:16:56 -0700 (PDT)
-In-Reply-To: <CAOQ4uxgM6iJEnm8kLhHV6_cmjqN02hhPP20iuZ4eRwaK7+KV=Q@mail.gmail.com>
+        Fri, 19 May 2017 11:27:21 -0400
+Received: by mail-wm0-f66.google.com with SMTP id d127so18926198wmf.1
+        for <linux-unionfs@vger.kernel.org>; Fri, 19 May 2017 08:27:21 -0700 (PDT)
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: "open list:OVERLAY FILESYSTEM" <linux-unionfs@vger.kernel.org>
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: linux-unionfs@vger.kernel.org
 
-On Thu, May 18, 2017 at 4:15 PM, Amir Goldstein <amir73il@gmail.com> wrote:
-> On Thu, May 18, 2017 at 2:08 AM, Amir Goldstein <amir73il@gmail.com> wrote:
->
->>
->> The other thing I wanted to ask and it doesn't require you looking at
->> any code is how to handle backward compat of mount behavior when
->> workdir is reused for mount with a different upperdir.
->>
->> The use case may seem odd, but I already ran into it with unionmount
->> testsuite ./run --ov=1 and with xfstest overlay/014.
->> Maybe those are the only examples in the world, but maybe not...
->>
->> The problem is that if workdir/index contains hardlinks to a past upper
->> which has been rotated to lower, bad things can happen on copy up.
->> What I did so far is to store origin fh of upper root in index dir.
->> Mount forces read-only if index dir origin does not match upper root dir.
->>
->> So with current WIP the behavior is that ./run --ov=1 fails after
->> rotating upper:
->>
->> overlayfs: failed to verify origin dir (ino=19025, ret=-116) - were
->> layers copied?
->> overlayfs: failed to create directory /upper/work/index (errno: 17);
->> mounting read-only
->>  ./run --rename /mnt/a/no_foo104 /mnt/a/no_foo105
->> /mnt/a/no_foo104: Unexpected error: Read-only file system
->>
->> It's easy to fix the testsuite, but it is doing something that was legal before
->> (provide the same workdir option with different upperdir options) and now
->> it fails.
->>
->> The alternative is to blow away the index dir and recreate it when mounting
->> with an unverified upperdir. This will work fine for the testsuite, but not for
->> the obscure users out there using the same workdir to mount with few different
->> upperdir (not at the same time) - do we care?
+Miklos,
 
-Actually, the "at the same time" case is interesting as well.  We
-should probably error out at mount time in that case, instead we
-destroy the first user's work directory.  Not good.
+I choose to fork a helper lookup_one_len_noperm().
 
->>
->> I guess the best is to blow away index dir unless user explicitly opted-in
->> to not blow it away, e.g. by using mount option indexdir= in place of workdir=
->> (mutually excl.).
->>
->
-> Actually, it may make sense to have -o verify_lower control this behavior.
-> Specifying -o verify_lower clearly states the intention of the user to mount
-> overlay layers that were not copied, therefore it makes sense to fail rw mount.
->
-> OTHO, with this wider meaning, I no longer like the name 'verify_lower',
-> for 2 reasons:
-> 1. It is only used to verify directories
-> 2. It is now also used to verify upper root dir
->
-> So how about 'verify_dir'/'verify_fh'/'verify_origin'?
+Hope you find this a good choice.
 
-Head spins from all these separate functions (snapshot, NFS export,
-hard link unbreaking) and what they need.  There's probably no "one
-size fits all" behavior.  Will need to think about this a bit...
+Amir.
 
-Thanks,
-Miklos
+Amir Goldstein (3):
+  vfs: factor out lookup_one_len_init()
+  vfs: add helper lookup_one_len_noperm()
+  ovl: constant d_ino across copy up
+
+ fs/namei.c               | 117 +++++++++++++++++++++++++++--------------------
+ fs/overlayfs/namei.c     |   7 ++-
+ fs/overlayfs/overlayfs.h |   2 +-
+ fs/overlayfs/readdir.c   | 115 +++++++++++++++++++++++++++++++++++++++++++---
+ include/linux/namei.h    |   1 +
+ 5 files changed, 182 insertions(+), 60 deletions(-)
+
+-- 
+2.7.4
