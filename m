@@ -1,55 +1,85 @@
 From: Miklos Szeredi <miklos@szeredi.hu>
-Subject: Re: [PATCH 2/2] ovl: constant d_ino across copy up
-Date: Fri, 19 May 2017 15:37:23 +0200
-Message-ID: <CAJfpegvqomZq+M6RGBGfj_oHieWL2Hi6L6htsyC4hCmSkh-GOA@mail.gmail.com>
+Subject: Re: [WIP][RFC] questions about overlay index dir design
+Date: Fri, 19 May 2017 16:16:54 +0200
+Message-ID: <CAJfpegvUpKh69HTAEN+DUJo3Kwrum_dhmK+jDCOb3LQDCVqVLw@mail.gmail.com>
+References: <CAOQ4uxgTG5JhmAb2hQF0ZoyFAfdOCSPDcScNL=8y7xJ1sXiHJg@mail.gmail.com>
+ <CAOQ4uxgM6iJEnm8kLhHV6_cmjqN02hhPP20iuZ4eRwaK7+KV=Q@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-oi0-f68.google.com ([209.85.218.68]:35065 "EHLO
-        mail-oi0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751560AbdESNhZ (ORCPT
+Received: from mail-oi0-f42.google.com ([209.85.218.42]:33134 "EHLO
+        mail-oi0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751049AbdESOQ4 (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 19 May 2017 09:37:25 -0400
-Received: by mail-oi0-f68.google.com with SMTP id m17so12389907oik.2
-        for <linux-unionfs@vger.kernel.org>; Fri, 19 May 2017 06:37:25 -0700 (PDT)
+        Fri, 19 May 2017 10:16:56 -0400
+Received: by mail-oi0-f42.google.com with SMTP id w10so93804342oif.0
+        for <linux-unionfs@vger.kernel.org>; Fri, 19 May 2017 07:16:56 -0700 (PDT)
+In-Reply-To: <CAOQ4uxgM6iJEnm8kLhHV6_cmjqN02hhPP20iuZ4eRwaK7+KV=Q@mail.gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: Amir Goldstein <amir73il@gmail.com>
-Cc: Vivek Goyal <vgoyal@redhat.com>, "open list:OVERLAY FILESYSTEM" <linux-unionfs@vger.kernel.org>
+Cc: "open list:OVERLAY FILESYSTEM" <linux-unionfs@vger.kernel.org>
 
-On Fri, May 19, 2017 at 3:09 PM, Amir Goldstein <amir73il@gmail.com> wrote:
-> On Fri, May 19, 2017 at 3:22 PM, Miklos Szeredi <miklos@szeredi.hu> wrote:
-
-> Right, so perhaps mounter's creds isn't the right choice.
-> What we need is to install new credentials with elevated permissions
-> for lookup. Can we do that?
+On Thu, May 18, 2017 at 4:15 PM, Amir Goldstein <amir73il@gmail.com> wrote:
+> On Thu, May 18, 2017 at 2:08 AM, Amir Goldstein <amir73il@gmail.com> wrote:
 >
-> But looking at this from another perspective, if user can readdir,
-> but cannot lookup inside it, then user cannot stat the files listed by
-> readdir and therefore user cannot observe the st_ino/d_ino
-> inconsistency due to lookup failure. If we say that we don't really
-> care about this corner case, then we silently ignore -EACCESS
-> and report the upper d_ino.
+>>
+>> The other thing I wanted to ask and it doesn't require you looking at
+>> any code is how to handle backward compat of mount behavior when
+>> workdir is reused for mount with a different upperdir.
+>>
+>> The use case may seem odd, but I already ran into it with unionmount
+>> testsuite ./run --ov=1 and with xfstest overlay/014.
+>> Maybe those are the only examples in the world, but maybe not...
+>>
+>> The problem is that if workdir/index contains hardlinks to a past upper
+>> which has been rotated to lower, bad things can happen on copy up.
+>> What I did so far is to store origin fh of upper root in index dir.
+>> Mount forces read-only if index dir origin does not match upper root dir.
+>>
+>> So with current WIP the behavior is that ./run --ov=1 fails after
+>> rotating upper:
+>>
+>> overlayfs: failed to verify origin dir (ino=19025, ret=-116) - were
+>> layers copied?
+>> overlayfs: failed to create directory /upper/work/index (errno: 17);
+>> mounting read-only
+>>  ./run --rename /mnt/a/no_foo104 /mnt/a/no_foo105
+>> /mnt/a/no_foo104: Unexpected error: Read-only file system
+>>
+>> It's easy to fix the testsuite, but it is doing something that was legal before
+>> (provide the same workdir option with different upperdir options) and now
+>> it fails.
+>>
+>> The alternative is to blow away the index dir and recreate it when mounting
+>> with an unverified upperdir. This will work fine for the testsuite, but not for
+>> the obscure users out there using the same workdir to mount with few different
+>> upperdir (not at the same time) - do we care?
+
+Actually, the "at the same time" case is interesting as well.  We
+should probably error out at mount time in that case, instead we
+destroy the first user's work directory.  Not good.
+
+>>
+>> I guess the best is to blow away index dir unless user explicitly opted-in
+>> to not blow it away, e.g. by using mount option indexdir= in place of workdir=
+>> (mutually excl.).
+>>
 >
-> But I am mostly debating this for the sake of debating. If you prefer
-> to do this "by hand" because it's the "right thing to do", that seems
-> like a good enough reason to me. As I wrote, this reeks of a layer
-> violation that may come back to bite us in the future,  even if right now,
-> we cannot figure out why.
+> Actually, it may make sense to have -o verify_lower control this behavior.
+> Specifying -o verify_lower clearly states the intention of the user to mount
+> overlay layers that were not copied, therefore it makes sense to fail rw mount.
+>
+> OTHO, with this wider meaning, I no longer like the name 'verify_lower',
+> for 2 reasons:
+> 1. It is only used to verify directories
+> 2. It is now also used to verify upper root dir
+>
+> So how about 'verify_dir'/'verify_fh'/'verify_origin'?
 
-Well, even if we go by the route of looking up the overlay dentry, we
-shoudn't be hacking around the permission checks (yeah, overlayfs
-started out doing that, because I didn't know better at the time).
-Instead we can export __lookup_hash() and use that.
-
-But I simply don't know which route is better.  There's a tradeoff
-between memory use and performance, but all depends on usage patterns.
-Probably doesn't matter much, so just choose the one which you feel
-better about.
-
-Thanks,
-Miklos
-
+Head spins from all these separate functions (snapshot, NFS export,
+hard link unbreaking) and what they need.  There's probably no "one
+size fits all" behavior.  Will need to think about this a bit...
 
 Thanks,
 Miklos
