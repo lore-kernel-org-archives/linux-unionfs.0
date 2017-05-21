@@ -1,295 +1,177 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH v2 3/3] ovl: constant d_ino across copy up
-Date: Fri, 19 May 2017 18:27:21 +0300
-Message-ID: <1495207641-11213-4-git-send-email-amir73il@gmail.com>
-References: <1495207641-11213-1-git-send-email-amir73il@gmail.com>
+Subject: [PATCH] ovl: mark upper merge dir with type origin entries "impure"
+Date: Sun, 21 May 2017 11:54:53 +0300
+Message-ID: <1495356893-21757-1-git-send-email-amir73il@gmail.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:35763 "EHLO
-        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751055AbdESP10 (ORCPT
+Received: from mail-wm0-f65.google.com ([74.125.82.65]:35184 "EHLO
+        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750860AbdEUIyk (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 19 May 2017 11:27:26 -0400
-Received: by mail-wm0-f66.google.com with SMTP id v4so19014426wmb.2
-        for <linux-unionfs@vger.kernel.org>; Fri, 19 May 2017 08:27:25 -0700 (PDT)
-In-Reply-To: <1495207641-11213-1-git-send-email-amir73il@gmail.com>
+        Sun, 21 May 2017 04:54:40 -0400
+Received: by mail-wm0-f65.google.com with SMTP id g15so6038280wmc.2
+        for <linux-unionfs@vger.kernel.org>; Sun, 21 May 2017 01:54:39 -0700 (PDT)
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: Miklos Szeredi <miklos@szeredi.hu>
 Cc: linux-unionfs@vger.kernel.org
 
-This patch is based on an earlier POC by Miklos Szeredi.
+An upper dir is marked "impure" to let ovl_iterate() know that this
+directory may contain non pure upper entries whose d_ino may need to be
+read from the origin inode.
 
-When all layers are on the same fs, and iterating a directory which
-may contain copy up entries, call vfs_getattr() on the overlay entries
-to make sure that d_ino will be consistent with st_ino from stat(2).
+We already mark a non-merge dir "impure" when moving a non-pure child
+entry inside it, to let ovl_iterate() know not to iterate the non-merge
+dir directly.
 
-There is an overhead of lookup per upper entry in readdir.
-That overhead is a waste for a merge dir with only pure upper
-entries (i.e. no copy ups), but that can be optimized later.
+Mark also a merge dir "impure" when moving a non-pure child entry inside
+it and when copying up a child entry inside it.
 
-The overhead is minimal if the iterated entries are already in dcache.
-It is also quite useful for the common case of 'ls -l' that readdir()
-pre populates the dcache with the listed entries, making the following
-stat() calls faster.
+This can be used to optimize ovl_iterate() to perform a "pure merge" of
+upper and lower directories, merging the content of the directories,
+without having to read d_ino from origin inodes.
 
 Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- fs/overlayfs/namei.c     |   7 ++-
- fs/overlayfs/overlayfs.h |   2 +-
- fs/overlayfs/readdir.c   | 115 ++++++++++++++++++++++++++++++++++++++++++++---
- 3 files changed, 114 insertions(+), 10 deletions(-)
+ fs/overlayfs/copy_up.c   |  7 +++++++
+ fs/overlayfs/dir.c       | 31 ++++++-------------------------
+ fs/overlayfs/overlayfs.h |  7 ++++---
+ fs/overlayfs/util.c      | 16 ++++++++++++++++
+ 4 files changed, 33 insertions(+), 28 deletions(-)
 
-diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
-index 0c72a59..d8daecf 100644
---- a/fs/overlayfs/namei.c
-+++ b/fs/overlayfs/namei.c
-@@ -331,18 +331,21 @@ static int ovl_check_origin(struct dentry *dentry, struct dentry *upperdentry,
-  * Returns next layer in stack starting from top.
-  * Returns -1 if this is the last layer.
-  */
--int ovl_path_next(int idx, struct dentry *dentry, struct path *path)
-+int ovl_path_next(int idx, struct dentry *dentry, struct path *path, int *idxp)
- {
- 	struct ovl_entry *oe = dentry->d_fsdata;
+Miklos,
+
+w.r.t. the clause in constant d_ino commit message:
+"There is an overhead of lookup per upper entry in readdir.
+That overhead is a waste for a merge dir with only pure upper
+entries (i.e. no copy ups), but that can be optimized later."
+
+Please consider this patch for v4.12 on top of the one already in
+overlayfs-next.
+
+Not sure how common the use case of "pure merge" is, but the optimization
+of not doing the origin lookup in ovl_interate() is trivial, so better have
+the merge dir marked "impure" now when introducing overlay.origin.
+
+Amir.
+
+diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
+index 843ed2a..1ae1790 100644
+--- a/fs/overlayfs/copy_up.c
++++ b/fs/overlayfs/copy_up.c
+@@ -459,6 +459,13 @@ static int ovl_copy_up_one(struct dentry *parent, struct dentry *dentry,
+ 	ovl_path_upper(parent, &parentpath);
+ 	upperdir = parentpath.dentry;
  
- 	BUG_ON(idx < 0);
- 	if (idx == 0) {
- 		ovl_path_upper(dentry, path);
--		if (path->dentry)
-+		if (path->dentry) {
-+			*idxp = 0;
- 			return oe->numlower ? 1 : -1;
-+		}
- 		idx++;
- 	}
- 	BUG_ON(idx > oe->numlower);
-+	*idxp = idx;
- 	*path = oe->lowerstack[idx - 1];
++	/* Mark parent "impure" because it may now contain non-pure upper */
++	if (!ovl_dentry_is_impure(parent)) {
++		err = ovl_set_impure(parent, upperdir);
++		if (err)
++			return err;
++	}
++
+ 	err = vfs_getattr(&parentpath, &pstat,
+ 			  STATX_ATIME | STATX_MTIME, AT_STATX_SYNC_AS_STAT);
+ 	if (err)
+diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
+index f2a118b..c9efc54 100644
+--- a/fs/overlayfs/dir.c
++++ b/fs/overlayfs/dir.c
+@@ -149,22 +149,6 @@ static int ovl_set_opaque(struct dentry *dentry, struct dentry *upperdentry)
+ 	return ovl_set_opaque_xerr(dentry, upperdentry, -EIO);
+ }
  
- 	return (idx < oe->numlower) ? idx + 1 : -1;
+-static int ovl_set_impure(struct dentry *dentry, struct dentry *upperdentry)
+-{
+-	int err;
+-
+-	/*
+-	 * Do not fail when upper doesn't support xattrs.
+-	 * Upper inodes won't have origin nor redirect xattr anyway.
+-	 */
+-	err = ovl_check_setxattr(dentry, upperdentry, OVL_XATTR_IMPURE,
+-				 "y", 1, 0);
+-	if (!err)
+-		ovl_dentry_set_impure(dentry);
+-
+-	return err;
+-}
+-
+ /* Common operations required to be done after creation of file on upper */
+ static void ovl_instantiate(struct dentry *dentry, struct inode *inode,
+ 			    struct dentry *newdentry, bool hardlink)
+@@ -976,21 +960,18 @@ static int ovl_rename(struct inode *olddir, struct dentry *old,
+ 	if (!samedir) {
+ 		/*
+ 		 * When moving a merge dir or non-dir with copy up origin into
+-		 * a non-merge upper dir (a.k.a pure upper dir), we are making
+-		 * the target parent dir "impure". ovl_iterate() iterates pure
+-		 * upper dirs directly, because there is no need to filter out
+-		 * whiteouts and merge dir content with lower dir. But for the
+-		 * case of an "impure" upper dir, ovl_iterate() cannot iterate
+-		 * the real directory directly, because it looks for the inode
+-		 * numbers to fill d_ino in the entries origin inode.
++		 * a new parent, we are marking the new parent dir "impure".
++		 * When ovl_iterate() iterates an "impure" upper dir, it will
++		 * lookup the origin inodes of the entries to fill d_ino.
+ 		 */
+-		if (ovl_type_origin(old) && !ovl_type_merge(new->d_parent)) {
++		if (ovl_type_origin(old) &&
++		    !ovl_dentry_is_impure(new->d_parent)) {
+ 			err = ovl_set_impure(new->d_parent, new_upperdir);
+ 			if (err)
+ 				goto out_revert_creds;
+ 		}
+ 		if (!overwrite && ovl_type_origin(new) &&
+-		    !ovl_type_merge(old->d_parent)) {
++		    !ovl_dentry_is_impure(old->d_parent)) {
+ 			err = ovl_set_impure(old->d_parent, old_upperdir);
+ 			if (err)
+ 				goto out_revert_creds;
 diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-index a9fb958..ab02032 100644
+index a9fb958..a62139f 100644
 --- a/fs/overlayfs/overlayfs.h
 +++ b/fs/overlayfs/overlayfs.h
-@@ -223,7 +223,7 @@ int ovl_copy_up_start(struct dentry *dentry);
+@@ -221,6 +221,10 @@ bool ovl_is_whiteout(struct dentry *dentry);
+ struct file *ovl_path_open(struct path *path, int flags);
+ int ovl_copy_up_start(struct dentry *dentry);
  void ovl_copy_up_end(struct dentry *dentry);
++int ovl_check_setxattr(struct dentry *dentry, struct dentry *upperdentry,
++		       const char *name, const void *value, size_t size,
++		       int xerr);
++int ovl_set_impure(struct dentry *dentry, struct dentry *upperdentry);
  
  /* namei.c */
--int ovl_path_next(int idx, struct dentry *dentry, struct path *path);
-+int ovl_path_next(int idx, struct dentry *dentry, struct path *path, int *idxp);
- struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry, unsigned int flags);
- bool ovl_lower_positive(struct dentry *dentry);
+ int ovl_path_next(int idx, struct dentry *dentry, struct path *path);
+@@ -281,6 +285,3 @@ int ovl_copy_up(struct dentry *dentry);
+ int ovl_copy_up_flags(struct dentry *dentry, int flags);
+ int ovl_copy_xattr(struct dentry *old, struct dentry *new);
+ int ovl_set_attr(struct dentry *upper, struct kstat *stat);
+-int ovl_check_setxattr(struct dentry *dentry, struct dentry *upperdentry,
+-		       const char *name, const void *value, size_t size,
+-		       int xerr);
+diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
+index e0dfb07..816769c 100644
+--- a/fs/overlayfs/util.c
++++ b/fs/overlayfs/util.c
+@@ -331,3 +331,19 @@ int ovl_check_setxattr(struct dentry *dentry, struct dentry *upperdentry,
  
-diff --git a/fs/overlayfs/readdir.c b/fs/overlayfs/readdir.c
-index f241b4e..cc94001 100644
---- a/fs/overlayfs/readdir.c
-+++ b/fs/overlayfs/readdir.c
-@@ -15,15 +15,18 @@
- #include <linux/rbtree.h>
- #include <linux/security.h>
- #include <linux/cred.h>
-+#include <linux/ratelimit.h>
- #include "overlayfs.h"
- 
- struct ovl_cache_entry {
- 	unsigned int len;
- 	unsigned int type;
-+	u64 real_ino;
- 	u64 ino;
- 	struct list_head l_node;
- 	struct rb_node node;
- 	struct ovl_cache_entry *next_maybe_whiteout;
-+	int idx;
- 	bool is_whiteout;
- 	char name[];
- };
-@@ -43,6 +46,7 @@ struct ovl_readdir_data {
- 	struct list_head middle;
- 	struct ovl_cache_entry *first_maybe_whiteout;
- 	int count;
-+	int idx;
- 	int err;
- 	bool d_type_supported;
- };
-@@ -97,8 +101,11 @@ static struct ovl_cache_entry *ovl_cache_entry_new(struct ovl_readdir_data *rdd,
- 	p->name[len] = '\0';
- 	p->len = len;
- 	p->type = d_type;
--	p->ino = ino;
-+	p->real_ino = ino;
-+	/* Defer setting d_ino for upper entry to ovl_iterate() */
-+	p->ino = rdd->idx ? ino : 0;
- 	p->is_whiteout = false;
-+	p->idx = rdd->idx;
- 
- 	if (d_type == DT_CHR) {
- 		p->next_maybe_whiteout = rdd->first_maybe_whiteout;
-@@ -225,6 +232,7 @@ static int ovl_check_whiteouts(struct dentry *dir, struct ovl_readdir_data *rdd)
- 	}
- 	revert_creds(old_cred);
- 
-+
  	return err;
  }
- 
-@@ -256,21 +264,38 @@ static inline int ovl_dir_read(struct path *realpath,
- 	return err;
- }
- 
-+/* Can we iterate real dir directly? */
-+static bool ovl_dir_is_real(struct dentry *dir)
++
++int ovl_set_impure(struct dentry *dentry, struct dentry *upperdentry)
 +{
-+	enum ovl_path_type type = ovl_path_type(dir);
-+
-+	if (OVL_TYPE_MERGE(type))
-+		return false;
-+	/* Upper dir may contain copied up entries that were moved into it */
-+	if (ovl_same_sb(dir->d_sb))
-+		return !OVL_TYPE_UPPER(type) || !ovl_dentry_is_impure(dir);
-+	return true;
-+}
-+
- static void ovl_dir_reset(struct file *file)
- {
- 	struct ovl_dir_file *od = file->private_data;
- 	struct ovl_dir_cache *cache = od->cache;
- 	struct dentry *dentry = file->f_path.dentry;
--	enum ovl_path_type type = ovl_path_type(dentry);
-+	bool is_real;
- 
- 	if (cache && ovl_dentry_version_get(dentry) != cache->version) {
- 		ovl_cache_put(od, dentry);
- 		od->cache = NULL;
- 		od->cursor = NULL;
- 	}
--	WARN_ON(!od->is_real && !OVL_TYPE_MERGE(type));
--	if (od->is_real && OVL_TYPE_MERGE(type))
-+	is_real = ovl_dir_is_real(dentry);
-+	if (od->is_real != is_real) {
-+		/* is_real can only become false (after dir copy up) */
-+		if (WARN_ON(is_real))
-+			return;
- 		od->is_real = false;
-+	}
- }
- 
- static int ovl_dir_read_merged(struct dentry *dentry, struct list_head *list)
-@@ -287,7 +312,7 @@ static int ovl_dir_read_merged(struct dentry *dentry, struct list_head *list)
- 	int idx, next;
- 
- 	for (idx = 0; idx != -1; idx = next) {
--		next = ovl_path_next(idx, dentry, &realpath);
-+		next = ovl_path_next(idx, dentry, &realpath, &rdd.idx);
- 
- 		if (next != -1) {
- 			err = ovl_dir_read(&realpath, &rdd);
-@@ -353,11 +378,81 @@ static struct ovl_dir_cache *ovl_cache_get(struct dentry *dentry)
- 	return cache;
- }
- 
-+/*
-+ * Set d_ino for upper entries. Non-upper entries should always report
-+ * the uppermost real inode ino and should not call this function.
-+ *
-+ * When not all layer are on same fs, report real ino also for upper.
-+ *
-+ * When all layers are on the same fs, and upper has a reference to
-+ * copy up origin, call vfs_getattr() on the overlay entry to make
-+ * sure that d_ino will be consistent with st_ino from stat(2).
-+ */
-+static int ovl_cache_update_ino(struct path *path, struct ovl_cache_entry *p)
-+
-+{
-+	struct dentry *dir = path->dentry;
-+	struct dentry *this = NULL;
-+	enum ovl_path_type type;
-+	u64 ino = p->real_ino;
-+	int err = 0;
-+
-+	if (!ovl_same_sb(dir->d_sb) || WARN_ON(p->idx))
-+		goto out;
-+
-+	if (p->name[0] == '.') {
-+		if (p->len == 1) {
-+			this = dget(dir);
-+			goto get;
-+		}
-+		if (p->len == 2 && p->name[1] == '.') {
-+			/* we shall not be moved */
-+			this = dget(dir->d_parent);
-+			goto get;
-+		}
-+	}
-+	this = lookup_one_len_noperm(p->name, dir, p->len);
-+	if (IS_ERR_OR_NULL(this) || !this->d_inode) {
-+		if (IS_ERR(this)) {
-+			err = PTR_ERR(this);
-+			this = NULL;
-+			goto fail;
-+		}
-+		goto out;
-+	}
-+
-+get:
-+	type = ovl_path_type(this);
-+	if (OVL_TYPE_ORIGIN(type)) {
-+		struct kstat stat;
-+		struct path statpath = *path;
-+
-+		statpath.dentry = this;
-+		err = vfs_getattr(&statpath, &stat, STATX_INO, 0);
-+		if (err)
-+			goto fail;
-+
-+		WARN_ON_ONCE(dir->d_sb->s_dev != stat.dev);
-+		ino = stat.ino;
-+	}
-+
-+out:
-+	p->ino = ino;
-+	dput(this);
-+	return err;
-+
-+fail:
-+	pr_warn_ratelimited("overlay: failed to look up (%s) for ino (%i)\n",
-+			    p->name, err);
-+	goto out;
-+}
-+
- static int ovl_iterate(struct file *file, struct dir_context *ctx)
- {
- 	struct ovl_dir_file *od = file->private_data;
- 	struct dentry *dentry = file->f_path.dentry;
- 	struct ovl_cache_entry *p;
 +	int err;
- 
- 	if (!ctx->pos)
- 		ovl_dir_reset(file);
-@@ -378,9 +473,15 @@ static int ovl_iterate(struct file *file, struct dir_context *ctx)
- 
- 	while (od->cursor != &od->cache->entries) {
- 		p = list_entry(od->cursor, struct ovl_cache_entry, l_node);
--		if (!p->is_whiteout)
-+		if (!p->is_whiteout) {
-+			if (!p->ino) {
-+				err = ovl_cache_update_ino(&file->f_path, p);
-+				if (err)
-+					return err;
-+			}
- 			if (!dir_emit(ctx, p->name, p->len, p->ino, p->type))
- 				break;
-+		}
- 		od->cursor = p->l_node.next;
- 		ctx->pos++;
- 	}
-@@ -502,7 +603,7 @@ static int ovl_dir_open(struct inode *inode, struct file *file)
- 		return PTR_ERR(realfile);
- 	}
- 	od->realfile = realfile;
--	od->is_real = !OVL_TYPE_MERGE(type);
-+	od->is_real = ovl_dir_is_real(file->f_path.dentry);
- 	od->is_upper = OVL_TYPE_UPPER(type);
- 	file->private_data = od;
- 
++
++	/*
++	 * Do not fail when upper doesn't support xattrs.
++	 * Upper inodes won't have origin nor redirect xattr anyway.
++	 */
++	err = ovl_check_setxattr(dentry, upperdentry, OVL_XATTR_IMPURE,
++				 "y", 1, 0);
++	if (!err)
++		ovl_dentry_set_impure(dentry);
++
++	return err;
++}
 -- 
 2.7.4
