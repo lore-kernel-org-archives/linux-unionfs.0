@@ -1,15 +1,15 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH] ovl: mark upper merge dir with type origin entries "impure"
-Date: Sun, 21 May 2017 11:54:53 +0300
-Message-ID: <1495356893-21757-1-git-send-email-amir73il@gmail.com>
+Subject: [PATCH v2] ovl: mark upper merge dir with type origin entries "impure"
+Date: Sun, 21 May 2017 14:00:43 +0300
+Message-ID: <1495364443-9430-1-git-send-email-amir73il@gmail.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wm0-f65.google.com ([74.125.82.65]:35184 "EHLO
+Received: from mail-wm0-f65.google.com ([74.125.82.65]:36294 "EHLO
         mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750860AbdEUIyk (ORCPT
+        with ESMTP id S1750824AbdEULA3 (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Sun, 21 May 2017 04:54:40 -0400
-Received: by mail-wm0-f65.google.com with SMTP id g15so6038280wmc.2
-        for <linux-unionfs@vger.kernel.org>; Sun, 21 May 2017 01:54:39 -0700 (PDT)
+        Sun, 21 May 2017 07:00:29 -0400
+Received: by mail-wm0-f65.google.com with SMTP id k15so24820114wmh.3
+        for <linux-unionfs@vger.kernel.org>; Sun, 21 May 2017 04:00:28 -0700 (PDT)
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: Miklos Szeredi <miklos@szeredi.hu>
@@ -34,9 +34,11 @@ Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
  fs/overlayfs/copy_up.c   |  7 +++++++
  fs/overlayfs/dir.c       | 31 ++++++-------------------------
- fs/overlayfs/overlayfs.h |  7 ++++---
- fs/overlayfs/util.c      | 16 ++++++++++++++++
- 4 files changed, 33 insertions(+), 28 deletions(-)
+ fs/overlayfs/namei.c     | 20 --------------------
+ fs/overlayfs/overlayfs.h | 14 +++++++++++---
+ fs/overlayfs/super.c     |  5 ++++-
+ fs/overlayfs/util.c      | 32 ++++++++++++++++++++++++++++++++
+ 6 files changed, 60 insertions(+), 49 deletions(-)
 
 Miklos,
 
@@ -53,6 +55,12 @@ of not doing the origin lookup in ovl_interate() is trivial, so better have
 the merge dir marked "impure" now when introducing overlay.origin.
 
 Amir.
+
+v2:
+- Check on mount if upper dir is impure
+- Test the optimization with constant d_ino patch [1]
+
+[1] https://github.com/amir73il/linux/commit/e40e7e0fd22cf873e79919bed5145402d2fd46ca#diff-853a764a671403777b1350d492f54b78R415
 
 diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
 index 843ed2a..1ae1790 100644
@@ -127,33 +135,115 @@ index f2a118b..c9efc54 100644
  			err = ovl_set_impure(old->d_parent, old_upperdir);
  			if (err)
  				goto out_revert_creds;
+diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
+index 0c72a59..f3136c3 100644
+--- a/fs/overlayfs/namei.c
++++ b/fs/overlayfs/namei.c
+@@ -167,31 +167,11 @@ static struct dentry *ovl_get_origin(struct dentry *dentry,
+ 	goto out;
+ }
+ 
+-static bool ovl_check_dir_xattr(struct dentry *dentry, const char *name)
+-{
+-	int res;
+-	char val;
+-
+-	if (!d_is_dir(dentry))
+-		return false;
+-
+-	res = vfs_getxattr(dentry, name, &val, 1);
+-	if (res == 1 && val == 'y')
+-		return true;
+-
+-	return false;
+-}
+-
+ static bool ovl_is_opaquedir(struct dentry *dentry)
+ {
+ 	return ovl_check_dir_xattr(dentry, OVL_XATTR_OPAQUE);
+ }
+ 
+-static bool ovl_is_impuredir(struct dentry *dentry)
+-{
+-	return ovl_check_dir_xattr(dentry, OVL_XATTR_IMPURE);
+-}
+-
+ static int ovl_lookup_single(struct dentry *base, struct ovl_lookup_data *d,
+ 			     const char *name, unsigned int namelen,
+ 			     size_t prelen, const char *post,
 diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-index a9fb958..a62139f 100644
+index a9fb958..a2ca3d615 100644
 --- a/fs/overlayfs/overlayfs.h
 +++ b/fs/overlayfs/overlayfs.h
-@@ -221,6 +221,10 @@ bool ovl_is_whiteout(struct dentry *dentry);
+@@ -221,6 +221,17 @@ bool ovl_is_whiteout(struct dentry *dentry);
  struct file *ovl_path_open(struct path *path, int flags);
  int ovl_copy_up_start(struct dentry *dentry);
  void ovl_copy_up_end(struct dentry *dentry);
++bool ovl_check_dir_xattr(struct dentry *dentry, const char *name);
 +int ovl_check_setxattr(struct dentry *dentry, struct dentry *upperdentry,
 +		       const char *name, const void *value, size_t size,
 +		       int xerr);
 +int ovl_set_impure(struct dentry *dentry, struct dentry *upperdentry);
++
++static inline bool ovl_is_impuredir(struct dentry *dentry)
++{
++	return ovl_check_dir_xattr(dentry, OVL_XATTR_IMPURE);
++}
++
  
  /* namei.c */
  int ovl_path_next(int idx, struct dentry *dentry, struct path *path);
-@@ -281,6 +285,3 @@ int ovl_copy_up(struct dentry *dentry);
+@@ -281,6 +292,3 @@ int ovl_copy_up(struct dentry *dentry);
  int ovl_copy_up_flags(struct dentry *dentry, int flags);
  int ovl_copy_xattr(struct dentry *old, struct dentry *new);
  int ovl_set_attr(struct dentry *upper, struct kstat *stat);
 -int ovl_check_setxattr(struct dentry *dentry, struct dentry *upperdentry,
 -		       const char *name, const void *value, size_t size,
 -		       int xerr);
+diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+index f164762..4882ffb 100644
+--- a/fs/overlayfs/super.c
++++ b/fs/overlayfs/super.c
+@@ -974,7 +974,10 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
+ 	path_put(&workpath);
+ 	kfree(lowertmp);
+ 
+-	oe->__upperdentry = upperpath.dentry;
++	if (upperpath.dentry) {
++		oe->__upperdentry = upperpath.dentry;
++		oe->impure = ovl_is_impuredir(upperpath.dentry);
++	}
+ 	for (i = 0; i < numlower; i++) {
+ 		oe->lowerstack[i].dentry = stack[i].dentry;
+ 		oe->lowerstack[i].mnt = ufs->lower_mnt[i];
 diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
-index e0dfb07..816769c 100644
+index e0dfb07..dcaa7b4 100644
 --- a/fs/overlayfs/util.c
 +++ b/fs/overlayfs/util.c
-@@ -331,3 +331,19 @@ int ovl_check_setxattr(struct dentry *dentry, struct dentry *upperdentry,
+@@ -311,6 +311,22 @@ void ovl_copy_up_end(struct dentry *dentry)
+ 	spin_unlock(&ofs->copyup_wq.lock);
+ }
+ 
++bool ovl_check_dir_xattr(struct dentry *dentry, const char *name)
++{
++	struct ovl_fs *ofs = dentry->d_sb->s_fs_info;
++	int res;
++	char val;
++
++	if (ofs->noxattr || !d_is_dir(dentry))
++		return false;
++
++	res = vfs_getxattr(dentry, name, &val, 1);
++	if (res == 1 && val == 'y')
++		return true;
++
++	return false;
++}
++
+ int ovl_check_setxattr(struct dentry *dentry, struct dentry *upperdentry,
+ 		       const char *name, const void *value, size_t size,
+ 		       int xerr)
+@@ -331,3 +347,19 @@ int ovl_check_setxattr(struct dentry *dentry, struct dentry *upperdentry,
  
  	return err;
  }
