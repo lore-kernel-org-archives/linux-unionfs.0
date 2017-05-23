@@ -1,61 +1,172 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH 0/2] overlayfs multiple mount protection
-Date: Tue, 23 May 2017 12:50:31 +0300
-Message-ID: <1495533033-22367-1-git-send-email-amir73il@gmail.com>
+Subject: [PATCH 2/2] ovl: get exclusive ownership on upper/work dirs
+Date: Tue, 23 May 2017 12:50:33 +0300
+Message-ID: <1495533033-22367-3-git-send-email-amir73il@gmail.com>
+References: <1495533033-22367-1-git-send-email-amir73il@gmail.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wr0-f193.google.com ([209.85.128.193]:34031 "EHLO
-        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934072AbdEWJuW (ORCPT
+Received: from mail-wm0-f67.google.com ([74.125.82.67]:36066 "EHLO
+        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S934072AbdEWJuZ (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 23 May 2017 05:50:22 -0400
+        Tue, 23 May 2017 05:50:25 -0400
+In-Reply-To: <1495533033-22367-1-git-send-email-amir73il@gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: Miklos Szeredi <miklos@szeredi.hu>
 Cc: Al Viro <viro@zeniv.linux.org.uk>, linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
 
-Miklos,
+Bad things can happen if several concurrent overlay mounts try to
+use the same upperdir path and/or workdir path.
 
-I've implemented verification that lower root dir matches the origin file
-handle stored at upper root dir with the verify_lower mount option [1].
+Try to get the 'inuse' advisory lock on upper and work dir.
+Fail mount if another overlay mount instance or another user
+holds the 'inuse' lock.
 
-As you correctly noted, before we move on to verifying that upper dir
-'belongs to' lower dir and that index dir 'belongs to' upper dir for the
-case of mounting not at the same time, we first need to cover the case of
-mount at the same time.
+Note that this provides no protection for concurrent overlay
+mount that use overlapping (i.e. descendant) upper dirs or
+work dirs.
 
-This patch set provides protection against reuse of upperdir and workdir
-by two different overlay instances at the same time, e.g.:
-
-root@kvm-xfstests:~/unionmount-testsuite# mount -t overlay
-overlay on /mnt type overlay (rw,noatime,lowerdir=/lower,upperdir=/upper/0,workdir=/upper/work)
-root@kvm-xfstests:~/unionmount-testsuite# mount -t overlay overlay /backup/ -o rw,noatime,lowerdir=/lower,upperdir=/upper/0,workdir=/upper/work
-overlayfs: upperdir in-use by another overlay mount?
-mount: overlay is already mounted or /backup busy
-       overlay is already mounted on /mnt
-root@kvm-xfstests:~/unionmount-testsuite# mkdir /upper/1
-root@kvm-xfstests:~/unionmount-testsuite# mount -t overlay overlay /snapshot/ -o rw,noatime,lowerdir=/lower,upperdir=/upper/1,workdir=/upper/work
-overlayfs: workdir in-use by another overlay mount?
-mount: overlay is already mounted or /snapshot busy
-       overlay is already mounted on /mnt
-
-It also provides protection against removal of workdir just after mount,
-which would have caused failures to copy up:
-
-root@kvm-xfstests:~/unionmount-testsuite# rmdir /upper/work/work/
-rmdir: failed to remove '/upper/work/work/': Device or resource busy
-
-[1] https://github.com/amir73il/linux/commits/ovl-verify-dir
-
-Amir Goldstein (2):
-  vfs: introduce inode 'inuse' lock
-  ovl: get exclusive ownership on upper/work dirs
-
- fs/btrfs/ioctl.c     |  3 +++
- fs/inode.c           | 40 ++++++++++++++++++++++++++++++
- fs/namei.c           |  3 +++
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+---
  fs/overlayfs/super.c | 70 +++++++++++++++++++++++++++++++++++++++++++++++++---
- include/linux/fs.h   | 16 ++++++++++++
- 5 files changed, 129 insertions(+), 3 deletions(-)
+ 1 file changed, 67 insertions(+), 3 deletions(-)
 
+diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+index 4882ffb..ac9212d 100644
+--- a/fs/overlayfs/super.c
++++ b/fs/overlayfs/super.c
+@@ -165,12 +165,42 @@ static const struct dentry_operations ovl_reval_dentry_operations = {
+ 	.d_weak_revalidate = ovl_dentry_weak_revalidate,
+ };
+ 
++/* Get exclusive ownership on upper/work dir among overlay mounts */
++static bool ovl_dir_lock(struct dentry *dentry)
++{
++	struct inode *inode;
++
++	if (!dentry)
++		return false;
++
++	inode = d_inode(dentry);
++	if (!inode || inode_inuse(inode))
++		return false;
++
++	return inode_inuse_trylock(inode);
++}
++
++static void ovl_dir_unlock(struct dentry *dentry)
++{
++	struct inode *inode;
++
++	if (!dentry)
++		return;
++
++	inode = d_inode(dentry);
++	if (inode && inode_inuse(inode))
++		inode_inuse_unlock(inode);
++}
++
+ static void ovl_put_super(struct super_block *sb)
+ {
+ 	struct ovl_fs *ufs = sb->s_fs_info;
+ 	unsigned i;
+ 
++	ovl_dir_unlock(ufs->workdir);
+ 	dput(ufs->workdir);
++	if (ufs->upper_mnt)
++		ovl_dir_unlock(ufs->upper_mnt->mnt_root);
+ 	mntput(ufs->upper_mnt);
+ 	for (i = 0; i < ufs->numlower; i++)
+ 		mntput(ufs->lower_mnt[i]);
+@@ -407,6 +437,14 @@ static struct dentry *ovl_workdir_create(struct vfsmount *mnt,
+ 			if (retried)
+ 				goto out_dput;
+ 
++			/*
++			 * We have parent i_mutex, so this test is race free
++			 * w.r.t. ovl_dir_lock() below by another overlay mount.
++			 */
++			err = -EBUSY;
++			if (inode_inuse(work->d_inode))
++				goto out_dput;
++
+ 			retried = true;
+ 			ovl_workdir_cleanup(dir, mnt, work, 0);
+ 			dput(work);
+@@ -446,6 +484,14 @@ static struct dentry *ovl_workdir_create(struct vfsmount *mnt,
+ 		inode_unlock(work->d_inode);
+ 		if (err)
+ 			goto out_dput;
++
++		/*
++		 * Protect our work dir from being deleted/renamed and from
++		 * being reused by another overlay mount.
++		 */
++		err = -EBUSY;
++		if (!ovl_dir_lock(work))
++			goto out_dput;
+ 	}
+ out_unlock:
+ 	inode_unlock(dir);
+@@ -849,6 +895,16 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
+ 			pr_err("overlayfs: failed to clone upperpath\n");
+ 			goto out_put_lowerpath;
+ 		}
++		/*
++		 * Protect our upper dir from being deleted/renamed and from
++		 * being reused by another overlay mount.
++		 */
++		err = -EBUSY;
++		if (!ovl_dir_lock(upperpath.dentry)) {
++			pr_err("overlayfs: upperdir in-use by another overlay mount?\n");
++			goto out_put_upper_mnt;
++		}
++
+ 		/* Don't inherit atime flags */
+ 		ufs->upper_mnt->mnt_flags &= ~(MNT_NOATIME | MNT_NODIRATIME | MNT_RELATIME);
+ 
+@@ -857,6 +913,10 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
+ 		ufs->workdir = ovl_workdir_create(ufs->upper_mnt, workpath.dentry);
+ 		err = PTR_ERR(ufs->workdir);
+ 		if (IS_ERR(ufs->workdir)) {
++			if (err == -EBUSY) {
++				pr_err("overlayfs: workdir in-use by another overlay mount?\n");
++				goto out_unlock_upperdir;
++			}
+ 			pr_warn("overlayfs: failed to create directory %s/%s (errno: %i); mounting read-only\n",
+ 				ufs->config.workdir, OVL_WORKDIR_NAME, -err);
+ 			sb->s_flags |= MS_RDONLY;
+@@ -874,7 +934,7 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
+ 
+ 			err = ovl_check_d_type_supported(&workpath);
+ 			if (err < 0)
+-				goto out_put_workdir;
++				goto out_unlock_workdir;
+ 
+ 			/*
+ 			 * We allowed this configuration and don't want to
+@@ -910,7 +970,7 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
+ 	err = -ENOMEM;
+ 	ufs->lower_mnt = kcalloc(numlower, sizeof(struct vfsmount *), GFP_KERNEL);
+ 	if (ufs->lower_mnt == NULL)
+-		goto out_put_workdir;
++		goto out_unlock_workdir;
+ 	for (i = 0; i < numlower; i++) {
+ 		struct vfsmount *mnt = clone_private_mount(&stack[i]);
+ 
+@@ -1002,8 +1062,12 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
+ 	for (i = 0; i < ufs->numlower; i++)
+ 		mntput(ufs->lower_mnt[i]);
+ 	kfree(ufs->lower_mnt);
+-out_put_workdir:
++out_unlock_workdir:
++	ovl_dir_unlock(ufs->workdir);
+ 	dput(ufs->workdir);
++out_unlock_upperdir:
++	ovl_dir_unlock(upperpath.dentry);
++out_put_upper_mnt:
+ 	mntput(ufs->upper_mnt);
+ out_put_lowerpath:
+ 	for (i = 0; i < numlower; i++)
 -- 
 2.7.4
