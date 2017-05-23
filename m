@@ -1,80 +1,79 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [WIP][RFC] questions about overlay index dir design
-Date: Tue, 23 May 2017 13:04:25 +0300
-Message-ID: <CAOQ4uxhMkmKVxnZ+Km0HJTgesCtfkq=RcJcf1A4Cr0ZoaaOSaw@mail.gmail.com>
-References: <CAOQ4uxgTG5JhmAb2hQF0ZoyFAfdOCSPDcScNL=8y7xJ1sXiHJg@mail.gmail.com>
- <CAOQ4uxgM6iJEnm8kLhHV6_cmjqN02hhPP20iuZ4eRwaK7+KV=Q@mail.gmail.com> <CAJfpegvUpKh69HTAEN+DUJo3Kwrum_dhmK+jDCOb3LQDCVqVLw@mail.gmail.com>
+Subject: Re: constant st_ino/st_dev for non-samefs case
+Date: Tue, 23 May 2017 15:57:42 +0300
+Message-ID: <CAOQ4uxhJdyETb96yKr_bRes9OGEeHSOUAH=L4nfX3c2ryYD6Mw@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-oi0-f45.google.com ([209.85.218.45]:34842 "EHLO
-        mail-oi0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934440AbdEWKE0 (ORCPT
+Received: from mail-oi0-f49.google.com ([209.85.218.49]:36066 "EHLO
+        mail-oi0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S967502AbdEWM5o (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 23 May 2017 06:04:26 -0400
-Received: by mail-oi0-f45.google.com with SMTP id l18so194550336oig.2
-        for <linux-unionfs@vger.kernel.org>; Tue, 23 May 2017 03:04:26 -0700 (PDT)
-In-Reply-To: <CAJfpegvUpKh69HTAEN+DUJo3Kwrum_dhmK+jDCOb3LQDCVqVLw@mail.gmail.com>
+        Tue, 23 May 2017 08:57:44 -0400
+Received: by mail-oi0-f49.google.com with SMTP id h4so199658255oib.3
+        for <linux-unionfs@vger.kernel.org>; Tue, 23 May 2017 05:57:43 -0700 (PDT)
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: "open list:OVERLAY FILESYSTEM" <linux-unionfs@vger.kernel.org>
+To: Chandan Rajendra <chandan@linux.vnet.ibm.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>
 
-On Fri, May 19, 2017 at 5:16 PM, Miklos Szeredi <miklos@szeredi.hu> wrote:
-> On Thu, May 18, 2017 at 4:15 PM, Amir Goldstein <amir73il@gmail.com> wrote:
->> On Thu, May 18, 2017 at 2:08 AM, Amir Goldstein <amir73il@gmail.com> wrote:
+On Wed, May 17, 2017 at 3:46 PM, Chandan Rajendra
+<chandan@linux.vnet.ibm.com> wrote:
+> On Wednesday, May 17, 2017 5:56:31 PM IST Amir Goldstein wrote:
+>> On Wed, May 17, 2017 at 2:42 PM, Chandan Rajendra
 
->>> The alternative is to blow away the index dir and recreate it when mounting
->>> with an unverified upperdir. This will work fine for the testsuite, but not for
->>> the obscure users out there using the same workdir to mount with few different
->>> upperdir (not at the same time) - do we care?
->
-> Actually, the "at the same time" case is interesting as well.  We
-> should probably error out at mount time in that case, instead we
-> destroy the first user's work directory.  Not good.
->
-
-You are right. Posted a suggested fix for that:
-https://github.com/amir73il/linux/commits/ovl-dir-lock
-
->>>
->>> I guess the best is to blow away index dir unless user explicitly opted-in
->>> to not blow it away, e.g. by using mount option indexdir= in place of workdir=
->>> (mutually excl.).
->>>
+>> There is actually one task that should be very simple to do and can also
+>> bring large benefit for many users.
 >>
->> Actually, it may make sense to have -o verify_lower control this behavior.
->> Specifying -o verify_lower clearly states the intention of the user to mount
->> overlay layers that were not copied, therefore it makes sense to fail rw mount.
+>> In his pull request for kernel 4.12 Miklos writes:
+>> "The biggest part of this is making st_dev/st_ino on the overlay behave like a
+>> normal filesystem ... future work will move the general case towards more sane
+>> behavior."
+>> https://marc.info/?l=linux-unionfs&m=149442365202823&w=2
 >>
->> OTHO, with this wider meaning, I no longer like the name 'verify_lower',
->> for 2 reasons:
->> 1. It is only used to verify directories
->> 2. It is now also used to verify upper root dir
+>> The work towards constant st_dev/st_ino for the general case is not within my
+>> immediate scope of interest, but it shouldn't be hard. The basic idea was
+>> explained by  Miklos here:
+>> https://marc.info/?l=linux-unionfs&m=149259338809700&w=2
 >>
->> So how about 'verify_dir'/'verify_fh'/'verify_origin'?
->
-> Head spins from all these separate functions (snapshot, NFS export,
-> hard link unbreaking) and what they need.  There's probably no "one
-> size fits all" behavior.  Will need to think about this a bit...
+> Amir, I will work on this task. Thanks for the guidance.
 >
 
-Right. So in an effort to make the head spin a bit slower,
-I implemented the different VERIFY tests internally with a bitmask -
-Currently -o verify_lower is a preset that is equivalent to
--o verify_dir=3 (verify lower merge dir on lookup and verify lower
-root dir on mount).
+Hi Chandan,
 
-The snapshot functionality of following the decoded merge dir file handle
-can be enabled with mount option -o verify_dir=7, but is currently not
-in the default -o verify_lower preset.
+Were you able to figure out the scope of the task?
+Or didn't get around to it yet?
 
-See: https://github.com/amir73il/linux/commits/ovl-verify-dir
+I forgot to mention that I have written tests to cover constant inode
+across copy up.
+If you have never used unionmount-testsuite before, now would be a good time to
+start.
 
-Bigger headache?
-In the end, it will give you the flexibility to modify the presets before
-applying my patches, let them be configurable or blow  away the internal
-bitmask altogether.
+You should pull my master branch from github:
+https://github.com/amir73il/unionmount-testsuite
 
-Thoughts?
+Just do:
+# cd unionmount-testsuite
+# sudo ./run --ov
+
+It takes only ~13 sec for the basic test run to compete on my laptop.
+
+Then, you should remove the relaxing of constant ino check for non samefs:
+https://github.com/amir73il/unionmount-testsuite/commit/958b737a0a886b6949964d51dbf8e0786ea52d02#diff-2d2badb93764e2d3fa25662025095014R496
+
+And you will hit the ino check error, for example:
+
+# sudo ./run --ov rename-file
+***
+*** ./run --ov --ts=0 rename-file
+***
+TEST rename-file.py:10: Rename file and rename back
+ ./run --rename /mnt/a/foo100 /mnt/a/no_foo100
+/mnt/a/no_foo100: inode number wrong (got 35985, want 35584)
+
+
+Please let me know if you intend to work on this soon, because I may be
+working on some parts of this task for a different feature.
+
+Thanks,
 Amir.
