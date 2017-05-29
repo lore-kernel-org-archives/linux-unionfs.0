@@ -1,31 +1,117 @@
-From: Ralph Sennhauser <ralph.sennhauser@gmail.com>
-Subject: Re: [PATCH REGRESSION 4.12-rc1] ovl: add missing CONFIG_EXPORTFS
- dependency
-Date: Mon, 29 May 2017 09:52:19 +0200
-Message-ID: <20170529095219.7114568b@gmail.com>
-References: <20170516101139.29847-1-ralph.sennhauser@gmail.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Subject: Re: [PATCH v3] ovl: mark upper merge dir with type origin entries "impure"
+Date: Mon, 29 May 2017 11:49:59 +0300
+Message-ID: <CAOQ4uxiicCAfd4TF1ym=qGTz1egGVnpZYdescFgGHQ2X8Dp6Nw@mail.gmail.com>
+References: <1495628973-12099-1-git-send-email-amir73il@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-qt0-f193.google.com ([209.85.216.193]:34977 "EHLO
-        mail-qt0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750902AbdE2Hw1 (ORCPT
+Received: from mail-oi0-f68.google.com ([209.85.218.68]:32925 "EHLO
+        mail-oi0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750941AbdE2IuA (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 29 May 2017 03:52:27 -0400
-In-Reply-To: <20170516101139.29847-1-ralph.sennhauser@gmail.com>
+        Mon, 29 May 2017 04:50:00 -0400
+Received: by mail-oi0-f68.google.com with SMTP id h4so10549968oib.0
+        for <linux-unionfs@vger.kernel.org>; Mon, 29 May 2017 01:50:00 -0700 (PDT)
+In-Reply-To: <1495628973-12099-1-git-send-email-amir73il@gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Amir Goldstein <amir73il@gmail.com>, Miklos Szeredi <miklos@szeredi.hu>
-Cc: linux-unionfs@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: overlayfs <linux-unionfs@vger.kernel.org>
 
-On Tue, 16 May 2017 12:11:39 +0200
-Ralph Sennhauser <ralph.sennhauser@gmail.com> wrote:
+On Wed, May 24, 2017 at 3:29 PM, Amir Goldstein <amir73il@gmail.com> wrote:
+> An upper dir is marked "impure" to let ovl_iterate() know that this
+> directory may contain non pure upper entries whose d_ino may need to be
+> read from the origin inode.
+>
+> We already mark a non-merge dir "impure" when moving a non-pure child
+> entry inside it, to let ovl_iterate() know not to iterate the non-merge
+> dir directly.
+>
+> Mark also a merge dir "impure" when moving a non-pure child entry inside
+> it and when copying up a child entry inside it.
+>
+> This can be used to optimize ovl_iterate() to perform a "pure merge" of
+> upper and lower directories, merging the content of the directories,
+> without having to read d_ino from origin inodes.
+>
+> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+> ---
+>  fs/overlayfs/copy_up.c   |  7 +++++++
+>  fs/overlayfs/dir.c       | 31 ++++++-------------------------
+>  fs/overlayfs/namei.c     | 20 --------------------
+>  fs/overlayfs/overlayfs.h | 14 +++++++++++---
+>  fs/overlayfs/super.c     |  5 ++++-
+>  fs/overlayfs/util.c      | 31 +++++++++++++++++++++++++++++++
+>  6 files changed, 59 insertions(+), 49 deletions(-)
+>
+>
+> Miklos,
+>
+> Please consider this patch for v4.12-rc3 on top of the one already in
+> overlayfs-next.
+>
+> Not sure how common the use case of "pure merge" is, but the optimization
+> of not doing the origin lookup in ovl_interate() is trivial [1], so better
+> have the merge dir marked "impure" now when introducing overlay.origin.
 
-> The source files namei.c and copy_up.c in overlayfs new use
-> exportfs_decode_fh which depends on CONFIG_EXPORTFS being set. Select
-> it in Kconfig.
+Miklos,
 
-This issue is still present in 4.12-rc3
+Ping for rc4.
 
-Ralph
+FYI, I have been testing this patch along with ovl-constino and the rest of
+my dev branch over the past week and everything looks sane.
+
+Please see one clarification/disclaimer below, which I don't think warrants
+a problem w.r.t merging this patch to rc4.
+
+Thanks,
+Amir.
+
+
+>
+> v3:
+> - Fix bug that slipped into ovl_check_dir_xattr() in v1
+>
+> v2:
+> - Check on mount if upper dir is impure
+> - Tested the optimization [1] with consistent st_ino/d_ino patch
+>
+> [1] https://github.com/amir73il/linux/blob/ovl-constino/fs/overlayfs/readdir.c#L413
+>
+> diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
+> index 843ed2a..1ae1790 100644
+> --- a/fs/overlayfs/copy_up.c
+> +++ b/fs/overlayfs/copy_up.c
+> @@ -459,6 +459,13 @@ static int ovl_copy_up_one(struct dentry *parent, struct dentry *dentry,
+>         ovl_path_upper(parent, &parentpath);
+>         upperdir = parentpath.dentry;
+>
+> +       /* Mark parent "impure" because it may now contain non-pure upper */
+> +       if (!ovl_dentry_is_impure(parent)) {
+> +               err = ovl_set_impure(parent, upperdir);
+> +               if (err)
+> +                       return err;
+> +       }
+> +
+
+Disclaimer:
+---------------
+ovl_dentry_is_impure() here is not tested under any lock and with no
+explicit memory barriers
+nor does ovl_dentry_set_impure() inside ovl_set_impure().
+The worst outcome for this code seems to be that overlay.impure xattr
+can be set twice, which
+shouldn't be a problem (?).
+
+For v4.13, when ovl_iterate() will test ovl_dentry_is_impure(), it
+will be more important to make
+sure that ovl_iterate() does not read an old false value of oe->impure
+and cause some
+inconsistency. I think that the (real) parent i_mutex lock taken
+further down copy up and
+the (overlay) parent i_mutex lock taken in iterate_dir() guaranty the
+required memory barriers (?).
+
+Perhaps it would be safer to test ovl_is_impuredir(upperdentry) in ovl_iterate()
+and not rely on the memory cached value of oe->impure.
