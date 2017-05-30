@@ -1,84 +1,93 @@
-From: Chandan Rajendra <chandan@linux.vnet.ibm.com>
-Subject: Re: ovl_dir_read_merged: Redundant call to list_add()
-Date: Tue, 30 May 2017 14:17:18 +0530
-Message-ID: <1956206.WEGzuBeo8p@localhost.localdomain>
-References: <1982032.d2FfUCRVGU@localhost.localdomain> <CAOQ4uxhQD_PecXQFLM+7j0wMY9y51NPcw_iOR0gZn9-RZBieOQ@mail.gmail.com>
+From: Vivek Goyal <vgoyal@redhat.com>
+Subject: Re: unionmount-testsuite: backward compat support for REDIRECT_DIR=n
+Date: Tue, 30 May 2017 16:35:48 -0400
+Message-ID: <20170530203548.GA22558@redhat.com>
+References: <CAOQ4uxiEz0mGEQKmQav+g=kLVfq+Ct9GpZvUq7kGvZG7-7gM0A@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mx0a-001b2d01.pphosted.com ([148.163.156.1]:44605 "EHLO
-        mx0a-001b2d01.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750908AbdE3Ir6 (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 30 May 2017 04:47:58 -0400
-Received: from pps.filterd (m0098394.ppops.net [127.0.0.1])
-        by mx0a-001b2d01.pphosted.com (8.16.0.20/8.16.0.20) with SMTP id v4U8hmYt017979
-        for <linux-unionfs@vger.kernel.org>; Tue, 30 May 2017 04:47:58 -0400
-Received: from e23smtp08.au.ibm.com (e23smtp08.au.ibm.com [202.81.31.141])
-        by mx0a-001b2d01.pphosted.com with ESMTP id 2as4fc2pfk-1
-        (version=TLSv1.2 cipher=AES256-SHA bits=256 verify=NOT)
-        for <linux-unionfs@vger.kernel.org>; Tue, 30 May 2017 04:47:57 -0400
-Received: from localhost
-        by e23smtp08.au.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
-        for <linux-unionfs@vger.kernel.org> from <chandan@linux.vnet.ibm.com>;
-        Tue, 30 May 2017 18:47:55 +1000
-Received: from d23av03.au.ibm.com (d23av03.au.ibm.com [9.190.234.97])
-        by d23relay07.au.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id v4U8li0k22872312
-        for <linux-unionfs@vger.kernel.org>; Tue, 30 May 2017 18:47:52 +1000
-Received: from d23av03.au.ibm.com (localhost [127.0.0.1])
-        by d23av03.au.ibm.com (8.14.4/8.14.4/NCO v10.0 AVout) with ESMTP id v4U8lCEw027487
-        for <linux-unionfs@vger.kernel.org>; Tue, 30 May 2017 18:47:12 +1000
-In-Reply-To: <CAOQ4uxhQD_PecXQFLM+7j0wMY9y51NPcw_iOR0gZn9-RZBieOQ@mail.gmail.com>
+Received: from mx1.redhat.com ([209.132.183.28]:34390 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751042AbdE3Ufu (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Tue, 30 May 2017 16:35:50 -0400
+Content-Disposition: inline
+In-Reply-To: <CAOQ4uxiEz0mGEQKmQav+g=kLVfq+Ct9GpZvUq7kGvZG7-7gM0A@mail.gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: Amir Goldstein <amir73il@gmail.com>
-Cc: "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, Al Viro <viro@zeniv.linux.org.uk>, overlayfs <linux-unionfs@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, David Howells <dhowells@redhat.com>
 
-On Tuesday, May 30, 2017 1:35:55 PM IST Amir Goldstein wrote:
-> On Tue, May 30, 2017 at 9:39 AM, Chandan Rajendra
-> <chandan@linux.vnet.ibm.com> wrote:
-> > ovl_dir_read_merged() has the following loop,
+On Sun, May 28, 2017 at 05:43:45PM +0300, Amir Goldstein wrote:
+> On Tue, Apr 25, 2017 at 5:20 PM, Amir Goldstein <amir73il@gmail.com> wrote:
+> > On Tue, Apr 25, 2017 at 4:53 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
+> >> On Tue, Apr 25, 2017 at 04:49:00PM +0300, Amir Goldstein wrote:
+> >>> On Tue, Apr 25, 2017 at 4:29 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
+> ...
+> >>> >
+> >>> > I will enable it now. I just had an old config and ran into this.
+> >>> >
+> >>> > But this does raise the question unionmount-testsuite need to be
+> >>> > maintained somewhere so that it acts as a baseline to figure out if
+> >>> > new patches broke some existing tests.
+> >>> >
+> >>> > I can go by the tree you are maintaining but currently that's broken too
+> >>> > with REDIRECT_DIR=n.
+> >>> >
+> >>>
+> >>> Right.
+> >>> I have given some though about what's the best way to handle this.
+> >>> Probably need a test flag --noredirect. I'll add this to my TODO...
+> >>>
+> >>> BTW, I try to keep the branch overlayfs-devel uptodate for testing
+> >>> latest features. It could be rebased, but I'll make an effort not to.
+> >>> If there is a need for a more stable non-rewindable branch, let me know.
+> >>
+> >> I think would be good if you maintain "master" branch of your tree up
+> >> to date and hopefully that's stable so that later git pull does not talk
+> >> about conflicts. We can then use your tree for setting a baseline and
+> >> detecting regressions.
+> >>
+> >> CCing Dave Howells, in case he is interested in continuing to update his
+> >> tree as overlayfs kernel development takes place.
+> >>
 > >
-> >         for (idx = 0; idx != -1; idx = next) {
-> >                 next = ovl_path_next(idx, dentry, &realpath);
-> >
-> >                 if (next != -1) {
-> >                         err = ovl_dir_read(&realpath, &rdd);
-> >                         if (err)
-> >                                 break;
-> >                 } else {
-> >                         /*
-> >                          * Insert lowest layer entries before upper ones, this
-> >                          * allows offsets to be reasonably constant
-> >                          */
-> >                         list_add(&rdd.middle, rdd.list);
-> >                         rdd.is_lowest = true;
-> >                         err = ovl_dir_read(&realpath, &rdd);
-> >                         list_del(&rdd.middle);
-> >                 }
-> >         }
-> >
-> >
-> > rdd.middle is populated inside ovl_fill_lowest() which is indirectly invoked
-> > by the call to ovl_dir_read() inside the "else" part of the above "if"
-> > condition. Before this invocation of ovl_dir_read(), rdd.middle would
-> > basically be an empty list. So this would mean that the call
-> > list_add(&rdd.middle, rdd.list) is unnecessary.
-> >
-> > Please let me know if I am missing something here.
+> > OK. declaring branch master on my tree 'ff-only':
+> > https://github.com/amir73il/unionmount-testsuite/tree/master
 > >
 > 
-> You are missing the fact that rdd.middle is not a new list.
-> its a list element inserted into the circular list rdd.list as a marker
-> to the head of the non-lowest entries list.
-> When referencing &rdd.middle inside ovl_fill_lowest() code
-> is referencing the same list that was populated in rdd.list,
-> but with a different head/tail.
+> Vivek,
 > 
+> I added support for running my maser branch with old kernels
+> or with REDIRECT_DIR=n.
 > 
+> User needs to request backward compat mode explicitly.
+> When using new command line arg --xdev,
+> dir rename tests that would return EXDEV are skipped.
+> 
+> User will get a hint to use the new flag when such a test fails, e.g.:
+> 
+> root@kvm-xfstests:~/unionmount-testsuite# ./run --ov rename-empty-dir
+> ***
+> *** ./run --ov --ts=0 rename-empty-dir
+> ***
+> TEST rename-empty-dir.py:10: Rename empty dir and rename back
+>  ./run --rename /mnt/a/empty100 /mnt/a/no_dir100
+> /mnt/a/empty100: Unexpected error: Invalid cross-device link; Run
+> tests with --xdev to skip dir rename tests
+> 
+> Updated my master branch.
+> 
+> The new head of the master branch is commit:
+> 
+>   be7354d Use ./run --ov --xdev for backward compat mode
 
-Amir, Thanks for your clarification.
+Ok, thanks Amir.
 
--- 
-chandan
+So --xdev will skip tests which are not supposed to pass without
+REDIRECT_DIR=n?
+
+Would be great if we could automate this. That is test which are not valid
+with current kernel/overlay configuration are skipped automatically. It
+totally up to you. :-)
+
+Vivek
