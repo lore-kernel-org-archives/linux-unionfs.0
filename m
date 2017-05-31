@@ -1,65 +1,61 @@
-From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: unionmount-testsuite: backward compat support for REDIRECT_DIR=n
-Date: Wed, 31 May 2017 10:56:42 +0300
-Message-ID: <CAOQ4uxjN+dTfsc=reXwWhSw8-wOX5nhjFhypaQW0m6kCqKwVCg@mail.gmail.com>
-References: <CAOQ4uxiEz0mGEQKmQav+g=kLVfq+Ct9GpZvUq7kGvZG7-7gM0A@mail.gmail.com>
- <20170530203548.GA22558@redhat.com>
+From: Miklos Szeredi <miklos@szeredi.hu>
+Subject: [GIT PULL] overlayfs fixes for 4.12-rc4
+Date: Wed, 31 May 2017 10:57:06 +0200
+Message-ID: <20170531085706.GA28077@veci.piliscsaba.szeredi.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-oi0-f45.google.com ([209.85.218.45]:35374 "EHLO
-        mail-oi0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750912AbdEaH4n (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 31 May 2017 03:56:43 -0400
-In-Reply-To: <20170530203548.GA22558@redhat.com>
-Sender: linux-unionfs-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+Sender: linux-kernel-owner@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Vivek Goyal <vgoyal@redhat.com>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, Al Viro <viro@zeniv.linux.org.uk>, overlayfs <linux-unionfs@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, David Howells <dhowells@redhat.com>
 
-On Tue, May 30, 2017 at 11:35 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
-> On Sun, May 28, 2017 at 05:43:45PM +0300, Amir Goldstein wrote:
-...
->>
->> Vivek,
->>
->> I added support for running my maser branch with old kernels
->> or with REDIRECT_DIR=n.
->>
->> User needs to request backward compat mode explicitly.
->> When using new command line arg --xdev,
->> dir rename tests that would return EXDEV are skipped.
->>
-...
->
-> So --xdev will skip tests which are not supposed to pass without
-> REDIRECT_DIR=n?
+Hi Linus,
 
-Short answer - yes.
+Please pull from:
 
-Long answer:
-Technically, those tests (rename-empty-dir, rename-pop-dir, rename-move-dir)
-pass on David's master branch by expecting and getting EXDEV.
-My master branch, OTOH, does not verify getting EXDEV with the --xdev
-flag, so it will not uncover a hypothetical regression with REDIRECT_DIR=n
-where those tests no longer return EXDEV.
+  git://git.kernel.org/pub/scm/linux/kernel/git/mszeredi/vfs.git overlayfs-linus
 
-The reason I did not revert eae160a ("Relax failure to rename lower directory")
-is because I have added more directory rename tests since then, so the revert
-itself is not enough and I chose the easier path.
+Fix regressions:
 
->
-> Would be great if we could automate this. That is test which are not valid
-> with current kernel/overlay configuration are skipped automatically. It
-> totally up to you. :-)
->
+ - missing CONFIG_EXPORTFS dependency
+ - failure if upper fs doesn't support xattr
+ - bad error cleanup
 
-Yes, that would be great.
-Need to test "`cat /sys/module/overlay/parameters/redirect_dir`" = Y
-But need to take care to modprobe overlay before the test.
+This also adds the concept of "impure" directories complementing the "origin"
+marking introduced in -rc1.  Together they enable getting consistent st_ino and
+d_ino for directory listings.
 
-It's up to me or anyone that wants to send a patch ;-)
+And there's a bug fix and a cleanup as well.
 
 Thanks,
-Amir.
+Miklos
+
+---
+Amir Goldstein (5):
+      ovl: fix creds leak in copy up error path
+      ovl: check on mount time if upper fs supports setting xattr
+      ovl: handle rename when upper doesn't support xattr
+      ovl: mark upper dir with type origin entries "impure"
+      ovl: mark upper merge dir with type origin entries "impure"
+
+Arnd Bergmann (1):
+      ovl: select EXPORTFS
+
+Miklos Szeredi (3):
+      ovl: don't fail copy-up if upper doesn't support xattr
+      ovl: remove unused arg from ovl_lookup_temp()
+      ovl: filter trusted xattr for non-admin
+
+---
+ fs/overlayfs/Kconfig     |  1 +
+ fs/overlayfs/copy_up.c   | 24 +++++++++++-----
+ fs/overlayfs/dir.c       | 61 ++++++++++++++++++++++++++++++----------
+ fs/overlayfs/inode.c     | 12 +++++++-
+ fs/overlayfs/namei.c     | 16 ++++-------
+ fs/overlayfs/overlayfs.h | 16 +++++++++--
+ fs/overlayfs/ovl_entry.h |  2 ++
+ fs/overlayfs/super.c     | 18 +++++++++++-
+ fs/overlayfs/util.c      | 72 ++++++++++++++++++++++++++++++++++++++++++------
+ 9 files changed, 178 insertions(+), 44 deletions(-)
