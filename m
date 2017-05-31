@@ -1,123 +1,188 @@
-From: Miklos Szeredi <miklos@szeredi.hu>
-Subject: Re: [PATCH v3] ovl: mark upper merge dir with type origin entries "impure"
-Date: Wed, 31 May 2017 14:31:42 +0200
-Message-ID: <CAJfpegvefEXxgTZDb2zSUNV=jSopi0dsSUYi7UFsjrhcSCODuA@mail.gmail.com>
-References: <1495628973-12099-1-git-send-email-amir73il@gmail.com> <CAOQ4uxiicCAfd4TF1ym=qGTz1egGVnpZYdescFgGHQ2X8Dp6Nw@mail.gmail.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Subject: Re: [PATCH 2/2] ovl: get exclusive ownership on upper/work dirs
+Date: Wed, 31 May 2017 15:47:39 +0300
+Message-ID: <CAOQ4uxidR+Rua_GatJK=WR7Yk=UiD9j8ygT+4BG_w=BYcP1u3Q@mail.gmail.com>
+References: <1495533033-22367-1-git-send-email-amir73il@gmail.com>
+ <1495533033-22367-3-git-send-email-amir73il@gmail.com> <CAJfpegsZWjPhJA==FF7YAw0XtCyhVcn1YtuPep+od6h8f=0DOA@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-oi0-f65.google.com ([209.85.218.65]:36146 "EHLO
-        mail-oi0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751028AbdEaMbo (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 31 May 2017 08:31:44 -0400
-Received: by mail-oi0-f65.google.com with SMTP id w138so1648064oiw.3
-        for <linux-unionfs@vger.kernel.org>; Wed, 31 May 2017 05:31:43 -0700 (PDT)
-In-Reply-To: <CAOQ4uxiicCAfd4TF1ym=qGTz1egGVnpZYdescFgGHQ2X8Dp6Nw@mail.gmail.com>
-Sender: linux-unionfs-owner@vger.kernel.org
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
+In-Reply-To: <CAJfpegsZWjPhJA==FF7YAw0XtCyhVcn1YtuPep+od6h8f=0DOA@mail.gmail.com>
+Sender: linux-fsdevel-owner@vger.kernel.org
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: Al Viro <viro@zeniv.linux.org.uk>, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>
 List-Id: linux-unionfs@vger.kernel.org
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: overlayfs <linux-unionfs@vger.kernel.org>
 
-On Mon, May 29, 2017 at 10:49 AM, Amir Goldstein <amir73il@gmail.com> wrote:
-> On Wed, May 24, 2017 at 3:29 PM, Amir Goldstein <amir73il@gmail.com> wrote:
->> An upper dir is marked "impure" to let ovl_iterate() know that this
->> directory may contain non pure upper entries whose d_ino may need to be
->> read from the origin inode.
+On Wed, May 31, 2017 at 1:18 PM, Miklos Szeredi <miklos@szeredi.hu> wrote:
+> On Tue, May 23, 2017 at 11:50 AM, Amir Goldstein <amir73il@gmail.com> wrote:
+>> Bad things can happen if several concurrent overlay mounts try to
+>> use the same upperdir path and/or workdir path.
 >>
->> We already mark a non-merge dir "impure" when moving a non-pure child
->> entry inside it, to let ovl_iterate() know not to iterate the non-merge
->> dir directly.
+>> Try to get the 'inuse' advisory lock on upper and work dir.
+>> Fail mount if another overlay mount instance or another user
+>> holds the 'inuse' lock.
 >>
->> Mark also a merge dir "impure" when moving a non-pure child entry inside
->> it and when copying up a child entry inside it.
->>
->> This can be used to optimize ovl_iterate() to perform a "pure merge" of
->> upper and lower directories, merging the content of the directories,
->> without having to read d_ino from origin inodes.
+>> Note that this provides no protection for concurrent overlay
+>> mount that use overlapping (i.e. descendant) upper dirs or
+>> work dirs.
 >>
 >> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 >> ---
->>  fs/overlayfs/copy_up.c   |  7 +++++++
->>  fs/overlayfs/dir.c       | 31 ++++++-------------------------
->>  fs/overlayfs/namei.c     | 20 --------------------
->>  fs/overlayfs/overlayfs.h | 14 +++++++++++---
->>  fs/overlayfs/super.c     |  5 ++++-
->>  fs/overlayfs/util.c      | 31 +++++++++++++++++++++++++++++++
->>  6 files changed, 59 insertions(+), 49 deletions(-)
+>>  fs/overlayfs/super.c | 70 +++++++++++++++++++++++++++++++++++++++++++++++++---
+>>  1 file changed, 67 insertions(+), 3 deletions(-)
 >>
+>> diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+>> index 4882ffb..ac9212d 100644
+>> --- a/fs/overlayfs/super.c
+>> +++ b/fs/overlayfs/super.c
+>> @@ -165,12 +165,42 @@ static const struct dentry_operations ovl_reval_dentry_operations = {
+>>         .d_weak_revalidate = ovl_dentry_weak_revalidate,
+>>  };
 >>
->> Miklos,
->>
->> Please consider this patch for v4.12-rc3 on top of the one already in
->> overlayfs-next.
->>
->> Not sure how common the use case of "pure merge" is, but the optimization
->> of not doing the origin lookup in ovl_interate() is trivial [1], so better
->> have the merge dir marked "impure" now when introducing overlay.origin.
+>> +/* Get exclusive ownership on upper/work dir among overlay mounts */
+>> +static bool ovl_dir_lock(struct dentry *dentry)
+>> +{
+>> +       struct inode *inode;
+>> +
+>> +       if (!dentry)
+>> +               return false;
+>> +
+>> +       inode = d_inode(dentry);
+>> +       if (!inode || inode_inuse(inode))
+>> +               return false;
+>> +
+>> +       return inode_inuse_trylock(inode);
+>> +}
+>> +
+>> +static void ovl_dir_unlock(struct dentry *dentry)
+>> +{
+>> +       struct inode *inode;
+>> +
+>> +       if (!dentry)
+>> +               return;
+>> +
+>> +       inode = d_inode(dentry);
+>> +       if (inode && inode_inuse(inode))
+>> +               inode_inuse_unlock(inode);
+>> +}
 >
-> Miklos,
+> Seems a bit overcomplicated.   Aren't we always dealing with positive
+> dentries?   In which case these can just be trivial wrappers around
+> inode_inuse_{try|un}lock(), or can be gotten rid of completely.
 >
-> Ping for rc4.
->
-> FYI, I have been testing this patch along with ovl-constino and the rest of
-> my dev branch over the past week and everything looks sane.
->
-> Please see one clarification/disclaimer below, which I don't think warrants
-> a problem w.r.t merging this patch to rc4.
->
-> Thanks,
-> Amir.
->
->
+
+I find the wrappers convenient for cleanup code, but sure
+I can make them much thinner, dput() style.
+
+>> +
+>>  static void ovl_put_super(struct super_block *sb)
+>>  {
+>>         struct ovl_fs *ufs = sb->s_fs_info;
+>>         unsigned i;
 >>
->> v3:
->> - Fix bug that slipped into ovl_check_dir_xattr() in v1
+>> +       ovl_dir_unlock(ufs->workdir);
+>>         dput(ufs->workdir);
+>> +       if (ufs->upper_mnt)
+>> +               ovl_dir_unlock(ufs->upper_mnt->mnt_root);
+>>         mntput(ufs->upper_mnt);
+>>         for (i = 0; i < ufs->numlower; i++)
+>>                 mntput(ufs->lower_mnt[i]);
+>> @@ -407,6 +437,14 @@ static struct dentry *ovl_workdir_create(struct vfsmount *mnt,
+>>                         if (retried)
+>>                                 goto out_dput;
 >>
->> v2:
->> - Check on mount if upper dir is impure
->> - Tested the optimization [1] with consistent st_ino/d_ino patch
->>
->> [1] https://github.com/amir73il/linux/blob/ovl-constino/fs/overlayfs/readdir.c#L413
->>
->> diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
->> index 843ed2a..1ae1790 100644
->> --- a/fs/overlayfs/copy_up.c
->> +++ b/fs/overlayfs/copy_up.c
->> @@ -459,6 +459,13 @@ static int ovl_copy_up_one(struct dentry *parent, struct dentry *dentry,
->>         ovl_path_upper(parent, &parentpath);
->>         upperdir = parentpath.dentry;
->>
->> +       /* Mark parent "impure" because it may now contain non-pure upper */
->> +       if (!ovl_dentry_is_impure(parent)) {
->> +               err = ovl_set_impure(parent, upperdir);
->> +               if (err)
->> +                       return err;
->> +       }
+>> +                       /*
+>> +                        * We have parent i_mutex, so this test is race free
+>> +                        * w.r.t. ovl_dir_lock() below by another overlay mount.
+>> +                        */
+>> +                       err = -EBUSY;
+>> +                       if (inode_inuse(work->d_inode))
+>> +                               goto out_dput;
 >> +
 >
-> Disclaimer:
-> ---------------
-> ovl_dentry_is_impure() here is not tested under any lock and with no
-> explicit memory barriers
-> nor does ovl_dentry_set_impure() inside ovl_set_impure().
-> The worst outcome for this code seems to be that overlay.impure xattr
-> can be set twice, which
-> shouldn't be a problem (?).
-
-Right.  Unlikely race can result in .impure xattr being set twice, no
-other effect.
-
-> For v4.13, when ovl_iterate() will test ovl_dentry_is_impure(), it
-> will be more important to make
-> sure that ovl_iterate() does not read an old false value of oe->impure
-> and cause some
-> inconsistency. I think that the (real) parent i_mutex lock taken
-> further down copy up and
-> the (overlay) parent i_mutex lock taken in iterate_dir() guaranty the
-> required memory barriers (?).
-
-Yes.
-
-Thanks,
-Miklos
+> Why not lock it here?
+>
+>>                         retried = true;
+>>                         ovl_workdir_cleanup(dir, mnt, work, 0);
+>>                         dput(work);
+>> @@ -446,6 +484,14 @@ static struct dentry *ovl_workdir_create(struct vfsmount *mnt,
+>>                 inode_unlock(work->d_inode);
+>>                 if (err)
+>>                         goto out_dput;
+>> +
+>> +               /*
+>> +                * Protect our work dir from being deleted/renamed and from
+>> +                * being reused by another overlay mount.
+>> +                */
+>> +               err = -EBUSY;
+>> +               if (!ovl_dir_lock(work))
+>> +                       goto out_dput;
+>>         }
+>>  out_unlock:
+>>         inode_unlock(dir);
+>> @@ -849,6 +895,16 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
+>>                         pr_err("overlayfs: failed to clone upperpath\n");
+>>                         goto out_put_lowerpath;
+>>                 }
+>> +               /*
+>> +                * Protect our upper dir from being deleted/renamed and from
+>> +                * being reused by another overlay mount.
+>> +                */
+>> +               err = -EBUSY;
+>> +               if (!ovl_dir_lock(upperpath.dentry)) {
+>> +                       pr_err("overlayfs: upperdir in-use by another overlay mount?\n");
+>> +                       goto out_put_upper_mnt;
+>> +               }
+>> +
+>>                 /* Don't inherit atime flags */
+>>                 ufs->upper_mnt->mnt_flags &= ~(MNT_NOATIME | MNT_NODIRATIME | MNT_RELATIME);
+>>
+>> @@ -857,6 +913,10 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
+>>                 ufs->workdir = ovl_workdir_create(ufs->upper_mnt, workpath.dentry);
+>>                 err = PTR_ERR(ufs->workdir);
+>>                 if (IS_ERR(ufs->workdir)) {
+>> +                       if (err == -EBUSY) {
+>> +                               pr_err("overlayfs: workdir in-use by another overlay mount?\n");
+>
+> Why ask?  Aren't we sure?
+>
+>> +                               goto out_unlock_upperdir;
+>> +                       }
+>>                         pr_warn("overlayfs: failed to create directory %s/%s (errno: %i); mounting read-only\n",
+>>                                 ufs->config.workdir, OVL_WORKDIR_NAME, -err);
+>>                         sb->s_flags |= MS_RDONLY;
+>> @@ -874,7 +934,7 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
+>>
+>>                         err = ovl_check_d_type_supported(&workpath);
+>>                         if (err < 0)
+>> -                               goto out_put_workdir;
+>> +                               goto out_unlock_workdir;
+>>
+>>                         /*
+>>                          * We allowed this configuration and don't want to
+>> @@ -910,7 +970,7 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
+>>         err = -ENOMEM;
+>>         ufs->lower_mnt = kcalloc(numlower, sizeof(struct vfsmount *), GFP_KERNEL);
+>>         if (ufs->lower_mnt == NULL)
+>> -               goto out_put_workdir;
+>> +               goto out_unlock_workdir;
+>>         for (i = 0; i < numlower; i++) {
+>>                 struct vfsmount *mnt = clone_private_mount(&stack[i]);
+>>
+>> @@ -1002,8 +1062,12 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
+>>         for (i = 0; i < ufs->numlower; i++)
+>>                 mntput(ufs->lower_mnt[i]);
+>>         kfree(ufs->lower_mnt);
+>> -out_put_workdir:
+>> +out_unlock_workdir:
+>> +       ovl_dir_unlock(ufs->workdir);
+>>         dput(ufs->workdir);
+>> +out_unlock_upperdir:
+>> +       ovl_dir_unlock(upperpath.dentry);
+>> +out_put_upper_mnt:
+>>         mntput(ufs->upper_mnt);
+>>  out_put_lowerpath:
+>>         for (i = 0; i < numlower; i++)
+>> --
+>> 2.7.4
+>>
