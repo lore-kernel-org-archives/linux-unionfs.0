@@ -1,101 +1,105 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH v3 1/5] ovl: relax same fs constrain for ovl_check_origin()
-Date: Thu,  1 Jun 2017 12:02:55 +0300
-Message-ID: <1496307779-2766-2-git-send-email-amir73il@gmail.com>
+Subject: [PATCH v3 2/5] ovl: relax same fs constrain for constant st_ino
+Date: Thu,  1 Jun 2017 12:02:56 +0300
+Message-ID: <1496307779-2766-3-git-send-email-amir73il@gmail.com>
 References: <1496307779-2766-1-git-send-email-amir73il@gmail.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wm0-f65.google.com ([74.125.82.65]:34932 "EHLO
-        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751093AbdFAJCu (ORCPT
+Received: from mail-wm0-f68.google.com ([74.125.82.68]:36400 "EHLO
+        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751093AbdFAJCv (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 1 Jun 2017 05:02:50 -0400
-Received: by mail-wm0-f65.google.com with SMTP id g15so9550850wmc.2
-        for <linux-unionfs@vger.kernel.org>; Thu, 01 Jun 2017 02:02:49 -0700 (PDT)
+        Thu, 1 Jun 2017 05:02:51 -0400
+Received: by mail-wm0-f68.google.com with SMTP id k15so9568837wmh.3
+        for <linux-unionfs@vger.kernel.org>; Thu, 01 Jun 2017 02:02:51 -0700 (PDT)
 In-Reply-To: <1496307779-2766-1-git-send-email-amir73il@gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: Miklos Szeredi <miklos@szeredi.hu>
 Cc: Chandan Rajendra <chandan@linux.vnet.ibm.com>, linux-unionfs@vger.kernel.org
 
-For the case of all layers not on the same fs, try to decode the copy up
-origin file handle on any of the lower layers.
+For the case of all layers not on the same fs, use the copy up
+origin st_ino/st_dev for non-dir, if we know it.
+
+This guarantied constant and persistent st_ino/st_dev for non-dir,
+but not system-wide uniqueness, like in the same fs case.
 
 Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- fs/overlayfs/namei.c | 43 +++++++++++++++++++++++++------------------
- 1 file changed, 25 insertions(+), 18 deletions(-)
+ fs/overlayfs/inode.c | 32 +++++++++++++++++++-------------
+ 1 file changed, 19 insertions(+), 13 deletions(-)
 
-diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
-index f3136c31e72a..04b3d6cf4148 100644
---- a/fs/overlayfs/namei.c
-+++ b/fs/overlayfs/namei.c
-@@ -272,28 +272,24 @@ static int ovl_lookup_layer(struct dentry *base, struct ovl_lookup_data *d,
- static int ovl_check_origin(struct dentry *dentry, struct dentry *upperdentry,
- 			    struct path **stackp, unsigned int *ctrp)
- {
--	struct super_block *same_sb = ovl_same_sb(dentry->d_sb);
- 	struct ovl_entry *roe = dentry->d_sb->s_root->d_fsdata;
- 	struct vfsmount *mnt;
--	struct dentry *origin;
-+	struct dentry *origin = NULL;
-+	int i;
+diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
+index d613e2c41242..5f285c179bbd 100644
+--- a/fs/overlayfs/inode.c
++++ b/fs/overlayfs/inode.c
+@@ -65,6 +65,7 @@ int ovl_getattr(const struct path *path, struct kstat *stat,
+ 	struct path realpath;
+ 	const struct cred *old_cred;
+ 	bool is_dir = S_ISDIR(dentry->d_inode->i_mode);
++	bool samefs = ovl_same_sb(dentry->d_sb);
+ 	int err;
  
--	if (!same_sb || !roe->numlower)
--		return 0;
+ 	type = ovl_path_real(dentry, &realpath);
+@@ -74,16 +75,16 @@ int ovl_getattr(const struct path *path, struct kstat *stat,
+ 		goto out;
  
--       /*
--	* Since all layers are on the same fs, we use the first layer for
--	* decoding the file handle.  We may get a disconnected dentry,
--	* which is fine, because we only need to hold the origin inode in
--	* cache and use its inode number.  We may even get a connected dentry,
--	* that is not under the first layer's root.  That is also fine for
--	* using it's inode number - it's the same as if we held a reference
--	* to a dentry in first layer that was moved under us.
--	*/
--	mnt = roe->lowerstack[0].mnt;
--
--	origin = ovl_get_origin(upperdentry, mnt);
--	if (IS_ERR_OR_NULL(origin))
--		return PTR_ERR(origin);
-+	for (i = 0; i < roe->numlower; i++) {
-+		mnt = roe->lowerstack[i].mnt;
-+		origin = ovl_get_origin(upperdentry, mnt);
-+		if (IS_ERR(origin))
-+			return PTR_ERR(origin);
-+
-+		if (origin)
-+			break;
-+	}
-+
-+	if (!origin)
-+		return 0;
- 
- 	BUG_ON(*stackp || *ctrp);
- 	*stackp = kmalloc(sizeof(struct path), GFP_TEMPORARY);
-@@ -301,6 +297,7 @@ static int ovl_check_origin(struct dentry *dentry, struct dentry *upperdentry,
- 		dput(origin);
- 		return -ENOMEM;
- 	}
-+
- 	**stackp = (struct path) { .dentry = origin, .mnt = mnt };
- 	*ctrp = 1;
- 
-@@ -372,6 +369,16 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
- 		}
- 		if (upperdentry && !d.is_dir) {
- 			BUG_ON(!d.stop || d.redirect);
-+			/*
-+			 * Lookup copy up origin by decoding origin file handle.
-+			 * We may get a disconnected dentry, which is fine,
-+			 * because we only need to hold the origin inode in
-+			 * cache and use its inode number.  We may even get a
-+			 * connected dentry, that is not under any of the lower
-+			 * layers root.  That is also fine for using it's inode
-+			 * number - it's the same as if we held a reference
-+			 * to a dentry in lower layer that was moved under us.
-+			 */
- 			err = ovl_check_origin(dentry, upperdentry,
- 					       &stack, &ctr);
+ 	/*
+-	 * When all layers are on the same fs, all real inode number are
+-	 * unique, so we use the overlay st_dev, which is friendly to du -x.
+-	 *
+-	 * We also use st_ino of the copy up origin, if we know it.
+-	 * This guaranties constant st_dev/st_ino across copy up.
++	 * For non-dir or same fs, we use st_ino of the copy up origin, if we
++	 * know it. This guaranties constant st_dev/st_ino across copy up.
+ 	 *
+ 	 * If filesystem supports NFS export ops, this also guaranties
+ 	 * persistent st_ino across mount cycle.
++	 *
++	 * When all layers are on the same fs, all real inode number are
++	 * unique, so we use the overlay st_dev, which is friendly to du -x.
+ 	 */
+-	if (ovl_same_sb(dentry->d_sb)) {
++	if (!is_dir || samefs) {
+ 		if (OVL_TYPE_ORIGIN(type)) {
+ 			struct kstat lowerstat;
+ 			u32 lowermask = STATX_INO | (!is_dir ? STATX_NLINK : 0);
+@@ -94,7 +95,6 @@ int ovl_getattr(const struct path *path, struct kstat *stat,
  			if (err)
+ 				goto out;
+ 
+-			WARN_ON_ONCE(stat->dev != lowerstat.dev);
+ 			/*
+ 			 * Lower hardlinks are broken on copy up to different
+ 			 * upper files, so we cannot use the lower origin st_ino
+@@ -102,17 +102,23 @@ int ovl_getattr(const struct path *path, struct kstat *stat,
+ 			 */
+ 			if (is_dir || lowerstat.nlink == 1)
+ 				stat->ino = lowerstat.ino;
++
++			if (samefs)
++				WARN_ON_ONCE(stat->dev != lowerstat.dev);
++			else
++				stat->dev = lowerstat.dev;
+ 		}
+-		stat->dev = dentry->d_sb->s_dev;
+-	} else if (is_dir) {
++		if (samefs)
++			stat->dev = dentry->d_sb->s_dev;
++	} else {
+ 		/*
+-		 * If not all layers are on the same fs the pair {real st_ino;
+-		 * overlay st_dev} is not unique, so use the non persistent
+-		 * overlay st_ino.
+-		 *
+ 		 * Always use the overlay st_dev for directories, so 'find
+ 		 * -xdev' will scan the entire overlay mount and won't cross the
+ 		 * overlay mount boundaries.
++		 *
++		 * If not all layers are on the same fs the pair {real st_ino;
++		 * overlay st_dev} is not unique, so use the non persistent
++		 * overlay st_ino for directories.
+ 		 */
+ 		stat->dev = dentry->d_sb->s_dev;
+ 		stat->ino = dentry->d_inode->i_ino;
 -- 
 2.7.4
