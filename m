@@ -1,71 +1,61 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: unionmount-testsuite: backward compat support for REDIRECT_DIR=n
-Date: Wed, 31 May 2017 21:53:53 +0300
-Message-ID: <CAOQ4uxhxFOOgCTcjwq41ftbCPr=BCxhCTTEWzYydY_DoTjH=WA@mail.gmail.com>
-References: <CAOQ4uxiEz0mGEQKmQav+g=kLVfq+Ct9GpZvUq7kGvZG7-7gM0A@mail.gmail.com>
- <20170530203548.GA22558@redhat.com> <CAOQ4uxjN+dTfsc=reXwWhSw8-wOX5nhjFhypaQW0m6kCqKwVCg@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Subject: [PATCH v3 0/5] ovl: constant inode numbers (cont.)
+Date: Thu,  1 Jun 2017 12:02:54 +0300
+Message-ID: <1496307779-2766-1-git-send-email-amir73il@gmail.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-oi0-f53.google.com ([209.85.218.53]:33033 "EHLO
-        mail-oi0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750898AbdEaSxy (ORCPT
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:33432 "EHLO
+        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751093AbdFAJCs (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 31 May 2017 14:53:54 -0400
-In-Reply-To: <CAOQ4uxjN+dTfsc=reXwWhSw8-wOX5nhjFhypaQW0m6kCqKwVCg@mail.gmail.com>
+        Thu, 1 Jun 2017 05:02:48 -0400
+Received: by mail-wm0-f66.google.com with SMTP id b84so9580447wmh.0
+        for <linux-unionfs@vger.kernel.org>; Thu, 01 Jun 2017 02:02:48 -0700 (PDT)
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Vivek Goyal <vgoyal@redhat.com>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, Al Viro <viro@zeniv.linux.org.uk>, overlayfs <linux-unionfs@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, David Howells <dhowells@redhat.com>
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: Chandan Rajendra <chandan@linux.vnet.ibm.com>, linux-unionfs@vger.kernel.org
 
-On Wed, May 31, 2017 at 10:56 AM, Amir Goldstein <amir73il@gmail.com> wrote:
-> On Tue, May 30, 2017 at 11:35 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
->> On Sun, May 28, 2017 at 05:43:45PM +0300, Amir Goldstein wrote:
-> ...
->>>
->>> Vivek,
->>>
->>> I added support for running my maser branch with old kernels
->>> or with REDIRECT_DIR=n.
->>>
->>> User needs to request backward compat mode explicitly.
->>> When using new command line arg --xdev,
->>> dir rename tests that would return EXDEV are skipped.
->>>
-> ...
->>
->> So --xdev will skip tests which are not supposed to pass without
->> REDIRECT_DIR=n?
->
+Miklos,
 
+This series covers many of the constant inode number leftovers from v4.12.
 
-> Short answer - yes.
->
-> Long answer:
-> Technically, those tests (rename-empty-dir, rename-pop-dir, rename-move-dir)
-> pass on David's master branch by expecting and getting EXDEV.
-> My master branch, OTOH, does not verify getting EXDEV with the --xdev
-> flag, so it will not uncover a hypothetical regression with REDIRECT_DIR=n
-> where those tests no longer return EXDEV.
->
+Current status is:
+- For non-hardlinks, st_ino is constant and consistent with d_ino
+- For samefs and for non-dir, st_ino/d_ino is also persistent
+- For samefs, st_dev;st_ino is also system-wide unique
 
-Pushed to master:
-680b310 Add a test to verify EXDEV behavior when OVERLAYFS_REDIRECT_DIR=n
+The remaining leftovers:
+- Constant st_ino/d_ino for hardlinks (WIP by me)
+- System-wide unique st_dev;st_ino for non-samefs (WIP by Chandan?)
 
->
->>
->> Would be great if we could automate this. That is test which are not valid
->> with current kernel/overlay configuration are skipped automatically. It
->> totally up to you. :-)
->>
->
-> Yes, that would be great.
-> Need to test "`cat /sys/module/overlay/parameters/redirect_dir`" = Y
-> But need to take care to modprobe overlay before the test.
->
+Tested constant and consistent d_ino with improved xfstest overlay/017,
+already upstream, which currently fails only on the hardlink copy up test.
 
-Pushed to master:
-7a8bd82 Check if redirect_dir is disabled and skip directory rename tests
+v3:
+- Relax same fs contrains from v4.12
+- Non "impure" dir optimizations
 
-Cheers,
-Amir.
+v2:
+- Lookup overlay entry with lookup_one_len_noperm()
+
+v1:
+- Resurect Miklos's constant d_ino POC
+- Lookup overlay entry with lookup_one_len()
+
+Amir Goldstein (5):
+  ovl: relax same fs constrain for ovl_check_origin()
+  ovl: relax same fs constrain for constant st_ino
+  vfs: factor out lookup_one_len_init()
+  vfs: add helper lookup_one_len_noperm()
+  ovl: consistent st_ino/d_ino
+
+ fs/namei.c               | 117 +++++++++++++++++++++++------------------
+ fs/overlayfs/inode.c     |  32 +++++++-----
+ fs/overlayfs/namei.c     |  50 +++++++++++-------
+ fs/overlayfs/overlayfs.h |   2 +-
+ fs/overlayfs/readdir.c   | 133 ++++++++++++++++++++++++++++++++++++++++++++---
+ include/linux/namei.h    |   1 +
+ 6 files changed, 244 insertions(+), 91 deletions(-)
+
+-- 
+2.7.4
