@@ -1,105 +1,82 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH v3 2/5] ovl: relax same fs constrain for constant st_ino
-Date: Thu,  1 Jun 2017 12:02:56 +0300
-Message-ID: <1496307779-2766-3-git-send-email-amir73il@gmail.com>
+Subject: [PATCH v3 4/5] vfs: add helper lookup_one_len_noperm()
+Date: Thu,  1 Jun 2017 12:02:58 +0300
+Message-ID: <1496307779-2766-5-git-send-email-amir73il@gmail.com>
 References: <1496307779-2766-1-git-send-email-amir73il@gmail.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:36400 "EHLO
-        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751093AbdFAJCv (ORCPT
+Received: from mail-wm0-f67.google.com ([74.125.82.67]:36434 "EHLO
+        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751195AbdFAJCy (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 1 Jun 2017 05:02:51 -0400
-Received: by mail-wm0-f68.google.com with SMTP id k15so9568837wmh.3
-        for <linux-unionfs@vger.kernel.org>; Thu, 01 Jun 2017 02:02:51 -0700 (PDT)
+        Thu, 1 Jun 2017 05:02:54 -0400
+Received: by mail-wm0-f67.google.com with SMTP id k15so9569093wmh.3
+        for <linux-unionfs@vger.kernel.org>; Thu, 01 Jun 2017 02:02:53 -0700 (PDT)
 In-Reply-To: <1496307779-2766-1-git-send-email-amir73il@gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: Miklos Szeredi <miklos@szeredi.hu>
 Cc: Chandan Rajendra <chandan@linux.vnet.ibm.com>, linux-unionfs@vger.kernel.org
 
-For the case of all layers not on the same fs, use the copy up
-origin st_ino/st_dev for non-dir, if we know it.
-
-This guarantied constant and persistent st_ino/st_dev for non-dir,
-but not system-wide uniqueness, like in the same fs case.
+This is a variant of lookup_one_len() that does not check task
+permissions.
 
 Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- fs/overlayfs/inode.c | 32 +++++++++++++++++++-------------
- 1 file changed, 19 insertions(+), 13 deletions(-)
+ fs/namei.c            | 29 +++++++++++++++++++++++++++++
+ include/linux/namei.h |  1 +
+ 2 files changed, 30 insertions(+)
 
-diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
-index d613e2c41242..5f285c179bbd 100644
---- a/fs/overlayfs/inode.c
-+++ b/fs/overlayfs/inode.c
-@@ -65,6 +65,7 @@ int ovl_getattr(const struct path *path, struct kstat *stat,
- 	struct path realpath;
- 	const struct cred *old_cred;
- 	bool is_dir = S_ISDIR(dentry->d_inode->i_mode);
-+	bool samefs = ovl_same_sb(dentry->d_sb);
- 	int err;
+diff --git a/fs/namei.c b/fs/namei.c
+index 263caf0efafe..837da8bfb36f 100644
+--- a/fs/namei.c
++++ b/fs/namei.c
+@@ -2511,6 +2511,35 @@ struct dentry *lookup_one_len(const char *name, struct dentry *base, int len)
+ EXPORT_SYMBOL(lookup_one_len);
  
- 	type = ovl_path_real(dentry, &realpath);
-@@ -74,16 +75,16 @@ int ovl_getattr(const struct path *path, struct kstat *stat,
- 		goto out;
- 
- 	/*
--	 * When all layers are on the same fs, all real inode number are
--	 * unique, so we use the overlay st_dev, which is friendly to du -x.
--	 *
--	 * We also use st_ino of the copy up origin, if we know it.
--	 * This guaranties constant st_dev/st_ino across copy up.
-+	 * For non-dir or same fs, we use st_ino of the copy up origin, if we
-+	 * know it. This guaranties constant st_dev/st_ino across copy up.
- 	 *
- 	 * If filesystem supports NFS export ops, this also guaranties
- 	 * persistent st_ino across mount cycle.
-+	 *
-+	 * When all layers are on the same fs, all real inode number are
-+	 * unique, so we use the overlay st_dev, which is friendly to du -x.
- 	 */
--	if (ovl_same_sb(dentry->d_sb)) {
-+	if (!is_dir || samefs) {
- 		if (OVL_TYPE_ORIGIN(type)) {
- 			struct kstat lowerstat;
- 			u32 lowermask = STATX_INO | (!is_dir ? STATX_NLINK : 0);
-@@ -94,7 +95,6 @@ int ovl_getattr(const struct path *path, struct kstat *stat,
- 			if (err)
- 				goto out;
- 
--			WARN_ON_ONCE(stat->dev != lowerstat.dev);
- 			/*
- 			 * Lower hardlinks are broken on copy up to different
- 			 * upper files, so we cannot use the lower origin st_ino
-@@ -102,17 +102,23 @@ int ovl_getattr(const struct path *path, struct kstat *stat,
- 			 */
- 			if (is_dir || lowerstat.nlink == 1)
- 				stat->ino = lowerstat.ino;
+ /**
++ * lookup_one_len_noperm - filesystem helper to lookup single pathname component
++ * @name:	pathname component to lookup
++ * @base:	base directory to lookup from
++ * @len:	maximum length @len should be interpreted to
++ *
++ * Note that this routine is purely a helper for filesystem usage and should
++ * not be called by generic code.
++ *
++ * Unlike lookup_one_len, it does not check the task permissions.
++ *
++ * The caller must hold base->i_mutex.
++ */
++struct dentry *lookup_one_len_noperm(const char *name, struct dentry *base,
++				     int len)
++{
++	struct qstr this;
++	int err;
 +
-+			if (samefs)
-+				WARN_ON_ONCE(stat->dev != lowerstat.dev);
-+			else
-+				stat->dev = lowerstat.dev;
- 		}
--		stat->dev = dentry->d_sb->s_dev;
--	} else if (is_dir) {
-+		if (samefs)
-+			stat->dev = dentry->d_sb->s_dev;
-+	} else {
- 		/*
--		 * If not all layers are on the same fs the pair {real st_ino;
--		 * overlay st_dev} is not unique, so use the non persistent
--		 * overlay st_ino.
--		 *
- 		 * Always use the overlay st_dev for directories, so 'find
- 		 * -xdev' will scan the entire overlay mount and won't cross the
- 		 * overlay mount boundaries.
-+		 *
-+		 * If not all layers are on the same fs the pair {real st_ino;
-+		 * overlay st_dev} is not unique, so use the non persistent
-+		 * overlay st_ino for directories.
- 		 */
- 		stat->dev = dentry->d_sb->s_dev;
- 		stat->ino = dentry->d_inode->i_ino;
++	WARN_ON_ONCE(!inode_is_locked(base->d_inode));
++
++	err = lookup_one_len_init(&this, base, name, len);
++	if (err)
++		return ERR_PTR(err);
++
++	return __lookup_hash(&this, base, 0);
++}
++EXPORT_SYMBOL(lookup_one_len);
++
++/**
+  * lookup_one_len_unlocked - filesystem helper to lookup single pathname component
+  * @name:	pathname component to lookup
+  * @base:	base directory to lookup from
+diff --git a/include/linux/namei.h b/include/linux/namei.h
+index 8b4794e83196..afafd38f3680 100644
+--- a/include/linux/namei.h
++++ b/include/linux/namei.h
+@@ -81,6 +81,7 @@ extern struct dentry *kern_path_locked(const char *, struct path *);
+ extern int kern_path_mountpoint(int, const char *, struct path *, unsigned int);
+ 
+ extern struct dentry *lookup_one_len(const char *, struct dentry *, int);
++extern struct dentry *lookup_one_len_noperm(const char *, struct dentry *, int);
+ extern struct dentry *lookup_one_len_unlocked(const char *, struct dentry *, int);
+ 
+ extern int follow_down_one(struct path *);
 -- 
 2.7.4
