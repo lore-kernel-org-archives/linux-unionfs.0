@@ -1,92 +1,79 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH 09/17] ovl: allow hashing non upper inodes
-Date: Fri,  2 Jun 2017 17:04:36 +0300
-Message-ID: <1496412284-4113-10-git-send-email-amir73il@gmail.com>
+Subject: [PATCH 01/17] vfs: add helper wait_on_inode_inuse()
+Date: Fri,  2 Jun 2017 17:04:28 +0300
+Message-ID: <1496412284-4113-2-git-send-email-amir73il@gmail.com>
 References: <1496412284-4113-1-git-send-email-amir73il@gmail.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wr0-f194.google.com ([209.85.128.194]:36235 "EHLO
-        mail-wr0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751125AbdFBOEq (ORCPT
+Received: from mail-wr0-f195.google.com ([209.85.128.195]:36181 "EHLO
+        mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750971AbdFBOEo (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 2 Jun 2017 10:04:46 -0400
-Received: by mail-wr0-f194.google.com with SMTP id e23so172608wre.3
-        for <linux-unionfs@vger.kernel.org>; Fri, 02 Jun 2017 07:04:45 -0700 (PDT)
+        Fri, 2 Jun 2017 10:04:44 -0400
+Received: by mail-wr0-f195.google.com with SMTP id e23so172212wre.3
+        for <linux-unionfs@vger.kernel.org>; Fri, 02 Jun 2017 07:04:34 -0700 (PDT)
 In-Reply-To: <1496412284-4113-1-git-send-email-amir73il@gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: Miklos Szeredi <miklos@szeredi.hu>
 Cc: linux-unionfs@vger.kernel.org
 
-In preparation for hashing all overlay inodes, pass is_upper to
-ovl_get_inode() and the iget5_locked() callbacks, instead of assuming
-that the hashed inode is upper.
+Adds a helper to wait until an inode's INUSE bit is cleared.
+
+This is going to be used by overlayfs to sychronize concurrent copy up
+of lower hardlinks.
 
 Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- fs/overlayfs/inode.c     | 11 ++++++-----
- fs/overlayfs/namei.c     |  2 +-
- fs/overlayfs/overlayfs.h |  3 ++-
- 3 files changed, 9 insertions(+), 7 deletions(-)
+ fs/inode.c         | 24 ++++++++++++++++++++++++
+ include/linux/fs.h |  1 +
+ 2 files changed, 25 insertions(+)
 
-diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
-index 136c19aff5e0..19df2961f1c4 100644
---- a/fs/overlayfs/inode.c
-+++ b/fs/overlayfs/inode.c
-@@ -481,22 +481,23 @@ void ovl_inode_update(struct inode *inode, struct inode *upperinode)
- 
- static int ovl_inode_test(struct inode *inode, void *data)
- {
--	return ovl_inode_real(inode, NULL) == data;
-+	return READ_ONCE(inode->i_private) == data;
+diff --git a/fs/inode.c b/fs/inode.c
+index 216efeecdbdc..546cd503148a 100644
+--- a/fs/inode.c
++++ b/fs/inode.c
+@@ -2167,6 +2167,30 @@ void inode_inuse_unlock(struct inode *inode)
+ 	WARN_ON(inode->i_state & (I_NEW | I_FREEING | I_WILL_FREE));
+ 	WARN_ON(!(inode->i_state & I_INUSE));
+ 	inode->i_state &= ~I_INUSE;
++	smp_mb();
++	wake_up_bit(&inode->i_state, __I_INUSE);
+ 	spin_unlock(&inode->i_lock);
  }
+ EXPORT_SYMBOL(inode_inuse_unlock);
++
++/**
++ * wait_on_inode_inuse - wait for release of exclusive 'inuse' lock
++ * @inode:	inode inuse to wait on
++ *
++ * Can be used in combination with parent i_mutex, to protect access to a
++ * newly created inode, until that inode has been properly initialized by
++ * the user that grabbed the 'inuse' exclusive lock after creating the inode.
++ *
++ * Caller must hold a reference to inode to prevent waiting on an inode that
++ * is not 'inuse' and is already being freed.
++ *
++ * Return 0 if the 'inuse' bit is clear or has been cleared while waiting.
++ */
++int wait_on_inode_inuse(struct inode *inode, unsigned mode)
++{
++	if (WARN_ON(!atomic_read(&inode->i_count)))
++		return -EINVAL;
++	might_sleep();
++	return wait_on_bit(&inode->i_state, __I_INUSE, mode);
++}
++EXPORT_SYMBOL(wait_on_inode_inuse);
+diff --git a/include/linux/fs.h b/include/linux/fs.h
+index 2e29ff868e90..e064612b45ef 100644
+--- a/include/linux/fs.h
++++ b/include/linux/fs.h
+@@ -3268,6 +3268,7 @@ extern bool path_noexec(const struct path *path);
+ extern void inode_nohighmem(struct inode *inode);
+ extern bool inode_inuse_trylock(struct inode *inode);
+ extern void inode_inuse_unlock(struct inode *inode);
++extern int wait_on_inode_inuse(struct inode *inode, unsigned mode);
  
- static int ovl_inode_set(struct inode *inode, void *data)
- {
--	inode->i_private = ovl_inode_data(data, true);
-+	inode->i_private = data;
- 	return 0;
- }
- 
--struct inode *ovl_get_inode(struct super_block *sb, struct inode *realinode)
--
-+struct inode *ovl_get_inode(struct super_block *sb, struct inode *realinode,
-+			    bool is_upper)
- {
- 	struct inode *inode;
- 
- 	inode = iget5_locked(sb, (unsigned long) realinode,
--			     ovl_inode_test, ovl_inode_set, realinode);
-+			     ovl_inode_test, ovl_inode_set,
-+			     ovl_inode_data(realinode, is_upper));
- 	if (inode && inode->i_state & I_NEW) {
- 		ovl_fill_inode(inode, realinode->i_mode, realinode->i_rdev);
- 		set_nlink(inode, realinode->i_nlink);
-diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
-index b50918b283e7..7bc570f63259 100644
---- a/fs/overlayfs/namei.c
-+++ b/fs/overlayfs/namei.c
-@@ -525,7 +525,7 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
- 
- 		err = -ENOMEM;
- 		if (upperdentry && !d_is_dir(upperdentry)) {
--			inode = ovl_get_inode(dentry->d_sb, realinode);
-+			inode = ovl_get_inode(dentry->d_sb, realinode, true);
- 		} else {
- 			inode = ovl_new_inode(dentry->d_sb, realinode->i_mode,
- 					      realinode->i_rdev);
-diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-index 21f062611360..b500dee7de69 100644
---- a/fs/overlayfs/overlayfs.h
-+++ b/fs/overlayfs/overlayfs.h
-@@ -299,7 +299,8 @@ struct inode *ovl_new_inode(struct super_block *sb, umode_t mode, dev_t rdev);
- void ovl_inode_init(struct inode *inode, struct inode *realinode,
- 		    bool is_upper);
- void ovl_inode_update(struct inode *inode, struct inode *upperinode);
--struct inode *ovl_get_inode(struct super_block *sb, struct inode *realinode);
-+struct inode *ovl_get_inode(struct super_block *sb, struct inode *realinode,
-+			    bool is_upper);
- 
- static inline void ovl_copyattr(struct inode *from, struct inode *to)
+ static inline bool inode_inuse(struct inode *inode)
  {
 -- 
 2.7.4
