@@ -1,113 +1,411 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH 07/17] ovl: create helpers for initializing hashed inode
-Date: Fri,  2 Jun 2017 17:04:34 +0300
-Message-ID: <1496412284-4113-8-git-send-email-amir73il@gmail.com>
+Subject: [PATCH 14/17] ovl: generalize ovl_copy_up_locked() using actors
+Date: Fri,  2 Jun 2017 17:04:41 +0300
+Message-ID: <1496412284-4113-15-git-send-email-amir73il@gmail.com>
 References: <1496412284-4113-1-git-send-email-amir73il@gmail.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wr0-f196.google.com ([209.85.128.196]:35228 "EHLO
-        mail-wr0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751189AbdFBOEs (ORCPT
+Received: from mail-wm0-f67.google.com ([74.125.82.67]:33202 "EHLO
+        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751218AbdFBOEx (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 2 Jun 2017 10:04:48 -0400
-Received: by mail-wr0-f196.google.com with SMTP id g76so1331762wrd.2
-        for <linux-unionfs@vger.kernel.org>; Fri, 02 Jun 2017 07:04:48 -0700 (PDT)
+        Fri, 2 Jun 2017 10:04:53 -0400
+Received: by mail-wm0-f67.google.com with SMTP id b84so19205885wmh.0
+        for <linux-unionfs@vger.kernel.org>; Fri, 02 Jun 2017 07:04:52 -0700 (PDT)
 In-Reply-To: <1496412284-4113-1-git-send-email-amir73il@gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: Miklos Szeredi <miklos@szeredi.hu>
 Cc: linux-unionfs@vger.kernel.org
 
-In preparation for hashing all overlay inodes, factor out helpers
-ovl_inode_data(), ovl_inode_data_is_upper() and ovl_inode_data_real()
-to set and test overlay inode i_private data content.
+ovl_copy_up_locked() is implementing two different copy up methods in one
+function with many conditional statements.
 
-Those helpers are going to be used for hashing overlay inodes.
+Split the function into actors: aquire,prepare,commit,cancel,release.
+Implement the actors prepare,commit,cancel for the 'workdir' and
+'tmpfile' copy up methods.
+
+The aquire,release code for the two methods is still open coded in
+ovl_copy_up_one(). Next patch will implement the aquire,release actors.
 
 Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- fs/overlayfs/inode.c     |  8 +++-----
- fs/overlayfs/overlayfs.h | 25 +++++++++++++++++++++----
- 2 files changed, 24 insertions(+), 9 deletions(-)
+ fs/overlayfs/copy_up.c | 280 +++++++++++++++++++++++++++++++++++--------------
+ 1 file changed, 202 insertions(+), 78 deletions(-)
 
-diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
-index 753d4d4c0ad5..cfcefeb88a32 100644
---- a/fs/overlayfs/inode.c
-+++ b/fs/overlayfs/inode.c
-@@ -459,16 +459,14 @@ struct inode *ovl_new_inode(struct super_block *sb, umode_t mode, dev_t rdev)
- 
- void ovl_inode_init(struct inode *inode, struct inode *realinode, bool is_upper)
- {
--	WRITE_ONCE(inode->i_private, (unsigned long) realinode |
--		   (is_upper ? OVL_ISUPPER_MASK : 0));
-+	WRITE_ONCE(inode->i_private, ovl_inode_data(realinode, is_upper));
+diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
+index 44985d9b3c8d..d3b922bcd983 100644
+--- a/fs/overlayfs/copy_up.c
++++ b/fs/overlayfs/copy_up.c
+@@ -358,104 +358,227 @@ static int ovl_copy_up_inode(struct dentry *dentry, struct dentry *temp,
+ 	return err;
  }
  
- void ovl_inode_update(struct inode *inode, struct inode *upperinode)
- {
- 	WARN_ON(!upperinode);
- 	WARN_ON(!inode_unhashed(inode));
--	WRITE_ONCE(inode->i_private,
--		   (unsigned long) upperinode | OVL_ISUPPER_MASK);
-+	WRITE_ONCE(inode->i_private, ovl_inode_data(upperinode, true));
- 	if (!S_ISDIR(upperinode->i_mode))
- 		__insert_inode_hash(inode, (unsigned long) upperinode);
- }
-@@ -480,7 +478,7 @@ static int ovl_inode_test(struct inode *inode, void *data)
- 
- static int ovl_inode_set(struct inode *inode, void *data)
- {
--	inode->i_private = (void *) (((unsigned long) data) | OVL_ISUPPER_MASK);
-+	inode->i_private = ovl_inode_data(data, true);
- 	return 0;
- }
- 
-diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-index 37e3b3902e13..21f062611360 100644
---- a/fs/overlayfs/overlayfs.h
-+++ b/fs/overlayfs/overlayfs.h
-@@ -75,7 +75,6 @@ struct ovl_fh {
- 	u8 fid[0];	/* file identifier */
- } __packed;
- 
--#define OVL_ISUPPER_MASK 1UL
- 
- static inline int ovl_do_rmdir(struct inode *dir, struct dentry *dentry)
- {
-@@ -190,14 +189,32 @@ static inline struct dentry *ovl_do_tmpfile(struct dentry *dentry, umode_t mode)
- 	return ret;
- }
- 
-+#define OVL_INODE_ISUPPER_MASK 1UL
+-static int ovl_copy_up_locked(struct dentry *workdir, struct dentry *upperdir,
+-			      struct dentry *dentry, struct path *lowerpath,
+-			      struct kstat *stat, const char *link,
+-			      struct kstat *pstat, bool tmpfile)
++/*
++ * Context and operations for copying up a single lower file.
++ */
++struct ovl_copy_up_ctx {
++	struct dentry *dentry;
++	struct path *lowerpath;
++	struct kstat *stat;
++	struct kstat pstat;
++	const char *link;
++	struct dentry *upperdir;
++	struct dentry *tempdir;
++	struct dentry *upper;
++	struct dentry *temp;
++};
 +
-+static inline void *ovl_inode_data(struct inode *realinode, bool is_upper)
++struct ovl_copy_up_ops {
++	int (*aquire)(struct ovl_copy_up_ctx *);
++	int (*prepare)(struct ovl_copy_up_ctx *);
++	int (*commit)(struct ovl_copy_up_ctx *);
++	int (*cancel)(struct ovl_copy_up_ctx *);
++	int (*release)(struct ovl_copy_up_ctx *);
++};
++
++/*
++ * Copy up operations using workdir.
++ * Upper file is created in workdir, copied and moved to upperdir.
++ */
++static int ovl_copy_up_workdir_aquire(struct ovl_copy_up_ctx *ctx)
 +{
-+	return (void *)((unsigned long) realinode |
-+			(is_upper ? OVL_INODE_ISUPPER_MASK : 0));
++	return 0;
 +}
 +
-+static inline bool ovl_inode_data_is_upper(void *data)
-+{
-+	return ((unsigned long)data & OVL_INODE_ISUPPER_MASK);
-+}
-+
-+static inline struct inode *ovl_inode_data_real(void *data)
-+{
-+	return (struct inode *) ((unsigned long)data & ~OVL_INODE_ISUPPER_MASK);
-+}
-+
- static inline struct inode *ovl_inode_real(struct inode *inode, bool *is_upper)
++static int ovl_copy_up_workdir_prepare(struct ovl_copy_up_ctx *ctx)
  {
--	unsigned long x = (unsigned long) READ_ONCE(inode->i_private);
-+	void *data = READ_ONCE(inode->i_private);
+-	struct inode *wdir = workdir->d_inode;
+-	struct inode *udir = upperdir->d_inode;
+-	struct dentry *newdentry = NULL;
+ 	struct dentry *upper = NULL;
+ 	struct dentry *temp = NULL;
+ 	int err;
+-	const struct cred *old_creds = NULL;
+-	struct cred *new_creds = NULL;
+ 	struct cattr cattr = {
+ 		/* Can't properly set mode on creation because of the umask */
+-		.mode = stat->mode & S_IFMT,
+-		.rdev = stat->rdev,
+-		.link = link
++		.mode = ctx->stat->mode & S_IFMT,
++		.rdev = ctx->stat->rdev,
++		.link = ctx->link,
+ 	};
  
- 	if (is_upper)
--		*is_upper = x & OVL_ISUPPER_MASK;
-+		*is_upper = ovl_inode_data_is_upper(data);
+-	if (tmpfile) {
+-		upper = lookup_one_len_unlocked(dentry->d_name.name, upperdir,
+-						dentry->d_name.len);
+-	} else {
+-		upper = lookup_one_len(dentry->d_name.name, upperdir,
+-				       dentry->d_name.len);
+-	}
++
++	upper = lookup_one_len(ctx->dentry->d_name.name, ctx->upperdir,
++			       ctx->dentry->d_name.len);
+ 	err = PTR_ERR(upper);
+ 	if (IS_ERR(upper))
+ 		goto out;
  
--	return (struct inode *) (x & ~OVL_ISUPPER_MASK);
-+	return ovl_inode_data_real(data);
++	temp = ovl_lookup_temp(ctx->tempdir);
++	if (IS_ERR(temp)) {
++		err = PTR_ERR(temp);
++		goto out_dput_upper;
++	}
++
++	err = ovl_create_real(d_inode(ctx->tempdir), temp, &cattr, NULL, true);
++	if (err)
++		goto out_dput_temp;
++
++	ctx->upper = upper;
++	ctx->temp = temp;
++	return 0;
++
++out_dput_temp:
++	dput(temp);
++out_dput_upper:
++	dput(upper);
++out:
++	return err;
++}
++
++static int ovl_copy_up_workdir_commit(struct ovl_copy_up_ctx *ctx)
++{
++	int err;
++
++	err = ovl_do_rename(d_inode(ctx->tempdir), ctx->temp,
++			    d_inode(ctx->upperdir), ctx->upper, 0);
++	if (err)
++		return err;
++
++	/* After rename, ctx->temp is the upper entry we will use */
++	swap(ctx->temp, ctx->upper);
++
++	/* Restore timestamps on parent (best effort) */
++	ovl_set_timestamps(ctx->upperdir, &ctx->pstat);
++
++	return err;
++}
++
++static int ovl_copy_up_workdir_cancel(struct ovl_copy_up_ctx *ctx)
++{
++	ovl_cleanup(d_inode(ctx->tempdir), ctx->temp);
++	return 0;
++}
++
++static int ovl_copy_up_workdir_release(struct ovl_copy_up_ctx *ctx)
++{
++	return 0;
++}
++
++static const struct ovl_copy_up_ops ovl_copy_up_workdir_ops = {
++	.aquire = ovl_copy_up_workdir_aquire,
++	.prepare = ovl_copy_up_workdir_prepare,
++	.commit = ovl_copy_up_workdir_commit,
++	.cancel = ovl_copy_up_workdir_cancel,
++	.release = ovl_copy_up_workdir_release,
++};
++
++/*
++ * Copy up operations using O_TMPFILE.
++ * Upper file is created unlinked, copied and linked to upperdir.
++ */
++static int ovl_copy_up_tmpfile_aquire(struct ovl_copy_up_ctx *ctx)
++{
++	return 0;
++}
++
++static int ovl_copy_up_tmpfile_prepare(struct ovl_copy_up_ctx *ctx)
++{
++	struct dentry *upper;
++	struct dentry *temp;
++
++	upper = lookup_one_len_unlocked(ctx->dentry->d_name.name, ctx->upperdir,
++					ctx->dentry->d_name.len);
++	if (IS_ERR(upper))
++		return PTR_ERR(upper);
++
++	temp = ovl_do_tmpfile(ctx->upperdir, ctx->stat->mode);
++	if (IS_ERR(temp)) {
++		dput(upper);
++		return PTR_ERR(temp);
++	}
++
++	ctx->upper = upper;
++	ctx->temp = temp;
++	return 0;
++}
++
++static int ovl_copy_up_tmpfile_commit(struct ovl_copy_up_ctx *ctx)
++{
++	int err;
++
++	inode_lock_nested(d_inode(ctx->upperdir), I_MUTEX_PARENT);
++	/* link the sucker ;) */
++	err = ovl_do_link(ctx->temp, d_inode(ctx->upperdir), ctx->upper, true);
++	/* Restore timestamps on parent (best effort) */
++	if (!err)
++		ovl_set_timestamps(ctx->upperdir, &ctx->pstat);
++	inode_unlock(d_inode(ctx->upperdir));
++
++	return err;
++}
++
++static int ovl_copy_up_tmpfile_cancel(struct ovl_copy_up_ctx *ctx)
++{
++	return 0;
++}
++
++static int ovl_copy_up_tmpfile_release(struct ovl_copy_up_ctx *ctx)
++{
++	return 0;
++}
++
++static const struct ovl_copy_up_ops ovl_copy_up_tmpfile_ops = {
++	.aquire = ovl_copy_up_tmpfile_aquire,
++	.prepare = ovl_copy_up_tmpfile_prepare,
++	.commit = ovl_copy_up_tmpfile_commit,
++	.cancel = ovl_copy_up_tmpfile_cancel,
++	.release = ovl_copy_up_tmpfile_release,
++};
++
++static int ovl_copy_up_locked(struct ovl_copy_up_ctx *ctx,
++			      const struct ovl_copy_up_ops *ops)
++{
++	struct dentry *dentry = ctx->dentry;
++	const struct cred *old_creds = NULL;
++	struct cred *new_creds = NULL;
++	int err;
++
+ 	err = security_inode_copy_up(dentry, &new_creds);
+ 	if (err < 0)
+-		goto out1;
++		return err;
+ 
+ 	if (new_creds)
+ 		old_creds = override_creds(new_creds);
+ 
+-	if (tmpfile)
+-		temp = ovl_do_tmpfile(upperdir, stat->mode);
+-	else
+-		temp = ovl_lookup_temp(workdir);
+-	err = 0;
+-	if (IS_ERR(temp)) {
+-		err = PTR_ERR(temp);
+-		temp = NULL;
+-	}
+-
+-	if (!err && !tmpfile)
+-		err = ovl_create_real(wdir, temp, &cattr, NULL, true);
++	ctx->upper = ctx->temp = NULL;
++	err = ops->prepare(ctx);
+ 
+ 	if (new_creds) {
+ 		revert_creds(old_creds);
+ 		put_cred(new_creds);
+ 	}
+-
+ 	if (err)
+-		goto out2;
++		goto out;
+ 
+-	err = ovl_copy_up_inode(dentry, temp, lowerpath, stat);
++	err = ovl_copy_up_inode(dentry, ctx->temp, ctx->lowerpath, ctx->stat);
+ 	if (err)
+-		goto out_cleanup;
++		goto out_cancel;
+ 
+-	if (tmpfile) {
+-		inode_lock_nested(udir, I_MUTEX_PARENT);
+-		err = ovl_do_link(temp, udir, upper, true);
+-		if (!err)
+-			ovl_set_timestamps(upperdir, pstat);
+-		pstat = NULL;
+-		inode_unlock(udir);
+-	} else {
+-		err = ovl_do_rename(wdir, temp, udir, upper, 0);
+-	}
++	err = ops->commit(ctx);
+ 	if (err)
+-		goto out_cleanup;
++		goto out_cancel;
+ 
+-	newdentry = dget(tmpfile ? upper : temp);
+-	ovl_dentry_update(dentry, newdentry);
+-	err = ovl_inode_update(d_inode(dentry), d_inode(newdentry));
++	ovl_dentry_update(dentry, dget(ctx->upper));
++	err = ovl_inode_update(d_inode(dentry), d_inode(ctx->upper));
+ 	if (err) {
+ 		/* Broken hardlink - drop cache and return error */
+ 		d_drop(dentry);
+ 	}
+ 
+-	/* Restore timestamps on parent (best effort) */
+-	if (pstat)
+-		ovl_set_timestamps(upperdir, pstat);
+-out2:
+-	dput(temp);
+-out1:
+-	dput(upper);
+ out:
++	dput(ctx->temp);
++	dput(ctx->upper);
+ 	return err;
+ 
+-out_cleanup:
+-	if (!tmpfile)
+-		ovl_cleanup(wdir, temp);
+-	goto out2;
++out_cancel:
++	ops->cancel(ctx);
++	goto out;
  }
  
- /* util.c */
+ /*
+@@ -471,37 +594,40 @@ static int ovl_copy_up_one(struct dentry *parent, struct dentry *dentry,
+ 			   struct path *lowerpath, struct kstat *stat)
+ {
+ 	DEFINE_DELAYED_CALL(done);
+-	struct dentry *workdir = ovl_workdir(dentry);
+ 	int err;
+-	struct kstat pstat;
+ 	struct path parentpath;
+ 	struct dentry *lowerdentry = lowerpath->dentry;
+-	struct dentry *upperdir;
+-	const char *link = NULL;
+ 	struct ovl_fs *ofs = dentry->d_sb->s_fs_info;
++	struct ovl_copy_up_ctx ctx = {
++		.dentry = dentry,
++		.lowerpath = lowerpath,
++		.stat = stat,
++		.link = NULL,
++		.tempdir = ovl_workdir(dentry),
++	};
+ 
+-	if (WARN_ON(!workdir))
++	if (WARN_ON(!ctx.tempdir))
+ 		return -EROFS;
+ 
+ 	ovl_do_check_copy_up(lowerdentry);
+ 
+ 	ovl_path_upper(parent, &parentpath);
+-	upperdir = parentpath.dentry;
++	ctx.upperdir = parentpath.dentry;
+ 
+ 	/* Mark parent "impure" because it may now contain non-pure upper */
+-	err = ovl_set_impure(parent, upperdir);
++	err = ovl_set_impure(parent, ctx.upperdir);
+ 	if (err)
+ 		return err;
+ 
+-	err = vfs_getattr(&parentpath, &pstat,
++	err = vfs_getattr(&parentpath, &ctx.pstat,
+ 			  STATX_ATIME | STATX_MTIME, AT_STATX_SYNC_AS_STAT);
+ 	if (err)
+ 		return err;
+ 
+ 	if (S_ISLNK(stat->mode)) {
+-		link = vfs_get_link(lowerdentry, &done);
+-		if (IS_ERR(link))
+-			return PTR_ERR(link);
++		ctx.link = vfs_get_link(lowerdentry, &done);
++		if (IS_ERR(ctx.link))
++			return PTR_ERR(ctx.link);
+ 	}
+ 
+ 	/* Should we copyup with O_TMPFILE or with workdir? */
+@@ -515,14 +641,13 @@ static int ovl_copy_up_one(struct dentry *parent, struct dentry *dentry,
+ 			goto out_done;
+ 		}
+ 
+-		err = ovl_copy_up_locked(workdir, upperdir, dentry, lowerpath,
+-					 stat, link, &pstat, true);
++		err = ovl_copy_up_locked(&ctx, &ovl_copy_up_tmpfile_ops);
+ 		ovl_copy_up_end(dentry);
+ 		goto out_done;
+ 	}
+ 
+ 	err = -EIO;
+-	if (lock_rename(workdir, upperdir) != NULL) {
++	if (lock_rename(ctx.tempdir, ctx.upperdir) != NULL) {
+ 		pr_err("overlayfs: failed to lock workdir+upperdir\n");
+ 		goto out_unlock;
+ 	}
+@@ -532,10 +657,9 @@ static int ovl_copy_up_one(struct dentry *parent, struct dentry *dentry,
+ 		goto out_unlock;
+ 	}
+ 
+-	err = ovl_copy_up_locked(workdir, upperdir, dentry, lowerpath,
+-				 stat, link, &pstat, false);
++	err = ovl_copy_up_locked(&ctx, &ovl_copy_up_workdir_ops);
+ out_unlock:
+-	unlock_rename(workdir, upperdir);
++	unlock_rename(ctx.tempdir, ctx.upperdir);
+ out_done:
+ 	do_delayed_call(&done);
+ 
 -- 
 2.7.4
