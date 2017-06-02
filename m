@@ -1,122 +1,111 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH 12/17] ovl: defer upper dir lock to tempfile link
-Date: Fri,  2 Jun 2017 17:04:39 +0300
-Message-ID: <1496412284-4113-13-git-send-email-amir73il@gmail.com>
+Subject: [PATCH 13/17] ovl: factor out ovl_copy_up_inode() helper
+Date: Fri,  2 Jun 2017 17:04:40 +0300
+Message-ID: <1496412284-4113-14-git-send-email-amir73il@gmail.com>
 References: <1496412284-4113-1-git-send-email-amir73il@gmail.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:33179 "EHLO
-        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751141AbdFBOFF (ORCPT
+Received: from mail-wm0-f67.google.com ([74.125.82.67]:34426 "EHLO
+        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751214AbdFBOFG (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 2 Jun 2017 10:05:05 -0400
-Received: by mail-wm0-f68.google.com with SMTP id b84so19205705wmh.0
-        for <linux-unionfs@vger.kernel.org>; Fri, 02 Jun 2017 07:04:54 -0700 (PDT)
+        Fri, 2 Jun 2017 10:05:06 -0400
+Received: by mail-wm0-f67.google.com with SMTP id d127so19134646wmf.1
+        for <linux-unionfs@vger.kernel.org>; Fri, 02 Jun 2017 07:05:06 -0700 (PDT)
 In-Reply-To: <1496412284-4113-1-git-send-email-amir73il@gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: Miklos Szeredi <miklos@szeredi.hu>
 Cc: linux-unionfs@vger.kernel.org
 
-On copy up of regular file using an O_TMPFILE, lock upper dir only
-before linking the tempfile in place.
+Factor out helper for copying lower inode data and metadata to temp
+upper inode, that is common to copy up using O_TMPFILE and workdir.
 
 Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- fs/overlayfs/copy_up.c | 35 ++++++++++++++++++-----------------
- fs/overlayfs/util.c    |  3 ++-
- 2 files changed, 20 insertions(+), 18 deletions(-)
+ fs/overlayfs/copy_up.c | 64 +++++++++++++++++++++++++++++---------------------
+ 1 file changed, 37 insertions(+), 27 deletions(-)
 
 diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
-index 0fff3b7cb3e2..1fd73e4fa380 100644
+index 1fd73e4fa380..44985d9b3c8d 100644
 --- a/fs/overlayfs/copy_up.c
 +++ b/fs/overlayfs/copy_up.c
-@@ -342,8 +342,13 @@ static int ovl_copy_up_locked(struct dentry *workdir, struct dentry *upperdir,
- 		.link = link
- 	};
+@@ -322,6 +322,42 @@ static int ovl_set_origin(struct dentry *dentry, struct dentry *lower,
+ 	return err;
+ }
  
--	upper = lookup_one_len(dentry->d_name.name, upperdir,
--			       dentry->d_name.len);
-+	if (tmpfile) {
-+		upper = lookup_one_len_unlocked(dentry->d_name.name, upperdir,
-+						dentry->d_name.len);
-+	} else {
-+		upper = lookup_one_len(dentry->d_name.name, upperdir,
-+				       dentry->d_name.len);
-+	}
- 	err = PTR_ERR(upper);
- 	if (IS_ERR(upper))
- 		goto out;
-@@ -383,16 +388,7 @@ static int ovl_copy_up_locked(struct dentry *workdir, struct dentry *upperdir,
- 		BUG_ON(upperpath.dentry != NULL);
- 		upperpath.dentry = temp;
- 
--		if (tmpfile) {
--			inode_unlock(udir);
--			err = ovl_copy_up_data(lowerpath, &upperpath,
--					       stat->size);
--			inode_lock_nested(udir, I_MUTEX_PARENT);
--		} else {
--			err = ovl_copy_up_data(lowerpath, &upperpath,
--					       stat->size);
--		}
--
++static int ovl_copy_up_inode(struct dentry *dentry, struct dentry *temp,
++			     struct path *lowerpath, struct kstat *stat)
++{
++	int err;
++
++	if (S_ISREG(stat->mode)) {
++		struct path upperpath;
++
++		ovl_path_upper(dentry, &upperpath);
++		BUG_ON(upperpath.dentry != NULL);
++		upperpath.dentry = temp;
++
 +		err = ovl_copy_up_data(lowerpath, &upperpath, stat->size);
- 		if (err)
- 			goto out_cleanup;
- 	}
-@@ -415,10 +411,16 @@ static int ovl_copy_up_locked(struct dentry *workdir, struct dentry *upperdir,
- 	if (err)
- 		goto out_cleanup;
- 
--	if (tmpfile)
-+	if (tmpfile) {
-+		inode_lock_nested(udir, I_MUTEX_PARENT);
- 		err = ovl_do_link(temp, udir, upper, true);
--	else
-+		if (!err)
-+			ovl_set_timestamps(upperdir, pstat);
-+		pstat = NULL;
-+		inode_unlock(udir);
-+	} else {
- 		err = ovl_do_rename(wdir, temp, udir, upper, 0);
++		if (err)
++			return err;
 +	}
++
++	err = ovl_copy_xattr(lowerpath->dentry, temp);
++	if (err)
++		return err;
++
++	inode_lock(temp->d_inode);
++	err = ovl_set_attr(temp, stat);
++	inode_unlock(temp->d_inode);
++	if (err)
++		return err;
++
++	/*
++	 * Store identifier of lower inode in upper inode xattr to
++	 * allow lookup of the copy up origin inode.
++	 */
++	err = ovl_set_origin(dentry, lowerpath->dentry, temp);
++
++	return err;
++}
++
+ static int ovl_copy_up_locked(struct dentry *workdir, struct dentry *upperdir,
+ 			      struct dentry *dentry, struct path *lowerpath,
+ 			      struct kstat *stat, const char *link,
+@@ -381,33 +417,7 @@ static int ovl_copy_up_locked(struct dentry *workdir, struct dentry *upperdir,
+ 	if (err)
+ 		goto out2;
+ 
+-	if (S_ISREG(stat->mode)) {
+-		struct path upperpath;
+-
+-		ovl_path_upper(dentry, &upperpath);
+-		BUG_ON(upperpath.dentry != NULL);
+-		upperpath.dentry = temp;
+-
+-		err = ovl_copy_up_data(lowerpath, &upperpath, stat->size);
+-		if (err)
+-			goto out_cleanup;
+-	}
+-
+-	err = ovl_copy_xattr(lowerpath->dentry, temp);
+-	if (err)
+-		goto out_cleanup;
+-
+-	inode_lock(temp->d_inode);
+-	err = ovl_set_attr(temp, stat);
+-	inode_unlock(temp->d_inode);
+-	if (err)
+-		goto out_cleanup;
+-
+-	/*
+-	 * Store identifier of lower inode in upper inode xattr to
+-	 * allow lookup of the copy up origin inode.
+-	 */
+-	err = ovl_set_origin(dentry, lowerpath->dentry, temp);
++	err = ovl_copy_up_inode(dentry, temp, lowerpath, stat);
  	if (err)
  		goto out_cleanup;
  
-@@ -431,7 +433,8 @@ static int ovl_copy_up_locked(struct dentry *workdir, struct dentry *upperdir,
- 	}
- 
- 	/* Restore timestamps on parent (best effort) */
--	ovl_set_timestamps(upperdir, pstat);
-+	if (pstat)
-+		ovl_set_timestamps(upperdir, pstat);
- out2:
- 	dput(temp);
- out1:
-@@ -502,10 +505,8 @@ static int ovl_copy_up_one(struct dentry *parent, struct dentry *dentry,
- 			goto out_done;
- 		}
- 
--		inode_lock_nested(upperdir->d_inode, I_MUTEX_PARENT);
- 		err = ovl_copy_up_locked(workdir, upperdir, dentry, lowerpath,
- 					 stat, link, &pstat, true);
--		inode_unlock(upperdir->d_inode);
- 		ovl_copy_up_end(dentry);
- 		goto out_done;
- 	}
-diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
-index fab76415c8eb..750c32827f60 100644
---- a/fs/overlayfs/util.c
-+++ b/fs/overlayfs/util.c
-@@ -234,7 +234,8 @@ void ovl_dentry_update(struct dentry *dentry, struct dentry *upperdentry)
- {
- 	struct ovl_entry *oe = dentry->d_fsdata;
- 
--	WARN_ON(!inode_is_locked(upperdentry->d_parent->d_inode));
-+	WARN_ON(!inode_is_locked(upperdentry->d_parent->d_inode) &&
-+		!oe->copying);
- 	WARN_ON(oe->__upperdentry);
- 	/*
- 	 * Make sure upperdentry is consistent before making it visible to
 -- 
 2.7.4
