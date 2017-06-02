@@ -1,79 +1,80 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH 01/17] vfs: add helper wait_on_inode_inuse()
-Date: Fri,  2 Jun 2017 17:04:28 +0300
-Message-ID: <1496412284-4113-2-git-send-email-amir73il@gmail.com>
+Subject: [PATCH 08/17] ovl: use ovl_inode_init() for initializing new inode
+Date: Fri,  2 Jun 2017 17:04:35 +0300
+Message-ID: <1496412284-4113-9-git-send-email-amir73il@gmail.com>
 References: <1496412284-4113-1-git-send-email-amir73il@gmail.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wr0-f195.google.com ([209.85.128.195]:36181 "EHLO
-        mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750971AbdFBOEo (ORCPT
+Received: from mail-wm0-f65.google.com ([74.125.82.65]:33121 "EHLO
+        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751220AbdFBOEu (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 2 Jun 2017 10:04:44 -0400
-Received: by mail-wr0-f195.google.com with SMTP id e23so172212wre.3
-        for <linux-unionfs@vger.kernel.org>; Fri, 02 Jun 2017 07:04:34 -0700 (PDT)
+        Fri, 2 Jun 2017 10:04:50 -0400
+Received: by mail-wm0-f65.google.com with SMTP id b84so19205263wmh.0
+        for <linux-unionfs@vger.kernel.org>; Fri, 02 Jun 2017 07:04:44 -0700 (PDT)
 In-Reply-To: <1496412284-4113-1-git-send-email-amir73il@gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: Miklos Szeredi <miklos@szeredi.hu>
 Cc: linux-unionfs@vger.kernel.org
 
-Adds a helper to wait until an inode's INUSE bit is cleared.
+In preparation for hashing all overlay inodes, modify the helper
+ovl_inode_init() to hash a new non-dir upper overlay inode.
 
-This is going to be used by overlayfs to sychronize concurrent copy up
-of lower hardlinks.
+Use this helper for initializing new upper inode in ovl_instantiate()
+instead of ovl_inode_update(), because the implementations for new inode
+case and copy up case are going to diverge.
 
 Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- fs/inode.c         | 24 ++++++++++++++++++++++++
- include/linux/fs.h |  1 +
- 2 files changed, 25 insertions(+)
+ fs/overlayfs/dir.c   |  2 +-
+ fs/overlayfs/inode.c | 12 ++++++++++--
+ 2 files changed, 11 insertions(+), 3 deletions(-)
 
-diff --git a/fs/inode.c b/fs/inode.c
-index 216efeecdbdc..546cd503148a 100644
---- a/fs/inode.c
-+++ b/fs/inode.c
-@@ -2167,6 +2167,30 @@ void inode_inuse_unlock(struct inode *inode)
- 	WARN_ON(inode->i_state & (I_NEW | I_FREEING | I_WILL_FREE));
- 	WARN_ON(!(inode->i_state & I_INUSE));
- 	inode->i_state &= ~I_INUSE;
-+	smp_mb();
-+	wake_up_bit(&inode->i_state, __I_INUSE);
- 	spin_unlock(&inode->i_lock);
+diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
+index a63a71656e9b..4f0096fee276 100644
+--- a/fs/overlayfs/dir.c
++++ b/fs/overlayfs/dir.c
+@@ -156,7 +156,7 @@ static void ovl_instantiate(struct dentry *dentry, struct inode *inode,
+ 	ovl_dentry_version_inc(dentry->d_parent);
+ 	ovl_dentry_update(dentry, newdentry);
+ 	if (!hardlink) {
+-		ovl_inode_update(inode, d_inode(newdentry));
++		ovl_inode_init(inode, d_inode(newdentry), true);
+ 		ovl_copyattr(newdentry->d_inode, inode);
+ 	} else {
+ 		WARN_ON(ovl_inode_real(inode, NULL) != d_inode(newdentry));
+diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
+index cfcefeb88a32..136c19aff5e0 100644
+--- a/fs/overlayfs/inode.c
++++ b/fs/overlayfs/inode.c
+@@ -457,18 +457,26 @@ struct inode *ovl_new_inode(struct super_block *sb, umode_t mode, dev_t rdev)
+ 	return inode;
  }
- EXPORT_SYMBOL(inode_inuse_unlock);
-+
-+/**
-+ * wait_on_inode_inuse - wait for release of exclusive 'inuse' lock
-+ * @inode:	inode inuse to wait on
-+ *
-+ * Can be used in combination with parent i_mutex, to protect access to a
-+ * newly created inode, until that inode has been properly initialized by
-+ * the user that grabbed the 'inuse' exclusive lock after creating the inode.
-+ *
-+ * Caller must hold a reference to inode to prevent waiting on an inode that
-+ * is not 'inuse' and is already being freed.
-+ *
-+ * Return 0 if the 'inuse' bit is clear or has been cleared while waiting.
-+ */
-+int wait_on_inode_inuse(struct inode *inode, unsigned mode)
-+{
-+	if (WARN_ON(!atomic_read(&inode->i_count)))
-+		return -EINVAL;
-+	might_sleep();
-+	return wait_on_bit(&inode->i_state, __I_INUSE, mode);
-+}
-+EXPORT_SYMBOL(wait_on_inode_inuse);
-diff --git a/include/linux/fs.h b/include/linux/fs.h
-index 2e29ff868e90..e064612b45ef 100644
---- a/include/linux/fs.h
-+++ b/include/linux/fs.h
-@@ -3268,6 +3268,7 @@ extern bool path_noexec(const struct path *path);
- extern void inode_nohighmem(struct inode *inode);
- extern bool inode_inuse_trylock(struct inode *inode);
- extern void inode_inuse_unlock(struct inode *inode);
-+extern int wait_on_inode_inuse(struct inode *inode, unsigned mode);
  
- static inline bool inode_inuse(struct inode *inode)
++static void ovl_insert_inode_hash(struct inode *inode, struct inode *realinode)
++{
++	WARN_ON(!inode_unhashed(inode));
++	__insert_inode_hash(inode, (unsigned long) realinode);
++}
++
+ void ovl_inode_init(struct inode *inode, struct inode *realinode, bool is_upper)
  {
++
+ 	WRITE_ONCE(inode->i_private, ovl_inode_data(realinode, is_upper));
++	if (is_upper && !S_ISDIR(realinode->i_mode))
++		ovl_insert_inode_hash(inode, realinode);
+ }
+ 
+ void ovl_inode_update(struct inode *inode, struct inode *upperinode)
+ {
+ 	WARN_ON(!upperinode);
+-	WARN_ON(!inode_unhashed(inode));
+ 	WRITE_ONCE(inode->i_private, ovl_inode_data(upperinode, true));
+ 	if (!S_ISDIR(upperinode->i_mode))
+-		__insert_inode_hash(inode, (unsigned long) upperinode);
++		ovl_insert_inode_hash(inode, upperinode);
+ }
+ 
+ static int ovl_inode_test(struct inode *inode, void *data)
 -- 
 2.7.4
