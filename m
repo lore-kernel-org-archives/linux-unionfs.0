@@ -1,81 +1,86 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH 00/17] Avoid breaking lower hardlinks on copy up
-Date: Fri,  2 Jun 2017 17:04:27 +0300
-Message-ID: <1496412284-4113-1-git-send-email-amir73il@gmail.com>
+Subject: [PATCH 10/17] ovl: allow hashing inodes by arbitrary key
+Date: Fri,  2 Jun 2017 17:04:37 +0300
+Message-ID: <1496412284-4113-11-git-send-email-amir73il@gmail.com>
+References: <1496412284-4113-1-git-send-email-amir73il@gmail.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:36026 "EHLO
-        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751189AbdFBOEi (ORCPT
+Received: from mail-wm0-f67.google.com ([74.125.82.67]:34377 "EHLO
+        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750955AbdFBOEr (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 2 Jun 2017 10:04:38 -0400
-Received: by mail-wm0-f66.google.com with SMTP id k15so19203989wmh.3
-        for <linux-unionfs@vger.kernel.org>; Fri, 02 Jun 2017 07:04:37 -0700 (PDT)
+        Fri, 2 Jun 2017 10:04:47 -0400
+Received: by mail-wm0-f67.google.com with SMTP id d127so19134313wmf.1
+        for <linux-unionfs@vger.kernel.org>; Fri, 02 Jun 2017 07:04:47 -0700 (PDT)
+In-Reply-To: <1496412284-4113-1-git-send-email-amir73il@gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: Miklos Szeredi <miklos@szeredi.hu>
 Cc: linux-unionfs@vger.kernel.org
 
-Miklos,
+In preparation for hashing all overlay inodes, pass realinode to
+ovl_get_inode() as explicit hashval argument, instead of implicitly
+assuming that overlay inodes are hashed by the realinode address.
 
-This is the curernt pile. Since the pile is quite big, touches
-many parts of the code and raises some user API questions, I wanted
-to send it out early for review, so there are still some known issues.
+realinode is also passed to ovl_get_inode() as an independent argument,
+that is used as the context to the iget5_locked() test/set callbacks.
 
-I have improved hardlink copy up tests including concurrent copy
-up of lower hardlinks on my xfstests dev branch [1].
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+---
+ fs/overlayfs/inode.c     | 7 +++----
+ fs/overlayfs/namei.c     | 4 +++-
+ fs/overlayfs/overlayfs.h | 4 ++--
+ 3 files changed, 8 insertions(+), 7 deletions(-)
 
-This work does NOT assume samefs.
-
-Known issues:
-- Missing code on mount to verify/cleanup stale index entries
-- Missing documentation
-- Better handling of existing broken hardlink with origin (*)
-- Non-upper alias content is inconsistent with upper aliases (**)
-
-(*) Currently upper entries are hashed by origin inode if it is
-    known AND inodes index feature is enabled. This is not enough.
-    Need to also check that the origin inode in question is indexed.
-
-(**) This is for the same reason that ro/rw fd content is inconsistent.
-     The 2 hardlink copy up xfstests fail because of that.
-     Need to lookup the index on lookup of non-upper and store it in
-     dentry for open RDONLY. Something like my rocopyup POC [2].
-     Probably not for v4.13 though...
-
-[1] https://github.com/amir73il/xfstests/commits/overlayfs-devel
-[2] https://github.com/amir73il/linux/commits/ovl-rocopyup
-
-Amir Goldstein (17):
-  vfs: add helper wait_on_inode_inuse()
-  ovl: generalize ovl_create_workdir()
-  ovl: introduce the inodes index dir feature
-  ovl: verify index dir matches upper dir
-  ovl: create helper ovl_lookup_index()
-  ovl: move inode helpers to inode.c
-  ovl: create helpers for initializing hashed inode
-  ovl: use ovl_inode_init() for initializing new inode
-  ovl: allow hashing non upper inodes
-  ovl: allow hashing inodes by arbitrary key
-  ovl: hash overlay non-dir inodes by copy up origin inode
-  ovl: defer upper dir lock to tempfile link
-  ovl: factor out ovl_copy_up_inode() helper
-  ovl: generalize ovl_copy_up_locked() using actors
-  ovl: generalize ovl_copy_up_one() using actors
-  ovl: implement index dir copy up method
-  ovl: handle race of concurrent lower hardlinks copy up
-
- fs/inode.c               |  24 ++
- fs/overlayfs/Kconfig     |  20 ++
- fs/overlayfs/copy_up.c   | 630 ++++++++++++++++++++++++++++++++++++++---------
- fs/overlayfs/dir.c       |   2 +-
- fs/overlayfs/inode.c     |  66 ++++-
- fs/overlayfs/namei.c     |  72 +++++-
- fs/overlayfs/overlayfs.h |  43 +++-
- fs/overlayfs/ovl_entry.h |   3 +
- fs/overlayfs/super.c     | 154 +++++++++---
- fs/overlayfs/util.c      |  26 +-
- include/linux/fs.h       |   1 +
- 11 files changed, 848 insertions(+), 193 deletions(-)
-
+diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
+index 19df2961f1c4..1e89885d5304 100644
+--- a/fs/overlayfs/inode.c
++++ b/fs/overlayfs/inode.c
+@@ -490,13 +490,12 @@ static int ovl_inode_set(struct inode *inode, void *data)
+ 	return 0;
+ }
+ 
+-struct inode *ovl_get_inode(struct super_block *sb, struct inode *realinode,
+-			    bool is_upper)
++struct inode *ovl_get_inode(struct super_block *sb, unsigned long hashval,
++			    struct inode *realinode, bool is_upper)
+ {
+ 	struct inode *inode;
+ 
+-	inode = iget5_locked(sb, (unsigned long) realinode,
+-			     ovl_inode_test, ovl_inode_set,
++	inode = iget5_locked(sb, hashval, ovl_inode_test, ovl_inode_set,
+ 			     ovl_inode_data(realinode, is_upper));
+ 	if (inode && inode->i_state & I_NEW) {
+ 		ovl_fill_inode(inode, realinode->i_mode, realinode->i_rdev);
+diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
+index 7bc570f63259..615fb23fcba5 100644
+--- a/fs/overlayfs/namei.c
++++ b/fs/overlayfs/namei.c
+@@ -525,7 +525,9 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
+ 
+ 		err = -ENOMEM;
+ 		if (upperdentry && !d_is_dir(upperdentry)) {
+-			inode = ovl_get_inode(dentry->d_sb, realinode, true);
++			inode = ovl_get_inode(dentry->d_sb,
++					      (unsigned long) realinode,
++					      realinode, true);
+ 		} else {
+ 			inode = ovl_new_inode(dentry->d_sb, realinode->i_mode,
+ 					      realinode->i_rdev);
+diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
+index b500dee7de69..db3c7641efe6 100644
+--- a/fs/overlayfs/overlayfs.h
++++ b/fs/overlayfs/overlayfs.h
+@@ -299,8 +299,8 @@ struct inode *ovl_new_inode(struct super_block *sb, umode_t mode, dev_t rdev);
+ void ovl_inode_init(struct inode *inode, struct inode *realinode,
+ 		    bool is_upper);
+ void ovl_inode_update(struct inode *inode, struct inode *upperinode);
+-struct inode *ovl_get_inode(struct super_block *sb, struct inode *realinode,
+-			    bool is_upper);
++struct inode *ovl_get_inode(struct super_block *sb, unsigned long hashval,
++			    struct inode *realinode, bool is_upper);
+ 
+ static inline void ovl_copyattr(struct inode *from, struct inode *to)
+ {
 -- 
 2.7.4
