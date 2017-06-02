@@ -1,142 +1,113 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH 15/17] ovl: generalize ovl_copy_up_one() using actors
-Date: Fri,  2 Jun 2017 17:04:42 +0300
-Message-ID: <1496412284-4113-16-git-send-email-amir73il@gmail.com>
+Subject: [PATCH 07/17] ovl: create helpers for initializing hashed inode
+Date: Fri,  2 Jun 2017 17:04:34 +0300
+Message-ID: <1496412284-4113-8-git-send-email-amir73il@gmail.com>
 References: <1496412284-4113-1-git-send-email-amir73il@gmail.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wr0-f193.google.com ([209.85.128.193]:33293 "EHLO
-        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751220AbdFBOEy (ORCPT
+Received: from mail-wr0-f196.google.com ([209.85.128.196]:35228 "EHLO
+        mail-wr0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751189AbdFBOEs (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 2 Jun 2017 10:04:54 -0400
-Received: by mail-wr0-f193.google.com with SMTP id v104so1345513wrb.0
-        for <linux-unionfs@vger.kernel.org>; Fri, 02 Jun 2017 07:04:54 -0700 (PDT)
+        Fri, 2 Jun 2017 10:04:48 -0400
+Received: by mail-wr0-f196.google.com with SMTP id g76so1331762wrd.2
+        for <linux-unionfs@vger.kernel.org>; Fri, 02 Jun 2017 07:04:48 -0700 (PDT)
 In-Reply-To: <1496412284-4113-1-git-send-email-amir73il@gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: Miklos Szeredi <miklos@szeredi.hu>
 Cc: linux-unionfs@vger.kernel.org
 
-ovl_copy_up_one() is implementing two different locking methods
-for regular files and non-regular files.
+In preparation for hashing all overlay inodes, factor out helpers
+ovl_inode_data(), ovl_inode_data_is_upper() and ovl_inode_data_real()
+to set and test overlay inode i_private data content.
 
-Implement the actors aquire,release for the 'workdir' and 'tmpfile'
-copy up methods and use them to generalize locking in ovl_copy_up_one().
+Those helpers are going to be used for hashing overlay inodes.
 
 Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- fs/overlayfs/copy_up.c | 59 ++++++++++++++++++++++++++++----------------------
- 1 file changed, 33 insertions(+), 26 deletions(-)
+ fs/overlayfs/inode.c     |  8 +++-----
+ fs/overlayfs/overlayfs.h | 25 +++++++++++++++++++++----
+ 2 files changed, 24 insertions(+), 9 deletions(-)
 
-diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
-index d3b922bcd983..5031dd7fef89 100644
---- a/fs/overlayfs/copy_up.c
-+++ b/fs/overlayfs/copy_up.c
-@@ -387,7 +387,23 @@ struct ovl_copy_up_ops {
-  */
- static int ovl_copy_up_workdir_aquire(struct ovl_copy_up_ctx *ctx)
+diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
+index 753d4d4c0ad5..cfcefeb88a32 100644
+--- a/fs/overlayfs/inode.c
++++ b/fs/overlayfs/inode.c
+@@ -459,16 +459,14 @@ struct inode *ovl_new_inode(struct super_block *sb, umode_t mode, dev_t rdev)
+ 
+ void ovl_inode_init(struct inode *inode, struct inode *realinode, bool is_upper)
  {
-+	int err = -EIO;
-+
-+	if (lock_rename(ctx->tempdir, ctx->upperdir) != NULL) {
-+		pr_err("overlayfs: failed to lock workdir+upperdir\n");
-+		goto out_unlock;
-+	}
-+	if (ovl_dentry_upper(ctx->dentry)) {
-+		/* Raced with another copy-up? */
-+		err = 1;
-+		goto out_unlock;
-+	}
-+
- 	return 0;
-+
-+out_unlock:
-+	unlock_rename(ctx->tempdir, ctx->upperdir);
-+	return err;
+-	WRITE_ONCE(inode->i_private, (unsigned long) realinode |
+-		   (is_upper ? OVL_ISUPPER_MASK : 0));
++	WRITE_ONCE(inode->i_private, ovl_inode_data(realinode, is_upper));
  }
  
- static int ovl_copy_up_workdir_prepare(struct ovl_copy_up_ctx *ctx)
-@@ -457,6 +473,7 @@ static int ovl_copy_up_workdir_cancel(struct ovl_copy_up_ctx *ctx)
- 
- static int ovl_copy_up_workdir_release(struct ovl_copy_up_ctx *ctx)
+ void ovl_inode_update(struct inode *inode, struct inode *upperinode)
  {
-+	unlock_rename(ctx->tempdir, ctx->upperdir);
+ 	WARN_ON(!upperinode);
+ 	WARN_ON(!inode_unhashed(inode));
+-	WRITE_ONCE(inode->i_private,
+-		   (unsigned long) upperinode | OVL_ISUPPER_MASK);
++	WRITE_ONCE(inode->i_private, ovl_inode_data(upperinode, true));
+ 	if (!S_ISDIR(upperinode->i_mode))
+ 		__insert_inode_hash(inode, (unsigned long) upperinode);
+ }
+@@ -480,7 +478,7 @@ static int ovl_inode_test(struct inode *inode, void *data)
+ 
+ static int ovl_inode_set(struct inode *inode, void *data)
+ {
+-	inode->i_private = (void *) (((unsigned long) data) | OVL_ISUPPER_MASK);
++	inode->i_private = ovl_inode_data(data, true);
  	return 0;
  }
  
-@@ -474,7 +491,7 @@ static const struct ovl_copy_up_ops ovl_copy_up_workdir_ops = {
-  */
- static int ovl_copy_up_tmpfile_aquire(struct ovl_copy_up_ctx *ctx)
+diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
+index 37e3b3902e13..21f062611360 100644
+--- a/fs/overlayfs/overlayfs.h
++++ b/fs/overlayfs/overlayfs.h
+@@ -75,7 +75,6 @@ struct ovl_fh {
+ 	u8 fid[0];	/* file identifier */
+ } __packed;
+ 
+-#define OVL_ISUPPER_MASK 1UL
+ 
+ static inline int ovl_do_rmdir(struct inode *dir, struct dentry *dentry)
  {
--	return 0;
-+	return ovl_copy_up_start(ctx->dentry);
+@@ -190,14 +189,32 @@ static inline struct dentry *ovl_do_tmpfile(struct dentry *dentry, umode_t mode)
+ 	return ret;
  }
  
- static int ovl_copy_up_tmpfile_prepare(struct ovl_copy_up_ctx *ctx)
-@@ -520,6 +537,7 @@ static int ovl_copy_up_tmpfile_cancel(struct ovl_copy_up_ctx *ctx)
- 
- static int ovl_copy_up_tmpfile_release(struct ovl_copy_up_ctx *ctx)
- {
-+	ovl_copy_up_end(ctx->dentry);
- 	return 0;
- }
- 
-@@ -605,6 +623,7 @@ static int ovl_copy_up_one(struct dentry *parent, struct dentry *dentry,
- 		.link = NULL,
- 		.tempdir = ovl_workdir(dentry),
- 	};
-+	const struct ovl_copy_up_ops *ops;
- 
- 	if (WARN_ON(!ctx.tempdir))
- 		return -EROFS;
-@@ -631,35 +650,23 @@ static int ovl_copy_up_one(struct dentry *parent, struct dentry *dentry,
- 	}
- 
- 	/* Should we copyup with O_TMPFILE or with workdir? */
--	if (S_ISREG(stat->mode) && ofs->tmpfile) {
--		err = ovl_copy_up_start(dentry);
--		/* err < 0: interrupted, err > 0: raced with another copy-up */
--		if (unlikely(err)) {
--			pr_debug("ovl_copy_up_start(%pd2) = %i\n", dentry, err);
--			if (err > 0)
--				err = 0;
--			goto out_done;
--		}
--
--		err = ovl_copy_up_locked(&ctx, &ovl_copy_up_tmpfile_ops);
--		ovl_copy_up_end(dentry);
-+	if (S_ISREG(stat->mode) && ofs->tmpfile)
-+		ops = &ovl_copy_up_tmpfile_ops;
-+	else
-+		ops = &ovl_copy_up_workdir_ops;
++#define OVL_INODE_ISUPPER_MASK 1UL
 +
-+	err = ops->aquire(&ctx);
-+	/* err < 0: interrupted, err > 0: raced with another copy-up */
-+	if (unlikely(err)) {
-+		pr_debug("%s(%pd2): aquire = %i\n", __func__, dentry, err);
-+		if (err > 0)
-+			err = 0;
- 		goto out_done;
- 	}
++static inline void *ovl_inode_data(struct inode *realinode, bool is_upper)
++{
++	return (void *)((unsigned long) realinode |
++			(is_upper ? OVL_INODE_ISUPPER_MASK : 0));
++}
++
++static inline bool ovl_inode_data_is_upper(void *data)
++{
++	return ((unsigned long)data & OVL_INODE_ISUPPER_MASK);
++}
++
++static inline struct inode *ovl_inode_data_real(void *data)
++{
++	return (struct inode *) ((unsigned long)data & ~OVL_INODE_ISUPPER_MASK);
++}
++
+ static inline struct inode *ovl_inode_real(struct inode *inode, bool *is_upper)
+ {
+-	unsigned long x = (unsigned long) READ_ONCE(inode->i_private);
++	void *data = READ_ONCE(inode->i_private);
  
--	err = -EIO;
--	if (lock_rename(ctx.tempdir, ctx.upperdir) != NULL) {
--		pr_err("overlayfs: failed to lock workdir+upperdir\n");
--		goto out_unlock;
--	}
--	if (ovl_dentry_upper(dentry)) {
--		/* Raced with another copy-up?  Nothing to do, then... */
--		err = 0;
--		goto out_unlock;
--	}
-+	err = ovl_copy_up_locked(&ctx, ops);
-+	ops->release(&ctx);
+ 	if (is_upper)
+-		*is_upper = x & OVL_ISUPPER_MASK;
++		*is_upper = ovl_inode_data_is_upper(data);
  
--	err = ovl_copy_up_locked(&ctx, &ovl_copy_up_workdir_ops);
--out_unlock:
--	unlock_rename(ctx.tempdir, ctx.upperdir);
- out_done:
- 	do_delayed_call(&done);
+-	return (struct inode *) (x & ~OVL_ISUPPER_MASK);
++	return ovl_inode_data_real(data);
+ }
  
+ /* util.c */
 -- 
 2.7.4
