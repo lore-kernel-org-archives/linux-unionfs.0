@@ -1,86 +1,107 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH 10/17] ovl: allow hashing inodes by arbitrary key
-Date: Fri,  2 Jun 2017 17:04:37 +0300
-Message-ID: <1496412284-4113-11-git-send-email-amir73il@gmail.com>
+Subject: [PATCH 05/17] ovl: create helper ovl_lookup_index()
+Date: Fri,  2 Jun 2017 17:04:32 +0300
+Message-ID: <1496412284-4113-6-git-send-email-amir73il@gmail.com>
 References: <1496412284-4113-1-git-send-email-amir73il@gmail.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wm0-f67.google.com ([74.125.82.67]:34377 "EHLO
-        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750955AbdFBOEr (ORCPT
+Received: from mail-wr0-f196.google.com ([209.85.128.196]:33232 "EHLO
+        mail-wr0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750955AbdFBOEu (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 2 Jun 2017 10:04:47 -0400
-Received: by mail-wm0-f67.google.com with SMTP id d127so19134313wmf.1
-        for <linux-unionfs@vger.kernel.org>; Fri, 02 Jun 2017 07:04:47 -0700 (PDT)
+        Fri, 2 Jun 2017 10:04:50 -0400
+Received: by mail-wr0-f196.google.com with SMTP id v104so1344924wrb.0
+        for <linux-unionfs@vger.kernel.org>; Fri, 02 Jun 2017 07:04:50 -0700 (PDT)
 In-Reply-To: <1496412284-4113-1-git-send-email-amir73il@gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: Miklos Szeredi <miklos@szeredi.hu>
 Cc: linux-unionfs@vger.kernel.org
 
-In preparation for hashing all overlay inodes, pass realinode to
-ovl_get_inode() as explicit hashval argument, instead of implicitly
-assuming that overlay inodes are hashed by the realinode address.
+The index dir should contain an entry for each upper inode with a known
+lower origin inode. The index entry name is the hex representation of the
+lower inode file handle.
 
-realinode is also passed to ovl_get_inode() as an independent argument,
-that is used as the context to the iget5_locked() test/set callbacks.
+Given a lower dentry, the helper encodes the lower file handle and looks
+up the index dentry in the index dir.
+
+This is going to be used to prevent breaking hardlinks on copy up.
 
 Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- fs/overlayfs/inode.c     | 7 +++----
- fs/overlayfs/namei.c     | 4 +++-
- fs/overlayfs/overlayfs.h | 4 ++--
- 3 files changed, 8 insertions(+), 7 deletions(-)
+ fs/overlayfs/namei.c     | 48 ++++++++++++++++++++++++++++++++++++++++++++++++
+ fs/overlayfs/overlayfs.h |  1 +
+ 2 files changed, 49 insertions(+)
 
-diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
-index 19df2961f1c4..1e89885d5304 100644
---- a/fs/overlayfs/inode.c
-+++ b/fs/overlayfs/inode.c
-@@ -490,13 +490,12 @@ static int ovl_inode_set(struct inode *inode, void *data)
- 	return 0;
- }
- 
--struct inode *ovl_get_inode(struct super_block *sb, struct inode *realinode,
--			    bool is_upper)
-+struct inode *ovl_get_inode(struct super_block *sb, unsigned long hashval,
-+			    struct inode *realinode, bool is_upper)
- {
- 	struct inode *inode;
- 
--	inode = iget5_locked(sb, (unsigned long) realinode,
--			     ovl_inode_test, ovl_inode_set,
-+	inode = iget5_locked(sb, hashval, ovl_inode_test, ovl_inode_set,
- 			     ovl_inode_data(realinode, is_upper));
- 	if (inode && inode->i_state & I_NEW) {
- 		ovl_fill_inode(inode, realinode->i_mode, realinode->i_rdev);
 diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
-index 7bc570f63259..615fb23fcba5 100644
+index f5b49533c0e3..b50918b283e7 100644
 --- a/fs/overlayfs/namei.c
 +++ b/fs/overlayfs/namei.c
-@@ -525,7 +525,9 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
+@@ -565,6 +565,54 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
+ 	return ERR_PTR(err);
+ }
  
- 		err = -ENOMEM;
- 		if (upperdentry && !d_is_dir(upperdentry)) {
--			inode = ovl_get_inode(dentry->d_sb, realinode, true);
-+			inode = ovl_get_inode(dentry->d_sb,
-+					      (unsigned long) realinode,
-+					      realinode, true);
- 		} else {
- 			inode = ovl_new_inode(dentry->d_sb, realinode->i_mode,
- 					      realinode->i_rdev);
++/*
++ * Given a lower dentry, find the dentry for the upper inode in the index dir.
++ * If the index dentry in negative, then either no lower alias has been copied
++ * up yet, or aliases have been copied up in older kernels and are not indexed.
++ */
++struct dentry *ovl_lookup_index(struct super_block *sb, struct dentry *lower)
++{
++	struct ovl_fs *ofs = sb->s_fs_info;
++	struct ovl_fh *fh;
++	struct dentry *temp;
++	char *s, *name = NULL;
++	long namelen;
++	int err;
++
++	if (!ofs->indexdir)
++		return ERR_PTR(-ENOENT);
++
++	fh = ovl_encode_fh(lower, false);
++	if (IS_ERR(fh))
++		return (struct dentry *) fh;
++
++	err = -ENAMETOOLONG;
++	namelen = fh->len * 2;
++	if (namelen > ofs->namelen)
++		goto fail;
++
++	err = -ENOMEM;
++	name = kzalloc(namelen + 1, GFP_TEMPORARY);
++	if (!name)
++		goto fail;
++
++	s  = bin2hex(name, fh, fh->len);
++	namelen = s - name;
++
++	temp = lookup_one_len_unlocked(name, ofs->indexdir, namelen);
++
++out:
++	kfree(fh);
++	kfree(name);
++	return temp;
++
++fail:
++	pr_warn_ratelimited("overlayfs: failed lookup index (key=%*s, err=%i)\n",
++			    (int)namelen, name, err);
++	temp = ERR_PTR(err);
++	goto out;
++}
++
+ bool ovl_lower_positive(struct dentry *dentry)
+ {
+ 	struct ovl_entry *oe = dentry->d_fsdata;
 diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-index b500dee7de69..db3c7641efe6 100644
+index 31920a649a1c..7ddb3a26a3da 100644
 --- a/fs/overlayfs/overlayfs.h
 +++ b/fs/overlayfs/overlayfs.h
-@@ -299,8 +299,8 @@ struct inode *ovl_new_inode(struct super_block *sb, umode_t mode, dev_t rdev);
- void ovl_inode_init(struct inode *inode, struct inode *realinode,
- 		    bool is_upper);
- void ovl_inode_update(struct inode *inode, struct inode *upperinode);
--struct inode *ovl_get_inode(struct super_block *sb, struct inode *realinode,
--			    bool is_upper);
-+struct inode *ovl_get_inode(struct super_block *sb, unsigned long hashval,
-+			    struct inode *realinode, bool is_upper);
+@@ -254,6 +254,7 @@ int ovl_verify_origin(struct dentry *dentry, struct vfsmount *mnt,
+ 		      struct dentry *origin, bool is_upper);
+ int ovl_path_next(int idx, struct dentry *dentry, struct path *path, int *idxp);
+ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry, unsigned int flags);
++struct dentry *ovl_lookup_index(struct super_block *sb, struct dentry *lower);
+ bool ovl_lower_positive(struct dentry *dentry);
  
- static inline void ovl_copyattr(struct inode *from, struct inode *to)
- {
+ /* readdir.c */
 -- 
 2.7.4
