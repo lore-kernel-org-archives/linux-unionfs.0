@@ -1,114 +1,72 @@
-From: bfields@fieldses.org (J. Bruce Fields)
+From: Amir Goldstein <amir73il@gmail.com>
 Subject: Re: [PATCH v2 00/20] Overlayfs inodes index
-Date: Wed, 7 Jun 2017 13:17:44 -0400
-Message-ID: <20170607171744.GE26995@fieldses.org>
-References: <1496821884-5178-1-git-send-email-amir73il@gmail.com>
+Date: Wed, 7 Jun 2017 21:36:46 +0300
+Message-ID: <CAOQ4uxgL5U_bH4BbRdaneCxXs7EPa7==Dcmn4zj+Ahi7=FQdKA@mail.gmail.com>
+References: <1496821884-5178-1-git-send-email-amir73il@gmail.com> <20170607171744.GE26995@fieldses.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from fieldses.org ([173.255.197.46]:36910 "EHLO fieldses.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751423AbdFGRRp (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 7 Jun 2017 13:17:45 -0400
-Content-Disposition: inline
-In-Reply-To: <1496821884-5178-1-git-send-email-amir73il@gmail.com>
+Received: from mail-ot0-f196.google.com ([74.125.82.196]:33062 "EHLO
+        mail-ot0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752327AbdFGSgs (ORCPT
+        <rfc822;linux-unionfs@vger.kernel.org>);
+        Wed, 7 Jun 2017 14:36:48 -0400
+In-Reply-To: <20170607171744.GE26995@fieldses.org>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, Al Viro <viro@zeniv.linux.org.uk>, linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
+To: "J. Bruce Fields" <bfields@fieldses.org>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, Al Viro <viro@zeniv.linux.org.uk>, overlayfs <linux-unionfs@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>
 
-On Wed, Jun 07, 2017 at 10:51:04AM +0300, Amir Goldstein wrote:
-> Miklos,
-> 
-> This set is an independent series a top of current overlayfs-next.
-> I yanked all the dependencies from previous postings (consistent d_ino,
-> dir_lock, verify_lower) and included everything needed in this posting.
-> 
-> This work introcuding the inodes index opt-in feature, which provides:
-> - Hardlinks are not broken on copy up
-> - Infrastructure for overlayfs NFS export
+On Wed, Jun 7, 2017 at 8:17 PM, J. Bruce Fields <bfields@fieldses.org> wrote:
+> On Wed, Jun 07, 2017 at 10:51:04AM +0300, Amir Goldstein wrote:
+>> Miklos,
+>>
+>> This set is an independent series a top of current overlayfs-next.
+>> I yanked all the dependencies from previous postings (consistent d_ino,
+>> dir_lock, verify_lower) and included everything needed in this posting.
+>>
+>> This work introcuding the inodes index opt-in feature, which provides:
+>> - Hardlinks are not broken on copy up
+>> - Infrastructure for overlayfs NFS export
+>
+> Minor suggestion: for the lazy readers among us, a quick summary of the
+> implementation might be helpful.  (Could take most of it from just
+> 05/20?)
+>
 
-Minor suggestion: for the lazy readers among us, a quick summary of the
-implementation might be helpful.  (Could take most of it from just
-05/20?)
+Heh, for the *very* lazy reader, I'll paste the referred snip from 05/20:
+"The index dir will contain hardlinks to upper inodes, named after the
+hex representation of their origin lower inodes.
+The index dir is going to be used to prevent breaking lower hardlinks
+on copy up and to implement overlayfs NFS export."
 
---b.
+That's me being very very brief about the what and the why, but nothing
+about the how, so here goes:
 
-> 
-> Hardlink copy up tests including concurrent copy up of lower hardlinks
-> are available on my xfstests dev branch [1].
-> 
-> There are some more TODO items before this is ready for v4.13, but I'd
-> love to hear what you think about the direction this has taken so far.
-> 
-> Thanks,
-> Amir.
-> 
-> TODO:
-> - Consistency of lower and upper hardlinks (*)
-> - Cleanup stale and orphan index entries on mount (**)
-> - Document the inodes index feature
-> 
-> (*) When any lower hardlink has been copied up, we get the indexed
->     upper inode on lookup of all lower hardlinks and since they all
->     share the same overlay inode, they have the same 'realinode'.
->     Opening the lower hardlinks for read gives that lower inode
->     and not the indexed upper 'realinode'. The tests in [1] demostrate
->     this problem.
-> (**) A stale index entry has a missing or stale 'origin' xattr. An
->      orphan index entry has nlink 1 and all lower hardlinks are covered.
-> 
-> v2:
-> - Rebase on top of overalyfs-next with all dependencies
-> - Remove 'verify_lower' dependency and simplify
-> - Lookup index dentry on ovl_lookup()
-> - Don't hash broken overlay hardlinks by origin
-> - Fix nlink count of overlay inodes
-> - Constant st_ino for indexed hardlinks
-> 
-> v1:
-> - Upper/work dir exclusive lock
-> - Introduce verify_lower mount option
-> - Hash overlay inodes by origin
-> - Introduce inodes index feature
-> - Copy up hardlinks using inodes index
-> 
-> [1] https://github.com/amir73il/xfstests/commits/overlayfs-devel
-> 
-> Amir Goldstein (20):
->   vfs: introduce inode 'inuse' lock
->   ovl: get exclusive ownership on upper/work dirs
->   ovl: relax same fs constrain for ovl_check_origin()
->   ovl: generalize ovl_create_workdir()
->   ovl: introduce the inodes index dir feature
->   ovl: verify upper root dir matches lower root dir
->   ovl: verify index dir matches upper dir
->   ovl: lookup index entry for non-dir
->   ovl: move inode helpers to inode.c
->   ovl: use ovl_inode_init() for initializing new inode
->   ovl: hash overlay non-dir inodes by copy up origin inode
->   ovl: fix nlink leak in ovl_rename()
->   ovl: adjust overlay inode nlink for indexed inodes
->   ovl: defer upper dir lock to tempfile link
->   ovl: factor out ovl_copy_up_inode() helper
->   ovl: generalize ovl_copy_up_locked() using actors
->   ovl: generalize ovl_copy_up_one() using actors
->   ovl: implement index dir copy up method
->   ovl: handle race of concurrent lower hardlinks copy up
->   ovl: constant inode number for hardlinks
-> 
->  fs/inode.c               |  74 ++++++
->  fs/overlayfs/Kconfig     |  20 ++
->  fs/overlayfs/copy_up.c   | 648 ++++++++++++++++++++++++++++++++++++++---------
->  fs/overlayfs/dir.c       |  23 +-
->  fs/overlayfs/inode.c     | 138 +++++++++-
->  fs/overlayfs/namei.c     | 241 +++++++++++++++---
->  fs/overlayfs/overlayfs.h |  52 ++--
->  fs/overlayfs/ovl_entry.h |   7 +
->  fs/overlayfs/super.c     | 194 ++++++++++++--
->  fs/overlayfs/util.c      |  45 ++--
->  include/linux/fs.h       |  16 ++
->  11 files changed, 1235 insertions(+), 223 deletions(-)
-> 
-> -- 
-> 2.7.4
+The challenge with exporting overlayfs handled is that an object can start
+its life as a lower inode and transition into an upper inode (copy up).
+When the object is lower, the only way to encode it is by encoding the
+underlying fs lower inode, say encode(/lower/foo)=0x0001.
+The gist of the inodes index concept is that when decoding the handle,
+we need to check if the object was copied up.
+When an object is copied up, it creates an index entry at:
+workdir/index/0001, which is a hardlink to /upper/foo,
+so we have a way to get from the lower handle to the upper inode if it
+exists.
+
+The same lower -> upper mapping also helps herding a lower hardlinks
+bundle with their upper hardlinks bundle and refer to all as a single inode
+object. Most of the gritty details are in patches {08,11,18}/20.
+
+With this series, which is aiming for v4.13, NFS export is not there yet,
+because lower directories are not yet indexed (and more).
+I do, however, have a POC of non-persistent overlay NFS export [1]
+with a detailed documentation patch about the missing bits for persistent
+handles. I tested this POC with xfstest generic/426.
+
+Hope this summary was quick enough ;-)
+
+Cheers,
+Amir.
+
+[1] https://github.com/amir73il/linux/commits/ovl-nfs-export-wip
