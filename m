@@ -1,102 +1,158 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH v2 00/20] Overlayfs inodes index
-Date: Wed,  7 Jun 2017 10:51:04 +0300
-Message-ID: <1496821884-5178-1-git-send-email-amir73il@gmail.com>
+Subject: [PATCH v2 01/20] vfs: introduce inode 'inuse' lock
+Date: Wed,  7 Jun 2017 10:51:05 +0300
+Message-ID: <1496821884-5178-2-git-send-email-amir73il@gmail.com>
+References: <1496821884-5178-1-git-send-email-amir73il@gmail.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wm0-f65.google.com ([74.125.82.65]:34480 "EHLO
+Received: from mail-wm0-f65.google.com ([74.125.82.65]:35880 "EHLO
         mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751003AbdFGHvL (ORCPT
+        with ESMTP id S1751190AbdFGHvM (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 7 Jun 2017 03:51:11 -0400
+        Wed, 7 Jun 2017 03:51:12 -0400
+In-Reply-To: <1496821884-5178-1-git-send-email-amir73il@gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: Miklos Szeredi <miklos@szeredi.hu>
 Cc: Al Viro <viro@zeniv.linux.org.uk>, linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
 
-Miklos,
+Added an i_state flag I_INUSE and helpers to set/clear/test and
+wait until it is cleared.
 
-This set is an independent series a top of current overlayfs-next.
-I yanked all the dependencies from previous postings (consistent d_ino,
-dir_lock, verify_lower) and included everything needed in this posting.
+The 'inuse' lock is an 'advisory' inode lock, that can be used to extend
+exclusive create protection beyond parent->i_mutex lock among cooperating
+users.
 
-This work introcuding the inodes index opt-in feature, which provides:
-- Hardlinks are not broken on copy up
-- Infrastructure for overlayfs NFS export
+This is going to be used by overlayfs to get exclusive ownership on upper
+and work dirs among overlayfs mounts and to sychronize concurrent copy up
+of lower hardlinks.
 
-Hardlink copy up tests including concurrent copy up of lower hardlinks
-are available on my xfstests dev branch [1].
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+---
+ fs/inode.c         | 74 ++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ include/linux/fs.h | 16 ++++++++++++
+ 2 files changed, 90 insertions(+)
 
-There are some more TODO items before this is ready for v4.13, but I'd
-love to hear what you think about the direction this has taken so far.
-
-Thanks,
-Amir.
-
-TODO:
-- Consistency of lower and upper hardlinks (*)
-- Cleanup stale and orphan index entries on mount (**)
-- Document the inodes index feature
-
-(*) When any lower hardlink has been copied up, we get the indexed
-    upper inode on lookup of all lower hardlinks and since they all
-    share the same overlay inode, they have the same 'realinode'.
-    Opening the lower hardlinks for read gives that lower inode
-    and not the indexed upper 'realinode'. The tests in [1] demostrate
-    this problem.
-(**) A stale index entry has a missing or stale 'origin' xattr. An
-     orphan index entry has nlink 1 and all lower hardlinks are covered.
-
-v2:
-- Rebase on top of overalyfs-next with all dependencies
-- Remove 'verify_lower' dependency and simplify
-- Lookup index dentry on ovl_lookup()
-- Don't hash broken overlay hardlinks by origin
-- Fix nlink count of overlay inodes
-- Constant st_ino for indexed hardlinks
-
-v1:
-- Upper/work dir exclusive lock
-- Introduce verify_lower mount option
-- Hash overlay inodes by origin
-- Introduce inodes index feature
-- Copy up hardlinks using inodes index
-
-[1] https://github.com/amir73il/xfstests/commits/overlayfs-devel
-
-Amir Goldstein (20):
-  vfs: introduce inode 'inuse' lock
-  ovl: get exclusive ownership on upper/work dirs
-  ovl: relax same fs constrain for ovl_check_origin()
-  ovl: generalize ovl_create_workdir()
-  ovl: introduce the inodes index dir feature
-  ovl: verify upper root dir matches lower root dir
-  ovl: verify index dir matches upper dir
-  ovl: lookup index entry for non-dir
-  ovl: move inode helpers to inode.c
-  ovl: use ovl_inode_init() for initializing new inode
-  ovl: hash overlay non-dir inodes by copy up origin inode
-  ovl: fix nlink leak in ovl_rename()
-  ovl: adjust overlay inode nlink for indexed inodes
-  ovl: defer upper dir lock to tempfile link
-  ovl: factor out ovl_copy_up_inode() helper
-  ovl: generalize ovl_copy_up_locked() using actors
-  ovl: generalize ovl_copy_up_one() using actors
-  ovl: implement index dir copy up method
-  ovl: handle race of concurrent lower hardlinks copy up
-  ovl: constant inode number for hardlinks
-
- fs/inode.c               |  74 ++++++
- fs/overlayfs/Kconfig     |  20 ++
- fs/overlayfs/copy_up.c   | 648 ++++++++++++++++++++++++++++++++++++++---------
- fs/overlayfs/dir.c       |  23 +-
- fs/overlayfs/inode.c     | 138 +++++++++-
- fs/overlayfs/namei.c     | 241 +++++++++++++++---
- fs/overlayfs/overlayfs.h |  52 ++--
- fs/overlayfs/ovl_entry.h |   7 +
- fs/overlayfs/super.c     | 194 ++++++++++++--
- fs/overlayfs/util.c      |  45 ++--
- include/linux/fs.h       |  16 ++
- 11 files changed, 1235 insertions(+), 223 deletions(-)
-
+diff --git a/fs/inode.c b/fs/inode.c
+index db5914783a71..546cd503148a 100644
+--- a/fs/inode.c
++++ b/fs/inode.c
+@@ -2120,3 +2120,77 @@ struct timespec current_time(struct inode *inode)
+ 	return timespec_trunc(now, inode->i_sb->s_time_gran);
+ }
+ EXPORT_SYMBOL(current_time);
++
++/**
++ * inode_inuse_trylock - try to get an exclusive 'inuse' lock on inode
++ * @inode: inode being locked
++ *
++ * The 'inuse' lock is an 'advisory' lock that can be used to extend exclusive
++ * create protection beyond parent->i_mutex lock among cooperating users.
++ * Used by overlayfs to get exclusive ownership on upper and work dirs among
++ * overlayfs mounts.
++ *
++ * Caller must hold a reference to inode to prevent it from being freed while
++ * it is marked inuse.
++ *
++ * Return true if I_INUSE flag was set by this call.
++ */
++bool inode_inuse_trylock(struct inode *inode)
++{
++	bool locked = false;
++
++	spin_lock(&inode->i_lock);
++	if (!WARN_ON(!atomic_read(&inode->i_count)) &&
++	    !WARN_ON(inode->i_state & (I_NEW | I_FREEING | I_WILL_FREE)) &&
++	    !(inode->i_state & I_INUSE)) {
++		inode->i_state |= I_INUSE;
++		locked = true;
++	}
++	spin_unlock(&inode->i_lock);
++	return locked;
++}
++EXPORT_SYMBOL(inode_inuse_trylock);
++
++/**
++ * inode_inuse_unlock - release exclusive 'inuse' lock
++ * @inode:	inode inuse to unlock
++ *
++ * Clear the I_INUSE state and wake up any waiters.
++ *
++ * Caller must hold a reference to inode and must have successfully marked
++ * the inode 'inuse' prior to this call.
++ */
++void inode_inuse_unlock(struct inode *inode)
++{
++	spin_lock(&inode->i_lock);
++	WARN_ON(!atomic_read(&inode->i_count));
++	WARN_ON(inode->i_state & (I_NEW | I_FREEING | I_WILL_FREE));
++	WARN_ON(!(inode->i_state & I_INUSE));
++	inode->i_state &= ~I_INUSE;
++	smp_mb();
++	wake_up_bit(&inode->i_state, __I_INUSE);
++	spin_unlock(&inode->i_lock);
++}
++EXPORT_SYMBOL(inode_inuse_unlock);
++
++/**
++ * wait_on_inode_inuse - wait for release of exclusive 'inuse' lock
++ * @inode:	inode inuse to wait on
++ *
++ * Can be used in combination with parent i_mutex, to protect access to a
++ * newly created inode, until that inode has been properly initialized by
++ * the user that grabbed the 'inuse' exclusive lock after creating the inode.
++ *
++ * Caller must hold a reference to inode to prevent waiting on an inode that
++ * is not 'inuse' and is already being freed.
++ *
++ * Return 0 if the 'inuse' bit is clear or has been cleared while waiting.
++ */
++int wait_on_inode_inuse(struct inode *inode, unsigned mode)
++{
++	if (WARN_ON(!atomic_read(&inode->i_count)))
++		return -EINVAL;
++	might_sleep();
++	return wait_on_bit(&inode->i_state, __I_INUSE, mode);
++}
++EXPORT_SYMBOL(wait_on_inode_inuse);
+diff --git a/include/linux/fs.h b/include/linux/fs.h
+index aab10f93ef23..e064612b45ef 100644
+--- a/include/linux/fs.h
++++ b/include/linux/fs.h
+@@ -1929,6 +1929,12 @@ static inline bool HAS_UNMAPPED_ID(struct inode *inode)
+  *			wb stat updates to grab mapping->tree_lock.  See
+  *			inode_switch_wb_work_fn() for details.
+  *
++ * I_INUSE		An 'advisory' bit to get exclusive ownership on inode
++ *			using inode_inuse_trylock().  It can be used to extend
++ *			exclusive create protection beyond parent->i_mutex lock.
++ *			Used by overlayfs to get exclusive ownership on upper
++ *			and work dirs among overlayfs mounts.
++ *
+  * Q: What is the difference between I_WILL_FREE and I_FREEING?
+  */
+ #define I_DIRTY_SYNC		(1 << 0)
+@@ -1949,6 +1955,8 @@ static inline bool HAS_UNMAPPED_ID(struct inode *inode)
+ #define __I_DIRTY_TIME_EXPIRED	12
+ #define I_DIRTY_TIME_EXPIRED	(1 << __I_DIRTY_TIME_EXPIRED)
+ #define I_WB_SWITCH		(1 << 13)
++#define __I_INUSE		14
++#define I_INUSE			(1 << __I_INUSE)
+ 
+ #define I_DIRTY (I_DIRTY_SYNC | I_DIRTY_DATASYNC | I_DIRTY_PAGES)
+ #define I_DIRTY_ALL (I_DIRTY | I_DIRTY_TIME)
+@@ -3258,5 +3266,13 @@ static inline bool dir_relax_shared(struct inode *inode)
+ 
+ extern bool path_noexec(const struct path *path);
+ extern void inode_nohighmem(struct inode *inode);
++extern bool inode_inuse_trylock(struct inode *inode);
++extern void inode_inuse_unlock(struct inode *inode);
++extern int wait_on_inode_inuse(struct inode *inode, unsigned mode);
++
++static inline bool inode_inuse(struct inode *inode)
++{
++	return inode->i_state & I_INUSE;
++}
+ 
+ #endif /* _LINUX_FS_H */
 -- 
 2.7.4
