@@ -1,158 +1,151 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH v2 01/20] vfs: introduce inode 'inuse' lock
-Date: Wed,  7 Jun 2017 10:51:05 +0300
-Message-ID: <1496821884-5178-2-git-send-email-amir73il@gmail.com>
+Subject: [PATCH v2 02/20] ovl: get exclusive ownership on upper/work dirs
+Date: Wed,  7 Jun 2017 10:51:06 +0300
+Message-ID: <1496821884-5178-3-git-send-email-amir73il@gmail.com>
 References: <1496821884-5178-1-git-send-email-amir73il@gmail.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wm0-f65.google.com ([74.125.82.65]:35880 "EHLO
+Received: from mail-wm0-f65.google.com ([74.125.82.65]:35361 "EHLO
         mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751190AbdFGHvM (ORCPT
+        with ESMTP id S1751203AbdFGHvO (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 7 Jun 2017 03:51:12 -0400
+        Wed, 7 Jun 2017 03:51:14 -0400
 In-Reply-To: <1496821884-5178-1-git-send-email-amir73il@gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: Miklos Szeredi <miklos@szeredi.hu>
 Cc: Al Viro <viro@zeniv.linux.org.uk>, linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
 
-Added an i_state flag I_INUSE and helpers to set/clear/test and
-wait until it is cleared.
+Bad things can happen if several concurrent overlay mounts try to
+use the same upperdir/workdir path.
 
-The 'inuse' lock is an 'advisory' inode lock, that can be used to extend
-exclusive create protection beyond parent->i_mutex lock among cooperating
-users.
+Try to get the 'inuse' advisory lock on upperdir and workdir.
+Fail mount if another overlay mount instance or another user
+holds the 'inuse' lock on these directories.
 
-This is going to be used by overlayfs to get exclusive ownership on upper
-and work dirs among overlayfs mounts and to sychronize concurrent copy up
-of lower hardlinks.
+Note that this provides no protection for concurrent overlay
+mount that use overlapping (i.e. descendant) upper/work dirs.
 
 Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- fs/inode.c         | 74 ++++++++++++++++++++++++++++++++++++++++++++++++++++++
- include/linux/fs.h | 16 ++++++++++++
- 2 files changed, 90 insertions(+)
+ fs/overlayfs/ovl_entry.h |  3 +++
+ fs/overlayfs/super.c     | 41 ++++++++++++++++++++++++++++++++++++++---
+ 2 files changed, 41 insertions(+), 3 deletions(-)
 
-diff --git a/fs/inode.c b/fs/inode.c
-index db5914783a71..546cd503148a 100644
---- a/fs/inode.c
-+++ b/fs/inode.c
-@@ -2120,3 +2120,77 @@ struct timespec current_time(struct inode *inode)
- 	return timespec_trunc(now, inode->i_sb->s_time_gran);
- }
- EXPORT_SYMBOL(current_time);
-+
-+/**
-+ * inode_inuse_trylock - try to get an exclusive 'inuse' lock on inode
-+ * @inode: inode being locked
-+ *
-+ * The 'inuse' lock is an 'advisory' lock that can be used to extend exclusive
-+ * create protection beyond parent->i_mutex lock among cooperating users.
-+ * Used by overlayfs to get exclusive ownership on upper and work dirs among
-+ * overlayfs mounts.
-+ *
-+ * Caller must hold a reference to inode to prevent it from being freed while
-+ * it is marked inuse.
-+ *
-+ * Return true if I_INUSE flag was set by this call.
-+ */
-+bool inode_inuse_trylock(struct inode *inode)
-+{
-+	bool locked = false;
-+
-+	spin_lock(&inode->i_lock);
-+	if (!WARN_ON(!atomic_read(&inode->i_count)) &&
-+	    !WARN_ON(inode->i_state & (I_NEW | I_FREEING | I_WILL_FREE)) &&
-+	    !(inode->i_state & I_INUSE)) {
-+		inode->i_state |= I_INUSE;
-+		locked = true;
-+	}
-+	spin_unlock(&inode->i_lock);
-+	return locked;
-+}
-+EXPORT_SYMBOL(inode_inuse_trylock);
-+
-+/**
-+ * inode_inuse_unlock - release exclusive 'inuse' lock
-+ * @inode:	inode inuse to unlock
-+ *
-+ * Clear the I_INUSE state and wake up any waiters.
-+ *
-+ * Caller must hold a reference to inode and must have successfully marked
-+ * the inode 'inuse' prior to this call.
-+ */
-+void inode_inuse_unlock(struct inode *inode)
-+{
-+	spin_lock(&inode->i_lock);
-+	WARN_ON(!atomic_read(&inode->i_count));
-+	WARN_ON(inode->i_state & (I_NEW | I_FREEING | I_WILL_FREE));
-+	WARN_ON(!(inode->i_state & I_INUSE));
-+	inode->i_state &= ~I_INUSE;
-+	smp_mb();
-+	wake_up_bit(&inode->i_state, __I_INUSE);
-+	spin_unlock(&inode->i_lock);
-+}
-+EXPORT_SYMBOL(inode_inuse_unlock);
-+
-+/**
-+ * wait_on_inode_inuse - wait for release of exclusive 'inuse' lock
-+ * @inode:	inode inuse to wait on
-+ *
-+ * Can be used in combination with parent i_mutex, to protect access to a
-+ * newly created inode, until that inode has been properly initialized by
-+ * the user that grabbed the 'inuse' exclusive lock after creating the inode.
-+ *
-+ * Caller must hold a reference to inode to prevent waiting on an inode that
-+ * is not 'inuse' and is already being freed.
-+ *
-+ * Return 0 if the 'inuse' bit is clear or has been cleared while waiting.
-+ */
-+int wait_on_inode_inuse(struct inode *inode, unsigned mode)
-+{
-+	if (WARN_ON(!atomic_read(&inode->i_count)))
-+		return -EINVAL;
-+	might_sleep();
-+	return wait_on_bit(&inode->i_state, __I_INUSE, mode);
-+}
-+EXPORT_SYMBOL(wait_on_inode_inuse);
-diff --git a/include/linux/fs.h b/include/linux/fs.h
-index aab10f93ef23..e064612b45ef 100644
---- a/include/linux/fs.h
-+++ b/include/linux/fs.h
-@@ -1929,6 +1929,12 @@ static inline bool HAS_UNMAPPED_ID(struct inode *inode)
-  *			wb stat updates to grab mapping->tree_lock.  See
-  *			inode_switch_wb_work_fn() for details.
-  *
-+ * I_INUSE		An 'advisory' bit to get exclusive ownership on inode
-+ *			using inode_inuse_trylock().  It can be used to extend
-+ *			exclusive create protection beyond parent->i_mutex lock.
-+ *			Used by overlayfs to get exclusive ownership on upper
-+ *			and work dirs among overlayfs mounts.
-+ *
-  * Q: What is the difference between I_WILL_FREE and I_FREEING?
-  */
- #define I_DIRTY_SYNC		(1 << 0)
-@@ -1949,6 +1955,8 @@ static inline bool HAS_UNMAPPED_ID(struct inode *inode)
- #define __I_DIRTY_TIME_EXPIRED	12
- #define I_DIRTY_TIME_EXPIRED	(1 << __I_DIRTY_TIME_EXPIRED)
- #define I_WB_SWITCH		(1 << 13)
-+#define __I_INUSE		14
-+#define I_INUSE			(1 << __I_INUSE)
+diff --git a/fs/overlayfs/ovl_entry.h b/fs/overlayfs/ovl_entry.h
+index 34bc4a9f5c61..b0e7ee2ae398 100644
+--- a/fs/overlayfs/ovl_entry.h
++++ b/fs/overlayfs/ovl_entry.h
+@@ -21,6 +21,9 @@ struct ovl_fs {
+ 	struct vfsmount *upper_mnt;
+ 	unsigned numlower;
+ 	struct vfsmount **lower_mnt;
++	/* workbasedir is the path at workdir= mount option */
++	struct dentry *workbasedir;
++	/* workdir is the 'work' directory under workbasedir */
+ 	struct dentry *workdir;
+ 	long namelen;
+ 	/* pathnames of lower and upper dirs, for show_options */
+diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+index 4882ffb37bae..476f021baf2a 100644
+--- a/fs/overlayfs/super.c
++++ b/fs/overlayfs/super.c
+@@ -165,12 +165,28 @@ static const struct dentry_operations ovl_reval_dentry_operations = {
+ 	.d_weak_revalidate = ovl_dentry_weak_revalidate,
+ };
  
- #define I_DIRTY (I_DIRTY_SYNC | I_DIRTY_DATASYNC | I_DIRTY_PAGES)
- #define I_DIRTY_ALL (I_DIRTY | I_DIRTY_TIME)
-@@ -3258,5 +3266,13 @@ static inline bool dir_relax_shared(struct inode *inode)
- 
- extern bool path_noexec(const struct path *path);
- extern void inode_nohighmem(struct inode *inode);
-+extern bool inode_inuse_trylock(struct inode *inode);
-+extern void inode_inuse_unlock(struct inode *inode);
-+extern int wait_on_inode_inuse(struct inode *inode, unsigned mode);
-+
-+static inline bool inode_inuse(struct inode *inode)
++/* Get exclusive ownership on upper/work dir among overlay mounts */
++static bool ovl_dir_lock(struct dentry *dentry)
 +{
-+	return inode->i_state & I_INUSE;
++	return inode_inuse_trylock(d_inode(dentry));
 +}
++
++static void ovl_dir_unlock(struct dentry *dentry)
++{
++	if (dentry)
++		inode_inuse_unlock(d_inode(dentry));
++}
++
+ static void ovl_put_super(struct super_block *sb)
+ {
+ 	struct ovl_fs *ufs = sb->s_fs_info;
+ 	unsigned i;
  
- #endif /* _LINUX_FS_H */
+ 	dput(ufs->workdir);
++	ovl_dir_unlock(ufs->workbasedir);
++	dput(ufs->workbasedir);
++	if (ufs->upper_mnt)
++		ovl_dir_unlock(ufs->upper_mnt->mnt_root);
+ 	mntput(ufs->upper_mnt);
+ 	for (i = 0; i < ufs->numlower; i++)
+ 		mntput(ufs->lower_mnt[i]);
+@@ -788,9 +804,15 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
+ 		if (err)
+ 			goto out_put_upperpath;
+ 
++		err = -EBUSY;
++		if (!ovl_dir_lock(upperpath.dentry)) {
++			pr_err("overlayfs: upperdir is in-use by another mount\n");
++			goto out_put_upperpath;
++		}
++
+ 		err = ovl_mount_dir(ufs->config.workdir, &workpath);
+ 		if (err)
+-			goto out_put_upperpath;
++			goto out_unlock_upperdentry;
+ 
+ 		err = -EINVAL;
+ 		if (upperpath.mnt != workpath.mnt) {
+@@ -801,12 +823,20 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
+ 			pr_err("overlayfs: workdir and upperdir must be separate subtrees\n");
+ 			goto out_put_workpath;
+ 		}
++
++		err = -EBUSY;
++		if (!ovl_dir_lock(workpath.dentry)) {
++			pr_err("overlayfs: workdir is in-use by another mount\n");
++			goto out_put_workpath;
++		}
++
++		ufs->workbasedir = workpath.dentry;
+ 		sb->s_stack_depth = upperpath.mnt->mnt_sb->s_stack_depth;
+ 	}
+ 	err = -ENOMEM;
+ 	lowertmp = kstrdup(ufs->config.lowerdir, GFP_KERNEL);
+ 	if (!lowertmp)
+-		goto out_put_workpath;
++		goto out_unlock_workdentry;
+ 
+ 	err = -EINVAL;
+ 	stacklen = ovl_split_lowerdirs(lowertmp);
+@@ -849,6 +879,7 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
+ 			pr_err("overlayfs: failed to clone upperpath\n");
+ 			goto out_put_lowerpath;
+ 		}
++
+ 		/* Don't inherit atime flags */
+ 		ufs->upper_mnt->mnt_flags &= ~(MNT_NOATIME | MNT_NODIRATIME | MNT_RELATIME);
+ 
+@@ -971,7 +1002,7 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
+ 	mntput(upperpath.mnt);
+ 	for (i = 0; i < numlower; i++)
+ 		mntput(stack[i].mnt);
+-	path_put(&workpath);
++	mntput(workpath.mnt);
+ 	kfree(lowertmp);
+ 
+ 	if (upperpath.dentry) {
+@@ -1011,8 +1042,12 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
+ 	kfree(stack);
+ out_free_lowertmp:
+ 	kfree(lowertmp);
++out_unlock_workdentry:
++	ovl_dir_unlock(workpath.dentry);
+ out_put_workpath:
+ 	path_put(&workpath);
++out_unlock_upperdentry:
++	ovl_dir_unlock(upperpath.dentry);
+ out_put_upperpath:
+ 	path_put(&upperpath);
+ out_free_config:
 -- 
 2.7.4
