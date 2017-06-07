@@ -1,130 +1,184 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH v2 04/20] ovl: generalize ovl_create_workdir()
-Date: Wed,  7 Jun 2017 10:51:08 +0300
-Message-ID: <1496821884-5178-5-git-send-email-amir73il@gmail.com>
+Subject: [PATCH v2 07/20] ovl: verify index dir matches upper dir
+Date: Wed,  7 Jun 2017 10:51:11 +0300
+Message-ID: <1496821884-5178-8-git-send-email-amir73il@gmail.com>
 References: <1496821884-5178-1-git-send-email-amir73il@gmail.com>
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
+Return-path: <linux-unionfs-owner@vger.kernel.org>
+Received: from mail-wr0-f196.google.com ([209.85.128.196]:36589 "EHLO
+        mail-wr0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751203AbdFGHvW (ORCPT
+        <rfc822;linux-unionfs@vger.kernel.org>);
+        Wed, 7 Jun 2017 03:51:22 -0400
 In-Reply-To: <1496821884-5178-1-git-send-email-amir73il@gmail.com>
-Sender: linux-fsdevel-owner@vger.kernel.org
+Sender: linux-unionfs-owner@vger.kernel.org
+List-Id: linux-unionfs@vger.kernel.org
 To: Miklos Szeredi <miklos@szeredi.hu>
 Cc: Al Viro <viro@zeniv.linux.org.uk>, linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
-List-Id: linux-unionfs@vger.kernel.org
 
-Pass in the subdir name to create and specify if subdir is persistent
-or if it should be cleaned up on every mount.
+An index dir contains persistent hardlinks to files in upper dir.
+Therefore, we must never mount an existing index dir with a differnt
+upper dir.
 
-Move fallback to readonly mount on failure to create dir and print of error
-message into the helper.
+Store the upper root dir file handle in index dir inode when index
+dir is created and verify the file handle before using an existing
+index dir on mount.
 
-This function is going to be used for creating the persistent 'index' dir
-under workbasedir.
+Add an 'is_upper' flag to the overlay file handle encoding and set it
+when encoding the upper root file handle. This is not critical for index
+dir verification, but it is good practice towards a standard overlayfs
+file handle format for NFS export.
 
 Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- fs/overlayfs/super.c | 45 +++++++++++++++++++++++++++++----------------
- 1 file changed, 29 insertions(+), 16 deletions(-)
+ fs/overlayfs/copy_up.c   | 12 ++++++++++--
+ fs/overlayfs/namei.c     |  4 ++--
+ fs/overlayfs/overlayfs.h |  6 ++++--
+ fs/overlayfs/super.c     | 21 ++++++++++++++++-----
+ 4 files changed, 32 insertions(+), 11 deletions(-)
 
-diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-index 476f021baf2a..5114627799e9 100644
---- a/fs/overlayfs/super.c
-+++ b/fs/overlayfs/super.c
-@@ -395,22 +395,25 @@ static int ovl_parse_opt(char *opt, struct ovl_config *config)
- 
- #define OVL_WORKDIR_NAME "work"
- 
--static struct dentry *ovl_workdir_create(struct vfsmount *mnt,
--					 struct dentry *dentry)
-+static struct dentry *ovl_workdir_create(struct super_block *sb,
-+					 struct ovl_fs *ufs,
-+					 struct dentry *dentry,
-+					 const char *name, bool persist)
- {
--	struct inode *dir = dentry->d_inode;
--	struct dentry *work;
-+	struct vfsmount *mnt = ufs->upper_mnt;
-+	struct inode *dir = NULL;
-+	struct dentry *work = NULL;
- 	int err;
- 	bool retried = false;
- 
- 	err = mnt_want_write(mnt);
- 	if (err)
--		return ERR_PTR(err);
-+		goto out_err;
- 
-+	dir = d_inode(dentry);
- 	inode_lock_nested(dir, I_MUTEX_PARENT);
- retry:
--	work = lookup_one_len(OVL_WORKDIR_NAME, dentry,
--			      strlen(OVL_WORKDIR_NAME));
-+	work = lookup_one_len(name, dentry, strlen(name));
- 
- 	if (!IS_ERR(work)) {
- 		struct iattr attr = {
-@@ -423,6 +426,9 @@ static struct dentry *ovl_workdir_create(struct vfsmount *mnt,
- 			if (retried)
- 				goto out_dput;
- 
-+			if (persist)
-+				goto out_unlock;
-+
- 			retried = true;
- 			ovl_workdir_cleanup(dir, mnt, work, 0);
- 			dput(work);
-@@ -462,16 +468,25 @@ static struct dentry *ovl_workdir_create(struct vfsmount *mnt,
- 		inode_unlock(work->d_inode);
- 		if (err)
- 			goto out_dput;
-+	} else {
-+		err = PTR_ERR(work);
-+		goto out_err;
- 	}
-+
- out_unlock:
--	inode_unlock(dir);
-+	if (dir)
-+		inode_unlock(dir);
- 	mnt_drop_write(mnt);
- 
- 	return work;
- 
- out_dput:
- 	dput(work);
--	work = ERR_PTR(err);
-+out_err:
-+	pr_warn("overlayfs: failed to create directory %s/%s (errno: %i); mounting read-only\n",
-+		ufs->config.workdir, name, -err);
-+	sb->s_flags |= MS_RDONLY;
-+	work = NULL;
- 	goto out_unlock;
+diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
+index ee0b894e1d99..eedc26e15dad 100644
+--- a/fs/overlayfs/copy_up.c
++++ b/fs/overlayfs/copy_up.c
+@@ -233,7 +233,7 @@ int ovl_set_attr(struct dentry *upperdentry, struct kstat *stat)
+ 	return err;
  }
  
-@@ -885,14 +900,11 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
+-struct ovl_fh *ovl_encode_fh(struct dentry *lower)
++struct ovl_fh *ovl_encode_fh(struct dentry *lower, bool is_upper)
+ {
+ 	struct ovl_fh *fh;
+ 	int fh_type, fh_len, dwords;
+@@ -272,6 +272,14 @@ struct ovl_fh *ovl_encode_fh(struct dentry *lower)
+ 	fh->magic = OVL_FH_MAGIC;
+ 	fh->type = fh_type;
+ 	fh->flags = OVL_FH_FLAG_CPU_ENDIAN;
++	/*
++	 * When we will want to decode an overlay dentry from this handle
++	 * and all layers are on the same fs, if we get a disconncted real
++	 * dentry when we decode fid, the only way to tell if we should assign
++	 * it to upperdentry or to lowerstack is by checking this flag.
++	 */
++	if (is_upper)
++		fh->flags |= OVL_FH_FLAG_PATH_UPPER;
+ 	fh->len = fh_len;
+ 	fh->uuid = *uuid;
+ 	memcpy(fh->fid, buf, buflen);
+@@ -293,7 +301,7 @@ static int ovl_set_origin(struct dentry *dentry, struct dentry *lower,
+ 	 * up and a pure upper inode.
+ 	 */
+ 	if (ovl_can_decode_fh(lower->d_sb)) {
+-		fh = ovl_encode_fh(lower);
++		fh = ovl_encode_fh(lower, false);
+ 		if (IS_ERR(fh))
+ 			return PTR_ERR(fh);
+ 	}
+diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
+index 1b8017a57a02..61f4988527f4 100644
+--- a/fs/overlayfs/namei.c
++++ b/fs/overlayfs/namei.c
+@@ -327,7 +327,7 @@ static int ovl_check_origin(struct dentry *dentry, struct dentry *upperdentry,
+  * Return 0 on match, -ESTALE on mismatch, < 0 on error.
+  */
+ int ovl_verify_origin(struct dentry *dentry, struct vfsmount *mnt,
+-		      struct dentry *origin)
++		      struct dentry *origin, bool is_upper)
+ {
+ 	struct inode *inode = NULL;
+ 	struct ovl_fh *fh = NULL;
+@@ -343,7 +343,7 @@ int ovl_verify_origin(struct dentry *dentry, struct vfsmount *mnt,
+ 		goto fail;
+ 	}
  
- 		sb->s_time_gran = ufs->upper_mnt->mnt_sb->s_time_gran;
+-	fh = ovl_encode_fh(origin);
++	fh = ovl_encode_fh(origin, is_upper);
+ 	if (IS_ERR(fh)) {
+ 		err = PTR_ERR(fh);
+ 		fh = NULL;
+diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
+index 1eb8250464be..6fd7c9e748c1 100644
+--- a/fs/overlayfs/overlayfs.h
++++ b/fs/overlayfs/overlayfs.h
+@@ -38,6 +38,8 @@ enum ovl_path_type {
+ /* CPU byte order required for fid decoding:  */
+ #define OVL_FH_FLAG_BIG_ENDIAN	(1 << 0)
+ #define OVL_FH_FLAG_ANY_ENDIAN	(1 << 1)
++/* Is the real inode encoded in fid an upper inode? */
++#define OVL_FH_FLAG_PATH_UPPER	(1 << 2)
  
--		ufs->workdir = ovl_workdir_create(ufs->upper_mnt, workpath.dentry);
-+		ufs->workdir = ovl_workdir_create(sb, ufs, workpath.dentry,
-+						  OVL_WORKDIR_NAME, false);
- 		err = PTR_ERR(ufs->workdir);
--		if (IS_ERR(ufs->workdir)) {
--			pr_warn("overlayfs: failed to create directory %s/%s (errno: %i); mounting read-only\n",
--				ufs->config.workdir, OVL_WORKDIR_NAME, -err);
--			sb->s_flags |= MS_RDONLY;
--			ufs->workdir = NULL;
--		}
-+		if (IS_ERR(ufs->workdir))
-+			goto out_put_upper_mnt;
+ #define OVL_FH_FLAG_ALL (OVL_FH_FLAG_BIG_ENDIAN | OVL_FH_FLAG_ANY_ENDIAN)
  
- 		/*
- 		 * Upper should support d_type, else whiteouts are visible.
-@@ -1035,6 +1047,7 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
- 	kfree(ufs->lower_mnt);
- out_put_workdir:
- 	dput(ufs->workdir);
-+out_put_upper_mnt:
- 	mntput(ufs->upper_mnt);
- out_put_lowerpath:
- 	for (i = 0; i < numlower; i++)
+@@ -236,7 +238,7 @@ static inline bool ovl_is_impuredir(struct dentry *dentry)
+ 
+ /* namei.c */
+ int ovl_verify_origin(struct dentry *dentry, struct vfsmount *mnt,
+-		      struct dentry *origin);
++		      struct dentry *origin, bool is_upper);
+ int ovl_path_next(int idx, struct dentry *dentry, struct path *path, int *idxp);
+ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry, unsigned int flags);
+ bool ovl_lower_positive(struct dentry *dentry);
+@@ -295,4 +297,4 @@ int ovl_copy_up(struct dentry *dentry);
+ int ovl_copy_up_flags(struct dentry *dentry, int flags);
+ int ovl_copy_xattr(struct dentry *old, struct dentry *new);
+ int ovl_set_attr(struct dentry *upper, struct kstat *stat);
+-struct ovl_fh *ovl_encode_fh(struct dentry *lower);
++struct ovl_fh *ovl_encode_fh(struct dentry *lower, bool is_upper);
+diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+index 137371419657..b411b6d5f7b1 100644
+--- a/fs/overlayfs/super.c
++++ b/fs/overlayfs/super.c
+@@ -419,19 +419,20 @@ static int ovl_parse_opt(char *opt, struct ovl_config *config)
+  * If dir has no stored file handle, encode and store origin file handle.
+  */
+ static int ovl_verify_set_origin(struct dentry *dir, struct vfsmount *mnt,
+-				 struct dentry *origin, const char *name)
++				 struct dentry *origin, const char *name,
++				 bool is_upper)
+ {
+ 	const struct ovl_fh *fh = NULL;
+ 	int err;
+ 
+-	err = ovl_verify_origin(dir, mnt, origin);
++	err = ovl_verify_origin(dir, mnt, origin, is_upper);
+ 	if (!err)
+ 		return 0;
+ 
+ 	if (err != -ENODATA)
+ 		goto fail;
+ 
+-	fh = ovl_encode_fh(origin);
++	fh = ovl_encode_fh(origin, is_upper);
+ 	err = PTR_ERR(fh);
+ 	if (IS_ERR(fh))
+ 		goto fail;
+@@ -1062,7 +1063,7 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
+ 		/* Verify lower root is upper root origin */
+ 		err = ovl_verify_set_origin(upperpath.dentry,
+ 					    ufs->lower_mnt[0], stack[0].dentry,
+-					    "lower root");
++					    "lower root", false);
+ 		if (err)
+ 			goto out_put_lower_mnt;
+ 
+@@ -1072,8 +1073,18 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
+ 		if (IS_ERR(ufs->indexdir))
+ 			goto out_put_lower_mnt;
+ 
+-		if (!ufs->indexdir)
++		if (ufs->indexdir) {
++			/* Verify upper root is index dir origin */
++			err = ovl_verify_set_origin(ufs->indexdir,
++						    ufs->upper_mnt,
++						    upperpath.dentry,
++						    "upper root", true);
++			if (err)
++				goto out_put_indexdir;
++		} else {
+ 			pr_warn("overlayfs: try deleting index dir or mounting with '-o index=off' to disable inodes index.\n");
++		}
++
+ 	}
+ 
+ 	if (remote)
 -- 
 2.7.4
