@@ -1,103 +1,230 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [PATCH v2 08/20] ovl: lookup index entry for non-dir
-Date: Thu, 8 Jun 2017 17:48:13 +0300
-Message-ID: <CAOQ4uxieGBvCFFsSaL0X776PBnNqt=uOHO8E5cbTWUrAeRJwzg@mail.gmail.com>
-References: <1496821884-5178-1-git-send-email-amir73il@gmail.com>
- <1496821884-5178-9-git-send-email-amir73il@gmail.com> <CAJfpegsDv__Er79=m824pioYXnVeFP3ZCnDEvz0Ync5KnUSpwQ@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Subject: [PATCH v2 22/23] ovl: move copy up helpers to copy_up.c
+Date: Thu,  8 Jun 2017 18:00:48 +0300
+Message-ID: <1496934049-11216-2-git-send-email-amir73il@gmail.com>
+References: <CAOQ4uxjptLTC_qX5RpcCAwQyyRCq+Y7RHuXThCN32oChZL50Kg@mail.gmail.com>
+ <1496934049-11216-1-git-send-email-amir73il@gmail.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-oi0-f66.google.com ([209.85.218.66]:34882 "EHLO
-        mail-oi0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751473AbdFHOsO (ORCPT
+Received: from mail-wm0-f67.google.com ([74.125.82.67]:33049 "EHLO
+        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751641AbdFHPAk (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 8 Jun 2017 10:48:14 -0400
-In-Reply-To: <CAJfpegsDv__Er79=m824pioYXnVeFP3ZCnDEvz0Ync5KnUSpwQ@mail.gmail.com>
+        Thu, 8 Jun 2017 11:00:40 -0400
+In-Reply-To: <1496934049-11216-1-git-send-email-amir73il@gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: Al Viro <viro@zeniv.linux.org.uk>, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>
+Cc: Al Viro <viro@zeniv.linux.org.uk>, linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
 
-On Thu, Jun 8, 2017 at 3:11 PM, Miklos Szeredi <miklos@szeredi.hu> wrote:
-> On Wed, Jun 7, 2017 at 9:51 AM, Amir Goldstein <amir73il@gmail.com> wrote:
->> When inodes index feature is enabled, lookup in indexdir for the index
->> entry of lower real inode or copy up origin inode. The index entry name
->> is the hex representation of the lower inode file handle.
->>
->> If the index dentry in negative, then either no lower aliases have been
->> copied up yet, or aliases have been copied up in older kernels and are
->> not indexed.
->>
->> If the index dentry for a copy up origin inode is positive, but points
->> to an inode different than the upper inode, then either the upper inode
->> has been copied up and not indexed or it was indexed, but since then
->> index dir was cleared. Either way, that index cannot be used to indentify
->> the overlay inode.
->>
->> If a negative index dentry is found or a positive dentry that matches the
->> upper inode, store it in the overlay dentry to be used later. A non-upper
->> overlay dentry may still have a positive index from copy up of another
->> lower hardlink. This situation can be tested with the path type macros
->> OVL_TYPE_INDEX(type) && !OVL_TYPE_UPPER(type).
->>
->> This is going to be used to prevent breaking hardlinks on copy up.
->
-> Why is a negative index (or any index, for that matter) stored in the
-> overlay dentry?
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+---
+ fs/overlayfs/copy_up.c   | 65 +++++++++++++++++++++++++++++++++++++++++++++++-
+ fs/overlayfs/inode.c     | 33 ------------------------
+ fs/overlayfs/overlayfs.h |  5 +---
+ fs/overlayfs/util.c      | 30 ----------------------
+ 4 files changed, 65 insertions(+), 68 deletions(-)
 
-One of the reasons it is stored in the overlay dentry is to be able to
-test OVL_TYPE_INDEX() on the dentry, for example, in:
-"ovl: adjust overlay inode nlink for indexed inodes".
-
-OVL_TYPE_INDEX() is only interested in positive index, so it may seem
-like a better idea to save memory and store the index dentry on lookup
-only if it is positive, but then OVL_TYPE_INDEX() will be wrong for lower
-aliases that became lower indexed aliases due to another alias copy up.
-This is important for reasons that are mentioned below.
-
-There may be an opportunity for a massive optimization though.
-For all practical purpose, ovl_type_indexed_lower() should always be
-false for lower with nlink == 1, so there is no reason so store the negative
-index dentry in that case.
-
-> This seems a big waste, since the index dentry will
-> be allocated for all lower files, yet never used unless copied up.
->
-> Index is used:
->
->   - at lookup need to find any copied up alias
->   - at copyup need to set up new index
-
-So it has several more subtle uses:
-- When whiteout a lower aliases, we need to count down nlink to
-  know when we can unlink the an orphan index (TODO)
-- Same when renaming over a lower indexed alias
-- The lower hardlinks copy up on read [1] is another big user
-
->
-> In both cases we can just do a fresh lookup in the index dir with
-> locks held (which is a good idea anyway).
->
-> Something related: should upperdentry of aliases be hardlinked to the
-> index on lookup and copy-up?  Or should the "hardlink-up" be deferred
-> until rename?  I think updating as soon as possible is the simpler of
-> the two.
->
-
-Agree that updating "as soon as possible" is simpler.
-I went even further with "as soon as possible" with lower hardlinks copy
-up on read [1]. There is a subtle inconsistency between ovl_inode_real()
-and ovl_{dentry,path}_real() of those lower indexed aliases that is hard
-to deal with if we are not hardlinking up on the first access.
-
-But there is another reason we cannot defer indexing until rename -
-We need to be able to decode a non-dir file handle if its parent was
-renamed, so the index has to be there even if the the upper file itself
-was not renamed.
-
-I guess that means we will also need to index directories on copy up.
-Too bad. I though it was enough to index directories on rename.
-
-Amir.
-
-[1] https://github.com/amir73il/linux/commits/ovl-hardlinks-rocopyup
+diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
+index f8acf9c8b345..8a297cfc33fb 100644
+--- a/fs/overlayfs/copy_up.c
++++ b/fs/overlayfs/copy_up.c
+@@ -353,6 +353,36 @@ static int ovl_copy_up_inode(struct dentry *dentry, struct dentry *temp,
+ 	return err;
+ }
+ 
++static int ovl_copy_up_start(struct dentry *dentry)
++{
++	struct ovl_fs *ofs = dentry->d_sb->s_fs_info;
++	struct ovl_entry *oe = dentry->d_fsdata;
++	int err;
++
++	spin_lock(&ofs->copyup_wq.lock);
++	err = wait_event_interruptible_locked(ofs->copyup_wq, !oe->copying);
++	if (!err) {
++		if (oe->__upperdentry)
++			err = 1; /* Already copied up */
++		else
++			oe->copying = true;
++	}
++	spin_unlock(&ofs->copyup_wq.lock);
++
++	return err;
++}
++
++static void ovl_copy_up_end(struct dentry *dentry)
++{
++	struct ovl_fs *ofs = dentry->d_sb->s_fs_info;
++	struct ovl_entry *oe = dentry->d_fsdata;
++
++	spin_lock(&ofs->copyup_wq.lock);
++	oe->copying = false;
++	wake_up_locked(&ofs->copyup_wq);
++	spin_unlock(&ofs->copyup_wq.lock);
++}
++
+ /*
+  * Context and operations for copying up a single lower file.
+  */
+@@ -911,7 +941,7 @@ static int ovl_copy_up_one(struct dentry *parent, struct dentry *dentry,
+ 	return err;
+ }
+ 
+-int ovl_copy_up_flags(struct dentry *dentry, int flags)
++static int ovl_copy_up_flags(struct dentry *dentry, int flags)
+ {
+ 	int err = 0;
+ 	const struct cred *old_cred = ovl_override_creds(dentry->d_sb);
+@@ -960,3 +990,36 @@ int ovl_copy_up(struct dentry *dentry)
+ {
+ 	return ovl_copy_up_flags(dentry, 0);
+ }
++
++static bool ovl_open_need_copy_up(int flags, enum ovl_path_type type,
++				  struct dentry *realdentry)
++{
++	if (OVL_TYPE_UPPER(type))
++		return false;
++
++	if (special_file(realdentry->d_inode->i_mode))
++		return false;
++
++	if (!(OPEN_FMODE(flags) & FMODE_WRITE) && !(flags & O_TRUNC))
++		return false;
++
++	return true;
++}
++
++int ovl_open_maybe_copy_up(struct dentry *dentry, unsigned int file_flags)
++{
++	int err = 0;
++	struct path realpath;
++	enum ovl_path_type type;
++
++	type = ovl_path_real(dentry, &realpath);
++	if (ovl_open_need_copy_up(file_flags, type, realpath.dentry)) {
++		err = ovl_want_write(dentry);
++		if (!err) {
++			err = ovl_copy_up_flags(dentry, file_flags);
++			ovl_drop_write(dentry);
++		}
++	}
++
++	return err;
++}
+diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
+index 8a30dc6cd42d..db2a63bd8bb9 100644
+--- a/fs/overlayfs/inode.c
++++ b/fs/overlayfs/inode.c
+@@ -312,39 +312,6 @@ struct posix_acl *ovl_get_acl(struct inode *inode, int type)
+ 	return acl;
+ }
+ 
+-static bool ovl_open_need_copy_up(int flags, enum ovl_path_type type,
+-				  struct dentry *realdentry)
+-{
+-	if (OVL_TYPE_UPPER(type))
+-		return false;
+-
+-	if (special_file(realdentry->d_inode->i_mode))
+-		return false;
+-
+-	if (!(OPEN_FMODE(flags) & FMODE_WRITE) && !(flags & O_TRUNC))
+-		return false;
+-
+-	return true;
+-}
+-
+-int ovl_open_maybe_copy_up(struct dentry *dentry, unsigned int file_flags)
+-{
+-	int err = 0;
+-	struct path realpath;
+-	enum ovl_path_type type;
+-
+-	type = ovl_path_real(dentry, &realpath);
+-	if (ovl_open_need_copy_up(file_flags, type, realpath.dentry)) {
+-		err = ovl_want_write(dentry);
+-		if (!err) {
+-			err = ovl_copy_up_flags(dentry, file_flags);
+-			ovl_drop_write(dentry);
+-		}
+-	}
+-
+-	return err;
+-}
+-
+ int ovl_update_time(struct inode *inode, struct timespec *ts, int flags)
+ {
+ 	struct dentry *alias;
+diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
+index beac2d858689..434870f5bb4b 100644
+--- a/fs/overlayfs/overlayfs.h
++++ b/fs/overlayfs/overlayfs.h
+@@ -210,8 +210,6 @@ void ovl_dentry_version_inc(struct dentry *dentry);
+ u64 ovl_dentry_version_get(struct dentry *dentry);
+ bool ovl_is_whiteout(struct dentry *dentry);
+ struct file *ovl_path_open(struct path *path, int flags);
+-int ovl_copy_up_start(struct dentry *dentry);
+-void ovl_copy_up_end(struct dentry *dentry);
+ bool ovl_check_dir_xattr(struct dentry *dentry, const char *name);
+ int ovl_check_setxattr(struct dentry *dentry, struct dentry *upperdentry,
+ 		       const char *name, const void *value, size_t size,
+@@ -251,7 +249,6 @@ int ovl_xattr_get(struct dentry *dentry, const char *name,
+ 		  void *value, size_t size);
+ ssize_t ovl_listxattr(struct dentry *dentry, char *list, size_t size);
+ struct posix_acl *ovl_get_acl(struct inode *inode, int type);
+-int ovl_open_maybe_copy_up(struct dentry *dentry, unsigned int file_flags);
+ int ovl_update_time(struct inode *inode, struct timespec *ts, int flags);
+ bool ovl_is_private_xattr(const char *name);
+ 
+@@ -307,7 +304,7 @@ void ovl_cleanup(struct inode *dir, struct dentry *dentry);
+ 
+ /* copy_up.c */
+ int ovl_copy_up(struct dentry *dentry);
+-int ovl_copy_up_flags(struct dentry *dentry, int flags);
++int ovl_open_maybe_copy_up(struct dentry *dentry, unsigned int file_flags);
+ int ovl_copy_xattr(struct dentry *old, struct dentry *new);
+ int ovl_set_attr(struct dentry *upper, struct kstat *stat);
+ struct ovl_fh *ovl_encode_fh(struct dentry *lower, bool is_upper);
+diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
+index a28bf55a0d48..fa6c2ae4a747 100644
+--- a/fs/overlayfs/util.c
++++ b/fs/overlayfs/util.c
+@@ -285,36 +285,6 @@ struct file *ovl_path_open(struct path *path, int flags)
+ 	return dentry_open(path, flags | O_NOATIME, current_cred());
+ }
+ 
+-int ovl_copy_up_start(struct dentry *dentry)
+-{
+-	struct ovl_fs *ofs = dentry->d_sb->s_fs_info;
+-	struct ovl_entry *oe = dentry->d_fsdata;
+-	int err;
+-
+-	spin_lock(&ofs->copyup_wq.lock);
+-	err = wait_event_interruptible_locked(ofs->copyup_wq, !oe->copying);
+-	if (!err) {
+-		if (oe->__upperdentry)
+-			err = 1; /* Already copied up */
+-		else
+-			oe->copying = true;
+-	}
+-	spin_unlock(&ofs->copyup_wq.lock);
+-
+-	return err;
+-}
+-
+-void ovl_copy_up_end(struct dentry *dentry)
+-{
+-	struct ovl_fs *ofs = dentry->d_sb->s_fs_info;
+-	struct ovl_entry *oe = dentry->d_fsdata;
+-
+-	spin_lock(&ofs->copyup_wq.lock);
+-	oe->copying = false;
+-	wake_up_locked(&ofs->copyup_wq);
+-	spin_unlock(&ofs->copyup_wq.lock);
+-}
+-
+ bool ovl_check_dir_xattr(struct dentry *dentry, const char *name)
+ {
+ 	int res;
+-- 
+2.7.4
