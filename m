@@ -1,117 +1,111 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH v3 13/23] ovl: use ovl_inode_init() for initializing new inode
-Date: Wed, 14 Jun 2017 10:26:32 +0300
-Message-ID: <1497425202-16270-14-git-send-email-amir73il@gmail.com>
+Subject: [PATCH v3 16/23] ovl: factor out ovl_copy_up_inode() helper
+Date: Wed, 14 Jun 2017 10:26:35 +0300
+Message-ID: <1497425202-16270-17-git-send-email-amir73il@gmail.com>
 References: <1497425202-16270-1-git-send-email-amir73il@gmail.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wr0-f195.google.com ([209.85.128.195]:36218 "EHLO
-        mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754397AbdFNH0u (ORCPT
+Received: from mail-wr0-f194.google.com ([209.85.128.194]:32949 "EHLO
+        mail-wr0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754278AbdFNH0y (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 14 Jun 2017 03:26:50 -0400
-Received: by mail-wr0-f195.google.com with SMTP id 77so6377795wrb.3
-        for <linux-unionfs@vger.kernel.org>; Wed, 14 Jun 2017 00:26:50 -0700 (PDT)
+        Wed, 14 Jun 2017 03:26:54 -0400
+Received: by mail-wr0-f194.google.com with SMTP id v104so36664636wrb.0
+        for <linux-unionfs@vger.kernel.org>; Wed, 14 Jun 2017 00:26:53 -0700 (PDT)
 In-Reply-To: <1497425202-16270-1-git-send-email-amir73il@gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: Miklos Szeredi <miklos@szeredi.hu>
 Cc: linux-unionfs@vger.kernel.org
 
-In preparation for hashing all overlay inodes, modify the helper
-ovl_inode_init() to hash a new non-dir upper overlay inode.
-
-Use this helper for initializing new upper inode in ovl_instantiate()
-instead of ovl_inode_update(), because the implementations for new inode
-case and copy up case are going to diverge.
-
-Also move ovl_copyattr() into ovl_inode_init() and ovl_inode_get(),
-so attributes will be copied only for new inode.
+Factor out helper for copying lower inode data and metadata to temp
+upper inode, that is common to copy up using O_TMPFILE and workdir.
 
 Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- fs/overlayfs/dir.c   |  3 +--
- fs/overlayfs/inode.c |  1 +
- fs/overlayfs/namei.c |  1 -
- fs/overlayfs/util.c  | 11 ++++++++++-
- 4 files changed, 12 insertions(+), 4 deletions(-)
+ fs/overlayfs/copy_up.c | 64 +++++++++++++++++++++++++++++---------------------
+ 1 file changed, 37 insertions(+), 27 deletions(-)
 
-diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
-index a63a71656e9b..f87cef27741f 100644
---- a/fs/overlayfs/dir.c
-+++ b/fs/overlayfs/dir.c
-@@ -156,8 +156,7 @@ static void ovl_instantiate(struct dentry *dentry, struct inode *inode,
- 	ovl_dentry_version_inc(dentry->d_parent);
- 	ovl_dentry_update(dentry, newdentry);
- 	if (!hardlink) {
--		ovl_inode_update(inode, d_inode(newdentry));
--		ovl_copyattr(newdentry->d_inode, inode);
-+		ovl_inode_init(inode, d_inode(newdentry), true);
- 	} else {
- 		WARN_ON(ovl_inode_real(inode, NULL) != d_inode(newdentry));
- 		inc_nlink(inode);
-diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
-index 49492b982726..6f0ec691d8d5 100644
---- a/fs/overlayfs/inode.c
-+++ b/fs/overlayfs/inode.c
-@@ -477,6 +477,7 @@ struct inode *ovl_get_inode(struct super_block *sb, struct inode *realinode)
- 	if (inode && inode->i_state & I_NEW) {
- 		ovl_fill_inode(inode, realinode->i_mode, realinode->i_rdev);
- 		set_nlink(inode, realinode->i_nlink);
-+		ovl_copyattr(realinode, inode);
- 		unlock_new_inode(inode);
- 	}
- 
-diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
-index fe84e482d926..228b9eaa19f6 100644
---- a/fs/overlayfs/namei.c
-+++ b/fs/overlayfs/namei.c
-@@ -623,7 +623,6 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
- 		}
- 		if (!inode)
- 			goto out_free_oe;
--		ovl_copyattr(realdentry->d_inode, inode);
- 	}
- 
- 	revert_creds(old_cred);
-diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
-index 0ce6efd8f19d..9bbcfcb20ec4 100644
---- a/fs/overlayfs/util.c
-+++ b/fs/overlayfs/util.c
-@@ -267,6 +267,12 @@ void ovl_dentry_update(struct dentry *dentry, struct dentry *upperdentry)
- 	ovl_update_type(dentry, d_is_dir(dentry));
+diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
+index f6570bc127e7..e642a51f3be4 100644
+--- a/fs/overlayfs/copy_up.c
++++ b/fs/overlayfs/copy_up.c
+@@ -316,6 +316,42 @@ static int ovl_set_origin(struct dentry *dentry, struct dentry *lower,
+ 	return err;
  }
  
-+static void ovl_insert_inode_hash(struct inode *inode, struct inode *realinode)
++static int ovl_copy_up_inode(struct dentry *dentry, struct dentry *temp,
++			     struct path *lowerpath, struct kstat *stat)
 +{
-+	WARN_ON(!inode_unhashed(inode));
-+	__insert_inode_hash(inode, (unsigned long) realinode);
++	int err;
++
++	if (S_ISREG(stat->mode)) {
++		struct path upperpath;
++
++		ovl_path_upper(dentry, &upperpath);
++		BUG_ON(upperpath.dentry != NULL);
++		upperpath.dentry = temp;
++
++		err = ovl_copy_up_data(lowerpath, &upperpath, stat->size);
++		if (err)
++			return err;
++	}
++
++	err = ovl_copy_xattr(lowerpath->dentry, temp);
++	if (err)
++		return err;
++
++	inode_lock(temp->d_inode);
++	err = ovl_set_attr(temp, stat);
++	inode_unlock(temp->d_inode);
++	if (err)
++		return err;
++
++	/*
++	 * Store identifier of lower inode in upper inode xattr to
++	 * allow lookup of the copy up origin inode.
++	 */
++	err = ovl_set_origin(dentry, lowerpath->dentry, temp);
++
++	return err;
 +}
 +
- void ovl_inode_init(struct inode *inode, struct inode *realinode, bool is_upper)
- {
- 	struct ovl_inode_info *oi = OVL_I_INFO(inode);
-@@ -274,10 +280,13 @@ void ovl_inode_init(struct inode *inode, struct inode *realinode, bool is_upper)
- 	if (is_upper) {
- 		oi->__upperinode = realinode;
- 		oi->lowerinode = NULL;
-+		if (!S_ISDIR(realinode->i_mode))
-+			ovl_insert_inode_hash(inode, realinode);
- 	} else {
- 		oi->__upperinode = NULL;
- 		oi->lowerinode = realinode;
- 	}
-+	ovl_copyattr(realinode, inode);
- }
+ static int ovl_copy_up_locked(struct dentry *workdir, struct dentry *upperdir,
+ 			      struct dentry *dentry, struct path *lowerpath,
+ 			      struct kstat *stat, const char *link,
+@@ -375,33 +411,7 @@ static int ovl_copy_up_locked(struct dentry *workdir, struct dentry *upperdir,
+ 	if (err)
+ 		goto out2;
  
- struct inode *ovl_inode_real(struct inode *inode, bool *is_upper)
-@@ -300,7 +309,7 @@ void ovl_inode_update(struct inode *inode, struct inode *upperinode)
- 	WARN_ON(!inode_unhashed(inode));
- 	WRITE_ONCE(OVL_I_INFO(inode)->__upperinode, upperinode);
- 	if (!S_ISDIR(upperinode->i_mode))
--		__insert_inode_hash(inode, (unsigned long) upperinode);
-+		ovl_insert_inode_hash(inode, upperinode);
- }
+-	if (S_ISREG(stat->mode)) {
+-		struct path upperpath;
+-
+-		ovl_path_upper(dentry, &upperpath);
+-		BUG_ON(upperpath.dentry != NULL);
+-		upperpath.dentry = temp;
+-
+-		err = ovl_copy_up_data(lowerpath, &upperpath, stat->size);
+-		if (err)
+-			goto out_cleanup;
+-	}
+-
+-	err = ovl_copy_xattr(lowerpath->dentry, temp);
+-	if (err)
+-		goto out_cleanup;
+-
+-	inode_lock(temp->d_inode);
+-	err = ovl_set_attr(temp, stat);
+-	inode_unlock(temp->d_inode);
+-	if (err)
+-		goto out_cleanup;
+-
+-	/*
+-	 * Store identifier of lower inode in upper inode xattr to
+-	 * allow lookup of the copy up origin inode.
+-	 */
+-	err = ovl_set_origin(dentry, lowerpath->dentry, temp);
++	err = ovl_copy_up_inode(dentry, temp, lowerpath, stat);
+ 	if (err)
+ 		goto out_cleanup;
  
- void ovl_dentry_version_inc(struct dentry *dentry)
 -- 
 2.7.4
