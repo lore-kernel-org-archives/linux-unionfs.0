@@ -1,118 +1,152 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH v3 19/23] ovl: use ovl_inode mutex to synchronize concurrent copy up
-Date: Wed, 14 Jun 2017 10:26:38 +0300
-Message-ID: <1497425202-16270-20-git-send-email-amir73il@gmail.com>
+Subject: [PATCH v3 11/23] ovl: allocate an ovl_inode struct
+Date: Wed, 14 Jun 2017 10:26:30 +0300
+Message-ID: <1497425202-16270-12-git-send-email-amir73il@gmail.com>
 References: <1497425202-16270-1-git-send-email-amir73il@gmail.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wr0-f196.google.com ([209.85.128.196]:32993 "EHLO
-        mail-wr0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754264AbdFNH05 (ORCPT
+Received: from mail-wr0-f193.google.com ([209.85.128.193]:36190 "EHLO
+        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754357AbdFNH0s (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 14 Jun 2017 03:26:57 -0400
-Received: by mail-wr0-f196.google.com with SMTP id v104so36664962wrb.0
-        for <linux-unionfs@vger.kernel.org>; Wed, 14 Jun 2017 00:26:56 -0700 (PDT)
+        Wed, 14 Jun 2017 03:26:48 -0400
+Received: by mail-wr0-f193.google.com with SMTP id 77so6377585wrb.3
+        for <linux-unionfs@vger.kernel.org>; Wed, 14 Jun 2017 00:26:47 -0700 (PDT)
 In-Reply-To: <1497425202-16270-1-git-send-email-amir73il@gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: Miklos Szeredi <miklos@szeredi.hu>
 Cc: linux-unionfs@vger.kernel.org
 
-Use the new ovl_inode mutex to synchonize concurrent copy up
-instead of the super block copy up workqueue.
+We need some more space to store overlay inode data in memory,
+so allocate overlay inodes from a slab of struct ovl_inode.
 
-Moving the synchronization object from the overlay dentry to
-the overlay inode is needed for synchonizing concurrent copy up
-of lower hardlinks to the same upper inode.
+The ovl_inode struct includes a mutex that is going to be used
+for synchronizing copy up of lower hardlinks.
 
 Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- fs/overlayfs/ovl_entry.h |  2 --
- fs/overlayfs/super.c     |  1 -
- fs/overlayfs/util.c      | 24 ++++++------------------
- 3 files changed, 6 insertions(+), 21 deletions(-)
+ fs/overlayfs/ovl_entry.h | 12 ++++++++++
+ fs/overlayfs/super.c     | 62 ++++++++++++++++++++++++++++++++++++++++++++++--
+ 2 files changed, 72 insertions(+), 2 deletions(-)
 
 diff --git a/fs/overlayfs/ovl_entry.h b/fs/overlayfs/ovl_entry.h
-index 6e240bc5ac1d..288f52f24755 100644
+index 6de8725cc38a..6c36fa70abe4 100644
 --- a/fs/overlayfs/ovl_entry.h
 +++ b/fs/overlayfs/ovl_entry.h
-@@ -35,7 +35,6 @@ struct ovl_fs {
- 	const struct cred *creator_cred;
- 	bool tmpfile;
- 	bool noxattr;
--	wait_queue_head_t copyup_wq;
- 	/* sb common to all layers */
- 	struct super_block *same_sb;
- };
-@@ -50,7 +49,6 @@ struct ovl_entry {
- 		struct {
- 			u64 version;
- 			const char *redirect;
--			bool copying;
- 		};
- 		struct rcu_head rcu;
- 	};
+@@ -65,3 +65,15 @@ static inline struct dentry *ovl_upperdentry_dereference(struct ovl_entry *oe)
+ {
+ 	return lockless_dereference(oe->__upperdentry);
+ }
++
++struct ovl_inode {
++	/* keep this first */
++	struct inode vfs_inode;
++	/* synchronize copy up and more */
++	struct mutex oi_lock;
++};
++
++static inline struct ovl_inode *OVL_I(struct inode *inode)
++{
++	return (struct ovl_inode *) inode;
++}
 diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-index 7b48bfed0121..0f36a09df34c 100644
+index 13f2ed09c025..3fe635d01cc6 100644
 --- a/fs/overlayfs/super.c
 +++ b/fs/overlayfs/super.c
-@@ -878,7 +878,6 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
- 	if (!ufs)
- 		goto out;
+@@ -170,6 +170,34 @@ static const struct dentry_operations ovl_reval_dentry_operations = {
+ 	.d_weak_revalidate = ovl_dentry_weak_revalidate,
+ };
  
--	init_waitqueue_head(&ufs->copyup_wq);
- 	ufs->config.redirect_dir = ovl_redirect_dir_def;
- 	ufs->config.index = ovl_index_def;
- 	err = ovl_parse_opt((char *) data, &ufs->config);
-diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
-index 65c1e09ae0d0..9c729322d3b0 100644
---- a/fs/overlayfs/util.c
-+++ b/fs/overlayfs/util.c
-@@ -257,7 +257,7 @@ void ovl_dentry_update(struct dentry *dentry, struct dentry *upperdentry)
- 	struct ovl_entry *oe = dentry->d_fsdata;
- 
- 	WARN_ON(!inode_is_locked(upperdentry->d_parent->d_inode) &&
--		!oe->copying);
-+		!mutex_is_locked(&OVL_I(d_inode(dentry))->oi_lock));
- 	WARN_ON(oe->__upperdentry);
- 	/*
- 	 * Make sure upperdentry is consistent before making it visible to
-@@ -368,32 +368,20 @@ struct file *ovl_path_open(struct path *path, int flags)
- 
- int ovl_copy_up_start(struct dentry *dentry)
++static struct kmem_cache *ovl_inode_cachep;
++
++static struct inode *ovl_alloc_inode(struct super_block *sb)
++{
++	struct inode *inode;
++
++	inode = kmem_cache_alloc(ovl_inode_cachep, GFP_KERNEL);
++	if (!inode)
++		return NULL;
++
++	mutex_init(&OVL_I(inode)->oi_lock);
++
++	return inode;
++}
++
++static void ovl_i_callback(struct rcu_head *head)
++{
++	struct inode *inode = container_of(head, struct inode, i_rcu);
++
++	kmem_cache_free(ovl_inode_cachep, inode);
++}
++
++static void ovl_destroy_inode(struct inode *inode)
++{
++	mutex_destroy(&OVL_I(inode)->oi_lock);
++	call_rcu(&inode->i_rcu, ovl_i_callback);
++}
++
+ /* Get exclusive ownership on upper/work dir among overlay mounts */
+ static bool ovl_dir_lock(struct dentry *dentry)
  {
--	struct ovl_fs *ofs = dentry->d_sb->s_fs_info;
--	struct ovl_entry *oe = dentry->d_fsdata;
- 	int err;
- 
--	spin_lock(&ofs->copyup_wq.lock);
--	err = wait_event_interruptible_locked(ofs->copyup_wq, !oe->copying);
--	if (!err) {
--		if (oe->__upperdentry)
--			err = 1; /* Already copied up */
--		else
--			oe->copying = true;
-+	err = mutex_lock_interruptible(&OVL_I(d_inode(dentry))->oi_lock);
-+	if (!err && ovl_dentry_upper(dentry)) {
-+		err = 1; /* Already copied up */
-+		mutex_unlock(&OVL_I(d_inode(dentry))->oi_lock);
- 	}
--	spin_unlock(&ofs->copyup_wq.lock);
- 
- 	return err;
+@@ -294,12 +322,14 @@ static int ovl_remount(struct super_block *sb, int *flags, char *data)
  }
  
- void ovl_copy_up_end(struct dentry *dentry)
+ static const struct super_operations ovl_super_operations = {
++	.alloc_inode	= ovl_alloc_inode,
++	.destroy_inode	= ovl_destroy_inode,
++	.drop_inode	= generic_delete_inode,
+ 	.put_super	= ovl_put_super,
+ 	.sync_fs	= ovl_sync_fs,
+ 	.statfs		= ovl_statfs,
+ 	.show_options	= ovl_show_options,
+ 	.remount_fs	= ovl_remount,
+-	.drop_inode	= generic_delete_inode,
+ };
+ 
+ enum {
+@@ -1200,14 +1230,42 @@ static struct file_system_type ovl_fs_type = {
+ };
+ MODULE_ALIAS_FS("overlay");
+ 
++static void ovl_inode_init_once(void *foo)
++{
++	struct inode *inode = foo;
++
++	inode_init_once(inode);
++}
++
+ static int __init ovl_init(void)
  {
--	struct ovl_fs *ofs = dentry->d_sb->s_fs_info;
--	struct ovl_entry *oe = dentry->d_fsdata;
--
--	spin_lock(&ofs->copyup_wq.lock);
--	oe->copying = false;
--	wake_up_locked(&ofs->copyup_wq);
--	spin_unlock(&ofs->copyup_wq.lock);
-+	mutex_unlock(&OVL_I(d_inode(dentry))->oi_lock);
+-	return register_filesystem(&ovl_fs_type);
++	int err;
++
++	ovl_inode_cachep = kmem_cache_create("ovl_inode",
++					     sizeof(struct ovl_inode), 0,
++					     SLAB_HWCACHE_ALIGN|SLAB_ACCOUNT,
++					     ovl_inode_init_once);
++	if (ovl_inode_cachep == NULL)
++		return -ENOMEM;
++
++	err = register_filesystem(&ovl_fs_type);
++	if (err)
++		kmem_cache_destroy(ovl_inode_cachep);
++
++	return err;
  }
  
- bool ovl_check_dir_xattr(struct dentry *dentry, const char *name)
+ static void __exit ovl_exit(void)
+ {
+ 	unregister_filesystem(&ovl_fs_type);
++
++	/*
++	 * Make sure all delayed rcu free inodes are flushed before we
++	 * destroy cache.
++	 */
++	rcu_barrier();
++	kmem_cache_destroy(ovl_inode_cachep);
++
+ }
+ 
+ module_init(ovl_init);
 -- 
 2.7.4
