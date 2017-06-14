@@ -1,130 +1,101 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH v3 01/23] vfs: introduce inode 'inuse' lock
-Date: Wed, 14 Jun 2017 10:26:20 +0300
-Message-ID: <1497425202-16270-2-git-send-email-amir73il@gmail.com>
+Subject: [PATCH v3 03/23] ovl: relax same fs constrain for ovl_check_origin()
+Date: Wed, 14 Jun 2017 10:26:22 +0300
+Message-ID: <1497425202-16270-4-git-send-email-amir73il@gmail.com>
 References: <1497425202-16270-1-git-send-email-amir73il@gmail.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wr0-f193.google.com ([209.85.128.193]:33718 "EHLO
-        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754194AbdFNH0g (ORCPT
+Received: from mail-wr0-f196.google.com ([209.85.128.196]:36027 "EHLO
+        mail-wr0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754264AbdFNH0i (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 14 Jun 2017 03:26:36 -0400
+        Wed, 14 Jun 2017 03:26:38 -0400
+Received: by mail-wr0-f196.google.com with SMTP id 77so6376339wrb.3
+        for <linux-unionfs@vger.kernel.org>; Wed, 14 Jun 2017 00:26:37 -0700 (PDT)
 In-Reply-To: <1497425202-16270-1-git-send-email-amir73il@gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
+Cc: linux-unionfs@vger.kernel.org
 
-Added an i_state flag I_INUSE and helpers to set/clear/test the bit.
-
-The 'inuse' lock is an 'advisory' inode lock, that can be used to extend
-exclusive create protection beyond parent->i_mutex lock among cooperating
-users.
-
-This is going to be used by overlayfs to get exclusive ownership on upper
-and work dirs among overlayfs mounts.
+For the case of all layers not on the same fs, try to decode the copy up
+origin file handle on any of the lower layers.
 
 Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- fs/inode.c         | 50 ++++++++++++++++++++++++++++++++++++++++++++++++++
- include/linux/fs.h | 14 ++++++++++++++
- 2 files changed, 64 insertions(+)
+ fs/overlayfs/namei.c | 43 +++++++++++++++++++++++++------------------
+ 1 file changed, 25 insertions(+), 18 deletions(-)
 
-diff --git a/fs/inode.c b/fs/inode.c
-index db5914783a71..6a41b27467eb 100644
---- a/fs/inode.c
-+++ b/fs/inode.c
-@@ -2120,3 +2120,53 @@ struct timespec current_time(struct inode *inode)
- 	return timespec_trunc(now, inode->i_sb->s_time_gran);
- }
- EXPORT_SYMBOL(current_time);
+diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
+index 1ec1499fc672..4ca6061f7bfa 100644
+--- a/fs/overlayfs/namei.c
++++ b/fs/overlayfs/namei.c
+@@ -272,28 +272,24 @@ static int ovl_lookup_layer(struct dentry *base, struct ovl_lookup_data *d,
+ static int ovl_check_origin(struct dentry *dentry, struct dentry *upperdentry,
+ 			    struct path **stackp, unsigned int *ctrp)
+ {
+-	struct super_block *same_sb = ovl_same_sb(dentry->d_sb);
+ 	struct ovl_entry *roe = dentry->d_sb->s_root->d_fsdata;
+ 	struct vfsmount *mnt;
+-	struct dentry *origin;
++	struct dentry *origin = NULL;
++	int i;
+ 
+-	if (!same_sb || !roe->numlower)
+-		return 0;
+ 
+-       /*
+-	* Since all layers are on the same fs, we use the first layer for
+-	* decoding the file handle.  We may get a disconnected dentry,
+-	* which is fine, because we only need to hold the origin inode in
+-	* cache and use its inode number.  We may even get a connected dentry,
+-	* that is not under the first layer's root.  That is also fine for
+-	* using it's inode number - it's the same as if we held a reference
+-	* to a dentry in first layer that was moved under us.
+-	*/
+-	mnt = roe->lowerstack[0].mnt;
+-
+-	origin = ovl_get_origin(upperdentry, mnt);
+-	if (IS_ERR_OR_NULL(origin))
+-		return PTR_ERR(origin);
++	for (i = 0; i < roe->numlower; i++) {
++		mnt = roe->lowerstack[i].mnt;
++		origin = ovl_get_origin(upperdentry, mnt);
++		if (IS_ERR(origin))
++			return PTR_ERR(origin);
 +
-+/**
-+ * inode_inuse_trylock - try to get an exclusive 'inuse' lock on inode
-+ * @inode: inode being locked
-+ *
-+ * The 'inuse' lock is an 'advisory' lock that can be used to extend exclusive
-+ * create protection beyond parent->i_mutex lock among cooperating users.
-+ * Used by overlayfs to get exclusive ownership on upper and work dirs among
-+ * overlayfs mounts.
-+ *
-+ * Caller must hold a reference to inode to prevent it from being freed while
-+ * it is marked inuse.
-+ *
-+ * Return true if I_INUSE flag was set by this call.
-+ */
-+bool inode_inuse_trylock(struct inode *inode)
-+{
-+	bool locked = false;
-+
-+	spin_lock(&inode->i_lock);
-+	if (!WARN_ON(!atomic_read(&inode->i_count)) &&
-+	    !WARN_ON(inode->i_state & (I_NEW | I_FREEING | I_WILL_FREE)) &&
-+	    !(inode->i_state & I_INUSE)) {
-+		inode->i_state |= I_INUSE;
-+		locked = true;
++		if (origin)
++			break;
 +	}
-+	spin_unlock(&inode->i_lock);
-+	return locked;
-+}
-+EXPORT_SYMBOL(inode_inuse_trylock);
 +
-+/**
-+ * inode_inuse_unlock - release exclusive 'inuse' lock
-+ * @inode:	inode inuse to unlock
-+ *
-+ * Clear the I_INUSE state.
-+ *
-+ * Caller must hold a reference to inode and must have successfully marked
-+ * the inode 'inuse' prior to this call.
-+ */
-+void inode_inuse_unlock(struct inode *inode)
-+{
-+	spin_lock(&inode->i_lock);
-+	WARN_ON(!atomic_read(&inode->i_count));
-+	WARN_ON(inode->i_state & (I_NEW | I_FREEING | I_WILL_FREE));
-+	WARN_ON(!(inode->i_state & I_INUSE));
-+	inode->i_state &= ~I_INUSE;
-+	spin_unlock(&inode->i_lock);
-+}
-+EXPORT_SYMBOL(inode_inuse_unlock);
-diff --git a/include/linux/fs.h b/include/linux/fs.h
-index aab10f93ef23..532802120258 100644
---- a/include/linux/fs.h
-+++ b/include/linux/fs.h
-@@ -1929,6 +1929,12 @@ static inline bool HAS_UNMAPPED_ID(struct inode *inode)
-  *			wb stat updates to grab mapping->tree_lock.  See
-  *			inode_switch_wb_work_fn() for details.
-  *
-+ * I_INUSE		An 'advisory' bit to get exclusive ownership on inode
-+ *			using inode_inuse_trylock().  It can be used to extend
-+ *			exclusive create protection beyond parent->i_mutex lock.
-+ *			Used by overlayfs to get exclusive ownership on upper
-+ *			and work dirs among overlayfs mounts.
-+ *
-  * Q: What is the difference between I_WILL_FREE and I_FREEING?
-  */
- #define I_DIRTY_SYNC		(1 << 0)
-@@ -1949,6 +1955,7 @@ static inline bool HAS_UNMAPPED_ID(struct inode *inode)
- #define __I_DIRTY_TIME_EXPIRED	12
- #define I_DIRTY_TIME_EXPIRED	(1 << __I_DIRTY_TIME_EXPIRED)
- #define I_WB_SWITCH		(1 << 13)
-+#define I_INUSE			(1 << 14)
++	if (!origin)
++		return 0;
  
- #define I_DIRTY (I_DIRTY_SYNC | I_DIRTY_DATASYNC | I_DIRTY_PAGES)
- #define I_DIRTY_ALL (I_DIRTY | I_DIRTY_TIME)
-@@ -3258,5 +3265,12 @@ static inline bool dir_relax_shared(struct inode *inode)
- 
- extern bool path_noexec(const struct path *path);
- extern void inode_nohighmem(struct inode *inode);
-+extern bool inode_inuse_trylock(struct inode *inode);
-+extern void inode_inuse_unlock(struct inode *inode);
+ 	BUG_ON(*stackp || *ctrp);
+ 	*stackp = kmalloc(sizeof(struct path), GFP_TEMPORARY);
+@@ -301,6 +297,7 @@ static int ovl_check_origin(struct dentry *dentry, struct dentry *upperdentry,
+ 		dput(origin);
+ 		return -ENOMEM;
+ 	}
 +
-+static inline bool inode_inuse(struct inode *inode)
-+{
-+	return inode->i_state & I_INUSE;
-+}
+ 	**stackp = (struct path) { .dentry = origin, .mnt = mnt };
+ 	*ctrp = 1;
  
- #endif /* _LINUX_FS_H */
+@@ -375,6 +372,16 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
+ 		}
+ 		if (upperdentry && !d.is_dir) {
+ 			BUG_ON(!d.stop || d.redirect);
++			/*
++			 * Lookup copy up origin by decoding origin file handle.
++			 * We may get a disconnected dentry, which is fine,
++			 * because we only need to hold the origin inode in
++			 * cache and use its inode number.  We may even get a
++			 * connected dentry, that is not under any of the lower
++			 * layers root.  That is also fine for using it's inode
++			 * number - it's the same as if we held a reference
++			 * to a dentry in lower layer that was moved under us.
++			 */
+ 			err = ovl_check_origin(dentry, upperdentry,
+ 					       &stack, &ctr);
+ 			if (err)
 -- 
 2.7.4
