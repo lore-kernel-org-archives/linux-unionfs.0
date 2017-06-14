@@ -1,101 +1,137 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH v3 03/23] ovl: relax same fs constrain for ovl_check_origin()
-Date: Wed, 14 Jun 2017 10:26:22 +0300
-Message-ID: <1497425202-16270-4-git-send-email-amir73il@gmail.com>
+Subject: [PATCH v3 04/23] ovl: generalize ovl_create_workdir()
+Date: Wed, 14 Jun 2017 10:26:23 +0300
+Message-ID: <1497425202-16270-5-git-send-email-amir73il@gmail.com>
 References: <1497425202-16270-1-git-send-email-amir73il@gmail.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wr0-f196.google.com ([209.85.128.196]:36027 "EHLO
+Received: from mail-wr0-f196.google.com ([209.85.128.196]:33772 "EHLO
         mail-wr0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754264AbdFNH0i (ORCPT
+        with ESMTP id S1754280AbdFNH0j (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 14 Jun 2017 03:26:38 -0400
-Received: by mail-wr0-f196.google.com with SMTP id 77so6376339wrb.3
-        for <linux-unionfs@vger.kernel.org>; Wed, 14 Jun 2017 00:26:37 -0700 (PDT)
+        Wed, 14 Jun 2017 03:26:39 -0400
+Received: by mail-wr0-f196.google.com with SMTP id v104so36663019wrb.0
+        for <linux-unionfs@vger.kernel.org>; Wed, 14 Jun 2017 00:26:39 -0700 (PDT)
 In-Reply-To: <1497425202-16270-1-git-send-email-amir73il@gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: Miklos Szeredi <miklos@szeredi.hu>
 Cc: linux-unionfs@vger.kernel.org
 
-For the case of all layers not on the same fs, try to decode the copy up
-origin file handle on any of the lower layers.
+Pass in the subdir name to create and specify if subdir is persistent
+or if it should be cleaned up on every mount.
+
+Move fallback to readonly mount on failure to create dir and print of error
+message into the helper.
+
+This function is going to be used for creating the persistent 'index' dir
+under workbasedir.
 
 Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- fs/overlayfs/namei.c | 43 +++++++++++++++++++++++++------------------
- 1 file changed, 25 insertions(+), 18 deletions(-)
+ fs/overlayfs/super.c | 45 +++++++++++++++++++++++++++++----------------
+ 1 file changed, 29 insertions(+), 16 deletions(-)
 
-diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
-index 1ec1499fc672..4ca6061f7bfa 100644
---- a/fs/overlayfs/namei.c
-+++ b/fs/overlayfs/namei.c
-@@ -272,28 +272,24 @@ static int ovl_lookup_layer(struct dentry *base, struct ovl_lookup_data *d,
- static int ovl_check_origin(struct dentry *dentry, struct dentry *upperdentry,
- 			    struct path **stackp, unsigned int *ctrp)
+diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+index 476f021baf2a..5114627799e9 100644
+--- a/fs/overlayfs/super.c
++++ b/fs/overlayfs/super.c
+@@ -395,22 +395,25 @@ static int ovl_parse_opt(char *opt, struct ovl_config *config)
+ 
+ #define OVL_WORKDIR_NAME "work"
+ 
+-static struct dentry *ovl_workdir_create(struct vfsmount *mnt,
+-					 struct dentry *dentry)
++static struct dentry *ovl_workdir_create(struct super_block *sb,
++					 struct ovl_fs *ufs,
++					 struct dentry *dentry,
++					 const char *name, bool persist)
  {
--	struct super_block *same_sb = ovl_same_sb(dentry->d_sb);
- 	struct ovl_entry *roe = dentry->d_sb->s_root->d_fsdata;
- 	struct vfsmount *mnt;
--	struct dentry *origin;
-+	struct dentry *origin = NULL;
-+	int i;
+-	struct inode *dir = dentry->d_inode;
+-	struct dentry *work;
++	struct vfsmount *mnt = ufs->upper_mnt;
++	struct inode *dir = NULL;
++	struct dentry *work = NULL;
+ 	int err;
+ 	bool retried = false;
  
--	if (!same_sb || !roe->numlower)
--		return 0;
+ 	err = mnt_want_write(mnt);
+ 	if (err)
+-		return ERR_PTR(err);
++		goto out_err;
  
--       /*
--	* Since all layers are on the same fs, we use the first layer for
--	* decoding the file handle.  We may get a disconnected dentry,
--	* which is fine, because we only need to hold the origin inode in
--	* cache and use its inode number.  We may even get a connected dentry,
--	* that is not under the first layer's root.  That is also fine for
--	* using it's inode number - it's the same as if we held a reference
--	* to a dentry in first layer that was moved under us.
--	*/
--	mnt = roe->lowerstack[0].mnt;
--
--	origin = ovl_get_origin(upperdentry, mnt);
--	if (IS_ERR_OR_NULL(origin))
--		return PTR_ERR(origin);
-+	for (i = 0; i < roe->numlower; i++) {
-+		mnt = roe->lowerstack[i].mnt;
-+		origin = ovl_get_origin(upperdentry, mnt);
-+		if (IS_ERR(origin))
-+			return PTR_ERR(origin);
++	dir = d_inode(dentry);
+ 	inode_lock_nested(dir, I_MUTEX_PARENT);
+ retry:
+-	work = lookup_one_len(OVL_WORKDIR_NAME, dentry,
+-			      strlen(OVL_WORKDIR_NAME));
++	work = lookup_one_len(name, dentry, strlen(name));
+ 
+ 	if (!IS_ERR(work)) {
+ 		struct iattr attr = {
+@@ -423,6 +426,9 @@ static struct dentry *ovl_workdir_create(struct vfsmount *mnt,
+ 			if (retried)
+ 				goto out_dput;
+ 
++			if (persist)
++				goto out_unlock;
 +
-+		if (origin)
-+			break;
-+	}
-+
-+	if (!origin)
-+		return 0;
- 
- 	BUG_ON(*stackp || *ctrp);
- 	*stackp = kmalloc(sizeof(struct path), GFP_TEMPORARY);
-@@ -301,6 +297,7 @@ static int ovl_check_origin(struct dentry *dentry, struct dentry *upperdentry,
- 		dput(origin);
- 		return -ENOMEM;
+ 			retried = true;
+ 			ovl_workdir_cleanup(dir, mnt, work, 0);
+ 			dput(work);
+@@ -462,16 +468,25 @@ static struct dentry *ovl_workdir_create(struct vfsmount *mnt,
+ 		inode_unlock(work->d_inode);
+ 		if (err)
+ 			goto out_dput;
++	} else {
++		err = PTR_ERR(work);
++		goto out_err;
  	}
 +
- 	**stackp = (struct path) { .dentry = origin, .mnt = mnt };
- 	*ctrp = 1;
+ out_unlock:
+-	inode_unlock(dir);
++	if (dir)
++		inode_unlock(dir);
+ 	mnt_drop_write(mnt);
  
-@@ -375,6 +372,16 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
- 		}
- 		if (upperdentry && !d.is_dir) {
- 			BUG_ON(!d.stop || d.redirect);
-+			/*
-+			 * Lookup copy up origin by decoding origin file handle.
-+			 * We may get a disconnected dentry, which is fine,
-+			 * because we only need to hold the origin inode in
-+			 * cache and use its inode number.  We may even get a
-+			 * connected dentry, that is not under any of the lower
-+			 * layers root.  That is also fine for using it's inode
-+			 * number - it's the same as if we held a reference
-+			 * to a dentry in lower layer that was moved under us.
-+			 */
- 			err = ovl_check_origin(dentry, upperdentry,
- 					       &stack, &ctr);
- 			if (err)
+ 	return work;
+ 
+ out_dput:
+ 	dput(work);
+-	work = ERR_PTR(err);
++out_err:
++	pr_warn("overlayfs: failed to create directory %s/%s (errno: %i); mounting read-only\n",
++		ufs->config.workdir, name, -err);
++	sb->s_flags |= MS_RDONLY;
++	work = NULL;
+ 	goto out_unlock;
+ }
+ 
+@@ -885,14 +900,11 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
+ 
+ 		sb->s_time_gran = ufs->upper_mnt->mnt_sb->s_time_gran;
+ 
+-		ufs->workdir = ovl_workdir_create(ufs->upper_mnt, workpath.dentry);
++		ufs->workdir = ovl_workdir_create(sb, ufs, workpath.dentry,
++						  OVL_WORKDIR_NAME, false);
+ 		err = PTR_ERR(ufs->workdir);
+-		if (IS_ERR(ufs->workdir)) {
+-			pr_warn("overlayfs: failed to create directory %s/%s (errno: %i); mounting read-only\n",
+-				ufs->config.workdir, OVL_WORKDIR_NAME, -err);
+-			sb->s_flags |= MS_RDONLY;
+-			ufs->workdir = NULL;
+-		}
++		if (IS_ERR(ufs->workdir))
++			goto out_put_upper_mnt;
+ 
+ 		/*
+ 		 * Upper should support d_type, else whiteouts are visible.
+@@ -1035,6 +1047,7 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
+ 	kfree(ufs->lower_mnt);
+ out_put_workdir:
+ 	dput(ufs->workdir);
++out_put_upper_mnt:
+ 	mntput(ufs->upper_mnt);
+ out_put_lowerpath:
+ 	for (i = 0; i < numlower; i++)
 -- 
 2.7.4
