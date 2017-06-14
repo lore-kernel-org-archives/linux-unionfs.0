@@ -1,137 +1,260 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH v3 04/23] ovl: generalize ovl_create_workdir()
-Date: Wed, 14 Jun 2017 10:26:23 +0300
-Message-ID: <1497425202-16270-5-git-send-email-amir73il@gmail.com>
+Subject: [PATCH v3 06/23] ovl: verify upper root dir matches lower root dir
+Date: Wed, 14 Jun 2017 10:26:25 +0300
+Message-ID: <1497425202-16270-7-git-send-email-amir73il@gmail.com>
 References: <1497425202-16270-1-git-send-email-amir73il@gmail.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wr0-f196.google.com ([209.85.128.196]:33772 "EHLO
-        mail-wr0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754280AbdFNH0j (ORCPT
+Received: from mail-wr0-f193.google.com ([209.85.128.193]:36089 "EHLO
+        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754311AbdFNH0m (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 14 Jun 2017 03:26:39 -0400
-Received: by mail-wr0-f196.google.com with SMTP id v104so36663019wrb.0
-        for <linux-unionfs@vger.kernel.org>; Wed, 14 Jun 2017 00:26:39 -0700 (PDT)
+        Wed, 14 Jun 2017 03:26:42 -0400
+Received: by mail-wr0-f193.google.com with SMTP id 77so6376850wrb.3
+        for <linux-unionfs@vger.kernel.org>; Wed, 14 Jun 2017 00:26:41 -0700 (PDT)
 In-Reply-To: <1497425202-16270-1-git-send-email-amir73il@gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: Miklos Szeredi <miklos@szeredi.hu>
 Cc: linux-unionfs@vger.kernel.org
 
-Pass in the subdir name to create and specify if subdir is persistent
-or if it should be cleaned up on every mount.
+When inodes index feature is enabled, verify that the file handle stored
+in upper root dir matches the lower root dir or fail to mount.
 
-Move fallback to readonly mount on failure to create dir and print of error
-message into the helper.
-
-This function is going to be used for creating the persistent 'index' dir
-under workbasedir.
+If upper root dir has no stored file handle, encode and store the lower
+root dir file handle in overlay.origin xattr.
 
 Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- fs/overlayfs/super.c | 45 +++++++++++++++++++++++++++++----------------
- 1 file changed, 29 insertions(+), 16 deletions(-)
+ fs/overlayfs/copy_up.c   |  2 +-
+ fs/overlayfs/namei.c     | 84 +++++++++++++++++++++++++++++++++++++++++-------
+ fs/overlayfs/overlayfs.h |  3 ++
+ fs/overlayfs/super.c     | 42 ++++++++++++++++++++++++
+ 4 files changed, 119 insertions(+), 12 deletions(-)
 
-diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-index 476f021baf2a..5114627799e9 100644
---- a/fs/overlayfs/super.c
-+++ b/fs/overlayfs/super.c
-@@ -395,22 +395,25 @@ static int ovl_parse_opt(char *opt, struct ovl_config *config)
- 
- #define OVL_WORKDIR_NAME "work"
- 
--static struct dentry *ovl_workdir_create(struct vfsmount *mnt,
--					 struct dentry *dentry)
-+static struct dentry *ovl_workdir_create(struct super_block *sb,
-+					 struct ovl_fs *ufs,
-+					 struct dentry *dentry,
-+					 const char *name, bool persist)
- {
--	struct inode *dir = dentry->d_inode;
--	struct dentry *work;
-+	struct vfsmount *mnt = ufs->upper_mnt;
-+	struct inode *dir = NULL;
-+	struct dentry *work = NULL;
- 	int err;
- 	bool retried = false;
- 
- 	err = mnt_want_write(mnt);
- 	if (err)
--		return ERR_PTR(err);
-+		goto out_err;
- 
-+	dir = d_inode(dentry);
- 	inode_lock_nested(dir, I_MUTEX_PARENT);
- retry:
--	work = lookup_one_len(OVL_WORKDIR_NAME, dentry,
--			      strlen(OVL_WORKDIR_NAME));
-+	work = lookup_one_len(name, dentry, strlen(name));
- 
- 	if (!IS_ERR(work)) {
- 		struct iattr attr = {
-@@ -423,6 +426,9 @@ static struct dentry *ovl_workdir_create(struct vfsmount *mnt,
- 			if (retried)
- 				goto out_dput;
- 
-+			if (persist)
-+				goto out_unlock;
-+
- 			retried = true;
- 			ovl_workdir_cleanup(dir, mnt, work, 0);
- 			dput(work);
-@@ -462,16 +468,25 @@ static struct dentry *ovl_workdir_create(struct vfsmount *mnt,
- 		inode_unlock(work->d_inode);
- 		if (err)
- 			goto out_dput;
-+	} else {
-+		err = PTR_ERR(work);
-+		goto out_err;
- 	}
-+
- out_unlock:
--	inode_unlock(dir);
-+	if (dir)
-+		inode_unlock(dir);
- 	mnt_drop_write(mnt);
- 
- 	return work;
- 
- out_dput:
- 	dput(work);
--	work = ERR_PTR(err);
-+out_err:
-+	pr_warn("overlayfs: failed to create directory %s/%s (errno: %i); mounting read-only\n",
-+		ufs->config.workdir, name, -err);
-+	sb->s_flags |= MS_RDONLY;
-+	work = NULL;
- 	goto out_unlock;
+diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
+index d3047fdc0377..ee0b894e1d99 100644
+--- a/fs/overlayfs/copy_up.c
++++ b/fs/overlayfs/copy_up.c
+@@ -233,7 +233,7 @@ int ovl_set_attr(struct dentry *upperdentry, struct kstat *stat)
+ 	return err;
  }
  
-@@ -885,14 +900,11 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
+-static struct ovl_fh *ovl_encode_fh(struct dentry *lower)
++struct ovl_fh *ovl_encode_fh(struct dentry *lower)
+ {
+ 	struct ovl_fh *fh;
+ 	int fh_type, fh_len, dwords;
+diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
+index 4ca6061f7bfa..1b8017a57a02 100644
+--- a/fs/overlayfs/namei.c
++++ b/fs/overlayfs/namei.c
+@@ -88,13 +88,11 @@ static int ovl_acceptable(void *ctx, struct dentry *dentry)
+ 	return 1;
+ }
  
- 		sb->s_time_gran = ufs->upper_mnt->mnt_sb->s_time_gran;
+-static struct dentry *ovl_get_origin(struct dentry *dentry,
+-				     struct vfsmount *mnt)
++static struct ovl_fh *ovl_get_origin_fh(struct dentry *dentry,
++					struct vfsmount *mnt)
+ {
+ 	int res;
+ 	struct ovl_fh *fh = NULL;
+-	struct dentry *origin = NULL;
+-	int bytes;
  
--		ufs->workdir = ovl_workdir_create(ufs->upper_mnt, workpath.dentry);
-+		ufs->workdir = ovl_workdir_create(sb, ufs, workpath.dentry,
-+						  OVL_WORKDIR_NAME, false);
- 		err = PTR_ERR(ufs->workdir);
--		if (IS_ERR(ufs->workdir)) {
--			pr_warn("overlayfs: failed to create directory %s/%s (errno: %i); mounting read-only\n",
--				ufs->config.workdir, OVL_WORKDIR_NAME, -err);
--			sb->s_flags |= MS_RDONLY;
--			ufs->workdir = NULL;
--		}
-+		if (IS_ERR(ufs->workdir))
-+			goto out_put_upper_mnt;
+ 	res = vfs_getxattr(dentry, OVL_XATTR_ORIGIN, NULL, 0);
+ 	if (res < 0) {
+@@ -106,7 +104,7 @@ static struct dentry *ovl_get_origin(struct dentry *dentry,
+ 	if (res == 0)
+ 		return NULL;
  
- 		/*
- 		 * Upper should support d_type, else whiteouts are visible.
-@@ -1035,6 +1047,7 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
- 	kfree(ufs->lower_mnt);
- out_put_workdir:
- 	dput(ufs->workdir);
-+out_put_upper_mnt:
- 	mntput(ufs->upper_mnt);
- out_put_lowerpath:
- 	for (i = 0; i < numlower; i++)
+-	fh  = kzalloc(res, GFP_TEMPORARY);
++	fh = kzalloc(res, GFP_TEMPORARY);
+ 	if (!fh)
+ 		return ERR_PTR(-ENOMEM);
+ 
+@@ -129,8 +127,6 @@ static struct dentry *ovl_get_origin(struct dentry *dentry,
+ 	    (fh->flags & OVL_FH_FLAG_BIG_ENDIAN) != OVL_FH_FLAG_CPU_ENDIAN)
+ 		goto out;
+ 
+-	bytes = (fh->len - offsetof(struct ovl_fh, fid));
+-
+ 	/*
+ 	 * Make sure that the stored uuid matches the uuid of the lower
+ 	 * layer where file handle will be decoded.
+@@ -138,6 +134,31 @@ static struct dentry *ovl_get_origin(struct dentry *dentry,
+ 	if (uuid_be_cmp(fh->uuid, *(uuid_be *) &mnt->mnt_sb->s_uuid))
+ 		goto out;
+ 
++	return fh;
++
++out:
++	kfree(fh);
++	return NULL;
++
++fail:
++	pr_warn_ratelimited("overlayfs: failed to get origin (%i)\n", res);
++	goto out;
++invalid:
++	pr_warn_ratelimited("overlayfs: invalid origin (%*phN)\n", res, fh);
++	goto out;
++}
++
++static struct dentry *ovl_get_origin(struct dentry *dentry,
++				     struct vfsmount *mnt)
++{
++	struct dentry *origin = NULL;
++	struct ovl_fh *fh = ovl_get_origin_fh(dentry, mnt);
++	int bytes;
++
++	if (!fh)
++		return NULL;
++
++	bytes = (fh->len - offsetof(struct ovl_fh, fid));
+ 	origin = exportfs_decode_fh(mnt, (struct fid *)fh->fid,
+ 				    bytes >> 2, (int)fh->type,
+ 				    ovl_acceptable, NULL);
+@@ -159,11 +180,8 @@ static struct dentry *ovl_get_origin(struct dentry *dentry,
+ 	kfree(fh);
+ 	return origin;
+ 
+-fail:
+-	pr_warn_ratelimited("overlayfs: failed to get origin (%i)\n", res);
+-	goto out;
+ invalid:
+-	pr_warn_ratelimited("overlayfs: invalid origin (%*phN)\n", res, fh);
++	pr_warn_ratelimited("overlayfs: invalid origin (%*phN)\n", fh->len, fh);
+ 	goto out;
+ }
+ 
+@@ -305,6 +323,50 @@ static int ovl_check_origin(struct dentry *dentry, struct dentry *upperdentry,
+ }
+ 
+ /*
++ * Verify that an inode matches the origin file handle stored in upper inode.
++ * Return 0 on match, -ESTALE on mismatch, < 0 on error.
++ */
++int ovl_verify_origin(struct dentry *dentry, struct vfsmount *mnt,
++		      struct dentry *origin)
++{
++	struct inode *inode = NULL;
++	struct ovl_fh *fh = NULL;
++	struct ovl_fh *ofh = ovl_get_origin_fh(dentry, mnt);
++	int err;
++
++	/* Fail verification with no warning if no valid origin fh */
++	if (!ofh)
++		return -ENODATA;
++
++	if (IS_ERR(ofh)) {
++		err = PTR_ERR(ofh);
++		goto fail;
++	}
++
++	fh = ovl_encode_fh(origin);
++	if (IS_ERR(fh)) {
++		err = PTR_ERR(fh);
++		fh = NULL;
++		goto fail;
++	} else if (fh->len != ofh->len || memcmp(fh, ofh, fh->len)) {
++		err = -ESTALE;
++		goto fail;
++	}
++
++	err = 0;
++out:
++	kfree(ofh);
++	kfree(fh);
++	return err;
++
++fail:
++	inode = d_inode(origin);
++	pr_warn_ratelimited("overlayfs: failed to verify origin (ino=%lu, err=%i) - were layers copied?\n",
++			    inode ? inode->i_ino : 0, err);
++	goto out;
++}
++
++/*
+  * Returns next layer in stack starting from top.
+  * Returns -1 if this is the last layer.
+  */
+diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
+index 9ec93063c3a8..1eb8250464be 100644
+--- a/fs/overlayfs/overlayfs.h
++++ b/fs/overlayfs/overlayfs.h
+@@ -235,6 +235,8 @@ static inline bool ovl_is_impuredir(struct dentry *dentry)
+ 
+ 
+ /* namei.c */
++int ovl_verify_origin(struct dentry *dentry, struct vfsmount *mnt,
++		      struct dentry *origin);
+ int ovl_path_next(int idx, struct dentry *dentry, struct path *path, int *idxp);
+ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry, unsigned int flags);
+ bool ovl_lower_positive(struct dentry *dentry);
+@@ -293,3 +295,4 @@ int ovl_copy_up(struct dentry *dentry);
+ int ovl_copy_up_flags(struct dentry *dentry, int flags);
+ int ovl_copy_xattr(struct dentry *old, struct dentry *new);
+ int ovl_set_attr(struct dentry *upper, struct kstat *stat);
++struct ovl_fh *ovl_encode_fh(struct dentry *lower);
+diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+index d92c7486bdf2..e6e0515525d3 100644
+--- a/fs/overlayfs/super.c
++++ b/fs/overlayfs/super.c
+@@ -420,6 +420,41 @@ static int ovl_parse_opt(char *opt, struct ovl_config *config)
+ 	return 0;
+ }
+ 
++/*
++ * Verify that stored file handle in dir matches origin.
++ * If dir has no stored file handle, encode and store origin file handle.
++ */
++static int ovl_verify_set_origin(struct dentry *dir, struct vfsmount *mnt,
++				 struct dentry *origin, const char *name)
++{
++	const struct ovl_fh *fh = NULL;
++	int err;
++
++	err = ovl_verify_origin(dir, mnt, origin);
++	if (!err)
++		return 0;
++
++	if (err != -ENODATA)
++		goto fail;
++
++	fh = ovl_encode_fh(origin);
++	err = PTR_ERR(fh);
++	if (IS_ERR(fh))
++		goto fail;
++	err = ovl_do_setxattr(dir, OVL_XATTR_ORIGIN, fh, fh->len, 0);
++	if (err)
++		goto fail;
++
++out:
++	kfree(fh);
++	return err;
++
++fail:
++	pr_err("overlayfs: failed to verify %s dir. (err=%i)\n",
++	       name, err);
++	goto out;
++}
++
+ #define OVL_WORKDIR_NAME "work"
+ #define OVL_INDEXDIR_NAME "index"
+ 
+@@ -1030,6 +1065,13 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
+ 		ufs->same_sb = NULL;
+ 
+ 	if (!(ovl_force_readonly(ufs)) && ufs->config.index) {
++		/* Verify lower root is upper root origin */
++		err = ovl_verify_set_origin(upperpath.dentry,
++					    ufs->lower_mnt[0], stack[0].dentry,
++					    "lower root");
++		if (err)
++			goto out_put_lower_mnt;
++
+ 		ufs->indexdir = ovl_workdir_create(sb, ufs, workpath.dentry,
+ 						   OVL_INDEXDIR_NAME, true);
+ 		err = PTR_ERR(ufs->indexdir);
 -- 
 2.7.4
