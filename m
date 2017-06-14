@@ -1,198 +1,117 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH v3 09/23] ovl: cram dentry state booleans into type flags
-Date: Wed, 14 Jun 2017 10:26:28 +0300
-Message-ID: <1497425202-16270-10-git-send-email-amir73il@gmail.com>
+Subject: [PATCH v3 13/23] ovl: use ovl_inode_init() for initializing new inode
+Date: Wed, 14 Jun 2017 10:26:32 +0300
+Message-ID: <1497425202-16270-14-git-send-email-amir73il@gmail.com>
 References: <1497425202-16270-1-git-send-email-amir73il@gmail.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wr0-f193.google.com ([209.85.128.193]:36145 "EHLO
-        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754344AbdFNH0q (ORCPT
+Received: from mail-wr0-f195.google.com ([209.85.128.195]:36218 "EHLO
+        mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754397AbdFNH0u (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 14 Jun 2017 03:26:46 -0400
-Received: by mail-wr0-f193.google.com with SMTP id 77so6377248wrb.3
-        for <linux-unionfs@vger.kernel.org>; Wed, 14 Jun 2017 00:26:45 -0700 (PDT)
+        Wed, 14 Jun 2017 03:26:50 -0400
+Received: by mail-wr0-f195.google.com with SMTP id 77so6377795wrb.3
+        for <linux-unionfs@vger.kernel.org>; Wed, 14 Jun 2017 00:26:50 -0700 (PDT)
 In-Reply-To: <1497425202-16270-1-git-send-email-amir73il@gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: Miklos Szeredi <miklos@szeredi.hu>
 Cc: linux-unionfs@vger.kernel.org
 
-Like the other type flags, 'opaque' and 'impure' are states discovered in
-lookup, set on certain ops (e.g.: create, rename) and never cleared.
+In preparation for hashing all overlay inodes, modify the helper
+ovl_inode_init() to hash a new non-dir upper overlay inode.
 
-We would like to add more state info to ovl_entry soon (indexed) and
-and this state info would be added as type flags. It makes little sense
-to have the 'opaque' and 'impure' states occupy a boolean each, so store
-these states as type flags.
+Use this helper for initializing new upper inode in ovl_instantiate()
+instead of ovl_inode_update(), because the implementations for new inode
+case and copy up case are going to diverge.
+
+Also move ovl_copyattr() into ovl_inode_init() and ovl_inode_get(),
+so attributes will be copied only for new inode.
 
 Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- fs/overlayfs/namei.c     | 15 +++++++--------
- fs/overlayfs/overlayfs.h |  4 ++++
- fs/overlayfs/ovl_entry.h |  2 --
- fs/overlayfs/super.c     |  7 +++----
- fs/overlayfs/util.c      | 25 ++++++++++++++++---------
- 5 files changed, 30 insertions(+), 23 deletions(-)
+ fs/overlayfs/dir.c   |  3 +--
+ fs/overlayfs/inode.c |  1 +
+ fs/overlayfs/namei.c |  1 -
+ fs/overlayfs/util.c  | 11 ++++++++++-
+ 4 files changed, 12 insertions(+), 4 deletions(-)
 
-diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
-index 198dde797a53..402e52a98c1a 100644
---- a/fs/overlayfs/namei.c
-+++ b/fs/overlayfs/namei.c
-@@ -402,8 +402,7 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
- 	struct dentry *upperdir, *upperdentry = NULL;
- 	unsigned int ctr = 0;
- 	struct inode *inode = NULL;
--	bool upperopaque = false;
--	bool upperimpure = false;
-+	enum ovl_path_type type = 0;
- 	char *upperredirect = NULL;
- 	struct dentry *this;
- 	unsigned int i;
-@@ -457,9 +456,10 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
- 			if (d.redirect[0] == '/')
- 				poe = roe;
- 		}
--		upperopaque = d.opaque;
--		if (upperdentry && d.is_dir)
--			upperimpure = ovl_is_impuredir(upperdentry);
-+		if (d.opaque)
-+			type |= __OVL_PATH_OPAQUE;
-+		if (upperdentry && d.is_dir && ovl_is_impuredir(upperdentry))
-+			type |= __OVL_PATH_IMPURE;
+diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
+index a63a71656e9b..f87cef27741f 100644
+--- a/fs/overlayfs/dir.c
++++ b/fs/overlayfs/dir.c
+@@ -156,8 +156,7 @@ static void ovl_instantiate(struct dentry *dentry, struct inode *inode,
+ 	ovl_dentry_version_inc(dentry->d_parent);
+ 	ovl_dentry_update(dentry, newdentry);
+ 	if (!hardlink) {
+-		ovl_inode_update(inode, d_inode(newdentry));
+-		ovl_copyattr(newdentry->d_inode, inode);
++		ovl_inode_init(inode, d_inode(newdentry), true);
+ 	} else {
+ 		WARN_ON(ovl_inode_real(inode, NULL) != d_inode(newdentry));
+ 		inc_nlink(inode);
+diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
+index 49492b982726..6f0ec691d8d5 100644
+--- a/fs/overlayfs/inode.c
++++ b/fs/overlayfs/inode.c
+@@ -477,6 +477,7 @@ struct inode *ovl_get_inode(struct super_block *sb, struct inode *realinode)
+ 	if (inode && inode->i_state & I_NEW) {
+ 		ovl_fill_inode(inode, realinode->i_mode, realinode->i_rdev);
+ 		set_nlink(inode, realinode->i_nlink);
++		ovl_copyattr(realinode, inode);
+ 		unlock_new_inode(inode);
  	}
  
- 	if (!d.stop && poe->numlower) {
-@@ -527,8 +527,7 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
+diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
+index fe84e482d926..228b9eaa19f6 100644
+--- a/fs/overlayfs/namei.c
++++ b/fs/overlayfs/namei.c
+@@ -623,7 +623,6 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
+ 		}
+ 		if (!inode)
+ 			goto out_free_oe;
+-		ovl_copyattr(realdentry->d_inode, inode);
  	}
  
  	revert_creds(old_cred);
--	oe->opaque = upperopaque;
--	oe->impure = upperimpure;
-+	oe->__type = type;
- 	oe->redirect = upperredirect;
- 	oe->__upperdentry = upperdentry;
- 	memcpy(oe->lowerstack, stack, sizeof(struct path) * ctr);
-@@ -569,7 +568,7 @@ bool ovl_lower_positive(struct dentry *dentry)
- 	 * whiteout.
- 	 */
- 	if (!dentry->d_inode)
--		return oe->opaque;
-+		return OVL_TYPE_OPAQUE(oe->__type);
- 
- 	/* Negative upper -> positive lower */
- 	if (!oe->__upperdentry)
-diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-index 66ee4116f93b..c4bc1c3ea4e2 100644
---- a/fs/overlayfs/overlayfs.h
-+++ b/fs/overlayfs/overlayfs.h
-@@ -14,11 +14,15 @@ enum ovl_path_type {
- 	__OVL_PATH_UPPER	= (1 << 0),
- 	__OVL_PATH_MERGE	= (1 << 1),
- 	__OVL_PATH_ORIGIN	= (1 << 2),
-+	__OVL_PATH_OPAQUE	= (1 << 3),
-+	__OVL_PATH_IMPURE	= (1 << 4),
- };
- 
- #define OVL_TYPE_UPPER(type)	((type) & __OVL_PATH_UPPER)
- #define OVL_TYPE_MERGE(type)	((type) & __OVL_PATH_MERGE)
- #define OVL_TYPE_ORIGIN(type)	((type) & __OVL_PATH_ORIGIN)
-+#define OVL_TYPE_OPAQUE(type)	((type) & __OVL_PATH_OPAQUE)
-+#define OVL_TYPE_IMPURE(type)	((type) & __OVL_PATH_IMPURE)
- 
- #define OVL_XATTR_PREFIX XATTR_TRUSTED_PREFIX "overlay."
- #define OVL_XATTR_OPAQUE OVL_XATTR_PREFIX "opaque"
-diff --git a/fs/overlayfs/ovl_entry.h b/fs/overlayfs/ovl_entry.h
-index e94fa2638faf..6de8725cc38a 100644
---- a/fs/overlayfs/ovl_entry.h
-+++ b/fs/overlayfs/ovl_entry.h
-@@ -50,8 +50,6 @@ struct ovl_entry {
- 		struct {
- 			u64 version;
- 			const char *redirect;
--			bool opaque;
--			bool impure;
- 			bool copying;
- 		};
- 		struct rcu_head rcu;
-diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-index 7a41648ee285..13f2ed09c025 100644
---- a/fs/overlayfs/super.c
-+++ b/fs/overlayfs/super.c
-@@ -1129,10 +1129,9 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
- 	mntput(workpath.mnt);
- 	kfree(lowertmp);
- 
--	if (upperpath.dentry) {
--		oe->__upperdentry = upperpath.dentry;
--		oe->impure = ovl_is_impuredir(upperpath.dentry);
--	}
-+	oe->__upperdentry = upperpath.dentry;
-+	if (upperpath.dentry && ovl_is_impuredir(upperpath.dentry))
-+		oe->__type |= __OVL_PATH_IMPURE;
- 	for (i = 0; i < numlower; i++) {
- 		oe->lowerstack[i].dentry = stack[i].dentry;
- 		oe->lowerstack[i].mnt = ufs->lower_mnt[i];
 diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
-index 8e743c76aa03..9d2f3bb70e61 100644
+index 0ce6efd8f19d..9bbcfcb20ec4 100644
 --- a/fs/overlayfs/util.c
 +++ b/fs/overlayfs/util.c
-@@ -199,15 +199,12 @@ void ovl_set_dir_cache(struct dentry *dentry, struct ovl_dir_cache *cache)
- 
- bool ovl_dentry_is_opaque(struct dentry *dentry)
- {
--	struct ovl_entry *oe = dentry->d_fsdata;
--	return oe->opaque;
-+	return OVL_TYPE_OPAQUE(ovl_path_type(dentry));
+@@ -267,6 +267,12 @@ void ovl_dentry_update(struct dentry *dentry, struct dentry *upperdentry)
+ 	ovl_update_type(dentry, d_is_dir(dentry));
  }
  
- bool ovl_dentry_is_impure(struct dentry *dentry)
- {
--	struct ovl_entry *oe = dentry->d_fsdata;
--
--	return oe->impure;
-+	return OVL_TYPE_IMPURE(ovl_path_type(dentry));
- }
- 
- bool ovl_dentry_is_whiteout(struct dentry *dentry)
-@@ -219,7 +216,18 @@ void ovl_dentry_set_opaque(struct dentry *dentry)
- {
- 	struct ovl_entry *oe = dentry->d_fsdata;
- 
--	oe->opaque = true;
-+	spin_lock(&dentry->d_lock);
-+	oe->__type |= __OVL_PATH_OPAQUE;
-+	spin_unlock(&dentry->d_lock);
++static void ovl_insert_inode_hash(struct inode *inode, struct inode *realinode)
++{
++	WARN_ON(!inode_unhashed(inode));
++	__insert_inode_hash(inode, (unsigned long) realinode);
 +}
 +
-+static void ovl_dentry_set_impure(struct dentry *dentry)
-+{
-+	struct ovl_entry *oe = dentry->d_fsdata;
-+
-+	spin_lock(&dentry->d_lock);
-+	oe->__type |= __OVL_PATH_IMPURE;
-+	spin_unlock(&dentry->d_lock);
- }
- 
- bool ovl_redirect_dir(struct super_block *sb)
-@@ -372,9 +380,8 @@ int ovl_check_setxattr(struct dentry *dentry, struct dentry *upperdentry,
- int ovl_set_impure(struct dentry *dentry, struct dentry *upperdentry)
+ void ovl_inode_init(struct inode *inode, struct inode *realinode, bool is_upper)
  {
- 	int err;
--	struct ovl_entry *oe = dentry->d_fsdata;
- 
--	if (oe->impure)
-+	if (ovl_dentry_is_impure(dentry))
- 		return 0;
- 
- 	/*
-@@ -384,7 +391,7 @@ int ovl_set_impure(struct dentry *dentry, struct dentry *upperdentry)
- 	err = ovl_check_setxattr(dentry, upperdentry, OVL_XATTR_IMPURE,
- 				 "y", 1, 0);
- 	if (!err)
--		oe->impure = true;
-+		ovl_dentry_set_impure(dentry);
- 
- 	return err;
+ 	struct ovl_inode_info *oi = OVL_I_INFO(inode);
+@@ -274,10 +280,13 @@ void ovl_inode_init(struct inode *inode, struct inode *realinode, bool is_upper)
+ 	if (is_upper) {
+ 		oi->__upperinode = realinode;
+ 		oi->lowerinode = NULL;
++		if (!S_ISDIR(realinode->i_mode))
++			ovl_insert_inode_hash(inode, realinode);
+ 	} else {
+ 		oi->__upperinode = NULL;
+ 		oi->lowerinode = realinode;
+ 	}
++	ovl_copyattr(realinode, inode);
  }
+ 
+ struct inode *ovl_inode_real(struct inode *inode, bool *is_upper)
+@@ -300,7 +309,7 @@ void ovl_inode_update(struct inode *inode, struct inode *upperinode)
+ 	WARN_ON(!inode_unhashed(inode));
+ 	WRITE_ONCE(OVL_I_INFO(inode)->__upperinode, upperinode);
+ 	if (!S_ISDIR(upperinode->i_mode))
+-		__insert_inode_hash(inode, (unsigned long) upperinode);
++		ovl_insert_inode_hash(inode, upperinode);
+ }
+ 
+ void ovl_dentry_version_inc(struct dentry *dentry)
 -- 
 2.7.4
