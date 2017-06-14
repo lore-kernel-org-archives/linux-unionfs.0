@@ -1,137 +1,68 @@
-From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH v3 21/23] ovl: link up indexed lower hardlink on lookup
-Date: Wed, 14 Jun 2017 10:26:40 +0300
-Message-ID: <1497425202-16270-22-git-send-email-amir73il@gmail.com>
+From: Miklos Szeredi <miklos@szeredi.hu>
+Subject: Re: [PATCH v3 00/23] Overlayfs inodes index
+Date: Wed, 14 Jun 2017 09:30:56 +0200
+Message-ID: <CAJfpegsjdep+s8WsL30M0rQU7=in_JyX1Bka2=3ELxgk=S3rZA@mail.gmail.com>
 References: <1497425202-16270-1-git-send-email-amir73il@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wr0-f194.google.com ([209.85.128.194]:33039 "EHLO
-        mail-wr0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754431AbdFNH1B (ORCPT
+Received: from mail-oi0-f65.google.com ([209.85.218.65]:34608 "EHLO
+        mail-oi0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750828AbdFNHa5 (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 14 Jun 2017 03:27:01 -0400
-Received: by mail-wr0-f194.google.com with SMTP id v104so36665293wrb.0
-        for <linux-unionfs@vger.kernel.org>; Wed, 14 Jun 2017 00:27:00 -0700 (PDT)
+        Wed, 14 Jun 2017 03:30:57 -0400
+Received: by mail-oi0-f65.google.com with SMTP id d99so13327777oic.1
+        for <linux-unionfs@vger.kernel.org>; Wed, 14 Jun 2017 00:30:57 -0700 (PDT)
 In-Reply-To: <1497425202-16270-1-git-send-email-amir73il@gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: linux-unionfs@vger.kernel.org
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>, linux-fsdevel@vger.kernel.org
 
-With inodes index feature, all lower and upper hardlinks point to
-the same overlay inode. However, when a lower hardlink is accessed
-for read operation, the real inode operated on is not the same inode
-as the real inode for read operation on an upper hardlink.
+On Wed, Jun 14, 2017 at 9:26 AM, Amir Goldstein <amir73il@gmail.com> wrote:
+> Miklos,
+>
+> I've made all the changes we discussed on v2 review and now all
+> upper/lower hardlinks are consistent. Note that I chose to invalidate
+> lower indexed dentries instead of updating all aliases on first copy up
+> (patch 21). That seemed simpler to me. Please let me know if you see any
+> culprit with that approach.
 
-When lookup finds a lower hardlink, which is already indexed by
-an earlier upper hardlink copy up, call ovl_copy_up() to link the
-indexed upper on top of the lower hardlink and then operate on the
-upper real inode to avoid this inconsistency.
+If the alias is open, it won't receive the st_ino updates through
+fstat(2) since it will still have the ref to the old dentry/old inode.
+So it's more correct to update the aliases, but I guess it's also more
+complex.
 
-Invalidate a lower indexed dentry on dcache lookup, so ovl_lookup()
-is called to perform the index link up.
 
-The following test demonstrates the upper/lower hardlinks inconsistency:
+> I also re-introduced ovl_update_type()
+> (patch 8) for easier and more compact storing of the INDEX type flag.
+>
+> The remaining work on persistent nlink accounting and orphan index
+> cleanup is left for a differnt posting. Without that complementary work,
+> the index entries will remain forever. I am not aware of any other
+> culprit or correctness issues that may arrise from lack of index cleanup.
+>
+> This work introduces the inodes index opt-in feature, which provides:
+> - Hardlinks are not broken on copy up
+> - Infrastructure for overlayfs NFS export
+>
+> The work is available on my ovl-hardlinks branch [1].
+> For the curious, documentation about how overlay NFS export would work
+> with the inodes index is available in the linked commit [2].
+>
+> The most significant change w.r.t. vfs is that with inodes index,
+> overlay inodes are hashed and unique throughout the lifecycle of an
+> overlay object (i.e. across copy up). This is required for not breaking
+> hardlinks on copy up.
+>
+> Hardlink copy up tests including coverage for concurrent copy up of
+> lower hardlinks and lower/upper hardlinks consistency are available on
+> my xfstests dev branch [3].
+>
+> This work also fixes constant st_ino for samefs case for lower hardlinks,
+> so the few constant st_ino tests that fail on v4.12-rc1 due to copy up of
+> lower hardlinks now pass [3][4].
 
-$ echo -n a > /lower/foo
-$ ln /lower/foo /lower/bar
-$ cd /mnt
-$ echo -n b >> foo
-$ tail foo bar # foo is indexed upper, bar is indexed lower
-==> foo <==
-ab
-==> bar <==
-a
+Thanks, will have a look though.
 
-$ echo -n c >> bar
-$ tail foo bar # both aliases are indexed upper
-==> foo <==
-abc
-==> bar <==
-abc
-
-Signed-off-by: Amir Goldstein <amir73il@gmail.com>
----
- fs/overlayfs/namei.c | 11 ++++++++++-
- fs/overlayfs/super.c | 32 +++++++++++++++++++++++++++-----
- 2 files changed, 37 insertions(+), 6 deletions(-)
-
-diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
-index 193177883dc7..2f4c02355060 100644
---- a/fs/overlayfs/namei.c
-+++ b/fs/overlayfs/namei.c
-@@ -654,13 +654,22 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
- 	oe->redirect = upperredirect;
- 	oe->__upperdentry = upperdentry;
- 	memcpy(oe->lowerstack, stack, sizeof(struct path) * ctr);
--	dput(index);
- 	kfree(stack);
- 	kfree(d.redirect);
- 	dentry->d_fsdata = oe;
- 	ovl_update_type(dentry, d.is_dir);
- 	d_add(dentry, inode);
- 
-+	/* Link up indexed lower early for consistent overlay hardlinks */
-+	if (OVL_TYPE_INDEX(type) && !upperdentry) {
-+		err = ovl_copy_up(dentry);
-+		if (err) {
-+			pr_warn_ratelimited("overlayfs: failed link up to index (%pd2, index=%pd2, err=%i)\n",
-+					    dentry, index, err);
-+		}
-+	}
-+	dput(index);
-+
- 	return NULL;
- 
- out_free_oe:
-diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-index 0f36a09df34c..82b036ee9e52 100644
---- a/fs/overlayfs/super.c
-+++ b/fs/overlayfs/super.c
-@@ -117,6 +117,33 @@ static struct dentry *ovl_d_real(struct dentry *dentry,
- 	return dentry;
- }
- 
-+static int ovl_dentry_indexed_revalidate(struct dentry *dentry,
-+					 unsigned int flags)
-+{
-+	enum ovl_path_type type = ovl_path_type(dentry);
-+	bool is_upper;
-+
-+	if (d_is_dir(dentry) || d_is_negative(dentry))
-+		return 1;
-+
-+	/*
-+	 * Invalidate lower hardlink after it has been indexed by copy up
-+	 * of another lower alias. ovl_lookup will trigger copy up of this
-+	 * path and link the upper path to the upper index inode.
-+	 */
-+	ovl_inode_real(d_inode(dentry), &is_upper);
-+	if (is_upper && !OVL_TYPE_UPPER(type))
-+		return 0;
-+
-+	return 1;
-+}
-+
-+static const struct dentry_operations ovl_dentry_operations = {
-+	.d_release = ovl_dentry_release,
-+	.d_real = ovl_d_real,
-+	.d_revalidate = ovl_dentry_indexed_revalidate,
-+};
-+
- static int ovl_dentry_revalidate(struct dentry *dentry, unsigned int flags)
- {
- 	struct ovl_entry *oe = dentry->d_fsdata;
-@@ -158,11 +185,6 @@ static int ovl_dentry_weak_revalidate(struct dentry *dentry, unsigned int flags)
- 	return ret;
- }
- 
--static const struct dentry_operations ovl_dentry_operations = {
--	.d_release = ovl_dentry_release,
--	.d_real = ovl_d_real,
--};
--
- static const struct dentry_operations ovl_reval_dentry_operations = {
- 	.d_release = ovl_dentry_release,
- 	.d_real = ovl_d_real,
--- 
-2.7.4
+Miklos
