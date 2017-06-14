@@ -1,48 +1,53 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [PATCH v3 00/23] Overlayfs inodes index
-Date: Wed, 14 Jun 2017 10:48:29 +0300
-Message-ID: <CAOQ4uxh29R0KQPOeUE-AMJ7vEq80Jp-FHAL-28836U5BQTzgdw@mail.gmail.com>
-References: <1497425202-16270-1-git-send-email-amir73il@gmail.com> <CAJfpegsjdep+s8WsL30M0rQU7=in_JyX1Bka2=3ELxgk=S3rZA@mail.gmail.com>
+Subject: Re: [PATCH v3 12/23] ovl: store upper/lower real inode in ovl_inode_info
+Date: Wed, 14 Jun 2017 14:00:24 +0300
+Message-ID: <CAOQ4uxjn9KQuqrWC6QHRfKXUXqfs75wwijUQWK6QxUv=4yHBKA@mail.gmail.com>
+References: <1497425202-16270-1-git-send-email-amir73il@gmail.com> <1497425202-16270-13-git-send-email-amir73il@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-oi0-f67.google.com ([209.85.218.67]:35653 "EHLO
-        mail-oi0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750757AbdFNHsb (ORCPT
+Received: from mail-oi0-f66.google.com ([209.85.218.66]:34929 "EHLO
+        mail-oi0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751863AbdFNLAZ (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 14 Jun 2017 03:48:31 -0400
-In-Reply-To: <CAJfpegsjdep+s8WsL30M0rQU7=in_JyX1Bka2=3ELxgk=S3rZA@mail.gmail.com>
+        Wed, 14 Jun 2017 07:00:25 -0400
+Received: by mail-oi0-f66.google.com with SMTP id v74so13628407oie.2
+        for <linux-unionfs@vger.kernel.org>; Wed, 14 Jun 2017 04:00:25 -0700 (PDT)
+In-Reply-To: <1497425202-16270-13-git-send-email-amir73il@gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>
+Cc: overlayfs <linux-unionfs@vger.kernel.org>
 
-On Wed, Jun 14, 2017 at 10:30 AM, Miklos Szeredi <miklos@szeredi.hu> wrote:
-> On Wed, Jun 14, 2017 at 9:26 AM, Amir Goldstein <amir73il@gmail.com> wrote:
->> Miklos,
->>
->> I've made all the changes we discussed on v2 review and now all
->> upper/lower hardlinks are consistent. Note that I chose to invalidate
->> lower indexed dentries instead of updating all aliases on first copy up
->> (patch 21). That seemed simpler to me. Please let me know if you see any
->> culprit with that approach.
+On Wed, Jun 14, 2017 at 10:26 AM, Amir Goldstein <amir73il@gmail.com> wrote:
+> Introduce ovl_inode_info struct that is embedded in ovl_inode
+> and contains a reference to lowerinode and/or upperinode.
 >
-> If the alias is open, it won't receive the st_ino updates through
-> fstat(2) since it will still have the ref to the old dentry/old inode.
-> So it's more correct to update the aliases, but I guess it's also more
-> complex.
+> Storing the upper/lower real inode in ovl_inode_info replaces
+> the method of storing realinode & ISUPPER flag in vfs inode
+> i_private field.
 >
+> This will be used for hashing overlay inodes before copy up.
+>
+> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+> ---
 
-fstat(2) and st_ino are not a problem, because st_ino of lower is returned
-both before and after link up. The issue is with other attributes like mtime.
-However, if the alias is open, then read(2) will read the lower content, so you
-may as well say that returning the lower mtime is a feature...
+> +struct inode *ovl_inode_real(struct inode *inode, bool *is_upper)
+> +{
+> +       struct ovl_inode_info *oi = OVL_I_INFO(inode);
+> +       struct inode *realinode;
+> +
+> +       realinode = READ_ONCE(oi->__upperinode);
+> +       if (!realinode)
+> +               realinode = oi->lowerinode;
+> +       else if (is_upper)
+> +               *is_upper = true;
 
-My main concern for indexed lower inconsistency was that ovl_inode_real()
-may be upper, while ovl_dentry_real() is lower, especially when checking
-overlay object access permissions.
-The only places I found where this inconsistency might be exposed are
-ovl_get_acl() and ovl_permission() and both those cases are relevant for
-lookup and not for the "open alias" case. Right?
+oops, bug, not setting false (caught by ./run --ov rmdir):
+        if (is_upper)
+                *is_upper = !realinode;
 
-Amir.
+> +
+> +       return realinode;
+>  }
+>
