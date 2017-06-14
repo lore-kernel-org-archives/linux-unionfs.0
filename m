@@ -1,152 +1,179 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH v3 11/23] ovl: allocate an ovl_inode struct
-Date: Wed, 14 Jun 2017 10:26:30 +0300
-Message-ID: <1497425202-16270-12-git-send-email-amir73il@gmail.com>
+Subject: [PATCH v3 18/23] ovl: generalize ovl_copy_up_one() using actors
+Date: Wed, 14 Jun 2017 10:26:37 +0300
+Message-ID: <1497425202-16270-19-git-send-email-amir73il@gmail.com>
 References: <1497425202-16270-1-git-send-email-amir73il@gmail.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wr0-f193.google.com ([209.85.128.193]:36190 "EHLO
-        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754357AbdFNH0s (ORCPT
+Received: from mail-wr0-f195.google.com ([209.85.128.195]:32980 "EHLO
+        mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754315AbdFNH04 (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 14 Jun 2017 03:26:48 -0400
-Received: by mail-wr0-f193.google.com with SMTP id 77so6377585wrb.3
-        for <linux-unionfs@vger.kernel.org>; Wed, 14 Jun 2017 00:26:47 -0700 (PDT)
+        Wed, 14 Jun 2017 03:26:56 -0400
+Received: by mail-wr0-f195.google.com with SMTP id v104so36664855wrb.0
+        for <linux-unionfs@vger.kernel.org>; Wed, 14 Jun 2017 00:26:55 -0700 (PDT)
 In-Reply-To: <1497425202-16270-1-git-send-email-amir73il@gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: Miklos Szeredi <miklos@szeredi.hu>
 Cc: linux-unionfs@vger.kernel.org
 
-We need some more space to store overlay inode data in memory,
-so allocate overlay inodes from a slab of struct ovl_inode.
+ovl_copy_up_one() is implementing two different locking methods
+for regular files and non-regular files.
 
-The ovl_inode struct includes a mutex that is going to be used
-for synchronizing copy up of lower hardlinks.
+Implement the actors aquire,release for the 'workdir' and 'tmpfile'
+copy up methods and use them to generalize locking in ovl_copy_up_one().
 
 Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- fs/overlayfs/ovl_entry.h | 12 ++++++++++
- fs/overlayfs/super.c     | 62 ++++++++++++++++++++++++++++++++++++++++++++++--
- 2 files changed, 72 insertions(+), 2 deletions(-)
+ fs/overlayfs/copy_up.c | 81 ++++++++++++++++++++++++++++++++++----------------
+ 1 file changed, 56 insertions(+), 25 deletions(-)
 
-diff --git a/fs/overlayfs/ovl_entry.h b/fs/overlayfs/ovl_entry.h
-index 6de8725cc38a..6c36fa70abe4 100644
---- a/fs/overlayfs/ovl_entry.h
-+++ b/fs/overlayfs/ovl_entry.h
-@@ -65,3 +65,15 @@ static inline struct dentry *ovl_upperdentry_dereference(struct ovl_entry *oe)
- {
- 	return lockless_dereference(oe->__upperdentry);
- }
-+
-+struct ovl_inode {
-+	/* keep this first */
-+	struct inode vfs_inode;
-+	/* synchronize copy up and more */
-+	struct mutex oi_lock;
-+};
-+
-+static inline struct ovl_inode *OVL_I(struct inode *inode)
-+{
-+	return (struct ovl_inode *) inode;
-+}
-diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-index 13f2ed09c025..3fe635d01cc6 100644
---- a/fs/overlayfs/super.c
-+++ b/fs/overlayfs/super.c
-@@ -170,6 +170,34 @@ static const struct dentry_operations ovl_reval_dentry_operations = {
- 	.d_weak_revalidate = ovl_dentry_weak_revalidate,
+diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
+index 39e982acc6c3..452560a17d7e 100644
+--- a/fs/overlayfs/copy_up.c
++++ b/fs/overlayfs/copy_up.c
+@@ -368,15 +368,38 @@ struct ovl_copy_up_ctx {
  };
  
-+static struct kmem_cache *ovl_inode_cachep;
-+
-+static struct inode *ovl_alloc_inode(struct super_block *sb)
-+{
-+	struct inode *inode;
-+
-+	inode = kmem_cache_alloc(ovl_inode_cachep, GFP_KERNEL);
-+	if (!inode)
-+		return NULL;
-+
-+	mutex_init(&OVL_I(inode)->oi_lock);
-+
-+	return inode;
-+}
-+
-+static void ovl_i_callback(struct rcu_head *head)
-+{
-+	struct inode *inode = container_of(head, struct inode, i_rcu);
-+
-+	kmem_cache_free(ovl_inode_cachep, inode);
-+}
-+
-+static void ovl_destroy_inode(struct inode *inode)
-+{
-+	mutex_destroy(&OVL_I(inode)->oi_lock);
-+	call_rcu(&inode->i_rcu, ovl_i_callback);
-+}
-+
- /* Get exclusive ownership on upper/work dir among overlay mounts */
- static bool ovl_dir_lock(struct dentry *dentry)
- {
-@@ -294,12 +322,14 @@ static int ovl_remount(struct super_block *sb, int *flags, char *data)
- }
- 
- static const struct super_operations ovl_super_operations = {
-+	.alloc_inode	= ovl_alloc_inode,
-+	.destroy_inode	= ovl_destroy_inode,
-+	.drop_inode	= generic_delete_inode,
- 	.put_super	= ovl_put_super,
- 	.sync_fs	= ovl_sync_fs,
- 	.statfs		= ovl_statfs,
- 	.show_options	= ovl_show_options,
- 	.remount_fs	= ovl_remount,
--	.drop_inode	= generic_delete_inode,
+ struct ovl_copy_up_ops {
++	int (*aquire)(struct ovl_copy_up_ctx *);
+ 	int (*prepare)(struct ovl_copy_up_ctx *);
+ 	int (*commit)(struct ovl_copy_up_ctx *);
+ 	void (*cancel)(struct ovl_copy_up_ctx *);
++	void (*release)(struct ovl_copy_up_ctx *);
  };
  
- enum {
-@@ -1200,14 +1230,42 @@ static struct file_system_type ovl_fs_type = {
- };
- MODULE_ALIAS_FS("overlay");
- 
-+static void ovl_inode_init_once(void *foo)
+ /*
+  * Copy up operations using workdir.
+  * Upper file is created in workdir, copied and moved to upperdir.
+  */
++static int ovl_copy_up_workdir_aquire(struct ovl_copy_up_ctx *ctx)
 +{
-+	struct inode *inode = foo;
++	int err = -EIO;
 +
-+	inode_init_once(inode);
-+}
++	if (lock_rename(ctx->tempdir, ctx->upperdir) != NULL) {
++		pr_err("overlayfs: failed to lock workdir+upperdir\n");
++		goto out_unlock;
++	}
++	if (ovl_dentry_upper(ctx->dentry)) {
++		/* Raced with another copy-up? */
++		err = 1;
++		goto out_unlock;
++	}
 +
- static int __init ovl_init(void)
- {
--	return register_filesystem(&ovl_fs_type);
-+	int err;
++	return 0;
 +
-+	ovl_inode_cachep = kmem_cache_create("ovl_inode",
-+					     sizeof(struct ovl_inode), 0,
-+					     SLAB_HWCACHE_ALIGN|SLAB_ACCOUNT,
-+					     ovl_inode_init_once);
-+	if (ovl_inode_cachep == NULL)
-+		return -ENOMEM;
-+
-+	err = register_filesystem(&ovl_fs_type);
-+	if (err)
-+		kmem_cache_destroy(ovl_inode_cachep);
-+
++out_unlock:
++	unlock_rename(ctx->tempdir, ctx->upperdir);
 +	return err;
- }
- 
- static void __exit ovl_exit(void)
++}
++
+ static int ovl_copy_up_workdir_prepare(struct ovl_copy_up_ctx *ctx)
  {
- 	unregister_filesystem(&ovl_fs_type);
-+
-+	/*
-+	 * Make sure all delayed rcu free inodes are flushed before we
-+	 * destroy cache.
-+	 */
-+	rcu_barrier();
-+	kmem_cache_destroy(ovl_inode_cachep);
-+
+ 	struct dentry *upper = NULL;
+@@ -441,16 +464,28 @@ static void ovl_copy_up_workdir_cancel(struct ovl_copy_up_ctx *ctx)
+ 	ovl_cleanup(d_inode(ctx->tempdir), ctx->temp);
  }
  
- module_init(ovl_init);
++static void ovl_copy_up_workdir_release(struct ovl_copy_up_ctx *ctx)
++{
++	unlock_rename(ctx->tempdir, ctx->upperdir);
++}
++
+ static const struct ovl_copy_up_ops ovl_copy_up_workdir_ops = {
++	.aquire = ovl_copy_up_workdir_aquire,
+ 	.prepare = ovl_copy_up_workdir_prepare,
+ 	.commit = ovl_copy_up_workdir_commit,
+ 	.cancel = ovl_copy_up_workdir_cancel,
++	.release = ovl_copy_up_workdir_release,
+ };
+ 
+ /*
+  * Copy up operations using O_TMPFILE.
+  * Upper file is created unlinked, copied and linked to upperdir.
+  */
++static int ovl_copy_up_tmpfile_aquire(struct ovl_copy_up_ctx *ctx)
++{
++	return ovl_copy_up_start(ctx->dentry);
++}
++
+ static int ovl_copy_up_tmpfile_prepare(struct ovl_copy_up_ctx *ctx)
+ {
+ 	struct dentry *upper;
+@@ -489,10 +524,17 @@ static int ovl_copy_up_tmpfile_commit(struct ovl_copy_up_ctx *ctx)
+ 
+ static void ovl_copy_up_tmpfile_cancel(struct ovl_copy_up_ctx *ctx) { }
+ 
++static void ovl_copy_up_tmpfile_release(struct ovl_copy_up_ctx *ctx)
++{
++	ovl_copy_up_end(ctx->dentry);
++}
++
+ static const struct ovl_copy_up_ops ovl_copy_up_tmpfile_ops = {
++	.aquire = ovl_copy_up_tmpfile_aquire,
+ 	.prepare = ovl_copy_up_tmpfile_prepare,
+ 	.commit = ovl_copy_up_tmpfile_commit,
+ 	.cancel = ovl_copy_up_tmpfile_cancel,
++	.release = ovl_copy_up_tmpfile_release,
+ };
+ 
+ static int ovl_copy_up_locked(struct ovl_copy_up_ctx *ctx,
+@@ -569,6 +611,7 @@ static int ovl_copy_up_one(struct dentry *parent, struct dentry *dentry,
+ 		.link = NULL,
+ 		.tempdir = ovl_workdir(dentry),
+ 	};
++	const struct ovl_copy_up_ops *ops;
+ 
+ 	if (WARN_ON(!ctx.tempdir))
+ 		return -EROFS;
+@@ -595,35 +638,23 @@ static int ovl_copy_up_one(struct dentry *parent, struct dentry *dentry,
+ 	}
+ 
+ 	/* Should we copyup with O_TMPFILE or with workdir? */
+-	if (S_ISREG(stat->mode) && ofs->tmpfile) {
+-		err = ovl_copy_up_start(dentry);
+-		/* err < 0: interrupted, err > 0: raced with another copy-up */
+-		if (unlikely(err)) {
+-			pr_debug("ovl_copy_up_start(%pd2) = %i\n", dentry, err);
+-			if (err > 0)
+-				err = 0;
+-			goto out_done;
+-		}
+-
+-		err = ovl_copy_up_locked(&ctx, &ovl_copy_up_tmpfile_ops);
+-		ovl_copy_up_end(dentry);
++	if (S_ISREG(stat->mode) && ofs->tmpfile)
++		ops = &ovl_copy_up_tmpfile_ops;
++	else
++		ops = &ovl_copy_up_workdir_ops;
++
++	err = ops->aquire(&ctx);
++	/* err < 0: interrupted, err > 0: raced with another copy-up */
++	if (unlikely(err)) {
++		pr_debug("%s(%pd2): aquire = %i\n", __func__, dentry, err);
++		if (err > 0)
++			err = 0;
+ 		goto out_done;
+ 	}
+ 
+-	err = -EIO;
+-	if (lock_rename(ctx.tempdir, ctx.upperdir) != NULL) {
+-		pr_err("overlayfs: failed to lock workdir+upperdir\n");
+-		goto out_unlock;
+-	}
+-	if (ovl_dentry_upper(dentry)) {
+-		/* Raced with another copy-up?  Nothing to do, then... */
+-		err = 0;
+-		goto out_unlock;
+-	}
++	err = ovl_copy_up_locked(&ctx, ops);
++	ops->release(&ctx);
+ 
+-	err = ovl_copy_up_locked(&ctx, &ovl_copy_up_workdir_ops);
+-out_unlock:
+-	unlock_rename(ctx.tempdir, ctx.upperdir);
+ out_done:
+ 	do_delayed_call(&done);
+ 
 -- 
 2.7.4
