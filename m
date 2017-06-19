@@ -1,69 +1,128 @@
 From: Miklos Szeredi <miklos@szeredi.hu>
-Subject: Re: [RFC PATCH V2] ovl:fix rmdir problem on impure dir
-Date: Mon, 19 Jun 2017 13:44:04 +0200
-Message-ID: <CAJfpegugA+M1sYOpLHKzAQU3qR901Nn3g5MEqSqdNjGLOctStw@mail.gmail.com>
-References: <1497844832-24767-1-git-send-email-yi.zhang@huawei.com>
- <CAJfpegvMjzLuP5YaTXaXTmVeFW7xEMRNOk_5nUoaSR=zRtS9MA@mail.gmail.com>
- <CAOQ4uximW7=COjJPvLbCmE93UZ-ZYNdkEuFji-xXwHfSkjqqaw@mail.gmail.com> <14574573-a05e-8045-93d4-e27ec5430c14@huawei.com>
+Subject: Re: persistent overlay inode nlink
+Date: Mon, 19 Jun 2017 14:03:00 +0200
+Message-ID: <CAJfpegs6ak=Fq44opyU-DXSAY1CuXfz2mYQHKyucQBPQkTWbRw@mail.gmail.com>
+References: <CAOQ4uxivUZ=SNXNgdVRxCmfrjkEu-1qVB1owxtwzsbqPnTA_3A@mail.gmail.com>
+ <CAJfpegv0UJ4H=064nc5Gy_ii_NF_ymxVHRwNdRbWQSik+dD3qw@mail.gmail.com> <CAOQ4uxiEAXL=ZC=SP7U64my2JUije3MncxJ5uq6JVyUsN9QdnQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-ot0-f172.google.com ([74.125.82.172]:36354 "EHLO
-        mail-ot0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754021AbdFSLoG (ORCPT
+Received: from mail-ot0-f170.google.com ([74.125.82.170]:34424 "EHLO
+        mail-ot0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750926AbdFSMDC (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 19 Jun 2017 07:44:06 -0400
-Received: by mail-ot0-f172.google.com with SMTP id s7so65973261otb.3
-        for <linux-unionfs@vger.kernel.org>; Mon, 19 Jun 2017 04:44:05 -0700 (PDT)
-In-Reply-To: <14574573-a05e-8045-93d4-e27ec5430c14@huawei.com>
+        Mon, 19 Jun 2017 08:03:02 -0400
+Received: by mail-ot0-f170.google.com with SMTP id r67so66294530ota.1
+        for <linux-unionfs@vger.kernel.org>; Mon, 19 Jun 2017 05:03:01 -0700 (PDT)
+In-Reply-To: <CAOQ4uxiEAXL=ZC=SP7U64my2JUije3MncxJ5uq6JVyUsN9QdnQ@mail.gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: "zhangyi (F)" <yi.zhang@huawei.com>
-Cc: Amir Goldstein <amir73il@gmail.com>, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>, Eryu Guan <eguan@redhat.com>, miaoxie@huawei.com
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>
 
-On Mon, Jun 19, 2017 at 1:19 PM, zhangyi (F) <yi.zhang@huawei.com> wrote:
-> On 2017/6/19 16:28, Amir Goldstein wrote:
->> On Mon, Jun 19, 2017 at 10:59 AM, Miklos Szeredi <miklos@szeredi.hu> wrote:
->>> On Mon, Jun 19, 2017 at 6:00 AM, zhangyi (F) <yi.zhang@huawei.com> wrote:
->>>
->>> I still don't like adding the impure flag because of a whiteout.
->>> Impure dir means it contains a copied up object.  In fact a valid (but
->>> probably not worthwhile) optimizition would be to remove the impure
->>> flag on removal of the last copied up object.
->>>
->>> What's wrong with testing for (origin || merge) to see if we need to
->>> check for whiteouts?
->>>
+On Mon, Jun 19, 2017 at 12:12 PM, Amir Goldstein <amir73il@gmail.com> wrote:
+> On Mon, Jun 19, 2017 at 12:06 PM, Miklos Szeredi <miklos@szeredi.hu> wrote:
+>> On Mon, Jun 19, 2017 at 10:45 AM, Amir Goldstein <amir73il@gmail.com> wrote:
+>>> On Sat, Jun 10, 2017 at 1:56 AM, Amir Goldstein <amir73il@gmail.com> wrote:
+>>>> On Fri, Jun 9, 2017 at 4:14 PM, Miklos Szeredi <miklos@szeredi.hu> wrote:
+>>>>> On Fri, Jun 9, 2017 at 1:49 PM, Miklos Szeredi <miklos@szeredi.hu> wrote:
+>>>>>> On Fri, Jun 9, 2017 at 11:38 AM, Amir Goldstein <amir73il@gmail.com> wrote:
+>>>>>
+>>>>>> The challenge is in accounting the number of link-ups atomically with
+>>>>>> the link-up itself.  No ideas off-hand.
+>>>>>
+>>>>> Following would work I think:
+>>>>>
+>>>>> - copy up to indexdir (it now has st_nlink == 1)
+>>>>> - set overlay.nlinkup to "1-2"
+>>>>>   + the first number indicates the target number of linkups
+>>>>>   + the second indicates the target st_nlink on the file
+>>>>> - fsync the file (hopefully this writes the xattrs as well as the data)
+>>>>> - link the file from indexdir to upper
+>>>>> - set overlay.nlinkup to "1"
+>>>>>    + this indicates that the linkup was finished and number of linkups is 1.
+>>>>>
+>>>>
+>>>> Or like this:
+>>>>
+>>>> struct ovl_nlink_adjust {
+>>>>   int nlink_diff;
+>>>>   bool from_lower;
+>>>> }
+>>>>
+>>>> Init overlay inode:
+>>>> overlay_nlink := (from_lower ? lower_nlink : upper_nlink) + nlink_diff
+>>>>
+>>>> Copy/link up:
+>>>> - take ovl_inode lock
+>>>> - set overlay.nlink { (overlay_nlink - lower_link), true }
+>>>> - link index (won't change diff from lower inode nlink on fail/success)
+>>>>
+>>>> Unlink/link/rename:
+>>>> - take ovl_inode lock
+>>>> - set overlay.nlink { (overlay_nlink - upper_nlink), false }
+>>>> - unlink/link/rename (won't change diff from upper nlink on fail/success)
 >>
->> Fine by me.
->>
->> Yi,
->>
->> Please note that you cannot use the test OVL_TYPE_ORIGIN(type)
->> in ovl_dir_is_real(), because that flag is only set when the lower
->> dentry is found by lookup. Instead, you should explicitly check for
->> existence of OVL_XATTR_ORIGIN.
->> Note that even ovl_get_origin_fh() is too strict, because it discards
->> empty (unkown) origin, but for your use case, unknown origin is also
->> candidate to contain whiteouts.
+>> What I don't like about this is how it ends up in different states
+>> depending on the last operation.  How about moving "set overlay.nlink
+>> { (overlay_nlink - upper_nlink), false }" into the link-up region as
+>> well?
 >>
 >
-> I realize that impure flag is not quite suitable. If we use (origin || merge)
-> to see whether we need to check whiteouts or not, I think we still have a
-> problem.
+> Sure. that's not a problem.
+> But then I have 2 options in case get_inode finds diff from lower:
+> - either set it right a way to diff from upper
+> - or let the next copyup/nlink operation store the consistent state
 >
-> Thought: In my current test case, testdir was copyuped when we delete
-> the test file, so it have OVL_XATTR_ORIGIN (it's OK), but if the testdir
-> is a merged dir originally, it will not be copied up and the OVL_XATTR_ORIGIN
-> will not be set.
+> I guess you prefer the former?
 >
-> So, if we want to use (origin || merge), we have to set OVL_XATTR_ORIGIN for
-> the merged parent dir when it create whiteout, any side effects?
+> Note that I do have to change the unlink/rename/link operations
+> to grab the ovl_inode lock anyway, so at least w.r.t. code complexity
+> it is simple to add those ovl_set_nlink() calls. to unlink/rename/link.
 
-It's done for the root of the overlay by Amir's patchset, but that
-probably should be done generically for all merged directories not
-already having an origin marking.   It could be done at lookup time,
-or at whiteout time.  Not sure which is better.
+I don't really have a preference when to restore the "false" state.
+If it's simpler to do at unlink/rename/link time than at lookup time,
+then that's fine.
+
+
+>>>> I don't think fsync matters to this game.
+>>>> I'd be surprised if the nlink changing operations (link/unlink/rename) can be
+>>>> reordered with the setxattr operations on a power fail safe fs.
+>>
+>> Why not?  I know data changes can be reordered around rename without
+>> an fsync, for example.
+>>
+>
+> Certainly, data changes are not journalled in common ext4/xfs configurations
+> and the data=ordered of ext4 guaranties only that data is flushed
+> before *related*
+> metadata is journalled and does not guaranty at all that data/metadata
+> are flushed
+> in order that they were changed.
+>
+> The thing with rename vs. data change is that rename doesn't necessarily
+> change the renamed inode, so journalling the rename operation doesn't
+> need to journal the inode itself and therefore, there are no *related* metadata
+> changes that require flushing the inode data.
+>
+> But unlike rename(taget, foo), the operations unlink(target),
+> link(target, foo) and
+> rename(foo, target) all change nlink of target inode and therefore must journal
+> the target inode, the same target inode whose xattr are being written before and
+> after the nlink change, and which also implies ctime change.
+>
+> So I'm pretty sure that reordering xattr writes with nlink change of
+> the target inode
+> are not possible with the traditional journalling file system, but I
+> don't know of any
+> written rules about this.
+>
+> Do you suggest that we call vfs_fsync() at the end of ovl_copy_up_inode()
+> after ovl_set_origin() instead of only at the end of ovl_copy_up_data()?
+> I am not at ease with the performance overhead this could generate, but
+> perhaps there is no reason for concern.
+
+Link-up is a rare corner case.  I don't think we should worry about performance.
 
 Thanks,
 Miklos
