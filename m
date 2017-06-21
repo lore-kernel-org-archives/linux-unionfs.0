@@ -1,56 +1,118 @@
-From: Miklos Szeredi <miklos@szeredi.hu>
-Subject: Re: [PATCH v3 5/5] ovl: consistent st_ino/d_ino
-Date: Wed, 21 Jun 2017 11:48:20 +0200
-Message-ID: <CAJfpeguKE2o=6bQm6q99oZXoP5w8Qt0qKZzbRDm7kGS0wYzvmA@mail.gmail.com>
-References: <1496307779-2766-1-git-send-email-amir73il@gmail.com>
- <1496307779-2766-6-git-send-email-amir73il@gmail.com> <CAJfpeguF6aW6uNdZLaqQnyTo00rz7E=NBbHbYjSpKVcMCVu1dg@mail.gmail.com>
- <CAOQ4uxiYVuhqbzmM0yx+3cUKhhzfrjBubHwKo6ro1FXedJ-Tqg@mail.gmail.com>
- <CAJfpegumm16iy4v7vVkOOM0upvc=_jmuMxTiXn+cgEfi5c8FFw@mail.gmail.com>
- <CAJfpeguKQbG-EZTziROiKy+2t6iQU3FEwfZmc9ezPX_voEyTmA@mail.gmail.com>
- <CAJfpeguVYLdh5sc7-TCKVrdPdVGhxh3oSeP=EfN=nArh6wi_fA@mail.gmail.com>
- <CAOQ4uxhXQi-7sNTYxpMnDJGHC95r2QFAaoeeY5GQYWCe30EZOA@mail.gmail.com>
- <CAJfpegsCF8ZssutAe0yKEL4Bn1LZrMvqK5MXk8oQ7jj5fm0RtQ@mail.gmail.com>
- <CAOQ4uxg+ZRwa4_SERh6a_yU=RHFBEAGwumSJTBhrXr+rETnWAQ@mail.gmail.com>
- <CAJfpegtuepxej_o9Svb=4RoyLDryoKSXWts6_0PE79-ZjiRy0g@mail.gmail.com> <CAOQ4uxgtBzq8_HtSfKxGNT3mx_erg3MHw09z-ZQ25GK3RJFk6w@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+From: Amir Goldstein <amir73il@gmail.com>
+Subject: [PATCH v4 00/25] Overlayfs inodes index
+Date: Wed, 21 Jun 2017 15:28:31 +0300
+Message-ID: <1498048136-28218-1-git-send-email-amir73il@gmail.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-oi0-f49.google.com ([209.85.218.49]:36330 "EHLO
-        mail-oi0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752566AbdFUJs1 (ORCPT
+Received: from mail-qk0-f195.google.com ([209.85.220.195]:34971 "EHLO
+        mail-qk0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751641AbdFUM2m (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 21 Jun 2017 05:48:27 -0400
-Received: by mail-oi0-f49.google.com with SMTP id p187so29119955oif.3
-        for <linux-unionfs@vger.kernel.org>; Wed, 21 Jun 2017 02:48:21 -0700 (PDT)
-In-Reply-To: <CAOQ4uxgtBzq8_HtSfKxGNT3mx_erg3MHw09z-ZQ25GK3RJFk6w@mail.gmail.com>
+        Wed, 21 Jun 2017 08:28:42 -0400
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: Chandan Rajendra <chandan@linux.vnet.ibm.com>, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
 
-On Wed, Jun 21, 2017 at 11:36 AM, Amir Goldstein <amir73il@gmail.com> wrote:
-> On Wed, Jun 21, 2017 at 12:20 PM, Miklos Szeredi <miklos@szeredi.hu> wrote:
->> On Wed, Jun 21, 2017 at 11:05 AM, Amir Goldstein <amir73il@gmail.com> wrote:
->
->>>
->>> Following up on your idea:
->>> - check in ovl_iterate() if version has changed and if dir became impure
->>> - if it did, populate od->cache, but keep the dir od->is_real
->>> - iterate upper cache entries and call ovl_cache_update_ino()
->>> - Then actor of real dir iterator can use the cache to ommit entries or use
->>>   p->ino from cache if p->real_ino match real d_ino, but differs from p->ino.
->>
->> For non-merge dirs we can have a simplified cache just containing the
->> entries with origin, recreated when the version changes or updated in
->> rename, whichever is simpler.  A non-merge dir will never become a
->> merge one, so we can keep the handling separate.
->>
->
-> And use this cache to ommit/fix entries with actor?
+Miklos,
 
-Right.  I think fixing up is better, because to correctly omit entries
-we'd need separate lists for each open directory.  For fixing up we
-can use a common one, just like for the merged dir.
+This is it.
+All done on my end, so unless you have any rejects that you want me
+to fix, you may start mangling.
+
+I've added another xfstest for nlink accounting and may add another
+one that mangles with lower hardlinks to get negative overlay nlink.
+It's a behavior I observed with lower/upper stress xfstest overlay/019
+and fixed in patch 25.
+
+Given the state of affairs with consistent d_ino patches, I suggest that
+we focus on herding the inode index patches towards linux-next before
+anything else.
 
 Thanks,
-Miklos
+Amir.
+
+
+This work introduces the inodes index opt-in feature, which provides:
+- Hardlinks are not broken on copy up
+- Infrastructure for overlayfs NFS export
+
+The work is available on my ovl-hardlinks.v4 branch [1].
+For the curious, documentation about how overlay NFS export would work
+with the inodes index is available in the linked commit [2].
+
+The most significant change w.r.t. vfs is that with inodes index,
+overlay inodes are hashed and unique throughout the lifecycle of an
+overlay object (i.e. across copy up). This is required for not breaking
+hardlinks on copy up.
+
+Hardlink copy up tests including coverage for concurrent copy up of
+lower hardlinks, lower/upper hardlinks consistency and union nlink
+accounting are available on my xfstests dev branch [3].
+
+This work also fixes constant st_ino for samefs case for lower hardlinks,
+so the few constant st_ino tests that fail on v4.12-rc1 due to copy up of
+lower hardlinks now pass [3][4].
+
+Changes since v3:
+- Persistent overlay nlink accounting
+- Cleanup index when overlay nlink drops to zero
+- Cleanup stale and orphan index entries on mount
+- Update documentation w.r.t inodes index feature
+
+Changes v1..v2:
+- Introduce ovl_inode and ovl_inode mutex
+- Synchronize copy up with ovl_inode mutex
+- Don't store index dentry in overlay dentry
+- Consistency of lower/upper hardlinks by link-up on lookup
+- Preemptive copy up before lower hardlink unlink
+
+[1] https://github.com/amir73il/linux/commits/ovl-hardlinks.v4
+[2] https://github.com/amir73il/linux/commits/ovl-nfs-export 
+[3] https://github.com/amir73il/xfstests/commits/overlayfs-devel
+[4] https://github.com/amir73il/unionmount-testsuite/commits/overlayfs-devel
+
+
+Amir Goldstein (25):
+  vfs: introduce inode 'inuse' lock
+  ovl: get exclusive ownership on upper/work dirs
+  ovl: relax same fs constrain for ovl_check_origin()
+  ovl: generalize ovl_create_workdir()
+  ovl: introduce the inodes index dir feature
+  ovl: verify upper root dir matches lower root dir
+  ovl: verify index dir matches upper dir
+  ovl: store path type in dentry
+  ovl: cram dentry state booleans into type flags
+  ovl: lookup index entry for copy up origin
+  ovl: cleanup bad and stale index entries on mount
+  ovl: allocate an ovl_inode struct
+  ovl: store upper/lower real inode in ovl_inode_info
+  ovl: use ovl_inode_init() for initializing new inode
+  ovl: hash overlay non-dir inodes by copy up origin inode
+  ovl: defer upper dir lock to tempfile link
+  ovl: factor out ovl_copy_up_inode() helper
+  ovl: generalize ovl_copy_up_locked() using actors
+  ovl: generalize ovl_copy_up_one() using actors
+  ovl: use ovl_inode mutex to synchronize concurrent copy up
+  ovl: implement index dir copy up method
+  ovl: link up indexed lower hardlink on lookup
+  ovl: fix nlink leak in ovl_rename()
+  ovl: persistent overlay inode nlink for indexed inodes
+  ovl: cleanup orphan index entries
+
+ Documentation/filesystems/overlayfs.txt |   6 +-
+ fs/inode.c                              |  50 +++
+ fs/overlayfs/Kconfig                    |  20 +
+ fs/overlayfs/copy_up.c                  | 625 +++++++++++++++++++++++++-------
+ fs/overlayfs/dir.c                      | 164 ++++++++-
+ fs/overlayfs/inode.c                    | 160 +++++++-
+ fs/overlayfs/namei.c                    | 382 ++++++++++++++++---
+ fs/overlayfs/overlayfs.h                |  47 ++-
+ fs/overlayfs/ovl_entry.h                |  37 +-
+ fs/overlayfs/readdir.c                  |  50 +++
+ fs/overlayfs/super.c                    | 286 +++++++++++++--
+ fs/overlayfs/util.c                     | 164 +++++++--
+ include/linux/fs.h                      |  14 +
+ 13 files changed, 1723 insertions(+), 282 deletions(-)
+
+-- 
+2.7.4
