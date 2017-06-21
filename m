@@ -1,191 +1,246 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH v4 13/25] ovl: store upper/lower real inode in ovl_inode_info
-Date: Wed, 21 Jun 2017 15:28:44 +0300
-Message-ID: <1498048136-28218-14-git-send-email-amir73il@gmail.com>
+Subject: [PATCH v4 15/25] ovl: hash overlay non-dir inodes by copy up origin inode
+Date: Wed, 21 Jun 2017 15:28:46 +0300
+Message-ID: <1498048136-28218-16-git-send-email-amir73il@gmail.com>
 References: <1498048136-28218-1-git-send-email-amir73il@gmail.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wr0-f194.google.com ([209.85.128.194]:33642 "EHLO
+Received: from mail-wr0-f194.google.com ([209.85.128.194]:36770 "EHLO
         mail-wr0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751839AbdFUM3D (ORCPT
+        with ESMTP id S1751004AbdFUM3G (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 21 Jun 2017 08:29:03 -0400
-Received: by mail-wr0-f194.google.com with SMTP id x23so26118336wrb.0
-        for <linux-unionfs@vger.kernel.org>; Wed, 21 Jun 2017 05:29:02 -0700 (PDT)
+        Wed, 21 Jun 2017 08:29:06 -0400
+Received: by mail-wr0-f194.google.com with SMTP id 77so26086364wrb.3
+        for <linux-unionfs@vger.kernel.org>; Wed, 21 Jun 2017 05:29:05 -0700 (PDT)
 In-Reply-To: <1498048136-28218-1-git-send-email-amir73il@gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: Miklos Szeredi <miklos@szeredi.hu>
 Cc: linux-unionfs@vger.kernel.org
 
-Introduce ovl_inode_info struct that is embedded in ovl_inode
-and contains a reference to lowerinode and/or upperinode.
+When inodes index feature is enabled, hash all non-dir inodes by the
+address of the copy up origin inode if origin inode is indexed.
 
-Storing the upper/lower real inode in ovl_inode_info replaces
-the method of storing realinode & ISUPPER flag in vfs inode
-i_private field.
+Non-upper overlay inodes are hashed by the lower real inode, which is
+the copy up origin to be.
 
-This will be used for hashing overlay inodes before copy up.
+This change makes all lower hardlinks and their indexed copy ups be
+represented by a single overlay inode and is needed for vfs inode
+consistency after hardlinks are no longer broken on copy up.
+
+Because overlay dentries of lower hardlink aliases have the same overlay
+inode, a non indexed copy up of those lower aliases will cause a conflict
+when trying to update the realinode to the broken upper hardlink.
+A non indexed copy up of an alias that lost in this conflict will return
+-EEXIST and drop the overlay dentry. The next lookup of that broken
+upper hardlink will return as upper entry with a new overlay inode.
+
+This conflict is going to be handled more gracefully by following patches.
 
 Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- fs/overlayfs/inode.c     |  5 +++--
- fs/overlayfs/overlayfs.h | 13 +------------
- fs/overlayfs/ovl_entry.h | 12 ++++++++++++
- fs/overlayfs/super.c     |  1 +
- fs/overlayfs/util.c      | 28 ++++++++++++++++++++++++----
- 5 files changed, 41 insertions(+), 18 deletions(-)
+ fs/overlayfs/copy_up.c   |  6 +++++-
+ fs/overlayfs/inode.c     | 49 ++++++++++++++++++++++++++++++++++++++++++------
+ fs/overlayfs/namei.c     | 22 ++++++++++++++++++++--
+ fs/overlayfs/overlayfs.h |  7 +++++--
+ fs/overlayfs/util.c      | 33 ++++++++++++++++++++++++++++----
+ 5 files changed, 102 insertions(+), 15 deletions(-)
 
+diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
+index eedc26e15dad..ae18824c7944 100644
+--- a/fs/overlayfs/copy_up.c
++++ b/fs/overlayfs/copy_up.c
+@@ -418,7 +418,11 @@ static int ovl_copy_up_locked(struct dentry *workdir, struct dentry *upperdir,
+ 
+ 	newdentry = dget(tmpfile ? upper : temp);
+ 	ovl_dentry_update(dentry, newdentry);
+-	ovl_inode_update(d_inode(dentry), d_inode(newdentry));
++	err = ovl_inode_update(d_inode(dentry), d_inode(newdentry));
++	if (err) {
++		/* Broken hardlink - drop cache and return error */
++		d_drop(dentry);
++	}
+ 
+ 	/* Restore timestamps on parent (best effort) */
+ 	ovl_set_timestamps(upperdir, pstat);
 diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
-index b78993abdeea..49492b982726 100644
+index 6f0ec691d8d5..28f9a8cc0f61 100644
 --- a/fs/overlayfs/inode.c
 +++ b/fs/overlayfs/inode.c
-@@ -13,6 +13,7 @@
- #include <linux/xattr.h>
- #include <linux/posix_acl.h>
- #include "overlayfs.h"
-+#include "ovl_entry.h"
- 
- int ovl_setattr(struct dentry *dentry, struct iattr *attr)
- {
-@@ -457,12 +458,12 @@ struct inode *ovl_new_inode(struct super_block *sb, umode_t mode, dev_t rdev)
+@@ -458,22 +458,59 @@ struct inode *ovl_new_inode(struct super_block *sb, umode_t mode, dev_t rdev)
  
  static int ovl_inode_test(struct inode *inode, void *data)
  {
--	return ovl_inode_real(inode, NULL) == data;
-+	return OVL_I_INFO(inode)->__upperinode == data;
+-	return OVL_I_INFO(inode)->__upperinode == data;
++	struct ovl_inode_info *oi = OVL_I_INFO(inode);
++	struct ovl_inode_info *info = data;
++	bool indexed = ovl_indexdir(inode->i_sb);
++
++	if (indexed && info->lowerinode != oi->lowerinode)
++		return false;
++
++	if (info->__upperinode == oi->__upperinode)
++		return true;
++
++	/*
++	 * Return same overlay inode when looking up by lower real inode, but
++	 * an indexed overlay inode, that is hashed by the same lower origin
++	 * inode, has already been updated on copy up to a real upper inode.
++	 */
++	return indexed && !info->__upperinode;
  }
  
  static int ovl_inode_set(struct inode *inode, void *data)
  {
--	inode->i_private = (void *) (((unsigned long) data) | OVL_ISUPPER_MASK);
-+	OVL_I_INFO(inode)->__upperinode = data;
+-	OVL_I_INFO(inode)->__upperinode = data;
++	struct ovl_inode_info *oi = OVL_I_INFO(inode);
++	struct ovl_inode_info *info = data;
++
++	oi->__upperinode = info->__upperinode;
++	oi->lowerinode = info->lowerinode;
++
  	return 0;
  }
  
+-struct inode *ovl_get_inode(struct super_block *sb, struct inode *realinode)
+-
++struct inode *ovl_get_inode(struct super_block *sb, struct ovl_inode_info *info)
+ {
++	struct inode *realinode = info->__upperinode;
++	unsigned long hashval = (unsigned long) realinode;
+ 	struct inode *inode;
+ 
+-	inode = iget5_locked(sb, (unsigned long) realinode,
+-			     ovl_inode_test, ovl_inode_set, realinode);
++	/*
++	 * With inodes index feature enabled, overlay inodes hash key is the
++	 * address of the copy up origin lower inode if it is indexed.
++	 * When hashing a non-upper overlay inode, origin has to be set to
++	 * the real lower inode, which is the copy up origin inode to be.
++	 * Regardless of the inode we use as hash key, we always use the
++	 * uppermost real inode to initialize ovl_inode.
++	 */
++	if (info->lowerinode) {
++		WARN_ON(!ovl_indexdir(sb));
++		hashval = (unsigned long) info->lowerinode;
++		if (!realinode)
++			realinode = info->lowerinode;
++	} else if (WARN_ON(!realinode)) {
++		return NULL;
++	}
++
++	inode = iget5_locked(sb, hashval, ovl_inode_test, ovl_inode_set, info);
+ 	if (inode && inode->i_state & I_NEW) {
+ 		ovl_fill_inode(inode, realinode->i_mode, realinode->i_rdev);
+ 		set_nlink(inode, realinode->i_nlink);
+diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
+index 29f57fe6d921..08154dad725e 100644
+--- a/fs/overlayfs/namei.c
++++ b/fs/overlayfs/namei.c
+@@ -682,13 +682,31 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
+ 	if (upperdentry || ctr) {
+ 		struct dentry *realdentry;
+ 		struct inode *realinode;
++		struct ovl_inode_info info = { };
+ 
+ 		realdentry = upperdentry ? upperdentry : stack[0].dentry;
+ 		realinode = d_inode(realdentry);
++		/*
++		 * When inodes index is enabled, we hash upper non-dir inodes
++		 * by the address of the copy up origin inode if origin inode
++		 * is indexed (positive index) and we hash non-upper non-dir
++		 * inodes by the address of the lower inode (negative index).
++		 *
++		 * When inodes index is disabled, or if origin is not indexed,
++		 * we hash non-dir upper inodes by the address of upper inode.
++		 */
++		if (upperdentry) {
++			BUG_ON(index && realinode != d_inode(index));
++			info.__upperinode = realinode;
++		}
++		if (index) {
++			BUG_ON(!ctr);
++			info.lowerinode = d_inode(stack[0].dentry);
++		}
+ 
+ 		err = -ENOMEM;
+-		if (upperdentry && !d_is_dir(upperdentry)) {
+-			inode = ovl_get_inode(dentry->d_sb, realinode);
++		if ((upperdentry || index) && !d.is_dir) {
++			inode = ovl_get_inode(dentry->d_sb, &info);
+ 		} else {
+ 			inode = ovl_new_inode(dentry->d_sb, realinode->i_mode,
+ 					      realinode->i_rdev);
 diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-index a92af10fd369..35cefa9e9de6 100644
+index 35cefa9e9de6..79cee43eb84d 100644
 --- a/fs/overlayfs/overlayfs.h
 +++ b/fs/overlayfs/overlayfs.h
-@@ -68,8 +68,6 @@ struct ovl_fh {
- 	u8 fid[0];	/* file identifier */
- } __packed;
- 
--#define OVL_ISUPPER_MASK 1UL
--
- static inline int ovl_do_rmdir(struct inode *dir, struct dentry *dentry)
- {
- 	int err = vfs_rmdir(dir, dentry);
-@@ -183,16 +181,6 @@ static inline struct dentry *ovl_do_tmpfile(struct dentry *dentry, umode_t mode)
- 	return ret;
- }
- 
--static inline struct inode *ovl_inode_real(struct inode *inode, bool *is_upper)
--{
--	unsigned long x = (unsigned long) READ_ONCE(inode->i_private);
--
--	if (is_upper)
--		*is_upper = x & OVL_ISUPPER_MASK;
--
--	return (struct inode *) (x & ~OVL_ISUPPER_MASK);
--}
--
- /* util.c */
- int ovl_want_write(struct dentry *dentry);
- void ovl_drop_write(struct dentry *dentry);
-@@ -224,6 +212,7 @@ void ovl_dentry_set_redirect(struct dentry *dentry, const char *redirect);
- void ovl_dentry_update(struct dentry *dentry, struct dentry *upperdentry);
+@@ -213,7 +213,7 @@ void ovl_dentry_update(struct dentry *dentry, struct dentry *upperdentry);
  void ovl_inode_init(struct inode *inode, struct inode *realinode,
  		    bool is_upper);
-+struct inode *ovl_inode_real(struct inode *inode, bool *is_upper);
- void ovl_inode_update(struct inode *inode, struct inode *upperinode);
+ struct inode *ovl_inode_real(struct inode *inode, bool *is_upper);
+-void ovl_inode_update(struct inode *inode, struct inode *upperinode);
++int ovl_inode_update(struct inode *inode, struct inode *upperinode);
  void ovl_dentry_version_inc(struct dentry *dentry);
  u64 ovl_dentry_version_get(struct dentry *dentry);
-diff --git a/fs/overlayfs/ovl_entry.h b/fs/overlayfs/ovl_entry.h
-index 6c36fa70abe4..6e240bc5ac1d 100644
---- a/fs/overlayfs/ovl_entry.h
-+++ b/fs/overlayfs/ovl_entry.h
-@@ -66,9 +66,16 @@ static inline struct dentry *ovl_upperdentry_dereference(struct ovl_entry *oe)
- 	return lockless_dereference(oe->__upperdentry);
- }
+ bool ovl_is_whiteout(struct dentry *dentry);
+@@ -270,7 +270,10 @@ int ovl_update_time(struct inode *inode, struct timespec *ts, int flags);
+ bool ovl_is_private_xattr(const char *name);
  
-+/* private information embedded in every overlayfs inode */
-+struct ovl_inode_info {
-+	struct inode *__upperinode;
-+	struct inode *lowerinode;
-+};
+ struct inode *ovl_new_inode(struct super_block *sb, umode_t mode, dev_t rdev);
+-struct inode *ovl_get_inode(struct super_block *sb, struct inode *realinode);
++struct ovl_inode_info;
++struct inode *ovl_get_inode(struct super_block *sb,
++			    struct ovl_inode_info *info);
 +
- struct ovl_inode {
- 	/* keep this first */
- 	struct inode vfs_inode;
-+	struct ovl_inode_info info;
- 	/* synchronize copy up and more */
- 	struct mutex oi_lock;
- };
-@@ -77,3 +84,8 @@ static inline struct ovl_inode *OVL_I(struct inode *inode)
+ static inline void ovl_copyattr(struct inode *from, struct inode *to)
  {
- 	return (struct ovl_inode *) inode;
- }
-+
-+static inline struct ovl_inode_info *OVL_I_INFO(struct inode *inode)
-+{
-+	return &OVL_I(inode)->info;
-+}
-diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-index d32ae4c00f9c..33ff179e32d7 100644
---- a/fs/overlayfs/super.c
-+++ b/fs/overlayfs/super.c
-@@ -181,6 +181,7 @@ static struct inode *ovl_alloc_inode(struct super_block *sb)
- 		return NULL;
- 
- 	mutex_init(&OVL_I(inode)->oi_lock);
-+	memset(OVL_I_INFO(inode), 0, sizeof(struct ovl_inode_info));
- 
- 	return inode;
- }
+ 	to->i_uid = from->i_uid;
 diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
-index 9d2f3bb70e61..916d4e5719a8 100644
+index 1769cc81a50f..f3a22566eaa1 100644
 --- a/fs/overlayfs/util.c
 +++ b/fs/overlayfs/util.c
-@@ -269,16 +269,36 @@ void ovl_dentry_update(struct dentry *dentry, struct dentry *upperdentry)
+@@ -303,13 +303,38 @@ struct inode *ovl_inode_real(struct inode *inode, bool *is_upper)
+ 	return realinode;
+ }
  
- void ovl_inode_init(struct inode *inode, struct inode *realinode, bool is_upper)
+-void ovl_inode_update(struct inode *inode, struct inode *upperinode)
++/*
++ * When inodes index is enabled, we hash all non-dir inodes by the address
++ * of the lower origin inode. We need to take care on concurrent copy up of
++ * different lower hardlinks, that only one alias can set the upper real inode.
++ * Copy up of an alias that lost the ovl_inode_update() race will get -EEXIST
++ * and needs to d_drop() the overlay dentry of that alias, so the next
++ * ovl_lookup() will initialize a new overlay inode for the broken hardlink.
++ */
++int ovl_inode_update(struct inode *inode, struct inode *upperinode)
  {
--	WRITE_ONCE(inode->i_private, (unsigned long) realinode |
--		   (is_upper ? OVL_ISUPPER_MASK : 0));
-+	struct ovl_inode_info *oi = OVL_I_INFO(inode);
-+
-+	if (is_upper) {
-+		oi->__upperinode = realinode;
-+		oi->lowerinode = NULL;
-+	} else {
-+		oi->__upperinode = NULL;
-+		oi->lowerinode = realinode;
-+	}
-+}
-+
-+struct inode *ovl_inode_real(struct inode *inode, bool *is_upper)
-+{
 +	struct ovl_inode_info *oi = OVL_I_INFO(inode);
 +	struct inode *realinode;
++	bool indexed = ovl_indexdir(inode->i_sb);
 +
-+	realinode = READ_ONCE(oi->__upperinode);
-+	if (is_upper)
-+		*is_upper = !!realinode;
+ 	WARN_ON(!upperinode);
+-	WARN_ON(!inode_unhashed(inode));
+-	WRITE_ONCE(OVL_I_INFO(inode)->__upperinode, upperinode);
+-	if (!S_ISDIR(upperinode->i_mode))
++
++	spin_lock(&inode->i_lock);
++	realinode = oi->__upperinode;
 +	if (!realinode)
-+		realinode = oi->lowerinode;
++		oi->__upperinode = upperinode;
++	spin_unlock(&inode->i_lock);
 +
-+	return realinode;
++	if (realinode && realinode != upperinode) {
++		WARN_ON(!indexed);
++		return -EEXIST;
++	}
++
++	/* When inodes index is enabled, inode is hashed before copy up */
++	if (!S_ISDIR(upperinode->i_mode) && !indexed)
+ 		ovl_insert_inode_hash(inode, upperinode);
++
++	return 0;
  }
  
- void ovl_inode_update(struct inode *inode, struct inode *upperinode)
- {
- 	WARN_ON(!upperinode);
- 	WARN_ON(!inode_unhashed(inode));
--	WRITE_ONCE(inode->i_private,
--		   (unsigned long) upperinode | OVL_ISUPPER_MASK);
-+	WRITE_ONCE(OVL_I_INFO(inode)->__upperinode, upperinode);
- 	if (!S_ISDIR(upperinode->i_mode))
- 		__insert_inode_hash(inode, (unsigned long) upperinode);
- }
+ void ovl_dentry_version_inc(struct dentry *dentry)
 -- 
 2.7.4
