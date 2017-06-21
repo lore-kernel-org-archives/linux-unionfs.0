@@ -1,153 +1,137 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH v4 02/25] ovl: get exclusive ownership on upper/work dirs
-Date: Wed, 21 Jun 2017 15:28:33 +0300
-Message-ID: <1498048136-28218-3-git-send-email-amir73il@gmail.com>
+Subject: [PATCH v4 04/25] ovl: generalize ovl_create_workdir()
+Date: Wed, 21 Jun 2017 15:28:35 +0300
+Message-ID: <1498048136-28218-5-git-send-email-amir73il@gmail.com>
 References: <1498048136-28218-1-git-send-email-amir73il@gmail.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wr0-f195.google.com ([209.85.128.195]:36383 "EHLO
-        mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751789AbdFUM2q (ORCPT
+Received: from mail-wr0-f196.google.com ([209.85.128.196]:35624 "EHLO
+        mail-wr0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751789AbdFUM2t (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 21 Jun 2017 08:28:46 -0400
-Received: by mail-wr0-f195.google.com with SMTP id 77so26083869wrb.3
-        for <linux-unionfs@vger.kernel.org>; Wed, 21 Jun 2017 05:28:45 -0700 (PDT)
+        Wed, 21 Jun 2017 08:28:49 -0400
+Received: by mail-wr0-f196.google.com with SMTP id z45so26110424wrb.2
+        for <linux-unionfs@vger.kernel.org>; Wed, 21 Jun 2017 05:28:48 -0700 (PDT)
 In-Reply-To: <1498048136-28218-1-git-send-email-amir73il@gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: Miklos Szeredi <miklos@szeredi.hu>
 Cc: linux-unionfs@vger.kernel.org
 
-Bad things can happen if several concurrent overlay mounts try to
-use the same upperdir/workdir path.
+Pass in the subdir name to create and specify if subdir is persistent
+or if it should be cleaned up on every mount.
 
-Try to get the 'inuse' advisory lock on upperdir and workdir.
-Fail mount if another overlay mount instance or another user
-holds the 'inuse' lock on these directories.
+Move fallback to readonly mount on failure to create dir and print of error
+message into the helper.
 
-Note that this provides no protection for concurrent overlay
-mount that use overlapping (i.e. descendant) upper/work dirs.
+This function is going to be used for creating the persistent 'index' dir
+under workbasedir.
 
 Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- fs/overlayfs/ovl_entry.h |  3 +++
- fs/overlayfs/super.c     | 41 ++++++++++++++++++++++++++++++++++++++---
- 2 files changed, 41 insertions(+), 3 deletions(-)
+ fs/overlayfs/super.c | 45 +++++++++++++++++++++++++++++----------------
+ 1 file changed, 29 insertions(+), 16 deletions(-)
 
-diff --git a/fs/overlayfs/ovl_entry.h b/fs/overlayfs/ovl_entry.h
-index 34bc4a9f5c61..b0e7ee2ae398 100644
---- a/fs/overlayfs/ovl_entry.h
-+++ b/fs/overlayfs/ovl_entry.h
-@@ -21,6 +21,9 @@ struct ovl_fs {
- 	struct vfsmount *upper_mnt;
- 	unsigned numlower;
- 	struct vfsmount **lower_mnt;
-+	/* workbasedir is the path at workdir= mount option */
-+	struct dentry *workbasedir;
-+	/* workdir is the 'work' directory under workbasedir */
- 	struct dentry *workdir;
- 	long namelen;
- 	/* pathnames of lower and upper dirs, for show_options */
 diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-index 4882ffb37bae..476f021baf2a 100644
+index 476f021baf2a..5114627799e9 100644
 --- a/fs/overlayfs/super.c
 +++ b/fs/overlayfs/super.c
-@@ -165,12 +165,28 @@ static const struct dentry_operations ovl_reval_dentry_operations = {
- 	.d_weak_revalidate = ovl_dentry_weak_revalidate,
- };
+@@ -395,22 +395,25 @@ static int ovl_parse_opt(char *opt, struct ovl_config *config)
  
-+/* Get exclusive ownership on upper/work dir among overlay mounts */
-+static bool ovl_dir_lock(struct dentry *dentry)
-+{
-+	return inode_inuse_trylock(d_inode(dentry));
-+}
-+
-+static void ovl_dir_unlock(struct dentry *dentry)
-+{
-+	if (dentry)
-+		inode_inuse_unlock(d_inode(dentry));
-+}
-+
- static void ovl_put_super(struct super_block *sb)
+ #define OVL_WORKDIR_NAME "work"
+ 
+-static struct dentry *ovl_workdir_create(struct vfsmount *mnt,
+-					 struct dentry *dentry)
++static struct dentry *ovl_workdir_create(struct super_block *sb,
++					 struct ovl_fs *ufs,
++					 struct dentry *dentry,
++					 const char *name, bool persist)
  {
- 	struct ovl_fs *ufs = sb->s_fs_info;
- 	unsigned i;
+-	struct inode *dir = dentry->d_inode;
+-	struct dentry *work;
++	struct vfsmount *mnt = ufs->upper_mnt;
++	struct inode *dir = NULL;
++	struct dentry *work = NULL;
+ 	int err;
+ 	bool retried = false;
  
- 	dput(ufs->workdir);
-+	ovl_dir_unlock(ufs->workbasedir);
-+	dput(ufs->workbasedir);
-+	if (ufs->upper_mnt)
-+		ovl_dir_unlock(ufs->upper_mnt->mnt_root);
- 	mntput(ufs->upper_mnt);
- 	for (i = 0; i < ufs->numlower; i++)
- 		mntput(ufs->lower_mnt[i]);
-@@ -788,9 +804,15 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
+ 	err = mnt_want_write(mnt);
+ 	if (err)
+-		return ERR_PTR(err);
++		goto out_err;
+ 
++	dir = d_inode(dentry);
+ 	inode_lock_nested(dir, I_MUTEX_PARENT);
+ retry:
+-	work = lookup_one_len(OVL_WORKDIR_NAME, dentry,
+-			      strlen(OVL_WORKDIR_NAME));
++	work = lookup_one_len(name, dentry, strlen(name));
+ 
+ 	if (!IS_ERR(work)) {
+ 		struct iattr attr = {
+@@ -423,6 +426,9 @@ static struct dentry *ovl_workdir_create(struct vfsmount *mnt,
+ 			if (retried)
+ 				goto out_dput;
+ 
++			if (persist)
++				goto out_unlock;
++
+ 			retried = true;
+ 			ovl_workdir_cleanup(dir, mnt, work, 0);
+ 			dput(work);
+@@ -462,16 +468,25 @@ static struct dentry *ovl_workdir_create(struct vfsmount *mnt,
+ 		inode_unlock(work->d_inode);
  		if (err)
- 			goto out_put_upperpath;
- 
-+		err = -EBUSY;
-+		if (!ovl_dir_lock(upperpath.dentry)) {
-+			pr_err("overlayfs: upperdir is in-use by another mount\n");
-+			goto out_put_upperpath;
-+		}
-+
- 		err = ovl_mount_dir(ufs->config.workdir, &workpath);
- 		if (err)
--			goto out_put_upperpath;
-+			goto out_unlock_upperdentry;
- 
- 		err = -EINVAL;
- 		if (upperpath.mnt != workpath.mnt) {
-@@ -801,12 +823,20 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
- 			pr_err("overlayfs: workdir and upperdir must be separate subtrees\n");
- 			goto out_put_workpath;
- 		}
-+
-+		err = -EBUSY;
-+		if (!ovl_dir_lock(workpath.dentry)) {
-+			pr_err("overlayfs: workdir is in-use by another mount\n");
-+			goto out_put_workpath;
-+		}
-+
-+		ufs->workbasedir = workpath.dentry;
- 		sb->s_stack_depth = upperpath.mnt->mnt_sb->s_stack_depth;
+ 			goto out_dput;
++	} else {
++		err = PTR_ERR(work);
++		goto out_err;
  	}
- 	err = -ENOMEM;
- 	lowertmp = kstrdup(ufs->config.lowerdir, GFP_KERNEL);
- 	if (!lowertmp)
--		goto out_put_workpath;
-+		goto out_unlock_workdentry;
- 
- 	err = -EINVAL;
- 	stacklen = ovl_split_lowerdirs(lowertmp);
-@@ -849,6 +879,7 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
- 			pr_err("overlayfs: failed to clone upperpath\n");
- 			goto out_put_lowerpath;
- 		}
 +
- 		/* Don't inherit atime flags */
- 		ufs->upper_mnt->mnt_flags &= ~(MNT_NOATIME | MNT_NODIRATIME | MNT_RELATIME);
+ out_unlock:
+-	inode_unlock(dir);
++	if (dir)
++		inode_unlock(dir);
+ 	mnt_drop_write(mnt);
  
-@@ -971,7 +1002,7 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
- 	mntput(upperpath.mnt);
+ 	return work;
+ 
+ out_dput:
+ 	dput(work);
+-	work = ERR_PTR(err);
++out_err:
++	pr_warn("overlayfs: failed to create directory %s/%s (errno: %i); mounting read-only\n",
++		ufs->config.workdir, name, -err);
++	sb->s_flags |= MS_RDONLY;
++	work = NULL;
+ 	goto out_unlock;
+ }
+ 
+@@ -885,14 +900,11 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
+ 
+ 		sb->s_time_gran = ufs->upper_mnt->mnt_sb->s_time_gran;
+ 
+-		ufs->workdir = ovl_workdir_create(ufs->upper_mnt, workpath.dentry);
++		ufs->workdir = ovl_workdir_create(sb, ufs, workpath.dentry,
++						  OVL_WORKDIR_NAME, false);
+ 		err = PTR_ERR(ufs->workdir);
+-		if (IS_ERR(ufs->workdir)) {
+-			pr_warn("overlayfs: failed to create directory %s/%s (errno: %i); mounting read-only\n",
+-				ufs->config.workdir, OVL_WORKDIR_NAME, -err);
+-			sb->s_flags |= MS_RDONLY;
+-			ufs->workdir = NULL;
+-		}
++		if (IS_ERR(ufs->workdir))
++			goto out_put_upper_mnt;
+ 
+ 		/*
+ 		 * Upper should support d_type, else whiteouts are visible.
+@@ -1035,6 +1047,7 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
+ 	kfree(ufs->lower_mnt);
+ out_put_workdir:
+ 	dput(ufs->workdir);
++out_put_upper_mnt:
+ 	mntput(ufs->upper_mnt);
+ out_put_lowerpath:
  	for (i = 0; i < numlower; i++)
- 		mntput(stack[i].mnt);
--	path_put(&workpath);
-+	mntput(workpath.mnt);
- 	kfree(lowertmp);
- 
- 	if (upperpath.dentry) {
-@@ -1011,8 +1042,12 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
- 	kfree(stack);
- out_free_lowertmp:
- 	kfree(lowertmp);
-+out_unlock_workdentry:
-+	ovl_dir_unlock(workpath.dentry);
- out_put_workpath:
- 	path_put(&workpath);
-+out_unlock_upperdentry:
-+	ovl_dir_unlock(upperpath.dentry);
- out_put_upperpath:
- 	path_put(&upperpath);
- out_free_config:
 -- 
 2.7.4
