@@ -1,101 +1,153 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH v4 03/25] ovl: relax same fs constrain for ovl_check_origin()
-Date: Wed, 21 Jun 2017 15:28:34 +0300
-Message-ID: <1498048136-28218-4-git-send-email-amir73il@gmail.com>
+Subject: [PATCH v4 02/25] ovl: get exclusive ownership on upper/work dirs
+Date: Wed, 21 Jun 2017 15:28:33 +0300
+Message-ID: <1498048136-28218-3-git-send-email-amir73il@gmail.com>
 References: <1498048136-28218-1-git-send-email-amir73il@gmail.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wr0-f196.google.com ([209.85.128.196]:34719 "EHLO
-        mail-wr0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751789AbdFUM2r (ORCPT
+Received: from mail-wr0-f195.google.com ([209.85.128.195]:36383 "EHLO
+        mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751789AbdFUM2q (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 21 Jun 2017 08:28:47 -0400
-Received: by mail-wr0-f196.google.com with SMTP id y25so23905977wrd.1
-        for <linux-unionfs@vger.kernel.org>; Wed, 21 Jun 2017 05:28:47 -0700 (PDT)
+        Wed, 21 Jun 2017 08:28:46 -0400
+Received: by mail-wr0-f195.google.com with SMTP id 77so26083869wrb.3
+        for <linux-unionfs@vger.kernel.org>; Wed, 21 Jun 2017 05:28:45 -0700 (PDT)
 In-Reply-To: <1498048136-28218-1-git-send-email-amir73il@gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: Miklos Szeredi <miklos@szeredi.hu>
 Cc: linux-unionfs@vger.kernel.org
 
-For the case of all layers not on the same fs, try to decode the copy up
-origin file handle on any of the lower layers.
+Bad things can happen if several concurrent overlay mounts try to
+use the same upperdir/workdir path.
+
+Try to get the 'inuse' advisory lock on upperdir and workdir.
+Fail mount if another overlay mount instance or another user
+holds the 'inuse' lock on these directories.
+
+Note that this provides no protection for concurrent overlay
+mount that use overlapping (i.e. descendant) upper/work dirs.
 
 Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- fs/overlayfs/namei.c | 43 +++++++++++++++++++++++++------------------
- 1 file changed, 25 insertions(+), 18 deletions(-)
+ fs/overlayfs/ovl_entry.h |  3 +++
+ fs/overlayfs/super.c     | 41 ++++++++++++++++++++++++++++++++++++++---
+ 2 files changed, 41 insertions(+), 3 deletions(-)
 
-diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
-index 1ec1499fc672..4ca6061f7bfa 100644
---- a/fs/overlayfs/namei.c
-+++ b/fs/overlayfs/namei.c
-@@ -272,28 +272,24 @@ static int ovl_lookup_layer(struct dentry *base, struct ovl_lookup_data *d,
- static int ovl_check_origin(struct dentry *dentry, struct dentry *upperdentry,
- 			    struct path **stackp, unsigned int *ctrp)
+diff --git a/fs/overlayfs/ovl_entry.h b/fs/overlayfs/ovl_entry.h
+index 34bc4a9f5c61..b0e7ee2ae398 100644
+--- a/fs/overlayfs/ovl_entry.h
++++ b/fs/overlayfs/ovl_entry.h
+@@ -21,6 +21,9 @@ struct ovl_fs {
+ 	struct vfsmount *upper_mnt;
+ 	unsigned numlower;
+ 	struct vfsmount **lower_mnt;
++	/* workbasedir is the path at workdir= mount option */
++	struct dentry *workbasedir;
++	/* workdir is the 'work' directory under workbasedir */
+ 	struct dentry *workdir;
+ 	long namelen;
+ 	/* pathnames of lower and upper dirs, for show_options */
+diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+index 4882ffb37bae..476f021baf2a 100644
+--- a/fs/overlayfs/super.c
++++ b/fs/overlayfs/super.c
+@@ -165,12 +165,28 @@ static const struct dentry_operations ovl_reval_dentry_operations = {
+ 	.d_weak_revalidate = ovl_dentry_weak_revalidate,
+ };
+ 
++/* Get exclusive ownership on upper/work dir among overlay mounts */
++static bool ovl_dir_lock(struct dentry *dentry)
++{
++	return inode_inuse_trylock(d_inode(dentry));
++}
++
++static void ovl_dir_unlock(struct dentry *dentry)
++{
++	if (dentry)
++		inode_inuse_unlock(d_inode(dentry));
++}
++
+ static void ovl_put_super(struct super_block *sb)
  {
--	struct super_block *same_sb = ovl_same_sb(dentry->d_sb);
- 	struct ovl_entry *roe = dentry->d_sb->s_root->d_fsdata;
- 	struct vfsmount *mnt;
--	struct dentry *origin;
-+	struct dentry *origin = NULL;
-+	int i;
+ 	struct ovl_fs *ufs = sb->s_fs_info;
+ 	unsigned i;
  
--	if (!same_sb || !roe->numlower)
--		return 0;
+ 	dput(ufs->workdir);
++	ovl_dir_unlock(ufs->workbasedir);
++	dput(ufs->workbasedir);
++	if (ufs->upper_mnt)
++		ovl_dir_unlock(ufs->upper_mnt->mnt_root);
+ 	mntput(ufs->upper_mnt);
+ 	for (i = 0; i < ufs->numlower; i++)
+ 		mntput(ufs->lower_mnt[i]);
+@@ -788,9 +804,15 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
+ 		if (err)
+ 			goto out_put_upperpath;
  
--       /*
--	* Since all layers are on the same fs, we use the first layer for
--	* decoding the file handle.  We may get a disconnected dentry,
--	* which is fine, because we only need to hold the origin inode in
--	* cache and use its inode number.  We may even get a connected dentry,
--	* that is not under the first layer's root.  That is also fine for
--	* using it's inode number - it's the same as if we held a reference
--	* to a dentry in first layer that was moved under us.
--	*/
--	mnt = roe->lowerstack[0].mnt;
--
--	origin = ovl_get_origin(upperdentry, mnt);
--	if (IS_ERR_OR_NULL(origin))
--		return PTR_ERR(origin);
-+	for (i = 0; i < roe->numlower; i++) {
-+		mnt = roe->lowerstack[i].mnt;
-+		origin = ovl_get_origin(upperdentry, mnt);
-+		if (IS_ERR(origin))
-+			return PTR_ERR(origin);
++		err = -EBUSY;
++		if (!ovl_dir_lock(upperpath.dentry)) {
++			pr_err("overlayfs: upperdir is in-use by another mount\n");
++			goto out_put_upperpath;
++		}
 +
-+		if (origin)
-+			break;
-+	}
-+
-+	if (!origin)
-+		return 0;
+ 		err = ovl_mount_dir(ufs->config.workdir, &workpath);
+ 		if (err)
+-			goto out_put_upperpath;
++			goto out_unlock_upperdentry;
  
- 	BUG_ON(*stackp || *ctrp);
- 	*stackp = kmalloc(sizeof(struct path), GFP_TEMPORARY);
-@@ -301,6 +297,7 @@ static int ovl_check_origin(struct dentry *dentry, struct dentry *upperdentry,
- 		dput(origin);
- 		return -ENOMEM;
- 	}
-+
- 	**stackp = (struct path) { .dentry = origin, .mnt = mnt };
- 	*ctrp = 1;
- 
-@@ -375,6 +372,16 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
+ 		err = -EINVAL;
+ 		if (upperpath.mnt != workpath.mnt) {
+@@ -801,12 +823,20 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
+ 			pr_err("overlayfs: workdir and upperdir must be separate subtrees\n");
+ 			goto out_put_workpath;
  		}
- 		if (upperdentry && !d.is_dir) {
- 			BUG_ON(!d.stop || d.redirect);
-+			/*
-+			 * Lookup copy up origin by decoding origin file handle.
-+			 * We may get a disconnected dentry, which is fine,
-+			 * because we only need to hold the origin inode in
-+			 * cache and use its inode number.  We may even get a
-+			 * connected dentry, that is not under any of the lower
-+			 * layers root.  That is also fine for using it's inode
-+			 * number - it's the same as if we held a reference
-+			 * to a dentry in lower layer that was moved under us.
-+			 */
- 			err = ovl_check_origin(dentry, upperdentry,
- 					       &stack, &ctr);
- 			if (err)
++
++		err = -EBUSY;
++		if (!ovl_dir_lock(workpath.dentry)) {
++			pr_err("overlayfs: workdir is in-use by another mount\n");
++			goto out_put_workpath;
++		}
++
++		ufs->workbasedir = workpath.dentry;
+ 		sb->s_stack_depth = upperpath.mnt->mnt_sb->s_stack_depth;
+ 	}
+ 	err = -ENOMEM;
+ 	lowertmp = kstrdup(ufs->config.lowerdir, GFP_KERNEL);
+ 	if (!lowertmp)
+-		goto out_put_workpath;
++		goto out_unlock_workdentry;
+ 
+ 	err = -EINVAL;
+ 	stacklen = ovl_split_lowerdirs(lowertmp);
+@@ -849,6 +879,7 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
+ 			pr_err("overlayfs: failed to clone upperpath\n");
+ 			goto out_put_lowerpath;
+ 		}
++
+ 		/* Don't inherit atime flags */
+ 		ufs->upper_mnt->mnt_flags &= ~(MNT_NOATIME | MNT_NODIRATIME | MNT_RELATIME);
+ 
+@@ -971,7 +1002,7 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
+ 	mntput(upperpath.mnt);
+ 	for (i = 0; i < numlower; i++)
+ 		mntput(stack[i].mnt);
+-	path_put(&workpath);
++	mntput(workpath.mnt);
+ 	kfree(lowertmp);
+ 
+ 	if (upperpath.dentry) {
+@@ -1011,8 +1042,12 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
+ 	kfree(stack);
+ out_free_lowertmp:
+ 	kfree(lowertmp);
++out_unlock_workdentry:
++	ovl_dir_unlock(workpath.dentry);
+ out_put_workpath:
+ 	path_put(&workpath);
++out_unlock_upperdentry:
++	ovl_dir_unlock(upperpath.dentry);
+ out_put_upperpath:
+ 	path_put(&upperpath);
+ out_free_config:
 -- 
 2.7.4
