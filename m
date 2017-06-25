@@ -1,65 +1,100 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [RFC PATCH v3] ovl: fix rmdir problem on impure dir
-Date: Sun, 25 Jun 2017 10:28:13 +0300
-Message-ID: <CAOQ4uxib18RfpYyMTUoCVLAnNoYhyk0yhq0NE=voPDGzEo8x2Q@mail.gmail.com>
-References: <1498283869-17623-1-git-send-email-yi.zhang@huawei.com> <CAOQ4uxjsc6TiMyNWuoKUk3pNa_jEa3Ov_mfFfB6jvEd+XR9xVQ@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Subject: [PATCH] ovl: no direct iteration for dir with copy up origin
+Date: Sun, 25 Jun 2017 17:14:29 +0300
+Message-ID: <1498400069-12840-1-git-send-email-amir73il@gmail.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-oi0-f67.google.com ([209.85.218.67]:36376 "EHLO
-        mail-oi0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751238AbdFYH2O (ORCPT
+Received: from mail-wr0-f196.google.com ([209.85.128.196]:35501 "EHLO
+        mail-wr0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750763AbdFYOON (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Sun, 25 Jun 2017 03:28:14 -0400
-Received: by mail-oi0-f67.google.com with SMTP id p66so6723332oia.3
-        for <linux-unionfs@vger.kernel.org>; Sun, 25 Jun 2017 00:28:14 -0700 (PDT)
-In-Reply-To: <CAOQ4uxjsc6TiMyNWuoKUk3pNa_jEa3Ov_mfFfB6jvEd+XR9xVQ@mail.gmail.com>
+        Sun, 25 Jun 2017 10:14:13 -0400
+Received: by mail-wr0-f196.google.com with SMTP id z45so24697223wrb.2
+        for <linux-unionfs@vger.kernel.org>; Sun, 25 Jun 2017 07:14:12 -0700 (PDT)
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: "zhangyi (F)" <yi.zhang@huawei.com>
-Cc: overlayfs <linux-unionfs@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>, miaoxie@huawei.com
+To: Miklos Szeredi <miklos@szeredi.hu>, yi.zhang@huawei.com
+Cc: linux-unionfs@vger.kernel.org
 
-On Sat, Jun 24, 2017 at 6:55 PM, Amir Goldstein <amir73il@gmail.com> wrote:
-> On Sat, Jun 24, 2017 at 8:57 AM, zhangyi (F) <yi.zhang@huawei.com> wrote:
->> If an "impure && not merged" upper dir have left whiteouts
+If a non-merge dir in an overlay mount has an overlay.origin xattr, it
+means it was once an upper merge dir, which may contain whiteouts and
+then the lower dir was removed under it.
 
+Do not iterate real dir directly in this case to avoid exposing whiteouts.
 
-The mention of "impure" in commit message and title is
-slightly out of date the with the patch itself.
-An "origin" upper with whiteouts and no copy ups is not
-considered "impure".
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+---
+ fs/overlayfs/readdir.c | 29 +++++++++++++++++++++++++----
+ 1 file changed, 25 insertions(+), 4 deletions(-)
 
->> (last mount created), ovl cannot clear this dir when we
->> removing it, which may lead to rmdir fail or temp file left
->> in workdir.
->>
->> Simple reproducer:
->>   mkdir lower upper work merge
->>   mkdir -p lower/dir
->>   touch lower/dir/a
->>   mount -t overlay overlay -olowerdir=lower,upperdir=upper,\
->>     workdir=work merge
->>   rm merge/dir/a
->>   umount merge
->>   rm -rf lower/*
->>   touch lower/dir  (*)
->>   mount -t overlay overlay -olowerdir=lower,upperdir=upper,\
->>     workdir=work merge
->>   rm -rf merge/dir
->>
->> Syslog dump:
->>   overlayfs: cleanup of 'work/#7' failed (-39)
->>
->> (*): if we are not creat this file, the result is different:
->>   rm: cannot remove "dir/": Directory not empty
->>
->> This patch add explicitly check of OVL_XATTR_ORIGIN, use
->> (merge || origin) to indicate the dir may have whiteouts.
->> Finally, check and clean up the dir when deleting it.
->>
->> Signed-off-by: zhangyi (F) <yi.zhang@huawei.com>
->>
->
-> Looks good.
->
-> Reviewed-by: Amir Goldstein <amir73il@gmail.com>
+Yi,
+
+You missed a very big spot and so did I in review.
+Your patch doen't hide whiteouts from readdir and it doesn't
+even pass you own xfstest...
+
+Anyway, here are the missing parts picked from my impure readdir
+patch.
+
+Amir.
+
+diff --git a/fs/overlayfs/readdir.c b/fs/overlayfs/readdir.c
+index 0298463cf9c3..3c8796705517 100644
+--- a/fs/overlayfs/readdir.c
++++ b/fs/overlayfs/readdir.c
+@@ -256,21 +256,42 @@ static inline int ovl_dir_read(struct path *realpath,
+ 	return err;
+ }
+ 
++/* Can we iterate real dir directly? */
++static bool ovl_dir_is_real(struct dentry *dir)
++{
++	struct path realpath;
++	enum ovl_path_type type = ovl_path_real(dir, &realpath);
++
++	if (OVL_TYPE_MERGE(type))
++		return false;
++
++	/*
++	 * Non-merge dir may contain whiteouts from a time it was a merge
++	 * upper, before lower dir was removed under it and possibly before
++	 * it was rotated from upper to lower layer.
++	 */
++	return !ovl_check_origin_xattr(realpath.dentry);
++}
++
+ static void ovl_dir_reset(struct file *file)
+ {
+ 	struct ovl_dir_file *od = file->private_data;
+ 	struct ovl_dir_cache *cache = od->cache;
+ 	struct dentry *dentry = file->f_path.dentry;
+-	enum ovl_path_type type = ovl_path_type(dentry);
++	bool is_real;
+ 
+ 	if (cache && ovl_dentry_version_get(dentry) != cache->version) {
+ 		ovl_cache_put(od, dentry);
+ 		od->cache = NULL;
+ 		od->cursor = NULL;
+ 	}
+-	WARN_ON(!od->is_real && !OVL_TYPE_MERGE(type));
+-	if (od->is_real && OVL_TYPE_MERGE(type))
++	is_real = ovl_dir_is_real(dentry);
++	if (od->is_real != is_real) {
++		/* is_real can only become false when dir is copied up */
++		if (WARN_ON(is_real))
++			return;
+ 		od->is_real = false;
++	}
+ }
+ 
+ static int ovl_dir_read_merged(struct dentry *dentry, struct list_head *list)
+@@ -502,7 +523,7 @@ static int ovl_dir_open(struct inode *inode, struct file *file)
+ 		return PTR_ERR(realfile);
+ 	}
+ 	od->realfile = realfile;
+-	od->is_real = !OVL_TYPE_MERGE(type);
++	od->is_real = ovl_dir_is_real(file->f_path.dentry);
+ 	od->is_upper = OVL_TYPE_UPPER(type);
+ 	file->private_data = od;
+ 
+-- 
+2.7.4
