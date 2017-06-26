@@ -1,75 +1,68 @@
-From: "zhangyi (F)" <yi.zhang@huawei.com>
-Subject: Re: [RFC PATCH v3] ovl: fix rmdir problem on impure dir
-Date: Mon, 26 Jun 2017 09:28:20 +0800
-Message-ID: <bd88159a-05c4-81bd-275a-2afb1f5a9f8a@huawei.com>
-References: <1498283869-17623-1-git-send-email-yi.zhang@huawei.com>
- <CAOQ4uxjsc6TiMyNWuoKUk3pNa_jEa3Ov_mfFfB6jvEd+XR9xVQ@mail.gmail.com>
- <CAOQ4uxib18RfpYyMTUoCVLAnNoYhyk0yhq0NE=voPDGzEo8x2Q@mail.gmail.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Subject: Re: [PATCH] ovl: no direct iteration for dir with copy up origin
+Date: Mon, 26 Jun 2017 08:31:57 +0300
+Message-ID: <CAOQ4uxgJNCEYKotHg5MMeek6CM5PdbinWE-AUa_NwfTarxxiog@mail.gmail.com>
+References: <1498400069-12840-1-git-send-email-amir73il@gmail.com> <cde690a2-9288-9f5a-62a6-17f8e6b96fbb@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from szxga01-in.huawei.com ([45.249.212.187]:8795 "EHLO
-        szxga01-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751429AbdFZB2e (ORCPT
+Received: from mail-oi0-f67.google.com ([209.85.218.67]:36463 "EHLO
+        mail-oi0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751035AbdFZFb6 (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Sun, 25 Jun 2017 21:28:34 -0400
-In-Reply-To: <CAOQ4uxib18RfpYyMTUoCVLAnNoYhyk0yhq0NE=voPDGzEo8x2Q@mail.gmail.com>
+        Mon, 26 Jun 2017 01:31:58 -0400
+Received: by mail-oi0-f67.google.com with SMTP id p66so8012069oia.3
+        for <linux-unionfs@vger.kernel.org>; Sun, 25 Jun 2017 22:31:58 -0700 (PDT)
+In-Reply-To: <cde690a2-9288-9f5a-62a6-17f8e6b96fbb@huawei.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: overlayfs <linux-unionfs@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>, miaoxie@huawei.com
+To: "zhangyi (F)" <yi.zhang@huawei.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, overlayfs <linux-unionfs@vger.kernel.org>
 
-On 2017/6/25 15:28, Amir Goldstein Wrote:
-> On Sat, Jun 24, 2017 at 6:55 PM, Amir Goldstein <amir73il@gmail.com> wrote:
->> On Sat, Jun 24, 2017 at 8:57 AM, zhangyi (F) <yi.zhang@huawei.com> wrote:
->>> If an "impure && not merged" upper dir have left whiteouts
-> 
-> 
-> The mention of "impure" in commit message and title is
-> slightly out of date the with the patch itself.
-> An "origin" upper with whiteouts and no copy ups is not
-> considered "impure".
-> 
+On Mon, Jun 26, 2017 at 4:22 AM, zhangyi (F) <yi.zhang@huawei.com> wrote:
+> On 2017/6/25 22:14, Amir Goldstein Wrote:
+>> If a non-merge dir in an overlay mount has an overlay.origin xattr, it
+>> means it was once an upper merge dir, which may contain whiteouts and
+>> then the lower dir was removed under it.
+>>
+>> Do not iterate real dir directly in this case to avoid exposing whiteouts.
+>>
+>> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+>> ---
+>>  fs/overlayfs/readdir.c | 29 +++++++++++++++++++++++++----
+>>  1 file changed, 25 insertions(+), 4 deletions(-)
+>>
+>> Yi,
+>>
+>> You missed a very big spot and so did I in review.
+>> Your patch doen't hide whiteouts from readdir and it doesn't
+>> even pass you own xfstest...
+>>
+>> Anyway, here are the missing parts picked from my impure readdir
+>> patch.
+>>
+>
+> Hi Amir,
+>
+> Yes, I missed whiteouts check in readdir because I saw your readdir
+> patch has already fix it, so my xfstest test this case. Do you
+> think we should merge this two patch ?
+>
 
-I will reedit it, Thank you for your guidance.
+Yes, only two problems with my readdir patch:
+1. Miklos rejected it (for now)
+2. It only complements your V2 patch (impure), not your V3 patch (origin)
+
+So we need those two patches, it's fine if they stay separate because
+they fix two related, but distinguished problems (expose whiteouts and rmdir).
+
+I just want to highlight that I did not test the lower layer with origin case,
+not sure if you did? There were bugs related to unexpected overlay objects
+in lower layer in the past, see xfstest overlay/014 for example test.
+
+So if you can, please post a patch to extend test overlay/031 to mount
+the "origin"  with whiteout dir as lower layer and repeat the "ls" and
+"rmdir" tests.
 
 Thanks,
-ZhangYi.
-
->>> (last mount created), ovl cannot clear this dir when we
->>> removing it, which may lead to rmdir fail or temp file left
->>> in workdir.
->>>
->>> Simple reproducer:
->>>   mkdir lower upper work merge
->>>   mkdir -p lower/dir
->>>   touch lower/dir/a
->>>   mount -t overlay overlay -olowerdir=lower,upperdir=upper,\
->>>     workdir=work merge
->>>   rm merge/dir/a
->>>   umount merge
->>>   rm -rf lower/*
->>>   touch lower/dir  (*)
->>>   mount -t overlay overlay -olowerdir=lower,upperdir=upper,\
->>>     workdir=work merge
->>>   rm -rf merge/dir
->>>
->>> Syslog dump:
->>>   overlayfs: cleanup of 'work/#7' failed (-39)
->>>
->>> (*): if we are not creat this file, the result is different:
->>>   rm: cannot remove "dir/": Directory not empty
->>>
->>> This patch add explicitly check of OVL_XATTR_ORIGIN, use
->>> (merge || origin) to indicate the dir may have whiteouts.
->>> Finally, check and clean up the dir when deleting it.
->>>
->>> Signed-off-by: zhangyi (F) <yi.zhang@huawei.com>
->>>
->>
->> Looks good.
->>
->> Reviewed-by: Amir Goldstein <amir73il@gmail.com>
-> 
-> 
+Amir.
