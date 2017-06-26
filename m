@@ -1,80 +1,107 @@
 From: "zhangyi (F)" <yi.zhang@huawei.com>
-Subject: Re: [PATCH] ovl: no direct iteration for dir with copy up origin
-Date: Mon, 26 Jun 2017 15:58:40 +0800
-Message-ID: <521869b4-d075-f103-bd65-32bb548f71ad@huawei.com>
-References: <1498400069-12840-1-git-send-email-amir73il@gmail.com>
- <cde690a2-9288-9f5a-62a6-17f8e6b96fbb@huawei.com>
- <CAOQ4uxgJNCEYKotHg5MMeek6CM5PdbinWE-AUa_NwfTarxxiog@mail.gmail.com>
+Subject: Re: [RFC PATCH v3] ovl: fix rmdir problem on impure dir
+Date: Mon, 26 Jun 2017 16:17:17 +0800
+Message-ID: <30880616-4a37-2dd2-1d93-b08ca0f46492@huawei.com>
+References: <1498283869-17623-1-git-send-email-yi.zhang@huawei.com>
+ <CAOQ4uxjg4WcZgNxD0M27xm2Wp5BRgKO5=hj-wtxwWdrXxCTVPA@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from szxga03-in.huawei.com ([45.249.212.189]:8381 "EHLO
+Received: from szxga03-in.huawei.com ([45.249.212.189]:8382 "EHLO
         szxga03-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751367AbdFZH7Y (ORCPT
+        with ESMTP id S1751353AbdFZISd (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 26 Jun 2017 03:59:24 -0400
-In-Reply-To: <CAOQ4uxgJNCEYKotHg5MMeek6CM5PdbinWE-AUa_NwfTarxxiog@mail.gmail.com>
+        Mon, 26 Jun 2017 04:18:33 -0400
+In-Reply-To: <CAOQ4uxjg4WcZgNxD0M27xm2Wp5BRgKO5=hj-wtxwWdrXxCTVPA@mail.gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: Amir Goldstein <amir73il@gmail.com>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, overlayfs <linux-unionfs@vger.kernel.org>
+Cc: overlayfs <linux-unionfs@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>, miaoxie@huawei.com
 
-On 2017/6/26 13:31, Amir Goldstein Wrote:
-> On Mon, Jun 26, 2017 at 4:22 AM, zhangyi (F) <yi.zhang@huawei.com> wrote:
->> On 2017/6/25 22:14, Amir Goldstein Wrote:
->>> If a non-merge dir in an overlay mount has an overlay.origin xattr, it
->>> means it was once an upper merge dir, which may contain whiteouts and
->>> then the lower dir was removed under it.
->>>
->>> Do not iterate real dir directly in this case to avoid exposing whiteouts.
->>>
->>> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
->>> ---
->>>  fs/overlayfs/readdir.c | 29 +++++++++++++++++++++++++----
->>>  1 file changed, 25 insertions(+), 4 deletions(-)
->>>
->>> Yi,
->>>
->>> You missed a very big spot and so did I in review.
->>> Your patch doen't hide whiteouts from readdir and it doesn't
->>> even pass you own xfstest...
->>>
->>> Anyway, here are the missing parts picked from my impure readdir
->>> patch.
->>>
+On 2017/6/25 22:19, Amir Goldstein wrote:
+> On Sat, Jun 24, 2017 at 8:57 AM, zhangyi (F) <yi.zhang@huawei.com> wrote:
+>> If an "impure && not merged" upper dir have left whiteouts
+>> (last mount created), ovl cannot clear this dir when we
+>> removing it, which may lead to rmdir fail or temp file left
+>> in workdir.
 >>
->> Hi Amir,
+>> Simple reproducer:
+>>   mkdir lower upper work merge
+>>   mkdir -p lower/dir
+>>   touch lower/dir/a
+>>   mount -t overlay overlay -olowerdir=lower,upperdir=upper,\
+>>     workdir=work merge
+>>   rm merge/dir/a
+>>   umount merge
+>>   rm -rf lower/*
+>>   touch lower/dir  (*)
+>>   mount -t overlay overlay -olowerdir=lower,upperdir=upper,\
+>>     workdir=work merge
+>>   rm -rf merge/dir
 >>
->> Yes, I missed whiteouts check in readdir because I saw your readdir
->> patch has already fix it, so my xfstest test this case. Do you
->> think we should merge this two patch ?
+>> Syslog dump:
+>>   overlayfs: cleanup of 'work/#7' failed (-39)
 >>
+>> (*): if we are not creat this file, the result is different:
+>>   rm: cannot remove "dir/": Directory not empty
+>>
+>> This patch add explicitly check of OVL_XATTR_ORIGIN, use
+>> (merge || origin) to indicate the dir may have whiteouts.
+>> Finally, check and clean up the dir when deleting it.
+>>
+>> Signed-off-by: zhangyi (F) <yi.zhang@huawei.com>
+>>
+>> ---
+>> V3:
+>>  - use origin instead of impure flag
+>>  - add check in ovl_rename()
+>>
+>> V2:
+>>  - fix comment in ovl_remove_and_whiteout()
+>>  - post reproducer to xfstest
+>>
+>> ---
 > 
-> Yes, only two problems with my readdir patch:
-> 1. Miklos rejected it (for now)
-> 2. It only complements your V2 patch (impure), not your V3 patch (origin)
+> Sorry, completely missed the part where you don't prevent
+> exposing of whiteouts in readdir.
+> I posted a patch that can either be picked by itself of squashed with this one.
+> 
+> 
+>>  fs/overlayfs/dir.c       | 20 ++++++++++++++++----
+>>  fs/overlayfs/overlayfs.h |  1 +
+>>  fs/overlayfs/util.c      | 13 +++++++++++++
+>>  3 files changed, 30 insertions(+), 4 deletions(-)
+>>
+>> diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
+>> index a63a716..cbad42f 100644
+>> --- a/fs/overlayfs/dir.c
+>> +++ b/fs/overlayfs/dir.c
+>> @@ -178,6 +178,14 @@ static bool ovl_type_origin(struct dentry *dentry)
+>>         return OVL_TYPE_ORIGIN(ovl_path_type(dentry));
+>>  }
+>>
+>> +static bool ovl_is_origin(struct dentry *dentry)
+>> +{
+>> +       if (!OVL_TYPE_UPPER(ovl_path_type(dentry)))
+>> +               return false;
+>> +
+> 
+> I am not so sure that !OVL_TYPE_UPPER should be skipped.
+> in case of ovl_rename() new can be lower with origin and with
+> whiteouts, that that lower was once used as upper.
 > 
 
-Indeed, thanks for this patch.
+If the dir is !OVL_TYPE_UPPER, we can skip whiteout check because
+there's no need to delete the upperdir (it just create a whiteout
+in the upper parent), I have already tested this case :)
 
-> So we need those two patches, it's fine if they stay separate because
-> they fix two related, but distinguished problems (expose whiteouts and rmdir).
-> 
-> I just want to highlight that I did not test the lower layer with origin case,
-> not sure if you did? There were bugs related to unexpected overlay objects
-> in lower layer in the past, see xfstest overlay/014 for example test.
-> 
-
-I tested the lower layer with origin case baseed on these two patches, there
-is no problem, whiteouts are not exposed and rmdir/rename execute successfully.
-
-> So if you can, please post a patch to extend test overlay/031 to mount
-> the "origin"  with whiteout dir as lower layer and repeat the "ls" and
-> "rmdir" tests.
+> Please extend your xfstest to check that whiteouts are not
+> exposed also when a former upper layer with origin is
+> used in a mount as a lower layer.
 > 
 
-Okay, I am glad to post it, thanks.
+Sure, I will do it, thanks.
 
 Thanks,
 ZhangYi.
