@@ -1,119 +1,182 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [RFC PATCH V4] ovl: fix rmdir problem on origin dir
-Date: Wed, 28 Jun 2017 13:24:33 +0300
-Message-ID: <CAOQ4uxjXkwBCG3fiNEg1OoS-14YsKz=QvDajvobTDoS7z9x64g@mail.gmail.com>
-References: <1498641351-36052-1-git-send-email-yi.zhang@huawei.com>
+Subject: Re: [xfstest PATCH] overlay/031: add tests of whiteouts in lowerdir
+ and both dirs
+Date: Wed, 28 Jun 2017 13:49:36 +0300
+Message-ID: <CAOQ4uxipk=T_+mCzpkDS8xGnhnYkO1jqbbG5Mho8bk4He2nL8w@mail.gmail.com>
+References: <1498644722-43912-1-git-send-email-yi.zhang@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-oi0-f67.google.com ([209.85.218.67]:35762 "EHLO
-        mail-oi0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751489AbdF1KYf (ORCPT
+Received: from mail-oi0-f65.google.com ([209.85.218.65]:34791 "EHLO
+        mail-oi0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751489AbdF1Kti (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 28 Jun 2017 06:24:35 -0400
-Received: by mail-oi0-f67.google.com with SMTP id l130so5024254oib.2
-        for <linux-unionfs@vger.kernel.org>; Wed, 28 Jun 2017 03:24:35 -0700 (PDT)
-In-Reply-To: <1498641351-36052-1-git-send-email-yi.zhang@huawei.com>
+        Wed, 28 Jun 2017 06:49:38 -0400
+In-Reply-To: <1498644722-43912-1-git-send-email-yi.zhang@huawei.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: "zhangyi (F)" <yi.zhang@huawei.com>
-Cc: overlayfs <linux-unionfs@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>, miaoxie@huawei.com
+Cc: fstests <fstests@vger.kernel.org>, Eryu Guan <eguan@redhat.com>, overlayfs <linux-unionfs@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>, miaoxie@huawei.com
 
-On Wed, Jun 28, 2017 at 12:15 PM, zhangyi (F) <yi.zhang@huawei.com> wrote:
-> If an "origin && not merged" upper dir have leftover whiteouts
-> (last mount created), ovl do not clear this dir when we
-> deleting it, which may lead to rmdir fail or temp file left
-> in workdir.
+On Wed, Jun 28, 2017 at 1:12 PM, zhangyi (F) <yi.zhang@huawei.com> wrote:
+> In overlay/031, it only cover the test case of whiteouts in
+> origined upper dir. This patch add two cases cover the other
+> two situations:
 >
-> Simple reproducer:
->   mkdir lower upper work merge
->   mkdir -p lower/dir
->   touch lower/dir/a
->   mount -t overlay overlay -olowerdir=lower,upperdir=upper,\
->     workdir=work merge
->   rm merge/dir/a
->   umount merge
->   rm -rf lower/*
->   touch lower/dir  (*)
->   mount -t overlay overlay -olowerdir=lower,upperdir=upper,\
->     workdir=work merge
->   rm -rf merge/dir
->
-> Syslog dump:
->   overlayfs: cleanup of 'work/#7' failed (-39)
->
-> (*): if we are not creat this file, the result is different:
->   rm: cannot remove "dir/": Directory not empty
->
-> This patch add explicitly check of OVL_XATTR_ORIGIN, and filter
-> out whiteouts in upperdentry in ovl_check_empty_dir(). Finally,
-> check and clear the dir when deleting it.
+> 1) Lower origined dir have whiteouts;
+> 2) Both upper and lower origined dirs have whiteouts (although
+> this case is pass now, still add this to cover all three kinds
+> of situations).
 >
 > Signed-off-by: zhangyi (F) <yi.zhang@huawei.com>
-> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 
-Thanks for the attribution, but you can't sign on my behalf.
-Besides, as I wrote, the p->idx bits from my patch are attributed
-to Miklos anyway, who is going to sign off your patch before he
-merges it anyway, so don't worry about it.
-
-You may add:
-Reviewed-by: Amir Goldstein <amir73il@gmail.com>
-
-one nits below - don't feel obliged to fix it
+Great work.
+Some minor comments...
 
 > ---
-> Hi Amir,
+>  tests/overlay/031 | 83 +++++++++++++++++++++++++++++++++++++++++--------------
+>  1 file changed, 63 insertions(+), 20 deletions(-)
 >
-> I pick out "idx" part from your readdir patch to filter
-> out upper whiteouts in ovl_check_empty_dir(), and check
-> !list_empty(&list) to call ovl_clear_empty(). I have test
-> it use my xfstest/031 V2.
-
-Excellent.
-
+> diff --git a/tests/overlay/031 b/tests/overlay/031
+> index 674c11f..0835ddf 100755
+> --- a/tests/overlay/031
+> +++ b/tests/overlay/031
+> @@ -1,9 +1,10 @@
+>  #! /bin/bash
+>  # FS QA Test 031
+>  #
+> -# The unmerged and impure upper directories may contain invalid
+> -# whiteouts when we change lowerdir(e.g. clean up dir) and remount
+> -# overlay. This may lead to whiteouts exposure and rmdir failure.
+> +# The unmerged and origined directories may contain invalid
+> +# whiteouts when we change underlaying dir(e.g. clean up lowerdir)
+> +# and remount overlay. This may lead to whiteouts exposure and
+> +# rmdir failure.
+>  #
+>  #-----------------------------------------------------------------------
+>  # Copyright (c) 2017 Huawei.  All Rights Reserved.
+> @@ -38,6 +39,20 @@ _cleanup()
+>         rm -f $tmp.*
+>  }
 >
-> BTW, I have a question, many features of overlayfs rely
-> on xattr/whiteouts of underlaying dir now, but xattr may
-> have some inconformity before we mount overlayfs or
-> "umount --> modify underlaying dir --> mount again"
-> (.e.g this whiteout case), so we cannot guarantee it's
-> behavior meet users expectations. Do you think we can make
-> a tools like e2fsck of Extfs in the future, let users to
-> check underlaying dir before mount? I think it can do the
-> following things:
+> +# create test directory and test file, mount overlayfs and remove
+> +# testfile to create a whiteout.
+> +_create_whiteout()
+> +{
+> +       mkdir -p $1/testdir
+> +       touch $1/testdir/$4
+> +
+> +       _overlay_mount_dirs $1 $2 $3 $OVL_BASE_SCRATCH_MNT $SCRATCH_MNT
+> +
+> +       rm -f $SCRATCH_MNT/testdir/$4
+> +
+> +       $UMOUNT_PROG $SCRATCH_MNT
+> +}
+> +
+
+Please introduce the helper in a separate patch.
+
+>  # get standard environment, filters and checks
+>  . ./common/rc
+>  . ./common/filter
+> @@ -52,26 +67,22 @@ _require_scratch
+>  # remove all files from previous runs
+>  _scratch_mkfs
 >
-> (1) Check invalid whiteouts and auto fix or ask user.
-> (2) Check redirect/impure/opaque xattr.
-(3) Check origin of merge dirs and auto fix them or ask user
+> -# create test directory and test file
+> -lowerdir=$OVL_BASE_SCRATCH_MNT/$OVL_LOWER
+> -upperdir=$OVL_BASE_SCRATCH_MNT/$OVL_UPPER
+> -workdir=$OVL_BASE_SCRATCH_MNT/$OVL_WORK
+> -mkdir -p $lowerdir/testdir
+> -touch $lowerdir/testdir/a
+> -
+> -# mount overlayfs and remove testfile to create a whiteout
+> -_scratch_mount
+> +# create test directorys and whiteout
+> +lowerdir1=$OVL_BASE_SCRATCH_MNT/lower1
+> +lowerdir2=$OVL_BASE_SCRATCH_MNT/lower2
+> +upperdir=$OVL_BASE_SCRATCH_MNT/upper
+> +workdir=$OVL_BASE_SCRATCH_MNT/workdir
+> +testfile1=a
+> +testfile2=b
+> +mkdir -p $lowerdir1 $lowerdir2 $upperdir $workdir
+>
+> -rm -f $SCRATCH_MNT/testdir/a
+> -
+> -# unmount overlayfs but not base fs
+> -$UMOUNT_PROG $SCRATCH_MNT
+> +_create_whiteout $lowerdir1 $upperdir $workdir $testfile1
+>
+>  # clean up the lower directory and mount overlay again,
+>  # whiteout will expose.
+> -rm -rf $lowerdir/testdir
+> +rm -rf $lowerdir1/testdir
+>
+> -_scratch_mount
+> +_overlay_mount_dirs $lowerdir1 $upperdir $workdir $OVL_BASE_SCRATCH_MNT $SCRATCH_MNT
+>
+>  ls $SCRATCH_MNT/testdir
+>
+> @@ -82,15 +93,47 @@ rm -rf $SCRATCH_MNT/testdir 2>&1 | _filter_scratch
+>  # umount overlay again, create a new file with the same name and
+>  # mount overlay again.
+>  $UMOUNT_PROG $SCRATCH_MNT
+> -touch $lowerdir/testdir
+> +touch $lowerdir1/testdir
+>
+> -_scratch_mount
+> +_overlay_mount_dirs $lowerdir1 $upperdir $workdir $OVL_BASE_SCRATCH_MNT $SCRATCH_MNT
+>
+>  # try to remove test dir from overlay dir, trigger ovl_remove_and_whiteout,
+>  # it will not clean up the dir and lead to residue.
+>  rm -rf $SCRATCH_MNT/testdir 2>&1 | _filter_scratch
+>  ls $workdir/work
+>
+> +$UMOUNT_PROG $SCRATCH_MNT
+> +
+> +# exchange lower dir and upper dir, repeat ls and rmidr test again,
+> +# the lower dir will have invalid whiteout this time.
+
+typo (rmidr)
+
+> +rm -rf $lowerdir1/testdir
+> +rm -rf $upperdir/testdir
+> +
+> +_create_whiteout $lowerdir1 $upperdir $workdir $testfile1
+> +
+> +rm -rf $lowerdir1/testdir
+> +
+> +_overlay_mount_dirs $upperdir $lowerdir1 $workdir $OVL_BASE_SCRATCH_MNT $SCRATCH_MNT
+
+May I suggest something different that the exchange trick
+although exchange trick is perfectly fine too, but the proposed
+alternative is a real world use case (rotating upper to lower stack).
+Also, with the proposed mount, you also get coverage for whiteouts
+in middle layer, which are not tested by the tests you proposed.
+
++_create_whiteout $lowerdir1 $lowerdir2 $workdir $testfile1
++ _overlay_mount_dirs "$lowerdir2:$lowerdir1" $upperdir $workdir \
+                    $OVL_BASE_SCRATCH_MNT $SCRATCH_MNT
+
+> +
+> +ls $SCRATCH_MNT/testdir
+> +rm -rf $SCRATCH_MNT/testdir 2>&1 | _filter_scratch
+> +
+> +$UMOUNT_PROG $SCRATCH_MNT
+> +
+> +# let lower dir and upper dir both have invalid whiteouts, repeat ls and rmdir again.
+> +rm -rf $lowerdir1/testdir
+> +rm -rf $upperdir/testdir
+> +
+> +_create_whiteout $lowerdir1 $upperdir $workdir $testfile1
+
+Please use:
++_create_whiteout $lowerdir2 $upperdir $workdir $testfile1
+
+Because with inodes index feature same upper cannot be
+mounted again with a different lower. the proposed
+alternative is a real world use case (rotating upper to lower stack)
 
 
-I think having to create fsck.overlay is inevitable.
-With the new inode index feature, a lot more can and needs to
-be checked. Specifically, inodes index checks that lower root dir
-matches origin stored in upper root dir and fails to mount overlay.
-
-In order to allow mounting an indexed overlay after copying
-layers (to new lower inodes), a tool must be provided to perform
-'checkpoint/restart' functionality, which converts 'origin' xattr
-(by fh) to 'redirect' xattr (by path) and vice versa.
-
-As part of my TODO for overlayfs snapshots, I must deal with
-the 'checkpoint' part, so I do plan to start a poor mans
-implementation of an overlayfs-utils tool, but I have no plans to
-maintain a proper distribution packaged tool at community standard.
-
-If you wish to start writing a proper tool, which performs the checks
-that you listed, that would be most welcome. You are welcome to
-contribute the code to the project I prepared for that purpose:
-https://github.com/amir73il/overlayfs
-
-> @@ -522,6 +525,7 @@ int ovl_check_empty_dir(struct dentry *dentry, struct list_head *list)
->  {
->         int err;
->         struct ovl_cache_entry *p;
-> +       struct ovl_cache_entry *n;
-
-nit: I would do *p, *n;
-It's a matter of taste I suppose, because Miklos chose otherwise in
-ovl_cache_free()
+Thanks,
+Amir.
