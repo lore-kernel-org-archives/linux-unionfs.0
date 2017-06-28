@@ -1,94 +1,200 @@
-From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [PATCH V2] ovl: Allocate anonymous devs for lowerdirs
-Date: Tue, 27 Jun 2017 12:04:19 +0300
-Message-ID: <CAOQ4uxi3Ebb-8a-yYkGgs+R3fZ=wXE52+Hvxe=3-MMq1LX3tFA@mail.gmail.com>
-References: <20170623110118.19975-1-chandan@linux.vnet.ibm.com>
- <CAOQ4uxjf-MUQTisMHL96Ao3P+NXRG5QnJmmd0iptcgyYGB72=Q@mail.gmail.com> <2369642.ypcN4zZqWi@localhost.localdomain>
+From: "zhangyi (F)" <yi.zhang@huawei.com>
+Subject: [xfstest PATCH v2] overlay: test whiteout check in origin dir
+Date: Wed, 28 Jun 2017 16:04:05 +0800
+Message-ID: <1498637045-19185-1-git-send-email-yi.zhang@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-oi0-f67.google.com ([209.85.218.67]:35238 "EHLO
-        mail-oi0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752161AbdF0JEU (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 27 Jun 2017 05:04:20 -0400
-Received: by mail-oi0-f67.google.com with SMTP id l130so1872298oib.2
-        for <linux-unionfs@vger.kernel.org>; Tue, 27 Jun 2017 02:04:20 -0700 (PDT)
-In-Reply-To: <2369642.ypcN4zZqWi@localhost.localdomain>
-Sender: linux-unionfs-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <fstests-owner@vger.kernel.org>
+Sender: fstests-owner@vger.kernel.org
+To: fstests@vger.kernel.org
+Cc: eguan@redhat.com, linux-unionfs@vger.kernel.org, miklos@szeredi.hu, amir73il@gmail.com, yi.zhang@huawei.com, miaoxie@huawei.com
 List-Id: linux-unionfs@vger.kernel.org
-To: Chandan Rajendra <chandan@linux.vnet.ibm.com>
-Cc: overlayfs <linux-unionfs@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>
 
-On Tue, Jun 27, 2017 at 10:31 AM, Chandan Rajendra
-<chandan@linux.vnet.ibm.com> wrote:
-> On Friday, June 23, 2017 7:04:57 PM IST Amir Goldstein wrote:
->> On Fri, Jun 23, 2017 at 2:01 PM, Chandan Rajendra
->> <chandan@linux.vnet.ibm.com> wrote:
->> > For stat(2) on lowerdir non-dir entries in non-samefs case, this commit
->> > provides unique values for st_dev. The unique values are obtained by
->> > allocating anonymous bdevs for each of the lowerdirs in the overlayfs
->> > instance.
->> >
->> > Signed-off-by: Chandan Rajendra <chandan@linux.vnet.ibm.com>
->> > ---
->>
->> Reviewed-by: Amir Goldstein <amir73il@gmail.com>
->> Tested-by: Amir Goldstein <amir73il@gmail.com>
->>
->> Miklos,
->>
->> I re-created the branch ovl-constino [1] on top of ovl-hardlinks and without
->> the consistent dino patches.
->>
->> Applied Chandan's patch and resolved conflicts with my patches.
->> Then, applied my patch to relax constant st_ino  for non-samefs on stat(2).
->>
->> Mutilated unionmount-testsuite layers check [2] to get over the unexpected
->> pseudo dev and now tests pass for non samefs including constant ino
->> verification and persistent ino verification for non-dir.
->>
->> Chandan,
->>
->> If you can fix the mutilated unionmount-testsuite check_layer(), that would be
->> nice.
->>
->
-> Amir,
->
-> In check_layer() we have the following,
->
->             # TODO: for non-samefs, check file dev matches pseudo dev
->             # and that pseduo dev != real dev
->             raise TestError(name + ": File on unexpected layer")
->
-> "check file dev matches pseudo dev" ... To do this we would have to
-> have the list of pseudo dev ids for each of the lowerdirs.  One crude
-> way of getting such a list would be to create files having names with
-> a known prefix under each of the lowerdirs before mounting the
-> overlayfs instance.  After mounting the overlayfs instance we could do
-> a stat(2) on $overlay_mount/tempfile[i] to get the pseudo dev ids.
->
-> These pseudo dev ids can then be used in check_layer().
->
-> Please let me know your views on this.
->
+The unmerged and origined directories may contain invalid
+whiteouts when we umount && modify dir(e.g. clean up dir) and
+remount overlay. This may lead to whiteouts exposure and rmdir
+failure.
 
-I think that "check file dev matches pseudo dev" part is probably not worth
-the effort.
+This case test origin dir's whiteouts check in ovl_iterate() and
+ovl_remove_xxx().
 
-Better concentrate on "pseduo dev != real dev" part. real dev is already
-recorded (note_lower_fs/note_upper_fs) so it should be easier.
-Please go over the check_layer tests and specifically the changes I've
-made to them. It's possible that the tests could be improved also for the
-samefs case (i.e. verify that in samefs st_dev is always overlay dev).
+Signed-off-by: zhangyi (F) <yi.zhang@huawei.com>
+---
+v2:
+ - add test of lower origin dir have whiteouts
+ - add test of both upper and lower origin dirs have whiteouts
+   (although this case is pass now, still add this to cover all
+   three kinds of situations)
+ - add to whiteout group
+---
+ tests/overlay/031     | 139 ++++++++++++++++++++++++++++++++++++++++++++++++++
+ tests/overlay/031.out |   2 +
+ tests/overlay/group   |   1 +
+ 3 files changed, 142 insertions(+)
+ create mode 100755 tests/overlay/031
+ create mode 100644 tests/overlay/031.out
 
-BTW, I just force push the ovl-constino unionmount branch to include
-an opt-in run option --verify.
-Without this option, constant ino is not checked at all.
-This is so older kernels could still be tested with latests unionmount
-testsuite.
-Please rebase.
-
-Thanks,
-Amir.
+diff --git a/tests/overlay/031 b/tests/overlay/031
+new file mode 100755
+index 0000000..7dd5f5f
+--- /dev/null
++++ b/tests/overlay/031
+@@ -0,0 +1,139 @@
++#! /bin/bash
++# FS QA Test 031
++#
++# The unmerged and origined directories may contain invalid
++# whiteouts when we change dir(e.g. clean up lowerdir) and remount
++# overlay. This may lead to whiteouts exposure and rmdir failure.
++#
++#-----------------------------------------------------------------------
++# Copyright (c) 2017 Huawei.  All Rights Reserved.
++#
++# This program is free software; you can redistribute it and/or
++# modify it under the terms of the GNU General Public License as
++# published by the Free Software Foundation.
++#
++# This program is distributed in the hope that it would be useful,
++# but WITHOUT ANY WARRANTY; without even the implied warranty of
++# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++# GNU General Public License for more details.
++#
++# You should have received a copy of the GNU General Public License
++# along with this program; if not, write the Free Software Foundation,
++# Inc.,  51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
++#-----------------------------------------------------------------------
++#
++
++seq=`basename $0`
++seqres=$RESULT_DIR/$seq
++echo "QA output created by $seq"
++
++here=`pwd`
++tmp=/tmp/$$
++status=1	# failure is the default!
++trap "_cleanup; exit \$status" 0 1 2 3 15
++
++_cleanup()
++{
++	cd /
++	rm -f $tmp.*
++}
++
++# create test directory and test file, mount overlayfs and remove
++# testfile to create a whiteout.
++_create_whiteout()
++{
++	mkdir -p $1/testdir
++	touch $1/testdir/$4
++
++	_overlay_mount_dirs $1 $2 $3 $OVL_BASE_SCRATCH_MNT $SCRATCH_MNT
++
++	rm -f $SCRATCH_MNT/testdir/$4
++
++	$UMOUNT_PROG $SCRATCH_MNT
++}
++
++# get standard environment, filters and checks
++. ./common/rc
++. ./common/filter
++
++rm -f $seqres.full
++
++# real QA test starts here
++_supported_fs overlay
++_supported_os Linux
++_require_scratch
++
++# remove all files from previous runs
++_scratch_mkfs
++
++# create test directorys and whiteout
++lowerdir1=$OVL_BASE_SCRATCH_MNT/lower1
++lowerdir2=$OVL_BASE_SCRATCH_MNT/lower2
++upperdir=$OVL_BASE_SCRATCH_MNT/upper
++workdir=$OVL_BASE_SCRATCH_MNT/workdir
++testfile1=a
++testfile2=b
++mkdir -p $lowerdir1 $lowerdir2 $upperdir $workdir
++
++_create_whiteout $lowerdir1 $upperdir $workdir $testfile1
++
++# clean up the lower directory and mount overlay again,
++# whiteout will expose.
++rm -rf $lowerdir1/testdir
++
++_overlay_mount_dirs $lowerdir1 $upperdir $workdir $OVL_BASE_SCRATCH_MNT $SCRATCH_MNT
++
++ls $SCRATCH_MNT/testdir
++
++# try to remove test dir from overlay dir, trigger ovl_remove_upper,
++# it will not clean up the dir and lead to rmdir failure.
++rm -rf $SCRATCH_MNT/testdir 2>&1 | _filter_scratch
++
++# umount overlay again, create a new file with the same name and
++# mount overlay again.
++$UMOUNT_PROG $SCRATCH_MNT
++touch $lowerdir1/testdir
++
++_overlay_mount_dirs $lowerdir1 $upperdir $workdir $OVL_BASE_SCRATCH_MNT $SCRATCH_MNT
++
++# try to remove test dir from overlay dir, trigger ovl_remove_and_whiteout,
++# it will not clean up the dir and lead to residue.
++rm -rf $SCRATCH_MNT/testdir 2>&1 | _filter_scratch
++ls $workdir/work
++
++$UMOUNT_PROG $SCRATCH_MNT
++
++# exchange lower dir and upper dir, repeat ls and rmidr test again,
++# the lower dir will have invalid whiteout this time.
++rm -rf $lowerdir1/testdir
++rm -rf $upperdir/testdir
++
++_create_whiteout $lowerdir1 $upperdir $workdir $testfile1
++
++rm -rf $lowerdir1/testdir
++
++_overlay_mount_dirs $upperdir $lowerdir1 $workdir $OVL_BASE_SCRATCH_MNT $SCRATCH_MNT
++
++ls $SCRATCH_MNT/testdir
++rm -rf $SCRATCH_MNT/testdir 2>&1 | _filter_scratch
++
++$UMOUNT_PROG $SCRATCH_MNT
++
++# let lower dir and upper dir both have invalid whiteouts, repeat ls and rmdir again.
++rm -rf $lowerdir1/testdir
++rm -rf $upperdir/testdir
++
++_create_whiteout $lowerdir1 $upperdir $workdir $testfile1
++
++rm -rf $lowerdir1/testdir
++_create_whiteout $lowerdir1 $lowerdir2 $workdir $testfile2
++
++_overlay_mount_dirs $lowerdir2 $upperdir $workdir $OVL_BASE_SCRATCH_MNT $SCRATCH_MNT
++
++ls $SCRATCH_MNT/testdir
++rm -rf $SCRATCH_MNT/testdir 2>&1 | _filter_scratch
++
++# success, all done
++echo "Silence is golden"
++status=0
++exit
+diff --git a/tests/overlay/031.out b/tests/overlay/031.out
+new file mode 100644
+index 0000000..b3d0bb0
+--- /dev/null
++++ b/tests/overlay/031.out
+@@ -0,0 +1,2 @@
++QA output created by 031
++Silence is golden
+diff --git a/tests/overlay/group b/tests/overlay/group
+index c5048c4..64d200c 100644
+--- a/tests/overlay/group
++++ b/tests/overlay/group
+@@ -33,3 +33,4 @@
+ 028 auto copyup quick
+ 029 auto quick
+ 030 auto quick perms
++031 auto quick whiteout
+-- 
+1.8.3.1
