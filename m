@@ -1,104 +1,100 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [xfstest PATCH V2 1/2] overlay/031: factor out _create_whiteout() helper
-Date: Fri, 30 Jun 2017 17:28:36 +0300
-Message-ID: <CAOQ4uxgZ2iCUs0LABWH-F6j0ammu+xnKdoneop34QZJRo98yFw@mail.gmail.com>
-References: <1498792811-17311-1-git-send-email-yi.zhang@huawei.com> <1498792811-17311-2-git-send-email-yi.zhang@huawei.com>
+Subject: Re: [PATCH V2] ovl: Allocate anonymous devs for lowerdirs
+Date: Fri, 30 Jun 2017 17:50:19 +0300
+Message-ID: <CAOQ4uxh=3poJ=TDi5jj2xrb68xvLPTdv+NzoUX=dUDDcGK0D0w@mail.gmail.com>
+References: <20170623110118.19975-1-chandan@linux.vnet.ibm.com>
+ <CAOQ4uxjf-MUQTisMHL96Ao3P+NXRG5QnJmmd0iptcgyYGB72=Q@mail.gmail.com>
+ <2369642.ypcN4zZqWi@localhost.localdomain> <2041782.HUJ34Am32x@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-oi0-f67.google.com ([209.85.218.67]:34807 "EHLO
+Received: from mail-oi0-f67.google.com ([209.85.218.67]:36154 "EHLO
         mail-oi0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751560AbdF3O2m (ORCPT
+        with ESMTP id S1752054AbdF3OuZ (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 30 Jun 2017 10:28:42 -0400
-In-Reply-To: <1498792811-17311-2-git-send-email-yi.zhang@huawei.com>
+        Fri, 30 Jun 2017 10:50:25 -0400
+Received: by mail-oi0-f67.google.com with SMTP id n2so5125731oig.3
+        for <linux-unionfs@vger.kernel.org>; Fri, 30 Jun 2017 07:50:25 -0700 (PDT)
+In-Reply-To: <2041782.HUJ34Am32x@localhost.localdomain>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: "zhangyi (F)" <yi.zhang@huawei.com>
-Cc: fstests <fstests@vger.kernel.org>, Eryu Guan <eguan@redhat.com>, overlayfs <linux-unionfs@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>, miaoxie@huawei.com
+To: Chandan Rajendra <chandan@linux.vnet.ibm.com>
+Cc: overlayfs <linux-unionfs@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>
 
-On Fri, Jun 30, 2017 at 6:20 AM, zhangyi (F) <yi.zhang@huawei.com> wrote:
-> Factor out helper for create an leftover whiteout,
-> this is common to repeat test of whiteout check in
-> different underlaying directories.
+On Fri, Jun 30, 2017 at 1:58 PM, Chandan Rajendra
+<chandan@linux.vnet.ibm.com> wrote:
+> On Tuesday, June 27, 2017 1:01:17 PM IST Chandan Rajendra wrote:
+>> On Friday, June 23, 2017 7:04:57 PM IST Amir Goldstein wrote:
+>> > On Fri, Jun 23, 2017 at 2:01 PM, Chandan Rajendra
+>> > <chandan@linux.vnet.ibm.com> wrote:
+>> > > For stat(2) on lowerdir non-dir entries in non-samefs case, this commit
+>> > > provides unique values for st_dev. The unique values are obtained by
+>> > > allocating anonymous bdevs for each of the lowerdirs in the overlayfs
+>> > > instance.
+>> > >
+>> > > Signed-off-by: Chandan Rajendra <chandan@linux.vnet.ibm.com>
+>> > > ---
+>> >
+>> > Reviewed-by: Amir Goldstein <amir73il@gmail.com>
+>> > Tested-by: Amir Goldstein <amir73il@gmail.com>
+>> >
+>> > Miklos,
+>> >
+>> > I re-created the branch ovl-constino [1] on top of ovl-hardlinks and without
+>> > the consistent dino patches.
+>> >
+>> > Applied Chandan's patch and resolved conflicts with my patches.
+>> > Then, applied my patch to relax constant st_ino  for non-samefs on stat(2).
+>> >
+>> > Mutilated unionmount-testsuite layers check [2] to get over the unexpected
+>> > pseudo dev and now tests pass for non samefs including constant ino
+>> > verification and persistent ino verification for non-dir.
+>> >
+>> > Chandan,
+>> >
+>> > If you can fix the mutilated unionmount-testsuite check_layer(), that would be
+>> > nice.
+>> >
+>>
 >
-> Signed-off-by: zhangyi (F) <yi.zhang@huawei.com>
+> Hi Amir,
+>
+> In dentry.created(), we have
+>
+>         self.__upper = on_upper or not inode or inode.filetype() == "d"
+>
+> Do you happen to know why we mark the dentry as being present on the upperdir
+> filesystem when "inode" evaluates to false?
 
-Reviewed-by: Amir Goldstein <amir73il@gmail.com>
+I don't know why that was done this way, but IIUC, only way for inode
+to be None is by passing None as filetype to record_file.
 
-> ---
->  tests/overlay/031 | 38 +++++++++++++++++++++++---------------
->  1 file changed, 23 insertions(+), 15 deletions(-)
 >
-> diff --git a/tests/overlay/031 b/tests/overlay/031
-> index 674c11f..cb29ee5 100755
-> --- a/tests/overlay/031
-> +++ b/tests/overlay/031
-> @@ -38,6 +38,20 @@ _cleanup()
->         rm -f $tmp.*
->  }
+> Consider the case of /lowerdir/a/foo101 file being created in
+> set_up.py. ctx.record_file() ends up creating a new 'dentry' object with no
+> inode associated with it. Hence self.__upper is set to the value True. Isn't
+> this incorrect since the file foo101 is actually being created on lowerdir?
+
+IIUC, self.__upper will only be true for no_foo and no_dir, which are
+created with filetype None.
+
 >
-> +# create test directory and test file, mount overlayfs and remove
-> +# testfile to create a whiteout in upper dir.
-> +_create_whiteout()
-> +{
-> +       mkdir -p $1/testdir
-> +       touch $1/testdir/$4
-> +
-> +       _overlay_mount_dirs $1 $2 $3 $OVL_BASE_SCRATCH_MNT $SCRATCH_MNT
-> +
-> +       rm -f $SCRATCH_MNT/testdir/$4
-> +
-> +       $UMOUNT_PROG $SCRATCH_MNT
-> +}
-> +
->  # get standard environment, filters and checks
->  . ./common/rc
->  . ./common/filter
-> @@ -52,26 +66,20 @@ _require_scratch
->  # remove all files from previous runs
->  _scratch_mkfs
+> I added the following new test scenario to check_layer() code,
 >
-> -# create test directory and test file
-> -lowerdir=$OVL_BASE_SCRATCH_MNT/$OVL_LOWER
-> -upperdir=$OVL_BASE_SCRATCH_MNT/$OVL_UPPER
-> -workdir=$OVL_BASE_SCRATCH_MNT/$OVL_WORK
-> -mkdir -p $lowerdir/testdir
-> -touch $lowerdir/testdir/a
-> -
-> -# mount overlayfs and remove testfile to create a whiteout
-> -_scratch_mount
-> +# create test directorys and whiteout
-> +lowerdir=$OVL_BASE_SCRATCH_MNT/lower
-> +upperdir=$OVL_BASE_SCRATCH_MNT/upper
-> +workdir=$OVL_BASE_SCRATCH_MNT/workdir
-> +testfile=a
-> +mkdir -p $lowerdir $upperdir $workdir
+>    elif dentry.on_upper() and not self.config().is_samefs() and dev != self.upper_fs():
+>           raise TestError(name + ": Upperdir file has incorrect dev id")
 >
-> -rm -f $SCRATCH_MNT/testdir/a
-> -
-> -# unmount overlayfs but not base fs
-> -$UMOUNT_PROG $SCRATCH_MNT
-> +_create_whiteout $lowerdir $upperdir $workdir $testfile
+> In the above code snippet, dentry.on_upper() incorrectly evaluates to True and
+> hence we end up raising an exception.
 >
->  # clean up the lower directory and mount overlay again,
->  # whiteout will expose.
->  rm -rf $lowerdir/testdir
+> Maybe dentry.created should have the following statement instead,
 >
-> -_scratch_mount
-> +_overlay_mount_dirs $lowerdir $upperdir $workdir $OVL_BASE_SCRATCH_MNT $SCRATCH_MNT
->
->  ls $SCRATCH_MNT/testdir
->
-> @@ -84,7 +92,7 @@ rm -rf $SCRATCH_MNT/testdir 2>&1 | _filter_scratch
->  $UMOUNT_PROG $SCRATCH_MNT
->  touch $lowerdir/testdir
->
-> -_scratch_mount
-> +_overlay_mount_dirs $lowerdir $upperdir $workdir $OVL_BASE_SCRATCH_MNT $SCRATCH_MNT
->
->  # try to remove test dir from overlay dir, trigger ovl_remove_and_whiteout,
->  # it will not clean up the dir and lead to residue.
-> --
-> 2.5.0
->
+>      self.__upper = on_upper or (inode and inode.filetype() == "d")
+
+That looks correct to me.
+That change will only make a difference for dentries that are
+dentry.is_negative(),
+but this use case is already checked above in check_layer() anyway.
+
+Thanks,
+Amir.
