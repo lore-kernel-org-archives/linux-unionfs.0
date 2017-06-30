@@ -1,100 +1,67 @@
-From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [PATCH V2] ovl: Allocate anonymous devs for lowerdirs
-Date: Fri, 30 Jun 2017 17:50:19 +0300
-Message-ID: <CAOQ4uxh=3poJ=TDi5jj2xrb68xvLPTdv+NzoUX=dUDDcGK0D0w@mail.gmail.com>
-References: <20170623110118.19975-1-chandan@linux.vnet.ibm.com>
- <CAOQ4uxjf-MUQTisMHL96Ao3P+NXRG5QnJmmd0iptcgyYGB72=Q@mail.gmail.com>
- <2369642.ypcN4zZqWi@localhost.localdomain> <2041782.HUJ34Am32x@localhost.localdomain>
+From: Chandan Rajendra <chandan@linux.vnet.ibm.com>
+Subject: Re: [PATCH v3 5/5] ovl: consistent st_ino/d_ino
+Date: Fri, 30 Jun 2017 21:53:12 +0530
+Message-ID: <3572960.FHoPbXkqrf@localhost.localdomain>
+References: <1496307779-2766-1-git-send-email-amir73il@gmail.com> <CAOQ4uxgtBzq8_HtSfKxGNT3mx_erg3MHw09z-ZQ25GK3RJFk6w@mail.gmail.com> <CAJfpeguKE2o=6bQm6q99oZXoP5w8Qt0qKZzbRDm7kGS0wYzvmA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-oi0-f67.google.com ([209.85.218.67]:36154 "EHLO
-        mail-oi0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752054AbdF3OuZ (ORCPT
+Received: from mx0a-001b2d01.pphosted.com ([148.163.156.1]:56775 "EHLO
+        mx0a-001b2d01.pphosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750975AbdF3QWx (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 30 Jun 2017 10:50:25 -0400
-Received: by mail-oi0-f67.google.com with SMTP id n2so5125731oig.3
-        for <linux-unionfs@vger.kernel.org>; Fri, 30 Jun 2017 07:50:25 -0700 (PDT)
-In-Reply-To: <2041782.HUJ34Am32x@localhost.localdomain>
+        Fri, 30 Jun 2017 12:22:53 -0400
+Received: from pps.filterd (m0098393.ppops.net [127.0.0.1])
+        by mx0a-001b2d01.pphosted.com (8.16.0.20/8.16.0.20) with SMTP id v5UGKkh1146315
+        for <linux-unionfs@vger.kernel.org>; Fri, 30 Jun 2017 12:22:53 -0400
+Received: from e23smtp06.au.ibm.com (e23smtp06.au.ibm.com [202.81.31.148])
+        by mx0a-001b2d01.pphosted.com with ESMTP id 2bdmqt5ve7-1
+        (version=TLSv1.2 cipher=AES256-SHA bits=256 verify=NOT)
+        for <linux-unionfs@vger.kernel.org>; Fri, 30 Jun 2017 12:22:52 -0400
+Received: from localhost
+        by e23smtp06.au.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
+        for <linux-unionfs@vger.kernel.org> from <chandan@linux.vnet.ibm.com>;
+        Sat, 1 Jul 2017 02:22:50 +1000
+Received: from d23av01.au.ibm.com (d23av01.au.ibm.com [9.190.234.96])
+        by d23relay09.au.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id v5UGMmGi5898558
+        for <linux-unionfs@vger.kernel.org>; Sat, 1 Jul 2017 02:22:48 +1000
+Received: from d23av01.au.ibm.com (localhost [127.0.0.1])
+        by d23av01.au.ibm.com (8.14.4/8.14.4/NCO v10.0 AVout) with ESMTP id v5UGMlq3001977
+        for <linux-unionfs@vger.kernel.org>; Sat, 1 Jul 2017 02:22:48 +1000
+In-Reply-To: <CAJfpeguKE2o=6bQm6q99oZXoP5w8Qt0qKZzbRDm7kGS0wYzvmA@mail.gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Chandan Rajendra <chandan@linux.vnet.ibm.com>
-Cc: overlayfs <linux-unionfs@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>
 
-On Fri, Jun 30, 2017 at 1:58 PM, Chandan Rajendra
-<chandan@linux.vnet.ibm.com> wrote:
-> On Tuesday, June 27, 2017 1:01:17 PM IST Chandan Rajendra wrote:
->> On Friday, June 23, 2017 7:04:57 PM IST Amir Goldstein wrote:
->> > On Fri, Jun 23, 2017 at 2:01 PM, Chandan Rajendra
->> > <chandan@linux.vnet.ibm.com> wrote:
->> > > For stat(2) on lowerdir non-dir entries in non-samefs case, this commit
->> > > provides unique values for st_dev. The unique values are obtained by
->> > > allocating anonymous bdevs for each of the lowerdirs in the overlayfs
->> > > instance.
->> > >
->> > > Signed-off-by: Chandan Rajendra <chandan@linux.vnet.ibm.com>
->> > > ---
->> >
->> > Reviewed-by: Amir Goldstein <amir73il@gmail.com>
->> > Tested-by: Amir Goldstein <amir73il@gmail.com>
->> >
->> > Miklos,
->> >
->> > I re-created the branch ovl-constino [1] on top of ovl-hardlinks and without
->> > the consistent dino patches.
->> >
->> > Applied Chandan's patch and resolved conflicts with my patches.
->> > Then, applied my patch to relax constant st_ino  for non-samefs on stat(2).
->> >
->> > Mutilated unionmount-testsuite layers check [2] to get over the unexpected
->> > pseudo dev and now tests pass for non samefs including constant ino
->> > verification and persistent ino verification for non-dir.
->> >
->> > Chandan,
->> >
->> > If you can fix the mutilated unionmount-testsuite check_layer(), that would be
->> > nice.
->> >
->>
->
-> Hi Amir,
->
-> In dentry.created(), we have
->
->         self.__upper = on_upper or not inode or inode.filetype() == "d"
->
-> Do you happen to know why we mark the dentry as being present on the upperdir
-> filesystem when "inode" evaluates to false?
+On Wednesday, June 21, 2017 3:18:20 PM IST Miklos Szeredi wrote:
+> On Wed, Jun 21, 2017 at 11:36 AM, Amir Goldstein <amir73il@gmail.com> wrote:
+> > On Wed, Jun 21, 2017 at 12:20 PM, Miklos Szeredi <miklos@szeredi.hu> wrote:
+> >> On Wed, Jun 21, 2017 at 11:05 AM, Amir Goldstein <amir73il@gmail.com> wrote:
+> >
+> >>>
+> >>> Following up on your idea:
+> >>> - check in ovl_iterate() if version has changed and if dir became impure
+> >>> - if it did, populate od->cache, but keep the dir od->is_real
+> >>> - iterate upper cache entries and call ovl_cache_update_ino()
+> >>> - Then actor of real dir iterator can use the cache to ommit entries or use
+> >>>   p->ino from cache if p->real_ino match real d_ino, but differs from p->ino.
+> >>
+> >> For non-merge dirs we can have a simplified cache just containing the
+> >> entries with origin, recreated when the version changes or updated in
+> >> rename, whichever is simpler.  A non-merge dir will never become a
+> >> merge one, so we can keep the handling separate.
+> >>
+> >
+> > And use this cache to ommit/fix entries with actor?
+> 
+> Right.  I think fixing up is better, because to correctly omit entries
+> we'd need separate lists for each open directory.  For fixing up we
+> can use a common one, just like for the merged dir.
+> 
 
-I don't know why that was done this way, but IIUC, only way for inode
-to be None is by passing None as filetype to record_file.
+Amir, Can I please take over the implementation of this feature.
 
->
-> Consider the case of /lowerdir/a/foo101 file being created in
-> set_up.py. ctx.record_file() ends up creating a new 'dentry' object with no
-> inode associated with it. Hence self.__upper is set to the value True. Isn't
-> this incorrect since the file foo101 is actually being created on lowerdir?
-
-IIUC, self.__upper will only be true for no_foo and no_dir, which are
-created with filetype None.
-
->
-> I added the following new test scenario to check_layer() code,
->
->    elif dentry.on_upper() and not self.config().is_samefs() and dev != self.upper_fs():
->           raise TestError(name + ": Upperdir file has incorrect dev id")
->
-> In the above code snippet, dentry.on_upper() incorrectly evaluates to True and
-> hence we end up raising an exception.
->
-> Maybe dentry.created should have the following statement instead,
->
->      self.__upper = on_upper or (inode and inode.filetype() == "d")
-
-That looks correct to me.
-That change will only make a difference for dentries that are
-dentry.is_negative(),
-but this use case is already checked above in check_layer() anyway.
-
-Thanks,
-Amir.
+-- 
+chandan
