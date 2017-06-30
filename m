@@ -1,99 +1,128 @@
-From: Chandan Rajendra <chandan@linux.vnet.ibm.com>
-Subject: Re: [PATCH V2] ovl: Allocate anonymous devs for lowerdirs
-Date: Fri, 30 Jun 2017 16:28:29 +0530
-Message-ID: <2041782.HUJ34Am32x@localhost.localdomain>
-References: <20170623110118.19975-1-chandan@linux.vnet.ibm.com> <CAOQ4uxjf-MUQTisMHL96Ao3P+NXRG5QnJmmd0iptcgyYGB72=Q@mail.gmail.com> <2369642.ypcN4zZqWi@localhost.localdomain>
+From: Amir Goldstein <amir73il@gmail.com>
+Subject: Re: [xfstest PATCH V2 2/2] overlay/031: add tests of whiteouts in
+ lowerdir and both dirs
+Date: Fri, 30 Jun 2017 17:28:02 +0300
+Message-ID: <CAOQ4uxgnY5tk1Bt7p=MC0GCFgXcSngXuCPQYCkFSovEDCmn5yg@mail.gmail.com>
+References: <1498792811-17311-1-git-send-email-yi.zhang@huawei.com> <1498792811-17311-3-git-send-email-yi.zhang@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mx0b-001b2d01.pphosted.com ([148.163.158.5]:33009 "EHLO
-        mx0a-001b2d01.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1752347AbdF3K6K (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 30 Jun 2017 06:58:10 -0400
-Received: from pps.filterd (m0098413.ppops.net [127.0.0.1])
-        by mx0b-001b2d01.pphosted.com (8.16.0.20/8.16.0.20) with SMTP id v5UAmbDD063227
-        for <linux-unionfs@vger.kernel.org>; Fri, 30 Jun 2017 06:58:10 -0400
-Received: from e23smtp07.au.ibm.com (e23smtp07.au.ibm.com [202.81.31.140])
-        by mx0b-001b2d01.pphosted.com with ESMTP id 2bdkpym2mr-1
-        (version=TLSv1.2 cipher=AES256-SHA bits=256 verify=NOT)
-        for <linux-unionfs@vger.kernel.org>; Fri, 30 Jun 2017 06:58:09 -0400
-Received: from localhost
-        by e23smtp07.au.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
-        for <linux-unionfs@vger.kernel.org> from <chandan@linux.vnet.ibm.com>;
-        Fri, 30 Jun 2017 20:58:07 +1000
-Received: from d23av02.au.ibm.com (d23av02.au.ibm.com [9.190.235.138])
-        by d23relay10.au.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id v5UAw5Uw2359580
-        for <linux-unionfs@vger.kernel.org>; Fri, 30 Jun 2017 20:58:05 +1000
-Received: from d23av02.au.ibm.com (localhost [127.0.0.1])
-        by d23av02.au.ibm.com (8.14.4/8.14.4/NCO v10.0 AVout) with ESMTP id v5UAvuJm013567
-        for <linux-unionfs@vger.kernel.org>; Fri, 30 Jun 2017 20:57:57 +1000
-In-Reply-To: <2369642.ypcN4zZqWi@localhost.localdomain>
-Sender: linux-unionfs-owner@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <fstests-owner@vger.kernel.org>
+In-Reply-To: <1498792811-17311-3-git-send-email-yi.zhang@huawei.com>
+Sender: fstests-owner@vger.kernel.org
+To: "zhangyi (F)" <yi.zhang@huawei.com>
+Cc: fstests <fstests@vger.kernel.org>, Eryu Guan <eguan@redhat.com>, overlayfs <linux-unionfs@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>, miaoxie@huawei.com
 List-Id: linux-unionfs@vger.kernel.org
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: overlayfs <linux-unionfs@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>
 
-On Tuesday, June 27, 2017 1:01:17 PM IST Chandan Rajendra wrote:
-> On Friday, June 23, 2017 7:04:57 PM IST Amir Goldstein wrote:
-> > On Fri, Jun 23, 2017 at 2:01 PM, Chandan Rajendra
-> > <chandan@linux.vnet.ibm.com> wrote:
-> > > For stat(2) on lowerdir non-dir entries in non-samefs case, this commit
-> > > provides unique values for st_dev. The unique values are obtained by
-> > > allocating anonymous bdevs for each of the lowerdirs in the overlayfs
-> > > instance.
-> > >
-> > > Signed-off-by: Chandan Rajendra <chandan@linux.vnet.ibm.com>
-> > > ---
-> > 
-> > Reviewed-by: Amir Goldstein <amir73il@gmail.com>
-> > Tested-by: Amir Goldstein <amir73il@gmail.com>
-> > 
-> > Miklos,
-> > 
-> > I re-created the branch ovl-constino [1] on top of ovl-hardlinks and without
-> > the consistent dino patches.
-> > 
-> > Applied Chandan's patch and resolved conflicts with my patches.
-> > Then, applied my patch to relax constant st_ino  for non-samefs on stat(2).
-> > 
-> > Mutilated unionmount-testsuite layers check [2] to get over the unexpected
-> > pseudo dev and now tests pass for non samefs including constant ino
-> > verification and persistent ino verification for non-dir.
-> > 
-> > Chandan,
-> > 
-> > If you can fix the mutilated unionmount-testsuite check_layer(), that would be
-> > nice.
-> > 
-> 
+On Fri, Jun 30, 2017 at 6:20 AM, zhangyi (F) <yi.zhang@huawei.com> wrote:
+> In overlay/031, it only cover the test case of whiteouts in
+> origined upper dir. This patch add two cases cover the other
+> two situations:
+>
+> 1) Lower origined dir have whiteouts;
+> 2) Both upper and lower origined dirs have whiteouts (although
+> this case is pass now, still add this to cover all three kinds
+> of situations).
+>
+> Signed-off-by: zhangyi (F) <yi.zhang@huawei.com>
 
-Hi Amir,
+Reviewed-by: Amir Goldstein <amir73il@gmail.com>
 
-In dentry.created(), we have
+Except one issue below.
 
-        self.__upper = on_upper or not inode or inode.filetype() == "d"
+> ---
+>  tests/overlay/031 | 58 ++++++++++++++++++++++++++++++++++++++++++++-----------
+>  1 file changed, 47 insertions(+), 11 deletions(-)
+>
+> diff --git a/tests/overlay/031 b/tests/overlay/031
+> index cb29ee5..b7bad3a 100755
+> --- a/tests/overlay/031
+> +++ b/tests/overlay/031
+> @@ -1,9 +1,10 @@
+>  #! /bin/bash
+>  # FS QA Test 031
+>  #
+> -# The unmerged and impure upper directories may contain invalid
+> -# whiteouts when we change lowerdir(e.g. clean up dir) and remount
+> -# overlay. This may lead to whiteouts exposure and rmdir failure.
+> +# The unmerged and origined directories may contain invalid
+> +# whiteouts when we change underlaying dir (e.g. clean up lowerdir)
+> +# and remount overlay. This may lead to whiteouts exposure and
+> +# rmdir failure.
+>  #
+>  #-----------------------------------------------------------------------
+>  # Copyright (c) 2017 Huawei.  All Rights Reserved.
+> @@ -67,19 +68,21 @@ _require_scratch
+>  _scratch_mkfs
+>
+>  # create test directorys and whiteout
+> -lowerdir=$OVL_BASE_SCRATCH_MNT/lower
+> +lowerdir1=$OVL_BASE_SCRATCH_MNT/lower1
+> +lowerdir2=$OVL_BASE_SCRATCH_MNT/lower2
+>  upperdir=$OVL_BASE_SCRATCH_MNT/upper
+>  workdir=$OVL_BASE_SCRATCH_MNT/workdir
+> -testfile=a
+> -mkdir -p $lowerdir $upperdir $workdir
+> +testfile1=a
+> +testfile2=b
+> +mkdir -p $lowerdir1 $lowerdir2 $upperdir $workdir
+>
+> -_create_whiteout $lowerdir $upperdir $workdir $testfile
+> +_create_whiteout $lowerdir1 $upperdir $workdir $testfile1
+>
+>  # clean up the lower directory and mount overlay again,
+>  # whiteout will expose.
+> -rm -rf $lowerdir/testdir
+> +rm -rf $lowerdir1/testdir
+>
+> -_overlay_mount_dirs $lowerdir $upperdir $workdir $OVL_BASE_SCRATCH_MNT $SCRATCH_MNT
+> +_overlay_mount_dirs $lowerdir1 $upperdir $workdir $OVL_BASE_SCRATCH_MNT $SCRATCH_MNT
+>
+>  ls $SCRATCH_MNT/testdir
+>
+> @@ -90,15 +93,48 @@ rm -rf $SCRATCH_MNT/testdir 2>&1 | _filter_scratch
+>  # umount overlay again, create a new file with the same name and
+>  # mount overlay again.
+>  $UMOUNT_PROG $SCRATCH_MNT
+> -touch $lowerdir/testdir
+> +touch $lowerdir1/testdir
+>
+> -_overlay_mount_dirs $lowerdir $upperdir $workdir $OVL_BASE_SCRATCH_MNT $SCRATCH_MNT
+> +_overlay_mount_dirs $lowerdir1 $upperdir $workdir $OVL_BASE_SCRATCH_MNT $SCRATCH_MNT
+>
+>  # try to remove test dir from overlay dir, trigger ovl_remove_and_whiteout,
+>  # it will not clean up the dir and lead to residue.
+>  rm -rf $SCRATCH_MNT/testdir 2>&1 | _filter_scratch
+>  ls $workdir/work
+>
+> +$UMOUNT_PROG $SCRATCH_MNT
+> +
+> +# let lower dir have invalid whiteouts, repeat ls and rmdir test again.
+> +rm -rf $lowerdir1/testdir
+> +rm -rf $upperdir/testdir
+> +
+> +_create_whiteout $lowerdir2 $lowerdir1 $workdir $testfile1
+> +
+> +rm -rf $lowerdir2/testdir
+> +
+> +_overlay_mount_dirs "$lowerdir1:$lowerdir2" $upperdir $workdir \
+> +                    $OVL_BASE_SCRATCH_MNT $SCRATCH_MNT
+> +
+> +ls $SCRATCH_MNT/testdir
+> +rm -rf $SCRATCH_MNT/testdir 2>&1 | _filter_scratch
+> +
+> +$UMOUNT_PROG $SCRATCH_MNT
+> +
+> +# let lower dir and upper dir both have invalid whiteouts, repeat ls and rmdir again.
+> +rm -rf $lowerdir1/testdir
+> +rm -rf $upperdir/testdir
+> +
+> +_create_whiteout $lowerdir1 $upperdir $workdir $testfile1
+> +
+> +rm -rf $lowerdir1/testdir
+> +
+> +_create_whiteout $lowerdir2 $lowerdir1 $workdir $testfile2
+> +
+> +_overlay_mount_dirs $lowerdir1 $upperdir $workdir $OVL_BASE_SCRATCH_MNT $SCRATCH_MNT
+> +
 
-Do you happen to know why we mark the dentry as being present on the upperdir
-filesystem when "inode" evaluates to false?
-
-Consider the case of /lowerdir/a/foo101 file being created in
-set_up.py. ctx.record_file() ends up creating a new 'dentry' object with no
-inode associated with it. Hence self.__upper is set to the value True. Isn't
-this incorrect since the file foo101 is actually being created on lowerdir?
-
-I added the following new test scenario to check_layer() code,
-
-   elif dentry.on_upper() and not self.config().is_samefs() and dev != self.upper_fs():
-          raise TestError(name + ": Upperdir file has incorrect dev id")
-
-In the above code snippet, dentry.on_upper() incorrectly evaluates to True and
-hence we end up raising an exception.
-
-Maybe dentry.created should have the following statement instead,
-
-     self.__upper = on_upper or (inode and inode.filetype() == "d")
-
--- 
-chandan
+Forgot to rm -rf $lowerdir2/testdir ?
