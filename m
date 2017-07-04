@@ -1,132 +1,56 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [xfstest PATCH V3 2/2] overlay/031: add tests of whiteouts in
- lowerdir and both dirs
-Date: Mon, 3 Jul 2017 14:39:58 +0300
-Message-ID: <CAOQ4uxjWxzcGEm18kFbvs-KoWYq+nwkicot1Mz6ksftSjc-qnA@mail.gmail.com>
-References: <1499078611-18755-1-git-send-email-yi.zhang@huawei.com> <1499078611-18755-3-git-send-email-yi.zhang@huawei.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <fstests-owner@vger.kernel.org>
-In-Reply-To: <1499078611-18755-3-git-send-email-yi.zhang@huawei.com>
-Sender: fstests-owner@vger.kernel.org
-To: "zhangyi (F)" <yi.zhang@huawei.com>
-Cc: fstests <fstests@vger.kernel.org>, Eryu Guan <eguan@redhat.com>, overlayfs <linux-unionfs@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>, miaoxie@huawei.com
+Subject: [PATCH 0/6] overlay hardlink tests
+Date: Tue,  4 Jul 2017 14:20:28 +0300
+Message-ID: <1499167234-22779-1-git-send-email-amir73il@gmail.com>
+Return-path: <linux-unionfs-owner@vger.kernel.org>
+Received: from mail-wm0-f65.google.com ([74.125.82.65]:35065 "EHLO
+        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752278AbdGDLUT (ORCPT
+        <rfc822;linux-unionfs@vger.kernel.org>);
+        Tue, 4 Jul 2017 07:20:19 -0400
+Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
+To: Eryu Guan <eguan@redhat.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, fstests@vger.kernel.org
 
-On Mon, Jul 3, 2017 at 1:43 PM, zhangyi (F) <yi.zhang@huawei.com> wrote:
-> In overlay/031, it only cover the test case of whiteouts in
-> origined upper dir. This patch add two cases cover the other
-> two situations:
->
-> 1) Lower origined dir have whiteouts;
-> 2) Both upper and lower origined dirs have whiteouts (although
-> this case is pass now, still add this to cover all three kinds
-> of situations).
->
-> Signed-off-by: zhangyi (F) <yi.zhang@huawei.com>
-Reviewed-by: Amir Goldstein <amir73il@gmail.com>
+Eryu,
 
-> ---
->  tests/overlay/031 | 58 ++++++++++++++++++++++++++++++++++++++++++++-----------
->  1 file changed, 47 insertions(+), 11 deletions(-)
->
-> diff --git a/tests/overlay/031 b/tests/overlay/031
-> index cb29ee5..b7bad3a 100755
-> --- a/tests/overlay/031
-> +++ b/tests/overlay/031
-> @@ -1,9 +1,10 @@
->  #! /bin/bash
->  # FS QA Test 031
->  #
-> -# The unmerged and impure upper directories may contain invalid
-> -# whiteouts when we change lowerdir(e.g. clean up dir) and remount
-> -# overlay. This may lead to whiteouts exposure and rmdir failure.
-> +# The unmerged and origined directories may contain invalid
-> +# whiteouts when we change underlaying dir (e.g. clean up lowerdir)
-> +# and remount overlay. This may lead to whiteouts exposure and
-> +# rmdir failure.
->  #
->  #-----------------------------------------------------------------------
->  # Copyright (c) 2017 Huawei.  All Rights Reserved.
-> @@ -67,19 +68,21 @@ _require_scratch
->  _scratch_mkfs
->
->  # create test directorys and whiteout
-> -lowerdir=$OVL_BASE_SCRATCH_MNT/lower
-> +lowerdir1=$OVL_BASE_SCRATCH_MNT/lower1
-> +lowerdir2=$OVL_BASE_SCRATCH_MNT/lower2
->  upperdir=$OVL_BASE_SCRATCH_MNT/upper
->  workdir=$OVL_BASE_SCRATCH_MNT/workdir
-> -testfile=a
-> -mkdir -p $lowerdir $upperdir $workdir
-> +testfile1=a
-> +testfile2=b
-> +mkdir -p $lowerdir1 $lowerdir2 $upperdir $workdir
->
-> -_create_whiteout $lowerdir $upperdir $workdir $testfile
-> +_create_whiteout $lowerdir1 $upperdir $workdir $testfile1
->
->  # clean up the lower directory and mount overlay again,
->  # whiteout will expose.
-> -rm -rf $lowerdir/testdir
-> +rm -rf $lowerdir1/testdir
->
-> -_overlay_mount_dirs $lowerdir $upperdir $workdir $OVL_BASE_SCRATCH_MNT $SCRATCH_MNT
-> +_overlay_mount_dirs $lowerdir1 $upperdir $workdir $OVL_BASE_SCRATCH_MNT $SCRATCH_MNT
->
->  ls $SCRATCH_MNT/testdir
->
-> @@ -90,15 +93,48 @@ rm -rf $SCRATCH_MNT/testdir 2>&1 | _filter_scratch
->  # umount overlay again, create a new file with the same name and
->  # mount overlay again.
->  $UMOUNT_PROG $SCRATCH_MNT
-> -touch $lowerdir/testdir
-> +touch $lowerdir1/testdir
->
-> -_overlay_mount_dirs $lowerdir $upperdir $workdir $OVL_BASE_SCRATCH_MNT $SCRATCH_MNT
-> +_overlay_mount_dirs $lowerdir1 $upperdir $workdir $OVL_BASE_SCRATCH_MNT $SCRATCH_MNT
->
->  # try to remove test dir from overlay dir, trigger ovl_remove_and_whiteout,
->  # it will not clean up the dir and lead to residue.
->  rm -rf $SCRATCH_MNT/testdir 2>&1 | _filter_scratch
->  ls $workdir/work
->
-> +$UMOUNT_PROG $SCRATCH_MNT
-> +
-> +# let lower dir have invalid whiteouts, repeat ls and rmdir test again.
-> +rm -rf $lowerdir1/testdir
-> +rm -rf $upperdir/testdir
-> +
-> +_create_whiteout $lowerdir2 $lowerdir1 $workdir $testfile1
-> +
-> +rm -rf $lowerdir2/testdir
-> +
-> +_overlay_mount_dirs "$lowerdir1:$lowerdir2" $upperdir $workdir \
-> +                    $OVL_BASE_SCRATCH_MNT $SCRATCH_MNT
-> +
-> +ls $SCRATCH_MNT/testdir
-> +rm -rf $SCRATCH_MNT/testdir 2>&1 | _filter_scratch
-> +
-> +$UMOUNT_PROG $SCRATCH_MNT
-> +
-> +# let lower dir and upper dir both have invalid whiteouts, repeat ls and rmdir again.
-> +rm -rf $lowerdir1/testdir
-> +rm -rf $upperdir/testdir
-> +
-> +_create_whiteout $lowerdir1 $upperdir $workdir $testfile1
-> +
-> +rm -rf $lowerdir1/testdir/$testfile1
-> +
-> +_create_whiteout $lowerdir2 $lowerdir1 $workdir $testfile2
-> +
-> +_overlay_mount_dirs $lowerdir1 $upperdir $workdir $OVL_BASE_SCRATCH_MNT $SCRATCH_MNT
-> +
-> +ls $SCRATCH_MNT/testdir
-> +rm -rf $SCRATCH_MNT/testdir 2>&1 | _filter_scratch
-> +
->  # success, all done
->  echo "Silence is golden"
->  status=0
-> --
-> 2.5.0
->
+overlay/018 was written to track the non-standard behavior of
+overlayfs, where lower hardlinks are broken on copy up.
+
+While working on fixing the hardlinks breakage issue, I found
+several false positives and uncovered cases in the test.
+
+This series addresses the shortcomings of the original overlay/018
+test and introduces two more tests to overlay/hardlink group.
+
+Thanks,
+Amir.
+
+Amir Goldstein (6):
+  overlay/018: re-factor and add to hardlink group
+  overlay/018: print hardlink content to golden output
+  overlay/018: test broken hardlinks after mount cycle
+  overlay/018: test lower hardlinks re-unite on copy up
+  overlay: test concurrent copy up of lower hardlinks
+  overlay: test dropping nlink below zero
+
+ tests/overlay/018     |  60 ++++++++++++++++----
+ tests/overlay/018.out |  21 ++++++-
+ tests/overlay/032     | 102 ++++++++++++++++++++++++++++++++++
+ tests/overlay/032.out |   4 ++
+ tests/overlay/033     | 149 ++++++++++++++++++++++++++++++++++++++++++++++++++
+ tests/overlay/033.out |  69 +++++++++++++++++++++++
+ tests/overlay/034     |  91 ++++++++++++++++++++++++++++++
+ tests/overlay/034.out |   2 +
+ tests/overlay/group   |   5 +-
+ 9 files changed, 489 insertions(+), 14 deletions(-)
+ create mode 100755 tests/overlay/032
+ create mode 100644 tests/overlay/032.out
+ create mode 100755 tests/overlay/033
+ create mode 100644 tests/overlay/033.out
+ create mode 100755 tests/overlay/034
+ create mode 100644 tests/overlay/034.out
+
+-- 
+2.7.4
