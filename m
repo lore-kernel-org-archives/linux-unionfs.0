@@ -1,7 +1,7 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH v2 7/7] overlay: test dropping nlink below zero
-Date: Tue,  4 Jul 2017 14:40:34 +0300
-Message-ID: <1499168434-23859-8-git-send-email-amir73il@gmail.com>
+Subject: [PATCH v2 6/7] overlay: test nlink accounting of overlay hardlinks
+Date: Tue,  4 Jul 2017 14:40:33 +0300
+Message-ID: <1499168434-23859-7-git-send-email-amir73il@gmail.com>
 References: <1499168434-23859-1-git-send-email-amir73il@gmail.com>
 Return-path: <fstests-owner@vger.kernel.org>
 In-Reply-To: <1499168434-23859-1-git-send-email-amir73il@gmail.com>
@@ -10,33 +10,37 @@ To: Eryu Guan <eguan@redhat.com>
 Cc: Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, fstests@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 
-nlink of overlay inode could be dropped indefinety by adding
-un-accounted lower hardlinks underneath a mounted overlay and
-trying to remove them.
+nlink of overlay inode should account for the union of lower
+and upper hardlinks.
+
+persistent overlay union nlink is stored in an extended attribute
+on the upper inode.
+
+In order to test persistent overlay nlink accounting, the test is
+repeated with both warm and cold dentry/inode cache.
 
 Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- tests/overlay/034     | 91 +++++++++++++++++++++++++++++++++++++++++++++++++++
- tests/overlay/034.out |  2 ++
- tests/overlay/group   |  1 +
- 3 files changed, 94 insertions(+)
- create mode 100755 tests/overlay/034
- create mode 100644 tests/overlay/034.out
+ tests/overlay/033     | 149 ++++++++++++++++++++++++++++++++++++++++++++++++++
+ tests/overlay/033.out |  69 +++++++++++++++++++++++
+ tests/overlay/group   |   1 +
+ 3 files changed, 219 insertions(+)
+ create mode 100755 tests/overlay/033
+ create mode 100644 tests/overlay/033.out
 
-diff --git a/tests/overlay/034 b/tests/overlay/034
+diff --git a/tests/overlay/033 b/tests/overlay/033
 new file mode 100755
-index 0000000..cb023bf
+index 0000000..743edc8
 --- /dev/null
-+++ b/tests/overlay/034
-@@ -0,0 +1,91 @@
++++ b/tests/overlay/033
+@@ -0,0 +1,149 @@
 +#! /bin/bash
-+# FS QA Test 034
++# FS QA Test 033
 +#
-+# Test overlay nlink when adding lower hardlinks.
++# Test nlink accounting of overlay hardlinks.
 +#
-+# nlink of overlay inode could be dropped indefinety by adding
-+# unaccounted lower hardlinks underneath a mounted overlay and
-+# trying to remove them.
++# nlink of overlay inode should account for the union of lower and upper
++# hardlinks.
 +#
 +#-----------------------------------------------------------------------
 +# Copyright (C) 2017 CTERA Networks. All Rights Reserved.
@@ -83,59 +87,185 @@ index 0000000..cb023bf
 +_supported_os Linux
 +_require_scratch
 +
++report_nlink()
++{
++	when=$1
++
++	[ $DCACHETEMP != cold ] || echo 2 > /proc/sys/vm/drop_caches
++
++	# check nlink with warm dcache after overlay modification
++	echo "== $when - $DCACHETEMP dcache =="
++	for f in $HARDLINKS; do
++		_ls_l $SCRATCH_MNT/$f | awk '{ print $2, $9 }' | _filter_scratch
++	done
++}
++
++# Create lower hardlinks
++create_hardlinks()
++{
++	lowerdir=$OVL_BASE_SCRATCH_MNT/$OVL_LOWER
++	mkdir -p $lowerdir
++	touch $lowerdir/0
++	ln $lowerdir/0 $lowerdir/1
++	ln $lowerdir/0 $lowerdir/2
++	ln $lowerdir/0 $lowerdir/3
++}
++
++test_hardlinks()
++{
++	HARDLINKS=`seq 0 3`
++	report_nlink "all lower"
++
++	# Unlink lower hardlink
++	rm $SCRATCH_MNT/0
++	HARDLINKS=`seq 1 3`
++	report_nlink "unlink lower"
++
++	# Link to lower hardlink
++	ln $SCRATCH_MNT/3 $SCRATCH_MNT/4
++	HARDLINKS=`seq 1 4`
++	report_nlink "link lower"
++
++	# Link to upper hardlink
++	ln $SCRATCH_MNT/4 $SCRATCH_MNT/5
++	HARDLINKS=`seq 1 5`
++	report_nlink "link upper"
++
++	# Rename over lower hardlink
++	touch $SCRATCH_MNT/new
++	mv $SCRATCH_MNT/new $SCRATCH_MNT/1
++	HARDLINKS=`seq 2 5`
++	report_nlink "cover lower"
++
++	# Unlink upper hardlink
++	rm $SCRATCH_MNT/5
++	HARDLINKS=`seq 2 4`
++	report_nlink "unlink upper"
++
++	# Rename over upper hardlink
++	touch $SCRATCH_MNT/new
++	mv $SCRATCH_MNT/new $SCRATCH_MNT/4
++	HARDLINKS=`seq 2 3`
++	report_nlink "cover upper"
++
++	# Unlink last upper (union still has one lower)
++	rm $SCRATCH_MNT/3
++	HARDLINKS=2
++	report_nlink "unlink last upper"
++
++	# Unlink last lower and drop union nlink to zero (and hopefully not below)
++	rm $SCRATCH_MNT/2
++
++	# Verify that orphan index is cleaned when dropping nlink to zero
++	ls $OVL_BASE_SCRATCH_MNT/$OVL_WORK/index 2>/dev/null
++}
++
 +# Remove all files from previous tests
 +_scratch_mkfs
 +
-+# Create lower hardlink
-+lowerdir=$OVL_BASE_SCRATCH_MNT/$OVL_LOWER
-+mkdir -p $lowerdir
-+touch $lowerdir/0
-+ln $lowerdir/0 $lowerdir/1
++# Create lower hardlinks
++create_hardlinks
 +
 +_scratch_mount
++# Test hardlinks with warm dcache
++DCACHETEMP=warm
++test_hardlinks
 +
-+# Copy up lower hardlink - nlink should be 2
-+touch $SCRATCH_MNT/0
++# Reset to lower hardlinks
++_scratch_unmount
++_scratch_mkfs
++create_hardlinks
++_scratch_mount
 +
-+# Add lower hardlinks while overlay is mounted
-+ln $lowerdir/0 $lowerdir/2
-+ln $lowerdir/0 $lowerdir/3
++# Test hardlinks with cold dcache
++DCACHETEMP=cold
++test_hardlinks
 +
-+# Unlink un-accounted lowers to drive nlink to 0
-+rm $SCRATCH_MNT/2
-+rm $SCRATCH_MNT/3
-+
-+# Check for getting ENOENT for trying to link !I_LINKABLE with nlink 0
-+ln $SCRATCH_MNT/0 $SCRATCH_MNT/4
-+
-+# Unlink all hardlink to drive nlink below 0
-+rm $SCRATCH_MNT/0
-+rm $SCRATCH_MNT/1
-+rm $SCRATCH_MNT/4
-+
-+# Verify that orphan index is cleaned on mount
-+_scratch_cycle_mount
-+ls $OVL_BASE_SCRATCH_MNT/$OVL_WORK/index 2>/dev/null
-+
-+echo "Silence is golden"
 +status=0
 +exit
-diff --git a/tests/overlay/034.out b/tests/overlay/034.out
+diff --git a/tests/overlay/033.out b/tests/overlay/033.out
 new file mode 100644
-index 0000000..4c8873c
+index 0000000..506ccc1
 --- /dev/null
-+++ b/tests/overlay/034.out
-@@ -0,0 +1,2 @@
-+QA output created by 034
-+Silence is golden
++++ b/tests/overlay/033.out
+@@ -0,0 +1,69 @@
++QA output created by 033
++== all lower - warm dcache ==
++4 SCRATCH_MNT/0
++4 SCRATCH_MNT/1
++4 SCRATCH_MNT/2
++4 SCRATCH_MNT/3
++== unlink lower - warm dcache ==
++3 SCRATCH_MNT/1
++3 SCRATCH_MNT/2
++3 SCRATCH_MNT/3
++== link lower - warm dcache ==
++4 SCRATCH_MNT/1
++4 SCRATCH_MNT/2
++4 SCRATCH_MNT/3
++4 SCRATCH_MNT/4
++== link upper - warm dcache ==
++5 SCRATCH_MNT/1
++5 SCRATCH_MNT/2
++5 SCRATCH_MNT/3
++5 SCRATCH_MNT/4
++5 SCRATCH_MNT/5
++== cover lower - warm dcache ==
++4 SCRATCH_MNT/2
++4 SCRATCH_MNT/3
++4 SCRATCH_MNT/4
++4 SCRATCH_MNT/5
++== unlink upper - warm dcache ==
++3 SCRATCH_MNT/2
++3 SCRATCH_MNT/3
++3 SCRATCH_MNT/4
++== cover upper - warm dcache ==
++2 SCRATCH_MNT/2
++2 SCRATCH_MNT/3
++== unlink last upper - warm dcache ==
++1 SCRATCH_MNT/2
++== all lower - cold dcache ==
++4 SCRATCH_MNT/0
++4 SCRATCH_MNT/1
++4 SCRATCH_MNT/2
++4 SCRATCH_MNT/3
++== unlink lower - cold dcache ==
++3 SCRATCH_MNT/1
++3 SCRATCH_MNT/2
++3 SCRATCH_MNT/3
++== link lower - cold dcache ==
++4 SCRATCH_MNT/1
++4 SCRATCH_MNT/2
++4 SCRATCH_MNT/3
++4 SCRATCH_MNT/4
++== link upper - cold dcache ==
++5 SCRATCH_MNT/1
++5 SCRATCH_MNT/2
++5 SCRATCH_MNT/3
++5 SCRATCH_MNT/4
++5 SCRATCH_MNT/5
++== cover lower - cold dcache ==
++4 SCRATCH_MNT/2
++4 SCRATCH_MNT/3
++4 SCRATCH_MNT/4
++4 SCRATCH_MNT/5
++== unlink upper - cold dcache ==
++3 SCRATCH_MNT/2
++3 SCRATCH_MNT/3
++3 SCRATCH_MNT/4
++== cover upper - cold dcache ==
++2 SCRATCH_MNT/2
++2 SCRATCH_MNT/3
++== unlink last upper - cold dcache ==
++1 SCRATCH_MNT/2
 diff --git a/tests/overlay/group b/tests/overlay/group
-index 35cd5a5..b55ed0c 100644
+index 2baba3a..35cd5a5 100644
 --- a/tests/overlay/group
 +++ b/tests/overlay/group
-@@ -36,3 +36,4 @@
+@@ -35,3 +35,4 @@
+ 030 auto quick perms
  031 auto quick whiteout
  032 auto quick copyup hardlink
- 033 auto quick copyup hardlink
-+034 auto quick copyup hardlink
++033 auto quick copyup hardlink
 -- 
 2.7.4
