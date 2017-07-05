@@ -1,63 +1,57 @@
 From: Eryu Guan <eguan@redhat.com>
-Subject: Re: [PATCH v2 5/7] overlay: test concurrent copy up of lower
- hardlinks
-Date: Wed, 5 Jul 2017 17:59:02 +0800
-Message-ID: <20170705095902.GR23360@eguan.usersys.redhat.com>
+Subject: Re: [PATCH v2 7/7] overlay: test dropping nlink below zero
+Date: Wed, 5 Jul 2017 18:09:36 +0800
+Message-ID: <20170705100936.GS23360@eguan.usersys.redhat.com>
 References: <1499168434-23859-1-git-send-email-amir73il@gmail.com>
- <1499168434-23859-6-git-send-email-amir73il@gmail.com>
+ <1499168434-23859-8-git-send-email-amir73il@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:38560 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:56886 "EHLO mx1.redhat.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751651AbdGEJ7F (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 5 Jul 2017 05:59:05 -0400
+        id S1751966AbdGEKJi (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Wed, 5 Jul 2017 06:09:38 -0400
 Content-Disposition: inline
-In-Reply-To: <1499168434-23859-6-git-send-email-amir73il@gmail.com>
+In-Reply-To: <1499168434-23859-8-git-send-email-amir73il@gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: Amir Goldstein <amir73il@gmail.com>
 Cc: Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, fstests@vger.kernel.org
 
-On Tue, Jul 04, 2017 at 02:40:32PM +0300, Amir Goldstein wrote:
-> Two tasks make a modification concurrently on two hardlinks of a large
-> lower inode.  The copy up should be triggered by one of the tasks and the
-> other should be waiting for copy up to complete.  Both copy up targets
-> should end up being upper hardlinks and both metadata changes should be
-> visible in both hardlinks.
-> 
-> With kernel <= v4.12, hardlinks are broken on copy up, meaning that copy up
+On Tue, Jul 04, 2017 at 02:40:34PM +0300, Amir Goldstein wrote:
+> nlink of overlay inode could be dropped indefinety by adding
+> un-accounted lower hardlinks underneath a mounted overlay and
+> trying to remove them.
 
-So this will be fixed in 4.13-rc1 kernel?
+Sorry, I didn't quite follow the hardlink patches, could you please
+describe what is "accounted/un-accounted" hardlinks and the expected
+behavior in commit log? And what does "indefinety" mean? I couldn't find
+it in dictionary.
 
-> is performed independetly and the resulting upper copy up targets each have
-> only one of the the metadata changes visible.
 > 
 > Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 > ---
->  tests/overlay/032     | 102 ++++++++++++++++++++++++++++++++++++++++++++++++++
->  tests/overlay/032.out |   4 ++
->  tests/overlay/group   |   1 +
->  3 files changed, 107 insertions(+)
->  create mode 100755 tests/overlay/032
->  create mode 100644 tests/overlay/032.out
+>  tests/overlay/034     | 91 +++++++++++++++++++++++++++++++++++++++++++++++++++
+>  tests/overlay/034.out |  2 ++
+>  tests/overlay/group   |  1 +
+>  3 files changed, 94 insertions(+)
+>  create mode 100755 tests/overlay/034
+>  create mode 100644 tests/overlay/034.out
 > 
-> diff --git a/tests/overlay/032 b/tests/overlay/032
+> diff --git a/tests/overlay/034 b/tests/overlay/034
 > new file mode 100755
-> index 0000000..9a7995e
+> index 0000000..cb023bf
 > --- /dev/null
-> +++ b/tests/overlay/032
-> @@ -0,0 +1,102 @@
+> +++ b/tests/overlay/034
+> @@ -0,0 +1,91 @@
 > +#! /bin/bash
-> +# FS QA Test 032
+> +# FS QA Test 034
 > +#
-> +# Test concurrent copy up of lower hardlinks.
+> +# Test overlay nlink when adding lower hardlinks.
 > +#
-> +# Two tasks make a metadata change concurrently on two hardlinks of a large
-> +# lower inode.  The copy up should be triggers by one of the tasks and the
-> +# other should be waiting for copy up to complete.  Both copy up targets
-> +# should end up being upper hardlinks and both metadata changes should be
-> +# applied.
+> +# nlink of overlay inode could be dropped indefinety by adding
+> +# unaccounted lower hardlinks underneath a mounted overlay and
+> +# trying to remove them.
 > +#
 > +#-----------------------------------------------------------------------
 > +# Copyright (C) 2017 CTERA Networks. All Rights Reserved.
@@ -107,81 +101,72 @@ So this will be fixed in 4.13-rc1 kernel?
 > +# Remove all files from previous tests
 > +_scratch_mkfs
 > +
-> +# overlay copy_up doesn't deal with sparse file well, holes will be filled by
-> +# zeros, so if both hardlinks are broken on copy up, we need (2*500M) free space
-> +# on $OVL_BASE_SCRATCH_MNT.
-> +_require_fs_space $OVL_BASE_SCRATCH_MNT $((500*1024*2))
-> +
-> +# Create a large file in lower with 2 hardlinks
+> +# Create lower hardlink
 > +lowerdir=$OVL_BASE_SCRATCH_MNT/$OVL_LOWER
 > +mkdir -p $lowerdir
-> +touch $lowerdir/zero
-> +$XFS_IO_PROG -c "truncate 500m" $lowerdir/zero
-> +ln $lowerdir/zero $lowerdir/one
-> +ln $lowerdir/zero $lowerdir/two
+> +touch $lowerdir/0
+> +ln $lowerdir/0 $lowerdir/1
 > +
 > +_scratch_mount
 > +
-> +_do_cmd()
-
-I'd rename it to do_cmd for a local helper function.
-
-> +{
-> +	echo "`date +%T` $1..." >> $seqres.full
-> +	eval "$1"
-> +	echo "`date +%T` ...$1" >> $seqres.full
-> +}
+> +# Copy up lower hardlink - nlink should be 2
+> +touch $SCRATCH_MNT/0
 > +
-> +# Perform one modification on each hardlink (size and owner)
-> +_do_cmd "echo >> $SCRATCH_MNT/one" &
-> +#
-> +# When hardlinks are broken and overlayfs supports concurrent copy up,
-> +# $seqres.full will show that file two copy up started ~2s after file one
-> +# copy up started and ended ~2s after file one copy up ended.
-> +# With synchronized copy up of lower inodes, $seqres.full will show that
-> +# file two copy up ended at the same time as file one copy up.
-> +#
-> +sleep 2
+> +# Add lower hardlinks while overlay is mounted
 
-If the first copyup finished within 2 seconds, it's not a concurrent
-modification on the two hardlinks. Does that break the test assumption?
+Why "while overlay is mounted" is needed?
 
-> +_do_cmd "chown 100 $SCRATCH_MNT/two" &
+> +ln $lowerdir/0 $lowerdir/2
+> +ln $lowerdir/0 $lowerdir/3
 > +
-> +wait
-> +
-> +# Expect all hardlinks to show both metadata modifications
-> +for f in zero one two; do
-> +	_ls_l -n $SCRATCH_MNT/$f | awk '{ print $2, $3, $5, $9 }' | _filter_scratch
+> +# Unlink un-accounted lowers to drive nlink to 0
+> +rm $SCRATCH_MNT/2
+> +rm $SCRATCH_MNT/3
 
-Better to comment on what are the 4 fields.
+drive nlink of which file to 0? Sorry, I'm a bit lost on overlay
+hardlink behaviors..
+
+> +
+> +# Check for getting ENOENT for trying to link !I_LINKABLE with nlink 0
+> +ln $SCRATCH_MNT/0 $SCRATCH_MNT/4
+
+Shouldn't we expect an error message from this ln, if "check for getting
+ENOEND"? BTW, this test passed on 4.12-rc7 kernel, I'm not sure if
+that's expected result.
 
 Thanks,
 Eryu
 
-> +done
 > +
+> +# Unlink all hardlink to drive nlink below 0
+> +rm $SCRATCH_MNT/0
+> +rm $SCRATCH_MNT/1
+> +rm $SCRATCH_MNT/4
+> +
+> +# Verify that orphan index is cleaned on mount
+> +_scratch_cycle_mount
+> +ls $OVL_BASE_SCRATCH_MNT/$OVL_WORK/index 2>/dev/null
+> +
+> +echo "Silence is golden"
 > +status=0
 > +exit
-> diff --git a/tests/overlay/032.out b/tests/overlay/032.out
+> diff --git a/tests/overlay/034.out b/tests/overlay/034.out
 > new file mode 100644
-> index 0000000..0069740
+> index 0000000..4c8873c
 > --- /dev/null
-> +++ b/tests/overlay/032.out
-> @@ -0,0 +1,4 @@
-> +QA output created by 032
-> +3 100 524288001 SCRATCH_MNT/zero
-> +3 100 524288001 SCRATCH_MNT/one
-> +3 100 524288001 SCRATCH_MNT/two
+> +++ b/tests/overlay/034.out
+> @@ -0,0 +1,2 @@
+> +QA output created by 034
+> +Silence is golden
 > diff --git a/tests/overlay/group b/tests/overlay/group
-> index 28df5b6..2baba3a 100644
+> index 35cd5a5..b55ed0c 100644
 > --- a/tests/overlay/group
 > +++ b/tests/overlay/group
-> @@ -34,3 +34,4 @@
->  029 auto quick
->  030 auto quick perms
+> @@ -36,3 +36,4 @@
 >  031 auto quick whiteout
-> +032 auto quick copyup hardlink
+>  032 auto quick copyup hardlink
+>  033 auto quick copyup hardlink
+> +034 auto quick copyup hardlink
 > -- 
 > 2.7.4
 > 
