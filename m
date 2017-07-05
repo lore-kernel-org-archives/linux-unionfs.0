@@ -1,152 +1,187 @@
-From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH] ovl: mark parent impure on ovl_link()
-Date: Wed,  5 Jul 2017 09:41:10 +0300
-Message-ID: <1499236870-5225-1-git-send-email-amir73il@gmail.com>
+From: Eryu Guan <eguan@redhat.com>
+Subject: Re: [PATCH v2 5/7] overlay: test concurrent copy up of lower
+ hardlinks
+Date: Wed, 5 Jul 2017 17:59:02 +0800
+Message-ID: <20170705095902.GR23360@eguan.usersys.redhat.com>
+References: <1499168434-23859-1-git-send-email-amir73il@gmail.com>
+ <1499168434-23859-6-git-send-email-amir73il@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:32942 "EHLO
-        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751110AbdGEGlG (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 5 Jul 2017 02:41:06 -0400
+Received: from mx1.redhat.com ([209.132.183.28]:38560 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751651AbdGEJ7F (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Wed, 5 Jul 2017 05:59:05 -0400
+Content-Disposition: inline
+In-Reply-To: <1499168434-23859-6-git-send-email-amir73il@gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: linux-unionfs@vger.kernel.org, "# v4 . 12" <stable@vger.kernel.org>
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, fstests@vger.kernel.org
 
-When linking a file with copy up origin into a new parent, mark the
-new parent dir "impure".
+On Tue, Jul 04, 2017 at 02:40:32PM +0300, Amir Goldstein wrote:
+> Two tasks make a modification concurrently on two hardlinks of a large
+> lower inode.  The copy up should be triggered by one of the tasks and the
+> other should be waiting for copy up to complete.  Both copy up targets
+> should end up being upper hardlinks and both metadata changes should be
+> visible in both hardlinks.
+> 
+> With kernel <= v4.12, hardlinks are broken on copy up, meaning that copy up
 
-Fixes: ee1d6d37b6b8 ("ovl: mark upper dir with type origin entries "impure"")
-Cc: <stable@vger.kernel.org> # v4.12
-Signed-off-by: Amir Goldstein <amir73il@gmail.com>
----
+So this will be fixed in 4.13-rc1 kernel?
 
-Miklos,
+> is performed independetly and the resulting upper copy up targets each have
+> only one of the the metadata changes visible.
+> 
+> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+> ---
+>  tests/overlay/032     | 102 ++++++++++++++++++++++++++++++++++++++++++++++++++
+>  tests/overlay/032.out |   4 ++
+>  tests/overlay/group   |   1 +
+>  3 files changed, 107 insertions(+)
+>  create mode 100755 tests/overlay/032
+>  create mode 100644 tests/overlay/032.out
+> 
+> diff --git a/tests/overlay/032 b/tests/overlay/032
+> new file mode 100755
+> index 0000000..9a7995e
+> --- /dev/null
+> +++ b/tests/overlay/032
+> @@ -0,0 +1,102 @@
+> +#! /bin/bash
+> +# FS QA Test 032
+> +#
+> +# Test concurrent copy up of lower hardlinks.
+> +#
+> +# Two tasks make a metadata change concurrently on two hardlinks of a large
+> +# lower inode.  The copy up should be triggers by one of the tasks and the
+> +# other should be waiting for copy up to complete.  Both copy up targets
+> +# should end up being upper hardlinks and both metadata changes should be
+> +# applied.
+> +#
+> +#-----------------------------------------------------------------------
+> +# Copyright (C) 2017 CTERA Networks. All Rights Reserved.
+> +# Author: Amir Goldstein <amir73il@gmail.com>
+> +#
+> +# This program is free software; you can redistribute it and/or
+> +# modify it under the terms of the GNU General Public License as
+> +# published by the Free Software Foundation.
+> +#
+> +# This program is distributed in the hope that it would be useful,
+> +# but WITHOUT ANY WARRANTY; without even the implied warranty of
+> +# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> +# GNU General Public License for more details.
+> +#
+> +# You should have received a copy of the GNU General Public License
+> +# along with this program; if not, write the Free Software Foundation,
+> +# Inc.,  51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+> +#-----------------------------------------------------------------------
+> +#
+> +
+> +seq=`basename $0`
+> +seqres=$RESULT_DIR/$seq
+> +echo "QA output created by $seq"
+> +
+> +tmp=/tmp/$$
+> +status=1	# failure is the default!
+> +trap "_cleanup; exit \$status" 0 1 2 3 15
+> +
+> +_cleanup()
+> +{
+> +	cd /
+> +	rm -f $tmp.*
+> +}
+> +
+> +# get standard environment, filters and checks
+> +. ./common/rc
+> +. ./common/filter
+> +
+> +# remove previous $seqres.full before test
+> +rm -f $seqres.full
+> +
+> +# real QA test starts here
+> +_supported_fs overlay
+> +_supported_os Linux
+> +_require_scratch
+> +
+> +# Remove all files from previous tests
+> +_scratch_mkfs
+> +
+> +# overlay copy_up doesn't deal with sparse file well, holes will be filled by
+> +# zeros, so if both hardlinks are broken on copy up, we need (2*500M) free space
+> +# on $OVL_BASE_SCRATCH_MNT.
+> +_require_fs_space $OVL_BASE_SCRATCH_MNT $((500*1024*2))
+> +
+> +# Create a large file in lower with 2 hardlinks
+> +lowerdir=$OVL_BASE_SCRATCH_MNT/$OVL_LOWER
+> +mkdir -p $lowerdir
+> +touch $lowerdir/zero
+> +$XFS_IO_PROG -c "truncate 500m" $lowerdir/zero
+> +ln $lowerdir/zero $lowerdir/one
+> +ln $lowerdir/zero $lowerdir/two
+> +
+> +_scratch_mount
+> +
+> +_do_cmd()
 
-We missed a spot with impure dir patches for v4.12.
+I'd rename it to do_cmd for a local helper function.
 
-Amir.
+> +{
+> +	echo "`date +%T` $1..." >> $seqres.full
+> +	eval "$1"
+> +	echo "`date +%T` ...$1" >> $seqres.full
+> +}
+> +
+> +# Perform one modification on each hardlink (size and owner)
+> +_do_cmd "echo >> $SCRATCH_MNT/one" &
+> +#
+> +# When hardlinks are broken and overlayfs supports concurrent copy up,
+> +# $seqres.full will show that file two copy up started ~2s after file one
+> +# copy up started and ended ~2s after file one copy up ended.
+> +# With synchronized copy up of lower inodes, $seqres.full will show that
+> +# file two copy up ended at the same time as file one copy up.
+> +#
+> +sleep 2
 
- fs/overlayfs/copy_up.c   |  4 ++--
- fs/overlayfs/dir.c       | 20 ++++++++++++++++----
- fs/overlayfs/overlayfs.h |  2 +-
- fs/overlayfs/util.c      |  6 +++---
- 4 files changed, 22 insertions(+), 10 deletions(-)
+If the first copyup finished within 2 seconds, it's not a concurrent
+modification on the two hardlinks. Does that break the test assumption?
 
-diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
-index acb6f97deb97..aeb22def9f80 100644
---- a/fs/overlayfs/copy_up.c
-+++ b/fs/overlayfs/copy_up.c
-@@ -338,7 +338,7 @@ static int ovl_link_up(struct ovl_copy_up_ctx *c)
- 	struct inode *udir = d_inode(upperdir);
- 
- 	/* Mark parent "impure" because it may now contain non-pure upper */
--	err = ovl_set_impure(c->parent, upperdir);
-+	err = ovl_set_impure(c->parent);
- 	if (err)
- 		return err;
- 
-@@ -551,7 +551,7 @@ static int ovl_do_copy_up(struct ovl_copy_up_ctx *c)
- 		 * Mark parent "impure" because it may now contain non-pure
- 		 * upper
- 		 */
--		err = ovl_set_impure(c->parent, c->destdir);
-+		err = ovl_set_impure(c->parent);
- 		if (err)
- 			return err;
- 	}
-diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
-index 641d9ee97f91..5df99952feba 100644
---- a/fs/overlayfs/dir.c
-+++ b/fs/overlayfs/dir.c
-@@ -92,7 +92,8 @@ int ovl_create_real(struct inode *dir, struct dentry *newdentry,
- 		return -ESTALE;
- 
- 	if (hardlink) {
--		err = ovl_do_link(hardlink, dir, newdentry, debug);
-+		err = ovl_do_link(ovl_dentry_upper(hardlink), dir, newdentry,
-+				  debug);
- 	} else {
- 		switch (attr->mode & S_IFMT) {
- 		case S_IFREG:
-@@ -492,6 +493,17 @@ static int ovl_create_or_link(struct dentry *dentry, struct inode *inode,
- 		return err;
- 
- 	old_cred = ovl_override_creds(dentry->d_sb);
-+
-+	/*
-+	 * When linking a file with copy up origin into a new parent, mark the
-+	 * new parent dir "impure".
-+	 */
-+	if (hardlink && ovl_type_origin(hardlink)) {
-+		err = ovl_set_impure(dentry->d_parent);
-+		if (err)
-+			goto out_revert_creds;
-+	}
-+
- 	err = -ENOMEM;
- 	override_cred = prepare_creds();
- 	if (override_cred) {
-@@ -609,7 +621,7 @@ static int ovl_link(struct dentry *old, struct inode *newdir,
- 	inode = d_inode(old);
- 	ihold(inode);
- 
--	err = ovl_create_or_link(new, inode, NULL, ovl_dentry_upper(old));
-+	err = ovl_create_or_link(new, inode, NULL, old);
- 	if (err)
- 		iput(inode);
- 
-@@ -987,12 +999,12 @@ static int ovl_rename(struct inode *olddir, struct dentry *old,
- 		 * lookup the origin inodes of the entries to fill d_ino.
- 		 */
- 		if (ovl_type_origin(old)) {
--			err = ovl_set_impure(new->d_parent, new_upperdir);
-+			err = ovl_set_impure(new->d_parent);
- 			if (err)
- 				goto out_revert_creds;
- 		}
- 		if (!overwrite && ovl_type_origin(new)) {
--			err = ovl_set_impure(old->d_parent, old_upperdir);
-+			err = ovl_set_impure(old->d_parent);
- 			if (err)
- 				goto out_revert_creds;
- 		}
-diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-index 60d26605e039..7aa1c48390a5 100644
---- a/fs/overlayfs/overlayfs.h
-+++ b/fs/overlayfs/overlayfs.h
-@@ -225,7 +225,7 @@ bool ovl_check_dir_xattr(struct dentry *dentry, const char *name);
- int ovl_check_setxattr(struct dentry *dentry, struct dentry *upperdentry,
- 		       const char *name, const void *value, size_t size,
- 		       int xerr);
--int ovl_set_impure(struct dentry *dentry, struct dentry *upperdentry);
-+int ovl_set_impure(struct dentry *dentry);
- void ovl_set_flag(unsigned long flag, struct inode *inode);
- bool ovl_test_flag(unsigned long flag, struct inode *inode);
- bool ovl_inuse_trylock(struct dentry *dentry);
-diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
-index c492ba75c659..82c3dad6ddf4 100644
---- a/fs/overlayfs/util.c
-+++ b/fs/overlayfs/util.c
-@@ -353,7 +353,7 @@ int ovl_check_setxattr(struct dentry *dentry, struct dentry *upperdentry,
- 	return err;
- }
- 
--int ovl_set_impure(struct dentry *dentry, struct dentry *upperdentry)
-+int ovl_set_impure(struct dentry *dentry)
- {
- 	int err;
- 
-@@ -364,8 +364,8 @@ int ovl_set_impure(struct dentry *dentry, struct dentry *upperdentry)
- 	 * Do not fail when upper doesn't support xattrs.
- 	 * Upper inodes won't have origin nor redirect xattr anyway.
- 	 */
--	err = ovl_check_setxattr(dentry, upperdentry, OVL_XATTR_IMPURE,
--				 "y", 1, 0);
-+	err = ovl_check_setxattr(dentry, ovl_dentry_upper(dentry),
-+				 OVL_XATTR_IMPURE, "y", 1, 0);
- 	if (!err)
- 		ovl_set_flag(OVL_IMPURE, d_inode(dentry));
- 
--- 
-2.7.4
+> +_do_cmd "chown 100 $SCRATCH_MNT/two" &
+> +
+> +wait
+> +
+> +# Expect all hardlinks to show both metadata modifications
+> +for f in zero one two; do
+> +	_ls_l -n $SCRATCH_MNT/$f | awk '{ print $2, $3, $5, $9 }' | _filter_scratch
+
+Better to comment on what are the 4 fields.
+
+Thanks,
+Eryu
+
+> +done
+> +
+> +status=0
+> +exit
+> diff --git a/tests/overlay/032.out b/tests/overlay/032.out
+> new file mode 100644
+> index 0000000..0069740
+> --- /dev/null
+> +++ b/tests/overlay/032.out
+> @@ -0,0 +1,4 @@
+> +QA output created by 032
+> +3 100 524288001 SCRATCH_MNT/zero
+> +3 100 524288001 SCRATCH_MNT/one
+> +3 100 524288001 SCRATCH_MNT/two
+> diff --git a/tests/overlay/group b/tests/overlay/group
+> index 28df5b6..2baba3a 100644
+> --- a/tests/overlay/group
+> +++ b/tests/overlay/group
+> @@ -34,3 +34,4 @@
+>  029 auto quick
+>  030 auto quick perms
+>  031 auto quick whiteout
+> +032 auto quick copyup hardlink
+> -- 
+> 2.7.4
+> 
