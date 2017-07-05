@@ -1,73 +1,55 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH v3 7/7] overlay: test dropping nlink below zero
-Date: Wed,  5 Jul 2017 15:02:06 +0300
-Message-ID: <1499256126-21866-8-git-send-email-amir73il@gmail.com>
+Subject: [PATCH v3 5/7] overlay: test concurrent copy up of lower hardlinks
+Date: Wed,  5 Jul 2017 15:02:04 +0300
+Message-ID: <1499256126-21866-6-git-send-email-amir73il@gmail.com>
 References: <1499256126-21866-1-git-send-email-amir73il@gmail.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:33674 "EHLO
+Received: from mail-wm0-f68.google.com ([74.125.82.68]:33636 "EHLO
         mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752547AbdGEMCE (ORCPT
+        with ESMTP id S1752547AbdGEMCB (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 5 Jul 2017 08:02:04 -0400
+        Wed, 5 Jul 2017 08:02:01 -0400
 In-Reply-To: <1499256126-21866-1-git-send-email-amir73il@gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: Eryu Guan <eguan@redhat.com>
 Cc: Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, fstests@vger.kernel.org
 
-nlink of overlay inode could be dropped indefinitely by adding
-un-accounted lower hardlinks underneath a mounted overlay and
-trying to remove them.
+Two tasks make a modification concurrently on two hardlinks of a large
+lower inode.  The copy up should be triggered by one of the tasks and the
+other should be waiting for copy up to complete.  Both copy up targets
+should end up being upper hardlinks and both metadata changes should be
+visible in both hardlinks.
 
-The simplest way to understand this test is this:
-Imagine that you have a tool (e.g. xfs_db) with which you can add
-hardlinks, without changing the value of nlink stored on-disk for the
-inode. This is exactly what this test does when it adds lower hardlinks
-underneath a mounted overlay.
-
-Commit 5f8415d6b87e ("ovl: persistent overlay inode nlink for indexed
-inodes") fixes this issue, although the issue was never exposed in any
-released kernel.
-
-With overlayfs indexed copy up and without the fix, the test triggers
-WARN_ON(inode->i_nlink == 0) in drop_link().
+With kernel <= v4.12, hardlinks are broken on copy up, meaning that copy up
+is performed independetly and the resulting upper copy up targets each have
+only one of the the metadata changes visible.
 
 Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- tests/overlay/034     | 107 ++++++++++++++++++++++++++++++++++++++++++++++++++
- tests/overlay/034.out |   2 +
+ tests/overlay/032     | 109 ++++++++++++++++++++++++++++++++++++++++++++++++++
+ tests/overlay/032.out |   4 ++
  tests/overlay/group   |   1 +
- 3 files changed, 110 insertions(+)
- create mode 100755 tests/overlay/034
- create mode 100644 tests/overlay/034.out
+ 3 files changed, 114 insertions(+)
+ create mode 100755 tests/overlay/032
+ create mode 100644 tests/overlay/032.out
 
-diff --git a/tests/overlay/034 b/tests/overlay/034
+diff --git a/tests/overlay/032 b/tests/overlay/032
 new file mode 100755
-index 0000000..2b4ca73
+index 0000000..d986ef2
 --- /dev/null
-+++ b/tests/overlay/034
-@@ -0,0 +1,107 @@
++++ b/tests/overlay/032
+@@ -0,0 +1,109 @@
 +#! /bin/bash
-+# FS QA Test 034
++# FS QA Test 032
 +#
-+# Test overlay nlink when adding lower hardlinks.
++# Test concurrent copy up of lower hardlinks.
 +#
-+# nlink of overlay inode could be dropped indefinitely by adding
-+# unaccounted lower hardlinks underneath a mounted overlay and
-+# trying to remove them.
-+#
-+# The simplest way to understand this test is this:
-+# Imagine that you have a tool (e.g. xfs_db) with which you can add
-+# hardlinks, without changing the value of nlink stored on-disk for the
-+# inode. This is exactly what this test does when it adds lower hardlinks
-+# underneath a mounted overlay.
-+#
-+# Commit 5f8415d6b87e ("ovl: persistent overlay inode nlink for indexed
-+# inodes") fixes this issue, although the issue was never exposed in any
-+# released kernel.
-+#
-+# With overlayfs indexed copy up and without the fix, the test triggers
-+# WARN_ON(inode->i_nlink == 0) in drop_link().
++# Two tasks make a metadata change concurrently on two hardlinks of a large
++# lower inode.  The copy up should be triggers by one of the tasks and the
++# other should be waiting for copy up to complete.  Both copy up targets
++# should end up being upper hardlinks and both metadata changes should be
++# applied.
 +#
 +#-----------------------------------------------------------------------
 +# Copyright (C) 2017 CTERA Networks. All Rights Reserved.
@@ -117,59 +99,74 @@ index 0000000..2b4ca73
 +# Remove all files from previous tests
 +_scratch_mkfs
 +
-+# Create lower hardlink
++# overlay copy_up doesn't deal with sparse file well, holes will be filled by
++# zeros, so if both hardlinks are broken on copy up, we need (2*1G) free space
++# on $OVL_BASE_SCRATCH_MNT.
++_require_fs_space $OVL_BASE_SCRATCH_MNT $((1024*1024*2))
++
++# Create a large file in lower with 2 hardlinks.
++# Make the file have non zero blocks, so copy up won't be able to do
++# a naive sparse file copy up optimization.
 +lowerdir=$OVL_BASE_SCRATCH_MNT/$OVL_LOWER
 +mkdir -p $lowerdir
-+touch $lowerdir/0
-+ln $lowerdir/0 $lowerdir/1
++$XFS_IO_PROG -fc "pwrite 1g 4k" $lowerdir/zero >> $seqres.full
++ln $lowerdir/zero $lowerdir/one
++ln $lowerdir/zero $lowerdir/two
 +
 +_scratch_mount
 +
-+# Copy up lower hardlink - overlay inode nlink 2 is copied from lower
-+touch $SCRATCH_MNT/0
++do_cmd()
++{
++	echo "`date +%T` $1..." >> $seqres.full
++	eval "$1"
++	echo "`date +%T` ...$1" >> $seqres.full
++}
 +
-+# Add lower hardlinks while overlay is mounted - overlay inode nlink
-+# is not being updated
-+ln $lowerdir/0 $lowerdir/2
-+ln $lowerdir/0 $lowerdir/3
++# Perform one modification on each hardlink (size and owner)
++do_cmd "echo >> $SCRATCH_MNT/one" &
++#
++# When hardlinks are broken and overlayfs supports concurrent copy up,
++# $seqres.full will show that file two copy up started ~2s after file one
++# copy up started and ended ~2s after file one copy up ended.
++# With synchronized copy up of lower inodes, $seqres.full will show that
++# file two copy up ended at the same time as file one copy up.
++# Without sparse file copy up optimizations, copy of 1g on a standard disk
++# is expected to take more than 2s.
++# If underlying filesystem supports clone, overlay clone up with take less
++# than 1s and this test will not be doing concurrent copy up of hardlinks,
++# but rather consequent copy up of hardlinks.
++#
++sleep 2
++do_cmd "chown 100 $SCRATCH_MNT/two" &
 +
-+# Unlink the 2 un-accounted lower hardlinks - overlay inode nlinks
-+# drops 2 and may reach 0 if the situation is not detected
-+rm $SCRATCH_MNT/2
-+rm $SCRATCH_MNT/3
++wait
 +
-+# Check if getting ENOENT when trying to link !I_LINKABLE with nlink 0
-+ln $SCRATCH_MNT/0 $SCRATCH_MNT/4
++# Expect all hardlinks to show both metadata modifications (owner and size).
++# List <nlink> <owner> <size> <name>:
++for f in zero one two; do
++	_ls_l -n $SCRATCH_MNT/$f | awk '{ print $2, $3, $5, $9 }' | _filter_scratch
++done
 +
-+# Unlink all hardlinks - if overlay inode nlink is 0, this will trigger
-+# WARN_ON() in drop_nlink()
-+rm $SCRATCH_MNT/0
-+rm $SCRATCH_MNT/1
-+rm $SCRATCH_MNT/4
-+
-+# Verify that orphan index is cleaned on mount
-+_scratch_cycle_mount
-+ls $OVL_BASE_SCRATCH_MNT/$OVL_WORK/index 2>/dev/null
-+
-+echo "Silence is golden"
 +status=0
 +exit
-diff --git a/tests/overlay/034.out b/tests/overlay/034.out
+diff --git a/tests/overlay/032.out b/tests/overlay/032.out
 new file mode 100644
-index 0000000..4c8873c
+index 0000000..a4cdc13
 --- /dev/null
-+++ b/tests/overlay/034.out
-@@ -0,0 +1,2 @@
-+QA output created by 034
-+Silence is golden
++++ b/tests/overlay/032.out
+@@ -0,0 +1,4 @@
++QA output created by 032
++3 100 1073745921 SCRATCH_MNT/zero
++3 100 1073745921 SCRATCH_MNT/one
++3 100 1073745921 SCRATCH_MNT/two
 diff --git a/tests/overlay/group b/tests/overlay/group
-index 35cd5a5..b55ed0c 100644
+index 28df5b6..2baba3a 100644
 --- a/tests/overlay/group
 +++ b/tests/overlay/group
-@@ -36,3 +36,4 @@
+@@ -34,3 +34,4 @@
+ 029 auto quick
+ 030 auto quick perms
  031 auto quick whiteout
- 032 auto quick copyup hardlink
- 033 auto quick copyup hardlink
-+034 auto quick copyup hardlink
++032 auto quick copyup hardlink
 -- 
 2.7.4
