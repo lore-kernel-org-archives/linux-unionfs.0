@@ -1,95 +1,107 @@
-From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [PATCH][RFC] Run unionmount testsuite with new overlay/union test group
-Date: Wed, 5 Jul 2017 14:31:00 +0300
-Message-ID: <CAOQ4uxiK4ovLgMcX7TN7M2S8iuNvNkAHnfy29v7gf1UkbriStQ@mail.gmail.com>
-References: <1499170451-24596-1-git-send-email-amir73il@gmail.com> <20170705111049.GT23360@eguan.usersys.redhat.com>
+From: Eryu Guan <eguan@redhat.com>
+Subject: Re: [PATCH v2 5/7] overlay: test concurrent copy up of lower
+ hardlinks
+Date: Wed, 5 Jul 2017 19:32:50 +0800
+Message-ID: <20170705113250.GV23360@eguan.usersys.redhat.com>
+References: <1499168434-23859-1-git-send-email-amir73il@gmail.com>
+ <1499168434-23859-6-git-send-email-amir73il@gmail.com>
+ <20170705095902.GR23360@eguan.usersys.redhat.com>
+ <CAOQ4uxjLCGZ3hHfkZzgZiHctC1x6s_EF7J1g0-zjXYCOzqoHwQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-oi0-f67.google.com ([209.85.218.67]:36842 "EHLO
-        mail-oi0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750909AbdGELbB (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 5 Jul 2017 07:31:01 -0400
-In-Reply-To: <20170705111049.GT23360@eguan.usersys.redhat.com>
-Sender: linux-unionfs-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <fstests-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CAOQ4uxjLCGZ3hHfkZzgZiHctC1x6s_EF7J1g0-zjXYCOzqoHwQ@mail.gmail.com>
+Sender: fstests-owner@vger.kernel.org
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, overlayfs <linux-unionfs@vger.kernel.org>, fstests <fstests@vger.kernel.org>
 List-Id: linux-unionfs@vger.kernel.org
-To: Eryu Guan <eguan@redhat.com>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, David Howells <dhowells@redhat.com>, overlayfs <linux-unionfs@vger.kernel.org>, fstests <fstests@vger.kernel.org>, Vivek Goyal <vgoyal@redhat.com>
 
-On Wed, Jul 5, 2017 at 2:10 PM, Eryu Guan <eguan@redhat.com> wrote:
-> On Tue, Jul 04, 2017 at 03:14:11PM +0300, Amir Goldstein wrote:
->> This test group requires that unionmount-testsuite is installed
->> under src dir.
->>
->> These tests use tmpfs and have no need for test nor scratch partition.
->>
->> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
->> ---
->>
->> Eryu,
->>
->> unionmount-testsuite, written by David Howells, is a powerfull tool for
->> validating "union mounts", which nowadays, mostly means overlayfs.
->>
->> The testsuite was enhanced with directory rename tests for kernel v4.10,
->> and with constant inode number verification for kernel v4.12.
->> The most recent repository is maintained on my github [1].
->
-> Are you planning to push all your enhancements to upstream?
+On Wed, Jul 05, 2017 at 01:46:51PM +0300, Amir Goldstein wrote:
+> On Wed, Jul 5, 2017 at 12:59 PM, Eryu Guan <eguan@redhat.com> wrote:
+> > On Tue, Jul 04, 2017 at 02:40:32PM +0300, Amir Goldstein wrote:
+> >> Two tasks make a modification concurrently on two hardlinks of a large
+> >> lower inode.  The copy up should be triggered by one of the tasks and the
+> >> other should be waiting for copy up to complete.  Both copy up targets
+> >> should end up being upper hardlinks and both metadata changes should be
+> >> visible in both hardlinks.
+> >>
+> >> With kernel <= v4.12, hardlinks are broken on copy up, meaning that copy up
+> >
+> > So this will be fixed in 4.13-rc1 kernel?
+> 
+> It is fixed on current overlayfs-next branch. Yes.
+> 
+> 
+> >> +
+> >> +_do_cmd()
+> >
+> > I'd rename it to do_cmd for a local helper function.
+> >
+> 
+> sure
+> 
+> >> +{
+> >> +     echo "`date +%T` $1..." >> $seqres.full
+> >> +     eval "$1"
+> >> +     echo "`date +%T` ...$1" >> $seqres.full
+> >> +}
+> >> +
+> >> +# Perform one modification on each hardlink (size and owner)
+> >> +_do_cmd "echo >> $SCRATCH_MNT/one" &
+> >> +#
+> >> +# When hardlinks are broken and overlayfs supports concurrent copy up,
+> >> +# $seqres.full will show that file two copy up started ~2s after file one
+> >> +# copy up started and ended ~2s after file one copy up ended.
+> >> +# With synchronized copy up of lower inodes, $seqres.full will show that
+> >> +# file two copy up ended at the same time as file one copy up.
+> >> +#
+> >> +sleep 2
+> >
+> > If the first copyup finished within 2 seconds, it's not a concurrent
+> > modification on the two hardlinks. Does that break the test assumption?
+> 
+> It will not be a race, plain 2 consequent copy ups, so not testing anything
+> special, but won't cause test to fail.
+> 
+> I am testing overlayfs with 2 underlying fs configurations:
+> 1. xfs with clone support
+> 2. ext4
+> 
+> With xfs clone up takes fraction of a second, the test is not really concurrent.
+> With ext4, on my laptop with SSD, the 500M copy up takes ~3 seconds,
+> which is quite close to the 2 seconds delay.
+> I increased the copy up file size to 1G and now first copy up takes ~6 seconds,
+> so there is more slack for the 2 sec delay, but still keeps the test 'quick'.
 
-I don't mind pushing 'upstream' and don't mind becoming 'upstream'
-as well.
-I declared my 'master' branch forward-only a while ago, when Vivek
-showed interest to use it and I try to make sure that all changes that
-go into master branch are backward compat with older kernels.
+Then what about don't sleep at all? So it doesn't rely on the copyup
+speed, the only drawback is the timestamps won't tell us more about the
+copyup behavior, but that doesn't seem critical to this test.
 
-> Red Hat QE
-> is using unionmount-testsuite to test overlayfs :) But it's downloaded
-> from David's repo[1], which hasn't been updated for two years.
->
-> [1] git://git.infradead.org/users/dhowells/unionmount-testsuite.git
->
+But if sleep is still needed, some comments about it would be good.
 
-Well, that repo is not so useful anymore for testing overlayfs on
-kernel >= 4.10 with OVERLAYFS_REDIRECT_DIR=y
-It fails some dir rename tests, which is easy to fix, but it's test
-coverage for directory rename with multiple layers is insufficient.
+Thanks,
+Eryu
 
->>
->> The tool is written in python. By default, it uses tmpfs for the
->> overlayfs layers and a complete run of all the tests in the most
->> basic configuration takes ~10 seconds on my laptop.
->>
->> I have been using xfstests as a test harness to run unionmount-testsuite
->> with several configuration (e.g. layers on same/non-same fs) and I am quite
->> certain that more people can benefit from this setup.
->>
->> The proposed patch is how I use the harness, but it raises some questions:
->> - How does xfstests community feel about relying on external repositories?
->
-> I'd like to see either porting all the tests from external repositories
-> to fstests or keeping them separate as they're two independent
-> testsuites. I'm reluctant to make fstests rely on an external testsuite
-> and make fstests a wrapper of it. I think it's easier to maintain for
-> both projects, and things are simpler this way and well self-contained.
->
->> - How does xfstests community feel about including python sources in the
->>   xfstests repository?
->
-> I think it's OK to include python sources if it's really needed. But we
-> tend to not add more dependencies to fstests, if we have better choice,
-> e.g. use perl instead. There's only one python script right now,
-> tools/sort-group, but it's not used by the tests.
->
-
-So the bottom line is that I carry this patch myself
-and the many test cases that unionmount-testsuite adds for overlayfs
-won't be covered by a random overlayfs developer who runs ./check -g auto.
-
-I have no problem with this consequence myself,
-I understand the complications that an external project dependency brings.
-Just wanted to know if others feel differently.
-
-Cheers,
-Amir.
+> 
+> >
+> >> +_do_cmd "chown 100 $SCRATCH_MNT/two" &
+> >> +
+> >> +wait
+> >> +
+> >> +# Expect all hardlinks to show both metadata modifications
+> >> +for f in zero one two; do
+> >> +     _ls_l -n $SCRATCH_MNT/$f | awk '{ print $2, $3, $5, $9 }' | _filter_scratch
+> >
+> > Better to comment on what are the 4 fields.
+> >
+> 
+> They show the metadata that was changes by chown and write.
+> Will add a comment.
+> 
+> Thanks,
+> Amir.
+> --
+> To unsubscribe from this list: send the line "unsubscribe fstests" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
