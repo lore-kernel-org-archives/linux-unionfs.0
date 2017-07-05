@@ -1,172 +1,93 @@
-From: Eryu Guan <eguan@redhat.com>
-Subject: Re: [PATCH v2 7/7] overlay: test dropping nlink below zero
-Date: Wed, 5 Jul 2017 18:09:36 +0800
-Message-ID: <20170705100936.GS23360@eguan.usersys.redhat.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Subject: Re: [PATCH v2 5/7] overlay: test concurrent copy up of lower hardlinks
+Date: Wed, 5 Jul 2017 13:46:51 +0300
+Message-ID: <CAOQ4uxjLCGZ3hHfkZzgZiHctC1x6s_EF7J1g0-zjXYCOzqoHwQ@mail.gmail.com>
 References: <1499168434-23859-1-git-send-email-amir73il@gmail.com>
- <1499168434-23859-8-git-send-email-amir73il@gmail.com>
+ <1499168434-23859-6-git-send-email-amir73il@gmail.com> <20170705095902.GR23360@eguan.usersys.redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:56886 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751966AbdGEKJi (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 5 Jul 2017 06:09:38 -0400
-Content-Disposition: inline
-In-Reply-To: <1499168434-23859-8-git-send-email-amir73il@gmail.com>
+Received: from mail-oi0-f66.google.com ([209.85.218.66]:33581 "EHLO
+        mail-oi0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751626AbdGEKqw (ORCPT
+        <rfc822;linux-unionfs@vger.kernel.org>);
+        Wed, 5 Jul 2017 06:46:52 -0400
+In-Reply-To: <20170705095902.GR23360@eguan.usersys.redhat.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, fstests@vger.kernel.org
+To: Eryu Guan <eguan@redhat.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, overlayfs <linux-unionfs@vger.kernel.org>, fstests <fstests@vger.kernel.org>
 
-On Tue, Jul 04, 2017 at 02:40:34PM +0300, Amir Goldstein wrote:
-> nlink of overlay inode could be dropped indefinety by adding
-> un-accounted lower hardlinks underneath a mounted overlay and
-> trying to remove them.
+On Wed, Jul 5, 2017 at 12:59 PM, Eryu Guan <eguan@redhat.com> wrote:
+> On Tue, Jul 04, 2017 at 02:40:32PM +0300, Amir Goldstein wrote:
+>> Two tasks make a modification concurrently on two hardlinks of a large
+>> lower inode.  The copy up should be triggered by one of the tasks and the
+>> other should be waiting for copy up to complete.  Both copy up targets
+>> should end up being upper hardlinks and both metadata changes should be
+>> visible in both hardlinks.
+>>
+>> With kernel <= v4.12, hardlinks are broken on copy up, meaning that copy up
+>
+> So this will be fixed in 4.13-rc1 kernel?
 
-Sorry, I didn't quite follow the hardlink patches, could you please
-describe what is "accounted/un-accounted" hardlinks and the expected
-behavior in commit log? And what does "indefinety" mean? I couldn't find
-it in dictionary.
+It is fixed on current overlayfs-next branch. Yes.
 
-> 
-> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
-> ---
->  tests/overlay/034     | 91 +++++++++++++++++++++++++++++++++++++++++++++++++++
->  tests/overlay/034.out |  2 ++
->  tests/overlay/group   |  1 +
->  3 files changed, 94 insertions(+)
->  create mode 100755 tests/overlay/034
->  create mode 100644 tests/overlay/034.out
-> 
-> diff --git a/tests/overlay/034 b/tests/overlay/034
-> new file mode 100755
-> index 0000000..cb023bf
-> --- /dev/null
-> +++ b/tests/overlay/034
-> @@ -0,0 +1,91 @@
-> +#! /bin/bash
-> +# FS QA Test 034
-> +#
-> +# Test overlay nlink when adding lower hardlinks.
-> +#
-> +# nlink of overlay inode could be dropped indefinety by adding
-> +# unaccounted lower hardlinks underneath a mounted overlay and
-> +# trying to remove them.
-> +#
-> +#-----------------------------------------------------------------------
-> +# Copyright (C) 2017 CTERA Networks. All Rights Reserved.
-> +# Author: Amir Goldstein <amir73il@gmail.com>
-> +#
-> +# This program is free software; you can redistribute it and/or
-> +# modify it under the terms of the GNU General Public License as
-> +# published by the Free Software Foundation.
-> +#
-> +# This program is distributed in the hope that it would be useful,
-> +# but WITHOUT ANY WARRANTY; without even the implied warranty of
-> +# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> +# GNU General Public License for more details.
-> +#
-> +# You should have received a copy of the GNU General Public License
-> +# along with this program; if not, write the Free Software Foundation,
-> +# Inc.,  51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-> +#-----------------------------------------------------------------------
-> +#
-> +
-> +seq=`basename $0`
-> +seqres=$RESULT_DIR/$seq
-> +echo "QA output created by $seq"
-> +
-> +tmp=/tmp/$$
-> +status=1	# failure is the default!
-> +trap "_cleanup; exit \$status" 0 1 2 3 15
-> +
-> +_cleanup()
-> +{
-> +	cd /
-> +	rm -f $tmp.*
-> +}
-> +
-> +# get standard environment, filters and checks
-> +. ./common/rc
-> +. ./common/filter
-> +
-> +# remove previous $seqres.full before test
-> +rm -f $seqres.full
-> +
-> +# real QA test starts here
-> +_supported_fs overlay
-> +_supported_os Linux
-> +_require_scratch
-> +
-> +# Remove all files from previous tests
-> +_scratch_mkfs
-> +
-> +# Create lower hardlink
-> +lowerdir=$OVL_BASE_SCRATCH_MNT/$OVL_LOWER
-> +mkdir -p $lowerdir
-> +touch $lowerdir/0
-> +ln $lowerdir/0 $lowerdir/1
-> +
-> +_scratch_mount
-> +
-> +# Copy up lower hardlink - nlink should be 2
-> +touch $SCRATCH_MNT/0
-> +
-> +# Add lower hardlinks while overlay is mounted
 
-Why "while overlay is mounted" is needed?
+>> +
+>> +_do_cmd()
+>
+> I'd rename it to do_cmd for a local helper function.
+>
 
-> +ln $lowerdir/0 $lowerdir/2
-> +ln $lowerdir/0 $lowerdir/3
-> +
-> +# Unlink un-accounted lowers to drive nlink to 0
-> +rm $SCRATCH_MNT/2
-> +rm $SCRATCH_MNT/3
+sure
 
-drive nlink of which file to 0? Sorry, I'm a bit lost on overlay
-hardlink behaviors..
+>> +{
+>> +     echo "`date +%T` $1..." >> $seqres.full
+>> +     eval "$1"
+>> +     echo "`date +%T` ...$1" >> $seqres.full
+>> +}
+>> +
+>> +# Perform one modification on each hardlink (size and owner)
+>> +_do_cmd "echo >> $SCRATCH_MNT/one" &
+>> +#
+>> +# When hardlinks are broken and overlayfs supports concurrent copy up,
+>> +# $seqres.full will show that file two copy up started ~2s after file one
+>> +# copy up started and ended ~2s after file one copy up ended.
+>> +# With synchronized copy up of lower inodes, $seqres.full will show that
+>> +# file two copy up ended at the same time as file one copy up.
+>> +#
+>> +sleep 2
+>
+> If the first copyup finished within 2 seconds, it's not a concurrent
+> modification on the two hardlinks. Does that break the test assumption?
 
-> +
-> +# Check for getting ENOENT for trying to link !I_LINKABLE with nlink 0
-> +ln $SCRATCH_MNT/0 $SCRATCH_MNT/4
+It will not be a race, plain 2 consequent copy ups, so not testing anything
+special, but won't cause test to fail.
 
-Shouldn't we expect an error message from this ln, if "check for getting
-ENOEND"? BTW, this test passed on 4.12-rc7 kernel, I'm not sure if
-that's expected result.
+I am testing overlayfs with 2 underlying fs configurations:
+1. xfs with clone support
+2. ext4
+
+With xfs clone up takes fraction of a second, the test is not really concurrent.
+With ext4, on my laptop with SSD, the 500M copy up takes ~3 seconds,
+which is quite close to the 2 seconds delay.
+I increased the copy up file size to 1G and now first copy up takes ~6 seconds,
+so there is more slack for the 2 sec delay, but still keeps the test 'quick'.
+
+>
+>> +_do_cmd "chown 100 $SCRATCH_MNT/two" &
+>> +
+>> +wait
+>> +
+>> +# Expect all hardlinks to show both metadata modifications
+>> +for f in zero one two; do
+>> +     _ls_l -n $SCRATCH_MNT/$f | awk '{ print $2, $3, $5, $9 }' | _filter_scratch
+>
+> Better to comment on what are the 4 fields.
+>
+
+They show the metadata that was changes by chown and write.
+Will add a comment.
 
 Thanks,
-Eryu
-
-> +
-> +# Unlink all hardlink to drive nlink below 0
-> +rm $SCRATCH_MNT/0
-> +rm $SCRATCH_MNT/1
-> +rm $SCRATCH_MNT/4
-> +
-> +# Verify that orphan index is cleaned on mount
-> +_scratch_cycle_mount
-> +ls $OVL_BASE_SCRATCH_MNT/$OVL_WORK/index 2>/dev/null
-> +
-> +echo "Silence is golden"
-> +status=0
-> +exit
-> diff --git a/tests/overlay/034.out b/tests/overlay/034.out
-> new file mode 100644
-> index 0000000..4c8873c
-> --- /dev/null
-> +++ b/tests/overlay/034.out
-> @@ -0,0 +1,2 @@
-> +QA output created by 034
-> +Silence is golden
-> diff --git a/tests/overlay/group b/tests/overlay/group
-> index 35cd5a5..b55ed0c 100644
-> --- a/tests/overlay/group
-> +++ b/tests/overlay/group
-> @@ -36,3 +36,4 @@
->  031 auto quick whiteout
->  032 auto quick copyup hardlink
->  033 auto quick copyup hardlink
-> +034 auto quick copyup hardlink
-> -- 
-> 2.7.4
-> 
+Amir.
