@@ -1,92 +1,152 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [PATCH] check_layer: Add tests for constant st_dev
-Date: Tue, 4 Jul 2017 21:03:57 +0300
-Message-ID: <CAOQ4uxiS9b7GboLpV2-FekiD+uND3Nofiybdr_=w-XcvhH+pkw@mail.gmail.com>
-References: <20170704170028.4278-1-chandan@linux.vnet.ibm.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Subject: [PATCH] ovl: mark parent impure on ovl_link()
+Date: Wed,  5 Jul 2017 09:41:10 +0300
+Message-ID: <1499236870-5225-1-git-send-email-amir73il@gmail.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-oi0-f67.google.com ([209.85.218.67]:33527 "EHLO
-        mail-oi0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752031AbdGDSD6 (ORCPT
+Received: from mail-wm0-f68.google.com ([74.125.82.68]:32942 "EHLO
+        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751110AbdGEGlG (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 4 Jul 2017 14:03:58 -0400
-Received: by mail-oi0-f67.google.com with SMTP id f134so17009273oig.0
-        for <linux-unionfs@vger.kernel.org>; Tue, 04 Jul 2017 11:03:58 -0700 (PDT)
-In-Reply-To: <20170704170028.4278-1-chandan@linux.vnet.ibm.com>
+        Wed, 5 Jul 2017 02:41:06 -0400
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Chandan Rajendra <chandan@linux.vnet.ibm.com>
-Cc: overlayfs <linux-unionfs@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: linux-unionfs@vger.kernel.org, "# v4 . 12" <stable@vger.kernel.org>
 
-On Tue, Jul 4, 2017 at 8:00 PM, Chandan Rajendra
-<chandan@linux.vnet.ibm.com> wrote:
-> With constant st_dev implemented, overlayfs never returns the real dev
-> corresponding to lowerdir filesystems. Also, for the samefs case,
-> overlayfs always returns the pseudo st_dev corresponding to the union
-> layer.
->
-> Signed-off-by: Chandan Rajendra <chandan@linux.vnet.ibm.com>
+When linking a file with copy up origin into a new parent, mark the
+new parent dir "impure".
 
-Chandan,
+Fixes: ee1d6d37b6b8 ("ovl: mark upper dir with type origin entries "impure"")
+Cc: <stable@vger.kernel.org> # v4.12
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+---
 
-Tests look correct, however, the tests are correct for a future
-version of overlayfs
-(overlayfs-devel branch) and we don't want to break unionmounts for current
-stable kernel and not even for older kernels, so we have to maintain backward
-compat somehow...
-I suggest that you use the config flag self.config().is_verify(),
-which I already
-introduced in order to support old kernels w.r.t constant ino check,
-as an indication for which st_dev can be expected in layer check.
+Miklos,
 
-I think the rules should be:
-1. ./run --verify --samefs # should enforce all dentries on overlay st_dev
-2. ./run --verify # should enforce the rules that you wrote
-3. ./run [--samefs] # should allow for either old kernel rules or new rules
+We missed a spot with impure dir patches for v4.12.
 
-Your challenge is to manage to describe all those rules in a clean and
-short way,
-just like you did with this patch.
-
-Good luck!
 Amir.
 
-(see two more comments below)
+ fs/overlayfs/copy_up.c   |  4 ++--
+ fs/overlayfs/dir.c       | 20 ++++++++++++++++----
+ fs/overlayfs/overlayfs.h |  2 +-
+ fs/overlayfs/util.c      |  6 +++---
+ 4 files changed, 22 insertions(+), 10 deletions(-)
 
-> ---
->  context.py | 10 ++++------
->  1 file changed, 4 insertions(+), 6 deletions(-)
->
-> diff --git a/context.py b/context.py
-> index 829fb69..f6dbbe7 100644
-> --- a/context.py
-> +++ b/context.py
-> @@ -532,17 +532,15 @@ class test_context:
->          if self.skip_layer_test():
->              pass
->          elif dev == self.lower_fs():
-> -            if dentry.is_dir():
-> -                raise TestError(name + ": Directory unexpectedly on lower filesystem")
-> +            # Overlayfs never returns st_dev corresponding to any of
-> +            # the lower layers
-> +            raise TestError(name + ": File unexpectedly has lowerfs dev id")
->          elif dentry.is_dir():
->              if dev != self.upper_dir_fs():
->                  raise TestError(name + ": Directory not on union layer")
->          elif dev == self.upper_fs() and not dentry.on_upper():
->              raise TestError(name + ": File unexpectedly on upper layer")
-
-You can and should also add the opposite check to enforce that:
-if dentry.on_upper() and not self.config().is_samefs() and dev !=
-self.upper_fs():
-     "File unexpectedly not on upper layer"
-
-> -        elif dev != self.upper_fs() and dev != self.upper_dir_fs() and self.config().is_samefs():
-> -            # For samefs, file is on overlay dev
-> -            # TODO: for non-samefs, check file dev matches pseudo dev
-> -            # and that pseduo dev != real dev
-> +        elif dev != self.upper_dir_fs() and self.config().is_samefs():
->              raise TestError(name + ": File on unexpected layer")
-
-Here, the error could be more descriptive "File not on union layer"
+diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
+index acb6f97deb97..aeb22def9f80 100644
+--- a/fs/overlayfs/copy_up.c
++++ b/fs/overlayfs/copy_up.c
+@@ -338,7 +338,7 @@ static int ovl_link_up(struct ovl_copy_up_ctx *c)
+ 	struct inode *udir = d_inode(upperdir);
+ 
+ 	/* Mark parent "impure" because it may now contain non-pure upper */
+-	err = ovl_set_impure(c->parent, upperdir);
++	err = ovl_set_impure(c->parent);
+ 	if (err)
+ 		return err;
+ 
+@@ -551,7 +551,7 @@ static int ovl_do_copy_up(struct ovl_copy_up_ctx *c)
+ 		 * Mark parent "impure" because it may now contain non-pure
+ 		 * upper
+ 		 */
+-		err = ovl_set_impure(c->parent, c->destdir);
++		err = ovl_set_impure(c->parent);
+ 		if (err)
+ 			return err;
+ 	}
+diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
+index 641d9ee97f91..5df99952feba 100644
+--- a/fs/overlayfs/dir.c
++++ b/fs/overlayfs/dir.c
+@@ -92,7 +92,8 @@ int ovl_create_real(struct inode *dir, struct dentry *newdentry,
+ 		return -ESTALE;
+ 
+ 	if (hardlink) {
+-		err = ovl_do_link(hardlink, dir, newdentry, debug);
++		err = ovl_do_link(ovl_dentry_upper(hardlink), dir, newdentry,
++				  debug);
+ 	} else {
+ 		switch (attr->mode & S_IFMT) {
+ 		case S_IFREG:
+@@ -492,6 +493,17 @@ static int ovl_create_or_link(struct dentry *dentry, struct inode *inode,
+ 		return err;
+ 
+ 	old_cred = ovl_override_creds(dentry->d_sb);
++
++	/*
++	 * When linking a file with copy up origin into a new parent, mark the
++	 * new parent dir "impure".
++	 */
++	if (hardlink && ovl_type_origin(hardlink)) {
++		err = ovl_set_impure(dentry->d_parent);
++		if (err)
++			goto out_revert_creds;
++	}
++
+ 	err = -ENOMEM;
+ 	override_cred = prepare_creds();
+ 	if (override_cred) {
+@@ -609,7 +621,7 @@ static int ovl_link(struct dentry *old, struct inode *newdir,
+ 	inode = d_inode(old);
+ 	ihold(inode);
+ 
+-	err = ovl_create_or_link(new, inode, NULL, ovl_dentry_upper(old));
++	err = ovl_create_or_link(new, inode, NULL, old);
+ 	if (err)
+ 		iput(inode);
+ 
+@@ -987,12 +999,12 @@ static int ovl_rename(struct inode *olddir, struct dentry *old,
+ 		 * lookup the origin inodes of the entries to fill d_ino.
+ 		 */
+ 		if (ovl_type_origin(old)) {
+-			err = ovl_set_impure(new->d_parent, new_upperdir);
++			err = ovl_set_impure(new->d_parent);
+ 			if (err)
+ 				goto out_revert_creds;
+ 		}
+ 		if (!overwrite && ovl_type_origin(new)) {
+-			err = ovl_set_impure(old->d_parent, old_upperdir);
++			err = ovl_set_impure(old->d_parent);
+ 			if (err)
+ 				goto out_revert_creds;
+ 		}
+diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
+index 60d26605e039..7aa1c48390a5 100644
+--- a/fs/overlayfs/overlayfs.h
++++ b/fs/overlayfs/overlayfs.h
+@@ -225,7 +225,7 @@ bool ovl_check_dir_xattr(struct dentry *dentry, const char *name);
+ int ovl_check_setxattr(struct dentry *dentry, struct dentry *upperdentry,
+ 		       const char *name, const void *value, size_t size,
+ 		       int xerr);
+-int ovl_set_impure(struct dentry *dentry, struct dentry *upperdentry);
++int ovl_set_impure(struct dentry *dentry);
+ void ovl_set_flag(unsigned long flag, struct inode *inode);
+ bool ovl_test_flag(unsigned long flag, struct inode *inode);
+ bool ovl_inuse_trylock(struct dentry *dentry);
+diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
+index c492ba75c659..82c3dad6ddf4 100644
+--- a/fs/overlayfs/util.c
++++ b/fs/overlayfs/util.c
+@@ -353,7 +353,7 @@ int ovl_check_setxattr(struct dentry *dentry, struct dentry *upperdentry,
+ 	return err;
+ }
+ 
+-int ovl_set_impure(struct dentry *dentry, struct dentry *upperdentry)
++int ovl_set_impure(struct dentry *dentry)
+ {
+ 	int err;
+ 
+@@ -364,8 +364,8 @@ int ovl_set_impure(struct dentry *dentry, struct dentry *upperdentry)
+ 	 * Do not fail when upper doesn't support xattrs.
+ 	 * Upper inodes won't have origin nor redirect xattr anyway.
+ 	 */
+-	err = ovl_check_setxattr(dentry, upperdentry, OVL_XATTR_IMPURE,
+-				 "y", 1, 0);
++	err = ovl_check_setxattr(dentry, ovl_dentry_upper(dentry),
++				 OVL_XATTR_IMPURE, "y", 1, 0);
+ 	if (!err)
+ 		ovl_set_flag(OVL_IMPURE, d_inode(dentry));
+ 
+-- 
+2.7.4
