@@ -1,119 +1,103 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [PATCH] check_layer: Add tests for constant st_dev
-Date: Sat, 8 Jul 2017 11:12:41 +0300
-Message-ID: <CAOQ4uxicgyZRKxBVv+KTU8jQ0g7kSS7TWcjpNj8v5Za_gsP9iA@mail.gmail.com>
-References: <20170704170028.4278-1-chandan@linux.vnet.ibm.com>
- <CAOQ4uxiS9b7GboLpV2-FekiD+uND3Nofiybdr_=w-XcvhH+pkw@mail.gmail.com>
- <3081705.s7MyyWUpSq@localhost.localdomain> <CAOQ4uxhf4-kG8s7WLE_3tsPObiZnCdm+4C07hoFgs=swWTZs4A@mail.gmail.com>
- <CAOQ4uxjuKCGGK1shB1YO3Ony5Gqcv_mm7kidoeO8mgvnTqi7kw@mail.gmail.com>
+Subject: Re: [ANNOUNCE] Amir's unionmount-testsuite master branch
+Date: Sat, 8 Jul 2017 11:53:34 +0300
+Message-ID: <CAOQ4uxjp_rmLpDAw6TXEGvNyBietKKrMD3XyEkruR7_sNM1xGQ@mail.gmail.com>
+References: <CAOQ4uxiPdec5O0kW=J8LjAi9eK2+=n2Y2f8DH4g8EqyL9AFSXQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-yb0-f194.google.com ([209.85.213.194]:33322 "EHLO
-        mail-yb0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751927AbdGHIMn (ORCPT
+Received: from mail-yb0-f193.google.com ([209.85.213.193]:33343 "EHLO
+        mail-yb0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752636AbdGHIxl (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Sat, 8 Jul 2017 04:12:43 -0400
-Received: by mail-yb0-f194.google.com with SMTP id 84so2264828ybe.0
-        for <linux-unionfs@vger.kernel.org>; Sat, 08 Jul 2017 01:12:43 -0700 (PDT)
-In-Reply-To: <CAOQ4uxjuKCGGK1shB1YO3Ony5Gqcv_mm7kidoeO8mgvnTqi7kw@mail.gmail.com>
+        Sat, 8 Jul 2017 04:53:41 -0400
+In-Reply-To: <CAOQ4uxiPdec5O0kW=J8LjAi9eK2+=n2Y2f8DH4g8EqyL9AFSXQ@mail.gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Chandan Rajendra <chandan@linux.vnet.ibm.com>
-Cc: overlayfs <linux-unionfs@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>
+To: Eryu Guan <eguan@redhat.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, David Howells <dhowells@redhat.com>, overlayfs <linux-unionfs@vger.kernel.org>, fstests <fstests@vger.kernel.org>, Vivek Goyal <vgoyal@redhat.com>, Chandan Rajendra <chandan@linux.vnet.ibm.com>
 
-On Sat, Jul 8, 2017 at 12:09 AM, Amir Goldstein <amir73il@gmail.com> wrote:
-> On Fri, Jul 7, 2017 at 11:35 PM, Amir Goldstein <amir73il@gmail.com> wrote:
+On Fri, Jul 7, 2017 at 7:10 PM, Amir Goldstein <amir73il@gmail.com> wrote:
+> Eryu,
 >
->> Chandan,
->>
->> I think your tests will fail on upstream kernel and older kernels.
->>
->> The test matrix to verify is at least:
->>  run --ov[=1] [--samefs] with kernel [v4.11|v4.12|overlayfs-next]
->>  run --ov[=1] --samefs --verify with kernel [4.12|overlayfs-next]
->>  run --ov[=1] --verify with kernel overlayfs-devel (with your patch)
->> * all overlayfs Kconfig options set to y
->>
->> Maybe something like this.
->> It is not tested at all, so may be bogus. Please reply on specific
->> lines if you don't
->> follow the reasoning:
->>
+> I realize I have never made a formal public [ANNOUNCE] about the
+> unionmount-testsuite tree that I am maintaining [1], except for
+> referring to it occasionally on my patch postings, so here goes.
 >
-> Sorry for all the messed up spaced and line wrapping...
->
->>         if self.skip_layer_test():
->>             pass
->>         elif dentry.is_dir():
->>             # Directory inodes are always on overlay st_dev
->>             if dev != self.upper_dir_fs():
->>                 raise TestError(name + ": Directory not on union layer")
->>             pass
->>         elif self.config().is_samefs():
->>             # With samefs setup, files are on overlay st_dev if st_ino
->> is constant
->>             # on copy up and on real st_dev if st_ino is not constant.
->>             # --verify verifies constant st_ino, so it implies overlay
->> st_dev check.
->>             # Without --verify, we allow for both options.
->>             if  dev == self.upper_dir_fs():
->>                 pass
->>             if  self.config().is_verify():
->>                 raise TestError(name + ": File not on union layer")
->>             if dev != self.upper_fs():
->>                raise TestError(name + ": File unexpectedly not on
->> lower/upper layer")
->>             pass
->>         else
->>             # With non samefs setup, files are on pseudo or upper
->> st_dev if st_ino
->>             # is constant on copy up and on lower or upper st_dev if
->> st_ino is not constant.
->>             # --verify verifies constant st_ino, so it implies pseudo
->> st_dev check.
->>             # Without --verify we allow for both options.
->
->>             # Lower file can be on upper fs when rotating upper layers (--ov=N).
->>             # TODO: stricter lower/upper checks for --ov=0.
->
-> Don't think this comment about Lower file is relevant to these test cases.
-> I think in this context, not dentry.on_upper() means on lowermost layer,
-> which is either self.lower_fs() or pseudo dev.
->
->>             if  dev == self.upper_dir_fs():
->>                 raise TestError(name + ": File unexpectedly on union layer")
->>             if dev == self.upper_fs():
->>                 if not dentry.on_upper():
->>                     raise TestError(name + ": File unexpectedly on upper layer")
->>                 pass
->>             if self.config().is_verify()
->>                 if dev == self.lower_fs():
->>                     # Overlayfs returns pseudo st_dev or upper st_dev,
->> but never the lower layer
->>                     raise TestError(name + ": File unexpectedly on lower layer")
->>                 pass
->>             if dev != self.upper_fs() and dev != self.lower_fs():
->>                raise TestError(name + ": File unexpectedly not on
->> lower/upper layer")
->
-> Yeah, this last test is wrong because without --verify, pseudo st_dev
-> is still allowed.
-> Instead could check:
->              if dev == self.lower_fs() and dentry.on_upper():
->                 raise TestError(name + ": File unexpectedly on lower layer")
->
->
->>             pass
->>
->>          if dentry.is_sym() and dentry not in symlinks:
->>              symlinks.add(dentry)
+> The head of the master branch is commit:
+> bbd2bdb Verify constant inode number with --verify option
 
-OK, my pseudo patch was mostly correct, but full of brainoes,
-push a tested patch to
-https://github.com/amir73il/unionmount-testsuite/commits/overlayfs-devel
+In order to prevent 'false regressions' before anyone starts using
+the --verify flag, updated master with this commit, which also explains
+exactly what should be expected when running --verify with different
+kernel versions:
 
-Please review and verify.
+commit 1d0adf4aca143bc0c8258eda36523ab5b27307c7
+Author: Amir Goldstein <amir73il@gmail.com>
+Date:   Tue May 23 21:09:47 2017 +0300
 
-Thanks,
-Amir.
+    Verify constant inode number for non same fs
+
+    Directory inode number for non same fs should be constant, but not
+    persistent, so check only for no mount cycle test.
+
+    The test 'run --ov --verify --samefs' is expected to fail the
+    constant inode check on kernels < v4.12, due to missing commit
+    72b608f08528 ("ovl: constant st_ino/st_dev across copy up").
+
+    The test 'run --ov=1 --verify --samefs' is expected to fail the
+    persistent inode check on kernels < v4.13, due to missing commit
+    2b4db79618ad ("tmpfs: generate random sb->s_uuid").
+
+    The test 'run --ov --verify' (non samefs) is expected to fail the
+    constant inode check on kernels <= v4.13.
+    A fix for constant inode number for non samefs is in the works.
+
+
+>
+> The main features that have been added since Dave's master:
+> - Test rotating N layers (run --ov=N)
+> - Support for directory rename with kernel >= v4.10 and OVERLAYFS_REDIRECT_DIR=y
+> - Add more test coverage for directory rename
+> - Test lower/upper on the same underlying fs (run --ov --samefs)
+> - Support running tests over block device file systems (instead of tmpfs)
+> - Adapt check_layer() to work correctly with kernel >= v4.12
+> - Add optional flag to verify constant inode number on copy up (run
+> --samefs --verify)
+>
+> The main branch is going to be forward only and tests should not regress
+> on current upstream kernel nor on older kernels (*).
+>
+> A known failure with kernel v4.12 is the test:
+>   run --ov=1 --samefs --verify rename-mass-5
+>
+> It fails because lower hardlink copy up does not keep constant inode number
+> in kernel v4.12. The fix is queued for v4.13-rc1.
+> On kernels < v4.12 testers should not use the --verify flag, because
+> inode numbers are not constant on copy up.
+>
+
+As a matter of fact, as the commit above describes,
+run --ov=1 --samefs --verify, will fail on other tests as well with v4.12
+due to the missing tmpfs uuid, so all tests run with --ov=1 --samefs --verify
+configuration are expected to pass only with upcoming v4.13-rc1
+(or with current overlayfs-next).
+
+Specifically, the test mentioned above (rename-mass-5) will pass
+only with CONFIG_OVERLAY_FS_INDEX=y, which prevents breaking
+hardlinks on copy up.
+
+> (*) While I aim not to break tests on older kernels, I never tested kernels
+> older than v4.10 and I don't test older kernels regularly at all, so whoever is
+> interested in using my branch to test older kernels, please inform me of any
+> breakage or better yet, send me patches.
+
+Maybe also worth mentioning that my fork is only focused on overlayfs testing.
+Dave's testsuite originally supported also --um and --no configurations, but
+I obviously never test those.
+
+>
+> Thanks,
+> Amir.
+>
+> [1] https://github.com/amir73il/unionmount-testsuite
