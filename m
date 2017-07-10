@@ -1,103 +1,71 @@
-From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [ANNOUNCE] Amir's unionmount-testsuite master branch
-Date: Sat, 8 Jul 2017 11:53:34 +0300
-Message-ID: <CAOQ4uxjp_rmLpDAw6TXEGvNyBietKKrMD3XyEkruR7_sNM1xGQ@mail.gmail.com>
-References: <CAOQ4uxiPdec5O0kW=J8LjAi9eK2+=n2Y2f8DH4g8EqyL9AFSXQ@mail.gmail.com>
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: [bug report] ovl: introduce the inodes index dir feature
+Date: Mon, 10 Jul 2017 17:16:11 +0300
+Message-ID: <20170710141611.wlz2rsoul4v43bi6@mwanda>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-yb0-f193.google.com ([209.85.213.193]:33343 "EHLO
-        mail-yb0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752636AbdGHIxl (ORCPT
+Received: from aserp1040.oracle.com ([141.146.126.69]:18188 "EHLO
+        aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932284AbdGJOQV (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Sat, 8 Jul 2017 04:53:41 -0400
-In-Reply-To: <CAOQ4uxiPdec5O0kW=J8LjAi9eK2+=n2Y2f8DH4g8EqyL9AFSXQ@mail.gmail.com>
+        Mon, 10 Jul 2017 10:16:21 -0400
+Content-Disposition: inline
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Eryu Guan <eguan@redhat.com>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, David Howells <dhowells@redhat.com>, overlayfs <linux-unionfs@vger.kernel.org>, fstests <fstests@vger.kernel.org>, Vivek Goyal <vgoyal@redhat.com>, Chandan Rajendra <chandan@linux.vnet.ibm.com>
+To: amir73il@gmail.com
+Cc: linux-unionfs@vger.kernel.org
 
-On Fri, Jul 7, 2017 at 7:10 PM, Amir Goldstein <amir73il@gmail.com> wrote:
-> Eryu,
->
-> I realize I have never made a formal public [ANNOUNCE] about the
-> unionmount-testsuite tree that I am maintaining [1], except for
-> referring to it occasionally on my patch postings, so here goes.
->
-> The head of the master branch is commit:
-> bbd2bdb Verify constant inode number with --verify option
+Hello Amir Goldstein,
 
-In order to prevent 'false regressions' before anyone starts using
-the --verify flag, updated master with this commit, which also explains
-exactly what should be expected when running --verify with different
-kernel versions:
+The patch 02bcd1577400: "ovl: introduce the inodes index dir feature"
+from Jun 21, 2017, leads to the following static checker warning:
 
-commit 1d0adf4aca143bc0c8258eda36523ab5b27307c7
-Author: Amir Goldstein <amir73il@gmail.com>
-Date:   Tue May 23 21:09:47 2017 +0300
+	fs/overlayfs/super.c:1062 ovl_fill_super()
+	warn: 'ufs->indexdir' isn't an ERR_PTR
 
-    Verify constant inode number for non same fs
+fs/overlayfs/super.c
+  1050          if (!(ovl_force_readonly(ufs)) && ufs->config.index) {
+  1051                  /* Verify lower root is upper root origin */
+  1052                  err = ovl_verify_origin(upperpath.dentry, ufs->lower_mnt[0],
+  1053                                          stack[0].dentry, false, true);
+  1054                  if (err) {
+  1055                          pr_err("overlayfs: failed to verify upper root origin\n");
+  1056                          goto out_put_lower_mnt;
+  1057                  }
+  1058  
+  1059                  ufs->indexdir = ovl_workdir_create(sb, ufs, workpath.dentry,
+  1060                                                     OVL_INDEXDIR_NAME, true);
+  1061                  err = PTR_ERR(ufs->indexdir);
+  1062                  if (IS_ERR(ufs->indexdir))
+  1063                          goto out_put_lower_mnt;
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+This hunk isn't needed any more now that ovl_workdir_create() doesn't
+return error pointers.
 
-    Directory inode number for non same fs should be constant, but not
-    persistent, so check only for no mount cycle test.
+  1064  
+  1065                  if (ufs->indexdir) {
+                            ^^^^^^^^^^^^^
+We check for NULL here so the code so that's OK except what do we want to
+set the error code to if ovl_workdir_create() fails?  Right now it's
+set to a random pointer casted to int.
 
-    The test 'run --ov --verify --samefs' is expected to fail the
-    constant inode check on kernels < v4.12, due to missing commit
-    72b608f08528 ("ovl: constant st_ino/st_dev across copy up").
+  1066                          /* Verify upper root is index dir origin */
+  1067                          err = ovl_verify_origin(ufs->indexdir, ufs->upper_mnt,
+  1068                                                  upperpath.dentry, true, true);
+  1069                          if (err)
+  1070                                  pr_err("overlayfs: failed to verify index dir origin\n");
+  1071  
+  1072                          /* Cleanup bad/stale/orphan index entries */
+  1073                          if (!err)
+  1074                                  err = ovl_indexdir_cleanup(ufs->indexdir,
+  1075                                                             ufs->upper_mnt,
+  1076                                                             stack, numlower);
+  1077                  }
+  1078                  if (err || !ufs->indexdir)
+  1079                          pr_warn("overlayfs: try deleting index dir or mounting with '-o index=off' to disable inodes index.\n");
+  1080                  if (err)
+  1081                          goto out_put_indexdir;
 
-    The test 'run --ov=1 --verify --samefs' is expected to fail the
-    persistent inode check on kernels < v4.13, due to missing commit
-    2b4db79618ad ("tmpfs: generate random sb->s_uuid").
-
-    The test 'run --ov --verify' (non samefs) is expected to fail the
-    constant inode check on kernels <= v4.13.
-    A fix for constant inode number for non samefs is in the works.
-
-
->
-> The main features that have been added since Dave's master:
-> - Test rotating N layers (run --ov=N)
-> - Support for directory rename with kernel >= v4.10 and OVERLAYFS_REDIRECT_DIR=y
-> - Add more test coverage for directory rename
-> - Test lower/upper on the same underlying fs (run --ov --samefs)
-> - Support running tests over block device file systems (instead of tmpfs)
-> - Adapt check_layer() to work correctly with kernel >= v4.12
-> - Add optional flag to verify constant inode number on copy up (run
-> --samefs --verify)
->
-> The main branch is going to be forward only and tests should not regress
-> on current upstream kernel nor on older kernels (*).
->
-> A known failure with kernel v4.12 is the test:
->   run --ov=1 --samefs --verify rename-mass-5
->
-> It fails because lower hardlink copy up does not keep constant inode number
-> in kernel v4.12. The fix is queued for v4.13-rc1.
-> On kernels < v4.12 testers should not use the --verify flag, because
-> inode numbers are not constant on copy up.
->
-
-As a matter of fact, as the commit above describes,
-run --ov=1 --samefs --verify, will fail on other tests as well with v4.12
-due to the missing tmpfs uuid, so all tests run with --ov=1 --samefs --verify
-configuration are expected to pass only with upcoming v4.13-rc1
-(or with current overlayfs-next).
-
-Specifically, the test mentioned above (rename-mass-5) will pass
-only with CONFIG_OVERLAY_FS_INDEX=y, which prevents breaking
-hardlinks on copy up.
-
-> (*) While I aim not to break tests on older kernels, I never tested kernels
-> older than v4.10 and I don't test older kernels regularly at all, so whoever is
-> interested in using my branch to test older kernels, please inform me of any
-> breakage or better yet, send me patches.
-
-Maybe also worth mentioning that my fork is only focused on overlayfs testing.
-Dave's testsuite originally supported also --um and --no configurations, but
-I obviously never test those.
-
->
-> Thanks,
-> Amir.
->
-> [1] https://github.com/amir73il/unionmount-testsuite
+regards,
+dan carpenter
