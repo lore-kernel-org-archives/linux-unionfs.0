@@ -1,39 +1,46 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH 02/10] ovl: fix random return value on mount
-Date: Tue, 11 Jul 2017 15:58:35 +0300
-Message-ID: <1499777923-29410-3-git-send-email-amir73il@gmail.com>
+Subject: [PATCH 03/10] ovl: fix origin verification of index dir
+Date: Tue, 11 Jul 2017 15:58:36 +0300
+Message-ID: <1499777923-29410-4-git-send-email-amir73il@gmail.com>
 References: <1499777923-29410-1-git-send-email-amir73il@gmail.com>
-Return-path: <stable-owner@vger.kernel.org>
+Return-path: <linux-unionfs-owner@vger.kernel.org>
+Received: from mail-wr0-f195.google.com ([209.85.128.195]:32848 "EHLO
+        mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755558AbdGKM6j (ORCPT
+        <rfc822;linux-unionfs@vger.kernel.org>);
+        Tue, 11 Jul 2017 08:58:39 -0400
+Received: by mail-wr0-f195.google.com with SMTP id x23so32114506wrb.0
+        for <linux-unionfs@vger.kernel.org>; Tue, 11 Jul 2017 05:58:38 -0700 (PDT)
 In-Reply-To: <1499777923-29410-1-git-send-email-amir73il@gmail.com>
-Sender: stable-owner@vger.kernel.org
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: linux-unionfs@vger.kernel.org, "# v4 . 7" <stable@vger.kernel.org>
+Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: linux-unionfs@vger.kernel.org
 
-On failure to prepare_creds(), mount fails with a random
-return value, as err was last set to an integer cast of
-a valid lower mnt pointer or set to 0 if inodes index feature
-is enabled.
+Commit 54fb347e836f ("ovl: verify index dir matches upper dir")
+introduced a new ovl_fh flag OVL_FH_FLAG_PATH_UPPER to indicate
+an upper file handle, but forgot to add the flag to the mask of
+valid flags, so index dir origin verification always discards
+existing origin and stores a new one.
 
-Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
-Fixes: 3fe6e52f0626 ("ovl: override creds with the ones from ...")
-Cc: <stable@vger.kernel.org> # v4.7
 Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- fs/overlayfs/super.c | 1 +
- 1 file changed, 1 insertion(+)
+ fs/overlayfs/overlayfs.h | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-index 44dc2d6ffe0f..1cf5d3538309 100644
---- a/fs/overlayfs/super.c
-+++ b/fs/overlayfs/super.c
-@@ -1090,6 +1090,7 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
- 	else
- 		sb->s_d_op = &ovl_dentry_operations;
+diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
+index 7aa1c48390a5..8bfb35cb77c3 100644
+--- a/fs/overlayfs/overlayfs.h
++++ b/fs/overlayfs/overlayfs.h
+@@ -47,7 +47,8 @@ enum ovl_flag {
+ /* Is the real inode encoded in fid an upper inode? */
+ #define OVL_FH_FLAG_PATH_UPPER	(1 << 2)
  
-+	err = -ENOMEM;
- 	ufs->creator_cred = cred = prepare_creds();
- 	if (!cred)
- 		goto out_put_indexdir;
+-#define OVL_FH_FLAG_ALL (OVL_FH_FLAG_BIG_ENDIAN | OVL_FH_FLAG_ANY_ENDIAN)
++#define OVL_FH_FLAG_ALL (OVL_FH_FLAG_BIG_ENDIAN | OVL_FH_FLAG_ANY_ENDIAN | \
++			 OVL_FH_FLAG_PATH_UPPER)
+ 
+ #if defined(__LITTLE_ENDIAN)
+ #define OVL_FH_FLAG_CPU_ENDIAN 0
 -- 
 2.7.4
