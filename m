@@ -1,44 +1,38 @@
-From: Oakley Sunglass Warehouse <linux-unionfs@vger.kernel.org>
-Subject: Oakley Sunglass Warehouse
-Date: Tue, 11 Jul 2017 02:44:56 +0000
-Message-ID: <bed05758e37aa229bc262d14dc4b2b01@link2.club>
-Reply-To: Oakley Sunglass Warehouse <linux-unionfs@vger.kernel.org>
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: Re: [bug report] ovl: introduce the inodes index dir feature
+Date: Tue, 11 Jul 2017 10:37:21 +0300
+Message-ID: <20170711073721.wwaovemvvonxhja4@mwanda>
+References: <20170710141611.wlz2rsoul4v43bi6@mwanda>
+ <CAOQ4uxgrbbRj2mB6gNz_DRMbcctYFb-xSk_f53UkwCfF-3pEew@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from [50.93.206.146] ([50.93.206.146]:38144 "EHLO
-        bigdiscount.onlineshoppingusa.store" rhost-flags-FAIL-FAIL-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751287AbdGKHPD (ORCPT
+Received: from aserp1040.oracle.com ([141.146.126.69]:41442 "EHLO
+        aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755246AbdGKHhd (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 11 Jul 2017 03:15:03 -0400
-Received: from admin by bigdiscount.onlineshoppingusa.store with local (Exim 4.82)
-        (envelope-from <linux-unionfs@vger.kernel.org>)
-        id 1dUlAW-0001Vj-Ej
-        for linux-unionfs@vger.kernel.org; Tue, 11 Jul 2017 02:44:56 +0000
+        Tue, 11 Jul 2017 03:37:33 -0400
+Content-Disposition: inline
+In-Reply-To: <CAOQ4uxgrbbRj2mB6gNz_DRMbcctYFb-xSk_f53UkwCfF-3pEew@mail.gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Oakley Sunglass Warehouse <linux-unionfs@vger.kernel.org>
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: overlayfs <linux-unionfs@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>
 
-From:	Oakley Sunglass Warehouse
-Email:	linux-unionfs@vger.kernel.org
+On Mon, Jul 10, 2017 at 07:15:47PM +0300, Amir Goldstein wrote:
+> >   1064
+> >   1065                  if (ufs->indexdir) {
+> >                             ^^^^^^^^^^^^^
+> > We check for NULL here so the code so that's OK except what do we want to
+> > set the error code to if ovl_workdir_create() fails?  Right now it's
+> > set to a random pointer casted to int.
+> 
+> I don't follow.
+> If ovl_workdir_create() fails, ufs->indexdir will be NULL and err will be 0.
+> If it succeeds err will be set here below.
+> 
 
-------------------------------------------------------
+Oh, yeah.  You're right.  My bad.
 
-Hi
-
-It's our birthday and we are celebrating 2 years of our outlet.  We'd like to offer you only 19.95 USD for all styles of Oakley and Ray Ban Sunglasses. 
-Please visit our online store for more details: http://bit.ly/2u4Hopr  
-
-
-YOU WON'T WANT TO MISS THESE OFFERS
-
-
-To your success!
-
-Regards, 
-
-Mila
-
-Oakley Sunglass Warehouse
-
-------------------------------------------------------
+regards,
+dan carpenter
