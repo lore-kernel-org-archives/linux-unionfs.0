@@ -1,46 +1,48 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH 5/5] overlay: test mount error cases with exclusive directories
-Date: Tue, 11 Jul 2017 22:52:06 +0300
-Message-ID: <1499802726-11045-6-git-send-email-amir73il@gmail.com>
+Subject: [PATCH 4/5] overlay: test cases that force read-only mount
+Date: Tue, 11 Jul 2017 22:52:05 +0300
+Message-ID: <1499802726-11045-5-git-send-email-amir73il@gmail.com>
 References: <1499802726-11045-1-git-send-email-amir73il@gmail.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wr0-f195.google.com ([209.85.128.195]:34835 "EHLO
-        mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934209AbdGKTwC (ORCPT
+Received: from mail-wr0-f196.google.com ([209.85.128.196]:34818 "EHLO
+        mail-wr0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S934185AbdGKTwB (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 11 Jul 2017 15:52:02 -0400
+        Tue, 11 Jul 2017 15:52:01 -0400
 In-Reply-To: <1499802726-11045-1-git-send-email-amir73il@gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: Eryu Guan <eguan@redhat.com>
 Cc: Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, fstests@vger.kernel.org
 
-Expect EBUSY when trying to mount overlay when:
-- Upper dir is in-use by another overlay mount
-- Work dir is in-use by another overlay mount
+- Mount with no upper dir
+- Failure to create work dir
+
+Verify that overlay is mounted read-only and that it cannot
+be remounted rw.
 
 Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- tests/overlay/036     | 82 +++++++++++++++++++++++++++++++++++++++++++++++++++
- tests/overlay/036.out |  3 ++
+ tests/overlay/035     | 87 +++++++++++++++++++++++++++++++++++++++++++++++++++
+ tests/overlay/035.out |  5 +++
  tests/overlay/group   |  1 +
- 3 files changed, 86 insertions(+)
- create mode 100755 tests/overlay/036
- create mode 100644 tests/overlay/036.out
+ 3 files changed, 93 insertions(+)
+ create mode 100755 tests/overlay/035
+ create mode 100644 tests/overlay/035.out
 
-diff --git a/tests/overlay/036 b/tests/overlay/036
+diff --git a/tests/overlay/035 b/tests/overlay/035
 new file mode 100755
-index 0000000..4100b80
+index 0000000..e3fbed7
 --- /dev/null
-+++ b/tests/overlay/036
-@@ -0,0 +1,82 @@
++++ b/tests/overlay/035
+@@ -0,0 +1,87 @@
 +#! /bin/bash
-+# FS QA Test 036
++# FS QA Test 035
 +#
-+# Test mount error cases with exclusive directories
++# Test cases that force read-only mount
 +#
-+# - Upper dir is in-use by another overlay mount
-+# - Work dir is in-use by another overlay mount
++# - No upper dir
++# - Failure to create work dir
 +#
 +#-----------------------------------------------------------------------
 +# Copyright (C) 2017 CTERA Networks. All Rights Reserved.
@@ -73,10 +75,8 @@ index 0000000..4100b80
 +_cleanup()
 +{
 +	cd /
++	$CHATTR_PROG -i $workdir
 +	rm -f $tmp.*
-+	# unmount the two extra mounts in case they did not fail
-+	$UMOUNT_PROG $SCRATCH_MNT 2>/dev/null
-+	$UMOUNT_PROG $SCRATCH_MNT 2>/dev/null
 +}
 +
 +# get standard environment, filters and checks
@@ -90,49 +90,58 @@ index 0000000..4100b80
 +_supported_fs overlay
 +_supported_os Linux
 +_require_scratch
++_require_chattr i
 +
 +# Remove all files from previous tests
 +_scratch_mkfs
 +
-+# Create multiple lowerdirs, upperdirs and workdirs
-+lowerdir=$OVL_BASE_SCRATCH_MNT/lower
++# Create multiple lowerdirs and upperdir, workdir
++lowerdir1=$OVL_BASE_SCRATCH_MNT/lower1
 +lowerdir2=$OVL_BASE_SCRATCH_MNT/lower2
 +upperdir=$OVL_BASE_SCRATCH_MNT/upper
-+upperdir2=$OVL_BASE_SCRATCH_MNT/upper2
 +workdir=$OVL_BASE_SCRATCH_MNT/workdir
-+workdir2=$OVL_BASE_SCRATCH_MNT/workdir2
-+mkdir -p $lowerdir $lowerdir2 $upperdir $upperdir2 $workdir $workdir2
++mkdir -p $lowerdir1 $lowerdir2 $upperdir $workdir
 +
-+# Mount overlay with lowerdir, upperdir, workdir
-+_overlay_mount_dirs $lowerdir $upperdir $workdir \
-+		    overlay1 $SCRATCH_MNT
-+# Try to mount another overlay with the same upperdir - expect EBUSY
-+_overlay_mount_dirs $lowerdir2 $upperdir $workdir2 \
-+		    overlay2 $SCRATCH_MNT 2>&1 | _filter_scratch
-+# Try to mount another overlay with the same workdir - expect EBUSY
-+_overlay_mount_dirs $lowerdir2 $upperdir2 $workdir \
-+		    overlay3 $SCRATCH_MNT 2>&1 | _filter_scratch
++# Mount overlay with lower layers only.
++# Verify that overlay is mounted read-only and that it cannot be remounted rw.
++$MOUNT_PROG -t overlay -o"lowerdir=$lowerdir2:$lowerdir1" \
++			$OVL_BASE_SCRATCH_MNT $SCRATCH_MNT
++touch $SCRATCH_MNT/foo 2>&1 | _filter_scratch
++$MOUNT_PROG $SCRATCH_MNT -o"remount,rw" 2>&1 | _filter_scratch
++$UMOUNT_PROG $SCRATCH_MNT
++
++# Make workdir immutable to prevent workdir re-create on mount
++$CHATTR_PROG +i $workdir
++
++# Mount overlay with upper and wordir and expect failure to re-create workdir.
++# Verify that overlay is mounted read-only and that it cannot be remounted rw.
++_overlay_mount_dirs $lowerdir2 $upperdir $workdir \
++		    $OVL_BASE_SCRATCH_MNT $SCRATCH_MNT
++touch $SCRATCH_MNT/bar 2>&1 | _filter_scratch
++$MOUNT_PROG $SCRATCH_MNT -o"remount,rw" 2>&1 | _filter_scratch
 +
 +# success, all done
 +status=0
 +exit
-diff --git a/tests/overlay/036.out b/tests/overlay/036.out
+diff --git a/tests/overlay/035.out b/tests/overlay/035.out
 new file mode 100644
-index 0000000..5174611
+index 0000000..5a5f677
 --- /dev/null
-+++ b/tests/overlay/036.out
-@@ -0,0 +1,3 @@
-+QA output created by 036
-+mount: overlay2 is already mounted or SCRATCH_MNT busy
-+mount: overlay3 is already mounted or SCRATCH_MNT busy
++++ b/tests/overlay/035.out
+@@ -0,0 +1,5 @@
++QA output created by 035
++touch: cannot touch 'SCRATCH_MNT/foo': Read-only file system
++mount: cannot remount SCRATCH_DEV read-write, is write-protected
++touch: cannot touch 'SCRATCH_MNT/bar': Read-only file system
++mount: cannot remount SCRATCH_DEV read-write, is write-protected
 diff --git a/tests/overlay/group b/tests/overlay/group
-index 87e3aaf..4cc1d74 100644
+index 356a322..87e3aaf 100644
 --- a/tests/overlay/group
 +++ b/tests/overlay/group
-@@ -38,3 +38,4 @@
+@@ -37,3 +37,4 @@
+ 032 auto quick copyup hardlink
  033 auto quick copyup hardlink
  034 auto quick copyup hardlink
- 035 auto quick mount
-+036 auto quick mount
++035 auto quick mount
 -- 
 2.7.4
