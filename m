@@ -1,46 +1,64 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH 03/10] ovl: fix origin verification of index dir
-Date: Tue, 11 Jul 2017 15:58:36 +0300
-Message-ID: <1499777923-29410-4-git-send-email-amir73il@gmail.com>
+Subject: [PATCH 08/10] ovl: do not cleanup directory and whiteout index entries
+Date: Tue, 11 Jul 2017 15:58:41 +0300
+Message-ID: <1499777923-29410-9-git-send-email-amir73il@gmail.com>
 References: <1499777923-29410-1-git-send-email-amir73il@gmail.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wr0-f195.google.com ([209.85.128.195]:32848 "EHLO
-        mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755558AbdGKM6j (ORCPT
+Received: from mail-lf0-f65.google.com ([209.85.215.65]:36676 "EHLO
+        mail-lf0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755693AbdGKM6o (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 11 Jul 2017 08:58:39 -0400
-Received: by mail-wr0-f195.google.com with SMTP id x23so32114506wrb.0
-        for <linux-unionfs@vger.kernel.org>; Tue, 11 Jul 2017 05:58:38 -0700 (PDT)
+        Tue, 11 Jul 2017 08:58:44 -0400
+Received: by mail-lf0-f65.google.com with SMTP id f28so14387451lfi.3
+        for <linux-unionfs@vger.kernel.org>; Tue, 11 Jul 2017 05:58:44 -0700 (PDT)
 In-Reply-To: <1499777923-29410-1-git-send-email-amir73il@gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: Miklos Szeredi <miklos@szeredi.hu>
 Cc: linux-unionfs@vger.kernel.org
 
-Commit 54fb347e836f ("ovl: verify index dir matches upper dir")
-introduced a new ovl_fh flag OVL_FH_FLAG_PATH_UPPER to indicate
-an upper file handle, but forgot to add the flag to the mask of
-valid flags, so index dir origin verification always discards
-existing origin and stores a new one.
+Directory index entries are going to be used for looking up
+redirected upper dirs by lower dir fh when decoding an overlay
+file handle of a merge dir.
+
+Whiteout index entries are going to be used as an indication that
+an exported overlay file handle should be treated as stale (i.e.
+after unlink of the overlay inode).
+
+We don't know the verification rules for directory and whiteout
+index entries, because they have not been implemented yet, so skip
+verification of those entries and let newer kernels deal with them.
 
 Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- fs/overlayfs/overlayfs.h | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ fs/overlayfs/namei.c | 15 ++++++++++++---
+ 1 file changed, 12 insertions(+), 3 deletions(-)
 
-diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-index 7aa1c48390a5..8bfb35cb77c3 100644
---- a/fs/overlayfs/overlayfs.h
-+++ b/fs/overlayfs/overlayfs.h
-@@ -47,7 +47,8 @@ enum ovl_flag {
- /* Is the real inode encoded in fid an upper inode? */
- #define OVL_FH_FLAG_PATH_UPPER	(1 << 2)
+diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
+index 9bc0e580a5b3..86f09230a3db 100644
+--- a/fs/overlayfs/namei.c
++++ b/fs/overlayfs/namei.c
+@@ -397,9 +397,18 @@ int ovl_verify_index(struct dentry *index, struct path *lowerstack,
+ 	if (!d_inode(index))
+ 		return 0;
  
--#define OVL_FH_FLAG_ALL (OVL_FH_FLAG_BIG_ENDIAN | OVL_FH_FLAG_ANY_ENDIAN)
-+#define OVL_FH_FLAG_ALL (OVL_FH_FLAG_BIG_ENDIAN | OVL_FH_FLAG_ANY_ENDIAN | \
-+			 OVL_FH_FLAG_PATH_UPPER)
+-	err = -EISDIR;
+-	if (d_is_dir(index))
+-		goto fail;
++	/*
++	 * Directory index entries are going to be used for looking up
++	 * redirected upper dirs by lower dir fh when decoding an overlay
++	 * file handle of a merge dir. Whiteout index entries are going to be
++	 * used as an indication that an exported overlay file handle should
++	 * be treated as stale (i.e. after unlink of the overlay inode).
++	 * We don't know the verification rules for directory and whiteout
++	 * index entries, because they have not been implemented yet, so skip
++	 * verification of those entries and let newer kernels deal with them.
++	 */
++	if (d_is_dir(index) || ovl_is_whiteout(index))
++		return 0;
  
- #if defined(__LITTLE_ENDIAN)
- #define OVL_FH_FLAG_CPU_ENDIAN 0
+ 	err = -EINVAL;
+ 	if (index->d_name.len < sizeof(struct ovl_fh)*2)
 -- 
 2.7.4
