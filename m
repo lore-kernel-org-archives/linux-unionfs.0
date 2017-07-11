@@ -1,64 +1,44 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH 08/10] ovl: do not cleanup directory and whiteout index entries
-Date: Tue, 11 Jul 2017 15:58:41 +0300
-Message-ID: <1499777923-29410-9-git-send-email-amir73il@gmail.com>
+Subject: [PATCH 04/10] ovl: remove unneeded check for IS_ERR()
+Date: Tue, 11 Jul 2017 15:58:37 +0300
+Message-ID: <1499777923-29410-5-git-send-email-amir73il@gmail.com>
 References: <1499777923-29410-1-git-send-email-amir73il@gmail.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-lf0-f65.google.com ([209.85.215.65]:36676 "EHLO
-        mail-lf0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755693AbdGKM6o (ORCPT
+Received: from mail-wr0-f193.google.com ([209.85.128.193]:36483 "EHLO
+        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755465AbdGKM6k (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 11 Jul 2017 08:58:44 -0400
-Received: by mail-lf0-f65.google.com with SMTP id f28so14387451lfi.3
-        for <linux-unionfs@vger.kernel.org>; Tue, 11 Jul 2017 05:58:44 -0700 (PDT)
+        Tue, 11 Jul 2017 08:58:40 -0400
+Received: by mail-wr0-f193.google.com with SMTP id 77so32034866wrb.3
+        for <linux-unionfs@vger.kernel.org>; Tue, 11 Jul 2017 05:58:39 -0700 (PDT)
 In-Reply-To: <1499777923-29410-1-git-send-email-amir73il@gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: Miklos Szeredi <miklos@szeredi.hu>
 Cc: linux-unionfs@vger.kernel.org
 
-Directory index entries are going to be used for looking up
-redirected upper dirs by lower dir fh when decoding an overlay
-file handle of a merge dir.
+ovl_workdir_create() returns a valid index dentry or NULL.
 
-Whiteout index entries are going to be used as an indication that
-an exported overlay file handle should be treated as stale (i.e.
-after unlink of the overlay inode).
-
-We don't know the verification rules for directory and whiteout
-index entries, because they have not been implemented yet, so skip
-verification of those entries and let newer kernels deal with them.
-
+Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
 Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- fs/overlayfs/namei.c | 15 ++++++++++++---
- 1 file changed, 12 insertions(+), 3 deletions(-)
+ fs/overlayfs/super.c | 4 ----
+ 1 file changed, 4 deletions(-)
 
-diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
-index 9bc0e580a5b3..86f09230a3db 100644
---- a/fs/overlayfs/namei.c
-+++ b/fs/overlayfs/namei.c
-@@ -397,9 +397,18 @@ int ovl_verify_index(struct dentry *index, struct path *lowerstack,
- 	if (!d_inode(index))
- 		return 0;
+diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+index 1cf5d3538309..c88493b01d8d 100644
+--- a/fs/overlayfs/super.c
++++ b/fs/overlayfs/super.c
+@@ -1058,10 +1058,6 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
  
--	err = -EISDIR;
--	if (d_is_dir(index))
--		goto fail;
-+	/*
-+	 * Directory index entries are going to be used for looking up
-+	 * redirected upper dirs by lower dir fh when decoding an overlay
-+	 * file handle of a merge dir. Whiteout index entries are going to be
-+	 * used as an indication that an exported overlay file handle should
-+	 * be treated as stale (i.e. after unlink of the overlay inode).
-+	 * We don't know the verification rules for directory and whiteout
-+	 * index entries, because they have not been implemented yet, so skip
-+	 * verification of those entries and let newer kernels deal with them.
-+	 */
-+	if (d_is_dir(index) || ovl_is_whiteout(index))
-+		return 0;
- 
- 	err = -EINVAL;
- 	if (index->d_name.len < sizeof(struct ovl_fh)*2)
+ 		ufs->indexdir = ovl_workdir_create(sb, ufs, workpath.dentry,
+ 						   OVL_INDEXDIR_NAME, true);
+-		err = PTR_ERR(ufs->indexdir);
+-		if (IS_ERR(ufs->indexdir))
+-			goto out_put_lower_mnt;
+-
+ 		if (ufs->indexdir) {
+ 			/* Verify upper root is index dir origin */
+ 			err = ovl_verify_origin(ufs->indexdir, ufs->upper_mnt,
 -- 
 2.7.4
