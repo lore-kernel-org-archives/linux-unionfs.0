@@ -1,94 +1,58 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [PATCH 00/10] overlayfs assorted fixes for v4.13
-Date: Tue, 11 Jul 2017 22:32:10 +0300
-Message-ID: <CAOQ4uxg2+p0Egrzq2S2j1ntoENjKYHuwoCoUo683im_D9P9quQ@mail.gmail.com>
-References: <1499777923-29410-1-git-send-email-amir73il@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-yb0-f195.google.com ([209.85.213.195]:35454 "EHLO
-        mail-yb0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933821AbdGKTcM (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 11 Jul 2017 15:32:12 -0400
-Received: by mail-yb0-f195.google.com with SMTP id p203so96809yba.2
-        for <linux-unionfs@vger.kernel.org>; Tue, 11 Jul 2017 12:32:12 -0700 (PDT)
-In-Reply-To: <1499777923-29410-1-git-send-email-amir73il@gmail.com>
-Sender: linux-unionfs-owner@vger.kernel.org
+Subject: [PATCH 0/5] overlay mount tests
+Date: Tue, 11 Jul 2017 22:52:01 +0300
+Message-ID: <1499802726-11045-1-git-send-email-amir73il@gmail.com>
+Return-path: <fstests-owner@vger.kernel.org>
+Sender: fstests-owner@vger.kernel.org
+To: Eryu Guan <eguan@redhat.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, fstests@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: overlayfs <linux-unionfs@vger.kernel.org>
 
-On Tue, Jul 11, 2017 at 3:58 PM, Amir Goldstein <amir73il@gmail.com> wrote:
-> Miklos,
->
-> This is a collection of fixes on top of current overlayfs-next.
-> None of the fixes are urgent for -rc1, so up to you.
-> Also wanted to remind you that the top commit of overlayfs-next
-> is missing your s-o-b.
->
-> Patch 1 is a fix for an oversight from v4.12.
-> Patch 2 is a fix for error handing from v4.7.
-> Patches 3-7 are various fixes to index=on,ro mount.
-> Patches 8-10 are forward compat fixes for when index dir
-> will be used for NFS export.
->
-> Specifically, patches 9-10 introduce a behavior change in the
-> case of changes to lower layer (rename or delete of lower dir).
-> The new behavior is to verify origin fh and try to decode it
-> if verification fails (overlayfs.txt updated).
->
-> This change in needed for snapshots and I argue in the commit
-> message of patch 10 why it is needed for indexing of directories.
-> I admit that the argument is not rigorous, but since the behavior of
-> changes to lower layer is documented as "undefined", I recon you
-> don't really mind if we change it for index=on.
->
-> The rational of making this change in v4.13 as opposed to when
-> directory indexing is implemented, is that index=on already introduces
-> a behavior change related to copying layers, so IMO it is better to
-> introduce all those behavior changes together on index=on.
->
-> Thanks,
-> Amir.
->
+Eryu,
 
-P.S.
+overlayfs-next brings some changes of mount behavior described at [1].
+Some of the changes depend on the new inodes index opt-in feature and
+some don't.
 
-A branch with these fixes is available at:
-https://github.com/amir73il/linux/commits/for-miklos
+The new test overlay/035 checks for overlay mount behaviors, which are
+already present in upstream.
 
-And three new xfstests to test mount behavior are available at:
-https://github.com/amir73il/xfstests/commits/overlayfs-devel
+The new test overlay/036 checks for new overlay mount behaviors related
+to exclusivity of upper and work dirs among overlay mounts. This test
+is expected to fail on upstream kernel, but for a good reason, because
+the mount configurations that it tests (sharing upper dir among two
+overlay mounts) are not wise at all.
 
-7918225 overlay: test mount error cases with index=on
-a2f7df6 overlay: test mount error cases with exclusive directories
-53f0c38 overlay: test cases that force read-only mount
+The old test overlay/014 is modified to work well with current upstream
+kernel as well as with overlayfs-next with inodes index enabled.
 
+I have one more test for the overlay/mount group to test specific behavior
+with index=on, but holding it back until Miklos picks up a patch that fixes
+one of the mount verifications that is currently broken on overlayfs-next.
 
+Thanks,
+Amir.
 
-> Amir Goldstein (10):
->   ovl: mark parent impure on ovl_link()
->   ovl: fix random return value on mount
->   ovl: fix origin verification of index dir
->   ovl: remove unneeded check for IS_ERR()
->   ovl: suppress file handle support warnings on read-only mount
->   ovl: force read-only mount with no index dir
->   ovl: mount overlay read-only on failure to verify index dir
->   ovl: do not cleanup directory and whiteout index entries
->   ovl: verify origin of merge dir lower
->   ovl: follow decoded origin file handle of merge dir
->
->  Documentation/filesystems/overlayfs.txt | 20 +++++++++++
->  fs/dcache.c                             |  1 +
->  fs/overlayfs/copy_up.c                  |  4 +--
->  fs/overlayfs/dir.c                      | 20 ++++++++---
->  fs/overlayfs/namei.c                    | 63 +++++++++++++++++++++++++++++----
->  fs/overlayfs/overlayfs.h                |  5 +--
->  fs/overlayfs/super.c                    | 35 +++++++++---------
->  fs/overlayfs/util.c                     |  6 ++--
->  8 files changed, 118 insertions(+), 36 deletions(-)
->
-> --
-> 2.7.4
->
+[1] https://github.com/amir73il/linux/commit/9412812ef54861081904f24ddaf176b957b98d40
+
+Amir Goldstein (5):
+  overlay/014: remove unneeded require and include
+  overlay/014: fix test with inodes index enabled
+  overlay: create overlay/mount test group
+  overlay: test cases that force read-only mount
+  overlay: test mount error cases with exclusive directories
+
+ tests/overlay/014     |  7 ++---
+ tests/overlay/035     | 87 +++++++++++++++++++++++++++++++++++++++++++++++++++
+ tests/overlay/035.out |  5 +++
+ tests/overlay/036     | 82 ++++++++++++++++++++++++++++++++++++++++++++++++
+ tests/overlay/036.out |  3 ++
+ tests/overlay/group   |  6 ++--
+ 6 files changed, 184 insertions(+), 6 deletions(-)
+ create mode 100755 tests/overlay/035
+ create mode 100644 tests/overlay/035.out
+ create mode 100755 tests/overlay/036
+ create mode 100644 tests/overlay/036.out
+
+-- 
+2.7.4
