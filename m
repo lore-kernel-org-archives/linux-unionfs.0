@@ -1,53 +1,73 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [bug report] ovl: introduce the inodes index dir feature
-Date: Tue, 11 Jul 2017 14:06:58 +0300
-Message-ID: <CAOQ4uxjb0Ls3ntWuJ=yJBXqFZKtQcwTJfgPHoTB1uHoiPo8EoQ@mail.gmail.com>
-References: <20170710141611.wlz2rsoul4v43bi6@mwanda> <CAOQ4uxgrbbRj2mB6gNz_DRMbcctYFb-xSk_f53UkwCfF-3pEew@mail.gmail.com>
- <20170711073721.wwaovemvvonxhja4@mwanda>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Subject: [PATCH 00/10] overlayfs assorted fixes for v4.13
+Date: Tue, 11 Jul 2017 15:58:33 +0300
+Message-ID: <1499777923-29410-1-git-send-email-amir73il@gmail.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-yw0-f196.google.com ([209.85.161.196]:35217 "EHLO
-        mail-yw0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754175AbdGKLG7 (ORCPT
+Received: from mail-lf0-f68.google.com ([209.85.215.68]:34426 "EHLO
+        mail-lf0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754695AbdGKM6g (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 11 Jul 2017 07:06:59 -0400
-Received: by mail-yw0-f196.google.com with SMTP id z21so6889815ywz.2
-        for <linux-unionfs@vger.kernel.org>; Tue, 11 Jul 2017 04:06:59 -0700 (PDT)
-In-Reply-To: <20170711073721.wwaovemvvonxhja4@mwanda>
+        Tue, 11 Jul 2017 08:58:36 -0400
+Received: by mail-lf0-f68.google.com with SMTP id g21so14382877lfk.1
+        for <linux-unionfs@vger.kernel.org>; Tue, 11 Jul 2017 05:58:35 -0700 (PDT)
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: overlayfs <linux-unionfs@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: linux-unionfs@vger.kernel.org
 
-On Tue, Jul 11, 2017 at 10:37 AM, Dan Carpenter
-<dan.carpenter@oracle.com> wrote:
-> On Mon, Jul 10, 2017 at 07:15:47PM +0300, Amir Goldstein wrote:
->> >   1064
->> >   1065                  if (ufs->indexdir) {
->> >                             ^^^^^^^^^^^^^
->> > We check for NULL here so the code so that's OK except what do we want to
->> > set the error code to if ovl_workdir_create() fails?  Right now it's
->> > set to a random pointer casted to int.
->>
->> I don't follow.
->> If ovl_workdir_create() fails, ufs->indexdir will be NULL and err will be 0.
->> If it succeeds err will be set here below.
->>
->
-> Oh, yeah.  You're right.  My bad.
->
+Miklos,
 
-Hmm.. interesting, I think your static analysis was correct and there *is* an
-error related to random value of err, but it was not introduced by my patch.
-err in not set to a defined value before:
+This is a collection of fixes on top of current overlayfs-next.
+None of the fixes are urgent for -rc1, so up to you.
+Also wanted to remind you that the top commit of overlayfs-next
+is missing your s-o-b.
 
-ufs->creator_cred = cred = prepare_creds();
-if (!cred)
-               goto ...
+Patch 1 is a fix for an oversight from v4.12.
+Patch 2 is a fix for error handing from v4.7.
+Patches 3-7 are various fixes to index=on,ro mount.
+Patches 8-10 are forward compat fixes for when index dir
+will be used for NFS export.
 
-if (!config.index) err was last set at err = PTR_ERR(mnt);
-in the for loop above.
+Specifically, patches 9-10 introduce a behavior change in the
+case of changes to lower layer (rename or delete of lower dir).
+The new behavior is to verify origin fh and try to decode it
+if verification fails (overlayfs.txt updated).
 
-I'll send out a patch.
-Thanks.
+This change in needed for snapshots and I argue in the commit
+message of patch 10 why it is needed for indexing of directories.
+I admit that the argument is not rigorous, but since the behavior of
+changes to lower layer is documented as "undefined", I recon you
+don't really mind if we change it for index=on.
+
+The rational of making this change in v4.13 as opposed to when
+directory indexing is implemented, is that index=on already introduces
+a behavior change related to copying layers, so IMO it is better to
+introduce all those behavior changes together on index=on.
+
+Thanks,
+Amir.
+
+Amir Goldstein (10):
+  ovl: mark parent impure on ovl_link()
+  ovl: fix random return value on mount
+  ovl: fix origin verification of index dir
+  ovl: remove unneeded check for IS_ERR()
+  ovl: suppress file handle support warnings on read-only mount
+  ovl: force read-only mount with no index dir
+  ovl: mount overlay read-only on failure to verify index dir
+  ovl: do not cleanup directory and whiteout index entries
+  ovl: verify origin of merge dir lower
+  ovl: follow decoded origin file handle of merge dir
+
+ Documentation/filesystems/overlayfs.txt | 20 +++++++++++
+ fs/dcache.c                             |  1 +
+ fs/overlayfs/copy_up.c                  |  4 +--
+ fs/overlayfs/dir.c                      | 20 ++++++++---
+ fs/overlayfs/namei.c                    | 63 +++++++++++++++++++++++++++++----
+ fs/overlayfs/overlayfs.h                |  5 +--
+ fs/overlayfs/super.c                    | 35 +++++++++---------
+ fs/overlayfs/util.c                     |  6 ++--
+ 8 files changed, 118 insertions(+), 36 deletions(-)
+
+-- 
+2.7.4
