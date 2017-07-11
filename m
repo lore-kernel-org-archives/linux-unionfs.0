@@ -1,90 +1,94 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH 09/10] ovl: verify origin of merge dir lower
-Date: Tue, 11 Jul 2017 15:58:42 +0300
-Message-ID: <1499777923-29410-10-git-send-email-amir73il@gmail.com>
+Subject: Re: [PATCH 00/10] overlayfs assorted fixes for v4.13
+Date: Tue, 11 Jul 2017 22:32:10 +0300
+Message-ID: <CAOQ4uxg2+p0Egrzq2S2j1ntoENjKYHuwoCoUo683im_D9P9quQ@mail.gmail.com>
 References: <1499777923-29410-1-git-send-email-amir73il@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wr0-f193.google.com ([209.85.128.193]:35349 "EHLO
-        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932158AbdGKM6p (ORCPT
+Received: from mail-yb0-f195.google.com ([209.85.213.195]:35454 "EHLO
+        mail-yb0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933821AbdGKTcM (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 11 Jul 2017 08:58:45 -0400
-Received: by mail-wr0-f193.google.com with SMTP id z45so32273568wrb.2
-        for <linux-unionfs@vger.kernel.org>; Tue, 11 Jul 2017 05:58:45 -0700 (PDT)
+        Tue, 11 Jul 2017 15:32:12 -0400
+Received: by mail-yb0-f195.google.com with SMTP id p203so96809yba.2
+        for <linux-unionfs@vger.kernel.org>; Tue, 11 Jul 2017 12:32:12 -0700 (PDT)
 In-Reply-To: <1499777923-29410-1-git-send-email-amir73il@gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: linux-unionfs@vger.kernel.org
+Cc: overlayfs <linux-unionfs@vger.kernel.org>
 
-When inodes index feature is enabled, verify that lower merge dir found
-by name matches the origin file handle stored in xattr on upper dir.
-If origin xattr does not exist, update it with the lower found by name.
+On Tue, Jul 11, 2017 at 3:58 PM, Amir Goldstein <amir73il@gmail.com> wrote:
+> Miklos,
+>
+> This is a collection of fixes on top of current overlayfs-next.
+> None of the fixes are urgent for -rc1, so up to you.
+> Also wanted to remind you that the top commit of overlayfs-next
+> is missing your s-o-b.
+>
+> Patch 1 is a fix for an oversight from v4.12.
+> Patch 2 is a fix for error handing from v4.7.
+> Patches 3-7 are various fixes to index=on,ro mount.
+> Patches 8-10 are forward compat fixes for when index dir
+> will be used for NFS export.
+>
+> Specifically, patches 9-10 introduce a behavior change in the
+> case of changes to lower layer (rename or delete of lower dir).
+> The new behavior is to verify origin fh and try to decode it
+> if verification fails (overlayfs.txt updated).
+>
+> This change in needed for snapshots and I argue in the commit
+> message of patch 10 why it is needed for indexing of directories.
+> I admit that the argument is not rigorous, but since the behavior of
+> changes to lower layer is documented as "undefined", I recon you
+> don't really mind if we change it for index=on.
+>
+> The rational of making this change in v4.13 as opposed to when
+> directory indexing is implemented, is that index=on already introduces
+> a behavior change related to copying layers, so IMO it is better to
+> introduce all those behavior changes together on index=on.
+>
+> Thanks,
+> Amir.
+>
 
-If lower dir does not match the origin fh stored in upper dir, do not
-merge the lower dir and treat upper dir as pure upper.  This behavior
-is not friendy to the use case of copied overlay layers, where origin
-file handles are broken, but trying to mount an overlay with inodes
-index enabled is going to fail anyway for copied layers.
+P.S.
 
-Setting the origin xattr on the upper merge dir also serves as an
-indication that this dir may contain whiteouts, which is going to be
-used to prevent exposing whiteouts to readdir() in case lower dir was
-removed while overlay was offline.
+A branch with these fixes is available at:
+https://github.com/amir73il/linux/commits/for-miklos
 
-Signed-off-by: Amir Goldstein <amir73il@gmail.com>
----
- Documentation/filesystems/overlayfs.txt | 16 ++++++++++++++++
- fs/overlayfs/namei.c                    | 10 ++++++++++
- 2 files changed, 26 insertions(+)
+And three new xfstests to test mount behavior are available at:
+https://github.com/amir73il/xfstests/commits/overlayfs-devel
 
-diff --git a/Documentation/filesystems/overlayfs.txt b/Documentation/filesystems/overlayfs.txt
-index 36f528a7fdd6..9b9e8efc3977 100644
---- a/Documentation/filesystems/overlayfs.txt
-+++ b/Documentation/filesystems/overlayfs.txt
-@@ -262,6 +262,22 @@ filesystem are not allowed.  If the underlying filesystem is changed,
- the behavior of the overlay is undefined, though it will not result in
- a crash or deadlock.
- 
-+When the underlying filesystems supports NFS export, overlay mount can be
-+made more resilient to offline and online changes of the underlying lower
-+layer by enabling the "inodes index" feature.
-+
-+On every copy_up, an NFS file handle of the lower inode, along with the
-+UUID of the lower filesystem, are encoded and stored in an extended
-+attribute "trusted.overlay.origin" on the upper inode.
-+
-+With the "inodes index" feature, a lookup of a merged directory, that
-+found a lower directory at the lookup path or at the path pointed to by
-+the "trusted.overlay.redirect" extended attribute, will verify that the
-+found lower directory file handle and lower filesystem UUID match the
-+origin file handle that was stored at copy_up time.  If a found lower
-+directory does not match the stored origin, that directory will be not be
-+merged with the upper directory.
-+
- Testsuite
- ---------
- 
-diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
-index 86f09230a3db..ec81d27b12be 100644
---- a/fs/overlayfs/namei.c
-+++ b/fs/overlayfs/namei.c
-@@ -648,6 +648,16 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
- 		if (!this)
- 			continue;
- 
-+		/* Verify that uppermost lower matches the copy up origin fh */
-+		if (this && upperdentry && !ctr && ovl_indexdir(dentry->d_sb)) {
-+			err = ovl_verify_origin(upperdentry, lowerpath.mnt,
-+						this, false, true);
-+			if (err) {
-+				dput(this);
-+				break;
-+			}
-+		}
-+
- 		stack[ctr].dentry = this;
- 		stack[ctr].mnt = lowerpath.mnt;
- 		ctr++;
--- 
-2.7.4
+7918225 overlay: test mount error cases with index=on
+a2f7df6 overlay: test mount error cases with exclusive directories
+53f0c38 overlay: test cases that force read-only mount
+
+
+
+> Amir Goldstein (10):
+>   ovl: mark parent impure on ovl_link()
+>   ovl: fix random return value on mount
+>   ovl: fix origin verification of index dir
+>   ovl: remove unneeded check for IS_ERR()
+>   ovl: suppress file handle support warnings on read-only mount
+>   ovl: force read-only mount with no index dir
+>   ovl: mount overlay read-only on failure to verify index dir
+>   ovl: do not cleanup directory and whiteout index entries
+>   ovl: verify origin of merge dir lower
+>   ovl: follow decoded origin file handle of merge dir
+>
+>  Documentation/filesystems/overlayfs.txt | 20 +++++++++++
+>  fs/dcache.c                             |  1 +
+>  fs/overlayfs/copy_up.c                  |  4 +--
+>  fs/overlayfs/dir.c                      | 20 ++++++++---
+>  fs/overlayfs/namei.c                    | 63 +++++++++++++++++++++++++++++----
+>  fs/overlayfs/overlayfs.h                |  5 +--
+>  fs/overlayfs/super.c                    | 35 +++++++++---------
+>  fs/overlayfs/util.c                     |  6 ++--
+>  8 files changed, 118 insertions(+), 36 deletions(-)
+>
+> --
+> 2.7.4
+>
