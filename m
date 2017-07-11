@@ -1,73 +1,147 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH 00/10] overlayfs assorted fixes for v4.13
-Date: Tue, 11 Jul 2017 15:58:33 +0300
-Message-ID: <1499777923-29410-1-git-send-email-amir73il@gmail.com>
+Subject: [PATCH 01/10] ovl: mark parent impure on ovl_link()
+Date: Tue, 11 Jul 2017 15:58:34 +0300
+Message-ID: <1499777923-29410-2-git-send-email-amir73il@gmail.com>
+References: <1499777923-29410-1-git-send-email-amir73il@gmail.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-lf0-f68.google.com ([209.85.215.68]:34426 "EHLO
-        mail-lf0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754695AbdGKM6g (ORCPT
+Received: from mail-wr0-f194.google.com ([209.85.128.194]:36459 "EHLO
+        mail-wr0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754695AbdGKM6h (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 11 Jul 2017 08:58:36 -0400
-Received: by mail-lf0-f68.google.com with SMTP id g21so14382877lfk.1
-        for <linux-unionfs@vger.kernel.org>; Tue, 11 Jul 2017 05:58:35 -0700 (PDT)
+        Tue, 11 Jul 2017 08:58:37 -0400
+In-Reply-To: <1499777923-29410-1-git-send-email-amir73il@gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: linux-unionfs@vger.kernel.org
+Cc: linux-unionfs@vger.kernel.org, "# v4 . 12" <stable@vger.kernel.org>
 
-Miklos,
+When linking a file with copy up origin into a new parent, mark the
+new parent dir "impure".
 
-This is a collection of fixes on top of current overlayfs-next.
-None of the fixes are urgent for -rc1, so up to you.
-Also wanted to remind you that the top commit of overlayfs-next
-is missing your s-o-b.
+Fixes: ee1d6d37b6b8 ("ovl: mark upper dir with type origin entries "impure"")
+Cc: <stable@vger.kernel.org> # v4.12
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+---
+ fs/overlayfs/copy_up.c   |  4 ++--
+ fs/overlayfs/dir.c       | 20 ++++++++++++++++----
+ fs/overlayfs/overlayfs.h |  2 +-
+ fs/overlayfs/util.c      |  6 +++---
+ 4 files changed, 22 insertions(+), 10 deletions(-)
 
-Patch 1 is a fix for an oversight from v4.12.
-Patch 2 is a fix for error handing from v4.7.
-Patches 3-7 are various fixes to index=on,ro mount.
-Patches 8-10 are forward compat fixes for when index dir
-will be used for NFS export.
-
-Specifically, patches 9-10 introduce a behavior change in the
-case of changes to lower layer (rename or delete of lower dir).
-The new behavior is to verify origin fh and try to decode it
-if verification fails (overlayfs.txt updated).
-
-This change in needed for snapshots and I argue in the commit
-message of patch 10 why it is needed for indexing of directories.
-I admit that the argument is not rigorous, but since the behavior of
-changes to lower layer is documented as "undefined", I recon you
-don't really mind if we change it for index=on.
-
-The rational of making this change in v4.13 as opposed to when
-directory indexing is implemented, is that index=on already introduces
-a behavior change related to copying layers, so IMO it is better to
-introduce all those behavior changes together on index=on.
-
-Thanks,
-Amir.
-
-Amir Goldstein (10):
-  ovl: mark parent impure on ovl_link()
-  ovl: fix random return value on mount
-  ovl: fix origin verification of index dir
-  ovl: remove unneeded check for IS_ERR()
-  ovl: suppress file handle support warnings on read-only mount
-  ovl: force read-only mount with no index dir
-  ovl: mount overlay read-only on failure to verify index dir
-  ovl: do not cleanup directory and whiteout index entries
-  ovl: verify origin of merge dir lower
-  ovl: follow decoded origin file handle of merge dir
-
- Documentation/filesystems/overlayfs.txt | 20 +++++++++++
- fs/dcache.c                             |  1 +
- fs/overlayfs/copy_up.c                  |  4 +--
- fs/overlayfs/dir.c                      | 20 ++++++++---
- fs/overlayfs/namei.c                    | 63 +++++++++++++++++++++++++++++----
- fs/overlayfs/overlayfs.h                |  5 +--
- fs/overlayfs/super.c                    | 35 +++++++++---------
- fs/overlayfs/util.c                     |  6 ++--
- 8 files changed, 118 insertions(+), 36 deletions(-)
-
+diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
+index acb6f97deb97..aeb22def9f80 100644
+--- a/fs/overlayfs/copy_up.c
++++ b/fs/overlayfs/copy_up.c
+@@ -338,7 +338,7 @@ static int ovl_link_up(struct ovl_copy_up_ctx *c)
+ 	struct inode *udir = d_inode(upperdir);
+ 
+ 	/* Mark parent "impure" because it may now contain non-pure upper */
+-	err = ovl_set_impure(c->parent, upperdir);
++	err = ovl_set_impure(c->parent);
+ 	if (err)
+ 		return err;
+ 
+@@ -551,7 +551,7 @@ static int ovl_do_copy_up(struct ovl_copy_up_ctx *c)
+ 		 * Mark parent "impure" because it may now contain non-pure
+ 		 * upper
+ 		 */
+-		err = ovl_set_impure(c->parent, c->destdir);
++		err = ovl_set_impure(c->parent);
+ 		if (err)
+ 			return err;
+ 	}
+diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
+index 641d9ee97f91..5df99952feba 100644
+--- a/fs/overlayfs/dir.c
++++ b/fs/overlayfs/dir.c
+@@ -92,7 +92,8 @@ int ovl_create_real(struct inode *dir, struct dentry *newdentry,
+ 		return -ESTALE;
+ 
+ 	if (hardlink) {
+-		err = ovl_do_link(hardlink, dir, newdentry, debug);
++		err = ovl_do_link(ovl_dentry_upper(hardlink), dir, newdentry,
++				  debug);
+ 	} else {
+ 		switch (attr->mode & S_IFMT) {
+ 		case S_IFREG:
+@@ -492,6 +493,17 @@ static int ovl_create_or_link(struct dentry *dentry, struct inode *inode,
+ 		return err;
+ 
+ 	old_cred = ovl_override_creds(dentry->d_sb);
++
++	/*
++	 * When linking a file with copy up origin into a new parent, mark the
++	 * new parent dir "impure".
++	 */
++	if (hardlink && ovl_type_origin(hardlink)) {
++		err = ovl_set_impure(dentry->d_parent);
++		if (err)
++			goto out_revert_creds;
++	}
++
+ 	err = -ENOMEM;
+ 	override_cred = prepare_creds();
+ 	if (override_cred) {
+@@ -609,7 +621,7 @@ static int ovl_link(struct dentry *old, struct inode *newdir,
+ 	inode = d_inode(old);
+ 	ihold(inode);
+ 
+-	err = ovl_create_or_link(new, inode, NULL, ovl_dentry_upper(old));
++	err = ovl_create_or_link(new, inode, NULL, old);
+ 	if (err)
+ 		iput(inode);
+ 
+@@ -987,12 +999,12 @@ static int ovl_rename(struct inode *olddir, struct dentry *old,
+ 		 * lookup the origin inodes of the entries to fill d_ino.
+ 		 */
+ 		if (ovl_type_origin(old)) {
+-			err = ovl_set_impure(new->d_parent, new_upperdir);
++			err = ovl_set_impure(new->d_parent);
+ 			if (err)
+ 				goto out_revert_creds;
+ 		}
+ 		if (!overwrite && ovl_type_origin(new)) {
+-			err = ovl_set_impure(old->d_parent, old_upperdir);
++			err = ovl_set_impure(old->d_parent);
+ 			if (err)
+ 				goto out_revert_creds;
+ 		}
+diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
+index 60d26605e039..7aa1c48390a5 100644
+--- a/fs/overlayfs/overlayfs.h
++++ b/fs/overlayfs/overlayfs.h
+@@ -225,7 +225,7 @@ bool ovl_check_dir_xattr(struct dentry *dentry, const char *name);
+ int ovl_check_setxattr(struct dentry *dentry, struct dentry *upperdentry,
+ 		       const char *name, const void *value, size_t size,
+ 		       int xerr);
+-int ovl_set_impure(struct dentry *dentry, struct dentry *upperdentry);
++int ovl_set_impure(struct dentry *dentry);
+ void ovl_set_flag(unsigned long flag, struct inode *inode);
+ bool ovl_test_flag(unsigned long flag, struct inode *inode);
+ bool ovl_inuse_trylock(struct dentry *dentry);
+diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
+index c492ba75c659..82c3dad6ddf4 100644
+--- a/fs/overlayfs/util.c
++++ b/fs/overlayfs/util.c
+@@ -353,7 +353,7 @@ int ovl_check_setxattr(struct dentry *dentry, struct dentry *upperdentry,
+ 	return err;
+ }
+ 
+-int ovl_set_impure(struct dentry *dentry, struct dentry *upperdentry)
++int ovl_set_impure(struct dentry *dentry)
+ {
+ 	int err;
+ 
+@@ -364,8 +364,8 @@ int ovl_set_impure(struct dentry *dentry, struct dentry *upperdentry)
+ 	 * Do not fail when upper doesn't support xattrs.
+ 	 * Upper inodes won't have origin nor redirect xattr anyway.
+ 	 */
+-	err = ovl_check_setxattr(dentry, upperdentry, OVL_XATTR_IMPURE,
+-				 "y", 1, 0);
++	err = ovl_check_setxattr(dentry, ovl_dentry_upper(dentry),
++				 OVL_XATTR_IMPURE, "y", 1, 0);
+ 	if (!err)
+ 		ovl_set_flag(OVL_IMPURE, d_inode(dentry));
+ 
 -- 
 2.7.4
