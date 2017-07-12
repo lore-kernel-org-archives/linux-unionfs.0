@@ -1,87 +1,92 @@
-From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [PATCH v2 5/7] overlay: test concurrent copy up of lower hardlinks
-Date: Wed, 12 Jul 2017 09:11:10 +0300
-Message-ID: <CAOQ4uxgLfR5Zzwvdii5FJv9awK6WjVOYXdATTy1TcS-juBbBrw@mail.gmail.com>
-References: <1499168434-23859-1-git-send-email-amir73il@gmail.com>
- <1499168434-23859-6-git-send-email-amir73il@gmail.com> <20170705095902.GR23360@eguan.usersys.redhat.com>
- <CAOQ4uxjLCGZ3hHfkZzgZiHctC1x6s_EF7J1g0-zjXYCOzqoHwQ@mail.gmail.com>
- <CAOQ4uxjYVevw=bTsONHT=FHMkoapqOcmwL+nj4R6Y3T6Dhmneg@mail.gmail.com> <20170712031747.GQ29475@eguan.usersys.redhat.com>
+From: Miklos Szeredi <miklos@szeredi.hu>
+Subject: [GIT PULL] overlayfs update for 4.13
+Date: Wed, 12 Jul 2017 10:26:20 +0200
+Message-ID: <20170712082620.GA5256@veci.piliscsaba.szeredi.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <fstests-owner@vger.kernel.org>
-In-Reply-To: <20170712031747.GQ29475@eguan.usersys.redhat.com>
-Sender: fstests-owner@vger.kernel.org
-To: Eryu Guan <eguan@redhat.com>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, overlayfs <linux-unionfs@vger.kernel.org>, fstests <fstests@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-unionfs-owner@vger.kernel.org>
+Received: from mail-wr0-f194.google.com ([209.85.128.194]:36084 "EHLO
+        mail-wr0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933664AbdGLI03 (ORCPT
+        <rfc822;linux-unionfs@vger.kernel.org>);
+        Wed, 12 Jul 2017 04:26:29 -0400
+Received: by mail-wr0-f194.google.com with SMTP id 77so4032225wrb.3
+        for <linux-unionfs@vger.kernel.org>; Wed, 12 Jul 2017 01:26:28 -0700 (PDT)
+Content-Disposition: inline
+Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org
 
-On Wed, Jul 12, 2017 at 6:17 AM, Eryu Guan <eguan@redhat.com> wrote:
-> On Tue, Jul 11, 2017 at 11:23:50PM +0300, Amir Goldstein wrote:
->> On Wed, Jul 5, 2017 at 1:46 PM, Amir Goldstein <amir73il@gmail.com> wrote:
->> > On Wed, Jul 5, 2017 at 12:59 PM, Eryu Guan <eguan@redhat.com> wrote:
->> >> On Tue, Jul 04, 2017 at 02:40:32PM +0300, Amir Goldstein wrote:
->> >>> Two tasks make a modification concurrently on two hardlinks of a large
->> >>> lower inode.  The copy up should be triggered by one of the tasks and the
->> >>> other should be waiting for copy up to complete.  Both copy up targets
->> >>> should end up being upper hardlinks and both metadata changes should be
->> >>> visible in both hardlinks.
->> >>>
->> >>> With kernel <= v4.12, hardlinks are broken on copy up, meaning that copy up
->> >>
->> >> So this will be fixed in 4.13-rc1 kernel?
->> >
->> > It is fixed on current overlayfs-next branch. Yes.
->> >
->>
->> Eryu,
->>
->> I realize that my answer was not accurate.
->> These tests do pass with current overlayfs-next branch, but
->> only with non default kernel config CONFIG_OVERLAY_FS_INDEX=y.
->
-> Thanks for the heads-up!
->
->>
->> This may be the right way to test, meaning that default kernel
->> config reports failed tests related to hardlinks which are really broken
->> on copy up with default kernel config.
->
-> So these hardlink tests are still valid tests and the failures should be
-> fixed eventually, even for OVERLAY_FS_INDEX=n kernels? If so, I think we
+Hi Linus,
 
-The tests are valid anyway. hardlinks should not be broken when opened
-for write.
-This is why it might be best to leave the tests as is.
-But no, it will not be fixed for OVERLAY_FS_INDEX=n kernels and
-unlikely for kernel
-default to become OVERLAY_FS_INDEX=y.
+Please pull from:
 
-The way forward is for distros to change the their config to OVERLAY_FS_INDEX=y,
-but there is a downside for OVERLAY_FS_INDEX=y related to copying upper layers
-between file systems as described in [1].
-So before distros can change the config to OVERLAY_FS_INDEX=y they need to make
-sure that no tool is migrating upper layers between file systems or
-copying within
-a file system. If such tools exist, then they should "export/import"
-the index while
-migrating layers (to fix the broken file handles) and said
-export/import tool does not exist yet.
+  git://git.kernel.org/pub/scm/linux/kernel/git/mszeredi/vfs.git overlayfs-linus
 
-[1] https://github.com/amir73il/linux/commit/9412812ef54861081904f24ddaf176b957b98d40
+This work from Amir introduces the inodes index feature, which provides:
 
-> can just keep the tests unchanged, just like all other tests that are
-> targeting un-fixed bugs. Then the only issue is the commit log is not so
-> accurate.
->
-> Otherwise, I prefer your opt-in way, making these tests _notrun
-> (assmuing they're not valid tests for this kernel config).
+- hardlinks are not broken on copy up;
+- infrastructure for overlayfs NFS export.
 
-So as I explained, they are valid, but not expected to be fixed by any
-change in upstream
-kernel, only a change in distro kernel config.
+This  also fixes constant st_ino for samefs case for lower hardlinks.
 
-I will post a patch to make them opt-in, because it will provide for
-much better test coverage
-of the new feature as long as the feature exists in tested kernel.
+There's one patch touching <linux/fs.h>, which adds an inode flag for testing
+"in use by another overlay".  So this flag is set on inodes in the underlying
+layers, but the use is private to overlayfs.
 
-Thanks.
+Thanks,
+Miklos
+
+---
+Amir Goldstein (19):
+      ovl: fix nlink leak in ovl_rename()
+      ovl: allocate an ovl_inode struct
+      ovl: use ovl_inode mutex to synchronize concurrent copy up
+      vfs: introduce inode 'inuse' lock
+      ovl: get exclusive ownership on upper/work dirs
+      ovl: relax same fs constrain for ovl_check_origin()
+      ovl: generalize ovl_create_workdir()
+      ovl: introduce the inodes index dir feature
+      ovl: verify upper root dir matches lower root dir
+      ovl: verify index dir matches upper dir
+      ovl: lookup index entry for copy up origin
+      ovl: cleanup bad and stale index entries on mount
+      ovl: defer upper dir lock to tempfile link
+      ovl: factor out ovl_copy_up_inode() helper
+      ovl: implement index dir copy up
+      ovl: persistent overlay inode nlink for indexed inodes
+      ovl: cleanup orphan index entries
+      ovl: document copying layers restrictions with inodes index
+      ovl: mark parent impure and restore timestamp on ovl_link_up()
+
+Miklos Szeredi (14):
+      ovl: simplify getting inode
+      ovl: use i_private only as a key
+      ovl: compare inodes
+      ovl: move __upperdentry to ovl_inode
+      ovl: move redirect to ovl_inode
+      ovl: move impure to ovl_inode
+      ovl: move cache and version to ovl_inode
+      ovl: hash overlay non-dir inodes by copy up origin
+      ovl: extract helper to get temp file in copy up
+      ovl: base tmpfile in workdir too
+      ovl: use struct copy_up_ctx as function argument
+      ovl: add flag for upper in ovl_entry
+      ovl: rearrange copy up
+      ovl: move copy up lock out
+
+---
+ Documentation/filesystems/overlayfs.txt |  34 +++
+ fs/overlayfs/Kconfig                    |  20 ++
+ fs/overlayfs/copy_up.c                  | 410 +++++++++++++++++++++-----------
+ fs/overlayfs/dir.c                      |  52 +++-
+ fs/overlayfs/inode.c                    | 215 +++++++++++++++--
+ fs/overlayfs/namei.c                    | 368 +++++++++++++++++++++++-----
+ fs/overlayfs/overlayfs.h                |  58 +++--
+ fs/overlayfs/ovl_entry.h                |  36 ++-
+ fs/overlayfs/readdir.c                  |  50 ++++
+ fs/overlayfs/super.c                    | 247 ++++++++++++++++---
+ fs/overlayfs/util.c                     | 345 ++++++++++++++++++++-------
+ include/linux/fs.h                      |   4 +
+ 12 files changed, 1456 insertions(+), 383 deletions(-)
