@@ -1,123 +1,85 @@
-From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [PATCH 1/2] fstest: add helper _require_fs_feature
-Date: Thu, 13 Jul 2017 16:10:44 +0300
-Message-ID: <CAOQ4uxhGEExv1XqCsA47AbZN4JZESDTEn0yuat_S0ZaRhnWZpg@mail.gmail.com>
-References: <1499852605-27759-1-git-send-email-amir73il@gmail.com>
- <1499852605-27759-2-git-send-email-amir73il@gmail.com> <20170713124127.GG2478@eguan.usersys.redhat.com>
+From: Chandan Rajendra <chandan@linux.vnet.ibm.com>
+Subject: Re: [PATCH] check_layer: Add tests for constant st_dev
+Date: Thu, 13 Jul 2017 19:47:52 +0530
+Message-ID: <10642288.FqVSjOuREu@localhost.localdomain>
+References: <20170704170028.4278-1-chandan@linux.vnet.ibm.com> <CAOQ4uxjuKCGGK1shB1YO3Ony5Gqcv_mm7kidoeO8mgvnTqi7kw@mail.gmail.com> <CAOQ4uxicgyZRKxBVv+KTU8jQ0g7kSS7TWcjpNj8v5Za_gsP9iA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-yw0-f195.google.com ([209.85.161.195]:35085 "EHLO
-        mail-yw0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751244AbdGMNKq (ORCPT
+Received: from mx0b-001b2d01.pphosted.com ([148.163.158.5]:54595 "EHLO
+        mx0a-001b2d01.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751337AbdGMORf (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 13 Jul 2017 09:10:46 -0400
-In-Reply-To: <20170713124127.GG2478@eguan.usersys.redhat.com>
+        Thu, 13 Jul 2017 10:17:35 -0400
+Received: from pps.filterd (m0098416.ppops.net [127.0.0.1])
+        by mx0b-001b2d01.pphosted.com (8.16.0.21/8.16.0.21) with SMTP id v6DEFbAi195030
+        for <linux-unionfs@vger.kernel.org>; Thu, 13 Jul 2017 10:17:29 -0400
+Received: from e23smtp05.au.ibm.com (e23smtp05.au.ibm.com [202.81.31.147])
+        by mx0b-001b2d01.pphosted.com with ESMTP id 2bnt3ptb9q-1
+        (version=TLSv1.2 cipher=AES256-SHA bits=256 verify=NOT)
+        for <linux-unionfs@vger.kernel.org>; Thu, 13 Jul 2017 10:17:28 -0400
+Received: from localhost
+        by e23smtp05.au.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
+        for <linux-unionfs@vger.kernel.org> from <chandan@linux.vnet.ibm.com>;
+        Fri, 14 Jul 2017 00:17:26 +1000
+Received: from d23av02.au.ibm.com (d23av02.au.ibm.com [9.190.235.138])
+        by d23relay09.au.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id v6DEHNHb25559120
+        for <linux-unionfs@vger.kernel.org>; Fri, 14 Jul 2017 00:17:23 +1000
+Received: from d23av02.au.ibm.com (localhost [127.0.0.1])
+        by d23av02.au.ibm.com (8.14.4/8.14.4/NCO v10.0 AVout) with ESMTP id v6DEHE1w015581
+        for <linux-unionfs@vger.kernel.org>; Fri, 14 Jul 2017 00:17:15 +1000
+In-Reply-To: <CAOQ4uxicgyZRKxBVv+KTU8jQ0g7kSS7TWcjpNj8v5Za_gsP9iA@mail.gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Eryu Guan <eguan@redhat.com>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, overlayfs <linux-unionfs@vger.kernel.org>, fstests <fstests@vger.kernel.org>
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: overlayfs <linux-unionfs@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>
 
-On Thu, Jul 13, 2017 at 3:41 PM, Eryu Guan <eguan@redhat.com> wrote:
-> On Wed, Jul 12, 2017 at 12:43:24PM +0300, Amir Goldstein wrote:
->> The helper is used to test if a specific filesystem feature can
->> be enabled. Currently only implemented testing overlayfs features.
->>
->> Overalyfs features (e.g. redirect_dir, index) are configurable from
->> Kconfig (the build default), by module parameter (the system default)
->> and per mount using the mount option ${feature}=[on|off].
->>
->> The helper is going to be used by overlay tests, which depend
->> on the inodes index feature.
->>
->> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
->> ---
->>  common/rc | 48 ++++++++++++++++++++++++++++++++++++++++++++++++
->>  1 file changed, 48 insertions(+)
->>
->> diff --git a/common/rc b/common/rc
->> index b505365..260b48d 100644
->> --- a/common/rc
->> +++ b/common/rc
->> @@ -3626,6 +3626,54 @@ _get_fs_sysfs_attr()
->>       cat /sys/fs/${FSTYP}/${dname}/${attr}
->>  }
->>
->> +# Print the value of a filesystem module parameter
->> +# at /sys/module/$FSTYP/parameters/$PARAM
->> +#
->> +# Usage example (FSTYP=overlay):
->> +#   _get_fs_module_param index
->> +_get_fs_module_param()
->> +{
->> +     cat /sys/module/${FSTYP}/parameters/${1} 2>/dev/null
->> +}
->> +
->> +# Generic test for specific filesystem feature.
->> +# Currently only implemented to test overlayfs features.
->> +_require_fs_feature()
->
-> I'd think if it should be renamed to _require_scratch_feature, because
-> it assumes $SCRATCH_DEV is present, and it reminds people it's using
-> SCRATCH_DEV with "scratch" in the name.
+On Saturday, July 8, 2017 1:42:41 PM IST Amir Goldstein wrote:
+> OK, my pseudo patch was mostly correct, but full of brainoes,
+> push a tested patch to
+> https://github.com/amir73il/unionmount-testsuite/commits/overlayfs-devel
+> 
+> Please review and verify.
+> 
 
-Right. makes sense. Do you need me to re-post or will you fix on commit?
 
->
-> Otherwise looks good to me, it has detailed explanations, thanks a lot!
->
->> +{
->> +     local feature=$1
->> +
->> +     case "$FSTYP" in
->> +         overlay)
->> +             # overalyfs features (e.g. redirect_dir, index) are
->> +             # configurable from Kconfig (the build default), by module
->> +             # parameter (the system default) and per mount by mount
->> +             # option ${feature}=[on|off].
->
-> I'll fix the indention here, like
->
->         case "$FSTYP" in
->         overlay)
->                 ...
->                 ;;
->         *)
->                 ;;
->         esac
->
-> Thanks,
-> Eryu
->
->> +             #
->> +             # If the module parameter does not exist then there is no
->> +             # point in checking the mount option.
->> +             local default=`_get_fs_module_param ${feature}`
->> +             [ "$default" = Y ] || [ "$default" = N ] || \
->> +                     _notrun "feature '${feature}' not supported by ${FSTYP}"
->> +
->> +             _scratch_mkfs > /dev/null 2>&1
->> +             _scratch_mount -o ${feature}=on || \
->> +                     _notrun "${FSTYP} feature '${feature}' cannot be enabled on ${SCRATCH_DEV}"
->> +             # Check options to be sure. For example, Overlayfs will fallback to
->> +             # index=off if underlying fs does not support file handles.
->> +             # Overlayfs only displays mount option if it differs from the default.
->> +             # Overlayfs may enable the feature, but fallback to read-only mount.
->> +             ((( [ "$default" = N ] && _fs_options $SCRATCH_DEV | grep -q "${feature}=on" ) || \
->> +               ( [ "$default" = Y ] && ! _fs_options $SCRATCH_DEV | grep -q "${feature}=off" )) && \
->> +                 touch $SCRATCH_MNT/foo 2>/dev/null ) || \
->> +                     _notrun "${FSTYP} feature '${feature}' cannot be enabled on ${SCRATCH_DEV}"
->> +             _scratch_unmount
->> +             ;;
->> +         *)
->> +             _fail "Test for feature '${feature}' of ${FSTYP} is not implemented"
->> +             ;;
->> +     esac
->> +}
->> +
->>
->>  init_rc
->>
->> --
->> 2.7.4
->>
+Hi Amir,
+
+'./run --ov' on 'next' kernel (i.e. the one containing code which returns
+pseudo st_devs for files on lowerdir) fails as shown below,
+
+$ ./run --ov
+***
+*** ./run --ov --ts=0 open-plain
+***
+TEST open-plain.py:10: Open O_RDONLY
+/mnt/a/foo100: File not on lower/upper layer
+
+The corresponding code from check_layer() is,
+
+            elif dev != self.upper_fs() and dev != self.lower_fs():
+                raise TestError(name + ": File not on lower/upper layer")
+
+
+This happens due to open-plain.py's subtest_1() opening a file on lowerdir in
+read-only mode (i.e. copy-up does not occur). Later, stat(2) invocation from
+check_layer() would end up returning the pseudo st_dev corresponding to
+lowerdir.
+
+
+'./run --ov --samefs --verify' on 4.12 kernel fails as shown below,
+
+$ ./run --ov --samefs --verify
+***
+*** ./run --ov --ts=0 hard-link
+***
+TEST hard-link.py:10: Hard link file
+./run --link /mnt/a/foo100 /mnt/a/no_foo100
+/mnt/a/no_foo100: inode number wrong (got 39001, want 37581)
+
+The failure happens because the dentry representing the new hard link wouldn't
+have __OVL_PATH_ORIGIN set.
+
+-- 
+chandan
