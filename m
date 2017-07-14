@@ -1,69 +1,73 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [PATCH 06/10] ovl: force read-only mount with no index dir
-Date: Fri, 14 Jul 2017 09:11:43 +0300
-Message-ID: <CAOQ4uxiyaQUE1YWicnJ2wcD8DHm-jEdSAzjbQggpGs3OR=aUDQ@mail.gmail.com>
+Subject: Re: [PATCH 07/10] ovl: mount overlay read-only on failure to verify
+ index dir
+Date: Fri, 14 Jul 2017 09:51:22 +0300
+Message-ID: <CAOQ4uxiQ7ONfkbx=buUTaS6bCpDurHk7qB5vj6c9wOesJbS4FQ@mail.gmail.com>
 References: <1499777923-29410-1-git-send-email-amir73il@gmail.com>
- <1499777923-29410-7-git-send-email-amir73il@gmail.com> <CAJfpegsz3ZzMQNBY8sDtAoAxGmUQ_ai2f32hMTdXEZ4URzvj7w@mail.gmail.com>
+ <1499777923-29410-8-git-send-email-amir73il@gmail.com> <CAJfpegvR5qZWb6dJRMSL4N-qpbJT1rqN_1KkVZhO4G2AgJWd3g@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-yb0-f193.google.com ([209.85.213.193]:36575 "EHLO
+Received: from mail-yb0-f193.google.com ([209.85.213.193]:33824 "EHLO
         mail-yb0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750917AbdGNGLp (ORCPT
+        with ESMTP id S1751462AbdGNGv2 (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 14 Jul 2017 02:11:45 -0400
-Received: by mail-yb0-f193.google.com with SMTP id o20so4120963yba.3
-        for <linux-unionfs@vger.kernel.org>; Thu, 13 Jul 2017 23:11:44 -0700 (PDT)
-In-Reply-To: <CAJfpegsz3ZzMQNBY8sDtAoAxGmUQ_ai2f32hMTdXEZ4URzvj7w@mail.gmail.com>
+        Fri, 14 Jul 2017 02:51:28 -0400
+Received: by mail-yb0-f193.google.com with SMTP id n205so4538978yba.1
+        for <linux-unionfs@vger.kernel.org>; Thu, 13 Jul 2017 23:51:23 -0700 (PDT)
+In-Reply-To: <CAJfpegvR5qZWb6dJRMSL4N-qpbJT1rqN_1KkVZhO4G2AgJWd3g@mail.gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: Miklos Szeredi <miklos@szeredi.hu>
 Cc: "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>
 
-On Thu, Jul 13, 2017 at 11:11 PM, Miklos Szeredi <miklos@szeredi.hu> wrote:
+On Thu, Jul 13, 2017 at 11:13 PM, Miklos Szeredi <miklos@szeredi.hu> wrote:
 > On Tue, Jul 11, 2017 at 2:58 PM, Amir Goldstein <amir73il@gmail.com> wrote:
->> When workdir creation fails, overlay is mounted read-only and
->> remount,rw is not allowed. When index dir creation fails, overlay
->> is mounted readonly, but we also need to enforce no remount,rw in
->> that case.
+>> Just like on failure to create work dir or index dir, when
+>> index dir verification or cleanup fails, mount the overlay
+>> read-only with a warning instead of failing the mount.
 >
-> I don't understand the logic for ovl_show_options().  It should show
-> the options supplied, right?  It doesn't currently do that for
-> "index=FOO" but this patch doesn't help that, afaics.
+> Why?
+
+First of all, why not? to me, it makes more sense to treat
+"cannot create indexdir" and "cannot use existing indexdir" the same way
+and provide slightly better user experience.
+But I agree that this patch doesn't fix any bug or correctness issue.
+
+>
+> The failure to create case was done to ensure we can mount the overlay
+> read-only with the same options if the underlying layers are read-only
+> as well.
+>
+> This, however, does not have such a use case.  Or does it?
 >
 
-I'll explain my reasoning for changing the logic of ovl_show_options(),
-but in the end, I'm perfectly fine with leaving that function untouched
-or with removing the != def_ condition altogether.
+I can think of two corner use cases:
+1. We have a bug that causes ovl_indexdir_cleanup() failure.
+2. Trying to reuse workdir from previous mount with a new upperdir.
 
-for the purpose of the test in ovl_force_readonly(), I wanted to preserve
-the admin (or distro) choice for index configuration, so that the following
-sequence will fail to remount rw in case index dir creation fails:
+The second use case happened to me both with unionmount-testsuite
+and with xfstests.
+I pushed a fix to unionmount-testsuite:
+d283eab - Use separate workdir per upper dir
+and posted a fix for xfstests.
 
-mount -t overlay d /m -oro,upperdir=/u,lowerdir=/l,workdlir=/w,index=on
-mount /m -oremount,rw
+Of course I am not concerned about out of date testsuite failing tests,
+but it goes to show that if utilities *can* reuse workdir with new
+upperdir they may very well do so, just on account on being used
+to overlayfs cleaning workdir for them on mount.
 
-So I removed the "/* Show index=off/on.." hunk which lost the index config.
-This is different from the case of !ovl_can_decode_fh() which sets
-config.index = false and warns "falling back to index=off.", because there
-is no way for admin to ever fix  !ovl_can_decode_fh() failure.
-In this case (failure to create indexdir), we preserve the config and warn
-"failed ... mounting read-only; ... mount with '-o index=off' to disable.."
-to let the admin maybe fix the reason for the failure later while letting
-users read the data in the mean while without breaking hardlinks.
+If such a utility exists, say to create a new overlay of /home/guest/ dir
+on every login and it happens to reuse the same workdir for every login,
+then upgrading to new kernel with CONFIG_OVERLAYFS_INDEX=y will
+result in failure to mount /home/guest on login.
 
-So far, I guess you agree with the change?
+I claim, that we would be better off falling back to ro mount, which could,
+maybe slightly, alter the pitch of the voice of the shouting we get from
+admins.
 
-Then it left ovl_show_options() showing "ro,index=on" which is weird,
-because indexing is not on, but showing "ro,index=off" (because of !indexdir)
-would have been weird as well, because it leaves no apparent explanation
-for the failure to remount rw.
-So I opted for "on ro mount, the value of index is not interesting" to
-reconcile this dilemma.
-
-Really, I have no strong opinion on the matter, so feel free to change
-ovl_show_options() in any way you like. I'll shout if I find your choice
-confusing for any configuration.
+But maybe I am miss-reading the shouting chain. I have no experience
+interacting with downstream projects.
 
 Thanks,
 Amir.
