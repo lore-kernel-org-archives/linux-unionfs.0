@@ -1,23 +1,23 @@
-From: Eryu Guan <eguan@redhat.com>
+From: Vivek Goyal <vgoyal@redhat.com>
 Subject: Re: [4.13-rc1 regression] copyup crashes kernel when initializing
  selinux
-Date: Mon, 17 Jul 2017 20:12:01 +0800
-Message-ID: <20170717121201.GR2478@eguan.usersys.redhat.com>
+Date: Mon, 17 Jul 2017 10:42:31 -0400
+Message-ID: <20170717144231.GB15794@redhat.com>
 References: <20170717093741.GP2478@eguan.usersys.redhat.com>
  <20170717112503.GB5256@veci.piliscsaba.szeredi.hu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:47576 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:32930 "EHLO mx1.redhat.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751289AbdGQMME (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 17 Jul 2017 08:12:04 -0400
+        id S1751300AbdGQOmc (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Mon, 17 Jul 2017 10:42:32 -0400
 Content-Disposition: inline
 In-Reply-To: <20170717112503.GB5256@veci.piliscsaba.szeredi.hu>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: linux-unionfs@vger.kernel.org, Miklos Szeredi <mszeredi@redhat.com>
+Cc: Eryu Guan <eguan@redhat.com>, linux-unionfs@vger.kernel.org, Miklos Szeredi <mszeredi@redhat.com>
 
 On Mon, Jul 17, 2017 at 01:25:03PM +0200, Miklos Szeredi wrote:
 > On Mon, Jul 17, 2017 at 05:37:41PM +0800, Eryu Guan wrote:
@@ -45,8 +45,172 @@ On Mon, Jul 17, 2017 at 01:25:03PM +0200, Miklos Szeredi wrote:
 > 
 > Could you please test following patch?
 
-This patch works for me, but I just ran overlay/005, didn't run other
-tests.
+For me even simple "ls" was failing after mounting overlayfs. This patch
+seems to fix that.
 
-Thanks,
-Eryu
+Vivek
+
+> 
+> Thanks,
+> Miklos
+> 
+> ---
+>  fs/overlayfs/inode.c     |   32 +++++++++++++++++---------------
+>  fs/overlayfs/overlayfs.h |    7 ++++---
+>  fs/overlayfs/super.c     |    8 ++++----
+>  fs/overlayfs/util.c      |    7 ++++++-
+>  4 files changed, 31 insertions(+), 23 deletions(-)
+> 
+> --- a/fs/overlayfs/inode.c
+> +++ b/fs/overlayfs/inode.c
+> @@ -202,37 +202,38 @@ bool ovl_is_private_xattr(const char *na
+>  		       sizeof(OVL_XATTR_PREFIX) - 1) == 0;
+>  }
+>  
+> -int ovl_xattr_set(struct dentry *dentry, const char *name, const void *value,
+> -		  size_t size, int flags)
+> +int ovl_xattr_set(struct dentry *dentry, struct inode *inode, const char *name,
+> +		  const void *value, size_t size, int flags)
+>  {
+>  	int err;
+> -	struct path realpath;
+> -	enum ovl_path_type type = ovl_path_real(dentry, &realpath);
+> +	struct dentry *upperdentry = ovl_i_dentry_upper(inode);
+> +	struct dentry *realdentry = upperdentry ?: ovl_dentry_lower(dentry);
+>  	const struct cred *old_cred;
+>  
+>  	err = ovl_want_write(dentry);
+>  	if (err)
+>  		goto out;
+>  
+> -	if (!value && !OVL_TYPE_UPPER(type)) {
+> -		err = vfs_getxattr(realpath.dentry, name, NULL, 0);
+> +	if (!value && !upperdentry) {
+> +		err = vfs_getxattr(realdentry, name, NULL, 0);
+>  		if (err < 0)
+>  			goto out_drop_write;
+>  	}
+>  
+> -	err = ovl_copy_up(dentry);
+> -	if (err)
+> -		goto out_drop_write;
+> +	if (!upperdentry) {
+> +		err = ovl_copy_up(dentry);
+> +		if (err)
+> +			goto out_drop_write;
+>  
+> -	if (!OVL_TYPE_UPPER(type))
+> -		ovl_path_upper(dentry, &realpath);
+> +		realdentry = ovl_dentry_upper(dentry);
+> +	}
+>  
+>  	old_cred = ovl_override_creds(dentry->d_sb);
+>  	if (value)
+> -		err = vfs_setxattr(realpath.dentry, name, value, size, flags);
+> +		err = vfs_setxattr(realdentry, name, value, size, flags);
+>  	else {
+>  		WARN_ON(flags != XATTR_REPLACE);
+> -		err = vfs_removexattr(realpath.dentry, name);
+> +		err = vfs_removexattr(realdentry, name);
+>  	}
+>  	revert_creds(old_cred);
+>  
+> @@ -242,12 +243,13 @@ int ovl_xattr_set(struct dentry *dentry,
+>  	return err;
+>  }
+>  
+> -int ovl_xattr_get(struct dentry *dentry, const char *name,
+> +int ovl_xattr_get(struct dentry *dentry, struct inode *inode, const char *name,
+>  		  void *value, size_t size)
+>  {
+> -	struct dentry *realdentry = ovl_dentry_real(dentry);
+>  	ssize_t res;
+>  	const struct cred *old_cred;
+> +	struct dentry *realdentry =
+> +		ovl_i_dentry_upper(inode) ?: ovl_dentry_lower(dentry);
+>  
+>  	old_cred = ovl_override_creds(dentry->d_sb);
+>  	res = vfs_getxattr(realdentry, name, value, size);
+> --- a/fs/overlayfs/overlayfs.h
+> +++ b/fs/overlayfs/overlayfs.h
+> @@ -199,6 +199,7 @@ enum ovl_path_type ovl_path_real(struct
+>  struct dentry *ovl_dentry_upper(struct dentry *dentry);
+>  struct dentry *ovl_dentry_lower(struct dentry *dentry);
+>  struct dentry *ovl_dentry_real(struct dentry *dentry);
+> +struct dentry *ovl_i_dentry_upper(struct inode *inode);
+>  struct inode *ovl_inode_upper(struct inode *inode);
+>  struct inode *ovl_inode_lower(struct inode *inode);
+>  struct inode *ovl_inode_real(struct inode *inode);
+> @@ -270,9 +271,9 @@ int ovl_setattr(struct dentry *dentry, s
+>  int ovl_getattr(const struct path *path, struct kstat *stat,
+>  		u32 request_mask, unsigned int flags);
+>  int ovl_permission(struct inode *inode, int mask);
+> -int ovl_xattr_set(struct dentry *dentry, const char *name, const void *value,
+> -		  size_t size, int flags);
+> -int ovl_xattr_get(struct dentry *dentry, const char *name,
+> +int ovl_xattr_set(struct dentry *dentry, struct inode *inode, const char *name,
+> +		  const void *value, size_t size, int flags);
+> +int ovl_xattr_get(struct dentry *dentry, struct inode *inode, const char *name,
+>  		  void *value, size_t size);
+>  ssize_t ovl_listxattr(struct dentry *dentry, char *list, size_t size);
+>  struct posix_acl *ovl_get_acl(struct inode *inode, int type);
+> --- a/fs/overlayfs/super.c
+> +++ b/fs/overlayfs/super.c
+> @@ -692,7 +692,7 @@ ovl_posix_acl_xattr_get(const struct xat
+>  			struct dentry *dentry, struct inode *inode,
+>  			const char *name, void *buffer, size_t size)
+>  {
+> -	return ovl_xattr_get(dentry, handler->name, buffer, size);
+> +	return ovl_xattr_get(dentry, inode, handler->name, buffer, size);
+>  }
+>  
+>  static int __maybe_unused
+> @@ -742,7 +742,7 @@ ovl_posix_acl_xattr_set(const struct xat
+>  			return err;
+>  	}
+>  
+> -	err = ovl_xattr_set(dentry, handler->name, value, size, flags);
+> +	err = ovl_xattr_set(dentry, inode, handler->name, value, size, flags);
+>  	if (!err)
+>  		ovl_copyattr(ovl_inode_real(inode), inode);
+>  
+> @@ -772,7 +772,7 @@ static int ovl_other_xattr_get(const str
+>  			       struct dentry *dentry, struct inode *inode,
+>  			       const char *name, void *buffer, size_t size)
+>  {
+> -	return ovl_xattr_get(dentry, name, buffer, size);
+> +	return ovl_xattr_get(dentry, inode, name, buffer, size);
+>  }
+>  
+>  static int ovl_other_xattr_set(const struct xattr_handler *handler,
+> @@ -780,7 +780,7 @@ static int ovl_other_xattr_set(const str
+>  			       const char *name, const void *value,
+>  			       size_t size, int flags)
+>  {
+> -	return ovl_xattr_set(dentry, name, value, size, flags);
+> +	return ovl_xattr_set(dentry, inode, name, value, size, flags);
+>  }
+>  
+>  static const struct xattr_handler __maybe_unused
+> --- a/fs/overlayfs/util.c
+> +++ b/fs/overlayfs/util.c
+> @@ -157,9 +157,14 @@ struct dentry *ovl_dentry_real(struct de
+>  	return ovl_dentry_upper(dentry) ?: ovl_dentry_lower(dentry);
+>  }
+>  
+> +struct dentry *ovl_i_dentry_upper(struct inode *inode)
+> +{
+> +	return ovl_upperdentry_dereference(OVL_I(inode));
+> +}
+> +
+>  struct inode *ovl_inode_upper(struct inode *inode)
+>  {
+> -	struct dentry *upperdentry = ovl_upperdentry_dereference(OVL_I(inode));
+> +	struct dentry *upperdentry = ovl_i_dentry_upper(inode);
+>  
+>  	return upperdentry ? d_inode(upperdentry) : NULL;
+>  }
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-unionfs" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
