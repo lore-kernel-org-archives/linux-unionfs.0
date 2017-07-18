@@ -1,72 +1,93 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH v2 2/2] ovl: check for bad and whiteout index on lookup
-Date: Tue, 18 Jul 2017 21:07:43 +0300
-Message-ID: <1500401263-25562-3-git-send-email-amir73il@gmail.com>
+Subject: [PATCH v2 1/2] ovl: do not cleanup directory and whiteout index entries
+Date: Tue, 18 Jul 2017 21:07:42 +0300
+Message-ID: <1500401263-25562-2-git-send-email-amir73il@gmail.com>
 References: <1500401263-25562-1-git-send-email-amir73il@gmail.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wr0-f194.google.com ([209.85.128.194]:34957 "EHLO
+Received: from mail-wr0-f194.google.com ([209.85.128.194]:34933 "EHLO
         mail-wr0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751392AbdGRSHh (ORCPT
+        with ESMTP id S1751392AbdGRSHe (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 18 Jul 2017 14:07:37 -0400
-Received: by mail-wr0-f194.google.com with SMTP id c24so1781202wra.2
-        for <linux-unionfs@vger.kernel.org>; Tue, 18 Jul 2017 11:07:36 -0700 (PDT)
+        Tue, 18 Jul 2017 14:07:34 -0400
+Received: by mail-wr0-f194.google.com with SMTP id c24so1780957wra.2
+        for <linux-unionfs@vger.kernel.org>; Tue, 18 Jul 2017 11:07:34 -0700 (PDT)
 In-Reply-To: <1500401263-25562-1-git-send-email-amir73il@gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: Miklos Szeredi <miklos@szeredi.hu>
 Cc: linux-unionfs@vger.kernel.org
 
-Index should always be of the same file type as origin, except for
-the case of a whiteout index.  A whiteout index should only exist
-if all lower aliases have been unlinked, which means that finding
-a lower origin on lookup whose index is a whiteout should be treated
-as a lookup error.
+Directory index entries are going to be used for looking up
+redirected upper dirs by lower dir fh when decoding an overlay
+file handle of a merge dir.
+
+Whiteout index entries are going to be used as an indication that
+an exported overlay file handle should be treated as stale (i.e.
+after unlink of the overlay inode).
+
+We don't know the verification rules for directory and whiteout
+index entries, because they have not been implemented yet, so fail
+to mount overlay rw if those entries are found to avoid corrupting
+an index that was created by a newer kernel.
 
 Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- fs/overlayfs/namei.c | 22 +++++++++++++++++-----
- 1 file changed, 17 insertions(+), 5 deletions(-)
+ fs/overlayfs/namei.c   | 19 +++++++++++++++----
+ fs/overlayfs/readdir.c |  5 ++++-
+ 2 files changed, 19 insertions(+), 5 deletions(-)
 
 diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
-index 229a88ff335c..8aef2b304b2d 100644
+index 9bc0e580a5b3..229a88ff335c 100644
 --- a/fs/overlayfs/namei.c
 +++ b/fs/overlayfs/namei.c
-@@ -513,6 +513,7 @@ static struct dentry *ovl_lookup_index(struct dentry *dentry,
- 		goto out;
- 	}
+@@ -397,8 +397,19 @@ int ovl_verify_index(struct dentry *index, struct path *lowerstack,
+ 	if (!d_inode(index))
+ 		return 0;
  
-+	inode = d_inode(index);
- 	if (d_is_negative(index)) {
- 		if (upper && d_inode(origin)->i_nlink > 1) {
- 			pr_warn_ratelimited("overlayfs: hard link with origin but no index (ino=%lu).\n",
-@@ -522,11 +523,22 @@ static struct dentry *ovl_lookup_index(struct dentry *dentry,
- 
- 		dput(index);
- 		index = NULL;
--	} else if (upper && d_inode(index) != d_inode(upper)) {
--		inode = d_inode(index);
--		pr_warn_ratelimited("overlayfs: wrong index found (index ino: %lu, upper ino: %lu).\n",
--				    d_inode(index)->i_ino,
--				    d_inode(upper)->i_ino);
-+	} else if (upper && d_inode(upper) != inode) {
-+		pr_warn_ratelimited("overlayfs: wrong index found (index=%pd2, ino=%lu, upper ino=%lu).\n",
-+				    index, inode->i_ino, d_inode(upper)->i_ino);
-+		goto fail;
-+	} else if (ovl_dentry_weird(index) || ovl_is_whiteout(index) ||
-+		   ((inode->i_mode ^ d_inode(origin)->i_mode) & S_IFMT)) {
-+		/*
-+		 * Index should always be of the same file type as origin
-+		 * except for the case of a whiteout index. A whiteout
-+		 * index should only exist if all lower aliases have been
-+		 * unlinked, which means that finding a lower origin on lookup
-+		 * whose index is a whiteout should be treated as an error.
-+		 */
-+		pr_warn_ratelimited("overlayfs: bad index found (index=%pd2, ftype=%x, origin ftype=%x).\n",
-+				    index, d_inode(index)->i_mode & S_IFMT,
-+				    d_inode(origin)->i_mode & S_IFMT);
+-	err = -EISDIR;
+-	if (d_is_dir(index))
++	/*
++	 * Directory index entries are going to be used for looking up
++	 * redirected upper dirs by lower dir fh when decoding an overlay
++	 * file handle of a merge dir. Whiteout index entries are going to be
++	 * used as an indication that an exported overlay file handle should
++	 * be treated as stale (i.e. after unlink of the overlay inode).
++	 * We don't know the verification rules for directory and whiteout
++	 * index entries, because they have not been implemented yet, so return
++	 * EROFS if those entries are found to avoid corrupting an index that
++	 * was created by a newer kernel.
++	 */
++	err = -EROFS;
++	if (d_is_dir(index) || ovl_is_whiteout(index))
  		goto fail;
- 	}
  
+ 	err = -EINVAL;
+@@ -436,8 +447,8 @@ int ovl_verify_index(struct dentry *index, struct path *lowerstack,
+ 	return err;
+ 
+ fail:
+-	pr_warn_ratelimited("overlayfs: failed to verify index (%pd2, err=%i)\n",
+-			    index, err);
++	pr_warn_ratelimited("overlayfs: failed to verify index (%pd2, ftype=%x, err=%i)\n",
++			    index, d_inode(index)->i_mode & S_IFMT, err);
+ 	goto out;
+ }
+ 
+diff --git a/fs/overlayfs/readdir.c b/fs/overlayfs/readdir.c
+index 0298463cf9c3..3d424a51cabb 100644
+--- a/fs/overlayfs/readdir.c
++++ b/fs/overlayfs/readdir.c
+@@ -703,7 +703,10 @@ int ovl_indexdir_cleanup(struct dentry *dentry, struct vfsmount *mnt,
+ 			err = PTR_ERR(index);
+ 			break;
+ 		}
+-		if (ovl_verify_index(index, lowerstack, numlower)) {
++		err = ovl_verify_index(index, lowerstack, numlower);
++		if (err) {
++			if (err == -EROFS)
++				break;
+ 			err = ovl_cleanup(dir, index);
+ 			if (err)
+ 				break;
 -- 
 2.7.4
