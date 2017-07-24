@@ -1,71 +1,38 @@
 From: Miklos Szeredi <miklos@szeredi.hu>
-Subject: Re: [PATCH 07/10] ovl: mount overlay read-only on failure to verify
- index dir
-Date: Mon, 24 Jul 2017 10:33:46 +0200
-Message-ID: <CAJfpegu+HnPrt0LKCLsPaWskkNMD0dcXWXdb_Zm3hZ4ovpvTKA@mail.gmail.com>
+Subject: Re: [PATCH 10/10] ovl: follow decoded origin file handle of merge dir
+Date: Mon, 24 Jul 2017 10:48:02 +0200
+Message-ID: <CAJfpeguaYyBhaz3GG27i4-gP-CQ+RoqYttYCzP9HkykxdE_W7w@mail.gmail.com>
 References: <1499777923-29410-1-git-send-email-amir73il@gmail.com>
- <1499777923-29410-8-git-send-email-amir73il@gmail.com> <CAJfpegvR5qZWb6dJRMSL4N-qpbJT1rqN_1KkVZhO4G2AgJWd3g@mail.gmail.com>
- <CAOQ4uxiQ7ONfkbx=buUTaS6bCpDurHk7qB5vj6c9wOesJbS4FQ@mail.gmail.com>
- <CAJfpegsTGkUuRCuJOZh5N8Q5DL0qvFBL5NgNSVYE8XV+5yF4nw@mail.gmail.com>
- <CAOQ4uxjY-=7RdF1DLibLrHVVWp5bTgCrVORn-VJngRxmLzBz1w@mail.gmail.com>
- <CAJfpegsoy_BSp4tLph3wOE1o18jdHjEEnz1XOeTjTMRd0SLojQ@mail.gmail.com> <CAOQ4uxhxU2dH_qsxAJoeUyJVtOU+0YxRNNdeVaiqL1A6e3NmLw@mail.gmail.com>
+ <1499777923-29410-11-git-send-email-amir73il@gmail.com> <CAJfpegtk9RiN6cwKXRHoh9i+_tOgYyW+PFkrwEXvit_J9Pm3cw@mail.gmail.com>
+ <CAOQ4uxhVCw4BBoNw5O46_yh_TChDy6tp_ahKHnjdui3oVON8iA@mail.gmail.com>
+ <CAJfpegvK8iNJWbM_hbCMGOKey5AOAhP6wtPAOwc2a6ACQf_RXw@mail.gmail.com> <CAOQ4uxgBuka1Sz4k5BDWuOxB-p8AH1Vr17pi3bn7xFo57AimZA@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-oi0-f66.google.com ([209.85.218.66]:37601 "EHLO
-        mail-oi0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750864AbdGXIdr (ORCPT
+Received: from mail-oi0-f51.google.com ([209.85.218.51]:32889 "EHLO
+        mail-oi0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751685AbdGXIsE (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 24 Jul 2017 04:33:47 -0400
-Received: by mail-oi0-f66.google.com with SMTP id j194so1671211oib.4
-        for <linux-unionfs@vger.kernel.org>; Mon, 24 Jul 2017 01:33:47 -0700 (PDT)
-In-Reply-To: <CAOQ4uxhxU2dH_qsxAJoeUyJVtOU+0YxRNNdeVaiqL1A6e3NmLw@mail.gmail.com>
+        Mon, 24 Jul 2017 04:48:04 -0400
+Received: by mail-oi0-f51.google.com with SMTP id a9so18583415oih.0
+        for <linux-unionfs@vger.kernel.org>; Mon, 24 Jul 2017 01:48:04 -0700 (PDT)
+In-Reply-To: <CAOQ4uxgBuka1Sz4k5BDWuOxB-p8AH1Vr17pi3bn7xFo57AimZA@mail.gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: Amir Goldstein <amir73il@gmail.com>
 Cc: "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>
 
-On Fri, Jul 14, 2017 at 1:17 PM, Amir Goldstein <amir73il@gmail.com> wrote:
-> On Fri, Jul 14, 2017 at 1:53 PM, Miklos Szeredi <miklos@szeredi.hu> wrote:
->> On Fri, Jul 14, 2017 at 12:35 PM, Amir Goldstein <amir73il@gmail.com> wrote:
->>
->>> What? always warn on boot? on mount? I donno. To me the comment
->>> about backward compat in Kconfig seems sufficient and no sysadmin
->>> can mistakenly set index=on on mount, but as I said, don't know
->>> enough about downstream to say much.
->>
->> I meant warning in Kconfig.   I see that there is a warning there, but
->> it could be made shorter and more explicit.   No need to explain the
->> hows and whys, just warn that enabling this option is not backward
->> compatible.
->
-> By all means. I assume you will clean that up.
->
->>
->> And if distros enable it despite this warning, and it burns their
->> users, that's their problem.
->>
->
-> Hmm... but the issue related to this commit is not backward compatibility
-> is the sense that is depicted in Kconfig warning.
-> The warning speaks of mounting new overlay with an old kernel.
-> The concern discussed in this thread is mounting an old overlay
-> with a new kernel:
->
-> This used to work with old kernel:
-> rm -rf /u.new
-> mkdir /u.new
-> mount -t overlay d /m -oupperdir=/u.new,lowerdir=/l.old,workdlir=/w.old
->
-> And doesn't work with new kernel with INDEX=y.
->
-> Another big behavior change that me good to warn about in Kconfig
-> is not being able to copy layers.
+On Fri, Jul 14, 2017 at 12:58 PM, Amir Goldstein <amir73il@gmail.com> wrote:
 
-Right.  The fact is: INDEX=y is not compatible with INDEX=n.  Despite
-that, it might well make sense for some to enable it by default,
-because compatibility of overlay images is not always (rarely?) an
-issue in practice.
+> If you don't want to bundle index=on with NFS export, then no rush to merge
+> these patches now. The added benefit on patch 9 (retroactive marking merge
+> dir with origin for not exposing whiteouts) is relevant to a patch that is not
+> going to land in v4.13 anyway. right?
+
+Right.
+
+Can we maybe postpone the verification until fh decode time?  That
+would spare us from creating a new config option.
 
 Thanks,
 Miklos
