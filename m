@@ -1,61 +1,40 @@
-From: Chandan Rajendra <chandan@linux.vnet.ibm.com>
-Subject: Re: [PATCH V3] ovl: Allocate anonymous devs for lowerdirs
-Date: Thu, 27 Jul 2017 11:54:15 +0530
-Message-ID: <2098530.dS0XS0MFtf@localhost.localdomain>
-References: <CAJfpegs9W=qQRXBeF7h4t4bxnXvbGnTbUi+iGaZhft79Mvxgtw@mail.gmail.com> <20170724091722.23252-1-chandan@linux.vnet.ibm.com>
+From: Miklos Szeredi <miklos@szeredi.hu>
+Subject: xattr hash error in 4.13-rc with overlayfs over ext4
+Date: Thu, 27 Jul 2017 14:37:35 +0200
+Message-ID: <CAJfpegvQhuMnt=2TtfYSiMV=DTLLLbOfrvcR2xQrmvyPU9wSNg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mx0b-001b2d01.pphosted.com ([148.163.158.5]:40669 "EHLO
-        mx0a-001b2d01.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751451AbdG0GXx (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 27 Jul 2017 02:23:53 -0400
-Received: from pps.filterd (m0098421.ppops.net [127.0.0.1])
-        by mx0a-001b2d01.pphosted.com (8.16.0.21/8.16.0.21) with SMTP id v6R6JLYj107125
-        for <linux-unionfs@vger.kernel.org>; Thu, 27 Jul 2017 02:23:52 -0400
-Received: from e23smtp02.au.ibm.com (e23smtp02.au.ibm.com [202.81.31.144])
-        by mx0a-001b2d01.pphosted.com with ESMTP id 2by8vamxcu-1
-        (version=TLSv1.2 cipher=AES256-SHA bits=256 verify=NOT)
-        for <linux-unionfs@vger.kernel.org>; Thu, 27 Jul 2017 02:23:52 -0400
-Received: from localhost
-        by e23smtp02.au.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
-        for <linux-unionfs@vger.kernel.org> from <chandan@linux.vnet.ibm.com>;
-        Thu, 27 Jul 2017 16:23:49 +1000
-Received: from d23av02.au.ibm.com (d23av02.au.ibm.com [9.190.235.138])
-        by d23relay08.au.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id v6R6NlZO28246250
-        for <linux-unionfs@vger.kernel.org>; Thu, 27 Jul 2017 16:23:47 +1000
-Received: from d23av02.au.ibm.com (localhost [127.0.0.1])
-        by d23av02.au.ibm.com (8.14.4/8.14.4/NCO v10.0 AVout) with ESMTP id v6R6Nc6e009530
-        for <linux-unionfs@vger.kernel.org>; Thu, 27 Jul 2017 16:23:38 +1000
-In-Reply-To: <20170724091722.23252-1-chandan@linux.vnet.ibm.com>
-Sender: linux-unionfs-owner@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tahsin Erdogan <tahsin@google.com>
+Cc: Theodore Ts'o <tytso@mit.edu>, "linux-ext4@vger.kernel.org" <linux-ext4@vger.kernel.org>, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>
 List-Id: linux-unionfs@vger.kernel.org
-To: linux-unionfs@vger.kernel.org
-Cc: miklos@szeredi.hu, amir73il@gmail.com
 
-On Monday, July 24, 2017 2:47:22 PM IST Chandan Rajendra wrote:
-> For stat(2) on lowerdir non-dir entries in non-samefs case, this commit
-> provides unique values for st_dev. The unique values are obtained by
-> allocating anonymous bdevs for each of the lowerdirs in the overlayfs
-> instance.
-> 
-> Signed-off-by: Chandan Rajendra <chandan@linux.vnet.ibm.com>
-> ---
-> Changelog:
-> 
-> v2->v3: Optimize away O(n) search for pseudo dev in ovl_get_pseudo_dev().
-> 
-> v1->v2: Drop code that provided unique st_dev across copy up.
-> 
+I get the following error on fsck:
 
-I have rebased Amir's "ovl: relax same fs constrain for constant st_ino" 
-patch on top of the changes made in this patch. The tree containing
-the rebased patch can be found at 
-"https://github.com/chandanr/linux.git rework-anonymous-dev"
+Pass 1: Checking inodes, blocks, and sizes
+Extended attribute in inode 3093 has a hash (2257320705) which is invalid
+Clear<y>? yes
+Inode 3093, i_blocks is 16, should be 8.  Fix<y>? yes
 
-I have tested this by executing unionmount-testsuite's "./run --ov --verify".
+To reproduce:
 
--- 
-chandan
+[mount ext4 image]
+mkdir xattrhashtest
+cd xattrhashtest/
+mkdir upper lower work mnt
+cd lower/
+echo foo > bar
+ln bar baz
+mount -t overlay overlay -olowerdir=lower,upperdir=upper,workdir=work mnt
+cd mnt/
+echo xxx >> bar
+[umount and fsck]
+
+Reverting commit daf8328172df ("ext4: eliminate xattr entry e_hash
+recalculation for removes") fixes it.
+
+Might be an ext4 or overlayfs bug.  Let me know what you think.
+
+Thanks,
+Miklos
