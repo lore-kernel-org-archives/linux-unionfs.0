@@ -1,75 +1,61 @@
-From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [PATCH 10/10] ovl: follow decoded origin file handle of merge dir
-Date: Wed, 26 Jul 2017 22:06:56 +0300
-Message-ID: <CAOQ4uxi6qyRiJQvTu4nHM+0nNtbiLnLyBn8azW+AooOb_Xvg_g@mail.gmail.com>
-References: <1499777923-29410-1-git-send-email-amir73il@gmail.com>
- <1499777923-29410-11-git-send-email-amir73il@gmail.com> <CAJfpegtk9RiN6cwKXRHoh9i+_tOgYyW+PFkrwEXvit_J9Pm3cw@mail.gmail.com>
- <CAOQ4uxhVCw4BBoNw5O46_yh_TChDy6tp_ahKHnjdui3oVON8iA@mail.gmail.com>
- <CAJfpegvK8iNJWbM_hbCMGOKey5AOAhP6wtPAOwc2a6ACQf_RXw@mail.gmail.com>
- <CAOQ4uxgBuka1Sz4k5BDWuOxB-p8AH1Vr17pi3bn7xFo57AimZA@mail.gmail.com>
- <CAJfpeguaYyBhaz3GG27i4-gP-CQ+RoqYttYCzP9HkykxdE_W7w@mail.gmail.com>
- <CAOQ4uxhuGZjepSaAkaJQ1BjL-ePVtfBrwio=5E5WFAaM+fpOgA@mail.gmail.com>
- <CAJfpeguuF4bnOM6ThK3x7kcjd6hQ3TWiZSOyRDA5u9vKhOWJ6A@mail.gmail.com>
- <CAOQ4uxjk4e1yEvaprnQW+rQVgUGY4EcVuFxtdV5-NHHnd7Yy-g@mail.gmail.com>
- <CAJfpeguk7J+-rKTjXqX2-VnErAoXv3jiW83syaA14tpZxOY0Eg@mail.gmail.com>
- <CAOQ4uxibj+od+RiwZ2zAJXwaudy4g7xDaVVng-eU3OhX4OJjHw@mail.gmail.com>
- <CAJfpegsuZOaCAb8VzDx3qxG_cA2j8qavMS4K=V-QkrNEBb8TYQ@mail.gmail.com>
- <CAJfpegtY=5RA+Cz4MgajmOkr+He0gYfw=hd19k+k_cnAzHT+QQ@mail.gmail.com> <CAJfpegswQgcJViBe3v6fEM43ibL=uFZLc9NfcGb+GiF6HNkQcA@mail.gmail.com>
+From: Chandan Rajendra <chandan@linux.vnet.ibm.com>
+Subject: Re: [PATCH V3] ovl: Allocate anonymous devs for lowerdirs
+Date: Thu, 27 Jul 2017 11:54:15 +0530
+Message-ID: <2098530.dS0XS0MFtf@localhost.localdomain>
+References: <CAJfpegs9W=qQRXBeF7h4t4bxnXvbGnTbUi+iGaZhft79Mvxgtw@mail.gmail.com> <20170724091722.23252-1-chandan@linux.vnet.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-yw0-f174.google.com ([209.85.161.174]:34242 "EHLO
-        mail-yw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751625AbdGZTG6 (ORCPT
+Received: from mx0b-001b2d01.pphosted.com ([148.163.158.5]:40669 "EHLO
+        mx0a-001b2d01.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751451AbdG0GXx (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 26 Jul 2017 15:06:58 -0400
-Received: by mail-yw0-f174.google.com with SMTP id i6so59714214ywb.1
-        for <linux-unionfs@vger.kernel.org>; Wed, 26 Jul 2017 12:06:57 -0700 (PDT)
-In-Reply-To: <CAJfpegswQgcJViBe3v6fEM43ibL=uFZLc9NfcGb+GiF6HNkQcA@mail.gmail.com>
+        Thu, 27 Jul 2017 02:23:53 -0400
+Received: from pps.filterd (m0098421.ppops.net [127.0.0.1])
+        by mx0a-001b2d01.pphosted.com (8.16.0.21/8.16.0.21) with SMTP id v6R6JLYj107125
+        for <linux-unionfs@vger.kernel.org>; Thu, 27 Jul 2017 02:23:52 -0400
+Received: from e23smtp02.au.ibm.com (e23smtp02.au.ibm.com [202.81.31.144])
+        by mx0a-001b2d01.pphosted.com with ESMTP id 2by8vamxcu-1
+        (version=TLSv1.2 cipher=AES256-SHA bits=256 verify=NOT)
+        for <linux-unionfs@vger.kernel.org>; Thu, 27 Jul 2017 02:23:52 -0400
+Received: from localhost
+        by e23smtp02.au.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
+        for <linux-unionfs@vger.kernel.org> from <chandan@linux.vnet.ibm.com>;
+        Thu, 27 Jul 2017 16:23:49 +1000
+Received: from d23av02.au.ibm.com (d23av02.au.ibm.com [9.190.235.138])
+        by d23relay08.au.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id v6R6NlZO28246250
+        for <linux-unionfs@vger.kernel.org>; Thu, 27 Jul 2017 16:23:47 +1000
+Received: from d23av02.au.ibm.com (localhost [127.0.0.1])
+        by d23av02.au.ibm.com (8.14.4/8.14.4/NCO v10.0 AVout) with ESMTP id v6R6Nc6e009530
+        for <linux-unionfs@vger.kernel.org>; Thu, 27 Jul 2017 16:23:38 +1000
+In-Reply-To: <20170724091722.23252-1-chandan@linux.vnet.ibm.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>
+To: linux-unionfs@vger.kernel.org
+Cc: miklos@szeredi.hu, amir73il@gmail.com
 
-On Wed, Jul 26, 2017 at 11:54 AM, Miklos Szeredi <miklos@szeredi.hu> wrote:
-> On Wed, Jul 26, 2017 at 10:51 AM, Miklos Szeredi <miklos@szeredi.hu> wrote:
->> On Wed, Jul 26, 2017 at 10:47 AM, Miklos Szeredi <miklos@szeredi.hu> wrote:
->>
->>> Aren't we allowed to update the stale index?
->>
->> The answer is no, of course (otherwise client would get success for
->> something it should get error for).  Eeturning ESTALE is the right
->> thing to do.
->
-> Can encode an overlay-generation in the handle.  That would allow us
-> to have a stale index as well as a new one for the same underlying
-> origin.
->
+On Monday, July 24, 2017 2:47:22 PM IST Chandan Rajendra wrote:
+> For stat(2) on lowerdir non-dir entries in non-samefs case, this commit
+> provides unique values for st_dev. The unique values are obtained by
+> allocating anonymous bdevs for each of the lowerdirs in the overlayfs
+> instance.
+> 
+> Signed-off-by: Chandan Rajendra <chandan@linux.vnet.ibm.com>
+> ---
+> Changelog:
+> 
+> v2->v3: Optimize away O(n) search for pseudo dev in ovl_get_pseudo_dev().
+> 
+> v1->v2: Drop code that provided unique st_dev across copy up.
+> 
 
-Yes, we can do that.
+I have rebased Amir's "ovl: relax same fs constrain for constant st_ino" 
+patch on top of the changes made in this patch. The tree containing
+the rebased patch can be found at 
+"https://github.com/chandanr/linux.git rework-anonymous-dev"
 
-We will never have two different index generations on-disk at the same time.
-A new generation index always obsoletes an old index generation
-(index name does not include the generation).
+I have tested this by executing unionmount-testsuite's "./run --ov --verify".
 
-Verifying index/origin consistency should happen no later than at encode time,
-but it really doesn't cost much to verify that at merge dir lookup time.
-If index/origin is not consistent with merge dir upper/lower, need to replace it
-with a newer generation consistent index and need to update origin xattr.
-I would think that it also makes sense to verify index->upper->origin->index
-consistency on mount, as we anyway should check that index->upper reference
-is not stale.
-
-But I must wonder: does carrying this extra complexity for index generation
-really worth the effort of not changing behavior of modified lower dir
-(when user opts-in for the change with index=on)?
-Do you think there are users out there depending on the current behavior
-in a setup that does NOT involve copying layers??
-
-Anyway, another not-really-a-reason I am wondering if we can avoid
-index generation is that I was going to use struct ovl_fh for both on-disk
-(origin xattr and index name) and for on-wire (NFS), so I'm still resisting
-the idea to diverge the structs...
-
-Thanks,
-Amir.
+-- 
+chandan
