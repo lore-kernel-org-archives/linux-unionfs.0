@@ -1,49 +1,110 @@
-From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: xattr hash error in 4.13-rc with overlayfs over ext4
-Date: Tue, 1 Aug 2017 13:34:34 +0300
-Message-ID: <CAOQ4uxjtLVuuYyDZ7csJeb_xbMiWHDHs21tgQoB7bbLWC6DUew@mail.gmail.com>
-References: <CAJfpegvQhuMnt=2TtfYSiMV=DTLLLbOfrvcR2xQrmvyPU9wSNg@mail.gmail.com>
- <CAAeU0aM-1UFJJvX3zF1wUjBeG8BGC+S0wn7PhiDZevTscvmkXg@mail.gmail.com>
- <CAJfpegvL2iR1PZ+3S=VGtbUiVPQ-EnW28KwE4wCzMJwWptNYKg@mail.gmail.com>
- <CAJfpegtLsnDFwMFMMxUf2yUcr2AG57PgUZSAR7M8gzbOEp16Mg@mail.gmail.com>
- <CAAeU0aOC7i6dTEBKRAP3N_HUKR0CQOW4j_MhftkfC9FSXHdCAw@mail.gmail.com> <CAJfpegvy274dZ0ZzY+qpaLwREi0QU9jNt=vE0pBpQ8W2wWCx1w@mail.gmail.com>
+From: Chandan Rajendra <chandan@linux.vnet.ibm.com>
+Subject: Re: [PATCH v3 5/5] ovl: consistent st_ino/d_ino
+Date: Thu, 03 Aug 2017 12:48:46 +0530
+Message-ID: <14445672.Uv0dO8JY0o@localhost.localdomain>
+References: <1496307779-2766-1-git-send-email-amir73il@gmail.com> <CAJfpeguM5eS2caT_k6wE++sSrBi9kGE1aLys5h6a5S+tQGJg6A@mail.gmail.com> <CAOQ4uxif79cbhYJxgHzkG0jpNgginMimvfgm-iSXAnuRkmWUqw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-yw0-f195.google.com ([209.85.161.195]:34727 "EHLO
-        mail-yw0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750852AbdHAKeg (ORCPT
+Received: from mx0b-001b2d01.pphosted.com ([148.163.158.5]:56489 "EHLO
+        mx0a-001b2d01.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751032AbdHCHSS (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 1 Aug 2017 06:34:36 -0400
-In-Reply-To: <CAJfpegvy274dZ0ZzY+qpaLwREi0QU9jNt=vE0pBpQ8W2wWCx1w@mail.gmail.com>
+        Thu, 3 Aug 2017 03:18:18 -0400
+Received: from pps.filterd (m0098413.ppops.net [127.0.0.1])
+        by mx0b-001b2d01.pphosted.com (8.16.0.21/8.16.0.21) with SMTP id v737DnQo054204
+        for <linux-unionfs@vger.kernel.org>; Thu, 3 Aug 2017 03:18:17 -0400
+Received: from e23smtp08.au.ibm.com (e23smtp08.au.ibm.com [202.81.31.141])
+        by mx0b-001b2d01.pphosted.com with ESMTP id 2c3v7y1va3-1
+        (version=TLSv1.2 cipher=AES256-SHA bits=256 verify=NOT)
+        for <linux-unionfs@vger.kernel.org>; Thu, 03 Aug 2017 03:18:17 -0400
+Received: from localhost
+        by e23smtp08.au.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
+        for <linux-unionfs@vger.kernel.org> from <chandan@linux.vnet.ibm.com>;
+        Thu, 3 Aug 2017 17:18:14 +1000
+Received: from d23av02.au.ibm.com (d23av02.au.ibm.com [9.190.235.138])
+        by d23relay08.au.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id v737ICWS21561368
+        for <linux-unionfs@vger.kernel.org>; Thu, 3 Aug 2017 17:18:12 +1000
+Received: from d23av02.au.ibm.com (localhost [127.0.0.1])
+        by d23av02.au.ibm.com (8.14.4/8.14.4/NCO v10.0 AVout) with ESMTP id v737I3kU008106
+        for <linux-unionfs@vger.kernel.org>; Thu, 3 Aug 2017 17:18:03 +1000
+In-Reply-To: <CAOQ4uxif79cbhYJxgHzkG0jpNgginMimvfgm-iSXAnuRkmWUqw@mail.gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: Tahsin Erdogan <tahsin@google.com>, Theodore Ts'o <tytso@mit.edu>, "linux-ext4@vger.kernel.org" <linux-ext4@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, lkml <linux-kernel@vger.kernel.org>, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>
 
-On Mon, Jul 31, 2017 at 7:08 PM, Miklos Szeredi <miklos@szeredi.hu> wrote:
-> On Thu, Jul 27, 2017 at 10:54 PM, Tahsin Erdogan <tahsin@google.com> wrote:
->> Still no luck reproducing the error. I am using the test script below
->> at v4.13-rc2. Do you mind checking my script to see what I am missing?
->
-> Don't know.   I can reliably reproduce it under UML, but not with a
-> VM.  What the hell is going on?
->
+On Friday, July 28, 2017 2:55:56 PM IST Amir Goldstein wrote:
+> On Thu, Jul 27, 2017 at 11:00 PM, Miklos Szeredi <miklos@szeredi.hu> wrote:
+> > On Wed, Jun 21, 2017 at 11:48 AM, Miklos Szeredi <miklos@szeredi.hu> wrote:
+> >> On Wed, Jun 21, 2017 at 11:36 AM, Amir Goldstein <amir73il@gmail.com> wrote:
+> >>> On Wed, Jun 21, 2017 at 12:20 PM, Miklos Szeredi <miklos@szeredi.hu> wrote:
+> >>>> On Wed, Jun 21, 2017 at 11:05 AM, Amir Goldstein <amir73il@gmail.com> wrote:
+> >>>
+> >>>>>
+> >>>>> Following up on your idea:
+> >>>>> - check in ovl_iterate() if version has changed and if dir became impure
+> >>>>> - if it did, populate od->cache, but keep the dir od->is_real
+> >>>>> - iterate upper cache entries and call ovl_cache_update_ino()
+> >>>>> - Then actor of real dir iterator can use the cache to ommit entries or use
+> >>>>>   p->ino from cache if p->real_ino match real d_ino, but differs from p->ino.
+> >>>>
+> >>>> For non-merge dirs we can have a simplified cache just containing the
+> >>>> entries with origin, recreated when the version changes or updated in
+> >>>> rename, whichever is simpler.  A non-merge dir will never become a
+> >>>> merge one, so we can keep the handling separate.
+> >>>>
+> >>>
+> >>> And use this cache to ommit/fix entries with actor?
+> >>
+> >> Right.  I think fixing up is better, because to correctly omit entries
+> >> we'd need separate lists for each open directory.  For fixing up we
+> >> can use a common one, just like for the merged dir.
+> >
+> > And back to this, I pushed a branch named "ovl-d_ino" to my vfs tree.
+> >
+> > Please test.
+> >
+> 
+> I can confirm that xfstest  overlay/017, the only  test I have for
+> constant d_ino,
+> passes. Although it does not cover all cases handled by the patch set
+> (e.g. d_ino of merge parent).
+> 
+> Chandan,
+> 
+> Can you take on the task of improving test coverage for constant d_ino?
+> You should create a new xfstest and cover more cases of constant d_ino
+> and possibly also a test for clearing of impure xattr.
+> 
+> When the basic test is in place, I will be able to point at more corner cases
+> to cover.
+> 
+> Also need to prepare a test to verify constant d_ino for non samefs
+> for after this patch is integrated with your work.
+> overlay/017 is a good starting point, but can't use the standard _scratch_mount
+> helpers that mount samefs overlay.
 
-Is it the same ext4 image for UML and VM? same image size? same mkfs version?
+Hi Amir,
 
-What inode size do you have in UML setup? e.g.:
+In ovl_calc_d_ino() we have the following code snippet,
 
-dumpe2fs -h /dev/sda3|grep Inode.size
-dumpe2fs 1.42.13 (17-May-2015)
-Inode size:          256
+if ((p->name[0] == '.' && p->len == 1) ||
+    ovl_test_flag(OVL_IMPURE, d_inode(rdd->dentry)))
+        return true;
 
-have extra_isize feature? (not sure if that matters)
+At this point in the function, the directory which is being iterated must have
+an entry in upperdir. W.r.t the case of processing "." directory entry, I
+think we can limit it to be applicable only when rdd->dentry is either a merge
+dir or an impure dir. For a directory which is both pure and non-merge, we can
+return the value of p->ino as is.
 
-dumpe2fs -h /dev/sda3|grep isize
-dumpe2fs 1.42.13 (17-May-2015)
-Filesystem features:      has_journal ext_attr resize_inode dir_index
-filetype needs_recovery extent flex_bg sparse_super large_file
-huge_file uninit_bg dir_nlink extra_isize
-Required extra isize:     28
-Desired extra isize:      28
+The second part of the "if" condition takes care of the 'impure dir' part. So
+the first part of the "if" condition can be written as,
+
+(p->name[0] == '.' && p->len == 1 && !OVL_TYPE_MERGE(ovl_path_type(rdd->dentry)))
+
+
+-- 
+chandan
