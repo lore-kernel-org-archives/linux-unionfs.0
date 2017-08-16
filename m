@@ -1,7 +1,7 @@
-From: Miklos Szeredi <miklos@szeredi.hu>
+From: Amir Goldstein <amir73il@gmail.com>
 Subject: Re: two questiones about overlayfs
-Date: Wed, 16 Aug 2017 12:20:39 +0200
-Message-ID: <CAJfpegtSsC6HXQ0PgG5+EsYasm_qrexzf1L+GTQYmd0J0vRq=A@mail.gmail.com>
+Date: Wed, 16 Aug 2017 13:10:46 +0200
+Message-ID: <CAOQ4uxgOM4Va3DnL5q+Oyz-OBtCe8-G0bq_Xf9Kuc8KToKyB5A@mail.gmail.com>
 References: <b68bea1b-4b51-8573-cf8a-06da4c41ed00@huawei.com>
  <CAOQ4uxiL=Gqy6A=_gKTFG0sQRYkZ37aptdn2fEvcF0phJBmW7Q@mail.gmail.com>
  <20170815133554.GB29201@veci.piliscsaba.szeredi.hu> <CAOQ4uxj6qkN-gi4a9ztKJj0FoBMrJC3DPta-m+3dVeHCxZOBNw@mail.gmail.com>
@@ -13,17 +13,17 @@ References: <b68bea1b-4b51-8573-cf8a-06da4c41ed00@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wr0-f178.google.com ([209.85.128.178]:36681 "EHLO
-        mail-wr0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751744AbdHPKUk (ORCPT
+Received: from mail-oi0-f42.google.com ([209.85.218.42]:35779 "EHLO
+        mail-oi0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751943AbdHPLKr (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 16 Aug 2017 06:20:40 -0400
-Received: by mail-wr0-f178.google.com with SMTP id x43so11454037wrb.3
-        for <linux-unionfs@vger.kernel.org>; Wed, 16 Aug 2017 03:20:40 -0700 (PDT)
+        Wed, 16 Aug 2017 07:10:47 -0400
+Received: by mail-oi0-f42.google.com with SMTP id e124so32609379oig.2
+        for <linux-unionfs@vger.kernel.org>; Wed, 16 Aug 2017 04:10:47 -0700 (PDT)
 In-Reply-To: <CAJfpegvwXL01-6FPXcbKcPiOKj+LBp69-eHnhiJtuevQdKd4tQ@mail.gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Amir Goldstein <amir73il@gmail.com>
+To: Miklos Szeredi <miklos@szeredi.hu>
 Cc: Vivek Goyal <vgoyal@redhat.com>, "zhangyi (F)" <yi.zhang@huawei.com>, overlayfs <linux-unionfs@vger.kernel.org>, miaoxie@huawei.com, Theodore Tso <tytso@mit.edu>
 
 On Wed, Aug 16, 2017 at 12:19 PM, Miklos Szeredi <miklos@szeredi.hu> wrote:
@@ -45,10 +45,25 @@ On Wed, Aug 16, 2017 at 12:19 PM, Miklos Szeredi <miklos@szeredi.hu> wrote:
 >> I only wonder what was the reason for chattr to open RDONLY in
 >> the first place (cc Ted)??
 >
-> What about copy up of flags?  Should we?  Does reflink copy the flags?
+> What about copy up of flags?  Should we?
 
-That last one is a stupid question, reflink is a data copying
-operation, not an inode copying one...
+IMO we should start with copying KSTAT_ATTR_FS_IOC_FLAGS,
+which can already be available in kstat.
+Other "standard" FS_IOC_FLAGS can be copied up when statx
+gets support for those flags.
 
-Thanks,
-Miklos
+FYI, chattr [+/-]<flags> does:
+- fgetflags(&flags): {open OPEN_FLAGS; ioctl EXT2_IOC_GETFLAGS}
+- change flags
+- fsetflags(&flags): {open OPEN_FLAGS; ioctl EXT2_IOC_SETFLAGS}
+
+OPEN_FLAGS is defined independently in lib/e2p/f{get,set}flags.c as
+(O_RDONLY|O_NONBLOCK|O_LARGEFILE), so technically all it
+takes is to change the defined in  lib/e2p/fsetflags.c to O_RDWR
+and then chattr [+/-]<flags> can be used for preemptive "copy up flags"
+by userspace (*) to work around issues which require flags copy up.
+
+(*) At least with ext4 chattr would only "copy up" the
+EXT4_FL_USER_MODIFIABLE flags, which is probably for the best.
+
+Amir.
