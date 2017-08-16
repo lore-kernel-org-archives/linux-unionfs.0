@@ -1,69 +1,53 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: two questiones about overlayfs
-Date: Wed, 16 Aug 2017 13:10:46 +0200
-Message-ID: <CAOQ4uxgOM4Va3DnL5q+Oyz-OBtCe8-G0bq_Xf9Kuc8KToKyB5A@mail.gmail.com>
-References: <b68bea1b-4b51-8573-cf8a-06da4c41ed00@huawei.com>
- <CAOQ4uxiL=Gqy6A=_gKTFG0sQRYkZ37aptdn2fEvcF0phJBmW7Q@mail.gmail.com>
- <20170815133554.GB29201@veci.piliscsaba.szeredi.hu> <CAOQ4uxj6qkN-gi4a9ztKJj0FoBMrJC3DPta-m+3dVeHCxZOBNw@mail.gmail.com>
- <CAJfpegsOjqJ-BXFBA3SsuDVornt37GOomP4E8UTaNBxACtGFFw@mail.gmail.com>
- <CAOQ4uxha+B6bpKVxg824-WG-eYxfoL5OxW-PgmcWGcXGe55LXw@mail.gmail.com>
- <CAJfpegv-u+=edQ+bpD-HqAMUYf+Yy-hg-CkVGRiG6VDPT=S7aw@mail.gmail.com>
- <20170815155617.GC3551@redhat.com> <CAOQ4uxh4y1AAcQvv_A71E38TAUE9+Zk2vSQisOE1E=QEs7N-Jw@mail.gmail.com>
- <CAJfpegvwXL01-6FPXcbKcPiOKj+LBp69-eHnhiJtuevQdKd4tQ@mail.gmail.com>
+Subject: Re: [PATCH v3 5/5] ovl: consistent st_ino/d_ino
+Date: Wed, 16 Aug 2017 13:16:06 +0200
+Message-ID: <CAOQ4uxij6+0Fde2gDCXaQ8ZhwuFXYjKGgjucQzpugkqiMON5Jg@mail.gmail.com>
+References: <1496307779-2766-1-git-send-email-amir73il@gmail.com>
+ <1496307779-2766-6-git-send-email-amir73il@gmail.com> <CAJfpeguF6aW6uNdZLaqQnyTo00rz7E=NBbHbYjSpKVcMCVu1dg@mail.gmail.com>
+ <CAOQ4uxiYVuhqbzmM0yx+3cUKhhzfrjBubHwKo6ro1FXedJ-Tqg@mail.gmail.com>
+ <CAJfpegumm16iy4v7vVkOOM0upvc=_jmuMxTiXn+cgEfi5c8FFw@mail.gmail.com>
+ <CAJfpeguKQbG-EZTziROiKy+2t6iQU3FEwfZmc9ezPX_voEyTmA@mail.gmail.com>
+ <CAJfpeguVYLdh5sc7-TCKVrdPdVGhxh3oSeP=EfN=nArh6wi_fA@mail.gmail.com>
+ <CAOQ4uxhXQi-7sNTYxpMnDJGHC95r2QFAaoeeY5GQYWCe30EZOA@mail.gmail.com>
+ <CAJfpegsCF8ZssutAe0yKEL4Bn1LZrMvqK5MXk8oQ7jj5fm0RtQ@mail.gmail.com>
+ <CAOQ4uxg+ZRwa4_SERh6a_yU=RHFBEAGwumSJTBhrXr+rETnWAQ@mail.gmail.com>
+ <CAJfpegtuepxej_o9Svb=4RoyLDryoKSXWts6_0PE79-ZjiRy0g@mail.gmail.com>
+ <CAOQ4uxgtBzq8_HtSfKxGNT3mx_erg3MHw09z-ZQ25GK3RJFk6w@mail.gmail.com>
+ <CAJfpeguKE2o=6bQm6q99oZXoP5w8Qt0qKZzbRDm7kGS0wYzvmA@mail.gmail.com>
+ <CAJfpeguM5eS2caT_k6wE++sSrBi9kGE1aLys5h6a5S+tQGJg6A@mail.gmail.com>
+ <CAOQ4uxif79cbhYJxgHzkG0jpNgginMimvfgm-iSXAnuRkmWUqw@mail.gmail.com>
+ <CAOQ4uxgcUGi7UdJZ5=d2dvUW1H902UEFYTGhqJ7njGmACzegZw@mail.gmail.com> <CAJfpegs1X_Se_yn3yzQtSyHpdbY8bnR0Nofom5eOfxFYH4hydg@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-oi0-f42.google.com ([209.85.218.42]:35779 "EHLO
-        mail-oi0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751943AbdHPLKr (ORCPT
+Received: from mail-oi0-f54.google.com ([209.85.218.54]:34414 "EHLO
+        mail-oi0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751888AbdHPLQH (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 16 Aug 2017 07:10:47 -0400
-Received: by mail-oi0-f42.google.com with SMTP id e124so32609379oig.2
-        for <linux-unionfs@vger.kernel.org>; Wed, 16 Aug 2017 04:10:47 -0700 (PDT)
-In-Reply-To: <CAJfpegvwXL01-6FPXcbKcPiOKj+LBp69-eHnhiJtuevQdKd4tQ@mail.gmail.com>
+        Wed, 16 Aug 2017 07:16:07 -0400
+Received: by mail-oi0-f54.google.com with SMTP id x3so32680043oia.1
+        for <linux-unionfs@vger.kernel.org>; Wed, 16 Aug 2017 04:16:07 -0700 (PDT)
+In-Reply-To: <CAJfpegs1X_Se_yn3yzQtSyHpdbY8bnR0Nofom5eOfxFYH4hydg@mail.gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: Vivek Goyal <vgoyal@redhat.com>, "zhangyi (F)" <yi.zhang@huawei.com>, overlayfs <linux-unionfs@vger.kernel.org>, miaoxie@huawei.com, Theodore Tso <tytso@mit.edu>
+Cc: Chandan Rajendra <chandan@linux.vnet.ibm.com>, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>
 
-On Wed, Aug 16, 2017 at 12:19 PM, Miklos Szeredi <miklos@szeredi.hu> wrote:
-> On Tue, Aug 15, 2017 at 6:16 PM, Amir Goldstein <amir73il@gmail.com> wrote:
->> On Tue, Aug 15, 2017 at 5:56 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
+On Mon, Jul 31, 2017 at 12:58 PM, Miklos Szeredi <miklos@szeredi.hu> wrote:
+> On Sat, Jul 29, 2017 at 12:33 PM, Amir Goldstein <amir73il@gmail.com> wrote:
+
 >
->>> IIUC, so now "chattr -p <id>" will fail on overlayfs (assume file has not
->>> been copied up yet).
->>>
->>
->> Yap.
->>
->>> IOW, on overlayfs, will it be responsibility of user space to make
->>> sure file has been copied up, for chattr operation to succeed? Does that
->>> mean we need to modify chattr to open file for WRITE instead of READ.
->>>
->>
->> I guess that would make sense.
->> I only wonder what was the reason for chattr to open RDONLY in
->> the first place (cc Ted)??
+>> One thing that stands out in "my" patch ("ovl: constant d_ino across copy up")
+>> The comments and commit message claim "When all layers are on the same fs",
+>> but the patch doesn't actually checks that.
 >
-> What about copy up of flags?  Should we?
+> I does in  ovl_cache_update_ino().   That check would be more logical
+> in ovl_calc_d_ino(), though.   Fixed.
+>
 
-IMO we should start with copying KSTAT_ATTR_FS_IOC_FLAGS,
-which can already be available in kstat.
-Other "standard" FS_IOC_FLAGS can be copied up when statx
-gets support for those flags.
-
-FYI, chattr [+/-]<flags> does:
-- fgetflags(&flags): {open OPEN_FLAGS; ioctl EXT2_IOC_GETFLAGS}
-- change flags
-- fsetflags(&flags): {open OPEN_FLAGS; ioctl EXT2_IOC_SETFLAGS}
-
-OPEN_FLAGS is defined independently in lib/e2p/f{get,set}flags.c as
-(O_RDONLY|O_NONBLOCK|O_LARGEFILE), so technically all it
-takes is to change the defined in  lib/e2p/fsetflags.c to O_RDWR
-and then chattr [+/-]<flags> can be used for preemptive "copy up flags"
-by userspace (*) to work around issues which require flags copy up.
-
-(*) At least with ext4 chattr would only "copy up" the
-EXT4_FL_USER_MODIFIABLE flags, which is probably for the best.
+I see the patches in overlayfs-next still don't have the ovl_same_sb()
+test in ovl_calc_d_ino(). I don't really mind.
+BTW, do you intend to apply/rework Chandan's non-samefs patches for next?
+if so, the current location of ovl_same_sb() really doesn't matter..
 
 Amir.
