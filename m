@@ -1,47 +1,45 @@
-From: Linus Torvalds <torvalds@linux-foundation.org>
-Subject: Re: [GIT PULL] overlayfs update for 4.14
-Date: Wed, 13 Sep 2017 09:25:25 -0700
-Message-ID: <CA+55aFzgQWNMc8Mx1SvCxt53wWJc67qB0uo95=VC1eivmG=YxA@mail.gmail.com>
-References: <20170913140528.GA19278@veci.piliscsaba.szeredi.hu>
+From: Amir Goldstein <amir73il@gmail.com>
+Subject: Re: v4.13 overlay fs: sometimes fails when creating or moving files
+Date: Sun, 10 Sep 2017 22:21:09 +0300
+Message-ID: <CAOQ4uxjEMJUGesER22p_wE2THejhNCobdcyOEZb5YffR9uKD2w@mail.gmail.com>
+References: <20170908143704.3c74d20f@localdomain> <CAOQ4uxjC+ONu9nj-BJ8XwuWU0ofq5ySd-YRmXdikQjPAXj3WuA@mail.gmail.com>
+ <CACTE=goi1H-rEKA4_2iZTsaW9k9k+kMCgnzWcZJBt4+-M93pmg@mail.gmail.com>
+ <CAOQ4uxhKy1uWarTyAQqXmvk5nPsLYEsb1zgfSaSv-mcxby0+6g@mail.gmail.com> <CACTE=gp1JRmVtY_SR4YRx5CsPPFrrPsgbxq=JYH_VYRq8rQZsw@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20170913140528.GA19278@veci.piliscsaba.szeredi.hu>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Miklos Szeredi <miklos@szeredi.hu>, Al Viro <viro@zeniv.linux.org.uk>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, linux-unionfs@vger.kernel.org
+Return-path: <linux-unionfs-owner@vger.kernel.org>
+Received: from mail-yw0-f169.google.com ([209.85.161.169]:33211 "EHLO
+        mail-yw0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751520AbdIJTVK (ORCPT
+        <rfc822;linux-unionfs@vger.kernel.org>);
+        Sun, 10 Sep 2017 15:21:10 -0400
+Received: by mail-yw0-f169.google.com with SMTP id s62so17760944ywg.0
+        for <linux-unionfs@vger.kernel.org>; Sun, 10 Sep 2017 12:21:10 -0700 (PDT)
+In-Reply-To: <CACTE=gp1JRmVtY_SR4YRx5CsPPFrrPsgbxq=JYH_VYRq8rQZsw@mail.gmail.com>
+Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
+To: Jordi Pujol <jordipujolp@gmail.com>
+Cc: overlayfs <linux-unionfs@vger.kernel.org>
 
-On Wed, Sep 13, 2017 at 7:05 AM, Miklos Szeredi <miklos@szeredi.hu> wrote:
+On Sun, Sep 10, 2017 at 5:10 PM, Jordi Pujol <jordipujolp@gmail.com> wrote:
+> This error disappears after installing 4.13.1, but other problems have
+> arised when unmounting some kind of filesystems.
 >
-> There are also some bug fixes, one in particular (random ioctl's shouldn't be
-> able to modify lower layers) that touches some vfs code, but of course no-op for
-> non-overlay fs.
 
-Argh. I _despise_ those changes to 'd_real()'.
+That is strage, because I see nothing fs related in v4.13..v4.13.1
+which umount problems are you referring to?
 
-I reall ythink you should have made it a bit in the f_flags argument
-instead. The whole "pick the upper file" is _very_ similar to the
-file->f_flags bits conceptually - those change how accesses are done
-in other ways (eg O_DIRECT etc), and it's entirely possible that some
-day maybe you'd even want to expose it to user space as a O_UPPER flag
-to open (which would then only succeed if the file is in the upper
-overlay, and never open the lower filesystem).
+> Maybe it was not an overlayfs error.
+>
 
-So adding _another_ field that is only for overlayfs and makes
-absolutely no sense in any other context is nasty. It's wrong. That's
-not a "VFS layer interface" any more. It's just an ugly hack that
-makes no sense outside of overlayfs.
+Ehm.. maybe, but considering the changes in overlayfs for v4.13
+I cannot rule out that we missed some subtle race with overlay inode
+cache that would change behavior.
 
-Try to make it something that makes conceptual sense, and isn't just
-an overlayfs issue. For example, maybe for cachefs the bit could mean
-"give me the cached copy without doing validation or looking anything
-new up". Try to make it something that actually makes sense from a
-higher-level perspective, where overlayfs is just one implementation,
-not the driving force. See what I'm saying? THAT is what VFS layer
-interfaces should all be about, not about "this one specific
-filesystem needs this one specific f*cking ugly hack".
+Also, I did not test much with lower fs that does not support file handles,
+and that is the case in your setup, so there might be a bug hiding there.
 
-I've pulled it, but I really think you should change this.
+Please keep us posted if the errors make a comeback.
 
-                Linus
+Thanks,
+Amir.
