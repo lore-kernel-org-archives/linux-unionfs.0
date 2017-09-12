@@ -1,97 +1,80 @@
-From: "zhangyi (F)" <yi.zhang@huawei.com>
-Subject: Re: two questiones about overlayfs
-Date: Tue, 12 Sep 2017 09:07:46 +0800
-Message-ID: <b3c2414a-8d60-7436-3ae8-db5f6a7f8766@huawei.com>
-References: <b68bea1b-4b51-8573-cf8a-06da4c41ed00@huawei.com>
- <CAOQ4uxgshQQcXmt5arJTdmACo2=agViFtTDGJ3kMxPbgX-QQMw@mail.gmail.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Subject: Re: [PATCH] ovl: fix false negative ESTALE on lookup
+Date: Tue, 12 Sep 2017 10:00:40 +0300
+Message-ID: <CAOQ4uxg2tztSgLUxG8=f3R5KjPon-Nx1SAC7e9sE3ZxcqsBNRw@mail.gmail.com>
+References: <1505136615-26604-1-git-send-email-amir73il@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from szxga05-in.huawei.com ([45.249.212.191]:6027 "EHLO
-        szxga05-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750987AbdILBIu (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 11 Sep 2017 21:08:50 -0400
-In-Reply-To: <CAOQ4uxgshQQcXmt5arJTdmACo2=agViFtTDGJ3kMxPbgX-QQMw@mail.gmail.com>
-Sender: linux-unionfs-owner@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <1505136615-26604-1-git-send-email-amir73il@gmail.com>
+Sender: stable-owner@vger.kernel.org
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: Jordi Pujol <jordipujolp@gmail.com>, overlayfs <linux-unionfs@vger.kernel.org>, "# v4 . 13" <stable@vger.kernel.org>
 List-Id: linux-unionfs@vger.kernel.org
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: overlayfs <linux-unionfs@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>, miaoxie@huawei.com
 
-On 2017/9/11 21:34, Amir Goldstein Wrote:
-> On Mon, Aug 7, 2017 at 10:57 AM, zhangyi (F) <yi.zhang@huawei.com> wrote:
->> Hi,all:
->> I found two problemes about overlayfs, please let me know what you think:
->>
->> 1. Cannot update upper dir's access time.
->> Reproduce:
->> # mkdir lower upper worker merger
->> # mkdir upper/dir
->> # mount -t overlay -o lowerdir=lower,upperdir=upper,workdir=worker overlayfs merger
->> # ls mrger/dir
->> # stat mrger/dir
->>   Access: 2017-08-07 11:03:56.364771584 -0400
->>   Modify: 2017-08-07 11:01:52.319771584 -0400
->>   Change: 2017-08-07 11:01:52.319771584 -0400
->> # touch mrger/dir/aa
->> # stat mrger/dir
->>   Access: 2017-08-07 11:03:56.364771584 -0400
->>   Modify: 2017-08-07 11:05:33.969771584 -0400
->>   Change: 2017-08-07 11:05:33.969771584 -0400
->> # ls mrger/dir
->> # stat mrger/dir
->>   Access: 2017-08-07 11:03:56.364771584 -0400
->>   Modify: 2017-08-07 11:05:33.969771584 -0400
->>   Change: 2017-08-07 11:05:33.969771584 -0400
->>
->> I find the reason of this problem is in update_ovl_inode_times():
->> (598e3c8f7 "vfs: update ovl inode before relatime check")
->>
->> static void update_ovl_inode_times(struct dentry *dentry, struct inode *inode,
->>                                bool rcu)
->> {
->>         if (!rcu) {
->>                 struct inode *realinode = d_real_inode(dentry);
->>
->>         *d_real_inode() cannot get dir's real inode, so i_mtime always equal to i_ctime*
->>         *an not updated*
->>
->>                 if (unlikely(inode != realinode) &&
->>                     (!timespec_equal(&inode->i_mtime, &realinode->i_mtime) ||
->>                      !timespec_equal(&inode->i_ctime, &realinode->i_ctime))) {
->>                         inode->i_mtime = realinode->i_mtime;
->>                         inode->i_ctime = realinode->i_ctime;
->>                 }
->>         }
->> }
->>
->> 2. Chattr will modify lower file's attributes directly.
->> Reproduce:
->> # mkdir lower upper worker merger
->> # touch lower/aa
->> # lsattr -p lower/aa
->>     0 --------------e---- lower/aa
->> # mount -t overlay -o lowerdir=lower,upperdir=upper,workdir=worker overlayfs merger
->> # chattr -p 123 merger/aa             #set project id
->> # lsattr -p lower/aa
->>   123 --------------e---- lower/aa
->>
->> If we try to set "immutable" or any other attributes, the result are consistent.
->> Because chattr open file in RDONLY mode, so it will not trigger copyup, and then,
->> FS_IOC_SETFLAGS ioctl will get the lower inode and modify it. By the way,
->> ovl's directory not support ioctl now, so we fail to change dir's attributes.
->>
->> Do you think these two "problemes" need to fix or should avoid ?
->>
-> 
-> ZhangYi,
-> 
-> Now that fixes for the 2 issues you reported are in overlayfs-next,
-> could you send those 2 reproducers as xfstests?
+Title should be false positive, and in commit message as well,
+but feel free to change the title to better explain the issue.
+
+On Mon, Sep 11, 2017 at 4:30 PM, Amir Goldstein <amir73il@gmail.com> wrote:
+> Commit b9ac5c274b8c ("ovl: hash overlay non-dir inodes by copy up
+> origin") verifies that the origin lower inode stored in the overlayfs
+> inode matched the inode of a copy up origin dentry found by lookup.
 >
-
-Yes, I saw the patches and looks good to me. I will send those two reproducers soon, thanks.
-
-Thanks,
-ZhangYi.
+> There is a false negative result in that check when lower fs does
+> not support file handles and copy up origin cannot be followed by
+> file handle at lookup time.
+>
+> The false negative happens when finding an overlay inode in cache on
+> a copied up overlay dentry lookup. The overlay inode still 'remembers'
+> the copy up origin inode, but the copy up origin dentry is not available
+> for verification.
+>
+> Relax the check in case copy up origin dentry is not available.
+>
+> Fixes: b9ac5c274b8c ("ovl: hash overlay non-dir inodes by copy up...")
+> Cc: <stable@vger.kernel.org> # v4.13
+> Reported-by: Jordi Pujol <jordipujolp@gmail.com>
+> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+> ---
+>
+> Miklos,
+>
+> This is a fix for the v4.13 issue of overlayfs over squashfs
+> reported by Jordi.
+>
+> I added run --squashfs option to unionmount-testsuite:
+> https://github.com/amir73il/unionmount-testsuite/commits/overlayfs-devel
+>
+> The test 'run --squashfs hard-link' fails on kernel v4.13.
+>
+> Amir.
+>
+>
+>  fs/overlayfs/inode.c | 11 +++++++----
+>  1 file changed, 7 insertions(+), 4 deletions(-)
+>
+> diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
+> index aecaadc8f9e7..a619addecafc 100644
+> --- a/fs/overlayfs/inode.c
+> +++ b/fs/overlayfs/inode.c
+> @@ -579,10 +579,13 @@ static int ovl_inode_set(struct inode *inode, void *data)
+>  static bool ovl_verify_inode(struct inode *inode, struct dentry *lowerdentry,
+>                              struct dentry *upperdentry)
+>  {
+> -       struct inode *lowerinode = lowerdentry ? d_inode(lowerdentry) : NULL;
+> -
+> -       /* Lower (origin) inode must match, even if NULL */
+> -       if (ovl_inode_lower(inode) != lowerinode)
+> +       /*
+> +        * Allow non-NULL lower inode in ovl_inode even if lowerdentry is NULL.
+> +        * This happens when finding a copied up overlay inode for a renamed
+> +        * or hardlinked overlay dentry and lower dentry cannot be followed
+> +        * by origin because lower fs does not support file handles.
+> +        */
+> +       if (lowerdentry && ovl_inode_lower(inode) != d_inode(lowerdentry))
+>                 return false;
+>
+>         /*
+> --
+> 2.7.4
+>
