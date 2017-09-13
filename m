@@ -1,136 +1,68 @@
-From: Jordi Pujol <jordipujolp@gmail.com>
-Subject: Re: ovl: mounting two times the same mount overlayfs will not list
- any directory entry anymore
-Date: Tue, 12 Sep 2017 15:04:41 +0200
-Message-ID: <CACTE=goZ_TCDh7wEoLe_CRFvNLzsN2k_m46G-nGCB38C6=P_Eg@mail.gmail.com>
-References: <20170912113853.05b08228@localdomain> <CAOQ4uxgEShUQzf5Spu69qrV5BfZ8t_ibLbpAF0t8N8nHH4Qv8Q@mail.gmail.com>
+From: Miklos Szeredi <miklos@szeredi.hu>
+Subject: [GIT PULL] overlayfs update for 4.14
+Date: Wed, 13 Sep 2017 16:05:28 +0200
+Message-ID: <20170913140528.GA19278@veci.piliscsaba.szeredi.hu>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="001a11352d32c693c00558fdaf1d"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-io0-f174.google.com ([209.85.223.174]:37131 "EHLO
-        mail-io0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751289AbdILNEn (ORCPT
+Received: from mail-wr0-f193.google.com ([209.85.128.193]:35938 "EHLO
+        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751062AbdIMOFg (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 12 Sep 2017 09:04:43 -0400
-Received: by mail-io0-f174.google.com with SMTP id j141so46296311ioj.4
-        for <linux-unionfs@vger.kernel.org>; Tue, 12 Sep 2017 06:04:43 -0700 (PDT)
-In-Reply-To: <CAOQ4uxgEShUQzf5Spu69qrV5BfZ8t_ibLbpAF0t8N8nHH4Qv8Q@mail.gmail.com>
+        Wed, 13 Sep 2017 10:05:36 -0400
+Received: by mail-wr0-f193.google.com with SMTP id g50so172674wra.3
+        for <linux-unionfs@vger.kernel.org>; Wed, 13 Sep 2017 07:05:36 -0700 (PDT)
+Content-Disposition: inline
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: overlayfs <linux-unionfs@vger.kernel.org>, Andrei Vagin <avagin@openvz.org>, "Eric W. Biederman" <ebiederm@xmission.com>, Ram Pai <linuxram@us.ibm.com>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org
 
---001a11352d32c693c00558fdaf1d
-Content-Type: text/plain; charset="UTF-8"
+Hi Linus,
 
-On Tue, Sep 12, 2017 at 12:47 PM, Amir Goldstein <amir73il@gmail.com> wrote:
+Please pull from:
 
-> So is this reproducible at every run with v4.13?
-yes,
+  git://git.kernel.org/pub/scm/linux/kernel/git/mszeredi/vfs.git overlayfs-linus
 
-> Are you able to try this without overlayfs? i.e. chroot to squashfs mount?
-I have found the same in 4.12 when mounting only one squashfs image.
-Therefore we could say that when working with previous versions
-overlayfs was solving the problem in some way.
+This fixes d_ino correctness in readdir, which brings overlayfs on par with
+normal filesystems regarding inode number semantics, as long as all layers are
+on the same filesystem.
 
-> I am guessing there is nothing important in upper layer when this error occurs,
-> Am I right? does script need write to chroot path before this error occurs?
-Correct, there is no need to write or enter in the chroot, only repeat
-the mount command.
+There are also some bug fixes, one in particular (random ioctl's shouldn't be
+able to modify lower layers) that touches some vfs code, but of course no-op for
+non-overlay fs.
 
 Thanks,
+Miklos
 
-Jordi Pujol
+---
+Amir Goldstein (2):
+      ovl: constant d_ino across copy up
+      ovl: fix false positive ESTALE on lookup
 
---001a11352d32c693c00558fdaf1d
-Content-Type: text/plain; charset="US-ASCII"; name="notes-4.12-mount-over-same-mount.txt"
-Content-Disposition: attachment;
-	filename="notes-4.12-mount-over-same-mount.txt"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_j7hlyt1b0
+Miklos Szeredi (7):
+      ovl: check snprintf return
+      ovl: fix readdir error value
+      ovl: constant d_ino for non-merge dirs
+      ovl: cleanup d_real for negative
+      vfs: add flags to d_real()
+      ovl: fix relatime for directories
+      ovl: don't allow writing ioctl on lower layer
 
-IyB1bmFtZSAtYQpMaW51eCBwY2pvcmRpIDQuMTIuMTEtMS1oYXN3ZWxsLWxuZXQtYW1kNjQgIzEg
-U01QIFBSRUVNUFQgVGh1IFNlcCA3IDEyOjI3OjAyIENFU1QgMjAxNyB4ODZfNjQgR05VL0xpbnV4
-CnJvb3RAcGNqb3JkaTp+IyBjZCAvdG1wLwpyb290QHBjam9yZGk6dG1wIyBta2RpciBmcwpyb290
-QHBjam9yZGk6dG1wIyBtb3VudCAtbyBsb29wLHJvIC9sbmV0L2ltYWdlL0xuZVRMWFFUNjQvMDBm
-aWxlc3lzdGVtLnNxdWFzaGZzIC90bXAvZnMvCnJvb3RAcGNqb3JkaTp0bXAjIG1vdW50IC1vIGJp
-bmQgL3RtcCAvdG1wL2ZzL3RtcC8Kcm9vdEBwY2pvcmRpOnRtcCMgbHMgLWxBIC90bXAvZnMvCnRv
-dGFsIDAKZHJ3eHIteHIteCAgMiByb290IHJvb3QgMTkyNSBTZXAgIDUgMTE6MDAgYmluCmRyd3hy
-LXhyLXggIDIgcm9vdCByb290ICAxOTYgU2VwIDEwIDA5OjU5IGJvb3QKZHJ3eHIteHIteCAgMiBy
-b290IHJvb3QgICAgMyBTZXAgMTAgMDk6MjIgZGV2CmRyd3hyLXhyLXggOTcgcm9vdCByb290IDI4
-NjcgU2VwIDEwIDA5OjU4IGV0Ywpkcnd4ci14ci14ICAyIHJvb3Qgcm9vdCAgICAzIFNlcCAxMCAw
-OToyNCBob21lCmxyd3hyd3hyd3ggIDEgcm9vdCByb290ICAgNDUgU2VwICA3IDEzOjU3IGluaXRy
-ZC5pbWcgLT4gL2Jvb3QvaW5pdHJkLmltZy00LjEyLjExLTEtaGFzd2VsbC1sbmV0LWFtZDY0CmRy
-d3hyLXhyLXggMTIgcm9vdCByb290ICAyOTAgSnVsICA1IDExOjU0IGxpYgpkcnd4ci14ci14ICAy
-IHJvb3Qgcm9vdCAgIDQzIEF1ZyAzMSAwOTo1NSBsaWI2NApkcnd4ci14ci14ICAyIHJvb3Qgcm9v
-dCAgICAzIEZlYiAgNiAgMjAxNyBtZWRpYQpkcnd4ci14ci14ICAyIHJvb3Qgcm9vdCAgICAzIEZl
-YiAgNiAgMjAxNyBtbnQKZHJ3eHIteHIteCAgMiByb290IHJvb3QgICAgMyBGZWIgIDYgIDIwMTcg
-b3B0CmRyLXhyLXhyLXggIDIgcm9vdCByb290ICAgIDMgU2VwIDEwIDA5OjIyIHByb2MKZHJ3eC0t
-LS0tLSAgMiByb290IHJvb3QgICAgMyBTZXAgMTAgMDk6MjQgcm9vdApkcnd4ci14ci14ICAyIHJv
-b3Qgcm9vdCAgICAzIFNlcCAxMCAwOToyNCBydW4KZHJ3eHIteHIteCAgMiByb290IHJvb3QgMjA4
-NSBTZXAgIDUgMTE6MDAgc2Jpbgpkcnd4ci14ci14ICAyIHJvb3Qgcm9vdCAgICAzIEZlYiAgNiAg
-MjAxNyBzcnYKZHIteHIteHIteCAgMiByb290IHJvb3QgICAgMyBTZXAgMTAgMDk6MjIgc3lzCmRy
-d3hyd3hyd3QgMTEgcm9vdCByb290ICAyNjAgU2VwIDEyIDE0OjQyIHRtcApkcnd4ci14ci14IDEw
-IHJvb3Qgcm9vdCAgMTYyIEZlYiAgNiAgMjAxNyB1c3IKZHJ3eHIteHIteCAxMSByb290IHJvb3Qg
-IDE4NCBGZWIgIDYgIDIwMTcgdmFyCmxyd3hyd3hyd3ggIDEgcm9vdCByb290ICAgNDEgU2VwICA3
-IDEzOjU3IHZtbGludXogLT4gYm9vdC92bWxpbnV6LTQuMTIuMTEtMS1oYXN3ZWxsLWxuZXQtYW1k
-NjQKcm9vdEBwY2pvcmRpOnRtcCMgbW91bnQgLW8gYmluZCAvdG1wIC90bXAvZnMvdG1wLwpyb290
-QHBjam9yZGk6dG1wIyBscyAtbEEgL3RtcC9mcy8KdG90YWwgMApyb290QHBjam9yZGk6dG1wIyBt
-b3VudC1saXN0IApzeXNmcwkvc3lzCXN5c2ZzCW5vZGV2LG5vZXhlYyxub3N1aWQscmVsYXRpbWUs
-cncJc3lzZnMJMDoxNwpwcm9jCS9wcm9jCXByb2MJbm9kZXYsbm9leGVjLG5vc3VpZCxyZWxhdGlt
-ZSxydwlwcm9jCTA6NQp1ZGV2CS9kZXYJZGV2dG1wZnMJbW9kZT03NTUsbm9zdWlkLG5yX2lub2Rl
-cz05Nzg3NzgscmVsYXRpbWUscncsc2l6ZT0zOTE1MTEyawl1ZGV2CTA6NgpkZXZwdHMJL2Rldi9w
-dHMJZGV2cHRzCWdpZD01LG1vZGU9NjIwLG5vZXhlYyxub3N1aWQscHRteG1vZGU9MDAwLHJlbGF0
-aW1lLHJ3CWRldnB0cwkwOjE4CnRtcGZzCS9ydW4JdG1wZnMJbW9kZT03NTUsbm9leGVjLG5vc3Vp
-ZCxyZWxhdGltZSxydyxzaXplPTc4NjE2NGsJdG1wZnMJMDoxOQp0bXBmcwkvbG5ldAl0bXBmcwlt
-b2RlPTc1NSxyZWxhdGltZSxydyxzaXplPTc4NjE2MzJrCXRtcGZzCTA6MjAKL2Rldi9zZGExCS9s
-bmV0L2ltYWdlCWV4dDIJZXJyb3JzPWNvbnRpbnVlLG5vYWNsLG5vYXRpbWUsbm91c2VyX3hhdHRy
-LHJvCS9kZXYvc2RhMQk4OjEKL2xuZXQvaW1hZ2UvTG5lVFhGQ0U2NC8wMGZpbGVzeXN0ZW0uc3F1
-YXNoZnMJL2xuZXQvMDBmaWxlc3lzdGVtLnNxdWFzaGZzCXNxdWFzaGZzCW5vYXRpbWUscm8sbG9v
-cD0vZGV2L2xvb3AwCS9kZXYvbG9vcDAJNzowCi9sbmV0L2ltYWdlL0xuZVRYRkNFNjQvMTBpbnRl
-cmZhY2VzLnNxdWFzaGZzCS9sbmV0LzEwaW50ZXJmYWNlcy5zcXVhc2hmcwlzcXVhc2hmcwlub2F0
-aW1lLHJvLGxvb3A9L2Rldi9sb29wMQkvZGV2L2xvb3AxCTc6MQovZGV2L3NkYTIJL2xuZXQvY293
-cm9vdAlleHQ0CWRhdGE9b3JkZXJlZCxyZWxhdGltZSxydwkvZGV2L3NkYTIJODoyCm92ZXJsYXkJ
-LwlvdmVybGF5CWxvd2VyZGlyPS9sbmV0LzAwZmlsZXN5c3RlbS5zcXVhc2hmczovbG5ldC8xMGlu
-dGVyZmFjZXMuc3F1YXNoZnMscmVsYXRpbWUscncsdXBwZXJkaXI9L2xuZXQvY293cm9vdC9MbmVU
-WEZDRUNPVy91cHBlcix3b3JrZGlyPS9sbmV0L2Nvd3Jvb3QvTG5lVFhGQ0VDT1cvd29yawlvdmVy
-bGF5CTA6MjEKdG1wZnMJL3RtcAl0bXBmcwlub2Rldixub3N1aWQscmVsYXRpbWUscncsc2l6ZT03
-ODYxNjMyayxtb2RlPTE3NzcJdG1wZnMJMDoyMgp0bXBmcwkvdmFyL2xvZwl0bXBmcwltb2RlPTc1
-NSxub3N1aWQscmVsYXRpbWUscncsc2l6ZT03ODYxNjMyawl0bXBmcwkwOjIzCnRtcGZzCS92YXIv
-dG1wCXRtcGZzCW5vZGV2LG5vc3VpZCxyZWxhdGltZSxydyxzaXplPTc4NjE2MzJrLG1vZGU9MTc3
-Nwl0bXBmcwkwOjI0CnNlY3VyaXR5ZnMJL3N5cy9rZXJuZWwvc2VjdXJpdHkJc2VjdXJpdHlmcwlu
-b2Rldixub2V4ZWMsbm9zdWlkLHJlbGF0aW1lLHJ3CXNlY3VyaXR5ZnMJMDo3CnRtcGZzCS9kZXYv
-c2htCXRtcGZzCW5vZGV2LG5vc3VpZCxydyxtb2RlPTE3NzcJdG1wZnMJMDoyNQp0bXBmcwkvcnVu
-L2xvY2sJdG1wZnMJbm9kZXYsbm9leGVjLG5vc3VpZCxyZWxhdGltZSxydyxzaXplPTUxMjBrLG1v
-ZGU9MTc3Nwl0bXBmcwkwOjI2CnRtcGZzCS9zeXMvZnMvY2dyb3VwCXRtcGZzCW1vZGU9NzU1LG5v
-ZGV2LG5vZXhlYyxub3N1aWQscm8JdG1wZnMJMDoyNwpjZ3JvdXAJL3N5cy9mcy9jZ3JvdXAvdW5p
-ZmllZAljZ3JvdXAyCW5vZGV2LG5vZXhlYyxub3N1aWQscmVsYXRpbWUscncJY2dyb3VwCTA6MjgK
-Y2dyb3VwCS9zeXMvZnMvY2dyb3VwL3N5c3RlbWQJY2dyb3VwCW5hbWU9c3lzdGVtZCxub2Rldixu
-b2V4ZWMsbm9zdWlkLHJlbGF0aW1lLHJ3LHhhdHRyCWNncm91cAkwOjI5CnBzdG9yZQkvc3lzL2Zz
-L3BzdG9yZQlwc3RvcmUJbm9kZXYsbm9leGVjLG5vc3VpZCxyZWxhdGltZSxydwlwc3RvcmUJMDoz
-MApjZ3JvdXAJL3N5cy9mcy9jZ3JvdXAvY3B1CWNncm91cAljcHUsbm9kZXYsbm9leGVjLG5vc3Vp
-ZCxyZWxhdGltZSxydwljZ3JvdXAJMDozMQpzeXN0ZW1kLTEJL3Byb2Mvc3lzL2ZzL2JpbmZtdF9t
-aXNjCWF1dG9mcwlkaXJlY3QsZmQ9MzMsbWF4cHJvdG89NSxtaW5wcm90bz01LHBncnA9MSxyZWxh
-dGltZSxydyx0aW1lb3V0PTAJc3lzdGVtZC0xCTA6MzIKL2xuZXQvY293cm9vdC9MbmVUWEZDRWhv
-bWUJL2hvbWUJbm9uZQlydyxiaW5kCS9kZXYvc2RhMgk4OjIKL2xuZXQvaW1hZ2UvTG5lVFhGQ0U2
-NAkvYm9vdAlub25lCXJvLGJpbmQJL2Rldi9zZGExCTg6MQptcXVldWUJL2Rldi9tcXVldWUJbXF1
-ZXVlCXJlbGF0aW1lLHJ3CW1xdWV1ZQkwOjE2CmRlYnVnZnMJL3N5cy9rZXJuZWwvZGVidWcJZGVi
-dWdmcwlyZWxhdGltZSxydwlkZWJ1Z2ZzCTA6OApodWdldGxiZnMJL2Rldi9odWdlcGFnZXMJaHVn
-ZXRsYmZzCXJlbGF0aW1lLHJ3CWh1Z2V0bGJmcwkwOjMzCi9sbmV0L2ltYWdlL2dydWIJL2Jvb3Qv
-Z3J1Yglub25lCXJvLGJpbmQJL2Rldi9zZGExCTg6MQovbG5ldC9pbWFnZS9ncnViCS9sbmV0L2lt
-YWdlL0xuZVRYRkNFNjQvZ3J1Yglub25lCXJvLGJpbmQJL2Rldi9zZGExCTg6MQovbG5ldC9jb3dy
-b290L0pQTGl2ZQkvaG9tZS9KUExpdmUJbm9uZQlydyxiaW5kCS9kZXYvc2RhMgk4OjIKL2xuZXQv
-Y293cm9vdC9KUExpdmUJL2xuZXQvY293cm9vdC9MbmVUWEZDRWhvbWUvSlBMaXZlCW5vbmUJcncs
-YmluZAkvZGV2L3NkYTIJODoyCi9sbmV0L2Nvd3Jvb3QvTG5lVFhGQ0Vob21lL3Jvb3QJL3Jvb3QJ
-bm9uZQlydyxiaW5kCS9kZXYvc2RhMgk4OjIKL2xuZXQvY293cm9vdC9KUExpdmUvdmFyLXNwb29s
-CS92YXIvc3Bvb2wJbm9uZQlydyxiaW5kCS9kZXYvc2RhMgk4OjIKL2xuZXQvY293cm9vdC9KUExp
-dmUvYXB0LWNhY2hlLWFtZDY0CS92YXIvY2FjaGUvYXB0CW5vbmUJcncsYmluZAkvZGV2L3NkYTIJ
-ODoyCi9sbmV0L2Nvd3Jvb3QvSlBMaXZlL2FwdC1saWItYW1kNjQJL3Zhci9saWIvYXB0CW5vbmUJ
-cncsYmluZAkvZGV2L3NkYTIJODoyCnRtcGZzCS9ydW4vdXNlci8xMDAxCXRtcGZzCWdpZD0xMDAs
-bW9kZT03MDAsbm9kZXYsbm9zdWlkLHJlbGF0aW1lLHJ3LHNpemU9Nzg2MTYwayx1aWQ9MTAwMQl0
-bXBmcwkwOjM3Ci9sbmV0L2ltYWdlL0xuZVRMWFFUNjQvMDBmaWxlc3lzdGVtLnNxdWFzaGZzCS90
-bXAvZnMJc3F1YXNoZnMJcmVsYXRpbWUscm8sbG9vcD0vZGV2L2xvb3AyCS9kZXYvbG9vcDIJNzoy
-Ci90bXAvCS90bXAvZnMvdG1wCW5vbmUJcncsYmluZAl0bXBmcwkwOjIyCi90bXAvCS90bXAvZnMv
-dG1wCW5vbmUJcncsYmluZAl0bXBmcwkwOjIyCi90bXAvCS90bXAJbm9uZQlydyxiaW5kCXRtcGZz
-CTA6MjIK
---001a11352d32c693c00558fdaf1d--
+---
+ Documentation/filesystems/Locking |   2 +-
+ Documentation/filesystems/vfs.txt |   2 +-
+ fs/inode.c                        |  21 ++-
+ fs/internal.h                     |   2 +
+ fs/namespace.c                    |  64 ++++++-
+ fs/open.c                         |   8 +-
+ fs/overlayfs/dir.c                |  11 +-
+ fs/overlayfs/inode.c              |  14 +-
+ fs/overlayfs/overlayfs.h          |   8 +-
+ fs/overlayfs/readdir.c            | 383 ++++++++++++++++++++++++++++++++++----
+ fs/overlayfs/super.c              |  11 +-
+ fs/overlayfs/util.c               |  24 ++-
+ fs/xattr.c                        |   9 +-
+ include/linux/dcache.h            |  14 +-
+ include/linux/fs.h                |   2 +-
+ 15 files changed, 496 insertions(+), 79 deletions(-)
