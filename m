@@ -1,54 +1,47 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH 3/4] ovl: fix dput() of ERR_PTR in ovl_cleanup_index()
-Date: Mon, 25 Sep 2017 12:36:20 +0300
-Message-ID: <1506332181-19319-4-git-send-email-amir73il@gmail.com>
+Subject: [PATCH 1/4] ovl: fix may_write_real() for overlayfs directories
+Date: Mon, 25 Sep 2017 12:36:18 +0300
+Message-ID: <1506332181-19319-2-git-send-email-amir73il@gmail.com>
 References: <1506332181-19319-1-git-send-email-amir73il@gmail.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wm0-f65.google.com ([74.125.82.65]:32772 "EHLO
-        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934391AbdIYJfy (ORCPT
+Received: from mail-wr0-f193.google.com ([209.85.128.193]:33709 "EHLO
+        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S934391AbdIYJfw (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 25 Sep 2017 05:35:54 -0400
+        Mon, 25 Sep 2017 05:35:52 -0400
+Received: by mail-wr0-f193.google.com with SMTP id b9so1615481wra.0
+        for <linux-unionfs@vger.kernel.org>; Mon, 25 Sep 2017 02:35:51 -0700 (PDT)
 In-Reply-To: <1506332181-19319-1-git-send-email-amir73il@gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: linux-unionfs@vger.kernel.org, "# v4 . 13" <stable@vger.kernel.org>
+Cc: linux-unionfs@vger.kernel.org
 
-Fixes: caf70cb2ba5d ("ovl: cleanup orphan index entries")
-Cc: <stable@vger.kernel.org> # v4.13
+Overlayfs directory file_inode() is the overlay inode whether the real
+inode is upper or lower.
+
+This fixes a regression in xfstest generic/158.
+
+Fixes: 7c6893e3c9ab ("ovl: don't allow writing ioctl on lower layer")
 Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- fs/overlayfs/util.c | 9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+ fs/namespace.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
-index 117794582f9f..a1bf81d352b4 100644
---- a/fs/overlayfs/util.c
-+++ b/fs/overlayfs/util.c
-@@ -430,7 +430,7 @@ void ovl_inuse_unlock(struct dentry *dentry)
- 	}
- }
+diff --git a/fs/namespace.c b/fs/namespace.c
+index 54059b142d6b..3b601f115b6c 100644
+--- a/fs/namespace.c
++++ b/fs/namespace.c
+@@ -468,7 +468,9 @@ static inline int may_write_real(struct file *file)
  
--/* Called must hold OVL_I(inode)->oi_lock */
-+/* Caller must hold OVL_I(inode)->lock */
- static void ovl_cleanup_index(struct dentry *dentry)
- {
- 	struct inode *dir = ovl_indexdir(dentry->d_sb)->d_inode;
-@@ -466,9 +466,12 @@ static void ovl_cleanup_index(struct dentry *dentry)
- 	inode_lock_nested(dir, I_MUTEX_PARENT);
- 	/* TODO: whiteout instead of cleanup to block future open by handle */
- 	index = lookup_one_len(name.name, ovl_indexdir(dentry->d_sb), name.len);
--	err = PTR_ERR(index);
--	if (!IS_ERR(index))
-+	if (!IS_ERR(index)) {
- 		err = ovl_cleanup(dir, index);
-+	} else {
-+		err = PTR_ERR(index);
-+		index = NULL;
-+	}
- 	inode_unlock(dir);
- 	if (err)
- 		goto fail;
+ 	/* File refers to upper, writable layer? */
+ 	upperdentry = d_real(dentry, NULL, 0, D_REAL_UPPER);
+-	if (upperdentry && file_inode(file) == d_inode(upperdentry))
++	if (upperdentry &&
++	    (file_inode(file) == d_inode(upperdentry) ||
++	     file_inode(file) == d_inode(dentry)))
+ 		return 0;
+ 
+ 	/* Lower layer: can't write to real file, sorry... */
 -- 
 2.7.4
