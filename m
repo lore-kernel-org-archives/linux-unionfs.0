@@ -1,51 +1,40 @@
-From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [PATCH 0/4] assorted overlayfs fixes for v4.14-rc3
-Date: Mon, 25 Sep 2017 17:06:20 +0300
-Message-ID: <CAOQ4uxgS-61nCPo+qVU+MnesKamw_AFArrieEiyGLjjBBFNjXg@mail.gmail.com>
-References: <1506332181-19319-1-git-send-email-amir73il@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+From: Hirofumi Nakagawa <nklabs@gmail.com>
+Subject: [PATCH] ovl: add NULL check in ovl_alloc_inode
+Date: Tue, 26 Sep 2017 03:09:53 +0900
+Message-ID: <20170925180953.10587-1-nklabs@gmail.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-yw0-f195.google.com ([209.85.161.195]:34817 "EHLO
-        mail-yw0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932698AbdIYOG0 (ORCPT
+Received: from mail-pg0-f68.google.com ([74.125.83.68]:33496 "EHLO
+        mail-pg0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S935034AbdIYSIt (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 25 Sep 2017 10:06:26 -0400
-Received: by mail-yw0-f195.google.com with SMTP id u134so3508265ywu.2
-        for <linux-unionfs@vger.kernel.org>; Mon, 25 Sep 2017 07:06:25 -0700 (PDT)
-In-Reply-To: <1506332181-19319-1-git-send-email-amir73il@gmail.com>
+        Mon, 25 Sep 2017 14:08:49 -0400
+Received: by mail-pg0-f68.google.com with SMTP id i130so5261763pgc.0
+        for <linux-unionfs@vger.kernel.org>; Mon, 25 Sep 2017 11:08:49 -0700 (PDT)
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: overlayfs <linux-unionfs@vger.kernel.org>
+To: linux-unionfs@vger.kernel.org, miklos@szeredi.hu
+Cc: Hirofumi Nakagawa <nklabs@gmail.com>
 
-On Mon, Sep 25, 2017 at 12:36 PM, Amir Goldstein <amir73il@gmail.com> wrote:
-> Miklos,
->
-> Following are 1 fix for a commit in v4.14-rc1
-> and 3 fixes for index error paths in v4.13.
+This was detected by fault injection test
 
-Make that 4 fixes to v4.13..
-Available at https://github.com/amir73il/linux/commits/ovl-fixes
+Signed-off-by: Hirofumi Nakagawa <nklabs@gmail.com>
+---
+ fs/overlayfs/super.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
->
-> Amir.
->
-> Amir Goldstein (5):
->   ovl: fix may_write_real() for overlayfs directories
->   ovl: fix error value printed in ovl_lookup_index()
->   ovl: fix dput() of ERR_PTR in ovl_cleanup_index()
->   ovl: fix dentry leak in ovl_indexdir_cleanup()
-
-+   ovl: fix missing unlock_rename() in ovl_do_copy_up()
-
->
->  fs/namespace.c         | 4 +++-
->  fs/overlayfs/namei.c   | 1 +
->  fs/overlayfs/readdir.c | 6 ++++--
->  fs/overlayfs/util.c    | 9 ++++++---
->  4 files changed, 14 insertions(+), 6 deletions(-)
->
-> --
-> 2.7.4
->
+diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+index fd5ea4facc62..701aa2f3536d 100644
+--- a/fs/overlayfs/super.c
++++ b/fs/overlayfs/super.c
+@@ -174,6 +174,9 @@ static struct inode *ovl_alloc_inode(struct super_block *sb)
+ {
+ 	struct ovl_inode *oi = kmem_cache_alloc(ovl_inode_cachep, GFP_KERNEL);
+ 
++	if (!oi)
++		return NULL;
++
+ 	oi->cache = NULL;
+ 	oi->redirect = NULL;
+ 	oi->version = 0;
+-- 
+2.14.1
