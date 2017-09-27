@@ -1,48 +1,58 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [PATCH] ovl: add NULL check in ovl_alloc_inode
-Date: Tue, 26 Sep 2017 07:06:49 +0300
-Message-ID: <CAOQ4uxiEFEia8SS81gGvgvUsaW+91kStiNx06jsREA=icKgMRg@mail.gmail.com>
-References: <20170925180953.10587-1-nklabs@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <20170925180953.10587-1-nklabs@gmail.com>
-Sender: stable-owner@vger.kernel.org
-To: Hirofumi Nakagawa <nklabs@gmail.com>
-Cc: overlayfs <linux-unionfs@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>, "stable [v4.13]" <stable@vger.kernel.org>
+Subject: [PATCH 1/4] overlay: remove stale implementation of _scratch_mount_options
+Date: Wed, 27 Sep 2017 10:04:09 +0300
+Message-ID: <1506495852-7295-2-git-send-email-amir73il@gmail.com>
+References: <1506495852-7295-1-git-send-email-amir73il@gmail.com>
+Return-path: <linux-unionfs-owner@vger.kernel.org>
+Received: from mail-wm0-f65.google.com ([74.125.82.65]:45527 "EHLO
+        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751436AbdI0HDm (ORCPT
+        <rfc822;linux-unionfs@vger.kernel.org>);
+        Wed, 27 Sep 2017 03:03:42 -0400
+In-Reply-To: <1506495852-7295-1-git-send-email-amir73il@gmail.com>
+Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
+To: Eryu Guan <eguan@redhat.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, fstests@vger.kernel.org
 
-On Mon, Sep 25, 2017 at 9:09 PM, Hirofumi Nakagawa <nklabs@gmail.com> wrote:
-> This was detected by fault injection test
->
-> Signed-off-by: Hirofumi Nakagawa <nklabs@gmail.com>
+_scratch_mount_options() was not implemented correctly for
+overlayfs and wasn't used by any overlay tests.
 
-Fixes: 13cf199d0088 ("ovl: allocate an ovl_inode struct")
-Cc: <stable@vger.kernel.org> # v4.13
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+---
+ common/rc | 16 ----------------
+ 1 file changed, 16 deletions(-)
 
-
-> ---
->  fs/overlayfs/super.c | 3 +++
->  1 file changed, 3 insertions(+)
->
-> diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-> index fd5ea4facc62..701aa2f3536d 100644
-> --- a/fs/overlayfs/super.c
-> +++ b/fs/overlayfs/super.c
-> @@ -174,6 +174,9 @@ static struct inode *ovl_alloc_inode(struct super_block *sb)
->  {
->         struct ovl_inode *oi = kmem_cache_alloc(ovl_inode_cachep, GFP_KERNEL);
->
-> +       if (!oi)
-> +               return NULL;
-> +
->         oi->cache = NULL;
->         oi->redirect = NULL;
->         oi->version = 0;
-> --
-> 2.14.1
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-unionfs" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/common/rc b/common/rc
+index 53bbb11..1a61549 100644
+--- a/common/rc
++++ b/common/rc
+@@ -300,26 +300,10 @@ _common_dev_mount_options()
+ 	echo $MOUNT_OPTIONS $SELINUX_MOUNT_OPTIONS $*
+ }
+ 
+-_overlay_basic_mount_options()
+-{
+-	echo "-o lowerdir=$1/$OVL_LOWER,upperdir=$1/$OVL_UPPER,workdir=$1/$OVL_WORK"
+-}
+-
+-_overlay_mount_options()
+-{
+-	echo `_common_dev_mount_options` \
+-	     `_overlay_basic_mount_options $1` \
+-	     $OVERLAY_MOUNT_OPTIONS
+-}
+-
+ _scratch_mount_options()
+ {
+ 	_scratch_options mount
+ 
+-	if [ "$FSTYP" == "overlay" ]; then
+-		echo `_overlay_mount_options $OVL_BASE_SCRATCH_MNT`
+-		return 0
+-	fi
+ 	echo `_common_dev_mount_options $*` $SCRATCH_OPTIONS \
+ 					$SCRATCH_DEV $SCRATCH_MNT
+ }
+-- 
+2.7.4
