@@ -1,166 +1,156 @@
-From: Eryu Guan <eguan@redhat.com>
-Subject: Re: [PATCH 6/6] overlay: deduplicate code in overlay mount helpers
-Date: Fri, 29 Sep 2017 09:44:35 +0800
-Message-ID: <20170929014435.GW8034@eguan.usersys.redhat.com>
-References: <1506495852-7295-1-git-send-email-amir73il@gmail.com>
- <1506599710-9751-1-git-send-email-amir73il@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Amir Goldstein <amir73il@gmail.com>
+Subject: [PATCH] ovl: fix regression caused by exclusive upper/work dir protection
+Date: Fri, 29 Sep 2017 11:22:07 +0300
+Message-ID: <1506673327-5906-1-git-send-email-amir73il@gmail.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:52544 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751082AbdI2Boh (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 28 Sep 2017 21:44:37 -0400
-Content-Disposition: inline
-In-Reply-To: <1506599710-9751-1-git-send-email-amir73il@gmail.com>
+Received: from mail-wr0-f193.google.com ([209.85.128.193]:36168 "EHLO
+        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750967AbdI2IVb (ORCPT
+        <rfc822;linux-unionfs@vger.kernel.org>);
+        Fri, 29 Sep 2017 04:21:31 -0400
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, fstests@vger.kernel.org
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: linux-unionfs@vger.kernel.org, "# v4 . 13" <stable@vger.kernel.org>
 
-On Thu, Sep 28, 2017 at 02:55:10PM +0300, Amir Goldstein wrote:
-> factor out helpers _overlay_base_mount() and _overlay_base_umount()
-> to reduce code duplication.
-> 
-> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
-> ---
-> 
-> Eryu,
-> 
-> Appologies for the rolling series, but since you said you are looking
-> into re-factoring mount option handling, I figured you may want to take
-> this additional cleanup as well.
+Enforcing exclusive ownership on upper/work dirs caused a docker
+regression: https://github.com/moby/moby/issues/34672.
 
-No problem, thanks for all the work! However, I haven't got some time to
-test this patchset yet (but will start testing today), and the mount
-option handling seems quite complicated from my quick look last week, I
-may need some time to think more about it and play with this patchset.
-But it's public holiday next week here in China, I may take more time
-than expected :)
+Euan spotted the regression and pointed to the offending commit.
+Vivek has brought the regression to my attention and provided this
+reproducer:
 
-Thanks,
-Eryu
+Terminal 1:
 
-> 
-> Beyond reducing code duplication, this change puts the difference in
-> mount options for base test fs and base scratch fs in wrapper functions
-> and leaves the common code free of those differences.
-> 
-> Amir.
-> 
->  common/overlay | 66 ++++++++++++++++++++++++++--------------------------------
->  1 file changed, 29 insertions(+), 37 deletions(-)
-> 
-> diff --git a/common/overlay b/common/overlay
-> index c3bb9ee..79097ba 100644
-> --- a/common/overlay
-> +++ b/common/overlay
-> @@ -53,23 +53,31 @@ _overlay_mount()
->  				$* $dir $mnt
->  }
->  
-> -_overlay_base_test_mount()
-> +_overlay_base_mount()
->  {
-> -	if [ -z "$OVL_BASE_TEST_DEV" -o -z "$OVL_BASE_TEST_DIR" ] || \
-> -		_check_mounted_on OVL_BASE_TEST_DEV $OVL_BASE_TEST_DEV \
-> -				OVL_BASE_TEST_DIR $OVL_BASE_TEST_DIR
-> -	then
-> +	local devname=$1
-> +	local mntname=$2
-> +	local dev=$3
-> +	local mnt=$4
-> +	shift 4
-> +
-> +	if [ -z "$dev" -o -z "$mnt" ] || \
-> +		_check_mounted_on $devname $dev $mntname $mnt; then
->  		# no base fs or already mounted
->  		return 0
-> -	elif [ $? -ne 1 ]
-> -	then
-> +	elif [ $? -ne 1 ]; then
->  		# base fs mounted but not on mount point
->  		return 1
->  	fi
->  
-> -	_mount $TEST_FS_MOUNT_OPTS \
-> -		$SELINUX_MOUNT_OPTIONS \
-> -		$OVL_BASE_TEST_DEV $OVL_BASE_TEST_DIR
-> +	_mount $* $dev $mnt
-> +}
-> +
-> +_overlay_base_test_mount()
-> +{
-> +	_overlay_base_mount OVL_BASE_TEST_DEV OVL_BASE_TEST_DIR \
-> +			"$OVL_BASE_TEST_DEV" "$OVL_BASE_TEST_DIR" \
-> +			$TEST_FS_MOUNT_OPTS $SELINUX_MOUNT_OPTIONS
->  }
->  
->  _overlay_test_mount()
-> @@ -80,28 +88,9 @@ _overlay_test_mount()
->  
->  _overlay_base_scratch_mount()
->  {
-> -	if [ -z "$OVL_BASE_SCRATCH_DEV" -o -z "$OVL_BASE_SCRATCH_MNT" ] || \
-> -		_check_mounted_on OVL_BASE_SCRATCH_DEV $OVL_BASE_SCRATCH_DEV \
-> -				OVL_BASE_SCRATCH_MNT $OVL_BASE_SCRATCH_MNT
-> -	then
-> -		# no base fs or already mounted
-> -		return 0
-> -	elif [ $? -ne 1 ]
-> -	then
-> -		# base fs mounted but not on mount point
-> -		return 1
-> -	fi
-> -
-> -	_mount $OVL_BASE_MOUNT_OPTIONS \
-> -		$SELINUX_MOUNT_OPTIONS \
-> -		$OVL_BASE_SCRATCH_DEV $OVL_BASE_SCRATCH_MNT
-> -}
-> -
-> -_overlay_base_scratch_unmount()
-> -{
-> -	[ -n "$OVL_BASE_SCRATCH_DEV" -a -n "$OVL_BASE_SCRATCH_MNT" ] || return 0
-> -
-> -	$UMOUNT_PROG $OVL_BASE_SCRATCH_MNT
-> +	_overlay_base_mount OVL_BASE_SCRATCH_DEV OVL_BASE_SCRATCH_MNT \
-> +			"$OVL_BASE_SCRATCH_DEV" "$OVL_BASE_SCRATCH_MNT" \
-> +			$OVL_BASE_MOUNT_OPTIONS $SELINUX_MOUNT_OPTIONS
->  }
->  
->  _overlay_scratch_mount()
-> @@ -110,23 +99,26 @@ _overlay_scratch_mount()
->  		_overlay_mount $OVL_BASE_SCRATCH_MNT $SCRATCH_MNT $*
->  }
->  
-> -_overlay_base_test_unmount()
-> +_overlay_base_unmount()
->  {
-> -	[ -n "$OVL_BASE_TEST_DEV" -a -n "$OVL_BASE_TEST_DIR" ] || return 0
-> +	local dev=$1
-> +	local mnt=$2
-> +
-> +	[ -n "$dev" -a -n "$mnt" ] || return 0
->  
-> -	$UMOUNT_PROG $OVL_BASE_TEST_DIR
-> +	$UMOUNT_PROG $mnt
->  }
->  
->  _overlay_test_unmount()
->  {
->  	$UMOUNT_PROG $TEST_DIR
-> -	_overlay_base_test_unmount
-> +	_overlay_base_unmount "$OVL_BASE_TEST_DEV" "$OVL_BASE_TEST_DIR"
->  }
->  
->  _overlay_scratch_unmount()
->  {
->  	$UMOUNT_PROG $SCRATCH_MNT
-> -	_overlay_base_scratch_unmount
-> +	_overlay_base_unmount "$OVL_BASE_SCRATCH_DEV" "$OVL_BASE_SCRATCH_MNT"
->  }
->  
->  # Require a specific overlayfs feature
-> -- 
-> 2.7.4
-> 
+  mount -t overlay -o workdir=work,lowerdir=lower,upperdir=upper none
+        merged/
+
+Terminal 2:
+
+  unshare -m
+
+Terminal 1:
+
+  umount merged
+  mount -t overlay -o workdir=work,lowerdir=lower,upperdir=upper none
+        merged/
+  mount: /root/overlay-testing/merged: none already mounted or mount point
+         busy
+
+To fix the regression, I replaced the error with an alarming warning.
+With index feature enabled, mount does fail, but logs a suggestion to
+override exclusive dir protection by disabling index.
+Note that index=off mount does take the inuse locks, so a concurrent
+index=off will issue the warning and a concurrent index=on mount will fail.
+
+Documentation was updated to reflect this change.
+
+Fixes: 2cac0c00a6cd ("ovl: get exclusive ownership on upper/work dirs")
+Cc: <stable@vger.kernel.org> # v4.13
+Reported-by: Euan Kemp <euank@euank.com>
+Reported-by: Vivek Goyal <vgoyal@redhat.com>
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+---
+ Documentation/filesystems/overlayfs.txt |  5 ++++-
+ fs/overlayfs/ovl_entry.h                |  3 +++
+ fs/overlayfs/super.c                    | 27 +++++++++++++++++++--------
+ 3 files changed, 26 insertions(+), 9 deletions(-)
+
+diff --git a/Documentation/filesystems/overlayfs.txt b/Documentation/filesystems/overlayfs.txt
+index 36f528a7fdd6..8caa60734647 100644
+--- a/Documentation/filesystems/overlayfs.txt
++++ b/Documentation/filesystems/overlayfs.txt
+@@ -210,8 +210,11 @@ path as another overlay mount and it may use a lower layer path that is
+ beneath or above the path of another overlay lower layer path.
+ 
+ Using an upper layer path and/or a workdir path that are already used by
+-another overlay mount is not allowed and will fail with EBUSY.  Using
++another overlay mount is not allowed and may fail with EBUSY.  Using
+ partially overlapping paths is not allowed but will not fail with EBUSY.
++If files are accessed from two overlayfs mounts which share or overlap the
++upper layer and/or workdir path the behavior of the overlay is undefined,
++though it will not result in a crash or deadlock.
+ 
+ Mounting an overlay using an upper layer path, where the upper layer path
+ was previously used by another mounted overlay in combination with a
+diff --git a/fs/overlayfs/ovl_entry.h b/fs/overlayfs/ovl_entry.h
+index 878a750986dd..25d9b5adcd42 100644
+--- a/fs/overlayfs/ovl_entry.h
++++ b/fs/overlayfs/ovl_entry.h
+@@ -37,6 +37,9 @@ struct ovl_fs {
+ 	bool noxattr;
+ 	/* sb common to all layers */
+ 	struct super_block *same_sb;
++	/* Did we take the inuse lock? */
++	bool upperdir_locked;
++	bool workdir_locked;
+ };
+ 
+ /* private information held for every overlayfs dentry */
+diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+index f2447745a5b7..d161f97d6e86 100644
+--- a/fs/overlayfs/super.c
++++ b/fs/overlayfs/super.c
+@@ -211,9 +211,10 @@ static void ovl_put_super(struct super_block *sb)
+ 
+ 	dput(ufs->indexdir);
+ 	dput(ufs->workdir);
+-	ovl_inuse_unlock(ufs->workbasedir);
++	if (ufs->workdir_locked)
++		ovl_inuse_unlock(ufs->workbasedir);
+ 	dput(ufs->workbasedir);
+-	if (ufs->upper_mnt)
++	if (ufs->upper_mnt && ufs->upperdir_locked)
+ 		ovl_inuse_unlock(ufs->upper_mnt->mnt_root);
+ 	mntput(ufs->upper_mnt);
+ 	for (i = 0; i < ufs->numlower; i++)
+@@ -893,9 +894,13 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
+ 			goto out_put_upperpath;
+ 
+ 		err = -EBUSY;
+-		if (!ovl_inuse_trylock(upperpath.dentry)) {
+-			pr_err("overlayfs: upperdir is in-use by another mount\n");
++		if (ovl_inuse_trylock(upperpath.dentry)) {
++			ufs->upperdir_locked = true;
++		} else if (ufs->config.index) {
++			pr_err("overlayfs: upperdir is in-use by another mount, mount with '-o index=off' to override exclusive upperdir protection.\n");
+ 			goto out_put_upperpath;
++		} else {
++			pr_warn("overlayfs: upperdir is in-use by another mount, accessing files from both mounts will result in undefined behavior.\n");
+ 		}
+ 
+ 		err = ovl_mount_dir(ufs->config.workdir, &workpath);
+@@ -913,9 +918,13 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
+ 		}
+ 
+ 		err = -EBUSY;
+-		if (!ovl_inuse_trylock(workpath.dentry)) {
+-			pr_err("overlayfs: workdir is in-use by another mount\n");
++		if (ovl_inuse_trylock(workpath.dentry)) {
++			ufs->workdir_locked = true;
++		} else if (ufs->config.index) {
++			pr_err("overlayfs: workdir is in-use by another mount, mount with '-o index=off' to override exclusive workdir protection.\n");
+ 			goto out_put_workpath;
++		} else {
++			pr_warn("overlayfs: workdir is in-use by another mount, accessing files from both mounts will result in undefined behavior.\n");
+ 		}
+ 
+ 		ufs->workbasedir = workpath.dentry;
+@@ -1168,11 +1177,13 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
+ out_free_lowertmp:
+ 	kfree(lowertmp);
+ out_unlock_workdentry:
+-	ovl_inuse_unlock(workpath.dentry);
++	if (ufs->workdir_locked)
++		ovl_inuse_unlock(workpath.dentry);
+ out_put_workpath:
+ 	path_put(&workpath);
+ out_unlock_upperdentry:
+-	ovl_inuse_unlock(upperpath.dentry);
++	if (ufs->upperdir_locked)
++		ovl_inuse_unlock(upperpath.dentry);
+ out_put_upperpath:
+ 	path_put(&upperpath);
+ out_free_config:
+-- 
+2.7.4
