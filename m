@@ -1,156 +1,70 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH] ovl: fix regression caused by exclusive upper/work dir protection
-Date: Fri, 29 Sep 2017 11:22:07 +0300
-Message-ID: <1506673327-5906-1-git-send-email-amir73il@gmail.com>
-Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wr0-f193.google.com ([209.85.128.193]:36168 "EHLO
-        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750967AbdI2IVb (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 29 Sep 2017 04:21:31 -0400
-Sender: linux-unionfs-owner@vger.kernel.org
+Subject: Re: [PATCH] ovl: fix regression caused by exclusive upper/work dir protection
+Date: Fri, 29 Sep 2017 11:31:05 +0300
+Message-ID: <CAOQ4uxj6k3wgke8YHwLoQXZNHkuD1YkAMW73VmEuizoNP-TGVA@mail.gmail.com>
+References: <1506673327-5906-1-git-send-email-amir73il@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <1506673327-5906-1-git-send-email-amir73il@gmail.com>
+Sender: stable-owner@vger.kernel.org
+To: Vivek Goyal <vgoyal@redhat.com>, Euan Kemp <euank@euank.com>
+Cc: overlayfs <linux-unionfs@vger.kernel.org>, "# v4 . 13" <stable@vger.kernel.org>, Eryu Guan <eguan@redhat.com>, Miklos Szeredi <miklos@szeredi.hu>
 List-Id: linux-unionfs@vger.kernel.org
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: linux-unionfs@vger.kernel.org, "# v4 . 13" <stable@vger.kernel.org>
 
-Enforcing exclusive ownership on upper/work dirs caused a docker
-regression: https://github.com/moby/moby/issues/34672.
+On Fri, Sep 29, 2017 at 11:22 AM, Amir Goldstein <amir73il@gmail.com> wrote:
+> Enforcing exclusive ownership on upper/work dirs caused a docker
+> regression: https://github.com/moby/moby/issues/34672.
+>
+> Euan spotted the regression and pointed to the offending commit.
+> Vivek has brought the regression to my attention and provided this
+> reproducer:
+>
+> Terminal 1:
+>
+>   mount -t overlay -o workdir=work,lowerdir=lower,upperdir=upper none
+>         merged/
+>
+> Terminal 2:
+>
+>   unshare -m
+>
+> Terminal 1:
+>
+>   umount merged
+>   mount -t overlay -o workdir=work,lowerdir=lower,upperdir=upper none
+>         merged/
+>   mount: /root/overlay-testing/merged: none already mounted or mount point
+>          busy
+>
+> To fix the regression, I replaced the error with an alarming warning.
+> With index feature enabled, mount does fail, but logs a suggestion to
+> override exclusive dir protection by disabling index.
+> Note that index=off mount does take the inuse locks, so a concurrent
+> index=off will issue the warning and a concurrent index=on mount will fail.
+>
+> Documentation was updated to reflect this change.
+>
+> Fixes: 2cac0c00a6cd ("ovl: get exclusive ownership on upper/work dirs")
+> Cc: <stable@vger.kernel.org> # v4.13
+> Reported-by: Euan Kemp <euank@euank.com>
+> Reported-by: Vivek Goyal <vgoyal@redhat.com>
 
-Euan spotted the regression and pointed to the offending commit.
-Vivek has brought the regression to my attention and provided this
-reproducer:
+Euan, Vivek
 
-Terminal 1:
+Apparently, git send-email doesn't pick up the Reported-by tags, so
+did not CC you.
+Care to test this patch?
 
-  mount -t overlay -o workdir=work,lowerdir=lower,upperdir=upper none
-        merged/
+I am going to update xfstest overlay/036 to reflect this change:
+https://github.com/amir73il/xfstests/commit/c8098b949a0f3338e6f45e94e28ee6b7baa284e7
 
-Terminal 2:
+Vivek,
 
-  unshare -m
+Do you mind making your reproducer into an xfstest?
+If you do, please note that there is currently no _require_namespace
+in xfstests and the only test that does use unshare (overlay/020) just fails
+when kernel has no namespaces support, so this will have to be fixed.
 
-Terminal 1:
-
-  umount merged
-  mount -t overlay -o workdir=work,lowerdir=lower,upperdir=upper none
-        merged/
-  mount: /root/overlay-testing/merged: none already mounted or mount point
-         busy
-
-To fix the regression, I replaced the error with an alarming warning.
-With index feature enabled, mount does fail, but logs a suggestion to
-override exclusive dir protection by disabling index.
-Note that index=off mount does take the inuse locks, so a concurrent
-index=off will issue the warning and a concurrent index=on mount will fail.
-
-Documentation was updated to reflect this change.
-
-Fixes: 2cac0c00a6cd ("ovl: get exclusive ownership on upper/work dirs")
-Cc: <stable@vger.kernel.org> # v4.13
-Reported-by: Euan Kemp <euank@euank.com>
-Reported-by: Vivek Goyal <vgoyal@redhat.com>
-Signed-off-by: Amir Goldstein <amir73il@gmail.com>
----
- Documentation/filesystems/overlayfs.txt |  5 ++++-
- fs/overlayfs/ovl_entry.h                |  3 +++
- fs/overlayfs/super.c                    | 27 +++++++++++++++++++--------
- 3 files changed, 26 insertions(+), 9 deletions(-)
-
-diff --git a/Documentation/filesystems/overlayfs.txt b/Documentation/filesystems/overlayfs.txt
-index 36f528a7fdd6..8caa60734647 100644
---- a/Documentation/filesystems/overlayfs.txt
-+++ b/Documentation/filesystems/overlayfs.txt
-@@ -210,8 +210,11 @@ path as another overlay mount and it may use a lower layer path that is
- beneath or above the path of another overlay lower layer path.
- 
- Using an upper layer path and/or a workdir path that are already used by
--another overlay mount is not allowed and will fail with EBUSY.  Using
-+another overlay mount is not allowed and may fail with EBUSY.  Using
- partially overlapping paths is not allowed but will not fail with EBUSY.
-+If files are accessed from two overlayfs mounts which share or overlap the
-+upper layer and/or workdir path the behavior of the overlay is undefined,
-+though it will not result in a crash or deadlock.
- 
- Mounting an overlay using an upper layer path, where the upper layer path
- was previously used by another mounted overlay in combination with a
-diff --git a/fs/overlayfs/ovl_entry.h b/fs/overlayfs/ovl_entry.h
-index 878a750986dd..25d9b5adcd42 100644
---- a/fs/overlayfs/ovl_entry.h
-+++ b/fs/overlayfs/ovl_entry.h
-@@ -37,6 +37,9 @@ struct ovl_fs {
- 	bool noxattr;
- 	/* sb common to all layers */
- 	struct super_block *same_sb;
-+	/* Did we take the inuse lock? */
-+	bool upperdir_locked;
-+	bool workdir_locked;
- };
- 
- /* private information held for every overlayfs dentry */
-diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-index f2447745a5b7..d161f97d6e86 100644
---- a/fs/overlayfs/super.c
-+++ b/fs/overlayfs/super.c
-@@ -211,9 +211,10 @@ static void ovl_put_super(struct super_block *sb)
- 
- 	dput(ufs->indexdir);
- 	dput(ufs->workdir);
--	ovl_inuse_unlock(ufs->workbasedir);
-+	if (ufs->workdir_locked)
-+		ovl_inuse_unlock(ufs->workbasedir);
- 	dput(ufs->workbasedir);
--	if (ufs->upper_mnt)
-+	if (ufs->upper_mnt && ufs->upperdir_locked)
- 		ovl_inuse_unlock(ufs->upper_mnt->mnt_root);
- 	mntput(ufs->upper_mnt);
- 	for (i = 0; i < ufs->numlower; i++)
-@@ -893,9 +894,13 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
- 			goto out_put_upperpath;
- 
- 		err = -EBUSY;
--		if (!ovl_inuse_trylock(upperpath.dentry)) {
--			pr_err("overlayfs: upperdir is in-use by another mount\n");
-+		if (ovl_inuse_trylock(upperpath.dentry)) {
-+			ufs->upperdir_locked = true;
-+		} else if (ufs->config.index) {
-+			pr_err("overlayfs: upperdir is in-use by another mount, mount with '-o index=off' to override exclusive upperdir protection.\n");
- 			goto out_put_upperpath;
-+		} else {
-+			pr_warn("overlayfs: upperdir is in-use by another mount, accessing files from both mounts will result in undefined behavior.\n");
- 		}
- 
- 		err = ovl_mount_dir(ufs->config.workdir, &workpath);
-@@ -913,9 +918,13 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
- 		}
- 
- 		err = -EBUSY;
--		if (!ovl_inuse_trylock(workpath.dentry)) {
--			pr_err("overlayfs: workdir is in-use by another mount\n");
-+		if (ovl_inuse_trylock(workpath.dentry)) {
-+			ufs->workdir_locked = true;
-+		} else if (ufs->config.index) {
-+			pr_err("overlayfs: workdir is in-use by another mount, mount with '-o index=off' to override exclusive workdir protection.\n");
- 			goto out_put_workpath;
-+		} else {
-+			pr_warn("overlayfs: workdir is in-use by another mount, accessing files from both mounts will result in undefined behavior.\n");
- 		}
- 
- 		ufs->workbasedir = workpath.dentry;
-@@ -1168,11 +1177,13 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
- out_free_lowertmp:
- 	kfree(lowertmp);
- out_unlock_workdentry:
--	ovl_inuse_unlock(workpath.dentry);
-+	if (ufs->workdir_locked)
-+		ovl_inuse_unlock(workpath.dentry);
- out_put_workpath:
- 	path_put(&workpath);
- out_unlock_upperdentry:
--	ovl_inuse_unlock(upperpath.dentry);
-+	if (ufs->upperdir_locked)
-+		ovl_inuse_unlock(upperpath.dentry);
- out_put_upperpath:
- 	path_put(&upperpath);
- out_free_config:
--- 
-2.7.4
+Thanks!
+Amir.
