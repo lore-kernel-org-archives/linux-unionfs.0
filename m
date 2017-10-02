@@ -1,69 +1,81 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [PATCH 1/7] Create origin xattr on copy up for all files
-Date: Mon, 2 Oct 2017 22:10:01 +0300
-Message-ID: <CAOQ4uxix6ccqp2hVqOCBDQrPfgTK-J4ea5FWAPLsO=XiZpz+-A@mail.gmail.com>
-References: <1506951605-31440-1-git-send-email-vgoyal@redhat.com> <1506951605-31440-2-git-send-email-vgoyal@redhat.com>
+Subject: Re: [PATCH 2/7] ovl: During copy up, first copy up metadata and then data
+Date: Mon, 2 Oct 2017 22:13:24 +0300
+Message-ID: <CAOQ4uxgD72v94k7cgTKnu8n1kev7=RvZMyydw9C-K4FTEUr3OQ@mail.gmail.com>
+References: <1506951605-31440-1-git-send-email-vgoyal@redhat.com> <1506951605-31440-3-git-send-email-vgoyal@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-qt0-f195.google.com ([209.85.216.195]:33928 "EHLO
-        mail-qt0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751084AbdJBTKC (ORCPT
+Received: from mail-qt0-f194.google.com ([209.85.216.194]:38112 "EHLO
+        mail-qt0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751106AbdJBTNZ (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 2 Oct 2017 15:10:02 -0400
-Received: by mail-qt0-f195.google.com with SMTP id d13so171588qta.1
-        for <linux-unionfs@vger.kernel.org>; Mon, 02 Oct 2017 12:10:02 -0700 (PDT)
-In-Reply-To: <1506951605-31440-2-git-send-email-vgoyal@redhat.com>
+        Mon, 2 Oct 2017 15:13:25 -0400
+Received: by mail-qt0-f194.google.com with SMTP id o3so177663qte.5
+        for <linux-unionfs@vger.kernel.org>; Mon, 02 Oct 2017 12:13:25 -0700 (PDT)
+In-Reply-To: <1506951605-31440-3-git-send-email-vgoyal@redhat.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: Vivek Goyal <vgoyal@redhat.com>
 Cc: overlayfs <linux-unionfs@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>
 
-On Mon, Oct 2, 2017 at 4:39 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
-> Right now my understanding is that origin xattr is created for all copied
-> up files if index=on. And if index=off, then we create it for all type
-> of files except hardlinks (nlink != 1).
->
-> With metadata only copy up, I will still require origin xattr to copy up
-> data later, so create it even for hardlinks even with index=off. I am
-> hoping it does not break anything because we do OVL_INDEX test before
-> using inode number of origin.
-
-It does break index consistency if 2 different upper inodes point to the same
-lower ORIGIN.
-If you must support METACOPY with index=off (which I prefer not to)
-then you will have to set a different xattr to follow to data copy up
-source or set a BROKENHARDLINK xattr for this case so index=on lookup
-knows it cannot use ORIGIN as index key.
-
+On Mon, Oct 2, 2017 at 4:40 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
+> This just helps with later patches where after copying up metadata, we
+> skip data copying step, if needed.
 >
 > Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
 > ---
->  fs/overlayfs/copy_up.c | 4 +---
->  1 file changed, 1 insertion(+), 3 deletions(-)
+>  fs/overlayfs/copy_up.c | 24 ++++++++++++------------
+>  1 file changed, 12 insertions(+), 12 deletions(-)
 >
 > diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
-> index aad97b30d5e6..f1b15e5c37d3 100644
+> index f1b15e5c37d3..cdc4d79a1249 100644
 > --- a/fs/overlayfs/copy_up.c
 > +++ b/fs/overlayfs/copy_up.c
-> @@ -538,9 +538,6 @@ static int ovl_do_copy_up(struct ovl_copy_up_ctx *c)
->             c->stat.nlink > 1)
->                 indexed = true;
+> @@ -445,18 +445,6 @@ static int ovl_copy_up_inode(struct ovl_copy_up_ctx *c, struct dentry *temp)
+>  {
+>         int err;
 >
-> -       if (S_ISDIR(c->stat.mode) || c->stat.nlink == 1 || indexed)
-> -               c->origin = true;
+> -       if (S_ISREG(c->stat.mode)) {
+> -               struct path upperpath;
 > -
->         if (indexed) {
->                 c->destdir = ovl_indexdir(c->dentry->d_sb);
->                 err = ovl_get_index_name(c->lowerpath.dentry, &c->destname);
-> @@ -598,6 +595,7 @@ static int ovl_copy_up_one(struct dentry *parent, struct dentry *dentry,
->                 .parent = parent,
->                 .dentry = dentry,
->                 .workdir = ovl_workdir(dentry),
-> +               .origin = true,
->         };
+> -               ovl_path_upper(c->dentry, &upperpath);
+> -               BUG_ON(upperpath.dentry != NULL);
+> -               upperpath.dentry = temp;
+> -
+> -               err = ovl_copy_up_data(&c->lowerpath, &upperpath, c->stat.size);
+> -               if (err)
+> -                       return err;
+> -       }
+> -
+>         err = ovl_copy_xattr(c->lowerpath.dentry, temp);
+>         if (err)
+>                 return err;
+> @@ -480,6 +468,18 @@ static int ovl_copy_up_inode(struct ovl_copy_up_ctx *c, struct dentry *temp)
+>                         return err;
+>         }
 >
->         if (WARN_ON(!ctx.workdir))
+> +       if (S_ISREG(c->stat.mode)) {
+> +               struct path upperpath;
+> +
+> +               ovl_path_upper(c->dentry, &upperpath);
+> +               BUG_ON(upperpath.dentry != NULL);
+> +               upperpath.dentry = temp;
+> +
+> +               err = ovl_copy_up_data(&c->lowerpath, &upperpath, c->stat.size);
+> +               if (err)
+> +                       return err;
+> +       }
+> +
+
+You moved copy_up_data to after ovl_set_attr() -> ovl_set_timestamps()
+Does this break the copied up mtime? I'm not sure.
+I didn't see that do_splice_direct() or vfs_clone_file_range() change
+mtime directly, but inside file system, they might.
+
+>         return 0;
+>  }
+>
 > --
 > 2.13.5
 >
