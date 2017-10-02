@@ -1,12 +1,12 @@
 From: Vivek Goyal <vgoyal@redhat.com>
-Subject: [PATCH 6/7] ovl: Return lower dentry if only metadata copy up took place
-Date: Mon,  2 Oct 2017 09:40:04 -0400
-Message-ID: <1506951605-31440-7-git-send-email-vgoyal@redhat.com>
+Subject: [PATCH 5/7] ovl: Set OVL_METACOPY flag during ovl_lookup()
+Date: Mon,  2 Oct 2017 09:40:03 -0400
+Message-ID: <1506951605-31440-6-git-send-email-vgoyal@redhat.com>
 References: <1506951605-31440-1-git-send-email-vgoyal@redhat.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:42722 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:34914 "EHLO mx1.redhat.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751252AbdJBNkP (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        id S1751251AbdJBNkP (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
         Mon, 2 Oct 2017 09:40:15 -0400
 In-Reply-To: <1506951605-31440-1-git-send-email-vgoyal@redhat.com>
 Sender: linux-unionfs-owner@vger.kernel.org
@@ -14,32 +14,79 @@ List-Id: linux-unionfs@vger.kernel.org
 To: linux-unionfs@vger.kernel.org
 Cc: amir73il@gmail.com, miklos@szeredi.hu, vgoyal@redhat.com
 
-Upper dentry inode does not have data. So return lower dentry if upper
-is only a metadata copy.
+During lookup, check for presence of OVL_XATTR_METACOPY and if present,
+set OVL_METACOPY bit in flags.
 
 Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
 ---
- fs/overlayfs/super.c | 4 ++++
- 1 file changed, 4 insertions(+)
+ fs/overlayfs/namei.c | 34 ++++++++++++++++++++++++++++++++++
+ 1 file changed, 34 insertions(+)
 
-diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-index fd5ea4facc62..79da8276ae82 100644
---- a/fs/overlayfs/super.c
-+++ b/fs/overlayfs/super.c
-@@ -96,10 +96,14 @@ static struct dentry *ovl_d_real(struct dentry *dentry,
- 			err = ovl_check_append_only(d_inode(real), open_flags);
- 			if (err)
- 				return ERR_PTR(err);
+diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
+index c3addd1114f1..9b6f9afa4f75 100644
+--- a/fs/overlayfs/namei.c
++++ b/fs/overlayfs/namei.c
+@@ -26,6 +26,24 @@ struct ovl_lookup_data {
+ 	char *redirect;
+ };
+ 
++/* err < 0, 0 if no metacopy xattr, 1 if metacopy xattr found */
++static int ovl_check_metacopy(struct dentry *dentry)
++{
++	int res;
 +
-+			if (ovl_test_flag(OVL_METACOPY, d_inode(dentry)))
-+				goto lower;
++	res = vfs_getxattr(dentry, OVL_XATTR_METACOPY, NULL, 0);
++	if (res < 0) {
++		if (res == -ENODATA || res == -EOPNOTSUPP)
++			return 0;
++		goto out;
++	}
++
++	return 1;
++out:
++	pr_warn_ratelimited("overlayfs: failed to get metacopy (%i)\n", res);
++	return res;
++}
++
+ static int ovl_check_redirect(struct dentry *dentry, struct ovl_lookup_data *d,
+ 			      size_t prelen, const char *post)
+ {
+@@ -591,6 +609,7 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
+ 	struct dentry *this;
+ 	unsigned int i;
+ 	int err;
++	bool metacopy = false;
+ 	struct ovl_lookup_data d = {
+ 		.name = dentry->d_name,
+ 		.is_dir = false,
+@@ -631,6 +650,12 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
+ 					       roe->numlower, &stack, &ctr);
+ 			if (err)
+ 				goto out;
++
++			err = ovl_check_metacopy(upperdentry);
++			if (err < 0)
++				goto out;
++			if (err == 1)
++				metacopy = true;
  		}
- 		return real;
+ 
+ 		if (d.redirect) {
+@@ -716,6 +741,15 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
+ 		OVL_I(inode)->redirect = upperredirect;
+ 		if (index)
+ 			ovl_set_flag(OVL_INDEX, inode);
++
++		if (metacopy) {
++			/*
++			 * TODO: What happens we if find metacopy xattr but
++			 * could not find/resolve origin.
++			 */
++			WARN_ON(!ctr);
++			ovl_set_flag(OVL_METACOPY, inode);
++		}
  	}
  
-+lower:
- 	real = ovl_dentry_lower(dentry);
- 	if (!real)
- 		goto bug;
+ 	revert_creds(old_cred);
 -- 
 2.13.5
