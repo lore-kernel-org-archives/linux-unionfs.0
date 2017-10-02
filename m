@@ -1,70 +1,54 @@
-From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [PATCH] ovl: fix regression caused by exclusive upper/work dir protection
-Date: Fri, 29 Sep 2017 11:31:05 +0300
-Message-ID: <CAOQ4uxj6k3wgke8YHwLoQXZNHkuD1YkAMW73VmEuizoNP-TGVA@mail.gmail.com>
-References: <1506673327-5906-1-git-send-email-amir73il@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <1506673327-5906-1-git-send-email-amir73il@gmail.com>
-Sender: stable-owner@vger.kernel.org
-To: Vivek Goyal <vgoyal@redhat.com>, Euan Kemp <euank@euank.com>
-Cc: overlayfs <linux-unionfs@vger.kernel.org>, "# v4 . 13" <stable@vger.kernel.org>, Eryu Guan <eguan@redhat.com>, Miklos Szeredi <miklos@szeredi.hu>
+From: Vivek Goyal <vgoyal@redhat.com>
+Subject: [PATCH 1/7] Create origin xattr on copy up for all files
+Date: Mon,  2 Oct 2017 09:39:59 -0400
+Message-ID: <1506951605-31440-2-git-send-email-vgoyal@redhat.com>
+References: <1506951605-31440-1-git-send-email-vgoyal@redhat.com>
+Return-path: <linux-unionfs-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:59934 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750957AbdJBNkO (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Mon, 2 Oct 2017 09:40:14 -0400
+In-Reply-To: <1506951605-31440-1-git-send-email-vgoyal@redhat.com>
+Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
+To: linux-unionfs@vger.kernel.org
+Cc: amir73il@gmail.com, miklos@szeredi.hu, vgoyal@redhat.com
 
-On Fri, Sep 29, 2017 at 11:22 AM, Amir Goldstein <amir73il@gmail.com> wrote:
-> Enforcing exclusive ownership on upper/work dirs caused a docker
-> regression: https://github.com/moby/moby/issues/34672.
->
-> Euan spotted the regression and pointed to the offending commit.
-> Vivek has brought the regression to my attention and provided this
-> reproducer:
->
-> Terminal 1:
->
->   mount -t overlay -o workdir=work,lowerdir=lower,upperdir=upper none
->         merged/
->
-> Terminal 2:
->
->   unshare -m
->
-> Terminal 1:
->
->   umount merged
->   mount -t overlay -o workdir=work,lowerdir=lower,upperdir=upper none
->         merged/
->   mount: /root/overlay-testing/merged: none already mounted or mount point
->          busy
->
-> To fix the regression, I replaced the error with an alarming warning.
-> With index feature enabled, mount does fail, but logs a suggestion to
-> override exclusive dir protection by disabling index.
-> Note that index=off mount does take the inuse locks, so a concurrent
-> index=off will issue the warning and a concurrent index=on mount will fail.
->
-> Documentation was updated to reflect this change.
->
-> Fixes: 2cac0c00a6cd ("ovl: get exclusive ownership on upper/work dirs")
-> Cc: <stable@vger.kernel.org> # v4.13
-> Reported-by: Euan Kemp <euank@euank.com>
-> Reported-by: Vivek Goyal <vgoyal@redhat.com>
+Right now my understanding is that origin xattr is created for all copied
+up files if index=on. And if index=off, then we create it for all type
+of files except hardlinks (nlink != 1).
 
-Euan, Vivek
+With metadata only copy up, I will still require origin xattr to copy up
+data later, so create it even for hardlinks even with index=off. I am
+hoping it does not break anything because we do OVL_INDEX test before
+using inode number of origin.
 
-Apparently, git send-email doesn't pick up the Reported-by tags, so
-did not CC you.
-Care to test this patch?
+Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
+---
+ fs/overlayfs/copy_up.c | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-I am going to update xfstest overlay/036 to reflect this change:
-https://github.com/amir73il/xfstests/commit/c8098b949a0f3338e6f45e94e28ee6b7baa284e7
-
-Vivek,
-
-Do you mind making your reproducer into an xfstest?
-If you do, please note that there is currently no _require_namespace
-in xfstests and the only test that does use unshare (overlay/020) just fails
-when kernel has no namespaces support, so this will have to be fixed.
-
-Thanks!
-Amir.
+diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
+index aad97b30d5e6..f1b15e5c37d3 100644
+--- a/fs/overlayfs/copy_up.c
++++ b/fs/overlayfs/copy_up.c
+@@ -538,9 +538,6 @@ static int ovl_do_copy_up(struct ovl_copy_up_ctx *c)
+ 	    c->stat.nlink > 1)
+ 		indexed = true;
+ 
+-	if (S_ISDIR(c->stat.mode) || c->stat.nlink == 1 || indexed)
+-		c->origin = true;
+-
+ 	if (indexed) {
+ 		c->destdir = ovl_indexdir(c->dentry->d_sb);
+ 		err = ovl_get_index_name(c->lowerpath.dentry, &c->destname);
+@@ -598,6 +595,7 @@ static int ovl_copy_up_one(struct dentry *parent, struct dentry *dentry,
+ 		.parent = parent,
+ 		.dentry = dentry,
+ 		.workdir = ovl_workdir(dentry),
++		.origin = true,
+ 	};
+ 
+ 	if (WARN_ON(!ctx.workdir))
+-- 
+2.13.5
