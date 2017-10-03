@@ -1,66 +1,114 @@
 From: Vivek Goyal <vgoyal@redhat.com>
-Subject: Re: [PATCH 7/7] ovl: Fix ovl_getattr() to get size from lower
-Date: Tue, 3 Oct 2017 11:24:08 -0400
-Message-ID: <20171003152408.GE14308@redhat.com>
+Subject: Re: [PATCH 5/7] ovl: Set OVL_METACOPY flag during ovl_lookup()
+Date: Tue, 3 Oct 2017 11:27:42 -0400
+Message-ID: <20171003152742.GF14308@redhat.com>
 References: <1506951605-31440-1-git-send-email-vgoyal@redhat.com>
- <1506951605-31440-8-git-send-email-vgoyal@redhat.com>
- <CAOQ4uxhvN7xTK9Y7LXfuWoDY6NYRB9t+r=tb=_4oQO-2Ce_KRA@mail.gmail.com>
+ <1506951605-31440-6-git-send-email-vgoyal@redhat.com>
+ <CAOQ4uxgDZST72GWN5WO7Qk_=CA0SA+jPCyWEuej3Ppug4Wnkxw@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:58084 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:39126 "EHLO mx1.redhat.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752349AbdJCPYI (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 3 Oct 2017 11:24:08 -0400
+        id S1751953AbdJCP1m (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Tue, 3 Oct 2017 11:27:42 -0400
 Content-Disposition: inline
-In-Reply-To: <CAOQ4uxhvN7xTK9Y7LXfuWoDY6NYRB9t+r=tb=_4oQO-2Ce_KRA@mail.gmail.com>
+In-Reply-To: <CAOQ4uxgDZST72GWN5WO7Qk_=CA0SA+jPCyWEuej3Ppug4Wnkxw@mail.gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: Amir Goldstein <amir73il@gmail.com>
 Cc: overlayfs <linux-unionfs@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>
 
-On Mon, Oct 02, 2017 at 10:40:07PM +0300, Amir Goldstein wrote:
+On Mon, Oct 02, 2017 at 10:31:42PM +0300, Amir Goldstein wrote:
 > On Mon, Oct 2, 2017 at 4:40 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
-> > If an inode has been copied up metadata only, then we need to query the
-> > size from lower and fill up the stat->size.
-> 
-> So you won't need this patch if you copy st_size on metadata_copy,
-> which seems like the logical thing to do.
-> Thinking very far into the future when METACOPY and ORIGIN will
-> be able to share page mappings, they will have to start with the same size.
-
-Ok, Will set upper size same as lower during metacopy operation.
-
-Vivek
-
-> 
+> > During lookup, check for presence of OVL_XATTR_METACOPY and if present,
+> > set OVL_METACOPY bit in flags.
 > >
 > > Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
 > > ---
-> >  fs/overlayfs/inode.c | 10 ++++++++++
-> >  1 file changed, 10 insertions(+)
+> >  fs/overlayfs/namei.c | 34 ++++++++++++++++++++++++++++++++++
+> >  1 file changed, 34 insertions(+)
 > >
-> > diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
-> > index e5825b8948e0..1b676deacc2d 100644
-> > --- a/fs/overlayfs/inode.c
-> > +++ b/fs/overlayfs/inode.c
-> > @@ -140,6 +140,16 @@ int ovl_getattr(const struct path *path, struct kstat *stat,
-> >         if (!is_dir && ovl_test_flag(OVL_INDEX, d_inode(dentry)))
-> >                 stat->nlink = dentry->d_inode->i_nlink;
+> > diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
+> > index c3addd1114f1..9b6f9afa4f75 100644
+> > --- a/fs/overlayfs/namei.c
+> > +++ b/fs/overlayfs/namei.c
+> > @@ -26,6 +26,24 @@ struct ovl_lookup_data {
+> >         char *redirect;
+> >  };
 > >
-> > +       if (ovl_test_flag(OVL_METACOPY, d_inode(dentry))) {
-> > +               struct kstat lowerstat;
-> > +               u32 lowermask = STATX_SIZE;
+> > +/* err < 0, 0 if no metacopy xattr, 1 if metacopy xattr found */
+> > +static int ovl_check_metacopy(struct dentry *dentry)
+> > +{
+> > +       int res;
 > > +
-> > +               ovl_path_lower(dentry, &realpath);
-> > +               err = vfs_getattr(&realpath, &lowerstat, lowermask, flags);
-> > +               if (err)
-> > +                       goto out;
-> > +               stat->size = lowerstat.size;
+> > +       res = vfs_getxattr(dentry, OVL_XATTR_METACOPY, NULL, 0);
+> > +       if (res < 0) {
+> > +               if (res == -ENODATA || res == -EOPNOTSUPP)
+> > +                       return 0;
+> > +               goto out;
 > > +       }
-> >  out:
-> >         revert_creds(old_cred);
+> > +
+> > +       return 1;
+> > +out:
+> > +       pr_warn_ratelimited("overlayfs: failed to get metacopy (%i)\n", res);
+> > +       return res;
+> > +}
+> > +
+> >  static int ovl_check_redirect(struct dentry *dentry, struct ovl_lookup_data *d,
+> >                               size_t prelen, const char *post)
+> >  {
+> > @@ -591,6 +609,7 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
+> >         struct dentry *this;
+> >         unsigned int i;
+> >         int err;
+> > +       bool metacopy = false;
+> >         struct ovl_lookup_data d = {
+> >                 .name = dentry->d_name,
+> >                 .is_dir = false,
+> > @@ -631,6 +650,12 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
+> >                                                roe->numlower, &stack, &ctr);
+> >                         if (err)
+> >                                 goto out;
+> > +
+> > +                       err = ovl_check_metacopy(upperdentry);
+> > +                       if (err < 0)
+> > +                               goto out;
+> > +                       if (err == 1)
+> > +                               metacopy = true;
+> >                 }
 > >
-> > --
-> > 2.13.5
-> >
+> >                 if (d.redirect) {
+> > @@ -716,6 +741,15 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
+> >                 OVL_I(inode)->redirect = upperredirect;
+> >                 if (index)
+> >                         ovl_set_flag(OVL_INDEX, inode);
+> > +
+> > +               if (metacopy) {
+> > +                       /*
+> > +                        * TODO: What happens we if find metacopy xattr but
+> > +                        * could not find/resolve origin.
+> > +                        */
+> 
+> Hint: if metacopy could also exist only on an index entry, with no
+> upper aliases,
+> this index entry would be detected as stale on mount (cannot resolve origin) and
+> cleaned, so you won't get to this problem.
+
+Hi Amir,
+
+Sorry, I am getting lost here. Can you please explain a bit more.
+
+My understanding is that index entry is created during copy up only for
+files with nlink > 1. If a regular file is copied up there will not be
+any index entry.
+
+And during mount time, you are going through all index entries and
+verifying there are no stale entries and cleaning up stale entries.
+(ovl_indexdir_cleanup()).
+
+So is the idea that with metacopyup we create index entries even for
+regular files with nlink=1 and do similar cleanup? Sorry, I am little
+lost here.
+
+Vivek
