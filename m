@@ -1,135 +1,151 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [PATCH 5/7] ovl: Set OVL_METACOPY flag during ovl_lookup()
-Date: Tue, 3 Oct 2017 18:42:48 +0300
-Message-ID: <CAOQ4uxhwWhm2K0uOZ_9azddK6G3Ry0oQoTLryaUj+FQwD3os0A@mail.gmail.com>
+Subject: Re: [PATCH 4/7] ovl: Set xattr OVL_XATTR_METACOPY on upper file
+Date: Tue, 3 Oct 2017 19:09:38 +0300
+Message-ID: <CAOQ4uxjHWc5ukc9tQZaSC8Hy70Ar2tjNjiMAbsS0xWj+C-kSgw@mail.gmail.com>
 References: <1506951605-31440-1-git-send-email-vgoyal@redhat.com>
- <1506951605-31440-6-git-send-email-vgoyal@redhat.com> <CAOQ4uxgDZST72GWN5WO7Qk_=CA0SA+jPCyWEuej3Ppug4Wnkxw@mail.gmail.com>
- <20171003152742.GF14308@redhat.com>
+ <1506951605-31440-5-git-send-email-vgoyal@redhat.com> <CAOQ4uxj43mpk4nH-ont+pB7wdBTUEki=x_b5p1xY4P9NgOSgjQ@mail.gmail.com>
+ <20171003151020.GD14308@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-qt0-f177.google.com ([209.85.216.177]:56965 "EHLO
-        mail-qt0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751207AbdJCPmt (ORCPT
+Received: from mail-qt0-f196.google.com ([209.85.216.196]:38172 "EHLO
+        mail-qt0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750830AbdJCQJk (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 3 Oct 2017 11:42:49 -0400
-Received: by mail-qt0-f177.google.com with SMTP id e19so9841439qta.13
-        for <linux-unionfs@vger.kernel.org>; Tue, 03 Oct 2017 08:42:49 -0700 (PDT)
-In-Reply-To: <20171003152742.GF14308@redhat.com>
+        Tue, 3 Oct 2017 12:09:40 -0400
+Received: by mail-qt0-f196.google.com with SMTP id o3so2154003qte.5
+        for <linux-unionfs@vger.kernel.org>; Tue, 03 Oct 2017 09:09:39 -0700 (PDT)
+In-Reply-To: <20171003151020.GD14308@redhat.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: Vivek Goyal <vgoyal@redhat.com>
 Cc: overlayfs <linux-unionfs@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>
 
-On Tue, Oct 3, 2017 at 6:27 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
-> On Mon, Oct 02, 2017 at 10:31:42PM +0300, Amir Goldstein wrote:
+On Tue, Oct 3, 2017 at 6:10 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
+> On Mon, Oct 02, 2017 at 10:28:30PM +0300, Amir Goldstein wrote:
 >> On Mon, Oct 2, 2017 at 4:40 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
->> > During lookup, check for presence of OVL_XATTR_METACOPY and if present,
->> > set OVL_METACOPY bit in flags.
+>> > Presence of OVL_XATTR_METACOPY reflects that file has been copied up
+>> > with metadata only and data needs to be copied up later from lower.
+>> > So this xattr is set when a metadata copy takes place and cleared when
+>> > data copy takes place.
+>> >
+>> > We also use a bit in ovl_inode->flags to cache OVL_METACOPY which reflects
+>> > whether ovl inode has only metadata copied up.
 >> >
 >> > Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
 >> > ---
->> >  fs/overlayfs/namei.c | 34 ++++++++++++++++++++++++++++++++++
->> >  1 file changed, 34 insertions(+)
+>> >  fs/overlayfs/copy_up.c   | 42 ++++++++++++++++++++++++++++++++++++++++--
+>> >  fs/overlayfs/inode.c     |  3 ++-
+>> >  fs/overlayfs/overlayfs.h |  5 ++++-
+>> >  fs/overlayfs/util.c      | 21 +++++++++++++++++++--
+>> >  4 files changed, 65 insertions(+), 6 deletions(-)
 >> >
->> > diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
->> > index c3addd1114f1..9b6f9afa4f75 100644
->> > --- a/fs/overlayfs/namei.c
->> > +++ b/fs/overlayfs/namei.c
->> > @@ -26,6 +26,24 @@ struct ovl_lookup_data {
->> >         char *redirect;
->> >  };
+>> > diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
+>> > index b2d9ed81e9ff..d76a4272b43e 100644
+>> > --- a/fs/overlayfs/copy_up.c
+>> > +++ b/fs/overlayfs/copy_up.c
+>> > @@ -439,6 +439,26 @@ static int ovl_get_tmpfile(struct ovl_copy_up_ctx *c, struct dentry **tempp)
+>> >         goto out;
+>> >  }
 >> >
->> > +/* err < 0, 0 if no metacopy xattr, 1 if metacopy xattr found */
->> > +static int ovl_check_metacopy(struct dentry *dentry)
+>> > +static int ovl_copy_up_data_inode(struct ovl_copy_up_ctx *c)
 >> > +{
->> > +       int res;
+>> > +       struct path upperpath;
+>> > +       int err;
 >> > +
->> > +       res = vfs_getxattr(dentry, OVL_XATTR_METACOPY, NULL, 0);
->> > +       if (res < 0) {
->> > +               if (res == -ENODATA || res == -EOPNOTSUPP)
->> > +                       return 0;
->> > +               goto out;
->> > +       }
+>> > +       ovl_path_upper(c->dentry, &upperpath);
+>> > +       BUG_ON(upperpath.dentry == NULL);
 >> > +
->> > +       return 1;
->> > +out:
->> > +       pr_warn_ratelimited("overlayfs: failed to get metacopy (%i)\n", res);
->> > +       return res;
+>> > +       err = ovl_copy_up_data(&c->lowerpath, &upperpath, c->stat.size);
+>> > +       if (err)
+>> > +               return err;
+>> > +
+>> > +       err= vfs_removexattr(upperpath.dentry, OVL_XATTR_METACOPY);
+>> > +       if (err)
+>> > +               return err;
+>> > +
+>> > +        ovl_clear_flag(OVL_METACOPY, d_inode(c->dentry));
+>> > +       return err;
 >> > +}
 >> > +
->> >  static int ovl_check_redirect(struct dentry *dentry, struct ovl_lookup_data *d,
->> >                               size_t prelen, const char *post)
+>> >  static int ovl_copy_up_inode(struct ovl_copy_up_ctx *c, struct dentry *temp)
 >> >  {
->> > @@ -591,6 +609,7 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
->> >         struct dentry *this;
->> >         unsigned int i;
 >> >         int err;
->> > +       bool metacopy = false;
->> >         struct ovl_lookup_data d = {
->> >                 .name = dentry->d_name,
->> >                 .is_dir = false,
->> > @@ -631,6 +650,12 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
->> >                                                roe->numlower, &stack, &ctr);
->> >                         if (err)
->> >                                 goto out;
->> > +
->> > +                       err = ovl_check_metacopy(upperdentry);
->> > +                       if (err < 0)
->> > +                               goto out;
->> > +                       if (err == 1)
->> > +                               metacopy = true;
->> >                 }
+>> > @@ -482,6 +502,13 @@ static int ovl_copy_up_inode(struct ovl_copy_up_ctx *c, struct dentry *temp)
+>> >                         return err;
+>> >         }
 >> >
->> >                 if (d.redirect) {
->> > @@ -716,6 +741,15 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
->> >                 OVL_I(inode)->redirect = upperredirect;
->> >                 if (index)
->> >                         ovl_set_flag(OVL_INDEX, inode);
+>> > +       if (c->metadata_only) {
+>> > +               err = ovl_check_setxattr(c->dentry, temp, OVL_XATTR_METACOPY,
+>> > +                                        NULL, 0, -EOPNOTSUPP);
+>> > +               if (err)
+>> > +                       return err;
+>> > +       }
 >> > +
->> > +               if (metacopy) {
->> > +                       /*
->> > +                        * TODO: What happens we if find metacopy xattr but
->> > +                        * could not find/resolve origin.
->> > +                        */
+>> >         return 0;
+>> >  }
+>> >
+>> > @@ -511,6 +538,9 @@ static int ovl_copy_up_locked(struct ovl_copy_up_ctx *c)
+>> >                 goto out_cleanup;
+>> >
+>> >         ovl_inode_update(d_inode(c->dentry), newdentry);
+>> > +       if (c->metadata_only) {
+>> > +               ovl_set_flag(OVL_METACOPY, d_inode(c->dentry));
+>> > +       }
+>> >  out:
+>> >         dput(temp);
+>> >         return err;
+>> > @@ -638,7 +668,7 @@ static int ovl_copy_up_one(struct dentry *parent, struct dentry *dentry,
+>> >         }
+>> >         ovl_do_check_copy_up(ctx.lowerpath.dentry);
+>> >
+>> > -       err = ovl_copy_up_start(dentry);
+>> > +       err = ovl_copy_up_start(dentry, flags);
+>> >         /* err < 0: interrupted, err > 0: raced with another copy-up */
+>> >         if (unlikely(err)) {
+>> >                 if (err > 0)
+>> > @@ -648,6 +678,8 @@ static int ovl_copy_up_one(struct dentry *parent, struct dentry *dentry,
+>> >                         err = ovl_do_copy_up(&ctx);
+>> >                 if (!err && !ovl_dentry_has_upper_alias(dentry))
+>> >                         err = ovl_link_up(&ctx);
+>> > +               if (!err && ovl_dentry_needs_data_copy_up(dentry, flags))
+>> > +                       err = ovl_copy_up_data_inode(&ctx);
 >>
->> Hint: if metacopy could also exist only on an index entry, with no
->> upper aliases,
->> this index entry would be detected as stale on mount (cannot resolve origin) and
->> cleaned, so you won't get to this problem.
+>> I think it would simplify life cycle of copy up if ovl_copy_up_data_inode()
+>> is always before ovl_link_up() and that ovl_dentry_has_upper_alias()
+>> means "has a concrete upper alias with data".
 >
-> Hi Amir,
+> Hmm..., I think I don't understand the suggestion.  So will upper alias will
+> not be created until and unless data copy up happens?
 >
-> Sorry, I am getting lost here. Can you please explain a bit more.
+> IOW, say I have file lower-file.txt in lower/ and also a hard link, say
+> lower-link.txt
 >
-> My understanding is that index entry is created during copy up only for
-> files with nlink > 1. If a regular file is copied up there will not be
-> any index entry.
+> lower-file.txt
+> lower-link.txt
 >
-> And during mount time, you are going through all index entries and
-> verifying there are no stale entries and cleaning up stale entries.
-> (ovl_indexdir_cleanup()).
->
-> So is the idea that with metacopyup we create index entries even for
-> regular files with nlink=1
+> Now if do "chown vivek lower-file.txt", then lower-file.txt will be copied
+> up metadata only and an alias will be created. So are you saying that we
+> should not create an alias till actual data copy happens?
 
-Yes. please cherry-pick 982a78ebd5cd ovl: create ovl_need_index() helper
-from https://github.com/amir73il/linux/commits/ovl-index-all
-and then in the patch that introduces metacopy up, return true from
-ovl_need_index() helper for regular files if ofs->config.metacopy is set
+Yes, that is what I was suggesting.
+There is no need for an upper alias for the purpose of copy up
+from ovl_setattr(), ovl_xattr_set() and ovl_nlink_start().
 
-> and do similar cleanup? Sorry, I am little
-> lost here.
+However, the call sites ovl_copy_up(old) and ovl_copy_up(new) from
+ovl_link() and ovl_rename() do need to create an upper alias,
+so either they out-in to data copy (as they behave today) with
+ovl_copy_up_flags(dentry, O_RWONLY) or they could be converted
+to ovl_copy_up_flags(dentry, O_PATH) as special indication to opt-in
+for metacopy + link_up with no data copy.
+
+>
+> What about regular files with no links.
 >
 
-Your patches need not do anything more.
-The cleanup will happen with current ovl_indexdir_cleanup() code.
-You ask in the comment "What happens we if find metacopy xattr but
-could not find/resolve origin?"
-If you follow my suggestions, then metacopy xattr can exist only on
-index entry *before* it was linked to upper dir.
-So if such an index entry exists that its origin is not available or
-cannot be resolved, this index will be cleaned on mount time
-and you shall not find it on lookup.
+When you chmod a regular file with or without links,
+an index is created with its metadata.
+Any future lookup/stat/permissions will see the i_mode/st_mode
+of the upper index.
 
 Amir.
