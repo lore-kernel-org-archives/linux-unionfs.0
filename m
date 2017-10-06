@@ -1,47 +1,70 @@
-From: Miklos Szeredi <miklos@szeredi.hu>
-Subject: [GIT PULL] overlayfs fixes for 4.14-rc4
-Date: Fri, 6 Oct 2017 14:14:05 +0200
-Message-ID: <20171006121405.GA32700@veci.piliscsaba.szeredi.hu>
+From: Vivek Goyal <vgoyal@redhat.com>
+Subject: Re: [PATCH 7/7] ovl: Fix ovl_getattr() to get size from lower
+Date: Fri, 6 Oct 2017 11:13:47 -0400
+Message-ID: <20171006151347.GA10750@redhat.com>
+References: <1506951605-31440-1-git-send-email-vgoyal@redhat.com>
+ <1506951605-31440-8-git-send-email-vgoyal@redhat.com>
+ <CAOQ4uxhvN7xTK9Y7LXfuWoDY6NYRB9t+r=tb=_4oQO-2Ce_KRA@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-unionfs-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:43296 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751475AbdJFPNs (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Fri, 6 Oct 2017 11:13:48 -0400
 Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org
+In-Reply-To: <CAOQ4uxhvN7xTK9Y7LXfuWoDY6NYRB9t+r=tb=_4oQO-2Ce_KRA@mail.gmail.com>
+Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: overlayfs <linux-unionfs@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>
 
-Hi Linus,
+On Mon, Oct 02, 2017 at 10:40:07PM +0300, Amir Goldstein wrote:
+> On Mon, Oct 2, 2017 at 4:40 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
+> > If an inode has been copied up metadata only, then we need to query the
+> > size from lower and fill up the stat->size.
+> 
+> So you won't need this patch if you copy st_size on metadata_copy,
+> which seems like the logical thing to do.
+> Thinking very far into the future when METACOPY and ORIGIN will
+> be able to share page mappings, they will have to start with the same size.
 
-Please pull from:
+Hi Amir,
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/mszeredi/vfs.git overlayfs-linus
+What about "st_blocks"? After metadata copy up, doing stat on overlay file
+shows "st_blocks" as 0. I think I still will need to intervene and get
+st_blocks from lower file instead?
 
-Fix a regression in 4.14 and one in 4.13.  The latter is a case when Docker is
-doing something it really shouldn't and gets away with it.  We now print a
-warning instead of erroring out.  There are also fixes to several error paths.
+Vivek
 
-Thanks,
-Miklos
-
----
-Amir Goldstein (6):
-      ovl: fix may_write_real() for overlayfs directories
-      ovl: fix error value printed in ovl_lookup_index()
-      ovl: fix dput() of ERR_PTR in ovl_cleanup_index()
-      ovl: fix dentry leak in ovl_indexdir_cleanup()
-      ovl: fix missing unlock_rename() in ovl_do_copy_up()
-      ovl: fix regression caused by exclusive upper/work dir protection
-
----
- Documentation/filesystems/overlayfs.txt |  5 ++++-
- fs/namespace.c                          |  4 +++-
- fs/overlayfs/copy_up.c                  |  6 ++----
- fs/overlayfs/dir.c                      | 20 --------------------
- fs/overlayfs/namei.c                    |  1 +
- fs/overlayfs/overlayfs.h                |  1 +
- fs/overlayfs/ovl_entry.h                |  3 +++
- fs/overlayfs/readdir.c                  |  6 ++++--
- fs/overlayfs/super.c                    | 27 +++++++++++++++++++--------
- fs/overlayfs/util.c                     | 24 +++++++++++++++++++++++-
- 10 files changed, 60 insertions(+), 37 deletions(-)
+> 
+> >
+> > Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
+> > ---
+> >  fs/overlayfs/inode.c | 10 ++++++++++
+> >  1 file changed, 10 insertions(+)
+> >
+> > diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
+> > index e5825b8948e0..1b676deacc2d 100644
+> > --- a/fs/overlayfs/inode.c
+> > +++ b/fs/overlayfs/inode.c
+> > @@ -140,6 +140,16 @@ int ovl_getattr(const struct path *path, struct kstat *stat,
+> >         if (!is_dir && ovl_test_flag(OVL_INDEX, d_inode(dentry)))
+> >                 stat->nlink = dentry->d_inode->i_nlink;
+> >
+> > +       if (ovl_test_flag(OVL_METACOPY, d_inode(dentry))) {
+> > +               struct kstat lowerstat;
+> > +               u32 lowermask = STATX_SIZE;
+> > +
+> > +               ovl_path_lower(dentry, &realpath);
+> > +               err = vfs_getattr(&realpath, &lowerstat, lowermask, flags);
+> > +               if (err)
+> > +                       goto out;
+> > +               stat->size = lowerstat.size;
+> > +       }
+> >  out:
+> >         revert_creds(old_cred);
+> >
+> > --
+> > 2.13.5
+> >
