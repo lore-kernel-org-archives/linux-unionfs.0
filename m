@@ -1,57 +1,84 @@
-From: Euan Kemp <euank@euank.com>
-Subject: Re: [PATCH] ovl: fix regression caused by exclusive upper/work dir
- protection
-Date: Fri, 6 Oct 2017 10:16:39 -0700
-Message-ID: <20171006171639.5c2xq6utumnupfkb@Enkidudu>
-References: <1506673327-5906-1-git-send-email-amir73il@gmail.com>
- <CAOQ4uxj6k3wgke8YHwLoQXZNHkuD1YkAMW73VmEuizoNP-TGVA@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="veiq3may3l4llknw"
+From: Vivek Goyal <vgoyal@redhat.com>
+Subject: [PATCH 2/8] ovl: During copy up, first copy up metadata and then data
+Date: Fri,  6 Oct 2017 13:47:11 -0400
+Message-ID: <1507312037-30909-3-git-send-email-vgoyal@redhat.com>
+References: <1507312037-30909-1-git-send-email-vgoyal@redhat.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-pg0-f45.google.com ([74.125.83.45]:56882 "EHLO
-        mail-pg0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751862AbdJFRQm (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 6 Oct 2017 13:16:42 -0400
-Received: by mail-pg0-f45.google.com with SMTP id m18so4149960pgd.13
-        for <linux-unionfs@vger.kernel.org>; Fri, 06 Oct 2017 10:16:41 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <CAOQ4uxj6k3wgke8YHwLoQXZNHkuD1YkAMW73VmEuizoNP-TGVA@mail.gmail.com>
+Received: from mx1.redhat.com ([209.132.183.28]:42408 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752155AbdJFRrX (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Fri, 6 Oct 2017 13:47:23 -0400
+In-Reply-To: <1507312037-30909-1-git-send-email-vgoyal@redhat.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: Vivek Goyal <vgoyal@redhat.com>, overlayfs <linux-unionfs@vger.kernel.org>, "# v4 . 13" <stable@vger.kernel.org>, Eryu Guan <eguan@redhat.com>, Miklos Szeredi <miklos@szeredi.hu>
+To: linux-unionfs@vger.kernel.org
+Cc: amir73il@gmail.com, miklos@szeredi.hu, vgoyal@redhat.com
 
+This just helps with later patches where after copying up metadata, we
+skip data copying step, if needed.
 
---veiq3may3l4llknw
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
+---
+ fs/overlayfs/copy_up.c | 34 +++++++++++++++++-----------------
+ 1 file changed, 17 insertions(+), 17 deletions(-)
 
-On Fri, Sep 29, 2017 at 11:31:05AM +0300, Amir Goldstein wrote:
-> Care to test this patch?
-
-I can verify this patch resolves the issue I reported against the moby
-project (https://github.com/moby/moby/issues/34672).
-
-I think including this in the stable kernel makes sense; without this
-there's noticeable userspace impact.
-
-- Euan
-
---veiq3may3l4llknw
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQEzBAEBCgAdFiEE2vLQVz9g0pDwn0STaZWsAiv0ng0FAlnXunEACgkQaZWsAiv0
-ng26NAgAh3R5TVH+P3bd9Ffu5gRh1TD6hAGad4VKaO5+41fyjMNlFiP0bTZGhRM3
-F2e1+WohHv117NEMInLviHMzIbV65TXy7+LdnQfvdP1msnRdTw5ZpOEfjinfCe4+
-lhZxtf75bMQEyntQ+GWU4kInm/EzkEebQnppoiM9UqXntzu4CPBRbIIzSYXcfYHz
-mgjMa4s8t3PzVAWYKFWCPdfgoemAdCaJ4cPEZd1gIGJgCdUE+OdJsZ7ZZzdUIEba
-N0KM4AKQJjYyoX7Qdsb4q055lHnUIR4STIDYQOEHTyunNJsda345gSvz/K440/yY
-zaacRrKsx7JYlfNijt8l5c0ayuXY+Q==
-=4PPY
------END PGP SIGNATURE-----
-
---veiq3may3l4llknw--
+diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
+index aad97b30d5e6..00e8ae8bb9aa 100644
+--- a/fs/overlayfs/copy_up.c
++++ b/fs/overlayfs/copy_up.c
+@@ -445,6 +445,23 @@ static int ovl_copy_up_inode(struct ovl_copy_up_ctx *c, struct dentry *temp)
+ {
+ 	int err;
+ 
++	err = ovl_copy_xattr(c->lowerpath.dentry, temp);
++	if (err)
++		return err;
++
++	/*
++	 * Store identifier of lower inode in upper inode xattr to
++	 * allow lookup of the copy up origin inode.
++	 *
++	 * Don't set origin when we are breaking the association with a lower
++	 * hard link.
++	 */
++	if (c->origin) {
++		err = ovl_set_origin(c->dentry, c->lowerpath.dentry, temp);
++		if (err)
++			return err;
++	}
++
+ 	if (S_ISREG(c->stat.mode)) {
+ 		struct path upperpath;
+ 
+@@ -457,29 +474,12 @@ static int ovl_copy_up_inode(struct ovl_copy_up_ctx *c, struct dentry *temp)
+ 			return err;
+ 	}
+ 
+-	err = ovl_copy_xattr(c->lowerpath.dentry, temp);
+-	if (err)
+-		return err;
+-
+ 	inode_lock(temp->d_inode);
+ 	err = ovl_set_attr(temp, &c->stat);
+ 	inode_unlock(temp->d_inode);
+ 	if (err)
+ 		return err;
+ 
+-	/*
+-	 * Store identifier of lower inode in upper inode xattr to
+-	 * allow lookup of the copy up origin inode.
+-	 *
+-	 * Don't set origin when we are breaking the association with a lower
+-	 * hard link.
+-	 */
+-	if (c->origin) {
+-		err = ovl_set_origin(c->dentry, c->lowerpath.dentry, temp);
+-		if (err)
+-			return err;
+-	}
+-
+ 	return 0;
+ }
+ 
+-- 
+2.13.5
