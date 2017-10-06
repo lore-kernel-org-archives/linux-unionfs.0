@@ -1,143 +1,95 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [PATCH 3/8] ovl: Provide a mount option metacopy=on/off for
- metadata copyup
-Date: Fri, 6 Oct 2017 22:01:47 +0300
-Message-ID: <CAOQ4uxiP+QjNW7P1n0-wK-PEVUYCZR_gLd3_H_ZbhC=B5fQvmg@mail.gmail.com>
-References: <1507312037-30909-1-git-send-email-vgoyal@redhat.com> <1507312037-30909-4-git-send-email-vgoyal@redhat.com>
+Subject: Re: [PATCH 8/8] ovl: Fix ovl_getattr() to get number of blocks from lower
+Date: Fri, 6 Oct 2017 22:09:38 +0300
+Message-ID: <CAOQ4uxh4fcDc4FovOW_9vNGVJ3mDKrT=YVyXBNOFQAL_a2Gh_w@mail.gmail.com>
+References: <1507312037-30909-1-git-send-email-vgoyal@redhat.com>
+ <1507312037-30909-9-git-send-email-vgoyal@redhat.com> <CAOQ4uxgYC=UKpXw+P36PnB2hxDzV+L=QP_j8whJeL2GCrSxLnw@mail.gmail.com>
+ <20171006190104.GA1449@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-qt0-f193.google.com ([209.85.216.193]:33461 "EHLO
-        mail-qt0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751491AbdJFTBt (ORCPT
+Received: from mail-qt0-f195.google.com ([209.85.216.195]:37540 "EHLO
+        mail-qt0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751639AbdJFTJj (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 6 Oct 2017 15:01:49 -0400
-Received: by mail-qt0-f193.google.com with SMTP id x54so8736036qth.0
-        for <linux-unionfs@vger.kernel.org>; Fri, 06 Oct 2017 12:01:48 -0700 (PDT)
-In-Reply-To: <1507312037-30909-4-git-send-email-vgoyal@redhat.com>
+        Fri, 6 Oct 2017 15:09:39 -0400
+Received: by mail-qt0-f195.google.com with SMTP id 32so8751690qtp.4
+        for <linux-unionfs@vger.kernel.org>; Fri, 06 Oct 2017 12:09:39 -0700 (PDT)
+In-Reply-To: <20171006190104.GA1449@redhat.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: Vivek Goyal <vgoyal@redhat.com>
 Cc: overlayfs <linux-unionfs@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>
 
-On Fri, Oct 6, 2017 at 8:47 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
-> By default metadata only copy up is disabled. Provide a mount option so
-> that users can choose one way or other.
+On Fri, Oct 6, 2017 at 10:01 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
+> On Fri, Oct 06, 2017 at 09:58:58PM +0300, Amir Goldstein wrote:
+>> On Fri, Oct 6, 2017 at 8:47 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
+>> > If an inode has been copied up metadata only, then we need to query the
+>> > number of blocks from lower and fill up the stat->st_blocks.
+>> >
+>> > Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
+>> > ---
+>> >  fs/overlayfs/inode.c | 18 ++++++++++++++++--
+>> >  1 file changed, 16 insertions(+), 2 deletions(-)
+>> >
+>> > diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
+>> > index e5825b8948e0..18007634ea9a 100644
+>> > --- a/fs/overlayfs/inode.c
+>> > +++ b/fs/overlayfs/inode.c
+>> > @@ -67,6 +67,8 @@ int ovl_getattr(const struct path *path, struct kstat *stat,
+>> >         const struct cred *old_cred;
+>> >         bool is_dir = S_ISDIR(dentry->d_inode->i_mode);
+>> >         int err;
+>> > +       bool lowerstat_done = false;
+>> > +       struct kstat lowerstat;
+>> >
+>> >         type = ovl_path_real(dentry, &realpath);
+>> >         old_cred = ovl_override_creds(dentry->d_sb);
+>> > @@ -86,8 +88,8 @@ int ovl_getattr(const struct path *path, struct kstat *stat,
+>> >          */
+>> >         if (ovl_same_sb(dentry->d_sb)) {
+>> >                 if (OVL_TYPE_ORIGIN(type)) {
+>> > -                       struct kstat lowerstat;
+>> > -                       u32 lowermask = STATX_INO | (!is_dir ? STATX_NLINK : 0);
+>> > +                       u32 lowermask = STATX_INO | STATX_BLOCKS |
+>> > +                                       (!is_dir ? STATX_NLINK : 0);
+>> >
+>> >                         ovl_path_lower(dentry, &realpath);
+>> >                         err = vfs_getattr(&realpath, &lowerstat,
+>> > @@ -95,6 +97,7 @@ int ovl_getattr(const struct path *path, struct kstat *stat,
+>> >                         if (err)
+>> >                                 goto out;
+>> >
+>> > +                       lowerstat_done = true;
+>> >                         WARN_ON_ONCE(stat->dev != lowerstat.dev);
+>> >                         /*
+>> >                          * Lower hardlinks may be broken on copy up to different
+>> > @@ -140,6 +143,17 @@ int ovl_getattr(const struct path *path, struct kstat *stat,
+>> >         if (!is_dir && ovl_test_flag(OVL_INDEX, d_inode(dentry)))
+>> >                 stat->nlink = dentry->d_inode->i_nlink;
+>> >
+>> > +       if (ovl_test_flag(OVL_METACOPY, d_inode(dentry))) {
+>> > +               u32 lowermask = STATX_BLOCKS;
+>> > +
+>> > +               if (!lowerstat_done) {
+>>
+>> I guess lowerstat_done is as result from my comment,
+>> but I did not mean I think vfs_getattr() is expensive,
+>> I just didn't like the duplication of that code block, but maybe
+>> just a matter of personal taste.
+>> Can be sorted out later.
 >
-> Also metadata copyup is conditional on index=on. If index=off and user
-> specifies metacopy=on, it goes back to metacopy=off and a warning is
-> printed.
+> Yes, I added this because I thought you wanted to avoid that extra
+> vfs_getattr() call. I am open to change it whatever way you like.
+> Personally I did not like this extra boolean and I liked unconditional
+> vfs_getattr() better. It was not most optimized but was easier to
+> understand.
 >
-> Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
-> ---
->  fs/overlayfs/Kconfig     |  9 +++++++++
->  fs/overlayfs/ovl_entry.h |  1 +
->  fs/overlayfs/super.c     | 32 ++++++++++++++++++++++++++++++++
->  3 files changed, 42 insertions(+)
->
-> diff --git a/fs/overlayfs/Kconfig b/fs/overlayfs/Kconfig
-> index cbfc196e5dc5..94d4c61719c8 100644
-> --- a/fs/overlayfs/Kconfig
-> +++ b/fs/overlayfs/Kconfig
-> @@ -43,3 +43,12 @@ config OVERLAY_FS_INDEX
->           outcomes.  However, mounting the same overlay with an old kernel
->           read-write and then mounting it again with a new kernel, will have
->           unexpected results.
-> +
-> +config OVERLAY_FS_METACOPY
-> +       bool "Overlayfs: turn on metadata only copy up feature by default"
-> +       depends on OVERLAY_FS
-> +       depends on OVERLAY_FS_INDEX
-> +       help
-> +         If this config option is enabled then overlay filesystems will
-> +         copy up only metadata where appropriate and data copy up will
-> +         happen when a file is opended for WRITE operation.
-> diff --git a/fs/overlayfs/ovl_entry.h b/fs/overlayfs/ovl_entry.h
-> index 878a750986dd..a49f61111c79 100644
-> --- a/fs/overlayfs/ovl_entry.h
-> +++ b/fs/overlayfs/ovl_entry.h
-> @@ -15,6 +15,7 @@ struct ovl_config {
->         bool default_permissions;
->         bool redirect_dir;
->         bool index;
-> +       bool metacopy;
->  };
->
->  /* private information held for overlayfs's superblock */
-> diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-> index fd5ea4facc62..338fb0c3d345 100644
-> --- a/fs/overlayfs/super.c
-> +++ b/fs/overlayfs/super.c
-> @@ -39,6 +39,11 @@ module_param_named(index, ovl_index_def, bool, 0644);
->  MODULE_PARM_DESC(ovl_index_def,
->                  "Default to on or off for the inodes index feature");
->
-> +static bool ovl_metacopy_def = IS_ENABLED(CONFIG_OVERLAY_FS_METACOPY);
-> +module_param_named(metacopy, ovl_metacopy_def, bool, 0644);
-> +MODULE_PARM_DESC(ovl_metacopy_def,
-> +                "Default to on or off for the metadata only copy up feature");
-> +
->  static void ovl_dentry_release(struct dentry *dentry)
->  {
->         struct ovl_entry *oe = dentry->d_fsdata;
-> @@ -302,6 +307,9 @@ static int ovl_show_options(struct seq_file *m, struct dentry *dentry)
->         if (ufs->config.index != ovl_index_def)
->                 seq_printf(m, ",index=%s",
->                            ufs->config.index ? "on" : "off");
-> +       if (ufs->config.metacopy != ovl_metacopy_def)
-> +               seq_printf(m, ",metacopy=%s",
-> +                          ufs->config.metacopy ? "on" : "off");
->         return 0;
->  }
->
-> @@ -335,6 +343,8 @@ enum {
->         OPT_REDIRECT_DIR_OFF,
->         OPT_INDEX_ON,
->         OPT_INDEX_OFF,
-> +       OPT_METACOPY_ON,
-> +       OPT_METACOPY_OFF,
->         OPT_ERR,
->  };
->
-> @@ -347,6 +357,8 @@ static const match_table_t ovl_tokens = {
->         {OPT_REDIRECT_DIR_OFF,          "redirect_dir=off"},
->         {OPT_INDEX_ON,                  "index=on"},
->         {OPT_INDEX_OFF,                 "index=off"},
-> +       {OPT_METACOPY_ON,               "metacopy=on"},
-> +       {OPT_METACOPY_OFF,              "metacopy=off"},
->         {OPT_ERR,                       NULL}
->  };
->
-> @@ -427,6 +439,14 @@ static int ovl_parse_opt(char *opt, struct ovl_config *config)
->                         config->index = false;
->                         break;
->
-> +               case OPT_METACOPY_ON:
-> +                       config->metacopy = true;
-> +                       break;
-> +
-> +               case OPT_METACOPY_OFF:
-> +                       config->metacopy = false;
-> +                       break;
-> +
->                 default:
->                         pr_err("overlayfs: unrecognized mount option \"%s\" or missing value\n", p);
->                         return -EINVAL;
-> @@ -441,6 +461,12 @@ static int ovl_parse_opt(char *opt, struct ovl_config *config)
->                 config->workdir = NULL;
->         }
->
-> +       /* As of now metacopy=on is dependent on index=on */
-> +       if (config->metacopy && !config->index) {
-> +               pr_warn("overlayfs: can not enable metadata only copyup with index=off. Falling back to metacopy=off\n");
-> +               config->metacopy = false;
-> +       }
-> +
 
-There are later places in fill_super where index may be falling back to off
-due to missing file handle support in lower fs.
-Please move this check to much later to make sure metacopy=on and index=off
-cannot co-exists.
+Yeh, I liked it without the boolean better as well.
+What I meant is once this patch lands:
+https://github.com/chandanr/linux/commit/e9024b0a08a1c725daed548f68ff703305c40124
+vfs_getattr() will be called for all non-dir with ORIGIN anyway, so
+METACOPY will be able to piggy back STATX_BLOCKS flag on the same call.
 
-Thanks,
 Amir.
