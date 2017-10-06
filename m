@@ -1,48 +1,57 @@
-From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [PATCH 7/7] ovl: Fix ovl_getattr() to get size from lower
-Date: Fri, 6 Oct 2017 18:32:15 +0300
-Message-ID: <CAOQ4uxj1vpQVCaUNf5ajzTxur_Z-wQ_38Mo+b_ikD83j=QmUeg@mail.gmail.com>
-References: <1506951605-31440-1-git-send-email-vgoyal@redhat.com>
- <1506951605-31440-8-git-send-email-vgoyal@redhat.com> <CAOQ4uxhvN7xTK9Y7LXfuWoDY6NYRB9t+r=tb=_4oQO-2Ce_KRA@mail.gmail.com>
- <20171006151347.GA10750@redhat.com>
+From: Euan Kemp <euank@euank.com>
+Subject: Re: [PATCH] ovl: fix regression caused by exclusive upper/work dir
+ protection
+Date: Fri, 6 Oct 2017 10:16:39 -0700
+Message-ID: <20171006171639.5c2xq6utumnupfkb@Enkidudu>
+References: <1506673327-5906-1-git-send-email-amir73il@gmail.com>
+ <CAOQ4uxj6k3wgke8YHwLoQXZNHkuD1YkAMW73VmEuizoNP-TGVA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="veiq3may3l4llknw"
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-qt0-f196.google.com ([209.85.216.196]:34955 "EHLO
-        mail-qt0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750849AbdJFPcR (ORCPT
+Received: from mail-pg0-f45.google.com ([74.125.83.45]:56882 "EHLO
+        mail-pg0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751862AbdJFRQm (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 6 Oct 2017 11:32:17 -0400
-Received: by mail-qt0-f196.google.com with SMTP id p15so4991737qtp.2
-        for <linux-unionfs@vger.kernel.org>; Fri, 06 Oct 2017 08:32:16 -0700 (PDT)
-In-Reply-To: <20171006151347.GA10750@redhat.com>
+        Fri, 6 Oct 2017 13:16:42 -0400
+Received: by mail-pg0-f45.google.com with SMTP id m18so4149960pgd.13
+        for <linux-unionfs@vger.kernel.org>; Fri, 06 Oct 2017 10:16:41 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <CAOQ4uxj6k3wgke8YHwLoQXZNHkuD1YkAMW73VmEuizoNP-TGVA@mail.gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Vivek Goyal <vgoyal@redhat.com>
-Cc: overlayfs <linux-unionfs@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: Vivek Goyal <vgoyal@redhat.com>, overlayfs <linux-unionfs@vger.kernel.org>, "# v4 . 13" <stable@vger.kernel.org>, Eryu Guan <eguan@redhat.com>, Miklos Szeredi <miklos@szeredi.hu>
 
-On Fri, Oct 6, 2017 at 6:13 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
-> On Mon, Oct 02, 2017 at 10:40:07PM +0300, Amir Goldstein wrote:
->> On Mon, Oct 2, 2017 at 4:40 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
->> > If an inode has been copied up metadata only, then we need to query the
->> > size from lower and fill up the stat->size.
->>
->> So you won't need this patch if you copy st_size on metadata_copy,
->> which seems like the logical thing to do.
->> Thinking very far into the future when METACOPY and ORIGIN will
->> be able to share page mappings, they will have to start with the same size.
->
-> Hi Amir,
->
-> What about "st_blocks"? After metadata copy up, doing stat on overlay file
-> shows "st_blocks" as 0. I think I still will need to intervene and get
-> st_blocks from lower file instead?
->
 
-Yeh, I guess you would.
-BTW, if it were up to me I would prefer a single call to vfs_getattr()
-instead of one for STATX_INO and then another for STATX_BLOCKS.
-Even though current code queries STATX_INO only for samefs case,
-there are patches by Chandan to relax samefs in ovl_getattr().
+--veiq3may3l4llknw
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Amir.
+On Fri, Sep 29, 2017 at 11:31:05AM +0300, Amir Goldstein wrote:
+> Care to test this patch?
+
+I can verify this patch resolves the issue I reported against the moby
+project (https://github.com/moby/moby/issues/34672).
+
+I think including this in the stable kernel makes sense; without this
+there's noticeable userspace impact.
+
+- Euan
+
+--veiq3may3l4llknw
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQEzBAEBCgAdFiEE2vLQVz9g0pDwn0STaZWsAiv0ng0FAlnXunEACgkQaZWsAiv0
+ng26NAgAh3R5TVH+P3bd9Ffu5gRh1TD6hAGad4VKaO5+41fyjMNlFiP0bTZGhRM3
+F2e1+WohHv117NEMInLviHMzIbV65TXy7+LdnQfvdP1msnRdTw5ZpOEfjinfCe4+
+lhZxtf75bMQEyntQ+GWU4kInm/EzkEebQnppoiM9UqXntzu4CPBRbIIzSYXcfYHz
+mgjMa4s8t3PzVAWYKFWCPdfgoemAdCaJ4cPEZd1gIGJgCdUE+OdJsZ7ZZzdUIEba
+N0KM4AKQJjYyoX7Qdsb4q055lHnUIR4STIDYQOEHTyunNJsda345gSvz/K440/yY
+zaacRrKsx7JYlfNijt8l5c0ayuXY+Q==
+=4PPY
+-----END PGP SIGNATURE-----
+
+--veiq3may3l4llknw--
