@@ -1,149 +1,273 @@
-From: Vivek Goyal <vgoyal@redhat.com>
-Subject: [PATCH 3/9] ovl: Provide a mount option metacopy=on/off for metadata copyup
-Date: Tue, 10 Oct 2017 11:32:18 -0400
-Message-ID: <1507649544-4539-4-git-send-email-vgoyal@redhat.com>
-References: <1507649544-4539-1-git-send-email-vgoyal@redhat.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Subject: Re: [PATCH 5/9] ovl: Set xattr OVL_XATTR_METACOPY on upper file
+Date: Tue, 10 Oct 2017 20:03:05 +0300
+Message-ID: <CAOQ4uxgNg3SO=xyvh_oAH-ExQGQCWXMGKygdAhmGeDdanyo=vA@mail.gmail.com>
+References: <1507649544-4539-1-git-send-email-vgoyal@redhat.com> <1507649544-4539-6-git-send-email-vgoyal@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:37724 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932243AbdJJPci (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 10 Oct 2017 11:32:38 -0400
-In-Reply-To: <1507649544-4539-1-git-send-email-vgoyal@redhat.com>
+Received: from mail-qt0-f193.google.com ([209.85.216.193]:38207 "EHLO
+        mail-qt0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755436AbdJJRDH (ORCPT
+        <rfc822;linux-unionfs@vger.kernel.org>);
+        Tue, 10 Oct 2017 13:03:07 -0400
+Received: by mail-qt0-f193.google.com with SMTP id k31so7225339qta.5
+        for <linux-unionfs@vger.kernel.org>; Tue, 10 Oct 2017 10:03:07 -0700 (PDT)
+In-Reply-To: <1507649544-4539-6-git-send-email-vgoyal@redhat.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: linux-unionfs@vger.kernel.org
-Cc: amir73il@gmail.com, miklos@szeredi.hu, vgoyal@redhat.com, ebiederm@xmission.com
+To: Vivek Goyal <vgoyal@redhat.com>
+Cc: overlayfs <linux-unionfs@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>, "Eric W. Biederman" <ebiederm@xmission.com>
 
-By default metadata only copy up is disabled. Provide a mount option so
-that users can choose one way or other.
+On Tue, Oct 10, 2017 at 6:32 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
+> Presence of OVL_XATTR_METACOPY reflects that file has been copied up
+> with metadata only and data needs to be copied up later from lower.
+> So this xattr is set when a metadata copy takes place and cleared when
+> data copy takes place.
+>
+> We also use a bit in ovl_inode->flags to cache OVL_METACOPY which reflects
+> whether ovl inode has only metadata copied up.
+>
+> ovl_set_size() code has been taken from Amir's patch.
+>
+> Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
+> ---
+>  fs/overlayfs/copy_up.c   | 65 ++++++++++++++++++++++++++++++++++++++++++++++--
+>  fs/overlayfs/inode.c     |  3 ++-
+>  fs/overlayfs/overlayfs.h |  5 +++-
+>  fs/overlayfs/util.c      | 21 ++++++++++++++--
+>  4 files changed, 88 insertions(+), 6 deletions(-)
+>
+> diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
+> index ebd404629c6d..682852a78163 100644
+> --- a/fs/overlayfs/copy_up.c
+> +++ b/fs/overlayfs/copy_up.c
+> @@ -196,6 +196,16 @@ static int ovl_copy_up_data(struct path *old, struct path *new, loff_t len)
+>         return error;
+>  }
+>
+> +static int ovl_set_size(struct dentry *upperdentry, struct kstat *stat)
+> +{
+> +       struct iattr attr = {
+> +               .ia_valid = ATTR_SIZE,
+> +               .ia_size = stat->size,
+> +       };
+> +
+> +       return notify_change(upperdentry, &attr, NULL);
+> +}
+> +
+>  static int ovl_set_timestamps(struct dentry *upperdentry, struct kstat *stat)
+>  {
+>         struct iattr attr = {
+> @@ -439,9 +449,31 @@ static int ovl_get_tmpfile(struct ovl_copy_up_ctx *c, struct dentry **tempp)
+>         goto out;
+>  }
+>
+> +static int ovl_copy_up_data_inode(struct ovl_copy_up_ctx *c)
+> +{
+> +       struct path upperpath;
+> +       int err;
+> +
+> +       ovl_path_upper(c->dentry, &upperpath);
+> +       BUG_ON(upperpath.dentry == NULL);
+> +
+> +       err = ovl_copy_up_data(&c->lowerpath, &upperpath, c->stat.size);
+> +       if (err)
+> +               return err;
+> +
+> +       err= vfs_removexattr(upperpath.dentry, OVL_XATTR_METACOPY);
+> +       if (err)
+> +               return err;
+> +
+> +       smp_wmb();
+> +       ovl_clear_flag(OVL_METACOPY, d_inode(c->dentry));
+> +       return err;
+> +}
+> +
+>  static int ovl_copy_up_inode(struct ovl_copy_up_ctx *c, struct dentry *temp)
+>  {
+>         int err;
+> +       bool set_size = false;
+>
+>         err = ovl_copy_xattr(c->lowerpath.dentry, temp);
+>         if (err)
+> @@ -476,8 +508,29 @@ static int ovl_copy_up_inode(struct ovl_copy_up_ctx *c, struct dentry *temp)
+>                         return err;
+>         }
+>
+> +       if (c->metadata_only) {
+> +               err = ovl_check_setxattr(c->dentry, temp, OVL_XATTR_METACOPY,
+> +                                        NULL, 0, -EOPNOTSUPP);
+> +               if (err)
+> +                       return err;
+> +
+> +               set_size = true;
+> +       }
+> +
+>         inode_lock(temp->d_inode);
+> +       if (set_size) {
+> +               err = ovl_set_size(temp, &c->stat);
+> +               if (err) {
+> +                       inode_unlock(temp->d_inode);
+> +                       return err;
+> +               }
 
-Also metadata copyup is conditional on index=on. If index=off and user
-specifies metacopy=on, it goes back to metacopy=off and a warning is
-printed.
+This extra if err block can be avoided with if !err
+Before ovl set attr.
 
-Also provide a kernel config and module option to enable/disable
-metacopy feature.
+> +       }
+> +
+>         err = ovl_set_attr(temp, &c->stat);
+> +       if (err) {
+> +               inode_unlock(temp->d_inode);
+> +               return err;
+> +       }
 
-Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
----
- fs/overlayfs/Kconfig     |  9 +++++++++
- fs/overlayfs/ovl_entry.h |  1 +
- fs/overlayfs/super.c     | 32 ++++++++++++++++++++++++++++++++
- 3 files changed, 42 insertions(+)
+This extra if err block adds nothing.
 
-diff --git a/fs/overlayfs/Kconfig b/fs/overlayfs/Kconfig
-index cbfc196e5dc5..94d4c61719c8 100644
---- a/fs/overlayfs/Kconfig
-+++ b/fs/overlayfs/Kconfig
-@@ -43,3 +43,12 @@ config OVERLAY_FS_INDEX
- 	  outcomes.  However, mounting the same overlay with an old kernel
- 	  read-write and then mounting it again with a new kernel, will have
- 	  unexpected results.
-+
-+config OVERLAY_FS_METACOPY
-+	bool "Overlayfs: turn on metadata only copy up feature by default"
-+	depends on OVERLAY_FS
-+	depends on OVERLAY_FS_INDEX
-+	help
-+	  If this config option is enabled then overlay filesystems will
-+	  copy up only metadata where appropriate and data copy up will
-+	  happen when a file is opended for WRITE operation.
-diff --git a/fs/overlayfs/ovl_entry.h b/fs/overlayfs/ovl_entry.h
-index 25d9b5adcd42..6806f0b0fbc2 100644
---- a/fs/overlayfs/ovl_entry.h
-+++ b/fs/overlayfs/ovl_entry.h
-@@ -15,6 +15,7 @@ struct ovl_config {
- 	bool default_permissions;
- 	bool redirect_dir;
- 	bool index;
-+	bool metacopy;
- };
- 
- /* private information held for overlayfs's superblock */
-diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-index 092d150643c1..6f4c32e49298 100644
---- a/fs/overlayfs/super.c
-+++ b/fs/overlayfs/super.c
-@@ -39,6 +39,11 @@ module_param_named(index, ovl_index_def, bool, 0644);
- MODULE_PARM_DESC(ovl_index_def,
- 		 "Default to on or off for the inodes index feature");
- 
-+static bool ovl_metacopy_def = IS_ENABLED(CONFIG_OVERLAY_FS_METACOPY);
-+module_param_named(metacopy, ovl_metacopy_def, bool, 0644);
-+MODULE_PARM_DESC(ovl_metacopy_def,
-+		 "Default to on or off for the metadata only copy up feature");
-+
- static void ovl_dentry_release(struct dentry *dentry)
- {
- 	struct ovl_entry *oe = dentry->d_fsdata;
-@@ -303,6 +308,9 @@ static int ovl_show_options(struct seq_file *m, struct dentry *dentry)
- 	if (ufs->config.index != ovl_index_def)
- 		seq_printf(m, ",index=%s",
- 			   ufs->config.index ? "on" : "off");
-+	if (ufs->config.metacopy != ovl_metacopy_def)
-+		seq_printf(m, ",metacopy=%s",
-+			   ufs->config.metacopy ? "on" : "off");
- 	return 0;
- }
- 
-@@ -336,6 +344,8 @@ enum {
- 	OPT_REDIRECT_DIR_OFF,
- 	OPT_INDEX_ON,
- 	OPT_INDEX_OFF,
-+	OPT_METACOPY_ON,
-+	OPT_METACOPY_OFF,
- 	OPT_ERR,
- };
- 
-@@ -348,6 +358,8 @@ static const match_table_t ovl_tokens = {
- 	{OPT_REDIRECT_DIR_OFF,		"redirect_dir=off"},
- 	{OPT_INDEX_ON,			"index=on"},
- 	{OPT_INDEX_OFF,			"index=off"},
-+	{OPT_METACOPY_ON,		"metacopy=on"},
-+	{OPT_METACOPY_OFF,		"metacopy=off"},
- 	{OPT_ERR,			NULL}
- };
- 
-@@ -428,6 +440,14 @@ static int ovl_parse_opt(char *opt, struct ovl_config *config)
- 			config->index = false;
- 			break;
- 
-+		case OPT_METACOPY_ON:
-+			config->metacopy = true;
-+			break;
-+
-+		case OPT_METACOPY_OFF:
-+			config->metacopy = false;
-+			break;
-+
- 		default:
- 			pr_err("overlayfs: unrecognized mount option \"%s\" or missing value\n", p);
- 			return -EINVAL;
-@@ -847,6 +867,12 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
- 
- 	ufs->config.redirect_dir = ovl_redirect_dir_def;
- 	ufs->config.index = ovl_index_def;
-+	if (ovl_metacopy_def && !ovl_index_def) {
-+		pr_warn("overlayfs: metadata copy up can not be enabled by default as index feature is not enabled by default.\n");
-+		ovl_metacopy_def = false;
-+	}
-+	ufs->config.metacopy = ovl_metacopy_def;
-+
- 	err = ovl_parse_opt((char *) data, &ufs->config);
- 	if (err)
- 		goto out_free_config;
-@@ -1091,6 +1117,12 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
- 	if (!ufs->indexdir)
- 		ufs->config.index = false;
- 
-+	/* As of now metacopy=on is dependent on index=on */
-+	if (ufs->config.metacopy && !ufs->config.index) {
-+		pr_warn("overlayfs: can not enable metadata only copyup with index=off. Falling back to metacopy=off\n");
-+		ufs->config.metacopy = false;
-+	}
-+
- 	if (remote)
- 		sb->s_d_op = &ovl_reval_dentry_operations;
- 	else
--- 
-2.13.5
+>         inode_unlock(temp->d_inode);
+>         if (err)
+>                 return err;
+> @@ -511,6 +564,10 @@ static int ovl_copy_up_locked(struct ovl_copy_up_ctx *c)
+>                 goto out_cleanup;
+>
+>         ovl_inode_update(d_inode(c->dentry), newdentry);
+> +       if (c->metadata_only) {
+> +               smp_wmb();
+
+This wmb does not address the only problem imo.
+The problem is you must not allow inode to appear to have
+An upper dentry before you made sure metacopy flag is visible.
+So first you need to set metacopy flag before updating upper.
+Then you also need to test them is correct order with rmb.
+
+> +               ovl_set_flag(OVL_METACOPY, d_inode(c->dentry));
+> +       }
+>  out:
+>         dput(temp);
+>         return err;
+> @@ -639,7 +696,7 @@ static int ovl_copy_up_one(struct dentry *parent, struct dentry *dentry,
+>         }
+>         ovl_do_check_copy_up(ctx.lowerpath.dentry);
+>
+> -       err = ovl_copy_up_start(dentry);
+> +       err = ovl_copy_up_start(dentry, flags);
+>         /* err < 0: interrupted, err > 0: raced with another copy-up */
+>         if (unlikely(err)) {
+>                 if (err > 0)
+> @@ -649,6 +706,8 @@ static int ovl_copy_up_one(struct dentry *parent, struct dentry *dentry,
+>                         err = ovl_do_copy_up(&ctx);
+>                 if (!err && !ovl_dentry_has_upper_alias(dentry))
+>                         err = ovl_link_up(&ctx);
+> +               if (!err && ovl_dentry_needs_data_copy_up(dentry, flags))
+> +                       err = ovl_copy_up_data_inode(&ctx);
+>                 ovl_copy_up_end(dentry);
+>         }
+>         do_delayed_call(&done);
+> @@ -679,8 +738,10 @@ int ovl_copy_up_flags(struct dentry *dentry, int flags)
+>                  *      with rename.
+>                  */
+>                 if (ovl_dentry_upper(dentry) &&
+> -                   ovl_dentry_has_upper_alias(dentry))
+> +                   ovl_dentry_has_upper_alias(dentry) &&
+> +                   !ovl_dentry_needs_data_copy_up(dentry, flags)) {
+>                         break;
+> +               }
+>
+>                 next = dget(dentry);
+>                 /* find the topmost dentry not yet copied up */
+> diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
+> index a619addecafc..e5825b8948e0 100644
+> --- a/fs/overlayfs/inode.c
+> +++ b/fs/overlayfs/inode.c
+> @@ -320,7 +320,8 @@ struct posix_acl *ovl_get_acl(struct inode *inode, int type)
+>  static bool ovl_open_need_copy_up(struct dentry *dentry, int flags)
+>  {
+>         if (ovl_dentry_upper(dentry) &&
+> -           ovl_dentry_has_upper_alias(dentry))
+> +           ovl_dentry_has_upper_alias(dentry) &&
+> +           !ovl_dentry_needs_data_copy_up(dentry, flags))
+>                 return false;
+>
+>         if (special_file(d_inode(dentry)->i_mode))
+> diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
+> index c706a6f99928..773f5ad75729 100644
+> --- a/fs/overlayfs/overlayfs.h
+> +++ b/fs/overlayfs/overlayfs.h
+> @@ -26,10 +26,12 @@ enum ovl_path_type {
+>  #define OVL_XATTR_ORIGIN OVL_XATTR_PREFIX "origin"
+>  #define OVL_XATTR_IMPURE OVL_XATTR_PREFIX "impure"
+>  #define OVL_XATTR_NLINK OVL_XATTR_PREFIX "nlink"
+> +#define OVL_XATTR_METACOPY OVL_XATTR_PREFIX "metacopy"
+>
+>  enum ovl_flag {
+>         OVL_IMPURE,
+>         OVL_INDEX,
+> +       OVL_METACOPY,
+>  };
+>
+>  /*
+> @@ -211,6 +213,7 @@ bool ovl_dentry_is_whiteout(struct dentry *dentry);
+>  void ovl_dentry_set_opaque(struct dentry *dentry);
+>  bool ovl_dentry_has_upper_alias(struct dentry *dentry);
+>  void ovl_dentry_set_upper_alias(struct dentry *dentry);
+> +bool ovl_dentry_needs_data_copy_up(struct dentry *dentry, int flags);
+>  bool ovl_redirect_dir(struct super_block *sb);
+>  const char *ovl_dentry_get_redirect(struct dentry *dentry);
+>  void ovl_dentry_set_redirect(struct dentry *dentry, const char *redirect);
+> @@ -221,7 +224,7 @@ void ovl_dentry_version_inc(struct dentry *dentry, bool impurity);
+>  u64 ovl_dentry_version_get(struct dentry *dentry);
+>  bool ovl_is_whiteout(struct dentry *dentry);
+>  struct file *ovl_path_open(struct path *path, int flags);
+> -int ovl_copy_up_start(struct dentry *dentry);
+> +int ovl_copy_up_start(struct dentry *dentry, int flags);
+>  void ovl_copy_up_end(struct dentry *dentry);
+>  bool ovl_check_dir_xattr(struct dentry *dentry, const char *name);
+>  int ovl_check_setxattr(struct dentry *dentry, struct dentry *upperdentry,
+> diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
+> index a4ce1c9944f0..91c542d1a39d 100644
+> --- a/fs/overlayfs/util.c
+> +++ b/fs/overlayfs/util.c
+> @@ -227,6 +227,22 @@ void ovl_dentry_set_upper_alias(struct dentry *dentry)
+>         oe->has_upper = true;
+>  }
+>
+> +bool ovl_dentry_needs_data_copy_up(struct dentry *dentry, int flags) {
+> +       if (!S_ISREG(d_inode(dentry)->i_mode))
+> +               return false;
+> +
+> +       if (!flags)
+> +               return false;
+> +
+> +       if (!(OPEN_FMODE(flags) & FMODE_WRITE))
+> +               return false;
+> +
+> +       if (!ovl_test_flag(OVL_METACOPY, d_inode(dentry)))
+> +               return false;
+> +
+> +       return true;
+> +}
+> +
+>  bool ovl_redirect_dir(struct super_block *sb)
+>  {
+>         struct ovl_fs *ofs = sb->s_fs_info;
+> @@ -310,13 +326,14 @@ struct file *ovl_path_open(struct path *path, int flags)
+>         return dentry_open(path, flags | O_NOATIME, current_cred());
+>  }
+>
+> -int ovl_copy_up_start(struct dentry *dentry)
+> +int ovl_copy_up_start(struct dentry *dentry, int flags)
+>  {
+>         struct ovl_inode *oi = OVL_I(d_inode(dentry));
+>         int err;
+>
+>         err = mutex_lock_interruptible(&oi->lock);
+> -       if (!err && ovl_dentry_has_upper_alias(dentry)) {
+> +       if (!err && ovl_dentry_has_upper_alias(dentry) &&
+> +           !ovl_dentry_needs_data_copy_up(dentry, flags)) {
+>                 err = 1; /* Already copied up */
+>                 mutex_unlock(&oi->lock);
+>         }
+> --
+> 2.13.5
+>
