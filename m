@@ -1,186 +1,231 @@
-From: Vivek Goyal <vgoyal@redhat.com>
-Subject: Re: [PATCH 7/9] ovl: Introduce read/write barriers around metacopy
- flag update
-Date: Wed, 11 Oct 2017 16:27:13 -0400
-Message-ID: <20171011202713.GF8086@redhat.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Subject: Re: [PATCH 3/9] ovl: Provide a mount option metacopy=on/off for
+ metadata copyup
+Date: Wed, 11 Oct 2017 23:29:02 +0300
+Message-ID: <CAOQ4uxgrzTpgu09ZdpHkVHbKA=aqHDk+yu9Qq6xXpxMbN4v0wg@mail.gmail.com>
 References: <1507649544-4539-1-git-send-email-vgoyal@redhat.com>
- <1507649544-4539-8-git-send-email-vgoyal@redhat.com>
- <CAOQ4uxisKjK+kH_kEMb7JPUHn+Gaoa7YNvQsS9W=REUPuywy+A@mail.gmail.com>
+ <1507649544-4539-4-git-send-email-vgoyal@redhat.com> <CAOQ4uxiU6BNrwKnfx1ToY4ZARV8X4S6HRNmfhCmaON=+46B7bg@mail.gmail.com>
+ <20171011135715.GB8086@redhat.com> <CAOQ4uxg1OwbFuytiHLn3fwXzu3mZ8cwW6Vadj3YgTihbiL0BdA@mail.gmail.com>
+ <20171011165348.GC8086@redhat.com> <CAOQ4uxiano2-_YBOgND9O+D3B8bbHK1fUvUwQWev9HGmCkFmjQ@mail.gmail.com>
+ <20171011183416.GD8086@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:35574 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752337AbdJKU1O (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 11 Oct 2017 16:27:14 -0400
-Content-Disposition: inline
-In-Reply-To: <CAOQ4uxisKjK+kH_kEMb7JPUHn+Gaoa7YNvQsS9W=REUPuywy+A@mail.gmail.com>
+Received: from mail-qt0-f180.google.com ([209.85.216.180]:49473 "EHLO
+        mail-qt0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1757582AbdJKU3D (ORCPT
+        <rfc822;linux-unionfs@vger.kernel.org>);
+        Wed, 11 Oct 2017 16:29:03 -0400
+Received: by mail-qt0-f180.google.com with SMTP id k31so9061543qta.6
+        for <linux-unionfs@vger.kernel.org>; Wed, 11 Oct 2017 13:29:03 -0700 (PDT)
+In-Reply-To: <20171011183416.GD8086@redhat.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Amir Goldstein <amir73il@gmail.com>
+To: Vivek Goyal <vgoyal@redhat.com>
 Cc: overlayfs <linux-unionfs@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>, "Eric W. Biederman" <ebiederm@xmission.com>
 
-On Tue, Oct 10, 2017 at 08:12:00PM +0300, Amir Goldstein wrote:
-> On Tue, Oct 10, 2017 at 6:32 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
-> > We can access and check metacopy flag outside ovl_inode->lock. IOW, say
-> > a file was meta copied up in the past and it has metacopy flag set. Now
-> > a data copy up operation in progress. Say another thread reads state of
-> > this flag and if flag clearing is visible before file has been fully
-> > copied up, that can cause problems.
-> >
-> >         CPU1                            CPU2
-> > ovl_copy_up_flags()                     acquire(oi->lock)
-> >  ovl_dentry_needs_data_copy_up()          ovl_copy_up_data_inode()
-> >    ovl_test_metacopy_flag()                 ovl_copy_up_data()
-> >                                             ovl_clear_metacopy_flag()
-> >                                         release(oi->lock)
-> >
-> > Say CPU2 is copying up data and in the end clears metacopy flag. But if
-> > CPU1 perceives clearing of metacopy before actual data copy up operation
-> > being finished, that can become a problem. We want this clearing of flag
-> > to be visible only if all previous write operations have finished.
-> >
-> > Hence this patch introduces smp_wmb() on metacopy flag set/clear operation
-> > and smp_rmb() on metacopy flag test operation.
-> >
-> > May be some other lock or barrier is already covering it. But I am not sure
-> > what that is and is it obvious enough that we will not break it in future.
-> >
-> > So hence trying to be safe here and introducing barriers explicitly for
-> > metacopy bit.
-> 
-> Please revisit your changes after addressing my comment on patch 5.
+On Wed, Oct 11, 2017 at 9:34 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
+> On Wed, Oct 11, 2017 at 08:36:03PM +0300, Amir Goldstein wrote:
+>> On Wed, Oct 11, 2017 at 7:53 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
+>> > On Wed, Oct 11, 2017 at 07:29:38PM +0300, Amir Goldstein wrote:
+>> >
+>> > [..]
+>> >> >
+>> >> > Anyway, I did not understand what's the problem with borken upper
+>> >> > hardlinks when index=off. If two upper hardlinks (broken), can
+>> >> > point to same ORIGIN on lower, they will just copy up same data.
+>> >> >
+>> >> > IOW, it does not seem to be more broken then what it is now just
+>> >> > becase of metadata copy up or because of both upper pointing to
+>> >> > same ORIGIN? What am I missing.
+>> >> >
+>> >> It is not broken now because we intentionally do NOT set origin when
+>> >> copying up lower hardlinks and index is disabled.
+>> >> You must not break this rule, so instead you can avoid metacopy for
+>> >> lower hardlinks when index is disabled.
+>> >
+>> > Hi Amir,
+>> >
+>> > Ok, I am open to change it so that if index=off, lower hardlinks are not
+>> > copied up metadata only.
+>> >
+>> > But please help me understand that what *additional* thing breaks if origin
+>> > is set when index=off.
+>> >
+>> > Say lower has a file foo.txt and another hard link foo-link.txt.
+>> > (say index=off, metacopy=off).
+>> >
+>> > Say, I open foo-link.txt for WRITE, and it gets copied up. Now there is
+>> > no link between foo-link.txt and foo.txt and if a user opens foo.txt for
+>> > READ, it does not see updates to foo-link.txt. So this is the broken
+>> > behavior of hardlinks with index=off, as of today.
+>> >
+>> > Now I go back to original state and this time do same operation with
+>> > (indxex=off, metacopy=on). Then "chown foo-link.txt" will only copy
+>> > metadata and set origin to lower file. Say I also chown "foo.txt", that
+>> > will do the same thing. Now both foo.txt and foo-link.txt will have
+>> > ORIGIN pointing to same lower inode. If any of the file is opened for
+>> > WRITE, data will be copied up from same origin.
+>> >
+>> > So setting same ORIGIN on two upper files, does not seem to break anything
+>> > additional, AFAICS. What am I missing.
+>> >
+>>
+>> Sorry for brevity of my response earlier. I was hopping on a plane.
+>> The problem is a bit convoluted to explain, but here goes.
+>>
+>> ORIGIN was introduced to implement constant st_ino across copy up.
+>> stat(2) of an overlay file with ORIGIN (both layer in same fs) returns
+>> st_ino of origin inode.
+>>
+>> When copy up breaks lower hardlink to *different* upper inodes,
+>> then those broken aliases MUST NOT return the same st_ino,
+>> because they are different files with different data.
+>
+> Hi Amir,
+>
+> I thought current code already takes care of this situation.
+>
+> ovl_getattr() {
+>           /*
+>             * Lower hardlinks may be broken on copy up to different
+>             * upper files, so we cannot use the lower origin st_ino
+>             * for those different files, even for the same fs case.
+>             * With inodes index enabled, it is safe to use st_ino
+>             * of an indexed hardlinked origin. The index validates
+>             * that the upper hardlink is not broken.
+>             */
+>            if (is_dir || lowerstat.nlink == 1 ||
+>                ovl_test_flag(OVL_INDEX, d_inode(dentry)))
+>                    stat->ino = lowerstat.ino;
+> }
+>
+> So if lower had nlink > 1, then its inode number will not be used if
+> indexing was not enabled. If that's the case, two upper pointing to
+> same origin should not be a problem?
+>
+> I even tested it. Wrote a patch to force setting origin even on hard
+> links with index=off.
+>
+> Before copy up, both the files (testfile.txt and link-file.txt) had
+> same inode numbers. The moment file is copied up it uses its real
+> inode number on upper (and not the one retrieved from lower). IOW,
+> origin inode number is discarded if index=off. If that's the case
+> then setting ORIGIN with broken hard link should be just fine. It
+> can still be used for metadata copyup while it can't be used with
+> index=off.
+>
+> In fact this sounds better to me. Make use of ORIGIN information only if
+> it is safe. With broken hardlinks it is not safe to make use of this
+> information so ignore ORIGIN. But it is still ok to make use of this
+> information from metadata copyup point of view.
+>
 
-Assume, we added smp_rmb() in ovl_upperdentry_dereference(), to make
-sure by the time upperdentry is visible, OVL_METACOPY is visible too.
+Yes, all this is true. I was trying to avoid the full explanation regrading
+index inconsistency, but I ended up giving an incomplete story.
 
-> IIUC the flow you describe above should be addressed by testing
-> metacopy flag again under ovl inode lock.
-> 
-> The only subtle part imo is making metacopy flag visible
-> Before making upper dentry visible.
-> Clearing metacopy flag should not be a problem imo,
-> As it comes after fsync, but didn't look closely.
+>>
+>> Only when index is enabled and copy up does not break lower
+>> hardlink, it is legal to set ORIGIN for every upper alias, because
+>> all upper aliases can and should return same st_ino (the origin st_ino)
+>> from stat(2).
+>>
+>> So that is the simplest way to explain why you MUST NOT set ORIGIN
+>> on copy up of lower hardlink when index is disabled and therefore, you
+>> cannot use ORIGIN for metacopy.
+>>
+>> As I wrote in some email, you could set METAORIGIN xattr in this case
+>> just for the use of metacopy, but I rather not have this special case.
+>>
+>> Beyond the problem stated above with st_ino of broken hardlinks,
+>> if broken hardlinks have the same ORIGIN, this also breaks indexing
+>> assumptions and can lead to EIO on lookup, but no need to get into that.
+>
+> I guess you are referring to ovl_lookup_index().
+>
+>  () {
+>         index = lookup_one_len_unlocked(name.name, ofs->indexdir, name.len);
+>         if (d_is_negative(index)) {
+>                 if (upper && d_inode(origin)->i_nlink > 1) {
+>                         pr_warn_ratelimited("overlayfs: hard link with origin but no index (ino=%lu).\n",
+>                                             d_inode(origin)->i_ino);
+>                         goto fail;
+>                 }
+>
+>         }
+> }
+>
+> So this is failing if we find a dentry which has origin but no index. And
+> this will hit if a overlay was mounted with index=off, hard link copied up
+> and then remounted with index=on. In that case it will return -EIO.
+>
+> My question is, that does this have to be an error. If we are supporting
+> this use case, where index can be turned on later, then can we just warn
+> and continue? Or set OVL_XATTR_INDEX on upper to indicate that this
+> upper should have an index.
+>
+> I mean ORIGIN started with the exclusive purpose of inode number stability.
+> But this is sort of infrastructure which keeps track of ORIGIN of copy
+> up source and can be used for metadata copy up as well. So indexing should
+> not put restrictions on what files ORIGIN can be set on. Instead both
+> metacopy and index should not make use of ORIGIN where they this things
+> are broken for them.
+>
+> Thoughts?
+>
 
-Say a file has been metadata copied up only. So upper is visible and
-OVL_METACOPY flag is set.
+It is interesting to note that the commit that introduced this limitation
+fbaf94ee3cd5 ("ovl: don't set origin on broken lower hardlink")
+was merged as a "last minute" (rc7) fix patch before final v4.12
+and had this text in commit message:
+"We can relax this in the future when we are able to index upper object by
+    origin."
 
-Now, what happens if two paths try to data copy up the file. Say first
-path gets the oi->lock and starts doing data copy. Second path enters
-ovl_copy_up_flags() and checks if data copy up is required or not. If
-OVL_METACOPY is still set, then second process will block on oi->lock
-and once first process exits will check OVL_METACOPY again under lock
-and bail out. So that is not a problem.
+I am not sure it is easy to relax this limitation, but I may be wrong.
+I'll take another swing at writing the full story. Hope I will get it
+right this time...
 
-What about the other case. That is OVL_METACOPY gets cleared before
-data copy operation is complete. If I don't introduce smp_wmb()/smp_rmb()
-around resetting of OVL_METACOPY, what will make sure that
-ovl_copy_up_flags() will see OVL_METACOPY=0 only after data copy up is
-complete. Of course we will not like to return to caller of
-ovl_copy_up_flags() while data copy up is still going on on a different
-cpu.
+Index is a 1-to-1 mapping from origin *inode* to upper *inode*.
+Highlighting *inode* because there may be many lower or upper
+aliases of that inode.
 
-Adding a smp_rmb()/smp_wmb() pair around OVL_METACOPY should solve the
-above and that's what this patch is about.
+The index key (its name) is the file handle of origin inode.
+The index itself is an upper alias (link) of upper inode.
 
-(I noticed that there is a bug in current patch. I should first LOAD
- OVL_METACOPY state, then do smp_rmb() and then return to caller with
- loaded state.).
+If more than 1 upper inode point to the same origin inode,
+then index cannot be consistent for both upper aliases.
+This would actually be a common scenario if hardlinks are broken
+due to index=off (or kernel v4.12 without the rc7 fix)
+and then index is turned on and more lower aliases are copied up.
 
-Vivek
+On lookup, we can detected that index found by origin
+file handle is not a hardlink of upper inode and ignore it instead of
+returning EIO on:
+        if (upper && d_inode(upper) != inode) {
+                pr_warn_ratelimited("overlayfs: wrong index found
+(index=%pd2, ino=%lu, upper ino=%lu).\n",
+                                    index, inode->i_ino, d_inode(upper)->i_ino);
+                goto fail;
+        }
 
+And we could have allowed for "hard link with origin but no index"
+instead of returning EIO.
 
-> 
-> >
-> > Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
-> > ---
-> >  fs/overlayfs/copy_up.c   |  9 +++------
-> >  fs/overlayfs/overlayfs.h |  3 +++
-> >  fs/overlayfs/util.c      | 23 ++++++++++++++++++++++-
-> >  3 files changed, 28 insertions(+), 7 deletions(-)
-> >
-> > diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
-> > index 682852a78163..b10269b80803 100644
-> > --- a/fs/overlayfs/copy_up.c
-> > +++ b/fs/overlayfs/copy_up.c
-> > @@ -465,8 +465,7 @@ static int ovl_copy_up_data_inode(struct ovl_copy_up_ctx *c)
-> >         if (err)
-> >                 return err;
-> >
-> > -       smp_wmb();
-> > -       ovl_clear_flag(OVL_METACOPY, d_inode(c->dentry));
-> > +       ovl_clear_metacopy_flag(d_inode(c->dentry));
-> >         return err;
-> >  }
-> >
-> > @@ -564,10 +563,8 @@ static int ovl_copy_up_locked(struct ovl_copy_up_ctx *c)
-> >                 goto out_cleanup;
-> >
-> >         ovl_inode_update(d_inode(c->dentry), newdentry);
-> > -       if (c->metadata_only) {
-> > -               smp_wmb();
-> > -               ovl_set_flag(OVL_METACOPY, d_inode(c->dentry));
-> > -       }
-> > +       if (c->metadata_only)
-> > +               ovl_set_metacopy_flag(d_inode(c->dentry));
-> >  out:
-> >         dput(temp);
-> >         return err;
-> > diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-> > index 773f5ad75729..df3f513de3cc 100644
-> > --- a/fs/overlayfs/overlayfs.h
-> > +++ b/fs/overlayfs/overlayfs.h
-> > @@ -234,6 +234,9 @@ int ovl_set_impure(struct dentry *dentry, struct dentry *upperdentry);
-> >  void ovl_set_flag(unsigned long flag, struct inode *inode);
-> >  void ovl_clear_flag(unsigned long flag, struct inode *inode);
-> >  bool ovl_test_flag(unsigned long flag, struct inode *inode);
-> > +void ovl_set_metacopy_flag(struct inode *inode);
-> > +void ovl_clear_metacopy_flag(struct inode *inode);
-> > +bool ovl_test_metacopy_flag(struct inode *inode);
-> >  bool ovl_inuse_trylock(struct dentry *dentry);
-> >  void ovl_inuse_unlock(struct dentry *dentry);
-> >  int ovl_nlink_start(struct dentry *dentry, bool *locked);
-> > diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
-> > index 91c542d1a39d..000f78b92a72 100644
-> > --- a/fs/overlayfs/util.c
-> > +++ b/fs/overlayfs/util.c
-> > @@ -227,6 +227,27 @@ void ovl_dentry_set_upper_alias(struct dentry *dentry)
-> >         oe->has_upper = true;
-> >  }
-> >
-> > +bool ovl_test_metacopy_flag(struct inode *inode)
-> > +{
-> > +       /* Pairs with smp_wmb() in ovl_set_metacopy_flag() */
-> > +       smp_rmb();
-> > +       return ovl_test_flag(OVL_METACOPY, inode);
-> > +}
-> > +
-> > +void ovl_set_metacopy_flag(struct inode *inode)
-> > +{
-> > +       /* Pairs with smp_rmb() in ovl_test_metacopy_flag() */
-> > +       smp_wmb();
-> > +       ovl_set_flag(OVL_METACOPY, inode);
-> > +}
-> > +
-> > +void ovl_clear_metacopy_flag(struct inode *inode)
-> > +{
-> > +       /* Pairs with smp_rmb() in ovl_test_metacopy_flag() */
-> > +       smp_wmb();
-> > +       ovl_clear_flag(OVL_METACOPY, inode);
-> > +}
-> > +
-> >  bool ovl_dentry_needs_data_copy_up(struct dentry *dentry, int flags) {
-> >         if (!S_ISREG(d_inode(dentry)->i_mode))
-> >                 return false;
-> > @@ -237,7 +258,7 @@ bool ovl_dentry_needs_data_copy_up(struct dentry *dentry, int flags) {
-> >         if (!(OPEN_FMODE(flags) & FMODE_WRITE))
-> >                 return false;
-> >
-> > -       if (!ovl_test_flag(OVL_METACOPY, d_inode(dentry)))
-> > +       if (!ovl_test_metacopy_flag(d_inode(dentry)))
-> >                 return false;
-> >
-> >         return true;
-> > --
-> > 2.13.5
-> >
+In those cases, we would need to get a hashed overlay inode by address
+of upper inode, instead of by address of origin inode and we would have to
+not set the OVL_INDEX flag on lookup.
+
+I guess one of the reasons we did not do it on first version of index feature
+is that we wanted to keep things simple and we did not have a good enough
+reason to set ORIGIN for broken hardlinks.
+
+So I am now open to the possibility that we may be able to set ORIGIN
+for broken hardlinks without breaking anything, but will need to see patches
+before I can say if we missed something. Maybe Miklos can see something
+that I have missed.
+
+In any case, for the sake of simplicity, I wouldn't bother doing metacopy up
+of lower hardlinks in first version of metacopy feature.
+
+Thanks for insisting on a good answer (not sure I have provided one yet)
+Amir.
