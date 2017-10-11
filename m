@@ -1,66 +1,91 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [PATCH 5/9] ovl: Set xattr OVL_XATTR_METACOPY on upper file
-Date: Wed, 11 Oct 2017 23:44:26 +0300
-Message-ID: <CAOQ4uxi-3y2ENXhv_=nQcLk8rKN20bz7cRuRQXuDuP+jhZBpsg@mail.gmail.com>
+Subject: Re: [PATCH 7/9] ovl: Introduce read/write barriers around metacopy
+ flag update
+Date: Thu, 12 Oct 2017 00:08:04 +0300
+Message-ID: <CAOQ4uxgKtG=6QdqPbrkHJTGFS_h2_9SmNeWphwso3uFtM4N4dg@mail.gmail.com>
 References: <1507649544-4539-1-git-send-email-vgoyal@redhat.com>
- <1507649544-4539-6-git-send-email-vgoyal@redhat.com> <CAOQ4uxgNg3SO=xyvh_oAH-ExQGQCWXMGKygdAhmGeDdanyo=vA@mail.gmail.com>
- <20171011201630.GE8086@redhat.com>
+ <1507649544-4539-8-git-send-email-vgoyal@redhat.com> <CAOQ4uxisKjK+kH_kEMb7JPUHn+Gaoa7YNvQsS9W=REUPuywy+A@mail.gmail.com>
+ <20171011202713.GF8086@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-qt0-f194.google.com ([209.85.216.194]:36321 "EHLO
+Received: from mail-qt0-f194.google.com ([209.85.216.194]:38653 "EHLO
         mail-qt0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751386AbdJKUo1 (ORCPT
+        with ESMTP id S1752019AbdJKVIG (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 11 Oct 2017 16:44:27 -0400
-Received: by mail-qt0-f194.google.com with SMTP id 24so3987535qts.3
-        for <linux-unionfs@vger.kernel.org>; Wed, 11 Oct 2017 13:44:27 -0700 (PDT)
-In-Reply-To: <20171011201630.GE8086@redhat.com>
+        Wed, 11 Oct 2017 17:08:06 -0400
+Received: by mail-qt0-f194.google.com with SMTP id k31so4047611qta.5
+        for <linux-unionfs@vger.kernel.org>; Wed, 11 Oct 2017 14:08:05 -0700 (PDT)
+In-Reply-To: <20171011202713.GF8086@redhat.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: Vivek Goyal <vgoyal@redhat.com>
 Cc: overlayfs <linux-unionfs@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>, "Eric W. Biederman" <ebiederm@xmission.com>
 
-On Wed, Oct 11, 2017 at 11:16 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
-> On Tue, Oct 10, 2017 at 08:03:05PM +0300, Amir Goldstein wrote:
->
-> [..]
->> > @@ -511,6 +564,10 @@ static int ovl_copy_up_locked(struct ovl_copy_up_ctx *c)
->> >                 goto out_cleanup;
+On Wed, Oct 11, 2017 at 11:27 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
+> On Tue, Oct 10, 2017 at 08:12:00PM +0300, Amir Goldstein wrote:
+>> On Tue, Oct 10, 2017 at 6:32 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
+>> > We can access and check metacopy flag outside ovl_inode->lock. IOW, say
+>> > a file was meta copied up in the past and it has metacopy flag set. Now
+>> > a data copy up operation in progress. Say another thread reads state of
+>> > this flag and if flag clearing is visible before file has been fully
+>> > copied up, that can cause problems.
 >> >
->> >         ovl_inode_update(d_inode(c->dentry), newdentry);
->> > +       if (c->metadata_only) {
->> > +               smp_wmb();
+>> >         CPU1                            CPU2
+>> > ovl_copy_up_flags()                     acquire(oi->lock)
+>> >  ovl_dentry_needs_data_copy_up()          ovl_copy_up_data_inode()
+>> >    ovl_test_metacopy_flag()                 ovl_copy_up_data()
+>> >                                             ovl_clear_metacopy_flag()
+>> >                                         release(oi->lock)
+>> >
+>> > Say CPU2 is copying up data and in the end clears metacopy flag. But if
+>> > CPU1 perceives clearing of metacopy before actual data copy up operation
+>> > being finished, that can become a problem. We want this clearing of flag
+>> > to be visible only if all previous write operations have finished.
+>> >
+>> > Hence this patch introduces smp_wmb() on metacopy flag set/clear operation
+>> > and smp_rmb() on metacopy flag test operation.
+>> >
+>> > May be some other lock or barrier is already covering it. But I am not sure
+>> > what that is and is it obvious enough that we will not break it in future.
+>> >
+>> > So hence trying to be safe here and introducing barriers explicitly for
+>> > metacopy bit.
 >>
->> This wmb does not address the only problem imo.
->> The problem is you must not allow inode to appear to have
->> An upper dentry before you made sure metacopy flag is visible.
->> So first you need to set metacopy flag before updating upper.
->> Then you also need to test them is correct order with rmb.
+>> Please revisit your changes after addressing my comment on patch 5.
 >
-> Ok, so conceptually it makse sense to me that OVL_METACOPY flag should
-> be set before upper dentry is made visible.
+> Assume, we added smp_rmb() in ovl_upperdentry_dereference(), to make
+> sure by the time upperdentry is visible, OVL_METACOPY is visible too.
 >
-> So ovl_set_flag(OVL_METACOPY) should move before ovl_inode_update().
-> ovl_inode_update() already has a smp_wmb(). So write side is probably
-> fine.
+>> IIUC the flow you describe above should be addressed by testing
+>> metacopy flag again under ovl inode lock.
+>>
+>> The only subtle part imo is making metacopy flag visible
+>> Before making upper dentry visible.
+>> Clearing metacopy flag should not be a problem imo,
+>> As it comes after fsync, but didn't look closely.
 >
-> But read side, ovl_upperdentry_dereference() only has data dependency
-> barrier and not smp_rmb(). (lockless_dereference(oi->__upperdentry)). I
-> am not sure if that's sufficient for ovl_inode->flags read or not. May
-> be we need to replace data dependency barrier with smp_rmb() in in
-> ovl_upperdentry_dereference()?
+> Say a file has been metadata copied up only. So upper is visible and
+> OVL_METACOPY flag is set.
+>
+> Now, what happens if two paths try to data copy up the file. Say first
+> path gets the oi->lock and starts doing data copy. Second path enters
+> ovl_copy_up_flags() and checks if data copy up is required or not. If
+> OVL_METACOPY is still set, then second process will block on oi->lock
+> and once first process exits will check OVL_METACOPY again under lock
+> and bail out. So that is not a problem.
+>
+> What about the other case. That is OVL_METACOPY gets cleared before
+> data copy operation is complete. If I don't introduce smp_wmb()/smp_rmb()
+> around resetting of OVL_METACOPY, what will make sure that
+> ovl_copy_up_flags() will see OVL_METACOPY=0 only after data copy up is
+> complete. Of course we will not like to return to caller of
+> ovl_copy_up_flags() while data copy up is still going on on a different
+> cpu.
+>
 
-I think we do need smp_rmb() between ovl_upperdentry_dereference()
-and testing OVL_METACOPY, but not inside ovl_upperdentry_dereference()
-somewhere in d_real() path maybe in ovl_open_need_copy_up()
-
->
-> Even if we do this, I think we need barriers around setting/resetting
-> of OVL_METACOPY for the reset case. I will explain this in other patch.
->
-
-I think the spinlock in atomic bit ops of set_bit/clear_bit is got you covered
-w.r.t. memory barriers. Only need to worry about lockless test_bit() IMO.
+vfs_removexattr() between data copy up and clearing OVL_METACOPY
+takes inode lock.
+IIUC, any lock/unlock has a full memory barrier.
 
 Amir.
