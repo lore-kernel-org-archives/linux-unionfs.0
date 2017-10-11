@@ -1,85 +1,188 @@
-From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [PATCH 4/4] overlay: fix _overlay_config_override of MOUNT_OPTIONS
-Date: Wed, 11 Oct 2017 15:35:58 +0300
-Message-ID: <CAOQ4uxiRFnyaG94i-P6y8-3rq9z_-7wRc2kaPw8OrJ2Evb_OSQ@mail.gmail.com>
-References: <1506495852-7295-1-git-send-email-amir73il@gmail.com>
- <1506495852-7295-5-git-send-email-amir73il@gmail.com> <20171011115020.GW10593@eguan.usersys.redhat.com>
+From: Vivek Goyal <vgoyal@redhat.com>
+Subject: Re: [PATCH 3/9] ovl: Provide a mount option metacopy=on/off for
+ metadata copyup
+Date: Wed, 11 Oct 2017 09:57:15 -0400
+Message-ID: <20171011135715.GB8086@redhat.com>
+References: <1507649544-4539-1-git-send-email-vgoyal@redhat.com>
+ <1507649544-4539-4-git-send-email-vgoyal@redhat.com>
+ <CAOQ4uxiU6BNrwKnfx1ToY4ZARV8X4S6HRNmfhCmaON=+46B7bg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <fstests-owner@vger.kernel.org>
-In-Reply-To: <20171011115020.GW10593@eguan.usersys.redhat.com>
-Sender: fstests-owner@vger.kernel.org
-To: Eryu Guan <eguan@redhat.com>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, overlayfs <linux-unionfs@vger.kernel.org>, fstests <fstests@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-unionfs-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:45162 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1757721AbdJKN5Q (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Wed, 11 Oct 2017 09:57:16 -0400
+Content-Disposition: inline
+In-Reply-To: <CAOQ4uxiU6BNrwKnfx1ToY4ZARV8X4S6HRNmfhCmaON=+46B7bg@mail.gmail.com>
+Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: overlayfs <linux-unionfs@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>, "Eric W. Biederman" <ebiederm@xmission.com>
 
-On Wed, Oct 11, 2017 at 2:50 PM, Eryu Guan <eguan@redhat.com> wrote:
-> On Wed, Sep 27, 2017 at 10:04:12AM +0300, Amir Goldstein wrote:
->> The config variable OVERLAY_MOUNT_OPTIONS is used to configure
->> the overlay mount options when running ./check -overlay.
->> The config variable MOUNT_OPTIONS is used to configure the
->> mount options for base fs.
->>
->> If config sets value of OVERLAY_MOUNT_OPTIONS and
->> does not set MOUNT_OPTIONS, the value of MOUNT_OPTIONS
->> may be leftover from previous _overlay_config_override, so
->> don't use that value for base fs mount.
->>
->> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
->> ---
->>  common/config | 4 ++++
->>  1 file changed, 4 insertions(+)
->>
->> diff --git a/common/config b/common/config
->> index 71798f0..8844173 100644
->> --- a/common/config
->> +++ b/common/config
->> @@ -532,6 +532,10 @@ _overlay_config_override()
->>       # Store original base fs vars
->>       export OVL_BASE_TEST_DEV="$TEST_DEV"
->>       export OVL_BASE_TEST_DIR="$TEST_DIR"
->> +     # If config does not set MOUNT_OPTIONS, its value may be
->> +     # leftover from previous _overlay_config_override, so
->> +     # don't use that value for base fs mount
->> +     [ "$MOUNT_OPTIONS" != "$OVERLAY_MOUNT_OPTIONS" ] || unset MOUNT_OPTIONS
->>       export OVL_BASE_MOUNT_OPTIONS="$MOUNT_OPTIONS"
->
-> Hmm, I don't like the idea that specify mount options for base fs
-> through MOUNT_OPTIONS. With this, we can only specify overlay mount
-> options via OVERLAY_MOUNT_OPTIONS but not MOUNT_OPTIONS. Ideally, I'd
-> like both of them work, and OVERLAY_MOUNT_OPTIONS is assigned to
-> MOUNT_OPTIONS when the latter is empty.
->
-> I think MOUNT_OPTIONS and TEST_FS_MOUNT_OPTS should always be the mount
-> options for filesystem we're currently testing (overlay in this case)
-> not something else.
->
-> OTOH, We can always specify OVL_BASE_MOUNT_OPTIONS directly for base fs
-> mount options if we want.
->
+On Wed, Oct 11, 2017 at 04:36:46AM +0300, Amir Goldstein wrote:
+> On Tue, Oct 10, 2017 at 6:32 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
+> > By default metadata only copy up is disabled. Provide a mount option so
+> > that users can choose one way or other.
+> >
+> > Also metadata copyup is conditional on index=on. If index=off and user
+> > specifies metacopy=on, it goes back to metacopy=off and a warning is
+> > printed.
+> >
+> 
+> So this commit does not explain why the features are dependent
+> And when I think about it again, they should not be dependent.
+> 
+> I had several arguments for having metacopy rely on index, but
+> You shot down the idea to index all regular files for performance
+> Of index cleanup on mount.
+> 
+> Now the only remaining reason is not setting same origin for
+> Broken upper hardlinks when index is off, the solution should
+> Be to not metacopy lower hardlinks when index is off.
+> IMO it's a minor trade-off for keeping the features independent.
 
-It's not exactly how the base fs options work.
-Right now user is never expected to configure OVL_BASE options directly
-They are always inherited from a config file of another fs, so you can
-run check and check -overlay with the same fs config file.
+Hi Amir,
 
-You are right that OVERLAY MOUNT OPTIONS was meant to be used for
-default mount options for overlay mount options and not specifically
-for check -overlay, so maybe need a new name for config options of
-overlay test and scratch mounts, but I am out of ideas for good names.
-It does make sense to use it in the context of check -overlay run,
-because there is no other value for mount options for the overlay
-mount.
+Hey, you were the one who pushed me hard to make it dependent on
+index. :-) I was more than happy to keep it as independent
+functionality.
 
-> But this problem has nothing to do with this patchset, it goes back to
-> the time when overlay supports base test/scratch dev, so I'm fine with
-> this patch going in right now.
->
-> Thanks,
-> Eryu
->
->>
->>       # Set TEST vars to overlay base and mount dirs inside base fs
->> --
->> 2.7.4
->>
+Anyway, I did not understand what's the problem with borken upper
+hardlinks when index=off. If two upper hardlinks (broken), can 
+point to same ORIGIN on lower, they will just copy up same data.
+
+IOW, it does not seem to be more broken then what it is now just
+becase of metadata copy up or because of both upper pointing to
+same ORIGIN? What am I missing.
+
+Vivek
+
+> 
+> > Also provide a kernel config and module option to enable/disable
+> > metacopy feature.
+> >
+> > Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
+> > ---
+> >  fs/overlayfs/Kconfig     |  9 +++++++++
+> >  fs/overlayfs/ovl_entry.h |  1 +
+> >  fs/overlayfs/super.c     | 32 ++++++++++++++++++++++++++++++++
+> >  3 files changed, 42 insertions(+)
+> >
+> > diff --git a/fs/overlayfs/Kconfig b/fs/overlayfs/Kconfig
+> > index cbfc196e5dc5..94d4c61719c8 100644
+> > --- a/fs/overlayfs/Kconfig
+> > +++ b/fs/overlayfs/Kconfig
+> > @@ -43,3 +43,12 @@ config OVERLAY_FS_INDEX
+> >           outcomes.  However, mounting the same overlay with an old kernel
+> >           read-write and then mounting it again with a new kernel, will have
+> >           unexpected results.
+> > +
+> > +config OVERLAY_FS_METACOPY
+> > +       bool "Overlayfs: turn on metadata only copy up feature by default"
+> > +       depends on OVERLAY_FS
+> > +       depends on OVERLAY_FS_INDEX
+> > +       help
+> > +         If this config option is enabled then overlay filesystems will
+> > +         copy up only metadata where appropriate and data copy up will
+> > +         happen when a file is opended for WRITE operation.
+> > diff --git a/fs/overlayfs/ovl_entry.h b/fs/overlayfs/ovl_entry.h
+> > index 25d9b5adcd42..6806f0b0fbc2 100644
+> > --- a/fs/overlayfs/ovl_entry.h
+> > +++ b/fs/overlayfs/ovl_entry.h
+> > @@ -15,6 +15,7 @@ struct ovl_config {
+> >         bool default_permissions;
+> >         bool redirect_dir;
+> >         bool index;
+> > +       bool metacopy;
+> >  };
+> >
+> >  /* private information held for overlayfs's superblock */
+> > diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+> > index 092d150643c1..6f4c32e49298 100644
+> > --- a/fs/overlayfs/super.c
+> > +++ b/fs/overlayfs/super.c
+> > @@ -39,6 +39,11 @@ module_param_named(index, ovl_index_def, bool, 0644);
+> >  MODULE_PARM_DESC(ovl_index_def,
+> >                  "Default to on or off for the inodes index feature");
+> >
+> > +static bool ovl_metacopy_def = IS_ENABLED(CONFIG_OVERLAY_FS_METACOPY);
+> > +module_param_named(metacopy, ovl_metacopy_def, bool, 0644);
+> > +MODULE_PARM_DESC(ovl_metacopy_def,
+> > +                "Default to on or off for the metadata only copy up feature");
+> > +
+> >  static void ovl_dentry_release(struct dentry *dentry)
+> >  {
+> >         struct ovl_entry *oe = dentry->d_fsdata;
+> > @@ -303,6 +308,9 @@ static int ovl_show_options(struct seq_file *m, struct dentry *dentry)
+> >         if (ufs->config.index != ovl_index_def)
+> >                 seq_printf(m, ",index=%s",
+> >                            ufs->config.index ? "on" : "off");
+> > +       if (ufs->config.metacopy != ovl_metacopy_def)
+> > +               seq_printf(m, ",metacopy=%s",
+> > +                          ufs->config.metacopy ? "on" : "off");
+> >         return 0;
+> >  }
+> >
+> > @@ -336,6 +344,8 @@ enum {
+> >         OPT_REDIRECT_DIR_OFF,
+> >         OPT_INDEX_ON,
+> >         OPT_INDEX_OFF,
+> > +       OPT_METACOPY_ON,
+> > +       OPT_METACOPY_OFF,
+> >         OPT_ERR,
+> >  };
+> >
+> > @@ -348,6 +358,8 @@ static const match_table_t ovl_tokens = {
+> >         {OPT_REDIRECT_DIR_OFF,          "redirect_dir=off"},
+> >         {OPT_INDEX_ON,                  "index=on"},
+> >         {OPT_INDEX_OFF,                 "index=off"},
+> > +       {OPT_METACOPY_ON,               "metacopy=on"},
+> > +       {OPT_METACOPY_OFF,              "metacopy=off"},
+> >         {OPT_ERR,                       NULL}
+> >  };
+> >
+> > @@ -428,6 +440,14 @@ static int ovl_parse_opt(char *opt, struct ovl_config *config)
+> >                         config->index = false;
+> >                         break;
+> >
+> > +               case OPT_METACOPY_ON:
+> > +                       config->metacopy = true;
+> > +                       break;
+> > +
+> > +               case OPT_METACOPY_OFF:
+> > +                       config->metacopy = false;
+> > +                       break;
+> > +
+> >                 default:
+> >                         pr_err("overlayfs: unrecognized mount option \"%s\" or missing value\n", p);
+> >                         return -EINVAL;
+> > @@ -847,6 +867,12 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
+> >
+> >         ufs->config.redirect_dir = ovl_redirect_dir_def;
+> >         ufs->config.index = ovl_index_def;
+> > +       if (ovl_metacopy_def && !ovl_index_def) {
+> > +               pr_warn("overlayfs: metadata copy up can not be enabled by default as index feature is not enabled by default.\n");
+> > +               ovl_metacopy_def = false;
+> > +       }
+> > +       ufs->config.metacopy = ovl_metacopy_def;
+> > +
+> >         err = ovl_parse_opt((char *) data, &ufs->config);
+> >         if (err)
+> >                 goto out_free_config;
+> > @@ -1091,6 +1117,12 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
+> >         if (!ufs->indexdir)
+> >                 ufs->config.index = false;
+> >
+> > +       /* As of now metacopy=on is dependent on index=on */
+> > +       if (ufs->config.metacopy && !ufs->config.index) {
+> > +               pr_warn("overlayfs: can not enable metadata only copyup with index=off. Falling back to metacopy=off\n");
+> > +               ufs->config.metacopy = false;
+> > +       }
+> > +
+> >         if (remote)
+> >                 sb->s_d_op = &ovl_reval_dentry_operations;
+> >         else
+> > --
+> > 2.13.5
+> >
