@@ -1,244 +1,310 @@
-From: Vivek Goyal <vgoyal@redhat.com>
-Subject: Re: [PATCH 3/9] ovl: Provide a mount option metacopy=on/off for
- metadata copyup
-Date: Thu, 12 Oct 2017 09:23:46 -0400
-Message-ID: <20171012132346.GC3132@redhat.com>
-References: <1507649544-4539-1-git-send-email-vgoyal@redhat.com>
- <1507649544-4539-4-git-send-email-vgoyal@redhat.com>
- <CAOQ4uxiU6BNrwKnfx1ToY4ZARV8X4S6HRNmfhCmaON=+46B7bg@mail.gmail.com>
- <20171011135715.GB8086@redhat.com>
- <CAOQ4uxg1OwbFuytiHLn3fwXzu3mZ8cwW6Vadj3YgTihbiL0BdA@mail.gmail.com>
- <20171011165348.GC8086@redhat.com>
- <CAOQ4uxiano2-_YBOgND9O+D3B8bbHK1fUvUwQWev9HGmCkFmjQ@mail.gmail.com>
- <20171011183416.GD8086@redhat.com>
- <CAOQ4uxgrzTpgu09ZdpHkVHbKA=aqHDk+yu9Qq6xXpxMbN4v0wg@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Chandan Rajendra <chandan@linux.vnet.ibm.com>
+Subject: [PATCH V4] overlay: Test consistent d_ino feature for non-samefs setup
+Date: Thu, 12 Oct 2017 19:04:32 +0530
+Message-ID: <20171012133432.20645-1-chandan@linux.vnet.ibm.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:41338 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1757388AbdJLNXs (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 12 Oct 2017 09:23:48 -0400
-Content-Disposition: inline
-In-Reply-To: <CAOQ4uxgrzTpgu09ZdpHkVHbKA=aqHDk+yu9Qq6xXpxMbN4v0wg@mail.gmail.com>
+Received: from mx0b-001b2d01.pphosted.com ([148.163.158.5]:43114 "EHLO
+        mx0a-001b2d01.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1757424AbdJLNdr (ORCPT
+        <rfc822;linux-unionfs@vger.kernel.org>);
+        Thu, 12 Oct 2017 09:33:47 -0400
+Received: from pps.filterd (m0098417.ppops.net [127.0.0.1])
+        by mx0a-001b2d01.pphosted.com (8.16.0.21/8.16.0.21) with SMTP id v9CDTghT073209
+        for <linux-unionfs@vger.kernel.org>; Thu, 12 Oct 2017 09:33:47 -0400
+Received: from e33.co.us.ibm.com (e33.co.us.ibm.com [32.97.110.151])
+        by mx0a-001b2d01.pphosted.com with ESMTP id 2dj79yxvy3-1
+        (version=TLSv1.2 cipher=AES256-SHA bits=256 verify=NOT)
+        for <linux-unionfs@vger.kernel.org>; Thu, 12 Oct 2017 09:33:46 -0400
+Received: from localhost
+        by e33.co.us.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
+        for <linux-unionfs@vger.kernel.org> from <chandan@linux.vnet.ibm.com>;
+        Thu, 12 Oct 2017 07:33:46 -0600
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: overlayfs <linux-unionfs@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>, "Eric W. Biederman" <ebiederm@xmission.com>
+To: fstests@vger.kernel.org, amir73il@gmail.com, david@fromorbit.com
+Cc: Chandan Rajendra <chandan@linux.vnet.ibm.com>, linux-unionfs@vger.kernel.org, eguan@redhat.com
 
-On Wed, Oct 11, 2017 at 11:29:02PM +0300, Amir Goldstein wrote:
-> On Wed, Oct 11, 2017 at 9:34 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
-> > On Wed, Oct 11, 2017 at 08:36:03PM +0300, Amir Goldstein wrote:
-> >> On Wed, Oct 11, 2017 at 7:53 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
-> >> > On Wed, Oct 11, 2017 at 07:29:38PM +0300, Amir Goldstein wrote:
-> >> >
-> >> > [..]
-> >> >> >
-> >> >> > Anyway, I did not understand what's the problem with borken upper
-> >> >> > hardlinks when index=off. If two upper hardlinks (broken), can
-> >> >> > point to same ORIGIN on lower, they will just copy up same data.
-> >> >> >
-> >> >> > IOW, it does not seem to be more broken then what it is now just
-> >> >> > becase of metadata copy up or because of both upper pointing to
-> >> >> > same ORIGIN? What am I missing.
-> >> >> >
-> >> >> It is not broken now because we intentionally do NOT set origin when
-> >> >> copying up lower hardlinks and index is disabled.
-> >> >> You must not break this rule, so instead you can avoid metacopy for
-> >> >> lower hardlinks when index is disabled.
-> >> >
-> >> > Hi Amir,
-> >> >
-> >> > Ok, I am open to change it so that if index=off, lower hardlinks are not
-> >> > copied up metadata only.
-> >> >
-> >> > But please help me understand that what *additional* thing breaks if origin
-> >> > is set when index=off.
-> >> >
-> >> > Say lower has a file foo.txt and another hard link foo-link.txt.
-> >> > (say index=off, metacopy=off).
-> >> >
-> >> > Say, I open foo-link.txt for WRITE, and it gets copied up. Now there is
-> >> > no link between foo-link.txt and foo.txt and if a user opens foo.txt for
-> >> > READ, it does not see updates to foo-link.txt. So this is the broken
-> >> > behavior of hardlinks with index=off, as of today.
-> >> >
-> >> > Now I go back to original state and this time do same operation with
-> >> > (indxex=off, metacopy=on). Then "chown foo-link.txt" will only copy
-> >> > metadata and set origin to lower file. Say I also chown "foo.txt", that
-> >> > will do the same thing. Now both foo.txt and foo-link.txt will have
-> >> > ORIGIN pointing to same lower inode. If any of the file is opened for
-> >> > WRITE, data will be copied up from same origin.
-> >> >
-> >> > So setting same ORIGIN on two upper files, does not seem to break anything
-> >> > additional, AFAICS. What am I missing.
-> >> >
-> >>
-> >> Sorry for brevity of my response earlier. I was hopping on a plane.
-> >> The problem is a bit convoluted to explain, but here goes.
-> >>
-> >> ORIGIN was introduced to implement constant st_ino across copy up.
-> >> stat(2) of an overlay file with ORIGIN (both layer in same fs) returns
-> >> st_ino of origin inode.
-> >>
-> >> When copy up breaks lower hardlink to *different* upper inodes,
-> >> then those broken aliases MUST NOT return the same st_ino,
-> >> because they are different files with different data.
-> >
-> > Hi Amir,
-> >
-> > I thought current code already takes care of this situation.
-> >
-> > ovl_getattr() {
-> >           /*
-> >             * Lower hardlinks may be broken on copy up to different
-> >             * upper files, so we cannot use the lower origin st_ino
-> >             * for those different files, even for the same fs case.
-> >             * With inodes index enabled, it is safe to use st_ino
-> >             * of an indexed hardlinked origin. The index validates
-> >             * that the upper hardlink is not broken.
-> >             */
-> >            if (is_dir || lowerstat.nlink == 1 ||
-> >                ovl_test_flag(OVL_INDEX, d_inode(dentry)))
-> >                    stat->ino = lowerstat.ino;
-> > }
-> >
-> > So if lower had nlink > 1, then its inode number will not be used if
-> > indexing was not enabled. If that's the case, two upper pointing to
-> > same origin should not be a problem?
-> >
-> > I even tested it. Wrote a patch to force setting origin even on hard
-> > links with index=off.
-> >
-> > Before copy up, both the files (testfile.txt and link-file.txt) had
-> > same inode numbers. The moment file is copied up it uses its real
-> > inode number on upper (and not the one retrieved from lower). IOW,
-> > origin inode number is discarded if index=off. If that's the case
-> > then setting ORIGIN with broken hard link should be just fine. It
-> > can still be used for metadata copyup while it can't be used with
-> > index=off.
-> >
-> > In fact this sounds better to me. Make use of ORIGIN information only if
-> > it is safe. With broken hardlinks it is not safe to make use of this
-> > information so ignore ORIGIN. But it is still ok to make use of this
-> > information from metadata copyup point of view.
-> >
-> 
-> Yes, all this is true. I was trying to avoid the full explanation regrading
-> index inconsistency, but I ended up giving an incomplete story.
-> 
-> >>
-> >> Only when index is enabled and copy up does not break lower
-> >> hardlink, it is legal to set ORIGIN for every upper alias, because
-> >> all upper aliases can and should return same st_ino (the origin st_ino)
-> >> from stat(2).
-> >>
-> >> So that is the simplest way to explain why you MUST NOT set ORIGIN
-> >> on copy up of lower hardlink when index is disabled and therefore, you
-> >> cannot use ORIGIN for metacopy.
-> >>
-> >> As I wrote in some email, you could set METAORIGIN xattr in this case
-> >> just for the use of metacopy, but I rather not have this special case.
-> >>
-> >> Beyond the problem stated above with st_ino of broken hardlinks,
-> >> if broken hardlinks have the same ORIGIN, this also breaks indexing
-> >> assumptions and can lead to EIO on lookup, but no need to get into that.
-> >
-> > I guess you are referring to ovl_lookup_index().
-> >
-> >  () {
-> >         index = lookup_one_len_unlocked(name.name, ofs->indexdir, name.len);
-> >         if (d_is_negative(index)) {
-> >                 if (upper && d_inode(origin)->i_nlink > 1) {
-> >                         pr_warn_ratelimited("overlayfs: hard link with origin but no index (ino=%lu).\n",
-> >                                             d_inode(origin)->i_ino);
-> >                         goto fail;
-> >                 }
-> >
-> >         }
-> > }
-> >
-> > So this is failing if we find a dentry which has origin but no index. And
-> > this will hit if a overlay was mounted with index=off, hard link copied up
-> > and then remounted with index=on. In that case it will return -EIO.
-> >
-> > My question is, that does this have to be an error. If we are supporting
-> > this use case, where index can be turned on later, then can we just warn
-> > and continue? Or set OVL_XATTR_INDEX on upper to indicate that this
-> > upper should have an index.
-> >
-> > I mean ORIGIN started with the exclusive purpose of inode number stability.
-> > But this is sort of infrastructure which keeps track of ORIGIN of copy
-> > up source and can be used for metadata copy up as well. So indexing should
-> > not put restrictions on what files ORIGIN can be set on. Instead both
-> > metacopy and index should not make use of ORIGIN where they this things
-> > are broken for them.
-> >
-> > Thoughts?
-> >
-> 
-> It is interesting to note that the commit that introduced this limitation
-> fbaf94ee3cd5 ("ovl: don't set origin on broken lower hardlink")
-> was merged as a "last minute" (rc7) fix patch before final v4.12
-> and had this text in commit message:
-> "We can relax this in the future when we are able to index upper object by
->     origin."
-> 
-> I am not sure it is easy to relax this limitation, but I may be wrong.
-> I'll take another swing at writing the full story. Hope I will get it
-> right this time...
-> 
-> Index is a 1-to-1 mapping from origin *inode* to upper *inode*.
-> Highlighting *inode* because there may be many lower or upper
-> aliases of that inode.
-> 
-> The index key (its name) is the file handle of origin inode.
-> The index itself is an upper alias (link) of upper inode.
-> 
-> If more than 1 upper inode point to the same origin inode,
-> then index cannot be consistent for both upper aliases.
-> This would actually be a common scenario if hardlinks are broken
-> due to index=off (or kernel v4.12 without the rc7 fix)
-> and then index is turned on and more lower aliases are copied up.
-> 
-> On lookup, we can detected that index found by origin
-> file handle is not a hardlink of upper inode and ignore it instead of
-> returning EIO on:
->         if (upper && d_inode(upper) != inode) {
->                 pr_warn_ratelimited("overlayfs: wrong index found
-> (index=%pd2, ino=%lu, upper ino=%lu).\n",
->                                     index, inode->i_ino, d_inode(upper)->i_ino);
->                 goto fail;
->         }
-> 
-> And we could have allowed for "hard link with origin but no index"
-> instead of returning EIO.
-> 
-> In those cases, we would need to get a hashed overlay inode by address
-> of upper inode, instead of by address of origin inode and we would have to
-> not set the OVL_INDEX flag on lookup.
-> 
-> I guess one of the reasons we did not do it on first version of index feature
-> is that we wanted to keep things simple and we did not have a good enough
-> reason to set ORIGIN for broken hardlinks.
-> 
-> So I am now open to the possibility that we may be able to set ORIGIN
-> for broken hardlinks without breaking anything, but will need to see patches
-> before I can say if we missed something. Maybe Miklos can see something
-> that I have missed.
-> 
-> In any case, for the sake of simplicity, I wouldn't bother doing metacopy up
-> of lower hardlinks in first version of metacopy feature.
+This commit adds a test to verify consistent d_ino feature when
+the overlayfs instance is composed of two different underlying
+filesystem instances.
 
-Ok, I can see that current code will return -EIO if index is enabled after
-some copy up have taken place with index=off. So for now, I will disable
-metadata copyup on hardlinks if index=off. 
+For example,
+$ mount -t xfs /dev/loop0 /mnt/test
+$ mount -t xfs /dev/loop1 /mnt/scratch
+$ mkdir /mnt/scratch/upper
+$ mkdir /mnt/scratch/work
+$ mount -t overlay overlay -o lowerdir=/mnt/test \
+        -o upperdir=/mnt/scratch/upper \
+	-o workdir=/mnt/scratch/work /mnt/merge
 
-But it would be nice if we can move away from this restriction.
+The goal of this test is to verify that the inode numbers returned by
+readdir(3) (i.e. dirent->d_ino) are consistent with inode numbers
+returned by stat(2) (i.e. stat->st_ino) in all the below listed cases,
+- Parent's (i.e. "..") d_ino must always be calculated because a
+  pure dir can be residing inside a merged dir.
+- d_ino for "." must always be calculated because the present
+  directory can have a copy-up origin.
+- Verify d_ino of '.' and '..' before and after dir becomes impure.
+  While at it also verify if trusted.overlay.impure xattr is
+  set/reset appropriately and invalidation of readdir cache.
+- Verify copied up file's (inside a impure dir) d_ino.
+- Verify invalidation of readdir cache.
+- Verify d_ino values corresponding to "." and ".." entries of a
+  pure lower dir.
+- Verify d_ino of ".." entry of a merged dir.
+- Verify pure lower residing in dir which has another lower layer
 
-> 
-> Thanks for insisting on a good answer (not sure I have provided one yet)
+Reviewed-by: Amir Goldstein <amir73il@gmail.com>
+Signed-off-by: Chandan Rajendra <chandan@linux.vnet.ibm.com>
+---
+Eryu,
+This test requires the following "yet to be upstreamed" overlayfs kernel
+patches to be merged,
+https://marc.info/?l=linux-unionfs&m=150728247029074&w=2
+https://marc.info/?l=linux-unionfs&m=150728190228896&w=2
+https://marc.info/?l=linux-unionfs&m=150728190428897&w=2
 
-I think I understand it now. Thank you.
+Changelog:
+ v1->v2:
+ Address the following review comments from Amir.
+ 1. overlay/041 now uses _overlay_scratch_mount_dirs() introduced by the patch
+ "overlay: create helper _overlay_scratch_mount_dirs()" (unmerged patch from
+ Amir Goldstein).
+ 2. Use _scratch_mkfs() instead of manually setting of the base filesystem.
+ 3. Use a directory in $OVL_BASE_TEST_DIR as the overlay instance's lowerdir.
+ 4. Remove redundant invocation of "chown" operation on a regular file to cause
+ copy-up to occur.
 
-Vivek
+ v2->v3:
+ 1. Remove debug code. Thanks to Amir for spotting this.
+ 2. Add a commit message describing non-samefs setup of an overlayfs instance
+ and the scenarios being tested by this test.
+
+ v3->v4:
+ 1. Replace _overlay_scratch_unmount invocation with _scratch_unmount.
+
+tests/overlay/041     | 193 ++++++++++++++++++++++++++++++++++++++++++++++++++
+ tests/overlay/041.out |   2 +
+ tests/overlay/group   |   1 +
+ 3 files changed, 196 insertions(+)
+ create mode 100755 tests/overlay/041
+ create mode 100644 tests/overlay/041.out
+
+diff --git a/tests/overlay/041 b/tests/overlay/041
+new file mode 100755
+index 0000000..4d7feb8
+--- /dev/null
++++ b/tests/overlay/041
+@@ -0,0 +1,193 @@
++#! /bin/bash
++# FSQA Test No. 041
++#
++# Test consistent d_ino numbers on non-samefs setup
++# This is a variant of overlay/038 to test consistent d_ino numbers
++# for non-samefs setup.
++#
++#-----------------------------------------------------------------------
++#
++# Copyright (C) 2017 IBM Corporation. All Rights Reserved.
++# Author: Chandan Rajendra <chandan@linux.vnet.ibm.com>
++#
++# This program is free software; you can redistribute it and/or
++# modify it under the terms of the GNU General Public License as
++# published by the Free Software Foundation.
++#
++# This program is distributed in the hope that it would be useful,
++# but WITHOUT ANY WARRANTY; without even the implied warranty of
++# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++# GNU General Public License for more details.
++#
++# You should have received a copy of the GNU General Public License
++# along with this program; if not, write the Free Software Foundation,
++# Inc.,  51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
++#-----------------------------------------------------------------------
++#
++
++seq=`basename $0`
++seqres=$RESULT_DIR/$seq
++echo "QA output created by $seq"
++
++here=`pwd`
++tmp=/tmp/$$
++status=1	# failure is the default!
++trap "_cleanup; exit \$status" 0 1 2 3 15
++
++_cleanup()
++{
++	cd /
++	rm -f $tmp.*
++}
++
++# get standard environment, filters and checks
++. ./common/rc
++. ./common/filter
++. ./common/attr
++
++# real QA test starts here
++_supported_fs overlay
++_supported_os Linux
++_require_scratch
++_require_test
++_require_attrs
++_require_test_program "t_dir_type"
++
++rm -f $seqres.full
++
++lowerdir=$OVL_BASE_TEST_DIR/$seq-ovl-lower
++rm -rf $lowerdir
++mkdir $lowerdir
++
++# Create our test files.
++mkdir $lowerdir/test_dir/
++mkdir $lowerdir/test_dir/pure_lower_dir
++mkdir $lowerdir/test_dir/merged_dir
++touch $lowerdir/test_file
++
++_scratch_mkfs
++
++upperdir=$OVL_BASE_SCRATCH_MNT/$OVL_UPPER
++workdir=$OVL_BASE_SCRATCH_MNT/$OVL_WORK
++
++_overlay_scratch_mount_dirs $lowerdir $upperdir $workdir
++
++test_dir=$SCRATCH_MNT/test_dir/
++merged_dir=$test_dir/merged_dir
++pure_upper_dir=$merged_dir/pure_upper_dir
++
++mkdir -p $pure_upper_dir
++
++merged_dir_st_ino=$(stat -c '%i' $merged_dir)
++
++# Pure dir's parent d_ino must always be calculated because
++# it can be residing inside a merged dir.
++parent_d=$($here/src/t_dir_type $pure_upper_dir $merged_dir_st_ino)
++[[ $parent_d == ".. d" ]] || \
++	echo "Pure dir inside a merged dir: Invalid d_ino reported for .."
++
++# d_ino for "." must always be calculated because the present
++# directory can have a copy-up origin.
++current_d=$($here/src/t_dir_type $merged_dir $merged_dir_st_ino)
++[[ $current_d == ". d" ]] || echo "Merged dir: Invalid d_ino reported for ."
++
++# Verify d_ino of '.' and '..' before and after dir becomes impure.
++impure_dir=$test_dir/impure_dir
++mkdir -p $impure_dir
++
++impure_dir_st_ino=$(stat -c '%i' $impure_dir)
++impure_dir_parent_st_ino=$(stat -c '%i' $test_dir)
++
++# Before $impure_dir becomes impure
++parent_d=$($here/src/t_dir_type $impure_dir $impure_dir_parent_st_ino)
++[[ $parent_d == ".. d" ]] || \
++    echo "Before dir becomes impure: Invalid d_ino reported for .."
++
++current_d=$($here/src/t_dir_type $impure_dir $impure_dir_st_ino)
++[[ $current_d == ". d" ]] || \
++    echo "Before dir becomes impure: Invalid d_ino reported for ."
++
++
++mv $SCRATCH_MNT/test_file $impure_dir
++test_file_st_ino=$(stat -c '%i' $impure_dir/test_file)
++
++impure=$($GETFATTR_PROG --absolute-names --only-values -n 'trusted.overlay.impure' \
++			$upperdir/test_dir/impure_dir)
++[[ $impure == "y" ]] || echo "Impure directory missing impure xattr"
++
++# After $impure_dir becomes impure
++parent_d=$($here/src/t_dir_type $impure_dir $impure_dir_parent_st_ino)
++[[ $parent_d == ".. d" ]] || \
++    echo "After dir becomes impure: Invalid d_ino reported for .."
++
++current_d=$($here/src/t_dir_type $impure_dir $impure_dir_st_ino)
++[[ $current_d == ". d" ]] || \
++    echo "After dir becomes impure: Invalid d_ino reported for ."
++
++# Verify copy up file's d_ino
++file_d=$($here/src/t_dir_type $impure_dir $test_file_st_ino)
++[[ $file_d == "test_file f" ]] || \
++	echo "Impure dir: Invalid d_ino reported for entry with copy-up origin"
++
++# Make $impure_dir pure
++rm -rf $impure_dir/test_file
++
++# Verify invalidation of readdir cache
++$here/src/t_dir_type $impure_dir $test_file_st_ino
++[[ $? != 0 ]] || echo "Directory's readdir cache has stale entries"
++
++impure=$($GETFATTR_PROG --absolute-names --only-values -n 'trusted.overlay.impure' \
++			$upperdir/test_dir/impure_dir 2>/dev/null)
++[[ -z $impure ]] || echo "Pure directory has impure xattr"
++
++# Verify d_ino values corresponding to "." and ".." entries of a
++# pure lower dir.
++parent_st_ino=$(stat -c '%i' $SCRATCH_MNT/test_dir)
++pure_lower_dir=$SCRATCH_MNT/test_dir/pure_lower_dir
++
++parent_d=$($here/src/t_dir_type $pure_lower_dir $parent_st_ino)
++[[ $parent_d == ".. d" ]] || echo "Pure lower dir: Invalid d_ino reported for .."
++
++pure_lower_dir_st_ino=$(stat -c '%i' $pure_lower_dir)
++
++current_d=$($here/src/t_dir_type $pure_lower_dir $pure_lower_dir_st_ino)
++[[ $current_d == ". d" ]] || echo "Pure lower dir: Invalid d_ino reported for ."
++
++# Verify d_ino of ".." entry of a merged dir.
++merged_dir=$SCRATCH_MNT/test_dir/merged_dir
++
++parent_d=$($here/src/t_dir_type $merged_dir $parent_st_ino)
++[[ $parent_d == ".. d" ]] || echo "Merged dir: Invalid d_ino reported for .."
++
++_scratch_unmount
++
++# Verify pure lower residing in dir which has another lower layer
++middir=$OVL_BASE_TEST_DIR/$seq-ovl-mid
++lowerdir=$OVL_BASE_TEST_DIR/$seq-ovl-lower
++rm -rf $middir
++rm -rf $lowerdir
++mkdir $middir
++mkdir $lowerdir
++
++mkdir -p $middir/test_dir
++mkdir -p $lowerdir/test_dir/pure_lower_dir
++
++_scratch_mkfs
++
++upperdir=$OVL_BASE_SCRATCH_MNT/ovl-upper
++workdir=$OVL_BASE_SCRATCH_MNT/ovl-work
++
++_overlay_scratch_mount_dirs $middir:$lowerdir $upperdir $workdir
++
++# Copy up test_dir
++touch $SCRATCH_MNT/test_dir/test_file
++
++test_dir_st_ino=$(stat -c '%i' $SCRATCH_MNT/test_dir)
++
++parent_d=$($here/src/t_dir_type $SCRATCH_MNT/test_dir/pure_lower_dir $test_dir_st_ino)
++[[ $parent_d == ".. d" ]] || \
++	echo "Pure lower in dir which has another lower layer: Invalid d_ino reported for .."
++
++echo "Silence is golden"
++status=0
++exit
+diff --git a/tests/overlay/041.out b/tests/overlay/041.out
+new file mode 100644
+index 0000000..04f5bf1
+--- /dev/null
++++ b/tests/overlay/041.out
+@@ -0,0 +1,2 @@
++QA output created by 041
++Silence is golden
+diff --git a/tests/overlay/group b/tests/overlay/group
+index 022f2ef..8629325 100644
+--- a/tests/overlay/group
++++ b/tests/overlay/group
+@@ -43,3 +43,4 @@
+ 038 auto quick copyup
+ 039 auto quick atime
+ 040 auto quick
++041 auto quick copyup nonsamefs
+-- 
+2.9.5
