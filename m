@@ -1,140 +1,87 @@
-Return-Path: <cgxu@mykernel.net>
-From: cgxu <cgxu@mykernel.net>
-Message-Id: <13AD7BBD-8CE9-4BCA-A0B4-4CAA7FD75F72@mykernel.net>
-Content-Type: multipart/alternative;
- boundary="Apple-Mail=_590ED07C-1BB0-4E9C-B536-4A8DEF574240"
-Mime-Version: 1.0 (Mac OS X Mail 10.3 \(3273\))
-Subject: Re: [PATCH] long mount option support
-Date: Tue, 24 Oct 2017 18:25:43 +0800
-In-Reply-To: <CAJfpeguPKtGMZ_YYyBqDc=WOvwK6fSiFMJW4NdESR5X+w3tLoA@mail.gmail.com>
-References: <D90A2B0B-C311-4F73-9CB7-D6361EDCD131@mykernel.net>
- <CAJfpeguPKtGMZ_YYyBqDc=WOvwK6fSiFMJW4NdESR5X+w3tLoA@mail.gmail.com>
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>, David Howells <dhowells@redhat.com>
+Return-Path: <charleszheng44@gmail.com>
+MIME-Version: 1.0
+From: charles zheng <charleszheng44@gmail.com>
+Date: Mon, 16 Oct 2017 00:59:42 -0400
+Message-ID: <CAAeanMxnXUrik+QSAdoVUSWe37tb=YPx6swb_=4nJOgL7OM2Fg@mail.gmail.com>
+Subject: [OVERLAYFS] Can I create file in directory on lower layer located on NFS
+Content-Type: multipart/alternative; boundary="089e08223920eefe88055ba2dfa5"
+To: miklos@szeredi.hu, linux-unionfs@vger.kernel.org
+Cc: Lukas Rupprecht <Lukas.Rupprecht@ibm.com>, Vasily <vtarasov@us.ibm.com>, Douglas Thain <dthain@nd.edu>, Dean Hildebrand <seattleplus@gmail.com>, mmohamed@us.ibm.com, dimitrios.skourtis@ibm.com, aswarke@us.ibm.com
 List-ID: <linux-unionfs@vger.kernel.org>
 
+--089e08223920eefe88055ba2dfa5
+Content-Type: text/plain; charset="UTF-8"
 
---Apple-Mail=_590ED07C-1BB0-4E9C-B536-4A8DEF574240
+Hi Miklos,
+
+We are developing a docker related system that requires to union
+directories on NFS and local filesystem.  I successfully created a
+overlayfs that has lower layer located on NFS and upper layer located on
+the local file system. But when I tried to create new files in the
+directory located on NFS, I got error message: "Operation not supported".
+Does that mean I can not create new files inside the directory located on
+NFS? But base on the documentation of overlayfs, lower layer does not need
+to be writable.
+
+Steps to reproduce the problem are (/mnt/nfs is the NFS mount, /home/zc is
+the local mount)
+
+1. create directory "/mnt/nfs/lower/lower_dir"
+
+2. create directories "/home/zc/upper/upper_dir", "/home/zc/work" and
+"/home/zc/merged"
+
+3. create overlayfs by running command
+
+mount -t overlay overlay -o\
+lowerdir=/mnt/nfs/lower,\
+upperdir=/home/zc/upper,\
+workdir=/home/zc/work \
+/home/zc/merged
+
+4. Try to create new file "/merged/lower_dir/test.txt" and get error
+message "Operation not supported"
+
+Thanks,
+Charles
+
+--089e08223920eefe88055ba2dfa5
+Content-Type: text/html; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain;
-	charset=gb2312
 
-Thanks for your prompt response. I=A1=AFm also looking forward to see =
-the implementation. :-)
+<div dir=3D"ltr"><div class=3D"gmail_default" style=3D"font-size:small">Hi =
+Miklos,</div><div class=3D"gmail_default" style=3D"font-size:small"><br></d=
+iv><div class=3D"gmail_default" style=3D"font-size:small">We are developing=
+ a docker related system that requires to union directories on NFS and loca=
+l filesystem.=C2=A0 I successfully created a overlayfs that has lower layer=
+ located on NFS and upper layer located on the local file system. But when =
+I tried to create new files in the directory located on NFS, I got error me=
+ssage: &quot;Operation not supported&quot;. Does that mean I can not create=
+ new files inside the directory located on NFS? But base on the documentati=
+on of overlayfs, lower layer does not need to be writable.</div><div class=
+=3D"gmail_default" style=3D"font-size:small"><br></div><div class=3D"gmail_=
+default" style=3D"font-size:small">Steps to reproduce the problem are (/mnt=
+/nfs is the NFS mount, /home/zc is the local mount)</div><div class=3D"gmai=
+l_default" style=3D"font-size:small"><br></div><div class=3D"gmail_default"=
+ style=3D"font-size:small">1. create directory &quot;/mnt/nfs/lower/lower_d=
+ir&quot;</div><div class=3D"gmail_default" style=3D"font-size:small"><br></=
+div><div class=3D"gmail_default" style=3D"font-size:small">2. create direct=
+ories &quot;/home/zc/upper/upper_dir&quot;, &quot;/home/zc/work&quot; and &=
+quot;/home/zc/merged&quot;</div><div class=3D"gmail_default" style=3D"font-=
+size:small"><br></div><div class=3D"gmail_default" style=3D"font-size:small=
+">3. create overlayfs by running command</div><div class=3D"gmail_default" =
+style=3D"font-size:small"><br></div><div class=3D"gmail_default" style=3D"f=
+ont-size:small">mount -t overlay overlay -o\</div><div class=3D"gmail_defau=
+lt" style=3D"font-size:small">lowerdir=3D/mnt/nfs/lower,\</div><div class=
+=3D"gmail_default" style=3D"font-size:small">upperdir=3D/home/zc/upper,\</d=
+iv><div class=3D"gmail_default" style=3D"font-size:small">workdir=3D/home/z=
+c/work \</div><div class=3D"gmail_default" style=3D"font-size:small">/home/=
+zc/merged</div><div class=3D"gmail_default" style=3D"font-size:small"><br><=
+/div><div class=3D"gmail_default" style=3D"font-size:small">4. Try to creat=
+e new file &quot;/merged/lower_dir/test.txt&quot; and get error message &qu=
+ot;Operation not supported&quot;=C2=A0</div><div class=3D"gmail_default" st=
+yle=3D"font-size:small"><br></div><div class=3D"gmail_default" style=3D"fon=
+t-size:small">Thanks,</div><div class=3D"gmail_default" style=3D"font-size:=
+small">Charles</div></div>
 
-
-Best Regards,
-cgxu
-
-
-> =D4=DA 2017=C4=EA10=D4=C224=C8=D5=A3=AC=CF=C2=CE=E75:43=A3=ACMiklos =
-Szeredi <miklos@szeredi.hu> =D0=B4=B5=C0=A3=BA
->=20
-> On Tue, Oct 24, 2017 at 5:44 AM, cgxu <cgxu@mykernel.net> wrote:
->> Hi Miklos,
->>=20
->> We=A1=AFre testing our container system using overlayfs as image =
-storage.
->> We noticed that although overlayfs supports maximum 500 layers in =
-filesystem,
->> but  when lowerdir is quite long then mount will fail because of =
-mount option=A1=AFs one PAGE SIZE limitation.
->> In our environment, we added new mount option =A1=B0long_option=A1=B1 =
-to deliver long mount option with extended attribute.
->> This approach is backward compatible and could be useful to =
-container.
->> I have done basic testing on this and hope to hear some feedback for =
-the patch.
->>=20
->> Detail explanations:
->> In this approach, we can set mount option both in command line and =
-config file=A1=AFs extended attribute.
->> There are three possible cases as below.
->=20
-> Patchset from David Howells (*) will allow unlimited mount options.
-> I'd rather wait for that than adding hacks to work around the page
-> size limitation.
->=20
-> Thanks,
-> Miklos
->=20
-> (*) =
-https://www.mail-archive.com/linux-kernel@vger.kernel.org/msg1506283.html
->=20
-
-
---Apple-Mail=_590ED07C-1BB0-4E9C-B536-4A8DEF574240
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/html;
-	charset=gb2312
-
-<html><head><meta http-equiv=3D"Content-Type" content=3D"text/html =
-charset=3Dgb2312"></head><body style=3D"word-wrap: break-word; =
--webkit-nbsp-mode: space; -webkit-line-break: after-white-space;" =
-class=3D"">Thanks for your prompt response. I=A1=AFm also looking =
-forward to see the implementation. :-)<div class=3D""><div class=3D"">
-<div style=3D"color: rgb(0, 0, 0); font-family: Helvetica; font-size: =
-12px; font-style: normal; font-variant-caps: normal; font-weight: =
-normal; letter-spacing: normal; orphans: auto; text-align: start; =
-text-indent: 0px; text-transform: none; white-space: normal; widows: =
-auto; word-spacing: 0px; -webkit-text-size-adjust: auto; =
--webkit-text-stroke-width: 0px; word-wrap: break-word; =
--webkit-nbsp-mode: space; -webkit-line-break: after-white-space;" =
-class=3D""><div style=3D"color: rgb(0, 0, 0); letter-spacing: normal; =
-text-align: start; text-indent: 0px; text-transform: none; white-space: =
-normal; word-spacing: 0px; -webkit-text-stroke-width: 0px; word-wrap: =
-break-word; -webkit-nbsp-mode: space; -webkit-line-break: =
-after-white-space;" class=3D""><div style=3D"word-wrap: break-word; =
--webkit-nbsp-mode: space; -webkit-line-break: after-white-space;" =
-class=3D""><div style=3D"color: rgb(0, 0, 0); font-family: Helvetica; =
-font-size: 12px; font-style: normal; font-variant-caps: normal; =
-font-weight: normal; letter-spacing: normal; text-align: start; =
-text-indent: 0px; text-transform: none; white-space: normal; =
-word-spacing: 0px; -webkit-text-stroke-width: 0px;"><br =
-class=3D"Apple-interchange-newline"><br class=3D""></div><div =
-style=3D"color: rgb(0, 0, 0); font-family: Helvetica; font-size: 12px; =
-font-style: normal; font-variant-caps: normal; font-weight: normal; =
-letter-spacing: normal; text-align: start; text-indent: 0px; =
-text-transform: none; white-space: normal; word-spacing: 0px; =
--webkit-text-stroke-width: 0px;">Best Regards,</div><div style=3D"color: =
-rgb(0, 0, 0); font-family: Helvetica; font-size: 12px; font-style: =
-normal; font-variant-caps: normal; font-weight: normal; letter-spacing: =
-normal; text-align: start; text-indent: 0px; text-transform: none; =
-white-space: normal; word-spacing: 0px; -webkit-text-stroke-width: 0px;" =
-class=3D"">cgxu</div></div></div></div><br =
-class=3D"Apple-interchange-newline">
-</div>
-<br class=3D""><div><blockquote type=3D"cite" class=3D""><div =
-class=3D"">=D4=DA 2017=C4=EA10=D4=C224=C8=D5=A3=AC=CF=C2=CE=E75:43=A3=ACMi=
-klos Szeredi &lt;<a href=3D"mailto:miklos@szeredi.hu" =
-class=3D"">miklos@szeredi.hu</a>&gt; =D0=B4=B5=C0=A3=BA</div><br =
-class=3D"Apple-interchange-newline"><div class=3D""><div class=3D"">On =
-Tue, Oct 24, 2017 at 5:44 AM, cgxu &lt;<a =
-href=3D"mailto:cgxu@mykernel.net" class=3D"">cgxu@mykernel.net</a>&gt; =
-wrote:<br class=3D""><blockquote type=3D"cite" class=3D"">Hi Miklos,<br =
-class=3D""><br class=3D"">We=A1=AFre testing our container system using =
-overlayfs as image storage.<br class=3D"">We noticed that although =
-overlayfs supports maximum 500 layers in filesystem,<br class=3D"">but =
-&nbsp;when lowerdir is quite long then mount will fail because of mount =
-option=A1=AFs one PAGE SIZE limitation.<br class=3D"">In our =
-environment, we added new mount option =A1=B0long_option=A1=B1 to =
-deliver long mount option with extended attribute.<br class=3D"">This =
-approach is backward compatible and could be useful to container.<br =
-class=3D"">I have done basic testing on this and hope to hear some =
-feedback for the patch.<br class=3D""><br class=3D"">Detail =
-explanations:<br class=3D"">In this approach, we can set mount option =
-both in command line and config file=A1=AFs extended attribute.<br =
-class=3D"">There are three possible cases as below.<br =
-class=3D""></blockquote><br class=3D"">Patchset from David Howells (*) =
-will allow unlimited mount options.<br class=3D"">I'd rather wait for =
-that than adding hacks to work around the page<br class=3D"">size =
-limitation.<br class=3D""><br class=3D"">Thanks,<br class=3D"">Miklos<br =
-class=3D""><br class=3D"">(*) <a =
-href=3D"https://www.mail-archive.com/linux-kernel@vger.kernel.org/msg15062=
-83.html" =
-class=3D"">https://www.mail-archive.com/linux-kernel@vger.kernel.org/msg15=
-06283.html</a><br class=3D""><br =
-class=3D""></div></div></blockquote></div><br =
-class=3D""></div></body></html>=
-
---Apple-Mail=_590ED07C-1BB0-4E9C-B536-4A8DEF574240--
+--089e08223920eefe88055ba2dfa5--
