@@ -1,161 +1,191 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH 05/11] ovl: lookup index for directories
-Date: Tue, 17 Oct 2017 19:00:16 +0300
-Message-ID: <1508256022-10267-6-git-send-email-amir73il@gmail.com>
+Subject: [PATCH 04/11] ovl: add support for mount option index=all
+Date: Tue, 17 Oct 2017 19:00:15 +0300
+Message-ID: <1508256022-10267-5-git-send-email-amir73il@gmail.com>
 References: <1508256022-10267-1-git-send-email-amir73il@gmail.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wm0-f65.google.com ([74.125.82.65]:57093 "EHLO
-        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S936666AbdJQP74 (ORCPT
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:46357 "EHLO
+        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S934507AbdJQP7y (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 17 Oct 2017 11:59:56 -0400
-Received: by mail-wm0-f65.google.com with SMTP id l68so4905607wmd.5
-        for <linux-unionfs@vger.kernel.org>; Tue, 17 Oct 2017 08:59:55 -0700 (PDT)
+        Tue, 17 Oct 2017 11:59:54 -0400
+Received: by mail-wm0-f66.google.com with SMTP id m72so4866077wmc.1
+        for <linux-unionfs@vger.kernel.org>; Tue, 17 Oct 2017 08:59:54 -0700 (PDT)
 In-Reply-To: <1508256022-10267-1-git-send-email-amir73il@gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: Miklos Szeredi <miklos@szeredi.hu>
 Cc: linux-unionfs@vger.kernel.org
 
-A directory index is a directory type entry in index dir
-with a "trusted.overlay.origin" xattr containing an encoded ovl_fh
-of the merge directory upper dir.
+With mount option index=all, all files are indexed on copy up.
 
-On lookup of non-dir files, lower file is followed by origin file handle.
-On lookup of dir entries, lower dir is found by name and then compared
-to origin file handle. We only trust dir index if we verified that lower
-dir matches origin file handle, otherwise index is inconsistent and we
-ignore it.
+The default boolean module/config var can only be used to configure
+indexing of lower hardlinks (true) or to turn off indexing (false).
 
-Directory index entries are going to be used for NFS export.
+This is going to be used for overlayfs snapshots and NFS export.
 
 Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- fs/overlayfs/namei.c | 52 +++++++++++++++++++++++++++++++++++++++-------------
- 1 file changed, 39 insertions(+), 13 deletions(-)
+ fs/overlayfs/overlayfs.h | 14 ++++++++++++++
+ fs/overlayfs/ovl_entry.h |  2 +-
+ fs/overlayfs/super.c     | 23 +++++++++++++++--------
+ fs/overlayfs/util.c      |  8 ++++++--
+ 4 files changed, 36 insertions(+), 11 deletions(-)
 
-diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
-index c73f490695c6..1afc6d6e99b9 100644
---- a/fs/overlayfs/namei.c
-+++ b/fs/overlayfs/namei.c
-@@ -518,6 +518,7 @@ static struct dentry *ovl_lookup_index(struct dentry *dentry,
- 	struct dentry *index;
- 	struct inode *inode;
- 	struct qstr name;
-+	bool is_dir = d_is_dir(origin);
- 	int err;
+diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
+index 17457483ccf6..35f5452e61e0 100644
+--- a/fs/overlayfs/overlayfs.h
++++ b/fs/overlayfs/overlayfs.h
+@@ -33,6 +33,20 @@ enum ovl_flag {
+ };
  
- 	err = ovl_get_index_name(origin, &name);
-@@ -540,15 +541,11 @@ static struct dentry *ovl_lookup_index(struct dentry *dentry,
- 
- 	inode = d_inode(index);
- 	if (d_is_negative(index)) {
--		if (upper && d_inode(origin)->i_nlink > 1) {
-+		if (!is_dir && upper && d_inode(origin)->i_nlink > 1) {
- 			pr_warn_ratelimited("overlayfs: hard link with origin but no index (%pd2).\n",
- 					    upper);
- 		}
- 		goto out_dput;
--	} else if (upper && d_inode(upper) != inode) {
--		pr_warn_ratelimited("overlayfs: broken hard link - ignoring index (%pd2).\n",
--				    upper);
--		goto out_dput;
- 	} else if (ovl_dentry_weird(index) || ovl_is_whiteout(index) ||
- 		   ((inode->i_mode ^ d_inode(origin)->i_mode) & S_IFMT)) {
- 		/*
-@@ -562,8 +559,16 @@ static struct dentry *ovl_lookup_index(struct dentry *dentry,
- 				    index, d_inode(index)->i_mode & S_IFMT,
- 				    d_inode(origin)->i_mode & S_IFMT);
- 		goto fail;
-+	} else if (upper && is_dir) {
-+		/* Verify that dir index origin points to upper dir */
-+		err = ovl_verify_origin(index, upper, true, false);
-+		if (err)
-+			goto fail;
-+	} else if (upper && d_inode(upper) != inode) {
-+		pr_warn_ratelimited("overlayfs: broken hard link - ignoring index (%pd2).\n",
-+				    upper);
-+		goto out_dput;
- 	}
--
- out:
- 	kfree(name.name);
- 	return index;
-@@ -613,6 +618,7 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
- 	struct ovl_entry *roe = dentry->d_sb->s_root->d_fsdata;
- 	struct path *stack = NULL;
- 	struct dentry *upperdir, *upperdentry = NULL;
-+	struct dentry *origin = NULL;
- 	struct dentry *index = NULL;
- 	unsigned int ctr = 0;
- 	struct inode *inode = NULL;
-@@ -659,6 +665,8 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
- 			 */
- 			err = ovl_check_origin(upperdentry, roe->lowerstack,
- 					       roe->numlower, &stack, &ctr);
-+			if (ctr)
-+				origin = stack[0].dentry;
- 			if (err)
- 				goto out;
- 		}
-@@ -692,15 +700,26 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
- 		if (!this)
- 			continue;
- 
-+		if (!ctr)
-+			origin = this;
+ /*
++ * Which files should be indexed on copy up.
++ * The default is casted from the boolean module config var, which can
++ * only be used to configure indexing of lower hardlinks or to turn off
++ * indexing. Other values can only be configures via mount option
++ * (e.g. index=all).
++ */
++enum ovl_index {
++	OVL_INDEX_OFF = (int)false,
++	OVL_INDEX_ON = (int)true,
++	OVL_INDEX_NLINK = OVL_INDEX_ON,
++	OVL_INDEX_ALL,
++};
 +
- 		/*
- 		 * Verify that uppermost lower matches the copy up origin fh.
- 		 * If no origin fh is stored in upper, store fh of lower dir.
-+		 * If origin fh exists and does not match lower dir, depending
-+		 * on verify_dir config, we either not merge this lower or we
-+		 * merge it, but we do not use it as index key.
- 		 */
- 		if (this && upperdentry && !ctr) {
- 			err = ovl_verify_origin(upperdentry, this, false, true);
--			if (err && ovl_verify_dir(dentry->d_sb)) {
--				dput(this);
--				break;
-+			if (err) {
-+				if (ovl_verify_dir(dentry->d_sb)) {
-+					/* Don't merge with unverified lower */
-+					dput(this);
-+					break;
-+				}
-+				/* Don't use unverified lower as index key */
-+				origin = NULL;
++/*
+  * The tuple (fh,uuid) is a universal unique identifier for a copy up origin,
+  * where:
+  * origin.fh	- exported file handle of the lower file
+diff --git a/fs/overlayfs/ovl_entry.h b/fs/overlayfs/ovl_entry.h
+index 4c3d5ff1a30c..45dc8077d959 100644
+--- a/fs/overlayfs/ovl_entry.h
++++ b/fs/overlayfs/ovl_entry.h
+@@ -15,7 +15,7 @@ struct ovl_config {
+ 	bool default_permissions;
+ 	bool redirect_dir;
+ 	bool verify_dir;
+-	bool index;
++	int index;
+ };
+ 
+ /* private information held for overlayfs's superblock */
+diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+index aa230efc1afe..24fac7d987a3 100644
+--- a/fs/overlayfs/super.c
++++ b/fs/overlayfs/super.c
+@@ -302,7 +302,8 @@ static int ovl_show_options(struct seq_file *m, struct dentry *dentry)
+ 			   ufs->config.redirect_dir ? "on" : "off");
+ 	if (ufs->config.index != ovl_index_def)
+ 		seq_printf(m, ",index=%s",
+-			   ufs->config.index ? "on" : "off");
++			   ufs->config.index == OVL_INDEX_ALL ? "all" :
++			   (ufs->config.index ? "on" : "off"));
+ 	if (ufs->config.verify_dir)
+ 		seq_puts(m, ",verify_dir");
+ 	return 0;
+@@ -338,6 +339,7 @@ enum {
+ 	OPT_REDIRECT_DIR_OFF,
+ 	OPT_INDEX_ON,
+ 	OPT_INDEX_OFF,
++	OPT_INDEX_ALL,
+ 	OPT_VERIFY_DIR,
+ 	OPT_ERR,
+ };
+@@ -351,6 +353,7 @@ static const match_table_t ovl_tokens = {
+ 	{OPT_REDIRECT_DIR_OFF,		"redirect_dir=off"},
+ 	{OPT_INDEX_ON,			"index=on"},
+ 	{OPT_INDEX_OFF,			"index=off"},
++	{OPT_INDEX_ALL,			"index=all"},
+ 	{OPT_VERIFY_DIR,		"verify_dir"},
+ 	{OPT_ERR,			NULL}
+ };
+@@ -425,11 +428,15 @@ static int ovl_parse_opt(char *opt, struct ovl_config *config)
+ 			break;
+ 
+ 		case OPT_INDEX_ON:
+-			config->index = true;
++			config->index = OVL_INDEX_NLINK;
+ 			break;
+ 
+ 		case OPT_INDEX_OFF:
+-			config->index = false;
++			config->index = 0;
++			break;
++
++		case OPT_INDEX_ALL:
++			config->index = OVL_INDEX_ALL;
+ 			break;
+ 
+ 		case OPT_VERIFY_DIR:
+@@ -664,7 +671,7 @@ static int ovl_lower_dir(const char *name, struct path *path,
+ 	 */
+ 	if (ofs->config.upperdir && !ovl_can_decode_fh(path->dentry->d_sb) &&
+ 	    (ofs->config.index || ofs->config.verify_dir)) {
+-		ofs->config.index = false;
++		ofs->config.index = 0;
+ 		ofs->config.verify_dir = false;
+ 		pr_warn("overlayfs: fs on '%s' does not support file handles, falling back to index=off and no verify_dir.\n",
+ 			name);
+@@ -867,7 +874,7 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
+ 		goto out;
+ 
+ 	ufs->config.redirect_dir = ovl_redirect_dir_def;
+-	ufs->config.index = ovl_index_def;
++	ufs->config.index = (enum ovl_index) ovl_index_def;
+ 	err = ovl_parse_opt((char *) data, &ufs->config);
+ 	if (err)
+ 		goto out_free_config;
+@@ -1031,7 +1038,7 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
+ 			if (err) {
+ 				ufs->noxattr = true;
+ 				ufs->config.redirect_dir = false;
+-				ufs->config.index = false;
++				ufs->config.index = 0;
+ 				ufs->config.verify_dir = false;
+ 				pr_warn("overlayfs: upper fs does not support xattr, falling back to redirect_dir=off, index=off, no verify_dir and no opaque dir.\n");
+ 			} else {
+@@ -1041,7 +1048,7 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
+ 			/* Check if upper/work fs supports file handles */
+ 			if (ufs->config.index &&
+ 			    !ovl_can_decode_fh(ufs->workdir->d_sb)) {
+-				ufs->config.index = false;
++				ufs->config.index = 0;
+ 				pr_warn("overlayfs: upper fs does not support file handles, falling back to index=off.\n");
  			}
  		}
+@@ -1105,7 +1112,7 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
  
-@@ -733,6 +752,8 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
- 				       roe->numlower, &stack, &ctr);
- 		if (err)
- 			goto out_put;
+ 	/* Show index=off/on in /proc/mounts for any of the reasons above */
+ 	if (!ufs->indexdir)
+-		ufs->config.index = false;
++		ufs->config.index = 0;
+ 
+ 	if (ufs->config.verify_dir || ufs->indexdir) {
+ 		/* Verify lower root is upper root origin */
+diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
+index 6b3af32ab0e9..fb501eb5e75c 100644
+--- a/fs/overlayfs/util.c
++++ b/fs/overlayfs/util.c
+@@ -510,13 +510,17 @@ static void ovl_cleanup_index(struct dentry *dentry)
+  */
+ bool ovl_need_index(struct dentry *dentry)
+ {
++	struct ovl_fs *ofs = dentry->d_sb->s_fs_info;
+ 	struct dentry *lower = ovl_dentry_lower(dentry);
+ 
+-	if (!lower)
++	if (!lower || !ofs->indexdir)
+ 		return false;
+ 
++	if (!d_is_dir(lower) && ofs->config.index == OVL_INDEX_ALL)
++		return true;
 +
-+		origin = stack[0].dentry;
- 		/*
- 		 * XXX: We do not continue layers lookup from decoded origin for
- 		 * more than a single lower layer. This would require setting
-@@ -742,10 +763,15 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
- 		 */
- 	}
+ 	/* Index only lower hardlinks on copy up */
+-	if (ovl_indexdir(dentry->d_sb) &&
++	if ((ofs->config.index == OVL_INDEX_NLINK) &&
+ 	    !d_is_dir(lower) && d_inode(lower)->i_nlink > 1)
+ 		return true;
  
--	/* Lookup index by lower inode and verify it matches upper inode */
--	if (ctr && !d.is_dir && ovl_indexdir(dentry->d_sb)) {
--		struct dentry *origin = stack[0].dentry;
--
-+	/*
-+	 * Lookup index by lower inode and verify it matches upper inode.
-+	 * We only trust dir index if we verified that lower dir matches
-+	 * origin, otherwise index is inconsistent and we ignore it.
-+	 *
-+	 * TODO: update origin and index in case lower dir has changed and
-+	 *       store new generation number xattr in index for NFS export.
-+	 */
-+	if (ctr && ovl_indexdir(dentry->d_sb) && origin) {
- 		index = ovl_lookup_index(dentry, upperdentry, origin);
- 		if (IS_ERR(index)) {
- 			err = PTR_ERR(index);
 -- 
 2.7.4
