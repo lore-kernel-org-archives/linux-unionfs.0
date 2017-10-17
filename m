@@ -1,7 +1,7 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH 01/14] ovl: hash all overlay inodes for NFS export
-Date: Tue, 17 Oct 2017 19:44:18 +0300
-Message-ID: <1508258671-10800-2-git-send-email-amir73il@gmail.com>
+Subject: [PATCH 12/14] ovl: reconnect non-pure-upper dir file handles
+Date: Tue, 17 Oct 2017 19:44:29 +0300
+Message-ID: <1508258671-10800-13-git-send-email-amir73il@gmail.com>
 References: <1508258671-10800-1-git-send-email-amir73il@gmail.com>
 Return-path: <linux-fsdevel-owner@vger.kernel.org>
 In-Reply-To: <1508258671-10800-1-git-send-email-amir73il@gmail.com>
@@ -10,71 +10,102 @@ To: Miklos Szeredi <miklos@szeredi.hu>
 Cc: Jeff Layton <jlayton@poochiereds.net>, "J . Bruce Fields" <bfields@fieldses.org>, linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 
-If NFS export is enabled, hash all overlay inodes, so we can find
-them in inode cache using the decoded real inode as the hash key.
+Directory file handles must be connectable. With current implementation
+directories are copied up on encode, so directory file handles are
+guarantied to be upper.
+
+Implement get_parent() operation to reconnect a non pure upper overlay dir
+dentry. fh_to_parent() operation is not implemented for non pure upper, so
+connectable non-dir non pure upper file handles are not supported.
 
 Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- fs/overlayfs/inode.c | 8 ++++++--
- fs/overlayfs/super.c | 3 +++
- fs/overlayfs/util.c  | 4 +++-
- 3 files changed, 12 insertions(+), 3 deletions(-)
+ fs/overlayfs/export.c | 58 ++++++++++++++++++++++++++++++++++++++++++++-------
+ 1 file changed, 51 insertions(+), 7 deletions(-)
 
-diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
-index 321511ed8c42..a792c088c2b4 100644
---- a/fs/overlayfs/inode.c
-+++ b/fs/overlayfs/inode.c
-@@ -524,7 +524,9 @@ unsigned int ovl_get_nlink(struct dentry *lowerdentry,
- 	char buf[13];
- 	int err;
+diff --git a/fs/overlayfs/export.c b/fs/overlayfs/export.c
+index f97f68e92eba..7c04ae99c18b 100644
+--- a/fs/overlayfs/export.c
++++ b/fs/overlayfs/export.c
+@@ -357,11 +357,14 @@ static struct dentry *ovl_fh_to_parent(struct super_block *sb, struct fid *fid,
  
--	if (!lowerdentry || !upperdentry || d_inode(lowerdentry)->i_nlink == 1)
-+	if (!lowerdentry || !upperdentry ||
-+	    d_inode(lowerdentry)->i_nlink == 1 ||
-+	    S_ISDIR(d_inode(upperdentry)->i_mode))
- 		return fallback;
+ static struct dentry *ovl_get_parent(struct dentry *dentry)
+ {
++	struct dentry *root = dentry->d_sb->s_root;
++	struct ovl_entry *roe = root->d_fsdata;
++	struct dentry *parent;
+ 	struct dentry *upper;
+-
+-	/* TODO: handle connecting of non pure upper */
+-	if (ovl_dentry_lower(dentry))
+-		return ERR_PTR(-EACCES);
++	struct dentry *origin = NULL;
++	struct path *stack = NULL;
++	unsigned int ctr = 0;
++	int err;
  
- 	err = vfs_getxattr(upperdentry, OVL_XATTR_NLINK, &buf, sizeof(buf) - 1);
-@@ -618,8 +620,10 @@ struct inode *ovl_get_inode(struct dentry *dentry, struct dentry *upperdentry,
- 	 * not use lower as hash key in that case.
- 	 * Hash inodes that are or could be indexed by origin inode and
- 	 * non-indexed upper inodes that could be hard linked by upper inode.
-+	 * Hash all inodes for NFS export.
+ 	/*
+ 	 * When ovl_fh_to_d() returns an overlay dentry, its real upper
+@@ -369,16 +372,57 @@ static struct dentry *ovl_get_parent(struct dentry *dentry)
+ 	 * the upper dentry is done by ovl_decode_fh() when decoding the
+ 	 * real upper file handle, so here we have the upper dentry parent
+ 	 * and we need to instantiate an overlay dentry with upper dentry
+-	 * parent.
++	 * parent and the lower dir pointed to by origin xattr.
++	 *
++	 * TODO: handle reconnecting of non upper overlay dentry.
  	 */
--	if (!S_ISDIR(realinode->i_mode) && (upperdentry || indexed)) {
-+	if (dentry->d_sb->s_export_op ||
-+	    (!S_ISDIR(realinode->i_mode) && (upperdentry || indexed))) {
- 		struct inode *key = d_inode(indexed ? lowerdentry :
- 						      upperdentry);
- 		unsigned int nlink;
-diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-index 0db59616c840..f3ad8107fec2 100644
---- a/fs/overlayfs/super.c
-+++ b/fs/overlayfs/super.c
-@@ -1170,6 +1170,9 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
+ 	upper = ovl_dentry_upper(dentry);
+ 	if (!upper || (upper->d_flags & DCACHE_DISCONNECTED))
+ 		return ERR_PTR(-ESTALE);
  
- 	root_dentry->d_fsdata = oe;
+ 	upper = dget_parent(upper);
++	if (upper == ovl_dentry_upper(root)) {
++		dput(upper);
++		return dget(root);
++	}
  
-+	/* Hash root directory inode by upper dir inode for NFS export */
-+	if (sb->s_export_op)
-+		ovl_inode_update(d_inode(root_dentry), upperpath.dentry);
- 	ovl_inode_init(d_inode(root_dentry), upperpath.dentry,
- 		       ovl_dentry_lower(root_dentry));
+-	/* Find or instantiate a pure upper dentry */
+-	return ovl_obtain_alias(dentry->d_sb, upper, NULL);
++	/* Check if parent is merge dir or pure upper */
++	err = ovl_check_origin(upper, roe->lowerstack, roe->numlower,
++			       &stack, &ctr);
++	if (err)
++		goto out_err;
++
++	if (ctr) {
++		struct dentry *index;
++
++		/*
++		 * Lookup index by decoded origin to verify dir is indexed.
++		 * We only decode upper with origin if it is indexed, so NFS
++		 * export will work only if overlay was mounted with index=all
++		 * from the start.
++		 */
++		origin = stack[0].dentry;
++		index = ovl_lookup_index(ovl_indexdir(dentry->d_sb), upper,
++					 origin);
++		err = index ? PTR_ERR(index) : -ESTALE;
++		if (IS_ERR_OR_NULL(index))
++			goto out_err;
++
++		dput(index);
++	}
++
++	/* Find or instantiate an upper dentry */
++	parent = ovl_obtain_alias(dentry->d_sb, upper, origin);
++
++out:
++	dput(origin);
++	kfree(stack);
++	return parent;
++
++out_err:
++	dput(upper);
++	parent = ERR_PTR(err);
++	goto out;
+ }
  
-diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
-index 515ae156939f..c668f9e26c3e 100644
---- a/fs/overlayfs/util.c
-+++ b/fs/overlayfs/util.c
-@@ -276,7 +276,9 @@ void ovl_inode_update(struct inode *inode, struct dentry *upperdentry)
- 	 */
- 	smp_wmb();
- 	OVL_I(inode)->__upperdentry = upperdentry;
--	if (!S_ISDIR(upperinode->i_mode) && inode_unhashed(inode)) {
-+	/* Hash all inodes for NFS export and non-dir for hardlink support */
-+	if ((!S_ISDIR(upperinode->i_mode) || inode->i_sb->s_export_op) &&
-+	    inode_unhashed(inode)) {
- 		inode->i_private = upperinode;
- 		__insert_inode_hash(inode, (unsigned long) upperinode);
- 	}
+ const struct export_operations ovl_export_operations = {
 -- 
 2.7.4
