@@ -1,297 +1,223 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH 11/11] ovl: cleanup stale whiteout index entries on mount
-Date: Tue, 17 Oct 2017 19:00:22 +0300
-Message-ID: <1508256022-10267-12-git-send-email-amir73il@gmail.com>
+Subject: [PATCH 10/11] ovl: whiteout orphan index entries on mount
+Date: Tue, 17 Oct 2017 19:00:21 +0300
+Message-ID: <1508256022-10267-11-git-send-email-amir73il@gmail.com>
 References: <1508256022-10267-1-git-send-email-amir73il@gmail.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:49557 "EHLO
-        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934507AbdJQQAD (ORCPT
+Received: from mail-wm0-f65.google.com ([74.125.82.65]:57109 "EHLO
+        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S936673AbdJQQAB (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 17 Oct 2017 12:00:03 -0400
-Received: by mail-wm0-f68.google.com with SMTP id b189so4803460wmd.4
-        for <linux-unionfs@vger.kernel.org>; Tue, 17 Oct 2017 09:00:02 -0700 (PDT)
+        Tue, 17 Oct 2017 12:00:01 -0400
+Received: by mail-wm0-f65.google.com with SMTP id l68so4906199wmd.5
+        for <linux-unionfs@vger.kernel.org>; Tue, 17 Oct 2017 09:00:01 -0700 (PDT)
 In-Reply-To: <1508256022-10267-1-git-send-email-amir73il@gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: Miklos Szeredi <miklos@szeredi.hu>
 Cc: linux-unionfs@vger.kernel.org
 
-Check on mount that whiteout index entries have a name that
-resolves to a non-stale file handle.
+Invalid index entries and stale non-dir index entries are
+removed on mount.
 
-Do not verify that they have a valid origin fh xattr and do
-not verify nlink xattr for orphan index check.
+Non-dir index entries that have no more linked aliases
+need to be whited out on mount to block future open by handle.
+
+When dir index has a stale origin fh to upper dir, we assume
+that upper dir was removed and we treat the dir index as orphan
+entry that needs to be whited out.
 
 Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- fs/overlayfs/namei.c | 153 ++++++++++++++++++++++++++++++++-------------------
- 1 file changed, 97 insertions(+), 56 deletions(-)
+ fs/overlayfs/namei.c     | 27 ++++++++++++++++++++++++---
+ fs/overlayfs/overlayfs.h |  5 +++--
+ fs/overlayfs/readdir.c   | 46 ++++++++++++++++++++++++++++++++++------------
+ fs/overlayfs/super.c     |  5 ++---
+ 4 files changed, 63 insertions(+), 20 deletions(-)
 
 diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
-index 1ec65dfbf1bb..e2b47d6494fd 100644
+index aba57d31d850..1ec65dfbf1bb 100644
 --- a/fs/overlayfs/namei.c
 +++ b/fs/overlayfs/namei.c
-@@ -100,9 +100,37 @@ static int ovl_acceptable(void *mnt, struct dentry *dentry)
- 	return is_subdir(dentry, ((struct vfsmount *)mnt)->mnt_root);
- }
- 
-+
-+/*
-+ * Check validity of an overlay file handle buffer.
-+ *
-+ * Return 0 for a valid file handle.
-+ * Return -ENODATA for "origin unknown".
-+ * Return <0 for an invalid file handle.
-+ */
-+static int ovl_check_fh_len(struct ovl_fh *fh, int fh_len)
-+{
-+	if (fh_len < sizeof(struct ovl_fh) || fh_len < fh->len)
-+		return -EINVAL;
-+
-+	if (fh->magic != OVL_FH_MAGIC)
-+		return -EINVAL;
-+
-+	/* Treat larger version and unknown flags as "origin unknown" */
-+	if (fh->version > OVL_FH_VERSION || fh->flags & ~OVL_FH_FLAG_ALL)
-+		return -ENODATA;
-+
-+	/* Treat endianness mismatch as "origin unknown" */
-+	if (!(fh->flags & OVL_FH_FLAG_ANY_ENDIAN) &&
-+	    (fh->flags & OVL_FH_FLAG_BIG_ENDIAN) != OVL_FH_FLAG_CPU_ENDIAN)
-+		return -ENODATA;
-+
-+	return 0;
-+}
-+
- static struct ovl_fh *ovl_get_origin_fh(struct dentry *dentry)
- {
--	int res;
-+	int res, err;
- 	struct ovl_fh *fh = NULL;
- 
- 	res = vfs_getxattr(dentry, OVL_XATTR_ORIGIN, NULL, 0);
-@@ -115,7 +143,7 @@ static struct ovl_fh *ovl_get_origin_fh(struct dentry *dentry)
- 	if (res == 0)
- 		return NULL;
- 
--	fh  = kzalloc(res, GFP_KERNEL);
-+	fh = kzalloc(res, GFP_KERNEL);
- 	if (!fh)
- 		return ERR_PTR(-ENOMEM);
- 
-@@ -123,20 +151,12 @@ static struct ovl_fh *ovl_get_origin_fh(struct dentry *dentry)
- 	if (res < 0)
- 		goto fail;
- 
--	if (res < sizeof(struct ovl_fh) || res < fh->len)
--		goto invalid;
--
--	if (fh->magic != OVL_FH_MAGIC)
-+	err = ovl_check_fh_len(fh, res);
-+	if (err < 0) {
-+		if (err == -ENODATA)
-+			goto out;
- 		goto invalid;
--
--	/* Treat larger version and unknown flags as "origin unknown" */
--	if (fh->version > OVL_FH_VERSION || fh->flags & ~OVL_FH_FLAG_ALL)
--		goto out;
--
--	/* Treat endianness mismatch as "origin unknown" */
--	if (!(fh->flags & OVL_FH_FLAG_ANY_ENDIAN) &&
--	    (fh->flags & OVL_FH_FLAG_BIG_ENDIAN) != OVL_FH_FLAG_CPU_ENDIAN)
--		goto out;
-+	}
- 
- 	return fh;
- 
-@@ -152,22 +172,17 @@ static struct ovl_fh *ovl_get_origin_fh(struct dentry *dentry)
- 	goto out;
- }
- 
--static struct dentry *ovl_get_origin(struct dentry *dentry,
--				     struct vfsmount *mnt)
-+static struct dentry *ovl_decode_fh(struct ovl_fh *fh, struct vfsmount *mnt)
- {
--	struct dentry *origin = NULL;
--	struct ovl_fh *fh = ovl_get_origin_fh(dentry);
-+	struct dentry *origin;
- 	int bytes;
- 
--	if (IS_ERR_OR_NULL(fh))
--		return (struct dentry *)fh;
--
- 	/*
- 	 * Make sure that the stored uuid matches the uuid of the lower
- 	 * layer where file handle will be decoded.
- 	 */
- 	if (!uuid_equal(&fh->uuid, &mnt->mnt_sb->s_uuid))
--		goto out;
-+		return NULL;
- 
- 	bytes = (fh->len - offsetof(struct ovl_fh, fid));
- 	origin = exportfs_decode_fh(mnt, (struct fid *)fh->fid,
-@@ -183,22 +198,15 @@ static struct dentry *ovl_get_origin(struct dentry *dentry,
- 		if (origin == ERR_PTR(-ESTALE) &&
- 		    !(fh->flags & OVL_FH_FLAG_PATH_UPPER))
+@@ -174,8 +174,14 @@ static struct dentry *ovl_get_origin(struct dentry *dentry,
+ 				    bytes >> 2, (int)fh->type,
+ 				    ovl_acceptable, mnt);
+ 	if (IS_ERR(origin)) {
+-		/* Treat stale file handle as "origin unknown" */
+-		if (origin == ERR_PTR(-ESTALE))
++		/*
++		 * Treat stale file handle to lower file as "origin unknown".
++		 * upper file handle could become stale when upper file is
++		 * unlinked and this information is needed to handle stale
++		 * index entries correctly.
++		 */
++		if (origin == ERR_PTR(-ESTALE) &&
++		    !(fh->flags & OVL_FH_FLAG_PATH_UPPER))
  			origin = NULL;
--		goto out;
-+		return origin;
- 	}
- 
--	if (ovl_dentry_weird(origin) ||
--	    ((d_inode(origin)->i_mode ^ d_inode(dentry)->i_mode) & S_IFMT))
--		goto invalid;
-+	if (ovl_dentry_weird(origin)) {
-+		dput(origin);
-+		return NULL;
-+	}
- 
--out:
--	kfree(fh);
- 	return origin;
--
--invalid:
--	pr_warn_ratelimited("overlayfs: invalid origin (%pd2)\n", origin);
--	dput(origin);
--	origin = NULL;
--	goto out;
- }
- 
- static bool ovl_is_opaquedir(struct dentry *dentry)
-@@ -303,29 +311,30 @@ static int ovl_lookup_layer(struct dentry *base, struct ovl_lookup_data *d,
- }
- 
- 
--static int ovl_check_origin(struct dentry *upperdentry,
--			    struct path *lowerstack, unsigned int numlower,
--			    struct path **stackp, unsigned int *ctrp)
-+static int ovl_check_origin_fh(struct ovl_fh *fh, struct dentry *upperdentry,
-+			       struct path *lowerstack, unsigned int numlower,
-+			       struct path **stackp)
- {
- 	struct vfsmount *mnt;
- 	struct dentry *origin = NULL;
- 	int i;
- 
--
- 	for (i = 0; i < numlower; i++) {
- 		mnt = lowerstack[i].mnt;
--		origin = ovl_get_origin(upperdentry, mnt);
--		if (IS_ERR(origin))
--			return PTR_ERR(origin);
--
-+		origin = ovl_decode_fh(fh, mnt);
- 		if (origin)
- 			break;
- 	}
- 
- 	if (!origin)
--		return 0;
-+		return -ESTALE;
-+	else if (IS_ERR(origin))
-+		return PTR_ERR(origin);
-+
-+	if (!ovl_is_whiteout(upperdentry) &&
-+	    ((d_inode(origin)->i_mode ^ d_inode(upperdentry)->i_mode) & S_IFMT))
-+		goto invalid;
- 
--	BUG_ON(*ctrp);
- 	if (!*stackp)
- 		*stackp = kmalloc(sizeof(struct path), GFP_KERNEL);
- 	if (!*stackp) {
-@@ -333,9 +342,42 @@ static int ovl_check_origin(struct dentry *upperdentry,
- 		return -ENOMEM;
- 	}
- 	**stackp = (struct path) { .dentry = origin, .mnt = mnt };
--	*ctrp = 1;
- 
- 	return 0;
-+
-+invalid:
-+	pr_warn_ratelimited("overlayfs: invalid origin (%pd2, ftype=%x, origin ftype=%x).\n",
-+			    upperdentry, d_inode(upperdentry)->i_mode & S_IFMT,
-+			    d_inode(origin)->i_mode & S_IFMT);
-+	dput(origin);
-+	return -ESTALE;
-+}
-+
-+static int ovl_check_origin(struct dentry *upperdentry,
-+			    struct path *lowerstack, unsigned int numlower,
-+			    struct path **stackp, unsigned int *ctrp)
-+{
-+	struct ovl_fh *fh = ovl_get_origin_fh(upperdentry);
-+	int err;
-+
-+	if (IS_ERR_OR_NULL(fh))
-+		return PTR_ERR(fh);
-+
-+	err = ovl_check_origin_fh(fh, upperdentry, lowerstack, numlower,
-+				  stackp);
-+	kfree(fh);
-+
-+	if (err) {
-+		if (err == -ESTALE)
-+			return 0;
-+		return err;
-+	}
-+
-+	if (WARN_ON(*ctrp))
-+		return -EIO;
-+
-+	*ctrp = 1;
-+	return 0;
- }
- 
- /*
-@@ -429,7 +471,6 @@ int ovl_verify_index(struct dentry *index, struct vfsmount *mnt,
- 	size_t len;
- 	struct path origin = { };
- 	struct path *stack = &origin;
--	unsigned int ctr = 0;
- 	struct dentry *upper = NULL;
- 	int err;
- 
-@@ -447,7 +488,15 @@ int ovl_verify_index(struct dentry *index, struct vfsmount *mnt,
- 		goto fail;
- 
- 	err = -EINVAL;
--	if (hex2bin((u8 *)fh, index->d_name.name, len) || len != fh->len)
-+	if (hex2bin((u8 *)fh, index->d_name.name, len))
-+		goto fail;
-+
-+	err = ovl_check_fh_len(fh, len);
-+	if (err)
-+		goto fail;
-+
-+	err = ovl_check_origin_fh(fh, index, lowerstack, numlower, &stack);
-+	if (err)
- 		goto fail;
- 
- 	/*
-@@ -455,9 +504,7 @@ int ovl_verify_index(struct dentry *index, struct vfsmount *mnt,
- 	 * an exported overlay file handle should be treated as stale
- 	 * (i.e. after unlink/rmdir of the overlay inode).
- 	 * These entries contain no xattr.
--	 * TODO: cleanup stale whiteout index (try to decode index name).
- 	 */
--	err = 0;
- 	if (ovl_is_whiteout(index))
  		goto out;
- 
-@@ -487,12 +534,6 @@ int ovl_verify_index(struct dentry *index, struct vfsmount *mnt,
- 	if (err)
- 		goto fail;
- 
--	err = ovl_check_origin(upper, lowerstack, numlower, &stack, &ctr);
--	if (!err && !ctr)
--		err = -ESTALE;
--	if (err)
--		goto fail;
--
+ 	}
+@@ -465,6 +471,14 @@ int ovl_verify_index(struct dentry *index, struct vfsmount *mnt,
+ 	upper = ovl_index_upper(index, mnt);
+ 	if (IS_ERR(upper)) {
+ 		err = PTR_ERR(upper);
++		/*
++		 * Invalid index entries and stale non-dir index entries need
++		 * to be removed.  When dir index has a stale origin fh to upper
++		 * dir, we assume that upper dir was removed and we treat the
++		 * dir index as orphan entry that needs to be whited out.
++		 */
++		if (err == -ESTALE)
++			goto orphan;
+ 		if (err)
+ 			goto fail;
+ 	}
+@@ -482,7 +496,7 @@ int ovl_verify_index(struct dentry *index, struct vfsmount *mnt,
  	/* Check if index is orphan and don't warn before cleaning it */
  	if (!d_is_dir(index) && d_inode(index)->i_nlink == 1 &&
  	    ovl_get_nlink(index, origin.dentry, 0) == 0)
+-		err = -ENOENT;
++		goto orphan;
+ 
+ out:
+ 	dput(origin.dentry);
+@@ -494,6 +508,13 @@ int ovl_verify_index(struct dentry *index, struct vfsmount *mnt,
+ 	pr_warn_ratelimited("overlayfs: failed to verify index (%pd2, ftype=%x, err=%i)\n",
+ 			    index, d_inode(index)->i_mode & S_IFMT, err);
+ 	goto out;
++
++orphan:
++	pr_warn_ratelimited("overlayfs: orphan index entry (%pd2, ftype=%x, nlink=%u)\n",
++			    index, d_inode(index)->i_mode & S_IFMT,
++			    d_inode(index)->i_nlink);
++	err = -ENOENT;
++	goto out;
+ }
+ 
+ /*
+diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
+index 17c039485dc9..18ea89deb040 100644
+--- a/fs/overlayfs/overlayfs.h
++++ b/fs/overlayfs/overlayfs.h
+@@ -279,8 +279,9 @@ void ovl_dir_cache_free(struct inode *inode);
+ int ovl_check_d_type_supported(struct path *realpath);
+ void ovl_workdir_cleanup(struct inode *dir, struct vfsmount *mnt,
+ 			 struct dentry *dentry, int level);
+-int ovl_indexdir_cleanup(struct dentry *dentry, struct vfsmount *mnt,
+-			 struct path *lowerstack, unsigned int numlower);
++struct ovl_fs;
++int ovl_indexdir_cleanup(struct ovl_fs *ofs, struct path *lowerstack,
++			 unsigned int numlower);
+ 
+ /* inode.c */
+ int ovl_set_nlink_upper(struct dentry *dentry);
+diff --git a/fs/overlayfs/readdir.c b/fs/overlayfs/readdir.c
+index 479ce47ba411..ce8cdbb4c7d9 100644
+--- a/fs/overlayfs/readdir.c
++++ b/fs/overlayfs/readdir.c
+@@ -17,6 +17,7 @@
+ #include <linux/cred.h>
+ #include <linux/ratelimit.h>
+ #include "overlayfs.h"
++#include "ovl_entry.h"
+ 
+ struct ovl_cache_entry {
+ 	unsigned int len;
+@@ -1019,13 +1020,16 @@ void ovl_workdir_cleanup(struct inode *dir, struct vfsmount *mnt,
+ 	}
+ }
+ 
+-int ovl_indexdir_cleanup(struct dentry *dentry, struct vfsmount *mnt,
+-			 struct path *lowerstack, unsigned int numlower)
++int ovl_indexdir_cleanup(struct ovl_fs *ofs, struct path *lowerstack,
++			 unsigned int numlower)
+ {
+ 	int err;
++	struct dentry *workdir = ofs->workdir;
++	struct dentry *indexdir = ofs->indexdir;
++	struct vfsmount *mnt = ofs->upper_mnt;
+ 	struct dentry *index = NULL;
+-	struct inode *dir = dentry->d_inode;
+-	struct path path = { .mnt = mnt, .dentry = dentry };
++	struct inode *dir = indexdir->d_inode;
++	struct path path = { .mnt = mnt, .dentry = indexdir };
+ 	LIST_HEAD(list);
+ 	struct rb_root root = RB_ROOT;
+ 	struct ovl_cache_entry *p;
+@@ -1041,7 +1045,6 @@ int ovl_indexdir_cleanup(struct dentry *dentry, struct vfsmount *mnt,
+ 	if (err)
+ 		goto out;
+ 
+-	inode_lock_nested(dir, I_MUTEX_PARENT);
+ 	list_for_each_entry(p, &list, l_node) {
+ 		if (p->name[0] == '.') {
+ 			if (p->len == 1)
+@@ -1049,25 +1052,44 @@ int ovl_indexdir_cleanup(struct dentry *dentry, struct vfsmount *mnt,
+ 			if (p->len == 2 && p->name[1] == '.')
+ 				continue;
+ 		}
+-		index = lookup_one_len(p->name, dentry, p->len);
++
++		err = ovl_lock_rename_workdir(workdir, indexdir);
++		if (err)
++			break;
++
++		index = lookup_one_len(p->name, indexdir, p->len);
+ 		if (IS_ERR(index)) {
+ 			err = PTR_ERR(index);
+ 			index = NULL;
+ 			break;
+ 		}
+ 		err = ovl_verify_index(index, mnt, lowerstack, numlower);
+-		if (err) {
+-			if (err == -EROFS)
+-				break;
++		if (!err || err == -EROFS || err == -ENOMEM) {
++			/*
++			 * Abort mount to avoid corrupting the index if
++			 * an incompatible index entry was found or on out
++			 * of memory.
++			 */
++			goto unlock;
++		} else if (err == -ENOENT) {
++			/*
++			 * Whiteout orphan index to block future open by
++			 * handle after overlay nlink dropepd to zero.
++			 */
++			err = ovl_cleanup_and_whiteout(workdir, dir, index);
++		} else {
++			/* Cleanup stale and invalid index entries */
+ 			err = ovl_cleanup(dir, index);
+-			if (err)
+-				break;
+ 		}
++
++unlock:
++		unlock_rename(workdir, indexdir);
+ 		dput(index);
+ 		index = NULL;
++		if (err)
++			break;
+ 	}
+ 	dput(index);
+-	inode_unlock(dir);
+ out:
+ 	ovl_cache_free(&list);
+ 	if (err)
+diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+index 24fac7d987a3..0db59616c840 100644
+--- a/fs/overlayfs/super.c
++++ b/fs/overlayfs/super.c
+@@ -1100,9 +1100,8 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
+ 
+ 			/* Cleanup bad/stale/orphan index entries */
+ 			if (!err)
+-				err = ovl_indexdir_cleanup(ufs->indexdir,
+-							   ufs->upper_mnt,
+-							   stack, numlower);
++				err = ovl_indexdir_cleanup(ufs, stack,
++							   numlower);
+ 		}
+ 		if (err || !ufs->indexdir)
+ 			pr_warn("overlayfs: try deleting index dir or mounting with '-o index=off' to disable inodes index.\n");
 -- 
 2.7.4
