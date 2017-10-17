@@ -1,131 +1,65 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH 7/7] ovl: follow decoded origin file handle of merge dir
-Date: Tue, 17 Oct 2017 18:23:53 +0300
-Message-ID: <1508253833-9866-8-git-send-email-amir73il@gmail.com>
-References: <1508253833-9866-1-git-send-email-amir73il@gmail.com>
+Subject: [PATCH 0/7] Implement overlayfs verify_dir mount option
+Date: Tue, 17 Oct 2017 18:23:46 +0300
+Message-ID: <1508253833-9866-1-git-send-email-amir73il@gmail.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wm0-f67.google.com ([74.125.82.67]:44679 "EHLO
-        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S965119AbdJQPX3 (ORCPT
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:54212 "EHLO
+        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S965102AbdJQPXW (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 17 Oct 2017 11:23:29 -0400
-Received: by mail-wm0-f67.google.com with SMTP id 196so9392695wma.1
-        for <linux-unionfs@vger.kernel.org>; Tue, 17 Oct 2017 08:23:28 -0700 (PDT)
-In-Reply-To: <1508253833-9866-1-git-send-email-amir73il@gmail.com>
+        Tue, 17 Oct 2017 11:23:22 -0400
+Received: by mail-wm0-f66.google.com with SMTP id q132so4700732wmd.2
+        for <linux-unionfs@vger.kernel.org>; Tue, 17 Oct 2017 08:23:21 -0700 (PDT)
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: linux-unionfs@vger.kernel.org
+Cc: linux-unionfs@vger.kernel.org, zhangyi <yi.zhang@huawei.com>
 
-When 'verify_dir' feature is enabled, if lower dir does not match the
-origin fh stored in upper dir, or if no lower dir was found by name,
-try to decode the stored origin fh and use the result as the merge dir
-lower dentry.
+Miklos,
 
-When there is more than a single lower layer, a lower merge directory
-followed from upper dir by origin fh is not followed down again to lower
-layers by name.
+This is the first of two prep patch sets [1][2] for NFS export [3].
+NFS export is enabled with the 'verify_dir' and 'index=all'
+mount options.
 
-This is going to be used for overlayfs snapshots and NFS export.
+The requirement for 'verify_dir' can be relaxed if we attach
+generation numbers to index entries as you suggested, but
+this was not implemented for first version of NFS export.
 
-Signed-off-by: Amir Goldstein <amir73il@gmail.com>
----
- Documentation/filesystems/overlayfs.txt |  6 +++++-
+The first two patches in this series, one from zhangyi and
+one from me are not directly related to 'verify_dir', but
+they make sense in this context, because 'verify_dir' may
+refuse to follow to lower dir and leave a pure upper dir
+with ORIGIN and whiteouts.
+These two patches have been around for a while and already
+have a merged xfstest to verify them (overlay/031).
+
+The last two patches add the actual verification of lower
+dir. They have been on my development branch for a few cycles
+already and the feature is being exercised with snapshots test.
+
+[1] https://github.com/amir73il/linux/commits/ovl-verify-dir
+[2] https://github.com/amir73il/linux/commits/ovl-index-all
+[3] https://github.com/amir73il/linux/commits/ovl-nfs-export
+
+Amir Goldstein (7):
+  ovl: fix rmdir problem on origin dir
+  ovl: no direct iteration for dir with copy up origin
+  ovl: remove unneeded arg from ovl_verify_origin()
+  ovl: disable redirect_dir and index when no xattr support
+  ovl: ignore redirect_dir and index when no upper layer
+  ovl: add support for verify_dir mount option
+  ovl: follow decoded origin file handle of merge dir
+
+ Documentation/filesystems/overlayfs.txt | 20 ++++++++++
  fs/dcache.c                             |  1 +
- fs/overlayfs/namei.c                    | 37 ++++++++++++++++++++++++++++++---
- 3 files changed, 40 insertions(+), 4 deletions(-)
+ fs/overlayfs/dir.c                      | 21 +++++++---
+ fs/overlayfs/namei.c                    | 60 +++++++++++++++++++++++++----
+ fs/overlayfs/overlayfs.h                |  8 ++--
+ fs/overlayfs/ovl_entry.h                |  1 +
+ fs/overlayfs/readdir.c                  | 59 ++++++++++++++++++++++------
+ fs/overlayfs/super.c                    | 68 +++++++++++++++++++++++----------
+ fs/overlayfs/util.c                     | 20 ++++++++++
+ 9 files changed, 209 insertions(+), 49 deletions(-)
 
-diff --git a/Documentation/filesystems/overlayfs.txt b/Documentation/filesystems/overlayfs.txt
-index 17a3c9196fd3..d89041baceb9 100644
---- a/Documentation/filesystems/overlayfs.txt
-+++ b/Documentation/filesystems/overlayfs.txt
-@@ -279,7 +279,11 @@ the "trusted.overlay.redirect" extended attribute, will verify that the
- found lower directory file handle and lower filesystem UUID match the
- origin file handle that was stored at copy_up time.  If a found lower
- directory does not match the stored origin, that directory will be not be
--merged with the upper directory.
-+merged with the upper directory.  If the stored origin file handle can be
-+decoded to an existing lower directory, the decoded directory will be
-+merged with the upper directory instead.  The "verify_dir" feature,
-+therefore, makes an overlay mount cope better with the situations of
-+lower directory rename and delete.
- 
- Testsuite
- ---------
-diff --git a/fs/dcache.c b/fs/dcache.c
-index f90141387f01..f61e03a38a30 100644
---- a/fs/dcache.c
-+++ b/fs/dcache.c
-@@ -3529,6 +3529,7 @@ bool is_subdir(struct dentry *new_dentry, struct dentry *old_dentry)
- 
- 	return result;
- }
-+EXPORT_SYMBOL(is_subdir);
- 
- static enum d_walk_ret d_genocide_kill(void *data, struct dentry *dentry)
- {
-diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
-index 988cb5496474..5de7aa60a7a6 100644
---- a/fs/overlayfs/namei.c
-+++ b/fs/overlayfs/namei.c
-@@ -83,9 +83,21 @@ static int ovl_check_redirect(struct dentry *dentry, struct ovl_lookup_data *d,
- 	goto err_free;
- }
- 
--static int ovl_acceptable(void *ctx, struct dentry *dentry)
-+static int ovl_acceptable(void *mnt, struct dentry *dentry)
- {
--	return 1;
-+	/*
-+	 * A non-dir origin may be disconnected, which is fine, because
-+	 * we only need it for its unique inode number.
-+	 */
-+	if (!d_is_dir(dentry))
-+		return 1;
-+
-+	/* Don't want to follow a deleted empty lower directory */
-+	if (d_unhashed(dentry))
-+		return 0;
-+
-+	/* Check if directory belongs to the layer mounted at mnt */
-+	return is_subdir(dentry, ((struct vfsmount *)mnt)->mnt_root);
- }
- 
- static struct ovl_fh *ovl_get_origin_fh(struct dentry *dentry)
-@@ -160,7 +172,7 @@ static struct dentry *ovl_get_origin(struct dentry *dentry,
- 	bytes = (fh->len - offsetof(struct ovl_fh, fid));
- 	origin = exportfs_decode_fh(mnt, (struct fid *)fh->fid,
- 				    bytes >> 2, (int)fh->type,
--				    ovl_acceptable, NULL);
-+				    ovl_acceptable, mnt);
- 	if (IS_ERR(origin)) {
- 		/* Treat stale file handle as "origin unknown" */
- 		if (origin == ERR_PTR(-ESTALE))
-@@ -697,6 +709,25 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
- 		}
- 	}
- 
-+	/*
-+	 * If lower not found by name or couldn't verify origin fh, try to
-+	 * follow the decoded origin fh in upper to the first lower dir.
-+	 */
-+	if (!d.stop && poe->numlower && upperdentry && !ctr &&
-+	    ovl_verify_dir(dentry->d_sb)) {
-+		err = ovl_check_origin(upperdentry, roe->lowerstack,
-+				       roe->numlower, &stack, &ctr);
-+		if (err)
-+			goto out_put;
-+		/*
-+		 * XXX: We do not continue layers lookup from decoded origin for
-+		 * more than a single lower layer. This would require setting
-+		 * d.redirect to decoded origin path and jump back to the
-+		 * lowerstack layers lookup loop with 'i' set to the root layer
-+		 * number where we found the decoded origin.
-+		 */
-+	}
-+
- 	/* Lookup index by lower inode and verify it matches upper inode */
- 	if (ctr && !d.is_dir && ovl_indexdir(dentry->d_sb)) {
- 		struct dentry *origin = stack[0].dentry;
 -- 
 2.7.4
