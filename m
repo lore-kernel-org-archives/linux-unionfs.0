@@ -1,61 +1,129 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH 02/14] ovl: grab i_count reference of lower inode
-Date: Tue, 17 Oct 2017 19:44:19 +0300
-Message-ID: <1508258671-10800-3-git-send-email-amir73il@gmail.com>
+Subject: [PATCH 09/14] ovl: encode non-pure-upper non-connectable file handles
+Date: Tue, 17 Oct 2017 19:44:26 +0300
+Message-ID: <1508258671-10800-10-git-send-email-amir73il@gmail.com>
 References: <1508258671-10800-1-git-send-email-amir73il@gmail.com>
-Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:57051 "EHLO
-        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933109AbdJQQoA (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 17 Oct 2017 12:44:00 -0400
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
 In-Reply-To: <1508258671-10800-1-git-send-email-amir73il@gmail.com>
-Sender: linux-unionfs-owner@vger.kernel.org
-List-Id: linux-unionfs@vger.kernel.org
+Sender: linux-fsdevel-owner@vger.kernel.org
 To: Miklos Szeredi <miklos@szeredi.hu>
 Cc: Jeff Layton <jlayton@poochiereds.net>, "J . Bruce Fields" <bfields@fieldses.org>, linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
+List-Id: linux-unionfs@vger.kernel.org
 
-An overlay inode with elevated i_count may outlive its overlay dentry.
-Since the only reference to OVL_I(inode)->lower was held by the lower
-dentry object in the overlay dentry (oe->lowerstack[0]), releasing the
-overlay dentry could leave a live inode with reference to freed lower
-inode.
+Encode a non pure upper overlay inode as struct ovl_fh encoding
+of the copy up origin inode. The encoded real inode, is also the
+inode used as the key to hash the overlay inode.
 
-This may materialize to a bug when a disconnected dentry is obtained
-from decoding an NFS file handle and a new allocated real inode has
-the same address as the freed inode in OVL_I(inode)->lower, by which
-the overlay inode is hashed.
+We can only encode upper with origin if it is indexed, so NFS export
+will work only if overlay was mounted with index=all from the start.
+
+Copy up directory on encode to create an index. We need the index
+to decode a connected upper dir dentry, which we will use to
+reconnect a disconnected overlay dir dentry.
 
 Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- fs/overlayfs/super.c | 1 +
- fs/overlayfs/util.c  | 2 +-
- 2 files changed, 2 insertions(+), 1 deletion(-)
+ fs/overlayfs/export.c | 65 ++++++++++++++++++++++++++++++++++++++++++++-------
+ 1 file changed, 56 insertions(+), 9 deletions(-)
 
-diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-index f3ad8107fec2..3c98991eebcd 100644
---- a/fs/overlayfs/super.c
-+++ b/fs/overlayfs/super.c
-@@ -197,6 +197,7 @@ static void ovl_destroy_inode(struct inode *inode)
- 	struct ovl_inode *oi = OVL_I(inode);
+diff --git a/fs/overlayfs/export.c b/fs/overlayfs/export.c
+index 47ef0302dbd3..7ebe04317647 100644
+--- a/fs/overlayfs/export.c
++++ b/fs/overlayfs/export.c
+@@ -18,14 +18,10 @@
+ #include "ovl_entry.h"
  
- 	dput(oi->__upperdentry);
-+	iput(oi->lower);
- 	kfree(oi->redirect);
- 	ovl_dir_cache_free(inode);
- 	mutex_destroy(&oi->lock);
-diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
-index c668f9e26c3e..568ea4d4529d 100644
---- a/fs/overlayfs/util.c
-+++ b/fs/overlayfs/util.c
-@@ -260,7 +260,7 @@ void ovl_inode_init(struct inode *inode, struct dentry *upperdentry,
- 	if (upperdentry)
- 		OVL_I(inode)->__upperdentry = upperdentry;
- 	if (lowerdentry)
--		OVL_I(inode)->lower = d_inode(lowerdentry);
-+		OVL_I(inode)->lower = igrab(d_inode(lowerdentry));
+ /* Check if dentry is pure upper ancestry up to root */
+-static bool ovl_is_pure_upper_or_root(struct dentry *dentry, int connectable)
++static bool ovl_is_pure_upper_or_root(struct dentry *dentry)
+ {
+ 	struct dentry *parent = NULL;
  
- 	ovl_copyattr(d_inode(upperdentry ?: lowerdentry), inode);
- }
+-	/* For non-connectable non-dir we don't need to check ancestry */
+-	if (!d_is_dir(dentry) && !connectable)
+-		return !ovl_dentry_lower(dentry);
+-
+ 	dget(dentry);
+ 	while (!IS_ROOT(dentry) && !ovl_dentry_lower(dentry)) {
+ 		parent = dget_parent(dentry);
+@@ -41,6 +37,8 @@ static bool ovl_is_pure_upper_or_root(struct dentry *dentry, int connectable)
+ static int ovl_dentry_to_fh(struct dentry *dentry, struct fid *fid,
+ 			    int *max_len, int connectable)
+ {
++	struct dentry *origin = ovl_dentry_lower(dentry);
++	struct dentry *upper = ovl_dentry_upper(dentry);
+ 	const struct ovl_fh *fh;
+ 	int len = *max_len << 2;
+ 
+@@ -48,16 +46,65 @@ static int ovl_dentry_to_fh(struct dentry *dentry, struct fid *fid,
+ 	 * Overlay root dir inode is hashed and encoded as pure upper, because
+ 	 * root dir dentry is born upper and not indexed. It is not a problem
+ 	 * that root dir is not indexed, because root dentry is pinned to cache.
+-	 *
+-	 * TODO: handle encoding of non pure upper.
++	 */
++	if (dentry == dentry->d_sb->s_root)
++		origin = NULL;
++
++	/*
++	 * TODO: handle encoding of non pure upper connectable file handle.
+ 	 *       Parent and child may not be on the same layer, so encode
+ 	 *       connectable file handle as an array of self ovl_fh and
+ 	 *       parent ovl_fh (type OVL_FILEID_WITH_PARENT).
+ 	 */
+-	if (!ovl_is_pure_upper_or_root(dentry, connectable))
++	if (connectable && !ovl_is_pure_upper_or_root(dentry))
+ 		return FILEID_INVALID;
+ 
+-	fh = ovl_encode_fh(ovl_dentry_upper(dentry), true, connectable);
++	/*
++	 * We can only encode upper with origin if it is indexed, so NFS export
++	 * will work only if overlay was mounted with index=all from the start.
++	 *
++	 * TODO: Either create index from origin information at encode time
++	 *       or encode non-indexed origin inode. The latter option requires
++	 *       that both non-dir and dir inodes will be indexed on encode
++	 *       time if upper has been renamed/redirected and that on decode,
++	 *       when index is not found for decoded lower, lookup upper by name
++	 *       with same path as decoded lower, while looking for indexed
++	 *       renamed parent directories along the path.
++	 */
++	if (upper && origin && !ovl_test_flag(OVL_INDEX, d_inode(dentry)))
++		return FILEID_INVALID;
++
++	/*
++	 * Copy up directory on encode to create an index. We need the index
++	 * to decode a connected upper dir dentry, which we will use to
++	 * reconnect a disconnected overlay dir dentry.
++	 *
++	 * TODO: walk back lower parent chain on decode to reconnect overlay
++	 *       dir dentry until an indexed dir is found, then continue to
++	 *       walk back upper parrent chain.
++	 */
++	if (d_is_dir(dentry) && !upper) {
++		int err;
++
++		if (ovl_want_write(dentry))
++			return FILEID_INVALID;
++
++		err = ovl_copy_up(dentry);
++
++		ovl_drop_write(dentry);
++		if (err)
++			return FILEID_INVALID;
++
++		upper = ovl_dentry_upper(dentry);
++	}
++
++	/*
++	 * The real encoded inode is the same real inode that is used to hash
++	 * the overlay inode, so we can find overlay inode when decoding the
++	 * real file handle. For merge dir and non-dir with origin, encode the
++	 * origin inode. For root dir and pure upper, encode the upper inode.
++	 */
++	fh = ovl_encode_fh(origin ?: upper, !origin, connectable);
+ 	if (IS_ERR(fh))
+ 		return FILEID_INVALID;
+ 
 -- 
 2.7.4
