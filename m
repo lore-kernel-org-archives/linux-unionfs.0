@@ -1,223 +1,187 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH 10/11] ovl: whiteout orphan index entries on mount
-Date: Tue, 17 Oct 2017 19:00:21 +0300
-Message-ID: <1508256022-10267-11-git-send-email-amir73il@gmail.com>
-References: <1508256022-10267-1-git-send-email-amir73il@gmail.com>
-Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wm0-f65.google.com ([74.125.82.65]:57109 "EHLO
-        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S936673AbdJQQAB (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 17 Oct 2017 12:00:01 -0400
-Received: by mail-wm0-f65.google.com with SMTP id l68so4906199wmd.5
-        for <linux-unionfs@vger.kernel.org>; Tue, 17 Oct 2017 09:00:01 -0700 (PDT)
-In-Reply-To: <1508256022-10267-1-git-send-email-amir73il@gmail.com>
-Sender: linux-unionfs-owner@vger.kernel.org
-List-Id: linux-unionfs@vger.kernel.org
+Subject: [PATCH 04/14] ovl: copy up of disconnected dentries
+Date: Tue, 17 Oct 2017 19:44:21 +0300
+Message-ID: <1508258671-10800-5-git-send-email-amir73il@gmail.com>
+References: <1508258671-10800-1-git-send-email-amir73il@gmail.com>
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
+In-Reply-To: <1508258671-10800-1-git-send-email-amir73il@gmail.com>
+Sender: linux-fsdevel-owner@vger.kernel.org
 To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: linux-unionfs@vger.kernel.org
+Cc: Jeff Layton <jlayton@poochiereds.net>, "J . Bruce Fields" <bfields@fieldses.org>, linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
+List-Id: linux-unionfs@vger.kernel.org
 
-Invalid index entries and stale non-dir index entries are
-removed on mount.
-
-Non-dir index entries that have no more linked aliases
-need to be whited out on mount to block future open by handle.
-
-When dir index has a stale origin fh to upper dir, we assume
-that upper dir was removed and we treat the dir index as orphan
-entry that needs to be whited out.
+With NFS export, some operations on decoded file handles (e.g. open,
+link, setattr, xattr_set) may call copy up with a disconnected non-dir.
+In this case, we will copy up lower inode to index dir without
+linking it to upper dir.
 
 Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- fs/overlayfs/namei.c     | 27 ++++++++++++++++++++++++---
- fs/overlayfs/overlayfs.h |  5 +++--
- fs/overlayfs/readdir.c   | 46 ++++++++++++++++++++++++++++++++++------------
- fs/overlayfs/super.c     |  5 ++---
- 4 files changed, 63 insertions(+), 20 deletions(-)
+ fs/overlayfs/copy_up.c | 56 ++++++++++++++++++++++++++++++++++++--------------
+ fs/overlayfs/inode.c   |  4 +++-
+ fs/overlayfs/util.c    |  7 ++++---
+ 3 files changed, 48 insertions(+), 19 deletions(-)
 
-diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
-index aba57d31d850..1ec65dfbf1bb 100644
---- a/fs/overlayfs/namei.c
-+++ b/fs/overlayfs/namei.c
-@@ -174,8 +174,14 @@ static struct dentry *ovl_get_origin(struct dentry *dentry,
- 				    bytes >> 2, (int)fh->type,
- 				    ovl_acceptable, mnt);
- 	if (IS_ERR(origin)) {
--		/* Treat stale file handle as "origin unknown" */
--		if (origin == ERR_PTR(-ESTALE))
-+		/*
-+		 * Treat stale file handle to lower file as "origin unknown".
-+		 * upper file handle could become stale when upper file is
-+		 * unlinked and this information is needed to handle stale
-+		 * index entries correctly.
-+		 */
-+		if (origin == ERR_PTR(-ESTALE) &&
-+		    !(fh->flags & OVL_FH_FLAG_PATH_UPPER))
- 			origin = NULL;
- 		goto out;
+diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
+index df1ce2d5a20e..0a2c2c3743b1 100644
+--- a/fs/overlayfs/copy_up.c
++++ b/fs/overlayfs/copy_up.c
+@@ -452,7 +452,10 @@ static int ovl_link_up(struct ovl_copy_up_ctx *c)
+ 		}
  	}
-@@ -465,6 +471,14 @@ int ovl_verify_index(struct dentry *index, struct vfsmount *mnt,
- 	upper = ovl_index_upper(index, mnt);
- 	if (IS_ERR(upper)) {
- 		err = PTR_ERR(upper);
-+		/*
-+		 * Invalid index entries and stale non-dir index entries need
-+		 * to be removed.  When dir index has a stale origin fh to upper
-+		 * dir, we assume that upper dir was removed and we treat the
-+		 * dir index as orphan entry that needs to be whited out.
-+		 */
-+		if (err == -ESTALE)
-+			goto orphan;
- 		if (err)
- 			goto fail;
- 	}
-@@ -482,7 +496,7 @@ int ovl_verify_index(struct dentry *index, struct vfsmount *mnt,
- 	/* Check if index is orphan and don't warn before cleaning it */
- 	if (!d_is_dir(index) && d_inode(index)->i_nlink == 1 &&
- 	    ovl_get_nlink(index, origin.dentry, 0) == 0)
--		err = -ENOENT;
-+		goto orphan;
- 
- out:
- 	dput(origin.dentry);
-@@ -494,6 +508,13 @@ int ovl_verify_index(struct dentry *index, struct vfsmount *mnt,
- 	pr_warn_ratelimited("overlayfs: failed to verify index (%pd2, ftype=%x, err=%i)\n",
- 			    index, d_inode(index)->i_mode & S_IFMT, err);
- 	goto out;
+ 	inode_unlock(udir);
+-	ovl_set_nlink_upper(c->dentry);
++	if (err)
++		return err;
 +
-+orphan:
-+	pr_warn_ratelimited("overlayfs: orphan index entry (%pd2, ftype=%x, nlink=%u)\n",
-+			    index, d_inode(index)->i_mode & S_IFMT,
-+			    d_inode(index)->i_nlink);
-+	err = -ENOENT;
-+	goto out;
++	err = ovl_set_nlink_upper(c->dentry);
+ 
+ 	return err;
+ }
+@@ -647,6 +650,9 @@ static int ovl_do_copy_up(struct ovl_copy_up_ctx *c)
+ 		err = ovl_get_index_name(c->lowerpath.dentry, &c->destname);
+ 		if (err)
+ 			return err;
++	} else if (WARN_ON(!c->parent)) {
++		/* Disconnected dentry must be copied up to index dir */
++		return -EIO;
+ 	} else {
+ 		/*
+ 		 * Mark parent "impure" because it may now contain non-pure
+@@ -669,12 +675,17 @@ static int ovl_do_copy_up(struct ovl_copy_up_ctx *c)
+ 		}
+ 	}
+ 
+-	if (!err && c->indexed)
++
++	if (err)
++		goto out;
++
++	if (c->indexed)
+ 		ovl_set_flag(OVL_INDEX, d_inode(c->dentry));
+ 
+ 	if (to_index) {
+-		kfree(c->destname.name);
+-	} else if (!err) {
++		/* Initialize nlink for copy up of disconnected dentry */
++		err = ovl_set_nlink_upper(c->dentry);
++	} else {
+ 		struct inode *udir = d_inode(c->destdir);
+ 
+ 		/* Restore timestamps on parent (best effort) */
+@@ -685,6 +696,9 @@ static int ovl_do_copy_up(struct ovl_copy_up_ctx *c)
+ 		ovl_dentry_set_upper_alias(c->dentry);
+ 	}
+ 
++out:
++	if (to_index)
++		kfree(c->destname.name);
+ 	return err;
+ }
+ 
+@@ -709,14 +723,17 @@ static int ovl_copy_up_one(struct dentry *parent, struct dentry *dentry,
+ 	if (err)
+ 		return err;
+ 
+-	ovl_path_upper(parent, &parentpath);
+-	ctx.destdir = parentpath.dentry;
+-	ctx.destname = dentry->d_name;
++	if (parent) {
++		ovl_path_upper(parent, &parentpath);
++		ctx.destdir = parentpath.dentry;
++		ctx.destname = dentry->d_name;
+ 
+-	err = vfs_getattr(&parentpath, &ctx.pstat,
+-			  STATX_ATIME | STATX_MTIME, AT_STATX_SYNC_AS_STAT);
+-	if (err)
+-		return err;
++		err = vfs_getattr(&parentpath, &ctx.pstat,
++				  STATX_ATIME | STATX_MTIME,
++				  AT_STATX_SYNC_AS_STAT);
++		if (err)
++			return err;
++	}
+ 
+ 	/* maybe truncate regular file. this has no effect on dirs */
+ 	if (flags & O_TRUNC)
+@@ -737,7 +754,7 @@ static int ovl_copy_up_one(struct dentry *parent, struct dentry *dentry,
+ 	} else {
+ 		if (!ovl_dentry_upper(dentry))
+ 			err = ovl_do_copy_up(&ctx);
+-		if (!err && !ovl_dentry_has_upper_alias(dentry))
++		if (!err && parent && !ovl_dentry_has_upper_alias(dentry))
+ 			err = ovl_link_up(&ctx);
+ 		ovl_copy_up_end(dentry);
+ 	}
+@@ -750,10 +767,19 @@ int ovl_copy_up_flags(struct dentry *dentry, int flags)
+ {
+ 	int err = 0;
+ 	const struct cred *old_cred = ovl_override_creds(dentry->d_sb);
++	bool disconnected = (dentry->d_flags & DCACHE_DISCONNECTED);
++
++	/*
++	 * With NFS export, copy up can get called for a disconnected non-dir.
++	 * In this case, we will copy up lower inode to index dir without
++	 * linking it to upper dir.
++	 */
++	if (WARN_ON(disconnected && d_is_dir(dentry)))
++		return -EIO;
+ 
+ 	while (!err) {
+ 		struct dentry *next;
+-		struct dentry *parent;
++		struct dentry *parent = NULL;
+ 
+ 		/*
+ 		 * Check if copy-up has happened as well as for upper alias (in
+@@ -769,12 +795,12 @@ int ovl_copy_up_flags(struct dentry *dentry, int flags)
+ 		 *      with rename.
+ 		 */
+ 		if (ovl_dentry_upper(dentry) &&
+-		    ovl_dentry_has_upper_alias(dentry))
++		    (ovl_dentry_has_upper_alias(dentry) || disconnected))
+ 			break;
+ 
+ 		next = dget(dentry);
+ 		/* find the topmost dentry not yet copied up */
+-		for (;;) {
++		for (; !disconnected;) {
+ 			parent = dget_parent(next);
+ 
+ 			if (ovl_dentry_upper(parent))
+diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
+index a792c088c2b4..5959293f8e70 100644
+--- a/fs/overlayfs/inode.c
++++ b/fs/overlayfs/inode.c
+@@ -319,8 +319,10 @@ struct posix_acl *ovl_get_acl(struct inode *inode, int type)
+ 
+ static bool ovl_open_need_copy_up(struct dentry *dentry, int flags)
+ {
++	/* Copy up of disconnected dentry does not set upper alias */
+ 	if (ovl_dentry_upper(dentry) &&
+-	    ovl_dentry_has_upper_alias(dentry))
++	    (ovl_dentry_has_upper_alias(dentry) ||
++	     (dentry->d_flags & DCACHE_DISCONNECTED)))
+ 		return false;
+ 
+ 	if (special_file(d_inode(dentry)->i_mode))
+diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
+index 568ea4d4529d..b71c5d1af5d1 100644
+--- a/fs/overlayfs/util.c
++++ b/fs/overlayfs/util.c
+@@ -209,9 +209,10 @@ void ovl_dentry_set_opaque(struct dentry *dentry)
  }
  
  /*
-diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-index 17c039485dc9..18ea89deb040 100644
---- a/fs/overlayfs/overlayfs.h
-+++ b/fs/overlayfs/overlayfs.h
-@@ -279,8 +279,9 @@ void ovl_dir_cache_free(struct inode *inode);
- int ovl_check_d_type_supported(struct path *realpath);
- void ovl_workdir_cleanup(struct inode *dir, struct vfsmount *mnt,
- 			 struct dentry *dentry, int level);
--int ovl_indexdir_cleanup(struct dentry *dentry, struct vfsmount *mnt,
--			 struct path *lowerstack, unsigned int numlower);
-+struct ovl_fs;
-+int ovl_indexdir_cleanup(struct ovl_fs *ofs, struct path *lowerstack,
-+			 unsigned int numlower);
- 
- /* inode.c */
- int ovl_set_nlink_upper(struct dentry *dentry);
-diff --git a/fs/overlayfs/readdir.c b/fs/overlayfs/readdir.c
-index 479ce47ba411..ce8cdbb4c7d9 100644
---- a/fs/overlayfs/readdir.c
-+++ b/fs/overlayfs/readdir.c
-@@ -17,6 +17,7 @@
- #include <linux/cred.h>
- #include <linux/ratelimit.h>
- #include "overlayfs.h"
-+#include "ovl_entry.h"
- 
- struct ovl_cache_entry {
- 	unsigned int len;
-@@ -1019,13 +1020,16 @@ void ovl_workdir_cleanup(struct inode *dir, struct vfsmount *mnt,
- 	}
- }
- 
--int ovl_indexdir_cleanup(struct dentry *dentry, struct vfsmount *mnt,
--			 struct path *lowerstack, unsigned int numlower)
-+int ovl_indexdir_cleanup(struct ovl_fs *ofs, struct path *lowerstack,
-+			 unsigned int numlower)
+- * For hard links it's possible for ovl_dentry_upper() to return positive, while
+- * there's no actual upper alias for the inode.  Copy up code needs to know
+- * about the existence of the upper alias, so it can't use ovl_dentry_upper().
++ * For hard links and decoded file handles, it's possible for ovl_dentry_upper()
++ * to return positive, while there's no actual upper alias for the inode.
++ * Copy up code needs to know about the existence of the upper alias, so it
++ * can't use ovl_dentry_upper().
+  */
+ bool ovl_dentry_has_upper_alias(struct dentry *dentry)
  {
- 	int err;
-+	struct dentry *workdir = ofs->workdir;
-+	struct dentry *indexdir = ofs->indexdir;
-+	struct vfsmount *mnt = ofs->upper_mnt;
- 	struct dentry *index = NULL;
--	struct inode *dir = dentry->d_inode;
--	struct path path = { .mnt = mnt, .dentry = dentry };
-+	struct inode *dir = indexdir->d_inode;
-+	struct path path = { .mnt = mnt, .dentry = indexdir };
- 	LIST_HEAD(list);
- 	struct rb_root root = RB_ROOT;
- 	struct ovl_cache_entry *p;
-@@ -1041,7 +1045,6 @@ int ovl_indexdir_cleanup(struct dentry *dentry, struct vfsmount *mnt,
- 	if (err)
- 		goto out;
- 
--	inode_lock_nested(dir, I_MUTEX_PARENT);
- 	list_for_each_entry(p, &list, l_node) {
- 		if (p->name[0] == '.') {
- 			if (p->len == 1)
-@@ -1049,25 +1052,44 @@ int ovl_indexdir_cleanup(struct dentry *dentry, struct vfsmount *mnt,
- 			if (p->len == 2 && p->name[1] == '.')
- 				continue;
- 		}
--		index = lookup_one_len(p->name, dentry, p->len);
-+
-+		err = ovl_lock_rename_workdir(workdir, indexdir);
-+		if (err)
-+			break;
-+
-+		index = lookup_one_len(p->name, indexdir, p->len);
- 		if (IS_ERR(index)) {
- 			err = PTR_ERR(index);
- 			index = NULL;
- 			break;
- 		}
- 		err = ovl_verify_index(index, mnt, lowerstack, numlower);
--		if (err) {
--			if (err == -EROFS)
--				break;
-+		if (!err || err == -EROFS || err == -ENOMEM) {
-+			/*
-+			 * Abort mount to avoid corrupting the index if
-+			 * an incompatible index entry was found or on out
-+			 * of memory.
-+			 */
-+			goto unlock;
-+		} else if (err == -ENOENT) {
-+			/*
-+			 * Whiteout orphan index to block future open by
-+			 * handle after overlay nlink dropepd to zero.
-+			 */
-+			err = ovl_cleanup_and_whiteout(workdir, dir, index);
-+		} else {
-+			/* Cleanup stale and invalid index entries */
- 			err = ovl_cleanup(dir, index);
--			if (err)
--				break;
- 		}
-+
-+unlock:
-+		unlock_rename(workdir, indexdir);
- 		dput(index);
- 		index = NULL;
-+		if (err)
-+			break;
- 	}
- 	dput(index);
--	inode_unlock(dir);
- out:
- 	ovl_cache_free(&list);
- 	if (err)
-diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-index 24fac7d987a3..0db59616c840 100644
---- a/fs/overlayfs/super.c
-+++ b/fs/overlayfs/super.c
-@@ -1100,9 +1100,8 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
- 
- 			/* Cleanup bad/stale/orphan index entries */
- 			if (!err)
--				err = ovl_indexdir_cleanup(ufs->indexdir,
--							   ufs->upper_mnt,
--							   stack, numlower);
-+				err = ovl_indexdir_cleanup(ufs, stack,
-+							   numlower);
- 		}
- 		if (err || !ufs->indexdir)
- 			pr_warn("overlayfs: try deleting index dir or mounting with '-o index=off' to disable inodes index.\n");
 -- 
 2.7.4
