@@ -1,115 +1,73 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH 03/11] ovl: create ovl_need_index() helper
-Date: Tue, 17 Oct 2017 19:00:14 +0300
-Message-ID: <1508256022-10267-4-git-send-email-amir73il@gmail.com>
-References: <1508256022-10267-1-git-send-email-amir73il@gmail.com>
+Subject: [PATCH 00/11] Implement overlayfs index=all mount option
+Date: Tue, 17 Oct 2017 19:00:11 +0300
+Message-ID: <1508256022-10267-1-git-send-email-amir73il@gmail.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wm0-f67.google.com ([74.125.82.67]:53142 "EHLO
+Received: from mail-wm0-f67.google.com ([74.125.82.67]:56230 "EHLO
         mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S936666AbdJQP7x (ORCPT
+        with ESMTP id S932814AbdJQP7u (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 17 Oct 2017 11:59:53 -0400
-Received: by mail-wm0-f67.google.com with SMTP id k4so4941973wmc.1
-        for <linux-unionfs@vger.kernel.org>; Tue, 17 Oct 2017 08:59:53 -0700 (PDT)
-In-Reply-To: <1508256022-10267-1-git-send-email-amir73il@gmail.com>
+        Tue, 17 Oct 2017 11:59:50 -0400
+Received: by mail-wm0-f67.google.com with SMTP id u138so4964988wmu.4
+        for <linux-unionfs@vger.kernel.org>; Tue, 17 Oct 2017 08:59:49 -0700 (PDT)
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: Miklos Szeredi <miklos@szeredi.hu>
 Cc: linux-unionfs@vger.kernel.org
 
-The helper determines which lower file needs to be indexed
-on copy up and before nlink changes.
+Miklos,
 
-For index=on, the helper evaluates to true for lower hardlinks.
+This is the second of two prep patch sets [1][2] for NFS export [3].
+NFS export is enabled with the 'verify_dir' and 'index=all'
+mount options.
 
-Signed-off-by: Amir Goldstein <amir73il@gmail.com>
----
- fs/overlayfs/copy_up.c   |  6 +-----
- fs/overlayfs/overlayfs.h |  1 +
- fs/overlayfs/util.c      | 25 +++++++++++++++++++++----
- 3 files changed, 23 insertions(+), 9 deletions(-)
+The requirement for 'index=all' can be relaxed if we create index
+for redirected dirs on lookup and for renamed non-dirs when encoding
+file handles. Decoding file handle will be more complex without
+index=all, so per your suggestion, this was not implemented for
+first version of NFS export.
 
-diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
-index c441f9387a1b..6729ea2a5a1c 100644
---- a/fs/overlayfs/copy_up.c
-+++ b/fs/overlayfs/copy_up.c
-@@ -532,11 +532,7 @@ static int ovl_do_copy_up(struct ovl_copy_up_ctx *c)
- {
- 	int err;
- 	struct ovl_fs *ofs = c->dentry->d_sb->s_fs_info;
--	bool indexed = false;
--
--	if (ovl_indexdir(c->dentry->d_sb) && !S_ISDIR(c->stat.mode) &&
--	    c->stat.nlink > 1)
--		indexed = true;
-+	bool indexed = ovl_need_index(c->dentry);
- 
- 	if (S_ISDIR(c->stat.mode) || c->stat.nlink == 1 || indexed)
- 		c->origin = true;
-diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-index df605368700d..17457483ccf6 100644
---- a/fs/overlayfs/overlayfs.h
-+++ b/fs/overlayfs/overlayfs.h
-@@ -235,6 +235,7 @@ void ovl_clear_flag(unsigned long flag, struct inode *inode);
- bool ovl_test_flag(unsigned long flag, struct inode *inode);
- bool ovl_inuse_trylock(struct dentry *dentry);
- void ovl_inuse_unlock(struct dentry *dentry);
-+bool ovl_need_index(struct dentry *dentry);
- int ovl_nlink_start(struct dentry *dentry, bool *locked);
- void ovl_nlink_end(struct dentry *dentry, bool locked);
- int ovl_lock_rename_workdir(struct dentry *workdir, struct dentry *upperdir);
-diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
-index 7355c51ae05f..6b3af32ab0e9 100644
---- a/fs/overlayfs/util.c
-+++ b/fs/overlayfs/util.c
-@@ -506,6 +506,24 @@ static void ovl_cleanup_index(struct dentry *dentry)
- }
- 
- /*
-+ * Does this overlay dentry need to be indexed on copy up?
-+ */
-+bool ovl_need_index(struct dentry *dentry)
-+{
-+	struct dentry *lower = ovl_dentry_lower(dentry);
-+
-+	if (!lower)
-+		return false;
-+
-+	/* Index only lower hardlinks on copy up */
-+	if (ovl_indexdir(dentry->d_sb) &&
-+	    !d_is_dir(lower) && d_inode(lower)->i_nlink > 1)
-+		return true;
-+
-+	return false;
-+}
-+
-+/*
-  * Operations that change overlay inode and upper inode nlink need to be
-  * synchronized with copy up for persistent nlink accounting.
-  */
-@@ -520,11 +538,11 @@ int ovl_nlink_start(struct dentry *dentry, bool *locked)
- 
- 	/*
- 	 * With inodes index is enabled, we store the union overlay nlink
--	 * in an xattr on the index inode. When whiting out lower hardlinks
-+	 * in an xattr on the index inode. When whiting out an indexed lower,
- 	 * we need to decrement the overlay persistent nlink, but before the
- 	 * first copy up, we have no upper index inode to store the xattr.
- 	 *
--	 * As a workaround, before whiteout/rename over of a lower hardlink,
-+	 * As a workaround, before whiteout/rename over an indexed lower,
- 	 * copy up to create the upper index. Creating the upper index will
- 	 * initialize the overlay nlink, so it could be dropped if unlink
- 	 * or rename succeeds.
-@@ -532,8 +550,7 @@ int ovl_nlink_start(struct dentry *dentry, bool *locked)
- 	 * TODO: implement metadata only index copy up when called with
- 	 *       ovl_copy_up_flags(dentry, O_PATH).
- 	 */
--	if (ovl_indexdir(dentry->d_sb) && !ovl_dentry_has_upper_alias(dentry) &&
--	    d_inode(ovl_dentry_lower(dentry))->i_nlink > 1) {
-+	if (ovl_need_index(dentry) && !ovl_dentry_has_upper_alias(dentry)) {
- 		err = ovl_copy_up(dentry);
- 		if (err)
- 			return err;
+The first two patches in this series are tagged for stable v4.13.
+The first patch I already posted, relaxes some index lookup constrains
+that we can do without.
+The second patch allows kernel v4.13 to mount an overlay with whiteout
+index entries, which are being introduced by this patch set.
+
+To sanity test index=all, I have implemented _overlay_check_fs()
+helper for xfstests [4], which is a very basic "fsck" of the index dir.
+This helper is called at the end of each overlay xfstest to verify the
+sanity of the index entries.
+
+Amir.
+
+[1] https://github.com/amir73il/linux/commits/ovl-verify-dir
+[2] https://github.com/amir73il/linux/commits/ovl-index-all
+[3] https://github.com/amir73il/linux/commits/ovl-nfs-export
+[4] https://github.com/amir73il/xfstests/commits/ovl-index-all
+
+Amir Goldstein (11):
+  ovl: fix EIO from lookup of non-indexed upper
+  ovl: verify whiteout index entries on mount
+  ovl: create ovl_need_index() helper
+  ovl: add support for mount option index=all
+  ovl: lookup index for directories
+  ovl: verify directory index entries on mount
+  ovl: index directories on copy up
+  ovl: cleanup dir index when dir nlink drops to zero
+  ovl: whiteout index when union nlink drops to zero
+  ovl: whiteout orphan index entries on mount
+  ovl: cleanup stale whiteout index entries on mount
+
+ fs/overlayfs/copy_up.c   | 130 +++++++++++++++++---
+ fs/overlayfs/dir.c       |  58 +++++----
+ fs/overlayfs/inode.c     |  20 ++-
+ fs/overlayfs/namei.c     | 314 +++++++++++++++++++++++++++++++++--------------
+ fs/overlayfs/overlayfs.h |  29 ++++-
+ fs/overlayfs/ovl_entry.h |   2 +-
+ fs/overlayfs/readdir.c   |  48 ++++++--
+ fs/overlayfs/super.c     |  28 +++--
+ fs/overlayfs/util.c      |  55 ++++++---
+ 9 files changed, 505 insertions(+), 179 deletions(-)
+
 -- 
 2.7.4
