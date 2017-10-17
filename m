@@ -1,219 +1,159 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH 10/14] ovl: obtain a non-pure-upper disconnected dentry
-Date: Tue, 17 Oct 2017 19:44:27 +0300
-Message-ID: <1508258671-10800-11-git-send-email-amir73il@gmail.com>
+Subject: [PATCH 07/14] ovl: decode pure-upper connectable file handles
+Date: Tue, 17 Oct 2017 19:44:24 +0300
+Message-ID: <1508258671-10800-8-git-send-email-amir73il@gmail.com>
 References: <1508258671-10800-1-git-send-email-amir73il@gmail.com>
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
+Return-path: <linux-unionfs-owner@vger.kernel.org>
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:43693 "EHLO
+        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S937037AbdJQQoH (ORCPT
+        <rfc822;linux-unionfs@vger.kernel.org>);
+        Tue, 17 Oct 2017 12:44:07 -0400
 In-Reply-To: <1508258671-10800-1-git-send-email-amir73il@gmail.com>
-Sender: linux-fsdevel-owner@vger.kernel.org
+Sender: linux-unionfs-owner@vger.kernel.org
+List-Id: linux-unionfs@vger.kernel.org
 To: Miklos Szeredi <miklos@szeredi.hu>
 Cc: Jeff Layton <jlayton@poochiereds.net>, "J . Bruce Fields" <bfields@fieldses.org>, linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
-List-Id: linux-unionfs@vger.kernel.org
 
-Instantiate an overlay dentry from lower real inode and optionally
-from upper real inode with origin xattr.
+Implement fh_to_parent() and get_parent() operations to reconnect
+a pure upper overlay dentry.
 
-This is needed for decoding an overlay inode that was encoded by real
-lower file handle and since then may or may not have been copied up
-and indexed.
-
-This implementation is currently limited to non-dir and merge dirs
-with single lower dir. For this reason, NFS export support currently
-requires overlay with single lower layer.
+This fixes a variant of xfstest test generic/426 which creates a
+directory, encodes its file handle, drops caches and decodes it.
 
 Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- fs/overlayfs/export.c    | 44 +++++++++++++++++++++++++++++-----------
- fs/overlayfs/namei.c     | 52 ++++++++++++++++++++++++++++++------------------
- fs/overlayfs/overlayfs.h |  4 ++++
- 3 files changed, 69 insertions(+), 31 deletions(-)
+ fs/overlayfs/export.c    | 53 +++++++++++++++++++++++++++++++++++++++++++-----
+ fs/overlayfs/namei.c     |  5 -----
+ fs/overlayfs/overlayfs.h |  5 +++++
+ 3 files changed, 53 insertions(+), 10 deletions(-)
 
 diff --git a/fs/overlayfs/export.c b/fs/overlayfs/export.c
-index 7ebe04317647..476e2a74aca7 100644
+index 263415dd929b..9ec2fe659e38 100644
 --- a/fs/overlayfs/export.c
 +++ b/fs/overlayfs/export.c
-@@ -176,17 +176,13 @@ static struct dentry *ovl_obtain_alias(struct super_block *sb,
- 				       struct dentry *upper,
- 				       struct dentry *lower)
- {
-+	struct ovl_fs *ofs = sb->s_fs_info;
- 	struct inode *inode;
- 	struct dentry *dentry;
-+	struct dentry *index = lower ? upper : NULL;
- 	struct ovl_entry *oe;
+@@ -138,7 +138,7 @@ static struct dentry *ovl_obtain_alias(struct super_block *sb,
+ 	}
  
--	/* TODO: handle decoding of non pure upper */
--	if (lower) {
--		dput(upper);
--		return ERR_PTR(-EINVAL);
--	}
--
--	inode = ovl_get_inode(sb, upper, NULL, NULL);
-+	inode = ovl_get_inode(sb, upper, lower, index);
- 	if (IS_ERR(inode)) {
- 		dput(upper);
- 		return ERR_CAST(inode);
-@@ -206,16 +202,40 @@ static struct dentry *ovl_obtain_alias(struct super_block *sb,
+ 	dentry = d_obtain_alias(inode);
+-	if (IS_ERR(dentry))
++	if (IS_ERR(dentry) || dentry == dentry->d_sb->s_root)
  		return dentry;
- 	}
  
--	oe = ovl_alloc_entry(0);
-+	/*
-+	 * This implementation is currently limited to non-dir and merge dirs
-+	 * with single lower dir. For this reason, NFS export support currently
-+	 * requires overlay with single lower layer.
-+	 *
-+	 * TODO: use ovl_lookup or derivative to populate lowerstack with more
-+	 *       lower dirs to support NFS export with multi lower layers.
-+	 */
-+	oe = ovl_alloc_entry(lower ? 1 : 0);
- 	if (!oe) {
- 		dput(dentry);
- 		return ERR_PTR(-ENOMEM);
- 	}
--
-+	if (lower) {
-+		oe->lowerstack->dentry = dget(lower);
-+		oe->lowerstack->mnt = ofs->lower_mnt[0];
-+	}
+ 	if (dentry->d_fsdata) {
+@@ -159,26 +159,33 @@ static struct dentry *ovl_obtain_alias(struct super_block *sb,
+ 
  	dentry->d_fsdata = oe;
--	ovl_dentry_set_upper_alias(dentry);
--	if (d_is_dir(upper) && ovl_is_opaquedir(upper))
--		ovl_dentry_set_opaque(dentry);
-+
-+	if (upper) {
-+		ovl_dentry_set_upper_alias(dentry);
-+		if (d_is_dir(upper)) {
-+			size_t len = 0;
-+			char *redirect = ovl_get_redirect_xattr(upper, &len);
-+
-+			if (redirect)
-+				ovl_dentry_set_redirect(dentry, redirect);
-+			if (ovl_is_opaquedir(upper))
-+				ovl_dentry_set_opaque(dentry);
-+		}
-+	}
-+
-+	if (index)
-+		ovl_set_flag(OVL_INDEX, inode);
+ 	ovl_dentry_set_upper_alias(dentry);
++	if (d_is_dir(upper) && ovl_is_opaquedir(upper))
++		ovl_dentry_set_opaque(dentry);
  
  	return dentry;
  
-diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
-index 4f20af22bd0b..796c869559a9 100644
---- a/fs/overlayfs/namei.c
-+++ b/fs/overlayfs/namei.c
-@@ -26,8 +26,7 @@ struct ovl_lookup_data {
- 	char *redirect;
- };
- 
--static int ovl_check_redirect(struct dentry *dentry, struct ovl_lookup_data *d,
--			      size_t prelen, const char *post)
-+char *ovl_get_redirect_xattr(struct dentry *dentry, size_t *len)
- {
- 	int res;
- 	char *s, *next, *buf = NULL;
-@@ -35,12 +34,12 @@ static int ovl_check_redirect(struct dentry *dentry, struct ovl_lookup_data *d,
- 	res = vfs_getxattr(dentry, OVL_XATTR_REDIRECT, NULL, 0);
- 	if (res < 0) {
- 		if (res == -ENODATA || res == -EOPNOTSUPP)
--			return 0;
-+			return NULL;
- 		goto fail;
- 	}
--	buf = kzalloc(prelen + res + strlen(post) + 1, GFP_KERNEL);
-+	buf = kzalloc(res + *len + 1, GFP_KERNEL);
- 	if (!buf)
--		return -ENOMEM;
-+		return ERR_PTR(-ENOMEM);
- 
- 	if (res == 0)
- 		goto invalid;
-@@ -59,22 +58,14 @@ static int ovl_check_redirect(struct dentry *dentry, struct ovl_lookup_data *d,
- 	} else {
- 		if (strchr(buf, '/') != NULL)
- 			goto invalid;
--
--		memmove(buf + prelen, buf, res);
--		memcpy(buf, d->name.name, prelen);
- 	}
- 
--	strcat(buf, post);
--	kfree(d->redirect);
--	d->redirect = buf;
--	d->name.name = d->redirect;
--	d->name.len = strlen(d->redirect);
--
--	return 0;
-+	*len = res;
-+	return buf;
- 
- err_free:
- 	kfree(buf);
--	return 0;
-+	return NULL;
- fail:
- 	pr_warn_ratelimited("overlayfs: failed to get redirect (%i)\n", res);
- 	goto err_free;
-@@ -83,6 +74,29 @@ static int ovl_check_redirect(struct dentry *dentry, struct ovl_lookup_data *d,
- 	goto err_free;
  }
  
-+static int ovl_check_redirect(struct dentry *dentry, struct ovl_lookup_data *d,
-+			      size_t prelen, const char *post)
+-static struct dentry *ovl_fh_to_dentry(struct super_block *sb, struct fid *fid,
+-				       int fh_len, int fh_type)
++static struct dentry *ovl_fh_to_d(struct super_block *sb, struct fid *fid,
++				  int fh_len, int fh_type, bool to_parent)
+ {
+ 	struct ovl_fs *ofs = sb->s_fs_info;
+ 	struct vfsmount *mnt = ofs->upper_mnt;
+ 	const struct export_operations *real_op;
++	struct dentry *(*fh_to_d)(struct super_block *, struct fid *, int, int);
+ 	struct dentry *upper;
+ 
+ 	/* TODO: handle decoding of non pure upper */
+-	if (!mnt)
++	if (!mnt || !mnt->mnt_sb->s_export_op)
+ 		return NULL;
+ 
+ 	real_op = mnt->mnt_sb->s_export_op;
++	fh_to_d = to_parent ? real_op->fh_to_parent : real_op->fh_to_dentry;
++	if (!fh_to_d)
++		return NULL;
++
+ 	/* TODO: decode ovl_fh format file handle */
+-	upper = real_op->fh_to_dentry(mnt->mnt_sb, fid, fh_len, fh_type);
++	upper = fh_to_d(mnt->mnt_sb, fid, fh_len, fh_type);
+ 	if (IS_ERR_OR_NULL(upper))
+ 		return upper;
+ 
+@@ -186,7 +193,43 @@ static struct dentry *ovl_fh_to_dentry(struct super_block *sb, struct fid *fid,
+ 	return ovl_obtain_alias(sb, upper, NULL);
+ }
+ 
++static struct dentry *ovl_fh_to_dentry(struct super_block *sb, struct fid *fid,
++				       int fh_len, int fh_type)
 +{
-+	size_t len = prelen + strlen(post);
-+	char *buf = ovl_get_redirect_xattr(dentry, &len);
-+
-+	if (IS_ERR_OR_NULL(buf))
-+		return PTR_ERR(buf);
-+
-+	if (buf[0] != '/' && prelen) {
-+		memmove(buf + prelen, buf, len);
-+		memcpy(buf, d->name.name, prelen);
-+	}
-+
-+	strcat(buf, post);
-+	kfree(d->redirect);
-+	d->redirect = buf;
-+	d->name.name = d->redirect;
-+	d->name.len = strlen(d->redirect);
-+
-+	return 0;
++	return ovl_fh_to_d(sb, fid, fh_len, fh_type, false);
 +}
 +
- static int ovl_acceptable(void *mnt, struct dentry *dentry)
- {
- 	/*
-@@ -348,9 +362,9 @@ static int ovl_check_origin_fh(struct ovl_fh *fh, struct dentry *upperdentry,
- 	return -ESTALE;
++static struct dentry *ovl_fh_to_parent(struct super_block *sb, struct fid *fid,
++				       int fh_len, int fh_type)
++{
++	return ovl_fh_to_d(sb, fid, fh_len, fh_type, true);
++}
++
++static struct dentry *ovl_get_parent(struct dentry *dentry)
++{
++	const struct export_operations *real_op;
++	struct dentry *upper;
++
++	/* TODO: handle connecting of non pure upper */
++	if (ovl_dentry_lower(dentry))
++		return ERR_PTR(-EACCES);
++
++	upper = ovl_dentry_upper(dentry);
++	real_op = upper->d_sb->s_export_op;
++	if (!real_op || !real_op->get_parent)
++		return ERR_PTR(-EACCES);
++
++	upper = real_op->get_parent(upper);
++	if (IS_ERR(upper))
++		return upper;
++
++	/* Find or instantiate a pure upper dentry */
++	return ovl_obtain_alias(dentry->d_sb, upper, NULL);
++}
++
+ const struct export_operations ovl_export_operations = {
+ 	.encode_fh      = ovl_encode_inode_fh,
+ 	.fh_to_dentry	= ovl_fh_to_dentry,
++	.fh_to_parent	= ovl_fh_to_parent,
++	.get_parent	= ovl_get_parent,
+ };
+diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
+index ce3d4930a721..d5313fb02e73 100644
+--- a/fs/overlayfs/namei.c
++++ b/fs/overlayfs/namei.c
+@@ -209,11 +209,6 @@ static struct dentry *ovl_decode_fh(struct ovl_fh *fh, struct vfsmount *mnt)
+ 	return origin;
  }
  
--static int ovl_check_origin(struct dentry *upperdentry,
--			    struct path *lowerstack, unsigned int numlower,
--			    struct path **stackp, unsigned int *ctrp)
-+int ovl_check_origin(struct dentry *upperdentry, struct path *lowerstack,
-+		     unsigned int numlower, struct path **stackp,
-+		     unsigned int *ctrp)
- {
- 	struct ovl_fh *fh = ovl_get_origin_fh(upperdentry);
- 	int err;
+-static bool ovl_is_opaquedir(struct dentry *dentry)
+-{
+-	return ovl_check_dir_xattr(dentry, OVL_XATTR_OPAQUE);
+-}
+-
+ static int ovl_lookup_single(struct dentry *base, struct ovl_lookup_data *d,
+ 			     const char *name, unsigned int namelen,
+ 			     size_t prelen, const char *post,
 diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-index 75a8b10d4e10..ffc5a955478e 100644
+index 8ad3110a9b48..66a6447a0c2a 100644
 --- a/fs/overlayfs/overlayfs.h
 +++ b/fs/overlayfs/overlayfs.h
-@@ -271,8 +271,12 @@ static inline bool ovl_is_opaquedir(struct dentry *dentry)
+@@ -259,6 +259,11 @@ static inline bool ovl_is_impuredir(struct dentry *dentry)
+ 	return ovl_check_dir_xattr(dentry, OVL_XATTR_IMPURE);
+ }
  
++static inline bool ovl_is_opaquedir(struct dentry *dentry)
++{
++	return ovl_check_dir_xattr(dentry, OVL_XATTR_OPAQUE);
++}
++
  
  /* namei.c */
-+char *ovl_get_redirect_xattr(struct dentry *dentry, size_t *len);
- int ovl_check_fh_len(struct ovl_fh *fh, int fh_len);
- struct dentry *ovl_decode_fh(struct ovl_fh *fh, struct vfsmount *mnt);
-+int ovl_check_origin(struct dentry *upperdentry, struct path *lowerstack,
-+		     unsigned int numlower, struct path **stackp,
-+		     unsigned int *ctrp);
  int ovl_verify_origin(struct dentry *dentry, struct dentry *origin,
- 		      bool is_upper, bool set);
- int ovl_verify_index(struct dentry *index, struct vfsmount *mnt,
 -- 
 2.7.4
