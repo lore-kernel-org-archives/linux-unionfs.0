@@ -1,12 +1,12 @@
 From: Vivek Goyal <vgoyal@redhat.com>
-Subject: [PATCH 02/11] ovl: ovl_check_setxattr() get rid of redundant -EOPNOTSUPP check
-Date: Tue, 17 Oct 2017 17:05:49 -0400
-Message-ID: <1508274358-17456-3-git-send-email-vgoyal@redhat.com>
+Subject: [PATCH 01/11] ovl: Create origin xattr on copy up for all files
+Date: Tue, 17 Oct 2017 17:05:48 -0400
+Message-ID: <1508274358-17456-2-git-send-email-vgoyal@redhat.com>
 References: <1508274358-17456-1-git-send-email-vgoyal@redhat.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:20639 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:44524 "EHLO mx1.redhat.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1760998AbdJQVG1 (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        id S1760981AbdJQVG1 (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
         Tue, 17 Oct 2017 17:06:27 -0400
 In-Reply-To: <1508274358-17456-1-git-send-email-vgoyal@redhat.com>
 Sender: linux-unionfs-owner@vger.kernel.org
@@ -14,43 +14,41 @@ List-Id: linux-unionfs@vger.kernel.org
 To: linux-unionfs@vger.kernel.org
 Cc: amir73il@gmail.com, miklos@szeredi.hu, vgoyal@redhat.com
 
-At mount time we check if upper supports xattr or not and set ofs->noxattr
-field accordingly. But in ovl_check_setxattr() still seems to have logic
-which expects that ovl_do_setxattr() can return -EOPNOTSUPP. Not sure when
-and how can we hit this code. Feels redundant to me. So I am removing
-this code.
+Right now my understanding is that origin xattr is created for all copied
+up files if index=on. And if index=off, then we create it for all type
+of files except hardlinks (nlink != 1).
+
+With metadata only copy up, I will still require origin xattr to copy up
+data later, so create it even for hardlinks even with index=off. I am
+hoping it does not break anything because we do OVL_INDEX test before
+using inode number of origin.
 
 Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
 ---
- fs/overlayfs/util.c | 11 +----------
- 1 file changed, 1 insertion(+), 10 deletions(-)
+ fs/overlayfs/copy_up.c | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
-index b9b239fa5cfd..a4ce1c9944f0 100644
---- a/fs/overlayfs/util.c
-+++ b/fs/overlayfs/util.c
-@@ -348,21 +348,12 @@ int ovl_check_setxattr(struct dentry *dentry, struct dentry *upperdentry,
- 		       const char *name, const void *value, size_t size,
- 		       int xerr)
- {
--	int err;
- 	struct ovl_fs *ofs = dentry->d_sb->s_fs_info;
+diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
+index c441f9387a1b..0a6294ea64d5 100644
+--- a/fs/overlayfs/copy_up.c
++++ b/fs/overlayfs/copy_up.c
+@@ -538,9 +538,6 @@ static int ovl_do_copy_up(struct ovl_copy_up_ctx *c)
+ 	    c->stat.nlink > 1)
+ 		indexed = true;
  
- 	if (ofs->noxattr)
- 		return xerr;
- 
--	err = ovl_do_setxattr(upperdentry, name, value, size, 0);
+-	if (S_ISDIR(c->stat.mode) || c->stat.nlink == 1 || indexed)
+-		c->origin = true;
 -
--	if (err == -EOPNOTSUPP) {
--		pr_warn("overlayfs: cannot set %s xattr on upper\n", name);
--		ofs->noxattr = true;
--		return xerr;
--	}
--
--	return err;
-+	return ovl_do_setxattr(upperdentry, name, value, size, 0);
- }
+ 	if (indexed) {
+ 		c->destdir = ovl_indexdir(c->dentry->d_sb);
+ 		err = ovl_get_index_name(c->lowerpath.dentry, &c->destname);
+@@ -596,6 +593,7 @@ static int ovl_copy_up_one(struct dentry *parent, struct dentry *dentry,
+ 		.parent = parent,
+ 		.dentry = dentry,
+ 		.workdir = ovl_workdir(dentry),
++		.origin = true,
+ 	};
  
- int ovl_set_impure(struct dentry *dentry, struct dentry *upperdentry)
+ 	if (WARN_ON(!ctx.workdir))
 -- 
 2.13.5
