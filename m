@@ -1,191 +1,194 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH 04/11] ovl: add support for mount option index=all
-Date: Tue, 17 Oct 2017 19:00:15 +0300
-Message-ID: <1508256022-10267-5-git-send-email-amir73il@gmail.com>
+Subject: [PATCH 09/11] ovl: whiteout index when union nlink drops to zero
+Date: Tue, 17 Oct 2017 19:00:20 +0300
+Message-ID: <1508256022-10267-10-git-send-email-amir73il@gmail.com>
 References: <1508256022-10267-1-git-send-email-amir73il@gmail.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:46357 "EHLO
-        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934507AbdJQP7y (ORCPT
+Received: from mail-wm0-f65.google.com ([74.125.82.65]:51185 "EHLO
+        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S934507AbdJQQAB (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 17 Oct 2017 11:59:54 -0400
-Received: by mail-wm0-f66.google.com with SMTP id m72so4866077wmc.1
-        for <linux-unionfs@vger.kernel.org>; Tue, 17 Oct 2017 08:59:54 -0700 (PDT)
+        Tue, 17 Oct 2017 12:00:01 -0400
+Received: by mail-wm0-f65.google.com with SMTP id u138so4847048wmu.5
+        for <linux-unionfs@vger.kernel.org>; Tue, 17 Oct 2017 09:00:00 -0700 (PDT)
 In-Reply-To: <1508256022-10267-1-git-send-email-amir73il@gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: Miklos Szeredi <miklos@szeredi.hu>
 Cc: linux-unionfs@vger.kernel.org
 
-With mount option index=all, all files are indexed on copy up.
-
-The default boolean module/config var can only be used to configure
-indexing of lower hardlinks (true) or to turn off indexing (false).
-
-This is going to be used for overlayfs snapshots and NFS export.
+When overlay inode nlink drops to zero, instead of cleanup the index
+entry, replace it with a whiteout index entry.
+This is needed for NFS export in order to prevent future open by handle
+to open the lower file directly.
 
 Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- fs/overlayfs/overlayfs.h | 14 ++++++++++++++
- fs/overlayfs/ovl_entry.h |  2 +-
- fs/overlayfs/super.c     | 23 +++++++++++++++--------
- fs/overlayfs/util.c      |  8 ++++++--
- 4 files changed, 36 insertions(+), 11 deletions(-)
+ fs/overlayfs/dir.c       | 58 +++++++++++++++++++++++++++++-------------------
+ fs/overlayfs/overlayfs.h |  2 ++
+ fs/overlayfs/util.c      | 20 +++++++++++------
+ 3 files changed, 50 insertions(+), 30 deletions(-)
 
+diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
+index d916fc19e724..060a1bfa0531 100644
+--- a/fs/overlayfs/dir.c
++++ b/fs/overlayfs/dir.c
+@@ -63,8 +63,7 @@ struct dentry *ovl_lookup_temp(struct dentry *workdir)
+ }
+ 
+ /* caller holds i_mutex on workdir */
+-static struct dentry *ovl_whiteout(struct dentry *workdir,
+-				   struct dentry *dentry)
++static struct dentry *ovl_whiteout(struct dentry *workdir)
+ {
+ 	int err;
+ 	struct dentry *whiteout;
+@@ -83,6 +82,38 @@ static struct dentry *ovl_whiteout(struct dentry *workdir,
+ 	return whiteout;
+ }
+ 
++/* Caller must hold 'lock_rename' on workdir+dir */
++int ovl_cleanup_and_whiteout(struct dentry *workdir, struct inode *dir,
++			     struct dentry *dentry)
++{
++	struct inode *wdir = workdir->d_inode;
++	struct dentry *whiteout;
++	int err;
++	int flags = 0;
++
++	whiteout = ovl_whiteout(workdir);
++	err = PTR_ERR(whiteout);
++	if (IS_ERR(whiteout))
++		return err;
++
++	if (d_is_dir(dentry))
++		flags = RENAME_EXCHANGE;
++
++	err = ovl_do_rename(wdir, whiteout, dir, dentry, flags);
++	if (err)
++		goto kill_whiteout;
++	if (flags)
++		ovl_cleanup(wdir, dentry);
++
++out:
++	dput(whiteout);
++	return err;
++
++kill_whiteout:
++	ovl_cleanup(wdir, whiteout);
++	goto out;
++}
++
+ int ovl_create_real(struct inode *dir, struct dentry *newdentry,
+ 		    struct cattr *attr, struct dentry *hardlink, bool debug)
+ {
+@@ -629,14 +660,10 @@ static bool ovl_matches_upper(struct dentry *dentry, struct dentry *upper)
+ static int ovl_remove_and_whiteout(struct dentry *dentry, bool is_dir)
+ {
+ 	struct dentry *workdir = ovl_workdir(dentry);
+-	struct inode *wdir = workdir->d_inode;
+ 	struct dentry *upperdir = ovl_dentry_upper(dentry->d_parent);
+-	struct inode *udir = upperdir->d_inode;
+-	struct dentry *whiteout;
+ 	struct dentry *upper;
+ 	struct dentry *opaquedir = NULL;
+ 	int err;
+-	int flags = 0;
+ 
+ 	if (WARN_ON(!workdir))
+ 		return -EROFS;
+@@ -665,24 +692,13 @@ static int ovl_remove_and_whiteout(struct dentry *dentry, bool is_dir)
+ 		goto out_dput_upper;
+ 	}
+ 
+-	whiteout = ovl_whiteout(workdir, dentry);
+-	err = PTR_ERR(whiteout);
+-	if (IS_ERR(whiteout))
+-		goto out_dput_upper;
+-
+-	if (d_is_dir(upper))
+-		flags = RENAME_EXCHANGE;
+-
+-	err = ovl_do_rename(wdir, whiteout, udir, upper, flags);
++	err = ovl_cleanup_and_whiteout(workdir, d_inode(upperdir), upper);
+ 	if (err)
+-		goto kill_whiteout;
+-	if (flags)
+-		ovl_cleanup(wdir, upper);
++		goto out_d_drop;
+ 
+ 	ovl_dentry_version_inc(dentry->d_parent, true);
+ out_d_drop:
+ 	d_drop(dentry);
+-	dput(whiteout);
+ out_dput_upper:
+ 	dput(upper);
+ out_unlock:
+@@ -691,10 +707,6 @@ static int ovl_remove_and_whiteout(struct dentry *dentry, bool is_dir)
+ 	dput(opaquedir);
+ out:
+ 	return err;
+-
+-kill_whiteout:
+-	ovl_cleanup(wdir, whiteout);
+-	goto out_d_drop;
+ }
+ 
+ static int ovl_remove_upper(struct dentry *dentry, bool is_dir)
 diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-index 17457483ccf6..35f5452e61e0 100644
+index e4caad7bae19..17c039485dc9 100644
 --- a/fs/overlayfs/overlayfs.h
 +++ b/fs/overlayfs/overlayfs.h
-@@ -33,6 +33,20 @@ enum ovl_flag {
- };
+@@ -327,6 +327,8 @@ int ovl_create_real(struct inode *dir, struct dentry *newdentry,
+ 		    struct cattr *attr,
+ 		    struct dentry *hardlink, bool debug);
+ int ovl_cleanup(struct inode *dir, struct dentry *dentry);
++int ovl_cleanup_and_whiteout(struct dentry *workdir, struct inode *dir,
++			     struct dentry *dentry);
  
- /*
-+ * Which files should be indexed on copy up.
-+ * The default is casted from the boolean module config var, which can
-+ * only be used to configure indexing of lower hardlinks or to turn off
-+ * indexing. Other values can only be configures via mount option
-+ * (e.g. index=all).
-+ */
-+enum ovl_index {
-+	OVL_INDEX_OFF = (int)false,
-+	OVL_INDEX_ON = (int)true,
-+	OVL_INDEX_NLINK = OVL_INDEX_ON,
-+	OVL_INDEX_ALL,
-+};
-+
-+/*
-  * The tuple (fh,uuid) is a universal unique identifier for a copy up origin,
-  * where:
-  * origin.fh	- exported file handle of the lower file
-diff --git a/fs/overlayfs/ovl_entry.h b/fs/overlayfs/ovl_entry.h
-index 4c3d5ff1a30c..45dc8077d959 100644
---- a/fs/overlayfs/ovl_entry.h
-+++ b/fs/overlayfs/ovl_entry.h
-@@ -15,7 +15,7 @@ struct ovl_config {
- 	bool default_permissions;
- 	bool redirect_dir;
- 	bool verify_dir;
--	bool index;
-+	int index;
- };
- 
- /* private information held for overlayfs's superblock */
-diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-index aa230efc1afe..24fac7d987a3 100644
---- a/fs/overlayfs/super.c
-+++ b/fs/overlayfs/super.c
-@@ -302,7 +302,8 @@ static int ovl_show_options(struct seq_file *m, struct dentry *dentry)
- 			   ufs->config.redirect_dir ? "on" : "off");
- 	if (ufs->config.index != ovl_index_def)
- 		seq_printf(m, ",index=%s",
--			   ufs->config.index ? "on" : "off");
-+			   ufs->config.index == OVL_INDEX_ALL ? "all" :
-+			   (ufs->config.index ? "on" : "off"));
- 	if (ufs->config.verify_dir)
- 		seq_puts(m, ",verify_dir");
- 	return 0;
-@@ -338,6 +339,7 @@ enum {
- 	OPT_REDIRECT_DIR_OFF,
- 	OPT_INDEX_ON,
- 	OPT_INDEX_OFF,
-+	OPT_INDEX_ALL,
- 	OPT_VERIFY_DIR,
- 	OPT_ERR,
- };
-@@ -351,6 +353,7 @@ static const match_table_t ovl_tokens = {
- 	{OPT_REDIRECT_DIR_OFF,		"redirect_dir=off"},
- 	{OPT_INDEX_ON,			"index=on"},
- 	{OPT_INDEX_OFF,			"index=off"},
-+	{OPT_INDEX_ALL,			"index=all"},
- 	{OPT_VERIFY_DIR,		"verify_dir"},
- 	{OPT_ERR,			NULL}
- };
-@@ -425,11 +428,15 @@ static int ovl_parse_opt(char *opt, struct ovl_config *config)
- 			break;
- 
- 		case OPT_INDEX_ON:
--			config->index = true;
-+			config->index = OVL_INDEX_NLINK;
- 			break;
- 
- 		case OPT_INDEX_OFF:
--			config->index = false;
-+			config->index = 0;
-+			break;
-+
-+		case OPT_INDEX_ALL:
-+			config->index = OVL_INDEX_ALL;
- 			break;
- 
- 		case OPT_VERIFY_DIR:
-@@ -664,7 +671,7 @@ static int ovl_lower_dir(const char *name, struct path *path,
- 	 */
- 	if (ofs->config.upperdir && !ovl_can_decode_fh(path->dentry->d_sb) &&
- 	    (ofs->config.index || ofs->config.verify_dir)) {
--		ofs->config.index = false;
-+		ofs->config.index = 0;
- 		ofs->config.verify_dir = false;
- 		pr_warn("overlayfs: fs on '%s' does not support file handles, falling back to index=off and no verify_dir.\n",
- 			name);
-@@ -867,7 +874,7 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
- 		goto out;
- 
- 	ufs->config.redirect_dir = ovl_redirect_dir_def;
--	ufs->config.index = ovl_index_def;
-+	ufs->config.index = (enum ovl_index) ovl_index_def;
- 	err = ovl_parse_opt((char *) data, &ufs->config);
- 	if (err)
- 		goto out_free_config;
-@@ -1031,7 +1038,7 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
- 			if (err) {
- 				ufs->noxattr = true;
- 				ufs->config.redirect_dir = false;
--				ufs->config.index = false;
-+				ufs->config.index = 0;
- 				ufs->config.verify_dir = false;
- 				pr_warn("overlayfs: upper fs does not support xattr, falling back to redirect_dir=off, index=off, no verify_dir and no opaque dir.\n");
- 			} else {
-@@ -1041,7 +1048,7 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
- 			/* Check if upper/work fs supports file handles */
- 			if (ufs->config.index &&
- 			    !ovl_can_decode_fh(ufs->workdir->d_sb)) {
--				ufs->config.index = false;
-+				ufs->config.index = 0;
- 				pr_warn("overlayfs: upper fs does not support file handles, falling back to index=off.\n");
- 			}
- 		}
-@@ -1105,7 +1112,7 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
- 
- 	/* Show index=off/on in /proc/mounts for any of the reasons above */
- 	if (!ufs->indexdir)
--		ufs->config.index = false;
-+		ufs->config.index = 0;
- 
- 	if (ufs->config.verify_dir || ufs->indexdir) {
- 		/* Verify lower root is upper root origin */
+ /* copy_up.c */
+ int ovl_copy_up(struct dentry *dentry);
 diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
-index 6b3af32ab0e9..fb501eb5e75c 100644
+index 22cdf9ecd7ec..515ae156939f 100644
 --- a/fs/overlayfs/util.c
 +++ b/fs/overlayfs/util.c
-@@ -510,13 +510,17 @@ static void ovl_cleanup_index(struct dentry *dentry)
-  */
- bool ovl_need_index(struct dentry *dentry)
+@@ -453,7 +453,8 @@ void ovl_inuse_unlock(struct dentry *dentry)
+ /* Caller must hold OVL_I(inode)->lock */
+ static void ovl_cleanup_index(struct dentry *dentry)
  {
-+	struct ovl_fs *ofs = dentry->d_sb->s_fs_info;
- 	struct dentry *lower = ovl_dentry_lower(dentry);
+-	struct inode *dir = ovl_indexdir(dentry->d_sb)->d_inode;
++	struct dentry *workdir = ovl_workdir(dentry);
++	struct dentry *indexdir = ovl_indexdir(dentry->d_sb);
+ 	struct dentry *lowerdentry = ovl_dentry_lower(dentry);
+ 	struct dentry *upperdentry = ovl_dentry_upper(dentry);
+ 	struct dentry *index = NULL;
+@@ -483,16 +484,21 @@ static void ovl_cleanup_index(struct dentry *dentry)
+ 		goto out;
+ 	}
  
--	if (!lower)
-+	if (!lower || !ofs->indexdir)
- 		return false;
- 
-+	if (!d_is_dir(lower) && ofs->config.index == OVL_INDEX_ALL)
-+		return true;
+-	inode_lock_nested(dir, I_MUTEX_PARENT);
+-	/* TODO: whiteout instead of cleanup to block future open by handle */
++	err = -EIO;
++	if (lock_rename(workdir, indexdir) != NULL)
++		goto fail;
 +
- 	/* Index only lower hardlinks on copy up */
--	if (ovl_indexdir(dentry->d_sb) &&
-+	if ((ofs->config.index == OVL_INDEX_NLINK) &&
- 	    !d_is_dir(lower) && d_inode(lower)->i_nlink > 1)
- 		return true;
+ 	index = lookup_one_len(name.name, ovl_indexdir(dentry->d_sb), name.len);
+ 	err = PTR_ERR(index);
+-	if (!IS_ERR(index))
+-		err = ovl_cleanup(dir, index);
+-	else
++	if (!IS_ERR(index)) {
++		/* Whiteout index to block future open by handle */
++		err = ovl_cleanup_and_whiteout(workdir, d_inode(indexdir),
++					       index);
++	} else {
+ 		index = NULL;
++	}
+ 
+-	inode_unlock(dir);
++	unlock_rename(workdir, indexdir);
+ 	if (err)
+ 		goto fail;
  
 -- 
 2.7.4
