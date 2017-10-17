@@ -1,153 +1,161 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH 01/11] ovl: fix EIO from lookup of non-indexed upper
-Date: Tue, 17 Oct 2017 19:00:12 +0300
-Message-ID: <1508256022-10267-2-git-send-email-amir73il@gmail.com>
+Subject: [PATCH 05/11] ovl: lookup index for directories
+Date: Tue, 17 Oct 2017 19:00:16 +0300
+Message-ID: <1508256022-10267-6-git-send-email-amir73il@gmail.com>
 References: <1508256022-10267-1-git-send-email-amir73il@gmail.com>
-Return-path: <stable-owner@vger.kernel.org>
+Return-path: <linux-unionfs-owner@vger.kernel.org>
+Received: from mail-wm0-f65.google.com ([74.125.82.65]:57093 "EHLO
+        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S936666AbdJQP74 (ORCPT
+        <rfc822;linux-unionfs@vger.kernel.org>);
+        Tue, 17 Oct 2017 11:59:56 -0400
+Received: by mail-wm0-f65.google.com with SMTP id l68so4905607wmd.5
+        for <linux-unionfs@vger.kernel.org>; Tue, 17 Oct 2017 08:59:55 -0700 (PDT)
 In-Reply-To: <1508256022-10267-1-git-send-email-amir73il@gmail.com>
-Sender: stable-owner@vger.kernel.org
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: linux-unionfs@vger.kernel.org, "# v4 . 13" <stable@vger.kernel.org>
+Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: linux-unionfs@vger.kernel.org
 
-Commit fbaf94ee3cd5 ("ovl: don't set origin on broken lower hardlink")
-attempt to avoid the condition of non-indexed upper inode with lower
-hardlink as origin. If this condition is found, lookup returns EIO.
+A directory index is a directory type entry in index dir
+with a "trusted.overlay.origin" xattr containing an encoded ovl_fh
+of the merge directory upper dir.
 
-The protection of commit mentioned above does not cover the case of lower
-that is not a hardlink when it is copied up (with either index=off/on)
-and then lower is hardlinked while overlay is offline.
+On lookup of non-dir files, lower file is followed by origin file handle.
+On lookup of dir entries, lower dir is found by name and then compared
+to origin file handle. We only trust dir index if we verified that lower
+dir matches origin file handle, otherwise index is inconsistent and we
+ignore it.
 
-Changes to lower layer while overlayfs is offline should not result in
-unexpected behavior, so a permanent EIO error after creating a link in
-lower layer should not be considered as correct behavior.
+Directory index entries are going to be used for NFS export.
 
-This fix replaces EIO error with a warning in cases where upper has
-origin but no index is found, or index is found that does not match upper
-inode. In those cases, lookup will not fail and the returned overlay
-inode will be hashed by upper inode instead of by lower origin inode.
-
-Fixes: 359f392ca53e ("ovl: lookup index entry for copy up origin")
-Cc: <stable@vger.kernel.org> # v4.13
 Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- fs/overlayfs/inode.c     | 20 ++++++++++++++++----
- fs/overlayfs/namei.c     | 26 ++++++++++++++++----------
- fs/overlayfs/overlayfs.h |  3 ++-
- 3 files changed, 34 insertions(+), 15 deletions(-)
+ fs/overlayfs/namei.c | 52 +++++++++++++++++++++++++++++++++++++++-------------
+ 1 file changed, 39 insertions(+), 13 deletions(-)
 
-diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
-index a619addecafc..321511ed8c42 100644
---- a/fs/overlayfs/inode.c
-+++ b/fs/overlayfs/inode.c
-@@ -598,18 +598,30 @@ static bool ovl_verify_inode(struct inode *inode, struct dentry *lowerdentry,
- 	return true;
- }
- 
--struct inode *ovl_get_inode(struct dentry *dentry, struct dentry *upperdentry)
-+struct inode *ovl_get_inode(struct dentry *dentry, struct dentry *upperdentry,
-+			    struct dentry *index)
- {
- 	struct dentry *lowerdentry = ovl_dentry_lower(dentry);
- 	struct inode *realinode = upperdentry ? d_inode(upperdentry) : NULL;
- 	struct inode *inode;
-+	/* Already indexed or could be indexed on copy up? */
-+	bool indexed = (index || (ovl_indexdir(dentry->d_sb) && !upperdentry));
-+
-+	if (WARN_ON(upperdentry && indexed && !lowerdentry))
-+		return ERR_PTR(-EIO);
- 
- 	if (!realinode)
- 		realinode = d_inode(lowerdentry);
- 
--	if (!S_ISDIR(realinode->i_mode) &&
--	    (upperdentry || (lowerdentry && ovl_indexdir(dentry->d_sb)))) {
--		struct inode *key = d_inode(lowerdentry ?: upperdentry);
-+	/*
-+	 * Copy up origin (lower) may exist for non-indexed upper, but we must
-+	 * not use lower as hash key in that case.
-+	 * Hash inodes that are or could be indexed by origin inode and
-+	 * non-indexed upper inodes that could be hard linked by upper inode.
-+	 */
-+	if (!S_ISDIR(realinode->i_mode) && (upperdentry || indexed)) {
-+		struct inode *key = d_inode(indexed ? lowerdentry :
-+						      upperdentry);
- 		unsigned int nlink;
- 
- 		inode = iget5_locked(dentry->d_sb, (unsigned long) key,
 diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
-index 5de7aa60a7a6..6a8e0156d40d 100644
+index c73f490695c6..1afc6d6e99b9 100644
 --- a/fs/overlayfs/namei.c
 +++ b/fs/overlayfs/namei.c
-@@ -519,6 +519,10 @@ static struct dentry *ovl_lookup_index(struct dentry *dentry,
- 	index = lookup_one_len_unlocked(name.name, ofs->indexdir, name.len);
- 	if (IS_ERR(index)) {
- 		err = PTR_ERR(index);
-+		if (err == -ENOENT) {
-+			index = NULL;
-+			goto out;
-+		}
- 		pr_warn_ratelimited("overlayfs: failed inode index lookup (ino=%lu, key=%*s, err=%i);\n"
- 				    "overlayfs: mount with '-o index=off' to disable inodes index.\n",
- 				    d_inode(origin)->i_ino, name.len, name.name,
-@@ -529,17 +533,14 @@ static struct dentry *ovl_lookup_index(struct dentry *dentry,
+@@ -518,6 +518,7 @@ static struct dentry *ovl_lookup_index(struct dentry *dentry,
+ 	struct dentry *index;
+ 	struct inode *inode;
+ 	struct qstr name;
++	bool is_dir = d_is_dir(origin);
+ 	int err;
+ 
+ 	err = ovl_get_index_name(origin, &name);
+@@ -540,15 +541,11 @@ static struct dentry *ovl_lookup_index(struct dentry *dentry,
+ 
  	inode = d_inode(index);
  	if (d_is_negative(index)) {
- 		if (upper && d_inode(origin)->i_nlink > 1) {
--			pr_warn_ratelimited("overlayfs: hard link with origin but no index (ino=%lu).\n",
--					    d_inode(origin)->i_ino);
--			goto fail;
-+			pr_warn_ratelimited("overlayfs: hard link with origin but no index (%pd2).\n",
-+					    upper);
+-		if (upper && d_inode(origin)->i_nlink > 1) {
++		if (!is_dir && upper && d_inode(origin)->i_nlink > 1) {
+ 			pr_warn_ratelimited("overlayfs: hard link with origin but no index (%pd2).\n",
+ 					    upper);
  		}
--
--		dput(index);
--		index = NULL;
-+		goto out_dput;
- 	} else if (upper && d_inode(upper) != inode) {
--		pr_warn_ratelimited("overlayfs: wrong index found (index=%pd2, ino=%lu, upper ino=%lu).\n",
--				    index, inode->i_ino, d_inode(upper)->i_ino);
--		goto fail;
-+		pr_warn_ratelimited("overlayfs: broken hard link - ignoring index (%pd2).\n",
-+				    upper);
-+		goto out_dput;
+ 		goto out_dput;
+-	} else if (upper && d_inode(upper) != inode) {
+-		pr_warn_ratelimited("overlayfs: broken hard link - ignoring index (%pd2).\n",
+-				    upper);
+-		goto out_dput;
  	} else if (ovl_dentry_weird(index) || ovl_is_whiteout(index) ||
  		   ((inode->i_mode ^ d_inode(origin)->i_mode) & S_IFMT)) {
  		/*
-@@ -559,6 +560,11 @@ static struct dentry *ovl_lookup_index(struct dentry *dentry,
+@@ -562,8 +559,16 @@ static struct dentry *ovl_lookup_index(struct dentry *dentry,
+ 				    index, d_inode(index)->i_mode & S_IFMT,
+ 				    d_inode(origin)->i_mode & S_IFMT);
+ 		goto fail;
++	} else if (upper && is_dir) {
++		/* Verify that dir index origin points to upper dir */
++		err = ovl_verify_origin(index, upper, true, false);
++		if (err)
++			goto fail;
++	} else if (upper && d_inode(upper) != inode) {
++		pr_warn_ratelimited("overlayfs: broken hard link - ignoring index (%pd2).\n",
++				    upper);
++		goto out_dput;
+ 	}
+-
+ out:
  	kfree(name.name);
  	return index;
+@@ -613,6 +618,7 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
+ 	struct ovl_entry *roe = dentry->d_sb->s_root->d_fsdata;
+ 	struct path *stack = NULL;
+ 	struct dentry *upperdir, *upperdentry = NULL;
++	struct dentry *origin = NULL;
+ 	struct dentry *index = NULL;
+ 	unsigned int ctr = 0;
+ 	struct inode *inode = NULL;
+@@ -659,6 +665,8 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
+ 			 */
+ 			err = ovl_check_origin(upperdentry, roe->lowerstack,
+ 					       roe->numlower, &stack, &ctr);
++			if (ctr)
++				origin = stack[0].dentry;
+ 			if (err)
+ 				goto out;
+ 		}
+@@ -692,15 +700,26 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
+ 		if (!this)
+ 			continue;
  
-+out_dput:
-+	dput(index);
-+	index = NULL;
-+	goto out;
++		if (!ctr)
++			origin = this;
 +
- fail:
- 	dput(index);
- 	index = ERR_PTR(-EIO);
-@@ -755,7 +761,7 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
- 		upperdentry = dget(index);
+ 		/*
+ 		 * Verify that uppermost lower matches the copy up origin fh.
+ 		 * If no origin fh is stored in upper, store fh of lower dir.
++		 * If origin fh exists and does not match lower dir, depending
++		 * on verify_dir config, we either not merge this lower or we
++		 * merge it, but we do not use it as index key.
+ 		 */
+ 		if (this && upperdentry && !ctr) {
+ 			err = ovl_verify_origin(upperdentry, this, false, true);
+-			if (err && ovl_verify_dir(dentry->d_sb)) {
+-				dput(this);
+-				break;
++			if (err) {
++				if (ovl_verify_dir(dentry->d_sb)) {
++					/* Don't merge with unverified lower */
++					dput(this);
++					break;
++				}
++				/* Don't use unverified lower as index key */
++				origin = NULL;
+ 			}
+ 		}
  
- 	if (upperdentry || ctr) {
--		inode = ovl_get_inode(dentry, upperdentry);
-+		inode = ovl_get_inode(dentry, upperdentry, index);
- 		err = PTR_ERR(inode);
- 		if (IS_ERR(inode))
- 			goto out_free_oe;
-diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-index ba455642152f..df605368700d 100644
---- a/fs/overlayfs/overlayfs.h
-+++ b/fs/overlayfs/overlayfs.h
-@@ -288,7 +288,8 @@ int ovl_update_time(struct inode *inode, struct timespec *ts, int flags);
- bool ovl_is_private_xattr(const char *name);
+@@ -733,6 +752,8 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
+ 				       roe->numlower, &stack, &ctr);
+ 		if (err)
+ 			goto out_put;
++
++		origin = stack[0].dentry;
+ 		/*
+ 		 * XXX: We do not continue layers lookup from decoded origin for
+ 		 * more than a single lower layer. This would require setting
+@@ -742,10 +763,15 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
+ 		 */
+ 	}
  
- struct inode *ovl_new_inode(struct super_block *sb, umode_t mode, dev_t rdev);
--struct inode *ovl_get_inode(struct dentry *dentry, struct dentry *upperdentry);
-+struct inode *ovl_get_inode(struct dentry *dentry, struct dentry *upperdentry,
-+			    struct dentry *index);
- static inline void ovl_copyattr(struct inode *from, struct inode *to)
- {
- 	to->i_uid = from->i_uid;
+-	/* Lookup index by lower inode and verify it matches upper inode */
+-	if (ctr && !d.is_dir && ovl_indexdir(dentry->d_sb)) {
+-		struct dentry *origin = stack[0].dentry;
+-
++	/*
++	 * Lookup index by lower inode and verify it matches upper inode.
++	 * We only trust dir index if we verified that lower dir matches
++	 * origin, otherwise index is inconsistent and we ignore it.
++	 *
++	 * TODO: update origin and index in case lower dir has changed and
++	 *       store new generation number xattr in index for NFS export.
++	 */
++	if (ctr && ovl_indexdir(dentry->d_sb) && origin) {
+ 		index = ovl_lookup_index(dentry, upperdentry, origin);
+ 		if (IS_ERR(index)) {
+ 			err = PTR_ERR(index);
 -- 
 2.7.4
