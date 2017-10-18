@@ -1,103 +1,181 @@
-From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [PATCH 04/11] ovl: Provide a mount option metacopy=on/off for
- metadata copyup
-Date: Wed, 18 Oct 2017 17:38:42 +0300
-Message-ID: <CAOQ4uxjuR7HV-ppoOe4b22mV3yM3XaioJFgx1Joio0p+Y0ZpfA@mail.gmail.com>
+From: Vivek Goyal <vgoyal@redhat.com>
+Subject: Re: [PATCH 10/11] ovl: Introduce read/write barriers around metacopy
+ flag update
+Date: Wed, 18 Oct 2017 11:32:36 -0400
+Message-ID: <20171018153236.GI3445@redhat.com>
 References: <1508274358-17456-1-git-send-email-vgoyal@redhat.com>
- <1508274358-17456-5-git-send-email-vgoyal@redhat.com> <CAOQ4uximnQT43BK3Ut82Vs0FMDi03cxAkyDK4LthkMiXHii-HQ@mail.gmail.com>
- <20171018130343.GC3445@redhat.com> <CAOQ4uxiLk-psMLGdBFNBBQf3cnHm0Z7yHL3ZoaN+oCVZn_wqWg@mail.gmail.com>
- <20171018142609.GH3445@redhat.com>
+ <1508274358-17456-11-git-send-email-vgoyal@redhat.com>
+ <CAOQ4uxipEM_yjVBYyL48OhUYs2qL6Cw+rA82+mTwRAoTS=Wk5w@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-yw0-f196.google.com ([209.85.161.196]:55925 "EHLO
-        mail-yw0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752460AbdJROin (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 18 Oct 2017 10:38:43 -0400
-Received: by mail-yw0-f196.google.com with SMTP id t11so712498ywg.12
-        for <linux-unionfs@vger.kernel.org>; Wed, 18 Oct 2017 07:38:43 -0700 (PDT)
-In-Reply-To: <20171018142609.GH3445@redhat.com>
+Received: from mx1.redhat.com ([209.132.183.28]:45044 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750910AbdJRPch (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Wed, 18 Oct 2017 11:32:37 -0400
+Content-Disposition: inline
+In-Reply-To: <CAOQ4uxipEM_yjVBYyL48OhUYs2qL6Cw+rA82+mTwRAoTS=Wk5w@mail.gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Vivek Goyal <vgoyal@redhat.com>
+To: Amir Goldstein <amir73il@gmail.com>
 Cc: overlayfs <linux-unionfs@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>
 
-On Wed, Oct 18, 2017 at 5:26 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
-> On Wed, Oct 18, 2017 at 05:09:08PM +0300, Amir Goldstein wrote:
->> On Wed, Oct 18, 2017 at 4:03 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
->> > On Wed, Oct 18, 2017 at 07:31:51AM +0300, Amir Goldstein wrote:
->> >> On Wed, Oct 18, 2017 at 12:05 AM, Vivek Goyal <vgoyal@redhat.com> wrote:
->> >> > By default metadata only copy up is disabled. Provide a mount option so
->> >> > that users can choose one way or other.
->> >> >
->> >> > Also provide a kernel config and module option to enable/disable
->> >> > metacopy feature.
->> >> >
->> >> > Like index feature, when overlay is mounted, on root upper directory we
->> >> > set ORIGIN which points to lower. And at later mount time it is verified
->> >> > again. This hopes to get the configuration right. But this does only so
->> >> > much as we don't verify all the lowers. So it is possible that a lower is
->> >> > missing and later data copy up fails.
->> >>
->> >> Like index feature, please error mount if ovl_inuse_trylock fails.
->> >> As you know, this error is only conditional because of backward
->> >> compatibility, so any new opt-in feature should enforce it.
->> >
->> > Hi Amir,
->> >
->> > I am not so sure about it. Avoiding leaking any mount point is really
->> > really hard. And I don't think current container runtime have been
->> > modified to make it fool proof.
->> >
->> > IMHO, if we really want to enforce something like this, then we need
->> > to have some sort of capability to find existing superblock and reuse it.
->> > (Something like what happens with block devices).
->> >
->>
->> That sounds like a good idea. Any chance you can make it happen?
->> Keep in mind that would be a change of behavior, so users will have to
->> opt-in for it as well.
->
-> I will look into it. I have no idea if it is doable and what is needed
-> at this point of time.
->
->>
->> > I am afraid that if I start enforcing this, then this feature will not
->> > be used at all because software has not been hardended enough to avoid
->> > mount point leaks completely.
->> >
->>
->> I find that approach a bit dodgy.
->
-> It is. But at the same time I am having hard time understanding what's
-> wrong with having mount point in two separate mount namespaces. And
-> why overlay is putting this additional restriction.
->
-> How can one realiably avoid mount point leaks. For example, say a dameon
-> foo is running in init mount namespace and mounts an overlay mount. Now
-> systemd starts another service bar and say that service starts with
-> MountFlags=private. Now overlay mount point will leak. Now daemon foo
-> stop (it will unmount overlay), and restarts, it will fail to restart
-> because it can't mount that overlay anymore (upper/work are busy in
-> mount namespace of bar).
->
-> I mean what's wrong with above programming model and how would programmers
-> avoid mount point leaks in other mount namespaces.
->
+On Wed, Oct 18, 2017 at 08:19:50AM +0300, Amir Goldstein wrote:
+> On Wed, Oct 18, 2017 at 12:05 AM, Vivek Goyal <vgoyal@redhat.com> wrote:
+> > If a file is copied up metadata only and later when same file is opened
+> > for WRITE, then data copy up takes place. We copy up data, remove METACOPY
+> > xattr and then clear the METACOPY flag from ovl_entry->flags. While all
+> > these operations happen with oi->lock held, read side of oi->flags is
+> > lockless. That is another thread on another cpu can check if METACOPY
+> > flag is clear or not.
+> >
+> > So this gives us an ordering requirement w.r.t METACOPY flag. That is, if
+> > another cpu sees METACOPY flag clear, then it should be guaranteed that
+> > effects of data copy up and remove xattr operations are also visible.
+> >
+> > For example.
+> >
+> >         CPU1                            CPU2
+> > ovl_copy_up_flags()                     acquire(oi->lock)
+> >  ovl_dentry_needs_data_copy_up()          ovl_copy_up_data()
+> 
+> The relevant lockless execution path of CPU1 is
+> ovl_d_real -> ovl_test_flag(OVL_METACOPY) ->  return real
+> when real is upper, upper needs to be with correct data
+> 
 
-You are absolutely right. There is nothing wrong with having overlay mount
-replicated in other namespaces. The only problem is that we need to guard from
-mounting different super block with same upper/work.
-As I wrote in the warning in the exclusive lock fix patch, concurrent
-use of upper/work,
-can only do damage if both mounts are written to concurrently,
-but there is absolutely no way for the kernel to know that the leaked mounts are
-not going to be used by anyone.
+That path is relevant for ordering requirements w.r.t oi->__upperdentry
+and next patch does put an smp_rmb() there to cover it.
 
-The correct solution seems to be what you suggested - to bind the new mount
-to existing super block when device name and all relevant overlay
-config matches.
-Until then, we can only enforce the poor man's I_OVL_INUSE lock.
+> The execution path you describe here is going to test the flag
+> under overlay inode lock again in  ovl_copy_up_one() so it is irrelevant
+> to the barriers patch
 
-Amir.
+It will go into ovl_copy_up_one() only if this cpu saw OVL_METACOPY=1. But
+what about the case where OVL_METACOPY is being cleared on CPU2, and
+it became visible on CPU1. That means cpu1 will assume file copy up is
+complete and it will continue and never both to take oi->lock.
+
+> 
+> 
+> >    ovl_test_flag(OVL_METACOPY)            vfs_removexattr()
+> >                                           ovl_clear_metacopy_flag()
+> >                                         release(oi->lock)
+> >
+> > Say CPU2 is copying up data and in the end clears metacopy flag. But if
+> > CPU1 perceives the effects of clearing of metacopy flag but not effects of
+> > preceeding operations, that would be a problem.
+> >
+> > Hence this patch introduces smp_wmb() on metacopy flag clear operation
+> > and smp_rmb() on metacopy flag test operation.
+> >
+> > May be some other lock or barrier is already covering it. But I am not sure
+> > what that is and is it obvious enough that we will not break it in future.
+> >
+> > So hence trying to be safe here and introducing barriers explicitly for
+> > metacopy bit.
+> >
+> > Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
+> > ---
+> >  fs/overlayfs/copy_up.c |  6 ++++++
+> >  fs/overlayfs/util.c    | 12 ++++++++++--
+> >  2 files changed, 16 insertions(+), 2 deletions(-)
+> >
+> > diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
+> > index 99b7be4ff4fc..200ee3b7d397 100644
+> > --- a/fs/overlayfs/copy_up.c
+> > +++ b/fs/overlayfs/copy_up.c
+> > @@ -466,6 +466,12 @@ static int ovl_copy_up_meta_inode_data(struct ovl_copy_up_ctx *c)
+> >         if (err)
+> >                 return err;
+> >
+> > +       /*
+> > +        * Pairs with smp_rmb() after test_bit(OVL_METACOPY). Make sure
+> 
+> This comment is meant to refer the reader to the code that this pairs with
+> i.e. pairs with smp_rmb() in ovl_d_real() ..
+
+This pairs with smp_rmb() in ovl_dentry_needs_data_copy_up(). Next patch
+has smp_rmb() in ovl_d_real() and I will explain that more.
+
+> 
+> > +        * if OVL_METACOPY flag reset is visible, then all the write
+> > +        * operations before it are visible as well
+> > +        */
+> > +       smp_wmb();
+> >         ovl_clear_flag(OVL_METACOPY, d_inode(c->dentry));
+> >         return err;
+> >  }
+> > diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
+> > index 91c542d1a39d..6bca9a960c6d 100644
+> > --- a/fs/overlayfs/util.c
+> > +++ b/fs/overlayfs/util.c
+> > @@ -228,6 +228,8 @@ void ovl_dentry_set_upper_alias(struct dentry *dentry)
+> >  }
+> >
+> >  bool ovl_dentry_needs_data_copy_up(struct dentry *dentry, int flags) {
+> > +       bool metacopy;
+> > +
+> >         if (!S_ISREG(d_inode(dentry)->i_mode))
+> >                 return false;
+> >
+> > @@ -237,9 +239,15 @@ bool ovl_dentry_needs_data_copy_up(struct dentry *dentry, int flags) {
+> >         if (!(OPEN_FMODE(flags) & FMODE_WRITE))
+> >                 return false;
+> >
+> > -       if (!ovl_test_flag(OVL_METACOPY, d_inode(dentry)))
+> > +       metacopy = ovl_test_flag(OVL_METACOPY, d_inode(dentry));
+> > +       /*
+> > +        * Pairs with smp_wmb() while clearing OVL_METACOPY. Make sure if
+> 
+> This comment is meant to refer the reader to the code that this pairs with
+> i.e. pairs with smp_wmb() in ovl_copy_up_meta_inode_data() ..
+
+Will do. I guess I will retain this which explains what's the intent
+and also add funciton name where OVL_METACOPY is being cleared.
+
+> 
+> > +        * clearing of OVL_METACOPY is visible, then effects of writes
+> > +        * before that are visible too.
+> > +        */
+> > +       smp_rmb();
+> 
+> Please move this rmb to ovl_d_real() after re-testing flag,
+> which is the only place that matters for inode data access.
+
+But we are testing it atleast at two places.
+(ovl_dentry_needs_data_copy_up()).
+
+First call is in.
+
+ovl_d_real()
+  ovl_open_need_copy_up()
+     ovl_dentry_needs_data_copy_up()
+
+And second call is in ovl_copy_up_flags() further down.
+
+ovl_d_real()
+  ovl_open_need_copy_up()
+     ovl_dentry_needs_data_copy_up()  <---- First Call
+          ovl_copy_up_flags()
+	      ovl_dentry_needs_data_copy_up() <--- Second Call
+
+Given we are checking/loading oi->flags at both the places, IIUC, we
+need smp_rmb() at both the places. And if that's the case, its better
+to keep it inside ovl_dentry_needs_data_copy_up() instead of open
+coding it in ovl_open_need_copy_up() and ovl_copy_up_flags().
+
+Thanks
+Vivek
+
+
+> 
+> > +       if (!metacopy)
+> >                 return false;
+> > -
+> >         return true;
+> >  }
+> >
+> > --
+> > 2.13.5
+> >
