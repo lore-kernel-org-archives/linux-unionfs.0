@@ -1,107 +1,70 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [PATCH 01/11] ovl: Create origin xattr on copy up for all files
-Date: Wed, 18 Oct 2017 16:56:52 +0300
-Message-ID: <CAOQ4uxjeFN-9iA7vCVBZ_dHykruqhEoj7MLPApicJh=q1CSEaA@mail.gmail.com>
+Subject: Re: [PATCH 04/11] ovl: Provide a mount option metacopy=on/off for
+ metadata copyup
+Date: Wed, 18 Oct 2017 17:09:08 +0300
+Message-ID: <CAOQ4uxiLk-psMLGdBFNBBQf3cnHm0Z7yHL3ZoaN+oCVZn_wqWg@mail.gmail.com>
 References: <1508274358-17456-1-git-send-email-vgoyal@redhat.com>
- <1508274358-17456-2-git-send-email-vgoyal@redhat.com> <CAOQ4uxhSYwQdeofy94jttDznfn6NSeM32UQSBKKvcE=xjjAs=A@mail.gmail.com>
- <20171018125515.GB3445@redhat.com>
+ <1508274358-17456-5-git-send-email-vgoyal@redhat.com> <CAOQ4uximnQT43BK3Ut82Vs0FMDi03cxAkyDK4LthkMiXHii-HQ@mail.gmail.com>
+ <20171018130343.GC3445@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-yw0-f194.google.com ([209.85.161.194]:51334 "EHLO
+Received: from mail-yw0-f194.google.com ([209.85.161.194]:54727 "EHLO
         mail-yw0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752238AbdJRN4x (ORCPT
+        with ESMTP id S1751824AbdJROJJ (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 18 Oct 2017 09:56:53 -0400
-Received: by mail-yw0-f194.google.com with SMTP id k3so587718ywk.8
-        for <linux-unionfs@vger.kernel.org>; Wed, 18 Oct 2017 06:56:53 -0700 (PDT)
-In-Reply-To: <20171018125515.GB3445@redhat.com>
+        Wed, 18 Oct 2017 10:09:09 -0400
+Received: by mail-yw0-f194.google.com with SMTP id w5so627473ywg.11
+        for <linux-unionfs@vger.kernel.org>; Wed, 18 Oct 2017 07:09:09 -0700 (PDT)
+In-Reply-To: <20171018130343.GC3445@redhat.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: Vivek Goyal <vgoyal@redhat.com>
 Cc: overlayfs <linux-unionfs@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>
 
-On Wed, Oct 18, 2017 at 3:55 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
-> On Wed, Oct 18, 2017 at 07:09:37AM +0300, Amir Goldstein wrote:
+On Wed, Oct 18, 2017 at 4:03 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
+> On Wed, Oct 18, 2017 at 07:31:51AM +0300, Amir Goldstein wrote:
 >> On Wed, Oct 18, 2017 at 12:05 AM, Vivek Goyal <vgoyal@redhat.com> wrote:
->> > Right now my understanding is that origin xattr is created for all copied
->> > up files if index=on. And if index=off, then we create it for all type
->> > of files except hardlinks (nlink != 1).
+>> > By default metadata only copy up is disabled. Provide a mount option so
+>> > that users can choose one way or other.
 >> >
->> > With metadata only copy up, I will still require origin xattr to copy up
->> > data later, so create it even for hardlinks even with index=off. I am
->> > hoping it does not break anything because we do OVL_INDEX test before
->> > using inode number of origin.
+>> > Also provide a kernel config and module option to enable/disable
+>> > metacopy feature.
+>> >
+>> > Like index feature, when overlay is mounted, on root upper directory we
+>> > set ORIGIN which points to lower. And at later mount time it is verified
+>> > again. This hopes to get the configuration right. But this does only so
+>> > much as we don't verify all the lowers. So it is possible that a lower is
+>> > missing and later data copy up fails.
 >>
->> I still have a nudging buzz that loosing the information about this upper
->> being a broken hardlink may come back to bite us some time, but can't
->> put my finger on how.
+>> Like index feature, please error mount if ovl_inuse_trylock fails.
+>> As you know, this error is only conditional because of backward
+>> compatibility, so any new opt-in feature should enforce it.
 >
 > Hi Amir,
 >
-> Can't we do stat() on ORIGIN and check nlink to figure out if it is a broken
-> hard link or not. (If it ever becomes a problem in future). IOW, we still
-> have a way to figure out if this is broken hard link or not. Just that
-> it involves extra step of doing stat() and its not the presence/absense
-> of ORIGIN.
+> I am not so sure about it. Avoiding leaking any mount point is really
+> really hard. And I don't think current container runtime have been
+> modified to make it fool proof.
 >
->>
->> To reduce the level of that buzz, I suggest to set origin for broken hardlink
->> only when doing metacopy and then break the origin association when
->> removing metacopy xattr.
+> IMHO, if we really want to enforce something like this, then we need
+> to have some sort of capability to find existing superblock and reuse it.
+> (Something like what happens with block devices).
 >
-> While removing metacopy xattr, I will not have any idea whether it is
-> broken hard link or not. I guess I will have to use above trick and do
-> stat() on ORIGIN and detect broken hard links.
->
-> I feel really odd about special casing this broken hard link case and
-> setting and clearing ORIGIN with metacopy flags. It makes code
-> twisted and complicated.
->
-> Given stat() should allow us to figure out if something is broken hard
-> link or not, does it make you feel any better about it.
 
-I understand your position about this.
-Since I cannot think of a concrete use case where keeping ORIGIN
-would hurt us, I'll withdraw my comment.
+That sounds like a good idea. Any chance you can make it happen?
+Keep in mind that would be a change of behavior, so users will have to
+opt-in for it as well.
 
+> I am afraid that if I start enforcing this, then this feature will not
+> be used at all because software has not been hardended enough to avoid
+> mount point leaks completely.
 >
->>
->> In any case, this patch needs to update the comment above setting
->> origin xattr that claims to break the association with broken hardlink.
->
-> Ok, Will do.
->
-> Vivek
->>
->> >
->> > Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
->> > ---
->> >  fs/overlayfs/copy_up.c | 4 +---
->> >  1 file changed, 1 insertion(+), 3 deletions(-)
->> >
->> > diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
->> > index c441f9387a1b..0a6294ea64d5 100644
->> > --- a/fs/overlayfs/copy_up.c
->> > +++ b/fs/overlayfs/copy_up.c
->> > @@ -538,9 +538,6 @@ static int ovl_do_copy_up(struct ovl_copy_up_ctx *c)
->> >             c->stat.nlink > 1)
->> >                 indexed = true;
->> >
->> > -       if (S_ISDIR(c->stat.mode) || c->stat.nlink == 1 || indexed)
->> > -               c->origin = true;
->> > -
->> >         if (indexed) {
->> >                 c->destdir = ovl_indexdir(c->dentry->d_sb);
->> >                 err = ovl_get_index_name(c->lowerpath.dentry, &c->destname);
->> > @@ -596,6 +593,7 @@ static int ovl_copy_up_one(struct dentry *parent, struct dentry *dentry,
->> >                 .parent = parent,
->> >                 .dentry = dentry,
->> >                 .workdir = ovl_workdir(dentry),
->> > +               .origin = true,
->> >         };
->> >
->> >         if (WARN_ON(!ctx.workdir))
->> > --
->> > 2.13.5
->> >
+
+I find that approach a bit dodgy.
+If not for enjoying new overlayfs feature, why would container runtime
+developers ever bother to fix mount leaks.
+
+Anyway, that is up to Miklos to decide.
+
+Amir.
