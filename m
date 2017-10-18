@@ -1,141 +1,107 @@
-From: Vivek Goyal <vgoyal@redhat.com>
-Subject: Re: [PATCH 08/11] ovl: Set OVL_METACOPY flag during ovl_lookup()
-Date: Wed, 18 Oct 2017 09:53:27 -0400
-Message-ID: <20171018135327.GF3445@redhat.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Subject: Re: [PATCH 01/11] ovl: Create origin xattr on copy up for all files
+Date: Wed, 18 Oct 2017 16:56:52 +0300
+Message-ID: <CAOQ4uxjeFN-9iA7vCVBZ_dHykruqhEoj7MLPApicJh=q1CSEaA@mail.gmail.com>
 References: <1508274358-17456-1-git-send-email-vgoyal@redhat.com>
- <1508274358-17456-9-git-send-email-vgoyal@redhat.com>
- <CAOQ4uxiEVNRbHWg=GXc7LYJm1A1LmDuHPLxYKxuJtbEa+M8f+w@mail.gmail.com>
+ <1508274358-17456-2-git-send-email-vgoyal@redhat.com> <CAOQ4uxhSYwQdeofy94jttDznfn6NSeM32UQSBKKvcE=xjjAs=A@mail.gmail.com>
+ <20171018125515.GB3445@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:41234 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752078AbdJRNx2 (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 18 Oct 2017 09:53:28 -0400
-Content-Disposition: inline
-In-Reply-To: <CAOQ4uxiEVNRbHWg=GXc7LYJm1A1LmDuHPLxYKxuJtbEa+M8f+w@mail.gmail.com>
+Received: from mail-yw0-f194.google.com ([209.85.161.194]:51334 "EHLO
+        mail-yw0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752238AbdJRN4x (ORCPT
+        <rfc822;linux-unionfs@vger.kernel.org>);
+        Wed, 18 Oct 2017 09:56:53 -0400
+Received: by mail-yw0-f194.google.com with SMTP id k3so587718ywk.8
+        for <linux-unionfs@vger.kernel.org>; Wed, 18 Oct 2017 06:56:53 -0700 (PDT)
+In-Reply-To: <20171018125515.GB3445@redhat.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Amir Goldstein <amir73il@gmail.com>
+To: Vivek Goyal <vgoyal@redhat.com>
 Cc: overlayfs <linux-unionfs@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>
 
-On Wed, Oct 18, 2017 at 08:06:19AM +0300, Amir Goldstein wrote:
-> On Wed, Oct 18, 2017 at 12:05 AM, Vivek Goyal <vgoyal@redhat.com> wrote:
-> > During lookup, check for presence of OVL_XATTR_METACOPY and if present,
-> > set OVL_METACOPY bit in flags.
-> >
-> > Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
-> > ---
-> >  fs/overlayfs/namei.c | 40 ++++++++++++++++++++++++++++++++++++++++
-> >  1 file changed, 40 insertions(+)
-> >
-> > diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
-> > index 88ff1daeb3d7..d32da041f4bf 100644
-> > --- a/fs/overlayfs/namei.c
-> > +++ b/fs/overlayfs/namei.c
-> > @@ -26,6 +26,24 @@ struct ovl_lookup_data {
-> >         char *redirect;
-> >  };
-> >
-> > +/* err < 0, 0 if no metacopy xattr, 1 if metacopy xattr found */
-> > +static int ovl_check_metacopy(struct dentry *dentry)
-> > +{
-> > +       int res;
-> > +
-> > +       res = vfs_getxattr(dentry, OVL_XATTR_METACOPY, NULL, 0);
-> > +       if (res < 0) {
-> > +               if (res == -ENODATA || res == -EOPNOTSUPP)
-> > +                       return 0;
-> > +               goto out;
-> > +       }
-> > +
-> > +       return 1;
-> > +out:
-> > +       pr_warn_ratelimited("overlayfs: failed to get metacopy (%i)\n", res);
-> > +       return res;
-> > +}
-> > +
-> >  static int ovl_check_redirect(struct dentry *dentry, struct ovl_lookup_data *d,
-> >                               size_t prelen, const char *post)
-> >  {
-> > @@ -594,6 +612,7 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
-> >         struct dentry *this;
-> >         unsigned int i;
-> >         int err;
-> > +       bool metacopy = false;
-> >         struct ovl_lookup_data d = {
-> >                 .name = dentry->d_name,
-> >                 .is_dir = false,
-> > @@ -634,6 +653,12 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
-> >                                                roe->numlower, &stack, &ctr);
-> >                         if (err)
-> >                                 goto out;
-> > +
-> > +                       err = ovl_check_metacopy(upperdentry);
-> > +                       if (err < 0)
-> > +                               goto out;
-> > +                       if (err == 1)
-> > +                               metacopy = true;
-> 
-> Miklos seems to prefer
->   metacopy = err;
->   if (err < 0)
->     goto out;
-> 
-> Not sure if it is just coding style or for better branch prediction code.
+On Wed, Oct 18, 2017 at 3:55 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
+> On Wed, Oct 18, 2017 at 07:09:37AM +0300, Amir Goldstein wrote:
+>> On Wed, Oct 18, 2017 at 12:05 AM, Vivek Goyal <vgoyal@redhat.com> wrote:
+>> > Right now my understanding is that origin xattr is created for all copied
+>> > up files if index=on. And if index=off, then we create it for all type
+>> > of files except hardlinks (nlink != 1).
+>> >
+>> > With metadata only copy up, I will still require origin xattr to copy up
+>> > data later, so create it even for hardlinks even with index=off. I am
+>> > hoping it does not break anything because we do OVL_INDEX test before
+>> > using inode number of origin.
+>>
+>> I still have a nudging buzz that loosing the information about this upper
+>> being a broken hardlink may come back to bite us some time, but can't
+>> put my finger on how.
+>
+> Hi Amir,
+>
+> Can't we do stat() on ORIGIN and check nlink to figure out if it is a broken
+> hard link or not. (If it ever becomes a problem in future). IOW, we still
+> have a way to figure out if this is broken hard link or not. Just that
+> it involves extra step of doing stat() and its not the presence/absense
+> of ORIGIN.
+>
+>>
+>> To reduce the level of that buzz, I suggest to set origin for broken hardlink
+>> only when doing metacopy and then break the origin association when
+>> removing metacopy xattr.
+>
+> While removing metacopy xattr, I will not have any idea whether it is
+> broken hard link or not. I guess I will have to use above trick and do
+> stat() on ORIGIN and detect broken hard links.
+>
+> I feel really odd about special casing this broken hard link case and
+> setting and clearing ORIGIN with metacopy flags. It makes code
+> twisted and complicated.
+>
+> Given stat() should allow us to figure out if something is broken hard
+> link or not, does it make you feel any better about it.
 
-Ok, will change.
+I understand your position about this.
+Since I cannot think of a concrete use case where keeping ORIGIN
+would hurt us, I'll withdraw my comment.
 
-> 
-> 
-> >                 }
-> >
-> >                 if (d.redirect) {
-> > @@ -719,6 +744,19 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
-> >                 OVL_I(inode)->redirect = upperredirect;
-> >                 if (index)
-> >                         ovl_set_flag(OVL_INDEX, inode);
-> > +
-> > +               if (metacopy) {
-> > +                       /*
-> > +                        * Found an upper with metacopy set but at the same
-> > +                        * time there is no lower dentry. Something is not
-> > +                        * right.
-> > +                        */
-> > +                       if (!ctr) {
-> 
-> Please move this test up right after ovl_check_metacopy()
-> There is no reason to wait as ctr is not going to grow for non-dir after
-> that point.
-
-Makes sense. Will do.
-
-> 
-> > +                               err = -ESTALE;
-> > +                               goto out_put_inode;
-> > +                       }
-> > +                       ovl_set_flag(OVL_METACOPY, inode);
-> > +               }
-> >         }
-> >
-> >         revert_creds(old_cred);
-> > @@ -729,6 +767,8 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
-> >
-> >         return NULL;
-> >
-> > +out_put_inode:
-> > +       iput(inode);
-> 
-> And than new goto label becomes obsolete
-
-Sounds good.
-
-Vivek
-
-> 
-> >  out_free_oe:
-> >         dentry->d_fsdata = NULL;
-> >         kfree(oe);
-> > --
-> > 2.13.5
-> >
+>
+>>
+>> In any case, this patch needs to update the comment above setting
+>> origin xattr that claims to break the association with broken hardlink.
+>
+> Ok, Will do.
+>
+> Vivek
+>>
+>> >
+>> > Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
+>> > ---
+>> >  fs/overlayfs/copy_up.c | 4 +---
+>> >  1 file changed, 1 insertion(+), 3 deletions(-)
+>> >
+>> > diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
+>> > index c441f9387a1b..0a6294ea64d5 100644
+>> > --- a/fs/overlayfs/copy_up.c
+>> > +++ b/fs/overlayfs/copy_up.c
+>> > @@ -538,9 +538,6 @@ static int ovl_do_copy_up(struct ovl_copy_up_ctx *c)
+>> >             c->stat.nlink > 1)
+>> >                 indexed = true;
+>> >
+>> > -       if (S_ISDIR(c->stat.mode) || c->stat.nlink == 1 || indexed)
+>> > -               c->origin = true;
+>> > -
+>> >         if (indexed) {
+>> >                 c->destdir = ovl_indexdir(c->dentry->d_sb);
+>> >                 err = ovl_get_index_name(c->lowerpath.dentry, &c->destname);
+>> > @@ -596,6 +593,7 @@ static int ovl_copy_up_one(struct dentry *parent, struct dentry *dentry,
+>> >                 .parent = parent,
+>> >                 .dentry = dentry,
+>> >                 .workdir = ovl_workdir(dentry),
+>> > +               .origin = true,
+>> >         };
+>> >
+>> >         if (WARN_ON(!ctx.workdir))
+>> > --
+>> > 2.13.5
+>> >
