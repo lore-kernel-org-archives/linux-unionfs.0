@@ -1,66 +1,141 @@
 From: Vivek Goyal <vgoyal@redhat.com>
-Subject: Re: [PATCH 07/11] ovl: Fix ovl_getattr() to get number of blocks
- from lower
-Date: Wed, 18 Oct 2017 09:39:00 -0400
-Message-ID: <20171018133900.GE3445@redhat.com>
+Subject: Re: [PATCH 08/11] ovl: Set OVL_METACOPY flag during ovl_lookup()
+Date: Wed, 18 Oct 2017 09:53:27 -0400
+Message-ID: <20171018135327.GF3445@redhat.com>
 References: <1508274358-17456-1-git-send-email-vgoyal@redhat.com>
- <1508274358-17456-8-git-send-email-vgoyal@redhat.com>
- <CAOQ4uxi3g8KSvZ5rb+Guuwq-FwHJaCM_6+Gac+wArHHc+5StyA@mail.gmail.com>
+ <1508274358-17456-9-git-send-email-vgoyal@redhat.com>
+ <CAOQ4uxiEVNRbHWg=GXc7LYJm1A1LmDuHPLxYKxuJtbEa+M8f+w@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:43044 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:41234 "EHLO mx1.redhat.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752563AbdJRNjB (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 18 Oct 2017 09:39:01 -0400
+        id S1752078AbdJRNx2 (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Wed, 18 Oct 2017 09:53:28 -0400
 Content-Disposition: inline
-In-Reply-To: <CAOQ4uxi3g8KSvZ5rb+Guuwq-FwHJaCM_6+Gac+wArHHc+5StyA@mail.gmail.com>
+In-Reply-To: <CAOQ4uxiEVNRbHWg=GXc7LYJm1A1LmDuHPLxYKxuJtbEa+M8f+w@mail.gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: Amir Goldstein <amir73il@gmail.com>
 Cc: overlayfs <linux-unionfs@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>
 
-On Wed, Oct 18, 2017 at 08:01:59AM +0300, Amir Goldstein wrote:
+On Wed, Oct 18, 2017 at 08:06:19AM +0300, Amir Goldstein wrote:
 > On Wed, Oct 18, 2017 at 12:05 AM, Vivek Goyal <vgoyal@redhat.com> wrote:
-> > If an inode has been copied up metadata only, then we need to query the
-> > number of blocks from lower and fill up the stat->st_blocks.
+> > During lookup, check for presence of OVL_XATTR_METACOPY and if present,
+> > set OVL_METACOPY bit in flags.
 > >
 > > Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
 > > ---
-> >  fs/overlayfs/inode.c | 9 +++++++++
-> >  1 file changed, 9 insertions(+)
+> >  fs/overlayfs/namei.c | 40 ++++++++++++++++++++++++++++++++++++++++
+> >  1 file changed, 40 insertions(+)
 > >
-> > diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
-> > index 1b4b42c45ed5..ad30edc0f425 100644
-> > --- a/fs/overlayfs/inode.c
-> > +++ b/fs/overlayfs/inode.c
-> > @@ -140,6 +140,15 @@ int ovl_getattr(const struct path *path, struct kstat *stat,
-> >         if (!is_dir && ovl_test_flag(OVL_INDEX, d_inode(dentry)))
-> >                 stat->nlink = dentry->d_inode->i_nlink;
+> > diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
+> > index 88ff1daeb3d7..d32da041f4bf 100644
+> > --- a/fs/overlayfs/namei.c
+> > +++ b/fs/overlayfs/namei.c
+> > @@ -26,6 +26,24 @@ struct ovl_lookup_data {
+> >         char *redirect;
+> >  };
 > >
-> > +       if (ovl_test_flag(OVL_METACOPY, d_inode(dentry))) {
+> > +/* err < 0, 0 if no metacopy xattr, 1 if metacopy xattr found */
+> > +static int ovl_check_metacopy(struct dentry *dentry)
+> > +{
+> > +       int res;
+> > +
+> > +       res = vfs_getxattr(dentry, OVL_XATTR_METACOPY, NULL, 0);
+> > +       if (res < 0) {
+> > +               if (res == -ENODATA || res == -EOPNOTSUPP)
+> > +                       return 0;
+> > +               goto out;
+> > +       }
+> > +
+> > +       return 1;
+> > +out:
+> > +       pr_warn_ratelimited("overlayfs: failed to get metacopy (%i)\n", res);
+> > +       return res;
+> > +}
+> > +
+> >  static int ovl_check_redirect(struct dentry *dentry, struct ovl_lookup_data *d,
+> >                               size_t prelen, const char *post)
+> >  {
+> > @@ -594,6 +612,7 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
+> >         struct dentry *this;
+> >         unsigned int i;
+> >         int err;
+> > +       bool metacopy = false;
+> >         struct ovl_lookup_data d = {
+> >                 .name = dentry->d_name,
+> >                 .is_dir = false,
+> > @@ -634,6 +653,12 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
+> >                                                roe->numlower, &stack, &ctr);
+> >                         if (err)
+> >                                 goto out;
+> > +
+> > +                       err = ovl_check_metacopy(upperdentry);
+> > +                       if (err < 0)
+> > +                               goto out;
+> > +                       if (err == 1)
+> > +                               metacopy = true;
 > 
-> && !WARN_ON(!OVL_TYPE_ORIGIN(type))
+> Miklos seems to prefer
+>   metacopy = err;
+>   if (err < 0)
+>     goto out;
 > 
-> For now, until this code gets merged into the if (OVL_TYPE_ORIGIN(type))
-> code above
+> Not sure if it is just coding style or for better branch prediction code.
 
-Ok, will add this.
+Ok, will change.
+
+> 
+> 
+> >                 }
+> >
+> >                 if (d.redirect) {
+> > @@ -719,6 +744,19 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
+> >                 OVL_I(inode)->redirect = upperredirect;
+> >                 if (index)
+> >                         ovl_set_flag(OVL_INDEX, inode);
+> > +
+> > +               if (metacopy) {
+> > +                       /*
+> > +                        * Found an upper with metacopy set but at the same
+> > +                        * time there is no lower dentry. Something is not
+> > +                        * right.
+> > +                        */
+> > +                       if (!ctr) {
+> 
+> Please move this test up right after ovl_check_metacopy()
+> There is no reason to wait as ctr is not going to grow for non-dir after
+> that point.
+
+Makes sense. Will do.
+
+> 
+> > +                               err = -ESTALE;
+> > +                               goto out_put_inode;
+> > +                       }
+> > +                       ovl_set_flag(OVL_METACOPY, inode);
+> > +               }
+> >         }
+> >
+> >         revert_creds(old_cred);
+> > @@ -729,6 +767,8 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
+> >
+> >         return NULL;
+> >
+> > +out_put_inode:
+> > +       iput(inode);
+> 
+> And than new goto label becomes obsolete
+
+Sounds good.
 
 Vivek
 
 > 
-> > +               struct kstat lowerstat;
-> > +
-> > +               ovl_path_lower(dentry, &realpath);
-> > +               err = vfs_getattr(&realpath, &lowerstat, STATX_BLOCKS, flags);
-> > +               if (err)
-> > +                       goto out;
-> > +               stat->blocks = lowerstat.blocks;
-> > +       }
-> >  out:
-> >         revert_creds(old_cred);
-> >
+> >  out_free_oe:
+> >         dentry->d_fsdata = NULL;
+> >         kfree(oe);
 > > --
 > > 2.13.5
 > >
