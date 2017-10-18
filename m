@@ -1,69 +1,96 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [PATCH 02/11] ovl: ovl_check_setxattr() get rid of redundant
- -EOPNOTSUPP check
-Date: Wed, 18 Oct 2017 07:11:30 +0300
-Message-ID: <CAOQ4uxj49rxXarkeUhs27LH2_UoCbiYg_jPsHSHQ9hyG96FfZA@mail.gmail.com>
-References: <1508274358-17456-1-git-send-email-vgoyal@redhat.com> <1508274358-17456-3-git-send-email-vgoyal@redhat.com>
+Subject: Re: [PATCH 03/11] ovl: During copy up, first copy up metadata and
+ then data
+Date: Wed, 18 Oct 2017 07:13:37 +0300
+Message-ID: <CAOQ4uxheY+6QkSLn+3+E5V=iyvesu-dL739Urzy1vK3OG0y4Ow@mail.gmail.com>
+References: <1508274358-17456-1-git-send-email-vgoyal@redhat.com> <1508274358-17456-4-git-send-email-vgoyal@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-qt0-f193.google.com ([209.85.216.193]:49612 "EHLO
-        mail-qt0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754271AbdJRELc (ORCPT
+Received: from mail-qt0-f196.google.com ([209.85.216.196]:50224 "EHLO
+        mail-qt0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753499AbdJRENi (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 18 Oct 2017 00:11:32 -0400
-Received: by mail-qt0-f193.google.com with SMTP id k31so8176532qta.6
-        for <linux-unionfs@vger.kernel.org>; Tue, 17 Oct 2017 21:11:31 -0700 (PDT)
-In-Reply-To: <1508274358-17456-3-git-send-email-vgoyal@redhat.com>
+        Wed, 18 Oct 2017 00:13:38 -0400
+Received: by mail-qt0-f196.google.com with SMTP id d9so1391839qtd.7
+        for <linux-unionfs@vger.kernel.org>; Tue, 17 Oct 2017 21:13:38 -0700 (PDT)
+In-Reply-To: <1508274358-17456-4-git-send-email-vgoyal@redhat.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: Vivek Goyal <vgoyal@redhat.com>
 Cc: overlayfs <linux-unionfs@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>
 
 On Wed, Oct 18, 2017 at 12:05 AM, Vivek Goyal <vgoyal@redhat.com> wrote:
-> At mount time we check if upper supports xattr or not and set ofs->noxattr
-> field accordingly. But in ovl_check_setxattr() still seems to have logic
-> which expects that ovl_do_setxattr() can return -EOPNOTSUPP. Not sure when
-> and how can we hit this code. Feels redundant to me. So I am removing
-> this code.
+> This just helps with later patches where after copying up metadata, we
+> skip data copying step, if needed.
+
+This patch looks fine, but I must be missing how it helps with later patches.
+If it doesn't help please remove it.
+
 >
 > Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
-
-Looks good
-
-Reviewed-by: Amir Goldstein <amir73il@gmail.com>
-
 > ---
->  fs/overlayfs/util.c | 11 +----------
->  1 file changed, 1 insertion(+), 10 deletions(-)
+>  fs/overlayfs/copy_up.c | 34 +++++++++++++++++-----------------
+>  1 file changed, 17 insertions(+), 17 deletions(-)
 >
-> diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
-> index b9b239fa5cfd..a4ce1c9944f0 100644
-> --- a/fs/overlayfs/util.c
-> +++ b/fs/overlayfs/util.c
-> @@ -348,21 +348,12 @@ int ovl_check_setxattr(struct dentry *dentry, struct dentry *upperdentry,
->                        const char *name, const void *value, size_t size,
->                        int xerr)
+> diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
+> index 0a6294ea64d5..4c0acb2a23ea 100644
+> --- a/fs/overlayfs/copy_up.c
+> +++ b/fs/overlayfs/copy_up.c
+> @@ -445,6 +445,23 @@ static int ovl_copy_up_inode(struct ovl_copy_up_ctx *c, struct dentry *temp)
 >  {
-> -       int err;
->         struct ovl_fs *ofs = dentry->d_sb->s_fs_info;
+>         int err;
 >
->         if (ofs->noxattr)
->                 return xerr;
+> +       err = ovl_copy_xattr(c->lowerpath.dentry, temp);
+> +       if (err)
+> +               return err;
+> +
+> +       /*
+> +        * Store identifier of lower inode in upper inode xattr to
+> +        * allow lookup of the copy up origin inode.
+> +        *
+> +        * Don't set origin when we are breaking the association with a lower
+> +        * hard link.
+> +        */
+> +       if (c->origin) {
+> +               err = ovl_set_origin(c->dentry, c->lowerpath.dentry, temp);
+> +               if (err)
+> +                       return err;
+> +       }
+> +
+>         if (S_ISREG(c->stat.mode)) {
+>                 struct path upperpath;
 >
-> -       err = ovl_do_setxattr(upperdentry, name, value, size, 0);
+> @@ -457,29 +474,12 @@ static int ovl_copy_up_inode(struct ovl_copy_up_ctx *c, struct dentry *temp)
+>                         return err;
+>         }
+>
+> -       err = ovl_copy_xattr(c->lowerpath.dentry, temp);
+> -       if (err)
+> -               return err;
 > -
-> -       if (err == -EOPNOTSUPP) {
-> -               pr_warn("overlayfs: cannot set %s xattr on upper\n", name);
-> -               ofs->noxattr = true;
-> -               return xerr;
+>         inode_lock(temp->d_inode);
+>         err = ovl_set_attr(temp, &c->stat);
+>         inode_unlock(temp->d_inode);
+>         if (err)
+>                 return err;
+>
+> -       /*
+> -        * Store identifier of lower inode in upper inode xattr to
+> -        * allow lookup of the copy up origin inode.
+> -        *
+> -        * Don't set origin when we are breaking the association with a lower
+> -        * hard link.
+> -        */
+> -       if (c->origin) {
+> -               err = ovl_set_origin(c->dentry, c->lowerpath.dentry, temp);
+> -               if (err)
+> -                       return err;
 > -       }
 > -
-> -       return err;
-> +       return ovl_do_setxattr(upperdentry, name, value, size, 0);
+>         return 0;
 >  }
 >
->  int ovl_set_impure(struct dentry *dentry, struct dentry *upperdentry)
 > --
 > 2.13.5
 >
