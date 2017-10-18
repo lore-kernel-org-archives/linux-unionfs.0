@@ -1,70 +1,65 @@
-From: Amir Goldstein <amir73il@gmail.com>
+From: Vivek Goyal <vgoyal@redhat.com>
 Subject: Re: [PATCH 04/11] ovl: Provide a mount option metacopy=on/off for
  metadata copyup
-Date: Wed, 18 Oct 2017 17:09:08 +0300
-Message-ID: <CAOQ4uxiLk-psMLGdBFNBBQf3cnHm0Z7yHL3ZoaN+oCVZn_wqWg@mail.gmail.com>
+Date: Wed, 18 Oct 2017 10:10:59 -0400
+Message-ID: <20171018141059.GG3445@redhat.com>
 References: <1508274358-17456-1-git-send-email-vgoyal@redhat.com>
- <1508274358-17456-5-git-send-email-vgoyal@redhat.com> <CAOQ4uximnQT43BK3Ut82Vs0FMDi03cxAkyDK4LthkMiXHii-HQ@mail.gmail.com>
- <20171018130343.GC3445@redhat.com>
+ <1508274358-17456-5-git-send-email-vgoyal@redhat.com>
+ <CAOQ4uximnQT43BK3Ut82Vs0FMDi03cxAkyDK4LthkMiXHii-HQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-yw0-f194.google.com ([209.85.161.194]:54727 "EHLO
-        mail-yw0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751824AbdJROJJ (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 18 Oct 2017 10:09:09 -0400
-Received: by mail-yw0-f194.google.com with SMTP id w5so627473ywg.11
-        for <linux-unionfs@vger.kernel.org>; Wed, 18 Oct 2017 07:09:09 -0700 (PDT)
-In-Reply-To: <20171018130343.GC3445@redhat.com>
+Received: from mx1.redhat.com ([209.132.183.28]:50892 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750881AbdJROLA (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Wed, 18 Oct 2017 10:11:00 -0400
+Content-Disposition: inline
+In-Reply-To: <CAOQ4uximnQT43BK3Ut82Vs0FMDi03cxAkyDK4LthkMiXHii-HQ@mail.gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Vivek Goyal <vgoyal@redhat.com>
+To: Amir Goldstein <amir73il@gmail.com>
 Cc: overlayfs <linux-unionfs@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>
 
-On Wed, Oct 18, 2017 at 4:03 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
-> On Wed, Oct 18, 2017 at 07:31:51AM +0300, Amir Goldstein wrote:
->> On Wed, Oct 18, 2017 at 12:05 AM, Vivek Goyal <vgoyal@redhat.com> wrote:
->> > By default metadata only copy up is disabled. Provide a mount option so
->> > that users can choose one way or other.
->> >
->> > Also provide a kernel config and module option to enable/disable
->> > metacopy feature.
->> >
->> > Like index feature, when overlay is mounted, on root upper directory we
->> > set ORIGIN which points to lower. And at later mount time it is verified
->> > again. This hopes to get the configuration right. But this does only so
->> > much as we don't verify all the lowers. So it is possible that a lower is
->> > missing and later data copy up fails.
->>
->> Like index feature, please error mount if ovl_inuse_trylock fails.
->> As you know, this error is only conditional because of backward
->> compatibility, so any new opt-in feature should enforce it.
->
-> Hi Amir,
->
-> I am not so sure about it. Avoiding leaking any mount point is really
-> really hard. And I don't think current container runtime have been
-> modified to make it fool proof.
->
-> IMHO, if we really want to enforce something like this, then we need
-> to have some sort of capability to find existing superblock and reuse it.
-> (Something like what happens with block devices).
->
+On Wed, Oct 18, 2017 at 07:31:51AM +0300, Amir Goldstein wrote:
 
-That sounds like a good idea. Any chance you can make it happen?
-Keep in mind that would be a change of behavior, so users will have to
-opt-in for it as well.
+[..]
+> > @@ -644,9 +664,16 @@ static int ovl_lower_dir(const char *name, struct path *path,
+> >          * The inodes index feature needs to encode and decode file
+> >          * handles, so it requires that all layers support them.
+> >          */
+> > -       if (ofs->config.index && !ovl_can_decode_fh(path->dentry->d_sb)) {
+> > +       if ((ofs->config.index || ofs->config.metacopy) &&
+> > +            !ovl_can_decode_fh(path->dentry->d_sb)) {
+> > +               if (ofs->config.index)
+> > +                       pr_warn("overlayfs: fs on '%s' does not support file handles, falling back to index=off.\n", name);
+> > +
+> > +               if (ofs->config.metacopy)
+> > +                       pr_warn("overlayfs: fs on '%s' does not support file handles, falling back to metacopy=off.\n", name);
+> > +
+> 
+> In my verify_dir patches I used the following more compact warning
+> style instead of granular warnings:
+> 
+>     pr_warn("overlayfs: fs on '%s' does not support file handles,
+> falling back to index=off,metacopy=off.\n", name);
 
-> I am afraid that if I start enforcing this, then this feature will not
-> be used at all because software has not been hardended enough to avoid
-> mount point leaks completely.
->
+Ok, I was not sure about it. I am fine with above style too.
 
-I find that approach a bit dodgy.
-If not for enjoying new overlayfs feature, why would container runtime
-developers ever bother to fix mount leaks.
+BTW, I have a question. Current code seems to ensure that upper/work
+supports file handles.
 
-Anyway, that is up to Miklos to decide.
+	/* Check if upper/work fs supports file handles */
+	if (ufs->config.index &&
+		!ovl_can_decode_fh(ufs->workdir->d_sb)) {
+		ufs->config.index = false;
+		pr_warn("overlayfs: upper fs does not support file handles, falling back to index=off.\n");
+	}
 
-Amir.
+I am wondering why that's the case and do I need it for metacopy feature
+also. I thought that file handle support requirement was only on lower
+dirs because they are the one who will export the origin file handle. All
+upper has to do it that save this file handles in an xattr.
+
+What am I missing?
+
+Vivek
