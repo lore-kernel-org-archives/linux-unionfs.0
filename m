@@ -1,94 +1,79 @@
-From: Vivek Goyal <vgoyal@redhat.com>
+From: Amir Goldstein <amir73il@gmail.com>
 Subject: Re: [PATCH 04/11] ovl: Provide a mount option metacopy=on/off for
  metadata copyup
-Date: Wed, 18 Oct 2017 10:26:09 -0400
-Message-ID: <20171018142609.GH3445@redhat.com>
+Date: Wed, 18 Oct 2017 17:26:30 +0300
+Message-ID: <CAOQ4uxh+0ASrrL_PTTvgmfvo0wtHp_ZvVHHPpyd=uwYDXjPyJQ@mail.gmail.com>
 References: <1508274358-17456-1-git-send-email-vgoyal@redhat.com>
- <1508274358-17456-5-git-send-email-vgoyal@redhat.com>
- <CAOQ4uximnQT43BK3Ut82Vs0FMDi03cxAkyDK4LthkMiXHii-HQ@mail.gmail.com>
- <20171018130343.GC3445@redhat.com>
- <CAOQ4uxiLk-psMLGdBFNBBQf3cnHm0Z7yHL3ZoaN+oCVZn_wqWg@mail.gmail.com>
+ <1508274358-17456-5-git-send-email-vgoyal@redhat.com> <CAOQ4uximnQT43BK3Ut82Vs0FMDi03cxAkyDK4LthkMiXHii-HQ@mail.gmail.com>
+ <20171018141059.GG3445@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:39558 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752252AbdJRO0K (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 18 Oct 2017 10:26:10 -0400
-Content-Disposition: inline
-In-Reply-To: <CAOQ4uxiLk-psMLGdBFNBBQf3cnHm0Z7yHL3ZoaN+oCVZn_wqWg@mail.gmail.com>
+Received: from mail-yw0-f195.google.com ([209.85.161.195]:57006 "EHLO
+        mail-yw0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751351AbdJRO0b (ORCPT
+        <rfc822;linux-unionfs@vger.kernel.org>);
+        Wed, 18 Oct 2017 10:26:31 -0400
+Received: by mail-yw0-f195.google.com with SMTP id l32so678682ywh.13
+        for <linux-unionfs@vger.kernel.org>; Wed, 18 Oct 2017 07:26:31 -0700 (PDT)
+In-Reply-To: <20171018141059.GG3445@redhat.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Amir Goldstein <amir73il@gmail.com>
+To: Vivek Goyal <vgoyal@redhat.com>
 Cc: overlayfs <linux-unionfs@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>
 
-On Wed, Oct 18, 2017 at 05:09:08PM +0300, Amir Goldstein wrote:
-> On Wed, Oct 18, 2017 at 4:03 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
-> > On Wed, Oct 18, 2017 at 07:31:51AM +0300, Amir Goldstein wrote:
-> >> On Wed, Oct 18, 2017 at 12:05 AM, Vivek Goyal <vgoyal@redhat.com> wrote:
-> >> > By default metadata only copy up is disabled. Provide a mount option so
-> >> > that users can choose one way or other.
-> >> >
-> >> > Also provide a kernel config and module option to enable/disable
-> >> > metacopy feature.
-> >> >
-> >> > Like index feature, when overlay is mounted, on root upper directory we
-> >> > set ORIGIN which points to lower. And at later mount time it is verified
-> >> > again. This hopes to get the configuration right. But this does only so
-> >> > much as we don't verify all the lowers. So it is possible that a lower is
-> >> > missing and later data copy up fails.
-> >>
-> >> Like index feature, please error mount if ovl_inuse_trylock fails.
-> >> As you know, this error is only conditional because of backward
-> >> compatibility, so any new opt-in feature should enforce it.
-> >
-> > Hi Amir,
-> >
-> > I am not so sure about it. Avoiding leaking any mount point is really
-> > really hard. And I don't think current container runtime have been
-> > modified to make it fool proof.
-> >
-> > IMHO, if we really want to enforce something like this, then we need
-> > to have some sort of capability to find existing superblock and reuse it.
-> > (Something like what happens with block devices).
-> >
-> 
-> That sounds like a good idea. Any chance you can make it happen?
-> Keep in mind that would be a change of behavior, so users will have to
-> opt-in for it as well.
+On Wed, Oct 18, 2017 at 5:10 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
+> On Wed, Oct 18, 2017 at 07:31:51AM +0300, Amir Goldstein wrote:
+>
+> [..]
+>> > @@ -644,9 +664,16 @@ static int ovl_lower_dir(const char *name, struct path *path,
+>> >          * The inodes index feature needs to encode and decode file
+>> >          * handles, so it requires that all layers support them.
+>> >          */
+>> > -       if (ofs->config.index && !ovl_can_decode_fh(path->dentry->d_sb)) {
+>> > +       if ((ofs->config.index || ofs->config.metacopy) &&
+>> > +            !ovl_can_decode_fh(path->dentry->d_sb)) {
+>> > +               if (ofs->config.index)
+>> > +                       pr_warn("overlayfs: fs on '%s' does not support file handles, falling back to index=off.\n", name);
+>> > +
+>> > +               if (ofs->config.metacopy)
+>> > +                       pr_warn("overlayfs: fs on '%s' does not support file handles, falling back to metacopy=off.\n", name);
+>> > +
+>>
+>> In my verify_dir patches I used the following more compact warning
+>> style instead of granular warnings:
+>>
+>>     pr_warn("overlayfs: fs on '%s' does not support file handles,
+>> falling back to index=off,metacopy=off.\n", name);
+>
+> Ok, I was not sure about it. I am fine with above style too.
+>
+> BTW, I have a question. Current code seems to ensure that upper/work
+> supports file handles.
+>
+>         /* Check if upper/work fs supports file handles */
+>         if (ufs->config.index &&
+>                 !ovl_can_decode_fh(ufs->workdir->d_sb)) {
+>                 ufs->config.index = false;
+>                 pr_warn("overlayfs: upper fs does not support file handles, falling back to index=off.\n");
+>         }
+>
+> I am wondering why that's the case and do I need it for metacopy feature
+> also. I thought that file handle support requirement was only on lower
+> dirs because they are the one who will export the origin file handle. All
+> upper has to do it that save this file handles in an xattr.
+>
+> What am I missing?
+>
 
-I will look into it. I have no idea if it is doable and what is needed
-at this point of time.
+There is a concept of an "upper origin" (see is_upper param to
+ovl_verify_origin())
+With current code it is only used to verify upper root is index dir origin
+(i.e. index dir is not reused with a different upper dir)
+This is currently the only reason that upper is required to have file
+handle support.
+But index is meant to serve NFS export and directory index entries (implemented
+with index=all patches) also contain an ORIGIN xattr pointing to upper dir,
+instead of the non-dir hardlink to upper.
 
-> 
-> > I am afraid that if I start enforcing this, then this feature will not
-> > be used at all because software has not been hardended enough to avoid
-> > mount point leaks completely.
-> >
-> 
-> I find that approach a bit dodgy.
-
-It is. But at the same time I am having hard time understanding what's
-wrong with having mount point in two separate mount namespaces. And
-why overlay is putting this additional restriction. 
-
-How can one realiably avoid mount point leaks. For example, say a dameon
-foo is running in init mount namespace and mounts an overlay mount. Now
-systemd starts another service bar and say that service starts with
-MountFlags=private. Now overlay mount point will leak. Now daemon foo 
-stop (it will unmount overlay), and restarts, it will fail to restart
-because it can't mount that overlay anymore (upper/work are busy in 
-mount namespace of bar).
-
-I mean what's wrong with above programming model and how would programmers
-avoid mount point leaks in other mount namespaces. 
-
-Vivek
-
-
-> If not for enjoying new overlayfs feature, why would container runtime
-> developers ever bother to fix mount leaks.
-> 
-> Anyway, that is up to Miklos to decide.
-> 
-> Amir.
+Amir.
