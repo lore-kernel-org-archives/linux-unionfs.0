@@ -1,106 +1,177 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [PATCH 00/14] Overlayfs NFS export support
-Date: Wed, 18 Oct 2017 21:43:48 +0300
-Message-ID: <CAOQ4uxgncoPsQZ8BBhqtDakNFnK0PnwpCssRRt2SFCKUEa+FZQ@mail.gmail.com>
-References: <1508258671-10800-1-git-send-email-amir73il@gmail.com>
+Subject: Re: [PATCH 06/11] ovl: verify directory index entries on mount
+Date: Thu, 19 Oct 2017 13:35:34 +0300
+Message-ID: <CAOQ4uxj2n=9Zdbac4-n-mNrS6xFLGo0-UQdqnYWUa5g0b=jD_w@mail.gmail.com>
+References: <1508256022-10267-1-git-send-email-amir73il@gmail.com> <1508256022-10267-7-git-send-email-amir73il@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-yw0-f193.google.com ([209.85.161.193]:52667 "EHLO
-        mail-yw0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750730AbdJRSnt (ORCPT
+Received: from mail-yw0-f195.google.com ([209.85.161.195]:54324 "EHLO
+        mail-yw0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751112AbdJSKff (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 18 Oct 2017 14:43:49 -0400
-In-Reply-To: <1508258671-10800-1-git-send-email-amir73il@gmail.com>
+        Thu, 19 Oct 2017 06:35:35 -0400
+Received: by mail-yw0-f195.google.com with SMTP id w5so3066113ywg.11
+        for <linux-unionfs@vger.kernel.org>; Thu, 19 Oct 2017 03:35:35 -0700 (PDT)
+In-Reply-To: <1508256022-10267-7-git-send-email-amir73il@gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: Jeff Layton <jlayton@poochiereds.net>, "J . Bruce Fields" <bfields@fieldses.org>, overlayfs <linux-unionfs@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>
+Cc: overlayfs <linux-unionfs@vger.kernel.org>
 
-On Tue, Oct 17, 2017 at 7:44 PM, Amir Goldstein <amir73il@gmail.com> wrote:
-> Miklos,
+On Tue, Oct 17, 2017 at 7:00 PM, Amir Goldstein <amir73il@gmail.com> wrote:
+> Directory index entries should have origin xattr pointing to the
+> real upper dir. Non-dir index entries are hardlinks to the upper
+> real inode. For non-dir index, we can read the copy up origin xattr
+> directly from the index dentry, but for dir index we first need to
+> decode the upper directory.
 >
-> This series implements NFS export support [3] and is based on
-> two prep patch sets [1][2] posted earlier to overlayfs list.
-> NFS export is enabled for overlayfs mount with the 'verify_dir'
-> and 'index=all' mount options.
+> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+> ---
+>  fs/overlayfs/namei.c     | 60 +++++++++++++++++++++++++++++++++---------------
+>  fs/overlayfs/overlayfs.h |  4 ++--
+>  fs/overlayfs/readdir.c   |  2 +-
+>  3 files changed, 45 insertions(+), 21 deletions(-)
 >
-> The current implementation will copy up and index directories when
-> directory file handles are encoded. Those extra copy ups could be
-> avoided in the future.
+> diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
+> index 1afc6d6e99b9..aba57d31d850 100644
+> --- a/fs/overlayfs/namei.c
+> +++ b/fs/overlayfs/namei.c
+> @@ -391,36 +391,45 @@ int ovl_verify_origin(struct dentry *dentry, struct dentry *origin,
+>         goto out;
+>  }
 >
-> The current implementation does NOT support encoding connectable
-> non-dir file handles for all overlay path types, so overlayfs should
-> not be exported with the 'subtree_check' option.
-> I hope this is not a show stopper for merging NFS export support?
+> +/* Get upper dentry from index */
+> +struct dentry *ovl_index_upper(struct dentry *index, struct vfsmount *mnt)
+> +{
+> +       struct path upperpath = { .mnt = mnt };
+> +       struct path *stack = &upperpath;
+> +       unsigned int ctr = 0;
+> +       int err;
+> +
+> +       if (!d_is_dir(index))
+> +               return dget(index);
+> +
+> +       err = ovl_check_origin(index, stack, 1, &stack, &ctr);
+> +       if (!err && !ctr)
+> +               err = -ENODATA;
+> +       if (err)
+> +               return ERR_PTR(err);
+> +
+> +       return upperpath.dentry;
+> +}
+> +
+>  /*
+>   * Verify that an index entry name matches the origin file handle stored in
+>   * OVL_XATTR_ORIGIN and that origin file handle can be decoded to lower path.
+>   * Return 0 on match, -ESTALE on mismatch or stale origin, < 0 on error.
+>   */
+> -int ovl_verify_index(struct dentry *index, struct path *lowerstack,
+> -                    unsigned int numlower)
+> +int ovl_verify_index(struct dentry *index, struct vfsmount *mnt,
+> +                    struct path *lowerstack, unsigned int numlower)
+>  {
+>         struct ovl_fh *fh = NULL;
+>         size_t len;
+>         struct path origin = { };
+>         struct path *stack = &origin;
+>         unsigned int ctr = 0;
+> +       struct dentry *upper = NULL;
+>         int err;
+>
+>         if (!d_inode(index))
+>                 return 0;
+>
+> -       /*
+> -        * Directory index entries are going to be used for looking up
+> -        * redirected upper dirs by lower dir fh when decoding an overlay
+> -        * file handle of a merge dir.  We don't know the verification rules
+> -        * for directory index entries, because they have not been implemented
+> -        * yet, so return EROFS if those entries are found to avoid corrupting
+> -        * an index that was created by a newer kernel.
+> -        */
+> -       err = -EROFS;
+> -       if (d_is_dir(index))
+> -               goto fail;
+> -
+>         err = -EINVAL;
+>         if (index->d_name.len < sizeof(struct ovl_fh)*2)
+>                 goto fail;
+> @@ -446,23 +455,38 @@ int ovl_verify_index(struct dentry *index, struct path *lowerstack,
+>         if (ovl_is_whiteout(index))
+>                 goto out;
+>
+> -       err = ovl_verify_origin_fh(index, fh);
+> +       /*
+> +        * Directory index entries should have origin xattr pointing to the
+> +        * real upper dir. Non-dir index entries are hardlinks to the upper
+> +        * real inode. For non-dir index, we can read the copy up origin xattr
+> +        * directly from the index dentry, but for dir index we first need to
+> +        * decode the upper directory.
+> +        */
+> +       upper = ovl_index_upper(index, mnt);
+> +       if (IS_ERR(upper)) {
+> +               err = PTR_ERR(upper);
+> +               if (err)
+> +                       goto fail;
+> +       }
+> +
+> +       err = ovl_verify_origin_fh(upper, fh);
 
-FYI, I implemented encoding of type OVL_FILEID_WITH_PARENT and
-pushed 2 more patches to branch ovl-nfs-export-v1, so now export with
-'subtree_check' should work fine.
+FYI, dput(upper) here instead of out:
+pushed fixup patch to ovl-nfs-export-wip-v1
 
-I used a test patch (at the tip of ovl-nfs-export-v1) to encode connectable
-file handles from name_to_handle_at() to unit test this code with my xfstests.
-
+>         if (err)
+>                 goto fail;
 >
-> You'll notice that the series start by implementing naiive support
-> for pure upper files export and later on, replaces the implementation
-> of some of the operations. This may seem strange, but I found it
-> convenient to progress slowly between testable mile stones and I find
-> the series easier to review this way. Let me know if you want me to
-> change the way that this series is organized to get rid of code that
-> is later removed.
-
-The last two "non-pure-upper connectable file handles" patches
-remove even more of the pure-upper specific implementation code,
-so I should definitely rework the series for v2 to discard the temporary
-pure upper implementation patches.
-
+> -       err = ovl_check_origin(index, lowerstack, numlower, &stack, &ctr);
+> +       err = ovl_check_origin(upper, lowerstack, numlower, &stack, &ctr);
+>         if (!err && !ctr)
+>                 err = -ESTALE;
+>         if (err)
+>                 goto fail;
 >
-> To unit test overlayfs file handles, I enhanced xfstest open_by_handle
-> test utility to encode/decode directories and check several other cases
-> that were not covered by the original xfstest test. On my xfstests NFS
-> export branch [4], there are two generic tests and one overlayfs specific
-> test on the 'exportfs' group.
+>         /* Check if index is orphan and don't warn before cleaning it */
+> -       if (d_inode(index)->i_nlink == 1 &&
+> +       if (!d_is_dir(index) && d_inode(index)->i_nlink == 1 &&
+>             ovl_get_nlink(index, origin.dentry, 0) == 0)
+>                 err = -ENOENT;
 >
-> I also ran the NFSTest nfstest_posix group on an exported overlayfs
-> mount, but that test only creates pure upper files in overlay upper dir,
-> so it is not much of a stress to the implementation.
+> -       dput(origin.dentry);
+>  out:
+> +       dput(origin.dentry);
+> +       dput(upper);
+>         kfree(fh);
+>         return err;
 >
-> Amir.
->
-> [1] https://github.com/amir73il/linux/commits/ovl-verify-dir
-> [2] https://github.com/amir73il/linux/commits/ovl-index-all
-> [3] https://github.com/amir73il/linux/commits/ovl-nfs-export
-> [4] https://github.com/amir73il/xfstests/commits/ovl-nfs-export
->
-> Amir Goldstein (14):
->   ovl: hash all overlay inodes for NFS export
->   ovl: grab i_count reference of lower inode
->   ovl: use d_splice_alias() in place of d_add() in lookup
->   ovl: copy up of disconnected dentries
->   ovl: encode/decode pure-upper non-connectable file handles
->   ovl: encode pure-upper connectable file handles
->   ovl: decode pure-upper connectable file handles
->   ovl: encode/decode struct ovl_fh format file handles
->   ovl: encode non-pure-upper non-connectable file handles
->   ovl: obtain a non-pure-upper disconnected dentry
->   ovl: decode non-pure-upper non-connectable file handles
->   ovl: reconnect non-pure-upper dir file handles
->   ovl: wire up NFS export support
->   ovl: document NFS export
->
->  Documentation/filesystems/overlayfs.txt |  61 +++++
->  fs/overlayfs/Makefile                   |   3 +-
->  fs/overlayfs/copy_up.c                  |  74 ++++--
->  fs/overlayfs/export.c                   | 433 ++++++++++++++++++++++++++++++++
->  fs/overlayfs/inode.c                    |  23 +-
->  fs/overlayfs/namei.c                    |  96 ++++---
->  fs/overlayfs/overlayfs.h                |  32 ++-
->  fs/overlayfs/super.c                    |  25 ++
->  fs/overlayfs/util.c                     |  13 +-
->  9 files changed, 678 insertions(+), 82 deletions(-)
->  create mode 100644 fs/overlayfs/export.c
->
+> diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
+> index 35f5452e61e0..e4caad7bae19 100644
+> --- a/fs/overlayfs/overlayfs.h
+> +++ b/fs/overlayfs/overlayfs.h
+> @@ -263,8 +263,8 @@ static inline bool ovl_is_impuredir(struct dentry *dentry)
+>  /* namei.c */
+>  int ovl_verify_origin(struct dentry *dentry, struct dentry *origin,
+>                       bool is_upper, bool set);
+> -int ovl_verify_index(struct dentry *index, struct path *lowerstack,
+> -                    unsigned int numlower);
+> +int ovl_verify_index(struct dentry *index, struct vfsmount *mnt,
+> +                    struct path *lowerstack, unsigned int numlower);
+>  int ovl_get_index_name(struct dentry *origin, struct qstr *name);
+>  int ovl_path_next(int idx, struct dentry *dentry, struct path *path, int *idxp);
+>  struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry, unsigned int flags);
+> diff --git a/fs/overlayfs/readdir.c b/fs/overlayfs/readdir.c
+> index ba44546ad1ed..479ce47ba411 100644
+> --- a/fs/overlayfs/readdir.c
+> +++ b/fs/overlayfs/readdir.c
+> @@ -1055,7 +1055,7 @@ int ovl_indexdir_cleanup(struct dentry *dentry, struct vfsmount *mnt,
+>                         index = NULL;
+>                         break;
+>                 }
+> -               err = ovl_verify_index(index, lowerstack, numlower);
+> +               err = ovl_verify_index(index, mnt, lowerstack, numlower);
+>                 if (err) {
+>                         if (err == -EROFS)
+>                                 break;
 > --
 > 2.7.4
 >
