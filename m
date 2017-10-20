@@ -1,43 +1,56 @@
-From: Miklos Szeredi <miklos@szeredi.hu>
-Subject: Re: [PATCH] ovl: handle ENOENT on index lookup
-Date: Fri, 20 Oct 2017 15:23:59 +0200
-Message-ID: <CAJfpegusagcsC8EM46fR9E6B0OOCsqhq==zisPioLxX91XUKbg@mail.gmail.com>
-References: <1508497270-27971-1-git-send-email-amir73il@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+From: Amir Goldstein <amir73il@gmail.com>
+Subject: [PATCH v2] ovl: handle ENOENT on index lookup
+Date: Fri, 20 Oct 2017 17:19:06 +0300
+Message-ID: <1508509146-9697-1-git-send-email-amir73il@gmail.com>
 Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <1508497270-27971-1-git-send-email-amir73il@gmail.com>
 Sender: stable-owner@vger.kernel.org
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>, "# v4 . 13" <stable@vger.kernel.org>
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: linux-unionfs@vger.kernel.org, "# v4 . 13" <stable@vger.kernel.org>
 List-Id: linux-unionfs@vger.kernel.org
 
-On Fri, Oct 20, 2017 at 1:01 PM, Amir Goldstein <amir73il@gmail.com> wrote:
-> Fixes: 359f392ca53e ("ovl: lookup index entry for copy up origin")
-> Cc: <stable@vger.kernel.org> # v4.13
-> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
-> ---
->  fs/overlayfs/namei.c | 4 ++++
->  1 file changed, 4 insertions(+)
->
-> Miklos,
->
-> This is a complimentary/fixup patch to the patch currently at the tip of
-> overlayfs-next. I did not run into ENOENT in my tests, but it seems that
-> all other places in overlayfs that call lookup_one_len_unlocked() check
-> the ENOENT return value and treat it the same as negative dentry.
->
-> I suppose this could be expected from some file systems?
+Treat ENOENT from index entry lookup the same way as treating a returned
+negative dentry. Apparently, either could be returned if file is not
+found, depending on the underlying file system.
 
-I haven't done the research, but I suppose it's possible.  Nobody is
-forcing filesystems to cache negative dentries, although not doing so
-might be stupid.
+Fixes: 359f392ca53e ("ovl: lookup index entry for copy up origin")
+Cc: <stable@vger.kernel.org> # v4.13
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+---
 
-However, the patch seems to be wrong, since it does not treat -ENOENT
-quite the same way as a negative index (no warning for hard links).
+Miklos,
 
-Btw you can use "--suppress-cc=bodycc" to not spam stable@vger with
-review patches.
+Please apply or squash this patch with with "ovl: fix EIO from lookup
+of non-indexed upper".
 
-Thanks,
-Miklos
+Changes from v1:
+- Print the warning also for ENOENT case
+- Add body to commit messaage
+
+ fs/overlayfs/namei.c | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
+index 49441e8be722..0a72b855f4aa 100644
+--- a/fs/overlayfs/namei.c
++++ b/fs/overlayfs/namei.c
+@@ -507,6 +507,10 @@ static struct dentry *ovl_lookup_index(struct dentry *dentry,
+ 	index = lookup_one_len_unlocked(name.name, ofs->indexdir, name.len);
+ 	if (IS_ERR(index)) {
+ 		err = PTR_ERR(index);
++		if (err == -ENOENT) {
++			index = NULL;
++			goto notfound;
++		}
+ 		pr_warn_ratelimited("overlayfs: failed inode index lookup (ino=%lu, key=%*s, err=%i);\n"
+ 				    "overlayfs: mount with '-o index=off' to disable inodes index.\n",
+ 				    d_inode(origin)->i_ino, name.len, name.name,
+@@ -516,6 +520,7 @@ static struct dentry *ovl_lookup_index(struct dentry *dentry,
+ 
+ 	inode = d_inode(index);
+ 	if (d_is_negative(index)) {
++notfound:
+ 		if (upper && d_inode(origin)->i_nlink > 1) {
+ 			pr_warn_ratelimited("overlayfs: hard link with origin but no index (%pd2).\n",
+ 					    upper);
+-- 
+2.7.4
