@@ -1,48 +1,93 @@
-From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [PATCH] ovl: handle ENOENT on index lookup
-Date: Fri, 20 Oct 2017 17:21:32 +0300
-Message-ID: <CAOQ4uxgvokfgNiUCFoHtENA5-20DMB3uBN2AmfeHw5ujoQtzjg@mail.gmail.com>
-References: <1508497270-27971-1-git-send-email-amir73il@gmail.com> <CAJfpegusagcsC8EM46fR9E6B0OOCsqhq==zisPioLxX91XUKbg@mail.gmail.com>
+From: Vivek Goyal <vgoyal@redhat.com>
+Subject: Re: [PATCH 11/11] ovl: Put barriers to order oi->__upperdentry and
+ OVL_METACOPY update
+Date: Fri, 20 Oct 2017 11:41:54 -0400
+Message-ID: <20171020154154.GA10092@redhat.com>
+References: <20171019130030.GA2090@redhat.com>
+ <CAOQ4uxhFKMaDmh3H1DdXqA-WFq7_MoDEzLU0UjMCZ1sMA-yLuw@mail.gmail.com>
+ <20171019145824.GB2090@redhat.com>
+ <CAOQ4uxgzcO=jJ5putycLD7xPwPbk4Tr+axfFxvR_wwtAnhHBiQ@mail.gmail.com>
+ <20171019152221.GC2090@redhat.com>
+ <CAOQ4uxjfkTfwEi7iwca7sHfsQvWK_foinBYjP1OjVTjDeEKq+A@mail.gmail.com>
+ <20171019155932.GA24029@redhat.com>
+ <CAOQ4uxhLM=DYLRJMhCRvce3u=fhMtL=mE-CCu+QBazFdoKH5Yg@mail.gmail.com>
+ <20171019203344.GB24029@redhat.com>
+ <CAOQ4uxj1kTREkCpkO6FjaJPTG9u_m30DDGcSFzzL++bL5zwALA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <CAJfpegusagcsC8EM46fR9E6B0OOCsqhq==zisPioLxX91XUKbg@mail.gmail.com>
-Sender: stable-owner@vger.kernel.org
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>, "# v4 . 13" <stable@vger.kernel.org>, Greg KH <gregkh@linuxfoundation.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-unionfs-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:52722 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751018AbdJTPlz (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Fri, 20 Oct 2017 11:41:55 -0400
+Content-Disposition: inline
+In-Reply-To: <CAOQ4uxj1kTREkCpkO6FjaJPTG9u_m30DDGcSFzzL++bL5zwALA@mail.gmail.com>
+Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: overlayfs <linux-unionfs@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>
 
-On Fri, Oct 20, 2017 at 4:23 PM, Miklos Szeredi <miklos@szeredi.hu> wrote:
-> On Fri, Oct 20, 2017 at 1:01 PM, Amir Goldstein <amir73il@gmail.com> wrote:
->> Fixes: 359f392ca53e ("ovl: lookup index entry for copy up origin")
->> Cc: <stable@vger.kernel.org> # v4.13
->> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
->> ---
->>  fs/overlayfs/namei.c | 4 ++++
->>  1 file changed, 4 insertions(+)
->>
->> Miklos,
->>
->> This is a complimentary/fixup patch to the patch currently at the tip of
->> overlayfs-next. I did not run into ENOENT in my tests, but it seems that
->> all other places in overlayfs that call lookup_one_len_unlocked() check
->> the ENOENT return value and treat it the same as negative dentry.
->>
->> I suppose this could be expected from some file systems?
->
-> I haven't done the research, but I suppose it's possible.  Nobody is
-> forcing filesystems to cache negative dentries, although not doing so
-> might be stupid.
->
-> However, the patch seems to be wrong, since it does not treat -ENOENT
-> quite the same way as a negative index (no warning for hard links).
->
-> Btw you can use "--suppress-cc=bodycc" to not spam stable@vger with
-> review patches.
->
+On Fri, Oct 20, 2017 at 07:09:52AM +0300, Amir Goldstein wrote:
 
-OK, but Greg didn't seem annoyed by getting CC'ed - on the contrary..
-Anyway, sent fixed v2 and CC'ed stable, since there was already a
-discussion on v1
+[..]
+> Hmm maybe we need to take yet a different approach.
+> Store __metaupperdentry when upper is metacopy
+> and store __upperdentry only after upper is blessed with data.
+> 
+> So only code that is aware of metacopy like setattr/getattr/permission
+> will even know there is a metacopy to read/write information from
+> rest of vfs cannot be exposed.
+> And it's even simpler than metacopy flag w.r.t memory barriers.
 
-Amir.
+Hmmm..., so basically metacopy dentry/inode will not be visible outside
+overlayfs and only overlayfs knows about it. This defnitely sounds a
+safer option.
+
+So d_real(D_REAL_UPPER) will return nil for metacopy only dentry.
+
+What about d_real(inode=X) for metacopy inode? That probably is a bug. If
+we have never exposed metacopy only dentry/inode, then we should never be
+called to return us dentry belonging to metacopy only inode.
+
+One downside of this approach is that if there is any metadata operation
+which happens outside overlayfs, it can't be done. For example, ideally
+chattr. 
+
+update_ovl_inode_times() may be a problem too. It will return NULL dentry
+for metadata inode and atime *should* be broken. May be I can update ovl
+inode ctime when metadata inode is copied up. That should make sure
+that for regular files, update_ovl_inode_times() is probably not required.
+
+But in general, not having to expose metacopy inode/dentry to vfs
+directly makes me feel little better.
+
+I will give this a try and see how does it look.
+
+> 
+> I've actually already implemented this scheme, but since then
+> abandoned this method. You may be able to use some code from:
+> https://github.com/amir73il/linux/commits/ovl-rocopyup-v1
+> 
+> Mainly ovl_dentry_ro_upper() and the code changes in util.c
+> and ovl_entry.h.
+
+Thanks. I will have a look at it.
+
+Thanks
+Vivek
+
+> 
+> >
+> > I am also wondering what happens to various timestamps when data is
+> > copied up later on a metadata only inode. I am guessing that I will
+> > have to atleast copy mtime from lower and apply on upper.
+> >
+> 
+> Hmm this could be tricky. I think you need to "merge" mtime with ctime/atime
+> of metacopy inode. There are some relations to maintain among them,
+> which may not be trivial.
+> The simplest rule I think is mtime := ctime on data copy up,
+> ignoring the case of lower being modified after metadata was copied.
+> In most cases, mtime is about to be updated by write shortly after anyway.
+> 
+> Amir.
