@@ -1,51 +1,58 @@
-From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH v6 0/3] Overlayfs fixes for exposed whiteouts
-Date: Tue, 31 Oct 2017 23:45:47 +0200
-Message-ID: <1509486350-21362-1-git-send-email-amir73il@gmail.com>
-Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wr0-f195.google.com ([209.85.128.195]:43970 "EHLO
-        mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932584AbdJaVpK (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 31 Oct 2017 17:45:10 -0400
-Received: by mail-wr0-f195.google.com with SMTP id w105so354156wrc.0
-        for <linux-unionfs@vger.kernel.org>; Tue, 31 Oct 2017 14:45:10 -0700 (PDT)
-Sender: linux-unionfs-owner@vger.kernel.org
-List-Id: linux-unionfs@vger.kernel.org
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: zhangyi <yi.zhang@huawei.com>, linux-unionfs@vger.kernel.org
+Return-Path: <nicolas@belouin.fr>
+From: Nicolas Belouin <nicolas@belouin.fr>
+Subject: [RFC PATCH 1/2] security, capabilities: create CAP_TRUSTED
+Date: Sat, 21 Oct 2017 15:45:57 +0200
+Message-Id: <20171021134558.21195-1-nicolas@belouin.fr>
+To: Jan Kara <jack@suse.com>, Theodore Ts'o <tytso@mit.edu>, Andreas Dilger <adilger.kernel@dilger.ca>, Jaegeuk Kim <jaegeuk@kernel.org>, Chao Yu <yuchao0@huawei.com>, David Woodhouse <dwmw2@infradead.org>, Dave Kleikamp <shaggy@kernel.org>, Mark Fasheh <mfasheh@versity.com>, Joel Becker <jlbec@evilplan.org>, Miklos Szeredi <miklos@szeredi.hu>, Phillip Lougher <phillip@squashfs.org.uk>, Richard Weinberger <richard@nod.at>, Artem Bityutskiy <dedekind1@gmail.com>, Adrian Hunter <adrian.hunter@intel.com>, Alexander Viro <viro@zeniv.linux.org.uk>, Serge Hallyn <serge@hallyn.com>, Paul Moore <paul@paul-moore.com>, Stephen Smalley <sds@tycho.nsa.gov>, Eric Paris <eparis@parisplace.org>, James Morris <james.l.morris@oracle.com>, linux-ext4@vger.kernel.org, linux-kernel@vger.kernel.org, linux-f2fs-devel@lists.sourceforge.net, linux-fsdevel@vger.kernel.org, linux-mtd@lists.infradead.org, jfs-discussion@lists.sourceforge.net, ocfs2-devel@oss.oracle.com, linux-unionfs@vger.kernel.org, reiserfs-devel@vger.kernel.org, linux-security-module@vger.kernel.org, selinux@tycho.nsa.gov, linux-api@vger.kernel.org, kernel-hardening@lists.openwall.com
+Cc: Nicolas Belouin <nicolas@belouin.fr>
+List-ID: <linux-unionfs@vger.kernel.org>
 
-Miklos,
+with CAP_SYS_ADMIN being bloated, the usefulness of using it to
+flag a process to be entrusted for e.g reading and writing trusted
+xattr is near zero.
+CAP_TRUSTED aims to provide userland with a way to mark a process as
+entrusted to do specific (not specially admin-centered) actions. It
+would for example allow a process to red/write the trusted xattrs.
 
-Let's call my previous version v5 (Zhangyi's last post was v4).
+Signed-off-by: Nicolas Belouin <nicolas@belouin.fr>
+---
+ include/uapi/linux/capability.h     | 6 +++++-
+ security/selinux/include/classmap.h | 5 +++--
+ 2 files changed, 8 insertions(+), 3 deletions(-)
 
-Changes since v5:
-- Split ovl_check_empty_and_clear() changes from bug fix patch
-- Cache "origin" xattr of non-merge dir in inode flag OVL_WHITEOUTS
-  (OVL_ORIGIN would have been too confusing)
-- Replace layer idx with is_upper boolean
-
-I tested these changes with upstream xfstest overlay/031 by Zhangyi.
-Pushed to ovl-whiteouts branch [1] and rebased the non-samefs patches
-on top of it [2].
-
-Thanks,
-Amir.
-
-[1] https://github.com/amir73il/linux/commits/ovl-whiteouts
-[1] https://github.com/amir73il/linux/commits/overlayfs-devel
-
-Amir Goldstein (3):
-  ovl: no direct iteration for dir with origin xattr
-  ovl: simplify ovl_check_empty_and_clear()
-  ovl: fix rmdir problem on non-merge dir with origin xattr
-
- fs/overlayfs/dir.c       | 18 ++++++++++------
- fs/overlayfs/inode.c     |  5 +++++
- fs/overlayfs/overlayfs.h |  4 ++++
- fs/overlayfs/readdir.c   | 56 ++++++++++++++++++++++++++++++++++++++----------
- fs/overlayfs/util.c      | 13 +++++++++++
- 5 files changed, 79 insertions(+), 17 deletions(-)
-
+diff --git a/include/uapi/linux/capability.h b/include/uapi/linux/capability.h
+index ce230aa6d928..27e457b93c84 100644
+--- a/include/uapi/linux/capability.h
++++ b/include/uapi/linux/capability.h
+@@ -369,7 +369,11 @@ struct vfs_ns_cap_data {
+ 
+ #define CAP_SYS_MOUNT		38
+ 
+-#define CAP_LAST_CAP         CAP_SYS_MOUNT
++/* Allow read/write trusted xattr */
++
++#define CAP_TRUSTED		39
++
++#define CAP_LAST_CAP         CAP_TRUSTED
+ 
+ #define cap_valid(x) ((x) >= 0 && (x) <= CAP_LAST_CAP)
+ 
+diff --git a/security/selinux/include/classmap.h b/security/selinux/include/classmap.h
+index a873dce97fd5..f5dc8e109f5a 100644
+--- a/security/selinux/include/classmap.h
++++ b/security/selinux/include/classmap.h
+@@ -24,9 +24,10 @@
+ 	    "audit_control", "setfcap"
+ 
+ #define COMMON_CAP2_PERMS  "mac_override", "mac_admin", "syslog", \
+-		"wake_alarm", "block_suspend", "audit_read", "sys_mount"
++		"wake_alarm", "block_suspend", "audit_read", "sys_mount", \
++		"trusted"
+ 
+-#if CAP_LAST_CAP > CAP_SYS_MOUNT
++#if CAP_LAST_CAP > CAP_TRUSTED
+ #error New capability defined, please update COMMON_CAP2_PERMS.
+ #endif
+ 
 -- 
-2.7.4
+2.14.2
