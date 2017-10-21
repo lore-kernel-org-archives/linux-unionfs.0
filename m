@@ -1,93 +1,64 @@
-From: Vivek Goyal <vgoyal@redhat.com>
-Subject: Re: [PATCH 11/11] ovl: Put barriers to order oi->__upperdentry and
- OVL_METACOPY update
-Date: Fri, 20 Oct 2017 11:41:54 -0400
-Message-ID: <20171020154154.GA10092@redhat.com>
-References: <20171019130030.GA2090@redhat.com>
- <CAOQ4uxhFKMaDmh3H1DdXqA-WFq7_MoDEzLU0UjMCZ1sMA-yLuw@mail.gmail.com>
- <20171019145824.GB2090@redhat.com>
- <CAOQ4uxgzcO=jJ5putycLD7xPwPbk4Tr+axfFxvR_wwtAnhHBiQ@mail.gmail.com>
- <20171019152221.GC2090@redhat.com>
- <CAOQ4uxjfkTfwEi7iwca7sHfsQvWK_foinBYjP1OjVTjDeEKq+A@mail.gmail.com>
- <20171019155932.GA24029@redhat.com>
- <CAOQ4uxhLM=DYLRJMhCRvce3u=fhMtL=mE-CCu+QBazFdoKH5Yg@mail.gmail.com>
- <20171019203344.GB24029@redhat.com>
- <CAOQ4uxj1kTREkCpkO6FjaJPTG9u_m30DDGcSFzzL++bL5zwALA@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Nicolas Belouin <nicolas@belouin.fr>
+Subject: [RFC PATCH 1/2] security, capabilities: create CAP_TRUSTED
+Date: Sat, 21 Oct 2017 15:45:57 +0200
+Message-ID: <20171021134558.21195-1-nicolas__44293.7001622797$1508594261$gmane$org@belouin.fr>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:52722 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751018AbdJTPlz (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 20 Oct 2017 11:41:55 -0400
-Content-Disposition: inline
-In-Reply-To: <CAOQ4uxj1kTREkCpkO6FjaJPTG9u_m30DDGcSFzzL++bL5zwALA@mail.gmail.com>
+Received: from smtp-sh2.infomaniak.ch ([128.65.195.6]:46967 "EHLO
+        smtp-sh2.infomaniak.ch" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932085AbdJUN5e (ORCPT
+        <rfc822;linux-unionfs@vger.kernel.org>);
+        Sat, 21 Oct 2017 09:57:34 -0400
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: overlayfs <linux-unionfs@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>
+To: Jan Kara <jack@suse.com>, Theodore Ts'o <tytso@mit.edu>, Andreas Dilger <adilger.kernel@dilger.ca>, Jaegeuk Kim <jaegeuk@kernel.org>, Chao Yu <yuchao0@huawei.com>, David Woodhouse <dwmw2@infradead.org>, Dave Kleikamp <shaggy@kernel.org>, Mark Fasheh <mfasheh@versity.com>, Joel Becker <jlbec@evilplan.org>, Miklos Szeredi <miklos@szeredi.hu>, Phillip Lougher <phillip@squashfs.org.uk>, Richard Weinberger <richard@nod.at>, Artem Bityutskiy <dedekind1@gmail.com>, Adrian Hunter <adrian.hunter@intel.com>, Alexander Viro <viro@zeniv.linux.org.uk>, Serge Hallyn <serge@hallyn.com>, Paul Moore <paul@paul-moore.com>, Stephen Smalley <sds@tycho.nsa.gov>, Eric Paris <eparis@parisplace.org>, James Morris <james.l.morris@oracle.com>, linux-ext4@vger.kernel
+Cc: Nicolas Belouin <nicolas@belouin.fr>
 
-On Fri, Oct 20, 2017 at 07:09:52AM +0300, Amir Goldstein wrote:
+with CAP_SYS_ADMIN being bloated, the usefulness of using it to
+flag a process to be entrusted for e.g reading and writing trusted
+xattr is near zero.
+CAP_TRUSTED aims to provide userland with a way to mark a process as
+entrusted to do specific (not specially admin-centered) actions. It
+would for example allow a process to red/write the trusted xattrs.
 
-[..]
-> Hmm maybe we need to take yet a different approach.
-> Store __metaupperdentry when upper is metacopy
-> and store __upperdentry only after upper is blessed with data.
-> 
-> So only code that is aware of metacopy like setattr/getattr/permission
-> will even know there is a metacopy to read/write information from
-> rest of vfs cannot be exposed.
-> And it's even simpler than metacopy flag w.r.t memory barriers.
+Signed-off-by: Nicolas Belouin <nicolas@belouin.fr>
+---
+ include/uapi/linux/capability.h     | 6 +++++-
+ security/selinux/include/classmap.h | 5 +++--
+ 2 files changed, 8 insertions(+), 3 deletions(-)
 
-Hmmm..., so basically metacopy dentry/inode will not be visible outside
-overlayfs and only overlayfs knows about it. This defnitely sounds a
-safer option.
-
-So d_real(D_REAL_UPPER) will return nil for metacopy only dentry.
-
-What about d_real(inode=X) for metacopy inode? That probably is a bug. If
-we have never exposed metacopy only dentry/inode, then we should never be
-called to return us dentry belonging to metacopy only inode.
-
-One downside of this approach is that if there is any metadata operation
-which happens outside overlayfs, it can't be done. For example, ideally
-chattr. 
-
-update_ovl_inode_times() may be a problem too. It will return NULL dentry
-for metadata inode and atime *should* be broken. May be I can update ovl
-inode ctime when metadata inode is copied up. That should make sure
-that for regular files, update_ovl_inode_times() is probably not required.
-
-But in general, not having to expose metacopy inode/dentry to vfs
-directly makes me feel little better.
-
-I will give this a try and see how does it look.
-
-> 
-> I've actually already implemented this scheme, but since then
-> abandoned this method. You may be able to use some code from:
-> https://github.com/amir73il/linux/commits/ovl-rocopyup-v1
-> 
-> Mainly ovl_dentry_ro_upper() and the code changes in util.c
-> and ovl_entry.h.
-
-Thanks. I will have a look at it.
-
-Thanks
-Vivek
-
-> 
-> >
-> > I am also wondering what happens to various timestamps when data is
-> > copied up later on a metadata only inode. I am guessing that I will
-> > have to atleast copy mtime from lower and apply on upper.
-> >
-> 
-> Hmm this could be tricky. I think you need to "merge" mtime with ctime/atime
-> of metacopy inode. There are some relations to maintain among them,
-> which may not be trivial.
-> The simplest rule I think is mtime := ctime on data copy up,
-> ignoring the case of lower being modified after metadata was copied.
-> In most cases, mtime is about to be updated by write shortly after anyway.
-> 
-> Amir.
+diff --git a/include/uapi/linux/capability.h b/include/uapi/linux/capability.h
+index ce230aa6d928..27e457b93c84 100644
+--- a/include/uapi/linux/capability.h
++++ b/include/uapi/linux/capability.h
+@@ -369,7 +369,11 @@ struct vfs_ns_cap_data {
+ 
+ #define CAP_SYS_MOUNT		38
+ 
+-#define CAP_LAST_CAP         CAP_SYS_MOUNT
++/* Allow read/write trusted xattr */
++
++#define CAP_TRUSTED		39
++
++#define CAP_LAST_CAP         CAP_TRUSTED
+ 
+ #define cap_valid(x) ((x) >= 0 && (x) <= CAP_LAST_CAP)
+ 
+diff --git a/security/selinux/include/classmap.h b/security/selinux/include/classmap.h
+index a873dce97fd5..f5dc8e109f5a 100644
+--- a/security/selinux/include/classmap.h
++++ b/security/selinux/include/classmap.h
+@@ -24,9 +24,10 @@
+ 	    "audit_control", "setfcap"
+ 
+ #define COMMON_CAP2_PERMS  "mac_override", "mac_admin", "syslog", \
+-		"wake_alarm", "block_suspend", "audit_read", "sys_mount"
++		"wake_alarm", "block_suspend", "audit_read", "sys_mount", \
++		"trusted"
+ 
+-#if CAP_LAST_CAP > CAP_SYS_MOUNT
++#if CAP_LAST_CAP > CAP_TRUSTED
+ #error New capability defined, please update COMMON_CAP2_PERMS.
+ #endif
+ 
+-- 
+2.14.2
