@@ -1,79 +1,79 @@
-From: Miklos Szeredi <miklos@szeredi.hu>
-Subject: Re: [PATCH] ovl: fix EIO from lookup of non-indexed upper
-Date: Tue, 24 Oct 2017 12:18:07 +0200
-Message-ID: <CAJfpeguzmbh=ZQ8P8pHB8k1g1uh3c7OLG0aCR6P_pHGQ7i-Qvg@mail.gmail.com>
-References: <1507824184-6244-1-git-send-email-amir73il@gmail.com>
- <CAJfpegsLbJN84S=-KoBOpV-b_8p9AyoEWbc66nSSX_SRzeuiLQ@mail.gmail.com> <CAOQ4uxiJ8L_x4Jsc-Fsf47Zc15x9zpCOr3TGt4Ws40r3CUhpFA@mail.gmail.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Subject: Re: [PATCH 0/4] Overlayfs index features
+Date: Tue, 24 Oct 2017 18:30:27 +0300
+Message-ID: <CAOQ4uxhxOTRYsuOWiAxHEanRcVZHsnSDAj2D7Y78FgDzqEA-pg@mail.gmail.com>
+References: <1508839381-24750-1-git-send-email-amir73il@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:54601 "EHLO
-        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752389AbdJXKSJ (ORCPT
+Received: from mail-yw0-f196.google.com ([209.85.161.196]:46424 "EHLO
+        mail-yw0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932141AbdJXPa2 (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 24 Oct 2017 06:18:09 -0400
-Received: by mail-wm0-f68.google.com with SMTP id r68so15209407wmr.3
-        for <linux-unionfs@vger.kernel.org>; Tue, 24 Oct 2017 03:18:08 -0700 (PDT)
-In-Reply-To: <CAOQ4uxiJ8L_x4Jsc-Fsf47Zc15x9zpCOr3TGt4Ws40r3CUhpFA@mail.gmail.com>
+        Tue, 24 Oct 2017 11:30:28 -0400
+Received: by mail-yw0-f196.google.com with SMTP id t71so15398052ywc.3
+        for <linux-unionfs@vger.kernel.org>; Tue, 24 Oct 2017 08:30:28 -0700 (PDT)
+In-Reply-To: <1508839381-24750-1-git-send-email-amir73il@gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: Vivek Goyal <vgoyal@redhat.com>, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>, "# v4 . 13" <stable@vger.kernel.org>
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: overlayfs <linux-unionfs@vger.kernel.org>
 
-On Tue, Oct 24, 2017 at 12:15 PM, Amir Goldstein <amir73il@gmail.com> wrote:
-> On Tue, Oct 24, 2017 at 12:59 PM, Miklos Szeredi <miklos@szeredi.hu> wrote:
->> On Thu, Oct 12, 2017 at 6:03 PM, Amir Goldstein <amir73il@gmail.com> wrote:
->>> Commit fbaf94ee3cd5 ("ovl: don't set origin on broken lower hardlink")
->>> attempt to avoid the condition of non-indexed upper inode with lower
->>> hardlink as origin. If this condition is found, lookup returns EIO.
->>>
->>> The protection of commit mentioned above does not cover the case of lower
->>> that is not a hardlink when it is copied up (with either index=off/on)
->>> and then lower is hardlinked while overlay is offline.
->>>
->>> Changes to lower layer while overlayfs is offline should not result in
->>> unexpected behavior, so a permanent EIO error after creating a link in
->>> lower layer should not be considered as correct behavior.
->>>
->>> This fix replaces EIO error with a warning in cases where upper has
->>> origin but no index is found, or index is found that does not match upper
->>> inode. In those cases, lookup will not fail and the returned overlay
->>> inode will be hashed by upper inode instead of by lower origin inode.
->>>
->>> Fixes: 359f392ca53e ("ovl: lookup index entry for copy up origin")
->>> Cc: <stable@vger.kernel.org> # v4.13
->>> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
->>> ---
->>>
->>> Miklos,
->>>
->>> Following a discussion with Vivek about metacopy feature and the option
->>> of setting ORIGIN for non-indexed lower hardlinks on copy up, I came to
->>> a conclusion that the current EIO behavior is not quite tollerant to lower
->>> changes as one would hope and that it should be fixed in stable kernels.
->>
->> Okay, but I started wondering if we really should be writing warnings
->> to the kernel log if this situation is considered normal.
->>
->> Is it worth warning about these?
->>
+On Tue, Oct 24, 2017 at 1:02 PM, Amir Goldstein <amir73il@gmail.com> wrote:
+> Miklos,
 >
-> No I guess it is not worth it for plain index=on case, but it may be worth
-> it for upcoming index=all, which implies a complete index.
-> Although we can defer the warning to file handle encode time when that
-> matters.
+> This series is an attempt not to repeat the mistakes of the past
+> w.r.t. overlayfs features.
 >
-> BTW, I just sent a patch to remove the backward compatibility disclaimer
-> about OVERLAY_FS_INDEX  from Kconfig following the EIO change.
-> Maybe I was being too brave?...
+> I have given a lot of though about how to scale up with more
+> compat/incompat features instead of an ever growing disclaimer matrix
+> in overlafs/Kconfig.
+>
+> My proposed solution only covers features compatibility among
+> sub-features of index or features which rely on index being enabled.
+> There is also a best effort attempt to impose features compatibility
+> as far as v3.18 using a trick with a dirty work dir.
+>
+> Although this series is based on the stable fix patch "ovl: do not
+> cleanup unsupported index entries", it does NOT rely on the fix being
+> applied on v4.13 kernel for correct behavior on downgrade.
+>
+> The first use case for incompat index features is going to be index=all
+> for NFS export - probably rocompat, not sure yet.
 
-Will think about it.
+Pushed example of that use to:
+https://github.com/amir73il/linux/commits/ovl-index-all
+(commit "ovl: add support for mount option index=all")
+
+It required some changes to last patch of this series
+in order to check not only that feature is "supported" by
+kernel, but also that feature is "enabled", i.e. kernel
+refuses to let user mount without index=all if index_all
+feature has already been enabled by a previous mount.
+Pushed changes to:
+https://github.com/amir73il/linux/commits/ovl-features
 
 >
-> Let me know if you want me to send a new patch for EIO behavior
-> or you will sort it out yourself (remember there is also the ENOENT case).
-
-I'll sort it out.
-
-Thanks,
-Miklos
+> I don't think there is anything is this that should be backported
+> to v4.13 or rushed into v4.14.
+> What do you think?
+>
+> Amir.
+>
+> Amir Goldstein (4):
+>   ovl: introduce incompatible index feature
+>   ovl: declare index feature backward compatible
+>   ovl: cast a shadow of incomapt index into the past
+>   ovl: check incompat/rocompat index features
+>
+>  fs/overlayfs/Kconfig     |  25 ++++++++---
+>  fs/overlayfs/dir.c       |  66 +++++++++++++++++++++++++++++
+>  fs/overlayfs/overlayfs.h |  20 ++++++++-
+>  fs/overlayfs/readdir.c   | 108 +++++++++++++++++++++++++++++++++++++++++++----
+>  fs/overlayfs/super.c     |  50 ++++++++++++++++++++--
+>  fs/overlayfs/util.c      | 105 +++++++++++++++++++++++++++++++++++++++++++++
+>  6 files changed, 354 insertions(+), 20 deletions(-)
+>
+> --
+> 2.7.4
+>
