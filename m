@@ -1,305 +1,105 @@
-From: cgxu <cgxu@mykernel.net>
-Subject: [PATCH]  long mount option support
-Date: Tue, 24 Oct 2017 11:44:22 +0800
-Message-ID: <D90A2B0B-C311-4F73-9CB7-D6361EDCD131@mykernel.net>
-Mime-Version: 1.0 (Mac OS X Mail 10.3 \(3273\))
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8BIT
+From: Amir Goldstein <amir73il@gmail.com>
+Subject: [PATCH] ovl: do not cleanup unsupported index entries
+Date: Tue, 24 Oct 2017 12:24:11 +0300
+Message-ID: <1508837051-15724-1-git-send-email-amir73il@gmail.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from smtpbguseast2.qq.com ([54.204.34.130]:56661 "EHLO
-        smtpbguseast2.qq.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751267AbdJXDoZ (ORCPT
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:54211 "EHLO
+        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751704AbdJXJXg (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 23 Oct 2017 23:44:25 -0400
+        Tue, 24 Oct 2017 05:23:36 -0400
+Received: by mail-wm0-f66.google.com with SMTP id r196so1919125wmf.2
+        for <linux-unionfs@vger.kernel.org>; Tue, 24 Oct 2017 02:23:36 -0700 (PDT)
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: Miklos Szeredi <miklos@szeredi.hu>
 Cc: linux-unionfs@vger.kernel.org
 
-Hi Miklos,
+With index=on, ovl_indexdir_cleanup() tries to cleanup invalid index
+entries (e.g. bad index name). This behavior could result in cleaning of
+entries created by newer kernels and is therefore undesirable.
+Instead, abort mount if such entries are encountered. We still cleanup
+'stale' entries and 'orphan' entries, both those cases can be a result
+of offline changes to lower and upper dirs.
 
-We’re testing our container system using overlayfs as image storage.
-We noticed that although overlayfs supports maximum 500 layers in filesystem,
-but  when lowerdir is quite long then mount will fail because of mount option’s one PAGE SIZE limitation.
-In our environment, we added new mount option “long_option” to deliver long mount option with extended attribute.
-This approach is backward compatible and could be useful to container.
-I have done basic testing on this and hope to hear some feedback for the patch.
+When encoutering an index entry of type directory or whiteout, kernel
+was supposed to fallback to read-only mount, but the fill_super()
+operation returns EROFS in this case instead of returning success with
+read-only mount flag, so mount fails when encoutering directory or
+whiteout index entries. Bless this behavior by returning -EINVAL on
+directory and whiteout index entries as we do for all unsupported index
+entries.
 
-Detail explanations:
-In this approach, we can set mount option both in command line and config file’s extended attribute.
-There are three possible cases as below.
+Fixes: 61b674710cd9 ("ovl: do not cleanup directory and whiteout index..")
+Cc: <stable@vger.kernel.org> # v4.13
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+---
 
-Case1) set all mount options in extended attribute
-Example steps:
-1, setfattr -n “trusted.overlayfs.long_option” -v “lowerdir=l1:l2:l3,upperdir=upper,workdir=work” overlay-config
-2, mount -t overlay overlay -o long_option=./overlay-config merged
+Miklos,
 
-Case2) set mount options both in command line and config file’s extended attribute.
-Example steps:
-1, setfattr -n “trusted.overlayfs.long_option” -v “lowerdir=l1:l2:l3” overlay-config
-2, mount -t  overlay overlay -o upperdir=upper,workdir=work,long_option=./overlay-config merged
+My intentions in the commit that this patch Fixes were correct, but:
+1. The implementation was buggy
+2. The desired result should have been to fail the mount
+3. I did not take the unsupported entries principle far enough
 
-// We can set same option both in command line amd config file’s extended attribute.
-// In this case, command line value will override the value in the extended attribute.
+Luckily, faults 1 and 2 above cancel each other.
 
-Case3) set all mount options in command line.
-Example steps:
-1, mount -t overlay overlay -o upperdir=upper,workdir=work,lowerdir=lower merged
+Please apply this fix to v4.14.
+It is the base for an "incompat index features" series I will
+be posting soon.
 
-—
+Thanks,
+Amir.
 
-Signed-off-by: Chengguang Xu <cgxu@mykernel.net>
 
-diff -Nurp a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
---- a/fs/overlayfs/overlayfs.h	2017-10-21 23:55:07.000000000 +0800
-+++ b/fs/overlayfs/overlayfs.h	2017-10-23 17:55:46.338203874 +0800
-@@ -27,6 +27,20 @@ enum ovl_path_type {
-#define OVL_XATTR_IMPURE OVL_XATTR_PREFIX "impure"
-#define OVL_XATTR_NLINK OVL_XATTR_PREFIX "nlink"
-+#define OVL_XATTR_LONG_OPTION "trusted.overlayfs.long_option"
-+
-+enum ovl_opt_type {
-+	__OVL_OPT_LOWERDIR	= (1 << 0),
-+	__OVL_OPT_UPPERDIR	= (1 << 1),
-+	__OVL_OPT_WORKDIR	= (1 << 2),
-+	__OVL_OPT_LONG_OPTION	= (1 << 3),
-+};
-+
-+#define OVL_OPT_LOWERDIR(type)		((type) & __OVL_OPT_LOWERDIR)
-+#define OVL_OPT_UPPERDIR(type)		((type) & __OVL_OPT_UPPERDIR)
-+#define OVL_OPT_WORKDIR(type)		((type) & __OVL_OPT_WORKDIR)
-+#define OVL_OPT_LONG_OPTION(type)	((type) & __OVL_OPT_LONG_OPTION)
-+
-enum ovl_flag {
-	OVL_IMPURE,
-	OVL_INDEX,
-diff -Nurp a/fs/overlayfs/ovl_entry.h b/fs/overlayfs/ovl_entry.h
---- a/fs/overlayfs/ovl_entry.h	2017-10-21 23:55:07.000000000 +0800
-+++ b/fs/overlayfs/ovl_entry.h	2017-10-23 17:55:46.770211500 +0800
-@@ -12,6 +12,8 @@ struct ovl_config {
-	char *lowerdir;
-	char *upperdir;
-	char *workdir;
-+	char *long_option;
-+	enum ovl_opt_type opt_type;
-	bool default_permissions;
-	bool redirect_dir;
-	bool index;
-diff -Nurp a/fs/overlayfs/super.c b/fs/overlayfs/super.c
---- a/fs/overlayfs/super.c	2017-10-21 23:55:07.000000000 +0800
-+++ b/fs/overlayfs/super.c	2017-10-23 18:14:35.619263116 +0800
-@@ -289,11 +289,14 @@ static int ovl_show_options(struct seq_f
-	struct super_block *sb = dentry->d_sb;
-	struct ovl_fs *ufs = sb->s_fs_info;
--	seq_show_option(m, "lowerdir", ufs->config.lowerdir);
--	if (ufs->config.upperdir) {
-+	if (OVL_OPT_LOWERDIR(ufs->config.opt_type))
-+		seq_show_option(m, "lowerdir", ufs->config.lowerdir);
-+	if (OVL_OPT_UPPERDIR(ufs->config.opt_type))
-		seq_show_option(m, "upperdir", ufs->config.upperdir);
-+	if (OVL_OPT_WORKDIR(ufs->config.opt_type))
-		seq_show_option(m, "workdir", ufs->config.workdir);
--	}
-+	if (OVL_OPT_LONG_OPTION(ufs->config.opt_type))
-+		seq_show_option(m, "long_option", ufs->config.long_option);
-	if (ufs->config.default_permissions)
-		seq_puts(m, ",default_permissions");
-	if (ufs->config.redirect_dir != ovl_redirect_dir_def)
-@@ -330,6 +333,7 @@ enum {
-	OPT_LOWERDIR,
-	OPT_UPPERDIR,
-	OPT_WORKDIR,
-+	OPT_LONG_OPTION,
-	OPT_DEFAULT_PERMISSIONS,
-	OPT_REDIRECT_DIR_ON,
-	OPT_REDIRECT_DIR_OFF,
-@@ -342,6 +346,7 @@ static const match_table_t ovl_tokens =
-	{OPT_LOWERDIR,			"lowerdir=%s"},
-	{OPT_UPPERDIR,			"upperdir=%s"},
-	{OPT_WORKDIR,			"workdir=%s"},
-+	{OPT_LONG_OPTION,		"long_option=%s"},
-	{OPT_DEFAULT_PERMISSIONS,	"default_permissions"},
-	{OPT_REDIRECT_DIR_ON,		"redirect_dir=on"},
-	{OPT_REDIRECT_DIR_OFF,		"redirect_dir=off"},
-@@ -407,6 +412,13 @@ static int ovl_parse_opt(char *opt, stru
-				return -ENOMEM;
-			break;
-+		case OPT_LONG_OPTION:
-+			kfree(config->long_option);
-+			config->long_option = match_strdup(&args[0]);
-+			if (!config->long_option)
-+				return -ENOMEM;
+ fs/overlayfs/namei.c   |  7 +++----
+ fs/overlayfs/readdir.c | 11 +++++------
+ 2 files changed, 8 insertions(+), 10 deletions(-)
+
+diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
+index 0a72b855f4aa..97b14c4dda6e 100644
+--- a/fs/overlayfs/namei.c
++++ b/fs/overlayfs/namei.c
+@@ -405,14 +405,13 @@ int ovl_verify_index(struct dentry *index, struct path *lowerstack,
+ 	 * be treated as stale (i.e. after unlink of the overlay inode).
+ 	 * We don't know the verification rules for directory and whiteout
+ 	 * index entries, because they have not been implemented yet, so return
+-	 * EROFS if those entries are found to avoid corrupting an index that
+-	 * was created by a newer kernel.
++	 * EINVAL if those entries are found to abort the mount to avoid
++	 * corrupting an index that was created by a newer kernel.
+ 	 */
+-	err = -EROFS;
++	err = -EINVAL;
+ 	if (d_is_dir(index) || ovl_is_whiteout(index))
+ 		goto fail;
+ 
+-	err = -EINVAL;
+ 	if (index->d_name.len < sizeof(struct ovl_fh)*2)
+ 		goto fail;
+ 
+diff --git a/fs/overlayfs/readdir.c b/fs/overlayfs/readdir.c
+index 0f85ee9c3268..698b74dd750e 100644
+--- a/fs/overlayfs/readdir.c
++++ b/fs/overlayfs/readdir.c
+@@ -1021,13 +1021,12 @@ int ovl_indexdir_cleanup(struct dentry *dentry, struct vfsmount *mnt,
+ 			break;
+ 		}
+ 		err = ovl_verify_index(index, lowerstack, numlower);
+-		if (err) {
+-			if (err == -EROFS)
+-				break;
++		/* Cleanup stale and orphan index entries */
++		if (err && (err == -ESTALE || err == -ENOENT))
+ 			err = ovl_cleanup(dir, index);
+-			if (err)
+-				break;
+-		}
++		if (err)
 +			break;
 +
-		case OPT_DEFAULT_PERMISSIONS:
-			config->default_permissions = true;
-			break;
-@@ -433,14 +445,6 @@ static int ovl_parse_opt(char *opt, stru
-		}
-	}
--	/* Workdir is useless in non-upper mount */
--	if (!config->upperdir && config->workdir) {
--		pr_info("overlayfs: option \"workdir=%s\" is useless in a non-upper mount, ignore\n",
--			config->workdir);
--		kfree(config->workdir);
--		config->workdir = NULL;
--	}
--
-	return 0;
-}
-@@ -621,6 +625,43 @@ static int ovl_check_namelen(struct path
-	return err;
-}
-+static int ovl_long_option_check(const char *name, struct path *path)
-+{
-+	int err = -ENOMEM;
-+	char *tmp = kstrdup(name, GFP_KERNEL);
-+
-+	if (!tmp)
-+		goto out;
-+
-+	ovl_unescape(tmp);
-+	err = kern_path(tmp, LOOKUP_FOLLOW, path);
-+	if (err) {
-+		pr_err("overlayfs: failed to resolve '%s': %i\n", tmp, err);
-+		goto out_free_tmp;
-+	}
-+
-+	err = -EINVAL;
-+	if (ovl_dentry_weird(path->dentry)) {
-+		pr_err("overlayfs: filesystem on '%s' not supported\n", tmp);
-+		goto out_put;
-+	}
-+
-+	if (unlikely(!S_ISREG(path->dentry->d_inode->i_mode))) {
-+		pr_err("overlayfs: '%s' not a file\n", tmp);
-+		goto out_put;
-+	}
-+
-+	kfree(tmp);
-+	return 0;
-+
-+out_put:
-+	path_put(path);
-+out_free_tmp:
-+	kfree(tmp);
-+out:
-+	return err;
-+}
-+
-static int ovl_lower_dir(const char *name, struct path *path,
-			 struct ovl_fs *ofs, int *stack_depth, bool *remote)
-{
-@@ -826,12 +867,16 @@ static int ovl_fill_super(struct super_b
-{
-	struct path upperpath = { };
-	struct path workpath = { };
-+	struct path long_option_path = { NULL, NULL };
-	struct dentry *root_dentry;
-	struct ovl_entry *oe;
-	struct ovl_fs *ufs;
-+	struct ovl_fs *new_ufs;
-	struct path *stack = NULL;
-	char *lowertmp;
-	char *lower;
-+	char *long_option_data = NULL;
-+	size_t long_option_size = 0; 
-	unsigned int numlower;
-	unsigned int stacklen = 0;
-	unsigned int i;
-@@ -850,6 +895,75 @@ static int ovl_fill_super(struct super_b
-	if (err)
-		goto out_free_config;
-+	if (ufs->config.long_option && (!ufs->config.lowerdir || !ufs->config.upperdir || !ufs->config.workdir)) {
-+		err = ovl_long_option_check(ufs->config.long_option, &long_option_path);
-+		if (err)
-+			goto  out_free_config;
-+
-+		err = -EINVAL;
-+		if ((long_option_size = vfs_getxattr(long_option_path.dentry, OVL_XATTR_LONG_OPTION, NULL, 0)) <= 0) {
-+			pr_err("overlayfs: improper value of xattr OVL_XATTR_LONG_OPTION in %s\n", ufs->config.long_option);
-+			goto out_put_long_option_path;
-+		}
-+
-+		err = -ENOMEM;
-+		long_option_data = kzalloc(long_option_size + 1, GFP_KERNEL);
-+		if (!long_option_data)
-+			goto out_put_long_option_path;
-+
-+		new_ufs = kzalloc(sizeof(struct ovl_fs), GFP_KERNEL);
-+		if (!new_ufs)
-+			goto out_free_long_option_data;
-+
-+		err = -EINVAL;
-+		if (vfs_getxattr(long_option_path.dentry, OVL_XATTR_LONG_OPTION, long_option_data, long_option_size) < 0) {
-+			pr_err("overlayfs: improper value of xattr OVL_XATTR_LONG_OPTION in %s\n", ufs->config.long_option);
-+			goto out_free_new_config;
-+		}
-+
-+		err = ovl_parse_opt((char *) long_option_data, &new_ufs->config);
-+		if (err)
-+			goto out_free_new_config;
-+
-+		if (ufs->config.lowerdir)
-+			ufs->config.opt_type |= __OVL_OPT_LOWERDIR;
-+		if (ufs->config.upperdir)
-+			ufs->config.opt_type |= __OVL_OPT_UPPERDIR;
-+		if (ufs->config.workdir)
-+			ufs->config.opt_type |= __OVL_OPT_WORKDIR;
-+
-+		ufs->config.opt_type |= __OVL_OPT_LONG_OPTION;
-+
-+		if (!ufs->config.lowerdir && new_ufs->config.lowerdir) {
-+			ufs->config.lowerdir = new_ufs->config.lowerdir;
-+			new_ufs->config.lowerdir = NULL;
-+		}
-+
-+		if (!ufs->config.upperdir && new_ufs->config.upperdir) {
-+			ufs->config.upperdir = new_ufs->config.upperdir;
-+			new_ufs->config.upperdir = NULL;
-+		}
-+
-+		if (!ufs->config.workdir && new_ufs->config.workdir) {
-+			ufs->config.workdir = new_ufs->config.workdir;
-+			new_ufs->config.workdir = NULL;
-+		}
-+
-+		kfree(new_ufs->config.lowerdir);
-+		kfree(new_ufs->config.upperdir);
-+		kfree(new_ufs->config.workdir);
-+		kfree(new_ufs);
-+		kfree(long_option_data);
-+		path_put(&long_option_path);
-+	}
-+
-+	/* Workdir is useless in non-upper mount */
-+	if (!ufs->config.upperdir && ufs->config.workdir) {
-+		pr_info("overlayfs: option \"workdir=%s\" is useless in a non-upper mount, ignore\n", ufs->config.workdir);
-+		kfree(ufs->config.workdir);
-+		ufs->config.workdir = NULL;
-+	}
-+
-	err = -EINVAL;
-	if (!ufs->config.lowerdir) {
-		if (!silent)
-@@ -1173,6 +1287,15 @@ out_unlock_upperdentry:
-		ovl_inuse_unlock(upperpath.dentry);
-out_put_upperpath:
-	path_put(&upperpath);
-+out_free_new_config:
-+	kfree(new_ufs->config.lowerdir);
-+	kfree(new_ufs->config.upperdir);
-+	kfree(new_ufs->config.workdir);
-+	kfree(new_ufs);
-+out_free_long_option_data:
-+	kfree(long_option_data);
-+out_put_long_option_path:
-+	path_put(&long_option_path);
-out_free_config:
-	kfree(ufs->config.lowerdir);
-	kfree(ufs->config.upperdir);
-
-—
-
-Best Regards,
-cgxu.
+ 		dput(index);
+ 		index = NULL;
+ 	}
+-- 
+2.7.4
