@@ -1,51 +1,58 @@
 From: Miklos Szeredi <miklos@szeredi.hu>
-Subject: Re: [PATCH] long mount option support
-Date: Tue, 24 Oct 2017 11:43:17 +0200
-Message-ID: <CAJfpeguPKtGMZ_YYyBqDc=WOvwK6fSiFMJW4NdESR5X+w3tLoA@mail.gmail.com>
-References: <D90A2B0B-C311-4F73-9CB7-D6361EDCD131@mykernel.net>
+Subject: Re: [PATCH] ovl: fix EIO from lookup of non-indexed upper
+Date: Tue, 24 Oct 2017 11:59:18 +0200
+Message-ID: <CAJfpegsLbJN84S=-KoBOpV-b_8p9AyoEWbc66nSSX_SRzeuiLQ@mail.gmail.com>
+References: <1507824184-6244-1-git-send-email-amir73il@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:48830 "EHLO
-        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751791AbdJXJnT (ORCPT
+Received: from mail-wm0-f67.google.com ([74.125.82.67]:51184 "EHLO
+        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932445AbdJXJ7U (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 24 Oct 2017 05:43:19 -0400
-Received: by mail-wm0-f68.google.com with SMTP id p75so14456826wmg.3
-        for <linux-unionfs@vger.kernel.org>; Tue, 24 Oct 2017 02:43:19 -0700 (PDT)
-In-Reply-To: <D90A2B0B-C311-4F73-9CB7-D6361EDCD131@mykernel.net>
+        Tue, 24 Oct 2017 05:59:20 -0400
+Received: by mail-wm0-f67.google.com with SMTP id u138so14544742wmu.5
+        for <linux-unionfs@vger.kernel.org>; Tue, 24 Oct 2017 02:59:19 -0700 (PDT)
+In-Reply-To: <1507824184-6244-1-git-send-email-amir73il@gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: cgxu <cgxu@mykernel.net>
-Cc: "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>, David Howells <dhowells@redhat.com>
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: Vivek Goyal <vgoyal@redhat.com>, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>, "# v4 . 13" <stable@vger.kernel.org>
 
-On Tue, Oct 24, 2017 at 5:44 AM, cgxu <cgxu@mykernel.net> wrote:
-> Hi Miklos,
+On Thu, Oct 12, 2017 at 6:03 PM, Amir Goldstein <amir73il@gmail.com> wrote:
+> Commit fbaf94ee3cd5 ("ovl: don't set origin on broken lower hardlink")
+> attempt to avoid the condition of non-indexed upper inode with lower
+> hardlink as origin. If this condition is found, lookup returns EIO.
 >
-> We=E2=80=99re testing our container system using overlayfs as image stora=
-ge.
-> We noticed that although overlayfs supports maximum 500 layers in filesys=
-tem,
-> but  when lowerdir is quite long then mount will fail because of mount op=
-tion=E2=80=99s one PAGE SIZE limitation.
-> In our environment, we added new mount option =E2=80=9Clong_option=E2=80=
-=9D to deliver long mount option with extended attribute.
-> This approach is backward compatible and could be useful to container.
-> I have done basic testing on this and hope to hear some feedback for the =
-patch.
+> The protection of commit mentioned above does not cover the case of lower
+> that is not a hardlink when it is copied up (with either index=off/on)
+> and then lower is hardlinked while overlay is offline.
 >
-> Detail explanations:
-> In this approach, we can set mount option both in command line and config=
- file=E2=80=99s extended attribute.
-> There are three possible cases as below.
+> Changes to lower layer while overlayfs is offline should not result in
+> unexpected behavior, so a permanent EIO error after creating a link in
+> lower layer should not be considered as correct behavior.
+>
+> This fix replaces EIO error with a warning in cases where upper has
+> origin but no index is found, or index is found that does not match upper
+> inode. In those cases, lookup will not fail and the returned overlay
+> inode will be hashed by upper inode instead of by lower origin inode.
+>
+> Fixes: 359f392ca53e ("ovl: lookup index entry for copy up origin")
+> Cc: <stable@vger.kernel.org> # v4.13
+> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+> ---
+>
+> Miklos,
+>
+> Following a discussion with Vivek about metacopy feature and the option
+> of setting ORIGIN for non-indexed lower hardlinks on copy up, I came to
+> a conclusion that the current EIO behavior is not quite tollerant to lower
+> changes as one would hope and that it should be fixed in stable kernels.
 
-Patchset from David Howells (*) will allow unlimited mount options.
-I'd rather wait for that than adding hacks to work around the page
-size limitation.
+Okay, but I started wondering if we really should be writing warnings
+to the kernel log if this situation is considered normal.
+
+Is it worth warning about these?
 
 Thanks,
 Miklos
-
-(*) https://www.mail-archive.com/linux-kernel@vger.kernel.org/msg1506283.ht=
-ml
