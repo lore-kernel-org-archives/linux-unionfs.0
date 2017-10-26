@@ -1,123 +1,88 @@
-From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [RFC PATCH 00/13][V5] overlayfs: Delayed copy up of data
-Date: Thu, 26 Oct 2017 10:18:19 +0300
-Message-ID: <CAOQ4uxhDkDHAFxhs6mu6HQ+Z1+y8ykvcw5vbXO3H79kGJ6zAaA@mail.gmail.com>
+From: Vivek Goyal <vgoyal@redhat.com>
+Subject: Re: [PATCH 02/13] ovl: Create origin xattr on copy up for all files
+Date: Thu, 26 Oct 2017 08:53:30 -0400
+Message-ID: <20171026125330.GA28005@redhat.com>
 References: <1508958575-14086-1-git-send-email-vgoyal@redhat.com>
+ <1508958575-14086-3-git-send-email-vgoyal@redhat.com>
+ <CAOQ4uxj88gEpnuPY1R9sAJn6OmZBzWK-N5u8-OoeL1SLnqHLmw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-yw0-f194.google.com ([209.85.161.194]:48325 "EHLO
-        mail-yw0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750997AbdJZHSV (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 26 Oct 2017 03:18:21 -0400
-Received: by mail-yw0-f194.google.com with SMTP id q1so2126357ywh.5
-        for <linux-unionfs@vger.kernel.org>; Thu, 26 Oct 2017 00:18:20 -0700 (PDT)
-In-Reply-To: <1508958575-14086-1-git-send-email-vgoyal@redhat.com>
+Received: from mx1.redhat.com ([209.132.183.28]:33848 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S932204AbdJZMxb (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Thu, 26 Oct 2017 08:53:31 -0400
+Content-Disposition: inline
+In-Reply-To: <CAOQ4uxj88gEpnuPY1R9sAJn6OmZBzWK-N5u8-OoeL1SLnqHLmw@mail.gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Vivek Goyal <vgoyal@redhat.com>
+To: Amir Goldstein <amir73il@gmail.com>
 Cc: overlayfs <linux-unionfs@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>
 
-On Wed, Oct 25, 2017 at 10:09 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
-> Hi,
->
-> Here is the V5 of patches. Following are changes from V4.
+On Thu, Oct 26, 2017 at 08:31:48AM +0300, Amir Goldstein wrote:
+> On Wed, Oct 25, 2017 at 10:09 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
+> > Right now my understanding is that origin xattr is created for all copied
+> > up files if index=on. And if index=off, then we create it for all type
+> > of files except hardlinks (nlink != 1).
+> >
+> > With metadata only copy up, I will still require origin xattr to copy up
+> > data later, so create it even for hardlinks even with index=off.
+> >
+> > Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
+> > ---
+> >  fs/overlayfs/copy_up.c | 7 +------
+> >  1 file changed, 1 insertion(+), 6 deletions(-)
+> >
+> > diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
+> > index c441f93..8a8f538 100644
+> > --- a/fs/overlayfs/copy_up.c
+> > +++ b/fs/overlayfs/copy_up.c
+> > @@ -470,9 +470,6 @@ static int ovl_copy_up_inode(struct ovl_copy_up_ctx *c, struct dentry *temp)
+> >         /*
+> >          * Store identifier of lower inode in upper inode xattr to
+> >          * allow lookup of the copy up origin inode.
+> > -        *
+> > -        * Don't set origin when we are breaking the association with a lower
+> > -        * hard link.
+> >          */
+> >         if (c->origin) {
+> >                 err = ovl_set_origin(c->dentry, c->lowerpath.dentry, temp);
+> > @@ -538,9 +535,6 @@ static int ovl_do_copy_up(struct ovl_copy_up_ctx *c)
+> >             c->stat.nlink > 1)
+> >                 indexed = true;
+> >
+> > -       if (S_ISDIR(c->stat.mode) || c->stat.nlink == 1 || indexed)
+> > -               c->origin = true;
+> > -
+> >         if (indexed) {
+> >                 c->destdir = ovl_indexdir(c->dentry->d_sb);
+> >                 err = ovl_get_index_name(c->lowerpath.dentry, &c->destname);
+> > @@ -596,6 +590,7 @@ static int ovl_copy_up_one(struct dentry *parent, struct dentry *dentry,
+> >                 .parent = parent,
+> >                 .dentry = dentry,
+> >                 .workdir = ovl_workdir(dentry),
+> > +               .origin = true,
+> 
+> If its always true, please remove the condition variable,
 
-Please use git format-patch -v6 next time you post.
-It tags all the patch subjects so it is easier to find the former
-revision of specific patch.
+Right. I will remove it.
 
->
-> - Flipped the meaning of bit. Now OVL_METACOPY is called OVL_UPPERDATA and
->   dropped a barrier patch which implemented ordering requirements between
->   oi->flags and oi->__upperdentry.
->
-> - Now ovl_d_real() does return upper dentry if upper dentry is metacopy only
->   dentry.
+> but if it
+> were up to me,
+> I would set it to true only when metacopy is enabled for now and maybe relax it
+> unconditionally later on
 
-doesn't return upper dentry
+I rather not make it metacopy dependent. If there are issus with
+this, they better come out now and don't want these issues to be visible
+only if metacopy=on. It becomes another corner case to handle then. Want
+to avoid it.
 
-But I am still not convinced that metacopy upper inode is not accessed in places
-it shouldn't be accessed by vfs, via other APIs.
+Vivek
 
-For example, ovl_permission(), ovl_getattr(), ovl_setattr(), ovl_listxattr(),
-ovl_get_acl() will all access metacopy inode and that outcome will be desired.
-But you did not provide a complete list of vfs APIs and verify for each
-that accessing the metacopy upper via various variants of ovl_dentry_real()
-is either not possible (because access requires a rw fd) or is the
-desired outcome.
-
->
-> - Added a fix to ovl_lookup() goto statement.
-
-This patch is independent of this series AFAICT your patches don't
-depend on it in.
-Please post it separately with Fixes tag and CC stable
-
->
-> - Renamed ->metadata_only to ->metacopy
->
-> - Replaced BUG_ON() with WARN_ON() in ovl_copy_up_meta_inode_data()
->
-> - Added WARN_ON(!OVL_TYPE_ORIGIN(type)) in ovl_getattr()
->
-> - Took care of bunch of code organization comments from Amir.
->
-> Original Description
-> --------------------
-> In one of the recent converstions, people mentioned that chown/chmod
-> lead to copy up files as well as data. We could optimize it so that
-> only metadata is copied up during chown/chmod and data is copied up when
-> file is opened for WRITE.
->
-> This optimization potentially could be useful with containers and user
-> namespaces. In popular scenario, people end up doing chown() on whole
-> image directory tree based on container mappings. And this chown copies
-> up everything, breaking sharing of page cache between containers.
->
-> With these patches, only metadat is copied up during chown() and if file
-> is opened for READ, d_real() returns lower dentry/inode. That way,
-> different containers can still continue to use page cache. That's the
-> use case I have in mind.
->
-> Basically, I am relying on storing OVL_XATTR_ORIGIN in upper inode
-> during copy up. I use that information to get to lower inode later and
-> do data copy up when necessary.
->
-> I also store OVL_XATTR_METACOPY in upper inode to mark that only
-> metadata has been copied up and data copy up still might be required.
->
-> Any feedback is helpful.
->
-> Thanks
-> Vivek
->
-> Vivek Goyal (13):
->   ovl: Put upperdentry if ovl_check_origin() fails
->   ovl: Create origin xattr on copy up for all files
->   ovl: ovl_check_setxattr() get rid of redundant -EOPNOTSUPP check
->   ovl: Provide a mount option metacopy=on/off for metadata copyup
->   ovl: During copy up, first copy up metadata and then data
->   ovl: Copy up only metadata during copy up where it makes sense
->   ovl: A new xattr OVL_XATTR_METACOPY for file on upper
->   ovl: Fix ovl_getattr() to get number of blocks from lower
->   ovl: Set OVL_UPPERDATA flag during ovl_lookup()
->   ovl: Return lower dentry if only metadata copy up took place
->   ovl: Introduce read/write barriers around metacopy flag update
->   ovl: Do not export metacopy only upper dentry
->   ovl: Enable metadata only feature
->
->  fs/overlayfs/Kconfig     |   8 ++++
->  fs/overlayfs/copy_up.c   | 116 +++++++++++++++++++++++++++++++++++------------
->  fs/overlayfs/inode.c     |  15 +++++-
->  fs/overlayfs/namei.c     |  38 +++++++++++++++-
->  fs/overlayfs/overlayfs.h |   6 ++-
->  fs/overlayfs/ovl_entry.h |   1 +
->  fs/overlayfs/super.c     |  67 +++++++++++++++++++++++++--
->  fs/overlayfs/util.c      |  54 +++++++++++++++++-----
->  8 files changed, 257 insertions(+), 48 deletions(-)
->
-> --
-> 2.5.5
->
+> 
+> >         };
+> >
+> >         if (WARN_ON(!ctx.workdir))
+> > --
+> > 2.5.5
+> >
