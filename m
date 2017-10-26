@@ -1,156 +1,230 @@
-From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [PATCH 07/13] ovl: A new xattr OVL_XATTR_METACOPY for file on upper
-Date: Thu, 26 Oct 2017 19:11:22 +0300
-Message-ID: <CAOQ4uxifH6PGjJfc=D0ZXjnyWwVPmC+C+V1SJeHHJyiui3MAFw@mail.gmail.com>
+From: Vivek Goyal <vgoyal@redhat.com>
+Subject: Re: [PATCH 11/13] ovl: Introduce read/write barriers around metacopy
+ flag update
+Date: Thu, 26 Oct 2017 13:54:58 -0400
+Message-ID: <20171026175458.GB6704@redhat.com>
 References: <1508958575-14086-1-git-send-email-vgoyal@redhat.com>
- <1508958575-14086-8-git-send-email-vgoyal@redhat.com> <CAOQ4uxjPvaUN_OK2dB0zZT1pru38vSTgPrZr3YihWgoUr4d=qw@mail.gmail.com>
- <20171026135323.GD28005@redhat.com> <CAOQ4uxhHeesWGGaQWTue+uEnOdM9U34dGvtbStwOHT5AiZbVWg@mail.gmail.com>
- <20171026143422.GA6704@redhat.com>
+ <1508958575-14086-12-git-send-email-vgoyal@redhat.com>
+ <CAOQ4uxio4ZESiJ35dAimnFW_YcdEpmRCPqMPDB5i2AWvRg2WOA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-yw0-f194.google.com ([209.85.161.194]:51423 "EHLO
-        mail-yw0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932309AbdJZQLX (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 26 Oct 2017 12:11:23 -0400
-Received: by mail-yw0-f194.google.com with SMTP id k3so3355715ywk.8
-        for <linux-unionfs@vger.kernel.org>; Thu, 26 Oct 2017 09:11:23 -0700 (PDT)
-In-Reply-To: <20171026143422.GA6704@redhat.com>
+Received: from mx1.redhat.com ([209.132.183.28]:40889 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S932309AbdJZRy7 (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Thu, 26 Oct 2017 13:54:59 -0400
+Content-Disposition: inline
+In-Reply-To: <CAOQ4uxio4ZESiJ35dAimnFW_YcdEpmRCPqMPDB5i2AWvRg2WOA@mail.gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Vivek Goyal <vgoyal@redhat.com>
+To: Amir Goldstein <amir73il@gmail.com>
 Cc: overlayfs <linux-unionfs@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>
 
-On Thu, Oct 26, 2017 at 5:34 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
-> On Thu, Oct 26, 2017 at 05:14:57PM +0300, Amir Goldstein wrote:
->> On Thu, Oct 26, 2017 at 4:53 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
->> > On Thu, Oct 26, 2017 at 09:04:17AM +0300, Amir Goldstein wrote:
->> >> On Wed, Oct 25, 2017 at 10:09 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
->> >> > Now we will have the capability to have upper inodes which might be only
->> >> > metadata copy up and data is still on lower inode. So add a new xattr
->> >> > OVL_XATTR_METACOPY to distinguish between two cases.
->> >> >
->> >> > Presence of OVL_XATTR_METACOPY reflects that file has been copied up metadata
->> >> > only and and data will be copied up later from lower origin.
->> >> > So this xattr is set when a metadata copy takes place and cleared when
->> >> > data copy takes place.
->> >> >
->> >> > We also use a bit in ovl_inode->flags to cache OVL_UPPERDATA which reflects
->> >> > whether ovl inode has data or not (as opposed to metadata only copy up).
->> >> >
->> >> > Note, OVL_UPPERDATA is set only on those upper inodes which can possibly
->> >> > be metacopy only inodes. For example, inode should be a regular file and
->> >> > there needs to be a lower dentry.
->> >>
->> >> Why? is it not simpler and better for readability to set it in all
->> >> cases except metacopy?
->> >
->> > I think it was re-introducing ordering requirement w.r.t oi->__upperdentry
->> > and that's why I avoided it doing for all type of files.
->> >
->> > For example, in file/dir creation path when a new dentry is created, we
->> > need to make sure OVL_UPPERDATA is visible on other cpus before
->> > oi->__upperdentry is visible. Otherwise other cpus might try to copy up this
->> > file for which there might not be any lower and all the bad things can happen.
->> >
->> > For example,
->> >
->> >           CPU1                                  CPU2
->> >    ovl_instantiate() {                     ovl_d_real() {
->> >      ovl_dentry_set_upper_alias()           ovl_open_maybe_copy_up()
->> >      set OVL_UPPERDATA                       ovl_dentry_needs_data_copy_up
->> >      smp_wmb();                               test OVL_UPPERDATA
->> >      oi->__upperdentry = upperdentry
->> >    }
->> >
->> > So if cpu1 is creating a new file and cpu2 does ovl_d_real() and it sees
->> > upper dentry but not OVL_UPPERDATA, it will try to copy up file (which
->> > might not be on lower at all).
->> >
->> > Similarly, in ovl_d_real() we check OVL_UPPERDATA one more time and if
->> > its not set, we return lower dentry instead of upper. It can race there
->> > as well and try to return a lower which does not exist (for a newly
->> > created file).
->> >
->> > So, IIUC, this was bringing back ordering requirement and hence I limited
->> > this flag.
->> >
->>
->> Fine. but use ovl_should_check_upperdata() in read path (CPU2) anyway
->> so there is little point in checking whether or not you need to set the flag.
->> Better just set it unconditionally on copy up (!metacopy) and on
->> ovl_instantiate().
->
-> Ok. Why not keep it symmetric in WRITE and READ paths. That way it is
-> easier to read and understand code. Making it asymmetric will only
-> increase confusion. If we are never going to check a flag, why to
-> set it to begin with.
->
-> Anyway, I don't have strong opinion about it. If you like this better,
-> I am fine.
->
+On Thu, Oct 26, 2017 at 09:34:15AM +0300, Amir Goldstein wrote:
+> On Wed, Oct 25, 2017 at 10:09 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
+> > If a file is copied up metadata only and later when same file is opened
+> > for WRITE, then data copy up takes place. We copy up data, remove METACOPY
+> > xattr and then set the UPPERDATA flag in ovl_entry->flags. While all
+> > these operations happen with oi->lock held, read side of oi->flags is
+> > lockless. That is another thread on another cpu can check if UPPERDATA
+> > flag is set or not.
+> >
+> > So this gives us an ordering requirement w.r.t UPPERDATA flag. That is, if
+> > another cpu sees UPPERDATA flag set, then it should be guaranteed that
+> > effects of data copy up and remove xattr operations are also visible.
+> >
+> > For example.
+> >
+> >         CPU1                            CPU2
+> > ovl_copy_up_flags()                     acquire(oi->lock)
+> >  ovl_dentry_needs_data_copy_up()          ovl_copy_up_data()
+> >    ovl_test_flag(OVL_UPPERDATA)           vfs_removexattr()
+> >                                           ovl_set_flag(OVL_UPPERDATA)
+> >                                         release(oi->lock)
+> >
+> > Say CPU2 is copying up data and in the end sets UPPERDATA flag. But if
+> > CPU1 perceives the effects of setting UPPERDATA flag but not effects of
+> > preceeding operations, that would be a problem.
+> 
+> Why would that be a problem?
+> What can go wrong?
 
-Please just makes sure the resulting code is simplest.
-Don't add extra if's if setting the flag is not harmful.
+That's a good question. I really don't have a concrete example where I can
+say this this can go wrong. Can you think of something.
 
->>
->> > BTW, how did oi->has_upper handle this requirement. IIUC, that can run
->> > into same issue. It is possible that CPU2 does not see ->has_upper for
->> > newly created file while it has oi->__upperdentry. That means it can
->> > try to copy up a non-existent file as well.
->>
->> I think you are referring to the "false negative" case in Miklos's comment
->> in ovl_copy_up_flags(). This is the simplest case because both __upperdentry
->> and has_alias are checked again under oi->lock in ovl_copy_up_one().
->
-> But before we take lock, we start doing operations on lower and you might
-> get null pointer dereference. (there will not be any lower for an upper
-> only file).
->
-> ovl_copy_up_one() {
->         ovl_path_lower(dentry, &ctx.lowerpath);
->         err = vfs_getattr(&ctx.lowerpath, &ctx.stat,
->                           STATX_BASIC_STATS, AT_STATX_SYNC_AS_STAT);
->         ovl_do_check_copy_up(ctx.lowerpath.dentry);
->         ovl_copy_up_start();    <--- Now we take lock.
-> }
->
+> If you try to answer the question instead of referring to a vague "problem"
+> you will see that only the ovl_d_real() code path can be a problem.
 
-Ah, I see it now.
+Right. And ovl_copy_up_flags() will be called from ovl_d_real().  Will
+update it to show cover more of parent chain.
 
-I guess there are barriers to make sure that dentry is consistent before
-adding it to dcache and finding it in lookup, but just guessing. Miklos?
+> and maybe
+> (I did not check) ovl_getattr. Please change your example above to ovl_d_real()
+> code path of CPU1
 
-> [..]
->> >> > +bool ovl_dentry_check_upperdata(struct dentry *dentry) {
->> >>
->> >> Not a good helper name IMO. it reads to me "check if upperdata is set"
->> >> and it should read "should I check upperdata flag"
->> >
->> > How about ovl_should_check_upperdata() instead.
->> >
->>
->> OK. and make sure to add if (ofs->config.metacopy)
->
-> Hmm... I am not sure about checking for ofs->config.metacopy. The way
-> this feature is designed right now, is that if metacopy=off, then any
-> new copyup will not happen metacopy only. But if there are existing
-> metacopy only files, then these will still be data copied up.
->
-> So say somebody mounts with metacopy=on and bunch of files are copied up
-> metadata only. Now overlay is remounted with metacopy=off, then this will
-> continue to work. No new copy ups will be metadata only but existing
-> metadata only copied up files will continue to work.
->
-> That means, even if metacopy=off, I need to check for UPPERDATA flag
-> properly and trigger a data copy up if need be.
->
+Will do.
 
-I see. In that case, we can employ "filesystem enabled features"
-terminology, which can tell us if a feature was ever enabled. This is what
-my "overlay index features" patches are trying to address.
+I looked at ovl_getattr() and can't think why smp_rmb() is needed there.
+We check UPPERDATA in the end if flag is not visible, then we do stat
+on lower. Which should be fine as if other cpu is doing copy up, there
+are no guarantees that ovl_getattr() will see updates.
 
-But its ok to ignore this for metacopy for now.
+And if UPPERDATA is set, then we don't do anything and simply return, so
+that should not matter either. In d_real() we return upperdentry so we
+need to make sure it is stable that's why smp_rmb(). In ovl_getattr()
+we don't return upper dentry, so smp_rmb() is probably not required.
 
-Amir.
+> 
+> >
+> > Hence this patch introduces smp_wmb() on setting UPPERDATA flag operation
+> > and smp_rmb() on UPPERDATA flag test operation.
+> >
+> > May be some other lock or barrier is already covering it. But I am not sure
+> > what that is and is it obvious enough that we will not break it in future.
+> >
+> > So hence trying to be safe here and introducing barriers explicitly for
+> > UPPERDATA flag/bit.
+> >
+> > Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
+> > ---
+> >  fs/overlayfs/copy_up.c |  7 ++++++-
+> >  fs/overlayfs/super.c   | 13 ++++++++++---
+> >  fs/overlayfs/util.c    | 11 ++++++++++-
+> >  3 files changed, 26 insertions(+), 5 deletions(-)
+> >
+> > diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
+> > index a6cda02..4876ae4 100644
+> > --- a/fs/overlayfs/copy_up.c
+> > +++ b/fs/overlayfs/copy_up.c
+> > @@ -466,7 +466,12 @@ static int ovl_copy_up_meta_inode_data(struct ovl_copy_up_ctx *c)
+> >         err= vfs_removexattr(upperpath.dentry, OVL_XATTR_METACOPY);
+> >         if (err)
+> >                 return err;
+> > -
+> > +       /*
+> > +        * Pairs with smp_rmb() in ovl_dentry_needs_data_copy_up(). Make sure
+> 
+> Nope. only pairs with smp_rmpb() in ovl_d_real() (or in a new helper
+> you need to create)
+
+Please see further down about my argument that why we should retain 
+smp_rmb() in ovl_dentry_needs_data_copy_up().
+
+> 
+> 
+> > +        * if OVL_UPPERDATA flag is visible, then all the write operations
+> > +        * before it are visible as well.
+> > +        */
+> > +       smp_wmb();
+> >         ovl_set_flag(OVL_UPPERDATA, d_inode(c->dentry));
+> >         return err;
+> >  }
+> > diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+> > index 4cf1f98..e97dccb 100644
+> > --- a/fs/overlayfs/super.c
+> > +++ b/fs/overlayfs/super.c
+> > @@ -102,9 +102,16 @@ static struct dentry *ovl_d_real(struct dentry *dentry,
+> >                         if (err)
+> >                                 return ERR_PTR(err);
+> >
+> > -                       if (ovl_dentry_check_upperdata(dentry) &&
+> > -                           !ovl_test_flag(OVL_UPPERDATA, d_inode(dentry)))
+> > -                               goto lower;
+> > +                       if (ovl_dentry_check_upperdata(dentry)) {
+> > +                               if (!ovl_test_flag(OVL_UPPERDATA,
+> > +                                   d_inode(dentry)))
+> > +                                       goto lower;
+> > +                               /*
+> > +                                * Pairs with smp_wmb in
+> > +                                * ovl_copy_up_meta_inode_data()
+> > +                                */
+> > +                               smp_rmb();
+> > +                       }
+> >                 }
+> >                 return real;
+> >         }
+> > diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
+> > index ef720a9..d0f3bf7 100644
+> > --- a/fs/overlayfs/util.c
+> > +++ b/fs/overlayfs/util.c
+> > @@ -238,6 +238,8 @@ bool ovl_dentry_check_upperdata(struct dentry *dentry) {
+> >  }
+> >
+> >  bool ovl_dentry_needs_data_copy_up(struct dentry *dentry, int flags) {
+> > +       bool upperdata;
+> > +
+> >         if (!ovl_dentry_check_upperdata(dentry))
+> >                 return false;
+> >
+> > @@ -250,7 +252,14 @@ bool ovl_dentry_needs_data_copy_up(struct dentry *dentry, int flags) {
+> >         if (!(OPEN_FMODE(flags) & FMODE_WRITE))
+> >                 return false;
+> >
+> > -       if (likely(ovl_test_flag(OVL_UPPERDATA, d_inode(dentry))))
+> > +       upperdata = ovl_test_flag(OVL_UPPERDATA, d_inode(dentry));
+> > +       /*
+> > +        * Pairs with smp_wmb() in ovl_copy_up_meta_inode_data(). Make sure
+> > +        * if setting of OVL_UPPERDATA is visible, then effects of writes
+> > +        * before that are visible too.
+> > +        */
+> > +       smp_rmb();
+> > +       if (upperdata)
+> 
+> Nope. smp_rmb() is not needed here, because most of the places that
+> use this helper
+> will take a lock and call it again under lock.
+
+When you say "lock" you are referring to oi->lock, right?
+
+If yes, I see 3 callsites of ovl_dentry_needs_data_copy_up() right now and
+two of them are lockless(). Calls from ovl_d_real() and ovl_copy_up_flags()
+are lockless while call from ovl_copy_up_one() is locked.
+
+ovl_d_real() is one example of lockless access. There are others. Anybody
+whole call ovl_copy_up() will call this lockless. That's a different
+thing that ovl_copy_up() right now does not specify WRITE flag so data
+copy up will not take place. But that's an internal detail of meaning of
+the bit at this point of time. 
+
+I would rather place barrier right next to bit/flag which is being
+protectd, instead of putting it somewhere far up in the call chain. That
+makes understanding code hard at the same time possibility of of error
+increases.
+
+IOW, this is no different from ovl_dentry_upper() where data dependency
+barrier is placed right next to pointer which is being protected. And
+now ovl_dentry_upper() is called both from lockless and locked code.
+
+> You may need an explicit smp_rmb() also in getattr() though, so you
+> can create a new
+> helper that does exactly what the hunk in ovl_d_real does and reuse
+> the helper in ovl_getattr
+> 
+
+Right. getattr() seems to be racy right now. getattr() should either
+return number of blocks from lower (if metacopy only) or from upper
+(after data copy has stablized). But not anything in between.
+
+And right now, I think multiple races are possible.
+
+		CPU1			CPU2
+	ovl_getattr()
+	vfs_getattr(upper)
+					data_copy_up_finished;
+					smp_wmb()
+					OVL_UPPERDATA=1
+	test OVL_UPPERDATA=1
+	smp_rmb()
+	return
+
+So when we did vfs_getattr() on upper first time, it could be any number
+of blocks (either 0 or intermediate state). In that case should always
+return blocks from lower (I think).
+
+So that probably means that OVL_UPPERDATA should be checked early,
+possibly with smp_rmb() and then decision should be made in advance
+whether to query lower or not.
+
+I will fix it. Thanks for bringing it up.
+
+Vivek
