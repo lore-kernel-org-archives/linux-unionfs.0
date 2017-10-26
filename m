@@ -1,159 +1,130 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [PATCH 11/13] ovl: Introduce read/write barriers around metacopy
- flag update
-Date: Thu, 26 Oct 2017 09:34:15 +0300
-Message-ID: <CAOQ4uxio4ZESiJ35dAimnFW_YcdEpmRCPqMPDB5i2AWvRg2WOA@mail.gmail.com>
-References: <1508958575-14086-1-git-send-email-vgoyal@redhat.com> <1508958575-14086-12-git-send-email-vgoyal@redhat.com>
+Subject: Re: [PATCH 12/13] ovl: Do not export metacopy only upper dentry
+Date: Thu, 26 Oct 2017 09:54:06 +0300
+Message-ID: <CAOQ4uxjkOAkpuJ-X+XK3no6fcpp7OadWKQKH3bqGX1Ct_PAxfw@mail.gmail.com>
+References: <1508958575-14086-1-git-send-email-vgoyal@redhat.com> <1508958575-14086-13-git-send-email-vgoyal@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-yw0-f194.google.com ([209.85.161.194]:56272 "EHLO
-        mail-yw0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751463AbdJZGeQ (ORCPT
+Received: from mail-yw0-f193.google.com ([209.85.161.193]:54393 "EHLO
+        mail-yw0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751507AbdJZGyH (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 26 Oct 2017 02:34:16 -0400
-Received: by mail-yw0-f194.google.com with SMTP id t11so2033720ywg.12
-        for <linux-unionfs@vger.kernel.org>; Wed, 25 Oct 2017 23:34:16 -0700 (PDT)
-In-Reply-To: <1508958575-14086-12-git-send-email-vgoyal@redhat.com>
+        Thu, 26 Oct 2017 02:54:07 -0400
+Received: by mail-yw0-f193.google.com with SMTP id w5so2066432ywg.11
+        for <linux-unionfs@vger.kernel.org>; Wed, 25 Oct 2017 23:54:07 -0700 (PDT)
+In-Reply-To: <1508958575-14086-13-git-send-email-vgoyal@redhat.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: Vivek Goyal <vgoyal@redhat.com>
 Cc: overlayfs <linux-unionfs@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>
 
 On Wed, Oct 25, 2017 at 10:09 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
-> If a file is copied up metadata only and later when same file is opened
-> for WRITE, then data copy up takes place. We copy up data, remove METACOPY
-> xattr and then set the UPPERDATA flag in ovl_entry->flags. While all
-> these operations happen with oi->lock held, read side of oi->flags is
-> lockless. That is another thread on another cpu can check if UPPERDATA
-> flag is set or not.
+> d_real() can make a upper metacopy dentry/inode visible to the vfs layer.
+> This is something new and vfs layer does not know that this inode contains
+> only metadata and not data. And this could break things.
 >
-> So this gives us an ordering requirement w.r.t UPPERDATA flag. That is, if
-> another cpu sees UPPERDATA flag set, then it should be guaranteed that
-> effects of data copy up and remove xattr operations are also visible.
+> So to be safe, do not export metacopy only dentry/inode to vfs using d_real().
 >
-> For example.
+> If d_real() is called with flag D_REAL_UPPER, return upper dentry only if
+> it has data (flag OVL_UPPERDATA is set).
 >
->         CPU1                            CPU2
-> ovl_copy_up_flags()                     acquire(oi->lock)
->  ovl_dentry_needs_data_copy_up()          ovl_copy_up_data()
->    ovl_test_flag(OVL_UPPERDATA)           vfs_removexattr()
->                                           ovl_set_flag(OVL_UPPERDATA)
->                                         release(oi->lock)
+> Similiarly, if d_real(inode=X) is called, a warning is emitted if returned
+> dentry/inode does not have OVL_UPPERDATA set. This should not happen as
+> we never made this metacopy inode visible to vfs so nobody should be calling
+> overlayfs back with inode=metacopy_inode.
 >
-> Say CPU2 is copying up data and in the end sets UPPERDATA flag. But if
-> CPU1 perceives the effects of setting UPPERDATA flag but not effects of
-> preceeding operations, that would be a problem.
-
-Why would that be a problem?
-What can go wrong?
-If you try to answer the question instead of referring to a vague "problem"
-you will see that only the ovl_d_real() code path can be a problem and maybe
-(I did not check) ovl_getattr. Please change your example above to ovl_d_real()
-code path of CPU1
-
+> I scanned the code and I don't think it breaks any of the existing code.
+> There are two users of D_REAL_UPPER. may_write_real() and
+> update_ovl_inode_times().
 >
-> Hence this patch introduces smp_wmb() on setting UPPERDATA flag operation
-> and smp_rmb() on UPPERDATA flag test operation.
+> may_write_real(), will get an NULL dentry if upper inode is metacopy only
+> and it will return -EPERM. Effectively, we are disallowing modifications
+> to metacopy only inode from this interface. Though there is opportunity
+> to improve it. (Allow chattr on metacopy inodes).
 >
-> May be some other lock or barrier is already covering it. But I am not sure
-> what that is and is it obvious enough that we will not break it in future.
+> update_ovl_inode_times() gets inode mtime and ctime from real inode. It
+> should not be broken for metacopy inode as well for following reasons.
 >
-> So hence trying to be safe here and introducing barriers explicitly for
-> UPPERDATA flag/bit.
+> - For any metadata operations (setattr, acl etc), overlay always calls
+>   ovl_copyattr() and updates ovl inode mtime and ctime. So there is no
+>   need to update mtime and ctime int his case. Its already updated.
+>
+> - For metadata inode, mtime should be same as lower and not change. (data
+>   can't be modified on metadata inode without copyup).
+>
+> - For file writes, ctime and mtime will be updated. But in that case
+>   first data will be copied up and this will not be a metadata inode
+>   anymore. And furthr call to d_real(D_REAL_UPPER) will return upper
+>   inode and new mtime and ctime will be obtainable.
+>
+> So atime updates should work just fine for metacopy inodes.
 >
 > Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
 > ---
->  fs/overlayfs/copy_up.c |  7 ++++++-
->  fs/overlayfs/super.c   | 13 ++++++++++---
->  fs/overlayfs/util.c    | 11 ++++++++++-
->  3 files changed, 26 insertions(+), 5 deletions(-)
+>  fs/overlayfs/super.c | 17 +++++++++++++++--
+>  1 file changed, 15 insertions(+), 2 deletions(-)
 >
-> diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
-> index a6cda02..4876ae4 100644
-> --- a/fs/overlayfs/copy_up.c
-> +++ b/fs/overlayfs/copy_up.c
-> @@ -466,7 +466,12 @@ static int ovl_copy_up_meta_inode_data(struct ovl_copy_up_ctx *c)
->         err= vfs_removexattr(upperpath.dentry, OVL_XATTR_METACOPY);
->         if (err)
->                 return err;
-> -
-> +       /*
-> +        * Pairs with smp_rmb() in ovl_dentry_needs_data_copy_up(). Make sure
-
-Nope. only pairs with smp_rmpb() in ovl_d_real() (or in a new helper
-you need to create)
-
-
-> +        * if OVL_UPPERDATA flag is visible, then all the write operations
-> +        * before it are visible as well.
-> +        */
-> +       smp_wmb();
->         ovl_set_flag(OVL_UPPERDATA, d_inode(c->dentry));
->         return err;
->  }
 > diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-> index 4cf1f98..e97dccb 100644
+> index e97dccb..dc8909a 100644
 > --- a/fs/overlayfs/super.c
 > +++ b/fs/overlayfs/super.c
-> @@ -102,9 +102,16 @@ static struct dentry *ovl_d_real(struct dentry *dentry,
->                         if (err)
->                                 return ERR_PTR(err);
+> @@ -80,8 +80,18 @@ static struct dentry *ovl_d_real(struct dentry *dentry,
+>         struct dentry *real;
+>         int err;
 >
-> -                       if (ovl_dentry_check_upperdata(dentry) &&
-> -                           !ovl_test_flag(OVL_UPPERDATA, d_inode(dentry)))
-> -                               goto lower;
-> +                       if (ovl_dentry_check_upperdata(dentry)) {
-> +                               if (!ovl_test_flag(OVL_UPPERDATA,
-> +                                   d_inode(dentry)))
-> +                                       goto lower;
-> +                               /*
-> +                                * Pairs with smp_wmb in
-> +                                * ovl_copy_up_meta_inode_data()
-> +                                */
-> +                               smp_rmb();
-> +                       }
+> -       if (flags & D_REAL_UPPER)
+> -               return ovl_dentry_upper(dentry);
+> +       if (flags & D_REAL_UPPER) {
+> +               real = ovl_dentry_upper(dentry);
+> +               if (!real)
+> +                       return NULL;
+
+
+bool ovl_dentry_is_metacopy(dentry) {
+> +               if (!ovl_dentry_check_upperdata(dentry))
+> +                       return false;
+> +               if (!ovl_test_flag(OVL_UPPERDATA, d_inode(dentry)))
+> +                       return true;
+> +               /* Pairs with smp_wmb() in ovl_copy_up_meta_inode_data() */
+> +               smp_rmb();
+                    return false;
+}
+
+to be used 2 times in ovl_d_real() and in ovl_getattr()
+
+
+> +               return real;
+> +       }
+>
+>         if (!d_is_reg(dentry)) {
+>                 if (!inode || inode == d_inode(dentry))
+> @@ -113,6 +123,9 @@ static struct dentry *ovl_d_real(struct dentry *dentry,
+>                                 smp_rmb();
+>                         }
 >                 }
+> +
+> +               WARN_ON(ovl_dentry_check_upperdata(dentry) &&
+> +                       !ovl_test_flag((OVL_UPPERDATA), d_inode(dentry)));
+
+Instead of checking flag twice, check it once above the if (!inode), e.g:
+
+bool metacopy = ovl_dentry_is_metacopy(dentry);
+if (!inode) {
+        ...
+        if (unlikely(metacopy))
+                goto lower;
+} else if (unlikely(metacopy))
+        goto bug;
+}
+
 >                 return real;
 >         }
-> diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
-> index ef720a9..d0f3bf7 100644
-> --- a/fs/overlayfs/util.c
-> +++ b/fs/overlayfs/util.c
-> @@ -238,6 +238,8 @@ bool ovl_dentry_check_upperdata(struct dentry *dentry) {
->  }
 >
->  bool ovl_dentry_needs_data_copy_up(struct dentry *dentry, int flags) {
-> +       bool upperdata;
-> +
->         if (!ovl_dentry_check_upperdata(dentry))
->                 return false;
->
-> @@ -250,7 +252,14 @@ bool ovl_dentry_needs_data_copy_up(struct dentry *dentry, int flags) {
->         if (!(OPEN_FMODE(flags) & FMODE_WRITE))
->                 return false;
->
-> -       if (likely(ovl_test_flag(OVL_UPPERDATA, d_inode(dentry))))
-> +       upperdata = ovl_test_flag(OVL_UPPERDATA, d_inode(dentry));
-> +       /*
-> +        * Pairs with smp_wmb() in ovl_copy_up_meta_inode_data(). Make sure
-> +        * if setting of OVL_UPPERDATA is visible, then effects of writes
-> +        * before that are visible too.
-> +        */
-> +       smp_rmb();
-> +       if (upperdata)
-
-Nope. smp_rmb() is not needed here, because most of the places that
-use this helper
-will take a lock and call it again under lock.
-You may need an explicit smp_rmb() also in getattr() though, so you
-can create a new
-helper that does exactly what the hunk in ovl_d_real does and reuse
-the helper in ovl_getattr
-
->                 return false;
->
->         return true;
 > --
 > 2.5.5
 >
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-unionfs" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
