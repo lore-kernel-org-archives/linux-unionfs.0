@@ -1,291 +1,103 @@
-From: Vivek Goyal <vgoyal@redhat.com>
-Subject: Re: [PATCH 07/13] ovl: A new xattr OVL_XATTR_METACOPY for file on
- upper
-Date: Thu, 26 Oct 2017 09:53:23 -0400
-Message-ID: <20171026135323.GD28005@redhat.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Subject: Re: [PATCH 04/13] ovl: Provide a mount option metacopy=on/off for
+ metadata copyup
+Date: Thu, 26 Oct 2017 16:57:44 +0300
+Message-ID: <CAOQ4uxhhp_EukHuW6zkDCuHngM1vLGhtR2=zc1=AARxWOHx4eQ@mail.gmail.com>
 References: <1508958575-14086-1-git-send-email-vgoyal@redhat.com>
- <1508958575-14086-8-git-send-email-vgoyal@redhat.com>
- <CAOQ4uxjPvaUN_OK2dB0zZT1pru38vSTgPrZr3YihWgoUr4d=qw@mail.gmail.com>
+ <1508958575-14086-5-git-send-email-vgoyal@redhat.com> <CAOQ4uxhV3-8ytms+M5n2QVYGmZJNL527H7KYpXnzbE93fOsBdA@mail.gmail.com>
+ <20171026131505.GB28005@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:60020 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932273AbdJZNxY (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 26 Oct 2017 09:53:24 -0400
-Content-Disposition: inline
-In-Reply-To: <CAOQ4uxjPvaUN_OK2dB0zZT1pru38vSTgPrZr3YihWgoUr4d=qw@mail.gmail.com>
+Received: from mail-yw0-f193.google.com ([209.85.161.193]:51720 "EHLO
+        mail-yw0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932234AbdJZN5q (ORCPT
+        <rfc822;linux-unionfs@vger.kernel.org>);
+        Thu, 26 Oct 2017 09:57:46 -0400
+Received: by mail-yw0-f193.google.com with SMTP id k3so2958849ywk.8
+        for <linux-unionfs@vger.kernel.org>; Thu, 26 Oct 2017 06:57:46 -0700 (PDT)
+In-Reply-To: <20171026131505.GB28005@redhat.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Amir Goldstein <amir73il@gmail.com>
+To: Vivek Goyal <vgoyal@redhat.com>
 Cc: overlayfs <linux-unionfs@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>
 
-On Thu, Oct 26, 2017 at 09:04:17AM +0300, Amir Goldstein wrote:
-> On Wed, Oct 25, 2017 at 10:09 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
-> > Now we will have the capability to have upper inodes which might be only
-> > metadata copy up and data is still on lower inode. So add a new xattr
-> > OVL_XATTR_METACOPY to distinguish between two cases.
-> >
-> > Presence of OVL_XATTR_METACOPY reflects that file has been copied up metadata
-> > only and and data will be copied up later from lower origin.
-> > So this xattr is set when a metadata copy takes place and cleared when
-> > data copy takes place.
-> >
-> > We also use a bit in ovl_inode->flags to cache OVL_UPPERDATA which reflects
-> > whether ovl inode has data or not (as opposed to metadata only copy up).
-> >
-> > Note, OVL_UPPERDATA is set only on those upper inodes which can possibly
-> > be metacopy only inodes. For example, inode should be a regular file and
-> > there needs to be a lower dentry.
-> 
-> Why? is it not simpler and better for readability to set it in all
-> cases except metacopy?
+On Thu, Oct 26, 2017 at 4:15 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
+> On Thu, Oct 26, 2017 at 08:39:28AM +0300, Amir Goldstein wrote:
+>> On Wed, Oct 25, 2017 at 10:09 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
+>> > By default metadata only copy up is disabled. Provide a mount option so
+>> > that users can choose one way or other.
+>> >
+>> > Also provide a kernel config and module option to enable/disable
+>> > metacopy feature.
+>> >
+>> > Like index feature, when overlay is mounted, on root upper directory we
+>> > set ORIGIN which points to lower. And at later mount time it is verified
+>> > again. This hopes to get the configuration right. But this does only so
+>> > much as we don't verify all the lowers. So it is possible that a lower is
+>> > missing and later data copy up fails.
+>>
+>> Since you bother to specify the motivation for verifying lower root dir,
+>> FYI, the main motivation was to detect the case of copied layers.
+>
+> What are copied layers? You mean I remove original layer and bring in
+> another one with same top dir name?
+>
 
-I think it was re-introducing ordering requirement w.r.t oi->__upperdentry
-and that's why I avoided it doing for all type of files.
+I mean admin is out of disk space so she cp -a some folders
+between volumes or maybe copying all layers a side to backup
+a machine.
 
-For example, in file/dir creation path when a new dentry is created, we
-need to make sure OVL_UPPERDATA is visible on other cpus before
-oi->__upperdentry is visible. Otherwise other cpus might try to copy up this
-file for which there might not be any lower and all the bad things can happen.
+There is a section in Documentation/filesystems/overlayfs.txt
+"Sharing and copying layers" where I wrote:
+"It is quite a common practice to copy overlay layers to a different
+directory tree on the same or different underlying filesystem, and even
+to a different machine"
 
-For example, 
+This was my impression.
+Please fix me if you think this statement is not accurate.
 
-          CPU1					CPU2
-   ovl_instantiate() {			   ovl_d_real() {
-     ovl_dentry_set_upper_alias()	    ovl_open_maybe_copy_up()
-     set OVL_UPPERDATA 			     ovl_dentry_needs_data_copy_up   
-     smp_wmb();				      test OVL_UPPERDATA
-     oi->__upperdentry = upperdentry
-   }
 
-So if cpu1 is creating a new file and cpu2 does ovl_d_real() and it sees
-upper dentry but not OVL_UPPERDATA, it will try to copy up file (which
-might not be on lower at all).
+> But this tests only one layer, right. So if there are multiple lower
+> layers, I can still copy/remove or do something else with other layers
+> and it will not detect.
+>
+> Also I should be able to retain top dir name same and replace anything
+> underneath and that will not be detected either.
+>
+> So it provides only so much of protection, IIUC.
 
-Similarly, in ovl_d_real() we check OVL_UPPERDATA one more time and if
-its not set, we return lower dentry instead of upper. It can race there
-as well and try to return a lower which does not exist (for a newly
-created file). 
+It provides merely a big red sign if user used to practice
+"copying layers", user cannot do that anymore with index=on
+and she cannot do that with metacopy=on either.
+the test is there as a heuristic to detect that use case and alert the user.
 
-So, IIUC, this was bringing back ordering requirement and hence I limited
-this flag.
+I would rephrase commit message to something like:
+"Like index feature, we verify on mount that upper root is not being
+ reused with a different lower root. This hopes to get the configuration
+ right and detect the copied layers use case. But this does only..."
 
-BTW, how did oi->has_upper handle this requirement. IIUC, that can run
-into same issue. It is possible that CPU2 does not see ->has_upper for
-newly created file while it has oi->__upperdentry. That means it can
-try to copy up a non-existent file as well.
+Less 'what' more 'why'.
 
-> Doesn't matter much, but seems to me that code will look better.
-> That is not to say you don't need a helper "should I check the flag".
-
-I am not very happy with helper either. But it felt less bad option 
-when it came to re-introducing barrier. So I chose this path.
-
-> 
-> >
-> > Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
-> > ---
-> >  fs/overlayfs/copy_up.c   | 55 +++++++++++++++++++++++++++++++++++++++++++++---
-> >  fs/overlayfs/inode.c     |  3 ++-
-> >  fs/overlayfs/overlayfs.h |  6 +++++-
-> >  fs/overlayfs/util.c      | 34 ++++++++++++++++++++++++++++--
-> >  4 files changed, 91 insertions(+), 7 deletions(-)
-> >
-> > diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
-> > index 2936284..a6cda02 100644
-> > --- a/fs/overlayfs/copy_up.c
-> > +++ b/fs/overlayfs/copy_up.c
-> > @@ -196,6 +196,16 @@ static int ovl_copy_up_data(struct path *old, struct path *new, loff_t len)
-> >         return error;
-> >  }
-> >
-> > +static int ovl_set_size(struct dentry *upperdentry, struct kstat *stat)
-> > +{
-> > +       struct iattr attr = {
-> > +               .ia_valid = ATTR_SIZE,
-> > +               .ia_size = stat->size,
-> > +       };
-> > +
-> > +       return notify_change(upperdentry, &attr, NULL);
-> > +}
-> > +
-> >  static int ovl_set_timestamps(struct dentry *upperdentry, struct kstat *stat)
-> >  {
-> >         struct iattr attr = {
-> > @@ -439,6 +449,28 @@ static int ovl_get_tmpfile(struct ovl_copy_up_ctx *c, struct dentry **tempp)
-> >         goto out;
-> >  }
-> >
-> > +/* Copy up data of an inode which was copied up metadata only in the past. */
-> > +static int ovl_copy_up_meta_inode_data(struct ovl_copy_up_ctx *c)
-> > +{
-> > +       struct path upperpath;
-> > +       int err;
-> > +
-> > +       ovl_path_upper(c->dentry, &upperpath);
-> > +       if (WARN_ON(upperpath.dentry == NULL))
-> > +               return -EIO;
-> > +
-> > +       err = ovl_copy_up_data(&c->lowerpath, &upperpath, c->stat.size);
-> > +       if (err)
-> > +               return err;
-> > +
-> > +       err= vfs_removexattr(upperpath.dentry, OVL_XATTR_METACOPY);
-> > +       if (err)
-> > +               return err;
-> > +
-> > +       ovl_set_flag(OVL_UPPERDATA, d_inode(c->dentry));
-> > +       return err;
-> > +}
-> > +
-> >  static int ovl_copy_up_inode(struct ovl_copy_up_ctx *c, struct dentry *temp)
-> >  {
-> >         int err;
-> > @@ -474,8 +506,19 @@ static int ovl_copy_up_inode(struct ovl_copy_up_ctx *c, struct dentry *temp)
-> >                         return err;
-> >         }
-> >
-> > +       if (c->metacopy) {
-> > +               err = ovl_check_setxattr(c->dentry, temp, OVL_XATTR_METACOPY,
-> > +                                        NULL, 0, -EOPNOTSUPP);
-> > +               if (err)
-> > +                       return err;
-> > +       }
-> > +
-> > +
-> >         inode_lock(temp->d_inode);
-> > -       err = ovl_set_attr(temp, &c->stat);
-> > +       if (c->metacopy)
-> > +               err = ovl_set_size(temp, &c->stat);
-> > +       if (!err)
-> > +               err = ovl_set_attr(temp, &c->stat);
-> >         inode_unlock(temp->d_inode);
-> >
-> >         return err;
-> > @@ -506,6 +549,8 @@ static int ovl_copy_up_locked(struct ovl_copy_up_ctx *c)
-> >         if (err)
-> >                 goto out_cleanup;
-> >
-> > +       if (!c->metacopy && S_ISREG(d_inode(c->dentry)->i_mode))
-> > +               ovl_set_flag(OVL_UPPERDATA, d_inode(c->dentry));
-> >         ovl_inode_update(d_inode(c->dentry), newdentry);
-> >  out:
-> >         dput(temp);
-> > @@ -632,7 +677,7 @@ static int ovl_copy_up_one(struct dentry *parent, struct dentry *dentry,
-> >         }
-> >         ovl_do_check_copy_up(ctx.lowerpath.dentry);
-> >
-> > -       err = ovl_copy_up_start(dentry);
-> > +       err = ovl_copy_up_start(dentry, flags);
-> >         /* err < 0: interrupted, err > 0: raced with another copy-up */
-> >         if (unlikely(err)) {
-> >                 if (err > 0)
-> > @@ -642,6 +687,8 @@ static int ovl_copy_up_one(struct dentry *parent, struct dentry *dentry,
-> >                         err = ovl_do_copy_up(&ctx);
-> >                 if (!err && !ovl_dentry_has_upper_alias(dentry))
-> >                         err = ovl_link_up(&ctx);
-> > +               if (!err && ovl_dentry_needs_data_copy_up(dentry, flags))
-> > +                       err = ovl_copy_up_meta_inode_data(&ctx);
-> >                 ovl_copy_up_end(dentry);
-> >         }
-> >         do_delayed_call(&done);
-> > @@ -672,8 +719,10 @@ int ovl_copy_up_flags(struct dentry *dentry, int flags)
-> >                  *      with rename.
-> >                  */
-> >                 if (ovl_dentry_upper(dentry) &&
-> > -                   ovl_dentry_has_upper_alias(dentry))
-> > +                   ovl_dentry_has_upper_alias(dentry) &&
-> > +                   !ovl_dentry_needs_data_copy_up(dentry, flags)) {
-> >                         break;
-> > +               }
-> >
-> >                 next = dget(dentry);
-> >                 /* find the topmost dentry not yet copied up */
-> > diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
-> > index 321511e..1b4b42c 100644
-> > --- a/fs/overlayfs/inode.c
-> > +++ b/fs/overlayfs/inode.c
-> > @@ -320,7 +320,8 @@ struct posix_acl *ovl_get_acl(struct inode *inode, int type)
-> >  static bool ovl_open_need_copy_up(struct dentry *dentry, int flags)
-> >  {
-> >         if (ovl_dentry_upper(dentry) &&
-> > -           ovl_dentry_has_upper_alias(dentry))
-> > +           ovl_dentry_has_upper_alias(dentry) &&
-> > +           !ovl_dentry_needs_data_copy_up(dentry, flags))
-> >                 return false;
-> >
-> >         if (special_file(d_inode(dentry)->i_mode))
-> > diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-> > index d9a0edd..714abf9 100644
-> > --- a/fs/overlayfs/overlayfs.h
-> > +++ b/fs/overlayfs/overlayfs.h
-> > @@ -26,10 +26,12 @@ enum ovl_path_type {
-> >  #define OVL_XATTR_ORIGIN OVL_XATTR_PREFIX "origin"
-> >  #define OVL_XATTR_IMPURE OVL_XATTR_PREFIX "impure"
-> >  #define OVL_XATTR_NLINK OVL_XATTR_PREFIX "nlink"
-> > +#define OVL_XATTR_METACOPY OVL_XATTR_PREFIX "metacopy"
-> >
-> >  enum ovl_flag {
-> >         OVL_IMPURE,
-> >         OVL_INDEX,
-> > +       OVL_UPPERDATA,
-> >  };
-> >
-> >  /*
-> > @@ -211,6 +213,8 @@ bool ovl_dentry_is_whiteout(struct dentry *dentry);
-> >  void ovl_dentry_set_opaque(struct dentry *dentry);
-> >  bool ovl_dentry_has_upper_alias(struct dentry *dentry);
-> >  void ovl_dentry_set_upper_alias(struct dentry *dentry);
-> > +bool ovl_dentry_needs_data_copy_up(struct dentry *dentry, int flags);
-> > +bool ovl_dentry_check_upperdata(struct dentry *dentry);
-> >  bool ovl_redirect_dir(struct super_block *sb);
-> >  const char *ovl_dentry_get_redirect(struct dentry *dentry);
-> >  void ovl_dentry_set_redirect(struct dentry *dentry, const char *redirect);
-> > @@ -221,7 +225,7 @@ void ovl_dentry_version_inc(struct dentry *dentry, bool impurity);
-> >  u64 ovl_dentry_version_get(struct dentry *dentry);
-> >  bool ovl_is_whiteout(struct dentry *dentry);
-> >  struct file *ovl_path_open(struct path *path, int flags);
-> > -int ovl_copy_up_start(struct dentry *dentry);
-> > +int ovl_copy_up_start(struct dentry *dentry, int flags);
-> >  void ovl_copy_up_end(struct dentry *dentry);
-> >  bool ovl_check_dir_xattr(struct dentry *dentry, const char *name);
-> >  int ovl_check_setxattr(struct dentry *dentry, struct dentry *upperdentry,
-> > diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
-> > index a4ce1c9..ef720a9 100644
-> > --- a/fs/overlayfs/util.c
-> > +++ b/fs/overlayfs/util.c
-> > @@ -227,6 +227,35 @@ void ovl_dentry_set_upper_alias(struct dentry *dentry)
-> >         oe->has_upper = true;
-> >  }
-> >
-> > +bool ovl_dentry_check_upperdata(struct dentry *dentry) {
-> 
-> Not a good helper name IMO. it reads to me "check if upperdata is set"
-> and it should read "should I check upperdata flag"
-
-How about ovl_should_check_upperdata() instead.
-
-> 
-> > +       if (!S_ISREG(d_inode(dentry)->i_mode))
-> > +               return false;
-> > +
-> > +       if (!ovl_dentry_lower(dentry))
-> > +               return false;
-> > +
-> > +       return true;
-> > +}
-> > +
-> > +bool ovl_dentry_needs_data_copy_up(struct dentry *dentry, int flags) {
-> > +       if (!ovl_dentry_check_upperdata(dentry))
-> > +               return false;
-> > +
-> > +       if (!S_ISREG(d_inode(dentry)->i_mode))
-> > +               return false;
-> 
-> Isn't this redundant to the helper check?
-
-Yes. this is redundant now. Forgot to remove it.
-
-Thanks
-Vivek
+>
+>> I still hold the opinion that new incompat features should enforce
+>> exclusive dir lock, so withholding Reviewed-by on this one for now.
+>
+> I am really not happy about enforcing exlusive dir lock because
+> this breaks userspace.
+>
+> I like the idea of making it hard to get configuration wrong, but overlay
+> was like this since the beginning and how many issues have we faced
+> that users ended up sharing upper. Atleast I have not come across
+> even a single one.
+>
+> If that's the case, I would rahter wait that a proper fix comes along
+> (finding existing super block and returning that) and then harden it.
+>
+> If I enforce it now, I most likely can't even use it with current
+> container run time because there is a possibility they can leak
+> mount points. So what's the point of introducing this feature.
+>
+> Miklos, what do you think?
+>
+> Vivek
