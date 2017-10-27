@@ -1,164 +1,230 @@
-From: Anisse Astier <anisse@astier.eu>
-Subject: ca4c8a3a800039 ovl: treat special files like a regular fs
-Date: Fri, 27 Oct 2017 17:20:48 +0200
-Message-ID: <20171027152048.GA1246@bifrost>
+From: Vivek Goyal <vgoyal@redhat.com>
+Subject: Re: [RFC PATCH 00/13][V5] overlayfs: Delayed copy up of data
+Date: Fri, 27 Oct 2017 12:40:32 -0400
+Message-ID: <20171027164032.GB5442@redhat.com>
+References: <1508958575-14086-1-git-send-email-vgoyal@redhat.com>
+ <CAOQ4uxhDkDHAFxhs6mu6HQ+Z1+y8ykvcw5vbXO3H79kGJ6zAaA@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <stable-owner@vger.kernel.org>
+Return-path: <linux-unionfs-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:56176 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751472AbdJ0Qkd (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Fri, 27 Oct 2017 12:40:33 -0400
 Content-Disposition: inline
-Sender: stable-owner@vger.kernel.org
-To: stable@vger.kernel.org
-Cc: Sasha Levin <alexander.levin@verizon.com>, Miklos Szeredi <mszeredi@redhat.com>, linux-unionfs@vger.kernel.org
+In-Reply-To: <CAOQ4uxhDkDHAFxhs6mu6HQ+Z1+y8ykvcw5vbXO3H79kGJ6zAaA@mail.gmail.com>
+Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: overlayfs <linux-unionfs@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>
 
-Hi,
+On Thu, Oct 26, 2017 at 10:18:19AM +0300, Amir Goldstein wrote:
+> On Wed, Oct 25, 2017 at 10:09 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
+> > Hi,
+> >
+> > Here is the V5 of patches. Following are changes from V4.
+> 
+> Please use git format-patch -v6 next time you post.
+> It tags all the patch subjects so it is easier to find the former
+> revision of specific patch.
 
-Would it be possible to backport upstream commit
-ca4c8a3a800039c2681d609c5b7491c1bd17c0a7 into 4.9 ?
+Will do.
 
-	From: Miklos Szeredi <mszeredi@redhat.com>
-	ovl: treat special files like a regular fs
+> 
+> >
+> > - Flipped the meaning of bit. Now OVL_METACOPY is called OVL_UPPERDATA and
+> >   dropped a barrier patch which implemented ordering requirements between
+> >   oi->flags and oi->__upperdentry.
+> >
+> > - Now ovl_d_real() does return upper dentry if upper dentry is metacopy only
+> >   dentry.
+> 
+> doesn't return upper dentry
+> 
+> But I am still not convinced that metacopy upper inode is not accessed in places
+> it shouldn't be accessed by vfs, via other APIs.
+> 
+> For example, ovl_permission(), ovl_getattr(), ovl_setattr(), ovl_listxattr(),
+> ovl_get_acl() will all access metacopy inode and that outcome will be desired.
+> But you did not provide a complete list of vfs APIs and verify for each
+> that accessing the metacopy upper via various variants of ovl_dentry_real()
+> is either not possible (because access requires a rw fd) or is the
+> desired outcome.
 
-	No sense in opening special files on the underlying layers, they work just
-	as well if opened on the overlay.
+Thanks for asking this. I have been looking at code and trying to figure
+out if there is anything which is broken. But this also requires the
+eyeballs from all the experienced filesystem folks. I have tried
+going through all overlayfs interfaces and listing my thoughts below.
+AFAICS, nothing seems to be broken.
 
-	Side effect is that it's no longer possible to connect one side of a pipe
-	opened on overlayfs with the other side opened on the underlying layer.
+- I am assuming that ovl_dir_operations{} are not impacted by this at
+  all. Metadata copy up affects only regular files and does not touch any
+  of directory operations.
+
+Operations internal to overlayfs
+================================
+1. ovl_setattr()
+
+   Will do metadata copy up and work on upper inode.
+
+2. inode_permission()
+
+   Will do permission checks on upper metacopy inode. Which seems to be
+   right thing.
+
+3. ovl_getattr()
+
+   Will do getattr on metacopy inode and will query lower for number of
+   blocks. Seems ok.
+
+4. vfs_listxattr()
+
+   Will retrieve xattr list from upper metacopy inode. Seems right.
+
+5. ovl_get_acl()
+
+   Will retrieve acl from upper metacopy inode. Seems right.
+
+6. ovl_update_time()
+
+   Will update atime on upper metacopy inode. Seems right.
+
+7. ovl_get_link()
+
+   Should work on upper inode. For symlinks upper will never be metadata inode
+   as this is not a regular file. So this should be fine
+
+8. ovl_lookup()
+
+   Will set the upperdentry to metacopy inode. Seems right.
+
+9. ovl_mkdir()
+
+   Shouldn't be affected as directories can't be metacopy only.
+
+10. ovl_symlink()
+
+   Shouldn't be affected as symlinks can't be metacopy only.
+
+11. ovl_unlink()
+
+   This should remove upper metacopy dentry/inode and replace with whiteout.
+
+12. ovl_rmdir()
+
+   Should not be impacted. There are no metadata copy up for dir inodes.
+
+13. ovl_rename()
+
+   Will copy up files metadata only (as needed) and then do rename. Data
+   will be copied up later when files are opened for WRITE. Can't think
+   of anything which will be broken due to metadata only inode.
+
+14. ovl_link()
+
+   Will copy up old file metadata only and then create link. Or create
+   link if metadata inode already exists on upper. Feels it should not
+   be impacted either.
+
+15. ovl_create()
+
+   Will create a new object. No metadata only inode involved.
+
+16. ovl_mknod()
+
+   Will create a new object. No metadata only inode involved.
 
 
-Before this it's impossible to do in-kernel resolution of a device file,
-for example to mount or use dmsetup.
+d_real() and friends
+===================
+1. vfs_truncate() (fs/open.c)
+{
+  upperdentry = d_real(path->dentry, NULL, O_WRONLY, 0);
+}
 
-Miklos, you say this might cause a behaviour change in a very
-particular case; but did it cause an issue upstream since it was merged
-in 4.10 ?
+This will enforce full copy up. So no behavior change.
 
-I also wish this was fixed in 4.1, so I did a tentative backport below.
-What do you think Sasha, Miklos ?
+2. vfs_open() (fs/open.c)
+{
+  dentry *dentry = d_real(path->dentry, NULL, file->f_flags, 0)
+}
 
-Regards,
+This will get dentry based on flags. If file is opened for READ, then
+one will get lower dentry for metacopy inode case. This should be
+fine. Can't see anything wrong yet.
 
-Anisse
+3. update_ovl_inode_times() (fs/inode.c)
+{
+        upperdentry = d_real(dentry, NULL, 0, D_REAL_UPPER);
+}
 
--- 
+This will return NULL for metacopy inode (for regular files). And that should
+not impact atime updates for following reason.
 
-Tentative backport of upstream commit ca4c8a3a800039c2681d609c5b7491c1bd17c0a7 for 4.1:
+- mtime does not change for metacopy inode. So overlay inode and upper inode
+  should have same mtime.
 
-	From: Miklos Szeredi <mszeredi@redhat.com>
-	Date: Fri, 16 Dec 2016 11:02:55 +0100
-	Subject: [PATCH] ovl: treat special files like a regular fs
+- ctime is kept in sync with overlay inode for all metadata related operations
+  which happen on metadata inode (through overlay).
 
-	No sense in opening special files on the underlying layers, they work just
-	as well if opened on the overlay.
+- Whenever mtime or ctime because file has been written to, that time full
+  copy up will take place and this will return upperdentry (and not NULL).
 
-	Side effect is that it's no longer possible to connect one side of a pipe
-	opened on overlayfs with the other side opened on the underlying layer.
 
-It's quite different becauso this is so far in the future (applied in
-4.10), but should work, maybe.
----
- fs/overlayfs/dir.c       |  2 +-
- fs/overlayfs/inode.c     | 16 +++++-----------
- fs/overlayfs/overlayfs.h |  2 +-
- fs/overlayfs/super.c     |  4 ++--
- 4 files changed, 9 insertions(+), 15 deletions(-)
+4. may_write_real() (fs/namespace.c)
+{
+        upperdentry = d_real(dentry, NULL, 0, D_REAL_UPPER);
+}
 
-diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
-index 692ceda..215404f 100644
---- a/fs/overlayfs/dir.c
-+++ b/fs/overlayfs/dir.c
-@@ -393,7 +393,7 @@ static int ovl_create_or_link(struct dentry *dentry, int mode, dev_t rdev,
- 	};
- 
- 	err = -ENOMEM;
--	inode = ovl_new_inode(dentry->d_sb, mode, dentry->d_fsdata);
-+	inode = ovl_new_inode(dentry->d_sb, mode, dentry->d_fsdata, rdev);
- 	if (!inode)
- 		goto out;
- 
-diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
-index a1b069e..2a7fb55 100644
---- a/fs/overlayfs/inode.c
-+++ b/fs/overlayfs/inode.c
-@@ -401,7 +401,7 @@ static const struct inode_operations ovl_symlink_inode_operations = {
- };
- 
- struct inode *ovl_new_inode(struct super_block *sb, umode_t mode,
--			    struct ovl_entry *oe)
-+			    struct ovl_entry *oe, dev_t rdev)
- {
- 	struct inode *inode;
- 
-@@ -409,13 +409,11 @@ struct inode *ovl_new_inode(struct super_block *sb, umode_t mode,
- 	if (!inode)
- 		return NULL;
- 
--	mode &= S_IFMT;
--
- 	inode->i_ino = get_next_ino();
- 	inode->i_mode = mode;
- 	inode->i_flags |= S_NOATIME | S_NOCMTIME;
- 
--	switch (mode) {
-+	switch (mode & S_IFMT) {
- 	case S_IFDIR:
- 		inode->i_private = oe;
- 		inode->i_op = &ovl_dir_inode_operations;
-@@ -427,17 +425,13 @@ struct inode *ovl_new_inode(struct super_block *sb, umode_t mode,
- 		break;
- 
- 	case S_IFREG:
--	case S_IFSOCK:
--	case S_IFBLK:
--	case S_IFCHR:
--	case S_IFIFO:
- 		inode->i_op = &ovl_file_inode_operations;
- 		break;
- 
- 	default:
--		WARN(1, "illegal file type: %i\n", mode);
--		iput(inode);
--		inode = NULL;
-+		inode->i_op = &ovl_file_inode_operations;
-+		init_special_inode(inode, mode, rdev);
-+		break;
- 	}
- 
- 	return inode;
-diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-index ea5a40b..1933536 100644
---- a/fs/overlayfs/overlayfs.h
-+++ b/fs/overlayfs/overlayfs.h
-@@ -176,7 +176,7 @@ int ovl_removexattr(struct dentry *dentry, const char *name);
- struct inode *ovl_d_select_inode(struct dentry *dentry, unsigned file_flags);
- 
- struct inode *ovl_new_inode(struct super_block *sb, umode_t mode,
--			    struct ovl_entry *oe);
-+			    struct ovl_entry *oe, dev_t rdev);
- static inline void ovl_copyattr(struct inode *from, struct inode *to)
- {
- 	to->i_uid = from->i_uid;
-diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-index bd6d5c1..3f8d5b8 100644
---- a/fs/overlayfs/super.c
-+++ b/fs/overlayfs/super.c
-@@ -434,7 +434,7 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
- 
- 		err = -ENOMEM;
- 		inode = ovl_new_inode(dentry->d_sb, realdentry->d_inode->i_mode,
--				      oe);
-+				      oe, realdentry->d_inode->i_rdev);
- 		if (!inode)
- 			goto out_free_oe;
- 		ovl_copyattr(realdentry->d_inode, inode);
-@@ -969,7 +969,7 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
- 	if (!oe)
- 		goto out_put_lower_mnt;
- 
--	root_dentry = d_make_root(ovl_new_inode(sb, S_IFDIR, oe));
-+	root_dentry = d_make_root(ovl_new_inode(sb, S_IFDIR, oe, 0));
- 	if (!root_dentry)
- 		goto out_free_oe;
- 
--- 
-2.7.5
+This can get a NULL for metadata only inode and that means return -EPERM. IOW,
+may_write_real() will always return -EPERM on metadata only inode and these
+will be treated as if these are files on lower/.
+
+Now question is does it break something. This will not allow write access to
+a file which is metadata only and it makes sense to me. One can not write
+to lower file. One could argue that metadata update should be allowed but
+current API does not distinguish between the two. So it will be denied.
+
+There are many users of it and I will spend some time and try to understand
+each and every use case.
+
+5. file_dentry() (include/linux/fs.h)
+{
+        return d_real(file->f_path.dentry, file_inode(file), 0, 0);
+}
+
+This is trying to find dentry matching with file->f_inode. For metadata inodes
+->f_inode will return lower inode which is expected.
+
+6. d_real_inode() (include/linux/dcache.h)
+{
+        d_backing_inode(d_real((struct dentry *) dentry, NULL, 0, 0));
+
+}
+ only inode, this should return lower dentry and lower inode.
+Question is, does it break anything.
+
+Only place d_real_inode() seems to be being used is in fs/locks.c
+
+check_conflicting_open() {
+        if ((arg == F_RDLCK) &&
+           (atomic_read(&d_real_inode(dentry)->i_writecount) > 0))
+                return -EAGAIN;
+}
+
+i_writecount will be updated only on upper file. So if there is metadata
+only inode, then i_writecount should be zero both on upper and lower. So
+this case is similar to lower inode, IIUC and should not be a problem.
+
+
+> >
+> > - Added a fix to ovl_lookup() goto statement.
+> 
+> This patch is independent of this series AFAICT your patches don't
+> depend on it in.
+> Please post it separately with Fixes tag and CC stable
+
+Will do.
+
+Thanks
+Vivek
