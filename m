@@ -1,91 +1,164 @@
-From: Vivek Goyal <vgoyal@redhat.com>
-Subject: Re: [PATCH 11/13] ovl: Introduce read/write barriers around metacopy
- flag update
-Date: Fri, 27 Oct 2017 09:14:15 -0400
-Message-ID: <20171027131415.GA5442@redhat.com>
-References: <1508958575-14086-1-git-send-email-vgoyal@redhat.com>
- <1508958575-14086-12-git-send-email-vgoyal@redhat.com>
- <CAOQ4uxio4ZESiJ35dAimnFW_YcdEpmRCPqMPDB5i2AWvRg2WOA@mail.gmail.com>
- <20171026175458.GB6704@redhat.com>
- <CAOQ4uxhGrA2XW3D9GmCdz4KdwfnbgbG-K9YvA10GDdDwN9=pYw@mail.gmail.com>
+From: Anisse Astier <anisse@astier.eu>
+Subject: ca4c8a3a800039 ovl: treat special files like a regular fs
+Date: Fri, 27 Oct 2017 17:20:48 +0200
+Message-ID: <20171027152048.GA1246@bifrost>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:45986 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752300AbdJ0NOQ (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 27 Oct 2017 09:14:16 -0400
+Return-path: <stable-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <CAOQ4uxhGrA2XW3D9GmCdz4KdwfnbgbG-K9YvA10GDdDwN9=pYw@mail.gmail.com>
-Sender: linux-unionfs-owner@vger.kernel.org
+Sender: stable-owner@vger.kernel.org
+To: stable@vger.kernel.org
+Cc: Sasha Levin <alexander.levin@verizon.com>, Miklos Szeredi <mszeredi@redhat.com>, linux-unionfs@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: overlayfs <linux-unionfs@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>
 
-On Fri, Oct 27, 2017 at 07:35:00AM +0300, Amir Goldstein wrote:
-> On Thu, Oct 26, 2017 at 8:54 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
-> > On Thu, Oct 26, 2017 at 09:34:15AM +0300, Amir Goldstein wrote:
-> >> On Wed, Oct 25, 2017 at 10:09 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
-> >> > If a file is copied up metadata only and later when same file is opened
-> >> > for WRITE, then data copy up takes place. We copy up data, remove METACOPY
-> >> > xattr and then set the UPPERDATA flag in ovl_entry->flags. While all
-> >> > these operations happen with oi->lock held, read side of oi->flags is
-> >> > lockless. That is another thread on another cpu can check if UPPERDATA
-> >> > flag is set or not.
-> >> >
-> >> > So this gives us an ordering requirement w.r.t UPPERDATA flag. That is, if
-> >> > another cpu sees UPPERDATA flag set, then it should be guaranteed that
-> >> > effects of data copy up and remove xattr operations are also visible.
-> >> >
-> >> > For example.
-> >> >
-> >> >         CPU1                            CPU2
-> >> > ovl_copy_up_flags()                     acquire(oi->lock)
-> >> >  ovl_dentry_needs_data_copy_up()          ovl_copy_up_data()
-> >> >    ovl_test_flag(OVL_UPPERDATA)           vfs_removexattr()
-> >> >                                           ovl_set_flag(OVL_UPPERDATA)
-> >> >                                         release(oi->lock)
-> >> >
-> >> > Say CPU2 is copying up data and in the end sets UPPERDATA flag. But if
-> >> > CPU1 perceives the effects of setting UPPERDATA flag but not effects of
-> >> > preceeding operations, that would be a problem.
-> >>
-> >> Why would that be a problem?
-> >> What can go wrong?
-> >
-> > That's a good question. I really don't have a concrete example where I can
-> > say this this can go wrong. Can you think of something.
-> >
-> >> If you try to answer the question instead of referring to a vague "problem"
-> >> you will see that only the ovl_d_real() code path can be a problem.
-> >
-> > Right. And ovl_copy_up_flags() will be called from ovl_d_real().  Will
-> > update it to show cover more of parent chain.
-> >
-> 
-> That is not what I meant.
-> I don't see any negative outcome that could happen from false view
-> of OVL_UPPERDATA flag in ovl_copy_up_flags().
+Hi,
 
-Sure, but barrier needs to be near to variable being protected by barrier.
-My point is that if you move them out in ovl_d_real() instead, then it
-is hard to understand what's being protected by barrier.
+Would it be possible to backport upstream commit
+ca4c8a3a800039c2681d609c5b7491c1bd17c0a7 into 4.9 ?
 
-> The race with ovl_instantiate() you pointed out is interesting, but easy to
-> solve by checking for non-NULL lower.
+	From: Miklos Szeredi <mszeredi@redhat.com>
+	ovl: treat special files like a regular fs
 
-Yep it is. But it does not give me a good feeling because if barriers are
-protecting something, it should protect in all cases. Now we have a
-special case where barrier is not protecting a field fully and that means
-we will rely on some other field. And that makes understanding locking
-such a difficult task.
+	No sense in opening special files on the underlying layers, they work just
+	as well if opened on the overlay.
 
-> 
-> The path of ovl_d_real() that exposes upper inode to early is the only
-> path I see that can cause problems, as well as perhaps ovl_getattr(),
-> which may expose wrong blocks.
+	Side effect is that it's no longer possible to connect one side of a pipe
+	opened on overlayfs with the other side opened on the underlying layer.
 
-Right. At this point of time ovl_d_real() and ovl_getattr() seem to be
-only two paths which access OVL_UPPERDATA in lockless manner.
 
-Vivek
+Before this it's impossible to do in-kernel resolution of a device file,
+for example to mount or use dmsetup.
+
+Miklos, you say this might cause a behaviour change in a very
+particular case; but did it cause an issue upstream since it was merged
+in 4.10 ?
+
+I also wish this was fixed in 4.1, so I did a tentative backport below.
+What do you think Sasha, Miklos ?
+
+Regards,
+
+Anisse
+
+-- 
+
+Tentative backport of upstream commit ca4c8a3a800039c2681d609c5b7491c1bd17c0a7 for 4.1:
+
+	From: Miklos Szeredi <mszeredi@redhat.com>
+	Date: Fri, 16 Dec 2016 11:02:55 +0100
+	Subject: [PATCH] ovl: treat special files like a regular fs
+
+	No sense in opening special files on the underlying layers, they work just
+	as well if opened on the overlay.
+
+	Side effect is that it's no longer possible to connect one side of a pipe
+	opened on overlayfs with the other side opened on the underlying layer.
+
+It's quite different becauso this is so far in the future (applied in
+4.10), but should work, maybe.
+---
+ fs/overlayfs/dir.c       |  2 +-
+ fs/overlayfs/inode.c     | 16 +++++-----------
+ fs/overlayfs/overlayfs.h |  2 +-
+ fs/overlayfs/super.c     |  4 ++--
+ 4 files changed, 9 insertions(+), 15 deletions(-)
+
+diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
+index 692ceda..215404f 100644
+--- a/fs/overlayfs/dir.c
++++ b/fs/overlayfs/dir.c
+@@ -393,7 +393,7 @@ static int ovl_create_or_link(struct dentry *dentry, int mode, dev_t rdev,
+ 	};
+ 
+ 	err = -ENOMEM;
+-	inode = ovl_new_inode(dentry->d_sb, mode, dentry->d_fsdata);
++	inode = ovl_new_inode(dentry->d_sb, mode, dentry->d_fsdata, rdev);
+ 	if (!inode)
+ 		goto out;
+ 
+diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
+index a1b069e..2a7fb55 100644
+--- a/fs/overlayfs/inode.c
++++ b/fs/overlayfs/inode.c
+@@ -401,7 +401,7 @@ static const struct inode_operations ovl_symlink_inode_operations = {
+ };
+ 
+ struct inode *ovl_new_inode(struct super_block *sb, umode_t mode,
+-			    struct ovl_entry *oe)
++			    struct ovl_entry *oe, dev_t rdev)
+ {
+ 	struct inode *inode;
+ 
+@@ -409,13 +409,11 @@ struct inode *ovl_new_inode(struct super_block *sb, umode_t mode,
+ 	if (!inode)
+ 		return NULL;
+ 
+-	mode &= S_IFMT;
+-
+ 	inode->i_ino = get_next_ino();
+ 	inode->i_mode = mode;
+ 	inode->i_flags |= S_NOATIME | S_NOCMTIME;
+ 
+-	switch (mode) {
++	switch (mode & S_IFMT) {
+ 	case S_IFDIR:
+ 		inode->i_private = oe;
+ 		inode->i_op = &ovl_dir_inode_operations;
+@@ -427,17 +425,13 @@ struct inode *ovl_new_inode(struct super_block *sb, umode_t mode,
+ 		break;
+ 
+ 	case S_IFREG:
+-	case S_IFSOCK:
+-	case S_IFBLK:
+-	case S_IFCHR:
+-	case S_IFIFO:
+ 		inode->i_op = &ovl_file_inode_operations;
+ 		break;
+ 
+ 	default:
+-		WARN(1, "illegal file type: %i\n", mode);
+-		iput(inode);
+-		inode = NULL;
++		inode->i_op = &ovl_file_inode_operations;
++		init_special_inode(inode, mode, rdev);
++		break;
+ 	}
+ 
+ 	return inode;
+diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
+index ea5a40b..1933536 100644
+--- a/fs/overlayfs/overlayfs.h
++++ b/fs/overlayfs/overlayfs.h
+@@ -176,7 +176,7 @@ int ovl_removexattr(struct dentry *dentry, const char *name);
+ struct inode *ovl_d_select_inode(struct dentry *dentry, unsigned file_flags);
+ 
+ struct inode *ovl_new_inode(struct super_block *sb, umode_t mode,
+-			    struct ovl_entry *oe);
++			    struct ovl_entry *oe, dev_t rdev);
+ static inline void ovl_copyattr(struct inode *from, struct inode *to)
+ {
+ 	to->i_uid = from->i_uid;
+diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+index bd6d5c1..3f8d5b8 100644
+--- a/fs/overlayfs/super.c
++++ b/fs/overlayfs/super.c
+@@ -434,7 +434,7 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
+ 
+ 		err = -ENOMEM;
+ 		inode = ovl_new_inode(dentry->d_sb, realdentry->d_inode->i_mode,
+-				      oe);
++				      oe, realdentry->d_inode->i_rdev);
+ 		if (!inode)
+ 			goto out_free_oe;
+ 		ovl_copyattr(realdentry->d_inode, inode);
+@@ -969,7 +969,7 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
+ 	if (!oe)
+ 		goto out_put_lower_mnt;
+ 
+-	root_dentry = d_make_root(ovl_new_inode(sb, S_IFDIR, oe));
++	root_dentry = d_make_root(ovl_new_inode(sb, S_IFDIR, oe, 0));
+ 	if (!root_dentry)
+ 		goto out_free_oe;
+ 
+-- 
+2.7.5
