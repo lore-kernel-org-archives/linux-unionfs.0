@@ -1,209 +1,218 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH] overlay: test creating lower hardlinks for copied up files
-Date: Mon, 30 Oct 2017 14:06:56 +0200
-Message-ID: <1509365216-10796-1-git-send-email-amir73il@gmail.com>
-Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:54983 "EHLO
-        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753024AbdJ3MHf (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 30 Oct 2017 08:07:35 -0400
-Sender: linux-unionfs-owner@vger.kernel.org
-List-Id: linux-unionfs@vger.kernel.org
+Subject: Re: [PATCH] overlay: test creating lower hardlinks for copied up files
+Date: Mon, 30 Oct 2017 14:10:52 +0200
+Message-ID: <CAOQ4uxj-AQcW8__3DcL5e+PSejYgW8kP=RD4OOxsD8OGOFZeSg@mail.gmail.com>
+References: <1509365216-10796-1-git-send-email-amir73il@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <fstests-owner@vger.kernel.org>
+In-Reply-To: <1509365216-10796-1-git-send-email-amir73il@gmail.com>
+Sender: fstests-owner@vger.kernel.org
 To: Eryu Guan <eguan@redhat.com>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, fstests@vger.kernel.org
+Cc: Miklos Szeredi <miklos@szeredi.hu>, overlayfs <linux-unionfs@vger.kernel.org>, fstests <fstests@vger.kernel.org>
+List-Id: linux-unionfs@vger.kernel.org
 
-kernel v4.13 introduced the index=on feature for not breaking hardlinks
-on copy-up.  With the index feature enabled a regression was introduced -
-lower files that are hardlined while overlay is offline can result in
-lookup error after overlay in mounted.
+On Mon, Oct 30, 2017 at 2:06 PM, Amir Goldstein <amir73il@gmail.com> wrote:
+> kernel v4.13 introduced the index=on feature for not breaking hardlinks
+> on copy-up.  With the index feature enabled a regression was introduced -
+> lower files that are hardlined while overlay is offline can result in
+> lookup error after overlay in mounted.
+>
+> The regression was fixed by upstream commit
+>   6eaf011144af ovl: fix EIO from lookup of non-indexed upper
+> that was merged to v4.14-rc7.
+>
+> This test verifies that behavior is sane after creating lower hardlinks
+> for copied up files while overlayfs is offline.
+>
+> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+> ---
+>
+> Eryu,
+>
+> This is a regression test for a fix that was just merged to v4.14-rc7.
+>
+> The test requires and enables index=on, so it would fail on kernels
+> prior to v4.14-rc7 regardless if they are complied with
+> CONFIG_OVERLAY_FS_INDEX=y or not.
+>
+> Amir.
+>
+>  tests/overlay/042     | 137 ++++++++++++++++++++++++++++++++++++++++++++++++++
+>  tests/overlay/042.out |   2 +
+>  tests/overlay/group   |   1 +
+>  3 files changed, 140 insertions(+)
+>  create mode 100755 tests/overlay/042
+>  create mode 100644 tests/overlay/042.out
+>
+> diff --git a/tests/overlay/042 b/tests/overlay/042
+> new file mode 100755
+> index 0000000..29858d6
+> --- /dev/null
+> +++ b/tests/overlay/042
+> @@ -0,0 +1,137 @@
+> +#! /bin/bash
+> +# FS QA Test 042
+> +#
+> +# Test creating lower hardlinks for copied up files.
+> +#
+> +# kernel v4.13 introduced the index=on feature for not breaking
+> +# hardlinks on copy-up. With the index feature enabled a regression was
+> +# introduced - lower files that are hardlined while overlay is offline
+> +# can result in lookup error after overlay in mounted.
+> +# The regression was fixed by upstream commit
 
-The regression was fixed by upstream commit
-  6eaf011144af ovl: fix EIO from lookup of non-indexed upper
-that was merged to v4.14-rc7.
+Some indentation fixes I forgot to commit:
 
-This test verifies that behavior is sane after creating lower hardlinks
-for copied up files while overlayfs is offline.
++# kernel v4.13 introduced the index=on feature for not breaking hardlinks
++# on copy-up.  With the index feature enabled a regression was introduced -
++# lower files that are hardlined while overlay is offline can result in
++# lookup error after overlay in mounted.
 
-Signed-off-by: Amir Goldstein <amir73il@gmail.com>
----
-
-Eryu,
-
-This is a regression test for a fix that was just merged to v4.14-rc7.
-
-The test requires and enables index=on, so it would fail on kernels
-prior to v4.14-rc7 regardless if they are complied with
-CONFIG_OVERLAY_FS_INDEX=y or not.
-
-Amir.
-
- tests/overlay/042     | 137 ++++++++++++++++++++++++++++++++++++++++++++++++++
- tests/overlay/042.out |   2 +
- tests/overlay/group   |   1 +
- 3 files changed, 140 insertions(+)
- create mode 100755 tests/overlay/042
- create mode 100644 tests/overlay/042.out
-
-diff --git a/tests/overlay/042 b/tests/overlay/042
-new file mode 100755
-index 0000000..29858d6
---- /dev/null
-+++ b/tests/overlay/042
-@@ -0,0 +1,137 @@
-+#! /bin/bash
-+# FS QA Test 042
-+#
-+# Test creating lower hardlinks for copied up files.
-+#
-+# kernel v4.13 introduced the index=on feature for not breaking
-+# hardlinks on copy-up. With the index feature enabled a regression was
-+# introduced - lower files that are hardlined while overlay is offline
-+# can result in lookup error after overlay in mounted.
-+# The regression was fixed by upstream commit
-+#   6eaf011144af ovl: fix EIO from lookup of non-indexed upper
-+# that was merged to v4.14-rc7.
-+#
-+# This test verifies that behavior is sane after creating lower hardlinks
-+# for copied up files while overlayfs is offline.
-+#
-+#-----------------------------------------------------------------------
-+# Copyright (C) 2017 CTERA Networks. All Rights Reserved.
-+# Author: Amir Goldstein <amir73il@gmail.com>
-+#
-+# This program is free software; you can redistribute it and/or
-+# modify it under the terms of the GNU General Public License as
-+# published by the Free Software Foundation.
-+#
-+# This program is distributed in the hope that it would be useful,
-+# but WITHOUT ANY WARRANTY; without even the implied warranty of
-+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+# GNU General Public License for more details.
-+#
-+# You should have received a copy of the GNU General Public License
-+# along with this program; if not, write the Free Software Foundation,
-+# Inc.,  51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-+#-----------------------------------------------------------------------
-+#
-+
-+seq=`basename $0`
-+seqres=$RESULT_DIR/$seq
-+echo "QA output created by $seq"
-+
-+tmp=/tmp/$$
-+status=1	# failure is the default!
-+trap "_cleanup; exit \$status" 0 1 2 3 15
-+
-+_cleanup()
-+{
-+	cd /
-+	rm -f $tmp.*
-+}
-+
-+# get standard environment, filters and checks
-+. ./common/rc
-+. ./common/filter
-+
-+# remove previous $seqres.full before test
-+rm -f $seqres.full
-+
-+# real QA test starts here
-+_supported_fs overlay
-+_supported_os Linux
-+_require_scratch
-+# Without overlay index feature hardlinks are broken on copy up
-+_require_scratch_feature index
-+
-+# Remove all files from previous tests
-+_scratch_mkfs
-+
-+# Create lower file
-+lowerdir=$OVL_BASE_SCRATCH_MNT/$OVL_LOWER
-+mkdir -p $lowerdir
-+touch $lowerdir/0
-+
-+# Disable overlay index feature to copy up with no index
-+_scratch_mount -o index=off
-+
-+# Copy up lower and create upper hardlink with no index
-+ln $SCRATCH_MNT/0 $SCRATCH_MNT/1
-+
-+$UMOUNT_PROG $SCRATCH_MNT
-+
-+# Add lower hardlinks while overlay is offline
-+ln $lowerdir/0 $lowerdir/2
-+ln $lowerdir/0 $lowerdir/3
-+
-+# Enable overlay index feature to lookup copied up upper aliases
-+_scratch_mount -o index=on
-+
-+# Stat upper hardlink that were created with no index and whose copy up
-+# origin is now an hardlink - expect same st_ino
-+ino0=$(stat -c '%i' $SCRATCH_MNT/0)
-+ino1=$(stat -c '%i' $SCRATCH_MNT/1)
-+[[ $ino0 == $ino1 ]] || \
-+	echo "Mismatch inode number for non-indexed upper hardlinks"
-+
-+# Copy up lower and create new upper hardlink with index, because
-+# lower is a hardlink and index is enabled. The new hardlinks are not
-+# associated with the hardlinks that were created when lower was not
-+# a hardlink.
-+ln $SCRATCH_MNT/2 $SCRATCH_MNT/4
-+
-+# Mount cycle to reset inode/dentry cache
-+_scratch_cycle_mount index=on
-+
-+# Stat files that were copied up with index and whose copy up origin
-+# is now an hardlink - expect same st_ino as lower aliases and different
-+# st_ino from non-indexed upper aliases.
-+ino0=$(stat -c '%i' $SCRATCH_MNT/0)
-+ino1=$(stat -c '%i' $SCRATCH_MNT/1)
-+ino2=$(stat -c '%i' $SCRATCH_MNT/2)
-+ino3=$(stat -c '%i' $SCRATCH_MNT/3)
-+ino4=$(stat -c '%i' $SCRATCH_MNT/4)
-+[[ $ino0 == $ino1 ]] || \
-+	echo "Mismatch inode number for non-indexed upper hardlinks"
-+[[ $ino2 == $ino4 ]] || \
-+	echo "Mismatch inode number for indexed upper hardlinks"
-+[[ $ino2 == $ino3 ]] || \
-+	echo "Mismatch inode number for indexed upper and lower hardlinks"
-+[[ $ino2 != $ino0 ]] || \
-+	echo "Unexpected matching inode number for indexed and non-indexed upper hardlinks"
-+
-+# Mount cycle to reset inode/dentry cache
-+_scratch_cycle_mount index=on
-+
-+# Unlink all hardlinks - if overlay inode nlink is 0, this will trigger
-+# WARN_ON() in drop_nlink()
-+rm $SCRATCH_MNT/0
-+rm $SCRATCH_MNT/1
-+rm $SCRATCH_MNT/2
-+rm $SCRATCH_MNT/3
-+rm $SCRATCH_MNT/4
-+
-+# Verify that orphan index is cleaned on mount
-+_scratch_cycle_mount index=on
-+ls $OVL_BASE_SCRATCH_MNT/$OVL_WORK/index
-+
-+echo "Silence is golden"
-+status=0
-+exit
-diff --git a/tests/overlay/042.out b/tests/overlay/042.out
-new file mode 100644
-index 0000000..85eac7a
---- /dev/null
-+++ b/tests/overlay/042.out
-@@ -0,0 +1,2 @@
-+QA output created by 042
-+Silence is golden
-diff --git a/tests/overlay/group b/tests/overlay/group
-index 8629325..782c39f 100644
---- a/tests/overlay/group
-+++ b/tests/overlay/group
-@@ -44,3 +44,4 @@
- 039 auto quick atime
- 040 auto quick
- 041 auto quick copyup nonsamefs
-+042 auto quick copyup hardlink
--- 
-2.7.4
+> +#   6eaf011144af ovl: fix EIO from lookup of non-indexed upper
+> +# that was merged to v4.14-rc7.
+> +#
+> +# This test verifies that behavior is sane after creating lower hardlinks
+> +# for copied up files while overlayfs is offline.
+> +#
+> +#-----------------------------------------------------------------------
+> +# Copyright (C) 2017 CTERA Networks. All Rights Reserved.
+> +# Author: Amir Goldstein <amir73il@gmail.com>
+> +#
+> +# This program is free software; you can redistribute it and/or
+> +# modify it under the terms of the GNU General Public License as
+> +# published by the Free Software Foundation.
+> +#
+> +# This program is distributed in the hope that it would be useful,
+> +# but WITHOUT ANY WARRANTY; without even the implied warranty of
+> +# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> +# GNU General Public License for more details.
+> +#
+> +# You should have received a copy of the GNU General Public License
+> +# along with this program; if not, write the Free Software Foundation,
+> +# Inc.,  51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+> +#-----------------------------------------------------------------------
+> +#
+> +
+> +seq=`basename $0`
+> +seqres=$RESULT_DIR/$seq
+> +echo "QA output created by $seq"
+> +
+> +tmp=/tmp/$$
+> +status=1       # failure is the default!
+> +trap "_cleanup; exit \$status" 0 1 2 3 15
+> +
+> +_cleanup()
+> +{
+> +       cd /
+> +       rm -f $tmp.*
+> +}
+> +
+> +# get standard environment, filters and checks
+> +. ./common/rc
+> +. ./common/filter
+> +
+> +# remove previous $seqres.full before test
+> +rm -f $seqres.full
+> +
+> +# real QA test starts here
+> +_supported_fs overlay
+> +_supported_os Linux
+> +_require_scratch
+> +# Without overlay index feature hardlinks are broken on copy up
+> +_require_scratch_feature index
+> +
+> +# Remove all files from previous tests
+> +_scratch_mkfs
+> +
+> +# Create lower file
+> +lowerdir=$OVL_BASE_SCRATCH_MNT/$OVL_LOWER
+> +mkdir -p $lowerdir
+> +touch $lowerdir/0
+> +
+> +# Disable overlay index feature to copy up with no index
+> +_scratch_mount -o index=off
+> +
+> +# Copy up lower and create upper hardlink with no index
+> +ln $SCRATCH_MNT/0 $SCRATCH_MNT/1
+> +
+> +$UMOUNT_PROG $SCRATCH_MNT
+> +
+> +# Add lower hardlinks while overlay is offline
+> +ln $lowerdir/0 $lowerdir/2
+> +ln $lowerdir/0 $lowerdir/3
+> +
+> +# Enable overlay index feature to lookup copied up upper aliases
+> +_scratch_mount -o index=on
+> +
+> +# Stat upper hardlink that were created with no index and whose copy up
+> +# origin is now an hardlink - expect same st_ino
+> +ino0=$(stat -c '%i' $SCRATCH_MNT/0)
+> +ino1=$(stat -c '%i' $SCRATCH_MNT/1)
+> +[[ $ino0 == $ino1 ]] || \
+> +       echo "Mismatch inode number for non-indexed upper hardlinks"
+> +
+> +# Copy up lower and create new upper hardlink with index, because
+> +# lower is a hardlink and index is enabled. The new hardlinks are not
+> +# associated with the hardlinks that were created when lower was not
+> +# a hardlink.
+> +ln $SCRATCH_MNT/2 $SCRATCH_MNT/4
+> +
+> +# Mount cycle to reset inode/dentry cache
+> +_scratch_cycle_mount index=on
+> +
+> +# Stat files that were copied up with index and whose copy up origin
+> +# is now an hardlink - expect same st_ino as lower aliases and different
+> +# st_ino from non-indexed upper aliases.
+> +ino0=$(stat -c '%i' $SCRATCH_MNT/0)
+> +ino1=$(stat -c '%i' $SCRATCH_MNT/1)
+> +ino2=$(stat -c '%i' $SCRATCH_MNT/2)
+> +ino3=$(stat -c '%i' $SCRATCH_MNT/3)
+> +ino4=$(stat -c '%i' $SCRATCH_MNT/4)
+> +[[ $ino0 == $ino1 ]] || \
+> +       echo "Mismatch inode number for non-indexed upper hardlinks"
+> +[[ $ino2 == $ino4 ]] || \
+> +       echo "Mismatch inode number for indexed upper hardlinks"
+> +[[ $ino2 == $ino3 ]] || \
+> +       echo "Mismatch inode number for indexed upper and lower hardlinks"
+> +[[ $ino2 != $ino0 ]] || \
+> +       echo "Unexpected matching inode number for indexed and non-indexed upper hardlinks"
+> +
+> +# Mount cycle to reset inode/dentry cache
+> +_scratch_cycle_mount index=on
+> +
+> +# Unlink all hardlinks - if overlay inode nlink is 0, this will trigger
+> +# WARN_ON() in drop_nlink()
+> +rm $SCRATCH_MNT/0
+> +rm $SCRATCH_MNT/1
+> +rm $SCRATCH_MNT/2
+> +rm $SCRATCH_MNT/3
+> +rm $SCRATCH_MNT/4
+> +
+> +# Verify that orphan index is cleaned on mount
+> +_scratch_cycle_mount index=on
+> +ls $OVL_BASE_SCRATCH_MNT/$OVL_WORK/index
+> +
+> +echo "Silence is golden"
+> +status=0
+> +exit
+> diff --git a/tests/overlay/042.out b/tests/overlay/042.out
+> new file mode 100644
+> index 0000000..85eac7a
+> --- /dev/null
+> +++ b/tests/overlay/042.out
+> @@ -0,0 +1,2 @@
+> +QA output created by 042
+> +Silence is golden
+> diff --git a/tests/overlay/group b/tests/overlay/group
+> index 8629325..782c39f 100644
+> --- a/tests/overlay/group
+> +++ b/tests/overlay/group
+> @@ -44,3 +44,4 @@
+>  039 auto quick atime
+>  040 auto quick
+>  041 auto quick copyup nonsamefs
+> +042 auto quick copyup hardlink
+> --
+> 2.7.4
+>
