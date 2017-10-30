@@ -1,87 +1,102 @@
 Return-Path: <charleszheng44@gmail.com>
 MIME-Version: 1.0
-From: charles zheng <charleszheng44@gmail.com>
-Date: Mon, 16 Oct 2017 00:59:42 -0400
-Message-ID: <CAAeanMxnXUrik+QSAdoVUSWe37tb=YPx6swb_=4nJOgL7OM2Fg@mail.gmail.com>
-Subject: [OVERLAYFS] Can I create file in directory on lower layer located on NFS
-Content-Type: multipart/alternative; boundary="089e08223920eefe88055ba2dfa5"
-To: miklos@szeredi.hu, linux-unionfs@vger.kernel.org
-Cc: Lukas Rupprecht <Lukas.Rupprecht@ibm.com>, Vasily <vtarasov@us.ibm.com>, Douglas Thain <dthain@nd.edu>, Dean Hildebrand <seattleplus@gmail.com>, mmohamed@us.ibm.com, dimitrios.skourtis@ibm.com, aswarke@us.ibm.com
+Sender: charleszheng44@gmail.com
+In-Reply-To: <CAJfpegvXnyUeLJEDSJwnQ_mL6okjqin=E6fw_Wj=aezyNgiwNw@mail.gmail.com>
+References: <CAAeanMz7d7UpoVj-yebH-66B-wF0kxT1vwJdQR73kKu=6TQdYA@mail.gmail.com>
+ <CAOQ4uxhxU0PYe=aV2OR5UpU_fDTAWe6ex1m_oq0nCq8OGK-eJQ@mail.gmail.com>
+ <CAAeanMzpzsNVxCaOHp=0t=5dcQG7BcOUbogZ_t1T3cDTZTzQ1A@mail.gmail.com>
+ <CAOQ4uxgep4MRSCgauT79UsEVHZ0A_reOOyAvh4n3viW2LLS14A@mail.gmail.com> <CAJfpegvXnyUeLJEDSJwnQ_mL6okjqin=E6fw_Wj=aezyNgiwNw@mail.gmail.com>
+From: charles zheng <czheng2@nd.edu>
+Date: Mon, 30 Oct 2017 11:43:48 -0400
+Message-ID: <CAAeanMxM5t3s+5v5iNWy4NmN9A_L-YC72Lmz+jLjBx13Vf9LZA@mail.gmail.com>
+Subject: Re: [OVERLAYFS] Can I create file in directory on lower layer located
+ on NFS
+Content-Type: multipart/alternative; boundary="94eb2c0c38582b71fd055cc5810c"
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: Amir Goldstein <amir73il@gmail.com>, overlayfs <linux-unionfs@vger.kernel.org>, Lukas Rupprecht <Lukas.Rupprecht@ibm.com>, Vasily <vtarasov@us.ibm.com>, Douglas Thain <dthain@nd.edu>, Dean Hildebrand <seattleplus@gmail.com>, dimitrios.skourtis@ibm.com, mmohamed@us.ibm.com, aswarke@us.ibm.com
 List-ID: <linux-unionfs@vger.kernel.org>
 
---089e08223920eefe88055ba2dfa5
+--94eb2c0c38582b71fd055cc5810c
 Content-Type: text/plain; charset="UTF-8"
 
-Hi Miklos,
+Hello Amir and Miklos,
 
-We are developing a docker related system that requires to union
-directories on NFS and local filesystem.  I successfully created a
-overlayfs that has lower layer located on NFS and upper layer located on
-the local file system. But when I tried to create new files in the
-directory located on NFS, I got error message: "Operation not supported".
-Does that mean I can not create new files inside the directory located on
-NFS? But base on the documentation of overlayfs, lower layer does not need
-to be writable.
+I tried NFSv4 with noacl option, and I still got "operation not support". I
+also tried NFSv3, and it works as expect. Hope this information is useful
+to you.
 
-Steps to reproduce the problem are (/mnt/nfs is the NFS mount, /home/zc is
-the local mount)
-
-1. create directory "/mnt/nfs/lower/lower_dir"
-
-2. create directories "/home/zc/upper/upper_dir", "/home/zc/work" and
-"/home/zc/merged"
-
-3. create overlayfs by running command
-
-mount -t overlay overlay -o\
-lowerdir=/mnt/nfs/lower,\
-upperdir=/home/zc/upper,\
-workdir=/home/zc/work \
-/home/zc/merged
-
-4. Try to create new file "/merged/lower_dir/test.txt" and get error
-message "Operation not supported"
-
-Thanks,
+Best,
 Charles
 
---089e08223920eefe88055ba2dfa5
+On Tue, Oct 17, 2017 at 3:11 AM, Miklos Szeredi <miklos@szeredi.hu> wrote:
+
+> On Tue, Oct 17, 2017 at 7:37 AM, Amir Goldstein <amir73il@gmail.com>
+> wrote:
+> > Since the error happens on such as old kernel as well as a new one, I
+> suspect
+> > copy up fails on copying extended attributes of lower_dir.
+> > I suspect there are some NFS related xattr on lower dir?
+> > and perhaps those cannot be set on your upper fs?
+> > You did not reveal in mountinfo snippet what you local upper fs is
+> > and what mount options it uses.
+> >
+> > Please try to check if lower dir contains any xattr and
+> > if your upper fs supports xattr.
+>
+> Yes, there's an NFSv4 related splat because overlayfs can't copy up
+> "system.nfs4_acl" xattr.  The weird but apparently unfixable fact is
+> that this attribute is there even if the nfs4-acl is equivalent to the
+> DAC bits (i.e. the common case).
+>
+> If you don't want to use NFS acls, then just turn them off with
+> "noacl" mount option on the NFS mount and things should work.
+>
+> Thanks,
+> Miklos
+>
+
+--94eb2c0c38582b71fd055cc5810c
 Content-Type: text/html; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-<div dir=3D"ltr"><div class=3D"gmail_default" style=3D"font-size:small">Hi =
-Miklos,</div><div class=3D"gmail_default" style=3D"font-size:small"><br></d=
-iv><div class=3D"gmail_default" style=3D"font-size:small">We are developing=
- a docker related system that requires to union directories on NFS and loca=
-l filesystem.=C2=A0 I successfully created a overlayfs that has lower layer=
- located on NFS and upper layer located on the local file system. But when =
-I tried to create new files in the directory located on NFS, I got error me=
-ssage: &quot;Operation not supported&quot;. Does that mean I can not create=
- new files inside the directory located on NFS? But base on the documentati=
-on of overlayfs, lower layer does not need to be writable.</div><div class=
-=3D"gmail_default" style=3D"font-size:small"><br></div><div class=3D"gmail_=
-default" style=3D"font-size:small">Steps to reproduce the problem are (/mnt=
-/nfs is the NFS mount, /home/zc is the local mount)</div><div class=3D"gmai=
-l_default" style=3D"font-size:small"><br></div><div class=3D"gmail_default"=
- style=3D"font-size:small">1. create directory &quot;/mnt/nfs/lower/lower_d=
-ir&quot;</div><div class=3D"gmail_default" style=3D"font-size:small"><br></=
-div><div class=3D"gmail_default" style=3D"font-size:small">2. create direct=
-ories &quot;/home/zc/upper/upper_dir&quot;, &quot;/home/zc/work&quot; and &=
-quot;/home/zc/merged&quot;</div><div class=3D"gmail_default" style=3D"font-=
-size:small"><br></div><div class=3D"gmail_default" style=3D"font-size:small=
-">3. create overlayfs by running command</div><div class=3D"gmail_default" =
-style=3D"font-size:small"><br></div><div class=3D"gmail_default" style=3D"f=
-ont-size:small">mount -t overlay overlay -o\</div><div class=3D"gmail_defau=
-lt" style=3D"font-size:small">lowerdir=3D/mnt/nfs/lower,\</div><div class=
-=3D"gmail_default" style=3D"font-size:small">upperdir=3D/home/zc/upper,\</d=
-iv><div class=3D"gmail_default" style=3D"font-size:small">workdir=3D/home/z=
-c/work \</div><div class=3D"gmail_default" style=3D"font-size:small">/home/=
-zc/merged</div><div class=3D"gmail_default" style=3D"font-size:small"><br><=
-/div><div class=3D"gmail_default" style=3D"font-size:small">4. Try to creat=
-e new file &quot;/merged/lower_dir/test.txt&quot; and get error message &qu=
-ot;Operation not supported&quot;=C2=A0</div><div class=3D"gmail_default" st=
-yle=3D"font-size:small"><br></div><div class=3D"gmail_default" style=3D"fon=
-t-size:small">Thanks,</div><div class=3D"gmail_default" style=3D"font-size:=
-small">Charles</div></div>
+<div dir=3D"ltr"><div class=3D"gmail_default" style=3D"font-size:small">Hel=
+lo Amir and Miklos,</div><div class=3D"gmail_default" style=3D"font-size:sm=
+all"><br></div><div class=3D"gmail_default" style=3D"font-size:small">I tri=
+ed NFSv4 with noacl option, and I still got &quot;operation not support&quo=
+t;. I also tried NFSv3, and it works as expect. Hope this information is us=
+eful to you.</div><div class=3D"gmail_default" style=3D"font-size:small"><b=
+r></div><div class=3D"gmail_default" style=3D"font-size:small">Best,</div><=
+div class=3D"gmail_default" style=3D"font-size:small">Charles=C2=A0=C2=A0</=
+div></div><div class=3D"gmail_extra"><br><div class=3D"gmail_quote">On Tue,=
+ Oct 17, 2017 at 3:11 AM, Miklos Szeredi <span dir=3D"ltr">&lt;<a href=3D"m=
+ailto:miklos@szeredi.hu" target=3D"_blank">miklos@szeredi.hu</a>&gt;</span>=
+ wrote:<br><blockquote class=3D"gmail_quote" style=3D"margin:0 0 0 .8ex;bor=
+der-left:1px #ccc solid;padding-left:1ex"><span class=3D"">On Tue, Oct 17, =
+2017 at 7:37 AM, Amir Goldstein &lt;<a href=3D"mailto:amir73il@gmail.com">a=
+mir73il@gmail.com</a>&gt; wrote:<br>
+&gt; Since the error happens on such as old kernel as well as a new one, I =
+suspect<br>
+&gt; copy up fails on copying extended attributes of lower_dir.<br>
+&gt; I suspect there are some NFS related xattr on lower dir?<br>
+&gt; and perhaps those cannot be set on your upper fs?<br>
+&gt; You did not reveal in mountinfo snippet what you local upper fs is<br>
+&gt; and what mount options it uses.<br>
+&gt;<br>
+&gt; Please try to check if lower dir contains any xattr and<br>
+&gt; if your upper fs supports xattr.<br>
+<br>
+</span>Yes, there&#39;s an NFSv4 related splat because overlayfs can&#39;t =
+copy up<br>
+&quot;system.nfs4_acl&quot; xattr.=C2=A0 The weird but apparently unfixable=
+ fact is<br>
+that this attribute is there even if the nfs4-acl is equivalent to the<br>
+DAC bits (i.e. the common case).<br>
+<br>
+If you don&#39;t want to use NFS acls, then just turn them off with<br>
+&quot;noacl&quot; mount option on the NFS mount and things should work.<br>
+<br>
+Thanks,<br>
+Miklos<br>
+</blockquote></div><br></div>
 
---089e08223920eefe88055ba2dfa5--
+--94eb2c0c38582b71fd055cc5810c--
