@@ -1,244 +1,209 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [RFC PATCH 00/13][V5] overlayfs: Delayed copy up of data
-Date: Sat, 28 Oct 2017 17:50:19 +0300
-Message-ID: <CAOQ4uxhOLm+Jx3LoEeeXKMEK+i3yiok1+Ad93W2fRfThgJ=nDA@mail.gmail.com>
-References: <1508958575-14086-1-git-send-email-vgoyal@redhat.com>
- <CAOQ4uxhDkDHAFxhs6mu6HQ+Z1+y8ykvcw5vbXO3H79kGJ6zAaA@mail.gmail.com> <20171027164032.GB5442@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Subject: [PATCH] overlay: test creating lower hardlinks for copied up files
+Date: Mon, 30 Oct 2017 14:06:56 +0200
+Message-ID: <1509365216-10796-1-git-send-email-amir73il@gmail.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-yw0-f194.google.com ([209.85.161.194]:48298 "EHLO
-        mail-yw0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751189AbdJ1OuU (ORCPT
+Received: from mail-wm0-f68.google.com ([74.125.82.68]:54983 "EHLO
+        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753024AbdJ3MHf (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Sat, 28 Oct 2017 10:50:20 -0400
-Received: by mail-yw0-f194.google.com with SMTP id q1so8062404ywh.5
-        for <linux-unionfs@vger.kernel.org>; Sat, 28 Oct 2017 07:50:20 -0700 (PDT)
-In-Reply-To: <20171027164032.GB5442@redhat.com>
+        Mon, 30 Oct 2017 08:07:35 -0400
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Vivek Goyal <vgoyal@redhat.com>
-Cc: overlayfs <linux-unionfs@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>
+To: Eryu Guan <eguan@redhat.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, fstests@vger.kernel.org
 
-On Fri, Oct 27, 2017 at 7:40 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
-> On Thu, Oct 26, 2017 at 10:18:19AM +0300, Amir Goldstein wrote:
->> On Wed, Oct 25, 2017 at 10:09 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
->> > Hi,
->> >
->> > Here is the V5 of patches. Following are changes from V4.
->>
->> Please use git format-patch -v6 next time you post.
->> It tags all the patch subjects so it is easier to find the former
->> revision of specific patch.
->
-> Will do.
->
->>
->> >
->> > - Flipped the meaning of bit. Now OVL_METACOPY is called OVL_UPPERDATA and
->> >   dropped a barrier patch which implemented ordering requirements between
->> >   oi->flags and oi->__upperdentry.
->> >
->> > - Now ovl_d_real() does return upper dentry if upper dentry is metacopy only
->> >   dentry.
->>
->> doesn't return upper dentry
->>
->> But I am still not convinced that metacopy upper inode is not accessed in places
->> it shouldn't be accessed by vfs, via other APIs.
->>
->> For example, ovl_permission(), ovl_getattr(), ovl_setattr(), ovl_listxattr(),
->> ovl_get_acl() will all access metacopy inode and that outcome will be desired.
->> But you did not provide a complete list of vfs APIs and verify for each
->> that accessing the metacopy upper via various variants of ovl_dentry_real()
->> is either not possible (because access requires a rw fd) or is the
->> desired outcome.
->
-> Thanks for asking this. I have been looking at code and trying to figure
-> out if there is anything which is broken. But this also requires the
-> eyeballs from all the experienced filesystem folks. I have tried
-> going through all overlayfs interfaces and listing my thoughts below.
-> AFAICS, nothing seems to be broken.
+kernel v4.13 introduced the index=on feature for not breaking hardlinks
+on copy-up.  With the index feature enabled a regression was introduced -
+lower files that are hardlined while overlay is offline can result in
+lookup error after overlay in mounted.
 
-That's a very good start.
-Now I wonder if the metacopy feature can break userspace apps that relied on
-metadata operations doing copy up to avoid the RDONLY/RDWR fd inconsistency,
-even if they escaped the inconsistency by accident so far.
-I guess there is only one one to know...
+The regression was fixed by upstream commit
+  6eaf011144af ovl: fix EIO from lookup of non-indexed upper
+that was merged to v4.14-rc7.
 
->
-> - I am assuming that ovl_dir_operations{} are not impacted by this at
->   all. Metadata copy up affects only regular files and does not touch any
->   of directory operations.
->
-> Operations internal to overlayfs
-> ================================
-> 1. ovl_setattr()
->
->    Will do metadata copy up and work on upper inode.
->
-> 2. inode_permission()
->
->    Will do permission checks on upper metacopy inode. Which seems to be
->    right thing.
->
-> 3. ovl_getattr()
->
->    Will do getattr on metacopy inode and will query lower for number of
->    blocks. Seems ok.
+This test verifies that behavior is sane after creating lower hardlinks
+for copied up files while overlayfs is offline.
 
-Hmm it seems ok for stat(2), not sure about statx().
-If upper metacopy is not encrypted (it has no data) and lower
-is encrypted, not sure what should be the result of querying
-the STATX_ATTR_ENCRYPTED attribute.
-But that is just an example showing how fragile this can, when
-'metadata' is not a well defined term.
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+---
 
-Not saying that this is a show stopper, but something to consider.
+Eryu,
 
->
-> 4. vfs_listxattr()
->
->    Will retrieve xattr list from upper metacopy inode. Seems right.
->
-> 5. ovl_get_acl()
->
->    Will retrieve acl from upper metacopy inode. Seems right.
->
+This is a regression test for a fix that was just merged to v4.14-rc7.
 
-You missed ovl_posix_acl_xattr_set/get().
-They are hiding well ;-)
-But they seem right anyway.
+The test requires and enables index=on, so it would fail on kernels
+prior to v4.14-rc7 regardless if they are complied with
+CONFIG_OVERLAY_FS_INDEX=y or not.
 
-> 6. ovl_update_time()
->
->    Will update atime on upper metacopy inode. Seems right.
->
-> 7. ovl_get_link()
->
->    Should work on upper inode. For symlinks upper will never be metadata inode
->    as this is not a regular file. So this should be fine
->
-> 8. ovl_lookup()
->
->    Will set the upperdentry to metacopy inode. Seems right.
->
-> 9. ovl_mkdir()
->
->    Shouldn't be affected as directories can't be metacopy only.
->
-> 10. ovl_symlink()
->
->    Shouldn't be affected as symlinks can't be metacopy only.
->
-> 11. ovl_unlink()
->
->    This should remove upper metacopy dentry/inode and replace with whiteout.
->
-> 12. ovl_rmdir()
->
->    Should not be impacted. There are no metadata copy up for dir inodes.
->
-> 13. ovl_rename()
->
->    Will copy up files metadata only (as needed) and then do rename. Data
->    will be copied up later when files are opened for WRITE. Can't think
->    of anything which will be broken due to metadata only inode.
->
-> 14. ovl_link()
->
->    Will copy up old file metadata only and then create link. Or create
->    link if metadata inode already exists on upper. Feels it should not
->    be impacted either.
->
-> 15. ovl_create()
->
->    Will create a new object. No metadata only inode involved.
->
-> 16. ovl_mknod()
->
->    Will create a new object. No metadata only inode involved.
->
->
-> d_real() and friends
-> ===================
-> 1. vfs_truncate() (fs/open.c)
-> {
->   upperdentry = d_real(path->dentry, NULL, O_WRONLY, 0);
-> }
->
-> This will enforce full copy up. So no behavior change.
->
-> 2. vfs_open() (fs/open.c)
-> {
->   dentry *dentry = d_real(path->dentry, NULL, file->f_flags, 0)
-> }
->
-> This will get dentry based on flags. If file is opened for READ, then
-> one will get lower dentry for metacopy inode case. This should be
-> fine. Can't see anything wrong yet.
->
-> 3. update_ovl_inode_times() (fs/inode.c)
-> {
->         upperdentry = d_real(dentry, NULL, 0, D_REAL_UPPER);
-> }
->
-> This will return NULL for metacopy inode (for regular files). And that should
-> not impact atime updates for following reason.
->
-> - mtime does not change for metacopy inode. So overlay inode and upper inode
->   should have same mtime.
->
-> - ctime is kept in sync with overlay inode for all metadata related operations
->   which happen on metadata inode (through overlay).
->
-> - Whenever mtime or ctime because file has been written to, that time full
->   copy up will take place and this will return upperdentry (and not NULL).
->
->
-> 4. may_write_real() (fs/namespace.c)
-> {
->         upperdentry = d_real(dentry, NULL, 0, D_REAL_UPPER);
-> }
->
-> This can get a NULL for metadata only inode and that means return -EPERM. IOW,
-> may_write_real() will always return -EPERM on metadata only inode and these
-> will be treated as if these are files on lower/.
->
-> Now question is does it break something. This will not allow write access to
-> a file which is metadata only and it makes sense to me. One can not write
-> to lower file. One could argue that metadata update should be allowed but
-> current API does not distinguish between the two. So it will be denied.
->
-> There are many users of it and I will spend some time and try to understand
-> each and every use case.
->
-> 5. file_dentry() (include/linux/fs.h)
-> {
->         return d_real(file->f_path.dentry, file_inode(file), 0, 0);
-> }
->
-> This is trying to find dentry matching with file->f_inode. For metadata inodes
-> ->f_inode will return lower inode which is expected.
->
-> 6. d_real_inode() (include/linux/dcache.h)
-> {
->         d_backing_inode(d_real((struct dentry *) dentry, NULL, 0, 0));
->
-> }
->  only inode, this should return lower dentry and lower inode.
-> Question is, does it break anything.
->
-> Only place d_real_inode() seems to be being used is in fs/locks.c
->
-> check_conflicting_open() {
->         if ((arg == F_RDLCK) &&
->            (atomic_read(&d_real_inode(dentry)->i_writecount) > 0))
->                 return -EAGAIN;
-> }
->
-> i_writecount will be updated only on upper file. So if there is metadata
-> only inode, then i_writecount should be zero both on upper and lower. So
-> this case is similar to lower inode, IIUC and should not be a problem.
->
->
+Amir.
+
+ tests/overlay/042     | 137 ++++++++++++++++++++++++++++++++++++++++++++++++++
+ tests/overlay/042.out |   2 +
+ tests/overlay/group   |   1 +
+ 3 files changed, 140 insertions(+)
+ create mode 100755 tests/overlay/042
+ create mode 100644 tests/overlay/042.out
+
+diff --git a/tests/overlay/042 b/tests/overlay/042
+new file mode 100755
+index 0000000..29858d6
+--- /dev/null
++++ b/tests/overlay/042
+@@ -0,0 +1,137 @@
++#! /bin/bash
++# FS QA Test 042
++#
++# Test creating lower hardlinks for copied up files.
++#
++# kernel v4.13 introduced the index=on feature for not breaking
++# hardlinks on copy-up. With the index feature enabled a regression was
++# introduced - lower files that are hardlined while overlay is offline
++# can result in lookup error after overlay in mounted.
++# The regression was fixed by upstream commit
++#   6eaf011144af ovl: fix EIO from lookup of non-indexed upper
++# that was merged to v4.14-rc7.
++#
++# This test verifies that behavior is sane after creating lower hardlinks
++# for copied up files while overlayfs is offline.
++#
++#-----------------------------------------------------------------------
++# Copyright (C) 2017 CTERA Networks. All Rights Reserved.
++# Author: Amir Goldstein <amir73il@gmail.com>
++#
++# This program is free software; you can redistribute it and/or
++# modify it under the terms of the GNU General Public License as
++# published by the Free Software Foundation.
++#
++# This program is distributed in the hope that it would be useful,
++# but WITHOUT ANY WARRANTY; without even the implied warranty of
++# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++# GNU General Public License for more details.
++#
++# You should have received a copy of the GNU General Public License
++# along with this program; if not, write the Free Software Foundation,
++# Inc.,  51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
++#-----------------------------------------------------------------------
++#
++
++seq=`basename $0`
++seqres=$RESULT_DIR/$seq
++echo "QA output created by $seq"
++
++tmp=/tmp/$$
++status=1	# failure is the default!
++trap "_cleanup; exit \$status" 0 1 2 3 15
++
++_cleanup()
++{
++	cd /
++	rm -f $tmp.*
++}
++
++# get standard environment, filters and checks
++. ./common/rc
++. ./common/filter
++
++# remove previous $seqres.full before test
++rm -f $seqres.full
++
++# real QA test starts here
++_supported_fs overlay
++_supported_os Linux
++_require_scratch
++# Without overlay index feature hardlinks are broken on copy up
++_require_scratch_feature index
++
++# Remove all files from previous tests
++_scratch_mkfs
++
++# Create lower file
++lowerdir=$OVL_BASE_SCRATCH_MNT/$OVL_LOWER
++mkdir -p $lowerdir
++touch $lowerdir/0
++
++# Disable overlay index feature to copy up with no index
++_scratch_mount -o index=off
++
++# Copy up lower and create upper hardlink with no index
++ln $SCRATCH_MNT/0 $SCRATCH_MNT/1
++
++$UMOUNT_PROG $SCRATCH_MNT
++
++# Add lower hardlinks while overlay is offline
++ln $lowerdir/0 $lowerdir/2
++ln $lowerdir/0 $lowerdir/3
++
++# Enable overlay index feature to lookup copied up upper aliases
++_scratch_mount -o index=on
++
++# Stat upper hardlink that were created with no index and whose copy up
++# origin is now an hardlink - expect same st_ino
++ino0=$(stat -c '%i' $SCRATCH_MNT/0)
++ino1=$(stat -c '%i' $SCRATCH_MNT/1)
++[[ $ino0 == $ino1 ]] || \
++	echo "Mismatch inode number for non-indexed upper hardlinks"
++
++# Copy up lower and create new upper hardlink with index, because
++# lower is a hardlink and index is enabled. The new hardlinks are not
++# associated with the hardlinks that were created when lower was not
++# a hardlink.
++ln $SCRATCH_MNT/2 $SCRATCH_MNT/4
++
++# Mount cycle to reset inode/dentry cache
++_scratch_cycle_mount index=on
++
++# Stat files that were copied up with index and whose copy up origin
++# is now an hardlink - expect same st_ino as lower aliases and different
++# st_ino from non-indexed upper aliases.
++ino0=$(stat -c '%i' $SCRATCH_MNT/0)
++ino1=$(stat -c '%i' $SCRATCH_MNT/1)
++ino2=$(stat -c '%i' $SCRATCH_MNT/2)
++ino3=$(stat -c '%i' $SCRATCH_MNT/3)
++ino4=$(stat -c '%i' $SCRATCH_MNT/4)
++[[ $ino0 == $ino1 ]] || \
++	echo "Mismatch inode number for non-indexed upper hardlinks"
++[[ $ino2 == $ino4 ]] || \
++	echo "Mismatch inode number for indexed upper hardlinks"
++[[ $ino2 == $ino3 ]] || \
++	echo "Mismatch inode number for indexed upper and lower hardlinks"
++[[ $ino2 != $ino0 ]] || \
++	echo "Unexpected matching inode number for indexed and non-indexed upper hardlinks"
++
++# Mount cycle to reset inode/dentry cache
++_scratch_cycle_mount index=on
++
++# Unlink all hardlinks - if overlay inode nlink is 0, this will trigger
++# WARN_ON() in drop_nlink()
++rm $SCRATCH_MNT/0
++rm $SCRATCH_MNT/1
++rm $SCRATCH_MNT/2
++rm $SCRATCH_MNT/3
++rm $SCRATCH_MNT/4
++
++# Verify that orphan index is cleaned on mount
++_scratch_cycle_mount index=on
++ls $OVL_BASE_SCRATCH_MNT/$OVL_WORK/index
++
++echo "Silence is golden"
++status=0
++exit
+diff --git a/tests/overlay/042.out b/tests/overlay/042.out
+new file mode 100644
+index 0000000..85eac7a
+--- /dev/null
++++ b/tests/overlay/042.out
+@@ -0,0 +1,2 @@
++QA output created by 042
++Silence is golden
+diff --git a/tests/overlay/group b/tests/overlay/group
+index 8629325..782c39f 100644
+--- a/tests/overlay/group
++++ b/tests/overlay/group
+@@ -44,3 +44,4 @@
+ 039 auto quick atime
+ 040 auto quick
+ 041 auto quick copyup nonsamefs
++042 auto quick copyup hardlink
+-- 
+2.7.4
