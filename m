@@ -1,157 +1,134 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH v6 1/3] ovl: no direct iteration for dir with origin xattr
-Date: Tue, 31 Oct 2017 23:45:48 +0200
-Message-ID: <1509486350-21362-2-git-send-email-amir73il@gmail.com>
+Subject: [PATCH v6 2/3] ovl: simplify ovl_check_empty_and_clear()
+Date: Tue, 31 Oct 2017 23:45:49 +0200
+Message-ID: <1509486350-21362-3-git-send-email-amir73il@gmail.com>
 References: <1509486350-21362-1-git-send-email-amir73il@gmail.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:51858 "EHLO
-        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932584AbdJaVpM (ORCPT
+Received: from mail-wr0-f196.google.com ([209.85.128.196]:47173 "EHLO
+        mail-wr0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932605AbdJaVpN (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 31 Oct 2017 17:45:12 -0400
-Received: by mail-wm0-f66.google.com with SMTP id b9so1607836wmh.0
-        for <linux-unionfs@vger.kernel.org>; Tue, 31 Oct 2017 14:45:11 -0700 (PDT)
+        Tue, 31 Oct 2017 17:45:13 -0400
+Received: by mail-wr0-f196.google.com with SMTP id y39so344282wrd.4
+        for <linux-unionfs@vger.kernel.org>; Tue, 31 Oct 2017 14:45:12 -0700 (PDT)
 In-Reply-To: <1509486350-21362-1-git-send-email-amir73il@gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: Miklos Szeredi <miklos@szeredi.hu>
 Cc: zhangyi <yi.zhang@huawei.com>, linux-unionfs@vger.kernel.org
 
-If a non-merge dir in an overlay mount has an overlay.origin xattr, it
-means it was once an upper merge dir, which may contain whiteouts and
-then the lower dir was removed under it.
+Filter out non-whiteout non-upper entries from list of merge dir entries
+while checking if merge dir is empty in ovl_check_empty_dir().
+The remaining work for ovl_clear_empty() is to clear all entries on the
+list.
 
-Do not iterate real dir directly in this case to avoid exposing whiteouts.
-
+Signed-off-by: zhangyi (F) <yi.zhang@huawei.com>
 Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- fs/overlayfs/inode.c     |  5 +++++
- fs/overlayfs/overlayfs.h |  4 ++++
- fs/overlayfs/readdir.c   | 29 +++++++++++++++++++++++++----
- fs/overlayfs/util.c      | 13 +++++++++++++
- 4 files changed, 47 insertions(+), 4 deletions(-)
+ fs/overlayfs/dir.c     |  5 ++---
+ fs/overlayfs/readdir.c | 27 ++++++++++++++++++++-------
+ 2 files changed, 22 insertions(+), 10 deletions(-)
 
-diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
-index 03f0ec2b73eb..2949448d0c7d 100644
---- a/fs/overlayfs/inode.c
-+++ b/fs/overlayfs/inode.c
-@@ -661,6 +661,11 @@ struct inode *ovl_get_inode(struct dentry *dentry, struct dentry *upperdentry,
- 	if (upperdentry && ovl_is_impuredir(upperdentry))
- 		ovl_set_flag(OVL_IMPURE, inode);
+diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
+index cc961a3bd3bd..4edef400fe51 100644
+--- a/fs/overlayfs/dir.c
++++ b/fs/overlayfs/dir.c
+@@ -300,7 +300,6 @@ static struct dentry *ovl_check_empty_and_clear(struct dentry *dentry)
+ {
+ 	int err;
+ 	struct dentry *ret = NULL;
+-	enum ovl_path_type type = ovl_path_type(dentry);
+ 	LIST_HEAD(list);
  
-+	/* Check for non-merge dir that may have whiteouts */
-+	if (S_ISDIR(realinode->i_mode) && (!upperdentry || !lowerdentry) &&
-+	    ovl_check_origin_xattr(upperdentry ?: lowerdentry))
-+		ovl_set_flag(OVL_WHITEOUTS, inode);
-+
- 	if (inode->i_state & I_NEW)
- 		unlock_new_inode(inode);
- out:
-diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-index d9a0edd4e57e..d53157ccf0d7 100644
---- a/fs/overlayfs/overlayfs.h
-+++ b/fs/overlayfs/overlayfs.h
-@@ -28,7 +28,10 @@ enum ovl_path_type {
- #define OVL_XATTR_NLINK OVL_XATTR_PREFIX "nlink"
+ 	err = ovl_check_empty_dir(dentry, &list);
+@@ -313,13 +312,13 @@ static struct dentry *ovl_check_empty_and_clear(struct dentry *dentry)
+ 	 * When removing an empty opaque directory, then it makes no sense to
+ 	 * replace it with an exact replica of itself.
+ 	 *
+-	 * If no upperdentry then skip clearing whiteouts.
++	 * If upperdentry has whiteouts, clear them.
+ 	 *
+ 	 * Can race with copy-up, since we don't hold the upperdir mutex.
+ 	 * Doesn't matter, since copy-up can't create a non-empty directory
+ 	 * from an empty one.
+ 	 */
+-	if (OVL_TYPE_UPPER(type) && OVL_TYPE_MERGE(type))
++	if (!list_empty(&list))
+ 		ret = ovl_clear_empty(dentry, &list);
  
- enum ovl_flag {
-+	/* Pure upper dir that may contain non pure upper entries */
- 	OVL_IMPURE,
-+	/* Non-merge dir that may contain whiteout entries */
-+	OVL_WHITEOUTS,
- 	OVL_INDEX,
- };
- 
-@@ -223,6 +226,7 @@ bool ovl_is_whiteout(struct dentry *dentry);
- struct file *ovl_path_open(struct path *path, int flags);
- int ovl_copy_up_start(struct dentry *dentry);
- void ovl_copy_up_end(struct dentry *dentry);
-+bool ovl_check_origin_xattr(struct dentry *dentry);
- bool ovl_check_dir_xattr(struct dentry *dentry, const char *name);
- int ovl_check_setxattr(struct dentry *dentry, struct dentry *upperdentry,
- 		       const char *name, const void *value, size_t size,
+ out_free:
 diff --git a/fs/overlayfs/readdir.c b/fs/overlayfs/readdir.c
-index 698b74dd750e..ec902a7c1f4d 100644
+index ec902a7c1f4d..333de85d6de4 100644
 --- a/fs/overlayfs/readdir.c
 +++ b/fs/overlayfs/readdir.c
-@@ -316,21 +316,42 @@ static inline int ovl_dir_read(struct path *realpath,
+@@ -26,6 +26,7 @@ struct ovl_cache_entry {
+ 	struct list_head l_node;
+ 	struct rb_node node;
+ 	struct ovl_cache_entry *next_maybe_whiteout;
++	bool is_upper;
+ 	bool is_whiteout;
+ 	char name[];
+ };
+@@ -158,6 +159,7 @@ static struct ovl_cache_entry *ovl_cache_entry_new(struct ovl_readdir_data *rdd,
+ 	/* Defer setting d_ino for upper entry to ovl_iterate() */
+ 	if (ovl_calc_d_ino(rdd, p))
+ 		p->ino = 0;
++	p->is_upper = rdd->is_upper;
+ 	p->is_whiteout = false;
+ 
+ 	if (d_type == DT_CHR) {
+@@ -856,7 +858,7 @@ const struct file_operations ovl_dir_operations = {
+ int ovl_check_empty_dir(struct dentry *dentry, struct list_head *list)
+ {
+ 	int err;
+-	struct ovl_cache_entry *p;
++	struct ovl_cache_entry *p, *n;
+ 	struct rb_root root = RB_ROOT;
+ 
+ 	err = ovl_dir_read_merged(dentry, list, &root);
+@@ -865,18 +867,29 @@ int ovl_check_empty_dir(struct dentry *dentry, struct list_head *list)
+ 
+ 	err = 0;
+ 
+-	list_for_each_entry(p, list, l_node) {
+-		if (p->is_whiteout)
+-			continue;
++	list_for_each_entry_safe(p, n, list, l_node) {
++		/*
++		 * Select whiteouts in upperdir, they should
++		 * be cleared when deleting this directory.
++		 */
++		if (p->is_whiteout) {
++			if (p->is_upper)
++				continue;
++			goto del_entry;
++		}
+ 
+ 		if (p->name[0] == '.') {
+ 			if (p->len == 1)
+-				continue;
++				goto del_entry;
+ 			if (p->len == 2 && p->name[1] == '.')
+-				continue;
++				goto del_entry;
+ 		}
+ 		err = -ENOTEMPTY;
+ 		break;
++
++del_entry:
++		list_del(&p->l_node);
++		kfree(p);
+ 	}
+ 
  	return err;
- }
+@@ -890,7 +903,7 @@ void ovl_cleanup_whiteouts(struct dentry *upper, struct list_head *list)
+ 	list_for_each_entry(p, list, l_node) {
+ 		struct dentry *dentry;
  
-+/* Can we iterate real dir directly? */
-+static bool ovl_dir_is_real(struct dentry *dir)
-+{
-+	struct path realpath;
-+	enum ovl_path_type type = ovl_path_real(dir, &realpath);
-+
-+	if (OVL_TYPE_MERGE(type))
-+		return false;
-+
-+	/*
-+	 * Non-merge dir may contain whiteouts from a time it was a merge
-+	 * upper, before lower dir was removed under it and possibly before
-+	 * it was rotated from upper to lower layer.
-+	 */
-+	return !ovl_test_flag(OVL_WHITEOUTS, d_inode(dir));
-+}
-+
- static void ovl_dir_reset(struct file *file)
- {
- 	struct ovl_dir_file *od = file->private_data;
- 	struct ovl_dir_cache *cache = od->cache;
- 	struct dentry *dentry = file->f_path.dentry;
--	enum ovl_path_type type = ovl_path_type(dentry);
-+	bool is_real;
+-		if (!p->is_whiteout)
++		if (WARN_ON(!p->is_whiteout || !p->is_upper))
+ 			continue;
  
- 	if (cache && ovl_dentry_version_get(dentry) != cache->version) {
- 		ovl_cache_put(od, dentry);
- 		od->cache = NULL;
- 		od->cursor = NULL;
- 	}
--	WARN_ON(!od->is_real && !OVL_TYPE_MERGE(type));
--	if (od->is_real && OVL_TYPE_MERGE(type))
-+	is_real = ovl_dir_is_real(dentry);
-+	if (od->is_real != is_real) {
-+		/* is_real can only become false when dir is copied up */
-+		if (WARN_ON(is_real))
-+			return;
- 		od->is_real = false;
-+	}
- }
- 
- static int ovl_dir_read_merged(struct dentry *dentry, struct list_head *list,
-@@ -816,7 +837,7 @@ static int ovl_dir_open(struct inode *inode, struct file *file)
- 		return PTR_ERR(realfile);
- 	}
- 	od->realfile = realfile;
--	od->is_real = !OVL_TYPE_MERGE(type);
-+	od->is_real = ovl_dir_is_real(file->f_path.dentry);
- 	od->is_upper = OVL_TYPE_UPPER(type);
- 	file->private_data = od;
- 
-diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
-index b9b239fa5cfd..51ca8bd16009 100644
---- a/fs/overlayfs/util.c
-+++ b/fs/overlayfs/util.c
-@@ -329,6 +329,19 @@ void ovl_copy_up_end(struct dentry *dentry)
- 	mutex_unlock(&OVL_I(d_inode(dentry))->lock);
- }
- 
-+bool ovl_check_origin_xattr(struct dentry *dentry)
-+{
-+	int res;
-+
-+	res = vfs_getxattr(dentry, OVL_XATTR_ORIGIN, NULL, 0);
-+
-+	/* Zero size value means "copied up but origin unknown" */
-+	if (res >= 0)
-+		return true;
-+
-+	return false;
-+}
-+
- bool ovl_check_dir_xattr(struct dentry *dentry, const char *name)
- {
- 	int res;
+ 		dentry = lookup_one_len(p->name, upper, p->len);
 -- 
 2.7.4
