@@ -1,114 +1,82 @@
-From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH v5 3/4] ovl: relax same fs constrain for constant st_ino
-Date: Mon, 30 Oct 2017 22:27:26 +0200
-Message-ID: <1509395247-15180-4-git-send-email-amir73il@gmail.com>
-References: <1509395247-15180-1-git-send-email-amir73il@gmail.com>
+From: Eryu Guan <eguan@redhat.com>
+Subject: Re: [PATCH] overlay: test creating lower hardlinks for copied up
+ files
+Date: Tue, 31 Oct 2017 11:32:15 +0800
+Message-ID: <20171031033215.GE17339@eguan.usersys.redhat.com>
+References: <1509365216-10796-1-git-send-email-amir73il@gmail.com>
+ <CAOQ4uxj-AQcW8__3DcL5e+PSejYgW8kP=RD4OOxsD8OGOFZeSg@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wr0-f193.google.com ([209.85.128.193]:54114 "EHLO
-        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751905AbdJ3U0v (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 30 Oct 2017 16:26:51 -0400
-Received: by mail-wr0-f193.google.com with SMTP id u40so13880415wrf.10
-        for <linux-unionfs@vger.kernel.org>; Mon, 30 Oct 2017 13:26:50 -0700 (PDT)
-In-Reply-To: <1509395247-15180-1-git-send-email-amir73il@gmail.com>
+Received: from mx1.redhat.com ([209.132.183.28]:40920 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751207AbdJaDcS (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Mon, 30 Oct 2017 23:32:18 -0400
+Content-Disposition: inline
+In-Reply-To: <CAOQ4uxj-AQcW8__3DcL5e+PSejYgW8kP=RD4OOxsD8OGOFZeSg@mail.gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: Chandan Rajendra <chandan@linux.vnet.ibm.com>, zhangyi <yi.zhang@huawei.com>, linux-unionfs@vger.kernel.org
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, overlayfs <linux-unionfs@vger.kernel.org>, fstests <fstests@vger.kernel.org>
 
-For the case of all layers not on the same fs, use the copy up
-origin st_ino for non-dir, if we know it.
+On Mon, Oct 30, 2017 at 02:10:52PM +0200, Amir Goldstein wrote:
+> On Mon, Oct 30, 2017 at 2:06 PM, Amir Goldstein <amir73il@gmail.com> wrote:
+> > kernel v4.13 introduced the index=on feature for not breaking hardlinks
+> > on copy-up.  With the index feature enabled a regression was introduced -
+> > lower files that are hardlined while overlay is offline can result in
+> > lookup error after overlay in mounted.
+> >
+> > The regression was fixed by upstream commit
+> >   6eaf011144af ovl: fix EIO from lookup of non-indexed upper
+> > that was merged to v4.14-rc7.
+> >
+> > This test verifies that behavior is sane after creating lower hardlinks
+> > for copied up files while overlayfs is offline.
+> >
+> > Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+> > ---
+> >
+> > Eryu,
+> >
+> > This is a regression test for a fix that was just merged to v4.14-rc7.
+> >
+> > The test requires and enables index=on, so it would fail on kernels
+> > prior to v4.14-rc7 regardless if they are complied with
+> > CONFIG_OVERLAY_FS_INDEX=y or not.
+> >
+> > Amir.
+> >
+> >  tests/overlay/042     | 137 ++++++++++++++++++++++++++++++++++++++++++++++++++
+> >  tests/overlay/042.out |   2 +
+> >  tests/overlay/group   |   1 +
+> >  3 files changed, 140 insertions(+)
+> >  create mode 100755 tests/overlay/042
+> >  create mode 100644 tests/overlay/042.out
+> >
+> > diff --git a/tests/overlay/042 b/tests/overlay/042
+> > new file mode 100755
+> > index 0000000..29858d6
+> > --- /dev/null
+> > +++ b/tests/overlay/042
+> > @@ -0,0 +1,137 @@
+> > +#! /bin/bash
+> > +# FS QA Test 042
+> > +#
+> > +# Test creating lower hardlinks for copied up files.
+> > +#
+> > +# kernel v4.13 introduced the index=on feature for not breaking
+> > +# hardlinks on copy-up. With the index feature enabled a regression was
+> > +# introduced - lower files that are hardlined while overlay is offline
+> > +# can result in lookup error after overlay in mounted.
+> > +# The regression was fixed by upstream commit
+> 
+> Some indentation fixes I forgot to commit:
+> 
+> +# kernel v4.13 introduced the index=on feature for not breaking hardlinks
+> +# on copy-up.  With the index feature enabled a regression was introduced -
+> +# lower files that are hardlined while overlay is offline can result in
+> +# lookup error after overlay in mounted.
 
-This guaranties constant and system-wide unique st_ino/st_dev
-for non-dir across copy up. Like the same fs case, st_ino of
-non-dir is also persistent. Unlike the same fs case, st_dev is
-not persistent.
+I've fixed it up on commit, thanks!
 
-Signed-off-by: Amir Goldstein <amir73il@gmail.com>
----
- fs/overlayfs/inode.c | 36 +++++++++++++++++++++---------------
- 1 file changed, 21 insertions(+), 15 deletions(-)
-
-diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
-index ec5c3ce91868..a65746e000a3 100644
---- a/fs/overlayfs/inode.c
-+++ b/fs/overlayfs/inode.c
-@@ -82,6 +82,7 @@ int ovl_getattr(const struct path *path, struct kstat *stat,
- 	struct path realpath;
- 	const struct cred *old_cred;
- 	bool is_dir = S_ISDIR(dentry->d_inode->i_mode);
-+	bool samefs = ovl_same_sb(dentry->d_sb);
- 	int err;
- 
- 	type = ovl_path_real(dentry, &realpath);
-@@ -91,16 +92,16 @@ int ovl_getattr(const struct path *path, struct kstat *stat,
- 		goto out;
- 
- 	/*
--	 * When all layers are on the same fs, all real inode number are
--	 * unique, so we use the overlay st_dev, which is friendly to du -x.
--	 *
--	 * We also use st_ino of the copy up origin, if we know it.
--	 * This guaranties constant st_dev/st_ino across copy up.
-+	 * For non-dir or same fs, we use st_ino of the copy up origin, if we
-+	 * know it. This guaranties constant st_dev/st_ino across copy up.
- 	 *
- 	 * If filesystem supports NFS export ops, this also guaranties
- 	 * persistent st_ino across mount cycle.
-+	 *
-+	 * When all layers are on the same fs, all real inode number are
-+	 * unique, so we use the overlay st_dev, which is friendly to du -x.
- 	 */
--	if (ovl_same_sb(dentry->d_sb)) {
-+	if (!is_dir || samefs) {
- 		if (OVL_TYPE_ORIGIN(type)) {
- 			struct kstat lowerstat;
- 			u32 lowermask = STATX_INO | (!is_dir ? STATX_NLINK : 0);
-@@ -111,7 +112,6 @@ int ovl_getattr(const struct path *path, struct kstat *stat,
- 			if (err)
- 				goto out;
- 
--			WARN_ON_ONCE(stat->dev != lowerstat.dev);
- 			/*
- 			 * Lower hardlinks may be broken on copy up to different
- 			 * upper files, so we cannot use the lower origin st_ino
-@@ -123,22 +123,28 @@ int ovl_getattr(const struct path *path, struct kstat *stat,
- 			if (is_dir || lowerstat.nlink == 1 ||
- 			    ovl_test_flag(OVL_INDEX, d_inode(dentry)))
- 				stat->ino = lowerstat.ino;
-+
-+			if (samefs)
-+				WARN_ON_ONCE(stat->dev != lowerstat.dev);
-+			else
-+				stat->dev = lowerstat.dev;
- 		}
--		stat->dev = dentry->d_sb->s_dev;
--	} else if (is_dir) {
-+		if (samefs)
-+			stat->dev = dentry->d_sb->s_dev;
-+		else
-+			stat->dev = ovl_get_pseudo_dev(dentry, stat->dev);
-+	} else {
- 		/*
--		 * If not all layers are on the same fs the pair {real st_ino;
--		 * overlay st_dev} is not unique, so use the non persistent
--		 * overlay st_ino.
--		 *
- 		 * Always use the overlay st_dev for directories, so 'find
- 		 * -xdev' will scan the entire overlay mount and won't cross the
- 		 * overlay mount boundaries.
-+		 *
-+		 * If not all layers are on the same fs the pair {real st_ino;
-+		 * overlay st_dev} is not unique, so use the non persistent
-+		 * overlay st_ino for directories.
- 		 */
- 		stat->dev = dentry->d_sb->s_dev;
- 		stat->ino = dentry->d_inode->i_ino;
--	} else {
--		stat->dev = ovl_get_pseudo_dev(dentry, stat->dev);
- 	}
- 
- 	/*
--- 
-2.7.4
+Eryu
