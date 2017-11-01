@@ -1,111 +1,77 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH v6 1/9] ovl: move include of ovl_entry.h into overlayfs.h
-Date: Wed,  1 Nov 2017 22:22:45 +0200
-Message-ID: <1509567773-25590-2-git-send-email-amir73il@gmail.com>
+Subject: [PATCH v6 8/9] ovl: update merge dir cache for non-samefs case
+Date: Wed,  1 Nov 2017 22:22:52 +0200
+Message-ID: <1509567773-25590-9-git-send-email-amir73il@gmail.com>
 References: <1509567773-25590-1-git-send-email-amir73il@gmail.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wr0-f195.google.com ([209.85.128.195]:57263 "EHLO
-        mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755206AbdKAUWN (ORCPT
+Received: from mail-wm0-f67.google.com ([74.125.82.67]:43519 "EHLO
+        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755211AbdKAUWW (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 1 Nov 2017 16:22:13 -0400
-Received: by mail-wr0-f195.google.com with SMTP id r79so2995749wrb.13
-        for <linux-unionfs@vger.kernel.org>; Wed, 01 Nov 2017 13:22:12 -0700 (PDT)
+        Wed, 1 Nov 2017 16:22:22 -0400
+Received: by mail-wm0-f67.google.com with SMTP id m72so9006wmc.0
+        for <linux-unionfs@vger.kernel.org>; Wed, 01 Nov 2017 13:22:21 -0700 (PDT)
 In-Reply-To: <1509567773-25590-1-git-send-email-amir73il@gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: Miklos Szeredi <miklos@szeredi.hu>
 Cc: Chandan Rajendra <chandan@linux.vnet.ibm.com>, Vivek Goyal <vgoyal@redhat.com>, linux-unionfs@vger.kernel.org
 
-Most overlayfs c files already explicitly include ovl_entry.h
-to use overlay entry struct definitions and upcoming changes
-are going to require even more c files to include this header.
-
-All overlayfs c files include overlayfs.h and overlayfs.h itself
-refers to some structs defined in ovl_entry.h, so it seems more
-logic to include ovl_entry.h from overlayfs.h than from c files.
+st_ino returned by stat(2) for dirs on non-samefs is the non persistent
+overlay i_ino. Update the dir cache with volatile overlay i_ino values.
+Overlay dir cache and inode cache may get out of sync after child inodes
+exit and re-enter inode cache. This means that user may see inconsistent
+st_ino/d_ino, but user can already see inconsistent st_ino of same object
+in different times, so this is better than nothing.
 
 Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- fs/overlayfs/copy_up.c   | 1 -
- fs/overlayfs/inode.c     | 1 -
- fs/overlayfs/namei.c     | 1 -
- fs/overlayfs/overlayfs.h | 1 +
- fs/overlayfs/super.c     | 1 -
- fs/overlayfs/util.c      | 1 -
- 6 files changed, 1 insertion(+), 5 deletions(-)
+ fs/overlayfs/readdir.c | 19 ++++++++++++++++++-
+ 1 file changed, 18 insertions(+), 1 deletion(-)
 
-diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
-index c441f9387a1b..9311d183b532 100644
---- a/fs/overlayfs/copy_up.c
-+++ b/fs/overlayfs/copy_up.c
-@@ -22,7 +22,6 @@
- #include <linux/ratelimit.h>
- #include <linux/exportfs.h>
- #include "overlayfs.h"
--#include "ovl_entry.h"
+diff --git a/fs/overlayfs/readdir.c b/fs/overlayfs/readdir.c
+index 74b859ed569e..fa1be3fe68fa 100644
+--- a/fs/overlayfs/readdir.c
++++ b/fs/overlayfs/readdir.c
+@@ -120,6 +120,10 @@ static bool ovl_calc_d_ino(struct ovl_readdir_data *rdd,
+ 	if (!rdd->dentry)
+ 		return false;
  
- #define OVL_COPY_UP_CHUNK_SIZE (1 << 20)
++	/* Always recalc d_ino from i_ino for dir on non-samefs */
++	if (p->type == DT_DIR && !ovl_same_sb(rdd->dentry->d_sb))
++		return true;
++
+ 	/* Always recalc d_ino for parent */
+ 	if (strcmp(p->name, "..") == 0)
+ 		return true;
+@@ -480,6 +484,19 @@ static int ovl_cache_update_ino(struct path *path, struct ovl_cache_entry *p)
+ 	}
  
-diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
-index 2949448d0c7d..b772e5a2a730 100644
---- a/fs/overlayfs/inode.c
-+++ b/fs/overlayfs/inode.c
-@@ -14,7 +14,6 @@
- #include <linux/posix_acl.h>
- #include <linux/ratelimit.h>
- #include "overlayfs.h"
--#include "ovl_entry.h"
- 
- int ovl_setattr(struct dentry *dentry, struct iattr *attr)
- {
-diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
-index a12dc10bf726..505a4b8902fc 100644
---- a/fs/overlayfs/namei.c
-+++ b/fs/overlayfs/namei.c
-@@ -15,7 +15,6 @@
- #include <linux/mount.h>
- #include <linux/exportfs.h>
- #include "overlayfs.h"
--#include "ovl_entry.h"
- 
- struct ovl_lookup_data {
- 	struct qstr name;
-diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-index d53157ccf0d7..1cf3bdd193a4 100644
---- a/fs/overlayfs/overlayfs.h
-+++ b/fs/overlayfs/overlayfs.h
-@@ -9,6 +9,7 @@
- 
- #include <linux/kernel.h>
- #include <linux/uuid.h>
-+#include "ovl_entry.h"
- 
- enum ovl_path_type {
- 	__OVL_PATH_UPPER	= (1 << 0),
-diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-index f5738e96a052..8702803ba328 100644
---- a/fs/overlayfs/super.c
-+++ b/fs/overlayfs/super.c
-@@ -18,7 +18,6 @@
- #include <linux/seq_file.h>
- #include <linux/posix_acl_xattr.h>
- #include "overlayfs.h"
--#include "ovl_entry.h"
- 
- MODULE_AUTHOR("Miklos Szeredi <miklos@szeredi.hu>");
- MODULE_DESCRIPTION("Overlay filesystem");
-diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
-index 51ca8bd16009..9158d17bb320 100644
---- a/fs/overlayfs/util.c
-+++ b/fs/overlayfs/util.c
-@@ -17,7 +17,6 @@
- #include <linux/namei.h>
- #include <linux/ratelimit.h>
- #include "overlayfs.h"
--#include "ovl_entry.h"
- 
- int ovl_want_write(struct dentry *dentry)
- {
+ get:
++	/*
++	 * st_ino for dirs on non-samefs is the non persistent overlay i_ino.
++	 * Update the dir cache with volatile overlay i_ino, even though
++	 * dir cache and inode cache may get out of sync after child inodes
++	 * exit and re-enter inode cache. This means that user may see
++	 * inconsistent st_ino/d_ino, but user can already see inconsistent
++	 * st_ino of same object in different times.
++	 */
++	if (p->type == DT_DIR && !ovl_same_sb(dir->d_sb)) {
++		ino = this->d_inode->i_ino;
++		goto out;
++	}
++
+ 	type = ovl_path_type(this);
+ 	if (OVL_TYPE_ORIGIN(type)) {
+ 		struct kstat stat;
+@@ -489,7 +506,7 @@ static int ovl_cache_update_ino(struct path *path, struct ovl_cache_entry *p)
+ 		err = vfs_getattr(&statpath, &stat, STATX_INO, 0);
+ 		if (err)
+ 			goto fail;
+-		if (d_is_dir(this) || ovl_same_sb(this->d_sb))
++		if (ovl_same_sb(dir->d_sb))
+ 			WARN_ON_ONCE(dir->d_sb->s_dev != stat.dev);
+ 		ino = stat.ino;
+ 	}
 -- 
 2.7.4
