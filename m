@@ -1,77 +1,80 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH v6 8/9] ovl: update merge dir cache for non-samefs case
-Date: Wed,  1 Nov 2017 22:22:52 +0200
-Message-ID: <1509567773-25590-9-git-send-email-amir73il@gmail.com>
-References: <1509567773-25590-1-git-send-email-amir73il@gmail.com>
+Subject: [PATCH v6 0/9] Overlayfs: constant st_ino/d_ino for non-samefs
+Date: Wed,  1 Nov 2017 22:22:44 +0200
+Message-ID: <1509567773-25590-1-git-send-email-amir73il@gmail.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wm0-f67.google.com ([74.125.82.67]:43519 "EHLO
-        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755211AbdKAUWW (ORCPT
+Received: from mail-wr0-f195.google.com ([209.85.128.195]:53580 "EHLO
+        mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755206AbdKAUWM (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 1 Nov 2017 16:22:22 -0400
-Received: by mail-wm0-f67.google.com with SMTP id m72so9006wmc.0
-        for <linux-unionfs@vger.kernel.org>; Wed, 01 Nov 2017 13:22:21 -0700 (PDT)
-In-Reply-To: <1509567773-25590-1-git-send-email-amir73il@gmail.com>
+        Wed, 1 Nov 2017 16:22:12 -0400
+Received: by mail-wr0-f195.google.com with SMTP id u40so3000838wrf.10
+        for <linux-unionfs@vger.kernel.org>; Wed, 01 Nov 2017 13:22:11 -0700 (PDT)
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: Miklos Szeredi <miklos@szeredi.hu>
 Cc: Chandan Rajendra <chandan@linux.vnet.ibm.com>, Vivek Goyal <vgoyal@redhat.com>, linux-unionfs@vger.kernel.org
 
-st_ino returned by stat(2) for dirs on non-samefs is the non persistent
-overlay i_ino. Update the dir cache with volatile overlay i_ino values.
-Overlay dir cache and inode cache may get out of sync after child inodes
-exit and re-enter inode cache. This means that user may see inconsistent
-st_ino/d_ino, but user can already see inconsistent st_ino of same object
-in different times, so this is better than nothing.
+Miklos,
 
-Signed-off-by: Amir Goldstein <amir73il@gmail.com>
----
- fs/overlayfs/readdir.c | 19 ++++++++++++++++++-
- 1 file changed, 18 insertions(+), 1 deletion(-)
+My trigger for fixing up the non-samefs patches is that I found out
+while testing NFS export that reconnecting a dir dentry doesn't work
+for non-samefs case.
+I tracked the problem down to the default implementation of get_name()
+in expfs.c that looks up a child inode in parent dir by d_ino.
 
-diff --git a/fs/overlayfs/readdir.c b/fs/overlayfs/readdir.c
-index 74b859ed569e..fa1be3fe68fa 100644
---- a/fs/overlayfs/readdir.c
-+++ b/fs/overlayfs/readdir.c
-@@ -120,6 +120,10 @@ static bool ovl_calc_d_ino(struct ovl_readdir_data *rdd,
- 	if (!rdd->dentry)
- 		return false;
- 
-+	/* Always recalc d_ino from i_ino for dir on non-samefs */
-+	if (p->type == DT_DIR && !ovl_same_sb(rdd->dentry->d_sb))
-+		return true;
-+
- 	/* Always recalc d_ino for parent */
- 	if (strcmp(p->name, "..") == 0)
- 		return true;
-@@ -480,6 +484,19 @@ static int ovl_cache_update_ino(struct path *path, struct ovl_cache_entry *p)
- 	}
- 
- get:
-+	/*
-+	 * st_ino for dirs on non-samefs is the non persistent overlay i_ino.
-+	 * Update the dir cache with volatile overlay i_ino, even though
-+	 * dir cache and inode cache may get out of sync after child inodes
-+	 * exit and re-enter inode cache. This means that user may see
-+	 * inconsistent st_ino/d_ino, but user can already see inconsistent
-+	 * st_ino of same object in different times.
-+	 */
-+	if (p->type == DT_DIR && !ovl_same_sb(dir->d_sb)) {
-+		ino = this->d_inode->i_ino;
-+		goto out;
-+	}
-+
- 	type = ovl_path_type(this);
- 	if (OVL_TYPE_ORIGIN(type)) {
- 		struct kstat stat;
-@@ -489,7 +506,7 @@ static int ovl_cache_update_ino(struct path *path, struct ovl_cache_entry *p)
- 		err = vfs_getattr(&statpath, &stat, STATX_INO, 0);
- 		if (err)
- 			goto fail;
--		if (d_is_dir(this) || ovl_same_sb(this->d_sb))
-+		if (ovl_same_sb(dir->d_sb))
- 			WARN_ON_ONCE(dir->d_sb->s_dev != stat.dev);
- 		ino = stat.ino;
- 	}
+First, I rebased NFS export patches onto Chandan's patches and tested,
+but that still didn't fix the problem. I found and fixed more cases
+that we need to include in impure dir cache (see 2 last patches) and
+now my dir file handle unit tests [2] pass.
+
+Changes since v5:
+- Justification for moving ovl_entry.h into overlayfs.h
+- Split allocate anonymous devs patch to 3 patches
+- Explain why we need to return pseudo st_dev for lower
+- Fix d_ino of subdirs in non-samefs setup
+
+Besides the NFS export unit tests, I tested these patches with upstream
+xfstest overlay/041 by Chandan and with unionmount test
+'./run --ov --verify' that is avialble on my unionmount devel branch [3].
+
+I asked Chandan to post fixes to his xfstests to cover the impure cases
+I fixes.
+
+Please verify that I didn't mess up authorship when posting Chandan's
+patches as I did with zhangyi's patch yesterday. On my branch [1], all
+the commits have correct authorship now.
+
+Thanks,
+Amir.
+
+[1] https://github.com/amir73il/linux/commits/ovl-nonsamefs-v6
+[2] https://github.com/amir73il/xfstests/commits/ovl-nfs-export
+[3] https://github.com/amir73il/unionmount-testsuite/commits/overlayfs-devel
+
+Amir Goldstein (5):
+  ovl: move include of ovl_entry.h into overlayfs.h
+  ovl: relax same fs constraint for constant st_ino
+  ovl: update cache version of impure parent on rename
+  ovl: update merge dir cache for non-samefs case
+  ovl: update non-merge dir cache for non-samefs case
+
+Chandan Rajendra (4):
+  ovl: re-structure overlay lower layers in-memory
+  ovl: allocate anonymous devs for lowerdirs
+  ovl: return anonymous st_dev for lower inodes
+  ovl: fix d_ino of current pure upper in non-samefs case
+
+ fs/overlayfs/copy_up.c   |  1 -
+ fs/overlayfs/dir.c       | 12 ++++---
+ fs/overlayfs/inode.c     | 51 +++++++++++++++++++++---------
+ fs/overlayfs/namei.c     | 53 ++++++++++++++++++-------------
+ fs/overlayfs/overlayfs.h |  7 +++--
+ fs/overlayfs/ovl_entry.h | 14 +++++++--
+ fs/overlayfs/readdir.c   | 50 +++++++++++++++++++++++-------
+ fs/overlayfs/super.c     | 81 ++++++++++++++++++++++++++++++------------------
+ fs/overlayfs/util.c      | 17 +++++++---
+ 9 files changed, 191 insertions(+), 95 deletions(-)
+
 -- 
 2.7.4
