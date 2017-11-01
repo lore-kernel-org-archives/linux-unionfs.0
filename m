@@ -1,514 +1,91 @@
 From: Vivek Goyal <vgoyal@redhat.com>
 Subject: Re: [PATCH v5 2/4] ovl: allocate anonymous devs for lowerdirs
-Date: Wed, 1 Nov 2017 11:41:45 -0400
-Message-ID: <20171101154145.GA4738@redhat.com>
+Date: Wed, 1 Nov 2017 11:47:00 -0400
+Message-ID: <20171101154700.GA3125@redhat.com>
 References: <1509395247-15180-1-git-send-email-amir73il@gmail.com>
  <1509395247-15180-3-git-send-email-amir73il@gmail.com>
+ <20171101144249.GA8259@redhat.com>
+ <CAOQ4uxiReuzqQ09b8f0YxxTzT-Lt0pSPxsTsxz9feuFPrmTGWg@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:51780 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:56067 "EHLO mx1.redhat.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753496AbdKAPlq (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 1 Nov 2017 11:41:46 -0400
+        id S1751347AbdKAPrB (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Wed, 1 Nov 2017 11:47:01 -0400
 Content-Disposition: inline
-In-Reply-To: <1509395247-15180-3-git-send-email-amir73il@gmail.com>
+In-Reply-To: <CAOQ4uxiReuzqQ09b8f0YxxTzT-Lt0pSPxsTsxz9feuFPrmTGWg@mail.gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: Amir Goldstein <amir73il@gmail.com>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, Chandan Rajendra <chandan@linux.vnet.ibm.com>, zhangyi <yi.zhang@huawei.com>, linux-unionfs@vger.kernel.org
+Cc: Miklos Szeredi <miklos@szeredi.hu>, Chandan Rajendra <chandan@linux.vnet.ibm.com>, zhangyi <yi.zhang@huawei.com>, overlayfs <linux-unionfs@vger.kernel.org>
 
-On Mon, Oct 30, 2017 at 10:27:25PM +0200, Amir Goldstein wrote:
-> From: Chandan Rajendra <chandan@linux.vnet.ibm.com>
+On Wed, Nov 01, 2017 at 05:02:55PM +0200, Amir Goldstein wrote:
+> On Wed, Nov 1, 2017 at 4:42 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
+> > On Mon, Oct 30, 2017 at 10:27:25PM +0200, Amir Goldstein wrote:
+> >> From: Chandan Rajendra <chandan@linux.vnet.ibm.com>
+> >>
+> >> For stat(2) on lowerdir non-dir entries in non-samefs case, this commit
+> >> provides unique values for st_dev. The unique values are obtained by
+> >> allocating anonymous bdevs for each of the lowerdirs in the overlayfs
+> >> instance.
+> >
+> > Hi Amir, Chandan,
+> >
+> > In the commit message, can we also mention what's the current behavior
+> > and why this new behavior beneficial/desirable.
+> >
 > 
-> For stat(2) on lowerdir non-dir entries in non-samefs case, this commit
-> provides unique values for st_dev. The unique values are obtained by
-> allocating anonymous bdevs for each of the lowerdirs in the overlayfs
-> instance.
+> This is the blurb from the uptodate patch on my branch:
 > 
-> Signed-off-by: Chandan Rajendra <chandan@linux.vnet.ibm.com>
-> [amir: rename to struct ovl_layer lower_layers and struct ovl_path]
+>      For non-samefs setup, to make sure that st_dev/st_ino pair
+>     is unique across the system, we return a unique anonymous
+>     st_dev for stat(2) of lower layer inode.
+> 
+> A bit fatter, but not fat enough...
+> 
+> Actually, it is not accurate, because st_dev/st_ino pair of pure
+> upper is still same values as underlying inode for non-samefs so the
+> values are not unique among all inodes in the system.
 
 Hi Amir,
 
-Would it make sense to do all the renaming in a separate patch. It becomes
-much easier to review this patch then. May be renaming can go first and
-then anonymous bdev patch can come in.
+So as of now for non-samefs non-dir case we return st_dev/st_ino of
+lower inode. And with this change we will return st_dev of overlayfs
+while inode of lower, right?
+
+What does unique mean in this context. IIUC, st_dev/st_inode of lower
+will be unique in the system, isn't it. Which other inode can have
+same st_dev/st_ino pair.
+
+Or is it the case that if same inode is accessed through overlayfs, we
+want to report a different st_dev.
+
+> 
+> I can't remember if there was a reason for not allocating anonymous bdev
+> for upper
+
+That's a good point.
+
+> or if it just because we did not need it to guaranty uniqueness
+> of st_dev/st_ino *among* overlay inodes
+
+Even for lower, st_dev will be unique for different lower on non same-fs,
+right. IOW, when it come to uniqueness of st_dev/st_ino pair, among
+overlay inodes, lower and upper should have same requirements.
+
+> while guarantying constant
+> st_dev/st_ino across copy up.
+
+Hmm..., I did not get this point. Over copy up, atleast st_ino will change
+for non-samefs case. 
+
+I will spend more time on patch.
 
 Vivek
 
-> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
-> ---
->  fs/overlayfs/inode.c     | 18 +++++++++++
->  fs/overlayfs/namei.c     | 52 ++++++++++++++++++-------------
->  fs/overlayfs/overlayfs.h |  4 +--
->  fs/overlayfs/ovl_entry.h | 14 +++++++--
->  fs/overlayfs/readdir.c   |  4 +--
->  fs/overlayfs/super.c     | 80 ++++++++++++++++++++++++++++++------------------
->  fs/overlayfs/util.c      |  7 ++++-
->  7 files changed, 121 insertions(+), 58 deletions(-)
 > 
-> diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
-> index 50e233ccca53..ec5c3ce91868 100644
-> --- a/fs/overlayfs/inode.c
-> +++ b/fs/overlayfs/inode.c
-> @@ -8,6 +8,7 @@
->   */
->  
->  #include <linux/fs.h>
-> +#include <linux/mount.h>
->  #include <linux/slab.h>
->  #include <linux/cred.h>
->  #include <linux/xattr.h>
-> @@ -15,6 +16,21 @@
->  #include <linux/ratelimit.h>
->  #include "overlayfs.h"
->  
-> +
-> +static dev_t ovl_get_pseudo_dev(struct dentry *dentry, dev_t dev)
-> +{
-> +	struct ovl_fs *ofs = dentry->d_sb->s_fs_info;
-> +	struct ovl_entry *oe = dentry->d_fsdata;
-> +
-> +	if (ofs->upper_mnt && ofs->upper_mnt->mnt_sb->s_dev == dev)
-> +		return dev;
-> +
-> +	if (oe->numlower)
-> +		return oe->lowerstack[0].layer->pseudo_dev;
-> +
-> +	return dev;
-> +}
-> +
->  int ovl_setattr(struct dentry *dentry, struct iattr *attr)
->  {
->  	int err;
-> @@ -121,6 +137,8 @@ int ovl_getattr(const struct path *path, struct kstat *stat,
->  		 */
->  		stat->dev = dentry->d_sb->s_dev;
->  		stat->ino = dentry->d_inode->i_ino;
-> +	} else {
-> +		stat->dev = ovl_get_pseudo_dev(dentry, stat->dev);
->  	}
->  
->  	/*
-> diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
-> index de2dac98e147..78e965527167 100644
-> --- a/fs/overlayfs/namei.c
-> +++ b/fs/overlayfs/namei.c
-> @@ -285,16 +285,15 @@ static int ovl_lookup_layer(struct dentry *base, struct ovl_lookup_data *d,
->  
->  
->  static int ovl_check_origin(struct dentry *upperdentry,
-> -			    struct path *lowerstack, unsigned int numlower,
-> -			    struct path **stackp, unsigned int *ctrp)
-> +			    struct ovl_path *lower, unsigned int numlower,
-> +			    struct ovl_path **stackp, unsigned int *ctrp)
->  {
->  	struct vfsmount *mnt;
->  	struct dentry *origin = NULL;
->  	int i;
->  
-> -
->  	for (i = 0; i < numlower; i++) {
-> -		mnt = lowerstack[i].mnt;
-> +		mnt = lower[i].layer->mnt;
->  		origin = ovl_get_origin(upperdentry, mnt);
->  		if (IS_ERR(origin))
->  			return PTR_ERR(origin);
-> @@ -308,12 +307,12 @@ static int ovl_check_origin(struct dentry *upperdentry,
->  
->  	BUG_ON(*ctrp);
->  	if (!*stackp)
-> -		*stackp = kmalloc(sizeof(struct path), GFP_KERNEL);
-> +		*stackp = kmalloc(sizeof(struct ovl_path), GFP_KERNEL);
->  	if (!*stackp) {
->  		dput(origin);
->  		return -ENOMEM;
->  	}
-> -	**stackp = (struct path) { .dentry = origin, .mnt = mnt };
-> +	**stackp = (struct ovl_path){.dentry = origin, .layer = lower[i].layer};
->  	*ctrp = 1;
->  
->  	return 0;
-> @@ -383,13 +382,13 @@ int ovl_verify_origin(struct dentry *dentry, struct vfsmount *mnt,
->   * OVL_XATTR_ORIGIN and that origin file handle can be decoded to lower path.
->   * Return 0 on match, -ESTALE on mismatch or stale origin, < 0 on error.
->   */
-> -int ovl_verify_index(struct dentry *index, struct path *lowerstack,
-> +int ovl_verify_index(struct dentry *index, struct ovl_path *lower,
->  		     unsigned int numlower)
->  {
->  	struct ovl_fh *fh = NULL;
->  	size_t len;
-> -	struct path origin = { };
-> -	struct path *stack = &origin;
-> +	struct ovl_path origin = { };
-> +	struct ovl_path *stack = &origin;
->  	unsigned int ctr = 0;
->  	int err;
->  
-> @@ -428,7 +427,7 @@ int ovl_verify_index(struct dentry *index, struct path *lowerstack,
->  	if (err)
->  		goto fail;
->  
-> -	err = ovl_check_origin(index, lowerstack, numlower, &stack, &ctr);
-> +	err = ovl_check_origin(index, lower, numlower, &stack, &ctr);
->  	if (!err && !ctr)
->  		err = -ESTALE;
->  	if (err)
-> @@ -570,11 +569,24 @@ int ovl_path_next(int idx, struct dentry *dentry, struct path *path, int *idxp)
->  	}
->  	BUG_ON(idx > oe->numlower);
->  	*idxp = idx;
-> -	*path = oe->lowerstack[idx - 1];
-> +	path->dentry = oe->lowerstack[idx - 1].dentry;
-> +	path->mnt = oe->lowerstack[idx - 1].layer->mnt;
->  
->  	return (idx < oe->numlower) ? idx + 1 : -1;
->  }
->  
-> +static int ovl_find_layer(struct ovl_fs *ofs, struct ovl_path *path)
-> +{
-> +	int i;
-> +
-> +	for (i = 0; i < ofs->numlower; i++) {
-> +		if (ofs->lower_layers[i].mnt == path->layer->mnt)
-> +			break;
-> +	}
-> +
-> +	return i;
-> +}
-> +
->  struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
->  			  unsigned int flags)
->  {
-> @@ -583,7 +595,7 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
->  	struct ovl_fs *ofs = dentry->d_sb->s_fs_info;
->  	struct ovl_entry *poe = dentry->d_parent->d_fsdata;
->  	struct ovl_entry *roe = dentry->d_sb->s_root->d_fsdata;
-> -	struct path *stack = NULL;
-> +	struct ovl_path *stack = NULL;
->  	struct dentry *upperdir, *upperdentry = NULL;
->  	struct dentry *index = NULL;
->  	unsigned int ctr = 0;
-> @@ -648,17 +660,17 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
->  
->  	if (!d.stop && poe->numlower) {
->  		err = -ENOMEM;
-> -		stack = kcalloc(ofs->numlower, sizeof(struct path),
-> +		stack = kcalloc(ofs->numlower, sizeof(struct ovl_path),
->  				GFP_KERNEL);
->  		if (!stack)
->  			goto out_put_upper;
->  	}
->  
->  	for (i = 0; !d.stop && i < poe->numlower; i++) {
-> -		struct path lowerpath = poe->lowerstack[i];
-> +		struct ovl_path lower = poe->lowerstack[i];
->  
->  		d.last = i == poe->numlower - 1;
-> -		err = ovl_lookup_layer(lowerpath.dentry, &d, &this);
-> +		err = ovl_lookup_layer(lower.dentry, &d, &this);
->  		if (err)
->  			goto out_put;
->  
-> @@ -666,7 +678,7 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
->  			continue;
->  
->  		stack[ctr].dentry = this;
-> -		stack[ctr].mnt = lowerpath.mnt;
-> +		stack[ctr].layer = lower.layer;
->  		ctr++;
->  
->  		if (d.stop)
-> @@ -676,10 +688,8 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
->  			poe = roe;
->  
->  			/* Find the current layer on the root dentry */
-> -			for (i = 0; i < poe->numlower; i++)
-> -				if (poe->lowerstack[i].mnt == lowerpath.mnt)
-> -					break;
-> -			if (WARN_ON(i == poe->numlower))
-> +			i = ovl_find_layer(ofs, &lower);
-> +			if (WARN_ON(i == ofs->numlower))
->  				break;
->  		}
->  	}
-> @@ -702,7 +712,7 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
->  		goto out_put;
->  
->  	oe->opaque = upperopaque;
-> -	memcpy(oe->lowerstack, stack, sizeof(struct path) * ctr);
-> +	memcpy(oe->lowerstack, stack, sizeof(struct ovl_path) * ctr);
->  	dentry->d_fsdata = oe;
->  
->  	if (upperdentry)
-> diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-> index 73ef1e850635..335e9a052995 100644
-> --- a/fs/overlayfs/overlayfs.h
-> +++ b/fs/overlayfs/overlayfs.h
-> @@ -248,7 +248,7 @@ static inline bool ovl_is_impuredir(struct dentry *dentry)
->  /* namei.c */
->  int ovl_verify_origin(struct dentry *dentry, struct vfsmount *mnt,
->  		      struct dentry *origin, bool is_upper, bool set);
-> -int ovl_verify_index(struct dentry *index, struct path *lowerstack,
-> +int ovl_verify_index(struct dentry *index, struct ovl_path *lower,
->  		     unsigned int numlower);
->  int ovl_get_index_name(struct dentry *origin, struct qstr *name);
->  int ovl_path_next(int idx, struct dentry *dentry, struct path *path, int *idxp);
-> @@ -265,7 +265,7 @@ int ovl_check_d_type_supported(struct path *realpath);
->  void ovl_workdir_cleanup(struct inode *dir, struct vfsmount *mnt,
->  			 struct dentry *dentry, int level);
->  int ovl_indexdir_cleanup(struct dentry *dentry, struct vfsmount *mnt,
-> -			 struct path *lowerstack, unsigned int numlower);
-> +			 struct ovl_path *lower, unsigned int numlower);
->  
->  /* inode.c */
->  int ovl_set_nlink_upper(struct dentry *dentry);
-> diff --git a/fs/overlayfs/ovl_entry.h b/fs/overlayfs/ovl_entry.h
-> index 25d9b5adcd42..93eb6a044dd2 100644
-> --- a/fs/overlayfs/ovl_entry.h
-> +++ b/fs/overlayfs/ovl_entry.h
-> @@ -17,11 +17,21 @@ struct ovl_config {
->  	bool index;
->  };
->  
-> +struct ovl_layer {
-> +	struct vfsmount *mnt;
-> +	dev_t pseudo_dev;
-> +};
-> +
-> +struct ovl_path {
-> +	struct ovl_layer *layer;
-> +	struct dentry *dentry;
-> +};
-> +
->  /* private information held for overlayfs's superblock */
->  struct ovl_fs {
->  	struct vfsmount *upper_mnt;
->  	unsigned numlower;
-> -	struct vfsmount **lower_mnt;
-> +	struct ovl_layer *lower_layers;
->  	/* workbasedir is the path at workdir= mount option */
->  	struct dentry *workbasedir;
->  	/* workdir is the 'work' directory under workbasedir */
-> @@ -52,7 +62,7 @@ struct ovl_entry {
->  		struct rcu_head rcu;
->  	};
->  	unsigned numlower;
-> -	struct path lowerstack[];
-> +	struct ovl_path lowerstack[];
->  };
->  
->  struct ovl_entry *ovl_alloc_entry(unsigned int numlower);
-> diff --git a/fs/overlayfs/readdir.c b/fs/overlayfs/readdir.c
-> index bcc123c7706c..0ab657f2c1c8 100644
-> --- a/fs/overlayfs/readdir.c
-> +++ b/fs/overlayfs/readdir.c
-> @@ -1020,7 +1020,7 @@ void ovl_workdir_cleanup(struct inode *dir, struct vfsmount *mnt,
->  }
->  
->  int ovl_indexdir_cleanup(struct dentry *dentry, struct vfsmount *mnt,
-> -			 struct path *lowerstack, unsigned int numlower)
-> +			 struct ovl_path *lower, unsigned int numlower)
->  {
->  	int err;
->  	struct dentry *index = NULL;
-> @@ -1055,7 +1055,7 @@ int ovl_indexdir_cleanup(struct dentry *dentry, struct vfsmount *mnt,
->  			index = NULL;
->  			break;
->  		}
-> -		err = ovl_verify_index(index, lowerstack, numlower);
-> +		err = ovl_verify_index(index, lower, numlower);
->  		/* Cleanup stale and orphan index entries */
->  		if (err && (err == -ESTALE || err == -ENOENT))
->  			err = ovl_cleanup(dir, index);
-> diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-> index 8702803ba328..323dfd7a0236 100644
-> --- a/fs/overlayfs/super.c
-> +++ b/fs/overlayfs/super.c
-> @@ -219,9 +219,11 @@ static void ovl_put_super(struct super_block *sb)
->  	if (ufs->upper_mnt && ufs->upperdir_locked)
->  		ovl_inuse_unlock(ufs->upper_mnt->mnt_root);
->  	mntput(ufs->upper_mnt);
-> -	for (i = 0; i < ufs->numlower; i++)
-> -		mntput(ufs->lower_mnt[i]);
-> -	kfree(ufs->lower_mnt);
-> +	for (i = 0; i < ufs->numlower; i++) {
-> +		mntput(ufs->lower_layers[i].mnt);
-> +		free_anon_bdev(ufs->lower_layers[i].pseudo_dev);
-> +	}
-> +	kfree(ufs->lower_layers);
->  
->  	kfree(ufs->config.lowerdir);
->  	kfree(ufs->config.upperdir);
-> @@ -1026,24 +1028,35 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
->  	}
->  
->  	err = -ENOMEM;
-> -	ufs->lower_mnt = kcalloc(numlower, sizeof(struct vfsmount *), GFP_KERNEL);
-> -	if (ufs->lower_mnt == NULL)
-> +	ufs->lower_layers = kcalloc(numlower, sizeof(struct ovl_layer),
-> +				    GFP_KERNEL);
-> +	if (ufs->lower_layers == NULL)
->  		goto out_put_workdir;
->  	for (i = 0; i < numlower; i++) {
-> -		struct vfsmount *mnt = clone_private_mount(&stack[i]);
-> +		struct vfsmount *mnt;
-> +		dev_t dev;
-> +
-> +		err = get_anon_bdev(&dev);
-> +		if (err) {
-> +			pr_err("overlayfs: failed to get anonymous bdev for lowerpath\n");
-> +			goto out_put_lower_layers;
-> +		}
->  
-> +		mnt = clone_private_mount(&stack[i]);
->  		err = PTR_ERR(mnt);
->  		if (IS_ERR(mnt)) {
->  			pr_err("overlayfs: failed to clone lowerpath\n");
-> -			goto out_put_lower_mnt;
-> +			free_anon_bdev(dev);
-> +			goto out_put_lower_layers;
->  		}
->  		/*
-> -		 * Make lower_mnt R/O.  That way fchmod/fchown on lower file
-> +		 * Make lower layers R/O.  That way fchmod/fchown on lower file
->  		 * will fail instead of modifying lower fs.
->  		 */
->  		mnt->mnt_flags |= MNT_READONLY | MNT_NOATIME;
->  
-> -		ufs->lower_mnt[ufs->numlower] = mnt;
-> +		ufs->lower_layers[ufs->numlower].mnt = mnt;
-> +		ufs->lower_layers[ufs->numlower].pseudo_dev = dev;
->  		ufs->numlower++;
->  
->  		/* Check if all lower layers are on same sb */
-> @@ -1059,13 +1072,25 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
->  	else if (ufs->upper_mnt->mnt_sb != ufs->same_sb)
->  		ufs->same_sb = NULL;
->  
-> +	err = -ENOMEM;
-> +	oe = ovl_alloc_entry(numlower);
-> +	if (!oe)
-> +		goto out_put_lower_layers;
-> +
-> +	for (i = 0; i < numlower; i++) {
-> +		oe->lowerstack[i].dentry = stack[i].dentry;
-> +		oe->lowerstack[i].layer = &(ufs->lower_layers[i]);
-> +	}
-> +
->  	if (!(ovl_force_readonly(ufs)) && ufs->config.index) {
->  		/* Verify lower root is upper root origin */
-> -		err = ovl_verify_origin(upperpath.dentry, ufs->lower_mnt[0],
-> -					stack[0].dentry, false, true);
-> +		err = ovl_verify_origin(upperpath.dentry,
-> +					oe->lowerstack[0].layer->mnt,
-> +					oe->lowerstack[0].dentry,
-> +					false, true);
->  		if (err) {
->  			pr_err("overlayfs: failed to verify upper root origin\n");
-> -			goto out_put_lower_mnt;
-> +			goto out_free_oe;
->  		}
->  
->  		ufs->indexdir = ovl_workdir_create(sb, ufs, workpath.dentry,
-> @@ -1081,7 +1106,8 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
->  			if (!err)
->  				err = ovl_indexdir_cleanup(ufs->indexdir,
->  							   ufs->upper_mnt,
-> -							   stack, numlower);
-> +							   oe->lowerstack,
-> +							   numlower);
->  		}
->  		if (err || !ufs->indexdir)
->  			pr_warn("overlayfs: try deleting index dir or mounting with '-o index=off' to disable inodes index.\n");
-> @@ -1106,11 +1132,6 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
->  	/* Never override disk quota limits or use reserved space */
->  	cap_lower(cred->cap_effective, CAP_SYS_RESOURCE);
->  
-> -	err = -ENOMEM;
-> -	oe = ovl_alloc_entry(numlower);
-> -	if (!oe)
-> -		goto out_put_cred;
-> -
->  	sb->s_magic = OVERLAYFS_SUPER_MAGIC;
->  	sb->s_op = &ovl_super_operations;
->  	sb->s_xattr = ovl_xattr_handlers;
-> @@ -1119,11 +1140,12 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
->  
->  	root_dentry = d_make_root(ovl_new_inode(sb, S_IFDIR, 0));
->  	if (!root_dentry)
-> -		goto out_free_oe;
-> +		goto out_put_cred;
->  
->  	mntput(upperpath.mnt);
->  	for (i = 0; i < numlower; i++)
->  		mntput(stack[i].mnt);
-> +	kfree(stack);
->  	mntput(workpath.mnt);
->  	kfree(lowertmp);
->  
-> @@ -1132,11 +1154,6 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
->  		if (ovl_is_impuredir(upperpath.dentry))
->  			ovl_set_flag(OVL_IMPURE, d_inode(root_dentry));
->  	}
-> -	for (i = 0; i < numlower; i++) {
-> -		oe->lowerstack[i].dentry = stack[i].dentry;
-> -		oe->lowerstack[i].mnt = ufs->lower_mnt[i];
-> -	}
-> -	kfree(stack);
->  
->  	root_dentry->d_fsdata = oe;
->  
-> @@ -1147,16 +1164,19 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
->  
->  	return 0;
->  
-> -out_free_oe:
-> -	kfree(oe);
->  out_put_cred:
->  	put_cred(ufs->creator_cred);
->  out_put_indexdir:
->  	dput(ufs->indexdir);
-> -out_put_lower_mnt:
-> -	for (i = 0; i < ufs->numlower; i++)
-> -		mntput(ufs->lower_mnt[i]);
-> -	kfree(ufs->lower_mnt);
-> +out_free_oe:
-> +	kfree(oe);
-> +out_put_lower_layers:
-> +	for (i = 0; i < ufs->numlower; i++) {
-> +		if (ufs->lower_layers[i].mnt)
-> +			free_anon_bdev(ufs->lower_layers[i].pseudo_dev);
-> +		mntput(ufs->lower_layers[i].mnt);
-> +	}
-> +	kfree(ufs->lower_layers);
->  out_put_workdir:
->  	dput(ufs->workdir);
->  	mntput(ufs->upper_mnt);
-> diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
-> index 9158d17bb320..d6bb1c9f5e7a 100644
-> --- a/fs/overlayfs/util.c
-> +++ b/fs/overlayfs/util.c
-> @@ -124,7 +124,12 @@ void ovl_path_lower(struct dentry *dentry, struct path *path)
->  {
->  	struct ovl_entry *oe = dentry->d_fsdata;
->  
-> -	*path = oe->numlower ? oe->lowerstack[0] : (struct path) { };
-> +	if (oe->numlower) {
-> +		path->mnt = oe->lowerstack[0].layer->mnt;
-> +		path->dentry = oe->lowerstack[0].dentry;
-> +	} else {
-> +		*path = (struct path) { };
-> +	}
->  }
->  
->  enum ovl_path_type ovl_path_real(struct dentry *dentry, struct path *path)
-> -- 
-> 2.7.4
+> I will update commit message.
 > 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-unionfs" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Thanks,
+> Amir.
