@@ -1,109 +1,131 @@
-From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH v6 6/9] ovl: fix d_ino of current pure upper in non-samefs case
-Date: Wed,  1 Nov 2017 22:22:50 +0200
-Message-ID: <1509567773-25590-7-git-send-email-amir73il@gmail.com>
-References: <1509567773-25590-1-git-send-email-amir73il@gmail.com>
+From: L A Walsh <lkml@tlinx.org>
+Subject: Bug? or normal behavior? if bug, then where?  overlay, vfs, xfs,
+ or ????
+Date: Wed, 01 Nov 2017 15:03:05 -0700
+Message-ID: <59FA4499.2030502@tlinx.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wr0-f193.google.com ([209.85.128.193]:55784 "EHLO
-        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755211AbdKAUWT (ORCPT
+Received: from ishtar.tlinx.org ([173.164.175.65]:36572 "EHLO
+        Ishtar.sc.tlinx.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933341AbdKAWTd (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 1 Nov 2017 16:22:19 -0400
-Received: by mail-wr0-f193.google.com with SMTP id l8so2993672wre.12
-        for <linux-unionfs@vger.kernel.org>; Wed, 01 Nov 2017 13:22:19 -0700 (PDT)
-In-Reply-To: <1509567773-25590-1-git-send-email-amir73il@gmail.com>
+        Wed, 1 Nov 2017 18:19:33 -0400
+Received: from [192.168.3.12] (Athenae [192.168.3.12])
+        by Ishtar.sc.tlinx.org (8.14.7/8.14.4/SuSE Linux 0.8) with ESMTP id vA1M35hJ055276
+        for <linux-unionfs@vger.kernel.org>; Wed, 1 Nov 2017 15:03:07 -0700
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: Chandan Rajendra <chandan@linux.vnet.ibm.com>, Vivek Goyal <vgoyal@redhat.com>, linux-unionfs@vger.kernel.org
+To: linux-unionfs@vger.kernel.org
 
-From: Chandan Rajendra <chandan@linux.vnet.ibm.com>
+Trying the overlay fs for first time and am wondering about normal behavior.
 
-For a pure upper/lower dir in a non-samefs setup, stat(2) returns the
-overlay inode number as the value of st_ino. To keep in line with this
-behaviour, ovl_fill_real() has been modified to return overlay inode
-number of the "." entry as the d_ino of a pure upper dir.
+After modifying file 'noise' and deleting "file1" in a merged directory, I
+get:
 
-[amir: change the subject line]
+    >  ls -lgG
+    ls: cannot access 'file1': No such file or directory
+    total 26858576
+    ?????????? ?          ?            ? file1
+    -rwxrwxr-x 1 9167721042 Oct  4 09:45 file2*
+    -rwxrwxr-x 1 9167721042 Oct  5 20:09 file3*
+    -rwxrwxr-x 1 9167721042 Nov 13  2011 file4*
+    -rwxrwxr-x 1        496 Oct 28 15:13 noise*
+    -rwxrwxr-x 1        452 Oct  5 20:08 noise.orig*
+    drwxrwxr-x 2         18 Oct  4 09:41 src/
 
-Signed-off-by: Chandan Rajendra <chandan@linux.vnet.ibm.com>
-Signed-off-by: Amir Goldstein <amir73il@gmail.com>
----
- fs/overlayfs/readdir.c | 20 +++++++++++---------
- 1 file changed, 11 insertions(+), 9 deletions(-)
 
-diff --git a/fs/overlayfs/readdir.c b/fs/overlayfs/readdir.c
-index 4f2479b6ef91..74b859ed569e 100644
---- a/fs/overlayfs/readdir.c
-+++ b/fs/overlayfs/readdir.c
-@@ -451,7 +451,6 @@ static struct ovl_dir_cache *ovl_cache_get(struct dentry *dentry)
-  * sure that d_ino will be consistent with st_ino from stat(2).
-  */
- static int ovl_cache_update_ino(struct path *path, struct ovl_cache_entry *p)
--
- {
- 	struct dentry *dir = path->dentry;
- 	struct dentry *this = NULL;
-@@ -459,9 +458,6 @@ static int ovl_cache_update_ino(struct path *path, struct ovl_cache_entry *p)
- 	u64 ino = p->real_ino;
- 	int err = 0;
- 
--	if (!ovl_same_sb(dir->d_sb))
--		goto out;
--
- 	if (p->name[0] == '.') {
- 		if (p->len == 1) {
- 			this = dget(dir);
-@@ -493,8 +489,8 @@ static int ovl_cache_update_ino(struct path *path, struct ovl_cache_entry *p)
- 		err = vfs_getattr(&statpath, &stat, STATX_INO, 0);
- 		if (err)
- 			goto fail;
--
--		WARN_ON_ONCE(dir->d_sb->s_dev != stat.dev);
-+		if (d_is_dir(this) || ovl_same_sb(this->d_sb))
-+			WARN_ON_ONCE(dir->d_sb->s_dev != stat.dev);
- 		ino = stat.ino;
- 	}
- 
-@@ -616,6 +612,7 @@ struct ovl_readdir_translate {
- 	struct ovl_dir_cache *cache;
- 	struct dir_context ctx;
- 	u64 parent_ino;
-+	u64 current_ino;
- };
- 
- static int ovl_fill_real(struct dir_context *ctx, const char *name,
-@@ -628,6 +625,8 @@ static int ovl_fill_real(struct dir_context *ctx, const char *name,
- 
- 	if (rdt->parent_ino && strcmp(name, "..") == 0)
- 		ino = rdt->parent_ino;
-+	else if (rdt->current_ino && namelen == 1 && name[0] == '.')
-+		ino = rdt->current_ino;
- 	else if (rdt->cache) {
- 		struct ovl_cache_entry *p;
- 
-@@ -668,6 +667,9 @@ static int ovl_iterate_real(struct file *file, struct dir_context *ctx)
- 			return PTR_ERR(rdt.cache);
- 	}
- 
-+	if (!ovl_same_sb(dir->d_sb))
-+		rdt.current_ino = dir->d_inode->i_ino;
-+
- 	return iterate_dir(od->realfile, &rdt.ctx);
- }
- 
-@@ -688,9 +690,9 @@ static int ovl_iterate(struct file *file, struct dir_context *ctx)
- 		 * dir is impure then need to adjust d_ino for copied up
- 		 * entries.
- 		 */
--		if (ovl_same_sb(dentry->d_sb) &&
--		    (ovl_test_flag(OVL_IMPURE, d_inode(dentry)) ||
--		     OVL_TYPE_MERGE(ovl_path_type(dentry->d_parent)))) {
-+		if (ovl_test_flag(OVL_IMPURE, d_inode(dentry)) ||
-+		     OVL_TYPE_MERGE(ovl_path_type(dentry->d_parent)) ||
-+		     !ovl_same_sb(dentry->d_sb)) {
- 			return ovl_iterate_real(file, ctx);
- 		}
- 		return iterate_dir(od->realfile, ctx);
--- 
-2.7.4
+I'm a bit concerned about the "white-out" for "file1". 
+Is this how it is supposed to appear?  Should I file
+a bug in the kernel's bugzilla-db?
+
+
+
+How I got here:
+My kernel from "uname -a" is:
+Linux Ishtar 4.13.9-Isht-Van #1 SMP Thu Oct 26 16:41:08 PDT 2017 x86_64 
+GNU/Linux
+
+I used a pre-existing directory "/local/test" as a 'lower':
+
+
+    >  /bin/ls  -lgGR /local/test
+    /local/test:
+    total 35811432
+    -rwxrwxr-x 1 9167721042 Nov 13  2011 file1
+    -rwxrwxr-x 1 9167721042 Oct  4 09:45 file2
+    -rwxrwxr-x 1 9167721042 Oct  5 20:09 file3
+    -rwxrwxr-x 1 9167721042 Nov 13  2011 file4
+    -rwxrwxr-x 1        452 Oct  5 20:08 noise
+    -rwxrwxr-x 1        420 Oct  5 19:57 noise.orig
+    drwxrwxr-x 2         18 Oct  4 09:41 src
+
+    /local/test/src:
+    total 8952856
+    -rwxrwxr-x 1 9167721042 Nov 13  2011 file1
+
+
+
+
+in a pre-existing 'xfs' file system:
+
+    >  xfs_info /local/test
+    meta-data=/dev/Data/Local    isize=256    agcount=32,
+    agsize=12582896 blks     =                   sectsz=4096  attr=2
+    data     =                   bsize=4096   blocks=402652672,imaxpct=10
+             =                   sunit=16     swidth=16 blks
+    naming   =version 2          bsize=4096   ascii-ci=0
+    log      =internal           bsize=4096   blocks=32768, version=2
+             =                   sectsz=4096  sunit=1 blks, lazy-count=1
+    realtime =none               extsz=4096   blocks=0, rtextents=0
+
+
+
+
+I then created a new xfs file system and mounted it on '/edge';
+
+    Ishtar:/edge> xfs_info .
+    meta-data=/dev/Data/Edge     isize=256    agcount=32,
+    agsize=16777200 blks     =                   sectsz=4096  attr=2
+    data     =                   bsize=4096   blocks=536870400, imaxpct=5
+             =                   sunit=16     swidth=64 blks
+    naming   =version 2          bsize=4096   ascii-ci=0
+    log      =internal           bsize=4096   blocks=262143, version=2
+             =                   sectsz=4096  sunit=1 blks, lazy-count=1
+    realtime =none               extsz=4096   blocks=0, rtextents=0
+
+
+
+created directories in it;
+
+    >  cd /edge
+    >  mkdir merged overlays overlays/upper work
+
+
+and mounted an overlay fs on "/edge/merged" with:
+
+    sudo mount -t overlay none -olowerdir=/local/test,\
+                                  upperdir=/edge/overlays/upper,\
+                                  workdir=/edge/work /edge/merged
+
+
+After editing 'noise' and removing 'file1', I got the listing
+at the top.  The 'file1' in the top listing can't be deleted.
+It is only present/visible in the 'merged' directory, but
+does seem to make the "overlayfs" unusable for general
+purposes, so I'm guessing it's a bug?
+
+Of note: a **likely** Red-Herring, is this RH bug report:
+
+    https://bugzilla.redhat.com/show_bug.cgi?id=1319507
+
+(I say red-herring, as I'm not using RH, and there is
+no real data in the bug other than similar symptoms
+running over xfs).
+
+BTW -- is the setup in that bug report even "valid"? I.e. using
+the same single-underlying file system for all 4 directories?
+
+Thanks!
+-linda
