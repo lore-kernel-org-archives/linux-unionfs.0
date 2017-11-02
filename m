@@ -1,123 +1,41 @@
-From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [PATCH v5 2/4] ovl: allocate anonymous devs for lowerdirs
-Date: Thu, 2 Nov 2017 16:38:05 +0200
-Message-ID: <CAOQ4uxhW1yh2fv3qL_fPmJWJvUuednWmY+Nz3eawNeYswuk1RQ@mail.gmail.com>
-References: <1509395247-15180-1-git-send-email-amir73il@gmail.com>
- <1509395247-15180-3-git-send-email-amir73il@gmail.com> <20171101144249.GA8259@redhat.com>
- <CAOQ4uxiReuzqQ09b8f0YxxTzT-Lt0pSPxsTsxz9feuFPrmTGWg@mail.gmail.com>
- <20171101154700.GA3125@redhat.com> <CAOQ4uxhpq_mEyyUj0M5AELPYGuHwyCpxz9+HE4K0qaY1+-XQGw@mail.gmail.com>
- <20171102122730.GA16677@redhat.com> <CAOQ4uxiQSuQo0jrRZwiq_66zgcfb_pYdBJHqC_vrkF0oyQCy3A@mail.gmail.com>
- <20171102140503.GA14907@redhat.com>
+From: Miklos Szeredi <miklos@szeredi.hu>
+Subject: Re: [PATCH v6 0/9] Overlayfs: constant st_ino/d_ino for non-samefs
+Date: Thu, 2 Nov 2017 17:33:26 +0100
+Message-ID: <CAJfpegsoj7HhL-_O0Y3EcrCNxDfmzwPa56hr1Uoza_NivLzU5A@mail.gmail.com>
+References: <1509567773-25590-1-git-send-email-amir73il@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-yw0-f194.google.com ([209.85.161.194]:51678 "EHLO
-        mail-yw0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933381AbdKBOiH (ORCPT
+Received: from mail-wm0-f45.google.com ([74.125.82.45]:53639 "EHLO
+        mail-wm0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751587AbdKBQd2 (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 2 Nov 2017 10:38:07 -0400
-Received: by mail-yw0-f194.google.com with SMTP id k3so4951237ywk.8
-        for <linux-unionfs@vger.kernel.org>; Thu, 02 Nov 2017 07:38:06 -0700 (PDT)
-In-Reply-To: <20171102140503.GA14907@redhat.com>
+        Thu, 2 Nov 2017 12:33:28 -0400
+Received: by mail-wm0-f45.google.com with SMTP id r196so160974wmf.2
+        for <linux-unionfs@vger.kernel.org>; Thu, 02 Nov 2017 09:33:27 -0700 (PDT)
+In-Reply-To: <1509567773-25590-1-git-send-email-amir73il@gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Vivek Goyal <vgoyal@redhat.com>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, Chandan Rajendra <chandan@linux.vnet.ibm.com>, zhangyi <yi.zhang@huawei.com>, overlayfs <linux-unionfs@vger.kernel.org>
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: Chandan Rajendra <chandan@linux.vnet.ibm.com>, Vivek Goyal <vgoyal@redhat.com>, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>
 
-On Thu, Nov 2, 2017 at 4:05 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
-> On Thu, Nov 02, 2017 at 02:47:07PM +0200, Amir Goldstein wrote:
->> On Thu, Nov 2, 2017 at 2:27 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
->> > On Wed, Nov 01, 2017 at 06:41:51PM +0200, Amir Goldstein wrote:
->> >
->> > [..]
->> >> >> I can't remember if there was a reason for not allocating anonymous bdev
->> >> >> for upper
->> >> >
->> >> > That's a good point.
->> >> >
->> >> >> or if it just because we did not need it to guaranty uniqueness
->> >> >> of st_dev/st_ino *among* overlay inodes
->> >> >
->> >> > Even for lower, st_dev will be unique for different lower on non same-fs,
->> >> > right. IOW, when it come to uniqueness of st_dev/st_ino pair, among
->> >> > overlay inodes, lower and upper should have same requirements.
->> >> >
->> >> >> while guarantying constant
->> >> >> st_dev/st_ino across copy up.
->> >> >
->> >> > Hmm..., I did not get this point. Over copy up, atleast st_ino will change
->> >> > for non-samefs case.
->> >> >
->> >> > I will spend more time on patch.
->> >> >
->> >>
->> >> Urgh! It took me a while to remember the reason why system wide uniqueness
->> >> is important for lower but less for upper.
->> >> An upper object has the same content as the "real" object and they have the
->> >> same st_ino/st_dev so its ok that diff will skip comparing them.
->> >> A copy-up object does not have the same content as the lower "real" object,
->> >> so if it has the same st_ino/st_dev as real object, diff will skip compare and
->> >> we have a problem.
->> >
->> > I am not sure I understand this.  So you are doing a diff between a file
->> > on overlayfs and same file accessed outside overlayfs?
->> >
->>
->> Yes.
->>
->> > If a file is on lower, then it has not been modified and diff skipping
->> > it makes perfect sense?
->>
->> Yes.
->>
->> But!
->> With constant st_ino/st_dev across copy up (the next patch)
->> the overlay object still has the lower inode st_dev/st_inode also *after*
->> copy up and modification. Now if you diff overlay file and lower
->> file diff will say they are equal, but in fact they have a different content.
->>
->> This is how I phrased this in latest patch set per your request:
+On Wed, Nov 1, 2017 at 9:22 PM, Amir Goldstein <amir73il@gmail.com> wrote:
+> Miklos,
 >
-> Ok, I think I am beginning to understand it. Here is my understanding.
-> Please correct me if something is not right.
->
-> So we basically have 4 core requirements.
->
-> A. contstant st_dev/st_ino over copy up.
-> B. Persistent st_ino
-> C. unique st_dev/st_ino
-> D. Diff works fine even after copy up.
->
-> As of today, for non-samefs case, ovl_getattr() reports st_dev/st_ino of
-> *real* file. This meets requirement B and C and D but not requirement A.
->
-> To meet requirement A, one could make use of ORIGIN xattr and report
-> st_dev/st_ino of lower (even after file got copied up). This will
-> meet requirement A, B and C but not D.
->
-> So to make all 4 work for non-samefs case, we don't report real st_dev
-> of lower and instead create a pseudo dev and report that. IOW, for
-> non-same fs case, report pseudo_st_dev/real_st_ino of lower. And
-> that should meet all the 4 core requirements.
->
+> My trigger for fixing up the non-samefs patches is that I found out
+> while testing NFS export that reconnecting a dir dentry doesn't work
+> for non-samefs case.
+> I tracked the problem down to the default implementation of get_name()
+> in expfs.c that looks up a child inode in parent dir by d_ino.
 
-Yes. Almost accurate.
+That may be a good fix, but.. we shouldn't have to rely on correct
+d_ino to get the name.
 
-Requirement B is not met for directory inodes in non-samefs case.
-it wasn't met before this change and it is not met by this change.
+In fact we can just recursively call exportfs_get_name() on underlying
+fs, since we have the parent and the child handle in both the dir and
+non-dir cases.
 
+Am I missing something?
 
-> And this patch series implements this.
->
-> If this description is correct, I feel some of this should be used
-> in changelog somewhere to make it easier to understand the rationale
-> behind the change.
->
->
-
-I'll see where I can plug this description.
-BTW, found some bugs in V6 patch set.
-Stay tuned for V7.
-
-Thanks for review!
-Amir.
+Thanks,
+Miklos
