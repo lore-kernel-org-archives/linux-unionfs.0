@@ -1,152 +1,187 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH 5/7] open_by_handle: test file handles of open files
-Date: Thu,  2 Nov 2017 12:15:37 +0200
-Message-ID: <1509617739-15744-6-git-send-email-amir73il@gmail.com>
+Subject: [PATCH 7/7] fstests: add test with more open by file handle use cases
+Date: Thu,  2 Nov 2017 12:15:39 +0200
+Message-ID: <1509617739-15744-8-git-send-email-amir73il@gmail.com>
 References: <1509617739-15744-1-git-send-email-amir73il@gmail.com>
-Return-path: <fstests-owner@vger.kernel.org>
+Return-path: <linux-unionfs-owner@vger.kernel.org>
+Received: from mail-wr0-f169.google.com ([209.85.128.169]:55830 "EHLO
+        mail-wr0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933324AbdKBKPH (ORCPT
+        <rfc822;linux-unionfs@vger.kernel.org>);
+        Thu, 2 Nov 2017 06:15:07 -0400
 In-Reply-To: <1509617739-15744-1-git-send-email-amir73il@gmail.com>
-Sender: fstests-owner@vger.kernel.org
+Sender: linux-unionfs-owner@vger.kernel.org
+List-Id: linux-unionfs@vger.kernel.org
 To: Eryu Guan <eguan@redhat.com>
 Cc: Jeff Layton <jlayton@poochiereds.net>, "J . Bruce Fields" <bfields@fieldses.org>, Miklos Szeredi <miklos@szeredi.hu>, fstests@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org
-List-Id: linux-unionfs@vger.kernel.org
 
-usage: open_by_handle -dk <test_dir> [N]
-
-Get file handles for existing test set, keep open file handles for all
-test files, unlink all test files, drop caches and try to open all files
-by handle.
+This test is a variant of test generic/426 that tests with less
+files and more use cases:
+- Create test dir with non empty files with known content and verify
+  their content after opening file by handle.
+- Check open by handle of directory.
+- Check open by handle of files that have been unlinked, but still open.
+- Check open by handle of files that have been renamed in same dir,
+  moved to new dir and whose parent dir has been renamed.
 
 Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- src/open_by_handle.c | 41 +++++++++++++++++++++++++++++++----------
- 1 file changed, 31 insertions(+), 10 deletions(-)
+ tests/generic/500     | 119 ++++++++++++++++++++++++++++++++++++++++++++++++++
+ tests/generic/500.out |  10 +++++
+ tests/generic/group   |   1 +
+ 3 files changed, 130 insertions(+)
+ create mode 100755 tests/generic/500
+ create mode 100644 tests/generic/500.out
 
-diff --git a/src/open_by_handle.c b/src/open_by_handle.c
-index e8edcf5..dbc5b0f 100644
---- a/src/open_by_handle.c
-+++ b/src/open_by_handle.c
-@@ -27,7 +27,7 @@
- 
- /*
- 
--usage: open_by_handle [-cludmrwap] <test_dir> [num_files]
-+usage: open_by_handle [-cludmrwapk] <test_dir> [num_files]
- 
- Examples:
- 
-@@ -55,12 +55,18 @@ Examples:
- 
-    open_by_handle -dp <test_dir> [N]
- 
--5. Get file handles for existing test set, rename all test files,
-+5. Get file handles for existing test set, keep open file handles for all
-+   test files, unlink all test files, drop caches and try to open all files
-+   by handle (should work):
+diff --git a/tests/generic/500 b/tests/generic/500
+new file mode 100755
+index 0000000..ab3d119
+--- /dev/null
++++ b/tests/generic/500
+@@ -0,0 +1,119 @@
++#! /bin/bash
++# FS QA Test No. 500
++#
++# Check open by file handle.
++# This is a variant of test generic/426 that tests with less
++# files and more use cases:
++# - open directory by file handle
++# - verify content integrity of file after opening by file handle
++# - open by file handle of unlinked open files
++# - open by file handle of renamed files
++#
++#-----------------------------------------------------------------------
++# Copyright (C) 2017 CTERA Networks. All Rights Reserved.
++# Author: Amir Goldstein <amir73il@gmail.com>
++#
++# This program is free software; you can redistribute it and/or
++# modify it under the terms of the GNU General Public License as
++# published by the Free Software Foundation.
++#
++# This program is distributed in the hope that it would be useful,
++# but WITHOUT ANY WARRANTY; without even the implied warranty of
++# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++# GNU General Public License for more details.
++#
++# You should have received a copy of the GNU General Public License
++# along with this program; if not, write the Free Software Foundation,
++# Inc.,  51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
++#-----------------------------------------------------------------------
++#
 +
-+   open_by_handle -dk <test_dir> [N]
++seq=`basename $0`
++seqres=$RESULT_DIR/$seq
++echo "QA output created by $seq"
 +
-+6. Get file handles for existing test set, rename all test files,
-    drop caches, try to open all files by handle (should work):
- 
-    open_by_handle -m <test_dir> [N]
- 
--6. Get file handles for existing test set, hardlink all test files,
-+7. Get file handles for existing test set, hardlink all test files,
-    then unlink the original files, drop caches and try to open all
-    files by handle (should work):
- 
-@@ -97,10 +103,11 @@ struct handle {
- 
- void usage(void)
- {
--	fprintf(stderr, "usage: open_by_handle [-cludmrwap] <test_dir> [num_files]\n");
-+	fprintf(stderr, "usage: open_by_handle [-cludmrwapk] <test_dir> [num_files]\n");
- 	fprintf(stderr, "\n");
- 	fprintf(stderr, "open_by_handle -c <test_dir> [N] - create N test files under test_dir, try to get file handles and exit\n");
- 	fprintf(stderr, "open_by_handle    <test_dir> [N] - get file handles of test files, drop caches and try to open by handle\n");
-+	fprintf(stderr, "open_by_handle -k <test_dir> [N] - get file handles of files that are kept open, drop caches and try to open by handle\n");
- 	fprintf(stderr, "open_by_handle -w <test_dir> [N] - write data to test files before open by handle\n");
- 	fprintf(stderr, "open_by_handle -r <test_dir> [N] - read data from test files after open by handle and verify written data\n");
- 	fprintf(stderr, "open_by_handle -a <test_dir> [N] - write data to test files after open by handle\n");
-@@ -127,11 +134,12 @@ int main(int argc, char **argv)
- 	int	numfiles = 1;
- 	int	create = 0, delete = 0, nlink = 1, move = 0;
- 	int	rd = 0, wr = 0, wrafter = 0, parent = 0;
-+	int	keepopen = 0;
- 
- 	if (argc < 2 || argc > 4)
- 		usage();
- 
--	while ((c = getopt(argc, argv, "cludmrwap")) != -1) {
-+	while ((c = getopt(argc, argv, "cludmrwapk")) != -1) {
- 		switch (c) {
- 		case 'c':
- 			create = 1;
-@@ -165,6 +173,9 @@ int main(int argc, char **argv)
- 		case 'p':
- 			parent = 1;
- 			break;
-+		case 'k':
-+			keepopen = 1;
-+			break;
- 		default:
- 			fprintf(stderr, "illegal option '%s'\n", argv[optind]);
- 		case 'h':
-@@ -213,7 +224,7 @@ int main(int argc, char **argv)
- 		sprintf(fname2, "%s/link%06d", test_dir, i);
- 		fd = open(fname, O_RDWR | O_CREAT | O_TRUNC, 0644);
- 		if (fd < 0) {
--			strcat(fname, ": open");
-+			strcat(fname, ": open(O_CREAT)");
- 			perror(fname);
- 			return EXIT_FAILURE;
- 		}
-@@ -240,6 +251,15 @@ int main(int argc, char **argv)
- 			perror(fname);
- 			return EXIT_FAILURE;
- 		}
-+		if (keepopen) {
-+			/* Open without close to keep unlinked files around */
-+			fd = open(fname, O_RDONLY);
-+			if (fd < 0) {
-+				strcat(fname, ": open(O_RDONLY)");
-+				perror(fname);
-+				return EXIT_FAILURE;
-+			}
-+		}
- 	}
- 
- 	if (parent) {
-@@ -350,7 +370,7 @@ int main(int argc, char **argv)
- 	for (i=0; i < numfiles; i++) {
- 		errno = 0;
- 		fd = open_by_handle_at(mount_fd, &handle[i].fh, wrafter ? O_RDWR : O_RDONLY);
--		if (nlink && fd >= 0) {
-+		if ((nlink || keepopen) && fd >= 0) {
- 			if (rd) {
- 				char buf[4] = {0};
- 				int size = read(fd, buf, 4);
-@@ -370,7 +390,7 @@ int main(int argc, char **argv)
- 			}
- 			close(fd);
- 			continue;
--		} else if (!nlink && fd < 0 && (errno == ENOENT || errno == ESTALE)) {
-+		} else if (!nlink && !keepopen && fd < 0 && (errno == ENOENT || errno == ESTALE)) {
- 			continue;
- 		}
- 		sprintf(fname, "%s/file%06d", test_dir, i);
-@@ -378,9 +398,10 @@ int main(int argc, char **argv)
- 			printf("open_by_handle(%s) opened an unlinked file!\n", fname);
- 			close(fd);
- 		} else {
--			printf("open_by_handle(%s) returned %d incorrectly on %s file!\n",
-+			printf("open_by_handle(%s) returned %d incorrectly on %s%s file!\n",
- 					fname, errno,
--					nlink ? "a linked" : "an unlinked");
-+					nlink ? "a linked" : "an unlinked",
-+					keepopen ? " open" : "");
- 		}
- 		failed++;
- 	}
++here=`pwd`
++tmp=/tmp/$$
++status=1	# failure is the default!
++trap "_cleanup; exit \$status" 0 1 2 3 15
++
++_cleanup()
++{
++	cd /
++	rm -f $tmp.*
++}
++
++# get standard environment, filters and checks
++. ./common/rc
++. ./common/filter
++
++# real QA test starts here
++
++# Modify as appropriate.
++_supported_fs generic
++_supported_os Linux
++_require_test
++# _require_exportfs already requires open_by_handle, but let's not count on it
++_require_test_program "open_by_handle"
++_require_exportfs
++
++NUMFILES=10
++testdir=$TEST_DIR/$seq-dir
++
++# Create test dir and non-empty test files
++create_test_files()
++{
++	local dir=$1
++	local opt=$2
++
++	rm -rf $dir
++	src/open_by_handle -cwp $dir $NUMFILES
++}
++
++# Test encode/decode file handles
++test_file_handles()
++{
++	local dir=$1
++	local opt=$2
++
++	echo test_file_handles $* | _filter_test_dir
++	src/open_by_handle $opt $dir $NUMFILES
++}
++
++# Check stale handles to deleted files/dir
++create_test_files $testdir
++test_file_handles $testdir -dp
++
++# Check non-stale handles to linked files/dir
++create_test_files $testdir
++test_file_handles $testdir -rp
++
++# Check non-stale handles to unlinked open files
++create_test_files $testdir
++test_file_handles $testdir -dkr
++
++# Check non-stale handles to files that were hardlinked and original deleted
++create_test_files $testdir
++test_file_handles $testdir -lr
++test_file_handles $testdir -ur
++
++# Check non-stale file handles of renamed files
++create_test_files $testdir
++test_file_handles $testdir -mr
++
++# Check non-stale file handles after rename of parent
++create_test_files $testdir
++rm -rf $testdir.renamed
++mv $testdir $testdir.renamed/
++test_file_handles $testdir.renamed -rp
++
++# Check non-stale file handles after move to new parent
++create_test_files $testdir
++rm -rf $testdir.new
++mkdir -p $testdir.new
++mv $testdir/* $testdir.new/
++test_file_handles $testdir.new -rp
++
++echo "Silence is golden"
++status=0
++exit
+diff --git a/tests/generic/500.out b/tests/generic/500.out
+new file mode 100644
+index 0000000..0035d21
+--- /dev/null
++++ b/tests/generic/500.out
+@@ -0,0 +1,10 @@
++QA output created by 500
++test_file_handles TEST_DIR/500-dir -dp
++test_file_handles TEST_DIR/500-dir -rp
++test_file_handles TEST_DIR/500-dir -dkr
++test_file_handles TEST_DIR/500-dir -lr
++test_file_handles TEST_DIR/500-dir -ur
++test_file_handles TEST_DIR/500-dir -mr
++test_file_handles TEST_DIR/500-dir.renamed -rp
++test_file_handles TEST_DIR/500-dir.new -rp
++Silence is golden
+diff --git a/tests/generic/group b/tests/generic/group
+index fbe0a7f..0b41c15 100644
+--- a/tests/generic/group
++++ b/tests/generic/group
+@@ -468,3 +468,4 @@
+ 463 auto quick clone dangerous
+ 464 auto rw
+ 465 auto rw quick aio
++500 auto quick exportfs
 -- 
 2.7.4
