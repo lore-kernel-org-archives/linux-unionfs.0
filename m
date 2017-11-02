@@ -1,108 +1,71 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: Bug? or normal behavior? if bug, then where? overlay, vfs, xfs,
- or ????
-Date: Thu, 2 Nov 2017 09:03:40 +0200
-Message-ID: <CAOQ4uxg-bkYnpV146kBgdbgCK9On+=jM1gCe1975J8HKkWxcNg@mail.gmail.com>
-References: <59FA4499.2030502@tlinx.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-yw0-f174.google.com ([209.85.161.174]:47526 "EHLO
-        mail-yw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754803AbdKBHDm (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 2 Nov 2017 03:03:42 -0400
-Received: by mail-yw0-f174.google.com with SMTP id u142so3912495ywg.4
-        for <linux-unionfs@vger.kernel.org>; Thu, 02 Nov 2017 00:03:42 -0700 (PDT)
-In-Reply-To: <59FA4499.2030502@tlinx.org>
-Sender: linux-unionfs-owner@vger.kernel.org
+Subject: [PATCH 0/7] More NFS file handle unit tests
+Date: Thu,  2 Nov 2017 12:15:32 +0200
+Message-ID: <1509617739-15744-1-git-send-email-amir73il@gmail.com>
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
+Sender: linux-fsdevel-owner@vger.kernel.org
+To: Eryu Guan <eguan@redhat.com>
+Cc: Jeff Layton <jlayton@poochiereds.net>, "J . Bruce Fields" <bfields@fieldses.org>, Miklos Szeredi <miklos@szeredi.hu>, fstests@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: L A Walsh <lkml@tlinx.org>
-Cc: overlayfs <linux-unionfs@vger.kernel.org>
 
-On Thu, Nov 2, 2017 at 12:03 AM, L A Walsh <lkml@tlinx.org> wrote:
-> Trying the overlay fs for first time and am wondering about normal behavior.
->
+Eryu,
 
-Linda,
+This series enhances test coverage for generic NFS file handles
+encode/decode functionality and adds a new gereric/exportfs test.
 
-Thanks for the detailed report.
-This is an overlayfs behavior with certain "old" file systems (see below).
+Please note that the new test output includes the temporary test
+number 500, so don't forget to fix those when renaming the test.
 
-> After modifying file 'noise' and deleting "file1" in a merged directory, I
-> get:
->
->    >  ls -lgG
->    ls: cannot access 'file1': No such file or directory
->    total 26858576
->    ?????????? ?          ?            ? file1
->    -rwxrwxr-x 1 9167721042 Oct  4 09:45 file2*
->    -rwxrwxr-x 1 9167721042 Oct  5 20:09 file3*
->    -rwxrwxr-x 1 9167721042 Nov 13  2011 file4*
->    -rwxrwxr-x 1        496 Oct 28 15:13 noise*
->    -rwxrwxr-x 1        452 Oct  5 20:08 noise.orig*
->    drwxrwxr-x 2         18 Oct  4 09:41 src/
->
->
-> I'm a bit concerned about the "white-out" for "file1". Is this how it is
-> supposed to appear?  Should I file
-> a bug in the kernel's bugzilla-db?
->
+The enhanced open_by_handle program is going to be used later on for
+overlayfs specific exportfs tests [1].
 
-Whiteout certainly shouldn't appear that way.
-The reason it does is that your upper fs does not support
-"d_type" (see below).
-It's a "known" issue, but don't know where/if it is documented.
-I expect if you look in dmesg, you will see this warning:
-  "overlayfs: upper fs needs to support d_type."
+The open_by_handle program is limited to encoding "non-connectable"
+file handles (used by nfsd on 'no_subtree_check' exports), because there
+is no user available API (that I know of) to encode a "connecctable" file
+handle (used by nfsd on 'subtree_check' exports). I used a test patch
+"test connectable file handles", available on my tree [1] to tun the tests
+with "connectable" file handles.
 
-Somewhat cryptic message - I agree.
-For backward compatibility overlayfs mount does not fail, but leaves
-an overlay mount with the flaw you described.
+I verified that the new test passes on xfs, ext4, ext2, btrfs, f2fs.
+However, the test fails on tmpfs due to:
+"open_by_handle() returned 116 incorrectly on an unlinked open file!"
 
-It's actually very good that you pointed this out, because I now
-realize we should hard enforce d_type support for NFS export.
-We also do not check for lower fs d_type support.
-That can also expose old whiteouts in certain setups.
+This happens because tmpfs uses d_find_alias() to get a decoded dentry,
+but d_find_alias() skips unhashed (deleted with refcount) dentries.
 
-..
+I don't know if being able to decode a file handle of a deleted but open
+file is a requirement for nfsd or just a recommendation, but IMO it is a
+common case that is worth testing, even if tmpfs (or other file systems)
+choose not to fix this.
 
->
->
-> I then created a new xfs file system and mounted it on '/edge';
->
->    Ishtar:/edge> xfs_info .
->    meta-data=/dev/Data/Edge     isize=256    agcount=32,
->    agsize=16777200 blks     =                   sectsz=4096  attr=2
->    data     =                   bsize=4096   blocks=536870400, imaxpct=5
->             =                   sunit=16     swidth=64 blks
->    naming   =version 2          bsize=4096   ascii-ci=0
->    log      =internal           bsize=4096   blocks=262143, version=2
->             =                   sectsz=4096  sunit=1 blks, lazy-count=1
->    realtime =none               extsz=4096   blocks=0, rtextents=0
->
+Bruce, Jeff,
 
-Your problem is that you do not have "ftype" feature in directory
-name format, like this:
+What is your view on this issue?
 
-naming   =version 2              bsize=4096   ascii-ci=0 ftype=1
-
-Perhaps you have an old version of mkfs.xfs, not sure when
-ftype=1 became the default format, but you can try to
-  mkfs.xfs -n ftype=1
-and follow the breadcrumbs from there.
-
-...
->
-> BTW -- is the setup in that bug report even "valid"? I.e. using
-> the same single-underlying file system for all 4 directories?
->
-
-Yes. Actually your setup uses 2 different file system instances
-for lower and upper, which is fine, but it is perfectly valid, quite
-common and even has some advantages to use upper/lower
-on the same underlying filesystem instance.
-
-The location of the 4th directory (/edge/merged) does not matter.
-
+Thanks,
 Amir.
+
+[1] https://github.com/amir73il/xfstests/commits/ovl-nfs-export
+[2] https://github.com/amir73il/linux/commits/ovl-nfs-export-v1
+
+Amir Goldstein (7):
+  open_by_handle: add filename to error reports
+  open_by_handle: test file handles of renamed files
+  open_by_handle: test content of open file handle
+  open_by_handle: test directory file handle
+  open_by_handle: test file handles of open files
+  generic/426: factor out helper functions
+  fstests: add test with more open by file handle use cases
+
+ src/open_by_handle.c  | 247 ++++++++++++++++++++++++++++++++++++++++++++------
+ tests/generic/426     |  40 +++++---
+ tests/generic/426.out |   4 +
+ tests/generic/500     | 119 ++++++++++++++++++++++++
+ tests/generic/500.out |  10 ++
+ tests/generic/group   |   1 +
+ 6 files changed, 383 insertions(+), 38 deletions(-)
+ create mode 100755 tests/generic/500
+ create mode 100644 tests/generic/500.out
+
+-- 
+2.7.4
