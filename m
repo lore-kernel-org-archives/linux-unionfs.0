@@ -1,70 +1,77 @@
-From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: Regression in overlayfs in 4.13: "could not fsync file" error by PostgreSQL
-Date: Sat, 4 Nov 2017 12:00:29 +0200
-Message-ID: <CAOQ4uxhcWYRcGdwE0QXpZ-_4BFX7LGFyFkFrZSvUgf4PSUFBkg@mail.gmail.com>
-References: <20171103140046.h6oabi5tjqqvj6uj@home.ouaza.com>
+From: Jeff Layton <jlayton@kernel.org>
+Subject: Re: [PATCH 0/7] More NFS file handle unit tests
+Date: Sat, 04 Nov 2017 19:23:36 -0400
+Message-ID: <1509837816.3820.4.camel@kernel.org>
+References: <1509617739-15744-1-git-send-email-amir73il@gmail.com>
+         <1509711720.4744.9.camel@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-yw0-f175.google.com ([209.85.161.175]:48749 "EHLO
-        mail-yw0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751612AbdKDKAa (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Sat, 4 Nov 2017 06:00:30 -0400
-Received: by mail-yw0-f175.google.com with SMTP id q1so4325790ywh.5
-        for <linux-unionfs@vger.kernel.org>; Sat, 04 Nov 2017 03:00:30 -0700 (PDT)
-In-Reply-To: <20171103140046.h6oabi5tjqqvj6uj@home.ouaza.com>
+Received: from mail.kernel.org ([198.145.29.99]:53480 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751477AbdKDXXj (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Sat, 4 Nov 2017 19:23:39 -0400
+In-Reply-To: <1509711720.4744.9.camel@kernel.org>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Raphael Hertzog <raphael@ouaza.com>
-Cc: overlayfs <linux-unionfs@vger.kernel.org>
+To: Amir Goldstein <amir73il@gmail.com>, Eryu Guan <eguan@redhat.com>
+Cc: "J . Bruce Fields" <bfields@fieldses.org>, Miklos Szeredi <miklos@szeredi.hu>, fstests@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org
 
-On Fri, Nov 3, 2017 at 4:00 PM, Raphael Hertzog <raphael@ouaza.com> wrote:
-> Hello,
->
-> the Kali live image contains PostgreSQL and with our latest image[1]
-> PostgreSQL is no longer able to create a new database (/ is an overlayfs
-> merging a RO squashfs filesystem and an empty RW tmpfs).
->
-> [1] http://cdimage.kali.org/kali-weekly/kali-linux-2017-W43-amd64.iso
-> (if 404 look up the parent directory and pick the currently available
-> weekly image)
->
-> You get messages like this while running createdb:
-> createdb: database creation failed: ERROR: checkpoint request failed
-> HINT: Consult recent messages in the server log for details.
->
-> And in the server log you have this:
-> ERROR: could not fsync file "pg_commit_ts": Invalid argument
->
-> This was working with Linux 4.12.6 and seems to be broken in Linux 4.13.4
-> that we currently have in Kali Linux.
->
-> Does this ring a bell to anyone ?
+On Fri, 2017-11-03 at 08:22 -0400, Jeff Layton wrote:
+> On Thu, 2017-11-02 at 12:15 +0200, Amir Goldstein wrote:
+> > Eryu,
+> > 
+> > This series enhances test coverage for generic NFS file handles
+> > encode/decode functionality and adds a new gereric/exportfs test.
+> > 
+> > Please note that the new test output includes the temporary test
+> > number 500, so don't forget to fix those when renaming the test.
+> > 
+> > The enhanced open_by_handle program is going to be used later on for
+> > overlayfs specific exportfs tests [1].
+> > 
+> > The open_by_handle program is limited to encoding "non-connectable"
+> > file handles (used by nfsd on 'no_subtree_check' exports), because there
+> > is no user available API (that I know of) to encode a "connecctable" file
+> > handle (used by nfsd on 'subtree_check' exports). I used a test patch
+> > "test connectable file handles", available on my tree [1] to tun the tests
+> > with "connectable" file handles.
+> > 
+> > I verified that the new test passes on xfs, ext4, ext2, btrfs, f2fs.
+> > However, the test fails on tmpfs due to:
+> > "open_by_handle() returned 116 incorrectly on an unlinked open file!"
+> > 
+> > This happens because tmpfs uses d_find_alias() to get a decoded dentry,
+> > but d_find_alias() skips unhashed (deleted with refcount) dentries.
+> > 
+> > I don't know if being able to decode a file handle of a deleted but open
+> > file is a requirement for nfsd or just a recommendation, but IMO it is a
+> > common case that is worth testing, even if tmpfs (or other file systems)
+> > choose not to fix this.
+> > 
+> > Bruce, Jeff,
+> > 
+> > What is your view on this issue?
+> > 
+> > 
+> 
+> It seems like something that should be a requirement.
+> 
+> A client could (for instance) send a READ for a filehandle with one of
+> the special anonymous stateids. If you can't decode the filehandle, you
+> really have no way to know what inode against which to issue the read.
 
-Not really there was a regression with squashfs+overlayfs but it is
-fixed in 4.13.4.
-(fix false positive ESTALE on lookup)
-I tries mounting squashfs+overlayfs to /var/lib/postgresql and create
-db on Ubuntu
-and it seemed ok.
+That said...
 
+If an open file is unlinked, and the server reboots you're more or less
+back in the same situation anyway. That's generally the reason for
+sillyrenaming in NFSv4.x instead of just removing the files outright.
 
-> I saw a few patches in 4.13.6 but their
-> description does not seem to match the error I'm getting.
+The main takeaway is that with NFS in general, it's actually rather
+difficult to ensure that behavior across all server failure scenarios.
+It'd be nice if tmpfs did this like the others, but it's probably not
+fatal if it doesn't.
 
-I don't think those fixes are relevant.
-
->
-> What else can I provide to help you diagnose this issue ?
->
-> This bug report has been filed against Kali Linux in the first place:
-> https://bugs.kali.org/view.php?id=4332
->
-
-- strace of the failing postgresql db create
-- dmesg from that time, specifically "overlayfs" messages
-- output of cat /proc/self/mountinfo (or better postgres pid instead of self)
-
-Thanks,
-Amir.
+-- 
+Jeff Layton <jlayton@kernel.org>
