@@ -1,77 +1,205 @@
-From: Jeff Layton <jlayton@kernel.org>
-Subject: Re: [PATCH 0/7] More NFS file handle unit tests
-Date: Sat, 04 Nov 2017 19:23:36 -0400
-Message-ID: <1509837816.3820.4.camel@kernel.org>
-References: <1509617739-15744-1-git-send-email-amir73il@gmail.com>
-         <1509711720.4744.9.camel@kernel.org>
+From: Dave Chinner <david@fromorbit.com>
+Subject: Re: Bug? or normal behavior? if bug, then where? overlay, vfs, xfs,
+ or ????
+Date: Mon, 6 Nov 2017 09:34:45 +1100
+Message-ID: <20171105223445.GA5858@dastard>
+References: <59FA4499.2030502@tlinx.org>
+ <CAOQ4uxg-bkYnpV146kBgdbgCK9On+=jM1gCe1975J8HKkWxcNg@mail.gmail.com>
+ <59FEC912.4000005@tlinx.org>
+ <CAOQ4uxjDbNiZiUUzNZEHTt8SQW-1trC6dSF=c28bD8EuWLWFrw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:53480 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751477AbdKDXXj (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Sat, 4 Nov 2017 19:23:39 -0400
-In-Reply-To: <1509711720.4744.9.camel@kernel.org>
+Received: from ipmail06.adl2.internode.on.net ([150.101.137.129]:51011 "EHLO
+        ipmail06.adl2.internode.on.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750769AbdKEWet (ORCPT
+        <rfc822;linux-unionfs@vger.kernel.org>);
+        Sun, 5 Nov 2017 17:34:49 -0500
+Content-Disposition: inline
+In-Reply-To: <CAOQ4uxjDbNiZiUUzNZEHTt8SQW-1trC6dSF=c28bD8EuWLWFrw@mail.gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Amir Goldstein <amir73il@gmail.com>, Eryu Guan <eguan@redhat.com>
-Cc: "J . Bruce Fields" <bfields@fieldses.org>, Miklos Szeredi <miklos@szeredi.hu>, fstests@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: L A Walsh <lkml@tlinx.org>, overlayfs <linux-unionfs@vger.kernel.org>, linux-xfs <linux-xfs@vger.kernel.org>, "Darrick J. Wong" <darrick.wong@oracle.com>
 
-On Fri, 2017-11-03 at 08:22 -0400, Jeff Layton wrote:
-> On Thu, 2017-11-02 at 12:15 +0200, Amir Goldstein wrote:
-> > Eryu,
-> > 
-> > This series enhances test coverage for generic NFS file handles
-> > encode/decode functionality and adds a new gereric/exportfs test.
-> > 
-> > Please note that the new test output includes the temporary test
-> > number 500, so don't forget to fix those when renaming the test.
-> > 
-> > The enhanced open_by_handle program is going to be used later on for
-> > overlayfs specific exportfs tests [1].
-> > 
-> > The open_by_handle program is limited to encoding "non-connectable"
-> > file handles (used by nfsd on 'no_subtree_check' exports), because there
-> > is no user available API (that I know of) to encode a "connecctable" file
-> > handle (used by nfsd on 'subtree_check' exports). I used a test patch
-> > "test connectable file handles", available on my tree [1] to tun the tests
-> > with "connectable" file handles.
-> > 
-> > I verified that the new test passes on xfs, ext4, ext2, btrfs, f2fs.
-> > However, the test fails on tmpfs due to:
-> > "open_by_handle() returned 116 incorrectly on an unlinked open file!"
-> > 
-> > This happens because tmpfs uses d_find_alias() to get a decoded dentry,
-> > but d_find_alias() skips unhashed (deleted with refcount) dentries.
-> > 
-> > I don't know if being able to decode a file handle of a deleted but open
-> > file is a requirement for nfsd or just a recommendation, but IMO it is a
-> > common case that is worth testing, even if tmpfs (or other file systems)
-> > choose not to fix this.
-> > 
-> > Bruce, Jeff,
-> > 
-> > What is your view on this issue?
-> > 
-> > 
+On Sun, Nov 05, 2017 at 10:55:40AM +0200, Amir Goldstein wrote:
+> [adding cc: linux-xfs]
 > 
-> It seems like something that should be a requirement.
+> On Sun, Nov 5, 2017 at 10:17 AM, L A Walsh <lkml@tlinx.org> wrote:
+> > Amir Goldstein wrote:
+> >>
+> >>
+> >>
+> >>>
+> >>> I then created a new xfs file system and mounted it on '/edge';
+> >>>
+> >>>    Ishtar:/edge> xfs_info .
+> >>>    meta-data=/dev/Data/Edge     isize=256    agcount=32,
+> >>>    agsize=16777200 blks     =                   sectsz=4096  attr=2
+> >>>    data     =                   bsize=4096   blocks=536870400, imaxpct=5
+> >>>             =                   sunit=16     swidth=64 blks
+> >>>    naming   =version 2          bsize=4096   ascii-ci=0
+> >>>    log      =internal           bsize=4096   blocks=262143, version=2
+> >>>             =                   sectsz=4096  sunit=1 blks, lazy-count=1
+> >>>    realtime =none               extsz=4096   blocks=0, rtextents=0
+> >>>
+> >>>
+> >>
+> >>
+> >> Your problem is that you do not have "ftype" feature in directory
+> >> name format, like this:
+> >>
+> >> naming   =version 2              bsize=4096   ascii-ci=0 ftype=1
+> >>
+> >> Perhaps you have an old version of mkfs.xfs, not sure when
+> >> ftype=1 became the default format, but you can try to
+> >>   mkfs.xfs -n ftype=1
+> >>
+> >
+> > ----  Ah... no .. last I was told, if you turned on ftype=1,
+> > you had to also pull in crc'ing of all the meta-info.
+> > That has problems -- causes errors where there would be no
+> > problem, and was never tested on mature file systems that were
+> > already fragmented.
+> >
+> >
+> > Do you know if it was separated from crc32 -- for some inexplicable reason,
+> > if you wanted ftype, then the crc option would be forced on for you.
+
+Are you still getting all worked up about how metadata CRCs and
+the v5 on-disk format is going to make the sky fall, Linda? It's
+time to give in and come join us on the dark side...
+
+> I don't know if there was a specific reason, but that's the way it is.
+
+ftype was implemented as part of the format changes for the v5
+format so it's always enabled for v5 filesystems.  It was introduced
+as a mkfs option for the v4 format in early 2014, and since mid-2015
+it's been the default for non-crc filesystems:
+
+# mkfs.xfs -f -m crc=0 /dev/vdb
+.....
+naming   =version 2              bsize=4096   ascii-ci=0 ftype=1
+.....
+
+Users should try to keep your userspace tools up to date with the
+kernel being run.... :)
+
+> > I didn't want it as I didn't want it to flag errors in metadata that
+> > wasn't crucial and didn't want the speed slowdown.  Sigh.
+> >
+> > The problem on crc'ing the meta data, is that there is ALOT more meta
+> > data where detecting it will do more harm than good (like what nanosecond
+> > the file was last changed, for example).  I first ran into it
+> > taking the disk offline when I changed the guid on a newly formatted disk.
+> > That was fixed, but that was a warning shot...   How annoying.
+> >
 > 
-> A client could (for instance) send a READ for a filehandle with one of
-> the special anonymous stateids. If you can't decode the filehandle, you
-> really have no way to know what inode against which to issue the read.
+> I have never heard about those issues that you raise.
+> It sounds like a myth about XFS metadata CRC that should be debunked
+> so forwarding your message on to XFS list.
 
-That said...
+FYI, Amir.
 
-If an open file is unlinked, and the server reboots you're more or less
-back in the same situation anyway. That's generally the reason for
-sillyrenaming in NFSv4.x instead of just removing the files outright.
+Keep in mind that a lot of people didn't like the concept of
+metadata CRCs in XFS because .... reasons.  There has been a history
+of people jumping on bugs and/or not-yet-implemented feature as
+justification for their opposition to the change. Call it the nature
+of the vocal minority - most users haven't noticed and don't care
+that their new install of their distro of choice is now using CRC
+enabled filesystems by default....
 
-The main takeaway is that with NFS in general, it's actually rather
-difficult to ensure that behavior across all server failure scenarios.
-It'd be nice if tmpfs did this like the others, but it's probably not
-fatal if it doesn't.
+As to the issue that Linda raised, yes, it *did* exist.  We baked
+the UUID into the metadata format so we knew what filesystem owns a
+specific metadata block. Handy for detecting stale metadata on a
+reused device as well as misdirected writes.  We knew about it from
+the start (all the tools had to be modified to disallow changing
+UUIDS on v5 filesystems!) but it just wasn't an important enough
+requirement to have this functionality up front for CRC enabled
+filesystems.
 
+However, it wasn't clear what the solution was to the "change UUID"
+problem when CRCs were ready, and we also needed to understand the
+behaviour of cloned v5 filesystems on COW based snapshots before we
+made any sort of change that could require rewriting all the
+metadata in the filesystem. So it took some time for the issue to
+come to the top of the "remaining problems to solve" and when it did
+we had already built up enough knowledge about v5 filesystem
+behaviour to determine the best way to solve the problem.
+
+IOWs, it was always the plan to support it so that tools like
+xfs_copy worked properly with v5 filesystems, but it wasn't a
+primary concern compared to making CRCs robust. It was fixed
+a couple of years ago:
+
+commit 9c4e12fb60c15dc9c5e54041c9679454b42cb23e
+Author: Eric Sandeen <sandeen@sandeen.net>
+Date:   Mon Aug 3 10:45:00 2015 +1000
+
+    xfsprogs: Add new sb_meta_uuid field, update userspace tools to manipulate it
+    
+    This adds a new superblock field, sb_meta_uuid.  This allows us to
+    change the use-visible UUID on crc-enabled filesytems from userspace
+    if desired, by copying the existing UUID to the new location for
+    metadata comparisons.  If this is done, an incompat flag must be
+    set to prevent older filesystems from mounting the filesystem, but
+    the original UUID can be restored, and the incompat flag removed,
+    with a new xfs_db / xfs_admin UUID command, "restore."
+    
+    Much of this patch mirrors the kernel patch in simply renaming
+    the field used for metadata uuid comparison; other bits:
+    
+    * Teach xfs_db to print the new meta_uuid field
+    * Allow xfs_db to generate a new UUID for CRC-enabled filesystems
+    * Allow xfs_db to revert to the original UUID and clear the flag
+    * Fix up xfs_copy to work with CRC-enabled filesystems
+    * Update the xfs_admin manpage to show the UUID "restore" command
+    
+    Signed-off-by: Eric Sandeen <sandeen@redhat.com>
+    Reviewed-by: Brian Foster <bfoster@redhat.com>
+    Signed-off-by: Dave Chinner <david@fromorbit.com>
+
+> See also https://www.spinics.net/lists/xfs/msg19079.html
+
+Yeah, that was in reaction to the loud claims that "CRCs are going
+to slow everything down". Late last year we significantly reduced
+the CPU overhead of CRC calculation on the write side , so it drops
+off the CPU profiles in the workloads described in that like above
+almost entirely. This was the commit:
+
+commit cae028df53449905c944603df624ac94bc619661
+Author: Dave Chinner <dchinner@redhat.com>
+Date:   Mon Dec 5 14:40:32 2016 +1100
+
+    xfs: optimise CRC updates
+    
+    Nick Piggin reported that the CRC overhead in an fsync heavy
+    workload was higher than expected on a Power8 machine. Part of this
+    was to do with the fact that the power8 CRC implementation is not
+    efficient for CRC lengths of less than 512 bytes, and so the way we
+    split the CRCs over the CRC field means a lot of the CRCs are
+    reduced to being less than than optimal size.
+    
+    To optimise this, change the CRC update mechanism to zero the CRC
+    field first, and then compute the CRC in one pass over the buffer
+    and write the result back into the buffer. We can do this safely
+    because anything writing a CRC has exclusive access to the buffer
+    the CRC is being calculated over.
+    
+    We leave the CRC verify code the same - it still splits the CRC
+    calculation - because we do not want read-only operations modifying
+    the underlying buffer. This is because read-only operations may not
+    have an exclusive access to the buffer guaranteed, and so temporary
+    modifications could leak out to to other processes accessing the
+    buffer concurrently.
+    
+    Signed-off-by: Dave Chinner <dchinner@redhat.com>
+    Reviewed-by: Christoph Hellwig <hch@lst.de>
+    Signed-off-by: Dave Chinner <david@fromorbit.com>
+
+Cheers,
+
+Dave.
 -- 
-Jeff Layton <jlayton@kernel.org>
+Dave Chinner
+david@fromorbit.com
