@@ -1,47 +1,54 @@
 From: Amir Goldstein <amir73il@gmail.com>
 Subject: Re: [PATCH v7 5/8] ovl: relax same fs constraint for constant st_ino
-Date: Mon, 6 Nov 2017 23:06:23 +0200
-Message-ID: <CAOQ4uxju1R0qJST4j8C5HHYW+eCg76BTVYueDh3kyQKA_hsX8w@mail.gmail.com>
+Date: Mon, 6 Nov 2017 23:10:42 +0200
+Message-ID: <CAOQ4uxiwSEmGXhhBsEAjuaF7f3fTvDeJ165-vXJ9mZ5Dag0AUQ@mail.gmail.com>
 References: <1509655091-13630-1-git-send-email-amir73il@gmail.com>
  <1509655091-13630-6-git-send-email-amir73il@gmail.com> <20171106204303.GA23294@redhat.com>
+ <CAOQ4uxju1R0qJST4j8C5HHYW+eCg76BTVYueDh3kyQKA_hsX8w@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-yw0-f176.google.com ([209.85.161.176]:53112 "EHLO
-        mail-yw0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751745AbdKFVGY (ORCPT
+Received: from mail-yw0-f196.google.com ([209.85.161.196]:53690 "EHLO
+        mail-yw0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750917AbdKFVKn (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 6 Nov 2017 16:06:24 -0500
-Received: by mail-yw0-f176.google.com with SMTP id w2so9062456ywa.9
-        for <linux-unionfs@vger.kernel.org>; Mon, 06 Nov 2017 13:06:24 -0800 (PST)
-In-Reply-To: <20171106204303.GA23294@redhat.com>
+        Mon, 6 Nov 2017 16:10:43 -0500
+Received: by mail-yw0-f196.google.com with SMTP id q126so9064416ywq.10
+        for <linux-unionfs@vger.kernel.org>; Mon, 06 Nov 2017 13:10:43 -0800 (PST)
+In-Reply-To: <CAOQ4uxju1R0qJST4j8C5HHYW+eCg76BTVYueDh3kyQKA_hsX8w@mail.gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: Vivek Goyal <vgoyal@redhat.com>
 Cc: Miklos Szeredi <miklos@szeredi.hu>, Chandan Rajendra <chandan@linux.vnet.ibm.com>, overlayfs <linux-unionfs@vger.kernel.org>
 
-On Mon, Nov 6, 2017 at 10:43 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
-> On Thu, Nov 02, 2017 at 10:38:08PM +0200, Amir Goldstein wrote:
->> For the case of all layers not on the same fs, return the copy up origin
->> inode st_dev/st_ino for non-dir from stat(2).
+On Mon, Nov 6, 2017 at 11:06 PM, Amir Goldstein <amir73il@gmail.com> wrote:
+> On Mon, Nov 6, 2017 at 10:43 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
+>> On Thu, Nov 02, 2017 at 10:38:08PM +0200, Amir Goldstein wrote:
+>>> For the case of all layers not on the same fs, return the copy up origin
+>>> inode st_dev/st_ino for non-dir from stat(2).
+>>>
+>>> This guaranties constant st_dev/st_ino for non-dir across copy up.
+>>> Like the same fs case, st_ino of non-dir is also persistent.
+>>>
+>>> If the st_dev/st_ino for copied up object would have been the same as
+>>> that of the real underlying lower file, running diff on underlying lower
+>>> file and overlay copied up file would result in diff reporting that the
+>>> two files are equal when in fact, they may have different content.
+>>>
+>>> Therefore, unlike the same fs case, st_dev is not persistent because it
+>>> uses the unique anonymous bdev allocated for the lower layer.
 >>
->> This guaranties constant st_dev/st_ino for non-dir across copy up.
->> Like the same fs case, st_ino of non-dir is also persistent.
+>> I have a stupid question. I thought st_dev is allocated dynamically and
+>> is not persistent across reboot. Is that not the case? If yes, then
+>> it is not persistent for same fs case as well. If yes, above does not
+>> make sense.
 >>
->> If the st_dev/st_ino for copied up object would have been the same as
->> that of the real underlying lower file, running diff on underlying lower
->> file and overlay copied up file would result in diff reporting that the
->> two files are equal when in fact, they may have different content.
->>
->> Therefore, unlike the same fs case, st_dev is not persistent because it
->> uses the unique anonymous bdev allocated for the lower layer.
 >
-> I have a stupid question. I thought st_dev is allocated dynamically and
-> is not persistent across reboot. Is that not the case? If yes, then
-> it is not persistent for same fs case as well. If yes, above does not
-> make sense.
->
+> True. That's a garbage text. Will delete it for v8.
 
-True. That's a garbage text. Will delete it for v8.
-Thanks!
+Replaced with:
+
+Therefore, unlike the same fs case, st_dev is not uniform across all
+overlay object, which is less friednly to du -x.
+
 Amir.
