@@ -1,168 +1,207 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH 3/3] ovl: recover from whiteouts in impure dir iteration
-Date: Tue,  7 Nov 2017 23:39:00 +0200
-Message-ID: <1510090740-7216-4-git-send-email-amir73il@gmail.com>
+Subject: [PATCH 2/3] ovl: set origin xattr for merge dir on lookup
+Date: Tue,  7 Nov 2017 23:38:59 +0200
+Message-ID: <1510090740-7216-3-git-send-email-amir73il@gmail.com>
 References: <1510090740-7216-1-git-send-email-amir73il@gmail.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wr0-f195.google.com ([209.85.128.195]:53516 "EHLO
+Received: from mail-wr0-f195.google.com ([209.85.128.195]:49439 "EHLO
         mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S964823AbdKGViV (ORCPT
+        with ESMTP id S964802AbdKGViU (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 7 Nov 2017 16:38:21 -0500
-Received: by mail-wr0-f195.google.com with SMTP id u40so565023wrf.10
-        for <linux-unionfs@vger.kernel.org>; Tue, 07 Nov 2017 13:38:21 -0800 (PST)
+        Tue, 7 Nov 2017 16:38:20 -0500
+Received: by mail-wr0-f195.google.com with SMTP id o88so572548wrb.6
+        for <linux-unionfs@vger.kernel.org>; Tue, 07 Nov 2017 13:38:19 -0800 (PST)
 In-Reply-To: <1510090740-7216-1-git-send-email-amir73il@gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: Miklos Szeredi <miklos@szeredi.hu>
 Cc: zhangyi <yi.zhang@huawei.com>, linux-unionfs@vger.kernel.org
 
-A merge dir iteration builds the list of files and removes whiteous
-from the list before exposing the list to user.
+For old existing merge dirs whose "origin" xattr was not set at copy up
+time, we amend the situation on lookup.
 
-An impure dir iteration is just a translation layer, so it cannot remove
-entries from real dir list.
-
-When we find a whiteout when starting impure dir iteration, we abort
-impure dir iteration, mark that dir has whiteouts by setting the
-'whiteouts' inode flag and fall back to merge dir iteration to filter
-out the whiteouts.  If dir is upper and xattr supported, we set a
-'null' origin xattr, so the 'whiteouts' flag will be set when loading
-inode from disk.
-
-If we find a whiteout in the middle of non-merge dir iteration, this
-is very strange, because whiteout cannot apear in a non-merge dir, so
-return ESTALE to caller. In that case, next iteration will be merge dir
-iteration.
-
-For pure upper with xattr support, error will be healed permanently.
-For pure lower dir or no xattr support, error will be healed for as long
-as dir inode remains in cache.
-
-Note that under certain conditions, we will not have a reason to start
-impure dir iteration on a non-merge dir and therefore, whiteouts will
-be exposed. Here is an example for such conditions:
-An upper dir was copied up with kernel < v4.12, all files in it are
-either pure or were copied up with kernel < v4.12, whiteouts in it were
-created with kernel <= v4.14.
+If no origin fh is stored in upper of a merge dir, store fh of upper most
+lower dir or 'null' fh if lower does not support file handles. We do this
+so we can filter out whiteouts in case lower dir is removed offline and
+then upper dir becomes a pure upper in a future mount.
 
 Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- fs/overlayfs/overlayfs.h |  1 +
- fs/overlayfs/readdir.c   | 41 ++++++++++++++++++++++++++++++++++++++---
- fs/overlayfs/util.c      | 21 +++++++++++++++++++++
- 3 files changed, 60 insertions(+), 3 deletions(-)
+ fs/overlayfs/namei.c     | 61 ++++++++++++++++++++++++++++++++++++++++--------
+ fs/overlayfs/overlayfs.h |  2 +-
+ fs/overlayfs/super.c     |  4 ++--
+ 3 files changed, 54 insertions(+), 13 deletions(-)
 
-diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-index df925188394f..5fb2d434cff3 100644
---- a/fs/overlayfs/overlayfs.h
-+++ b/fs/overlayfs/overlayfs.h
-@@ -235,6 +235,7 @@ int ovl_check_setxattr(struct dentry *dentry, struct dentry *upperdentry,
- 		       const char *name, const void *value, size_t size,
- 		       int xerr);
- int ovl_set_impure(struct dentry *dentry, struct dentry *upperdentry);
-+int ovl_set_whiteouts(struct dentry *dentry);
- void ovl_set_flag(unsigned long flag, struct inode *inode);
- void ovl_clear_flag(unsigned long flag, struct inode *inode);
- bool ovl_test_flag(unsigned long flag, struct inode *inode);
-diff --git a/fs/overlayfs/readdir.c b/fs/overlayfs/readdir.c
-index 5397ceafc4ac..1e27b9eb389d 100644
---- a/fs/overlayfs/readdir.c
-+++ b/fs/overlayfs/readdir.c
-@@ -498,6 +498,9 @@ static int ovl_cache_update_ino(struct path *path, struct ovl_cache_entry *p)
- 			this = NULL;
- 			goto fail;
- 		}
-+		/* Nothing there? assume this is a whiteout */
-+		if (p->type == DT_CHR)
-+			p->is_whiteout = true;
- 		goto out;
- 	}
- 
-@@ -577,7 +580,15 @@ static int ovl_dir_read_impure(struct path *path,  struct list_head *list,
- 			if (err)
- 				return err;
- 		}
--		if (p->ino == p->real_ino) {
-+		if (p->is_whiteout) {
-+			/*
-+			 * Found a leftover whiteout in non-merge dir from a
-+			 * time it was upper of merge dir? abort impure dir
-+			 * iteration and fall back to merge dir iteration to
-+			 * filter out whiteouts.
-+			 */
-+			return -ESTALE;
-+		} else if (p->ino == p->real_ino) {
- 			list_del(&p->l_node);
- 			kfree(p);
- 		} else {
-@@ -724,9 +735,33 @@ static int ovl_iterate(struct file *file, struct dir_context *ctx)
- 		    (ovl_same_sb(dentry->d_sb) &&
- 		     (ovl_test_flag(OVL_IMPURE, d_inode(dentry)) ||
- 		      OVL_TYPE_MERGE(ovl_path_type(dentry->d_parent))))) {
--			return ovl_iterate_real(file, ctx);
-+			err = ovl_iterate_real(file, ctx);
-+			/*
-+			 * If we found a whiteout leftover when starting
-+			 * non-merge dir iteration (pos == 0), we fall back to
-+			 * merge dir iteration after setting the OVL_WHITEOUTS
-+			 * inode flag.  If we found a whiteout in the middle of
-+			 * non-merge dir iteration, this is very strange,
-+			 * because whiteout cannot apear in a non-merge dir,
-+			 * so return ESTALE to caller in that case. Next
-+			 * iteration will be merge dir iteration.
-+			 *
-+			 * For pure upper with xattr support, the OVL_WHITEOUTS
-+			 * flag is stored as a 'null' origin, so error will be
-+			 * healed permanently. For pure lower dir or no xattr
-+			 * support, error will be healed for as long as dir
-+			 * inode stays in cache.
-+			 */
-+			if (err == -ESTALE) {
-+				ovl_set_whiteouts(dentry);
-+				if (!ctx->pos)
-+					ovl_dir_reset(file);
-+			}
-+			if (od->is_real)
-+				return err;
-+		} else {
-+			return iterate_dir(od->realfile, ctx);
- 		}
--		return iterate_dir(od->realfile, ctx);
- 	}
- 
- 	if (!od->cache) {
-diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
-index 255ae337fc46..cf46da8bfa08 100644
---- a/fs/overlayfs/util.c
-+++ b/fs/overlayfs/util.c
-@@ -426,6 +426,27 @@ int ovl_set_impure(struct dentry *dentry, struct dentry *upperdentry)
- 	return err;
+diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
+index 322c6214114f..65606a0a124c 100644
+--- a/fs/overlayfs/namei.c
++++ b/fs/overlayfs/namei.c
+@@ -87,6 +87,8 @@ static int ovl_acceptable(void *ctx, struct dentry *dentry)
+ 	return 1;
  }
  
-+int ovl_set_whiteouts(struct dentry *dentry)
-+{
-+	struct dentry *upper = ovl_dentry_upper(dentry);
++static struct ovl_fh ovl_null_fh;
 +
-+	if (ovl_test_flag(OVL_WHITEOUTS, d_inode(dentry)))
-+		return 0;
-+
-+	/*
-+	 * Mark that pure dir has whiteouts by setting a the 'whiteouts' flag,
-+	 * so we are protected from exposing whiteouts while inode remains in
-+	 * cache.  If dir is upper and xattr supported, set a 'null' origin fh
-+	 * so the 'whiteouts' flag will be set when loading inode from disk.
-+	 */
-+	ovl_set_flag(OVL_WHITEOUTS, d_inode(dentry));
-+
-+	if (!upper)
-+		return 0;
-+
-+	return ovl_check_setxattr(dentry, upper, OVL_XATTR_ORIGIN, "", 0, 0);
-+}
-+
- void ovl_set_flag(unsigned long flag, struct inode *inode)
+ static struct ovl_fh *ovl_get_origin_fh(struct dentry *dentry)
  {
- 	set_bit(flag, &OVL_I(inode)->flags);
+ 	int res;
+@@ -100,7 +102,7 @@ static struct ovl_fh *ovl_get_origin_fh(struct dentry *dentry)
+ 	}
+ 	/* Zero size value means "copied up but origin unknown" */
+ 	if (res == 0)
+-		return NULL;
++		goto null_fh;
+ 
+ 	fh  = kzalloc(res, GFP_KERNEL);
+ 	if (!fh)
+@@ -118,12 +120,12 @@ static struct ovl_fh *ovl_get_origin_fh(struct dentry *dentry)
+ 
+ 	/* Treat larger version and unknown flags as "origin unknown" */
+ 	if (fh->version > OVL_FH_VERSION || fh->flags & ~OVL_FH_FLAG_ALL)
+-		goto out;
++		goto null_fh;
+ 
+ 	/* Treat endianness mismatch as "origin unknown" */
+ 	if (!(fh->flags & OVL_FH_FLAG_ANY_ENDIAN) &&
+ 	    (fh->flags & OVL_FH_FLAG_BIG_ENDIAN) != OVL_FH_FLAG_CPU_ENDIAN)
+-		goto out;
++		goto null_fh;
+ 
+ 	return fh;
+ 
+@@ -131,6 +133,10 @@ static struct ovl_fh *ovl_get_origin_fh(struct dentry *dentry)
+ 	kfree(fh);
+ 	return NULL;
+ 
++null_fh:
++	kfree(fh);
++	return &ovl_null_fh;
++
+ fail:
+ 	pr_warn_ratelimited("overlayfs: failed to get origin (%i)\n", res);
+ 	goto out;
+@@ -149,6 +155,9 @@ static struct dentry *ovl_get_origin(struct dentry *dentry,
+ 	if (IS_ERR_OR_NULL(fh))
+ 		return (struct dentry *)fh;
+ 
++	if (fh == &ovl_null_fh)
++		return NULL;
++
+ 	/*
+ 	 * Make sure that the stored uuid matches the uuid of the lower
+ 	 * layer where file handle will be decoded.
+@@ -333,6 +342,10 @@ static int ovl_verify_origin_fh(struct dentry *dentry, const struct ovl_fh *fh)
+ 	if (IS_ERR(ofh))
+ 		return PTR_ERR(ofh);
+ 
++	/* NULL fh (no lower fh support) and stored 'null' fh is a match */
++	if (ofh == &ovl_null_fh)
++		return fh ? -ESTALE : 0;
++
+ 	if (fh->len != ofh->len || memcmp(fh, ofh, fh->len))
+ 		err = -ESTALE;
+ 
+@@ -345,24 +358,40 @@ static int ovl_verify_origin_fh(struct dentry *dentry, const struct ovl_fh *fh)
+  *
+  * If @set is true and there is no stored file handle, encode and store origin
+  * file handle in OVL_XATTR_ORIGIN.
++ * If @strict is true, then the stored file handle must be non 'null'.
++ * If @strict is false, then a stored 'null' file handle and lower with no file
++ * handle support is considered a match.
+  *
+  * Return 0 on match, -ESTALE on mismatch, < 0 on error.
+  */
+ int ovl_verify_origin(struct dentry *dentry, struct dentry *origin,
+-		      bool is_upper, bool set)
++		      bool is_upper, bool set, bool strict)
+ {
+ 	struct inode *inode;
+-	struct ovl_fh *fh;
++	const struct ovl_fh *fh = NULL;
+ 	int err;
+ 
+-	fh = ovl_encode_fh(origin, is_upper);
+-	err = PTR_ERR(fh);
+-	if (IS_ERR(fh))
++	/*
++	 * When lower layer doesn't support export operations store a 'null' fh,
++	 * so we can use the overlay.origin xattr to distignuish between a copy
++	 * up and a pure upper inode.
++	 */
++	err = -EOPNOTSUPP;
++	if (ovl_can_decode_fh(origin->d_sb)) {
++		fh = ovl_encode_fh(origin, is_upper);
++		err = PTR_ERR(fh);
++		if (IS_ERR(fh))
++			goto fail;
++	} else if (strict) {
+ 		goto fail;
++	}
+ 
+ 	err = ovl_verify_origin_fh(dentry, fh);
+-	if (set && err == -ENODATA)
+-		err = ovl_do_setxattr(dentry, OVL_XATTR_ORIGIN, fh, fh->len, 0);
++	if (set && err == -ENODATA) {
++		err = ovl_do_setxattr(dentry, OVL_XATTR_ORIGIN, fh,
++				      fh ? fh->len : 0, 0);
++	}
++
+ 	if (err)
+ 		goto fail;
+ 
+@@ -662,6 +691,18 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
+ 		if (!this)
+ 			continue;
+ 
++		/*
++		 * If no origin fh is stored in upper of a merge dir, store fh
++		 * of upper most lower dir or 'null' fh if lower does not
++		 * support file handles. We do this so we can filter out
++		 * whiteouts in case lower dir is removed offline and this upper
++		 * becomes a pure upper in a future mount.
++		 */
++		if (this && upperdentry && !ctr) {
++			(void)ovl_verify_origin(upperdentry, this,
++						false, true, false);
++		}
++
+ 		stack[ctr].dentry = this;
+ 		stack[ctr].layer = lower.layer;
+ 		ctr++;
+diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
+index bee51296db38..df925188394f 100644
+--- a/fs/overlayfs/overlayfs.h
++++ b/fs/overlayfs/overlayfs.h
+@@ -252,7 +252,7 @@ static inline bool ovl_is_impuredir(struct dentry *dentry)
+ 
+ /* namei.c */
+ int ovl_verify_origin(struct dentry *dentry, struct dentry *origin,
+-		      bool is_upper, bool set);
++		      bool is_upper, bool set, bool strict);
+ int ovl_verify_index(struct dentry *index, struct ovl_path *lower,
+ 		     unsigned int numlower);
+ int ovl_get_index_name(struct dentry *origin, struct qstr *name);
+diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+index af4d3e876398..f8bba4f8b940 100644
+--- a/fs/overlayfs/super.c
++++ b/fs/overlayfs/super.c
+@@ -1120,7 +1120,7 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
+ 		/* Verify lower root is upper root origin */
+ 		err = ovl_verify_origin(upperpath.dentry,
+ 					oe->lowerstack[0].dentry,
+-					false, true);
++					false, true, true);
+ 		if (err) {
+ 			pr_err("overlayfs: failed to verify upper root origin\n");
+ 			goto out_free_oe;
+@@ -1131,7 +1131,7 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
+ 		if (ufs->indexdir) {
+ 			/* Verify upper root is index dir origin */
+ 			err = ovl_verify_origin(ufs->indexdir, upperpath.dentry,
+-						true, true);
++						true, true, true);
+ 			if (err)
+ 				pr_err("overlayfs: failed to verify index dir origin\n");
+ 
 -- 
 2.7.4
