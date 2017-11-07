@@ -1,107 +1,75 @@
-From: Jeff Layton <jlayton@kernel.org>
-Subject: Re: Regression in overlayfs in 4.13: "could not fsync file" error
- by PostgreSQL
-Date: Tue, 07 Nov 2017 11:54:01 -0500
-Message-ID: <1510073641.4705.11.camel@kernel.org>
-References: <20171103140046.h6oabi5tjqqvj6uj@home.ouaza.com>
-         <CAOQ4uxhcWYRcGdwE0QXpZ-_4BFX7LGFyFkFrZSvUgf4PSUFBkg@mail.gmail.com>
-         <20171107101125.zwcfd4v3h6pfilhm@home.ouaza.com>
-         <CAOQ4uxhLYovF77D6RpdN1LgQsBLRJsuBK6L_aUdncqPgVeE-mA@mail.gmail.com>
-         <1510055685.4518.7.camel@kernel.org>
-         <CAOQ4uxh5GS+hPRZYcQHD5Q+DnibB181_mvZtOnxvvp8tCNPsAg@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
+From: Amir Goldstein <amir73il@gmail.com>
+Subject: [PATCH v8 0/9] Overlayfs: constant st_ino/d_ino for non-samefs
+Date: Tue,  7 Nov 2017 18:58:00 +0200
+Message-ID: <1510073889-11657-1-git-send-email-amir73il@gmail.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:37430 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753851AbdKGQyD (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 7 Nov 2017 11:54:03 -0500
-In-Reply-To: <CAOQ4uxh5GS+hPRZYcQHD5Q+DnibB181_mvZtOnxvvp8tCNPsAg@mail.gmail.com>
+Received: from mail-wm0-f67.google.com ([74.125.82.67]:57192 "EHLO
+        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752713AbdKGQ5c (ORCPT
+        <rfc822;linux-unionfs@vger.kernel.org>);
+        Tue, 7 Nov 2017 11:57:32 -0500
+Received: by mail-wm0-f67.google.com with SMTP id z3so5318714wme.5
+        for <linux-unionfs@vger.kernel.org>; Tue, 07 Nov 2017 08:57:31 -0800 (PST)
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: Raphael Hertzog <raphael@ouaza.com>, overlayfs <linux-unionfs@vger.kernel.org>
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: Chandan Rajendra <chandan@linux.vnet.ibm.com>, Vivek Goyal <vgoyal@redhat.com>, linux-unionfs@vger.kernel.org
 
-On Tue, 2017-11-07 at 14:16 +0200, Amir Goldstein wrote:
-> On Tue, Nov 7, 2017 at 1:54 PM, Jeff Layton <jlayton@kernel.org> wrote:
-> > On Tue, 2017-11-07 at 13:01 +0200, Amir Goldstein wrote:
-> > > On Tue, Nov 7, 2017 at 12:11 PM, Raphael Hertzog <raphael@ouaza.com> wrote:
-> > > > Hello Amir,
-> > > > 
-> > > > Le samedi 04 novembre 2017, Amir Goldstein a écrit :
-> > > > > I tries mounting squashfs+overlayfs to /var/lib/postgresql and create
-> > > > > db on Ubuntu and it seemed ok.
-> > > > 
-> > > > FWIW, in my failing case, it uses PostgreSQL 10.0 as in Debian
-> > > > Testing/Unstable. In Ubuntu, it's only available in Bionic Beaver (development
-> > > > release).
-> > > 
-> > > And is this the same PostgreSQL version that worked with kernel v4.12.6?
-> > > 
-> > > [...]
-> > > 
-> > > > As for strace output, postgresql is split over multiple processes. The one that
-> > > > generates the error in the log is 31599 (checkpointer process). I also attach
-> > > > some file listing of the directories that it fails to fsync. strace looks like
-> > > > this (in loop):
-> > > > 
-> > > > # strace -f -p 31599
-> > > > select(0, NULL, NULL, NULL, {tv_sec=1, tv_usec=0}) = 0 (Timeout)
-> > > > rt_sigprocmask(SIG_SETMASK, [], NULL, 8) = 0
-> > > > open("pg_xact", O_RDONLY)               = 3
-> > > > fsync(3)                                = 0
-> > > > close(3)                                = 0
-> > > > open("pg_commit_ts", O_RDONLY)          = 3
-> > > > fsync(3)                                = -1 EINVAL (Invalid argument)
-> > > 
-> > > The reason for the error is quite straight forward.
-> > > open O_RDONLY gets an open file on lower read-only squashfs
-> > > that doesn't have an fsync operation, so fsync returns EINVAL as per
-> > > the man page documentation:
-> > > 
-> > > EROFS, EINVAL
-> > >               fd is bound to a special file which does not support
-> > > synchronization.
-> > > 
-> > 
-> > If that's the case, then why didn't the fsync(3) call not return
-> > EINVAL?  Was it because it was copied up first?
-> 
-> Allegedly yes.
-> We see in ls -l at the end of report that file 0000 inside pg_xact
-> mtime (Nov 7) is newer than squashfs mtime (Oct 30).
-> 
-> > 
-> > If so, then maybe something changed in v4.13 to cause the pg_commit_ts
-> > file
-> 
-> Wait, I misread the information in the report and I wrongly assumed that
-> pg_commit_ts is a file. It is not. it's a directory in which case, the
-> inode is an
-> overlay inode and it does have fsync f_op.
-> But in the case of a lower directory that has no been copied up (which seems
-> to be the case with pg_commit_ts) overlayfs will simple vfs_fsync_range the
-> lower dir, so we are back to EINVAL.
-> 
-> > to not have been be copied up here, when it would have before?
-> > 
-> 
-> That is possible, but I would need more information about all the previous
-> access to directory pg_commit_ts by postgresql to figure it out.
-> 
-> Are there any aspects of fsync error reporting for directory fsync that
-> we need to consider as leads to investigate?
-> 
-> Amir.
+Miklos,
 
-At the VFS layer, we don't really make a big distinction between file
-and dir inodes with fsync. If it has dirty data, it'll get synced out
-either way.
+This version provides a solution for some interesting non-samefs cases:
+- All the ext* family
+- Many other fs with default encode_fh
+- xfs that is not huge with overlay 'xino' mount option
+- tmpfs that is not on a machine with jurassic uptime with 'xino'
 
-If you think that the -EINVAL is getting stored and reported via the
-inode's errseq_t, you can try enabling the file_check_and_advance_wb_err
-and filemap_set_wb_err tracepoints to catch it. Those only fire when an
-error is reported or recorded via that subsystem.
+I tested this with Chandan's upstream overlay/041 xfstest for
+consistent d_ino in non-samefs setup. Results are:
+- Test passes for ext4
+- Test fails for xfs
+- Test fails for xfs with OVERLAY_MOUNT_OPTIONS=-oxino,
+  but this is because of a test bug
+- With the test bug fix available at [2] test passes
+  with xfs and OVERLAY_MOUNT_OPTIONS=-oxino
+
+All the exportfs tests also pass with these changes and
+either ext4 or xfs with OVERLAY_MOUNT_OPTIONS=-oxino.
+
+Changes since v7:
+- Drop patches for building impure cache for non-samefs subdirs
+- Dropped patch "update cache version of impure parent on rename"
+  because it is not relevant to this series
+- Remap lower inode numbers for 32bit inode file systems
+- Add mount option 'xino' for opting-in to use high inode bits
+
+Thanks,
+Amir.
+
+[1] https://github.com/amir73il/linux/commits/ovl-nonsamefs-v8
+[2] https://github.com/amir73il/xfstests/commits/overlayfs-devel
+
+Amir Goldstein (8):
+  ovl: move include of ovl_entry.h into overlayfs.h
+  ovl: allocate anonymous devs for lowerdirs
+  ovl: factor out ovl_map_dev_ino() helper
+  ovl: return anonymous st_dev for lower inodes
+  ovl: relax same fs constraint for constant st_ino
+  ovl: constant st_ino for non-samefs with xino
+  ovl: consistent d_ino for non-samefs with xino
+  ovl: add support for 'xino' mount option
+
+Chandan Rajendra (1):
+  ovl: re-structure overlay lower layers in-memory
+
+ fs/overlayfs/copy_up.c   |   1 -
+ fs/overlayfs/inode.c     |  91 +++++++++++++++++++++++++--------
+ fs/overlayfs/namei.c     |  42 +++++++--------
+ fs/overlayfs/overlayfs.h |   9 ++--
+ fs/overlayfs/ovl_entry.h |  19 ++++++-
+ fs/overlayfs/readdir.c   |  49 +++++++++++++++---
+ fs/overlayfs/super.c     | 129 +++++++++++++++++++++++++++++++++--------------
+ fs/overlayfs/util.c      |  39 ++++++++++++--
+ 8 files changed, 277 insertions(+), 102 deletions(-)
+
 -- 
-Jeff Layton <jlayton@kernel.org>
+2.7.4
