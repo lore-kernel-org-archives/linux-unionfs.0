@@ -1,32 +1,88 @@
-From: "J . Bruce Fields" <bfields@fieldses.org>
-Subject: Re: [PATCH 0/7] More NFS file handle unit tests
-Date: Tue, 7 Nov 2017 15:05:02 -0500
-Message-ID: <20171107200502.GD24262@fieldses.org>
-References: <1509617739-15744-1-git-send-email-amir73il@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Amir Goldstein <amir73il@gmail.com>
+Subject: [PATCH] tmpfs: allow decoding a file handle of an unlinked file
+Date: Tue,  7 Nov 2017 22:50:01 +0200
+Message-ID: <1510087801-20663-1-git-send-email-amir73il@gmail.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from fieldses.org ([173.255.197.46]:48618 "EHLO fieldses.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932834AbdKGUFD (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 7 Nov 2017 15:05:03 -0500
-Content-Disposition: inline
-In-Reply-To: <1509617739-15744-1-git-send-email-amir73il@gmail.com>
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:45853 "EHLO
+        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932298AbdKGUtT (ORCPT
+        <rfc822;linux-unionfs@vger.kernel.org>);
+        Tue, 7 Nov 2017 15:49:19 -0500
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: Eryu Guan <eguan@redhat.com>, Jeff Layton <jlayton@poochiereds.net>, Miklos Szeredi <miklos@szeredi.hu>, fstests@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: Jeff Layton <jlayton@poochiereds.net>, "J . Bruce Fields" <bfields@fieldses.org>, linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, Hugh Dickins <hughd@google.com>, Al Viro <viro@zeniv.linux.org.uk>
 
-On Thu, Nov 02, 2017 at 12:15:32PM +0200, Amir Goldstein wrote:
-> Eryu,
-> 
-> This series enhances test coverage for generic NFS file handles
-> encode/decode functionality and adds a new gereric/exportfs test.
+tmpfs uses the helper d_find_alias() to find a dentry from a decoded
+inode, but d_find_alias() skips unhashed dentries, so unlinked files
+cannot be decoded from a file handle.
 
-Look fine to me.
+This can be reproduced using xfstests test program open_by_handle:
+$ open_by handle -c /tmp/testdir
+$ open_by_handle -dk /tmp/testdir
+open_by_handle(/tmp/testdir/file000000) returned 116 incorrectly on an
+unlinked open file!
 
-My only worry is the reliance on drop_caches.  It doesn't really
-guarantee that the dentries will diseappear.  But I think we've had that
-discussion before, and anyway that problem predates these patches.
+To fix this, use a variant of d_find_alias() that returns any alias,
+even an unhashed one.
 
---b.
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+---
+ mm/shmem.c | 22 +++++++++++++++++++++-
+ 1 file changed, 21 insertions(+), 1 deletion(-)
+
+Miklos,
+
+Please see if that patch looks correct.
+
+Bruce and Jeff indicated that the current tmpfs behavior is not desirable
+for nfsd. It may be uncommon to export a tmpfs, but it is going to become
+a lot more common when exporting an overlayfs with upper tmpfs.
+
+Thanks,
+Amir.
+
+diff --git a/mm/shmem.c b/mm/shmem.c
+index 07a1d22807be..f7c555ebf0f2 100644
+--- a/mm/shmem.c
++++ b/mm/shmem.c
+@@ -3404,6 +3404,26 @@ static int shmem_match(struct inode *ino, void *vfh)
+ 	return ino->i_ino == inum && fh[0] == ino->i_generation;
+ }
+ 
++/* Find any alias of inode, even an unhashed one */
++static struct dentry *shmem_find_alias(struct inode *inode)
++{
++	struct dentry *alias;
++
++	spin_lock(&inode->i_lock);
++	hlist_for_each_entry(alias, &inode->i_dentry, d_u.d_alias) {
++		dget(alias);
++		if (alias->d_inode == inode) {
++			spin_unlock(&inode->i_lock);
++			return alias;
++		}
++		dput(alias);
++	}
++	spin_unlock(&inode->i_lock);
++
++	return NULL;
++}
++
++
+ static struct dentry *shmem_fh_to_dentry(struct super_block *sb,
+ 		struct fid *fid, int fh_len, int fh_type)
+ {
+@@ -3420,7 +3440,7 @@ static struct dentry *shmem_fh_to_dentry(struct super_block *sb,
+ 	inode = ilookup5(sb, (unsigned long)(inum + fid->raw[0]),
+ 			shmem_match, fid->raw);
+ 	if (inode) {
+-		dentry = d_find_alias(inode);
++		dentry = shmem_find_alias(inode);
+ 		iput(inode);
+ 	}
+ 
+-- 
+2.7.4
