@@ -1,121 +1,59 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [PATCH] tmpfs: allow decoding a file handle of an unlinked file
-Date: Tue, 7 Nov 2017 23:17:53 +0200
-Message-ID: <CAOQ4uxiYDMWXBnvjTJo+wG8uLvoXDVBBVZdo3ETxxCgt5BxgyQ@mail.gmail.com>
-References: <1510087801-20663-1-git-send-email-amir73il@gmail.com> <1510088280.3118.42.camel@HansenPartnership.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Subject: [PATCH 0/3] Overlayfs restoring of origin fh
+Date: Tue,  7 Nov 2017 23:38:57 +0200
+Message-ID: <1510090740-7216-1-git-send-email-amir73il@gmail.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-yw0-f193.google.com ([209.85.161.193]:45384 "EHLO
-        mail-yw0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933975AbdKGVRz (ORCPT
+Received: from mail-wr0-f196.google.com ([209.85.128.196]:43645 "EHLO
+        mail-wr0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S964802AbdKGViR (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 7 Nov 2017 16:17:55 -0500
-In-Reply-To: <1510088280.3118.42.camel@HansenPartnership.com>
+        Tue, 7 Nov 2017 16:38:17 -0500
+Received: by mail-wr0-f196.google.com with SMTP id 4so589798wrt.0
+        for <linux-unionfs@vger.kernel.org>; Tue, 07 Nov 2017 13:38:17 -0800 (PST)
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: James Bottomley <James.Bottomley@hansenpartnership.com>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, Jeff Layton <jlayton@poochiereds.net>, "J . Bruce Fields" <bfields@fieldses.org>, overlayfs <linux-unionfs@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Hugh Dickins <hughd@google.com>, Al Viro <viro@zeniv.linux.org.uk>
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: zhangyi <yi.zhang@huawei.com>, linux-unionfs@vger.kernel.org
 
-On Tue, Nov 7, 2017 at 10:58 PM, James Bottomley
-<James.Bottomley@hansenpartnership.com> wrote:
-> On Tue, 2017-11-07 at 22:50 +0200, Amir Goldstein wrote:
->> tmpfs uses the helper d_find_alias() to find a dentry from a decoded
->> inode, but d_find_alias() skips unhashed dentries, so unlinked files
->> cannot be decoded from a file handle.
->>
->> This can be reproduced using xfstests test program open_by_handle:
->> $ open_by handle -c /tmp/testdir
->> $ open_by_handle -dk /tmp/testdir
->> open_by_handle(/tmp/testdir/file000000) returned 116 incorrectly on
->> an
->> unlinked open file!
->>
->> To fix this, use a variant of d_find_alias() that returns any alias,
->> even an unhashed one.
->>
->> Cc: Hugh Dickins <hughd@google.com>
->> Cc: Al Viro <viro@zeniv.linux.org.uk>
->> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
->> ---
->>  mm/shmem.c | 22 +++++++++++++++++++++-
->>  1 file changed, 21 insertions(+), 1 deletion(-)
->>
->> Miklos,
->>
->> Please see if that patch looks correct.
->>
->> Bruce and Jeff indicated that the current tmpfs behavior is not
->> desirable
->> for nfsd. It may be uncommon to export a tmpfs, but it is going to
->> become
->> a lot more common when exporting an overlayfs with upper tmpfs.
->>
->> Thanks,
->> Amir.
->>
->> diff --git a/mm/shmem.c b/mm/shmem.c
->> index 07a1d22807be..f7c555ebf0f2 100644
->> --- a/mm/shmem.c
->> +++ b/mm/shmem.c
->> @@ -3404,6 +3404,26 @@ static int shmem_match(struct inode *ino, void
->> *vfh)
->>       return ino->i_ino == inum && fh[0] == ino->i_generation;
->>  }
->>
->> +/* Find any alias of inode, even an unhashed one */
->> +static struct dentry *shmem_find_alias(struct inode *inode)
->> +{
->> +     struct dentry *alias;
->> +
->> +     spin_lock(&inode->i_lock);
->> +     hlist_for_each_entry(alias, &inode->i_dentry, d_u.d_alias) {
->> +             dget(alias);
->> +             if (alias->d_inode == inode) {
->> +                     spin_unlock(&inode->i_lock);
->> +                     return alias;
->> +             }
->> +             dput(alias);
->> +     }
->> +     spin_unlock(&inode->i_lock);
->> +
->> +     return NULL;
->> +}
->
-> This doesn't look right in the case of a multiply linked inode for
-> which you've removing some of the link names because it will return the
-> first alias it finds, which may be unhashed.  Isn't what you want for
-> it to return the first hashed alias if one exists, or the first
-> unhashed one if none do, so this code
->
->> @@ -3420,7 +3440,7 @@ static struct dentry *shmem_fh_to_dentry(struct
->> super_block *sb,
->>         inode = ilookup5(sb, (unsigned long)(inum + fid->raw[0]),
->>                         shmem_match, fid->raw);
->>         if (inode) {
->> -               dentry = d_find_alias(inode);
->> +               dentry = shmem_find_alias(inode);
->>                 iput(inode);
->>         }
->
->
-> Should actually be
->
-> if (inode) {
->         dentry = d_find_alias(inode);
->         if (!dentry)
->                 dentry = shmem_find_alias(inode);
->         iput(inode)
-> }
->
-> ?
->
+Miklos,
 
+This series is complementary to the whiteouts expose patches.
+Patch 2 restores origin xattr on lookup of merge dir (that was copied up
+before v4.12).
+Patch 3 sets a 'null' origin fh on dir if we happen to iterate an 'impure'
+dir and find a whiteout while looking for copy ups. This is expected to
+happen if merge dir was copied up before v4.12, but files inside it were
+copied up after v4.12.
 
-Perhaps, but I don't think that matters to nfsd. ??
-I think nfsd is going to use that alias only for accessing the inode anyway.
-tmpfs doesn't implement get_parent() for reconnect of non-dir, and for
-directory, there is only one alias and d_find_alias() returns it even if it
-is unhashed.
+This series is currently based on top of non-samefs series and all patches
+for v4.15 are piled on my overlayfs-devel branch [1]. Let me know if you
+want me to rebase them differently.
 
+I enhanced Zhangyi's xfstest overlay/031, which tests for exposed whiteouts
+to cover the 2 cases addressed by this series. The enhanced test is
+available on my xfstests branch [2].
+
+Zhangyi,
+
+I would appreciate a review of those patches and the test changes.
+
+Thanks,
 Amir.
+
+[1] https://github.com/amir73il/linux/commits/overlayfs-devel
+[2] https://github.com/amir73il/xfstests/commits/overlayfs-devel
+
+Amir Goldstein (3):
+  ovl: remove unneeded arg from ovl_verify_origin()
+  ovl: set origin xattr for merge dir on lookup
+  ovl: recover from whiteouts in impure dir iteration
+
+ fs/overlayfs/namei.c     | 63 +++++++++++++++++++++++++++++++++++++++---------
+ fs/overlayfs/overlayfs.h |  5 ++--
+ fs/overlayfs/readdir.c   | 41 ++++++++++++++++++++++++++++---
+ fs/overlayfs/super.c     |  7 +++---
+ fs/overlayfs/util.c      | 21 ++++++++++++++++
+ 5 files changed, 117 insertions(+), 20 deletions(-)
+
+-- 
+2.7.4
