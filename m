@@ -1,111 +1,106 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH v8 1/9] ovl: move include of ovl_entry.h into overlayfs.h
-Date: Tue,  7 Nov 2017 18:58:01 +0200
-Message-ID: <1510073889-11657-2-git-send-email-amir73il@gmail.com>
+Subject: [PATCH v8 3/9] ovl: allocate anonymous devs for lowerdirs
+Date: Tue,  7 Nov 2017 18:58:03 +0200
+Message-ID: <1510073889-11657-4-git-send-email-amir73il@gmail.com>
 References: <1510073889-11657-1-git-send-email-amir73il@gmail.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wm0-f67.google.com ([74.125.82.67]:49449 "EHLO
-        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753192AbdKGQ5d (ORCPT
+Received: from mail-wm0-f68.google.com ([74.125.82.68]:52844 "EHLO
+        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754954AbdKGQ5g (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 7 Nov 2017 11:57:33 -0500
-Received: by mail-wm0-f67.google.com with SMTP id b189so5101616wmd.4
-        for <linux-unionfs@vger.kernel.org>; Tue, 07 Nov 2017 08:57:32 -0800 (PST)
+        Tue, 7 Nov 2017 11:57:36 -0500
+Received: by mail-wm0-f68.google.com with SMTP id t139so5364051wmt.1
+        for <linux-unionfs@vger.kernel.org>; Tue, 07 Nov 2017 08:57:35 -0800 (PST)
 In-Reply-To: <1510073889-11657-1-git-send-email-amir73il@gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: Miklos Szeredi <miklos@szeredi.hu>
 Cc: Chandan Rajendra <chandan@linux.vnet.ibm.com>, Vivek Goyal <vgoyal@redhat.com>, linux-unionfs@vger.kernel.org
 
-Most overlayfs c files already explicitly include ovl_entry.h
-to use overlay entry struct definitions and upcoming changes
-are going to require even more c files to include this header.
+Generate unique values of st_dev per lower layer for non-samefs
+overlay mount. The unique values are obtained by allocating anonymous
+bdevs for each of the lowerdirs in the overlayfs instance.
 
-All overlayfs c files include overlayfs.h and overlayfs.h itself
-refers to some structs defined in ovl_entry.h, so it seems more
-logic to include ovl_entry.h from overlayfs.h than from c files.
+The anonymous bdev is going to be returned by stat(2) for lowerdir
+non-dir entries in non-samefs case.
 
+[amir: split from ovl_getattr() and re-structure patches]
+
+Signed-off-by: Chandan Rajendra <chandan@linux.vnet.ibm.com>
 Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- fs/overlayfs/copy_up.c   | 1 -
- fs/overlayfs/inode.c     | 1 -
- fs/overlayfs/namei.c     | 1 -
- fs/overlayfs/overlayfs.h | 1 +
- fs/overlayfs/super.c     | 1 -
- fs/overlayfs/util.c      | 1 -
- 6 files changed, 1 insertion(+), 5 deletions(-)
+ fs/overlayfs/ovl_entry.h |  1 +
+ fs/overlayfs/super.c     | 18 ++++++++++++++++--
+ 2 files changed, 17 insertions(+), 2 deletions(-)
 
-diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
-index c441f9387a1b..9311d183b532 100644
---- a/fs/overlayfs/copy_up.c
-+++ b/fs/overlayfs/copy_up.c
-@@ -22,7 +22,6 @@
- #include <linux/ratelimit.h>
- #include <linux/exportfs.h>
- #include "overlayfs.h"
--#include "ovl_entry.h"
+diff --git a/fs/overlayfs/ovl_entry.h b/fs/overlayfs/ovl_entry.h
+index 7573f98ddec1..63ef5ae9275b 100644
+--- a/fs/overlayfs/ovl_entry.h
++++ b/fs/overlayfs/ovl_entry.h
+@@ -21,6 +21,7 @@ struct ovl_layer {
+ 	struct vfsmount *mnt;
+ 	/* Index of this layer in mount (upper == 0) */
+ 	int idx;
++	dev_t pseudo_dev;
+ };
  
- #define OVL_COPY_UP_CHUNK_SIZE (1 << 20)
- 
-diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
-index 2949448d0c7d..b772e5a2a730 100644
---- a/fs/overlayfs/inode.c
-+++ b/fs/overlayfs/inode.c
-@@ -14,7 +14,6 @@
- #include <linux/posix_acl.h>
- #include <linux/ratelimit.h>
- #include "overlayfs.h"
--#include "ovl_entry.h"
- 
- int ovl_setattr(struct dentry *dentry, struct iattr *attr)
- {
-diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
-index a12dc10bf726..505a4b8902fc 100644
---- a/fs/overlayfs/namei.c
-+++ b/fs/overlayfs/namei.c
-@@ -15,7 +15,6 @@
- #include <linux/mount.h>
- #include <linux/exportfs.h>
- #include "overlayfs.h"
--#include "ovl_entry.h"
- 
- struct ovl_lookup_data {
- 	struct qstr name;
-diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-index d53157ccf0d7..1cf3bdd193a4 100644
---- a/fs/overlayfs/overlayfs.h
-+++ b/fs/overlayfs/overlayfs.h
-@@ -9,6 +9,7 @@
- 
- #include <linux/kernel.h>
- #include <linux/uuid.h>
-+#include "ovl_entry.h"
- 
- enum ovl_path_type {
- 	__OVL_PATH_UPPER	= (1 << 0),
+ struct ovl_path {
 diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-index f5738e96a052..8702803ba328 100644
+index ceca3a9ac27f..0b8fe8dca187 100644
 --- a/fs/overlayfs/super.c
 +++ b/fs/overlayfs/super.c
-@@ -18,7 +18,6 @@
- #include <linux/seq_file.h>
- #include <linux/posix_acl_xattr.h>
- #include "overlayfs.h"
--#include "ovl_entry.h"
+@@ -219,8 +219,10 @@ static void ovl_put_super(struct super_block *sb)
+ 	if (ufs->upper_mnt && ufs->upperdir_locked)
+ 		ovl_inuse_unlock(ufs->upper_mnt->mnt_root);
+ 	mntput(ufs->upper_mnt);
+-	for (i = 0; i < ufs->numlower; i++)
++	for (i = 0; i < ufs->numlower; i++) {
+ 		mntput(ufs->lower_layers[i].mnt);
++		free_anon_bdev(ufs->lower_layers[i].pseudo_dev);
++	}
+ 	kfree(ufs->lower_layers);
  
- MODULE_AUTHOR("Miklos Szeredi <miklos@szeredi.hu>");
- MODULE_DESCRIPTION("Overlay filesystem");
-diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
-index 51ca8bd16009..9158d17bb320 100644
---- a/fs/overlayfs/util.c
-+++ b/fs/overlayfs/util.c
-@@ -17,7 +17,6 @@
- #include <linux/namei.h>
- #include <linux/ratelimit.h>
- #include "overlayfs.h"
--#include "ovl_entry.h"
+ 	kfree(ufs->config.lowerdir);
+@@ -1032,11 +1034,19 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
+ 		goto out_put_workdir;
+ 	for (i = 0; i < numlower; i++) {
+ 		struct vfsmount *mnt;
++		dev_t dev;
++
++		err = get_anon_bdev(&dev);
++		if (err) {
++			pr_err("overlayfs: failed to get anonymous bdev for lowerpath\n");
++			goto out_put_lower_layers;
++		}
  
- int ovl_want_write(struct dentry *dentry)
- {
+ 		mnt = clone_private_mount(&stack[i]);
+ 		err = PTR_ERR(mnt);
+ 		if (IS_ERR(mnt)) {
+ 			pr_err("overlayfs: failed to clone lowerpath\n");
++			free_anon_bdev(dev);
+ 			goto out_put_lower_layers;
+ 		}
+ 		/*
+@@ -1047,6 +1057,7 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
+ 
+ 		ufs->lower_layers[ufs->numlower].mnt = mnt;
+ 		ufs->lower_layers[ufs->numlower].idx = i + 1;
++		ufs->lower_layers[ufs->numlower].pseudo_dev = dev;
+ 		ufs->numlower++;
+ 
+ 		/* Check if all lower layers are on same sb */
+@@ -1161,8 +1172,11 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
+ out_free_oe:
+ 	kfree(oe);
+ out_put_lower_layers:
+-	for (i = 0; i < ufs->numlower; i++)
++	for (i = 0; i < ufs->numlower; i++) {
++		if (ufs->lower_layers[i].mnt)
++			free_anon_bdev(ufs->lower_layers[i].pseudo_dev);
+ 		mntput(ufs->lower_layers[i].mnt);
++	}
+ 	kfree(ufs->lower_layers);
+ out_put_workdir:
+ 	dput(ufs->workdir);
 -- 
 2.7.4
