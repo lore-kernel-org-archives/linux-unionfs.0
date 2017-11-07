@@ -1,152 +1,85 @@
-From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH v8 8/9] ovl: consistent d_ino for non-samefs with xino
-Date: Tue,  7 Nov 2017 18:58:08 +0200
-Message-ID: <1510073889-11657-9-git-send-email-amir73il@gmail.com>
+From: Vivek Goyal <vgoyal@redhat.com>
+Subject: Re: [PATCH v8 0/9] Overlayfs: constant st_ino/d_ino for non-samefs
+Date: Tue, 7 Nov 2017 14:39:46 -0500
+Message-ID: <20171107193946.GC3646@redhat.com>
 References: <1510073889-11657-1-git-send-email-amir73il@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wm0-f67.google.com ([74.125.82.67]:46558 "EHLO
-        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1758218AbdKGQ5m (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 7 Nov 2017 11:57:42 -0500
-Received: by mail-wm0-f67.google.com with SMTP id r68so5177070wmr.1
-        for <linux-unionfs@vger.kernel.org>; Tue, 07 Nov 2017 08:57:41 -0800 (PST)
+Received: from mx1.redhat.com ([209.132.183.28]:46268 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752486AbdKGTjr (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Tue, 7 Nov 2017 14:39:47 -0500
+Content-Disposition: inline
 In-Reply-To: <1510073889-11657-1-git-send-email-amir73il@gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: Chandan Rajendra <chandan@linux.vnet.ibm.com>, Vivek Goyal <vgoyal@redhat.com>, linux-unionfs@vger.kernel.org
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, Chandan Rajendra <chandan@linux.vnet.ibm.com>, linux-unionfs@vger.kernel.org
 
-When overlay layers are not all on the same fs, but all inode numbers
-of underlying fs do not use the high 'xino' bits, overlay st_ino values
-are constant and persistent.
+Hi Miklos,
 
-In that case, relax non-samefs constraint for consistent d_ino and always
-iterate non-merge dir using ovl_fill_real() actor so we can remap lower
-inode numbers to unique layer range.
+These patches apply on top of which tree/branch. I am trying linus's
+latest tree and these fail to apply.
 
-Signed-off-by: Amir Goldstein <amir73il@gmail.com>
----
- fs/overlayfs/readdir.c | 45 +++++++++++++++++++++++++++++++++++++++------
- 1 file changed, 39 insertions(+), 6 deletions(-)
+Vivek
 
-diff --git a/fs/overlayfs/readdir.c b/fs/overlayfs/readdir.c
-index 4f2479b6ef91..92a6dcdbdaf7 100644
---- a/fs/overlayfs/readdir.c
-+++ b/fs/overlayfs/readdir.c
-@@ -120,6 +120,10 @@ static bool ovl_calc_d_ino(struct ovl_readdir_data *rdd,
- 	if (!rdd->dentry)
- 		return false;
- 
-+	/* Always recalc d_ino when remapping lower inode numbers */
-+	if (ovl_xino_bits(rdd->dentry->d_sb))
-+		return true;
-+
- 	/* Always recalc d_ino for parent */
- 	if (strcmp(p->name, "..") == 0)
- 		return true;
-@@ -440,6 +444,19 @@ static struct ovl_dir_cache *ovl_cache_get(struct dentry *dentry)
- 	return cache;
- }
- 
-+/* Map inode number to lower layer unique range */
-+static u64 ovl_remap_lower_ino(u64 ino, int xinobits, int idx,
-+			       const char *name, int namelen)
-+{
-+	if (ino >> (64 - xinobits)) {
-+		pr_warn_ratelimited("overlayfs: d_ino too big (%.*s, ino=%llu, xinobits=%d)\n",
-+				    namelen, name, ino, xinobits);
-+		return ino;
-+	}
-+
-+	return ino | ((u64)idx) << (64 - xinobits);
-+}
-+
- /*
-  * Set d_ino for upper entries. Non-upper entries should always report
-  * the uppermost real inode ino and should not call this function.
-@@ -457,9 +474,10 @@ static int ovl_cache_update_ino(struct path *path, struct ovl_cache_entry *p)
- 	struct dentry *this = NULL;
- 	enum ovl_path_type type;
- 	u64 ino = p->real_ino;
-+	int xinobits = ovl_xino_bits(dir->d_sb);
- 	int err = 0;
- 
--	if (!ovl_same_sb(dir->d_sb))
-+	if (!ovl_same_sb(dir->d_sb) && !xinobits)
- 		goto out;
- 
- 	if (p->name[0] == '.') {
-@@ -496,6 +514,10 @@ static int ovl_cache_update_ino(struct path *path, struct ovl_cache_entry *p)
- 
- 		WARN_ON_ONCE(dir->d_sb->s_dev != stat.dev);
- 		ino = stat.ino;
-+	} else if (xinobits && !OVL_TYPE_UPPER(type)) {
-+		ino = ovl_remap_lower_ino(ino, xinobits,
-+					  ovl_layer_lower(this)->idx,
-+					  p->name, p->len);
- 	}
- 
- out:
-@@ -616,6 +638,8 @@ struct ovl_readdir_translate {
- 	struct ovl_dir_cache *cache;
- 	struct dir_context ctx;
- 	u64 parent_ino;
-+	int layer_idx;
-+	int xinobits;
- };
- 
- static int ovl_fill_real(struct dir_context *ctx, const char *name,
-@@ -626,14 +650,17 @@ static int ovl_fill_real(struct dir_context *ctx, const char *name,
- 		container_of(ctx, struct ovl_readdir_translate, ctx);
- 	struct dir_context *orig_ctx = rdt->orig_ctx;
- 
--	if (rdt->parent_ino && strcmp(name, "..") == 0)
-+	if (rdt->parent_ino && strcmp(name, "..") == 0) {
- 		ino = rdt->parent_ino;
--	else if (rdt->cache) {
-+	} else if (rdt->cache) {
- 		struct ovl_cache_entry *p;
- 
- 		p = ovl_cache_entry_find(&rdt->cache->root, name, namelen);
- 		if (p)
- 			ino = p->ino;
-+	} else if (rdt->xinobits) {
-+		ino = ovl_remap_lower_ino(ino, rdt->xinobits, rdt->layer_idx,
-+					  name, namelen);
- 	}
- 
- 	return orig_ctx->actor(orig_ctx, name, namelen, offset, ino, d_type);
-@@ -644,11 +671,16 @@ static int ovl_iterate_real(struct file *file, struct dir_context *ctx)
- 	int err;
- 	struct ovl_dir_file *od = file->private_data;
- 	struct dentry *dir = file->f_path.dentry;
-+	struct ovl_layer *lower_layer = ovl_layer_lower(dir);
- 	struct ovl_readdir_translate rdt = {
- 		.ctx.actor = ovl_fill_real,
- 		.orig_ctx = ctx,
-+		.xinobits = ovl_xino_bits(dir->d_sb),
- 	};
- 
-+	if (rdt.xinobits && lower_layer)
-+		rdt.layer_idx = lower_layer->idx;
-+
- 	if (OVL_TYPE_MERGE(ovl_path_type(dir->d_parent))) {
- 		struct kstat stat;
- 		struct path statpath = file->f_path;
-@@ -688,9 +720,10 @@ static int ovl_iterate(struct file *file, struct dir_context *ctx)
- 		 * dir is impure then need to adjust d_ino for copied up
- 		 * entries.
- 		 */
--		if (ovl_same_sb(dentry->d_sb) &&
--		    (ovl_test_flag(OVL_IMPURE, d_inode(dentry)) ||
--		     OVL_TYPE_MERGE(ovl_path_type(dentry->d_parent)))) {
-+		if (ovl_xino_bits(dentry->d_sb) ||
-+		    (ovl_same_sb(dentry->d_sb) &&
-+		     (ovl_test_flag(OVL_IMPURE, d_inode(dentry)) ||
-+		      OVL_TYPE_MERGE(ovl_path_type(dentry->d_parent))))) {
- 			return ovl_iterate_real(file, ctx);
- 		}
- 		return iterate_dir(od->realfile, ctx);
--- 
-2.7.4
+On Tue, Nov 07, 2017 at 06:58:00PM +0200, Amir Goldstein wrote:
+> Miklos,
+> 
+> This version provides a solution for some interesting non-samefs cases:
+> - All the ext* family
+> - Many other fs with default encode_fh
+> - xfs that is not huge with overlay 'xino' mount option
+> - tmpfs that is not on a machine with jurassic uptime with 'xino'
+> 
+> I tested this with Chandan's upstream overlay/041 xfstest for
+> consistent d_ino in non-samefs setup. Results are:
+> - Test passes for ext4
+> - Test fails for xfs
+> - Test fails for xfs with OVERLAY_MOUNT_OPTIONS=-oxino,
+>   but this is because of a test bug
+> - With the test bug fix available at [2] test passes
+>   with xfs and OVERLAY_MOUNT_OPTIONS=-oxino
+> 
+> All the exportfs tests also pass with these changes and
+> either ext4 or xfs with OVERLAY_MOUNT_OPTIONS=-oxino.
+> 
+> Changes since v7:
+> - Drop patches for building impure cache for non-samefs subdirs
+> - Dropped patch "update cache version of impure parent on rename"
+>   because it is not relevant to this series
+> - Remap lower inode numbers for 32bit inode file systems
+> - Add mount option 'xino' for opting-in to use high inode bits
+> 
+> Thanks,
+> Amir.
+> 
+> [1] https://github.com/amir73il/linux/commits/ovl-nonsamefs-v8
+> [2] https://github.com/amir73il/xfstests/commits/overlayfs-devel
+> 
+> Amir Goldstein (8):
+>   ovl: move include of ovl_entry.h into overlayfs.h
+>   ovl: allocate anonymous devs for lowerdirs
+>   ovl: factor out ovl_map_dev_ino() helper
+>   ovl: return anonymous st_dev for lower inodes
+>   ovl: relax same fs constraint for constant st_ino
+>   ovl: constant st_ino for non-samefs with xino
+>   ovl: consistent d_ino for non-samefs with xino
+>   ovl: add support for 'xino' mount option
+> 
+> Chandan Rajendra (1):
+>   ovl: re-structure overlay lower layers in-memory
+> 
+>  fs/overlayfs/copy_up.c   |   1 -
+>  fs/overlayfs/inode.c     |  91 +++++++++++++++++++++++++--------
+>  fs/overlayfs/namei.c     |  42 +++++++--------
+>  fs/overlayfs/overlayfs.h |   9 ++--
+>  fs/overlayfs/ovl_entry.h |  19 ++++++-
+>  fs/overlayfs/readdir.c   |  49 +++++++++++++++---
+>  fs/overlayfs/super.c     | 129 +++++++++++++++++++++++++++++++++--------------
+>  fs/overlayfs/util.c      |  39 ++++++++++++--
+>  8 files changed, 277 insertions(+), 102 deletions(-)
+> 
+> -- 
+> 2.7.4
