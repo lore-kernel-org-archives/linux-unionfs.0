@@ -1,20 +1,20 @@
 From: Amir Goldstein <amir73il@gmail.com>
 Subject: Re: [PATCH v8 0/9] Overlayfs: constant st_ino/d_ino for non-samefs
-Date: Wed, 8 Nov 2017 18:50:25 +0200
-Message-ID: <CAOQ4uxinxHV_3XEh6dPhenypDQ3=PCOw5yvg2juguK_YtoRacw@mail.gmail.com>
+Date: Wed, 8 Nov 2017 20:16:59 +0200
+Message-ID: <CAOQ4uxhyy12suZC9WfCUL83iKeVUPGSgBmXiM0Rb8FciT0ASGg@mail.gmail.com>
 References: <1510073889-11657-1-git-send-email-amir73il@gmail.com>
  <CAJfpegvBEXgi=P8Sciv+U6VqcjsLJChR1OdwZyZA_PoL3MNTNA@mail.gmail.com>
  <CAOQ4uxjvFVk5xs_zj1Ga4o-0GGStGWfYsNhY8ot+zTeB3HoBNw@mail.gmail.com> <CAOQ4uxjtTek_79chEiswmhNd4S8SnDzicH6p2_XwS7HfVM5ZjA@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-yw0-f193.google.com ([209.85.161.193]:53059 "EHLO
-        mail-yw0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752256AbdKHQu1 (ORCPT
+Received: from mail-yw0-f194.google.com ([209.85.161.194]:43783 "EHLO
+        mail-yw0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751897AbdKHSRA (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 8 Nov 2017 11:50:27 -0500
-Received: by mail-yw0-f193.google.com with SMTP id w2so2831661ywa.9
-        for <linux-unionfs@vger.kernel.org>; Wed, 08 Nov 2017 08:50:26 -0800 (PST)
+        Wed, 8 Nov 2017 13:17:00 -0500
+Received: by mail-yw0-f194.google.com with SMTP id y75so3095609ywg.0
+        for <linux-unionfs@vger.kernel.org>; Wed, 08 Nov 2017 10:16:59 -0800 (PST)
 In-Reply-To: <CAOQ4uxjtTek_79chEiswmhNd4S8SnDzicH6p2_XwS7HfVM5ZjA@mail.gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
@@ -24,67 +24,27 @@ Cc: Chandan Rajendra <chandan@linux.vnet.ibm.com>, Vivek Goyal <vgoyal@redhat.co
 On Wed, Nov 8, 2017 at 3:40 PM, Amir Goldstein <amir73il@gmail.com> wrote:
 > On Wed, Nov 8, 2017 at 2:01 PM, Amir Goldstein <amir73il@gmail.com> wrote:
 >> On Wed, Nov 8, 2017 at 12:53 PM, Miklos Szeredi <miklos@szeredi.hu> wrote:
->>> On Tue, Nov 7, 2017 at 5:58 PM, Amir Goldstein <amir73il@gmail.com> wrote:
->>>> Miklos,
->>>>
->>>> This version provides a solution for some interesting non-samefs cases:
->>>> - All the ext* family
->>>> - Many other fs with default encode_fh
->>>> - xfs that is not huge with overlay 'xino' mount option
->>>> - tmpfs that is not on a machine with jurassic uptime with 'xino'
->>>>
->>>> I tested this with Chandan's upstream overlay/041 xfstest for
->>>> consistent d_ino in non-samefs setup. Results are:
->>>> - Test passes for ext4
->>>> - Test fails for xfs
->>>> - Test fails for xfs with OVERLAY_MOUNT_OPTIONS=-oxino,
->>>>   but this is because of a test bug
->>>> - With the test bug fix available at [2] test passes
->>>>   with xfs and OVERLAY_MOUNT_OPTIONS=-oxino
->>>>
->>>> All the exportfs tests also pass with these changes and
->>>> either ext4 or xfs with OVERLAY_MOUNT_OPTIONS=-oxino.
->>>>
->>>> Changes since v7:
->>>> - Drop patches for building impure cache for non-samefs subdirs
->>>> - Dropped patch "update cache version of impure parent on rename"
->>>>   because it is not relevant to this series
->>>> - Remap lower inode numbers for 32bit inode file systems
->>>> - Add mount option 'xino' for opting-in to use high inode bits
->>>
+[...]
 >>> I the meantime I went and committed v7 (with the noted changes) and
 >>> based my cleanup for ovl_fill_super() on top of that.  So that's now
+>>> pushed out to overlayfs-next, hopefully not invalidating too much of
+>>> your work.
 >>
->> Nice cleanup!
->> I don't like setting of s_d_op inside ovl_get_lowerstack().
->> IMO should add ufs->remote boolean because it is interesting anyway
->> and set s_d_op in ovl_fill_super() itself.
+>> Not a problem. most of the work on v8 was on the last patches.
+>> I'll send 2 cleanup patches that make get_attr() code a bit cleaner to my taste.
 >>
->
-> Mikos,
->
-> ovl_fill_super() cleanup caused 3 regressions with xfstest
-> check -overlay -g overlay/quick
-> overlay/011 overlay/035 - mount failures instead of r/o mount
 
-Fixed by "fix free of ERR_PTR oe"
+And finally, those are the cleanup patches from v8:
+42448ca8681a ovl: factor out ovl_map_dev_ino() helper
+52a325cd6b41 ovl: store layer index in ovl_layer
 
-> overlay/022 - dentries in use after mount failure:
->
-> BUG: Dentry ffff880079fee2f8{i=42ff,n=upper}  still in use (-1)
-> [unmount of overlay overlay]
-> BUG: Dentry ffff880079fe0338{i=2008d81,n=upper}  still in use (1)
-> [unmount of xfs vdf]
-> BUG: Dentry ffff880079fda700{i=3000100,n=ovl-lower}  still in use (1)
-> [unmount of xfs vdf]
->
+Can be found at the tip of:
+https://github.com/amir73il/linux/commits/overlayfs-devel
 
-Fixed by "fix double path_put() on error"
+The xino patches are also rebased and tested on:
+https://github.com/amir73il/linux/commits/ovl-xino
 
-> Another regression caused by tweaking OVL_WHITEOUTS patch:
-> overlay/038 - A fix to the readdir regression is pushed to:
-> https://github.com/amir73il/linux/commits/ovl-fixes
+In case you change your mind about this merge cycle.
 
-Pushed those 2 fixes and 2 more review bug fixes to ovl-fixes branch.
-
+Thanks,
 Amir.
