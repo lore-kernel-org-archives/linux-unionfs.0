@@ -1,127 +1,168 @@
 From: Vivek Goyal <vgoyal@redhat.com>
-Subject: [PATCH v6 06/15] ovl: Add helper ovl_already_copied_up()
-Date: Thu,  9 Nov 2017 15:50:10 -0500
-Message-ID: <20171109205019.11409-7-vgoyal@redhat.com>
+Subject: [PATCH v6 03/15] ovl: Provide a mount option metacopy=on/off for metadata copyup
+Date: Thu,  9 Nov 2017 15:50:07 -0500
+Message-ID: <20171109205019.11409-4-vgoyal@redhat.com>
 References: <20171109205019.11409-1-vgoyal@redhat.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:48144 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:1765 "EHLO mx1.redhat.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753039AbdKIUub (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 9 Nov 2017 15:50:31 -0500
+        id S1751174AbdKIUua (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Thu, 9 Nov 2017 15:50:30 -0500
 In-Reply-To: <20171109205019.11409-1-vgoyal@redhat.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: linux-unionfs@vger.kernel.org
 Cc: miklos@szeredi.hu, amir73il@gmail.com
 
-There are couple of places where we need to know if file is already copied
-up (in lockless manner). Right now its open coded and there are only
-two conditions to check. Soon this patch series will introduce another
-condition to check and Amir wants to introduce one more. So introduce
-a helper instead to check this so that code is easier to read.
+By default metadata only copy up is disabled. Provide a mount option so
+that users can choose one way or other.
+
+Also provide a kernel config and module option to enable/disable
+metacopy feature.
+
+Like index feature, we verify on mount that upper root is not being
+reused with a different lower root. This hopes to get the configuration
+right and detect the copied layers use case. But this does only so
+much as we don't verify all the lowers. So it is possible that a lower is
+missing and later data copy up fails.
 
 Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
 ---
- fs/overlayfs/copy_up.c   | 16 +---------------
- fs/overlayfs/inode.c     |  3 +--
- fs/overlayfs/overlayfs.h |  1 +
- fs/overlayfs/util.c      | 24 +++++++++++++++++++++++-
- 4 files changed, 26 insertions(+), 18 deletions(-)
+ fs/overlayfs/Kconfig     |  8 ++++++++
+ fs/overlayfs/ovl_entry.h |  1 +
+ fs/overlayfs/super.c     | 42 ++++++++++++++++++++++++++++++++++++++++--
+ 3 files changed, 49 insertions(+), 2 deletions(-)
 
-diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
-index 6bb6b1723564..23122bdf0b14 100644
---- a/fs/overlayfs/copy_up.c
-+++ b/fs/overlayfs/copy_up.c
-@@ -651,21 +651,7 @@ int ovl_copy_up_flags(struct dentry *dentry, int flags)
- 		struct dentry *next;
- 		struct dentry *parent;
+diff --git a/fs/overlayfs/Kconfig b/fs/overlayfs/Kconfig
+index cbfc196e5dc5..17a0b17ad14c 100644
+--- a/fs/overlayfs/Kconfig
++++ b/fs/overlayfs/Kconfig
+@@ -43,3 +43,11 @@ config OVERLAY_FS_INDEX
+ 	  outcomes.  However, mounting the same overlay with an old kernel
+ 	  read-write and then mounting it again with a new kernel, will have
+ 	  unexpected results.
++
++config OVERLAY_FS_METACOPY
++	bool "Overlayfs: turn on metadata only copy up feature by default"
++	depends on OVERLAY_FS
++	help
++	  If this config option is enabled then overlay filesystems will
++	  copy up only metadata where appropriate and data copy up will
++	  happen when a file is opended for WRITE operation.
+diff --git a/fs/overlayfs/ovl_entry.h b/fs/overlayfs/ovl_entry.h
+index 93eb6a044dd2..2720ed21ad53 100644
+--- a/fs/overlayfs/ovl_entry.h
++++ b/fs/overlayfs/ovl_entry.h
+@@ -15,6 +15,7 @@ struct ovl_config {
+ 	bool default_permissions;
+ 	bool redirect_dir;
+ 	bool index;
++	bool metacopy;
+ };
  
--		/*
--		 * Check if copy-up has happened as well as for upper alias (in
--		 * case of hard links) is there.
--		 *
--		 * Both checks are lockless:
--		 *  - false negatives: will recheck under oi->lock
--		 *  - false positives:
--		 *    + ovl_dentry_upper() uses memory barriers to ensure the
--		 *      upper dentry is up-to-date
--		 *    + ovl_dentry_has_upper_alias() relies on locking of
--		 *      upper parent i_rwsem to prevent reordering copy-up
--		 *      with rename.
--		 */
--		if (ovl_dentry_upper(dentry) &&
--		    ovl_dentry_has_upper_alias(dentry))
-+		if (ovl_already_copied_up(dentry))
- 			break;
- 
- 		next = dget(dentry);
-diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
-index 00b6b294272a..537dc25f84c6 100644
---- a/fs/overlayfs/inode.c
-+++ b/fs/overlayfs/inode.c
-@@ -343,8 +343,7 @@ struct posix_acl *ovl_get_acl(struct inode *inode, int type)
- 
- static bool ovl_open_need_copy_up(struct dentry *dentry, int flags)
- {
--	if (ovl_dentry_upper(dentry) &&
--	    ovl_dentry_has_upper_alias(dentry))
-+	if (ovl_already_copied_up(dentry))
- 		return false;
- 
- 	if (special_file(d_inode(dentry)->i_mode))
-diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-index 9e5aaa4a5db2..a6fdc2f0da6d 100644
---- a/fs/overlayfs/overlayfs.h
-+++ b/fs/overlayfs/overlayfs.h
-@@ -228,6 +228,7 @@ bool ovl_is_whiteout(struct dentry *dentry);
- struct file *ovl_path_open(struct path *path, int flags);
- int ovl_copy_up_start(struct dentry *dentry);
- void ovl_copy_up_end(struct dentry *dentry);
-+bool ovl_already_copied_up(struct dentry *dentry);
- bool ovl_check_origin_xattr(struct dentry *dentry);
- bool ovl_check_dir_xattr(struct dentry *dentry, const char *name);
- int ovl_check_setxattr(struct dentry *dentry, struct dentry *upperdentry,
-diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
-index c5b62546c613..f4e3e011a097 100644
---- a/fs/overlayfs/util.c
-+++ b/fs/overlayfs/util.c
-@@ -342,7 +342,7 @@ int ovl_copy_up_start(struct dentry *dentry)
- 	int err;
- 
- 	err = mutex_lock_interruptible(&oi->lock);
--	if (!err && ovl_dentry_has_upper_alias(dentry)) {
-+	if (!err && ovl_already_copied_up(dentry)) {
- 		err = 1; /* Already copied up */
- 		mutex_unlock(&oi->lock);
- 	}
-@@ -368,6 +368,28 @@ bool ovl_check_origin_xattr(struct dentry *dentry)
- 	return false;
+ struct ovl_layer {
+diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+index a8f7b26c65c0..84b8f6dc0f61 100644
+--- a/fs/overlayfs/super.c
++++ b/fs/overlayfs/super.c
+@@ -46,6 +46,11 @@ static void ovl_entry_stack_free(struct ovl_entry *oe)
+ 		dput(oe->lowerstack[i].dentry);
  }
  
-+bool ovl_already_copied_up(struct dentry *dentry)
-+{
-+	/*
-+	 * Check if copy-up has happened as well as for upper alias (in
-+	 * case of hard links) is there.
-+	 *
-+	 * Both checks are lockless:
-+	 *  - false negatives: will recheck under oi->lock
-+	 *  - false positives:
-+	 *    + ovl_dentry_upper() uses memory barriers to ensure the
-+	 *      upper dentry is up-to-date
-+	 *    + ovl_dentry_has_upper_alias() relies on locking of
-+	 *      upper parent i_rwsem to prevent reordering copy-up
-+	 *      with rename.
-+	 */
-+	if (ovl_dentry_upper(dentry) &&
-+	    ovl_dentry_has_upper_alias(dentry))
-+		return true;
++static bool ovl_metacopy_def = IS_ENABLED(CONFIG_OVERLAY_FS_METACOPY);
++module_param_named(metacopy, ovl_metacopy_def, bool, 0644);
++MODULE_PARM_DESC(ovl_metacopy_def,
++		 "Default to on or off for the metadata only copy up feature");
 +
-+	return false;
-+}
-+
- bool ovl_check_dir_xattr(struct dentry *dentry, const char *name)
+ static void ovl_dentry_release(struct dentry *dentry)
  {
- 	int res;
+ 	struct ovl_entry *oe = dentry->d_fsdata;
+@@ -319,6 +324,9 @@ static int ovl_show_options(struct seq_file *m, struct dentry *dentry)
+ 	if (ofs->config.index != ovl_index_def)
+ 		seq_printf(m, ",index=%s",
+ 			   ofs->config.index ? "on" : "off");
++	if (ofs->config.metacopy != ovl_metacopy_def)
++		seq_printf(m, ",metacopy=%s",
++			   ofs->config.metacopy ? "on" : "off");
+ 	return 0;
+ }
+ 
+@@ -352,6 +360,8 @@ enum {
+ 	OPT_REDIRECT_DIR_OFF,
+ 	OPT_INDEX_ON,
+ 	OPT_INDEX_OFF,
++	OPT_METACOPY_ON,
++	OPT_METACOPY_OFF,
+ 	OPT_ERR,
+ };
+ 
+@@ -364,6 +374,8 @@ static const match_table_t ovl_tokens = {
+ 	{OPT_REDIRECT_DIR_OFF,		"redirect_dir=off"},
+ 	{OPT_INDEX_ON,			"index=on"},
+ 	{OPT_INDEX_OFF,			"index=off"},
++	{OPT_METACOPY_ON,		"metacopy=on"},
++	{OPT_METACOPY_OFF,		"metacopy=off"},
+ 	{OPT_ERR,			NULL}
+ };
+ 
+@@ -444,6 +456,14 @@ static int ovl_parse_opt(char *opt, struct ovl_config *config)
+ 			config->index = false;
+ 			break;
+ 
++		case OPT_METACOPY_ON:
++			config->metacopy = true;
++			break;
++
++		case OPT_METACOPY_OFF:
++			config->metacopy = false;
++			break;
++
+ 		default:
+ 			pr_err("overlayfs: unrecognized mount option \"%s\" or missing value\n", p);
+ 			return -EINVAL;
+@@ -657,9 +677,16 @@ static int ovl_lower_dir(const char *name, struct path *path,
+ 	 * The inodes index feature needs to encode and decode file
+ 	 * handles, so it requires that all layers support them.
+ 	 */
+-	if (ofs->config.index && !ovl_can_decode_fh(path->dentry->d_sb)) {
++	if ((ofs->config.index || ofs->config.metacopy) &&
++	     !ovl_can_decode_fh(path->dentry->d_sb)) {
++		if (ofs->config.index)
++			pr_warn("overlayfs: fs on '%s' does not support file handles, falling back to index=off.\n", name);
++
++		if (ofs->config.metacopy)
++			pr_warn("overlayfs: fs on '%s' does not support file handles, falling back to metacopy=off.\n", name);
++
+ 		ofs->config.index = false;
+-		pr_warn("overlayfs: fs on '%s' does not support file handles, falling back to index=off.\n", name);
++		ofs->config.metacopy = false;
+ 	}
+ 
+ 	return 0;
+@@ -1162,6 +1189,7 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
+ 
+ 	ofs->config.redirect_dir = ovl_redirect_dir_def;
+ 	ofs->config.index = ovl_index_def;
++	ofs->config.metacopy = ovl_metacopy_def;
+ 	err = ovl_parse_opt((char *) data, &ofs->config);
+ 	if (err)
+ 		goto out_err;
+@@ -1207,6 +1235,16 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
+ 	else if (ofs->upper_mnt->mnt_sb != ofs->same_sb)
+ 		ofs->same_sb = NULL;
+ 
++	if (!(ovl_force_readonly(ofs)) && ofs->config.metacopy) {
++		/* Verify lower root is upper root origin */
++		err = ovl_verify_origin(upperpath.dentry,
++					oe->lowerstack[0].dentry, false, true);
++		if (err) {
++			pr_err("overlayfs: failed to verify upper root origin\n");
++                        goto out_free_oe;
++		}
++	}
++
+ 	if (!(ovl_force_readonly(ofs)) && ofs->config.index) {
+ 		err = ovl_get_indexdir(ofs, oe, &upperpath);
+ 		if (err)
 -- 
 2.13.6
