@@ -1,96 +1,98 @@
-From: L A Walsh <lkml@tlinx.org>
-Subject: Re: Bug? or normal behavior? if bug, then where? overlay, vfs, xfs,
- or ????
-Date: Wed, 08 Nov 2017 23:51:05 -0800
-Message-ID: <5A0408E9.5010501@tlinx.org>
-References: <59FA4499.2030502@tlinx.org> <CAOQ4uxg-bkYnpV146kBgdbgCK9On+=jM1gCe1975J8HKkWxcNg@mail.gmail.com> <59FEC912.4000005@tlinx.org> <CAOQ4uxjDbNiZiUUzNZEHTt8SQW-1trC6dSF=c28bD8EuWLWFrw@mail.gmail.com> <20171105223445.GA5858@dastard> <5A03754E.5070903@tlinx.org> <20171109014726.GI4094@dastard>
+From: Miklos Szeredi <miklos@szeredi.hu>
+Subject: Re: [PATCH v8 0/9] Overlayfs: constant st_ino/d_ino for non-samefs
+Date: Thu, 9 Nov 2017 10:33:24 +0100
+Message-ID: <CAJfpegujOAJYfbT3CUWy20CyCUQnmDP5=aQLYYrnjV+TU1WnZA@mail.gmail.com>
+References: <1510073889-11657-1-git-send-email-amir73il@gmail.com>
+ <CAJfpegvBEXgi=P8Sciv+U6VqcjsLJChR1OdwZyZA_PoL3MNTNA@mail.gmail.com>
+ <CAOQ4uxjvFVk5xs_zj1Ga4o-0GGStGWfYsNhY8ot+zTeB3HoBNw@mail.gmail.com>
+ <CAOQ4uxjtTek_79chEiswmhNd4S8SnDzicH6p2_XwS7HfVM5ZjA@mail.gmail.com> <CAOQ4uxinxHV_3XEh6dPhenypDQ3=PCOw5yvg2juguK_YtoRacw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from ishtar.tlinx.org ([173.164.175.65]:45560 "EHLO
-        Ishtar.sc.tlinx.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752887AbdKIHvT (ORCPT
+Received: from mail-wm0-f67.google.com ([74.125.82.67]:49563 "EHLO
+        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752675AbdKIJdZ (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 9 Nov 2017 02:51:19 -0500
-In-Reply-To: <20171109014726.GI4094@dastard>
+        Thu, 9 Nov 2017 04:33:25 -0500
+Received: by mail-wm0-f67.google.com with SMTP id b189so15525420wmd.4
+        for <linux-unionfs@vger.kernel.org>; Thu, 09 Nov 2017 01:33:25 -0800 (PST)
+In-Reply-To: <CAOQ4uxinxHV_3XEh6dPhenypDQ3=PCOw5yvg2juguK_YtoRacw@mail.gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Dave Chinner <david@fromorbit.com>
-Cc: Amir Goldstein <amir73il@gmail.com>, overlayfs <linux-unionfs@vger.kernel.org>, linux-xfs <linux-xfs@vger.kernel.org>, "Darrick J. Wong" <darrick.wong@oracle.com>
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: Chandan Rajendra <chandan@linux.vnet.ibm.com>, Vivek Goyal <vgoyal@redhat.com>, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>
 
-Dave Chinner wrote:
+On Wed, Nov 8, 2017 at 5:50 PM, Amir Goldstein <amir73il@gmail.com> wrote:
+> On Wed, Nov 8, 2017 at 3:40 PM, Amir Goldstein <amir73il@gmail.com> wrote:
+>> On Wed, Nov 8, 2017 at 2:01 PM, Amir Goldstein <amir73il@gmail.com> wrote:
+>>> On Wed, Nov 8, 2017 at 12:53 PM, Miklos Szeredi <miklos@szeredi.hu> wrote:
+>>>> On Tue, Nov 7, 2017 at 5:58 PM, Amir Goldstein <amir73il@gmail.com> wrote:
+>>>>> Miklos,
+>>>>>
+>>>>> This version provides a solution for some interesting non-samefs cases:
+>>>>> - All the ext* family
+>>>>> - Many other fs with default encode_fh
+>>>>> - xfs that is not huge with overlay 'xino' mount option
+>>>>> - tmpfs that is not on a machine with jurassic uptime with 'xino'
+>>>>>
+>>>>> I tested this with Chandan's upstream overlay/041 xfstest for
+>>>>> consistent d_ino in non-samefs setup. Results are:
+>>>>> - Test passes for ext4
+>>>>> - Test fails for xfs
+>>>>> - Test fails for xfs with OVERLAY_MOUNT_OPTIONS=-oxino,
+>>>>>   but this is because of a test bug
+>>>>> - With the test bug fix available at [2] test passes
+>>>>>   with xfs and OVERLAY_MOUNT_OPTIONS=-oxino
+>>>>>
+>>>>> All the exportfs tests also pass with these changes and
+>>>>> either ext4 or xfs with OVERLAY_MOUNT_OPTIONS=-oxino.
+>>>>>
+>>>>> Changes since v7:
+>>>>> - Drop patches for building impure cache for non-samefs subdirs
+>>>>> - Dropped patch "update cache version of impure parent on rename"
+>>>>>   because it is not relevant to this series
+>>>>> - Remap lower inode numbers for 32bit inode file systems
+>>>>> - Add mount option 'xino' for opting-in to use high inode bits
+>>>>
+>>>> I the meantime I went and committed v7 (with the noted changes) and
+>>>> based my cleanup for ovl_fill_super() on top of that.  So that's now
+>>>
+>>> Nice cleanup!
+>>> I don't like setting of s_d_op inside ovl_get_lowerstack().
+>>> IMO should add ufs->remote boolean because it is interesting anyway
+>>> and set s_d_op in ovl_fill_super() itself.
+>>>
+>>
+>> Mikos,
+>>
+>> ovl_fill_super() cleanup caused 3 regressions with xfstest
+>> check -overlay -g overlay/quick
+>> overlay/011 overlay/035 - mount failures instead of r/o mount
 >
+> Fixed by "fix free of ERR_PTR oe"
 >
-> Changing the UUID on v5 filesystems is now implemented and
-> supported:
->   
----
-    And it won't have a problem if seen by a previous gen
-tool -- like xfsrestore on an older "emergency boot disk"?
-
-    If not, then I misunderstood what you wrote earlier.
->>    My issue was the inability to bench or use them separately.
->>     
+>> overlay/022 - dentries in use after mount failure:
+>>
+>> BUG: Dentry ffff880079fee2f8{i=42ff,n=upper}  still in use (-1)
+>> [unmount of overlay overlay]
+>> BUG: Dentry ffff880079fe0338{i=2008d81,n=upper}  still in use (1)
+>> [unmount of xfs vdf]
+>> BUG: Dentry ffff880079fda700{i=3000100,n=ovl-lower}  still in use (1)
+>> [unmount of xfs vdf]
+>>
 >
-> <sigh>
+> Fixed by "fix double path_put() on error"
 >
-> Not an XFS problem:
+>> Another regression caused by tweaking OVL_WHITEOUTS patch:
+>> overlay/038 - A fix to the readdir regression is pushed to:
+>> https://github.com/amir73il/linux/commits/ovl-fixes
 >
-> $ mkfs.xfs -f -m finobt=0 /dev/pmem0
-> ....
->          =                       crc=1        finobt=0, sparse=0, rmapbt=0, reflink=0
-> .....
->
-> Yup, crc's enabled, finobt is not. As documented in the mkfs.xfs manpage.
->   
+> Pushed those 2 fixes and 2 more review bug fixes to ovl-fixes branch.
 
-So you are saying I can set finobt to 0 or 1 with crc=0?
+Thanks for testing and looking at the issues.  I've now set up
+xfstests  as well in my test environment...
 
-Because testing sigh crc=1 and finobt=0|1 isn't
-the same as testing crc=0 and finobt=0|1.
+Force pushed branch with fixes to overlayfs-next.
 
-I'm more interested in testing finobt's affect by itself and have
-a secondary interest in the effect of the crc option because I would
-like to use the finobt option (thus desire to test it first), but
-do not currently want to use the crc otpion, thus it being of secondary
-interest.
-
-Again, if I can test finobt 0 or 1 with no requirements I turn on
-crc, then I was mistaken in my earlier understanding.
-
-So I still have 2 issues: UUID labels that don't preclude using older
-emergency boot disks, to restore a file system, and the ability to
-test finobt apart from other features.
-
-
-
-
-> ge.
->
-> IOWs, We can directly measure the impact of the finobt on
-> workloads/benchamrks. And if we want to compare the impact of CRCs,
-> then 'mkfs.xfs -f -isize=512, -m crc=0 <dev>' will be directly
-> comparable to the above non-finobt filesystem. THis is how we
-> benchmarked the changes in the first place....
->   
-----
-  
-
-    That methodology is flawed.
-
-    If the crc option is on during finobt being tested as 0 or 1,
-the crc option on means different disk caching -- if the crc
-option pulls in some or all of the finobt info, then you can't measure
-the finobt option with the crc option turned on. Even if you turn the crc
-feature off, if the disk has crc features, those also change how
-information is read in.
-
-    Only if you create a disk with no crc info on it, and then can test
-finobt=0|1, can you see the relative performance of the finobt cases. 
-
-    If it is the case that finobt can be toggled on a disk with no
-crc data or option in use, then I've misunderstood previously read
-constraints (or they've changed).
-
--l
+Thanks,
+Miklos
