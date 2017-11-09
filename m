@@ -1,12 +1,12 @@
 From: Vivek Goyal <vgoyal@redhat.com>
-Subject: [PATCH v6 01/15] ovl: Create origin xattr on copy up for all files
-Date: Thu,  9 Nov 2017 15:50:05 -0500
-Message-ID: <20171109205019.11409-2-vgoyal@redhat.com>
+Subject: [PATCH v6 02/15] ovl: ovl_check_setxattr() get rid of redundant -EOPNOTSUPP check
+Date: Thu,  9 Nov 2017 15:50:06 -0500
+Message-ID: <20171109205019.11409-3-vgoyal@redhat.com>
 References: <20171109205019.11409-1-vgoyal@redhat.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:59448 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:44666 "EHLO mx1.redhat.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753902AbdKIUud (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        id S1751133AbdKIUud (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
         Thu, 9 Nov 2017 15:50:33 -0500
 In-Reply-To: <20171109205019.11409-1-vgoyal@redhat.com>
 Sender: linux-unionfs-owner@vger.kernel.org
@@ -14,61 +14,44 @@ List-Id: linux-unionfs@vger.kernel.org
 To: linux-unionfs@vger.kernel.org
 Cc: miklos@szeredi.hu, amir73il@gmail.com
 
-Right now my understanding is that origin xattr is created for all copied
-up files if index=on. And if index=off, then we create it for all type
-of files except hardlinks (nlink != 1).
-
-With metadata only copy up, I will still require origin xattr to copy up
-data later, so create it even for hardlinks even with index=off.
-
-Given ->origin is always true now, get rid of this field from
-"struct ovl_copy_up_ctx".
+At mount time we check if upper supports xattr or not and set ofs->noxattr
+field accordingly. But in ovl_check_setxattr() still seems to have logic
+which expects that ovl_do_setxattr() can return -EOPNOTSUPP. Not sure when
+and how can we hit this code. Feels redundant to me. So I am removing
+this code.
 
 Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
+Reviewed-by: Amir Goldstein <amir73il@gmail.com>
 ---
- fs/overlayfs/copy_up.c | 15 +++------------
- 1 file changed, 3 insertions(+), 12 deletions(-)
+ fs/overlayfs/util.c | 11 +----------
+ 1 file changed, 1 insertion(+), 10 deletions(-)
 
-diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
-index eb3b8d39fb61..f55bece3688e 100644
---- a/fs/overlayfs/copy_up.c
-+++ b/fs/overlayfs/copy_up.c
-@@ -326,7 +326,6 @@ struct ovl_copy_up_ctx {
- 	struct qstr destname;
- 	struct dentry *workdir;
- 	bool tmpfile;
--	bool origin;
- };
+diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
+index d6bb1c9f5e7a..77dc00438d54 100644
+--- a/fs/overlayfs/util.c
++++ b/fs/overlayfs/util.c
+@@ -365,21 +365,12 @@ int ovl_check_setxattr(struct dentry *dentry, struct dentry *upperdentry,
+ 		       const char *name, const void *value, size_t size,
+ 		       int xerr)
+ {
+-	int err;
+ 	struct ovl_fs *ofs = dentry->d_sb->s_fs_info;
  
- static int ovl_link_up(struct ovl_copy_up_ctx *c)
-@@ -469,15 +468,10 @@ static int ovl_copy_up_inode(struct ovl_copy_up_ctx *c, struct dentry *temp)
- 	/*
- 	 * Store identifier of lower inode in upper inode xattr to
- 	 * allow lookup of the copy up origin inode.
--	 *
--	 * Don't set origin when we are breaking the association with a lower
--	 * hard link.
- 	 */
--	if (c->origin) {
--		err = ovl_set_origin(c->dentry, c->lowerpath.dentry, temp);
--		if (err)
--			return err;
--	}
-+	err = ovl_set_origin(c->dentry, c->lowerpath.dentry, temp);
-+	if (err)
-+		return err;
+ 	if (ofs->noxattr)
+ 		return xerr;
  
- 	return 0;
- }
-@@ -542,9 +536,6 @@ static int ovl_do_copy_up(struct ovl_copy_up_ctx *c)
- 	    c->stat.nlink > 1)
- 		indexed = true;
- 
--	if (S_ISDIR(c->stat.mode) || c->stat.nlink == 1 || indexed)
--		c->origin = true;
+-	err = ovl_do_setxattr(upperdentry, name, value, size, 0);
 -
- 	if (indexed) {
- 		c->destdir = ovl_indexdir(c->dentry->d_sb);
- 		err = ovl_get_index_name(c->lowerpath.dentry, &c->destname);
+-	if (err == -EOPNOTSUPP) {
+-		pr_warn("overlayfs: cannot set %s xattr on upper\n", name);
+-		ofs->noxattr = true;
+-		return xerr;
+-	}
+-
+-	return err;
++	return ovl_do_setxattr(upperdentry, name, value, size, 0);
+ }
+ 
+ int ovl_set_impure(struct dentry *dentry, struct dentry *upperdentry)
 -- 
 2.13.6
