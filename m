@@ -1,80 +1,96 @@
-From: "zhangyi (F)" <yi.zhang@huawei.com>
-Subject: Re: [PATCH 2/3] ovl: set origin xattr for merge dir on lookup
-Date: Thu, 9 Nov 2017 12:20:14 +0800
-Message-ID: <8c8f1b61-ad6e-58b6-0e0f-4b7d5b0887ea@huawei.com>
-References: <1510090740-7216-1-git-send-email-amir73il@gmail.com>
- <1510090740-7216-3-git-send-email-amir73il@gmail.com>
- <03198975-d870-d49e-f807-01f3d805d001@huawei.com>
- <CAOQ4uxjfE+vO9TDwHsuCD5Zwj9-7ZF9km-PibnTooK61ShKQJw@mail.gmail.com>
- <CAOQ4uxiD-i+=ZYBQVyXgNXjgas9xrt+SeGn+HaxdRtGhjb+uVg@mail.gmail.com>
+From: L A Walsh <lkml@tlinx.org>
+Subject: Re: Bug? or normal behavior? if bug, then where? overlay, vfs, xfs,
+ or ????
+Date: Wed, 08 Nov 2017 23:51:05 -0800
+Message-ID: <5A0408E9.5010501@tlinx.org>
+References: <59FA4499.2030502@tlinx.org> <CAOQ4uxg-bkYnpV146kBgdbgCK9On+=jM1gCe1975J8HKkWxcNg@mail.gmail.com> <59FEC912.4000005@tlinx.org> <CAOQ4uxjDbNiZiUUzNZEHTt8SQW-1trC6dSF=c28bD8EuWLWFrw@mail.gmail.com> <20171105223445.GA5858@dastard> <5A03754E.5070903@tlinx.org> <20171109014726.GI4094@dastard>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from szxga06-in.huawei.com ([45.249.212.32]:37376 "EHLO huawei.com"
-        rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1751495AbdKIEUk (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 8 Nov 2017 23:20:40 -0500
-Received: from DGGEMS411-HUB.china.huawei.com (unknown [172.30.72.60])
-        by Forcepoint Email with ESMTP id EBA8F1D2BF790
-        for <linux-unionfs@vger.kernel.org>; Thu,  9 Nov 2017 12:20:25 +0800 (CST)
-In-Reply-To: <CAOQ4uxiD-i+=ZYBQVyXgNXjgas9xrt+SeGn+HaxdRtGhjb+uVg@mail.gmail.com>
+Received: from ishtar.tlinx.org ([173.164.175.65]:45560 "EHLO
+        Ishtar.sc.tlinx.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752887AbdKIHvT (ORCPT
+        <rfc822;linux-unionfs@vger.kernel.org>);
+        Thu, 9 Nov 2017 02:51:19 -0500
+In-Reply-To: <20171109014726.GI4094@dastard>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, overlayfs <linux-unionfs@vger.kernel.org>, Miao Xie <miaoxie@huawei.com>
+To: Dave Chinner <david@fromorbit.com>
+Cc: Amir Goldstein <amir73il@gmail.com>, overlayfs <linux-unionfs@vger.kernel.org>, linux-xfs <linux-xfs@vger.kernel.org>, "Darrick J. Wong" <darrick.wong@oracle.com>
 
-On 2017/11/8 21:30, Amir Goldstein Wrote:
-> On Wed, Nov 8, 2017 at 10:27 AM, Amir Goldstein <amir73il@gmail.com> wrote:
->> On Wed, Nov 8, 2017 at 8:59 AM, zhangyi (F) <yi.zhang@huawei.com> wrote:
->>> On 2017/11/8 5:38, Amir Goldstein Wrote:
->>>> For old existing merge dirs whose "origin" xattr was not set at copy up
->>>> time, we amend the situation on lookup.
->>>>
->>>> If no origin fh is stored in upper of a merge dir, store fh of upper most
->>>> lower dir or 'null' fh if lower does not support file handles. We do this
->>>> so we can filter out whiteouts in case lower dir is removed offline and
->>>> then upper dir becomes a pure upper in a future mount.
->>>>
->>>> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
->>>> ---
-> [...]
->>
->>> At the same time, consider the opposite side, all directories move from a base filesystem which 'file
->>> handle' supported to a not supported one. It will trigger NULL pointer crash in ovl_verify_origin_fh()
->>> because fh is NULL but ofh was existed. Following change good ?
->>>
->>> -       if (!ofh)
->>> +       if (!ofh || !fh)
->>>                 return -ENODATA;
->>>
->>
->> Thanks for pointing that out, but change is not good because it looses the
->> information about finding a stored null_fh.
->> If we do want to stick with ovl_null_fh trick, I could pass in &ovl_null_fh
->> instead of NULL, in case of !ovl_can_decode_fh(origin->d_sb).
->> This fixes the NULL pointer crash and I can remove this special case,
-> 
-> Zhangyi,
-> 
-> I pushed a fix rebased on overlayfs-next from today to
-> https://github.com/amir73il/linux/commits/ovl-whiteouts
-> 
-> Tested it with xfs and with xfs without uuid (test patch).
+Dave Chinner wrote:
+>
+>
+> Changing the UUID on v5 filesystems is now implemented and
+> supported:
+>   
+---
+    And it won't have a problem if seen by a previous gen
+tool -- like xfsrestore on an older "emergency boot disk"?
 
-Hi Amir:
+    If not, then I misunderstood what you wrote earlier.
+>>    My issue was the inability to bench or use them separately.
+>>     
+>
+> <sigh>
+>
+> Not an XFS problem:
+>
+> $ mkfs.xfs -f -m finobt=0 /dev/pmem0
+> ....
+>          =                       crc=1        finobt=0, sparse=0, rmapbt=0, reflink=0
+> .....
+>
+> Yup, crc's enabled, finobt is not. As documented in the mkfs.xfs manpage.
+>   
 
-Sorry for the late, I prefer to use ovl_null_fh too, this patch looks good to me.
+So you are saying I can set finobt to 0 or 1 with crc=0?
 
-> I did not test the migration cases that you listed.
+Because testing sigh crc=1 and finobt=0|1 isn't
+the same as testing crc=0 and finobt=0|1.
 
-As far as know, docker container migration will tar all things in upper to lower layer,
-may be I thought to much and we may no need to deal with this case now.
+I'm more interested in testing finobt's affect by itself and have
+a secondary interest in the effect of the crc option because I would
+like to use the finobt option (thus desire to test it first), but
+do not currently want to use the crc otpion, thus it being of secondary
+interest.
 
-Thanks,
-Yi.
+Again, if I can test finobt 0 or 1 with no requirements I turn on
+crc, then I was mistaken in my earlier understanding.
 
-> Please review.
-> Thanks,
-> Amir.
-> 
+So I still have 2 issues: UUID labels that don't preclude using older
+emergency boot disks, to restore a file system, and the ability to
+test finobt apart from other features.
+
+
+
+
+> ge.
+>
+> IOWs, We can directly measure the impact of the finobt on
+> workloads/benchamrks. And if we want to compare the impact of CRCs,
+> then 'mkfs.xfs -f -isize=512, -m crc=0 <dev>' will be directly
+> comparable to the above non-finobt filesystem. THis is how we
+> benchmarked the changes in the first place....
+>   
+----
+  
+
+    That methodology is flawed.
+
+    If the crc option is on during finobt being tested as 0 or 1,
+the crc option on means different disk caching -- if the crc
+option pulls in some or all of the finobt info, then you can't measure
+the finobt option with the crc option turned on. Even if you turn the crc
+feature off, if the disk has crc features, those also change how
+information is read in.
+
+    Only if you create a disk with no crc info on it, and then can test
+finobt=0|1, can you see the relative performance of the finobt cases. 
+
+    If it is the case that finobt can be toggled on a disk with no
+crc data or option in use, then I've misunderstood previously read
+constraints (or they've changed).
+
+-l
