@@ -1,59 +1,48 @@
-From: "zhangyi (F)" <yi.zhang@huawei.com>
-Subject: Re: [PATCH 0/3] Overlayfs restoring of origin fh
-Date: Thu, 9 Nov 2017 19:46:07 +0800
-Message-ID: <8464b57e-c6b7-fc0d-9fe9-7e9e2a7f68f9@huawei.com>
-References: <1510090740-7216-1-git-send-email-amir73il@gmail.com>
- <CAJfpegu__w=VnxxVhm=FtGCUFkNdjLdB56S2tQ6mMTwwEqPV0w@mail.gmail.com>
+From: Colin King <colin.king@canonical.com>
+Subject: [PATCH] ovl: fix null pointer dereference on ofs allocation failure.
+Date: Thu,  9 Nov 2017 17:47:51 +0000
+Message-ID: <20171109174751.11683-1-colin.king@canonical.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from szxga05-in.huawei.com ([45.249.212.191]:10044 "EHLO
-        szxga05-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752747AbdKILqg (ORCPT
+Received: from youngberry.canonical.com ([91.189.89.112]:59608 "EHLO
+        youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750966AbdKIRrx (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 9 Nov 2017 06:46:36 -0500
-In-Reply-To: <CAJfpegu__w=VnxxVhm=FtGCUFkNdjLdB56S2tQ6mMTwwEqPV0w@mail.gmail.com>
+        Thu, 9 Nov 2017 12:47:53 -0500
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Miklos Szeredi <miklos@szeredi.hu>, Amir Goldstein <amir73il@gmail.com>
-Cc: "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>
+To: Miklos Szeredi <mszeredi@redhat.com>, linux-unionfs@vger.kernel.org
+Cc: kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On 2017/11/9 18:07, Miklos Szeredi Wrote:
-> On Tue, Nov 7, 2017 at 10:38 PM, Amir Goldstein <amir73il@gmail.com> wrote:
->> Miklos,
->>
->> This series is complementary to the whiteouts expose patches.
->> Patch 2 restores origin xattr on lookup of merge dir (that was copied up
->> before v4.12).
->> Patch 3 sets a 'null' origin fh on dir if we happen to iterate an 'impure'
->> dir and find a whiteout while looking for copy ups. This is expected to
->> happen if merge dir was copied up before v4.12, but files inside it were
->> copied up after v4.12.
-> 
-> Applied 1/3.
-> 
-> Does the other two patches have any real usecase?   AFAICS this is not
-> fixing a backward compatibility issue, so I'm sceptical of the value.
-> 
-> Even if there was a real usecase, we could introduce an "fsck.overlay"
-> utility that would fix up overlays to be able to take advantage of new
-> features.
+From: Colin Ian King <colin.king@canonical.com>
 
-Hi Miklos,
+The current error exit path when ofs fails to allocate jumps
+to clean-up code that calls ovl_free_fs resulting in a null pointer
+dereference on the null ovl pointer.  Fix this by simply returning
+with the -ENOMEM status in err.
 
-Now, I am working on the "fsck.overlay" in my spare time, and the following functions
-have already been done:
-1) Check and (auto)fix redundant whiteouts,
-2) Check and (auto)fix invalid redirect/opaque xattr.
+Detected by CoverityScan, CID#1461284 ("Dereference after null check")
 
-But it is still a very crude version now, maybe I can send out for some suggestions
-next week. :)
+Fixes: 4f3bf9de9eac ("ovl: factor out ovl_free_fs() helper")
+Signed-off-by: Colin Ian King <colin.king@canonical.com>
+---
+ fs/overlayfs/super.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Thanks,
-Yi.
-
-> Thanks,
-> Miklos
-> 
-> 
+diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+index 708afec913ac..8258a194695b 100644
+--- a/fs/overlayfs/super.c
++++ b/fs/overlayfs/super.c
+@@ -1154,7 +1154,7 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
+ 	err = -ENOMEM;
+ 	ofs = kzalloc(sizeof(struct ovl_fs), GFP_KERNEL);
+ 	if (!ofs)
+-		goto out_err;
++		return err;
+ 
+ 	ofs->creator_cred = cred = prepare_creds();
+ 	if (!cred)
+-- 
+2.14.1
