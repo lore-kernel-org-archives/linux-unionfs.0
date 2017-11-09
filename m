@@ -1,12 +1,12 @@
 From: Vivek Goyal <vgoyal@redhat.com>
-Subject: [PATCH v6 09/15] ovl: Set OVL_UPPERDATA flag during ovl_lookup()
-Date: Thu,  9 Nov 2017 15:50:13 -0500
-Message-ID: <20171109205019.11409-10-vgoyal@redhat.com>
+Subject: [PATCH v6 13/15] ovl: Fix compression status of a metacopy only file
+Date: Thu,  9 Nov 2017 15:50:17 -0500
+Message-ID: <20171109205019.11409-14-vgoyal@redhat.com>
 References: <20171109205019.11409-1-vgoyal@redhat.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:37032 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:56344 "EHLO mx1.redhat.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751017AbdKIUuc (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        id S1753778AbdKIUuc (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
         Thu, 9 Nov 2017 15:50:32 -0500
 In-Reply-To: <20171109205019.11409-1-vgoyal@redhat.com>
 Sender: linux-unionfs-owner@vger.kernel.org
@@ -14,87 +14,42 @@ List-Id: linux-unionfs@vger.kernel.org
 To: linux-unionfs@vger.kernel.org
 Cc: miklos@szeredi.hu, amir73il@gmail.com
 
-During lookup, check for presence of OVL_XATTR_METACOPY and if not present,
-set OVL_UPPERDATA bit in flags. This is only done for upper inode with a
-corresponding lower dentry and file needs to be a regular file. Basically
-any file which is eligible for metadata only copy up.
+If file is metacopy only, it is possible that lower is compressed while
+upper is not. In that case, report file as compressed (despite the fact
+that only data is compressed while metadata is not).
 
 Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
 ---
- fs/overlayfs/namei.c | 40 ++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 40 insertions(+)
+ fs/overlayfs/inode.c | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
-index 625ed8066570..74c15d001d68 100644
---- a/fs/overlayfs/namei.c
-+++ b/fs/overlayfs/namei.c
-@@ -25,6 +25,28 @@ struct ovl_lookup_data {
- 	char *redirect;
- };
+diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
+index 15713d4ac2dd..dc7573ed947a 100644
+--- a/fs/overlayfs/inode.c
++++ b/fs/overlayfs/inode.c
+@@ -75,6 +75,15 @@ static void ovl_stat_set_encryption(struct kstat *ustat, struct kstat *lstat) {
+ 	ustat->attributes_mask |= STATX_ATTR_ENCRYPTED;
+ }
  
-+/* err < 0, 0 if no metacopy xattr, 1 if metacopy xattr found */
-+static int ovl_check_metacopy(struct dentry *dentry)
-+{
-+	int res;
++static void ovl_stat_set_compressed(struct kstat *ustat, struct kstat *lstat) {
++	if (!((lstat->attributes_mask & STATX_ATTR_COMPRESSED) &&
++	    (lstat->attributes & STATX_ATTR_COMPRESSED)))
++		return;
 +
-+	/* Only regular files can have metacopy xattr */
-+	if (!S_ISREG(d_inode(dentry)->i_mode))
-+		return 0;
-+
-+	res = vfs_getxattr(dentry, OVL_XATTR_METACOPY, NULL, 0);
-+	if (res < 0) {
-+		if (res == -ENODATA || res == -EOPNOTSUPP)
-+			return 0;
-+		goto out;
-+	}
-+
-+	return 1;
-+out:
-+	pr_warn_ratelimited("overlayfs: failed to get metacopy (%i)\n", res);
-+	return res;
++	ustat->attributes |= STATX_ATTR_COMPRESSED;
++	ustat->attributes_mask |= STATX_ATTR_COMPRESSED;
 +}
 +
- static int ovl_check_redirect(struct dentry *dentry, struct ovl_lookup_data *d,
- 			      size_t prelen, const char *post)
- {
-@@ -602,6 +624,7 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
- 	struct dentry *this;
- 	unsigned int i;
- 	int err;
-+	bool metacopy = false;
- 	struct ovl_lookup_data d = {
- 		.name = dentry->d_name,
- 		.is_dir = false,
-@@ -642,6 +665,20 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
- 					       roe->numlower, &stack, &ctr);
- 			if (err)
- 				goto out_put_upper;
-+
-+			err = ovl_check_metacopy(upperdentry);
-+			metacopy = err;
-+			if (err < 0)
-+				goto out_put_upper;
-+			if (metacopy && !ctr) {
-+				/*
-+				 * Found an upper with metacopy set but
-+				 * at the same time there is no lower
-+				 * dentry. Something is not right.
-+				 */
-+				err = -ESTALE;
-+				goto out_put_upper;
-+			}
+ 
+ int ovl_getattr(const struct path *path, struct kstat *stat,
+ 		u32 request_mask, unsigned int flags)
+@@ -136,6 +145,7 @@ int ovl_getattr(const struct path *path, struct kstat *stat,
+ 			if (metacopy) {
+ 				stat->blocks = lowerstat.blocks;
+ 				ovl_stat_set_encryption(stat, &lowerstat);
++				ovl_stat_set_compressed(stat, &lowerstat);
+ 			}
  		}
- 
- 		if (d.redirect) {
-@@ -726,6 +763,9 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
- 		OVL_I(inode)->redirect = upperredirect;
- 		if (index)
- 			ovl_set_flag(OVL_INDEX, inode);
-+
-+		if (upperdentry && ctr && S_ISREG(inode->i_mode) && !metacopy)
-+			ovl_set_flag(OVL_UPPERDATA, inode);
- 	}
- 
- 	revert_creds(old_cred);
+ 		if (samefs) {
 -- 
 2.13.6
