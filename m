@@ -1,95 +1,68 @@
 From: Vivek Goyal <vgoyal@redhat.com>
-Subject: [PATCH v6 11/15] ovl: Do not expose metacopy only upper dentry
-Date: Thu,  9 Nov 2017 15:50:15 -0500
-Message-ID: <20171109205019.11409-12-vgoyal@redhat.com>
-References: <20171109205019.11409-1-vgoyal@redhat.com>
+Subject: [RFC PATCH v6 00/15] overlayfs: Delayed copy up of data
+Date: Thu,  9 Nov 2017 15:50:04 -0500
+Message-ID: <20171109205019.11409-1-vgoyal@redhat.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:44804 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:37110 "EHLO mx1.redhat.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752361AbdKIUuc (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 9 Nov 2017 15:50:32 -0500
-In-Reply-To: <20171109205019.11409-1-vgoyal@redhat.com>
+        id S1754202AbdKIUuf (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Thu, 9 Nov 2017 15:50:35 -0500
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: linux-unionfs@vger.kernel.org
 Cc: miklos@szeredi.hu, amir73il@gmail.com
 
-d_real() can make a upper metacopy dentry/inode visible to the vfs layer.
-This is something new and vfs layer does not know that this inode contains
-only metadata and not data. And this could break things.
+Hi,
 
-So to be safe, do not export metacopy only dentry/inode to vfs using d_real().
+Here is the V6 of patches. I have taken care of most of the comments
+from previous iteration and also rebased patches to overlayfs-next
+branch of miklos's tree.
 
-If d_real() is called with flag D_REAL_UPPER, return upper dentry only if
-it has data (flag OVL_UPPERDATA is set).
+These patches are still in RFC stage and very lightly tested. First
+I want to make sure that I have addressed all design concerns. Once that
+is done, will do more extensive testing.
 
-Similiarly, if d_real(inode=X) is called, a warning is emitted if returned
-dentry/inode does not have OVL_UPPERDATA set. This should not happen as
-we never made this metacopy inode visible to vfs so nobody should be calling
-overlayfs back with inode=metacopy_inode.
+Following are changes from V5.
 
-I scanned the code and I don't think it breaks any of the existing code.
-There are two users of D_REAL_UPPER. may_write_real() and
-update_ovl_inode_times().
+- Rebased on top of overlafs-next branch
+- Fixed races in ovl_getattr() w.r.t metacopy only file.
+- Fixed issues related to encryped and compressed files in ovl_getattr() 
+- Added bunch of helper functions so that code is little more clean.
+- Miscellaneous code cleanup as suggested by Amir.
 
-may_write_real(), will get an NULL dentry if upper inode is metacopy only
-and it will return -EPERM. Effectively, we are disallowing modifications
-to metacopy only inode from this interface. Though there is opportunity
-to improve it. (Allow chattr on metacopy inodes).
+Amir, I am still setting UPPERDATA only if file needs it. I am really
+not convinced that we should do it for all files. Code is not that
+much extra. Please have another look and see how do you feel about it
+now.
 
-update_ovl_inode_times() gets inode mtime and ctime from real inode. It
-should not be broken for metacopy inode as well for following reasons.
+Vivek
 
-- For any metadata operations (setattr, acl etc), overlay always calls
-  ovl_copyattr() and updates ovl inode mtime and ctime. So there is no
-  need to update mtime and ctime int his case. Its already updated.
+Vivek Goyal (15):
+  ovl: Create origin xattr on copy up for all files
+  ovl: ovl_check_setxattr() get rid of redundant -EOPNOTSUPP check
+  ovl: Provide a mount option metacopy=on/off for metadata copyup
+  ovl: During copy up, first copy up metadata and then data
+  ovl: Copy up only metadata during copy up where it makes sense
+  ovl: Add helper ovl_already_copied_up()
+  ovl: A new xattr OVL_XATTR_METACOPY for file on upper
+  ovl: Fix ovl_getattr() to get number of blocks from lower
+  ovl: Set OVL_UPPERDATA flag during ovl_lookup()
+  ovl: Return lower dentry if only metadata copy up took place
+  ovl: Do not expose metacopy only upper dentry
+  ovl: Fix encryption status of a metacopy only file
+  ovl: Fix compression status of a metacopy only file
+  ovl: Introduce read/write barriers around metacopy flag update
+  ovl: Enable metadata only feature
 
-- For metadata inode, mtime should be same as lower and not change. (data
-  can't be modified on metadata inode without copyup).
+ fs/overlayfs/Kconfig     |   8 ++++
+ fs/overlayfs/copy_up.c   | 115 +++++++++++++++++++++++++++++------------------
+ fs/overlayfs/inode.c     |  35 +++++++++++++--
+ fs/overlayfs/namei.c     |  40 +++++++++++++++++
+ fs/overlayfs/overlayfs.h |   9 +++-
+ fs/overlayfs/ovl_entry.h |   1 +
+ fs/overlayfs/super.c     |  61 ++++++++++++++++++++++---
+ fs/overlayfs/util.c      | 107 ++++++++++++++++++++++++++++++++++++++-----
+ 8 files changed, 311 insertions(+), 65 deletions(-)
 
-- For file writes, ctime and mtime will be updated. But in that case
-  first data will be copied up and this will not be a metadata inode
-  anymore. And furthr call to d_real(D_REAL_UPPER) will return upper
-  inode and new mtime and ctime will be obtainable.
-
-So atime updates should work just fine for metacopy inodes.
-
-Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
----
- fs/overlayfs/super.c | 14 +++++++++++---
- 1 file changed, 11 insertions(+), 3 deletions(-)
-
-diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-index 5cb19781763d..f1d7d38b747f 100644
---- a/fs/overlayfs/super.c
-+++ b/fs/overlayfs/super.c
-@@ -84,8 +84,14 @@ static struct dentry *ovl_d_real(struct dentry *dentry,
- 	struct dentry *real;
- 	int err;
- 
--	if (flags & D_REAL_UPPER)
--		return ovl_dentry_upper(dentry);
-+	if (flags & D_REAL_UPPER) {
-+		real = ovl_dentry_upper(dentry);
-+		if (!real)
-+			return NULL;
-+		if (!ovl_has_upperdata(dentry))
-+			return NULL;
-+		return real;
-+	}
- 
- 	if (!d_is_reg(dentry)) {
- 		if (!inode || inode == d_inode(dentry))
-@@ -109,7 +115,9 @@ static struct dentry *ovl_d_real(struct dentry *dentry,
- 
- 			if (unlikely(metacopy))
- 				goto lower;
--		}
-+		} else if (unlikely(metacopy))
-+			goto bug;
-+
- 		return real;
- 	}
- 
 -- 
 2.13.6
