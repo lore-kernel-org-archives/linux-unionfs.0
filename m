@@ -1,146 +1,120 @@
-From: L A Walsh <lkml@tlinx.org>
+From: Dave Chinner <david@fromorbit.com>
 Subject: Re: Bug? or normal behavior? if bug, then where? overlay, vfs, xfs,
  or ????
-Date: Wed, 08 Nov 2017 13:21:18 -0800
-Message-ID: <5A03754E.5070903@tlinx.org>
-References: <59FA4499.2030502@tlinx.org> <CAOQ4uxg-bkYnpV146kBgdbgCK9On+=jM1gCe1975J8HKkWxcNg@mail.gmail.com> <59FEC912.4000005@tlinx.org> <CAOQ4uxjDbNiZiUUzNZEHTt8SQW-1trC6dSF=c28bD8EuWLWFrw@mail.gmail.com> <20171105223445.GA5858@dastard>
+Date: Thu, 9 Nov 2017 12:47:26 +1100
+Message-ID: <20171109014726.GI4094@dastard>
+References: <59FA4499.2030502@tlinx.org>
+ <CAOQ4uxg-bkYnpV146kBgdbgCK9On+=jM1gCe1975J8HKkWxcNg@mail.gmail.com>
+ <59FEC912.4000005@tlinx.org>
+ <CAOQ4uxjDbNiZiUUzNZEHTt8SQW-1trC6dSF=c28bD8EuWLWFrw@mail.gmail.com>
+ <20171105223445.GA5858@dastard>
+ <5A03754E.5070903@tlinx.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from ishtar.tlinx.org ([173.164.175.65]:51104 "EHLO
-        Ishtar.sc.tlinx.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752638AbdKHVVh (ORCPT
+Received: from ipmail06.adl6.internode.on.net ([150.101.137.145]:64631 "EHLO
+        ipmail06.adl6.internode.on.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752289AbdKIBra (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 8 Nov 2017 16:21:37 -0500
-In-Reply-To: <20171105223445.GA5858@dastard>
+        Wed, 8 Nov 2017 20:47:30 -0500
+Content-Disposition: inline
+In-Reply-To: <5A03754E.5070903@tlinx.org>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Dave Chinner <david@fromorbit.com>
+To: L A Walsh <lkml@tlinx.org>
 Cc: Amir Goldstein <amir73il@gmail.com>, overlayfs <linux-unionfs@vger.kernel.org>, linux-xfs <linux-xfs@vger.kernel.org>, "Darrick J. Wong" <darrick.wong@oracle.com>
 
-Dave Chinner wrote:
-> Are you still getting all worked up about how metadata CRCs and
-> the v5 on-disk format is going to make the sky fall, Linda? It's
-> time to give in and come join us on the dark side...
->   
----
-    I don't believe I've heard that the sky would fall.  I only had
-2 issues -- 1 that metadata that I that I didn't care about or that I
-wanted to change would be crc'd and prevent changing meta data I wanted
-to change or would flag errors in meta data I didn't care about
-(file last access time being a nanosecond or a day off due to bit rot
-and crc flagging it as an error.
+On Wed, Nov 08, 2017 at 01:21:18PM -0800, L A Walsh wrote:
+> Dave Chinner wrote:
+> >Are you still getting all worked up about how metadata CRCs and
+> >the v5 on-disk format is going to make the sky fall, Linda? It's
+> >time to give in and come join us on the dark side...
+> ---
+>    I don't believe I've heard that the sky would fall.  I only had
+> 2 issues -- 1 that metadata that I that I didn't care about or that I
+> wanted to change would be crc'd and prevent changing meta data I wanted
+> to change or would flag errors in meta data I didn't care about
+> (file last access time being a nanosecond or a day off due to bit rot
+> and crc flagging it as an error.
+> 
+>    Maybe you might remember, I first ran into this when,  as part of
+> my mkfs procedure, I assigned my own value to my disk's UUID, and at the
+> time, the crc-feature claimed the disk had a fault in it.
 
-    Maybe you might remember, I first ran into this when,  as part of
-my mkfs procedure, I assigned my own value to my disk's UUID, and at the
-time, the crc-feature claimed the disk had a fault in it. 
+Yes, but changing the UUID was documented as "not currently
+supported" on v5 filesystems *when it was originally released*.
+IOWs, it was documented as "will be supported in future", but it
+wasn't a critical feature for the initial release of CRC enabled
+filesystems.
 
-    My second issue was it being tied to the finobt feature in a way that
-precluded benchmarking changes on our own filesystems and workload.
+If someone manually changed the UUID (which was the only way to do
+it because the xfs_db commands would refuse to do it) then *it broke
+the filesystem* and so it was correct behaviour to report
+corruption.
+
+Changing the UUID on v5 filesystems is now implemented and
+supported:
+
+$ sudo mkfs.xfs -f /dev/pmem0
+Default configuration sourced from package build definitions
+meta-data=/dev/pmem0             isize=512    agcount=4, agsize=524288 blks
+         =                       sectsz=4096  attr=2, projid32bit=1
+         =                       crc=1        finobt=1, sparse=0, rmapbt=0, reflink=0
+data     =                       bsize=4096   blocks=2097152, imaxpct=25, thinblocks=0
+         =                       sunit=0      swidth=0 blks
+naming   =version 2              bsize=4096   ascii-ci=0 ftype=1
+log      =internal log           bsize=4096   blocks=2560, version=2
+         =                       sectsz=4096  sunit=1 blks, lazy-count=1
+realtime =none                   extsz=4096   blocks=0, rtextents=0
+$
+$ sudo blkid -c /dev/null /dev/pmem0
+/dev/pmem0: UUID="7073fe11-4b44-4160-a8a0-dec492f61a14" TYPE="xfs"
+$
+$ sudo xfs_admin -U generate /dev/pmem0
+Clearing log and setting UUID
+writing all SBs
+new UUID = c3a4f999-b76a-4597-bb62-df11c5e3fc04
+$
+$ sudo blkid -c /dev/null /dev/pmem0
+/dev/pmem0: UUID="c3a4f999-b76a-4597-bb62-df11c5e3fc04" TYPE="xfs"
+$
+
+IOWs, this problem is ancient history. Move on, nothing to see here.
+
+>    My second issue was it being tied to the finobt feature in a way that
+> precluded benchmarking changes on our own filesystems and workload.
+
+[....]
+
+>    I would expect that, especially since finobt would benefit more mature
+> file systems more than newer ones.  While on newer file systems, finobt+crc
+> comes out to about the same performance.
+> 
+>    My issue was the inability to bench or use them separately.
+
+<sigh>
+
+Not an XFS problem:
+
+$ mkfs.xfs -f -m finobt=0 /dev/pmem0
+....
+         =                       crc=1        finobt=0, sparse=0, rmapbt=0, reflink=0
+.....
+
+Yup, crc's enabled, finobt is not. As documented in the mkfs.xfs man
+page.
+
+IOWs, We can directly measure the impact of the finobt on
+workloads/benchamrks. And if we want to compare the impact of CRCs,
+then 'mkfs.xfs -f -isize=512, -m crc=0 <dev>' will be directly
+comparable to the above non-finobt filesystem. THis is how we
+benchmarked the changes in the first place....
+
+Cheers,
+
+Dave.
 
 
->   
->> I don't know if there was a specific reason, but that's the way it is.
->>     
->
-> ftype was implemented as part of the format changes for the v5
-> format so it's always enabled for v5 filesystems.  It was introduced
-> as a mkfs option for the v4 format in early 2014, and since mid-2015
-> it's been the default for non-crc filesystems:
->
-> # mkfs.xfs -f -m crc=0 /dev/vdb
-> .....
-> naming   =version 2              bsize=4096   ascii-ci=0 ftype=1
-> .....
->
-> Users should try to keep your userspace tools up to date with the
-> kernel being run.... :)
->   
-----
-    And tools space writers should remember that those who run some
-distro may have tools from 2+ years old and have even been told that
-we are running unsupported configurations if we update system tools
-(not that this always stops some people).
-
-
-   I forget -- what switch do I pass to xfs utils to have them tell
-me what features are supported (v4 or v5, for example)?
-
-    I do see ftype=0|1 under naming and that it has nothing to do
-with crc of data as well as crc and finobt under metadata.
-
-    The problem I had was following the kernel docs for the overlayfs
-and not seeing where ftype=1 was required when making an xfs file system.
-
-    It seems like my mkfs supports ftype, but it isn't the default and
-I didn't know I was supposed to turn it on.
-
->   
->> I have never heard about those issues that you raise.
->> It sounds like a myth about XFS metadata CRC that should be debunked
->> so forwarding your message on to XFS list.
->>     
->
-> FYI, Amir.
->
-> Keep in mind that a lot of people didn't like the concept of
-> metadata CRCs in XFS because .... reasons.  
----
-    See above for for my reasons.
-
-
-> As to the issue that Linda raised, yes, it *did* exist.  We baked
-> the UUID into the metadata format so we knew what filesystem owns a
-> specific metadata block. Handy for detecting stale metadata on a
-> reused device as well as misdirected writes.  We knew about it from
-> the start (all the tools had to be modified to disallow changing
-> UUIDS on v5 filesystems!) but it just wasn't an important enough
-> requirement to have this functionality up front for CRC enabled
-> filesystems.
->   
-====
-    And you have confirmed 1 of my 2 reasons for disliking the crc
-feature -- it sounds like you can no longer set the UUID field on a
-new file systems. 
-
-    Please don't tell people that they sky is falling when you have broken
-the ability to change UUID's as was present in the past.  That was a valid
-feature -- that I was told would be excluded from crc'ing, but now find
-that it can't be done without damaging ability for old systems to read
-such file systems.
-   
->
-> Yeah, that was in reaction to the loud claims that "CRCs are going
-> to slow everything down". Late last year we significantly reduced
-> the CPU overhead of CRC calculation on the write side , so it drops
-> off the CPU profiles in the workloads described in that like above
-> almost entirely. This was the commit:
->   
-----
-    That article had nothing to do w/my concern and predated my involvement.
-My concern was tying the finobt feature to the crc feature so they could
-not be tested in isolation to allow seeing what the impact of crc's 
-might be,
-but more importantly, seeing if finobt had any positive impact on
-more mature file systems without including  the crc feature.
-
-     Your stance seems to be that the the crc feature combined with the
-finobt feature don't show a measurable slowdown on newly created file 
-systems.
-
-    I would expect that, especially since finobt would benefit more mature
-file systems more than newer ones.  While on newer file systems, finobt+crc
-comes out to about the same performance.  
-
-    My issue was the inability to bench or use them separately.
-
-    No sky falling, just standard benchmark methodology to test changes
-on your own workload.
-
-    But as to the ftype flag -- that was me using v4 tools and seeing
-no information that I needed to explicitly specify it to make the overlay
-file system work with xfs, which I don't think has
-anything to do with crc's.  Right?
-
--linda
+-- 
+Dave Chinner
+david@fromorbit.com
