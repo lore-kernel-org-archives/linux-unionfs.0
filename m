@@ -1,53 +1,35 @@
-From: "J . Bruce Fields" <bfields@fieldses.org>
-Subject: Re: [PATCH 00/14] Overlayfs NFS export support
-Date: Thu, 9 Nov 2017 16:55:50 -0500
-Message-ID: <20171109215550.GN8773@fieldses.org>
-References: <1508258671-10800-1-git-send-email-amir73il@gmail.com>
- <20171109190252.GL8773@fieldses.org>
- <CAOQ4uxiCx=nsSQ=XDVSOypMk9avkDn3P2YDaCoPXwFs20Qo8_g@mail.gmail.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Subject: Re: [PATCH v6 01/15] ovl: Create origin xattr on copy up for all files
+Date: Fri, 10 Nov 2017 08:58:13 +0200
+Message-ID: <CAOQ4uxhZ1+1jq=qH=HftbvxduoZT62Md-6zDx-tKfRQZ5R2cNA@mail.gmail.com>
+References: <20171109205019.11409-1-vgoyal@redhat.com> <20171109205019.11409-2-vgoyal@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAOQ4uxiCx=nsSQ=XDVSOypMk9avkDn3P2YDaCoPXwFs20Qo8_g@mail.gmail.com>
-Sender: linux-fsdevel-owner@vger.kernel.org
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, Jeff Layton <jlayton@poochiereds.net>, overlayfs <linux-unionfs@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-unionfs-owner@vger.kernel.org>
+Received: from mail-yw0-f171.google.com ([209.85.161.171]:53216 "EHLO
+        mail-yw0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750860AbdKJG6O (ORCPT
+        <rfc822;linux-unionfs@vger.kernel.org>);
+        Fri, 10 Nov 2017 01:58:14 -0500
+Received: by mail-yw0-f171.google.com with SMTP id w2so7389066ywa.9
+        for <linux-unionfs@vger.kernel.org>; Thu, 09 Nov 2017 22:58:14 -0800 (PST)
+In-Reply-To: <20171109205019.11409-2-vgoyal@redhat.com>
+Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
+To: Vivek Goyal <vgoyal@redhat.com>
+Cc: overlayfs <linux-unionfs@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>
 
-On Thu, Nov 09, 2017 at 09:59:10PM +0200, Amir Goldstein wrote:
-> On Thu, Nov 9, 2017 at 9:02 PM, J . Bruce Fields <bfields@fieldses.org> wrote:
-> > On Tue, Oct 17, 2017 at 07:44:17PM +0300, Amir Goldstein wrote:
-> >> Miklos,
-> >>
-> >> This series implements NFS export support [3] and is based on
-> >> two prep patch sets [1][2] posted earlier to overlayfs list.
-> >> NFS export is enabled for overlayfs mount with the 'verify_dir'
-> >> and 'index=all' mount options.
-> >>
-> >> The current implementation will copy up and index directories when
-> >> directory file handles are encoded. Those extra copy ups could be
-> >> avoided in the future.
-> >>
-> >> The current implementation does NOT support encoding connectable
-> >> non-dir file handles for all overlay path types, so overlayfs should
-> >> not be exported with the 'subtree_check' option.
-> >> I hope this is not a show stopper for merging NFS export support?
-> >
-> > I'm not a big fan of subtree_check, and I'd be OK with filesystems
-> > opting out of support for it.
-> >
-> > I'm not sure what to expect when you actually try to export overlayfs
-> > with subtree_check.  Does it fail on the export, or when clients first
-> > try to access it, and what kind of error do you get?
-> 
-> Not an issue anymore.
-> I replied one day after this email that:
-> 
-> FYI, I implemented encoding of type OVL_FILEID_WITH_PARENT and
-> pushed 2 more patches to branch ovl-nfs-export-v1, so now export with
-> 'subtree_check' should work fine.
+On Thu, Nov 9, 2017 at 10:50 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
+> Right now my understanding is that origin xattr is created for all copied
+> up files if index=on. And if index=off, then we create it for all type
+> of files except hardlinks (nlink != 1).
+>
+> With metadata only copy up, I will still require origin xattr to copy up
+> data later, so create it even for hardlinks even with index=off.
+>
+> Given ->origin is always true now, get rid of this field from
+> "struct ovl_copy_up_ctx".
+>
+> Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
 
-Oops, sorry, OK.
-
---b.
+Reviewed-by: Amir Goldstein <amir73il@gmail.com>
