@@ -1,186 +1,67 @@
 From: Vivek Goyal <vgoyal@redhat.com>
-Subject: Re: [PATCH 1/4] ovl: introduce incompatible index feature
-Date: Fri, 10 Nov 2017 08:57:57 -0500
-Message-ID: <20171110135757.GA16917@redhat.com>
+Subject: Re: [PATCH 2/4] ovl: declare index feature backward compatible
+Date: Fri, 10 Nov 2017 09:21:59 -0500
+Message-ID: <20171110142159.GB16917@redhat.com>
 References: <1508839381-24750-1-git-send-email-amir73il@gmail.com>
- <1508839381-24750-2-git-send-email-amir73il@gmail.com>
+ <1508839381-24750-3-git-send-email-amir73il@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:36440 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:55326 "EHLO mx1.redhat.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752356AbdKJN56 (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 10 Nov 2017 08:57:58 -0500
+        id S1750987AbdKJOWA (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Fri, 10 Nov 2017 09:22:00 -0500
 Content-Disposition: inline
-In-Reply-To: <1508839381-24750-2-git-send-email-amir73il@gmail.com>
+In-Reply-To: <1508839381-24750-3-git-send-email-amir73il@gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: Amir Goldstein <amir73il@gmail.com>
 Cc: Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org
 
-On Tue, Oct 24, 2017 at 01:02:58PM +0300, Amir Goldstein wrote:
-> Introduce a new config option OVERLAY_FS_INDEX_INCOMPAT.
+On Tue, Oct 24, 2017 at 01:02:59PM +0300, Amir Goldstein wrote:
+> Kconfig description on OVERLAY_FS_INDEX states that "the inodes index
+> feature is read-only backward compatible" and that mounting an overlay
+> with index enabled, disabled and then enabled again "will have
+> unexpected results."
 > 
-> If this config option is enabled then inodes index is declared
-> an incompatible feature and kernel will refuse to mount an overlay
-> with inodes index off when a non-empty index directory exists.
+> Commit d1712d8fef03 ("ovl: fix EIO from lookup of non-indexed upper")
+> makes the results of this enable/disable/enable maneuver just as
+> expected and the results of a plain enable of index feature on existing
+> overlay - some hardlinks may have already been broken and new hardlinks
+> will not be broken on copy up.
+> 
+> Now that there is a dedicated config option to opt-in in for backward
+> incompatible index feature, remove the backward compatibility clause from
+> Kconfig description of OVERLAY_FS_INDEX.
+
+What if user does OVERLAY_FS_INDEX_INCOMPAT=n, then this text is still
+relevant?
+
+Vivek
 > 
 > Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 > ---
->  fs/overlayfs/Kconfig     |  8 ++++++++
->  fs/overlayfs/dir.c       | 30 ++++++++++++++++++++++++++++++
->  fs/overlayfs/overlayfs.h |  3 ++-
->  fs/overlayfs/super.c     | 24 +++++++++++++++++++++++-
->  4 files changed, 63 insertions(+), 2 deletions(-)
+>  fs/overlayfs/Kconfig | 7 -------
+>  1 file changed, 7 deletions(-)
 > 
 > diff --git a/fs/overlayfs/Kconfig b/fs/overlayfs/Kconfig
-> index cbfc196e5dc5..e5e6dec7d177 100644
+> index e5e6dec7d177..02295e10ffbe 100644
 > --- a/fs/overlayfs/Kconfig
 > +++ b/fs/overlayfs/Kconfig
-> @@ -43,3 +43,11 @@ config OVERLAY_FS_INDEX
->  	  outcomes.  However, mounting the same overlay with an old kernel
->  	  read-write and then mounting it again with a new kernel, will have
->  	  unexpected results.
-> +
-> +config OVERLAY_FS_INDEX_INCOMPAT
-> +	bool "Overlayfs: support incompatible index feature"
-> +	depends on OVERLAY_FS_INDEX
-> +	help
-> +	  If this config option is enabled then inodes index is declared an
-> +	  incompatible feature and kernel will refuse to mount an overlay with
-> +	  inodes index off when a non-empty index directory exists.
-
-Hi Amir,
-
-I don't know much about the issues you have faced. So I have few very
-basic questions.
-
-So the problem you are trying to fix is that if somebody mounted overlay
-with index=on and later they try to mount it with index=off. 
-
-What problems happen if we allow that? If its a problem, why not always
-disallow that instead of making it an option. IOW, is there a use case
-where we will still let user mount later with index=off.
-
-Vivek
-> diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
-> index cc961a3bd3bd..7e2f748d5a7c 100644
-> --- a/fs/overlayfs/dir.c
-> +++ b/fs/overlayfs/dir.c
-> @@ -8,6 +8,7 @@
->   */
+> @@ -37,13 +37,6 @@ config OVERLAY_FS_INDEX
+>  	  The inodes index feature prevents breaking of lower hardlinks on copy
+>  	  up.
 >  
->  #include <linux/fs.h>
-> +#include <linux/mount.h>
->  #include <linux/namei.h>
->  #include <linux/xattr.h>
->  #include <linux/security.h>
-> @@ -43,6 +44,35 @@ int ovl_cleanup(struct inode *wdir, struct dentry *wdentry)
->  	return err;
->  }
->  
-> +int ovl_cleanup_path(struct path *path, const char *name)
-> +{
-> +	struct inode *dir = path->dentry->d_inode;
-> +	struct dentry *dentry;
-> +	int err;
-> +
-> +	err = mnt_want_write(path->mnt);
-> +	if (err)
-> +		return err;
-> +
-> +	inode_lock_nested(dir, I_MUTEX_PARENT);
-> +
-> +	dentry = lookup_one_len(name, path->dentry, strlen(name));
-> +	if (IS_ERR(dentry)) {
-> +		err = PTR_ERR(dentry);
-> +		dentry = NULL;
-> +	} else if (!dentry->d_inode) {
-> +		err = -ENOENT;
-> +	} else {
-> +		err = ovl_cleanup(dir, dentry);
-> +	}
-> +
-> +	dput(dentry);
-> +	inode_unlock(dir);
-> +	mnt_drop_write(path->mnt);
-> +
-> +	return err;
-> +}
-> +
->  struct dentry *ovl_lookup_temp(struct dentry *workdir)
->  {
->  	struct dentry *temp;
-> diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-> index d9a0edd4e57e..3f9a7625bded 100644
-> --- a/fs/overlayfs/overlayfs.h
-> +++ b/fs/overlayfs/overlayfs.h
-> @@ -300,6 +300,8 @@ static inline void ovl_copyattr(struct inode *from, struct inode *to)
->  
->  /* dir.c */
->  extern const struct inode_operations ovl_dir_inode_operations;
-> +int ovl_cleanup(struct inode *dir, struct dentry *dentry);
-> +int ovl_cleanup_path(struct path *path, const char *name);
->  struct dentry *ovl_lookup_temp(struct dentry *workdir);
->  struct cattr {
->  	dev_t rdev;
-> @@ -309,7 +311,6 @@ struct cattr {
->  int ovl_create_real(struct inode *dir, struct dentry *newdentry,
->  		    struct cattr *attr,
->  		    struct dentry *hardlink, bool debug);
-> -int ovl_cleanup(struct inode *dir, struct dentry *dentry);
->  
->  /* copy_up.c */
->  int ovl_copy_up(struct dentry *dentry);
-> diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-> index f5738e96a052..0dc6d61f828a 100644
-> --- a/fs/overlayfs/super.c
-> +++ b/fs/overlayfs/super.c
-> @@ -39,6 +39,9 @@ module_param_named(index, ovl_index_def, bool, 0644);
->  MODULE_PARM_DESC(ovl_index_def,
->  		 "Default to on or off for the inodes index feature");
->  
-> +static const bool ovl_incompat_index =
-> +	IS_ENABLED(CONFIG_OVERLAY_FS_INDEX_INCOMPAT);
-> +
->  static void ovl_dentry_release(struct dentry *dentry)
->  {
->  	struct ovl_entry *oe = dentry->d_fsdata;
-> @@ -1060,7 +1063,15 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
->  	else if (ufs->upper_mnt->mnt_sb != ufs->same_sb)
->  		ufs->same_sb = NULL;
->  
-> -	if (!(ovl_force_readonly(ufs)) && ufs->config.index) {
-> +	if (ovl_force_readonly(ufs)) {
-> +		/*
-> +		 * Cannot enable index without upperdir/workdir and cannot
-> +		 * test for incompat index dir, but cannot corrupt incompat
-> +		 * index dir either.
-> +		 */
-> +		ufs->config.index = false;
-> +		pr_warn("overlayfs: no upperdir/workdir, falling back to index=off.\n");
-> +	} else if (ufs->config.index) {
->  		/* Verify lower root is upper root origin */
->  		err = ovl_verify_origin(upperpath.dentry, ufs->lower_mnt[0],
->  					stack[0].dentry, false, true);
-> @@ -1088,6 +1099,17 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
->  			pr_warn("overlayfs: try deleting index dir or mounting with '-o index=off' to disable inodes index.\n");
->  		if (err)
->  			goto out_put_indexdir;
-> +
-> +	} else if (ovl_incompat_index) {
-> +		/*
-> +		 * Try to remove empty index dir if it exists -
-> +		 * failure means we need to abort the mount.
-> +		 */
-> +		err = ovl_cleanup_path(&workpath, OVL_INDEXDIR_NAME);
-> +		if (err && err != -ENOENT) {
-> +			pr_err("overlayfs: incompatible index dir exists, try deleting index dir to disable inodes index.\n");
-> +			goto out_put_lower_mnt;
-> +		}
->  	}
->  
->  	/* Show index=off/on in /proc/mounts for any of the reasons above */
+> -	  Note, that the inodes index feature is read-only backward compatible.
+> -	  That is, mounting an overlay which has an index dir on a kernel that
+> -	  doesn't support this feature read-only, will not have any negative
+> -	  outcomes.  However, mounting the same overlay with an old kernel
+> -	  read-write and then mounting it again with a new kernel, will have
+> -	  unexpected results.
+> -
+>  config OVERLAY_FS_INDEX_INCOMPAT
+>  	bool "Overlayfs: support incompatible index feature"
+>  	depends on OVERLAY_FS_INDEX
 > -- 
 > 2.7.4
 > 
