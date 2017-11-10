@@ -1,342 +1,190 @@
-From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH] ovl: take lower dir inode mutex outside upper sb_writers lock
-Date: Fri, 10 Nov 2017 13:18:07 +0200
-Message-ID: <1510312687-9680-1-git-send-email-amir73il@gmail.com>
+From: Vivek Goyal <vgoyal@redhat.com>
+Subject: Re: [PATCH 1/4] ovl: introduce incompatible index feature
+Date: Fri, 10 Nov 2017 08:57:57 -0500
+Message-ID: <20171110135757.GA16917@redhat.com>
+References: <1508839381-24750-1-git-send-email-amir73il@gmail.com>
+ <1508839381-24750-2-git-send-email-amir73il@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wr0-f195.google.com ([209.85.128.195]:45907 "EHLO
-        mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750835AbdKJLRX (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 10 Nov 2017 06:17:23 -0500
-Received: by mail-wr0-f195.google.com with SMTP id y9so8302434wrb.2
-        for <linux-unionfs@vger.kernel.org>; Fri, 10 Nov 2017 03:17:23 -0800 (PST)
+Received: from mx1.redhat.com ([209.132.183.28]:36440 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752356AbdKJN56 (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Fri, 10 Nov 2017 08:57:58 -0500
+Content-Disposition: inline
+In-Reply-To: <1508839381-24750-2-git-send-email-amir73il@gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: zhangyi <yi.zhang@huawei.com>, linux-unionfs@vger.kernel.org
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org
 
-The functions ovl_lower_positive() and ovl_check_empty_dir() both take
-inode mutex on the real lower dir under ovl_want_write() which takes
-the upper_mnt sb_writers lock.
+On Tue, Oct 24, 2017 at 01:02:58PM +0300, Amir Goldstein wrote:
+> Introduce a new config option OVERLAY_FS_INDEX_INCOMPAT.
+> 
+> If this config option is enabled then inodes index is declared
+> an incompatible feature and kernel will refuse to mount an overlay
+> with inodes index off when a non-empty index directory exists.
+> 
+> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+> ---
+>  fs/overlayfs/Kconfig     |  8 ++++++++
+>  fs/overlayfs/dir.c       | 30 ++++++++++++++++++++++++++++++
+>  fs/overlayfs/overlayfs.h |  3 ++-
+>  fs/overlayfs/super.c     | 24 +++++++++++++++++++++++-
+>  4 files changed, 63 insertions(+), 2 deletions(-)
+> 
+> diff --git a/fs/overlayfs/Kconfig b/fs/overlayfs/Kconfig
+> index cbfc196e5dc5..e5e6dec7d177 100644
+> --- a/fs/overlayfs/Kconfig
+> +++ b/fs/overlayfs/Kconfig
+> @@ -43,3 +43,11 @@ config OVERLAY_FS_INDEX
+>  	  outcomes.  However, mounting the same overlay with an old kernel
+>  	  read-write and then mounting it again with a new kernel, will have
+>  	  unexpected results.
+> +
+> +config OVERLAY_FS_INDEX_INCOMPAT
+> +	bool "Overlayfs: support incompatible index feature"
+> +	depends on OVERLAY_FS_INDEX
+> +	help
+> +	  If this config option is enabled then inodes index is declared an
+> +	  incompatible feature and kernel will refuse to mount an overlay with
+> +	  inodes index off when a non-empty index directory exists.
 
-While this is not a clear locking order or layering violation, it creates
-an undesired lock dependency between two unrelated layers for no good
-reason.
+Hi Amir,
 
-This lock dependency materializes to a false(?) positive lockdep warning
-when calling rmdir() on a nested overlayfs, where both nested and
-underlying overlayfs both use the same fs type as upper layer.
+I don't know much about the issues you have faced. So I have few very
+basic questions.
 
-rmdir() on the nested overlayfs creates the lock chain:
-  sb_writers of upper_mnt (e.g. tmpfs) in ovl_do_remove()
-  ovl_i_mutex_dir_key[] of lower overlay dir in ovl_lower_positive()
+So the problem you are trying to fix is that if somebody mounted overlay
+with index=on and later they try to mount it with index=off. 
 
-rmdir() on the underlying overlayfs creates the lock chain in
-reverse order:
-  ovl_i_mutex_dir_key[] of lower overlay dir in vfs_rmdir()
-  sb_writers of nested upper_mnt (e.g. tmpfs) in ovl_do_remove()
+What problems happen if we allow that? If its a problem, why not always
+disallow that instead of making it an option. IOW, is there a use case
+where we will still let user mount later with index=off.
 
-To rid of the unneeded locking dependency, move both ovl_lower_positive()
-and ovl_check_empty_dir() to before ovl_want_write() in rmdir() and
-rename() implementation.
-
-This change spreads the pieces of ovl_check_empty_and_clear() directly
-inside the rmdir()/rename() implementations so the helper is no longer
-needed and removed.
-
-Signed-off-by: Amir Goldstein <amir73il@gmail.com>
----
-
-Miklos,
-
-Please consider this patch for v4.15.
-
-I bumped into the lockdep warning while testing file handles on nested
-overlay and had to work around it by using different type of fs for the
-lower-upper(xfs) and the upper-upper(tmpfs).
-
-The workaround doesn't suffice if there is another test mounting an overlay
-with the same fs type used for upper-upper (e.g. unionmount-testsuite)
-at the same machine boot, which happens on my automated testing.
-
-So fixing this removes a false positive from my automated testing.
-
-Thanks,
-Amir.
-
- fs/overlayfs/dir.c     | 117 ++++++++++++++++++++++---------------------------
- fs/overlayfs/namei.c   |   3 ++
- fs/overlayfs/readdir.c |   3 ++
- 3 files changed, 58 insertions(+), 65 deletions(-)
-
-diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
-index e13921824c70..a91daa5ab857 100644
---- a/fs/overlayfs/dir.c
-+++ b/fs/overlayfs/dir.c
-@@ -181,11 +181,6 @@ static bool ovl_type_origin(struct dentry *dentry)
- 	return OVL_TYPE_ORIGIN(ovl_path_type(dentry));
- }
- 
--static bool ovl_may_have_whiteouts(struct dentry *dentry)
--{
--	return ovl_test_flag(OVL_WHITEOUTS, d_inode(dentry));
--}
--
- static int ovl_create_upper(struct dentry *dentry, struct inode *inode,
- 			    struct cattr *attr, struct dentry *hardlink)
- {
-@@ -301,37 +296,6 @@ static struct dentry *ovl_clear_empty(struct dentry *dentry,
- 	return ERR_PTR(err);
- }
- 
--static struct dentry *ovl_check_empty_and_clear(struct dentry *dentry)
--{
--	int err;
--	struct dentry *ret = NULL;
--	LIST_HEAD(list);
--
--	err = ovl_check_empty_dir(dentry, &list);
--	if (err) {
--		ret = ERR_PTR(err);
--		goto out_free;
--	}
--
--	/*
--	 * When removing an empty opaque directory, then it makes no sense to
--	 * replace it with an exact replica of itself.
--	 *
--	 * If upperdentry has whiteouts, clear them.
--	 *
--	 * Can race with copy-up, since we don't hold the upperdir mutex.
--	 * Doesn't matter, since copy-up can't create a non-empty directory
--	 * from an empty one.
--	 */
--	if (!list_empty(&list))
--		ret = ovl_clear_empty(dentry, &list);
--
--out_free:
--	ovl_cache_free(&list);
--
--	return ret;
--}
--
- static int ovl_set_upper_acl(struct dentry *upperdentry, const char *name,
- 			     const struct posix_acl *acl)
- {
-@@ -623,7 +587,8 @@ static bool ovl_matches_upper(struct dentry *dentry, struct dentry *upper)
- 	return d_inode(ovl_dentry_upper(dentry)) == d_inode(upper);
- }
- 
--static int ovl_remove_and_whiteout(struct dentry *dentry, bool is_dir)
-+static int ovl_remove_and_whiteout(struct dentry *dentry,
-+				   struct list_head *list)
- {
- 	struct dentry *workdir = ovl_workdir(dentry);
- 	struct inode *wdir = workdir->d_inode;
-@@ -638,8 +603,8 @@ static int ovl_remove_and_whiteout(struct dentry *dentry, bool is_dir)
- 	if (WARN_ON(!workdir))
- 		return -EROFS;
- 
--	if (is_dir) {
--		opaquedir = ovl_check_empty_and_clear(dentry);
-+	if (!list_empty(list)) {
-+		opaquedir = ovl_clear_empty(dentry, list);
- 		err = PTR_ERR(opaquedir);
- 		if (IS_ERR(opaquedir))
- 			goto out;
-@@ -694,7 +659,8 @@ static int ovl_remove_and_whiteout(struct dentry *dentry, bool is_dir)
- 	goto out_d_drop;
- }
- 
--static int ovl_remove_upper(struct dentry *dentry, bool is_dir)
-+static int ovl_remove_upper(struct dentry *dentry, bool is_dir,
-+			    struct list_head *list)
- {
- 	struct dentry *upperdir = ovl_dentry_upper(dentry->d_parent);
- 	struct inode *dir = upperdir->d_inode;
-@@ -702,10 +668,8 @@ static int ovl_remove_upper(struct dentry *dentry, bool is_dir)
- 	struct dentry *opaquedir = NULL;
- 	int err;
- 
--	/* Redirect/origin dir can be !ovl_lower_positive && not clean */
--	if (is_dir && (ovl_dentry_get_redirect(dentry) ||
--		       ovl_may_have_whiteouts(dentry))) {
--		opaquedir = ovl_check_empty_and_clear(dentry);
-+	if (!list_empty(list)) {
-+		opaquedir = ovl_clear_empty(dentry, list);
- 		err = PTR_ERR(opaquedir);
- 		if (IS_ERR(opaquedir))
- 			goto out;
-@@ -746,11 +710,26 @@ static int ovl_remove_upper(struct dentry *dentry, bool is_dir)
- 	return err;
- }
- 
-+static bool ovl_pure_upper(struct dentry *dentry)
-+{
-+	return !ovl_dentry_lower(dentry) &&
-+	       !ovl_test_flag(OVL_WHITEOUTS, d_inode(dentry));
-+}
-+
- static int ovl_do_remove(struct dentry *dentry, bool is_dir)
- {
- 	int err;
- 	bool locked = false;
- 	const struct cred *old_cred;
-+	bool lower_positive = ovl_lower_positive(dentry);
-+	LIST_HEAD(list);
-+
-+	/* No need to clean pure upper removed by vfs_rmdir() */
-+	if (is_dir && (lower_positive || !ovl_pure_upper(dentry))) {
-+		err = ovl_check_empty_dir(dentry, &list);
-+		if (err)
-+			goto out;
-+	}
- 
- 	err = ovl_want_write(dentry);
- 	if (err)
-@@ -765,10 +744,10 @@ static int ovl_do_remove(struct dentry *dentry, bool is_dir)
- 		goto out_drop_write;
- 
- 	old_cred = ovl_override_creds(dentry->d_sb);
--	if (!ovl_lower_positive(dentry))
--		err = ovl_remove_upper(dentry, is_dir);
-+	if (!lower_positive)
-+		err = ovl_remove_upper(dentry, is_dir, &list);
- 	else
--		err = ovl_remove_and_whiteout(dentry, is_dir);
-+		err = ovl_remove_and_whiteout(dentry, &list);
- 	revert_creds(old_cred);
- 	if (!err) {
- 		if (is_dir)
-@@ -780,6 +759,7 @@ static int ovl_do_remove(struct dentry *dentry, bool is_dir)
- out_drop_write:
- 	ovl_drop_write(dentry);
- out:
-+	ovl_cache_free(&list);
- 	return err;
- }
- 
-@@ -914,6 +894,7 @@ static int ovl_rename(struct inode *olddir, struct dentry *old,
- 	bool samedir = olddir == newdir;
- 	struct dentry *opaquedir = NULL;
- 	const struct cred *old_cred = NULL;
-+	LIST_HEAD(list);
- 
- 	err = -EINVAL;
- 	if (flags & ~(RENAME_EXCHANGE | RENAME_NOREPLACE))
-@@ -928,6 +909,27 @@ static int ovl_rename(struct inode *olddir, struct dentry *old,
- 	if (!overwrite && !ovl_can_move(new))
- 		goto out;
- 
-+	if (overwrite && new_is_dir && !ovl_pure_upper(new)) {
-+		err = ovl_check_empty_dir(new, &list);
-+		if (err)
-+			goto out;
-+	}
-+
-+	if (overwrite) {
-+		if (ovl_lower_positive(old)) {
-+			if (!ovl_dentry_is_whiteout(new)) {
-+				/* Whiteout source */
-+				flags |= RENAME_WHITEOUT;
-+			} else {
-+				/* Switch whiteouts */
-+				flags |= RENAME_EXCHANGE;
-+			}
-+		} else if (is_dir && ovl_dentry_is_whiteout(new)) {
-+			flags |= RENAME_EXCHANGE;
-+			cleanup_whiteout = true;
-+		}
-+	}
-+
- 	err = ovl_want_write(old);
- 	if (err)
- 		goto out;
-@@ -951,9 +953,8 @@ static int ovl_rename(struct inode *olddir, struct dentry *old,
- 
- 	old_cred = ovl_override_creds(old->d_sb);
- 
--	if (overwrite && new_is_dir && (ovl_type_merge_or_lower(new) ||
--					ovl_may_have_whiteouts(new))) {
--		opaquedir = ovl_check_empty_and_clear(new);
-+	if (!list_empty(&list)) {
-+		opaquedir = ovl_clear_empty(new, &list);
- 		err = PTR_ERR(opaquedir);
- 		if (IS_ERR(opaquedir)) {
- 			opaquedir = NULL;
-@@ -961,21 +962,6 @@ static int ovl_rename(struct inode *olddir, struct dentry *old,
- 		}
- 	}
- 
--	if (overwrite) {
--		if (ovl_lower_positive(old)) {
--			if (!ovl_dentry_is_whiteout(new)) {
--				/* Whiteout source */
--				flags |= RENAME_WHITEOUT;
--			} else {
--				/* Switch whiteouts */
--				flags |= RENAME_EXCHANGE;
--			}
--		} else if (is_dir && ovl_dentry_is_whiteout(new)) {
--			flags |= RENAME_EXCHANGE;
--			cleanup_whiteout = true;
--		}
--	}
--
- 	old_upperdir = ovl_dentry_upper(old->d_parent);
- 	new_upperdir = ovl_dentry_upper(new->d_parent);
- 
-@@ -1093,6 +1079,7 @@ static int ovl_rename(struct inode *olddir, struct dentry *old,
- 	ovl_drop_write(old);
- out:
- 	dput(opaquedir);
-+	ovl_cache_free(&list);
- 	return err;
- }
- 
-diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
-index 625ed8066570..b6564f1a6d48 100644
---- a/fs/overlayfs/namei.c
-+++ b/fs/overlayfs/namei.c
-@@ -758,6 +758,7 @@ bool ovl_lower_positive(struct dentry *dentry)
- 	struct ovl_entry *oe = dentry->d_fsdata;
- 	struct ovl_entry *poe = dentry->d_parent->d_fsdata;
- 	const struct qstr *name = &dentry->d_name;
-+	const struct cred *old_cred;
- 	unsigned int i;
- 	bool positive = false;
- 	bool done = false;
-@@ -773,6 +774,7 @@ bool ovl_lower_positive(struct dentry *dentry)
- 	if (!ovl_dentry_upper(dentry))
- 		return true;
- 
-+	old_cred = ovl_override_creds(dentry->d_sb);
- 	/* Positive upper -> have to look up lower to see whether it exists */
- 	for (i = 0; !done && !positive && i < poe->numlower; i++) {
- 		struct dentry *this;
-@@ -802,6 +804,7 @@ bool ovl_lower_positive(struct dentry *dentry)
- 			dput(this);
- 		}
- 	}
-+	revert_creds(old_cred);
- 
- 	return positive;
- }
-diff --git a/fs/overlayfs/readdir.c b/fs/overlayfs/readdir.c
-index 77d2027fe5aa..06d7be6799b2 100644
---- a/fs/overlayfs/readdir.c
-+++ b/fs/overlayfs/readdir.c
-@@ -860,8 +860,11 @@ int ovl_check_empty_dir(struct dentry *dentry, struct list_head *list)
- 	int err;
- 	struct ovl_cache_entry *p, *n;
- 	struct rb_root root = RB_ROOT;
-+	const struct cred *old_cred;
- 
-+	old_cred = ovl_override_creds(dentry->d_sb);
- 	err = ovl_dir_read_merged(dentry, list, &root);
-+	revert_creds(old_cred);
- 	if (err)
- 		return err;
- 
--- 
-2.7.4
+Vivek
+> diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
+> index cc961a3bd3bd..7e2f748d5a7c 100644
+> --- a/fs/overlayfs/dir.c
+> +++ b/fs/overlayfs/dir.c
+> @@ -8,6 +8,7 @@
+>   */
+>  
+>  #include <linux/fs.h>
+> +#include <linux/mount.h>
+>  #include <linux/namei.h>
+>  #include <linux/xattr.h>
+>  #include <linux/security.h>
+> @@ -43,6 +44,35 @@ int ovl_cleanup(struct inode *wdir, struct dentry *wdentry)
+>  	return err;
+>  }
+>  
+> +int ovl_cleanup_path(struct path *path, const char *name)
+> +{
+> +	struct inode *dir = path->dentry->d_inode;
+> +	struct dentry *dentry;
+> +	int err;
+> +
+> +	err = mnt_want_write(path->mnt);
+> +	if (err)
+> +		return err;
+> +
+> +	inode_lock_nested(dir, I_MUTEX_PARENT);
+> +
+> +	dentry = lookup_one_len(name, path->dentry, strlen(name));
+> +	if (IS_ERR(dentry)) {
+> +		err = PTR_ERR(dentry);
+> +		dentry = NULL;
+> +	} else if (!dentry->d_inode) {
+> +		err = -ENOENT;
+> +	} else {
+> +		err = ovl_cleanup(dir, dentry);
+> +	}
+> +
+> +	dput(dentry);
+> +	inode_unlock(dir);
+> +	mnt_drop_write(path->mnt);
+> +
+> +	return err;
+> +}
+> +
+>  struct dentry *ovl_lookup_temp(struct dentry *workdir)
+>  {
+>  	struct dentry *temp;
+> diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
+> index d9a0edd4e57e..3f9a7625bded 100644
+> --- a/fs/overlayfs/overlayfs.h
+> +++ b/fs/overlayfs/overlayfs.h
+> @@ -300,6 +300,8 @@ static inline void ovl_copyattr(struct inode *from, struct inode *to)
+>  
+>  /* dir.c */
+>  extern const struct inode_operations ovl_dir_inode_operations;
+> +int ovl_cleanup(struct inode *dir, struct dentry *dentry);
+> +int ovl_cleanup_path(struct path *path, const char *name);
+>  struct dentry *ovl_lookup_temp(struct dentry *workdir);
+>  struct cattr {
+>  	dev_t rdev;
+> @@ -309,7 +311,6 @@ struct cattr {
+>  int ovl_create_real(struct inode *dir, struct dentry *newdentry,
+>  		    struct cattr *attr,
+>  		    struct dentry *hardlink, bool debug);
+> -int ovl_cleanup(struct inode *dir, struct dentry *dentry);
+>  
+>  /* copy_up.c */
+>  int ovl_copy_up(struct dentry *dentry);
+> diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+> index f5738e96a052..0dc6d61f828a 100644
+> --- a/fs/overlayfs/super.c
+> +++ b/fs/overlayfs/super.c
+> @@ -39,6 +39,9 @@ module_param_named(index, ovl_index_def, bool, 0644);
+>  MODULE_PARM_DESC(ovl_index_def,
+>  		 "Default to on or off for the inodes index feature");
+>  
+> +static const bool ovl_incompat_index =
+> +	IS_ENABLED(CONFIG_OVERLAY_FS_INDEX_INCOMPAT);
+> +
+>  static void ovl_dentry_release(struct dentry *dentry)
+>  {
+>  	struct ovl_entry *oe = dentry->d_fsdata;
+> @@ -1060,7 +1063,15 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
+>  	else if (ufs->upper_mnt->mnt_sb != ufs->same_sb)
+>  		ufs->same_sb = NULL;
+>  
+> -	if (!(ovl_force_readonly(ufs)) && ufs->config.index) {
+> +	if (ovl_force_readonly(ufs)) {
+> +		/*
+> +		 * Cannot enable index without upperdir/workdir and cannot
+> +		 * test for incompat index dir, but cannot corrupt incompat
+> +		 * index dir either.
+> +		 */
+> +		ufs->config.index = false;
+> +		pr_warn("overlayfs: no upperdir/workdir, falling back to index=off.\n");
+> +	} else if (ufs->config.index) {
+>  		/* Verify lower root is upper root origin */
+>  		err = ovl_verify_origin(upperpath.dentry, ufs->lower_mnt[0],
+>  					stack[0].dentry, false, true);
+> @@ -1088,6 +1099,17 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
+>  			pr_warn("overlayfs: try deleting index dir or mounting with '-o index=off' to disable inodes index.\n");
+>  		if (err)
+>  			goto out_put_indexdir;
+> +
+> +	} else if (ovl_incompat_index) {
+> +		/*
+> +		 * Try to remove empty index dir if it exists -
+> +		 * failure means we need to abort the mount.
+> +		 */
+> +		err = ovl_cleanup_path(&workpath, OVL_INDEXDIR_NAME);
+> +		if (err && err != -ENOENT) {
+> +			pr_err("overlayfs: incompatible index dir exists, try deleting index dir to disable inodes index.\n");
+> +			goto out_put_lower_mnt;
+> +		}
+>  	}
+>  
+>  	/* Show index=off/on in /proc/mounts for any of the reasons above */
+> -- 
+> 2.7.4
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-unionfs" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
