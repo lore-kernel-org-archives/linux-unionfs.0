@@ -1,126 +1,109 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [PATCH v8 0/9] Overlayfs: constant st_ino/d_ino for non-samefs
-Date: Fri, 10 Nov 2017 11:24:02 +0200
-Message-ID: <CAOQ4uxgVSKpmh+5MhC4Sqv19_sHrfOsmVvn_nVeD9ygDOR6Wkg@mail.gmail.com>
-References: <1510073889-11657-1-git-send-email-amir73il@gmail.com>
- <CAJfpegvBEXgi=P8Sciv+U6VqcjsLJChR1OdwZyZA_PoL3MNTNA@mail.gmail.com>
- <CAOQ4uxjvFVk5xs_zj1Ga4o-0GGStGWfYsNhY8ot+zTeB3HoBNw@mail.gmail.com>
- <CAOQ4uxjtTek_79chEiswmhNd4S8SnDzicH6p2_XwS7HfVM5ZjA@mail.gmail.com>
- <CAOQ4uxinxHV_3XEh6dPhenypDQ3=PCOw5yvg2juguK_YtoRacw@mail.gmail.com>
- <CAJfpegujOAJYfbT3CUWy20CyCUQnmDP5=aQLYYrnjV+TU1WnZA@mail.gmail.com> <CAOQ4uxiu-A+_Amwzh69s07DDJ05gaZYV1gQb=8G7eu=s2GFnxw@mail.gmail.com>
+Subject: Re: [PATCH v6 14/15] ovl: Introduce read/write barriers around
+ metacopy flag update
+Date: Fri, 10 Nov 2017 11:43:36 +0200
+Message-ID: <CAOQ4uxhBvnFkma6qy=Be4uLDi-6aJmsgmpKGQ=XTJr8kXS0fmQ@mail.gmail.com>
+References: <20171109205019.11409-1-vgoyal@redhat.com> <20171109205019.11409-15-vgoyal@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-yw0-f193.google.com ([209.85.161.193]:45663 "EHLO
-        mail-yw0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750835AbdKJJYD (ORCPT
+Received: from mail-yw0-f196.google.com ([209.85.161.196]:50937 "EHLO
+        mail-yw0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751888AbdKJJni (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 10 Nov 2017 04:24:03 -0500
-Received: by mail-yw0-f193.google.com with SMTP id c186so5023248ywb.2
-        for <linux-unionfs@vger.kernel.org>; Fri, 10 Nov 2017 01:24:03 -0800 (PST)
-In-Reply-To: <CAOQ4uxiu-A+_Amwzh69s07DDJ05gaZYV1gQb=8G7eu=s2GFnxw@mail.gmail.com>
+        Fri, 10 Nov 2017 04:43:38 -0500
+Received: by mail-yw0-f196.google.com with SMTP id i198so7664173ywe.7
+        for <linux-unionfs@vger.kernel.org>; Fri, 10 Nov 2017 01:43:37 -0800 (PST)
+In-Reply-To: <20171109205019.11409-15-vgoyal@redhat.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: Chandan Rajendra <chandan@linux.vnet.ibm.com>, Vivek Goyal <vgoyal@redhat.com>, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>
+To: Vivek Goyal <vgoyal@redhat.com>
+Cc: overlayfs <linux-unionfs@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>
 
-On Thu, Nov 9, 2017 at 1:25 PM, Amir Goldstein <amir73il@gmail.com> wrote:
-> On Thu, Nov 9, 2017 at 11:33 AM, Miklos Szeredi <miklos@szeredi.hu> wrote:
->> On Wed, Nov 8, 2017 at 5:50 PM, Amir Goldstein <amir73il@gmail.com> wrote:
->>> On Wed, Nov 8, 2017 at 3:40 PM, Amir Goldstein <amir73il@gmail.com> wrote:
->>>> On Wed, Nov 8, 2017 at 2:01 PM, Amir Goldstein <amir73il@gmail.com> wrote:
->>>>> On Wed, Nov 8, 2017 at 12:53 PM, Miklos Szeredi <miklos@szeredi.hu> wrote:
->>>>>> On Tue, Nov 7, 2017 at 5:58 PM, Amir Goldstein <amir73il@gmail.com> wrote:
->>>>>>> Miklos,
->>>>>>>
->>>>>>> This version provides a solution for some interesting non-samefs cases:
->>>>>>> - All the ext* family
->>>>>>> - Many other fs with default encode_fh
->>>>>>> - xfs that is not huge with overlay 'xino' mount option
->>>>>>> - tmpfs that is not on a machine with jurassic uptime with 'xino'
->>>>>>>
->>>>>>> I tested this with Chandan's upstream overlay/041 xfstest for
->>>>>>> consistent d_ino in non-samefs setup. Results are:
->>>>>>> - Test passes for ext4
->>>>>>> - Test fails for xfs
->>>>>>> - Test fails for xfs with OVERLAY_MOUNT_OPTIONS=-oxino,
->>>>>>>   but this is because of a test bug
->>>>>>> - With the test bug fix available at [2] test passes
->>>>>>>   with xfs and OVERLAY_MOUNT_OPTIONS=-oxino
->>>>>>>
->>>>>>> All the exportfs tests also pass with these changes and
->>>>>>> either ext4 or xfs with OVERLAY_MOUNT_OPTIONS=-oxino.
->>>>>>>
->>>>>>> Changes since v7:
->>>>>>> - Drop patches for building impure cache for non-samefs subdirs
->>>>>>> - Dropped patch "update cache version of impure parent on rename"
->>>>>>>   because it is not relevant to this series
->>>>>>> - Remap lower inode numbers for 32bit inode file systems
->>>>>>> - Add mount option 'xino' for opting-in to use high inode bits
->>>>>>
->>>>>> I the meantime I went and committed v7 (with the noted changes) and
->>>>>> based my cleanup for ovl_fill_super() on top of that.  So that's now
->>>>>
->>>>> Nice cleanup!
->>>>> I don't like setting of s_d_op inside ovl_get_lowerstack().
->>>>> IMO should add ufs->remote boolean because it is interesting anyway
->>>>> and set s_d_op in ovl_fill_super() itself.
->>>>>
->>>>
->>>> Mikos,
->>>>
->>>> ovl_fill_super() cleanup caused 3 regressions with xfstest
->>>> check -overlay -g overlay/quick
->>>> overlay/011 overlay/035 - mount failures instead of r/o mount
->>>
->>> Fixed by "fix free of ERR_PTR oe"
->>>
->>>> overlay/022 - dentries in use after mount failure:
->>>>
->>>> BUG: Dentry ffff880079fee2f8{i=42ff,n=upper}  still in use (-1)
->>>> [unmount of overlay overlay]
->>>> BUG: Dentry ffff880079fe0338{i=2008d81,n=upper}  still in use (1)
->>>> [unmount of xfs vdf]
->>>> BUG: Dentry ffff880079fda700{i=3000100,n=ovl-lower}  still in use (1)
->>>> [unmount of xfs vdf]
->>>>
->>>
->>> Fixed by "fix double path_put() on error"
->>>
->>>> Another regression caused by tweaking OVL_WHITEOUTS patch:
->>>> overlay/038 - A fix to the readdir regression is pushed to:
->>>> https://github.com/amir73il/linux/commits/ovl-fixes
->>>
->>> Pushed those 2 fixes and 2 more review bug fixes to ovl-fixes branch.
->>
->> Thanks for testing and looking at the issues.  I've now set up
->> xfstests  as well in my test environment...
->>
+On Thu, Nov 9, 2017 at 10:50 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
+> If a file is copied up metadata only and later when same file is opened
+> for WRITE, then data copy up takes place. We copy up data, remove METACOPY
+> xattr and then set the UPPERDATA flag in ovl_entry->flags. While all
+> these operations happen with oi->lock held, read side of oi->flags is
+> lockless. That is another thread on another cpu can check if UPPERDATA
+> flag is set or not.
 >
-> You may want to try out Ted's kvm-xfstests if you haven't already.
-> I've set it up to also run unionmount testsuite tests from within xfstests:
+> So this gives us an ordering requirement w.r.t UPPERDATA flag. That is, if
+> another cpu sees UPPERDATA flag set, then it should be guaranteed that
+> effects of data copy up and remove xattr operations are also visible.
 >
-> https://github.com/amir73il/xfstests-bld/commits/overlayfs-devel
+> For example.
 >
->> Force pushed branch with fixes to overlayfs-next.
->>
+>         CPU1                            CPU2
+> ovl_d_real()                            acquire(oi->lock)
+>   ovl_copy_up_flags()                    ovl_copy_up_data()
+>    ovl_dentry_needs_data_copy_up()       vfs_removexattr()
+>      ovl_test_flag(OVL_UPPERDATA)        ovl_set_flag(OVK_UPPERDATA)
+>                                         release(oi->lock)
+
+typo OVK_UPPERDATA
+
+CPU1:
+ ovl_d_real()
+  ovl_open_maybe_copy_up()
+    ovl_open_need_copy_up()
+      ovl_dentry_needs_data_copy_up()
+        ovl_test_flag(OVL_UPPERDATA)
+
+That's the execution path I meant you should specify, the execution path
+that could expose incomplete upper to vfs from d_real().
+
 >
-> Looks good.
-> Will test.
+> Say CPU2 is copying up data and in the end sets UPPERDATA flag. But if
+> CPU1 perceives the effects of setting UPPERDATA flag but not effects of
+> preceeding operations, that would be a problem.
 >
 
-Tested. All good.
+Instead of "that would be a problem", you can say that upper that is
+not fully copied
+up is exposed to vfs.
 
-Did you get a chance to look at the 2 cleanup patches on overlayfs-devel:
+> Hence this patch introduces smp_wmb() on setting UPPERDATA flag operation
+> and smp_rmb() on UPPERDATA flag test operation.
+>
+> May be some other lock or barrier is already covering it. But I am not sure
+> what that is and is it obvious enough that we will not break it in future.
+>
+> So hence trying to be safe here and introducing barriers explicitly for
+> UPPERDATA flag/bit.
+>
+> Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
+> ---
+>  fs/overlayfs/util.c | 17 +++++++++++++++--
+>  1 file changed, 15 insertions(+), 2 deletions(-)
+>
+> diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
+> index f70eea77c5c7..81b307c20a8d 100644
+> --- a/fs/overlayfs/util.c
+> +++ b/fs/overlayfs/util.c
+> @@ -267,13 +267,26 @@ bool ovl_has_upperdata(struct dentry *dentry) {
+>         if (!ovl_should_check_upperdata(dentry))
+>                 return true;
+>
+> -       return ovl_test_flag(OVL_UPPERDATA, d_inode(dentry));
+> +       if (!ovl_test_flag(OVL_UPPERDATA, d_inode(dentry)))
+> +               return false;
+> +       /*
+> +        * Pairs with smp_wmb() in ovl_copy_up_meta_inode_data(). Make sure
+> +        * if setting of OVL_UPPERDATA is visible, then effects of writes
+> +        * before that are visible too.
+> +        */
+> +       smp_rmb();
+> +       return true;
+>  }
+>
 
-3c964f63efcf ovl: factor out ovl_map_dev_ino() helper
-8e97d9da4f2f ovl: store layer index in ovl_layer
+I think it is not right to have smp_rmb() is the locked path where it
+is not needed
+too costly.
 
-Do you want me to post them proper?
-A variant of them was posted within the v8 series.
+We should probably have a different variant for ovl_already_copied_up_locked()
+and if OVL_UPPERDATA is set for all non-eligible cases, ovl_has_upperdata()
+can have the smp_rmb() and locked variant can just can check the flag directly.
 
-BTW, there is a locking order issue for nested overlay I am working on
-which I intend to post later today. I hope it can make it to v4.15 as well.
-
-Thanks,
 Amir.
