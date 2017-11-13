@@ -1,67 +1,85 @@
-From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [PATCH 2/2] overlay: Test consistent st_ino numbers for
- non-samefs scenario
-Date: Mon, 13 Nov 2017 17:08:12 +0200
-Message-ID: <CAOQ4uxiYSgzCVkDYL288y3LZfm4VdrqG24_M0tpUBoYYpnmEgw@mail.gmail.com>
-References: <20171113144527.1034-1-chandan@linux.vnet.ibm.com> <20171113144527.1034-2-chandan@linux.vnet.ibm.com>
+From: Chengguang Xu <cgxu@mykernel.net>
+Subject: [PATCH] ovl: Check project quota ids during ovl_fill_super()
+Date: Mon, 13 Nov 2017 23:59:21 +0800
+Message-ID: <1510588761-82660-1-git-send-email-cgxu@mykernel.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-yw0-f193.google.com ([209.85.161.193]:45730 "EHLO
-        mail-yw0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752269AbdKMPIN (ORCPT
+Received: from [122.225.81.134] ([122.225.81.134]:28439 "EHLO
+        juanniu018037.ss.mogujie.org" rhost-flags-FAIL-FAIL-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1753776AbdKMQwX (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 13 Nov 2017 10:08:13 -0500
-In-Reply-To: <20171113144527.1034-2-chandan@linux.vnet.ibm.com>
+        Mon, 13 Nov 2017 11:52:23 -0500
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Chandan Rajendra <chandan@linux.vnet.ibm.com>
-Cc: fstests <fstests@vger.kernel.org>, overlayfs <linux-unionfs@vger.kernel.org>, Eryu Guan <eguan@redhat.com>
+To: miklos@szeredi.hu
+Cc: linux-unionfs@vger.kernel.org, Chengguang Xu <cgxu@mykernel.net>, Suyue <suyue@meili-inc.com>
 
-On Mon, Nov 13, 2017 at 4:45 PM, Chandan Rajendra
-<chandan@linux.vnet.ibm.com> wrote:
-> This commit adds a test to verify consistent st_ino feature when
-> the overlayfs instance is composed of two different underlying
-> filesystem instances.
->
-> For example,
-> $ mount -t xfs /dev/loop0 /mnt/test
-> $ mount -t xfs /dev/loop1 /mnt/scratch
-> $ mkdir /mnt/scratch/upper
-> $ mkdir /mnt/scratch/work
-> $ mount -t overlay overlay -o lowerdir=/mnt/test \
->         -o upperdir=/mnt/scratch/upper \
->         -o workdir=/mnt/scratch/work /mnt/merge
->
-> The goal of this test is to verify that overlayfs returns consistent
-> st_ino for the following scenarios,
-> - Copy-up of lowerdir files
-> - Rename files and drop dentry/inode cache
-> - Remount the overlayfs instance
->
-> Signed-off-by: Chandan Rajendra <chandan@linux.vnet.ibm.com>
-> ---
-> Eryu,
-> To pass, This test requires Amir's "Overlayfs: constant st_ino/d_ino for
-> non-samefs" patchset. But this patch can be merged as it indicates an
-> incorrect behaviour by overlayfs code as presently available on
-> upstream kernel.
+When upperdir has project quota and has different project id with workdir,
+write may fail with error message "Invalid cross-device link" although mounted on r/w mode.
+This patch checks project quota information of upperdir/workdir during ovl_fill_super(),
+and if different mount on r/o mode. It doesn’t check detail inherit flag because
+the implementations are different in specific filesystems.
 
-Eryu,
+Signed-off-by: Chengguang Xu <cgxu@mykernel.net>
+Signed-off-by: Suyue <suyue@meili-inc.com>
+---
+ fs/overlayfs/super.c | 32 +++++++++++++++++++++++++++++++-
+ 1 file changed, 31 insertions(+), 1 deletion(-)
 
-To add a bit more context
-This test, like test 041 checks for bad behavior of overlayfs with upper/lower
-not on the samefs.
-
-I posted work to address these issues, but the work was not accepted to
-v4.15, so 041 as well as the new proposed test are still going to fail on v4.15.
-I had already posted some new patches (i.e. the 'xino' mount option which
-these patches refer to), available on my ovl-xino development branch.
-The new work addresses those issues and got positive feedback from Miklos,
-so it may land in the next merge cycle.
-
-Thanks Chandan,
-I will review this test later.
-
-Cheers,
-Amir.
+diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+index f5738e9..7b64d5c 100644
+--- a/fs/overlayfs/super.c
++++ b/fs/overlayfs/super.c
+@@ -276,10 +276,34 @@ static int ovl_statfs(struct dentry *dentry, struct kstatfs *buf)
+ 	return err;
+ }
+ 
++static bool ovl_check_project_quota_ok(struct ovl_fs *ufs)
++{
++	struct super_block *sb;
++	kprojid_t upperdir_projid = KPROJIDT_INIT(-1);
++	kprojid_t workdir_projid = KPROJIDT_INIT(-1);
++
++	if (!ufs->upper_mnt || !ufs->workdir)
++		return true;
++
++	sb = ufs->upper_mnt->mnt_sb;
++	if (!(sb->s_quota_types & QTYPE_MASK_PRJ))
++		return true;
++
++	if (sb->dq_op && sb->dq_op->get_projid) {
++		sb->dq_op->get_projid(ufs->upper_mnt->mnt_root->d_inode, &upperdir_projid);
++		sb->dq_op->get_projid(ufs->workdir->d_inode, &workdir_projid);
++		if (projid_valid(upperdir_projid) && projid_valid(workdir_projid))
++			if (!projid_eq(upperdir_projid, workdir_projid))
++				return false;
++	}
++
++	return true;
++}
++
+ /* Will this overlay be forced to mount/remount ro? */
+ static bool ovl_force_readonly(struct ovl_fs *ufs)
+ {
+-	return (!ufs->upper_mnt || !ufs->workdir);
++	return (!ufs->upper_mnt || !ufs->workdir || !ovl_check_project_quota_ok(ufs));
+ }
+ 
+ /**
+@@ -1060,6 +1084,12 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
+ 	else if (ufs->upper_mnt->mnt_sb != ufs->same_sb)
+ 		ufs->same_sb = NULL;
+ 
++	/* if upperdir and workdir have different project quota ids, we mark overlayfs r/o too */
++	if (!ovl_check_project_quota_ok(ufs)) {
++		pr_warn("overlayfs: mounting read-only because upperdir and workdir have different project quota ids.\n");
++		sb->s_flags |= MS_RDONLY;
++	}
++
+ 	if (!(ovl_force_readonly(ufs)) && ufs->config.index) {
+ 		/* Verify lower root is upper root origin */
+ 		err = ovl_verify_origin(upperpath.dentry, ufs->lower_mnt[0],
+-- 
+1.8.3.1
