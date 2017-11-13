@@ -1,80 +1,78 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [PATCH 3/4] ovl: cast a shadow of incomapt index into the past
-Date: Fri, 10 Nov 2017 18:30:30 +0200
-Message-ID: <CAOQ4uxiZqUYkW7w0Nf_=VZUrVATcAQ7pgOHQWd6DXtVnHXSWGQ@mail.gmail.com>
-References: <1508839381-24750-1-git-send-email-amir73il@gmail.com>
- <1508839381-24750-4-git-send-email-amir73il@gmail.com> <20171110145327.GC16917@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Subject: [PATCH v2] tmpfs: allow decoding a file handle of an unlinked file
+Date: Mon, 13 Nov 2017 08:43:58 +0200
+Message-ID: <1510555438-28996-1-git-send-email-amir73il@gmail.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-yw0-f180.google.com ([209.85.161.180]:55538 "EHLO
-        mail-yw0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752559AbdKJQab (ORCPT
+Received: from mail-wr0-f195.google.com ([209.85.128.195]:50612 "EHLO
+        mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751377AbdKMGnO (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 10 Nov 2017 11:30:31 -0500
-Received: by mail-yw0-f180.google.com with SMTP id t11so8551668ywg.12
-        for <linux-unionfs@vger.kernel.org>; Fri, 10 Nov 2017 08:30:31 -0800 (PST)
-In-Reply-To: <20171110145327.GC16917@redhat.com>
+        Mon, 13 Nov 2017 01:43:14 -0500
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Vivek Goyal <vgoyal@redhat.com>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, overlayfs <linux-unionfs@vger.kernel.org>
+To: Miklos Szeredi <miklos@szeredi.hu>, Al Viro <viro@zeniv.linux.org.uk>
+Cc: Jeff Layton <jlayton@poochiereds.net>, "J . Bruce Fields" <bfields@fieldses.org>, James Bottomley <James.Bottomley@hansenpartnership.com>, linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, Hugh Dickins <hughd@google.com>
 
-On Fri, Nov 10, 2017 at 4:53 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
-> On Tue, Oct 24, 2017 at 01:03:00PM +0300, Amir Goldstein wrote:
->> Because overlayfs features were not implemented in the first version
->> of overlayfs merged in v3.18, we cannot enforce old kernel not to mount
->> overlayfs with new backward incompatible features... but we can try to
->> set traps for those who try to perform those mounts.
->>
->> When enabling a backward incompatible feature, we create a
->> non-empty directory nested 2 levels deep under "work" dir, e.g.:
->> workdir/work/incompat_features/incomapt_index.
->>
->> Very old kernels (i.e. v3.18) will fail to remove a non-empty "work"
->> dir and fail the mount. Newer kernels will fail to remove a "work"
->> dir with entries nested 3 levels and fall back to read-only mount.
->>
->> User mounting with old kernel will see a warning like these in dmesg:
->>   overlayfs: cleanup of 'incompat_features/incompat_index' failed (-39)
->>   overlayfs: cleanup of 'work/incompat_features' failed (-39)
->>   overlayfs: cleanup of 'ovl-work/work' failed (-39)
->>   overlayfs: failed to create directory /vdf/ovl-work/work (errno: 17);
->>              mounting read-only
->
-> This sounds interesting. I am scratching my head and understand what is
-> backward compatibility in this case.
->
-> So basically somebody booted a new kernel and enabled a new feature. And
-> now downgraded to old kernel and tried to mount again. And old kernel is
-> working with metadata of new kernel. To me this if forward compatibility
-> and not backward compatibility. (Something like ext3 being able to mount
-> ext4).
->
-> If yes, failing to mount using old kernel for metadata created by
-> newer kernel (incomatible metadata), sounds reasonable to me.
->
->>
->> These warnings should give the hint to the user that:
->> 1. mount failure is caused by backward incompatible features
->
-> Should we call this forward incomatible feature? Older kernels can't work
-> with metadata of index feature.
->
+tmpfs uses the helper d_find_alias() to find a dentry from a decoded
+inode, but d_find_alias() skips unhashed dentries, so unlinked files
+cannot be decoded from a file handle.
 
-To avoid confusion let's just call them incomap/rocompat features without
-referring to forward/backward, because the terminology is not what matters.
+This can be reproduced using xfstests test program open_by_handle:
+$ open_by handle -c /tmp/testdir
+$ open_by_handle -dk /tmp/testdir
+open_by_handle(/tmp/testdir/file000000) returned 116 incorrectly on an
+unlinked open file!
 
-When you are confused go to documentation of ext4/xfs and see what that
-means. Its the exact same concept:
-- old kernel cannot mount an fs with unknown incomapt features
-- old kernel can mount only read-only, as fs with unknown rocompat features
+To fix this, if d_find_alias() can't find a hashed alias, call
+d_find_any_alias() to return an unhashed one.
 
-ext4 also has "compat" features, meaning that old kernel can mount them,
-but user programs can check if feature exist for whatever reasons.
-e2fsck will refuse to modify fs even if it has unknown "compat" features.
-xfs_repair will just warn on unknown "compat" features but will modify fs.
-I did not see a reason to introduce "compat" features for overlayfs just yet,
-because there are no userspace tools/lib that can check them.
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+---
 
+Al, Miklos,
+
+Can either of you take this patch through your tree?
+
+Thanks,
 Amir.
+
+Changes since v1:
+- Prefer a hashed alias (James)
+- Use existing d_find_any_alias() helper
+
+ mm/shmem.c | 11 ++++++++++-
+ 1 file changed, 10 insertions(+), 1 deletion(-)
+
+diff --git a/mm/shmem.c b/mm/shmem.c
+index 07a1d22807be..5d3fa4099f54 100644
+--- a/mm/shmem.c
++++ b/mm/shmem.c
+@@ -3404,6 +3404,15 @@ static int shmem_match(struct inode *ino, void *vfh)
+ 	return ino->i_ino == inum && fh[0] == ino->i_generation;
+ }
+ 
++/* Find any alias of inode, but prefer a hashed alias */
++static struct dentry *shmem_find_alias(struct inode *inode)
++{
++	struct dentry *alias = d_find_alias(inode);
++
++	return alias ?: d_find_any_alias(inode);
++}
++
++
+ static struct dentry *shmem_fh_to_dentry(struct super_block *sb,
+ 		struct fid *fid, int fh_len, int fh_type)
+ {
+@@ -3420,7 +3429,7 @@ static struct dentry *shmem_fh_to_dentry(struct super_block *sb,
+ 	inode = ilookup5(sb, (unsigned long)(inum + fid->raw[0]),
+ 			shmem_match, fid->raw);
+ 	if (inode) {
+-		dentry = d_find_alias(inode);
++		dentry = shmem_find_alias(inode);
+ 		iput(inode);
+ 	}
+ 
+-- 
+2.7.4
