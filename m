@@ -1,34 +1,52 @@
-From: Miklos Szeredi <miklos@szeredi.hu>
-Subject: Re: [bug report] ovl: factor out ovl_free_fs() helper
-Date: Mon, 13 Nov 2017 10:17:21 +0100
-Message-ID: <CAJfpegs-ZSX1mOhR+qim1OoosE3EhmHVFQ1sOz+GfndKgsS+eg@mail.gmail.com>
-References: <20171113090546.jdkiaxu3sidsawxi@mwanda>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+From: Chandan Rajendra <chandan@linux.vnet.ibm.com>
+Subject: [PATCH 1/2] src/t_dir_type.c: Use strtoul() instead of atoll()
+Date: Mon, 13 Nov 2017 20:15:26 +0530
+Message-ID: <20171113144527.1034-1-chandan@linux.vnet.ibm.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wr0-f173.google.com ([209.85.128.173]:53752 "EHLO
-        mail-wr0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752044AbdKMJRX (ORCPT
+Received: from mx0a-001b2d01.pphosted.com ([148.163.156.1]:35706 "EHLO
+        mx0a-001b2d01.pphosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751303AbdKMOoj (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 13 Nov 2017 04:17:23 -0500
-Received: by mail-wr0-f173.google.com with SMTP id u40so13763381wrf.10
-        for <linux-unionfs@vger.kernel.org>; Mon, 13 Nov 2017 01:17:22 -0800 (PST)
-In-Reply-To: <20171113090546.jdkiaxu3sidsawxi@mwanda>
+        Mon, 13 Nov 2017 09:44:39 -0500
+Received: from pps.filterd (m0098399.ppops.net [127.0.0.1])
+        by mx0a-001b2d01.pphosted.com (8.16.0.21/8.16.0.21) with SMTP id vADEiWPG104045
+        for <linux-unionfs@vger.kernel.org>; Mon, 13 Nov 2017 09:44:39 -0500
+Received: from e37.co.us.ibm.com (e37.co.us.ibm.com [32.97.110.158])
+        by mx0a-001b2d01.pphosted.com with ESMTP id 2e7budwgn6-1
+        (version=TLSv1.2 cipher=AES256-SHA bits=256 verify=NOT)
+        for <linux-unionfs@vger.kernel.org>; Mon, 13 Nov 2017 09:44:38 -0500
+Received: from localhost
+        by e37.co.us.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
+        for <linux-unionfs@vger.kernel.org> from <chandan@linux.vnet.ibm.com>;
+        Mon, 13 Nov 2017 07:44:37 -0700
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Miklos Szeredi <mszeredi@redhat.com>, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>
+To: fstests@vger.kernel.org, amir73il@gmail.com
+Cc: Chandan Rajendra <chandan@linux.vnet.ibm.com>, linux-unionfs@vger.kernel.org, eguan@redhat.com
 
-On Mon, Nov 13, 2017 at 10:05 AM, Dan Carpenter
-<dan.carpenter@oracle.com> wrote:
-> Hello Miklos Szeredi,
->
-> The patch df6c653fd465: "ovl: factor out ovl_free_fs() helper" from
-> Nov 9, 2017, leads to the following static checker warning:
->
->         fs/overlayfs/super.c:1260 ovl_fill_super()
->         error: we previously assumed 'ofs' could be null (see line 1156)
+An overlayfs filesystem instance with one lowerdir filesystem and with
+"xino" mount option enabled can have the layer index encoded in the 63rd
+bit of the inode number. A signed 64 bit integer won't suffice to store
+this inode number. Hence this commit uses strtoul() to convert the inode
+number in string form to unsigned integer form.
 
-Thanks,  already fixed in latest version.
+Signed-off-by: Chandan Rajendra <chandan@linux.vnet.ibm.com>
+---
+ src/t_dir_type.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Miklos
+diff --git a/src/t_dir_type.c b/src/t_dir_type.c
+index 76aaa9b..7bba304 100644
+--- a/src/t_dir_type.c
++++ b/src/t_dir_type.c
+@@ -85,7 +85,7 @@ main(int argc, char *argv[])
+ 				break;
+ 		/* no match ends up with type = -1 */
+ 		if (type < 0)
+-			ino = atoll(argv[2]);
++			ino = strtoul(argv[2], NULL, 10);
+ 	}
+ 
+ 	for ( ; ; ) {
+-- 
+2.9.5
