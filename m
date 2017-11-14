@@ -1,240 +1,73 @@
-From: Chandan Rajendra <chandan@linux.vnet.ibm.com>
-Subject: [PATCH V2] overlay: Test consistent st_ino numbers for non-samefs scenario
-Date: Tue, 14 Nov 2017 16:39:48 +0530
-Message-ID: <20171114110948.31345-1-chandan@linux.vnet.ibm.com>
-Return-path: <fstests-owner@vger.kernel.org>
-Sender: fstests-owner@vger.kernel.org
-To: fstests@vger.kernel.org, amir73il@gmail.com
-Cc: Chandan Rajendra <chandan@linux.vnet.ibm.com>, linux-unionfs@vger.kernel.org, eguan@redhat.com
+From: Eryu Guan <eguan@redhat.com>
+Subject: Re: [PATCH 1/2] src/t_dir_type.c: Use strtoul() instead of atoll()
+Date: Tue, 14 Nov 2017 19:13:38 +0800
+Message-ID: <20171114111338.GG17339@eguan.usersys.redhat.com>
+References: <20171113144527.1034-1-chandan@linux.vnet.ibm.com>
+ <CAOQ4uxjjtkTyqXWX-mRQeeWLY1KrGJn330uBAZX7f_hLs=pY-Q@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-unionfs-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:49890 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752436AbdKNLNk (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Tue, 14 Nov 2017 06:13:40 -0500
+Content-Disposition: inline
+In-Reply-To: <CAOQ4uxjjtkTyqXWX-mRQeeWLY1KrGJn330uBAZX7f_hLs=pY-Q@mail.gmail.com>
+Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: Chandan Rajendra <chandan@linux.vnet.ibm.com>, fstests <fstests@vger.kernel.org>, overlayfs <linux-unionfs@vger.kernel.org>
 
-This commit adds a test to verify consistent st_ino feature when
-the overlayfs instance is composed of two different underlying
-filesystem instances.
+On Mon, Nov 13, 2017 at 04:57:08PM +0200, Amir Goldstein wrote:
+> On Mon, Nov 13, 2017 at 4:45 PM, Chandan Rajendra
+> <chandan@linux.vnet.ibm.com> wrote:
+> > An overlayfs filesystem instance with one lowerdir filesystem and with
+> > "xino" mount option enabled can have the layer index encoded in the 63rd
+> > bit of the inode number. A signed 64 bit integer won't suffice to store
+> > this inode number. Hence this commit uses strtoul() to convert the inode
+> > number in string form to unsigned integer form.
+> >
+> > Signed-off-by: Chandan Rajendra <chandan@linux.vnet.ibm.com>
+> 
+> Looks good, especially since I had to fix the same problem myself ;)
+> https://github.com/amir73il/xfstests/commits/overlayfs-devel
+> 
+> My patch also changes:
+> 
+>         int type = -1; /* -1 means all types */
+> -       uint64_t ino = 0;
+> +       unsigned long ino = 0;
+>         int ret = 1;
+> 
+> But I am not sure that is the right thing to do here or what difference it makes
 
-For example,
-$ mount -t xfs /dev/loop0 /mnt/test
-$ mount -t xfs /dev/loop1 /mnt/scratch
-$ mkdir /mnt/scratch/upper
-$ mkdir /mnt/scratch/work
-$ mount -t overlay overlay -o lowerdir=/mnt/test \
-        -o upperdir=/mnt/scratch/upper \
-        -o workdir=/mnt/scratch/work /mnt/merge
+I think that strtoul() returns unsigned long, which could be 32bit, and
+uint64_t is guaranteed to be 64bit size, so I tend to change the ino
+definition too. But I guess that doesn't matter that much :)
 
-The goal of this test is to verify that overlayfs returns consistent
-st_ino for the following scenarios,
-- Copy-up of lowerdir files
-- Rename files and drop dentry/inode cache
-- Remount the overlayfs instance
+Thanks,
+Eryu
 
-Signed-off-by: Chandan Rajendra <chandan@linux.vnet.ibm.com>
----
-Changelog:
-v1->v2:
-Address review comments provided by Amir.
-1. To succeed, the test now requires the underlying base filesystems to provide
-   32-bit inode numbers or the user to provide "xino" mount option. The test
-   also requires that either overlayfs 'index' config feature to be enabled by
-   default or to be enabled by using the 'index=on' mount option.
-2. Require $TEST_DEV for use as Overlayfs' lowerdir.
-3. Pass $OVERLAY_MOUNT_OPTIONS as argument to _overlay_scratch_mount_dirs().
-   
- tests/overlay/043     | 167 ++++++++++++++++++++++++++++++++++++++++++++++++++
- tests/overlay/043.out |   2 +
- tests/overlay/group   |   1 +
- 3 files changed, 170 insertions(+)
- create mode 100755 tests/overlay/043
- create mode 100644 tests/overlay/043.out
-
-diff --git a/tests/overlay/043 b/tests/overlay/043
-new file mode 100755
-index 0000000..5778564
---- /dev/null
-+++ b/tests/overlay/043
-@@ -0,0 +1,167 @@
-+#! /bin/bash
-+# FSQA Test No. 043
-+#
-+# Test constant inode numbers on non-samefs setup
-+# This is a variant of overlay/017 to test constant st_ino numbers for
-+# non-samefs setup.
-+#
-+# This simple test demonstrates a known issue with overlayfs:
-+# - stat file A shows inode number X
-+# - modify A to trigger copy up
-+# - stat file A shows inode number Y != X
-+#
-+# Also test if d_ino of readdir entries changes after copy up
-+# and if inode numbers persist after rename, drop caches and
-+# mount cycle.
-+#
-+# This test succeeds when either the underlying filesystems provide 32-bit
-+# inode numbers or when the xino mount option is provided. This test
-+# also requires that either overlayfs 'index' config feature to be enabled by
-+# default or to be enabled by using the 'index=on' mount option.
-+#
-+#-----------------------------------------------------------------------
-+#
-+# Copyright (C) 2017 IBM Corporation. All Rights Reserved.
-+# Author: Chandan Rajendra <chandan@linux.vnet.ibm.com>
-+#
-+# This program is free software; you can redistribute it and/or
-+# modify it under the terms of the GNU General Public License as
-+# published by the Free Software Foundation.
-+#
-+# This program is distributed in the hope that it would be useful,
-+# but WITHOUT ANY WARRANTY; without even the implied warranty of
-+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+# GNU General Public License for more details.
-+#
-+# You should have received a copy of the GNU General Public License
-+# along with this program; if not, write the Free Software Foundation,
-+# Inc.,  51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-+#-----------------------------------------------------------------------
-+#
-+
-+seq=`basename $0`
-+seqres=$RESULT_DIR/$seq
-+echo "QA output created by $seq"
-+
-+here=`pwd`
-+tmp=/tmp/$$
-+status=1	# failure is the default!
-+trap "_cleanup; exit \$status" 0 1 2 3 15
-+
-+_cleanup()
-+{
-+	cd /
-+	rm -f $tmp.*
-+}
-+
-+# get standard environment, filters and checks
-+. ./common/rc
-+. ./common/filter
-+
-+# real QA test starts here
-+_supported_fs overlay
-+_supported_os Linux
-+_require_scratch
-+_require_test
-+_require_test_program "af_unix"
-+_require_test_program "t_dir_type"
-+
-+rm -f $seqres.full
-+
-+lowerdir=$OVL_BASE_TEST_DIR/$seq-ovl-lower
-+rm -rf $lowerdir
-+mkdir $lowerdir
-+
-+# Create our test files.
-+mkdir $lowerdir/dir
-+touch $lowerdir/file
-+ln -s $lowerdir/file $lowerdir/symlink
-+mknod $lowerdir/chrdev c 1 1
-+mknod $lowerdir/blkdev b 1 1
-+mknod $lowerdir/fifo p
-+$here/src/af_unix $lowerdir/socket
-+touch $lowerdir/hardlink1
-+ln $lowerdir/hardlink1 $lowerdir/hardlink2
-+
-+_scratch_mkfs >>$seqres.full 2>&1
-+
-+upperdir=$OVL_BASE_SCRATCH_MNT/$OVL_UPPER
-+workdir=$OVL_BASE_SCRATCH_MNT/$OVL_WORK
-+
-+_overlay_scratch_mount_dirs $lowerdir $upperdir $workdir \
-+			    $OVERLAY_MOUNT_OPTIONS
-+
-+FILES="dir file symlink chrdev blkdev fifo socket hardlink1 hardlink2"
-+
-+# Record inode numbers in format <ino> <basename>
-+function record_inode_numbers()
-+{
-+	dir=$1
-+	outfile=$2
-+
-+	for f in $FILES; do
-+		ls -id $dir/$f
-+	done | \
-+	while read ino file; do
-+		echo $ino `basename $file` >> $outfile
-+	done
-+}
-+
-+# Check inode numbers match recorder inode numbers
-+function check_inode_numbers()
-+{
-+	dir=$1
-+	before=$2
-+	after=$3
-+
-+	record_inode_numbers $dir $after
-+
-+	# Test constant stat(2) st_ino -
-+	# Compare before..after - expect silence
-+	# We use diff -u so out.bad will tell us which stage failed
-+	diff -u $before $after
-+
-+	# Test constant readdir(3)/getdents(2) d_ino -
-+	# Expect to find file by inode number
-+	cat $before | while read ino f; do
-+		$here/src/t_dir_type $dir $ino | grep -q $f || \
-+			echo "$f not found by ino $ino (from $before)"
-+	done
-+}
-+
-+rm -f $tmp.*
-+testdir=$SCRATCH_MNT/test
-+mkdir -p $testdir
-+
-+# Record inode numbers before copy up
-+record_inode_numbers $SCRATCH_MNT $tmp.before
-+
-+for f in $FILES; do
-+	# chown -h modifies all those file types
-+	chown -h 100 $SCRATCH_MNT/$f
-+done
-+
-+# Compare inode numbers before/after copy up
-+check_inode_numbers $SCRATCH_MNT $tmp.before $tmp.after_copyup
-+
-+for f in $FILES; do
-+	# move to another dir
-+	mv $SCRATCH_MNT/$f $testdir/
-+done
-+
-+echo 3 > /proc/sys/vm/drop_caches
-+
-+# Compare inode numbers before/after rename and drop caches
-+check_inode_numbers $testdir $tmp.after_copyup $tmp.after_move
-+
-+# Verify that the inode numbers survive a mount cycle
-+$UMOUNT_PROG $SCRATCH_MNT
-+_overlay_scratch_mount_dirs $lowerdir $upperdir $workdir \
-+			    $OVERLAY_MOUNT_OPTIONS
-+
-+# Compare inode numbers before/after mount cycle
-+check_inode_numbers $testdir $tmp.after_move $tmp.after_cycle
-+
-+echo "Silence is golden"
-+status=0
-+exit
-diff --git a/tests/overlay/043.out b/tests/overlay/043.out
-new file mode 100644
-index 0000000..f90f0a5
---- /dev/null
-+++ b/tests/overlay/043.out
-@@ -0,0 +1,2 @@
-+QA output created by 043
-+Silence is golden
-diff --git a/tests/overlay/group b/tests/overlay/group
-index 782c39f..a99ff07 100644
---- a/tests/overlay/group
-+++ b/tests/overlay/group
-@@ -45,3 +45,4 @@
- 040 auto quick
- 041 auto quick copyup nonsamefs
- 042 auto quick copyup hardlink
-+043 auto quick copyup nonsamefs
--- 
-2.9.5
+> 
+> Amir.
+> 
+> > ---
+> >  src/t_dir_type.c | 2 +-
+> >  1 file changed, 1 insertion(+), 1 deletion(-)
+> >
+> > diff --git a/src/t_dir_type.c b/src/t_dir_type.c
+> > index 76aaa9b..7bba304 100644
+> > --- a/src/t_dir_type.c
+> > +++ b/src/t_dir_type.c
+> > @@ -85,7 +85,7 @@ main(int argc, char *argv[])
+> >                                 break;
+> >                 /* no match ends up with type = -1 */
+> >                 if (type < 0)
+> > -                       ino = atoll(argv[2]);
+> > +                       ino = strtoul(argv[2], NULL, 10);
+> >         }
+> >
+> >         for ( ; ; ) {
+> > --
+> > 2.9.5
+> >
