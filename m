@@ -1,133 +1,86 @@
-From: Eryu Guan <eguan@redhat.com>
-Subject: Re: [PATCH V2] overlay: Test consistent st_ino numbers for
- non-samefs scenario
-Date: Wed, 15 Nov 2017 14:36:44 +0800
-Message-ID: <20171115063644.GK17339@eguan.usersys.redhat.com>
-References: <20171114110948.31345-1-chandan@linux.vnet.ibm.com>
- <CAOQ4uxj993Dihz3aTbC-ejcnZrxnh2AqufV25agpjfW_02Dbbg@mail.gmail.com>
+From: Vivek Goyal <vgoyal@redhat.com>
+Subject: Re: [PATCH 1/4] ovl: introduce incompatible index feature
+Date: Wed, 15 Nov 2017 09:34:42 -0500
+Message-ID: <20171115143442.GB13895@redhat.com>
+References: <1508839381-24750-1-git-send-email-amir73il@gmail.com>
+ <1508839381-24750-2-git-send-email-amir73il@gmail.com>
+ <20171110135757.GA16917@redhat.com>
+ <CAOQ4uxgw-xOG8m=qLk0gZwq8PF=BSp51nMO2y38FpEAYWznG6g@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:43990 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:59780 "EHLO mx1.redhat.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752358AbdKOGgq (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 15 Nov 2017 01:36:46 -0500
+        id S1756208AbdKOOen (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Wed, 15 Nov 2017 09:34:43 -0500
 Content-Disposition: inline
-In-Reply-To: <CAOQ4uxj993Dihz3aTbC-ejcnZrxnh2AqufV25agpjfW_02Dbbg@mail.gmail.com>
+In-Reply-To: <CAOQ4uxgw-xOG8m=qLk0gZwq8PF=BSp51nMO2y38FpEAYWznG6g@mail.gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: Amir Goldstein <amir73il@gmail.com>
-Cc: Chandan Rajendra <chandan@linux.vnet.ibm.com>, fstests <fstests@vger.kernel.org>, overlayfs <linux-unionfs@vger.kernel.org>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, overlayfs <linux-unionfs@vger.kernel.org>
 
-On Tue, Nov 14, 2017 at 03:45:17PM +0200, Amir Goldstein wrote:
-> On Tue, Nov 14, 2017 at 1:09 PM, Chandan Rajendra
-> <chandan@linux.vnet.ibm.com> wrote:
-> > This commit adds a test to verify consistent st_ino feature when
-> > the overlayfs instance is composed of two different underlying
-> > filesystem instances.
+On Fri, Nov 10, 2017 at 04:46:53PM +0200, Amir Goldstein wrote:
+> On Fri, Nov 10, 2017 at 3:57 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
+> > On Tue, Oct 24, 2017 at 01:02:58PM +0300, Amir Goldstein wrote:
+> >> Introduce a new config option OVERLAY_FS_INDEX_INCOMPAT.
+> >>
+> >> If this config option is enabled then inodes index is declared
+> >> an incompatible feature and kernel will refuse to mount an overlay
+> >> with inodes index off when a non-empty index directory exists.
+> >>
+> >> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+> >> ---
+> >>  fs/overlayfs/Kconfig     |  8 ++++++++
+> >>  fs/overlayfs/dir.c       | 30 ++++++++++++++++++++++++++++++
+> >>  fs/overlayfs/overlayfs.h |  3 ++-
+> >>  fs/overlayfs/super.c     | 24 +++++++++++++++++++++++-
+> >>  4 files changed, 63 insertions(+), 2 deletions(-)
+> >>
+> >> diff --git a/fs/overlayfs/Kconfig b/fs/overlayfs/Kconfig
+> >> index cbfc196e5dc5..e5e6dec7d177 100644
+> >> --- a/fs/overlayfs/Kconfig
+> >> +++ b/fs/overlayfs/Kconfig
+> >> @@ -43,3 +43,11 @@ config OVERLAY_FS_INDEX
+> >>         outcomes.  However, mounting the same overlay with an old kernel
+> >>         read-write and then mounting it again with a new kernel, will have
+> >>         unexpected results.
+> >> +
+> >> +config OVERLAY_FS_INDEX_INCOMPAT
+> >> +     bool "Overlayfs: support incompatible index feature"
+> >> +     depends on OVERLAY_FS_INDEX
+> >> +     help
+> >> +       If this config option is enabled then inodes index is declared an
+> >> +       incompatible feature and kernel will refuse to mount an overlay with
+> >> +       inodes index off when a non-empty index directory exists.
 > >
-> > For example,
-> > $ mount -t xfs /dev/loop0 /mnt/test
-> > $ mount -t xfs /dev/loop1 /mnt/scratch
-> > $ mkdir /mnt/scratch/upper
-> > $ mkdir /mnt/scratch/work
-> > $ mount -t overlay overlay -o lowerdir=/mnt/test \
-> >         -o upperdir=/mnt/scratch/upper \
-> >         -o workdir=/mnt/scratch/work /mnt/merge
+> > Hi Amir,
 > >
-> > The goal of this test is to verify that overlayfs returns consistent
-> > st_ino for the following scenarios,
-> > - Copy-up of lowerdir files
-> > - Rename files and drop dentry/inode cache
-> > - Remount the overlayfs instance
+> > I don't know much about the issues you have faced. So I have few very
+> > basic questions.
 > >
-> > Signed-off-by: Chandan Rajendra <chandan@linux.vnet.ibm.com>
-> > ---
-> > Changelog:
-> > v1->v2:
-> > Address review comments provided by Amir.
-> > 1. To succeed, the test now requires the underlying base filesystems to provide
-> >    32-bit inode numbers or the user to provide "xino" mount option. The test
-> >    also requires that either overlayfs 'index' config feature to be enabled by
-> >    default or to be enabled by using the 'index=on' mount option.
-> > 2. Require $TEST_DEV for use as Overlayfs' lowerdir.
-> > 3. Pass $OVERLAY_MOUNT_OPTIONS as argument to _overlay_scratch_mount_dirs().
+> > So the problem you are trying to fix is that if somebody mounted overlay
+> > with index=on and later they try to mount it with index=off.
 > >
-> >  tests/overlay/043     | 167 ++++++++++++++++++++++++++++++++++++++++++++++++++
-> >  tests/overlay/043.out |   2 +
-> >  tests/overlay/group   |   1 +
-> >  3 files changed, 170 insertions(+)
-> >  create mode 100755 tests/overlay/043
-> >  create mode 100644 tests/overlay/043.out
+> > What problems happen if we allow that? If its a problem, why not always
+> > disallow that instead of making it an option. IOW, is there a use case
+> > where we will still let user mount later with index=off.
 > >
-> > diff --git a/tests/overlay/043 b/tests/overlay/043
-> > new file mode 100755
-> > index 0000000..5778564
-> > --- /dev/null
-> > +++ b/tests/overlay/043
-> > @@ -0,0 +1,167 @@
-> > +#! /bin/bash
-> > +# FSQA Test No. 043
-> > +#
-> > +# Test constant inode numbers on non-samefs setup
-> > +# This is a variant of overlay/017 to test constant st_ino numbers for
-> > +# non-samefs setup.
-> > +#
-> > +# This simple test demonstrates a known issue with overlayfs:
-> > +# - stat file A shows inode number X
-> > +# - modify A to trigger copy up
-> > +# - stat file A shows inode number Y != X
-> > +#
-> > +# Also test if d_ino of readdir entries changes after copy up
-> > +# and if inode numbers persist after rename, drop caches and
-> > +# mount cycle.
-> > +#
-> > +# This test succeeds when either the underlying filesystems provide 32-bit
-> > +# inode numbers or when the xino mount option is provided. This test
-> > +# also requires that either overlayfs 'index' config feature to be enabled by
-> > +# default or to be enabled by using the 'index=on' mount option.
-> > +#
 > 
+> So I have no current issue with going back from index=on, but I would like
+> to start adding incompatible features (like index=all), but in order to add
+> the concept of incompatible feature, first user will need to opt-in in compile
+> time to "overlayfs v2 format" which supports the feature checks.
+> opting-in to format v2 means that user knows he cannot (*) go backwards
+> to kernel that doesn't support v2 format and mount v2 format overlayfs.
 > 
-> Test looks good, but I am not happy with merging this text, even though I wrote
-> part of it...
+> Actually, the user can go backwards, but he will need to manually remove
+> workdir and indexdir in order to "degrade" overlayfs to v1 before mount.
 > 
-> Regarding the claim that the test succeeds on 32bit ino file systems,
-> this is not
-> yet true and may not be true in the future. We won't know how 'xino' will be
-> call or configured until the feature is merged, so I suggest to leave
-> this paragraph
-> out of the test description before merging.
-> 
-> Regarding the 'index' feature text, I don't like the situation as it is.
-> I would like to get a feedback from Eryu after he understands the options,
-> but my proposal is as follows:
-> 
-> - Test overlay/017 (constant st_ino/d_ino) should be independent of index
->   so remove "hardlink1 hardlink2" from overlay/017 FILES, because the
->   hardlinks use case is already covered by the more specific 018 test
->   which does require and enable index.
-> - Add the d_ino verification from 017 also to 018, so test coverage for
->   hardlinks doesn't change
-> - That makes 017 a regression test for constant st_ino/d_ino (excluding
->   hardlinks), even if index is disabled and 018 a regression test for hardlinks
->   (including st_ino/d_ino) which depends on index feature
-> 
-> If that is acceptable then the new variants 017 should not require index
-> and a nonsamefs variant of 018 which does require index would be nice.
+> I guess config option could have been
+> OVERLAY_FS_INCOMAT_V2
 
-After re-reading the patch description that introduced index feature and
-overlay/017,8, I agreed with above proposal, so that 017 and 018 become
-well separated/defined tests to cover the whole constant inode feature
-in samefs setup.
+So this does not protect against user downgrading to older kernel and
+then mount with index=off.
 
-> 
-> Thinking out loud: would it have been better if we added a general way
-> to configure all tests to tun in non-samefs configuration instead of duplicating
-> individual test? I don't have any good ideas how that would work.
-
-I think duplicating some of the tests with a slightly different setup
-should be fine, we already have several examples in fstests now.
-
-Thanks,
-Eryu
+Vivek
