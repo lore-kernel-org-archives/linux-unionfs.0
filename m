@@ -1,88 +1,56 @@
 From: Vivek Goyal <vgoyal@redhat.com>
-Subject: Re: [PATCH v6 12/15] ovl: Fix encryption status of a metacopy only
- file
-Date: Wed, 15 Nov 2017 15:53:02 -0500
-Message-ID: <20171115205302.GF13895@redhat.com>
+Subject: Re: [PATCH v6 14/15] ovl: Introduce read/write barriers around
+ metacopy flag update
+Date: Thu, 16 Nov 2017 10:13:56 -0500
+Message-ID: <20171116151356.GA2937@redhat.com>
 References: <20171109205019.11409-1-vgoyal@redhat.com>
- <20171109205019.11409-13-vgoyal@redhat.com>
- <CAOQ4uxjrfhoCh1gnQM04xkgNNWzxUs2S20NXGFwhfAPg4=D4Xw@mail.gmail.com>
+ <20171109205019.11409-15-vgoyal@redhat.com>
+ <CAOQ4uxhBvnFkma6qy=Be4uLDi-6aJmsgmpKGQ=XTJr8kXS0fmQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:35466 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:54604 "EHLO mx1.redhat.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S935013AbdKOUxE (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 15 Nov 2017 15:53:04 -0500
+        id S934834AbdKPPN6 (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Thu, 16 Nov 2017 10:13:58 -0500
 Content-Disposition: inline
-In-Reply-To: <CAOQ4uxjrfhoCh1gnQM04xkgNNWzxUs2S20NXGFwhfAPg4=D4Xw@mail.gmail.com>
+In-Reply-To: <CAOQ4uxhBvnFkma6qy=Be4uLDi-6aJmsgmpKGQ=XTJr8kXS0fmQ@mail.gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: Amir Goldstein <amir73il@gmail.com>
-Cc: overlayfs <linux-unionfs@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>, linux-ext4@vger.kernel.org
+Cc: overlayfs <linux-unionfs@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>
 
-On Fri, Nov 10, 2017 at 11:09:26AM +0200, Amir Goldstein wrote:
-> On Thu, Nov 9, 2017 at 10:50 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
-> > If file is metacopy only, it is possible that lower is encrypted while
-> > other is not. In that case, report file as encrypted (despite the fact
-> > that only data is encrypted while metadata is not).
-> 
-> Better consult ext4 guys or find out which user tools care about this
-> flag and what they could do in response to this flag.
-
-[ CCing ext4 maling list ]
-
-> 
-> When I commented that we need to see what do to about all these
-> flags I just gave encrypted flag as an example.
-> 
-> On a hunch I would say that we need a mask of statx flags that are
-> readonly attributes of the data itself and that mask should probably
-> contain encrypted and compressed to begin with.
-
-I thought encrypted flag is representing metadata also (and not just 
-data). Is that not the case.
-
-> I don't see a reason for 2 separate patches and certainly not for
-> 2 separate helpers.
-
-I will merge the two patches. I am not sure about the mask thing though.
-We can probably start with encryption and compression flags for now and
-make it more generic down the line (using that mask).
-
-> 
+On Fri, Nov 10, 2017 at 11:43:36AM +0200, Amir Goldstein wrote:
+[..]
+> > --- a/fs/overlayfs/util.c
+> > +++ b/fs/overlayfs/util.c
+> > @@ -267,13 +267,26 @@ bool ovl_has_upperdata(struct dentry *dentry) {
+> >         if (!ovl_should_check_upperdata(dentry))
+> >                 return true;
 > >
-> > Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
-> > ---
-> >  fs/overlayfs/inode.c | 14 +++++++++++++-
-> >  1 file changed, 13 insertions(+), 1 deletion(-)
-> >
-> > diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
-> > index 7ba19a97a8da..15713d4ac2dd 100644
-> > --- a/fs/overlayfs/inode.c
-> > +++ b/fs/overlayfs/inode.c
-> > @@ -66,6 +66,16 @@ int ovl_setattr(struct dentry *dentry, struct iattr *attr)
-> >         return err;
+> > -       return ovl_test_flag(OVL_UPPERDATA, d_inode(dentry));
+> > +       if (!ovl_test_flag(OVL_UPPERDATA, d_inode(dentry)))
+> > +               return false;
+> > +       /*
+> > +        * Pairs with smp_wmb() in ovl_copy_up_meta_inode_data(). Make sure
+> > +        * if setting of OVL_UPPERDATA is visible, then effects of writes
+> > +        * before that are visible too.
+> > +        */
+> > +       smp_rmb();
+> > +       return true;
 > >  }
 > >
-> > +static void ovl_stat_set_encryption(struct kstat *ustat, struct kstat *lstat) {
-> > +       if (!((lstat->attributes_mask & STATX_ATTR_ENCRYPTED) &&
-> > +           (lstat->attributes & STATX_ATTR_ENCRYPTED)))
-> > +               return;
-> > +
-> > +       ustat->attributes |= STATX_ATTR_ENCRYPTED;
-> > +       ustat->attributes_mask |= STATX_ATTR_ENCRYPTED;
-> > +}
-> > +
 > 
+> I think it is not right to have smp_rmb() is the locked path where it
+> is not needed
+> too costly.
 > 
-> This looks buggy. you set STATX_ATTR_ENCRYPTED even if lower
-> doesn't have STATX_ATTR_ENCRYPTED in attributes nor in attributes_mask.
+> We should probably have a different variant for ovl_already_copied_up_locked()
+> and if OVL_UPPERDATA is set for all non-eligible cases, ovl_has_upperdata()
+> can have the smp_rmb() and locked variant can just can check the flag directly.
 
-Hmm.., I am not able to see where is the bug. Did you notice the "!"
-in if condition.
-
-We will set STATX_ATTR_ENCRYPTED in attributes_mask and attributes 
-only if lower has STATX_ATTR_ENCRYPTED set both in ->attributes_mask
-and ->attributes.
+How about adding a parameter "bool locked" to ovl_already_copied_up() and
+ovl_has_upperdata(). So if locked is true, smp_rmb() will be skipped by
+ovl_has_upperdata().
 
 Vivek
