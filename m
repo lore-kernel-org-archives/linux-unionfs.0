@@ -1,12 +1,12 @@
 From: Vivek Goyal <vgoyal@redhat.com>
-Subject: [PATCH v7 12/14] ovl: Do not expose metacopy only upper dentry from d_real()
-Date: Thu, 16 Nov 2017 17:03:33 -0500
-Message-ID: <20171116220335.13448-13-vgoyal@redhat.com>
+Subject: [PATCH v7 08/14] ovl: Add helper ovl_already_copied_up()
+Date: Thu, 16 Nov 2017 17:03:29 -0500
+Message-ID: <20171116220335.13448-9-vgoyal@redhat.com>
 References: <20171116220335.13448-1-vgoyal@redhat.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:58572 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:46766 "EHLO mx1.redhat.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S936241AbdKPWDp (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        id S936102AbdKPWDp (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
         Thu, 16 Nov 2017 17:03:45 -0500
 In-Reply-To: <20171116220335.13448-1-vgoyal@redhat.com>
 Sender: linux-unionfs-owner@vger.kernel.org
@@ -14,98 +14,109 @@ List-Id: linux-unionfs@vger.kernel.org
 To: linux-unionfs@vger.kernel.org
 Cc: vgoyal@redhat.com, amir73il@gmail.com, miklos@szeredi.hu
 
-d_real() can make a upper metacopy dentry/inode visible to the vfs layer.
-This is something new and vfs layer does not know that this inode contains
-only metadata and not data. And this could break things.
-
-So to be safe, do not expose metacopy only dentry/inode to vfs using d_real().
-
-For regular d_real() call (inode == NULL, D_REAL_UPPER not set), if upper
-dentry inode is metacopy only and does not have data, return lower dentry.
-
-If d_real() is called with flag D_REAL_UPPER, return upper dentry only if
-it has data (flag OVL_UPPERDATA is set).
-
-Similiarly, if d_real(inode=X) is called, a warning is emitted if returned
-dentry/inode does not have OVL_UPPERDATA set. This should not happen as
-we never made this metacopy inode visible to vfs so nobody should be calling
-overlayfs back with inode=metacopy_inode.
-
-I scanned the code and I don't think it breaks any of the existing code.
-There are two users of D_REAL_UPPER. may_write_real() and
-update_ovl_inode_times().
-
-may_write_real(), will get an NULL dentry if upper inode is metacopy only
-and it will return -EPERM. Effectively, we are disallowing modifications
-to metacopy only inode from this interface. Though there is opportunity
-to improve it. (Allow chattr on metacopy inodes).
-
-update_ovl_inode_times() gets inode mtime and ctime from real inode. It
-should not be broken for metacopy inode as well for following reasons.
-
-
-- For any metadata operations (setattr, acl etc), overlay always calls
-  ovl_copyattr() and updates ovl inode mtime and ctime. So there is no
-  need to update mtime and ctime int his case. Its already updated.
-
-- For metadata inode, mtime should be same as lower and not change. (data
-  can't be modified on metadata inode without copyup).
-
-- For file writes, ctime and mtime will be updated. But in that case
-  first data will be copied up and this will not be a metadata inode
-  anymore. And furthr call to d_real(D_REAL_UPPER) will return upper
-  inode and new mtime and ctime will be obtainable.
-
-So atime updates should work just fine for metacopy inodes.
+There are couple of places where we need to know if file is already copied
+up (in lockless manner). Right now its open coded and there are only
+two conditions to check. Soon this patch series will introduce another
+condition to check and Amir wants to introduce one more. So introduce
+a helper instead to check this so that code is easier to read.
 
 Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
+Reviewed-by: Amir Goldstein <amir73il@gmail.com>
 ---
- fs/overlayfs/super.c | 19 ++++++++++++++++---
- 1 file changed, 16 insertions(+), 3 deletions(-)
+ fs/overlayfs/copy_up.c   | 19 ++-----------------
+ fs/overlayfs/overlayfs.h |  1 +
+ fs/overlayfs/util.c      | 24 +++++++++++++++++++++++-
+ 3 files changed, 26 insertions(+), 18 deletions(-)
 
-diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-index d8b6b4d80d78..b15d4c4a68f2 100644
---- a/fs/overlayfs/super.c
-+++ b/fs/overlayfs/super.c
-@@ -84,8 +84,14 @@ static struct dentry *ovl_d_real(struct dentry *dentry,
- 	struct dentry *real;
+diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
+index 82d66e96be0f..b6fa5830c4c6 100644
+--- a/fs/overlayfs/copy_up.c
++++ b/fs/overlayfs/copy_up.c
+@@ -234,8 +234,7 @@ int ovl_set_attr(struct dentry *upperdentry, struct kstat *stat)
+ 
+ static bool ovl_open_need_copy_up(struct dentry *dentry, int flags)
+ {
+-	if (ovl_dentry_upper(dentry) &&
+-	    ovl_dentry_has_upper_alias(dentry))
++	if (ovl_already_copied_up(dentry))
+ 		return false;
+ 
+ 	if (special_file(d_inode(dentry)->i_mode))
+@@ -701,21 +700,7 @@ int ovl_copy_up_flags(struct dentry *dentry, int flags)
+ 		struct dentry *next;
+ 		struct dentry *parent;
+ 
+-		/*
+-		 * Check if copy-up has happened as well as for upper alias (in
+-		 * case of hard links) is there.
+-		 *
+-		 * Both checks are lockless:
+-		 *  - false negatives: will recheck under oi->lock
+-		 *  - false positives:
+-		 *    + ovl_dentry_upper() uses memory barriers to ensure the
+-		 *      upper dentry is up-to-date
+-		 *    + ovl_dentry_has_upper_alias() relies on locking of
+-		 *      upper parent i_rwsem to prevent reordering copy-up
+-		 *      with rename.
+-		 */
+-		if (ovl_dentry_upper(dentry) &&
+-		    ovl_dentry_has_upper_alias(dentry))
++		if (ovl_already_copied_up(dentry))
+ 			break;
+ 
+ 		next = dget(dentry);
+diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
+index 13eab09a6b6f..7f9a79b5a2b5 100644
+--- a/fs/overlayfs/overlayfs.h
++++ b/fs/overlayfs/overlayfs.h
+@@ -227,6 +227,7 @@ bool ovl_is_whiteout(struct dentry *dentry);
+ struct file *ovl_path_open(struct path *path, int flags);
+ int ovl_copy_up_start(struct dentry *dentry);
+ void ovl_copy_up_end(struct dentry *dentry);
++bool ovl_already_copied_up(struct dentry *dentry);
+ bool ovl_check_origin_xattr(struct dentry *dentry);
+ bool ovl_check_dir_xattr(struct dentry *dentry, const char *name);
+ int ovl_check_setxattr(struct dentry *dentry, struct dentry *upperdentry,
+diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
+index 77dc00438d54..572bf46e9f2e 100644
+--- a/fs/overlayfs/util.c
++++ b/fs/overlayfs/util.c
+@@ -314,13 +314,35 @@ struct file *ovl_path_open(struct path *path, int flags)
+ 	return dentry_open(path, flags | O_NOATIME, current_cred());
+ }
+ 
++bool ovl_already_copied_up(struct dentry *dentry)
++{
++	/*
++	 * Check if copy-up has happened as well as for upper alias (in
++	 * case of hard links) is there.
++	 *
++	 * Both checks are lockless:
++	 *  - false negatives: will recheck under oi->lock
++	 *  - false positives:
++	 *    + ovl_dentry_upper() uses memory barriers to ensure the
++	 *      upper dentry is up-to-date
++	 *    + ovl_dentry_has_upper_alias() relies on locking of
++	 *      upper parent i_rwsem to prevent reordering copy-up
++	 *      with rename.
++	 */
++	if (ovl_dentry_upper(dentry) &&
++	    ovl_dentry_has_upper_alias(dentry))
++		return true;
++
++	return false;
++}
++
+ int ovl_copy_up_start(struct dentry *dentry)
+ {
+ 	struct ovl_inode *oi = OVL_I(d_inode(dentry));
  	int err;
  
--	if (flags & D_REAL_UPPER)
--		return ovl_dentry_upper(dentry);
-+	if (flags & D_REAL_UPPER) {
-+		real = ovl_dentry_upper(dentry);
-+		if (!real)
-+			return NULL;
-+		if (!ovl_has_upperdata(dentry))
-+			return NULL;
-+		return real;
-+	}
- 
- 	if (!d_is_reg(dentry)) {
- 		if (!inode || inode == d_inode(dentry))
-@@ -101,14 +107,21 @@ static struct dentry *ovl_d_real(struct dentry *dentry,
- 
- 	real = ovl_dentry_upper(dentry);
- 	if (real && (!inode || inode == d_inode(real))) {
-+		bool metacopy = !ovl_has_upperdata(dentry);
- 		if (!inode) {
- 			err = ovl_check_append_only(d_inode(real), open_flags);
- 			if (err)
- 				return ERR_PTR(err);
--		}
-+
-+			if (unlikely(metacopy))
-+				goto lower;
-+		} else if (unlikely(metacopy))
-+			goto bug;
-+
- 		return real;
+ 	err = mutex_lock_interruptible(&oi->lock);
+-	if (!err && ovl_dentry_has_upper_alias(dentry)) {
++	if (!err && ovl_already_copied_up(dentry)) {
+ 		err = 1; /* Already copied up */
+ 		mutex_unlock(&oi->lock);
  	}
- 
-+lower:
- 	real = ovl_dentry_lower(dentry);
- 	if (!real)
- 		goto bug;
 -- 
 2.13.6
