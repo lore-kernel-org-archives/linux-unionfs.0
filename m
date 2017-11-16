@@ -1,12 +1,12 @@
 From: Vivek Goyal <vgoyal@redhat.com>
-Subject: [PATCH v7 10/14] ovl: Fix ovl_getattr() to get number of blocks from lower
-Date: Thu, 16 Nov 2017 17:03:31 -0500
-Message-ID: <20171116220335.13448-11-vgoyal@redhat.com>
+Subject: [PATCH v7 11/14] ovl: Set OVL_UPPERDATA flag during ovl_lookup()
+Date: Thu, 16 Nov 2017 17:03:32 -0500
+Message-ID: <20171116220335.13448-12-vgoyal@redhat.com>
 References: <20171116220335.13448-1-vgoyal@redhat.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:58564 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:46778 "EHLO mx1.redhat.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S936127AbdKPWDp (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        id S936129AbdKPWDp (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
         Thu, 16 Nov 2017 17:03:45 -0500
 In-Reply-To: <20171116220335.13448-1-vgoyal@redhat.com>
 Sender: linux-unionfs-owner@vger.kernel.org
@@ -14,54 +14,87 @@ List-Id: linux-unionfs@vger.kernel.org
 To: linux-unionfs@vger.kernel.org
 Cc: vgoyal@redhat.com, amir73il@gmail.com, miklos@szeredi.hu
 
-If an inode has been copied up metadata only, then we need to query the
-number of blocks from lower and fill up the stat->st_blocks.
-
-We need to be careful about races where we are doing stat on one cpu and
-data copy up is taking place on other cpu. We want to return stat->st_blocks
-either from lower or stable upper and not something in between. Hence,
-ovl_has_upperdata() is called first to figure out whether block reporting
-will take place from lower or upper.
+During lookup, check for presence of OVL_XATTR_METACOPY and if not present,
+set OVL_UPPERDATA bit in flags. This is only done for upper inode with a
+corresponding lower dentry and file needs to be a regular file. Basically
+any file which is eligible for metadata only copy up.
 
 Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
 ---
- fs/overlayfs/inode.c | 10 +++++++++-
- 1 file changed, 9 insertions(+), 1 deletion(-)
+ fs/overlayfs/namei.c | 40 ++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 40 insertions(+)
 
-diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
-index e94a89e8a0f4..7af8a292d54d 100644
---- a/fs/overlayfs/inode.c
-+++ b/fs/overlayfs/inode.c
-@@ -76,6 +76,10 @@ int ovl_getattr(const struct path *path, struct kstat *stat,
- 	bool is_dir = S_ISDIR(dentry->d_inode->i_mode);
- 	bool samefs = ovl_same_sb(dentry->d_sb);
+diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
+index 625ed8066570..00f3ca8a3e58 100644
+--- a/fs/overlayfs/namei.c
++++ b/fs/overlayfs/namei.c
+@@ -25,6 +25,28 @@ struct ovl_lookup_data {
+ 	char *redirect;
+ };
+ 
++/* err < 0, 0 if no metacopy xattr, 1 if metacopy xattr found */
++static int ovl_check_metacopy(struct dentry *dentry)
++{
++	int res;
++
++	/* Only regular files can have metacopy xattr */
++	if (!S_ISREG(d_inode(dentry)->i_mode))
++		return 0;
++
++	res = vfs_getxattr(dentry, OVL_XATTR_METACOPY, NULL, 0);
++	if (res < 0) {
++		if (res == -ENODATA || res == -EOPNOTSUPP)
++			return 0;
++		goto out;
++	}
++
++	return 1;
++out:
++	pr_warn_ratelimited("overlayfs: failed to get metacopy (%i)\n", res);
++	return res;
++}
++
+ static int ovl_check_redirect(struct dentry *dentry, struct ovl_lookup_data *d,
+ 			      size_t prelen, const char *post)
+ {
+@@ -602,6 +624,7 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
+ 	struct dentry *this;
+ 	unsigned int i;
  	int err;
 +	bool metacopy = false;
+ 	struct ovl_lookup_data d = {
+ 		.name = dentry->d_name,
+ 		.is_dir = false,
+@@ -642,6 +665,20 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
+ 					       roe->numlower, &stack, &ctr);
+ 			if (err)
+ 				goto out_put_upper;
 +
-+	if (ovl_dentry_upper(dentry) && !ovl_has_upperdata(dentry))
-+		metacopy = true;
- 
- 	type = ovl_path_real(dentry, &realpath);
- 	old_cred = ovl_override_creds(dentry->d_sb);
-@@ -93,7 +97,8 @@ int ovl_getattr(const struct path *path, struct kstat *stat,
- 	if (!is_dir || samefs) {
- 		if (OVL_TYPE_ORIGIN(type)) {
- 			struct kstat lowerstat;
--			u32 lowermask = STATX_INO | (!is_dir ? STATX_NLINK : 0);
-+			u32 lowermask = STATX_INO | STATX_BLOCKS |
-+					(!is_dir ? STATX_NLINK : 0);
- 
- 			ovl_path_lower(dentry, &realpath);
- 			err = vfs_getattr(&realpath, &lowerstat,
-@@ -117,6 +122,9 @@ int ovl_getattr(const struct path *path, struct kstat *stat,
- 				WARN_ON_ONCE(stat->dev != lowerstat.dev);
- 			else
- 				stat->dev = ovl_get_pseudo_dev(dentry);
-+
-+			if (metacopy)
-+				stat->blocks = lowerstat.blocks;
++			err = ovl_check_metacopy(upperdentry);
++			metacopy = err;
++			if (err < 0)
++				goto out_put_upper;
++			if (metacopy && !ctr) {
++				/*
++				 * Found an upper with metacopy set but
++				 * at the same time there is no lower
++				 * dentry. Something is not right.
++				 */
++				err = -ESTALE;
++				goto out_put_upper;
++			}
  		}
- 		if (samefs) {
- 			/*
+ 
+ 		if (d.redirect) {
+@@ -726,6 +763,9 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
+ 		OVL_I(inode)->redirect = upperredirect;
+ 		if (index)
+ 			ovl_set_flag(OVL_INDEX, inode);
++
++		if (upperdentry && !metacopy)
++			ovl_set_flag(OVL_UPPERDATA, inode);
+ 	}
+ 
+ 	revert_creds(old_cred);
 -- 
 2.13.6
