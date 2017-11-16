@@ -1,56 +1,57 @@
 From: Vivek Goyal <vgoyal@redhat.com>
-Subject: Re: [PATCH v6 14/15] ovl: Introduce read/write barriers around
- metacopy flag update
-Date: Thu, 16 Nov 2017 10:13:56 -0500
-Message-ID: <20171116151356.GA2937@redhat.com>
-References: <20171109205019.11409-1-vgoyal@redhat.com>
- <20171109205019.11409-15-vgoyal@redhat.com>
- <CAOQ4uxhBvnFkma6qy=Be4uLDi-6aJmsgmpKGQ=XTJr8kXS0fmQ@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Subject: [PATCH v7 02/14] ovl: ovl_check_setxattr() get rid of redundant -EOPNOTSUPP check
+Date: Thu, 16 Nov 2017 17:03:23 -0500
+Message-ID: <20171116220335.13448-3-vgoyal@redhat.com>
+References: <20171116220335.13448-1-vgoyal@redhat.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:54604 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:33786 "EHLO mx1.redhat.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S934834AbdKPPN6 (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 16 Nov 2017 10:13:58 -0500
-Content-Disposition: inline
-In-Reply-To: <CAOQ4uxhBvnFkma6qy=Be4uLDi-6aJmsgmpKGQ=XTJr8kXS0fmQ@mail.gmail.com>
+        id S935491AbdKPWDo (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Thu, 16 Nov 2017 17:03:44 -0500
+In-Reply-To: <20171116220335.13448-1-vgoyal@redhat.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: overlayfs <linux-unionfs@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>
+To: linux-unionfs@vger.kernel.org
+Cc: vgoyal@redhat.com, amir73il@gmail.com, miklos@szeredi.hu
 
-On Fri, Nov 10, 2017 at 11:43:36AM +0200, Amir Goldstein wrote:
-[..]
-> > --- a/fs/overlayfs/util.c
-> > +++ b/fs/overlayfs/util.c
-> > @@ -267,13 +267,26 @@ bool ovl_has_upperdata(struct dentry *dentry) {
-> >         if (!ovl_should_check_upperdata(dentry))
-> >                 return true;
-> >
-> > -       return ovl_test_flag(OVL_UPPERDATA, d_inode(dentry));
-> > +       if (!ovl_test_flag(OVL_UPPERDATA, d_inode(dentry)))
-> > +               return false;
-> > +       /*
-> > +        * Pairs with smp_wmb() in ovl_copy_up_meta_inode_data(). Make sure
-> > +        * if setting of OVL_UPPERDATA is visible, then effects of writes
-> > +        * before that are visible too.
-> > +        */
-> > +       smp_rmb();
-> > +       return true;
-> >  }
-> >
-> 
-> I think it is not right to have smp_rmb() is the locked path where it
-> is not needed
-> too costly.
-> 
-> We should probably have a different variant for ovl_already_copied_up_locked()
-> and if OVL_UPPERDATA is set for all non-eligible cases, ovl_has_upperdata()
-> can have the smp_rmb() and locked variant can just can check the flag directly.
+At mount time we check if upper supports xattr or not and set ofs->noxattr
+field accordingly. But in ovl_check_setxattr() still seems to have logic
+which expects that ovl_do_setxattr() can return -EOPNOTSUPP. Not sure when
+and how can we hit this code. Feels redundant to me. So I am removing
+this code.
 
-How about adding a parameter "bool locked" to ovl_already_copied_up() and
-ovl_has_upperdata(). So if locked is true, smp_rmb() will be skipped by
-ovl_has_upperdata().
+Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
+Reviewed-by: Amir Goldstein <amir73il@gmail.com>
+---
+ fs/overlayfs/util.c | 11 +----------
+ 1 file changed, 1 insertion(+), 10 deletions(-)
 
-Vivek
+diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
+index d6bb1c9f5e7a..77dc00438d54 100644
+--- a/fs/overlayfs/util.c
++++ b/fs/overlayfs/util.c
+@@ -365,21 +365,12 @@ int ovl_check_setxattr(struct dentry *dentry, struct dentry *upperdentry,
+ 		       const char *name, const void *value, size_t size,
+ 		       int xerr)
+ {
+-	int err;
+ 	struct ovl_fs *ofs = dentry->d_sb->s_fs_info;
+ 
+ 	if (ofs->noxattr)
+ 		return xerr;
+ 
+-	err = ovl_do_setxattr(upperdentry, name, value, size, 0);
+-
+-	if (err == -EOPNOTSUPP) {
+-		pr_warn("overlayfs: cannot set %s xattr on upper\n", name);
+-		ofs->noxattr = true;
+-		return xerr;
+-	}
+-
+-	return err;
++	return ovl_do_setxattr(upperdentry, name, value, size, 0);
+ }
+ 
+ int ovl_set_impure(struct dentry *dentry, struct dentry *upperdentry)
+-- 
+2.13.6
