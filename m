@@ -1,12 +1,12 @@
 From: Vivek Goyal <vgoyal@redhat.com>
-Subject: [PATCH v7 06/14] ovl: Move couple of copy up functions in copy_up.c
-Date: Thu, 16 Nov 2017 17:03:27 -0500
-Message-ID: <20171116220335.13448-7-vgoyal@redhat.com>
+Subject: [PATCH v7 05/14] ovl: During copy up, first copy up metadata and then data
+Date: Thu, 16 Nov 2017 17:03:26 -0500
+Message-ID: <20171116220335.13448-6-vgoyal@redhat.com>
 References: <20171116220335.13448-1-vgoyal@redhat.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:46768 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:58558 "EHLO mx1.redhat.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S936101AbdKPWDp (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        id S936121AbdKPWDp (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
         Thu, 16 Nov 2017 17:03:45 -0500
 In-Reply-To: <20171116220335.13448-1-vgoyal@redhat.com>
 Sender: linux-unionfs-owner@vger.kernel.org
@@ -14,97 +14,65 @@ List-Id: linux-unionfs@vger.kernel.org
 To: linux-unionfs@vger.kernel.org
 Cc: vgoyal@redhat.com, amir73il@gmail.com, miklos@szeredi.hu
 
-Right now two copy up related functions are part of inode.c. Amir suggested
-it might be better to move these to copy_up.c. Hence this patch does that.
-There will one more related function which will come in later patch.
+Just a little re-ordering of code. This helps with next patch where after
+copying up metadata, we skip data copying step, if needed.
 
+Reviewed-by: Amir Goldstein <amir73il@gmail.com>
 Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
 ---
- fs/overlayfs/copy_up.c | 30 ++++++++++++++++++++++++++++++
- fs/overlayfs/inode.c   | 30 ------------------------------
- 2 files changed, 30 insertions(+), 30 deletions(-)
+ fs/overlayfs/copy_up.c | 29 ++++++++++++++---------------
+ 1 file changed, 14 insertions(+), 15 deletions(-)
 
 diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
-index 303794bb9127..f84ba12c9b05 100644
+index f55bece3688e..303794bb9127 100644
 --- a/fs/overlayfs/copy_up.c
 +++ b/fs/overlayfs/copy_up.c
-@@ -232,6 +232,36 @@ int ovl_set_attr(struct dentry *upperdentry, struct kstat *stat)
- 	return err;
- }
+@@ -443,6 +443,19 @@ static int ovl_copy_up_inode(struct ovl_copy_up_ctx *c, struct dentry *temp)
+ {
+ 	int err;
  
-+static bool ovl_open_need_copy_up(struct dentry *dentry, int flags)
-+{
-+	if (ovl_dentry_upper(dentry) &&
-+	    ovl_dentry_has_upper_alias(dentry))
-+		return false;
++	err = ovl_copy_xattr(c->lowerpath.dentry, temp);
++	if (err)
++		return err;
 +
-+	if (special_file(d_inode(dentry)->i_mode))
-+		return false;
++	/*
++	 * Store identifier of lower inode in upper inode xattr to
++	 * allow lookup of the copy up origin inode.
++	 *
++	 */
++	err = ovl_set_origin(c->dentry, c->lowerpath.dentry, temp);
++	if (err)
++		return err;
 +
-+	if (!(OPEN_FMODE(flags) & FMODE_WRITE) && !(flags & O_TRUNC))
-+		return false;
-+
-+	return true;
-+}
-+
-+int ovl_open_maybe_copy_up(struct dentry *dentry, unsigned int file_flags)
-+{
-+	int err = 0;
-+
-+	if (ovl_open_need_copy_up(dentry, file_flags)) {
-+		err = ovl_want_write(dentry);
-+		if (!err) {
-+			err = ovl_copy_up_flags(dentry, file_flags);
-+			ovl_drop_write(dentry);
-+		}
-+	}
-+
+ 	if (S_ISREG(c->stat.mode)) {
+ 		struct path upperpath;
+ 
+@@ -455,25 +468,11 @@ static int ovl_copy_up_inode(struct ovl_copy_up_ctx *c, struct dentry *temp)
+ 			return err;
+ 	}
+ 
+-	err = ovl_copy_xattr(c->lowerpath.dentry, temp);
+-	if (err)
+-		return err;
+-
+ 	inode_lock(temp->d_inode);
+ 	err = ovl_set_attr(temp, &c->stat);
+ 	inode_unlock(temp->d_inode);
+-	if (err)
+-		return err;
+-
+-	/*
+-	 * Store identifier of lower inode in upper inode xattr to
+-	 * allow lookup of the copy up origin inode.
+-	 */
+-	err = ovl_set_origin(c->dentry, c->lowerpath.dentry, temp);
+-	if (err)
+-		return err;
+ 
+-	return 0;
 +	return err;
-+}
-+
- struct ovl_fh *ovl_encode_fh(struct dentry *lower, bool is_upper)
- {
- 	struct ovl_fh *fh;
-diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
-index 00b6b294272a..e94a89e8a0f4 100644
---- a/fs/overlayfs/inode.c
-+++ b/fs/overlayfs/inode.c
-@@ -341,36 +341,6 @@ struct posix_acl *ovl_get_acl(struct inode *inode, int type)
- 	return acl;
  }
  
--static bool ovl_open_need_copy_up(struct dentry *dentry, int flags)
--{
--	if (ovl_dentry_upper(dentry) &&
--	    ovl_dentry_has_upper_alias(dentry))
--		return false;
--
--	if (special_file(d_inode(dentry)->i_mode))
--		return false;
--
--	if (!(OPEN_FMODE(flags) & FMODE_WRITE) && !(flags & O_TRUNC))
--		return false;
--
--	return true;
--}
--
--int ovl_open_maybe_copy_up(struct dentry *dentry, unsigned int file_flags)
--{
--	int err = 0;
--
--	if (ovl_open_need_copy_up(dentry, file_flags)) {
--		err = ovl_want_write(dentry);
--		if (!err) {
--			err = ovl_copy_up_flags(dentry, file_flags);
--			ovl_drop_write(dentry);
--		}
--	}
--
--	return err;
--}
--
- int ovl_update_time(struct inode *inode, struct timespec *ts, int flags)
- {
- 	struct dentry *alias;
+ static int ovl_copy_up_locked(struct ovl_copy_up_ctx *c)
 -- 
 2.13.6
