@@ -1,181 +1,96 @@
-From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [PATCH v7 04/14] ovl: Provide a mount option metacopy=on/off for
- metadata copyup
-Date: Fri, 17 Nov 2017 13:23:58 +0200
-Message-ID: <CAOQ4uxj2UCtUhNF30DTHg=8u675-us0PiRvxcZ7DEoC+=DE-3w@mail.gmail.com>
-References: <20171116220335.13448-1-vgoyal@redhat.com> <20171116220335.13448-5-vgoyal@redhat.com>
+From: Miklos Szeredi <miklos@szeredi.hu>
+Subject: [GIT PULL] overlayfs update for 4.15
+Date: Fri, 17 Nov 2017 16:13:17 +0100
+Message-ID: <20171117151317.GA5348@veci.piliscsaba.szeredi.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-yw0-f193.google.com ([209.85.161.193]:41039 "EHLO
-        mail-yw0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753617AbdKQLX7 (ORCPT
+Received: from mail-wm0-f49.google.com ([74.125.82.49]:33878 "EHLO
+        mail-wm0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751242AbdKQPPl (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 17 Nov 2017 06:23:59 -0500
-Received: by mail-yw0-f193.google.com with SMTP id k3so1112699ywk.8
-        for <linux-unionfs@vger.kernel.org>; Fri, 17 Nov 2017 03:23:59 -0800 (PST)
-In-Reply-To: <20171116220335.13448-5-vgoyal@redhat.com>
+        Fri, 17 Nov 2017 10:15:41 -0500
+Received: by mail-wm0-f49.google.com with SMTP id y82so3765320wmg.1
+        for <linux-unionfs@vger.kernel.org>; Fri, 17 Nov 2017 07:15:40 -0800 (PST)
+Content-Disposition: inline
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Vivek Goyal <vgoyal@redhat.com>
-Cc: overlayfs <linux-unionfs@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org
 
-On Fri, Nov 17, 2017 at 12:03 AM, Vivek Goyal <vgoyal@redhat.com> wrote:
-> By default metadata only copy up is disabled. Provide a mount option so
-> that users can choose one way or other.
->
-> Also provide a kernel config and module option to enable/disable
-> metacopy feature.
->
-> Like index feature, we verify on mount that upper root is not being
-> reused with a different lower root. This hopes to get the configuration
-> right and detect the copied layers use case. But this does only so
-> much as we don't verify all the lowers. So it is possible that a lower is
-> missing and later data copy up fails.
->
-> Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
-> ---
->  fs/overlayfs/Kconfig     |  8 ++++++++
->  fs/overlayfs/ovl_entry.h |  1 +
->  fs/overlayfs/super.c     | 40 +++++++++++++++++++++++++++++++++++++---
->  3 files changed, 46 insertions(+), 3 deletions(-)
->
-> diff --git a/fs/overlayfs/Kconfig b/fs/overlayfs/Kconfig
-> index cbfc196e5dc5..17a0b17ad14c 100644
-> --- a/fs/overlayfs/Kconfig
-> +++ b/fs/overlayfs/Kconfig
-> @@ -43,3 +43,11 @@ config OVERLAY_FS_INDEX
->           outcomes.  However, mounting the same overlay with an old kernel
->           read-write and then mounting it again with a new kernel, will have
->           unexpected results.
-> +
-> +config OVERLAY_FS_METACOPY
-> +       bool "Overlayfs: turn on metadata only copy up feature by default"
-> +       depends on OVERLAY_FS
-> +       help
-> +         If this config option is enabled then overlay filesystems will
-> +         copy up only metadata where appropriate and data copy up will
-> +         happen when a file is opended for WRITE operation.
-> diff --git a/fs/overlayfs/ovl_entry.h b/fs/overlayfs/ovl_entry.h
-> index 93eb6a044dd2..2720ed21ad53 100644
-> --- a/fs/overlayfs/ovl_entry.h
-> +++ b/fs/overlayfs/ovl_entry.h
-> @@ -15,6 +15,7 @@ struct ovl_config {
->         bool default_permissions;
->         bool redirect_dir;
->         bool index;
-> +       bool metacopy;
->  };
->
->  struct ovl_layer {
-> diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-> index ee41bde87b14..d8b6b4d80d78 100644
-> --- a/fs/overlayfs/super.c
-> +++ b/fs/overlayfs/super.c
-> @@ -46,6 +46,11 @@ static void ovl_entry_stack_free(struct ovl_entry *oe)
->                 dput(oe->lowerstack[i].dentry);
->  }
->
-> +static bool ovl_metacopy_def = IS_ENABLED(CONFIG_OVERLAY_FS_METACOPY);
-> +module_param_named(metacopy, ovl_metacopy_def, bool, 0644);
-> +MODULE_PARM_DESC(ovl_metacopy_def,
-> +                "Default to on or off for the metadata only copy up feature");
-> +
->  static void ovl_dentry_release(struct dentry *dentry)
->  {
->         struct ovl_entry *oe = dentry->d_fsdata;
-> @@ -319,6 +324,9 @@ static int ovl_show_options(struct seq_file *m, struct dentry *dentry)
->         if (ofs->config.index != ovl_index_def)
->                 seq_printf(m, ",index=%s",
->                            ofs->config.index ? "on" : "off");
-> +       if (ofs->config.metacopy != ovl_metacopy_def)
-> +               seq_printf(m, ",metacopy=%s",
-> +                          ofs->config.metacopy ? "on" : "off");
->         return 0;
->  }
->
-> @@ -352,6 +360,8 @@ enum {
->         OPT_REDIRECT_DIR_OFF,
->         OPT_INDEX_ON,
->         OPT_INDEX_OFF,
-> +       OPT_METACOPY_ON,
-> +       OPT_METACOPY_OFF,
->         OPT_ERR,
->  };
->
-> @@ -364,6 +374,8 @@ static const match_table_t ovl_tokens = {
->         {OPT_REDIRECT_DIR_OFF,          "redirect_dir=off"},
->         {OPT_INDEX_ON,                  "index=on"},
->         {OPT_INDEX_OFF,                 "index=off"},
-> +       {OPT_METACOPY_ON,               "metacopy=on"},
-> +       {OPT_METACOPY_OFF,              "metacopy=off"},
->         {OPT_ERR,                       NULL}
->  };
->
-> @@ -444,6 +456,14 @@ static int ovl_parse_opt(char *opt, struct ovl_config *config)
->                         config->index = false;
->                         break;
->
-> +               case OPT_METACOPY_ON:
-> +                       config->metacopy = true;
-> +                       break;
-> +
-> +               case OPT_METACOPY_OFF:
-> +                       config->metacopy = false;
-> +                       break;
-> +
->                 default:
->                         pr_err("overlayfs: unrecognized mount option \"%s\" or missing value\n", p);
->                         return -EINVAL;
-> @@ -657,9 +677,11 @@ static int ovl_lower_dir(const char *name, struct path *path,
->          * The inodes index feature needs to encode and decode file
->          * handles, so it requires that all layers support them.
->          */
-> -       if (ofs->config.index && !ovl_can_decode_fh(path->dentry->d_sb)) {
-> +       if ((ofs->config.index || ofs->config.metacopy) &&
-> +            !ovl_can_decode_fh(path->dentry->d_sb)) {
-> +               pr_warn("overlayfs: fs on '%s' does not support file handles, falling back to index=off and metacopy=off.\n", name);
->                 ofs->config.index = false;
-> -               pr_warn("overlayfs: fs on '%s' does not support file handles, falling back to index=off.\n", name);
-> +               ofs->config.metacopy = false;
->         }
->
->         return 0;
-> @@ -923,7 +945,8 @@ static int ovl_make_workdir(struct ovl_fs *ofs, struct path *workpath)
->                 ofs->noxattr = true;
->                 ofs->config.redirect_dir = false;
->                 ofs->config.index = false;
-> -               pr_warn("overlayfs: upper fs does not support xattr, falling back to redirect_dir=off, index=off and no opaque dir.\n");
-> +               ofs->config.metacopy = false;
-> +               pr_warn("overlayfs: upper fs does not support xattr, falling back to redirect_dir=off, index=off, metacopy=off and no opaque dir.\n");
->         } else {
->                 vfs_removexattr(ofs->workdir, OVL_XATTR_OPAQUE);
->         }
-> @@ -1164,6 +1187,7 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
->
->         ofs->config.redirect_dir = ovl_redirect_dir_def;
->         ofs->config.index = ovl_index_def;
-> +       ofs->config.metacopy = ovl_metacopy_def;
->         err = ovl_parse_opt((char *) data, &ofs->config);
->         if (err)
->                 goto out_err;
-> @@ -1209,6 +1233,16 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
->         else if (ofs->upper_mnt->mnt_sb != ofs->same_sb)
->                 ofs->same_sb = NULL;
->
-> +       if (!(ovl_force_readonly(ofs)) && ofs->config.metacopy) {
-> +               /* Verify lower root is upper root origin */
-> +               err = ovl_verify_origin(upperpath.dentry,
-> +                                       oe->lowerstack[0].dentry, false, true);
-> +               if (err) {
-> +                       pr_err("overlayfs: failed to verify upper root origin\n");
-> +                        goto out_free_oe;
-> +               }
-> +       }
-> +
->
+Hi Linus,
 
-Fs can have upper but no workdir and you still need to verify lower
-If metacopy is enabled
+Please pull from:
 
-Amir.
+  git://git.kernel.org/pub/scm/linux/kernel/git/mszeredi/vfs.git overlayfs-linus
+
+Report constant st_ino values across copy-up even if underlying layers are on
+different filesystems, but using different st_dev values for each layer.
+Ideally we'd report the same st_dev across the overlay, and it's possible to do
+for filesystems that use only 32bits for st_ino by unifying the inum space.  It
+would be nice if it wasn't a choice of 32 or 64, rather filesystems could report
+their current maximum (that could change on resize, so it wouldn't be set in
+stone).
+
+There are also miscellaneus fixes and a cleanup of ovl_fill_super(), that was
+long overdue.
+
+Created a path_put_init() helper that clears out the pointers after putting the
+ref.  I think this could be useful elsewhere, so added it to <linux/path.h>.
+
+Thanks,
+Miklos
+
+---
+Amir Goldstein (6):
+      ovl: lockdep annotate of nested OVL_I(inode)->lock
+      ovl: no direct iteration for dir with origin xattr
+      ovl: move include of ovl_entry.h into overlayfs.h
+      ovl: relax same fs constraint for constant st_ino
+      ovl: update cache version of impure parent on rename
+      ovl: remove unneeded arg from ovl_verify_origin()
+
+Chandan Rajendra (3):
+      ovl: re-structure overlay lower layers in-memory
+      ovl: allocate anonymous devs for lowerdirs
+      ovl: return anonymous st_dev for lower inodes
+
+Miklos Szeredi (18):
+      vfs: add path_put_init()
+      ovl: use path_put_init() in error paths for ovl_fill_super()
+      ovl: split out ovl_get_upperpath() from ovl_fill_super()
+      ovl: split out ovl_get_workpath() from ovl_fill_super()
+      ovl: split out ovl_get_lowerstack() from ovl_fill_super()
+      ovl: split out ovl_get_upper() from ovl_fill_super()
+      ovl: split out ovl_get_workdir() from ovl_fill_super()
+      ovl: split out ovl_get_lower_layers() from ovl_fill_super()
+      ovl: split out ovl_get_indexdir() from ovl_fill_super()
+      ovl: grab reference to workbasedir early
+      ovl: factor out ovl_free_fs() helper
+      ovl: change order of setup in ovl_fill_super()
+      ovl: reduce the number of arguments for ovl_workdir_create()
+      ovl: move ovl_get_workdir() and ovl_get_lower_layers()
+      ovl: clean up getting upper layer
+      ovl: clean up workdir creation
+      ovl: clean up getting lower layers
+      ovl: rename ufs to ofs
+
+Vivek Goyal (1):
+      ovl: Put upperdentry if ovl_check_origin() fails
+
+zhangyi (F) (2):
+      ovl: simplify ovl_check_empty_and_clear()
+      ovl: fix rmdir problem on non-merge dir with origin xattr
+
+---
+ fs/overlayfs/copy_up.c   |   8 +-
+ fs/overlayfs/dir.c       |  25 +-
+ fs/overlayfs/inode.c     |  63 ++++-
+ fs/overlayfs/namei.c     |  59 ++--
+ fs/overlayfs/overlayfs.h |  13 +-
+ fs/overlayfs/ovl_entry.h |  14 +-
+ fs/overlayfs/readdir.c   |  55 +++-
+ fs/overlayfs/super.c     | 688 ++++++++++++++++++++++++++---------------------
+ fs/overlayfs/util.c      |  21 +-
+ include/linux/path.h     |   6 +
+ 10 files changed, 576 insertions(+), 376 deletions(-)
