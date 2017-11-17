@@ -1,96 +1,91 @@
-From: Miklos Szeredi <miklos@szeredi.hu>
-Subject: [GIT PULL] overlayfs update for 4.15
-Date: Fri, 17 Nov 2017 16:13:17 +0100
-Message-ID: <20171117151317.GA5348@veci.piliscsaba.szeredi.hu>
+From: Vivek Goyal <vgoyal@redhat.com>
+Subject: Re: [PATCH v7 06/14] ovl: Move couple of copy up functions in
+ copy_up.c
+Date: Fri, 17 Nov 2017 10:40:02 -0500
+Message-ID: <20171117154002.GB15566@redhat.com>
+References: <20171116220335.13448-1-vgoyal@redhat.com>
+ <20171116220335.13448-7-vgoyal@redhat.com>
+ <CAOQ4uxiCXmBiEci5b+7j+WT9Q=gZbeVqknNKHDoBd82W3y1NNQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wm0-f49.google.com ([74.125.82.49]:33878 "EHLO
-        mail-wm0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751242AbdKQPPl (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 17 Nov 2017 10:15:41 -0500
-Received: by mail-wm0-f49.google.com with SMTP id y82so3765320wmg.1
-        for <linux-unionfs@vger.kernel.org>; Fri, 17 Nov 2017 07:15:40 -0800 (PST)
+Received: from mx1.redhat.com ([209.132.183.28]:51038 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S965045AbdKQPkD (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Fri, 17 Nov 2017 10:40:03 -0500
 Content-Disposition: inline
+In-Reply-To: <CAOQ4uxiCXmBiEci5b+7j+WT9Q=gZbeVqknNKHDoBd82W3y1NNQ@mail.gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: overlayfs <linux-unionfs@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>
 
-Hi Linus,
+On Fri, Nov 17, 2017 at 11:06:12AM +0200, Amir Goldstein wrote:
+> On Fri, Nov 17, 2017 at 12:03 AM, Vivek Goyal <vgoyal@redhat.com> wrote:
+> > Right now two copy up related functions are part of inode.c. Amir suggested
+> > it might be better to move these to copy_up.c. Hence this patch does that.
+> 
+> IMO it is better to phrase simply "Move the copy up helpers to copy_up.c."
+> 
+> > There will one more related function which will come in later patch.
+> >
+> > Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
+> > ---
+> >  fs/overlayfs/copy_up.c | 30 ++++++++++++++++++++++++++++++
+> >  fs/overlayfs/inode.c   | 30 ------------------------------
+> >  2 files changed, 30 insertions(+), 30 deletions(-)
+> >
+> > diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
+> > index 303794bb9127..f84ba12c9b05 100644
+> > --- a/fs/overlayfs/copy_up.c
+> > +++ b/fs/overlayfs/copy_up.c
+> > @@ -232,6 +232,36 @@ int ovl_set_attr(struct dentry *upperdentry, struct kstat *stat)
+> >         return err;
+> >  }
+> >
+> > +static bool ovl_open_need_copy_up(struct dentry *dentry, int flags)
+> > +{
+> > +       if (ovl_dentry_upper(dentry) &&
+> > +           ovl_dentry_has_upper_alias(dentry))
+> > +               return false;
+> > +
+> > +       if (special_file(d_inode(dentry)->i_mode))
+> > +               return false;
+> > +
+> > +       if (!(OPEN_FMODE(flags) & FMODE_WRITE) && !(flags & O_TRUNC))
+> > +               return false;
+> > +
+> > +       return true;
+> > +}
+> > +
+> > +int ovl_open_maybe_copy_up(struct dentry *dentry, unsigned int file_flags)
+> > +{
+> > +       int err = 0;
+> > +
+> > +       if (ovl_open_need_copy_up(dentry, file_flags)) {
+> > +               err = ovl_want_write(dentry);
+> > +               if (!err) {
+> > +                       err = ovl_copy_up_flags(dentry, file_flags);
+> > +                       ovl_drop_write(dentry);
+> > +               }
+> > +       }
+> > +
+> > +       return err;
+> > +}
+> > +
+> 
+> I would put there at the bottom ,below ovl_copy_up_flags, where they belong
+> logically (this file is sorted bottom up.
 
-Please pull from:
+Ok, I will keep these functions below ovl_copy_up_flag().
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/mszeredi/vfs.git overlayfs-linus
+But ovl_copy_up_meta_inode_data() is called by ovl_copy_up_one(). So will
+keep that above ovl_copy_up_one().
 
-Report constant st_ino values across copy-up even if underlying layers are on
-different filesystems, but using different st_dev values for each layer.
-Ideally we'd report the same st_dev across the overlay, and it's possible to do
-for filesystems that use only 32bits for st_ino by unifying the inum space.  It
-would be nice if it wasn't a choice of 32 or 64, rather filesystems could report
-their current maximum (that could change on resize, so it wouldn't be set in
-stone).
+> 
+> And also need to move the declaration of ovl_open_maybe_copy_up() in
+> overlayfs.h to the respective location.
 
-There are also miscellaneus fixes and a cleanup of ovl_fill_super(), that was
-long overdue.
+Ok, will do.
 
-Created a path_put_init() helper that clears out the pointers after putting the
-ref.  I think this could be useful elsewhere, so added it to <linux/path.h>.
-
-Thanks,
-Miklos
-
----
-Amir Goldstein (6):
-      ovl: lockdep annotate of nested OVL_I(inode)->lock
-      ovl: no direct iteration for dir with origin xattr
-      ovl: move include of ovl_entry.h into overlayfs.h
-      ovl: relax same fs constraint for constant st_ino
-      ovl: update cache version of impure parent on rename
-      ovl: remove unneeded arg from ovl_verify_origin()
-
-Chandan Rajendra (3):
-      ovl: re-structure overlay lower layers in-memory
-      ovl: allocate anonymous devs for lowerdirs
-      ovl: return anonymous st_dev for lower inodes
-
-Miklos Szeredi (18):
-      vfs: add path_put_init()
-      ovl: use path_put_init() in error paths for ovl_fill_super()
-      ovl: split out ovl_get_upperpath() from ovl_fill_super()
-      ovl: split out ovl_get_workpath() from ovl_fill_super()
-      ovl: split out ovl_get_lowerstack() from ovl_fill_super()
-      ovl: split out ovl_get_upper() from ovl_fill_super()
-      ovl: split out ovl_get_workdir() from ovl_fill_super()
-      ovl: split out ovl_get_lower_layers() from ovl_fill_super()
-      ovl: split out ovl_get_indexdir() from ovl_fill_super()
-      ovl: grab reference to workbasedir early
-      ovl: factor out ovl_free_fs() helper
-      ovl: change order of setup in ovl_fill_super()
-      ovl: reduce the number of arguments for ovl_workdir_create()
-      ovl: move ovl_get_workdir() and ovl_get_lower_layers()
-      ovl: clean up getting upper layer
-      ovl: clean up workdir creation
-      ovl: clean up getting lower layers
-      ovl: rename ufs to ofs
-
-Vivek Goyal (1):
-      ovl: Put upperdentry if ovl_check_origin() fails
-
-zhangyi (F) (2):
-      ovl: simplify ovl_check_empty_and_clear()
-      ovl: fix rmdir problem on non-merge dir with origin xattr
-
----
- fs/overlayfs/copy_up.c   |   8 +-
- fs/overlayfs/dir.c       |  25 +-
- fs/overlayfs/inode.c     |  63 ++++-
- fs/overlayfs/namei.c     |  59 ++--
- fs/overlayfs/overlayfs.h |  13 +-
- fs/overlayfs/ovl_entry.h |  14 +-
- fs/overlayfs/readdir.c   |  55 +++-
- fs/overlayfs/super.c     | 688 ++++++++++++++++++++++++++---------------------
- fs/overlayfs/util.c      |  21 +-
- include/linux/path.h     |   6 +
- 10 files changed, 576 insertions(+), 376 deletions(-)
+Vivek
