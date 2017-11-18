@@ -1,58 +1,238 @@
-From: Linus Torvalds <torvalds@linux-foundation.org>
-Subject: Re: [GIT PULL] overlayfs update for 4.15
-Date: Fri, 17 Nov 2017 13:49:01 -0800
-Message-ID: <CA+55aFxPPXo1UD_4kuSamJYx1FbcpVFx3ANzfxJpFKVhd_gROQ@mail.gmail.com>
-References: <20171117151317.GA5348@veci.piliscsaba.szeredi.hu>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20171117151317.GA5348@veci.piliscsaba.szeredi.hu>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, linux-unionfs@vger.kernel.org
+From: Chandan Rajendra <chandan@linux.vnet.ibm.com>
+Subject: [PATCH V3] overlay: Test consistent st_ino numbers for non-samefs scenario
+Date: Sat, 18 Nov 2017 11:27:00 +0530
+Message-ID: <20171118055700.17442-1-chandan@linux.vnet.ibm.com>
+Return-path: <fstests-owner@vger.kernel.org>
+Sender: fstests-owner@vger.kernel.org
+To: fstests@vger.kernel.org, amir73il@gmail.com
+Cc: Chandan Rajendra <chandan@linux.vnet.ibm.com>, linux-unionfs@vger.kernel.org, eguan@redhat.com
 List-Id: linux-unionfs@vger.kernel.org
 
-On Fri, Nov 17, 2017 at 7:13 AM, Miklos Szeredi <miklos@szeredi.hu> wrote:
->
-> Created a path_put_init() helper that clears out the pointers after putting the
-> ref.  I think this could be useful elsewhere, so added it to <linux/path.h>.
+This commit adds a test to verify consistent st_ino feature when
+the overlayfs instance is composed of two different underlying
+filesystem instances.
 
-Slight eww.
+For example,
+$ mount -t xfs /dev/loop0 /mnt/test
+$ mount -t xfs /dev/loop1 /mnt/scratch
+$ mkdir /mnt/scratch/upper
+$ mkdir /mnt/scratch/work
+$ mount -t overlay overlay -o lowerdir=/mnt/test \
+        -o upperdir=/mnt/scratch/upper \
+        -o workdir=/mnt/scratch/work /mnt/merge
 
-The problem with your helper is that we've seen gcc generate really
-horrible code for things like that.
+The goal of this test is to verify that overlayfs returns consistent
+st_ino for the following scenarios,
+- Copy-up of lowerdir files
+- Rename files and drop dentry/inode cache
+- Remount the overlayfs instance
 
-So when you do
+Signed-off-by: Chandan Rajendra <chandan@linux.vnet.ibm.com>
+---
+Changelog:
+v1->v2:
+Address review comments provided by Amir.
+1. To succeed, the test now requires the underlying base filesystems to provide
+   32-bit inode numbers or the user to provide "xino" mount option. The test
+   also requires that either overlayfs 'index' config feature to be enabled by
+   default or to be enabled by using the 'index=on' mount option.
+2. Require $TEST_DEV for use as Overlayfs' lowerdir.
+3. Pass $OVERLAY_MOUNT_OPTIONS as argument to _overlay_scratch_mount_dirs().
 
-     *path = (struct path) { };
+v2->v3:
+1. Remove the description about how "xino" mount option is required for this
+   test to succeed.
 
-we've seen gcc first create an local empty "struct path" on stack, and
-then memcpy() it over the target. Which is _technically_ what that
-code does, of course, but it's also excessively stupid.
 
-So I suspect that would be better off as just
+ tests/overlay/043     | 160 ++++++++++++++++++++++++++++++++++++++++++++++++++
+ tests/overlay/043.out |   2 +
+ tests/overlay/group   |   1 +
+ 3 files changed, 163 insertions(+)
+ create mode 100755 tests/overlay/043
+ create mode 100644 tests/overlay/043.out
 
-     memset(path, 0, sizeof(*path));
-
-which then matches the code that you actually would expect gcc to generate.
-
-I hope that "struct path" is small enough that gcc doesn't mess up,
-and that odd code generation is probably specific to some gcc versions
-anyway, but we've definitely seen this.
-
-NOTE! The above pattern of assignment is very different from the
-initialization pattern. Gcc generally does well on structure
-initializers:
-
-    struct xyz a = { .. };
-
-generally generates reasonable code in ways that
-
-    struct xyz a;
-    ..
-    a = (struct xyz) { ...};
-
-sometimes doesn't.  I suspect it's mainly a "initializers are common,
-unnamed temporary local structures are not" thing.
-
-                  Linus
+diff --git a/tests/overlay/043 b/tests/overlay/043
+new file mode 100755
+index 0000000..858b6a9
+--- /dev/null
++++ b/tests/overlay/043
+@@ -0,0 +1,160 @@
++#! /bin/bash
++# FSQA Test No. 043
++#
++# Test constant inode numbers on non-samefs setup
++# This is a variant of overlay/017 to test constant st_ino numbers for
++# non-samefs setup.
++#
++# This simple test demonstrates a known issue with overlayfs:
++# - stat file A shows inode number X
++# - modify A to trigger copy up
++# - stat file A shows inode number Y != X
++#
++# Also test if d_ino of readdir entries changes after copy up
++# and if inode numbers persist after rename, drop caches and
++# mount cycle.
++#
++#-----------------------------------------------------------------------
++#
++# Copyright (C) 2017 IBM Corporation. All Rights Reserved.
++# Author: Chandan Rajendra <chandan@linux.vnet.ibm.com>
++#
++# This program is free software; you can redistribute it and/or
++# modify it under the terms of the GNU General Public License as
++# published by the Free Software Foundation.
++#
++# This program is distributed in the hope that it would be useful,
++# but WITHOUT ANY WARRANTY; without even the implied warranty of
++# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++# GNU General Public License for more details.
++#
++# You should have received a copy of the GNU General Public License
++# along with this program; if not, write the Free Software Foundation,
++# Inc.,  51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
++#-----------------------------------------------------------------------
++#
++
++seq=`basename $0`
++seqres=$RESULT_DIR/$seq
++echo "QA output created by $seq"
++
++here=`pwd`
++tmp=/tmp/$$
++status=1	# failure is the default!
++trap "_cleanup; exit \$status" 0 1 2 3 15
++
++_cleanup()
++{
++	cd /
++	rm -f $tmp.*
++}
++
++# get standard environment, filters and checks
++. ./common/rc
++. ./common/filter
++
++# real QA test starts here
++_supported_fs overlay
++_supported_os Linux
++_require_scratch
++_require_test
++_require_test_program "af_unix"
++_require_test_program "t_dir_type"
++
++rm -f $seqres.full
++
++lowerdir=$OVL_BASE_TEST_DIR/$seq-ovl-lower
++rm -rf $lowerdir
++mkdir $lowerdir
++
++# Create our test files.
++mkdir $lowerdir/dir
++touch $lowerdir/file
++ln -s $lowerdir/file $lowerdir/symlink
++mknod $lowerdir/chrdev c 1 1
++mknod $lowerdir/blkdev b 1 1
++mknod $lowerdir/fifo p
++$here/src/af_unix $lowerdir/socket
++
++_scratch_mkfs >>$seqres.full 2>&1
++
++upperdir=$OVL_BASE_SCRATCH_MNT/$OVL_UPPER
++workdir=$OVL_BASE_SCRATCH_MNT/$OVL_WORK
++
++_overlay_scratch_mount_dirs $lowerdir $upperdir $workdir \
++			    $OVERLAY_MOUNT_OPTIONS
++
++FILES="dir file symlink chrdev blkdev fifo socket"
++
++# Record inode numbers in format <ino> <basename>
++function record_inode_numbers()
++{
++	dir=$1
++	outfile=$2
++
++	for f in $FILES; do
++		ls -id $dir/$f
++	done | \
++	while read ino file; do
++		echo $ino `basename $file` >> $outfile
++	done
++}
++
++# Check inode numbers match recorder inode numbers
++function check_inode_numbers()
++{
++	dir=$1
++	before=$2
++	after=$3
++
++	record_inode_numbers $dir $after
++
++	# Test constant stat(2) st_ino -
++	# Compare before..after - expect silence
++	# We use diff -u so out.bad will tell us which stage failed
++	diff -u $before $after
++
++	# Test constant readdir(3)/getdents(2) d_ino -
++	# Expect to find file by inode number
++	cat $before | while read ino f; do
++		$here/src/t_dir_type $dir $ino | grep -q $f || \
++			echo "$f not found by ino $ino (from $before)"
++	done
++}
++
++rm -f $tmp.*
++testdir=$SCRATCH_MNT/test
++mkdir -p $testdir
++
++# Record inode numbers before copy up
++record_inode_numbers $SCRATCH_MNT $tmp.before
++
++for f in $FILES; do
++	# chown -h modifies all those file types
++	chown -h 100 $SCRATCH_MNT/$f
++done
++
++# Compare inode numbers before/after copy up
++check_inode_numbers $SCRATCH_MNT $tmp.before $tmp.after_copyup
++
++for f in $FILES; do
++	# move to another dir
++	mv $SCRATCH_MNT/$f $testdir/
++done
++
++echo 3 > /proc/sys/vm/drop_caches
++
++# Compare inode numbers before/after rename and drop caches
++check_inode_numbers $testdir $tmp.after_copyup $tmp.after_move
++
++# Verify that the inode numbers survive a mount cycle
++$UMOUNT_PROG $SCRATCH_MNT
++_overlay_scratch_mount_dirs $lowerdir $upperdir $workdir \
++			    $OVERLAY_MOUNT_OPTIONS
++
++# Compare inode numbers before/after mount cycle
++check_inode_numbers $testdir $tmp.after_move $tmp.after_cycle
++
++echo "Silence is golden"
++status=0
++exit
+diff --git a/tests/overlay/043.out b/tests/overlay/043.out
+new file mode 100644
+index 0000000..f90f0a5
+--- /dev/null
++++ b/tests/overlay/043.out
+@@ -0,0 +1,2 @@
++QA output created by 043
++Silence is golden
+diff --git a/tests/overlay/group b/tests/overlay/group
+index 782c39f..a99ff07 100644
+--- a/tests/overlay/group
++++ b/tests/overlay/group
+@@ -45,3 +45,4 @@
+ 040 auto quick
+ 041 auto quick copyup nonsamefs
+ 042 auto quick copyup hardlink
++043 auto quick copyup nonsamefs
+-- 
+2.9.5
