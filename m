@@ -1,54 +1,93 @@
 From: Chandan Rajendra <chandan@linux.vnet.ibm.com>
-Subject: [PATCH 1/3] overlay/017: Remove constant st_ino/d_ino test for hardlinks
-Date: Sat, 18 Nov 2017 11:28:02 +0530
-Message-ID: <20171118055804.17611-1-chandan@linux.vnet.ibm.com>
-Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mx0a-001b2d01.pphosted.com ([148.163.156.1]:51480 "EHLO
-        mx0a-001b2d01.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1161421AbdKRF5L (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Sat, 18 Nov 2017 00:57:11 -0500
-Received: from pps.filterd (m0098396.ppops.net [127.0.0.1])
-        by mx0a-001b2d01.pphosted.com (8.16.0.21/8.16.0.21) with SMTP id vAI5sqLO071534
-        for <linux-unionfs@vger.kernel.org>; Sat, 18 Nov 2017 00:57:11 -0500
-Received: from e18.ny.us.ibm.com (e18.ny.us.ibm.com [129.33.205.208])
-        by mx0a-001b2d01.pphosted.com with ESMTP id 2eaehe93je-1
-        (version=TLSv1.2 cipher=AES256-SHA bits=256 verify=NOT)
-        for <linux-unionfs@vger.kernel.org>; Sat, 18 Nov 2017 00:57:11 -0500
-Received: from localhost
-        by e18.ny.us.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
-        for <linux-unionfs@vger.kernel.org> from <chandan@linux.vnet.ibm.com>;
-        Sat, 18 Nov 2017 00:57:10 -0500
-Sender: linux-unionfs-owner@vger.kernel.org
-List-Id: linux-unionfs@vger.kernel.org
+Subject: [PATCH 2/3] overlay/018: Add constant d_ino test
+Date: Sat, 18 Nov 2017 11:28:03 +0530
+Message-ID: <20171118055804.17611-2-chandan@linux.vnet.ibm.com>
+References: <20171118055804.17611-1-chandan@linux.vnet.ibm.com>
+Return-path: <fstests-owner@vger.kernel.org>
+In-Reply-To: <20171118055804.17611-1-chandan@linux.vnet.ibm.com>
+Sender: fstests-owner@vger.kernel.org
 To: fstests@vger.kernel.org, amir73il@gmail.com
 Cc: Chandan Rajendra <chandan@linux.vnet.ibm.com>, linux-unionfs@vger.kernel.org, eguan@redhat.com
+List-Id: linux-unionfs@vger.kernel.org
 
-Constant st_ino/d_ino for hardlinks requires "index" config
-feature/mount option to be enabled. overlay/018 already tests constant
-st_ino feature for hardlinks. A future commit will add constant d_ino
-test to overlay/018 test.
+Constant d_ino for hardlinks is possible only when "index" config
+feature/mount option is enabled.
 
 Signed-off-by: Chandan Rajendra <chandan@linux.vnet.ibm.com>
 ---
- tests/overlay/017 | 4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ tests/overlay/018 | 21 +++++++++++++++------
+ 1 file changed, 15 insertions(+), 6 deletions(-)
 
-diff --git a/tests/overlay/017 b/tests/overlay/017
-index e9c8525..03955d0 100755
---- a/tests/overlay/017
-+++ b/tests/overlay/017
-@@ -72,10 +72,8 @@ mknod $lowerdir/chrdev c 1 1
- mknod $lowerdir/blkdev b 1 1
- mknod $lowerdir/fifo p
- $here/src/af_unix $lowerdir/socket
--touch $lowerdir/hardlink1
--ln $lowerdir/hardlink1 $lowerdir/hardlink2
+diff --git a/tests/overlay/018 b/tests/overlay/018
+index a4f67d1..6e026c1 100755
+--- a/tests/overlay/018
++++ b/tests/overlay/018
+@@ -50,6 +50,7 @@ _supported_fs overlay
+ _supported_os Linux
+ _require_scratch
+ _require_scratch_feature index
++_require_test_program "t_dir_type"
  
--FILES="dir file symlink chrdev blkdev fifo socket hardlink1 hardlink2"
-+FILES="dir file symlink chrdev blkdev fifo socket"
+ rm -f $seqres.full
  
- # Record inode numbers in format <ino> <basename>
- function record_inode_numbers()
+@@ -65,14 +66,15 @@ ln $lowerdir/foo $lowerdir/bar
+ # Record inode numbers in format <ino> <nlink>
+ function record_ino_nlink()
+ {
+-	ls -li $FILES | awk '{ print $1, $3 }' > $1
++	ls -li $FILES | awk '{ print $1, $3, $10}' > $1
+ }
+ 
+ # Check inode numbers match recorded inode numbers
+ function check_ino_nlink()
+ {
+-	before=$1
+-	after=$2
++	dir=$1
++	before=$2
++	after=$3
+ 
+ 	record_ino_nlink $after
+ 
+@@ -80,6 +82,13 @@ function check_ino_nlink()
+ 	#   Compare before..after - expect silence
+ 	# We use diff -u so out.bad will tell us which stage failed
+ 	diff -u $before $after
++
++	# Test constant readdir(3)/getdents(2) d_ino -
++	#   Expect to find file by inode number
++	cat $before | while read ino nlink f; do
++		$here/src/t_dir_type $dir $ino | grep -q $(basename $f) || \
++			echo "$(basename $f) not found by ino $ino (from $before)"
++	done
+ }
+ 
+ # Enable overlay index feature to prevent breaking hardlinks on copy up
+@@ -104,14 +113,14 @@ echo "one" >> $bar
+ 
+ echo "== After write one =="
+ cat $FILES
+-check_ino_nlink $tmp.before $tmp.after_one
++check_ino_nlink $SCRATCH_MNT $tmp.before $tmp.after_one
+ 
+ # Verify that the hardlinks survive a mount cycle
+ _scratch_cycle_mount index=on
+ 
+ echo "== After mount cycle =="
+ cat $FILES
+-check_ino_nlink $tmp.after_one $tmp.after_cycle
++check_ino_nlink $SCRATCH_MNT $tmp.after_one $tmp.after_cycle
+ 
+ # Drop caches to get the copied up hardlink out of cache
+ echo 3 > /proc/sys/vm/drop_caches
+@@ -121,7 +130,7 @@ echo "two" >> $foo
+ 
+ echo "== After write two =="
+ cat $FILES
+-check_ino_nlink $tmp.after_one $tmp.after_two
++check_ino_nlink $SCRATCH_MNT $tmp.after_one $tmp.after_two
+ 
+ status=0
+ exit
 -- 
 2.9.5
