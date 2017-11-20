@@ -1,113 +1,170 @@
-From: "zhangyi (F)" <yi.zhang@huawei.com>
-Subject: Re: [fsck.overlay RFC PATCH] overlay: add fsck utility
-Date: Mon, 20 Nov 2017 17:00:12 +0800
-Message-ID: <8fcb552f-1627-f3ad-7cc8-d2e081fc527a@huawei.com>
-References: <20171117054919.712-1-yi.zhang@huawei.com>
- <CAOQ4uxgCN-ZdLsZQmYYW-PyJLB4WWsr9A8gqOtcSC6S9Uj8qZA@mail.gmail.com>
- <0932944e-bbb7-22c6-9b75-19c42f8c7e41@huawei.com>
- <CAOQ4uxgja0e6qzuzG4gpaFr-Y0-9_GvtS_5NmUKG9XaKyicawQ@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <fstests-owner@vger.kernel.org>
-In-Reply-To: <CAOQ4uxgja0e6qzuzG4gpaFr-Y0-9_GvtS_5NmUKG9XaKyicawQ@mail.gmail.com>
-Sender: fstests-owner@vger.kernel.org
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: overlayfs <linux-unionfs@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>, Miao Xie <miaoxie@huawei.com>, fstests <fstests@vger.kernel.org>, Eryu Guan <eguan@redhat.com>
+From: Chandan Rajendra <chandan@linux.vnet.ibm.com>
+Subject: [PATCH 1/2] overlay/038: code cleanup
+Date: Mon, 20 Nov 2017 20:04:09 +0530
+Message-ID: <20171120143410.23357-1-chandan@linux.vnet.ibm.com>
+Return-path: <linux-unionfs-owner@vger.kernel.org>
+Received: from mx0b-001b2d01.pphosted.com ([148.163.158.5]:34542 "EHLO
+        mx0a-001b2d01.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751124AbdKTOdU (ORCPT
+        <rfc822;linux-unionfs@vger.kernel.org>);
+        Mon, 20 Nov 2017 09:33:20 -0500
+Received: from pps.filterd (m0098416.ppops.net [127.0.0.1])
+        by mx0b-001b2d01.pphosted.com (8.16.0.21/8.16.0.21) with SMTP id vAKETFdh084886
+        for <linux-unionfs@vger.kernel.org>; Mon, 20 Nov 2017 09:33:19 -0500
+Received: from e12.ny.us.ibm.com (e12.ny.us.ibm.com [129.33.205.202])
+        by mx0b-001b2d01.pphosted.com with ESMTP id 2ec0g9hhxa-1
+        (version=TLSv1.2 cipher=AES256-SHA bits=256 verify=NOT)
+        for <linux-unionfs@vger.kernel.org>; Mon, 20 Nov 2017 09:33:19 -0500
+Received: from localhost
+        by e12.ny.us.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
+        for <linux-unionfs@vger.kernel.org> from <chandan@linux.vnet.ibm.com>;
+        Mon, 20 Nov 2017 09:33:18 -0500
+Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
+To: fstests@vger.kernel.org, amir73il@gmail.com
+Cc: Chandan Rajendra <chandan@linux.vnet.ibm.com>, linux-unionfs@vger.kernel.org, eguan@redhat.com
 
-On 2017/11/20 15:29, Amir Goldstein Wrote:
-> On Mon, Nov 20, 2017 at 8:56 AM, zhangyi (F) <yi.zhang@huawei.com> wrote:
->> On 2017/11/18 1:13, Amir Goldstein Wrote:
-> [...]
->>
->>>>
->>>> This patch can am to an empty git repository. I have already do basic
->>>> test list in 'test' directory. Please do a review give some suggestions.
->>>> Thanks a lot.
->>>
->>> Please consider, instead of writing overlay tests in new repo,
->>> to write the tests for xfstests and hook overlay.fsck to _check_test_fs/
->>> _check_scratch_fs.
->>> See for example very basic index sanity checks I implemented here:
->>> https://github.com/amir73il/xfstests/commit/dac4da479e3e85be8f7beec54f384c0a832f74bd
->>>
->>
->> I found that e2fsprogs put tests in the e2fsprogs repository, so I write it
->> and put in the same place. Now I notice that all xfs test cases put together
->> in xfstests, so It's also a good choice, not sure which one is better. How
->> about Eryu's opinion ?
->>
-> 
-> Looks. It's not a terrible idea to have some amount of duplication with tests
-> and it's fine you with to keep some independent test within the progs repositiry
-> as a "self test". But you will benefit a lot more testers on more machines and
-> configurations if you merge all the interesting overlay tests to "fstests" repo,
-> which a lot more people are running.
-> And yes, there are quite a lot of tests in xfstest to verify correctness of
-> xfs_repair. Self testing the main fs sanity check program is a good idea.
-> 
-> 
->>> It may be useful, if Eryu agrees, to merge the "incubator" version of
->>> fsck.overlayfs
->>> into xfstests as a helper program until it starts getting packaged and
->>> distributed.
->>> Please consider this option.
->>>
->>
->> Can we applay for a repository in git.kernel.org like xfsprogs-dev and e2fsprogs ?
-> 
-> "Kernel.org accounts are not given away very often, usually you need
-> to be making some
-> reasonable amount of contributions to the Linux kernel and have a good
-> reason for wanting
-> / needing an account"
-> 
-> It doesn't hurt to ask, but I suspect an incubation period for
-> fsck.overlay in another location
-> before it gets enough traction might be a good idea.
-> You may ask Miklos to maintain overlayfs-progs on kernel.org getting
-> patches from you,
-> but I guess this was not your intention.
-> 
-> [...]
-> 
->>>> +Redirect directories
->>>> +--------------------
->>>> +
->>>> +An redirect directory is a directory with "trusted.overlay.redirect" xattr
->>>> +valued to the path of the original location from the root of the overlay. It
->>>> +is only used when renaming a directory and "redirect dir" feature is enabled.
->>>> +If an redirect directory is found, the following must be met:
->>>> +
->>>> +1) The directory store in redirect xattr should exist in one of lower layers.
->>>> +2) The origin directory should be redirected only once in one layer, which mean
->>>> +   there is only one redirect xattr point to this origin directory in the
->>>> +   specified layer.
->>>> +3) A whiteout or an opaque directory with the same name to origin should exist
->>>> +   in the same directory as the redirect directory.
->>> another redirected upper dir can also be covering the redirect lower target
->>>
->> Do you mean the following case: upper's dir_rd cover lower1's redirect dir_rd ?
->>
->> Upper:                    dir_rd(redurected,opaque)   dir2(whiteout)
->> Lower1:   dir(whiteout)   dir_rd(redurected)          dir2
->> Lower0:   dir
->>
-> 
-> That's not what I meant. What I meant is:
-> 
-> Upper: A (whiteout), B (redirect=A), C (redirect=B)
-> Lower: A (dir),          B (dir)
-> 
-> The redirect target of upper C (B) is not a whiteout in upper, nor an
-> opaque dir.
-> It is a redirected dir (whose own target is covered by a whitetout A).
-> The description in 3) doesn't cover that case. Didn't check how the program
-> handles this case.
-> 
+This commit implements similar changes made to overlay/041 test i.e.
+- Remove duplicate merged dir tests
+- Remove duplicate pure upper dir inside merged dir tests
+- Sort out comments and error messages
 
-Indeed, I missed this situation, will add.
+Signed-off-by: Chandan Rajendra <chandan@linux.vnet.ibm.com>
+---
+ tests/overlay/038 | 66 +++++++++++++++++++++++--------------------------------
+ 1 file changed, 27 insertions(+), 39 deletions(-)
 
-Thanks,
-Yi.
+diff --git a/tests/overlay/038 b/tests/overlay/038
+index 28c9c4e..fd804c4 100755
+--- a/tests/overlay/038
++++ b/tests/overlay/038
+@@ -59,32 +59,13 @@ upperdir=$OVL_BASE_SCRATCH_MNT/$OVL_UPPER
+ lowerdir=$OVL_BASE_SCRATCH_MNT/$OVL_LOWER
+ mkdir -p $lowerdir
+ 
+-mkdir $lowerdir/test_dir/
+-mkdir $lowerdir/test_dir/pure_lower_dir
+-mkdir $lowerdir/test_dir/merged_dir
++mkdir -p $lowerdir/test_dir/pure_lower_dir
+ 
+ touch $lowerdir/test_file
+ 
+ _scratch_mount
+ 
+ test_dir=$SCRATCH_MNT/test_dir/
+-merged_dir=$test_dir/merged_dir
+-pure_upper_dir=$merged_dir/pure_upper_dir
+-
+-mkdir -p $pure_upper_dir
+-
+-merged_dir_st_ino=$(stat -c '%i' $merged_dir)
+-
+-# Pure dir's parent d_ino must always be calculated because
+-# it can be residing inside a merged dir.
+-parent_d=$($here/src/t_dir_type $pure_upper_dir $merged_dir_st_ino)
+-[[ $parent_d == ".. d" ]] || \
+-	echo "Pure dir inside a merged dir: Invalid d_ino reported for .."
+-
+-# d_ino for "." must always be calculated because the present
+-# directory can have a copy-up origin.
+-current_d=$($here/src/t_dir_type $merged_dir $merged_dir_st_ino)
+-[[ $current_d == ". d" ]] || echo "Merged dir: Invalid d_ino reported for ."
+ 
+ # Verify d_ino of '.' and '..' before and after dir becomes impure.
+ impure_dir=$test_dir/impure_dir
+@@ -96,12 +77,13 @@ impure_dir_parent_st_ino=$(stat -c '%i' $test_dir)
+ # Before $impure_dir becomes impure
+ parent_d=$($here/src/t_dir_type $impure_dir $impure_dir_parent_st_ino)
+ [[ $parent_d == ".. d" ]] || \
+-    echo "Before dir becomes impure: Invalid d_ino reported for .."
++    echo "Pure upper dir: Invalid d_ino reported for .."
+ 
+ current_d=$($here/src/t_dir_type $impure_dir $impure_dir_st_ino)
+ [[ $current_d == ". d" ]] || \
+-    echo "Before dir becomes impure: Invalid d_ino reported for ."
++    echo "Pure upper dir: Invalid d_ino reported for ."
+ 
++# Move a copied up file into pure dir to make it impure
+ mv $SCRATCH_MNT/test_file $impure_dir
+ test_file_st_ino=$(stat -c '%i' $impure_dir/test_file)
+ 
+@@ -112,11 +94,11 @@ impure=$($GETFATTR_PROG --absolute-names --only-values -n 'trusted.overlay.impur
+ # After $impure_dir becomes impure
+ parent_d=$($here/src/t_dir_type $impure_dir $impure_dir_parent_st_ino)
+ [[ $parent_d == ".. d" ]] || \
+-    echo "After dir becomes impure: Invalid d_ino reported for .."
++    echo "Impure dir: Invalid d_ino reported for .."
+ 
+ current_d=$($here/src/t_dir_type $impure_dir $impure_dir_st_ino)
+ [[ $current_d == ". d" ]] || \
+-    echo "After dir becomes impure: Invalid d_ino reported for ."
++    echo "Impure dir: Invalid d_ino reported for ."
+ 
+ # Verify copy up file's d_ino
+ file_d=$($here/src/t_dir_type $impure_dir $test_file_st_ino)
+@@ -128,30 +110,35 @@ rm -rf $impure_dir/test_file
+ 
+ # Verify invalidation of readdir cache
+ $here/src/t_dir_type $impure_dir $test_file_st_ino
+-[[ $? != 0 ]] || echo "Directory's readdir cache has stale entries"
++[[ $? != 0 ]] || echo "Directory's readdir cache has stale file entries"
+ 
+ impure=$($GETFATTR_PROG --absolute-names --only-values -n 'trusted.overlay.impure' \
+ 			$upperdir/test_dir/impure_dir 2>/dev/null)
+ [[ -z $impure ]] || echo "Pure directory has impure xattr"
+ 
+-# Verify d_ino values corresponding to "." and ".." entries of a
+-# pure lower dir.
+-parent_st_ino=$(stat -c '%i' $SCRATCH_MNT/test_dir)
++# Verify d_ino of '.' and '..' before and after dir becomes merge dir.
++parent_st_ino=$(stat -c '%i' $test_dir)
+ pure_lower_dir=$SCRATCH_MNT/test_dir/pure_lower_dir
++pure_lower_dir_st_ino=$(stat -c '%i' $pure_lower_dir)
+ 
+ parent_d=$($here/src/t_dir_type $pure_lower_dir $parent_st_ino)
+-[[ $parent_d == ".. d" ]] || echo "Pure lower dir: Invalid d_ino reported for .."
+-
+-pure_lower_dir_st_ino=$(stat -c '%i' $pure_lower_dir)
++[[ $parent_d == ".. d" ]] || \
++	echo "Pure lower dir: Invalid d_ino reported for .."
+ 
+ current_d=$($here/src/t_dir_type $pure_lower_dir $pure_lower_dir_st_ino)
+-[[ $current_d == ". d" ]] || echo "Pure lower dir: Invalid d_ino reported for ."
++[[ $current_d == ". d" ]] || \
++	echo "Pure lower dir: Invalid d_ino reported for ."
+ 
+-# Verify d_ino of ".." entry of a merged dir.
+-merged_dir=$SCRATCH_MNT/test_dir/merged_dir
++# Create a file in pure lower dir to make it a merge dir
++touch $pure_lower_dir/newfile
+ 
+-parent_d=$($here/src/t_dir_type $merged_dir $parent_st_ino)
+-[[ $parent_d == ".. d" ]] || echo "Merged dir: Invalid d_ino reported for .."
++parent_d=$($here/src/t_dir_type $pure_lower_dir $parent_st_ino)
++[[ $parent_d == ".. d" ]] || \
++	echo "Merged dir: Invalid d_ino reported for .."
++ 
++current_d=$($here/src/t_dir_type $pure_lower_dir $pure_lower_dir_st_ino)
++[[ $current_d == ". d" ]] || \
++	echo "Merged dir: Invalid d_ino reported for ."
+ 
+ _scratch_unmount
+ 
+@@ -177,11 +164,12 @@ mkdir -p $lowerdir/test_dir/pure_lower_dir
+ _overlay_scratch_mount_dirs "$middir:$lowerdir" $upperdir $workdir
+ 
+ # Copy up test_dir
+-touch $SCRATCH_MNT/test_dir/test_file
++touch $test_dir/test_file
+ 
+-test_dir_st_ino=$(stat -c '%i' $SCRATCH_MNT/test_dir)
++test_dir_st_ino=$(stat -c '%i' $test_dir)
++pure_lower_dir=$test_dir/pure_lower_dir
+ 
+-parent_d=$($here/src/t_dir_type $SCRATCH_MNT/test_dir/pure_lower_dir $test_dir_st_ino)
++parent_d=$($here/src/t_dir_type $pure_lower_dir $test_dir_st_ino)
+ [[ $parent_d == ".. d" ]] || \
+ 	echo "Pure lower in dir which has another lower layer: Invalid d_ino reported for .."
+ 
+-- 
+2.9.5
