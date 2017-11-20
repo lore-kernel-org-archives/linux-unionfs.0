@@ -1,55 +1,113 @@
-From: Chandan Rajendra <chandan@linux.vnet.ibm.com>
-Subject: Re: [PATCH 0/3] More nonsamefs d_ino test cleanups
-Date: Mon, 20 Nov 2017 14:28:33 +0530
-Message-ID: <4911339.3rRr1GUodZ@localhost.localdomain>
-References: <1511092589-29179-1-git-send-email-amir73il@gmail.com>
+From: "zhangyi (F)" <yi.zhang@huawei.com>
+Subject: Re: [fsck.overlay RFC PATCH] overlay: add fsck utility
+Date: Mon, 20 Nov 2017 17:00:12 +0800
+Message-ID: <8fcb552f-1627-f3ad-7cc8-d2e081fc527a@huawei.com>
+References: <20171117054919.712-1-yi.zhang@huawei.com>
+ <CAOQ4uxgCN-ZdLsZQmYYW-PyJLB4WWsr9A8gqOtcSC6S9Uj8qZA@mail.gmail.com>
+ <0932944e-bbb7-22c6-9b75-19c42f8c7e41@huawei.com>
+ <CAOQ4uxgja0e6qzuzG4gpaFr-Y0-9_GvtS_5NmUKG9XaKyicawQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mx0b-001b2d01.pphosted.com ([148.163.158.5]:46916 "EHLO
-        mx0a-001b2d01.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1750952AbdKTI5f (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 20 Nov 2017 03:57:35 -0500
-Received: from pps.filterd (m0098419.ppops.net [127.0.0.1])
-        by mx0b-001b2d01.pphosted.com (8.16.0.21/8.16.0.21) with SMTP id vAK8sWVq072508
-        for <linux-unionfs@vger.kernel.org>; Mon, 20 Nov 2017 03:57:34 -0500
-Received: from e06smtp11.uk.ibm.com (e06smtp11.uk.ibm.com [195.75.94.107])
-        by mx0b-001b2d01.pphosted.com with ESMTP id 2ebustgs37-1
-        (version=TLSv1.2 cipher=AES256-SHA bits=256 verify=NOT)
-        for <linux-unionfs@vger.kernel.org>; Mon, 20 Nov 2017 03:57:34 -0500
-Received: from localhost
-        by e06smtp11.uk.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
-        for <linux-unionfs@vger.kernel.org> from <chandan@linux.vnet.ibm.com>;
-        Mon, 20 Nov 2017 08:57:32 -0000
-In-Reply-To: <1511092589-29179-1-git-send-email-amir73il@gmail.com>
-Sender: linux-unionfs-owner@vger.kernel.org
-List-Id: linux-unionfs@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <fstests-owner@vger.kernel.org>
+In-Reply-To: <CAOQ4uxgja0e6qzuzG4gpaFr-Y0-9_GvtS_5NmUKG9XaKyicawQ@mail.gmail.com>
+Sender: fstests-owner@vger.kernel.org
 To: Amir Goldstein <amir73il@gmail.com>
-Cc: Eryu Guan <eguan@redhat.com>, Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, fstests@vger.kernel.org
+Cc: overlayfs <linux-unionfs@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>, Miao Xie <miaoxie@huawei.com>, fstests <fstests@vger.kernel.org>, Eryu Guan <eguan@redhat.com>
+List-Id: linux-unionfs@vger.kernel.org
 
-On Sunday, November 19, 2017 5:26:26 PM IST Amir Goldstein wrote:
-> Chandan,
+On 2017/11/20 15:29, Amir Goldstein Wrote:
+> On Mon, Nov 20, 2017 at 8:56 AM, zhangyi (F) <yi.zhang@huawei.com> wrote:
+>> On 2017/11/18 1:13, Amir Goldstein Wrote:
+> [...]
+>>
+>>>>
+>>>> This patch can am to an empty git repository. I have already do basic
+>>>> test list in 'test' directory. Please do a review give some suggestions.
+>>>> Thanks a lot.
+>>>
+>>> Please consider, instead of writing overlay tests in new repo,
+>>> to write the tests for xfstests and hook overlay.fsck to _check_test_fs/
+>>> _check_scratch_fs.
+>>> See for example very basic index sanity checks I implemented here:
+>>> https://github.com/amir73il/xfstests/commit/dac4da479e3e85be8f7beec54f384c0a832f74bd
+>>>
+>>
+>> I found that e2fsprogs put tests in the e2fsprogs repository, so I write it
+>> and put in the same place. Now I notice that all xfs test cases put together
+>> in xfstests, so It's also a good choice, not sure which one is better. How
+>> about Eryu's opinion ?
+>>
 > 
-> Please review my cleanups to overlay/041.
-> I hope I did not "cleanup" anything important.
-> This is the version of the test I used for testing xino feature,
-> because it has improved test coverage for subdirs d_ino.
+> Looks. It's not a terrible idea to have some amount of duplication with tests
+> and it's fine you with to keep some independent test within the progs repositiry
+> as a "self test". But you will benefit a lot more testers on more machines and
+> configurations if you merge all the interesting overlay tests to "fstests" repo,
+> which a lot more people are running.
+> And yes, there are quite a lot of tests in xfstest to verify correctness of
+> xfs_repair. Self testing the main fs sanity check program is a good idea.
+> 
+> 
+>>> It may be useful, if Eryu agrees, to merge the "incubator" version of
+>>> fsck.overlayfs
+>>> into xfstests as a helper program until it starts getting packaged and
+>>> distributed.
+>>> Please consider this option.
+>>>
+>>
+>> Can we applay for a repository in git.kernel.org like xfsprogs-dev and e2fsprogs ?
+> 
+> "Kernel.org accounts are not given away very often, usually you need
+> to be making some
+> reasonable amount of contributions to the Linux kernel and have a good
+> reason for wanting
+> / needing an account"
+> 
+> It doesn't hurt to ask, but I suspect an incubation period for
+> fsck.overlay in another location
+> before it gets enough traction might be a good idea.
+> You may ask Miklos to maintain overlayfs-progs on kernel.org getting
+> patches from you,
+> but I guess this was not your intention.
+> 
+> [...]
+> 
+>>>> +Redirect directories
+>>>> +--------------------
+>>>> +
+>>>> +An redirect directory is a directory with "trusted.overlay.redirect" xattr
+>>>> +valued to the path of the original location from the root of the overlay. It
+>>>> +is only used when renaming a directory and "redirect dir" feature is enabled.
+>>>> +If an redirect directory is found, the following must be met:
+>>>> +
+>>>> +1) The directory store in redirect xattr should exist in one of lower layers.
+>>>> +2) The origin directory should be redirected only once in one layer, which mean
+>>>> +   there is only one redirect xattr point to this origin directory in the
+>>>> +   specified layer.
+>>>> +3) A whiteout or an opaque directory with the same name to origin should exist
+>>>> +   in the same directory as the redirect directory.
+>>> another redirected upper dir can also be covering the redirect lower target
+>>>
+>> Do you mean the following case: upper's dir_rd cover lower1's redirect dir_rd ?
+>>
+>> Upper:                    dir_rd(redurected,opaque)   dir2(whiteout)
+>> Lower1:   dir(whiteout)   dir_rd(redurected)          dir2
+>> Lower0:   dir
+>>
+> 
+> That's not what I meant. What I meant is:
+> 
+> Upper: A (whiteout), B (redirect=A), C (redirect=B)
+> Lower: A (dir),          B (dir)
+> 
+> The redirect target of upper C (B) is not a whiteout in upper, nor an
+> opaque dir.
+> It is a redirected dir (whose own target is covered by a whitetout A).
+> The description in 3) doesn't cover that case. Didn't check how the program
+> handles this case.
 > 
 
-The changes looks good.
+Indeed, I missed this situation, will add.
 
-Reviewed-by: Chandan Rajendra <chandan@linux.vnet.ibm.com>
-
-> If you approve of these changes, at least first 2 patches should
-> be applied to the samefs test flavor (overlay/038), so the flavor
-> difference remains only the layers setup used by the test.
-> 
-> Let me know if you want me to apply the changes to 038 myself or if
-> you intend to do that yourself.
-
-Amir, I will make the changes to overlay/038 and post them soon.
-
--- 
-chandan
+Thanks,
+Yi.
