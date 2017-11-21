@@ -1,111 +1,63 @@
-From: Vivek Goyal <vgoyal@redhat.com>
-Subject: Re: [PATCH v7 09/14] ovl: A new xattr OVL_XATTR_METACOPY for file on
- upper
-Date: Mon, 20 Nov 2017 10:28:54 -0500
-Message-ID: <20171120152854.GB16840@redhat.com>
-References: <20171116220335.13448-1-vgoyal@redhat.com>
- <20171116220335.13448-10-vgoyal@redhat.com>
- <CAOQ4uxgb0mC2qEAL0AbC7qY-Hv+PcoHMXhfadqojhA=iPHuh1Q@mail.gmail.com>
- <20171117203443.GE15566@redhat.com>
- <CAOQ4uxiTOU7RcXdBmewcUe8_Yh-N6+heJKNn2CMo0zuw4YLBRg@mail.gmail.com>
- <20171120143455.GA16840@redhat.com>
- <CAOQ4uxjGteNfefP-FbF06okCCmuDruJ1gOkW=8NhEAn8BE7pOg@mail.gmail.com>
+From: Theodore Ts'o <tytso@mit.edu>
+Subject: Re: [fsck.overlay RFC PATCH] overlay: add fsck utility
+Date: Mon, 20 Nov 2017 21:30:50 -0500
+Message-ID: <20171121023049.5yb2hsm5l5xegy4h@thunk.org>
+References: <20171117054919.712-1-yi.zhang@huawei.com>
+ <CAOQ4uxgCN-ZdLsZQmYYW-PyJLB4WWsr9A8gqOtcSC6S9Uj8qZA@mail.gmail.com>
+ <0932944e-bbb7-22c6-9b75-19c42f8c7e41@huawei.com>
+ <20171120074252.GG2749@eguan.usersys.redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:48540 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751272AbdKTP2z (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 20 Nov 2017 10:28:55 -0500
+Return-path: <fstests-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <CAOQ4uxjGteNfefP-FbF06okCCmuDruJ1gOkW=8NhEAn8BE7pOg@mail.gmail.com>
-Sender: linux-unionfs-owner@vger.kernel.org
+In-Reply-To: <20171120074252.GG2749@eguan.usersys.redhat.com>
+Sender: fstests-owner@vger.kernel.org
+To: Eryu Guan <eguan@redhat.com>
+Cc: "zhangyi (F)" <yi.zhang@huawei.com>, Amir Goldstein <amir73il@gmail.com>, overlayfs <linux-unionfs@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>, Miao Xie <miaoxie@huawei.com>, fstests <fstests@vger.kernel.org>
 List-Id: linux-unionfs@vger.kernel.org
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: overlayfs <linux-unionfs@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>
 
-On Mon, Nov 20, 2017 at 05:18:48PM +0200, Amir Goldstein wrote:
-> On Mon, Nov 20, 2017 at 4:34 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
-> > On Sat, Nov 18, 2017 at 09:06:41AM +0200, Amir Goldstein wrote:
-> >
-> > [..]
-> >> >> > Note, we now set OVL_UPPERDATA on all kind of dentires and check
-> >> >> > OVL_UPPERDATA only where it makes sense. If a file is created on upper,
-> >> >> > we set OVL_UPPERDATA. This can be accessed lockless in ovl_d_real()
-> >> >> > path again. This time ordering dependency is w.r.t oe->__upperdata. We
-> >> >> > need to make surr OVL_UPPERDATA is visible before oe->__upperdata is
-> >> >> > visible. Otherwise following code path might try to copy up an upper
-> >> >> > only file.
-> >> >>
-> >> >> Why all this explanations?
-> >> >> Just use ovl_set_upperdata() when creating upper and be done with it.
-> >> >
-> >> > Just using ovl_set_upperdata() will not do away with ordering dependency
-> >> > right? I mean, setting OVL_UPPERDATA in file creation path has different
-> >> > ordering requirement (same is the case of >has_upper). And I wanted to
-> >> > highlight that ordering requirement in changelogs.
-> >> >
-> >> > I can get rid of it. But this seems such a subtle requirement, I think
-> >> > its a good idea to talk about it explicitly.
-> >> >
-> >>
-> >> I am not following. you only need to ovl_set_upperdata() before
-> >> ovl_inode_update(), just like in regular copy up. Am I missing something
-> >> subtle?
-> >
-> > Hi Amir,
-> >
-> > Right. This is ordering dependency between setting of OVL_UPPERDATA and
-> > oi->__upperdentry.
-> >
-> > So as per barrier documentation file, read/write barrier should look
-> > as follows.
-> >
-> >         CPU1                            CPU2
-> >      set OVL_UPPERDATA                  smp_rmb()
-> >      smp_wmb()                          Load oi->__upperdentry
-> >      set oi->__upperdentry
-> >
-> > So we need to place smp_wmb() after setting OVL_UPPERDATA and place
-> > smp_rmb() just before load of oi->__upperdentry.
-> >
-> > Instead of smp_rmb() we are relying on checking for ovl_dentry_lower().
-> > That is even if OVL_UPPERDATA is not visible on CPU2, but
-> > oi->__upperdentry is visible, then we don't try to copy up a file which
-> > does not have a lower.
-> >
-> > So ovl_dentry_lower() is preventing the race which *in-theory* can trigger
-> > trying to copy up file which does not have lower.
-> >
-> > Does this make sense?
-> >
+On Mon, Nov 20, 2017 at 03:42:52PM +0800, Eryu Guan wrote:
+> > I found that e2fsprogs put tests in the e2fsprogs repository, so I write it
+> > and put in the same place. Now I notice that all xfs test cases put together
+> > in xfstests, so It's also a good choice, not sure which one is better. How
+> > about Eryu's opinion ?
 > 
-> Maybe. Brain overflow.
-> To put it shortly, if there is a problem with setting OVL_UPPERDATA on new upper
-> then there is a problem with setting upper alias as well (as you pointed out).
-> I don't think that is really the case, but I am not the one to explain why.
-> It just does not make sense that d_instantiate doesn't make sure that inode
-> fields are consistent before attaching the inode to dentry.
-> I think the barriers hide in raw_write_seqcount_begin()/raw_seqcount_begin()
-> for the lockless dentry cache lookup, but I'm not an expert.
-> 
-> Anyway, I find the commit message text from "If a file is created on upper,..."
-> very confusing.
-> I suggest that if you are not sure about this leave a "XXX" comment in the
-> code path of creating new upper and setting  OVL_UPPERDATA flag or
-> "TODO" comment if you thing there is something to be done.
-> 
-> It is easy to later apply a patch to remove the XXX comment after explaining it
-> or remove TODO comment after fixing it.
+> IMHO, xfstests is a good place for fsck.overlay tests, but I don't think
+> that's something conflicting with in-repo unit tests, some tests are
+> just not suitable for xfstests. How about writing tests in xfstests by
+> default and only keeping them in repository, if there's any, if the
+> tests are not fitting in xfstests well?
 
-Ok, for now, I will just put a comment in code and deal with it later if
-need be. Once it happens, it will be a NULL pointer dereference as we might
-try to copy up a file which does not have a lower. So we will know if
-problem happens. :-)
+Zhangyi,
 
-Vivek
+Here's my opinion, for whatever it's worth.  Things which don't
+require root and which run fairly quickly (ideally less than 10
+seconds; preferably under 5), are better to do in the fsck git
+repository.  That's because it's much faster to run "make ; make
+check".
 
-> A confusing text remains in git log forever and get git history
-> researchers off track.
-> 
-> Amir.
+Tests are most effective when they are frequently run and used.  You
+may be more willing to live an exciting life, but I'm not particularly
+fond of running "make install" of a development branch of e2fsprogs
+just to run tests.  So that means I have to build e2fsprogs packages,
+rebuild the test appliance VM, and then run tests --- which takes
+*easily* 10x more time.
+
+The place where it makes a lot of sense to put fsck and resize tests
+into xfstests is where it requires root, or if the tests have a long
+run-time.  For similar reasons of not wanting to live an exciting life
+when it comes to my development environment, I don't like running
+"make check" as repository which can be updated by others as root.  So
+if a file system needs to be mounted (for example, to set up a test),
+or if you want to test on-line resize, then that's an argument for
+doing it in xfstests.
+
+For overlayfs, it might be that you need to do a lot of mount and
+unmount operations as root in order to run your tests.  So maybe
+that's a good argument to run it under xfstests.  Unless you can make
+small, pre-prepared file system images that you can untar and then
+point at your overlayfsck to check.
+
+As the Perl developers would say, "there's more than one way to do things".  :-)
+
+							- Ted
