@@ -1,54 +1,185 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH] ovl: fix overlay: warning prefix
-Date: Wed, 22 Nov 2017 20:27:34 +0200
-Message-ID: <1511375254-15206-1-git-send-email-amir73il@gmail.com>
+Subject: [PATCH] overlay: add a test for multiple redirects to the same lower dir
+Date: Thu, 23 Nov 2017 16:27:04 +0200
+Message-ID: <1511447224-2301-1-git-send-email-amir73il@gmail.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wr0-f195.google.com ([209.85.128.195]:38666 "EHLO
-        mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751472AbdKVS0u (ORCPT
+Received: from mail-wr0-f193.google.com ([209.85.128.193]:34647 "EHLO
+        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752737AbdKWO0g (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 22 Nov 2017 13:26:50 -0500
-Received: by mail-wr0-f195.google.com with SMTP id z75so14036147wrc.5
-        for <linux-unionfs@vger.kernel.org>; Wed, 22 Nov 2017 10:26:49 -0800 (PST)
+        Thu, 23 Nov 2017 09:26:36 -0500
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: linux-unionfs@vger.kernel.org
+To: Eryu Guan <eguan@redhat.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, zhangyi <yi.zhang@huawei.com>, Chandan Rajendra <chandan@linux.vnet.ibm.com>, linux-unionfs@vger.kernel.org, fstests@vger.kernel.org
 
-Conform two stray warning messages to the standard overlayfs: prefix.
+Multiple redirects to the same lower dir will falsely return the
+same st_ino/st_dev for two different upper dirs and will cause 'diff'
+to falsely report that content of directories is the same when it is not.
+
+This is a test for a regression introduced in kernel v4.12 by
+commit 72b608f08528 ("ovl: constant st_ino/st_dev across copy up"),
+but also the first xfstest to require the redirect_dir feature that
+was introduced as an opt-in feature in kernel v4.10.
 
 Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- fs/overlayfs/dir.c     | 3 ++-
- fs/overlayfs/readdir.c | 2 +-
- 2 files changed, 3 insertions(+), 2 deletions(-)
 
-diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
-index 5ec5ee8e0589..0ce535e7519e 100644
---- a/fs/overlayfs/dir.c
-+++ b/fs/overlayfs/dir.c
-@@ -887,7 +887,8 @@ static int ovl_set_redirect(struct dentry *dentry, bool samedir)
- 		spin_unlock(&dentry->d_lock);
- 	} else {
- 		kfree(redirect);
--		pr_warn_ratelimited("overlay: failed to set redirect (%i)\n", err);
-+		pr_warn_ratelimited("overlayfs: failed to set redirect (%i)\n",
-+				    err);
- 		/* Fall back to userspace copy-up */
- 		err = -EXDEV;
- 	}
-diff --git a/fs/overlayfs/readdir.c b/fs/overlayfs/readdir.c
-index 362561457cdb..7fc142d183e8 100644
---- a/fs/overlayfs/readdir.c
-+++ b/fs/overlayfs/readdir.c
-@@ -499,7 +499,7 @@ static int ovl_cache_update_ino(struct path *path, struct ovl_cache_entry *p)
- 	return err;
- 
- fail:
--	pr_warn_ratelimited("overlay: failed to look up (%s) for ino (%i)\n",
-+	pr_warn_ratelimited("overlayfs: failed to look up (%s) for ino (%i)\n",
- 			    p->name, err);
- 	goto out;
- }
+Eryu,
+
+This test is for a "bug" that has not been acknoledges by Miklos
+as a kernel bug yet. It may well fall within the jurisdiction of
+fsck.overlayfs.
+
+IMO, cp -a of upper files and dirs qualifies to the statement in
+Documentation/filesystems/overlayfs.txt:
+"Offline changes, when the overlay is not mounted, are allowed to either
+the upper or the lower trees."
+
+So unless Miklos objects to ever fixing this "bug"?
+I suggest that we include the failing test until kernel is fixed.
+
+Incidently, I already have patches for 'verify' feature [1], which
+I intend to post after the merge window closes.
+With 'verify' feature enabled this test passes.
+
+Amir.
+
+[1] https://github.com/amir73il/linux/commits/ovl-index-all
+
+ tests/overlay/049     | 104 ++++++++++++++++++++++++++++++++++++++++++++++++++
+ tests/overlay/049.out |   2 +
+ tests/overlay/group   |   1 +
+ 3 files changed, 107 insertions(+)
+ create mode 100755 tests/overlay/049
+ create mode 100644 tests/overlay/049.out
+
+diff --git a/tests/overlay/049 b/tests/overlay/049
+new file mode 100755
+index 0000000..701a649
+--- /dev/null
++++ b/tests/overlay/049
+@@ -0,0 +1,104 @@
++#! /bin/bash
++# FS QA Test 049
++#
++# Test multiple redirects to the same lower dir.
++#
++# Multiple redirects to the same lower dir will falsely return
++# the same st_ino/st_dev for two different upper dirs and will
++# cause 'diff' to falsely report that content of directories
++# is the same when it is not.
++#
++#-----------------------------------------------------------------------
++# Copyright (C) 2017 CTERA Networks. All Rights Reserved.
++# Author: Amir Goldstein <amir73il@gmail.com>
++#
++# This program is free software; you can redistribute it and/or
++# modify it under the terms of the GNU General Public License as
++# published by the Free Software Foundation.
++#
++# This program is distributed in the hope that it would be useful,
++# but WITHOUT ANY WARRANTY; without even the implied warranty of
++# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++# GNU General Public License for more details.
++#
++# You should have received a copy of the GNU General Public License
++# along with this program; if not, write the Free Software Foundation,
++# Inc.,  51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
++#-----------------------------------------------------------------------
++#
++
++seq=`basename $0`
++seqres=$RESULT_DIR/$seq
++echo "QA output created by $seq"
++
++here=`pwd`
++tmp=/tmp/$$
++status=1	# failure is the default!
++trap "_cleanup; exit \$status" 0 1 2 3 15
++
++_cleanup()
++{
++	cd /
++	rm -f $tmp.*
++}
++
++# Rename lower dir to create a redirected upper dir and
++# touch lower file to create copy up with origin xattr
++create_redirect()
++{
++	local redirect=$1
++
++	mkdir -p $lowerdir/origin
++	touch $lowerdir/origin/file
++
++	_scratch_mount -o redirect_dir=on
++	touch $SCRATCH_MNT/origin/file
++	mv $SCRATCH_MNT/origin $SCRATCH_MNT/$redirect
++
++	$UMOUNT_PROG $SCRATCH_MNT
++}
++
++# get standard environment, filters and checks
++. ./common/rc
++. ./common/filter
++
++rm -f $seqres.full
++
++# real QA test starts here
++_supported_fs overlay
++_supported_os Linux
++_require_scratch
++_require_scratch_feature redirect_dir
++
++# remove all files from previous runs
++_scratch_mkfs
++
++upperdir=$OVL_BASE_SCRATCH_MNT/$OVL_UPPER
++lowerdir=$OVL_BASE_SCRATCH_MNT/$OVL_LOWER
++
++# Create redirected dir with copied up file
++create_redirect redirect1
++# Duplicate the redirected dir and copied up file
++cp -a $upperdir/redirect1 $upperdir/redirect2
++
++# Diverge the content of the two copies of file
++# and the content of two copies of redirected dir
++echo right >> $upperdir/redirect1/file
++touch $upperdir/redirect1/right
++echo wrong >> $upperdir/redirect2/file
++touch $upperdir/redirect2/wrong
++
++_scratch_mount -o redirect_dir=on
++
++# If both copies of file/dir use the same st_dev/st_ino in overlay
++# diff won't detect that their content differs
++diff -q $SCRATCH_MNT/redirect1/file $SCRATCH_MNT/redirect2/file &>/dev/null && \
++	echo "diff on files inside duplicate redirect parent doesn't know right from wrong!"
++
++diff -q $SCRATCH_MNT/redirect1 $SCRATCH_MNT/redirect2 &> /dev/null && \
++	echo "diff on duplicate redirect dirs doesn't know right from wrong!"
++
++# success, all done
++echo "Silence is golden"
++status=0
++exit
+diff --git a/tests/overlay/049.out b/tests/overlay/049.out
+new file mode 100644
+index 0000000..c69568a
+--- /dev/null
++++ b/tests/overlay/049.out
+@@ -0,0 +1,2 @@
++QA output created by 049
++Silence is golden
+diff --git a/tests/overlay/group b/tests/overlay/group
+index b32c6cd..cf21750 100644
+--- a/tests/overlay/group
++++ b/tests/overlay/group
+@@ -47,3 +47,4 @@
+ 042 auto quick copyup hardlink
+ 043 auto quick copyup nonsamefs
+ 044 auto quick copyup hardlink nonsamefs
++049 auto quick copyup redirect
 -- 
 2.7.4
