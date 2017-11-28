@@ -1,53 +1,52 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH 1/3] overlay: regression test for hardlink breakage after unlink and mount cycle
-Date: Tue, 28 Nov 2017 18:42:00 +0200
-Message-ID: <1511887322-29254-2-git-send-email-amir73il@gmail.com>
+Subject: [PATCH 2/3] overlay: regression test for orphan index cleanup on mount
+Date: Tue, 28 Nov 2017 18:42:01 +0200
+Message-ID: <1511887322-29254-3-git-send-email-amir73il@gmail.com>
 References: <1511887322-29254-1-git-send-email-amir73il@gmail.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wm0-f41.google.com ([74.125.82.41]:40748 "EHLO
-        mail-wm0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753683AbdK1QmB (ORCPT
+Received: from mail-wm0-f43.google.com ([74.125.82.43]:44810 "EHLO
+        mail-wm0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752730AbdK1QmD (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 28 Nov 2017 11:42:01 -0500
+        Tue, 28 Nov 2017 11:42:03 -0500
 In-Reply-To: <1511887322-29254-1-git-send-email-amir73il@gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: Eryu Guan <eguan@redhat.com>
 Cc: Miklos Szeredi <miklos@szeredi.hu>, Vivek Goyal <vgoyal@redhat.com>, linux-unionfs@vger.kernel.org, fstests@vger.kernel.org
 
-- file A and B are hardlinked in lower
-- modify A to trigger copy up and index lower
-- unlink A and mount cycle
-- check that B still contains the modified data
+Test nlink accounting of overlay hardlinks with offline modifications.
+
+nlink of overlay inode should account for the union of lower and upper
+hardlinks. Orphan index inodes with union nlink 0 should be cleaned on
+mount.
 
 Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- tests/overlay/047     | 107 ++++++++++++++++++++++++++++++++++++++++++++++++++
- tests/overlay/047.out |  16 ++++++++
+ tests/overlay/048     | 141 ++++++++++++++++++++++++++++++++++++++++++++++++++
+ tests/overlay/048.out |  18 +++++++
  tests/overlay/group   |   1 +
- 3 files changed, 124 insertions(+)
- create mode 100755 tests/overlay/047
- create mode 100644 tests/overlay/047.out
+ 3 files changed, 160 insertions(+)
+ create mode 100755 tests/overlay/048
+ create mode 100644 tests/overlay/048.out
 
-diff --git a/tests/overlay/047 b/tests/overlay/047
+diff --git a/tests/overlay/048 b/tests/overlay/048
 new file mode 100755
-index 0000000..ad1aabe
+index 0000000..4b2c58f
 --- /dev/null
-+++ b/tests/overlay/047
-@@ -0,0 +1,107 @@
++++ b/tests/overlay/048
+@@ -0,0 +1,141 @@
 +#! /bin/bash
-+# FSQA Test No. 047
++# FS QA Test 048
 +#
-+# Test hardlink breakage after unlink and mount cycle
++# Test nlink accounting of overlay hardlinks with offline modifications.
 +#
-+# - file A and B are hardlinked in lower
-+# - modify A to trigger copy up and index lower
-+# - unlink A and mount cycle
-+# - check that B still contains the modified data
++# nlink of overlay inode should account for the union of lower and upper
++# hardlinks. Orphan index inodes with union nlink 0 should be cleaned on
++# mount.
 +#
 +#-----------------------------------------------------------------------
-+#
-+# Copyright (C) 2016-2017 CTERA Networks. All Rights Reserved.
++# Copyright (C) 2017 CTERA Networks. All Rights Reserved.
 +# Author: Amir Goldstein <amir73il@gmail.com>
 +#
 +# This program is free software; you can redistribute it and/or
@@ -75,6 +74,7 @@ index 0000000..ad1aabe
 +
 +_cleanup()
 +{
++	cd /
 +	rm -f $tmp.*
 +}
 +
@@ -82,96 +82,133 @@ index 0000000..ad1aabe
 +. ./common/rc
 +. ./common/filter
 +
++# remove previous $seqres.full before test
++rm -f $seqres.full
++
 +# real QA test starts here
 +_supported_fs overlay
 +_supported_os Linux
 +_require_scratch
 +_require_scratch_feature index
 +
-+rm -f $seqres.full
++report_nlink()
++{
++	when=$1
 +
-+_scratch_mkfs >>$seqres.full 2>&1
++	# mount and check nlink after overlay offline modification
++	_scratch_mount -o index=on
 +
-+# Create 2 hardlinked files in lower
++	# List <nlink> <name>
++	echo "== $when offline =="
++	for f in $HARDLINKS; do
++		_ls_l $SCRATCH_MNT/$f | awk '{ print $2, $9 }' | _filter_scratch
++	done
++
++	$UMOUNT_PROG $SCRATCH_MNT
++}
++
++# Create lower hardlinks
++create_hardlinks()
++{
++	mkdir -p $lowerdir
++	touch $lowerdir/0
++	ln $lowerdir/0 $lowerdir/1
++	ln $lowerdir/0 $lowerdir/2
++}
++
++test_hardlinks_offline()
++{
++	HARDLINKS=`seq 0 2`
++	report_nlink "all upper"
++
++	# Unlink copied up hardlink
++	rm $upperdir/0
++	HARDLINKS=`seq 1 2`
++	report_nlink "unlink upper"
++
++	# Link to copied up hardlink
++	ln $upperdir/2 $upperdir/3
++	HARDLINKS=`seq 1 3`
++	report_nlink "link upper"
++
++	# Rename over copied up hardlink
++	touch $upperdir/new
++	mv $upperdir/new $upperdir/1
++	HARDLINKS=`seq 2 3`
++	report_nlink "rename over upper"
++
++	# Unlink new upper hardlink
++	rm $upperdir/3
++	HARDLINKS=2
++	report_nlink "unlink new upper"
++
++	# Unlink last upper and drop union nlink to zero
++	rm $upperdir/2
++
++	HARDLINKS=
++	report_nlink "unlink last lower"
++
++	# Verify that orphan index is cleaned when dropping nlink to zero
++	ls $workdir/index
++}
++
 +lowerdir=$OVL_BASE_SCRATCH_MNT/$OVL_LOWER
-+mkdir -p $lowerdir
-+echo "zero" >> $lowerdir/foo
-+ln $lowerdir/foo $lowerdir/bar
++upperdir=$OVL_BASE_SCRATCH_MNT/$OVL_UPPER
++workdir=$OVL_BASE_SCRATCH_MNT/$OVL_WORK
 +
++# Remove all files from previous tests
++_scratch_mkfs
++
++# Create lower hardlinks
++create_hardlinks
 +
 +# Enable overlay index feature to prevent breaking hardlinks on copy up
 +_scratch_mount -o index=on
 +
++# Copy up and index hardlinks
++touch $SCRATCH_MNT/0
++touch $SCRATCH_MNT/1
++touch $SCRATCH_MNT/2
 +
-+rm -f $tmp.*
++# Perform the rest of the changes offline
++$UMOUNT_PROG $SCRATCH_MNT
 +
-+foo=$SCRATCH_MNT/foo
-+bar=$SCRATCH_MNT/bar
-+
-+FILES="$foo $bar"
-+
-+echo "== Before copy up =="
-+cat $foo
-+
-+# Modify content of one of the hardlinks
-+echo "one" >> $bar
-+
-+echo "== After write one =="
-+cat $foo
-+
-+# Unlink the copied up hardlink
-+rm $bar
-+
-+echo "== After unlink one =="
-+cat $foo
-+
-+# Verify that the hardlinks survive a mount cycle
-+_scratch_cycle_mount index=on
-+
-+echo "== After mount cycle =="
-+cat $foo
-+
-+# Drop caches to get the copied up hardlink out of cache
-+echo 3 > /proc/sys/vm/drop_caches
-+
-+# Modify content of the other hardlink
-+echo "two" >> $foo
-+
-+echo "== After write two =="
-+cat $foo
++test_hardlinks_offline
 +
 +status=0
 +exit
-diff --git a/tests/overlay/047.out b/tests/overlay/047.out
+diff --git a/tests/overlay/048.out b/tests/overlay/048.out
 new file mode 100644
-index 0000000..298e116
+index 0000000..0527dec
 --- /dev/null
-+++ b/tests/overlay/047.out
-@@ -0,0 +1,16 @@
-+QA output created by 047
-+== Before copy up ==
-+zero
-+== After write one ==
-+zero
-+one
-+== After unlink one ==
-+zero
-+one
-+== After mount cycle ==
-+zero
-+one
-+== After write two ==
-+zero
-+one
-+two
++++ b/tests/overlay/048.out
+@@ -0,0 +1,18 @@
++QA output created by 048
++== all upper offline ==
++3 SCRATCH_MNT/0
++3 SCRATCH_MNT/1
++3 SCRATCH_MNT/2
++== unlink upper offline ==
++2 SCRATCH_MNT/1
++2 SCRATCH_MNT/2
++== link upper offline ==
++3 SCRATCH_MNT/1
++3 SCRATCH_MNT/2
++3 SCRATCH_MNT/3
++== rename over upper offline ==
++2 SCRATCH_MNT/2
++2 SCRATCH_MNT/3
++== unlink new upper offline ==
++1 SCRATCH_MNT/2
++== unlink last lower offline ==
 diff --git a/tests/overlay/group b/tests/overlay/group
-index b32c6cd..3e31d2d 100644
+index 3e31d2d..7e541e4 100644
 --- a/tests/overlay/group
 +++ b/tests/overlay/group
-@@ -47,3 +47,4 @@
- 042 auto quick copyup hardlink
+@@ -48,3 +48,4 @@
  043 auto quick copyup nonsamefs
  044 auto quick copyup hardlink nonsamefs
-+047 auto quick copyup hardlink
+ 047 auto quick copyup hardlink
++048 auto quick copyup hardlink
 -- 
 2.7.4
