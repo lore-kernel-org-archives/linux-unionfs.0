@@ -1,101 +1,54 @@
-From: Vivek Goyal <vgoyal@redhat.com>
-Subject: [PATCH v8 12/15] ovl: Set OVL_UPPERDATA flag during ovl_lookup()
-Date: Tue, 28 Nov 2017 10:59:56 -0500
-Message-ID: <20171128155959.20114-13-vgoyal@redhat.com>
-References: <20171128155959.20114-1-vgoyal@redhat.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Subject: [PATCH 0/3] Overlayfs orphan index cleanup tests
+Date: Tue, 28 Nov 2017 18:41:59 +0200
+Message-ID: <1511887322-29254-1-git-send-email-amir73il@gmail.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:56096 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753166AbdK1QAM (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 28 Nov 2017 11:00:12 -0500
-In-Reply-To: <20171128155959.20114-1-vgoyal@redhat.com>
+Received: from mail-wm0-f68.google.com ([74.125.82.68]:44294 "EHLO
+        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752730AbdK1QmA (ORCPT
+        <rfc822;linux-unionfs@vger.kernel.org>);
+        Tue, 28 Nov 2017 11:42:00 -0500
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: linux-unionfs@vger.kernel.org
-Cc: miklos@szeredi.hu, amir73il@gmail.com, vgoyal@redhat.com
+To: Eryu Guan <eguan@redhat.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, Vivek Goyal <vgoyal@redhat.com>, linux-unionfs@vger.kernel.org, fstests@vger.kernel.org
 
-During lookup, check for presence of OVL_XATTR_METACOPY and if not present,
-set OVL_UPPERDATA bit in flags.
+Eryu,
 
-OVL_UPPERDATA flag is set unconditionally if upper inode exists.
+Vivek found a bug with the index nlink accounting of the index feature
+that was introduced in kernel v4.13.
 
-Reviewed-by: Amir Goldstein <amir73il@gmail.com>
-Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
----
- fs/overlayfs/namei.c | 40 ++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 40 insertions(+)
+The bug was there from the first implementation of index and the
+tests I wrote to verify nlink accounting (overlay/033,034) did not
+cover the bug use case.
 
-diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
-index a11d77361bef..11340262df6e 100644
---- a/fs/overlayfs/namei.c
-+++ b/fs/overlayfs/namei.c
-@@ -25,6 +25,28 @@ struct ovl_lookup_data {
- 	char *redirect;
- };
- 
-+/* err < 0, 0 if no metacopy xattr, 1 if metacopy xattr found */
-+static int ovl_check_metacopy(struct dentry *dentry)
-+{
-+	int res;
-+
-+	/* Only regular files can have metacopy xattr */
-+	if (!S_ISREG(d_inode(dentry)->i_mode))
-+		return 0;
-+
-+	res = vfs_getxattr(dentry, OVL_XATTR_METACOPY, NULL, 0);
-+	if (res < 0) {
-+		if (res == -ENODATA || res == -EOPNOTSUPP)
-+			return 0;
-+		goto out;
-+	}
-+
-+	return 1;
-+out:
-+	pr_warn_ratelimited("overlayfs: failed to get metacopy (%i)\n", res);
-+	return res;
-+}
-+
- static int ovl_check_redirect(struct dentry *dentry, struct ovl_lookup_data *d,
- 			      size_t prelen, const char *post)
- {
-@@ -602,6 +624,7 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
- 	struct dentry *this;
- 	unsigned int i;
- 	int err;
-+	bool metacopy = false;
- 	struct ovl_lookup_data d = {
- 		.name = dentry->d_name,
- 		.is_dir = false,
-@@ -642,6 +665,20 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
- 					       roe->numlower, &stack, &ctr);
- 			if (err)
- 				goto out_put_upper;
-+
-+			err = ovl_check_metacopy(upperdentry);
-+			metacopy = err;
-+			if (err < 0)
-+				goto out_put_upper;
-+			if (metacopy && !ctr) {
-+				/*
-+				 * Found an upper with metacopy set but
-+				 * at the same time there is no lower
-+				 * dentry. Something is not right.
-+				 */
-+				err = -ESTALE;
-+				goto out_put_upper;
-+			}
- 		}
- 
- 		if (d.redirect) {
-@@ -726,6 +763,9 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
- 		OVL_I(inode)->redirect = upperredirect;
- 		if (index)
- 			ovl_set_flag(OVL_INDEX, inode);
-+
-+		if (upperdentry && !metacopy)
-+			ovl_set_flag(OVL_UPPERDATA, inode);
- 	}
- 
- 	revert_creds(old_cred);
+The first regression test (overlay/047) demonstrates the effects
+of the bug on end user.
+
+The second regression test (overlay/048) adds the missing test coverage
+of the existing nlink accounting tests.
+
+The kernel bug was hiding a bug in test overlay/042, so Vivek's
+kernel fix broke the test. The last patch fixes the wrong/broken test.
+
+Amir.
+
+Amir Goldstein (3):
+  overlay: regression test for hardlink breakage after unlink and mount
+  overlay: regression test for orphan index cleanup on mount
+  overlay/042: remove wrong check for empty index
+
+ tests/overlay/042     |   4 --
+ tests/overlay/047     | 107 ++++++++++++++++++++++++++++++++++++++
+ tests/overlay/047.out |  16 ++++++
+ tests/overlay/048     | 141 ++++++++++++++++++++++++++++++++++++++++++++++++++
+ tests/overlay/048.out |  18 +++++++
+ tests/overlay/group   |   2 +
+ 6 files changed, 284 insertions(+), 4 deletions(-)
+ create mode 100755 tests/overlay/047
+ create mode 100644 tests/overlay/047.out
+ create mode 100755 tests/overlay/048
+ create mode 100644 tests/overlay/048.out
+
 -- 
-2.13.6
+2.7.4
