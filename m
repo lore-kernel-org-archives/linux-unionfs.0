@@ -1,30 +1,84 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [PATCH v8 07/15] ovl: Move the copy up helpers to copy_up.c
-Date: Tue, 28 Nov 2017 21:16:58 +0200
-Message-ID: <CAOQ4uxhif=NFho4FYTEv+zaaotB8pb9_eFyWnHWhM3D8DWWjZw@mail.gmail.com>
-References: <20171128155959.20114-1-vgoyal@redhat.com> <20171128155959.20114-8-vgoyal@redhat.com>
+Subject: Re: [PATCH v8 10/15] ovl: A new xattr OVL_XATTR_METACOPY for file on upper
+Date: Tue, 28 Nov 2017 21:53:04 +0200
+Message-ID: <CAOQ4uxjzzvsNwhg6sNjYmwdb0_PGMZ35F8mhXtRQkMzaAC5Ktg@mail.gmail.com>
+References: <20171128155959.20114-1-vgoyal@redhat.com> <20171128155959.20114-11-vgoyal@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-yw0-f172.google.com ([209.85.161.172]:41244 "EHLO
-        mail-yw0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752341AbdK1TQ7 (ORCPT
+Received: from mail-yb0-f196.google.com ([209.85.213.196]:46689 "EHLO
+        mail-yb0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752749AbdK1TxF (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 28 Nov 2017 14:16:59 -0500
-Received: by mail-yw0-f172.google.com with SMTP id f1so391586ywd.8
-        for <linux-unionfs@vger.kernel.org>; Tue, 28 Nov 2017 11:16:59 -0800 (PST)
-In-Reply-To: <20171128155959.20114-8-vgoyal@redhat.com>
+        Tue, 28 Nov 2017 14:53:05 -0500
+Received: by mail-yb0-f196.google.com with SMTP id g187so428445yba.13
+        for <linux-unionfs@vger.kernel.org>; Tue, 28 Nov 2017 11:53:05 -0800 (PST)
+In-Reply-To: <20171128155959.20114-11-vgoyal@redhat.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: Vivek Goyal <vgoyal@redhat.com>
 Cc: overlayfs <linux-unionfs@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>
 
 On Tue, Nov 28, 2017 at 5:59 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
-> Right now two copy up helpers are in inode.c. Amir suggested it might
-> be better to move these to copy_up.c.
+> Now we will have the capability to have upper inodes which might be only
+> metadata copy up and data is still on lower inode. So add a new xattr
+> OVL_XATTR_METACOPY to distinguish between two cases.
 >
-> There will one more related function which will come in later patch.
+> Presence of OVL_XATTR_METACOPY reflects that file has been copied up metadata
+> only and and data will be copied up later from lower origin.
+> So this xattr is set when a metadata copy takes place and cleared when
+> data copy takes place.
+>
+> We also use a bit in ovl_inode->flags to cache OVL_UPPERDATA which reflects
+> whether ovl inode has data or not (as opposed to metadata only copy up).
+>
+> If a file is copied up metadata only and later when same file is opened
+> for WRITE, then data copy up takes place. We copy up data, remove METACOPY
+> xattr and then set the UPPERDATA flag in ovl_inode->flags. While all
+> these operations happen with oi->lock held, read side of oi->flags can be
+> lockless. That is another thread on another cpu can check if UPPERDATA
+> flag is set or not.
+>
+> So this gives us an ordering requirement w.r.t UPPERDATA flag. That is, if
+> another cpu sees UPPERDATA flag set, then it should be guaranteed that
+> effects of data copy up and remove xattr operations are also visible.
+>
+> For example.
+>
+>         CPU1                            CPU2
+> ovl_d_real()                            acquire(oi->lock)
+>  ovl_open_maybe_copy_up()                ovl_copy_up_data()
+>   open_open_need_copy_up()               vfs_removexattr()
+>    ovl_already_copied_up()
+>     ovl_dentry_needs_data_copy_up()      ovl_set_flag(OVL_UPPERDATA)
+>      ovl_test_flag(OVL_UPPERDATA)       release(oi->lock)
+>
+> Say CPU2 is copying up data and in the end sets UPPERDATA flag. But if
+> CPU1 perceives the effects of setting UPPERDATA flag but not the effects
+> of preceeding operations (ex. upper that is not fully copied up), it will be
+> a problem.
+>
+> Hence this patch introduces smp_wmb() on setting UPPERDATA flag operation
+> and smp_rmb() on UPPERDATA flag test operation.
+>
+> May be some other lock or barrier is already covering it. But I am not sure
+> what that is and is it obvious enough that we will not break it in future.
+>
+> So hence trying to be safe here and introducing barriers explicitly for
+> UPPERDATA flag/bit.
 >
 > Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
 
 Reviewed-by: Amir Goldstein <amir73il@gmail.com>
+
+Except for minor nits below.
+
+...
+
+> +static bool ovl_should_check_upperdata(struct dentry *dentry) {
+
+You should run your patch through checkpatch.
+
+Kernel coding style doesn't like opening brackets for function without newline.
+
+Amir.
