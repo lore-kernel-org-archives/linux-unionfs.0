@@ -1,122 +1,94 @@
 From: Vivek Goyal <vgoyal@redhat.com>
-Subject: [PATCH v8 09/15] ovl: Add helper ovl_already_copied_up()
-Date: Tue, 28 Nov 2017 10:59:53 -0500
-Message-ID: <20171128155959.20114-10-vgoyal@redhat.com>
+Subject: [PATCH v8 01/15] ovl: Do not look for OVL_XATTR_NLINK if index is not there
+Date: Tue, 28 Nov 2017 10:59:45 -0500
+Message-ID: <20171128155959.20114-2-vgoyal@redhat.com>
 References: <20171128155959.20114-1-vgoyal@redhat.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:51958 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:51980 "EHLO mx1.redhat.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753923AbdK1QAL (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 28 Nov 2017 11:00:11 -0500
+        id S1754008AbdK1QAM (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Tue, 28 Nov 2017 11:00:12 -0500
 In-Reply-To: <20171128155959.20114-1-vgoyal@redhat.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: linux-unionfs@vger.kernel.org
 Cc: miklos@szeredi.hu, amir73il@gmail.com, vgoyal@redhat.com
 
-There are couple of places where we need to know if file is already copied
-up (in lockless manner). Right now its open coded and there are only
-two conditions to check. Soon this patch series will introduce another
-condition to check and Amir wants to introduce one more. So introduce
-a helper instead to check this so that code is easier to read.
+Soon, we will be creating OVL_TYPE_ORIGIN entries even for hardlinked
+files with index=off. That means, it is possible that there is no
+index and hence no OVL_XATTR_NLINK set on upperdentry but lowerdentry
+is still there. In that case current implementation gets -ENODATA
+from vfs_getxattr)() and it warns and returns fallback. I can get
+following warning.
+
+"overlayfs: failed to get index nlink ....."
+
+Pass another parameter to function and pass index dentry. If there is
+no index dentry, that should mean that we never set OVL_XATTR_NLINK
+and just return fallback.
 
 Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
-Reviewed-by: Amir Goldstein <amir73il@gmail.com>
 ---
- fs/overlayfs/copy_up.c   | 19 ++-----------------
- fs/overlayfs/overlayfs.h |  1 +
- fs/overlayfs/util.c      | 24 +++++++++++++++++++++++-
- 3 files changed, 26 insertions(+), 18 deletions(-)
+ fs/overlayfs/inode.c     | 6 +++++-
+ fs/overlayfs/namei.c     | 2 +-
+ fs/overlayfs/overlayfs.h | 1 +
+ 3 files changed, 7 insertions(+), 2 deletions(-)
 
-diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
-index c5804b87f3c7..65e993e931ba 100644
---- a/fs/overlayfs/copy_up.c
-+++ b/fs/overlayfs/copy_up.c
-@@ -671,21 +671,7 @@ int ovl_copy_up_flags(struct dentry *dentry, int flags)
- 		struct dentry *next;
- 		struct dentry *parent;
+diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
+index 00b6b294272a..8dcfe875ace8 100644
+--- a/fs/overlayfs/inode.c
++++ b/fs/overlayfs/inode.c
+@@ -544,6 +544,7 @@ int ovl_set_nlink_lower(struct dentry *dentry)
  
--		/*
--		 * Check if copy-up has happened as well as for upper alias (in
--		 * case of hard links) is there.
--		 *
--		 * Both checks are lockless:
--		 *  - false negatives: will recheck under oi->lock
--		 *  - false positives:
--		 *    + ovl_dentry_upper() uses memory barriers to ensure the
--		 *      upper dentry is up-to-date
--		 *    + ovl_dentry_has_upper_alias() relies on locking of
--		 *      upper parent i_rwsem to prevent reordering copy-up
--		 *      with rename.
--		 */
--		if (ovl_dentry_upper(dentry) &&
--		    ovl_dentry_has_upper_alias(dentry))
-+		if (ovl_already_copied_up(dentry))
- 			break;
- 
- 		next = dget(dentry);
-@@ -712,8 +698,7 @@ int ovl_copy_up_flags(struct dentry *dentry, int flags)
- 
- static bool ovl_open_need_copy_up(struct dentry *dentry, int flags)
+ unsigned int ovl_get_nlink(struct dentry *lowerdentry,
+ 			   struct dentry *upperdentry,
++			   struct dentry *index,
+ 			   unsigned int fallback)
  {
--	if (ovl_dentry_upper(dentry) &&
--	    ovl_dentry_has_upper_alias(dentry))
-+	if (ovl_already_copied_up(dentry))
- 		return false;
- 
- 	if (special_file(d_inode(dentry)->i_mode))
-diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-index 1ca946ec57c9..6eb1769541e9 100644
---- a/fs/overlayfs/overlayfs.h
-+++ b/fs/overlayfs/overlayfs.h
-@@ -227,6 +227,7 @@ bool ovl_is_whiteout(struct dentry *dentry);
- struct file *ovl_path_open(struct path *path, int flags);
- int ovl_copy_up_start(struct dentry *dentry);
- void ovl_copy_up_end(struct dentry *dentry);
-+bool ovl_already_copied_up(struct dentry *dentry);
- bool ovl_check_origin_xattr(struct dentry *dentry);
- bool ovl_check_dir_xattr(struct dentry *dentry, const char *name);
- int ovl_check_setxattr(struct dentry *dentry, struct dentry *upperdentry,
-diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
-index 77dc00438d54..572bf46e9f2e 100644
---- a/fs/overlayfs/util.c
-+++ b/fs/overlayfs/util.c
-@@ -314,13 +314,35 @@ struct file *ovl_path_open(struct path *path, int flags)
- 	return dentry_open(path, flags | O_NOATIME, current_cred());
- }
- 
-+bool ovl_already_copied_up(struct dentry *dentry)
-+{
-+	/*
-+	 * Check if copy-up has happened as well as for upper alias (in
-+	 * case of hard links) is there.
-+	 *
-+	 * Both checks are lockless:
-+	 *  - false negatives: will recheck under oi->lock
-+	 *  - false positives:
-+	 *    + ovl_dentry_upper() uses memory barriers to ensure the
-+	 *      upper dentry is up-to-date
-+	 *    + ovl_dentry_has_upper_alias() relies on locking of
-+	 *      upper parent i_rwsem to prevent reordering copy-up
-+	 *      with rename.
-+	 */
-+	if (ovl_dentry_upper(dentry) &&
-+	    ovl_dentry_has_upper_alias(dentry))
-+		return true;
-+
-+	return false;
-+}
-+
- int ovl_copy_up_start(struct dentry *dentry)
- {
- 	struct ovl_inode *oi = OVL_I(d_inode(dentry));
+ 	int nlink_diff;
+@@ -551,6 +552,9 @@ unsigned int ovl_get_nlink(struct dentry *lowerdentry,
+ 	char buf[13];
  	int err;
  
- 	err = mutex_lock_interruptible(&oi->lock);
--	if (!err && ovl_dentry_has_upper_alias(dentry)) {
-+	if (!err && ovl_already_copied_up(dentry)) {
- 		err = 1; /* Already copied up */
- 		mutex_unlock(&oi->lock);
- 	}
++	if (!index)
++		return fallback;
++
+ 	if (!lowerdentry || !upperdentry || d_inode(lowerdentry)->i_nlink == 1)
+ 		return fallback;
+ 
+@@ -670,7 +674,7 @@ struct inode *ovl_get_inode(struct dentry *dentry, struct dentry *upperdentry,
+ 			goto out;
+ 		}
+ 
+-		nlink = ovl_get_nlink(lowerdentry, upperdentry,
++		nlink = ovl_get_nlink(lowerdentry, upperdentry, index,
+ 				      realinode->i_nlink);
+ 		set_nlink(inode, nlink);
+ 	} else {
+diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
+index 5ef69bc09e0c..a11d77361bef 100644
+--- a/fs/overlayfs/namei.c
++++ b/fs/overlayfs/namei.c
+@@ -435,7 +435,7 @@ int ovl_verify_index(struct dentry *index, struct ovl_path *lower,
+ 
+ 	/* Check if index is orphan and don't warn before cleaning it */
+ 	if (d_inode(index)->i_nlink == 1 &&
+-	    ovl_get_nlink(origin.dentry, index, 0) == 0)
++	    ovl_get_nlink(origin.dentry, index, index, 0) == 0)
+ 		err = -ENOENT;
+ 
+ 	dput(origin.dentry);
+diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
+index 13eab09a6b6f..383bbd3b1fd0 100644
+--- a/fs/overlayfs/overlayfs.h
++++ b/fs/overlayfs/overlayfs.h
+@@ -275,6 +275,7 @@ int ovl_set_nlink_upper(struct dentry *dentry);
+ int ovl_set_nlink_lower(struct dentry *dentry);
+ unsigned int ovl_get_nlink(struct dentry *lowerdentry,
+ 			   struct dentry *upperdentry,
++			   struct dentry *index,
+ 			   unsigned int fallback);
+ int ovl_setattr(struct dentry *dentry, struct iattr *attr);
+ int ovl_getattr(const struct path *path, struct kstat *stat,
 -- 
 2.13.6
