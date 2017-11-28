@@ -1,62 +1,75 @@
-From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [PATCH v3] ovl: Sync upper dirty data when sync overlayfs
-Date: Tue, 28 Nov 2017 16:58:48 +0200
-Message-ID: <CAOQ4uxjVekor=Bk26=OS4E2=L8+qMUw08nsY_Bn=iDsLSs6Dcg@mail.gmail.com>
-References: <1511872768-12759-1-git-send-email-cgxu@mykernel.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+From: Vivek Goyal <vgoyal@redhat.com>
+Subject: [PATCH v8 04/15] ovl: Create origin xattr on copy up for all files
+Date: Tue, 28 Nov 2017 10:59:48 -0500
+Message-ID: <20171128155959.20114-5-vgoyal@redhat.com>
+References: <20171128155959.20114-1-vgoyal@redhat.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-yb0-f172.google.com ([209.85.213.172]:36988 "EHLO
-        mail-yb0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753128AbdK1O6t (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 28 Nov 2017 09:58:49 -0500
-Received: by mail-yb0-f172.google.com with SMTP id 5so43415ybp.4
-        for <linux-unionfs@vger.kernel.org>; Tue, 28 Nov 2017 06:58:49 -0800 (PST)
-In-Reply-To: <1511872768-12759-1-git-send-email-cgxu@mykernel.net>
+Received: from mx1.redhat.com ([209.132.183.28]:58992 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753923AbdK1QAJ (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Tue, 28 Nov 2017 11:00:09 -0500
+In-Reply-To: <20171128155959.20114-1-vgoyal@redhat.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Chengguang Xu <cgxu@mykernel.net>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, overlayfs <linux-unionfs@vger.kernel.org>
+To: linux-unionfs@vger.kernel.org
+Cc: miklos@szeredi.hu, amir73il@gmail.com, vgoyal@redhat.com
 
-On Tue, Nov 28, 2017 at 2:39 PM, Chengguang Xu <cgxu@mykernel.net> wrote:
-> Executes filesystem sync or umount on overlayfs,
+Right now my understanding is that origin xattr is created for all copied
+up files if index=on. And if index=off, then we create it for all type
+of files except hardlinks (nlink != 1).
 
-When executing...
+With metadata only copy up, I will still require origin xattr to copy up
+data later, so create it even for hardlinks even with index=off.
 
-> dirty data does not be synced as expected on upper filesystem.
+Given ->origin is always true now, get rid of this field from
+"struct ovl_copy_up_ctx".
 
-...does not get synced...
+Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
+Reviewed-by: Amir Goldstein <amir73il@gmail.com>
+---
+ fs/overlayfs/copy_up.c | 15 +++------------
+ 1 file changed, 3 insertions(+), 12 deletions(-)
 
-> This patch fixes sync filesystem method to keep data consistency
-> for overlayfs.
->
-> Signed-off-by: Chengguang Xu <cgxu@mykernel.net>
->
-> ---
->
-
-Chengguang,
-
-This patch looks fine, but it is not based on overlayfs-next nor on master.
-I guess by "mainline" you meant latest release or something.
-Please rebase V4 on overlayfs-next from Miklos' tree.
-
-I enhanced my origin syncfs test to check for syncing of upper files:
-https://github.com/amir73il/overlayfs/blob/master/tests/xfs_syncfs.sh
-
-Without your fix, the upper file delalloc blocks are not flushed after syncfs,
-but only after fsync. With your fix delalloc blacks are flushed by syncfs.
-
-Can you take the task to make this simple test into an xfstest?
-If you need help finding your way around xfstests, I can help you with that.
-You do not need the xfs specific parts of the test, only the generic delalloc
-part.
-
-I think it is best to make a generic/* test (i.e. not fs specific), which tests
-flushing of delalloc blocks on sync/syncfs/fsync for fs that support delalloc,
-but it may also make sense to have an overlay/* specific regression test for
-syncfs. We can discuss those details after you post a test.
-
-Thanks,
-Amir.
+diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
+index eb3b8d39fb61..f55bece3688e 100644
+--- a/fs/overlayfs/copy_up.c
++++ b/fs/overlayfs/copy_up.c
+@@ -326,7 +326,6 @@ struct ovl_copy_up_ctx {
+ 	struct qstr destname;
+ 	struct dentry *workdir;
+ 	bool tmpfile;
+-	bool origin;
+ };
+ 
+ static int ovl_link_up(struct ovl_copy_up_ctx *c)
+@@ -469,15 +468,10 @@ static int ovl_copy_up_inode(struct ovl_copy_up_ctx *c, struct dentry *temp)
+ 	/*
+ 	 * Store identifier of lower inode in upper inode xattr to
+ 	 * allow lookup of the copy up origin inode.
+-	 *
+-	 * Don't set origin when we are breaking the association with a lower
+-	 * hard link.
+ 	 */
+-	if (c->origin) {
+-		err = ovl_set_origin(c->dentry, c->lowerpath.dentry, temp);
+-		if (err)
+-			return err;
+-	}
++	err = ovl_set_origin(c->dentry, c->lowerpath.dentry, temp);
++	if (err)
++		return err;
+ 
+ 	return 0;
+ }
+@@ -542,9 +536,6 @@ static int ovl_do_copy_up(struct ovl_copy_up_ctx *c)
+ 	    c->stat.nlink > 1)
+ 		indexed = true;
+ 
+-	if (S_ISDIR(c->stat.mode) || c->stat.nlink == 1 || indexed)
+-		c->origin = true;
+-
+ 	if (indexed) {
+ 		c->destdir = ovl_indexdir(c->dentry->d_sb);
+ 		err = ovl_get_index_name(c->lowerpath.dentry, &c->destname);
+-- 
+2.13.6
