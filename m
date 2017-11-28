@@ -1,132 +1,71 @@
 From: Vivek Goyal <vgoyal@redhat.com>
-Subject: [PATCH v8 07/15] ovl: Move the copy up helpers to copy_up.c
-Date: Tue, 28 Nov 2017 10:59:51 -0500
-Message-ID: <20171128155959.20114-8-vgoyal@redhat.com>
+Subject: [PATCH v8 14/15] ovl: Fix encryption/compression status of a metacopy only file
+Date: Tue, 28 Nov 2017 10:59:58 -0500
+Message-ID: <20171128155959.20114-15-vgoyal@redhat.com>
 References: <20171128155959.20114-1-vgoyal@redhat.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:56080 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:53686 "EHLO mx1.redhat.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753923AbdK1QAL (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 28 Nov 2017 11:00:11 -0500
+        id S1753962AbdK1QAN (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Tue, 28 Nov 2017 11:00:13 -0500
 In-Reply-To: <20171128155959.20114-1-vgoyal@redhat.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: linux-unionfs@vger.kernel.org
 Cc: miklos@szeredi.hu, amir73il@gmail.com, vgoyal@redhat.com
 
-Right now two copy up helpers are in inode.c. Amir suggested it might
-be better to move these to copy_up.c.
+If file is metacopy only, it is possible that lower is encrypted while
+other is not. In that case, report file as encrypted (despite the fact
+that only data is encrypted while metadata is not).
 
-There will one more related function which will come in later patch.
+Similarly if lower is compressed, report that in stat for a metacopy
+only file.
 
+Reviewed-by: Amir Goldstein <amir73il@gmail.com>
 Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
 ---
- fs/overlayfs/copy_up.c   | 30 ++++++++++++++++++++++++++++++
- fs/overlayfs/inode.c     | 30 ------------------------------
- fs/overlayfs/overlayfs.h |  2 +-
- 3 files changed, 31 insertions(+), 31 deletions(-)
+ fs/overlayfs/inode.c | 21 ++++++++++++++++++++-
+ 1 file changed, 20 insertions(+), 1 deletion(-)
 
-diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
-index 303794bb9127..31711edf5bde 100644
---- a/fs/overlayfs/copy_up.c
-+++ b/fs/overlayfs/copy_up.c
-@@ -686,6 +686,36 @@ int ovl_copy_up_flags(struct dentry *dentry, int flags)
+diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
+index da5cc2c6c413..5fbfb670963d 100644
+--- a/fs/overlayfs/inode.c
++++ b/fs/overlayfs/inode.c
+@@ -66,6 +66,23 @@ int ovl_setattr(struct dentry *dentry, struct iattr *attr)
  	return err;
  }
  
-+static bool ovl_open_need_copy_up(struct dentry *dentry, int flags)
-+{
-+	if (ovl_dentry_upper(dentry) &&
-+	    ovl_dentry_has_upper_alias(dentry))
-+		return false;
++#define OVL_STATX_ATTR_MASK	(STATX_ATTR_ENCRYPTED | STATX_ATTR_COMPRESSED)
 +
-+	if (special_file(d_inode(dentry)->i_mode))
-+		return false;
++static void ovl_stat_fix_attributes(struct kstat *ustat, struct kstat *lstat) {
++	unsigned int attr_mask, attr;
 +
-+	if (!(OPEN_FMODE(flags) & FMODE_WRITE) && !(flags & O_TRUNC))
-+		return false;
++	attr_mask = lstat->attributes_mask & OVL_STATX_ATTR_MASK;
++	if (!attr_mask)
++		return;
 +
-+	return true;
++	attr = lstat->attributes & attr_mask;
++	if (!attr)
++		return;
++
++	ustat->attributes_mask |= attr_mask;
++	ustat->attributes |= attr;
 +}
 +
-+int ovl_open_maybe_copy_up(struct dentry *dentry, unsigned int file_flags)
-+{
-+	int err = 0;
-+
-+	if (ovl_open_need_copy_up(dentry, file_flags)) {
-+		err = ovl_want_write(dentry);
-+		if (!err) {
-+			err = ovl_copy_up_flags(dentry, file_flags);
-+			ovl_drop_write(dentry);
-+		}
-+	}
-+
-+	return err;
-+}
-+
- int ovl_copy_up(struct dentry *dentry)
+ int ovl_getattr(const struct path *path, struct kstat *stat,
+ 		u32 request_mask, unsigned int flags)
  {
- 	return ovl_copy_up_flags(dentry, 0);
-diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
-index 8dcfe875ace8..472653f31ce7 100644
---- a/fs/overlayfs/inode.c
-+++ b/fs/overlayfs/inode.c
-@@ -341,36 +341,6 @@ struct posix_acl *ovl_get_acl(struct inode *inode, int type)
- 	return acl;
- }
+@@ -123,8 +140,10 @@ int ovl_getattr(const struct path *path, struct kstat *stat,
+ 			else
+ 				stat->dev = ovl_get_pseudo_dev(dentry);
  
--static bool ovl_open_need_copy_up(struct dentry *dentry, int flags)
--{
--	if (ovl_dentry_upper(dentry) &&
--	    ovl_dentry_has_upper_alias(dentry))
--		return false;
--
--	if (special_file(d_inode(dentry)->i_mode))
--		return false;
--
--	if (!(OPEN_FMODE(flags) & FMODE_WRITE) && !(flags & O_TRUNC))
--		return false;
--
--	return true;
--}
--
--int ovl_open_maybe_copy_up(struct dentry *dentry, unsigned int file_flags)
--{
--	int err = 0;
--
--	if (ovl_open_need_copy_up(dentry, file_flags)) {
--		err = ovl_want_write(dentry);
--		if (!err) {
--			err = ovl_copy_up_flags(dentry, file_flags);
--			ovl_drop_write(dentry);
--		}
--	}
--
--	return err;
--}
--
- int ovl_update_time(struct inode *inode, struct timespec *ts, int flags)
- {
- 	struct dentry *alias;
-diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-index 383bbd3b1fd0..1ca946ec57c9 100644
---- a/fs/overlayfs/overlayfs.h
-+++ b/fs/overlayfs/overlayfs.h
-@@ -287,7 +287,6 @@ int ovl_xattr_get(struct dentry *dentry, struct inode *inode, const char *name,
- 		  void *value, size_t size);
- ssize_t ovl_listxattr(struct dentry *dentry, char *list, size_t size);
- struct posix_acl *ovl_get_acl(struct inode *inode, int type);
--int ovl_open_maybe_copy_up(struct dentry *dentry, unsigned int file_flags);
- int ovl_update_time(struct inode *inode, struct timespec *ts, int flags);
- bool ovl_is_private_xattr(const char *name);
- 
-@@ -320,6 +319,7 @@ int ovl_cleanup(struct inode *dir, struct dentry *dentry);
- /* copy_up.c */
- int ovl_copy_up(struct dentry *dentry);
- int ovl_copy_up_flags(struct dentry *dentry, int flags);
-+int ovl_open_maybe_copy_up(struct dentry *dentry, unsigned int file_flags);
- int ovl_copy_xattr(struct dentry *old, struct dentry *new);
- int ovl_set_attr(struct dentry *upper, struct kstat *stat);
- struct ovl_fh *ovl_encode_fh(struct dentry *lower, bool is_upper);
+-			if (metacopy)
++			if (metacopy) {
+ 				stat->blocks = lowerstat.blocks;
++				ovl_stat_fix_attributes(stat, &lowerstat);
++			}
+ 		}
+ 		if (samefs) {
+ 			/*
 -- 
 2.13.6
