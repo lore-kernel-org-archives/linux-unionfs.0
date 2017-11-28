@@ -1,12 +1,12 @@
 From: Vivek Goyal <vgoyal@redhat.com>
-Subject: [PATCH v8 08/15] ovl: Copy up only metadata during copy up where it makes sense
-Date: Tue, 28 Nov 2017 10:59:52 -0500
-Message-ID: <20171128155959.20114-9-vgoyal@redhat.com>
+Subject: [PATCH v8 11/15] ovl: Fix ovl_getattr() to get number of blocks from lower
+Date: Tue, 28 Nov 2017 10:59:55 -0500
+Message-ID: <20171128155959.20114-12-vgoyal@redhat.com>
 References: <20171128155959.20114-1-vgoyal@redhat.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:53650 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:51964 "EHLO mx1.redhat.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753996AbdK1QAM (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        id S1753962AbdK1QAM (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
         Tue, 28 Nov 2017 11:00:12 -0500
 In-Reply-To: <20171128155959.20114-1-vgoyal@redhat.com>
 Sender: linux-unionfs-owner@vger.kernel.org
@@ -14,97 +14,55 @@ List-Id: linux-unionfs@vger.kernel.org
 To: linux-unionfs@vger.kernel.org
 Cc: miklos@szeredi.hu, amir73il@gmail.com, vgoyal@redhat.com
 
-If it makes sense to copy up only metadata during copy up, do it. This
-is done for regular files which are not opened for WRITE and have origin
-being saved.
+If an inode has been copied up metadata only, then we need to query the
+number of blocks from lower and fill up the stat->st_blocks.
 
-Right now ->metacopy is set to 0 always. Last patch in the series will
-remove the hard coded statement and enable metacopy feature.
+We need to be careful about races where we are doing stat on one cpu and
+data copy up is taking place on other cpu. We want to return stat->st_blocks
+either from lower or stable upper and not something in between. Hence,
+ovl_has_upperdata() is called first to figure out whether block reporting
+will take place from lower or upper.
 
 Reviewed-by: Amir Goldstein <amir73il@gmail.com>
 Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
 ---
- fs/overlayfs/copy_up.c | 38 +++++++++++++++++++++++++++++++-------
- 1 file changed, 31 insertions(+), 7 deletions(-)
+ fs/overlayfs/inode.c | 10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)
 
-diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
-index 31711edf5bde..c5804b87f3c7 100644
---- a/fs/overlayfs/copy_up.c
-+++ b/fs/overlayfs/copy_up.c
-@@ -232,6 +232,26 @@ int ovl_set_attr(struct dentry *upperdentry, struct kstat *stat)
- 	return err;
- }
- 
-+static bool ovl_need_meta_copy_up(struct dentry *dentry, umode_t mode,
-+				  int flags)
-+{
-+	struct ovl_fs *ofs = dentry->d_sb->s_fs_info;
+diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
+index 472653f31ce7..da5cc2c6c413 100644
+--- a/fs/overlayfs/inode.c
++++ b/fs/overlayfs/inode.c
+@@ -76,6 +76,10 @@ int ovl_getattr(const struct path *path, struct kstat *stat,
+ 	bool is_dir = S_ISDIR(dentry->d_inode->i_mode);
+ 	bool samefs = ovl_same_sb(dentry->d_sb);
+ 	int err;
++	bool metacopy = false;
 +
-+	/* TODO: Will enable metacopy in last patch of series */
-+	return false;
-+
-+	if (!ofs->config.metacopy)
-+		return false;
-+
-+	if (!S_ISREG(mode))
-+		return false;
-+
-+	if (flags && ((OPEN_FMODE(flags) & FMODE_WRITE) || (flags & O_TRUNC)))
-+		return false;
-+
-+	return true;
-+}
-+
- struct ovl_fh *ovl_encode_fh(struct dentry *lower, bool is_upper)
- {
- 	struct ovl_fh *fh;
-@@ -305,11 +325,8 @@ static int ovl_set_origin(struct dentry *dentry, struct dentry *lower,
- 			return PTR_ERR(fh);
- 	}
++	if (ovl_dentry_upper(dentry) && !ovl_has_upperdata(dentry))
++		metacopy = true;
  
--	/*
--	 * Do not fail when upper doesn't support xattrs.
--	 */
- 	err = ovl_check_setxattr(dentry, upper, OVL_XATTR_ORIGIN, fh,
--				 fh ? fh->len : 0, 0);
-+				 fh ? fh->len : 0, -EOPNOTSUPP);
- 	kfree(fh);
+ 	type = ovl_path_real(dentry, &realpath);
+ 	old_cred = ovl_override_creds(dentry->d_sb);
+@@ -93,7 +97,8 @@ int ovl_getattr(const struct path *path, struct kstat *stat,
+ 	if (!is_dir || samefs) {
+ 		if (OVL_TYPE_ORIGIN(type)) {
+ 			struct kstat lowerstat;
+-			u32 lowermask = STATX_INO | (!is_dir ? STATX_NLINK : 0);
++			u32 lowermask = STATX_INO | STATX_BLOCKS |
++					(!is_dir ? STATX_NLINK : 0);
  
- 	return err;
-@@ -326,6 +343,7 @@ struct ovl_copy_up_ctx {
- 	struct qstr destname;
- 	struct dentry *workdir;
- 	bool tmpfile;
-+	bool metacopy;
- };
- 
- static int ovl_link_up(struct ovl_copy_up_ctx *c)
-@@ -453,10 +471,14 @@ static int ovl_copy_up_inode(struct ovl_copy_up_ctx *c, struct dentry *temp)
- 	 *
- 	 */
- 	err = ovl_set_origin(c->dentry, c->lowerpath.dentry, temp);
--	if (err)
--		return err;
-+	if (err) {
-+		if (err != -EOPNOTSUPP)
-+			return err;
-+		/* Upper does not support xattr. Copy up data as well */
-+		c->metacopy = false;
-+	}
- 
--	if (S_ISREG(c->stat.mode)) {
-+	if (S_ISREG(c->stat.mode) && !c->metacopy) {
- 		struct path upperpath;
- 
- 		ovl_path_upper(c->dentry, &upperpath);
-@@ -601,6 +623,8 @@ static int ovl_copy_up_one(struct dentry *parent, struct dentry *dentry,
- 	if (err)
- 		return err;
- 
-+	ctx.metacopy = ovl_need_meta_copy_up(dentry, ctx.stat.mode, flags);
+ 			ovl_path_lower(dentry, &realpath);
+ 			err = vfs_getattr(&realpath, &lowerstat,
+@@ -117,6 +122,9 @@ int ovl_getattr(const struct path *path, struct kstat *stat,
+ 				WARN_ON_ONCE(stat->dev != lowerstat.dev);
+ 			else
+ 				stat->dev = ovl_get_pseudo_dev(dentry);
 +
- 	ovl_path_upper(parent, &parentpath);
- 	ctx.destdir = parentpath.dentry;
- 	ctx.destname = dentry->d_name;
++			if (metacopy)
++				stat->blocks = lowerstat.blocks;
+ 		}
+ 		if (samefs) {
+ 			/*
 -- 
 2.13.6
