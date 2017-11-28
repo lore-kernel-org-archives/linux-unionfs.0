@@ -1,62 +1,62 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [PATCH] ovl: Sync upper dirty data when sync overlayfs
-Date: Tue, 28 Nov 2017 13:00:13 +0200
-Message-ID: <CAOQ4uxhKSaUamDfyX49o41jH6v6751X8XxYegEmS=g7roGHM8Q@mail.gmail.com>
-References: <1511844026-12765-1-git-send-email-cgxu@mykernel.net>
- <CAOQ4uxiL8vdkcTSGnqGKtH1AVaZ+W0LcaTaoi6mifGjhq48Ljg@mail.gmail.com>
- <0DEF5E95-D6C6-4F2C-9710-C4DC8BB14691@mykernel.net> <CAOQ4uxgbM_bFkm_hymvn6U2i+NZQG2LAqpH8XtTsduVLJXdHDQ@mail.gmail.com>
- <50026B1F-55D2-4352-8EAB-9DDA32F9BB4D@mykernel.net>
+Subject: Re: [PATCH V2] ovl: Pass ovl_get_nlink() parameters in right order
+Date: Tue, 28 Nov 2017 14:58:00 +0200
+Message-ID: <CAOQ4uxhMyc3xcRHvbOq6W3KM2gzuUFKej7+p9NwO-XW1CMPpcw@mail.gmail.com>
+References: <20171127184613.GB22007@redhat.com> <20171127212612.GD22007@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-yw0-f175.google.com ([209.85.161.175]:36387 "EHLO
-        mail-yw0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751254AbdK1LAP (ORCPT
+Received: from mail-yb0-f195.google.com ([209.85.213.195]:37234 "EHLO
+        mail-yb0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752563AbdK1M6C (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 28 Nov 2017 06:00:15 -0500
-Received: by mail-yw0-f175.google.com with SMTP id g193so2835767ywe.3
-        for <linux-unionfs@vger.kernel.org>; Tue, 28 Nov 2017 03:00:14 -0800 (PST)
-In-Reply-To: <50026B1F-55D2-4352-8EAB-9DDA32F9BB4D@mykernel.net>
+        Tue, 28 Nov 2017 07:58:02 -0500
+Received: by mail-yb0-f195.google.com with SMTP id e83so101437yba.4
+        for <linux-unionfs@vger.kernel.org>; Tue, 28 Nov 2017 04:58:02 -0800 (PST)
+In-Reply-To: <20171127212612.GD22007@redhat.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: cgxu <cgxu@mykernel.net>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, overlayfs <linux-unionfs@vger.kernel.org>
+To: Vivek Goyal <vgoyal@redhat.com>
+Cc: overlayfs <linux-unionfs@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>
 
-On Tue, Nov 28, 2017 at 11:27 AM, cgxu <cgxu@mykernel.net> wrote:
->
->> =E5=9C=A8 2017=E5=B9=B411=E6=9C=8828=E6=97=A5=EF=BC=8C=E4=B8=8B=E5=8D=88=
-5:00=EF=BC=8CAmir Goldstein <amir73il@gmail.com> =E5=86=99=E9=81=93=EF=BC=
-=9A
->>
->> On Tue, Nov 28, 2017 at 10:18 AM, cgxu <cgxu@mykernel.net> wrote:
->>>
->> [...]
->>>> Unless I am missing something subtle here, you should export vfs
->>>> __sync_filesystem and call it from here instead of duplicating it.
->>>> Any technical reason not to do it?
->>>>
->>>
->>> Actually, not a technical reason. How about below modification?
->>> If it looks good I=E2=80=99ll send patch on new mail thread.
->>>
->>
->> Much better. See one nit below.
->> Why new mail thread? It is better if you send V3 patch with same subject
->> and change log since V2, so maintainer knows this patch supersedes
->> the previous one.
+On Mon, Nov 27, 2017 at 11:26 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
+> On Mon, Nov 27, 2017 at 01:46:13PM -0500, Vivek Goyal wrote:
+>> Right now we seem to be passing index as "lowerdentry" and origin.dentry
+>> as "upperdentry". IIUC, we should pass these parameters in reversed order
+>> and this looks like a bug.
 >>
 >
-> Thank you, got it.
-> BTW, currently I use mainline tree, should I rebase on overlay-next? or o=
-ther tree?
+> Hi,
+>
+> Don't merge this patch yet. I think this breaks overlay/042 and does not
+> cleanup orphan index. Trying to debug it.
 >
 
-Current overlay-next is merged to master and your patch makes very
-little changes
-outside fs/overlayfs so the answer is it doesn't matter.
-Usually you should rebase on overlay-next when posting a patch to overlayfs
-maintainer.
+Vivek,
 
-Cheers,
+The problem is with the test, not with your patch.
+I copied sanity check at end of test to verify that orphan index is cleaned
+on mount from test overlay/034, but there is a subtle difference between
+the 2 tests - with overlay/034 lower is hardlink from the start and therefore
+indexed from the first copy up and nlink accounted from the first copy up.
+with overlay/042, lower is not a hardlink to begin with, so the first copy up
+(at upper path /0) is a non-indexed broken hardlink, which is covering
+the lower /0 path that later becomes a hardlink.
+
+At the end of test overlay/042, index is NOT cleaned because the
+accounted nlink is not 0, it is 1, because from the index perspective,
+it does not know that the upper path at /0 is covered by a non-indexed
+copy up.
+
+The whole purpose of the trusted.overlay.nlink accounting is to account
+for the not-yet-copied-up lower hardlinks, so the index with the new data
+is not unlinked after unlinking all current upper hardlinks.
+
+I wrote a new test to demonstrate this use case and demonstrate the
+implications the bug that you found has on end users:
+https://github.com/amir73il/xfstests/blob/overlayfs-devel/tests/overlay/047
+
+I will fix test overlay/042.
+Thanks for reporting this breakage.
+
 Amir.
