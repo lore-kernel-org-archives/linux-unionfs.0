@@ -1,56 +1,133 @@
-From: Miguel Bernal Marin <miguel.bernal.marin@linux.intel.com>
-Subject: Re: [PATCH] ovl: update ctx->pos on impure dir iteration
-Date: Wed, 29 Nov 2017 07:46:42 -0600
-Message-ID: <20171129134642.GA17605@miguelinux-clr.zpn.intel.com>
-References: <1511933721-4720-1-git-send-email-amir73il@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Vivek Goyal <vgoyal@redhat.com>
+Subject: [PATCH v9 07/15] ovl: Move the copy up helpers to copy_up.c
+Date: Wed, 29 Nov 2017 10:54:40 -0500
+Message-ID: <20171129155448.32721-8-vgoyal@redhat.com>
+References: <20171129155448.32721-1-vgoyal@redhat.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mga05.intel.com ([192.55.52.43]:36296 "EHLO mga05.intel.com"
+Received: from mx1.redhat.com ([209.132.183.28]:59096 "EHLO mx1.redhat.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753568AbdK2Nqo (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 29 Nov 2017 08:46:44 -0500
-Content-Disposition: inline
-In-Reply-To: <1511933721-4720-1-git-send-email-amir73il@gmail.com>
+        id S933128AbdK2Py6 (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Wed, 29 Nov 2017 10:54:58 -0500
+In-Reply-To: <20171129155448.32721-1-vgoyal@redhat.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org
+To: linux-unionfs@vger.kernel.org
+Cc: miklos@szeredi.hu, amir73il@gmail.com, vgoyal@redhat.com
 
-On Wed, Nov 29, 2017 at 07:35:21AM +0200, Amir Goldstein wrote:
-> This fixes a regression with readdir of impure dir in overlayfs
-> that is shared to VM via 9p fs.
-> 
-> Reported-by: Miguel Bernal Marin <miguel.bernal.marin@linux.intel.com>
-> Fixes: 4edb83bb1041 ("ovl: constant d_ino for non-merge dirs")
-> Cc: <stable@vger.kernel.org> #4.14
-> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
-> ---
->  fs/overlayfs/readdir.c | 5 ++++-
->  1 file changed, 4 insertions(+), 1 deletion(-)
-> 
-> diff --git a/fs/overlayfs/readdir.c b/fs/overlayfs/readdir.c
-> index 502dc0966f91..b98f1efe50c1 100644
-> --- a/fs/overlayfs/readdir.c
-> +++ b/fs/overlayfs/readdir.c
-> @@ -663,7 +663,10 @@ static int ovl_iterate_real(struct file *file, struct dir_context *ctx)
->  			return PTR_ERR(rdt.cache);
->  	}
->  
-> -	return iterate_dir(od->realfile, &rdt.ctx);
-> +	err = iterate_dir(od->realfile, &rdt.ctx);
-> +	ctx->pos = rdt.ctx.pos;
-> +
-> +	return err;
->  }
+Right now two copy up helpers are in inode.c. Amir suggested it might
+be better to move these to copy_up.c.
 
-This fix the issue with 9P and Overlay
+There will one more related function which will come in later patch.
 
-Tested-by: Miguel Bernal Marin <miguel.bernal.marin@linux.intel.com>
+Reviewed-by: Amir Goldstein <amir73il@gmail.com>
+Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
+---
+ fs/overlayfs/copy_up.c   | 30 ++++++++++++++++++++++++++++++
+ fs/overlayfs/inode.c     | 30 ------------------------------
+ fs/overlayfs/overlayfs.h |  2 +-
+ 3 files changed, 31 insertions(+), 31 deletions(-)
 
-
+diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
+index 303794bb9127..31711edf5bde 100644
+--- a/fs/overlayfs/copy_up.c
++++ b/fs/overlayfs/copy_up.c
+@@ -686,6 +686,36 @@ int ovl_copy_up_flags(struct dentry *dentry, int flags)
+ 	return err;
+ }
+ 
++static bool ovl_open_need_copy_up(struct dentry *dentry, int flags)
++{
++	if (ovl_dentry_upper(dentry) &&
++	    ovl_dentry_has_upper_alias(dentry))
++		return false;
++
++	if (special_file(d_inode(dentry)->i_mode))
++		return false;
++
++	if (!(OPEN_FMODE(flags) & FMODE_WRITE) && !(flags & O_TRUNC))
++		return false;
++
++	return true;
++}
++
++int ovl_open_maybe_copy_up(struct dentry *dentry, unsigned int file_flags)
++{
++	int err = 0;
++
++	if (ovl_open_need_copy_up(dentry, file_flags)) {
++		err = ovl_want_write(dentry);
++		if (!err) {
++			err = ovl_copy_up_flags(dentry, file_flags);
++			ovl_drop_write(dentry);
++		}
++	}
++
++	return err;
++}
++
+ int ovl_copy_up(struct dentry *dentry)
+ {
+ 	return ovl_copy_up_flags(dentry, 0);
+diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
+index 903548a6b825..5239a1ff7211 100644
+--- a/fs/overlayfs/inode.c
++++ b/fs/overlayfs/inode.c
+@@ -341,36 +341,6 @@ struct posix_acl *ovl_get_acl(struct inode *inode, int type)
+ 	return acl;
+ }
+ 
+-static bool ovl_open_need_copy_up(struct dentry *dentry, int flags)
+-{
+-	if (ovl_dentry_upper(dentry) &&
+-	    ovl_dentry_has_upper_alias(dentry))
+-		return false;
+-
+-	if (special_file(d_inode(dentry)->i_mode))
+-		return false;
+-
+-	if (!(OPEN_FMODE(flags) & FMODE_WRITE) && !(flags & O_TRUNC))
+-		return false;
+-
+-	return true;
+-}
+-
+-int ovl_open_maybe_copy_up(struct dentry *dentry, unsigned int file_flags)
+-{
+-	int err = 0;
+-
+-	if (ovl_open_need_copy_up(dentry, file_flags)) {
+-		err = ovl_want_write(dentry);
+-		if (!err) {
+-			err = ovl_copy_up_flags(dentry, file_flags);
+-			ovl_drop_write(dentry);
+-		}
+-	}
+-
+-	return err;
+-}
+-
+ int ovl_update_time(struct inode *inode, struct timespec *ts, int flags)
+ {
+ 	struct dentry *alias;
+diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
+index 4e505cb86f8c..b0a691b463d6 100644
+--- a/fs/overlayfs/overlayfs.h
++++ b/fs/overlayfs/overlayfs.h
+@@ -286,7 +286,6 @@ int ovl_xattr_get(struct dentry *dentry, struct inode *inode, const char *name,
+ 		  void *value, size_t size);
+ ssize_t ovl_listxattr(struct dentry *dentry, char *list, size_t size);
+ struct posix_acl *ovl_get_acl(struct inode *inode, int type);
+-int ovl_open_maybe_copy_up(struct dentry *dentry, unsigned int file_flags);
+ int ovl_update_time(struct inode *inode, struct timespec *ts, int flags);
+ bool ovl_is_private_xattr(const char *name);
+ 
+@@ -319,6 +318,7 @@ int ovl_cleanup(struct inode *dir, struct dentry *dentry);
+ /* copy_up.c */
+ int ovl_copy_up(struct dentry *dentry);
+ int ovl_copy_up_flags(struct dentry *dentry, int flags);
++int ovl_open_maybe_copy_up(struct dentry *dentry, unsigned int file_flags);
+ int ovl_copy_xattr(struct dentry *old, struct dentry *new);
+ int ovl_set_attr(struct dentry *upper, struct kstat *stat);
+ struct ovl_fh *ovl_encode_fh(struct dentry *lower, bool is_upper);
 -- 
-Thanks,
-
-Miguel Bernal Marin                     Open Source Technology Center
-https://clearlinux.org                              Intel Corporation
+2.13.6
