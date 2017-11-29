@@ -1,84 +1,44 @@
-From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [PATCH v8 10/15] ovl: A new xattr OVL_XATTR_METACOPY for file on upper
-Date: Tue, 28 Nov 2017 21:53:04 +0200
-Message-ID: <CAOQ4uxjzzvsNwhg6sNjYmwdb0_PGMZ35F8mhXtRQkMzaAC5Ktg@mail.gmail.com>
-References: <20171128155959.20114-1-vgoyal@redhat.com> <20171128155959.20114-11-vgoyal@redhat.com>
+From: Miguel Bernal Marin <miguel.bernal.marin@linux.intel.com>
+Subject: Issues with OvelayFS + 9P FS
+Date: Tue, 28 Nov 2017 18:32:54 -0600
+Message-ID: <20171129003254.GA3570@miguelinux-clr.zpn.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-yb0-f196.google.com ([209.85.213.196]:46689 "EHLO
-        mail-yb0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752749AbdK1TxF (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 28 Nov 2017 14:53:05 -0500
-Received: by mail-yb0-f196.google.com with SMTP id g187so428445yba.13
-        for <linux-unionfs@vger.kernel.org>; Tue, 28 Nov 2017 11:53:05 -0800 (PST)
-In-Reply-To: <20171128155959.20114-11-vgoyal@redhat.com>
+Received: from mga11.intel.com ([192.55.52.93]:56367 "EHLO mga11.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751486AbdK2Ac6 (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Tue, 28 Nov 2017 19:32:58 -0500
+Content-Disposition: inline
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Vivek Goyal <vgoyal@redhat.com>
-Cc: overlayfs <linux-unionfs@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: linux-unionfs@vger.kernel.org, linux-kernel@vger.kernel.org, Miklos Szeredi <mszeredi@redhat.com>
 
-On Tue, Nov 28, 2017 at 5:59 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
-> Now we will have the capability to have upper inodes which might be only
-> metadata copy up and data is still on lower inode. So add a new xattr
-> OVL_XATTR_METACOPY to distinguish between two cases.
->
-> Presence of OVL_XATTR_METACOPY reflects that file has been copied up metadata
-> only and and data will be copied up later from lower origin.
-> So this xattr is set when a metadata copy takes place and cleared when
-> data copy takes place.
->
-> We also use a bit in ovl_inode->flags to cache OVL_UPPERDATA which reflects
-> whether ovl inode has data or not (as opposed to metadata only copy up).
->
-> If a file is copied up metadata only and later when same file is opened
-> for WRITE, then data copy up takes place. We copy up data, remove METACOPY
-> xattr and then set the UPPERDATA flag in ovl_inode->flags. While all
-> these operations happen with oi->lock held, read side of oi->flags can be
-> lockless. That is another thread on another cpu can check if UPPERDATA
-> flag is set or not.
->
-> So this gives us an ordering requirement w.r.t UPPERDATA flag. That is, if
-> another cpu sees UPPERDATA flag set, then it should be guaranteed that
-> effects of data copy up and remove xattr operations are also visible.
->
-> For example.
->
->         CPU1                            CPU2
-> ovl_d_real()                            acquire(oi->lock)
->  ovl_open_maybe_copy_up()                ovl_copy_up_data()
->   open_open_need_copy_up()               vfs_removexattr()
->    ovl_already_copied_up()
->     ovl_dentry_needs_data_copy_up()      ovl_set_flag(OVL_UPPERDATA)
->      ovl_test_flag(OVL_UPPERDATA)       release(oi->lock)
->
-> Say CPU2 is copying up data and in the end sets UPPERDATA flag. But if
-> CPU1 perceives the effects of setting UPPERDATA flag but not the effects
-> of preceeding operations (ex. upper that is not fully copied up), it will be
-> a problem.
->
-> Hence this patch introduces smp_wmb() on setting UPPERDATA flag operation
-> and smp_rmb() on UPPERDATA flag test operation.
->
-> May be some other lock or barrier is already covering it. But I am not sure
-> what that is and is it obvious enough that we will not break it in future.
->
-> So hence trying to be safe here and introducing barriers explicitly for
-> UPPERDATA flag/bit.
->
-> Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
+Hi Miklos,
 
-Reviewed-by: Amir Goldstein <amir73il@gmail.com>
+I've seen issues when I try to use a Qemu/KVM + 9P and a Overlay FS.
 
-Except for minor nits below.
+The issue started to show from v4.14 and I bisected the guilty commit to
 
-...
+4edb83bb1041 ("ovl: constant d_ino for non-merge dirs")
 
-> +static bool ovl_should_check_upperdata(struct dentry *dentry) {
+The issue is showed when ovl_iterate_real(file, ctx) is called, if I
+commented out that *if* block to just load iterate_dir(od->realfile, ctx),
+everything works fine.
 
-You should run your patch through checkpatch.
+To reproduce the issue just create a OverlayFS and use the merged
+directory as a 9P share directory to the VM.
+You will see that the upper ONLY files/directories are seen good, but 
+when you try to list the lower and merged files the process couldn't
+finish and ends with a "ls: Memory exhausted"
 
-Kernel coding style doesn't like opening brackets for function without newline.
+I've tried to fix it but my knowledge is not enough on FS.
+I've done small script to reproduce the issue, they are at
+https://github.com/miguelinux/overlay-9p-issue
 
-Amir.
+-- 
+Regards,
+
+Miguel Bernal Marin                     Open Source Technology Center
+https://clearlinux.org                              Intel Corporation
