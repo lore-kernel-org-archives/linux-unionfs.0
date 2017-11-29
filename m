@@ -1,110 +1,69 @@
 From: Vivek Goyal <vgoyal@redhat.com>
-Subject: [PATCH v9 08/15] ovl: Copy up only metadata during copy up where it makes sense
-Date: Wed, 29 Nov 2017 10:54:41 -0500
-Message-ID: <20171129155448.32721-9-vgoyal@redhat.com>
-References: <20171129155448.32721-1-vgoyal@redhat.com>
+Subject: [PATCH v9 00/15] overlayfs: Delayed copy up of data
+Date: Wed, 29 Nov 2017 10:54:33 -0500
+Message-ID: <20171129155448.32721-1-vgoyal@redhat.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:51626 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:59086 "EHLO mx1.redhat.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S933154AbdK2Py6 (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        id S933120AbdK2Py6 (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
         Wed, 29 Nov 2017 10:54:58 -0500
-In-Reply-To: <20171129155448.32721-1-vgoyal@redhat.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: linux-unionfs@vger.kernel.org
 Cc: miklos@szeredi.hu, amir73il@gmail.com, vgoyal@redhat.com
 
-If it makes sense to copy up only metadata during copy up, do it. This
-is done for regular files which are not opened for WRITE and have origin
-being saved.
+Hi,
 
-Right now ->metacopy is set to 0 always. Last patch in the series will
-remove the hard coded statement and enable metacopy feature.
+Please find attached V9 of the patches. Minor changes to take care of
+Amir's comments. I have also dropped RFC tag. If there are no concerns,
+then I would like these patches to be included.
 
-Reviewed-by: Amir Goldstein <amir73il@gmail.com>
-Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
----
- fs/overlayfs/copy_up.c | 38 +++++++++++++++++++++++++++++++-------
- 1 file changed, 31 insertions(+), 7 deletions(-)
+These patches apply on top of overlayfs-next branch plus the fix I posted
+with subject "ovl: Pass ovl_get_nlink() parameters in right order"
 
-diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
-index 31711edf5bde..c5804b87f3c7 100644
---- a/fs/overlayfs/copy_up.c
-+++ b/fs/overlayfs/copy_up.c
-@@ -232,6 +232,26 @@ int ovl_set_attr(struct dentry *upperdentry, struct kstat *stat)
- 	return err;
- }
+https://www.spinics.net/lists/stable/msg200902.html
+
+Changes from V8.
+
+- Fixed ovl_get_nlink() to take index as parameter instead of
+  upperdentry.
+
+- Ran checkpatch on patches and fixed issues.
+
+- Updated help text of config option OVERLAY_FS_METACOPY
  
-+static bool ovl_need_meta_copy_up(struct dentry *dentry, umode_t mode,
-+				  int flags)
-+{
-+	struct ovl_fs *ofs = dentry->d_sb->s_fs_info;
-+
-+	/* TODO: Will enable metacopy in last patch of series */
-+	return false;
-+
-+	if (!ofs->config.metacopy)
-+		return false;
-+
-+	if (!S_ISREG(mode))
-+		return false;
-+
-+	if (flags && ((OPEN_FMODE(flags) & FMODE_WRITE) || (flags & O_TRUNC)))
-+		return false;
-+
-+	return true;
-+}
-+
- struct ovl_fh *ovl_encode_fh(struct dentry *lower, bool is_upper)
- {
- 	struct ovl_fh *fh;
-@@ -305,11 +325,8 @@ static int ovl_set_origin(struct dentry *dentry, struct dentry *lower,
- 			return PTR_ERR(fh);
- 	}
- 
--	/*
--	 * Do not fail when upper doesn't support xattrs.
--	 */
- 	err = ovl_check_setxattr(dentry, upper, OVL_XATTR_ORIGIN, fh,
--				 fh ? fh->len : 0, 0);
-+				 fh ? fh->len : 0, -EOPNOTSUPP);
- 	kfree(fh);
- 
- 	return err;
-@@ -326,6 +343,7 @@ struct ovl_copy_up_ctx {
- 	struct qstr destname;
- 	struct dentry *workdir;
- 	bool tmpfile;
-+	bool metacopy;
- };
- 
- static int ovl_link_up(struct ovl_copy_up_ctx *c)
-@@ -453,10 +471,14 @@ static int ovl_copy_up_inode(struct ovl_copy_up_ctx *c, struct dentry *temp)
- 	 *
- 	 */
- 	err = ovl_set_origin(c->dentry, c->lowerpath.dentry, temp);
--	if (err)
--		return err;
-+	if (err) {
-+		if (err != -EOPNOTSUPP)
-+			return err;
-+		/* Upper does not support xattr. Copy up data as well */
-+		c->metacopy = false;
-+	}
- 
--	if (S_ISREG(c->stat.mode)) {
-+	if (S_ISREG(c->stat.mode) && !c->metacopy) {
- 		struct path upperpath;
- 
- 		ovl_path_upper(c->dentry, &upperpath);
-@@ -601,6 +623,8 @@ static int ovl_copy_up_one(struct dentry *parent, struct dentry *dentry,
- 	if (err)
- 		return err;
- 
-+	ctx.metacopy = ovl_need_meta_copy_up(dentry, ctx.stat.mode, flags);
-+
- 	ovl_path_upper(parent, &parentpath);
- 	ctx.destdir = parentpath.dentry;
- 	ctx.destname = dentry->d_name;
+
+Vivek
+
+Amir Goldstein (1):
+  ovl: disable redirect_dir and index when no xattr support
+
+Vivek Goyal (14):
+  ovl: Do not look for OVL_XATTR_NLINK if index is not there
+  ovl: ovl_check_setxattr() get rid of redundant -EOPNOTSUPP check
+  ovl: Create origin xattr on copy up for all files
+  ovl: Provide a mount option metacopy=on/off for metadata copyup
+  ovl: During copy up, first copy up metadata and then data
+  ovl: Move the copy up helpers to copy_up.c
+  ovl: Copy up only metadata during copy up where it makes sense
+  ovl: Add helper ovl_already_copied_up()
+  ovl: A new xattr OVL_XATTR_METACOPY for file on upper
+  ovl: Fix ovl_getattr() to get number of blocks from lower
+  ovl: Set OVL_UPPERDATA flag during ovl_lookup()
+  ovl: Do not expose metacopy only upper dentry from d_real()
+  ovl: Fix encryption/compression status of a metacopy only file
+  ovl: Enable metadata only feature
+
+ fs/overlayfs/Kconfig     |  15 +++++
+ fs/overlayfs/copy_up.c   | 162 ++++++++++++++++++++++++++++++++++-------------
+ fs/overlayfs/dir.c       |   1 +
+ fs/overlayfs/inode.c     |  73 ++++++++++-----------
+ fs/overlayfs/namei.c     |  40 ++++++++++++
+ fs/overlayfs/overlayfs.h |  21 +++++-
+ fs/overlayfs/ovl_entry.h |   1 +
+ fs/overlayfs/super.c     |  62 ++++++++++++++++--
+ fs/overlayfs/util.c      | 105 ++++++++++++++++++++++++++----
+ 9 files changed, 376 insertions(+), 104 deletions(-)
+
 -- 
 2.13.6
