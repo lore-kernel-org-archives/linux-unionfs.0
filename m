@@ -1,41 +1,78 @@
 From: Vivek Goyal <vgoyal@redhat.com>
-Subject: [PATCH v9 15/15] ovl: Enable metadata only feature
-Date: Wed, 29 Nov 2017 10:54:48 -0500
-Message-ID: <20171129155448.32721-16-vgoyal@redhat.com>
+Subject: [PATCH v9 06/15] ovl: During copy up, first copy up metadata and then data
+Date: Wed, 29 Nov 2017 10:54:39 -0500
+Message-ID: <20171129155448.32721-7-vgoyal@redhat.com>
 References: <20171129155448.32721-1-vgoyal@redhat.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:36942 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:40442 "EHLO mx1.redhat.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S933569AbdK2Py7 (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 29 Nov 2017 10:54:59 -0500
+        id S933348AbdK2PzE (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Wed, 29 Nov 2017 10:55:04 -0500
 In-Reply-To: <20171129155448.32721-1-vgoyal@redhat.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: linux-unionfs@vger.kernel.org
 Cc: miklos@szeredi.hu, amir73il@gmail.com, vgoyal@redhat.com
 
-All the bits are in patches before this. So it is time to enable the
-metadata only copy up feature.
+Just a little re-ordering of code. This helps with next patch where after
+copying up metadata, we skip data copying step, if needed.
 
-Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
 Reviewed-by: Amir Goldstein <amir73il@gmail.com>
+Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
 ---
- fs/overlayfs/copy_up.c | 3 ---
- 1 file changed, 3 deletions(-)
+ fs/overlayfs/copy_up.c | 29 ++++++++++++++---------------
+ 1 file changed, 14 insertions(+), 15 deletions(-)
 
 diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
-index 0bfc1df13b79..469552eaad5f 100644
+index f55bece3688e..303794bb9127 100644
 --- a/fs/overlayfs/copy_up.c
 +++ b/fs/overlayfs/copy_up.c
-@@ -247,9 +247,6 @@ static bool ovl_need_meta_copy_up(struct dentry *dentry, umode_t mode,
+@@ -443,6 +443,19 @@ static int ovl_copy_up_inode(struct ovl_copy_up_ctx *c, struct dentry *temp)
  {
- 	struct ovl_fs *ofs = dentry->d_sb->s_fs_info;
+ 	int err;
  
--	/* TODO: Will enable metacopy in last patch of series */
--	return false;
++	err = ovl_copy_xattr(c->lowerpath.dentry, temp);
++	if (err)
++		return err;
++
++	/*
++	 * Store identifier of lower inode in upper inode xattr to
++	 * allow lookup of the copy up origin inode.
++	 *
++	 */
++	err = ovl_set_origin(c->dentry, c->lowerpath.dentry, temp);
++	if (err)
++		return err;
++
+ 	if (S_ISREG(c->stat.mode)) {
+ 		struct path upperpath;
+ 
+@@ -455,25 +468,11 @@ static int ovl_copy_up_inode(struct ovl_copy_up_ctx *c, struct dentry *temp)
+ 			return err;
+ 	}
+ 
+-	err = ovl_copy_xattr(c->lowerpath.dentry, temp);
+-	if (err)
+-		return err;
 -
- 	if (!ofs->config.metacopy)
- 		return false;
+ 	inode_lock(temp->d_inode);
+ 	err = ovl_set_attr(temp, &c->stat);
+ 	inode_unlock(temp->d_inode);
+-	if (err)
+-		return err;
+-
+-	/*
+-	 * Store identifier of lower inode in upper inode xattr to
+-	 * allow lookup of the copy up origin inode.
+-	 */
+-	err = ovl_set_origin(c->dentry, c->lowerpath.dentry, temp);
+-	if (err)
+-		return err;
  
+-	return 0;
++	return err;
+ }
+ 
+ static int ovl_copy_up_locked(struct ovl_copy_up_ctx *c)
 -- 
 2.13.6
