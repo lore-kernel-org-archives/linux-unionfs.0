@@ -1,122 +1,72 @@
 From: Vivek Goyal <vgoyal@redhat.com>
-Subject: [PATCH v9 09/15] ovl: Add helper ovl_already_copied_up()
-Date: Wed, 29 Nov 2017 10:54:42 -0500
-Message-ID: <20171129155448.32721-10-vgoyal@redhat.com>
+Subject: [PATCH v9 14/15] ovl: Fix encryption/compression status of a metacopy only file
+Date: Wed, 29 Nov 2017 10:54:47 -0500
+Message-ID: <20171129155448.32721-15-vgoyal@redhat.com>
 References: <20171129155448.32721-1-vgoyal@redhat.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:11850 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:41432 "EHLO mx1.redhat.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S933566AbdK2PzD (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 29 Nov 2017 10:55:03 -0500
+        id S933572AbdK2PzC (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Wed, 29 Nov 2017 10:55:02 -0500
 In-Reply-To: <20171129155448.32721-1-vgoyal@redhat.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: linux-unionfs@vger.kernel.org
 Cc: miklos@szeredi.hu, amir73il@gmail.com, vgoyal@redhat.com
 
-There are couple of places where we need to know if file is already copied
-up (in lockless manner). Right now its open coded and there are only
-two conditions to check. Soon this patch series will introduce another
-condition to check and Amir wants to introduce one more. So introduce
-a helper instead to check this so that code is easier to read.
+If file is metacopy only, it is possible that lower is encrypted while
+other is not. In that case, report file as encrypted (despite the fact
+that only data is encrypted while metadata is not).
 
-Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
+Similarly if lower is compressed, report that in stat for a metacopy
+only file.
+
 Reviewed-by: Amir Goldstein <amir73il@gmail.com>
+Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
 ---
- fs/overlayfs/copy_up.c   | 19 ++-----------------
- fs/overlayfs/overlayfs.h |  1 +
- fs/overlayfs/util.c      | 24 +++++++++++++++++++++++-
- 3 files changed, 26 insertions(+), 18 deletions(-)
+ fs/overlayfs/inode.c | 22 +++++++++++++++++++++-
+ 1 file changed, 21 insertions(+), 1 deletion(-)
 
-diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
-index c5804b87f3c7..65e993e931ba 100644
---- a/fs/overlayfs/copy_up.c
-+++ b/fs/overlayfs/copy_up.c
-@@ -671,21 +671,7 @@ int ovl_copy_up_flags(struct dentry *dentry, int flags)
- 		struct dentry *next;
- 		struct dentry *parent;
- 
--		/*
--		 * Check if copy-up has happened as well as for upper alias (in
--		 * case of hard links) is there.
--		 *
--		 * Both checks are lockless:
--		 *  - false negatives: will recheck under oi->lock
--		 *  - false positives:
--		 *    + ovl_dentry_upper() uses memory barriers to ensure the
--		 *      upper dentry is up-to-date
--		 *    + ovl_dentry_has_upper_alias() relies on locking of
--		 *      upper parent i_rwsem to prevent reordering copy-up
--		 *      with rename.
--		 */
--		if (ovl_dentry_upper(dentry) &&
--		    ovl_dentry_has_upper_alias(dentry))
-+		if (ovl_already_copied_up(dentry))
- 			break;
- 
- 		next = dget(dentry);
-@@ -712,8 +698,7 @@ int ovl_copy_up_flags(struct dentry *dentry, int flags)
- 
- static bool ovl_open_need_copy_up(struct dentry *dentry, int flags)
- {
--	if (ovl_dentry_upper(dentry) &&
--	    ovl_dentry_has_upper_alias(dentry))
-+	if (ovl_already_copied_up(dentry))
- 		return false;
- 
- 	if (special_file(d_inode(dentry)->i_mode))
-diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-index b0a691b463d6..8ff920949004 100644
---- a/fs/overlayfs/overlayfs.h
-+++ b/fs/overlayfs/overlayfs.h
-@@ -227,6 +227,7 @@ bool ovl_is_whiteout(struct dentry *dentry);
- struct file *ovl_path_open(struct path *path, int flags);
- int ovl_copy_up_start(struct dentry *dentry);
- void ovl_copy_up_end(struct dentry *dentry);
-+bool ovl_already_copied_up(struct dentry *dentry);
- bool ovl_check_origin_xattr(struct dentry *dentry);
- bool ovl_check_dir_xattr(struct dentry *dentry, const char *name);
- int ovl_check_setxattr(struct dentry *dentry, struct dentry *upperdentry,
-diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
-index 77dc00438d54..572bf46e9f2e 100644
---- a/fs/overlayfs/util.c
-+++ b/fs/overlayfs/util.c
-@@ -314,13 +314,35 @@ struct file *ovl_path_open(struct path *path, int flags)
- 	return dentry_open(path, flags | O_NOATIME, current_cred());
+diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
+index 605308a9d60f..0b83efaac9e0 100644
+--- a/fs/overlayfs/inode.c
++++ b/fs/overlayfs/inode.c
+@@ -66,6 +66,24 @@ int ovl_setattr(struct dentry *dentry, struct iattr *attr)
+ 	return err;
  }
  
-+bool ovl_already_copied_up(struct dentry *dentry)
-+{
-+	/*
-+	 * Check if copy-up has happened as well as for upper alias (in
-+	 * case of hard links) is there.
-+	 *
-+	 * Both checks are lockless:
-+	 *  - false negatives: will recheck under oi->lock
-+	 *  - false positives:
-+	 *    + ovl_dentry_upper() uses memory barriers to ensure the
-+	 *      upper dentry is up-to-date
-+	 *    + ovl_dentry_has_upper_alias() relies on locking of
-+	 *      upper parent i_rwsem to prevent reordering copy-up
-+	 *      with rename.
-+	 */
-+	if (ovl_dentry_upper(dentry) &&
-+	    ovl_dentry_has_upper_alias(dentry))
-+		return true;
++#define OVL_STATX_ATTR_MASK	(STATX_ATTR_ENCRYPTED | STATX_ATTR_COMPRESSED)
 +
-+	return false;
++static void ovl_stat_fix_attributes(struct kstat *ustat, struct kstat *lstat)
++{
++	unsigned int attr_mask, attr;
++
++	attr_mask = lstat->attributes_mask & OVL_STATX_ATTR_MASK;
++	if (!attr_mask)
++		return;
++
++	attr = lstat->attributes & attr_mask;
++	if (!attr)
++		return;
++
++	ustat->attributes_mask |= attr_mask;
++	ustat->attributes |= attr;
 +}
 +
- int ovl_copy_up_start(struct dentry *dentry)
+ int ovl_getattr(const struct path *path, struct kstat *stat,
+ 		u32 request_mask, unsigned int flags)
  {
- 	struct ovl_inode *oi = OVL_I(d_inode(dentry));
- 	int err;
+@@ -123,8 +141,10 @@ int ovl_getattr(const struct path *path, struct kstat *stat,
+ 			else
+ 				stat->dev = ovl_get_pseudo_dev(dentry);
  
- 	err = mutex_lock_interruptible(&oi->lock);
--	if (!err && ovl_dentry_has_upper_alias(dentry)) {
-+	if (!err && ovl_already_copied_up(dentry)) {
- 		err = 1; /* Already copied up */
- 		mutex_unlock(&oi->lock);
- 	}
+-			if (metacopy)
++			if (metacopy) {
+ 				stat->blocks = lowerstat.blocks;
++				ovl_stat_fix_attributes(stat, &lowerstat);
++			}
+ 		}
+ 		if (samefs) {
+ 			/*
 -- 
 2.13.6
