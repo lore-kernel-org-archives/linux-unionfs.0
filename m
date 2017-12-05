@@ -1,159 +1,97 @@
-From: Chengguang Xu <cgxu519@icloud.com>
-Subject: [PATCH 2/2] overlay/045: add test for syncfs
-Date: Tue, 05 Dec 2017 23:50:34 +0800
-Message-ID: <B4077824-4B28-4DC1-9407-33EF2316A4F2@icloud.com>
-Mime-Version: 1.0 (Mac OS X Mail 11.1 \(3445.4.7\))
+From: Eryu Guan <eguan@redhat.com>
+Subject: Re: [PATCH 1/2] common/rc: Add syncfs check and a helper
+ _scratch_shutdown()
+Date: Wed, 6 Dec 2017 01:14:16 +0800
+Message-ID: <20171205171416.GO2749@eguan.usersys.redhat.com>
+References: <2D8A66F2-6AB9-4B7D-90B0-D3B6807FB353@icloud.com>
+ <CAOQ4uxi35dTxBJSXPjVnx7Ei+Mfud2370Pikzf6KEESpGLdFog@mail.gmail.com>
+Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: quoted-printable
 Return-path: <fstests-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CAOQ4uxi35dTxBJSXPjVnx7Ei+Mfud2370Pikzf6KEESpGLdFog@mail.gmail.com>
 Sender: fstests-owner@vger.kernel.org
-To: Eryu Guan <eguan@redhat.com>, Amir Goldstein <amir73il@gmail.com>
-Cc: fstests <fstests@vger.kernel.org>, overlayfs <linux-unionfs@vger.kernel.org>, Chengguang Xu <cgxu519@icloud.com>
+To: Amir Goldstein <amir73il@gmail.com>, Chengguang Xu <cgxu519@icloud.com>
+Cc: fstests <fstests@vger.kernel.org>, overlayfs <linux-unionfs@vger.kernel.org>
 List-Id: linux-unionfs@vger.kernel.org
 
-Run syncfs and shutdown upper filesystem to check syncfs result.
+On Tue, Dec 05, 2017 at 06:13:35PM +0200, Amir Goldstein wrote:
+> On Tue, Dec 5, 2017 at 5:50 PM, Chengguang Xu <cgxu519@icloud.com> wrote:
+> > 1. Add a check case in _require_xfs_io_command() to support syncfs.
+> > 2. Introduce a helper to support scratch shutdown for overlayfs.
+> >
+> > Signed-off-by: Chengguang Xu <cgxu519@icloud.com>
+> > ---
+> > common/rc | 22 ++++++++++++++++++++--
+> > 1 file changed, 20 insertions(+), 2 deletions(-)
+> >
+> > diff --git a/common/rc b/common/rc
+> > index 4c053a5..e36ee24 100644
+> > --- a/common/rc
+> > +++ b/common/rc
+> > @@ -669,6 +669,21 @@ _scratch_cleanup_files()
+> >         esac
+> > }
+> >
+> > +_scratch_shutdown()
+> > +{
+> > +
+> > +       case $FSTYP in
+> > +       overlay)
+> 
+> Looks good,
+> but first you need to check for [ -z "$OVL_BASE_SCRATCH_MNT" ]
+> meaning that tester is using "old" overlay config and we are not allowed to
+> mess with base fs.
 
-Signed-off-by: Chengguang Xu <cgxu519@icloud.com>
----
-tests/overlay/045     | 107 =
-++++++++++++++++++++++++++++++++++++++++++++++++++
-tests/overlay/045.out |   2 +
-tests/overlay/group   |   1 +
-3 files changed, 110 insertions(+)
-create mode 100755 tests/overlay/045
-create mode 100644 tests/overlay/045.out
+Agreed, we don't want to shutdown the root fs accidently.
 
-diff --git a/tests/overlay/045 b/tests/overlay/045
-new file mode 100755
-index 0000000..402a955
---- /dev/null
-+++ b/tests/overlay/045
-@@ -0,0 +1,107 @@
-+#! /bin/bash
-+# FS QA Test 045
-+#
-+# Inspired by syncfs bug of overlayfs.=20
-+# Run syncfs and shutdown upper filesystem to check syncfs result.
-+# Test will be skipped if underlying upper filesystem does not support
-+# shutdown or syncfs syscall.
-+#
-=
-+#-----------------------------------------------------------------------
-+# Copyright (c) 2017 Chengguang Xu <cgxu519@icloud.com>.
-+# All Rights Reserved.
-+#
-+# This program is free software; you can redistribute it and/or
-+# modify it under the terms of the GNU General Public License as
-+# published by the Free Software Foundation.
-+#
-+# This program is distributed in the hope that it would be useful,
-+# but WITHOUT ANY WARRANTY; without even the implied warranty of
-+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+# GNU General Public License for more details.
-+#
-+# You should have received a copy of the GNU General Public License
-+# along with this program; if not, write the Free Software Foundation,
-+# Inc.,  51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-=
-+#-----------------------------------------------------------------------
-+#
-+
-+seq=3D`basename $0`
-+seqres=3D$RESULT_DIR/$seq
-+echo "QA output created by $seq"
-+
-+here=3D`pwd`
-+tmp=3D/tmp/$$
-+status=3D0
-+trap "_cleanup; exit \$status" 0 1 2 3 15
-+
-+_cleanup()
-+{
-+	cd /
-+	rm -f $tmp.*
-+}
-+
-+# get standard environment, filters and checks
-+. ./common/rc
-+. ./common/filter
-+
-+# remove previous $seqres.full before test
-+rm -f $seqres.full
-+
-+# real QA test starts here
-+
-+# Modify as appropriate.
-+_supported_fs overlay
-+_supported_os Linux
-+_require_test
-+_require_scratch
-+_require_scratch_shutdown
-+_require_xfs_io_command "syncfs"
-+
-+# if error
-+
-+PREFIX=3D${seq}-testfile
-+TESTFILES=3D${PREFIX}-*
-+FCNT=3D1000
-+
-+write_data()
-+{
-+	if [ $1 -eq 0 ]; then
-+		TARGET=3D$TEST_DIR	=09
-+	else
-+		TARGET=3D$SCRATCH_MNT
-+	fi
-+
-+	rm -f $TARGET/$TESTFILES >/dev/null 2>&1
-+	for i in `seq 1 $FCNT`; do
-+		$XFS_IO_PROG -f -c "pwrite 1K 1K" \
-+				${TARGET}/${PREFIX}-$i >/dev/null 2>&1
-+	done
-+}
-+
-+
-+check_data()
-+{
-+	diff -r $TEST_DIR $SCRATCH_MNT
-+	if [ $? -ne 0 ]; then
-+		status=3D1
-+	fi
-+}
-+
-+_scratch_mkfs >/dev/null 2>&1
-+_scratch_mount
-+
-+write_data 0
-+echo 3 > /proc/sys/vm/drop_caches
-+
-+write_data 1
-+$XFS_IO_PROG -c "syncfs" $SCRATCH_MNT/${PREFIX}-${FCNT} >/dev/null 2>&1
-+
-+_scratch_shutdown
-+_scratch_cycle_mount
-+check_data
-+
-+rm -f $TEST_DIR/$TESTFILES >/dev/null 2>&1
-+rm -f $SCRATCH_MNT/$TESTFILES >/dev/null 2>&1
-+
-+echo "Silence is golden"
-+exit
-diff --git a/tests/overlay/045.out b/tests/overlay/045.out
-new file mode 100644
-index 0000000..66276cf
---- /dev/null
-+++ b/tests/overlay/045.out
-@@ -0,0 +1,2 @@
-+QA output created by 045
-+Silence is golden
-diff --git a/tests/overlay/group b/tests/overlay/group
-index b32c6cd..eccd7d0 100644
---- a/tests/overlay/group
-+++ b/tests/overlay/group
-@@ -47,3 +47,4 @@
-042 auto quick copyup hardlink
-043 auto quick copyup nonsamefs
-044 auto quick copyup hardlink nonsamefs
-+045 auto quick sync
---=20
-1.8.3.1=
+> 
+> > +               src/godown -f $OVL_BASE_SCRATCH_MNT 2>&1 \
+> > +                       || _notrun "Underlying filesystem does not support shutdown"
+> > +               ;;
+> > +       *)
+> > +               src/godown -f $SCRATCH_MNT 2>&1 \
+> > +                       || _notrun "$FSTYP does not support shutdown"
+> > +               ;;
+> > +       esac
+> > +}
+
+I think this _scratch_shutdown() should be folded into
+_require_scratch_shutdown(). The name _scratch_shutdown indicates it
+shuts down the scratch device, and call _notrun from it would be a
+surprise to users.
+
+> > +
+> > _scratch_mkfs()
+> > {
+> >         local mkfs_cmd=""
+> > @@ -2087,6 +2102,10 @@ _require_xfs_io_command()
+> >         "utimes" )
+> >                 testio=`$XFS_IO_PROG -f -c "utimes" 0 0 0 0 $testfile 2>&1`
+> >                 ;;
+> > +       "syncfs")
+> > +               touch $testfile
+> > +               testio=`$XFS_IO_PROG -c "syncfs" $testfile 2>&1`
+> > +               ;;
+> >         *)
+
+This part should be in a separate patch.
+
+Thanks,
+Eryu
+
+> >                 testio=`$XFS_IO_PROG -c "help $command" 2>&1`
+> >         esac
+> > @@ -2908,8 +2927,7 @@ _require_scratch_shutdown()
+> >
+> >         _scratch_mkfs > /dev/null 2>&1
+> >         _scratch_mount
+> > -       src/godown -f $SCRATCH_MNT 2>&1 \
+> > -               || _notrun "$FSTYP does not support shutdown"
+> > +       _scratch_shutdown
+> >         _scratch_unmount
+> > }
+> >
+> > --
+> > 1.8.3.1
