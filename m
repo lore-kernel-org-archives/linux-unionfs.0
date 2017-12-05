@@ -1,68 +1,51 @@
-From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [RFC PATCH] ovl: don't follow redirects if redirect_dir=off
-Date: Tue, 5 Dec 2017 17:01:49 +0200
-Message-ID: <CAOQ4uxjenDTNxj_pQ-9UTw9sVeGmFuKh895GNKANb+EK5yVb1A@mail.gmail.com>
-References: <20171205133707.GA24303@veci.piliscsaba.redhat.com>
+From: Miklos Szeredi <miklos@szeredi.hu>
+Subject: test case for overwriting empty dir
+Date: Tue, 5 Dec 2017 16:17:29 +0100
+Message-ID: <CAJfpegswJ3Sc5te6XO=D2Pq4ghLP6Oz8TQ4T7t5BJzVs0CJk1g@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-yb0-f193.google.com ([209.85.213.193]:42262 "EHLO
-        mail-yb0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752577AbdLEPBv (ORCPT
+Received: from mail-qt0-f172.google.com ([209.85.216.172]:46812 "EHLO
+        mail-qt0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752595AbdLEPRa (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 5 Dec 2017 10:01:51 -0500
-Received: by mail-yb0-f193.google.com with SMTP id t127so218183ybf.9
-        for <linux-unionfs@vger.kernel.org>; Tue, 05 Dec 2017 07:01:50 -0800 (PST)
-In-Reply-To: <20171205133707.GA24303@veci.piliscsaba.redhat.com>
+        Tue, 5 Dec 2017 10:17:30 -0500
+Received: by mail-qt0-f172.google.com with SMTP id r39so1434072qtr.13
+        for <linux-unionfs@vger.kernel.org>; Tue, 05 Dec 2017 07:17:30 -0800 (PST)
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: overlayfs <linux-unionfs@vger.kernel.org>, David Howells <dhowells@redhat.com>, Vivek Goyal <vgoyal@redhat.com>
+To: "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>
+Cc: Amir Goldstein <amir73il@gmail.com>, David Howells <dhowells@redhat.com>
 
-On Tue, Dec 5, 2017 at 3:37 PM, Miklos Szeredi <miklos@szeredi.hu> wrote:
-> Overlayfs is following redirects even when redirects are disabled. If this
-> is unintentional (probably the majority of cases) then this can be a
-> problem.  E.g. upper layer comes from untrusted USB drive, and attacker
-> crafts a redirect to enable read access to otherwise unreadable
-> directories.
->
-> If "redirect=off", then turn off following as well as creation of
-> redirects.  If "redirect=follow", then turn on following, but turn off
-> creation of redirects (which is what "redirect=off" does now).
->
-> This is a backward incompatible change, so make it dependent on a config
-> option.
->
-> Reported-by: David Howells <dhowells@redhat.com>
-> Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
-> ---
-[...]
->  static bool ovl_index_def = IS_ENABLED(CONFIG_OVERLAY_FS_INDEX);
->  module_param_named(index, ovl_index_def, bool, 0644);
->  MODULE_PARM_DESC(ovl_index_def,
-> @@ -315,7 +318,8 @@ static int ovl_show_options(struct seq_f
->                 seq_puts(m, ",default_permissions");
->         if (ofs->config.redirect_dir != ovl_redirect_dir_def)
->                 seq_printf(m, ",redirect_dir=%s",
-> -                          ofs->config.redirect_dir ? "on" : "off");
-> +                          ofs->config.redirect_dir ? "on" :
-> +                          (ofs->config.redirect_follow ? "follow" : "off"));
+Review by David revealed a bug introduced by commit
 
+  38e813db61c3 (ovl: get rid of PURE type)
 
-ovl_show_options() not reflecting mount options in several cases, for example:
-ofs->config.redirect_dir == ovl_redirect_dir_def &&
-!ovl_redirect_dir_def &&  !ovl_redirect_follow_def &&
-ofs->config.redirect_follow
-doesn't show "redirect_dir=follow" after user mounted with "-o
-redirect_dir=follow"
+and fixed 15 commits later by
 
-Another anomaly is with (ovl_redirect_dir_def && ovl_redirect_follow_def)
-when user mounts with "-o redirect_dir=off", but /proc/mounts will show
-"redirect_dir=follow".
+  5cf5b477f0ca (ovl: opaque cleanup)
 
-I guess that last one may be justified, but maybe requires a pr_info() on mount
-to notify user that redirect_dir follow is always enabled even on
-redirect_dir=off,
-but the first one is just a bug.
+Here's a test script (output should be "bar" not "bar foo"):
 
-Amir.
+cd /tmp/
+mkdir test
+cd test
+mkdir -p lower/dir1 upper work mnt
+touch lower/dir1/foo
+mount -t overlay overlay -olowerdir=lower,upperdir=upper,workdir=work mnt
+mkdir mnt/dir2
+touch mnt/dir2/bar
+rm mnt/dir1/foo
+mv -T mnt/dir2 mnt/dir1
+umount mnt
+mount -t overlay overlay -olowerdir=lower,upperdir=upper,workdir=work mnt
+ls mnt/dir1
+umount mnt
+rm -r lower upper work mnt
+cd /tmp
+rmdir test
+
+Can someone please make a proper testcase for this, if there isn't one already?
+
+Thanks,
+Miklos
