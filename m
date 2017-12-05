@@ -1,116 +1,169 @@
-From: Dave Chinner <david@fromorbit.com>
-Subject: Re: [PATCH] generic/470: Add check for different sync modes
-Date: Fri, 1 Dec 2017 15:51:07 +1100
-Message-ID: <20171201045107.GT4094@dastard>
-References: <1512009801-11466-1-git-send-email-cgxu@mykernel.net>
- <CAOQ4uxgnenGaEXnNSjovnF+r06rjV4_VdR4qhaXs5q4yexu=jA@mail.gmail.com>
- <20171130072228.GT2749@eguan.usersys.redhat.com>
- <CAOQ4uxio1HkdCsWRaVBQxZ3aGNT9_5yfPbU552dmYqLbVt_LeA@mail.gmail.com>
+From: Miklos Szeredi <miklos@szeredi.hu>
+Subject: [RFC PATCH] ovl: don't follow redirects if redirect_dir=off
+Date: Tue, 5 Dec 2017 14:37:07 +0100
+Message-ID: <20171205133707.GA24303@veci.piliscsaba.redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <fstests-owner@vger.kernel.org>
+Return-path: <linux-unionfs-owner@vger.kernel.org>
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:39742 "EHLO
+        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753031AbdLENhQ (ORCPT
+        <rfc822;linux-unionfs@vger.kernel.org>);
+        Tue, 5 Dec 2017 08:37:16 -0500
+Received: by mail-wm0-f66.google.com with SMTP id i11so1292388wmf.4
+        for <linux-unionfs@vger.kernel.org>; Tue, 05 Dec 2017 05:37:15 -0800 (PST)
 Content-Disposition: inline
-In-Reply-To: <CAOQ4uxio1HkdCsWRaVBQxZ3aGNT9_5yfPbU552dmYqLbVt_LeA@mail.gmail.com>
-Sender: fstests-owner@vger.kernel.org
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: Eryu Guan <eguan@redhat.com>, Chengguang Xu <cgxu@mykernel.net>, overlayfs <linux-unionfs@vger.kernel.org>, fstests <fstests@vger.kernel.org>
+Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
+To: linux-unionfs@vger.kernel.org
+Cc: David Howells <dhowells@redhat.com>, Amir Goldstein <amir73il@gmail.com>, Vivek Goyal <vgoyal@redhat.com>
 
-On Thu, Nov 30, 2017 at 10:08:34AM +0200, Amir Goldstein wrote:
-> On Thu, Nov 30, 2017 at 9:22 AM, Eryu Guan <eguan@redhat.com> wrote:
-> > On Thu, Nov 30, 2017 at 07:30:41AM +0200, Amir Goldstein wrote:
-> >> Adding fstests list and maintainer in CC, because this is where this
-> >> patch in meant to go.
-> >>
-> >> Eryu,
-> >>
-> >> This test is expected to fail with overlayfs on current upstream and
-> >> any past version
-> >> AFAIK.
-> >> Do you this it qualifies for a specific overlay/* regression test? or
-> >> that generic/* test
-> >> would be sufficient to cover the overlayfs issue?
-> >
-> > If it reproduces the overlay bug without any special overlay setup, a
-> > generic test would be good, other filesystems could benefit from this
-> > test too.
-> >
-> > And Chengguang, can you please send the full version of the test to
-> > fstests@vger.kernel.org again? I can only see and comment on the trimmed
-> > version now.
-> 
-> Yeh, sorry about that. Attaching patch here until v2 is posted to fstests.
-> 
-> 
-> >>
-> >> On Thu, Nov 30, 2017 at 4:43 AM, Chengguang Xu <cgxu@mykernel.net> wrote:
-> >> > generic/470 should be skipped when delalloc is not supported.
-> >
-> > What happens if there's no delalloc support? If test fails due to that's
-> > not a valid setup or wrong usage of overlay (I highly doubt it :), I
-> > agree we should _notrun in this case. If test passes without reproducing
-> > the bug, I'd prefer continuing run the test to get better test coverage,
-> > just write comments to describe this case.
-> >
-> >> >
-> >>
-> >> Test looks very good. One minor nit below.
-> >>
-> >>
-> >> Not sure why you choose the minor detail in the line above as the
-> >> commit description?
-> >> Seems like the text in the top comment of the test would have been also
-> >> appropriate for commit description.
-> >
-> > Yeah, please describe the test purpose in commit log, if you're testing
-> > a specific overlay bug, describe that bug too and refering to the patch
-> > that fixed the bug would be good. And it's worth mentioning the test
-> > behavior when delalloc is not supported.
-> >
-> 
-> Test is not_run when delalloc is not supported.
-> I should explain.
-> This test is inspired by a simple test script I wrote
-> https://github.com/amir73il/overlayfs/blob/master/tests/xfs_syncfs.sh
-> 
-> At the time when I *thought* I fixed syncfs, I couldn't figure out a way
-> to write a generic test so I left it at that.
-> 
-> The delalloc trick, which I recently added to the script is just a very cheap
-> way of testing that inode pages are flushed.
-> If fs doesn't support delalloc, then test would have to use dm-flakey or a like
-> and compare size/md5sum on disk to expected.
-> That is a much more heavy weight test and I can't think of how to combine
-> dm-flakey setup with overlay setup.
-> 
-> It is just too much of a hustle considering that the delalloc trick is so cheap
-> and works on several major fs.
+Overlayfs is following redirects even when redirects are disabled. If this
+is unintentional (probably the majority of cases) then this can be a
+problem.  E.g. upper layer comes from untrusted USB drive, and attacker
+crafts a redirect to enable read access to otherwise unreadable
+directories.
 
-FWIW, this just seems like an unreliable hack to me.
+If "redirect=off", then turn off following as well as creation of
+redirects.  If "redirect=follow", then turn on following, but turn off
+creation of redirects (which is what "redirect=off" does now).
 
-It doesn't actually validate any of the guarantees that sync/fsync
-is supposed to provide, just that "there aren't any delalloc
-extents". That, in itself, is a racy check, because other
-events can cause the filesystem to convert delalloc extents to
-something else without the intervention of sync. e.g. dirty
-background writeback kicking in, journal checkpoint on
-ext4 in ordered mode kicking data writeback, etc.
+This is a backward incompatible change, so make it dependent on a config
+option.
 
-And it isn't actually testing data integrity, and it's not even
-checking that the correct data has been written.
+Reported-by: David Howells <dhowells@redhat.com>
+Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
+---
+ fs/overlayfs/Kconfig     |   18 ++++++++++++++++++
+ fs/overlayfs/namei.c     |   16 ++++++++++++++++
+ fs/overlayfs/ovl_entry.h |    1 +
+ fs/overlayfs/super.c     |   17 ++++++++++++++++-
+ 4 files changed, 51 insertions(+), 1 deletion(-)
 
-So why would we want this as a generic test? It doesn't add any
-additional test coverage - all it does is increase the runtime of
-filesystem testing. I don't see any benefit here...
-
-> I suggest to merge this test as is and add commentary about the possibility
-> of false negative.
-
-That's also sufficient grounds to say "bad test, don't merge".
-
-Cheers,
-
-Dave.
--- 
-Dave Chinner
-david@fromorbit.com
+--- a/fs/overlayfs/namei.c
++++ b/fs/overlayfs/namei.c
+@@ -681,6 +681,22 @@ struct dentry *ovl_lookup(struct inode *
+ 		if (d.stop)
+ 			break;
+ 
++		/*
++		 * Following redirects can have security consequences: it's like
++		 * a symlink into the lower layer without the permission checks.
++		 * This is only a problem if the upper layer is untrusted (e.g
++		 * comes from an USB drive).  This can allow a non-readable file
++		 * or directory to become readable.
++		 *
++		 * Only following redirects when redirects are enabled disables
++		 * this attack vector when not necessary.
++		 */
++		err = -EPERM;
++		if (d.redirect && !ofs->config.redirect_follow) {
++			pr_warn_ratelimited("overlay: refusing to follow redirect for (%pd2)\n", dentry);
++			goto out_put;
++		}
++
+ 		if (d.redirect && d.redirect[0] == '/' && poe != roe) {
+ 			poe = roe;
+ 
+--- a/fs/overlayfs/Kconfig
++++ b/fs/overlayfs/Kconfig
+@@ -24,6 +24,24 @@ config OVERLAY_FS_REDIRECT_DIR
+ 	  an overlay which has redirects on a kernel that doesn't support this
+ 	  feature will have unexpected results.
+ 
++config OVERLAY_FS_REDIRECT_ALWAYS_FOLLOW
++	bool "Overlayfs: follow redirects even if redirects are turned off"
++	default y
++	depends on OVERLAY_FS
++	help
++	  Disable this to get a possibly more secure configuration, but that
++	  might not be backward compatible with previous kernels.
++
++	  In previous kernels which contain directory redirect support, or if
++	  this this option is turned on, then overlay filesystems will follow
++	  redirects, regardless of whether redirection is turned on or off (even
++	  if OVERLAY_FS_REDIRECT_DIR config option is disabled)
++
++	  If this config option is disabled, then overlay filesystems will only
++	  follow redirects if they are turned on explicitly with
++	  "redirect_dir=on" or "redirect_dir=follow" or are on by default (in
++	  which case following can still be turned off with "redirect_dir=off").
++
+ config OVERLAY_FS_INDEX
+ 	bool "Overlayfs: turn on inodes index feature by default"
+ 	depends on OVERLAY_FS
+--- a/fs/overlayfs/ovl_entry.h
++++ b/fs/overlayfs/ovl_entry.h
+@@ -14,6 +14,7 @@ struct ovl_config {
+ 	char *workdir;
+ 	bool default_permissions;
+ 	bool redirect_dir;
++	bool redirect_follow;
+ 	bool index;
+ };
+ 
+--- a/fs/overlayfs/super.c
++++ b/fs/overlayfs/super.c
+@@ -33,6 +33,9 @@ module_param_named(redirect_dir, ovl_red
+ MODULE_PARM_DESC(ovl_redirect_dir_def,
+ 		 "Default to on or off for the redirect_dir feature");
+ 
++static const bool ovl_redirect_follow_def =
++	IS_ENABLED(CONFIG_OVERLAY_FS_REDIRECT_ALWAYS_FOLLOW);
++
+ static bool ovl_index_def = IS_ENABLED(CONFIG_OVERLAY_FS_INDEX);
+ module_param_named(index, ovl_index_def, bool, 0644);
+ MODULE_PARM_DESC(ovl_index_def,
+@@ -315,7 +318,8 @@ static int ovl_show_options(struct seq_f
+ 		seq_puts(m, ",default_permissions");
+ 	if (ofs->config.redirect_dir != ovl_redirect_dir_def)
+ 		seq_printf(m, ",redirect_dir=%s",
+-			   ofs->config.redirect_dir ? "on" : "off");
++			   ofs->config.redirect_dir ? "on" :
++			   (ofs->config.redirect_follow ? "follow" : "off"));
+ 	if (ofs->config.index != ovl_index_def)
+ 		seq_printf(m, ",index=%s",
+ 			   ofs->config.index ? "on" : "off");
+@@ -349,6 +353,7 @@ enum {
+ 	OPT_WORKDIR,
+ 	OPT_DEFAULT_PERMISSIONS,
+ 	OPT_REDIRECT_DIR_ON,
++	OPT_REDIRECT_DIR_FOLLOW,
+ 	OPT_REDIRECT_DIR_OFF,
+ 	OPT_INDEX_ON,
+ 	OPT_INDEX_OFF,
+@@ -361,6 +366,7 @@ static const match_table_t ovl_tokens =
+ 	{OPT_WORKDIR,			"workdir=%s"},
+ 	{OPT_DEFAULT_PERMISSIONS,	"default_permissions"},
+ 	{OPT_REDIRECT_DIR_ON,		"redirect_dir=on"},
++	{OPT_REDIRECT_DIR_FOLLOW,	"redirect_dir=follow"},
+ 	{OPT_REDIRECT_DIR_OFF,		"redirect_dir=off"},
+ 	{OPT_INDEX_ON,			"index=on"},
+ 	{OPT_INDEX_OFF,			"index=off"},
+@@ -430,10 +436,17 @@ static int ovl_parse_opt(char *opt, stru
+ 
+ 		case OPT_REDIRECT_DIR_ON:
+ 			config->redirect_dir = true;
++			config->redirect_follow = true;
++			break;
++
++		case OPT_REDIRECT_DIR_FOLLOW:
++			config->redirect_dir = false;
++			config->redirect_follow = true;
+ 			break;
+ 
+ 		case OPT_REDIRECT_DIR_OFF:
+ 			config->redirect_dir = false;
++			config->redirect_follow = ovl_redirect_follow_def;
+ 			break;
+ 
+ 		case OPT_INDEX_ON:
+@@ -1161,6 +1174,8 @@ static int ovl_fill_super(struct super_b
+ 		goto out_err;
+ 
+ 	ofs->config.redirect_dir = ovl_redirect_dir_def;
++	ofs->config.redirect_follow =
++		ovl_redirect_follow_def || ofs->config.redirect_dir;
+ 	ofs->config.index = ovl_index_def;
+ 	err = ovl_parse_opt((char *) data, &ofs->config);
+ 	if (err)
