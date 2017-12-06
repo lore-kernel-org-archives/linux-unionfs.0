@@ -1,122 +1,47 @@
-From: Chengguang Xu <cgxu519@icloud.com>
-Subject: Re: [PATCH 1/2] common/rc: Add syncfs check and a helper
- _scratch_shutdown()
-Date: Wed, 06 Dec 2017 08:59:17 +0800
-Message-ID: <5AFB9273-A9AE-4E2B-A446-56C465404B85@icloud.com>
-References: <2D8A66F2-6AB9-4B7D-90B0-D3B6807FB353@icloud.com>
- <CAOQ4uxi35dTxBJSXPjVnx7Ei+Mfud2370Pikzf6KEESpGLdFog@mail.gmail.com>
- <20171205171416.GO2749@eguan.usersys.redhat.com>
-Mime-Version: 1.0 (Mac OS X Mail 11.1 \(3445.4.7\))
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+From: Miklos Szeredi <miklos@szeredi.hu>
+Subject: Re: [ANNOUNCE] unionmount-testsuite: Amir's master branch updated
+Date: Wed, 6 Dec 2017 10:09:20 +0100
+Message-ID: <CAJfpegtJTAF1JBr380UdAAky+4iXHCxaTWeB9bhFvwm5pVGqAw@mail.gmail.com>
+References: <CAOQ4uxiiaiq8dettBvZScC59KV-07B-muxE3SS60BDK3dugJow@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from pv43p51im-ztdg06051601.me.com ([17.133.164.142]:23848 "EHLO
-        pv43p51im-ztdg06051601.me.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753362AbdLFA71 (ORCPT
+Received: from mail-qt0-f178.google.com ([209.85.216.178]:46070 "EHLO
+        mail-qt0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754417AbdLFJJW (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 5 Dec 2017 19:59:27 -0500
-In-reply-to: <20171205171416.GO2749@eguan.usersys.redhat.com>
+        Wed, 6 Dec 2017 04:09:22 -0500
+Received: by mail-qt0-f178.google.com with SMTP id g10so7233541qtj.12
+        for <linux-unionfs@vger.kernel.org>; Wed, 06 Dec 2017 01:09:21 -0800 (PST)
+In-Reply-To: <CAOQ4uxiiaiq8dettBvZScC59KV-07B-muxE3SS60BDK3dugJow@mail.gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Eryu Guan <eguan@redhat.com>
-Cc: Amir Goldstein <amir73il@gmail.com>, fstests <fstests@vger.kernel.org>, overlayfs <linux-unionfs@vger.kernel.org>
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: overlayfs <linux-unionfs@vger.kernel.org>, David Howells <dhowells@redhat.com>, fstests <fstests@vger.kernel.org>
 
-
-> =E5=9C=A8 2017=E5=B9=B412=E6=9C=886=E6=97=A5=EF=BC=8C=E4=B8=8A=E5=8D=881=
-:14=EF=BC=8CEryu Guan <eguan@redhat.com> =E5=86=99=E9=81=93=EF=BC=9A
->=20
-> On Tue, Dec 05, 2017 at 06:13:35PM +0200, Amir Goldstein wrote:
->> On Tue, Dec 5, 2017 at 5:50 PM, Chengguang Xu <cgxu519@icloud.com> =
-wrote:
->>> 1. Add a check case in _require_xfs_io_command() to support syncfs.
->>> 2. Introduce a helper to support scratch shutdown for overlayfs.
->>>=20
->>> Signed-off-by: Chengguang Xu <cgxu519@icloud.com>
->>> ---
->>> common/rc | 22 ++++++++++++++++++++--
->>> 1 file changed, 20 insertions(+), 2 deletions(-)
->>>=20
->>> diff --git a/common/rc b/common/rc
->>> index 4c053a5..e36ee24 100644
->>> --- a/common/rc
->>> +++ b/common/rc
->>> @@ -669,6 +669,21 @@ _scratch_cleanup_files()
->>>        esac
->>> }
->>>=20
->>> +_scratch_shutdown()
->>> +{
->>> +
->>> +       case $FSTYP in
->>> +       overlay)
->>=20
->> Looks good,
->> but first you need to check for [ -z "$OVL_BASE_SCRATCH_MNT" ]
->> meaning that tester is using "old" overlay config and we are not =
-allowed to
->> mess with base fs.
->=20
-> Agreed, we don't want to shutdown the root fs accidently.
-
-If "$OVL_BASE_SCRATCH_MNT=E2=80=9D is nothing, godown command should =
-fail for improper param, right?
-I don=E2=80=99t clearly know how it makes rootfs shutdown.
-you mean I need to check for [ "$OVL_BASE_SCRATCH_MNT=E2=80=9D =3D =
-=E2=80=9C/=E2=80=9C ] ?
-
->=20
->>=20
->>> +               src/godown -f $OVL_BASE_SCRATCH_MNT 2>&1 \
->>> +                       || _notrun "Underlying filesystem does not =
-support shutdown"
->>> +               ;;
->>> +       *)
->>> +               src/godown -f $SCRATCH_MNT 2>&1 \
->>> +                       || _notrun "$FSTYP does not support =
-shutdown"
->>> +               ;;
->>> +       esac
->>> +}
->=20
-> I think this _scratch_shutdown() should be folded into
-> _require_scratch_shutdown(). The name _scratch_shutdown indicates it
-> shuts down the scratch device, and call _notrun from it would be a
-> surprise to users.
->=20
->>> +
->>> _scratch_mkfs()
->>> {
->>>        local mkfs_cmd=3D""
->>> @@ -2087,6 +2102,10 @@ _require_xfs_io_command()
->>>        "utimes" )
->>>                testio=3D`$XFS_IO_PROG -f -c "utimes" 0 0 0 0 =
-$testfile 2>&1`
->>>                ;;
->>> +       "syncfs")
->>> +               touch $testfile
->>> +               testio=3D`$XFS_IO_PROG -c "syncfs" $testfile 2>&1`
->>> +               ;;
->>>        *)
->=20
-> This part should be in a separate patch.
->=20
+On Tue, Dec 5, 2017 at 9:20 PM, Amir Goldstein <amir73il@gmail.com> wrote:
+> Hi All,
+>
+> The master branch on my unionmount-testsuite tree [1] has been updated.
+>
+> The head of the master branch is commit:
+> 6d04664 Add a test for rename over empty union dir
+>
+> This small update contains:
+> - A few new simple dir rename and dir remove tests
+> - A fix for running on kernel <= v4.9 with no redirect_dir support
+> - A new setup option --squashfs to setup lower as read-only squashfs
+>
+> With index enabled, there are no known failures.
+> With index disabled this test fails on non-constant st_ino for lower hardlink
+> copy up:
+>   run --ov=1 --samefs --verify rename-mass-5
+>
 > Thanks,
-> Eryu
->=20
->>>                testio=3D`$XFS_IO_PROG -c "help $command" 2>&1`
->>>        esac
->>> @@ -2908,8 +2927,7 @@ _require_scratch_shutdown()
->>>=20
->>>        _scratch_mkfs > /dev/null 2>&1
->>>        _scratch_mount
->>> -       src/godown -f $SCRATCH_MNT 2>&1 \
->>> -               || _notrun "$FSTYP does not support shutdown"
->>> +       _scratch_shutdown
->>>        _scratch_unmount
->>> }
->>>=20
->>> =E2=80=94
->>> 1.8.3.1
+> Amir.
+>
+> [1] https://github.com/amir73il/unionmount-testsuite
 
-Thanks,
-cgxu
+Thanks for also taking care of this useful resource!
+
+Miklos
