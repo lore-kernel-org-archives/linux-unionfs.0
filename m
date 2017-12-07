@@ -1,80 +1,139 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [PATCH v2 1/3] common/rc: add scratch shutdown support for overlayfs
-Date: Thu, 7 Dec 2017 04:54:04 +0200
-Message-ID: <CAOQ4uxgUj8GtznejtF=3L4VMd-N2-MsgCb-+h=3OkOv5hFCvnQ@mail.gmail.com>
-References: <1512613327-218016-1-git-send-email-cgxu519@icloud.com>
+Subject: Re: [PATCH v2 3/3] generic/470: add syncfs test
+Date: Thu, 7 Dec 2017 05:04:58 +0200
+Message-ID: <CAOQ4uxi365BqeeXr8xs3Z+d2S1KWVfnpY_+t=vFeya02_ErmMg@mail.gmail.com>
+References: <1512613327-218016-1-git-send-email-cgxu519@icloud.com> <1512613327-218016-3-git-send-email-cgxu519@icloud.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-yw0-f194.google.com ([209.85.161.194]:45535 "EHLO
-        mail-yw0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751990AbdLGCyF (ORCPT
+Received: from mail-yb0-f179.google.com ([209.85.213.179]:35966 "EHLO
+        mail-yb0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752430AbdLGDE7 (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 6 Dec 2017 21:54:05 -0500
-In-Reply-To: <1512613327-218016-1-git-send-email-cgxu519@icloud.com>
+        Wed, 6 Dec 2017 22:04:59 -0500
+In-Reply-To: <1512613327-218016-3-git-send-email-cgxu519@icloud.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: Chengguang Xu <cgxu519@icloud.com>
 Cc: Eryu Guan <eguan@redhat.com>, fstests <fstests@vger.kernel.org>, overlayfs <linux-unionfs@vger.kernel.org>
 
 On Thu, Dec 7, 2017 at 4:22 AM, Chengguang Xu <cgxu519@icloud.com> wrote:
+> Inspired by syncfs bug of overlayfs which does not sync dirtyinodes in
+> underlying filesystem.
+> Run syncfs and shutdown filesystem(or underlying filesystem of overlayfs)
+> to check syncfs result.
+>
 > Signed-off-by: Chengguang Xu <cgxu519@icloud.com>
 > ---
 >
 > Changes since v1:
-> _scratch_shutdown() does not call notrun.
+> Use fs shutdown and fssum to check syncfs result instead of
+> checking delalloc state of extents.
 >
->  common/rc | 24 ++++++++++++++++++++++--
->  1 file changed, 22 insertions(+), 2 deletions(-)
+>  tests/generic/470     | 88 +++++++++++++++++++++++++++++++++++++++++++++++++++
+>  tests/generic/470.out |  2 ++
+>  tests/generic/group   |  1 +
+>  3 files changed, 91 insertions(+)
+>  create mode 100755 tests/generic/470
+>  create mode 100644 tests/generic/470.out
 >
-> diff --git a/common/rc b/common/rc
-> index 4c053a5..911dba3 100644
-> --- a/common/rc
-> +++ b/common/rc
-> @@ -382,6 +382,15 @@ _scratch_cycle_mount()
->      _scratch_mount "$opts"
->  }
->
-> +_scratch_shutdown()
+> diff --git a/tests/generic/470 b/tests/generic/470
+> new file mode 100755
+> index 0000000..b488747
+> --- /dev/null
+> +++ b/tests/generic/470
+> @@ -0,0 +1,88 @@
+> +#! /bin/bash
+> +# FS QA Test 470
+> +#
+> +# Inspired by syncfs bug of overlayfs which does not sync dirty inodes in
+> +# underlying filesystem.
+> +#
+> +# Run syncfs and shutdown filesystem(or underlying filesystem of overlayfs)
+> +# to check syncfs result.
+> +#
+> +# Test will be skipped if filesystem(or underlying filesystem of overlayfs)
+> +# does not support shutdown.
+> +#
+> +#-----------------------------------------------------------------------
+> +# Copyright (c) 2017 Chengguang Xu <cgxu519@icloud.com>
+> +# All Rights Reserved.
+> +#
+> +# This program is free software; you can redistribute it and/or
+> +# modify it under the terms of the GNU General Public License as
+> +# published by the Free Software Foundation.
+> +#
+> +# This program is distributed in the hope that it would be useful,
+> +# but WITHOUT ANY WARRANTY; without even the implied warranty of
+> +# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> +# GNU General Public License for more details.
+> +#
+> +# You should have received a copy of the GNU General Public License
+> +# along with this program; if not, write the Free Software Foundation,
+> +# Inc.,  51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+> +#-----------------------------------------------------------------------
+> +#
+> +
+> +seq=`basename $0`
+> +seqres=$RESULT_DIR/$seq
+> +echo "QA output created by $seq"
+> +
+> +here=`pwd`
+> +tmp=/tmp/$$
+> +status=1
+> +trap "_cleanup; exit \$status" 0 1 2 3 15
+> +
+> +_cleanup()
 > +{
-> +       if [ $FSTYP = "overlay" ]; then
-
-You need the OVL_BASE_SCRATCH_DEV protection here as well.
-Yes, test SHOULD have _require_scratch_shutdown() before calling
-_scratch_shutdown(), but if test is not compliant worst case is that
-test "fails" instead of "not run", but NOT that host fs is shutdown.
-
-> +               src/godown -f $OVL_BASE_SCRATCH_MNT
-> +       else
-> +               src/godown -f $SCRATCH_MNT
-> +       fi
+> +       cd /
+> +       rm -f $tmp.*
 > +}
 > +
->  _test_mount()
->  {
->      if [ "$FSTYP" == "overlay" ]; then
-> @@ -2908,8 +2917,19 @@ _require_scratch_shutdown()
->
->         _scratch_mkfs > /dev/null 2>&1
->         _scratch_mount
-> -       src/godown -f $SCRATCH_MNT 2>&1 \
-> -               || _notrun "$FSTYP does not support shutdown"
+> +# get standard environment, filters and checks
+> +. ./common/rc
+> +. ./common/filter
 > +
-> +       if [ $FSTYP = "overlay" ]; then
-> +               if [ -z $OVL_BASE_SCRATCH_DEV ]; then
-> +                       _notrun "$SCRATCH_DEV is not a block device"
-> +               else
-> +                       src/godown -f $OVL_BASE_SCRATCH_MNT 2>&1 \
-> +                       || _notrun "Underlying filesystem does not support shutdown"
-> +               fi
-> +       else
-> +               src/godown -f $SCRATCH_MNT 2>&1 \
-> +                       || _notrun "$FSTYP does not support shutdown"
-> +       fi
+> +# remove previous $seqres.full before test
+> +rm -f $seqres.full
 > +
->         _scratch_unmount
->  }
->
-> --
-> 1.8.3.1
->
+> +# real QA test starts here
+> +
+> +_supported_fs generic
+> +_supported_os Linux
+> +_require_test
+> +_require_fssum
+> +_require_scratch
+> +_require_scratch_shutdown
+> +_require_xfs_io_command "syncfs"
+> +
+> +
+> +FCNT=1000
+> +
+> +_scratch_mkfs >/dev/null 2>&1
+> +_scratch_mount
+> +
+> +# In order to mitigate interference of write-back,
+> +# create many files for test.
+> +for i in `seq 1 $FCNT`; do
+> +       $XFS_IO_PROG -f -c "pwrite 1K 1M" \
+> +               $SCRATCH_MNT/$i >/dev/null 2>&1
+> +done
+> +
+> +$FSSUM_PROG -ugomAcdES -f -w $TEST_DIR/before_test $SCRATCH_MNT
+> +$XFS_IO_PROG -c "syncfs" $SCRATCH_MNT/${FCNT} >/dev/null 2>&1
+> +_scratch_shutdown
+> +_scratch_cycle_mount
+> +$FSSUM_PROG -ugomAcdES -f -w $TEST_DIR/after_test $SCRATCH_MNT
+> +diff $TEST_DIR/before_test $TEST_DIR/after_test
+
+Just FYI, md5sum can take multiple files so this can be written as:
+
+md5sum $SCRATCH_MNT/$i > $TEST_DIR/before_test
+...
+md5sum -c $TEST_DIR/before_test > /dev/null 2>&1
+
+Which reads a lot simpler to me.  At least I don't know what 'ugomAcdES'
+stands for and for this simple use case I probably don't need to know.
+
+Cheers,
+Amir.
