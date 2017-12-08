@@ -1,34 +1,79 @@
-From: David Howells <dhowells@redhat.com>
-Subject: Re: [RFC PATCH v2] ovl: don't follow redirects if redirect_dir=off
-Date: Fri, 08 Dec 2017 14:36:48 +0000
-Message-ID: <30533.1512743808@warthog.procyon.org.uk>
-References: <20171206150333.GB24303@veci.piliscsaba.redhat.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Subject: Re: [ANNOUNCE] unionmount-testsuite: Amir's master branch updated
+Date: Fri, 8 Dec 2017 18:29:53 +0200
+Message-ID: <CAOQ4uxjM6ZLcyU5-nQXz=T98kuhMrCJ+1df85-19QJQjrr7JiA@mail.gmail.com>
+References: <CAOQ4uxiiaiq8dettBvZScC59KV-07B-muxE3SS60BDK3dugJow@mail.gmail.com>
+ <20171206181700.GA7967@redhat.com> <CAOQ4uxhTWV=ZwDK2DQS2KYux7fufoz0sc7Sv+9dz59gnM1u8+w@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:59532 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753691AbdLHOgv (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 8 Dec 2017 09:36:51 -0500
-In-Reply-To: <20171206150333.GB24303@veci.piliscsaba.redhat.com>
-Content-ID: <30532.1512743808.1@warthog.procyon.org.uk>
+Received: from mail-yb0-f178.google.com ([209.85.213.178]:37009 "EHLO
+        mail-yb0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754545AbdLHQ3z (ORCPT
+        <rfc822;linux-unionfs@vger.kernel.org>);
+        Fri, 8 Dec 2017 11:29:55 -0500
+In-Reply-To: <CAOQ4uxhTWV=ZwDK2DQS2KYux7fufoz0sc7Sv+9dz59gnM1u8+w@mail.gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: dhowells@redhat.com, linux-unionfs@vger.kernel.org, Amir Goldstein <amir73il@gmail.com>, Vivek Goyal <vgoyal@redhat.com>
+To: Vivek Goyal <vgoyal@redhat.com>
+Cc: overlayfs <linux-unionfs@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>, David Howells <dhowells@redhat.com>, fstests <fstests@vger.kernel.org>, Chandan Rajendra <chandan@linux.vnet.ibm.com>
 
-Miklos Szeredi <miklos@szeredi.hu> wrote:
+On Wed, Dec 6, 2017 at 9:14 PM, Amir Goldstein <amir73il@gmail.com> wrote:
+> On Wed, Dec 6, 2017 at 8:17 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
+>> On Tue, Dec 05, 2017 at 10:20:25PM +0200, Amir Goldstein wrote:
+>>> Hi All,
+>>>
+>>> The master branch on my unionmount-testsuite tree [1] has been updated.
+>>>
+>>> The head of the master branch is commit:
+>>> 6d04664 Add a test for rename over empty union dir
+>>>
+>>> This small update contains:
+>>> - A few new simple dir rename and dir remove tests
+>>> - A fix for running on kernel <= v4.9 with no redirect_dir support
+>>> - A new setup option --squashfs to setup lower as read-only squashfs
+>>>
+>>
+>> Hi Amir,
+>>
+>> It would be nice to also update README file and explain different options.
+>
+> Yes, that would be nice... will get to it some day if someone doesn't
+> beat me to it.
+>
+>>
+>> Also, how to test with different mount options enabled/disable (index,
+>> redirect etc).
+>>
+>
+> A preview for README:
+> Basically, the testsuite tests for correctness, so if correctness requires
+> enabling a feature, then testsuite will fail without the feature, but there are
+> some historical exceptions:
+> - testsuite predates redirect_dir, so I let the testsuite auto detect
+> redirect_dir
+>   and kept the "expect EXDEV" logic for redirect_dir disabled
+> - until quite recently st_ino was not constant on copy up in most cases,
+>   so the verification of constant ino was added as an opt-in feature
+> with --verify
+>
+>
+>>> With index enabled, there are no known failures.
+>>> With index disabled this test fails on non-constant st_ino for lower hardlink
+>>> copy up:
+>>>   run --ov=1 --samefs --verify rename-mass-5
+>
+> Thus, this test fails because with index disabled, hardlink is broken on copy up
+> and does not preserve st_ino.
+>
 
-> +	const char *redirect_mode;
-> ...
-> +	kfree(ofs->config.redirect_mode);
+Vivek,
 
-That's going to get you a compiler warning under some circumstances.
+I added documentation about all the features I added to unionmount-testsuite at:
+https://github.com/amir73il/overlayfs/wiki/Overlayfs-testing#Unionmount_testsuite
 
-> +			config->redirect_mode = match_strdup(&args[0]);
+Will add that link to README on the next master branch update.
+Let me know if there is anything missing for you in this wiki page.
 
-We shouldn't really be copying the string if we can help it, though I grant we
-may not have the match_*() function to do otherwise at the moment.  I would
-much prefer seeing it rendered to an enum value at this point.
-
-David
+Thanks,
+Amir.
