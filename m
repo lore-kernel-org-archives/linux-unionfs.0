@@ -1,79 +1,49 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [ANNOUNCE] unionmount-testsuite: Amir's master branch updated
-Date: Fri, 8 Dec 2017 18:29:53 +0200
-Message-ID: <CAOQ4uxjM6ZLcyU5-nQXz=T98kuhMrCJ+1df85-19QJQjrr7JiA@mail.gmail.com>
-References: <CAOQ4uxiiaiq8dettBvZScC59KV-07B-muxE3SS60BDK3dugJow@mail.gmail.com>
- <20171206181700.GA7967@redhat.com> <CAOQ4uxhTWV=ZwDK2DQS2KYux7fufoz0sc7Sv+9dz59gnM1u8+w@mail.gmail.com>
+Subject: Re: [RFC PATCH v2] ovl: don't follow redirects if redirect_dir=off
+Date: Sun, 10 Dec 2017 08:29:11 +0200
+Message-ID: <CAOQ4uxj0wXKbUZ2m=rH=89w+ZP_vibCH_ND2saC05kt19ApcxA@mail.gmail.com>
+References: <20171206150333.GB24303@veci.piliscsaba.redhat.com> <30533.1512743808@warthog.procyon.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-yb0-f178.google.com ([209.85.213.178]:37009 "EHLO
-        mail-yb0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754545AbdLHQ3z (ORCPT
+Received: from mail-yw0-f174.google.com ([209.85.161.174]:36000 "EHLO
+        mail-yw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751240AbdLJG3M (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 8 Dec 2017 11:29:55 -0500
-In-Reply-To: <CAOQ4uxhTWV=ZwDK2DQS2KYux7fufoz0sc7Sv+9dz59gnM1u8+w@mail.gmail.com>
+        Sun, 10 Dec 2017 01:29:12 -0500
+Received: by mail-yw0-f174.google.com with SMTP id r205so6582566ywb.3
+        for <linux-unionfs@vger.kernel.org>; Sat, 09 Dec 2017 22:29:12 -0800 (PST)
+In-Reply-To: <30533.1512743808@warthog.procyon.org.uk>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Vivek Goyal <vgoyal@redhat.com>
-Cc: overlayfs <linux-unionfs@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>, David Howells <dhowells@redhat.com>, fstests <fstests@vger.kernel.org>, Chandan Rajendra <chandan@linux.vnet.ibm.com>
+To: David Howells <dhowells@redhat.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, overlayfs <linux-unionfs@vger.kernel.org>, Vivek Goyal <vgoyal@redhat.com>
 
-On Wed, Dec 6, 2017 at 9:14 PM, Amir Goldstein <amir73il@gmail.com> wrote:
-> On Wed, Dec 6, 2017 at 8:17 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
->> On Tue, Dec 05, 2017 at 10:20:25PM +0200, Amir Goldstein wrote:
->>> Hi All,
->>>
->>> The master branch on my unionmount-testsuite tree [1] has been updated.
->>>
->>> The head of the master branch is commit:
->>> 6d04664 Add a test for rename over empty union dir
->>>
->>> This small update contains:
->>> - A few new simple dir rename and dir remove tests
->>> - A fix for running on kernel <= v4.9 with no redirect_dir support
->>> - A new setup option --squashfs to setup lower as read-only squashfs
->>>
->>
->> Hi Amir,
->>
->> It would be nice to also update README file and explain different options.
+On Fri, Dec 8, 2017 at 4:36 PM, David Howells <dhowells@redhat.com> wrote:
+> Miklos Szeredi <miklos@szeredi.hu> wrote:
 >
-> Yes, that would be nice... will get to it some day if someone doesn't
-> beat me to it.
+>> +     const char *redirect_mode;
+>> ...
+>> +     kfree(ofs->config.redirect_mode);
 >
->>
->> Also, how to test with different mount options enabled/disable (index,
->> redirect etc).
->>
+> That's going to get you a compiler warning under some circumstances.
 >
-> A preview for README:
-> Basically, the testsuite tests for correctness, so if correctness requires
-> enabling a feature, then testsuite will fail without the feature, but there are
-> some historical exceptions:
-> - testsuite predates redirect_dir, so I let the testsuite auto detect
-> redirect_dir
->   and kept the "expect EXDEV" logic for redirect_dir disabled
-> - until quite recently st_ino was not constant on copy up in most cases,
->   so the verification of constant ino was added as an opt-in feature
-> with --verify
+>> +                     config->redirect_mode = match_strdup(&args[0]);
 >
->
->>> With index enabled, there are no known failures.
->>> With index disabled this test fails on non-constant st_ino for lower hardlink
->>> copy up:
->>>   run --ov=1 --samefs --verify rename-mass-5
->
-> Thus, this test fails because with index disabled, hardlink is broken on copy up
-> and does not preserve st_ino.
+> We shouldn't really be copying the string if we can help it, though I grant we
+> may not have the match_*() function to do otherwise at the moment.  I would
+> much prefer seeing it rendered to an enum value at this point.
 >
 
-Vivek,
+If we store config->redirect_mode as bitmask, then it would be nicer
+for testing redirect/follow independently as Miklos wanted and it would
+be still nice for checking if mode is not the default, i.e.:
 
-I added documentation about all the features I added to unionmount-testsuite at:
-https://github.com/amir73il/overlayfs/wiki/Overlayfs-testing#Unionmount_testsuite
+#define OVL_REDIRECT_DIR 0x1 /* flag casted from bool ovl_redirect_dir_def */
+#define OVL_REDIRECT_FOLLOW 0x2
 
-Will add that link to README on the next master branch update.
-Let me know if there is anything missing for you in this wiki page.
+       if (ofs->config.redirect_mode != (unsigned) ovl_redirect_dir_def)
+               seq_printf(m, ",redirect_dir=%s", ovl_redirect_mode_str(ofs));
 
-Thanks,
+
 Amir.
