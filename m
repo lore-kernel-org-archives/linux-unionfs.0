@@ -1,44 +1,56 @@
-From: Miklos Szeredi <miklos@szeredi.hu>
-Subject: Re: [RFC PATCH v2] ovl: don't follow redirects if redirect_dir=off
-Date: Mon, 11 Dec 2017 10:33:28 +0100
-Message-ID: <CAJfpegsSNx_D+rEP+oe5+Pf-hoEVu-JRc7t8SqBA4uy9PRRaFA@mail.gmail.com>
-References: <20171206150333.GB24303@veci.piliscsaba.redhat.com> <30533.1512743808@warthog.procyon.org.uk>
+From: Amir Goldstein <amir73il@gmail.com>
+Subject: Re: [PATCH v2 3/3] generic/470: add syncfs test
+Date: Mon, 11 Dec 2017 12:46:36 +0200
+Message-ID: <CAOQ4uxjxtGd1+empZGX3OMXnYQoZ1YvL-HmKBUh3CBgFs2F1Aw@mail.gmail.com>
+References: <1512613327-218016-1-git-send-email-cgxu519@icloud.com>
+ <1512613327-218016-3-git-send-email-cgxu519@icloud.com> <20171207054418.GC2749@eguan.usersys.redhat.com>
+ <423B3F2E-73F1-4B29-93D7-BC6F1AA6CCC6@icloud.com> <20171207071317.GE2749@eguan.usersys.redhat.com>
+ <EB49C2D0-6500-4588-803F-40F4B9FA6DE3@icloud.com> <CAOQ4uxgiqZBKUksWv-0gomKP4Ov7NB6zUw2TdnzUz7x6VUcpUw@mail.gmail.com>
+ <E541A51A-D9B3-4596-8222-453132512449@icloud.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-qt0-f175.google.com ([209.85.216.175]:45815 "EHLO
-        mail-qt0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751307AbdLKJda (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 11 Dec 2017 04:33:30 -0500
-Received: by mail-qt0-f175.google.com with SMTP id g10so36722950qtj.12
-        for <linux-unionfs@vger.kernel.org>; Mon, 11 Dec 2017 01:33:29 -0800 (PST)
-In-Reply-To: <30533.1512743808@warthog.procyon.org.uk>
-Sender: linux-unionfs-owner@vger.kernel.org
+Content-Transfer-Encoding: quoted-printable
+Return-path: <fstests-owner@vger.kernel.org>
+In-Reply-To: <E541A51A-D9B3-4596-8222-453132512449@icloud.com>
+Sender: fstests-owner@vger.kernel.org
+To: Chengguang Xu <cgxu519@icloud.com>
+Cc: Eryu Guan <eguan@redhat.com>, fstests <fstests@vger.kernel.org>, overlayfs <linux-unionfs@vger.kernel.org>
 List-Id: linux-unionfs@vger.kernel.org
-To: David Howells <dhowells@redhat.com>
-Cc: "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>, Amir Goldstein <amir73il@gmail.com>, Vivek Goyal <vgoyal@redhat.com>
 
-On Fri, Dec 8, 2017 at 3:36 PM, David Howells <dhowells@redhat.com> wrote:
-> Miklos Szeredi <miklos@szeredi.hu> wrote:
+On Mon, Dec 11, 2017 at 12:03 PM, Chengguang Xu <cgxu519@icloud.com> wrote:
+>>
+>> =E5=9C=A8 2017=E5=B9=B412=E6=9C=887=E6=97=A5=EF=BC=8C=E4=B8=8B=E5=8D=884=
+:17=EF=BC=8CAmir Goldstein <amir73il@gmail.com> =E5=86=99=E9=81=93=EF=BC=9A
+[...]
 >
->> +     const char *redirect_mode;
->> ...
->> +     kfree(ofs->config.redirect_mode);
+> I did more detail tests for three different data modes of ext4 and found
+> the overlayfs syncfs bug is reproducible on data=3Dordered and data=3Dwri=
+teback,
+> but on data=3Djournal mode, data is flushed and correct.
+
+That is expected, because overlayfs does call upper's sync_fs() method and
+for journal=3Ddata that will flush all dirty pages as well.
+
+> I only wrote only a few words
+> to a single file and the bug is always reproducible on my test environmen=
+t.
 >
-> That's going to get you a compiler warning under some circumstances.
-
-How so?  kfree() takes const void *, which is compatible with const char *.
-
+> For writeback interferences, AFAIK, from dirty ratio and period.
+> If we drop all dirty caches & sync before the test, I think we can
+> avoid interference from it.
 >
->> +                     config->redirect_mode = match_strdup(&args[0]);
+
+Why? does either drop_caches or sync() reset the flusher thread
+periodic flush dirty pages?
+
+> So if we don=E2=80=99t have anything else to interference test result,
+> I just want to modify to write a small single file as test target.
 >
-> We shouldn't really be copying the string if we can help it, though I grant we
-> may not have the match_*() function to do otherwise at the moment.  I would
-> much prefer seeing it rendered to an enum value at this point.
+> Am I missing anything?
 
-I think that's going into the bike shedding territory, and this shed
-is mine, so there ;-p
+I think the chance of flusher thread interfering the test and
+flushing the dirty page you wrote before _scratch_shutdown exists,
+but is small enough so we can neglect it and keep the test as simple
+as possible.
 
-Thanks,
-Miklos
+Amir.
