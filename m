@@ -1,101 +1,49 @@
-From: Amir Goldstein <amir73il@gmail.com>
+From: Vivek Goyal <vgoyal@redhat.com>
 Subject: Re: [ANNOUNCE] unionmount-testsuite: Amir's master branch updated
-Date: Mon, 11 Dec 2017 22:47:15 +0200
-Message-ID: <CAOQ4uxhb4yVTt29E0XFYY_OT_ubQ5w0Zgqojn=y7nH+XSZ90GA@mail.gmail.com>
+Date: Mon, 11 Dec 2017 15:59:12 -0500
+Message-ID: <20171211205912.GD13399@redhat.com>
 References: <CAOQ4uxiiaiq8dettBvZScC59KV-07B-muxE3SS60BDK3dugJow@mail.gmail.com>
- <20171206181700.GA7967@redhat.com> <CAOQ4uxhTWV=ZwDK2DQS2KYux7fufoz0sc7Sv+9dz59gnM1u8+w@mail.gmail.com>
- <CAOQ4uxjM6ZLcyU5-nQXz=T98kuhMrCJ+1df85-19QJQjrr7JiA@mail.gmail.com> <20171211195920.GA13399@redhat.com>
+ <20171206181700.GA7967@redhat.com>
+ <CAOQ4uxhTWV=ZwDK2DQS2KYux7fufoz0sc7Sv+9dz59gnM1u8+w@mail.gmail.com>
+ <CAOQ4uxjM6ZLcyU5-nQXz=T98kuhMrCJ+1df85-19QJQjrr7JiA@mail.gmail.com>
+ <20171211195920.GA13399@redhat.com>
+ <CAOQ4uxhb4yVTt29E0XFYY_OT_ubQ5w0Zgqojn=y7nH+XSZ90GA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-yb0-f175.google.com ([209.85.213.175]:40165 "EHLO
-        mail-yb0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750929AbdLKUrR (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 11 Dec 2017 15:47:17 -0500
-In-Reply-To: <20171211195920.GA13399@redhat.com>
+Received: from mx1.redhat.com ([209.132.183.28]:48582 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751234AbdLKU7N (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Mon, 11 Dec 2017 15:59:13 -0500
+Content-Disposition: inline
+In-Reply-To: <CAOQ4uxhb4yVTt29E0XFYY_OT_ubQ5w0Zgqojn=y7nH+XSZ90GA@mail.gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Vivek Goyal <vgoyal@redhat.com>
+To: Amir Goldstein <amir73il@gmail.com>
 Cc: overlayfs <linux-unionfs@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>, David Howells <dhowells@redhat.com>, fstests <fstests@vger.kernel.org>, Chandan Rajendra <chandan@linux.vnet.ibm.com>
 
-On Mon, Dec 11, 2017 at 9:59 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
-> On Fri, Dec 08, 2017 at 06:29:53PM +0200, Amir Goldstein wrote:
->> On Wed, Dec 6, 2017 at 9:14 PM, Amir Goldstein <amir73il@gmail.com> wrote:
->> > On Wed, Dec 6, 2017 at 8:17 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
->> >> On Tue, Dec 05, 2017 at 10:20:25PM +0200, Amir Goldstein wrote:
->> >>> Hi All,
->> >>>
->> >>> The master branch on my unionmount-testsuite tree [1] has been updated.
->> >>>
->> >>> The head of the master branch is commit:
->> >>> 6d04664 Add a test for rename over empty union dir
->> >>>
->> >>> This small update contains:
->> >>> - A few new simple dir rename and dir remove tests
->> >>> - A fix for running on kernel <= v4.9 with no redirect_dir support
->> >>> - A new setup option --squashfs to setup lower as read-only squashfs
->> >>>
->> >>
->> >> Hi Amir,
->> >>
->> >> It would be nice to also update README file and explain different options.
->> >
->> > Yes, that would be nice... will get to it some day if someone doesn't
->> > beat me to it.
->> >
->> >>
->> >> Also, how to test with different mount options enabled/disable (index,
->> >> redirect etc).
->> >>
->> >
->> > A preview for README:
->> > Basically, the testsuite tests for correctness, so if correctness requires
->> > enabling a feature, then testsuite will fail without the feature, but there are
->> > some historical exceptions:
->> > - testsuite predates redirect_dir, so I let the testsuite auto detect
->> > redirect_dir
->> >   and kept the "expect EXDEV" logic for redirect_dir disabled
->> > - until quite recently st_ino was not constant on copy up in most cases,
->> >   so the verification of constant ino was added as an opt-in feature
->> > with --verify
->> >
->> >
->> >>> With index enabled, there are no known failures.
->> >>> With index disabled this test fails on non-constant st_ino for lower hardlink
->> >>> copy up:
->> >>>   run --ov=1 --samefs --verify rename-mass-5
->> >
->> > Thus, this test fails because with index disabled, hardlink is broken on copy up
->> > and does not preserve st_ino.
->> >
->>
->> Vivek,
->>
->> I added documentation about all the features I added to unionmount-testsuite at:
->> https://github.com/amir73il/overlayfs/wiki/Overlayfs-testing#Unionmount_testsuite
->>
->> Will add that link to README on the next master branch update.
->> Let me know if there is anything missing for you in this wiki page.
->
-> Hi Amir,
->
-> Thanks a lot for this documentation. I tested it and it works for me. So
-> far I was only running "./run --ov". Now I can do samefs setups and also
-> verify index feature etc.
->
-> Two minor nits/queries.
->
-> - Right now "./run --ov --samefs -s" fails if "/base" directory is not
->   there. So in mkdir command, add "base" to the list also.
+On Mon, Dec 11, 2017 at 10:47:15PM +0200, Amir Goldstein wrote:
 
-Fix. Thanks for review!
+[..]
+> > - For the xfs reflink test, I am curious that why have you recommended
+> >   to also enabled "rmapbt=1". Is is required for the tests?
+> >
+> 
+> You cannot enable reflink=1 without it.
 
->
-> - For the xfs reflink test, I am curious that why have you recommended
->   to also enabled "rmapbt=1". Is is required for the tests?
->
+I could do that. Here is the xfs_info output which shows rmapbt=0 and
+reflink=1.
 
-You cannot enable reflink=1 without it.
+# xfs_info /mnt/test-xfs
+meta-data=/dev/mapper/test--union-lower_layer isize=512    agcount=4, agsize=327680 blks
+         =                       sectsz=512   attr=2, projid32bit=1
+         =                       crc=1        finobt=1 spinodes=0 rmapbt=0
+         =                       reflink=1
+data     =                       bsize=4096   blocks=1310720, imaxpct=25
+         =                       sunit=0      swidth=0 blks
+naming   =version 2              bsize=4096   ascii-ci=0 ftype=1
+log      =internal               bsize=4096   blocks=2560, version=2
+         =                       sectsz=512   sunit=0 blks, lazy-count=1
+realtime =none                   extsz=4096   blocks=0, rtextents=0
 
-Amir.
+Vivek
