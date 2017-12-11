@@ -1,25 +1,25 @@
-From: Amir Goldstein <amir73il@gmail.com>
+From: Miklos Szeredi <miklos@szeredi.hu>
 Subject: Re: [RFC PATCH v2] ovl: don't follow redirects if redirect_dir=off
-Date: Sun, 10 Dec 2017 08:29:11 +0200
-Message-ID: <CAOQ4uxj0wXKbUZ2m=rH=89w+ZP_vibCH_ND2saC05kt19ApcxA@mail.gmail.com>
+Date: Mon, 11 Dec 2017 10:33:28 +0100
+Message-ID: <CAJfpegsSNx_D+rEP+oe5+Pf-hoEVu-JRc7t8SqBA4uy9PRRaFA@mail.gmail.com>
 References: <20171206150333.GB24303@veci.piliscsaba.redhat.com> <30533.1512743808@warthog.procyon.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-yw0-f174.google.com ([209.85.161.174]:36000 "EHLO
-        mail-yw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751240AbdLJG3M (ORCPT
+Received: from mail-qt0-f175.google.com ([209.85.216.175]:45815 "EHLO
+        mail-qt0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751307AbdLKJda (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Sun, 10 Dec 2017 01:29:12 -0500
-Received: by mail-yw0-f174.google.com with SMTP id r205so6582566ywb.3
-        for <linux-unionfs@vger.kernel.org>; Sat, 09 Dec 2017 22:29:12 -0800 (PST)
+        Mon, 11 Dec 2017 04:33:30 -0500
+Received: by mail-qt0-f175.google.com with SMTP id g10so36722950qtj.12
+        for <linux-unionfs@vger.kernel.org>; Mon, 11 Dec 2017 01:33:29 -0800 (PST)
 In-Reply-To: <30533.1512743808@warthog.procyon.org.uk>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: David Howells <dhowells@redhat.com>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, overlayfs <linux-unionfs@vger.kernel.org>, Vivek Goyal <vgoyal@redhat.com>
+Cc: "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>, Amir Goldstein <amir73il@gmail.com>, Vivek Goyal <vgoyal@redhat.com>
 
-On Fri, Dec 8, 2017 at 4:36 PM, David Howells <dhowells@redhat.com> wrote:
+On Fri, Dec 8, 2017 at 3:36 PM, David Howells <dhowells@redhat.com> wrote:
 > Miklos Szeredi <miklos@szeredi.hu> wrote:
 >
 >> +     const char *redirect_mode;
@@ -27,23 +27,18 @@ On Fri, Dec 8, 2017 at 4:36 PM, David Howells <dhowells@redhat.com> wrote:
 >> +     kfree(ofs->config.redirect_mode);
 >
 > That's going to get you a compiler warning under some circumstances.
+
+How so?  kfree() takes const void *, which is compatible with const char *.
+
 >
 >> +                     config->redirect_mode = match_strdup(&args[0]);
 >
 > We shouldn't really be copying the string if we can help it, though I grant we
 > may not have the match_*() function to do otherwise at the moment.  I would
 > much prefer seeing it rendered to an enum value at this point.
->
 
-If we store config->redirect_mode as bitmask, then it would be nicer
-for testing redirect/follow independently as Miklos wanted and it would
-be still nice for checking if mode is not the default, i.e.:
+I think that's going into the bike shedding territory, and this shed
+is mine, so there ;-p
 
-#define OVL_REDIRECT_DIR 0x1 /* flag casted from bool ovl_redirect_dir_def */
-#define OVL_REDIRECT_FOLLOW 0x2
-
-       if (ofs->config.redirect_mode != (unsigned) ovl_redirect_dir_def)
-               seq_printf(m, ",redirect_dir=%s", ovl_redirect_mode_str(ofs));
-
-
-Amir.
+Thanks,
+Miklos
