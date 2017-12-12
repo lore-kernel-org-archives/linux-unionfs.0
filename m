@@ -1,177 +1,134 @@
-From: Chengguang Xu <cgxu519@icloud.com>
-Subject: Re: [PATCH v3 3/3] generic/470: add syncfs test
-Date: Tue, 12 Dec 2017 14:07:52 +0800
-Message-ID: <320CEA5E-ACE9-455D-AA23-0A98BD0E19A9@icloud.com>
+From: Eryu Guan <eguan@redhat.com>
+Subject: Re: [PATCH v3 1/3] common/rc: add scratch shutdown support for
+ overlayfs
+Date: Tue, 12 Dec 2017 17:16:22 +0800
+Message-ID: <20171212091622.GQ2749@eguan.usersys.redhat.com>
 References: <1513048179-151065-1-git-send-email-cgxu519@icloud.com>
- <1513048179-151065-3-git-send-email-cgxu519@icloud.com>
- <CAOQ4uxhRymi9Ka6ZMQZy+mn4-mr-EOETgiKHOfytkgoJ4OHtag@mail.gmail.com>
-Mime-Version: 1.0 (Mac OS X Mail 11.2 \(3445.5.20\))
-Content-Type: text/plain; charset=gb2312
-Content-Transfer-Encoding: quoted-printable
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from pv33p36im-asmtp002.me.com ([17.142.213.63]:61104 "EHLO
-        pv33p36im-asmtp002.me.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750749AbdLLGH7 (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 12 Dec 2017 01:07:59 -0500
-In-reply-to: <CAOQ4uxhRymi9Ka6ZMQZy+mn4-mr-EOETgiKHOfytkgoJ4OHtag@mail.gmail.com>
+Received: from mx1.redhat.com ([209.132.183.28]:38022 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752007AbdLLJQZ (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Tue, 12 Dec 2017 04:16:25 -0500
+Content-Disposition: inline
+In-Reply-To: <1513048179-151065-1-git-send-email-cgxu519@icloud.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: Eryu Guan <eguan@redhat.com>, fstests <fstests@vger.kernel.org>, overlayfs <linux-unionfs@vger.kernel.org>
+To: Chengguang Xu <cgxu519@icloud.com>
+Cc: amir73il@gmail.com, fstests@vger.kernel.org, linux-unionfs@vger.kernel.org
 
-> =D4=DA 2017=C4=EA12=D4=C212=C8=D5=A3=AC=CF=C2=CE=E72:00=A3=ACAmir =
-Goldstein <amir73il@gmail.com> =D0=B4=B5=C0=A3=BA
->=20
-> On Tue, Dec 12, 2017 at 5:09 AM, Chengguang Xu <cgxu519@icloud.com> =
-wrote:
->> Inspired by syncfs bug of overlayfs which does not sync dirtyinodes =
-in
->> underlying filesystem.
->> Run syncfs and shutdown filesystem(or underlying filesystem of =
-overlayfs)
->> to check syncfs result.
->>=20
->> Signed-off-by: Chengguang Xu <cgxu519@icloud.com>
->> ---
->>=20
->> Changes since v2:
->> 1. Modify multiple test files to single small test file.
->> 2. Use fssum to check result instead of diff.
->> 3. Add comment for why running sync before test.
->> 4. Add option explanation of fssum.
->>=20
->> Changes since v1:
->> Use fs shutdown and fssum to check syncfs result instead of
->> checking delalloc state of extents.
->>=20
->> tests/generic/470     | 102 =
-++++++++++++++++++++++++++++++++++++++++++++++++++
->> tests/generic/470.out |   2 +
->> tests/generic/group   |   1 +
->> 3 files changed, 105 insertions(+)
->> create mode 100755 tests/generic/470
->> create mode 100644 tests/generic/470.out
->>=20
->> diff --git a/tests/generic/470 b/tests/generic/470
->> new file mode 100755
->> index 0000000..9d6c37a
->> --- /dev/null
->> +++ b/tests/generic/470
->> @@ -0,0 +1,102 @@
->> +#! /bin/bash
->> +# FS QA Test 470
->> +#
->> +# Inspired by syncfs bug of overlayfs which does not sync dirty =
-inodes in
->> +# underlying filesystem.
->> +#
->> +# Create a small file then run syncfs and shutdown filesystem(or =
-underlying
->> +# filesystem of overlayfs) to check syncfs result.
->> +#
->> +# Test will be skipped if filesystem(or underlying filesystem of =
-overlayfs)
->> +# does not support shutdown.
->> +#
->> =
-+#-----------------------------------------------------------------------
->> +# Copyright (c) 2017 Chengguang Xu <cgxu519@icloud.com>
->> +# All Rights Reserved.
->> +#
->> +# This program is free software; you can redistribute it and/or
->> +# modify it under the terms of the GNU General Public License as
->> +# published by the Free Software Foundation.
->> +#
->> +# This program is distributed in the hope that it would be useful,
->> +# but WITHOUT ANY WARRANTY; without even the implied warranty of
->> +# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
->> +# GNU General Public License for more details.
->> +#
->> +# You should have received a copy of the GNU General Public License
->> +# along with this program; if not, write the Free Software =
-Foundation,
->> +# Inc.,  51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
->> =
-+#-----------------------------------------------------------------------
->> +#
->> +
->> +seq=3D`basename $0`
->> +seqres=3D$RESULT_DIR/$seq
->> +echo "QA output created by $seq"
->> +
->> +here=3D`pwd`
->> +tmp=3D/tmp/$$
->> +status=3D1
->> +trap "_cleanup; exit \$status" 0 1 2 3 15
->> +
->> +_cleanup()
->> +{
->> +       cd /
->> +       rm -f $tmp.*
->> +}
->> +
->> +# get standard environment, filters and checks
->> +. ./common/rc
->> +. ./common/filter
->> +
->> +# remove previous $seqres.full before test
->> +rm -f $seqres.full
->> +
->> +# real QA test starts here
->> +
->> +_supported_fs generic
->> +_supported_os Linux
->> +_require_fssum
->> +_require_scratch
->> +_require_scratch_shutdown
->> +_require_xfs_io_command "syncfs"
->> +
->> +_scratch_mkfs >/dev/null 2>&1
->> +_scratch_mount
->> +
->> +# Background writeback will flush dirty inode by dirty ratio and =
-dirty time
->> +# period(default 30 seconds), in order to avoid interference from =
-it,
->> +# run sync before test to make all dirty inodes clean, and it also
->> +# accelerates syncfs on testing filesystem so that test case can =
-finish
->> +# in 30 seconds.
->> +
->> +sync
->> +
->> +$XFS_IO_PROG -f -c "pwrite 0 4K" $SCRATCH_MNT/testfile >/dev/null =
-2>&1
->> +
->> +# fssum used for comparing checksum of test file(data & metedata).
->> +# option explanation:
->> +#    -f          : write out a full manifest file
->> +#    -w <file>   : send output to file
->> +#    -r <file>   : read checksum or manifest from file
->> +#
->> +#    -[ugoamcde] : specify which fields to include in checksum =
-calculation.
->> +#         u      : include uid
->> +#         g      : include gid
->> +#         o      : include mode
->> +#         m      : include mtime
->> +#         a      : include atime
->> +#         c      : include ctime
->> +#         d      : include file data
->> +#         e      : include open errors (aborts otherwise)
->> +#         s      : include block structure (holes)
->> +#    -[UGOAMCDES]: exclude respective field from calculation
->> +
->=20
-> That's too much. A comment about what attributes you are not comparing
-> would have been enough.
->=20
->> +$FSSUM_PROG -ugomAcdES -f -w $tmp.fssum $SCRATCH_MNT
->=20
-> You can fssum $SCRATCH_MNT/testfile. you only have one file..
+On Tue, Dec 12, 2017 at 11:09:37AM +0800, Chengguang Xu wrote:
+> OverlayFS overrides SCRATCH_MNT variable to it's own,
+> so adjust target to underlying filesystem(OVL_BASE_SCRATCH_MNT)
+> when running shutdown on overlayfs.
+> 
+> Signed-off-by: Chengguang Xu <cgxu519@icloud.com>
+> ---
+> 
+> Changes since v2:
+> 1. Make option for _scratch_shutdown(), so caller can 
+> specify option when calling.
+> 2. Add comment for why overlay requires special handling.
+> 3. Add commit log.
+> 
+> Changes since v1:
+> _scratch_shutdown() does not call notrun.
+> 
+>  common/rc | 37 +++++++++++++++++++++++++++++++++++--
+>  1 file changed, 35 insertions(+), 2 deletions(-)
+> 
+> diff --git a/common/rc b/common/rc
+> index 4c053a5..a5c4ace 100644
+> --- a/common/rc
+> +++ b/common/rc
+> @@ -382,6 +382,24 @@ _scratch_cycle_mount()
+>      _scratch_mount "$opts"
+>  }
+>  
+> +_scratch_shutdown()
+> +{
+> +	if [ $FSTYP = "overlay" ]; then
+> +		# In lagacy overlay usage, it may specify directory as 
 
-fssum requires a path not a file, even we have only one file.
+Trailing whitespace in above line.
+
+> +		# SCRATCH_DEV, in this case OVL_BASE_SCRATCH_DEV
+> +		# will be null, so check OVL_BASE_SCRATCH_DEV before
+> +		# running shutdown to avoid shutting down base fs accidently.
+> +		if [ -z $OVL_BASE_SCRATCH_DEV ]; then
+> +			echo -n "Ignore shutdown because "
+> +			echo "$SCRATCH_DEV is not a block device"
+
+Hmm, I think a '_fail "<message>"' would be more appropriate here, so
+that test fails and exits immediately. Test should call
+_require_scratch_shutdown first before calling _scratch_shutdown, if
+not, it indicates a useage error of the helper, we need to prompt the
+test writer to call _require_scratch_shutdown first in error message.
+
+> +		else
+> +			src/godown $* $OVL_BASE_SCRATCH_MNT
+> +		fi
+> +	else
+> +		src/godown $* $SCRATCH_MNT
+> +	fi
+> +}
+> +
+>  _test_mount()
+>  {
+>      if [ "$FSTYP" == "overlay" ]; then
+> @@ -2908,8 +2926,23 @@ _require_scratch_shutdown()
+>  
+>  	_scratch_mkfs > /dev/null 2>&1
+>  	_scratch_mount
+> -	src/godown -f $SCRATCH_MNT 2>&1 \
+> -		|| _notrun "$FSTYP does not support shutdown"
+> +
+> +	if [ $FSTYP = "overlay" ]; then
+> +		if [ -z $OVL_BASE_SCRATCH_DEV ]; then
+> +			# In lagacy overlay usage, it may specify directory as 
+
+Trailing whitespace in above line.
+
+> +			# SCRATCH_DEV, in this case OVL_BASE_SCRATCH_DEV
+> +			# will be null, so check OVL_BASE_SCRATCH_DEV before
+> +			# running shutdown to avoid shutting down base fs accidently.
+> +			_notrun "$SCRATCH_DEV is not a block device"
+> +		else
+> +			src/godown -f $OVL_BASE_SCRATCH_MNT 2>&1 \
+> +			|| _notrun "Underlying filesystem does not support shutdown"
+> +		fi
+> +	else
+> +		src/godown -f $SCRATCH_MNT 2>&1 \
+> +			|| _notrun "$FSTYP does not support shutdown"
+> +	fi
+> +
+>  	_scratch_unmount
+>  }
+
+Sorry for not bringing this up earlier, but I think we need to convert
+all existing direct callers of 'godown' to use this new helper,
+otherwise tests will call godown on an overlay merged dir and result in
+test failure as:
+
++/root/xfstests/src/godown: error on xfsctl(GOINGDOWN) of "/mnt/scratch/ovl-mnt": Inappropriate ioctl for device
+
+You can go through all tests in 'shutdown' group in generic dir. But I
+noticed that not all tests in 'shutdown' group can be converted to
+_scratch_shutdown straightforwardly, e.g. generic/042 and generic/050,
+they require $SCRATCH_DEV to be a local device file (either block device
+or char device (ubifs uses char device)) rather than a dir or an NFS
+export, we need an additional _require rule in both of the tests, so
+that they won't run on overlay:
+
+_require_local_device $SCRATCH_DEV
+
+Other tests in 'shutdown' group can be converted easily.
 
 Thanks,
-Chengguang.
+Eryu
+
+>  
+> -- 
+> 1.8.3.1
+> 
