@@ -1,153 +1,158 @@
 From: Eryu Guan <eguan@redhat.com>
-Subject: Re: [PATCH v3 3/3] generic/471: add syncfs test
-Date: Tue, 12 Dec 2017 21:30:46 +0800
-Message-ID: <20171212133046.GT2749@eguan.usersys.redhat.com>
+Subject: Re: [PATCH v3 1/3] common/rc: add scratch shutdown support for
+ overlayfs
+Date: Tue, 12 Dec 2017 21:39:11 +0800
+Message-ID: <20171212133911.GU2749@eguan.usersys.redhat.com>
 References: <1513048179-151065-1-git-send-email-cgxu519@icloud.com>
- <1513048179-151065-3-git-send-email-cgxu519@icloud.com>
- <20171212092419.GR2749@eguan.usersys.redhat.com>
- <CAOQ4uxge1UEcsVE12XQgwAFSFktSXFiNkvWcODftxe=ZBjnEnw@mail.gmail.com>
- <19AB6F85-BB0D-4CDF-B153-99F0E7514A62@icloud.com>
+ <20171212091622.GQ2749@eguan.usersys.redhat.com>
+ <CA402BA4-C027-4237-A348-0A7A5E606E56@icloud.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:58246 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:55222 "EHLO mx1.redhat.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754466AbdLLNas (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 12 Dec 2017 08:30:48 -0500
+        id S1754320AbdLLNjN (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Tue, 12 Dec 2017 08:39:13 -0500
 Content-Disposition: inline
-In-Reply-To: <19AB6F85-BB0D-4CDF-B153-99F0E7514A62@icloud.com>
+In-Reply-To: <CA402BA4-C027-4237-A348-0A7A5E606E56@icloud.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: Chengguang Xu <cgxu519@icloud.com>
 Cc: Amir Goldstein <amir73il@gmail.com>, fstests <fstests@vger.kernel.org>, overlayfs <linux-unionfs@vger.kernel.org>
 
-On Tue, Dec 12, 2017 at 06:05:50PM +0800, Chengguang Xu wrote:
+On Tue, Dec 12, 2017 at 06:20:51PM +0800, Chengguang Xu wrote:
 > > 
-> > 在 2017年12月12日，下午5:56，Amir Goldstein <amir73il@gmail.com> 写道：
+> > 在 2017年12月12日，下午5:16，Eryu Guan <eguan@redhat.com> 写道：
 > > 
-> > On Tue, Dec 12, 2017 at 11:24 AM, Eryu Guan <eguan@redhat.com> wrote:
-> >> On Tue, Dec 12, 2017 at 11:09:39AM +0800, Chengguang Xu wrote:
-> >>> Inspired by syncfs bug of overlayfs which does not sync dirtyinodes in
-> >>> underlying filesystem.
-> >>> Run syncfs and shutdown filesystem(or underlying filesystem of overlayfs)
-> >>> to check syncfs result.
-> >>> 
-> >>> Signed-off-by: Chengguang Xu <cgxu519@icloud.com>
-> >>> ---
-> >>> 
-> >>> Changes since v2:
-> >>> 1. Modify multiple test files to single small test file.
-> >>> 2. Use fssum to check result instead of diff.
-> >>> 3. Add comment for why running sync before test.
-> >>> 4. Add option explanation of fssum.
-> >>> 
-> >>> Changes since v1:
-> >>> Use fs shutdown and fssum to check syncfs result instead of
-> >>> checking delalloc state of extents.
-> >>> 
-> >>> tests/generic/471     | 102 ++++++++++++++++++++++++++++++++++++++++++++++++++
-> >>> tests/generic/471.out |   2 +
-> >>> tests/generic/group   |   1 +
-> >>> 3 files changed, 105 insertions(+)
-> >>> create mode 100755 tests/generic/471
-> >>> create mode 100644 tests/generic/471.out
-> >>> 
-> >>> diff --git a/tests/generic/471 b/tests/generic/471
-> >>> new file mode 100755
-> >>> index 0000000..9d6c37a
-> >>> --- /dev/null
-> >>> +++ b/tests/generic/471
-> >>> @@ -0,0 +1,102 @@
-> >>> +#! /bin/bash
-> >>> +# FS QA Test 471
-> >>> +#
-> >>> +# Inspired by syncfs bug of overlayfs which does not sync dirty inodes in
-> >>> +# underlying filesystem.
-> >>> +#
-> >>> +# Create a small file then run syncfs and shutdown filesystem(or underlying
-> >>> +# filesystem of overlayfs) to check syncfs result.
-> >>> +#
-> >>> +# Test will be skipped if filesystem(or underlying filesystem of overlayfs)
-> >>> +# does not support shutdown.
-> >>> +#
-> >>> +#-----------------------------------------------------------------------
-> >>> +# Copyright (c) 2017 Chengguang Xu <cgxu519@icloud.com>
-> >>> +# All Rights Reserved.
-> >>> +#
-> >>> +# This program is free software; you can redistribute it and/or
-> >>> +# modify it under the terms of the GNU General Public License as
-> >>> +# published by the Free Software Foundation.
-> >>> +#
-> >>> +# This program is distributed in the hope that it would be useful,
-> >>> +# but WITHOUT ANY WARRANTY; without even the implied warranty of
-> >>> +# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> >>> +# GNU General Public License for more details.
-> >>> +#
-> >>> +# You should have received a copy of the GNU General Public License
-> >>> +# along with this program; if not, write the Free Software Foundation,
-> >>> +# Inc.,  51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-> >>> +#-----------------------------------------------------------------------
-> >>> +#
-> >>> +
-> >>> +seq=`basename $0`
-> >>> +seqres=$RESULT_DIR/$seq
-> >>> +echo "QA output created by $seq"
-> >>> +
-> >>> +here=`pwd`
-> >>> +tmp=/tmp/$$
-> >>> +status=1
-> >>> +trap "_cleanup; exit \$status" 0 1 2 3 15
-> >>> +
-> >>> +_cleanup()
-> >>> +{
-> >>> +     cd /
-> >>> +     rm -f $tmp.*
-> >>> +}
-> >>> +
-> >>> +# get standard environment, filters and checks
-> >>> +. ./common/rc
-> >>> +. ./common/filter
-> >>> +
-> >>> +# remove previous $seqres.full before test
-> >>> +rm -f $seqres.full
-> >>> +
-> >>> +# real QA test starts here
-> >>> +
-> >>> +_supported_fs generic
-> >>> +_supported_os Linux
-> >>> +_require_fssum
-> >>> +_require_scratch
-> >>> +_require_scratch_shutdown
-> >>> +_require_xfs_io_command "syncfs"
-> >>> +
-> >>> +_scratch_mkfs >/dev/null 2>&1
+> > On Tue, Dec 12, 2017 at 11:09:37AM +0800, Chengguang Xu wrote:
+> >> OverlayFS overrides SCRATCH_MNT variable to it's own,
+> >> so adjust target to underlying filesystem(OVL_BASE_SCRATCH_MNT)
+> >> when running shutdown on overlayfs.
 > >> 
-> >> Need "_require_metadata_journaling $SCRATCH_DEV" after _scratch_mkfs, so
-> >> filesystems like no-journal mode ext4 or ext2 (driven by ext4 module)
-> >> won't run this test.
+> >> Signed-off-by: Chengguang Xu <cgxu519@icloud.com>
+> >> ---
 > >> 
+> >> Changes since v2:
+> >> 1. Make option for _scratch_shutdown(), so caller can 
+> >> specify option when calling.
+> >> 2. Add comment for why overlay requires special handling.
+> >> 3. Add commit log.
+> >> 
+> >> Changes since v1:
+> >> _scratch_shutdown() does not call notrun.
+> >> 
+> >> common/rc | 37 +++++++++++++++++++++++++++++++++++--
+> >> 1 file changed, 35 insertions(+), 2 deletions(-)
+> >> 
+> >> diff --git a/common/rc b/common/rc
+> >> index 4c053a5..a5c4ace 100644
+> >> --- a/common/rc
+> >> +++ b/common/rc
+> >> @@ -382,6 +382,24 @@ _scratch_cycle_mount()
+> >>     _scratch_mount "$opts"
+> >> }
+> >> 
+> >> +_scratch_shutdown()
+> >> +{
+> >> +	if [ $FSTYP = "overlay" ]; then
+> >> +		# In lagacy overlay usage, it may specify directory as 
 > > 
-> > In that case, Chengguang would also have to teach _require_metadata_journaling
-> > about OVERLAY_BASE_SCRATCH_DEV....
+> > Trailing whitespace in above line.
 > > 
-> > Chengguang,
+> >> +		# SCRATCH_DEV, in this case OVL_BASE_SCRATCH_DEV
+> >> +		# will be null, so check OVL_BASE_SCRATCH_DEV before
+> >> +		# running shutdown to avoid shutting down base fs accidently.
+> >> +		if [ -z $OVL_BASE_SCRATCH_DEV ]; then
+> >> +			echo -n "Ignore shutdown because "
+> >> +			echo "$SCRATCH_DEV is not a block device"
 > > 
-> > Sorry for all the extra work.
-> > That means you are making an important improvement to xfstests!
+> > Hmm, I think a '_fail "<message>"' would be more appropriate here, so
+> > that test fails and exits immediately. Test should call
+> > _require_scratch_shutdown first before calling _scratch_shutdown, if
+> > not, it indicates a useage error of the helper, we need to prompt the
+> > test writer to call _require_scratch_shutdown first in error message.
+> > 
+> >> +		else
+> >> +			src/godown $* $OVL_BASE_SCRATCH_MNT
+> >> +		fi
+> >> +	else
+> >> +		src/godown $* $SCRATCH_MNT
+> >> +	fi
+> >> +}
+> >> +
+> >> _test_mount()
+> >> {
+> >>     if [ "$FSTYP" == "overlay" ]; then
+> >> @@ -2908,8 +2926,23 @@ _require_scratch_shutdown()
+> >> 
+> >> 	_scratch_mkfs > /dev/null 2>&1
+> >> 	_scratch_mount
+> >> -	src/godown -f $SCRATCH_MNT 2>&1 \
+> >> -		|| _notrun "$FSTYP does not support shutdown"
+> >> +
+> >> +	if [ $FSTYP = "overlay" ]; then
+> >> +		if [ -z $OVL_BASE_SCRATCH_DEV ]; then
+> >> +			# In lagacy overlay usage, it may specify directory as 
+> > 
+> > Trailing whitespace in above line.
+> > 
+> >> +			# SCRATCH_DEV, in this case OVL_BASE_SCRATCH_DEV
+> >> +			# will be null, so check OVL_BASE_SCRATCH_DEV before
+> >> +			# running shutdown to avoid shutting down base fs accidently.
+> >> +			_notrun "$SCRATCH_DEV is not a block device"
+> >> +		else
+> >> +			src/godown -f $OVL_BASE_SCRATCH_MNT 2>&1 \
+> >> +			|| _notrun "Underlying filesystem does not support shutdown"
+> >> +		fi
+> >> +	else
+> >> +		src/godown -f $SCRATCH_MNT 2>&1 \
+> >> +			|| _notrun "$FSTYP does not support shutdown"
+> >> +	fi
+> >> +
+> >> 	_scratch_unmount
+> >> }
+> > 
+> > Sorry for not bringing this up earlier, but I think we need to convert
+> > all existing direct callers of 'godown' to use this new helper,
+> > otherwise tests will call godown on an overlay merged dir and result in
+> > test failure as:
+> > 
+> > +/root/xfstests/src/godown: error on xfsctl(GOINGDOWN) of "/mnt/scratch/ovl-mnt": Inappropriate ioctl for device
+> > 
+> > You can go through all tests in 'shutdown' group in generic dir. But I
+> > noticed that not all tests in 'shutdown' group can be converted to
+> > _scratch_shutdown straightforwardly, e.g. generic/042 and generic/050,
+> > they require $SCRATCH_DEV to be a local device file (either block device
+> > or char device (ubifs uses char device)) rather than a dir or an NFS
+> > export, we need an additional _require rule in both of the tests, so
+> > that they won't run on overlay:
+> > 
+> > _require_local_device $SCRATCH_DEV
+> > 
+> > Other tests in 'shutdown' group can be converted easily.
 > 
-> It’s worth to check all _require functions for overlayfs, but just in this case,
-> do we really need this check before test? IMO，if fs supports shutdown then should
-> run this test, am I wrong?
+> We should fix the improper godown calling for overlayfs in generic test cases,
+> but it’s not directly caused by this patch, so I suggest merging this patch
 
-I think you're right, I was looking at other shutdown tests for too long
-and thought this one needed the jounal check too, sorry about that!
+IMO, it's just this patch that causes these kind of false failures in
+other generic shutdown tests. It's this patch that makes generic
+shutdown tests running on overlay possible, thus causes false failures.
 
-But as Amir suggested, other shutdown tests need overlay support in
-_require_metadata_journaling, but I think that can be fixed in a
-follow-up patch, as using ext2 or no-journal mode ext4 as the backing
-filesystems of overlay is not a common setup, the possiblity of someone
-hitting false positive is relative low.
+We should fix all these problems in one patch, otherwise anyone tests
+overlay using xfs/ext4 (or other filesystems that support shutdown) as
+backing filesystems could see these failures.  OTOH, the overlay support
+in _require_metadata_journaling issue is a relative corner case, I think
+it's safe to fix that in a separate patch.
 
 Thanks,
 Eryu
+
+> first, then we can make another patch to fix godown problem for overlayfs.
+> What do you think?
+> 
+> Thanks,
+> Chengguang.
+> 
+> 
+> 
