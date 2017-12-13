@@ -1,32 +1,70 @@
-From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [ANNOUNCE] unionmount-testsuite: Amir's master branch updated
-Date: Tue, 12 Dec 2017 17:00:13 +0200
-Message-ID: <CAOQ4uxjofQPP_28ai1t9SFU2BJxAMk=3LymASVPn2xP0s_SFUQ@mail.gmail.com>
-References: <CAOQ4uxiiaiq8dettBvZScC59KV-07B-muxE3SS60BDK3dugJow@mail.gmail.com>
- <20171206181700.GA7967@redhat.com> <CAOQ4uxhTWV=ZwDK2DQS2KYux7fufoz0sc7Sv+9dz59gnM1u8+w@mail.gmail.com>
- <CAOQ4uxjM6ZLcyU5-nQXz=T98kuhMrCJ+1df85-19QJQjrr7JiA@mail.gmail.com>
- <20171211195920.GA13399@redhat.com> <CAOQ4uxhb4yVTt29E0XFYY_OT_ubQ5w0Zgqojn=y7nH+XSZ90GA@mail.gmail.com>
- <20171212001021.GR4094@dastard> <20171212145328.GA1572@infradead.org>
+From: =?UTF-8?B?UmFmYcWCIE1pxYJlY2tp?= <zajec5@gmail.com>
+Subject: Using overlay on top of overlay
+Date: Wed, 13 Dec 2017 11:10:17 +0100
+Message-ID: <1c1c2e7d-8121-65bc-60f9-b93bbe2ff411@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-yb0-f174.google.com ([209.85.213.174]:34369 "EHLO
-        mail-yb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752760AbdLLPAO (ORCPT
+Received: from mail-lf0-f50.google.com ([209.85.215.50]:47035 "EHLO
+        mail-lf0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751614AbdLMKKW (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 12 Dec 2017 10:00:14 -0500
-In-Reply-To: <20171212145328.GA1572@infradead.org>
+        Wed, 13 Dec 2017 05:10:22 -0500
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Christoph Hellwig <hch@infradead.org>
-Cc: Dave Chinner <david@fromorbit.com>, Vivek Goyal <vgoyal@redhat.com>, overlayfs <linux-unionfs@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>, David Howells <dhowells@redhat.com>, fstests <fstests@vger.kernel.org>, Chandan Rajendra <chandan@linux.vnet.ibm.com>
+To: Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org
 
-On Tue, Dec 12, 2017 at 4:53 PM, Christoph Hellwig <hch@infradead.org> wrote:
-> I have a customer using only reflink.  And they probably want to keep
-> it that way as rmap adds quite a lot of overhead.
+Hi,
 
-OK. convinced. Updated wiki to set only reflink feature enabled:
-https://github.com/amir73il/overlayfs/wiki/Overlayfs-testing#Download_and_build_xfsprogs_with_XFS_reflink_support
+For few kernel releases overlay supported using it on top of another
+overlay.
 
-Thanks,
-Amir.
+FWIW there was a regression related to this "feature" in 4.2:
+https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=4bacc9c9234c7c8eec44f5ed4e960d9f96fa0f01
+but it was fixed:
+https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=1c8a47df36d72ace8cf78eb6c228aa0f8027d3c2
+
+
+Starting with kernel 4.4 this "feature" seems to be disabled explicitly:
+https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=76bc8e2843b66f8205026365966b49ec6da39ae7
+
+Disabling commit says that it "does not make sense" but actually there
+seem to be few projects that are looking for such a solution, see:
+1) https://bugs.launchpad.net/ubuntu/+source/linux/+bug/1629509
+2) https://bugs.centos.org/view.php?id=12986
+3) https://github.com/rkt/rkt/issues/1537
+
+I can't really elaborate on above cases but I have a similar need for
+my OpenWrt system running LXC (Linux Containers).
+
+First of all OpenWrt uses overlay to "merge" squashfs and some writable
+filesystem partition. It needs squashfs due to dealing with devices with
+really small flashes (down to 4 - 8 MiB). Then it stores all its LXC
+containers in the /srv/lxc/.
+
+Secondly LXC itself uses overlay feature in few places, e.g.
+1) lxc.rootfs with the overlayfs:lower:upper syntax
+2) lxc.mount.entry with the fstab syntax
+
+As you can guess LXC simply assumes overlay can be used and doesn't
+check if the host system uses it for directory holding container data.
+This breaks LXC because kernel refuses mounting dir with some message
+like:
+overlayfs: filesystem on '/foo' not supported as upperdir
+
+
+I managed to find a workaround for this. As OpenWrt uses:
+overlayfs:/overlay on / type overlay (rw,noatime,lowerdir=/,upperdir=/overlay/upper,workdir=/overlay/work)
+I can simply replace
+upperdir=/srv/lxc/foo/upper
+with
+upperdir=/overlay/upper/srv/lxc/foo/upper
+(same for workdir) but this isn't really a user friendly solution.
+
+
+I would like to ask if use cases I described above make any sense to
+you?
+Is there any chance someone could work on a proper support for overlay
+on top of overlay and enabling it again?
