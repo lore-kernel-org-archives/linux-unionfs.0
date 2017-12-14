@@ -1,67 +1,121 @@
 From: "zhangyi (F)" <yi.zhang@huawei.com>
-Subject: [PATCH v2 12/18] fsck.overlay: remove duplicate redirect xattr in yes mode
-Date: Thu, 14 Dec 2017 14:47:41 +0800
-Message-ID: <20171214064747.20999-13-yi.zhang@huawei.com>
+Subject: [PATCH v2 05/18] fsck.overlay: convert path parse to use helper function
+Date: Thu, 14 Dec 2017 14:47:34 +0800
+Message-ID: <20171214064747.20999-6-yi.zhang@huawei.com>
 References: <20171214064747.20999-1-yi.zhang@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from szxga05-in.huawei.com ([45.249.212.191]:11991 "EHLO
-        szxga05-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751551AbdLNGmG (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 14 Dec 2017 01:42:06 -0500
+Return-path: <fstests-owner@vger.kernel.org>
 In-Reply-To: <20171214064747.20999-1-yi.zhang@huawei.com>
-Sender: linux-unionfs-owner@vger.kernel.org
-List-Id: linux-unionfs@vger.kernel.org
+Sender: fstests-owner@vger.kernel.org
 To: linux-unionfs@vger.kernel.org, fstests@vger.kernel.org
 Cc: miklos@szeredi.hu, amir73il@gmail.com, eguan@redhat.com, darrick.wong@oracle.com, yi.zhang@huawei.com, miaoxie@huawei.com
-
-For the duplicate redirect directories which point to the same origin,
-we cannot confirm which one is invalid now, so cannot remove it in 'auto'
-mode for safty reason. But in 'yes' mode, we remove the duplicate one
-directly for consistency.
+List-Id: linux-unionfs@vger.kernel.org
 
 Signed-off-by: zhangyi (F) <yi.zhang@huawei.com>
 ---
- check.c | 11 ++++++++---
- 1 file changed, 8 insertions(+), 3 deletions(-)
+ check.c | 30 +++++++++++++++++++-----------
+ 1 file changed, 19 insertions(+), 11 deletions(-)
 
 diff --git a/check.c b/check.c
-index 99cd95a..1e40cac 100644
+index 1794501..add7e11 100644
 --- a/check.c
 +++ b/check.c
-@@ -378,7 +378,8 @@ static void ovl_redirect_free(void)
-  * 1) Check the origin directory exist or not. If not, remove xattr.
-  * 2) Count how many directories the origin directory was redirected by.
-  *    If more than one in the same layer, there must be some inconsistency
-- *    but not sure, just warn.
-+ *    but not sure which one is invalid, just warn in 'auto' mode and remove
-+ *    the duplicate one in 'yes' mode.
-  * 3) Check and fix the missing whiteout or opaque in redierct parent dir.
-  */
- static int ovl_check_redirect(struct scan_ctx *sctx)
-@@ -420,7 +421,11 @@ static int ovl_check_redirect(struct scan_ctx *sctx)
- 				   chk.path, pathname, tmp);
+@@ -113,9 +113,13 @@ static int ovl_get_redirect(const char *pathname, size_t dirlen,
+ 		buf = srealloc(buf, ret + baselen + 1);
+ 		memmove(buf + baselen, buf, ret);
+ 		memcpy(buf, pathname+dirlen, baselen);
+-		buf[ret + baselen] = '\0';
++		ret += baselen;
+ 	}
  
- 			sctx->redirects[SC_INVALID]++;
--			set_st_inconsistency(&status);
++	ret -= 1;
++	memmove(buf, buf+1, ret);
++	buf[ret] = '\0';
 +
-+			/* Don't remove in auto mode */
-+			if (ovl_ask_invalid("Duplicate redirect xattr",
-+					     pathname, 0))
-+				goto remove_d;
- 		}
+ 	*redirect = buf;
+ 	return 0;
+ }
+@@ -143,7 +147,7 @@ static inline int ovl_create_whiteout(const char *pathname)
+  * skip: skip whiteout.
+  *
+  */
+-static int ovl_check_lower(const char *path, unsigned int start,
++static int ovl_check_lower(const char *pathname, unsigned int start,
+ 			   struct ovl_lower_check *chk, bool skip)
+ {
+ 	char lower_path[PATH_MAX];
+@@ -151,7 +155,7 @@ static int ovl_check_lower(const char *path, unsigned int start,
+ 	unsigned int i;
  
- 		ovl_redirect_entry_add(pathname, sctx->dirtype,
-@@ -461,7 +466,7 @@ remove:
- 	/* Remove redirect xattr or ask user */
- 	if (!ovl_ask_invalid("Invalid redirect xattr", pathname, 1))
+ 	for (i = start; i < lower_num; i++) {
+-		snprintf(lower_path, sizeof(lower_path), "%s%s", lowerdir[i], path);
++		path_pack(lower_path, sizeof(lower_path), lowerdir[i], pathname);
+ 
+ 		if (lstat(lower_path, &st) != 0) {
+ 			if (errno != ENOENT && errno != ENOTDIR) {
+@@ -165,9 +169,10 @@ static int ovl_check_lower(const char *path, unsigned int start,
+ 		if (skip && is_whiteout(&st))
+ 			continue;
+ 
++		strncpy(chk->path, lower_path, sizeof(chk->path));
+ 		chk->exist = true;
+ 		chk->st = st;
+-		strncpy(chk->path, lower_path, sizeof(chk->path));
++
+ 		break;
+ 	}
+ 
+@@ -200,7 +205,8 @@ static int ovl_check_whiteout(struct scan_ctx *sctx)
+ 	 * check is there a file or dir with the same name.
+ 	 */
+ 	start = (sctx->dirtype == OVL_LOWER) ? sctx->num + 1 : 0;
+-	ret = ovl_check_lower(pathname + sctx->dirlen, start, &chk, true);
++	ret = ovl_check_lower(path_pick(pathname, sctx->dirlen),
++			      start, &chk, true);
+ 	if (ret)
+ 		return ret;
+ 	if (chk.exist && !is_whiteout(&chk.st))
+@@ -234,7 +240,7 @@ out:
+ static int ovl_check_opaque(struct scan_ctx *sctx)
+ {
+ 	const char *pathname = sctx->pathname;
+-	char parent_path[PATH_MAX];
++	char parent[PATH_MAX];
+ 	struct ovl_lower_check chk = {0};
+ 	unsigned int start;
+ 	int ret = 0;
+@@ -252,15 +258,17 @@ static int ovl_check_opaque(struct scan_ctx *sctx)
+ 	 * check if there is a file or dir with the same name.
+ 	 */
+ 	start = (sctx->dirtype == OVL_LOWER) ? sctx->num + 1 : 0;
+-	ret = ovl_check_lower(pathname + sctx->dirlen, start, &chk, true);
++	ret = ovl_check_lower(path_pick(pathname, sctx->dirlen),
++			      start, &chk, true);
+ 	if (ret)
+ 		return ret;
+ 	if (chk.exist && !is_whiteout(&chk.st))
  		goto out;
--
-+remove_d:
- 	ret = ovl_remove_redirect(pathname);
- 	if (!ret)
- 		sctx->redirects[SC_INVALID_DEL]++;
+ 
+ 	/* Check parent directory merged or pure */
+-	memcpy(parent_path, pathname, sctx->pathlen-sctx->filelen);
+-	ret = ovl_check_lower(parent_path + sctx->dirlen, start, &chk, false);
++	path_truncate(parent, sizeof(parent), pathname, sctx->filename);
++	ret = ovl_check_lower(path_pick(parent, sctx->dirlen),
++			      start, &chk, false);
+ 	if (ret)
+ 		return ret;
+ 	if (chk.exist && is_dir(&chk.st))
+@@ -396,8 +404,8 @@ static int ovl_check_redirect(struct scan_ctx *sctx)
+ 				       sctx->num, chk.path);
+ 
+ 		/* Check and fix whiteout or opaque dir */
+-		snprintf(redirect_rpath, sizeof(redirect_rpath), "%s%s",
+-			 sctx->dirname, redirect);
++		path_pack(redirect_rpath, sizeof(redirect_rpath),
++			  sctx->dirname, redirect);
+ 		if (lstat(redirect_rpath, &rst) != 0) {
+ 			if (errno != ENOENT && errno != ENOTDIR) {
+ 				print_err(_("Cannot stat %s: %s\n"),
 -- 
 2.9.5
