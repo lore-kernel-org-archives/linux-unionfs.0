@@ -1,556 +1,115 @@
 From: "zhangyi (F)" <yi.zhang@huawei.com>
-Subject: [PATCH v2 16/18] fsck.overlay: remove test cases
-Date: Thu, 14 Dec 2017 14:47:45 +0800
-Message-ID: <20171214064747.20999-17-yi.zhang@huawei.com>
+Subject: [PATCH v2 18/18] fsck.overlay: use relative path when checking lowers
+Date: Thu, 14 Dec 2017 14:47:47 +0800
+Message-ID: <20171214064747.20999-19-yi.zhang@huawei.com>
 References: <20171214064747.20999-1-yi.zhang@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from szxga05-in.huawei.com ([45.249.212.191]:11993 "EHLO
-        szxga05-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751024AbdLNGmS (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 14 Dec 2017 01:42:18 -0500
+Received: from szxga06-in.huawei.com ([45.249.212.32]:60206 "EHLO huawei.com"
+        rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1751523AbdLNGmK (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Thu, 14 Dec 2017 01:42:10 -0500
 In-Reply-To: <20171214064747.20999-1-yi.zhang@huawei.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: linux-unionfs@vger.kernel.org, fstests@vger.kernel.org
 Cc: miklos@szeredi.hu, amir73il@gmail.com, eguan@redhat.com, darrick.wong@oracle.com, yi.zhang@huawei.com, miaoxie@huawei.com
 
-Remove test cases for fsck.overlay, these cases will move to xfstests.
-
 Signed-off-by: zhangyi (F) <yi.zhang@huawei.com>
 ---
- test/README.md            |  12 ----
- test/auto_test.sh         |  46 -------------
- test/clean.sh             |   6 --
- test/local.config         |  16 -----
- test/src/opaque_test.sh   | 144 ----------------------------------------
- test/src/prepare.sh       |  15 -----
- test/src/redirect_test.sh | 163 ----------------------------------------------
- test/src/whiteout_test.sh |  63 ------------------
- 8 files changed, 465 deletions(-)
- delete mode 100644 test/README.md
- delete mode 100755 test/auto_test.sh
- delete mode 100755 test/clean.sh
- delete mode 100644 test/local.config
- delete mode 100755 test/src/opaque_test.sh
- delete mode 100755 test/src/prepare.sh
- delete mode 100755 test/src/redirect_test.sh
- delete mode 100755 test/src/whiteout_test.sh
+ README.md | 56 +++++++++++++++++++++++++++++++++-----------------------
+ 1 file changed, 33 insertions(+), 23 deletions(-)
 
-diff --git a/test/README.md b/test/README.md
-deleted file mode 100644
-index 71dbad8..0000000
---- a/test/README.md
-+++ /dev/null
-@@ -1,12 +0,0 @@
--fsck.overlay test
--=================
--
--This test cases simulate different inconsistency of overlay filesystem
--underlying directories, test fsck.overlay can repair them correctly or not.
--
--USAGE
--=====
--
--1. Check "local.config", modify config value to appropriate one.
--2. ./auto_test.sh
--3. After testing, the result file and log file created in the result directory.
-diff --git a/test/auto_test.sh b/test/auto_test.sh
-deleted file mode 100755
-index 8248e24..0000000
---- a/test/auto_test.sh
-+++ /dev/null
-@@ -1,46 +0,0 @@
--#!/bin/bash
--
--. ./src/prepare.sh
--
--echo "***************"
--
--# 1. Test whiteout
--echo -e "1.Test Whiteout\n"
--$SOURCE_DIR/whiteout_test.sh >> $LOG_FILE 2>&1
--if [ $? -ne 0 ]; then
--	echo -e "Result:\033[31m Fail\033[0m\n"
--	RESULT="Fail"
--else
--	echo -e "Result:\033[32m Pass\033[0m\n"
--	RESULT="Pass"
--fi
--
--echo -e "Test whiteout: $RESULT" >> $RESOULT_FILE
--
--# 2. Test opaque dir
--echo -e "2.Test opaque directory\n"
--$SOURCE_DIR/opaque_test.sh >> $LOG_FILE 2>&1
--if [ $? -ne 0 ]; then
--	echo -e "Result:\033[31m Fail\033[0m\n"
--	RESULT="Fail"
--else
--	echo -e "Result:\033[32m Pass\033[0m\n"
--	RESULT="Pass"
--fi
--
--echo -e "Test opaque directory: $RESULT" >> $RESOULT_FILE
--
--# 3. Test redirect dir
--echo -e "3.Test redirect direcotry\n"
--$SOURCE_DIR/redirect_test.sh >> $LOG_FILE 2>&1
--if [ $? -ne 0 ]; then
--	echo -e "Result:\033[31m Fail\033[0m\n"
--	RESULT="Fail"
--else
--	echo -e "Result:\033[32m Pass\033[0m\n"
--	RESULT="Pass"
--fi
--
--echo -e "Test redirect direcotry: $RESULT" >> $RESOULT_FILE
--
--echo "***************"
-diff --git a/test/clean.sh b/test/clean.sh
-deleted file mode 100755
-index 80f360b..0000000
---- a/test/clean.sh
-+++ /dev/null
-@@ -1,6 +0,0 @@
--#!/bin/bash
--
--. ./src/prepare.sh
--
--rm -rf $RESULT_DIR
--rm -rf $TEST_DIR
-diff --git a/test/local.config b/test/local.config
-deleted file mode 100644
-index 21b25c2..0000000
---- a/test/local.config
-+++ /dev/null
-@@ -1,16 +0,0 @@
--# Config
--export OVL_FSCK=fsck.overlay
--export TEST_DIR=/mnt/test
--
--# Base environment
--export PWD=`pwd`
--export RESULT_DIR=$PWD/result
--export SOURCE_DIR=$PWD/src
--
--# Overlayfs config
--export LOWER_DIR="lower"
--export UPPER_DIR="upper"
--export WORK_DIR="work"
--export MERGE_DIR="merge"
--export LOWER_DIR1="lower1"
--export WORK_DIR1="work1"
-diff --git a/test/src/opaque_test.sh b/test/src/opaque_test.sh
-deleted file mode 100755
-index 7cb5030..0000000
---- a/test/src/opaque_test.sh
-+++ /dev/null
-@@ -1,144 +0,0 @@
--#!/bin/bash
--
--. ./local.config
--
--__clean()
--{
--	rm -rf $TEST_DIR/*
--	cd $PWD
--}
--
--OVL_OPAQUE_XATTR="trusted.overlay.opaque"
--OVL_OPAQUE_XATTR_VAL="y"
--RET=0
--
--cd $TEST_DIR
--rm -rf *
--mkdir $LOWER_DIR $LOWER_DIR1 $UPPER_DIR $WORK_DIR
--
--# 1.Test lower invalid opaque directory
--echo "***** 1.Test lower invalid opaque directory *****"
--mkdir $LOWER_DIR/testdir
--setfattr -n $OVL_OPAQUE_XATTR -v $OVL_OPAQUE_XATTR_VAL $LOWER_DIR/testdir
--$OVL_FSCK -a -l $LOWER_DIR -u $UPPER_DIR -w $WORK_DIR
--getfattr -n $OVL_OPAQUE_XATTR $LOWER_DIR/testdir
--if [[ $? -eq 0 ]];then
--	echo "ERROR: lower's invalid opaque xattr not remove"
--	RET=$(($RET+1))
--fi
--rm -rf $LOWER_DIR/*
--
--# 2.Test upper invalid opaque directory
--echo "***** 2.Test upper invalid opaque directory *****"
--mkdir -p $UPPER_DIR/testdir0/testdir1
--setfattr -n $OVL_OPAQUE_XATTR -v $OVL_OPAQUE_XATTR_VAL $UPPER_DIR/testdir0/testdir1
--$OVL_FSCK -a -l $LOWER_DIR -u $UPPER_DIR -w $WORK_DIR
--getfattr -n $OVL_OPAQUE_XATTR $UPPER_DIR/testdir0/testdir1
--if [[ $? -eq 0 ]];then
--	echo "ERROR: upper's invalid opaque xattr not remove"
--	RET=$(($RET+1))
--fi
--rm -rf $UPPER_DIR/*
--
--# 3.Test upper opaque direcotry in merged directory
--echo "***** 3.Test upper opaque direcotry in merged directory *****"
--mkdir $UPPER_DIR/testdir
--setfattr -n $OVL_OPAQUE_XATTR -v $OVL_OPAQUE_XATTR_VAL $UPPER_DIR/testdir
--$OVL_FSCK -a -l $LOWER_DIR -u $UPPER_DIR -w $WORK_DIR
--getfattr -n $OVL_OPAQUE_XATTR $UPPER_DIR/testdir
--if [[ $? -ne 0 ]];then
--	echo "ERROR: upper's opaque xattr incorrect removed"
--	RET=$(($RET+1))
--fi
--rm -rf $UPPER_DIR/*
--
--# 4.Test upper opaque direcotry cover lower file
--echo "***** 4.Test upper opaque direcotry cover lower file *****"
--mkdir $UPPER_DIR/testdir
--mkdir $LOWER_DIR/testdir
--setfattr -n $OVL_OPAQUE_XATTR -v $OVL_OPAQUE_XATTR_VAL $UPPER_DIR/testdir
--$OVL_FSCK -a -l $LOWER_DIR -u $UPPER_DIR -w $WORK_DIR
--getfattr -n $OVL_OPAQUE_XATTR $UPPER_DIR/testdir
--if [[ $? -ne 0 ]];then
--	echo "ERROR: upper's opaque xattr incorrect removed"
--	RET=$(($RET+1))
--fi
--rm -rf $UPPER_DIR/*
--rm -rf $LOWER_DIR/*
--
--# 5.Test upper opaque direcotry cover lower directory
--echo "***** 5.Test upper opaque direcotry cover lower directory *****"
--mkdir $UPPER_DIR/testdir
--touch $LOWER_DIR/testdir
--setfattr -n $OVL_OPAQUE_XATTR -v $OVL_OPAQUE_XATTR_VAL $UPPER_DIR/testdir
--$OVL_FSCK -a -l $LOWER_DIR -u $UPPER_DIR -w $WORK_DIR
--getfattr -n $OVL_OPAQUE_XATTR $UPPER_DIR/testdir
--if [[ $? -ne 0 ]];then
--	echo "ERROR: upper's opaque xattr incorrect removed"
--	RET=$(($RET+1))
--fi
--rm -rf $UPPER_DIR/*
--rm -rf $LOWER_DIR/*
--
--# 6.Test lower invalid opaque directory in middle layer
--echo "***** 6.Test lower invalid opaque directory in middle layer *****"
--mkdir $LOWER_DIR/testdir0/testdir1
--setfattr -n $OVL_OPAQUE_XATTR -v $OVL_OPAQUE_XATTR_VAL $LOWER_DIR/testdir0/testdir1
--$OVL_FSCK -a -l $LOWER_DIR:$LOWER_DIR1 -u $UPPER_DIR -w $WORK_DIR
--getfattr -n $OVL_OPAQUE_XATTR $LOWER_DIR/testdir0/testdir1
--if [[ $? -eq 0 ]];then
--	echo "ERROR: middle's opaque xattr not removed"
--	RET=$(($RET+1))
--fi
--rm -rf $LOWER_DIR/*
--
--# 7.Test lower invalid opaque directory in bottom layer
--echo "***** 7.Test lower invalid opaque directory in bottom layer *****"
--mkdir $LOWER_DIR1/testdir0/testdir1
--setfattr -n $OVL_OPAQUE_XATTR -v $OVL_OPAQUE_XATTR_VAL $LOWER_DIR1/testdir0/
--$OVL_FSCK -a -l $LOWER_DIR:$LOWER_DIR1 -u $UPPER_DIR -w $WORK_DIR
--getfattr -n $OVL_OPAQUE_XATTR $LOWER_DIR1/testdir0/testdir1
--if [[ $? -eq 0 ]];then
--	echo "ERROR: middle's opaque xattr not removed"
--	RET=$(($RET+1))
--fi
--rm -rf $LOWER_DIR1/*
--
--# 8.Test middle opaque direcotry cover bottom directory
--echo "***** 8.Test middle opaque direcotry cover bottom directory *****"
--mkdir $LOWER_DIR1/testdir
--mkdir $LOWER_DIR/testdir
--setfattr -n $OVL_OPAQUE_XATTR -v $OVL_OPAQUE_XATTR_VAL $LOWER_DIR/testdir
--$OVL_FSCK -a -l $LOWER_DIR:$LOWER_DIR1 -u $UPPER_DIR -w $WORK_DIR
--getfattr -n $OVL_OPAQUE_XATTR $LOWER_DIR/testdir
--if [[ $? -ne 0 ]];then
--	echo "ERROR: middle's opaque xattr incorrect removed"
--	RET=$(($RET+1))
--fi
--rm -rf $LOWER_DIR1/*
--rm -rf $LOWER_DIR/*
--
--# 9.Test double opaque direcotry in middle and upper layer
--echo "***** 9.Test double opaque direcotry in middle and upper layer *****"
--mkdir $LOWER_DIR1/testdir
--mkdir $LOWER_DIR/testdir
--mkdir $UPPER_DIR/testdir
--setfattr -n $OVL_OPAQUE_XATTR -v $OVL_OPAQUE_XATTR_VAL $LOWER_DIR/testdir
--setfattr -n $OVL_OPAQUE_XATTR -v $OVL_OPAQUE_XATTR_VAL $UPPER_DIR/testdir
--$OVL_FSCK -a -l $LOWER_DIR:$LOWER_DIR1 -u $UPPER_DIR -w $WORK_DIR
--getfattr -n $OVL_OPAQUE_XATTR $LOWER_DIR/testdir
--if [[ $? -ne 0 ]];then
--	echo "ERROR: middle's opaque xattr incorrect removed"
--	RET=$(($RET+1))
--fi
--getfattr -n $OVL_OPAQUE_XATTR $UPPER_DIR/testdir
--if [[ $? -ne 0 ]];then
--	echo "ERROR: upper's opaque xattr incorrect removed"
--	RET=$(($RET+1))
--fi
--rm -rf $LOWER_DIR1/*
--rm -rf $LOWER_DIR/*
--rm -rf $UPPER_DIR/*
--
--__clean
--exit $RET
-diff --git a/test/src/prepare.sh b/test/src/prepare.sh
-deleted file mode 100755
-index 138539a..0000000
---- a/test/src/prepare.sh
-+++ /dev/null
-@@ -1,15 +0,0 @@
--#!/bin/bash
--
--. ./local.config
--
--NOW=`date +"%Y-%m-%d-%H-%M-%S"`
--LOG_FILE=$RESULT_DIR/LOG_${NOW}.log
--RESOULT_FILE=$RESULT_DIR/RESULT_${NOW}.out
--
--# creat test base dir
--if [ ! -d "$TEST_DIR" ]; then
--	mkdir -p $TEST_DIR
--fi
--
--# creat result dir
--mkdir -p $RESULT_DIR
-diff --git a/test/src/redirect_test.sh b/test/src/redirect_test.sh
-deleted file mode 100755
-index be2ce80..0000000
---- a/test/src/redirect_test.sh
-+++ /dev/null
-@@ -1,163 +0,0 @@
--#!/bin/bash
--
--. ./local.config
--
--__clean()
--{
--	rm -rf $TEST_DIR/*
--	cd $PWD
--}
--
--OVL_REDIRECT_XATTR="trusted.overlay.redirect"
--OVL_OPAQUE_XATTR="trusted.overlay.opaque"
--RET=0
--
--cd $TEST_DIR
--rm -rf *
--mkdir $LOWER_DIR $LOWER_DIR1 $UPPER_DIR $WORK_DIR
--
--# 1.Test no exist redirect origin
--echo "***** 1.Test no exist redirect origin *****"
--mkdir $UPPER_DIR/testdir
--setfattr -n $OVL_REDIRECT_XATTR -v "xxx" $UPPER_DIR/testdir
--$OVL_FSCK -a -l $LOWER_DIR -u $UPPER_DIR -w $WORK_DIR
--getfattr -n $OVL_REDIRECT_XATTR $UPPER_DIR/testdir
--if [[ $? -eq 0 ]];then
--	echo "ERROR: upper's redirect xattr not remove"
--	RET=$(($RET+1))
--fi
--rm -rf $UPPER_DIR/*
--
--# 2.Test redirect origin is file
--echo "***** 2.Test redirect origin is file *****"
--mkdir $UPPER_DIR/testdir
--touch $LOWER_DIR/origin
--setfattr -n $OVL_REDIRECT_XATTR -v "origin" $UPPER_DIR/testdir
--$OVL_FSCK -a -l $LOWER_DIR -u $UPPER_DIR -w $WORK_DIR
--getfattr -n $OVL_REDIRECT_XATTR $UPPER_DIR/testdir
--if [[ $? -eq 0 ]];then
--	echo "ERROR: upper's redirect xattr not remove"
--	RET=$(($RET+1))
--fi
--rm -rf $UPPER_DIR/*
--rm -rf $LOWER_DIR/*
--
--# 3.Test valid redirect xattr
--echo "***** 3.Test valid redirect xattr *****"
--mkdir $UPPER_DIR/testdir
--mknod $UPPER_DIR/origin c 0 0
--mkdir $LOWER_DIR/origin
--setfattr -n $OVL_REDIRECT_XATTR -v "origin" $UPPER_DIR/testdir
--$OVL_FSCK -a -l $LOWER_DIR -u $UPPER_DIR -w $WORK_DIR
--getfattr -n $OVL_REDIRECT_XATTR $UPPER_DIR/testdir
--if [[ $? -ne 0 ]];then
--	echo "ERROR: upper's redirect xattr incorrect removed"
--	RET=$(($RET+1))
--fi
--rm -rf $UPPER_DIR/*
--rm -rf $LOWER_DIR/*
--
--# 4.Test valid redirect xattr start from root
--echo "***** 4.Test valid redirect xattr start from root *****"
--mkdir -p $UPPER_DIR/testdir0/testdir1
--mknod $UPPER_DIR/origin c 0 0
--mkdir $LOWER_DIR/origin
--setfattr -n $OVL_REDIRECT_XATTR -v "/origin" $UPPER_DIR/testdir0/testdir1
--$OVL_FSCK -a -l $LOWER_DIR -u $UPPER_DIR -w $WORK_DIR
--getfattr -n $OVL_REDIRECT_XATTR $UPPER_DIR/testdir0/testdir1
--if [[ $? -ne 0 ]];then
--	echo "ERROR: upper's redirect xattr incorrect removed"
--	RET=$(($RET+1))
--fi
--rm -rf $UPPER_DIR/*
--rm -rf $LOWER_DIR/*
--
--# 5.Test missing whiteout in redirect parent directory
--echo "***** 5.Test missing whiteout in redirect parent directory *****"
--mkdir $UPPER_DIR/testdir
--mkdir $LOWER_DIR/origin
--setfattr -n $OVL_REDIRECT_XATTR -v "origin" $UPPER_DIR/testdir
--$OVL_FSCK -a -l $LOWER_DIR -u $UPPER_DIR -w $WORK_DIR
--getfattr -n $OVL_REDIRECT_XATTR $UPPER_DIR/testdir
--if [[ $? -ne 0 ]];then
--	echo "ERROR: upper's redirect xattr incorrect removed"
--	RET=$(($RET+1))
--fi
--if [ ! -e "$UPPER_DIR/origin" ];then
--	echo "ERROR: upper's missing whiteout not create"
--	RET=$(($RET+1))
--fi
--rm -rf $UPPER_DIR/*
--rm -rf $UPPER_DIR/*
--
--# 6.Test missing opaque in redirect parent directory
--echo "***** 6.Test missing opaque in redirect parent directory *****"
--mkdir -p $UPPER_DIR/testdir0/testdir1
--mkdir $UPPER_DIR/origin
--mkdir $LOWER_DIR/origin
--setfattr -n $OVL_REDIRECT_XATTR -v "/origin" $UPPER_DIR/testdir0/testdir1
--$OVL_FSCK -a -l $LOWER_DIR -u $UPPER_DIR -w $WORK_DIR
--getfattr -n $OVL_REDIRECT_XATTR $UPPER_DIR/testdir0/testdir1
--if [[ $? -ne 0 ]];then
--	echo "ERROR: upper's redirect xattr incorrect removed"
--	RET=$(($RET+1))
--fi
--getfattr -n $OVL_OPAQUE_XATTR $UPPER_DIR/origin
--if [[ $? -ne 0 ]];then
--	echo "ERROR: upper's missing opaque not set"
--	RET=$(($RET+1))
--fi
--rm -rf $UPPER_DIR/*
--rm -rf $LOWER_DIR/*
--
--# 7.Test duplicate redirect directory in one layer
--echo "***** 7.Test duplicate redirect directory in one layer *****"
--mkdir $UPPER_DIR/testdir0
--mkdir $UPPER_DIR/testdir1
--mknod $UPPER_DIR/origin c 0 0
--mkdir $LOWER_DIR/origin
--setfattr -n $OVL_REDIRECT_XATTR -v "origin" $UPPER_DIR/testdir0
--setfattr -n $OVL_REDIRECT_XATTR -v "origin" $UPPER_DIR/testdir1
--$OVL_FSCK -a -l $LOWER_DIR -u $UPPER_DIR -w $WORK_DIR
--if [[ $? -eq 0 ]];then
--	echo "ERROR: fsck check incorrect pass"
--	RET=$(($RET+1))
--fi
--rm -rf $UPPER_DIR/*
--rm -rf $LOWER_DIR/*
--
--# 8.Test duplicate redirect directory in different layer
--echo "***** 8.Test duplicate redirect directory in different layer *****"
--mkdir $UPPER_DIR/testdir0
--mkdir $LOWER_DIR/testdir1
--mkdir $LOWER_DIR1/origin
--setfattr -n $OVL_REDIRECT_XATTR -v "origin" $UPPER_DIR/testdir0
--setfattr -n $OVL_REDIRECT_XATTR -v "origin" $LOWER_DIR/testdir1
--$OVL_FSCK -a -l $LOWER_DIR:$LOWER_DIR1 -u $UPPER_DIR -w $WORK_DIR
--getfattr -n $OVL_REDIRECT_XATTR $UPPER_DIR/testdir0
--if [[ $? -ne 0 ]];then
--	echo "ERROR: upper's redirect xattr incorrect removed"
--	RET=$(($RET+1))
--fi
--getfattr -n $OVL_REDIRECT_XATTR $LOWER_DIR/testdir1
--if [[ $? -ne 0 ]];then
--	echo "ERROR: lower's redirect xattr incorrect removed"
--	RET=$(($RET+1))
--fi
--
--if [ ! -e "$LOWER_DIR/origin" ];then
--	echo "ERROR: upper's missing whiteout not create"
--	RET=$(($RET+1))
--fi
--if [ ! -e "$LOWER_DIR/origin" ];then
--	echo "ERROR: lower's missing whiteout not create"
--	RET=$(($RET+1))
--fi
--
--rm -rf $UPPER_DIR/*
--rm -rf $LOWER_DIR/*
--rm -rf $LOWER_DIR1/*
--
--__clean
--
--exit $RET
-diff --git a/test/src/whiteout_test.sh b/test/src/whiteout_test.sh
-deleted file mode 100755
-index c0e1555..0000000
---- a/test/src/whiteout_test.sh
-+++ /dev/null
-@@ -1,63 +0,0 @@
--#!/bin/bash
--
--. ./local.config
--
--__clean()
--{
--	rm -rf $TEST_DIR/*
--	cd $PWD
--}
--
--RET=0
--
--cd $TEST_DIR
--rm -rf *
--mkdir $LOWER_DIR $LOWER_DIR1 $UPPER_DIR $WORK_DIR
--
--# 1.Test lower orphan whiteout
--echo "***** 1.Test lower orphan whiteout *****"
--mknod $LOWER_DIR/foo c 0 0
--$OVL_FSCK -a -l $LOWER_DIR -u $UPPER_DIR -w $WORK_DIR
--if [ -e "$LOWER_DIR/foo" ];then
--	echo "lower's whiteout not remove"
--	RET=$(($RET+1))
--fi
--rm -f $LOWER_DIR/*
--
--# 2.Test upper orphan whiteout
--echo "***** 2.Test upper orphan whiteout *****"
--mknod $UPPER_DIR/foo c 0 0
--$OVL_FSCK -a -l $LOWER_DIR -u $UPPER_DIR -w $WORK_DIR
--if [ -e "$UPPER_DIR/foo" ];then
--	echo "upper's whiteout not remove"
--	RET=$(($RET+1))
--fi
--rm -f $UPPER_DIR/*
--
--# 3.Test upper inuse whiteout
--echo "***** 3.Test upper inuse whiteout *****"
--touch $LOWER_DIR/foo
--mknod $UPPER_DIR/foo c 0 0
--$OVL_FSCK -a -l $LOWER_DIR -u $UPPER_DIR -w $WORK_DIR
--if [ ! -e "$UPPER_DIR/foo" ];then
--	echo "upper's whiteout incorrect remove"
--	RET=$(($RET+1))
--fi
--rm -f $UPPER_DIR/*
--rm -f $LOWER_DIR/*
--
--# 4.Test lower inuse whiteout
--echo "***** 4.Test lower inuse whiteout *****"
--touch $LOWER_DIR/foo
--mknod $LOWER_DIR1/foo c 0 0
--$OVL_FSCK -a -l $LOWER_DIR1:$LOWER_DIR -u $UPPER_DIR -w $WORK_DIR
--if [ ! -e "$LOWER_DIR1/foo" ];then
--	echo "lower's whiteout incorrect remove"
--	RET=$(($RET+1))
--fi
--rm -f $LOWER_DIR1/*
--rm -f $LOWER_DIR/*
--
--__clean
--
--exit $RET
+diff --git a/README.md b/README.md
+index 8de69cd..1d759b0 100644
+--- a/README.md
++++ b/README.md
+@@ -20,11 +20,12 @@ Opaque directories
+ ------------------
+ 
+ An opaque directory is a directory with "trusted.overlay.opaque" xattr valued
+-"y". There are two legal situations of making opaque directory: 1) create
+-directory over whiteout 2) creat directory in merged directory. If an opaque
+-directory is found, corresponding matching name in lower layers might exist or
+-parent directory might merged, If not, the opaque xattr will be treated as
+-invalid and remove.
++"y". There are two legal situations of making opaque directory:
++1) Create directory over whiteout,
++2) Creat directory in merged directory.
++If an opaque directory is found, either corresponding matching name in lower
++layers is exist or parent directory is merged, If not, the opaque xattr will be
++treated as invalid and remove.
+ 
+ 
+ Redirect directories
+@@ -35,17 +36,21 @@ valued to the path of the original location from the root of the overlay. It
+ is only used when renaming a directory and "redirect dir" feature is enabled.
+ If an redirect directory is found, the following must be met:
+ 
+-1) The directory store in redirect xattr should exist in one of lower layers.
++1) The directory path pointed by redirect xattr should exist in one of lower
++   layers.
+ 2) The origin directory should be redirected only once in one layer, which mean
+    there is only one redirect xattr point to this origin directory in the
+    specified layer.
+-3) A whiteout or an opaque directory with the same name to origin should exist
+-   in the same directory as the redirect directory.
++3) A whiteout or an opaque directory or another redirect directory with the
++   same name to origin should exist in the same directory as the redirect
++   directory.
+ 
+ If not, 1) The redirect xattr is invalid and need to remove 2) One of the
+-redirect xattr is redundant but not sure which one is, ask user 3) Create a
+-whiteout device or set opaque xattr to an existing directory if the parent
+-directory was meregd or remove xattr if not.
++redirect xattr is redundant but not sure which one is, ask user by default or
++remove in 'yes' mode 3) Check and fix the missing whiteout or opaque in redierct
++parent directory if there is no another redirected upper directory covering the
++redirect lower target.
++
+ 
+ Usage
+ =====
+@@ -58,14 +63,17 @@ Usage
+    fsck.overlay [-l lowerdir] [-u upperdir] [-w workdir] [-avhV]
+ 
+    Options:
+-   -l, --lowerdir=LOWERDIR   specify lower directories of overlayfs,
+-                             multiple lower use ':' as separator.
+-   -u, --upperdir=UPPERDIR   specify upper directory of overlayfs
+-   -w, --workdir=WORKDIR     specify work directory of overlayfs
+-   -a, --auto                repair automatically (no questions)
+-   -v, --verbose             print more messages of overlayfs
+-   -h, --help                display this usage of overlayfs
+-   -V, --version             display version information
++   -l, --lowerdir=LOWERDIR	specify lower directories of overlayfs,
++				multiple lower use ':' as separator,
++				the leftmost one is the toppest
++   -u, --upperdir=UPPERDIR	specify upper directory of overlayfs
++   -w, --workdir=WORKDIR	specify work directory of overlayfs
++   -p,				automatic repair (no questions)
++   -n,				make no changes to the filesystem
++   -y,				assume "yes" to all questions
++   -v, --verbose		print more messages of overlayfs
++   -h, --help			display this usage of overlayfs
++   -V, --version		display version information
+ 
+ 3. Exit value:
+    0      No errors
+@@ -82,7 +90,9 @@ Todo
+ 
+ 1. Overlay filesystem mounted check. Prevent fscking when overlay is
+    online. Now, We cannot distinguish mounted directories if overlayfs was
+-   mounted with relative path.
+-2. Symbolic link check.
+-3. Check origin/impure/nlink xattr.
+-4. ...
++   mounted with relative path. Should modify kernel together to support.
++2. Check and fix invalid redirect xattr through origin xattr.
++3. Symbolic link check.
++4. Check origin/impure/nlink xattr.
++5. Check index feature consistency.
++6. ...
 -- 
 2.9.5
