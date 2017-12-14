@@ -1,164 +1,71 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [PATCH for xfstests 2/4] overlay: add fsck.overlay whiteout test
-Date: Thu, 14 Dec 2017 15:13:00 +0200
-Message-ID: <CAOQ4uxihAUTTP4nrtYxgNmqScmh80GTnDgJmmNFMsvj3Y4Y7ZA@mail.gmail.com>
-References: <20171214064846.21587-1-yi.zhang@huawei.com> <20171214064846.21587-3-yi.zhang@huawei.com>
+Subject: Re: [PATCH for xfstests 1/4] overlay: add filesystem check helper
+Date: Thu, 14 Dec 2017 15:14:59 +0200
+Message-ID: <CAOQ4uxjDwS5zNSYXT4NYJK720-gDbuhQO3PFGQCV5JQqGYenoA@mail.gmail.com>
+References: <20171214064846.21587-1-yi.zhang@huawei.com> <20171214064846.21587-2-yi.zhang@huawei.com>
+ <CAOQ4uximBJqFpsBMLQMWTJpJsoigBnYemtb7z1h-3PPWyjrkXA@mail.gmail.com> <0860e6d0-cbdb-bc0d-33e3-ba0f800bdbf2@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-yb0-f196.google.com ([209.85.213.196]:45967 "EHLO
-        mail-yb0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752023AbdLNNNB (ORCPT
+Received: from mail-yb0-f194.google.com ([209.85.213.194]:44209 "EHLO
+        mail-yb0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752131AbdLNNPA (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 14 Dec 2017 08:13:01 -0500
-In-Reply-To: <20171214064846.21587-3-yi.zhang@huawei.com>
+        Thu, 14 Dec 2017 08:15:00 -0500
+In-Reply-To: <0860e6d0-cbdb-bc0d-33e3-ba0f800bdbf2@huawei.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: "zhangyi (F)" <yi.zhang@huawei.com>
 Cc: overlayfs <linux-unionfs@vger.kernel.org>, fstests <fstests@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>, Eryu Guan <eguan@redhat.com>, "Darrick J. Wong" <darrick.wong@oracle.com>, Miao Xie <miaoxie@huawei.com>
 
-On Thu, Dec 14, 2017 at 8:48 AM, zhangyi (F) <yi.zhang@huawei.com> wrote:
-> Add fsck.overlay test case to test it how to deal with orphan/valid
-> whiteouts in underlying directories of overlayfs.
+On Thu, Dec 14, 2017 at 2:40 PM, zhangyi (F) <yi.zhang@huawei.com> wrote:
+> On 2017/12/14 17:05, Amir Goldstein Write:
+>> On Thu, Dec 14, 2017 at 8:48 AM, zhangyi (F) <yi.zhang@huawei.com> wrote:
+>>> Add filesystem check helpers for the upcoming fsck.overlay utility,
+>>> and hook them to _check_test_fs and _check_scratch_fs. This helper
+>>> works only if fsck.overlay exists.
+>>>
+>>> [ _check_test_fs/_check_scratch_fs part picked from Amir's patch, thanks ]
+>>>
+>>> Signed-off-by: zhangyi (F) <yi.zhang@huawei.com>
+>>> ---
+>>>  common/config  |  1 +
+>>>  common/overlay | 78 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+>>>  common/rc      |  4 +--
+>>>  3 files changed, 81 insertions(+), 2 deletions(-)
+>>>
+> [..]
+>>> +_overlay_check_dirs()
+>>> +{
+>>> +       local lowerdir=$1
+>>> +       local upperdir=$2
+>>> +       local workdir=$3
+>>> +       local err=0
+>>> +
+>>> +       _overlay_fsck_dirs $FSCK_OPTIONS $* >>$tmp.fsck 2>&1
+>>> +       if [ $? -ne 0 ]; then
+>>> +               _log_err "_overlay_check_fs: overlayfs on $lowerdir,$upperdir,$workdir is inconsistent"
+>>> +               echo "*** fsck.overlay output ***"      >>$seqres.full
+>>> +               cat $tmp.fsck                           >>$seqres.full
+>>> +               echo "*** end fsck.overlay output"      >>$seqres.full
+>>> +               echo "*** mount output ***"             >>$seqres.full
+>>> +               _mount                                  >>$seqres.full
+>>> +               echo "*** end mount output"             >>$seqres.full
+>>> +               err=1
+>>> +       fi
+>>
+>> Maybe the tmp.fsck output reporting to seqres.full should be done in
+>> _overlay_fsck_dirs?
+>> I think this output could be useful for understanding fsck tests failure.
 >
-> Signed-off-by: zhangyi (F) <yi.zhang@huawei.com>
-> ---
->  tests/overlay/201     | 98 +++++++++++++++++++++++++++++++++++++++++++++++++++
->  tests/overlay/201.out |  3 ++
->  tests/overlay/group   |  1 +
->  3 files changed, 102 insertions(+)
->  create mode 100755 tests/overlay/201
->  create mode 100644 tests/overlay/201.out
+> If we do these in _overlay_fsck_dirs, we can get output only when fsck return
+> fail, but this output maybe useful for understanding fsck.overlay even through
+> fsck pass when we test it. So I call _overlay_fsck_dirs and put output to
+> seqres.full alone in each test case now, see 0002-0004 patches.
+> But it's also fine to put these into _overlay_fsck_dirs.
 >
-> diff --git a/tests/overlay/201 b/tests/overlay/201
-> new file mode 100755
-> index 0000000..1052baa
-> --- /dev/null
-> +++ b/tests/overlay/201
-> @@ -0,0 +1,98 @@
-> +#! /bin/bash
-> +# FS QA Test 201
-> +#
-> +# Test fsck.overlay how to deal with whiteouts in overlayfs.
-> +#
-> +#-----------------------------------------------------------------------
-> +# Copyright (c) 2017 Huawei.  All Rights Reserved.
-> +# Author: zhangyi (F) <yi.zhang@huawei.com>
-> +#
-> +# This program is free software; you can redistribute it and/or
-> +# modify it under the terms of the GNU General Public License as
-> +# published by the Free Software Foundation.
-> +#
-> +# This program is distributed in the hope that it would be useful,
-> +# but WITHOUT ANY WARRANTY; without even the implied warranty of
-> +# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> +# GNU General Public License for more details.
-> +#
-> +# You should have received a copy of the GNU General Public License
-> +# along with this program; if not, write the Free Software Foundation,
-> +# Inc.,  51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-> +#-----------------------------------------------------------------------
-> +#
-> +
-> +seq=`basename $0`
-> +seqres=$RESULT_DIR/$seq
-> +echo "QA output created by $seq"
-> +
-> +here=`pwd`
-> +tmp=/tmp/$$
-> +status=1        # failure is the default!
-> +trap "_cleanup; exit \$status" 0 1 2 3 15
-> +
-> +_cleanup()
-> +{
-> +       cd /
-> +       rm -f $tmp.*
-> +}
-> +
-> +# get standard environment, filters and checks
-> +. ./common/rc
-> +. ./common/filter
-> +
-> +# remove previous $seqres.full before test
-> +rm -f $seqres.full
-> +
-> +# real QA test starts here
-> +_supported_fs overlay
-> +_supported_os Linux
-> +_require_scratch
-> +_require_command "$FSCK_OVERLAY_PROG" fsck.overlay
-> +
-> +# remove all files from previous tests
-> +_scratch_mkfs
-> +
-> +# Check whiteout
-> +check_whiteout()
-> +{
-> +       local target=$1
-> +
-> +       target_type=`stat -c "%F:%t,%T" $target`
-> +
-> +       [[ $target_type == "character special file:0,0" ]] || \
-> +               echo "Valid whiteout removed incorrectly"
-> +}
-> +
-> +# Create test directories
-> +lowerdir=$OVL_BASE_SCRATCH_MNT/lower
-> +lowerdir2=$OVL_BASE_SCRATCH_MNT/lower2
-> +upperdir=$OVL_BASE_SCRATCH_MNT/upper
-> +workdir=$OVL_BASE_SCRATCH_MNT/workdir
-> +
-> +mkdir -p $lowerdir $lowerdir2 $upperdir $workdir $workdir
-> +
-> +# Test orphan whiteout in lower and upper layer, should remove
-> +echo "+ Orphan whiteout"
-> +mknod $lowerdir/foo c 0 0
-> +mknod $upperdir/foo c 0 0
-> +mknod $upperdir/bar c 0 0
-> +_overlay_fsck_dirs -a $lowerdir $upperdir $workdir >> $seqres.full 2>&1 || \
 
-Don'y you mean -p ?  ;-p
-
-
-> +       _fail "fsck should not fail"
-> +ls $lowerdir
-> +ls $upperdir
-> +rm -rf $lowerdir/* $upperdir/*
-> +
-> +# Test valid whiteout covering lower target, should not remove
-> +echo "+ Valid whiteout"
-> +touch $lowerdir2/foo $lowerdir2/bar
-> +mknod $upperdir/foo c 0 0
-> +mknod $lowerdir/bar c 0 0
-> +_overlay_fsck_dirs -a "$lowerdir:$lowerdir2" $upperdir $workdir >> \
-> +        $seqres.full 2>&1 || _fail "fsck should not fail"
-> +check_whiteout $upperdir/foo
-> +check_whiteout $lowerdir/bar
-> +
-> +# success, all done
-> +status=0
-> +exit
-> diff --git a/tests/overlay/201.out b/tests/overlay/201.out
-> new file mode 100644
-> index 0000000..20338db
-> --- /dev/null
-> +++ b/tests/overlay/201.out
-> @@ -0,0 +1,3 @@
-> +QA output created by 201
-> ++ Orphan whiteout
-> ++ Valid whiteout
-> diff --git a/tests/overlay/group b/tests/overlay/group
-> index 7e541e4..7c5fcbb 100644
-> --- a/tests/overlay/group
-> +++ b/tests/overlay/group
-> @@ -49,3 +49,4 @@
->  044 auto quick copyup hardlink nonsamefs
->  047 auto quick copyup hardlink
->  048 auto quick copyup hardlink
-> +201 auto quick fsck
-> --
-
-
-Looks good
-
+I understand. Fine by me to keep this patch unchanged.
+Besides the _check_overlay_scratch_fs typo,
+Looks good.
 Amir.
