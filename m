@@ -1,328 +1,566 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [PATCH v2 14/18] fsck.overlay: correct copyright and License
-Date: Thu, 14 Dec 2017 11:09:02 +0200
-Message-ID: <CAOQ4uxiPHJ4at_gd+ZdQS+ONJsaUgq=FaUovjd=r0veMyrhAqQ@mail.gmail.com>
-References: <20171214064747.20999-1-yi.zhang@huawei.com> <20171214064747.20999-15-yi.zhang@huawei.com>
+Subject: Re: [PATCH v2 16/18] fsck.overlay: remove test cases
+Date: Thu, 14 Dec 2017 11:11:08 +0200
+Message-ID: <CAOQ4uxgt8d_xTnap9LkdpPBrdCH+r1Db3eJ2Bp+NjXiwcx78mA@mail.gmail.com>
+References: <20171214064747.20999-1-yi.zhang@huawei.com> <20171214064747.20999-17-yi.zhang@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-yb0-f195.google.com ([209.85.213.195]:35003 "EHLO
-        mail-yb0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751173AbdLNJJD (ORCPT
+Received: from mail-yb0-f177.google.com ([209.85.213.177]:41517 "EHLO
+        mail-yb0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750737AbdLNJLJ (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 14 Dec 2017 04:09:03 -0500
-In-Reply-To: <20171214064747.20999-15-yi.zhang@huawei.com>
+        Thu, 14 Dec 2017 04:11:09 -0500
+In-Reply-To: <20171214064747.20999-17-yi.zhang@huawei.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: "zhangyi (F)" <yi.zhang@huawei.com>
 Cc: overlayfs <linux-unionfs@vger.kernel.org>, fstests <fstests@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>, Eryu Guan <eguan@redhat.com>, "Darrick J. Wong" <darrick.wong@oracle.com>, Miao Xie <miaoxie@huawei.com>
 
 On Thu, Dec 14, 2017 at 8:47 AM, zhangyi (F) <yi.zhang@huawei.com> wrote:
+> Remove test cases for fsck.overlay, these cases will move to xfstests.
+
+Again, better keep you initial incubator version clean of this remove and
+not add the tests in the original commit.
+
+>
 > Signed-off-by: zhangyi (F) <yi.zhang@huawei.com>
-
-You don't want this implicit copyright change in the history of your
-brand new repository.
-Better fix the license in the original commit.
-
 > ---
->  check.c  | 17 +++++++++++++++--
->  check.h  | 18 ++++++++++++++++++
->  common.c | 16 ++++++++++++++--
->  common.h | 18 ++++++++++++++++++
->  config.h | 18 ++++++++++++++++++
->  fsck.c   | 17 +++++++++++++++--
->  lib.c    | 17 +++++++++++++++--
->  lib.h    | 18 ++++++++++++++++++
->  mount.c  | 17 +++++++++++++++--
->  mount.h  | 18 ++++++++++++++++++
->  10 files changed, 164 insertions(+), 10 deletions(-)
+>  test/README.md            |  12 ----
+>  test/auto_test.sh         |  46 -------------
+>  test/clean.sh             |   6 --
+>  test/local.config         |  16 -----
+>  test/src/opaque_test.sh   | 144 ----------------------------------------
+>  test/src/prepare.sh       |  15 -----
+>  test/src/redirect_test.sh | 163 ----------------------------------------------
+>  test/src/whiteout_test.sh |  63 ------------------
+>  8 files changed, 465 deletions(-)
+>  delete mode 100644 test/README.md
+>  delete mode 100755 test/auto_test.sh
+>  delete mode 100755 test/clean.sh
+>  delete mode 100644 test/local.config
+>  delete mode 100755 test/src/opaque_test.sh
+>  delete mode 100755 test/src/prepare.sh
+>  delete mode 100755 test/src/redirect_test.sh
+>  delete mode 100755 test/src/whiteout_test.sh
 >
-> diff --git a/check.c b/check.c
-> index ca75358..7e07b66 100644
-> --- a/check.c
-> +++ b/check.c
-> @@ -1,11 +1,24 @@
->  /*
-> + * check.c - Check and fix inconsistency for all underlying layers of overlay
->   *
-> - *     Check and fix inconsistency for all underlying layers of overlay
-> + * Copyright (c) 2017 Huawei.  All Rights Reserved.
-> + * Author: zhangyi (F) <yi.zhang@huawei.com>
->   *
-> - *     zhangyi (F) <yi.zhang@huawei.com> - Sponsored by Huawei CR
-> + * This program is free software; you can redistribute it and/or
-> + * modify it under the terms of the GNU General Public License as
-> + * published by the Free Software Foundation.
->   *
-> + * This program is distributed in the hope that it would be useful,
-> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> + * GNU General Public License for more details.
-> + *
-> + * You should have received a copy of the GNU General Public License
-> + * along with this program; if not, write the Free Software Foundation,
-> + * Inc.,  51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
->   */
->
-> +
->  #define _GNU_SOURCE
->  #include <stdlib.h>
->  #include <stdio.h>
-> diff --git a/check.h b/check.h
-> index 373ff3a..6af8c2d 100644
-> --- a/check.h
-> +++ b/check.h
-> @@ -1,3 +1,21 @@
-> +/*
-> + * Copyright (c) 2017 Huawei.  All Rights Reserved.
-> + * Author: zhangyi (F) <yi.zhang@huawei.com>
-> + *
-> + * This program is free software; you can redistribute it and/or
-> + * modify it under the terms of the GNU General Public License as
-> + * published by the Free Software Foundation.
-> + *
-> + * This program is distributed in the hope that it would be useful,
-> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.        See the
-> + * GNU General Public License for more details.
-> + *
-> + * You should have received a copy of the GNU General Public License
-> + * along with this program; if not, write the Free Software Foundation,
-> + * Inc.,  51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-> + */
-> +
->  #ifndef OVL_WHITECHECK_H
->  #define OVL_WHITECHECK_H
->
-> diff --git a/common.c b/common.c
-> index 4e77045..904db58 100644
-> --- a/common.c
-> +++ b/common.c
-> @@ -1,9 +1,21 @@
->  /*
-> + * common.c - Common things for all utilities
->   *
-> - *     Common things for all utilities
-> + * Copyright (c) 2017 Huawei.  All Rights Reserved.
-> + * Author: zhangyi (F) <yi.zhang@huawei.com>
->   *
-> - *     zhangyi (F) <yi.zhang@huawei.com> - Sponsored by Huawei CR
-> + * This program is free software; you can redistribute it and/or
-> + * modify it under the terms of the GNU General Public License as
-> + * published by the Free Software Foundation.
->   *
-> + * This program is distributed in the hope that it would be useful,
-> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> + * GNU General Public License for more details.
-> + *
-> + * You should have received a copy of the GNU General Public License
-> + * along with this program; if not, write the Free Software Foundation,
-> + * Inc.,  51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
->   */
->
->  #include <stdio.h>
-> diff --git a/common.h b/common.h
-> index c4707e7..c93b7a6 100644
-> --- a/common.h
-> +++ b/common.h
-> @@ -1,3 +1,21 @@
-> +/*
-> + * Copyright (c) 2017 Huawei.  All Rights Reserved.
-> + * Author: zhangyi (F) <yi.zhang@huawei.com>
-> + *
-> + * This program is free software; you can redistribute it and/or
-> + * modify it under the terms of the GNU General Public License as
-> + * published by the Free Software Foundation.
-> + *
-> + * This program is distributed in the hope that it would be useful,
-> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.        See the
-> + * GNU General Public License for more details.
-> + *
-> + * You should have received a copy of the GNU General Public License
-> + * along with this program; if not, write the Free Software Foundation,
-> + * Inc.,  51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-> + */
-> +
->  #ifndef OVL_COMMON_H
->  #define OVL_COMMON_H
->
-> diff --git a/config.h b/config.h
-> index deac089..fa7eafa 100644
-> --- a/config.h
-> +++ b/config.h
-> @@ -1,3 +1,21 @@
-> +/*
-> + * Copyright (c) 2017 Huawei.  All Rights Reserved.
-> + * Author: zhangyi (F) <yi.zhang@huawei.com>
-> + *
-> + * This program is free software; you can redistribute it and/or
-> + * modify it under the terms of the GNU General Public License as
-> + * published by the Free Software Foundation.
-> + *
-> + * This program is distributed in the hope that it would be useful,
-> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.        See the
-> + * GNU General Public License for more details.
-> + *
-> + * You should have received a copy of the GNU General Public License
-> + * along with this program; if not, write the Free Software Foundation,
-> + * Inc.,  51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-> + */
-> +
->  #ifndef OVL_CONFIG_H
->  #define OVL_CONFIG_H
->
-> diff --git a/fsck.c b/fsck.c
-> index 0a84903..56a5286 100644
-> --- a/fsck.c
-> +++ b/fsck.c
-> @@ -1,11 +1,24 @@
->  /*
-> + * fsck.c - Utility to fsck overlay
->   *
-> - *     Utility to fsck overlay
-> + * Copyright (c) 2017 Huawei.  All Rights Reserved.
-> + * Author: zhangyi (F) <yi.zhang@huawei.com>
->   *
-> - *     zhangyi (F) <yi.zhang@huawei.com> - Sponsored by Huawei CR
-> + * This program is free software; you can redistribute it and/or
-> + * modify it under the terms of the GNU General Public License as
-> + * published by the Free Software Foundation.
->   *
-> + * This program is distributed in the hope that it would be useful,
-> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> + * GNU General Public License for more details.
-> + *
-> + * You should have received a copy of the GNU General Public License
-> + * along with this program; if not, write the Free Software Foundation,
-> + * Inc.,  51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
->   */
->
-> +
->  #include <stdio.h>
->  #include <stdlib.h>
->  #include <string.h>
-> diff --git a/lib.c b/lib.c
-> index 7495af5..00ec81f 100644
-> --- a/lib.c
-> +++ b/lib.c
-> @@ -1,11 +1,24 @@
->  /*
-> + * lib.c - Common things for all utilities
->   *
-> - *     Common things for all utilities
-> + * Copyright (c) 2017 Huawei.  All Rights Reserved.
-> + * Author: zhangyi (F) <yi.zhang@huawei.com>
->   *
-> - *     zhangyi (F) <yi.zhang@huawei.com> - Sponsored by Huawei CR
-> + * This program is free software; you can redistribute it and/or
-> + * modify it under the terms of the GNU General Public License as
-> + * published by the Free Software Foundation.
->   *
-> + * This program is distributed in the hope that it would be useful,
-> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> + * GNU General Public License for more details.
-> + *
-> + * You should have received a copy of the GNU General Public License
-> + * along with this program; if not, write the Free Software Foundation,
-> + * Inc.,  51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
->   */
->
-> +
->  #include <stdlib.h>
->  #include <stdio.h>
->  #include <unistd.h>
-> diff --git a/lib.h b/lib.h
-> index 0f0b526..ebcc77c 100644
-> --- a/lib.h
-> +++ b/lib.h
-> @@ -1,3 +1,21 @@
-> +/*
-> + * Copyright (c) 2017 Huawei.  All Rights Reserved.
-> + * Author: zhangyi (F) <yi.zhang@huawei.com>
-> + *
-> + * This program is free software; you can redistribute it and/or
-> + * modify it under the terms of the GNU General Public License as
-> + * published by the Free Software Foundation.
-> + *
-> + * This program is distributed in the hope that it would be useful,
-> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.        See the
-> + * GNU General Public License for more details.
-> + *
-> + * You should have received a copy of the GNU General Public License
-> + * along with this program; if not, write the Free Software Foundation,
-> + * Inc.,  51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-> + */
-> +
->  #ifndef OVL_LIB_H
->  #define OVL_LIB_H
->
-> diff --git a/mount.c b/mount.c
-> index 768c7aa..10970d5 100644
-> --- a/mount.c
-> +++ b/mount.c
-> @@ -1,11 +1,24 @@
->  /*
-> + * mount.c - Check mounted overlay
->   *
-> - *     Check mounted overlay
-> + * Copyright (c) 2017 Huawei.  All Rights Reserved.
-> + * Author: zhangyi (F) <yi.zhang@huawei.com>
->   *
-> - *     zhangyi (F) <yi.zhang@huawei.com> - Sponsored by Huawei CR
-> + * This program is free software; you can redistribute it and/or
-> + * modify it under the terms of the GNU General Public License as
-> + * published by the Free Software Foundation.
->   *
-> + * This program is distributed in the hope that it would be useful,
-> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> + * GNU General Public License for more details.
-> + *
-> + * You should have received a copy of the GNU General Public License
-> + * along with this program; if not, write the Free Software Foundation,
-> + * Inc.,  51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
->   */
->
-> +
->  #include <stdio.h>
->  #include <stdlib.h>
->  #include <string.h>
-> diff --git a/mount.h b/mount.h
-> index 8a3762d..e65425c 100644
-> --- a/mount.h
-> +++ b/mount.h
-> @@ -1,3 +1,21 @@
-> +/*
-> + * Copyright (c) 2017 Huawei.  All Rights Reserved.
-> + * Author: zhangyi (F) <yi.zhang@huawei.com>
-> + *
-> + * This program is free software; you can redistribute it and/or
-> + * modify it under the terms of the GNU General Public License as
-> + * published by the Free Software Foundation.
-> + *
-> + * This program is distributed in the hope that it would be useful,
-> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.        See the
-> + * GNU General Public License for more details.
-> + *
-> + * You should have received a copy of the GNU General Public License
-> + * along with this program; if not, write the Free Software Foundation,
-> + * Inc.,  51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-> + */
-> +
->  #ifndef OVL_MOUNT_H
->  #define OVL_MOUNT_H
->
+> diff --git a/test/README.md b/test/README.md
+> deleted file mode 100644
+> index 71dbad8..0000000
+> --- a/test/README.md
+> +++ /dev/null
+> @@ -1,12 +0,0 @@
+> -fsck.overlay test
+> -=================
+> -
+> -This test cases simulate different inconsistency of overlay filesystem
+> -underlying directories, test fsck.overlay can repair them correctly or not.
+> -
+> -USAGE
+> -=====
+> -
+> -1. Check "local.config", modify config value to appropriate one.
+> -2. ./auto_test.sh
+> -3. After testing, the result file and log file created in the result directory.
+> diff --git a/test/auto_test.sh b/test/auto_test.sh
+> deleted file mode 100755
+> index 8248e24..0000000
+> --- a/test/auto_test.sh
+> +++ /dev/null
+> @@ -1,46 +0,0 @@
+> -#!/bin/bash
+> -
+> -. ./src/prepare.sh
+> -
+> -echo "***************"
+> -
+> -# 1. Test whiteout
+> -echo -e "1.Test Whiteout\n"
+> -$SOURCE_DIR/whiteout_test.sh >> $LOG_FILE 2>&1
+> -if [ $? -ne 0 ]; then
+> -       echo -e "Result:\033[31m Fail\033[0m\n"
+> -       RESULT="Fail"
+> -else
+> -       echo -e "Result:\033[32m Pass\033[0m\n"
+> -       RESULT="Pass"
+> -fi
+> -
+> -echo -e "Test whiteout: $RESULT" >> $RESOULT_FILE
+> -
+> -# 2. Test opaque dir
+> -echo -e "2.Test opaque directory\n"
+> -$SOURCE_DIR/opaque_test.sh >> $LOG_FILE 2>&1
+> -if [ $? -ne 0 ]; then
+> -       echo -e "Result:\033[31m Fail\033[0m\n"
+> -       RESULT="Fail"
+> -else
+> -       echo -e "Result:\033[32m Pass\033[0m\n"
+> -       RESULT="Pass"
+> -fi
+> -
+> -echo -e "Test opaque directory: $RESULT" >> $RESOULT_FILE
+> -
+> -# 3. Test redirect dir
+> -echo -e "3.Test redirect direcotry\n"
+> -$SOURCE_DIR/redirect_test.sh >> $LOG_FILE 2>&1
+> -if [ $? -ne 0 ]; then
+> -       echo -e "Result:\033[31m Fail\033[0m\n"
+> -       RESULT="Fail"
+> -else
+> -       echo -e "Result:\033[32m Pass\033[0m\n"
+> -       RESULT="Pass"
+> -fi
+> -
+> -echo -e "Test redirect direcotry: $RESULT" >> $RESOULT_FILE
+> -
+> -echo "***************"
+> diff --git a/test/clean.sh b/test/clean.sh
+> deleted file mode 100755
+> index 80f360b..0000000
+> --- a/test/clean.sh
+> +++ /dev/null
+> @@ -1,6 +0,0 @@
+> -#!/bin/bash
+> -
+> -. ./src/prepare.sh
+> -
+> -rm -rf $RESULT_DIR
+> -rm -rf $TEST_DIR
+> diff --git a/test/local.config b/test/local.config
+> deleted file mode 100644
+> index 21b25c2..0000000
+> --- a/test/local.config
+> +++ /dev/null
+> @@ -1,16 +0,0 @@
+> -# Config
+> -export OVL_FSCK=fsck.overlay
+> -export TEST_DIR=/mnt/test
+> -
+> -# Base environment
+> -export PWD=`pwd`
+> -export RESULT_DIR=$PWD/result
+> -export SOURCE_DIR=$PWD/src
+> -
+> -# Overlayfs config
+> -export LOWER_DIR="lower"
+> -export UPPER_DIR="upper"
+> -export WORK_DIR="work"
+> -export MERGE_DIR="merge"
+> -export LOWER_DIR1="lower1"
+> -export WORK_DIR1="work1"
+> diff --git a/test/src/opaque_test.sh b/test/src/opaque_test.sh
+> deleted file mode 100755
+> index 7cb5030..0000000
+> --- a/test/src/opaque_test.sh
+> +++ /dev/null
+> @@ -1,144 +0,0 @@
+> -#!/bin/bash
+> -
+> -. ./local.config
+> -
+> -__clean()
+> -{
+> -       rm -rf $TEST_DIR/*
+> -       cd $PWD
+> -}
+> -
+> -OVL_OPAQUE_XATTR="trusted.overlay.opaque"
+> -OVL_OPAQUE_XATTR_VAL="y"
+> -RET=0
+> -
+> -cd $TEST_DIR
+> -rm -rf *
+> -mkdir $LOWER_DIR $LOWER_DIR1 $UPPER_DIR $WORK_DIR
+> -
+> -# 1.Test lower invalid opaque directory
+> -echo "***** 1.Test lower invalid opaque directory *****"
+> -mkdir $LOWER_DIR/testdir
+> -setfattr -n $OVL_OPAQUE_XATTR -v $OVL_OPAQUE_XATTR_VAL $LOWER_DIR/testdir
+> -$OVL_FSCK -a -l $LOWER_DIR -u $UPPER_DIR -w $WORK_DIR
+> -getfattr -n $OVL_OPAQUE_XATTR $LOWER_DIR/testdir
+> -if [[ $? -eq 0 ]];then
+> -       echo "ERROR: lower's invalid opaque xattr not remove"
+> -       RET=$(($RET+1))
+> -fi
+> -rm -rf $LOWER_DIR/*
+> -
+> -# 2.Test upper invalid opaque directory
+> -echo "***** 2.Test upper invalid opaque directory *****"
+> -mkdir -p $UPPER_DIR/testdir0/testdir1
+> -setfattr -n $OVL_OPAQUE_XATTR -v $OVL_OPAQUE_XATTR_VAL $UPPER_DIR/testdir0/testdir1
+> -$OVL_FSCK -a -l $LOWER_DIR -u $UPPER_DIR -w $WORK_DIR
+> -getfattr -n $OVL_OPAQUE_XATTR $UPPER_DIR/testdir0/testdir1
+> -if [[ $? -eq 0 ]];then
+> -       echo "ERROR: upper's invalid opaque xattr not remove"
+> -       RET=$(($RET+1))
+> -fi
+> -rm -rf $UPPER_DIR/*
+> -
+> -# 3.Test upper opaque direcotry in merged directory
+> -echo "***** 3.Test upper opaque direcotry in merged directory *****"
+> -mkdir $UPPER_DIR/testdir
+> -setfattr -n $OVL_OPAQUE_XATTR -v $OVL_OPAQUE_XATTR_VAL $UPPER_DIR/testdir
+> -$OVL_FSCK -a -l $LOWER_DIR -u $UPPER_DIR -w $WORK_DIR
+> -getfattr -n $OVL_OPAQUE_XATTR $UPPER_DIR/testdir
+> -if [[ $? -ne 0 ]];then
+> -       echo "ERROR: upper's opaque xattr incorrect removed"
+> -       RET=$(($RET+1))
+> -fi
+> -rm -rf $UPPER_DIR/*
+> -
+> -# 4.Test upper opaque direcotry cover lower file
+> -echo "***** 4.Test upper opaque direcotry cover lower file *****"
+> -mkdir $UPPER_DIR/testdir
+> -mkdir $LOWER_DIR/testdir
+> -setfattr -n $OVL_OPAQUE_XATTR -v $OVL_OPAQUE_XATTR_VAL $UPPER_DIR/testdir
+> -$OVL_FSCK -a -l $LOWER_DIR -u $UPPER_DIR -w $WORK_DIR
+> -getfattr -n $OVL_OPAQUE_XATTR $UPPER_DIR/testdir
+> -if [[ $? -ne 0 ]];then
+> -       echo "ERROR: upper's opaque xattr incorrect removed"
+> -       RET=$(($RET+1))
+> -fi
+> -rm -rf $UPPER_DIR/*
+> -rm -rf $LOWER_DIR/*
+> -
+> -# 5.Test upper opaque direcotry cover lower directory
+> -echo "***** 5.Test upper opaque direcotry cover lower directory *****"
+> -mkdir $UPPER_DIR/testdir
+> -touch $LOWER_DIR/testdir
+> -setfattr -n $OVL_OPAQUE_XATTR -v $OVL_OPAQUE_XATTR_VAL $UPPER_DIR/testdir
+> -$OVL_FSCK -a -l $LOWER_DIR -u $UPPER_DIR -w $WORK_DIR
+> -getfattr -n $OVL_OPAQUE_XATTR $UPPER_DIR/testdir
+> -if [[ $? -ne 0 ]];then
+> -       echo "ERROR: upper's opaque xattr incorrect removed"
+> -       RET=$(($RET+1))
+> -fi
+> -rm -rf $UPPER_DIR/*
+> -rm -rf $LOWER_DIR/*
+> -
+> -# 6.Test lower invalid opaque directory in middle layer
+> -echo "***** 6.Test lower invalid opaque directory in middle layer *****"
+> -mkdir $LOWER_DIR/testdir0/testdir1
+> -setfattr -n $OVL_OPAQUE_XATTR -v $OVL_OPAQUE_XATTR_VAL $LOWER_DIR/testdir0/testdir1
+> -$OVL_FSCK -a -l $LOWER_DIR:$LOWER_DIR1 -u $UPPER_DIR -w $WORK_DIR
+> -getfattr -n $OVL_OPAQUE_XATTR $LOWER_DIR/testdir0/testdir1
+> -if [[ $? -eq 0 ]];then
+> -       echo "ERROR: middle's opaque xattr not removed"
+> -       RET=$(($RET+1))
+> -fi
+> -rm -rf $LOWER_DIR/*
+> -
+> -# 7.Test lower invalid opaque directory in bottom layer
+> -echo "***** 7.Test lower invalid opaque directory in bottom layer *****"
+> -mkdir $LOWER_DIR1/testdir0/testdir1
+> -setfattr -n $OVL_OPAQUE_XATTR -v $OVL_OPAQUE_XATTR_VAL $LOWER_DIR1/testdir0/
+> -$OVL_FSCK -a -l $LOWER_DIR:$LOWER_DIR1 -u $UPPER_DIR -w $WORK_DIR
+> -getfattr -n $OVL_OPAQUE_XATTR $LOWER_DIR1/testdir0/testdir1
+> -if [[ $? -eq 0 ]];then
+> -       echo "ERROR: middle's opaque xattr not removed"
+> -       RET=$(($RET+1))
+> -fi
+> -rm -rf $LOWER_DIR1/*
+> -
+> -# 8.Test middle opaque direcotry cover bottom directory
+> -echo "***** 8.Test middle opaque direcotry cover bottom directory *****"
+> -mkdir $LOWER_DIR1/testdir
+> -mkdir $LOWER_DIR/testdir
+> -setfattr -n $OVL_OPAQUE_XATTR -v $OVL_OPAQUE_XATTR_VAL $LOWER_DIR/testdir
+> -$OVL_FSCK -a -l $LOWER_DIR:$LOWER_DIR1 -u $UPPER_DIR -w $WORK_DIR
+> -getfattr -n $OVL_OPAQUE_XATTR $LOWER_DIR/testdir
+> -if [[ $? -ne 0 ]];then
+> -       echo "ERROR: middle's opaque xattr incorrect removed"
+> -       RET=$(($RET+1))
+> -fi
+> -rm -rf $LOWER_DIR1/*
+> -rm -rf $LOWER_DIR/*
+> -
+> -# 9.Test double opaque direcotry in middle and upper layer
+> -echo "***** 9.Test double opaque direcotry in middle and upper layer *****"
+> -mkdir $LOWER_DIR1/testdir
+> -mkdir $LOWER_DIR/testdir
+> -mkdir $UPPER_DIR/testdir
+> -setfattr -n $OVL_OPAQUE_XATTR -v $OVL_OPAQUE_XATTR_VAL $LOWER_DIR/testdir
+> -setfattr -n $OVL_OPAQUE_XATTR -v $OVL_OPAQUE_XATTR_VAL $UPPER_DIR/testdir
+> -$OVL_FSCK -a -l $LOWER_DIR:$LOWER_DIR1 -u $UPPER_DIR -w $WORK_DIR
+> -getfattr -n $OVL_OPAQUE_XATTR $LOWER_DIR/testdir
+> -if [[ $? -ne 0 ]];then
+> -       echo "ERROR: middle's opaque xattr incorrect removed"
+> -       RET=$(($RET+1))
+> -fi
+> -getfattr -n $OVL_OPAQUE_XATTR $UPPER_DIR/testdir
+> -if [[ $? -ne 0 ]];then
+> -       echo "ERROR: upper's opaque xattr incorrect removed"
+> -       RET=$(($RET+1))
+> -fi
+> -rm -rf $LOWER_DIR1/*
+> -rm -rf $LOWER_DIR/*
+> -rm -rf $UPPER_DIR/*
+> -
+> -__clean
+> -exit $RET
+> diff --git a/test/src/prepare.sh b/test/src/prepare.sh
+> deleted file mode 100755
+> index 138539a..0000000
+> --- a/test/src/prepare.sh
+> +++ /dev/null
+> @@ -1,15 +0,0 @@
+> -#!/bin/bash
+> -
+> -. ./local.config
+> -
+> -NOW=`date +"%Y-%m-%d-%H-%M-%S"`
+> -LOG_FILE=$RESULT_DIR/LOG_${NOW}.log
+> -RESOULT_FILE=$RESULT_DIR/RESULT_${NOW}.out
+> -
+> -# creat test base dir
+> -if [ ! -d "$TEST_DIR" ]; then
+> -       mkdir -p $TEST_DIR
+> -fi
+> -
+> -# creat result dir
+> -mkdir -p $RESULT_DIR
+> diff --git a/test/src/redirect_test.sh b/test/src/redirect_test.sh
+> deleted file mode 100755
+> index be2ce80..0000000
+> --- a/test/src/redirect_test.sh
+> +++ /dev/null
+> @@ -1,163 +0,0 @@
+> -#!/bin/bash
+> -
+> -. ./local.config
+> -
+> -__clean()
+> -{
+> -       rm -rf $TEST_DIR/*
+> -       cd $PWD
+> -}
+> -
+> -OVL_REDIRECT_XATTR="trusted.overlay.redirect"
+> -OVL_OPAQUE_XATTR="trusted.overlay.opaque"
+> -RET=0
+> -
+> -cd $TEST_DIR
+> -rm -rf *
+> -mkdir $LOWER_DIR $LOWER_DIR1 $UPPER_DIR $WORK_DIR
+> -
+> -# 1.Test no exist redirect origin
+> -echo "***** 1.Test no exist redirect origin *****"
+> -mkdir $UPPER_DIR/testdir
+> -setfattr -n $OVL_REDIRECT_XATTR -v "xxx" $UPPER_DIR/testdir
+> -$OVL_FSCK -a -l $LOWER_DIR -u $UPPER_DIR -w $WORK_DIR
+> -getfattr -n $OVL_REDIRECT_XATTR $UPPER_DIR/testdir
+> -if [[ $? -eq 0 ]];then
+> -       echo "ERROR: upper's redirect xattr not remove"
+> -       RET=$(($RET+1))
+> -fi
+> -rm -rf $UPPER_DIR/*
+> -
+> -# 2.Test redirect origin is file
+> -echo "***** 2.Test redirect origin is file *****"
+> -mkdir $UPPER_DIR/testdir
+> -touch $LOWER_DIR/origin
+> -setfattr -n $OVL_REDIRECT_XATTR -v "origin" $UPPER_DIR/testdir
+> -$OVL_FSCK -a -l $LOWER_DIR -u $UPPER_DIR -w $WORK_DIR
+> -getfattr -n $OVL_REDIRECT_XATTR $UPPER_DIR/testdir
+> -if [[ $? -eq 0 ]];then
+> -       echo "ERROR: upper's redirect xattr not remove"
+> -       RET=$(($RET+1))
+> -fi
+> -rm -rf $UPPER_DIR/*
+> -rm -rf $LOWER_DIR/*
+> -
+> -# 3.Test valid redirect xattr
+> -echo "***** 3.Test valid redirect xattr *****"
+> -mkdir $UPPER_DIR/testdir
+> -mknod $UPPER_DIR/origin c 0 0
+> -mkdir $LOWER_DIR/origin
+> -setfattr -n $OVL_REDIRECT_XATTR -v "origin" $UPPER_DIR/testdir
+> -$OVL_FSCK -a -l $LOWER_DIR -u $UPPER_DIR -w $WORK_DIR
+> -getfattr -n $OVL_REDIRECT_XATTR $UPPER_DIR/testdir
+> -if [[ $? -ne 0 ]];then
+> -       echo "ERROR: upper's redirect xattr incorrect removed"
+> -       RET=$(($RET+1))
+> -fi
+> -rm -rf $UPPER_DIR/*
+> -rm -rf $LOWER_DIR/*
+> -
+> -# 4.Test valid redirect xattr start from root
+> -echo "***** 4.Test valid redirect xattr start from root *****"
+> -mkdir -p $UPPER_DIR/testdir0/testdir1
+> -mknod $UPPER_DIR/origin c 0 0
+> -mkdir $LOWER_DIR/origin
+> -setfattr -n $OVL_REDIRECT_XATTR -v "/origin" $UPPER_DIR/testdir0/testdir1
+> -$OVL_FSCK -a -l $LOWER_DIR -u $UPPER_DIR -w $WORK_DIR
+> -getfattr -n $OVL_REDIRECT_XATTR $UPPER_DIR/testdir0/testdir1
+> -if [[ $? -ne 0 ]];then
+> -       echo "ERROR: upper's redirect xattr incorrect removed"
+> -       RET=$(($RET+1))
+> -fi
+> -rm -rf $UPPER_DIR/*
+> -rm -rf $LOWER_DIR/*
+> -
+> -# 5.Test missing whiteout in redirect parent directory
+> -echo "***** 5.Test missing whiteout in redirect parent directory *****"
+> -mkdir $UPPER_DIR/testdir
+> -mkdir $LOWER_DIR/origin
+> -setfattr -n $OVL_REDIRECT_XATTR -v "origin" $UPPER_DIR/testdir
+> -$OVL_FSCK -a -l $LOWER_DIR -u $UPPER_DIR -w $WORK_DIR
+> -getfattr -n $OVL_REDIRECT_XATTR $UPPER_DIR/testdir
+> -if [[ $? -ne 0 ]];then
+> -       echo "ERROR: upper's redirect xattr incorrect removed"
+> -       RET=$(($RET+1))
+> -fi
+> -if [ ! -e "$UPPER_DIR/origin" ];then
+> -       echo "ERROR: upper's missing whiteout not create"
+> -       RET=$(($RET+1))
+> -fi
+> -rm -rf $UPPER_DIR/*
+> -rm -rf $UPPER_DIR/*
+> -
+> -# 6.Test missing opaque in redirect parent directory
+> -echo "***** 6.Test missing opaque in redirect parent directory *****"
+> -mkdir -p $UPPER_DIR/testdir0/testdir1
+> -mkdir $UPPER_DIR/origin
+> -mkdir $LOWER_DIR/origin
+> -setfattr -n $OVL_REDIRECT_XATTR -v "/origin" $UPPER_DIR/testdir0/testdir1
+> -$OVL_FSCK -a -l $LOWER_DIR -u $UPPER_DIR -w $WORK_DIR
+> -getfattr -n $OVL_REDIRECT_XATTR $UPPER_DIR/testdir0/testdir1
+> -if [[ $? -ne 0 ]];then
+> -       echo "ERROR: upper's redirect xattr incorrect removed"
+> -       RET=$(($RET+1))
+> -fi
+> -getfattr -n $OVL_OPAQUE_XATTR $UPPER_DIR/origin
+> -if [[ $? -ne 0 ]];then
+> -       echo "ERROR: upper's missing opaque not set"
+> -       RET=$(($RET+1))
+> -fi
+> -rm -rf $UPPER_DIR/*
+> -rm -rf $LOWER_DIR/*
+> -
+> -# 7.Test duplicate redirect directory in one layer
+> -echo "***** 7.Test duplicate redirect directory in one layer *****"
+> -mkdir $UPPER_DIR/testdir0
+> -mkdir $UPPER_DIR/testdir1
+> -mknod $UPPER_DIR/origin c 0 0
+> -mkdir $LOWER_DIR/origin
+> -setfattr -n $OVL_REDIRECT_XATTR -v "origin" $UPPER_DIR/testdir0
+> -setfattr -n $OVL_REDIRECT_XATTR -v "origin" $UPPER_DIR/testdir1
+> -$OVL_FSCK -a -l $LOWER_DIR -u $UPPER_DIR -w $WORK_DIR
+> -if [[ $? -eq 0 ]];then
+> -       echo "ERROR: fsck check incorrect pass"
+> -       RET=$(($RET+1))
+> -fi
+> -rm -rf $UPPER_DIR/*
+> -rm -rf $LOWER_DIR/*
+> -
+> -# 8.Test duplicate redirect directory in different layer
+> -echo "***** 8.Test duplicate redirect directory in different layer *****"
+> -mkdir $UPPER_DIR/testdir0
+> -mkdir $LOWER_DIR/testdir1
+> -mkdir $LOWER_DIR1/origin
+> -setfattr -n $OVL_REDIRECT_XATTR -v "origin" $UPPER_DIR/testdir0
+> -setfattr -n $OVL_REDIRECT_XATTR -v "origin" $LOWER_DIR/testdir1
+> -$OVL_FSCK -a -l $LOWER_DIR:$LOWER_DIR1 -u $UPPER_DIR -w $WORK_DIR
+> -getfattr -n $OVL_REDIRECT_XATTR $UPPER_DIR/testdir0
+> -if [[ $? -ne 0 ]];then
+> -       echo "ERROR: upper's redirect xattr incorrect removed"
+> -       RET=$(($RET+1))
+> -fi
+> -getfattr -n $OVL_REDIRECT_XATTR $LOWER_DIR/testdir1
+> -if [[ $? -ne 0 ]];then
+> -       echo "ERROR: lower's redirect xattr incorrect removed"
+> -       RET=$(($RET+1))
+> -fi
+> -
+> -if [ ! -e "$LOWER_DIR/origin" ];then
+> -       echo "ERROR: upper's missing whiteout not create"
+> -       RET=$(($RET+1))
+> -fi
+> -if [ ! -e "$LOWER_DIR/origin" ];then
+> -       echo "ERROR: lower's missing whiteout not create"
+> -       RET=$(($RET+1))
+> -fi
+> -
+> -rm -rf $UPPER_DIR/*
+> -rm -rf $LOWER_DIR/*
+> -rm -rf $LOWER_DIR1/*
+> -
+> -__clean
+> -
+> -exit $RET
+> diff --git a/test/src/whiteout_test.sh b/test/src/whiteout_test.sh
+> deleted file mode 100755
+> index c0e1555..0000000
+> --- a/test/src/whiteout_test.sh
+> +++ /dev/null
+> @@ -1,63 +0,0 @@
+> -#!/bin/bash
+> -
+> -. ./local.config
+> -
+> -__clean()
+> -{
+> -       rm -rf $TEST_DIR/*
+> -       cd $PWD
+> -}
+> -
+> -RET=0
+> -
+> -cd $TEST_DIR
+> -rm -rf *
+> -mkdir $LOWER_DIR $LOWER_DIR1 $UPPER_DIR $WORK_DIR
+> -
+> -# 1.Test lower orphan whiteout
+> -echo "***** 1.Test lower orphan whiteout *****"
+> -mknod $LOWER_DIR/foo c 0 0
+> -$OVL_FSCK -a -l $LOWER_DIR -u $UPPER_DIR -w $WORK_DIR
+> -if [ -e "$LOWER_DIR/foo" ];then
+> -       echo "lower's whiteout not remove"
+> -       RET=$(($RET+1))
+> -fi
+> -rm -f $LOWER_DIR/*
+> -
+> -# 2.Test upper orphan whiteout
+> -echo "***** 2.Test upper orphan whiteout *****"
+> -mknod $UPPER_DIR/foo c 0 0
+> -$OVL_FSCK -a -l $LOWER_DIR -u $UPPER_DIR -w $WORK_DIR
+> -if [ -e "$UPPER_DIR/foo" ];then
+> -       echo "upper's whiteout not remove"
+> -       RET=$(($RET+1))
+> -fi
+> -rm -f $UPPER_DIR/*
+> -
+> -# 3.Test upper inuse whiteout
+> -echo "***** 3.Test upper inuse whiteout *****"
+> -touch $LOWER_DIR/foo
+> -mknod $UPPER_DIR/foo c 0 0
+> -$OVL_FSCK -a -l $LOWER_DIR -u $UPPER_DIR -w $WORK_DIR
+> -if [ ! -e "$UPPER_DIR/foo" ];then
+> -       echo "upper's whiteout incorrect remove"
+> -       RET=$(($RET+1))
+> -fi
+> -rm -f $UPPER_DIR/*
+> -rm -f $LOWER_DIR/*
+> -
+> -# 4.Test lower inuse whiteout
+> -echo "***** 4.Test lower inuse whiteout *****"
+> -touch $LOWER_DIR/foo
+> -mknod $LOWER_DIR1/foo c 0 0
+> -$OVL_FSCK -a -l $LOWER_DIR1:$LOWER_DIR -u $UPPER_DIR -w $WORK_DIR
+> -if [ ! -e "$LOWER_DIR1/foo" ];then
+> -       echo "lower's whiteout incorrect remove"
+> -       RET=$(($RET+1))
+> -fi
+> -rm -f $LOWER_DIR1/*
+> -rm -f $LOWER_DIR/*
+> -
+> -__clean
+> -
+> -exit $RET
 > --
 > 2.9.5
 >
 > --
-> To unsubscribe from this list: send the line "unsubscribe fstests" in
+> To unsubscribe from this list: send the line "unsubscribe linux-unionfs" in
 > the body of a message to majordomo@vger.kernel.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
