@@ -1,68 +1,86 @@
-From: Miklos Szeredi <miklos@szeredi.hu>
-Subject: Re: [PATCH] ovl: fix overlay: warning prefix
-Date: Thu, 14 Dec 2017 11:19:51 +0100
-Message-ID: <CAJfpegsFS__thnT=YfF9bmi+CbeNJxK-Gd5zGCR75fsF6VQxYA@mail.gmail.com>
-References: <1511375254-15206-1-git-send-email-amir73il@gmail.com> <CAOQ4uxi9N9=Qeb63Dp9xS8Vu5rVtVdREc8awdZDi_k2A-cFDOg@mail.gmail.com>
+From: "zhangyi (F)" <yi.zhang@huawei.com>
+Subject: Re: [PATCH v2 00/18] overlay: implement fsck.overlay utility
+Date: Thu, 14 Dec 2017 18:43:05 +0800
+Message-ID: <6cf4cb72-832f-c23e-d5fa-d9a48df96a87@huawei.com>
+References: <20171214064747.20999-1-yi.zhang@huawei.com>
+ <CAOQ4uxjLk1HGm1LAK0agy+vFAfUyheL4CqSg_mW8dW5crLq6nA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-qt0-f195.google.com ([209.85.216.195]:37392 "EHLO
-        mail-qt0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750737AbdLNKTw (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 14 Dec 2017 05:19:52 -0500
-Received: by mail-qt0-f195.google.com with SMTP id f2so7294480qtj.4
-        for <linux-unionfs@vger.kernel.org>; Thu, 14 Dec 2017 02:19:52 -0800 (PST)
-In-Reply-To: <CAOQ4uxi9N9=Qeb63Dp9xS8Vu5rVtVdREc8awdZDi_k2A-cFDOg@mail.gmail.com>
+Received: from szxga06-in.huawei.com ([45.249.212.32]:38889 "EHLO huawei.com"
+        rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1751508AbdLNKn5 (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Thu, 14 Dec 2017 05:43:57 -0500
+In-Reply-To: <CAOQ4uxjLk1HGm1LAK0agy+vFAfUyheL4CqSg_mW8dW5crLq6nA@mail.gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: Amir Goldstein <amir73il@gmail.com>
-Cc: overlayfs <linux-unionfs@vger.kernel.org>
+Cc: overlayfs <linux-unionfs@vger.kernel.org>, fstests <fstests@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>, Eryu Guan <eguan@redhat.com>, "Darrick J. Wong" <darrick.wong@oracle.com>, Miao Xie <miaoxie@huawei.com>
 
-On Mon, Dec 11, 2017 at 6:52 PM, Amir Goldstein <amir73il@gmail.com> wrote:
-> On Wed, Nov 22, 2017 at 8:27 PM, Amir Goldstein <amir73il@gmail.com> wrote:
->> Conform two stray warning messages to the standard overlayfs: prefix.
+On 2017/12/14 17:27, Amir Goldstein Wrote:
+> On Thu, Dec 14, 2017 at 8:47 AM, zhangyi (F) <yi.zhang@huawei.com> wrote:
+>> Hi all,
 >>
->> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
->> ---
->>  fs/overlayfs/dir.c     | 3 ++-
->>  fs/overlayfs/readdir.c | 2 +-
->>  2 files changed, 3 insertions(+), 2 deletions(-)
->>
->> diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
->> index 5ec5ee8e0589..0ce535e7519e 100644
->> --- a/fs/overlayfs/dir.c
->> +++ b/fs/overlayfs/dir.c
->> @@ -887,7 +887,8 @@ static int ovl_set_redirect(struct dentry *dentry, bool samedir)
->>                 spin_unlock(&dentry->d_lock);
->>         } else {
->>                 kfree(redirect);
->> -               pr_warn_ratelimited("overlay: failed to set redirect (%i)\n", err);
->> +               pr_warn_ratelimited("overlayfs: failed to set redirect (%i)\n",
->> +                                   err);
->>                 /* Fall back to userspace copy-up */
->>                 err = -EXDEV;
->>         }
->> diff --git a/fs/overlayfs/readdir.c b/fs/overlayfs/readdir.c
->> index 362561457cdb..7fc142d183e8 100644
->> --- a/fs/overlayfs/readdir.c
->> +++ b/fs/overlayfs/readdir.c
->> @@ -499,7 +499,7 @@ static int ovl_cache_update_ino(struct path *path, struct ovl_cache_entry *p)
->>         return err;
->>
->>  fail:
->> -       pr_warn_ratelimited("overlay: failed to look up (%s) for ino (%i)\n",
->> +       pr_warn_ratelimited("overlayfs: failed to look up (%s) for ino (%i)\n",
->>                             p->name, err);
->>         goto out;
->>  }
->> --
->
-> Ping
+>> Here is the second version of original fsck.overlay. Changes split to
+>> each patch from first version "overlay: implement fsck utility" for
+>> readability.
+> 
+> It fine that you left original commit for readability and ease of re-review
+> I don't mind that functional review comments, (like -n, -p -a) are
+> addressed by an incremental commit, but there are too many patches
+> that fix spelling mistakes and build warnings.
+> Please squash those fix patches into the relevant commit instead of
+> posting them for review.
+> 
+> I will review the entire series when is it re posted as a clean series.
+> 
+Oh, sorry about that, I will squash patches and repost it again,
+please skip these version, thanks!
 
-Applied, thanks.
+>>
+>> I have already handled most of comments from the first iteration and
+>> add/fix some infrastructure, no big features, move tests to xfstests
+>> (already tested).
+>>
+>> I will push this "incubator" version to github after review and fix.
+>> Any comments is helpful, thanks!
+>>
+>> Changes since v1:
+>>
+>> - Add "-n -p -y" options. (Comment from Amir and Darrick)
+>> - Move test cases to xfstests. (Amir, Eryu and Ted)
+>> - * Check lowers use base fd + relative path to speed up iterations. (Amir)
+>> - Handle missing case of redirect xattr check. (Amir)
+>> - Correct copyright and License. (Amir)
+>> - Remove duplicate redirect xattr in 'yes' mode.
+>> - Add objects counter.
+>> - Not enforce fs offline in 'no' mode.
+>> - Fix some code mistakes.
+>>
+>> *) This change will cost a lot of 'fd' (up to 500) and will not work
+>> if sysctl_nr_open is lower than lowerdir number (special case, default
+>> is 1024*1024). I think expand sysctl_nr_open temporary may have some side
+>> effect, so just return failure.
+>>
+> 
+> I don't think I follow.
+> Perhaps you misunderstood me or I don't remember what I commented on.
+> What I meant was that you can keep fd of lowerdirs,upperdir,workdir and
+> use those as dir_fd for various syscalls that require overlay relative path,
+> instead of composing the upper/lower paths as strings.
+> How did we get to 500 fds?
+> 
+Yes, I keep fd of lowerdirs now, and I notice that if user specify mutli-lowers
+up to 500(the upper limit), we have to keep all these fds when checking lower dirs
+to find an existing target, like this:
 
-Anything else I missed that need to be sent to 4.15-rc?
+	for (i = start; i < lower_num; i++) {
+		if (fstatat(lowerfd[i], pathname, &st,
+			    AT_EMPTY_PATH | AT_SYMLINK_NOFOLLOW) != 0)
+	...
+
+So I am worry about the problem of sysctl_nr_open is lower than lower_num here.
 
 Thanks,
-Miklos
+Yi.
