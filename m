@@ -1,160 +1,328 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [PATCH for xfstests 1/4] overlay: add filesystem check helper
-Date: Thu, 14 Dec 2017 11:05:24 +0200
-Message-ID: <CAOQ4uximBJqFpsBMLQMWTJpJsoigBnYemtb7z1h-3PPWyjrkXA@mail.gmail.com>
-References: <20171214064846.21587-1-yi.zhang@huawei.com> <20171214064846.21587-2-yi.zhang@huawei.com>
+Subject: Re: [PATCH v2 14/18] fsck.overlay: correct copyright and License
+Date: Thu, 14 Dec 2017 11:09:02 +0200
+Message-ID: <CAOQ4uxiPHJ4at_gd+ZdQS+ONJsaUgq=FaUovjd=r0veMyrhAqQ@mail.gmail.com>
+References: <20171214064747.20999-1-yi.zhang@huawei.com> <20171214064747.20999-15-yi.zhang@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-yb0-f195.google.com ([209.85.213.195]:46135 "EHLO
+Received: from mail-yb0-f195.google.com ([209.85.213.195]:35003 "EHLO
         mail-yb0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751091AbdLNJFZ (ORCPT
+        with ESMTP id S1751173AbdLNJJD (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 14 Dec 2017 04:05:25 -0500
-In-Reply-To: <20171214064846.21587-2-yi.zhang@huawei.com>
+        Thu, 14 Dec 2017 04:09:03 -0500
+In-Reply-To: <20171214064747.20999-15-yi.zhang@huawei.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: "zhangyi (F)" <yi.zhang@huawei.com>
 Cc: overlayfs <linux-unionfs@vger.kernel.org>, fstests <fstests@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>, Eryu Guan <eguan@redhat.com>, "Darrick J. Wong" <darrick.wong@oracle.com>, Miao Xie <miaoxie@huawei.com>
 
-On Thu, Dec 14, 2017 at 8:48 AM, zhangyi (F) <yi.zhang@huawei.com> wrote:
-> Add filesystem check helpers for the upcoming fsck.overlay utility,
-> and hook them to _check_test_fs and _check_scratch_fs. This helper
-> works only if fsck.overlay exists.
->
-> [ _check_test_fs/_check_scratch_fs part picked from Amir's patch, thanks ]
->
+On Thu, Dec 14, 2017 at 8:47 AM, zhangyi (F) <yi.zhang@huawei.com> wrote:
 > Signed-off-by: zhangyi (F) <yi.zhang@huawei.com>
+
+You don't want this implicit copyright change in the history of your
+brand new repository.
+Better fix the license in the original commit.
+
 > ---
->  common/config  |  1 +
->  common/overlay | 78 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
->  common/rc      |  4 +--
->  3 files changed, 81 insertions(+), 2 deletions(-)
+>  check.c  | 17 +++++++++++++++--
+>  check.h  | 18 ++++++++++++++++++
+>  common.c | 16 ++++++++++++++--
+>  common.h | 18 ++++++++++++++++++
+>  config.h | 18 ++++++++++++++++++
+>  fsck.c   | 17 +++++++++++++++--
+>  lib.c    | 17 +++++++++++++++--
+>  lib.h    | 18 ++++++++++++++++++
+>  mount.c  | 17 +++++++++++++++--
+>  mount.h  | 18 ++++++++++++++++++
+>  10 files changed, 164 insertions(+), 10 deletions(-)
 >
-> diff --git a/common/config b/common/config
-> index d0fbfe5..0505b71 100644
-> --- a/common/config
-> +++ b/common/config
-> @@ -236,6 +236,7 @@ case "$HOSTOS" in
->          export MKFS_REISER4_PROG="`set_prog_path mkfs.reiser4`"
->         export E2FSCK_PROG="`set_prog_path e2fsck`"
->         export TUNE2FS_PROG="`set_prog_path tune2fs`"
-> +       export FSCK_OVERLAY_PROG="`set_prog_path fsck.overlay`"
->          ;;
->  esac
+> diff --git a/check.c b/check.c
+> index ca75358..7e07b66 100644
+> --- a/check.c
+> +++ b/check.c
+> @@ -1,11 +1,24 @@
+>  /*
+> + * check.c - Check and fix inconsistency for all underlying layers of overlay
+>   *
+> - *     Check and fix inconsistency for all underlying layers of overlay
+> + * Copyright (c) 2017 Huawei.  All Rights Reserved.
+> + * Author: zhangyi (F) <yi.zhang@huawei.com>
+>   *
+> - *     zhangyi (F) <yi.zhang@huawei.com> - Sponsored by Huawei CR
+> + * This program is free software; you can redistribute it and/or
+> + * modify it under the terms of the GNU General Public License as
+> + * published by the Free Software Foundation.
+>   *
+> + * This program is distributed in the hope that it would be useful,
+> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> + * GNU General Public License for more details.
+> + *
+> + * You should have received a copy of the GNU General Public License
+> + * along with this program; if not, write the Free Software Foundation,
+> + * Inc.,  51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+>   */
 >
-> diff --git a/common/overlay b/common/overlay
-> index 1da4ab1..689799c 100644
-> --- a/common/overlay
-> +++ b/common/overlay
-> @@ -151,3 +151,81 @@ _require_scratch_overlay_feature()
->                 _notrun "${FSTYP} feature '${feature}' cannot be enabled on ${SCRATCH_DEV}"
->         _scratch_unmount
->  }
 > +
-> +_overlay_fsck_dirs()
-> +{
-> +       local options=$1
-> +       local lowerdir=$2
-> +       local upperdir=$3
-> +       local workdir=$4
+>  #define _GNU_SOURCE
+>  #include <stdlib.h>
+>  #include <stdio.h>
+> diff --git a/check.h b/check.h
+> index 373ff3a..6af8c2d 100644
+> --- a/check.h
+> +++ b/check.h
+> @@ -1,3 +1,21 @@
+> +/*
+> + * Copyright (c) 2017 Huawei.  All Rights Reserved.
+> + * Author: zhangyi (F) <yi.zhang@huawei.com>
+> + *
+> + * This program is free software; you can redistribute it and/or
+> + * modify it under the terms of the GNU General Public License as
+> + * published by the Free Software Foundation.
+> + *
+> + * This program is distributed in the hope that it would be useful,
+> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.        See the
+> + * GNU General Public License for more details.
+> + *
+> + * You should have received a copy of the GNU General Public License
+> + * along with this program; if not, write the Free Software Foundation,
+> + * Inc.,  51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+> + */
 > +
-> +       [[ ! -x "$FSCK_OVERLAY_PROG" ]] && return 0
+>  #ifndef OVL_WHITECHECK_H
+>  #define OVL_WHITECHECK_H
+>
+> diff --git a/common.c b/common.c
+> index 4e77045..904db58 100644
+> --- a/common.c
+> +++ b/common.c
+> @@ -1,9 +1,21 @@
+>  /*
+> + * common.c - Common things for all utilities
+>   *
+> - *     Common things for all utilities
+> + * Copyright (c) 2017 Huawei.  All Rights Reserved.
+> + * Author: zhangyi (F) <yi.zhang@huawei.com>
+>   *
+> - *     zhangyi (F) <yi.zhang@huawei.com> - Sponsored by Huawei CR
+> + * This program is free software; you can redistribute it and/or
+> + * modify it under the terms of the GNU General Public License as
+> + * published by the Free Software Foundation.
+>   *
+> + * This program is distributed in the hope that it would be useful,
+> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> + * GNU General Public License for more details.
+> + *
+> + * You should have received a copy of the GNU General Public License
+> + * along with this program; if not, write the Free Software Foundation,
+> + * Inc.,  51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+>   */
+>
+>  #include <stdio.h>
+> diff --git a/common.h b/common.h
+> index c4707e7..c93b7a6 100644
+> --- a/common.h
+> +++ b/common.h
+> @@ -1,3 +1,21 @@
+> +/*
+> + * Copyright (c) 2017 Huawei.  All Rights Reserved.
+> + * Author: zhangyi (F) <yi.zhang@huawei.com>
+> + *
+> + * This program is free software; you can redistribute it and/or
+> + * modify it under the terms of the GNU General Public License as
+> + * published by the Free Software Foundation.
+> + *
+> + * This program is distributed in the hope that it would be useful,
+> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.        See the
+> + * GNU General Public License for more details.
+> + *
+> + * You should have received a copy of the GNU General Public License
+> + * along with this program; if not, write the Free Software Foundation,
+> + * Inc.,  51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+> + */
 > +
-> +       $FSCK_OVERLAY_PROG $options -l $lowerdir -u $upperdir -w $workdir
-> +}
+>  #ifndef OVL_COMMON_H
+>  #define OVL_COMMON_H
+>
+> diff --git a/config.h b/config.h
+> index deac089..fa7eafa 100644
+> --- a/config.h
+> +++ b/config.h
+> @@ -1,3 +1,21 @@
+> +/*
+> + * Copyright (c) 2017 Huawei.  All Rights Reserved.
+> + * Author: zhangyi (F) <yi.zhang@huawei.com>
+> + *
+> + * This program is free software; you can redistribute it and/or
+> + * modify it under the terms of the GNU General Public License as
+> + * published by the Free Software Foundation.
+> + *
+> + * This program is distributed in the hope that it would be useful,
+> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.        See the
+> + * GNU General Public License for more details.
+> + *
+> + * You should have received a copy of the GNU General Public License
+> + * along with this program; if not, write the Free Software Foundation,
+> + * Inc.,  51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+> + */
 > +
-> +_overlay_check_dirs()
-> +{
-> +       local lowerdir=$1
-> +       local upperdir=$2
-> +       local workdir=$3
-> +       local err=0
+>  #ifndef OVL_CONFIG_H
+>  #define OVL_CONFIG_H
+>
+> diff --git a/fsck.c b/fsck.c
+> index 0a84903..56a5286 100644
+> --- a/fsck.c
+> +++ b/fsck.c
+> @@ -1,11 +1,24 @@
+>  /*
+> + * fsck.c - Utility to fsck overlay
+>   *
+> - *     Utility to fsck overlay
+> + * Copyright (c) 2017 Huawei.  All Rights Reserved.
+> + * Author: zhangyi (F) <yi.zhang@huawei.com>
+>   *
+> - *     zhangyi (F) <yi.zhang@huawei.com> - Sponsored by Huawei CR
+> + * This program is free software; you can redistribute it and/or
+> + * modify it under the terms of the GNU General Public License as
+> + * published by the Free Software Foundation.
+>   *
+> + * This program is distributed in the hope that it would be useful,
+> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> + * GNU General Public License for more details.
+> + *
+> + * You should have received a copy of the GNU General Public License
+> + * along with this program; if not, write the Free Software Foundation,
+> + * Inc.,  51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+>   */
+>
 > +
-> +       _overlay_fsck_dirs $FSCK_OPTIONS $* >>$tmp.fsck 2>&1
-> +       if [ $? -ne 0 ]; then
-> +               _log_err "_overlay_check_fs: overlayfs on $lowerdir,$upperdir,$workdir is inconsistent"
-> +               echo "*** fsck.overlay output ***"      >>$seqres.full
-> +               cat $tmp.fsck                           >>$seqres.full
-> +               echo "*** end fsck.overlay output"      >>$seqres.full
-> +               echo "*** mount output ***"             >>$seqres.full
-> +               _mount                                  >>$seqres.full
-> +               echo "*** end mount output"             >>$seqres.full
-> +               err=1
-> +       fi
-
-Maybe the tmp.fsck output reporting to seqres.full should be done in
-_overlay_fsck_dirs?
-I think this output could be useful for understanding fsck tests failure.
-
-> +       rm -f $tmp.fsck
+>  #include <stdio.h>
+>  #include <stdlib.h>
+>  #include <string.h>
+> diff --git a/lib.c b/lib.c
+> index 7495af5..00ec81f 100644
+> --- a/lib.c
+> +++ b/lib.c
+> @@ -1,11 +1,24 @@
+>  /*
+> + * lib.c - Common things for all utilities
+>   *
+> - *     Common things for all utilities
+> + * Copyright (c) 2017 Huawei.  All Rights Reserved.
+> + * Author: zhangyi (F) <yi.zhang@huawei.com>
+>   *
+> - *     zhangyi (F) <yi.zhang@huawei.com> - Sponsored by Huawei CR
+> + * This program is free software; you can redistribute it and/or
+> + * modify it under the terms of the GNU General Public License as
+> + * published by the Free Software Foundation.
+>   *
+> + * This program is distributed in the hope that it would be useful,
+> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> + * GNU General Public License for more details.
+> + *
+> + * You should have received a copy of the GNU General Public License
+> + * along with this program; if not, write the Free Software Foundation,
+> + * Inc.,  51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+>   */
+>
 > +
-> +       if [ $err != 0 ]; then
-> +               status=1
-> +               if [ "$iam" != "check" ]; then
-> +                       exit 1
-> +               fi
-> +               return 1
-> +       fi
+>  #include <stdlib.h>
+>  #include <stdio.h>
+>  #include <unistd.h>
+> diff --git a/lib.h b/lib.h
+> index 0f0b526..ebcc77c 100644
+> --- a/lib.h
+> +++ b/lib.h
+> @@ -1,3 +1,21 @@
+> +/*
+> + * Copyright (c) 2017 Huawei.  All Rights Reserved.
+> + * Author: zhangyi (F) <yi.zhang@huawei.com>
+> + *
+> + * This program is free software; you can redistribute it and/or
+> + * modify it under the terms of the GNU General Public License as
+> + * published by the Free Software Foundation.
+> + *
+> + * This program is distributed in the hope that it would be useful,
+> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.        See the
+> + * GNU General Public License for more details.
+> + *
+> + * You should have received a copy of the GNU General Public License
+> + * along with this program; if not, write the Free Software Foundation,
+> + * Inc.,  51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+> + */
 > +
-> +       return 0
-> +}
+>  #ifndef OVL_LIB_H
+>  #define OVL_LIB_H
+>
+> diff --git a/mount.c b/mount.c
+> index 768c7aa..10970d5 100644
+> --- a/mount.c
+> +++ b/mount.c
+> @@ -1,11 +1,24 @@
+>  /*
+> + * mount.c - Check mounted overlay
+>   *
+> - *     Check mounted overlay
+> + * Copyright (c) 2017 Huawei.  All Rights Reserved.
+> + * Author: zhangyi (F) <yi.zhang@huawei.com>
+>   *
+> - *     zhangyi (F) <yi.zhang@huawei.com> - Sponsored by Huawei CR
+> + * This program is free software; you can redistribute it and/or
+> + * modify it under the terms of the GNU General Public License as
+> + * published by the Free Software Foundation.
+>   *
+> + * This program is distributed in the hope that it would be useful,
+> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> + * GNU General Public License for more details.
+> + *
+> + * You should have received a copy of the GNU General Public License
+> + * along with this program; if not, write the Free Software Foundation,
+> + * Inc.,  51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+>   */
+>
 > +
-> +_overlay_check_fs()
-> +{
-> +       local base_dev=$3
-> +       local base_mnt=$4
+>  #include <stdio.h>
+>  #include <stdlib.h>
+>  #include <string.h>
+> diff --git a/mount.h b/mount.h
+> index 8a3762d..e65425c 100644
+> --- a/mount.h
+> +++ b/mount.h
+> @@ -1,3 +1,21 @@
+> +/*
+> + * Copyright (c) 2017 Huawei.  All Rights Reserved.
+> + * Author: zhangyi (F) <yi.zhang@huawei.com>
+> + *
+> + * This program is free software; you can redistribute it and/or
+> + * modify it under the terms of the GNU General Public License as
+> + * published by the Free Software Foundation.
+> + *
+> + * This program is distributed in the hope that it would be useful,
+> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.        See the
+> + * GNU General Public License for more details.
+> + *
+> + * You should have received a copy of the GNU General Public License
+> + * along with this program; if not, write the Free Software Foundation,
+> + * Inc.,  51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+> + */
 > +
-> +       [ "$FSTYP" = overlay ] || return 0
-> +
-> +       # Base fs needs to be mounted to check overlay dirs
-> +       local mounted=""
-> +       [ -z "$base_dev" ] || mounted=`_is_mounted $base_dev`
-> +       [ -n "$mounted" ] || _overlay_base_mount $*
-> +
-> +       # No need to umount overlay for dir checks with default -n option
-> +       _overlay_check_dirs $base_mnt/$OVL_LOWER $base_mnt/$OVL_UPPER \
-> +                           $base_mnt/$OVL_WORK
-> +       local ret=$?
-> +
-> +       [ -n "$mounted" ] || _overlay_base_unmount "$base_dev" "$base_mnt"
-> +       return $ret
-> +}
-> +
-> +_check_overlay_test_fs()
-> +{
-> +       _overlay_check_fs OVL_BASE_TEST_DEV OVL_BASE_TEST_DIR \
-> +               "$OVL_BASE_TEST_DEV" "$OVL_BASE_TEST_DIR" \
-> +               $TEST_FS_MOUNT_OPTS $SELINUX_MOUNT_OPTIONS
-> +}
-> +
-> +_check_overlay_scratch_fs()
-> +{
-> +       _overlay_check_fs OVL_BASE_SCRATCH_DEV OVL_BASE_SCRATCH_MNT \
-> +               "$OVL_BASE_SCRATCH_DEV" "$OVL_BASE_SCRATCH_MNT" \
-> +               $OVL_BASE_MOUNT_OPTIONS $SELINUX_MOUNT_OPTIONS
-> +}
-> diff --git a/common/rc b/common/rc
-> index 4c053a5..0837637 100644
-> --- a/common/rc
-> +++ b/common/rc
-> @@ -2507,7 +2507,7 @@ _check_test_fs()
->         # no way to check consistency for GlusterFS
->         ;;
->      overlay)
-> -       # no way to check consistency for overlay
-> +       _check_overlay_test_fs
->         ;;
->      pvfs2)
->         ;;
-> @@ -2562,7 +2562,7 @@ _check_scratch_fs()
->         # no way to check consistency for GlusterFS
->         ;;
->      overlay)
-> -       # no way to check consistency for overlay
-> +       _check_overlay_test_fs
-
-_check_overlay_scratch_fs
-
-Thanks,
-Amir.
+>  #ifndef OVL_MOUNT_H
+>  #define OVL_MOUNT_H
+>
+> --
+> 2.9.5
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe fstests" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
