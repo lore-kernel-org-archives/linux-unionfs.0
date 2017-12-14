@@ -1,115 +1,381 @@
-From: Miklos Szeredi <miklos@szeredi.hu>
-Subject: Re: [PATCH v2 01/18] overlay: implement fsck utility
-Date: Thu, 14 Dec 2017 15:13:50 +0100
-Message-ID: <CAJfpegvCDyD3Zmc-h5hzkYRGC-cAn4myub3fwvqEVhRNse=yaw@mail.gmail.com>
-References: <20171214064747.20999-1-yi.zhang@huawei.com> <20171214064747.20999-2-yi.zhang@huawei.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+From: Chengguang Xu <cgxu519@icloud.com>
+Subject: [PATCH v4 1/3] common/rc: add scratch shutdown support for overlayfs
+Date: Thu, 14 Dec 2017 22:19:03 +0800
+Message-ID: <1513261145-127502-1-git-send-email-cgxu519@icloud.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-qt0-f170.google.com ([209.85.216.170]:44461 "EHLO
-        mail-qt0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751600AbdLNONv (ORCPT
+Received: from [122.225.81.134] ([122.225.81.134]:26579 "EHLO
+        juanniu018037.ss.mogujie.org" rhost-flags-FAIL-FAIL-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1752690AbdLNOUz (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 14 Dec 2017 09:13:51 -0500
-Received: by mail-qt0-f170.google.com with SMTP id m59so8028530qte.11
-        for <linux-unionfs@vger.kernel.org>; Thu, 14 Dec 2017 06:13:51 -0800 (PST)
-In-Reply-To: <20171214064747.20999-2-yi.zhang@huawei.com>
+        Thu, 14 Dec 2017 09:20:55 -0500
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: "zhangyi (F)" <yi.zhang@huawei.com>
-Cc: "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>, fstests <fstests@vger.kernel.org>, Amir Goldstein <amir73il@gmail.com>, Eryu Guan <eguan@redhat.com>, "Darrick J. Wong" <darrick.wong@oracle.com>, miaoxie@huawei.com
+To: eguan@redhat.com, amir73il@gmail.com
+Cc: fstests@vger.kernel.org, linux-unionfs@vger.kernel.org, Chengguang Xu <cgxu519@icloud.com>
 
-On Thu, Dec 14, 2017 at 7:47 AM, zhangyi (F) <yi.zhang@huawei.com> wrote:
-> fsck.overlay
-> ============
->
-> fsck.overlay is used to check and optionally repair underlying
-> directories of overlay-filesystem.
+check -overlay overrides SCRATCH_MNT variable to it's own,
+so adjust target to underlying filesystem(OVL_BASE_SCRATCH_MNT)
+when running shutdown on overlayfs.
 
-Thanks for working on this.
+Introduce a helper _scratch_shutdown to mainly handle scratch
+shutdown and convert godown to _scratch_shutdown to support
+overlayfs running on below cases.
 
+generic/043
+generic/044
+generic/045
+generic/046
+generic/047
+generic/048
+generic/051
+generic/052
+generic/054
+generic/055
+generic/392
+generic/417
+generic/461
+generic/468
 
->
-> Check the following points:
->
-> Whiteouts
-> ---------
->
-> A whiteout is a character device with 0/0 device number. It is used to
-> record the removed files or directories, When a whiteout is found in a
-> directory, there should be at least one directory or file with the same
-> name in any of the corresponding lower layers. If not exist, the whiteout
-> will be treated as orphan whiteout and remove.
+In order to avoid overlayfs running on improper shutdown
+cases, add _require_local_device $SCRATCH_DEV to below cases.
 
-Okay.
+generic/042
+generic/050
+generic/388
 
->
-> Opaque directories
-> ------------------
->
-> An opaque directory is a directory with "trusted.overlay.opaque" xattr
-> valued "y". There are two legal situations of making opaque directory: 1)
-> create directory over whiteout 2) creat directory in merged directory. If an
-> opaque directory is found, corresponding matching name in lower layers might
-> exist or parent directory might merged, If not, the opaque xattr will be
-> treated as invalid and remove.
+Signed-off-by: Chengguang Xu <cgxu519@icloud.com>
+---
+Changes since v3:
+1. When _scratch_shutdown() detecting improper shutdown on overlayfs,
+prompt error message and exit immediately.
+2. Convert godown to _scratch_shutdown for the cases overlayfs shuold run.
+3. Add _require_local_device to the cases overlayfs should not run.
 
-Current version of overlay fs doesn't bother with removing opaque
-attribute.  So not sure fsck.overlay should care.  Or at least is
-should be an optional thing and not worth warning about, since it's
-perfectly normal.
+Changes since v2:
+1. Make option for _scratch_shutdown(), so caller can
+specify option when calling.
+2. Add comment for why overlay requires special handling.
+3. Add commit log.
 
+Changes since v1:
+_scratch_shutdown() does not call notrun.
 
->
-> Redirect directories
-> --------------------
->
-> An redirect directory is a directory with "trusted.overlay.redirect"
-> xattr valued to the path of the original location from the root of the
-> overlay. It is only used when renaming a directory and "redirect dir"
-> feature is enabled. If an redirect directory is found, the following
-> must be met:
->
-> 1) The directory store in redirect xattr should exist in one of lower
-> layers.
+ common/rc         | 38 ++++++++++++++++++++++++++++++++++++--
+ tests/generic/042 |  1 +
+ tests/generic/043 |  2 +-
+ tests/generic/044 |  2 +-
+ tests/generic/045 |  2 +-
+ tests/generic/046 |  2 +-
+ tests/generic/047 |  2 +-
+ tests/generic/048 |  2 +-
+ tests/generic/049 |  2 +-
+ tests/generic/050 |  1 +
+ tests/generic/051 |  2 +-
+ tests/generic/052 |  2 +-
+ tests/generic/054 |  2 +-
+ tests/generic/055 |  2 +-
+ tests/generic/388 |  3 ++-
+ tests/generic/392 |  2 +-
+ tests/generic/417 |  2 +-
+ tests/generic/461 |  2 +-
+ tests/generic/468 |  2 +-
+ 19 files changed, 55 insertions(+), 18 deletions(-)
 
-Okay.
-
-> 2) The origin directory should be redirected only once in one layer,
-> which mean there is only one redirect xattr point to this origin directory in
-> the specified layer.
-> 3) A whiteout or an opaque directory with the same name to origin should
-> exist in the same directory as the redirect directory.
->
-> If not, 1) The redirect xattr is invalid and need to remove 2) One of
-> the redirect xattr is redundant but not sure which one is, ask user 3)
-> Create a whiteout device or set opaque xattr to an existing directory if the
-> parent directory was meregd or remove xattr if not.
-
-Hmm, in this case also should ask the user, as it's not clear that the
-"new" copy resulting from removal of whiteout on upper is the wanted
-one or the "old" renamed copy.
-
-
->
-> Usage
-> =====
->
-> 1. Ensure overlay filesystem is not mounted based on directories which
-> need to check.
->
-> 2. Run fsck.overlay program:
->    Usage:
->    fsck.overlay [-l lowerdir] [-u upperdir] [-w workdir] [-avhV]
->
->    Options:
->    -l, --lowerdir=LOWERDIR   specify lower directories of overlayfs,
->                              multiple lower use ':' as separator.
->    -u, --upperdir=UPPERDIR   specify upper directory of overlayfs
->    -w, --workdir=WORKDIR     specify work directory of overlayfs
-
-Not sure what other fsck do, but I'd feel more logical to have the
-same -olowerdir=..., etc. notation as for mount.
-
-Thanks,
-Miklos
+diff --git a/common/rc b/common/rc
+index 4c053a5..fc9a4f5 100644
+--- a/common/rc
++++ b/common/rc
+@@ -382,6 +382,25 @@ _scratch_cycle_mount()
+     _scratch_mount "$opts"
+ }
+ 
++_scratch_shutdown()
++{
++	if [ $FSTYP = "overlay" ]; then
++		# In lagacy overlay usage, it may specify directory as
++		# SCRATCH_DEV, in this case OVL_BASE_SCRATCH_DEV
++		# will be null, so check OVL_BASE_SCRATCH_DEV before
++		# running shutdown to avoid shutting down base fs accidently.
++		if [ -z $OVL_BASE_SCRATCH_DEV ]; then
++			_fail "Called _scratch_shutdown without validating " \
++				"\$OVL_BASE_SCRATCH_DEV, " \
++				"please call _require_scratch_shutdown first."
++		else
++			src/godown $* $OVL_BASE_SCRATCH_MNT
++		fi
++	else
++		src/godown $* $SCRATCH_MNT
++	fi
++}
++
+ _test_mount()
+ {
+     if [ "$FSTYP" == "overlay" ]; then
+@@ -2908,8 +2927,23 @@ _require_scratch_shutdown()
+ 
+ 	_scratch_mkfs > /dev/null 2>&1
+ 	_scratch_mount
+-	src/godown -f $SCRATCH_MNT 2>&1 \
+-		|| _notrun "$FSTYP does not support shutdown"
++
++	if [ $FSTYP = "overlay" ]; then
++		if [ -z $OVL_BASE_SCRATCH_DEV ]; then
++			# In lagacy overlay usage, it may specify directory as
++			# SCRATCH_DEV, in this case OVL_BASE_SCRATCH_DEV
++			# will be null, so check OVL_BASE_SCRATCH_DEV before
++			# running shutdown to avoid shutting down base fs accidently.
++			_notrun "$SCRATCH_DEV is not a block device"
++		else
++			src/godown -f $OVL_BASE_SCRATCH_MNT 2>&1 \
++			|| _notrun "Underlying filesystem does not support shutdown"
++		fi
++	else
++		src/godown -f $SCRATCH_MNT 2>&1 \
++			|| _notrun "$FSTYP does not support shutdown"
++	fi
++
+ 	_scratch_unmount
+ }
+ 
+diff --git a/tests/generic/042 b/tests/generic/042
+index 68ff03c..00b3a34 100755
+--- a/tests/generic/042
++++ b/tests/generic/042
+@@ -92,6 +92,7 @@ _require_xfs_io_command "fpunch"
+ _require_xfs_io_command "fzero"
+ 
+ _scratch_mkfs >/dev/null 2>&1
++_require_local_device $SCRATCH_DEV
+ _require_metadata_journaling $SCRATCH_DEV
+ _scratch_mount
+ 
+diff --git a/tests/generic/043 b/tests/generic/043
+index 5dadab3..f61222c 100755
+--- a/tests/generic/043
++++ b/tests/generic/043
+@@ -63,7 +63,7 @@ done
+ # give the system a chance to write something out
+ sleep 10
+ 
+-src/godown $SCRATCH_MNT
++_scratch_shutdown
+ 
+ _scratch_unmount
+ _scratch_mount
+diff --git a/tests/generic/044 b/tests/generic/044
+index 804b1b1..f327ee0 100755
+--- a/tests/generic/044
++++ b/tests/generic/044
+@@ -69,7 +69,7 @@ done
+ # give the system a chance to write something out
+ sleep 10
+ 
+-src/godown $SCRATCH_MNT
++_scratch_shutdown
+ 
+ _scratch_unmount
+ _scratch_mount
+diff --git a/tests/generic/045 b/tests/generic/045
+index 5fa7b09..5348910 100755
+--- a/tests/generic/045
++++ b/tests/generic/045
+@@ -69,7 +69,7 @@ done
+ # give the system a chance to write something out
+ sleep 10
+ 
+-src/godown $SCRATCH_MNT
++_scratch_shutdown
+ 
+ _scratch_unmount
+ _scratch_mount
+diff --git a/tests/generic/046 b/tests/generic/046
+index bf38d53..1155ee9 100755
+--- a/tests/generic/046
++++ b/tests/generic/046
+@@ -69,7 +69,7 @@ done
+ # give the system a chance to write something out
+ sleep 10
+ 
+-src/godown $SCRATCH_MNT
++_scratch_shutdown
+ 
+ _scratch_unmount
+ _scratch_mount
+diff --git a/tests/generic/047 b/tests/generic/047
+index 7d09b04..66965f2 100755
+--- a/tests/generic/047
++++ b/tests/generic/047
+@@ -92,7 +92,7 @@ do
+ done
+ 
+ # shutdown immediately after, then remount and test
+-src/godown $SCRATCH_MNT
++_scratch_shutdown
+ _scratch_unmount
+ _scratch_mount
+ _scratch_unmount
+diff --git a/tests/generic/048 b/tests/generic/048
+index ae561fc..fd9fcd9 100755
+--- a/tests/generic/048
++++ b/tests/generic/048
+@@ -96,7 +96,7 @@ done
+ 
+ # sync, then shutdown immediately after, then remount and test
+ sync
+-src/godown $SCRATCH_MNT
++_scratch_shutdown
+ _scratch_unmount
+ _scratch_mount
+ _scratch_unmount
+diff --git a/tests/generic/049 b/tests/generic/049
+index ef2b44c..0003046 100755
+--- a/tests/generic/049
++++ b/tests/generic/049
+@@ -93,7 +93,7 @@ done
+ 
+ # sync, then shutdown immediately after, then remount and test
+ sync
+-src/godown $SCRATCH_MNT
++_scratch_shutdown
+ _scratch_unmount
+ _scratch_mount
+ _scratch_unmount
+diff --git a/tests/generic/050 b/tests/generic/050
+index efa45f0..dbf0ac5 100755
+--- a/tests/generic/050
++++ b/tests/generic/050
+@@ -44,6 +44,7 @@ trap "_cleanup; exit \$status" 0 1 2 3 15
+ _supported_fs generic
+ _supported_os Linux
+ 
++_require_local_device $SCRATCH_DEV
+ _require_scratch_nocheck
+ _require_scratch_shutdown
+ _require_norecovery
+diff --git a/tests/generic/051 b/tests/generic/051
+index 29ac61b..129a466 100755
+--- a/tests/generic/051
++++ b/tests/generic/051
+@@ -80,7 +80,7 @@ sync
+ 
+ # now shutdown and unmount
+ sleep 5
+-$here/src/godown $load_dir
++_scratch_shutdown
+ $KILLALL_PROG -q $FSSTRESS_PROG
+ wait
+ 
+diff --git a/tests/generic/052 b/tests/generic/052
+index cf0f456..126f08e 100755
+--- a/tests/generic/052
++++ b/tests/generic/052
+@@ -63,7 +63,7 @@ echo "touch files"
+ touch $SCRATCH_MNT/{0,1,2,3,4,5,6,7,8,9}{0,1,2,3,4,5,6,7,8,9}
+ 
+ echo "godown"
+-src/godown -v -f $SCRATCH_MNT >> $seqres.full
++_scratch_shutdown -v -f >> $seqres.full
+ 
+ echo "unmount"
+ _scratch_unmount
+diff --git a/tests/generic/054 b/tests/generic/054
+index db41500..12f471a 100755
+--- a/tests/generic/054
++++ b/tests/generic/054
+@@ -108,7 +108,7 @@ for s in sync nosync ; do
+ 	ls $SCRATCH_MNT | _filter_lostfound
+ 
+ 	_echofull "godown"
+-	src/godown -v -f $SCRATCH_MNT >> $seqres.full
++	_scratch_shutdown -v -f >> $seqres.full
+ 
+ 	_echofull "unmount"
+ 	_scratch_unmount >>$seqres.full 2>&1 \
+diff --git a/tests/generic/055 b/tests/generic/055
+index 1bbe310..c543e75 100755
+--- a/tests/generic/055
++++ b/tests/generic/055
+@@ -118,7 +118,7 @@ do
+     ls -RF $SCRATCH_MNT >$tmp.ls1
+ 
+     _echofull "godown"
+-    src/godown -v -f $SCRATCH_MNT >> $seqres.full
++    _scratch_shutdown -v -f >> $seqres.full
+ 
+     _echofull "unmount"
+     _scratch_unmount >>$seqres.full 2>&1 \
+diff --git a/tests/generic/388 b/tests/generic/388
+index 4f5a63b..e0f4821 100755
+--- a/tests/generic/388
++++ b/tests/generic/388
+@@ -54,6 +54,7 @@ _supported_fs generic
+ _supported_os Linux
+ 
+ _require_scratch
++_require_local_device $SCRATCH_DEV
+ _require_scratch_shutdown
+ _require_command "$KILLALL_PROG" "killall"
+ 
+@@ -72,7 +73,7 @@ for i in $(seq 1 $((50 * TIME_FACTOR)) ); do
+ 	# purposely include 0 second sleeps to test shutdown immediately after
+ 	# recovery
+ 	sleep $((RANDOM % 3))
+-	./src/godown $SCRATCH_MNT
++	_scratch_shutdown
+ 
+ 	ps -e | grep fsstress > /dev/null 2>&1
+ 	while [ $? -eq 0 ]; do
+diff --git a/tests/generic/392 b/tests/generic/392
+index 6922f7d..9d53413 100755
+--- a/tests/generic/392
++++ b/tests/generic/392
+@@ -73,7 +73,7 @@ check_inode_metadata()
+ 	before=`stat "$stat_opt" $testfile`
+ 
+ 	$XFS_IO_PROG -c "$sync_mode" $testfile | _filter_xfs_io
+-	src/godown $SCRATCH_MNT | tee -a $seqres.full
++	_scratch_shutdown | tee -a $seqres.full
+ 	_scratch_cycle_mount
+ 
+ 	after=`stat "$stat_opt" $testfile`
+diff --git a/tests/generic/417 b/tests/generic/417
+index 690ceb5..e66e0ae 100755
+--- a/tests/generic/417
++++ b/tests/generic/417
+@@ -75,7 +75,7 @@ function create_dirty_orphans() {
+ 	sleep 3
+ 
+ 	echo "godown"
+-	src/godown -v -f $SCRATCH_MNT >> $seqres.full
++	_scratch_shutdown -v -f >> $seqres.full
+ 
+ 	# kill the multi_open_unlink
+ 	kill $pid 2>/dev/null
+diff --git a/tests/generic/461 b/tests/generic/461
+index 2f85114..50b9c6d 100755
+--- a/tests/generic/461
++++ b/tests/generic/461
+@@ -68,7 +68,7 @@ sync
+ 
+ # now shutdown and unmount
+ sleep 5
+-$here/src/godown $load_dir
++_scratch_shutdown
+ $KILLALL_PROG -q $FSSTRESS_PROG
+ wait
+ 
+diff --git a/tests/generic/468 b/tests/generic/468
+index b97a8d6..30c4174 100755
+--- a/tests/generic/468
++++ b/tests/generic/468
+@@ -84,7 +84,7 @@ check_inode_metadata()
+ 	before=`stat "$stat_opt" $testfile`
+ 
+ 	$XFS_IO_PROG -c "$sync_mode" $testfile | _filter_xfs_io
+-	$here/src/godown $SCRATCH_MNT | tee -a $seqres.full
++	_scratch_shutdown | tee -a $seqres.full
+ 	_scratch_cycle_mount
+ 
+ 	after=`stat "$stat_opt" $testfile`
+-- 
+1.8.3.1
