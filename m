@@ -1,149 +1,154 @@
 From: "zhangyi (F)" <yi.zhang@huawei.com>
-Subject: [PATCH for xfstests 1/4] overlay: add filesystem check helper
-Date: Thu, 14 Dec 2017 14:48:43 +0800
-Message-ID: <20171214064846.21587-2-yi.zhang@huawei.com>
+Subject: [PATCH for xfstests 2/4] overlay: add fsck.overlay whiteout test
+Date: Thu, 14 Dec 2017 14:48:44 +0800
+Message-ID: <20171214064846.21587-3-yi.zhang@huawei.com>
 References: <20171214064846.21587-1-yi.zhang@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <fstests-owner@vger.kernel.org>
+Return-path: <linux-unionfs-owner@vger.kernel.org>
+Received: from szxga04-in.huawei.com ([45.249.212.190]:2679 "EHLO huawei.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1750873AbdLNGmx (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Thu, 14 Dec 2017 01:42:53 -0500
 In-Reply-To: <20171214064846.21587-1-yi.zhang@huawei.com>
-Sender: fstests-owner@vger.kernel.org
+Sender: linux-unionfs-owner@vger.kernel.org
+List-Id: linux-unionfs@vger.kernel.org
 To: linux-unionfs@vger.kernel.org, fstests@vger.kernel.org
 Cc: miklos@szeredi.hu, amir73il@gmail.com, eguan@redhat.com, darrick.wong@oracle.com, yi.zhang@huawei.com, miaoxie@huawei.com
-List-Id: linux-unionfs@vger.kernel.org
 
-Add filesystem check helpers for the upcoming fsck.overlay utility,
-and hook them to _check_test_fs and _check_scratch_fs. This helper
-works only if fsck.overlay exists.
-
-[ _check_test_fs/_check_scratch_fs part picked from Amir's patch, thanks ]
+Add fsck.overlay test case to test it how to deal with orphan/valid
+whiteouts in underlying directories of overlayfs.
 
 Signed-off-by: zhangyi (F) <yi.zhang@huawei.com>
 ---
- common/config  |  1 +
- common/overlay | 78 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- common/rc      |  4 +--
- 3 files changed, 81 insertions(+), 2 deletions(-)
+ tests/overlay/201     | 98 +++++++++++++++++++++++++++++++++++++++++++++++++++
+ tests/overlay/201.out |  3 ++
+ tests/overlay/group   |  1 +
+ 3 files changed, 102 insertions(+)
+ create mode 100755 tests/overlay/201
+ create mode 100644 tests/overlay/201.out
 
-diff --git a/common/config b/common/config
-index d0fbfe5..0505b71 100644
---- a/common/config
-+++ b/common/config
-@@ -236,6 +236,7 @@ case "$HOSTOS" in
-         export MKFS_REISER4_PROG="`set_prog_path mkfs.reiser4`"
- 	export E2FSCK_PROG="`set_prog_path e2fsck`"
- 	export TUNE2FS_PROG="`set_prog_path tune2fs`"
-+	export FSCK_OVERLAY_PROG="`set_prog_path fsck.overlay`"
-         ;;
- esac
- 
-diff --git a/common/overlay b/common/overlay
-index 1da4ab1..689799c 100644
---- a/common/overlay
-+++ b/common/overlay
-@@ -151,3 +151,81 @@ _require_scratch_overlay_feature()
- 	        _notrun "${FSTYP} feature '${feature}' cannot be enabled on ${SCRATCH_DEV}"
- 	_scratch_unmount
- }
+diff --git a/tests/overlay/201 b/tests/overlay/201
+new file mode 100755
+index 0000000..1052baa
+--- /dev/null
++++ b/tests/overlay/201
+@@ -0,0 +1,98 @@
++#! /bin/bash
++# FS QA Test 201
++#
++# Test fsck.overlay how to deal with whiteouts in overlayfs.
++#
++#-----------------------------------------------------------------------
++# Copyright (c) 2017 Huawei.  All Rights Reserved.
++# Author: zhangyi (F) <yi.zhang@huawei.com>
++#
++# This program is free software; you can redistribute it and/or
++# modify it under the terms of the GNU General Public License as
++# published by the Free Software Foundation.
++#
++# This program is distributed in the hope that it would be useful,
++# but WITHOUT ANY WARRANTY; without even the implied warranty of
++# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++# GNU General Public License for more details.
++#
++# You should have received a copy of the GNU General Public License
++# along with this program; if not, write the Free Software Foundation,
++# Inc.,  51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
++#-----------------------------------------------------------------------
++#
 +
-+_overlay_fsck_dirs()
++seq=`basename $0`
++seqres=$RESULT_DIR/$seq
++echo "QA output created by $seq"
++
++here=`pwd`
++tmp=/tmp/$$
++status=1        # failure is the default!
++trap "_cleanup; exit \$status" 0 1 2 3 15
++
++_cleanup()
 +{
-+	local options=$1
-+	local lowerdir=$2
-+	local upperdir=$3
-+	local workdir=$4
-+
-+	[[ ! -x "$FSCK_OVERLAY_PROG" ]] && return 0
-+
-+	$FSCK_OVERLAY_PROG $options -l $lowerdir -u $upperdir -w $workdir
++	cd /
++	rm -f $tmp.*
 +}
 +
-+_overlay_check_dirs()
++# get standard environment, filters and checks
++. ./common/rc
++. ./common/filter
++
++# remove previous $seqres.full before test
++rm -f $seqres.full
++
++# real QA test starts here
++_supported_fs overlay
++_supported_os Linux
++_require_scratch
++_require_command "$FSCK_OVERLAY_PROG" fsck.overlay
++
++# remove all files from previous tests
++_scratch_mkfs
++
++# Check whiteout
++check_whiteout()
 +{
-+	local lowerdir=$1
-+	local upperdir=$2
-+	local workdir=$3
-+	local err=0
++	local target=$1
 +
-+	_overlay_fsck_dirs $FSCK_OPTIONS $* >>$tmp.fsck 2>&1
-+	if [ $? -ne 0 ]; then
-+		_log_err "_overlay_check_fs: overlayfs on $lowerdir,$upperdir,$workdir is inconsistent"
-+		echo "*** fsck.overlay output ***"	>>$seqres.full
-+		cat $tmp.fsck				>>$seqres.full
-+		echo "*** end fsck.overlay output"	>>$seqres.full
-+		echo "*** mount output ***"		>>$seqres.full
-+		_mount					>>$seqres.full
-+		echo "*** end mount output"		>>$seqres.full
-+		err=1
-+	fi
-+	rm -f $tmp.fsck
++	target_type=`stat -c "%F:%t,%T" $target`
 +
-+	if [ $err != 0 ]; then
-+		status=1
-+		if [ "$iam" != "check" ]; then
-+			exit 1
-+		fi
-+		return 1
-+	fi
-+
-+	return 0
++	[[ $target_type == "character special file:0,0" ]] || \
++		echo "Valid whiteout removed incorrectly"
 +}
 +
-+_overlay_check_fs()
-+{
-+	local base_dev=$3
-+	local base_mnt=$4
++# Create test directories
++lowerdir=$OVL_BASE_SCRATCH_MNT/lower
++lowerdir2=$OVL_BASE_SCRATCH_MNT/lower2
++upperdir=$OVL_BASE_SCRATCH_MNT/upper
++workdir=$OVL_BASE_SCRATCH_MNT/workdir
 +
-+	[ "$FSTYP" = overlay ] || return 0
++mkdir -p $lowerdir $lowerdir2 $upperdir $workdir $workdir
 +
-+	# Base fs needs to be mounted to check overlay dirs
-+	local mounted=""
-+	[ -z "$base_dev" ] || mounted=`_is_mounted $base_dev`
-+	[ -n "$mounted" ] || _overlay_base_mount $*
++# Test orphan whiteout in lower and upper layer, should remove
++echo "+ Orphan whiteout"
++mknod $lowerdir/foo c 0 0
++mknod $upperdir/foo c 0 0
++mknod $upperdir/bar c 0 0
++_overlay_fsck_dirs -a $lowerdir $upperdir $workdir >> $seqres.full 2>&1 || \
++	_fail "fsck should not fail"
++ls $lowerdir
++ls $upperdir
++rm -rf $lowerdir/* $upperdir/*
 +
-+	# No need to umount overlay for dir checks with default -n option
-+	_overlay_check_dirs $base_mnt/$OVL_LOWER $base_mnt/$OVL_UPPER \
-+			    $base_mnt/$OVL_WORK
-+	local ret=$?
++# Test valid whiteout covering lower target, should not remove
++echo "+ Valid whiteout"
++touch $lowerdir2/foo $lowerdir2/bar
++mknod $upperdir/foo c 0 0
++mknod $lowerdir/bar c 0 0
++_overlay_fsck_dirs -a "$lowerdir:$lowerdir2" $upperdir $workdir >> \
++	 $seqres.full 2>&1 || _fail "fsck should not fail"
++check_whiteout $upperdir/foo
++check_whiteout $lowerdir/bar
 +
-+	[ -n "$mounted" ] || _overlay_base_unmount "$base_dev" "$base_mnt"
-+	return $ret
-+}
-+
-+_check_overlay_test_fs()
-+{
-+	_overlay_check_fs OVL_BASE_TEST_DEV OVL_BASE_TEST_DIR \
-+		"$OVL_BASE_TEST_DEV" "$OVL_BASE_TEST_DIR" \
-+		$TEST_FS_MOUNT_OPTS $SELINUX_MOUNT_OPTIONS
-+}
-+
-+_check_overlay_scratch_fs()
-+{
-+	_overlay_check_fs OVL_BASE_SCRATCH_DEV OVL_BASE_SCRATCH_MNT \
-+		"$OVL_BASE_SCRATCH_DEV" "$OVL_BASE_SCRATCH_MNT" \
-+		$OVL_BASE_MOUNT_OPTIONS $SELINUX_MOUNT_OPTIONS
-+}
-diff --git a/common/rc b/common/rc
-index 4c053a5..0837637 100644
---- a/common/rc
-+++ b/common/rc
-@@ -2507,7 +2507,7 @@ _check_test_fs()
- 	# no way to check consistency for GlusterFS
- 	;;
-     overlay)
--	# no way to check consistency for overlay
-+	_check_overlay_test_fs
- 	;;
-     pvfs2)
- 	;;
-@@ -2562,7 +2562,7 @@ _check_scratch_fs()
- 	# no way to check consistency for GlusterFS
- 	;;
-     overlay)
--	# no way to check consistency for overlay
-+	_check_overlay_test_fs
- 	;;
-     pvfs2)
- 	;;
++# success, all done
++status=0
++exit
+diff --git a/tests/overlay/201.out b/tests/overlay/201.out
+new file mode 100644
+index 0000000..20338db
+--- /dev/null
++++ b/tests/overlay/201.out
+@@ -0,0 +1,3 @@
++QA output created by 201
+++ Orphan whiteout
+++ Valid whiteout
+diff --git a/tests/overlay/group b/tests/overlay/group
+index 7e541e4..7c5fcbb 100644
+--- a/tests/overlay/group
++++ b/tests/overlay/group
+@@ -49,3 +49,4 @@
+ 044 auto quick copyup hardlink nonsamefs
+ 047 auto quick copyup hardlink
+ 048 auto quick copyup hardlink
++201 auto quick fsck
 -- 
 2.5.0
