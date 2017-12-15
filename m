@@ -1,94 +1,109 @@
 From: "zhangyi (F)" <yi.zhang@huawei.com>
-Subject: Re: [PATCH for xfstests 4/4] overlay: add fsck.overlay redirect
- directory test
-Date: Fri, 15 Dec 2017 16:57:15 +0800
-Message-ID: <5218c6cd-b0cd-844a-5050-256a72e1753c@huawei.com>
-References: <20171214064846.21587-1-yi.zhang@huawei.com>
- <20171214064846.21587-5-yi.zhang@huawei.com>
- <CAOQ4uxgx223rHqo=f+T-RDBk6jvbLuHE1Tm_wj+FT3XXJHvy8w@mail.gmail.com>
- <1cafcd12-6a4c-5c45-65ff-aa859463ad14@huawei.com>
- <CAOQ4uxhvjVowVwje1VB4jaf1SFh-a8YFadzqsck7F6ERcsTtHA@mail.gmail.com>
+Subject: Re: [PATCH v2 01/18] overlay: implement fsck utility
+Date: Fri, 15 Dec 2017 17:13:42 +0800
+Message-ID: <589bb0c5-5c70-6b33-c265-206ca2a621ed@huawei.com>
+References: <20171214064747.20999-1-yi.zhang@huawei.com>
+ <20171214064747.20999-2-yi.zhang@huawei.com>
+ <CAJfpegvCDyD3Zmc-h5hzkYRGC-cAn4myub3fwvqEVhRNse=yaw@mail.gmail.com>
+ <75c3288d-a2d5-d476-17a9-06b56f187152@huawei.com>
+ <CAOQ4uxhbZdcf88bKMN-UpZ+vLg4ckvP2qk644aoxO6k5iFApcA@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from szxga04-in.huawei.com ([45.249.212.190]:11943 "EHLO
-        szxga04-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753656AbdLOI54 (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 15 Dec 2017 03:57:56 -0500
-In-Reply-To: <CAOQ4uxhvjVowVwje1VB4jaf1SFh-a8YFadzqsck7F6ERcsTtHA@mail.gmail.com>
+Received: from szxga07-in.huawei.com ([45.249.212.35]:46166 "EHLO huawei.com"
+        rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1754988AbdLOJOK (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Fri, 15 Dec 2017 04:14:10 -0500
+In-Reply-To: <CAOQ4uxhbZdcf88bKMN-UpZ+vLg4ckvP2qk644aoxO6k5iFApcA@mail.gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: Amir Goldstein <amir73il@gmail.com>
-Cc: overlayfs <linux-unionfs@vger.kernel.org>, fstests <fstests@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>, Eryu Guan <eguan@redhat.com>, "Darrick J. Wong" <darrick.wong@oracle.com>, Miao Xie <miaoxie@huawei.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>, fstests <fstests@vger.kernel.org>, Eryu Guan <eguan@redhat.com>, "Darrick J. Wong" <darrick.wong@oracle.com>, Miao Xie <miaoxie@huawei.com>
 
-On 2017/12/15 15:23, Amir Goldstein Wrote:
-> On Fri, Dec 15, 2017 at 8:42 AM, zhangyi (F) <yi.zhang@huawei.com> wrote:
->> On 2017/12/14 21:44, Amir Goldstein Wrote:
->>> On Thu, Dec 14, 2017 at 8:48 AM, zhangyi (F) <yi.zhang@huawei.com> wrote:
+On 2017/12/15 15:45, Amir Goldstein Wrote:
+> On Fri, Dec 15, 2017 at 5:35 AM, zhangyi (F) <yi.zhang@huawei.com> wrote:
+>> On 2017/12/14 22:13, Miklos Szeredi Wrote:
 > [...]
->>> Please test the Valid "rename exchange redirect" case:
->>> set_redirect $upperdir/testdir1 "testdir2"
->>> set_redirect $upperdir/testdir2 "testdir1"
->>> fsck should not remove those redirects.
+> 
 >>>
->> I can add this case. I was wondering why add this special one? If I understand right,
->> these two xattrs will not remove after fsck if $lowerdir/testdir1 and $lowerdir/testdir2
->> exists, just like the second test case "Test valid redirect xattr point to a directory
->> origin in the same directory".
+>>>>
+>>>> Opaque directories
+>>>> ------------------
+>>>>
+>>>> An opaque directory is a directory with "trusted.overlay.opaque" xattr
+>>>> valued "y". There are two legal situations of making opaque directory: 1)
+>>>> create directory over whiteout 2) creat directory in merged directory. If an
+>>>> opaque directory is found, corresponding matching name in lower layers might
+>>>> exist or parent directory might merged, If not, the opaque xattr will be
+>>>> treated as invalid and remove.
+>>>
+>>> Current version of overlay fs doesn't bother with removing opaque
+>>> attribute.  So not sure fsck.overlay should care.  Or at least is
+>>> should be an optional thing and not worth warning about, since it's
+>>> perfectly normal.
+>>>
+>> Indeed, we can introduce '-f' option to handle this (e2fsck(8)):
+>>
+>>   -f     Force checking even if the file system seems clean.
 >>
 > 
-> IIUC, the first version of fsck you posted wanted to make sure that
-> origin is covered with either a whiteout or opaque dir and I commented
-> that it is also legal to be covered by a redirected dir.
-> So the test of exchanged redirect dirs checks that this condition is handled
-> correctly by fsck.
+> Hmm, I would not use -f for that, because it means something completely
+> different in e2fsck.
+> ext4 has a "clean" super block flag, which is set on clean unmount.
+> -f means to run even if "clean" flag is set.
+> Please reserve -f for that future use case.
+> What Miklos is saying, and I agree with him, is that fsck.overlay should be
+> resolve inconsistencies rather then cleanup leftovers that don't bother anyone.
 > 
-Understand, will add.
+Yes, it seems that check opaque is useless, we should more take care of what will
+lead to inconsistencies, will remove this check.
 
-[..]
-> That is one way of getting to that inconsistency which suggests that the correct
-> and automatic fix is to set opaque on uper/testdir, but what about:
+> BTW, you should also add a check for "impure" xattr.
+> There are clear rules about when "impure" should be set - when a pure dir has
+> entries with "origin" or "redirect" entries inside it - those rule
+> were NOT honored
+> since introduction of "redirect" and they were even not fully honored sine
+> introduction of "origin" ("ovl: mark parent impure on ovl_link()" was
+> added later)
 > 
-> 1) extract pre-defined image to lower/testdir upper/testdir
-> 2) mount overlay
-> 3) mv merge/testdir merge/dir2   (will create an whiteout 'testdir' in upper)
-> 4) mkdir merge/testdir   (create opaque dir)
-> 5) umount overlay
-> 6) re-extract pre-defined image to lower/testdir upper/testdir (*)
+> Missing "impure" will cause wrong d_ino in readdir of impure dir.
 > 
-> (*) Anything that *can* happen *will* happen...
-> 
-> Note that prior to redirect_dir feature, use could even get a way with this
-> partial restore/undo of testdir changes.
-> 
-> My point is that if you have 2 dirs pointing at the same lower, either
-> because they are both redirect or because one is not opaque, it is
-> not possible to automatically determine which should be the merge dir
-> and need to ask user to resolve the conflict.
-> 
-I think I follow you now, this does verly likly to happen. Will handle this
-case to ask user in default mode, do nothing in auto and yes mode.
+This is listed in my todo list, will realize this check soon.
 
-[..]
->> Let me see, now, fsck will remove the *later redirect xattr in 'yes' mode,
->> which means that we guess user want to copy the tree in upperdir if they
->> call cp -a when overlayfs is offline, not the whole tree expose in merge
->> layer. I think if we need to copy whole tree include lower dirs maybe too
->> complicated.
+> [...]
+> 
+>>>
+>>>> 2) The origin directory should be redirected only once in one layer,
+>>>> which mean there is only one redirect xattr point to this origin directory in
+>>>> the specified layer.
+>>>> 3) A whiteout or an opaque directory with the same name to origin should
+>>>> exist in the same directory as the redirect directory.
+>>>>
+>>>> If not, 1) The redirect xattr is invalid and need to remove 2) One of
+>>>> the redirect xattr is redundant but not sure which one is, ask user 3)
+>>>> Create a whiteout device or set opaque xattr to an existing directory if the
+>>>> parent directory was meregd or remove xattr if not.
+>>>
+>>> Hmm, in this case also should ask the user, as it's not clear that the
+>>> "new" copy resulting from removal of whiteout on upper is the wanted
+>>> one or the "old" renamed copy.
+>>>
+>> Thanks for point this out, do you mean the newly created directory over whiteout
+>> between old renamed directory? If so, Amir have already pointed out in the first
+>> iteration and I handled it in current version. Please see:
 >>
->> *) fsck just remove the later one when scaning, I understand it maybe cannot guaranty
->> fsck will clears testdir1 and not testdir2 for some base filesystem, so need to find
->> better way, thoughts?
+>> https://www.spinics.net/lists/linux-unionfs/msg03268.html
+>>
+>> Now, fsck will also check dir's redirect xattr for this case, it will add opaque
+>> xattr only when parent is merged and not redirected.
 >>
 > 
-> quite simple I think. Instead of verifying that redirect was removed
-> from testdir1
-> and remained on testdir2, verify that redirect from removed from either and
-> left on exactly one of them. Less trivial scripting, but not impossible.
+> I think what Miklos meant is what I wrote in comment to test 203.
+> User needs to be asked which dir should be the merge dir and not
+> assume that the redirected dir is the correct answer.
 > 
-Yes, will do.
+Understand, will fix it.
 
-Thanks a lot,
-Yi
+Thanks,
+Yi.
