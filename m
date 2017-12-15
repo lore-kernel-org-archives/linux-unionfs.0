@@ -1,155 +1,94 @@
-From: Chengguang Xu <cgxu519@icloud.com>
-Subject: [PATCH v5 3/3] generic/471: add syncfs test
-Date: Fri, 15 Dec 2017 15:47:35 +0800
-Message-ID: <1513324055-77618-3-git-send-email-cgxu519@icloud.com>
-References: <1513324055-77618-1-git-send-email-cgxu519@icloud.com>
+From: "zhangyi (F)" <yi.zhang@huawei.com>
+Subject: Re: [PATCH for xfstests 4/4] overlay: add fsck.overlay redirect
+ directory test
+Date: Fri, 15 Dec 2017 16:57:15 +0800
+Message-ID: <5218c6cd-b0cd-844a-5050-256a72e1753c@huawei.com>
+References: <20171214064846.21587-1-yi.zhang@huawei.com>
+ <20171214064846.21587-5-yi.zhang@huawei.com>
+ <CAOQ4uxgx223rHqo=f+T-RDBk6jvbLuHE1Tm_wj+FT3XXJHvy8w@mail.gmail.com>
+ <1cafcd12-6a4c-5c45-65ff-aa859463ad14@huawei.com>
+ <CAOQ4uxhvjVowVwje1VB4jaf1SFh-a8YFadzqsck7F6ERcsTtHA@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from [122.225.81.134] ([122.225.81.134]:11535 "EHLO
-        juanniu018037.ss.mogujie.org" rhost-flags-FAIL-FAIL-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1752642AbdLOHsQ (ORCPT
+Received: from szxga04-in.huawei.com ([45.249.212.190]:11943 "EHLO
+        szxga04-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753656AbdLOI54 (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 15 Dec 2017 02:48:16 -0500
-In-Reply-To: <1513324055-77618-1-git-send-email-cgxu519@icloud.com>
+        Fri, 15 Dec 2017 03:57:56 -0500
+In-Reply-To: <CAOQ4uxhvjVowVwje1VB4jaf1SFh-a8YFadzqsck7F6ERcsTtHA@mail.gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: eguan@redhat.com, amir73il@gmail.com
-Cc: fstests@vger.kernel.org, linux-unionfs@vger.kernel.org, Chengguang Xu <cgxu519@icloud.com>
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: overlayfs <linux-unionfs@vger.kernel.org>, fstests <fstests@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>, Eryu Guan <eguan@redhat.com>, "Darrick J. Wong" <darrick.wong@oracle.com>, Miao Xie <miaoxie@huawei.com>
 
-Inspired by syncfs bug of overlayfs which does not sync dirtyinodes in
-underlying filesystem.
-Run syncfs and shutdown filesystem(or underlying filesystem of overlayfs)
-to check syncfs result.
+On 2017/12/15 15:23, Amir Goldstein Wrote:
+> On Fri, Dec 15, 2017 at 8:42 AM, zhangyi (F) <yi.zhang@huawei.com> wrote:
+>> On 2017/12/14 21:44, Amir Goldstein Wrote:
+>>> On Thu, Dec 14, 2017 at 8:48 AM, zhangyi (F) <yi.zhang@huawei.com> wrote:
+> [...]
+>>> Please test the Valid "rename exchange redirect" case:
+>>> set_redirect $upperdir/testdir1 "testdir2"
+>>> set_redirect $upperdir/testdir2 "testdir1"
+>>> fsck should not remove those redirects.
+>>>
+>> I can add this case. I was wondering why add this special one? If I understand right,
+>> these two xattrs will not remove after fsck if $lowerdir/testdir1 and $lowerdir/testdir2
+>> exists, just like the second test case "Test valid redirect xattr point to a directory
+>> origin in the same directory".
+>>
+> 
+> IIUC, the first version of fsck you posted wanted to make sure that
+> origin is covered with either a whiteout or opaque dir and I commented
+> that it is also legal to be covered by a redirected dir.
+> So the test of exchanged redirect dirs checks that this condition is handled
+> correctly by fsck.
+> 
+Understand, will add.
 
-Signed-off-by: Chengguang Xu <cgxu519@icloud.com>
----
-Changes since v3:
-1. Change case No to 471.
-2. Change failure checking method.
-3. Cut comment about fssum.
+[..]
+> That is one way of getting to that inconsistency which suggests that the correct
+> and automatic fix is to set opaque on uper/testdir, but what about:
+> 
+> 1) extract pre-defined image to lower/testdir upper/testdir
+> 2) mount overlay
+> 3) mv merge/testdir merge/dir2   (will create an whiteout 'testdir' in upper)
+> 4) mkdir merge/testdir   (create opaque dir)
+> 5) umount overlay
+> 6) re-extract pre-defined image to lower/testdir upper/testdir (*)
+> 
+> (*) Anything that *can* happen *will* happen...
+> 
+> Note that prior to redirect_dir feature, use could even get a way with this
+> partial restore/undo of testdir changes.
+> 
+> My point is that if you have 2 dirs pointing at the same lower, either
+> because they are both redirect or because one is not opaque, it is
+> not possible to automatically determine which should be the merge dir
+> and need to ask user to resolve the conflict.
+> 
+I think I follow you now, this does verly likly to happen. Will handle this
+case to ask user in default mode, do nothing in auto and yes mode.
 
-Changes since v2:
-1. Modify multiple test files to single small test file.
-2. Use fssum to check result instead of diff.
-3. Add comment for why running sync before test.
-4. Add option explanation of fssum.
+[..]
+>> Let me see, now, fsck will remove the *later redirect xattr in 'yes' mode,
+>> which means that we guess user want to copy the tree in upperdir if they
+>> call cp -a when overlayfs is offline, not the whole tree expose in merge
+>> layer. I think if we need to copy whole tree include lower dirs maybe too
+>> complicated.
+>>
+>> *) fsck just remove the later one when scaning, I understand it maybe cannot guaranty
+>> fsck will clears testdir1 and not testdir2 for some base filesystem, so need to find
+>> better way, thoughts?
+>>
+> 
+> quite simple I think. Instead of verifying that redirect was removed
+> from testdir1
+> and remained on testdir2, verify that redirect from removed from either and
+> left on exactly one of them. Less trivial scripting, but not impossible.
+> 
+Yes, will do.
 
-Changes since v1:
-Use fs shutdown and fssum to check syncfs result instead of
-checking delalloc state of extents.
-
- tests/generic/471     | 84 +++++++++++++++++++++++++++++++++++++++++++++++++++
- tests/generic/471.out |  2 ++
- tests/generic/group   |  1 +
- 3 files changed, 87 insertions(+)
- create mode 100755 tests/generic/471
- create mode 100644 tests/generic/471.out
-
-diff --git a/tests/generic/471 b/tests/generic/471
-new file mode 100755
-index 0000000..bd1a72f
---- /dev/null
-+++ b/tests/generic/471
-@@ -0,0 +1,84 @@
-+#! /bin/bash
-+# FS QA Test 471
-+#
-+# Inspired by syncfs bug of overlayfs which does not sync dirty inodes in
-+# underlying filesystem.
-+#
-+# Create a small file then run syncfs and shutdown filesystem(or underlying
-+# filesystem of overlayfs) to check syncfs result.
-+#
-+# Test will be skipped if filesystem(or underlying filesystem of overlayfs)
-+# does not support shutdown.
-+#
-+#-----------------------------------------------------------------------
-+# Copyright (c) 2017 Chengguang Xu <cgxu519@icloud.com>
-+# All Rights Reserved.
-+#
-+# This program is free software; you can redistribute it and/or
-+# modify it under the terms of the GNU General Public License as
-+# published by the Free Software Foundation.
-+#
-+# This program is distributed in the hope that it would be useful,
-+# but WITHOUT ANY WARRANTY; without even the implied warranty of
-+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+# GNU General Public License for more details.
-+#
-+# You should have received a copy of the GNU General Public License
-+# along with this program; if not, write the Free Software Foundation,
-+# Inc.,  51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-+#-----------------------------------------------------------------------
-+#
-+
-+seq=`basename $0`
-+seqres=$RESULT_DIR/$seq
-+echo "QA output created by $seq"
-+
-+here=`pwd`
-+tmp=/tmp/$$
-+status=0
-+trap "_cleanup; exit \$status" 0 1 2 3 15
-+
-+_cleanup()
-+{
-+	cd /
-+	rm -f $tmp.*
-+}
-+
-+# get standard environment, filters and checks
-+. ./common/rc
-+. ./common/filter
-+
-+# remove previous $seqres.full before test
-+rm -f $seqres.full
-+
-+# real QA test starts here
-+
-+_supported_fs generic
-+_supported_os Linux
-+_require_fssum
-+_require_scratch
-+_require_scratch_shutdown
-+_require_xfs_io_command "syncfs"
-+
-+_scratch_mkfs >/dev/null 2>&1
-+_scratch_mount
-+
-+# Background writeback will flush dirty inode by dirty ratio and dirty time
-+# period(default 30 seconds), in order to avoid interference from it,
-+# run sync before test to make all dirty inodes clean, and it also
-+# accelerates syncfs on testing filesystem so that test case can finish
-+# in 30 seconds.
-+
-+sync
-+
-+$XFS_IO_PROG -f -c "pwrite 0 4K" $SCRATCH_MNT/testfile >/dev/null 2>&1
-+
-+# fssum used for comparing checksum of test file(data & metedata),
-+# exclude checking about atime, block structure, open error.
-+$FSSUM_PROG -ugomAcdES -f -w $tmp.fssum $SCRATCH_MNT
-+$XFS_IO_PROG -c "syncfs" $SCRATCH_MNT/testfile >/dev/null 2>&1
-+_scratch_shutdown
-+_scratch_cycle_mount
-+$FSSUM_PROG -r $tmp.fssum $SCRATCH_MNT
-+
-+exit
-diff --git a/tests/generic/471.out b/tests/generic/471.out
-new file mode 100644
-index 0000000..6944d77
---- /dev/null
-+++ b/tests/generic/471.out
-@@ -0,0 +1,2 @@
-+QA output created by 471
-+OK
-diff --git a/tests/generic/group b/tests/generic/group
-index 1e60722..3a61f42 100644
---- a/tests/generic/group
-+++ b/tests/generic/group
-@@ -473,3 +473,4 @@
- 468 shutdown auto quick metadata
- 469 auto quick
- 470 auto quick dax
-+471 shutdown auto quick sync
--- 
-1.8.3.1
+Thanks a lot,
+Yi
