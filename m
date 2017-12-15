@@ -1,129 +1,113 @@
-From: "zhangyi (F)" <yi.zhang@huawei.com>
-Subject: Re: [PATCH v2 01/18] overlay: implement fsck utility
-Date: Fri, 15 Dec 2017 11:35:00 +0800
-Message-ID: <75c3288d-a2d5-d476-17a9-06b56f187152@huawei.com>
-References: <20171214064747.20999-1-yi.zhang@huawei.com>
- <20171214064747.20999-2-yi.zhang@huawei.com>
- <CAJfpegvCDyD3Zmc-h5hzkYRGC-cAn4myub3fwvqEVhRNse=yaw@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+From: Chengguang Xu <cgxu519@icloud.com>
+Subject: Re: [PATCH v4 1/3] common/rc: add scratch shutdown support for
+ overlayfs
+Date: Fri, 15 Dec 2017 11:38:23 +0800
+Message-ID: <5E9E5885-AC82-4423-8AB2-AB601CF49286@icloud.com>
+References: <1513261145-127502-1-git-send-email-cgxu519@icloud.com>
+ <CAOQ4uxi3BD8-RA9AU-VUa_yumXq=e=7a5o8843F3mcMaD-Vk2g@mail.gmail.com>
+ <20171214150248.GI2749@eguan.usersys.redhat.com>
+Mime-Version: 1.0 (Mac OS X Mail 11.2 \(3445.5.20\))
+Content-Type: text/plain; charset=gb2312
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from szxga06-in.huawei.com ([45.249.212.32]:37503 "EHLO huawei.com"
-        rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1754824AbdLODff (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 14 Dec 2017 22:35:35 -0500
-In-Reply-To: <CAJfpegvCDyD3Zmc-h5hzkYRGC-cAn4myub3fwvqEVhRNse=yaw@mail.gmail.com>
+Received: from pv33p36im-asmtp002.me.com ([17.142.213.63]:51227 "EHLO
+        pv33p36im-asmtp002.me.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754815AbdLODi3 (ORCPT
+        <rfc822;linux-unionfs@vger.kernel.org>);
+        Thu, 14 Dec 2017 22:38:29 -0500
+In-reply-to: <20171214150248.GI2749@eguan.usersys.redhat.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>, fstests <fstests@vger.kernel.org>, Amir Goldstein <amir73il@gmail.com>, Eryu Guan <eguan@redhat.com>, "Darrick J. Wong" <darrick.wong@oracle.com>, miaoxie@huawei.com
+To: Eryu Guan <eguan@redhat.com>
+Cc: Amir Goldstein <amir73il@gmail.com>, fstests <fstests@vger.kernel.org>, overlayfs <linux-unionfs@vger.kernel.org>
 
-On 2017/12/14 22:13, Miklos Szeredi Wrote:
-> On Thu, Dec 14, 2017 at 7:47 AM, zhangyi (F) <yi.zhang@huawei.com> wrote:
->> fsck.overlay
->> ============
->>
->> fsck.overlay is used to check and optionally repair underlying
->> directories of overlay-filesystem.
-> 
-> Thanks for working on this.
-> 
-> 
->>
->> Check the following points:
->>
->> Whiteouts
->> ---------
->>
->> A whiteout is a character device with 0/0 device number. It is used to
->> record the removed files or directories, When a whiteout is found in a
->> directory, there should be at least one directory or file with the same
->> name in any of the corresponding lower layers. If not exist, the whiteout
->> will be treated as orphan whiteout and remove.
-> 
-> Okay.
-> 
->>
->> Opaque directories
->> ------------------
->>
->> An opaque directory is a directory with "trusted.overlay.opaque" xattr
->> valued "y". There are two legal situations of making opaque directory: 1)
->> create directory over whiteout 2) creat directory in merged directory. If an
->> opaque directory is found, corresponding matching name in lower layers might
->> exist or parent directory might merged, If not, the opaque xattr will be
->> treated as invalid and remove.
-> 
-> Current version of overlay fs doesn't bother with removing opaque
-> attribute.  So not sure fsck.overlay should care.  Or at least is
-> should be an optional thing and not worth warning about, since it's
-> perfectly normal.
-> 
-Indeed, we can introduce '-f' option to handle this (e2fsck(8)):
+>=20
+> =D4=DA 2017=C4=EA12=D4=C214=C8=D5=A3=AC=CF=C2=CE=E711:02=A3=ACEryu =
+Guan <eguan@redhat.com> =D0=B4=B5=C0=A3=BA
+>=20
+> On Thu, Dec 14, 2017 at 04:46:21PM +0200, Amir Goldstein wrote:
+>> On Thu, Dec 14, 2017 at 4:19 PM, Chengguang Xu <cgxu519@icloud.com> =
+wrote:
+>>> check -overlay overrides SCRATCH_MNT variable to it's own,
+>>> so adjust target to underlying filesystem(OVL_BASE_SCRATCH_MNT)
+>>> when running shutdown on overlayfs.
+>>>=20
+>>> Introduce a helper _scratch_shutdown to mainly handle scratch
+>>> shutdown and convert godown to _scratch_shutdown to support
+>>> overlayfs running on below cases.
+>>=20
+>> You should do this in 2 patches:
+>> 1. replace all open coded godown calls with _scratch_shutdown helper
+>> 2. Add overlay support to _scratch_shutdown helper.
+>=20
+> The description is not clear enough, the updates are not for running
+> existing shutdown tests to run on overlay, but to avoid test failures
+> using the bare 'src/godown $SCRATCH_MNT' when =
+_require_scratch_shutdown
+> accepts overlay to run. e.g.
+>=20
+> +/root/xfstests/src/godown: error on xfsctl(GOINGDOWN) of =
+"/mnt/scratch/ovl-mnt": Inappropriate ioctl for device
+>=20
+> So I think it's proper to do all the required updates in one patch,
+> instead of introducing (intermediate) false failures, and fixing them =
+in
+> a follow-up patch.
+>=20
+>>=20
+>>>=20
+>>> generic/043
+>>> generic/044
+>>> generic/045
+>>> generic/046
+>>> generic/047
+>>> generic/048
+>>> generic/051
+>>> generic/052
+>>> generic/054
+>>> generic/055
+>>> generic/392
+>>> generic/417
+>>> generic/461
+>>> generic/468
+>>=20
+>> Really no need to specify these in change log. They already appear in =
+diffstat.
+>=20
+> Agreed.
+>=20
+>>=20
+>>>=20
+>>> In order to avoid overlayfs running on improper shutdown
+>>> cases, add _require_local_device $SCRATCH_DEV to below cases.
+>>=20
+>> I don't understand.
+>> In all these tests, there is already _require_scratch_shutdown.
+>> Shouldn't that prevent overlay running improper shutdown?
+>=20
+> generic/042 and generic/050 assume we're testing against a local =
+device
+> (do mkfs or operate on $SCRATCH_DEV directly), so we need additional
+> check on $SCRATCH_DEV. Perhaps we need some comments in each test. But =
+I
+> don't see why generic/388 requires a local device too, maybe I missed
+> something, that's why we need comments :)
+>=20
 
-  -f     Force checking even if the file system seems clean.
+generic/388 causes underlying filesystem corruption and can=A1=AFt be =
+mounted
+unless running new mkfs. For local device based filesystems, it=A1=AFs =
+not a problem
+but overlayfs does not do real mkfs for device so the cases after this =
+will be
+all failed. Even worse=A3=ACthere is no check about _scratch_mount =
+result before=20
+doing shutdown=A3=ACso it can cause base fs shutting down unexpectedly.=20=
 
->>
->> Redirect directories
->> --------------------
->>
->> An redirect directory is a directory with "trusted.overlay.redirect"
->> xattr valued to the path of the original location from the root of the
->> overlay. It is only used when renaming a directory and "redirect dir"
->> feature is enabled. If an redirect directory is found, the following
->> must be met:
->>
->> 1) The directory store in redirect xattr should exist in one of lower
->> layers.
-> 
-> Okay.
-> 
->> 2) The origin directory should be redirected only once in one layer,
->> which mean there is only one redirect xattr point to this origin directory in
->> the specified layer.
->> 3) A whiteout or an opaque directory with the same name to origin should
->> exist in the same directory as the redirect directory.
->>
->> If not, 1) The redirect xattr is invalid and need to remove 2) One of
->> the redirect xattr is redundant but not sure which one is, ask user 3)
->> Create a whiteout device or set opaque xattr to an existing directory if the
->> parent directory was meregd or remove xattr if not.
-> 
-> Hmm, in this case also should ask the user, as it's not clear that the
-> "new" copy resulting from removal of whiteout on upper is the wanted
-> one or the "old" renamed copy.
-> 
-Thanks for point this out, do you mean the newly created directory over whiteout
-between old renamed directory? If so, Amir have already pointed out in the first
-iteration and I handled it in current version. Please see:
+For safety, I=A1=AFll add a check in _require_scratch_shutdown, but =
+_scratch_shutdown
+caller still needs to check mount status carefully in their test.
 
-https://www.spinics.net/lists/linux-unionfs/msg03268.html
-
-Now, fsck will also check dir's redirect xattr for this case, it will add opaque
-xattr only when parent is merged and not redirected.
-
->>
->> Usage
->> =====
->>
->> 1. Ensure overlay filesystem is not mounted based on directories which
->> need to check.
->>
->> 2. Run fsck.overlay program:
->>    Usage:
->>    fsck.overlay [-l lowerdir] [-u upperdir] [-w workdir] [-avhV]
->>
->>    Options:
->>    -l, --lowerdir=LOWERDIR   specify lower directories of overlayfs,
->>                              multiple lower use ':' as separator.
->>    -u, --upperdir=UPPERDIR   specify upper directory of overlayfs
->>    -w, --workdir=WORKDIR     specify work directory of overlayfs
-> 
-> Not sure what other fsck do, but I'd feel more logical to have the
-> same -olowerdir=..., etc. notation as for mount.
-> 
-It's fine by me, I will change it for current version.
 
 Thanks,
-Yi.
+Chengguang.
