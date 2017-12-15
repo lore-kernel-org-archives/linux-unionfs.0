@@ -1,97 +1,41 @@
-From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [PATCH v2 01/18] overlay: implement fsck utility
-Date: Fri, 15 Dec 2017 09:45:19 +0200
-Message-ID: <CAOQ4uxhbZdcf88bKMN-UpZ+vLg4ckvP2qk644aoxO6k5iFApcA@mail.gmail.com>
-References: <20171214064747.20999-1-yi.zhang@huawei.com> <20171214064747.20999-2-yi.zhang@huawei.com>
- <CAJfpegvCDyD3Zmc-h5hzkYRGC-cAn4myub3fwvqEVhRNse=yaw@mail.gmail.com> <75c3288d-a2d5-d476-17a9-06b56f187152@huawei.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+From: Chengguang Xu <cgxu519@icloud.com>
+Subject: [PATCH v5 2/3] common/rc: check syncfs support
+Date: Fri, 15 Dec 2017 15:47:34 +0800
+Message-ID: <1513324055-77618-2-git-send-email-cgxu519@icloud.com>
+References: <1513324055-77618-1-git-send-email-cgxu519@icloud.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-yb0-f178.google.com ([209.85.213.178]:44639 "EHLO
-        mail-yb0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752985AbdLOHpV (ORCPT
+Received: from [122.225.81.134] ([122.225.81.134]:11529 "EHLO
+        juanniu018037.ss.mogujie.org" rhost-flags-FAIL-FAIL-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1752642AbdLOHsM (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 15 Dec 2017 02:45:21 -0500
-In-Reply-To: <75c3288d-a2d5-d476-17a9-06b56f187152@huawei.com>
+        Fri, 15 Dec 2017 02:48:12 -0500
+In-Reply-To: <1513324055-77618-1-git-send-email-cgxu519@icloud.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: "zhangyi (F)" <yi.zhang@huawei.com>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>, fstests <fstests@vger.kernel.org>, Eryu Guan <eguan@redhat.com>, "Darrick J. Wong" <darrick.wong@oracle.com>, Miao Xie <miaoxie@huawei.com>
+To: eguan@redhat.com, amir73il@gmail.com
+Cc: fstests@vger.kernel.org, linux-unionfs@vger.kernel.org, Chengguang Xu <cgxu519@icloud.com>
 
-On Fri, Dec 15, 2017 at 5:35 AM, zhangyi (F) <yi.zhang@huawei.com> wrote:
-> On 2017/12/14 22:13, Miklos Szeredi Wrote:
-[...]
+common/rc: add a check case in _require_xfs_io_command() to support syncfs
 
->>
->>>
->>> Opaque directories
->>> ------------------
->>>
->>> An opaque directory is a directory with "trusted.overlay.opaque" xattr
->>> valued "y". There are two legal situations of making opaque directory: 1)
->>> create directory over whiteout 2) creat directory in merged directory. If an
->>> opaque directory is found, corresponding matching name in lower layers might
->>> exist or parent directory might merged, If not, the opaque xattr will be
->>> treated as invalid and remove.
->>
->> Current version of overlay fs doesn't bother with removing opaque
->> attribute.  So not sure fsck.overlay should care.  Or at least is
->> should be an optional thing and not worth warning about, since it's
->> perfectly normal.
->>
-> Indeed, we can introduce '-f' option to handle this (e2fsck(8)):
->
->   -f     Force checking even if the file system seems clean.
->
+Signed-off-by: Chengguang Xu <cgxu519@icloud.com>
+---
+ common/rc | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-Hmm, I would not use -f for that, because it means something completely
-different in e2fsck.
-ext4 has a "clean" super block flag, which is set on clean unmount.
--f means to run even if "clean" flag is set.
-Please reserve -f for that future use case.
-What Miklos is saying, and I agree with him, is that fsck.overlay should be
-resolve inconsistencies rather then cleanup leftovers that don't bother anyone.
-
-BTW, you should also add a check for "impure" xattr.
-There are clear rules about when "impure" should be set - when a pure dir has
-entries with "origin" or "redirect" entries inside it - those rule
-were NOT honored
-since introduction of "redirect" and they were even not fully honored sine
-introduction of "origin" ("ovl: mark parent impure on ovl_link()" was
-added later)
-
-Missing "impure" will cause wrong d_ino in readdir of impure dir.
-
-[...]
-
->>
->>> 2) The origin directory should be redirected only once in one layer,
->>> which mean there is only one redirect xattr point to this origin directory in
->>> the specified layer.
->>> 3) A whiteout or an opaque directory with the same name to origin should
->>> exist in the same directory as the redirect directory.
->>>
->>> If not, 1) The redirect xattr is invalid and need to remove 2) One of
->>> the redirect xattr is redundant but not sure which one is, ask user 3)
->>> Create a whiteout device or set opaque xattr to an existing directory if the
->>> parent directory was meregd or remove xattr if not.
->>
->> Hmm, in this case also should ask the user, as it's not clear that the
->> "new" copy resulting from removal of whiteout on upper is the wanted
->> one or the "old" renamed copy.
->>
-> Thanks for point this out, do you mean the newly created directory over whiteout
-> between old renamed directory? If so, Amir have already pointed out in the first
-> iteration and I handled it in current version. Please see:
->
-> https://www.spinics.net/lists/linux-unionfs/msg03268.html
->
-> Now, fsck will also check dir's redirect xattr for this case, it will add opaque
-> xattr only when parent is merged and not redirected.
->
-
-I think what Miklos meant is what I wrote in comment to test 203.
-User needs to be asked which dir should be the merge dir and not
-assume that the redirected dir is the correct answer.
-
-Amir.
+diff --git a/common/rc b/common/rc
+index 035ad22..3133bdd 100644
+--- a/common/rc
++++ b/common/rc
+@@ -2106,6 +2106,10 @@ _require_xfs_io_command()
+ 	"utimes" )
+ 		testio=`$XFS_IO_PROG -f -c "utimes" 0 0 0 0 $testfile 2>&1`
+ 		;;
++	"syncfs")
++		touch $testfile
++		testio=`$XFS_IO_PROG -c "syncfs" $testfile 2>&1`
++		;;
+ 	*)
+ 		testio=`$XFS_IO_PROG -c "help $command" 2>&1`
+ 	esac
+-- 
+1.8.3.1
