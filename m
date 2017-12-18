@@ -1,54 +1,45 @@
-From: Greg KH <gregkh@linuxfoundation.org>
-Subject: Re: [PATCH] ovl: fix overlay: warning prefix
-Date: Mon, 18 Dec 2017 13:35:30 +0100
-Message-ID: <20171218123530.GA7128@kroah.com>
-References: <1511375254-15206-1-git-send-email-amir73il@gmail.com>
- <CAOQ4uxi9SMM6YY1SYKOns3S4jEa0cuHDt+DiHo8ThSSMWCTgFw@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Amir Goldstein <amir73il@gmail.com>
+Subject: [PATCH] ovl: fix another overlay: warning prefix
+Date: Mon, 18 Dec 2017 14:25:56 +0200
+Message-ID: <1513599956-29976-1-git-send-email-amir73il@gmail.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56954 "EHLO
-        mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933349AbdLRMf2 (ORCPT
+Received: from mail-wm0-f65.google.com ([74.125.82.65]:42140 "EHLO
+        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933607AbdLRMZQ (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 18 Dec 2017 07:35:28 -0500
-Content-Disposition: inline
-In-Reply-To: <CAOQ4uxi9SMM6YY1SYKOns3S4jEa0cuHDt+DiHo8ThSSMWCTgFw@mail.gmail.com>
+        Mon, 18 Dec 2017 07:25:16 -0500
+Received: by mail-wm0-f65.google.com with SMTP id b199so28977872wme.1
+        for <linux-unionfs@vger.kernel.org>; Mon, 18 Dec 2017 04:25:16 -0800 (PST)
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: overlayfs <linux-unionfs@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>, stable <stable@vger.kernel.org>
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: linux-unionfs@vger.kernel.org
 
-On Mon, Dec 18, 2017 at 02:19:52PM +0200, Amir Goldstein wrote:
-> On Wed, Nov 22, 2017 at 8:27 PM, Amir Goldstein <amir73il@gmail.com> wrote:
-> > Conform two stray warning messages to the standard overlayfs: prefix.
-> >
-> > Signed-off-by: Amir Goldstein <amir73il@gmail.com>
-> > ---
-> 
-> Greg,
-> 
-> Upstream commit ("da2e6b7eeda8 ovl: fix overlay: warning prefix")
-> was not marked for stable, because it is not a bug fix per-se.
-> Nevertheless, it may be useful to apply it to stable kernels to keep
-> overlayfs bug reports/analysis consistent.
-> 
-> The first hunk fixes (#v4.10):
-> a6c606551141 ovl: redirect on rename-dir
-> 
-> The second hunk fixes (#v4.14):
-> b5efccbe0a12 ovl: constant d_ino across copy up
-> 
-> For your consideration.
-> If you wish, I can send a patch for v4.10 with just the first hunk.
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+---
 
+Miklos,
 
-4.10 is long end-of-life, so I don't think that matters :)
+You just sneaked another one in...
 
-As for 4.14, this is just an error message, I don't think it's that
-serious of a fix for a stable kernel, do you?  It's _this_ close to just
-being a spelling fix.
+Amir.
 
-thanks,
+ fs/overlayfs/namei.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-greg k-h
+diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
+index beb945e1963c..9cf15463754c 100644
+--- a/fs/overlayfs/namei.c
++++ b/fs/overlayfs/namei.c
+@@ -693,7 +693,8 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
+ 		 */
+ 		err = -EPERM;
+ 		if (d.redirect && !ofs->config.redirect_follow) {
+-			pr_warn_ratelimited("overlay: refusing to follow redirect for (%pd2)\n", dentry);
++			pr_warn_ratelimited("overlayfs: refusing to follow redirect for (%pd2)\n",
++					    dentry);
+ 			goto out_put;
+ 		}
+ 
+-- 
+2.7.4
