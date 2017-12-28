@@ -1,553 +1,268 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [PATCH v3 3/6] fsck.overlay: encapsulate underlying directories options
-Date: Thu, 28 Dec 2017 15:59:08 +0200
-Message-ID: <CAOQ4uxgDgCOY5pSpYNCX9MhY_3swgivz+3L3p9ALNfPS21kqJQ@mail.gmail.com>
-References: <20171228114023.43999-1-yi.zhang@huawei.com> <20171228114023.43999-4-yi.zhang@huawei.com>
+Subject: Re: [PATCH v3 4/6] fsck.overlay: correct redirect xattr check
+Date: Thu, 28 Dec 2017 16:22:03 +0200
+Message-ID: <CAOQ4uxh89i3=TaYsAvQv7YvF0_auW3LYOf5PLtLHJkYo9kCHRQ@mail.gmail.com>
+References: <20171228114023.43999-1-yi.zhang@huawei.com> <20171228114023.43999-5-yi.zhang@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
-Return-path: <fstests-owner@vger.kernel.org>
-In-Reply-To: <20171228114023.43999-4-yi.zhang@huawei.com>
-Sender: fstests-owner@vger.kernel.org
+Return-path: <linux-unionfs-owner@vger.kernel.org>
+Received: from mail-yb0-f178.google.com ([209.85.213.178]:47042 "EHLO
+        mail-yb0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753354AbdL1OWF (ORCPT
+        <rfc822;linux-unionfs@vger.kernel.org>);
+        Thu, 28 Dec 2017 09:22:05 -0500
+In-Reply-To: <20171228114023.43999-5-yi.zhang@huawei.com>
+Sender: linux-unionfs-owner@vger.kernel.org
+List-Id: linux-unionfs@vger.kernel.org
 To: "zhangyi (F)" <yi.zhang@huawei.com>
 Cc: overlayfs <linux-unionfs@vger.kernel.org>, fstests <fstests@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>, Eryu Guan <eguan@redhat.com>, Miao Xie <miaoxie@huawei.com>, yangerkun@huawei.com
-List-Id: linux-unionfs@vger.kernel.org
 
 On Thu, Dec 28, 2017 at 1:40 PM, zhangyi (F) <yi.zhang@huawei.com> wrote:
-> Encapsulate separate underlying directories options to use -o option as
-> for mount, see mount(8).
+> When we found a valid redirect xattr and the lower origin targed was
+> covered by a directory, it could be 1) an another redirect directory,
+> or 2) an opaque directory created after rename in overlayfs or 3) a
+> general directory created in the underlying directory when overlay is
+> offline. Currently, we only handled case 2, this patch cover the other
+> two cases.
 >
-> Old Usage:
->   fsck.overlay [-l lowerdir] [-u upperdir] [-w workdir]
->
-> New Usage:
->   fsck.overlay [-o lowerdir=<lowers>,upperdir=<upper>,workdir=<work>]
->
-> Example:
->   fsck.overlay -o lowerdir=lower,upperdir=upper,workdir=work
->   or
->   fsck.overlay -o lowerdir=lower -o upperdir=upper -o workdir=work
+> This patch ask user if we find a covering directory whitout opaque
+> and another redirect xattr.
 >
 > Signed-off-by: zhangyi (F) <yi.zhang@huawei.com>
-
-Looks ok.
-
-Reviewed-by: Amir Goldstein <amir73il@gmail.com>
-
 > ---
->  README.md |  11 ++--
->  check.c   |   4 +-
->  fsck.c    |  78 +++++++++++++--------------
->  mount.c   | 182 +++++++++++++++++++++++++++++++++++---------------------------
->  mount.h   |  12 ++++-
->  5 files changed, 157 insertions(+), 130 deletions(-)
+>  README.md | 31 ++++++++++++++-------
+>  check.c   | 94 ++++++++++++++++++++++++++++++++++++++++++++++-----------------
+>  2 files changed, 90 insertions(+), 35 deletions(-)
 >
 > diff --git a/README.md b/README.md
-> index 458a815..a8d0b1c 100644
+> index a8d0b1c..2e6146f 100644
 > --- a/README.md
 > +++ b/README.md
-> @@ -44,13 +44,11 @@ Usage
+> @@ -25,16 +25,27 @@ If an redirect directory is found, the following must be met:
 >
->  2. Run fsck.overlay program:
->     Usage:
-> -   fsck.overlay [-l lowerdir] [-u upperdir] [-w workdir] [-pnyvhV]
-> +   fsck.overlay [-o lowerdir=<lowers>,upperdir=<upper>,workdir=<work>] [-pnyvhV]
->
->     Options:
-> -   -l, --lowerdir=LOWERDIR   specify lower directories of overlayfs,
-> -                             multiple lower use ':' as separator.
-> -   -u, --upperdir=UPPERDIR   specify upper directory of overlayfs
-> -   -w, --workdir=WORKDIR     specify work directory of overlayfs
-> +   -o,                       specify underlying directories of overlayfs:
-> +                             multiple lower directories use ':' as separator
->     -p,                       automatic repair (no questions)
->     -n,                       make no changes to the filesystem
->     -y,                       assume "yes" to all questions
-> @@ -58,6 +56,9 @@ Usage
->     -h, --help                display this usage of overlayfs
->     -V, --version             display version information
->
-> +   Example:
-> +   fsck.overlay -o lowerdir=lower,upperdir=upper,workdir=work
+>  1) The directory path pointed by redirect xattr should exist in one of lower
+>     layers.
+> -2) The origin directory should be redirected only once in one layer, which means
+> -   there is only one redirect xattr point to this origin directory in the
+> -   specified layer.
+> -3) A whiteout or an opaque directory with the same name to origin should exist
+> -   in the same directory as the redirect directory.
+> -
+> -If not, 1) The redirect xattr is invalid and need to remove 2) One of the
+> -redirect xattr is redundant but not sure which one is, ask user or warn in
+> -auto mode 3) Create a whiteout device or set opaque xattr to an existing
+> -directory if the parent directory was meregd or remove xattr if not.
+> +2) The origin directory should be redirected only once in one layer, which
+> +   means there is only one redirect xattr point to this origin directory in
+> +   the specified layer.
+> +3) There must be something with the same name to the rename origin in its
+> +   origin place, maybe a whiteout/file or a(an) opaque/redirect directory
+> +   covering the lower target, maybe a new created directory merging with
+> +   lower origin directory.
 > +
->  3. Exit value:
->     0      No errors
->     1      Filesystem errors corrected
+> +If not,
+> +1) The redirect xattr is invalid and need to remove.
+> +2) One of the redirect xattr is redundant but not sure which one is, ask user
+> +   or warn in auto mode.
+> +3) Create a whiteout device if there nothing exists in its place. If the lower
+> +   targed was covered by a directory which is not an another redirect directory,
+> +   it could be created after rename in overlayfs or created in underlying
+> +   directory when overlay is offline, not sure this directory is merged or not,
+> +   ask user by default.
+> +
+> +If an invalid redirect xattr was removed by fsck and there is a corresponding
+> +lower directory with the same name exists, not sure this directory is merged
+> +or not, ask user to make a decision.
+>
+>  Usage
+>  =====
 > diff --git a/check.c b/check.c
-> index efa180f..0b5d49b 100644
+> index 0b5d49b..6db41cd 100644
 > --- a/check.c
 > +++ b/check.c
-> @@ -58,8 +58,8 @@ struct ovl_redirect_entry {
->  #define WHITEOUT_MOD   0
->
->  extern char **lowerdir;
-> -extern char upperdir[];
-> -extern char workdir[];
-> +extern char *upperdir;
-> +extern char *workdir;
->  extern int lower_num;
->  extern int flags;
->  extern int status;
-> diff --git a/fsck.c b/fsck.c
-> index 44211f7..5d34378 100644
-> --- a/fsck.c
-> +++ b/fsck.c
-> @@ -38,15 +38,16 @@
->
->  char *program_name;
->
-> +char *lowerdirs = NULL;
->  char **lowerdir = NULL;
-> -char upperdir[PATH_MAX] = {0};
-> -char workdir[PATH_MAX] = {0};
-> +char *upperdir = NULL;
-> +char *workdir = NULL;
->  int lower_num = 0;
->  int flags = 0;         /* user input option flags */
->  int status = 0;                /* fsck scan status */
->
-> -/* Cleanup lower directories buf */
-> -static void ovl_clean_lowerdirs(void)
-> +/* Cleanup underlying directories buffer */
-> +static void ovl_clean_dirs(void)
->  {
->         int i;
->
-> @@ -57,17 +58,19 @@ static void ovl_clean_lowerdirs(void)
->         free(lowerdir);
->         lowerdir = NULL;
->         lower_num = 0;
-> +       free(upperdir);
-> +       upperdir = NULL;
-> +       free(workdir);
-> +       workdir = NULL;
+> @@ -152,12 +152,29 @@ static inline int ovl_create_whiteout(const char *pathname)
+>         return ret;
 >  }
 >
->  static void usage(void)
+> -static inline int ovl_ask_invalid(const char *question, const char *pathname,
+> -                                 int action)
+> +static inline bool ovl_is_redirect(const char *pathname)
+> +{
+> +       bool exist = false;
+> +       ssize_t ret;
+> +
+> +       ret = get_xattr(pathname, OVL_REDIRECT_XATTR, NULL, &exist);
+> +       return ret ? false : exist;
+> +}
+> +
+> +static inline int ovl_ask_action(const char *description, const char *pathname,
+> +                                const char *question, int action)
+> +{
+> +       print_info(_("%s: %s "), description, pathname);
+> +
+> +       return ask_question(question, action);
+> +}
+> +
+> +static inline int ovl_ask_question(const char *question, const char *pathname,
+> +                                  int action)
 >  {
-> -       print_info(_("Usage:\n\t%s [-l lowerdir] [-u upperdir] [-w workdir] "
-> +       print_info(_("Usage:\n\t%s [-o lowerdir=<lowers>,upperdir=<upper>,workdir=<work>] "
->                     "[-pnyvhV]\n\n"), program_name);
->         print_info(_("Options:\n"
-> -                   "-l, --lowerdir=LOWERDIR   specify lower directories of overlayfs,\n"
-> -                   "                          multiple lower use ':' as separator\n"
-> -                   "-u, --upperdir=UPPERDIR   specify upper directory of overlayfs\n"
-> -                   "-w, --workdir=WORKDIR     specify work directory of overlayfs\n"
-> +                   "-o,                       specify underlying directories of overlayfs:\n"
-> +                   "                          multiple lower directories use ':' as separator\n"
->                     "-p,                       automatic repair (no questions)\n"
->                     "-n,                       make no changes to the filesystem\n"
->                     "-y,                       assume \"yes\" to all questions\n"
-> @@ -79,46 +82,25 @@ static void usage(void)
+>         print_info(_("%s: %s "), question, pathname);
 >
->  static void parse_options(int argc, char *argv[])
+> -       return ask_question("Remove", action);
+> +       return ask_question("", action);
+>  }
+>
+>  /*
+> @@ -233,7 +250,7 @@ remove:
+>         sctx->i_whiteouts++;
+>
+>         /* Remove orphan whiteout directly or ask user */
+> -       if (!ovl_ask_invalid("Orphan whiteout", pathname, 1))
+> +       if (!ovl_ask_action("Orphan whiteout", pathname, "Remove", 1))
+>                 return 0;
+>
+>         ret = unlink(pathname);
+> @@ -323,15 +340,21 @@ static void ovl_redirect_free(void)
+>   * 2) Count how many directories the origin directory was redirected by.
+>   *    If more than one in the same layer, there must be some inconsistency
+>   *    but not sure which one is invalid, ask user or warn in auto mode.
+> - * 3) Check and fix the missing whiteout or opaque in redierct parent dir.
+> + * 3) Check and fix the missing whiteout that covering the redirect lower
+> + *    target. If the lower targed was covered by a directory which is not
+> + *    an another redirect directory, it could be created after rename in
+> + *    overlayfs or created in underlying directory when overlay is offline,
+> + *    check opaque xattr and ask user by default.
+> + * 4) When an invalid redirect xattr is removed, and the lower layers have
+> + *    directory with same name, not sure this is a merged directory, ask
+> + *    user by default.
+>   */
+>  static int ovl_check_redirect(struct scan_ctx *sctx)
 >  {
-> -       char *lowertemp;
-> +       struct ovl_config config = {0};
-> +       char *ovl_opts = NULL;
->         int c;
+>         const char *pathname = sctx->pathname;
+>         struct ovl_lower_check chk = {0};
+> -       char redirect_rpath[PATH_MAX];
+>         struct stat rst;
+> -       char *redirect = NULL;
+> +       char *redirect = NULL, *cover_path = NULL;
+>         int start;
 >         int ret = 0;
-> -       bool show_usage = false;
->         bool opt_conflict = false;
 >
->         struct option long_options[] = {
-> -               {"lowerdir", required_argument, NULL, 'l'},
-> -               {"upperdir", required_argument, NULL, 'u'},
-> -               {"workdir", required_argument, NULL, 'w'},
->                 {"verbose", no_argument, NULL, 'v'},
->                 {"version", no_argument, NULL, 'V'},
->                 {"help", no_argument, NULL, 'h'},
->                 {NULL, 0, NULL, 0}
->         };
+> @@ -345,8 +368,10 @@ static int ovl_check_redirect(struct scan_ctx *sctx)
+>         sctx->t_redirects++;
 >
-> -       while ((c = getopt_long(argc, argv, "l:u:w:apnyvVh", long_options, NULL)) != -1) {
-> +       while ((c = getopt_long(argc, argv, "o:apnyvVh", long_options, NULL)) != -1) {
->                 switch (c) {
-> -               case 'l':
-> -                       lowertemp = strdup(optarg);
-> -                       ret = ovl_resolve_lowerdirs(lowertemp, &lowerdir, &lower_num);
-> -                       free(lowertemp);
-> -                       break;
-> -               case 'u':
-> -                       if (realpath(optarg, upperdir)) {
-> -                               print_debug(_("Upperdir:%s\n"), upperdir);
-> -                               flags |= FL_UPPER;
-> -                       } else {
-> -                               print_err(_("Failed to resolve upperdir:%s\n"), optarg);
-> -                               ret = -1;
-> -                       }
-> -                       break;
-> -               case 'w':
-> -                       if (realpath(optarg, workdir)) {
-> -                               print_debug(_("Workdir:%s\n"), workdir);
-> -                               flags |= FL_WORK;
-> -                       } else {
-> -                               print_err(_("Failed to resolve workdir:%s\n"), optarg);
-> -                               ret = -1;
-> -                       }
-> +               case 'o':
-> +                       ovl_opts = sstrdup(optarg);
-> +                       ovl_parse_opt(ovl_opts, &config);
-> +                       free(ovl_opts);
->                         break;
->                 case 'a':
->                 case 'p':
-> @@ -155,23 +137,35 @@ static void parse_options(int argc, char *argv[])
->                         goto err_out;
->         }
->
-> +       /* Resolve and get each underlying directory of overlay filesystem */
-> +       ovl_get_dirs(&config, &lowerdir, &lower_num, &upperdir, &workdir);
-> +       if (upperdir)
-> +               flags |= FL_UPPER;
-> +       if (workdir)
-> +               flags |= FL_WORK;
-> +
->         if (!lower_num || (!(flags & FL_UPPER) && lower_num == 1)) {
->                 print_info(_("Please specify correct lowerdirs and upperdir!\n\n"));
-> -               show_usage = true;
-> +               goto err_out;
+>         /* Redirect dir in last lower dir ? */
+> -       if (sctx->dirtype == OVL_LOWER && sctx->num == lower_num-1)
+> +       if (sctx->dirtype == OVL_LOWER && sctx->num == lower_num-1) {
+> +               start = lower_num;
+>                 goto remove;
 > +       }
-> +
-> +       if ((flags & FL_UPPER) && !(flags & FL_WORK)) {
-> +               print_info(_("Please specify correct workdir!\n\n"));
->                 goto err_out;
->         }
 >
->         if (opt_conflict) {
->                 print_info(_("Only one of the options -p/-a, -n or -y can be specified!\n\n"));
-> -               show_usage = true;
->                 goto err_out;
->         }
+>         /* Scan lower directories to check redirect dir exist or not */
+>         start = (sctx->dirtype == OVL_LOWER) ? sctx->num + 1 : 0;
+> @@ -359,14 +384,14 @@ static int ovl_check_redirect(struct scan_ctx *sctx)
+>                 /* Check duplicate in same layer */
+>                 if (ovl_redirect_entry_find(chk.path, sctx->dirtype,
+>                                             sctx->num, &tmp)) {
+> -                       print_info("Duplicate redirect directories found:\n");
+> -                       print_info("origin:%s current:%s last:%s\n",
+> -                                  chk.path, pathname, tmp);
+> +                       print_info("Duplicate redirect directory found:%s\n", pathname);
+> +                       print_info("Origin:%s Previous:%s\n", chk.path, tmp);
 >
-> +       ovl_free_opt(&config);
->         return;
+>                         sctx->i_redirects++;
 >
->  err_out:
-> -       if (show_usage)
-> -               usage();
-> +       ovl_free_opt(&config);
-> +       ovl_clean_dirs();
-> +       usage();
->         exit(1);
->  }
->
-> @@ -212,7 +206,7 @@ int main(int argc, char *argv[])
->
->  out:
->         fsck_status_check(&exit_value);
-> -       ovl_clean_lowerdirs();
-> +       ovl_clean_dirs();
->
->         if (err)
->                 exit_value |= FSCK_ERROR;
-> diff --git a/mount.c b/mount.c
-> index fba51e9..908cee0 100644
-> --- a/mount.c
-> +++ b/mount.c
-> @@ -38,19 +38,18 @@
->  #include "mount.h"
->
->  struct ovl_mnt_entry {
-> -       char *lowers;
->         char **lowerdir;
->         int lowernum;
-> -       char upperdir[PATH_MAX];
-> -       char workdir[PATH_MAX];
-> +       char *upperdir;
-> +       char *workdir;
->  };
->
->  /* Mount buf allocate a time */
->  #define ALLOC_NUM      16
->
->  extern char **lowerdir;
-> -extern char upperdir[];
-> -extern char workdir[];
-> +extern char *upperdir;
-> +extern char *workdir;
->  extern int lower_num;
->
->  /*
-> @@ -78,9 +77,10 @@ static unsigned int ovl_split_lowerdirs(char *lower)
->  }
->
->  /* Resolve each lower directories and check the validity */
-> -int ovl_resolve_lowerdirs(char *loweropt, char ***lowerdir,
-> -                         int *lowernum)
-> +static int ovl_resolve_lowerdirs(char *loweropt, char ***lowerdir,
-> +                                int *lowernum)
->  {
-> +       char temp[PATH_MAX] = {0};
->         int num;
->         char **dirs;
->         char *p;
-> @@ -97,12 +97,12 @@ int ovl_resolve_lowerdirs(char *loweropt, char ***lowerdir,
->
->         p = loweropt;
->         for (i = 0; i < num; i++) {
-> -               dirs[i] = smalloc(PATH_MAX);
-> -               if (!realpath(p, dirs[i])) {
-> +               if (!realpath(p, temp)) {
->                         print_err(_("Failed to resolve lowerdir:%s:%s\n"),
->                                     p, strerror(errno));
->                         goto err;
+>                         /* Don't remove in auto mode */
+> -                       if (ovl_ask_invalid("Duplicate redirect xattr", pathname, 0))
+> +                       if (ovl_ask_action("Duplicate redirect xattr", pathname,
+> +                                          "Remove", 0))
+>                                 goto remove_d;
 >                 }
-> +               dirs[i] = sstrdup(temp);
->                 print_debug(_("Lowerdir %u:%s\n"), i, dirs[i]);
->                 p = strchr(p, '\0') + 1;
->         }
-> @@ -115,6 +115,7 @@ err:
->         for (i--; i >= 0; i--)
->                 free(dirs[i]);
->         free(dirs);
-> +       *lowerdir = NULL;
->         *lowernum = 0;
->         return -1;
->  }
-> @@ -146,79 +147,99 @@ static char *ovl_next_opt(char **s)
->         return sbegin;
->  }
 >
-> +static inline char *ovl_match_dump(const char *opt, const char *type)
-> +{
-> +       int len = strlen(opt) - strlen(type) + 1;
-> +
-> +       return sstrndup(opt+strlen(type), len);
-> +}
-> +
->  /*
-> - * Split and parse opt to each directories.
-> - *
-> - * Note: FIXME: We cannot distinguish mounted directories if overlayfs was
-> - * mounted use relative path, so there may have misjudgment.
-> + * Resolve and get each underlying directory of overlay filesystem
-> + */
-> +int ovl_get_dirs(struct ovl_config *config, char ***lowerdir,
-> +                int *lowernum, char **upperdir, char **workdir)
-> +{
-> +       char temp[PATH_MAX] = {0};
-> +
-> +       /* Resolve upperdir */
-> +       if (!realpath(config->upperdir, temp)) {
-> +               print_err(_("Faile to resolve upperdir:%s:%s\n"),
-> +                           config->upperdir, strerror(errno));
-> +               goto err_out;
-> +       }
-> +       *upperdir = sstrdup(temp);
-> +       print_debug(_("Upperdir: %s\n"), *upperdir);
-> +
-> +       /* Resolve workdir */
-> +       if (!realpath(config->workdir, temp)) {
-> +               print_err(_("Faile to resolve workdir:%s:%s\n"),
-> +                           config->workdir, strerror(errno));
-> +               goto err_work;
-> +       }
-> +       *workdir = sstrdup(temp);
-> +       print_debug(_("Workdir: %s\n"), *workdir);
-> +
-> +       /* Resolve lowerdir */
-> +       if (ovl_resolve_lowerdirs(config->lowerdir, lowerdir, lowernum))
-> +               goto err_lower;
-> +
-> +       return 0;
-> +
-> +err_lower:
-> +       free(*workdir);
-> +       *workdir = NULL;
-> +err_work:
-> +       free(*upperdir);
-> +       *upperdir = NULL;
-> +err_out:
-> +       return -1;
-> +}
-> +
-> +void ovl_free_opt(struct ovl_config *config)
-> +{
-> +       free(config->upperdir);
-> +       config->upperdir = NULL;
-> +       free(config->lowerdir);
-> +       config->lowerdir = NULL;
-> +       free(config->workdir);
-> +       config->workdir = NULL;
-> +}
-> +
-> +/*
-> + * Split and parse opt to each underlying directories.
->   */
-> -static int ovl_parse_opt(char *opt, struct ovl_mnt_entry *entry)
-> +void ovl_parse_opt(char *opt, struct ovl_config *config)
->  {
-> -       char tmp[PATH_MAX] = {0};
->         char *p;
-> -       int len;
-> -       int ret;
-> -       int i;
+> @@ -374,25 +399,32 @@ static int ovl_check_redirect(struct scan_ctx *sctx)
+>                                        sctx->num, chk.path);
 >
->         while ((p = ovl_next_opt(&opt)) != NULL) {
->                 if (!*p)
->                         continue;
->
->                 if (!strncmp(p, OPT_UPPERDIR, strlen(OPT_UPPERDIR))) {
-> -                       len = strlen(p) - strlen(OPT_UPPERDIR) + 1;
-> -                       strncpy(tmp, p+strlen(OPT_UPPERDIR), len);
-> -
-> -                       if (!realpath(tmp, entry->upperdir)) {
-> -                               print_err(_("Faile to resolve path:%s:%s\n"),
-> -                                           tmp, strerror(errno));
-> -                               ret = -1;
-> -                               goto errout;
-> -                       }
-> +                       free(config->upperdir);
-> +                       config->upperdir = ovl_match_dump(p, OPT_UPPERDIR);
->                 } else if (!strncmp(p, OPT_LOWERDIR, strlen(OPT_LOWERDIR))) {
-> -                       len = strlen(p) - strlen(OPT_LOWERDIR) + 1;
-> -                       entry->lowers = smalloc(len);
-> -                       strncpy(entry->lowers, p+strlen(OPT_LOWERDIR), len);
-> -
-> -                       if ((ret = ovl_resolve_lowerdirs(entry->lowers,
-> -                                       &entry->lowerdir, &entry->lowernum)))
-> -                               goto errout;
-> -
-> +                       free(config->lowerdir);
-> +                       config->lowerdir = ovl_match_dump(p, OPT_LOWERDIR);
->                 } else if (!strncmp(p, OPT_WORKDIR, strlen(OPT_WORKDIR))) {
-> -                       len = strlen(p) - strlen(OPT_WORKDIR) + 1;
-> -                       strncpy(tmp, p+strlen(OPT_WORKDIR), len);
-> -
-> -                       if (!realpath(tmp, entry->workdir)) {
-> -                               print_err(_("Faile to resolve path:%s:%s\n"),
-> -                                           tmp, strerror(errno));
-> -                               ret = -1;
-> -                               goto errout;
-> -                       }
-> +                       free(config->workdir);
-> +                       config->workdir = ovl_match_dump(p, OPT_WORKDIR);
->                 }
->         }
-> -
-> -errout:
-> -       if (entry->lowernum) {
-> -               for (i = 0; i < entry->lowernum; i++)
-> -                       free(entry->lowerdir[i]);
-> -               free(entry->lowerdir);
-> -               entry->lowerdir = NULL;
-> -               entry->lowernum = 0;
-> -       }
-> -       free(entry->lowers);
-> -       entry->lowers = NULL;
-> -
-> -       return ret;
->  }
->
->  /* Scan current mounted overlayfs and get used underlying directories */
->  static int ovl_scan_mount_init(struct ovl_mnt_entry **ovl_mnt_entries,
->                                int *ovl_mnt_count)
->  {
-> -       struct ovl_mnt_entry *mnt_entries;
-> -       struct mntent *mnt;
-> +       struct ovl_mnt_entry *entries = NULL;
-> +       struct mntent *mnt = NULL;
-> +       struct ovl_config config = {0};
->         FILE *fp;
->         char *opt;
-> -       int allocated, num = 0;
-> +       int allocated, i = 0;
->
->         fp = setmntent(MOUNT_TAB, "r");
->         if (!fp) {
-> @@ -227,32 +248,32 @@ static int ovl_scan_mount_init(struct ovl_mnt_entry **ovl_mnt_entries,
->                 return -1;
->         }
->
-> -       allocated = ALLOC_NUM;
-> -       mnt_entries = smalloc(sizeof(struct ovl_mnt_entry) * allocated);
-> +       allocated = sizeof(struct ovl_mnt_entry) * ALLOC_NUM;
-> +       entries = smalloc(allocated);
->
->         while ((mnt = getmntent(fp))) {
-> -               if (!strcmp(mnt->mnt_type, OVERLAY_NAME) ||
-> -                   !strcmp(mnt->mnt_type, OVERLAY_NAME_OLD)) {
-> +               if (strcmp(mnt->mnt_type, OVERLAY_NAME))
-> +                       continue;
->
-> -                       opt = sstrdup(mnt->mnt_opts);
-> -                       if (ovl_parse_opt(opt, &mnt_entries[num])) {
-> -                               free(opt);
-> -                               continue;
-> -                       }
-> +               opt = sstrdup(mnt->mnt_opts);
-> +               ovl_parse_opt(opt, &config);
->
-> -                       num++;
-> -                       if (num % ALLOC_NUM == 0) {
-> -                               allocated += ALLOC_NUM;
-> -                               mnt_entries = srealloc(mnt_entries,
-> -                                    sizeof(struct ovl_mnt_entry) * allocated);
-> +               if (!ovl_get_dirs(&config,
-> +                                &entries[i].lowerdir, &entries[i].lowernum,
-> +                                &entries[i].upperdir, &entries[i].workdir)) {
-> +                       i++;
-> +                       if (i % ALLOC_NUM == 0) {
-> +                               allocated += sizeof(struct ovl_mnt_entry) * ALLOC_NUM;
-> +                               entries = srealloc(entries, allocated);
+>                 /* Check and fix whiteout or opaque dir */
+> -               path_pack(redirect_rpath, sizeof(redirect_rpath),
+> -                         sctx->dirname, redirect);
+> -               if (lstat(redirect_rpath, &rst) != 0) {
+> +               cover_path = path_pack(cover_path, 0, sctx->dirname, redirect);
+> +               if (lstat(cover_path, &rst) != 0) {
+>                         if (errno != ENOENT && errno != ENOTDIR) {
+>                                 print_err(_("Cannot stat %s: %s\n"),
+> -                                           redirect_rpath, strerror(errno));
+> +                                           cover_path, strerror(errno));
+>                                 goto out;
 >                         }
-> -
-> -                       free(opt);
+>
+>                         /* Found nothing, create a whiteout */
+> -                       if ((ret = ovl_create_whiteout(redirect_rpath)))
+> +                       if ((ret = ovl_create_whiteout(cover_path)))
+>                                 goto out;
+>
+>                         sctx->t_whiteouts++;
+>
+> -               } else if (is_dir(&rst) && !ovl_is_opaque(redirect_rpath)) {
+> -                       /* Found a directory but not opaqued, fix opaque xattr */
+> -                       if ((ret = ovl_set_opaque(redirect_rpath)))
+> -                               goto out;
+> +               } else if (is_dir(&rst) && !ovl_is_opaque(cover_path) &&
+> +                          !ovl_is_redirect(cover_path)) {
+> +
+> +                       /*
+> +                        * Found a directory but not opaqued and not even
+> +                        * an another redirected directory, maybe created
+> +                        * when overlayfs is offline, ask user to add the
+> +                        * opaque xattr if this is not a merged dir.
+> +                        */
+> +                       if (!ovl_ask_question("Is merged dir", cover_path, 1))
+
+I am not sure what user will understand from this question,
+but maybe I don't see the full flow of info/questions in my mind.
+Anyway, if I am not mistaken, you seem to hold the opinion that
+default behavior if user says (-y := fix it I don't care how) should be
+to set the opaque xattr. If you agree, then you should ask:
+    if (ovl_ask_question("Should set opaque dir", cover_path, 1))
+
+
+> +                               if ((ret = ovl_set_opaque(cover_path)))
+> +                                       goto out;
 >                 }
+>
+>                 goto out;
+> @@ -402,13 +434,25 @@ remove:
+>         sctx->i_redirects++;
+>
+>         /* Remove redirect xattr or ask user */
+> -       if (!ovl_ask_invalid("Invalid redirect xattr", pathname, 1))
+> +       if (!ovl_ask_action("Invalid redirect xattr", pathname, "Remove", 1))
+>                 goto out;
+>  remove_d:
+> -       ret = ovl_remove_redirect(pathname);
+> -       if (!ret)
+> -               sctx->i_redirects--;
+> +       if ((ret = ovl_remove_redirect(pathname)))
+> +               goto out;
 > +
-> +               ovl_free_opt(&config);
-> +               free(opt);
->         }
->
-> -       *ovl_mnt_entries = mnt_entries;
-> -       *ovl_mnt_count = num;
-> +       *ovl_mnt_entries = entries;
-> +       *ovl_mnt_count = i;
->
->         endmntent(fp);
->         return 0;
-> @@ -267,7 +288,8 @@ static void ovl_scan_mount_exit(struct ovl_mnt_entry *ovl_mnt_entries,
->                 for (j = 0; j < ovl_mnt_entries[i].lowernum; j++)
->                         free(ovl_mnt_entries[i].lowerdir[j]);
->                 free(ovl_mnt_entries[i].lowerdir);
-> -               free(ovl_mnt_entries[i].lowers);
-> +               free(ovl_mnt_entries[i].upperdir);
-> +               free(ovl_mnt_entries[i].workdir);
->         }
->         free(ovl_mnt_entries);
+> +       sctx->i_redirects--;
+> +
+> +       /* If lower directory exist, ask user to add opaque xattr to cover it */
+> +       if (start < lower_num) {
+> +               if ((ret = ovl_check_lower(path_pick(pathname, sctx->dirlen),
+> +                                          start, &chk, false)))
+> +                       goto out;
+> +               if (chk.exist && is_dir(&chk.st) &&
+> +                   !ovl_ask_question("Is merged dir", pathname, 1))
+> +                       ret = ovl_set_opaque(pathname);
+
+Same here. Better that fsck -y will set opaque right?
+So flip the question to "Should set opaque dir"
+
+> +       }
+>  out:
+> +       free(cover_path);
+>         free(redirect);
+>         return ret;
 >  }
-> @@ -279,6 +301,8 @@ static void ovl_scan_mount_exit(struct ovl_mnt_entry *ovl_mnt_entries,
->   *
->   * Note: fsck may modify lower layers, so even match only one directory
->   *       is triggered as mounted.
-> + * FIXME: We cannot distinguish mounted directories if overlayfs was
-> + *        mounted use relative path, so there may have misjudgment.
->   */
->  int ovl_check_mount(bool *mounted)
->  {
-> diff --git a/mount.h b/mount.h
-> index 7eed0d0..2cf5e6a 100644
-> --- a/mount.h
-> +++ b/mount.h
-> @@ -19,8 +19,16 @@
->  #ifndef OVL_MOUNT_H
->  #define OVL_MOUNT_H
->
-> -int ovl_resolve_lowerdirs(char *loweropt, char ***lowerdir,
-> -                          int *lowernum);
-> +struct ovl_config {
-> +       char *lowerdir;
-> +       char *upperdir;
-> +       char *workdir;
-> +};
-> +
-> +void ovl_parse_opt(char *opt, struct ovl_config *config);
-> +void ovl_free_opt(struct ovl_config *config);
-> +int ovl_get_dirs(struct ovl_config *config, char ***lowerdir,
-> +                int *lowernum, char **upperdir, char **workdir);
->  int ovl_check_mount(bool *mounted);
->
->  #endif /* OVL_MOUNT_H */
 > --
 > 2.9.5
 >
