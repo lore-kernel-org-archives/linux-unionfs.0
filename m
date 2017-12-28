@@ -1,179 +1,248 @@
 From: "zhangyi (F)" <yi.zhang@huawei.com>
-Subject: [PATCH v3 2/6] fsck.overlay: add -n -p and -y options
-Date: Thu, 28 Dec 2017 19:40:19 +0800
-Message-ID: <20171228114023.43999-3-yi.zhang@huawei.com>
+Subject: [PATCH v3 4/6] fsck.overlay: correct redirect xattr check
+Date: Thu, 28 Dec 2017 19:40:21 +0800
+Message-ID: <20171228114023.43999-5-yi.zhang@huawei.com>
 References: <20171228114023.43999-1-yi.zhang@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from szxga07-in.huawei.com ([45.249.212.35]:44789 "EHLO huawei.com"
-        rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1752921AbdL1LdP (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 28 Dec 2017 06:33:15 -0500
+Return-path: <fstests-owner@vger.kernel.org>
 In-Reply-To: <20171228114023.43999-1-yi.zhang@huawei.com>
-Sender: linux-unionfs-owner@vger.kernel.org
-List-Id: linux-unionfs@vger.kernel.org
+Sender: fstests-owner@vger.kernel.org
 To: linux-unionfs@vger.kernel.org, fstests@vger.kernel.org
 Cc: miklos@szeredi.hu, amir73il@gmail.com, eguan@redhat.com, yi.zhang@huawei.com, miaoxie@huawei.com, yangerkun@huawei.com
+List-Id: linux-unionfs@vger.kernel.org
 
-Add -n -p and -y options to make it official as fsck utilities.
+When we found a valid redirect xattr and the lower origin targed was
+covered by a directory, it could be 1) an another redirect directory,
+or 2) an opaque directory created after rename in overlayfs or 3) a
+general directory created in the underlying directory when overlay is
+offline. Currently, we only handled case 2, this patch cover the other
+two cases.
 
--p, automatic repair (no questions)
--n, make no changes to the filesystem
--y, assume "yes" to all questions
+This patch ask user if we find a covering directory whitout opaque
+and another redirect xattr.
 
 Signed-off-by: zhangyi (F) <yi.zhang@huawei.com>
 ---
- README.md |  6 ++++--
- fsck.c    | 36 ++++++++++++++++++++++++++++++------
- lib.c     |  3 ++-
- lib.h     |  6 +++++-
- 4 files changed, 41 insertions(+), 10 deletions(-)
+ README.md | 31 ++++++++++++++-------
+ check.c   | 94 ++++++++++++++++++++++++++++++++++++++++++++++-----------------
+ 2 files changed, 90 insertions(+), 35 deletions(-)
 
 diff --git a/README.md b/README.md
-index c2acb65..458a815 100644
+index a8d0b1c..2e6146f 100644
 --- a/README.md
 +++ b/README.md
-@@ -44,14 +44,16 @@ Usage
+@@ -25,16 +25,27 @@ If an redirect directory is found, the following must be met:
  
- 2. Run fsck.overlay program:
-    Usage:
--   fsck.overlay [-l lowerdir] [-u upperdir] [-w workdir] [-avhV]
-+   fsck.overlay [-l lowerdir] [-u upperdir] [-w workdir] [-pnyvhV]
+ 1) The directory path pointed by redirect xattr should exist in one of lower
+    layers.
+-2) The origin directory should be redirected only once in one layer, which means
+-   there is only one redirect xattr point to this origin directory in the
+-   specified layer.
+-3) A whiteout or an opaque directory with the same name to origin should exist
+-   in the same directory as the redirect directory.
+-
+-If not, 1) The redirect xattr is invalid and need to remove 2) One of the
+-redirect xattr is redundant but not sure which one is, ask user or warn in
+-auto mode 3) Create a whiteout device or set opaque xattr to an existing
+-directory if the parent directory was meregd or remove xattr if not.
++2) The origin directory should be redirected only once in one layer, which
++   means there is only one redirect xattr point to this origin directory in
++   the specified layer.
++3) There must be something with the same name to the rename origin in its
++   origin place, maybe a whiteout/file or a(an) opaque/redirect directory
++   covering the lower target, maybe a new created directory merging with
++   lower origin directory.
++
++If not,
++1) The redirect xattr is invalid and need to remove.
++2) One of the redirect xattr is redundant but not sure which one is, ask user
++   or warn in auto mode.
++3) Create a whiteout device if there nothing exists in its place. If the lower
++   targed was covered by a directory which is not an another redirect directory,
++   it could be created after rename in overlayfs or created in underlying
++   directory when overlay is offline, not sure this directory is merged or not,
++   ask user by default.
++
++If an invalid redirect xattr was removed by fsck and there is a corresponding
++lower directory with the same name exists, not sure this directory is merged
++or not, ask user to make a decision.
  
-    Options:
-    -l, --lowerdir=LOWERDIR   specify lower directories of overlayfs,
-                              multiple lower use ':' as separator.
-    -u, --upperdir=UPPERDIR   specify upper directory of overlayfs
-    -w, --workdir=WORKDIR     specify work directory of overlayfs
--   -a, --auto                repair automatically (no questions)
-+   -p,                       automatic repair (no questions)
-+   -n,                       make no changes to the filesystem
-+   -y,                       assume "yes" to all questions
-    -v, --verbose             print more messages of overlayfs
-    -h, --help                display this usage of overlayfs
-    -V, --version             display version information
-diff --git a/fsck.c b/fsck.c
-index d4e861a..44211f7 100644
---- a/fsck.c
-+++ b/fsck.c
-@@ -62,13 +62,15 @@ static void ovl_clean_lowerdirs(void)
- static void usage(void)
+ Usage
+ =====
+diff --git a/check.c b/check.c
+index 0b5d49b..6db41cd 100644
+--- a/check.c
++++ b/check.c
+@@ -152,12 +152,29 @@ static inline int ovl_create_whiteout(const char *pathname)
+ 	return ret;
+ }
+ 
+-static inline int ovl_ask_invalid(const char *question, const char *pathname,
+-				  int action)
++static inline bool ovl_is_redirect(const char *pathname)
++{
++       bool exist = false;
++       ssize_t ret;
++
++       ret = get_xattr(pathname, OVL_REDIRECT_XATTR, NULL, &exist);
++       return ret ? false : exist;
++}
++
++static inline int ovl_ask_action(const char *description, const char *pathname,
++				 const char *question, int action)
++{
++	print_info(_("%s: %s "), description, pathname);
++
++	return ask_question(question, action);
++}
++
++static inline int ovl_ask_question(const char *question, const char *pathname,
++				   int action)
  {
- 	print_info(_("Usage:\n\t%s [-l lowerdir] [-u upperdir] [-w workdir] "
--		    "[-avhV]\n\n"), program_name);
-+		    "[-pnyvhV]\n\n"), program_name);
- 	print_info(_("Options:\n"
- 		    "-l, --lowerdir=LOWERDIR   specify lower directories of overlayfs,\n"
- 		    "                          multiple lower use ':' as separator\n"
- 		    "-u, --upperdir=UPPERDIR   specify upper directory of overlayfs\n"
- 		    "-w, --workdir=WORKDIR     specify work directory of overlayfs\n"
--		    "-a, --auto                repair automatically (no questions)\n"
-+		    "-p,                       automatic repair (no questions)\n"
-+		    "-n,                       make no changes to the filesystem\n"
-+		    "-y,                       assume \"yes\" to all questions\n"
- 		    "-v, --verbose             print more messages of overlayfs\n"
- 		    "-h, --help                display this usage of overlayfs\n"
- 		    "-V, --version             display version information\n"));
-@@ -81,19 +83,19 @@ static void parse_options(int argc, char *argv[])
- 	int c;
+ 	print_info(_("%s: %s "), question, pathname);
+ 
+-	return ask_question("Remove", action);
++	return ask_question("", action);
+ }
+ 
+ /*
+@@ -233,7 +250,7 @@ remove:
+ 	sctx->i_whiteouts++;
+ 
+ 	/* Remove orphan whiteout directly or ask user */
+-	if (!ovl_ask_invalid("Orphan whiteout", pathname, 1))
++	if (!ovl_ask_action("Orphan whiteout", pathname, "Remove", 1))
+ 		return 0;
+ 
+ 	ret = unlink(pathname);
+@@ -323,15 +340,21 @@ static void ovl_redirect_free(void)
+  * 2) Count how many directories the origin directory was redirected by.
+  *    If more than one in the same layer, there must be some inconsistency
+  *    but not sure which one is invalid, ask user or warn in auto mode.
+- * 3) Check and fix the missing whiteout or opaque in redierct parent dir.
++ * 3) Check and fix the missing whiteout that covering the redirect lower
++ *    target. If the lower targed was covered by a directory which is not
++ *    an another redirect directory, it could be created after rename in
++ *    overlayfs or created in underlying directory when overlay is offline,
++ *    check opaque xattr and ask user by default.
++ * 4) When an invalid redirect xattr is removed, and the lower layers have
++ *    directory with same name, not sure this is a merged directory, ask
++ *    user by default.
+  */
+ static int ovl_check_redirect(struct scan_ctx *sctx)
+ {
+ 	const char *pathname = sctx->pathname;
+ 	struct ovl_lower_check chk = {0};
+-	char redirect_rpath[PATH_MAX];
+ 	struct stat rst;
+-	char *redirect = NULL;
++	char *redirect = NULL, *cover_path = NULL;
+ 	int start;
  	int ret = 0;
- 	bool show_usage = false;
-+	bool opt_conflict = false;
  
- 	struct option long_options[] = {
- 		{"lowerdir", required_argument, NULL, 'l'},
- 		{"upperdir", required_argument, NULL, 'u'},
- 		{"workdir", required_argument, NULL, 'w'},
--		{"auto", no_argument, NULL, 'a'},
- 		{"verbose", no_argument, NULL, 'v'},
- 		{"version", no_argument, NULL, 'V'},
- 		{"help", no_argument, NULL, 'h'},
- 		{NULL, 0, NULL, 0}
- 	};
+@@ -345,8 +368,10 @@ static int ovl_check_redirect(struct scan_ctx *sctx)
+ 	sctx->t_redirects++;
  
--	while ((c = getopt_long(argc, argv, "l:u:w:avVh", long_options, NULL)) != -1) {
-+	while ((c = getopt_long(argc, argv, "l:u:w:apnyvVh", long_options, NULL)) != -1) {
- 		switch (c) {
- 		case 'l':
- 			lowertemp = strdup(optarg);
-@@ -119,7 +121,23 @@ static void parse_options(int argc, char *argv[])
- 			}
- 			break;
- 		case 'a':
--			flags |= FL_AUTO;
-+		case 'p':
-+			if (flags & (FL_OPT_YES | FL_OPT_NO))
-+				opt_conflict = true;
-+			else
-+				flags |= FL_OPT_AUTO;
-+			break;
-+		case 'n':
-+			if (flags & (FL_OPT_YES | FL_OPT_AUTO))
-+				opt_conflict = true;
-+			else
-+				flags |= FL_OPT_NO;
-+			break;
-+		case 'y':
-+			if (flags & (FL_OPT_NO | FL_OPT_AUTO))
-+				opt_conflict = true;
-+			else
-+				flags |= FL_OPT_YES;
- 			break;
- 		case 'v':
- 			flags |= FL_VERBOSE;
-@@ -143,6 +161,12 @@ static void parse_options(int argc, char *argv[])
- 		goto err_out;
- 	}
- 
-+	if (opt_conflict) {
-+		print_info(_("Only one of the options -p/-a, -n or -y can be specified!\n\n"));
-+		show_usage = true;
-+		goto err_out;
+ 	/* Redirect dir in last lower dir ? */
+-	if (sctx->dirtype == OVL_LOWER && sctx->num == lower_num-1)
++	if (sctx->dirtype == OVL_LOWER && sctx->num == lower_num-1) {
++		start = lower_num;
+ 		goto remove;
 +	}
-+
- 	return;
  
- err_out:
-@@ -177,7 +201,7 @@ int main(int argc, char *argv[])
- 	/* Ensure overlay filesystem not mounted */
- 	if ((err = ovl_check_mount(&mounted)))
- 		goto out;
--	if (mounted) {
-+	if (mounted && !(flags & FL_OPT_NO)) {
- 		set_st_abort(&status);
- 		goto out;
- 	}
-diff --git a/lib.c b/lib.c
-index 271cafd..497d357 100644
---- a/lib.c
-+++ b/lib.c
-@@ -59,7 +59,8 @@ static int ask_yn(const char *question, int def)
- /* Ask user */
- int ask_question(const char *question, int def)
- {
--	if (flags & FL_AUTO) {
-+	if (flags & FL_OPT_MASK) {
-+		def = (flags & FL_OPT_YES) ? 1 : (flags & FL_OPT_NO) ? 0 : def;
- 		print_info(_("%s? %s\n"), question, def ? _("y") : _("n"));
- 		return def;
- 	}
-diff --git a/lib.h b/lib.h
-index 235719c..5d94836 100644
---- a/lib.h
-+++ b/lib.h
-@@ -37,7 +37,11 @@
- #define FL_VERBOSE	(1 << 0)	/* verbose */
- #define FL_UPPER	(1 << 1)	/* specify upper directory */
- #define FL_WORK		(1 << 2)	/* specify work directory */
--#define FL_AUTO		(1 << 3)	/* automactically scan dirs and repair */
-+#define FL_OPT_AUTO	(1 << 3)	/* automactically scan dirs and repair */
-+#define FL_OPT_NO	(1 << 4)	/* no changes to the filesystem */
-+#define FL_OPT_YES	(1 << 5)	/* yes to all questions */
-+#define FL_OPT_MASK	(FL_OPT_AUTO|FL_OPT_NO|FL_OPT_YES)
-+
+ 	/* Scan lower directories to check redirect dir exist or not */
+ 	start = (sctx->dirtype == OVL_LOWER) ? sctx->num + 1 : 0;
+@@ -359,14 +384,14 @@ static int ovl_check_redirect(struct scan_ctx *sctx)
+ 		/* Check duplicate in same layer */
+ 		if (ovl_redirect_entry_find(chk.path, sctx->dirtype,
+ 					    sctx->num, &tmp)) {
+-			print_info("Duplicate redirect directories found:\n");
+-			print_info("origin:%s current:%s last:%s\n",
+-				   chk.path, pathname, tmp);
++			print_info("Duplicate redirect directory found:%s\n", pathname);
++			print_info("Origin:%s Previous:%s\n", chk.path, tmp);
  
- /* Scan path type */
- #define OVL_UPPER	0
+ 			sctx->i_redirects++;
+ 
+ 			/* Don't remove in auto mode */
+-			if (ovl_ask_invalid("Duplicate redirect xattr", pathname, 0))
++			if (ovl_ask_action("Duplicate redirect xattr", pathname,
++					   "Remove", 0))
+ 				goto remove_d;
+ 		}
+ 
+@@ -374,25 +399,32 @@ static int ovl_check_redirect(struct scan_ctx *sctx)
+ 				       sctx->num, chk.path);
+ 
+ 		/* Check and fix whiteout or opaque dir */
+-		path_pack(redirect_rpath, sizeof(redirect_rpath),
+-			  sctx->dirname, redirect);
+-		if (lstat(redirect_rpath, &rst) != 0) {
++		cover_path = path_pack(cover_path, 0, sctx->dirname, redirect);
++		if (lstat(cover_path, &rst) != 0) {
+ 			if (errno != ENOENT && errno != ENOTDIR) {
+ 				print_err(_("Cannot stat %s: %s\n"),
+-					    redirect_rpath, strerror(errno));
++					    cover_path, strerror(errno));
+ 				goto out;
+ 			}
+ 
+ 			/* Found nothing, create a whiteout */
+-			if ((ret = ovl_create_whiteout(redirect_rpath)))
++			if ((ret = ovl_create_whiteout(cover_path)))
+ 				goto out;
+ 
+ 			sctx->t_whiteouts++;
+ 
+-		} else if (is_dir(&rst) && !ovl_is_opaque(redirect_rpath)) {
+-			/* Found a directory but not opaqued, fix opaque xattr */
+-			if ((ret = ovl_set_opaque(redirect_rpath)))
+-				goto out;
++		} else if (is_dir(&rst) && !ovl_is_opaque(cover_path) &&
++			   !ovl_is_redirect(cover_path)) {
++
++			/*
++			 * Found a directory but not opaqued and not even
++			 * an another redirected directory, maybe created
++			 * when overlayfs is offline, ask user to add the
++			 * opaque xattr if this is not a merged dir.
++			 */
++			if (!ovl_ask_question("Is merged dir", cover_path, 1))
++				if ((ret = ovl_set_opaque(cover_path)))
++					goto out;
+ 		}
+ 
+ 		goto out;
+@@ -402,13 +434,25 @@ remove:
+ 	sctx->i_redirects++;
+ 
+ 	/* Remove redirect xattr or ask user */
+-	if (!ovl_ask_invalid("Invalid redirect xattr", pathname, 1))
++	if (!ovl_ask_action("Invalid redirect xattr", pathname, "Remove", 1))
+ 		goto out;
+ remove_d:
+-	ret = ovl_remove_redirect(pathname);
+-	if (!ret)
+-		sctx->i_redirects--;
++	if ((ret = ovl_remove_redirect(pathname)))
++		goto out;
++
++	sctx->i_redirects--;
++
++	/* If lower directory exist, ask user to add opaque xattr to cover it */
++	if (start < lower_num) {
++		if ((ret = ovl_check_lower(path_pick(pathname, sctx->dirlen),
++					   start, &chk, false)))
++			goto out;
++		if (chk.exist && is_dir(&chk.st) &&
++		    !ovl_ask_question("Is merged dir", pathname, 1))
++			ret = ovl_set_opaque(pathname);
++	}
+ out:
++	free(cover_path);
+ 	free(redirect);
+ 	return ret;
+ }
 -- 
 2.9.5
