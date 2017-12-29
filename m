@@ -1,88 +1,83 @@
-From: "zhangyi (F)" <yi.zhang@huawei.com>
-Subject: Re: [PATCH v3 6/6] fsck.overlay: add impure xattr check
-Date: Fri, 29 Dec 2017 15:39:14 +0800
-Message-ID: <486b6a97-3b54-8a03-cbe5-bd43e277524e@huawei.com>
-References: <20171228114023.43999-1-yi.zhang@huawei.com>
- <20171228114023.43999-7-yi.zhang@huawei.com>
- <CAOQ4uxjran64YjBvT4mWDsQgDZi+_NnommX2OTP-W1FdVJh75Q@mail.gmail.com>
- <5d420519-f19f-3bc9-eef1-74233c1650d1@huawei.com>
- <CAOQ4uxgPMCfVDPvST43Sd755p=Pohk=nCbMTOG=v_1khd96BvA@mail.gmail.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Subject: Re: [PATCH v3 1/6] overlay: implement fsck utility
+Date: Fri, 29 Dec 2017 11:20:09 +0200
+Message-ID: <CAOQ4uxhh5XV7Uu6J+Xdzs8JcgJ5=-T=tGAKXvaJ=vx9SdUJ3eA@mail.gmail.com>
+References: <20171228114023.43999-1-yi.zhang@huawei.com> <20171228114023.43999-2-yi.zhang@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from szxga07-in.huawei.com ([45.249.212.35]:38952 "EHLO huawei.com"
-        rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1751356AbdL2HkL (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 29 Dec 2017 02:40:11 -0500
-In-Reply-To: <CAOQ4uxgPMCfVDPvST43Sd755p=Pohk=nCbMTOG=v_1khd96BvA@mail.gmail.com>
-Sender: linux-unionfs-owner@vger.kernel.org
-List-Id: linux-unionfs@vger.kernel.org
-To: Amir Goldstein <amir73il@gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <fstests-owner@vger.kernel.org>
+In-Reply-To: <20171228114023.43999-2-yi.zhang@huawei.com>
+Sender: fstests-owner@vger.kernel.org
+To: "zhangyi (F)" <yi.zhang@huawei.com>
 Cc: overlayfs <linux-unionfs@vger.kernel.org>, fstests <fstests@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>, Eryu Guan <eguan@redhat.com>, Miao Xie <miaoxie@huawei.com>, yangerkun@huawei.com
+List-Id: linux-unionfs@vger.kernel.org
 
-On 2017/12/29 15:03, Amir Goldstein Wrote:
-> On Fri, Dec 29, 2017 at 4:21 AM, zhangyi (F) <yi.zhang@huawei.com> wrote:
->> On 2017/12/28 21:18, Amir Goldstein Wrote:
->>> On Thu, Dec 28, 2017 at 1:40 PM, zhangyi (F) <yi.zhang@huawei.com> wrote:
->>>> An impure directory is a directory with "trusted.overlay.impure" xattr
->>>> valued 'y', which indicate that this directory may contain copy-uped
->>>> targets from lower layers. In oredr to prevent 'd_ino' change while
->>>> copy-up (it create a new inode in upper layer) in getdents(2), impure
->>>> xattr will be set in the parent directory, letting overlay filesystem
->>>> check and get d_ino from lower origin target to ensure consistent d_ino.
->>>>
->>>> There are three situations of setting impure xattr:
->>>> 1) Copyup lower target in a directory.
->>>> 2) Link an origined target (already copy-uped, have origin xattr) into
->>>>    a directory.
->>>> 3) Rename an origined target (include merged subdirectories) into a
->>>>    new directory.
->>>>
->>>> So, if a direcotry which contains several origined targets or redirect
->>>> directories, the impure xattr should be set. If not, fix this xattr.
->>>>
->>>> Signed-off-by: zhangyi (F) <yi.zhang@huawei.com>
->>>> ---
-> [...]
->>>>                 case FTS_DEFAULT:
->>>>                         /* Check whiteouts */
->>>> -                       err = __check_entry(sctx, sop->whiteout);
->>>> -                       ret = (err) ? err : ret;
->>>> +                       ret = scan_check_entry(sop->whiteout, sctx);
->>>> +                       if (ret)
->>>> +                               goto out;
->>>> +
->>>> +                       /* Check origin */
->>>> +                       ret = scan_check_entry(sop->origin, sctx);
->>>> +                       if (ret)
->>>> +                               goto out;
->>>
->>> All the re-factoring of scan helpers and this additional origin check
->>> do not seem relevant to this change's subject (impure dir check).
->>>
->> Current origin check function only count origin targets in a directory
->> (this function can used for future check). Impure dir check use this
->> counts to distinguish this directory is impure or not, so this origin
->> check is necessary in this patch.
->>
-> 
-> I see. Anyway, the cleaner the patch is, the easier it is to review it.
-> A re-factoring patch that does not change behavior and declares this
-> in commit message is easy to verify in review and a logic change
-> patch that declares the logical change in commit message is easy to
-> review. Mixing them both in a single patch without being able to declare
-> that this is only a logical change not that this is only re-factoring makes
-> reviewing harder.
-> 
-> This is generally speaking. This patch was easy enough to review
-> anyway, but other reviewers may not feel the same way.
-> 
+On Thu, Dec 28, 2017 at 1:40 PM, zhangyi (F) <yi.zhang@huawei.com> wrote:
+> fsck.overlay
+> ============
+>
+> fsck.overlay is used to check and optionally repair underlying
+> directories of overlay-filesystem.
+>
+> Check the following points:
+>
+> Whiteouts
+> ---------
+>
+> A whiteout is a character device with 0/0 device number. It is used to
+> record the removed files or directories, When a whiteout is found in a
+> directory, there should be at least one directory or file with the
+> same name in any of the corresponding lower layers. If not exist, the
+> whiteout will be treated as orphan whiteout and remove.
+>
+> Redirect directories
+> --------------------
+>
+> An redirect directory is a directory with "trusted.overlay.redirect"
+> xattr valued to the path of the original location from the root of
+> the overlay. It is only used when renaming a directory and "redirect
+> dir" feature is enabled.
+> If an redirect directory is found, the following must be met:
+>
+> 1) The directory path pointed by redirect xattr should exist in one of
+>    lower layers.
+> 2) The origin directory should be redirected only once in one layer,
 
-Thanks for your advice, I can make it more clear and readable for the next posting.
+"in one layer" - how about:
+mkdir lower2/origin
+make_redirect lower/test1 origin
+make_redirect upper/test2 origin
 
-Thanks,
-Yi.
-> 
-> .
-> 
+Two redirects to the same lower(2) dir from two different layers
+
+Zhangyi,
+
+This patch is a little big for me to review properly, so you have a few options:
+1. break it up to reviewable chunks, starting with minimal skeleton and adding
+functionality slowly in chewable chunks
+2. wait for other reviewers to review it as is
+3. push the code to your repository and announce 0.1-alpha without Reviewed-by
+approval and get the approval on the tool from testers and users
+
+I do have one high level comments about the path string parsing/manipulation
+code - I think it would be better if you could use an existing library for that.
+I cannot recommend any, but I assume that there are options. At the very leasy
+you could maybe use the dirname(3)/basename(3) libgen functions.
+Even if you do end up implementing all path manipulation helpers, please keep
+them well separated and with well defined API, so that they could be split to
+a library down the road.
+
+Also, I see that you still use lstat() and not  fstatat() relative to
+fd of root layer.
+Is that because of the file descriptor limit problem? another reason?
+I am returning to that point because it seem to me that fsck.overlay shouldn't
+be bothered by the symlinks or whatnot that are parents of the layers root.
+Overlayfs isn't bothered with those. Layer lookup always starts from layer root.
+FWIW, I don't think that requiring more resources than usual (file descriptors)
+is too much to ask when running fsck.overlay of many layers - only it need to
+be documented.
+For comparison, e2fsck takes a LOT of resources when there are lots of
+hardlinks, just not file descriptors.
+
+Cheers,
+Amir.
