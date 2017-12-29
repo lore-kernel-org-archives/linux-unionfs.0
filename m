@@ -1,129 +1,333 @@
 From: "zhangyi (F)" <yi.zhang@huawei.com>
-Subject: Re: [PATCH xfstest v2 3/4] overlay: add fsck.overlay redirect
- directory test
-Date: Fri, 29 Dec 2017 09:49:30 +0800
-Message-ID: <b31b47ee-4edc-88ea-b7df-e308f396318d@huawei.com>
-References: <20171228114933.47759-1-yi.zhang@huawei.com>
- <20171228114933.47759-4-yi.zhang@huawei.com>
- <CAOQ4uxiyAj7+UmFMW7eP+HeeZuH6pWxCLKd5WKtc53b77ZihoQ@mail.gmail.com>
+Subject: Re: [PATCH v3 6/6] fsck.overlay: add impure xattr check
+Date: Fri, 29 Dec 2017 10:21:27 +0800
+Message-ID: <5d420519-f19f-3bc9-eef1-74233c1650d1@huawei.com>
+References: <20171228114023.43999-1-yi.zhang@huawei.com>
+ <20171228114023.43999-7-yi.zhang@huawei.com>
+ <CAOQ4uxjran64YjBvT4mWDsQgDZi+_NnommX2OTP-W1FdVJh75Q@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <fstests-owner@vger.kernel.org>
-In-Reply-To: <CAOQ4uxiyAj7+UmFMW7eP+HeeZuH6pWxCLKd5WKtc53b77ZihoQ@mail.gmail.com>
-Sender: fstests-owner@vger.kernel.org
+Return-path: <linux-unionfs-owner@vger.kernel.org>
+Received: from szxga05-in.huawei.com ([45.249.212.191]:3244 "EHLO huawei.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1751345AbdL2CWf (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Thu, 28 Dec 2017 21:22:35 -0500
+In-Reply-To: <CAOQ4uxjran64YjBvT4mWDsQgDZi+_NnommX2OTP-W1FdVJh75Q@mail.gmail.com>
+Sender: linux-unionfs-owner@vger.kernel.org
+List-Id: linux-unionfs@vger.kernel.org
 To: Amir Goldstein <amir73il@gmail.com>
 Cc: overlayfs <linux-unionfs@vger.kernel.org>, fstests <fstests@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>, Eryu Guan <eguan@redhat.com>, Miao Xie <miaoxie@huawei.com>, yangerkun@huawei.com
-List-Id: linux-unionfs@vger.kernel.org
 
-On 2017/12/28 20:37, Amir Goldstein Wrote:
-> On Thu, Dec 28, 2017 at 1:49 PM, zhangyi (F) <yi.zhang@huawei.com> wrote:
->> Add fsck.overlay test case to test it how to deal with invalid/valid/
->> duplicate redirect xattr in underlying directories of overlayfs.
+On 2017/12/28 21:18, Amir Goldstein Wrote:
+> On Thu, Dec 28, 2017 at 1:40 PM, zhangyi (F) <yi.zhang@huawei.com> wrote:
+>> An impure directory is a directory with "trusted.overlay.impure" xattr
+>> valued 'y', which indicate that this directory may contain copy-uped
+>> targets from lower layers. In oredr to prevent 'd_ino' change while
+>> copy-up (it create a new inode in upper layer) in getdents(2), impure
+>> xattr will be set in the parent directory, letting overlay filesystem
+>> check and get d_ino from lower origin target to ensure consistent d_ino.
+>>
+>> There are three situations of setting impure xattr:
+>> 1) Copyup lower target in a directory.
+>> 2) Link an origined target (already copy-uped, have origin xattr) into
+>>    a directory.
+>> 3) Rename an origined target (include merged subdirectories) into a
+>>    new directory.
+>>
+>> So, if a direcotry which contains several origined targets or redirect
+>> directories, the impure xattr should be set. If not, fix this xattr.
 >>
 >> Signed-off-by: zhangyi (F) <yi.zhang@huawei.com>
+>> ---
+>>  README.md | 22 +++++++++++++++-
+>>  check.c   | 86 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-----
+>>  lib.c     | 63 +++++++++++++++++++++++++++++++++++-----------
+>>  lib.h     | 25 +++++++++++++------
+>>  4 files changed, 168 insertions(+), 28 deletions(-)
+>>
+>> diff --git a/README.md b/README.md
+>> index 2e6146f..cdbd382 100644
+>> --- a/README.md
+>> +++ b/README.md
+>> @@ -47,6 +47,26 @@ If an invalid redirect xattr was removed by fsck and there is a corresponding
+>>  lower directory with the same name exists, not sure this directory is merged
+>>  or not, ask user to make a decision.
+>>
+>> +Impure directories
+>> +------------------
+>> +
+>> +An impure directory is a directory with "trusted.overlay.impure" xattr valued
+>> +'y', which indicate that this directory may contain copy-uped targets from lower
 > 
-> Nice. See suggestions to improve.
+> "copied up"
+> 
+>> +layers. In oredr to prevent 'd_ino' change while copy-up (it create a new
+> 
+> typo: oredr/order
+> 
+>> +inode in upper layer) in getdents (see getdents(2)), impure xattr will be set
+>> +in the parent directory, letting overlay filesystem check and get d_ino from
+>> +lower origin target to ensure consistent d_ino.
+>> +
+> 
+> This paragraph could use a review from a native English speaker (not me)
+> 
+Sorry, my fault, will reorganize this document and fix typo.
 
-Thanks for your suggestions!
-
-[..]
->> +# Check redirect xattr
->> +check_redirect()
+>> +There are three situations of setting impure xattr:
+>> +1) Copyup lower target in a directory.
+> 
+> I guess the only instance of "copyup" in comment in my blame.
+> Either "Copy up" or "Copy-up" would be better and the former is more
+> common in comments and documentations.
+> 
+>> +2) Link an origined target (already copy-uped, have origin xattr) into
+> 
+> "copied up"
+> 
+>> +   a directory.
+>> +3) Rename an origined target (include merged subdirectories) into a
+>> +   new directory.
+>> +
+>> +So, if a direcotry which contains several origined targets or redirect
+>> +directories, the impure xattr should be set. If not, fix this xattr.
+>> +
+>>  Usage
+>>  =====
+>>
+>> @@ -88,6 +108,6 @@ Todo
+>>     mounted with relative path. Should modify kernel together to support.
+>>  2. Check and fix invalid redirect xattr through origin xattr.
+>>  3. Symbolic link check.
+>> -4. Check origin/impure/nlink xattr.
+>> +4. Check origin/nlink xattr.
+>>  5. Check index feature consistency.
+>>  6. ...
+>> diff --git a/check.c b/check.c
+>> index 033d4ba..05293c5 100644
+>> --- a/check.c
+>> +++ b/check.c
+>> @@ -111,9 +111,9 @@ static inline bool ovl_is_opaque(const char *pathname)
+>>         return is_dir_xattr(pathname, OVL_OPAQUE_XATTR);
+>>  }
+>>
+>> -static inline int ovl_remove_opaque(const char *pathname)
+>> +static inline bool ovl_is_impure(const char *pathname)
+>>  {
+>> -       return remove_xattr(pathname, OVL_OPAQUE_XATTR);
+>> +       return is_dir_xattr(pathname, OVL_IMPURE_XATTR);
+>>  }
+>>
+>>  static inline int ovl_set_opaque(const char *pathname)
+>> @@ -121,6 +121,11 @@ static inline int ovl_set_opaque(const char *pathname)
+>>         return set_xattr(pathname, OVL_OPAQUE_XATTR, "y", 1);
+>>  }
+>>
+>> +static inline int ovl_set_impure(const char *pathname)
 >> +{
->> +       local expect=$1
->> +       local target=$2
-> 
-> Suggest to flip target/expect order to match target/value order in
-> make_redirect_dir
-> Then for the tests that expect empty redirect call check_redirect with
-> empty expect,
-> e.g. check_redirect $upperdir/testdir ""
-> of course "" is not strictly needed, but may be more readable
-> Even better use helper check_not_redirect() to do that
-
-I prefer check_not_redirect(), will change it.
-
->> +
->> +       value=$($GETFATTR_PROG --absolute-names --only-values \
->> +               -n $OVL_REDIRECT_XATTR $target)
->> +
->> +       [[ $value == $expect ]] || echo "Redirect xattr incorrect"
+>> +       return set_xattr(pathname, OVL_IMPURE_XATTR, "y", 1);
 >> +}
 >> +
->> +# Check opaque xattr
->> +check_opaque()
+>>  static int ovl_get_redirect(const char *pathname, size_t dirlen,
+>>                             size_t filelen, char **redirect)
+>>  {
+>> @@ -166,11 +171,20 @@ static inline int ovl_create_whiteout(const char *pathname)
+>>
+>>  static inline bool ovl_is_redirect(const char *pathname)
+>>  {
+>> -       bool exist = false;
+>> -       ssize_t ret;
+>> +       bool exist = false;
+>> +       ssize_t ret;
+>> +
+>> +       ret = get_xattr(pathname, OVL_REDIRECT_XATTR, NULL, &exist);
+>> +       return ret ? false : exist;
+>> +}
+>> +
+>> +static inline bool ovl_is_origin(const char *pathname)
 >> +{
->> +       local target=$1
+>> +       bool exist = false;
+>> +       ssize_t ret;
+>>
 > 
-> Here too, I suggest:
->        local expect=${2-$OVL_OPAQUE_XATTR_VAL}
+> That's a strange diff... I guess it is a hint from git diff that you
+> could factor out
+> ovl_is_dir_xattr_exists()
 > 
-> And then tests can either call check_opaque $target "" or add a helper
-> check_not_opaque() to do that
-> 
+This is because I change blank to tab in ovl_is_redirect(), factor out
+ovl_is_dir_xattr_exists() is also fine.
 
-[..]
->> +# Create test directories
->> +lowerdir=$OVL_BASE_SCRATCH_MNT/lower
->> +lowerdir2=$OVL_BASE_SCRATCH_MNT/lower2
->> +upperdir=$OVL_BASE_SCRATCH_MNT/upper
->> +workdir=$OVL_BASE_SCRATCH_MNT/workdir
+>> -       ret = get_xattr(pathname, OVL_REDIRECT_XATTR, NULL, &exist);
+>> -       return ret ? false : exist;
+>> +       ret = get_xattr(pathname, OVL_ORIGIN_XATTR, NULL, &exist);
+>> +       return ret ? false : exist;
+>>  }
+>>
+>>  static inline int ovl_ask_action(const char *description, const char *pathname,
+>> @@ -503,6 +517,7 @@ static void ovl_redirect_free(void)
+>>  static int ovl_check_redirect(struct scan_ctx *sctx)
+>>  {
+>>         const char *pathname = sctx->pathname;
+>> +       struct scan_dir_data *parent_ddata = sctx->ddata;
+>>         struct ovl_lower_data od = {0};
+>>         struct stat cover_st;
+>>         bool cover_exist = false;
+>> @@ -545,6 +560,9 @@ static int ovl_check_redirect(struct scan_ctx *sctx)
+>>                                 goto remove_d;
+>>                 }
+>>
+>> +               /* Now, this redirect xattr is valid */
+>> +               if (parent_ddata)
+>> +                       parent_ddata->redirects++;
+>>                 ovl_redirect_entry_add(pathname, sctx->dirtype,
+>>                                        sctx->num, od.path);
+>>
+>> @@ -603,9 +621,65 @@ out:
+>>         return ret;
+>>  }
+>>
+>> +/*
+>> + * Get origin xattr stored in the target. We cannot check validity for
+>> + * current overlay filesystem, so trust this is valid now.
+>> + */
+>> +static int ovl_check_origin(struct scan_ctx *sctx)
+>> +{
+>> +       const char *pathname = sctx->pathname;
+>> +       struct scan_dir_data *parent_ddata = sctx->ddata;
 >> +
->> +mkdir -p $lowerdir $lowerdir2 $upperdir $workdir $workdir
-> 
-> Again, suggest make_dirs helper with rm -rf before and drop
-> all individual rm -rf after tests.
-> 
-Will change.
-
-[..]
->> +# Test valid redirect xattr with general directory cover lower origin
->> +# target, should ask user this directory is merged or not by default
->> +# and do nothing in auto mode
->> +echo "+ Valid redirect(4)"
->> +mkdir $lowerdir/origin
->> +mkdir $upperdir/origin
->> +make_redirect_dir $upperdir/testdir "origin"
+>> +       if (!ovl_is_origin(pathname))
+>> +               return 0;
+>> +       if (parent_ddata)
+>> +               parent_ddata->origins++;
 >> +
->> +_overlay_fsck_dirs $lowerdir $upperdir $workdir -p >> $seqres.full 2>&1 || \
->> +       _fail "fsck should not fail"
->> +check_redirect "origin" $upperdir/testdir
->> +$GETFATTR_PROG --absolute-names -d -m $OVL_OPAQUE_XATTR $upperdir/testdir
+>> +       return 0;
+>> +}
 >> +
->> +echo "n" > $tmp.input
+>> +/*
+>> + * If a directory has origined target and redirect subdirectories in it,
+>> + * it may contain copy-up targets. In order to avoid 'd_ino' change after
+>> + * lower target copyup or renameed (which will create a new inode),
 > 
-> This approach seems a bit fragile to me.
-> Maybe you will want to add some questions in the future.
-> To me it makes better sense to check behavior of fsck -y is automated test,
-> because some user who does not understand the questions is surely going
-> to run fsck -y to fix problems.
+> typo renameed/renamed
 > 
-Yes, for ordinary users, they are more likely to use -p or -y, this input
-will also increase workload in future, is not really necessary, will remove.
-
->> +_overlay_fsck_dirs $lowerdir $upperdir $workdir <$tmp.input >> $seqres.full 2>&1 || \
->> +       _fail "fsck should not fail"
->> +check_redirect "origin" $upperdir/testdir
->> +check_opaque $upperdir/origin
->> +rm -rf $lowerdir/* $upperdir/*
+>> + * 'impure xattr' will be setted in the parent directory to indicate
+> 
+> "will be set"
+> 
+>> + * overlayfs show origin 'd_ino' when iterate directory.
+>> + *
+>> + * Missing "impure xattr" will cause wrong 'd_ino' in readdir() of impure
+>> + * directory, so check origined or redirected target in a directory and
+>> + * fix "impure xattr" if necessary.
+>> + */
+>> +static int ovl_check_impure(struct scan_ctx *sctx)
+>> +{
+>> +       const char *pathname = sctx->pathname;
+>> +       struct scan_dir_data *cur_ddata = sctx->ddata;
+>> +       int ret = 0;
 >> +
->> +# Test invalid redirect xattr with lower same name directory exists,
->> +# should remove invalid xattr, and ask user directory merge or not
->> +# by default
->> +echo "+ Invalid redirect(3)"
->> +mkdir $lowerdir/testdir
->> +make_redirect_dir $upperdir/testdir "origin"
+>> +       /*
+>> +        * Impure xattr should be set if current directory has redirect
+>> +        * directory or origin targets.
+>> +        */
+>> +       if (!cur_ddata->origins && !cur_ddata->redirects)
+>> +               goto out;
 >> +
->> +echo "y" > $tmp.input
->> +echo "n" >> $tmp.input
+>> +       /* Fix impure xattrs */
+>> +       if (!ovl_is_impure(pathname)) {
+>> +               if (ovl_ask_action("Missing impure xattr",
+>> +                                  pathname, "Fix", 1)) {
+>> +                       ret = ovl_set_impure(pathname);
+>> +                       if (ret)
+>> +                               goto out;
+>> +               }
+>> +       }
+>> +out:
+>> +       return ret;
+>> +}
+>> +
+>>  static struct scan_operations ovl_scan_ops = {
+>>         .whiteout = ovl_check_whiteout,
+>>         .redirect = ovl_check_redirect,
+>> +       .origin = ovl_check_origin,
+>> +       .impure = ovl_check_impure,
+>>  };
+>>
+>>  static void ovl_scan_report(struct scan_ctx *sctx)
+>> diff --git a/lib.c b/lib.c
+>> index 497d357..524246d 100644
+>> --- a/lib.c
+>> +++ b/lib.c
+>> @@ -165,8 +165,17 @@ const char *path_pick(const char *path, int baselen)
+>>         return (*p == '/') ? p+1 : p;
+>>  }
+>>
+>> -static inline int __check_entry(struct scan_ctx *sctx,
+>> -                                 int (*do_check)(struct scan_ctx *))
+>> +static void scan_entry_init(struct scan_ctx *sctx, FTSENT *ftsent)
+>> +{
+>> +       sctx->pathname = ftsent->fts_path;
+>> +       sctx->pathlen = ftsent->fts_pathlen;
+>> +       sctx->filename = ftsent->fts_name;
+>> +       sctx->filelen = ftsent->fts_namelen;
+>> +       sctx->st = ftsent->fts_statp;
+>> +}
+>> +
+>> +static inline int scan_check_entry(int (*do_check)(struct scan_ctx *),
+>> +                                  struct scan_ctx *sctx)
+>>  {
+>>         return do_check ? do_check(sctx) : 0;
+>>  }
+>> @@ -187,8 +196,6 @@ int scan_dir(struct scan_ctx *sctx, struct scan_operations *sop)
+>>         }
+>>
+>>         while ((ftsent = fts_read(ftsp)) != NULL) {
+>> -               int err;
+>> -
+>>                 print_debug(_("Scan:%-3s %2d %7jd   %-40s %s\n"),
+>>                         (ftsent->fts_info == FTS_D) ? "d" :
+>>                         (ftsent->fts_info == FTS_DNR) ? "dnr" :
+>> @@ -202,26 +209,54 @@ int scan_dir(struct scan_ctx *sctx, struct scan_operations *sop)
+>>                         ftsent->fts_path, ftsent->fts_name);
+>>
+>>                 /* Fillup base context */
+>> -               sctx->pathname = ftsent->fts_path;
+>> -               sctx->pathlen = ftsent->fts_pathlen;
+>> -               sctx->filename = ftsent->fts_name;
+>> -               sctx->filelen = ftsent->fts_namelen;
+>> -               sctx->st = ftsent->fts_statp;
+>> +               scan_entry_init(sctx, ftsent);
+>>
+>>                 switch (ftsent->fts_info) {
+>>                 case FTS_F:
+>>                         sctx->files++;
+>> +
+>> +                       /* Check origin */
+>> +                       ret = scan_check_entry(sop->origin, sctx);
+>> +                       if (ret)
+>> +                               goto out;
+>>                         break;
+>>                 case FTS_DEFAULT:
+>>                         /* Check whiteouts */
+>> -                       err = __check_entry(sctx, sop->whiteout);
+>> -                       ret = (err) ? err : ret;
+>> +                       ret = scan_check_entry(sop->whiteout, sctx);
+>> +                       if (ret)
+>> +                               goto out;
+>> +
+>> +                       /* Check origin */
+>> +                       ret = scan_check_entry(sop->origin, sctx);
+>> +                       if (ret)
+>> +                               goto out;
 > 
-> Same here. suggest to validate results of fsck -y.
-> fsck -y to user means: I don't care how fix it, just fix it!
-> If user does not care, fsck can have its own arbitrary selections,
-> but they should be consistent, so we can test them.
+> All the re-factoring of scan helpers and this additional origin check
+> do not seem relevant to this change's subject (impure dir check).
 > 
-Will remove, too.
+Current origin check function only count origin targets in a directory
+(this function can used for future check). Impure dir check use this
+counts to distinguish this directory is impure or not, so this origin
+check is necessary in this patch.
 
 Thanks,
 Yi.
