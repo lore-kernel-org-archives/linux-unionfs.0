@@ -1,71 +1,49 @@
-From: "zhangyi (F)" <yizhang089@gmail.com>
-Subject: Re: [PATCH xfstest v2 3/4] overlay: add fsck.overlay redirect
- directory test
-Date: Sat, 30 Dec 2017 12:06:13 +0800
-Message-ID: <d1601184-7272-b607-ee6e-768a33623e42@gmail.com>
-References: <20171228114933.47759-1-yi.zhang@huawei.com>
- <20171228114933.47759-4-yi.zhang@huawei.com>
- <CAOQ4uxiyAj7+UmFMW7eP+HeeZuH6pWxCLKd5WKtc53b77ZihoQ@mail.gmail.com>
+From: "zhangyi (F)" <yi.zhang@huawei.com>
+Subject: [PATCH] ovl: fix inconsistent d_ino for merge dir
+Date: Sat, 30 Dec 2017 15:49:15 +0800
+Message-ID: <20171230074915.33685-1-yi.zhang@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
-Return-path: <fstests-owner@vger.kernel.org>
-In-Reply-To: <CAOQ4uxiyAj7+UmFMW7eP+HeeZuH6pWxCLKd5WKtc53b77ZihoQ@mail.gmail.com>
-Sender: fstests-owner@vger.kernel.org
-To: Amir Goldstein <amir73il@gmail.com>, "zhangyi (F)" <yi.zhang@huawei.com>
-Cc: overlayfs <linux-unionfs@vger.kernel.org>, fstests <fstests@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>, Eryu Guan <eguan@redhat.com>, Miao Xie <miaoxie@huawei.com>, yangerkun@huawei.com
+Content-Type: text/plain
+Return-path: <linux-unionfs-owner@vger.kernel.org>
+Received: from szxga07-in.huawei.com ([45.249.212.35]:56947 "EHLO huawei.com"
+        rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1750955AbdL3Hlw (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Sat, 30 Dec 2017 02:41:52 -0500
+Received: from DGGEMS406-HUB.china.huawei.com (unknown [172.30.72.58])
+        by Forcepoint Email with ESMTP id 43F35E32327C3
+        for <linux-unionfs@vger.kernel.org>; Sat, 30 Dec 2017 15:41:46 +0800 (CST)
+Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
+To: linux-unionfs@vger.kernel.org
+Cc: miklos@szeredi.hu, amir73il@gmail.com, yi.zhang@huawei.com, miaoxie@huawei.com, yangerkun@huawei.com
 
-On 2017/12/28 20:37, Amir Goldstein Wrote:
+Current ovl_getattr() (stat(2)) return lower's d_ino for merge
+directory (No any extended attribute) but ovl_iterate()
+(getdents(2)) return upper's d_ino.
 
->
->> +# Test valid redirect xattr with general directory cover lower origin
->> +# target, should ask user this directory is merged or not by default
->> +# and do nothing in auto mode
->> +echo "+ Valid redirect(4)"
->> +mkdir $lowerdir/origin
->> +mkdir $upperdir/origin
->> +make_redirect_dir $upperdir/testdir "origin"
->> +
->> +_overlay_fsck_dirs $lowerdir $upperdir $workdir -p >> $seqres.full 2>&1 || \
->> +       _fail "fsck should not fail"
->> +check_redirect "origin" $upperdir/testdir
->> +$GETFATTR_PROG --absolute-names -d -m $OVL_OPAQUE_XATTR $upperdir/testdir
->> +
->> +echo "n" > $tmp.input
-> This approach seems a bit fragile to me.
-> Maybe you will want to add some questions in the future.
-> To me it makes better sense to check behavior of fsck -y is automated test,
-> because some user who does not understand the questions is surely going
-> to run fsck -y to fix problems.
->
->> +_overlay_fsck_dirs $lowerdir $upperdir $workdir <$tmp.input >> $seqres.full 2>&1 || \
->> +       _fail "fsck should not fail"
->> +check_redirect "origin" $upperdir/testdir
->> +check_opaque $upperdir/origin
->> +rm -rf $lowerdir/* $upperdir/*
->> +
-Hi Amir：
+This patch correct inconsistent d_ino for this case, change to
+return lower's d_ino in ovl_iterate() for merge dir.
 
-Think about this again. IIUC, I think there is a consistency problem 
-about this case.
-If we allow user to create a new directory in upper layer merge with 
-lower redirect origin target when overlay offline, we will see duplicate 
-d_ino in overlay filesystem after next mount, becasue current 
-ovl_getattr() will get the lower d_ino for both merged dir and redirect dir.
+Signed-off-by: zhangyi (F) <yi.zhang@huawei.com>
+---
+ fs/overlayfs/readdir.c | 5 +++++
+ 1 file changed, 5 insertions(+)
 
-eg:
-mnt:         dira(ino=x)    dirb(ino=x)
-upper:      *dira(ino=y)   dirb(ino=z, redirect=dirb)
-lower:       dira(ino=x)
-
-*) User remove whiteout or opaque dir and then newly created when 
-overlayfs is offline.
-
-Furthermore, if user rename dira again, will lead to duplicate redirect 
-xattr directly.
-So I think we should forbid user do this and check by fsck.overlay. Or 
-handle by overlay filesytem?  thought?
-
-Thanks，
-Yi.
+diff --git a/fs/overlayfs/readdir.c b/fs/overlayfs/readdir.c
+index 8c98578..9548712 100644
+--- a/fs/overlayfs/readdir.c
++++ b/fs/overlayfs/readdir.c
+@@ -136,6 +136,11 @@ static bool ovl_calc_d_ino(struct ovl_readdir_data *rdd,
+ 	    ovl_test_flag(OVL_IMPURE, d_inode(rdd->dentry)))
+ 		return true;
+ 
++	/* Recalc d_ino for all dir in merge dir (contains merge subdirs) */
++	if (p->type == DT_DIR &&
++	    OVL_TYPE_MERGE(ovl_path_type(rdd->dentry)))
++		return true;
++
+ 	return false;
+ }
+ 
+-- 
+2.5.0
