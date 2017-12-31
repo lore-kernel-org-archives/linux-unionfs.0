@@ -1,119 +1,155 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [PATCH] ovl: fix inconsistent d_ino for merge dir
-Date: Sun, 31 Dec 2017 10:05:15 +0200
-Message-ID: <CAOQ4uxg-vzRDAkSV_apBwr7exCieNUztqEeABwFE85osfPDRgA@mail.gmail.com>
-References: <20171230074915.33685-1-yi.zhang@huawei.com> <CAOQ4uxjt6+UuSbWoACRsFbpstJVuRJGJgby_DqbqJfEJBk6odw@mail.gmail.com>
- <4d71f377-6b52-7be3-9271-298543c4a2b2@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Subject: [PATCH] ovl: fix inconsistent d_ino for legacy merge dir
+Date: Sun, 31 Dec 2017 11:49:38 +0200
+Message-ID: <1514713778-15640-1-git-send-email-amir73il@gmail.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-yw0-f193.google.com ([209.85.161.193]:38971 "EHLO
-        mail-yw0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750739AbdLaIFQ (ORCPT
+Received: from mail-wr0-f196.google.com ([209.85.128.196]:34230 "EHLO
+        mail-wr0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750724AbdLaJtt (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Sun, 31 Dec 2017 03:05:16 -0500
-Received: by mail-yw0-f193.google.com with SMTP id q26so10575294ywa.6
-        for <linux-unionfs@vger.kernel.org>; Sun, 31 Dec 2017 00:05:15 -0800 (PST)
-In-Reply-To: <4d71f377-6b52-7be3-9271-298543c4a2b2@gmail.com>
+        Sun, 31 Dec 2017 04:49:49 -0500
+Received: by mail-wr0-f196.google.com with SMTP id 36so11517438wrh.1
+        for <linux-unionfs@vger.kernel.org>; Sun, 31 Dec 2017 01:49:48 -0800 (PST)
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: zhangyi <yizhang089@gmail.com>
-Cc: "zhangyi (F)" <yi.zhang@huawei.com>, overlayfs <linux-unionfs@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>, Miao Xie <miaoxie@huawei.com>, yangerkun@huawei.com
+To: Miklos Szeredi <miklos@szeredi.hu>, zhangyi <yi.zhang@huawei.com>
+Cc: linux-unionfs@vger.kernel.org
 
-On Sun, Dec 31, 2017 at 8:11 AM, zhangyi <yizhang089@gmail.com> wrote:
-> On 2017/12/30 17:51, Amir Goldstein Wrote:
->
->> On Sat, Dec 30, 2017 at 9:49 AM, zhangyi (F) <yi.zhang@huawei.com> wrote:
->>>
->>> Current ovl_getattr() (stat(2)) return lower's d_ino for merge
->>> directory (No any extended attribute) but ovl_iterate()
->>> (getdents(2)) return upper's d_ino.
->>>
->>> This patch correct inconsistent d_ino for this case, change to
->>> return lower's d_ino in ovl_iterate() for merge dir.
->>>
->>> Signed-off-by: zhangyi (F) <yi.zhang@huawei.com>
->>> ---
->>>   fs/overlayfs/readdir.c | 5 +++++
->>>   1 file changed, 5 insertions(+)
->>>
->>> diff --git a/fs/overlayfs/readdir.c b/fs/overlayfs/readdir.c
->>> index 8c98578..9548712 100644
->>> --- a/fs/overlayfs/readdir.c
->>> +++ b/fs/overlayfs/readdir.c
->>> @@ -136,6 +136,11 @@ static bool ovl_calc_d_ino(struct ovl_readdir_data
->>> *rdd,
->>>              ovl_test_flag(OVL_IMPURE, d_inode(rdd->dentry)))
->>>                  return true;
->>>
->>> +       /* Recalc d_ino for all dir in merge dir (contains merge subdirs)
->>> */
->>> +       if (p->type == DT_DIR &&
->>> +           OVL_TYPE_MERGE(ovl_path_type(rdd->dentry)))
->>
->> Why only subdirs and not files with origin?
->> This is a partial fix and I think Miklos has rejected a similar fix by
->> Chandan
->> and said that this should be fixed by a future fsck.overlay (hint hint).
+For a merge dir that was copied up before v4.12 or that was hand crafted
+offline (e.g. mkdir {upper/lower}/dir), upper dir does not contain the
+'trusted.overlay.origin' xattr.  In that case, stat(2) on the merge dir
+returns the lower dir st_ino, but getdents(2) returns the upper dir d_ino.
 
-I guess the quote I remembered was from another patch fixing exposing
-whiteouts when former merge dir has no origin xattr:
-https://marc.info/?l=linux-unionfs&m=151022204326441&w=2
+After this change, on merge dir lookup, missing origin xattr on upper
+dir will be fixed and 'impure' xattr will be fixed on parent of the legacy
+merge dir.
 
->> The inconsistency is that the directory contains origin (and merge subdir)
->> and is not marked "impure". That is what fsck.overlay needs to fix and
->> then
->> "Recalc d_ino for for all entries if dir is impure (contains copied up
->> entries)"
->> will do the right thing.
->>
-> I understand the inconsistency of missing impure xattr should be fixed by
-> fsck.overlay,
-> but the case of this patch want to fix is not this one.
->
-> It's for the case of newly created overlay image. There is no origin xattr
-> for the merge
-> subdir and no impure xattr for it's parent, and there is also no requirement
-> that user
-> should run fsck.overlay before first mount.
->
-> eg (a simplest situation):
-> # mkdir lower upper work merge
-> # mkdir lower/dir upper/dir
-> # mount -t overlay overlay -olowerdir=lower,upperdir=upper,workdir=work
-> merge
-> # stat -c "%i" merge/dir/
-> 389572
-> # getdents merge | grep dir                     (getdents is program list in
-> getdents(2))
-> 389573  directory    16          2  dir
+Suggested-by: zhangyi (F) <yi.zhang@huawei.com>
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+---
 
-OK, but as far as users are concerned, this is not really a regression.
-There are hardly any deployments out there where d_ino returns
-values that are consistent with st_ino.
+Zhangyi,
 
-Sooner or later, we will have to "educate" the users and set expectations
-w.r.t. implications of crafting layers manually.
-Advance features, like online consistency verification (e.g. multiple redirect)
-and NFS export are simply NOT going to work with hand drafted layers.
-
-Users are going to either have to start with an empty upper layer, or use
-a dedicated mkfs.overlay to compose overlay images or run fsck.overlay
-over hand crafted layers with the proper options (e.g. verify=on).
-
->
-> I think if we set origin for merge dir and set impure for it's parent in
-> ovl_lookup() can also
-> fix this problem.
->
-
-Indeed. IMO, that would be a more appropriate fix.
-The "set origin" part I already implemented here:
-https://github.com/amir73il/linux/commits/ovl-verify-dir
-Right now, fixing merge dir origin is opt-in by verify=on,
-but it could be made default (the set if not exist part).
-Setting impure for parent at the same opportunity is a good idea -
-I will add it to next posting of "verify" feature.
+Please review/test this patch.
+I ended up applying it at the bottom of verify_dir [1] series,
+so it could be merged to v4.15 and/or easily backported to v4.14
+(where consistent d_ino was merged) if Miklos thinks this is an important
+use case to fix.
 
 Thanks,
 Amir.
+
+[1] https://github.com/amir73il/linux/commits/ovl-verify-dir
+
+ fs/overlayfs/namei.c     | 36 +++++++++++++++++++++++++++++++-----
+ fs/overlayfs/overlayfs.h |  2 +-
+ fs/overlayfs/super.c     |  5 +++--
+ 3 files changed, 35 insertions(+), 8 deletions(-)
+
+diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
+index 9cf15463754c..bd7375c05f7d 100644
+--- a/fs/overlayfs/namei.c
++++ b/fs/overlayfs/namei.c
+@@ -343,13 +343,13 @@ static int ovl_verify_origin_fh(struct dentry *dentry, const struct ovl_fh *fh)
+ /*
+  * Verify that an inode matches the origin file handle stored in upper inode.
+  *
+- * If @set is true and there is no stored file handle, encode and store origin
+- * file handle in OVL_XATTR_ORIGIN.
++ * If @set is non-null and there is no stored file handle, set *@set to true
++ * and try to encode and store origin file handle in OVL_XATTR_ORIGIN.
+  *
+- * Return 0 on match, -ESTALE on mismatch, < 0 on error.
++ * Return 0 on match or successful set, -ESTALE on mismatch, < 0 on error.
+  */
+ int ovl_verify_origin(struct dentry *dentry, struct dentry *origin,
+-		      bool is_upper, bool set)
++		      bool is_upper, bool *set)
+ {
+ 	struct inode *inode;
+ 	struct ovl_fh *fh;
+@@ -361,8 +361,13 @@ int ovl_verify_origin(struct dentry *dentry, struct dentry *origin,
+ 		goto fail;
+ 
+ 	err = ovl_verify_origin_fh(dentry, fh);
+-	if (set && err == -ENODATA)
++	if (set && err == -ENODATA) {
++		*set = true;
+ 		err = ovl_do_setxattr(dentry, OVL_XATTR_ORIGIN, fh, fh->len, 0);
++		if (err)
++			goto fail;
++	}
++
+ 	if (err)
+ 		goto fail;
+ 
+@@ -674,6 +679,27 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
+ 		if (!this)
+ 			continue;
+ 
++		/*
++		 * If no origin fh is stored in upper of a merge dir, store fh
++		 * of upper most lower dir and set upper parent "impure".
++		 */
++		if (upperdentry && !ctr) {
++			bool set = false;
++
++			err = ovl_verify_origin(upperdentry, this, false, &set);
++			if (set && !err) {
++				err = ovl_set_impure(dentry->d_parent,
++						     upperdentry->d_parent);
++			}
++			if (set && err)
++				goto out_put;
++
++			/*
++			 * Ignore merge dir origin mismatch, which may have
++			 * been caused by copying layers
++			 */
++		}
++
+ 		stack[ctr].dentry = this;
+ 		stack[ctr].layer = lower.layer;
+ 		ctr++;
+diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
+index b489099ccd49..6620db670afa 100644
+--- a/fs/overlayfs/overlayfs.h
++++ b/fs/overlayfs/overlayfs.h
+@@ -250,7 +250,7 @@ static inline bool ovl_is_impuredir(struct dentry *dentry)
+ 
+ /* namei.c */
+ int ovl_verify_origin(struct dentry *dentry, struct dentry *origin,
+-		      bool is_upper, bool set);
++		      bool is_upper, bool *set);
+ int ovl_verify_index(struct dentry *index, struct ovl_path *lower,
+ 		     unsigned int numlower);
+ int ovl_get_index_name(struct dentry *origin, struct qstr *name);
+diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+index 76440feb79f6..f548717e3388 100644
+--- a/fs/overlayfs/super.c
++++ b/fs/overlayfs/super.c
+@@ -1026,11 +1026,12 @@ static int ovl_get_workdir(struct ovl_fs *ofs, struct path *upperpath)
+ static int ovl_get_indexdir(struct ovl_fs *ofs, struct ovl_entry *oe,
+ 			    struct path *upperpath)
+ {
++	bool set;
+ 	int err;
+ 
+ 	/* Verify lower root is upper root origin */
+ 	err = ovl_verify_origin(upperpath->dentry, oe->lowerstack[0].dentry,
+-				false, true);
++				false, &set);
+ 	if (err) {
+ 		pr_err("overlayfs: failed to verify upper root origin\n");
+ 		goto out;
+@@ -1040,7 +1041,7 @@ static int ovl_get_indexdir(struct ovl_fs *ofs, struct ovl_entry *oe,
+ 	if (ofs->indexdir) {
+ 		/* Verify upper root is index dir origin */
+ 		err = ovl_verify_origin(ofs->indexdir, upperpath->dentry,
+-					true, true);
++					true, &set);
+ 		if (err)
+ 			pr_err("overlayfs: failed to verify index dir origin\n");
+ 
+-- 
+2.7.4
