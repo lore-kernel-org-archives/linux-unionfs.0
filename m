@@ -1,86 +1,51 @@
-From: "zhangyi (F)" <yi.zhang@huawei.com>
-Subject: Re: [PATCH] ovl: fix inconsistent d_ino for legacy merge dir
-Date: Tue, 2 Jan 2018 16:31:20 +0800
-Message-ID: <66c2703f-aa79-9721-4f06-99c62590e501@huawei.com>
-References: <1514713778-15640-1-git-send-email-amir73il@gmail.com>
- <273d72b1-8c19-ef41-ef26-6304a333b532@huawei.com>
- <CAOQ4uxiJY+1nz3P1fpy8hukCGL1Vx8GOhX3PFjCO6LM5nSA3_Q@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+From: Amir Goldstein <amir73il@gmail.com>
+Subject: [RFC][PATCH 0/2] Updating overlay inode i_mtime for nfsd
+Date: Tue,  2 Jan 2018 14:26:47 +0200
+Message-ID: <1514896009-11468-1-git-send-email-amir73il@gmail.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from szxga05-in.huawei.com ([45.249.212.191]:3254 "EHLO huawei.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1752556AbeABIbr (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 2 Jan 2018 03:31:47 -0500
-Received: from DGGEMS403-HUB.china.huawei.com (unknown [172.30.72.58])
-        by Forcepoint Email with ESMTP id E3B53F0C7A128
-        for <linux-unionfs@vger.kernel.org>; Tue,  2 Jan 2018 16:31:31 +0800 (CST)
-In-Reply-To: <CAOQ4uxiJY+1nz3P1fpy8hukCGL1Vx8GOhX3PFjCO6LM5nSA3_Q@mail.gmail.com>
+Received: from mail-wm0-f67.google.com ([74.125.82.67]:34821 "EHLO
+        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752380AbeABM0C (ORCPT
+        <rfc822;linux-unionfs@vger.kernel.org>);
+        Tue, 2 Jan 2018 07:26:02 -0500
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, overlayfs <linux-unionfs@vger.kernel.org>, Miao Xie <miaoxie@huawei.com>
+To: Jeff Layton <jlayton@poochiereds.net>, "J . Bruce Fields" <bfields@fieldses.org>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
 
-On 2018/1/2 16:14, Amir Goldstein Wrote:
-> On Tue, Jan 2, 2018 at 10:00 AM, zhangyi (F) <yi.zhang@huawei.com> wrote:
->> On 2017/12/31 17:49, Amir Goldstein Wrote:
->>> For a merge dir that was copied up before v4.12 or that was hand crafted
->>> offline (e.g. mkdir {upper/lower}/dir), upper dir does not contain the
->>> 'trusted.overlay.origin' xattr.  In that case, stat(2) on the merge dir
->>> returns the lower dir st_ino, but getdents(2) returns the upper dir d_ino.
->>>
->>> After this change, on merge dir lookup, missing origin xattr on upper
->>> dir will be fixed and 'impure' xattr will be fixed on parent of the legacy
->>> merge dir.
->>>
->>> Suggested-by: zhangyi (F) <yi.zhang@huawei.com>
->>> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
->>> ---
->>>
->>> Zhangyi,
->>>
->>> Please review/test this patch.
->>> I ended up applying it at the bottom of verify_dir [1] series,
->>> so it could be merged to v4.15 and/or easily backported to v4.14
->>> (where consistent d_ino was merged) if Miklos thinks this is an important
->>> use case to fix.
->>>
->>
->> Hi Amir,
->> This patch looks good (one nit below) but still have a case which will lead to problem
->> we missed in last discussion:
->> Call getdent(2) before invoke ovl_lookup() after first mount.
->>
->> eg:
->> 1) mkdir {upper/lower}/dir merge work
->> 2) mount to merge
->> 3) getdent merge
->> 2253114  directory    24          2  dir
->> 4) ls merge
->> 5) getdent merge
->> 2253113  directory    24          2  dir
->>
->> Strictly speaking, it is a problem ,but not sure it's worth to fix now.
-> 
-> Yeh, it's true.
-> 
-> Please note, that the sole purpose of "impure" xattr in the world,
-> is to optimize away the need to lookup directory entries in getdents
-> for fixing d_ino.
-> So yes, I think this specific corner case is something that users will have to
-> be educated about.
-> 
-> Also please note that I have not found any program that relies of d_ino of
-> directories (not that I would know where to look). I did check that
-> 'find -inum <ino>'
-> does NOT reply of values of d_ino for subdirs. 'find' always call
-> stat(2) for subdirs.
-> So that is one less program to worry about.
-> 
+Jeff, Bruce,
 
-I see, you can add:
-Reviewed-by: zhangyi (F) <yi.zhang@huawei.com>
+These RFC patches fix an issue I found when running nfstest_posix
+over NFS exported overlayfs.
+
+I am posting these separately from (soon to be posted) overlayfs NFS
+export support patches to get your inputs about the preferred way for
+a fix.
+
+The 1st patch is a proposal to fix overlay inode i_mtime on inode
+modification. This fix is incomplete w.r.t nfstest_posix test failures.
+The 2nd patch more or less reverts the 1st patch in favor of updating
+overlay inode i_mtime only when nfsd would care. At least as far as
+nfstest_posix is concerned this fix is complete.
+
+I lean towards the 2nd fix, but wasn't sure, so posting both suggestions.
+Another option would be to call vfs_getattr() from lease_get_mtime(),
+which will get the correct i_mtime for overlayfs (upper inode i_mtime),
+but wasn't sure if this is a viable option for nfsd.
+
+Would appreciate your thoughts about the issue and about the proposed fix.
 
 Thanks,
-Yi.
+Amir.
+
+Amir Goldstein (2):
+  vfs: update overlay inode times on write
+  vfs: update overlay inode times on lease_get_mtime()
+
+ fs/inode.c    | 15 ++++++++++++---
+ fs/internal.h |  1 +
+ fs/locks.c    | 12 +++++++++++-
+ 3 files changed, 24 insertions(+), 4 deletions(-)
+
+-- 
+2.7.4
