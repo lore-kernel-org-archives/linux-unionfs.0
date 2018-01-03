@@ -1,72 +1,29 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [RFC][PATCH 1/2] vfs: update overlay inode times on write
-Date: Wed,  3 Jan 2018 17:11:43 +0200
-Message-ID: <1514992304-8021-2-git-send-email-amir73il@gmail.com>
+Subject: Re: [RFC][PATCH 0/2] Updating overlay inode i_mtime for nfsd
+Date: Wed, 3 Jan 2018 17:13:20 +0200
+Message-ID: <CAOQ4uxjpasf=2o--8VqWNSw981MNnbCv-SOQ_x3cM7mvvX7SFg@mail.gmail.com>
 References: <1514992304-8021-1-git-send-email-amir73il@gmail.com>
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-unionfs-owner@vger.kernel.org>
+Received: from mail-yw0-f172.google.com ([209.85.161.172]:43543 "EHLO
+        mail-yw0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751908AbeACPNV (ORCPT
+        <rfc822;linux-unionfs@vger.kernel.org>);
+        Wed, 3 Jan 2018 10:13:21 -0500
 In-Reply-To: <1514992304-8021-1-git-send-email-amir73il@gmail.com>
-Sender: linux-fsdevel-owner@vger.kernel.org
-To: Jeff Layton <jlayton@poochiereds.net>, "J . Bruce Fields" <bfields@fieldses.org>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
+Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
+To: Jeff Layton <jlayton@poochiereds.net>, "J . Bruce Fields" <bfields@fieldses.org>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, overlayfs <linux-unionfs@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>
 
-Currently with overlayfs, the real upper inode's i_mtime is updated on
-write, but not overlay vfs inode. The vfs inode's i_mtime is used by nfsd
-to check if nfs client cache is stale, so updating the overlay vfs inode
-i_mtime on write is required for overlayfs NFS export support.
+On Wed, Jan 3, 2018 at 5:11 PM, Amir Goldstein <amir73il@gmail.com> wrote:
+> Jeff, Bruce,
+>
+> These RFC patches fix an issue I found when running nfstest_posix
+> over NFS exported overlayfs.
+>
 
-The non uptodate mtime issue was found and verified with the
-nfstest_posix test when run over NFS exported overlayfs:
+Wrong version posted. Sorry for the noise.
 
- $ nfstest_posix --runtest=write
- ...
- FAIL: write - file st_mtime should be updated
-
-Signed-off-by: Amir Goldstein <amir73il@gmail.com>
----
- fs/inode.c | 9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
-
-diff --git a/fs/inode.c b/fs/inode.c
-index 03102d6ef044..a252256f4e51 100644
---- a/fs/inode.c
-+++ b/fs/inode.c
-@@ -1567,8 +1567,7 @@ EXPORT_SYMBOL(bmap);
- /*
-  * Update times in overlayed inode from underlying real inode
-  */
--static void update_ovl_inode_times(struct dentry *dentry, struct inode *inode,
--			       bool rcu)
-+static void update_ovl_d_inode_times(struct dentry *dentry, bool rcu)
- {
- 	struct dentry *upperdentry;
- 
-@@ -1585,6 +1584,7 @@ static void update_ovl_inode_times(struct dentry *dentry, struct inode *inode,
- 	 * stale mtime/ctime.
- 	 */
- 	if (upperdentry) {
-+		struct inode *inode = d_inode(dentry);
- 		struct inode *realinode = d_inode(upperdentry);
- 
- 		if ((!timespec_equal(&inode->i_mtime, &realinode->i_mtime) ||
-@@ -1607,7 +1607,8 @@ static int relatime_need_update(const struct path *path, struct inode *inode,
- 	if (!(path->mnt->mnt_flags & MNT_RELATIME))
- 		return 1;
- 
--	update_ovl_inode_times(path->dentry, inode, rcu);
-+	update_ovl_d_inode_times(path->dentry, rcu);
-+
- 	/*
- 	 * Is mtime younger than atime? If yes, update atime:
- 	 */
-@@ -1876,6 +1877,8 @@ int file_update_time(struct file *file)
- 	ret = update_time(inode, &now, sync_it);
- 	__mnt_drop_write_file(file);
- 
-+	update_ovl_d_inode_times(file->f_path.dentry, false);
-+
- 	return ret;
- }
- EXPORT_SYMBOL(file_update_time);
--- 
-2.7.4
+Amir.
