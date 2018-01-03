@@ -1,123 +1,106 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH v2] ovl: fix inconsistent d_ino for legacy merge dir
-Date: Wed,  3 Jan 2018 21:56:34 +0200
-Message-ID: <1515009394-21015-1-git-send-email-amir73il@gmail.com>
-Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wm0-f65.google.com ([74.125.82.65]:41541 "EHLO
-        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750938AbeACTzp (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 3 Jan 2018 14:55:45 -0500
-Received: by mail-wm0-f65.google.com with SMTP id g75so4644317wme.0
-        for <linux-unionfs@vger.kernel.org>; Wed, 03 Jan 2018 11:55:44 -0800 (PST)
-Sender: linux-unionfs-owner@vger.kernel.org
+Subject: Re: [PATCH v2 2/2] nfsd: store stat times in fill_pre_wcc() instead
+ of inode times
+Date: Wed, 3 Jan 2018 23:03:14 +0200
+Message-ID: <CAOQ4uxg86oNAYXLN8iCFJTVOV7nxp9a8AwrQPhvr1M-dWqWErA@mail.gmail.com>
+References: <1514992475-8142-1-git-send-email-amir73il@gmail.com>
+ <1514992475-8142-3-git-send-email-amir73il@gmail.com> <1514994062.3458.14.camel@kernel.org>
+ <CAOQ4uxgHwkT=2SGz=XQqP626rfpWCAXtmvBwZuU1N8s1Bh6a4A@mail.gmail.com> <1515005144.3458.42.camel@kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
+In-Reply-To: <1515005144.3458.42.camel@kernel.org>
+Sender: linux-fsdevel-owner@vger.kernel.org
+To: Jeff Layton <jlayton@kernel.org>
+Cc: "J . Bruce Fields" <bfields@fieldses.org>, Miklos Szeredi <miklos@szeredi.hu>, overlayfs <linux-unionfs@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>
 List-Id: linux-unionfs@vger.kernel.org
-To: zhangyi <yi.zhang@huawei.com>, Miklos Szeredi <miklos@szeredi.hu>
-Cc: linux-unionfs@vger.kernel.org
 
-For a merge dir that was copied up before v4.12 or that was hand crafted
-offline (e.g. mkdir {upper/lower}/dir), upper dir does not contain the
-'trusted.overlay.origin' xattr.  In that case, stat(2) on the merge dir
-returns the lower dir st_ino, but getdents(2) returns the upper dir d_ino.
+On Wed, Jan 3, 2018 at 8:45 PM, Jeff Layton <jlayton@kernel.org> wrote:
+> On Wed, 2018-01-03 at 17:48 +0200, Amir Goldstein wrote:
+>> On Wed, Jan 3, 2018 at 5:41 PM, Jeff Layton <jlayton@kernel.org> wrote:
+>> > On Wed, 2018-01-03 at 17:14 +0200, Amir Goldstein wrote:
+>> > > The time values in stat and inode may differ for overlayfs and stat time
+>> > > values are the correct ones to use. This is also consistent with the fact
+>> > > that fill_post_wcc() also stores stat time values.
+>> > >
+>> > > Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+>> > > ---
+>> > >  fs/nfsd/nfs3xdr.c | 31 ++++++++++++++++++++++++++++++-
+>> > >  fs/nfsd/nfs4xdr.c |  2 +-
+>> > >  fs/nfsd/nfsfh.h   | 28 ++++++----------------------
+>> > >  3 files changed, 37 insertions(+), 24 deletions(-)
+>> > >
+>> > > diff --git a/fs/nfsd/nfs3xdr.c b/fs/nfsd/nfs3xdr.c
+>> > > index 2758480555fa..1a70581e1cb2 100644
+>> > > --- a/fs/nfsd/nfs3xdr.c
+>> > > +++ b/fs/nfsd/nfs3xdr.c
+>> > > @@ -251,6 +251,34 @@ encode_wcc_data(struct svc_rqst *rqstp, __be32 *p, struct svc_fh *fhp)
+>> > >  }
+>> > >
+>> > >  /*
+>> > > + * Fill in the pre_op attr for the wcc data
+>> > > + */
+>> > > +void fill_pre_wcc(struct svc_fh *fhp)
+>> > > +{
+>> > > +     struct inode    *inode;
+>> > > +     struct kstat    stat;
+>> > > +     __be32 err;
+>> > > +
+>> > > +     if (fhp->fh_pre_saved)
+>> > > +             return;
+>> > > +
+>> > > +     inode = d_inode(fhp->fh_dentry);
+>> > > +     err = fh_getattr(fhp, &stat);
+>> > > +     if (err) {
+>> > > +             /* Grab the times from inode anyway */
+>> > > +             stat.mtime = inode->i_mtime;
+>> > > +             stat.ctime = inode->i_ctime;
+>> > > +             stat.size  = inode->i_size;
+>> > > +     }
+>> > > +
+>> >
+>> > Might be best to instead just not supply pre/post op attrs if the
+>> > getattr fails? They are technically optional with v3 -- we can just set
+>> > the attributes_follow bit to false there.
+>>
+>> I considered to set fh_pre_saved = false on error just like
+>> fill_post_wcc() does, but wasn't sure of the consequences or how to test
+>> for that matter, so I chose a more delicate fallback instead.
+>>
+>
+> Take care with the BUG_ON in set_change_info if you do that.
+>
+> Note that all of this is really just to handle weak cache consistency in
+> v3, and the change_info4 value in v4. When the info is not reliable, the
+> client doesn't trust its cache, for the most part. Getting it wrong
+> shouldn't be fatal in most cases.
+>
+> For v3 you can just clear the attributes_follow bit when you fill out
+> the info, and leave it zeroed out. I had a patch a few years ago that
+> did this on a per-export basis that you're welcome to take an run with:
+>
+>     https://patchwork.kernel.org/patch/7159311/
+>
+> Obviously, the conditions for doing this here are different.
+>
+> For v4, I think we can just try to scrape what we have like you're doing
+> here, and simply ensure that the "atomic" field being encoded in
+> encode_cinfo is false when this occurs.
+>
 
-After this change, on merge dir lookup, missing origin xattr on upper
-dir will be fixed and 'impure' xattr will be fixed on parent of the legacy
-merge dir.
+Honestly, Jeff, at this point I am so far out into the woods with overlay NFS
+export, that I would like to remain focused on correctness and leave
+performance for later time.
 
-Suggested-by: zhangyi (F) <yi.zhang@huawei.com>
-Signed-off-by: Amir Goldstein <amir73il@gmail.com>
----
+So if I understand you correctly, patch 2/2 is not needed for correctness?
+Meaning that if overlay inode times are not uptodate, nothing fatal will
+happen? Or did you mean that I must take care of signalling the client
+that time values are not reliable for overlayfs?
 
-Zhangyi,
+If patch 2/2 is indeed not a must, then I would like to ask you to ACK
+patch 1/2. It seems quite simple, trivial and harmless to me even  without
+diving deep into NFS protocols. I think patch 1/2 should be enough for
+first implementation - it certainly is enough to fix the nfstest_posix failures.
 
-A slightly differnt patch. This time with ovl_want_write()
-and using different helpers.
-
-Please re-review and test.
-
-Thanks,
+Thanks!
 Amir.
-
- fs/overlayfs/copy_up.c   |  4 ++--
- fs/overlayfs/namei.c     | 33 +++++++++++++++++++++++++++++++++
- fs/overlayfs/overlayfs.h |  2 ++
- 3 files changed, 37 insertions(+), 2 deletions(-)
-
-diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
-index eb3b8d39fb61..206ececd5ae7 100644
---- a/fs/overlayfs/copy_up.c
-+++ b/fs/overlayfs/copy_up.c
-@@ -288,8 +288,8 @@ struct ovl_fh *ovl_encode_fh(struct dentry *lower, bool is_upper)
- 	return fh;
- }
- 
--static int ovl_set_origin(struct dentry *dentry, struct dentry *lower,
--			  struct dentry *upper)
-+int ovl_set_origin(struct dentry *dentry, struct dentry *lower,
-+		   struct dentry *upper)
- {
- 	const struct ovl_fh *fh = NULL;
- 	int err;
-diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
-index 9cf15463754c..71db9a966d88 100644
---- a/fs/overlayfs/namei.c
-+++ b/fs/overlayfs/namei.c
-@@ -584,6 +584,27 @@ static int ovl_find_layer(struct ovl_fs *ofs, struct ovl_path *path)
- 	return i;
- }
- 
-+/* Fix missing 'origin' xattr */
-+static int ovl_fix_origin(struct dentry *dentry, struct dentry *lower,
-+			  struct dentry *upper)
-+{
-+	int err;
-+
-+	if (ovl_check_origin_xattr(upper))
-+		return 0;
-+
-+	err = ovl_want_write(dentry);
-+	if (err)
-+		return err;
-+
-+	err = ovl_set_origin(dentry, lower, upper);
-+	if (!err)
-+		err = ovl_set_impure(dentry->d_parent, upper->d_parent);
-+
-+	ovl_drop_write(dentry);
-+	return err;
-+}
-+
- struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
- 			  unsigned int flags)
- {
-@@ -674,6 +695,18 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
- 		if (!this)
- 			continue;
- 
-+		/*
-+		 * If no origin fh is stored in upper of a merge dir, store fh
-+		 * of lower dir and set upper parent "impure".
-+		 */
-+		if (upperdentry && !ctr && !ofs->noxattr) {
-+			err = ovl_fix_origin(dentry, this, upperdentry);
-+			if (err) {
-+				dput(this);
-+				goto out_put;
-+			}
-+		}
-+
- 		stack[ctr].dentry = this;
- 		stack[ctr].layer = lower.layer;
- 		ctr++;
-diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-index b489099ccd49..d1cfa69c98b5 100644
---- a/fs/overlayfs/overlayfs.h
-+++ b/fs/overlayfs/overlayfs.h
-@@ -322,3 +322,5 @@ int ovl_copy_up_flags(struct dentry *dentry, int flags);
- int ovl_copy_xattr(struct dentry *old, struct dentry *new);
- int ovl_set_attr(struct dentry *upper, struct kstat *stat);
- struct ovl_fh *ovl_encode_fh(struct dentry *lower, bool is_upper);
-+int ovl_set_origin(struct dentry *dentry, struct dentry *lower,
-+		   struct dentry *upper);
--- 
-2.7.4
