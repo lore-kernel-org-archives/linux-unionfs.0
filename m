@@ -1,134 +1,114 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH v2 2/2] nfsd: store stat times in fill_pre_wcc() instead of inode times
-Date: Wed,  3 Jan 2018 17:14:35 +0200
-Message-ID: <1514992475-8142-3-git-send-email-amir73il@gmail.com>
-References: <1514992475-8142-1-git-send-email-amir73il@gmail.com>
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
-In-Reply-To: <1514992475-8142-1-git-send-email-amir73il@gmail.com>
-Sender: linux-fsdevel-owner@vger.kernel.org
-To: Jeff Layton <jlayton@poochiereds.net>, "J . Bruce Fields" <bfields@fieldses.org>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
+Subject: Re: [PATCH] ovl: fix inconsistent d_ino for legacy merge dir
+Date: Wed, 3 Jan 2018 17:26:09 +0200
+Message-ID: <CAOQ4uxhG8u9OAikA1jpzqo99iT-1UkBwmpu5iZOOaMhiVJuq-A@mail.gmail.com>
+References: <1514713778-15640-1-git-send-email-amir73il@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-unionfs-owner@vger.kernel.org>
+Received: from mail-yw0-f195.google.com ([209.85.161.195]:36406 "EHLO
+        mail-yw0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752182AbeACP0K (ORCPT
+        <rfc822;linux-unionfs@vger.kernel.org>);
+        Wed, 3 Jan 2018 10:26:10 -0500
+Received: by mail-yw0-f195.google.com with SMTP id r205so662361ywb.3
+        for <linux-unionfs@vger.kernel.org>; Wed, 03 Jan 2018 07:26:10 -0800 (PST)
+In-Reply-To: <1514713778-15640-1-git-send-email-amir73il@gmail.com>
+Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
+To: Miklos Szeredi <miklos@szeredi.hu>, zhangyi <yi.zhang@huawei.com>
+Cc: overlayfs <linux-unionfs@vger.kernel.org>
 
-The time values in stat and inode may differ for overlayfs and stat time
-values are the correct ones to use. This is also consistent with the fact
-that fill_post_wcc() also stores stat time values.
+On Sun, Dec 31, 2017 at 11:49 AM, Amir Goldstein <amir73il@gmail.com> wrote:
+> For a merge dir that was copied up before v4.12 or that was hand crafted
+> offline (e.g. mkdir {upper/lower}/dir), upper dir does not contain the
+> 'trusted.overlay.origin' xattr.  In that case, stat(2) on the merge dir
+> returns the lower dir st_ino, but getdents(2) returns the upper dir d_ino.
+>
+> After this change, on merge dir lookup, missing origin xattr on upper
+> dir will be fixed and 'impure' xattr will be fixed on parent of the legacy
+> merge dir.
+>
+> Suggested-by: zhangyi (F) <yi.zhang@huawei.com>
+> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+> ---
+>
+> Zhangyi,
+>
+> Please review/test this patch.
+> I ended up applying it at the bottom of verify_dir [1] series,
+> so it could be merged to v4.15 and/or easily backported to v4.14
+> (where consistent d_ino was merged) if Miklos thinks this is an important
+> use case to fix.
+>
+> Thanks,
+> Amir.
+>
+> [1] https://github.com/amir73il/linux/commits/ovl-verify-dir
+>
+>  fs/overlayfs/namei.c     | 36 +++++++++++++++++++++++++++++++-----
+>  fs/overlayfs/overlayfs.h |  2 +-
+>  fs/overlayfs/super.c     |  5 +++--
+>  3 files changed, 35 insertions(+), 8 deletions(-)
+>
+> diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
+> index 9cf15463754c..bd7375c05f7d 100644
+> --- a/fs/overlayfs/namei.c
+> +++ b/fs/overlayfs/namei.c
+> @@ -343,13 +343,13 @@ static int ovl_verify_origin_fh(struct dentry *dentry, const struct ovl_fh *fh)
+>  /*
+>   * Verify that an inode matches the origin file handle stored in upper inode.
+>   *
+> - * If @set is true and there is no stored file handle, encode and store origin
+> - * file handle in OVL_XATTR_ORIGIN.
+> + * If @set is non-null and there is no stored file handle, set *@set to true
+> + * and try to encode and store origin file handle in OVL_XATTR_ORIGIN.
+>   *
+> - * Return 0 on match, -ESTALE on mismatch, < 0 on error.
+> + * Return 0 on match or successful set, -ESTALE on mismatch, < 0 on error.
+>   */
+>  int ovl_verify_origin(struct dentry *dentry, struct dentry *origin,
+> -                     bool is_upper, bool set)
+> +                     bool is_upper, bool *set)
+>  {
+>         struct inode *inode;
+>         struct ovl_fh *fh;
+> @@ -361,8 +361,13 @@ int ovl_verify_origin(struct dentry *dentry, struct dentry *origin,
+>                 goto fail;
+>
+>         err = ovl_verify_origin_fh(dentry, fh);
+> -       if (set && err == -ENODATA)
+> +       if (set && err == -ENODATA) {
+> +               *set = true;
+>                 err = ovl_do_setxattr(dentry, OVL_XATTR_ORIGIN, fh, fh->len, 0);
+> +               if (err)
+> +                       goto fail;
+> +       }
+> +
+>         if (err)
+>                 goto fail;
+>
+> @@ -674,6 +679,27 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
+>                 if (!this)
+>                         continue;
+>
+> +               /*
+> +                * If no origin fh is stored in upper of a merge dir, store fh
+> +                * of upper most lower dir and set upper parent "impure".
+> +                */
+> +               if (upperdentry && !ctr) {
+> +                       bool set = false;
+> +
+> +                       err = ovl_verify_origin(upperdentry, this, false, &set);
+> +                       if (set && !err) {
+> +                               err = ovl_set_impure(dentry->d_parent,
+> +                                                    upperdentry->d_parent);
+> +                       }
 
-Signed-off-by: Amir Goldstein <amir73il@gmail.com>
----
- fs/nfsd/nfs3xdr.c | 31 ++++++++++++++++++++++++++++++-
- fs/nfsd/nfs4xdr.c |  2 +-
- fs/nfsd/nfsfh.h   | 28 ++++++----------------------
- 3 files changed, 37 insertions(+), 24 deletions(-)
+Oh oh! this ovl_set_impure() is missing mnt_want_write(), but so do:
+- set origin xattr in ovl_verify_origin()
+- set opaque in ovl_make_workdir()
 
-diff --git a/fs/nfsd/nfs3xdr.c b/fs/nfsd/nfs3xdr.c
-index 2758480555fa..1a70581e1cb2 100644
---- a/fs/nfsd/nfs3xdr.c
-+++ b/fs/nfsd/nfs3xdr.c
-@@ -251,6 +251,34 @@ encode_wcc_data(struct svc_rqst *rqstp, __be32 *p, struct svc_fh *fhp)
- }
- 
- /*
-+ * Fill in the pre_op attr for the wcc data
-+ */
-+void fill_pre_wcc(struct svc_fh *fhp)
-+{
-+	struct inode    *inode;
-+	struct kstat	stat;
-+	__be32 err;
-+
-+	if (fhp->fh_pre_saved)
-+		return;
-+
-+	inode = d_inode(fhp->fh_dentry);
-+	err = fh_getattr(fhp, &stat);
-+	if (err) {
-+		/* Grab the times from inode anyway */
-+		stat.mtime = inode->i_mtime;
-+		stat.ctime = inode->i_ctime;
-+		stat.size  = inode->i_size;
-+	}
-+
-+	fhp->fh_pre_mtime = stat.mtime;
-+	fhp->fh_pre_ctime = stat.ctime;
-+	fhp->fh_pre_size  = stat.size;
-+	fhp->fh_pre_change = nfsd4_change_attribute(&stat, inode);
-+	fhp->fh_pre_saved = true;
-+}
-+
-+/*
-  * Fill in the post_op attr for the wcc data
-  */
- void fill_post_wcc(struct svc_fh *fhp)
-@@ -261,7 +289,8 @@ void fill_post_wcc(struct svc_fh *fhp)
- 		printk("nfsd: inode locked twice during operation.\n");
- 
- 	err = fh_getattr(fhp, &fhp->fh_post_attr);
--	fhp->fh_post_change = nfsd4_change_attribute(d_inode(fhp->fh_dentry));
-+	fhp->fh_post_change = nfsd4_change_attribute(&fhp->fh_post_attr,
-+						     d_inode(fhp->fh_dentry));
- 	if (err) {
- 		fhp->fh_post_saved = false;
- 		/* Grab the ctime anyway - set_change_info might use it */
-diff --git a/fs/nfsd/nfs4xdr.c b/fs/nfsd/nfs4xdr.c
-index 2c61c6b8ae09..fbe11ad9b9ff 100644
---- a/fs/nfsd/nfs4xdr.c
-+++ b/fs/nfsd/nfs4xdr.c
-@@ -1991,7 +1991,7 @@ static __be32 *encode_change(__be32 *p, struct kstat *stat, struct inode *inode,
- 		*p++ = cpu_to_be32(convert_to_wallclock(exp->cd->flush_time));
- 		*p++ = 0;
- 	} else if (IS_I_VERSION(inode)) {
--		p = xdr_encode_hyper(p, nfsd4_change_attribute(inode));
-+		p = xdr_encode_hyper(p, nfsd4_change_attribute(stat, inode));
- 	} else {
- 		*p++ = cpu_to_be32(stat->ctime.tv_sec);
- 		*p++ = cpu_to_be32(stat->ctime.tv_nsec);
-diff --git a/fs/nfsd/nfsfh.h b/fs/nfsd/nfsfh.h
-index 43f31cf49bae..99be87b50ebe 100644
---- a/fs/nfsd/nfsfh.h
-+++ b/fs/nfsd/nfsfh.h
-@@ -252,36 +252,20 @@ fh_clear_wcc(struct svc_fh *fhp)
-  * By using both ctime and the i_version counter we guarantee that as
-  * long as time doesn't go backwards we never reuse an old value.
-  */
--static inline u64 nfsd4_change_attribute(struct inode *inode)
-+static inline u64 nfsd4_change_attribute(struct kstat *stat,
-+					 struct inode *inode)
- {
- 	u64 chattr;
- 
--	chattr =  inode->i_ctime.tv_sec;
-+	chattr =  stat->ctime.tv_sec;
- 	chattr <<= 30;
--	chattr += inode->i_ctime.tv_nsec;
-+	chattr += stat->ctime.tv_nsec;
- 	chattr += inode->i_version;
- 	return chattr;
- }
- 
--/*
-- * Fill in the pre_op attr for the wcc data
-- */
--static inline void
--fill_pre_wcc(struct svc_fh *fhp)
--{
--	struct inode    *inode;
--
--	inode = d_inode(fhp->fh_dentry);
--	if (!fhp->fh_pre_saved) {
--		fhp->fh_pre_mtime = inode->i_mtime;
--		fhp->fh_pre_ctime = inode->i_ctime;
--		fhp->fh_pre_size  = inode->i_size;
--		fhp->fh_pre_change = nfsd4_change_attribute(inode);
--		fhp->fh_pre_saved = true;
--	}
--}
--
--extern void fill_post_wcc(struct svc_fh *);
-+extern void fill_pre_wcc(struct svc_fh *fhp);
-+extern void fill_post_wcc(struct svc_fh *fhp);
- #else
- #define fh_clear_wcc(ignored)
- #define fill_pre_wcc(ignored)
--- 
-2.7.4
+Will have to fix those too.
+
+Amir.
