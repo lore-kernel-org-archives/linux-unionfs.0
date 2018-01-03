@@ -1,49 +1,67 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH v2 0/2] Reduce direct access of nfsd to inode->i_mtime
-Date: Wed,  3 Jan 2018 17:14:33 +0200
-Message-ID: <1514992475-8142-1-git-send-email-amir73il@gmail.com>
-Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wm0-f44.google.com ([74.125.82.44]:43204 "EHLO
-        mail-wm0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752662AbeACPNq (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 3 Jan 2018 10:13:46 -0500
-Sender: linux-unionfs-owner@vger.kernel.org
-List-Id: linux-unionfs@vger.kernel.org
+Subject: [PATCH v2 1/2] nfsd: encode stat->mtime for getattr instead of inode->i_mtime
+Date: Wed,  3 Jan 2018 17:14:34 +0200
+Message-ID: <1514992475-8142-2-git-send-email-amir73il@gmail.com>
+References: <1514992475-8142-1-git-send-email-amir73il@gmail.com>
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
+In-Reply-To: <1514992475-8142-1-git-send-email-amir73il@gmail.com>
+Sender: linux-fsdevel-owner@vger.kernel.org
 To: Jeff Layton <jlayton@poochiereds.net>, "J . Bruce Fields" <bfields@fieldses.org>
 Cc: Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
+List-Id: linux-unionfs@vger.kernel.org
 
-Bruce, Jeff,
+The values of stat->mtime and inode->i_mtime may differ for overlayfs
+and stat->mtime is the correct value to use when encoding getattr.
+This is also consistent with the fact that other attr times are also
+encoded from stat values.
 
-These patches fix issues I found when running nfstest_posix
-over NFS exported overlayfs. The issues stem from the fact that
-the overlay inode i_mtime is often out of date w.r.t stat->mtime.
+Both callers of lease_get_mtime() already have the value of stat->mtime,
+so the only needed change is that lease_get_mtime() will not overwrite
+this value with inode->i_mtime in case the inode does not have an
+exclusive lease.
 
-I am posting these separately from (soon to be posted) overlayfs NFS
-export support patches to get your ACK, or, since those changes are
-independent from overlayfs, you could carry them through your tree.
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+---
+ fs/locks.c       | 6 ++----
+ fs/nfsd/nfsxdr.c | 1 +
+ 2 files changed, 3 insertions(+), 4 deletions(-)
 
-Please note that this does not eliminate all direct access of nfsd
-to inode->i_mtime, but only the low hanging access sites, which also
-happen to be the cases that matter to overlayfs.
-
-Changes since v1 (RFC):
-- Use stat->mtime times instead of inode->i_mtime where relevant,
-  so overlayfs doesn't need to be special cased
-
-Thanks,
-Amir.
-
-Amir Goldstein (2):
-  nfsd: encode stat->mtime for getattr instead of inode->i_mtime
-  nfsd: store stat times in fill_pre_wcc() instead of inode times
-
- fs/locks.c        |  6 ++----
- fs/nfsd/nfs3xdr.c | 31 ++++++++++++++++++++++++++++++-
- fs/nfsd/nfs4xdr.c |  2 +-
- fs/nfsd/nfsfh.h   | 28 ++++++----------------------
- fs/nfsd/nfsxdr.c  |  1 +
- 5 files changed, 40 insertions(+), 28 deletions(-)
-
+diff --git a/fs/locks.c b/fs/locks.c
+index 21b4dfa289ee..d6ff4beb70ce 100644
+--- a/fs/locks.c
++++ b/fs/locks.c
+@@ -1554,9 +1554,9 @@ int __break_lease(struct inode *inode, unsigned int mode, unsigned int type)
+ EXPORT_SYMBOL(__break_lease);
+ 
+ /**
+- *	lease_get_mtime - get the last modified time of an inode
++ *	lease_get_mtime - update modified time of an inode with exclusive lease
+  *	@inode: the inode
+- *      @time:  pointer to a timespec which will contain the last modified time
++ *      @time:  pointer to a timespec which contains the last modified time
+  *
+  * This is to force NFS clients to flush their caches for files with
+  * exclusive leases.  The justification is that if someone has an
+@@ -1580,8 +1580,6 @@ void lease_get_mtime(struct inode *inode, struct timespec *time)
+ 
+ 	if (has_lease)
+ 		*time = current_time(inode);
+-	else
+-		*time = inode->i_mtime;
+ }
+ 
+ EXPORT_SYMBOL(lease_get_mtime);
+diff --git a/fs/nfsd/nfsxdr.c b/fs/nfsd/nfsxdr.c
+index 644a0342f0e0..79b6064f8977 100644
+--- a/fs/nfsd/nfsxdr.c
++++ b/fs/nfsd/nfsxdr.c
+@@ -188,6 +188,7 @@ encode_fattr(struct svc_rqst *rqstp, __be32 *p, struct svc_fh *fhp,
+ 	*p++ = htonl((u32) stat->ino);
+ 	*p++ = htonl((u32) stat->atime.tv_sec);
+ 	*p++ = htonl(stat->atime.tv_nsec ? stat->atime.tv_nsec / 1000 : 0);
++	time = stat->mtime;
+ 	lease_get_mtime(d_inode(dentry), &time); 
+ 	*p++ = htonl((u32) time.tv_sec);
+ 	*p++ = htonl(time.tv_nsec ? time.tv_nsec / 1000 : 0); 
 -- 
 2.7.4
