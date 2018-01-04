@@ -1,129 +1,75 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH v2 06/17] ovl: copy up before encoding dir file handle when ofs->numlower > 1
-Date: Thu,  4 Jan 2018 19:20:38 +0200
-Message-ID: <1515086449-26563-7-git-send-email-amir73il@gmail.com>
+Subject: [PATCH v2 11/17] ovl: decode indexed dir file handles
+Date: Thu,  4 Jan 2018 19:20:43 +0200
+Message-ID: <1515086449-26563-12-git-send-email-amir73il@gmail.com>
 References: <1515086449-26563-1-git-send-email-amir73il@gmail.com>
-Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wr0-f196.google.com ([209.85.128.196]:34364 "EHLO
-        mail-wr0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751957AbeADRUp (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 4 Jan 2018 12:20:45 -0500
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
 In-Reply-To: <1515086449-26563-1-git-send-email-amir73il@gmail.com>
-Sender: linux-unionfs-owner@vger.kernel.org
-List-Id: linux-unionfs@vger.kernel.org
+Sender: linux-fsdevel-owner@vger.kernel.org
 To: Miklos Szeredi <miklos@szeredi.hu>
 Cc: Jeff Layton <jlayton@poochiereds.net>, "J . Bruce Fields" <bfields@fieldses.org>, linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
+List-Id: linux-unionfs@vger.kernel.org
 
-Decoding a merge dir, whose origin's parent may be on a different lower
-layer then the overlay parent's origin is not implemented. As a simple
-aproximation, we do not encode lower dir file handles when overlay has
-multiple lower layers. Instead, we copy up the lower dir first and then
-encode an upper dir file handle.
+Decoding an indexed dir file handle is done by looking up the file handle
+in index dir by name and then decoding the upper dir from the index origin
+file handle. The decoded upper path is used to lookup an overlay dentry of
+the same path.
 
 Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- fs/overlayfs/export.c | 66 +++++++++++++++++++++++++++++++++++++++++++++++++--
- 1 file changed, 64 insertions(+), 2 deletions(-)
+ fs/overlayfs/export.c    | 13 +++++++++++++
+ fs/overlayfs/namei.c     |  2 +-
+ fs/overlayfs/overlayfs.h |  1 +
+ 3 files changed, 15 insertions(+), 1 deletion(-)
 
 diff --git a/fs/overlayfs/export.c b/fs/overlayfs/export.c
-index 919d43aaa387..149cfb5c967e 100644
+index 6ecb54d4b52c..6141682301d6 100644
 --- a/fs/overlayfs/export.c
 +++ b/fs/overlayfs/export.c
-@@ -26,13 +26,48 @@
-  * copied up before NFS export was enabled. In that case we don't need to worry
-  * about staying consistent with pre copy up encoding and we encode an upper
-  * file handle.
-+ *
-+ * The following table summarizes the different file handle encodings used for
-+ * different overlay object types with overlay configuration of single and
-+ * multiple lower layers:
-+ *
-+ *  Object type		| Single lower	| Multiple lower
-+ * --------------------------------------------------------
-+ *  Pure upper		|	U	|	U
-+ *  Non-indexed upper	|	U	|	U
-+ *  Indexed non-dir	|	L	|	L
-+ *  Lower non-dir	|	L	|	L
-+ *  Indexed directory	|	L	|	U
-+ *  Lower directory	|	L	|	U (*)
-+ *
-+ * U = upper file handle
-+ * L = lower file handle
-+ *
-+ * The important thing to note is that within the same overlay configuration
-+ * an overlay object encoding is invariant to copy up (i.e. Lower->Indexed).
-+ *
-+ * (*) If decoding an overlay dir from origin is not implemented, we do not
-+ * encode by lower inode, because if file gets copied up after we encoded it,
-+ * we won't be able to decode the file handle. To mitigate this case, we copy
-+ * up the lower dir first and then encode an upper dir file handle.
-  */
- static bool ovl_should_encode_origin(struct dentry *dentry)
- {
-+	struct ovl_fs *ofs = dentry->d_sb->s_fs_info;
-+
- 	/* Root dentry was born upper */
- 	if (dentry == dentry->d_sb->s_root)
- 		return false;
+@@ -401,6 +401,19 @@ static struct dentry *ovl_lower_fh_to_d(struct super_block *sb,
+ 		index = NULL;
+ 	}
  
-+	/*
-+	 * Decoding a merge dir, whose origin's parent may be on a different
-+	 * lower layer then the overlay parent's origin is not implemented.
-+	 * As a simple aproximation, we do not encode lower dir file handles
-+	 * when overlay has multiple lower layers.
-+	 */
-+	if (d_is_dir(dentry) && ofs->numlower > 1)
-+		return false;
++	/* Then try to get upper dir by index */
++	if (index && d_is_dir(index)) {
++		struct dentry *upper = ovl_index_upper(ofs, index);
 +
- 	/* Decoding a non-indexed upper from origin is not implemented */
- 	if (ovl_dentry_upper(dentry) &&
- 	    !ovl_test_flag(OVL_INDEX, d_inode(dentry)))
-@@ -41,16 +76,43 @@ static bool ovl_should_encode_origin(struct dentry *dentry)
- 	return true;
++		err = PTR_ERR(upper);
++		if (IS_ERR_OR_NULL(upper))
++			goto out_err;
++
++		dentry = ovl_get_dentry(sb, upper, NULL, NULL);
++		dput(upper);
++		goto out;
++	}
++
+ 	/* Then lookup origin by fh */
+ 	err = ovl_check_origin_fh(fh, NULL, ofs->lower_layers, ofs->numlower,
+ 				  &stack);
+diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
+index 638ff196da93..13869108dc32 100644
+--- a/fs/overlayfs/namei.c
++++ b/fs/overlayfs/namei.c
+@@ -436,7 +436,7 @@ int ovl_verify_origin(struct dentry *dentry, struct dentry *origin,
  }
  
-+static int ovl_encode_maybe_copy_up(struct dentry *dentry)
-+{
-+	int err;
-+
-+	if (ovl_dentry_upper(dentry))
-+		return 0;
-+
-+	err = ovl_want_write(dentry);
-+	if (err)
-+		return err;
-+
-+	err = ovl_copy_up(dentry);
-+
-+	ovl_drop_write(dentry);
-+	return err;
-+}
-+
- int ovl_d_to_fh(struct dentry *dentry, char *buf, int buflen)
+ /* Get upper dentry from index */
+-static struct dentry *ovl_index_upper(struct ovl_fs *ofs, struct dentry *index)
++struct dentry *ovl_index_upper(struct ovl_fs *ofs, struct dentry *index)
  {
--	struct dentry *upper = ovl_dentry_upper(dentry);
-+	struct dentry *upper;
- 	struct dentry *origin = ovl_dentry_lower(dentry);
- 	struct ovl_fh *fh = NULL;
- 	int err;
- 
--	if (!ovl_should_encode_origin(dentry))
-+	/*
-+	 * If we should not encode a lower dir file handle, copy up and encode
-+	 * an upper dir file handle.
-+	 */
-+	if (!ovl_should_encode_origin(dentry)) {
-+		err = ovl_encode_maybe_copy_up(dentry);
-+		if (err)
-+			goto fail;
-+
- 		origin = NULL;
-+	}
- 
-+	upper = ovl_dentry_upper(dentry);
- 	err = -EACCES;
- 	if (!upper || origin)
- 		goto fail;
+ 	struct ovl_fh *fh;
+ 	struct ovl_layer layer = { .mnt = ofs->upper_mnt };
+diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
+index 8fa8253af7cb..7310e0eca383 100644
+--- a/fs/overlayfs/overlayfs.h
++++ b/fs/overlayfs/overlayfs.h
+@@ -265,6 +265,7 @@ int ovl_check_origin_fh(struct ovl_fh *fh, struct dentry *upperdentry,
+ 			struct ovl_path **stackp);
+ int ovl_verify_origin(struct dentry *dentry, struct dentry *origin,
+ 		      bool is_upper, bool set);
++struct dentry *ovl_index_upper(struct ovl_fs *ofs, struct dentry *index);
+ int ovl_verify_index(struct ovl_fs *ofs, struct dentry *index);
+ int ovl_get_index_name(struct dentry *origin, struct qstr *name);
+ struct dentry *ovl_get_index_fh(struct ovl_fs *ofs, struct ovl_fh *fh);
 -- 
 2.7.4
