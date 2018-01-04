@@ -1,145 +1,114 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH v2 08/23] ovl: unbless lower st_ino of files under unverified redirected dir
-Date: Thu,  4 Jan 2018 18:40:03 +0200
-Message-ID: <1515084018-25134-9-git-send-email-amir73il@gmail.com>
+Subject: [PATCH v2 13/23] ovl: create ovl_need_index() helper
+Date: Thu,  4 Jan 2018 18:40:08 +0200
+Message-ID: <1515084018-25134-14-git-send-email-amir73il@gmail.com>
 References: <1515084018-25134-1-git-send-email-amir73il@gmail.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wr0-f193.google.com ([209.85.128.193]:45385 "EHLO
-        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753395AbeADQji (ORCPT
+Received: from mail-wr0-f196.google.com ([209.85.128.196]:42872 "EHLO
+        mail-wr0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753512AbeADQjn (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 4 Jan 2018 11:39:38 -0500
-Received: by mail-wr0-f193.google.com with SMTP id o15so2006868wrf.12
-        for <linux-unionfs@vger.kernel.org>; Thu, 04 Jan 2018 08:39:37 -0800 (PST)
+        Thu, 4 Jan 2018 11:39:43 -0500
+Received: by mail-wr0-f196.google.com with SMTP id w107so2009139wrb.9
+        for <linux-unionfs@vger.kernel.org>; Thu, 04 Jan 2018 08:39:43 -0800 (PST)
 In-Reply-To: <1515084018-25134-1-git-send-email-amir73il@gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: Miklos Szeredi <miklos@szeredi.hu>
 Cc: zhangyi <yi.zhang@huawei.com>, linux-unionfs@vger.kernel.org
 
-On a malformed overlay, several redirected dirs can point to the same
-dir on a lower layer. This presents a similar challenge as broken
-hardlinks, because different objects in the overlay can return the same
-st_ino/st_dev pair from stat(2).
+The helper determines which lower file needs to be indexed
+on copy up and before nlink changes.
 
-For broken hardlinks, we do not provide constant st_ino on copy up to
-avoid this inconsistency. When "verify" feature is enabled, apply
-the same logic to files nested under unverified redirected dirs.
+For index=on, the helper evaluates to true for lower hardlinks.
 
 Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- fs/overlayfs/inode.c     | 18 ++++++++++++++----
- fs/overlayfs/namei.c     |  4 ++++
- fs/overlayfs/overlayfs.h |  4 ++++
- fs/overlayfs/util.c      | 27 +++++++++++++++++++++++++++
- 4 files changed, 49 insertions(+), 4 deletions(-)
+ fs/overlayfs/copy_up.c   |  6 +-----
+ fs/overlayfs/overlayfs.h |  1 +
+ fs/overlayfs/util.c      | 24 ++++++++++++++++++++----
+ 3 files changed, 22 insertions(+), 9 deletions(-)
 
-diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
-index 00b6b294272a..1b53755bd86c 100644
---- a/fs/overlayfs/inode.c
-+++ b/fs/overlayfs/inode.c
-@@ -105,12 +105,22 @@ int ovl_getattr(const struct path *path, struct kstat *stat,
- 			 * Lower hardlinks may be broken on copy up to different
- 			 * upper files, so we cannot use the lower origin st_ino
- 			 * for those different files, even for the same fs case.
-+			 *
-+			 * Similarly, several redirected dirs can point to the
-+			 * same dir on a lower layer. With the "verify" feature,
-+			 * we do not use the lower origin st_ino, if any parent
-+			 * is redirected and we haven't verified that this
-+			 * redirect is unique.
-+			 *
- 			 * With inodes index enabled, it is safe to use st_ino
--			 * of an indexed hardlinked origin. The index validates
--			 * that the upper hardlink is not broken.
-+			 * of an indexed origin. The index validates that the
-+			 * upper hardlink is not broken and that a redirected
-+			 * dir is the only redirect to that origin.
- 			 */
--			if (is_dir || lowerstat.nlink == 1 ||
--			    ovl_test_flag(OVL_INDEX, d_inode(dentry)))
-+			if (ovl_test_flag(OVL_INDEX, d_inode(dentry)) ||
-+			    ((is_dir || lowerstat.nlink == 1) &&
-+			     (!ovl_verify(dentry->d_sb) ||
-+			      !ovl_dentry_is_renamed(dentry))))
- 				stat->ino = lowerstat.ino;
+diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
+index 206ececd5ae7..27856663c8c7 100644
+--- a/fs/overlayfs/copy_up.c
++++ b/fs/overlayfs/copy_up.c
+@@ -536,11 +536,7 @@ static int ovl_do_copy_up(struct ovl_copy_up_ctx *c)
+ {
+ 	int err;
+ 	struct ovl_fs *ofs = c->dentry->d_sb->s_fs_info;
+-	bool indexed = false;
+-
+-	if (ovl_indexdir(c->dentry->d_sb) && !S_ISDIR(c->stat.mode) &&
+-	    c->stat.nlink > 1)
+-		indexed = true;
++	bool indexed = ovl_need_index(c->dentry);
  
- 			if (samefs)
-diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
-index 56deb2785af7..8aa4724d4fb0 100644
---- a/fs/overlayfs/namei.c
-+++ b/fs/overlayfs/namei.c
-@@ -811,6 +811,10 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
- 			goto out_free_oe;
- 
- 		OVL_I(inode)->redirect = upperredirect;
-+		/* OVL_RENAMED indicates rename in any layer/path component */
-+		if (d.redirect ||
-+		    ovl_test_flag(OVL_RENAMED, d_inode(dentry->d_parent)))
-+			ovl_set_flag(OVL_RENAMED, inode);
- 		if (index)
- 			ovl_set_flag(OVL_INDEX, inode);
- 	}
+ 	if (S_ISDIR(c->stat.mode) || c->stat.nlink == 1 || indexed)
+ 		c->origin = true;
 diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-index 379bb349acc4..46f9f097e822 100644
+index 46f9f097e822..86767b71e485 100644
 --- a/fs/overlayfs/overlayfs.h
 +++ b/fs/overlayfs/overlayfs.h
-@@ -33,7 +33,10 @@ enum ovl_flag {
- 	OVL_IMPURE,
- 	/* Non-merge dir that may contain whiteout entries */
- 	OVL_WHITEOUTS,
-+	/* Found index entry for origin inode */
- 	OVL_INDEX,
-+	/* Merge dir in path was redirected */
-+	OVL_RENAMED,
- };
- 
- /*
-@@ -219,6 +222,7 @@ void ovl_dentry_set_upper_alias(struct dentry *dentry);
- bool ovl_redirect_dir(struct super_block *sb);
- const char *ovl_dentry_get_redirect(struct dentry *dentry);
- void ovl_dentry_set_redirect(struct dentry *dentry, const char *redirect);
-+bool ovl_dentry_is_renamed(struct dentry *dentry);
- void ovl_inode_init(struct inode *inode, struct dentry *upperdentry,
- 		    struct dentry *lowerdentry);
- void ovl_inode_update(struct inode *inode, struct dentry *upperdentry);
+@@ -243,6 +243,7 @@ void ovl_clear_flag(unsigned long flag, struct inode *inode);
+ bool ovl_test_flag(unsigned long flag, struct inode *inode);
+ bool ovl_inuse_trylock(struct dentry *dentry);
+ void ovl_inuse_unlock(struct dentry *dentry);
++bool ovl_need_index(struct dentry *dentry);
+ int ovl_nlink_start(struct dentry *dentry, bool *locked);
+ void ovl_nlink_end(struct dentry *dentry, bool locked);
+ int ovl_lock_rename_workdir(struct dentry *workdir, struct dentry *upperdir);
 diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
-index fb0b561b0568..42809eae0992 100644
+index 42809eae0992..0254d7f0d401 100644
 --- a/fs/overlayfs/util.c
 +++ b/fs/overlayfs/util.c
-@@ -256,6 +256,33 @@ void ovl_dentry_set_redirect(struct dentry *dentry, const char *redirect)
- 
- 	kfree(oi->redirect);
- 	oi->redirect = redirect;
-+	/* Descendant are marked RENAMED lazily by ovl_dentry_is_renamed() */
-+	ovl_set_flag(OVL_RENAMED, d_inode(dentry));
-+}
-+
-+/*
-+ * Check if any component in path has been renamed.
-+ */
-+bool ovl_dentry_is_renamed(struct dentry *dentry)
-+{
-+	struct dentry *d, *tmp;
-+	bool renamed;
-+
-+	for (d = dget(dentry); !IS_ROOT(d);) {
-+		if (ovl_test_flag(OVL_RENAMED, d_inode(d)))
-+			break;
-+
-+		tmp = dget_parent(d);
-+		dput(d);
-+		d = tmp;
-+	}
-+
-+	renamed = !IS_ROOT(d);
-+	dput(d);
-+
-+	if (renamed)
-+		ovl_set_flag(OVL_RENAMED, d_inode(dentry));
-+	return renamed;
+@@ -481,6 +481,23 @@ void ovl_inuse_unlock(struct dentry *dentry)
+ 	}
  }
  
- void ovl_inode_init(struct inode *inode, struct dentry *upperdentry,
++/*
++ * Does this overlay dentry need to be indexed on copy up?
++ */
++bool ovl_need_index(struct dentry *dentry)
++{
++	struct dentry *lower = ovl_dentry_lower(dentry);
++
++	if (!lower || !ovl_indexdir(dentry->d_sb))
++		return false;
++
++	/* Index only lower hardlinks on copy up */
++	if (!d_is_dir(lower) && d_inode(lower)->i_nlink > 1)
++		return true;
++
++	return false;
++}
++
+ /* Caller must hold OVL_I(inode)->lock */
+ static void ovl_cleanup_index(struct dentry *dentry)
+ {
+@@ -551,11 +568,11 @@ int ovl_nlink_start(struct dentry *dentry, bool *locked)
+ 
+ 	/*
+ 	 * With inodes index is enabled, we store the union overlay nlink
+-	 * in an xattr on the index inode. When whiting out lower hardlinks
++	 * in an xattr on the index inode. When whiting out an indexed lower,
+ 	 * we need to decrement the overlay persistent nlink, but before the
+ 	 * first copy up, we have no upper index inode to store the xattr.
+ 	 *
+-	 * As a workaround, before whiteout/rename over of a lower hardlink,
++	 * As a workaround, before whiteout/rename over an indexed lower,
+ 	 * copy up to create the upper index. Creating the upper index will
+ 	 * initialize the overlay nlink, so it could be dropped if unlink
+ 	 * or rename succeeds.
+@@ -563,8 +580,7 @@ int ovl_nlink_start(struct dentry *dentry, bool *locked)
+ 	 * TODO: implement metadata only index copy up when called with
+ 	 *       ovl_copy_up_flags(dentry, O_PATH).
+ 	 */
+-	if (ovl_indexdir(dentry->d_sb) && !ovl_dentry_has_upper_alias(dentry) &&
+-	    d_inode(ovl_dentry_lower(dentry))->i_nlink > 1) {
++	if (ovl_need_index(dentry) && !ovl_dentry_has_upper_alias(dentry)) {
+ 		err = ovl_copy_up(dentry);
+ 		if (err)
+ 			return err;
 -- 
 2.7.4
