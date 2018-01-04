@@ -1,57 +1,89 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [PATCH v2 2/2] nfsd: store stat times in fill_pre_wcc() instead
- of inode times
-Date: Thu, 4 Jan 2018 15:47:10 +0200
-Message-ID: <CAOQ4uxgYyArCWJ5OHV7WeqYxfGvPMPWzvsm9Jf8+JJ5hPjvVLQ@mail.gmail.com>
-References: <1514992475-8142-1-git-send-email-amir73il@gmail.com>
- <1514992475-8142-3-git-send-email-amir73il@gmail.com> <1514994062.3458.14.camel@kernel.org>
- <CAOQ4uxgHwkT=2SGz=XQqP626rfpWCAXtmvBwZuU1N8s1Bh6a4A@mail.gmail.com>
- <1515005144.3458.42.camel@kernel.org> <CAOQ4uxg86oNAYXLN8iCFJTVOV7nxp9a8AwrQPhvr1M-dWqWErA@mail.gmail.com>
- <1515072403.20282.16.camel@kernel.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Subject: [PATCH v2 00/23] Overlayfs consistency verification with full index
+Date: Thu,  4 Jan 2018 18:39:55 +0200
+Message-ID: <1515084018-25134-1-git-send-email-amir73il@gmail.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-yw0-f177.google.com ([209.85.161.177]:39582 "EHLO
-        mail-yw0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752845AbeADNrL (ORCPT
+Received: from mail-wr0-f194.google.com ([209.85.128.194]:44726 "EHLO
+        mail-wr0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752515AbeADQj3 (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 4 Jan 2018 08:47:11 -0500
-In-Reply-To: <1515072403.20282.16.camel@kernel.org>
+        Thu, 4 Jan 2018 11:39:29 -0500
+Received: by mail-wr0-f194.google.com with SMTP id l41so2010187wre.11
+        for <linux-unionfs@vger.kernel.org>; Thu, 04 Jan 2018 08:39:28 -0800 (PST)
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Jeff Layton <jlayton@kernel.org>
-Cc: "J . Bruce Fields" <bfields@fieldses.org>, Miklos Szeredi <miklos@szeredi.hu>, overlayfs <linux-unionfs@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: zhangyi <yi.zhang@huawei.com>, linux-unionfs@vger.kernel.org
 
-On Thu, Jan 4, 2018 at 3:26 PM, Jeff Layton <jlayton@kernel.org> wrote:
-> On Wed, 2018-01-03 at 23:03 +0200, Amir Goldstein wrote:
-[...]
+Miklos,
 
->
->> So if I understand you correctly, patch 2/2 is not needed for correctness?
->> Meaning that if overlay inode times are not uptodate, nothing fatal will
->> happen? Or did you mean that I must take care of signalling the client
->> that time values are not reliable for overlayfs?
->>
->> If patch 2/2 is indeed not a must, then I would like to ask you to ACK
->> patch 1/2. It seems quite simple, trivial and harmless to me even  without
->> diving deep into NFS protocols. I think patch 1/2 should be enough for
->> first implementation - it certainly is enough to fix the nfstest_posix failures.
->>
->> Thanks!
->> Amir.
->
-> Patch #1 looks fine. I think we ought to wait on #2.
->
-> We really should be doing getattrs like this, but when that fails we
-> should probably just zero out the wcc / change_info4 at the end rather
-> than pretending that it's valid.
->
-> I think Bruce or I can take care of that bit after patch #1 is merged.
+This is the 2nd revision of the prep patch series for NFS export.
+I am posing the prep patches only to overlayfs list and will post
+NFS export implementation to fsdevel.
 
-Great!
+In the 1st revision the mount option 'index=all' was used to request
+a full index. This revision re-brands the feature as 'verify=on',
+including a config/module option and documentation that explains the
+benefits of full index (i.e. avoid multiple redirect).
 
-Then I'll stack patch #1 along with my overlay nfs export series
-with your ACK.
+The prep series goes on a bit beyond implementation of 'verify=on'.
+Patches 17-23 create the whiteout index entries and make some more
+changes that are prerequisites for NFS export implementation.
 
-Thanks!
+To sanity test full index, I have implemented _overlay_check_fs()
+helper for xfstests [3], which is a very basic "fsck" of the index dir.
+This helper is called at the end of each overlay xfstest to verify the
+sanity of the index entries. There is also a new test to verify multiple
+redirect dir is detected on lookup.
+
+The series is based on top of my ovl-fixes [1] branch, which includes
+some patches I had already posted. The complete NFS export work is
+available here [2].
+
 Amir.
+
+[1] https://github.com/amir73il/linux/commits/ovl-fixes
+[2] https://github.com/amir73il/linux/commits/ovl-nfs-export-v2
+[3] https://github.com/amir73il/xfstests/commits/ovl-index-all
+
+Amir Goldstein (23):
+  ovl: disable index when no xattr support
+  ovl: ignore index mount option when no upper layer
+  ovl: store layer index in ovl_layer
+  ovl: factor out ovl_check_origin_fh()
+  ovl: pass ovl_layer array to ovl_check_origin_fh()
+  ovl: add support for "verify" feature
+  ovl: verify stored origin fh matches lower dir
+  ovl: unbless lower st_ino of files under unverified redirected dir
+  ovl: lookup index for directories
+  ovl: verify whiteout index entries on mount
+  ovl: verify directory index entries on mount
+  ovl: cleanup temp index entries
+  ovl: create ovl_need_index() helper
+  ovl: index all files on copy up with 'verify=on'
+  ovl: index directories on copy up with 'verify=on'
+  ovl: cleanup dir index when dir nlink drops to zero
+  ovl: whiteout index when union nlink drops to zero
+  ovl: whiteout orphan index entries on mount
+  ovl: factor out ovl_get_index_fh() helper
+  ovl: do not pass overlay dentry to ovl_get_inode()
+  ovl: grab i_count reference of lower inode
+  ovl: use d_splice_alias() in place of d_add() in lookup
+  ovl: copy up of disconnected dentries
+
+ Documentation/filesystems/overlayfs.txt |  16 ++
+ fs/dcache.c                             |   1 +
+ fs/overlayfs/Kconfig                    |  18 ++
+ fs/overlayfs/copy_up.c                  | 179 ++++++++++---
+ fs/overlayfs/dir.c                      |  58 +++--
+ fs/overlayfs/inode.c                    |  38 ++-
+ fs/overlayfs/namei.c                    | 442 +++++++++++++++++++++++---------
+ fs/overlayfs/overlayfs.h                |  29 ++-
+ fs/overlayfs/ovl_entry.h                |   3 +
+ fs/overlayfs/readdir.c                  |  37 ++-
+ fs/overlayfs/super.c                    |  74 ++++--
+ fs/overlayfs/util.c                     |  94 +++++--
+ 12 files changed, 752 insertions(+), 237 deletions(-)
+
+-- 
+2.7.4
