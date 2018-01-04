@@ -1,99 +1,121 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH v2 13/17] ovl: hash directory inodes for NFS export
-Date: Thu,  4 Jan 2018 19:20:45 +0200
-Message-ID: <1515086449-26563-14-git-send-email-amir73il@gmail.com>
+Subject: [PATCH v2 10/17] ovl: decode lower file handles of unlinked but open files
+Date: Thu,  4 Jan 2018 19:20:42 +0200
+Message-ID: <1515086449-26563-11-git-send-email-amir73il@gmail.com>
 References: <1515086449-26563-1-git-send-email-amir73il@gmail.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:43437 "EHLO
-        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752099AbeADRUy (ORCPT
+Received: from mail-wm0-f65.google.com ([74.125.82.65]:46372 "EHLO
+        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752215AbeADRUu (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 4 Jan 2018 12:20:54 -0500
+        Thu, 4 Jan 2018 12:20:50 -0500
 In-Reply-To: <1515086449-26563-1-git-send-email-amir73il@gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: Miklos Szeredi <miklos@szeredi.hu>
 Cc: Jeff Layton <jlayton@poochiereds.net>, "J . Bruce Fields" <bfields@fieldses.org>, linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
 
-If NFS export is enabled, hash indexed directory inodes by origin inode,
-so we can find them in inode cache using the decoded origin inode before
-looking up origin file handle in index.
-
-Non-indexed and pure upper dirs are hashed by upper inode, because those
-are encoded as upper file handles.
+Lookup overlay inode in cache by origin inode, so we can decode a file
+handle of an open file even if the index has a whiteout index entry to
+mark this overlay inode was unlinked.
 
 Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- fs/overlayfs/inode.c | 11 +++++++----
- fs/overlayfs/super.c |  3 +++
- fs/overlayfs/util.c  |  4 +++-
- 3 files changed, 13 insertions(+), 5 deletions(-)
+ fs/overlayfs/export.c    | 22 ++++++++++++++++++++--
+ fs/overlayfs/inode.c     | 16 ++++++++++++++++
+ fs/overlayfs/overlayfs.h |  1 +
+ 3 files changed, 37 insertions(+), 2 deletions(-)
 
-diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
-index a25908ba3512..8db3f466df60 100644
---- a/fs/overlayfs/inode.c
-+++ b/fs/overlayfs/inode.c
-@@ -563,7 +563,9 @@ unsigned int ovl_get_nlink(struct dentry *lowerdentry,
- 	char buf[13];
+diff --git a/fs/overlayfs/export.c b/fs/overlayfs/export.c
+index 602bada474ba..6ecb54d4b52c 100644
+--- a/fs/overlayfs/export.c
++++ b/fs/overlayfs/export.c
+@@ -385,13 +385,21 @@ static struct dentry *ovl_lower_fh_to_d(struct super_block *sb,
+ 	struct ovl_path *stack = &origin;
+ 	struct dentry *dentry = NULL;
+ 	struct dentry *index = NULL;
++	struct inode *inode = NULL;
++	bool is_deleted = false;
  	int err;
  
--	if (!lowerdentry || !upperdentry || d_inode(lowerdentry)->i_nlink == 1)
-+	if (!lowerdentry || !upperdentry ||
-+	    d_inode(lowerdentry)->i_nlink == 1 ||
-+	    S_ISDIR(d_inode(upperdentry)->i_mode))
- 		return fallback;
+ 	/* First lookup indexed upper by fh */
+ 	index = ovl_get_index_fh(ofs, fh);
+ 	err = PTR_ERR(index);
+-	if (IS_ERR(index))
+-		return ERR_PTR(err);
++	if (IS_ERR(index)) {
++		if (err != -ESTALE)
++			return ERR_PTR(err);
++
++		/* Found a whiteout index - treat as deleted inode */
++		is_deleted = true;
++		index = NULL;
++	}
  
- 	err = vfs_getxattr(upperdentry, OVL_XATTR_NLINK, &buf, sizeof(buf) - 1);
-@@ -661,6 +663,7 @@ struct inode *ovl_get_inode(struct super_block *sb, struct dentry *upperdentry,
- 	struct inode *inode;
- 	/* Already indexed or could be indexed on copy up? */
- 	bool indexed = (index || (ovl_indexdir(sb) && !upperdentry));
-+	struct dentry *origin = indexed ? lowerdentry : upperdentry;
- 
- 	if (WARN_ON(upperdentry && indexed && !lowerdentry))
- 		return ERR_PTR(-EIO);
-@@ -673,10 +676,10 @@ struct inode *ovl_get_inode(struct super_block *sb, struct dentry *upperdentry,
- 	 * not use lower as hash key in that case.
- 	 * Hash inodes that are or could be indexed by origin inode and
- 	 * non-indexed upper inodes that could be hard linked by upper inode.
-+	 * Hash directory inodes only if NFS export is supported.
- 	 */
--	if (!S_ISDIR(realinode->i_mode) && (upperdentry || indexed)) {
--		struct inode *key = d_inode(indexed ? lowerdentry :
--						      upperdentry);
-+	if (origin && (!S_ISDIR(realinode->i_mode) || sb->s_export_op)) {
-+		struct inode *key = d_inode(origin);
- 		unsigned int nlink;
- 
- 		inode = iget5_locked(sb, (unsigned long) key,
-diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-index f152b817e4d0..1bc37bc23e89 100644
---- a/fs/overlayfs/super.c
-+++ b/fs/overlayfs/super.c
-@@ -1341,6 +1341,9 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
- 
- 	/* Root is always merge -> can have whiteouts */
- 	ovl_set_flag(OVL_WHITEOUTS, d_inode(root_dentry));
-+	/* Hash root directory inode by upper dir inode for NFS export */
-+	if (sb->s_export_op)
-+		ovl_inode_update(d_inode(root_dentry), upperpath.dentry);
- 	ovl_inode_init(d_inode(root_dentry), upperpath.dentry,
- 		       ovl_dentry_lower(root_dentry));
- 
-diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
-index 1b0dc903cf6d..92a2a70db67c 100644
---- a/fs/overlayfs/util.c
-+++ b/fs/overlayfs/util.c
-@@ -308,7 +308,9 @@ void ovl_inode_update(struct inode *inode, struct dentry *upperdentry)
- 	 */
- 	smp_wmb();
- 	OVL_I(inode)->__upperdentry = upperdentry;
--	if (!S_ISDIR(upperinode->i_mode) && inode_unhashed(inode)) {
-+	/* Hash directory inodes only if NFS export is supported */
-+	if ((!S_ISDIR(upperinode->i_mode) || inode->i_sb->s_export_op) &&
-+	    inode_unhashed(inode)) {
- 		inode->i_private = upperinode;
- 		__insert_inode_hash(inode, (unsigned long) upperinode);
+ 	/* Then lookup origin by fh */
+ 	err = ovl_check_origin_fh(fh, NULL, ofs->lower_layers, ofs->numlower,
+@@ -404,6 +412,15 @@ static struct dentry *ovl_lower_fh_to_d(struct super_block *sb,
+ 		err = ovl_verify_origin(index, origin.dentry, false, false);
+ 		if (err)
+ 			goto out_err;
++	} else if (is_deleted && origin.dentry && !d_is_dir(origin.dentry)) {
++		/* Lookup deleted overlay inode by origin inode */
++		inode = ovl_lookup_inode(sb, origin.dentry);
++		err = -ESTALE;
++		if (!inode || atomic_read(&inode->i_count) == 1)
++			goto out_err;
++
++		/* Deleted but still open? */
++		index = dget(ovl_i_dentry_upper(inode));
  	}
+ 
+ 	dentry = ovl_get_dentry(sb, NULL, &origin, index);
+@@ -411,6 +428,7 @@ static struct dentry *ovl_lower_fh_to_d(struct super_block *sb,
+ out:
+ 	dput(origin.dentry);
+ 	dput(index);
++	iput(inode);
+ 	return dentry;
+ 
+ out_err:
+diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
+index bb742d195f12..a25908ba3512 100644
+--- a/fs/overlayfs/inode.c
++++ b/fs/overlayfs/inode.c
+@@ -637,6 +637,22 @@ static bool ovl_verify_inode(struct inode *inode, struct dentry *lowerdentry,
+ 	return true;
+ }
+ 
++struct inode *ovl_lookup_inode(struct super_block *sb, struct dentry *origin)
++{
++	struct inode *inode, *key = d_inode(origin);
++
++	inode = ilookup5(sb, (unsigned long) key, ovl_inode_test, key);
++	if (!inode)
++		return NULL;
++
++	if (!ovl_verify_inode(inode, origin, NULL)) {
++		iput(inode);
++		return ERR_PTR(-ESTALE);
++	}
++
++	return inode;
++}
++
+ struct inode *ovl_get_inode(struct super_block *sb, struct dentry *upperdentry,
+ 			    struct dentry *lowerdentry, struct dentry *index,
+ 			    unsigned int numlower)
+diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
+index 2ddd74043b5f..8fa8253af7cb 100644
+--- a/fs/overlayfs/overlayfs.h
++++ b/fs/overlayfs/overlayfs.h
+@@ -305,6 +305,7 @@ int ovl_update_time(struct inode *inode, struct timespec *ts, int flags);
+ bool ovl_is_private_xattr(const char *name);
+ 
+ struct inode *ovl_new_inode(struct super_block *sb, umode_t mode, dev_t rdev);
++struct inode *ovl_lookup_inode(struct super_block *sb, struct dentry *origin);
+ struct inode *ovl_get_inode(struct super_block *sb, struct dentry *upperdentry,
+ 			    struct dentry *lowerdentry, struct dentry *index,
+ 			    unsigned int numlower);
 -- 
 2.7.4
