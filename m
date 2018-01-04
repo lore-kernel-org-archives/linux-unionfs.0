@@ -1,89 +1,83 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH v2 01/17] ovl: document NFS export
-Date: Thu,  4 Jan 2018 19:20:33 +0200
-Message-ID: <1515086449-26563-2-git-send-email-amir73il@gmail.com>
+Subject: [PATCH v2 05/17] ovl: encode non-indexed upper file handles
+Date: Thu,  4 Jan 2018 19:20:37 +0200
+Message-ID: <1515086449-26563-6-git-send-email-amir73il@gmail.com>
 References: <1515086449-26563-1-git-send-email-amir73il@gmail.com>
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
+Return-path: <linux-unionfs-owner@vger.kernel.org>
+Received: from mail-wm0-f67.google.com ([74.125.82.67]:38488 "EHLO
+        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751682AbeADRUo (ORCPT
+        <rfc822;linux-unionfs@vger.kernel.org>);
+        Thu, 4 Jan 2018 12:20:44 -0500
 In-Reply-To: <1515086449-26563-1-git-send-email-amir73il@gmail.com>
-Sender: linux-fsdevel-owner@vger.kernel.org
+Sender: linux-unionfs-owner@vger.kernel.org
+List-Id: linux-unionfs@vger.kernel.org
 To: Miklos Szeredi <miklos@szeredi.hu>
 Cc: Jeff Layton <jlayton@poochiereds.net>, "J . Bruce Fields" <bfields@fieldses.org>, linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
-List-Id: linux-unionfs@vger.kernel.org
+
+We only need to encode origin if there is a chance that the same object was
+encoded pre copy up and then we need to stay consistent with the same
+encoding also after copy up.
+
+In case a non-pure upper is not indexed, then it was copied up before NFS
+export support was enabled. In that case, we don't need to worry about
+staying consistent with pre copy up encoding and we encode an upper file
+handle.
+
+This mitigates the problem that with no index, we cannot find an upper
+inode from origin inode, so we cannot decode a non-indexed upper from
+origin file handle.
 
 Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- Documentation/filesystems/overlayfs.txt | 59 +++++++++++++++++++++++++++++++++
- 1 file changed, 59 insertions(+)
+ fs/overlayfs/export.c | 28 +++++++++++++++++++++++-----
+ 1 file changed, 23 insertions(+), 5 deletions(-)
 
-diff --git a/Documentation/filesystems/overlayfs.txt b/Documentation/filesystems/overlayfs.txt
-index 00e0595f3d7e..9e21c14c914c 100644
---- a/Documentation/filesystems/overlayfs.txt
-+++ b/Documentation/filesystems/overlayfs.txt
-@@ -315,6 +315,65 @@ origin file handle that was stored at copy_up time.  If a found lower
- directory does not match the stored origin, that directory will not be
- merged with the upper directory.
+diff --git a/fs/overlayfs/export.c b/fs/overlayfs/export.c
+index 48ae02f3acb8..919d43aaa387 100644
+--- a/fs/overlayfs/export.c
++++ b/fs/overlayfs/export.c
+@@ -19,6 +19,28 @@
+ #include <linux/ratelimit.h>
+ #include "overlayfs.h"
  
++/*
++ * We only need to encode origin if there is a chance that the same object was
++ * encoded pre copy up and then we need to stay consistent with the same
++ * encoding also after copy up. If non-pure upper is not indexed, then it was
++ * copied up before NFS export was enabled. In that case we don't need to worry
++ * about staying consistent with pre copy up encoding and we encode an upper
++ * file handle.
++ */
++static bool ovl_should_encode_origin(struct dentry *dentry)
++{
++	/* Root dentry was born upper */
++	if (dentry == dentry->d_sb->s_root)
++		return false;
 +
-+NFS export
-+----------
++	/* Decoding a non-indexed upper from origin is not implemented */
++	if (ovl_dentry_upper(dentry) &&
++	    !ovl_test_flag(OVL_INDEX, d_inode(dentry)))
++		return false;
 +
-+When the underlying filesystems supports NFS export and the "verify"
-+feature is enabled, an overlay filesystem may be exported to NFS.
++	return true;
++}
 +
-+With the "verify" feature, on copy_up of any lower object, an index
-+entry is created under the index directory.  The index entry name is the
-+hexadecimal representation of the copy up origin file handle.  For a
-+non-directory object, the index entry is a hard link to the upper inode.
-+For a directory object, the index entry has an extended attribute
-+"trusted.overlay.origin" with an encoded file handle of the upper
-+directory inode.
-+
-+When encoding a file handle from an overlay filesystem object, the
-+following rules apply:
-+
-+1. For a non-upper object, encode a lower file handle from lower inode
-+2. For an indexed object, encode a lower file handle from copy_up origin
-+3. For a pure-upper object and for an existing non-indexed upper object,
-+   encode an upper file handle from upper inode
-+
-+Encoding of a non-upper directory object is not supported when overlay
-+filesystem has multiple lower layers.  In this case, the directory will
-+be copied up first, and then encoded as an upper file handle.
-+
-+The encoded overlay file handle includes:
-+ - Header including path type information (e.g. lower/upper)
-+ - UUID of the underlying filesystem
-+ - Underlying filesystem encoding of underlying inode
-+
-+This encoding is identical to the encoding of copy_up origin stored in
-+"trusted.overlay.origin".
-+
-+When decoding an overlay file handle, the following steps are followed:
-+
-+1. Find underlying layer by UUID and path type information.
-+2. Decode the underlying filesystem file handle to underlying dentry.
-+3. For a lower file handle, lookup the handle in index directory by name.
-+4. If a whiteout is found in index, return ESTALE. This represents an
-+   overlay object that was deleted after its file handle was encoded.
-+5. For a non-directory, instantiate a disconnected overlay dentry from the
-+   decoded underlying dentry, the path type and index inode, if found.
-+6. For a directory, use the connected underlying decoded dentry, path type
-+   and index, to lookup a connected overlay dentry.
-+
-+The "verify" feature ensures, that a decoded overlay directory object will
-+be equivalent to the object that was used to encode the file handle.
-+
-+Decoding a non-directory file handle may return a disconnected dentry.
-+copy_up of that disconnected dentry will create an upper index entry with
-+no upper alias.
-+
-+The overlay filesystem does not support non-directory connectable file
-+handles, so exporting with the 'subtree_check' exportfs configuration will
-+cause failures to lookup files over NFS.
-+
-+
- Testsuite
- ---------
+ int ovl_d_to_fh(struct dentry *dentry, char *buf, int buflen)
+ {
+ 	struct dentry *upper = ovl_dentry_upper(dentry);
+@@ -26,11 +48,7 @@ int ovl_d_to_fh(struct dentry *dentry, char *buf, int buflen)
+ 	struct ovl_fh *fh = NULL;
+ 	int err;
  
+-	/*
+-	 * Overlay root dir inode is encoded as an upper file handle upper,
+-	 * because root dir dentry is born upper and not indexed.
+-	 */
+-	if (dentry == dentry->d_sb->s_root)
++	if (!ovl_should_encode_origin(dentry))
+ 		origin = NULL;
+ 
+ 	err = -EACCES;
 -- 
 2.7.4
