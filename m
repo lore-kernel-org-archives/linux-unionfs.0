@@ -1,110 +1,56 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH v2 12/17] ovl: decode pure lower dir file handles
-Date: Thu,  4 Jan 2018 19:20:44 +0200
-Message-ID: <1515086449-26563-13-git-send-email-amir73il@gmail.com>
+Subject: [PATCH v2 07/17] ovl: encode lower file handles
+Date: Thu,  4 Jan 2018 19:20:39 +0200
+Message-ID: <1515086449-26563-8-git-send-email-amir73il@gmail.com>
 References: <1515086449-26563-1-git-send-email-amir73il@gmail.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wm0-f65.google.com ([74.125.82.65]:35468 "EHLO
-        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752392AbeADRUx (ORCPT
+Received: from mail-wr0-f194.google.com ([209.85.128.194]:34365 "EHLO
+        mail-wr0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752320AbeADRUq (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 4 Jan 2018 12:20:53 -0500
+        Thu, 4 Jan 2018 12:20:46 -0500
 In-Reply-To: <1515086449-26563-1-git-send-email-amir73il@gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: Miklos Szeredi <miklos@szeredi.hu>
 Cc: Jeff Layton <jlayton@poochiereds.net>, "J . Bruce Fields" <bfields@fieldses.org>, linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
 
-Similar to decoding a pure upper dir file handle, decoding a pure lower
-dir file handle is implemented by looking an overlay dentry of the same
-path as the pure lower path and verifying that the overlay dentry's
-real lower matches the decoded real lower file handle.
-
-Unlike the case of upper dir file handle, the lookup of overlay path by
-lower real path can fail or find a mismatched overlay dentry if any of
-the lower parents have been copied up and renamed. To address this case
-we will need to check if any of the lower parents are indexed.
+For indexed or lower non-dir, encode a non-connectable lower file handle
+from origin inode. For indexed or lower dir, when ofs->numlower == 1,
+encode a lower file handle from lower dir.
 
 Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- fs/overlayfs/export.c | 28 ++++++++++++----------------
- 1 file changed, 12 insertions(+), 16 deletions(-)
+ fs/overlayfs/export.c | 10 ++--------
+ 1 file changed, 2 insertions(+), 8 deletions(-)
 
 diff --git a/fs/overlayfs/export.c b/fs/overlayfs/export.c
-index 6141682301d6..ec4b9f29d40d 100644
+index 149cfb5c967e..0b4ad8693b29 100644
 --- a/fs/overlayfs/export.c
 +++ b/fs/overlayfs/export.c
-@@ -215,6 +215,11 @@ static struct dentry *ovl_obtain_alias(struct super_block *sb,
- 	return dentry;
- }
+@@ -95,7 +95,6 @@ static int ovl_encode_maybe_copy_up(struct dentry *dentry)
  
-+static struct dentry *ovl_dentry_real_at(struct dentry *dentry, bool is_upper)
-+{
-+	return is_upper ? ovl_dentry_upper(dentry) : ovl_dentry_lower(dentry);
-+}
-+
- /*
-  * Lookup a child overlay dentry whose real dentry is @real.
-  * If @is_upper is true then we lookup a child overlay dentry with the same
-@@ -228,8 +233,6 @@ static struct dentry *ovl_lookup_real_one(struct dentry *parent,
+ int ovl_d_to_fh(struct dentry *dentry, char *buf, int buflen)
+ {
+-	struct dentry *upper;
+ 	struct dentry *origin = ovl_dentry_lower(dentry);
+ 	struct ovl_fh *fh = NULL;
  	int err;
+@@ -112,13 +111,8 @@ int ovl_d_to_fh(struct dentry *dentry, char *buf, int buflen)
+ 		origin = NULL;
+ 	}
  
- 	/* TODO: use index when looking up by lower real dentry */
--	if (!is_upper)
--		return ERR_PTR(-EACCES);
- 
- 	/* Lookup overlay dentry by real name */
- 	this = lookup_one_len_unlocked(name->name, parent, name->len);
-@@ -240,7 +243,7 @@ static struct dentry *ovl_lookup_real_one(struct dentry *parent,
- 		dput(this);
- 		err = -ENOENT;
- 		goto fail;
--	} else if (ovl_dentry_upper(this) != real) {
-+	} else if (ovl_dentry_real_at(this, is_upper) != real) {
- 		dput(this);
- 		err = -ESTALE;
- 		goto fail;
-@@ -265,15 +268,12 @@ static struct dentry *ovl_lookup_real(struct super_block *sb,
- 	struct dentry *connected;
- 	int err = 0;
- 
--	/* TODO: use index when looking up by lower real dentry */
--	if (!is_upper)
--		return ERR_PTR(-EACCES);
+-	upper = ovl_dentry_upper(dentry);
+-	err = -EACCES;
+-	if (!upper || origin)
+-		goto fail;
 -
- 	connected = dget(sb->s_root);
- 	while (!err) {
- 		struct dentry *next, *this;
- 		struct dentry *parent = NULL;
--		struct dentry *real_connected = ovl_dentry_upper(connected);
-+		struct dentry *real_connected = ovl_dentry_real_at(connected,
-+								   is_upper);
+-	/* TODO: encode non pure-upper by origin */
+-	fh = ovl_encode_fh(upper, true);
++	/* Encode an upper or origin file handle */
++	fh = ovl_encode_fh(origin ?: ovl_dentry_upper(dentry), !origin);
  
- 		if (real_connected == real)
- 			break;
-@@ -342,19 +342,15 @@ static struct dentry *ovl_get_dentry(struct super_block *sb,
- 	if (!d_is_dir(real))
- 		return ovl_obtain_alias(sb, upper, lowerpath, index);
- 
--	/* TODO: lookup connected dir from real lower dir */
--	if (!upper)
--		return ERR_PTR(-EACCES);
--
- 	/* Removed empty directory? */
--	if ((upper->d_flags & DCACHE_DISCONNECTED) || d_unhashed(upper))
-+	if ((real->d_flags & DCACHE_DISCONNECTED) || d_unhashed(real))
- 		return ERR_PTR(-ENOENT);
- 
- 	/*
--	 * If real upper dentry is connected and hashed, get a connected
--	 * overlay dentry with the same path as the real upper dentry.
-+	 * If real dentry is connected and hashed, get a connected overlay
-+	 * dentry whose real dentry is @real.
- 	 */
--	return ovl_lookup_real(sb, upper, true);
-+	return ovl_lookup_real(sb, real, !!upper);
- }
- 
- static struct dentry *ovl_upper_fh_to_d(struct super_block *sb,
+ 	err = -EOVERFLOW;
+ 	if (fh->len > buflen)
 -- 
 2.7.4
