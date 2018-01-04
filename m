@@ -1,92 +1,84 @@
-From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [PATCH] common/rc: add overlay support to _require_metadata_journaling
-Date: Thu, 4 Jan 2018 10:35:04 +0200
-Message-ID: <CAOQ4uxiBOP-pesyCZMcA85Rq5m8enMr_xdMkG0HDQe3ac7RQ7Q@mail.gmail.com>
-References: <1515035017-156043-1-git-send-email-cgxu519@icloud.com>
- <CAOQ4uxgHZQhCHS3NN3y4zBW-+FvCNVCXDLcgQ9Lhecx5w85fZA@mail.gmail.com> <E6ADCC0D-C0B3-4CB6-BABD-0E9BF2131810@icloud.com>
+From: Jeff Layton <jlayton@kernel.org>
+Subject: Re: [PATCH v2 1/2] nfsd: encode stat->mtime for getattr instead of
+ inode->i_mtime
+Date: Thu, 04 Jan 2018 08:11:01 -0500
+Message-ID: <1515071461.20282.5.camel@kernel.org>
+References: <1514992475-8142-1-git-send-email-amir73il@gmail.com>
+         <1514992475-8142-2-git-send-email-amir73il@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-vk0-f47.google.com ([209.85.213.47]:43382 "EHLO
-        mail-vk0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750990AbeADIfF (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 4 Jan 2018 03:35:05 -0500
-In-Reply-To: <E6ADCC0D-C0B3-4CB6-BABD-0E9BF2131810@icloud.com>
+Received: from mail.kernel.org ([198.145.29.99]:40544 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751827AbeADNLE (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Thu, 4 Jan 2018 08:11:04 -0500
+In-Reply-To: <1514992475-8142-2-git-send-email-amir73il@gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Chengguang Xu <cgxu519@icloud.com>
-Cc: Eryu Guan <eguan@redhat.com>, fstests <fstests@vger.kernel.org>, overlayfs <linux-unionfs@vger.kernel.org>
+To: Amir Goldstein <amir73il@gmail.com>, "J . Bruce Fields" <bfields@fieldses.org>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
 
-On Thu, Jan 4, 2018 at 9:53 AM, Chengguang Xu <cgxu519@icloud.com> wrote:
->
->> =E5=9C=A8 2018=E5=B9=B41=E6=9C=884=E6=97=A5=EF=BC=8C=E4=B8=8B=E5=8D=882:=
-48=EF=BC=8CAmir Goldstein <amir73il@gmail.com> =E5=86=99=E9=81=93=EF=BC=9A
->>
->> On Thu, Jan 4, 2018 at 5:03 AM, Chengguang Xu <cgxu519@icloud.com> wrote=
-:
->>> metadata journaling check needs base filesystem configureations
->>> and ./check -overlay saves those configurations to OVL_BASE_*,
->>> so restore/override the configuratons before/after the check.
->>>
->>
->> 1. Presumably, you are making this change because you ran into a problem
->> with some setup? Please you specify that motivation in commit message.
->
-> Sorry for delaying long time, actually this is a follow-up patch of shutd=
-own
-> support for overlay, based on our previous discussion and mainly for avoi=
-ding
-> Eryu=E2=80=99s concern as below.
->
-> =3D=3D=3D
-> I think you're right, I was looking at other shutdown tests for too long
-> and thought this one needed the jounal check too, sorry about that!
->
-> But as Amir suggested, other shutdown tests need overlay support in
-> _require_metadata_journaling, but I think that can be fixed in a
-> follow-up patch, as using ext2 or no-journal mode ext4 as the backing
-> filesystems of overlay is not a common setup, the possiblity of someone
-> hitting false positive is relative low.
-> =3D=3D=3D
->
->> 2. Can you please give a brief summary of the type of generic tests
->> that are going
->> to "notrun" because of this change without specifying base FSTYP.
->> I suppose it will be good for those tests not to run, just want to get t=
-he idea,
->> because I have a feeling that _require_metadata_journaling is used for
->> various different reasons.
->
-> Currently it does not check for overlay in _require_metadata_journaling,
-> so even if base fs without journal can successfully pass this check, righ=
-t?
->
-> With this change, if we do not specify base FSTYP then FSTYP and OVL_BASE=
-_FSTYP
-> are all =E2=80=9Coverlay=E2=80=9D, in this situation I think it=E2=80=99s=
- better to stop test and give a
-> proper warning to tester because we could not decide what to do.
->
->
->> 3. Please specify with which base fs you tested and preferably, run the
->> test with the 3 major fs as base fs. Bonus points for running the test w=
-ith
->> multi section config file with several base fs ;-)
->
-> I basically tested xfs,ext2,ext4(with journal/no-journal mode) but in one=
- section,
-> I=E2=80=99ll test multi section config later if this change is useful.
->
->
+On Wed, 2018-01-03 at 17:14 +0200, Amir Goldstein wrote:
+> The values of stat->mtime and inode->i_mtime may differ for overlayfs
+> and stat->mtime is the correct value to use when encoding getattr.
+> This is also consistent with the fact that other attr times are also
+> encoded from stat values.
+> 
+> Both callers of lease_get_mtime() already have the value of stat->mtime,
+> so the only needed change is that lease_get_mtime() will not overwrite
+> this value with inode->i_mtime in case the inode does not have an
+> exclusive lease.
+> 
+> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+> ---
+>  fs/locks.c       | 6 ++----
+>  fs/nfsd/nfsxdr.c | 1 +
+>  2 files changed, 3 insertions(+), 4 deletions(-)
+> 
+> diff --git a/fs/locks.c b/fs/locks.c
+> index 21b4dfa289ee..d6ff4beb70ce 100644
+> --- a/fs/locks.c
+> +++ b/fs/locks.c
+> @@ -1554,9 +1554,9 @@ int __break_lease(struct inode *inode, unsigned int mode, unsigned int type)
+>  EXPORT_SYMBOL(__break_lease);
+>  
+>  /**
+> - *	lease_get_mtime - get the last modified time of an inode
+> + *	lease_get_mtime - update modified time of an inode with exclusive lease
+>   *	@inode: the inode
+> - *      @time:  pointer to a timespec which will contain the last modified time
+> + *      @time:  pointer to a timespec which contains the last modified time
+>   *
+>   * This is to force NFS clients to flush their caches for files with
+>   * exclusive leases.  The justification is that if someone has an
+> @@ -1580,8 +1580,6 @@ void lease_get_mtime(struct inode *inode, struct timespec *time)
+>  
+>  	if (has_lease)
+>  		*time = current_time(inode);
+> -	else
+> -		*time = inode->i_mtime;
+>  }
+>  
+>  EXPORT_SYMBOL(lease_get_mtime);
+> diff --git a/fs/nfsd/nfsxdr.c b/fs/nfsd/nfsxdr.c
+> index 644a0342f0e0..79b6064f8977 100644
+> --- a/fs/nfsd/nfsxdr.c
+> +++ b/fs/nfsd/nfsxdr.c
+> @@ -188,6 +188,7 @@ encode_fattr(struct svc_rqst *rqstp, __be32 *p, struct svc_fh *fhp,
+>  	*p++ = htonl((u32) stat->ino);
+>  	*p++ = htonl((u32) stat->atime.tv_sec);
+>  	*p++ = htonl(stat->atime.tv_nsec ? stat->atime.tv_nsec / 1000 : 0);
+> +	time = stat->mtime;
+>  	lease_get_mtime(d_inode(dentry), &time); 
+>  	*p++ = htonl((u32) time.tv_sec);
+>  	*p++ = htonl(time.tv_nsec ? time.tv_nsec / 1000 : 0); 
 
-Okay, so IIUC, there is a commit that made a bunch of shutdown tests
-to work with -overlay run and this commit introduced a bug with the
-uncommon setup of overay over ext2/ext4-noload.
+This looks like a clear improvement. AFAICT, in all cases we pass
+lease_get_mtime a value from a previous getattr operation. We should
+prefer that one to inode->i_mtime.
 
-That should be the gist of your commit message and the commit
-id and title should be part of that message.
+The lease_get_mtime prototype is now rather awkward though. It might be
+nice to clean that up, eventually, but that can be done later.
 
-Thanks,
-Amir.
+Reviewed-by: Jeff Layton <jlayton@kernel.org>
