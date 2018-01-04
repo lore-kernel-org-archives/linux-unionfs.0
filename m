@@ -1,258 +1,275 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH v2 06/23] ovl: add support for "verify" feature
-Date: Thu,  4 Jan 2018 18:40:01 +0200
-Message-ID: <1515084018-25134-7-git-send-email-amir73il@gmail.com>
+Subject: [PATCH v2 04/23] ovl: factor out ovl_check_origin_fh()
+Date: Thu,  4 Jan 2018 18:39:59 +0200
+Message-ID: <1515084018-25134-5-git-send-email-amir73il@gmail.com>
 References: <1515084018-25134-1-git-send-email-amir73il@gmail.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wr0-f193.google.com ([209.85.128.193]:38539 "EHLO
-        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753395AbeADQjg (ORCPT
+Received: from mail-wr0-f195.google.com ([209.85.128.195]:38535 "EHLO
+        mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753395AbeADQjd (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 4 Jan 2018 11:39:36 -0500
-Received: by mail-wr0-f193.google.com with SMTP id y9so2015679wrb.5
-        for <linux-unionfs@vger.kernel.org>; Thu, 04 Jan 2018 08:39:35 -0800 (PST)
+        Thu, 4 Jan 2018 11:39:33 -0500
+Received: by mail-wr0-f195.google.com with SMTP id y9so2015529wrb.5
+        for <linux-unionfs@vger.kernel.org>; Thu, 04 Jan 2018 08:39:33 -0800 (PST)
 In-Reply-To: <1515084018-25134-1-git-send-email-amir73il@gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: Miklos Szeredi <miklos@szeredi.hu>
 Cc: zhangyi <yi.zhang@huawei.com>, linux-unionfs@vger.kernel.org
 
-Introduce the "verify" config, module and mount options.
-
-If the "verify" feature is enabled then overlay filesystems will use
-the inodes index dir to verify layers consistency.
-
-It is possible to enable consistency verification by default during
-build time with the OVERLAY_FS_VERIFY config option, during runtime
-with the "verify=on" module option or on a filesystem instance basis
-with the "verify=on" mount option.
-
-The "verify" feature will prevent multiple redirects to the same lower
-dir and will prevent broken hardlinks from using the same inode number.
-
-On an overlay filesystem instance with multiple lower layers, "verify"
-feature can only use the index to prevent multiple redirects from upper
-dirs and not from middle layer dirs. Emit a warning about this on mount
-with multiple lower layers and "verify=on".
-
-This is going to be used for NFS export.
+Re-factor ovl_check_origin() and ovl_get_origin(), so origin fh xattr is
+read from upper inode only once during lookup with multiple lower layers
+and only once when verifying index entry origin.
 
 Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- fs/overlayfs/Kconfig     | 18 ++++++++++++++++++
- fs/overlayfs/overlayfs.h |  1 +
- fs/overlayfs/ovl_entry.h |  1 +
- fs/overlayfs/super.c     | 49 +++++++++++++++++++++++++++++++++++++++++-------
- fs/overlayfs/util.c      |  7 +++++++
- 5 files changed, 69 insertions(+), 7 deletions(-)
+ fs/overlayfs/namei.c | 142 +++++++++++++++++++++++++++++++++------------------
+ 1 file changed, 92 insertions(+), 50 deletions(-)
 
-diff --git a/fs/overlayfs/Kconfig b/fs/overlayfs/Kconfig
-index 5ac415466861..0e4764ed4e23 100644
---- a/fs/overlayfs/Kconfig
-+++ b/fs/overlayfs/Kconfig
-@@ -53,3 +53,21 @@ config OVERLAY_FS_INDEX
- 	  outcomes.  However, mounting the same overlay with an old kernel
- 	  read-write and then mounting it again with a new kernel, will have
- 	  unexpected results.
-+
-+config OVERLAY_FS_VERIFY
-+	bool "Overlayfs: turn on verify feature by default"
-+	depends on OVERLAY_FS
-+	depends on OVERLAY_FS_INDEX
-+	help
-+	  If this config option is enabled then overlay filesystems will use
-+	  the inodes index dir to verify layers consistency by default.
-+	  In this case, it is still possible to turn off consistency
-+	  verification globally with the "verify=off" module option or on a
-+	  filesystem instance basis with the "verify=off" mount option.
-+
-+	  The verify feature prevents multiple redirects to the same lower dir
-+	  and prevents broken hardlinks from using the same inode number.
-+
-+	  Note, that verify feature is not backward compatible.  That is,
-+	  mounting an overlay with verification index entries on a kernel
-+	  that doesn't support this feature will have unexpected results.
-diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-index d55afb6646b0..379bb349acc4 100644
---- a/fs/overlayfs/overlayfs.h
-+++ b/fs/overlayfs/overlayfs.h
-@@ -194,6 +194,7 @@ const struct cred *ovl_override_creds(struct super_block *sb);
- struct super_block *ovl_same_sb(struct super_block *sb);
- bool ovl_can_decode_fh(struct super_block *sb);
- struct dentry *ovl_indexdir(struct super_block *sb);
-+bool ovl_verify(struct super_block *sb);
- struct ovl_entry *ovl_alloc_entry(unsigned int numlower);
- bool ovl_dentry_remote(struct dentry *dentry);
- bool ovl_dentry_weird(struct dentry *dentry);
-diff --git a/fs/overlayfs/ovl_entry.h b/fs/overlayfs/ovl_entry.h
-index 608e48755070..c886ed743a8a 100644
---- a/fs/overlayfs/ovl_entry.h
-+++ b/fs/overlayfs/ovl_entry.h
-@@ -17,6 +17,7 @@ struct ovl_config {
- 	bool redirect_follow;
- 	const char *redirect_mode;
- 	bool index;
-+	bool verify;
- };
- 
- struct ovl_layer {
-diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-index 994d35628acf..96136528861f 100644
---- a/fs/overlayfs/super.c
-+++ b/fs/overlayfs/super.c
-@@ -45,6 +45,11 @@ module_param_named(index, ovl_index_def, bool, 0644);
- MODULE_PARM_DESC(ovl_index_def,
- 		 "Default to on or off for the inodes index feature");
- 
-+static bool ovl_verify_def = IS_ENABLED(CONFIG_OVERLAY_FS_VERIFY);
-+module_param_named(verify, ovl_verify_def, bool, 0644);
-+MODULE_PARM_DESC(ovl_verify_def,
-+		 "Default to on or off for the verify feature");
-+
- static void ovl_entry_stack_free(struct ovl_entry *oe)
- {
- 	unsigned int i;
-@@ -341,6 +346,8 @@ static int ovl_show_options(struct seq_file *m, struct dentry *dentry)
- 		seq_printf(m, ",redirect_dir=%s", ofs->config.redirect_mode);
- 	if (ofs->config.index != ovl_index_def)
- 		seq_printf(m, ",index=%s", ofs->config.index ? "on" : "off");
-+	if (ofs->config.verify != ovl_verify_def)
-+		seq_printf(m, ",verify=%s", ofs->config.verify ? "on" : "off");
- 	return 0;
+diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
+index a48ee02c4524..4cc8fb64c879 100644
+--- a/fs/overlayfs/namei.c
++++ b/fs/overlayfs/namei.c
+@@ -87,9 +87,36 @@ static int ovl_acceptable(void *ctx, struct dentry *dentry)
+ 	return 1;
  }
  
-@@ -373,6 +380,8 @@ enum {
- 	OPT_REDIRECT_DIR,
- 	OPT_INDEX_ON,
- 	OPT_INDEX_OFF,
-+	OPT_VERIFY_ON,
-+	OPT_VERIFY_OFF,
- 	OPT_ERR,
- };
- 
-@@ -384,6 +393,8 @@ static const match_table_t ovl_tokens = {
- 	{OPT_REDIRECT_DIR,		"redirect_dir=%s"},
- 	{OPT_INDEX_ON,			"index=on"},
- 	{OPT_INDEX_OFF,			"index=off"},
-+	{OPT_VERIFY_ON,			"verify=on"},
-+	{OPT_VERIFY_OFF,		"verify=off"},
- 	{OPT_ERR,			NULL}
- };
- 
-@@ -487,7 +498,19 @@ static int ovl_parse_opt(char *opt, struct ovl_config *config)
- 			break;
- 
- 		case OPT_INDEX_OFF:
-+			/* verify depends on index */
- 			config->index = false;
-+			config->verify = false;
-+			break;
-+
-+		case OPT_VERIFY_ON:
-+			/* verify depends on index */
-+			config->index = true;
-+			config->verify = true;
-+			break;
-+
-+		case OPT_VERIFY_OFF:
-+			config->verify = false;
- 			break;
- 
- 		default:
-@@ -504,9 +527,11 @@ static int ovl_parse_opt(char *opt, struct ovl_config *config)
- 			kfree(config->workdir);
- 			config->workdir = NULL;
- 		}
--		if (config->index != ovl_index_def) {
--			pr_info("overlayfs: option \"index\" is useless in a non-upper mount, ignore\n");
-+		if (config->index != ovl_index_def ||
-+		    config->verify != ovl_verify_def) {
-+			pr_info("overlayfs: options \"index\" and \"verify\" are useless in a non-upper mount, ignore\n");
- 			config->index = ovl_index_def;
-+			config->verify = ovl_verify_def;
- 		}
- 	}
- 
-@@ -707,7 +732,9 @@ static int ovl_lower_dir(const char *name, struct path *path,
- 	if (ofs->config.upperdir && ofs->config.index &&
- 	    !ovl_can_decode_fh(path->dentry->d_sb)) {
- 		ofs->config.index = false;
--		pr_warn("overlayfs: fs on '%s' does not support file handles, falling back to index=off.\n", name);
-+		ofs->config.verify = false;
-+		pr_warn("overlayfs: fs on '%s' does not support file handles, falling back to index=off,verify=off.\n",
-+			name);
- 	}
- 
- 	return 0;
-@@ -975,7 +1002,8 @@ static int ovl_make_workdir(struct ovl_fs *ofs, struct path *workpath)
- 	if (err) {
- 		ofs->noxattr = true;
- 		ofs->config.index = false;
--		pr_warn("overlayfs: upper fs does not support xattr, falling back to index=off.\n");
-+		ofs->config.verify = false;
-+		pr_warn("overlayfs: upper fs does not support xattr, falling back to index=off,verify=off.\n");
- 		err = 0;
- 	} else {
- 		vfs_removexattr(ofs->workdir, OVL_XATTR_OPAQUE);
-@@ -985,7 +1013,8 @@ static int ovl_make_workdir(struct ovl_fs *ofs, struct path *workpath)
- 	if (ofs->config.index &&
- 	    !ovl_can_decode_fh(ofs->workdir->d_sb)) {
- 		ofs->config.index = false;
--		pr_warn("overlayfs: upper fs does not support file handles, falling back to index=off.\n");
-+		ofs->config.verify = false;
-+		pr_warn("overlayfs: upper fs does not support file handles, falling back to index=off,verify=off.\n");
- 	}
- 
- out:
-@@ -1146,6 +1175,8 @@ static struct ovl_entry *ovl_get_lowerstack(struct super_block *sb,
- 	} else if (!ofs->config.upperdir && stacklen == 1) {
- 		pr_err("overlayfs: at least 2 lowerdir are needed while upperdir nonexistent\n");
- 		goto out_err;
-+	} else if (ofs->config.verify && ofs->config.upperdir && stacklen > 1) {
-+		pr_warn("overlayfs: option 'verify=on' cannot verify redirects from middle layer dirs\n");
- 	}
- 
- 	err = -ENOMEM;
-@@ -1222,6 +1253,8 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
- 		goto out_err;
- 
- 	ofs->config.index = ovl_index_def;
-+	/* verify depends on index */
-+	ofs->config.verify = ovl_verify_def && ovl_index_def;
- 	err = ovl_parse_opt((char *) data, &ofs->config);
- 	if (err)
- 		goto out_err;
-@@ -1276,9 +1309,11 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
- 			sb->s_flags |= SB_RDONLY;
- 	}
- 
--	/* Show index=off/on in /proc/mounts for any of the reasons above */
--	if (!ofs->indexdir)
-+	/* Show index=off,verify=off in /proc/mounts if no indexdir */
-+	if (!ofs->indexdir) {
- 		ofs->config.index = false;
-+		ofs->config.verify = false;
-+	}
- 
- 	/* Never override disk quota limits or use reserved space */
- 	cap_lower(cred->cap_effective, CAP_SYS_RESOURCE);
-diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
-index d6bb1c9f5e7a..fb0b561b0568 100644
---- a/fs/overlayfs/util.c
-+++ b/fs/overlayfs/util.c
-@@ -63,6 +63,13 @@ struct dentry *ovl_indexdir(struct super_block *sb)
- 	return ofs->indexdir;
- }
- 
-+bool ovl_verify(struct super_block *sb)
++/*
++ * Check validity of an overlay file handle buffer.
++ *
++ * Return 0 for a valid file handle.
++ * Return -ENODATA for "origin unknown".
++ * Return <0 for an invalid file handle.
++ */
++static int ovl_check_fh_len(struct ovl_fh *fh, int fh_len)
 +{
-+	struct ovl_fs *ofs = sb->s_fs_info;
++	if (fh_len < sizeof(struct ovl_fh) || fh_len < fh->len)
++		return -EINVAL;
 +
-+	return ofs->config.verify && ofs->config.index;
++	if (fh->magic != OVL_FH_MAGIC)
++		return -EINVAL;
++
++	/* Treat larger version and unknown flags as "origin unknown" */
++	if (fh->version > OVL_FH_VERSION || fh->flags & ~OVL_FH_FLAG_ALL)
++		return -ENODATA;
++
++	/* Treat endianness mismatch as "origin unknown" */
++	if (!(fh->flags & OVL_FH_FLAG_ANY_ENDIAN) &&
++	    (fh->flags & OVL_FH_FLAG_BIG_ENDIAN) != OVL_FH_FLAG_CPU_ENDIAN)
++		return -ENODATA;
++
++	return 0;
 +}
 +
- struct ovl_entry *ovl_alloc_entry(unsigned int numlower)
+ static struct ovl_fh *ovl_get_origin_fh(struct dentry *dentry)
  {
- 	size_t size = offsetof(struct ovl_entry, lowerstack[numlower]);
+-	int res;
++	int res, err;
+ 	struct ovl_fh *fh = NULL;
+ 
+ 	res = vfs_getxattr(dentry, OVL_XATTR_ORIGIN, NULL, 0);
+@@ -102,7 +129,7 @@ static struct ovl_fh *ovl_get_origin_fh(struct dentry *dentry)
+ 	if (res == 0)
+ 		return NULL;
+ 
+-	fh  = kzalloc(res, GFP_KERNEL);
++	fh = kzalloc(res, GFP_KERNEL);
+ 	if (!fh)
+ 		return ERR_PTR(-ENOMEM);
+ 
+@@ -110,20 +137,12 @@ static struct ovl_fh *ovl_get_origin_fh(struct dentry *dentry)
+ 	if (res < 0)
+ 		goto fail;
+ 
+-	if (res < sizeof(struct ovl_fh) || res < fh->len)
+-		goto invalid;
+-
+-	if (fh->magic != OVL_FH_MAGIC)
++	err = ovl_check_fh_len(fh, res);
++	if (err < 0) {
++		if (err == -ENODATA)
++			goto out;
+ 		goto invalid;
+-
+-	/* Treat larger version and unknown flags as "origin unknown" */
+-	if (fh->version > OVL_FH_VERSION || fh->flags & ~OVL_FH_FLAG_ALL)
+-		goto out;
+-
+-	/* Treat endianness mismatch as "origin unknown" */
+-	if (!(fh->flags & OVL_FH_FLAG_ANY_ENDIAN) &&
+-	    (fh->flags & OVL_FH_FLAG_BIG_ENDIAN) != OVL_FH_FLAG_CPU_ENDIAN)
+-		goto out;
++	}
+ 
+ 	return fh;
+ 
+@@ -139,22 +158,17 @@ static struct ovl_fh *ovl_get_origin_fh(struct dentry *dentry)
+ 	goto out;
+ }
+ 
+-static struct dentry *ovl_get_origin(struct dentry *dentry,
+-				     struct vfsmount *mnt)
++static struct dentry *ovl_decode_fh(struct ovl_fh *fh, struct vfsmount *mnt)
+ {
+-	struct dentry *origin = NULL;
+-	struct ovl_fh *fh = ovl_get_origin_fh(dentry);
++	struct dentry *origin;
+ 	int bytes;
+ 
+-	if (IS_ERR_OR_NULL(fh))
+-		return (struct dentry *)fh;
+-
+ 	/*
+ 	 * Make sure that the stored uuid matches the uuid of the lower
+ 	 * layer where file handle will be decoded.
+ 	 */
+ 	if (!uuid_equal(&fh->uuid, &mnt->mnt_sb->s_uuid))
+-		goto out;
++		return NULL;
+ 
+ 	bytes = (fh->len - offsetof(struct ovl_fh, fid));
+ 	origin = exportfs_decode_fh(mnt, (struct fid *)fh->fid,
+@@ -164,22 +178,15 @@ static struct dentry *ovl_get_origin(struct dentry *dentry,
+ 		/* Treat stale file handle as "origin unknown" */
+ 		if (origin == ERR_PTR(-ESTALE))
+ 			origin = NULL;
+-		goto out;
++		return origin;
+ 	}
+ 
+-	if (ovl_dentry_weird(origin) ||
+-	    ((d_inode(origin)->i_mode ^ d_inode(dentry)->i_mode) & S_IFMT))
+-		goto invalid;
++	if (ovl_dentry_weird(origin)) {
++		dput(origin);
++		return NULL;
++	}
+ 
+-out:
+-	kfree(fh);
+ 	return origin;
+-
+-invalid:
+-	pr_warn_ratelimited("overlayfs: invalid origin (%pd2)\n", origin);
+-	dput(origin);
+-	origin = NULL;
+-	goto out;
+ }
+ 
+ static bool ovl_is_opaquedir(struct dentry *dentry)
+@@ -284,9 +291,9 @@ static int ovl_lookup_layer(struct dentry *base, struct ovl_lookup_data *d,
+ }
+ 
+ 
+-static int ovl_check_origin(struct dentry *upperdentry,
+-			    struct ovl_path *lower, unsigned int numlower,
+-			    struct ovl_path **stackp, unsigned int *ctrp)
++static int ovl_check_origin_fh(struct ovl_fh *fh, struct dentry *upperdentry,
++			       struct ovl_path *lower, unsigned int numlower,
++			       struct ovl_path **stackp)
+ {
+ 	struct vfsmount *mnt;
+ 	struct dentry *origin = NULL;
+@@ -294,18 +301,20 @@ static int ovl_check_origin(struct dentry *upperdentry,
+ 
+ 	for (i = 0; i < numlower; i++) {
+ 		mnt = lower[i].layer->mnt;
+-		origin = ovl_get_origin(upperdentry, mnt);
+-		if (IS_ERR(origin))
+-			return PTR_ERR(origin);
+-
++		origin = ovl_decode_fh(fh, mnt);
+ 		if (origin)
+ 			break;
+ 	}
+ 
+ 	if (!origin)
+-		return 0;
++		return -ESTALE;
++	else if (IS_ERR(origin))
++		return PTR_ERR(origin);
++
++	if (!ovl_is_whiteout(upperdentry) &&
++	    ((d_inode(origin)->i_mode ^ d_inode(upperdentry)->i_mode) & S_IFMT))
++		goto invalid;
+ 
+-	BUG_ON(*ctrp);
+ 	if (!*stackp)
+ 		*stackp = kmalloc(sizeof(struct ovl_path), GFP_KERNEL);
+ 	if (!*stackp) {
+@@ -313,9 +322,41 @@ static int ovl_check_origin(struct dentry *upperdentry,
+ 		return -ENOMEM;
+ 	}
+ 	**stackp = (struct ovl_path){.dentry = origin, .layer = lower[i].layer};
+-	*ctrp = 1;
+ 
+ 	return 0;
++
++invalid:
++	pr_warn_ratelimited("overlayfs: invalid origin (%pd2, ftype=%x, origin ftype=%x).\n",
++			    upperdentry, d_inode(upperdentry)->i_mode & S_IFMT,
++			    d_inode(origin)->i_mode & S_IFMT);
++	dput(origin);
++	return -EIO;
++}
++
++static int ovl_check_origin(struct dentry *upperdentry,
++			    struct ovl_path *lower, unsigned int numlower,
++			    struct ovl_path **stackp, unsigned int *ctrp)
++{
++	struct ovl_fh *fh = ovl_get_origin_fh(upperdentry);
++	int err;
++
++	if (IS_ERR_OR_NULL(fh))
++		return PTR_ERR(fh);
++
++	err = ovl_check_origin_fh(fh, upperdentry, lower, numlower, stackp);
++	kfree(fh);
++
++	if (err) {
++		if (err == -ESTALE)
++			return 0;
++		return err;
++	}
++
++	if (WARN_ON(*ctrp))
++		return -EIO;
++
++	*ctrp = 1;
++	return 0;
+ }
+ 
+ /*
+@@ -389,7 +430,6 @@ int ovl_verify_index(struct dentry *index, struct ovl_path *lower,
+ 	size_t len;
+ 	struct ovl_path origin = { };
+ 	struct ovl_path *stack = &origin;
+-	unsigned int ctr = 0;
+ 	int err;
+ 
+ 	if (!d_inode(index))
+@@ -420,16 +460,18 @@ int ovl_verify_index(struct dentry *index, struct ovl_path *lower,
+ 		goto fail;
+ 
+ 	err = -EINVAL;
+-	if (hex2bin((u8 *)fh, index->d_name.name, len) || len != fh->len)
++	if (hex2bin((u8 *)fh, index->d_name.name, len))
++		goto fail;
++
++	err = ovl_check_fh_len(fh, len);
++	if (err)
+ 		goto fail;
+ 
+ 	err = ovl_verify_origin_fh(index, fh);
+ 	if (err)
+ 		goto fail;
+ 
+-	err = ovl_check_origin(index, lower, numlower, &stack, &ctr);
+-	if (!err && !ctr)
+-		err = -ESTALE;
++	err = ovl_check_origin_fh(fh, index, lower, numlower, &stack);
+ 	if (err)
+ 		goto fail;
+ 
 -- 
 2.7.4
