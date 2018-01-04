@@ -1,68 +1,129 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH v2 17/17] nfsd: encode stat->mtime for getattr instead of inode->i_mtime
-Date: Thu,  4 Jan 2018 19:20:49 +0200
-Message-ID: <1515086449-26563-18-git-send-email-amir73il@gmail.com>
+Subject: [PATCH v2 06/17] ovl: copy up before encoding dir file handle when ofs->numlower > 1
+Date: Thu,  4 Jan 2018 19:20:38 +0200
+Message-ID: <1515086449-26563-7-git-send-email-amir73il@gmail.com>
 References: <1515086449-26563-1-git-send-email-amir73il@gmail.com>
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
+Return-path: <linux-unionfs-owner@vger.kernel.org>
+Received: from mail-wr0-f196.google.com ([209.85.128.196]:34364 "EHLO
+        mail-wr0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751957AbeADRUp (ORCPT
+        <rfc822;linux-unionfs@vger.kernel.org>);
+        Thu, 4 Jan 2018 12:20:45 -0500
 In-Reply-To: <1515086449-26563-1-git-send-email-amir73il@gmail.com>
-Sender: linux-fsdevel-owner@vger.kernel.org
+Sender: linux-unionfs-owner@vger.kernel.org
+List-Id: linux-unionfs@vger.kernel.org
 To: Miklos Szeredi <miklos@szeredi.hu>
 Cc: Jeff Layton <jlayton@poochiereds.net>, "J . Bruce Fields" <bfields@fieldses.org>, linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
-List-Id: linux-unionfs@vger.kernel.org
 
-The values of stat->mtime and inode->i_mtime may differ for overlayfs
-and stat->mtime is the correct value to use when encoding getattr.
-This is also consistent with the fact that other attr times are also
-encoded from stat values.
+Decoding a merge dir, whose origin's parent may be on a different lower
+layer then the overlay parent's origin is not implemented. As a simple
+aproximation, we do not encode lower dir file handles when overlay has
+multiple lower layers. Instead, we copy up the lower dir first and then
+encode an upper dir file handle.
 
-Both callers of lease_get_mtime() already have the value of stat->mtime,
-so the only needed change is that lease_get_mtime() will not overwrite
-this value with inode->i_mtime in case the inode does not have an
-exclusive lease.
-
-Reviewed-by: Jeff Layton <jlayton@kernel.org>
 Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- fs/locks.c       | 6 ++----
- fs/nfsd/nfsxdr.c | 1 +
- 2 files changed, 3 insertions(+), 4 deletions(-)
+ fs/overlayfs/export.c | 66 +++++++++++++++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 64 insertions(+), 2 deletions(-)
 
-diff --git a/fs/locks.c b/fs/locks.c
-index 21b4dfa289ee..d6ff4beb70ce 100644
---- a/fs/locks.c
-+++ b/fs/locks.c
-@@ -1554,9 +1554,9 @@ int __break_lease(struct inode *inode, unsigned int mode, unsigned int type)
- EXPORT_SYMBOL(__break_lease);
+diff --git a/fs/overlayfs/export.c b/fs/overlayfs/export.c
+index 919d43aaa387..149cfb5c967e 100644
+--- a/fs/overlayfs/export.c
++++ b/fs/overlayfs/export.c
+@@ -26,13 +26,48 @@
+  * copied up before NFS export was enabled. In that case we don't need to worry
+  * about staying consistent with pre copy up encoding and we encode an upper
+  * file handle.
++ *
++ * The following table summarizes the different file handle encodings used for
++ * different overlay object types with overlay configuration of single and
++ * multiple lower layers:
++ *
++ *  Object type		| Single lower	| Multiple lower
++ * --------------------------------------------------------
++ *  Pure upper		|	U	|	U
++ *  Non-indexed upper	|	U	|	U
++ *  Indexed non-dir	|	L	|	L
++ *  Lower non-dir	|	L	|	L
++ *  Indexed directory	|	L	|	U
++ *  Lower directory	|	L	|	U (*)
++ *
++ * U = upper file handle
++ * L = lower file handle
++ *
++ * The important thing to note is that within the same overlay configuration
++ * an overlay object encoding is invariant to copy up (i.e. Lower->Indexed).
++ *
++ * (*) If decoding an overlay dir from origin is not implemented, we do not
++ * encode by lower inode, because if file gets copied up after we encoded it,
++ * we won't be able to decode the file handle. To mitigate this case, we copy
++ * up the lower dir first and then encode an upper dir file handle.
+  */
+ static bool ovl_should_encode_origin(struct dentry *dentry)
+ {
++	struct ovl_fs *ofs = dentry->d_sb->s_fs_info;
++
+ 	/* Root dentry was born upper */
+ 	if (dentry == dentry->d_sb->s_root)
+ 		return false;
  
- /**
-- *	lease_get_mtime - get the last modified time of an inode
-+ *	lease_get_mtime - update modified time of an inode with exclusive lease
-  *	@inode: the inode
-- *      @time:  pointer to a timespec which will contain the last modified time
-+ *      @time:  pointer to a timespec which contains the last modified time
-  *
-  * This is to force NFS clients to flush their caches for files with
-  * exclusive leases.  The justification is that if someone has an
-@@ -1580,8 +1580,6 @@ void lease_get_mtime(struct inode *inode, struct timespec *time)
- 
- 	if (has_lease)
- 		*time = current_time(inode);
--	else
--		*time = inode->i_mtime;
++	/*
++	 * Decoding a merge dir, whose origin's parent may be on a different
++	 * lower layer then the overlay parent's origin is not implemented.
++	 * As a simple aproximation, we do not encode lower dir file handles
++	 * when overlay has multiple lower layers.
++	 */
++	if (d_is_dir(dentry) && ofs->numlower > 1)
++		return false;
++
+ 	/* Decoding a non-indexed upper from origin is not implemented */
+ 	if (ovl_dentry_upper(dentry) &&
+ 	    !ovl_test_flag(OVL_INDEX, d_inode(dentry)))
+@@ -41,16 +76,43 @@ static bool ovl_should_encode_origin(struct dentry *dentry)
+ 	return true;
  }
  
- EXPORT_SYMBOL(lease_get_mtime);
-diff --git a/fs/nfsd/nfsxdr.c b/fs/nfsd/nfsxdr.c
-index 644a0342f0e0..79b6064f8977 100644
---- a/fs/nfsd/nfsxdr.c
-+++ b/fs/nfsd/nfsxdr.c
-@@ -188,6 +188,7 @@ encode_fattr(struct svc_rqst *rqstp, __be32 *p, struct svc_fh *fhp,
- 	*p++ = htonl((u32) stat->ino);
- 	*p++ = htonl((u32) stat->atime.tv_sec);
- 	*p++ = htonl(stat->atime.tv_nsec ? stat->atime.tv_nsec / 1000 : 0);
-+	time = stat->mtime;
- 	lease_get_mtime(d_inode(dentry), &time); 
- 	*p++ = htonl((u32) time.tv_sec);
- 	*p++ = htonl(time.tv_nsec ? time.tv_nsec / 1000 : 0); 
++static int ovl_encode_maybe_copy_up(struct dentry *dentry)
++{
++	int err;
++
++	if (ovl_dentry_upper(dentry))
++		return 0;
++
++	err = ovl_want_write(dentry);
++	if (err)
++		return err;
++
++	err = ovl_copy_up(dentry);
++
++	ovl_drop_write(dentry);
++	return err;
++}
++
+ int ovl_d_to_fh(struct dentry *dentry, char *buf, int buflen)
+ {
+-	struct dentry *upper = ovl_dentry_upper(dentry);
++	struct dentry *upper;
+ 	struct dentry *origin = ovl_dentry_lower(dentry);
+ 	struct ovl_fh *fh = NULL;
+ 	int err;
+ 
+-	if (!ovl_should_encode_origin(dentry))
++	/*
++	 * If we should not encode a lower dir file handle, copy up and encode
++	 * an upper dir file handle.
++	 */
++	if (!ovl_should_encode_origin(dentry)) {
++		err = ovl_encode_maybe_copy_up(dentry);
++		if (err)
++			goto fail;
++
+ 		origin = NULL;
++	}
+ 
++	upper = ovl_dentry_upper(dentry);
+ 	err = -EACCES;
+ 	if (!upper || origin)
+ 		goto fail;
 -- 
 2.7.4
