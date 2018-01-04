@@ -1,168 +1,185 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH v2 09/17] ovl: decode indexed non-dir file handles
-Date: Thu,  4 Jan 2018 19:20:41 +0200
-Message-ID: <1515086449-26563-10-git-send-email-amir73il@gmail.com>
+Subject: [PATCH v2 14/17] ovl: lookup connected ancestor of dir in inode cache
+Date: Thu,  4 Jan 2018 19:20:46 +0200
+Message-ID: <1515086449-26563-15-git-send-email-amir73il@gmail.com>
 References: <1515086449-26563-1-git-send-email-amir73il@gmail.com>
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
+Return-path: <linux-unionfs-owner@vger.kernel.org>
+Received: from mail-wm0-f67.google.com ([74.125.82.67]:38522 "EHLO
+        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751066AbeADRUz (ORCPT
+        <rfc822;linux-unionfs@vger.kernel.org>);
+        Thu, 4 Jan 2018 12:20:55 -0500
 In-Reply-To: <1515086449-26563-1-git-send-email-amir73il@gmail.com>
-Sender: linux-fsdevel-owner@vger.kernel.org
+Sender: linux-unionfs-owner@vger.kernel.org
+List-Id: linux-unionfs@vger.kernel.org
 To: Miklos Szeredi <miklos@szeredi.hu>
 Cc: Jeff Layton <jlayton@poochiereds.net>, "J . Bruce Fields" <bfields@fieldses.org>, linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
-List-Id: linux-unionfs@vger.kernel.org
 
-Decoding an indexed non-dir file handle is similar to decoding a lower
-non-dir file handle, but additionally, we lookup the file handle in index
-dir by name to find the real upper inode.
+Decoding a dir file handle requires walking backward up to layer root and
+for lower dir also checking the index to see if any of the parents have
+been copied up.
+
+Lookup overlay ancestor dentry in inode/dentry cache by decoded real
+parents to shortcut looking up all the way back to layer root.
 
 Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- fs/overlayfs/export.c | 72 +++++++++++++++++++++++++++++++++------------------
- 1 file changed, 47 insertions(+), 25 deletions(-)
+ fs/overlayfs/export.c    | 88 ++++++++++++++++++++++++++++++++++++++++++++++--
+ fs/overlayfs/inode.c     |  8 +++--
+ fs/overlayfs/overlayfs.h |  3 +-
+ 3 files changed, 93 insertions(+), 6 deletions(-)
 
 diff --git a/fs/overlayfs/export.c b/fs/overlayfs/export.c
-index 6b359f968c01..602bada474ba 100644
+index ec4b9f29d40d..01c4e3f733c1 100644
 --- a/fs/overlayfs/export.c
 +++ b/fs/overlayfs/export.c
-@@ -168,22 +168,24 @@ static int ovl_encode_inode_fh(struct inode *inode, u32 *fid, int *max_len,
+@@ -258,6 +258,87 @@ static struct dentry *ovl_lookup_real_one(struct dentry *parent,
  }
  
  /*
-- * Find or instantiate an overlay dentry from real dentries.
-+ * Find or instantiate an overlay dentry from real dentries and index.
-  */
- static struct dentry *ovl_obtain_alias(struct super_block *sb,
--				       struct dentry *upper,
--				       struct ovl_path *lowerpath)
-+				       struct dentry *upper_alias,
-+				       struct ovl_path *lowerpath,
-+				       struct dentry *index)
- {
- 	struct dentry *lower = lowerpath ? lowerpath->dentry : NULL;
-+	struct dentry *upper = upper_alias ?: index;
- 	struct dentry *dentry;
- 	struct inode *inode;
- 	struct ovl_entry *oe;
- 
--	/* TODO: obtain an indexed non-dir upper with origin */
--	if (lower && (upper || d_is_dir(lower)))
-+	/* We get overlay directory dentries with ovl_lookup_real() */
-+	if (d_is_dir(upper ?: lower))
- 		return ERR_PTR(-EIO);
- 
--	inode = ovl_get_inode(sb, dget(upper), lower, NULL, !!lower);
-+	inode = ovl_get_inode(sb, dget(upper), lower, index, !!lower);
- 	if (IS_ERR(inode)) {
- 		dput(upper);
- 		return ERR_CAST(inode);
-@@ -200,13 +202,16 @@ static struct dentry *ovl_obtain_alias(struct super_block *sb,
- 	}
- 
- 	dentry->d_fsdata = oe;
--	if (upper)
-+	if (upper_alias)
- 		ovl_dentry_set_upper_alias(dentry);
- 	if (lower) {
- 		oe->lowerstack->dentry = dget(lower);
- 		oe->lowerstack->layer = lowerpath->layer;
- 	}
- 
-+	if (index)
-+		ovl_set_flag(OVL_INDEX, inode);
++ * Lookup an indexed or hashed overlay dentry by real inode.
++ */
++static struct dentry *ovl_lookup_real_inode(struct super_block *sb,
++					    struct dentry *real, bool is_upper)
++{
++	struct dentry *this = NULL;
++	struct inode *inode;
 +
- 	return dentry;
- }
- 
-@@ -321,30 +326,26 @@ static struct dentry *ovl_lookup_real(struct super_block *sb,
- }
- 
- /*
-- * Get an overlay dentry from upper/lower real dentries.
-+ * Get an overlay dentry from upper/lower real dentries and index.
-  */
- static struct dentry *ovl_get_dentry(struct super_block *sb,
- 				     struct dentry *upper,
--				     struct ovl_path *lowerpath)
-+				     struct ovl_path *lowerpath,
-+				     struct dentry *index)
- {
-+	struct dentry *real = upper ?: (index ?: lowerpath->dentry);
-+
- 	/*
--	 * Obtain a disconnected overlay dentry from a disconnected non-dir
--	 * real lower dentry.
-+	 * Obtain a disconnected overlay dentry from a non-dir real dentry
-+	 * and index.
- 	 */
--	if (!upper && !d_is_dir(lowerpath->dentry))
--		return ovl_obtain_alias(sb, NULL, lowerpath);
-+	if (!d_is_dir(real))
-+		return ovl_obtain_alias(sb, upper, lowerpath, index);
- 
- 	/* TODO: lookup connected dir from real lower dir */
- 	if (!upper)
- 		return ERR_PTR(-EACCES);
- 
--	/*
--	 * Obtain a disconnected overlay dentry from a non-dir real upper
--	 * dentry.
--	 */
--	if (!d_is_dir(upper))
--		return ovl_obtain_alias(sb, upper, NULL);
--
- 	/* Removed empty directory? */
- 	if ((upper->d_flags & DCACHE_DISCONNECTED) || d_unhashed(upper))
- 		return ERR_PTR(-ENOENT);
-@@ -370,7 +371,7 @@ static struct dentry *ovl_upper_fh_to_d(struct super_block *sb,
- 	if (IS_ERR_OR_NULL(upper))
- 		return upper;
- 
--	dentry = ovl_get_dentry(sb, upper, NULL);
-+	dentry = ovl_get_dentry(sb, upper, NULL, NULL);
- 	dput(upper);
- 
- 	return dentry;
-@@ -383,17 +384,38 @@ static struct dentry *ovl_lower_fh_to_d(struct super_block *sb,
- 	struct ovl_path origin = { };
- 	struct ovl_path *stack = &origin;
- 	struct dentry *dentry = NULL;
-+	struct dentry *index = NULL;
- 	int err;
- 
-+	/* First lookup indexed upper by fh */
-+	index = ovl_get_index_fh(ofs, fh);
-+	err = PTR_ERR(index);
-+	if (IS_ERR(index))
-+		return ERR_PTR(err);
-+
-+	/* Then lookup origin by fh */
- 	err = ovl_check_origin_fh(fh, NULL, ofs->lower_layers, ofs->numlower,
- 				  &stack);
--	if (err)
--		return ERR_PTR(err);
-+	if (err) {
-+		goto out_err;
-+	} else if (!index && !origin.dentry) {
-+		return NULL;
-+	} else if (index && origin.dentry) {
-+		err = ovl_verify_origin(index, origin.dentry, false, false);
-+		if (err)
-+			goto out_err;
++	inode = ovl_lookup_inode(sb, real, is_upper);
++	if (IS_ERR(inode))
++		return ERR_CAST(inode);
++	if (inode) {
++		this = d_find_any_alias(inode);
++		iput(inode);
 +	}
- 
--	dentry = ovl_get_dentry(sb, NULL, &origin);
--	dput(origin.dentry);
-+	dentry = ovl_get_dentry(sb, NULL, &origin, index);
- 
-+out:
-+	dput(origin.dentry);
-+	dput(index);
- 	return dentry;
 +
-+out_err:
-+	dentry = ERR_PTR(err);
-+	goto out;
++	/* TODO: use index when looking up by origin inode */
++	if (!this)
++		return NULL;
++
++	if (WARN_ON(ovl_dentry_real_at(this, is_upper) != real)) {
++		dput(this);
++		this = ERR_PTR(-EIO);
++	}
++
++	return this;
++}
++
++/*
++ * Lookup an indexed or hashed overlay dentry, whose real dentry is an
++ * ancestor of @real.
++ */
++static struct dentry *ovl_lookup_real_ancestor(struct super_block *sb,
++					       struct dentry *real,
++					       bool is_upper)
++{
++	struct dentry *real_root = ovl_dentry_real_at(sb->s_root, is_upper);
++	struct dentry *next, *parent = NULL;
++	struct dentry *ancestor;
++
++	if (real_root == real)
++		return dget(sb->s_root);
++
++	/* Find the topmost indexed or hashed ancestor */
++	next = dget(real);
++	for (;;) {
++		parent = dget_parent(next);
++
++		/*
++		 * Lookup a matching overlay dentry in inode/dentry
++		 * cache or in index by real inode.
++		 */
++		ancestor = ovl_lookup_real_inode(sb, next, is_upper);
++		if (ancestor)
++			break;
++
++		if (real_root == parent) {
++			ancestor = dget(sb->s_root);
++			break;
++		}
++
++		/*
++		 * If @real has been moved out of the layer root directory,
++		 * we will eventully hit the real fs root.
++		 */
++		if (parent == next) {
++			ancestor = ERR_PTR(-EXDEV);
++			break;
++		}
++
++		dput(next);
++		next = parent;
++	}
++
++	dput(parent);
++	dput(next);
++
++	return ancestor;
++}
++
++/*
+  * Lookup an overlay dentry whose real dentry is @real.
+  * If @is_upper is true then we lookup an overlay dentry with the same path
+  * as the real dentry. Otherwise, we need to consult index for lookup.
+@@ -268,7 +349,10 @@ static struct dentry *ovl_lookup_real(struct super_block *sb,
+ 	struct dentry *connected;
+ 	int err = 0;
+ 
+-	connected = dget(sb->s_root);
++	connected = ovl_lookup_real_ancestor(sb, real, is_upper);
++	if (IS_ERR_OR_NULL(connected))
++		return connected;
++
+ 	while (!err) {
+ 		struct dentry *next, *this;
+ 		struct dentry *parent = NULL;
+@@ -423,7 +507,7 @@ static struct dentry *ovl_lower_fh_to_d(struct super_block *sb,
+ 			goto out_err;
+ 	} else if (is_deleted && origin.dentry && !d_is_dir(origin.dentry)) {
+ 		/* Lookup deleted overlay inode by origin inode */
+-		inode = ovl_lookup_inode(sb, origin.dentry);
++		inode = ovl_lookup_inode(sb, origin.dentry, false);
+ 		err = -ESTALE;
+ 		if (!inode || atomic_read(&inode->i_count) == 1)
+ 			goto out_err;
+diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
+index 8db3f466df60..038a62857580 100644
+--- a/fs/overlayfs/inode.c
++++ b/fs/overlayfs/inode.c
+@@ -639,15 +639,17 @@ static bool ovl_verify_inode(struct inode *inode, struct dentry *lowerdentry,
+ 	return true;
  }
  
- static struct dentry *ovl_fh_to_dentry(struct super_block *sb, struct fid *fid,
+-struct inode *ovl_lookup_inode(struct super_block *sb, struct dentry *origin)
++struct inode *ovl_lookup_inode(struct super_block *sb, struct dentry *real,
++			       bool is_upper)
+ {
+-	struct inode *inode, *key = d_inode(origin);
++	struct inode *inode, *key = d_inode(real);
+ 
+ 	inode = ilookup5(sb, (unsigned long) key, ovl_inode_test, key);
+ 	if (!inode)
+ 		return NULL;
+ 
+-	if (!ovl_verify_inode(inode, origin, NULL)) {
++	if (!ovl_verify_inode(inode, is_upper ? NULL : real,
++			      is_upper ? real : NULL)) {
+ 		iput(inode);
+ 		return ERR_PTR(-ESTALE);
+ 	}
+diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
+index 7310e0eca383..d06299b27ec3 100644
+--- a/fs/overlayfs/overlayfs.h
++++ b/fs/overlayfs/overlayfs.h
+@@ -306,7 +306,8 @@ int ovl_update_time(struct inode *inode, struct timespec *ts, int flags);
+ bool ovl_is_private_xattr(const char *name);
+ 
+ struct inode *ovl_new_inode(struct super_block *sb, umode_t mode, dev_t rdev);
+-struct inode *ovl_lookup_inode(struct super_block *sb, struct dentry *origin);
++struct inode *ovl_lookup_inode(struct super_block *sb, struct dentry *real,
++			       bool is_upper);
+ struct inode *ovl_get_inode(struct super_block *sb, struct dentry *upperdentry,
+ 			    struct dentry *lowerdentry, struct dentry *index,
+ 			    unsigned int numlower);
 -- 
 2.7.4
