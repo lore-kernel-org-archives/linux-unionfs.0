@@ -1,114 +1,127 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH v2 13/23] ovl: create ovl_need_index() helper
-Date: Thu,  4 Jan 2018 18:40:08 +0200
-Message-ID: <1515084018-25134-14-git-send-email-amir73il@gmail.com>
+Subject: [PATCH v2 19/23] ovl: factor out ovl_get_index_fh() helper
+Date: Thu,  4 Jan 2018 18:40:14 +0200
+Message-ID: <1515084018-25134-20-git-send-email-amir73il@gmail.com>
 References: <1515084018-25134-1-git-send-email-amir73il@gmail.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wr0-f196.google.com ([209.85.128.196]:42872 "EHLO
-        mail-wr0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753512AbeADQjn (ORCPT
+Received: from mail-wm0-f67.google.com ([74.125.82.67]:46279 "EHLO
+        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753310AbeADQju (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 4 Jan 2018 11:39:43 -0500
-Received: by mail-wr0-f196.google.com with SMTP id w107so2009139wrb.9
-        for <linux-unionfs@vger.kernel.org>; Thu, 04 Jan 2018 08:39:43 -0800 (PST)
+        Thu, 4 Jan 2018 11:39:50 -0500
+Received: by mail-wm0-f67.google.com with SMTP id r78so4577571wme.5
+        for <linux-unionfs@vger.kernel.org>; Thu, 04 Jan 2018 08:39:49 -0800 (PST)
 In-Reply-To: <1515084018-25134-1-git-send-email-amir73il@gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: Miklos Szeredi <miklos@szeredi.hu>
 Cc: zhangyi <yi.zhang@huawei.com>, linux-unionfs@vger.kernel.org
 
-The helper determines which lower file needs to be indexed
-on copy up and before nlink changes.
-
-For index=on, the helper evaluates to true for lower hardlinks.
+The helper is needed to lookup an index by file handle for NFS export.
 
 Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- fs/overlayfs/copy_up.c   |  6 +-----
+ fs/overlayfs/namei.c     | 59 ++++++++++++++++++++++++++++++++++++++++--------
  fs/overlayfs/overlayfs.h |  1 +
- fs/overlayfs/util.c      | 24 ++++++++++++++++++++----
- 3 files changed, 22 insertions(+), 9 deletions(-)
+ 2 files changed, 50 insertions(+), 10 deletions(-)
 
-diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
-index 206ececd5ae7..27856663c8c7 100644
---- a/fs/overlayfs/copy_up.c
-+++ b/fs/overlayfs/copy_up.c
-@@ -536,11 +536,7 @@ static int ovl_do_copy_up(struct ovl_copy_up_ctx *c)
- {
- 	int err;
- 	struct ovl_fs *ofs = c->dentry->d_sb->s_fs_info;
--	bool indexed = false;
--
--	if (ovl_indexdir(c->dentry->d_sb) && !S_ISDIR(c->stat.mode) &&
--	    c->stat.nlink > 1)
--		indexed = true;
-+	bool indexed = ovl_need_index(c->dentry);
- 
- 	if (S_ISDIR(c->stat.mode) || c->stat.nlink == 1 || indexed)
- 		c->origin = true;
-diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-index 46f9f097e822..86767b71e485 100644
---- a/fs/overlayfs/overlayfs.h
-+++ b/fs/overlayfs/overlayfs.h
-@@ -243,6 +243,7 @@ void ovl_clear_flag(unsigned long flag, struct inode *inode);
- bool ovl_test_flag(unsigned long flag, struct inode *inode);
- bool ovl_inuse_trylock(struct dentry *dentry);
- void ovl_inuse_unlock(struct dentry *dentry);
-+bool ovl_need_index(struct dentry *dentry);
- int ovl_nlink_start(struct dentry *dentry, bool *locked);
- void ovl_nlink_end(struct dentry *dentry, bool locked);
- int ovl_lock_rename_workdir(struct dentry *workdir, struct dentry *upperdir);
-diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
-index 42809eae0992..0254d7f0d401 100644
---- a/fs/overlayfs/util.c
-+++ b/fs/overlayfs/util.c
-@@ -481,6 +481,23 @@ void ovl_inuse_unlock(struct dentry *dentry)
- 	}
+diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
+index 1a052f821fff..ac902fa7c5e2 100644
+--- a/fs/overlayfs/namei.c
++++ b/fs/overlayfs/namei.c
+@@ -588,6 +588,21 @@ int ovl_verify_index(struct ovl_fs *ofs, struct dentry *index)
+ 	goto out;
  }
  
-+/*
-+ * Does this overlay dentry need to be indexed on copy up?
-+ */
-+bool ovl_need_index(struct dentry *dentry)
++static int ovl_get_index_name_fh(struct ovl_fh *fh, struct qstr *name)
 +{
-+	struct dentry *lower = ovl_dentry_lower(dentry);
++	char *n, *s;
 +
-+	if (!lower || !ovl_indexdir(dentry->d_sb))
-+		return false;
++	n = kzalloc(fh->len * 2, GFP_KERNEL);
++	if (!n)
++		return -ENOMEM;
 +
-+	/* Index only lower hardlinks on copy up */
-+	if (!d_is_dir(lower) && d_inode(lower)->i_nlink > 1)
-+		return true;
++	s  = bin2hex(n, fh, fh->len);
++	*name = (struct qstr) QSTR_INIT(n, s - n);
 +
-+	return false;
++	return 0;
++
 +}
 +
- /* Caller must hold OVL_I(inode)->lock */
- static void ovl_cleanup_index(struct dentry *dentry)
+ /*
+  * Lookup in indexdir for the index entry of a lower real inode or a copy up
+  * origin inode. The index entry name is the hex representation of the lower
+@@ -605,25 +620,49 @@ int ovl_verify_index(struct ovl_fs *ofs, struct dentry *index)
+  */
+ int ovl_get_index_name(struct dentry *origin, struct qstr *name)
  {
-@@ -551,11 +568,11 @@ int ovl_nlink_start(struct dentry *dentry, bool *locked)
+-	int err;
+ 	struct ovl_fh *fh;
+-	char *n, *s;
++	int err;
  
- 	/*
- 	 * With inodes index is enabled, we store the union overlay nlink
--	 * in an xattr on the index inode. When whiting out lower hardlinks
-+	 * in an xattr on the index inode. When whiting out an indexed lower,
- 	 * we need to decrement the overlay persistent nlink, but before the
- 	 * first copy up, we have no upper index inode to store the xattr.
- 	 *
--	 * As a workaround, before whiteout/rename over of a lower hardlink,
-+	 * As a workaround, before whiteout/rename over an indexed lower,
- 	 * copy up to create the upper index. Creating the upper index will
- 	 * initialize the overlay nlink, so it could be dropped if unlink
- 	 * or rename succeeds.
-@@ -563,8 +580,7 @@ int ovl_nlink_start(struct dentry *dentry, bool *locked)
- 	 * TODO: implement metadata only index copy up when called with
- 	 *       ovl_copy_up_flags(dentry, O_PATH).
- 	 */
--	if (ovl_indexdir(dentry->d_sb) && !ovl_dentry_has_upper_alias(dentry) &&
--	    d_inode(ovl_dentry_lower(dentry))->i_nlink > 1) {
-+	if (ovl_need_index(dentry) && !ovl_dentry_has_upper_alias(dentry)) {
- 		err = ovl_copy_up(dentry);
- 		if (err)
- 			return err;
+ 	fh = ovl_encode_fh(origin, false);
+ 	if (IS_ERR(fh))
+ 		return PTR_ERR(fh);
+ 
+-	err = -ENOMEM;
+-	n = kzalloc(fh->len * 2, GFP_KERNEL);
+-	if (n) {
+-		s  = bin2hex(n, fh, fh->len);
+-		*name = (struct qstr) QSTR_INIT(n, s - n);
+-		err = 0;
+-	}
+-	kfree(fh);
++	err = ovl_get_index_name_fh(fh, name);
+ 
++	kfree(fh);
+ 	return err;
++}
++
++/* Lookup index by file handle for NFS export */
++struct dentry *ovl_get_index_fh(struct ovl_fs *ofs, struct ovl_fh *fh)
++{
++	struct dentry *index;
++	struct qstr name;
++	int err;
++
++	err = ovl_get_index_name_fh(fh, &name);
++	if (err)
++		return ERR_PTR(err);
++
++	index = lookup_one_len_unlocked(name.name, ofs->indexdir, name.len);
++	kfree(name.name);
++	if (IS_ERR(index)) {
++		if (PTR_ERR(index) == -ENOENT)
++			index = NULL;
++		return index;
++	}
+ 
++	if (d_is_negative(index))
++		err = 0;
++	else if (ovl_is_whiteout(index))
++		err = -ESTALE;
++	else if (ovl_dentry_weird(index))
++		err = -EIO;
++	else
++		return index;
++
++	dput(index);
++	return ERR_PTR(err);
+ }
+ 
+ static struct dentry *ovl_lookup_index(struct dentry *dentry,
+diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
+index 9d0dd8b70e03..d9467eab8514 100644
+--- a/fs/overlayfs/overlayfs.h
++++ b/fs/overlayfs/overlayfs.h
+@@ -259,6 +259,7 @@ int ovl_verify_origin(struct dentry *dentry, struct dentry *origin,
+ 		      bool is_upper, bool set);
+ int ovl_verify_index(struct ovl_fs *ofs, struct dentry *index);
+ int ovl_get_index_name(struct dentry *origin, struct qstr *name);
++struct dentry *ovl_get_index_fh(struct ovl_fs *ofs, struct ovl_fh *fh);
+ int ovl_path_next(int idx, struct dentry *dentry, struct path *path);
+ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
+ 			  unsigned int flags);
 -- 
 2.7.4
