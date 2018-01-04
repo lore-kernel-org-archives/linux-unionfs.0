@@ -1,240 +1,168 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH v2 04/17] ovl: decode connected upper dir file handles
-Date: Thu,  4 Jan 2018 19:20:36 +0200
-Message-ID: <1515086449-26563-5-git-send-email-amir73il@gmail.com>
+Subject: [PATCH v2 03/17] ovl: decode pure upper file handles
+Date: Thu,  4 Jan 2018 19:20:35 +0200
+Message-ID: <1515086449-26563-4-git-send-email-amir73il@gmail.com>
 References: <1515086449-26563-1-git-send-email-amir73il@gmail.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wr0-f196.google.com ([209.85.128.196]:45056 "EHLO
-        mail-wr0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751679AbeADRUn (ORCPT
+Received: from mail-wm0-f67.google.com ([74.125.82.67]:44432 "EHLO
+        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751798AbeADRUm (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 4 Jan 2018 12:20:43 -0500
+        Thu, 4 Jan 2018 12:20:42 -0500
 In-Reply-To: <1515086449-26563-1-git-send-email-amir73il@gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: Miklos Szeredi <miklos@szeredi.hu>
 Cc: Jeff Layton <jlayton@poochiereds.net>, "J . Bruce Fields" <bfields@fieldses.org>, linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
 
-Until this change, we decoded upper file handles by instantiating an
-overlay dentry from the real upper dentry. This is sufficient to handle
-pure upper files, but insufficient to handle merge/impure dirs.
-
-To that end, if decoded real upper dir is connected and hashed, we
-lookup an overlay dentry with the same path as the real upper dir.
-If decoded real upper is non-dir, we instantiate a disconnected overlay
-dentry as before this change.
-
-Because ovl_fh_to_dentry() returns connected overlay dir dentries,
-exportfs never need to call get_parent() and get_name() to reconnect an
-upper overlay dir. Because connectable non-dir file handles are not
-supported, exportfs will not be able to use fh_to_parent() and get_name()
-methods to reconnect a disconnected non-dir to its parent. Therefore, the
-methods get_parent() and get_name() are implemented just to print out a
-sanity warning and the method fh_to_parent() is implemented to warn the
-user that using the 'subtree_check' exportfs option is not supported.
+Decoding an upper file handle is done by decoding the upper dentry from
+underlying upper fs, finding or allocating an overlay inode that is
+hashed by the real upper inode and instantiating an overlay dentry with
+that inode.
 
 Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- fs/overlayfs/export.c | 172 +++++++++++++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 171 insertions(+), 1 deletion(-)
+ fs/overlayfs/export.c    | 91 ++++++++++++++++++++++++++++++++++++++++++++++++
+ fs/overlayfs/namei.c     |  4 +--
+ fs/overlayfs/overlayfs.h |  2 ++
+ 3 files changed, 95 insertions(+), 2 deletions(-)
 
 diff --git a/fs/overlayfs/export.c b/fs/overlayfs/export.c
-index 5c72784a0b4d..48ae02f3acb8 100644
+index 58c4f5e8a67e..5c72784a0b4d 100644
 --- a/fs/overlayfs/export.c
 +++ b/fs/overlayfs/export.c
-@@ -130,6 +130,145 @@ static struct dentry *ovl_obtain_alias(struct super_block *sb,
- 	return dentry;
+@@ -93,6 +93,97 @@ static int ovl_encode_inode_fh(struct inode *inode, u32 *fid, int *max_len,
+ 	return type;
  }
  
 +/*
-+ * Lookup a child overlay dentry whose real dentry is @real.
-+ * If @is_upper is true then we lookup a child overlay dentry with the same
-+ * name as the real dentry. Otherwise, we need to consult index for lookup.
++ * Find or instantiate an overlay dentry from real dentries.
 + */
-+static struct dentry *ovl_lookup_real_one(struct dentry *parent,
-+					  struct dentry *real, bool is_upper)
++static struct dentry *ovl_obtain_alias(struct super_block *sb,
++				       struct dentry *upper,
++				       struct ovl_path *lowerpath)
 +{
-+	struct dentry *this;
-+	struct qstr *name = &real->d_name;
-+	int err;
++	struct inode *inode;
++	struct dentry *dentry;
++	struct ovl_entry *oe;
 +
-+	/* TODO: use index when looking up by lower real dentry */
-+	if (!is_upper)
-+		return ERR_PTR(-EACCES);
++	/* TODO: obtain non pure-upper */
++	if (lowerpath)
++		return ERR_PTR(-EIO);
 +
-+	/* Lookup overlay dentry by real name */
-+	this = lookup_one_len_unlocked(name->name, parent, name->len);
-+	err = PTR_ERR(this);
-+	if (IS_ERR(this)) {
-+		goto fail;
-+	} else if (!this || !this->d_inode) {
-+		dput(this);
-+		err = -ENOENT;
-+		goto fail;
-+	} else if (ovl_dentry_upper(this) != real) {
-+		dput(this);
-+		err = -ESTALE;
-+		goto fail;
++	inode = ovl_get_inode(sb, dget(upper), NULL, NULL, 0);
++	if (IS_ERR(inode)) {
++		dput(upper);
++		return ERR_CAST(inode);
 +	}
 +
-+	return this;
++	dentry = d_obtain_alias(inode);
++	if (IS_ERR(dentry) || dentry->d_fsdata)
++		return dentry;
 +
-+fail:
-+	pr_warn_ratelimited("overlayfs: failed to lookup one by real (%pd2, is_upper=%d, parent=%pd2, err=%i)\n",
-+			    real, is_upper, parent, err);
-+	return ERR_PTR(err);
-+}
-+
-+/*
-+ * Lookup an overlay dentry whose real dentry is @real.
-+ * If @is_upper is true then we lookup an overlay dentry with the same path
-+ * as the real dentry. Otherwise, we need to consult index for lookup.
-+ */
-+static struct dentry *ovl_lookup_real(struct super_block *sb,
-+				      struct dentry *real, bool is_upper)
-+{
-+	struct dentry *connected;
-+	int err = 0;
-+
-+	/* TODO: use index when looking up by lower real dentry */
-+	if (!is_upper)
-+		return ERR_PTR(-EACCES);
-+
-+	connected = dget(sb->s_root);
-+	while (!err) {
-+		struct dentry *next, *this;
-+		struct dentry *parent = NULL;
-+		struct dentry *real_connected = ovl_dentry_upper(connected);
-+
-+		if (real_connected == real)
-+			break;
-+
-+		next = dget(real);
-+		/* find the topmost dentry not yet connected */
-+		for (;;) {
-+			parent = dget_parent(next);
-+
-+			if (real_connected == parent)
-+				break;
-+
-+			/*
-+			 * If real file has been moved out of the layer root
-+			 * directory, we will eventully hit the real fs root.
-+			 */
-+			if (parent == next) {
-+				err = -EXDEV;
-+				break;
-+			}
-+
-+			dput(next);
-+			next = parent;
-+		}
-+
-+		if (!err) {
-+			this = ovl_lookup_real_one(connected, next, is_upper);
-+			if (!IS_ERR(this)) {
-+				dput(connected);
-+				connected = this;
-+			} else {
-+				err = PTR_ERR(this);
-+			}
-+		}
-+
-+		dput(parent);
-+		dput(next);
++	oe = ovl_alloc_entry(0);
++	if (!oe) {
++		dput(dentry);
++		return ERR_PTR(-ENOMEM);
 +	}
 +
-+	if (err)
-+		goto fail;
++	dentry->d_fsdata = oe;
++	ovl_dentry_set_upper_alias(dentry);
 +
-+	return connected;
-+
-+fail:
-+	pr_warn_ratelimited("overlayfs: failed to lookup by real (%pd2, is_upper=%d, connected=%pd2, err=%i)\n",
-+			    real, is_upper, connected, err);
-+	dput(connected);
-+	return ERR_PTR(err);
++	return dentry;
 +}
 +
-+/*
-+ * Get an overlay dentry from upper/lower real dentries.
-+ */
-+static struct dentry *ovl_get_dentry(struct super_block *sb,
-+				     struct dentry *upper,
-+				     struct ovl_path *lowerpath)
++static struct dentry *ovl_upper_fh_to_d(struct super_block *sb,
++					struct ovl_fh *fh)
 +{
-+	/* TODO: get non-upper dentry */
-+	if (!upper)
++	struct ovl_fs *ofs = sb->s_fs_info;
++	struct dentry *dentry;
++	struct dentry *upper;
++
++	if (!ofs->upper_mnt)
 +		return ERR_PTR(-EACCES);
 +
-+	/*
-+	 * Obtain a disconnected overlay dentry from a non-dir real upper
-+	 * dentry.
-+	 */
-+	if (!d_is_dir(upper))
-+		return ovl_obtain_alias(sb, upper, NULL);
++	upper = ovl_decode_fh(fh, ofs->upper_mnt);
++	if (IS_ERR_OR_NULL(upper))
++		return upper;
 +
-+	/* Removed empty directory? */
-+	if ((upper->d_flags & DCACHE_DISCONNECTED) || d_unhashed(upper))
-+		return ERR_PTR(-ENOENT);
++	dentry = ovl_obtain_alias(sb, upper, NULL);
++	dput(upper);
 +
-+	/*
-+	 * If real upper dentry is connected and hashed, get a connected
-+	 * overlay dentry with the same path as the real upper dentry.
-+	 */
-+	return ovl_lookup_real(sb, upper, true);
++	return dentry;
 +}
 +
- static struct dentry *ovl_upper_fh_to_d(struct super_block *sb,
- 					struct ovl_fh *fh)
- {
-@@ -144,7 +283,7 @@ static struct dentry *ovl_upper_fh_to_d(struct super_block *sb,
- 	if (IS_ERR_OR_NULL(upper))
- 		return upper;
- 
--	dentry = ovl_obtain_alias(sb, upper, NULL);
-+	dentry = ovl_get_dentry(sb, upper, NULL);
- 	dput(upper);
- 
- 	return dentry;
-@@ -183,7 +322,38 @@ static struct dentry *ovl_fh_to_dentry(struct super_block *sb, struct fid *fid,
- 	return ERR_PTR(err);
- }
- 
-+static struct dentry *ovl_fh_to_parent(struct super_block *sb, struct fid *fid,
++static struct dentry *ovl_fh_to_dentry(struct super_block *sb, struct fid *fid,
 +				       int fh_len, int fh_type)
 +{
-+	pr_warn_ratelimited("overlayfs: connectable file handles not supported; use 'no_subtree_check' exportfs option.\n");
-+	return ERR_PTR(-EACCES);
-+}
++	struct dentry *dentry = NULL;
++	struct ovl_fh *fh = (struct ovl_fh *) fid;
++	int len = fh_len << 2;
++	unsigned int flags = 0;
++	int err;
 +
-+static int ovl_get_name(struct dentry *parent, char *name,
-+			struct dentry *child)
-+{
-+	/*
-+	 * ovl_fh_to_dentry() returns connected dir overlay dentries and
-+	 * ovl_fh_to_parent() is not implemented, so we should not get here.
-+	 */
-+	WARN_ON_ONCE(1);
-+	return -EIO;
-+}
++	err = -EINVAL;
++	if (fh_type != OVL_FILEID)
++		goto out_err;
 +
-+static struct dentry *ovl_get_parent(struct dentry *dentry)
-+{
-+	/*
-+	 * ovl_fh_to_dentry() returns connected dir overlay dentries, so we
-+	 * should not get here.
-+	 */
-+	WARN_ON_ONCE(1);
-+	return ERR_PTR(-EIO);
++	err = ovl_check_fh_len(fh, len);
++	if (err)
++		goto out_err;
++
++	/* TODO: decode non-upper */
++	flags = fh->flags;
++	if (flags & OVL_FH_FLAG_PATH_UPPER)
++		dentry = ovl_upper_fh_to_d(sb, fh);
++	err = PTR_ERR(dentry);
++	if (IS_ERR(dentry) && err != -ESTALE)
++		goto out_err;
++
++	return dentry;
++
++out_err:
++	pr_warn_ratelimited("overlayfs: failed to decode file handle (len=%d, type=%d, flags=%x, err=%i)\n",
++			    len, fh_type, flags, err);
++	return ERR_PTR(err);
 +}
 +
  const struct export_operations ovl_export_operations = {
  	.encode_fh      = ovl_encode_inode_fh,
- 	.fh_to_dentry	= ovl_fh_to_dentry,
-+	.fh_to_parent	= ovl_fh_to_parent,
-+	.get_name	= ovl_get_name,
-+	.get_parent	= ovl_get_parent,
++	.fh_to_dentry	= ovl_fh_to_dentry,
  };
+diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
+index a69cedf06000..87d39384dc55 100644
+--- a/fs/overlayfs/namei.c
++++ b/fs/overlayfs/namei.c
+@@ -107,7 +107,7 @@ static int ovl_acceptable(void *ctx, struct dentry *dentry)
+  * Return -ENODATA for "origin unknown".
+  * Return <0 for an invalid file handle.
+  */
+-static int ovl_check_fh_len(struct ovl_fh *fh, int fh_len)
++int ovl_check_fh_len(struct ovl_fh *fh, int fh_len)
+ {
+ 	if (fh_len < sizeof(struct ovl_fh) || fh_len < fh->len)
+ 		return -EINVAL;
+@@ -171,7 +171,7 @@ static struct ovl_fh *ovl_get_origin_fh(struct dentry *dentry)
+ 	goto out;
+ }
+ 
+-static struct dentry *ovl_decode_fh(struct ovl_fh *fh, struct vfsmount *mnt)
++struct dentry *ovl_decode_fh(struct ovl_fh *fh, struct vfsmount *mnt)
+ {
+ 	struct dentry *origin;
+ 	int bytes;
+diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
+index f6fd999cb98e..c4f8e98e209e 100644
+--- a/fs/overlayfs/overlayfs.h
++++ b/fs/overlayfs/overlayfs.h
+@@ -258,6 +258,8 @@ static inline bool ovl_is_impuredir(struct dentry *dentry)
+ 
+ 
+ /* namei.c */
++int ovl_check_fh_len(struct ovl_fh *fh, int fh_len);
++struct dentry *ovl_decode_fh(struct ovl_fh *fh, struct vfsmount *mnt);
+ int ovl_verify_origin(struct dentry *dentry, struct dentry *origin,
+ 		      bool is_upper, bool set);
+ int ovl_verify_index(struct ovl_fs *ofs, struct dentry *index);
 -- 
 2.7.4
