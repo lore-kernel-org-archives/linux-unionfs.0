@@ -1,121 +1,68 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH v2 10/17] ovl: decode lower file handles of unlinked but open files
-Date: Thu,  4 Jan 2018 19:20:42 +0200
-Message-ID: <1515086449-26563-11-git-send-email-amir73il@gmail.com>
+Subject: [PATCH v2 17/17] nfsd: encode stat->mtime for getattr instead of inode->i_mtime
+Date: Thu,  4 Jan 2018 19:20:49 +0200
+Message-ID: <1515086449-26563-18-git-send-email-amir73il@gmail.com>
 References: <1515086449-26563-1-git-send-email-amir73il@gmail.com>
-Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wm0-f65.google.com ([74.125.82.65]:46372 "EHLO
-        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752215AbeADRUu (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 4 Jan 2018 12:20:50 -0500
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
 In-Reply-To: <1515086449-26563-1-git-send-email-amir73il@gmail.com>
-Sender: linux-unionfs-owner@vger.kernel.org
-List-Id: linux-unionfs@vger.kernel.org
+Sender: linux-fsdevel-owner@vger.kernel.org
 To: Miklos Szeredi <miklos@szeredi.hu>
 Cc: Jeff Layton <jlayton@poochiereds.net>, "J . Bruce Fields" <bfields@fieldses.org>, linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
+List-Id: linux-unionfs@vger.kernel.org
 
-Lookup overlay inode in cache by origin inode, so we can decode a file
-handle of an open file even if the index has a whiteout index entry to
-mark this overlay inode was unlinked.
+The values of stat->mtime and inode->i_mtime may differ for overlayfs
+and stat->mtime is the correct value to use when encoding getattr.
+This is also consistent with the fact that other attr times are also
+encoded from stat values.
 
+Both callers of lease_get_mtime() already have the value of stat->mtime,
+so the only needed change is that lease_get_mtime() will not overwrite
+this value with inode->i_mtime in case the inode does not have an
+exclusive lease.
+
+Reviewed-by: Jeff Layton <jlayton@kernel.org>
 Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- fs/overlayfs/export.c    | 22 ++++++++++++++++++++--
- fs/overlayfs/inode.c     | 16 ++++++++++++++++
- fs/overlayfs/overlayfs.h |  1 +
- 3 files changed, 37 insertions(+), 2 deletions(-)
+ fs/locks.c       | 6 ++----
+ fs/nfsd/nfsxdr.c | 1 +
+ 2 files changed, 3 insertions(+), 4 deletions(-)
 
-diff --git a/fs/overlayfs/export.c b/fs/overlayfs/export.c
-index 602bada474ba..6ecb54d4b52c 100644
---- a/fs/overlayfs/export.c
-+++ b/fs/overlayfs/export.c
-@@ -385,13 +385,21 @@ static struct dentry *ovl_lower_fh_to_d(struct super_block *sb,
- 	struct ovl_path *stack = &origin;
- 	struct dentry *dentry = NULL;
- 	struct dentry *index = NULL;
-+	struct inode *inode = NULL;
-+	bool is_deleted = false;
- 	int err;
+diff --git a/fs/locks.c b/fs/locks.c
+index 21b4dfa289ee..d6ff4beb70ce 100644
+--- a/fs/locks.c
++++ b/fs/locks.c
+@@ -1554,9 +1554,9 @@ int __break_lease(struct inode *inode, unsigned int mode, unsigned int type)
+ EXPORT_SYMBOL(__break_lease);
  
- 	/* First lookup indexed upper by fh */
- 	index = ovl_get_index_fh(ofs, fh);
- 	err = PTR_ERR(index);
--	if (IS_ERR(index))
--		return ERR_PTR(err);
-+	if (IS_ERR(index)) {
-+		if (err != -ESTALE)
-+			return ERR_PTR(err);
-+
-+		/* Found a whiteout index - treat as deleted inode */
-+		is_deleted = true;
-+		index = NULL;
-+	}
+ /**
+- *	lease_get_mtime - get the last modified time of an inode
++ *	lease_get_mtime - update modified time of an inode with exclusive lease
+  *	@inode: the inode
+- *      @time:  pointer to a timespec which will contain the last modified time
++ *      @time:  pointer to a timespec which contains the last modified time
+  *
+  * This is to force NFS clients to flush their caches for files with
+  * exclusive leases.  The justification is that if someone has an
+@@ -1580,8 +1580,6 @@ void lease_get_mtime(struct inode *inode, struct timespec *time)
  
- 	/* Then lookup origin by fh */
- 	err = ovl_check_origin_fh(fh, NULL, ofs->lower_layers, ofs->numlower,
-@@ -404,6 +412,15 @@ static struct dentry *ovl_lower_fh_to_d(struct super_block *sb,
- 		err = ovl_verify_origin(index, origin.dentry, false, false);
- 		if (err)
- 			goto out_err;
-+	} else if (is_deleted && origin.dentry && !d_is_dir(origin.dentry)) {
-+		/* Lookup deleted overlay inode by origin inode */
-+		inode = ovl_lookup_inode(sb, origin.dentry);
-+		err = -ESTALE;
-+		if (!inode || atomic_read(&inode->i_count) == 1)
-+			goto out_err;
-+
-+		/* Deleted but still open? */
-+		index = dget(ovl_i_dentry_upper(inode));
- 	}
- 
- 	dentry = ovl_get_dentry(sb, NULL, &origin, index);
-@@ -411,6 +428,7 @@ static struct dentry *ovl_lower_fh_to_d(struct super_block *sb,
- out:
- 	dput(origin.dentry);
- 	dput(index);
-+	iput(inode);
- 	return dentry;
- 
- out_err:
-diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
-index bb742d195f12..a25908ba3512 100644
---- a/fs/overlayfs/inode.c
-+++ b/fs/overlayfs/inode.c
-@@ -637,6 +637,22 @@ static bool ovl_verify_inode(struct inode *inode, struct dentry *lowerdentry,
- 	return true;
+ 	if (has_lease)
+ 		*time = current_time(inode);
+-	else
+-		*time = inode->i_mtime;
  }
  
-+struct inode *ovl_lookup_inode(struct super_block *sb, struct dentry *origin)
-+{
-+	struct inode *inode, *key = d_inode(origin);
-+
-+	inode = ilookup5(sb, (unsigned long) key, ovl_inode_test, key);
-+	if (!inode)
-+		return NULL;
-+
-+	if (!ovl_verify_inode(inode, origin, NULL)) {
-+		iput(inode);
-+		return ERR_PTR(-ESTALE);
-+	}
-+
-+	return inode;
-+}
-+
- struct inode *ovl_get_inode(struct super_block *sb, struct dentry *upperdentry,
- 			    struct dentry *lowerdentry, struct dentry *index,
- 			    unsigned int numlower)
-diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-index 2ddd74043b5f..8fa8253af7cb 100644
---- a/fs/overlayfs/overlayfs.h
-+++ b/fs/overlayfs/overlayfs.h
-@@ -305,6 +305,7 @@ int ovl_update_time(struct inode *inode, struct timespec *ts, int flags);
- bool ovl_is_private_xattr(const char *name);
- 
- struct inode *ovl_new_inode(struct super_block *sb, umode_t mode, dev_t rdev);
-+struct inode *ovl_lookup_inode(struct super_block *sb, struct dentry *origin);
- struct inode *ovl_get_inode(struct super_block *sb, struct dentry *upperdentry,
- 			    struct dentry *lowerdentry, struct dentry *index,
- 			    unsigned int numlower);
+ EXPORT_SYMBOL(lease_get_mtime);
+diff --git a/fs/nfsd/nfsxdr.c b/fs/nfsd/nfsxdr.c
+index 644a0342f0e0..79b6064f8977 100644
+--- a/fs/nfsd/nfsxdr.c
++++ b/fs/nfsd/nfsxdr.c
+@@ -188,6 +188,7 @@ encode_fattr(struct svc_rqst *rqstp, __be32 *p, struct svc_fh *fhp,
+ 	*p++ = htonl((u32) stat->ino);
+ 	*p++ = htonl((u32) stat->atime.tv_sec);
+ 	*p++ = htonl(stat->atime.tv_nsec ? stat->atime.tv_nsec / 1000 : 0);
++	time = stat->mtime;
+ 	lease_get_mtime(d_inode(dentry), &time); 
+ 	*p++ = htonl((u32) time.tv_sec);
+ 	*p++ = htonl(time.tv_nsec ? time.tv_nsec / 1000 : 0); 
 -- 
 2.7.4
