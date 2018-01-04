@@ -1,93 +1,140 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH v2 03/23] ovl: store layer index in ovl_layer
-Date: Thu,  4 Jan 2018 18:39:58 +0200
-Message-ID: <1515084018-25134-4-git-send-email-amir73il@gmail.com>
+Subject: [PATCH v2 09/23] ovl: lookup index for directories
+Date: Thu,  4 Jan 2018 18:40:04 +0200
+Message-ID: <1515084018-25134-10-git-send-email-amir73il@gmail.com>
 References: <1515084018-25134-1-git-send-email-amir73il@gmail.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wr0-f193.google.com ([209.85.128.193]:37288 "EHLO
-        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753395AbeADQjc (ORCPT
+Received: from mail-wm0-f65.google.com ([74.125.82.65]:44338 "EHLO
+        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753314AbeADQjj (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 4 Jan 2018 11:39:32 -0500
-Received: by mail-wr0-f193.google.com with SMTP id f8so2018677wre.4
-        for <linux-unionfs@vger.kernel.org>; Thu, 04 Jan 2018 08:39:31 -0800 (PST)
+        Thu, 4 Jan 2018 11:39:39 -0500
+Received: by mail-wm0-f65.google.com with SMTP id t8so4542979wmc.3
+        for <linux-unionfs@vger.kernel.org>; Thu, 04 Jan 2018 08:39:38 -0800 (PST)
 In-Reply-To: <1515084018-25134-1-git-send-email-amir73il@gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: Miklos Szeredi <miklos@szeredi.hu>
 Cc: zhangyi <yi.zhang@huawei.com>, linux-unionfs@vger.kernel.org
 
-Store the fs root layer index inside ovl_layer struct, so we can
-get the root fs layer index from merge dir lower layer instead of
-find it with ovl_find_layer() helper.
+A directory index is a directory type entry in index dir with a
+"trusted.overlay.origin" xattr containing an encoded ovl_fh of the merge
+directory upper dir inode.
+
+On lookup of non-dir files, lower file is followed by origin file handle.
+On lookup of dir entries, lower dir is found by name and then compared
+to origin file handle. We only trust dir index if we verified that lower
+dir matches origin file handle, otherwise index may be inconsistent and
+we ignore it.
+
+If we find an indexed non-upper dir or an indexed merged dir, whose
+index 'origin' points to a different upper dir, that means that the lower
+directory may be also referenced by another upper dir via redirect, so we
+fail the lookup on inconsistency error.
+
+Directory index entries are going to be used for NFS export.
 
 Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- fs/overlayfs/namei.c     | 17 +----------------
- fs/overlayfs/ovl_entry.h |  2 ++
- fs/overlayfs/super.c     |  1 +
- 3 files changed, 4 insertions(+), 16 deletions(-)
+ fs/overlayfs/namei.c | 42 +++++++++++++++++++++++++++++++++++-------
+ 1 file changed, 35 insertions(+), 7 deletions(-)
 
 diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
-index 71db9a966d88..a48ee02c4524 100644
+index 8aa4724d4fb0..6e556d2e2365 100644
 --- a/fs/overlayfs/namei.c
 +++ b/fs/overlayfs/namei.c
-@@ -572,18 +572,6 @@ int ovl_path_next(int idx, struct dentry *dentry, struct path *path)
- 	return (idx < oe->numlower) ? idx + 1 : -1;
- }
+@@ -535,6 +535,7 @@ static struct dentry *ovl_lookup_index(struct dentry *dentry,
+ 	struct dentry *index;
+ 	struct inode *inode;
+ 	struct qstr name;
++	bool is_dir = d_is_dir(origin);
+ 	int err;
  
--static int ovl_find_layer(struct ovl_fs *ofs, struct ovl_path *path)
--{
--	int i;
--
--	for (i = 0; i < ofs->numlower; i++) {
--		if (ofs->lower_layers[i].mnt == path->layer->mnt)
--			break;
+ 	err = ovl_get_index_name(origin, &name);
+@@ -558,8 +559,6 @@ static struct dentry *ovl_lookup_index(struct dentry *dentry,
+ 	inode = d_inode(index);
+ 	if (d_is_negative(index)) {
+ 		goto out_dput;
+-	} else if (upper && d_inode(upper) != inode) {
+-		goto out_dput;
+ 	} else if (ovl_dentry_weird(index) || ovl_is_whiteout(index) ||
+ 		   ((inode->i_mode ^ d_inode(origin)->i_mode) & S_IFMT)) {
+ 		/*
+@@ -573,8 +572,25 @@ static struct dentry *ovl_lookup_index(struct dentry *dentry,
+ 				    index, d_inode(index)->i_mode & S_IFMT,
+ 				    d_inode(origin)->i_mode & S_IFMT);
+ 		goto fail;
 -	}
--
--	return i;
--}
--
- /* Fix missing 'origin' xattr */
- static int ovl_fix_origin(struct dentry *dentry, struct dentry *lower,
- 			  struct dentry *upper)
-@@ -733,11 +721,8 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
++	} else if (is_dir) {
++		if (!upper) {
++			pr_warn_ratelimited("overlayfs: suspected uncovered redirected dir found (origin=%pd2, index=%pd2).\n",
++					    origin, index);
++			goto fail;
++		}
  
- 		if (d.redirect && d.redirect[0] == '/' && poe != roe) {
- 			poe = roe;
--
- 			/* Find the current layer on the root dentry */
--			i = ovl_find_layer(ofs, &lower);
--			if (WARN_ON(i == ofs->numlower))
--				break;
-+			i = lower.layer->idx - 1;
++		/* Verify that dir index origin points to upper dir */
++		err = ovl_verify_origin(index, upper, true, false);
++		if (err) {
++			if (err == -ESTALE) {
++				pr_warn_ratelimited("overlayfs: suspected multiply redirected dir found (upper=%pd2, origin=%pd2, index=%pd2).\n",
++						    upper, origin, index);
++			}
++			goto fail;
++		}
++	} else if (upper && d_inode(upper) != inode) {
++		goto out_dput;
++	}
+ out:
+ 	kfree(name.name);
+ 	return index;
+@@ -643,6 +659,7 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
+ 	struct ovl_entry *roe = dentry->d_sb->s_root->d_fsdata;
+ 	struct ovl_path *stack = NULL;
+ 	struct dentry *upperdir, *upperdentry = NULL;
++	struct dentry *origin = NULL;
+ 	struct dentry *index = NULL;
+ 	unsigned int ctr = 0;
+ 	struct inode *inode = NULL;
+@@ -736,7 +753,8 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
+ 
+ 		/*
+ 		 * When "verify" feature is enabled, do not merge with a lower
+-		 * dir that does not match a stored origin xattr.
++		 * dir that does not match a stored origin xattr. In any case,
++		 * only verified origin is used for index lookup.
+ 		 */
+ 		if (upperdentry && !ctr && ovl_verify(dentry->d_sb)) {
+ 			err = ovl_verify_origin(upperdentry, this, false,
+@@ -745,6 +763,9 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
+ 				dput(this);
+ 				break;
+ 			}
++
++			/* Bless lower dir as verified origin */
++			origin = this;
+ 		}
+ 
+ 		stack[ctr].dentry = this;
+@@ -778,10 +799,17 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
  		}
  	}
  
-diff --git a/fs/overlayfs/ovl_entry.h b/fs/overlayfs/ovl_entry.h
-index 9d0bc03bf6e4..608e48755070 100644
---- a/fs/overlayfs/ovl_entry.h
-+++ b/fs/overlayfs/ovl_entry.h
-@@ -22,6 +22,8 @@ struct ovl_config {
- struct ovl_layer {
- 	struct vfsmount *mnt;
- 	dev_t pseudo_dev;
-+	/* Index of this layer in fs root (upper == 0) */
-+	int idx;
- };
+-	/* Lookup index by lower inode and verify it matches upper inode */
+-	if (ctr && !d.is_dir && ovl_indexdir(dentry->d_sb)) {
+-		struct dentry *origin = stack[0].dentry;
++	/*
++	 * Lookup index by lower inode and verify it matches upper inode.
++	 * We only trust dir index if we verified that lower dir matches
++	 * origin, otherwise dir index entries may be inconsistent and we
++	 * ignore them. Always lookup index of non-dir and non-upper.
++	 */
++	if (ctr && (!upperdentry || !d.is_dir))
++		origin = stack[0].dentry;
  
- struct ovl_path {
-diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-index 7e33c83c5a07..2b58620eedf0 100644
---- a/fs/overlayfs/super.c
-+++ b/fs/overlayfs/super.c
-@@ -1111,6 +1111,7 @@ static int ovl_get_lower_layers(struct ovl_fs *ofs, struct path *stack,
- 
- 		ofs->lower_layers[ofs->numlower].mnt = mnt;
- 		ofs->lower_layers[ofs->numlower].pseudo_dev = dev;
-+		ofs->lower_layers[ofs->numlower].idx = i + 1;
- 		ofs->numlower++;
- 
- 		/* Check if all lower layers are on same sb */
++	if (origin && ovl_indexdir(dentry->d_sb) &&
++	    (!d.is_dir || ovl_verify(dentry->d_sb))) {
+ 		index = ovl_lookup_index(dentry, upperdentry, origin);
+ 		if (IS_ERR(index)) {
+ 			err = PTR_ERR(index);
 -- 
 2.7.4
