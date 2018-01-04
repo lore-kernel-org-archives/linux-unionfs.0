@@ -1,55 +1,109 @@
 From: Vivek Goyal <vgoyal@redhat.com>
-Subject: Re: [PATCH v2 02/23] ovl: ignore index mount option when no upper
- layer
-Date: Thu, 4 Jan 2018 15:05:23 -0500
-Message-ID: <20180104200523.GA2808@redhat.com>
+Subject: Re: [PATCH v2 03/23] ovl: store layer index in ovl_layer
+Date: Thu, 4 Jan 2018 16:00:18 -0500
+Message-ID: <20180104210018.GB2808@redhat.com>
 References: <1515084018-25134-1-git-send-email-amir73il@gmail.com>
- <1515084018-25134-3-git-send-email-amir73il@gmail.com>
- <20180104184220.GA6313@redhat.com>
- <CAOQ4uxjzUkepnemWj-BOX4pwLvHGSk9mK4jabDG4MpK6EHV3PA@mail.gmail.com>
+ <1515084018-25134-4-git-send-email-amir73il@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:55128 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:56596 "EHLO mx1.redhat.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753169AbeADUFY (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 4 Jan 2018 15:05:24 -0500
+        id S1752544AbeADVAS (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Thu, 4 Jan 2018 16:00:18 -0500
 Content-Disposition: inline
-In-Reply-To: <CAOQ4uxjzUkepnemWj-BOX4pwLvHGSk9mK4jabDG4MpK6EHV3PA@mail.gmail.com>
+In-Reply-To: <1515084018-25134-4-git-send-email-amir73il@gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: Amir Goldstein <amir73il@gmail.com>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, zhangyi <yi.zhang@huawei.com>, overlayfs <linux-unionfs@vger.kernel.org>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, zhangyi <yi.zhang@huawei.com>, linux-unionfs@vger.kernel.org
 
-On Thu, Jan 04, 2018 at 09:39:48PM +0200, Amir Goldstein wrote:
-> On Thu, Jan 4, 2018 at 8:42 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
-> > On Thu, Jan 04, 2018 at 06:39:57PM +0200, Amir Goldstein wrote:
-> >> For non-upper overlay mount, the value of index mount option is moot.
-> >> When mounter tries to set this mount options, emit a warning and leave
-> >> the value at the default so it won't show up in /proc/mounts.
-> >
-> > I am curious, what should show in /proc/mounts. Current code seems to
-> > print this only if it is different from default.
-> >
+On Thu, Jan 04, 2018 at 06:39:58PM +0200, Amir Goldstein wrote:
+> Store the fs root layer index inside ovl_layer struct, so we can
+> get the root fs layer index from merge dir lower layer instead of
+> find it with ovl_find_layer() helper.
 > 
-> I guess that is a common pattern for filesystems only show options
-> that are different from default.
+> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+> ---
+>  fs/overlayfs/namei.c     | 17 +----------------
+>  fs/overlayfs/ovl_entry.h |  2 ++
+>  fs/overlayfs/super.c     |  1 +
+>  3 files changed, 4 insertions(+), 16 deletions(-)
 > 
-> I think the logic is that one would try to reconstruct mounts from a
-> snapshot of /proc/mounts, there is no reason to specify values that
-> are default, because resulting mount will be the same.
-> 
-> > So if detfault is index=on, and user specifies index=off (with no upper),
-> > it should still show in /proc/mounts?
-> >
-> 
-> What this patch says is that index is not a relevant option with no upper,
-> so basically specifying either index=on/off is wrong, but so does specifying
-> workdir and the action that overlay takes is ignoring the wrong option.
-> I realize the setting index to default (on) when there is no upper is
-> a bit hacky, but I think we can live with that in order to keep the parsing
-> code simple and storing only a boolean single state.
+> diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
+> index 71db9a966d88..a48ee02c4524 100644
+> --- a/fs/overlayfs/namei.c
+> +++ b/fs/overlayfs/namei.c
+> @@ -572,18 +572,6 @@ int ovl_path_next(int idx, struct dentry *dentry, struct path *path)
+>  	return (idx < oe->numlower) ? idx + 1 : -1;
+>  }
+>  
+> -static int ovl_find_layer(struct ovl_fs *ofs, struct ovl_path *path)
+> -{
+> -	int i;
+> -
+> -	for (i = 0; i < ofs->numlower; i++) {
+> -		if (ofs->lower_layers[i].mnt == path->layer->mnt)
+> -			break;
+> -	}
+> -
+> -	return i;
+> -}
+> -
+>  /* Fix missing 'origin' xattr */
+>  static int ovl_fix_origin(struct dentry *dentry, struct dentry *lower,
+>  			  struct dentry *upper)
+> @@ -733,11 +721,8 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
+>  
+>  		if (d.redirect && d.redirect[0] == '/' && poe != roe) {
+>  			poe = roe;
+> -
+>  			/* Find the current layer on the root dentry */
+> -			i = ovl_find_layer(ofs, &lower);
+> -			if (WARN_ON(i == ofs->numlower))
+> -				break;
+> +			i = lower.layer->idx - 1;
+>  		}
+>  	}
+>  
+> diff --git a/fs/overlayfs/ovl_entry.h b/fs/overlayfs/ovl_entry.h
+> index 9d0bc03bf6e4..608e48755070 100644
+> --- a/fs/overlayfs/ovl_entry.h
+> +++ b/fs/overlayfs/ovl_entry.h
+> @@ -22,6 +22,8 @@ struct ovl_config {
+>  struct ovl_layer {
+>  	struct vfsmount *mnt;
+>  	dev_t pseudo_dev;
+> +	/* Index of this layer in fs root (upper == 0) */
+> +	int idx;
 
-Ok, fair enough. Thanks
+Just curious. If we are stroing idx, then do we have to store ovl_layer
+and every ovl_entry. Just idx can give us the position and we should
+be able to then access mnt and pseudo_dev directly from
+ofs->lower_layers[idx]. If yes, we can avoid storing vfsmount and 
+pseudo_dev per dentry.
 
 Vivek
+
+>  };
+>  
+>  struct ovl_path {
+> diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+> index 7e33c83c5a07..2b58620eedf0 100644
+> --- a/fs/overlayfs/super.c
+> +++ b/fs/overlayfs/super.c
+> @@ -1111,6 +1111,7 @@ static int ovl_get_lower_layers(struct ovl_fs *ofs, struct path *stack,
+>  
+>  		ofs->lower_layers[ofs->numlower].mnt = mnt;
+>  		ofs->lower_layers[ofs->numlower].pseudo_dev = dev;
+> +		ofs->lower_layers[ofs->numlower].idx = i + 1;
+>  		ofs->numlower++;
+>  
+>  		/* Check if all lower layers are on same sb */
+> -- 
+> 2.7.4
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-unionfs" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
