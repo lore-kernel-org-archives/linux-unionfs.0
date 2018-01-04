@@ -1,127 +1,191 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH v2 19/23] ovl: factor out ovl_get_index_fh() helper
-Date: Thu,  4 Jan 2018 18:40:14 +0200
-Message-ID: <1515084018-25134-20-git-send-email-amir73il@gmail.com>
+Subject: [PATCH v2 17/23] ovl: whiteout index when union nlink drops to zero
+Date: Thu,  4 Jan 2018 18:40:12 +0200
+Message-ID: <1515084018-25134-18-git-send-email-amir73il@gmail.com>
 References: <1515084018-25134-1-git-send-email-amir73il@gmail.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wm0-f67.google.com ([74.125.82.67]:46279 "EHLO
-        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753310AbeADQju (ORCPT
+Received: from mail-wr0-f194.google.com ([209.85.128.194]:35770 "EHLO
+        mail-wr0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753310AbeADQjs (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 4 Jan 2018 11:39:50 -0500
-Received: by mail-wm0-f67.google.com with SMTP id r78so4577571wme.5
-        for <linux-unionfs@vger.kernel.org>; Thu, 04 Jan 2018 08:39:49 -0800 (PST)
+        Thu, 4 Jan 2018 11:39:48 -0500
+Received: by mail-wr0-f194.google.com with SMTP id l19so2019602wrc.2
+        for <linux-unionfs@vger.kernel.org>; Thu, 04 Jan 2018 08:39:47 -0800 (PST)
 In-Reply-To: <1515084018-25134-1-git-send-email-amir73il@gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: Miklos Szeredi <miklos@szeredi.hu>
 Cc: zhangyi <yi.zhang@huawei.com>, linux-unionfs@vger.kernel.org
 
-The helper is needed to lookup an index by file handle for NFS export.
+With the 'verify' feature enabled, when overlay inode nlink drops to
+zero, instead of removing the index entry, replace it with a whiteout
+index entry.
+
+This is needed for NFS export in order to prevent future open by handle
+from opening the lower file directly.
 
 Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- fs/overlayfs/namei.c     | 59 ++++++++++++++++++++++++++++++++++++++++--------
- fs/overlayfs/overlayfs.h |  1 +
- 2 files changed, 50 insertions(+), 10 deletions(-)
+ fs/overlayfs/dir.c       | 58 +++++++++++++++++++++++++++++-------------------
+ fs/overlayfs/overlayfs.h |  2 ++
+ fs/overlayfs/util.c      | 17 +++++++++-----
+ 3 files changed, 48 insertions(+), 29 deletions(-)
 
-diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
-index 1a052f821fff..ac902fa7c5e2 100644
---- a/fs/overlayfs/namei.c
-+++ b/fs/overlayfs/namei.c
-@@ -588,6 +588,21 @@ int ovl_verify_index(struct ovl_fs *ofs, struct dentry *index)
- 	goto out;
+diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
+index f9788bc116a8..f1104e56a29e 100644
+--- a/fs/overlayfs/dir.c
++++ b/fs/overlayfs/dir.c
+@@ -63,8 +63,7 @@ struct dentry *ovl_lookup_temp(struct dentry *workdir)
  }
  
-+static int ovl_get_index_name_fh(struct ovl_fh *fh, struct qstr *name)
-+{
-+	char *n, *s;
-+
-+	n = kzalloc(fh->len * 2, GFP_KERNEL);
-+	if (!n)
-+		return -ENOMEM;
-+
-+	s  = bin2hex(n, fh, fh->len);
-+	*name = (struct qstr) QSTR_INIT(n, s - n);
-+
-+	return 0;
-+
-+}
-+
- /*
-  * Lookup in indexdir for the index entry of a lower real inode or a copy up
-  * origin inode. The index entry name is the hex representation of the lower
-@@ -605,25 +620,49 @@ int ovl_verify_index(struct ovl_fs *ofs, struct dentry *index)
-  */
- int ovl_get_index_name(struct dentry *origin, struct qstr *name)
+ /* caller holds i_mutex on workdir */
+-static struct dentry *ovl_whiteout(struct dentry *workdir,
+-				   struct dentry *dentry)
++static struct dentry *ovl_whiteout(struct dentry *workdir)
  {
--	int err;
- 	struct ovl_fh *fh;
--	char *n, *s;
-+	int err;
- 
- 	fh = ovl_encode_fh(origin, false);
- 	if (IS_ERR(fh))
- 		return PTR_ERR(fh);
- 
--	err = -ENOMEM;
--	n = kzalloc(fh->len * 2, GFP_KERNEL);
--	if (n) {
--		s  = bin2hex(n, fh, fh->len);
--		*name = (struct qstr) QSTR_INIT(n, s - n);
--		err = 0;
--	}
--	kfree(fh);
-+	err = ovl_get_index_name_fh(fh, name);
- 
-+	kfree(fh);
- 	return err;
-+}
-+
-+/* Lookup index by file handle for NFS export */
-+struct dentry *ovl_get_index_fh(struct ovl_fs *ofs, struct ovl_fh *fh)
-+{
-+	struct dentry *index;
-+	struct qstr name;
-+	int err;
-+
-+	err = ovl_get_index_name_fh(fh, &name);
-+	if (err)
-+		return ERR_PTR(err);
-+
-+	index = lookup_one_len_unlocked(name.name, ofs->indexdir, name.len);
-+	kfree(name.name);
-+	if (IS_ERR(index)) {
-+		if (PTR_ERR(index) == -ENOENT)
-+			index = NULL;
-+		return index;
-+	}
- 
-+	if (d_is_negative(index))
-+		err = 0;
-+	else if (ovl_is_whiteout(index))
-+		err = -ESTALE;
-+	else if (ovl_dentry_weird(index))
-+		err = -EIO;
-+	else
-+		return index;
-+
-+	dput(index);
-+	return ERR_PTR(err);
+ 	int err;
+ 	struct dentry *whiteout;
+@@ -83,6 +82,38 @@ static struct dentry *ovl_whiteout(struct dentry *workdir,
+ 	return whiteout;
  }
  
- static struct dentry *ovl_lookup_index(struct dentry *dentry,
++/* Caller must hold i_mutex on both workdir and dir */
++int ovl_cleanup_and_whiteout(struct dentry *workdir, struct inode *dir,
++			     struct dentry *dentry)
++{
++	struct inode *wdir = workdir->d_inode;
++	struct dentry *whiteout;
++	int err;
++	int flags = 0;
++
++	whiteout = ovl_whiteout(workdir);
++	err = PTR_ERR(whiteout);
++	if (IS_ERR(whiteout))
++		return err;
++
++	if (d_is_dir(dentry))
++		flags = RENAME_EXCHANGE;
++
++	err = ovl_do_rename(wdir, whiteout, dir, dentry, flags);
++	if (err)
++		goto kill_whiteout;
++	if (flags)
++		ovl_cleanup(wdir, dentry);
++
++out:
++	dput(whiteout);
++	return err;
++
++kill_whiteout:
++	ovl_cleanup(wdir, whiteout);
++	goto out;
++}
++
+ int ovl_create_real(struct inode *dir, struct dentry *newdentry,
+ 		    struct cattr *attr, struct dentry *hardlink, bool debug)
+ {
+@@ -626,14 +657,10 @@ static bool ovl_matches_upper(struct dentry *dentry, struct dentry *upper)
+ static int ovl_remove_and_whiteout(struct dentry *dentry, bool is_dir)
+ {
+ 	struct dentry *workdir = ovl_workdir(dentry);
+-	struct inode *wdir = workdir->d_inode;
+ 	struct dentry *upperdir = ovl_dentry_upper(dentry->d_parent);
+-	struct inode *udir = upperdir->d_inode;
+-	struct dentry *whiteout;
+ 	struct dentry *upper;
+ 	struct dentry *opaquedir = NULL;
+ 	int err;
+-	int flags = 0;
+ 
+ 	if (WARN_ON(!workdir))
+ 		return -EROFS;
+@@ -662,24 +689,13 @@ static int ovl_remove_and_whiteout(struct dentry *dentry, bool is_dir)
+ 		goto out_dput_upper;
+ 	}
+ 
+-	whiteout = ovl_whiteout(workdir, dentry);
+-	err = PTR_ERR(whiteout);
+-	if (IS_ERR(whiteout))
+-		goto out_dput_upper;
+-
+-	if (d_is_dir(upper))
+-		flags = RENAME_EXCHANGE;
+-
+-	err = ovl_do_rename(wdir, whiteout, udir, upper, flags);
++	err = ovl_cleanup_and_whiteout(workdir, d_inode(upperdir), upper);
+ 	if (err)
+-		goto kill_whiteout;
+-	if (flags)
+-		ovl_cleanup(wdir, upper);
++		goto out_d_drop;
+ 
+ 	ovl_dentry_version_inc(dentry->d_parent, true);
+ out_d_drop:
+ 	d_drop(dentry);
+-	dput(whiteout);
+ out_dput_upper:
+ 	dput(upper);
+ out_unlock:
+@@ -688,10 +704,6 @@ static int ovl_remove_and_whiteout(struct dentry *dentry, bool is_dir)
+ 	dput(opaquedir);
+ out:
+ 	return err;
+-
+-kill_whiteout:
+-	ovl_cleanup(wdir, whiteout);
+-	goto out_d_drop;
+ }
+ 
+ static int ovl_remove_upper(struct dentry *dentry, bool is_dir)
 diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-index 9d0dd8b70e03..d9467eab8514 100644
+index 759cb3a465b4..9d0dd8b70e03 100644
 --- a/fs/overlayfs/overlayfs.h
 +++ b/fs/overlayfs/overlayfs.h
-@@ -259,6 +259,7 @@ int ovl_verify_origin(struct dentry *dentry, struct dentry *origin,
- 		      bool is_upper, bool set);
- int ovl_verify_index(struct ovl_fs *ofs, struct dentry *index);
- int ovl_get_index_name(struct dentry *origin, struct qstr *name);
-+struct dentry *ovl_get_index_fh(struct ovl_fs *ofs, struct ovl_fh *fh);
- int ovl_path_next(int idx, struct dentry *dentry, struct path *path);
- struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
- 			  unsigned int flags);
+@@ -311,6 +311,8 @@ static inline void ovl_copyattr(struct inode *from, struct inode *to)
+ /* dir.c */
+ extern const struct inode_operations ovl_dir_inode_operations;
+ struct dentry *ovl_lookup_temp(struct dentry *workdir);
++int ovl_cleanup_and_whiteout(struct dentry *workdir, struct inode *dir,
++			     struct dentry *dentry);
+ struct cattr {
+ 	dev_t rdev;
+ 	umode_t mode;
+diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
+index 7b54b4ecab3b..ce4ac3846b14 100644
+--- a/fs/overlayfs/util.c
++++ b/fs/overlayfs/util.c
+@@ -505,7 +505,8 @@ bool ovl_need_index(struct dentry *dentry)
+ /* Caller must hold OVL_I(inode)->lock */
+ static void ovl_cleanup_index(struct dentry *dentry)
+ {
+-	struct inode *dir = ovl_indexdir(dentry->d_sb)->d_inode;
++	struct dentry *indexdir = ovl_indexdir(dentry->d_sb);
++	struct inode *dir = indexdir->d_inode;
+ 	struct dentry *lowerdentry = ovl_dentry_lower(dentry);
+ 	struct dentry *upperdentry = ovl_dentry_upper(dentry);
+ 	struct dentry *index = NULL;
+@@ -536,13 +537,17 @@ static void ovl_cleanup_index(struct dentry *dentry)
+ 	}
+ 
+ 	inode_lock_nested(dir, I_MUTEX_PARENT);
+-	/* TODO: whiteout instead of cleanup to block future open by handle */
+-	index = lookup_one_len(name.name, ovl_indexdir(dentry->d_sb), name.len);
++	index = lookup_one_len(name.name, indexdir, name.len);
+ 	err = PTR_ERR(index);
+-	if (!IS_ERR(index))
+-		err = ovl_cleanup(dir, index);
+-	else
++	if (IS_ERR(index)) {
+ 		index = NULL;
++	} else if (ovl_verify(dentry->d_sb)) {
++		/* Whiteout orphan index to block future open by handle */
++		err = ovl_cleanup_and_whiteout(indexdir, dir, index);
++	} else {
++		/* Cleanup orphan index entries */
++		err = ovl_cleanup(dir, index);
++	}
+ 
+ 	inode_unlock(dir);
+ 	if (err)
 -- 
 2.7.4
