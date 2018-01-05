@@ -1,124 +1,88 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [PATCH v2 03/23] ovl: store layer index in ovl_layer
-Date: Fri, 5 Jan 2018 13:22:34 +0200
-Message-ID: <CAOQ4uxhiSryHmVtRyVCeJPDMbm-9nFqv878VBTz-cUDbbw-A3g@mail.gmail.com>
-References: <1515084018-25134-1-git-send-email-amir73il@gmail.com>
- <1515084018-25134-4-git-send-email-amir73il@gmail.com> <20180104210018.GB2808@redhat.com>
- <CAOQ4uxjwQ++dQT0w6cVq+BZv3d2cjPvdLLenCAqx-CdSnp3h1g@mail.gmail.com>
+Subject: Re: [PATCH v2 04/17] ovl: decode connected upper dir file handles
+Date: Fri, 5 Jan 2018 14:33:22 +0200
+Message-ID: <CAOQ4uxhpNCUzcuFSvntAN_JDB=L5NDqZP4m9TxytyO-P6t3F0Q@mail.gmail.com>
+References: <1515086449-26563-1-git-send-email-amir73il@gmail.com> <1515086449-26563-5-git-send-email-amir73il@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-yb0-f193.google.com ([209.85.213.193]:33902 "EHLO
-        mail-yb0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750858AbeAELWf (ORCPT
+Received: from mail-yw0-f172.google.com ([209.85.161.172]:40410 "EHLO
+        mail-yw0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751060AbeAEMdY (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 5 Jan 2018 06:22:35 -0500
-Received: by mail-yb0-f193.google.com with SMTP id a82so1747434ybg.1
-        for <linux-unionfs@vger.kernel.org>; Fri, 05 Jan 2018 03:22:34 -0800 (PST)
-In-Reply-To: <CAOQ4uxjwQ++dQT0w6cVq+BZv3d2cjPvdLLenCAqx-CdSnp3h1g@mail.gmail.com>
+        Fri, 5 Jan 2018 07:33:24 -0500
+In-Reply-To: <1515086449-26563-5-git-send-email-amir73il@gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Vivek Goyal <vgoyal@redhat.com>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, zhangyi <yi.zhang@huawei.com>, overlayfs <linux-unionfs@vger.kernel.org>
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: Jeff Layton <jlayton@poochiereds.net>, "J . Bruce Fields" <bfields@fieldses.org>, overlayfs <linux-unionfs@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>
 
-On Fri, Jan 5, 2018 at 7:05 AM, Amir Goldstein <amir73il@gmail.com> wrote:
-> On Thu, Jan 4, 2018 at 11:00 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
->> On Thu, Jan 04, 2018 at 06:39:58PM +0200, Amir Goldstein wrote:
->>> Store the fs root layer index inside ovl_layer struct, so we can
->>> get the root fs layer index from merge dir lower layer instead of
->>> find it with ovl_find_layer() helper.
->>>
->>> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
->>> ---
->>>  fs/overlayfs/namei.c     | 17 +----------------
->>>  fs/overlayfs/ovl_entry.h |  2 ++
->>>  fs/overlayfs/super.c     |  1 +
->>>  3 files changed, 4 insertions(+), 16 deletions(-)
->>>
->>> diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
->>> index 71db9a966d88..a48ee02c4524 100644
->>> --- a/fs/overlayfs/namei.c
->>> +++ b/fs/overlayfs/namei.c
->>> @@ -572,18 +572,6 @@ int ovl_path_next(int idx, struct dentry *dentry, struct path *path)
->>>       return (idx < oe->numlower) ? idx + 1 : -1;
->>>  }
->>>
->>> -static int ovl_find_layer(struct ovl_fs *ofs, struct ovl_path *path)
->>> -{
->>> -     int i;
->>> -
->>> -     for (i = 0; i < ofs->numlower; i++) {
->>> -             if (ofs->lower_layers[i].mnt == path->layer->mnt)
->>> -                     break;
->>> -     }
->>> -
->>> -     return i;
->>> -}
->>> -
->>>  /* Fix missing 'origin' xattr */
->>>  static int ovl_fix_origin(struct dentry *dentry, struct dentry *lower,
->>>                         struct dentry *upper)
->>> @@ -733,11 +721,8 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
->>>
->>>               if (d.redirect && d.redirect[0] == '/' && poe != roe) {
->>>                       poe = roe;
->>> -
->>>                       /* Find the current layer on the root dentry */
->>> -                     i = ovl_find_layer(ofs, &lower);
->>> -                     if (WARN_ON(i == ofs->numlower))
->>> -                             break;
->>> +                     i = lower.layer->idx - 1;
->>>               }
->>>       }
->>>
->>> diff --git a/fs/overlayfs/ovl_entry.h b/fs/overlayfs/ovl_entry.h
->>> index 9d0bc03bf6e4..608e48755070 100644
->>> --- a/fs/overlayfs/ovl_entry.h
->>> +++ b/fs/overlayfs/ovl_entry.h
->>> @@ -22,6 +22,8 @@ struct ovl_config {
->>>  struct ovl_layer {
->>>       struct vfsmount *mnt;
->>>       dev_t pseudo_dev;
->>> +     /* Index of this layer in fs root (upper == 0) */
->>> +     int idx;
->>
->> Just curious. If we are stroing idx, then do we have to store ovl_layer
->> and every ovl_entry. Just idx can give us the position and we should
->> be able to then accessovl_find_layer mnt and pseudo_dev directly from
->> ofs->lower_layers[idx]. If yes, we can avoid storing vfsmount and
->> pseudo_dev per dentry.
->>
+On Thu, Jan 4, 2018 at 7:20 PM, Amir Goldstein <amir73il@gmail.com> wrote:
+> Until this change, we decoded upper file handles by instantiating an
+> overlay dentry from the real upper dentry. This is sufficient to handle
+> pure upper files, but insufficient to handle merge/impure dirs.
 >
-> But we are not storing vfsmount and pseudo_dev per dentry
-> We are storing &ofs->lower_layers[idx] per dentry.
-> Do we gain anything from storing the idx instead?
-> Most of the times code needs to access ofs->lower_layers[idx]
-> fields (mnt mostly).
-> The cases where idx itself matter are rare, for example:
-> if dentry has numlower == 1 and idx > 1, this is a quick indication
-> that a parent of lower dir may be copied up but not be indexed
-> (because a dir on top of it in layer 1 is indexed).
+> To that end, if decoded real upper dir is connected and hashed, we
+> lookup an overlay dentry with the same path as the real upper dir.
+> If decoded real upper is non-dir, we instantiate a disconnected overlay
+> dentry as before this change.
 >
-> The current series does not make use of the example above,
-> but it can be used to relax copy up of dir on encode when
-> lower idx == 1.
+> Because ovl_fh_to_dentry() returns connected overlay dir dentries,
+> exportfs never need to call get_parent() and get_name() to reconnect an
+> upper overlay dir. Because connectable non-dir file handles are not
+> supported, exportfs will not be able to use fh_to_parent() and get_name()
+> methods to reconnect a disconnected non-dir to its parent. Therefore, the
+> methods get_parent() and get_name() are implemented just to print out a
+> sanity warning and the method fh_to_parent() is implemented to warn the
+> user that using the 'subtree_check' exportfs option is not supported.
 >
 
-Evidently, not only that the series does not use layer idx info
-for decoding lower dir file handle, it does not use layer idx at all,
-except for the ovl_lookup() change in this patch.
-The patch is in the series because of an early attempt on mine
-to implement connectable file handles, which I abandoned for now.
-However:
-1. I think that getting rid of ovl_find_layer() alone is a good enough reason
-    to store layer idx
-2. layer idx turned out to be useful in several cases I worked on, like ovl-xino
-    and ovl-redirect-origin, so it probably doesn't hurt to store it
-for future sake
-3. Based on the current code, I can post a trivial patch to relax copy up of dir
-   on encode when ofs->nulower > 1 in case lower dir layer->idx == 1.
-   Just wasn't sure if that case is worth optimizing, so decided to wait for
-   comments on the ofs->nulower > 1 behavior.
+Reviewers who will get this far, should have their eyebrows slightly raised
+after reading this commit message and should be asking themselves:
 
-Cheers,
+"Why not return a disconnected overlay dentry like any other fs and implement
+ovl_get_parent()/ovl_get_name() by looking at parent/name of upper dir?"
+
+I have had this debate with myself for a while and experimented a bit with
+both approaches and in the end, I liked the "return connected dentry" result
+better. I did not want to write this entire story in commit message, because
+in the end, there is nothing incorrect about the choice of either implementation
+there are only pros and cons to each choice.
+
+At the moment, the only argument I can think of to counter the chosen approach
+is that it adds ~100 lines on code in ovl_lookup_real() and
+ovl_lookup_real_one()
+helpers that could have been avoided by using the common reconnect_path()
+code in fs/exportfs/expfs.c.
+
+The arguments to counter the disconnected dir approach are:
+- Obtaining a disconnected overlay dir dentry would requires a
+delicate re-factoring
+  of ovl_lookup() to get a dentry with overlay parent info. I
+personally preferred to
+  avoid doing that re-factoring unless it was proven worthy.
+- Going down the path of disconnected dir would mean that the (non trivial) code
+  path of d_splice_alias() could be traveled and that meant writing
+more tests and
+  introduces race cases that are very hard to hit on purpose. Taking the path of
+  connecting overlay dentry by forward lookup is therefore the safe and boring
+  way to avoid surprises.
+- In the current implementation, there is an anomaly in the multi
+lower layer setup.
+  In that case, indexed upper dir inodes are hashed by the lower
+inode, but their file
+  handles are encoded from the upper inode. Obtaining a disconnected
+dir from this
+  type of upper file handle would have been a special case that would add more
+  code and more complexity. With the forward lookup connect approach, the
+  anomaly does not require changing the code - connecting the dentry
+is just less
+  efficient in case there is an ancestor in inode cache (we won't find
+it in cache
+  because we will be looking with the wrong inode) and that can be
+fixed later if
+  we find that use case important enough.
+
+There. Now you see why I did not want this story in commit message?
+
 Amir.
