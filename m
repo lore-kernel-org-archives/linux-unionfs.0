@@ -1,134 +1,69 @@
-From: Vivek Goyal <vgoyal@redhat.com>
+From: Amir Goldstein <amir73il@gmail.com>
 Subject: Re: [PATCH v2 07/23] ovl: verify stored origin fh matches lower dir
-Date: Fri, 5 Jan 2018 13:33:34 -0500
-Message-ID: <20180105183334.GG29480@redhat.com>
+Date: Fri, 5 Jan 2018 21:00:45 +0200
+Message-ID: <CAOQ4uxh_Z2gS6mOZXdRaHv3558ms9zeFDBK0p4t3NKq4-UwLbA@mail.gmail.com>
 References: <1515084018-25134-1-git-send-email-amir73il@gmail.com>
- <1515084018-25134-8-git-send-email-amir73il@gmail.com>
- <20180105160427.GD29480@redhat.com>
+ <1515084018-25134-8-git-send-email-amir73il@gmail.com> <20180105160427.GD29480@redhat.com>
  <CAOQ4uxg-DfS1iWzozN3LBhDJtO=TLkSjuXY+fe5O3Uz0hCGg-A@mail.gmail.com>
- <20180105163522.GE29480@redhat.com>
- <CAOQ4uxiEfssudtKVrv-U9eZtyvxx4GRVaDbXiZpaPtH-bGMShw@mail.gmail.com>
+ <20180105163522.GE29480@redhat.com> <CAOQ4uxiEfssudtKVrv-U9eZtyvxx4GRVaDbXiZpaPtH-bGMShw@mail.gmail.com>
+ <20180105183334.GG29480@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:57918 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752038AbeAESdf (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 5 Jan 2018 13:33:35 -0500
-Content-Disposition: inline
-In-Reply-To: <CAOQ4uxiEfssudtKVrv-U9eZtyvxx4GRVaDbXiZpaPtH-bGMShw@mail.gmail.com>
+Received: from mail-yb0-f180.google.com ([209.85.213.180]:42926 "EHLO
+        mail-yb0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752219AbeAETAq (ORCPT
+        <rfc822;linux-unionfs@vger.kernel.org>);
+        Fri, 5 Jan 2018 14:00:46 -0500
+Received: by mail-yb0-f180.google.com with SMTP id j197so1266363ybg.9
+        for <linux-unionfs@vger.kernel.org>; Fri, 05 Jan 2018 11:00:46 -0800 (PST)
+In-Reply-To: <20180105183334.GG29480@redhat.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Amir Goldstein <amir73il@gmail.com>
+To: Vivek Goyal <vgoyal@redhat.com>
 Cc: Miklos Szeredi <miklos@szeredi.hu>, zhangyi <yi.zhang@huawei.com>, overlayfs <linux-unionfs@vger.kernel.org>
 
-On Fri, Jan 05, 2018 at 06:42:09PM +0200, Amir Goldstein wrote:
-> On Fri, Jan 5, 2018 at 6:35 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
-> > On Fri, Jan 05, 2018 at 06:26:55PM +0200, Amir Goldstein wrote:
-> >> On Fri, Jan 5, 2018 at 6:04 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
-> >> > On Thu, Jan 04, 2018 at 06:40:02PM +0200, Amir Goldstein wrote:
-> >> >> When the "verify" feature is enabled, a directory inode found in lower
-> >> >> layer by name or by redirect_dir is verified against the file handle of
-> >> >> the copy up origin that is stored in the upper layer.
-> >> >>
-> >> >> This introduces a change of behavior for the case of lower layer
-> >> >> modification while overlay is offline. A lower directory created or
-> >> >> moved offline under an exisitng upper directory, will not be merged with
-> >> >> that upper directory.
-> >> >>
-> >> >> The "verify" feature should not be used after copying layers,
-> >> >> because the new lower directory inodes would fail verification.
-> >> >>
-> >> >> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
-> >> >> ---
-> >> >>  Documentation/filesystems/overlayfs.txt | 16 ++++++++++++++++
-> >> >>  fs/overlayfs/namei.c                    | 13 +++++++++++++
-> >> >>  2 files changed, 29 insertions(+)
-> >> >>
-> >> >> diff --git a/Documentation/filesystems/overlayfs.txt b/Documentation/filesystems/overlayfs.txt
-> >> >> index e6a5f4912b6d..00e0595f3d7e 100644
-> >> >> --- a/Documentation/filesystems/overlayfs.txt
-> >> >> +++ b/Documentation/filesystems/overlayfs.txt
-> >> >> @@ -299,6 +299,22 @@ filesystem are not allowed.  If the underlying filesystem is changed,
-> >> >>  the behavior of the overlay is undefined, though it will not result in
-> >> >>  a crash or deadlock.
-> >> >>
-> >> >> +When the underlying filesystems supports NFS export, overlay mount can be
-> >> >> +made more resilient to offline and online changes of the underlying lower
-> >> >> +layer by enabling the "verify" feature.
-> >> >> +
-> >> >> +On every copy_up, an NFS file handle of the lower inode, along with the
-> >> >> +UUID of the lower filesystem, are encoded and stored in an extended
-> >> >> +attribute "trusted.overlay.origin" on the upper inode.
-> >> >> +
-> >> >> +When the "verify" feature is enabled, a lookup of a merged directory, that
-> >> >> +found a lower directory at the lookup path or at the path pointed to by
-> >> >> +the "trusted.overlay.redirect" extended attribute, will verify that the
-> >> >> +found lower directory file handle and lower filesystem UUID match the
-> >> >> +origin file handle that was stored at copy_up time.  If a found lower
-> >> >> +directory does not match the stored origin, that directory will not be
-> >> >> +merged with the upper directory.
-> >> >> +
-> >> >>  Testsuite
-> >> >>  ---------
-> >> >>
-> >> >> diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
-> >> >> index 46a3e31b0225..56deb2785af7 100644
-> >> >> --- a/fs/overlayfs/namei.c
-> >> >> +++ b/fs/overlayfs/namei.c
-> >> >> @@ -734,6 +734,19 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
-> >> >>                       }
-> >> >>               }
-> >> >>
-> >> >> +             /*
-> >> >> +              * When "verify" feature is enabled, do not merge with a lower
-> >> >> +              * dir that does not match a stored origin xattr.
-> >> >> +              */
-> >> >> +             if (upperdentry && !ctr && ovl_verify(dentry->d_sb)) {
-> >> >> +                     err = ovl_verify_origin(upperdentry, this, false,
-> >> >> +                                             false);
-> >> >> +                     if (err) {
-> >> >> +                             dput(this);
-> >> >> +                             break;
-> >> >> +                     }
-> >> >> +             }
-> >> >> +
-> >> >
-> >> > So this will verify directory origin only for top level lower dir. Rest
-> >> > of the lowers can still be modified offline without this code noticing it?
-> >> >
-> >>
-> >> Correct, from patch 6/23:
-> >>
-> >> +       } else if (ofs->config.verify && ofs->config.upperdir && stacklen > 1) {
-> >> +               pr_warn("overlayfs: option 'verify=on' cannot verify
-> >> redirects from middle layer dirs\n");
-> >
-> > So for non-dir case, we check origin by default and error out if decoding
-> > of fh fails.  Why not do the same thing for directories as well. I mean
-> > why directory origin check should be hidden behind a mount option
-> > (verfiy=).
-> >
-> 
-> Because it is a change of behavior so we need users to opt-in for it.
-> When copying layers, file handles become stale.
+On Fri, Jan 5, 2018 at 8:33 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
+> On Fri, Jan 05, 2018 at 06:42:09PM +0200, Amir Goldstein wrote:
+[...]
+>> >
+>> > So for non-dir case, we check origin by default and error out if decoding
+>> > of fh fails.  Why not do the same thing for directories as well. I mean
+>> > why directory origin check should be hidden behind a mount option
+>> > (verfiy=).
+>> >
+>>
+>> Because it is a change of behavior so we need users to opt-in for it.
+>> When copying layers, file handles become stale.
+>
+> But do we support copying layers? Because in that case non-dir
+> fh will become stale. So that suggests that we don't support it
+> already.
 
-But do we support copying layers? Because in that case non-dir
-fh will become stale. So that suggests that we don't support it
-already.
+Its perfectly fine if cannot decode origin for non-dir. it is not an error.
+just won't use lower inode number.
 
-> As a result, inode numbers of non-dir are taken from upper, but after
-> copying inode numbers change anyway, so the implication is moot.
+>
+>> As a result, inode numbers of non-dir are taken from upper, but after
+>> copying inode numbers change anyway, so the implication is moot.
+>
+> With metadata copy, implications are very significant again.
 
-With metadata copy, implications are very significant again.
+Right, but with metadata copy you cannot copy layers.
 
-> You cannot say the same for copied merge dirs with origin that becomes
-> stale. The implication of not following lower dir after copying are significant.
+>
+>> You cannot say the same for copied merge dirs with origin that becomes
+>> stale. The implication of not following lower dir after copying are significant.
+>
+> It really feels odd that we will have different behavior for dir and
+> non-dir objects when it comes to origin verification. Will a new
+> mount option say verify_origin=on/off make sense. That way this is verify
+> specific and verifies origin (both for dir and non-dir objects) and user
+> will opt in to maintain backward compatibility.
+>
 
-It really feels odd that we will have different behavior for dir and
-non-dir objects when it comes to origin verification. Will a new
-mount option say verify_origin=on/off make sense. That way this is verify
-specific and verifies origin (both for dir and non-dir objects) and user
-will opt in to maintain backward compatibility.
+I can go with renaming verify to verify_origin.
+Let's see what Miklos has to say.
 
-Vivek
+Thanks,
+Amir.
