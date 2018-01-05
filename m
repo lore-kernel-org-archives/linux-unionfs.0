@@ -1,109 +1,71 @@
 From: Vivek Goyal <vgoyal@redhat.com>
-Subject: Re: [PATCH v2 07/23] ovl: verify stored origin fh matches lower dir
-Date: Fri, 5 Jan 2018 11:35:22 -0500
-Message-ID: <20180105163522.GE29480@redhat.com>
+Subject: Re: [PATCH v2 06/23] ovl: add support for "verify" feature
+Date: Fri, 5 Jan 2018 11:39:51 -0500
+Message-ID: <20180105163951.GF29480@redhat.com>
 References: <1515084018-25134-1-git-send-email-amir73il@gmail.com>
- <1515084018-25134-8-git-send-email-amir73il@gmail.com>
- <20180105160427.GD29480@redhat.com>
- <CAOQ4uxg-DfS1iWzozN3LBhDJtO=TLkSjuXY+fe5O3Uz0hCGg-A@mail.gmail.com>
+ <1515084018-25134-7-git-send-email-amir73il@gmail.com>
+ <20180105154323.GC29480@redhat.com>
+ <CAOQ4uxg35sutZZUCKQxoiuNVfLXxe44wavX95bC_GMntbLn-QQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:56682 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:51998 "EHLO mx1.redhat.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751774AbeAEQfX (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 5 Jan 2018 11:35:23 -0500
+        id S1751499AbeAEQjw (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Fri, 5 Jan 2018 11:39:52 -0500
 Content-Disposition: inline
-In-Reply-To: <CAOQ4uxg-DfS1iWzozN3LBhDJtO=TLkSjuXY+fe5O3Uz0hCGg-A@mail.gmail.com>
+In-Reply-To: <CAOQ4uxg35sutZZUCKQxoiuNVfLXxe44wavX95bC_GMntbLn-QQ@mail.gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: Amir Goldstein <amir73il@gmail.com>
 Cc: Miklos Szeredi <miklos@szeredi.hu>, zhangyi <yi.zhang@huawei.com>, overlayfs <linux-unionfs@vger.kernel.org>
 
-On Fri, Jan 05, 2018 at 06:26:55PM +0200, Amir Goldstein wrote:
-> On Fri, Jan 5, 2018 at 6:04 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
-> > On Thu, Jan 04, 2018 at 06:40:02PM +0200, Amir Goldstein wrote:
-> >> When the "verify" feature is enabled, a directory inode found in lower
-> >> layer by name or by redirect_dir is verified against the file handle of
-> >> the copy up origin that is stored in the upper layer.
+On Fri, Jan 05, 2018 at 05:47:36PM +0200, Amir Goldstein wrote:
+> On Fri, Jan 5, 2018 at 5:43 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
+> > On Thu, Jan 04, 2018 at 06:40:01PM +0200, Amir Goldstein wrote:
+> >> Introduce the "verify" config, module and mount options.
 > >>
-> >> This introduces a change of behavior for the case of lower layer
-> >> modification while overlay is offline. A lower directory created or
-> >> moved offline under an exisitng upper directory, will not be merged with
-> >> that upper directory.
+> >> If the "verify" feature is enabled then overlay filesystems will use
+> >> the inodes index dir to verify layers consistency.
 > >>
-> >> The "verify" feature should not be used after copying layers,
-> >> because the new lower directory inodes would fail verification.
+> >> It is possible to enable consistency verification by default during
+> >> build time with the OVERLAY_FS_VERIFY config option, during runtime
+> >> with the "verify=on" module option or on a filesystem instance basis
+> >> with the "verify=on" mount option.
 > >>
-> >> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
-> >> ---
-> >>  Documentation/filesystems/overlayfs.txt | 16 ++++++++++++++++
-> >>  fs/overlayfs/namei.c                    | 13 +++++++++++++
-> >>  2 files changed, 29 insertions(+)
-> >>
-> >> diff --git a/Documentation/filesystems/overlayfs.txt b/Documentation/filesystems/overlayfs.txt
-> >> index e6a5f4912b6d..00e0595f3d7e 100644
-> >> --- a/Documentation/filesystems/overlayfs.txt
-> >> +++ b/Documentation/filesystems/overlayfs.txt
-> >> @@ -299,6 +299,22 @@ filesystem are not allowed.  If the underlying filesystem is changed,
-> >>  the behavior of the overlay is undefined, though it will not result in
-> >>  a crash or deadlock.
-> >>
-> >> +When the underlying filesystems supports NFS export, overlay mount can be
-> >> +made more resilient to offline and online changes of the underlying lower
-> >> +layer by enabling the "verify" feature.
-> >> +
-> >> +On every copy_up, an NFS file handle of the lower inode, along with the
-> >> +UUID of the lower filesystem, are encoded and stored in an extended
-> >> +attribute "trusted.overlay.origin" on the upper inode.
-> >> +
-> >> +When the "verify" feature is enabled, a lookup of a merged directory, that
-> >> +found a lower directory at the lookup path or at the path pointed to by
-> >> +the "trusted.overlay.redirect" extended attribute, will verify that the
-> >> +found lower directory file handle and lower filesystem UUID match the
-> >> +origin file handle that was stored at copy_up time.  If a found lower
-> >> +directory does not match the stored origin, that directory will not be
-> >> +merged with the upper directory.
-> >> +
-> >>  Testsuite
-> >>  ---------
-> >>
-> >> diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
-> >> index 46a3e31b0225..56deb2785af7 100644
-> >> --- a/fs/overlayfs/namei.c
-> >> +++ b/fs/overlayfs/namei.c
-> >> @@ -734,6 +734,19 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
-> >>                       }
-> >>               }
-> >>
-> >> +             /*
-> >> +              * When "verify" feature is enabled, do not merge with a lower
-> >> +              * dir that does not match a stored origin xattr.
-> >> +              */
-> >> +             if (upperdentry && !ctr && ovl_verify(dentry->d_sb)) {
-> >> +                     err = ovl_verify_origin(upperdentry, this, false,
-> >> +                                             false);
-> >> +                     if (err) {
-> >> +                             dput(this);
-> >> +                             break;
-> >> +                     }
-> >> +             }
-> >> +
+> >> The "verify" feature will prevent multiple redirects to the same lower
+> >> dir and will prevent broken hardlinks from using the same inode number.
 > >
-> > So this will verify directory origin only for top level lower dir. Rest
-> > of the lowers can still be modified offline without this code noticing it?
+> > So how does one end up with multiple redirects to same lower dir.
+> >
+> > Also what's the issue with broken hardlinks using same inode number. You
+> > mean lower and upper are on different fs and upper can use same inode
+> > number? With index=on, broken hardlink issue is taken care of so. So
+> > why would somebody use verify=on, which looks like will create index
+> > for all kind of files/dir.
+> >
+> > I have not followed this development and there is not much background
+> > in patch descrition or header patch, so asking all these basic questions.
 > >
 > 
-> Correct, from patch 6/23:
+> I have a ready answer for you :)
+> This is how it can happen and this is what can go wrong:
+> https://github.com/amir73il/xfstests/commit/f3c18125539660329195f142973ea620d6899418
 > 
-> +       } else if (ofs->config.verify && ofs->config.upperdir && stacklen > 1) {
-> +               pr_warn("overlayfs: option 'verify=on' cannot verify
-> redirects from middle layer dirs\n");
+> The test duplicates a redirect dir offline with cp -a, but the
+> same thing can be done with a dir with origin.
+> In both cases, 'diff' will wrongly report that the files/dir are the same
+> even though they may differ (after being copied).
 
-So for non-dir case, we check origin by default and error out if decoding
-of fh fails.  Why not do the same thing for directories as well. I mean
-why directory origin check should be hidden behind a mount option
-(verfiy=).
+So there are so many things a user can do with overlayfs offline. Should
+we need to put runtime checks for all these cases. I mean will
+fsck.overlay be a better place to catch these kind of anomalies.
+
+Secondly, verify=foo feels like a very generic option. Its not clear
+what all will it verify and will we continue to pile up more checks
+down the line under it.
+
+As a user, when should one use verify=on? Its not clear to me.
 
 Vivek
 
