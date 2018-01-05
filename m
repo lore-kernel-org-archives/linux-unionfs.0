@@ -1,73 +1,124 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [PATCH v2 05/23] ovl: pass ovl_layer array to ovl_check_origin_fh()
-Date: Fri, 5 Jan 2018 07:26:48 +0200
-Message-ID: <CAOQ4uxhGWWOg902ujVVPRD9DKGoivgLLFzY4guUVwjWn8ayQsw@mail.gmail.com>
+Subject: Re: [PATCH v2 03/23] ovl: store layer index in ovl_layer
+Date: Fri, 5 Jan 2018 13:22:34 +0200
+Message-ID: <CAOQ4uxhiSryHmVtRyVCeJPDMbm-9nFqv878VBTz-cUDbbw-A3g@mail.gmail.com>
 References: <1515084018-25134-1-git-send-email-amir73il@gmail.com>
- <1515084018-25134-6-git-send-email-amir73il@gmail.com> <20180104223525.GC2808@redhat.com>
+ <1515084018-25134-4-git-send-email-amir73il@gmail.com> <20180104210018.GB2808@redhat.com>
+ <CAOQ4uxjwQ++dQT0w6cVq+BZv3d2cjPvdLLenCAqx-CdSnp3h1g@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-yb0-f193.google.com ([209.85.213.193]:32873 "EHLO
+Received: from mail-yb0-f193.google.com ([209.85.213.193]:33902 "EHLO
         mail-yb0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751220AbeAEF0t (ORCPT
+        with ESMTP id S1750858AbeAELWf (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 5 Jan 2018 00:26:49 -0500
-Received: by mail-yb0-f193.google.com with SMTP id f16so1499190ybn.0
-        for <linux-unionfs@vger.kernel.org>; Thu, 04 Jan 2018 21:26:49 -0800 (PST)
-In-Reply-To: <20180104223525.GC2808@redhat.com>
+        Fri, 5 Jan 2018 06:22:35 -0500
+Received: by mail-yb0-f193.google.com with SMTP id a82so1747434ybg.1
+        for <linux-unionfs@vger.kernel.org>; Fri, 05 Jan 2018 03:22:34 -0800 (PST)
+In-Reply-To: <CAOQ4uxjwQ++dQT0w6cVq+BZv3d2cjPvdLLenCAqx-CdSnp3h1g@mail.gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: Vivek Goyal <vgoyal@redhat.com>
 Cc: Miklos Szeredi <miklos@szeredi.hu>, zhangyi <yi.zhang@huawei.com>, overlayfs <linux-unionfs@vger.kernel.org>
 
-On Fri, Jan 5, 2018 at 12:35 AM, Vivek Goyal <vgoyal@redhat.com> wrote:
-> On Thu, Jan 04, 2018 at 06:40:00PM +0200, Amir Goldstein wrote:
->> Pass the fs instance lower_layer array instead of lowerstack array to
->> ovl_check_origin_fh(), because the dentry member of ovl_path plays no
->> part in this helper.
+On Fri, Jan 5, 2018 at 7:05 AM, Amir Goldstein <amir73il@gmail.com> wrote:
+> On Thu, Jan 4, 2018 at 11:00 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
+>> On Thu, Jan 04, 2018 at 06:39:58PM +0200, Amir Goldstein wrote:
+>>> Store the fs root layer index inside ovl_layer struct, so we can
+>>> get the root fs layer index from merge dir lower layer instead of
+>>> find it with ovl_find_layer() helper.
+>>>
+>>> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+>>> ---
+>>>  fs/overlayfs/namei.c     | 17 +----------------
+>>>  fs/overlayfs/ovl_entry.h |  2 ++
+>>>  fs/overlayfs/super.c     |  1 +
+>>>  3 files changed, 4 insertions(+), 16 deletions(-)
+>>>
+>>> diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
+>>> index 71db9a966d88..a48ee02c4524 100644
+>>> --- a/fs/overlayfs/namei.c
+>>> +++ b/fs/overlayfs/namei.c
+>>> @@ -572,18 +572,6 @@ int ovl_path_next(int idx, struct dentry *dentry, struct path *path)
+>>>       return (idx < oe->numlower) ? idx + 1 : -1;
+>>>  }
+>>>
+>>> -static int ovl_find_layer(struct ovl_fs *ofs, struct ovl_path *path)
+>>> -{
+>>> -     int i;
+>>> -
+>>> -     for (i = 0; i < ofs->numlower; i++) {
+>>> -             if (ofs->lower_layers[i].mnt == path->layer->mnt)
+>>> -                     break;
+>>> -     }
+>>> -
+>>> -     return i;
+>>> -}
+>>> -
+>>>  /* Fix missing 'origin' xattr */
+>>>  static int ovl_fix_origin(struct dentry *dentry, struct dentry *lower,
+>>>                         struct dentry *upper)
+>>> @@ -733,11 +721,8 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
+>>>
+>>>               if (d.redirect && d.redirect[0] == '/' && poe != roe) {
+>>>                       poe = roe;
+>>> -
+>>>                       /* Find the current layer on the root dentry */
+>>> -                     i = ovl_find_layer(ofs, &lower);
+>>> -                     if (WARN_ON(i == ofs->numlower))
+>>> -                             break;
+>>> +                     i = lower.layer->idx - 1;
+>>>               }
+>>>       }
+>>>
+>>> diff --git a/fs/overlayfs/ovl_entry.h b/fs/overlayfs/ovl_entry.h
+>>> index 9d0bc03bf6e4..608e48755070 100644
+>>> --- a/fs/overlayfs/ovl_entry.h
+>>> +++ b/fs/overlayfs/ovl_entry.h
+>>> @@ -22,6 +22,8 @@ struct ovl_config {
+>>>  struct ovl_layer {
+>>>       struct vfsmount *mnt;
+>>>       dev_t pseudo_dev;
+>>> +     /* Index of this layer in fs root (upper == 0) */
+>>> +     int idx;
 >>
->> This change simplifies the argument list of ovl_check_origin(),
->> ovl_cleanup_index() and ovl_verify_index().
+>> Just curious. If we are stroing idx, then do we have to store ovl_layer
+>> and every ovl_entry. Just idx can give us the position and we should
+>> be able to then accessovl_find_layer mnt and pseudo_dev directly from
+>> ofs->lower_layers[idx]. If yes, we can avoid storing vfsmount and
+>> pseudo_dev per dentry.
 >>
->> We pass lower_layer array and numlower and not struct ovl_fs to
->> ovl_check_origin_fh(), because we are going to use this helper for
->> decoding upper layer file handles for NFS export support.
->>
->> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
->> ---
->>  fs/overlayfs/namei.c     | 25 +++++++++++--------------
->>  fs/overlayfs/overlayfs.h |  9 ++++-----
->>  fs/overlayfs/readdir.c   | 12 ++++++------
->>  fs/overlayfs/super.c     |  5 +----
->>  4 files changed, 22 insertions(+), 29 deletions(-)
->>
->> diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
->> index 4cc8fb64c879..46a3e31b0225 100644
->> --- a/fs/overlayfs/namei.c
->> +++ b/fs/overlayfs/namei.c
->> @@ -292,16 +292,14 @@ static int ovl_lookup_layer(struct dentry *base, struct ovl_lookup_data *d,
->>
->>
->>  static int ovl_check_origin_fh(struct ovl_fh *fh, struct dentry *upperdentry,
->> -                            struct ovl_path *lower, unsigned int numlower,
->> +                            struct ovl_layer *layers, unsigned int numlayers,
->>                              struct ovl_path **stackp)
 >
-> I was thinking if this will lead to decoding in all lower layers (as opposed
-> to only some depending on how many lower layers ovl_entry has stored). But
-> looks like we already do decoding in all the lower layers of fs (both for
-> origin and index). So this is not a concern.
+> But we are not storing vfsmount and pseudo_dev per dentry
+> We are storing &ofs->lower_layers[idx] per dentry.
+> Do we gain anything from storing the idx instead?
+> Most of the times code needs to access ofs->lower_layers[idx]
+> fields (mnt mostly).
+> The cases where idx itself matter are rare, for example:
+> if dentry has numlower == 1 and idx > 1, this is a quick indication
+> that a parent of lower dir may be copied up but not be indexed
+> (because a dir on top of it in layer 1 is indexed).
+>
+> The current series does not make use of the example above,
+> but it can be used to relax copy up of dir on encode when
+> lower idx == 1.
 >
 
-So what happens today is that we are only decoding non-dir disconnected
-origin in ovl_lookup().
-If numlower > 1 and all of the lower layers are on same fs, we will decode
-origin from the first lower layer and get an unreliable idx, because non-dir
-origin could be on any of the lower layers.
-But we don't really care on which layer non-dir origin is, we just need to
-know its inode number (or copy its data).
+Evidently, not only that the series does not use layer idx info
+for decoding lower dir file handle, it does not use layer idx at all,
+except for the ovl_lookup() change in this patch.
+The patch is in the series because of an early attempt on mine
+to implement connectable file handles, which I abandoned for now.
+However:
+1. I think that getting rid of ovl_find_layer() alone is a good enough reason
+    to store layer idx
+2. layer idx turned out to be useful in several cases I worked on, like ovl-xino
+    and ovl-redirect-origin, so it probably doesn't hurt to store it
+for future sake
+3. Based on the current code, I can post a trivial patch to relax copy up of dir
+   on encode when ofs->nulower > 1 in case lower dir layer->idx == 1.
+   Just wasn't sure if that case is worth optimizing, so decided to wait for
+   comments on the ofs->nulower > 1 behavior.
 
-But when decoding an NFS dir file handle it really does matters to get a
-reliable layer idx.
-
+Cheers,
 Amir.
