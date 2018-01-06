@@ -1,76 +1,79 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [PATCH v9 00/15] overlayfs: Delayed copy up of data
-Date: Sat, 6 Jan 2018 09:38:07 +0200
-Message-ID: <CAOQ4uxiKAXXNOkY2gvWWkTTuw7TRu9z33az8uVf0Z47uH2LdyA@mail.gmail.com>
-References: <20171129155448.32721-1-vgoyal@redhat.com>
+Subject: Re: [PATCH v2] common/rc: Extending _require_metadata_journaling for
+ overlayfs in case shutdown tests run on uncommon overlayfs setup and fail
+Date: Sat, 6 Jan 2018 09:47:00 +0200
+Message-ID: <CAOQ4uxjRN5vvGWoP+tp1gWjpM-KjPK_43va__+EiWzoncXJzBg@mail.gmail.com>
+References: <1515220190-17424-1-git-send-email-cgxu519@icloud.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-yb0-f180.google.com ([209.85.213.180]:42050 "EHLO
-        mail-yb0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752213AbeAFHiJ (ORCPT
+Received: from mail-yw0-f194.google.com ([209.85.161.194]:34423 "EHLO
+        mail-yw0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752068AbeAFHrB (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Sat, 6 Jan 2018 02:38:09 -0500
-Received: by mail-yb0-f180.google.com with SMTP id j197so1754551ybg.9
-        for <linux-unionfs@vger.kernel.org>; Fri, 05 Jan 2018 23:38:08 -0800 (PST)
-In-Reply-To: <20171129155448.32721-1-vgoyal@redhat.com>
+        Sat, 6 Jan 2018 02:47:01 -0500
+In-Reply-To: <1515220190-17424-1-git-send-email-cgxu519@icloud.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Vivek Goyal <vgoyal@redhat.com>
-Cc: overlayfs <linux-unionfs@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>
+To: Chengguang Xu <cgxu519@icloud.com>
+Cc: Eryu Guan <eguan@redhat.com>, fstests <fstests@vger.kernel.org>, overlayfs <linux-unionfs@vger.kernel.org>
 
-On Wed, Nov 29, 2017 at 5:54 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
-> Hi,
+On Sat, Jan 6, 2018 at 8:29 AM, Chengguang Xu <cgxu519@icloud.com> wrote:
+> Currently generic shutdown tests are enabled on overlayfs by extending
+> _require_scratch_shutdown() to check shutdown support for overlayfs,
+> some of those tests also call _require_metadata_journaling() to inspect
+> whether test filesystem support metadata journaling or not, so need to
+> extend _require_metadata_journaling() as well to check metadata journaling
+> support for overlayfs in case shutdown tests run on uncommon overlayfs
+> setup and fail. For example, base filesystem of overlayfs is ext2 or ext4
+> with noload mode.
 >
-> Please find attached V9 of the patches. Minor changes to take care of
-> Amir's comments. I have also dropped RFC tag. If there are no concerns,
-> then I would like these patches to be included.
->
+> Metadata journaling check is based on base filesystem configurations
+> and  because -overlay option saves those configurations to OVL_BASE_*,
+> adding restore/override the configurations before/after the check.
 
-Sorry Vivek, just realized some issues:
+These 3 lines would look very good also as a comment in the code!
 
-1. Considering Miklos' commit
-    438c84c2f0c7 ovl: don't follow redirects if redirect_dir=off
-    It is probably not a good idea to allow lookup of metacopy unless
-    metacopy=on. Is that already the behavior in V9?
+The subject line is a mouthful ;-)
+How about "common/rc: perform _require_metadata_journaling check on
+overlay base fs"
 
-2. An upper layer with metacopy cannot be rotated as middle layer
-    becasue non-dir origin is only followed from upper layer.
-    This needs to be fixed (follow origin of metacopy from middle layer).
+Otherwise, looks good.
 
-3. You really should write some tests to verify correctness of
-    metadata before requesting to include the feature.
-
-I recommend that you start with a simple xfstest that verify expected
-behavior of a some basic use cases with
-_require_scratch_feature metacopy.
-
-Then, I suggest that you look into extending  unionmount-testsuite's
-check_layer() to know about metacopy. Currently it checks that
-objects that were supposed to be copied up (dentry.copied_up())
-are on upper layer (dentry.on_upper()). It shouldn't be too hard to
-extend that with dentry.data_copied_up() and dentry.data_on_upper().
-to verify metacopy correctness.
-
-Alas, there are currently no chmod/chown test cases in
-unionmount-testsuite, so you will also need to add some test cases.
-
-To properly test metacopy in middle layers (once it is implemented)
-you can use ./run --ov=N. Currently, to verify redirect_dir,
-upper layer is rotated on mkdir and rename dir. You will need
-to add some relevant "rotate points" for the metacopy use cases.
-For example, I added rotate and recycle points for testing
-handlinks/index:
-c427e85 - Cycle mount after link rename of non dir
-
-I never got around to the TODO item
-https://github.com/amir73il/overlayfs/wiki/Overlayfs-TODO#testing
-"unionmount-testsuite configure rotate points"
-I envisioned something like:
-  ./run --ov=N rotate=mkdir,rename recycle=link
-Instead of the hardcoded rotate/recycle points.
-
-Well, you don't need to implement ALL of that ;-)
-
-Cheers,
 Amir.
+
+>
+> Tested ext2, xfs, ext4(load/no-load mode) as base filesystem of overlayfs
+> in single and multi section configurations.
+>
+> Signed-off-by: Chengguang Xu <cgxu519@icloud.com>
+> ---
+> Changes since v1:
+> - Rewrite commit log.
+>
+>  common/rc | 9 +++++++++
+>  1 file changed, 9 insertions(+)
+>
+> diff --git a/common/rc b/common/rc
+> index 9216efd..83ef3f1 100644
+> --- a/common/rc
+> +++ b/common/rc
+> @@ -3007,6 +3007,15 @@ _require_metadata_journaling()
+>                 # ext4 might not load a journal
+>                 _exclude_scratch_mount_option "noload"
+>                 ;;
+> +       overlay)
+> +               if [ ! -z $OVL_BASE_FSTYP -a $OVL_BASE_FSTYP != "overlay" ]; then
+> +                       _overlay_config_restore
+> +                       _require_metadata_journaling
+> +                       _overlay_config_override
+> +               else
+> +                       _notrun "Please specify underlying filesystem type in config file"
+> +               fi
+> +               ;;
+>         *)
+>                 # by default we pass; if you need to, add your fs above!
+>                 ;;
+> --
+> 1.8.3.1
+>
