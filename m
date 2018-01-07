@@ -1,40 +1,52 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH 7/7] overlay: test encode/decode of non-samefs overlay file handles
-Date: Sun,  7 Jan 2018 20:07:25 +0200
-Message-ID: <1515348445-1403-8-git-send-email-amir73il@gmail.com>
+Subject: [PATCH 6/7] overlay: test encode/decode overlay file handles
+Date: Sun,  7 Jan 2018 20:07:24 +0200
+Message-ID: <1515348445-1403-7-git-send-email-amir73il@gmail.com>
 References: <1515348445-1403-1-git-send-email-amir73il@gmail.com>
-Return-path: <fstests-owner@vger.kernel.org>
+Return-path: <linux-unionfs-owner@vger.kernel.org>
+Received: from mail-wm0-f45.google.com ([74.125.82.45]:34252 "EHLO
+        mail-wm0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754359AbeAGSGp (ORCPT
+        <rfc822;linux-unionfs@vger.kernel.org>);
+        Sun, 7 Jan 2018 13:06:45 -0500
 In-Reply-To: <1515348445-1403-1-git-send-email-amir73il@gmail.com>
-Sender: fstests-owner@vger.kernel.org
+Sender: linux-unionfs-owner@vger.kernel.org
+List-Id: linux-unionfs@vger.kernel.org
 To: Eryu Guan <eguan@redhat.com>
 Cc: Jeff Layton <jlayton@poochiereds.net>, "J . Bruce Fields" <bfields@fieldses.org>, Miklos Szeredi <miklos@szeredi.hu>, fstests@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org
-List-Id: linux-unionfs@vger.kernel.org
 
-This is a variant of overlay file handles test for an overlayfs that
-is composed of multiple lower layers not on the same underlying fs.
+- Check encode/write/decode/read content of lower/upper file handles
+- Check encode/decode/write/read content of lower/upper file handles
+- Check decode/read of unlinked lower/upper files and directories
+- Check decode/read of lower file handles after copy up, link and unlink
+- Check decode/read of lower file handles after rename of parent and self
+
+This test does not cover connectable file handles of non-directories,
+because name_to_handle_at() syscall does not support requesting
+connectable file handles.
+
+This test covers only encode/decode of file handles for overlayfs
+configuration of lower and upper on the same fs.
 
 Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- tests/overlay/051     | 311 ++++++++++++++++++++++++++++++++++++++++++++++++++
- tests/overlay/051.out |  50 ++++++++
+ tests/overlay/050     | 291 ++++++++++++++++++++++++++++++++++++++++++++++++++
+ tests/overlay/050.out |  50 +++++++++
  tests/overlay/group   |   1 +
- 3 files changed, 362 insertions(+)
- create mode 100755 tests/overlay/051
- create mode 100644 tests/overlay/051.out
+ 3 files changed, 342 insertions(+)
+ create mode 100755 tests/overlay/050
+ create mode 100644 tests/overlay/050.out
 
-diff --git a/tests/overlay/051 b/tests/overlay/051
+diff --git a/tests/overlay/050 b/tests/overlay/050
 new file mode 100755
-index 0000000..6f11e9e
+index 0000000..4dcd66a
 --- /dev/null
-+++ b/tests/overlay/051
-@@ -0,0 +1,311 @@
++++ b/tests/overlay/050
+@@ -0,0 +1,291 @@
 +#! /bin/bash
-+# FS QA Test No. 051
++# FS QA Test No. 050
 +#
 +# Test encode/decode overlay file handles
-+#
-+# This is a variant of overlay file handles test for an overlayfs that is
-+# composed of multiple lower layers not on the same underlying fs.
 +#
 +# - Check encode/write/decode/read content of lower/upper file handles
 +# - Check encode/decode/write/read content of lower/upper file handles
@@ -78,8 +90,6 @@ index 0000000..6f11e9e
 +{
 +	cd /
 +	rm -f $tmp.*
-+	# Unmount the non-samefs overlay mount
-+	$UMOUNT_PROG $SCRATCH_MNT 2>/dev/null
 +}
 +
 +# get standard environment, filters and checks
@@ -90,21 +100,13 @@ index 0000000..6f11e9e
 +
 +_supported_fs overlay
 +_supported_os Linux
-+_require_test
 +_require_scratch
 +# _require_exportfs already requires open_by_handle, but let's not count on it
 +_require_test_program "open_by_handle"
 +_require_exportfs
 +
-+# Lower is on test partition
-+lower=$OVL_BASE_TEST_DIR/$OVL_LOWER-$seq
-+# Upper/work are on scratch partition
-+middle=$OVL_BASE_SCRATCH_MNT/$OVL_LOWER
-+upper=$OVL_BASE_SCRATCH_MNT/$OVL_UPPER
-+work=$OVL_BASE_SCRATCH_MNT/$OVL_WORK
-+
-+lowerdir=$lower/lowertestdir
-+upperdir=$upper/uppertestdir
++lowerdir=$OVL_BASE_SCRATCH_MNT/$OVL_LOWER/lowertestdir
++upperdir=$OVL_BASE_SCRATCH_MNT/$OVL_UPPER/uppertestdir
 +lowertestdir=$SCRATCH_MNT/lowertestdir
 +uppertestdir=$SCRATCH_MNT/uppertestdir
 +NUMFILES=1
@@ -133,27 +135,20 @@ index 0000000..6f11e9e
 +# Re-create lower/upper/work dirs
 +create_dirs()
 +{
-+	# Create lower dir on test partition
-+	rm -rf $lower
-+	mkdir $lower
-+
-+	# Create upper/work dirs on scratch partition
 +	_scratch_mkfs
 +}
 +
-+# Mount an overlay on $SCRATCH_MNT with lower layer on test partition
-+# and middle and upper layer on scratch partition
++# Mount an overlay on $SCRATCH_MNT with all layers on scratch partition
 +mount_dirs()
 +{
-+	_overlay_mount_dirs $middle:$lower $upper $work \
-+		$OVERLAY_MOUNT_OPTIONS overlay $SCRATCH_MNT
++	_scratch_mount
 +}
 +
-+# Unmount & check the non samefs overlay
++# Unmount & check the overlay layers
 +unmount_dirs()
 +{
-+	$UMOUNT_PROG $SCRATCH_MNT
-+	_overlay_check_dirs $lower $upper $work
++	_scratch_unmount
++	_check_scratch_fs
 +}
 +
 +# Check non-stale file handles of lower/upper files and verify
@@ -339,13 +334,13 @@ index 0000000..6f11e9e
 +
 +status=0
 +exit
-diff --git a/tests/overlay/051.out b/tests/overlay/051.out
+diff --git a/tests/overlay/050.out b/tests/overlay/050.out
 new file mode 100644
-index 0000000..505e37e
+index 0000000..d8bac04
 --- /dev/null
-+++ b/tests/overlay/051.out
++++ b/tests/overlay/050.out
 @@ -0,0 +1,50 @@
-+QA output created by 051
++QA output created by 050
 +test_file_handles SCRATCH_MNT/uppertestdir
 +test_file_handles SCRATCH_MNT/uppertestdir -p
 +test_file_handles SCRATCH_MNT/uppertestdir -wrap
@@ -396,13 +391,13 @@ index 0000000..505e37e
 +test_file_handles SCRATCH_MNT -rp -i lower_subdir_file_handles
 +test_file_handles SCRATCH_MNT/lowertestdir.new -rp -i lower_subdir_file_handles
 diff --git a/tests/overlay/group b/tests/overlay/group
-index 6cb3763..380a382 100644
+index 7e541e4..6cb3763 100644
 --- a/tests/overlay/group
 +++ b/tests/overlay/group
-@@ -50,3 +50,4 @@
+@@ -49,3 +49,4 @@
+ 044 auto quick copyup hardlink nonsamefs
  047 auto quick copyup hardlink
  048 auto quick copyup hardlink
- 050 auto quick copyup hardlink exportfs
-+051 auto quick copyup hardlink exportfs nonsamefs
++050 auto quick copyup hardlink exportfs
 -- 
 2.7.4
