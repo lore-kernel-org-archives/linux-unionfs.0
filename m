@@ -1,228 +1,103 @@
-From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [PATCH] ovl: Improving syncfs efficiency
-Date: Mon, 8 Jan 2018 14:10:28 +0200
-Message-ID: <CAOQ4uxgxv=7tj97Krui2XBxiVh8-xjuxqSoq+KSxYYKwXGNQaw@mail.gmail.com>
-References: <1515400885-16622-1-git-send-email-cgxu519@icloud.com>
+From: Vivek Goyal <vgoyal@redhat.com>
+Subject: Re: [PATCH v9 00/15] overlayfs: Delayed copy up of data
+Date: Mon, 8 Jan 2018 09:13:35 -0500
+Message-ID: <20180108141335.GB9910@redhat.com>
+References: <20171129155448.32721-1-vgoyal@redhat.com>
+ <CAOQ4uxiKAXXNOkY2gvWWkTTuw7TRu9z33az8uVf0Z47uH2LdyA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-yw0-f196.google.com ([209.85.161.196]:37479 "EHLO
-        mail-yw0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756482AbeAHMK3 (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 8 Jan 2018 07:10:29 -0500
-Received: by mail-yw0-f196.google.com with SMTP id v139so1190802ywg.4
-        for <linux-unionfs@vger.kernel.org>; Mon, 08 Jan 2018 04:10:29 -0800 (PST)
-In-Reply-To: <1515400885-16622-1-git-send-email-cgxu519@icloud.com>
+Received: from mx1.redhat.com ([209.132.183.28]:45854 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1755665AbeAHONg (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Mon, 8 Jan 2018 09:13:36 -0500
+Content-Disposition: inline
+In-Reply-To: <CAOQ4uxiKAXXNOkY2gvWWkTTuw7TRu9z33az8uVf0Z47uH2LdyA@mail.gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Chengguang Xu <cgxu519@icloud.com>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, overlayfs <linux-unionfs@vger.kernel.org>
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: overlayfs <linux-unionfs@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>
 
-On Mon, Jan 8, 2018 at 10:41 AM, Chengguang Xu <cgxu519@icloud.com> wrote:
-> Currently syncfs(2) call on overlayfs just simply call sync_filesystem()
-> on upper_sb to synchronize whole dirty inodes in upper filesystem
-> regardless of the overlay ownership of the inode. It has obvious
-> shortcomings as below.
->
-> (1) Performance
-> Synchronization is probably heavy in most cases, especially when upper
-> filesystem is not dedicated to target overlayfs.
->
-> (2) Interference
-> Unplanned synchronization will probably impact IO performance of the
-> processes which use other overlayfs on same upper filesystem or directly
-> use upper filesystem.
->
-> This patch iterates overlay inodes to only sync target dirty inodes in
-> upper filesystem and wait on temporary waiting list to avoid waiting on
-> inodes that have started writeback afterwards. By doing this,
-> it is able to reduce cost of synchronization and will not seriously impact
-> IO performance of irrelative processes.
+On Sat, Jan 06, 2018 at 09:38:07AM +0200, Amir Goldstein wrote:
+> On Wed, Nov 29, 2017 at 5:54 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
+> > Hi,
+> >
+> > Please find attached V9 of the patches. Minor changes to take care of
+> > Amir's comments. I have also dropped RFC tag. If there are no concerns,
+> > then I would like these patches to be included.
+> >
+> 
+> Sorry Vivek, just realized some issues:
+> 
+> 1. Considering Miklos' commit
+>     438c84c2f0c7 ovl: don't follow redirects if redirect_dir=off
+>     It is probably not a good idea to allow lookup of metacopy unless
+>     metacopy=on. Is that already the behavior in V9?
 
-This looks like a very good improvement!
+Hi Amir,
 
->
-> Signed-off-by: Chengguang Xu <cgxu519@icloud.com>
-> ---
->  fs/overlayfs/ovl_entry.h |   4 ++
->  fs/overlayfs/super.c     | 101 +++++++++++++++++++++++++++++++++++++++++++++--
->  2 files changed, 102 insertions(+), 3 deletions(-)
->
-> diff --git a/fs/overlayfs/ovl_entry.h b/fs/overlayfs/ovl_entry.h
-> index 9d0bc03..e92c425 100644
-> --- a/fs/overlayfs/ovl_entry.h
-> +++ b/fs/overlayfs/ovl_entry.h
-> @@ -52,6 +52,8 @@ struct ovl_fs {
->         /* Did we take the inuse lock? */
->         bool upperdir_locked;
->         bool workdir_locked;
-> +       /* ovl inode sync list lock */
-> +       spinlock_t  ovl_sync_list_lock;
->  };
->
->  /* private information held for every overlayfs dentry */
-> @@ -80,6 +82,8 @@ struct ovl_inode {
->
->         /* synchronize copy up and more */
->         struct mutex lock;
-> +       /* ovl inode sync list */
-> +       struct list_head sync_list;
->  };
->
->  static inline struct ovl_inode *OVL_I(struct inode *inode)
-> diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-> index 76440fe..17f1406 100644
-> --- a/fs/overlayfs/super.c
-> +++ b/fs/overlayfs/super.c
-> @@ -17,6 +17,8 @@
->  #include <linux/statfs.h>
->  #include <linux/seq_file.h>
->  #include <linux/posix_acl_xattr.h>
-> +#include <linux/writeback.h>
-> +#include <linux/blkdev.h>
->  #include "overlayfs.h"
->
->  MODULE_AUTHOR("Miklos Szeredi <miklos@szeredi.hu>");
-> @@ -195,6 +197,7 @@ static struct inode *ovl_alloc_inode(struct super_block *sb)
->         oi->__upperdentry = NULL;
->         oi->lower = NULL;
->         mutex_init(&oi->lock);
-> +       INIT_LIST_HEAD(&oi->sync_list);
->
->         return &oi->vfs_inode;
->  }
-> @@ -252,6 +255,96 @@ static void ovl_put_super(struct super_block *sb)
->         ovl_free_fs(ofs);
->  }
->
-> +/**
-> + * ovl_sync_filesystem
-> + * @sb: The overlayfs super block
-> + *
-> + * Sync underlying dirty inodes in upper filesystem and wait for completion.
-> + * Use temporary wait list to avoid waiting on inodes that have started
-> + * writeback after this point.
-> + */
-> +static int ovl_sync_filesystem(struct super_block *sb)
-> +{
-> +       struct ovl_fs *ofs = sb->s_fs_info;
-> +       struct super_block *upper_sb = ofs->upper_mnt->mnt_sb;
-> +       struct ovl_inode *oi, *oi_next;
-> +       struct inode *inode, *i_next;
-> +       struct inode *upper_inode;
-> +       struct blk_plug plug;
-> +       LIST_HEAD(ovl_sync_list);
-> +
-> +       struct writeback_control wbc = {
-> +               .sync_mode              = WB_SYNC_ALL,
+Hmm.., no, that's not the behavior in V9. Remember, we wanted to follow
+metacopy origin even if metacopy=off. That way a user can mount a
+overlayfs with metacopy=off (which was previously mounted as metacopy=on)
+and not be broken.
 
-Shouldn't this be WB_SYNC_NONE? We are explicitly waiting
-inodes on the list afterwards...
+If we follow metacopy only if metacopy=on, then we really need some
+mechanism which can atleast warn user that this overlay mount was 
+mounted with metacopy=on in the past and expect some unexpected results
+if mounted with metacopy=off.
 
-> +               .for_sync               = 1,
-> +               .range_start            = 0,
-> +               .range_end              = LLONG_MAX,
-> +               .nr_to_write            = LONG_MAX,
-> +       };
-> +
-> +       blk_start_plug(&plug);
-> +       spin_lock(&sb->s_inode_list_lock);
-> +       list_for_each_entry_safe(inode, i_next, &sb->s_inodes, i_sb_list) {
-> +               upper_inode = ovl_inode_upper(inode);
-> +               if (!upper_inode)
-> +                       continue;
-> +
-> +               spin_lock(&upper_inode->i_lock);
-> +               if (upper_inode->i_state & (I_NEW | I_FREEING | I_WILL_FREE) ||
-> +                       list_empty(&upper_inode->i_io_list)) {
-> +                       spin_unlock(&upper_inode->i_lock);
-> +                       continue;
-> +               }
-> +               spin_unlock(&upper_inode->i_lock);
-> +
-> +               if (!igrab(inode))
-> +                       continue;
-> +
-> +               if (!igrab(upper_inode)) {
-> +                       iput(inode);
-> +                       continue;
-> +               }
-> +               spin_unlock(&sb->s_inode_list_lock);
-> +
-> +               sync_inode(upper_inode, &wbc);
+Has there been any agreement on what mechanism to use to remember what
+features have been turned on existing overlay mount.
 
-Maybe allowed to call sync_inode() under s_inode_list_lock
-if using WB_SYNC_NONE???
-Do we not need to check return value from sync_inode()?
-I bet it could be EROFS if upper fs was remounted readonly
-and we did not check for that before starting to sync...
+> 
+> 2. An upper layer with metacopy cannot be rotated as middle layer
+>     becasue non-dir origin is only followed from upper layer.
+>     This needs to be fixed (follow origin of metacopy from middle layer).
 
-> +               spin_lock(&ofs->ovl_sync_list_lock);
-> +               if (list_empty(&OVL_I(inode)->sync_list))
-> +                       list_add(&OVL_I(inode)->sync_list, &ovl_sync_list);
-> +               else {
-> +                       iput(upper_inode);
-> +                       iput(inode);
-> +               }
-> +               spin_unlock(&ofs->ovl_sync_list_lock);
-> +
-> +               if (need_resched()) {
-> +                       blk_finish_plug(&plug);
-> +                       cond_resched();
-> +                       blk_start_plug(&plug);
-> +               }
-> +               spin_lock(&sb->s_inode_list_lock);
-> +       }
-> +       spin_unlock(&sb->s_inode_list_lock);
-> +       blk_finish_plug(&plug);
-> +
-> +       mutex_lock(&upper_sb->s_sync_lock);
+I was thinking about it. I did not have an immediate user of this
+functinality to so I did not bother too much about it. I will look
+into it and see how to implement it.
 
-I suppose mutex_lock_interruptible() is in order.
+> 
+> 3. You really should write some tests to verify correctness of
+>     metadata before requesting to include the feature.
 
-> +       list_for_each_entry_safe(oi, oi_next, &ovl_sync_list, sync_list) {
-> +               upper_inode = ovl_inode_upper(&oi->vfs_inode);
-> +
-> +               filemap_fdatawait_keep_errors(upper_inode->i_mapping);
-> +               list_del_init(&oi->sync_list);
-> +               iput(upper_inode);
-> +               iput(&oi->vfs_inode);
-> +
-> +               if (need_resched())
-> +                       cond_resched();
-> +       }
-> +       mutex_unlock(&upper_sb->s_sync_lock);
-> +
-> +       if (upper_sb->s_op->sync_fs)
-> +               upper_sb->s_op->sync_fs(upper_sb, 1);
-> +
-> +       return sync_blockdev(upper_sb->s_bdev);
-> +}
-> +
->  /* Sync real dirty inodes in upper filesystem (if it exists) */
->  static int ovl_sync_fs(struct super_block *sb, int wait)
->  {
-> @@ -266,8 +359,8 @@ static int ovl_sync_fs(struct super_block *sb, int wait)
->          * If this is a sync(2) call or an emergency sync, all the super blocks
->          * will be iterated, including upper_sb, so no need to do anything.
->          *
-> -        * If this is a syncfs(2) call, then we do need to call
-> -        * sync_filesystem() on upper_sb, but enough if we do it when being
-> +        * If this is a syncfs(2) call, then we do need to call sync_inode()
-> +        * on underlying dirty upper_inode, but enough if we do it when being
->          * called with wait == 1.
->          */
->         if (!wait)
-> @@ -276,7 +369,7 @@ static int ovl_sync_fs(struct super_block *sb, int wait)
->         upper_sb = ofs->upper_mnt->mnt_sb;
->
->         down_read(&upper_sb->s_umount);
-> -       ret = sync_filesystem(upper_sb);
-> +       ret = ovl_sync_filesystem(sb);
+Was thinking about this too. Agreed, it is a good idea to write test
+cases. Will do.
 
-Note that with this change, we are skipping the test sb_rdonly(upper_sb)
-(inside sync_filesystem()). We should probably skip syncing in that case.
+Vivek
 
-Thanks,
-Amir.
+> 
+> I recommend that you start with a simple xfstest that verify expected
+> behavior of a some basic use cases with
+> _require_scratch_feature metacopy.
+> 
+> Then, I suggest that you look into extending  unionmount-testsuite's
+> check_layer() to know about metacopy. Currently it checks that
+> objects that were supposed to be copied up (dentry.copied_up())
+> are on upper layer (dentry.on_upper()). It shouldn't be too hard to
+> extend that with dentry.data_copied_up() and dentry.data_on_upper().
+> to verify metacopy correctness.
+> 
+> Alas, there are currently no chmod/chown test cases in
+> unionmount-testsuite, so you will also need to add some test cases.
+> 
+> To properly test metacopy in middle layers (once it is implemented)
+> you can use ./run --ov=N. Currently, to verify redirect_dir,
+> upper layer is rotated on mkdir and rename dir. You will need
+> to add some relevant "rotate points" for the metacopy use cases.
+> For example, I added rotate and recycle points for testing
+> handlinks/index:
+> c427e85 - Cycle mount after link rename of non dir
+> 
+> I never got around to the TODO item
+> https://github.com/amir73il/overlayfs/wiki/Overlayfs-TODO#testing
+> "unionmount-testsuite configure rotate points"
+> I envisioned something like:
+>   ./run --ov=N rotate=mkdir,rename recycle=link
+> Instead of the hardcoded rotate/recycle points.
+> 
+> Well, you don't need to implement ALL of that ;-)
+> 
+> Cheers,
+> Amir.
