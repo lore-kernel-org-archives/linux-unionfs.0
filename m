@@ -1,62 +1,143 @@
-From: Miklos Szeredi <miklos@szeredi.hu>
-Subject: Re: [PATCH v9 10/15] ovl: A new xattr OVL_XATTR_METACOPY for file on upper
-Date: Mon, 8 Jan 2018 17:25:34 +0100
-Message-ID: <CAJfpegsgRtP0saiCFeCwKst35iCVEG+1vDj35yfpzQYW_Gta1g@mail.gmail.com>
-References: <20171129155448.32721-1-vgoyal@redhat.com> <20171129155448.32721-11-vgoyal@redhat.com>
- <CAJfpegtc-63zQS+_j1sKB48fXSz63nT4hH0Q09brLWHbaC5KKg@mail.gmail.com>
- <20180108161745.GB13708@redhat.com> <CAJfpegt5pfP=ESvfbeRwgYrB=fNXfzeO-ni6RWZ13g6D5imBQw@mail.gmail.com>
+From: Vivek Goyal <vgoyal@redhat.com>
+Subject: Re: [PATCH v9 08/15] ovl: Copy up only metadata during copy up where
+ it makes sense
+Date: Mon, 8 Jan 2018 12:03:13 -0500
+Message-ID: <20180108170313.GD9910@redhat.com>
+References: <20171129155448.32721-1-vgoyal@redhat.com>
+ <20171129155448.32721-9-vgoyal@redhat.com>
+ <CAJfpegsXEgz6=y7eLe5kJLKHtCyEP5LxzXkg2zB5JjgNJ3=bfg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-qt0-f196.google.com ([209.85.216.196]:44556 "EHLO
-        mail-qt0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934933AbeAHQZf (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 8 Jan 2018 11:25:35 -0500
-Received: by mail-qt0-f196.google.com with SMTP id m59so14271943qte.11
-        for <linux-unionfs@vger.kernel.org>; Mon, 08 Jan 2018 08:25:34 -0800 (PST)
-In-Reply-To: <CAJfpegt5pfP=ESvfbeRwgYrB=fNXfzeO-ni6RWZ13g6D5imBQw@mail.gmail.com>
+Received: from mx1.redhat.com ([209.132.183.28]:57644 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S934431AbeAHRDO (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Mon, 8 Jan 2018 12:03:14 -0500
+Content-Disposition: inline
+In-Reply-To: <CAJfpegsXEgz6=y7eLe5kJLKHtCyEP5LxzXkg2zB5JjgNJ3=bfg@mail.gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Vivek Goyal <vgoyal@redhat.com>
+To: Miklos Szeredi <miklos@szeredi.hu>
 Cc: linux-unionfs@vger.kernel.org, Amir Goldstein <amir73il@gmail.com>
 
-On Mon, Jan 8, 2018 at 5:21 PM, Miklos Szeredi <miklos@szeredi.hu> wrote:
-> On Mon, Jan 8, 2018 at 5:17 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
->> On Mon, Jan 08, 2018 at 04:50:00PM +0100, Miklos Szeredi wrote:
->>> On Wed, Nov 29, 2017 at 4:54 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
->>> > Now we will have the capability to have upper inodes which might be only
->>> > metadata copy up and data is still on lower inode. So add a new xattr
->>> > OVL_XATTR_METACOPY to distinguish between two cases.
->>>
->>> Maybe I missed something, but I think there's a bug in this patch:
->>> truncate() is a metadata+data operation since it affects results of
->>> read().  So it should be handled by doing the data copy-up like we did
->>> before.
->>
->> Hi Miklos,
->>
->> For truncate operation, we don't do metadata only copy up and fall back
->> to regular operation.
->>
->> ovl_need_meta_copy_up() {
->>         if (flags && ((OPEN_FMODE(flags) & FMODE_WRITE) || (flags & O_TRUNC)))
->>                 return false;
->>
->> }
->>
->> So behavior should not change with metacopy for truncate operation.
->>
->> Am I missing something?
->
-> I'm talking about truncate(2).  That will bypass opening the file
-> completely, going only through ovl_setattr(), which will do a metadata
-> only copy up (AFAICS).
+On Mon, Jan 08, 2018 at 11:35:09AM +0100, Miklos Szeredi wrote:
+> On Wed, Nov 29, 2017 at 4:54 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
+> > If it makes sense to copy up only metadata during copy up, do it. This
+> > is done for regular files which are not opened for WRITE and have origin
+> > being saved.
+> >
+> > Right now ->metacopy is set to 0 always. Last patch in the series will
+> > remove the hard coded statement and enable metacopy feature.
+> >
+> > Reviewed-by: Amir Goldstein <amir73il@gmail.com>
+> > Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
+> > ---
+> >  fs/overlayfs/copy_up.c | 38 +++++++++++++++++++++++++++++++-------
+> >  1 file changed, 31 insertions(+), 7 deletions(-)
+> >
+> > diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
+> > index 31711edf5bde..c5804b87f3c7 100644
+> > --- a/fs/overlayfs/copy_up.c
+> > +++ b/fs/overlayfs/copy_up.c
+> > @@ -232,6 +232,26 @@ int ovl_set_attr(struct dentry *upperdentry, struct kstat *stat)
+> >         return err;
+> >  }
+> >
+> > +static bool ovl_need_meta_copy_up(struct dentry *dentry, umode_t mode,
+> > +                                 int flags)
+> > +{
+> > +       struct ovl_fs *ofs = dentry->d_sb->s_fs_info;
+> > +
+> > +       /* TODO: Will enable metacopy in last patch of series */
+> > +       return false;
+> > +
+> > +       if (!ofs->config.metacopy)
+> > +               return false;
+> > +
+> > +       if (!S_ISREG(mode))
+> > +               return false;
+> > +
+> > +       if (flags && ((OPEN_FMODE(flags) & FMODE_WRITE) || (flags & O_TRUNC)))
+> > +               return false;
+> > +
+> > +       return true;
+> > +}
+> > +
+> >  struct ovl_fh *ovl_encode_fh(struct dentry *lower, bool is_upper)
+> >  {
+> >         struct ovl_fh *fh;
+> > @@ -305,11 +325,8 @@ static int ovl_set_origin(struct dentry *dentry, struct dentry *lower,
+> >                         return PTR_ERR(fh);
+> >         }
+> >
+> > -       /*
+> > -        * Do not fail when upper doesn't support xattrs.
+> > -        */
+> >         err = ovl_check_setxattr(dentry, upper, OVL_XATTR_ORIGIN, fh,
+> > -                                fh ? fh->len : 0, 0);
+> > +                                fh ? fh->len : 0, -EOPNOTSUPP);
+> >         kfree(fh);
+> >
+> >         return err;
+> > @@ -326,6 +343,7 @@ struct ovl_copy_up_ctx {
+> >         struct qstr destname;
+> >         struct dentry *workdir;
+> >         bool tmpfile;
+> > +       bool metacopy;
+> >  };
+> >
+> >  static int ovl_link_up(struct ovl_copy_up_ctx *c)
+> > @@ -453,10 +471,14 @@ static int ovl_copy_up_inode(struct ovl_copy_up_ctx *c, struct dentry *temp)
+> >          *
+> >          */
+> >         err = ovl_set_origin(c->dentry, c->lowerpath.dentry, temp);
+> > -       if (err)
+> > -               return err;
+> > +       if (err) {
+> > +               if (err != -EOPNOTSUPP)
+> > +                       return err;
+> > +               /* Upper does not support xattr. Copy up data as well */
+> > +               c->metacopy = false;
+> 
+> Isn't this supposed to be checked in ovl_get_super()?
 
-Ah, we do do d_real(path->dentry, NULL, O_WRONLY, 0); from
-vfs_truncate(), so that will indeed do a data copy up.
+Hi Miklos,
 
-So it should be okay.
+Right. I think I was confused by code in ovl_check_setxattr().
 
-Thanks,
-Miklos
+int ovl_check_setxattr(struct dentry *dentry, struct dentry *upperdentry,
+                       const char *name, const void *value, size_t size,
+                       int xerr)
+{
+        int err;
+        struct ovl_fs *ofs = dentry->d_sb->s_fs_info;
+
+        if (ofs->noxattr)
+                return xerr;
+
+        err = ovl_do_setxattr(upperdentry, name, value, size, 0);
+
+        if (err == -EOPNOTSUPP) {
+                pr_warn("overlayfs: cannot set %s xattr on upper\n", name);
+                ofs->noxattr = true;
+                return xerr;
+        }
+
+        return err;
+}
+
+ofs->noxattr will be set at mount time. Still we check for -EOPNOTSUPP
+and set ofs->noxattr again. Is there a situation where this can happen.
+Is it intentional. Can we get rid of this code.
+
+To take care of this situation, I put that code. That is at mount time
+xattr was fine and hence ofs->noxattr=false. But later somehow we 
+encountered -EOPNOTSUPP while doing ovl_set_origin(). Current code
+does not fail copy up operation and I tried to retain same behavior.
+That is just disable metacopy in such case but continue.
+
+So if we don't expect all this to happen at all, then I can get rid
+of this -EOPNOTSUPP check both from ovl_check_setxattr() as well
+as ovl_copy_up_inode().
+
+Vivek
