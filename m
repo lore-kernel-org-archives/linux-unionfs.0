@@ -1,98 +1,40 @@
 From: Miklos Szeredi <miklos@szeredi.hu>
-Subject: Re: Using overlay on top of overlay
-Date: Mon, 8 Jan 2018 09:57:34 +0100
-Message-ID: <CAJfpegukxS6K_TnowtkfdWj9DR8wgw393GG5mStX9K3fTLXSWQ@mail.gmail.com>
-References: <1c1c2e7d-8121-65bc-60f9-b93bbe2ff411@gmail.com>
+Subject: Re: [PATCH v9 04/15] ovl: Create origin xattr on copy up for all files
+Date: Mon, 8 Jan 2018 11:16:55 +0100
+Message-ID: <CAJfpegvL1ZvSq3gm5oqHR_AzeW4XHOP2V=PUyuY0ubUrxYO4cA@mail.gmail.com>
+References: <20171129155448.32721-1-vgoyal@redhat.com> <20171129155448.32721-5-vgoyal@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-qk0-f182.google.com ([209.85.220.182]:36774 "EHLO
-        mail-qk0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756085AbeAHI5f (ORCPT
+Received: from mail-qk0-f174.google.com ([209.85.220.174]:43812 "EHLO
+        mail-qk0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754372AbeAHKQ4 (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 8 Jan 2018 03:57:35 -0500
-Received: by mail-qk0-f182.google.com with SMTP id d21so2251153qkj.3
-        for <linux-unionfs@vger.kernel.org>; Mon, 08 Jan 2018 00:57:35 -0800 (PST)
-In-Reply-To: <1c1c2e7d-8121-65bc-60f9-b93bbe2ff411@gmail.com>
+        Mon, 8 Jan 2018 05:16:56 -0500
+Received: by mail-qk0-f174.google.com with SMTP id j137so13458219qke.10
+        for <linux-unionfs@vger.kernel.org>; Mon, 08 Jan 2018 02:16:55 -0800 (PST)
+In-Reply-To: <20171129155448.32721-5-vgoyal@redhat.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: =?UTF-8?B?UmFmYcWCIE1pxYJlY2tp?= <zajec5@gmail.com>
-Cc: linux-unionfs@vger.kernel.org, linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org
+To: Vivek Goyal <vgoyal@redhat.com>
+Cc: linux-unionfs@vger.kernel.org, Amir Goldstein <amir73il@gmail.com>
 
-On Wed, Dec 13, 2017 at 11:10 AM, Rafa=C5=82 Mi=C5=82ecki <zajec5@gmail.com=
-> wrote:
-> Hi,
+On Wed, Nov 29, 2017 at 4:54 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
+> Right now my understanding is that origin xattr is created for all copied
+> up files if index=on. And if index=off, then we create it for all type
+> of files except hardlinks (nlink != 1).
 >
-> For few kernel releases overlay supported using it on top of another
-> overlay.
->
-> FWIW there was a regression related to this "feature" in 4.2:
-> https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit=
-/?id=3D4bacc9c9234c7c8eec44f5ed4e960d9f96fa0f01
-> but it was fixed:
-> https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit=
-/?id=3D1c8a47df36d72ace8cf78eb6c228aa0f8027d3c2
->
->
-> Starting with kernel 4.4 this "feature" seems to be disabled explicitly:
-> https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit=
-/?id=3D76bc8e2843b66f8205026365966b49ec6da39ae7
->
-> Disabling commit says that it "does not make sense" but actually there
-> seem to be few projects that are looking for such a solution, see:
-> 1) https://bugs.launchpad.net/ubuntu/+source/linux/+bug/1629509
-> 2) https://bugs.centos.org/view.php?id=3D12986
-> 3) https://github.com/rkt/rkt/issues/1537
->
-> I can't really elaborate on above cases but I have a similar need for
-> my OpenWrt system running LXC (Linux Containers).
->
-> First of all OpenWrt uses overlay to "merge" squashfs and some writable
-> filesystem partition. It needs squashfs due to dealing with devices with
-> really small flashes (down to 4 - 8 MiB). Then it stores all its LXC
-> containers in the /srv/lxc/.
->
-> Secondly LXC itself uses overlay feature in few places, e.g.
-> 1) lxc.rootfs with the overlayfs:lower:upper syntax
-> 2) lxc.mount.entry with the fstab syntax
->
-> As you can guess LXC simply assumes overlay can be used and doesn't
-> check if the host system uses it for directory holding container data.
-> This breaks LXC because kernel refuses mounting dir with some message
-> like:
-> overlayfs: filesystem on '/foo' not supported as upperdir
->
->
-> I managed to find a workaround for this. As OpenWrt uses:
-> overlayfs:/overlay on / type overlay
-> (rw,noatime,lowerdir=3D/,upperdir=3D/overlay/upper,workdir=3D/overlay/wor=
-k)
-> I can simply replace
-> upperdir=3D/srv/lxc/foo/upper
-> with
-> upperdir=3D/overlay/upper/srv/lxc/foo/upper
-> (same for workdir) but this isn't really a user friendly solution.
->
->
-> I would like to ask if use cases I described above make any sense to
-> you?
-> Is there any chance someone could work on a proper support for overlay
-> on top of overlay and enabling it again?
+> With metadata only copy up, I will still require origin xattr to copy up
+> data later, so create it even for hardlinks even with index=off.
 
-Overlayfs as upper layer never worked properly.  Think of what happens
-when a file existing on a lower layer (in the outer overlay) is
-removed.  We try to create a whiteout on the upper of the outer
-overlay (which is the inner overlay).  That is denied, because the
-representation would conflict with the representation of a whiteout on
-the upper of the inner overlay.
+This doesn't look right.  Without index we can't do hard links
+properly, doing metacopy in that case will complicate the situation
+further and can result in weirdness (e.g. two files that have
+different attributes but same inode number).
 
-We could do some "escaping" of whiteouts and "trusted.ovlerlay" xattrs
-to represent these xattrs on the overlay, but this has not yet been
-implemented.
-
-Once that is done, I don't see other major obstacles to doing
-overlayfs upper over overlayfs.
+So I think we should either require index for metacopy, or disable
+metacopy only for nlink != 1 files, but otherwise enable it even in
+case of index=off.
 
 Thanks,
 Miklos
