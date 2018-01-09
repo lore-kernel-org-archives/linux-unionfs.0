@@ -1,91 +1,41 @@
 From: Miklos Szeredi <miklos@szeredi.hu>
-Subject: Re: [PATCH v2 06/23] ovl: add support for "verify" feature
-Date: Tue, 9 Jan 2018 11:07:59 +0100
-Message-ID: <CAJfpegsCPVgb5Skb2=Ed0Q+zFejQZb9_gvjDhzq1arxOxr+EZQ@mail.gmail.com>
+Subject: Re: [PATCH v2 07/23] ovl: verify stored origin fh matches lower dir
+Date: Tue, 9 Jan 2018 11:17:11 +0100
+Message-ID: <CAJfpegv=0qCECaCW_VCazhgQQHrd5YxJSvLxL4345a5DUAVkKw@mail.gmail.com>
 References: <1515084018-25134-1-git-send-email-amir73il@gmail.com>
- <1515084018-25134-7-git-send-email-amir73il@gmail.com> <CAJfpegvsb66k4hhFQfg5vdMRJyA8kqMypOPwaf=C0DeF+2w5ew@mail.gmail.com>
- <CAOQ4uxiXcpd13wua+=g+Uw=zO=QEy5fUA6zGfDqhx3yyOXVcbA@mail.gmail.com>
+ <1515084018-25134-8-git-send-email-amir73il@gmail.com> <CAJfpegvR5=-GdD1sx81+TuPXNi6BFbpwcRKyOTmH7d59DLwB6w@mail.gmail.com>
+ <CAOQ4uxjk4JiWoZgbHG94e=V_5fFOCsH7nWAzMevTV3EhE7ma2w@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-qk0-f180.google.com ([209.85.220.180]:41318 "EHLO
-        mail-qk0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751098AbeAIKIB (ORCPT
+Received: from mail-qk0-f182.google.com ([209.85.220.182]:42803 "EHLO
+        mail-qk0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751101AbeAIKRM (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 9 Jan 2018 05:08:01 -0500
-Received: by mail-qk0-f180.google.com with SMTP id a8so17807084qkb.8
-        for <linux-unionfs@vger.kernel.org>; Tue, 09 Jan 2018 02:08:00 -0800 (PST)
-In-Reply-To: <CAOQ4uxiXcpd13wua+=g+Uw=zO=QEy5fUA6zGfDqhx3yyOXVcbA@mail.gmail.com>
+        Tue, 9 Jan 2018 05:17:12 -0500
+Received: by mail-qk0-f182.google.com with SMTP id q1so807031qkb.9
+        for <linux-unionfs@vger.kernel.org>; Tue, 09 Jan 2018 02:17:12 -0800 (PST)
+In-Reply-To: <CAOQ4uxjk4JiWoZgbHG94e=V_5fFOCsH7nWAzMevTV3EhE7ma2w@mail.gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: Amir Goldstein <amir73il@gmail.com>
-Cc: zhangyi <yi.zhang@huawei.com>, overlayfs <linux-unionfs@vger.kernel.org>, Vivek Goyal <vgoyal@redhat.com>
+Cc: zhangyi <yi.zhang@huawei.com>, overlayfs <linux-unionfs@vger.kernel.org>
 
-On Tue, Jan 9, 2018 at 10:54 AM, Amir Goldstein <amir73il@gmail.com> wrote:
-> On Tue, Jan 9, 2018 at 11:16 AM, Miklos Szeredi <miklos@szeredi.hu> wrote:
->> On Thu, Jan 4, 2018 at 5:40 PM, Amir Goldstein <amir73il@gmail.com> wrote:
->>> Introduce the "verify" config, module and mount options.
->>>
->>> If the "verify" feature is enabled then overlay filesystems will use
->>> the inodes index dir to verify layers consistency.
->>>
->>> It is possible to enable consistency verification by default during
->>> build time with the OVERLAY_FS_VERIFY config option, during runtime
->>> with the "verify=on" module option or on a filesystem instance basis
->>> with the "verify=on" mount option.
->>>
->>> The "verify" feature will prevent multiple redirects to the same lower
->>> dir and will prevent broken hardlinks from using the same inode number.
->>>
->>> On an overlay filesystem instance with multiple lower layers, "verify"
->>> feature can only use the index to prevent multiple redirects from upper
->>> dirs and not from middle layer dirs. Emit a warning about this on mount
->>> with multiple lower layers and "verify=on".
->>
->> Could the above go into Documentation/filesystems/overlayfs.txt as well?
->
-> Will do.
-> BTW, are you ok with the feature name "verify" or do you prefer that
-> I rename it to "verify_origin" to be more descriptive as Vivek suggested?
->
->>
->> Also, the verify feature does have some overhead, which should also be
->> noted in the documentation.  Do you have some measurements about how
->> much impact it has on performance?
->>
->
-> I do not. It's on my TODO list.
->
-> I'm curious though, where do you think it should performance?
-> I would expect that encoding a file handle and index lookup would not be
-> that expensive, so I don't expect much lookup overhead. No?
+On Tue, Jan 9, 2018 at 11:04 AM, Amir Goldstein <amir73il@gmail.com> wrote:
+> On Tue, Jan 9, 2018 at 11:52 AM, Miklos Szeredi <miklos@szeredi.hu> wrote:
 
-I wasn't thinking about anything specific, but now you ask:
-directories always need to be connected, and that results in multiple
-readdirs, etc, that is probably noticeable under some conditions.
-
-> For copy up, I doubt that creating 2 dirs instead of one, or 2 hardlinks
-> instead of one file would make a big difference?
-> I suppose that a highly concurrent copy workload up will become a little
-> contended of the index dir lock, but still nowhere near the fully sequential
-> nature of dir copy up.
+> Yeh, I like that option much better. Especially, I like that it saves me the
+> trouble of documenting when it makes sense to turn on "verify" for
+> non-NFS case, because I don't know when it makes sense.
 >
-> "verify" feature will surely have an impact of index directory size.
-> I do have a concern about the impact of a very large index directory on
-> index lookup and creation times and I intend to test that.
->
-> A very just concern that Vivek raised is performance of overlay mount time.
-> Apparently, there are some workloads that are sensitive to mount/umount
-> time in the containers world.
-> For those workloads, ovl_indexdir_cleanup() could be a problem.
-> For directory index entries, ovl_verify_index() is decoding the upper dir file
-> handle and that can be expensive.
-> The cleanup on mount is not strictly needed for correctness of "verify" feature,
-> nor for NFS export, so we may want to consider a mount option for not
-> running ovl_indexdir_cleanup() or for running it in a non expensive mode
-> that skips the file handle verification?
+> I will try to adjust documentation to explain that with NFS export enabled
+> lookup of merge dir becomes more "file handle oriented" and is therefore
+> less sensitive to some offlline changes (rename) and more sensitive to
+> other offline changes (remove+create).
 
-Right.
+Okay.  So lets start with a broad "nfs_export=on/off" option, and if
+later it becomes necessary add more fine grained options controlling
+parts of what encompassed by this option.
 
 Thanks,
 Miklos
