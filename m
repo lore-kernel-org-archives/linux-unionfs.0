@@ -1,70 +1,36 @@
-From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [PATCH v2 12/23] ovl: cleanup temp index entries
-Date: Tue, 9 Jan 2018 18:08:48 +0200
-Message-ID: <CAOQ4uxiW=XiLVZgmUOAvWmAAm_dBjYmqPQq7zgu7GNM4vmyELw@mail.gmail.com>
-References: <1515084018-25134-1-git-send-email-amir73il@gmail.com>
- <1515084018-25134-13-git-send-email-amir73il@gmail.com> <CAJfpegtnDY2Y1-7Ap83gyZHw-bdEr6P=7dw+ehP_nA-HmZ5vKA@mail.gmail.com>
+From: Miklos Szeredi <miklos@szeredi.hu>
+Subject: Re: [PATCH v2 17/23] ovl: whiteout index when union nlink drops to zero
+Date: Tue, 9 Jan 2018 17:28:23 +0100
+Message-ID: <CAJfpegth4_NaeWLskFnd1uWrwXtJFkr72ps7LLDnngmvjPXP4A@mail.gmail.com>
+References: <1515084018-25134-1-git-send-email-amir73il@gmail.com> <1515084018-25134-18-git-send-email-amir73il@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-yb0-f193.google.com ([209.85.213.193]:33206 "EHLO
-        mail-yb0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933171AbeAIQIt (ORCPT
+Received: from mail-qk0-f172.google.com ([209.85.220.172]:44746 "EHLO
+        mail-qk0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1758807AbeAIQ2Z (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 9 Jan 2018 11:08:49 -0500
-Received: by mail-yb0-f193.google.com with SMTP id f16so6169555ybn.0
-        for <linux-unionfs@vger.kernel.org>; Tue, 09 Jan 2018 08:08:49 -0800 (PST)
-In-Reply-To: <CAJfpegtnDY2Y1-7Ap83gyZHw-bdEr6P=7dw+ehP_nA-HmZ5vKA@mail.gmail.com>
+        Tue, 9 Jan 2018 11:28:25 -0500
+Received: by mail-qk0-f172.google.com with SMTP id u76so422054qku.11
+        for <linux-unionfs@vger.kernel.org>; Tue, 09 Jan 2018 08:28:24 -0800 (PST)
+In-Reply-To: <1515084018-25134-18-git-send-email-amir73il@gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Miklos Szeredi <miklos@szeredi.hu>
+To: Amir Goldstein <amir73il@gmail.com>
 Cc: zhangyi <yi.zhang@huawei.com>, overlayfs <linux-unionfs@vger.kernel.org>
 
-On Tue, Jan 9, 2018 at 5:25 PM, Miklos Szeredi <miklos@szeredi.hu> wrote:
-> On Thu, Jan 4, 2018 at 5:40 PM, Amir Goldstein <amir73il@gmail.com> wrote:
->> A previous failed attempt to create or whiteout a directory index may leave
->> index entries named '#%x' in the index dir.
->> Cleanup those temp entries on mount instead of failing the mount.
->>
->> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
->> ---
->>  fs/overlayfs/namei.c | 24 ++++++++++++++++++++++++
->>  1 file changed, 24 insertions(+)
->>
->> diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
->> index e53c54ecb7cc..4987d7df1581 100644
->> --- a/fs/overlayfs/namei.c
->> +++ b/fs/overlayfs/namei.c
->> @@ -9,6 +9,7 @@
->>
->>  #include <linux/fs.h>
->>  #include <linux/cred.h>
->> +#include <linux/ctype.h>
->>  #include <linux/namei.h>
->>  #include <linux/xattr.h>
->>  #include <linux/ratelimit.h>
->> @@ -452,6 +453,24 @@ static struct dentry *ovl_index_upper(struct ovl_fs *ofs, struct dentry *index)
->>         return upper.dentry;
->>  }
->>
->> +/* Is this a leftover from create/whiteout of directory index entry? */
->> +static bool ovl_is_temp_index(struct dentry *index)
->> +{
->> +       const char *p = index->d_name.name;
->> +       int len = index->d_name.len;
->> +
->> +       if (!d_is_dir(index) && !ovl_is_whiteout(index))
->> +               return false;
->> +
->> +       if (*p++ != '#' || len < 2)
->> +               return false;
+On Thu, Jan 4, 2018 at 5:40 PM, Amir Goldstein <amir73il@gmail.com> wrote:
+> With the 'verify' feature enabled, when overlay inode nlink drops to
+> zero, instead of removing the index entry, replace it with a whiteout
+> index entry.
 >
-> I don't see a point in extensive verification that it's a well formed
-> temp file name.   Just checking that the first character is "#" should
-> be enough, no?
->
+> This is needed for NFS export in order to prevent future open by handle
+> from opening the lower file directly.
 
-Sure.
+Just thinking out loud: how could we get rid of index whiteouts in the
+"rm -rf" case?  Only way is if encoding parent as well, and we
+recursively check for a whiteout in the ancestors.   Probably not
+worth bothering with in the first version, but later maybe?
 
 Thanks,
-Amir.
+Miklos
