@@ -1,143 +1,107 @@
-From: Vivek Goyal <vgoyal@redhat.com>
-Subject: Re: [PATCH v9 08/15] ovl: Copy up only metadata during copy up where
- it makes sense
-Date: Mon, 8 Jan 2018 12:03:13 -0500
-Message-ID: <20180108170313.GD9910@redhat.com>
-References: <20171129155448.32721-1-vgoyal@redhat.com>
- <20171129155448.32721-9-vgoyal@redhat.com>
- <CAJfpegsXEgz6=y7eLe5kJLKHtCyEP5LxzXkg2zB5JjgNJ3=bfg@mail.gmail.com>
+From: Miklos Szeredi <miklos@szeredi.hu>
+Subject: Re: [PATCH v2 03/23] ovl: store layer index in ovl_layer
+Date: Tue, 9 Jan 2018 09:36:40 +0100
+Message-ID: <CAJfpegsSKXQWH_6zhbufFBFeLG_6F=NfzxHKQASpcneVnMEjEw@mail.gmail.com>
+References: <1515084018-25134-1-git-send-email-amir73il@gmail.com>
+ <1515084018-25134-4-git-send-email-amir73il@gmail.com> <20180104210018.GB2808@redhat.com>
+ <CAOQ4uxjwQ++dQT0w6cVq+BZv3d2cjPvdLLenCAqx-CdSnp3h1g@mail.gmail.com> <CAOQ4uxhiSryHmVtRyVCeJPDMbm-9nFqv878VBTz-cUDbbw-A3g@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:57644 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S934431AbeAHRDO (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 8 Jan 2018 12:03:14 -0500
-Content-Disposition: inline
-In-Reply-To: <CAJfpegsXEgz6=y7eLe5kJLKHtCyEP5LxzXkg2zB5JjgNJ3=bfg@mail.gmail.com>
+Received: from mail-qt0-f193.google.com ([209.85.216.193]:41649 "EHLO
+        mail-qt0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751374AbeAIIgl (ORCPT
+        <rfc822;linux-unionfs@vger.kernel.org>);
+        Tue, 9 Jan 2018 03:36:41 -0500
+Received: by mail-qt0-f193.google.com with SMTP id i40so16876488qti.8
+        for <linux-unionfs@vger.kernel.org>; Tue, 09 Jan 2018 00:36:41 -0800 (PST)
+In-Reply-To: <CAOQ4uxhiSryHmVtRyVCeJPDMbm-9nFqv878VBTz-cUDbbw-A3g@mail.gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: linux-unionfs@vger.kernel.org, Amir Goldstein <amir73il@gmail.com>
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: Vivek Goyal <vgoyal@redhat.com>, zhangyi <yi.zhang@huawei.com>, overlayfs <linux-unionfs@vger.kernel.org>
 
-On Mon, Jan 08, 2018 at 11:35:09AM +0100, Miklos Szeredi wrote:
-> On Wed, Nov 29, 2017 at 4:54 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
-> > If it makes sense to copy up only metadata during copy up, do it. This
-> > is done for regular files which are not opened for WRITE and have origin
-> > being saved.
-> >
-> > Right now ->metacopy is set to 0 always. Last patch in the series will
-> > remove the hard coded statement and enable metacopy feature.
-> >
-> > Reviewed-by: Amir Goldstein <amir73il@gmail.com>
-> > Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
-> > ---
-> >  fs/overlayfs/copy_up.c | 38 +++++++++++++++++++++++++++++++-------
-> >  1 file changed, 31 insertions(+), 7 deletions(-)
-> >
-> > diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
-> > index 31711edf5bde..c5804b87f3c7 100644
-> > --- a/fs/overlayfs/copy_up.c
-> > +++ b/fs/overlayfs/copy_up.c
-> > @@ -232,6 +232,26 @@ int ovl_set_attr(struct dentry *upperdentry, struct kstat *stat)
-> >         return err;
-> >  }
-> >
-> > +static bool ovl_need_meta_copy_up(struct dentry *dentry, umode_t mode,
-> > +                                 int flags)
-> > +{
-> > +       struct ovl_fs *ofs = dentry->d_sb->s_fs_info;
-> > +
-> > +       /* TODO: Will enable metacopy in last patch of series */
-> > +       return false;
-> > +
-> > +       if (!ofs->config.metacopy)
-> > +               return false;
-> > +
-> > +       if (!S_ISREG(mode))
-> > +               return false;
-> > +
-> > +       if (flags && ((OPEN_FMODE(flags) & FMODE_WRITE) || (flags & O_TRUNC)))
-> > +               return false;
-> > +
-> > +       return true;
-> > +}
-> > +
-> >  struct ovl_fh *ovl_encode_fh(struct dentry *lower, bool is_upper)
-> >  {
-> >         struct ovl_fh *fh;
-> > @@ -305,11 +325,8 @@ static int ovl_set_origin(struct dentry *dentry, struct dentry *lower,
-> >                         return PTR_ERR(fh);
-> >         }
-> >
-> > -       /*
-> > -        * Do not fail when upper doesn't support xattrs.
-> > -        */
-> >         err = ovl_check_setxattr(dentry, upper, OVL_XATTR_ORIGIN, fh,
-> > -                                fh ? fh->len : 0, 0);
-> > +                                fh ? fh->len : 0, -EOPNOTSUPP);
-> >         kfree(fh);
-> >
-> >         return err;
-> > @@ -326,6 +343,7 @@ struct ovl_copy_up_ctx {
-> >         struct qstr destname;
-> >         struct dentry *workdir;
-> >         bool tmpfile;
-> > +       bool metacopy;
-> >  };
-> >
-> >  static int ovl_link_up(struct ovl_copy_up_ctx *c)
-> > @@ -453,10 +471,14 @@ static int ovl_copy_up_inode(struct ovl_copy_up_ctx *c, struct dentry *temp)
-> >          *
-> >          */
-> >         err = ovl_set_origin(c->dentry, c->lowerpath.dentry, temp);
-> > -       if (err)
-> > -               return err;
-> > +       if (err) {
-> > +               if (err != -EOPNOTSUPP)
-> > +                       return err;
-> > +               /* Upper does not support xattr. Copy up data as well */
-> > +               c->metacopy = false;
-> 
-> Isn't this supposed to be checked in ovl_get_super()?
+On Fri, Jan 5, 2018 at 12:22 PM, Amir Goldstein <amir73il@gmail.com> wrote:
+> On Fri, Jan 5, 2018 at 7:05 AM, Amir Goldstein <amir73il@gmail.com> wrote:
+>> On Thu, Jan 4, 2018 at 11:00 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
+>>> On Thu, Jan 04, 2018 at 06:39:58PM +0200, Amir Goldstein wrote:
+>>>> Store the fs root layer index inside ovl_layer struct, so we can
+>>>> get the root fs layer index from merge dir lower layer instead of
+>>>> find it with ovl_find_layer() helper.
+>>>>
+>>>> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+>>>> ---
+>>>>  fs/overlayfs/namei.c     | 17 +----------------
+>>>>  fs/overlayfs/ovl_entry.h |  2 ++
+>>>>  fs/overlayfs/super.c     |  1 +
+>>>>  3 files changed, 4 insertions(+), 16 deletions(-)
+>>>>
+>>>> diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
+>>>> index 71db9a966d88..a48ee02c4524 100644
+>>>> --- a/fs/overlayfs/namei.c
+>>>> +++ b/fs/overlayfs/namei.c
+>>>> @@ -572,18 +572,6 @@ int ovl_path_next(int idx, struct dentry *dentry, struct path *path)
+>>>>       return (idx < oe->numlower) ? idx + 1 : -1;
+>>>>  }
+>>>>
+>>>> -static int ovl_find_layer(struct ovl_fs *ofs, struct ovl_path *path)
+>>>> -{
+>>>> -     int i;
+>>>> -
+>>>> -     for (i = 0; i < ofs->numlower; i++) {
+>>>> -             if (ofs->lower_layers[i].mnt == path->layer->mnt)
+>>>> -                     break;
+>>>> -     }
+>>>> -
+>>>> -     return i;
+>>>> -}
+>>>> -
+>>>>  /* Fix missing 'origin' xattr */
+>>>>  static int ovl_fix_origin(struct dentry *dentry, struct dentry *lower,
+>>>>                         struct dentry *upper)
+>>>> @@ -733,11 +721,8 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
+>>>>
+>>>>               if (d.redirect && d.redirect[0] == '/' && poe != roe) {
+>>>>                       poe = roe;
+>>>> -
+>>>>                       /* Find the current layer on the root dentry */
+>>>> -                     i = ovl_find_layer(ofs, &lower);
+>>>> -                     if (WARN_ON(i == ofs->numlower))
+>>>> -                             break;
+>>>> +                     i = lower.layer->idx - 1;
+>>>>               }
+>>>>       }
+>>>>
+>>>> diff --git a/fs/overlayfs/ovl_entry.h b/fs/overlayfs/ovl_entry.h
+>>>> index 9d0bc03bf6e4..608e48755070 100644
+>>>> --- a/fs/overlayfs/ovl_entry.h
+>>>> +++ b/fs/overlayfs/ovl_entry.h
+>>>> @@ -22,6 +22,8 @@ struct ovl_config {
+>>>>  struct ovl_layer {
+>>>>       struct vfsmount *mnt;
+>>>>       dev_t pseudo_dev;
+>>>> +     /* Index of this layer in fs root (upper == 0) */
+>>>> +     int idx;
+>>>
+>>> Just curious. If we are stroing idx, then do we have to store ovl_layer
+>>> and every ovl_entry. Just idx can give us the position and we should
+>>> be able to then accessovl_find_layer mnt and pseudo_dev directly from
+>>> ofs->lower_layers[idx]. If yes, we can avoid storing vfsmount and
+>>> pseudo_dev per dentry.
+>>>
+>>
+>> But we are not storing vfsmount and pseudo_dev per dentry
+>> We are storing &ofs->lower_layers[idx] per dentry.
+>> Do we gain anything from storing the idx instead?
 
-Hi Miklos,
+We could go to 16bit index and decrease memory requirement of
+ofs->lower_layers by 75% on 64bit archs.
 
-Right. I think I was confused by code in ovl_check_setxattr().
+Probably not worth it, though, since very few entries will have a
+large enough layers to matter in most situations, I guess.
 
-int ovl_check_setxattr(struct dentry *dentry, struct dentry *upperdentry,
-                       const char *name, const void *value, size_t size,
-                       int xerr)
-{
-        int err;
-        struct ovl_fs *ofs = dentry->d_sb->s_fs_info;
+Also, someone might want >64k layers, although that really stretches
+the limits of current implementation.
 
-        if (ofs->noxattr)
-                return xerr;
-
-        err = ovl_do_setxattr(upperdentry, name, value, size, 0);
-
-        if (err == -EOPNOTSUPP) {
-                pr_warn("overlayfs: cannot set %s xattr on upper\n", name);
-                ofs->noxattr = true;
-                return xerr;
-        }
-
-        return err;
-}
-
-ofs->noxattr will be set at mount time. Still we check for -EOPNOTSUPP
-and set ofs->noxattr again. Is there a situation where this can happen.
-Is it intentional. Can we get rid of this code.
-
-To take care of this situation, I put that code. That is at mount time
-xattr was fine and hence ofs->noxattr=false. But later somehow we 
-encountered -EOPNOTSUPP while doing ovl_set_origin(). Current code
-does not fail copy up operation and I tried to retain same behavior.
-That is just disable metacopy in such case but continue.
-
-So if we don't expect all this to happen at all, then I can get rid
-of this -EOPNOTSUPP check both from ovl_check_setxattr() as well
-as ovl_copy_up_inode().
-
-Vivek
+Thanks,
+Miklos
