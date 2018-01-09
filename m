@@ -1,68 +1,56 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [PATCH v2 15/23] ovl: index directories on copy up with 'verify=on'
-Date: Tue, 9 Jan 2018 18:48:17 +0200
-Message-ID: <CAOQ4uxikNVt4AuXfrEFoV6orcL8Pm7U=4Vv4cABk-Naby_r6Ug@mail.gmail.com>
+Subject: Re: [PATCH v2 14/23] ovl: index all files on copy up with 'verify=on'
+Date: Tue, 9 Jan 2018 18:50:15 +0200
+Message-ID: <CAOQ4uxhQc+p3q_K6PdJ+P4C3p2Cv6RhKttAe5yQ8GnASUrAd5A@mail.gmail.com>
 References: <1515084018-25134-1-git-send-email-amir73il@gmail.com>
- <1515084018-25134-16-git-send-email-amir73il@gmail.com> <CAJfpegsXCm-EG=Odpy0sBiK-htJEH4nRqSNn0Qd0o0YtQ=gBZg@mail.gmail.com>
- <CAOQ4uxiO+pdPo7AWD+zY57Hp+KfQw0rmwpYgp1fgR1q0WWYJGQ@mail.gmail.com> <CAJfpegtJUFP7X2vqs7vm_f5iqFn7yyCBL-L2iiTvBQA4YSJU9Q@mail.gmail.com>
+ <1515084018-25134-15-git-send-email-amir73il@gmail.com> <20180109164551.GA11872@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-yb0-f177.google.com ([209.85.213.177]:35556 "EHLO
-        mail-yb0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751610AbeAIQsS (ORCPT
+Received: from mail-yw0-f193.google.com ([209.85.161.193]:40811 "EHLO
+        mail-yw0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1759805AbeAIQuQ (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 9 Jan 2018 11:48:18 -0500
-Received: by mail-yb0-f177.google.com with SMTP id b18so2853446ybn.2
-        for <linux-unionfs@vger.kernel.org>; Tue, 09 Jan 2018 08:48:18 -0800 (PST)
-In-Reply-To: <CAJfpegtJUFP7X2vqs7vm_f5iqFn7yyCBL-L2iiTvBQA4YSJU9Q@mail.gmail.com>
+        Tue, 9 Jan 2018 11:50:16 -0500
+Received: by mail-yw0-f193.google.com with SMTP id g191so5896549ywe.7
+        for <linux-unionfs@vger.kernel.org>; Tue, 09 Jan 2018 08:50:16 -0800 (PST)
+In-Reply-To: <20180109164551.GA11872@redhat.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: zhangyi <yi.zhang@huawei.com>, overlayfs <linux-unionfs@vger.kernel.org>
+To: Vivek Goyal <vgoyal@redhat.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, zhangyi <yi.zhang@huawei.com>, overlayfs <linux-unionfs@vger.kernel.org>
 
-On Tue, Jan 9, 2018 at 6:35 PM, Miklos Szeredi <miklos@szeredi.hu> wrote:
-> On Tue, Jan 9, 2018 at 5:31 PM, Amir Goldstein <amir73il@gmail.com> wrote:
->> On Tue, Jan 9, 2018 at 6:08 PM, Miklos Szeredi <miklos@szeredi.hu> wrote:
->>> On Thu, Jan 4, 2018 at 5:40 PM, Amir Goldstein <amir73il@gmail.com> wrote:
->>>> With the 'verify' feature enabled, all dirs are indexed on copy up.
->>>> Non-dir files are copied up directly to indexdir and then hardlinked
->>>> to upper dir.
->>>>
->>>> Directories are copied up to indexdir, then an index entry is created
->>>
->>> Makes me wonder:  do we need a workdir at all?  Temp files are already
->>> differentiated by leading "#", so that takes care of cleanup.
->>> Advantage: one less directory to worry about in implementation.
->>>
+On Tue, Jan 9, 2018 at 6:45 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
+> On Thu, Jan 04, 2018 at 06:40:09PM +0200, Amir Goldstein wrote:
+>> With the 'verify' feature enabled, all files are indexed on copy up.
+>> The copy up origin inode of an indexed non-dir can be used as a unique
+>> identifier of the overlay object.
 >>
->> One advantage of keeping legacy work dir is that existence of index dir
->> is the one and only "feature bit" in overlayfs on-disk format and I wouldn't
->> like that bit to get lost. We can also look for non # entries in index as
->> indication to past index=on mount, but a simple exists indication is nicer.
+>> This is going to be used for NFS export.
 >>
->> I guess we could always use indexdir for copy up with index=on,
->> but I don't know that is going to simplify code, given that this (dir index)
->> patch didn't even need to change struct ovl_copy_up_ctx.
+>> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+>> ---
+>>  fs/overlayfs/util.c | 4 ++++
+>>  1 file changed, 4 insertions(+)
+>>
+>> diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
+>> index 0254d7f0d401..f40351dcea7b 100644
+>> --- a/fs/overlayfs/util.c
+>> +++ b/fs/overlayfs/util.c
+>> @@ -491,6 +491,10 @@ bool ovl_need_index(struct dentry *dentry)
+>>       if (!lower || !ovl_indexdir(dentry->d_sb))
+>>               return false;
+>>
+>> +     /* Index all files for unique origin verification */
+>> +     if (!d_is_dir(lower) && ovl_verify(dentry->d_sb))
+>> +             return true;
 >
-> We could always use index dir for everything.  Since workdir lifetime
-> is for the duration of the mount, no back compatibility issues with
-> just not using it at all.
+> If all files are indexd up with verify=on, what is this check about
+> "!d_is_dir()"?
 >
 
-I got that.
-I referred to loosing the information of whether or not overlay was ever
-mounted with index=on (a.k.a. index feature bit is set).
 
-Today, workdir/index exists => overlay was mounted with index=on.
-If we always use workdir/index instead of workdir/work, we will loose
-this simple and quick test. Not the end of the world, but nice to have.
-
-OTOH, my POC for implementing overlay features depends on
-existence of indexdir and on mount calling ovl_indexdir_cleanup():
-https://github.com/amir73il/linux/commits/ovl-features
-So if something like that is adopted, my "feature bit" concern is
-addressed.
+Removed by next patch that implements indexing of dir on copy up.
 
 Thanks,
 Amir.
