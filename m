@@ -1,52 +1,60 @@
-From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [PATCH v2 17/23] ovl: whiteout index when union nlink drops to zero
-Date: Tue, 9 Jan 2018 18:41:05 +0200
-Message-ID: <CAOQ4uxgpth2vm3fxm816GTjmy8oOkGeNG5TbgY3XtCo3A4uTRw@mail.gmail.com>
+From: Vivek Goyal <vgoyal@redhat.com>
+Subject: Re: [PATCH v2 14/23] ovl: index all files on copy up with 'verify=on'
+Date: Tue, 9 Jan 2018 11:45:51 -0500
+Message-ID: <20180109164551.GA11872@redhat.com>
 References: <1515084018-25134-1-git-send-email-amir73il@gmail.com>
- <1515084018-25134-18-git-send-email-amir73il@gmail.com> <CAJfpegth4_NaeWLskFnd1uWrwXtJFkr72ps7LLDnngmvjPXP4A@mail.gmail.com>
+ <1515084018-25134-15-git-send-email-amir73il@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-yb0-f195.google.com ([209.85.213.195]:37963 "EHLO
-        mail-yb0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1759336AbeAIQlG (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 9 Jan 2018 11:41:06 -0500
-Received: by mail-yb0-f195.google.com with SMTP id b132so3039744yba.5
-        for <linux-unionfs@vger.kernel.org>; Tue, 09 Jan 2018 08:41:06 -0800 (PST)
-In-Reply-To: <CAJfpegth4_NaeWLskFnd1uWrwXtJFkr72ps7LLDnngmvjPXP4A@mail.gmail.com>
+Received: from mx1.redhat.com ([209.132.183.28]:58042 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751322AbeAIQpw (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Tue, 9 Jan 2018 11:45:52 -0500
+Content-Disposition: inline
+In-Reply-To: <1515084018-25134-15-git-send-email-amir73il@gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: zhangyi <yi.zhang@huawei.com>, overlayfs <linux-unionfs@vger.kernel.org>
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, zhangyi <yi.zhang@huawei.com>, linux-unionfs@vger.kernel.org
 
-On Tue, Jan 9, 2018 at 6:28 PM, Miklos Szeredi <miklos@szeredi.hu> wrote:
-> On Thu, Jan 4, 2018 at 5:40 PM, Amir Goldstein <amir73il@gmail.com> wrote:
->> With the 'verify' feature enabled, when overlay inode nlink drops to
->> zero, instead of removing the index entry, replace it with a whiteout
->> index entry.
->>
->> This is needed for NFS export in order to prevent future open by handle
->> from opening the lower file directly.
->
-> Just thinking out loud: how could we get rid of index whiteouts in the
-> "rm -rf" case?  Only way is if encoding parent as well, and we
-> recursively check for a whiteout in the ancestors.   Probably not
-> worth bothering with in the first version, but later maybe?
->
+On Thu, Jan 04, 2018 at 06:40:09PM +0200, Amir Goldstein wrote:
+> With the 'verify' feature enabled, all files are indexed on copy up.
+> The copy up origin inode of an indexed non-dir can be used as a unique
+> identifier of the overlay object.
+> 
+> This is going to be used for NFS export.
+> 
+> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+> ---
+>  fs/overlayfs/util.c | 4 ++++
+>  1 file changed, 4 insertions(+)
+> 
+> diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
+> index 0254d7f0d401..f40351dcea7b 100644
+> --- a/fs/overlayfs/util.c
+> +++ b/fs/overlayfs/util.c
+> @@ -491,6 +491,10 @@ bool ovl_need_index(struct dentry *dentry)
+>  	if (!lower || !ovl_indexdir(dentry->d_sb))
+>  		return false;
+>  
+> +	/* Index all files for unique origin verification */
+> +	if (!d_is_dir(lower) && ovl_verify(dentry->d_sb))
+> +		return true;
 
-Right.
+If all files are indexd up with verify=on, what is this check about
+"!d_is_dir()"?
 
-Current implementation already checks for whiteout in ancestors
-for dir file handles, so in theory, cleanup of dir whiteouts is not far
-from reach, except for the fact that decoding dir file handles is expensive,
-so every cleanup attempt is going to cost.
+Vivek
 
-For non-dir this is a more complicated.
-If you encode parent (i.e. connectable file handle) then for lower hardlinks
-you find a specific parent, but not all hardlink parents.
-
-Anyway, maybe later.
-
-Thanks,
-Amir.
+> +
+>  	/* Index only lower hardlinks on copy up */
+>  	if (!d_is_dir(lower) && d_inode(lower)->i_nlink > 1)
+>  		return true;
+> -- 
+> 2.7.4
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-unionfs" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
