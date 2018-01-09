@@ -1,75 +1,172 @@
-From: Miklos Szeredi <miklos@szeredi.hu>
-Subject: Re: [PATCH v2 08/23] ovl: unbless lower st_ino of files under
- unverified redirected dir
-Date: Tue, 9 Jan 2018 14:31:44 +0100
-Message-ID: <CAJfpegum9hUj9YzjWRZcta5tDR1mof5dYc0igFAZdKM1n2Tf9Q@mail.gmail.com>
-References: <1515084018-25134-1-git-send-email-amir73il@gmail.com> <1515084018-25134-9-git-send-email-amir73il@gmail.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Subject: Re: [PATCH v9 08/15] ovl: Copy up only metadata during copy up where
+ it makes sense
+Date: Tue, 9 Jan 2018 15:33:48 +0200
+Message-ID: <CAOQ4uxg5jRPdhpGFHoYyQLiGXy_V8aUZCHPET=vzAgfy5URhzg@mail.gmail.com>
+References: <20171129155448.32721-1-vgoyal@redhat.com> <20171129155448.32721-9-vgoyal@redhat.com>
+ <CAJfpegsXEgz6=y7eLe5kJLKHtCyEP5LxzXkg2zB5JjgNJ3=bfg@mail.gmail.com>
+ <20180108170313.GD9910@redhat.com> <CAJfpegt3iQmcC-BQfrcELD9s+JEWahfFPpEDVung+KPqZEtYDw@mail.gmail.com>
+ <20180109132637.GA11430@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-qk0-f193.google.com ([209.85.220.193]:36801 "EHLO
-        mail-qk0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753713AbeAINbp (ORCPT
+Received: from mail-yb0-f196.google.com ([209.85.213.196]:35110 "EHLO
+        mail-yb0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753179AbeAINdt (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 9 Jan 2018 08:31:45 -0500
-Received: by mail-qk0-f193.google.com with SMTP id d21so7498659qkj.3
-        for <linux-unionfs@vger.kernel.org>; Tue, 09 Jan 2018 05:31:45 -0800 (PST)
-In-Reply-To: <1515084018-25134-9-git-send-email-amir73il@gmail.com>
+        Tue, 9 Jan 2018 08:33:49 -0500
+Received: by mail-yb0-f196.google.com with SMTP id b18so2586547ybn.2
+        for <linux-unionfs@vger.kernel.org>; Tue, 09 Jan 2018 05:33:49 -0800 (PST)
+In-Reply-To: <20180109132637.GA11430@redhat.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: zhangyi <yi.zhang@huawei.com>, overlayfs <linux-unionfs@vger.kernel.org>
+To: Vivek Goyal <vgoyal@redhat.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, overlayfs <linux-unionfs@vger.kernel.org>
 
-On Thu, Jan 4, 2018 at 5:40 PM, Amir Goldstein <amir73il@gmail.com> wrote:
-> On a malformed overlay, several redirected dirs can point to the same
-> dir on a lower layer. This presents a similar challenge as broken
-> hardlinks, because different objects in the overlay can return the same
-> st_ino/st_dev pair from stat(2).
+On Tue, Jan 9, 2018 at 3:26 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
+> On Tue, Jan 09, 2018 at 11:49:11AM +0100, Miklos Szeredi wrote:
+>> On Mon, Jan 8, 2018 at 6:03 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
+>> > On Mon, Jan 08, 2018 at 11:35:09AM +0100, Miklos Szeredi wrote:
+>> >> On Wed, Nov 29, 2017 at 4:54 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
+>> >> > If it makes sense to copy up only metadata during copy up, do it. This
+>> >> > is done for regular files which are not opened for WRITE and have origin
+>> >> > being saved.
+>> >> >
+>> >> > Right now ->metacopy is set to 0 always. Last patch in the series will
+>> >> > remove the hard coded statement and enable metacopy feature.
+>> >> >
+>> >> > Reviewed-by: Amir Goldstein <amir73il@gmail.com>
+>> >> > Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
+>> >> > ---
+>> >> >  fs/overlayfs/copy_up.c | 38 +++++++++++++++++++++++++++++++-------
+>> >> >  1 file changed, 31 insertions(+), 7 deletions(-)
+>> >> >
+>> >> > diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
+>> >> > index 31711edf5bde..c5804b87f3c7 100644
+>> >> > --- a/fs/overlayfs/copy_up.c
+>> >> > +++ b/fs/overlayfs/copy_up.c
+>> >> > @@ -232,6 +232,26 @@ int ovl_set_attr(struct dentry *upperdentry, struct kstat *stat)
+>> >> >         return err;
+>> >> >  }
+>> >> >
+>> >> > +static bool ovl_need_meta_copy_up(struct dentry *dentry, umode_t mode,
+>> >> > +                                 int flags)
+>> >> > +{
+>> >> > +       struct ovl_fs *ofs = dentry->d_sb->s_fs_info;
+>> >> > +
+>> >> > +       /* TODO: Will enable metacopy in last patch of series */
+>> >> > +       return false;
+>> >> > +
+>> >> > +       if (!ofs->config.metacopy)
+>> >> > +               return false;
+>> >> > +
+>> >> > +       if (!S_ISREG(mode))
+>> >> > +               return false;
+>> >> > +
+>> >> > +       if (flags && ((OPEN_FMODE(flags) & FMODE_WRITE) || (flags & O_TRUNC)))
+>> >> > +               return false;
+>> >> > +
+>> >> > +       return true;
+>> >> > +}
+>> >> > +
+>> >> >  struct ovl_fh *ovl_encode_fh(struct dentry *lower, bool is_upper)
+>> >> >  {
+>> >> >         struct ovl_fh *fh;
+>> >> > @@ -305,11 +325,8 @@ static int ovl_set_origin(struct dentry *dentry, struct dentry *lower,
+>> >> >                         return PTR_ERR(fh);
+>> >> >         }
+>> >> >
+>> >> > -       /*
+>> >> > -        * Do not fail when upper doesn't support xattrs.
+>> >> > -        */
+>> >> >         err = ovl_check_setxattr(dentry, upper, OVL_XATTR_ORIGIN, fh,
+>> >> > -                                fh ? fh->len : 0, 0);
+>> >> > +                                fh ? fh->len : 0, -EOPNOTSUPP);
+>> >> >         kfree(fh);
+>> >> >
+>> >> >         return err;
+>> >> > @@ -326,6 +343,7 @@ struct ovl_copy_up_ctx {
+>> >> >         struct qstr destname;
+>> >> >         struct dentry *workdir;
+>> >> >         bool tmpfile;
+>> >> > +       bool metacopy;
+>> >> >  };
+>> >> >
+>> >> >  static int ovl_link_up(struct ovl_copy_up_ctx *c)
+>> >> > @@ -453,10 +471,14 @@ static int ovl_copy_up_inode(struct ovl_copy_up_ctx *c, struct dentry *temp)
+>> >> >          *
+>> >> >          */
+>> >> >         err = ovl_set_origin(c->dentry, c->lowerpath.dentry, temp);
+>> >> > -       if (err)
+>> >> > -               return err;
+>> >> > +       if (err) {
+>> >> > +               if (err != -EOPNOTSUPP)
+>> >> > +                       return err;
+>> >> > +               /* Upper does not support xattr. Copy up data as well */
+>> >> > +               c->metacopy = false;
+>> >>
+>> >> Isn't this supposed to be checked in ovl_get_super()?
+>> >
+>> > Hi Miklos,
+>> >
+>> > Right. I think I was confused by code in ovl_check_setxattr().
+>> >
+>> > int ovl_check_setxattr(struct dentry *dentry, struct dentry *upperdentry,
+>> >                        const char *name, const void *value, size_t size,
+>> >                        int xerr)
+>> > {
+>> >         int err;
+>> >         struct ovl_fs *ofs = dentry->d_sb->s_fs_info;
+>> >
+>> >         if (ofs->noxattr)
+>> >                 return xerr;
+>> >
+>> >         err = ovl_do_setxattr(upperdentry, name, value, size, 0);
+>> >
+>> >         if (err == -EOPNOTSUPP) {
+>> >                 pr_warn("overlayfs: cannot set %s xattr on upper\n", name);
+>> >                 ofs->noxattr = true;
+>> >                 return xerr;
+>> >         }
+>> >
+>> >         return err;
+>> > }
+>> >
+>> > ofs->noxattr will be set at mount time. Still we check for -EOPNOTSUPP
+>> > and set ofs->noxattr again. Is there a situation where this can happen.
+>> > Is it intentional. Can we get rid of this code.
+>> >
+>> > To take care of this situation, I put that code. That is at mount time
+>> > xattr was fine and hence ofs->noxattr=false. But later somehow we
+>> > encountered -EOPNOTSUPP while doing ovl_set_origin(). Current code
+>> > does not fail copy up operation and I tried to retain same behavior.
+>> > That is just disable metacopy in such case but continue.
+>> >
+>> > So if we don't expect all this to happen at all, then I can get rid
+>> > of this -EOPNOTSUPP check both from ovl_check_setxattr() as well
+>> > as ovl_copy_up_inode().
+>>
+>> It would be really weird to encounter this, so I think possibly a
+>> WARN_ON(err == -EOPNOTSUPP) is enough to make sure reality matches our
+>> expectations.
 >
-> For broken hardlinks, we do not provide constant st_ino on copy up to
-> avoid this inconsistency. When "verify" feature is enabled, apply
-> the same logic to files nested under unverified redirected dirs.
+> Hi Miklos,
 >
-> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
-> ---
->  fs/overlayfs/inode.c     | 18 ++++++++++++++----
->  fs/overlayfs/namei.c     |  4 ++++
->  fs/overlayfs/overlayfs.h |  4 ++++
->  fs/overlayfs/util.c      | 27 +++++++++++++++++++++++++++
->  4 files changed, 49 insertions(+), 4 deletions(-)
+> Effectively that's what current code is doing. Only difference is that it
+> does a pr_warn() instead of WARN_ON().
 >
-> diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
-> index 00b6b294272a..1b53755bd86c 100644
-> --- a/fs/overlayfs/inode.c
-> +++ b/fs/overlayfs/inode.c
-> @@ -105,12 +105,22 @@ int ovl_getattr(const struct path *path, struct kstat *stat,
->                          * Lower hardlinks may be broken on copy up to different
->                          * upper files, so we cannot use the lower origin st_ino
->                          * for those different files, even for the same fs case.
-> +                        *
-> +                        * Similarly, several redirected dirs can point to the
-> +                        * same dir on a lower layer. With the "verify" feature,
-> +                        * we do not use the lower origin st_ino, if any parent
-> +                        * is redirected and we haven't verified that this
-> +                        * redirect is unique.
-> +                        *
->                          * With inodes index enabled, it is safe to use st_ino
-> -                        * of an indexed hardlinked origin. The index validates
-> -                        * that the upper hardlink is not broken.
-> +                        * of an indexed origin. The index validates that the
-> +                        * upper hardlink is not broken and that a redirected
-> +                        * dir is the only redirect to that origin.
->                          */
-> -                       if (is_dir || lowerstat.nlink == 1 ||
-> -                           ovl_test_flag(OVL_INDEX, d_inode(dentry)))
-> +                       if (ovl_test_flag(OVL_INDEX, d_inode(dentry)) ||
-> +                           ((is_dir || lowerstat.nlink == 1) &&
-> +                            (!ovl_verify(dentry->d_sb) ||
-> +                             !ovl_dentry_is_renamed(dentry))))
+> So that means I leave current code as it is. Or replace pr_warn() with
+> WARN_ON(). Something like.
+>
+> if (WARN_ON(err == -EOPNOTSUPP)) {
+>         ofs->noxattr = true;
+>         return xerr;
+> }
+>
 
-Won't this make st_ino change when an ancestor directory is renamed?
-Even if there is no "double redirect" that we are fearing?  If so,
-than I think the cure is worse than the disease.
+That gives less informative IMO than the pr_warn, because maybe
+EOPNOTSUPP can be returned for a specific xattr name by some fs
+and as far as the stack trace of WARN_ON, I think if we know the name
+of the xattr, we probably already know the overlay code path anyway...
 
-Thanks,
-Miklos
+Amir.
