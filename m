@@ -1,82 +1,99 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [PATCH v2 06/23] ovl: add support for "verify" feature
-Date: Tue, 9 Jan 2018 11:54:13 +0200
-Message-ID: <CAOQ4uxiXcpd13wua+=g+Uw=zO=QEy5fUA6zGfDqhx3yyOXVcbA@mail.gmail.com>
+Subject: Re: [PATCH v2 07/23] ovl: verify stored origin fh matches lower dir
+Date: Tue, 9 Jan 2018 12:04:02 +0200
+Message-ID: <CAOQ4uxjk4JiWoZgbHG94e=V_5fFOCsH7nWAzMevTV3EhE7ma2w@mail.gmail.com>
 References: <1515084018-25134-1-git-send-email-amir73il@gmail.com>
- <1515084018-25134-7-git-send-email-amir73il@gmail.com> <CAJfpegvsb66k4hhFQfg5vdMRJyA8kqMypOPwaf=C0DeF+2w5ew@mail.gmail.com>
+ <1515084018-25134-8-git-send-email-amir73il@gmail.com> <CAJfpegvR5=-GdD1sx81+TuPXNi6BFbpwcRKyOTmH7d59DLwB6w@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-yb0-f180.google.com ([209.85.213.180]:35581 "EHLO
-        mail-yb0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752547AbeAIJyO (ORCPT
+Received: from mail-yw0-f193.google.com ([209.85.161.193]:37767 "EHLO
+        mail-yw0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753443AbeAIKED (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 9 Jan 2018 04:54:14 -0500
-Received: by mail-yb0-f180.google.com with SMTP id b18so2357547ybn.2
-        for <linux-unionfs@vger.kernel.org>; Tue, 09 Jan 2018 01:54:14 -0800 (PST)
-In-Reply-To: <CAJfpegvsb66k4hhFQfg5vdMRJyA8kqMypOPwaf=C0DeF+2w5ew@mail.gmail.com>
+        Tue, 9 Jan 2018 05:04:03 -0500
+Received: by mail-yw0-f193.google.com with SMTP id v139so2432914ywg.4
+        for <linux-unionfs@vger.kernel.org>; Tue, 09 Jan 2018 02:04:03 -0800 (PST)
+In-Reply-To: <CAJfpegvR5=-GdD1sx81+TuPXNi6BFbpwcRKyOTmH7d59DLwB6w@mail.gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: zhangyi <yi.zhang@huawei.com>, overlayfs <linux-unionfs@vger.kernel.org>, Vivek Goyal <vgoyal@redhat.com>
+Cc: zhangyi <yi.zhang@huawei.com>, overlayfs <linux-unionfs@vger.kernel.org>
 
-On Tue, Jan 9, 2018 at 11:16 AM, Miklos Szeredi <miklos@szeredi.hu> wrote:
+On Tue, Jan 9, 2018 at 11:52 AM, Miklos Szeredi <miklos@szeredi.hu> wrote:
 > On Thu, Jan 4, 2018 at 5:40 PM, Amir Goldstein <amir73il@gmail.com> wrote:
->> Introduce the "verify" config, module and mount options.
+>> When the "verify" feature is enabled, a directory inode found in lower
+>> layer by name or by redirect_dir is verified against the file handle of
+>> the copy up origin that is stored in the upper layer.
 >>
->> If the "verify" feature is enabled then overlay filesystems will use
->> the inodes index dir to verify layers consistency.
+>> This introduces a change of behavior for the case of lower layer
+>> modification while overlay is offline. A lower directory created or
+>> moved offline under an exisitng upper directory, will not be merged with
+>> that upper directory.
 >>
->> It is possible to enable consistency verification by default during
->> build time with the OVERLAY_FS_VERIFY config option, during runtime
->> with the "verify=on" module option or on a filesystem instance basis
->> with the "verify=on" mount option.
+>> The "verify" feature should not be used after copying layers,
+>> because the new lower directory inodes would fail verification.
 >>
->> The "verify" feature will prevent multiple redirects to the same lower
->> dir and will prevent broken hardlinks from using the same inode number.
+>> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+>> ---
+>>  Documentation/filesystems/overlayfs.txt | 16 ++++++++++++++++
+>>  fs/overlayfs/namei.c                    | 13 +++++++++++++
+>>  2 files changed, 29 insertions(+)
 >>
->> On an overlay filesystem instance with multiple lower layers, "verify"
->> feature can only use the index to prevent multiple redirects from upper
->> dirs and not from middle layer dirs. Emit a warning about this on mount
->> with multiple lower layers and "verify=on".
+>> diff --git a/Documentation/filesystems/overlayfs.txt b/Documentation/filesystems/overlayfs.txt
+>> index e6a5f4912b6d..00e0595f3d7e 100644
+>> --- a/Documentation/filesystems/overlayfs.txt
+>> +++ b/Documentation/filesystems/overlayfs.txt
+>> @@ -299,6 +299,22 @@ filesystem are not allowed.  If the underlying filesystem is changed,
+>>  the behavior of the overlay is undefined, though it will not result in
+>>  a crash or deadlock.
+>>
+>> +When the underlying filesystems supports NFS export, overlay mount can be
+>> +made more resilient to offline and online changes of the underlying lower
+>> +layer by enabling the "verify" feature.
+>> +
+>> +On every copy_up, an NFS file handle of the lower inode, along with the
+>> +UUID of the lower filesystem, are encoded and stored in an extended
+>> +attribute "trusted.overlay.origin" on the upper inode.
+>> +
+>> +When the "verify" feature is enabled, a lookup of a merged directory, that
+>> +found a lower directory at the lookup path or at the path pointed to by
+>> +the "trusted.overlay.redirect" extended attribute, will verify that the
+>> +found lower directory file handle and lower filesystem UUID match the
+>> +origin file handle that was stored at copy_up time.  If a found lower
+>> +directory does not match the stored origin, that directory will not be
+>> +merged with the upper directory.
 >
-> Could the above go into Documentation/filesystems/overlayfs.txt as well?
-
-Will do.
-BTW, are you ok with the feature name "verify" or do you prefer that
-I rename it to "verify_origin" to be more descriptive as Vivek suggested?
-
+> Ah, here's the doc.
 >
-> Also, the verify feature does have some overhead, which should also be
-> noted in the documentation.  Do you have some measurements about how
-> much impact it has on performance?
+> Thinking a bit about this...  I think this is a slightly different
+> category than "redirect_dir=on".  There we were expanding the
+> functionality, to allow directory renaming.  With "verify=on" we are
+> restricting the functionality to not allow some offline changes.
+> Which is really what we want for NFS.
+>
+> But the doc should come with more info about when it makes sense to
+> enable it for non-NFS case and when it does not.  I think enabling
+> directory origin verification by default (e.g. with config option or
+> module option) is probably something most users or distros do not want
+> to do, and the documentation should reflect that.
+>
+> As for the name, whatever describes the function best but is as short
+> as possible (e.g. "verify_dir=on/off" should be okay, I think).
+>
+> The issue here is that NFS export will need lots of options, and that
+> may be confusing.  How about an "nfs_export=on" option that acts as a
+> shorthand for all options needed for NFS export?
 >
 
-I do not. It's on my TODO list.
+Yeh, I like that option much better. Especially, I like that it saves me the
+trouble of documenting when it makes sense to turn on "verify" for
+non-NFS case, because I don't know when it makes sense.
 
-I'm curious though, where do you think it should performance?
-I would expect that encoding a file handle and index lookup would not be
-that expensive, so I don't expect much lookup overhead. No?
-For copy up, I doubt that creating 2 dirs instead of one, or 2 hardlinks
-instead of one file would make a big difference?
-I suppose that a highly concurrent copy workload up will become a little
-contended of the index dir lock, but still nowhere near the fully sequential
-nature of dir copy up.
-
-"verify" feature will surely have an impact of index directory size.
-I do have a concern about the impact of a very large index directory on
-index lookup and creation times and I intend to test that.
-
-A very just concern that Vivek raised is performance of overlay mount time.
-Apparently, there are some workloads that are sensitive to mount/umount
-time in the containers world.
-For those workloads, ovl_indexdir_cleanup() could be a problem.
-For directory index entries, ovl_verify_index() is decoding the upper dir file
-handle and that can be expensive.
-The cleanup on mount is not strictly needed for correctness of "verify" feature,
-nor for NFS export, so we may want to consider a mount option for not
-running ovl_indexdir_cleanup() or for running it in a non expensive mode
-that skips the file handle verification?
+I will try to adjust documentation to explain that with NFS export enabled
+lookup of merge dir becomes more "file handle oriented" and is therefore
+less sensitive to some offlline changes (rename) and more sensitive to
+other offline changes (remove+create).
 
 Thanks,
 Amir.
