@@ -1,168 +1,243 @@
-From: Vivek Goyal <vgoyal@redhat.com>
-Subject: Re: [PATCH v9 08/15] ovl: Copy up only metadata during copy up where
- it makes sense
-Date: Tue, 9 Jan 2018 08:26:37 -0500
-Message-ID: <20180109132637.GA11430@redhat.com>
-References: <20171129155448.32721-1-vgoyal@redhat.com>
- <20171129155448.32721-9-vgoyal@redhat.com>
- <CAJfpegsXEgz6=y7eLe5kJLKHtCyEP5LxzXkg2zB5JjgNJ3=bfg@mail.gmail.com>
- <20180108170313.GD9910@redhat.com>
- <CAJfpegt3iQmcC-BQfrcELD9s+JEWahfFPpEDVung+KPqZEtYDw@mail.gmail.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Subject: Re: [PATCH] ovl: Improving syncfs efficiency
+Date: Tue, 9 Jan 2018 15:29:33 +0200
+Message-ID: <CAOQ4uxiPieowMizdymk0AfCZRhF3M3vSdWVuDSVMJXPYBMUAnA@mail.gmail.com>
+References: <1515400885-16622-1-git-send-email-cgxu519@icloud.com>
+ <CAOQ4uxgxv=7tj97Krui2XBxiVh8-xjuxqSoq+KSxYYKwXGNQaw@mail.gmail.com> <4EF426AE-BBAC-4447-8CE7-E05974CDBEA8@icloud.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:37240 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1757415AbeAIN0i (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 9 Jan 2018 08:26:38 -0500
-Content-Disposition: inline
-In-Reply-To: <CAJfpegt3iQmcC-BQfrcELD9s+JEWahfFPpEDVung+KPqZEtYDw@mail.gmail.com>
+Received: from mail-yb0-f182.google.com ([209.85.213.182]:42167 "EHLO
+        mail-yb0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751914AbeAIN3e (ORCPT
+        <rfc822;linux-unionfs@vger.kernel.org>);
+        Tue, 9 Jan 2018 08:29:34 -0500
+Received: by mail-yb0-f182.google.com with SMTP id m6so2049167ybk.9
+        for <linux-unionfs@vger.kernel.org>; Tue, 09 Jan 2018 05:29:34 -0800 (PST)
+In-Reply-To: <4EF426AE-BBAC-4447-8CE7-E05974CDBEA8@icloud.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: overlayfs <linux-unionfs@vger.kernel.org>, Amir Goldstein <amir73il@gmail.com>
+To: Chengguang Xu <cgxu519@icloud.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, overlayfs <linux-unionfs@vger.kernel.org>
 
-On Tue, Jan 09, 2018 at 11:49:11AM +0100, Miklos Szeredi wrote:
-> On Mon, Jan 8, 2018 at 6:03 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
-> > On Mon, Jan 08, 2018 at 11:35:09AM +0100, Miklos Szeredi wrote:
-> >> On Wed, Nov 29, 2017 at 4:54 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
-> >> > If it makes sense to copy up only metadata during copy up, do it. This
-> >> > is done for regular files which are not opened for WRITE and have origin
-> >> > being saved.
-> >> >
-> >> > Right now ->metacopy is set to 0 always. Last patch in the series will
-> >> > remove the hard coded statement and enable metacopy feature.
-> >> >
-> >> > Reviewed-by: Amir Goldstein <amir73il@gmail.com>
-> >> > Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
-> >> > ---
-> >> >  fs/overlayfs/copy_up.c | 38 +++++++++++++++++++++++++++++++-------
-> >> >  1 file changed, 31 insertions(+), 7 deletions(-)
-> >> >
-> >> > diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
-> >> > index 31711edf5bde..c5804b87f3c7 100644
-> >> > --- a/fs/overlayfs/copy_up.c
-> >> > +++ b/fs/overlayfs/copy_up.c
-> >> > @@ -232,6 +232,26 @@ int ovl_set_attr(struct dentry *upperdentry, struct kstat *stat)
-> >> >         return err;
-> >> >  }
-> >> >
-> >> > +static bool ovl_need_meta_copy_up(struct dentry *dentry, umode_t mode,
-> >> > +                                 int flags)
-> >> > +{
-> >> > +       struct ovl_fs *ofs = dentry->d_sb->s_fs_info;
-> >> > +
-> >> > +       /* TODO: Will enable metacopy in last patch of series */
-> >> > +       return false;
-> >> > +
-> >> > +       if (!ofs->config.metacopy)
-> >> > +               return false;
-> >> > +
-> >> > +       if (!S_ISREG(mode))
-> >> > +               return false;
-> >> > +
-> >> > +       if (flags && ((OPEN_FMODE(flags) & FMODE_WRITE) || (flags & O_TRUNC)))
-> >> > +               return false;
-> >> > +
-> >> > +       return true;
-> >> > +}
-> >> > +
-> >> >  struct ovl_fh *ovl_encode_fh(struct dentry *lower, bool is_upper)
-> >> >  {
-> >> >         struct ovl_fh *fh;
-> >> > @@ -305,11 +325,8 @@ static int ovl_set_origin(struct dentry *dentry, struct dentry *lower,
-> >> >                         return PTR_ERR(fh);
-> >> >         }
-> >> >
-> >> > -       /*
-> >> > -        * Do not fail when upper doesn't support xattrs.
-> >> > -        */
-> >> >         err = ovl_check_setxattr(dentry, upper, OVL_XATTR_ORIGIN, fh,
-> >> > -                                fh ? fh->len : 0, 0);
-> >> > +                                fh ? fh->len : 0, -EOPNOTSUPP);
-> >> >         kfree(fh);
-> >> >
-> >> >         return err;
-> >> > @@ -326,6 +343,7 @@ struct ovl_copy_up_ctx {
-> >> >         struct qstr destname;
-> >> >         struct dentry *workdir;
-> >> >         bool tmpfile;
-> >> > +       bool metacopy;
-> >> >  };
-> >> >
-> >> >  static int ovl_link_up(struct ovl_copy_up_ctx *c)
-> >> > @@ -453,10 +471,14 @@ static int ovl_copy_up_inode(struct ovl_copy_up_ctx *c, struct dentry *temp)
-> >> >          *
-> >> >          */
-> >> >         err = ovl_set_origin(c->dentry, c->lowerpath.dentry, temp);
-> >> > -       if (err)
-> >> > -               return err;
-> >> > +       if (err) {
-> >> > +               if (err != -EOPNOTSUPP)
-> >> > +                       return err;
-> >> > +               /* Upper does not support xattr. Copy up data as well */
-> >> > +               c->metacopy = false;
-> >>
-> >> Isn't this supposed to be checked in ovl_get_super()?
-> >
-> > Hi Miklos,
-> >
-> > Right. I think I was confused by code in ovl_check_setxattr().
-> >
-> > int ovl_check_setxattr(struct dentry *dentry, struct dentry *upperdentry,
-> >                        const char *name, const void *value, size_t size,
-> >                        int xerr)
-> > {
-> >         int err;
-> >         struct ovl_fs *ofs = dentry->d_sb->s_fs_info;
-> >
-> >         if (ofs->noxattr)
-> >                 return xerr;
-> >
-> >         err = ovl_do_setxattr(upperdentry, name, value, size, 0);
-> >
-> >         if (err == -EOPNOTSUPP) {
-> >                 pr_warn("overlayfs: cannot set %s xattr on upper\n", name);
-> >                 ofs->noxattr = true;
-> >                 return xerr;
-> >         }
-> >
-> >         return err;
-> > }
-> >
-> > ofs->noxattr will be set at mount time. Still we check for -EOPNOTSUPP
-> > and set ofs->noxattr again. Is there a situation where this can happen.
-> > Is it intentional. Can we get rid of this code.
-> >
-> > To take care of this situation, I put that code. That is at mount time
-> > xattr was fine and hence ofs->noxattr=false. But later somehow we
-> > encountered -EOPNOTSUPP while doing ovl_set_origin(). Current code
-> > does not fail copy up operation and I tried to retain same behavior.
-> > That is just disable metacopy in such case but continue.
-> >
-> > So if we don't expect all this to happen at all, then I can get rid
-> > of this -EOPNOTSUPP check both from ovl_check_setxattr() as well
-> > as ovl_copy_up_inode().
-> 
-> It would be really weird to encounter this, so I think possibly a
-> WARN_ON(err == -EOPNOTSUPP) is enough to make sure reality matches our
-> expectations.
+On Tue, Jan 9, 2018 at 2:07 PM, Chengguang Xu <cgxu519@icloud.com> wrote:
+>>
+>> =E5=9C=A8 2018=E5=B9=B41=E6=9C=888=E6=97=A5=EF=BC=8C=E4=B8=8B=E5=8D=888:=
+10=EF=BC=8CAmir Goldstein <amir73il@gmail.com> =E5=86=99=E9=81=93=EF=BC=9A
+>>
+>> On Mon, Jan 8, 2018 at 10:41 AM, Chengguang Xu <cgxu519@icloud.com> wrot=
+e:
+>>> Currently syncfs(2) call on overlayfs just simply call sync_filesystem(=
+)
+>>> on upper_sb to synchronize whole dirty inodes in upper filesystem
+>>> regardless of the overlay ownership of the inode. It has obvious
+>>> shortcomings as below.
+>>>
+>>> (1) Performance
+>>> Synchronization is probably heavy in most cases, especially when upper
+>>> filesystem is not dedicated to target overlayfs.
+>>>
+>>> (2) Interference
+>>> Unplanned synchronization will probably impact IO performance of the
+>>> processes which use other overlayfs on same upper filesystem or directl=
+y
+>>> use upper filesystem.
+>>>
+>>> This patch iterates overlay inodes to only sync target dirty inodes in
+>>> upper filesystem and wait on temporary waiting list to avoid waiting on
+>>> inodes that have started writeback afterwards. By doing this,
+>>> it is able to reduce cost of synchronization and will not seriously imp=
+act
+>>> IO performance of irrelative processes.
+>>
+>> This looks like a very good improvement!
+>>
+>>>
+>>> Signed-off-by: Chengguang Xu <cgxu519@icloud.com>
+>>> ---
+>>> fs/overlayfs/ovl_entry.h |   4 ++
+>>> fs/overlayfs/super.c     | 101 ++++++++++++++++++++++++++++++++++++++++=
++++++--
+>>> 2 files changed, 102 insertions(+), 3 deletions(-)
+>>>
+>>> diff --git a/fs/overlayfs/ovl_entry.h b/fs/overlayfs/ovl_entry.h
+>>> index 9d0bc03..e92c425 100644
+>>> --- a/fs/overlayfs/ovl_entry.h
+>>> +++ b/fs/overlayfs/ovl_entry.h
+>>> @@ -52,6 +52,8 @@ struct ovl_fs {
+>>>        /* Did we take the inuse lock? */
+>>>        bool upperdir_locked;
+>>>        bool workdir_locked;
+>>> +       /* ovl inode sync list lock */
+>>> +       spinlock_t  ovl_sync_list_lock;
+>>> };
+>>>
+>>> /* private information held for every overlayfs dentry */
+>>> @@ -80,6 +82,8 @@ struct ovl_inode {
+>>>
+>>>        /* synchronize copy up and more */
+>>>        struct mutex lock;
+>>> +       /* ovl inode sync list */
+>>> +       struct list_head sync_list;
+>>> };
+>>>
+>>> static inline struct ovl_inode *OVL_I(struct inode *inode)
+>>> diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+>>> index 76440fe..17f1406 100644
+>>> --- a/fs/overlayfs/super.c
+>>> +++ b/fs/overlayfs/super.c
+>>> @@ -17,6 +17,8 @@
+>>> #include <linux/statfs.h>
+>>> #include <linux/seq_file.h>
+>>> #include <linux/posix_acl_xattr.h>
+>>> +#include <linux/writeback.h>
+>>> +#include <linux/blkdev.h>
+>>> #include "overlayfs.h"
+>>>
+>>> MODULE_AUTHOR("Miklos Szeredi <miklos@szeredi.hu>");
+>>> @@ -195,6 +197,7 @@ static struct inode *ovl_alloc_inode(struct super_b=
+lock *sb)
+>>>        oi->__upperdentry =3D NULL;
+>>>        oi->lower =3D NULL;
+>>>        mutex_init(&oi->lock);
+>>> +       INIT_LIST_HEAD(&oi->sync_list);
+>>>
+>>>        return &oi->vfs_inode;
+>>> }
+>>> @@ -252,6 +255,96 @@ static void ovl_put_super(struct super_block *sb)
+>>>        ovl_free_fs(ofs);
+>>> }
+>>>
+>>> +/**
+>>> + * ovl_sync_filesystem
+>>> + * @sb: The overlayfs super block
+>>> + *
+>>> + * Sync underlying dirty inodes in upper filesystem and wait for compl=
+etion.
+>>> + * Use temporary wait list to avoid waiting on inodes that have starte=
+d
+>>> + * writeback after this point.
+>>> + */
+>>> +static int ovl_sync_filesystem(struct super_block *sb)
+>>> +{
+>>> +       struct ovl_fs *ofs =3D sb->s_fs_info;
+>>> +       struct super_block *upper_sb =3D ofs->upper_mnt->mnt_sb;
+>>> +       struct ovl_inode *oi, *oi_next;
+>>> +       struct inode *inode, *i_next;
+>>> +       struct inode *upper_inode;
+>>> +       struct blk_plug plug;
+>>> +       LIST_HEAD(ovl_sync_list);
+>>> +
+>>> +       struct writeback_control wbc =3D {
+>>> +               .sync_mode              =3D WB_SYNC_ALL,
+>>
+>> Shouldn't this be WB_SYNC_NONE? We are explicitly waiting
+>> inodes on the list afterwards=E2=80=A6
+>
+> IIUC, when wait =3D=3D 1 should use WB_SYNC_ALL mode.
 
-Hi Miklos,
+Well, yes, but for a different reason.
+According to documentation of write_cache_pages()
+WB_SYNC_ALL should be used for data integrity sync, which
+is the case of syncfs, to start write also on pages that are already
+under io, but WB_SYNC_ALL *also* implies waiting on all pages
+after starting io and that is not needed in this case, because you call
+filemap_fdatawait_keep_errors() later. Nevermind. WB_SYNC_ALL
+is the right value to use here AFAICT.
 
-Effectively that's what current code is doing. Only difference is that it
-does a pr_warn() instead of WARN_ON().
+>
+>
+>>
+>>> +               .for_sync               =3D 1,
+>>> +               .range_start            =3D 0,
+>>> +               .range_end              =3D LLONG_MAX,
+>>> +               .nr_to_write            =3D LONG_MAX,
+>>> +       };
+>>> +
+>>> +       blk_start_plug(&plug);
+>>> +       spin_lock(&sb->s_inode_list_lock);
+>>> +       list_for_each_entry_safe(inode, i_next, &sb->s_inodes, i_sb_lis=
+t) {
+>>> +               upper_inode =3D ovl_inode_upper(inode);
+>>> +               if (!upper_inode)
+>>> +                       continue;
+>>> +
+>>> +               spin_lock(&upper_inode->i_lock);
+>>> +               if (upper_inode->i_state & (I_NEW | I_FREEING | I_WILL_=
+FREE) ||
+>>> +                       list_empty(&upper_inode->i_io_list)) {
+>>> +                       spin_unlock(&upper_inode->i_lock);
+>>> +                       continue;
+>>> +               }
+>>> +               spin_unlock(&upper_inode->i_lock);
+>>> +
+>>> +               if (!igrab(inode))
+>>> +                       continue;
+>>> +
+>>> +               if (!igrab(upper_inode)) {
+>>> +                       iput(inode);
+>>> +                       continue;
+>>> +               }
+>>> +               spin_unlock(&sb->s_inode_list_lock);
+>>> +
+>>> +               sync_inode(upper_inode, &wbc);
+>>
+>> Maybe allowed to call sync_inode() under s_inode_list_lock
+>> if using WB_SYNC_NONE???
+>
+> I think if hold s_inode_list_lock long time, it will probably affect
+> inode allocation/destruction because every inode needs to be in/out
+> sb->s_inodes list.
+>
+>
 
-So that means I leave current code as it is. Or replace pr_warn() with
-WARN_ON(). Something like.
+Considering that we must use WB_SYNC_ALL, my comment here
+is irrelevant.
 
-if (WARN_ON(err == -EOPNOTSUPP)) {
-	ofs->noxattr = true;
-	return xerr;
-}
+>> Do we not need to check return value from sync_inode()?
+>
+> I have no idea what extra work can we do for error case,
+> __sync_filesytem() itself does not check return code seriously.
+>
+>
+>> I bet it could be EROFS if upper fs was remounted readonly
+>> and we did not check for that before starting to sync=E2=80=A6
+>
+> I=E2=80=99m curious is there a real use case like this?
+> Anyway, let=E2=80=99s add check for safety.
+>
+>>
+>>> +               spin_lock(&ofs->ovl_sync_list_lock);
+>>> +               if (list_empty(&OVL_I(inode)->sync_list))
+>>> +                       list_add(&OVL_I(inode)->sync_list, &ovl_sync_li=
+st);
+>>> +               else {
+>>> +                       iput(upper_inode);
+>>> +                       iput(inode);
+>>> +               }
+>>> +               spin_unlock(&ofs->ovl_sync_list_lock);
+>>> +
+>>> +               if (need_resched()) {
+>>> +                       blk_finish_plug(&plug);
+>>> +                       cond_resched();
+>>> +                       blk_start_plug(&plug);
+>>> +               }
+>>> +               spin_lock(&sb->s_inode_list_lock);
+>>> +       }
+>>> +       spin_unlock(&sb->s_inode_list_lock);
+>>> +       blk_finish_plug(&plug);
+>>> +
+>>> +       mutex_lock(&upper_sb->s_sync_lock);
+>>
+>> I suppose mutex_lock_interruptible() is in order.
+>
+> I can=E2=80=99t see benefit for it, and considering interruption by signa=
+l
+> I=E2=80=99ll replace temporary waiting list using sb->s_inodes list.
+>
 
-And my code in ovl_copy_up_inode() will continue to remain same as it
-will need to handle unexpected -EOPNOTSUPP and disable metacopy operation
-for that particular copy up.
+If you use mutex_lock_interruptible() at least then the 2nd user calling
+syncfs can interrupt the wait while 1st user is syncing.
 
-Vivek
+Amir.
