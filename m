@@ -1,44 +1,72 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [PATCH v2 23/23] ovl: copy up of disconnected dentries
-Date: Thu, 11 Jan 2018 17:28:31 +0200
-Message-ID: <CAOQ4uxj-o-LUduzRXZFz1oNkLx8iKthEbhM_ZQhPFCtU=X9Y9w@mail.gmail.com>
-References: <1515084018-25134-1-git-send-email-amir73il@gmail.com>
- <1515084018-25134-24-git-send-email-amir73il@gmail.com> <CAJfpegs4Ehusis0YROPJtiNzhbmx6+U29vGbhYC=pXjzQ8tZcA@mail.gmail.com>
+Subject: Re: [PATCH 1/7] open_by_handle: store and load file handles from file
+Date: Thu, 11 Jan 2018 17:59:01 +0200
+Message-ID: <CAOQ4uxjxxMo=uQn93T3mpCy3_o-5_TKGc08ugqFYH5fk=3Cn2Q@mail.gmail.com>
+References: <1515348445-1403-1-git-send-email-amir73il@gmail.com>
+ <1515348445-1403-2-git-send-email-amir73il@gmail.com> <20180111115904.GL5123@eguan.usersys.redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-yb0-f177.google.com ([209.85.213.177]:46795 "EHLO
-        mail-yb0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932197AbeAKP2d (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 11 Jan 2018 10:28:33 -0500
-Received: by mail-yb0-f177.google.com with SMTP id b39so1220498ybj.13
-        for <linux-unionfs@vger.kernel.org>; Thu, 11 Jan 2018 07:28:33 -0800 (PST)
-In-Reply-To: <CAJfpegs4Ehusis0YROPJtiNzhbmx6+U29vGbhYC=pXjzQ8tZcA@mail.gmail.com>
-Sender: linux-unionfs-owner@vger.kernel.org
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
+In-Reply-To: <20180111115904.GL5123@eguan.usersys.redhat.com>
+Sender: linux-fsdevel-owner@vger.kernel.org
+To: Eryu Guan <eguan@redhat.com>
+Cc: Jeff Layton <jlayton@poochiereds.net>, "J . Bruce Fields" <bfields@fieldses.org>, Miklos Szeredi <miklos@szeredi.hu>, fstests <fstests@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, overlayfs <linux-unionfs@vger.kernel.org>
 List-Id: linux-unionfs@vger.kernel.org
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: zhangyi <yi.zhang@huawei.com>, overlayfs <linux-unionfs@vger.kernel.org>
 
-On Thu, Jan 11, 2018 at 4:47 PM, Miklos Szeredi <miklos@szeredi.hu> wrote:
-> On Thu, Jan 4, 2018 at 5:40 PM, Amir Goldstein <amir73il@gmail.com> wrote:
->> With NFS export, some operations on decoded file handles (e.g. open,
->> link, setattr, xattr_set) may call copy up with a disconnected non-dir.
->> In this case, we will copy up lower inode to index dir without
->> linking it to upper dir.
+On Thu, Jan 11, 2018 at 1:59 PM, Eryu Guan <eguan@redhat.com> wrote:
+> On Sun, Jan 07, 2018 at 08:07:19PM +0200, Amir Goldstein wrote:
+>> usage:
+>>  open_by_handle -p -o <handles_file> <test_dir> [N]
+>>  open_by_handle -p -i <handles_file> <test_dir> [N]
+>>
+>> This will be used to test decoding of file handles after various
+>> file systems operations including mount cycle.
+>>
+>> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 >
-> Did we not have plans to link-up from index on lookup, when upper link
-> is missing?  For consistency sake, that would make a lot of sense
-> after such a disconnected copy-up, and also for the hardlink copy-up.
->
-> Yes, things work without the upper link, but restoring the upper link
-> makes sense, and lookup is perhaps the most logical place to do that
-> restoration.
+> I found that it might be easier to review if the new test that takes use
+> of this new function is included in the same patch, so reviewer could
+> know how are these new functions being used without switching between
+> different patches.
 >
 
-Indeed, disconnected copy-up is a lot like hardlink copy-up+unlink.
-I guess the link-up on lookup is independent of the series, but should
-be doable.
+Eryu,
 
-Thanks,
+Thanks for your comments. I will fix them later, but let me first address
+this meta comment, so maybe it will help you with review of the tests.
+
+I find that the comment about posting the new functionality along with the
+test would have been a good thing to do for most of the options I added
+so far. It could be a good option for this test as well.
+However, the -i -o options are quite generic in nature, so it should
+be fine to explain them without a test, only I probably did not explain well.
+
+The basic flow of open_by_handle program is:
+- store file handle of parent and test files in memory array
+- perform operations on files
+- drop caches
+- open by file handles from array
+- perform tests on open files
+
+-i -o options allow to perform name_to_handle and open_by_handle with
+2 different program invocations, so you don't need to rely on the program
+performing drop caches and you can test advances flows like:
+- encode files
+- cycle mount
+- decode files
+
+In my use case, the new tests in generic/467 are:
+- ecnode parent and files
+- rename parent
+- decode parent and files
+
+- encode files
+- move files to new parent
+- decode files
+
+- ecnode parent and files
+- rename grandparent
+- decode parent and files
+
+Cheers,
 Amir.
