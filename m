@@ -1,291 +1,198 @@
-From: "zhangyi (F)" <yi.zhang@huawei.com>
-Subject: [PATCH v3 2/7] overlay: add fsck.overlay whiteout test
-Date: Fri, 12 Jan 2018 20:05:28 +0800
-Message-ID: <20180112120533.6099-3-yi.zhang@huawei.com>
-References: <20180112120533.6099-1-yi.zhang@huawei.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Subject: Re: [PATCH v3] ovl: Improving syncfs efficiency
+Date: Fri, 12 Jan 2018 15:01:24 +0200
+Message-ID: <CAOQ4uxhuqS322Eisz10We+Lf1neBY3UHVW0CCxY46NMcSLkgMQ@mail.gmail.com>
+References: <1515635335-8848-1-git-send-email-cgxu519@icloud.com>
+ <CAOQ4uxhM0Cp3eBU2OfsDY9x1vMnBjMLw9qV-eK1g+yDi2erwiw@mail.gmail.com>
+ <20180111100742.exdlnmnrpejeqbds@quack2.suse.cz> <D0F99186-0AF6-46F8-9280-3D8B4A848E9D@icloud.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <fstests-owner@vger.kernel.org>
-In-Reply-To: <20180112120533.6099-1-yi.zhang@huawei.com>
-Sender: fstests-owner@vger.kernel.org
-To: linux-unionfs@vger.kernel.org, fstests@vger.kernel.org
-Cc: miklos@szeredi.hu, amir73il@gmail.com, eguan@redhat.com, yi.zhang@huawei.com, miaoxie@huawei.com, yangerkun@huawei.com
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-unionfs-owner@vger.kernel.org>
+Received: from mail-yw0-f193.google.com ([209.85.161.193]:45370 "EHLO
+        mail-yw0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932797AbeALNB2 (ORCPT
+        <rfc822;linux-unionfs@vger.kernel.org>);
+        Fri, 12 Jan 2018 08:01:28 -0500
+Received: by mail-yw0-f193.google.com with SMTP id m19so2448219ywh.12
+        for <linux-unionfs@vger.kernel.org>; Fri, 12 Jan 2018 05:01:28 -0800 (PST)
+In-Reply-To: <D0F99186-0AF6-46F8-9280-3D8B4A848E9D@icloud.com>
+Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
+To: Chengguang Xu <cgxu519@icloud.com>
+Cc: Jan Kara <jack@suse.cz>, Miklos Szeredi <miklos@szeredi.hu>, overlayfs <linux-unionfs@vger.kernel.org>
 
-Add fsck.overlay test case to test it how to deal with orphan/valid
-whiteouts in underlying directories of overlayfs.
+On Fri, Jan 12, 2018 at 9:13 AM, Chengguang Xu <cgxu519@icloud.com> wrote:
+>>
+>> =E5=9C=A8 2018=E5=B9=B41=E6=9C=8811=E6=97=A5=EF=BC=8C=E4=B8=8B=E5=8D=886=
+:07=EF=BC=8CJan Kara <jack@suse.cz> =E5=86=99=E9=81=93=EF=BC=9A
+>>
+>> On Thu 11-01-18 05:30:33, Amir Goldstein wrote:
+>>> [CC: Jan Kara]
+>>>
+>>> On Thu, Jan 11, 2018 at 3:48 AM, Chengguang Xu <cgxu519@icloud.com> wro=
+te:
+>>>> Currently syncfs(2) call on overlayfs just simply call sync_filesystem=
+()
+>>>> on upper_sb to synchronize whole dirty inodes in upper filesystem
+>>>> regardless of the overlay ownership of the inode. It has obvious
+>>>> shortcomings as below.
+>>>>
+>>>> (1) Performance
+>>>> Synchronization is probably heavy in most cases, especially when upper
+>>>> filesystem is not dedicated to target overlayfs.
+>>>>
+>>>> (2) Interference
+>>>> Unplanned synchronization will probably impact IO performance of the
+>>>> processes which use other overlayfs on same upper filesystem or direct=
+ly
+>>>> use upper filesystem.
+>>>>
+>>>> This patch iterates overlay inodes to only sync target dirty inodes in
+>>>> upper filesystem. By doing this, It is able to reduce cost of synchron=
+ization
+>>>> and will not seriously impact IO performance of irrelative processes.
+>>>>
+>>>> Signed-off-by: Chengguang Xu <cgxu519@icloud.com>
+>>>
+>>> Looks good.
+>>>
+>>> Reviewed-by: Amir Goldstein <amir73il@gmail.com>
+>>>
+>>> Jan,
+>>>
+>>> Would you mind taking a quick look at this?
+>>>
+>>> Overlayfs inodes have no dirty mapping, only the underlying upper inode=
+s
+>>> do, so sync_inodes_sb() is not enough for overlay syncfs().
+>>>
+>>> This code creates the list of upper inodes to sync, syncs them and then
+>>> calls the underlying upper fs sync_fs().
+>>>
+>>> Does this look reasonable?
+>>
+>> If I understand the original changelog, this is a performance motivated
+>> change. As such it should have a some measurements accompanied with it t=
+o
+>> justify the change. I.e., how much does this help? What is the exact set=
+up
+>> where this matters? Do users really care?
+>>
+>> More technical comments inline.
+>>
+>>>> @@ -80,6 +83,8 @@ struct ovl_inode {
+>>>>
+>>>>        /* synchronize copy up and more */
+>>>>        struct mutex lock;
+>>>> +       /* ovl inode sync list */
+>>>> +       struct list_head sync_list;
+>>>> };
+>>
+>> Additional overhead of 16-bytes per inode - not a huge deal since this i=
+s
+>> overlay specific but it's something to keep in mind. Could not we reuse
+>> i_io_list of the overlay inode instead?
+>
+> Hi Jan,
+>
+> Thanks for your review and comments.
+> Actually I thought i_io_list in my very first version, however, it implie=
+s
+> that inode is connected to proper bdi_writeback but overlay does not have=
+,
+> so it might be incompatible in some contexts(for example, evict).
+> Maybe we can reuse i_wb_list instead.
+>
+>
+>>
+>>>> diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+>>>> index 76440fe..947bb83 100644
+>>>> --- a/fs/overlayfs/super.c
+>>>> +++ b/fs/overlayfs/super.c
+>> ...
+>>>> +static void ovl_sync_inodes(struct super_block *sb)
+>>>> +{
+>>>> +       struct ovl_fs *ofs =3D sb->s_fs_info;
+>>>> +       struct inode *inode, *i_next;
+>>>> +       struct inode *upper_inode;
+>>>> +       struct blk_plug plug;
+>>>> +
+>>>> +       struct writeback_control wbc =3D {
+>>>> +               .sync_mode              =3D WB_SYNC_ALL,
+>>>> +               .for_sync               =3D 1,
+>>>> +               .range_start            =3D 0,
+>>>> +               .range_end              =3D LLONG_MAX,
+>>>> +               .nr_to_write            =3D LONG_MAX,
+>>>> +       };
+>>>> +
+>>>> +       blk_start_plug(&plug);
+>>>> +       spin_lock(&sb->s_inode_list_lock);
+>>>> +       list_for_each_entry_safe(inode, i_next, &sb->s_inodes, i_sb_li=
+st) {
+>>
+>> Why a _safe iteration variant here? If you hope it allows you to safely
+>> resume iteration after dropping sb->s_inode_list_lock, you are wrong
+>> because i_next inode can be removed from the list once you drop that loc=
+k
+>> as well.  You need to be more careful when iterating inodes. See how e.g=
+.
+>> fs/notify/fsnotify.c:fsnotify_unmount_inodes() plays tricks with always
+>> keeping one inode reference to be able to resume iteration of the inode
+>> list.
+>>
+>> Another issue is that this will iterate all inodes on the overlayfs list=
+.
+>> Both clean and dirty ones (well, those where underlying upper inode is
+>> dirty). When there are only a few underlying dirty inodes, this may be
+>> considerably slower than the original behavior. So this needs an
+>> explanation in the changelog why the use case you care about is more
+>> important than the use case this regresses. You might think that this wi=
+ll
+>> only add an iteration of an in memory list, but on large machines, this
+>> list may have millions of entries so it's iteration is not exactly fast.
+>>
+>>>> +               upper_inode =3D ovl_inode_upper(inode);
+>>>> +               if (!upper_inode)
+>>>> +                       continue;
+>>>> +
+>>>> +               spin_lock(&upper_inode->i_lock);
+>>>> +               if (upper_inode->i_state & (I_NEW | I_FREEING | I_WILL=
+_FREE) ||
+>>>> +                       list_empty(&upper_inode->i_io_list)) {
+>>>> +                       spin_unlock(&upper_inode->i_lock);
+>>>> +                       continue;
+>>>> +               }
+>>>> +               spin_unlock(&upper_inode->i_lock);
+>>>> +
+>>>> +               if (!igrab(inode))
+>>>> +                       continue;
+>>>> +
+>>>> +               if (!igrab(upper_inode)) {
+>>>> +                       iput(inode);
+>>
+>> iput() under a spinlock? Not good, that always needs a very good
+>> explanation why this cannot be the last reference to drop. Preferably av=
+oid
+>> this altogether.
+>
+> Hi Amir,
+>
+> I reckon upper inode won't be deleted before overlay inode=EF=BC=8Cso we =
+can just
+> hold reference of overlay inode here, am i right?
+>
 
-Signed-off-by: zhangyi (F) <yi.zhang@huawei.com>
----
- tests/overlay/201     | 232 ++++++++++++++++++++++++++++++++++++++++++++++++++
- tests/overlay/201.out |  10 +++
- tests/overlay/group   |   1 +
- 3 files changed, 243 insertions(+)
- create mode 100755 tests/overlay/201
- create mode 100644 tests/overlay/201.out
+You are right that overlay inode holds a reference to upper inode, so you
+don't need to grab upper_inode.
+However, I think you may need to grab overlay inode reference before trying=
+ to
+dereferecnce ovl_inode_upper(inode), so you are back to square one, having =
+to
+iput(inode) if (!upper_inode).
+I'm afraid I don't know enough to propose a solution.
+I suggest you start with Jan's suggestion to look at fsnotify_unmount_inode=
+s().
 
-diff --git a/tests/overlay/201 b/tests/overlay/201
-new file mode 100755
-index 0000000..fbb9898
---- /dev/null
-+++ b/tests/overlay/201
-@@ -0,0 +1,232 @@
-+#! /bin/bash
-+# FS QA Test 201
-+#
-+# Test fsck.overlay how to deal with whiteouts in overlayfs.
-+#
-+#-----------------------------------------------------------------------
-+# Copyright (c) 2017 Huawei.  All Rights Reserved.
-+# Author: zhangyi (F) <yi.zhang@huawei.com>
-+#
-+# This program is free software; you can redistribute it and/or
-+# modify it under the terms of the GNU General Public License as
-+# published by the Free Software Foundation.
-+#
-+# This program is distributed in the hope that it would be useful,
-+# but WITHOUT ANY WARRANTY; without even the implied warranty of
-+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+# GNU General Public License for more details.
-+#
-+# You should have received a copy of the GNU General Public License
-+# along with this program; if not, write the Free Software Foundation,
-+# Inc.,  51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-+#-----------------------------------------------------------------------
-+#
-+
-+seq=`basename $0`
-+seqres=$RESULT_DIR/$seq
-+echo "QA output created by $seq"
-+
-+here=`pwd`
-+tmp=/tmp/$$
-+status=1        # failure is the default!
-+trap "_cleanup; exit \$status" 0 1 2 3 15
-+
-+_cleanup()
-+{
-+	cd /
-+	rm -f $tmp.*
-+}
-+
-+# get standard environment, filters and checks
-+. ./common/rc
-+. ./common/filter
-+
-+# remove previous $seqres.full before test
-+rm -f $seqres.full
-+
-+# real QA test starts here
-+_supported_fs overlay
-+_supported_os Linux
-+_require_scratch
-+_require_command "$FSCK_OVERLAY_PROG" fsck.overlay
-+
-+# remove all files from previous tests
-+_scratch_mkfs
-+
-+OVL_REDIRECT_XATTR="trusted.overlay.redirect"
-+OVL_OPAQUE_XATTR="trusted.overlay.opaque"
-+OVL_OPAQUE_XATTR_VAL="y"
-+
-+# Check whiteout
-+check_whiteout()
-+{
-+	for arg in $*
-+	do
-+		local ttype=`stat -c "%F:%t,%T" $arg`
-+
-+		[[ $ttype == "character special file:0,0" ]] || \
-+			echo "Valid whiteout removed incorrectly"
-+	done
-+}
-+
-+# Create a whiteout
-+make_whiteout()
-+{
-+	for arg in $*
-+	do
-+		mknod $arg c 0 0
-+	done
-+}
-+
-+# Create an opaque directory
-+make_opaque_dir()
-+{
-+	local target=$1
-+
-+	mkdir -p $target
-+	$SETFATTR_PROG -n $OVL_OPAQUE_XATTR -v $OVL_OPAQUE_XATTR_VAL $target
-+}
-+
-+# Create a redirect directory
-+make_redirect_dir()
-+{
-+	local target=$1
-+	local value=$2
-+
-+	mkdir -p $target
-+	$SETFATTR_PROG -n $OVL_REDIRECT_XATTR -v $value $target
-+}
-+
-+# Create test directories
-+lowerdir=$OVL_BASE_SCRATCH_MNT/lower
-+lowerdir2=$OVL_BASE_SCRATCH_MNT/lower2
-+upperdir=$OVL_BASE_SCRATCH_MNT/upper
-+workdir=$OVL_BASE_SCRATCH_MNT/workdir
-+
-+make_test_dirs()
-+{
-+	rm -rf $lowerdir $lowerdir2 $upperdir $workdir
-+	mkdir -p $lowerdir $lowerdir2 $upperdir $workdir
-+}
-+
-+# Test orphan whiteout in lower and upper layer, should remove
-+echo "+ Orphan whiteout"
-+make_test_dirs
-+make_whiteout $lowerdir/foo $upperdir/{foo,bar}
-+
-+_overlay_fsck_dirs $lowerdir $upperdir $workdir -p >> $seqres.full 2>&1 || \
-+	_fail "fsck should not fail"
-+ls $lowerdir
-+ls $upperdir
-+
-+# Test valid whiteout covering lower target, should not remove
-+echo "+ Valid whiteout"
-+make_test_dirs
-+touch $lowerdir2/{foo,bar}
-+make_whiteout $upperdir/foo $lowerdir/bar
-+
-+_overlay_fsck_dirs "$lowerdir:$lowerdir2" $upperdir $workdir -p >> \
-+	 $seqres.full 2>&1 || _fail "fsck should not fail"
-+check_whiteout $upperdir/foo $lowerdir/bar
-+
-+# Test orphan whiteout in opaque directory, should remove
-+echo "+ Orphan whiteout(2)"
-+make_test_dirs
-+mkdir $lowerdir/testdir
-+touch $lowerdir/testdir/foo
-+make_opaque_dir $upperdir/testdir
-+make_whiteout $upperdir/testdir/foo
-+
-+_overlay_fsck_dirs $lowerdir $upperdir $workdir -p >> $seqres.full 2>&1 || \
-+	_fail "fsck should not fail"
-+ls $upperdir/testdir
-+
-+# Test orphan whiteout whose parent path is not an merged directory,
-+# should remove
-+echo "+ Orphan whiteout(3)"
-+make_test_dirs
-+mkdir $lowerdir2/{testdir1,testdir2,testdir3}
-+touch $lowerdir2/{testdir1/foo,testdir2/foo,testdir3/foo}
-+mkdir $upperdir/{testdir1,testdir2,testdir3,testdir4}
-+touch $lowerdir/testdir1
-+make_whiteout $lowerdir/testdir2
-+make_opaque_dir $lowerdir/testdir3
-+make_whiteout $upperdir/{testdir1/foo,/testdir2/foo,testdir3/foo,testdir4/foo}
-+
-+_overlay_fsck_dirs "$lowerdir:$lowerdir2" $upperdir $workdir -p >> \
-+	$seqres.full 2>&1 || _fail "fsck should not fail"
-+ls $upperdir/testdir1
-+ls $upperdir/testdir2
-+ls $upperdir/testdir3
-+ls $upperdir/testdir4
-+
-+# Test orphan whiteout in redirect directory, should remove
-+echo "+ Orphan whiteout(4)"
-+make_test_dirs
-+mkdir $lowerdir/{testdir,origin}
-+touch $lowerdir/testdir/foo
-+make_redirect_dir $upperdir/testdir "origin"
-+make_whiteout $upperdir/testdir/foo
-+
-+_overlay_fsck_dirs $lowerdir $upperdir $workdir -p >> $seqres.full 2>&1 || \
-+	_fail "fsck should not fail"
-+ls $upperdir/testdir
-+
-+# Test valid whiteout in redirect directory cover file in lower
-+# redirect origin directory, should not remove
-+echo "+ Valid whiteout(2)"
-+make_test_dirs
-+mkdir $lowerdir/origin
-+touch $lowerdir/origin/foo
-+make_redirect_dir $upperdir/testdir "origin"
-+make_whiteout $upperdir/testdir/foo
-+
-+_overlay_fsck_dirs $lowerdir $upperdir $workdir -p >> $seqres.full 2>&1 || \
-+	_fail "fsck should not fail"
-+check_whiteout $upperdir/testdir/foo
-+
-+# Test valid whiteout covering lower target whose parent directory
-+# merge with a redirect directory in the middle layer, should not remove.
-+echo "+ Valid whiteout(3)"
-+make_test_dirs
-+mkdir -p $lowerdir2/origin/subdir
-+touch $lowerdir2/origin/subdir/foo
-+make_redirect_dir $lowerdir/testdir "origin"
-+mkdir -p $upperdir/testdir/subdir
-+make_whiteout $upperdir/testdir/subdir/foo
-+
-+_overlay_fsck_dirs "$lowerdir:$lowerdir2" $upperdir $workdir -p \
-+	>> $seqres.full 2>&1 || _fail "fsck should not fail"
-+check_whiteout $upperdir/testdir/subdir/foo
-+
-+# Test invalid whiteout in opaque subdirectory in a redirect directory,
-+# should remove
-+echo "+ Orphan whiteout(5)"
-+make_test_dirs
-+mkdir -p $lowerdir/origin/subdir
-+touch $lowerdir/origin/subdir/foo
-+make_redirect_dir $upperdir/testdir "origin"
-+make_opaque_dir $upperdir/testdir/subdir
-+make_whiteout $upperdir/testdir/subdir/foo
-+
-+_overlay_fsck_dirs $lowerdir $upperdir $workdir -p >> $seqres.full 2>&1 || \
-+	_fail "fsck should not fail"
-+ls $upperdir/testdir/subdir
-+
-+# Test valid whiteout in reidrect subdirectory in a opaque directory
-+# covering lower target, should not remove
-+echo "+ Valid whiteout(4)"
-+make_test_dirs
-+mkdir $lowerdir/origin
-+touch $lowerdir/origin/foo
-+make_opaque_dir $upperdir/testdir
-+make_redirect_dir $upperdir/testdir/subdir "/origin"
-+make_whiteout $upperdir/testdir/subdir/foo
-+
-+_overlay_fsck_dirs $lowerdir $upperdir $workdir -p >> $seqres.full 2>&1 || \
-+        _fail "fsck should not fail"
-+check_whiteout $upperdir/testdir/subdir/foo
-+
-+# success, all done
-+status=0
-+exit
-diff --git a/tests/overlay/201.out b/tests/overlay/201.out
-new file mode 100644
-index 0000000..157bb85
---- /dev/null
-+++ b/tests/overlay/201.out
-@@ -0,0 +1,10 @@
-+QA output created by 201
-++ Orphan whiteout
-++ Valid whiteout
-++ Orphan whiteout(2)
-++ Orphan whiteout(3)
-++ Orphan whiteout(4)
-++ Valid whiteout(2)
-++ Valid whiteout(3)
-++ Orphan whiteout(5)
-++ Valid whiteout(4)
-diff --git a/tests/overlay/group b/tests/overlay/group
-index 7e541e4..7c5fcbb 100644
---- a/tests/overlay/group
-+++ b/tests/overlay/group
-@@ -49,3 +49,4 @@
- 044 auto quick copyup hardlink nonsamefs
- 047 auto quick copyup hardlink
- 048 auto quick copyup hardlink
-+201 auto quick fsck
--- 
-2.9.5
+Thanks,
+Amir.
