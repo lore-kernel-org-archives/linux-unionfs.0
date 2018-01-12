@@ -1,198 +1,69 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [PATCH v3] ovl: Improving syncfs efficiency
-Date: Fri, 12 Jan 2018 15:01:24 +0200
-Message-ID: <CAOQ4uxhuqS322Eisz10We+Lf1neBY3UHVW0CCxY46NMcSLkgMQ@mail.gmail.com>
-References: <1515635335-8848-1-git-send-email-cgxu519@icloud.com>
- <CAOQ4uxhM0Cp3eBU2OfsDY9x1vMnBjMLw9qV-eK1g+yDi2erwiw@mail.gmail.com>
- <20180111100742.exdlnmnrpejeqbds@quack2.suse.cz> <D0F99186-0AF6-46F8-9280-3D8B4A848E9D@icloud.com>
+Subject: Re: [PATCH 0/7] Overlayfs exportfs tests
+Date: Fri, 12 Jan 2018 15:07:47 +0200
+Message-ID: <CAOQ4uxjTdFbUGk3MpKjaydZ1bOEQUnjqHCT-Qbas5BHRFyVPzw@mail.gmail.com>
+References: <1515348445-1403-1-git-send-email-amir73il@gmail.com>
+ <20180111114335.GK5123@eguan.usersys.redhat.com> <CAOQ4uxhZ5LvJ375GF9XknTBBe9OcgYh8umiDt43Hk65QgFeUQQ@mail.gmail.com>
+ <20180112115227.GR5123@eguan.usersys.redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-yw0-f193.google.com ([209.85.161.193]:45370 "EHLO
-        mail-yw0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932797AbeALNB2 (ORCPT
+Received: from mail-yb0-f196.google.com ([209.85.213.196]:40642 "EHLO
+        mail-yb0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932797AbeALNHt (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 12 Jan 2018 08:01:28 -0500
-Received: by mail-yw0-f193.google.com with SMTP id m19so2448219ywh.12
-        for <linux-unionfs@vger.kernel.org>; Fri, 12 Jan 2018 05:01:28 -0800 (PST)
-In-Reply-To: <D0F99186-0AF6-46F8-9280-3D8B4A848E9D@icloud.com>
+        Fri, 12 Jan 2018 08:07:49 -0500
+In-Reply-To: <20180112115227.GR5123@eguan.usersys.redhat.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Chengguang Xu <cgxu519@icloud.com>
-Cc: Jan Kara <jack@suse.cz>, Miklos Szeredi <miklos@szeredi.hu>, overlayfs <linux-unionfs@vger.kernel.org>
+To: Eryu Guan <eguan@redhat.com>
+Cc: Jeff Layton <jlayton@poochiereds.net>, "J . Bruce Fields" <bfields@fieldses.org>, Miklos Szeredi <miklos@szeredi.hu>, fstests <fstests@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, overlayfs <linux-unionfs@vger.kernel.org>
 
-On Fri, Jan 12, 2018 at 9:13 AM, Chengguang Xu <cgxu519@icloud.com> wrote:
+On Fri, Jan 12, 2018 at 1:52 PM, Eryu Guan <eguan@redhat.com> wrote:
+> On Thu, Jan 11, 2018 at 01:52:02PM +0200, Amir Goldstein wrote:
+>> On Thu, Jan 11, 2018 at 1:43 PM, Eryu Guan <eguan@redhat.com> wrote:
+>> > On Sun, Jan 07, 2018 at 08:07:18PM +0200, Amir Goldstein wrote:
+>> >> Eryu,
+>> >>
+>> >> Following patches were used to test overlayfs NFS export.
+>> >>
+>> >> Patches 1-5 improve generic/exportfs tests, by adding test coverage
+>> >> of some directory file handle use cases.
+>> >
+>> > open_by_handle test is covering more and more cases, thanks! OTOH, it's
+>> > getting more and more complicated :)
 >>
->> =E5=9C=A8 2018=E5=B9=B41=E6=9C=8811=E6=97=A5=EF=BC=8C=E4=B8=8B=E5=8D=886=
-:07=EF=BC=8CJan Kara <jack@suse.cz> =E5=86=99=E9=81=93=EF=BC=9A
+>> Yeh, sorry about that ;-)
 >>
->> On Thu 11-01-18 05:30:33, Amir Goldstein wrote:
->>> [CC: Jan Kara]
->>>
->>> On Thu, Jan 11, 2018 at 3:48 AM, Chengguang Xu <cgxu519@icloud.com> wro=
-te:
->>>> Currently syncfs(2) call on overlayfs just simply call sync_filesystem=
-()
->>>> on upper_sb to synchronize whole dirty inodes in upper filesystem
->>>> regardless of the overlay ownership of the inode. It has obvious
->>>> shortcomings as below.
->>>>
->>>> (1) Performance
->>>> Synchronization is probably heavy in most cases, especially when upper
->>>> filesystem is not dedicated to target overlayfs.
->>>>
->>>> (2) Interference
->>>> Unplanned synchronization will probably impact IO performance of the
->>>> processes which use other overlayfs on same upper filesystem or direct=
-ly
->>>> use upper filesystem.
->>>>
->>>> This patch iterates overlay inodes to only sync target dirty inodes in
->>>> upper filesystem. By doing this, It is able to reduce cost of synchron=
-ization
->>>> and will not seriously impact IO performance of irrelative processes.
->>>>
->>>> Signed-off-by: Chengguang Xu <cgxu519@icloud.com>
->>>
->>> Looks good.
->>>
->>> Reviewed-by: Amir Goldstein <amir73il@gmail.com>
->>>
->>> Jan,
->>>
->>> Would you mind taking a quick look at this?
->>>
->>> Overlayfs inodes have no dirty mapping, only the underlying upper inode=
-s
->>> do, so sync_inodes_sb() is not enough for overlay syncfs().
->>>
->>> This code creates the list of upper inodes to sync, syncs them and then
->>> calls the underlying upper fs sync_fs().
->>>
->>> Does this look reasonable?
+>> >
+>> > But from a quick scan, I think it's time to stop adding new sub-tests to
+>> > existing tests (maybe we should have done this since last time we added
+>> > new sub-tests to generic/467), because generic/467 is getting more
+>> > complex too and makes review harder.
 >>
->> If I understand the original changelog, this is a performance motivated
->> change. As such it should have a some measurements accompanied with it t=
-o
->> justify the change. I.e., how much does this help? What is the exact set=
-up
->> where this matters? Do users really care?
->>
->> More technical comments inline.
->>
->>>> @@ -80,6 +83,8 @@ struct ovl_inode {
->>>>
->>>>        /* synchronize copy up and more */
->>>>        struct mutex lock;
->>>> +       /* ovl inode sync list */
->>>> +       struct list_head sync_list;
->>>> };
->>
->> Additional overhead of 16-bytes per inode - not a huge deal since this i=
-s
->> overlay specific but it's something to keep in mind. Could not we reuse
->> i_io_list of the overlay inode instead?
+>> Probably a good idea, but please note that patch 4/7 is fixing a test that was
+>> not implemented correctly and test 5/7 adds a very minor variant.
 >
-> Hi Jan,
+> I've gone through the first 5 patches now. All look fine except the
+> comments to patch 1/7.
 >
-> Thanks for your review and comments.
-> Actually I thought i_io_list in my very first version, however, it implie=
-s
-> that inode is connected to proper bdi_writeback but overlay does not have=
-,
-> so it might be incompatible in some contexts(for example, evict).
-> Maybe we can reuse i_wb_list instead.
+> I think we can add a new test that contains the last part of patch 4/7
+> ("Check non-stale file handles of renamed dirs") and patch 5/7. And
+> leave the "fix test" part in patch 4/7.
 >
+>> An option is to split the directory related tests (those that are fixed by 4/7)
+>> out of generic/467 and then fix them and add the new variant.
 >
->>
->>>> diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
->>>> index 76440fe..947bb83 100644
->>>> --- a/fs/overlayfs/super.c
->>>> +++ b/fs/overlayfs/super.c
->> ...
->>>> +static void ovl_sync_inodes(struct super_block *sb)
->>>> +{
->>>> +       struct ovl_fs *ofs =3D sb->s_fs_info;
->>>> +       struct inode *inode, *i_next;
->>>> +       struct inode *upper_inode;
->>>> +       struct blk_plug plug;
->>>> +
->>>> +       struct writeback_control wbc =3D {
->>>> +               .sync_mode              =3D WB_SYNC_ALL,
->>>> +               .for_sync               =3D 1,
->>>> +               .range_start            =3D 0,
->>>> +               .range_end              =3D LLONG_MAX,
->>>> +               .nr_to_write            =3D LONG_MAX,
->>>> +       };
->>>> +
->>>> +       blk_start_plug(&plug);
->>>> +       spin_lock(&sb->s_inode_list_lock);
->>>> +       list_for_each_entry_safe(inode, i_next, &sb->s_inodes, i_sb_li=
-st) {
->>
->> Why a _safe iteration variant here? If you hope it allows you to safely
->> resume iteration after dropping sb->s_inode_list_lock, you are wrong
->> because i_next inode can be removed from the list once you drop that loc=
-k
->> as well.  You need to be more careful when iterating inodes. See how e.g=
-.
->> fs/notify/fsnotify.c:fsnotify_unmount_inodes() plays tricks with always
->> keeping one inode reference to be able to resume iteration of the inode
->> list.
->>
->> Another issue is that this will iterate all inodes on the overlayfs list=
-.
->> Both clean and dirty ones (well, those where underlying upper inode is
->> dirty). When there are only a few underlying dirty inodes, this may be
->> considerably slower than the original behavior. So this needs an
->> explanation in the changelog why the use case you care about is more
->> important than the use case this regresses. You might think that this wi=
-ll
->> only add an iteration of an in memory list, but on large machines, this
->> list may have millions of entries so it's iteration is not exactly fast.
->>
->>>> +               upper_inode =3D ovl_inode_upper(inode);
->>>> +               if (!upper_inode)
->>>> +                       continue;
->>>> +
->>>> +               spin_lock(&upper_inode->i_lock);
->>>> +               if (upper_inode->i_state & (I_NEW | I_FREEING | I_WILL=
-_FREE) ||
->>>> +                       list_empty(&upper_inode->i_io_list)) {
->>>> +                       spin_unlock(&upper_inode->i_lock);
->>>> +                       continue;
->>>> +               }
->>>> +               spin_unlock(&upper_inode->i_lock);
->>>> +
->>>> +               if (!igrab(inode))
->>>> +                       continue;
->>>> +
->>>> +               if (!igrab(upper_inode)) {
->>>> +                       iput(inode);
->>
->> iput() under a spinlock? Not good, that always needs a very good
->> explanation why this cannot be the last reference to drop. Preferably av=
-oid
->> this altogether.
->
-> Hi Amir,
->
-> I reckon upper inode won't be deleted before overlay inode=EF=BC=8Cso we =
-can just
-> hold reference of overlay inode here, am i right?
+> This should be fine too, but I slightly tend to not move existing tests,
+> just add new cases to new tests.
 >
 
-You are right that overlay inode holds a reference to upper inode, so you
-don't need to grab upper_inode.
-However, I think you may need to grab overlay inode reference before trying=
- to
-dereferecnce ovl_inode_upper(inode), so you are back to square one, having =
-to
-iput(inode) if (!upper_inode).
-I'm afraid I don't know enough to propose a solution.
-I suggest you start with Jan's suggestion to look at fsnotify_unmount_inode=
-s().
+So what I think I will do is not change generic/467, but add a variant of
+generic/467 that tests open_by_handle after mount cycle that will use -i -o.
+I will try re-work patch 1/7 and maybe add more changes so open_by_handle
+becomes more of a tool to write file handle tests instead of a file handle
+test program that does all tests and just invoked from a tests script.
+If that doesn't work out, I'll just add more commentary to the patch ;-)
 
 Thanks,
 Amir.
