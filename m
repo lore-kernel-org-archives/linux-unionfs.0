@@ -1,69 +1,201 @@
-From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [PATCH v2 00/23] Overlayfs consistency verification with full index
-Date: Thu, 11 Jan 2018 18:55:15 +0200
-Message-ID: <CAOQ4uxhd+feiS-7fyk92wFeOYHrJLzo2NAjK-LpH3Ph4jEmrqg@mail.gmail.com>
-References: <1515084018-25134-1-git-send-email-amir73il@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+From: Chengguang Xu <cgxu519@icloud.com>
+Subject: Re: [PATCH v3] ovl: Improving syncfs efficiency
+Date: Fri, 12 Jan 2018 15:13:26 +0800
+Message-ID: <D0F99186-0AF6-46F8-9280-3D8B4A848E9D@icloud.com>
+References: <1515635335-8848-1-git-send-email-cgxu519@icloud.com>
+ <CAOQ4uxhM0Cp3eBU2OfsDY9x1vMnBjMLw9qV-eK1g+yDi2erwiw@mail.gmail.com>
+ <20180111100742.exdlnmnrpejeqbds@quack2.suse.cz>
+Mime-Version: 1.0 (Mac OS X Mail 11.2 \(3445.5.20\))
+Content-Type: text/plain; charset=gb2312
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-yb0-f179.google.com ([209.85.213.179]:38942 "EHLO
-        mail-yb0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933231AbeAKQzR (ORCPT
+Received: from pv33p36im-asmtp001.me.com ([17.142.213.62]:53949 "EHLO
+        pv33p36im-asmtp001.me.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754384AbeALHNd (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 11 Jan 2018 11:55:17 -0500
-Received: by mail-yb0-f179.google.com with SMTP id 65so1372161ybz.6
-        for <linux-unionfs@vger.kernel.org>; Thu, 11 Jan 2018 08:55:16 -0800 (PST)
-In-Reply-To: <1515084018-25134-1-git-send-email-amir73il@gmail.com>
+        Fri, 12 Jan 2018 02:13:33 -0500
+Received: from process-dkim-sign-daemon.pv33p36im-asmtp001.me.com by
+ pv33p36im-asmtp001.me.com
+ (Oracle Communications Messaging Server 8.0.1.2.20170607 64bit (built Jun  7
+ 2017)) id <0P2F00C00L740S00@pv33p36im-asmtp001.me.com> for
+ linux-unionfs@vger.kernel.org; Fri, 12 Jan 2018 07:13:32 +0000 (GMT)
+In-reply-to: <20180111100742.exdlnmnrpejeqbds@quack2.suse.cz>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: zhangyi <yi.zhang@huawei.com>, overlayfs <linux-unionfs@vger.kernel.org>, Vivek Goyal <vgoyal@redhat.com>
+To: Jan Kara <jack@suse.cz>, Amir Goldstein <amir73il@gmail.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, overlayfs <linux-unionfs@vger.kernel.org>
 
-On Thu, Jan 4, 2018 at 6:39 PM, Amir Goldstein <amir73il@gmail.com> wrote:
-> Miklos,
->
-> This is the 2nd revision of the prep patch series for NFS export.
-> I am posing the prep patches only to overlayfs list and will post
-> NFS export implementation to fsdevel.
->
+>=20
+> =D4=DA 2018=C4=EA1=D4=C211=C8=D5=A3=AC=CF=C2=CE=E76:07=A3=ACJan Kara =
+<jack@suse.cz> =D0=B4=B5=C0=A3=BA
+>=20
+> On Thu 11-01-18 05:30:33, Amir Goldstein wrote:
+>> [CC: Jan Kara]
+>>=20
+>> On Thu, Jan 11, 2018 at 3:48 AM, Chengguang Xu <cgxu519@icloud.com> =
+wrote:
+>>> Currently syncfs(2) call on overlayfs just simply call =
+sync_filesystem()
+>>> on upper_sb to synchronize whole dirty inodes in upper filesystem
+>>> regardless of the overlay ownership of the inode. It has obvious
+>>> shortcomings as below.
+>>>=20
+>>> (1) Performance
+>>> Synchronization is probably heavy in most cases, especially when =
+upper
+>>> filesystem is not dedicated to target overlayfs.
+>>>=20
+>>> (2) Interference
+>>> Unplanned synchronization will probably impact IO performance of the
+>>> processes which use other overlayfs on same upper filesystem or =
+directly
+>>> use upper filesystem.
+>>>=20
+>>> This patch iterates overlay inodes to only sync target dirty inodes =
+in
+>>> upper filesystem. By doing this, It is able to reduce cost of =
+synchronization
+>>> and will not seriously impact IO performance of irrelative =
+processes.
+>>>=20
+>>> Signed-off-by: Chengguang Xu <cgxu519@icloud.com>
+>>=20
+>> Looks good.
+>>=20
+>> Reviewed-by: Amir Goldstein <amir73il@gmail.com>
+>>=20
+>> Jan,
+>>=20
+>> Would you mind taking a quick look at this?
+>>=20
+>> Overlayfs inodes have no dirty mapping, only the underlying upper =
+inodes
+>> do, so sync_inodes_sb() is not enough for overlay syncfs().
+>>=20
+>> This code creates the list of upper inodes to sync, syncs them and =
+then
+>> calls the underlying upper fs sync_fs().
+>>=20
+>> Does this look reasonable?
+>=20
+> If I understand the original changelog, this is a performance =
+motivated
+> change. As such it should have a some measurements accompanied with it =
+to
+> justify the change. I.e., how much does this help? What is the exact =
+setup
+> where this matters? Do users really care?
+>=20
+> More technical comments inline.
+>=20
+>>> @@ -80,6 +83,8 @@ struct ovl_inode {
+>>>=20
+>>>        /* synchronize copy up and more */
+>>>        struct mutex lock;
+>>> +       /* ovl inode sync list */
+>>> +       struct list_head sync_list;
+>>> };
+>=20
+> Additional overhead of 16-bytes per inode - not a huge deal since this =
+is
+> overlay specific but it's something to keep in mind. Could not we =
+reuse
+> i_io_list of the overlay inode instead?
 
-Miklos,
+Hi Jan,
 
-3rd revision of prep patches after addressing V2 comments is
-available at [1].
+Thanks for your review and comments.=20
+Actually I thought i_io_list in my very first version, however, it =
+implies
+that inode is connected to proper bdi_writeback but overlay does not =
+have,
+so it might be incompatible in some contexts(for example, evict).=20
+Maybe we can reuse i_wb_list instead.
 
-Changes since v2:
-- Rename mount/config option from "verify" to "nfs_export"
-- Rename dir index entries xattr from ".origin" to ".upper"
-- Re-factor ovl_{get|set|verify}_origin() helpers
-- Abandon ovl_dentry_is_renamed() test for lower st_ino
-- Document overhead on mount with full index
-- Document change of behavior when verifying lower origin
 
-After you are done with review of NFS export patches
-and I will post V3 of prep patches to list.
+>=20
+>>> diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+>>> index 76440fe..947bb83 100644
+>>> --- a/fs/overlayfs/super.c
+>>> +++ b/fs/overlayfs/super.c
+> ...
+>>> +static void ovl_sync_inodes(struct super_block *sb)
+>>> +{
+>>> +       struct ovl_fs *ofs =3D sb->s_fs_info;
+>>> +       struct inode *inode, *i_next;
+>>> +       struct inode *upper_inode;
+>>> +       struct blk_plug plug;
+>>> +
+>>> +       struct writeback_control wbc =3D {
+>>> +               .sync_mode              =3D WB_SYNC_ALL,
+>>> +               .for_sync               =3D 1,
+>>> +               .range_start            =3D 0,
+>>> +               .range_end              =3D LLONG_MAX,
+>>> +               .nr_to_write            =3D LONG_MAX,
+>>> +       };
+>>> +
+>>> +       blk_start_plug(&plug);
+>>> +       spin_lock(&sb->s_inode_list_lock);
+>>> +       list_for_each_entry_safe(inode, i_next, &sb->s_inodes, =
+i_sb_list) {
+>=20
+> Why a _safe iteration variant here? If you hope it allows you to =
+safely
+> resume iteration after dropping sb->s_inode_list_lock, you are wrong
+> because i_next inode can be removed from the list once you drop that =
+lock
+> as well.  You need to be more careful when iterating inodes. See how =
+e.g.
+> fs/notify/fsnotify.c:fsnotify_unmount_inodes() plays tricks with =
+always
+> keeping one inode reference to be able to resume iteration of the =
+inode
+> list.
+>=20
+> Another issue is that this will iterate all inodes on the overlayfs =
+list.
+> Both clean and dirty ones (well, those where underlying upper inode is
+> dirty). When there are only a few underlying dirty inodes, this may be
+> considerably slower than the original behavior. So this needs an
+> explanation in the changelog why the use case you care about is more
+> important than the use case this regresses. You might think that this =
+will
+> only add an iteration of an in memory list, but on large machines, =
+this
+> list may have millions of entries so it's iteration is not exactly =
+fast.
+>=20
+>>> +               upper_inode =3D ovl_inode_upper(inode);
+>>> +               if (!upper_inode)
+>>> +                       continue;
+>>> +
+>>> +               spin_lock(&upper_inode->i_lock);
+>>> +               if (upper_inode->i_state & (I_NEW | I_FREEING | =
+I_WILL_FREE) ||
+>>> +                       list_empty(&upper_inode->i_io_list)) {
+>>> +                       spin_unlock(&upper_inode->i_lock);
+>>> +                       continue;
+>>> +               }
+>>> +               spin_unlock(&upper_inode->i_lock);
+>>> +
+>>> +               if (!igrab(inode))
+>>> +                       continue;
+>>> +
+>>> +               if (!igrab(upper_inode)) {
+>>> +                       iput(inode);
+>=20
+> iput() under a spinlock? Not good, that always needs a very good
+> explanation why this cannot be the last reference to drop. Preferably =
+avoid
+> this altogether.
 
-> In the 1st revision the mount option 'index=all' was used to request
-> a full index. This revision re-brands the feature as 'verify=on',
-> including a config/module option and documentation that explains the
-> benefits of full index (i.e. avoid multiple redirect).
->
+Hi Amir,
 
-In V3, as agreed, the feature name is "nfs_export". There are 2 helpers
-called ovl_index_all() and ovl_index_lower() both return the value of
-ofs->coinfig.nfs_export, each used in relevant code.
+I reckon upper inode won't be deleted before overlay inode=A3=ACso we =
+can just
+hold reference of overlay inode here, am i right?
 
-> The prep series goes on a bit beyond implementation of 'verify=on'.
-> Patches 17-23 create the whiteout index entries and make some more
-> changes that are prerequisites for NFS export implementation.
->
 
-Patches 17-23 as well as NFS export patches have been rebased and
-tested. They are mostly unmodified since V2. The complete work is
-availabe at [2].
 
 Thanks,
-Amir.
-
-[1] https://github.com/amir73il/linux/commits/ovl-index-all-v3
-[2] https://github.com/amir73il/linux/commits/ovl-nfs-export
+Chengguang.
