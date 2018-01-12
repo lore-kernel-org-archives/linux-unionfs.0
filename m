@@ -1,69 +1,156 @@
 From: "zhangyi (F)" <yi.zhang@huawei.com>
-Subject: [PATCH v3 6/7] overlay/010: fix fs check failure
-Date: Fri, 12 Jan 2018 20:05:32 +0800
-Message-ID: <20180112120533.6099-7-yi.zhang@huawei.com>
+Subject: [PATCH v3 1/7] overlay: add filesystem check helper
+Date: Fri, 12 Jan 2018 20:05:27 +0800
+Message-ID: <20180112120533.6099-2-yi.zhang@huawei.com>
 References: <20180112120533.6099-1-yi.zhang@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from szxga06-in.huawei.com ([45.249.212.32]:60811 "EHLO huawei.com"
-        rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
-        id S933055AbeALL7q (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 12 Jan 2018 06:59:46 -0500
+Received: from szxga04-in.huawei.com ([45.249.212.190]:4191 "EHLO huawei.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S932993AbeALL7m (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Fri, 12 Jan 2018 06:59:42 -0500
 In-Reply-To: <20180112120533.6099-1-yi.zhang@huawei.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: linux-unionfs@vger.kernel.org, fstests@vger.kernel.org
 Cc: miklos@szeredi.hu, amir73il@gmail.com, eguan@redhat.com, yi.zhang@huawei.com, miaoxie@huawei.com, yangerkun@huawei.com
 
-This test use ovl_lower.1/ovl_lower.2 and ovl_upper in scratch
-filesystem as underlying directories of overlay filesystem, but
-_check_overlay_scratch_fs() only check ovl_lower and ovl_upper
-directories. So whiteout "testdir" in ovl_upper becomes an orphan
-whiteout, which will lead to fsck.overlay check failure.
+Add filesystem check helpers for the upcoming fsck.overlay utility,
+and hook them to _check_test_fs and _check_scratch_fs. This helper
+works only if fsck.overlay exists.
 
-This patch change to invoke _overlay_check_dirs() to check real
-test dirs instead of pre-defined common dirs.
+[ _check_test_fs/_check_scratch_fs part picked from Amir's patch, thanks ]
 
 Signed-off-by: zhangyi (F) <yi.zhang@huawei.com>
+Reviewed-by: Amir Goldstein <amir73il@gmail.com>
 ---
- tests/overlay/010 | 11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
+ common/config  |  1 +
+ common/overlay | 80 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ common/rc      |  4 +--
+ 3 files changed, 83 insertions(+), 2 deletions(-)
 
-diff --git a/tests/overlay/010 b/tests/overlay/010
-index f55ebec..d6b7180 100755
---- a/tests/overlay/010
-+++ b/tests/overlay/010
-@@ -48,17 +48,17 @@ rm -f $seqres.full
- # real QA test starts here
- _supported_fs overlay
- _supported_os Linux
--_require_scratch
-+_require_scratch_nocheck
+diff --git a/common/config b/common/config
+index d0fbfe5..0505b71 100644
+--- a/common/config
++++ b/common/config
+@@ -236,6 +236,7 @@ case "$HOSTOS" in
+         export MKFS_REISER4_PROG="`set_prog_path mkfs.reiser4`"
+ 	export E2FSCK_PROG="`set_prog_path e2fsck`"
+ 	export TUNE2FS_PROG="`set_prog_path tune2fs`"
++	export FSCK_OVERLAY_PROG="`set_prog_path fsck.overlay`"
+         ;;
+ esac
  
- # Remove all files from previous tests
- _scratch_mkfs
- 
- # Need two lower dirs in this test, and we mount overlay ourselves,
- # create upper and workdir as well
--lowerdir1=$OVL_BASE_SCRATCH_MNT/$OVL_LOWER.1
--lowerdir2=$OVL_BASE_SCRATCH_MNT/$OVL_LOWER.2
--upperdir=$OVL_BASE_SCRATCH_MNT/$OVL_UPPER
--workdir=$OVL_BASE_SCRATCH_MNT/$OVL_WORK
-+lowerdir1=$OVL_BASE_SCRATCH_MNT/lower1
-+lowerdir2=$OVL_BASE_SCRATCH_MNT/lower2
-+upperdir=$OVL_BASE_SCRATCH_MNT/upper
-+workdir=$OVL_BASE_SCRATCH_MNT/work
- mkdir -p $lowerdir1 $lowerdir2 $upperdir $workdir
- 
- # One lowerdir contains test dir and test files, the other contains whiteout
-@@ -70,6 +70,7 @@ mknod $lowerdir2/testdir/a c 0 0
- _overlay_scratch_mount_dirs "$lowerdir2:$lowerdir1" $upperdir $workdir
- rm -rf $SCRATCH_MNT/testdir
- 
-+_overlay_check_dirs "$lowerdir2:$lowerdir1" $upperdir $workdir
- # success, all done
- echo "Silence is golden"
- status=0
+diff --git a/common/overlay b/common/overlay
+index 1da4ab1..e7f0e62 100644
+--- a/common/overlay
++++ b/common/overlay
+@@ -151,3 +151,83 @@ _require_scratch_overlay_feature()
+ 	        _notrun "${FSTYP} feature '${feature}' cannot be enabled on ${SCRATCH_DEV}"
+ 	_scratch_unmount
+ }
++
++_overlay_fsck_dirs()
++{
++	local lowerdir=$1
++	local upperdir=$2
++	local workdir=$3
++	local options=$4
++
++	[[ ! -x "$FSCK_OVERLAY_PROG" ]] && return 0
++
++	$FSCK_OVERLAY_PROG -o lowerdir=$lowerdir -o upperdir=$upperdir \
++			   -o workdir=$workdir $options
++}
++
++_overlay_check_dirs()
++{
++	local lowerdir=$1
++	local upperdir=$2
++	local workdir=$3
++	local err=0
++
++	_overlay_fsck_dirs $* $FSCK_OPTIONS >>$tmp.fsck 2>&1
++	if [ $? -ne 0 ]; then
++		_log_err "_overlay_check_fs: overlayfs on $lowerdir,$upperdir,$workdir is inconsistent"
++		echo "*** fsck.overlay output ***"	>>$seqres.full
++		cat $tmp.fsck				>>$seqres.full
++		echo "*** end fsck.overlay output"	>>$seqres.full
++
++		echo "*** mount output ***"		>>$seqres.full
++		_mount					>>$seqres.full
++		echo "*** end mount output"		>>$seqres.full
++		err=1
++	fi
++	rm -f $tmp.fsck
++
++	if [ $err != 0 ]; then
++		status=1
++		if [ "$iam" != "check" ]; then
++			exit 1
++		fi
++		return 1
++	fi
++
++	return 0
++}
++
++_overlay_check_fs()
++{
++	local base_dev=$3
++	local base_mnt=$4
++
++	[ "$FSTYP" = overlay ] || return 0
++
++	# Base fs needs to be mounted to check overlay dirs
++	local mounted=""
++	[ -z "$base_dev" ] || mounted=`_is_mounted $base_dev`
++	[ -n "$mounted" ] || _overlay_base_mount $*
++
++	# No need to umount overlay for dir checks with default -n option
++	_overlay_check_dirs $base_mnt/$OVL_LOWER $base_mnt/$OVL_UPPER \
++			    $base_mnt/$OVL_WORK
++	local ret=$?
++
++	[ -n "$mounted" ] || _overlay_base_unmount "$base_dev" "$base_mnt"
++	return $ret
++}
++
++_check_overlay_test_fs()
++{
++	_overlay_check_fs OVL_BASE_TEST_DEV OVL_BASE_TEST_DIR \
++		"$OVL_BASE_TEST_DEV" "$OVL_BASE_TEST_DIR" \
++		$TEST_FS_MOUNT_OPTS $SELINUX_MOUNT_OPTIONS
++}
++
++_check_overlay_scratch_fs()
++{
++	_overlay_check_fs OVL_BASE_SCRATCH_DEV OVL_BASE_SCRATCH_MNT \
++		"$OVL_BASE_SCRATCH_DEV" "$OVL_BASE_SCRATCH_MNT" \
++		$OVL_BASE_MOUNT_OPTIONS $SELINUX_MOUNT_OPTIONS
++}
+diff --git a/common/rc b/common/rc
+index 9216efd..a49f736 100644
+--- a/common/rc
++++ b/common/rc
+@@ -2537,7 +2537,7 @@ _check_test_fs()
+ 	# no way to check consistency for GlusterFS
+ 	;;
+     overlay)
+-	# no way to check consistency for overlay
++	_check_overlay_test_fs
+ 	;;
+     pvfs2)
+ 	;;
+@@ -2592,7 +2592,7 @@ _check_scratch_fs()
+ 	# no way to check consistency for GlusterFS
+ 	;;
+     overlay)
+-	# no way to check consistency for overlay
++	_check_overlay_scratch_fs
+ 	;;
+     pvfs2)
+ 	;;
 -- 
 2.9.5
