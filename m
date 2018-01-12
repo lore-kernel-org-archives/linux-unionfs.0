@@ -1,45 +1,48 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [PATCH v3 2/7] overlay: add fsck.overlay whiteout test
-Date: Fri, 12 Jan 2018 22:58:24 +0200
-Message-ID: <CAOQ4uxiB4Xjs+UD2FfX5p-YHcvR_wqNGNPGaZJwRa3=y=emKBw@mail.gmail.com>
-References: <20180112120533.6099-1-yi.zhang@huawei.com> <20180112120533.6099-3-yi.zhang@huawei.com>
+Subject: Re: [PATCH v3 3/7] overlay: add fsck.overlay redirect directory test
+Date: Fri, 12 Jan 2018 23:32:18 +0200
+Message-ID: <CAOQ4uxi+5FOgsDc55d=Xvhfsk7G6j26g=3uaiqUcvunfFa_X2A@mail.gmail.com>
+References: <20180112120533.6099-1-yi.zhang@huawei.com> <20180112120533.6099-4-yi.zhang@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
-Return-path: <fstests-owner@vger.kernel.org>
-In-Reply-To: <20180112120533.6099-3-yi.zhang@huawei.com>
-Sender: fstests-owner@vger.kernel.org
+Return-path: <linux-unionfs-owner@vger.kernel.org>
+Received: from mail-yw0-f194.google.com ([209.85.161.194]:33220 "EHLO
+        mail-yw0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S965168AbeALVcT (ORCPT
+        <rfc822;linux-unionfs@vger.kernel.org>);
+        Fri, 12 Jan 2018 16:32:19 -0500
+In-Reply-To: <20180112120533.6099-4-yi.zhang@huawei.com>
+Sender: linux-unionfs-owner@vger.kernel.org
+List-Id: linux-unionfs@vger.kernel.org
 To: "zhangyi (F)" <yi.zhang@huawei.com>
 Cc: overlayfs <linux-unionfs@vger.kernel.org>, fstests <fstests@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>, Eryu Guan <eguan@redhat.com>, Miao Xie <miaoxie@huawei.com>, yangerkun@huawei.com
-List-Id: linux-unionfs@vger.kernel.org
 
 On Fri, Jan 12, 2018 at 2:05 PM, zhangyi (F) <yi.zhang@huawei.com> wrote:
-> Add fsck.overlay test case to test it how to deal with orphan/valid
-> whiteouts in underlying directories of overlayfs.
+> Add fsck.overlay test case to test it how to deal with invalid/valid/
+> duplicate redirect xattr in underlying directories of overlayfs.
 >
 > Signed-off-by: zhangyi (F) <yi.zhang@huawei.com>
 
-Looks good.
-
-Reviewed-by: Amir Goldstein <amir73il@gmail.com>
+Looks good, with some minor comments
 
 > ---
->  tests/overlay/201     | 232 ++++++++++++++++++++++++++++++++++++++++++++++++++
->  tests/overlay/201.out |  10 +++
+>  tests/overlay/202     | 240 ++++++++++++++++++++++++++++++++++++++++++++++++++
+>  tests/overlay/202.out |  10 +++
 >  tests/overlay/group   |   1 +
->  3 files changed, 243 insertions(+)
->  create mode 100755 tests/overlay/201
->  create mode 100644 tests/overlay/201.out
+>  3 files changed, 251 insertions(+)
+>  create mode 100755 tests/overlay/202
+>  create mode 100644 tests/overlay/202.out
 >
-> diff --git a/tests/overlay/201 b/tests/overlay/201
+> diff --git a/tests/overlay/202 b/tests/overlay/202
 > new file mode 100755
-> index 0000000..fbb9898
+> index 0000000..84a7bad
 > --- /dev/null
-> +++ b/tests/overlay/201
-> @@ -0,0 +1,232 @@
+> +++ b/tests/overlay/202
+> @@ -0,0 +1,240 @@
 > +#! /bin/bash
-> +# FS QA Test 201
+> +# FS QA Test 202
 > +#
-> +# Test fsck.overlay how to deal with whiteouts in overlayfs.
+> +# Test fsck.overlay how to deal with redirect xattr in overlayfs.
 > +#
 > +#-----------------------------------------------------------------------
 > +# Copyright (c) 2017 Huawei.  All Rights Reserved.
@@ -78,6 +81,7 @@ Reviewed-by: Amir Goldstein <amir73il@gmail.com>
 > +# get standard environment, filters and checks
 > +. ./common/rc
 > +. ./common/filter
+> +. ./common/attr
 > +
 > +# remove previous $seqres.full before test
 > +rm -f $seqres.full
@@ -86,6 +90,7 @@ Reviewed-by: Amir Goldstein <amir73il@gmail.com>
 > +_supported_fs overlay
 > +_supported_os Linux
 > +_require_scratch
+> +_require_attrs
 > +_require_command "$FSCK_OVERLAY_PROG" fsck.overlay
 > +
 > +# remove all files from previous tests
@@ -95,36 +100,6 @@ Reviewed-by: Amir Goldstein <amir73il@gmail.com>
 > +OVL_OPAQUE_XATTR="trusted.overlay.opaque"
 > +OVL_OPAQUE_XATTR_VAL="y"
 > +
-> +# Check whiteout
-> +check_whiteout()
-> +{
-> +       for arg in $*
-> +       do
-> +               local ttype=`stat -c "%F:%t,%T" $arg`
-> +
-> +               [[ $ttype == "character special file:0,0" ]] || \
-> +                       echo "Valid whiteout removed incorrectly"
-> +       done
-> +}
-> +
-> +# Create a whiteout
-> +make_whiteout()
-> +{
-> +       for arg in $*
-> +       do
-> +               mknod $arg c 0 0
-> +       done
-> +}
-> +
-> +# Create an opaque directory
-> +make_opaque_dir()
-> +{
-> +       local target=$1
-> +
-> +       mkdir -p $target
-> +       $SETFATTR_PROG -n $OVL_OPAQUE_XATTR -v $OVL_OPAQUE_XATTR_VAL $target
-> +}
-> +
 > +# Create a redirect directory
 > +make_redirect_dir()
 > +{
@@ -133,6 +108,50 @@ Reviewed-by: Amir Goldstein <amir73il@gmail.com>
 > +
 > +       mkdir -p $target
 > +       $SETFATTR_PROG -n $OVL_REDIRECT_XATTR -v $value $target
+> +}
+> +
+> +# Check redirect xattr
+> +check_redirect()
+> +{
+> +       local target=$1
+> +       local expect=$2
+> +
+> +       value=$($GETFATTR_PROG --absolute-names --only-values -n \
+> +               $OVL_REDIRECT_XATTR $target)
+> +
+> +       [[ $value == $expect ]] || echo "Redirect xattr incorrect"
+> +}
+> +
+> +check_no_redirect()
+> +{
+> +       local target=$1
+> +
+> +       value=$($GETFATTR_PROG --absolute-names -d -m \
+> +               $OVL_REDIRECT_XATTR $target)
+> +
+> +       [[ -z "$value" ]] || echo "Redirect xattr not empty"
+> +}
+> +
+> +# Check opaque xattr
+> +check_opaque()
+> +{
+> +       local target=$1
+> +
+> +       value=$($GETFATTR_PROG --absolute-names --only-values -n \
+> +               $OVL_OPAQUE_XATTR $target)
+> +
+> +       [[ $value == $OVL_OPAQUE_XATTR_VAL ]] || echo "Opaque xattr incorrect"
+> +}
+> +
+> +# Check whiteout
+> +check_whiteout()
+> +{
+> +       local target=$1
+> +
+> +       target_type=`stat -c "%F:%t,%T" $target`
+> +
+> +       [[ $target_type == "character special file:0,0" ]] || \
+> +               echo "Whiteout missing"
 > +}
 > +
 > +# Create test directories
@@ -147,152 +166,160 @@ Reviewed-by: Amir Goldstein <amir73il@gmail.com>
 > +       mkdir -p $lowerdir $lowerdir2 $upperdir $workdir
 > +}
 > +
-> +# Test orphan whiteout in lower and upper layer, should remove
-> +echo "+ Orphan whiteout"
+> +# Test invalid redirect xattr point to a nonexistent origin, should remove
+> +echo "+ Invalid redirect"
 > +make_test_dirs
-> +make_whiteout $lowerdir/foo $upperdir/{foo,bar}
+> +make_redirect_dir $upperdir/testdir "invalid"
 > +
 > +_overlay_fsck_dirs $lowerdir $upperdir $workdir -p >> $seqres.full 2>&1 || \
 > +       _fail "fsck should not fail"
-> +ls $lowerdir
-> +ls $upperdir
+> +check_no_redirect $upperdir/testdir
 > +
-> +# Test valid whiteout covering lower target, should not remove
-> +echo "+ Valid whiteout"
+> +# Test invalid redirect xattr point to a file origin, should remove
+> +echo "+ Invalid redirect(2)"
 > +make_test_dirs
-> +touch $lowerdir2/{foo,bar}
-> +make_whiteout $upperdir/foo $lowerdir/bar
+> +touch $lowerdir/origin
+> +make_redirect_dir $upperdir/testdir "origin"
 > +
-> +_overlay_fsck_dirs "$lowerdir:$lowerdir2" $upperdir $workdir -p >> \
-> +        $seqres.full 2>&1 || _fail "fsck should not fail"
-> +check_whiteout $upperdir/foo $lowerdir/bar
+> +_overlay_fsck_dirs $lowerdir $upperdir $workdir -p >> $seqres.full 2>&1 || \
+> +       _fail "fsck should not fail"
+> +check_no_redirect $upperdir/testdir
 > +
-> +# Test orphan whiteout in opaque directory, should remove
-> +echo "+ Orphan whiteout(2)"
+> +# Test valid redirect xattr point to a directory origin in the same directory,
+> +# should not remove
+> +echo "+ Valid redirect"
+> +make_test_dirs
+> +mkdir $lowerdir/origin
+> +mknod $upperdir/origin c 0 0
+
+I got spoiled from previous tests ;-) please use make_whiteout helper
+here as well.
+
+> +make_redirect_dir $upperdir/testdir "origin"
+> +
+> +_overlay_fsck_dirs $lowerdir $upperdir $workdir -p >> $seqres.full 2>&1 || \
+> +       _fail "fsck should not fail"
+> +check_redirect $upperdir/testdir "origin"
+> +
+> +# Test valid redirect xattr point to a directory origin in different directories
+> +# should not remove
+> +echo "+ Valid redirect(2)"
+> +make_test_dirs
+> +mkdir $lowerdir/origin
+> +mknod $upperdir/origin c 0 0
+> +make_redirect_dir $upperdir/testdir1/testdir2 "/origin"
+> +
+> +_overlay_fsck_dirs $lowerdir $upperdir $workdir -p >> $seqres.full 2>&1 || \
+> +       _fail "fsck should not fail"
+> +check_redirect $upperdir/testdir1/testdir2 "/origin"
+> +
+> +# Test valid redirect xattr but missing whiteout to cover lower target,
+> +# should fix whiteout
+> +echo "+ Missing whiteout"
+> +make_test_dirs
+> +mkdir $lowerdir/origin
+> +make_redirect_dir $upperdir/testdir "origin"
+> +
+> +_overlay_fsck_dirs $lowerdir $upperdir $workdir -p >> $seqres.full 2>&1 || \
+> +       _fail "fsck should not fail"
+> +check_redirect $upperdir/testdir "origin"
+> +check_whiteout $upperdir/origin
+> +
+> +# Test valid redirect xattrs exchanged by rename, should not remove
+> +echo "+ Valid redirect(3)"
+> +make_test_dirs
+> +mkdir $lowerdir/{testdir1,testdir2}
+> +make_redirect_dir $upperdir/testdir1 "testdir2"
+> +make_redirect_dir $upperdir/testdir2 "testdir1"
+> +
+> +_overlay_fsck_dirs $lowerdir $upperdir $workdir -p >> $seqres.full 2>&1 || \
+> +       _fail "fsck should not fail"
+> +check_redirect $upperdir/testdir1 "testdir2"
+> +check_redirect $upperdir/testdir2 "testdir1"
+> +
+> +# Test invalid redirect xattr with lower same name directory exists,
+> +# should remove invalid redirect xattr and set opaque in yes mode
+> +echo "+ Invalid redirect(3)"
 > +make_test_dirs
 > +mkdir $lowerdir/testdir
-> +touch $lowerdir/testdir/foo
-> +make_opaque_dir $upperdir/testdir
-> +make_whiteout $upperdir/testdir/foo
+> +make_redirect_dir $upperdir/testdir "invalid"
 > +
-> +_overlay_fsck_dirs $lowerdir $upperdir $workdir -p >> $seqres.full 2>&1 || \
+> +_overlay_fsck_dirs $lowerdir $upperdir $workdir -y >> $seqres.full 2>&1 || \
+
+When using -y, better add a comment with the expected questions
+for whom Yes is the answer (even though one might deduce that from the
+expected results)
+
 > +       _fail "fsck should not fail"
-> +ls $upperdir/testdir
+> +check_no_redirect $upperdir/testdir
+> +check_opaque $upperdir/testdir
 > +
-> +# Test orphan whiteout whose parent path is not an merged directory,
-> +# should remove
-> +echo "+ Orphan whiteout(3)"
+> +# Test duplicate redirect xattrs point to one origin, should fail in
+> +# auto mode, and should remove the duplicate one in yes mode
+
+Better say "either of the duplicates" for clarity
+
+> +echo "+ Duplicate redirect"
 > +make_test_dirs
-> +mkdir $lowerdir2/{testdir1,testdir2,testdir3}
-> +touch $lowerdir2/{testdir1/foo,testdir2/foo,testdir3/foo}
-> +mkdir $upperdir/{testdir1,testdir2,testdir3,testdir4}
-> +touch $lowerdir/testdir1
-> +make_whiteout $lowerdir/testdir2
-> +make_opaque_dir $lowerdir/testdir3
-> +make_whiteout $upperdir/{testdir1/foo,/testdir2/foo,testdir3/foo,testdir4/foo}
+> +mkdir $lowerdir2/origin
+> +make_redirect_dir $lowerdir/testdir1 "origin"
+> +make_redirect_dir $lowerdir/testdir2 "origin"
+> +make_redirect_dir $upperdir/testdir3 "origin"
 > +
 > +_overlay_fsck_dirs "$lowerdir:$lowerdir2" $upperdir $workdir -p >> \
+> +       $seqres.full 2>&1 && _fail "fsck should fail"
+> +_overlay_fsck_dirs "$lowerdir:$lowerdir2" $upperdir $workdir -y >> \
 > +       $seqres.full 2>&1 || _fail "fsck should not fail"
-> +ls $upperdir/testdir1
-> +ls $upperdir/testdir2
-> +ls $upperdir/testdir3
-> +ls $upperdir/testdir4
+> +redirect_1=`check_redirect $lowerdir/testdir1 "origin" 2>/dev/null`
+> +redirect_2=`check_redirect $lowerdir/testdir2 "origin" 2>/dev/null`
+> +[[ $redirect_1 == $redirect_2 ]] && echo "Redirect xattr incorrect"
+> +check_no_redirect $upperdir/testdir3
 > +
-> +# Test orphan whiteout in redirect directory, should remove
-> +echo "+ Orphan whiteout(4)"
+> +# Test duplicate redirect xattr duplicate with merge directory, should
+> +# fail in auto mode, and should remove the redirect directory in yes mode
+> +echo "+ Duplicate redirect(2)"
 > +make_test_dirs
-> +mkdir $lowerdir/{testdir,origin}
-> +touch $lowerdir/testdir/foo
+> +mkdir $lowerdir/origin $upperdir/origin
 > +make_redirect_dir $upperdir/testdir "origin"
-> +make_whiteout $upperdir/testdir/foo
 > +
-> +_overlay_fsck_dirs $lowerdir $upperdir $workdir -p >> $seqres.full 2>&1 || \
+> +_overlay_fsck_dirs $lowerdir $upperdir $workdir -p >> $seqres.full 2>&1 && \
+> +       _fail "fsck should fail"
+> +_overlay_fsck_dirs $lowerdir $upperdir $workdir -y >> $seqres.full 2>&1 || \
 > +       _fail "fsck should not fail"
-> +ls $upperdir/testdir
-> +
-> +# Test valid whiteout in redirect directory cover file in lower
-> +# redirect origin directory, should not remove
-> +echo "+ Valid whiteout(2)"
-> +make_test_dirs
-> +mkdir $lowerdir/origin
-> +touch $lowerdir/origin/foo
-> +make_redirect_dir $upperdir/testdir "origin"
-> +make_whiteout $upperdir/testdir/foo
-> +
-> +_overlay_fsck_dirs $lowerdir $upperdir $workdir -p >> $seqres.full 2>&1 || \
-> +       _fail "fsck should not fail"
-> +check_whiteout $upperdir/testdir/foo
-> +
-> +# Test valid whiteout covering lower target whose parent directory
-> +# merge with a redirect directory in the middle layer, should not remove.
-> +echo "+ Valid whiteout(3)"
-> +make_test_dirs
-> +mkdir -p $lowerdir2/origin/subdir
-> +touch $lowerdir2/origin/subdir/foo
-> +make_redirect_dir $lowerdir/testdir "origin"
-> +mkdir -p $upperdir/testdir/subdir
-> +make_whiteout $upperdir/testdir/subdir/foo
-> +
-> +_overlay_fsck_dirs "$lowerdir:$lowerdir2" $upperdir $workdir -p \
-> +       >> $seqres.full 2>&1 || _fail "fsck should not fail"
-> +check_whiteout $upperdir/testdir/subdir/foo
-> +
-> +# Test invalid whiteout in opaque subdirectory in a redirect directory,
-> +# should remove
-> +echo "+ Orphan whiteout(5)"
-> +make_test_dirs
-> +mkdir -p $lowerdir/origin/subdir
-> +touch $lowerdir/origin/subdir/foo
-> +make_redirect_dir $upperdir/testdir "origin"
-> +make_opaque_dir $upperdir/testdir/subdir
-> +make_whiteout $upperdir/testdir/subdir/foo
-> +
-> +_overlay_fsck_dirs $lowerdir $upperdir $workdir -p >> $seqres.full 2>&1 || \
-> +       _fail "fsck should not fail"
-> +ls $upperdir/testdir/subdir
-> +
-> +# Test valid whiteout in reidrect subdirectory in a opaque directory
-> +# covering lower target, should not remove
-> +echo "+ Valid whiteout(4)"
-> +make_test_dirs
-> +mkdir $lowerdir/origin
-> +touch $lowerdir/origin/foo
-> +make_opaque_dir $upperdir/testdir
-> +make_redirect_dir $upperdir/testdir/subdir "/origin"
-> +make_whiteout $upperdir/testdir/subdir/foo
-> +
-> +_overlay_fsck_dirs $lowerdir $upperdir $workdir -p >> $seqres.full 2>&1 || \
-> +        _fail "fsck should not fail"
-> +check_whiteout $upperdir/testdir/subdir/foo
+> +check_no_redirect $upperdir/testdir
+
+Maybe also worth to have $lowerdir/testdir and check_opaque $upperdir/testdir
+in this case? or add another case?
+
 > +
 > +# success, all done
 > +status=0
 > +exit
-> diff --git a/tests/overlay/201.out b/tests/overlay/201.out
+> diff --git a/tests/overlay/202.out b/tests/overlay/202.out
 > new file mode 100644
-> index 0000000..157bb85
+> index 0000000..8473336
 > --- /dev/null
-> +++ b/tests/overlay/201.out
+> +++ b/tests/overlay/202.out
 > @@ -0,0 +1,10 @@
-> +QA output created by 201
-> ++ Orphan whiteout
-> ++ Valid whiteout
-> ++ Orphan whiteout(2)
-> ++ Orphan whiteout(3)
-> ++ Orphan whiteout(4)
-> ++ Valid whiteout(2)
-> ++ Valid whiteout(3)
-> ++ Orphan whiteout(5)
-> ++ Valid whiteout(4)
+> +QA output created by 202
+> ++ Invalid redirect
+> ++ Invalid redirect(2)
+> ++ Valid redirect
+> ++ Valid redirect(2)
+> ++ Missing whiteout
+> ++ Valid redirect(3)
+> ++ Invalid redirect(3)
+> ++ Duplicate redirect
+> ++ Duplicate redirect(2)
 > diff --git a/tests/overlay/group b/tests/overlay/group
-> index 7e541e4..7c5fcbb 100644
+> index 7c5fcbb..e39b5e0 100644
 > --- a/tests/overlay/group
 > +++ b/tests/overlay/group
-> @@ -49,3 +49,4 @@
->  044 auto quick copyup hardlink nonsamefs
+> @@ -50,3 +50,4 @@
 >  047 auto quick copyup hardlink
 >  048 auto quick copyup hardlink
-> +201 auto quick fsck
+>  201 auto quick fsck
+> +202 auto quick fsck
 > --
 > 2.9.5
 >
