@@ -1,196 +1,74 @@
 From: "zhangyi (F)" <yi.zhang@huawei.com>
-Subject: [PATCH v3 4/7] overlay: add fsck.overlay impure xattr test
-Date: Fri, 12 Jan 2018 20:05:30 +0800
-Message-ID: <20180112120533.6099-5-yi.zhang@huawei.com>
-References: <20180112120533.6099-1-yi.zhang@huawei.com>
+Subject: [PATCH v3 0/7] overlay: add fsck.overlay basic tests
+Date: Fri, 12 Jan 2018 20:05:26 +0800
+Message-ID: <20180112120533.6099-1-yi.zhang@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <fstests-owner@vger.kernel.org>
-In-Reply-To: <20180112120533.6099-1-yi.zhang@huawei.com>
 Sender: fstests-owner@vger.kernel.org
 To: linux-unionfs@vger.kernel.org, fstests@vger.kernel.org
 Cc: miklos@szeredi.hu, amir73il@gmail.com, eguan@redhat.com, yi.zhang@huawei.com, miaoxie@huawei.com, yangerkun@huawei.com
 List-Id: linux-unionfs@vger.kernel.org
 
-Add fsck.overlay test case to test it how to deal with impure
-xattr in underlying directories of overlayfs.
+Hi all:
 
-Signed-off-by: zhangyi (F) <yi.zhang@huawei.com>
----
- tests/overlay/203     | 143 ++++++++++++++++++++++++++++++++++++++++++++++++++
- tests/overlay/203.out |   4 ++
- tests/overlay/group   |   1 +
- 3 files changed, 148 insertions(+)
+Here is the third version of test cases for the upcoming fsck.overlay,
+corresponding to fsck.overlay v4 (will post to github repository soon).
+Test fsck.overlay check and fix inconsistency of whiteout and redirect/impure
+xattr.
+
+Changes since v2:
+- Modify some minor suggestions from Amir and Vivek, and simplify code
+  in all three test cases.
+- Fix duplicate redirect xattr test in 202.
+- Add impure xattr test case of general merge directory in 'no impure'
+  parent directory.
+- Fix fs check failure in other overlay fs test cases. PS: The
+  multi-lowers problem in overlay/010 also appears in many other tests,
+  _require_scratch() will mis-check the pre-defined underlying dirs
+  (not the real test dirs). I think they also need to be modified as this
+  patch(06/07) does to check the correct dirs, and I can fix them if you
+  think necessary.
+
+------
+
+Changes since v1:
+
+- Fix _check_scratch_fs hook.
+- Remove valid/invalid opaque xattr test.
+- Add whiteout test cases of valid/invalid whiteouts in opaque/redirect
+  parent directory.
+- Add impure xattr test.
+
+zhangyi (F) (7):
+  overlay: add filesystem check helper
+  overlay: add fsck.overlay whiteout test
+  overlay: add fsck.overlay redirect directory test
+  overlay: add fsck.overlay impure xattr test
+  overlay/003: fix fs check failure
+  overlay/010: fix fs check failure
+  overlay/019: fix fs check failure
+
+ common/config         |   1 +
+ common/overlay        |  80 +++++++++++++++++
+ common/rc             |   4 +-
+ tests/overlay/003     |   1 -
+ tests/overlay/010     |  11 +--
+ tests/overlay/019     |   2 +-
+ tests/overlay/201     | 232 ++++++++++++++++++++++++++++++++++++++++++++++++
+ tests/overlay/201.out |  10 +++
+ tests/overlay/202     | 240 ++++++++++++++++++++++++++++++++++++++++++++++++++
+ tests/overlay/202.out |  10 +++
+ tests/overlay/203     | 143 ++++++++++++++++++++++++++++++
+ tests/overlay/203.out |   4 +
+ tests/overlay/group   |   3 +
+ 13 files changed, 732 insertions(+), 9 deletions(-)
+ create mode 100755 tests/overlay/201
+ create mode 100644 tests/overlay/201.out
+ create mode 100755 tests/overlay/202
+ create mode 100644 tests/overlay/202.out
  create mode 100755 tests/overlay/203
  create mode 100644 tests/overlay/203.out
 
-diff --git a/tests/overlay/203 b/tests/overlay/203
-new file mode 100755
-index 0000000..82b224b
---- /dev/null
-+++ b/tests/overlay/203
-@@ -0,0 +1,143 @@
-+#! /bin/bash
-+# FS QA Test 203
-+#
-+# Test fsck.overlay how to deal with impure xattr in overlayfs.
-+#
-+#-----------------------------------------------------------------------
-+# Copyright (c) 2017 Huawei.  All Rights Reserved.
-+# Author: zhangyi (F) <yi.zhang@huawei.com>
-+#
-+# This program is free software; you can redistribute it and/or
-+# modify it under the terms of the GNU General Public License as
-+# published by the Free Software Foundation.
-+#
-+# This program is distributed in the hope that it would be useful,
-+# but WITHOUT ANY WARRANTY; without even the implied warranty of
-+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+# GNU General Public License for more details.
-+#
-+# You should have received a copy of the GNU General Public License
-+# along with this program; if not, write the Free Software Foundation,
-+# Inc.,  51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-+#-----------------------------------------------------------------------
-+#
-+
-+seq=`basename $0`
-+seqres=$RESULT_DIR/$seq
-+echo "QA output created by $seq"
-+
-+here=`pwd`
-+tmp=/tmp/$$
-+status=1        # failure is the default!
-+trap "_cleanup; exit \$status" 0 1 2 3 15
-+
-+_cleanup()
-+{
-+	cd /
-+	rm -f $tmp.*
-+}
-+
-+# get standard environment, filters and checks
-+. ./common/rc
-+. ./common/filter
-+
-+# remove previous $seqres.full before test
-+rm -f $seqres.full
-+
-+# real QA test starts here
-+_supported_fs overlay
-+_supported_os Linux
-+_require_scratch
-+_require_command "$FSCK_OVERLAY_PROG" fsck.overlay
-+
-+# remove all files from previous tests
-+_scratch_mkfs
-+
-+OVL_REDIRECT_XATTR="trusted.overlay.redirect"
-+OVL_IMPURE_XATTR="trusted.overlay.impure"
-+OVL_IMPURE_XATTR_VAL="y"
-+
-+# Create a redirect directory
-+make_redirect_dir()
-+{
-+	local target=$1
-+	local value=$2
-+
-+	mkdir -p $target
-+	$SETFATTR_PROG -n $OVL_REDIRECT_XATTR -v $value $target
-+}
-+
-+# Remove impure xattr
-+remove_impure()
-+{
-+	local target=$1
-+
-+	$SETFATTR_PROG -x $OVL_IMPURE_XATTR $target
-+}
-+
-+# Check impure xattr
-+check_impure()
-+{
-+	local target=$1
-+
-+	value=$($GETFATTR_PROG --absolute-names --only-values -n \
-+		$OVL_IMPURE_XATTR $target)
-+
-+	[[ $value == $OVL_IMPURE_XATTR_VAL ]] || echo "Missing impure xattr"
-+}
-+
-+# Create test directories
-+lowerdir=$OVL_BASE_SCRATCH_MNT/lower
-+lowerdir2=$OVL_BASE_SCRATCH_MNT/lower2
-+upperdir=$OVL_BASE_SCRATCH_MNT/upper
-+workdir=$OVL_BASE_SCRATCH_MNT/workdir
-+
-+make_test_dirs()
-+{
-+	rm -rf $lowerdir $lowerdir2 $upperdir $workdir
-+	mkdir -p $lowerdir $lowerdir2 $upperdir $workdir
-+}
-+
-+# Test missing impure xattr in directory which has origin targets, should fix
-+echo "+ Missing impure"
-+make_test_dirs
-+mkdir $lowerdir/{testdir1,testdir2}
-+mkdir $upperdir/{testdir1,testdir2}
-+touch $lowerdir/testdir1/foo
-+mkdir $lowerdir/testdir2/subdir
-+_overlay_scratch_mount_dirs $lowerdir $upperdir $workdir
-+touch $SCRATCH_MNT/testdir1/foo
-+touch $SCRATCH_MNT/testdir2/subdir
-+$UMOUNT_PROG $SCRATCH_MNT
-+remove_impure $upperdir/testdir1
-+remove_impure $upperdir/testdir2
-+
-+_overlay_fsck_dirs $lowerdir $upperdir $workdir -p >> $seqres.full 2>&1 || \
-+	_fail "fsck should not fail"
-+check_impure $upperdir/testdir1
-+check_impure $upperdir/testdir2
-+
-+# Test missing impure xattr in directory which has redirect directories,
-+# should fix
-+echo "+ Missing impure(2)"
-+make_test_dirs
-+mkdir $lowerdir/origin
-+make_redirect_dir $upperdir/testdir/subdir "/origin"
-+
-+_overlay_fsck_dirs $lowerdir $upperdir $workdir -p >> $seqres.full 2>&1 || \
-+	_fail "fsck should not fail"
-+check_impure $upperdir/testdir
-+
-+# Test missing impure xattr in directory which has merge directories,
-+# should fix
-+echo "+ Missing impure(3)"
-+make_test_dirs
-+mkdir $lowerdir/testdir $upperdir/testdir
-+
-+_overlay_fsck_dirs $lowerdir $upperdir $workdir -p >> $seqres.full 2>&1 || \
-+	_fail "fsck should not fail"
-+check_impure $upperdir
-+
-+# success, all done
-+status=0
-+exit
-diff --git a/tests/overlay/203.out b/tests/overlay/203.out
-new file mode 100644
-index 0000000..dd81788
---- /dev/null
-+++ b/tests/overlay/203.out
-@@ -0,0 +1,4 @@
-+QA output created by 203
-++ Missing impure
-++ Missing impure(2)
-++ Missing impure(3)
-diff --git a/tests/overlay/group b/tests/overlay/group
-index e39b5e0..f99d89e 100644
---- a/tests/overlay/group
-+++ b/tests/overlay/group
-@@ -51,3 +51,4 @@
- 048 auto quick copyup hardlink
- 201 auto quick fsck
- 202 auto quick fsck
-+203 auto quick fsck
 -- 
-2.9.5
+2.5.0
