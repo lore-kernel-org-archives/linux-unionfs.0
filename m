@@ -1,39 +1,42 @@
 From: "zhangyi (F)" <yi.zhang@huawei.com>
-Subject: [PATCH v3 7/7] overlay/019: fix fs check failure
-Date: Fri, 12 Jan 2018 20:05:33 +0800
-Message-ID: <20180112120533.6099-8-yi.zhang@huawei.com>
+Subject: [PATCH v3 5/7] overlay/003: fix fs check failure
+Date: Fri, 12 Jan 2018 20:05:31 +0800
+Message-ID: <20180112120533.6099-6-yi.zhang@huawei.com>
 References: <20180112120533.6099-1-yi.zhang@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <fstests-owner@vger.kernel.org>
+Return-path: <linux-unionfs-owner@vger.kernel.org>
+Received: from szxga04-in.huawei.com ([45.249.212.190]:4189 "EHLO huawei.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S933055AbeALL7n (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Fri, 12 Jan 2018 06:59:43 -0500
 In-Reply-To: <20180112120533.6099-1-yi.zhang@huawei.com>
-Sender: fstests-owner@vger.kernel.org
+Sender: linux-unionfs-owner@vger.kernel.org
+List-Id: linux-unionfs@vger.kernel.org
 To: linux-unionfs@vger.kernel.org, fstests@vger.kernel.org
 Cc: miklos@szeredi.hu, amir73il@gmail.com, eguan@redhat.com, yi.zhang@huawei.com, miaoxie@huawei.com, yangerkun@huawei.com
-List-Id: linux-unionfs@vger.kernel.org
 
-This is a stability test, fsstress will create a lot of orphan
-whiteouts in lowerdir, which will lead to inconsistency of overlay
-image and fs check failure. No need to check this manual craft
-file system, so just skip fs check.
+_check_overlay_scratch_fs() will check lowerdir of overlay filesystem,
+this case remove this directory after test will lead to check failure,
+and it is not really necessary to remove this directory, so keep this
+directory.
 
 Signed-off-by: zhangyi (F) <yi.zhang@huawei.com>
 ---
- tests/overlay/019 | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ tests/overlay/003 | 1 -
+ 1 file changed, 1 deletion(-)
 
-diff --git a/tests/overlay/019 b/tests/overlay/019
-index 3e2bc4e..575aaf7 100755
---- a/tests/overlay/019
-+++ b/tests/overlay/019
-@@ -46,7 +46,7 @@ rm -f $seqres.full
- # real QA test starts here
- _supported_fs overlay
- _supported_os Linux
--_require_scratch
-+_require_scratch_nocheck
+diff --git a/tests/overlay/003 b/tests/overlay/003
+index f980edb..154531e 100755
+--- a/tests/overlay/003
++++ b/tests/overlay/003
+@@ -92,7 +92,6 @@ ls ${SCRATCH_MNT}/
+ # unmount overlayfs but not base fs
+ $UMOUNT_PROG $SCRATCH_MNT
  
- # Remove all files from previous tests
- _scratch_mkfs
+-rm -rf $lowerdir
+ echo "Silence is golden"
+ # success, all done
+ status=0
 -- 
 2.9.5
