@@ -1,162 +1,116 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: overlayfs non-persistent inodes
-Date: Sat, 13 Jan 2018 06:38:48 +0200
-Message-ID: <CAOQ4uxjYmRrDb3V_JQsv3edXTXuD-eag=fJTBQsfqbZ1wvsEbA@mail.gmail.com>
-References: <20180113001902.GA10063@axis.com>
+Subject: Re: [PATCH v2 01/17] ovl: document NFS export
+Date: Sat, 13 Jan 2018 10:54:58 +0200
+Message-ID: <CAOQ4uxibP+3itm3XyUkiv3ekT+SHAcN=hoxC3b46_A+zAZB3Rg@mail.gmail.com>
+References: <1515086449-26563-1-git-send-email-amir73il@gmail.com>
+ <1515086449-26563-2-git-send-email-amir73il@gmail.com> <CAJfpegtJBS1PFZGoiBeGL_LhT4b1=w5fHw462wzUNcVekzLB+g@mail.gmail.com>
+ <CAOQ4uxhU5GDrE0MOnHWg+OaPUzp4GWaf0ryBzQHZ7fGsJGEqdg@mail.gmail.com>
+ <CAJfpeguBEXP8wA-DHATQasEQJgMcX44U-JMoY21T1o-eYi7ftQ@mail.gmail.com> <CAJfpegs1FLcH8O+1ay+G6wK+VNX7UpOF+QwdC3eCDWDFr+CowQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="94eb2c18931e16f9560562a0f591"
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-yb0-f177.google.com ([209.85.213.177]:35734 "EHLO
-        mail-yb0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S965415AbeAMEiu (ORCPT
+Received: from mail-yw0-f171.google.com ([209.85.161.171]:34479 "EHLO
+        mail-yw0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751225AbeAMIzA (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 12 Jan 2018 23:38:50 -0500
-In-Reply-To: <20180113001902.GA10063@axis.com>
+        Sat, 13 Jan 2018 03:55:00 -0500
+In-Reply-To: <CAJfpegs1FLcH8O+1ay+G6wK+VNX7UpOF+QwdC3eCDWDFr+CowQ@mail.gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Niklas Cassel <niklas.cassel@axis.com>
-Cc: Miklos Szeredi <mszeredi@redhat.com>, overlayfs <linux-unionfs@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: Jeff Layton <jlayton@poochiereds.net>, "J . Bruce Fields" <bfields@fieldses.org>, overlayfs <linux-unionfs@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>
 
---94eb2c18931e16f9560562a0f591
-Content-Type: text/plain; charset="UTF-8"
-
-On Sat, Jan 13, 2018 at 2:19 AM, Niklas Cassel <niklas.cassel@axis.com> wrote:
-> Hello Miklos, Amir
+On Fri, Jan 12, 2018 at 5:49 PM, Miklos Szeredi <miklos@szeredi.hu> wrote:
+> On Fri, Jan 12, 2018 at 4:43 PM, Miklos Szeredi <miklos@szeredi.hu> wrote:
+>> On Thu, Jan 11, 2018 at 5:26 PM, Amir Goldstein <amir73il@gmail.com> wrote:
 >
-> We are having some problems with inotify + overlayfs.
->
-> If we start to monitor a directory on an overlayfs,
-> and get into a low memory situation, or if
-> /proc/sys/vm/drop_caches is called explicitly,
-> our inotify stops reporting events.
->
-> This appears to be caused by non-persistent inodes.
-
-Not "non-persistent" inodes, but "non-unique" inodes.
-inotify pins overlay inode in memory, but because overlay
-directory inodes are not hashed in inode cache, after drop
-caches, if nothing holds a reference to overlay dentry,
-overlay lookup will allocate a new dentry with a new inode
-instead of re-using the inotify pinned inode.
-
->
-> Looking at the commits, it looked like inode numbers
-> were persistent since commit
-> b7a807dc2010 ("ovl: persistent inode number for directories").
->
-
-Persistent inode *number*, meaning that all non-unique overlay
-directory inodes have the same inode number - doesn't help
-inotify.
-
-> However, this doesn't seem to take different file systems
-> into account:
+>>> When decoding an upper dir, the decoded upper path is the same path as
+>>> the overlay path, so we lookup same path in overlay.
+>>>
+>>> When decoding a lower dir from layer 1, every ancestor is either still lower
+>>> (and therefore not renamed) or been copied up and indexed by lower inode,
+>>> so we can use index to know the path of every ancestor in overlay (or if it
+>>> has been removed).
+>>>
+>>> When decoding a lower dir from layer 2, there may be an ancestor in layer 2
+>>> covered by whiteout in layer 1 and redirected from another directory in layer 1.
+>>> In that case, we have no information in index to reconstruct the overlay path
+>>> from the connected layer 2 directory, hence, we cannot decode a connected
+>>> overlay directory from dir file handle encoded from layer 2.
+>>
+>> Now I understand: we are missing the back pointer from layer2 to
+>> layer1 that the index provides us when going from lower to upper.
+>>
+>> However, this is only needed if we end up below a redirecting layer.
+>> So we could limit copy-up to these cases.  It doesn't seem hard to
+>> keep track of highest layer that had a redirect in each overlay
+>> dentry, and when ending up on a layer below that, mark the overlay
+>> dentry COPY_UP_FOR_ENCODE.  This information is constant, since lower
+>> layers are immutable, so no worries there.  Can postpone this to a
+>> later version, but the takeaway is that we need to mark the fh to
+>> indicate if it's a merge upper or not.
 >
 
-Are you saying that inotify issue is not happening when layers
-are on same fs? I doubt that.
+I did not understand what you mean by marking to fh merge upper or not.
+In any case, the idea is to mark the dentries like these as ENCODE_UPPER,
+then not only they will be copied up on encode, but also *always* encoded as
+upper for consistency.
 
-Please try attached patch.
+> And BTW, we need to copy up only the directory that has the redirect,
+> since that's where we are missing the mapping in the lower layers.
+> Below that in the tree, we are fine, until we come across another
+> redirect, and so on...
+>
+
+I think that is a somewhat simplified description of the situation.
+Things can be more complicated, for example:
+
+layer1: /a/b (/a has redirect to 'A')
+layer2: /A/b/c/d
+layer3: /A/b/c/d/e/f
+
+When decoding the lower path /A/b/c/d, copy up of /a will index by
+layer1 dir /a and doesn't help with backward redirect from layer2 dir /A.
+
+Copy up of layer1 /a/b doesn't help either.
+
+We must find the ancestor of /A/b/c/d which is an 'uppermost lower',
+which is /A/b/c, and copy up/index that ancestor.
+
+So I *think* we need to store in lookup per dentry:
+- reconnect_layer_idx:
+The highest layer with a non-indexed redirect (can be upper layer
+in case of a non-indexed upper merge dir) among all ancestors.
+If we encode a file handle from dir in reconnect_layer or above,
+we can decode it and use decoded path to reconnect overlay dentry.
+- OVL_ENCODE_UPPER
+This is determined by combination of reconnect_layer_idx, the
+uppermost lower layer of self and uppermost lower layer of parent.
+I *think* the condition is:
+lowerpath[0]->layer->idx > parent->lowerpath[0]->layer->idx &&
+lowerpath[0]->layer->idx > reconnect_layer_idx
+
+In the example above, dentries /a/b/c and /a/b/c/d/e are marked
+OVL_ENCODE_UPPER. /a/b/c should be copied up when encoding
+/a/b/c/d and /a/b/c/d/e should be copied up when encoding /a/b/c/d/e/f.
+In reality, I assume nfsd always encodes /a/b/c on lookup of
+/a/b/c/d before encoding /a/b/c/d, but to be on the safe side, we
+need to take care of copy up of OVL_ENCODE_UPPER ancestor.
+
+
+This is my re-take on Documentation of this wrinkle:
+
+When overlay filesystem has multiple lower layers, a middle layer
+directory may have a "redirect" to lower directory.  Because middle layer
+"redirects" are not indexed, a lower file handle that was encoded from the
+"redirect" origin directory, cannot be used to find the middle or upper
+layer directory.  Similarly, a lower file handle that was encoded from a
+descendant of the "redirect" origin directory, cannot be used to
+reconstruct a connected overlay path.  To mitigate the cases of
+directories that cannot be decoded from a lower file handle, these
+directories are copied up on encode and encoded as an upper file handle.
+
+Let me know what you think.
 
 Thanks,
 Amir.
-
---94eb2c18931e16f9560562a0f591
-Content-Type: text/x-patch; charset="US-ASCII"; name="0001-ovl-hash-directory-inodes.patch"
-Content-Disposition: attachment;
-	filename="0001-ovl-hash-directory-inodes.patch"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_jccv3zli0
-
-RnJvbSA5NjM1ZWI4YmZlMjI1NDJhYjU0MzExNjEyNmE1N2E2NTE1NGZiODRlIE1vbiBTZXAgMTcg
-MDA6MDA6MDAgMjAwMQpGcm9tOiBBbWlyIEdvbGRzdGVpbiA8YW1pcjczaWxAZ21haWwuY29tPgpE
-YXRlOiBNb24sIDEwIEp1bCAyMDE3IDE1OjU1OjU1ICswMzAwClN1YmplY3Q6IFtQQVRDSF0gb3Zs
-OiBoYXNoIGRpcmVjdG9yeSBpbm9kZXMKCmZzbm90aWZ5IHBpbnMgYSB3YXRjaGVkIGRpcmVjdG9y
-eSBpbm9kZSBpbiBjYWNoZSwgYnV0IGlmIGRpcmVjdG9yeSBkZW50cnkKaXMgcmVsZWFzZWQsIG5l
-dyBsb29rdXAgd2lsbCBhbGxvY2F0ZSBhIG5ldyBkZW50cnkgYW5kIGEgbmV3IGlub2RlLgpEaXJl
-Y3RvcnkgZXZlbnRzIHdpbGwgYmUgbm90aWZpZWQgb24gdGhlIG5ldyBpbm9kZSwgd2hpbGUgZnNu
-b2l0eSBsaXN0ZW5lcgppcyB3YXRjaGluZyB0aGUgb2xkIHBpbm5lZCBpbm9kZS4KCkhhc2ggYWxs
-IGRpcmVjdG9yeSBpbm9kZXMgdG8gcmV1c2UgdGhlIHBpbm5lZCBpbm9kZSBvbiBsb29rdXAuIFB1
-cmUgdXBwZXIKZGlycyBhcmUgaGFzaGVzIGJ5IHJlYWwgdXBwZXIgaW5vZGUsIG1lcmdlIGFuZCBs
-b3dlciBkaXJzIGFyZSBoYXNoZWQgYnkKcmVhbCBsb3dlciBpbm9kZS4KClRoZSByZWZlcmVuY2Ug
-dG8gbG93ZXIgaW5vZGUgd2FzIGJlaW5nIGhlbGQgYnkgdGhlIGxvd2VyIGRlbnRyeSBvYmplY3QK
-aW4gdGhlIG92ZXJsYXkgZGVudHJ5IChvZS0+bG93ZXJzdGFja1swXSkuIFJlbGVhc2luZyB0aGUg
-b3ZlcmxheSBkZW50cnkKbWF5IGRyb3AgbG93ZXIgaW5vZGUgcmVmY291bnQgdG8gemVyby4gQWRk
-IGEgcmVmY291bnQgb24gYmVoYWxmIG9mIHRoZQpvdmVybGF5IGlub2RlIHRvIHByZXZlbnQgdGhh
-dC4KCkFzIGEgYnktcHJvZHVjdCwgaGFzaGluZyBkaXJlY3RvcnkgaW5vZGVzIGFsc28gZGV0ZWN0
-cyBtdWx0aXBsZQpyZWRpcmVjdGVkIGRpcnMgdG8gdGhlIHNhbWUgbG93ZXIgZGlyIGFuZCB1bmNv
-dmVyZWQgcmVkaXJlY3RlZCBkaXIKdGFyZ2V0IG9uIGFuZCByZXR1cm5zIC1FU1RBTEUgb24gbG9v
-a3VwLgoKUmVwb3J0ZWQtYnk6IE5pa2xhcyBDYXNzZWwgPG5pa2xhcy5jYXNzZWxAYXhpcy5jb20+
-ClNpZ25lZC1vZmYtYnk6IEFtaXIgR29sZHN0ZWluIDxhbWlyNzNpbEBnbWFpbC5jb20+Ci0tLQog
-ZnMvb3ZlcmxheWZzL2lub2RlLmMgfCAzMSArKysrKysrKysrKysrKysrKysrKysrKy0tLS0tLS0t
-CiBmcy9vdmVybGF5ZnMvc3VwZXIuYyB8ICAxICsKIGZzL292ZXJsYXlmcy91dGlsLmMgIHwgIDQg
-KystLQogMyBmaWxlcyBjaGFuZ2VkLCAyNiBpbnNlcnRpb25zKCspLCAxMCBkZWxldGlvbnMoLSkK
-CmRpZmYgLS1naXQgYS9mcy9vdmVybGF5ZnMvaW5vZGUuYyBiL2ZzL292ZXJsYXlmcy9pbm9kZS5j
-CmluZGV4IDAwYjZiMjk0MjcyYS4uMDkwZjk3MzVmNGVkIDEwMDY0NAotLS0gYS9mcy9vdmVybGF5
-ZnMvaW5vZGUuYworKysgYi9mcy9vdmVybGF5ZnMvaW5vZGUuYwpAQCAtNTUxLDcgKzU1MSw4IEBA
-IHVuc2lnbmVkIGludCBvdmxfZ2V0X25saW5rKHN0cnVjdCBkZW50cnkgKmxvd2VyZGVudHJ5LAog
-CWNoYXIgYnVmWzEzXTsKIAlpbnQgZXJyOwogCi0JaWYgKCFsb3dlcmRlbnRyeSB8fCAhdXBwZXJk
-ZW50cnkgfHwgZF9pbm9kZShsb3dlcmRlbnRyeSktPmlfbmxpbmsgPT0gMSkKKwlpZiAoIWxvd2Vy
-ZGVudHJ5IHx8ICF1cHBlcmRlbnRyeSB8fCBkX2lzX2Rpcihsb3dlcmRlbnRyeSkgfHwKKwkgICAg
-ZF9pbm9kZShsb3dlcmRlbnRyeSktPmlfbmxpbmsgPT0gMSkKIAkJcmV0dXJuIGZhbGxiYWNrOwog
-CiAJZXJyID0gdmZzX2dldHhhdHRyKHVwcGVyZGVudHJ5LCBPVkxfWEFUVFJfTkxJTkssICZidWYs
-IHNpemVvZihidWYpIC0gMSk7CkBAIC02MDYsNiArNjA3LDE2IEBAIHN0YXRpYyBpbnQgb3ZsX2lu
-b2RlX3NldChzdHJ1Y3QgaW5vZGUgKmlub2RlLCB2b2lkICpkYXRhKQogc3RhdGljIGJvb2wgb3Zs
-X3ZlcmlmeV9pbm9kZShzdHJ1Y3QgaW5vZGUgKmlub2RlLCBzdHJ1Y3QgZGVudHJ5ICpsb3dlcmRl
-bnRyeSwKIAkJCSAgICAgc3RydWN0IGRlbnRyeSAqdXBwZXJkZW50cnkpCiB7CisJaWYgKFNfSVNE
-SVIoaW5vZGUtPmlfbW9kZSkpIHsKKwkJLyogUmVhbCBsb3dlciBkaXIgbW92ZWQgdG8gdXBwZXIg
-bGF5ZXIgdW5kZXIgdXM/ICovCisJCWlmICghbG93ZXJkZW50cnkgJiYgb3ZsX2lub2RlX2xvd2Vy
-KGlub2RlKSkKKwkJCXJldHVybiBmYWxzZTsKKworCQkvKiBMb29rdXAgb2YgYW4gdW5jb3ZlcmVk
-IHJlZGlyZWN0IG9yaWdpbj8gKi8KKwkJaWYgKCF1cHBlcmRlbnRyeSAmJiBvdmxfaW5vZGVfdXBw
-ZXIoaW5vZGUpKQorCQkJcmV0dXJuIGZhbHNlOworCX0KKwogCS8qCiAJICogQWxsb3cgbm9uLU5V
-TEwgbG93ZXIgaW5vZGUgaW4gb3ZsX2lub2RlIGV2ZW4gaWYgbG93ZXJkZW50cnkgaXMgTlVMTC4K
-IAkgKiBUaGlzIGhhcHBlbnMgd2hlbiBmaW5kaW5nIGEgY29waWVkIHVwIG92ZXJsYXkgaW5vZGUg
-Zm9yIGEgcmVuYW1lZApAQCAtNjMzLDYgKzY0NCw3IEBAIHN0cnVjdCBpbm9kZSAqb3ZsX2dldF9p
-bm9kZShzdHJ1Y3QgZGVudHJ5ICpkZW50cnksIHN0cnVjdCBkZW50cnkgKnVwcGVyZGVudHJ5LAog
-CXN0cnVjdCBpbm9kZSAqaW5vZGU7CiAJLyogQWxyZWFkeSBpbmRleGVkIG9yIGNvdWxkIGJlIGlu
-ZGV4ZWQgb24gY29weSB1cD8gKi8KIAlib29sIGluZGV4ZWQgPSAoaW5kZXggfHwgKG92bF9pbmRl
-eGRpcihkZW50cnktPmRfc2IpICYmICF1cHBlcmRlbnRyeSkpOworCXN0cnVjdCBkZW50cnkgKm9y
-aWdpbiA9IGluZGV4ZWQgPyBsb3dlcmRlbnRyeSA6IE5VTEw7CiAKIAlpZiAoV0FSTl9PTih1cHBl
-cmRlbnRyeSAmJiBpbmRleGVkICYmICFsb3dlcmRlbnRyeSkpCiAJCXJldHVybiBFUlJfUFRSKC1F
-SU8pOwpAQCAtNjQxLDE0ICs2NTMsMTcgQEAgc3RydWN0IGlub2RlICpvdmxfZ2V0X2lub2RlKHN0
-cnVjdCBkZW50cnkgKmRlbnRyeSwgc3RydWN0IGRlbnRyeSAqdXBwZXJkZW50cnksCiAJCXJlYWxp
-bm9kZSA9IGRfaW5vZGUobG93ZXJkZW50cnkpOwogCiAJLyoKLQkgKiBDb3B5IHVwIG9yaWdpbiAo
-bG93ZXIpIG1heSBleGlzdCBmb3Igbm9uLWluZGV4ZWQgdXBwZXIsIGJ1dCB3ZSBtdXN0Ci0JICog
-bm90IHVzZSBsb3dlciBhcyBoYXNoIGtleSBpbiB0aGF0IGNhc2UuCi0JICogSGFzaCBpbm9kZXMg
-dGhhdCBhcmUgb3IgY291bGQgYmUgaW5kZXhlZCBieSBvcmlnaW4gaW5vZGUgYW5kCi0JICogbm9u
-LWluZGV4ZWQgdXBwZXIgaW5vZGVzIHRoYXQgY291bGQgYmUgaGFyZCBsaW5rZWQgYnkgdXBwZXIg
-aW5vZGUuCisJICogQ29weSB1cCBvcmlnaW4gKGxvd2VyKSBtYXkgZXhpc3QgZm9yIG5vbi1pbmRl
-eGVkIG5vbi1kaXIgdXBwZXIsIGJ1dAorCSAqIHdlIG11c3Qgbm90IHVzZSBsb3dlciBhcyBoYXNo
-IGtleSBpbiB0aGF0IGNhc2UuCisJICogSGFzaCBub24tZGlyIHRoYXQgaXMgb3IgY291bGQgYmUg
-aW5kZXhlZCBieSBvcmlnaW4gaW5vZGUuCisJICogSGFzaCBkaXIgdGhhdCBpcyBvciBjb3VsZCBi
-ZSBtZXJnZWQgYnkgb3JpZ2luIGlub2RlLgorCSAqIEhhc2ggcHVyZSB1cHBlciBhbmQgbm9uLWlu
-ZGV4ZWQgbm9uLWRpciBieSB1cHBlciBpbm9kZS4KIAkgKi8KLQlpZiAoIVNfSVNESVIocmVhbGlu
-b2RlLT5pX21vZGUpICYmICh1cHBlcmRlbnRyeSB8fCBpbmRleGVkKSkgewotCQlzdHJ1Y3QgaW5v
-ZGUgKmtleSA9IGRfaW5vZGUoaW5kZXhlZCA/IGxvd2VyZGVudHJ5IDoKLQkJCQkJCSAgICAgIHVw
-cGVyZGVudHJ5KTsKKwlpZiAoU19JU0RJUihyZWFsaW5vZGUtPmlfbW9kZSkpCisJCW9yaWdpbiA9
-IGxvd2VyZGVudHJ5OworCisJaWYgKHVwcGVyZGVudHJ5IHx8IG9yaWdpbikgeworCQlzdHJ1Y3Qg
-aW5vZGUgKmtleSA9IGRfaW5vZGUob3JpZ2luID86IHVwcGVyZGVudHJ5KTsKIAkJdW5zaWduZWQg
-aW50IG5saW5rOwogCiAJCWlub2RlID0gaWdldDVfbG9ja2VkKGRlbnRyeS0+ZF9zYiwgKHVuc2ln
-bmVkIGxvbmcpIGtleSwKZGlmZiAtLWdpdCBhL2ZzL292ZXJsYXlmcy9zdXBlci5jIGIvZnMvb3Zl
-cmxheWZzL3N1cGVyLmMKaW5kZXggNWY2ZDIzODVjMGIzLi4zMzg3ZTZkNjM5YTUgMTAwNjQ0Ci0t
-LSBhL2ZzL292ZXJsYXlmcy9zdXBlci5jCisrKyBiL2ZzL292ZXJsYXlmcy9zdXBlci5jCkBAIC0y
-MTEsNiArMjExLDcgQEAgc3RhdGljIHZvaWQgb3ZsX2Rlc3Ryb3lfaW5vZGUoc3RydWN0IGlub2Rl
-ICppbm9kZSkKIAlzdHJ1Y3Qgb3ZsX2lub2RlICpvaSA9IE9WTF9JKGlub2RlKTsKIAogCWRwdXQo
-b2ktPl9fdXBwZXJkZW50cnkpOworCWlwdXQob2ktPmxvd2VyKTsKIAlrZnJlZShvaS0+cmVkaXJl
-Y3QpOwogCW92bF9kaXJfY2FjaGVfZnJlZShpbm9kZSk7CiAJbXV0ZXhfZGVzdHJveSgmb2ktPmxv
-Y2spOwpkaWZmIC0tZ2l0IGEvZnMvb3ZlcmxheWZzL3V0aWwuYyBiL2ZzL292ZXJsYXlmcy91dGls
-LmMKaW5kZXggZDZiYjFjOWY1ZTdhLi4wNjExOWYzNGE2OWQgMTAwNjQ0Ci0tLSBhL2ZzL292ZXJs
-YXlmcy91dGlsLmMKKysrIGIvZnMvb3ZlcmxheWZzL3V0aWwuYwpAQCAtMjU3LDcgKzI1Nyw3IEBA
-IHZvaWQgb3ZsX2lub2RlX2luaXQoc3RydWN0IGlub2RlICppbm9kZSwgc3RydWN0IGRlbnRyeSAq
-dXBwZXJkZW50cnksCiAJaWYgKHVwcGVyZGVudHJ5KQogCQlPVkxfSShpbm9kZSktPl9fdXBwZXJk
-ZW50cnkgPSB1cHBlcmRlbnRyeTsKIAlpZiAobG93ZXJkZW50cnkpCi0JCU9WTF9JKGlub2RlKS0+
-bG93ZXIgPSBkX2lub2RlKGxvd2VyZGVudHJ5KTsKKwkJT1ZMX0koaW5vZGUpLT5sb3dlciA9IGln
-cmFiKGRfaW5vZGUobG93ZXJkZW50cnkpKTsKIAogCW92bF9jb3B5YXR0cihkX2lub2RlKHVwcGVy
-ZGVudHJ5ID86IGxvd2VyZGVudHJ5KSwgaW5vZGUpOwogfQpAQCAtMjczLDcgKzI3Myw3IEBAIHZv
-aWQgb3ZsX2lub2RlX3VwZGF0ZShzdHJ1Y3QgaW5vZGUgKmlub2RlLCBzdHJ1Y3QgZGVudHJ5ICp1
-cHBlcmRlbnRyeSkKIAkgKi8KIAlzbXBfd21iKCk7CiAJT1ZMX0koaW5vZGUpLT5fX3VwcGVyZGVu
-dHJ5ID0gdXBwZXJkZW50cnk7Ci0JaWYgKCFTX0lTRElSKHVwcGVyaW5vZGUtPmlfbW9kZSkgJiYg
-aW5vZGVfdW5oYXNoZWQoaW5vZGUpKSB7CisJaWYgKGlub2RlX3VuaGFzaGVkKGlub2RlKSkgewog
-CQlpbm9kZS0+aV9wcml2YXRlID0gdXBwZXJpbm9kZTsKIAkJX19pbnNlcnRfaW5vZGVfaGFzaChp
-bm9kZSwgKHVuc2lnbmVkIGxvbmcpIHVwcGVyaW5vZGUpOwogCX0KLS0gCjIuNy40Cgo=
---94eb2c18931e16f9560562a0f591--
