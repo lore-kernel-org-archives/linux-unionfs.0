@@ -1,65 +1,162 @@
-From: Niklas Cassel <niklas.cassel@axis.com>
-Subject: overlayfs non-persistent inodes
-Date: Sat, 13 Jan 2018 01:19:03 +0100
-Message-ID: <20180113001902.GA10063@axis.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Subject: Re: overlayfs non-persistent inodes
+Date: Sat, 13 Jan 2018 06:38:48 +0200
+Message-ID: <CAOQ4uxjYmRrDb3V_JQsv3edXTXuD-eag=fJTBQsfqbZ1wvsEbA@mail.gmail.com>
+References: <20180113001902.GA10063@axis.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/mixed; boundary="94eb2c18931e16f9560562a0f591"
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from bastet.se.axis.com ([195.60.68.11]:45634 "EHLO
-        bastet.se.axis.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S965312AbeAMATF (ORCPT
+Received: from mail-yb0-f177.google.com ([209.85.213.177]:35734 "EHLO
+        mail-yb0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S965415AbeAMEiu (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 12 Jan 2018 19:19:05 -0500
-Content-Disposition: inline
+        Fri, 12 Jan 2018 23:38:50 -0500
+In-Reply-To: <20180113001902.GA10063@axis.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: amir73il@gmail.com, mszeredi@redhat.com
-Cc: linux-unionfs@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Niklas Cassel <niklas.cassel@axis.com>
+Cc: Miklos Szeredi <mszeredi@redhat.com>, overlayfs <linux-unionfs@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>
 
-Hello Miklos, Amir
+--94eb2c18931e16f9560562a0f591
+Content-Type: text/plain; charset="UTF-8"
 
-We are having some problems with inotify + overlayfs.
+On Sat, Jan 13, 2018 at 2:19 AM, Niklas Cassel <niklas.cassel@axis.com> wrote:
+> Hello Miklos, Amir
+>
+> We are having some problems with inotify + overlayfs.
+>
+> If we start to monitor a directory on an overlayfs,
+> and get into a low memory situation, or if
+> /proc/sys/vm/drop_caches is called explicitly,
+> our inotify stops reporting events.
+>
+> This appears to be caused by non-persistent inodes.
 
-If we start to monitor a directory on an overlayfs,
-and get into a low memory situation, or if
-/proc/sys/vm/drop_caches is called explicitly,
-our inotify stops reporting events.
+Not "non-persistent" inodes, but "non-unique" inodes.
+inotify pins overlay inode in memory, but because overlay
+directory inodes are not hashed in inode cache, after drop
+caches, if nothing holds a reference to overlay dentry,
+overlay lookup will allocate a new dentry with a new inode
+instead of re-using the inotify pinned inode.
 
-This appears to be caused by non-persistent inodes.
+>
+> Looking at the commits, it looked like inode numbers
+> were persistent since commit
+> b7a807dc2010 ("ovl: persistent inode number for directories").
+>
 
-Looking at the commits, it looked like inode numbers
-were persistent since commit
-b7a807dc2010 ("ovl: persistent inode number for directories").
+Persistent inode *number*, meaning that all non-unique overlay
+directory inodes have the same inode number - doesn't help
+inotify.
 
-However, this doesn't seem to take different file systems
-into account:
+> However, this doesn't seem to take different file systems
+> into account:
+>
 
-# cat /proc/version
-Linux version 4.15.0-rc7-next-20180109-00003-gd1acc32c9ee5 (niklass@lnxartpec1)
- (gcc version 6.3.0 (crosstool-NG crosstool-ng-1.22.0-610-g21cde94)) #74
- SMP Fri Jan 12 13:23:57 CET 2018
-# mkdir -p /test/dir /mnt/tmp
-# mount -t tmpfs tmpfs /mnt/tmp
-# mkdir /mnt/tmp/.work-test /mnt/tmp/test
-# mount -t overlay overlay /test -o lowerdir=/test,upperdir=/mnt/tmp/test,
-workdir=/mnt/tmp/.work-test
-# ls -lid /test/dir
-   6313 drwxr-xr-x    2 root     root            40 Jan  1 00:01 /test/dir
-# echo 3 > /proc/sys/vm/drop_caches
-[  229.762380] sh (118): drop_caches: 3
-# ls -lid /test/dir
-   6318 drwxr-xr-x    2 root     root            40 Jan  1 00:01 /test/dir
+Are you saying that inotify issue is not happening when layers
+are on same fs? I doubt that.
 
+Please try attached patch.
 
-There are probably a few user space applications that
-rely on inotify. If inotify suddenly and silently stops
-reporting events after some memory pressure, all kinds
-of bugs could be introduced in user space.
+Thanks,
+Amir.
 
-I'm guessing that it will not be so easy to figure out
-that overlayfs might be the root-cause of their
-seemingly random bug.
+--94eb2c18931e16f9560562a0f591
+Content-Type: text/x-patch; charset="US-ASCII"; name="0001-ovl-hash-directory-inodes.patch"
+Content-Disposition: attachment;
+	filename="0001-ovl-hash-directory-inodes.patch"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_jccv3zli0
 
-
-Regards,
-Niklas
+RnJvbSA5NjM1ZWI4YmZlMjI1NDJhYjU0MzExNjEyNmE1N2E2NTE1NGZiODRlIE1vbiBTZXAgMTcg
+MDA6MDA6MDAgMjAwMQpGcm9tOiBBbWlyIEdvbGRzdGVpbiA8YW1pcjczaWxAZ21haWwuY29tPgpE
+YXRlOiBNb24sIDEwIEp1bCAyMDE3IDE1OjU1OjU1ICswMzAwClN1YmplY3Q6IFtQQVRDSF0gb3Zs
+OiBoYXNoIGRpcmVjdG9yeSBpbm9kZXMKCmZzbm90aWZ5IHBpbnMgYSB3YXRjaGVkIGRpcmVjdG9y
+eSBpbm9kZSBpbiBjYWNoZSwgYnV0IGlmIGRpcmVjdG9yeSBkZW50cnkKaXMgcmVsZWFzZWQsIG5l
+dyBsb29rdXAgd2lsbCBhbGxvY2F0ZSBhIG5ldyBkZW50cnkgYW5kIGEgbmV3IGlub2RlLgpEaXJl
+Y3RvcnkgZXZlbnRzIHdpbGwgYmUgbm90aWZpZWQgb24gdGhlIG5ldyBpbm9kZSwgd2hpbGUgZnNu
+b2l0eSBsaXN0ZW5lcgppcyB3YXRjaGluZyB0aGUgb2xkIHBpbm5lZCBpbm9kZS4KCkhhc2ggYWxs
+IGRpcmVjdG9yeSBpbm9kZXMgdG8gcmV1c2UgdGhlIHBpbm5lZCBpbm9kZSBvbiBsb29rdXAuIFB1
+cmUgdXBwZXIKZGlycyBhcmUgaGFzaGVzIGJ5IHJlYWwgdXBwZXIgaW5vZGUsIG1lcmdlIGFuZCBs
+b3dlciBkaXJzIGFyZSBoYXNoZWQgYnkKcmVhbCBsb3dlciBpbm9kZS4KClRoZSByZWZlcmVuY2Ug
+dG8gbG93ZXIgaW5vZGUgd2FzIGJlaW5nIGhlbGQgYnkgdGhlIGxvd2VyIGRlbnRyeSBvYmplY3QK
+aW4gdGhlIG92ZXJsYXkgZGVudHJ5IChvZS0+bG93ZXJzdGFja1swXSkuIFJlbGVhc2luZyB0aGUg
+b3ZlcmxheSBkZW50cnkKbWF5IGRyb3AgbG93ZXIgaW5vZGUgcmVmY291bnQgdG8gemVyby4gQWRk
+IGEgcmVmY291bnQgb24gYmVoYWxmIG9mIHRoZQpvdmVybGF5IGlub2RlIHRvIHByZXZlbnQgdGhh
+dC4KCkFzIGEgYnktcHJvZHVjdCwgaGFzaGluZyBkaXJlY3RvcnkgaW5vZGVzIGFsc28gZGV0ZWN0
+cyBtdWx0aXBsZQpyZWRpcmVjdGVkIGRpcnMgdG8gdGhlIHNhbWUgbG93ZXIgZGlyIGFuZCB1bmNv
+dmVyZWQgcmVkaXJlY3RlZCBkaXIKdGFyZ2V0IG9uIGFuZCByZXR1cm5zIC1FU1RBTEUgb24gbG9v
+a3VwLgoKUmVwb3J0ZWQtYnk6IE5pa2xhcyBDYXNzZWwgPG5pa2xhcy5jYXNzZWxAYXhpcy5jb20+
+ClNpZ25lZC1vZmYtYnk6IEFtaXIgR29sZHN0ZWluIDxhbWlyNzNpbEBnbWFpbC5jb20+Ci0tLQog
+ZnMvb3ZlcmxheWZzL2lub2RlLmMgfCAzMSArKysrKysrKysrKysrKysrKysrKysrKy0tLS0tLS0t
+CiBmcy9vdmVybGF5ZnMvc3VwZXIuYyB8ICAxICsKIGZzL292ZXJsYXlmcy91dGlsLmMgIHwgIDQg
+KystLQogMyBmaWxlcyBjaGFuZ2VkLCAyNiBpbnNlcnRpb25zKCspLCAxMCBkZWxldGlvbnMoLSkK
+CmRpZmYgLS1naXQgYS9mcy9vdmVybGF5ZnMvaW5vZGUuYyBiL2ZzL292ZXJsYXlmcy9pbm9kZS5j
+CmluZGV4IDAwYjZiMjk0MjcyYS4uMDkwZjk3MzVmNGVkIDEwMDY0NAotLS0gYS9mcy9vdmVybGF5
+ZnMvaW5vZGUuYworKysgYi9mcy9vdmVybGF5ZnMvaW5vZGUuYwpAQCAtNTUxLDcgKzU1MSw4IEBA
+IHVuc2lnbmVkIGludCBvdmxfZ2V0X25saW5rKHN0cnVjdCBkZW50cnkgKmxvd2VyZGVudHJ5LAog
+CWNoYXIgYnVmWzEzXTsKIAlpbnQgZXJyOwogCi0JaWYgKCFsb3dlcmRlbnRyeSB8fCAhdXBwZXJk
+ZW50cnkgfHwgZF9pbm9kZShsb3dlcmRlbnRyeSktPmlfbmxpbmsgPT0gMSkKKwlpZiAoIWxvd2Vy
+ZGVudHJ5IHx8ICF1cHBlcmRlbnRyeSB8fCBkX2lzX2Rpcihsb3dlcmRlbnRyeSkgfHwKKwkgICAg
+ZF9pbm9kZShsb3dlcmRlbnRyeSktPmlfbmxpbmsgPT0gMSkKIAkJcmV0dXJuIGZhbGxiYWNrOwog
+CiAJZXJyID0gdmZzX2dldHhhdHRyKHVwcGVyZGVudHJ5LCBPVkxfWEFUVFJfTkxJTkssICZidWYs
+IHNpemVvZihidWYpIC0gMSk7CkBAIC02MDYsNiArNjA3LDE2IEBAIHN0YXRpYyBpbnQgb3ZsX2lu
+b2RlX3NldChzdHJ1Y3QgaW5vZGUgKmlub2RlLCB2b2lkICpkYXRhKQogc3RhdGljIGJvb2wgb3Zs
+X3ZlcmlmeV9pbm9kZShzdHJ1Y3QgaW5vZGUgKmlub2RlLCBzdHJ1Y3QgZGVudHJ5ICpsb3dlcmRl
+bnRyeSwKIAkJCSAgICAgc3RydWN0IGRlbnRyeSAqdXBwZXJkZW50cnkpCiB7CisJaWYgKFNfSVNE
+SVIoaW5vZGUtPmlfbW9kZSkpIHsKKwkJLyogUmVhbCBsb3dlciBkaXIgbW92ZWQgdG8gdXBwZXIg
+bGF5ZXIgdW5kZXIgdXM/ICovCisJCWlmICghbG93ZXJkZW50cnkgJiYgb3ZsX2lub2RlX2xvd2Vy
+KGlub2RlKSkKKwkJCXJldHVybiBmYWxzZTsKKworCQkvKiBMb29rdXAgb2YgYW4gdW5jb3ZlcmVk
+IHJlZGlyZWN0IG9yaWdpbj8gKi8KKwkJaWYgKCF1cHBlcmRlbnRyeSAmJiBvdmxfaW5vZGVfdXBw
+ZXIoaW5vZGUpKQorCQkJcmV0dXJuIGZhbHNlOworCX0KKwogCS8qCiAJICogQWxsb3cgbm9uLU5V
+TEwgbG93ZXIgaW5vZGUgaW4gb3ZsX2lub2RlIGV2ZW4gaWYgbG93ZXJkZW50cnkgaXMgTlVMTC4K
+IAkgKiBUaGlzIGhhcHBlbnMgd2hlbiBmaW5kaW5nIGEgY29waWVkIHVwIG92ZXJsYXkgaW5vZGUg
+Zm9yIGEgcmVuYW1lZApAQCAtNjMzLDYgKzY0NCw3IEBAIHN0cnVjdCBpbm9kZSAqb3ZsX2dldF9p
+bm9kZShzdHJ1Y3QgZGVudHJ5ICpkZW50cnksIHN0cnVjdCBkZW50cnkgKnVwcGVyZGVudHJ5LAog
+CXN0cnVjdCBpbm9kZSAqaW5vZGU7CiAJLyogQWxyZWFkeSBpbmRleGVkIG9yIGNvdWxkIGJlIGlu
+ZGV4ZWQgb24gY29weSB1cD8gKi8KIAlib29sIGluZGV4ZWQgPSAoaW5kZXggfHwgKG92bF9pbmRl
+eGRpcihkZW50cnktPmRfc2IpICYmICF1cHBlcmRlbnRyeSkpOworCXN0cnVjdCBkZW50cnkgKm9y
+aWdpbiA9IGluZGV4ZWQgPyBsb3dlcmRlbnRyeSA6IE5VTEw7CiAKIAlpZiAoV0FSTl9PTih1cHBl
+cmRlbnRyeSAmJiBpbmRleGVkICYmICFsb3dlcmRlbnRyeSkpCiAJCXJldHVybiBFUlJfUFRSKC1F
+SU8pOwpAQCAtNjQxLDE0ICs2NTMsMTcgQEAgc3RydWN0IGlub2RlICpvdmxfZ2V0X2lub2RlKHN0
+cnVjdCBkZW50cnkgKmRlbnRyeSwgc3RydWN0IGRlbnRyeSAqdXBwZXJkZW50cnksCiAJCXJlYWxp
+bm9kZSA9IGRfaW5vZGUobG93ZXJkZW50cnkpOwogCiAJLyoKLQkgKiBDb3B5IHVwIG9yaWdpbiAo
+bG93ZXIpIG1heSBleGlzdCBmb3Igbm9uLWluZGV4ZWQgdXBwZXIsIGJ1dCB3ZSBtdXN0Ci0JICog
+bm90IHVzZSBsb3dlciBhcyBoYXNoIGtleSBpbiB0aGF0IGNhc2UuCi0JICogSGFzaCBpbm9kZXMg
+dGhhdCBhcmUgb3IgY291bGQgYmUgaW5kZXhlZCBieSBvcmlnaW4gaW5vZGUgYW5kCi0JICogbm9u
+LWluZGV4ZWQgdXBwZXIgaW5vZGVzIHRoYXQgY291bGQgYmUgaGFyZCBsaW5rZWQgYnkgdXBwZXIg
+aW5vZGUuCisJICogQ29weSB1cCBvcmlnaW4gKGxvd2VyKSBtYXkgZXhpc3QgZm9yIG5vbi1pbmRl
+eGVkIG5vbi1kaXIgdXBwZXIsIGJ1dAorCSAqIHdlIG11c3Qgbm90IHVzZSBsb3dlciBhcyBoYXNo
+IGtleSBpbiB0aGF0IGNhc2UuCisJICogSGFzaCBub24tZGlyIHRoYXQgaXMgb3IgY291bGQgYmUg
+aW5kZXhlZCBieSBvcmlnaW4gaW5vZGUuCisJICogSGFzaCBkaXIgdGhhdCBpcyBvciBjb3VsZCBi
+ZSBtZXJnZWQgYnkgb3JpZ2luIGlub2RlLgorCSAqIEhhc2ggcHVyZSB1cHBlciBhbmQgbm9uLWlu
+ZGV4ZWQgbm9uLWRpciBieSB1cHBlciBpbm9kZS4KIAkgKi8KLQlpZiAoIVNfSVNESVIocmVhbGlu
+b2RlLT5pX21vZGUpICYmICh1cHBlcmRlbnRyeSB8fCBpbmRleGVkKSkgewotCQlzdHJ1Y3QgaW5v
+ZGUgKmtleSA9IGRfaW5vZGUoaW5kZXhlZCA/IGxvd2VyZGVudHJ5IDoKLQkJCQkJCSAgICAgIHVw
+cGVyZGVudHJ5KTsKKwlpZiAoU19JU0RJUihyZWFsaW5vZGUtPmlfbW9kZSkpCisJCW9yaWdpbiA9
+IGxvd2VyZGVudHJ5OworCisJaWYgKHVwcGVyZGVudHJ5IHx8IG9yaWdpbikgeworCQlzdHJ1Y3Qg
+aW5vZGUgKmtleSA9IGRfaW5vZGUob3JpZ2luID86IHVwcGVyZGVudHJ5KTsKIAkJdW5zaWduZWQg
+aW50IG5saW5rOwogCiAJCWlub2RlID0gaWdldDVfbG9ja2VkKGRlbnRyeS0+ZF9zYiwgKHVuc2ln
+bmVkIGxvbmcpIGtleSwKZGlmZiAtLWdpdCBhL2ZzL292ZXJsYXlmcy9zdXBlci5jIGIvZnMvb3Zl
+cmxheWZzL3N1cGVyLmMKaW5kZXggNWY2ZDIzODVjMGIzLi4zMzg3ZTZkNjM5YTUgMTAwNjQ0Ci0t
+LSBhL2ZzL292ZXJsYXlmcy9zdXBlci5jCisrKyBiL2ZzL292ZXJsYXlmcy9zdXBlci5jCkBAIC0y
+MTEsNiArMjExLDcgQEAgc3RhdGljIHZvaWQgb3ZsX2Rlc3Ryb3lfaW5vZGUoc3RydWN0IGlub2Rl
+ICppbm9kZSkKIAlzdHJ1Y3Qgb3ZsX2lub2RlICpvaSA9IE9WTF9JKGlub2RlKTsKIAogCWRwdXQo
+b2ktPl9fdXBwZXJkZW50cnkpOworCWlwdXQob2ktPmxvd2VyKTsKIAlrZnJlZShvaS0+cmVkaXJl
+Y3QpOwogCW92bF9kaXJfY2FjaGVfZnJlZShpbm9kZSk7CiAJbXV0ZXhfZGVzdHJveSgmb2ktPmxv
+Y2spOwpkaWZmIC0tZ2l0IGEvZnMvb3ZlcmxheWZzL3V0aWwuYyBiL2ZzL292ZXJsYXlmcy91dGls
+LmMKaW5kZXggZDZiYjFjOWY1ZTdhLi4wNjExOWYzNGE2OWQgMTAwNjQ0Ci0tLSBhL2ZzL292ZXJs
+YXlmcy91dGlsLmMKKysrIGIvZnMvb3ZlcmxheWZzL3V0aWwuYwpAQCAtMjU3LDcgKzI1Nyw3IEBA
+IHZvaWQgb3ZsX2lub2RlX2luaXQoc3RydWN0IGlub2RlICppbm9kZSwgc3RydWN0IGRlbnRyeSAq
+dXBwZXJkZW50cnksCiAJaWYgKHVwcGVyZGVudHJ5KQogCQlPVkxfSShpbm9kZSktPl9fdXBwZXJk
+ZW50cnkgPSB1cHBlcmRlbnRyeTsKIAlpZiAobG93ZXJkZW50cnkpCi0JCU9WTF9JKGlub2RlKS0+
+bG93ZXIgPSBkX2lub2RlKGxvd2VyZGVudHJ5KTsKKwkJT1ZMX0koaW5vZGUpLT5sb3dlciA9IGln
+cmFiKGRfaW5vZGUobG93ZXJkZW50cnkpKTsKIAogCW92bF9jb3B5YXR0cihkX2lub2RlKHVwcGVy
+ZGVudHJ5ID86IGxvd2VyZGVudHJ5KSwgaW5vZGUpOwogfQpAQCAtMjczLDcgKzI3Myw3IEBAIHZv
+aWQgb3ZsX2lub2RlX3VwZGF0ZShzdHJ1Y3QgaW5vZGUgKmlub2RlLCBzdHJ1Y3QgZGVudHJ5ICp1
+cHBlcmRlbnRyeSkKIAkgKi8KIAlzbXBfd21iKCk7CiAJT1ZMX0koaW5vZGUpLT5fX3VwcGVyZGVu
+dHJ5ID0gdXBwZXJkZW50cnk7Ci0JaWYgKCFTX0lTRElSKHVwcGVyaW5vZGUtPmlfbW9kZSkgJiYg
+aW5vZGVfdW5oYXNoZWQoaW5vZGUpKSB7CisJaWYgKGlub2RlX3VuaGFzaGVkKGlub2RlKSkgewog
+CQlpbm9kZS0+aV9wcml2YXRlID0gdXBwZXJpbm9kZTsKIAkJX19pbnNlcnRfaW5vZGVfaGFzaChp
+bm9kZSwgKHVuc2lnbmVkIGxvbmcpIHVwcGVyaW5vZGUpOwogCX0KLS0gCjIuNy40Cgo=
+--94eb2c18931e16f9560562a0f591--
