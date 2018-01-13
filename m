@@ -1,325 +1,65 @@
-From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [PATCH v3 3/7] overlay: add fsck.overlay redirect directory test
-Date: Fri, 12 Jan 2018 23:32:18 +0200
-Message-ID: <CAOQ4uxi+5FOgsDc55d=Xvhfsk7G6j26g=3uaiqUcvunfFa_X2A@mail.gmail.com>
-References: <20180112120533.6099-1-yi.zhang@huawei.com> <20180112120533.6099-4-yi.zhang@huawei.com>
+From: Niklas Cassel <niklas.cassel@axis.com>
+Subject: overlayfs non-persistent inodes
+Date: Sat, 13 Jan 2018 01:19:03 +0100
+Message-ID: <20180113001902.GA10063@axis.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-yw0-f194.google.com ([209.85.161.194]:33220 "EHLO
-        mail-yw0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S965168AbeALVcT (ORCPT
+Received: from bastet.se.axis.com ([195.60.68.11]:45634 "EHLO
+        bastet.se.axis.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S965312AbeAMATF (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 12 Jan 2018 16:32:19 -0500
-In-Reply-To: <20180112120533.6099-4-yi.zhang@huawei.com>
+        Fri, 12 Jan 2018 19:19:05 -0500
+Content-Disposition: inline
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: "zhangyi (F)" <yi.zhang@huawei.com>
-Cc: overlayfs <linux-unionfs@vger.kernel.org>, fstests <fstests@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>, Eryu Guan <eguan@redhat.com>, Miao Xie <miaoxie@huawei.com>, yangerkun@huawei.com
+To: amir73il@gmail.com, mszeredi@redhat.com
+Cc: linux-unionfs@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Fri, Jan 12, 2018 at 2:05 PM, zhangyi (F) <yi.zhang@huawei.com> wrote:
-> Add fsck.overlay test case to test it how to deal with invalid/valid/
-> duplicate redirect xattr in underlying directories of overlayfs.
->
-> Signed-off-by: zhangyi (F) <yi.zhang@huawei.com>
+Hello Miklos, Amir
 
-Looks good, with some minor comments
+We are having some problems with inotify + overlayfs.
 
-> ---
->  tests/overlay/202     | 240 ++++++++++++++++++++++++++++++++++++++++++++++++++
->  tests/overlay/202.out |  10 +++
->  tests/overlay/group   |   1 +
->  3 files changed, 251 insertions(+)
->  create mode 100755 tests/overlay/202
->  create mode 100644 tests/overlay/202.out
->
-> diff --git a/tests/overlay/202 b/tests/overlay/202
-> new file mode 100755
-> index 0000000..84a7bad
-> --- /dev/null
-> +++ b/tests/overlay/202
-> @@ -0,0 +1,240 @@
-> +#! /bin/bash
-> +# FS QA Test 202
-> +#
-> +# Test fsck.overlay how to deal with redirect xattr in overlayfs.
-> +#
-> +#-----------------------------------------------------------------------
-> +# Copyright (c) 2017 Huawei.  All Rights Reserved.
-> +# Author: zhangyi (F) <yi.zhang@huawei.com>
-> +#
-> +# This program is free software; you can redistribute it and/or
-> +# modify it under the terms of the GNU General Public License as
-> +# published by the Free Software Foundation.
-> +#
-> +# This program is distributed in the hope that it would be useful,
-> +# but WITHOUT ANY WARRANTY; without even the implied warranty of
-> +# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> +# GNU General Public License for more details.
-> +#
-> +# You should have received a copy of the GNU General Public License
-> +# along with this program; if not, write the Free Software Foundation,
-> +# Inc.,  51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-> +#-----------------------------------------------------------------------
-> +#
-> +
-> +seq=`basename $0`
-> +seqres=$RESULT_DIR/$seq
-> +echo "QA output created by $seq"
-> +
-> +here=`pwd`
-> +tmp=/tmp/$$
-> +status=1        # failure is the default!
-> +trap "_cleanup; exit \$status" 0 1 2 3 15
-> +
-> +_cleanup()
-> +{
-> +       cd /
-> +       rm -f $tmp.*
-> +}
-> +
-> +# get standard environment, filters and checks
-> +. ./common/rc
-> +. ./common/filter
-> +. ./common/attr
-> +
-> +# remove previous $seqres.full before test
-> +rm -f $seqres.full
-> +
-> +# real QA test starts here
-> +_supported_fs overlay
-> +_supported_os Linux
-> +_require_scratch
-> +_require_attrs
-> +_require_command "$FSCK_OVERLAY_PROG" fsck.overlay
-> +
-> +# remove all files from previous tests
-> +_scratch_mkfs
-> +
-> +OVL_REDIRECT_XATTR="trusted.overlay.redirect"
-> +OVL_OPAQUE_XATTR="trusted.overlay.opaque"
-> +OVL_OPAQUE_XATTR_VAL="y"
-> +
-> +# Create a redirect directory
-> +make_redirect_dir()
-> +{
-> +       local target=$1
-> +       local value=$2
-> +
-> +       mkdir -p $target
-> +       $SETFATTR_PROG -n $OVL_REDIRECT_XATTR -v $value $target
-> +}
-> +
-> +# Check redirect xattr
-> +check_redirect()
-> +{
-> +       local target=$1
-> +       local expect=$2
-> +
-> +       value=$($GETFATTR_PROG --absolute-names --only-values -n \
-> +               $OVL_REDIRECT_XATTR $target)
-> +
-> +       [[ $value == $expect ]] || echo "Redirect xattr incorrect"
-> +}
-> +
-> +check_no_redirect()
-> +{
-> +       local target=$1
-> +
-> +       value=$($GETFATTR_PROG --absolute-names -d -m \
-> +               $OVL_REDIRECT_XATTR $target)
-> +
-> +       [[ -z "$value" ]] || echo "Redirect xattr not empty"
-> +}
-> +
-> +# Check opaque xattr
-> +check_opaque()
-> +{
-> +       local target=$1
-> +
-> +       value=$($GETFATTR_PROG --absolute-names --only-values -n \
-> +               $OVL_OPAQUE_XATTR $target)
-> +
-> +       [[ $value == $OVL_OPAQUE_XATTR_VAL ]] || echo "Opaque xattr incorrect"
-> +}
-> +
-> +# Check whiteout
-> +check_whiteout()
-> +{
-> +       local target=$1
-> +
-> +       target_type=`stat -c "%F:%t,%T" $target`
-> +
-> +       [[ $target_type == "character special file:0,0" ]] || \
-> +               echo "Whiteout missing"
-> +}
-> +
-> +# Create test directories
-> +lowerdir=$OVL_BASE_SCRATCH_MNT/lower
-> +lowerdir2=$OVL_BASE_SCRATCH_MNT/lower2
-> +upperdir=$OVL_BASE_SCRATCH_MNT/upper
-> +workdir=$OVL_BASE_SCRATCH_MNT/workdir
-> +
-> +make_test_dirs()
-> +{
-> +       rm -rf $lowerdir $lowerdir2 $upperdir $workdir
-> +       mkdir -p $lowerdir $lowerdir2 $upperdir $workdir
-> +}
-> +
-> +# Test invalid redirect xattr point to a nonexistent origin, should remove
-> +echo "+ Invalid redirect"
-> +make_test_dirs
-> +make_redirect_dir $upperdir/testdir "invalid"
-> +
-> +_overlay_fsck_dirs $lowerdir $upperdir $workdir -p >> $seqres.full 2>&1 || \
-> +       _fail "fsck should not fail"
-> +check_no_redirect $upperdir/testdir
-> +
-> +# Test invalid redirect xattr point to a file origin, should remove
-> +echo "+ Invalid redirect(2)"
-> +make_test_dirs
-> +touch $lowerdir/origin
-> +make_redirect_dir $upperdir/testdir "origin"
-> +
-> +_overlay_fsck_dirs $lowerdir $upperdir $workdir -p >> $seqres.full 2>&1 || \
-> +       _fail "fsck should not fail"
-> +check_no_redirect $upperdir/testdir
-> +
-> +# Test valid redirect xattr point to a directory origin in the same directory,
-> +# should not remove
-> +echo "+ Valid redirect"
-> +make_test_dirs
-> +mkdir $lowerdir/origin
-> +mknod $upperdir/origin c 0 0
+If we start to monitor a directory on an overlayfs,
+and get into a low memory situation, or if
+/proc/sys/vm/drop_caches is called explicitly,
+our inotify stops reporting events.
 
-I got spoiled from previous tests ;-) please use make_whiteout helper
-here as well.
+This appears to be caused by non-persistent inodes.
 
-> +make_redirect_dir $upperdir/testdir "origin"
-> +
-> +_overlay_fsck_dirs $lowerdir $upperdir $workdir -p >> $seqres.full 2>&1 || \
-> +       _fail "fsck should not fail"
-> +check_redirect $upperdir/testdir "origin"
-> +
-> +# Test valid redirect xattr point to a directory origin in different directories
-> +# should not remove
-> +echo "+ Valid redirect(2)"
-> +make_test_dirs
-> +mkdir $lowerdir/origin
-> +mknod $upperdir/origin c 0 0
-> +make_redirect_dir $upperdir/testdir1/testdir2 "/origin"
-> +
-> +_overlay_fsck_dirs $lowerdir $upperdir $workdir -p >> $seqres.full 2>&1 || \
-> +       _fail "fsck should not fail"
-> +check_redirect $upperdir/testdir1/testdir2 "/origin"
-> +
-> +# Test valid redirect xattr but missing whiteout to cover lower target,
-> +# should fix whiteout
-> +echo "+ Missing whiteout"
-> +make_test_dirs
-> +mkdir $lowerdir/origin
-> +make_redirect_dir $upperdir/testdir "origin"
-> +
-> +_overlay_fsck_dirs $lowerdir $upperdir $workdir -p >> $seqres.full 2>&1 || \
-> +       _fail "fsck should not fail"
-> +check_redirect $upperdir/testdir "origin"
-> +check_whiteout $upperdir/origin
-> +
-> +# Test valid redirect xattrs exchanged by rename, should not remove
-> +echo "+ Valid redirect(3)"
-> +make_test_dirs
-> +mkdir $lowerdir/{testdir1,testdir2}
-> +make_redirect_dir $upperdir/testdir1 "testdir2"
-> +make_redirect_dir $upperdir/testdir2 "testdir1"
-> +
-> +_overlay_fsck_dirs $lowerdir $upperdir $workdir -p >> $seqres.full 2>&1 || \
-> +       _fail "fsck should not fail"
-> +check_redirect $upperdir/testdir1 "testdir2"
-> +check_redirect $upperdir/testdir2 "testdir1"
-> +
-> +# Test invalid redirect xattr with lower same name directory exists,
-> +# should remove invalid redirect xattr and set opaque in yes mode
-> +echo "+ Invalid redirect(3)"
-> +make_test_dirs
-> +mkdir $lowerdir/testdir
-> +make_redirect_dir $upperdir/testdir "invalid"
-> +
-> +_overlay_fsck_dirs $lowerdir $upperdir $workdir -y >> $seqres.full 2>&1 || \
+Looking at the commits, it looked like inode numbers
+were persistent since commit
+b7a807dc2010 ("ovl: persistent inode number for directories").
 
-When using -y, better add a comment with the expected questions
-for whom Yes is the answer (even though one might deduce that from the
-expected results)
+However, this doesn't seem to take different file systems
+into account:
 
-> +       _fail "fsck should not fail"
-> +check_no_redirect $upperdir/testdir
-> +check_opaque $upperdir/testdir
-> +
-> +# Test duplicate redirect xattrs point to one origin, should fail in
-> +# auto mode, and should remove the duplicate one in yes mode
+# cat /proc/version
+Linux version 4.15.0-rc7-next-20180109-00003-gd1acc32c9ee5 (niklass@lnxartpec1)
+ (gcc version 6.3.0 (crosstool-NG crosstool-ng-1.22.0-610-g21cde94)) #74
+ SMP Fri Jan 12 13:23:57 CET 2018
+# mkdir -p /test/dir /mnt/tmp
+# mount -t tmpfs tmpfs /mnt/tmp
+# mkdir /mnt/tmp/.work-test /mnt/tmp/test
+# mount -t overlay overlay /test -o lowerdir=/test,upperdir=/mnt/tmp/test,
+workdir=/mnt/tmp/.work-test
+# ls -lid /test/dir
+   6313 drwxr-xr-x    2 root     root            40 Jan  1 00:01 /test/dir
+# echo 3 > /proc/sys/vm/drop_caches
+[  229.762380] sh (118): drop_caches: 3
+# ls -lid /test/dir
+   6318 drwxr-xr-x    2 root     root            40 Jan  1 00:01 /test/dir
 
-Better say "either of the duplicates" for clarity
 
-> +echo "+ Duplicate redirect"
-> +make_test_dirs
-> +mkdir $lowerdir2/origin
-> +make_redirect_dir $lowerdir/testdir1 "origin"
-> +make_redirect_dir $lowerdir/testdir2 "origin"
-> +make_redirect_dir $upperdir/testdir3 "origin"
-> +
-> +_overlay_fsck_dirs "$lowerdir:$lowerdir2" $upperdir $workdir -p >> \
-> +       $seqres.full 2>&1 && _fail "fsck should fail"
-> +_overlay_fsck_dirs "$lowerdir:$lowerdir2" $upperdir $workdir -y >> \
-> +       $seqres.full 2>&1 || _fail "fsck should not fail"
-> +redirect_1=`check_redirect $lowerdir/testdir1 "origin" 2>/dev/null`
-> +redirect_2=`check_redirect $lowerdir/testdir2 "origin" 2>/dev/null`
-> +[[ $redirect_1 == $redirect_2 ]] && echo "Redirect xattr incorrect"
-> +check_no_redirect $upperdir/testdir3
-> +
-> +# Test duplicate redirect xattr duplicate with merge directory, should
-> +# fail in auto mode, and should remove the redirect directory in yes mode
-> +echo "+ Duplicate redirect(2)"
-> +make_test_dirs
-> +mkdir $lowerdir/origin $upperdir/origin
-> +make_redirect_dir $upperdir/testdir "origin"
-> +
-> +_overlay_fsck_dirs $lowerdir $upperdir $workdir -p >> $seqres.full 2>&1 && \
-> +       _fail "fsck should fail"
-> +_overlay_fsck_dirs $lowerdir $upperdir $workdir -y >> $seqres.full 2>&1 || \
-> +       _fail "fsck should not fail"
-> +check_no_redirect $upperdir/testdir
+There are probably a few user space applications that
+rely on inotify. If inotify suddenly and silently stops
+reporting events after some memory pressure, all kinds
+of bugs could be introduced in user space.
 
-Maybe also worth to have $lowerdir/testdir and check_opaque $upperdir/testdir
-in this case? or add another case?
+I'm guessing that it will not be so easy to figure out
+that overlayfs might be the root-cause of their
+seemingly random bug.
 
-> +
-> +# success, all done
-> +status=0
-> +exit
-> diff --git a/tests/overlay/202.out b/tests/overlay/202.out
-> new file mode 100644
-> index 0000000..8473336
-> --- /dev/null
-> +++ b/tests/overlay/202.out
-> @@ -0,0 +1,10 @@
-> +QA output created by 202
-> ++ Invalid redirect
-> ++ Invalid redirect(2)
-> ++ Valid redirect
-> ++ Valid redirect(2)
-> ++ Missing whiteout
-> ++ Valid redirect(3)
-> ++ Invalid redirect(3)
-> ++ Duplicate redirect
-> ++ Duplicate redirect(2)
-> diff --git a/tests/overlay/group b/tests/overlay/group
-> index 7c5fcbb..e39b5e0 100644
-> --- a/tests/overlay/group
-> +++ b/tests/overlay/group
-> @@ -50,3 +50,4 @@
->  047 auto quick copyup hardlink
->  048 auto quick copyup hardlink
->  201 auto quick fsck
-> +202 auto quick fsck
-> --
-> 2.9.5
->
+
+Regards,
+Niklas
