@@ -1,116 +1,166 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [PATCH v2 01/17] ovl: document NFS export
-Date: Sat, 13 Jan 2018 10:54:58 +0200
-Message-ID: <CAOQ4uxibP+3itm3XyUkiv3ekT+SHAcN=hoxC3b46_A+zAZB3Rg@mail.gmail.com>
-References: <1515086449-26563-1-git-send-email-amir73il@gmail.com>
- <1515086449-26563-2-git-send-email-amir73il@gmail.com> <CAJfpegtJBS1PFZGoiBeGL_LhT4b1=w5fHw462wzUNcVekzLB+g@mail.gmail.com>
- <CAOQ4uxhU5GDrE0MOnHWg+OaPUzp4GWaf0ryBzQHZ7fGsJGEqdg@mail.gmail.com>
- <CAJfpeguBEXP8wA-DHATQasEQJgMcX44U-JMoY21T1o-eYi7ftQ@mail.gmail.com> <CAJfpegs1FLcH8O+1ay+G6wK+VNX7UpOF+QwdC3eCDWDFr+CowQ@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Subject: [PATCH] ovl: hash directory inodes for fsnotify
+Date: Sun, 14 Jan 2018 18:35:40 +0200
+Message-ID: <1515947740-16120-1-git-send-email-amir73il@gmail.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-yw0-f171.google.com ([209.85.161.171]:34479 "EHLO
-        mail-yw0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751225AbeAMIzA (ORCPT
+Received: from mail-wr0-f194.google.com ([209.85.128.194]:35253 "EHLO
+        mail-wr0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751766AbeANQeu (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Sat, 13 Jan 2018 03:55:00 -0500
-In-Reply-To: <CAJfpegs1FLcH8O+1ay+G6wK+VNX7UpOF+QwdC3eCDWDFr+CowQ@mail.gmail.com>
+        Sun, 14 Jan 2018 11:34:50 -0500
+Received: by mail-wr0-f194.google.com with SMTP id g38so6207095wrd.2
+        for <linux-unionfs@vger.kernel.org>; Sun, 14 Jan 2018 08:34:49 -0800 (PST)
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: Jeff Layton <jlayton@poochiereds.net>, "J . Bruce Fields" <bfields@fieldses.org>, overlayfs <linux-unionfs@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>
+Cc: Niklas Cassel <niklas.cassel@axis.com>, Jan Kara <jack@suse.cz>, linux-unionfs@vger.kernel.org
 
-On Fri, Jan 12, 2018 at 5:49 PM, Miklos Szeredi <miklos@szeredi.hu> wrote:
-> On Fri, Jan 12, 2018 at 4:43 PM, Miklos Szeredi <miklos@szeredi.hu> wrote:
->> On Thu, Jan 11, 2018 at 5:26 PM, Amir Goldstein <amir73il@gmail.com> wrote:
->
->>> When decoding an upper dir, the decoded upper path is the same path as
->>> the overlay path, so we lookup same path in overlay.
->>>
->>> When decoding a lower dir from layer 1, every ancestor is either still lower
->>> (and therefore not renamed) or been copied up and indexed by lower inode,
->>> so we can use index to know the path of every ancestor in overlay (or if it
->>> has been removed).
->>>
->>> When decoding a lower dir from layer 2, there may be an ancestor in layer 2
->>> covered by whiteout in layer 1 and redirected from another directory in layer 1.
->>> In that case, we have no information in index to reconstruct the overlay path
->>> from the connected layer 2 directory, hence, we cannot decode a connected
->>> overlay directory from dir file handle encoded from layer 2.
->>
->> Now I understand: we are missing the back pointer from layer2 to
->> layer1 that the index provides us when going from lower to upper.
->>
->> However, this is only needed if we end up below a redirecting layer.
->> So we could limit copy-up to these cases.  It doesn't seem hard to
->> keep track of highest layer that had a redirect in each overlay
->> dentry, and when ending up on a layer below that, mark the overlay
->> dentry COPY_UP_FOR_ENCODE.  This information is constant, since lower
->> layers are immutable, so no worries there.  Can postpone this to a
->> later version, but the takeaway is that we need to mark the fh to
->> indicate if it's a merge upper or not.
->
+fsnotify pins a watched directory inode in cache, but if directory dentry
+is released, new lookup will allocate a new dentry and a new inode.
+Directory events will be notified on the new inode, while fsnotify listener
+is watching the old pinned inode.
 
-I did not understand what you mean by marking to fh merge upper or not.
-In any case, the idea is to mark the dentries like these as ENCODE_UPPER,
-then not only they will be copied up on encode, but also *always* encoded as
-upper for consistency.
+Hash all directory inodes to reuse the pinned inode on lookup. Pure upper
+dirs are hashes by real upper inode, merge and lower dirs are hashed by
+real lower inode.
 
-> And BTW, we need to copy up only the directory that has the redirect,
-> since that's where we are missing the mapping in the lower layers.
-> Below that in the tree, we are fine, until we come across another
-> redirect, and so on...
->
+The reference to lower inode was being held by the lower dentry object
+in the overlay dentry (oe->lowerstack[0]). Releasing the overlay dentry
+may drop lower inode refcount to zero. Add a refcount on behalf of the
+overlay inode to prevent that.
 
-I think that is a somewhat simplified description of the situation.
-Things can be more complicated, for example:
+As a by-product, hashing directory inodes also detects multiple
+redirected dirs to the same lower dir and uncovered redirected dir
+target on and returns -ESTALE on lookup.
 
-layer1: /a/b (/a has redirect to 'A')
-layer2: /A/b/c/d
-layer3: /A/b/c/d/e/f
+The reported issue dates back to initial version of overlayfs, but this
+patch depends on ovl_inode code that was introduced in kernel v4.13.
 
-When decoding the lower path /A/b/c/d, copy up of /a will index by
-layer1 dir /a and doesn't help with backward redirect from layer2 dir /A.
+Cc: <stable@vger.kernel.org> #v4.13
+Reported-by: Niklas Cassel <niklas.cassel@axis.com>
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+---
 
-Copy up of layer1 /a/b doesn't help either.
+Miklos,
 
-We must find the ancestor of /A/b/c/d which is an 'uppermost lower',
-which is /A/b/c, and copy up/index that ancestor.
+Following the inotify issue report [1] from Niklas, I took the patch
+'hash directory inodes for NFS export' and applied it on top of my
+ovl-fixes [2] branch, without the NFS export condition.
 
-So I *think* we need to store in lookup per dentry:
-- reconnect_layer_idx:
-The highest layer with a non-indexed redirect (can be upper layer
-in case of a non-indexed upper merge dir) among all ancestors.
-If we encode a file handle from dir in reconnect_layer or above,
-we can decode it and use decoded path to reconnect overlay dentry.
-- OVL_ENCODE_UPPER
-This is determined by combination of reconnect_layer_idx, the
-uppermost lower layer of self and uppermost lower layer of parent.
-I *think* the condition is:
-lowerpath[0]->layer->idx > parent->lowerpath[0]->layer->idx &&
-lowerpath[0]->layer->idx > reconnect_layer_idx
+Because fixing the reported issue also requires the patch 'grab i_count
+reference of lower inode', I squashed them together, so applying a fix
+to stable kernels will be less error prone.
 
-In the example above, dentries /a/b/c and /a/b/c/d/e are marked
-OVL_ENCODE_UPPER. /a/b/c should be copied up when encoding
-/a/b/c/d and /a/b/c/d/e should be copied up when encoding /a/b/c/d/e/f.
-In reality, I assume nfsd always encodes /a/b/c on lookup of
-/a/b/c/d before encoding /a/b/c/d, but to be on the safe side, we
-need to take care of copy up of OVL_ENCODE_UPPER ancestor.
+I wrote an LTP test [3] to verify the issue and the fix.
 
-
-This is my re-take on Documentation of this wrinkle:
-
-When overlay filesystem has multiple lower layers, a middle layer
-directory may have a "redirect" to lower directory.  Because middle layer
-"redirects" are not indexed, a lower file handle that was encoded from the
-"redirect" origin directory, cannot be used to find the middle or upper
-layer directory.  Similarly, a lower file handle that was encoded from a
-descendant of the "redirect" origin directory, cannot be used to
-reconstruct a connected overlay path.  To mitigate the cases of
-directories that cannot be decoded from a lower file handle, these
-directories are copied up on encode and encoded as an upper file handle.
-
-Let me know what you think.
-
-Thanks,
 Amir.
+
+[1] https://marc.info/?l=linux-unionfs&m=151581833424827&w=2
+[2] https://github.com/amir73il/linux/commits/ovl-fixes
+[3] https://github.com/amir73il/ltp/commits/inotify-drop-caches
+
+ fs/overlayfs/inode.c | 31 +++++++++++++++++++++++--------
+ fs/overlayfs/super.c |  1 +
+ fs/overlayfs/util.c  |  4 ++--
+ 3 files changed, 26 insertions(+), 10 deletions(-)
+
+diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
+index 00b6b294272a..090f9735f4ed 100644
+--- a/fs/overlayfs/inode.c
++++ b/fs/overlayfs/inode.c
+@@ -551,7 +551,8 @@ unsigned int ovl_get_nlink(struct dentry *lowerdentry,
+ 	char buf[13];
+ 	int err;
+ 
+-	if (!lowerdentry || !upperdentry || d_inode(lowerdentry)->i_nlink == 1)
++	if (!lowerdentry || !upperdentry || d_is_dir(lowerdentry) ||
++	    d_inode(lowerdentry)->i_nlink == 1)
+ 		return fallback;
+ 
+ 	err = vfs_getxattr(upperdentry, OVL_XATTR_NLINK, &buf, sizeof(buf) - 1);
+@@ -606,6 +607,16 @@ static int ovl_inode_set(struct inode *inode, void *data)
+ static bool ovl_verify_inode(struct inode *inode, struct dentry *lowerdentry,
+ 			     struct dentry *upperdentry)
+ {
++	if (S_ISDIR(inode->i_mode)) {
++		/* Real lower dir moved to upper layer under us? */
++		if (!lowerdentry && ovl_inode_lower(inode))
++			return false;
++
++		/* Lookup of an uncovered redirect origin? */
++		if (!upperdentry && ovl_inode_upper(inode))
++			return false;
++	}
++
+ 	/*
+ 	 * Allow non-NULL lower inode in ovl_inode even if lowerdentry is NULL.
+ 	 * This happens when finding a copied up overlay inode for a renamed
+@@ -633,6 +644,7 @@ struct inode *ovl_get_inode(struct dentry *dentry, struct dentry *upperdentry,
+ 	struct inode *inode;
+ 	/* Already indexed or could be indexed on copy up? */
+ 	bool indexed = (index || (ovl_indexdir(dentry->d_sb) && !upperdentry));
++	struct dentry *origin = indexed ? lowerdentry : NULL;
+ 
+ 	if (WARN_ON(upperdentry && indexed && !lowerdentry))
+ 		return ERR_PTR(-EIO);
+@@ -641,14 +653,17 @@ struct inode *ovl_get_inode(struct dentry *dentry, struct dentry *upperdentry,
+ 		realinode = d_inode(lowerdentry);
+ 
+ 	/*
+-	 * Copy up origin (lower) may exist for non-indexed upper, but we must
+-	 * not use lower as hash key in that case.
+-	 * Hash inodes that are or could be indexed by origin inode and
+-	 * non-indexed upper inodes that could be hard linked by upper inode.
++	 * Copy up origin (lower) may exist for non-indexed non-dir upper, but
++	 * we must not use lower as hash key in that case.
++	 * Hash non-dir that is or could be indexed by origin inode.
++	 * Hash dir that is or could be merged by origin inode.
++	 * Hash pure upper and non-indexed non-dir by upper inode.
+ 	 */
+-	if (!S_ISDIR(realinode->i_mode) && (upperdentry || indexed)) {
+-		struct inode *key = d_inode(indexed ? lowerdentry :
+-						      upperdentry);
++	if (S_ISDIR(realinode->i_mode))
++		origin = lowerdentry;
++
++	if (upperdentry || origin) {
++		struct inode *key = d_inode(origin ?: upperdentry);
+ 		unsigned int nlink;
+ 
+ 		inode = iget5_locked(dentry->d_sb, (unsigned long) key,
+diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+index 5f6d2385c0b3..3387e6d639a5 100644
+--- a/fs/overlayfs/super.c
++++ b/fs/overlayfs/super.c
+@@ -211,6 +211,7 @@ static void ovl_destroy_inode(struct inode *inode)
+ 	struct ovl_inode *oi = OVL_I(inode);
+ 
+ 	dput(oi->__upperdentry);
++	iput(oi->lower);
+ 	kfree(oi->redirect);
+ 	ovl_dir_cache_free(inode);
+ 	mutex_destroy(&oi->lock);
+diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
+index d6bb1c9f5e7a..06119f34a69d 100644
+--- a/fs/overlayfs/util.c
++++ b/fs/overlayfs/util.c
+@@ -257,7 +257,7 @@ void ovl_inode_init(struct inode *inode, struct dentry *upperdentry,
+ 	if (upperdentry)
+ 		OVL_I(inode)->__upperdentry = upperdentry;
+ 	if (lowerdentry)
+-		OVL_I(inode)->lower = d_inode(lowerdentry);
++		OVL_I(inode)->lower = igrab(d_inode(lowerdentry));
+ 
+ 	ovl_copyattr(d_inode(upperdentry ?: lowerdentry), inode);
+ }
+@@ -273,7 +273,7 @@ void ovl_inode_update(struct inode *inode, struct dentry *upperdentry)
+ 	 */
+ 	smp_wmb();
+ 	OVL_I(inode)->__upperdentry = upperdentry;
+-	if (!S_ISDIR(upperinode->i_mode) && inode_unhashed(inode)) {
++	if (inode_unhashed(inode)) {
+ 		inode->i_private = upperinode;
+ 		__insert_inode_hash(inode, (unsigned long) upperinode);
+ 	}
+-- 
+2.7.4
