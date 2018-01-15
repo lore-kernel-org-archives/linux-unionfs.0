@@ -1,185 +1,151 @@
-From: Miklos Szeredi <miklos@szeredi.hu>
-Subject: Re: [PATCH v2 04/17] ovl: decode connected upper dir file handles
-Date: Mon, 15 Jan 2018 15:56:06 +0100
-Message-ID: <CAJfpegvCVX-YEMRDfKTYM2Au=2bNT3RcX=uNyt9KO1EmBJOvuA@mail.gmail.com>
-References: <1515086449-26563-1-git-send-email-amir73il@gmail.com>
- <1515086449-26563-5-git-send-email-amir73il@gmail.com> <CAJfpeguk+KVWkLr8ihGE0c8aDgaNHfnjf3DcuUQi1g5KZHObOw@mail.gmail.com>
- <CAOQ4uxijgqiAjKysA-HZFLa+b2nETMhq9aW8rjv=hwCq1B8tfw@mail.gmail.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Subject: Re: [PATCH v4] ovl: Improving syncfs efficiency
+Date: Mon, 15 Jan 2018 17:26:01 +0200
+Message-ID: <CAOQ4uxhfdLv3+w=5iO2duQVBjmXgdvVaAvYsxA48Xy2-cABDbg@mail.gmail.com>
+References: <1516001594-226478-1-git-send-email-cgxu519@icloud.com>
+ <CAJfpeguLEM-3OgvAzznsL_6Tj3aj0STEgs12WY9sZq++rwJcFA@mail.gmail.com>
+ <CAOQ4uxg6HvakDexhwunMcMwoJUoZs2t9syjA+A_Bi8QxnhOuCw@mail.gmail.com>
+ <CAJfpegtTUi51viUWE1tz3kvfGpwfj-kpivHQb=7vtr4tj5M+2g@mail.gmail.com> <9507D064-3327-4E83-BED3-E0DA880766BC@icloud.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-qk0-f196.google.com ([209.85.220.196]:45786 "EHLO
-        mail-qk0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933691AbeAOO4I (ORCPT
+Received: from mail-yb0-f172.google.com ([209.85.213.172]:33633 "EHLO
+        mail-yb0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S966384AbeAOP0C (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 15 Jan 2018 09:56:08 -0500
-Received: by mail-qk0-f196.google.com with SMTP id z12so17031707qkf.12
-        for <linux-unionfs@vger.kernel.org>; Mon, 15 Jan 2018 06:56:08 -0800 (PST)
-In-Reply-To: <CAOQ4uxijgqiAjKysA-HZFLa+b2nETMhq9aW8rjv=hwCq1B8tfw@mail.gmail.com>
+        Mon, 15 Jan 2018 10:26:02 -0500
+Received: by mail-yb0-f172.google.com with SMTP id c66so5139497ybf.0
+        for <linux-unionfs@vger.kernel.org>; Mon, 15 Jan 2018 07:26:02 -0800 (PST)
+In-Reply-To: <9507D064-3327-4E83-BED3-E0DA880766BC@icloud.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: Jeff Layton <jlayton@poochiereds.net>, "J . Bruce Fields" <bfields@fieldses.org>, overlayfs <linux-unionfs@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>
+To: Chengguang Xu <cgxu519@icloud.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, Jan Kara <jack@suse.cz>, overlayfs <linux-unionfs@vger.kernel.org>
 
-On Mon, Jan 15, 2018 at 1:20 PM, Amir Goldstein <amir73il@gmail.com> wrote:
-> On Mon, Jan 15, 2018 at 1:33 PM, Miklos Szeredi <miklos@szeredi.hu> wrote:
->> On Thu, Jan 4, 2018 at 6:20 PM, Amir Goldstein <amir73il@gmail.com> wrote:
->>> Until this change, we decoded upper file handles by instantiating an
->>> overlay dentry from the real upper dentry. This is sufficient to handle
->>> pure upper files, but insufficient to handle merge/impure dirs.
->>>
->>> To that end, if decoded real upper dir is connected and hashed, we
->>> lookup an overlay dentry with the same path as the real upper dir.
->>> If decoded real upper is non-dir, we instantiate a disconnected overlay
->>> dentry as before this change.
->>>
->>> Because ovl_fh_to_dentry() returns connected overlay dir dentries,
->>> exportfs never need to call get_parent() and get_name() to reconnect an
->>> upper overlay dir. Because connectable non-dir file handles are not
->>> supported, exportfs will not be able to use fh_to_parent() and get_name()
->>> methods to reconnect a disconnected non-dir to its parent. Therefore, the
->>> methods get_parent() and get_name() are implemented just to print out a
->>> sanity warning and the method fh_to_parent() is implemented to warn the
->>> user that using the 'subtree_check' exportfs option is not supported.
->>>
->>> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
->>> ---
->>>  fs/overlayfs/export.c | 172 +++++++++++++++++++++++++++++++++++++++++++++++++-
->>>  1 file changed, 171 insertions(+), 1 deletion(-)
->>>
->>> diff --git a/fs/overlayfs/export.c b/fs/overlayfs/export.c
->>> index 5c72784a0b4d..48ae02f3acb8 100644
->>> --- a/fs/overlayfs/export.c
->>> +++ b/fs/overlayfs/export.c
->>> @@ -130,6 +130,145 @@ static struct dentry *ovl_obtain_alias(struct super_block *sb,
->>>         return dentry;
->>>  }
->>>
->>> +/*
->>> + * Lookup a child overlay dentry whose real dentry is @real.
->>> + * If @is_upper is true then we lookup a child overlay dentry with the same
->>> + * name as the real dentry. Otherwise, we need to consult index for lookup.
->>> + */
->>> +static struct dentry *ovl_lookup_real_one(struct dentry *parent,
->>> +                                         struct dentry *real, bool is_upper)
->>> +{
->>> +       struct dentry *this;
->>> +       struct qstr *name = &real->d_name;
->>> +       int err;
->>> +
->>> +       /* TODO: use index when looking up by lower real dentry */
->>> +       if (!is_upper)
->>> +               return ERR_PTR(-EACCES);
->>> +
->>> +       /* Lookup overlay dentry by real name */
->>> +       this = lookup_one_len_unlocked(name->name, parent, name->len);
->>> +       err = PTR_ERR(this);
->>> +       if (IS_ERR(this)) {
->>> +               goto fail;
->>> +       } else if (!this || !this->d_inode) {
->>> +               dput(this);
->>> +               err = -ENOENT;
->>> +               goto fail;
->>> +       } else if (ovl_dentry_upper(this) != real) {
->>> +               dput(this);
->>> +               err = -ESTALE;
->>> +               goto fail;
->>> +       }
->>> +
->>> +       return this;
->>> +
->>> +fail:
->>> +       pr_warn_ratelimited("overlayfs: failed to lookup one by real (%pd2, is_upper=%d, parent=%pd2, err=%i)\n",
->>> +                           real, is_upper, parent, err);
->>> +       return ERR_PTR(err);
->>> +}
->>> +
->>> +/*
->>> + * Lookup an overlay dentry whose real dentry is @real.
->>> + * If @is_upper is true then we lookup an overlay dentry with the same path
->>> + * as the real dentry. Otherwise, we need to consult index for lookup.
->>> + */
->>> +static struct dentry *ovl_lookup_real(struct super_block *sb,
->>> +                                     struct dentry *real, bool is_upper)
->>> +{
->>> +       struct dentry *connected;
->>> +       int err = 0;
->>> +
->>> +       /* TODO: use index when looking up by lower real dentry */
->>> +       if (!is_upper)
->>> +               return ERR_PTR(-EACCES);
->>> +
->>> +       connected = dget(sb->s_root);
->>> +       while (!err) {
->>> +               struct dentry *next, *this;
->>> +               struct dentry *parent = NULL;
->>> +               struct dentry *real_connected = ovl_dentry_upper(connected);
->>> +
->>> +               if (real_connected == real)
->>> +                       break;
->>> +
->>> +               next = dget(real);
->>> +               /* find the topmost dentry not yet connected */
->>> +               for (;;) {
->>> +                       parent = dget_parent(next);
->>> +
->>> +                       if (real_connected == parent)
->>> +                               break;
->>> +
->>> +                       /*
->>> +                        * If real file has been moved out of the layer root
->>> +                        * directory, we will eventully hit the real fs root.
->>> +                        */
->>> +                       if (parent == next) {
->>> +                               err = -EXDEV;
->>> +                               break;
->>> +                       }
+On Mon, Jan 15, 2018 at 3:41 PM, Chengguang Xu <cgxu519@icloud.com> wrote:
 >>
->> This seems to assume no cross directory renames of directories in the
->> ancestry of "real", but AFAICS nothing prevents that.
->
-> Do you mean online modification of underlying fs? or rename in overlay?
-
-Rename in overlay.
-
-> For online modification fo underlying fs, I don't a reason to make it work.
-> -ESTALE would be a perfectly valid result in that case.
-
-Sure.
-
+>> =E5=9C=A8 2018=E5=B9=B41=E6=9C=8815=E6=97=A5=EF=BC=8C=E4=B8=8B=E5=8D=886=
+:19=EF=BC=8CMiklos Szeredi <miklos@szeredi.hu> =E5=86=99=E9=81=93=EF=BC=9A
 >>
->> Also why not use the inode cache to find already connected dirs?
->> Seems more efficient, than always going up to the root and going down
->> from there.
->
-> See patch [14/17] ovl: lookup connected ancestor of dir in inode cache
-> Sorry for ordering patches like this, it was more convenient to implement
-> the cold cache algorithm and then add hot cache into the mix.
-
-Okay.
-
+>> On Mon, Jan 15, 2018 at 11:10 AM, Amir Goldstein <amir73il@gmail.com> wr=
+ote:
+>>> On Mon, Jan 15, 2018 at 11:29 AM, Miklos Szeredi <miklos@szeredi.hu> wr=
+ote:
+>>>> On Mon, Jan 15, 2018 at 8:33 AM, Chengguang Xu <cgxu519@icloud.com> wr=
+ote:
+>>>>> Currently syncfs(2) call on overlayfs just simply call sync_filesyste=
+m()
+>>>>> on upper_sb to synchronize whole dirty inodes in upper filesystem
+>>>>> regardless of the overlay ownership of the inode. In the use case of
+>>>>> container, when multiple containers using the same underlying upper
+>>>>> filesystem, it has some shortcomings as below.
+>>>>>
+>>>>> (1) Performance
+>>>>> Synchronization is probably heavy because it actually syncs unnecessa=
+ry
+>>>>> inodes for target overlayfs.
+>>>>>
+>>>>> (2) Interference
+>>>>> Unplanned synchronization will probably impact IO performance of
+>>>>> irrelative container processes on the other overlayfs.
+>>>>>
+>>>>> This patch iterates upper inode list in overlayfs to only sync target
+>>>>> dirty inodes and wait for completion. By doing this, It is able to re=
+duce
+>>>>> cost of synchronization and will not seriously impact IO performance =
+of
+>>>>> irrelative processes. In special case, when having very few dirty ino=
+des
+>>>>> and a lot of clean upper inodes in overlayfs, then iteration may wast=
+e
+>>>>> time so that synchronization is slower than before, but we think the
+>>>>> potential for performance improvement far surpass the potential for
+>>>>> performance regression in most cases.
+>>>>>
+>>>>> Signed-off-by: Chengguang Xu <cgxu519@icloud.com>
+>>>>> ---
+>>>>> Changes since v3:
+>>>>> - Introduce upper_inode list to organize ovl indoe which has upper in=
+ode.
+>>>>
+>>>> Where is the inode removed from the list?  Should be done in
+>>>> ovl_destroy_inode().
+>>>>
+>>>> Problem is: we can drop the overlay inode even when the underlying
+>>>> inode is dirty, so we need to sync the upper inode before letting it
+>>>> go in ovl_destroy_inode().
+>>>>
+>>>
+>>> Isn't that a bit counter to the lazy inode writeback approach?
 >>
->> So, a working algorithm would be going up to the first connected
->> parent or root, lock parent, lookup name and restart.  Not guaranteed
->> to finish, since not protected against always racing with renames.
->> Can we take s_vfs_rename_sem on ovl to prevent that?
+>> Not really.  The dcache still keeps inodes and cache in memory, until
+>> there's memory pressure to get rid of the dentry itself.
+>>
+>> So this is about syncing the upper inode when the overlay dentry is
+>> flushed out of the dcache, which should not interfere with lazy
+>> writeback in general.
+>>
+>>> Won't this cause a change of behavior, e.g. by forcing data sync before
+>>> returning from close of file after a large write?
+>>
+>> No, file keeps a ref on dentry, which keeps a ref on inode +
+>> underlying dentries.
 >>
 >
-> Sounds like a simple and good enough solution.
-> Do we really need the locking of parent and restart connect if
-> we take s_vfs_rename_sem around ovl_lookup_real()?
+> Hi Miklos, Amir
+>
+> Thanks for your comments for the patch.
+>
+> If the speed of ovl inode destruction is not serious problem, I would lik=
+e to
+> implement like below, what do you think?
+>
+> In the process of ovl inode destruction:
+> (I will introduce evict operation and do below oprations there)
+>
+> 1. start syncing inode.
+> 2. add current inode to sb->s_inodes_wb list
+> 3. take sb->s_sync_lock and wait until all inode in the wait list finishi=
+ng syncing.
+> #Of course, we can only wait for specific inode, but is that really helpi=
+ng much?
+>
+> Maybe in the worst case, inode destruction will take time for the first i=
+node,
+> but I think it is not common for all inodes. The purpose of adding inode =
+to
+> sb->s_inodes_wb list is for data consistency of sync result, because I=E2=
+=80=99m afraid that
+> inode destruction will let dirty inode escaping from sync waiting list.
+>
 
-No, but s_vfs_rename_sem is a really heavyweight solution, we should
-do better than that for decoding a file handle.
+I don't see a flaw in this plan, but here is another alternative plan
+to consider:
 
-And we probably don't need anything else, since rename on ancestor
-means renamed dir is connected, and hopefully not evicted from the
-cache until we repeat the walk up.
+Implement drop_inode() operation (not evict_inode) as follows:
 
-So need to lock parent, lookup ovl dentry, verify we got the same
-upper, if not retry icache lookup.
+if inode->i_stat & I_WILL_FREE:
+    return 1 /* ok to evict */
+else if upper is dirty:
+    increment i_refcount
+    inode->i_stat |=3D I_WILL_FREE
+    add to sb->s_inodes_wb list
+    return 0 /* don't evict */
+else:
+    return 1 /* ok to evict */
 
-Not sure we need to worry about that "hopefully".  Hopefully not.
+If I am not wrong, this will let inode live a little longer with a
+single refcount
+on sb->s_inodes_wb list until a later umount or syncfs syncs the
+sb->s_inodes_wb list and drops the last refcount.
+
+This way on memory pressure, when many overlay inodes are evicted, we
+do not sync and wait on them one at a time, but like most fs, we sync and
+then wait on all of them on sync_filesystem() call.
+
+Hope I am not sending you on a dangerous adventure, so maybe consider
+the simple and slower implementation before trying this optimization.
 
 Thanks,
-Miklos
+Amir.
