@@ -1,372 +1,252 @@
-From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [PATCH v4] ovl: Improving syncfs efficiency
-Date: Mon, 15 Jan 2018 13:30:09 +0200
-Message-ID: <CAOQ4uxiHGS_t8JK+a25-Co55BdqhxASt6sTaf2rzJ0XWSdbjbQ@mail.gmail.com>
-References: <1516001594-226478-1-git-send-email-cgxu519@icloud.com>
+From: Miklos Szeredi <miklos@szeredi.hu>
+Subject: Re: [PATCH v2 04/17] ovl: decode connected upper dir file handles
+Date: Mon, 15 Jan 2018 12:33:27 +0100
+Message-ID: <CAJfpeguk+KVWkLr8ihGE0c8aDgaNHfnjf3DcuUQi1g5KZHObOw@mail.gmail.com>
+References: <1515086449-26563-1-git-send-email-amir73il@gmail.com> <1515086449-26563-5-git-send-email-amir73il@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-yw0-f194.google.com ([209.85.161.194]:38597 "EHLO
-        mail-yw0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751290AbeAOLaL (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 15 Jan 2018 06:30:11 -0500
-Received: by mail-yw0-f194.google.com with SMTP id m84so5271120ywd.5
-        for <linux-unionfs@vger.kernel.org>; Mon, 15 Jan 2018 03:30:11 -0800 (PST)
-In-Reply-To: <1516001594-226478-1-git-send-email-cgxu519@icloud.com>
-Sender: linux-unionfs-owner@vger.kernel.org
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
+In-Reply-To: <1515086449-26563-5-git-send-email-amir73il@gmail.com>
+Sender: linux-fsdevel-owner@vger.kernel.org
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: Jeff Layton <jlayton@poochiereds.net>, "J . Bruce Fields" <bfields@fieldses.org>, overlayfs <linux-unionfs@vger.kernel.org>, linux-fsdevel@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Chengguang Xu <cgxu519@icloud.com>
-Cc: Jan Kara <jack@suse.cz>, Miklos Szeredi <miklos@szeredi.hu>, overlayfs <linux-unionfs@vger.kernel.org>
 
-On Mon, Jan 15, 2018 at 9:33 AM, Chengguang Xu <cgxu519@icloud.com> wrote:
-> Currently syncfs(2) call on overlayfs just simply call sync_filesystem()
-> on upper_sb to synchronize whole dirty inodes in upper filesystem
-> regardless of the overlay ownership of the inode. In the use case of
-> container, when multiple containers using the same underlying upper
-> filesystem, it has some shortcomings as below.
+On Thu, Jan 4, 2018 at 6:20 PM, Amir Goldstein <amir73il@gmail.com> wrote:
+> Until this change, we decoded upper file handles by instantiating an
+> overlay dentry from the real upper dentry. This is sufficient to handle
+> pure upper files, but insufficient to handle merge/impure dirs.
 >
-> (1) Performance
-> Synchronization is probably heavy because it actually syncs unnecessary
-> inodes for target overlayfs.
+> To that end, if decoded real upper dir is connected and hashed, we
+> lookup an overlay dentry with the same path as the real upper dir.
+> If decoded real upper is non-dir, we instantiate a disconnected overlay
+> dentry as before this change.
 >
-> (2) Interference
-> Unplanned synchronization will probably impact IO performance of
-> irrelative container processes on the other overlayfs.
-
-s/irrelative/unrelated
-
+> Because ovl_fh_to_dentry() returns connected overlay dir dentries,
+> exportfs never need to call get_parent() and get_name() to reconnect an
+> upper overlay dir. Because connectable non-dir file handles are not
+> supported, exportfs will not be able to use fh_to_parent() and get_name()
+> methods to reconnect a disconnected non-dir to its parent. Therefore, the
+> methods get_parent() and get_name() are implemented just to print out a
+> sanity warning and the method fh_to_parent() is implemented to warn the
+> user that using the 'subtree_check' exportfs option is not supported.
 >
-> This patch iterates upper inode list in overlayfs to only sync target
-> dirty inodes and wait for completion. By doing this, It is able to reduce
-> cost of synchronization and will not seriously impact IO performance of
-> irrelative processes. In special case, when having very few dirty inodes
-
-unrelated processes
-
-> and a lot of clean upper inodes in overlayfs, then iteration may waste
-> time so that synchronization is slower than before, but we think the
-> potential for performance improvement far surpass the potential for
-> performance regression in most cases.
->
-> Signed-off-by: Chengguang Xu <cgxu519@icloud.com>
-
-Beyond Miklos's comment on removing inodes from list, a few more
-comments and nits below.
-
+> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 > ---
-> Changes since v3:
-> - Introduce upper_inode list to organize ovl indoe which has upper inode.
-> - Avoid iput operation inside spin lock.
-> - Change list iteration method for safety.
-> - Reuse inode->i_wb_list and sb->s_inodes_wb to save memory.
-> - Modify commit log and add more comments to the code.
+>  fs/overlayfs/export.c | 172 +++++++++++++++++++++++++++++++++++++++++++++++++-
+>  1 file changed, 171 insertions(+), 1 deletion(-)
 >
-> Changes since v2:
-> - Decoupling with syncfs of upper fs by taking sb->s_sync_lock of
-> overlayfs.
-> - Factoring out sync operation to different helpers for easy understanding.
->
-> Changes since v1:
-> - If upper filesystem is readonly mode then skip synchronization.
-> - Introduce global wait list to replace temporary wait list for
-> concurrent synchronization.
->
->  fs/overlayfs/ovl_entry.h |   5 ++
->  fs/overlayfs/super.c     | 167 ++++++++++++++++++++++++++++++++++++++++++++++-
->  fs/overlayfs/util.c      |  13 +++-
->  3 files changed, 181 insertions(+), 4 deletions(-)
->
-> diff --git a/fs/overlayfs/ovl_entry.h b/fs/overlayfs/ovl_entry.h
-> index 9d0bc03..53909ba 100644
-> --- a/fs/overlayfs/ovl_entry.h
-> +++ b/fs/overlayfs/ovl_entry.h
-> @@ -52,6 +52,9 @@ struct ovl_fs {
->         /* Did we take the inuse lock? */
->         bool upperdir_locked;
->         bool workdir_locked;
-> +       /* upper inode list and lock */
-> +       spinlock_t upper_inodes_lock;
-> +       struct list_head upper_inodes;
->  };
->
->  /* private information held for every overlayfs dentry */
-> @@ -80,6 +83,8 @@ struct ovl_inode {
->
->         /* synchronize copy up and more */
->         struct mutex lock;
-> +       /* upper inodes list */
-> +       struct list_head upper_inodes_list;
->  };
->
->  static inline struct ovl_inode *OVL_I(struct inode *inode)
-> diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-> index 76440fe..39fb331 100644
-> --- a/fs/overlayfs/super.c
-> +++ b/fs/overlayfs/super.c
-> @@ -17,6 +17,8 @@
->  #include <linux/statfs.h>
->  #include <linux/seq_file.h>
->  #include <linux/posix_acl_xattr.h>
-> +#include <linux/writeback.h>
-> +#include <linux/blkdev.h>
->  #include "overlayfs.h"
->
->  MODULE_AUTHOR("Miklos Szeredi <miklos@szeredi.hu>");
-> @@ -195,6 +197,7 @@ static struct inode *ovl_alloc_inode(struct super_block *sb)
->         oi->__upperdentry = NULL;
->         oi->lower = NULL;
->         mutex_init(&oi->lock);
-> +       INIT_LIST_HEAD(&oi->upper_inodes_list);
->
->         return &oi->vfs_inode;
->  }
-> @@ -252,6 +255,159 @@ static void ovl_put_super(struct super_block *sb)
->         ovl_free_fs(ofs);
+> diff --git a/fs/overlayfs/export.c b/fs/overlayfs/export.c
+> index 5c72784a0b4d..48ae02f3acb8 100644
+> --- a/fs/overlayfs/export.c
+> +++ b/fs/overlayfs/export.c
+> @@ -130,6 +130,145 @@ static struct dentry *ovl_obtain_alias(struct super_block *sb,
+>         return dentry;
 >  }
 >
-> +/**
-> + * ovl_sync_inodes
-> + * @sb: The overlayfs super block
-> + *
-> + * upper_inodes list is used for organizing ovl inode which has upper inode,
-> + * by iterating the list to looking for and syncing dirty upper inode.
-> + *
-> + * When starting syncing inode, we add the inode to wait list explicitly,
-> + * in order to save memory we reuse inode->i_wb_list and sb->s_inodes_wb,
-> + * so those fields have slightly differnt meanings in overlayfs.
+> +/*
+> + * Lookup a child overlay dentry whose real dentry is @real.
+> + * If @is_upper is true then we lookup a child overlay dentry with the same
+> + * name as the real dentry. Otherwise, we need to consult index for lookup.
 > + */
-> +static void ovl_sync_inodes(struct super_block *sb)
+> +static struct dentry *ovl_lookup_real_one(struct dentry *parent,
+> +                                         struct dentry *real, bool is_upper)
 > +{
-> +       struct ovl_fs *ofs = sb->s_fs_info;
-> +       struct ovl_inode *oi;
-> +       struct inode *inode, *iput_inode = NULL;
-> +       struct inode *upper_inode;
-> +       struct blk_plug plug;
+> +       struct dentry *this;
+> +       struct qstr *name = &real->d_name;
+> +       int err;
 > +
-> +       struct writeback_control wbc = {
-> +               .sync_mode              = WB_SYNC_ALL,
-> +               .for_sync               = 1,
-> +               .range_start            = 0,
-> +               .range_end              = LLONG_MAX,
-> +               .nr_to_write            = LONG_MAX,
-> +       };
+> +       /* TODO: use index when looking up by lower real dentry */
+> +       if (!is_upper)
+> +               return ERR_PTR(-EACCES);
 > +
-> +       blk_start_plug(&plug);
-> +       spin_lock(&ofs->upper_inodes_lock);
-> +       list_for_each_entry(oi, &ofs->upper_inodes, upper_inodes_list) {
-> +               inode = &oi->vfs_inode;
-> +
-> +               spin_lock(&inode->i_lock);
-> +               if (inode->i_state & (I_NEW | I_FREEING | I_WILL_FREE)) {
-> +                       spin_unlock(&inode->i_lock);
-> +                       continue;
-> +               }
-> +
-> +               if (!atomic_read(&inode->i_count)) {
-> +                       spin_unlock(&inode->i_lock);
-> +                       continue;
-> +               }
-> +
-> +               ihold(inode);
-> +               upper_inode = ovl_inode_upper(inode);
-> +               spin_unlock(&inode->i_lock);
-> +
-> +               spin_lock(&upper_inode->i_lock);
-> +               if (!(upper_inode->i_state & I_DIRTY_ALL)) {
-> +                       iput_inode = inode;
-> +                       spin_unlock(&upper_inode->i_lock);
-> +                       continue;
-
-continue may not get to do anything with iput_inode before
-assigning the next non dirty inode to iput_inode.
-Didn't you mean to call iput(iput_inode) sooner?
-
-> +               }
-> +               spin_unlock(&upper_inode->i_lock);
-> +               spin_unlock(&ofs->upper_inodes_lock);
-> +
-> +               if (iput_inode)
-> +                       iput(iput_inode);
-> +
-> +               sync_inode(upper_inode, &wbc);
-> +
-> +               spin_lock(&sb->s_inode_wblist_lock);
-> +               if (list_empty(&inode->i_wb_list)) {
-> +                       list_add_tail(&inode->i_wb_list, &sb->s_inodes_wb);
-> +               /*
-> +                * Hold referece of ovl inode
-> +                * until finishing waiting on the inode.
-> +                */
-
-Wrong indentation and I think you should move this comment outside
-if case and drop the {}, in any case if you have {} in if you should also
-have {} in else.
-
-> +                       iput_inode = NULL;
-> +               } else
-> +                       iput_inode = inode;
-> +               spin_unlock(&sb->s_inode_wblist_lock);
-> +
-> +               if (need_resched()) {
-> +                       blk_finish_plug(&plug);
-> +                       cond_resched();
-> +                       blk_start_plug(&plug);
-> +               }
-> +
-> +               spin_lock(&ofs->upper_inodes_lock);
+> +       /* Lookup overlay dentry by real name */
+> +       this = lookup_one_len_unlocked(name->name, parent, name->len);
+> +       err = PTR_ERR(this);
+> +       if (IS_ERR(this)) {
+> +               goto fail;
+> +       } else if (!this || !this->d_inode) {
+> +               dput(this);
+> +               err = -ENOENT;
+> +               goto fail;
+> +       } else if (ovl_dentry_upper(this) != real) {
+> +               dput(this);
+> +               err = -ESTALE;
+> +               goto fail;
 > +       }
-> +       spin_unlock(&ofs->upper_inodes_lock);
-> +       blk_finish_plug(&plug);
 > +
-> +       if (iput_inode)
-> +               iput(iput_inode);
+> +       return this;
+> +
+> +fail:
+> +       pr_warn_ratelimited("overlayfs: failed to lookup one by real (%pd2, is_upper=%d, parent=%pd2, err=%i)\n",
+> +                           real, is_upper, parent, err);
+> +       return ERR_PTR(err);
 > +}
 > +
-> +static void ovl_wait_inodes(struct super_block *sb)
+> +/*
+> + * Lookup an overlay dentry whose real dentry is @real.
+> + * If @is_upper is true then we lookup an overlay dentry with the same path
+> + * as the real dentry. Otherwise, we need to consult index for lookup.
+> + */
+> +static struct dentry *ovl_lookup_real(struct super_block *sb,
+> +                                     struct dentry *real, bool is_upper)
 > +{
-> +       LIST_HEAD(sync_list);
-> +       struct inode *inode;
-> +       struct inode *upper_inode;
+> +       struct dentry *connected;
+> +       int err = 0;
 > +
-> +       mutex_lock(&sb->s_sync_lock);
+> +       /* TODO: use index when looking up by lower real dentry */
+> +       if (!is_upper)
+> +               return ERR_PTR(-EACCES);
+> +
+> +       connected = dget(sb->s_root);
+> +       while (!err) {
+> +               struct dentry *next, *this;
+> +               struct dentry *parent = NULL;
+> +               struct dentry *real_connected = ovl_dentry_upper(connected);
+> +
+> +               if (real_connected == real)
+> +                       break;
+> +
+> +               next = dget(real);
+> +               /* find the topmost dentry not yet connected */
+> +               for (;;) {
+> +                       parent = dget_parent(next);
+> +
+> +                       if (real_connected == parent)
+> +                               break;
+> +
+> +                       /*
+> +                        * If real file has been moved out of the layer root
+> +                        * directory, we will eventully hit the real fs root.
+> +                        */
+> +                       if (parent == next) {
+> +                               err = -EXDEV;
+> +                               break;
+> +                       }
+
+This seems to assume no cross directory renames of directories in the
+ancestry of "real", but AFAICS nothing prevents that.
+
+Also why not use the inode cache to find already connected dirs?
+Seems more efficient, than always going up to the root and going down
+from there.
+
+So, a working algorithm would be going up to the first connected
+parent or root, lock parent, lookup name and restart.  Not guaranteed
+to finish, since not protected against always racing with renames.
+Can we take s_vfs_rename_sem on ovl to prevent that?
+
+> +
+> +                       dput(next);
+> +                       next = parent;
+> +               }
+> +
+> +               if (!err) {
+> +                       this = ovl_lookup_real_one(connected, next, is_upper);
+> +                       if (!IS_ERR(this)) {
+> +                               dput(connected);
+> +                               connected = this;
+> +                       } else {
+> +                               err = PTR_ERR(this);
+> +                       }
+> +               }
+> +
+> +               dput(parent);
+> +               dput(next);
+> +       }
+> +
+> +       if (err)
+> +               goto fail;
+> +
+> +       return connected;
+> +
+> +fail:
+> +       pr_warn_ratelimited("overlayfs: failed to lookup by real (%pd2, is_upper=%d, connected=%pd2, err=%i)\n",
+> +                           real, is_upper, connected, err);
+> +       dput(connected);
+> +       return ERR_PTR(err);
+> +}
+> +
+> +/*
+> + * Get an overlay dentry from upper/lower real dentries.
+> + */
+> +static struct dentry *ovl_get_dentry(struct super_block *sb,
+> +                                    struct dentry *upper,
+> +                                    struct ovl_path *lowerpath)
+> +{
+> +       /* TODO: get non-upper dentry */
+> +       if (!upper)
+> +               return ERR_PTR(-EACCES);
+> +
 > +       /*
-> +        * Splice the sync wait list onto a temporary list to avoid waiting on
-> +        * inodes that have started writeback after this point.
+> +        * Obtain a disconnected overlay dentry from a non-dir real upper
+> +        * dentry.
 > +        */
-> +       spin_lock(&sb->s_inode_wblist_lock);
-> +       list_splice_init(&sb->s_inodes_wb, &sync_list);
-> +       spin_unlock(&sb->s_inode_wblist_lock);
+> +       if (!d_is_dir(upper))
+> +               return ovl_obtain_alias(sb, upper, NULL);
 > +
-> +       while (!list_empty(&sync_list)) {
-> +               inode = list_first_entry(&sync_list, struct inode, i_wb_list);
-> +               list_del_init(&inode->i_wb_list);
+> +       /* Removed empty directory? */
+> +       if ((upper->d_flags & DCACHE_DISCONNECTED) || d_unhashed(upper))
+> +               return ERR_PTR(-ENOENT);
 > +
-> +               spin_lock(&inode->i_lock);
-> +               if (inode->i_state & (I_NEW | I_FREEING | I_WILL_FREE)) {
-> +                       spin_unlock(&inode->i_lock);
-> +                       iput(inode);
-> +                       continue;
-> +               }
-> +
-> +               upper_inode = ovl_inode_upper(inode);
-> +               spin_unlock(&inode->i_lock);
-> +
-> +               if (!mapping_tagged(upper_inode->i_mapping,
-> +                               PAGECACHE_TAG_WRITEBACK)) {
-> +                       iput(inode);
-> +                       continue;
-> +               }
-> +
-> +               filemap_fdatawait_keep_errors(upper_inode->i_mapping);
-> +
-> +               if (need_resched())
-> +                       cond_resched();
-> +
-> +               iput(inode);
-> +       }
-> +       mutex_unlock(&sb->s_sync_lock);
+> +       /*
+> +        * If real upper dentry is connected and hashed, get a connected
+> +        * overlay dentry with the same path as the real upper dentry.
+> +        */
+> +       return ovl_lookup_real(sb, upper, true);
 > +}
 > +
-> +/**
-> + * ovl_sync_filesystem
-> + * @sb: The overlayfs super block
-> + *
-> + * Sync underlying dirty inodes in upper filesystem and wait for completion.
-> + */
-> +static int ovl_sync_filesystem(struct super_block *sb)
+>  static struct dentry *ovl_upper_fh_to_d(struct super_block *sb,
+>                                         struct ovl_fh *fh)
+>  {
+> @@ -144,7 +283,7 @@ static struct dentry *ovl_upper_fh_to_d(struct super_block *sb,
+>         if (IS_ERR_OR_NULL(upper))
+>                 return upper;
+>
+> -       dentry = ovl_obtain_alias(sb, upper, NULL);
+> +       dentry = ovl_get_dentry(sb, upper, NULL);
+>         dput(upper);
+>
+>         return dentry;
+> @@ -183,7 +322,38 @@ static struct dentry *ovl_fh_to_dentry(struct super_block *sb, struct fid *fid,
+>         return ERR_PTR(err);
+>  }
+>
+> +static struct dentry *ovl_fh_to_parent(struct super_block *sb, struct fid *fid,
+> +                                      int fh_len, int fh_type)
 > +{
-> +       struct ovl_fs *ofs = sb->s_fs_info;
-> +       struct super_block *upper_sb = ofs->upper_mnt->mnt_sb;
-> +
-> +       ovl_sync_inodes(sb);
-> +       ovl_wait_inodes(sb);
-> +
-> +       if (upper_sb->s_op->sync_fs)
-> +               upper_sb->s_op->sync_fs(upper_sb, 1);
-> +
-> +       return sync_blockdev(upper_sb->s_bdev);
+> +       pr_warn_ratelimited("overlayfs: connectable file handles not supported; use 'no_subtree_check' exportfs option.\n");
+> +       return ERR_PTR(-EACCES);
 > +}
 > +
->  /* Sync real dirty inodes in upper filesystem (if it exists) */
->  static int ovl_sync_fs(struct super_block *sb, int wait)
->  {
-> @@ -266,17 +422,19 @@ static int ovl_sync_fs(struct super_block *sb, int wait)
->          * If this is a sync(2) call or an emergency sync, all the super blocks
->          * will be iterated, including upper_sb, so no need to do anything.
->          *
-> -        * If this is a syncfs(2) call, then we do need to call
-> -        * sync_filesystem() on upper_sb, but enough if we do it when being
-> +        * If this is a syncfs(2) call, then we do need to call sync_inode()
-> +        * on underlying dirty upper_inode, but enough if we do it when being
->          * called with wait == 1.
->          */
->         if (!wait)
->                 return 0;
->
->         upper_sb = ofs->upper_mnt->mnt_sb;
-> +       if (sb_rdonly(upper_sb))
-> +               return 0;
->
->         down_read(&upper_sb->s_umount);
-> -       ret = sync_filesystem(upper_sb);
-> +       ret = ovl_sync_filesystem(sb);
->         up_read(&upper_sb->s_umount);
-
-The boundaries between ovl_sync_fs() and ovl_sync_filesystem() are now very
-strange.. taking upper_sb s_umount  lock outside and passing in sb etc.
-I am not sure that ovl_sync/wait_inodes() should be called under upper_sb
-s_umount lock at all. Remember we are already holding sb s_umount lock.
-I suggest, now that ovl_sync/wait_inodes() have been factored out, to squash
-ovl_sync_filesystem() back into ovl_sync_fs() and hold the s_umount lock
-only around s_op->sync_fs() and sync_blockdev().
-
->
->         return ret;
-> @@ -1202,6 +1360,9 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
->         if (!ofs)
->                 goto out;
->
-> +       spin_lock_init(&ofs->upper_inodes_lock);
-> +       INIT_LIST_HEAD(&ofs->upper_inodes);
+> +static int ovl_get_name(struct dentry *parent, char *name,
+> +                       struct dentry *child)
+> +{
+> +       /*
+> +        * ovl_fh_to_dentry() returns connected dir overlay dentries and
+> +        * ovl_fh_to_parent() is not implemented, so we should not get here.
+> +        */
+> +       WARN_ON_ONCE(1);
+> +       return -EIO;
+> +}
 > +
->         ofs->creator_cred = cred = prepare_creds();
->         if (!cred)
->                 goto out_err;
-> diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
-> index d6bb1c9..4d0521a 100644
-> --- a/fs/overlayfs/util.c
-> +++ b/fs/overlayfs/util.c
-> @@ -254,8 +254,14 @@ void ovl_dentry_set_redirect(struct dentry *dentry, const char *redirect)
->  void ovl_inode_init(struct inode *inode, struct dentry *upperdentry,
->                     struct dentry *lowerdentry)
->  {
-> -       if (upperdentry)
-> +       struct ovl_fs *ofs = inode->i_sb->s_fs_info;
+> +static struct dentry *ovl_get_parent(struct dentry *dentry)
+> +{
+> +       /*
+> +        * ovl_fh_to_dentry() returns connected dir overlay dentries, so we
+> +        * should not get here.
+> +        */
+> +       WARN_ON_ONCE(1);
+> +       return ERR_PTR(-EIO);
+> +}
 > +
-> +       if (upperdentry) {
->                 OVL_I(inode)->__upperdentry = upperdentry;
-> +               spin_lock(&ofs->upper_inodes_lock);
-> +               list_add(&OVL_I(inode)->upper_inodes_list, &ofs->upper_inodes);
-> +               spin_unlock(&ofs->upper_inodes_lock);
-> +       }
-
-
-I checked the callers of ovl_inode_init() and ovl_inode_update() and I believe
-the code duplication in this patch can be avoided by changing the code to:
-
-         if (upperdentry)
--                 OVL_I(inode)->__upperdentry = upperdentry;
-+                 ovl_inode_update(inode, upperdentry);
-
-After the patch "ovl: hash directory inodes for fsnotify" this change will cause
-the root overlay dir to also be hashed from ovl_inode_init() call in
-ovl_fill_super(),
-but that is not a bad thing. It is even needed for NFS export anyway.
-
-Anyway, if you do make this change, please submit it in a separate patch and if
-you don't make this change, please create a small helper to reduce this code
-duplication.
-
-Thanks,
-Amir.
+>  const struct export_operations ovl_export_operations = {
+>         .encode_fh      = ovl_encode_inode_fh,
+>         .fh_to_dentry   = ovl_fh_to_dentry,
+> +       .fh_to_parent   = ovl_fh_to_parent,
+> +       .get_name       = ovl_get_name,
+> +       .get_parent     = ovl_get_parent,
+>  };
+> --
+> 2.7.4
+>
