@@ -1,42 +1,40 @@
 From: Chengguang Xu <cgxu519@icloud.com>
 Subject: Re: [PATCH v4] ovl: Improving syncfs efficiency
-Date: Mon, 15 Jan 2018 20:35:11 +0800
-Message-ID: <E375813F-AD52-4BE5-B294-69741305C46A@icloud.com>
+Date: Mon, 15 Jan 2018 21:41:43 +0800
+Message-ID: <9507D064-3327-4E83-BED3-E0DA880766BC@icloud.com>
 References: <1516001594-226478-1-git-send-email-cgxu519@icloud.com>
- <CAOQ4uxiHGS_t8JK+a25-Co55BdqhxASt6sTaf2rzJ0XWSdbjbQ@mail.gmail.com>
- <164E0FA4-DB91-4CC5-9408-E8F53D9652E7@icloud.com>
- <CAOQ4uxjDuLTFkwtpUJGRn7qhmBbxdm+Bnz3vFHdcbKVefi+vEg@mail.gmail.com>
+ <CAJfpeguLEM-3OgvAzznsL_6Tj3aj0STEgs12WY9sZq++rwJcFA@mail.gmail.com>
+ <CAOQ4uxg6HvakDexhwunMcMwoJUoZs2t9syjA+A_Bi8QxnhOuCw@mail.gmail.com>
+ <CAJfpegtTUi51viUWE1tz3kvfGpwfj-kpivHQb=7vtr4tj5M+2g@mail.gmail.com>
 Mime-Version: 1.0 (Mac OS X Mail 11.2 \(3445.5.20\))
 Content-Type: text/plain; charset=gb2312
 Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from pv33p36im-asmtp002.me.com ([17.142.213.63]:44697 "EHLO
+Received: from pv33p36im-asmtp002.me.com ([17.142.213.63]:53885 "EHLO
         pv33p36im-asmtp002.me.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753741AbeAOMfY (ORCPT
+        with ESMTP id S966570AbeAONmF (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 15 Jan 2018 07:35:24 -0500
+        Mon, 15 Jan 2018 08:42:05 -0500
 Received: from process-dkim-sign-daemon.pv33p36im-asmtp002.me.com by
  pv33p36im-asmtp002.me.com
  (Oracle Communications Messaging Server 8.0.1.2.20170607 64bit (built Jun  7
- 2017)) id <0P2L00500K0ZJF00@pv33p36im-asmtp002.me.com> for
- linux-unionfs@vger.kernel.org; Mon, 15 Jan 2018 12:35:23 +0000 (GMT)
-In-reply-to: <CAOQ4uxjDuLTFkwtpUJGRn7qhmBbxdm+Bnz3vFHdcbKVefi+vEg@mail.gmail.com>
+ 2017)) id <0P2L00O00N5L3V00@pv33p36im-asmtp002.me.com> for
+ linux-unionfs@vger.kernel.org; Mon, 15 Jan 2018 13:41:55 +0000 (GMT)
+In-reply-to: <CAJfpegtTUi51viUWE1tz3kvfGpwfj-kpivHQb=7vtr4tj5M+2g@mail.gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: Jan Kara <jack@suse.cz>, Miklos Szeredi <miklos@szeredi.hu>, overlayfs <linux-unionfs@vger.kernel.org>
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: Amir Goldstein <amir73il@gmail.com>, Jan Kara <jack@suse.cz>, overlayfs <linux-unionfs@vger.kernel.org>
 
 >=20
-> =D4=DA 2018=C4=EA1=D4=C215=C8=D5=A3=AC=CF=C2=CE=E78:27=A3=ACAmir =
-Goldstein <amir73il@gmail.com> =D0=B4=B5=C0=A3=BA
+> =D4=DA 2018=C4=EA1=D4=C215=C8=D5=A3=AC=CF=C2=CE=E76:19=A3=ACMiklos =
+Szeredi <miklos@szeredi.hu> =D0=B4=B5=C0=A3=BA
 >=20
-> On Mon, Jan 15, 2018 at 2:19 PM, Chengguang Xu <cgxu519@icloud.com> =
+> On Mon, Jan 15, 2018 at 11:10 AM, Amir Goldstein <amir73il@gmail.com> =
 wrote:
->>>=20
->>> =D4=DA 2018=C4=EA1=D4=C215=C8=D5=A3=AC=CF=C2=CE=E77:30=A3=ACAmir =
-Goldstein <amir73il@gmail.com> =D0=B4=B5=C0=A3=BA
->>>=20
->>> On Mon, Jan 15, 2018 at 9:33 AM, Chengguang Xu <cgxu519@icloud.com> =
+>> On Mon, Jan 15, 2018 at 11:29 AM, Miklos Szeredi <miklos@szeredi.hu> =
+wrote:
+>>> On Mon, Jan 15, 2018 at 8:33 AM, Chengguang Xu <cgxu519@icloud.com> =
 wrote:
 >>>> Currently syncfs(2) call on overlayfs just simply call =
 sync_filesystem()
@@ -54,9 +52,6 @@ unnecessary
 >>>> (2) Interference
 >>>> Unplanned synchronization will probably impact IO performance of
 >>>> irrelative container processes on the other overlayfs.
->>>=20
->>> s/irrelative/unrelated
->>>=20
 >>>>=20
 >>>> This patch iterates upper inode list in overlayfs to only sync =
 target
@@ -66,9 +61,6 @@ reduce
 performance of
 >>>> irrelative processes. In special case, when having very few dirty =
 inodes
->>>=20
->>> unrelated processes
->>>=20
 >>>> and a lot of clean upper inodes in overlayfs, then iteration may =
 waste
 >>>> time so that synchronization is slower than before, but we think =
@@ -77,93 +69,63 @@ the
 >>>> performance regression in most cases.
 >>>>=20
 >>>> Signed-off-by: Chengguang Xu <cgxu519@icloud.com>
->>>=20
->>> Beyond Miklos's comment on removing inodes from list, a few more
->>> comments and nits below.
->>>=20
 >>>> ---
-> [...]
->>>> +/**
->>>> + * ovl_sync_filesystem
->>>> + * @sb: The overlayfs super block
->>>> + *
->>>> + * Sync underlying dirty inodes in upper filesystem and wait for =
-completion.
->>>> + */
->>>> +static int ovl_sync_filesystem(struct super_block *sb)
->>>> +{
->>>> +       struct ovl_fs *ofs =3D sb->s_fs_info;
->>>> +       struct super_block *upper_sb =3D ofs->upper_mnt->mnt_sb;
->>>> +
->>>> +       ovl_sync_inodes(sb);
->>>> +       ovl_wait_inodes(sb);
->>>> +
->>>> +       if (upper_sb->s_op->sync_fs)
->>>> +               upper_sb->s_op->sync_fs(upper_sb, 1);
->>>> +
->>>> +       return sync_blockdev(upper_sb->s_bdev);
->>>> +}
->>>> +
->>>> /* Sync real dirty inodes in upper filesystem (if it exists) */
->>>> static int ovl_sync_fs(struct super_block *sb, int wait)
->>>> {
->>>> @@ -266,17 +422,19 @@ static int ovl_sync_fs(struct super_block =
-*sb, int wait)
->>>>        * If this is a sync(2) call or an emergency sync, all the =
-super blocks
->>>>        * will be iterated, including upper_sb, so no need to do =
-anything.
->>>>        *
->>>> -        * If this is a syncfs(2) call, then we do need to call
->>>> -        * sync_filesystem() on upper_sb, but enough if we do it =
-when being
->>>> +        * If this is a syncfs(2) call, then we do need to call =
-sync_inode()
->>>> +        * on underlying dirty upper_inode, but enough if we do it =
-when being
->>>>        * called with wait =3D=3D 1.
->>>>        */
->>>>       if (!wait)
->>>>               return 0;
->>>>=20
->>>>       upper_sb =3D ofs->upper_mnt->mnt_sb;
->>>> +       if (sb_rdonly(upper_sb))
->>>> +               return 0;
->>>>=20
->>>>       down_read(&upper_sb->s_umount);
->>>> -       ret =3D sync_filesystem(upper_sb);
->>>> +       ret =3D ovl_sync_filesystem(sb);
->>>>       up_read(&upper_sb->s_umount);
+>>>> Changes since v3:
+>>>> - Introduce upper_inode list to organize ovl indoe which has upper =
+inode.
 >>>=20
->>> The boundaries between ovl_sync_fs() and ovl_sync_filesystem() are =
-now very
->>> strange.. taking upper_sb s_umount  lock outside and passing in sb =
-etc.
->>> I am not sure that ovl_sync/wait_inodes() should be called under =
-upper_sb
->>> s_umount lock at all. Remember we are already holding sb s_umount =
-lock.
->>> I suggest, now that ovl_sync/wait_inodes() have been factored out, =
-to squash
->>> ovl_sync_filesystem() back into ovl_sync_fs() and hold the s_umount =
-lock
->>> only around s_op->sync_fs() and sync_blockdev().
+>>> Where is the inode removed from the list?  Should be done in
+>>> ovl_destroy_inode().
+>>>=20
+>>> Problem is: we can drop the overlay inode even when the underlying
+>>> inode is dirty, so we need to sync the upper inode before letting it
+>>> go in ovl_destroy_inode().
+>>>=20
 >>=20
->> =46rom the comment in sync_filesystem, s_umount is used for against =
-the filesystem going
->> from r/o to r/w or vice versa. so I think it is necessary and should =
-move readonly
->> check inside ovl_sync_filesystem() to get the protection.
->>=20
+>> Isn't that a bit counter to the lazy inode writeback approach?
 >=20
-> Right, but the interface between the 2 functions looks weird, so
-> please either get rid of
-> ovl_sync_filesystem() entirely and move its code into ovl_sync_fs()
-> under the s_umount
-> lock where needed or move the s_umount lock and sb_rdonly() test into
-> ovl_sync_filesystem(sb), which leaves ovl_sync_fs() pretty slim.
+> Not really.  The dcache still keeps inodes and cache in memory, until
+> there's memory pressure to get rid of the dentry itself.
+>=20
+> So this is about syncing the upper inode when the overlay dentry is
+> flushed out of the dcache, which should not interfere with lazy
+> writeback in general.
+>=20
+>> Won't this cause a change of behavior, e.g. by forcing data sync =
+before
+>> returning from close of file after a large write?
+>=20
+> No, file keeps a ref on dentry, which keeps a ref on inode +
+> underlying dentries.
+>=20
 
-OKAY, I take the latter option.
+Hi Miklos, Amir
+
+Thanks for your comments for the patch.
+
+If the speed of ovl inode destruction is not serious problem, I would =
+like to
+implement like below, what do you think?
+
+In the process of ovl inode destruction:=20
+(I will introduce evict operation and do below oprations there)
+
+1. start syncing inode.=20
+2. add current inode to sb->s_inodes_wb list
+3. take sb->s_sync_lock and wait until all inode in the wait list =
+finishing syncing.
+#Of course, we can only wait for specific inode, but is that really =
+helping much?
+
+Maybe in the worst case, inode destruction will take time for the first =
+inode,
+but I think it is not common for all inodes. The purpose of adding inode =
+to
+sb->s_inodes_wb list is for data consistency of sync result, because =
+I=A1=AFm afraid that
+inode destruction will let dirty inode escaping from sync waiting list.
+
+
 
 Thanks,
-Chengguang.
+Chengguang.=
