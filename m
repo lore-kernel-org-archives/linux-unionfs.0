@@ -1,146 +1,373 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [PATCH 6/7] overlay: test encode/decode overlay file handles
-Date: Tue, 16 Jan 2018 17:09:24 +0200
-Message-ID: <CAOQ4uxhByAJsYiP=TStDd+-g70UrByRLu7_BXK_-GLN_M9PyHw@mail.gmail.com>
-References: <1515348445-1403-1-git-send-email-amir73il@gmail.com>
- <1515348445-1403-7-git-send-email-amir73il@gmail.com> <20180116073831.GH3102@eguan.usersys.redhat.com>
- <CAOQ4uxhTR70XdKm39r=TA_SktySHM=Y1qH4A0Eex37Own6k7Kw@mail.gmail.com> <20180116110651.GK3102@eguan.usersys.redhat.com>
+Subject: Re: [PATCH v2 04/17] ovl: decode connected upper dir file handles
+Date: Wed, 17 Jan 2018 13:18:17 +0200
+Message-ID: <CAOQ4uxggufAEqD2WhReTax9eyEzJQdpdb7E=+zrgcYz1CQVY=Q@mail.gmail.com>
+References: <1515086449-26563-1-git-send-email-amir73il@gmail.com>
+ <1515086449-26563-5-git-send-email-amir73il@gmail.com> <CAJfpeguk+KVWkLr8ihGE0c8aDgaNHfnjf3DcuUQi1g5KZHObOw@mail.gmail.com>
+ <CAOQ4uxijgqiAjKysA-HZFLa+b2nETMhq9aW8rjv=hwCq1B8tfw@mail.gmail.com> <CAJfpegvCVX-YEMRDfKTYM2Au=2bNT3RcX=uNyt9KO1EmBJOvuA@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-yw0-f177.google.com ([209.85.161.177]:44361 "EHLO
-        mail-yw0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750825AbeAPPJ0 (ORCPT
+Received: from mail-yb0-f194.google.com ([209.85.213.194]:34742 "EHLO
+        mail-yb0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752822AbeAQLST (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 16 Jan 2018 10:09:26 -0500
-In-Reply-To: <20180116110651.GK3102@eguan.usersys.redhat.com>
+        Wed, 17 Jan 2018 06:18:19 -0500
+In-Reply-To: <CAJfpegvCVX-YEMRDfKTYM2Au=2bNT3RcX=uNyt9KO1EmBJOvuA@mail.gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Eryu Guan <eguan@redhat.com>
-Cc: Jeff Layton <jlayton@poochiereds.net>, "J . Bruce Fields" <bfields@fieldses.org>, Miklos Szeredi <miklos@szeredi.hu>, fstests <fstests@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, overlayfs <linux-unionfs@vger.kernel.org>
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: Jeff Layton <jlayton@poochiereds.net>, "J . Bruce Fields" <bfields@fieldses.org>, overlayfs <linux-unionfs@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>
 
-On Tue, Jan 16, 2018 at 1:06 PM, Eryu Guan <eguan@redhat.com> wrote:
-> On Tue, Jan 16, 2018 at 12:53:38PM +0200, Amir Goldstein wrote:
->> On Tue, Jan 16, 2018 at 9:38 AM, Eryu Guan <eguan@redhat.com> wrote:
->> > On Sun, Jan 07, 2018 at 08:07:24PM +0200, Amir Goldstein wrote:
->> >> - Check encode/write/decode/read content of lower/upper file handles
->> >> - Check encode/decode/write/read content of lower/upper file handles
->> >> - Check decode/read of unlinked lower/upper files and directories
->> >> - Check decode/read of lower file handles after copy up, link and unlink
->> >> - Check decode/read of lower file handles after rename of parent and self
->> >
->> > I'm wondering that if this should be split into multiple tests somehow,
->> > e.g. tests on regular files, tests on dirs and tests on hardlinks? It
->> > might be eaiser to review and debug when there're test failures. But I
->> > have no strong preference on this.
->> >
->>
->> I prefer not splitting the test, this is a classic test with sub-test cases.
->> I may end up splitting the dir rename tests (open_by_handle -i/-o)
->> to conform with a similar split that you requested in the generic test.
->>
->> >>
->> >> This test does not cover connectable file handles of non-directories,
->> >> because name_to_handle_at() syscall does not support requesting
->> >> connectable file handles.
->> >>
->> >> This test covers only encode/decode of file handles for overlayfs
->> >> configuration of lower and upper on the same fs.
->> >>
->> >> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
->> >> ---
->> >>  tests/overlay/050     | 291 ++++++++++++++++++++++++++++++++++++++++++++++++++
->> >>  tests/overlay/050.out |  50 +++++++++
->> >>  tests/overlay/group   |   1 +
->> >>  3 files changed, 342 insertions(+)
->> >>  create mode 100755 tests/overlay/050
->> >>  create mode 100644 tests/overlay/050.out
->> >
->> > I ran the test on your ovl-nfs-export-v2 branch and saw failures like:
->> >
->> > --- tests/overlay/050.out       2018-01-16 14:51:11.350000000 +0800
->> > +++ /root/xfstests/results//xfs_4k_crc/overlay/050.out.bad      2018-01-16 15:08:43.487000000 +0800
->> > @@ -45,6 +45,9 @@
->> >  test_file_handles SCRATCH_MNT/lowertestdir/subdir -p -o lower_subdir_file_handles
->> >  test_file_handles SCRATCH_MNT -rp -i upper_file_handles
->> >  test_file_handles SCRATCH_MNT -rp -i lower_file_handles
->> > +open_by_handle() returned 116 incorrectly on a linked dir!
->> >  test_file_handles SCRATCH_MNT -rp -i upper_subdir_file_handles
->> >  test_file_handles SCRATCH_MNT -rp -i lower_subdir_file_handles
->> > +open_by_handle() returned 116 incorrectly on a linked dir!
->> >  test_file_handles SCRATCH_MNT/lowertestdir.new -rp -i lower_subdir_file_handles
->> > +open_by_handle() returned 116 incorrectly on a linked dir!
->> >
->> > Are these failures expected?
->> >
->>
->> No. not expected. I wonder which base fs did you test with?
->> Did you have OVERLAY_FS_VERIFY=y in config or verify=on in MOUNT_OPTIONS?
->> (Not that I know any of the above should matter)
+On Mon, Jan 15, 2018 at 4:56 PM, Miklos Szeredi <miklos@szeredi.hu> wrote:
 >
-> I didn't have OVERLAY_FS_VERIFY set in .config, but I did mount with "-o
-> verify=on", and underlying fs is xfs. Here is the screenshot:
+[...]
+> >>
+> >> So, a working algorithm would be going up to the first connected
+> >> parent or root, lock parent, lookup name and restart.  Not guaranteed
+> >> to finish, since not protected against always racing with renames.
+> >> Can we take s_vfs_rename_sem on ovl to prevent that?
+> >>
+> >
+> > Sounds like a simple and good enough solution.
+> > Do we really need the locking of parent and restart connect if
+> > we take s_vfs_rename_sem around ovl_lookup_real()?
 >
-> [root@bootp-73-5-205 xfstests]# OVERLAY_MOUNT_OPTIONS="-o verify=on" ./check -s xfs_4k_crc -overlay overlay/050
-> SECTION       -- xfs_4k_crc
-> RECREATING    -- overlay on /mnt/testarea/test
-> FSTYP         -- overlay
-> PLATFORM      -- Linux/x86_64 bootp-73-5-205 4.15.0-rc2.ovl+
-> MKFS_OPTIONS  -- -f -b size=4k -m crc=1 /mnt/testarea/scratch
-> MOUNT_OPTIONS -- -o verify=on /mnt/testarea/scratch /mnt/testarea/scratch/ovl-mnt
+> No, but s_vfs_rename_sem is a really heavyweight solution, we should
+> do better than that for decoding a file handle.
 >
-> overlay/050      - output mismatch (see /root/xfstests/results//xfs_4k_crc/overlay/050.out.bad)
->     --- tests/overlay/050.out   2018-01-16 14:51:11.350000000 +0800
->     +++ /root/xfstests/results//xfs_4k_crc/overlay/050.out.bad  2018-01-16 19:01:54.984000000 +0800
->     @@ -45,6 +45,9 @@
->      test_file_handles SCRATCH_MNT/lowertestdir/subdir -p -o lower_subdir_file_handles
->      test_file_handles SCRATCH_MNT -rp -i upper_file_handles
->      test_file_handles SCRATCH_MNT -rp -i lower_file_handles
->     +open_by_handle() returned 116 incorrectly on a linked dir!
->      test_file_handles SCRATCH_MNT -rp -i upper_subdir_file_handles
->      test_file_handles SCRATCH_MNT -rp -i lower_subdir_file_handles
->     +open_by_handle() returned 116 incorrectly on a linked dir!
->     ...
->     (Run 'diff -u tests/overlay/050.out /root/xfstests/results//xfs_4k_crc/overlay/050.out.bad'  to see the entire diff)
-> Ran: overlay/050
-> Failures: overlay/050
-> Failed 1 of 1 tests
+> And we probably don't need anything else, since rename on ancestor
+> means renamed dir is connected, and hopefully not evicted from the
+> cache until we repeat the walk up.
 >
-> And I just tried with ext4 as underlying fs and got the same result.
+> So need to lock parent, lookup ovl dentry, verify we got the same
+> upper, if not retry icache lookup.
 >
->>
->> Do you see any overlayfs warnings in dmesg?
->
-> No, there's no warnings nor other useful information in dmesg, just
-> mount/umount xfs and drop caches messages.
+> Not sure we need to worry about that "hopefully".  Hopefully not.
 >
 
-What happened here is quite nice.
-You do not have redirect_dir enabled by default and the test didn't
-enable it as well.
+Something like this??
 
-Then this line in the test:
-# Copy up lower dir, index and rename
-mv $SCRATCH_MNT/lowertestdir $SCRATCH_MNT/lowertestdir.new/
+This is just the raw fix to patch 4/17 without the icache lookup
+that is added by later patches.
 
-...doesn't fail, because mv gets -EXDEV and falls back to "recursive move":
-- Create new dir
-- Move files from old dir to new dir
-- Remove old file
+I added rename_lock seqlock around backwalk to connected ancestor
+and take_dentry_name_snapshot() for the stability of real name
+during overlay lookup.
 
-When test later tries to decode the file handle encoded from old dir,
-old dir has been removed, so the 116 (ESTALE) error is correct for
-what happened here.
+I considered also storing OVL_I(d_inode(connected))->version
+inside seqlock and comparing it to version in case lookup of child
+failed. This could help us distinguish between overlay rename and
+underlying rename (overlay dir version did not change) and return
+ESTALE instead of restarting lookup in the latter case.
+Wasn't sure if that was a good idea and what we loose if we leave it out.
 
-This error was detected thanks to the patch using the -i/-o options
-from "open_by_handle: store and load file handles from file"
-The earlier version of this directory rename test (like upstream generic/467)
-would not have detected this error because dir file handle was encoded
-after the mv command.
+I tested this code, but only with upper file handles of course
+(xfstest generic/467).
 
-The take aways are:
-1. Split the dir rename test cases to a separate test
-2. Require and enable redirect_dir feature in the dir rename test
+Please let me know what you think.
 
 Thanks,
 Amir.
+
+================================================================
+
+>From 337543c3fcdf9323d3720d17ab6fc13e287bbec1 Mon Sep 17 00:00:00 2001
+From: Amir Goldstein <amir73il@gmail.com>
+Date: Thu, 28 Dec 2017 18:36:16 +0200
+Subject: [PATCH v3 4/17] ovl: decode connected upper dir file handles
+
+Until this change, we decoded upper file handles by instantiating an
+overlay dentry from the real upper dentry. This is sufficient to handle
+pure upper files, but insufficient to handle merge/impure dirs.
+
+To that end, if decoded real upper dir is connected and hashed, we
+lookup an overlay dentry with the same path as the real upper dir.
+If decoded real upper is non-dir, we instantiate a disconnected overlay
+dentry as before this change.
+
+Because ovl_fh_to_dentry() returns a connected overlay dir dentry,
+exportfs never needs to call get_parent() and get_name() to reconnect an
+upper overlay dir. Because connectable non-dir file handles are not
+supported, exportfs will not be able to use fh_to_parent() and get_name()
+methods to reconnect a disconnected non-dir to its parent. Therefore, the
+methods get_parent() and get_name() are implemented just to print out a
+sanity warning and the method fh_to_parent() is implemented to warn the
+user that using the 'subtree_check' exportfs option is not supported.
+
+An alternative approach could have been to implement instantiating of
+an overlay directory inode from origin/index and implement get_parent()
+and get_name() by calling into underlying fs operations and them
+instantiating the overlay parent dir.
+
+The reasons for not choosing the get_parent() approach were:
+- Obtaining a disconnected overlay dir dentry would requires a
+  delicate re-factoring of ovl_lookup() to get a dentry with overlay
+  parent info. It was preferred to avoid doing that re-factoring unless
+  it was proven worthy.
+- Going down the path of disconnected dir would mean that the (non
+  trivial) code path of d_splice_alias() could be traveled and that
+  meant writing more tests and introduces race cases that are very hard
+  to hit on purpose. Taking the path of connecting overlay dentry by
+  forward lookup is therefore the safe and boring way to avoid surprises.
+
+The culprit of the chosen "connected overlay dentry" approach:
+- We need to take special care to rename of ancestors while connecting
+  the overlay dentry by real dentry path. These subtleties are usually
+  handled by generic exportfs and VFS code.
+
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+---
+ fs/overlayfs/export.c | 215 +++++++++++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 214 insertions(+), 1 deletion(-)
+
+diff --git a/fs/overlayfs/export.c b/fs/overlayfs/export.c
+index 557c29928e98..35f37a72d55e 100644
+--- a/fs/overlayfs/export.c
++++ b/fs/overlayfs/export.c
+@@ -130,6 +130,188 @@ static struct dentry *ovl_obtain_alias(struct
+super_block *sb,
+        return dentry;
+ }
+
++/*
++ * Lookup a child overlay dentry whose real dentry is @real.
++ * If @real is on upper layer, we lookup a child overlay dentry with the same
++ * name as the real dentry. Otherwise, we need to consult index for lookup.
++ */
++static struct dentry *ovl_lookup_real_one(struct dentry *parent,
++                                         struct dentry *real,
++                                         struct ovl_layer *layer)
++{
++       struct dentry *this;
++       struct name_snapshot name;
++       int err;
++
++       /* TODO: use index when looking up by lower real dentry */
++       if (layer->idx)
++               return ERR_PTR(-EACCES);
++
++       /*
++        * Lookup overlay dentry by real name. The parent mutex protects us
++        * from racing with overlay rename. If the overlay dentry that is
++        * above real has already been moved to a different parent, then this
++        * lookup will fail to find a child dentry whose real dentry is @real
++        * and we will have to restart the lookup of real path from the top.
++        *
++        * We also need to take a snapshot of real dentry name to protect us
++        * from racing with underlying layer rename. In this case, we don't
++        * care about returning ESTALE, only from referencing a free name
++        * pointer.
++        *
++        * TODO: try to lookup the renamed overlay dentry in inode cache by
++        *       real inode.
++        */
++       inode_lock_nested(d_inode(parent), I_MUTEX_PARENT);
++       take_dentry_name_snapshot(&name, real);
++       this = lookup_one_len(name.name, parent, strlen(name.name));
++       err = PTR_ERR(this);
++       if (IS_ERR(this)) {
++               goto fail;
++       } else if (!this || !this->d_inode) {
++               dput(this);
++               err = -ENOENT;
++               goto fail;
++       } else if (ovl_dentry_upper(this) != real) {
++               dput(this);
++               err = -ESTALE;
++               goto fail;
++       }
++
++out:
++       release_dentry_name_snapshot(&name);
++       inode_unlock(d_inode(parent));
++       return this;
++
++fail:
++       pr_warn_ratelimited("overlayfs: failed to lookup one by real
+(%pd2, layer=%d, parent=%pd2, err=%i)\n",
++                           real, layer->idx, parent, err);
++       this = ERR_PTR(err);
++       goto out;
++}
++
++/*
++ * Lookup an overlay dentry whose real dentry is @real.
++ * If @real is on upper layer, we lookup a child overlay dentry with the same
++ * path the real dentry. Otherwise, we need to consult index for lookup.
++ */
++static struct dentry *ovl_lookup_real(struct super_block *sb,
++                                     struct dentry *real,
++                                     struct ovl_layer *layer)
++{
++       struct dentry *connected;
++       unsigned int seq;
++       int err = 0;
++
++       /* TODO: use index when looking up by lower real dentry */
++       if (layer->idx)
++               return ERR_PTR(-EACCES);
++
++       connected = dget(sb->s_root);
++       while (!err) {
++               struct dentry *next, *this;
++               struct dentry *parent = NULL;
++               struct dentry *real_connected = layer->mnt->mnt_root;
++
++               if (real_connected == real)
++                       break;
++
++               /*
++                * Find the topmost dentry not yet connected. Taking rename_lock
++                * so at least we don't race with rename when walking back to
++                * 'real_connected'.
++                */
++               seq = read_seqbegin(&rename_lock);
++               next = dget(real);
++               for (;;) {
++                       parent = dget_parent(next);
++
++                       if (real_connected == parent)
++                               break;
++
++                       /*
++                        * If real file has been moved out of the layer root
++                        * directory, we will eventully hit the real fs root.
++                        */
++                       if (parent == next) {
++                               err = -EXDEV;
++                               break;
++                       }
++
++                       dput(next);
++                       next = parent;
++               }
++
++               if (!read_seqretry(&rename_lock, seq) && !err) {
++                       this = ovl_lookup_real_one(connected, next, layer);
++                       /*
++                        * Lookup of child in overlay can fail when racing with
++                        * overlay rename of child away from 'connected' parent.
++                        * In this case, we need to restart the lookup from the
++                        * top, because we cannot trust that 'real_connected' is
++                        * still an ancestor of 'real'.
++                        */
++                       if (IS_ERR(this)) {
++                               err = PTR_ERR(this);
++                               if (err == -ENOENT || err == -ESTALE) {
++                                       this = dget(sb->s_root);
++                                       err = 0;
++                               }
++                       }
++                       if (!err) {
++                               dput(connected);
++                               connected = this;
++                       }
++               }
++
++               dput(parent);
++               dput(next);
++       }
++
++       if (err)
++               goto fail;
++
++       return connected;
++
++fail:
++       pr_warn_ratelimited("overlayfs: failed to lookup by real
+(%pd2, layer=%d, connected=%pd2, err=%i)\n",
++                           real, layer->idx, connected, err);
++       dput(connected);
++       return ERR_PTR(err);
++}
++
++
++/*
++ * Get an overlay dentry from upper/lower real dentries.
++ */
++static struct dentry *ovl_get_dentry(struct super_block *sb,
++                                    struct dentry *upper,
++                                    struct ovl_path *lowerpath)
++{
++       struct ovl_fs *ofs = sb->s_fs_info;
++       struct ovl_layer layer = { .mnt = ofs->upper_mnt };
++
++       /* TODO: get non-upper dentry */
++       if (!upper)
++               return ERR_PTR(-EACCES);
++
++       /*
++        * Obtain a disconnected overlay dentry from a non-dir real upper
++        * dentry.
++        */
++       if (!d_is_dir(upper))
++               return ovl_obtain_alias(sb, upper, NULL);
++
++       /* Removed empty directory? */
++       if ((upper->d_flags & DCACHE_DISCONNECTED) || d_unhashed(upper))
++               return ERR_PTR(-ENOENT);
++
++       /*
++        * If real upper dentry is connected and hashed, get a connected
++        * overlay dentry with the same path as the real upper dentry.
++        */
++       return ovl_lookup_real(sb, upper, &layer);
++}
++
+ static struct dentry *ovl_upper_fh_to_d(struct super_block *sb,
+                                        struct ovl_fh *fh)
+ {
+@@ -144,7 +326,7 @@ static struct dentry *ovl_upper_fh_to_d(struct
+super_block *sb,
+        if (IS_ERR_OR_NULL(upper))
+                return upper;
+
+-       dentry = ovl_obtain_alias(sb, upper, NULL);
++       dentry = ovl_get_dentry(sb, upper, NULL);
+        dput(upper);
+
+        return dentry;
+@@ -183,7 +365,38 @@ static struct dentry *ovl_fh_to_dentry(struct
+super_block *sb, struct fid *fid,
+        return ERR_PTR(err);
+ }
+
++static struct dentry *ovl_fh_to_parent(struct super_block *sb, struct fid *fid,
++                                      int fh_len, int fh_type)
++{
++       pr_warn_ratelimited("overlayfs: connectable file handles not
+supported; use 'no_subtree_check' exportfs option.\n");
++       return ERR_PTR(-EACCES);
++}
++
++static int ovl_get_name(struct dentry *parent, char *name,
++                       struct dentry *child)
++{
++       /*
++        * ovl_fh_to_dentry() returns connected dir overlay dentries and
++        * ovl_fh_to_parent() is not implemented, so we should not get here.
++        */
++       WARN_ON_ONCE(1);
++       return -EIO;
++}
++
++static struct dentry *ovl_get_parent(struct dentry *dentry)
++{
++       /*
++        * ovl_fh_to_dentry() returns connected dir overlay dentries, so we
++        * should not get here.
++        */
++       WARN_ON_ONCE(1);
++       return ERR_PTR(-EIO);
++}
++
+ const struct export_operations ovl_export_operations = {
+        .encode_fh      = ovl_encode_inode_fh,
+        .fh_to_dentry   = ovl_fh_to_dentry,
++       .fh_to_parent   = ovl_fh_to_parent,
++       .get_name       = ovl_get_name,
++       .get_parent     = ovl_get_parent,
+ };
+-- 
+2.7.4
