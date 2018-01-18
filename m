@@ -1,185 +1,89 @@
-From: Miklos Szeredi <miklos@szeredi.hu>
-Subject: Re: [PATCH v2 03/17] ovl: decode pure upper file handles
-Date: Thu, 18 Jan 2018 15:09:20 +0100
-Message-ID: <CAJfpegt=4Mk7B7E9c7CGJHdWZsVFQAqfJ_NbRNQNOpSZFYudrg@mail.gmail.com>
-References: <1515086449-26563-1-git-send-email-amir73il@gmail.com> <1515086449-26563-4-git-send-email-amir73il@gmail.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Subject: Re: [PATCH v2 10/17] ovl: decode lower file handles of unlinked but
+ open files
+Date: Thu, 18 Jan 2018 16:18:44 +0200
+Message-ID: <CAOQ4uxgTrL=fNedkfPvqvPB4m7z5u1cbf2e_h_FSxvzU+f0ANQ@mail.gmail.com>
+References: <1515086449-26563-1-git-send-email-amir73il@gmail.com> <1515086449-26563-11-git-send-email-amir73il@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
-In-Reply-To: <1515086449-26563-4-git-send-email-amir73il@gmail.com>
-Sender: linux-fsdevel-owner@vger.kernel.org
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: overlayfs <linux-unionfs@vger.kernel.org>, linux-fsdevel@vger.kernel.org, Al Viro <viro@zeniv.linux.org.uk>
+Return-path: <linux-unionfs-owner@vger.kernel.org>
+Received: from mail-yw0-f196.google.com ([209.85.161.196]:36382 "EHLO
+        mail-yw0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1756433AbeAROSp (ORCPT
+        <rfc822;linux-unionfs@vger.kernel.org>);
+        Thu, 18 Jan 2018 09:18:45 -0500
+In-Reply-To: <1515086449-26563-11-git-send-email-amir73il@gmail.com>
+Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: Jeff Layton <jlayton@poochiereds.net>, "J . Bruce Fields" <bfields@fieldses.org>, overlayfs <linux-unionfs@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>
 
-[Added Al Viro]
-
-On Thu, Jan 4, 2018 at 6:20 PM, Amir Goldstein <amir73il@gmail.com> wrote:
-> Decoding an upper file handle is done by decoding the upper dentry from
-> underlying upper fs, finding or allocating an overlay inode that is
-> hashed by the real upper inode and instantiating an overlay dentry with
-> that inode.
+On Thu, Jan 4, 2018 at 7:20 PM, Amir Goldstein <amir73il@gmail.com> wrote:
+> Lookup overlay inode in cache by origin inode, so we can decode a file
+> handle of an open file even if the index has a whiteout index entry to
+> mark this overlay inode was unlinked.
 >
 > Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 > ---
->  fs/overlayfs/export.c    | 91 ++++++++++++++++++++++++++++++++++++++++++++++++
->  fs/overlayfs/namei.c     |  4 +--
->  fs/overlayfs/overlayfs.h |  2 ++
->  3 files changed, 95 insertions(+), 2 deletions(-)
+>  fs/overlayfs/export.c    | 22 ++++++++++++++++++++--
+>  fs/overlayfs/inode.c     | 16 ++++++++++++++++
+>  fs/overlayfs/overlayfs.h |  1 +
+>  3 files changed, 37 insertions(+), 2 deletions(-)
 >
 > diff --git a/fs/overlayfs/export.c b/fs/overlayfs/export.c
-> index 58c4f5e8a67e..5c72784a0b4d 100644
+> index 602bada474ba..6ecb54d4b52c 100644
 > --- a/fs/overlayfs/export.c
 > +++ b/fs/overlayfs/export.c
-> @@ -93,6 +93,97 @@ static int ovl_encode_inode_fh(struct inode *inode, u32 *fid, int *max_len,
->         return type;
->  }
+> @@ -385,13 +385,21 @@ static struct dentry *ovl_lower_fh_to_d(struct super_block *sb,
+>         struct ovl_path *stack = &origin;
+>         struct dentry *dentry = NULL;
+>         struct dentry *index = NULL;
+> +       struct inode *inode = NULL;
+> +       bool is_deleted = false;
+>         int err;
 >
-> +/*
-> + * Find or instantiate an overlay dentry from real dentries.
-> + */
-> +static struct dentry *ovl_obtain_alias(struct super_block *sb,
-> +                                      struct dentry *upper,
-> +                                      struct ovl_path *lowerpath)
-> +{
-> +       struct inode *inode;
-> +       struct dentry *dentry;
-> +       struct ovl_entry *oe;
+>         /* First lookup indexed upper by fh */
+>         index = ovl_get_index_fh(ofs, fh);
+>         err = PTR_ERR(index);
+> -       if (IS_ERR(index))
+> -               return ERR_PTR(err);
+> +       if (IS_ERR(index)) {
+> +               if (err != -ESTALE)
+> +                       return ERR_PTR(err);
 > +
-> +       /* TODO: obtain non pure-upper */
-> +       if (lowerpath)
-> +               return ERR_PTR(-EIO);
-> +
-> +       inode = ovl_get_inode(sb, dget(upper), NULL, NULL, 0);
-> +       if (IS_ERR(inode)) {
-> +               dput(upper);
-> +               return ERR_CAST(inode);
+> +               /* Found a whiteout index - treat as deleted inode */
+> +               is_deleted = true;
+> +               index = NULL;
+
+Ouch! it seems I was misleading you.
+If we find a whiteout index for dir, we *do* decode+reconnect origin,
+because we want to find out if this is an unlinked but open non-dir.
+I guess there are 2 ways to avoid this unneeded decode:
+1. mark a "directory index whiteout" differently than "non-dir index whiteout"
+2. lookup icache by file handle
+
 > +       }
+>
+>         /* Then lookup origin by fh */
+>         err = ovl_check_origin_fh(fh, NULL, ofs->lower_layers, ofs->numlower,
+> @@ -404,6 +412,15 @@ static struct dentry *ovl_lower_fh_to_d(struct super_block *sb,
+>                 err = ovl_verify_origin(index, origin.dentry, false, false);
+>                 if (err)
+>                         goto out_err;
+> +       } else if (is_deleted && origin.dentry && !d_is_dir(origin.dentry)) {
+> +               /* Lookup deleted overlay inode by origin inode */
+> +               inode = ovl_lookup_inode(sb, origin.dentry);
+> +               err = -ESTALE;
+> +               if (!inode || atomic_read(&inode->i_count) == 1)
+> +                       goto out_err;
 > +
-> +       dentry = d_obtain_alias(inode);
-> +       if (IS_ERR(dentry) || dentry->d_fsdata)
+> +               /* Deleted but still open? */
+> +               index = dget(ovl_i_dentry_upper(inode));
+>         }
 
-Racing two instances of this code, each thinking it got a new alias
-and trying to fill it, results in a memory leak.
-
-Haven't checked in too much depth, but apparently other filesystems
-are not affected, so we need something special here.
-
-One solution: split d_instantiate_anon(dentry, inode) out of
-__d_obtain_alias() and supply that with the already initialized
-dentry.
-
-Al?
+And to top that up, we even try to lookup the origin dir path in overlay
+instead of returning ESTALE right away.
+Sheesh! that's embarrassing.
 
 Thanks,
-Miklos
-
-> +               return dentry;
-> +
-> +       oe = ovl_alloc_entry(0);
-> +       if (!oe) {
-> +               dput(dentry);
-> +               return ERR_PTR(-ENOMEM);
-> +       }
-> +
-> +       dentry->d_fsdata = oe;
-> +       ovl_dentry_set_upper_alias(dentry);
-> +
-> +       return dentry;
-> +}
-> +
-> +static struct dentry *ovl_upper_fh_to_d(struct super_block *sb,
-> +                                       struct ovl_fh *fh)
-> +{
-> +       struct ovl_fs *ofs = sb->s_fs_info;
-> +       struct dentry *dentry;
-> +       struct dentry *upper;
-> +
-> +       if (!ofs->upper_mnt)
-> +               return ERR_PTR(-EACCES);
-> +
-> +       upper = ovl_decode_fh(fh, ofs->upper_mnt);
-> +       if (IS_ERR_OR_NULL(upper))
-> +               return upper;
-> +
-> +       dentry = ovl_obtain_alias(sb, upper, NULL);
-> +       dput(upper);
-> +
-> +       return dentry;
-> +}
-> +
-> +static struct dentry *ovl_fh_to_dentry(struct super_block *sb, struct fid *fid,
-> +                                      int fh_len, int fh_type)
-> +{
-> +       struct dentry *dentry = NULL;
-> +       struct ovl_fh *fh = (struct ovl_fh *) fid;
-> +       int len = fh_len << 2;
-> +       unsigned int flags = 0;
-> +       int err;
-> +
-> +       err = -EINVAL;
-> +       if (fh_type != OVL_FILEID)
-> +               goto out_err;
-> +
-> +       err = ovl_check_fh_len(fh, len);
-> +       if (err)
-> +               goto out_err;
-> +
-> +       /* TODO: decode non-upper */
-> +       flags = fh->flags;
-> +       if (flags & OVL_FH_FLAG_PATH_UPPER)
-> +               dentry = ovl_upper_fh_to_d(sb, fh);
-> +       err = PTR_ERR(dentry);
-> +       if (IS_ERR(dentry) && err != -ESTALE)
-> +               goto out_err;
-> +
-> +       return dentry;
-> +
-> +out_err:
-> +       pr_warn_ratelimited("overlayfs: failed to decode file handle (len=%d, type=%d, flags=%x, err=%i)\n",
-> +                           len, fh_type, flags, err);
-> +       return ERR_PTR(err);
-> +}
-> +
->  const struct export_operations ovl_export_operations = {
->         .encode_fh      = ovl_encode_inode_fh,
-> +       .fh_to_dentry   = ovl_fh_to_dentry,
->  };
-> diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
-> index a69cedf06000..87d39384dc55 100644
-> --- a/fs/overlayfs/namei.c
-> +++ b/fs/overlayfs/namei.c
-> @@ -107,7 +107,7 @@ static int ovl_acceptable(void *ctx, struct dentry *dentry)
->   * Return -ENODATA for "origin unknown".
->   * Return <0 for an invalid file handle.
->   */
-> -static int ovl_check_fh_len(struct ovl_fh *fh, int fh_len)
-> +int ovl_check_fh_len(struct ovl_fh *fh, int fh_len)
->  {
->         if (fh_len < sizeof(struct ovl_fh) || fh_len < fh->len)
->                 return -EINVAL;
-> @@ -171,7 +171,7 @@ static struct ovl_fh *ovl_get_origin_fh(struct dentry *dentry)
->         goto out;
->  }
->
-> -static struct dentry *ovl_decode_fh(struct ovl_fh *fh, struct vfsmount *mnt)
-> +struct dentry *ovl_decode_fh(struct ovl_fh *fh, struct vfsmount *mnt)
->  {
->         struct dentry *origin;
->         int bytes;
-> diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-> index f6fd999cb98e..c4f8e98e209e 100644
-> --- a/fs/overlayfs/overlayfs.h
-> +++ b/fs/overlayfs/overlayfs.h
-> @@ -258,6 +258,8 @@ static inline bool ovl_is_impuredir(struct dentry *dentry)
->
->
->  /* namei.c */
-> +int ovl_check_fh_len(struct ovl_fh *fh, int fh_len);
-> +struct dentry *ovl_decode_fh(struct ovl_fh *fh, struct vfsmount *mnt);
->  int ovl_verify_origin(struct dentry *dentry, struct dentry *origin,
->                       bool is_upper, bool set);
->  int ovl_verify_index(struct ovl_fs *ofs, struct dentry *index);
-> --
-> 2.7.4
->
+Amir.
