@@ -1,310 +1,265 @@
 From: "zhangyi (F)" <yi.zhang@huawei.com>
-Subject: [PATCH v4 2/5] fsck.overlay: correct redirect xattr check
-Date: Thu, 18 Jan 2018 11:50:53 +0800
-Message-ID: <20180118035056.17358-3-yi.zhang@huawei.com>
+Subject: [PATCH v4 5/5] fsck.overlay: add impure xattr check
+Date: Thu, 18 Jan 2018 11:50:56 +0800
+Message-ID: <20180118035056.17358-6-yi.zhang@huawei.com>
 References: <20180118035056.17358-1-yi.zhang@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <fstests-owner@vger.kernel.org>
+Return-path: <linux-unionfs-owner@vger.kernel.org>
+Received: from szxga05-in.huawei.com ([45.249.212.191]:4245 "EHLO huawei.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1754129AbeARDoD (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Wed, 17 Jan 2018 22:44:03 -0500
 In-Reply-To: <20180118035056.17358-1-yi.zhang@huawei.com>
-Sender: fstests-owner@vger.kernel.org
+Sender: linux-unionfs-owner@vger.kernel.org
+List-Id: linux-unionfs@vger.kernel.org
 To: linux-unionfs@vger.kernel.org, fstests@vger.kernel.org
 Cc: miklos@szeredi.hu, amir73il@gmail.com, eguan@redhat.com, yi.zhang@huawei.com, miaoxie@huawei.com, yangerkun@huawei.com, yizhang089@gmail.com
-List-Id: linux-unionfs@vger.kernel.org
 
-When we found a valid redirect xattr and the lower origin targed was
-covered by a directory, it could be 1) an another redirect directory,
-or 2) an opaque directory created after rename in overlayfs or 3) a
-general directory created in the underlying directory when overlay is
-offline. Currently, we only handled case 2, this patch cover the other
-two cases.
+An impure directory is a directory with "trusted.overlay.impure" xattr
+valued 'y', which indicate that this directory may contain copied up
+targets from lower layers.
+If a target copy-up from lower to upper layer, it's 'd_ino'
+(see getdents(2)) will change from lower's 'd_ino' to upper's (a new
+inode will be created in upper layer). So the impure xattr should be
+set to the parent directory to prompt overlay filesystem to get and
+return the origin 'd_ino', thus ensuring the consistentcy of 'd_ino'.
+
+There are three situations of setting impure xattr in overlay
+filesystem:
+1) Copy-up lower target in a directory.
+2) Link an origin target (already copied up, have origin xattr) into a
+   directory.
+3) Rename an origin target (include merge subdirectories) into a new
+   directory.
+
+So, the impure xattr should be set if a direcotry contains origin
+targets or redirect/merge subdirectories. If not, fix the impure xattr.
 
 Signed-off-by: zhangyi (F) <yi.zhang@huawei.com>
 ---
- README.md |  27 ++++++----
- check.c   | 179 +++++++++++++++++++++++++++++++++++++++++++++++++-------------
- 2 files changed, 159 insertions(+), 47 deletions(-)
+ README.md | 22 ++++++++++++++++++
+ check.c   | 78 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-----
+ lib.c     |  5 ++++
+ lib.h     |  3 +++
+ 4 files changed, 102 insertions(+), 6 deletions(-)
 
 diff --git a/README.md b/README.md
-index 95dd790..da6c48c 100644
+index da6c48c..56aae66 100644
 --- a/README.md
 +++ b/README.md
-@@ -25,15 +25,24 @@ If an redirect directory is found, the following must be met:
+@@ -44,6 +44,28 @@ If not,
+ 3) Record redirect xattrs but not sure which one is invalid, ask user by
+    default and warn in auto mode.
  
- 1) The directory path pointed by redirect xattr should exist in one of lower
-    layers.
--2) The origin directory should be redirected only once, which means there is
--   only one redirect xattr point to this origin directory in all layers.
--3) A whiteout or an opaque directory with the same name to origin should exist
--   in the same directory as the redirect directory.
--
--If not, 1) The redirect xattr is invalid and need to remove 2) One of the
--redirect xattr is redundant but not sure which one is, ask user or warn in
--auto mode 3) Create a whiteout device or set opaque xattr to an existing
--directory if the parent directory was meregd or remove xattr if not.
-+2) There must be something with the same name to the rename origin in upper
-+   layer covering the lower target, could be a whiteout or a generic file,
-+   could be an opaque directory or another redirect direcotry but not a merge
-+   directory.
-+3) The origin directory should be redirected by only once, which means this
-+   origin directory should be redirected by an unique directory in all layers.
++Impure directories
++------------------
 +
-+If not,
-+1) The redirect xattr is invalid and should remove.
-+2) If nothing covering the redirect origin target, fix the missing whiteout.
-+   If the redirect origin is covered by a generic directory, it becomes a
-+   subcase of duplicate redirect directory (redirect direcotry duplicate with
-+   an existing merge directory). Not sure the origin is a merge directory or
-+   a redirected directory, so there are two options can fix this inconsistency:
-+   a) remove the redirect xattr fsck found, or b) set opaque to the covering
-+   directory. Ask user by default or warn in auto mode.
-+3) Record redirect xattrs but not sure which one is invalid, ask user by
-+   default and warn in auto mode.
- 
++An impure directory is a directory with "trusted.overlay.impure" xattr valued
++'y', which indicate that this directory may contain copied up targets from lower
++layers.
++If a target copy-up from lower to upper layer, it's 'd_ino' (see getdents(2))
++will change from lower's 'd_ino' to upper's (a new inode will be created in
++upper layer). So the impure xattr should be set to the parent directory to
++prompt overlay filesystem to get and return the origin 'd_ino', thus ensuring
++the consistentcy of 'd_ino'.
++
++There are three situations of setting impure xattr in overlay filesystem:
++1) Copy-up lower target in a directory.
++2) Link an origin target (already copied up, have origin xattr) into a
++   directory.
++3) Rename an origin target (include merge subdirectories) into a new
++   directory.
++
++So, the impure xattr should be set if a direcotry contains origin targets or
++redirect/merge subdirectories. If not, fix the impure xattr.
++
  Usage
  =====
+ 
 diff --git a/check.c b/check.c
-index e73307d..e5415c9 100644
+index f0b3ff4..ca7cd88 100644
 --- a/check.c
 +++ b/check.c
-@@ -470,6 +470,48 @@ static bool ovl_redirect_entry_find(const char *origin, int ostack,
- 	return false;
+@@ -132,6 +132,16 @@ static inline int ovl_set_opaque(int dirfd, const char *pathname)
+ 	return set_xattr(dirfd, pathname, OVL_OPAQUE_XATTR, "y", 1);
  }
  
-+static void ovl_redirect_entry_del(const char *origin, int ostack)
++static inline int ovl_is_impure(int dirfd, const char *pathname)
 +{
-+	struct ovl_redirect_entry *entry;
-+	struct list_head *node, *tmp;
-+
-+	if (list_empty(&redirect_list))
-+		return;
-+
-+	list_for_each_safe(node, tmp, &redirect_list) {
-+		entry = list_entry(node, struct ovl_redirect_entry, list);
-+
-+		if (entry->ostack == ostack && !strcmp(entry->origin, origin)) {
-+			print_debug(_("Redirect entry del: [%s %s %d][%s %d]\n"),
-+				      entry->pathname,
-+				      (entry->dirtype == OVL_UPPER) ? "upper" : "lower",
-+				      (entry->dirtype == OVL_UPPER) ? 0 : entry->stack,
-+				      entry->origin, entry->ostack);
-+
-+			list_del_init(node);
-+			free(entry->pathname);
-+			free(entry->origin);
-+			free(entry);
-+			return;
-+		}
-+	}
++	return is_dir_xattr(dirfd, pathname, OVL_IMPURE_XATTR);
 +}
 +
-+static bool ovl_redirect_is_duplicate(const char *origin, int ostack)
++static inline int ovl_set_impure(int dirfd, const char *pathname)
 +{
-+	int dirtype, stack;
-+	char *dup;
-+
-+	if (ovl_redirect_entry_find(origin, ostack, &dirtype, &stack, &dup)) {
-+		print_debug("Duplicate redirect dir found: Origin:%s in lower %d, "
-+			    "Previous:%s in %s %d\n",
-+			    origin, ostack, dup,
-+			    (dirtype == OVL_UPPER) ? "upper" : "lower", stack);
-+		return true;
-+	}
-+	return false;
++	return set_xattr(dirfd, pathname, OVL_IMPURE_XATTR, "y", 1);
 +}
 +
- static void ovl_redirect_free(void)
+ static int ovl_get_redirect(int dirfd, const char *pathname,
+ 			    char **redirect)
  {
- 	struct ovl_redirect_entry *entry;
-@@ -484,15 +526,72 @@ static void ovl_redirect_free(void)
+@@ -708,6 +718,54 @@ out:
+ 	return ret;
+ }
+ 
++/*
++ * If a directory has origin target and redirect/merge subdirectories in it,
++ * it may contain copied up targets. In order to avoid 'd_ino' change after
++ * lower target copy-up or rename (which will create a new inode),
++ * 'impure xattr' will be set in the parent directory, it is used to prompt
++ * overlay filesystem to get and return the origin 'd_ino' in getdents(2).
++ *
++ * Missing "impure xattr" will lead to return wrong 'd_ino' of impure directory.
++ * So check origin target and redirect/merge subdirs in a specified directory,
++ * and fix "impure xattr" if necessary.
++ */
++static int ovl_check_impure(struct scan_ctx *sctx)
++{
++	struct scan_dir_data *dirdata = sctx->dirdata;
++
++	if (!dirdata)
++		return 0;
++
++	/*
++	 * Impure xattr should be set if directory has redirect/merge
++	 * subdir or origin targets.
++	 */
++	if (!dirdata->origins && !dirdata->mergedirs &&
++	    !dirdata->redirects)
++		return 0;
++
++	if (ovl_is_impure(sctx->dirfd, sctx->pathname))
++		return 0;
++
++	/* Fix impure xattrs */
++	if (ovl_ask_action("Missing impure xattr", sctx->pathname,
++			   sctx->dirtype, sctx->stack, "Fix", 1)) {
++		if (ovl_set_impure(sctx->dirfd, sctx->pathname))
++			return -1;
++	} else {
++		/*
++		 * Note: not enforce to fix the case of directory that
++		 * only contains general merge subdirs because it could
++		 * be an newly created overlay image and fix by overlay
++		 * filesystem after mount.
++		 */
++		if (dirdata->origins || dirdata->redirects)
++			sctx->m_impure++;
++	}
++
++	return 0;
++}
++
+ static int ovl_count_origin(struct scan_ctx *sctx)
+ {
+ 	struct scan_dir_data *parent = sctx->dirdata;
+@@ -760,8 +818,9 @@ static int ovl_count_unreal(struct scan_ctx *sctx)
+  *            of redirect directory, include duplicate redirect
+  *            directory. After this pass, the hierarchical structure
+  *            of each layer's directories becomes consistent.
+- * -Pass two: iterate through all directories, and find and check
+- *            validity of whiteouts.
++ * -Pass two: Iterate through all directories, and find and check
++ *            validity of whiteouts, and check missing impure xattr
++ *            in upperdir.
+  */
+ 
+ static struct scan_operations ovl_scan_ops[OVL_SCAN_PASS][2] = {
+@@ -778,6 +837,7 @@ static struct scan_operations ovl_scan_ops[OVL_SCAN_PASS][2] = {
+ 			.whiteout = ovl_check_whiteout,
+ 			.origin = ovl_count_origin,
+ 			.unreal = ovl_count_unreal,
++			.impure = ovl_check_impure,
+ 		},
+ 		[OVL_LOWER] = {
+ 			.whiteout = ovl_check_whiteout,
+@@ -787,7 +847,7 @@ static struct scan_operations ovl_scan_ops[OVL_SCAN_PASS][2] = {
+ 
+ static char *ovl_scan_desc[OVL_SCAN_PASS] = {
+ 	"Checking redirect xattr and directory tree",
+-	"Checking whiteouts"
++	"Checking whiteouts and impure xattr"
+ };
+ 
+ static void ovl_scan_clean(void)
+@@ -800,10 +860,12 @@ static void ovl_scan_report(struct scan_ctx *sctx)
+ {
+ 	if (flags & FL_VERBOSE) {
+ 		print_info(_("Scan %d directories, %d files, "
+-			     "%d/%d whiteouts, %d/%d redirect dirs\n"),
++			     "%d/%d whiteouts, %d/%d redirect dirs "
++			     "%d missing impure\n"),
+ 			     sctx->directories, sctx->files,
+ 			     sctx->i_whiteouts, sctx->t_whiteouts,
+-			     sctx->i_redirects, sctx->t_redirects);
++			     sctx->i_redirects, sctx->t_redirects,
++			     sctx->m_impure);
  	}
  }
  
-+static int ovl_do_remove_redirect(int dirfd, const char *pathname,
-+				  int dirtype, int stack,
-+				  int *total, int *invalid)
-+{
-+	struct ovl_lookup_data od = {0};
-+	int du_dirtype, du_stack;
-+	char *duplicate;
-+	int ret;
-+
-+	ret = ovl_remove_redirect(dirfd, pathname);
-+	if (ret)
-+		goto out;
-+
-+	(*total)--;
-+	(*invalid)--;
-+
-+	/* If lower corresponding dir exists, ask user to set opaque */
-+	ret = ovl_lookup_lower(pathname, dirtype, stack, &od);
-+	if (ret)
-+		goto out;
-+
-+	if (!od.exist || !is_dir(&od.st))
-+		goto out;
-+
-+	if (ovl_ask_question("Should set opaque dir", pathname,
-+			     dirtype, stack, 0)) {
-+		ret = ovl_set_opaque(dirfd, pathname);
-+		goto out;
-+	}
-+
-+	if (ovl_redirect_entry_find(od.pathname, od.stack, &du_dirtype,
-+				    &du_stack, &duplicate)) {
-+		/*
-+		 * The redirect dir point to the same lower origin becomes
-+		 * duplicate, should re-ask
-+		 */
-+		if ((du_dirtype == dirtype) && (du_stack == stack) &&
-+		    ovl_ask_action("Duplicate redirect directory",
-+                                   duplicate, du_dirtype, du_stack,
-+                                   "Remove redirect", 0)) {
-+			(*invalid)++;
-+			ret = ovl_do_remove_redirect(dirfd, duplicate, dirtype,
-+						     stack, total, invalid);
+@@ -815,6 +877,9 @@ static void ovl_scan_check(struct scan_ctx *sctx)
+ 	else if (sctx->i_redirects)
+ 		print_info(_("Invalid redirect directories %d left!\n"),
+ 			     sctx->i_redirects);
++	else if (sctx->m_impure)
++		print_info(_("Directories %d missing impure xattr!\n"),
++			     sctx->m_impure);
+ 	else
+ 		return;
+ 
+@@ -829,7 +894,8 @@ int ovl_scan_fix(void)
+ 	int ret;
+ 
+ 	if (flags & FL_VERBOSE)
+-		print_info(_("Scan and fix: [whiteouts|redirect dir]\n"));
++		print_info(_("Scan and fix: "
++			     "[whiteouts|redirect dir|impure dir]\n"));
+ 
+ 	for (i = 0; i < OVL_SCAN_PASS; i++) {
+ 		if (flags & FL_VERBOSE)
+diff --git a/lib.c b/lib.c
+index 03bd8eb..19eab65 100644
+--- a/lib.c
++++ b/lib.c
+@@ -253,6 +253,11 @@ int scan_dir(struct scan_ctx *sctx, struct scan_operations *sop)
+ 			sctx->dirdata = smalloc(sizeof(struct scan_dir_data));
+ 			break;
+ 		case FTS_DP:
++			/* Check impure xattr */
++			ret = scan_check_entry(sop->impure, sctx);
 +			if (ret)
 +				goto out;
 +
-+			ovl_redirect_entry_del(od.pathname, od.stack);
-+		}
-+	}
-+out:
-+	return ret;
-+}
-+
- /*
-  * Get redirect origin directory stored in the xattr, check it's invlaid
-  * or not, In auto-mode, invalid redirect xattr will be removed directly.
-  * Do the follow checking:
-  * 1) Check the origin directory exist or not. If not, remove xattr.
-- * 2) Count how many directories the origin directory was redirected by.
-- *    If more than one, there must be some inconsistency but not sure
-- *    which one is invalid, ask user or warn in auto mode.
-- * 3) Check and fix the missing whiteout or opaque in redierct parent dir.
-+ * 2) Check and fix the missing whiteout of the redirect origin target.
-+ * 3) Check redirect xattr duplicate with merge directory or another
-+ *    redirect directory.
-+ * 4) When an invalid redirect xattr is removed from a directory, also check
-+ *    whether it will duplicate with another redirect directory if the lower
-+ *    corresponding directory exists.
-+ * 5) If a duplicate redirect xattr is found, not sure which one is invalid
-+ *    and how to deal with it, so ask user by default.
-  */
- static int ovl_check_redirect(struct scan_ctx *sctx)
- {
-@@ -523,43 +622,30 @@ static int ovl_check_redirect(struct scan_ctx *sctx)
- 		goto out;
+ 			/* Restore parent's dir data */
+ 			free(sctx->dirdata);
+ 			sctx->dirdata = ftsent->fts_pointer;
+diff --git a/lib.h b/lib.h
+index 60e620e..8d1d936 100644
+--- a/lib.h
++++ b/lib.h
+@@ -55,6 +55,7 @@
+ #define OVL_OPAQUE_XATTR	"trusted.overlay.opaque"
+ #define OVL_REDIRECT_XATTR	"trusted.overlay.redirect"
+ #define OVL_ORIGIN_XATTR	"trusted.overlay.origin"
++#define OVL_IMPURE_XATTR	"trusted.overlay.impure"
  
- 	if (od.exist && is_dir(&od.st)) {
--		int dirtype, stack;
--		char *dup;
--
--		/* Check duplicate redirect xattr */
--		if (ovl_redirect_entry_find(od.pathname, od.stack,
--					    &dirtype, &stack, &dup)) {
--			print_info("Duplicate redirect dir found:%s\n", pathname);
--			print_info("Origin:%s in lower %d, "
--				   "Previous:%s in %s %d\n",
--				   od.pathname, od.stack, dup,
--				   (dirtype == OVL_UPPER) ? "upper" : "lower",
--				   stack);
--
-+		/* Check duplicate with another redirect dir */
-+		if (ovl_redirect_is_duplicate(od.pathname, od.stack)) {
- 			sctx->i_redirects++;
  
- 			/*
- 			 * Not sure which one is invalid, don't remove in
- 			 * auto mode
- 			 */
--			if (ovl_ask_action("Duplicate redirect xattr", pathname,
--					   sctx->dirtype, sctx->stack,
--					   "Remove", 0))
-+			if (ovl_ask_action("Duplicate redirect directory",
-+					   pathname, sctx->dirtype, sctx->stack,
-+					   "Remove redirect", 0))
- 				goto remove_d;
-+			else
-+				goto out;
- 		}
+ /* Directories scan data structs */
+@@ -76,6 +77,7 @@ struct scan_ctx {
+ 	int i_whiteouts;	/* invalid whiteouts */
+ 	int t_redirects;	/* total redirect dirs */
+ 	int i_redirects;	/* invalid redirect dirs */
++	int m_impure;		/* missing inpure dirs */
  
--		/* Now, this redirect xattr is valid */
--		ovl_redirect_entry_add(pathname, sctx->dirtype, sctx->stack,
--				       od.pathname, od.stack);
--
--		/* Check and fix whiteout or opaque dir */
-+		/* Check duplicate with merge dir */
- 		ret = ovl_lookup_single(sctx->dirfd, redirect, &cover_st,
- 					&cover_exist);
- 		if (ret)
- 			goto out;
- 		if (!cover_exist) {
- 			/* Found nothing, create a whiteout */
--			if (ovl_ask_action("Missing cover whiteout", pathname,
-+			if (ovl_ask_action("Missing whiteout", pathname,
- 					   sctx->dirtype, sctx->stack,
- 					   "Add", 1)) {
- 				ret = ovl_create_whiteout(sctx->dirfd, redirect);
-@@ -569,13 +655,33 @@ static int ovl_check_redirect(struct scan_ctx *sctx)
- 				sctx->t_whiteouts++;
- 			}
- 		} else if (is_dir(&cover_st) &&
--			   !ovl_is_opaque(sctx->dirfd, redirect)) {
--
--			/* Found a directory but not opaqued, fix opaque xattr */
--			if ((ret = ovl_set_opaque(sctx->dirfd, redirect)))
-+			   !ovl_is_opaque(sctx->dirfd, redirect) &&
-+			   !ovl_is_redirect(sctx->dirfd, redirect)) {
-+			/*
-+			 * Found a directory merge with the same origin,
-+			 * ask user to remove this duplicate redirect xattr
-+			 * or set opaque to the cover directory
-+			 */
-+			sctx->i_redirects++;
-+			if (ovl_ask_action("Duplicate redirect directory",
-+					   pathname, sctx->dirtype, sctx->stack,
-+					   "Remove redirect", 0)) {
-+				goto remove_d;
-+			} else if (ovl_ask_question("Should set opaque dir",
-+						    redirect, sctx->dirtype,
-+						    sctx->stack, 0)) {
-+				ret = ovl_set_opaque(sctx->dirfd, redirect);
-+				if (ret)
-+					goto out;
-+			} else {
- 				goto out;
-+			}
- 		}
+ 	const char *pathname;	/* path relative to overlay root */
+ 	const char *filename;	/* filename */
+@@ -89,6 +91,7 @@ struct scan_operations {
+ 	int (*redirect)(struct scan_ctx *);
+ 	int (*origin)(struct scan_ctx *);
+ 	int (*unreal)(struct scan_ctx *);
++	int (*impure)(struct scan_ctx *);
+ };
  
-+		/* Now, this redirect xattr is valid */
-+		ovl_redirect_entry_add(pathname, sctx->dirtype, sctx->stack,
-+				       od.pathname, od.stack);
-+
- 		goto out;
- 	}
- 
-@@ -583,16 +689,13 @@ remove:
- 	sctx->i_redirects++;
- 
- 	/* Remove redirect xattr or ask user */
--	if (!ovl_ask_action("Invalid redirect xattr", pathname, sctx->dirtype,
--			    sctx->stack, "Remove", 1))
-+	if (!ovl_ask_action("Invalid redirect directory", pathname, sctx->dirtype,
-+			    sctx->stack, "Remove redirect", 1))
- 		goto out;
- remove_d:
--	ret = ovl_remove_redirect(sctx->dirfd, pathname);
--	if (ret)
--		goto out;
--
--	sctx->t_redirects--;
--	sctx->i_redirects--;
-+	ret = ovl_do_remove_redirect(sctx->dirfd, pathname, sctx->dirtype,
-+				     sctx->stack, &sctx->t_redirects,
-+				     &sctx->i_redirects);
- out:
- 	free(redirect);
- 	return ret;
+ static inline void set_inconsistency(int *status)
 -- 
 2.9.5
