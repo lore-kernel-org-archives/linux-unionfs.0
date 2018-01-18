@@ -1,47 +1,57 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [xfstest PATCH v4 5/7] overlay/003: fix fs check failure
-Date: Thu, 18 Jan 2018 10:01:07 +0200
-Message-ID: <CAOQ4uxiBFZek8ABfbG+czmCRkMDw-NVeD7nv8jJ9MxARaoVgNw@mail.gmail.com>
-References: <20180118040033.19555-1-yi.zhang@huawei.com> <20180118040033.19555-6-yi.zhang@huawei.com>
+Subject: Re: [xfstest PATCH v4 6/7] overlay: skip check for tests finished
+ with corrupt filesystem
+Date: Thu, 18 Jan 2018 10:02:24 +0200
+Message-ID: <CAOQ4uxg1mfFvNm5LcAzxsVAXYxL8N0MwR2TarN6JZo3QW=-R1g@mail.gmail.com>
+References: <20180118040033.19555-1-yi.zhang@huawei.com> <20180118040033.19555-7-yi.zhang@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-yw0-f193.google.com ([209.85.161.193]:42000 "EHLO
-        mail-yw0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754087AbeARIBI (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 18 Jan 2018 03:01:08 -0500
-In-Reply-To: <20180118040033.19555-6-yi.zhang@huawei.com>
-Sender: linux-unionfs-owner@vger.kernel.org
-List-Id: linux-unionfs@vger.kernel.org
+Return-path: <fstests-owner@vger.kernel.org>
+In-Reply-To: <20180118040033.19555-7-yi.zhang@huawei.com>
+Sender: fstests-owner@vger.kernel.org
 To: "zhangyi (F)" <yi.zhang@huawei.com>
 Cc: overlayfs <linux-unionfs@vger.kernel.org>, fstests <fstests@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>, Eryu Guan <eguan@redhat.com>, Miao Xie <miaoxie@huawei.com>, yangerkun@huawei.com
+List-Id: linux-unionfs@vger.kernel.org
 
 On Thu, Jan 18, 2018 at 6:00 AM, zhangyi (F) <yi.zhang@huawei.com> wrote:
-> _check_overlay_scratch_fs() will check lowerdir of overlay filesystem,
-> this case remove this directory after test will lead to check failure,
-> and it is not really necessary to remove this directory, so keep this
-> directory.
+> No post-test check of the overlay dirs is required if case leaves
+> corrupt filesystem after test. We shoud use _require_scratch_nocheck()
+> instead of _require_scratch() in these cases.
 >
 > Signed-off-by: zhangyi (F) <yi.zhang@huawei.com>
 Reviewed-by: Amir Goldstein <amir73il@gmail.com>
 
 > ---
->  tests/overlay/003 | 1 -
->  1 file changed, 1 deletion(-)
+>  tests/overlay/019 | 2 +-
+>  tests/overlay/031 | 2 +-
+>  2 files changed, 2 insertions(+), 2 deletions(-)
 >
-> diff --git a/tests/overlay/003 b/tests/overlay/003
-> index f980edb..154531e 100755
-> --- a/tests/overlay/003
-> +++ b/tests/overlay/003
-> @@ -92,7 +92,6 @@ ls ${SCRATCH_MNT}/
->  # unmount overlayfs but not base fs
->  $UMOUNT_PROG $SCRATCH_MNT
+> diff --git a/tests/overlay/019 b/tests/overlay/019
+> index 3e2bc4e..575aaf7 100755
+> --- a/tests/overlay/019
+> +++ b/tests/overlay/019
+> @@ -46,7 +46,7 @@ rm -f $seqres.full
+>  # real QA test starts here
+>  _supported_fs overlay
+>  _supported_os Linux
+> -_require_scratch
+> +_require_scratch_nocheck
 >
-> -rm -rf $lowerdir
->  echo "Silence is golden"
->  # success, all done
->  status=0
+>  # Remove all files from previous tests
+>  _scratch_mkfs
+> diff --git a/tests/overlay/031 b/tests/overlay/031
+> index 186b409..90a06af 100755
+> --- a/tests/overlay/031
+> +++ b/tests/overlay/031
+> @@ -67,7 +67,7 @@ rm -f $seqres.full
+>  # real QA test starts here
+>  _supported_fs overlay
+>  _supported_os Linux
+> -_require_scratch
+> +_require_scratch_nocheck
+>
+>  # remove all files from previous runs
+>  _scratch_mkfs
 > --
 > 2.9.5
 >
