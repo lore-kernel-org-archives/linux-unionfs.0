@@ -1,64 +1,78 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [PATCH v9 14/15] ovl: Fix encryption/compression status of a
- metacopy only file
-Date: Thu, 18 Jan 2018 16:32:01 +0200
-Message-ID: <CAOQ4uxiLMF6BmzF9hzX6LD7eeX_=-6w1aWir5-d61bj3ojpXxQ@mail.gmail.com>
-References: <20171129155448.32721-1-vgoyal@redhat.com> <20171129155448.32721-15-vgoyal@redhat.com>
- <20180118142453.GA5769@redhat.com>
+Subject: Re: [PATCH v2 03/17] ovl: decode pure upper file handles
+Date: Thu, 18 Jan 2018 16:34:52 +0200
+Message-ID: <CAOQ4uxg34b6TZ6hwPczv_m_HquR6apnPy0gexHezixMedVqUZA@mail.gmail.com>
+References: <1515086449-26563-1-git-send-email-amir73il@gmail.com>
+ <1515086449-26563-4-git-send-email-amir73il@gmail.com> <CAJfpegt=4Mk7B7E9c7CGJHdWZsVFQAqfJ_NbRNQNOpSZFYudrg@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-yw0-f179.google.com ([209.85.161.179]:38224 "EHLO
-        mail-yw0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756500AbeAROcD (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 18 Jan 2018 09:32:03 -0500
-Received: by mail-yw0-f179.google.com with SMTP id m84so11345724ywd.5
-        for <linux-unionfs@vger.kernel.org>; Thu, 18 Jan 2018 06:32:02 -0800 (PST)
-In-Reply-To: <20180118142453.GA5769@redhat.com>
-Sender: linux-unionfs-owner@vger.kernel.org
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
+In-Reply-To: <CAJfpegt=4Mk7B7E9c7CGJHdWZsVFQAqfJ_NbRNQNOpSZFYudrg@mail.gmail.com>
+Sender: linux-fsdevel-owner@vger.kernel.org
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: overlayfs <linux-unionfs@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Al Viro <viro@zeniv.linux.org.uk>
 List-Id: linux-unionfs@vger.kernel.org
-To: Vivek Goyal <vgoyal@redhat.com>
-Cc: overlayfs <linux-unionfs@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>
 
-On Thu, Jan 18, 2018 at 4:24 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
-> On Wed, Nov 29, 2017 at 10:54:47AM -0500, Vivek Goyal wrote:
->> If file is metacopy only, it is possible that lower is encrypted while
->> other is not. In that case, report file as encrypted (despite the fact
->> that only data is encrypted while metadata is not).
+On Thu, Jan 18, 2018 at 4:09 PM, Miklos Szeredi <miklos@szeredi.hu> wrote:
+> [Added Al Viro]
+>
+> On Thu, Jan 4, 2018 at 6:20 PM, Amir Goldstein <amir73il@gmail.com> wrote:
+>> Decoding an upper file handle is done by decoding the upper dentry from
+>> underlying upper fs, finding or allocating an overlay inode that is
+>> hashed by the real upper inode and instantiating an overlay dentry with
+>> that inode.
 >>
->> Similarly if lower is compressed, report that in stat for a metacopy
->> only file.
+>> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+>> ---
+>>  fs/overlayfs/export.c    | 91 ++++++++++++++++++++++++++++++++++++++++++++++++
+>>  fs/overlayfs/namei.c     |  4 +--
+>>  fs/overlayfs/overlayfs.h |  2 ++
+>>  3 files changed, 95 insertions(+), 2 deletions(-)
 >>
+>> diff --git a/fs/overlayfs/export.c b/fs/overlayfs/export.c
+>> index 58c4f5e8a67e..5c72784a0b4d 100644
+>> --- a/fs/overlayfs/export.c
+>> +++ b/fs/overlayfs/export.c
+>> @@ -93,6 +93,97 @@ static int ovl_encode_inode_fh(struct inode *inode, u32 *fid, int *max_len,
+>>         return type;
+>>  }
+>>
+>> +/*
+>> + * Find or instantiate an overlay dentry from real dentries.
+>> + */
+>> +static struct dentry *ovl_obtain_alias(struct super_block *sb,
+>> +                                      struct dentry *upper,
+>> +                                      struct ovl_path *lowerpath)
+>> +{
+>> +       struct inode *inode;
+>> +       struct dentry *dentry;
+>> +       struct ovl_entry *oe;
+>> +
+>> +       /* TODO: obtain non pure-upper */
+>> +       if (lowerpath)
+>> +               return ERR_PTR(-EIO);
+>> +
+>> +       inode = ovl_get_inode(sb, dget(upper), NULL, NULL, 0);
+>> +       if (IS_ERR(inode)) {
+>> +               dput(upper);
+>> +               return ERR_CAST(inode);
+>> +       }
+>> +
+>> +       dentry = d_obtain_alias(inode);
+>> +       if (IS_ERR(dentry) || dentry->d_fsdata)
 >
-> Hi Amir,
+> Racing two instances of this code, each thinking it got a new alias
+> and trying to fill it, results in a memory leak.
 >
-> Thinking more about this patch. Taking union of lower and upper attributes
-> (encryption and compressed) does not feel right.
+> Haven't checked in too much depth, but apparently other filesystems
+> are not affected, so we need something special here.
 >
-> Right now if lower is compressed and upper is not (metacopy), then we will
-> report file as compressed. But if lower is not compressed while upper is,
-> still we will report file as compressed. So there is an anomaly here.
->
-> I think, compression and encryption primarily represent the data state.
-> So always report the state from inode which has file data (lower). And
-> don't take union with upper metacopy only inode. Because state in
-> upper inode does not matter till data is copied up.
->
-> This will also simplify my implementation when supporting metacopy in
-> middle layer. That way I don't have to do getattr() on all intermediate
-> metacopy inodes in the chain and take a union. Instead I can go to lowest
-> most data inode and take encryption and compression attributes from there.
->
-> I am not sure why did we decide to take union of lower and upper attrs.
-> Right now it does not seem to make sense to me.
+> One solution: split d_instantiate_anon(dentry, inode) out of
+> __d_obtain_alias() and supply that with the already initialized
+> dentry.
 >
 
-Now I am not sure either. I suspect that userspace may need the ability to
-know if a file is encrypted, but I can't say for sure.
-If you want to know better ask the developers that work of fs/crypto.
+Can't we use &OVL_I(inode)->lock to avoid the race?
 
-I don't mind if you leave this patch out.
-
-Cheers,
+Thanks,
 Amir.
