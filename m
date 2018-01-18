@@ -1,258 +1,110 @@
-From: Chengguang Xu <cgxu519@icloud.com>
-Subject: [PATCH] ovl: Using slab allocation for frequently used struct
-Date: Thu, 18 Jan 2018 23:56:17 +0800
-Message-ID: <1516290977-130583-1-git-send-email-cgxu519@icloud.com>
-Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mr11p00im-asmtp002.me.com ([17.110.69.253]:25021 "EHLO
-        mr11p00im-asmtp002.me.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933204AbeARP5E (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 18 Jan 2018 10:57:04 -0500
-Received: from process-dkim-sign-daemon.mr11p00im-asmtp002.me.com by
- mr11p00im-asmtp002.me.com
- (Oracle Communications Messaging Server 8.0.1.2.20170607 64bit (built Jun  7
- 2017)) id <0P2R00B00CH0H600@mr11p00im-asmtp002.me.com> for
- linux-unionfs@vger.kernel.org; Thu, 18 Jan 2018 15:57:03 +0000 (GMT)
-Sender: linux-unionfs-owner@vger.kernel.org
+From: Amir Goldstein <amir73il@gmail.com>
+Subject: Re: [PATCH v2 03/17] ovl: decode pure upper file handles
+Date: Thu, 18 Jan 2018 21:49:12 +0200
+Message-ID: <CAOQ4uxhaC3b2N1rNCBgv0MTyBQgWFZKyVV60VWnudb_wY6A98Q@mail.gmail.com>
+References: <1515086449-26563-1-git-send-email-amir73il@gmail.com>
+ <1515086449-26563-4-git-send-email-amir73il@gmail.com> <CAJfpegt=4Mk7B7E9c7CGJHdWZsVFQAqfJ_NbRNQNOpSZFYudrg@mail.gmail.com>
+ <CAOQ4uxg34b6TZ6hwPczv_m_HquR6apnPy0gexHezixMedVqUZA@mail.gmail.com> <CAJfpegttoV7aPN2sS6RXONh0eFQ9xyoFxZbzVG7UMCcAJ+zjtg@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
+In-Reply-To: <CAJfpegttoV7aPN2sS6RXONh0eFQ9xyoFxZbzVG7UMCcAJ+zjtg@mail.gmail.com>
+Sender: linux-fsdevel-owner@vger.kernel.org
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: overlayfs <linux-unionfs@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Al Viro <viro@zeniv.linux.org.uk>
 List-Id: linux-unionfs@vger.kernel.org
-To: miklos@szeredi.hu, amir73il@gmail.com
-Cc: linux-unionfs@vger.kernel.org, Chengguang Xu <cgxu519@icloud.com>
 
-Introducing slab allocation to replace kmalloc/kfree for
-frequently used struct ovl_dir_file and ovl_dir_cache.
+On Thu, Jan 18, 2018 at 4:39 PM, Miklos Szeredi <miklos@szeredi.hu> wrote:
+> On Thu, Jan 18, 2018 at 3:34 PM, Amir Goldstein <amir73il@gmail.com> wrote:
+>> On Thu, Jan 18, 2018 at 4:09 PM, Miklos Szeredi <miklos@szeredi.hu> wrote:
+>>> [Added Al Viro]
+>>>
+>>> On Thu, Jan 4, 2018 at 6:20 PM, Amir Goldstein <amir73il@gmail.com> wrote:
+>>>> Decoding an upper file handle is done by decoding the upper dentry from
+>>>> underlying upper fs, finding or allocating an overlay inode that is
+>>>> hashed by the real upper inode and instantiating an overlay dentry with
+>>>> that inode.
+>>>>
+>>>> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+>>>> ---
+>>>>  fs/overlayfs/export.c    | 91 ++++++++++++++++++++++++++++++++++++++++++++++++
+>>>>  fs/overlayfs/namei.c     |  4 +--
+>>>>  fs/overlayfs/overlayfs.h |  2 ++
+>>>>  3 files changed, 95 insertions(+), 2 deletions(-)
+>>>>
+>>>> diff --git a/fs/overlayfs/export.c b/fs/overlayfs/export.c
+>>>> index 58c4f5e8a67e..5c72784a0b4d 100644
+>>>> --- a/fs/overlayfs/export.c
+>>>> +++ b/fs/overlayfs/export.c
+>>>> @@ -93,6 +93,97 @@ static int ovl_encode_inode_fh(struct inode *inode, u32 *fid, int *max_len,
+>>>>         return type;
+>>>>  }
+>>>>
+>>>> +/*
+>>>> + * Find or instantiate an overlay dentry from real dentries.
+>>>> + */
+>>>> +static struct dentry *ovl_obtain_alias(struct super_block *sb,
+>>>> +                                      struct dentry *upper,
+>>>> +                                      struct ovl_path *lowerpath)
+>>>> +{
+>>>> +       struct inode *inode;
+>>>> +       struct dentry *dentry;
+>>>> +       struct ovl_entry *oe;
+>>>> +
+>>>> +       /* TODO: obtain non pure-upper */
+>>>> +       if (lowerpath)
+>>>> +               return ERR_PTR(-EIO);
+>>>> +
+>>>> +       inode = ovl_get_inode(sb, dget(upper), NULL, NULL, 0);
+>>>> +       if (IS_ERR(inode)) {
+>>>> +               dput(upper);
+>>>> +               return ERR_CAST(inode);
+>>>> +       }
+>>>> +
+>>>> +       dentry = d_obtain_alias(inode);
+>>>> +       if (IS_ERR(dentry) || dentry->d_fsdata)
+>>>
+>>> Racing two instances of this code, each thinking it got a new alias
+>>> and trying to fill it, results in a memory leak.
+>>>
+>>> Haven't checked in too much depth, but apparently other filesystems
+>>> are not affected, so we need something special here.
+>>>
+>>> One solution: split d_instantiate_anon(dentry, inode) out of
+>>> __d_obtain_alias() and supply that with the already initialized
+>>> dentry.
+>>>
+>>
+>> Can't we use &OVL_I(inode)->lock to avoid the race?
+>
+> We could.  But then d_splice_alias() will find our half baked dentry
+> and return that from ovl_lookup().
 
-Signed-off-by: Chengguang Xu <cgxu519@icloud.com>
----
- fs/overlayfs/overlayfs.h |  4 ++++
- fs/overlayfs/ovl_entry.h | 16 ++++++++++++++++
- fs/overlayfs/readdir.c   | 36 ++++++++++--------------------------
- fs/overlayfs/super.c     | 36 ++++++++++++++++++++++++++++++++----
- 4 files changed, 62 insertions(+), 30 deletions(-)
+No it won't, because we do not obtain dir dentries this way.
+We actually do in this patch [3/17], but since patch [4/17] we don't,
+so I only need to fix this patch not to obtain dir dentry and to
+protect concurrent decode of non-dir with &OVL_I(inode)->lock.
 
-diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-index b489099..f407882 100644
---- a/fs/overlayfs/overlayfs.h
-+++ b/fs/overlayfs/overlayfs.h
-@@ -322,3 +322,7 @@ int ovl_create_real(struct inode *dir, struct dentry *newdentry,
- int ovl_copy_xattr(struct dentry *old, struct dentry *new);
- int ovl_set_attr(struct dentry *upper, struct kstat *stat);
- struct ovl_fh *ovl_encode_fh(struct dentry *lower, bool is_upper);
-+
-+/* super.c */
-+extern struct kmem_cache *ovl_dir_file_cachep;
-+extern struct kmem_cache *ovl_dir_cache_cachep;
-diff --git a/fs/overlayfs/ovl_entry.h b/fs/overlayfs/ovl_entry.h
-index 9d0bc03..a5d241d 100644
---- a/fs/overlayfs/ovl_entry.h
-+++ b/fs/overlayfs/ovl_entry.h
-@@ -91,3 +91,19 @@ static inline struct dentry *ovl_upperdentry_dereference(struct ovl_inode *oi)
- {
- 	return READ_ONCE(oi->__upperdentry);
- }
-+
-+struct ovl_dir_cache {
-+	long refcount;
-+	u64 version;
-+	struct list_head entries;
-+	struct rb_root root;
-+};
-+
-+struct ovl_dir_file {
-+	bool is_real;
-+	bool is_upper;
-+	struct ovl_dir_cache *cache;
-+	struct list_head *cursor;
-+	struct file *realfile;
-+	struct file *upperfile;
-+};
-diff --git a/fs/overlayfs/readdir.c b/fs/overlayfs/readdir.c
-index 8c98578..cb0e3fb 100644
---- a/fs/overlayfs/readdir.c
-+++ b/fs/overlayfs/readdir.c
-@@ -31,13 +31,6 @@ struct ovl_cache_entry {
- 	char name[];
- };
- 
--struct ovl_dir_cache {
--	long refcount;
--	u64 version;
--	struct list_head entries;
--	struct rb_root root;
--};
--
- struct ovl_readdir_data {
- 	struct dir_context ctx;
- 	struct dentry *dentry;
-@@ -52,15 +45,6 @@ struct ovl_readdir_data {
- 	bool d_type_supported;
- };
- 
--struct ovl_dir_file {
--	bool is_real;
--	bool is_upper;
--	struct ovl_dir_cache *cache;
--	struct list_head *cursor;
--	struct file *realfile;
--	struct file *upperfile;
--};
--
- static struct ovl_cache_entry *ovl_cache_entry_from_node(struct rb_node *n)
- {
- 	return rb_entry(n, struct ovl_cache_entry, node);
-@@ -230,7 +214,7 @@ void ovl_dir_cache_free(struct inode *inode)
- 
- 	if (cache) {
- 		ovl_cache_free(&cache->entries);
--		kfree(cache);
-+		kmem_cache_free(ovl_dir_cache_cachep, cache);
- 	}
- }
- 
-@@ -245,7 +229,7 @@ static void ovl_cache_put(struct ovl_dir_file *od, struct dentry *dentry)
- 			ovl_set_dir_cache(d_inode(dentry), NULL);
- 
- 		ovl_cache_free(&cache->entries);
--		kfree(cache);
-+		kmem_cache_free(ovl_dir_cache_cachep, cache);
- 	}
- }
- 
-@@ -414,7 +398,7 @@ static struct ovl_dir_cache *ovl_cache_get(struct dentry *dentry)
- 	}
- 	ovl_set_dir_cache(d_inode(dentry), NULL);
- 
--	cache = kzalloc(sizeof(struct ovl_dir_cache), GFP_KERNEL);
-+	cache = kmem_cache_zalloc(ovl_dir_cache_cachep, GFP_KERNEL);
- 	if (!cache)
- 		return ERR_PTR(-ENOMEM);
- 
-@@ -425,7 +409,7 @@ static struct ovl_dir_cache *ovl_cache_get(struct dentry *dentry)
- 	res = ovl_dir_read_merged(dentry, &cache->entries, &cache->root);
- 	if (res) {
- 		ovl_cache_free(&cache->entries);
--		kfree(cache);
-+		kmem_cache_free(ovl_dir_cache_cachep, cache);
- 		return ERR_PTR(res);
- 	}
- 
-@@ -582,21 +566,21 @@ static struct ovl_dir_cache *ovl_cache_get_impure(struct path *path)
- 	ovl_dir_cache_free(d_inode(dentry));
- 	ovl_set_dir_cache(d_inode(dentry), NULL);
- 
--	cache = kzalloc(sizeof(struct ovl_dir_cache), GFP_KERNEL);
-+	cache = kmem_cache_zalloc(ovl_dir_cache_cachep, GFP_KERNEL);
- 	if (!cache)
- 		return ERR_PTR(-ENOMEM);
- 
- 	res = ovl_dir_read_impure(path, &cache->entries, &cache->root);
- 	if (res) {
- 		ovl_cache_free(&cache->entries);
--		kfree(cache);
-+		kmem_cache_free(ovl_dir_cache_cachep, cache);
- 		return ERR_PTR(res);
- 	}
- 	if (list_empty(&cache->entries)) {
- 		/* Good oportunity to get rid of an unnecessary "impure" flag */
- 		ovl_do_removexattr(ovl_dentry_upper(dentry), OVL_XATTR_IMPURE);
- 		ovl_clear_flag(OVL_IMPURE, d_inode(dentry));
--		kfree(cache);
-+		kmem_cache_free(ovl_dir_cache_cachep, cache);
- 		return NULL;
- 	}
- 
-@@ -814,7 +798,7 @@ static int ovl_dir_release(struct inode *inode, struct file *file)
- 	fput(od->realfile);
- 	if (od->upperfile)
- 		fput(od->upperfile);
--	kfree(od);
-+	kmem_cache_free(ovl_dir_file_cachep, od);
- 
- 	return 0;
- }
-@@ -826,14 +810,14 @@ static int ovl_dir_open(struct inode *inode, struct file *file)
- 	struct ovl_dir_file *od;
- 	enum ovl_path_type type;
- 
--	od = kzalloc(sizeof(struct ovl_dir_file), GFP_KERNEL);
-+	od = kmem_cache_zalloc(ovl_dir_file_cachep, GFP_KERNEL);
- 	if (!od)
- 		return -ENOMEM;
- 
- 	type = ovl_path_real(file->f_path.dentry, &realpath);
- 	realfile = ovl_path_open(&realpath, file->f_flags);
- 	if (IS_ERR(realfile)) {
--		kfree(od);
-+		kmem_cache_free(ovl_dir_file_cachep, od);
- 		return PTR_ERR(realfile);
- 	}
- 	od->realfile = realfile;
-diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-index 76440fe..0128b64 100644
---- a/fs/overlayfs/super.c
-+++ b/fs/overlayfs/super.c
-@@ -180,6 +180,8 @@ static int ovl_dentry_weak_revalidate(struct dentry *dentry, unsigned int flags)
- };
- 
- static struct kmem_cache *ovl_inode_cachep;
-+struct kmem_cache *ovl_dir_file_cachep;
-+struct kmem_cache *ovl_dir_cache_cachep;
- 
- static struct inode *ovl_alloc_inode(struct super_block *sb)
- {
-@@ -1332,17 +1334,41 @@ static int __init ovl_init(void)
- {
- 	int err;
- 
-+	err = -ENOMEM;
- 	ovl_inode_cachep = kmem_cache_create("ovl_inode",
- 					     sizeof(struct ovl_inode), 0,
- 					     (SLAB_RECLAIM_ACCOUNT|
- 					      SLAB_MEM_SPREAD|SLAB_ACCOUNT),
- 					     ovl_inode_init_once);
--	if (ovl_inode_cachep == NULL)
--		return -ENOMEM;
-+	if (!ovl_inode_cachep)
-+		return err;
-+
-+	ovl_dir_file_cachep = kmem_cache_create("ovl_dir_file",
-+						sizeof(struct ovl_dir_file), 0,
-+						(SLAB_RECLAIM_ACCOUNT|
-+						SLAB_MEM_SPREAD|SLAB_ACCOUNT),
-+						NULL);
-+	if (!ovl_dir_file_cachep)
-+		goto bad_ovl_dir_file_cachep;
-+
-+	ovl_dir_cache_cachep = kmem_cache_create("ovl_dir_cache",
-+						sizeof(struct ovl_dir_cache), 0,
-+						(SLAB_RECLAIM_ACCOUNT|
-+						SLAB_MEM_SPREAD|SLAB_ACCOUNT),
-+						NULL);
-+
-+	if (!ovl_dir_cache_cachep)
-+		goto bad_ovl_dir_cache_cachep;
- 
- 	err = register_filesystem(&ovl_fs_type);
--	if (err)
--		kmem_cache_destroy(ovl_inode_cachep);
-+	if (!err)
-+		return err;
-+
-+	kmem_cache_destroy(ovl_dir_cache_cachep);
-+bad_ovl_dir_cache_cachep:
-+	kmem_cache_destroy(ovl_dir_file_cachep);
-+bad_ovl_dir_file_cachep:
-+	kmem_cache_destroy(ovl_inode_cachep);
- 
- 	return err;
- }
-@@ -1356,6 +1382,8 @@ static void __exit ovl_exit(void)
- 	 * destroy cache.
- 	 */
- 	rcu_barrier();
-+	kmem_cache_destroy(ovl_dir_cache_cachep);
-+	kmem_cache_destroy(ovl_dir_file_cachep);
- 	kmem_cache_destroy(ovl_inode_cachep);
- 
- }
--- 
-1.8.3.1
+> So we do need to have the dentry
+> fully initialized by the time it's added into the inode's alias list.
+>
+
+The only problems I see with adding a non-dir disconnected alias
+that is not fully baked are:
+1. We can get it in ovl_encode_inode_fh() from d_find_any_alias()
+2. nfsd can get it in exportfs_decode_fh() from find_acceptable_alias()
+    in a weird hypothetical case where the fully baked dentry we just
+    returned from ovl_obtain_alias() in NOT acceptable by nfsd but
+    the half baked dentry IS acceptable
+3. Another kernel user that uses d_find_any_alias() or one of the use
+    case that only Al can think of...
+
+Cases 2 and 3, I don't know if they are for real.
+
+Case 1 is only a problem due to lack of export_operations method
+'dentry_to_fh'. exportfs_encode_fh() has the right dentry, but it does
+not pass it to the filesystem for encoding, so I think it should be
+solved by adding this method.
+
+Thanks,
+Amir.
