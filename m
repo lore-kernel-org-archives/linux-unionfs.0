@@ -1,84 +1,334 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [PATCH v5] ovl: Improving syncfs efficiency
-Date: Thu, 18 Jan 2018 09:51:55 +0200
-Message-ID: <CAOQ4uxjVNRjV96LokUvC+VkMRVKR5CeTUzOxDbB2_v-E5U6F2A@mail.gmail.com>
-References: <1516258412-122012-1-git-send-email-cgxu519@icloud.com>
+Subject: Re: [xfstest PATCH v4 3/7] overlay: add fsck.overlay redirect
+ directory test
+Date: Thu, 18 Jan 2018 09:58:01 +0200
+Message-ID: <CAOQ4uxgkOskv-J9Dm8cLS1NC4je4_q1MQMD_NSH1Sd2ZjPFF0A@mail.gmail.com>
+References: <20180118040033.19555-1-yi.zhang@huawei.com> <20180118040033.19555-4-yi.zhang@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-yw0-f196.google.com ([209.85.161.196]:38266 "EHLO
-        mail-yw0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753390AbeARHv4 (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 18 Jan 2018 02:51:56 -0500
-Received: by mail-yw0-f196.google.com with SMTP id m84so10519925ywd.5
-        for <linux-unionfs@vger.kernel.org>; Wed, 17 Jan 2018 23:51:56 -0800 (PST)
-In-Reply-To: <1516258412-122012-1-git-send-email-cgxu519@icloud.com>
-Sender: linux-unionfs-owner@vger.kernel.org
+Return-path: <fstests-owner@vger.kernel.org>
+In-Reply-To: <20180118040033.19555-4-yi.zhang@huawei.com>
+Sender: fstests-owner@vger.kernel.org
+To: "zhangyi (F)" <yi.zhang@huawei.com>
+Cc: overlayfs <linux-unionfs@vger.kernel.org>, fstests <fstests@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>, Eryu Guan <eguan@redhat.com>, Miao Xie <miaoxie@huawei.com>, yangerkun@huawei.com
 List-Id: linux-unionfs@vger.kernel.org
-To: Chengguang Xu <cgxu519@icloud.com>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, Jan Kara <jack@suse.cz>, overlayfs <linux-unionfs@vger.kernel.org>
 
-On Thu, Jan 18, 2018 at 8:53 AM, Chengguang Xu <cgxu519@icloud.com> wrote:
-> Currently syncfs(2) call on overlayfs just simply call sync_filesystem()
-> on upper_sb to synchronize whole dirty inodes in upper filesystem
-> regardless of the overlay ownership of the inode. In the use case of
-> container, when multiple containers using the same underlying upper
-> filesystem, it has some shortcomings as below.
+On Thu, Jan 18, 2018 at 6:00 AM, zhangyi (F) <yi.zhang@huawei.com> wrote:
+> Add fsck.overlay test case to test it how to deal with invalid/valid/
+> duplicate redirect xattr in underlying directories of overlayfs.
 >
-> (1) Performance
-> Synchronization is probably heavy because it actually syncs unnecessary
-> inodes for target overlayfs.
->
-> (2) Interference
-> Unplanned synchronization will probably impact IO performance of
-> unrelated container processes on the other overlayfs.
->
-> This patch iterates upper inode list in overlayfs to only sync target
-> dirty inodes and wait for completion. By doing this, It is able to reduce
-> cost of synchronization and will not seriously impact IO performance of
-> unrelated processes. In special case, when having very few dirty inodes
-> and a lot of clean upper inodes in overlayfs, then iteration may waste
-> time so that synchronization is slower than before, but we think the
-> potential for performance improvement far surpass the potential for
-> performance regression in most cases.
->
-> Signed-off-by: Chengguang Xu <cgxu519@icloud.com>
+> Signed-off-by: zhangyi (F) <yi.zhang@huawei.com>
+Reviewed-by: Amir Goldstein <amir73il@gmail.com>
+
 > ---
-> Changes since v4:
-> - Add syncing operation and deleting from upper_inodes list
-> during ovl inode destruction.
-> - Export symbol of inode_wait_for_writeback() for waiting
-> writeback on ovl inode.
-> - Reuse I_SYNC flag to avoid race conditions between syncfs
-> and drop_inode.
+>  tests/overlay/202     | 269 ++++++++++++++++++++++++++++++++++++++++++++++++++
+>  tests/overlay/202.out |  11 +++
+>  tests/overlay/group   |   1 +
+>  3 files changed, 281 insertions(+)
+>  create mode 100755 tests/overlay/202
+>  create mode 100644 tests/overlay/202.out
 >
-> Changes since v3:
-> - Introduce upper_inode list to organize ovl indoe which has upper inode.
-> - Avoid iput operation inside spin lock.
-> - Change list iteration method for safety.
-> - Reuse inode->i_wb_list and sb->s_inodes_wb to save memory.
-> - Modify commit log and add more comments to the code.
+> diff --git a/tests/overlay/202 b/tests/overlay/202
+> new file mode 100755
+> index 0000000..43e17bc
+> --- /dev/null
+> +++ b/tests/overlay/202
+> @@ -0,0 +1,269 @@
+> +#! /bin/bash
+> +# FS QA Test 202
+> +#
+> +# Test fsck.overlay how to deal with redirect xattr in overlayfs.
+> +#
+> +#-----------------------------------------------------------------------
+> +# Copyright (c) 2017 Huawei.  All Rights Reserved.
+> +# Author: zhangyi (F) <yi.zhang@huawei.com>
+> +#
+> +# This program is free software; you can redistribute it and/or
+> +# modify it under the terms of the GNU General Public License as
+> +# published by the Free Software Foundation.
+> +#
+> +# This program is distributed in the hope that it would be useful,
+> +# but WITHOUT ANY WARRANTY; without even the implied warranty of
+> +# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> +# GNU General Public License for more details.
+> +#
+> +# You should have received a copy of the GNU General Public License
+> +# along with this program; if not, write the Free Software Foundation,
+> +# Inc.,  51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+> +#-----------------------------------------------------------------------
+> +#
+> +
+> +seq=`basename $0`
+> +seqres=$RESULT_DIR/$seq
+> +echo "QA output created by $seq"
+> +
+> +here=`pwd`
+> +tmp=/tmp/$$
+> +status=1        # failure is the default!
+> +trap "_cleanup; exit \$status" 0 1 2 3 15
+> +
+> +_cleanup()
+> +{
+> +       cd /
+> +       rm -f $tmp.*
+> +}
+> +
+> +# get standard environment, filters and checks
+> +. ./common/rc
+> +. ./common/filter
+> +. ./common/attr
+> +
+> +# remove previous $seqres.full before test
+> +rm -f $seqres.full
+> +
+> +# real QA test starts here
+> +_supported_fs overlay
+> +_supported_os Linux
+> +_require_overlay_scratch_dirs
+> +_require_attrs
+> +_require_command "$FSCK_OVERLAY_PROG" fsck.overlay
+> +
+> +# remove all files from previous tests
+> +_scratch_mkfs
+> +
+> +OVL_REDIRECT_XATTR="trusted.overlay.redirect"
+> +OVL_OPAQUE_XATTR="trusted.overlay.opaque"
+> +OVL_OPAQUE_XATTR_VAL="y"
+> +
+> +# Create a redirect directory
+> +make_redirect_dir()
+> +{
+> +       local target=$1
+> +       local value=$2
+> +
+> +       mkdir -p $target
+> +       $SETFATTR_PROG -n $OVL_REDIRECT_XATTR -v $value $target
+> +}
+> +
+> +# Check redirect xattr
+> +check_redirect()
+> +{
+> +       local target=$1
+> +       local expect=$2
+> +
+> +       value=$($GETFATTR_PROG --absolute-names --only-values -n \
+> +               $OVL_REDIRECT_XATTR $target)
+> +
+> +       [[ $value == $expect ]] || echo "Redirect xattr incorrect"
+> +}
+> +
+> +check_no_redirect()
+> +{
+> +       local target=$1
+> +
+> +       value=$($GETFATTR_PROG --absolute-names -d -m \
+> +               $OVL_REDIRECT_XATTR $target)
+> +
+> +       [[ -z "$value" ]] || echo "Redirect xattr not empty"
+> +}
+> +
+> +# Check opaque xattr
+> +check_opaque()
+> +{
+> +       local target=$1
+> +
+> +       value=$($GETFATTR_PROG --absolute-names --only-values -n \
+> +               $OVL_OPAQUE_XATTR $target)
+> +
+> +       [[ $value == $OVL_OPAQUE_XATTR_VAL ]] || echo "Opaque xattr incorrect"
+> +}
+> +
+> +# Create a whiteout
+> +make_whiteout()
+> +{
+> +       for arg in $*
+> +       do
+> +               mknod $arg c 0 0
+> +       done
+> +}
+> +
+> +# Check whiteout
+> +check_whiteout()
+> +{
+> +       for arg in $*
+> +       do
+> +               local ttype=`stat -c "%F:%t,%T" $arg`
+> +
+> +               [[ $ttype == "character special file:0,0" ]] || \
+> +                       echo "Valid whiteout removed incorrectly"
+> +       done
+> +}
+> +
+> +# Create test directories
+> +lowerdir=$OVL_BASE_SCRATCH_MNT/lower
+> +lowerdir2=$OVL_BASE_SCRATCH_MNT/lower2
+> +upperdir=$OVL_BASE_SCRATCH_MNT/upper
+> +workdir=$OVL_BASE_SCRATCH_MNT/workdir
+> +
+> +make_test_dirs()
+> +{
+> +       rm -rf $lowerdir $lowerdir2 $upperdir $workdir
+> +       mkdir -p $lowerdir $lowerdir2 $upperdir $workdir
+> +}
+> +
+> +# Test invalid redirect xattr point to a nonexistent origin, should remove
+> +echo "+ Invalid redirect"
+> +make_test_dirs
+> +make_redirect_dir $upperdir/testdir "invalid"
+> +
+> +_overlay_fsck_dirs $lowerdir $upperdir $workdir -p >> $seqres.full 2>&1 || \
+> +       _fail "fsck should not fail"
+> +check_no_redirect $upperdir/testdir
+> +
+> +# Test invalid redirect xattr point to a file origin, should remove
+> +echo "+ Invalid redirect(2)"
+> +make_test_dirs
+> +touch $lowerdir/origin
+> +make_redirect_dir $upperdir/testdir "origin"
+> +
+> +_overlay_fsck_dirs $lowerdir $upperdir $workdir -p >> $seqres.full 2>&1 || \
+> +       _fail "fsck should not fail"
+> +check_no_redirect $upperdir/testdir
+> +
+> +# Test valid redirect xattr point to a directory origin in the same directory,
+> +# should not remove
+> +echo "+ Valid redirect"
+> +make_test_dirs
+> +mkdir $lowerdir/origin
+> +make_whiteout $upperdir/origin
+> +make_redirect_dir $upperdir/testdir "origin"
+> +
+> +_overlay_fsck_dirs $lowerdir $upperdir $workdir -p >> $seqres.full 2>&1 || \
+> +       _fail "fsck should not fail"
+> +check_redirect $upperdir/testdir "origin"
+> +
+> +# Test valid redirect xattr point to a directory origin in different directories
+> +# should not remove
+> +echo "+ Valid redirect(2)"
+> +make_test_dirs
+> +mkdir $lowerdir/origin
+> +make_whiteout $upperdir/origin
+> +make_redirect_dir $upperdir/testdir1/testdir2 "/origin"
+> +
+> +_overlay_fsck_dirs $lowerdir $upperdir $workdir -p >> $seqres.full 2>&1 || \
+> +       _fail "fsck should not fail"
+> +check_redirect $upperdir/testdir1/testdir2 "/origin"
+> +
+> +# Test valid redirect xattr but missing whiteout to cover lower target,
+> +# should fix whiteout
+> +echo "+ Missing whiteout"
+> +make_test_dirs
+> +mkdir $lowerdir/origin
+> +make_redirect_dir $upperdir/testdir "origin"
+> +
+> +_overlay_fsck_dirs $lowerdir $upperdir $workdir -p >> $seqres.full 2>&1 || \
+> +       _fail "fsck should not fail"
+> +check_redirect $upperdir/testdir "origin"
+> +check_whiteout $upperdir/origin
+> +
+> +# Test valid redirect xattrs exchanged by rename, should not remove
+> +echo "+ Valid redirect(3)"
+> +make_test_dirs
+> +mkdir $lowerdir/{testdir1,testdir2}
+> +make_redirect_dir $upperdir/testdir1 "testdir2"
+> +make_redirect_dir $upperdir/testdir2 "testdir1"
+> +
+> +_overlay_fsck_dirs $lowerdir $upperdir $workdir -p >> $seqres.full 2>&1 || \
+> +       _fail "fsck should not fail"
+> +check_redirect $upperdir/testdir1 "testdir2"
+> +check_redirect $upperdir/testdir2 "testdir1"
+> +
+> +# Test invalid redirect xattr with lower same name directory exists,
+> +# should remove invalid redirect xattr and set opaque in yes mode
+> +echo "+ Invalid redirect(3)"
+> +make_test_dirs
+> +mkdir $lowerdir/testdir
+> +make_redirect_dir $upperdir/testdir "invalid"
+> +
+> +# Question get yes answer: Should set opaque dir ?
+> +_overlay_fsck_dirs $lowerdir $upperdir $workdir -y >> $seqres.full 2>&1 || \
+> +       _fail "fsck should not fail"
+> +check_no_redirect $upperdir/testdir
+> +check_opaque $upperdir/testdir
+> +
+> +# Test duplicate redirect xattrs point to one origin, should fail in
+> +# auto mode, and should remove either of the duplicates in yes mode
+> +echo "+ Duplicate redirect"
+> +make_test_dirs
+> +mkdir $lowerdir2/origin
+> +make_redirect_dir $lowerdir/testdir1 "origin"
+> +make_redirect_dir $lowerdir/testdir2 "origin"
+> +make_redirect_dir $upperdir/testdir3 "origin"
+> +
+> +_overlay_fsck_dirs "$lowerdir:$lowerdir2" $upperdir $workdir -p >> \
+> +       $seqres.full 2>&1 && _fail "fsck should fail"
+> +
+> +# Question get yes answer: Duplicate redirect directory, remove xattr ?
+> +_overlay_fsck_dirs "$lowerdir:$lowerdir2" $upperdir $workdir -y >> \
+> +       $seqres.full 2>&1 || _fail "fsck should not fail"
+> +redirect_1=`check_redirect $lowerdir/testdir1 "origin" 2>/dev/null`
+> +redirect_2=`check_redirect $lowerdir/testdir2 "origin" 2>/dev/null`
+> +[[ $redirect_1 == $redirect_2 ]] && echo "Redirect xattr incorrect"
+> +check_no_redirect $upperdir/testdir3
+> +
+> +# Test duplicate redirect xattr duplicate with merge directory, should
+> +# fail in auto mode, and should remove the redirect xattr in yes mode
+> +echo "+ Duplicate redirect(2)"
+> +make_test_dirs
+> +mkdir $lowerdir/origin $upperdir/origin
+> +make_redirect_dir $upperdir/testdir "origin"
+> +
+> +_overlay_fsck_dirs $lowerdir $upperdir $workdir -p >> $seqres.full 2>&1 && \
+> +       _fail "fsck should fail"
+> +
+> +# Question get yes answer: Duplicate redirect directory, remove xattr ?
+> +_overlay_fsck_dirs $lowerdir $upperdir $workdir -y >> $seqres.full 2>&1 || \
+> +       _fail "fsck should not fail"
+> +check_no_redirect $upperdir/testdir
+> +
+> +# Test duplicate redirect xattr with lower same name directory exists,
+> +# should remove the duplicate redirect xattr and set opaque in yes mode
+> +echo "+ Duplicate redirect(3)"
+> +make_test_dirs
+> +mkdir $lowerdir/{origin,testdir} $upperdir/origin
+> +make_redirect_dir $upperdir/testdir "invalid"
+> +
+> +# Question one get yes answer: Duplicate redirect directory, remove xattr?
+> +# Question two get yes answer: Should set opaque dir ?
+> +_overlay_fsck_dirs $lowerdir $upperdir $workdir -y >> $seqres.full 2>&1 || \
+> +       _fail "fsck should not fail"
+> +check_no_redirect $upperdir/testdir
+> +check_opaque $upperdir/testdir
+> +
+> +# success, all done
+> +status=0
+> +exit
+> diff --git a/tests/overlay/202.out b/tests/overlay/202.out
+> new file mode 100644
+> index 0000000..99d2b32
+> --- /dev/null
+> +++ b/tests/overlay/202.out
+> @@ -0,0 +1,11 @@
+> +QA output created by 202
+> ++ Invalid redirect
+> ++ Invalid redirect(2)
+> ++ Valid redirect
+> ++ Valid redirect(2)
+> ++ Missing whiteout
+> ++ Valid redirect(3)
+> ++ Invalid redirect(3)
+> ++ Duplicate redirect
+> ++ Duplicate redirect(2)
+> ++ Duplicate redirect(3)
+> diff --git a/tests/overlay/group b/tests/overlay/group
+> index 7c5fcbb..e39b5e0 100644
+> --- a/tests/overlay/group
+> +++ b/tests/overlay/group
+> @@ -50,3 +50,4 @@
+>  047 auto quick copyup hardlink
+>  048 auto quick copyup hardlink
+>  201 auto quick fsck
+> +202 auto quick fsck
+> --
+> 2.9.5
 >
-> Changes since v2:
-> - Decoupling with syncfs of upper fs by taking sb->s_sync_lock of
-> overlayfs.
-> - Factoring out sync operation to different helpers for easy understanding.
->
-> Changes since v1:
-> - If upper filesystem is readonly mode then skip synchronization.
-> - Introduce global wait list to replace temporary wait list for
-> concurrent synchronization.
->
->  fs/fs-writeback.c        |   1 +
->  fs/overlayfs/overlayfs.h |   1 +
->  fs/overlayfs/ovl_entry.h |   5 +
->  fs/overlayfs/super.c     | 270 ++++++++++++++++++++++++++++++++++++++++++++---
-
-super.c is already large enough.
-I think at this point, your patch should add sync.c for all the new sync magic.
-And that concludes my contributions to this review.
-The sync magic is beyond my review capabilities.
-
-Thanks,
-Amir.
