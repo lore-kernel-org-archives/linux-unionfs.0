@@ -1,332 +1,303 @@
-From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [xfstest PATCH v4 7/7] overlay: replace _require_scratch() in
- optionally dirs cases
-Date: Thu, 18 Jan 2018 10:21:27 +0200
-Message-ID: <CAOQ4uxgzwboq9r+JSbHro0e63ABnnN2=QJYHecQAV5V2mbn11w@mail.gmail.com>
-References: <20180118040033.19555-1-yi.zhang@huawei.com> <20180118040033.19555-8-yi.zhang@huawei.com>
+From: Miklos Szeredi <miklos@szeredi.hu>
+Subject: Re: [PATCH v2 04/17] ovl: decode connected upper dir file handles
+Date: Thu, 18 Jan 2018 09:22:46 +0100
+Message-ID: <CAJfpegsJURzWdC0a3AiEMv_BnCO1rdXqCr1-Y0HtrG3vKxJd5g@mail.gmail.com>
+References: <1515086449-26563-1-git-send-email-amir73il@gmail.com>
+ <1515086449-26563-5-git-send-email-amir73il@gmail.com> <CAJfpeguk+KVWkLr8ihGE0c8aDgaNHfnjf3DcuUQi1g5KZHObOw@mail.gmail.com>
+ <CAOQ4uxijgqiAjKysA-HZFLa+b2nETMhq9aW8rjv=hwCq1B8tfw@mail.gmail.com>
+ <CAJfpegvCVX-YEMRDfKTYM2Au=2bNT3RcX=uNyt9KO1EmBJOvuA@mail.gmail.com>
+ <CAOQ4uxggufAEqD2WhReTax9eyEzJQdpdb7E=+zrgcYz1CQVY=Q@mail.gmail.com>
+ <CAJfpeguYA710QzE2L8aALtPUS=6mW9OcRdCUbDjgpx_B3K59Bw@mail.gmail.com> <CAOQ4uxhoR-cs=c6BfLr57X8iw5h1CzUq1YTB3s5HbBYSUSgjag@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
-Return-path: <fstests-owner@vger.kernel.org>
-In-Reply-To: <20180118040033.19555-8-yi.zhang@huawei.com>
-Sender: fstests-owner@vger.kernel.org
-To: "zhangyi (F)" <yi.zhang@huawei.com>
-Cc: overlayfs <linux-unionfs@vger.kernel.org>, fstests <fstests@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>, Eryu Guan <eguan@redhat.com>, Miao Xie <miaoxie@huawei.com>, yangerkun@huawei.com
+Return-path: <linux-unionfs-owner@vger.kernel.org>
+Received: from mail-qt0-f182.google.com ([209.85.216.182]:42059 "EHLO
+        mail-qt0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752306AbeARIWs (ORCPT
+        <rfc822;linux-unionfs@vger.kernel.org>);
+        Thu, 18 Jan 2018 03:22:48 -0500
+Received: by mail-qt0-f182.google.com with SMTP id c2so28243612qtn.9
+        for <linux-unionfs@vger.kernel.org>; Thu, 18 Jan 2018 00:22:48 -0800 (PST)
+In-Reply-To: <CAOQ4uxhoR-cs=c6BfLr57X8iw5h1CzUq1YTB3s5HbBYSUSgjag@mail.gmail.com>
+Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: Jeff Layton <jlayton@poochiereds.net>, "J . Bruce Fields" <bfields@fieldses.org>, overlayfs <linux-unionfs@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>
 
-On Thu, Jan 18, 2018 at 6:00 AM, zhangyi (F) <yi.zhang@huawei.com> wrote:
-> Replace _require_scratch() with _require_overlay_scratch_dirs() in
-> overlay test cases that use optionally lower/upper/work test dirs,
-> and check these dirs explicitly if necessary.
+On Wed, Jan 17, 2018 at 5:34 PM, Amir Goldstein <amir73il@gmail.com> wrote:
+> On Wed, Jan 17, 2018 at 5:42 PM, Miklos Szeredi <miklos@szeredi.hu> wrote:
+>> On Wed, Jan 17, 2018 at 12:18 PM, Amir Goldstein <amir73il@gmail.com> wrote:
+>>> On Mon, Jan 15, 2018 at 4:56 PM, Miklos Szeredi <miklos@szeredi.hu> wrote:
+>>>>
+>>> [...]
+>>>> >>
+>>>> >> So, a working algorithm would be going up to the first connected
+>>>> >> parent or root, lock parent, lookup name and restart.  Not guaranteed
+>>>> >> to finish, since not protected against always racing with renames.
+>>>> >> Can we take s_vfs_rename_sem on ovl to prevent that?
+>>>> >>
+>>>> >
+>>>> > Sounds like a simple and good enough solution.
+>>>> > Do we really need the locking of parent and restart connect if
+>>>> > we take s_vfs_rename_sem around ovl_lookup_real()?
+>>>>
+>>>> No, but s_vfs_rename_sem is a really heavyweight solution, we should
+>>>> do better than that for decoding a file handle.
+>>>>
+>>>> And we probably don't need anything else, since rename on ancestor
+>>>> means renamed dir is connected, and hopefully not evicted from the
+>>>> cache until we repeat the walk up.
+>>>>
+>>>> So need to lock parent, lookup ovl dentry, verify we got the same
+>>>> upper, if not retry icache lookup.
+>>>>
+>>>> Not sure we need to worry about that "hopefully".  Hopefully not.
+>>>>
+>>>
+>>> Something like this??
+>>>
+>>> This is just the raw fix to patch 4/17 without the icache lookup
+>>> that is added by later patches.
+>>>
+>>> I added rename_lock seqlock around backwalk to connected ancestor
+>>> and take_dentry_name_snapshot() for the stability of real name
+>>> during overlay lookup.
+>>>
+>>> I considered also storing OVL_I(d_inode(connected))->version
+>>> inside seqlock and comparing it to version in case lookup of child
+>>> failed. This could help us distinguish between overlay rename and
+>>> underlying rename (overlay dir version did not change) and return
+>>> ESTALE instead of restarting lookup in the latter case.
+>>> Wasn't sure if that was a good idea and what we loose if we leave it out.
+>>>
+>>> I tested this code, but only with upper file handles of course
+>>> (xfstest generic/467).
+>>>
+>>> Please let me know what you think.
+>>>
+>>> Thanks,
+>>> Amir.
+>>>
+>>> ================================================================
+>>>
+>>> From 337543c3fcdf9323d3720d17ab6fc13e287bbec1 Mon Sep 17 00:00:00 2001
+>>> From: Amir Goldstein <amir73il@gmail.com>
+>>> Date: Thu, 28 Dec 2017 18:36:16 +0200
+>>> Subject: [PATCH v3 4/17] ovl: decode connected upper dir file handles
+>>>
+>>> Until this change, we decoded upper file handles by instantiating an
+>>> overlay dentry from the real upper dentry. This is sufficient to handle
+>>> pure upper files, but insufficient to handle merge/impure dirs.
+>>>
+>>> To that end, if decoded real upper dir is connected and hashed, we
+>>> lookup an overlay dentry with the same path as the real upper dir.
+>>> If decoded real upper is non-dir, we instantiate a disconnected overlay
+>>> dentry as before this change.
+>>>
+>>> Because ovl_fh_to_dentry() returns a connected overlay dir dentry,
+>>> exportfs never needs to call get_parent() and get_name() to reconnect an
+>>> upper overlay dir. Because connectable non-dir file handles are not
+>>> supported, exportfs will not be able to use fh_to_parent() and get_name()
+>>> methods to reconnect a disconnected non-dir to its parent. Therefore, the
+>>> methods get_parent() and get_name() are implemented just to print out a
+>>> sanity warning and the method fh_to_parent() is implemented to warn the
+>>> user that using the 'subtree_check' exportfs option is not supported.
+>>>
+>>> An alternative approach could have been to implement instantiating of
+>>> an overlay directory inode from origin/index and implement get_parent()
+>>> and get_name() by calling into underlying fs operations and them
+>>> instantiating the overlay parent dir.
+>>>
+>>> The reasons for not choosing the get_parent() approach were:
+>>> - Obtaining a disconnected overlay dir dentry would requires a
+>>>   delicate re-factoring of ovl_lookup() to get a dentry with overlay
+>>>   parent info. It was preferred to avoid doing that re-factoring unless
+>>>   it was proven worthy.
+>>> - Going down the path of disconnected dir would mean that the (non
+>>>   trivial) code path of d_splice_alias() could be traveled and that
+>>>   meant writing more tests and introduces race cases that are very hard
+>>>   to hit on purpose. Taking the path of connecting overlay dentry by
+>>>   forward lookup is therefore the safe and boring way to avoid surprises.
+>>>
+>>> The culprit of the chosen "connected overlay dentry" approach:
+>>> - We need to take special care to rename of ancestors while connecting
+>>>   the overlay dentry by real dentry path. These subtleties are usually
+>>>   handled by generic exportfs and VFS code.
+>>>
+>>> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+>>> ---
+>>>  fs/overlayfs/export.c | 215 +++++++++++++++++++++++++++++++++++++++++++++++++-
+>>>  1 file changed, 214 insertions(+), 1 deletion(-)
+>>>
+>>> diff --git a/fs/overlayfs/export.c b/fs/overlayfs/export.c
+>>> index 557c29928e98..35f37a72d55e 100644
+>>> --- a/fs/overlayfs/export.c
+>>> +++ b/fs/overlayfs/export.c
+>>> @@ -130,6 +130,188 @@ static struct dentry *ovl_obtain_alias(struct
+>>> super_block *sb,
+>>>         return dentry;
+>>>  }
+>>>
+>>> +/*
+>>> + * Lookup a child overlay dentry whose real dentry is @real.
+>>> + * If @real is on upper layer, we lookup a child overlay dentry with the same
+>>> + * name as the real dentry. Otherwise, we need to consult index for lookup.
+>>> + */
+>>> +static struct dentry *ovl_lookup_real_one(struct dentry *parent,
+>>> +                                         struct dentry *real,
+>>> +                                         struct ovl_layer *layer)
+>>> +{
+>>> +       struct dentry *this;
+>>> +       struct name_snapshot name;
+>>> +       int err;
+>>> +
+>>> +       /* TODO: use index when looking up by lower real dentry */
+>>> +       if (layer->idx)
+>>> +               return ERR_PTR(-EACCES);
+>>> +
+>>> +       /*
+>>> +        * Lookup overlay dentry by real name. The parent mutex protects us
+>>> +        * from racing with overlay rename. If the overlay dentry that is
+>>> +        * above real has already been moved to a different parent, then this
+>>> +        * lookup will fail to find a child dentry whose real dentry is @real
+>>> +        * and we will have to restart the lookup of real path from the top.
+>>> +        *
+>>> +        * We also need to take a snapshot of real dentry name to protect us
+>>> +        * from racing with underlying layer rename. In this case, we don't
+>>> +        * care about returning ESTALE, only from referencing a free name
+>>> +        * pointer.
+>>> +        *
+>>> +        * TODO: try to lookup the renamed overlay dentry in inode cache by
+>>> +        *       real inode.
+>>> +        */
+>>> +       inode_lock_nested(d_inode(parent), I_MUTEX_PARENT);
+>>> +       take_dentry_name_snapshot(&name, real);
+>>
+>> No need to snapshot, just check if parent hasn't changed after
+>> locking.  If parent is same, then name is guaranteed to be stable.
+>>
+>
+> I don't understand.
+> We are not holding a lock on real parent, only on overlay parent.
+> What makes the real name stable?
+> The snapshot is not to protect from racing with overlay rename.
+> The snapshot is for protecting from race with real rename, just to
+> make sure we don't dereference a stale name pointer.
 
+Ah,okay.
 
-The description could be better.
-The rules should be simple:
-Tests that use _overlay_scratch_mount_dirs instead of _scratch_mount
-should use _require_overlay_scratch_dirs instead of _require_scratch.
-Those tests can optionally call _overlay_check_scratch_dirs at the end
-of the test or before _scratch_umount to umount $SCRATCH_MNT and
-run the checker.
+>
+>> This also means, that only ESTALE is possible after this.   And ESTALE
+>> is fatal, no need to retry after that.
+>
+> OK. I will return ECHILD for parent that has changed
+> and will restart only on ECHILD.
+>
+>>
+>>> +       this = lookup_one_len(name.name, parent, strlen(name.name));
+>>> +       err = PTR_ERR(this);
+>>> +       if (IS_ERR(this)) {
+>>> +               goto fail;
+>>> +       } else if (!this || !this->d_inode) {
+>>> +               dput(this);
+>>> +               err = -ENOENT;
+>>> +               goto fail;
+>>> +       } else if (ovl_dentry_upper(this) != real) {
+>>> +               dput(this);
+>>> +               err = -ESTALE;
+>>> +               goto fail;
+>>> +       }
+>>> +
+>>> +out:
+>>> +       release_dentry_name_snapshot(&name);
+>>> +       inode_unlock(d_inode(parent));
+>>> +       return this;
+>>> +
+>>> +fail:
+>>> +       pr_warn_ratelimited("overlayfs: failed to lookup one by real
+>>> (%pd2, layer=%d, parent=%pd2, err=%i)\n",
+>>> +                           real, layer->idx, parent, err);
+>>> +       this = ERR_PTR(err);
+>>> +       goto out;
+>>> +}
+>>> +
+>>> +/*
+>>> + * Lookup an overlay dentry whose real dentry is @real.
+>>> + * If @real is on upper layer, we lookup a child overlay dentry with the same
+>>> + * path the real dentry. Otherwise, we need to consult index for lookup.
+>>> + */
+>>> +static struct dentry *ovl_lookup_real(struct super_block *sb,
+>>> +                                     struct dentry *real,
+>>> +                                     struct ovl_layer *layer)
+>>> +{
+>>> +       struct dentry *connected;
+>>> +       unsigned int seq;
+>>> +       int err = 0;
+>>> +
+>>> +       /* TODO: use index when looking up by lower real dentry */
+>>> +       if (layer->idx)
+>>> +               return ERR_PTR(-EACCES);
+>>> +
+>>> +       connected = dget(sb->s_root);
+>>> +       while (!err) {
+>>> +               struct dentry *next, *this;
+>>> +               struct dentry *parent = NULL;
+>>> +               struct dentry *real_connected = layer->mnt->mnt_root;
+>>> +
+>>> +               if (real_connected == real)
+>>> +                       break;
+>>
+>> This loop will never finish, since real_connected is mnt_root now.
+>> Would be nice if there was a guaranteed way to finish this without
+>> icache lookup, but I don't see how.
+>>
+>
+> That's a bug.
+> The correct code is:
+>
+> struct dentry *real_connected = ovl_dentry_upper(connected);
 
-This patch should introduce two helpers:
-_require_overlay_scratch_dirs() and _overlay_check_scratch_dirs().
-The latter, unlike the internal helper _overlay_check_dirs() needs to umount
-$SCRATCH_MNT and/or make sure that base fs is mounted, like
-_overlay_check_fs() does. Note that the sanity checks in my patch that
-was the origin of your patch 1/7 did not require that overlay is unmounted.
-I guess fsck.overlay does not strictly requires that overlay is unmounted,
-but only that nobody accesses the mounted overlay, but its not nice to
-run fsck.overlay while overlay is mounted, which to my understanding, this is
-what happens with this patch. Didn't fsck.overlay complain about this?
+No, that's still broken, because if something gets renamed below
+"connected", we'll fall off root.  So need to stop at real_connected
+AND at root of overlay.
+
+>
+>
+>>> +
+>>> +               /*
+>>> +                * Find the topmost dentry not yet connected. Taking rename_lock
+>>> +                * so at least we don't race with rename when walking back to
+>>> +                * 'real_connected'.
+>>> +                */
+>>> +               seq = read_seqbegin(&rename_lock);
+>>
+>> I don't see what we gain with this.
+>>
+>
+> I can't say that I do see it, but perhaps there is something yet
+> to be gained by adding this later for lower layers lookup.
+> Perhaps when looking on lower real layer, we can store the
+> overlay dir cache version of 'connected' (connected in this case
+> may be an indexed merge dir).
+> After we take 'connected' dir mutex, we cannot check that
+> real parent hasn't changes as an indication to no overlay rename
+> because overlay rename happens on upper, but we can compare
+> the dir cache version of 'connected' dir to the version we stored
+> under rename_lock.
+> Then we can tell if lower lookup has failed because of some
+> permanent error (e.g. middle layer redirect) or because of an
+> indexed rename, so we need to restart.
+> Maybe that gains us something?
+
+Sorry, couldn't follow that.
+
+I don't see need for additional locking apart from the one in
+ovl_lookup_by_real_one().  Because the only race remaining is eviction
+of overlay inode(s) from the icache, and no locking is going to
+prevent that.
+
+To get a fully race-free version, we'd need to abandon returning a
+connected dir from decode_fh().
 
 Thanks,
-Amir.
-
->
-> Signed-off-by: zhangyi (F) <yi.zhang@huawei.com>
-> ---
->  tests/overlay/005 |  6 +++++-
->  tests/overlay/010 |  6 +++++-
->  tests/overlay/014 | 10 +++++++++-
->  tests/overlay/035 |  6 +++++-
->  tests/overlay/036 |  5 ++++-
->  tests/overlay/037 |  6 +++++-
->  tests/overlay/038 | 10 +++++++++-
->  tests/overlay/041 | 10 +++++++++-
->  tests/overlay/043 |  6 +++++-
->  tests/overlay/044 |  6 +++++-
->  10 files changed, 61 insertions(+), 10 deletions(-)
->
-> diff --git a/tests/overlay/005 b/tests/overlay/005
-> index 17992a3..58481d8 100755
-> --- a/tests/overlay/005
-> +++ b/tests/overlay/005
-> @@ -54,7 +54,7 @@ rm -f $seqres.full
->  # Modify as appropriate.
->  _supported_fs overlay
->  _supported_os Linux
-> -_require_scratch
-> +_require_overlay_scratch_dirs
->  _require_loop
->
->  # Remove all files from previous tests
-> @@ -102,6 +102,10 @@ $XFS_IO_PROG -f -c "o" ${SCRATCH_MNT}/test_file \
->  # unmount overlayfs
->  $UMOUNT_PROG $SCRATCH_MNT
->
-> +# We called _require_overlay_scratch_dirs instead of _require_scratch,
-> +# do check optionally dirs after test
-> +_overlay_check_dirs $lowerd $upperd $workd
-> +
->  # unmount undelying xfs, this tiggers panic if memleak happens
->  $UMOUNT_PROG ${OVL_BASE_SCRATCH_MNT}/uppermnt
->  $UMOUNT_PROG ${OVL_BASE_SCRATCH_MNT}/lowermnt
-> diff --git a/tests/overlay/010 b/tests/overlay/010
-> index f55ebec..b4a4ee8 100755
-> --- a/tests/overlay/010
-> +++ b/tests/overlay/010
-> @@ -48,7 +48,7 @@ rm -f $seqres.full
->  # real QA test starts here
->  _supported_fs overlay
->  _supported_os Linux
-> -_require_scratch
-> +_require_overlay_scratch_dirs
->
->  # Remove all files from previous tests
->  _scratch_mkfs
-> @@ -70,6 +70,10 @@ mknod $lowerdir2/testdir/a c 0 0
->  _overlay_scratch_mount_dirs "$lowerdir2:$lowerdir1" $upperdir $workdir
->  rm -rf $SCRATCH_MNT/testdir
->
-> +# We called _require_overlay_scratch_dirs instead of _require_scratch,
-> +# do check optionally dirs after test
-> +_overlay_check_dirs "$lowerdir2:$lowerdir1" $upperdir $workdir
-> +
->  # success, all done
->  echo "Silence is golden"
->  status=0
-> diff --git a/tests/overlay/014 b/tests/overlay/014
-> index 9f308d3..cc97c96 100755
-> --- a/tests/overlay/014
-> +++ b/tests/overlay/014
-> @@ -53,7 +53,7 @@ rm -f $seqres.full
->  # real QA test starts here
->  _supported_fs overlay
->  _supported_os Linux
-> -_require_scratch
-> +_require_overlay_scratch_dirs
->
->  # Remove all files from previous tests
->  _scratch_mkfs
-> @@ -78,6 +78,10 @@ mkdir -p $SCRATCH_MNT/testdir/visibledir
->  # unmount overlayfs but not base fs
->  $UMOUNT_PROG $SCRATCH_MNT
->
-> +# We called _require_overlay_scratch_dirs instead of _require_scratch,
-> +# do check optionally dirs after each test
-> +_overlay_check_dirs $lowerdir1 $lowerdir2 $workdir2
-> +
->  # mount overlay again, with lowerdir1 and lowerdir2 as multiple lowerdirs,
->  # and create a new file in testdir, triggers copyup from lowerdir,
->  # copyup should not copy overlayfs private xattr
-> @@ -90,6 +94,10 @@ $UMOUNT_PROG $SCRATCH_MNT
->  _overlay_scratch_mount_dirs "$lowerdir2:$lowerdir1" $upperdir $workdir
->  ls $SCRATCH_MNT/testdir
->
-> +# We called _require_overlay_scratch_dirs instead of _require_scratch,
-> +# do check optionally dirs after each test
-> +_overlay_check_dirs "$lowerdir2:$lowerdir1" $upperdir $workdir
-> +
->  # success, all done
->  status=0
->  exit
-> diff --git a/tests/overlay/035 b/tests/overlay/035
-> index 0544774..96643ba 100755
-> --- a/tests/overlay/035
-> +++ b/tests/overlay/035
-> @@ -51,7 +51,7 @@ rm -f $seqres.full
->  # real QA test starts here
->  _supported_fs overlay
->  _supported_os Linux
-> -_require_scratch
-> +_require_overlay_scratch_dirs
->  _require_chattr i
->
->  # Remove all files from previous tests
-> @@ -81,6 +81,10 @@ _overlay_scratch_mount_dirs $lowerdir2 $upperdir $workdir
->  touch $SCRATCH_MNT/bar 2>&1 | _filter_scratch
->  _scratch_remount rw 2>&1 | _filter_ro_mount
->
-> +# We called _require_overlay_scratch_dirs instead of _require_scratch,
-> +# do check optionally dirs after test
-> +_overlay_check_dirs $lowerdir2 $upperdir $workdir
-> +
->  # success, all done
->  status=0
->  exit
-> diff --git a/tests/overlay/036 b/tests/overlay/036
-> index e0c13ae..ca5adbd 100755
-> --- a/tests/overlay/036
-> +++ b/tests/overlay/036
-> @@ -69,7 +69,7 @@ rm -f $seqres.full
->  # real QA test starts here
->  _supported_fs overlay
->  _supported_os Linux
-> -_require_scratch
-> +_require_overlay_scratch_dirs
->  _require_scratch_feature index
->
->  # Remove all files from previous tests
-> @@ -110,6 +110,9 @@ _overlay_mount_dirs $lowerdir2 $upperdir $workdir2 \
->  _overlay_mount_dirs $lowerdir2 $upperdir2 $workdir \
->             overlay3 $SCRATCH_MNT -oindex=on 2>&1 | _filter_busy_mount
->
-> +# We called _require_overlay_scratch_dirs instead of _require_scratch,
-> +# but which will not lead to inconsistency after this mount test,
-> +# so do not check optionally dirs after test
->
->  # success, all done
->  status=0
-> diff --git a/tests/overlay/037 b/tests/overlay/037
-> index 6710dda..60290a1 100755
-> --- a/tests/overlay/037
-> +++ b/tests/overlay/037
-> @@ -55,7 +55,7 @@ rm -f $seqres.full
->  # real QA test starts here
->  _supported_fs overlay
->  _supported_os Linux
-> -_require_scratch
-> +_require_overlay_scratch_dirs
->  _require_scratch_feature index
->
->  # Remove all files from previous tests
-> @@ -87,6 +87,10 @@ $UMOUNT_PROG $SCRATCH_MNT 2>/dev/null
->  # Mount overlay with original lowerdir, upperdir, workdir and index=on - expect success
->  _overlay_scratch_mount_dirs $lowerdir $upperdir $workdir -oindex=on
->
-> +# We called _require_overlay_scratch_dirs instead of _require_scratch,
-> +# but which will not lead to inconsistency after this mount test,
-> +# so do not check optionally dirs after test
-> +
->  # success, all done
->  status=0
->  exit
-> diff --git a/tests/overlay/038 b/tests/overlay/038
-> index bd87156..6a0b0ba 100755
-> --- a/tests/overlay/038
-> +++ b/tests/overlay/038
-> @@ -46,7 +46,7 @@ _cleanup()
->  # real QA test starts here
->  _supported_fs overlay
->  _supported_os Linux
-> -_require_scratch
-> +_require_overlay_scratch_dirs
->  _require_attrs
->  _require_test_program "t_dir_type"
->
-> @@ -161,6 +161,10 @@ subdir_d=$($here/src/t_dir_type $pure_lower_dir $pure_lower_subdir_st_ino)
->  [[ $subdir_d == "subdir d" ]] || \
->         echo "Merged dir: Invalid d_ino reported for subdir"
->
-> +# We called _require_overlay_scratch_dirs instead of _require_scratch,
-> +# do check after each test
-> +_check_scratch_fs
-> +
->  _scratch_unmount
->
->  # Verify pure lower residing in dir which has another lower layer
-> @@ -202,6 +206,10 @@ subdir_d=$($here/src/t_dir_type $pure_lower_dir $pure_lower_subdir_st_ino)
->  [[ $subdir_d == "subdir d" ]] || \
->         echo "Pure lower in dir which has another lower layer: Invalid d_ino reported for subdir"
->
-> +# We called _require_overlay_scratch_dirs instead of _require_scratch,
-> +# do check optionally dirs after each test
-> +_overlay_check_dirs "$middir:$lowerdir" $upperdir $workdir
-> +
->  echo "Silence is golden"
->  status=0
->  exit
-> diff --git a/tests/overlay/041 b/tests/overlay/041
-> index 4152107..2775085 100755
-> --- a/tests/overlay/041
-> +++ b/tests/overlay/041
-> @@ -48,7 +48,7 @@ _cleanup()
->  # real QA test starts here
->  _supported_fs overlay
->  _supported_os Linux
-> -_require_scratch
-> +_require_overlay_scratch_dirs
->  _require_test
->  _require_attrs
->  _require_test_program "t_dir_type"
-> @@ -167,6 +167,10 @@ subdir_d=$($here/src/t_dir_type $pure_lower_dir $pure_lower_subdir_st_ino)
->  [[ $subdir_d == "subdir d" ]] || \
->         echo "Merged dir: Invalid d_ino reported for subdir"
->
-> +# We called _require_overlay_scratch_dirs instead of _require_scratch,
-> +# do check optionally dirs after each test
-> +_overlay_check_dirs $lowerdir $upperdir $workdir
-> +
->  _scratch_unmount
->
->  # Verify pure lower residing in dir which has another lower layer
-> @@ -208,6 +212,10 @@ subdir_d=$($here/src/t_dir_type $pure_lower_dir $pure_lower_subdir_st_ino)
->  [[ $subdir_d == "subdir d" ]] || \
->         echo "Pure lower in dir which has another lower layer: Invalid d_ino reported for subdir"
->
-> +# We called _require_overlay_scratch_dirs instead of _require_scratch,
-> +# do check optionally dirs after each test
-> +_overlay_check_dirs $middir:$lowerdir $upperdir $workdir
-> +
->  echo "Silence is golden"
->  status=0
->  exit
-> diff --git a/tests/overlay/043 b/tests/overlay/043
-> index 858b6a9..e184e14 100755
-> --- a/tests/overlay/043
-> +++ b/tests/overlay/043
-> @@ -56,7 +56,7 @@ _cleanup()
->  # real QA test starts here
->  _supported_fs overlay
->  _supported_os Linux
-> -_require_scratch
-> +_require_overlay_scratch_dirs
->  _require_test
->  _require_test_program "af_unix"
->  _require_test_program "t_dir_type"
-> @@ -155,6 +155,10 @@ _overlay_scratch_mount_dirs $lowerdir $upperdir $workdir \
->  # Compare inode numbers before/after mount cycle
->  check_inode_numbers $testdir $tmp.after_move $tmp.after_cycle
->
-> +# We called _require_overlay_scratch_dirs instead of _require_scratch,
-> +# do check optionally dirs after test
-> +_overlay_check_dirs $lowerdir $upperdir $workdir
-> +
->  echo "Silence is golden"
->  status=0
->  exit
-> diff --git a/tests/overlay/044 b/tests/overlay/044
-> index 9c0ff04..70fe824 100755
-> --- a/tests/overlay/044
-> +++ b/tests/overlay/044
-> @@ -49,7 +49,7 @@ _cleanup()
->  # real QA test starts here
->  _supported_fs overlay
->  _supported_os Linux
-> -_require_scratch
-> +_require_overlay_scratch_dirs
->  _require_test
->  _require_scratch_feature index
->  _require_test_program "t_dir_type"
-> @@ -141,5 +141,9 @@ echo "== After write two =="
->  cat $FILES
->  check_ino_nlink $SCRATCH_MNT $tmp.after_one $tmp.after_two
->
-> +# We called _require_overlay_scratch_dirs instead of _require_scratch,
-> +# do check optionally dirs after test
-> +_overlay_check_dirs $lowerdir $upperdir $workdir
-> +
->  status=0
->  exit
-> --
-> 2.9.5
->
+Miklos
