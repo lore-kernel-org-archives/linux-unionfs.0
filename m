@@ -1,105 +1,80 @@
-From: Miklos Szeredi <miklos@szeredi.hu>
-Subject: Re: [PATCH v4] ovl: Check link ability between upperdir and workdir
-Date: Fri, 19 Jan 2018 17:25:49 +0100
-Message-ID: <CAJfpegt8YTjGvhX-u4Ovf34euRZ9sYHJT5ZXCbL-_H2=m91Uew@mail.gmail.com>
-References: <1513735754-40567-1-git-send-email-cgxu519@icloud.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Subject: Re: [PATCH v2 03/17] ovl: decode pure upper file handles
+Date: Fri, 19 Jan 2018 22:10:11 +0200
+Message-ID: <CAOQ4uxjKvusKuQP9ACWGQPr3XeT3KskOvj8fQ+L5aEHUB-8n1A@mail.gmail.com>
+References: <1515086449-26563-1-git-send-email-amir73il@gmail.com>
+ <1515086449-26563-4-git-send-email-amir73il@gmail.com> <CAJfpegt=4Mk7B7E9c7CGJHdWZsVFQAqfJ_NbRNQNOpSZFYudrg@mail.gmail.com>
+ <CAOQ4uxg34b6TZ6hwPczv_m_HquR6apnPy0gexHezixMedVqUZA@mail.gmail.com>
+ <CAJfpegttoV7aPN2sS6RXONh0eFQ9xyoFxZbzVG7UMCcAJ+zjtg@mail.gmail.com>
+ <CAOQ4uxhaC3b2N1rNCBgv0MTyBQgWFZKyVV60VWnudb_wY6A98Q@mail.gmail.com>
+ <CAJfpeguVZztckNqML_hJRrEXumMMAeB6+Ha2djPrmCbqXz1brw@mail.gmail.com>
+ <CAOQ4uxh0EEuhsLxD3M_xngMd14C=hGb8U12yPe=duELwb4yNDQ@mail.gmail.com>
+ <CAOQ4uxhHUaorYA5ZAXQrfaOrp6Xa4cabz+ZFRdVBp6Mf-ebb0g@mail.gmail.com>
+ <CAOQ4uxhO+oOGWfSnafNO84GYT0_ihNtR_ekna+DH7rzWMZTgwg@mail.gmail.com>
+ <20180119103952.GA24104@veci.piliscsaba.redhat.com> <CAOQ4uxgdww=-R24R4quD4iV0oJ9Wj5WC_-tkvOF_kZgHKa3P5w@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-qt0-f193.google.com ([209.85.216.193]:45609 "EHLO
-        mail-qt0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755944AbeASQZu (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 19 Jan 2018 11:25:50 -0500
-Received: by mail-qt0-f193.google.com with SMTP id x27so5096338qtm.12
-        for <linux-unionfs@vger.kernel.org>; Fri, 19 Jan 2018 08:25:50 -0800 (PST)
-In-Reply-To: <1513735754-40567-1-git-send-email-cgxu519@icloud.com>
-Sender: linux-unionfs-owner@vger.kernel.org
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
+In-Reply-To: <CAOQ4uxgdww=-R24R4quD4iV0oJ9Wj5WC_-tkvOF_kZgHKa3P5w@mail.gmail.com>
+Sender: linux-fsdevel-owner@vger.kernel.org
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: overlayfs <linux-unionfs@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Al Viro <viro@zeniv.linux.org.uk>
 List-Id: linux-unionfs@vger.kernel.org
-To: Chengguang Xu <cgxu519@icloud.com>
-Cc: Amir Goldstein <amir73il@gmail.com>, Vivek Goyal <vgoyal@redhat.com>, overlayfs <linux-unionfs@vger.kernel.org>
 
-On Wed, Dec 20, 2017 at 3:09 AM, Chengguang Xu <cgxu519@icloud.com> wrote:
-> Inspired by encountering unexpected write error with
-> error code -EXDEV when upperdir and workdir having
-> different project quotas. The reason of the error is
-> project quota asks files in it strictly inherit
-> project id of it=E2=80=99s own, so rename/link operations
-> between those directories will fail and it may cause
-> failure during copy-up/index-link operations in overlayfs.
+On Fri, Jan 19, 2018 at 1:07 PM, Amir Goldstein <amir73il@gmail.com> wrote:
+> On Fri, Jan 19, 2018 at 12:39 PM, Miklos Szeredi <miklos@szeredi.hu> wrote:
+>> On Fri, Jan 19, 2018 at 02:23:35AM +0200, Amir Goldstein wrote:
+>>> > How is this for an option?
+>> [...]
+>>> > +struct dentry *d_obtain_alias_fsdata(struct inode *inode, void **fsdata)
+>>> > +{
+>>> > +       return __d_obtain_alias(inode, 1, fsdata);
+>>> >  }
+>>> >  EXPORT_SYMBOL(d_obtain_alias);
+>>
+>> It would work, but I like this interface better:
+>>
+>> +extern struct dentry * d_alloc_anon(struct super_block *);
+>> +extern struct dentry * d_instantiate_anon(struct dentry *, struct inode *);
+>>
 >
-> So if upper filesystem supports O_TMPFILE, try to check
-> link ability between upperdir and workdir and if check
-> fails, print a proper warning message to indicate potential
-> possibility of write failure.
+> OK. Thanks for the patch!
 >
-> The failure of the check does not directly lead to
-> read-only mounting because in some use cases may only
-> write to upperdir and do not modify anything in lowerdirs.
->
-> Signed-off-by: Chengguang Xu <cgxu519@icloud.com>
-> ---
-> Changes since v3:
-> - Add more detail comment about motivation to changelog.
->
-> Changes since v2:
-> - Add comment about motivation.
-> - Modify warning message.
->
-> Changes since v1:
-> - Check link ablity between upperdir and workdir instead of checking
-> project ids of upperdir and workdir.
-> - Print a warning message instead of falling to readonly mode.
->
->  fs/overlayfs/super.c | 30 +++++++++++++++++++++++-------
->  1 file changed, 23 insertions(+), 7 deletions(-)
->
-> diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-> index 76440fe..7d6bd82 100644
-> --- a/fs/overlayfs/super.c
-> +++ b/fs/overlayfs/super.c
-> @@ -929,7 +929,7 @@ static int ovl_get_upper(struct ovl_fs *ofs, struct p=
-ath *upperpath)
->
->  static int ovl_make_workdir(struct ovl_fs *ofs, struct path *workpath)
->  {
-> -       struct dentry *temp;
-> +       struct dentry *uppertemp, *worktemp;
->         int err;
->
->         ofs->workdir =3D ovl_workdir_create(ofs, OVL_WORKDIR_NAME, false)=
-;
-> @@ -953,12 +953,28 @@ static int ovl_make_workdir(struct ovl_fs *ofs, str=
-uct path *workpath)
->         if (!err)
->                 pr_warn("overlayfs: upper fs needs to support d_type.\n")=
-;
->
-> -       /* Check if upper/work fs supports O_TMPFILE */
-> -       temp =3D ovl_do_tmpfile(ofs->workdir, S_IFREG | 0);
-> -       ofs->tmpfile =3D !IS_ERR(temp);
-> -       if (ofs->tmpfile)
-> -               dput(temp);
-> -       else
-> +       /*
-> +        * Check if upper/work fs supports O_TMPFILE and if support, chec=
-k
-> +        * link ability between upperdir and workdir, this is inspired by
-> +        * encountering unexpected write error when upperdir and workdir
-> +        * having different project ids.
-> +        */
-> +       uppertemp =3D ovl_do_tmpfile(ofs->upper_mnt->mnt_root, S_IFREG | =
-0);
-> +       ofs->tmpfile =3D !IS_ERR(uppertemp);
-> +       if (ofs->tmpfile) {
-> +               worktemp =3D ovl_lookup_temp(ofs->workdir);
 
-Have you tested this?  Because there's a warning at the top of
-lookup_one_len() that triggers because of no locking of parent.
+Added your dcache patch to the series and reworked my patches
+to use the new helpers.
 
-I can add the locking, it's trivial, but I'd still like you to test
-this on your setup, if it actually does what you promise it does.
+Tested result is pushed to:
+https://github.com/amir73il/linux/commits/ovl-nfs-export-v3
+
+Prep patches changes since v2:
+- Rebased over fix patch "hash all directory inodes for fsnotify"
+- Rename mount/config option from "verify" to "nfs_export"
+- Force r/o mount when index dir creation fails
+- Allow enabling "nfs_export" for non-upper mount
+- Require "redirect_dir=nofollow" for non-upper mount
+- Rename dir index entries xattr from ".origin" to ".upper"
+- Re-factor ovl_{get|set|verify}_origin() helpers
+- Simplify test for temp index name (starts with #)
+- Abandon ovl_dentry_is_renamed() test for lower st_ino
+- Document overhead on mount with full index
+- Document change of behavior when verifying lower origin
+- Added patch to make room in ovl_entry struct
+
+NFS export changes since v2:
+- Fix exportfs ops for r/o overlay with no upperdir
+- Document reason for copy up directory on encode
+- Take care of racing with rename while connecting dir
+- Explain the reasons for choosing the 'connected' dir approach
+- Do not add dentry without ovl_entry to dcache
+
+Optimizations TODO:
+- Copy up on encode only when lower ancestor is below middle layer redirect
+- Hash inode by fh to avoid origin decode of whiteout fh
+
+As far as I know, the series is now functionally correct and all comments
+so far addressed. The remaining optimizations will be done on top of this
+series.
 
 Thanks,
-Miklos
+Amir.
