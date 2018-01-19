@@ -1,80 +1,47 @@
-From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [PATCH v2 03/17] ovl: decode pure upper file handles
-Date: Fri, 19 Jan 2018 22:10:11 +0200
-Message-ID: <CAOQ4uxjKvusKuQP9ACWGQPr3XeT3KskOvj8fQ+L5aEHUB-8n1A@mail.gmail.com>
-References: <1515086449-26563-1-git-send-email-amir73il@gmail.com>
- <1515086449-26563-4-git-send-email-amir73il@gmail.com> <CAJfpegt=4Mk7B7E9c7CGJHdWZsVFQAqfJ_NbRNQNOpSZFYudrg@mail.gmail.com>
- <CAOQ4uxg34b6TZ6hwPczv_m_HquR6apnPy0gexHezixMedVqUZA@mail.gmail.com>
- <CAJfpegttoV7aPN2sS6RXONh0eFQ9xyoFxZbzVG7UMCcAJ+zjtg@mail.gmail.com>
- <CAOQ4uxhaC3b2N1rNCBgv0MTyBQgWFZKyVV60VWnudb_wY6A98Q@mail.gmail.com>
- <CAJfpeguVZztckNqML_hJRrEXumMMAeB6+Ha2djPrmCbqXz1brw@mail.gmail.com>
- <CAOQ4uxh0EEuhsLxD3M_xngMd14C=hGb8U12yPe=duELwb4yNDQ@mail.gmail.com>
- <CAOQ4uxhHUaorYA5ZAXQrfaOrp6Xa4cabz+ZFRdVBp6Mf-ebb0g@mail.gmail.com>
- <CAOQ4uxhO+oOGWfSnafNO84GYT0_ihNtR_ekna+DH7rzWMZTgwg@mail.gmail.com>
- <20180119103952.GA24104@veci.piliscsaba.redhat.com> <CAOQ4uxgdww=-R24R4quD4iV0oJ9Wj5WC_-tkvOF_kZgHKa3P5w@mail.gmail.com>
+From: "J . Bruce Fields" <bfields@fieldses.org>
+Subject: Re: [PATCH v2 2/2] nfsd: store stat times in fill_pre_wcc() instead
+ of inode times
+Date: Fri, 19 Jan 2018 17:03:34 -0500
+Message-ID: <20180119220334.GA13700@fieldses.org>
+References: <1514992475-8142-1-git-send-email-amir73il@gmail.com>
+ <1514992475-8142-3-git-send-email-amir73il@gmail.com>
+ <1514994062.3458.14.camel@kernel.org>
+ <CAOQ4uxgHwkT=2SGz=XQqP626rfpWCAXtmvBwZuU1N8s1Bh6a4A@mail.gmail.com>
+ <1515005144.3458.42.camel@kernel.org>
+ <CAOQ4uxg86oNAYXLN8iCFJTVOV7nxp9a8AwrQPhvr1M-dWqWErA@mail.gmail.com>
+ <1515072403.20282.16.camel@kernel.org>
+ <20180104230513.GA19858@fieldses.org>
+ <CAOQ4uxh_grPq9LNQkUa7NDXy22dBnNWqJprDSi1Wm20vyFyUFg@mail.gmail.com>
+ <20180105153018.GB28246@fieldses.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-fsdevel-owner@vger.kernel.org>
-In-Reply-To: <CAOQ4uxgdww=-R24R4quD4iV0oJ9Wj5WC_-tkvOF_kZgHKa3P5w@mail.gmail.com>
+Content-Disposition: inline
+In-Reply-To: <20180105153018.GB28246@fieldses.org>
 Sender: linux-fsdevel-owner@vger.kernel.org
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: overlayfs <linux-unionfs@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Al Viro <viro@zeniv.linux.org.uk>
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: Jeff Layton <jlayton@kernel.org>, Miklos Szeredi <miklos@szeredi.hu>, overlayfs <linux-unionfs@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>
 List-Id: linux-unionfs@vger.kernel.org
 
-On Fri, Jan 19, 2018 at 1:07 PM, Amir Goldstein <amir73il@gmail.com> wrote:
-> On Fri, Jan 19, 2018 at 12:39 PM, Miklos Szeredi <miklos@szeredi.hu> wrote:
->> On Fri, Jan 19, 2018 at 02:23:35AM +0200, Amir Goldstein wrote:
->>> > How is this for an option?
->> [...]
->>> > +struct dentry *d_obtain_alias_fsdata(struct inode *inode, void **fsdata)
->>> > +{
->>> > +       return __d_obtain_alias(inode, 1, fsdata);
->>> >  }
->>> >  EXPORT_SYMBOL(d_obtain_alias);
->>
->> It would work, but I like this interface better:
->>
->> +extern struct dentry * d_alloc_anon(struct super_block *);
->> +extern struct dentry * d_instantiate_anon(struct dentry *, struct inode *);
->>
->
-> OK. Thanks for the patch!
->
+On Fri, Jan 05, 2018 at 10:30:18AM -0500, J . Bruce Fields wrote:
+> On Fri, Jan 05, 2018 at 04:45:46PM +0200, Amir Goldstein wrote:
+> > So can I assume you will be taking both patches through your tree?
+> > and add said comment to your future self?
+> 
+> I'm OK with that (if Jeff is).
+> 
+> > Since patches are independent of overlayfs work, it does not matter if they
+> > get merged before or after overlayfs work, just please let us know what you
+> > intend to do, because right now I posted patch 1/2 at the end of the
+> > overlayfs series for Miklos to take.
+> 
+> I'd be fine with that or with Miklos taking either or both (feel free to
+> add an Acked-by: tag for me if you take that route).
+> 
+> But I'll assume I'm taking them unless I hear otherwise.
 
-Added your dcache patch to the series and reworked my patches
-to use the new helpers.
+By the way, I just got back to this: committed to nfsd-next at
+git://linux-nfs.org/~bfields/linux.git, with just one extra paragraph on
+#2's changelog.
 
-Tested result is pushed to:
-https://github.com/amir73il/linux/commits/ovl-nfs-export-v3
-
-Prep patches changes since v2:
-- Rebased over fix patch "hash all directory inodes for fsnotify"
-- Rename mount/config option from "verify" to "nfs_export"
-- Force r/o mount when index dir creation fails
-- Allow enabling "nfs_export" for non-upper mount
-- Require "redirect_dir=nofollow" for non-upper mount
-- Rename dir index entries xattr from ".origin" to ".upper"
-- Re-factor ovl_{get|set|verify}_origin() helpers
-- Simplify test for temp index name (starts with #)
-- Abandon ovl_dentry_is_renamed() test for lower st_ino
-- Document overhead on mount with full index
-- Document change of behavior when verifying lower origin
-- Added patch to make room in ovl_entry struct
-
-NFS export changes since v2:
-- Fix exportfs ops for r/o overlay with no upperdir
-- Document reason for copy up directory on encode
-- Take care of racing with rename while connecting dir
-- Explain the reasons for choosing the 'connected' dir approach
-- Do not add dentry without ovl_entry to dcache
-
-Optimizations TODO:
-- Copy up on encode only when lower ancestor is below middle layer redirect
-- Hash inode by fh to avoid origin decode of whiteout fh
-
-As far as I know, the series is now functionally correct and all comments
-so far addressed. The remaining optimizations will be done on top of this
-series.
-
-Thanks,
-Amir.
+--b.
