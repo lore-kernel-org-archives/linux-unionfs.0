@@ -1,122 +1,120 @@
 From: Vivek Goyal <vgoyal@redhat.com>
-Subject: [PATCH v10 09/18] ovl: Add helper ovl_already_copied_up()
-Date: Mon, 22 Jan 2018 13:39:55 -0500
-Message-ID: <20180122184004.26026-10-vgoyal@redhat.com>
+Subject: [PATCH v10 15/18] ovl: Copy up meta inode data from lowest data inode
+Date: Mon, 22 Jan 2018 13:40:01 -0500
+Message-ID: <20180122184004.26026-16-vgoyal@redhat.com>
 References: <20180122184004.26026-1-vgoyal@redhat.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:40900 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:55778 "EHLO mx1.redhat.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751116AbeAVSkO (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 22 Jan 2018 13:40:14 -0500
+        id S1751231AbeAVSkP (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Mon, 22 Jan 2018 13:40:15 -0500
 In-Reply-To: <20180122184004.26026-1-vgoyal@redhat.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: linux-unionfs@vger.kernel.org
 Cc: miklos@szeredi.hu, amir73il@gmail.com, vgoyal@redhat.com
 
-There are couple of places where we need to know if file is already copied
-up (in lockless manner). Right now its open coded and there are only
-two conditions to check. Soon this patch series will introduce another
-condition to check and Amir wants to introduce one more. So introduce
-a helper instead to check this so that code is easier to read.
+So far lower could not be a meta inode. So whenever it was time to copy
+up data of a meta inode, we could copy it up from top most lower dentry.
+
+But now lower itself can be a metacopy inode. That means data copy up
+needs to take place from a data inode in metacopy inode chain. Find
+lower data inode in the chain and use that for data copy up.
+
+Introduced a helper called ovl_path_lowerdata() to find the lower
+data inode chain.
 
 Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
-Reviewed-by: Amir Goldstein <amir73il@gmail.com>
 ---
- fs/overlayfs/copy_up.c   | 19 ++-----------------
+ fs/overlayfs/copy_up.c   | 14 ++++++++++----
  fs/overlayfs/overlayfs.h |  1 +
- fs/overlayfs/util.c      | 24 +++++++++++++++++++++++-
- 3 files changed, 26 insertions(+), 18 deletions(-)
+ fs/overlayfs/util.c      | 19 +++++++++++++++++++
+ 3 files changed, 30 insertions(+), 4 deletions(-)
 
 diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
-index c5804b87f3c7..65e993e931ba 100644
+index 0bfc1df13b79..f4ece4754725 100644
 --- a/fs/overlayfs/copy_up.c
 +++ b/fs/overlayfs/copy_up.c
-@@ -671,21 +671,7 @@ int ovl_copy_up_flags(struct dentry *dentry, int flags)
- 		struct dentry *next;
- 		struct dentry *parent;
+@@ -489,13 +489,15 @@ static int ovl_copy_up_inode(struct ovl_copy_up_ctx *c, struct dentry *temp)
+ 	}
  
--		/*
--		 * Check if copy-up has happened as well as for upper alias (in
--		 * case of hard links) is there.
--		 *
--		 * Both checks are lockless:
--		 *  - false negatives: will recheck under oi->lock
--		 *  - false positives:
--		 *    + ovl_dentry_upper() uses memory barriers to ensure the
--		 *      upper dentry is up-to-date
--		 *    + ovl_dentry_has_upper_alias() relies on locking of
--		 *      upper parent i_rwsem to prevent reordering copy-up
--		 *      with rename.
--		 */
--		if (ovl_dentry_upper(dentry) &&
--		    ovl_dentry_has_upper_alias(dentry))
-+		if (ovl_already_copied_up(dentry))
- 			break;
+ 	if (S_ISREG(c->stat.mode) && !c->metacopy) {
+-		struct path upperpath;
++		struct path upperpath, datapath;
  
- 		next = dget(dentry);
-@@ -712,8 +698,7 @@ int ovl_copy_up_flags(struct dentry *dentry, int flags)
+ 		ovl_path_upper(c->dentry, &upperpath);
+ 		BUG_ON(upperpath.dentry != NULL);
+ 		upperpath.dentry = temp;
  
- static bool ovl_open_need_copy_up(struct dentry *dentry, int flags)
+-		err = ovl_copy_up_data(&c->lowerpath, &upperpath, c->stat.size);
++		ovl_path_lowerdata(c->dentry, &datapath);
++		BUG_ON(datapath.dentry == NULL);
++		err = ovl_copy_up_data(&datapath, &upperpath, c->stat.size);
+ 		if (err)
+ 			return err;
+ 	}
+@@ -627,14 +629,18 @@ static int ovl_do_copy_up(struct ovl_copy_up_ctx *c)
+ /* Copy up data of an inode which was copied up metadata only in the past. */
+ static int ovl_copy_up_meta_inode_data(struct ovl_copy_up_ctx *c)
  {
--	if (ovl_dentry_upper(dentry) &&
--	    ovl_dentry_has_upper_alias(dentry))
-+	if (ovl_already_copied_up(dentry))
- 		return false;
- 
- 	if (special_file(d_inode(dentry)->i_mode))
-diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-index 31a212781a15..ac5bc3b7ce2b 100644
---- a/fs/overlayfs/overlayfs.h
-+++ b/fs/overlayfs/overlayfs.h
-@@ -227,6 +227,7 @@ bool ovl_is_whiteout(struct dentry *dentry);
- struct file *ovl_path_open(struct path *path, int flags);
- int ovl_copy_up_start(struct dentry *dentry);
- void ovl_copy_up_end(struct dentry *dentry);
-+bool ovl_already_copied_up(struct dentry *dentry);
- bool ovl_check_origin_xattr(struct dentry *dentry);
- bool ovl_check_dir_xattr(struct dentry *dentry, const char *name);
- int ovl_check_setxattr(struct dentry *dentry, struct dentry *upperdentry,
-diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
-index d6bb1c9f5e7a..39cd00723918 100644
---- a/fs/overlayfs/util.c
-+++ b/fs/overlayfs/util.c
-@@ -314,13 +314,35 @@ struct file *ovl_path_open(struct path *path, int flags)
- 	return dentry_open(path, flags | O_NOATIME, current_cred());
- }
- 
-+bool ovl_already_copied_up(struct dentry *dentry)
-+{
-+	/*
-+	 * Check if copy-up has happened as well as for upper alias (in
-+	 * case of hard links) is there.
-+	 *
-+	 * Both checks are lockless:
-+	 *  - false negatives: will recheck under oi->lock
-+	 *  - false positives:
-+	 *    + ovl_dentry_upper() uses memory barriers to ensure the
-+	 *      upper dentry is up-to-date
-+	 *    + ovl_dentry_has_upper_alias() relies on locking of
-+	 *      upper parent i_rwsem to prevent reordering copy-up
-+	 *      with rename.
-+	 */
-+	if (ovl_dentry_upper(dentry) &&
-+	    ovl_dentry_has_upper_alias(dentry))
-+		return true;
-+
-+	return false;
-+}
-+
- int ovl_copy_up_start(struct dentry *dentry)
- {
- 	struct ovl_inode *oi = OVL_I(d_inode(dentry));
+-	struct path upperpath;
++	struct path upperpath, datapath;
  	int err;
  
- 	err = mutex_lock_interruptible(&oi->lock);
--	if (!err && ovl_dentry_has_upper_alias(dentry)) {
-+	if (!err && ovl_already_copied_up(dentry)) {
- 		err = 1; /* Already copied up */
- 		mutex_unlock(&oi->lock);
+ 	ovl_path_upper(c->dentry, &upperpath);
+ 	if (WARN_ON(upperpath.dentry == NULL))
+ 		return -EIO;
+ 
+-	err = ovl_copy_up_data(&c->lowerpath, &upperpath, c->stat.size);
++	ovl_path_lowerdata(c->dentry, &datapath);
++	if (WARN_ON(datapath.dentry == NULL))
++		return -EIO;
++
++	err = ovl_copy_up_data(&datapath, &upperpath, c->stat.size);
+ 	if (err)
+ 		return err;
+ 
+diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
+index de400606df0c..9ec65f0b5384 100644
+--- a/fs/overlayfs/overlayfs.h
++++ b/fs/overlayfs/overlayfs.h
+@@ -210,6 +210,7 @@ bool ovl_dentry_weird(struct dentry *dentry);
+ enum ovl_path_type ovl_path_type(struct dentry *dentry);
+ void ovl_path_upper(struct dentry *dentry, struct path *path);
+ void ovl_path_lower(struct dentry *dentry, struct path *path);
++void ovl_path_lowerdata(struct dentry *dentry, struct path *path);
+ enum ovl_path_type ovl_path_real(struct dentry *dentry, struct path *path);
+ struct dentry *ovl_dentry_upper(struct dentry *dentry);
+ struct dentry *ovl_dentry_lower(struct dentry *dentry);
+diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
+index e717d561019d..9cd4187cb043 100644
+--- a/fs/overlayfs/util.c
++++ b/fs/overlayfs/util.c
+@@ -132,6 +132,25 @@ void ovl_path_lower(struct dentry *dentry, struct path *path)
  	}
+ }
+ 
++void ovl_path_lowerdata(struct dentry *dentry, struct path *path)
++{
++	struct ovl_entry *oe = dentry->d_fsdata;
++	int i;
++
++	if (!oe->numlower) {
++		*path = (struct path) { };
++		return;
++	}
++
++	for (i = 0 ; i < oe->numlower; i++) {
++		if (oe->lowerstack[i].metacopy)
++			continue;
++		path->mnt = oe->lowerstack[i].layer->mnt;
++		path->dentry = oe->lowerstack[i].dentry;
++		return;
++	}
++}
++
+ enum ovl_path_type ovl_path_real(struct dentry *dentry, struct path *path)
+ {
+ 	enum ovl_path_type type = ovl_path_type(dentry);
 -- 
 2.13.6
