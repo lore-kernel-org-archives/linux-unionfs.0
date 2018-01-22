@@ -1,78 +1,49 @@
 From: Vivek Goyal <vgoyal@redhat.com>
-Subject: [PATCH v10 05/18] ovl: During copy up, first copy up metadata and then data
-Date: Mon, 22 Jan 2018 13:39:51 -0500
-Message-ID: <20180122184004.26026-6-vgoyal@redhat.com>
+Subject: [PATCH v10 02/18] ovl: disable redirect_dir and index when no xattr support
+Date: Mon, 22 Jan 2018 13:39:48 -0500
+Message-ID: <20180122184004.26026-3-vgoyal@redhat.com>
 References: <20180122184004.26026-1-vgoyal@redhat.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:38720 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:58628 "EHLO mx1.redhat.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751141AbeAVSkO (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 22 Jan 2018 13:40:14 -0500
+        id S1751102AbeAVSkQ (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Mon, 22 Jan 2018 13:40:16 -0500
 In-Reply-To: <20180122184004.26026-1-vgoyal@redhat.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: linux-unionfs@vger.kernel.org
 Cc: miklos@szeredi.hu, amir73il@gmail.com, vgoyal@redhat.com
 
-Just a little re-ordering of code. This helps with next patch where after
-copying up metadata, we skip data copying step, if needed.
+From: Amir Goldstein <amir73il@gmail.com>
 
-Reviewed-by: Amir Goldstein <amir73il@gmail.com>
-Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
+Overlayfs falls back to index=off if lower/upper fs does not support
+file handles. We should do the same if upper fs does not support xattr.
+
+The redirect_dir feature is implicitly disabled when upper fs does not
+support xattr via the check in ovl_redirect_dir(). Make the feature
+explicitly disabled in this case by emitting a warning at mount time
+and setting redirect_dir to off so its true state is visible in
+/proc/mounts.
+
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- fs/overlayfs/copy_up.c | 29 ++++++++++++++---------------
- 1 file changed, 14 insertions(+), 15 deletions(-)
+ fs/overlayfs/super.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
-index f55bece3688e..303794bb9127 100644
---- a/fs/overlayfs/copy_up.c
-+++ b/fs/overlayfs/copy_up.c
-@@ -443,6 +443,19 @@ static int ovl_copy_up_inode(struct ovl_copy_up_ctx *c, struct dentry *temp)
- {
- 	int err;
- 
-+	err = ovl_copy_xattr(c->lowerpath.dentry, temp);
-+	if (err)
-+		return err;
-+
-+	/*
-+	 * Store identifier of lower inode in upper inode xattr to
-+	 * allow lookup of the copy up origin inode.
-+	 *
-+	 */
-+	err = ovl_set_origin(c->dentry, c->lowerpath.dentry, temp);
-+	if (err)
-+		return err;
-+
- 	if (S_ISREG(c->stat.mode)) {
- 		struct path upperpath;
- 
-@@ -455,25 +468,11 @@ static int ovl_copy_up_inode(struct ovl_copy_up_ctx *c, struct dentry *temp)
- 			return err;
+diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+index 76440feb79f6..e9419faaa156 100644
+--- a/fs/overlayfs/super.c
++++ b/fs/overlayfs/super.c
+@@ -967,7 +967,9 @@ static int ovl_make_workdir(struct ovl_fs *ofs, struct path *workpath)
+ 	err = ovl_do_setxattr(ofs->workdir, OVL_XATTR_OPAQUE, "0", 1, 0);
+ 	if (err) {
+ 		ofs->noxattr = true;
+-		pr_warn("overlayfs: upper fs does not support xattr.\n");
++		ofs->config.redirect_dir = false;
++		ofs->config.index = false;
++		pr_warn("overlayfs: upper fs does not support xattr, falling back to redirect_dir=off, index=off and no opaque dir.\n");
+ 	} else {
+ 		vfs_removexattr(ofs->workdir, OVL_XATTR_OPAQUE);
  	}
- 
--	err = ovl_copy_xattr(c->lowerpath.dentry, temp);
--	if (err)
--		return err;
--
- 	inode_lock(temp->d_inode);
- 	err = ovl_set_attr(temp, &c->stat);
- 	inode_unlock(temp->d_inode);
--	if (err)
--		return err;
--
--	/*
--	 * Store identifier of lower inode in upper inode xattr to
--	 * allow lookup of the copy up origin inode.
--	 */
--	err = ovl_set_origin(c->dentry, c->lowerpath.dentry, temp);
--	if (err)
--		return err;
- 
--	return 0;
-+	return err;
- }
- 
- static int ovl_copy_up_locked(struct ovl_copy_up_ctx *c)
 -- 
 2.13.6
