@@ -1,88 +1,133 @@
 From: Vivek Goyal <vgoyal@redhat.com>
-Subject: [PATCH v10 00/18] overlayfs: Delayed copy up of data
-Date: Mon, 22 Jan 2018 13:39:46 -0500
-Message-ID: <20180122184004.26026-1-vgoyal@redhat.com>
+Subject: [PATCH v10 06/18] ovl: Move the copy up helpers to copy_up.c
+Date: Mon, 22 Jan 2018 13:39:52 -0500
+Message-ID: <20180122184004.26026-7-vgoyal@redhat.com>
+References: <20180122184004.26026-1-vgoyal@redhat.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:57024 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:53250 "EHLO mx1.redhat.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751113AbeAVSkN (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 22 Jan 2018 13:40:13 -0500
+        id S1751242AbeAVSkP (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Mon, 22 Jan 2018 13:40:15 -0500
+In-Reply-To: <20180122184004.26026-1-vgoyal@redhat.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: linux-unionfs@vger.kernel.org
 Cc: miklos@szeredi.hu, amir73il@gmail.com, vgoyal@redhat.com
 
-Hi,
+Right now two copy up helpers are in inode.c. Amir suggested it might
+be better to move these to copy_up.c.
 
-Please find attached V10 of the metadata only copy up patches. I think
-I have taken care of review comments and I will start writing automated
-test cases now.
+There will one more related function which will come in later patch.
 
-One thing which concerns me about these patches is the fact that during
-file open d_real() will return lower inode which actually contains file
-data and that inode will be installed in f->f_inode. So while f->f_inode
-is perfectly fine for data operations, it is not fine for metadata
-operations. Because metadata has been copied up and is represented by
-a different inode.
+Reviewed-by: Amir Goldstein <amir73il@gmail.com>
+Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
+---
+ fs/overlayfs/copy_up.c   | 30 ++++++++++++++++++++++++++++++
+ fs/overlayfs/inode.c     | 30 ------------------------------
+ fs/overlayfs/overlayfs.h |  2 +-
+ 3 files changed, 31 insertions(+), 31 deletions(-)
 
-I am concerned that this is a subtle behavior change and especially
-security modules might be surprised by it. I will spend now more time
-looking at what security modules are doing with f->f_inode. Thoughts?
-
-Amir, some new patches have been added in series due to metacopy inode
-support in midlayer. And some existing patches have changed. You
-probably will have to look at existing Reviewd-by patches too.
-
-Changes since V9:
-
-- Added support for metacopy inode in midlayer.
-- Added documentation for metadata only copy up.
-- Stopped following metacopy origin if metacopy is not enabled. This is
-  due to possible security concerns.
-- Dropped a patch to do union of encryption and compression attributes
-  of lower and upper. Doing union seemed wrong.
-- Dropped a patch to get rid of -EOPNOTSUPP check in
-  ovl_check_setxattr(). Looks like both Amir and Miklos wanted to retain
-  that check and warn if unexpctedly upper returned -EOPNOTSUPP at a
-  later time while checks were fine during mount time.
-
-Any review comment/feedback is welcome.
-
-Vivek
-
-Amir Goldstein (1):
-  ovl: disable redirect_dir and index when no xattr support
-
-Vivek Goyal (17):
-  ovl: Do not look for OVL_XATTR_NLINK if index is not there
-  ovl: Create origin xattr on copy up for all files
-  ovl: Provide a mount option metacopy=on/off for metadata copyup
-  ovl: During copy up, first copy up metadata and then data
-  ovl: Move the copy up helpers to copy_up.c
-  ovl: Add mechanism to create a chain of origin dentries
-  ovl: Copy up only metadata during copy up where it makes sense
-  ovl: Add helper ovl_already_copied_up()
-  ovl: A new xattr OVL_XATTR_METACOPY for file on upper
-  ovl: Set OVL_UPPERDATA flag during ovl_lookup()
-  ovl: Setup origin chain for lower regular files
-  ovl: Check metacopy attributes on a chain of origin
-  ovl: Do not mark a non dir as _OVL_PATH_MERGE in ovl_path_type()
-  ovl: Copy up meta inode data from lowest data inode
-  ovl: Fix ovl_getattr() to get number of blocks from lower
-  ovl: Do not expose metacopy only upper dentry from d_real()
-  ovl: Enable metadata only feature
-
- Documentation/filesystems/overlayfs.txt |  54 +++++++---
- fs/overlayfs/Kconfig                    |  15 +++
- fs/overlayfs/copy_up.c                  | 172 +++++++++++++++++++++---------
- fs/overlayfs/dir.c                      |   1 +
- fs/overlayfs/inode.c                    |  60 ++++-------
- fs/overlayfs/namei.c                    | 181 ++++++++++++++++++++++++++++----
- fs/overlayfs/overlayfs.h                |  24 ++++-
- fs/overlayfs/ovl_entry.h                |   2 +
- fs/overlayfs/super.c                    |  64 +++++++++--
- fs/overlayfs/util.c                     | 143 ++++++++++++++++++++++++-
- 10 files changed, 583 insertions(+), 133 deletions(-)
-
+diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
+index 303794bb9127..31711edf5bde 100644
+--- a/fs/overlayfs/copy_up.c
++++ b/fs/overlayfs/copy_up.c
+@@ -686,6 +686,36 @@ int ovl_copy_up_flags(struct dentry *dentry, int flags)
+ 	return err;
+ }
+ 
++static bool ovl_open_need_copy_up(struct dentry *dentry, int flags)
++{
++	if (ovl_dentry_upper(dentry) &&
++	    ovl_dentry_has_upper_alias(dentry))
++		return false;
++
++	if (special_file(d_inode(dentry)->i_mode))
++		return false;
++
++	if (!(OPEN_FMODE(flags) & FMODE_WRITE) && !(flags & O_TRUNC))
++		return false;
++
++	return true;
++}
++
++int ovl_open_maybe_copy_up(struct dentry *dentry, unsigned int file_flags)
++{
++	int err = 0;
++
++	if (ovl_open_need_copy_up(dentry, file_flags)) {
++		err = ovl_want_write(dentry);
++		if (!err) {
++			err = ovl_copy_up_flags(dentry, file_flags);
++			ovl_drop_write(dentry);
++		}
++	}
++
++	return err;
++}
++
+ int ovl_copy_up(struct dentry *dentry)
+ {
+ 	return ovl_copy_up_flags(dentry, 0);
+diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
+index 903548a6b825..5239a1ff7211 100644
+--- a/fs/overlayfs/inode.c
++++ b/fs/overlayfs/inode.c
+@@ -341,36 +341,6 @@ struct posix_acl *ovl_get_acl(struct inode *inode, int type)
+ 	return acl;
+ }
+ 
+-static bool ovl_open_need_copy_up(struct dentry *dentry, int flags)
+-{
+-	if (ovl_dentry_upper(dentry) &&
+-	    ovl_dentry_has_upper_alias(dentry))
+-		return false;
+-
+-	if (special_file(d_inode(dentry)->i_mode))
+-		return false;
+-
+-	if (!(OPEN_FMODE(flags) & FMODE_WRITE) && !(flags & O_TRUNC))
+-		return false;
+-
+-	return true;
+-}
+-
+-int ovl_open_maybe_copy_up(struct dentry *dentry, unsigned int file_flags)
+-{
+-	int err = 0;
+-
+-	if (ovl_open_need_copy_up(dentry, file_flags)) {
+-		err = ovl_want_write(dentry);
+-		if (!err) {
+-			err = ovl_copy_up_flags(dentry, file_flags);
+-			ovl_drop_write(dentry);
+-		}
+-	}
+-
+-	return err;
+-}
+-
+ int ovl_update_time(struct inode *inode, struct timespec *ts, int flags)
+ {
+ 	struct dentry *alias;
+diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
+index edb23f97bd90..31a212781a15 100644
+--- a/fs/overlayfs/overlayfs.h
++++ b/fs/overlayfs/overlayfs.h
+@@ -286,7 +286,6 @@ int ovl_xattr_get(struct dentry *dentry, struct inode *inode, const char *name,
+ 		  void *value, size_t size);
+ ssize_t ovl_listxattr(struct dentry *dentry, char *list, size_t size);
+ struct posix_acl *ovl_get_acl(struct inode *inode, int type);
+-int ovl_open_maybe_copy_up(struct dentry *dentry, unsigned int file_flags);
+ int ovl_update_time(struct inode *inode, struct timespec *ts, int flags);
+ bool ovl_is_private_xattr(const char *name);
+ 
+@@ -319,6 +318,7 @@ int ovl_cleanup(struct inode *dir, struct dentry *dentry);
+ /* copy_up.c */
+ int ovl_copy_up(struct dentry *dentry);
+ int ovl_copy_up_flags(struct dentry *dentry, int flags);
++int ovl_open_maybe_copy_up(struct dentry *dentry, unsigned int file_flags);
+ int ovl_copy_xattr(struct dentry *old, struct dentry *new);
+ int ovl_set_attr(struct dentry *upper, struct kstat *stat);
+ struct ovl_fh *ovl_encode_fh(struct dentry *lower, bool is_upper);
 -- 
 2.13.6
