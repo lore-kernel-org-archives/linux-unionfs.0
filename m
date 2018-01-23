@@ -1,39 +1,99 @@
 From: "zhangyi (F)" <yi.zhang@huawei.com>
-Subject: [xfstests PATCH v5 5/7] overlay/003: fix fs check failure
-Date: Tue, 23 Jan 2018 15:34:50 +0800
-Message-ID: <20180123073452.19074-6-yi.zhang@huawei.com>
-References: <20180123073452.19074-1-yi.zhang@huawei.com>
+Subject: [xfstests PATCH v5 0/7] overlay: add fsck.overlay basic tests
+Date: Tue, 23 Jan 2018 15:34:45 +0800
+Message-ID: <20180123073452.19074-1-yi.zhang@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <fstests-owner@vger.kernel.org>
-In-Reply-To: <20180123073452.19074-1-yi.zhang@huawei.com>
-Sender: fstests-owner@vger.kernel.org
+Return-path: <linux-unionfs-owner@vger.kernel.org>
+Received: from szxga05-in.huawei.com ([45.249.212.191]:4270 "EHLO huawei.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1751167AbeAWH0j (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Tue, 23 Jan 2018 02:26:39 -0500
+Sender: linux-unionfs-owner@vger.kernel.org
+List-Id: linux-unionfs@vger.kernel.org
 To: linux-unionfs@vger.kernel.org, fstests@vger.kernel.org
 Cc: miklos@szeredi.hu, amir73il@gmail.com, eguan@redhat.com, yi.zhang@huawei.com, miaoxie@huawei.com, yangerkun@huawei.com
-List-Id: linux-unionfs@vger.kernel.org
 
-_check_overlay_scratch_fs() will check lowerdir of overlay filesystem,
-this case remove this directory after test will lead to check failure,
-and it is not really necessary to remove this directory, so keep this
-directory.
+Hi All:
 
-Signed-off-by: zhangyi (F) <yi.zhang@huawei.com>
-Reviewed-by: Amir Goldstein <amir73il@gmail.com>
----
- tests/overlay/003 | 1 -
- 1 file changed, 1 deletion(-)
+Here is the fifth version of test cases for the fsck.overlay[1].
 
-diff --git a/tests/overlay/003 b/tests/overlay/003
-index f980edb..154531e 100755
---- a/tests/overlay/003
-+++ b/tests/overlay/003
-@@ -92,7 +92,6 @@ ls ${SCRATCH_MNT}/
- # unmount overlayfs but not base fs
- $UMOUNT_PROG $SCRATCH_MNT
- 
--rm -rf $lowerdir
- echo "Silence is golden"
- # success, all done
- status=0
+[1] https://github.com/hisilicon/overlayfs-progs
+
+Changes since v4:
+- Add _overlay_check_scratch_dirs helper to check optionally dirs
+  for tests use _require_overlay_scratch_dirs.
+- Modify _overlay_check_fs, make sure overlay is not mounted when
+  checking filesystem.
+
+-----------
+
+Changes since v3:
+- Modify minor suggestions in 202.
+- Add _require_overlay_scratch_dirs helper.
+- Replace _require_scratch helper in test cases that finished with
+  corrupt filesystem and use optionally test dirs.
+
+Changes since v2:
+- Modify some minor suggestions from Amir and Vivek, and simplify code
+  in all three test cases.
+- Fix duplicate redirect xattr test in 202.
+- Add impure xattr test case of general merge directory in 'no impure'
+  parent directory.
+- Fix fs check failure in other overlay fs test cases. PS: The
+  multi-lowers problem in overlay/010 also appears in many other tests,
+  _require_scratch() will mis-check the pre-defined underlying dirs
+  (not the real test dirs). I think they also need to be modified as this
+  patch(06/07) does to check the correct dirs, and I can fix them if you
+  think necessary.
+
+Changes since v1:
+
+- Fix _check_scratch_fs hook.
+- Remove valid/invalid opaque xattr test.
+- Add whiteout test cases of valid/invalid whiteouts in opaque/redirect
+  parent directory.
+- Add impure xattr test.
+
+zhangyi (F) (7):
+  overlay: add filesystem check helper
+  overlay: add fsck.overlay whiteout test
+  overlay: add fsck.overlay redirect directory test
+  overlay: add fsck.overlay impure xattr test
+  overlay/003: fix fs check failure
+  overlay: skip check for tests finished with corrupt filesystem
+  overlay: replace _require_scratch() in optionally dirs cases
+
+ common/config         |   1 +
+ common/overlay        | 145 +++++++++++++++++++++++++++
+ common/rc             |   4 +-
+ tests/overlay/003     |   1 -
+ tests/overlay/005     |   6 +-
+ tests/overlay/010     |   6 +-
+ tests/overlay/014     |  10 +-
+ tests/overlay/019     |   2 +-
+ tests/overlay/031     |   2 +-
+ tests/overlay/035     |   6 +-
+ tests/overlay/036     |   5 +-
+ tests/overlay/037     |   6 +-
+ tests/overlay/038     |  10 +-
+ tests/overlay/041     |  10 +-
+ tests/overlay/043     |   6 +-
+ tests/overlay/044     |   6 +-
+ tests/overlay/201     | 232 +++++++++++++++++++++++++++++++++++++++++++
+ tests/overlay/201.out |  10 ++
+ tests/overlay/202     | 269 ++++++++++++++++++++++++++++++++++++++++++++++++++
+ tests/overlay/202.out |  11 +++
+ tests/overlay/203     | 143 +++++++++++++++++++++++++++
+ tests/overlay/203.out |   4 +
+ tests/overlay/group   |   3 +
+ 23 files changed, 883 insertions(+), 15 deletions(-)
+ create mode 100755 tests/overlay/201
+ create mode 100644 tests/overlay/201.out
+ create mode 100755 tests/overlay/202
+ create mode 100644 tests/overlay/202.out
+ create mode 100755 tests/overlay/203
+ create mode 100644 tests/overlay/203.out
+
 -- 
 2.5.0
