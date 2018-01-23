@@ -1,7 +1,7 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH v2 3/7] generic/exportfs: test decoding file handles after cycle mount
-Date: Tue, 23 Jan 2018 22:59:08 +0200
-Message-ID: <1516741152-20345-4-git-send-email-amir73il@gmail.com>
+Subject: [PATCH v2 6/7] overlay: test encode/decode overlay file handles with renames
+Date: Tue, 23 Jan 2018 22:59:11 +0200
+Message-ID: <1516741152-20345-7-git-send-email-amir73il@gmail.com>
 References: <1516741152-20345-1-git-send-email-amir73il@gmail.com>
 Return-path: <fstests-owner@vger.kernel.org>
 In-Reply-To: <1516741152-20345-1-git-send-email-amir73il@gmail.com>
@@ -10,291 +10,46 @@ To: Eryu Guan <eguan@redhat.com>
 Cc: Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, fstests@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 
-open_by_handle can now store and load file handles from a file:
+- Check decode/read of file handles after rename of parent
+- Check decode/read of file handles after rename of grandparent
+- Check decode/read of file handles after move to new parent
+- Check encode/decode/read of file handles in non-upper overlay
 
-usage:
- open_by_handle -p -o <handles_file> <test_dir> [N]
- open_by_handle -p -i <handles_file> <test_dir> [N]
+This test requires and enables overlayfs NFS export support and merge
+dir rename support (redirect_dir).
+NFS export support depends on and enables overlayfs index feature.
 
-Add a new generic/exportfs test to use these new options to test
-decoding file handles after cycle mount and after directory renames.
+This test covers only encode/decode of file handles for overlayfs
+configuration of all layers on the same base fs.
 
 Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- src/open_by_handle.c  | 141 +++++++++++++++++++++++++++++++++++++++-----------
- tests/generic/477     | 107 ++++++++++++++++++++++++++++++++++++++
- tests/generic/477.out |   5 ++
- tests/generic/group   |   1 +
- 4 files changed, 224 insertions(+), 30 deletions(-)
- create mode 100755 tests/generic/477
- create mode 100644 tests/generic/477.out
+ tests/overlay/052     | 183 ++++++++++++++++++++++++++++++++++++++++++++++++++
+ tests/overlay/052.out |  22 ++++++
+ tests/overlay/group   |   1 +
+ 3 files changed, 206 insertions(+)
+ create mode 100755 tests/overlay/052
+ create mode 100644 tests/overlay/052.out
 
-diff --git a/src/open_by_handle.c b/src/open_by_handle.c
-index 9c13b2a..1db6a20 100644
---- a/src/open_by_handle.c
-+++ b/src/open_by_handle.c
-@@ -27,7 +27,7 @@
- 
- /*
- 
--usage: open_by_handle [-cludmrwapk] <test_dir> [num_files]
-+usage: open_by_handle [-cludmrwapk] [<-i|-o> <handles_file>] <test_dir> [num_files]
- 
- Examples:
- 
-@@ -43,30 +43,36 @@ Examples:
- 
-    open_by_handle -p <test_dir> [N]
- 
--3. Get file handles for existing test set, write data to files,
-+3. Get file handles for existing test set and write them to a file.
-+   Read file handles from file and open files by handle:
-+
-+   open_by_handle -p -o <handles_file> <test_dir> [N]
-+   open_by_handle -p -i <handles_file> <test_dir> [N]
-+
-+4. Get file handles for existing test set, write data to files,
-    drop caches, open all files by handle, read and verify written
-    data, write new data to file:
- 
-    open_by_handle -rwa <test_dir> [N]
- 
--4. Get file handles for existing test set, unlink all test files,
-+5. Get file handles for existing test set, unlink all test files,
-    remove test_dir, drop caches, try to open all files by handle
-    and expect ESTALE:
- 
-    open_by_handle -dp <test_dir> [N]
- 
--5. Get file handles for existing test set, keep open file handles for all
-+6. Get file handles for existing test set, keep open file handles for all
-    test files, unlink all test files, drop caches and try to open all files
-    by handle (should work):
- 
-    open_by_handle -dk <test_dir> [N]
- 
--6. Get file handles for existing test set, rename all test files,
-+7. Get file handles for existing test set, rename all test files,
-    drop caches, try to open all files by handle (should work):
- 
-    open_by_handle -m <test_dir> [N]
- 
--7. Get file handles for existing test set, hardlink all test files,
-+8. Get file handles for existing test set, hardlink all test files,
-    then unlink the original files, drop caches and try to open all
-    files by handle (should work):
- 
-@@ -103,7 +109,7 @@ struct handle {
- 
- void usage(void)
- {
--	fprintf(stderr, "usage: open_by_handle [-cludmrwapk] <test_dir> [num_files]\n");
-+	fprintf(stderr, "usage: open_by_handle [-cludmrwapk] [<-i|-o> <handles_file>] <test_dir> [num_files]\n");
- 	fprintf(stderr, "\n");
- 	fprintf(stderr, "open_by_handle -c <test_dir> [N] - create N test files under test_dir, try to get file handles and exit\n");
- 	fprintf(stderr, "open_by_handle    <test_dir> [N] - get file handles of test files, drop caches and try to open by handle\n");
-@@ -116,6 +122,8 @@ void usage(void)
- 	fprintf(stderr, "open_by_handle -d <test_dir> [N] - unlink test files and hardlinks, drop caches and try to open by handle\n");
- 	fprintf(stderr, "open_by_handle -m <test_dir> [N] - rename test files, drop caches and try to open by handle\n");
- 	fprintf(stderr, "open_by_handle -p <test_dir>     - create/delete and try to open by handle also test_dir itself\n");
-+	fprintf(stderr, "open_by_handle -i <handles_file> <test_dir> [N] - read test files handles from file and try to open by handle\n");
-+	fprintf(stderr, "open_by_handle -o <handles_file> <test_dir> [N] - get file handles of test files and write handles to file\n");
- 	exit(EXIT_FAILURE);
- }
- 
-@@ -131,15 +139,17 @@ int main(int argc, char **argv)
- 	char	*test_dir;
- 	char	*mount_dir;
- 	int	mount_fd, mount_id;
-+	char	*infile, *outfile;
-+	int	in_fd = 0, out_fd = 0;
- 	int	numfiles = 1;
- 	int	create = 0, delete = 0, nlink = 1, move = 0;
- 	int	rd = 0, wr = 0, wrafter = 0, parent = 0;
- 	int	keepopen = 0;
- 
--	if (argc < 2 || argc > 4)
-+	if (argc < 2)
- 		usage();
- 
--	while ((c = getopt(argc, argv, "cludmrwapk")) != -1) {
-+	while ((c = getopt(argc, argv, "cludmrwapki:o:")) != -1) {
- 		switch (c) {
- 		case 'c':
- 			create = 1;
-@@ -176,13 +186,29 @@ int main(int argc, char **argv)
- 		case 'k':
- 			keepopen = 1;
- 			break;
-+		case 'i':
-+			infile = optarg;
-+			in_fd = open(infile, O_RDONLY);
-+			if (in_fd < 0) {
-+				perror(infile);
-+				return EXIT_FAILURE;
-+			}
-+			break;
-+		case 'o':
-+			outfile = optarg;
-+			out_fd = creat(outfile, 0644);
-+			if (out_fd < 0) {
-+				perror(outfile);
-+				return EXIT_FAILURE;
-+			}
-+			break;
- 		default:
- 			fprintf(stderr, "illegal option '%s'\n", argv[optind]);
- 		case 'h':
- 			usage();
- 		}
- 	}
--        if (optind == argc || optind > 2)
-+        if (optind == argc)
-             usage();
- 	test_dir = argv[optind++];
- 	if (optind < argc)
-@@ -192,12 +218,34 @@ int main(int argc, char **argv)
- 		usage();
- 	}
- 
--	if (parent) {
-+	/*
-+	 * The way we determine the mount_dir to be used for mount_fd argument
-+	 * for open_by_handle_at() depends on other command line arguments:
-+	 *
-+	 * -p flag usually (see -i below) implies that test_dir is NOT a mount
-+	 *    point, but a directory inside a mount point that we will create
-+	 *    and/or encode/decode during the test, so we use test_dir's parent
-+	 *    for mount_fd. Even when not creatig test_dir, if we would use
-+	 *    test_dir as mount_fd, then drop_caches will not drop the test_dir
-+	 *    dcache entry.
-+	 *
-+	 * If -p is not specified, we don't have a hint whether test_dir is a
-+	 *    mount point or not, so we assume the worst case, that it is a
-+	 *    mount point and therefore, we cannnot use parent as mount_fd,
-+	 *    because parent may be on a differnt file system.
-+	 *
-+	 * -i flag, even with -p flag, implies that test_dir IS a mount point,
-+	 *    because we are testing open by handle of dir, which may have been
-+	 *    deleted or renamed and we are not creating nor encoding the
-+	 *    directory file handle. -i flag is meant to be used for tests
-+	 *    after encoding file handles and mount cycle the file system. If
-+	 *    we would require the test to pass in with -ip the test_dir we
-+	 *    want to decode and not the mount point, that would have populated
-+	 *    the dentry cache and the use of -ip flag combination would not
-+	 *    allow testing decode of dir file handle in cold dcache scenario.
-+	 */
-+	if (parent && !in_fd) {
- 		strcpy(dname, test_dir);
--		/*
--		 * -p flag implies that test_dir is NOT a mount point,
--		 * so its parent can be used as mount_fd for open_by_handle_at.
--		 */
- 		mount_dir = dirname(dname);
- 		if (create)
- 			ret = mkdir(test_dir, 0700);
-@@ -241,15 +289,26 @@ int main(int argc, char **argv)
- 	/* sync to get the new inodes to hit the disk */
- 	sync();
- 
--	/* create the handles */
-+	/*
-+	 * encode the file handles or read them from file (-i) and maybe store
-+	 * them to a file (-o).
-+	 */
- 	for (i=0; i < numfiles; i++) {
- 		sprintf(fname, "%s/file%06d", test_dir, i);
--		handle[i].fh.handle_bytes = MAX_HANDLE_SZ;
--		ret = name_to_handle_at(AT_FDCWD, fname, &handle[i].fh, &mount_id, 0);
--		if (ret < 0) {
--			strcat(fname, ": name_to_handle");
--			perror(fname);
--			return EXIT_FAILURE;
-+		if (in_fd) {
-+			ret = read(in_fd, (char *)&handle[i], sizeof(*handle));
-+			if (ret < sizeof(*handle)) {
-+				fprintf(stderr, "failed reading file handle #%d from '%s'\n", i, infile);
-+				return EXIT_FAILURE;
-+			}
-+		} else {
-+			handle[i].fh.handle_bytes = MAX_HANDLE_SZ;
-+			ret = name_to_handle_at(AT_FDCWD, fname, &handle[i].fh, &mount_id, 0);
-+			if (ret < 0) {
-+				strcat(fname, ": name_to_handle");
-+				perror(fname);
-+				return EXIT_FAILURE;
-+			}
- 		}
- 		if (keepopen) {
- 			/* Open without close to keep unlinked files around */
-@@ -260,15 +319,37 @@ int main(int argc, char **argv)
- 				return EXIT_FAILURE;
- 			}
- 		}
-+		if (out_fd) {
-+			ret = write(out_fd, (char *)&handle[i], sizeof(*handle));
-+			if (ret < sizeof(*handle)) {
-+				fprintf(stderr, "failed writing file handle #%d to '%s'\n", i, outfile);
-+				return EXIT_FAILURE;
-+			}
-+		}
- 	}
- 
- 	if (parent) {
--		dir_handle.fh.handle_bytes = MAX_HANDLE_SZ;
--		ret = name_to_handle_at(AT_FDCWD, test_dir, &dir_handle.fh, &mount_id, 0);
--		if (ret < 0) {
--			strcat(dname, ": name_to_handle");
--			perror(dname);
--			return EXIT_FAILURE;
-+		if (in_fd) {
-+			ret = read(in_fd, (char *)&dir_handle, sizeof(*handle));
-+			if (ret < sizeof(*handle)) {
-+				fprintf(stderr, "failed reading dir file handle from '%s'\n", infile);
-+				return EXIT_FAILURE;
-+			}
-+		} else {
-+			dir_handle.fh.handle_bytes = MAX_HANDLE_SZ;
-+			ret = name_to_handle_at(AT_FDCWD, test_dir, &dir_handle.fh, &mount_id, 0);
-+			if (ret < 0) {
-+				strcat(dname, ": name_to_handle");
-+				perror(dname);
-+				return EXIT_FAILURE;
-+			}
-+		}
-+		if (out_fd) {
-+			ret = write(out_fd, (char *)&dir_handle, sizeof(*handle));
-+			if (ret < sizeof(*handle)) {
-+				fprintf(stderr, "failed writing dir file handle to '%s'\n", outfile);
-+				return EXIT_FAILURE;
-+			}
- 		}
- 	}
- 
-@@ -289,8 +370,8 @@ int main(int argc, char **argv)
- 		close(fd);
- 	}
- 
--	/* after creating test set only check that fs supports exportfs */
--	if (create)
-+	/* If creating test set or saving files handles, we are done */
-+	if (create || out_fd)
- 		return EXIT_SUCCESS;
- 
- 	/* hardlink the files */
-diff --git a/tests/generic/477 b/tests/generic/477
+diff --git a/tests/overlay/052 b/tests/overlay/052
 new file mode 100755
-index 0000000..581ccda
+index 0000000..133a459
 --- /dev/null
-+++ b/tests/generic/477
-@@ -0,0 +1,107 @@
++++ b/tests/overlay/052
+@@ -0,0 +1,183 @@
 +#! /bin/bash
-+# FS QA Test No. 477
++# FS QA Test No. 052
 +#
-+# Check open by file handle after cycle mount.
++# Test encode/decode overlay file handles with renames
 +#
-+# This test uses load and store of file handles from a temp file to test
-+# decoding file handles after cycle mount and after directory renames.
++# - Check decode/read of file handles after rename of parent
++# - Check decode/read of file handles after rename of grandparent
++# - Check decode/read of file handles after move to new parent
++# - Check encode/decode/read of file handles in non-upper overlay
++#
++# This test requires and enables overlayfs NFS export support and merge
++# dir rename support (redirect_dir).
++# NFS export support depends on and enables overlayfs index feature.
 +#
 +#-----------------------------------------------------------------------
 +# Copyright (C) 2018 CTERA Networks. All Rights Reserved.
@@ -336,84 +91,171 @@ index 0000000..581ccda
 +
 +# real QA test starts here
 +
-+# Modify as appropriate.
-+_supported_fs generic
++_supported_fs overlay
 +_supported_os Linux
-+_require_test
-+# _require_exportfs already requires open_by_handle, but let's not count on it
++_require_scratch
 +_require_test_program "open_by_handle"
-+_require_exportfs
++_require_scratch_feature nfs_export
++_require_scratch_feature redirect_dir
 +
-+NUMFILES=10
-+testroot=$TEST_DIR/$seq-dir
-+testdir=$testroot/testdir
++# All overlay dirs are on scratch partition
++lower=$OVL_BASE_SCRATCH_MNT/$OVL_LOWER
++middle=$OVL_BASE_SCRATCH_MNT/$OVL_LOWER.2
++upper=$OVL_BASE_SCRATCH_MNT/$OVL_UPPER
++work=$OVL_BASE_SCRATCH_MNT/$OVL_WORK
 +
-+# Create test dir and test files, encode file handles and store to tmp file
++NUMFILES=1
++
++# Create test dir and empty test files
 +create_test_files()
 +{
-+	rm -rf $testdir
-+	mkdir -p $testdir
-+	$here/src/open_by_handle -cwp -o $tmp.handles_file $testdir $NUMFILES
++	local dir=$1
++	local opt=$2
++
++	mkdir -p $dir
++	$here/src/open_by_handle -cp $opt $dir $NUMFILES
 +}
 +
-+# Decode file handles loaded from tmp file
++# Test encode/decode file handles on overlay mount
 +test_file_handles()
 +{
-+	local opt=$1
-+	local when=$2
++	local dir=$1
++	shift
 +
-+	echo test_file_handles after $when
-+	$here/src/open_by_handle $opt -i $tmp.handles_file $TEST_DIR $NUMFILES
++	echo test_file_handles $dir $* | _filter_scratch | \
++				sed -e "s,$tmp\.,,g"
++	$here/src/open_by_handle $* $dir $NUMFILES
 +}
 +
-+# Decode file handles of files/dir after cycle mount
-+create_test_files
-+_test_cycle_mount
-+test_file_handles -rp "cycle mount"
++# Re-create lower/middle/upper/work dirs
++create_dirs()
++{
++	_scratch_mkfs
++	mkdir -p $middle
++}
 +
-+# Decode file handles of files/dir after rename of parent and cycle mount
-+create_test_files $testdir
-+rm -rf $testdir.renamed
-+mv $testdir $testdir.renamed/
-+_test_cycle_mount
-+test_file_handles -rp "rename parent"
++# Mount an overlay on $SCRATCH_MNT with all layers on scratch partition
++mount_dirs()
++{
++	_scratch_mount -o nfs_export=on,redirect_dir=on
++}
 +
-+# Decode file handles of files/dir after rename of grandparent and cycle mount
-+create_test_files $testdir
-+rm -rf $testroot.renamed
-+mv $testroot $testroot.renamed/
-+_test_cycle_mount
-+test_file_handles -rp "rename grandparent"
++# Unmount the overlay without unmounting base fs
++unmount_dirs()
++{
++	$UMOUNT_PROG $SCRATCH_MNT
++}
 +
-+# Decode file handles of files/dir after move to new parent and cycle mount
-+create_test_files $testdir
-+rm -rf $testdir.new
-+mkdir -p $testdir.new
-+mv $testdir/* $testdir.new/
-+_test_cycle_mount
-+test_file_handles -r "move to new parent"
++# Check non-stale file handles of lower/upper moved files
++create_dirs
++create_test_files $upper/uppertestdir -w
++create_test_files $lower/lowertestdir -w
++mkdir -p $lower/lowertestdir.lo $lower/lowertestdir.up $upper/uppertestdir.lo $upper/uppertestdir.up
++mount_dirs
++# Check encode/decode/read of lower/upper file handles after move to new upper testdir
++test_file_handles $SCRATCH_MNT/uppertestdir -o $tmp.upper_file_handles
++test_file_handles $SCRATCH_MNT/lowertestdir -o $tmp.lower_file_handles
++mv $SCRATCH_MNT/uppertestdir/* $SCRATCH_MNT/uppertestdir.up/
++mv $SCRATCH_MNT/lowertestdir/* $SCRATCH_MNT/uppertestdir.lo/
++# Check open and read from stored file handles
++test_file_handles $SCRATCH_MNT -r -i $tmp.upper_file_handles
++test_file_handles $SCRATCH_MNT -r -i $tmp.lower_file_handles
++# Check encode/decode/read of lower/upper file handles after move to new merge testdir
++test_file_handles $SCRATCH_MNT/uppertestdir.up -o $tmp.upper_file_handles
++test_file_handles $SCRATCH_MNT/uppertestdir.lo -o $tmp.lower_file_handles
++mv $SCRATCH_MNT/uppertestdir.up/* $SCRATCH_MNT/lowertestdir.up/
++mv $SCRATCH_MNT/uppertestdir.lo/* $SCRATCH_MNT/lowertestdir.lo/
++# Check open and read from stored file handles
++test_file_handles $SCRATCH_MNT -r -i $tmp.upper_file_handles
++test_file_handles $SCRATCH_MNT -r -i $tmp.lower_file_handles
++unmount_dirs
++
++# Check non-stale file handles of lower/upper renamed dirs
++create_dirs
++create_test_files $upper/uppertestdir -w
++create_test_files $lower/lowertestdir -w
++create_test_files $upper/uppertestdir/subdir -w
++create_test_files $lower/lowertestdir/subdir -w
++mount_dirs
++# Check encode/decode/read of lower/upper file handles after rename of testdir
++test_file_handles $SCRATCH_MNT/uppertestdir -p -o $tmp.upper_file_handles
++test_file_handles $SCRATCH_MNT/lowertestdir -p -o $tmp.lower_file_handles
++# Check encode/decode/read of lower/upper file handles after rename of testdir's parent
++test_file_handles $SCRATCH_MNT/uppertestdir/subdir -p -o $tmp.upper_subdir_file_handles
++test_file_handles $SCRATCH_MNT/lowertestdir/subdir -p -o $tmp.lower_subdir_file_handles
++# Rename pure upper dir
++mv $SCRATCH_MNT/uppertestdir $SCRATCH_MNT/uppertestdir.new/
++# Copy up lower dir, index and rename
++mv $SCRATCH_MNT/lowertestdir $SCRATCH_MNT/lowertestdir.new/
++# Check open, read and readdir from stored file handles
++# (testdir argument is the mount point and NOT the dir
++#  we are trying to open by stored file handle)
++test_file_handles $SCRATCH_MNT -rp -i $tmp.upper_file_handles
++test_file_handles $SCRATCH_MNT -rp -i $tmp.lower_file_handles
++test_file_handles $SCRATCH_MNT -rp -i $tmp.upper_subdir_file_handles
++test_file_handles $SCRATCH_MNT -rp -i $tmp.lower_subdir_file_handles
++# Retry decoding lower subdir file handle when indexed testdir is in dcache
++# (providing renamed testdir argument pins the indexed testdir to dcache)
++test_file_handles $SCRATCH_MNT/lowertestdir.new -rp -i $tmp.lower_subdir_file_handles
++unmount_dirs
++
++# Check encode/decode/read of lower file handles on lower layers only r/o overlay.
++# For non-upper overlay mount, nfs_export requires disabling redirect_dir.
++$MOUNT_PROG -t overlay $OVL_BASE_SCRATCH_MNT $SCRATCH_MNT \
++			-o ro,redirect_dir=nofollow,lowerdir=$middle:$lower
++test_file_handles $SCRATCH_MNT/lowertestdir -rp
++test_file_handles $SCRATCH_MNT/lowertestdir/subdir -rp
++unmount_dirs
++
++# Check encode/decode/read of lower file handles on lower layers only r/o overlay
++# with non-indexed redirects from top lower layer to bottom lower layer.
++# Overlay lookup cannot follow the redirect from $upper/lowertestdir.new to
++# $lower/lowertestdir. Instead, we mount an overlay subtree rooted at these
++# directories.
++$MOUNT_PROG -t overlay $OVL_BASE_SCRATCH_MNT $SCRATCH_MNT \
++		-o ro,redirect_dir=nofollow,lowerdir=$upper/lowertestdir.new:$lower/lowertestdir
++test_file_handles $SCRATCH_MNT -r
++test_file_handles $SCRATCH_MNT/subdir -rp
++unmount_dirs
 +
 +status=0
 +exit
-diff --git a/tests/generic/477.out b/tests/generic/477.out
+diff --git a/tests/overlay/052.out b/tests/overlay/052.out
 new file mode 100644
-index 0000000..0941a77
+index 0000000..f9f4ff7
 --- /dev/null
-+++ b/tests/generic/477.out
-@@ -0,0 +1,5 @@
-+QA output created by 477
-+test_file_handles after cycle mount
-+test_file_handles after rename parent
-+test_file_handles after rename grandparent
-+test_file_handles after move to new parent
-diff --git a/tests/generic/group b/tests/generic/group
-index bf5329c..cce03e9 100644
---- a/tests/generic/group
-+++ b/tests/generic/group
-@@ -479,3 +479,4 @@
- 474 auto quick shutdown metadata
- 475 shutdown auto log metadata
- 476 auto rw
-+477 auto quick exportfs
++++ b/tests/overlay/052.out
+@@ -0,0 +1,22 @@
++QA output created by 052
++test_file_handles SCRATCH_MNT/uppertestdir -o upper_file_handles
++test_file_handles SCRATCH_MNT/lowertestdir -o lower_file_handles
++test_file_handles SCRATCH_MNT -r -i upper_file_handles
++test_file_handles SCRATCH_MNT -r -i lower_file_handles
++test_file_handles SCRATCH_MNT/uppertestdir.up -o upper_file_handles
++test_file_handles SCRATCH_MNT/uppertestdir.lo -o lower_file_handles
++test_file_handles SCRATCH_MNT -r -i upper_file_handles
++test_file_handles SCRATCH_MNT -r -i lower_file_handles
++test_file_handles SCRATCH_MNT/uppertestdir -p -o upper_file_handles
++test_file_handles SCRATCH_MNT/lowertestdir -p -o lower_file_handles
++test_file_handles SCRATCH_MNT/uppertestdir/subdir -p -o upper_subdir_file_handles
++test_file_handles SCRATCH_MNT/lowertestdir/subdir -p -o lower_subdir_file_handles
++test_file_handles SCRATCH_MNT -rp -i upper_file_handles
++test_file_handles SCRATCH_MNT -rp -i lower_file_handles
++test_file_handles SCRATCH_MNT -rp -i upper_subdir_file_handles
++test_file_handles SCRATCH_MNT -rp -i lower_subdir_file_handles
++test_file_handles SCRATCH_MNT/lowertestdir.new -rp -i lower_subdir_file_handles
++test_file_handles SCRATCH_MNT/lowertestdir -rp
++test_file_handles SCRATCH_MNT/lowertestdir/subdir -rp
++test_file_handles SCRATCH_MNT -r
++test_file_handles SCRATCH_MNT/subdir -rp
+diff --git a/tests/overlay/group b/tests/overlay/group
+index 380a382..2f06a6b 100644
+--- a/tests/overlay/group
++++ b/tests/overlay/group
+@@ -51,3 +51,4 @@
+ 048 auto quick copyup hardlink
+ 050 auto quick copyup hardlink exportfs
+ 051 auto quick copyup hardlink exportfs nonsamefs
++052 auto quick copyup redirect exportfs
 -- 
 2.7.4
