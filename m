@@ -1,47 +1,123 @@
-From: "zhangyi (F)" <yi.zhang@huawei.com>
-Subject: Re: [xfstests PATCH v6 2/8] overlay: add filesystem check helper
-Date: Wed, 24 Jan 2018 18:53:35 +0800
-Message-ID: <21bd824d-49cd-5749-ca1d-238154e321e7@huawei.com>
-References: <20180124073344.31970-1-yi.zhang@huawei.com>
- <20180124073344.31970-3-yi.zhang@huawei.com>
- <CAOQ4uxjwrFDKn6iYTNLA02z-GvG-X+72Vs4TYs1sL0_8wiuksg@mail.gmail.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Subject: Re: [PATCH v2 03/17] ovl: decode pure upper file handles
+Date: Wed, 24 Jan 2018 13:04:40 +0200
+Message-ID: <CAOQ4uxh-fjfmKH4oQDNYoi5GYaOFy+QmAb7bsV7urRRABTtjPw@mail.gmail.com>
+References: <1515086449-26563-1-git-send-email-amir73il@gmail.com>
+ <1515086449-26563-4-git-send-email-amir73il@gmail.com> <CAJfpegt=4Mk7B7E9c7CGJHdWZsVFQAqfJ_NbRNQNOpSZFYudrg@mail.gmail.com>
+ <CAOQ4uxg34b6TZ6hwPczv_m_HquR6apnPy0gexHezixMedVqUZA@mail.gmail.com>
+ <CAJfpegttoV7aPN2sS6RXONh0eFQ9xyoFxZbzVG7UMCcAJ+zjtg@mail.gmail.com>
+ <CAOQ4uxhaC3b2N1rNCBgv0MTyBQgWFZKyVV60VWnudb_wY6A98Q@mail.gmail.com>
+ <CAJfpeguVZztckNqML_hJRrEXumMMAeB6+Ha2djPrmCbqXz1brw@mail.gmail.com>
+ <CAOQ4uxh0EEuhsLxD3M_xngMd14C=hGb8U12yPe=duELwb4yNDQ@mail.gmail.com>
+ <CAOQ4uxhHUaorYA5ZAXQrfaOrp6Xa4cabz+ZFRdVBp6Mf-ebb0g@mail.gmail.com>
+ <CAOQ4uxhO+oOGWfSnafNO84GYT0_ihNtR_ekna+DH7rzWMZTgwg@mail.gmail.com>
+ <20180119103952.GA24104@veci.piliscsaba.redhat.com> <CAOQ4uxgdww=-R24R4quD4iV0oJ9Wj5WC_-tkvOF_kZgHKa3P5w@mail.gmail.com>
+ <CAOQ4uxjKvusKuQP9ACWGQPr3XeT3KskOvj8fQ+L5aEHUB-8n1A@mail.gmail.com> <CAJfpegu2WyWFos=ie-T5XRBvZ+=FT8g5T-HsqXSgLS6jxsfYgg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from szxga04-in.huawei.com ([45.249.212.190]:4691 "EHLO huawei.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S932953AbeAXKyO (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 24 Jan 2018 05:54:14 -0500
-In-Reply-To: <CAOQ4uxjwrFDKn6iYTNLA02z-GvG-X+72Vs4TYs1sL0_8wiuksg@mail.gmail.com>
+Received: from mail-yb0-f182.google.com ([209.85.213.182]:41963 "EHLO
+        mail-yb0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932891AbeAXLEl (ORCPT
+        <rfc822;linux-unionfs@vger.kernel.org>);
+        Wed, 24 Jan 2018 06:04:41 -0500
+In-Reply-To: <CAJfpegu2WyWFos=ie-T5XRBvZ+=FT8g5T-HsqXSgLS6jxsfYgg@mail.gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: overlayfs <linux-unionfs@vger.kernel.org>, fstests <fstests@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>, Eryu Guan <eguan@redhat.com>, Miao Xie <miaoxie@huawei.com>, yangerkun@huawei.com
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: overlayfs <linux-unionfs@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Al Viro <viro@zeniv.linux.org.uk>, Eryu Guan <eguan@redhat.com>
 
-On 2018/1/24 17:31, Amir Goldstein Write:
-> On Wed, Jan 24, 2018 at 9:33 AM, zhangyi (F) <yi.zhang@huawei.com> wrote:
->> +_overlay_check_fs()
->> +{
->> +       local ovl_mnt=$1
->> +       local base_dev=$4
->> +       local base_mnt=$5
->> +       shift 1
->> +
->> +       [ "$FSTYP" = overlay ] || return 0
->> +
->> +       # Base fs needs to be mounted to check overlay dirs
->> +       local base_mounted=""
->> +       [ -z "$base_dev" ] || base_mounted=`_is_mounted $base_dev`
-> 
-> That looks like I have a bug in my original implementation of _overlay_check_fs
-> because $FSTYP" = overlay _is_mounted here will not actually find a mounted
-> base dev. Need to pass $OVL_BASE_FSTYP to your improved _is_mounted
-> helper.
-> No?
-> 
-Yes, we not found this bug becasue previous _is_mounted missing $FSTYP check,
-I will improve it as you suggested.
+On Wed, Jan 24, 2018 at 12:34 PM, Miklos Szeredi <miklos@szeredi.hu> wrote:
+> On Fri, Jan 19, 2018 at 9:10 PM, Amir Goldstein <amir73il@gmail.com> wrote:
+>> On Fri, Jan 19, 2018 at 1:07 PM, Amir Goldstein <amir73il@gmail.com> wrote:
+>>> On Fri, Jan 19, 2018 at 12:39 PM, Miklos Szeredi <miklos@szeredi.hu> wrote:
+>>>> On Fri, Jan 19, 2018 at 02:23:35AM +0200, Amir Goldstein wrote:
+>>>>> > How is this for an option?
+>>>> [...]
+>>>>> > +struct dentry *d_obtain_alias_fsdata(struct inode *inode, void **fsdata)
+>>>>> > +{
+>>>>> > +       return __d_obtain_alias(inode, 1, fsdata);
+>>>>> >  }
+>>>>> >  EXPORT_SYMBOL(d_obtain_alias);
+>>>>
+>>>> It would work, but I like this interface better:
+>>>>
+>>>> +extern struct dentry * d_alloc_anon(struct super_block *);
+>>>> +extern struct dentry * d_instantiate_anon(struct dentry *, struct inode *);
+>>>>
+>>>
+>>> OK. Thanks for the patch!
+>>>
+>>
+>> Added your dcache patch to the series and reworked my patches
+>> to use the new helpers.
+>>
+>> Tested result is pushed to:
+>> https://github.com/amir73il/linux/commits/ovl-nfs-export-v3
+>>
+>> Prep patches changes since v2:
+>> - Rebased over fix patch "hash all directory inodes for fsnotify"
+>> - Rename mount/config option from "verify" to "nfs_export"
+>> - Force r/o mount when index dir creation fails
+>> - Allow enabling "nfs_export" for non-upper mount
+>> - Require "redirect_dir=nofollow" for non-upper mount
+>> - Rename dir index entries xattr from ".origin" to ".upper"
+>> - Re-factor ovl_{get|set|verify}_origin() helpers
+>> - Simplify test for temp index name (starts with #)
+>> - Abandon ovl_dentry_is_renamed() test for lower st_ino
+>> - Document overhead on mount with full index
+>> - Document change of behavior when verifying lower origin
+>> - Added patch to make room in ovl_entry struct
+>>
+>> NFS export changes since v2:
+>> - Fix exportfs ops for r/o overlay with no upperdir
+>> - Document reason for copy up directory on encode
+>> - Take care of racing with rename while connecting dir
+>> - Explain the reasons for choosing the 'connected' dir approach
+>> - Do not add dentry without ovl_entry to dcache
+>>
+>> Optimizations TODO:
+>> - Copy up on encode only when lower ancestor is below middle layer redirect
+>> - Hash inode by fh to avoid origin decode of whiteout fh
+>>
+>> As far as I know, the series is now functionally correct and all comments
+>> so far addressed. The remaining optimizations will be done on top of this
+>> series.
+>
+> Pushed to overlayfs-next with one fix (do not warn about falling back
+> to nfs_export=off if nfs_export is already off).
+
+Good fix.
+That warning was a late addition to V3 after allowing nfs_export without
+index for on-upper r/o mount.
+
+>
+> That spurious warning makes me wonder: how much of the option matrix is tested?
+>
+
+Good question... (adding Eryu in CC)
+
+I know Eryu tested with default kernel configuration, because one
+of my tests found a bug with NFS export and redirect_dir=off.
+(I fixed the specific test to require redirect_dir)
+
+I have posted xfstests for overlay NFS export support with samefs
+and non-samefs configuration and for non-samefs, there are two
+lower layers not on the same fs. I also have posted a test for non-upper
+overlay with two lower layers on samefs and non-samefs.
+
+One of the overlay xfstests explicitly turns off index with index=off,
+(overlay/036), so we have coverage for falling back to nfs_export=off
+when NFS export is enabled by default (as it usually is in my setup).
+
+There is an overlay xfstest with multiple lower layers and no-upper
+and that test shows the warning about falling back to nfs_export=off
+due to redirect_dir=nofollow requirement (with default kernel configuration).
+
+I did not specifically test underlying fs with no xattr support and no
+file handle support, though the latter was already tested for index
+with squashfs (no uuid) and the nfs_export=off code is piggy backed
+in the same place as index=off.
 
 Thanks,
-Yi.
+Amir.
