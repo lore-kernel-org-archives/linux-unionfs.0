@@ -1,7 +1,7 @@
 From: "zhangyi (F)" <yi.zhang@huawei.com>
-Subject: [xfstests PATCH v6 5/8] overlay: add fsck.overlay impure xattr test
-Date: Wed, 24 Jan 2018 15:33:41 +0800
-Message-ID: <20180124073344.31970-6-yi.zhang@huawei.com>
+Subject: [xfstests PATCH v6 4/8] overlay: add fsck.overlay redirect directory test
+Date: Wed, 24 Jan 2018 15:33:40 +0800
+Message-ID: <20180124073344.31970-5-yi.zhang@huawei.com>
 References: <20180124073344.31970-1-yi.zhang@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,29 +12,29 @@ To: linux-unionfs@vger.kernel.org, fstests@vger.kernel.org
 Cc: miklos@szeredi.hu, amir73il@gmail.com, eguan@redhat.com, yi.zhang@huawei.com, miaoxie@huawei.com, yangerkun@huawei.com
 List-Id: linux-unionfs@vger.kernel.org
 
-Add fsck.overlay test case to test it how to deal with impure
-xattr in underlying directories of overlayfs.
+Add fsck.overlay test case to test it how to deal with invalid/valid/
+duplicate redirect xattr in underlying directories of overlayfs.
 
 Signed-off-by: zhangyi (F) <yi.zhang@huawei.com>
 Reviewed-by: Amir Goldstein <amir73il@gmail.com>
 ---
- tests/overlay/203     | 143 ++++++++++++++++++++++++++++++++++++++++++++++++++
- tests/overlay/203.out |   4 ++
+ tests/overlay/202     | 269 ++++++++++++++++++++++++++++++++++++++++++++++++++
+ tests/overlay/202.out |  11 +++
  tests/overlay/group   |   1 +
- 3 files changed, 148 insertions(+)
- create mode 100755 tests/overlay/203
- create mode 100644 tests/overlay/203.out
+ 3 files changed, 281 insertions(+)
+ create mode 100755 tests/overlay/202
+ create mode 100644 tests/overlay/202.out
 
-diff --git a/tests/overlay/203 b/tests/overlay/203
+diff --git a/tests/overlay/202 b/tests/overlay/202
 new file mode 100755
-index 0000000..75b2097
+index 0000000..43e17bc
 --- /dev/null
-+++ b/tests/overlay/203
-@@ -0,0 +1,143 @@
++++ b/tests/overlay/202
+@@ -0,0 +1,269 @@
 +#! /bin/bash
-+# FS QA Test 203
++# FS QA Test 202
 +#
-+# Test fsck.overlay how to deal with impure xattr in overlayfs.
++# Test fsck.overlay how to deal with redirect xattr in overlayfs.
 +#
 +#-----------------------------------------------------------------------
 +# Copyright (c) 2017 Huawei.  All Rights Reserved.
@@ -73,6 +73,7 @@ index 0000000..75b2097
 +# get standard environment, filters and checks
 +. ./common/rc
 +. ./common/filter
++. ./common/attr
 +
 +# remove previous $seqres.full before test
 +rm -f $seqres.full
@@ -81,14 +82,15 @@ index 0000000..75b2097
 +_supported_fs overlay
 +_supported_os Linux
 +_require_overlay_scratch_dirs
++_require_attrs
 +_require_command "$FSCK_OVERLAY_PROG" fsck.overlay
 +
 +# remove all files from previous tests
 +_scratch_mkfs
 +
 +OVL_REDIRECT_XATTR="trusted.overlay.redirect"
-+OVL_IMPURE_XATTR="trusted.overlay.impure"
-+OVL_IMPURE_XATTR_VAL="y"
++OVL_OPAQUE_XATTR="trusted.overlay.opaque"
++OVL_OPAQUE_XATTR_VAL="y"
 +
 +# Create a redirect directory
 +make_redirect_dir()
@@ -100,23 +102,58 @@ index 0000000..75b2097
 +	$SETFATTR_PROG -n $OVL_REDIRECT_XATTR -v $value $target
 +}
 +
-+# Remove impure xattr
-+remove_impure()
++# Check redirect xattr
++check_redirect()
++{
++	local target=$1
++	local expect=$2
++
++	value=$($GETFATTR_PROG --absolute-names --only-values -n \
++		$OVL_REDIRECT_XATTR $target)
++
++	[[ $value == $expect ]]	|| echo "Redirect xattr incorrect"
++}
++
++check_no_redirect()
 +{
 +	local target=$1
 +
-+	$SETFATTR_PROG -x $OVL_IMPURE_XATTR $target
++	value=$($GETFATTR_PROG --absolute-names -d -m \
++		$OVL_REDIRECT_XATTR $target)
++
++	[[ -z "$value" ]] || echo "Redirect xattr not empty"
 +}
 +
-+# Check impure xattr
-+check_impure()
++# Check opaque xattr
++check_opaque()
 +{
 +	local target=$1
 +
 +	value=$($GETFATTR_PROG --absolute-names --only-values -n \
-+		$OVL_IMPURE_XATTR $target)
++		$OVL_OPAQUE_XATTR $target)
 +
-+	[[ $value == $OVL_IMPURE_XATTR_VAL ]] || echo "Missing impure xattr"
++	[[ $value == $OVL_OPAQUE_XATTR_VAL ]] || echo "Opaque xattr incorrect"
++}
++
++# Create a whiteout
++make_whiteout()
++{
++	for arg in $*
++	do
++		mknod $arg c 0 0
++	done
++}
++
++# Check whiteout
++check_whiteout()
++{
++	for arg in $*
++	do
++		local ttype=`stat -c "%F:%t,%T" $arg`
++
++		[[ $ttype == "character special file:0,0" ]] || \
++			echo "Valid whiteout removed incorrectly"
++	done
 +}
 +
 +# Create test directories
@@ -131,67 +168,163 @@ index 0000000..75b2097
 +	mkdir -p $lowerdir $lowerdir2 $upperdir $workdir
 +}
 +
-+# Test missing impure xattr in directory which has origin targets, should fix
-+echo "+ Missing impure"
++# Test invalid redirect xattr point to a nonexistent origin, should remove
++echo "+ Invalid redirect"
 +make_test_dirs
-+mkdir $lowerdir/{testdir1,testdir2}
-+mkdir $upperdir/{testdir1,testdir2}
-+touch $lowerdir/testdir1/foo
-+mkdir $lowerdir/testdir2/subdir
-+_overlay_scratch_mount_dirs $lowerdir $upperdir $workdir
-+touch $SCRATCH_MNT/testdir1/foo
-+touch $SCRATCH_MNT/testdir2/subdir
-+$UMOUNT_PROG $SCRATCH_MNT
-+remove_impure $upperdir/testdir1
-+remove_impure $upperdir/testdir2
++make_redirect_dir $upperdir/testdir "invalid"
 +
 +_overlay_fsck_dirs $lowerdir $upperdir $workdir -p >> $seqres.full 2>&1 || \
 +	_fail "fsck should not fail"
-+check_impure $upperdir/testdir1
-+check_impure $upperdir/testdir2
++check_no_redirect $upperdir/testdir
 +
-+# Test missing impure xattr in directory which has redirect directories,
-+# should fix
-+echo "+ Missing impure(2)"
++# Test invalid redirect xattr point to a file origin, should remove
++echo "+ Invalid redirect(2)"
++make_test_dirs
++touch $lowerdir/origin
++make_redirect_dir $upperdir/testdir "origin"
++
++_overlay_fsck_dirs $lowerdir $upperdir $workdir -p >> $seqres.full 2>&1 || \
++	_fail "fsck should not fail"
++check_no_redirect $upperdir/testdir
++
++# Test valid redirect xattr point to a directory origin in the same directory,
++# should not remove
++echo "+ Valid redirect"
 +make_test_dirs
 +mkdir $lowerdir/origin
-+make_redirect_dir $upperdir/testdir/subdir "/origin"
++make_whiteout $upperdir/origin
++make_redirect_dir $upperdir/testdir "origin"
 +
 +_overlay_fsck_dirs $lowerdir $upperdir $workdir -p >> $seqres.full 2>&1 || \
 +	_fail "fsck should not fail"
-+check_impure $upperdir/testdir
++check_redirect $upperdir/testdir "origin"
 +
-+# Test missing impure xattr in directory which has merge directories,
-+# should fix
-+echo "+ Missing impure(3)"
++# Test valid redirect xattr point to a directory origin in different directories
++# should not remove
++echo "+ Valid redirect(2)"
 +make_test_dirs
-+mkdir $lowerdir/testdir $upperdir/testdir
++mkdir $lowerdir/origin
++make_whiteout $upperdir/origin
++make_redirect_dir $upperdir/testdir1/testdir2 "/origin"
 +
 +_overlay_fsck_dirs $lowerdir $upperdir $workdir -p >> $seqres.full 2>&1 || \
 +	_fail "fsck should not fail"
-+check_impure $upperdir
++check_redirect $upperdir/testdir1/testdir2 "/origin"
++
++# Test valid redirect xattr but missing whiteout to cover lower target,
++# should fix whiteout
++echo "+ Missing whiteout"
++make_test_dirs
++mkdir $lowerdir/origin
++make_redirect_dir $upperdir/testdir "origin"
++
++_overlay_fsck_dirs $lowerdir $upperdir $workdir -p >> $seqres.full 2>&1 || \
++	_fail "fsck should not fail"
++check_redirect $upperdir/testdir "origin"
++check_whiteout $upperdir/origin
++
++# Test valid redirect xattrs exchanged by rename, should not remove
++echo "+ Valid redirect(3)"
++make_test_dirs
++mkdir $lowerdir/{testdir1,testdir2}
++make_redirect_dir $upperdir/testdir1 "testdir2"
++make_redirect_dir $upperdir/testdir2 "testdir1"
++
++_overlay_fsck_dirs $lowerdir $upperdir $workdir -p >> $seqres.full 2>&1 || \
++	_fail "fsck should not fail"
++check_redirect $upperdir/testdir1 "testdir2"
++check_redirect $upperdir/testdir2 "testdir1"
++
++# Test invalid redirect xattr with lower same name directory exists,
++# should remove invalid redirect xattr and set opaque in yes mode
++echo "+ Invalid redirect(3)"
++make_test_dirs
++mkdir $lowerdir/testdir
++make_redirect_dir $upperdir/testdir "invalid"
++
++# Question get yes answer: Should set opaque dir ?
++_overlay_fsck_dirs $lowerdir $upperdir $workdir -y >> $seqres.full 2>&1 || \
++	_fail "fsck should not fail"
++check_no_redirect $upperdir/testdir
++check_opaque $upperdir/testdir
++
++# Test duplicate redirect xattrs point to one origin, should fail in
++# auto mode, and should remove either of the duplicates in yes mode
++echo "+ Duplicate redirect"
++make_test_dirs
++mkdir $lowerdir2/origin
++make_redirect_dir $lowerdir/testdir1 "origin"
++make_redirect_dir $lowerdir/testdir2 "origin"
++make_redirect_dir $upperdir/testdir3 "origin"
++
++_overlay_fsck_dirs "$lowerdir:$lowerdir2" $upperdir $workdir -p >> \
++	$seqres.full 2>&1 && _fail "fsck should fail"
++
++# Question get yes answer: Duplicate redirect directory, remove xattr ?
++_overlay_fsck_dirs "$lowerdir:$lowerdir2" $upperdir $workdir -y >> \
++	$seqres.full 2>&1 || _fail "fsck should not fail"
++redirect_1=`check_redirect $lowerdir/testdir1 "origin" 2>/dev/null`
++redirect_2=`check_redirect $lowerdir/testdir2 "origin" 2>/dev/null`
++[[ $redirect_1 == $redirect_2 ]] && echo "Redirect xattr incorrect"
++check_no_redirect $upperdir/testdir3
++
++# Test duplicate redirect xattr duplicate with merge directory, should
++# fail in auto mode, and should remove the redirect xattr in yes mode
++echo "+ Duplicate redirect(2)"
++make_test_dirs
++mkdir $lowerdir/origin $upperdir/origin
++make_redirect_dir $upperdir/testdir "origin"
++
++_overlay_fsck_dirs $lowerdir $upperdir $workdir -p >> $seqres.full 2>&1 && \
++	_fail "fsck should fail"
++
++# Question get yes answer: Duplicate redirect directory, remove xattr ?
++_overlay_fsck_dirs $lowerdir $upperdir $workdir -y >> $seqres.full 2>&1 || \
++	_fail "fsck should not fail"
++check_no_redirect $upperdir/testdir
++
++# Test duplicate redirect xattr with lower same name directory exists,
++# should remove the duplicate redirect xattr and set opaque in yes mode
++echo "+ Duplicate redirect(3)"
++make_test_dirs
++mkdir $lowerdir/{origin,testdir} $upperdir/origin
++make_redirect_dir $upperdir/testdir "invalid"
++
++# Question one get yes answer: Duplicate redirect directory, remove xattr?
++# Question two get yes answer: Should set opaque dir ?
++_overlay_fsck_dirs $lowerdir $upperdir $workdir -y >> $seqres.full 2>&1 || \
++	_fail "fsck should not fail"
++check_no_redirect $upperdir/testdir
++check_opaque $upperdir/testdir
 +
 +# success, all done
 +status=0
 +exit
-diff --git a/tests/overlay/203.out b/tests/overlay/203.out
+diff --git a/tests/overlay/202.out b/tests/overlay/202.out
 new file mode 100644
-index 0000000..dd81788
+index 0000000..99d2b32
 --- /dev/null
-+++ b/tests/overlay/203.out
-@@ -0,0 +1,4 @@
-+QA output created by 203
-++ Missing impure
-++ Missing impure(2)
-++ Missing impure(3)
++++ b/tests/overlay/202.out
+@@ -0,0 +1,11 @@
++QA output created by 202
+++ Invalid redirect
+++ Invalid redirect(2)
+++ Valid redirect
+++ Valid redirect(2)
+++ Missing whiteout
+++ Valid redirect(3)
+++ Invalid redirect(3)
+++ Duplicate redirect
+++ Duplicate redirect(2)
+++ Duplicate redirect(3)
 diff --git a/tests/overlay/group b/tests/overlay/group
-index e39b5e0..f99d89e 100644
+index 7c5fcbb..e39b5e0 100644
 --- a/tests/overlay/group
 +++ b/tests/overlay/group
-@@ -51,3 +51,4 @@
+@@ -50,3 +50,4 @@
+ 047 auto quick copyup hardlink
  048 auto quick copyup hardlink
  201 auto quick fsck
- 202 auto quick fsck
-+203 auto quick fsck
++202 auto quick fsck
 -- 
 2.9.5
