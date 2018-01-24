@@ -1,139 +1,343 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [PATCH v2 03/17] ovl: decode pure upper file handles
-Date: Wed, 24 Jan 2018 13:55:33 +0200
-Message-ID: <CAOQ4uxigw2-hTf0PNjZW8Fw3AHB6TWWjR=FuW46O1U7xaer_-Q@mail.gmail.com>
-References: <1515086449-26563-1-git-send-email-amir73il@gmail.com>
- <1515086449-26563-4-git-send-email-amir73il@gmail.com> <CAJfpegt=4Mk7B7E9c7CGJHdWZsVFQAqfJ_NbRNQNOpSZFYudrg@mail.gmail.com>
- <CAOQ4uxg34b6TZ6hwPczv_m_HquR6apnPy0gexHezixMedVqUZA@mail.gmail.com>
- <CAJfpegttoV7aPN2sS6RXONh0eFQ9xyoFxZbzVG7UMCcAJ+zjtg@mail.gmail.com>
- <CAOQ4uxhaC3b2N1rNCBgv0MTyBQgWFZKyVV60VWnudb_wY6A98Q@mail.gmail.com>
- <CAJfpeguVZztckNqML_hJRrEXumMMAeB6+Ha2djPrmCbqXz1brw@mail.gmail.com>
- <CAOQ4uxh0EEuhsLxD3M_xngMd14C=hGb8U12yPe=duELwb4yNDQ@mail.gmail.com>
- <CAOQ4uxhHUaorYA5ZAXQrfaOrp6Xa4cabz+ZFRdVBp6Mf-ebb0g@mail.gmail.com>
- <CAOQ4uxhO+oOGWfSnafNO84GYT0_ihNtR_ekna+DH7rzWMZTgwg@mail.gmail.com>
- <20180119103952.GA24104@veci.piliscsaba.redhat.com> <CAOQ4uxgdww=-R24R4quD4iV0oJ9Wj5WC_-tkvOF_kZgHKa3P5w@mail.gmail.com>
- <CAOQ4uxjKvusKuQP9ACWGQPr3XeT3KskOvj8fQ+L5aEHUB-8n1A@mail.gmail.com>
- <CAJfpegu2WyWFos=ie-T5XRBvZ+=FT8g5T-HsqXSgLS6jxsfYgg@mail.gmail.com>
- <CAOQ4uxh-fjfmKH4oQDNYoi5GYaOFy+QmAb7bsV7urRRABTtjPw@mail.gmail.com> <CAOQ4uxgAFv6iVxmgN8jehPf=7xowd5EDxub8sjJN1b2MWDtOmg@mail.gmail.com>
+Subject: Re: [PATCH v2 5/7] overlay: test encode/decode of non-samefs overlay
+ file handles
+Date: Wed, 24 Jan 2018 18:36:50 +0200
+Message-ID: <CAOQ4uxhuG=iRerDL1Xd6zypwgjGWo7LFZUe8SHEX9X6eUamL4A@mail.gmail.com>
+References: <1516741152-20345-1-git-send-email-amir73il@gmail.com> <1516741152-20345-6-git-send-email-amir73il@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-yb0-f177.google.com ([209.85.213.177]:45185 "EHLO
-        mail-yb0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933268AbeAXLze (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 24 Jan 2018 06:55:34 -0500
-In-Reply-To: <CAOQ4uxgAFv6iVxmgN8jehPf=7xowd5EDxub8sjJN1b2MWDtOmg@mail.gmail.com>
-Sender: linux-unionfs-owner@vger.kernel.org
+Return-path: <fstests-owner@vger.kernel.org>
+In-Reply-To: <1516741152-20345-6-git-send-email-amir73il@gmail.com>
+Sender: fstests-owner@vger.kernel.org
+To: Eryu Guan <eguan@redhat.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, overlayfs <linux-unionfs@vger.kernel.org>, fstests <fstests@vger.kernel.org>
 List-Id: linux-unionfs@vger.kernel.org
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: overlayfs <linux-unionfs@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Al Viro <viro@zeniv.linux.org.uk>, Eryu Guan <eguan@redhat.com>
 
-On Wed, Jan 24, 2018 at 1:18 PM, Amir Goldstein <amir73il@gmail.com> wrote:
-> On Wed, Jan 24, 2018 at 1:04 PM, Amir Goldstein <amir73il@gmail.com> wrote:
->> On Wed, Jan 24, 2018 at 12:34 PM, Miklos Szeredi <miklos@szeredi.hu> wrote:
->>> On Fri, Jan 19, 2018 at 9:10 PM, Amir Goldstein <amir73il@gmail.com> wrote:
->>>> On Fri, Jan 19, 2018 at 1:07 PM, Amir Goldstein <amir73il@gmail.com> wrote:
->>>>> On Fri, Jan 19, 2018 at 12:39 PM, Miklos Szeredi <miklos@szeredi.hu> wrote:
->>>>>> On Fri, Jan 19, 2018 at 02:23:35AM +0200, Amir Goldstein wrote:
->>>>>>> > How is this for an option?
->>>>>> [...]
->>>>>>> > +struct dentry *d_obtain_alias_fsdata(struct inode *inode, void **fsdata)
->>>>>>> > +{
->>>>>>> > +       return __d_obtain_alias(inode, 1, fsdata);
->>>>>>> >  }
->>>>>>> >  EXPORT_SYMBOL(d_obtain_alias);
->>>>>>
->>>>>> It would work, but I like this interface better:
->>>>>>
->>>>>> +extern struct dentry * d_alloc_anon(struct super_block *);
->>>>>> +extern struct dentry * d_instantiate_anon(struct dentry *, struct inode *);
->>>>>>
->>>>>
->>>>> OK. Thanks for the patch!
->>>>>
->>>>
->>>> Added your dcache patch to the series and reworked my patches
->>>> to use the new helpers.
->>>>
->>>> Tested result is pushed to:
->>>> https://github.com/amir73il/linux/commits/ovl-nfs-export-v3
->>>>
->>>> Prep patches changes since v2:
->>>> - Rebased over fix patch "hash all directory inodes for fsnotify"
->>>> - Rename mount/config option from "verify" to "nfs_export"
->>>> - Force r/o mount when index dir creation fails
->>>> - Allow enabling "nfs_export" for non-upper mount
->>>> - Require "redirect_dir=nofollow" for non-upper mount
->>>> - Rename dir index entries xattr from ".origin" to ".upper"
->>>> - Re-factor ovl_{get|set|verify}_origin() helpers
->>>> - Simplify test for temp index name (starts with #)
->>>> - Abandon ovl_dentry_is_renamed() test for lower st_ino
->>>> - Document overhead on mount with full index
->>>> - Document change of behavior when verifying lower origin
->>>> - Added patch to make room in ovl_entry struct
->>>>
->>>> NFS export changes since v2:
->>>> - Fix exportfs ops for r/o overlay with no upperdir
->>>> - Document reason for copy up directory on encode
->>>> - Take care of racing with rename while connecting dir
->>>> - Explain the reasons for choosing the 'connected' dir approach
->>>> - Do not add dentry without ovl_entry to dcache
->>>>
->>>> Optimizations TODO:
->>>> - Copy up on encode only when lower ancestor is below middle layer redirect
->>>> - Hash inode by fh to avoid origin decode of whiteout fh
->>>>
->>>> As far as I know, the series is now functionally correct and all comments
->>>> so far addressed. The remaining optimizations will be done on top of this
->>>> series.
->>>
->>> Pushed to overlayfs-next with one fix (do not warn about falling back
->>> to nfs_export=off if nfs_export is already off).
->>
->> Good fix.
->> That warning was a late addition to V3 after allowing nfs_export without
->> index for on-upper r/o mount.
->>
->>>
->>> That spurious warning makes me wonder: how much of the option matrix is tested?
->>>
->>
->> Good question... (adding Eryu in CC)
->>
->> I know Eryu tested with default kernel configuration, because one
->> of my tests found a bug with NFS export and redirect_dir=off.
->> (I fixed the specific test to require redirect_dir)
->>
->> I have posted xfstests for overlay NFS export support with samefs
->> and non-samefs configuration and for non-samefs, there are two
->> lower layers not on the same fs. I also have posted a test for non-upper
->> overlay with two lower layers on samefs and non-samefs.
->>
->> One of the overlay xfstests explicitly turns off index with index=off,
->> (overlay/036), so we have coverage for falling back to nfs_export=off
->> when NFS export is enabled by default (as it usually is in my setup).
->>
->> There is an overlay xfstest with multiple lower layers and no-upper
->> and that test shows the warning about falling back to nfs_export=off
->> due to redirect_dir=nofollow requirement (with default kernel configuration).
->>
->> I did not specifically test underlying fs with no xattr support and no
->> file handle support, though the latter was already tested for index
->> with squashfs (no uuid) and the nfs_export=off code is piggy backed
->> in the same place as index=off.
->>
-
-Correction. no file handle support is covered by nested overlay test
-(overlay/029), so I do see those "falling back" warnings as well with v3.
-(I did not see the warnings in all my tests because I sometimes apply an
- extra patch to support NFS export on nested overlay).
-
+On Tue, Jan 23, 2018 at 10:59 PM, Amir Goldstein <amir73il@gmail.com> wrote:
+> This is a variant of overlay file handles test for an overlayfs that
+> is composed of multiple lower layers not on the same underlying fs.
 >
-> Clarification: it may be implied when I wrote that "we have test coverage..."
-> that there are automatic tests to verify falling back to nfs_export=off.
-> This is not the case. I was only listing "falling back" cases whose warning
-> I regularly see in my routine overlay/quick xfstest as expected.
+> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+> ---
+>  tests/overlay/051     | 254 ++++++++++++++++++++++++++++++++++++++++++++++++++
+>  tests/overlay/051.out |  31 ++++++
+>  tests/overlay/group   |   1 +
+>  3 files changed, 286 insertions(+)
+>  create mode 100755 tests/overlay/051
+>  create mode 100644 tests/overlay/051.out
 >
-> Thanks,
-> Amir.
+> diff --git a/tests/overlay/051 b/tests/overlay/051
+> new file mode 100755
+> index 0000000..2be9857
+> --- /dev/null
+> +++ b/tests/overlay/051
+> @@ -0,0 +1,254 @@
+> +#! /bin/bash
+> +# FS QA Test No. 051
+> +#
+> +# Test encode/decode overlay file handles for non-samefs.
+> +#
+> +# This is a variant of overlay file handles test for an overlayfs that is
+> +# composed of multiple lower layers not on the same underlying fs.
+> +#
+> +# - Check encode/write/decode/read content of lower/upper file handles
+> +# - Check encode/decode/write/read content of lower/upper file handles
+> +# - Check decode/read of unlinked lower/upper files and directories
+> +# - Check decode/read of lower file handles after copy up, link and unlink
+> +#
+> +# This test requires and enables overlayfs NFS export support.
+> +# NFS export support depends on and enables overlayfs index feature.
+> +#
+> +#-----------------------------------------------------------------------
+> +# Copyright (C) 2018 CTERA Networks. All Rights Reserved.
+> +# Author: Amir Goldstein <amir73il@gmail.com>
+> +#
+> +# This program is free software; you can redistribute it and/or
+> +# modify it under the terms of the GNU General Public License as
+> +# published by the Free Software Foundation.
+> +#
+> +# This program is distributed in the hope that it would be useful,
+> +# but WITHOUT ANY WARRANTY; without even the implied warranty of
+> +# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> +# GNU General Public License for more details.
+> +#
+> +# You should have received a copy of the GNU General Public License
+> +# along with this program; if not, write the Free Software Foundation,
+> +# Inc.,  51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+> +#-----------------------------------------------------------------------
+> +#
+> +
+> +seq=`basename $0`
+> +seqres=$RESULT_DIR/$seq
+> +echo "QA output created by $seq"
+> +
+> +here=`pwd`
+> +tmp=/tmp/$$
+> +status=1       # failure is the default!
+> +trap "_cleanup; exit \$status" 0 1 2 3 15
+> +
+> +_cleanup()
+> +{
+> +       cd /
+> +       rm -f $tmp.*
+> +       # Cleanup overlay scratch mount that is holding base test mount
+> +       # to prevent _check_test_fs and _test_umount from failing before
+> +       # _check_scratch_fs _scratch_umount
+> +       $UMOUNT_PROG $SCRATCH_MNT 2>/dev/null
+> +}
+> +
+> +# get standard environment, filters and checks
+> +. ./common/rc
+> +. ./common/filter
+> +
+> +# real QA test starts here
+> +
+> +_supported_fs overlay
+> +_supported_os Linux
+> +_require_test
+> +_require_scratch
+> +_require_test_program "open_by_handle"
+> +_require_scratch_feature nfs_export
+> +
+> +# Lower is on test partition
+> +lower=$OVL_BASE_TEST_DIR/$OVL_LOWER-$seq
+> +# Upper/work are on scratch partition
+> +middle=$OVL_BASE_SCRATCH_MNT/$OVL_LOWER
+> +upper=$OVL_BASE_SCRATCH_MNT/$OVL_UPPER
+> +work=$OVL_BASE_SCRATCH_MNT/$OVL_WORK
+> +
+> +NUMFILES=1
+> +
+> +# Create test dir and empty test files
+> +create_test_files()
+> +{
+> +       local dir=$1
+> +
+> +       mkdir -p $dir
+> +       $here/src/open_by_handle -cp $dir $NUMFILES
+> +}
+> +
+> +# Create hard links to test files
+> +link_test_files()
+> +{
+> +       local dir=$1
+> +
+> +       $here/src/open_by_handle -l $dir $NUMFILES
+> +}
+> +
+> +# Test encode/decode file handles on overlay mount
+> +test_file_handles()
+> +{
+> +       local dir=$1
+> +       local opt=$2
+> +
+> +       echo test_file_handles $dir $opt | _filter_scratch
+> +       $here/src/open_by_handle $opt $dir $NUMFILES
+> +}
+> +
+> +# Re-create lower/middle/upper/work dirs
+> +create_dirs()
+> +{
+> +       # Create lower dir on test partition
+> +       rm -rf $lower
+> +       mkdir $lower
+> +
+> +       # Create middle/upper/work dirs on scratch partition
+> +       _scratch_mkfs
+> +}
+> +
+> +# Mount an overlay on $SCRATCH_MNT with lower layer on test partition
+> +# and middle and upper layer on scratch partition
+> +mount_dirs()
+> +{
+> +       _overlay_mount_dirs $middle:$lower $upper $work \
+> +               $OVERLAY_MOUNT_OPTIONS $OVL_BASE_SCRATCH_MNT $SCRATCH_MNT
+
+Found a bug in test when tested with NFS export disabled by default. should be:
+
++       _overlay_scratch_mount_dirs $middle:$lower $upper $work -o nfs_export=on
+
+> +}
+> +}
+> +
+> +# Unmount the overlay without unmounting base fs
+> +unmount_dirs()
+> +{
+> +       $UMOUNT_PROG $SCRATCH_MNT
+> +}
+> +
+> +# Check non-stale file handles of lower/upper files and verify
+> +# that handle encoded before copy up is decoded to upper after
+> +# copy up. Verify reading data from file open by file handle
+> +# and verify access_at() with dirfd open by file handle.
+> +create_dirs
+> +create_test_files $upper/uppertestdir
+> +create_test_files $lower/lowertestdir
+> +mount_dirs
+> +# Check encode/decode of upper regular file handles
+> +test_file_handles $SCRATCH_MNT/uppertestdir
+> +# Check encode/decode of upper dir file handle
+> +test_file_handles $SCRATCH_MNT/uppertestdir -p
+> +# Check encode/write/decode/read/write of upper file handles
+> +test_file_handles $SCRATCH_MNT/uppertestdir -wrap
+> +# Check encode/decode of lower regular file handles before copy up
+> +test_file_handles $SCRATCH_MNT/lowertestdir
+> +# Check encode/decode of lower dir file handles before copy up
+> +test_file_handles $SCRATCH_MNT/lowertestdir -p
+> +# Check encode/write/decode/read/write of lower file handles across copy up
+> +test_file_handles $SCRATCH_MNT/lowertestdir -wrap
+> +unmount_dirs
+> +
+> +# Check copy up after encode/decode of lower/upper files
+> +# (copy up of disconnected dentry to index dir)
+> +create_dirs
+> +create_test_files $upper/uppertestdir
+> +create_test_files $lower/lowertestdir
+> +mount_dirs
+> +# Check encode/decode/write/read of upper regular file handles
+> +test_file_handles $SCRATCH_MNT/uppertestdir -a
+> +test_file_handles $SCRATCH_MNT/uppertestdir -r
+> +# Check encode/decode/write/read of lower regular file handles
+> +test_file_handles $SCRATCH_MNT/lowertestdir -a
+> +test_file_handles $SCRATCH_MNT/lowertestdir -r
+> +unmount_dirs
+> +
+> +# Check non-stale handles to unlinked but open lower/upper files
+> +create_dirs
+> +create_test_files $upper/uppertestdir
+> +create_test_files $upper/uppertestdir.rw
+> +create_test_files $lower/lowertestdir
+> +create_test_files $lower/lowertestdir.rw
+> +mount_dirs
+> +test_file_handles $SCRATCH_MNT/uppertestdir -dk
+> +# Check encode/write/unlink/decode/read of upper regular file handles
+> +test_file_handles $SCRATCH_MNT/uppertestdir.rw -rwdk
+> +test_file_handles $SCRATCH_MNT/lowertestdir -dk
+> +# Check encode/write/unlink/decode/read of lower file handles across copy up
+> +test_file_handles $SCRATCH_MNT/lowertestdir.rw -rwdk
+> +unmount_dirs
+> +
+> +# Check stale handles of unlinked lower/upper files (nlink = 1,0)
+> +create_dirs
+> +create_test_files $upper/uppertestdir
+> +create_test_files $lower/lowertestdir
+> +mount_dirs
+> +# Check decode of upper file handles after unlink/rmdir (nlink == 0)
+> +test_file_handles $SCRATCH_MNT/uppertestdir -dp
+> +# Check decode of lower file handles after unlink/rmdir (nlink == 0)
+> +test_file_handles $SCRATCH_MNT/lowertestdir -dp
+> +unmount_dirs
+> +
+> +# Check non-stale file handles of linked lower/upper files (nlink = 1,2,1)
+> +create_dirs
+> +create_test_files $upper/uppertestdir
+> +create_test_files $lower/lowertestdir
+> +mount_dirs
+> +# Check decode/read of upper file handles after link (nlink == 2)
+> +test_file_handles $SCRATCH_MNT/uppertestdir -wlr
+> +# Check decode/read of upper file handles after link + unlink (nlink == 1)
+> +test_file_handles $SCRATCH_MNT/uppertestdir -ur
+> +# Check decode/read of lower file handles after copy up + link (nlink == 2)
+> +test_file_handles $SCRATCH_MNT/lowertestdir -wlr
+> +# Check decode/read of lower file handles after copy up + link + unlink (nlink == 1)
+> +test_file_handles $SCRATCH_MNT/lowertestdir -ur
+> +unmount_dirs
+> +
+> +# Check non-stale file handles of linked lower/upper hardlinks (nlink = 2,1)
+> +create_dirs
+> +create_test_files $upper/uppertestdir
+> +create_test_files $lower/lowertestdir
+> +# Create lower/upper hardlinks
+> +link_test_files $lower/lowertestdir
+> +link_test_files $upper/uppertestdir
+> +mount_dirs
+> +# Check encode/decode of upper hardlink file handles (nlink == 2)
+> +test_file_handles $SCRATCH_MNT/uppertestdir
+> +# Check decode/read of upper hardlink file handles after unlink (nlink == 1)
+> +test_file_handles $SCRATCH_MNT/uppertestdir -wur
+> +# Check encode/decode of lower hardlink file handles before copy up (nlink == 2)
+> +test_file_handles $SCRATCH_MNT/lowertestdir
+> +# Check decode/read of lower hardlink file handles after copy up + unlink (nlink == 1)
+> +test_file_handles $SCRATCH_MNT/lowertestdir -wur
+> +unmount_dirs
+> +
+> +# Check stale file handles of unlinked lower/upper hardlinks (nlink = 2,0)
+> +create_dirs
+> +create_test_files $upper/uppertestdir
+> +create_test_files $lower/lowertestdir
+> +# Create lower/upper hardlinks
+> +link_test_files $lower/lowertestdir
+> +link_test_files $upper/uppertestdir
+> +mount_dirs
+> +# Check encode/decode of upper hardlink file handles (nlink == 2)
+> +test_file_handles $SCRATCH_MNT/uppertestdir
+> +# Check decode of upper hardlink file handles after 2*unlink (nlink == 0)
+> +test_file_handles $SCRATCH_MNT/uppertestdir -d
+> +# Check encode/decode of lower hardlink file handles before copy up (nlink == 2)
+> +test_file_handles $SCRATCH_MNT/lowertestdir
+> +# Check decode of lower hardlink file handles after copy up + 2*unlink (nlink == 0)
+> +test_file_handles $SCRATCH_MNT/lowertestdir -d
+> +unmount_dirs
+> +
+> +# Check non-stale file handles of lower/upper renamed files
+> +create_dirs
+> +create_test_files $upper/uppertestdir
+> +create_test_files $lower/lowertestdir
+> +mount_dirs
+> +# Check decode/read of upper file handles after rename in same upper parent
+> +test_file_handles $SCRATCH_MNT/uppertestdir -wmr
+> +# Check decode/read of lower file handles after copy up + rename in same merge parent
+> +test_file_handles $SCRATCH_MNT/lowertestdir -wmr
+> +unmount_dirs
+> +
+> +status=0
+> +exit
+> diff --git a/tests/overlay/051.out b/tests/overlay/051.out
+> new file mode 100644
+> index 0000000..f9255de
+> --- /dev/null
+> +++ b/tests/overlay/051.out
+> @@ -0,0 +1,31 @@
+> +QA output created by 051
+> +test_file_handles SCRATCH_MNT/uppertestdir
+> +test_file_handles SCRATCH_MNT/uppertestdir -p
+> +test_file_handles SCRATCH_MNT/uppertestdir -wrap
+> +test_file_handles SCRATCH_MNT/lowertestdir
+> +test_file_handles SCRATCH_MNT/lowertestdir -p
+> +test_file_handles SCRATCH_MNT/lowertestdir -wrap
+> +test_file_handles SCRATCH_MNT/uppertestdir -a
+> +test_file_handles SCRATCH_MNT/uppertestdir -r
+> +test_file_handles SCRATCH_MNT/lowertestdir -a
+> +test_file_handles SCRATCH_MNT/lowertestdir -r
+> +test_file_handles SCRATCH_MNT/uppertestdir -dk
+> +test_file_handles SCRATCH_MNT/uppertestdir.rw -rwdk
+> +test_file_handles SCRATCH_MNT/lowertestdir -dk
+> +test_file_handles SCRATCH_MNT/lowertestdir.rw -rwdk
+> +test_file_handles SCRATCH_MNT/uppertestdir -dp
+> +test_file_handles SCRATCH_MNT/lowertestdir -dp
+> +test_file_handles SCRATCH_MNT/uppertestdir -wlr
+> +test_file_handles SCRATCH_MNT/uppertestdir -ur
+> +test_file_handles SCRATCH_MNT/lowertestdir -wlr
+> +test_file_handles SCRATCH_MNT/lowertestdir -ur
+> +test_file_handles SCRATCH_MNT/uppertestdir
+> +test_file_handles SCRATCH_MNT/uppertestdir -wur
+> +test_file_handles SCRATCH_MNT/lowertestdir
+> +test_file_handles SCRATCH_MNT/lowertestdir -wur
+> +test_file_handles SCRATCH_MNT/uppertestdir
+> +test_file_handles SCRATCH_MNT/uppertestdir -d
+> +test_file_handles SCRATCH_MNT/lowertestdir
+> +test_file_handles SCRATCH_MNT/lowertestdir -d
+> +test_file_handles SCRATCH_MNT/uppertestdir -wmr
+> +test_file_handles SCRATCH_MNT/lowertestdir -wmr
+> diff --git a/tests/overlay/group b/tests/overlay/group
+> index 6cb3763..380a382 100644
+> --- a/tests/overlay/group
+> +++ b/tests/overlay/group
+> @@ -50,3 +50,4 @@
+>  047 auto quick copyup hardlink
+>  048 auto quick copyup hardlink
+>  050 auto quick copyup hardlink exportfs
+> +051 auto quick copyup hardlink exportfs nonsamefs
+> --
+> 2.7.4
+>
