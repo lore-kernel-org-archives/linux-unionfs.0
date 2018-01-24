@@ -1,52 +1,68 @@
-From: Miklos Szeredi <miklos@szeredi.hu>
-Subject: Re: [PATCH v10 00/18] overlayfs: Delayed copy up of data
-Date: Wed, 24 Jan 2018 10:05:05 +0100
-Message-ID: <CAJfpegtdEJp7+QZj16uGY4wZ8eaTDO_0YH5T0qPnS=L5tMS8-A@mail.gmail.com>
-References: <20180122184004.26026-1-vgoyal@redhat.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Subject: Re: [xfstests PATCH v6 1/8] common/rc: modify mounted check helper
+Date: Wed, 24 Jan 2018 11:23:00 +0200
+Message-ID: <CAOQ4uxj4GwioO3OiKra17kDRW=h_y=O3+h=zt0=DNBsLDKvd7A@mail.gmail.com>
+References: <20180124073344.31970-1-yi.zhang@huawei.com> <20180124073344.31970-2-yi.zhang@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-qt0-f169.google.com ([209.85.216.169]:43046 "EHLO
-        mail-qt0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932685AbeAXJFH (ORCPT
+Received: from mail-yw0-f195.google.com ([209.85.161.195]:44688 "EHLO
+        mail-yw0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932389AbeAXJXB (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 24 Jan 2018 04:05:07 -0500
-Received: by mail-qt0-f169.google.com with SMTP id s3so8472326qtb.10
-        for <linux-unionfs@vger.kernel.org>; Wed, 24 Jan 2018 01:05:06 -0800 (PST)
-In-Reply-To: <20180122184004.26026-1-vgoyal@redhat.com>
+        Wed, 24 Jan 2018 04:23:01 -0500
+In-Reply-To: <20180124073344.31970-2-yi.zhang@huawei.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Vivek Goyal <vgoyal@redhat.com>
-Cc: overlayfs <linux-unionfs@vger.kernel.org>, Amir Goldstein <amir73il@gmail.com>
+To: "zhangyi (F)" <yi.zhang@huawei.com>
+Cc: overlayfs <linux-unionfs@vger.kernel.org>, fstests <fstests@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>, Eryu Guan <eguan@redhat.com>, Miao Xie <miaoxie@huawei.com>, yangerkun@huawei.com
 
-On Mon, Jan 22, 2018 at 7:39 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
-> Hi,
+On Wed, Jan 24, 2018 at 9:33 AM, zhangyi (F) <yi.zhang@huawei.com> wrote:
+> Modify _is_mounted() to accept a dir and fstype as input, and check
+> whether this dir is a mount point of specified fstype. This patch also
+> fix the problem of invalid fstype check and remove invalid error
+> message.
 >
-> Please find attached V10 of the metadata only copy up patches. I think
-> I have taken care of review comments and I will start writing automated
-> test cases now.
+> Signed-off-by: zhangyi (F) <yi.zhang@huawei.com>
+> ---
+>  common/rc | 30 +++++++++++++++---------------
+>  1 file changed, 15 insertions(+), 15 deletions(-)
 >
-> One thing which concerns me about these patches is the fact that during
-> file open d_real() will return lower inode which actually contains file
-> data and that inode will be installed in f->f_inode. So while f->f_inode
-> is perfectly fine for data operations, it is not fine for metadata
-> operations. Because metadata has been copied up and is represented by
-> a different inode.
+> diff --git a/common/rc b/common/rc
+> index 77a4eb4..2e7aee5 100644
+> --- a/common/rc
+> +++ b/common/rc
+> @@ -2372,27 +2372,27 @@ _scratch_mkfs_richacl()
+>         esac
+>  }
 >
-> I am concerned that this is a subtle behavior change and especially
-> security modules might be surprised by it. I will spend now more time
-> looking at what security modules are doing with f->f_inode. Thoughts?
+> -# check that a FS on a device is mounted
+> +# check that a FS on a device is mounted or a dir is a mount point
+>  # if so, return mount point
+>  #
+>  _is_mounted()
+>  {
+> -    if [ $# -ne 1 ]
+> -    then
+> -       echo "Usage: _is_mounted device" 1>&2
+> -       exit 1
+> -    fi
+> +       local name
+> +       local fstype
+>
+> -    device=$1
+> +       if [ $# -eq 2 ]; then
+> +               name=$1
+> +               fstype=$2
+> +       elif [ $# -eq 1 ]; then
+> +               name=$1
 
-This is exactly the same situation where there is an r/o open and
-copy-up later.  Except this makes it more widespread.  So I don't
-think any new issues are introduced (doesn't mean there aren't any old
-ones).
+missing fstype=$FSTYP here?
+probably need to check better that this change did not break _is_mounted users
 
-The only risk I see with this feature is exactly the fact that the
-ro/rw inconsistency can happen more often, which might break more
-cases.  I'd really like to work on getting rid of this issue.
-Hopefully next cycle...
+suggesting:
 
-Thanks,
-Miklos
->
+    if [ $# -lt 1 ]
+...
+       local name=$1
+       local fstype=${2-$FSTYP}
