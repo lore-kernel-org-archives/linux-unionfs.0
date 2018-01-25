@@ -1,57 +1,72 @@
 From: "zhangyi (F)" <yi.zhang@huawei.com>
-Subject: [xfstests PATCH 4/5] overlay: skip check for tests finished with corrupt filesystem
-Date: Thu, 25 Jan 2018 14:39:48 +0800
-Message-ID: <20180125063949.12916-5-yi.zhang@huawei.com>
+Subject: [xfstests PATCH 1/5] common/rc: improve mounted check helper
+Date: Thu, 25 Jan 2018 14:39:45 +0800
+Message-ID: <20180125063949.12916-2-yi.zhang@huawei.com>
 References: <20180125063949.12916-1-yi.zhang@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from szxga07-in.huawei.com ([45.249.212.35]:58678 "EHLO huawei.com"
-        rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1751173AbeAYGbd (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 25 Jan 2018 01:31:33 -0500
+Received: from szxga04-in.huawei.com ([45.249.212.190]:4696 "EHLO huawei.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1751374AbeAYGbi (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Thu, 25 Jan 2018 01:31:38 -0500
 In-Reply-To: <20180125063949.12916-1-yi.zhang@huawei.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: linux-unionfs@vger.kernel.org, fstests@vger.kernel.org
 Cc: miklos@szeredi.hu, amir73il@gmail.com, eguan@redhat.com, yi.zhang@huawei.com, miaoxie@huawei.com, yangerkun@huawei.com
 
-No post-test check of the overlay dirs is required if case leaves
-corrupt filesystem after test. We shoud use _require_scratch_nocheck()
-instead of _require_scratch() in these cases.
+Modify _is_mounted() to accept a dir and fstype as input, and check
+whether this dir is a specified type of mount point. This patch also
+fix the problem of invalid fstype check and remove invalid error
+message.
 
 Signed-off-by: zhangyi (F) <yi.zhang@huawei.com>
-Reviewed-by: Amir Goldstein <amir73il@gmail.com>
 ---
- tests/overlay/019 | 2 +-
- tests/overlay/031 | 2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ common/rc | 25 ++++++++++---------------
+ 1 file changed, 10 insertions(+), 15 deletions(-)
 
-diff --git a/tests/overlay/019 b/tests/overlay/019
-index 3e2bc4e..575aaf7 100755
---- a/tests/overlay/019
-+++ b/tests/overlay/019
-@@ -46,7 +46,7 @@ rm -f $seqres.full
- # real QA test starts here
- _supported_fs overlay
- _supported_os Linux
--_require_scratch
-+_require_scratch_nocheck
+diff --git a/common/rc b/common/rc
+index 77a4eb4..ceb5d44 100644
+--- a/common/rc
++++ b/common/rc
+@@ -2372,27 +2372,22 @@ _scratch_mkfs_richacl()
+ 	esac
+ }
  
- # Remove all files from previous tests
- _scratch_mkfs
-diff --git a/tests/overlay/031 b/tests/overlay/031
-index 186b409..90a06af 100755
---- a/tests/overlay/031
-+++ b/tests/overlay/031
-@@ -67,7 +67,7 @@ rm -f $seqres.full
- # real QA test starts here
- _supported_fs overlay
- _supported_os Linux
--_require_scratch
-+_require_scratch_nocheck
+-# check that a FS on a device is mounted
++# check that a FS on a device is mounted or a dir is a mount point
+ # if so, return mount point
+ #
+ _is_mounted()
+ {
+-    if [ $# -ne 1 ]
+-    then
+-	echo "Usage: _is_mounted device" 1>&2
+-	exit 1
+-    fi
++	if [ $# -lt 1 ]; then
++		echo "Usage: _is_mounted <device|mountpoint> [fstype]" 1>&2
++		exit 1
++	fi
  
- # remove all files from previous runs
- _scratch_mkfs
+-    device=$1
++	local name=$1
++	local fstype=${2-$FSTYP}
+ 
+-    if _mount | grep "$device " | $AWK_PROG -v pattern="type $FSTYP" '
+-        pattern        { print $3 ; exit 0 }
+-        END            { exit 1 }
+-    '
+-    then
+-        echo "_is_mounted: $device is not a mounted $FSTYP FS"
+-        exit 1
+-    fi
++	_mount | grep "$name " | $AWK_PROG -v pattern="type $fstype" '
++		$0 ~ pattern	{ print $3 }
++	'
+ }
+ 
+ # remount a FS to a new mode (ro or rw)
 -- 
 2.5.0
