@@ -1,14 +1,14 @@
 From: "zhangyi (F)" <yi.zhang@huawei.com>
-Subject: [xfstests PATCH 1/4] overlay: add filesystem check helper
-Date: Thu, 25 Jan 2018 14:34:10 +0800
-Message-ID: <20180125063413.8720-2-yi.zhang@huawei.com>
+Subject: [xfstests PATCH 4/4] overlay: add fsck.overlay impure xattr test
+Date: Thu, 25 Jan 2018 14:34:13 +0800
+Message-ID: <20180125063413.8720-5-yi.zhang@huawei.com>
 References: <20180125063413.8720-1-yi.zhang@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from szxga05-in.huawei.com ([45.249.212.191]:4729 "EHLO huawei.com"
+Received: from szxga04-in.huawei.com ([45.249.212.190]:4695 "EHLO huawei.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1751191AbeAYG0D (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        id S1751204AbeAYG0D (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
         Thu, 25 Jan 2018 01:26:03 -0500
 In-Reply-To: <20180125063413.8720-1-yi.zhang@huawei.com>
 Sender: linux-unionfs-owner@vger.kernel.org
@@ -16,50 +16,186 @@ List-Id: linux-unionfs@vger.kernel.org
 To: eguan@redhat.com
 Cc: fstests@vger.kernel.org, linux-unionfs@vger.kernel.org, miklos@szeredi.hu, amir73il@gmail.com, yi.zhang@huawei.com, miaoxie@huawei.com, yangerkun@huawei.com
 
-Add filesystem check helper for the upcoming fsck.overlay utility.
-This helper invoke fsck.overlay to check and optionally repair
-underlying directories of overlay filesystem.
+Add fsck.overlay test case to test it how to deal with impure
+xattr in underlying directories of overlayfs.
 
 Signed-off-by: zhangyi (F) <yi.zhang@huawei.com>
 Reviewed-by: Amir Goldstein <amir73il@gmail.com>
 ---
- common/config  |  1 +
- common/overlay | 14 ++++++++++++++
- 2 files changed, 15 insertions(+)
+ tests/overlay/203     | 143 ++++++++++++++++++++++++++++++++++++++++++++++++++
+ tests/overlay/203.out |   4 ++
+ tests/overlay/group   |   1 +
+ 3 files changed, 148 insertions(+)
+ create mode 100755 tests/overlay/203
+ create mode 100644 tests/overlay/203.out
 
-diff --git a/common/config b/common/config
-index 5f40413..71115bd 100644
---- a/common/config
-+++ b/common/config
-@@ -236,6 +236,7 @@ case "$HOSTOS" in
-         export MKFS_REISER4_PROG="`set_prog_path mkfs.reiser4`"
- 	export E2FSCK_PROG="`set_prog_path e2fsck`"
- 	export TUNE2FS_PROG="`set_prog_path tune2fs`"
-+	export FSCK_OVERLAY_PROG="`set_prog_path fsck.overlay`"
-         ;;
- esac
- 
-diff --git a/common/overlay b/common/overlay
-index 1da4ab1..c19dabc 100644
---- a/common/overlay
-+++ b/common/overlay
-@@ -151,3 +151,17 @@ _require_scratch_overlay_feature()
- 	        _notrun "${FSTYP} feature '${feature}' cannot be enabled on ${SCRATCH_DEV}"
- 	_scratch_unmount
- }
+diff --git a/tests/overlay/203 b/tests/overlay/203
+new file mode 100755
+index 0000000..5441b44
+--- /dev/null
++++ b/tests/overlay/203
+@@ -0,0 +1,143 @@
++#! /bin/bash
++# FS QA Test 203
++#
++# Test fsck.overlay how to deal with impure xattr in overlayfs.
++#
++#-----------------------------------------------------------------------
++# Copyright (c) 2017 Huawei.  All Rights Reserved.
++# Author: zhangyi (F) <yi.zhang@huawei.com>
++#
++# This program is free software; you can redistribute it and/or
++# modify it under the terms of the GNU General Public License as
++# published by the Free Software Foundation.
++#
++# This program is distributed in the hope that it would be useful,
++# but WITHOUT ANY WARRANTY; without even the implied warranty of
++# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++# GNU General Public License for more details.
++#
++# You should have received a copy of the GNU General Public License
++# along with this program; if not, write the Free Software Foundation,
++# Inc.,  51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
++#-----------------------------------------------------------------------
++#
 +
-+# Helper function to check underlying dirs of overlay filesystem
-+_overlay_fsck_dirs()
++seq=`basename $0`
++seqres=$RESULT_DIR/$seq
++echo "QA output created by $seq"
++
++here=`pwd`
++tmp=/tmp/$$
++status=1        # failure is the default!
++trap "_cleanup; exit \$status" 0 1 2 3 15
++
++_cleanup()
 +{
-+	local lowerdir=$1
-+	local upperdir=$2
-+	local workdir=$3
-+	local options=$4
-+
-+	[[ ! -x "$FSCK_OVERLAY_PROG" ]] && return 0
-+
-+	$FSCK_OVERLAY_PROG -o lowerdir=$lowerdir -o upperdir=$upperdir \
-+			   -o workdir=$workdir $options
++	cd /
++	rm -f $tmp.*
 +}
++
++# get standard environment, filters and checks
++. ./common/rc
++. ./common/filter
++
++# remove previous $seqres.full before test
++rm -f $seqres.full
++
++# real QA test starts here
++_supported_fs overlay
++_supported_os Linux
++_require_scratch_nocheck
++_require_command "$FSCK_OVERLAY_PROG" fsck.overlay
++
++# remove all files from previous tests
++_scratch_mkfs
++
++OVL_REDIRECT_XATTR="trusted.overlay.redirect"
++OVL_IMPURE_XATTR="trusted.overlay.impure"
++OVL_IMPURE_XATTR_VAL="y"
++
++# Create a redirect directory
++make_redirect_dir()
++{
++	local target=$1
++	local value=$2
++
++	mkdir -p $target
++	$SETFATTR_PROG -n $OVL_REDIRECT_XATTR -v $value $target
++}
++
++# Remove impure xattr
++remove_impure()
++{
++	local target=$1
++
++	$SETFATTR_PROG -x $OVL_IMPURE_XATTR $target
++}
++
++# Check impure xattr
++check_impure()
++{
++	local target=$1
++
++	value=$($GETFATTR_PROG --absolute-names --only-values -n \
++		$OVL_IMPURE_XATTR $target)
++
++	[[ $value == $OVL_IMPURE_XATTR_VAL ]] || echo "Missing impure xattr"
++}
++
++# Create test directories
++lowerdir=$OVL_BASE_SCRATCH_MNT/lower
++lowerdir2=$OVL_BASE_SCRATCH_MNT/lower2
++upperdir=$OVL_BASE_SCRATCH_MNT/upper
++workdir=$OVL_BASE_SCRATCH_MNT/workdir
++
++make_test_dirs()
++{
++	rm -rf $lowerdir $lowerdir2 $upperdir $workdir
++	mkdir -p $lowerdir $lowerdir2 $upperdir $workdir
++}
++
++# Test missing impure xattr in directory which has origin targets, should fix
++echo "+ Missing impure"
++make_test_dirs
++mkdir $lowerdir/{testdir1,testdir2}
++mkdir $upperdir/{testdir1,testdir2}
++touch $lowerdir/testdir1/foo
++mkdir $lowerdir/testdir2/subdir
++_overlay_scratch_mount_dirs $lowerdir $upperdir $workdir
++touch $SCRATCH_MNT/testdir1/foo
++touch $SCRATCH_MNT/testdir2/subdir
++$UMOUNT_PROG $SCRATCH_MNT
++remove_impure $upperdir/testdir1
++remove_impure $upperdir/testdir2
++
++_overlay_fsck_dirs $lowerdir $upperdir $workdir -p >> $seqres.full 2>&1 || \
++	_fail "fsck should not fail"
++check_impure $upperdir/testdir1
++check_impure $upperdir/testdir2
++
++# Test missing impure xattr in directory which has redirect directories,
++# should fix
++echo "+ Missing impure(2)"
++make_test_dirs
++mkdir $lowerdir/origin
++make_redirect_dir $upperdir/testdir/subdir "/origin"
++
++_overlay_fsck_dirs $lowerdir $upperdir $workdir -p >> $seqres.full 2>&1 || \
++	_fail "fsck should not fail"
++check_impure $upperdir/testdir
++
++# Test missing impure xattr in directory which has merge directories,
++# should fix
++echo "+ Missing impure(3)"
++make_test_dirs
++mkdir $lowerdir/testdir $upperdir/testdir
++
++_overlay_fsck_dirs $lowerdir $upperdir $workdir -p >> $seqres.full 2>&1 || \
++	_fail "fsck should not fail"
++check_impure $upperdir
++
++# success, all done
++status=0
++exit
+diff --git a/tests/overlay/203.out b/tests/overlay/203.out
+new file mode 100644
+index 0000000..dd81788
+--- /dev/null
++++ b/tests/overlay/203.out
+@@ -0,0 +1,4 @@
++QA output created by 203
+++ Missing impure
+++ Missing impure(2)
+++ Missing impure(3)
+diff --git a/tests/overlay/group b/tests/overlay/group
+index e39b5e0..f99d89e 100644
+--- a/tests/overlay/group
++++ b/tests/overlay/group
+@@ -51,3 +51,4 @@
+ 048 auto quick copyup hardlink
+ 201 auto quick fsck
+ 202 auto quick fsck
++203 auto quick fsck
 -- 
 2.5.0
