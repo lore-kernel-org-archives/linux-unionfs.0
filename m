@@ -1,81 +1,153 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [xfstests PATCH 1/5] common/rc: improve mounted check helper
-Date: Thu, 25 Jan 2018 10:03:29 +0200
-Message-ID: <CAOQ4uxhB=MBYxZtPCA_Uq6FtPjFE1AvotfiBRegToreO3ikQPg@mail.gmail.com>
-References: <20180125063949.12916-1-yi.zhang@huawei.com> <20180125063949.12916-2-yi.zhang@huawei.com>
+Subject: Re: [xfstests PATCH 2/5] overlay: hook filesystem check helper
+Date: Thu, 25 Jan 2018 10:21:17 +0200
+Message-ID: <CAOQ4uxia8y4xWwcx-6bvLxqv=E4i_oytZxQQ=VHDKCH0rCKpsg@mail.gmail.com>
+References: <20180125063949.12916-1-yi.zhang@huawei.com> <20180125063949.12916-3-yi.zhang@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-yb0-f193.google.com ([209.85.213.193]:45976 "EHLO
-        mail-yb0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751056AbeAYIDa (ORCPT
+Received: from mail-yb0-f194.google.com ([209.85.213.194]:44539 "EHLO
+        mail-yb0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751081AbeAYIVS (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 25 Jan 2018 03:03:30 -0500
-In-Reply-To: <20180125063949.12916-2-yi.zhang@huawei.com>
+        Thu, 25 Jan 2018 03:21:18 -0500
+In-Reply-To: <20180125063949.12916-3-yi.zhang@huawei.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: "zhangyi (F)" <yi.zhang@huawei.com>
 Cc: overlayfs <linux-unionfs@vger.kernel.org>, fstests <fstests@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>, Eryu Guan <eguan@redhat.com>, Miao Xie <miaoxie@huawei.com>, yangerkun@huawei.com
 
 On Thu, Jan 25, 2018 at 8:39 AM, zhangyi (F) <yi.zhang@huawei.com> wrote:
-> Modify _is_mounted() to accept a dir and fstype as input, and check
-> whether this dir is a specified type of mount point. This patch also
-> fix the problem of invalid fstype check and remove invalid error
-> message.
-
-Which problem? How do you encounter this problem?
-
+> Hook filesystem check helper to _check_test_fs and _check_scratch_fs for
+> constants underlying dirs of overlay filesystem, and introduce scratch
+> check helpers for optionally lower/upper/work dirs. These helpers works
+> only if fsck.overlay exists.
+>
+> [ _check_test_fs/_check_scratch_fs part picked from Amir's patch, thanks ]
 >
 > Signed-off-by: zhangyi (F) <yi.zhang@huawei.com>
-Reviewed-by: Amir Goldstein <amir73il@gmail.com>
-
-
 > ---
->  common/rc | 25 ++++++++++---------------
->  1 file changed, 10 insertions(+), 15 deletions(-)
+>  common/overlay | 120 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+>  common/rc      |   4 +-
+>  2 files changed, 122 insertions(+), 2 deletions(-)
 >
-> diff --git a/common/rc b/common/rc
-> index 77a4eb4..ceb5d44 100644
-> --- a/common/rc
-> +++ b/common/rc
-> @@ -2372,27 +2372,22 @@ _scratch_mkfs_richacl()
->         esac
+> diff --git a/common/overlay b/common/overlay
+> index c19dabc..524976f 100644
+> --- a/common/overlay
+> +++ b/common/overlay
+> @@ -152,6 +152,14 @@ _require_scratch_overlay_feature()
+>         _scratch_unmount
 >  }
 >
-> -# check that a FS on a device is mounted
-> +# check that a FS on a device is mounted or a dir is a mount point
->  # if so, return mount point
->  #
->  _is_mounted()
+> +# Require the same scratch device as _require_scratch, but do not check
+> +# the constants OVL_LOWER/OVL_UPPER/OVL_WORK dirs, should use together
+> +# with optionally lower/upper/work dirs and do check explicitly after test.
+> +_require_overlay_scratch_dirs()
+> +{
+> +       _require_scratch_nocheck
+> +}
+> +
+>  # Helper function to check underlying dirs of overlay filesystem
+>  _overlay_fsck_dirs()
 >  {
-> -    if [ $# -ne 1 ]
-> -    then
-> -       echo "Usage: _is_mounted device" 1>&2
-> -       exit 1
-> -    fi
-> +       if [ $# -lt 1 ]; then
-> +               echo "Usage: _is_mounted <device|mountpoint> [fstype]" 1>&2
-> +               exit 1
-> +       fi
->
-> -    device=$1
-> +       local name=$1
-> +       local fstype=${2-$FSTYP}
->
-> -    if _mount | grep "$device " | $AWK_PROG -v pattern="type $FSTYP" '
-> -        pattern        { print $3 ; exit 0 }
-> -        END            { exit 1 }
-> -    '
-> -    then
-> -        echo "_is_mounted: $device is not a mounted $FSTYP FS"
-> -        exit 1
-> -    fi
-> +       _mount | grep "$name " | $AWK_PROG -v pattern="type $fstype" '
-> +               $0 ~ pattern    { print $3 }
-> +       '
+> @@ -165,3 +173,115 @@ _overlay_fsck_dirs()
+>         $FSCK_OVERLAY_PROG -o lowerdir=$lowerdir -o upperdir=$upperdir \
+>                            -o workdir=$workdir $options
 >  }
->
->  # remount a FS to a new mode (ro or rw)
-> --
-> 2.5.0
->
+> +
+> +_overlay_check_dirs()
+> +{
+> +       local lowerdir=$1
+> +       local upperdir=$2
+> +       local workdir=$3
+> +       local err=0
+> +
+> +       _overlay_fsck_dirs $* $FSCK_OPTIONS >>$tmp.fsck 2>&1
+> +       if [ $? -ne 0 ]; then
+> +               _log_err "_overlay_check_fs: overlayfs on $lowerdir,$upperdir,$workdir is inconsistent"
+> +
+> +               echo "*** fsck.overlay output ***"      >>$seqres.full
+> +               cat $tmp.fsck                           >>$seqres.full
+> +               echo "*** end fsck.overlay output"      >>$seqres.full
+> +
+> +               echo "*** mount output ***"             >>$seqres.full
+> +               _mount                                  >>$seqres.full
+> +               echo "*** end mount output"             >>$seqres.full
+> +
+> +               err=1
+> +       fi
+> +       rm -f $tmp.fsck
+> +
+> +       return $err
+> +}
+> +
+> +# Check the same mnt/dev of _check_overlay_scratch_fs, but check optionally
+> +# lower/upper/work dirs of overlay filesystem, should use together with
+> +# _require_overlay_scratch_dirs
+> +_overlay_check_scratch_dirs()
+> +{
+> +       local lowerdir=$1
+> +       local upperdir=$2
+> +       local workdir=$3
+> +
+> +       # Need to umount overlay for scratch dir check
+> +       local ovl_mounted=`_is_mounted $SCRATCH_MNT`
+> +       [ -z "$ovl_mounted" ] || $UMOUNT_PROG $SCRATCH_MNT
+> +
+> +       _overlay_check_dirs $lowerdir $upperdir $workdir
+> +       local ret=$?
+> +
+> +       if [ $ret -eq 0 -a -n "$ovl_mounted" ]; then
+> +               # overlay was mounted, remount besides extra mount options
+> +               _overlay_scratch_mount_dirs $lowerdir $upperdir $workdir
+
+I think that 'shift 3' and passing $* to _overlay_scratch_mount_dirs
+would be good practice here.
+Especially, because extra mount options may affect fsck.overlay
+someday. Imagine that fsck.overlay ... -oindex=on may be used to
+verify consistency and rebuild index for hardlinks and -onfs_export=on may
+be used to specify consistency check and rebuild of index for all
+files and directories.
+
+> +               ret=$?
+> +       fi
+> +
+> +       return $ret
+> +}
+> +
+> +_overlay_check_fs()
+> +{
+> +       local ovl_mnt=$1
+> +       local base_dev=$4
+> +       local base_mnt=$5
+> +       shift 1
+
+This shift 1 is confusing. Should document that it aligns arguments for
+_overlay_base_mount. Probably would be nicer to shift right after assigning
+ovl_mnt and then assign $3/$4 to base_dev/mnt.
+
+Nice to review my own patch ;-)
+
+> +
+> +       [ "$FSTYP" = overlay ] || return 0
+> +
+> +       # Base fs needs to be mounted to check overlay dirs
+> +       local base_mounted=""
+> +       [ -z "$base_dev" ] || \
+> +               base_mounted=`_is_mounted $base_dev $OVL_BASE_FSTYP`
+
+Not that I am proposing to support -overlay run where FSTYP is not
+defined in config file, but how does this behave in such a case?
+Perhaps add || [ -z "$OVL_BASE_FSTYP" ] above?
+
+> +
+> +       if [ -z "$base_mounted" ]; then
+> +               _overlay_base_mount $*
+> +       else
+> +               # Need to umount overlay for dir check
+> +               local ovl_mounted=`_is_mounted $ovl_mnt`
+
+Define local outside if scope.
+
+Thanks,
+Amir.
