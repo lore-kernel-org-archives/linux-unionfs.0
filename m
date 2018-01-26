@@ -1,67 +1,66 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH 4/4] overlay/017: require and enable redirect_dir
-Date: Fri, 26 Jan 2018 09:59:08 +0200
-Message-ID: <1516953548-15679-5-git-send-email-amir73il@gmail.com>
-References: <1516953548-15679-1-git-send-email-amir73il@gmail.com>
+Subject: [PATCH 0/4] Assorted overlay test fixes
+Date: Fri, 26 Jan 2018 09:59:04 +0200
+Message-ID: <1516953548-15679-1-git-send-email-amir73il@gmail.com>
 Return-path: <fstests-owner@vger.kernel.org>
-In-Reply-To: <1516953548-15679-1-git-send-email-amir73il@gmail.com>
 Sender: fstests-owner@vger.kernel.org
 To: Eryu Guan <eguan@redhat.com>
 Cc: zhangyi <yi.zhang@huawei.com>, Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, fstests@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 
-This test renames a merge directory so it needs to enable redirect_dir
-feature, which is not enabled by default.
+Eryu,
 
-Signed-off-by: Amir Goldstein <amir73il@gmail.com>
----
+These assorted fixes improve test-ability with different overlay
+mount option configurtions.
+
+The first 2 patches don't fix any known issue, but they fix correctness
+of the tests.
+
+Patch 3 prepares the tests to work correctly with nfs_export=on, which
+is now on Miklos' overlayfs-next branch. It shouldn't change behavior for
+tests running on kernel without nfs_export.
+
+First 3 patches may have trivial conflicts with Zhangyi's patch ("[5/5]
+overlay: correct scratch dirs check").
+
+Patch 4 fixes overlay/017 for the default redirect_dir=off configuration.
+
+I believe there has been a miscommunication between us w.r.t overlay/017.
+I guess it always fails in your tests and you thought that was expected.
+Actually, since commit 0d84683 ("overlay/017: Remove constant
+st_ino/d_ino test for hardlinks") the test was expected to pass with
+default upstream configuration, but I missed the redirect_dir requirement
+and probably also missed communicating this expectation to you.
+
+When I tested overlay/017 with different configurations I ran into a
+strange random failure that only happens with base fs xfs and overlay
+mount options index=on,nfs_export=off. I finally tracked it down to an
+xfs v4.15 regression and figured out why index=on improves the chances
+to hit the bug (because overlay inodes are hashed).
+
+So after patch 4 is applied, overlay/017 is expected to pass on upstream
+kernel with default configuration and may may with inodex=on.
+xfs bug fix was sent to Darrick.
+
+Thanks,
+Amir.
+
+Amir Goldstein (4):
+  ovelray: drop explicit use of OVERLAY_MOUNT_OPTIONS
+  overlay/036: fix upper/lower dir mismatch
+  overlay: consider index dir with whiteouts clean
+  overlay/017: require and enable redirect_dir
+
  tests/overlay/017   | 6 ++++--
+ tests/overlay/033   | 8 ++++++--
+ tests/overlay/034   | 8 ++++++--
+ tests/overlay/036   | 4 ++--
+ tests/overlay/041   | 6 ++----
+ tests/overlay/043   | 6 ++----
+ tests/overlay/044   | 7 ++-----
+ tests/overlay/048   | 4 +++-
  tests/overlay/group | 2 +-
- 2 files changed, 5 insertions(+), 3 deletions(-)
+ 9 files changed, 28 insertions(+), 23 deletions(-)
 
-diff --git a/tests/overlay/017 b/tests/overlay/017
-index 03955d0..e7e8925 100755
---- a/tests/overlay/017
-+++ b/tests/overlay/017
-@@ -57,6 +57,7 @@ _supported_os Linux
- _require_scratch
- _require_test_program "af_unix"
- _require_test_program "t_dir_type"
-+_require_scratch_feature redirect_dir
- 
- rm -f $seqres.full
- 
-@@ -111,7 +112,8 @@ function check_inode_numbers()
- 	done
- }
- 
--_scratch_mount
-+# Enable redirect_dir for renaming a merge directory
-+_scratch_mount -o "redirect_dir=on"
- 
- 
- rm -f $tmp.*
-@@ -140,7 +142,7 @@ echo 3 > /proc/sys/vm/drop_caches
- check_inode_numbers $testdir $tmp.after_copyup $tmp.after_move
- 
- # Verify that the inode numbers survive a mount cycle
--_scratch_cycle_mount
-+_scratch_cycle_mount "redirect_dir=on"
- 
- # Compare inode numbers before/after mount cycle
- check_inode_numbers $testdir $tmp.after_move $tmp.after_cycle
-diff --git a/tests/overlay/group b/tests/overlay/group
-index 7e541e4..edea64a 100644
---- a/tests/overlay/group
-+++ b/tests/overlay/group
-@@ -19,7 +19,7 @@
- 014 auto quick copyup
- 015 auto quick whiteout
- 016 auto quick copyup
--017 auto quick copyup
-+017 auto quick copyup redirect
- 018 auto quick copyup hardlink
- 019 auto stress
- 020 auto quick copyup perms
 -- 
 2.7.4
