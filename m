@@ -1,103 +1,130 @@
-From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH 3/4] overlay: consider index dir with whiteouts clean
-Date: Fri, 26 Jan 2018 09:59:07 +0200
-Message-ID: <1516953548-15679-4-git-send-email-amir73il@gmail.com>
-References: <1516953548-15679-1-git-send-email-amir73il@gmail.com>
+From: Jan Kara <jack@suse.cz>
+Subject: Re: [PATCH v7] ovl: Improving syncfs efficiency
+Date: Fri, 26 Jan 2018 17:08:28 +0100
+Message-ID: <20180126160828.ytgyyml2lxztsehg@quack2.suse.cz>
+References: <1516872955-10069-1-git-send-email-cgxu519@icloud.com>
+ <20180125143250.7vulbi2ytxmgk7fu@quack2.suse.cz>
+ <35D4AADF-5812-4F73-AF09-49E732B5F4A3@icloud.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wm0-f67.google.com ([74.125.82.67]:37395 "EHLO
-        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752119AbeAZH6N (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 26 Jan 2018 02:58:13 -0500
-In-Reply-To: <1516953548-15679-1-git-send-email-amir73il@gmail.com>
+Received: from mx2.suse.de ([195.135.220.15]:36540 "EHLO mx2.suse.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752061AbeA0Jqc (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Sat, 27 Jan 2018 04:46:32 -0500
+Content-Disposition: inline
+In-Reply-To: <35D4AADF-5812-4F73-AF09-49E732B5F4A3@icloud.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Eryu Guan <eguan@redhat.com>
-Cc: zhangyi <yi.zhang@huawei.com>, Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, fstests@vger.kernel.org
+To: Chengguang Xu <cgxu519@icloud.com>
+Cc: Jan Kara <jack@suse.cz>, miklos@szeredi.hu, amir73il@gmail.com, linux-unionfs@vger.kernel.org
 
-Several tests check that index dir is empty after upper entries have
-been unlinked. With nfs_export=on, index will contain a whiteout index
-entry in that case so, allow chardevs when checking for clean index dir.
+Hi Chengguang!
 
-Signed-off-by: Amir Goldstein <amir73il@gmail.com>
----
- tests/overlay/033 | 8 ++++++--
- tests/overlay/034 | 8 ++++++--
- tests/overlay/048 | 4 +++-
- 3 files changed, 15 insertions(+), 5 deletions(-)
+On Fri 26-01-18 11:02:03, Chengguang Xu wrote:
+> > AFAIU your code OVL_EVICT_PENDING should be always set when this function
+> > is called. Maybe just make a WARN_ON from this condition?
+> 
+> OK, I’ll add.
+> 
+> > 
+> >> +		wqh = bit_waitqueue(&oi->flags, OVL_EVICT_PENDING);
+> >> +		prepare_to_wait(wqh, &wait.wq_entry, TASK_UNINTERRUPTIBLE);
+> >> +		sleep = ovl_test_flag(OVL_EVICT_PENDING, inode);
+> 
+> I think we also don’t have to check sleep again here because before unlock
+> ofs->upper_inodes_lock OVL_EVICT_PENDING will not be cleared. 
 
-diff --git a/tests/overlay/033 b/tests/overlay/033
-index 30780c6..3e67500 100755
---- a/tests/overlay/033
-+++ b/tests/overlay/033
-@@ -69,7 +69,6 @@ report_nlink()
- # Create lower hardlinks
- create_hardlinks()
- {
--	lowerdir=$OVL_BASE_SCRATCH_MNT/$OVL_LOWER
- 	mkdir -p $lowerdir
- 	touch $lowerdir/0
- 	ln $lowerdir/0 $lowerdir/1
-@@ -123,9 +122,14 @@ test_hardlinks()
- 	rm $SCRATCH_MNT/2
- 
- 	# Verify that orphan index is cleaned when dropping nlink to zero
--	ls $OVL_BASE_SCRATCH_MNT/$OVL_WORK/index
-+	# With nfs_export=on index will contain a whiteout index entry, so allow
-+	# chardev entries in index dir.
-+	find $workdir/index -mindepth 1 -type c -o -print
- }
- 
-+lowerdir=$OVL_BASE_SCRATCH_MNT/$OVL_LOWER
-+workdir=$OVL_BASE_SCRATCH_MNT/$OVL_WORK
-+
- # Remove all files from previous tests
- _scratch_mkfs
- 
-diff --git a/tests/overlay/034 b/tests/overlay/034
-index dc354c6..d9f9798 100755
---- a/tests/overlay/034
-+++ b/tests/overlay/034
-@@ -67,11 +67,13 @@ _require_scratch
- # Without overlay index feature hardlinks are broken on copy up
- _require_scratch_feature index
- 
-+lowerdir=$OVL_BASE_SCRATCH_MNT/$OVL_LOWER
-+workdir=$OVL_BASE_SCRATCH_MNT/$OVL_WORK
-+
- # Remove all files from previous tests
- _scratch_mkfs
- 
- # Create lower hardlink
--lowerdir=$OVL_BASE_SCRATCH_MNT/$OVL_LOWER
- mkdir -p $lowerdir
- touch $lowerdir/0
- ln $lowerdir/0 $lowerdir/1
-@@ -103,7 +105,9 @@ rm $SCRATCH_MNT/4
- 
- # Verify that orphan index is cleaned on mount
- _scratch_cycle_mount index=on
--ls $OVL_BASE_SCRATCH_MNT/$OVL_WORK/index
-+# With nfs_export=on index will contain a whiteout index entry, so allow
-+# chardev entries in index dir.
-+find $workdir/index -mindepth 1 -type c -o -print
- 
- echo "Silence is golden"
- status=0
-diff --git a/tests/overlay/048 b/tests/overlay/048
-index 4b2c58f..3ce6270 100755
---- a/tests/overlay/048
-+++ b/tests/overlay/048
-@@ -111,7 +111,9 @@ test_hardlinks_offline()
- 	report_nlink "unlink last lower"
- 
- 	# Verify that orphan index is cleaned when dropping nlink to zero
--	ls $workdir/index
-+	# With nfs_export=on index will contain a whiteout index entry, so allow
-+	# chardev entries in index dir.
-+	find $workdir/index -mindepth 1 -type c -o -print
- }
- 
- lowerdir=$OVL_BASE_SCRATCH_MNT/$OVL_LOWER
+I'm not sure what you are suggesting here - i.e., where do you think you are
+checking the 'sleep' again?
+
+> >> +		spin_unlock(&inode->i_lock);
+> >> +		spin_unlock(&ofs->upper_inodes_lock);
+> >> +		if (sleep)
+> >> +			schedule();
+> >> +		finish_wait(wqh, &wait.wq_entry);
+> >> +	}
+> >> +}
+> >> +
+> >> +/**
+> >> + * ovl_sync_inodes
+> >> + * @sb: The overlayfs super block
+> >> + *
+> >> + * upper_inodes list is used for organizing ovl inode which has upper inode,
+> >> + * by iterating the list to looking for and syncing dirty upper inode.
+> >> + *
+> >> + * When starting syncing inode, we add the inode to wait list explicitly,
+> >> + * in order to save memory we reuse inode->i_wb_list and sb->s_inodes_wb,
+> >> + * so those fields have slightly differnt meanings in overlayfs.
+> >> + */
+> >> +static void ovl_sync_inodes(struct super_block *sb)
+> >> +{
+> >> +	struct ovl_fs *ofs = sb->s_fs_info;
+> >> +	struct ovl_inode *oi;
+> >> +	struct inode *inode;
+> >> +	struct inode *upper_inode;
+> >> +	struct blk_plug plug;
+> >> +	LIST_HEAD(sync_tmp_list);
+> >> +
+> >> +	struct writeback_control wbc_for_sync = {
+> >> +		.sync_mode		= WB_SYNC_ALL,
+> >> +		.for_sync		= 1,
+> >> +		.range_start		= 0,
+> >> +		.range_end		= LLONG_MAX,
+> >> +		.nr_to_write		= LONG_MAX,
+> >> +	};
+> >> +
+> >> +	blk_start_plug(&plug);
+> >> +	spin_lock(&ofs->upper_inodes_lock);
+> >> +	list_splice_init(&ofs->upper_inodes, &sync_tmp_list);
+> >> +
+> >> +	while (!list_empty(&sync_tmp_list)) {
+> >> +		oi = list_first_entry(&sync_tmp_list, struct ovl_inode,
+> >> +						upper_inodes_list);
+> >> +		inode = &oi->vfs_inode;
+> >> +		spin_lock(&inode->i_lock);
+> >> +
+> >> +		list_move_tail(&oi->upper_inodes_list, &ofs->upper_inodes);
+> >> +		if (inode->i_state & I_NEW) {
+> >> +			spin_unlock(&inode->i_lock);
+> >> +			continue;
+> >> +		}
+> >> +
+> >> +		/*
+> >> +		 * If ovl inode state is I_FREEING,
+> >> +		 * left sync operation to the ovl_evict_inode(),
+> >> +		 * so wait here until OVL_EVICT_PENDING flag to be cleared.
+> >> +		 */
+> >> +		if (inode->i_state & I_FREEING) {
+> >> +			ovl_wait_evict_pending(inode);
+> > 
+> > This is still somewhat racy. The problem is that a wakeup in
+> > ovl_wait_evict_pending() can come from all sorts of reasons. You are not
+> > guaranteed OVL_EVICT_PENDING is cleared when you are woken up. You cannot
+> > easily recheck the flag as the inode *may* really be free by this time.
+> 
+> I think DEFINE_WAIT_BIT can wakeup sleeping thread only for right reason and
+> there is no other place to set OVL_EVICT_PENDING again. IIUC, we don’t have
+> to check OVL_EVICT_PENDING in a loop. Am I missing something?
+
+You are correct that wake_up_bit() will only wake up process once it has
+cleared the bit. But there can be other wake up sources like signal
+delivery so you cannot assume you will get woken only after the inode is
+gone...
+
+> > What I'd do to fix this race is not to move inode with OVL_EVICT_PENDING to
+> > the tail of ofs->upper_inodes but just keep it in &sync_tmp_list. That way
+> > we are sure that either the inode gets freed (thus removed from
+> > &sync_tmp_list) and we'll never see it again, or we'll again see it in
+> > &sync_tmp_list, see again OVL_EVICT_PENDING, and wait again for it which is
+> > what we need.
+> 
+> If my analysis above is not correct, I’ll modify as your suggestion here.
+
+Please do.
+
+								Honza
 -- 
-2.7.4
+Jan Kara <jack@suse.com>
+SUSE Labs, CR
