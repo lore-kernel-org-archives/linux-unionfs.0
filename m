@@ -1,106 +1,67 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [PATCH v2] tmpfs: allow decoding a file handle of an unlinked file
-Date: Sun, 28 Jan 2018 00:02:53 +0200
-Message-ID: <CAOQ4uxi9VBjN-xiGddepS3B_O=iteaV=dwew8_xdZ6R9seQqSA@mail.gmail.com>
-References: <1510555438-28996-1-git-send-email-amir73il@gmail.com> <CAOQ4uxgnzRummiQm0DNP52QxGoJ8XN+EtEkYBWxyTD5YUWf+nQ@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <CAOQ4uxgnzRummiQm0DNP52QxGoJ8XN+EtEkYBWxyTD5YUWf+nQ@mail.gmail.com>
-Sender: owner-linux-mm@kvack.org
-To: Hugh Dickins <hughd@google.com>, Al Viro <viro@zeniv.linux.org.uk>
-Cc: Jeff Layton <jlayton@poochiereds.net>, "J . Bruce Fields" <bfields@fieldses.org>, James Bottomley <James.Bottomley@hansenpartnership.com>, overlayfs <linux-unionfs@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>, Linux MM <linux-mm@kvack.org>
+Subject: [PATCH] ovl: fix regression in fsnotify of overlay merge dir
+Date: Sun, 28 Jan 2018 01:49:17 +0200
+Message-ID: <1517096957-23723-1-git-send-email-amir73il@gmail.com>
+Return-path: <linux-unionfs-owner@vger.kernel.org>
+Received: from mail-wm0-f65.google.com ([74.125.82.65]:52667 "EHLO
+        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751863AbeA0XsS (ORCPT
+        <rfc822;linux-unionfs@vger.kernel.org>);
+        Sat, 27 Jan 2018 18:48:18 -0500
+Received: by mail-wm0-f65.google.com with SMTP id g1so7611458wmg.2
+        for <linux-unionfs@vger.kernel.org>; Sat, 27 Jan 2018 15:48:17 -0800 (PST)
+Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: Niklas Cassel <niklas.cassel@axis.com>, Jan Kara <jack@suse.cz>, linux-unionfs@vger.kernel.org
 
-On Fri, Jan 5, 2018 at 5:40 PM, Amir Goldstein <amir73il@gmail.com> wrote:
-> On Mon, Nov 13, 2017 at 8:43 AM, Amir Goldstein <amir73il@gmail.com> wrote:
->> tmpfs uses the helper d_find_alias() to find a dentry from a decoded
->> inode, but d_find_alias() skips unhashed dentries, so unlinked files
->> cannot be decoded from a file handle.
->>
->> This can be reproduced using xfstests test program open_by_handle:
->> $ open_by handle -c /tmp/testdir
->> $ open_by_handle -dk /tmp/testdir
->> open_by_handle(/tmp/testdir/file000000) returned 116 incorrectly on an
->> unlinked open file!
->>
->> To fix this, if d_find_alias() can't find a hashed alias, call
->> d_find_any_alias() to return an unhashed one.
->>
->> Cc: Hugh Dickins <hughd@google.com>
->> Cc: Al Viro <viro@zeniv.linux.org.uk>
->> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
->> ---
->>
->> Al, Miklos,
->>
->> Can either of you take this patch through your tree?
->>
->> Thanks,
->> Amir.
->>
->> Changes since v1:
->> - Prefer a hashed alias (James)
->> - Use existing d_find_any_alias() helper
->>
->>  mm/shmem.c | 11 ++++++++++-
->>  1 file changed, 10 insertions(+), 1 deletion(-)
->>
->> diff --git a/mm/shmem.c b/mm/shmem.c
->> index 07a1d22807be..5d3fa4099f54 100644
->> --- a/mm/shmem.c
->> +++ b/mm/shmem.c
->> @@ -3404,6 +3404,15 @@ static int shmem_match(struct inode *ino, void *vfh)
->>         return ino->i_ino == inum && fh[0] == ino->i_generation;
->>  }
->>
->> +/* Find any alias of inode, but prefer a hashed alias */
->> +static struct dentry *shmem_find_alias(struct inode *inode)
->> +{
->> +       struct dentry *alias = d_find_alias(inode);
->> +
->> +       return alias ?: d_find_any_alias(inode);
->> +}
->> +
->> +
->>  static struct dentry *shmem_fh_to_dentry(struct super_block *sb,
->>                 struct fid *fid, int fh_len, int fh_type)
->>  {
->> @@ -3420,7 +3429,7 @@ static struct dentry *shmem_fh_to_dentry(struct super_block *sb,
->>         inode = ilookup5(sb, (unsigned long)(inum + fid->raw[0]),
->>                         shmem_match, fid->raw);
->>         if (inode) {
->> -               dentry = d_find_alias(inode);
->> +               dentry = shmem_find_alias(inode);
->>                 iput(inode);
->>         }
->>
->> --
->
-> Hugh,
->
-> Did you get a chance to look at this patch?
->
-> The test for decoding a file handle of an unlinked file has already been
-> merged to xfstest generic/467 and the test is failing on tmpfs without this
-> change.
->
-> Can you please take or ACK this patch?
->
+A re-factoring patch in NFS export series has passed the wrong argument
+to ovl_get_inode() causing a regression in the very recent fix to
+fsnotify of overlay merge dir.
 
-Ping.
+The regression has caused merge directory inodes to be hashed by upper
+instead of lower real inode, when NFS export and directory indexing is
+disabled. That caused an inotify watch to become obsolete after directory
+copy up and drop caches.
 
-Real problem.
+I modified new LTP test inotify07 to catch this regression.
+The regression also caused multiple redirect dirs to same origin not to
+be detected on lookup with NFS export disabled. An xfstest was added to
+cover this case.
 
-Trivial fix.
+Fixes: 0aceb53e73be ("ovl: do not pass overlay dentry to ovl_get_inode()")
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+---
 
-Al, Can you take this patch?
+Miklos,
+
+Apparently, I've already managed to regress the fsnotify watch fix.
+It was only regressed for nfs_export=off case, so I had missed it before.
+
+With this fix in-place, I am going to re-post the xfstest for multiple
+redirect to same origin, because it is now going to be detected on lookup
+by the default overlayfs configuration (no index, no nfs export).
 
 Thanks,
 Amir.
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+ fs/overlayfs/namei.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
+index c5449efd96d5..d5a060ede8d1 100644
+--- a/fs/overlayfs/namei.c
++++ b/fs/overlayfs/namei.c
+@@ -976,8 +976,8 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
+ 		upperdentry = dget(index);
+ 
+ 	if (upperdentry || ctr) {
+-		inode = ovl_get_inode(dentry->d_sb, upperdentry, origin, index,
+-				      ctr);
++		inode = ovl_get_inode(dentry->d_sb, upperdentry,
++				      stack[0].dentry, index, ctr);
+ 		err = PTR_ERR(inode);
+ 		if (IS_ERR(inode))
+ 			goto out_free_oe;
+-- 
+2.7.4
