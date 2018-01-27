@@ -1,130 +1,90 @@
-From: Jan Kara <jack@suse.cz>
-Subject: Re: [PATCH v7] ovl: Improving syncfs efficiency
-Date: Fri, 26 Jan 2018 17:08:28 +0100
-Message-ID: <20180126160828.ytgyyml2lxztsehg@quack2.suse.cz>
-References: <1516872955-10069-1-git-send-email-cgxu519@icloud.com>
- <20180125143250.7vulbi2ytxmgk7fu@quack2.suse.cz>
- <35D4AADF-5812-4F73-AF09-49E732B5F4A3@icloud.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Subject: Re: [PATCH v10 00/18] overlayfs: Delayed copy up of data
+Date: Sat, 27 Jan 2018 18:38:53 +0200
+Message-ID: <CAOQ4uxg4nzMh1YHJnUbt8+iDQnHmkBAz_Q5vcrnaSpxRgyU0dA@mail.gmail.com>
+References: <20180122184004.26026-1-vgoyal@redhat.com> <CAJfpegtdEJp7+QZj16uGY4wZ8eaTDO_0YH5T0qPnS=L5tMS8-A@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mx2.suse.de ([195.135.220.15]:36540 "EHLO mx2.suse.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752061AbeA0Jqc (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Sat, 27 Jan 2018 04:46:32 -0500
-Content-Disposition: inline
-In-Reply-To: <35D4AADF-5812-4F73-AF09-49E732B5F4A3@icloud.com>
+Received: from mail-yw0-f181.google.com ([209.85.161.181]:44463 "EHLO
+        mail-yw0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751951AbeA0Qiy (ORCPT
+        <rfc822;linux-unionfs@vger.kernel.org>);
+        Sat, 27 Jan 2018 11:38:54 -0500
+Received: by mail-yw0-f181.google.com with SMTP id x62so1280388ywg.11
+        for <linux-unionfs@vger.kernel.org>; Sat, 27 Jan 2018 08:38:54 -0800 (PST)
+In-Reply-To: <CAJfpegtdEJp7+QZj16uGY4wZ8eaTDO_0YH5T0qPnS=L5tMS8-A@mail.gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Chengguang Xu <cgxu519@icloud.com>
-Cc: Jan Kara <jack@suse.cz>, miklos@szeredi.hu, amir73il@gmail.com, linux-unionfs@vger.kernel.org
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: Vivek Goyal <vgoyal@redhat.com>, overlayfs <linux-unionfs@vger.kernel.org>, Matthew Wilcox <mawilcox@microsoft.com>
 
-Hi Chengguang!
+On Wed, Jan 24, 2018 at 11:05 AM, Miklos Szeredi <miklos@szeredi.hu> wrote:
+> On Mon, Jan 22, 2018 at 7:39 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
+>> Hi,
+>>
+>> Please find attached V10 of the metadata only copy up patches. I think
+>> I have taken care of review comments and I will start writing automated
+>> test cases now.
+>>
+>> One thing which concerns me about these patches is the fact that during
+>> file open d_real() will return lower inode which actually contains file
+>> data and that inode will be installed in f->f_inode. So while f->f_inode
+>> is perfectly fine for data operations, it is not fine for metadata
+>> operations. Because metadata has been copied up and is represented by
+>> a different inode.
+>>
+>> I am concerned that this is a subtle behavior change and especially
+>> security modules might be surprised by it. I will spend now more time
+>> looking at what security modules are doing with f->f_inode. Thoughts?
+>
+> This is exactly the same situation where there is an r/o open and
+> copy-up later.  Except this makes it more widespread.  So I don't
+> think any new issues are introduced (doesn't mean there aren't any old
+> ones).
+>
+> The only risk I see with this feature is exactly the fact that the
+> ro/rw inconsistency can happen more often, which might break more
+> cases.  I'd really like to work on getting rid of this issue.
+> Hopefully next cycle...
+>
 
-On Fri 26-01-18 11:02:03, Chengguang Xu wrote:
-> > AFAIU your code OVL_EVICT_PENDING should be always set when this function
-> > is called. Maybe just make a WARN_ON from this condition?
-> 
-> OK, I’ll add.
-> 
-> > 
-> >> +		wqh = bit_waitqueue(&oi->flags, OVL_EVICT_PENDING);
-> >> +		prepare_to_wait(wqh, &wait.wq_entry, TASK_UNINTERRUPTIBLE);
-> >> +		sleep = ovl_test_flag(OVL_EVICT_PENDING, inode);
-> 
-> I think we also don’t have to check sleep again here because before unlock
-> ofs->upper_inodes_lock OVL_EVICT_PENDING will not be cleared. 
+About that. I suppose you mean taking the route of intercepting
+overlayfs file operations, so the only remaining concern would be
+mmap?
 
-I'm not sure what you are suggesting here - i.e., where do you think you are
-checking the 'sleep' again?
+FYI, I am still maintaining my "copy on read" patches [1] and use them for
+snapshots. The last patch is a late addition that is aimed at integrating
+with metacopy for "copy on read" for non-clone/non-same fs case.
 
-> >> +		spin_unlock(&inode->i_lock);
-> >> +		spin_unlock(&ofs->upper_inodes_lock);
-> >> +		if (sleep)
-> >> +			schedule();
-> >> +		finish_wait(wqh, &wait.wq_entry);
-> >> +	}
-> >> +}
-> >> +
-> >> +/**
-> >> + * ovl_sync_inodes
-> >> + * @sb: The overlayfs super block
-> >> + *
-> >> + * upper_inodes list is used for organizing ovl inode which has upper inode,
-> >> + * by iterating the list to looking for and syncing dirty upper inode.
-> >> + *
-> >> + * When starting syncing inode, we add the inode to wait list explicitly,
-> >> + * in order to save memory we reuse inode->i_wb_list and sb->s_inodes_wb,
-> >> + * so those fields have slightly differnt meanings in overlayfs.
-> >> + */
-> >> +static void ovl_sync_inodes(struct super_block *sb)
-> >> +{
-> >> +	struct ovl_fs *ofs = sb->s_fs_info;
-> >> +	struct ovl_inode *oi;
-> >> +	struct inode *inode;
-> >> +	struct inode *upper_inode;
-> >> +	struct blk_plug plug;
-> >> +	LIST_HEAD(sync_tmp_list);
-> >> +
-> >> +	struct writeback_control wbc_for_sync = {
-> >> +		.sync_mode		= WB_SYNC_ALL,
-> >> +		.for_sync		= 1,
-> >> +		.range_start		= 0,
-> >> +		.range_end		= LLONG_MAX,
-> >> +		.nr_to_write		= LONG_MAX,
-> >> +	};
-> >> +
-> >> +	blk_start_plug(&plug);
-> >> +	spin_lock(&ofs->upper_inodes_lock);
-> >> +	list_splice_init(&ofs->upper_inodes, &sync_tmp_list);
-> >> +
-> >> +	while (!list_empty(&sync_tmp_list)) {
-> >> +		oi = list_first_entry(&sync_tmp_list, struct ovl_inode,
-> >> +						upper_inodes_list);
-> >> +		inode = &oi->vfs_inode;
-> >> +		spin_lock(&inode->i_lock);
-> >> +
-> >> +		list_move_tail(&oi->upper_inodes_list, &ofs->upper_inodes);
-> >> +		if (inode->i_state & I_NEW) {
-> >> +			spin_unlock(&inode->i_lock);
-> >> +			continue;
-> >> +		}
-> >> +
-> >> +		/*
-> >> +		 * If ovl inode state is I_FREEING,
-> >> +		 * left sync operation to the ovl_evict_inode(),
-> >> +		 * so wait here until OVL_EVICT_PENDING flag to be cleared.
-> >> +		 */
-> >> +		if (inode->i_state & I_FREEING) {
-> >> +			ovl_wait_evict_pending(inode);
-> > 
-> > This is still somewhat racy. The problem is that a wakeup in
-> > ovl_wait_evict_pending() can come from all sorts of reasons. You are not
-> > guaranteed OVL_EVICT_PENDING is cleared when you are woken up. You cannot
-> > easily recheck the flag as the inode *may* really be free by this time.
-> 
-> I think DEFINE_WAIT_BIT can wakeup sleeping thread only for right reason and
-> there is no other place to set OVL_EVICT_PENDING again. IIUC, we don’t have
-> to check OVL_EVICT_PENDING in a loop. Am I missing something?
+Rummer has it [2] that Matthew Wilcox is going to tackle sharing page
+cache between cloned inodes.
 
-You are correct that wake_up_bit() will only wake up process once it has
-cleared the bit. But there can be other wake up sources like signal
-delivery so you cannot assume you will get woken only after the inode is
-gone...
+Mathew,
 
-> > What I'd do to fix this race is not to move inode with OVL_EVICT_PENDING to
-> > the tail of ofs->upper_inodes but just keep it in &sync_tmp_list. That way
-> > we are sure that either the inode gets freed (thus removed from
-> > &sync_tmp_list) and we'll never see it again, or we'll again see it in
-> > &sync_tmp_list, see again OVL_EVICT_PENDING, and wait again for it which is
-> > what we need.
-> 
-> If my analysis above is not correct, I’ll modify as your suggestion here.
+I wanted to bring the overlayfs "metacopy" use case to your attention,
+so you can take it into account when implementing page cache sharing.
+This was more or less the solution proposed by Al to inconsistent data
+of a r/o open file:
+- Create a "metacopy" inode in upper layer when opening a file for read
+- Share page cache of lower layer inode with upper layer "metacopy" inode
+- When upper file is opened for write, data is copied to upper inode and
+  page cache sharing is broken.
+- After breaking page cache sharing, the upper inode becomes the backing
+  inode, but unshared pages content is guarantied to be uptodate and non
+  dirty
 
-Please do.
+So "metacopy" is an all-or-nothing private case of file cloning.
+If undelying fs supports clones, then page cache sharing is not broken
+on open for write, but it is converted from "metacopy" situation, to the
+common cloned file situation - the backing inode is the upper inode,
+bit its shares all the blocks with lower inode.
 
-								Honza
--- 
-Jan Kara <jack@suse.com>
-SUSE Labs, CR
+Please keep linux-unionfs posted when you have any progress.
+I'd be happy to test any WIP you might have.
+
+Thanks,
+Amir.
+
+[1] https://github.com/amir73il/linux/commits/ovl-rocopyup
+[2] https://marc.info/?l=linux-xfs&m=151705246227384&w=2
