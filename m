@@ -1,46 +1,59 @@
-From: Eryu Guan <eguan@redhat.com>
-Subject: Re: [PATCH v3 2/5] overlay: test encode/decode overlay file handles
-Date: Tue, 30 Jan 2018 12:54:14 +0800
-Message-ID: <20180130045414.GA18267@eguan.usersys.redhat.com>
-References: <1517131356-8048-1-git-send-email-amir73il@gmail.com>
- <1517131356-8048-3-git-send-email-amir73il@gmail.com>
- <20180129143940.GW18267@eguan.usersys.redhat.com>
- <CAOQ4uxiRg9ZddvnzW-X8VMqpGOWva42qZmmBzdXUqoy-n34NRg@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <fstests-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAOQ4uxiRg9ZddvnzW-X8VMqpGOWva42qZmmBzdXUqoy-n34NRg@mail.gmail.com>
-Sender: fstests-owner@vger.kernel.org
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, overlayfs <linux-unionfs@vger.kernel.org>, fstests <fstests@vger.kernel.org>
+From: Amir Goldstein <amir73il@gmail.com>
+Subject: [PATCH v4 0/5] Overlayfs exportfs tests
+Date: Tue, 30 Jan 2018 08:12:17 +0200
+Message-ID: <1517292742-15624-1-git-send-email-amir73il@gmail.com>
+Return-path: <linux-unionfs-owner@vger.kernel.org>
+Received: from mail-wr0-f193.google.com ([209.85.128.193]:39229 "EHLO
+        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752325AbeA3GLW (ORCPT
+        <rfc822;linux-unionfs@vger.kernel.org>);
+        Tue, 30 Jan 2018 01:11:22 -0500
+Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
+To: Eryu Guan <eguan@redhat.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, fstests@vger.kernel.org
 
-On Mon, Jan 29, 2018 at 07:23:49PM +0200, Amir Goldstein wrote:
-> On Mon, Jan 29, 2018 at 4:39 PM, Eryu Guan <eguan@redhat.com> wrote:
-> > On Sun, Jan 28, 2018 at 11:22:33AM +0200, Amir Goldstein wrote:
-> >> - Check encode/write/decode/read content of lower/upper file handles
-> >> - Check encode/decode/write/read content of lower/upper file handles
-> >> - Check decode/read of unlinked lower/upper files and directories
-> >> - Check decode/read of lower file handles after copy up, link and unlink
-> >>
-> >> This test requires and enables overlayfs NFS export support.
-> >> NFS export support depends on and enables overlayfs index feature.
-> >>
-> >> This test covers only encode/decode of file handles for overlayfs
-> >> configuration of all layers on the same base fs.
-> >>
-> >> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
-> >
-> > Looks good to me overall, just two minor issues in comments.
-> >
-> 
-> OK. I fixed those comment in both test variants.
-> Let me know if there is anything else, otherwise, I'll re-post
-> with fixed to comment on patch 1.
+Eryu,
 
-Everything else looks fine to me. Sorry, I should have sent out an
-explicit ack..
+Following a version with fixes to your review comments on v3.
+
+Changes since v3:
+- Fix inconsistent comments in link/unlink tests
+- Call _require_overlay_scratch_features (plural) from tests
+  that require overlay features together (nfs_export and index)
+- Comment in those cases
 
 Thanks,
-Eryu
+Amir.
+
+Amir Goldstein (5):
+  fstests: implement require of multiple overlayfs features
+  overlay: test encode/decode overlay file handles
+  overlay: test encode/decode of non-samefs overlay file handles
+  overlay: test encode/decode overlay file handles with renames
+  overlay: test encode/decode of non-samefs overlay file handles with
+    renames
+
+ common/overlay        |  27 +++++-
+ common/rc             |   2 +-
+ tests/overlay/050     | 239 ++++++++++++++++++++++++++++++++++++++++++++++
+ tests/overlay/050.out |  31 ++++++
+ tests/overlay/051     | 256 ++++++++++++++++++++++++++++++++++++++++++++++++++
+ tests/overlay/051.out |  31 ++++++
+ tests/overlay/052     | 184 ++++++++++++++++++++++++++++++++++++
+ tests/overlay/052.out |  22 +++++
+ tests/overlay/053     | 200 +++++++++++++++++++++++++++++++++++++++
+ tests/overlay/053.out |  22 +++++
+ tests/overlay/group   |   4 +
+ 11 files changed, 1012 insertions(+), 6 deletions(-)
+ create mode 100755 tests/overlay/050
+ create mode 100644 tests/overlay/050.out
+ create mode 100755 tests/overlay/051
+ create mode 100644 tests/overlay/051.out
+ create mode 100755 tests/overlay/052
+ create mode 100644 tests/overlay/052.out
+ create mode 100755 tests/overlay/053
+ create mode 100644 tests/overlay/053.out
+
+-- 
+2.7.4
