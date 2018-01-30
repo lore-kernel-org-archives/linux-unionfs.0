@@ -1,47 +1,46 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH v4 5/5] overlay: test encode/decode of non-samefs overlay file handles with renames
-Date: Tue, 30 Jan 2018 08:12:22 +0200
-Message-ID: <1517292742-15624-6-git-send-email-amir73il@gmail.com>
+Subject: [PATCH v4 4/5] overlay: test encode/decode overlay file handles with renames
+Date: Tue, 30 Jan 2018 08:12:21 +0200
+Message-ID: <1517292742-15624-5-git-send-email-amir73il@gmail.com>
 References: <1517292742-15624-1-git-send-email-amir73il@gmail.com>
-Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wm0-f54.google.com ([74.125.82.54]:55659 "EHLO
-        mail-wm0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752699AbeA3GL3 (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 30 Jan 2018 01:11:29 -0500
+Return-path: <fstests-owner@vger.kernel.org>
 In-Reply-To: <1517292742-15624-1-git-send-email-amir73il@gmail.com>
-Sender: linux-unionfs-owner@vger.kernel.org
-List-Id: linux-unionfs@vger.kernel.org
+Sender: fstests-owner@vger.kernel.org
 To: Eryu Guan <eguan@redhat.com>
 Cc: Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, fstests@vger.kernel.org
+List-Id: linux-unionfs@vger.kernel.org
 
-This is a variant of overlay file handles with renames test for an
-overlayfs that is composed of multiple lower layers not on the same
-underlying fs.
+- Check decode/read of file handles after rename of parent
+- Check decode/read of file handles after rename of grandparent
+- Check decode/read of file handles after move to new parent
+- Check encode/decode/read of file handles in non-upper overlay
+
+This test requires and enables overlayfs NFS export support and merge
+dir rename support (redirect_dir).
+NFS export support depends on and requires overlayfs index feature.
+
+This test covers only encode/decode of file handles for overlayfs
+configuration of all layers on the same base fs.
 
 Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- tests/overlay/053     | 200 ++++++++++++++++++++++++++++++++++++++++++++++++++
- tests/overlay/053.out |  22 ++++++
+ tests/overlay/052     | 184 ++++++++++++++++++++++++++++++++++++++++++++++++++
+ tests/overlay/052.out |  22 ++++++
  tests/overlay/group   |   1 +
- 3 files changed, 223 insertions(+)
- create mode 100755 tests/overlay/053
- create mode 100644 tests/overlay/053.out
+ 3 files changed, 207 insertions(+)
+ create mode 100755 tests/overlay/052
+ create mode 100644 tests/overlay/052.out
 
-diff --git a/tests/overlay/053 b/tests/overlay/053
+diff --git a/tests/overlay/052 b/tests/overlay/052
 new file mode 100755
-index 0000000..d4fdcde
+index 0000000..130adf2
 --- /dev/null
-+++ b/tests/overlay/053
-@@ -0,0 +1,200 @@
++++ b/tests/overlay/052
+@@ -0,0 +1,184 @@
 +#! /bin/bash
-+# FS QA Test No. 053
++# FS QA Test No. 052
 +#
-+# Test encode/decode of non-samefs overlay file handles with renames
-+#
-+# This is a variant of overlay file handles with renames test for an
-+# overlayfs that is composed of multiple lower layers not on the same
-+# underlying fs.
++# Test encode/decode overlay file handles with renames
 +#
 +# - Check decode/read of file handles after rename of parent
 +# - Check decode/read of file handles after rename of grandparent
@@ -84,10 +83,6 @@ index 0000000..d4fdcde
 +{
 +	cd /
 +	rm -f $tmp.*
-+	# Cleanup overlay scratch mount that is holding base test mount
-+	# to prevent _check_test_fs and _test_umount from failing before
-+	# _check_scratch_fs _scratch_umount
-+	$UMOUNT_PROG $SCRATCH_MNT 2>/dev/null
 +}
 +
 +# get standard environment, filters and checks
@@ -98,17 +93,15 @@ index 0000000..d4fdcde
 +
 +_supported_fs overlay
 +_supported_os Linux
-+_require_test
 +_require_scratch
 +_require_test_program "open_by_handle"
 +# We need to require all features together, because nfs_export cannot
 +# be enabled when index is disabled
 +_require_scratch_overlay_features index nfs_export redirect_dir
 +
-+# Lower is on test partition
-+lower=$OVL_BASE_TEST_DIR/$OVL_LOWER-$seq
-+# Upper/work are on scratch partition
-+middle=$OVL_BASE_SCRATCH_MNT/$OVL_LOWER
++# All overlay dirs are on scratch partition
++lower=$OVL_BASE_SCRATCH_MNT/$OVL_LOWER
++middle=$OVL_BASE_SCRATCH_MNT/$OVL_LOWER.2
 +upper=$OVL_BASE_SCRATCH_MNT/$OVL_UPPER
 +work=$OVL_BASE_SCRATCH_MNT/$OVL_WORK
 +
@@ -138,20 +131,14 @@ index 0000000..d4fdcde
 +# Re-create lower/middle/upper/work dirs
 +create_dirs()
 +{
-+	# Create lower dir on test partition
-+	rm -rf $lower
-+	mkdir $lower
-+
-+	# Create middle/upper/work dirs on scratch partition
 +	_scratch_mkfs
++	mkdir -p $middle
 +}
 +
-+# Mount an overlay on $SCRATCH_MNT with lower layer on test partition
-+# and middle and upper layer on scratch partition
++# Mount an overlay on $SCRATCH_MNT with all layers on scratch partition
 +mount_dirs()
 +{
-+	_overlay_scratch_mount_dirs $middle:$lower $upper $work \
-+				-o "index=on,nfs_export=on,redirect_dir=on"
++	_scratch_mount -o "index=on,nfs_export=on,redirect_dir=on"
 +}
 +
 +# Unmount the overlay without unmounting base fs
@@ -234,13 +221,13 @@ index 0000000..d4fdcde
 +
 +status=0
 +exit
-diff --git a/tests/overlay/053.out b/tests/overlay/053.out
+diff --git a/tests/overlay/052.out b/tests/overlay/052.out
 new file mode 100644
-index 0000000..c6f9de0
+index 0000000..f9f4ff7
 --- /dev/null
-+++ b/tests/overlay/053.out
++++ b/tests/overlay/052.out
 @@ -0,0 +1,22 @@
-+QA output created by 053
++QA output created by 052
 +test_file_handles SCRATCH_MNT/uppertestdir -o upper_file_handles
 +test_file_handles SCRATCH_MNT/lowertestdir -o lower_file_handles
 +test_file_handles SCRATCH_MNT -r -i upper_file_handles
@@ -263,13 +250,13 @@ index 0000000..c6f9de0
 +test_file_handles SCRATCH_MNT -r
 +test_file_handles SCRATCH_MNT/subdir -rp
 diff --git a/tests/overlay/group b/tests/overlay/group
-index 07dcf52..ec0b711 100644
+index 9b00e30..07dcf52 100644
 --- a/tests/overlay/group
 +++ b/tests/overlay/group
-@@ -53,3 +53,4 @@
+@@ -52,3 +52,4 @@
+ 049 auto quick copyup redirect
  050 auto quick copyup hardlink exportfs
  051 auto quick copyup hardlink exportfs nonsamefs
- 052 auto quick copyup redirect exportfs
-+053 auto quick copyup redirect exportfs nonsamefs
++052 auto quick copyup redirect exportfs
 -- 
 2.7.4
