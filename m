@@ -1,12 +1,12 @@
 From: Vivek Goyal <vgoyal@redhat.com>
-Subject: [PATCH v11 17/18] ovl: Do not expose metacopy only upper dentry from d_real()
-Date: Wed, 31 Jan 2018 16:13:28 -0500
-Message-ID: <20180131211329.16328-18-vgoyal@redhat.com>
+Subject: [PATCH v11 07/18] ovl: Copy up only metadata during copy up where it makes sense
+Date: Wed, 31 Jan 2018 16:13:18 -0500
+Message-ID: <20180131211329.16328-8-vgoyal@redhat.com>
 References: <20180131211329.16328-1-vgoyal@redhat.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:49626 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:58520 "EHLO mx1.redhat.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752844AbeAaVNn (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        id S1751669AbeAaVNn (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
         Wed, 31 Jan 2018 16:13:43 -0500
 In-Reply-To: <20180131211329.16328-1-vgoyal@redhat.com>
 Sender: linux-unionfs-owner@vger.kernel.org
@@ -14,146 +14,112 @@ List-Id: linux-unionfs@vger.kernel.org
 To: linux-unionfs@vger.kernel.org
 Cc: miklos@szeredi.hu, amir73il@gmail.com, vgoyal@redhat.com
 
-d_real() can make a upper metacopy dentry/inode visible to the vfs layer.
-This is something new and vfs layer does not know that this inode contains
-only metadata and not data. And this could break things.
+If it makes sense to copy up only metadata during copy up, do it. This
+is done for regular files which are not opened for WRITE and have origin
+being saved.
 
-So to be safe, do not expose metacopy only dentry/inode to vfs using
-d_real().
+Right now ->metacopy is set to 0 always. Last patch in the series will
+remove the hard coded statement and enable metacopy feature.
 
-IOW, d_real() will not reuturn metacopy dentry. Instead, it will return
-dentry corresponding lower dentry/inode which has file data.
+Currently ovl_set_origin() returns success even if specified xattr could
+not be set due to -EOPNOTSUPP returned by upper. IOW, ovl_set_origin()
+operation is optional and copy up operation continues.
 
-For regular d_real() call (inode == NULL, D_REAL_UPPER not set), if upper
-dentry inode is metacopy only and does not have data, return lower dentry.
+With metadata copy up, ovl_set_origin() can't be optional. We need to know
+if origin could be set or not. If it could not be set, then either disable
+metacopy or abort copy up operation. I have take then later approach and
+disable metacopy for this inode.
 
-If d_real() is called with flag D_REAL_UPPER, return upper dentry only if
-it has data (flag OVL_UPPERDATA is set).
-
-Similiarly, if d_real(inode=X) is called, a warning is emitted if returned
-dentry/inode does not have OVL_UPPERDATA set. This should not happen as
-we never made this metacopy inode visible to vfs so nobody should be
-calling overlayfs back with inode=metacopy_inode.
-
-I scanned the code and I don't think it breaks any of the existing code.
-There are two users of D_REAL_UPPER. may_write_real() and
-update_ovl_inode_times().
-
-may_write_real(), will get an NULL dentry if upper inode is metacopy only
-and it will return -EPERM. Effectively, we are disallowing modifications
-to metacopy only inode from this interface. Though there is opportunity
-to improve it. (Allow chattr on metacopy inodes).
-
-update_ovl_inode_times() gets inode mtime and ctime from real inode. It
-should not be broken for metacopy inode as well for following reasons.
-
-- For any metadata operations (setattr, acl etc), overlay always calls
-  ovl_copyattr() and updates ovl inode mtime and ctime. So there is no
-  need to update mtime and ctime in this case. Its already updated, hence
-  even if d_real(D_REAL_UPPER) returns nil, it should be fine.
-
-- For metadata inode, mtime should be same as lower and not change. (data
-  can't be modified on metadata inode without copyup). IOW, mtime of
-  ovl dentry should be same as mtime of underlying metadata inode on upper
-  always. So there is no need to update it.
-
-- For file writes, ctime and mtime will be updated. But in that case
-  first data will be copied up and this will not be a metadata inode
-  anymore. And furthr call to d_real(D_REAL_UPPER) will return upper
-  inode and new mtime and ctime will be obtainable.
-
-So atime updates should work just fine for metacopy inodes. I think only
-corner case is if somehow underlying filesystem changes ctime of upper
-metadata inode without overlay knowing about it. Not sure how that
-can happen. If somehow is affected by that, then we probably can implement
-another flag which will allow caller to get metacopy inode as well.
-Something like d_real(D_REAL_UPPER | D_METACOPY). And that should solve
-this issue.
+Normally we should not run into this path as metacopy will not be enabled
+if upper does not support xattr. This check is done during mount. This
+path can only hit if checks during mount pass but at some point of time
+later upper still returns -EOPNOTSUPP. So its a saftey mechanism to handle
+that unexpected -EOPNOTSUPP.
 
 Reviewed-by: Amir Goldstein <amir73il@gmail.com>
 Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
 ---
- fs/overlayfs/overlayfs.h |  1 +
- fs/overlayfs/super.c     | 21 +++++++++++++++++----
- fs/overlayfs/util.c      |  8 ++++++++
- 3 files changed, 26 insertions(+), 4 deletions(-)
+ fs/overlayfs/copy_up.c | 38 +++++++++++++++++++++++++++++++-------
+ 1 file changed, 31 insertions(+), 7 deletions(-)
 
-diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-index b663a65826a7..c712ab7274f9 100644
---- a/fs/overlayfs/overlayfs.h
-+++ b/fs/overlayfs/overlayfs.h
-@@ -214,6 +214,7 @@ void ovl_path_lowerdata(struct dentry *dentry, struct path *path);
- enum ovl_path_type ovl_path_real(struct dentry *dentry, struct path *path);
- struct dentry *ovl_dentry_upper(struct dentry *dentry);
- struct dentry *ovl_dentry_lower(struct dentry *dentry);
-+struct dentry *ovl_dentry_lowerdata(struct dentry *dentry);
- struct dentry *ovl_dentry_real(struct dentry *dentry);
- struct dentry *ovl_i_dentry_upper(struct inode *inode);
- struct inode *ovl_inode_upper(struct inode *inode);
-diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-index a6e3719a599b..f5cacae8269a 100644
---- a/fs/overlayfs/super.c
-+++ b/fs/overlayfs/super.c
-@@ -91,8 +91,14 @@ static struct dentry *ovl_d_real(struct dentry *dentry,
- 	struct dentry *real;
- 	int err;
- 
--	if (flags & D_REAL_UPPER)
--		return ovl_dentry_upper(dentry);
-+	if (flags & D_REAL_UPPER) {
-+		real = ovl_dentry_upper(dentry);
-+		if (!real)
-+			return NULL;
-+		if (!ovl_has_upperdata(dentry))
-+			return NULL;
-+		return real;
-+	}
- 
- 	if (!d_is_reg(dentry)) {
- 		if (!inode || inode == d_inode(dentry))
-@@ -108,15 +114,22 @@ static struct dentry *ovl_d_real(struct dentry *dentry,
- 
- 	real = ovl_dentry_upper(dentry);
- 	if (real && (!inode || inode == d_inode(real))) {
-+		bool metacopy = !ovl_has_upperdata(dentry);
- 		if (!inode) {
- 			err = ovl_check_append_only(d_inode(real), open_flags);
- 			if (err)
- 				return ERR_PTR(err);
--		}
-+
-+			if (unlikely(metacopy))
-+				goto lower;
-+		} else if (unlikely(metacopy))
-+			goto bug;
-+
- 		return real;
- 	}
- 
--	real = ovl_dentry_lower(dentry);
-+lower:
-+	real = ovl_dentry_lowerdata(dentry);
- 	if (!real)
- 		goto bug;
- 
-diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
-index ee0c46ae34f9..b11bb9f10464 100644
---- a/fs/overlayfs/util.c
-+++ b/fs/overlayfs/util.c
-@@ -170,6 +170,14 @@ struct dentry *ovl_dentry_lower(struct dentry *dentry)
- 	return oe->numlower ? oe->lowerstack[0].dentry : NULL;
+diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
+index 31711edf5bde..c5804b87f3c7 100644
+--- a/fs/overlayfs/copy_up.c
++++ b/fs/overlayfs/copy_up.c
+@@ -232,6 +232,26 @@ int ovl_set_attr(struct dentry *upperdentry, struct kstat *stat)
+ 	return err;
  }
  
-+struct dentry *ovl_dentry_lowerdata(struct dentry *dentry)
++static bool ovl_need_meta_copy_up(struct dentry *dentry, umode_t mode,
++				  int flags)
 +{
-+	struct ovl_entry *oe = dentry->d_fsdata;
-+	int idx = oe->numlower - 1;
++	struct ovl_fs *ofs = dentry->d_sb->s_fs_info;
 +
-+	return oe->lowerstack[idx].dentry;
++	/* TODO: Will enable metacopy in last patch of series */
++	return false;
++
++	if (!ofs->config.metacopy)
++		return false;
++
++	if (!S_ISREG(mode))
++		return false;
++
++	if (flags && ((OPEN_FMODE(flags) & FMODE_WRITE) || (flags & O_TRUNC)))
++		return false;
++
++	return true;
 +}
 +
- struct dentry *ovl_dentry_real(struct dentry *dentry)
+ struct ovl_fh *ovl_encode_fh(struct dentry *lower, bool is_upper)
  {
- 	return ovl_dentry_upper(dentry) ?: ovl_dentry_lower(dentry);
+ 	struct ovl_fh *fh;
+@@ -305,11 +325,8 @@ static int ovl_set_origin(struct dentry *dentry, struct dentry *lower,
+ 			return PTR_ERR(fh);
+ 	}
+ 
+-	/*
+-	 * Do not fail when upper doesn't support xattrs.
+-	 */
+ 	err = ovl_check_setxattr(dentry, upper, OVL_XATTR_ORIGIN, fh,
+-				 fh ? fh->len : 0, 0);
++				 fh ? fh->len : 0, -EOPNOTSUPP);
+ 	kfree(fh);
+ 
+ 	return err;
+@@ -326,6 +343,7 @@ struct ovl_copy_up_ctx {
+ 	struct qstr destname;
+ 	struct dentry *workdir;
+ 	bool tmpfile;
++	bool metacopy;
+ };
+ 
+ static int ovl_link_up(struct ovl_copy_up_ctx *c)
+@@ -453,10 +471,14 @@ static int ovl_copy_up_inode(struct ovl_copy_up_ctx *c, struct dentry *temp)
+ 	 *
+ 	 */
+ 	err = ovl_set_origin(c->dentry, c->lowerpath.dentry, temp);
+-	if (err)
+-		return err;
++	if (err) {
++		if (err != -EOPNOTSUPP)
++			return err;
++		/* Upper does not support xattr. Copy up data as well */
++		c->metacopy = false;
++	}
+ 
+-	if (S_ISREG(c->stat.mode)) {
++	if (S_ISREG(c->stat.mode) && !c->metacopy) {
+ 		struct path upperpath;
+ 
+ 		ovl_path_upper(c->dentry, &upperpath);
+@@ -601,6 +623,8 @@ static int ovl_copy_up_one(struct dentry *parent, struct dentry *dentry,
+ 	if (err)
+ 		return err;
+ 
++	ctx.metacopy = ovl_need_meta_copy_up(dentry, ctx.stat.mode, flags);
++
+ 	ovl_path_upper(parent, &parentpath);
+ 	ctx.destdir = parentpath.dentry;
+ 	ctx.destname = dentry->d_name;
 -- 
 2.13.6
