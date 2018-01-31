@@ -1,256 +1,246 @@
-From: Hou Tao <houtao1@huawei.com>
-Subject: [RFC][PATCH v2] overlay: hardlink all whiteout files into a single one
-Date: Wed, 31 Jan 2018 19:45:02 +0800
-Message-ID: <20180131114502.8827-1-houtao1@huawei.com>
-Mime-Version: 1.0
-Content-Type: text/plain
+From: Amir Goldstein <amir73il@gmail.com>
+Subject: [PATCH 2/2] overlay: test overlay file handle of dir with ancestor under lower redirect
+Date: Wed, 31 Jan 2018 13:44:55 +0200
+Message-ID: <1517399095-28512-3-git-send-email-amir73il@gmail.com>
+References: <1517399095-28512-1-git-send-email-amir73il@gmail.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from szxga07-in.huawei.com ([45.249.212.35]:52428 "EHLO huawei.com"
-        rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1752377AbeAaLgf (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 31 Jan 2018 06:36:35 -0500
-Received: from DGGEMS402-HUB.china.huawei.com (unknown [172.30.72.60])
-        by Forcepoint Email with ESMTP id 93FA81948258D
-        for <linux-unionfs@vger.kernel.org>; Wed, 31 Jan 2018 19:36:30 +0800 (CST)
+Received: from mail-wm0-f45.google.com ([74.125.82.45]:40060 "EHLO
+        mail-wm0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753236AbeAaLn5 (ORCPT
+        <rfc822;linux-unionfs@vger.kernel.org>);
+        Wed, 31 Jan 2018 06:43:57 -0500
+In-Reply-To: <1517399095-28512-1-git-send-email-amir73il@gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: linux-unionfs@vger.kernel.org
-Cc: miklos@szeredi.hu, amir73il@gmail.com
+To: Eryu Guan <eguan@redhat.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, fstests@vger.kernel.org
 
-Now each whiteout file will be assigned a new inode. To reduce the
-overhead of allocating and freeing inodes in upper fs, creating a
-singleton whiteout file under workdir and hardlink all whiteout files
-into it.
+Overlayfs with nfs_export enabled, indexes all directories on copy up.
+Directory index is requires for decoding lower directory file handles
+in case ancestors have been renamed.
 
-The effect is obvious: under my VM, the time used for removing the
-linux kernel source tree will be reduced from 17s to 10s.
+When enabling nfs_export on an overlay that has merge dirs with lower
+layer redirects, the possibility of ancestor rename requires special
+handling when encoding lower directory file handles from layer > 1.
 
-Got the idea from aufs4.
+- Check decode of lower dir with parent under lower redirect
+- Check decode of lower dir with grandparent under lower redirect
+- Check decode of lower dir after rename of lower redirected parent
+- Check decode of lower dir after rename of lower redirected grandparent
 
-Signed-off-by: Hou Tao <houtao1@huawei.com>
+This test requires and enables overlayfs NFS export support and merge
+dir rename support (redirect_dir).
+NFS export support depends on and requires overlayfs index feature.
+
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
-v2:
-    * address the comments from Miklos and Amir: handle -EMLINK and -EXDEV
-      when hard-linking whiteout file to the singleton
+ tests/overlay/055     | 170 ++++++++++++++++++++++++++++++++++++++++++++++++++
+ tests/overlay/055.out |  10 +++
+ tests/overlay/group   |   1 +
+ 3 files changed, 181 insertions(+)
+ create mode 100755 tests/overlay/055
+ create mode 100644 tests/overlay/055.out
 
-    * move the singleton whiteout from workbasedir to workdir to simplify
-      the lock of inodes
-
-Hi,
-
-Now the singleton whiteout is moved from workbasedir to workdir, so it will
-be recreated after each mount. And i'm not sure whether or not it's worth
-to make the singleton whiteout persistent (eg., by skipping the removal of
-the singleton whiteout during making workdir, swapping it into workbasedir
-and swapping it back after the recreate of workdir). Any suggestion ?
-
-Thanks,
-Tao
----
- fs/overlayfs/dir.c       | 118 ++++++++++++++++++++++++++++++++++++++++++++++-
- fs/overlayfs/overlayfs.h |   1 +
- fs/overlayfs/ovl_entry.h |   5 ++
- fs/overlayfs/super.c     |   5 ++
- 4 files changed, 128 insertions(+), 1 deletion(-)
-
-diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
-index f9788bc..83aeff9 100644
---- a/fs/overlayfs/dir.c
-+++ b/fs/overlayfs/dir.c
-@@ -17,6 +17,7 @@
- #include <linux/posix_acl_xattr.h>
- #include <linux/atomic.h>
- #include <linux/ratelimit.h>
-+#include <linux/mount.h>
- #include "overlayfs.h"
- 
- static unsigned short ovl_redirect_max = 256;
-@@ -62,6 +63,111 @@ struct dentry *ovl_lookup_temp(struct dentry *workdir)
- 	return temp;
- }
- 
-+#define OVL_WHITEOUT_FILE_NAME "whiteout"
+diff --git a/tests/overlay/055 b/tests/overlay/055
+new file mode 100755
+index 0000000..70fe6ac
+--- /dev/null
++++ b/tests/overlay/055
+@@ -0,0 +1,170 @@
++#! /bin/bash
++# FS QA Test No. 055
++#
++# Test overlay file handle of dir with ancestor under lower redirect
++#
++# Overlayfs with nfs_export enabled, indexes all directories on copy up.
++# Directory index is requires for decoding lower directory file handles
++# in case ancestors have been renamed.
++#
++# When enabling nfs_export on an overlay that has merge dirs with lower
++# layer redirects, the possibility of ancestor rename requires special
++# handling when encoding lower directory file handles from layer > 1.
++#
++# - Check decode of lower dir with parent under lower redirect
++# - Check decode of lower dir with grandparent under lower redirect
++# - Check decode of lower dir after rename of lower redirected parent
++# - Check decode of lower dir after rename of lower redirected grandparent
++#
++# This test requires and enables overlayfs NFS export support and merge
++# dir rename support (redirect_dir).
++# NFS export support depends on and requires overlayfs index feature.
++#
++#-----------------------------------------------------------------------
++# Copyright (C) 2018 CTERA Networks. All Rights Reserved.
++# Author: Amir Goldstein <amir73il@gmail.com>
++#
++# This program is free software; you can redistribute it and/or
++# modify it under the terms of the GNU General Public License as
++# published by the Free Software Foundation.
++#
++# This program is distributed in the hope that it would be useful,
++# but WITHOUT ANY WARRANTY; without even the implied warranty of
++# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++# GNU General Public License for more details.
++#
++# You should have received a copy of the GNU General Public License
++# along with this program; if not, write the Free Software Foundation,
++# Inc.,  51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
++#-----------------------------------------------------------------------
++#
 +
-+static int ovl_make_singleton_whiteout_nolock(struct ovl_fs *ofs,
-+		struct dentry *dir, const char *name)
++seq=`basename $0`
++seqres=$RESULT_DIR/$seq
++echo "QA output created by $seq"
++
++here=`pwd`
++tmp=/tmp/$$
++status=1	# failure is the default!
++trap "_cleanup; exit \$status" 0 1 2 3 15
++
++_cleanup()
 +{
-+	struct inode *inode = d_inode(dir);
-+	struct dentry *whiteout;
-+
-+	whiteout = lookup_one_len(name, dir, strlen(name));
-+	if (IS_ERR(whiteout))
-+		return PTR_ERR(whiteout);
-+
-+	if (ovl_is_whiteout(whiteout)) {
-+		ofs->whiteout = whiteout;
-+	} else if (!whiteout->d_inode) {
-+		if (!ovl_do_whiteout(inode, whiteout))
-+			ofs->whiteout = whiteout;
-+		else
-+			dput(whiteout);
-+	} else {
-+		dput(whiteout);
-+	}
-+
-+	return 0;
++	cd /
++	rm -f $tmp.*
++	# Cleanup overlay scratch mount that is holding base test mount
++	# to prevent _check_test_fs and _test_umount from failing before
++	# _check_scratch_fs _scratch_umount
++	$UMOUNT_PROG $SCRATCH_MNT 2>/dev/null
 +}
 +
-+/*
-+ * create a new whiteout file under dir if it doesn't exist.
-+ * If a non-whiteout file has existed, the singleton whiteout
-+ * will not be created.
-+ */
-+int ovl_make_singleton_whiteout(struct ovl_fs *ofs)
++# get standard environment, filters and checks
++. ./common/rc
++. ./common/filter
++
++# real QA test starts here
++
++_supported_fs overlay
++_supported_os Linux
++_require_test
++_require_scratch
++_require_test_program "open_by_handle"
++# We need to require all features together, because nfs_export cannot
++# be enabled when index is disabled
++_require_scratch_overlay_features index nfs_export redirect_dir
++
++# Lower is on test partition
++lower=$OVL_BASE_TEST_DIR/$OVL_LOWER-$seq
++# Upper/work are on scratch partition
++middle=$OVL_BASE_SCRATCH_MNT/$OVL_LOWER
++upper=$OVL_BASE_SCRATCH_MNT/$OVL_UPPER
++work=$OVL_BASE_SCRATCH_MNT/$OVL_WORK
++
++NUMFILES=1
++
++# Create test dir and empty test files
++create_test_files()
 +{
-+	int err;
-+	struct vfsmount *mnt = ofs->upper_mnt;
-+	struct inode *dir = d_inode(ofs->workdir);
++	local dir=$1
++	local opt=$2
 +
-+	err = mnt_want_write(mnt);
-+	if (err)
-+		return err;
-+
-+	inode_lock_nested(dir, I_MUTEX_PARENT);
-+
-+	err = ovl_make_singleton_whiteout_nolock(ofs, ofs->workdir,
-+			OVL_WHITEOUT_FILE_NAME);
-+
-+	inode_unlock(dir);
-+	mnt_drop_write(mnt);
-+
-+	return err;
++	mkdir -p $dir
++	$here/src/open_by_handle -cp $opt $dir $NUMFILES
 +}
 +
-+static int ovl_link_to_singleton_whiteout(struct ovl_fs *ofs,
-+		struct dentry *whiteout, bool *create_instead)
++# Test encode/decode file handles on overlay mount
++test_file_handles()
 +{
-+	int err;
-+	struct inode *wdir = d_inode(ofs->workdir);
-+	struct dentry *singleton;
-+	bool retried = false;
++	local dir=$1
++	shift
 +
-+	*create_instead = false;
-+retry:
-+	singleton = ofs->whiteout;
-+	err = ovl_do_link(singleton, wdir, whiteout, false);
-+	if (!err) {
-+		goto out;
-+	} else if (err == -EMLINK && !retried) {
-+		/*
-+		 * The singleton already has the maximum number of links to it,
-+		 * so remove the old one and create a new one
-+		 */
-+		ofs->whiteout = NULL;
-+		err = ovl_do_unlink(wdir, singleton);
-+		if (err) {
-+			dput(singleton);
-+			goto out;
-+		}
-+		dput(singleton);
-+
-+		err = ovl_make_singleton_whiteout_nolock(ofs, ofs->workdir,
-+				OVL_WHITEOUT_FILE_NAME);
-+		if (err)
-+			goto out;
-+
-+		retried = true;
-+		if (ofs->whiteout)
-+			goto retry;
-+		else
-+			goto out_fallback;
-+	} else if (err == -EXDEV) {
-+		/*
-+		 * upper fs may have a project id different than singleton,
-+		 * so fall back to create whiteout directly
-+		 */
-+		goto out_fallback;
-+	} else {
-+		goto out;
-+	}
-+
-+out_fallback:
-+	*create_instead = true;
-+out:
-+	return err;
++	echo test_file_handles $dir $* | _filter_scratch | \
++				sed -e "s,$tmp\.,,g"
++	$here/src/open_by_handle $* $dir $NUMFILES
 +}
 +
- /* caller holds i_mutex on workdir */
- static struct dentry *ovl_whiteout(struct dentry *workdir,
- 				   struct dentry *dentry)
-@@ -69,12 +175,22 @@ static struct dentry *ovl_whiteout(struct dentry *workdir,
- 	int err;
- 	struct dentry *whiteout;
- 	struct inode *wdir = workdir->d_inode;
-+	struct ovl_fs *ofs = dentry->d_sb->s_fs_info;
-+	bool create_instead;
- 
- 	whiteout = ovl_lookup_temp(workdir);
- 	if (IS_ERR(whiteout))
- 		return whiteout;
- 
--	err = ovl_do_whiteout(wdir, whiteout);
-+	if (ofs->whiteout)
-+		err = ovl_link_to_singleton_whiteout(ofs, whiteout,
-+				&create_instead);
-+	else
-+		create_instead = true;
++# Re-create lower/middle/upper/work dirs
++create_dirs()
++{
++	# Create lower dir on test partition
++	rm -rf $lower
++	mkdir $lower
 +
-+	if (create_instead)
-+		err = ovl_do_whiteout(wdir, whiteout);
++	# Create middle/upper/work dirs on scratch partition
++	_scratch_mkfs
++}
 +
- 	if (err) {
- 		dput(whiteout);
- 		whiteout = ERR_PTR(err);
-diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-index b489099..5f8d94a 100644
---- a/fs/overlayfs/overlayfs.h
-+++ b/fs/overlayfs/overlayfs.h
-@@ -315,6 +315,7 @@ int ovl_create_real(struct inode *dir, struct dentry *newdentry,
- 		    struct cattr *attr,
- 		    struct dentry *hardlink, bool debug);
- int ovl_cleanup(struct inode *dir, struct dentry *dentry);
-+int ovl_make_singleton_whiteout(struct ovl_fs *ofs);
- 
- /* copy_up.c */
- int ovl_copy_up(struct dentry *dentry);
-diff --git a/fs/overlayfs/ovl_entry.h b/fs/overlayfs/ovl_entry.h
-index 9d0bc03..f93c304 100644
---- a/fs/overlayfs/ovl_entry.h
-+++ b/fs/overlayfs/ovl_entry.h
-@@ -40,6 +40,11 @@ struct ovl_fs {
- 	struct dentry *workdir;
- 	/* index directory listing overlay inodes by origin file handle */
- 	struct dentry *indexdir;
-+	/*
-+	 * the singleton whiteout file under workdir: all newly created
-+	 * whiteout files will be linked to it if possible
-+	 */
-+	struct dentry *whiteout;
- 	long namelen;
- 	/* pathnames of lower and upper dirs, for show_options */
- 	struct ovl_config config;
-diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-index 76440fe..95937ad 100644
---- a/fs/overlayfs/super.c
-+++ b/fs/overlayfs/super.c
-@@ -223,6 +223,7 @@ static void ovl_free_fs(struct ovl_fs *ofs)
- 	unsigned i;
- 
- 	dput(ofs->indexdir);
-+	dput(ofs->whiteout);
- 	dput(ofs->workdir);
- 	if (ofs->workdir_locked)
- 		ovl_inuse_unlock(ofs->workbasedir);
-@@ -936,6 +937,10 @@ static int ovl_make_workdir(struct ovl_fs *ofs, struct path *workpath)
- 	if (!ofs->workdir)
- 		return 0;
- 
-+	err = ovl_make_singleton_whiteout(ofs);
-+	if (err < 0)
-+		return err;
++# Mount an overlay on $SCRATCH_MNT with lower layer on test partition
++# and middle and upper layer on scratch partition
++mount_dirs()
++{
++	_overlay_scratch_mount_dirs $middle:$lower $upper $work \
++				-o "index=on,nfs_export=on,redirect_dir=on"
++}
 +
- 	/*
- 	 * Upper should support d_type, else whiteouts are visible.  Given
- 	 * workdir and upper are on same fs, we can do iterate_dir() on
++# Unmount the overlay without unmounting base fs
++unmount_dirs()
++{
++	$UMOUNT_PROG $SCRATCH_MNT
++}
++
++# Check file handles of dir with ancestor under lower redirect
++create_dirs
++create_test_files $lower/origin -w
++create_test_files $lower/origin/dir -w
++create_test_files $lower/origin/dir/subdir -w
++create_test_files $lower/origin/parent/child -w
++# Create lower redirected merge dir
++mkdir $middle/merged
++setfattr -n "trusted.overlay.redirect" -v "origin" $middle/merged
++mount_dirs
++# Check encode/decode/read of lower dir with parent under lower redirect
++# This is expected to copy up merged/dir and encode an upper file handle
++test_file_handles $SCRATCH_MNT/merged/dir -p -o $tmp.dir_file_handles
++test -d $upper/merged/dir || echo "merged/dir not copied up"
++# Check encode/decode/read of lower dir with grandparent under lower redirect
++# This is expected to encode a lower file handle
++test_file_handles $SCRATCH_MNT/merged/dir/subdir -p -o $tmp.subdir_file_handles
++test -d $upper/merged/dir/subdir && echo "merged/dir/subdir unexpected copy up"
++# This is expected to copy up parent and encode a lower file handle
++test_file_handles $SCRATCH_MNT/merged/parent/child -p -o $tmp.child_file_handles
++test -d $upper/merged/parent || echo "merged/parent not copied up"
++test -d $upper/merged/parent/child && echo "merged/parent/child unexpected copy up"
++
++# Rename lower redirected merge dir
++mv $SCRATCH_MNT/merged $SCRATCH_MNT/merged.new/
++# Check open, read and readdir from stored file handles
++# (testdir argument is the mount point and NOT the dir
++#  we are trying to open by stored file handle)
++test_file_handles $SCRATCH_MNT -rp -i $tmp.dir_file_handles
++test_file_handles $SCRATCH_MNT -rp -i $tmp.subdir_file_handles
++test_file_handles $SCRATCH_MNT -rp -i $tmp.child_file_handles
++# Retry decoding lower subdir file handles when indexed ancestor is in dcache
++# (providing the ancestor dir argument pins the ancestor to dcache)
++test_file_handles $SCRATCH_MNT/merged.new/dir -rp -i $tmp.dir_file_handles
++test_file_handles $SCRATCH_MNT/merged.new/dir -rp -i $tmp.subdir_file_handles
++test_file_handles $SCRATCH_MNT/merged.new/parent -rp -i $tmp.child_file_handles
++unmount_dirs
++
++status=0
++exit
+diff --git a/tests/overlay/055.out b/tests/overlay/055.out
+new file mode 100644
+index 0000000..59acd29
+--- /dev/null
++++ b/tests/overlay/055.out
+@@ -0,0 +1,10 @@
++QA output created by 055
++test_file_handles SCRATCH_MNT/merged/dir -p -o dir_file_handles
++test_file_handles SCRATCH_MNT/merged/dir/subdir -p -o subdir_file_handles
++test_file_handles SCRATCH_MNT/merged/parent/child -p -o child_file_handles
++test_file_handles SCRATCH_MNT -rp -i dir_file_handles
++test_file_handles SCRATCH_MNT -rp -i subdir_file_handles
++test_file_handles SCRATCH_MNT -rp -i child_file_handles
++test_file_handles SCRATCH_MNT/merged.new/dir -rp -i dir_file_handles
++test_file_handles SCRATCH_MNT/merged.new/dir -rp -i subdir_file_handles
++test_file_handles SCRATCH_MNT/merged.new/parent -rp -i child_file_handles
+diff --git a/tests/overlay/group b/tests/overlay/group
+index 4326a27..40c1a05 100644
+--- a/tests/overlay/group
++++ b/tests/overlay/group
+@@ -55,3 +55,4 @@
+ 052 auto quick copyup redirect exportfs
+ 053 auto quick copyup redirect exportfs nonsamefs
+ 054 auto quick copyup redirect exportfs
++055 auto quick copyup redirect exportfs nonsamefs
 -- 
-2.9.5
+2.7.4
