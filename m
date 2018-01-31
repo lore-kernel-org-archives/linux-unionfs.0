@@ -1,236 +1,94 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH 1/2] overlay: test overlay file handles of lower dir with non-indexed ancestor
-Date: Wed, 31 Jan 2018 13:44:54 +0200
-Message-ID: <1517399095-28512-2-git-send-email-amir73il@gmail.com>
-References: <1517399095-28512-1-git-send-email-amir73il@gmail.com>
-Return-path: <fstests-owner@vger.kernel.org>
-In-Reply-To: <1517399095-28512-1-git-send-email-amir73il@gmail.com>
-Sender: fstests-owner@vger.kernel.org
-To: Eryu Guan <eguan@redhat.com>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, fstests@vger.kernel.org
+Subject: Re: [QUESTION] problem about origin xattr
+Date: Wed, 31 Jan 2018 17:38:45 +0200
+Message-ID: <CAOQ4uxgK+fsRp=gRmQa-9zp8BZFwaJNxTP9ioCg+gOij2G-RCQ@mail.gmail.com>
+References: <1594ffa4-1877-0331-d662-bf9e1e0dcca1@huawei.com>
+ <CAOQ4uxhGmD2g4Z9EY504OfssyiVvUskKGec0vqraHOHia88PPQ@mail.gmail.com> <20180131152041.GA8087@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-unionfs-owner@vger.kernel.org>
+Received: from mail-yw0-f169.google.com ([209.85.161.169]:34271 "EHLO
+        mail-yw0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751447AbeAaPir (ORCPT
+        <rfc822;linux-unionfs@vger.kernel.org>);
+        Wed, 31 Jan 2018 10:38:47 -0500
+Received: by mail-yw0-f169.google.com with SMTP id t201so7827317ywf.1
+        for <linux-unionfs@vger.kernel.org>; Wed, 31 Jan 2018 07:38:46 -0800 (PST)
+In-Reply-To: <20180131152041.GA8087@redhat.com>
+Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
+To: Vivek Goyal <vgoyal@redhat.com>
+Cc: yangerkun <yangerkun@huawei.com>, "zhangyi (F)" <yi.zhang@huawei.com>, Miklos Szeredi <miklos@szeredi.hu>, Miao Xie <miaoxie@huawei.com>, overlayfs <linux-unionfs@vger.kernel.org>
 
-Overlayfs with nfs_export enabled, indexes all directories on copy up.
-Directory index is requires for decoding lower directory file handles
-in case ancestors have been renamed.
+On Wed, Jan 31, 2018 at 5:20 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
+> On Wed, Jan 31, 2018 at 03:57:12PM +0200, Amir Goldstein wrote:
+>
+> ORIGIN behavior is little unintuitive though. Despite the fact that file
+> is not searchable through lower, it is visible through decoding of file
+> handle and it is atleast non-intuitive.
+>
 
-When enabling nfs_export on an overlay that already has non-indexed
-merge dirs, the possibility of non-indexed ancestor rename requires
-special handling when encoding lower directory file handles.
+Maybe not intuitive at first glance, but try again:
 
-- Check encode/decode/read file handles of non-indexed merge dir
-- Check encode/decode/read file handles of dir with non-indexed parent
-- Check encode/decode/read file handles of dir with non-indexed grandparent
-- Check decode/read of file handles after rename of non-indexed merge dir
-- Check decode/read of file handles after rename of non-indexed parent
-- Check decode/read of file handles after rename of non-indexed grandparent
+The only thing we *need* from underlying fs is to provide us with a unique
+and persistent inode number we can use for the overlay object.
 
-This test requires and enables overlayfs NFS export support and merge
-dir rename support (redirect_dir).
-NFS export support depends on and requires overlayfs index feature.
+Even if the inode number we get from underlying fs is not in any of the
+layers, it is still a  viable inode number we can use in overlay coupled
+with overlay unique st_dev, to create a system wide unique st_dev;st_ino
+tuple.
 
-Signed-off-by: Amir Goldstein <amir73il@gmail.com>
----
- tests/overlay/054     | 162 ++++++++++++++++++++++++++++++++++++++++++++++++++
- tests/overlay/054.out |  11 ++++
- tests/overlay/group   |   1 +
- 3 files changed, 174 insertions(+)
- create mode 100755 tests/overlay/054
- create mode 100644 tests/overlay/054.out
+So I don't see any reason to fix this.
+However, if one would want to fix this, that will require at least:
+1. storing a 'connectable' non-dir file handle in ORIGIN xattr
+2. but still use the non-connectable file handle for index
+3. in ovl_acceptable(), check if non-dir is !IS_ROOT and validate
+    it with is_subdir() same as done for directories
 
-diff --git a/tests/overlay/054 b/tests/overlay/054
-new file mode 100755
-index 0000000..c788460
---- /dev/null
-+++ b/tests/overlay/054
-@@ -0,0 +1,162 @@
-+#! /bin/bash
-+# FS QA Test No. 054
-+#
-+# Test encode/decode overlay file handle of dir with non-indexed ancestor
-+#
-+# Overlayfs with nfs_export enabled, indexes all directories on copy up.
-+# Directory index is requires for decoding lower directory file handles
-+# in case ancestors have been renamed.
-+#
-+# When enabling nfs_export on an overlay that already has non-indexed
-+# merge dirs, the possibility of non-indexed ancestor rename requires
-+# special handling when encoding lower directory file handles.
-+#
-+# - Check encode/decode/read file handles of non-indexed merge dir
-+# - Check encode/decode/read file handles of dir with non-indexed parent
-+# - Check encode/decode/read file handles of dir with non-indexed grandparent
-+# - Check decode/read of file handles after rename of non-indexed merge dir
-+# - Check decode/read of file handles after rename of non-indexed parent
-+# - Check decode/read of file handles after rename of non-indexed grandparent
-+#
-+# This test requires and enables overlayfs NFS export support and merge
-+# dir rename support (redirect_dir).
-+# NFS export support depends on and requires overlayfs index feature.
-+#
-+#-----------------------------------------------------------------------
-+# Copyright (C) 2018 CTERA Networks. All Rights Reserved.
-+# Author: Amir Goldstein <amir73il@gmail.com>
-+#
-+# This program is free software; you can redistribute it and/or
-+# modify it under the terms of the GNU General Public License as
-+# published by the Free Software Foundation.
-+#
-+# This program is distributed in the hope that it would be useful,
-+# but WITHOUT ANY WARRANTY; without even the implied warranty of
-+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+# GNU General Public License for more details.
-+#
-+# You should have received a copy of the GNU General Public License
-+# along with this program; if not, write the Free Software Foundation,
-+# Inc.,  51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-+#-----------------------------------------------------------------------
-+#
-+
-+seq=`basename $0`
-+seqres=$RESULT_DIR/$seq
-+echo "QA output created by $seq"
-+
-+here=`pwd`
-+tmp=/tmp/$$
-+status=1	# failure is the default!
-+trap "_cleanup; exit \$status" 0 1 2 3 15
-+
-+_cleanup()
-+{
-+	cd /
-+	rm -f $tmp.*
-+}
-+
-+# get standard environment, filters and checks
-+. ./common/rc
-+. ./common/filter
-+
-+# real QA test starts here
-+
-+_supported_fs overlay
-+_supported_os Linux
-+_require_scratch
-+_require_test_program "open_by_handle"
-+# We need to require all features together, because nfs_export cannot
-+# be enabled when index is disabled
-+_require_scratch_overlay_features index nfs_export redirect_dir
-+
-+# All overlay dirs are on scratch partition
-+lower=$OVL_BASE_SCRATCH_MNT/$OVL_LOWER
-+middle=$OVL_BASE_SCRATCH_MNT/$OVL_LOWER.2
-+upper=$OVL_BASE_SCRATCH_MNT/$OVL_UPPER
-+work=$OVL_BASE_SCRATCH_MNT/$OVL_WORK
-+
-+NUMFILES=1
-+
-+# Create test dir and empty test files
-+create_test_files()
-+{
-+	local dir=$1
-+	local opt=$2
-+
-+	mkdir -p $dir
-+	$here/src/open_by_handle -cp $opt $dir $NUMFILES
-+}
-+
-+# Test encode/decode file handles on overlay mount
-+test_file_handles()
-+{
-+	local dir=$1
-+	shift
-+
-+	echo test_file_handles $dir $* | _filter_scratch | \
-+				sed -e "s,$tmp\.,,g"
-+	$here/src/open_by_handle $* $dir $NUMFILES
-+}
-+
-+# Re-create lower/middle/upper/work dirs
-+create_dirs()
-+{
-+	_scratch_mkfs
-+	mkdir -p $middle
-+}
-+
-+# Mount an overlay on $SCRATCH_MNT with all layers on scratch partition
-+mount_dirs()
-+{
-+	_scratch_mount -o "index=on,nfs_export=on,redirect_dir=on"
-+}
-+
-+# Unmount the overlay without unmounting base fs
-+unmount_dirs()
-+{
-+	$UMOUNT_PROG $SCRATCH_MNT
-+}
-+
-+# Check encode/decode/read file handles of dir with non-indexed ancestor
-+create_dirs
-+create_test_files $lower/merged -w
-+create_test_files $lower/merged/dir -w
-+create_test_files $lower/merged/dir/subdir -w
-+create_test_files $lower/merged/parent/child -w
-+# Create non-indexed merge dir
-+mkdir $upper/merged
-+mount_dirs
-+# Check encode/decode/read file handles of non-indexed merge dir
-+# This is expected to encode an upper file handle
-+test_file_handles $SCRATCH_MNT/merged -p -o $tmp.merged_file_handles
-+# Check encode/decode/read file handles of dir with non-indexed parent
-+# This is expected to copy up merged/dir and encode an upper file handle
-+test_file_handles $SCRATCH_MNT/merged/dir -p -o $tmp.dir_file_handles
-+test -d $upper/merged/dir || echo "merged/dir not copied up"
-+# Check encode/decode/read file handles of dir with non-indexed grandparent
-+# This is expected to encode a lower file handle
-+test_file_handles $SCRATCH_MNT/merged/dir/subdir -p -o $tmp.subdir_file_handles
-+test -d $upper/merged/dir/subdir && echo "merged/dir/subdir unexpected copy up"
-+# This is expected to copy up parent and encode a lower file handle
-+test_file_handles $SCRATCH_MNT/merged/parent/child -p -o $tmp.child_file_handles
-+test -d $upper/merged/parent || echo "merged/parent not copied up"
-+test -d $upper/merged/parent/child && echo "merged/parent/child unexpected copy up"
-+
-+# Rename non-indexed merge dir
-+mv $SCRATCH_MNT/merged $SCRATCH_MNT/merged.new/
-+# Check open, read and readdir from stored file handles
-+# (testdir argument is the mount point and NOT the dir
-+#  we are trying to open by stored file handle)
-+test_file_handles $SCRATCH_MNT -rp -i $tmp.merged_file_handles
-+test_file_handles $SCRATCH_MNT -rp -i $tmp.dir_file_handles
-+test_file_handles $SCRATCH_MNT -rp -i $tmp.subdir_file_handles
-+test_file_handles $SCRATCH_MNT -rp -i $tmp.child_file_handles
-+# Retry decoding lower subdir file handles when indexed ancestor is in dcache
-+# (providing the ancestor dir argument pins the ancestor to dcache)
-+test_file_handles $SCRATCH_MNT/merged.new/dir -rp -i $tmp.subdir_file_handles
-+test_file_handles $SCRATCH_MNT/merged.new/parent -rp -i $tmp.child_file_handles
-+unmount_dirs
-+
-+status=0
-+exit
-diff --git a/tests/overlay/054.out b/tests/overlay/054.out
-new file mode 100644
-index 0000000..dd8fddf
---- /dev/null
-+++ b/tests/overlay/054.out
-@@ -0,0 +1,11 @@
-+QA output created by 054
-+test_file_handles SCRATCH_MNT/merged -p -o merged_file_handles
-+test_file_handles SCRATCH_MNT/merged/dir -p -o dir_file_handles
-+test_file_handles SCRATCH_MNT/merged/dir/subdir -p -o subdir_file_handles
-+test_file_handles SCRATCH_MNT/merged/parent/child -p -o child_file_handles
-+test_file_handles SCRATCH_MNT -rp -i merged_file_handles
-+test_file_handles SCRATCH_MNT -rp -i dir_file_handles
-+test_file_handles SCRATCH_MNT -rp -i subdir_file_handles
-+test_file_handles SCRATCH_MNT -rp -i child_file_handles
-+test_file_handles SCRATCH_MNT/merged.new/dir -rp -i subdir_file_handles
-+test_file_handles SCRATCH_MNT/merged.new/parent -rp -i child_file_handles
-diff --git a/tests/overlay/group b/tests/overlay/group
-index ec0b711..4326a27 100644
---- a/tests/overlay/group
-+++ b/tests/overlay/group
-@@ -54,3 +54,4 @@
- 051 auto quick copyup hardlink exportfs nonsamefs
- 052 auto quick copyup redirect exportfs
- 053 auto quick copyup redirect exportfs nonsamefs
-+054 auto quick copyup redirect exportfs
--- 
-2.7.4
+Cheers,
+Amir.
+
+>
+>
+>> Hi yangerkun,
+>>
+>> Replying from phone so sorry for excluding list.
+>> Please add list back if replying.
+>>
+>> This behavior is expected and sort of documented in ovl_acceptable()
+>>
+>> The only property required from st_ino
+>> Is that it is unique together with st_dev of overlay.
+>>
+>> Nothing in that example breaks this requirement.
+>>
+>> The only semi problem is that when the old origin will be unlinked st_ino
+>> of overlay inode will change.
+>> That is an acceptable behavior for offline changes in overlay layers.
+>>
+>> Cheers,
+>> Amir.
+>> On Jan 31, 2018 12:36 PM, "yangerkun" <yangerkun@huawei.com> wrote:
+>>
+>> Hi,
+>>
+>> While thinking about "origin" xattr, i find a problem which retrieval
+>> methods show as below:
+>>
+>> $mkdir lower lower1 lower2 upper work merge
+>> $touch lower1/a
+>> $mount -t overlay -olowerdir=lower:lower1,upperdir=upper,workdir=work merge
+>> merge
+>> $echo abc > merge/a
+>> $ls -li merge/a
+>> Then, we can get the ino of file a equals to the ino of lower1/a.
+>> $umount merge
+>> $mount -t overlay -olowerdir=lower:lower2,upperdir=upper,workdir=work merge
+>> merge
+>> $ls -li merge/a
+>>
+>> The ino for file a is same as file lower1/a, while there is no file a in
+>> lower and lower2. Because ovl_get_origin will get the wrong origin.
+>>
+>> Thanks,
+>> yangerkun
