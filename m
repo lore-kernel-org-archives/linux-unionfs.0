@@ -1,60 +1,67 @@
 From: Vivek Goyal <vgoyal@redhat.com>
-Subject: [PATCH v11 13/18] ovl: Setup origin chain for lower regular files
-Date: Wed, 31 Jan 2018 16:13:24 -0500
-Message-ID: <20180131211329.16328-14-vgoyal@redhat.com>
-References: <20180131211329.16328-1-vgoyal@redhat.com>
+Subject: [PATCH v11 00/18] overlayfs: Delayed copy up of data
+Date: Wed, 31 Jan 2018 16:13:11 -0500
+Message-ID: <20180131211329.16328-1-vgoyal@redhat.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:41952 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:41922 "EHLO mx1.redhat.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752865AbeAaVNo (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 31 Jan 2018 16:13:44 -0500
-In-Reply-To: <20180131211329.16328-1-vgoyal@redhat.com>
+        id S1751910AbeAaVNm (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Wed, 31 Jan 2018 16:13:42 -0500
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: linux-unionfs@vger.kernel.org
 Cc: miklos@szeredi.hu, amir73il@gmail.com, vgoyal@redhat.com
 
-So far we look for origin only if upper dentry is found. And we look for
-origin chain if metacopy feature is enabled.
+Hi,
 
-But with midlayer metacopy support it is possible that a no upper dentry
-is there and lower itself is metacopy inode. In that case also we need to
-setup origin chain and keep track of which inode is data inode so that
-later we can copy up the data from data inode.
+Please find attached V11 of patches. Looks like now new design might
+change these patches significantly based on Miklos's feedback. So I
+am posting my latest patches based on current design. Just in case we
+decide that we want to stick to old design.
 
-So this patch, introduces logic to setup origin chain when upper dentry
-is not present. As of now only metacopy feature needs it so it is done
-only if metacopy feature is enabled.
+Change from V10:
 
-Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
----
- fs/overlayfs/namei.c | 14 ++++++++++++++
- 1 file changed, 14 insertions(+)
+- Based on Amir's feedback, I am not storing the full origin chain in
+  lowerstack now. Instead now I am storing only two dentries at max in
+  lowerstack. lowerstack[0] will point to top most metacopy dentry in
+  lower and lowerstack[1] will have data dentry. 
 
-diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
-index e26c0bdf0381..f8685f530b57 100644
---- a/fs/overlayfs/namei.c
-+++ b/fs/overlayfs/namei.c
-@@ -854,6 +854,20 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
- 		}
- 	}
- 
-+	if (ofs->config.metacopy && !upperdentry && ctr && !d.is_dir) {
-+		/*
-+		 * If upper is present, we already followed origin. If not,
-+		 * follow origin now.
-+		 */
-+		i = ovl_find_layer(ofs, &stack[0]);
-+		i++;
-+		err = ovl_get_metacopy_chain(ofs, NULL,
-+					   &roe->lowerstack[i],
-+					   ofs->numlower - i, stack, &ctr);
-+		if (err < 0)
-+			goto out_put;
-+	}
-+
- 	oe = ovl_alloc_entry(ctr);
- 	err = -ENOMEM;
- 	if (!oe)
+Thanks
+Vivek
+
+Amir Goldstein (1):
+  ovl: disable redirect_dir and index when no xattr support
+
+Vivek Goyal (17):
+  ovl: Do not look for OVL_XATTR_NLINK if index is not there
+  ovl: Create origin xattr on copy up for all files
+  ovl: Provide a mount option metacopy=on/off for metadata copyup
+  ovl: During copy up, first copy up metadata and then data
+  ovl: Move the copy up helpers to copy_up.c
+  ovl: Copy up only metadata during copy up where it makes sense
+  ovl: Add helper ovl_already_copied_up()
+  ovl: A new xattr OVL_XATTR_METACOPY for file on upper
+  ovl: Set OVL_UPPERDATA flag during ovl_lookup()
+  ovl: Allocate bigger stack for origin
+  ovl: Get and install lower most data dentry in stack
+  ovl: Setup origin chain for lower regular files
+  ovl: Do not mark a non dir as _OVL_PATH_MERGE in ovl_path_type()
+  ovl: Copy up meta inode data from lowest data inode
+  ovl: Fix ovl_getattr() to get number of blocks from lower
+  ovl: Do not expose metacopy only upper dentry from d_real()
+  ovl: Enable metadata only feature
+
+ Documentation/filesystems/overlayfs.txt |  54 +++++++---
+ fs/overlayfs/Kconfig                    |  15 +++
+ fs/overlayfs/copy_up.c                  | 172 +++++++++++++++++++++++---------
+ fs/overlayfs/dir.c                      |   1 +
+ fs/overlayfs/inode.c                    |  60 ++++-------
+ fs/overlayfs/namei.c                    | 154 +++++++++++++++++++++++++++-
+ fs/overlayfs/overlayfs.h                |  24 ++++-
+ fs/overlayfs/ovl_entry.h                |   1 +
+ fs/overlayfs/super.c                    |  64 ++++++++++--
+ fs/overlayfs/util.c                     | 134 ++++++++++++++++++++++++-
+ 10 files changed, 566 insertions(+), 113 deletions(-)
+
 -- 
 2.13.6
