@@ -1,12 +1,12 @@
 From: Vivek Goyal <vgoyal@redhat.com>
-Subject: [PATCH v11 15/18] ovl: Copy up meta inode data from lowest data inode
-Date: Wed, 31 Jan 2018 16:13:26 -0500
-Message-ID: <20180131211329.16328-16-vgoyal@redhat.com>
+Subject: [PATCH v11 05/18] ovl: During copy up, first copy up metadata and then data
+Date: Wed, 31 Jan 2018 16:13:16 -0500
+Message-ID: <20180131211329.16328-6-vgoyal@redhat.com>
 References: <20180131211329.16328-1-vgoyal@redhat.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:62496 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:53578 "EHLO mx1.redhat.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752808AbeAaVNn (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        id S1752383AbeAaVNn (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
         Wed, 31 Jan 2018 16:13:43 -0500
 In-Reply-To: <20180131211329.16328-1-vgoyal@redhat.com>
 Sender: linux-unionfs-owner@vger.kernel.org
@@ -14,102 +14,65 @@ List-Id: linux-unionfs@vger.kernel.org
 To: linux-unionfs@vger.kernel.org
 Cc: miklos@szeredi.hu, amir73il@gmail.com, vgoyal@redhat.com
 
-So far lower could not be a meta inode. So whenever it was time to copy
-up data of a meta inode, we could copy it up from top most lower dentry.
+Just a little re-ordering of code. This helps with next patch where after
+copying up metadata, we skip data copying step, if needed.
 
-But now lower itself can be a metacopy inode. That means data copy up
-needs to take place from a data inode in metacopy inode chain. Find
-lower data inode in the chain and use that for data copy up.
-
-Introduced a helper called ovl_path_lowerdata() to find the lower
-data inode chain.
-
+Reviewed-by: Amir Goldstein <amir73il@gmail.com>
 Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
 ---
- fs/overlayfs/copy_up.c   | 14 ++++++++++----
- fs/overlayfs/overlayfs.h |  1 +
- fs/overlayfs/util.c      | 14 ++++++++++++++
- 3 files changed, 25 insertions(+), 4 deletions(-)
+ fs/overlayfs/copy_up.c | 29 ++++++++++++++---------------
+ 1 file changed, 14 insertions(+), 15 deletions(-)
 
 diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
-index 0bfc1df13b79..f4ece4754725 100644
+index f55bece3688e..303794bb9127 100644
 --- a/fs/overlayfs/copy_up.c
 +++ b/fs/overlayfs/copy_up.c
-@@ -489,13 +489,15 @@ static int ovl_copy_up_inode(struct ovl_copy_up_ctx *c, struct dentry *temp)
- 	}
- 
- 	if (S_ISREG(c->stat.mode) && !c->metacopy) {
--		struct path upperpath;
-+		struct path upperpath, datapath;
- 
- 		ovl_path_upper(c->dentry, &upperpath);
- 		BUG_ON(upperpath.dentry != NULL);
- 		upperpath.dentry = temp;
- 
--		err = ovl_copy_up_data(&c->lowerpath, &upperpath, c->stat.size);
-+		ovl_path_lowerdata(c->dentry, &datapath);
-+		BUG_ON(datapath.dentry == NULL);
-+		err = ovl_copy_up_data(&datapath, &upperpath, c->stat.size);
- 		if (err)
- 			return err;
- 	}
-@@ -627,14 +629,18 @@ static int ovl_do_copy_up(struct ovl_copy_up_ctx *c)
- /* Copy up data of an inode which was copied up metadata only in the past. */
- static int ovl_copy_up_meta_inode_data(struct ovl_copy_up_ctx *c)
+@@ -443,6 +443,19 @@ static int ovl_copy_up_inode(struct ovl_copy_up_ctx *c, struct dentry *temp)
  {
--	struct path upperpath;
-+	struct path upperpath, datapath;
  	int err;
  
- 	ovl_path_upper(c->dentry, &upperpath);
- 	if (WARN_ON(upperpath.dentry == NULL))
- 		return -EIO;
- 
--	err = ovl_copy_up_data(&c->lowerpath, &upperpath, c->stat.size);
-+	ovl_path_lowerdata(c->dentry, &datapath);
-+	if (WARN_ON(datapath.dentry == NULL))
-+		return -EIO;
++	err = ovl_copy_xattr(c->lowerpath.dentry, temp);
++	if (err)
++		return err;
 +
-+	err = ovl_copy_up_data(&datapath, &upperpath, c->stat.size);
- 	if (err)
- 		return err;
++	/*
++	 * Store identifier of lower inode in upper inode xattr to
++	 * allow lookup of the copy up origin inode.
++	 *
++	 */
++	err = ovl_set_origin(c->dentry, c->lowerpath.dentry, temp);
++	if (err)
++		return err;
++
+ 	if (S_ISREG(c->stat.mode)) {
+ 		struct path upperpath;
  
-diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-index de400606df0c..9ec65f0b5384 100644
---- a/fs/overlayfs/overlayfs.h
-+++ b/fs/overlayfs/overlayfs.h
-@@ -210,6 +210,7 @@ bool ovl_dentry_weird(struct dentry *dentry);
- enum ovl_path_type ovl_path_type(struct dentry *dentry);
- void ovl_path_upper(struct dentry *dentry, struct path *path);
- void ovl_path_lower(struct dentry *dentry, struct path *path);
-+void ovl_path_lowerdata(struct dentry *dentry, struct path *path);
- enum ovl_path_type ovl_path_real(struct dentry *dentry, struct path *path);
- struct dentry *ovl_dentry_upper(struct dentry *dentry);
- struct dentry *ovl_dentry_lower(struct dentry *dentry);
-diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
-index e717d561019d..73c055ed34cd 100644
---- a/fs/overlayfs/util.c
-+++ b/fs/overlayfs/util.c
-@@ -132,6 +132,20 @@ void ovl_path_lower(struct dentry *dentry, struct path *path)
+@@ -455,25 +468,11 @@ static int ovl_copy_up_inode(struct ovl_copy_up_ctx *c, struct dentry *temp)
+ 			return err;
  	}
+ 
+-	err = ovl_copy_xattr(c->lowerpath.dentry, temp);
+-	if (err)
+-		return err;
+-
+ 	inode_lock(temp->d_inode);
+ 	err = ovl_set_attr(temp, &c->stat);
+ 	inode_unlock(temp->d_inode);
+-	if (err)
+-		return err;
+-
+-	/*
+-	 * Store identifier of lower inode in upper inode xattr to
+-	 * allow lookup of the copy up origin inode.
+-	 */
+-	err = ovl_set_origin(c->dentry, c->lowerpath.dentry, temp);
+-	if (err)
+-		return err;
+ 
+-	return 0;
++	return err;
  }
  
-+void ovl_path_lowerdata(struct dentry *dentry, struct path *path)
-+{
-+	struct ovl_entry *oe = dentry->d_fsdata;
-+	int idx = oe->numlower - 1;
-+
-+	if (!oe->numlower) {
-+		*path = (struct path) { };
-+		return;
-+	}
-+
-+	path->mnt = oe->lowerstack[idx].layer->mnt;
-+	path->dentry = oe->lowerstack[idx].dentry;
-+}
-+
- enum ovl_path_type ovl_path_real(struct dentry *dentry, struct path *path)
- {
- 	enum ovl_path_type type = ovl_path_type(dentry);
+ static int ovl_copy_up_locked(struct ovl_copy_up_ctx *c)
 -- 
 2.13.6
