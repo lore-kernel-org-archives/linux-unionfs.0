@@ -1,12 +1,12 @@
 From: Vivek Goyal <vgoyal@redhat.com>
-Subject: [PATCH v11 05/18] ovl: During copy up, first copy up metadata and then data
-Date: Wed, 31 Jan 2018 16:13:16 -0500
-Message-ID: <20180131211329.16328-6-vgoyal@redhat.com>
+Subject: [PATCH v11 14/18] ovl: Do not mark a non dir as _OVL_PATH_MERGE in ovl_path_type()
+Date: Wed, 31 Jan 2018 16:13:25 -0500
+Message-ID: <20180131211329.16328-15-vgoyal@redhat.com>
 References: <20180131211329.16328-1-vgoyal@redhat.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:53578 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:41944 "EHLO mx1.redhat.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752383AbeAaVNn (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        id S1752781AbeAaVNn (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
         Wed, 31 Jan 2018 16:13:43 -0500
 In-Reply-To: <20180131211329.16328-1-vgoyal@redhat.com>
 Sender: linux-unionfs-owner@vger.kernel.org
@@ -14,65 +14,27 @@ List-Id: linux-unionfs@vger.kernel.org
 To: linux-unionfs@vger.kernel.org
 Cc: miklos@szeredi.hu, amir73il@gmail.com, vgoyal@redhat.com
 
-Just a little re-ordering of code. This helps with next patch where after
-copying up metadata, we skip data copying step, if needed.
+With the addition of an origin chain for regular files, it is possible
+that we don't have an upperdentry and oe->numlower > 1 for non-dir. So
+mark a path __OVL_TYPE_MERGE only if it is a directory.
 
-Reviewed-by: Amir Goldstein <amir73il@gmail.com>
 Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
 ---
- fs/overlayfs/copy_up.c | 29 ++++++++++++++---------------
- 1 file changed, 14 insertions(+), 15 deletions(-)
+ fs/overlayfs/util.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
-index f55bece3688e..303794bb9127 100644
---- a/fs/overlayfs/copy_up.c
-+++ b/fs/overlayfs/copy_up.c
-@@ -443,6 +443,19 @@ static int ovl_copy_up_inode(struct ovl_copy_up_ctx *c, struct dentry *temp)
- {
- 	int err;
- 
-+	err = ovl_copy_xattr(c->lowerpath.dentry, temp);
-+	if (err)
-+		return err;
-+
-+	/*
-+	 * Store identifier of lower inode in upper inode xattr to
-+	 * allow lookup of the copy up origin inode.
-+	 *
-+	 */
-+	err = ovl_set_origin(c->dentry, c->lowerpath.dentry, temp);
-+	if (err)
-+		return err;
-+
- 	if (S_ISREG(c->stat.mode)) {
- 		struct path upperpath;
- 
-@@ -455,25 +468,11 @@ static int ovl_copy_up_inode(struct ovl_copy_up_ctx *c, struct dentry *temp)
- 			return err;
+diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
+index 3b509b691032..e717d561019d 100644
+--- a/fs/overlayfs/util.c
++++ b/fs/overlayfs/util.c
+@@ -106,7 +106,7 @@ enum ovl_path_type ovl_path_type(struct dentry *dentry)
+ 				type |= __OVL_PATH_MERGE;
+ 		}
+ 	} else {
+-		if (oe->numlower > 1)
++		if (oe->numlower > 1 && d_is_dir(dentry))
+ 			type |= __OVL_PATH_MERGE;
  	}
- 
--	err = ovl_copy_xattr(c->lowerpath.dentry, temp);
--	if (err)
--		return err;
--
- 	inode_lock(temp->d_inode);
- 	err = ovl_set_attr(temp, &c->stat);
- 	inode_unlock(temp->d_inode);
--	if (err)
--		return err;
--
--	/*
--	 * Store identifier of lower inode in upper inode xattr to
--	 * allow lookup of the copy up origin inode.
--	 */
--	err = ovl_set_origin(c->dentry, c->lowerpath.dentry, temp);
--	if (err)
--		return err;
- 
--	return 0;
-+	return err;
- }
- 
- static int ovl_copy_up_locked(struct ovl_copy_up_ctx *c)
+ 	return type;
 -- 
 2.13.6
