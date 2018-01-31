@@ -1,43 +1,66 @@
 From: "zhangyi (F)" <yi.zhang@huawei.com>
-Subject: [xfstests PATCH v2 3/5] overlay/003: fix fs check failure
-Date: Wed, 31 Jan 2018 18:27:57 +0800
-Message-ID: <20180131102759.40997-4-yi.zhang@huawei.com>
-References: <20180131102759.40997-1-yi.zhang@huawei.com>
+Subject: [xfstests PATCH v2 0/5] overlay: add overlay filesystem dirs check
+Date: Wed, 31 Jan 2018 18:27:54 +0800
+Message-ID: <20180131102759.40997-1-yi.zhang@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from szxga04-in.huawei.com ([45.249.212.190]:5153 "EHLO huawei.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1752115AbeAaKTv (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 31 Jan 2018 05:19:51 -0500
-In-Reply-To: <20180131102759.40997-1-yi.zhang@huawei.com>
-Sender: linux-unionfs-owner@vger.kernel.org
-List-Id: linux-unionfs@vger.kernel.org
+Return-path: <fstests-owner@vger.kernel.org>
+Sender: fstests-owner@vger.kernel.org
 To: eguan@redhat.com, fstests@vger.kernel.org
 Cc: linux-unionfs@vger.kernel.org, miklos@szeredi.hu, amir73il@gmail.com, yi.zhang@huawei.com, miaoxie@huawei.com, yangerkun@huawei.com
+List-Id: linux-unionfs@vger.kernel.org
 
-_check_overlay_scratch_fs() will check lowerdir of overlay filesystem,
-this case remove this directory after test will lead to check failure,
-and it is not really necessary to remove this directory, so keep this
-directory.
+Hi, All:
 
-Signed-off-by: zhangyi (F) <yi.zhang@huawei.com>
-Reviewed-by: Amir Goldstein <amir73il@gmail.com>
----
- tests/overlay/003 | 1 -
- 1 file changed, 1 deletion(-)
+This patchset implement filesystem check for overlay filesystem, base on
+my "overlay: add fsck.overlay basic tests" patchset and works only if
+fsck.overlay[1] exists (otherwise not run).
 
-diff --git a/tests/overlay/003 b/tests/overlay/003
-index f980edb..154531e 100755
---- a/tests/overlay/003
-+++ b/tests/overlay/003
-@@ -92,7 +92,6 @@ ls ${SCRATCH_MNT}/
- # unmount overlayfs but not base fs
- $UMOUNT_PROG $SCRATCH_MNT
- 
--rm -rf $lowerdir
- echo "Silence is golden"
- # success, all done
- status=0
+Patch 1 improve and fix _is_mounted helper in common/rc.
+Patch 2 hook fsck helper to _check_test_fs & _check_scratch_fs, and
+introduce helpers for optionally scratch dirs.
+Patch 3~5 modify overlay test cases to do fs check correctly.
+
+Hi, Eryu:
+
+The patch 5/5 conflict with Amir's patchset, let me know if you want me
+to rebase it.
+
+Thanks,
+Yi.
+
+[1] https://github.com/hisilicon/overlayfs-progs
+
+Changes since v1:
+- Details comments in patch 1/5.
+- Improve _overlay_check_scratch_dirs to accept extra options.
+- Fix basic filesystem mounted check in _overlay_check_fs.
+- Improve overlay/044 in patch 5/5 to add index=on option.
+
+
+zhangyi (F) (5):
+  common/rc: improve mounted check helper
+  overlay: hook filesystem check helper
+  overlay/003: fix fs check failure
+  overlay: skip check for tests finished with corrupt filesystem
+  overlay: correct scratch dirs check
+
+ common/overlay    | 128 ++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ common/rc         |  29 +++++--------
+ tests/overlay/003 |   1 -
+ tests/overlay/005 |   6 ++-
+ tests/overlay/010 |   6 ++-
+ tests/overlay/014 |  10 ++++-
+ tests/overlay/019 |   2 +-
+ tests/overlay/031 |   2 +-
+ tests/overlay/035 |   6 ++-
+ tests/overlay/036 |   5 ++-
+ tests/overlay/037 |   6 ++-
+ tests/overlay/038 |  10 ++++-
+ tests/overlay/041 |  10 ++++-
+ tests/overlay/043 |   6 ++-
+ tests/overlay/044 |  13 +++++-
+ 15 files changed, 209 insertions(+), 31 deletions(-)
+
 -- 
 2.5.0
