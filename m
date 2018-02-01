@@ -1,142 +1,74 @@
-From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [PATCH 1/2] overlay: test overlay file handles of lower dir with
- non-indexed ancestor
-Date: Thu, 1 Feb 2018 09:34:19 +0200
-Message-ID: <CAOQ4uxhqOQBGkmZOW03NY8ZU6u-LZc_QFBsP6c7FtLd-sL+eXg@mail.gmail.com>
-References: <1517399095-28512-1-git-send-email-amir73il@gmail.com>
- <1517399095-28512-2-git-send-email-amir73il@gmail.com> <20180201072719.GI18267@eguan.usersys.redhat.com>
+From: Vivek Goyal <vgoyal@redhat.com>
+Subject: Re: [QUESTION] problem about origin xattr
+Date: Thu, 1 Feb 2018 10:25:43 -0500
+Message-ID: <20180201152543.GA12648@redhat.com>
+References: <20180131165522.GD8087@redhat.com>
+ <CAJfpegsWhJJdVKi+ZW+5MoYeo87xwtn27sZ2xjExL8-Qk8BPSA@mail.gmail.com>
+ <20180131190503.GA2699@redhat.com>
+ <CAOQ4uxghhXgtXSwKN2nGUGEtoB42GtT0fboc5MxT4ieZ2-rbnw@mail.gmail.com>
+ <20180131203438.GB2699@redhat.com>
+ <CAJfpegtd_qP7FmKuad5=6kmJeBvz8YmwgA7AS8rhU+D3vgaX3g@mail.gmail.com>
+ <20180131205807.GA11643@redhat.com>
+ <CAJfpeguaEdLEkRtMBoQkAHtis0LChEAaOTcU0xvzMb=kAQ-aWg@mail.gmail.com>
+ <20180131211223.GB11643@redhat.com>
+ <CAOQ4uxjxKjwjmJmHJPJfjHvkokVd0_4r5ENLXcs-8VnQ4eBBBQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-yw0-f195.google.com ([209.85.161.195]:35391 "EHLO
-        mail-yw0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751519AbeBAHeV (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 1 Feb 2018 02:34:21 -0500
-In-Reply-To: <20180201072719.GI18267@eguan.usersys.redhat.com>
+Received: from mx1.redhat.com ([209.132.183.28]:44444 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751505AbeBAPZo (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Thu, 1 Feb 2018 10:25:44 -0500
+Content-Disposition: inline
+In-Reply-To: <CAOQ4uxjxKjwjmJmHJPJfjHvkokVd0_4r5ENLXcs-8VnQ4eBBBQ@mail.gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Eryu Guan <eguan@redhat.com>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, overlayfs <linux-unionfs@vger.kernel.org>, fstests <fstests@vger.kernel.org>
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, yangerkun <yangerkun@huawei.com>, "zhangyi (F)" <yi.zhang@huawei.com>, Miao Xie <miaoxie@huawei.com>, overlayfs <linux-unionfs@vger.kernel.org>
 
-On Thu, Feb 1, 2018 at 9:27 AM, Eryu Guan <eguan@redhat.com> wrote:
-> On Wed, Jan 31, 2018 at 01:44:54PM +0200, Amir Goldstein wrote:
->> Overlayfs with nfs_export enabled, indexes all directories on copy up.
->> Directory index is requires for decoding lower directory file handles
->> in case ancestors have been renamed.
->>
->> When enabling nfs_export on an overlay that already has non-indexed
->> merge dirs, the possibility of non-indexed ancestor rename requires
->> special handling when encoding lower directory file handles.
->>
->> - Check encode/decode/read file handles of non-indexed merge dir
->> - Check encode/decode/read file handles of dir with non-indexed parent
->> - Check encode/decode/read file handles of dir with non-indexed grandparent
->> - Check decode/read of file handles after rename of non-indexed merge dir
->> - Check decode/read of file handles after rename of non-indexed parent
->> - Check decode/read of file handles after rename of non-indexed grandparent
->>
->> This test requires and enables overlayfs NFS export support and merge
->> dir rename support (redirect_dir).
->> NFS export support depends on and requires overlayfs index feature.
->>
->> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
->> ---
->>  tests/overlay/054     | 162 ++++++++++++++++++++++++++++++++++++++++++++++++++
->>  tests/overlay/054.out |  11 ++++
->>  tests/overlay/group   |   1 +
->>  3 files changed, 174 insertions(+)
->>  create mode 100755 tests/overlay/054
->>  create mode 100644 tests/overlay/054.out
->>
->> diff --git a/tests/overlay/054 b/tests/overlay/054
->> new file mode 100755
->> index 0000000..c788460
->> --- /dev/null
->> +++ b/tests/overlay/054
->> @@ -0,0 +1,162 @@
->> +#! /bin/bash
->> +# FS QA Test No. 054
->> +#
->> +# Test encode/decode overlay file handle of dir with non-indexed ancestor
->> +#
->> +# Overlayfs with nfs_export enabled, indexes all directories on copy up.
->> +# Directory index is requires for decoding lower directory file handles
->> +# in case ancestors have been renamed.
->> +#
->> +# When enabling nfs_export on an overlay that already has non-indexed
->> +# merge dirs, the possibility of non-indexed ancestor rename requires
->> +# special handling when encoding lower directory file handles.
->> +#
->> +# - Check encode/decode/read file handles of non-indexed merge dir
->> +# - Check encode/decode/read file handles of dir with non-indexed parent
->> +# - Check encode/decode/read file handles of dir with non-indexed grandparent
->> +# - Check decode/read of file handles after rename of non-indexed merge dir
->> +# - Check decode/read of file handles after rename of non-indexed parent
->> +# - Check decode/read of file handles after rename of non-indexed grandparent
->> +#
->> +# This test requires and enables overlayfs NFS export support and merge
->> +# dir rename support (redirect_dir).
->> +# NFS export support depends on and requires overlayfs index feature.
->> +#
->> +#-----------------------------------------------------------------------
->> +# Copyright (C) 2018 CTERA Networks. All Rights Reserved.
->> +# Author: Amir Goldstein <amir73il@gmail.com>
->> +#
->> +# This program is free software; you can redistribute it and/or
->> +# modify it under the terms of the GNU General Public License as
->> +# published by the Free Software Foundation.
->> +#
->> +# This program is distributed in the hope that it would be useful,
->> +# but WITHOUT ANY WARRANTY; without even the implied warranty of
->> +# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
->> +# GNU General Public License for more details.
->> +#
->> +# You should have received a copy of the GNU General Public License
->> +# along with this program; if not, write the Free Software Foundation,
->> +# Inc.,  51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
->> +#-----------------------------------------------------------------------
->> +#
->> +
->> +seq=`basename $0`
->> +seqres=$RESULT_DIR/$seq
->> +echo "QA output created by $seq"
->> +
->> +here=`pwd`
->> +tmp=/tmp/$$
->> +status=1     # failure is the default!
->> +trap "_cleanup; exit \$status" 0 1 2 3 15
->> +
->> +_cleanup()
->> +{
->> +     cd /
->> +     rm -f $tmp.*
->> +}
->> +
->> +# get standard environment, filters and checks
->> +. ./common/rc
->> +. ./common/filter
->> +
->> +# real QA test starts here
->> +
->> +_supported_fs overlay
->> +_supported_os Linux
->> +_require_scratch
->> +_require_test_program "open_by_handle"
->> +# We need to require all features together, because nfs_export cannot
->> +# be enabled when index is disabled
->> +_require_scratch_overlay_features index nfs_export redirect_dir
->> +
->> +# All overlay dirs are on scratch partition
->> +lower=$OVL_BASE_SCRATCH_MNT/$OVL_LOWER
->> +middle=$OVL_BASE_SCRATCH_MNT/$OVL_LOWER.2
->
-> The middle dir doesn't seem to be used in this test. Can I just remove
-> it on commit?
->
+On Thu, Feb 01, 2018 at 01:26:58AM +0200, Amir Goldstein wrote:
 
-Ah yes. leftover from copying 052.
-Please do.
+[..]
+> >> >> > ORIGIN vs REDIRECT seems to be the only major sticking point w.r.t
+> >> >> > these patches at this point of time. As long as you and miklos agree
+> >> >> > on that semantics, things will be fine.
+> >> >>
+> >> >> I think there are many problems with using ORIGIN for data.
+> >> >>
+> >> >> I also think it should not be difficult to generalize the REDIRECT
+> >> >> code from directory to regular file.  It should just be adding more
+> >> >> conditions to create and handle redirects, no?  The actual code is
+> >> >> already there, because we do it for directories.
+> >> >
+> >> > I guess so. We already are doing it for directories so we should be
+> >> > able to extend it for regular files too. I don't know enough to be
+> >> > able to say what affect this will have on performance.
+> >> >
+> >> >>
+> >> >> So what's the issue with lowerstack[0]?  Can't we just use the same
+> >> >> object for both purposes (i.e. the one found by going down the stack,
+> >> >> just like for directories)?
+> >> >
+> >> > I think we should be able to. But then it seems to make ORIGIN redundant.
+> >> > Because currently we are using ORIGIN to retrieve lowerstack[0]. And if
+> >> > we change that, that means I will have to rip out ORIGIN logic altogether.
+> >> > Its a relatively bigger change. So wanted to figure out is that what
+> >> > we are looking for.
+> >>
+> >> Don't rip out ORIGIN logic, just disable it when we find METACOPY.
+> >>
+> >> So logic should be:
+> >>
+> >>  - check METACOPY xattr, if exists continue to lower layers just like
+> >> non-opaque directory
+> >>  - otherwise use ORIGIN xattr, just like we used to
+> 
+> Careful there, when following metacopy by path, you also need to apply
+> ovl_verify_lower() logic for indexed files, i.e. all files with nfs_export
+> and lower hardlinks with index=on. same as I did for merge dir lookup
+> with nfs_export.
 
-Thanks,
-Amir.
+Hmm..., so for metacopy files, if ORIGIN fh does not match the lower found
+in lowerstack[0] what do we do. Return -ESTALE?
+
+Vivek
