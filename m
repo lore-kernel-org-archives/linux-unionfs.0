@@ -1,58 +1,121 @@
-From: Vivek Goyal <vgoyal@redhat.com>
-Subject: Re: [PATCH v11 11/18] ovl: Allocate bigger stack for origin
-Date: Wed, 31 Jan 2018 19:38:23 -0500
-Message-ID: <20180201003823.GA5415@redhat.com>
-References: <20180131211329.16328-1-vgoyal@redhat.com>
- <20180131211329.16328-12-vgoyal@redhat.com>
- <CAOQ4uxhT_pCOphCUgXjB45dgEu4p9=-ndGj+HaBECDyt8V4VWQ@mail.gmail.com>
+From: yangerkun <yangerkun@huawei.com>
+Subject: Re: [QUESTION] problem about origin xattr
+Date: Thu, 1 Feb 2018 11:57:50 +0800
+Message-ID: <8662e72b-3042-111d-87f0-21e6cc9fd9dc@huawei.com>
+References: <1594ffa4-1877-0331-d662-bf9e1e0dcca1@huawei.com>
+ <CAOQ4uxhGmD2g4Z9EY504OfssyiVvUskKGec0vqraHOHia88PPQ@mail.gmail.com>
+ <20180131152041.GA8087@redhat.com>
+ <CAOQ4uxgK+fsRp=gRmQa-9zp8BZFwaJNxTP9ioCg+gOij2G-RCQ@mail.gmail.com>
+ <20180131154637.GB8087@redhat.com>
+ <CAOQ4uxgf=Vkq+bikz7eYcFQqvWbyUoucq3UiEZ811Fge=Y2gqg@mail.gmail.com>
+ <CAJfpegtpsV+T6kMAVy9+Mr_1kuk4xWUeYaa6MPTzKNjJ28Nq=A@mail.gmail.com>
+ <20180131165522.GD8087@redhat.com>
+ <CAJfpegsWhJJdVKi+ZW+5MoYeo87xwtn27sZ2xjExL8-Qk8BPSA@mail.gmail.com>
+ <20180131190503.GA2699@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="gbk"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:41554 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754068AbeBAAiY (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 31 Jan 2018 19:38:24 -0500
-Content-Disposition: inline
-In-Reply-To: <CAOQ4uxhT_pCOphCUgXjB45dgEu4p9=-ndGj+HaBECDyt8V4VWQ@mail.gmail.com>
+Received: from szxga04-in.huawei.com ([45.249.212.190]:5160 "EHLO huawei.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1751190AbeBAD6k (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Wed, 31 Jan 2018 22:58:40 -0500
+In-Reply-To: <20180131190503.GA2699@redhat.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: overlayfs <linux-unionfs@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>
+To: Vivek Goyal <vgoyal@redhat.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, Amir Goldstein <amir73il@gmail.com>, "zhangyi (F)" <yi.zhang@huawei.com>, Miao Xie <miaoxie@huawei.com>, overlayfs <linux-unionfs@vger.kernel.org>
 
-On Thu, Feb 01, 2018 at 02:07:07AM +0200, Amir Goldstein wrote:
-> On Wed, Jan 31, 2018 at 11:13 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
-> > Right now there is only one origin for upper dentry and we allocate space
-> > to hold only one ovl_path. But with metacopy support, it is possible that
-> > lower origin is a metacopy itself and we will continue the search for
-> > lower most data entry and install that too in lower stack so that this
-> > entry can be used for copy up later.
-> >
-> > Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
-> > ---
-> >  fs/overlayfs/namei.c | 3 ++-
-> >  1 file changed, 2 insertions(+), 1 deletion(-)
-> >
-> > diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
-> > index 27a069cd2bf4..ddb73b5a06d4 100644
-> > --- a/fs/overlayfs/namei.c
-> > +++ b/fs/overlayfs/namei.c
-> > @@ -361,7 +361,8 @@ static int ovl_check_origin(struct dentry *upperdentry,
-> >
-> >         BUG_ON(*ctrp);
-> >         if (!*stackp)
-> > -               *stackp = kmalloc(sizeof(struct ovl_path), GFP_KERNEL);
-> > +               *stackp = kmalloc(sizeof(struct ovl_path) * numlower,
-> > +                                 GFP_KERNEL);
+
+
+On 2/1/2018 3:05 AM, Vivek Goyal wrote:
+> On Wed, Jan 31, 2018 at 07:08:18PM +0100, Miklos Szeredi wrote:
+>> On Wed, Jan 31, 2018 at 5:55 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
+>>> On Wed, Jan 31, 2018 at 05:10:28PM +0100, Miklos Szeredi wrote:
+>>>> On Wed, Jan 31, 2018 at 4:58 PM, Amir Goldstein <amir73il@gmail.com> wrote:
+>>>>> On Wed, Jan 31, 2018 at 5:46 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
+>>>>>> On Wed, Jan 31, 2018 at 05:38:45PM +0200, Amir Goldstein wrote:
+>>>>>>> On Wed, Jan 31, 2018 at 5:20 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
+>>>>>>>> On Wed, Jan 31, 2018 at 03:57:12PM +0200, Amir Goldstein wrote:
+>>>>>>>>
+>>>>>>>> ORIGIN behavior is little unintuitive though. Despite the fact that file
+>>>>>>>> is not searchable through lower, it is visible through decoding of file
+>>>>>>>> handle and it is atleast non-intuitive.
+>>>>>>>>
+>>>>>>>
+>>>>>>> Maybe not intuitive at first glance, but try again:
+>>>>>>>
+>>>>>>> The only thing we *need* from underlying fs is to provide us with a unique
+>>>>>>> and persistent inode number we can use for the overlay object.
+>>>>>>>
+>>>>>>> Even if the inode number we get from underlying fs is not in any of the
+>>>>>>> layers, it is still a  viable inode number we can use in overlay coupled
+>>>>>>> with overlay unique st_dev, to create a system wide unique st_dev;st_ino
+>>>>>>> tuple.
+>>>>>>
+>>>>>> As long as we use only inode number, it probably is still fine.
+>>>>>>
+>>>>>> But I look at ORIGIN as a generic infrastructure which other features can
+>>>>>> make use of it. For example, metacopy is using it to copy up file later.
+>>>>>> And there it will be non-intuitive that a file is not in any of the
+>>>>>> lower, still ORIGIN was decoded and file was copied up. It can come
+>>>>>> as a surprise to user. Atleast I was surprised when I ran into this
+>>>>>> while testing the feature.
+>>>>
+>>>> How about using REDIRECT for metacopy origin?   Keeping ORIGIN only
+>>>> for inode, also meaning ORIGIN is only ever used on upper layer, never
+>>>> on middle layers.
+>>>
+>>> Hi Miklos,
+>>>
+>>> Trying to understand it better. So proposal seems to be that when a file
+>>> is copied up metacopy only, we store both REDIRECT and ORIGIN in upper
+>>> inode. When traversing metacopy inode chain, use ORIGIN info on upper
+>>> inode and REDIRECT info on lower/midlayer metacopy inode.
+>>>
+>>> I am assuming that this is to handle the use case of tar of upper layer
+>>> and untaring it as lower layer.
+>>>
+>>> One of the concerns Amir had raised with usage of REDIRECT was that it
+>>> will be significantly slower as comapred to decoding ORIGIN. So by using
+>>> ORIGIN on upper, we are trying to mitigate it up to some extent? We will
+>>> still pay the cost of decoding REDIECT in midlayer.
+>>>
+>>> Am I understanding it right.
+>>
+>> Like directories, we'd only need to set REDIRECT on rename.
+>>
+>> So when file has METACOPY, but not REDIRECT, we just fall through to
+>> next layer below one we are currently operating on.  If we find
+>> METACOPY there, we just continue looking until we find a file
+>> containing the data.
+>>
+>> When we rename or hardlink a file with METACOPY, we add REDIRECT.
+>>
+>> If file has METACOPY and REDIRECT, we follow REDIRECT to find a file
+>> on the next level and keep iterating until we have the one with the
+>> data.
+>>
+>> ORIGIN would not be used in this case.  We might be able to use ORIGIN
+>> for some kind of verification, like we do for directories.   Amir has
+>> a better idea, I think.
+>>
+>> Another way to think about it is: METACOPY is the opposite of OPAQUE.
+>> For directories the default is "metacopy" and contents are merged.
+>> For files the default is "opaque" and content is not merged.  METACOPY
+>> turns that around and enables "merging" of data from a lower layer.
+>> I could even imagine real merging of data, but it's unlikely to be
+>> worth the effort, clone is much better for that; METACOPY is just a
+>> very restricted (and so much simpler) way of merging data.
 > 
-> I guess you forgot to change that size to 2...
+> Ok, thanks. I am beginning to understand it better now.
 
-I intentionally kept it at numlower because that's what we are doing for
-lower as well. And that keeps it common between two. Anyway, this
-allocation is only temporary as we will allocate new memory and copy 
-everything there. So I was not worried about temporary allocating numlower
-elements instead of hardcoding it to 2.
+Does there any problem using REDIRECT to confirm the file with METACOPY? 
+If there is a rename of the REDIRECT file in lower while overlay 
+offline, METACOPY will get no file?
 
-Vivek
+I prefer suggestion of Amir, use subtree_check like nfs to make sure the 
+origin dentry existing in subdir of the lower layer.
 
-> 
-> Amir.
+Thanks,
+yangerkun
