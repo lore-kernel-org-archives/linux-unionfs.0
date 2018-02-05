@@ -1,169 +1,118 @@
-From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH] ovl: hash non-dir by lower inode for fsnotify
-Date: Sun,  4 Feb 2018 22:50:10 +0200
-Message-ID: <1517777410-16282-1-git-send-email-amir73il@gmail.com>
+From: Miklos Szeredi <miklos@szeredi.hu>
+Subject: [GIT PULL] overlayfs update for 4.16
+Date: Mon, 5 Feb 2018 13:49:02 +0100
+Message-ID: <20180205124902.GA19579@veci.piliscsaba.redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wr0-f196.google.com ([209.85.128.196]:40386 "EHLO
-        mail-wr0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751724AbeBDUtK (ORCPT
+Received: from mail-wm0-f65.google.com ([74.125.82.65]:39993 "EHLO
+        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753157AbeBEMtK (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Sun, 4 Feb 2018 15:49:10 -0500
-Received: by mail-wr0-f196.google.com with SMTP id i56so27618601wra.7
-        for <linux-unionfs@vger.kernel.org>; Sun, 04 Feb 2018 12:49:09 -0800 (PST)
+        Mon, 5 Feb 2018 07:49:10 -0500
+Received: by mail-wm0-f65.google.com with SMTP id v123so25658824wmd.5
+        for <linux-unionfs@vger.kernel.org>; Mon, 05 Feb 2018 04:49:10 -0800 (PST)
+Content-Disposition: inline
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: Vivek Goyal <vgoyal@redhat.com>, linux-unionfs@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Al Viro <viro@zeniv.linux.org.uk>, Amir Goldstein <amir73il@gmail.com>, linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org
 
-Commit 31747eda41ef ("ovl: hash directory inodes for fsnotify")
-fixed an issue of inotify watch on directory that stops getting
-events after dropping dentry caches.
+Hi Linus,
 
-A similar issue exists for non-dir non-upper files, for example:
+Please pull from:
 
-$ mkdir -p lower upper work merged
-$ touch lower/foo
-$ mount -t overlay -o
-lowerdir=lower,workdir=work,upperdir=upper none merged
-$ inotifywait merged/foo &
-$ echo 2 > /proc/sys/vm/drop_caches
-$ cat merged/foo
+  git://git.kernel.org/pub/scm/linux/kernel/git/mszeredi/vfs.git overlayfs-linus
 
-inotifywait doesn't get the OPEN event, because ovl_lookup() called
-from 'cat' allocates a new overlay inode and does not reuse the
-watched inode.
+This work from Amir adds NFS export capability to overlayfs.  NFS exporting an
+overlay filesystem is a challange because we want to keep track of any copy-up
+of a file or directory between encoding the file handle and decoding it.
 
-Fix this by hashing non-dir overlay inodes by lower real inode in
-the following cases that were not hashed before this change:
-- A non-upper overlay mount
-- A lower non-hardlink when index=off
+This is achieved by indexing copied up objects by lower layer file handle.  The
+index is already used for hard links, this patchset extends the use to NFS file
+handle decoding.
 
-A helper ovl_hash_bylower() was added to put all the logic and
-documentation about which real inode an overlay inode is hashed by
-into one place.
-
-The issue dates back to initial version of overlayfs, but this
-patch depends on ovl_inode code that was introduced in kernel v4.13.
-
-Cc: <stable@vger.kernel.org> #v4.13
-Signed-off-by: Amir Goldstein <amir73il@gmail.com>
----
-
-Miklos,
-
-I found this while working on 'hash inode by lower file handle'.
-This patch is currently at the tip of my NFS export fixes branch [1],
-although the fix is not related to NFS export and could be applied to
-stable kernel along with "ovl: hash directory inodes for fsnotify".
-
-This patch makes some order in the mess that started piling up in
-ovl_get_inode(), so it is the starting point of my WIP branch [2] for
-hashing by lower file handle.
-
-The WIP has been manually tested with some extra debug prints and
-seems to be working fine, but I still need to improve the naiive
-hash function and test some more, so I'm sending out this bugfix
-is case you want to include it in 4.16 pull request.
+There's a VFS patch that splits out d_instantiate_anon() from d_obtain_alias().
+This is needed because overlayfs allocates d_fsdata for its dentries, so the
+plain d_alloc_anon() call in d_obtain_alias() is not sufficient to create a
+fully initialized overlay dentry.  The patch conflicts with f1ee616214cb ("VFS:
+don't keep disconnected dentries on d_anon"); fixup by "s/tmp/dentry/g" on the
+upstream version.
 
 Thanks,
-Amir.
+Miklos
 
-[1] https://github.com/amir73il/xfstests/commits/ovl-nfs-export
-[2] https://github.com/amir73il/xfstests/commits/ovl-nfs-export-wip
+---
+Amir Goldstein (50):
+      ovl: hash directory inodes for fsnotify
+      ovl: fix failure to fsync lower dir
+      ovl: take lower dir inode mutex outside upper sb_writers lock
+      ovl: fix another overlay: warning prefix
+      ovl: take mnt_want_write() for work/index dir setup
+      ovl: take mnt_want_write() for removing impure xattr
+      ovl: fix inconsistent d_ino for legacy merge dir
+      ovl: disable index when no xattr support
+      ovl: force r/o mount when index dir creation fails
+      ovl: store layer index in ovl_layer
+      ovl: factor out ovl_check_origin_fh()
+      ovl: simplify arguments to ovl_check_origin_fh()
+      ovl: generalize ovl_verify_origin() and helpers
+      ovl: update documentation of inodes index feature
+      ovl: add support for "nfs_export" configuration
+      ovl: verify stored origin fh matches lower dir
+      ovl: unbless lower st_ino of unverified origin
+      ovl: use directory index entries for consistency verification
+      ovl: verify whiteout index entries on mount
+      ovl: verify directory index entries on mount
+      ovl: cleanup temp index entries
+      ovl: create ovl_need_index() helper
+      ovl: index all non-dir on copy up for NFS export
+      ovl: index directories on copy up for NFS export
+      ovl: cleanup dir index when dir nlink drops to zero
+      ovl: whiteout index when union nlink drops to zero
+      ovl: whiteout orphan index entries on mount
+      ovl: factor out ovl_get_index_fh() helper
+      ovl: do not pass overlay dentry to ovl_get_inode()
+      ovl: use d_splice_alias() in place of d_add() in lookup
+      ovl: copy up of disconnected dentries
+      ovl: store 'has_upper' and 'opaque' as bit flags
+      ovl: document NFS export
+      ovl: encode pure upper file handles
+      ovl: decode pure upper file handles
+      ovl: decode connected upper dir file handles
+      ovl: encode non-indexed upper file handles
+      ovl: copy up before encoding non-connectable dir file handle
+      ovl: encode lower file handles
+      ovl: decode lower non-dir file handles
+      ovl: decode indexed non-dir file handles
+      ovl: decode lower file handles of unlinked but open files
+      ovl: decode indexed dir file handles
+      ovl: decode pure lower dir file handles
+      ovl: hash non-indexed dir by upper inode for NFS export
+      ovl: lookup connected ancestor of dir in inode cache
+      ovl: lookup indexed ancestor of lower dir
+      ovl: wire up NFS export operations
+      ovl: fix regression in fsnotify of overlay merge dir
+      ovl: check ERR_PTR() return value from ovl_encode_fh()
 
+Miklos Szeredi (1):
+      vfs: factor out helpers d_instantiate_anon() and d_alloc_anon()
 
- fs/overlayfs/inode.c | 58 ++++++++++++++++++++++++++++++++++++----------------
- 1 file changed, 40 insertions(+), 18 deletions(-)
-
-diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
-index fcd97b783fa1..b6b44cf9ec26 100644
---- a/fs/overlayfs/inode.c
-+++ b/fs/overlayfs/inode.c
-@@ -669,38 +669,59 @@ struct inode *ovl_lookup_inode(struct super_block *sb, struct dentry *real,
- 	return inode;
- a}
- 
-+/*
-+ * Does overlay inode need to be hashes by lower inode?
-+ */
-+static bool ovl_hash_bylower(struct super_block *sb, struct dentry *upper,
-+			     struct dentry *lower, struct dentry *index)
-+{
-+	struct ovl_fs *ofs = sb->s_fs_info;
-+
-+	/* No, if pure upper */
-+	if (!lower)
-+		return false;
-+
-+	/* Yes, if already indexed */
-+	if (index)
-+		return true;
-+
-+	/* Yes, if won't be copied up */
-+	if (!ofs->upper_mnt)
-+		return true;
-+
-+	/* No, if lower hardlink is or will be broken on copy up */
-+	if ((upper || !ovl_indexdir(sb)) &&
-+	    !d_is_dir(lower) && d_inode(lower)->i_nlink > 1)
-+		return false;
-+
-+	/* No, if non-indexed upper with NFS export */
-+	if (sb->s_export_op && upper)
-+		return false;
-+
-+	/* Otherwise, hash by lower inode for fsnotify */
-+	return true;
-+}
-+
- struct inode *ovl_get_inode(struct super_block *sb, struct dentry *upperdentry,
- 			    struct dentry *lowerdentry, struct dentry *index,
- 			    unsigned int numlower)
- {
--	struct ovl_fs *ofs = sb->s_fs_info;
- 	struct inode *realinode = upperdentry ? d_inode(upperdentry) : NULL;
- 	struct inode *inode;
--	/* Already indexed or could be indexed on copy up? */
--	bool indexed = (index || (ovl_indexdir(sb) && !upperdentry));
--	struct dentry *origin = indexed ? lowerdentry : NULL;
-+	bool bylower = ovl_hash_bylower(sb, upperdentry, lowerdentry, index);
- 	bool is_dir;
- 
--	if (WARN_ON(upperdentry && indexed && !lowerdentry))
--		return ERR_PTR(-EIO);
--
- 	if (!realinode)
- 		realinode = d_inode(lowerdentry);
- 
- 	/*
--	 * Copy up origin (lower) may exist for non-indexed non-dir upper, but
--	 * we must not use lower as hash key in that case.
--	 * Hash non-dir that is or could be indexed by origin inode.
--	 * Hash dir that is or could be merged by origin inode.
--	 * Hash pure upper and non-indexed non-dir by upper inode.
--	 * Hash non-indexed dir by upper inode for NFS export.
-+	 * Copy up origin (lower) may exist for non-indexed upper, but we must
-+	 * not use lower as hash key if this is a broken hardlink.
- 	 */
- 	is_dir = S_ISDIR(realinode->i_mode);
--	if (is_dir && (indexed || !sb->s_export_op || !ofs->upper_mnt))
--		origin = lowerdentry;
--
--	if (upperdentry || origin) {
--		struct inode *key = d_inode(origin ?: upperdentry);
-+	if (upperdentry || bylower) {
-+		struct inode *key = d_inode(bylower ? lowerdentry :
-+						      upperdentry);
- 		unsigned int nlink = is_dir ? 1 : realinode->i_nlink;
- 
- 		inode = iget5_locked(sb, (unsigned long) key,
-@@ -728,6 +749,7 @@ struct inode *ovl_get_inode(struct super_block *sb, struct dentry *upperdentry,
- 			nlink = ovl_get_nlink(lowerdentry, upperdentry, nlink);
- 		set_nlink(inode, nlink);
- 	} else {
-+		/* Lower hardlink that will be broken on copy up */
- 		inode = new_inode(sb);
- 		if (!inode)
- 			goto out_nomem;
--- 
-2.7.4
+---
+ Documentation/filesystems/overlayfs.txt | 106 ++++-
+ fs/dcache.c                             |  88 ++--
+ fs/overlayfs/Kconfig                    |  31 +-
+ fs/overlayfs/Makefile                   |   3 +-
+ fs/overlayfs/copy_up.c                  | 188 +++++++--
+ fs/overlayfs/dir.c                      | 175 ++++----
+ fs/overlayfs/export.c                   | 715 ++++++++++++++++++++++++++++++++
+ fs/overlayfs/inode.c                    | 106 +++--
+ fs/overlayfs/namei.c                    | 533 +++++++++++++++++-------
+ fs/overlayfs/overlayfs.h                |  66 ++-
+ fs/overlayfs/ovl_entry.h                |  11 +-
+ fs/overlayfs/readdir.c                  |  57 ++-
+ fs/overlayfs/super.c                    | 125 ++++--
+ fs/overlayfs/util.c                     | 108 +++--
+ include/linux/dcache.h                  |   2 +
+ 15 files changed, 1905 insertions(+), 409 deletions(-)
+ create mode 100644 fs/overlayfs/export.c
