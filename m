@@ -1,182 +1,235 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH 2/4] fs/namei.c: factor out helper full_name_long_hash()
-Date: Tue,  6 Feb 2018 14:21:38 +0200
-Message-ID: <1517919700-29182-4-git-send-email-amir73il@gmail.com>
+Subject: [PATCH 3/4] ovl: hash inodes by lower file handle for NFS export
+Date: Tue,  6 Feb 2018 14:21:39 +0200
+Message-ID: <1517919700-29182-5-git-send-email-amir73il@gmail.com>
 References: <1517919700-29182-1-git-send-email-amir73il@gmail.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wr0-f193.google.com ([209.85.128.193]:37258 "EHLO
-        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752922AbeBFMUr (ORCPT
+Received: from mail-wr0-f194.google.com ([209.85.128.194]:41938 "EHLO
+        mail-wr0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752954AbeBFMUt (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 6 Feb 2018 07:20:47 -0500
-Received: by mail-wr0-f193.google.com with SMTP id a43so1699288wrc.4
-        for <linux-unionfs@vger.kernel.org>; Tue, 06 Feb 2018 04:20:47 -0800 (PST)
+        Tue, 6 Feb 2018 07:20:49 -0500
+Received: by mail-wr0-f194.google.com with SMTP id v15so1689945wrb.8
+        for <linux-unionfs@vger.kernel.org>; Tue, 06 Feb 2018 04:20:48 -0800 (PST)
 In-Reply-To: <1517919700-29182-1-git-send-email-amir73il@gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: Miklos Szeredi <miklos@szeredi.hu>
 Cc: linux-unionfs@vger.kernel.org
 
-This is a flavor of full_name_hash() which does not truncate the long
-hash value to 32-bit in case long is 64-bit.
+An overlay file handle contains a real underlying filesystem file handle
+and decoding an overlay file handle typically starts by decoding the real
+file handle.
 
-A helper __hash_64() is introduced to multiply with GOLDEN_RATIO_64,
-just as the the helper __hash_32() multiples with GOLDEN_RATIO_32.
-This makes the 32 and 64 bit variants of fold_long_hash() look similar.
+Decoding a real directory file handle can be expensive, and it could be
+avoided in some cases by looking in the overlay inode cache before
+decoding a lower overlay file handle.
+
+In order to be able to do that, we store a copy of the lower file handle
+in overlay inode i_private field and hash the overlay inode by the value
+of lower file handle instead of by the lower inode pointer.
+
+A helper ovl_lookup_inode_fh() is introduced to lookup overlay inode by
+lower file handle. A followup patch will use this helper to optimize
+overlay lower file handle decode for the hot inode cache case.
 
 Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- fs/namei.c                 | 41 ++++++++++++++++++++++++++++++-----------
- include/linux/hash.h       | 10 +++++++++-
- include/linux/stringhash.h |  6 +++++-
- 3 files changed, 44 insertions(+), 13 deletions(-)
+ fs/overlayfs/inode.c     | 80 +++++++++++++++++++++++++++++++++++++++++++++---
+ fs/overlayfs/namei.c     |  2 +-
+ fs/overlayfs/overlayfs.h |  9 ++++++
+ fs/overlayfs/super.c     |  2 ++
+ 4 files changed, 87 insertions(+), 6 deletions(-)
 
-diff --git a/fs/namei.c b/fs/namei.c
-index 921ae32dbc80..afe2a8af9ce4 100644
---- a/fs/namei.c
-+++ b/fs/namei.c
-@@ -1804,7 +1804,7 @@ static int walk_component(struct nameidata *nd, int flags)
- 
- #ifdef HASH_MIX
- 
--/* Architecture provides HASH_MIX and fold_hash() in <asm/hash.h> */
-+/* Architecture provides HASH_MIX and fold_long_hash() in <asm/hash.h> */
- 
- #elif defined(CONFIG_64BIT)
- /*
-@@ -1843,15 +1843,13 @@ static int walk_component(struct nameidata *nd, int flags)
- 	y *= 9			)
- 
- /*
-- * Fold two longs into one 32-bit hash value.  This must be fast, but
-+ * Fold two longs into one long hash value.  This must be fast, but
-  * latency isn't quite as critical, as there is a fair bit of additional
-  * work done before the hash value is used.
-  */
--static inline unsigned int fold_hash(unsigned long x, unsigned long y)
-+static inline unsigned long fold_long_hash(unsigned long x, unsigned long y)
- {
--	y ^= x * GOLDEN_RATIO_64;
--	y *= GOLDEN_RATIO_64;
--	return y >> 32;
-+	return __hash_64(y ^ __hash_64(x));
+diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
+index b6b44cf9ec26..5fef29e2f80f 100644
+--- a/fs/overlayfs/inode.c
++++ b/fs/overlayfs/inode.c
+@@ -651,12 +651,65 @@ static bool ovl_verify_inode(struct inode *inode, struct dentry *lowerdentry,
+ 	return true;
  }
  
- #else	/* 32-bit case */
-@@ -1872,7 +1870,7 @@ static inline unsigned int fold_hash(unsigned long x, unsigned long y)
- 	x += y,	y = rol32(y,20),\
- 	y *= 9			)
- 
--static inline unsigned int fold_hash(unsigned long x, unsigned long y)
-+static inline unsigned long fold_long_hash(unsigned long x, unsigned long y)
- {
- 	/* Use arch-optimized multiply if one exists */
- 	return __hash_32(y ^ __hash_32(x));
-@@ -1880,6 +1878,11 @@ static inline unsigned int fold_hash(unsigned long x, unsigned long y)
- 
- #endif
- 
-+static inline unsigned int fold_hash(unsigned long x, unsigned long y)
++/*
++ * Overlay inodes are hashed by lower file handle for NFS export, so decode can
++ * lookup inode cache before doing index lookup and decoding real file handles.
++ * For pure upper or non-indexed upper or without NFS export, we hash by real
++ * inode pointer as before NFS export. i_private holds a copy of lower file
++ * handle or the real inode pointer respectively.
++ */
++static int ovl_inode_test_fh(struct inode *inode, void *data)
 +{
-+	return fold_long_hash(x, y) >> (BITS_PER_LONG - 32);
++	return ovl_test_flag(OVL_I_PRIVATE_FH, inode) &&
++	       ovl_fs_equal(inode->i_private, data);
 +}
 +
- /*
-  * Return the hash of a string of known length.  This is carfully
-  * designed to match hash_name(), which is the more critical function.
-@@ -1887,7 +1890,8 @@ static inline unsigned int fold_hash(unsigned long x, unsigned long y)
-  * payload bytes, to match the way that hash_name() iterates until it
-  * finds the delimiter after the name.
-  */
--unsigned int full_name_hash(const void *salt, const char *name, unsigned int len)
-+unsigned long full_name_long_hash(const void *salt, const char *name,
-+				  unsigned int len)
- {
- 	unsigned long a, x = 0, y = (unsigned long)salt;
- 
-@@ -1903,7 +1907,14 @@ unsigned int full_name_hash(const void *salt, const char *name, unsigned int len
- 	}
- 	x ^= a & bytemask_from_count(len);
- done:
--	return fold_hash(x, y);
-+	return fold_long_hash(x, y);
-+}
-+EXPORT_SYMBOL(full_name_long_hash);
-+
-+unsigned int full_name_hash(const void *salt, const char *name,
-+			    unsigned int len)
++/* Compute hash from real fs uuid and real fs file handle */
++static unsigned long ovl_fh_hash(struct ovl_fh *fh)
 +{
-+	return full_name_long_hash(salt, name, len) >> (BITS_PER_LONG - 32);
++	/*
++	 * Mixing the uuid with the real file handle is needed for an
++	 * overlay configuration of many lower layers on different fs.
++	 * Other ovl_fh header values are not likely to add random bits.
++	 */
++	return full_name_long_hash(NULL, (const char *)&fh->uuid,
++				   fh->len - offsetof(struct ovl_fh, uuid));
++}
++
++static struct ovl_fh *ovl_real_fh_hash(struct dentry *real, bool is_upper,
++				       unsigned long *pkey)
++{
++	struct ovl_fh *fh = ovl_encode_real_fh(real, is_upper);
++
++	if (!IS_ERR(fh))
++		*pkey = ovl_fh_hash(fh);
++
++	return fh;
++}
++
++/* Lookup overlay inode by real inode file handle */
++struct inode *ovl_lookup_inode_fh(struct super_block *sb, struct ovl_fh *fh)
++{
++	return ilookup5(sb, ovl_fh_hash(fh), ovl_inode_test_fh, fh);
++}
++
++/* Lookup overlay inode by real upper inode or by lower inode file handle */
+ struct inode *ovl_lookup_inode(struct super_block *sb, struct dentry *real,
+ 			       bool is_upper)
+ {
+ 	struct inode *inode, *key = d_inode(real);
++	struct ovl_fh *fh;
+ 
+-	inode = ilookup5(sb, (unsigned long) key, ovl_inode_test, key);
++	if (is_upper) {
++		inode = ilookup5(sb, (unsigned long) key, ovl_inode_test, key);
++	} else {
++		fh = ovl_encode_real_fh(real, false);
++		if (IS_ERR(fh))
++			return ERR_CAST(fh);
++
++		inode = ovl_lookup_inode_fh(sb, fh);
++		kfree(fh);
++	}
+ 	if (!inode)
+ 		return NULL;
+ 
+@@ -709,23 +762,35 @@ struct inode *ovl_get_inode(struct super_block *sb, struct dentry *upperdentry,
+ 	struct inode *realinode = upperdentry ? d_inode(upperdentry) : NULL;
+ 	struct inode *inode;
+ 	bool bylower = ovl_hash_bylower(sb, upperdentry, lowerdentry, index);
++	struct ovl_fh *fh = NULL;
++	unsigned long key;
+ 	bool is_dir;
+ 
+ 	if (!realinode)
+ 		realinode = d_inode(lowerdentry);
+ 
++	/* Hash non-upper and indexed by origin fh for NFS export */
++	if (sb->s_export_op && bylower) {
++		fh = ovl_real_fh_hash(lowerdentry, false, &key);
++		if (IS_ERR(fh))
++			return ERR_CAST(fh);
++	} else if (bylower) {
++		key = (unsigned long) d_inode(lowerdentry);
++	} else if (upperdentry) {
++		key = (unsigned long) d_inode(upperdentry);
++	}
++
+ 	/*
+ 	 * Copy up origin (lower) may exist for non-indexed upper, but we must
+ 	 * not use lower as hash key if this is a broken hardlink.
+ 	 */
+ 	is_dir = S_ISDIR(realinode->i_mode);
+ 	if (upperdentry || bylower) {
+-		struct inode *key = d_inode(bylower ? lowerdentry :
+-						      upperdentry);
+ 		unsigned int nlink = is_dir ? 1 : realinode->i_nlink;
+ 
+-		inode = iget5_locked(sb, (unsigned long) key,
+-				     ovl_inode_test, ovl_inode_set, key);
++		inode = iget5_locked(sb, key, fh ? ovl_inode_test_fh :
++						   ovl_inode_test,
++				     ovl_inode_set, fh ?: (void *)key);
+ 		if (!inode)
+ 			goto out_nomem;
+ 		if (!(inode->i_state & I_NEW)) {
+@@ -742,6 +807,10 @@ struct inode *ovl_get_inode(struct super_block *sb, struct dentry *upperdentry,
+ 
+ 			dput(upperdentry);
+ 			goto out;
++		} else if (fh) {
++			/* i_private keeps the reference to fh */
++			ovl_set_flag(OVL_I_PRIVATE_FH, inode);
++			fh = NULL;
+ 		}
+ 
+ 		/* Recalculate nlink for non-dir due to indexing */
+@@ -771,6 +840,7 @@ struct inode *ovl_get_inode(struct super_block *sb, struct dentry *upperdentry,
+ 	if (inode->i_state & I_NEW)
+ 		unlock_new_inode(inode);
+ out:
++	kfree(fh);
+ 	return inode;
+ 
+ out_nomem:
+diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
+index 287938911abe..74ccbe0813cd 100644
+--- a/fs/overlayfs/namei.c
++++ b/fs/overlayfs/namei.c
+@@ -393,7 +393,7 @@ static int ovl_verify_fh(struct dentry *dentry, const char *name,
+ 	if (IS_ERR(ofh))
+ 		return PTR_ERR(ofh);
+ 
+-	if (fh->len != ofh->len || memcmp(fh, ofh, fh->len))
++	if (!ovl_fs_equal(fh, ofh))
+ 		err = -ESTALE;
+ 
+ 	kfree(ofh);
+diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
+index dd6c10e5a7db..b94db3f6f4ae 100644
+--- a/fs/overlayfs/overlayfs.h
++++ b/fs/overlayfs/overlayfs.h
+@@ -35,6 +35,8 @@ enum ovl_inode_flag {
+ 	/* Non-merge dir that may contain whiteout entries */
+ 	OVL_WHITEOUTS,
+ 	OVL_INDEX,
++	/* inode->i_priavte is a file handle copy */
++	OVL_I_PRIVATE_FH,
+ };
+ 
+ enum ovl_entry_flag {
+@@ -83,6 +85,12 @@ struct ovl_fh {
+ 	u8 fid[0];	/* file identifier */
+ } __packed;
+ 
++static inline bool ovl_fs_equal(const struct ovl_fh *fh1,
++				const struct ovl_fh *fh2)
++{
++	return fh1->len == fh2->len && !memcmp(fh1, fh2, fh1->len);
++}
++
+ static inline int ovl_do_rmdir(struct inode *dir, struct dentry *dentry)
+ {
+ 	int err = vfs_rmdir(dir, dentry);
+@@ -326,6 +334,7 @@ int ovl_update_time(struct inode *inode, struct timespec *ts, int flags);
+ bool ovl_is_private_xattr(const char *name);
+ 
+ struct inode *ovl_new_inode(struct super_block *sb, umode_t mode, dev_t rdev);
++struct inode *ovl_lookup_inode_fh(struct super_block *sb, struct ovl_fh *fh);
+ struct inode *ovl_lookup_inode(struct super_block *sb, struct dentry *real,
+ 			       bool is_upper);
+ struct inode *ovl_get_inode(struct super_block *sb, struct dentry *upperdentry,
+diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+index 7c24619ae7fc..d17dffc611cc 100644
+--- a/fs/overlayfs/super.c
++++ b/fs/overlayfs/super.c
+@@ -220,6 +220,8 @@ static void ovl_destroy_inode(struct inode *inode)
+ 	kfree(oi->redirect);
+ 	ovl_dir_cache_free(inode);
+ 	mutex_destroy(&oi->lock);
++	if (ovl_test_flag(OVL_I_PRIVATE_FH, inode))
++		kfree(inode->i_private);
+ 
+ 	call_rcu(&inode->i_rcu, ovl_i_callback);
  }
- EXPORT_SYMBOL(full_name_hash);
- 
-@@ -1964,12 +1975,20 @@ static inline u64 hash_name(const void *salt, const char *name)
- #else	/* !CONFIG_DCACHE_WORD_ACCESS: Slow, byte-at-a-time version */
- 
- /* Return the hash of a string of known length */
--unsigned int full_name_hash(const void *salt, const char *name, unsigned int len)
-+unsigned long full_name_long_hash(const void *salt, const char *name,
-+				  unsigned int len)
- {
- 	unsigned long hash = init_name_hash(salt);
- 	while (len--)
- 		hash = partial_name_hash((unsigned char)*name++, hash);
--	return end_name_hash(hash);
-+	return hash;
-+}
-+EXPORT_SYMBOL(full_name_long_hash);
-+
-+unsigned int full_name_hash(const void *salt, const char *name,
-+			    unsigned int len)
-+{
-+	return end_name_hash(full_name_long_hash(salt, name, len));
- }
- EXPORT_SYMBOL(full_name_hash);
- 
-diff --git a/include/linux/hash.h b/include/linux/hash.h
-index ad6fa21d977b..fb2324f20c22 100644
---- a/include/linux/hash.h
-+++ b/include/linux/hash.h
-@@ -71,6 +71,14 @@ static inline u32 hash_32_generic(u32 val, unsigned int bits)
- 	return __hash_32(val) >> (32 - bits);
- }
- 
-+#ifndef HAVE_ARCH__HASH_64
-+#define __hash_64 __hash_64_generic
-+#endif
-+static inline u64 __hash_64_generic(u64 val)
-+{
-+	return val * GOLDEN_RATIO_64;
-+}
-+
- #ifndef HAVE_ARCH_HASH_64
- #define hash_64 hash_64_generic
- #endif
-@@ -78,7 +86,7 @@ static __always_inline u32 hash_64_generic(u64 val, unsigned int bits)
- {
- #if BITS_PER_LONG == 64
- 	/* 64x64-bit multiply is efficient on all 64-bit processors */
--	return val * GOLDEN_RATIO_64 >> (64 - bits);
-+	return __hash_64(val) >> (64 - bits);
- #else
- 	/* Hash 64 bits using only 32x32-bit multiply. */
- 	return hash_32((u32)val ^ __hash_32(val >> 32), bits);
-diff --git a/include/linux/stringhash.h b/include/linux/stringhash.h
-index e8f0f852968f..80bdf4bd9c8b 100644
---- a/include/linux/stringhash.h
-+++ b/include/linux/stringhash.h
-@@ -63,7 +63,11 @@ static inline unsigned long end_name_hash(unsigned long hash)
-  *
-  * If not set, this falls back to a wrapper around the preceding.
-  */
--extern unsigned int __pure full_name_hash(const void *salt, const char *, unsigned int);
-+extern unsigned int __pure full_name_hash(const void *salt, const char *name,
-+					  unsigned int len);
-+extern unsigned long __pure full_name_long_hash(const void *salt,
-+						const char *name,
-+						unsigned int len);
- 
- /*
-  * A hash_len is a u64 with the hash of a string in the low
 -- 
 2.7.4
