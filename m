@@ -1,119 +1,181 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH 4/4] ovl: lookup in inode cache when decoding lower file handle
-Date: Tue,  6 Feb 2018 14:21:40 +0200
-Message-ID: <1517919700-29182-6-git-send-email-amir73il@gmail.com>
+Subject: [PATCH 1/4] ovl: disambiguate ovl_encode_fh()
+Date: Tue,  6 Feb 2018 14:21:37 +0200
+Message-ID: <1517919700-29182-3-git-send-email-amir73il@gmail.com>
 References: <1517919700-29182-1-git-send-email-amir73il@gmail.com>
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:35209 "EHLO
-        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753069AbeBFMUu (ORCPT
+Received: from mail-wr0-f196.google.com ([209.85.128.196]:36203 "EHLO
+        mail-wr0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752954AbeBFMUq (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 6 Feb 2018 07:20:50 -0500
-Received: by mail-wm0-f66.google.com with SMTP id r78so3472283wme.0
-        for <linux-unionfs@vger.kernel.org>; Tue, 06 Feb 2018 04:20:49 -0800 (PST)
+        Tue, 6 Feb 2018 07:20:46 -0500
+Received: by mail-wr0-f196.google.com with SMTP id y3so1699329wrh.3
+        for <linux-unionfs@vger.kernel.org>; Tue, 06 Feb 2018 04:20:46 -0800 (PST)
 In-Reply-To: <1517919700-29182-1-git-send-email-amir73il@gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 To: Miklos Szeredi <miklos@szeredi.hu>
 Cc: linux-unionfs@vger.kernel.org
 
-When decoding a lower file handle, we need to check if lower file was
-copied up and indexed and if it has a whiteout index, we need to check
-if this is an unlinked but open non-dir before returning -ESTALE.
+Rename ovl_encode_fh() to ovl_encode_real_fh() to differentiate from the
+exportfs function ovl_encode_inode_fh() and change the latter to
+ovl_encode_fh() to match the exportfs method name.
 
-To find out if this is an unlinked but open non-dir we need to lookup
-an overlay inode in inode cache with an alias.
-
-Before this change, the overlay inode was looked up by lower inode and
-that required decoding the lower file handle before looking in inode
-cache. If the lower inode turned out to be a directory, we may have
-paid an expensive cost to reconnect that lower directory for nothing.
-
-After this change, we start by looking up an overlay inode in inode
-cache by lower file handle. If we don't find an overlay inode and dentry
-alias, then we only need to decode the lower file handle in case the
-lower file is not indexed or if the index is a non-dir.
+Rename ovl_decode_fh() to ovl_decode_real_fh() for consistency.
 
 Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- fs/overlayfs/export.c | 39 ++++++++++++++++-----------------------
- 1 file changed, 16 insertions(+), 23 deletions(-)
+ fs/overlayfs/copy_up.c   |  6 +++---
+ fs/overlayfs/export.c    | 12 ++++++------
+ fs/overlayfs/namei.c     | 10 +++++-----
+ fs/overlayfs/overlayfs.h |  4 ++--
+ 4 files changed, 16 insertions(+), 16 deletions(-)
 
-diff --git a/fs/overlayfs/export.c b/fs/overlayfs/export.c
-index 031cbe060e1b..f8dce6976248 100644
---- a/fs/overlayfs/export.c
-+++ b/fs/overlayfs/export.c
-@@ -700,22 +700,26 @@ static struct dentry *ovl_lower_fh_to_d(struct super_block *sb,
- 	struct ovl_path *stack = &origin;
- 	struct dentry *dentry = NULL;
- 	struct dentry *index = NULL;
--	struct inode *inode = NULL;
--	bool is_deleted = false;
-+	struct inode *inode;
+diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
+index d855f508fa20..8bede0742619 100644
+--- a/fs/overlayfs/copy_up.c
++++ b/fs/overlayfs/copy_up.c
+@@ -232,7 +232,7 @@ int ovl_set_attr(struct dentry *upperdentry, struct kstat *stat)
+ 	return err;
+ }
+ 
+-struct ovl_fh *ovl_encode_fh(struct dentry *real, bool is_upper)
++struct ovl_fh *ovl_encode_real_fh(struct dentry *real, bool is_upper)
+ {
+ 	struct ovl_fh *fh;
+ 	int fh_type, fh_len, dwords;
+@@ -300,7 +300,7 @@ int ovl_set_origin(struct dentry *dentry, struct dentry *lower,
+ 	 * up and a pure upper inode.
+ 	 */
+ 	if (ovl_can_decode_fh(lower->d_sb)) {
+-		fh = ovl_encode_fh(lower, false);
++		fh = ovl_encode_real_fh(lower, false);
+ 		if (IS_ERR(fh))
+ 			return PTR_ERR(fh);
+ 	}
+@@ -321,7 +321,7 @@ static int ovl_set_upper_fh(struct dentry *upper, struct dentry *index)
+ 	const struct ovl_fh *fh;
  	int err;
  
--	/* First lookup indexed upper by fh */
-+	/* First lookup overlay inode in inode cache by fh */
-+	inode = ovl_lookup_inode_fh(sb, fh);
-+	if (IS_ERR(inode))
-+		return ERR_CAST(inode);
-+	if (inode) {
-+		dentry = d_find_any_alias(inode);
-+		iput(inode);
-+		if (dentry)
-+			return dentry;
-+	}
-+
-+	/* Then lookup indexed upper by fh */
- 	if (ofs->indexdir) {
- 		index = ovl_get_index_fh(ofs, fh);
- 		err = PTR_ERR(index);
--		if (IS_ERR(index)) {
--			if (err != -ESTALE)
--				return ERR_PTR(err);
--
--			/* Found a whiteout index - treat as deleted inode */
--			is_deleted = true;
--			index = NULL;
--		}
-+		if (IS_ERR(index))
-+			return index;
+-	fh = ovl_encode_fh(upper, true);
++	fh = ovl_encode_real_fh(upper, true);
+ 	if (IS_ERR(fh))
+ 		return PTR_ERR(fh);
+ 
+diff --git a/fs/overlayfs/export.c b/fs/overlayfs/export.c
+index c5dcb08c3a77..031cbe060e1b 100644
+--- a/fs/overlayfs/export.c
++++ b/fs/overlayfs/export.c
+@@ -225,8 +225,8 @@ static int ovl_d_to_fh(struct dentry *dentry, char *buf, int buflen)
+ 		goto fail;
+ 
+ 	/* Encode an upper or lower file handle */
+-	fh = ovl_encode_fh(err ? ovl_dentry_lower(dentry) :
+-				 ovl_dentry_upper(dentry), !err);
++	fh = ovl_encode_real_fh(err ? ovl_dentry_lower(dentry) :
++				      ovl_dentry_upper(dentry), !err);
+ 	err = PTR_ERR(fh);
+ 	if (IS_ERR(fh))
+ 		goto fail;
+@@ -264,8 +264,8 @@ static int ovl_dentry_to_fh(struct dentry *dentry, u32 *fid, int *max_len)
+ 	return OVL_FILEID;
+ }
+ 
+-static int ovl_encode_inode_fh(struct inode *inode, u32 *fid, int *max_len,
+-			       struct inode *parent)
++static int ovl_encode_fh(struct inode *inode, u32 *fid, int *max_len,
++			 struct inode *parent)
+ {
+ 	struct dentry *dentry;
+ 	int type;
+@@ -682,7 +682,7 @@ static struct dentry *ovl_upper_fh_to_d(struct super_block *sb,
+ 	if (!ofs->upper_mnt)
+ 		return ERR_PTR(-EACCES);
+ 
+-	upper = ovl_decode_fh(fh, ofs->upper_mnt);
++	upper = ovl_decode_real_fh(fh, ofs->upper_mnt);
+ 	if (IS_ERR_OR_NULL(upper))
+ 		return upper;
+ 
+@@ -826,7 +826,7 @@ static struct dentry *ovl_get_parent(struct dentry *dentry)
+ }
+ 
+ const struct export_operations ovl_export_operations = {
+-	.encode_fh	= ovl_encode_inode_fh,
++	.encode_fh	= ovl_encode_fh,
+ 	.fh_to_dentry	= ovl_fh_to_dentry,
+ 	.fh_to_parent	= ovl_fh_to_parent,
+ 	.get_name	= ovl_get_name,
+diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
+index de3e6da1d5a5..287938911abe 100644
+--- a/fs/overlayfs/namei.c
++++ b/fs/overlayfs/namei.c
+@@ -171,7 +171,7 @@ static struct ovl_fh *ovl_get_fh(struct dentry *dentry, const char *name)
+ 	goto out;
+ }
+ 
+-struct dentry *ovl_decode_fh(struct ovl_fh *fh, struct vfsmount *mnt)
++struct dentry *ovl_decode_real_fh(struct ovl_fh *fh, struct vfsmount *mnt)
+ {
+ 	struct dentry *real;
+ 	int bytes;
+@@ -317,7 +317,7 @@ int ovl_check_origin_fh(struct ovl_fs *ofs, struct ovl_fh *fh,
+ 	int i;
+ 
+ 	for (i = 0; i < ofs->numlower; i++) {
+-		origin = ovl_decode_fh(fh, ofs->lower_layers[i].mnt);
++		origin = ovl_decode_real_fh(fh, ofs->lower_layers[i].mnt);
+ 		if (origin)
+ 			break;
  	}
+@@ -415,7 +415,7 @@ int ovl_verify_set_fh(struct dentry *dentry, const char *name,
+ 	struct ovl_fh *fh;
+ 	int err;
  
- 	/* Then try to get upper dir by index */
-@@ -731,7 +735,7 @@ static struct dentry *ovl_lower_fh_to_d(struct super_block *sb,
- 		goto out;
- 	}
+-	fh = ovl_encode_fh(real, is_upper);
++	fh = ovl_encode_real_fh(real, is_upper);
+ 	err = PTR_ERR(fh);
+ 	if (IS_ERR(fh))
+ 		goto fail;
+@@ -451,7 +451,7 @@ struct dentry *ovl_index_upper(struct ovl_fs *ofs, struct dentry *index)
+ 	if (IS_ERR_OR_NULL(fh))
+ 		return ERR_CAST(fh);
  
--	/* Then lookup origin by fh */
-+	/* Then lookup indexed non-dir origin or non-upper by fh */
- 	err = ovl_check_origin_fh(ofs, fh, NULL, &stack);
- 	if (err) {
- 		goto out_err;
-@@ -739,16 +743,6 @@ static struct dentry *ovl_lower_fh_to_d(struct super_block *sb,
- 		err = ovl_verify_origin(index, origin.dentry, false);
- 		if (err)
- 			goto out_err;
--	} else if (is_deleted) {
--		/* Lookup deleted non-dir by origin inode */
--		if (!d_is_dir(origin.dentry))
--			inode = ovl_lookup_inode(sb, origin.dentry, false);
--		err = -ESTALE;
--		if (!inode || atomic_read(&inode->i_count) == 1)
--			goto out_err;
--
--		/* Deleted but still open? */
--		index = dget(ovl_i_dentry_upper(inode));
- 	}
+-	upper = ovl_decode_fh(fh, ofs->upper_mnt);
++	upper = ovl_decode_real_fh(fh, ofs->upper_mnt);
+ 	kfree(fh);
  
- 	dentry = ovl_get_dentry(sb, NULL, &origin, index);
-@@ -756,7 +750,6 @@ static struct dentry *ovl_lower_fh_to_d(struct super_block *sb,
- out:
- 	dput(origin.dentry);
- 	dput(index);
--	iput(inode);
- 	return dentry;
+ 	if (IS_ERR_OR_NULL(upper))
+@@ -619,7 +619,7 @@ int ovl_get_index_name(struct dentry *origin, struct qstr *name)
+ 	struct ovl_fh *fh;
+ 	int err;
  
- out_err:
+-	fh = ovl_encode_fh(origin, false);
++	fh = ovl_encode_real_fh(origin, false);
+ 	if (IS_ERR(fh))
+ 		return PTR_ERR(fh);
+ 
+diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
+index 225ff1171147..dd6c10e5a7db 100644
+--- a/fs/overlayfs/overlayfs.h
++++ b/fs/overlayfs/overlayfs.h
+@@ -266,7 +266,7 @@ static inline bool ovl_is_impuredir(struct dentry *dentry)
+ 
+ /* namei.c */
+ int ovl_check_fh_len(struct ovl_fh *fh, int fh_len);
+-struct dentry *ovl_decode_fh(struct ovl_fh *fh, struct vfsmount *mnt);
++struct dentry *ovl_decode_real_fh(struct ovl_fh *fh, struct vfsmount *mnt);
+ int ovl_check_origin_fh(struct ovl_fs *ofs, struct ovl_fh *fh,
+ 			struct dentry *upperdentry, struct ovl_path **stackp);
+ int ovl_verify_set_fh(struct dentry *dentry, const char *name,
+@@ -361,7 +361,7 @@ int ovl_copy_up(struct dentry *dentry);
+ int ovl_copy_up_flags(struct dentry *dentry, int flags);
+ int ovl_copy_xattr(struct dentry *old, struct dentry *new);
+ int ovl_set_attr(struct dentry *upper, struct kstat *stat);
+-struct ovl_fh *ovl_encode_fh(struct dentry *real, bool is_upper);
++struct ovl_fh *ovl_encode_real_fh(struct dentry *real, bool is_upper);
+ int ovl_set_origin(struct dentry *dentry, struct dentry *lower,
+ 		   struct dentry *upper);
+ 
 -- 
 2.7.4
