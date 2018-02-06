@@ -1,235 +1,125 @@
-From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH 3/4] ovl: hash inodes by lower file handle for NFS export
-Date: Tue,  6 Feb 2018 14:21:39 +0200
-Message-ID: <1517919700-29182-5-git-send-email-amir73il@gmail.com>
-References: <1517919700-29182-1-git-send-email-amir73il@gmail.com>
-Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wr0-f194.google.com ([209.85.128.194]:41938 "EHLO
-        mail-wr0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752954AbeBFMUt (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 6 Feb 2018 07:20:49 -0500
-Received: by mail-wr0-f194.google.com with SMTP id v15so1689945wrb.8
-        for <linux-unionfs@vger.kernel.org>; Tue, 06 Feb 2018 04:20:48 -0800 (PST)
-In-Reply-To: <1517919700-29182-1-git-send-email-amir73il@gmail.com>
-Sender: linux-unionfs-owner@vger.kernel.org
+From: Eryu Guan <eguan@redhat.com>
+Subject: Re: [xfstests PATCH v2 1/5] common/rc: improve mounted check helper
+Date: Tue, 6 Feb 2018 23:21:58 +0800
+Message-ID: <20180206152158.GR18267@eguan.usersys.redhat.com>
+References: <20180131102759.40997-1-yi.zhang@huawei.com>
+ <20180131102759.40997-2-yi.zhang@huawei.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <fstests-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20180131102759.40997-2-yi.zhang@huawei.com>
+Sender: fstests-owner@vger.kernel.org
+To: "zhangyi (F)" <yi.zhang@huawei.com>
+Cc: fstests@vger.kernel.org, linux-unionfs@vger.kernel.org, miklos@szeredi.hu, amir73il@gmail.com, miaoxie@huawei.com, yangerkun@huawei.com
 List-Id: linux-unionfs@vger.kernel.org
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: linux-unionfs@vger.kernel.org
 
-An overlay file handle contains a real underlying filesystem file handle
-and decoding an overlay file handle typically starts by decoding the real
-file handle.
+On Wed, Jan 31, 2018 at 06:27:55PM +0800, zhangyi (F) wrote:
+> Modify _is_mounted() to accept a dir and fstype as input, and check
+> whether this dir is a specified type of mount point.
+> 
+> This patch also fix the problem of missing fstype check:
+> 
+> For example:
+>   Base mounted filesystem:
+>     /dev/sda2 on /boot type ext4 (rw,relatime,data=ordered)
+> 
+>   FSTYPE=xfs
+>   mountpoint=`_is_mounted /dev/sda1`
+>   echo "$mountpoint"
+> 
+>   Output: /boot
+> 
+> This patch remove the useless error message, return empty if no
+> valid mount point.
+> 
+> Signed-off-by: zhangyi (F) <yi.zhang@huawei.com>
+> Reviewed-by: Amir Goldstein <amir73il@gmail.com>
+> ---
+>  common/rc | 25 ++++++++++---------------
+>  1 file changed, 10 insertions(+), 15 deletions(-)
+> 
+> diff --git a/common/rc b/common/rc
+> index 2e3a83a..3351f00 100644
+> --- a/common/rc
+> +++ b/common/rc
+> @@ -2372,27 +2372,22 @@ _scratch_mkfs_richacl()
+>  	esac
+>  }
+>  
+> -# check that a FS on a device is mounted
+> +# check that a FS on a device is mounted or a dir is a mount point
 
-Decoding a real directory file handle can be expensive, and it could be
-avoided in some cases by looking in the overlay inode cache before
-decoding a lower overlay file handle.
+Hmm, I'm thinking about introducing a new _is_dir_mountpoint() function
+for overlay use, and rename _is_mounted to _is_dev_mounted, so we don't
+overload _is_mounted.
 
-In order to be able to do that, we store a copy of the lower file handle
-in overlay inode i_private field and hash the overlay inode by the value
-of lower file handle instead of by the lower inode pointer.
+Further, I think we could take use of findmnt instead of parsing the
+output from mount, which could be hard to do correctly. e.g.
 
-A helper ovl_lookup_inode_fh() is introduced to lookup overlay inode by
-lower file handle. A followup patch will use this helper to optimize
-overlay lower file handle decode for the hot inode cache case.
+# check if the given device is mounted, if so, return mount point
+_is_dev_mounted()
+{
+	local dev=$1
+	local fstype=${2:-$FSTYP}
 
-Signed-off-by: Amir Goldstein <amir73il@gmail.com>
----
- fs/overlayfs/inode.c     | 80 +++++++++++++++++++++++++++++++++++++++++++++---
- fs/overlayfs/namei.c     |  2 +-
- fs/overlayfs/overlayfs.h |  9 ++++++
- fs/overlayfs/super.c     |  2 ++
- 4 files changed, 87 insertions(+), 6 deletions(-)
+	if [ $# -lt 1 ]; then
+		echo "Usage: _is_dev_mounted <device> [fstype]" >&2
+		exit 1
+	fi
+	findmnt -rncv -S $dev -t $fstype -o TARGET | head -1
+}
 
-diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
-index b6b44cf9ec26..5fef29e2f80f 100644
---- a/fs/overlayfs/inode.c
-+++ b/fs/overlayfs/inode.c
-@@ -651,12 +651,65 @@ static bool ovl_verify_inode(struct inode *inode, struct dentry *lowerdentry,
- 	return true;
- }
- 
-+/*
-+ * Overlay inodes are hashed by lower file handle for NFS export, so decode can
-+ * lookup inode cache before doing index lookup and decoding real file handles.
-+ * For pure upper or non-indexed upper or without NFS export, we hash by real
-+ * inode pointer as before NFS export. i_private holds a copy of lower file
-+ * handle or the real inode pointer respectively.
-+ */
-+static int ovl_inode_test_fh(struct inode *inode, void *data)
-+{
-+	return ovl_test_flag(OVL_I_PRIVATE_FH, inode) &&
-+	       ovl_fs_equal(inode->i_private, data);
-+}
-+
-+/* Compute hash from real fs uuid and real fs file handle */
-+static unsigned long ovl_fh_hash(struct ovl_fh *fh)
-+{
-+	/*
-+	 * Mixing the uuid with the real file handle is needed for an
-+	 * overlay configuration of many lower layers on different fs.
-+	 * Other ovl_fh header values are not likely to add random bits.
-+	 */
-+	return full_name_long_hash(NULL, (const char *)&fh->uuid,
-+				   fh->len - offsetof(struct ovl_fh, uuid));
-+}
-+
-+static struct ovl_fh *ovl_real_fh_hash(struct dentry *real, bool is_upper,
-+				       unsigned long *pkey)
-+{
-+	struct ovl_fh *fh = ovl_encode_real_fh(real, is_upper);
-+
-+	if (!IS_ERR(fh))
-+		*pkey = ovl_fh_hash(fh);
-+
-+	return fh;
-+}
-+
-+/* Lookup overlay inode by real inode file handle */
-+struct inode *ovl_lookup_inode_fh(struct super_block *sb, struct ovl_fh *fh)
-+{
-+	return ilookup5(sb, ovl_fh_hash(fh), ovl_inode_test_fh, fh);
-+}
-+
-+/* Lookup overlay inode by real upper inode or by lower inode file handle */
- struct inode *ovl_lookup_inode(struct super_block *sb, struct dentry *real,
- 			       bool is_upper)
- {
- 	struct inode *inode, *key = d_inode(real);
-+	struct ovl_fh *fh;
- 
--	inode = ilookup5(sb, (unsigned long) key, ovl_inode_test, key);
-+	if (is_upper) {
-+		inode = ilookup5(sb, (unsigned long) key, ovl_inode_test, key);
-+	} else {
-+		fh = ovl_encode_real_fh(real, false);
-+		if (IS_ERR(fh))
-+			return ERR_CAST(fh);
-+
-+		inode = ovl_lookup_inode_fh(sb, fh);
-+		kfree(fh);
-+	}
- 	if (!inode)
- 		return NULL;
- 
-@@ -709,23 +762,35 @@ struct inode *ovl_get_inode(struct super_block *sb, struct dentry *upperdentry,
- 	struct inode *realinode = upperdentry ? d_inode(upperdentry) : NULL;
- 	struct inode *inode;
- 	bool bylower = ovl_hash_bylower(sb, upperdentry, lowerdentry, index);
-+	struct ovl_fh *fh = NULL;
-+	unsigned long key;
- 	bool is_dir;
- 
- 	if (!realinode)
- 		realinode = d_inode(lowerdentry);
- 
-+	/* Hash non-upper and indexed by origin fh for NFS export */
-+	if (sb->s_export_op && bylower) {
-+		fh = ovl_real_fh_hash(lowerdentry, false, &key);
-+		if (IS_ERR(fh))
-+			return ERR_CAST(fh);
-+	} else if (bylower) {
-+		key = (unsigned long) d_inode(lowerdentry);
-+	} else if (upperdentry) {
-+		key = (unsigned long) d_inode(upperdentry);
-+	}
-+
- 	/*
- 	 * Copy up origin (lower) may exist for non-indexed upper, but we must
- 	 * not use lower as hash key if this is a broken hardlink.
- 	 */
- 	is_dir = S_ISDIR(realinode->i_mode);
- 	if (upperdentry || bylower) {
--		struct inode *key = d_inode(bylower ? lowerdentry :
--						      upperdentry);
- 		unsigned int nlink = is_dir ? 1 : realinode->i_nlink;
- 
--		inode = iget5_locked(sb, (unsigned long) key,
--				     ovl_inode_test, ovl_inode_set, key);
-+		inode = iget5_locked(sb, key, fh ? ovl_inode_test_fh :
-+						   ovl_inode_test,
-+				     ovl_inode_set, fh ?: (void *)key);
- 		if (!inode)
- 			goto out_nomem;
- 		if (!(inode->i_state & I_NEW)) {
-@@ -742,6 +807,10 @@ struct inode *ovl_get_inode(struct super_block *sb, struct dentry *upperdentry,
- 
- 			dput(upperdentry);
- 			goto out;
-+		} else if (fh) {
-+			/* i_private keeps the reference to fh */
-+			ovl_set_flag(OVL_I_PRIVATE_FH, inode);
-+			fh = NULL;
- 		}
- 
- 		/* Recalculate nlink for non-dir due to indexing */
-@@ -771,6 +840,7 @@ struct inode *ovl_get_inode(struct super_block *sb, struct dentry *upperdentry,
- 	if (inode->i_state & I_NEW)
- 		unlock_new_inode(inode);
- out:
-+	kfree(fh);
- 	return inode;
- 
- out_nomem:
-diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
-index 287938911abe..74ccbe0813cd 100644
---- a/fs/overlayfs/namei.c
-+++ b/fs/overlayfs/namei.c
-@@ -393,7 +393,7 @@ static int ovl_verify_fh(struct dentry *dentry, const char *name,
- 	if (IS_ERR(ofh))
- 		return PTR_ERR(ofh);
- 
--	if (fh->len != ofh->len || memcmp(fh, ofh, fh->len))
-+	if (!ovl_fs_equal(fh, ofh))
- 		err = -ESTALE;
- 
- 	kfree(ofh);
-diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-index dd6c10e5a7db..b94db3f6f4ae 100644
---- a/fs/overlayfs/overlayfs.h
-+++ b/fs/overlayfs/overlayfs.h
-@@ -35,6 +35,8 @@ enum ovl_inode_flag {
- 	/* Non-merge dir that may contain whiteout entries */
- 	OVL_WHITEOUTS,
- 	OVL_INDEX,
-+	/* inode->i_priavte is a file handle copy */
-+	OVL_I_PRIVATE_FH,
- };
- 
- enum ovl_entry_flag {
-@@ -83,6 +85,12 @@ struct ovl_fh {
- 	u8 fid[0];	/* file identifier */
- } __packed;
- 
-+static inline bool ovl_fs_equal(const struct ovl_fh *fh1,
-+				const struct ovl_fh *fh2)
-+{
-+	return fh1->len == fh2->len && !memcmp(fh1, fh2, fh1->len);
-+}
-+
- static inline int ovl_do_rmdir(struct inode *dir, struct dentry *dentry)
- {
- 	int err = vfs_rmdir(dir, dentry);
-@@ -326,6 +334,7 @@ int ovl_update_time(struct inode *inode, struct timespec *ts, int flags);
- bool ovl_is_private_xattr(const char *name);
- 
- struct inode *ovl_new_inode(struct super_block *sb, umode_t mode, dev_t rdev);
-+struct inode *ovl_lookup_inode_fh(struct super_block *sb, struct ovl_fh *fh);
- struct inode *ovl_lookup_inode(struct super_block *sb, struct dentry *real,
- 			       bool is_upper);
- struct inode *ovl_get_inode(struct super_block *sb, struct dentry *upperdentry,
-diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-index 7c24619ae7fc..d17dffc611cc 100644
---- a/fs/overlayfs/super.c
-+++ b/fs/overlayfs/super.c
-@@ -220,6 +220,8 @@ static void ovl_destroy_inode(struct inode *inode)
- 	kfree(oi->redirect);
- 	ovl_dir_cache_free(inode);
- 	mutex_destroy(&oi->lock);
-+	if (ovl_test_flag(OVL_I_PRIVATE_FH, inode))
-+		kfree(inode->i_private);
- 
- 	call_rcu(&inode->i_rcu, ovl_i_callback);
- }
--- 
-2.7.4
+And similarly
+
+# check if the given dir is a mount point, if so, return mount point
+_is_dir_mountpoint()
+{
+	local dir=$1
+	local fstype=${2:-$FSTYP}
+	...
+	findmnt -rncv -T $dir -t $fstype -o TARGET | head -1
+}
+
+Note that I just slightly tested it, not sure if it'll work as expected
+fully. (And please introduce _is_dir_mountpoint along with its first
+usage, i.e. fold it to patch 2/5, if it works as expected.)
+
+Thanks,
+Eryu
+
+>  # if so, return mount point
+>  #
+>  _is_mounted()
+>  {
+> -    if [ $# -ne 1 ]
+> -    then
+> -	echo "Usage: _is_mounted device" 1>&2
+> -	exit 1
+> -    fi
+> +	if [ $# -lt 1 ]; then
+> +		echo "Usage: _is_mounted <device|mountpoint> [fstype]" 1>&2
+> +		exit 1
+> +	fi
+>  
+> -    device=$1
+> +	local name=$1
+> +	local fstype=${2-$FSTYP}
+>  
+> -    if _mount | grep "$device " | $AWK_PROG -v pattern="type $FSTYP" '
+> -        pattern        { print $3 ; exit 0 }
+> -        END            { exit 1 }
+> -    '
+> -    then
+> -        echo "_is_mounted: $device is not a mounted $FSTYP FS"
+> -        exit 1
+> -    fi
+> +	_mount | grep "$name " | $AWK_PROG -v pattern="type $fstype" '
+> +		$0 ~ pattern	{ print $3 }
+> +	'
+>  }
+>  
+>  # remount a FS to a new mode (ro or rw)
+> -- 
+> 2.5.0
+> 
