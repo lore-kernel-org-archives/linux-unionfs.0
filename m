@@ -1,67 +1,116 @@
-From: Eryu Guan <eguan@redhat.com>
-Subject: Re: [xfstests PATCH v3 2/5] overlay: define common overlay xattr keys
-Date: Thu, 8 Feb 2018 20:06:39 +0800
-Message-ID: <20180208120639.GD18267@eguan.usersys.redhat.com>
-References: <20180208031913.14013-1-yi.zhang@huawei.com>
- <20180208031913.14013-3-yi.zhang@huawei.com>
+From: "zhangyi (F)" <yi.zhang@huawei.com>
+Subject: Re: [xfstests PATCH v2 2/5] overlay: hook filesystem check helper
+Date: Thu, 8 Feb 2018 20:46:29 +0800
+Message-ID: <4ef2eeaa-ed7a-b643-614d-8cdc2d99dd41@huawei.com>
+References: <20180131102759.40997-1-yi.zhang@huawei.com>
+ <20180131102759.40997-3-yi.zhang@huawei.com>
+ <20180206155325.GS18267@eguan.usersys.redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mx3-rdu2.redhat.com ([66.187.233.73]:59300 "EHLO mx1.redhat.com"
+Received: from szxga05-in.huawei.com ([45.249.212.191]:5210 "EHLO huawei.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1751878AbeBHMGm (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 8 Feb 2018 07:06:42 -0500
-Content-Disposition: inline
-In-Reply-To: <20180208031913.14013-3-yi.zhang@huawei.com>
+        id S1750847AbeBHMrY (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Thu, 8 Feb 2018 07:47:24 -0500
+In-Reply-To: <20180206155325.GS18267@eguan.usersys.redhat.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: "zhangyi (F)" <yi.zhang@huawei.com>
+To: Eryu Guan <eguan@redhat.com>
 Cc: fstests@vger.kernel.org, linux-unionfs@vger.kernel.org, miklos@szeredi.hu, amir73il@gmail.com, miaoxie@huawei.com, yangerkun@huawei.com
 
-On Thu, Feb 08, 2018 at 11:19:10AM +0800, zhangyi (F) wrote:
-> Define common overlay xattr keys from Linux kernel for ovl tests use.
+On 2018/2/6 23:53, Eryu Guan Wrote:
+> On Wed, Jan 31, 2018 at 06:27:56PM +0800, zhangyi (F) wrote:
+>> Hook filesystem check helper to _check_test_fs and _check_scratch_fs for
+>> constants underlying dirs of overlay filesystem, and introduce scratch
+>> check helpers for optionally lower/upper/work dirs. These helpers works
+>> only if fsck.overlay exists.
+>>
+>> [ _check_test_fs/_check_scratch_fs part picked from Amir's patch, thanks ]
+>>
+[..]
+>> +_check_overlay_test_fs()
+>> +{
+>> +	_overlay_check_fs "$TEST_DIR" \
+>> +		OVL_BASE_TEST_DEV OVL_BASE_TEST_DIR \
+>> +		"$OVL_BASE_TEST_DEV" "$OVL_BASE_TEST_DIR" \
+>> +		$TEST_FS_MOUNT_OPTS $SELINUX_MOUNT_OPTIONS
 > 
-> Signed-off-by: zhangyi (F) <yi.zhang@huawei.com>
-> ---
->  common/overlay | 10 ++++++++++
->  1 file changed, 10 insertions(+)
+> Using $TEST_FS_MOUNT_OPTS doesn't look correct to me, the mount options
+> provided here are meant for mounting base test device, and
+> TEST_FS_MOUNT_OPTS is meant for mounting overlay. (I know that you're
+> copying from _overlay_base_test_mount(), and I think that's a bug in the
+> existing code.)
 > 
-> diff --git a/common/overlay b/common/overlay
-> index 16f13a8..9000432 100644
-> --- a/common/overlay
-> +++ b/common/overlay
-> @@ -3,6 +3,16 @@
->  #
->  . ./common/module
->  
-> +# Export overlayfs xattrs and constant value
-> +export OVL_XATTR_OPAQUE="trusted.overlay.opaque"
-> +export OVL_XATTR_REDIRECT="trusted.overlay.redirect"
-> +export OVL_XATTR_IMPURE="trusted.overlay.impure"
-> +export OVL_XATTR_ORIGIN="trusted.overlay.origin"
-> +export OVL_XATTR_NLINK="trusted.overlay.nlink"
-> +export OVL_XATTR_UPPER="trusted.overlay.upper"
-> +export OVL_XATTR_OPAQUE_VAL="y"
-> +export OVL_XATTR_IMPURE_VAL="y"
+> The problem is that both TEST_FS_MOUNT_OPTS and MOUNT_OPTIONS should be
+> set to OVERLAY_MOUNT_OPTIONS if it's not empty. But currently only
+> MOUNT_OPTIONS is set in common/config::_mount_opts, TEST_FS_MOUNT_OPTS
+> isn't set in common/config::_test_mount_opts.
+> 
+Sorry, I was a little confuse that it conflict with comments in README.overlay.
 
-Sorry, I was not clear enough in previous review. I mean putting the
-common xattr keys to common/overlay, but I don't think the <VAL>="y" is
-needed.
+IIUC, XXX_MOUNT_OPTIONS act as an "default mount options" when user not specify
+MOUNT_OPTIONS explicity, so we set MOUNT_OPTIONS and TEST_FS_MOUNT_OPTS to
+XXX_MOUNT_OPTIONS in _mount_opts and _test_mount_opts for other filesystems.
 
-I'll edit on commit to remove them from here and add them to tests where
-needed.
+But overlayfs is different, OVERLAY_MOUNT_OPTIONS is used for overlayfs mount
+options, so we first set OVL_BASE_MOUNT_OPTIONS to MOUNT_OPTIONS and then set
+MOUNT_OPTIONS to OVERLAY_MOUNT_OPTIONS. So MOUNT_OPTIONS=$OVERLAY_MOUNT_OPTIONS
+in _mount_opts is not correct? (It seem that it will not lead to mistack because
+"8df8ad0c overlay: fix _overlay_config_override of MOUNT_OPTIONS").
+
+Do you think we shoud use OVL_BASE_MOUNT_OPTIONS instead of OVERLAY_MOUNT_OPTIONS
+as "default mount options" and set MOUNT_OPTIONS and TEST_FS_MOUNT_OPTS in
+_mount_opts and _test_mount_opts if user not set either of them ?
 
 Thanks,
-Eryu
-
-> +
->  # helper function to do the actual overlayfs mount operation
->  _overlay_mount_dirs()
->  {
-> -- 
-> 2.5.0
+Yi.
+> But, as mentioned above, this is a different issue, using
+> OVL_BASE_MOUNT_OPTIONS for both _check_overlay_test|scratch_fs should be
+> fine for now. But if you can fix the bug too in next version of this
+> patchset, it'd be great!
 > 
+> Thanks,
+> Eryu
+> 
+>> +}
+>> +
+>> +_check_overlay_scratch_fs()
+>> +{
+>> +	_overlay_check_fs "$SCRATCH_MNT" \
+>> +		OVL_BASE_SCRATCH_DEV OVL_BASE_SCRATCH_MNT \
+>> +		"$OVL_BASE_SCRATCH_DEV" "$OVL_BASE_SCRATCH_MNT" \
+>> +		$OVL_BASE_MOUNT_OPTIONS $SELINUX_MOUNT_OPTIONS
+>> +}
+>> diff --git a/common/rc b/common/rc
+>> index 3351f00..7b84bb5 100644
+>> --- a/common/rc
+>> +++ b/common/rc
+>> @@ -2585,7 +2585,7 @@ _check_test_fs()
+>>  	# no way to check consistency for GlusterFS
+>>  	;;
+>>      overlay)
+>> -	# no way to check consistency for overlay
+>> +	_check_overlay_test_fs
+>>  	;;
+>>      pvfs2)
+>>  	;;
+>> @@ -2643,7 +2643,7 @@ _check_scratch_fs()
+>>  	# no way to check consistency for GlusterFS
+>>  	;;
+>>      overlay)
+>> -	# no way to check consistency for overlay
+>> +	_check_overlay_scratch_fs
+>>  	;;
+>>      pvfs2)
+>>  	;;
+>> -- 
+>> 2.5.0
+>>
 > --
-> To unsubscribe from this list: send the line "unsubscribe fstests" in
+> To unsubscribe from this list: send the line "unsubscribe linux-unionfs" in
 > the body of a message to majordomo@vger.kernel.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> .
+> 
