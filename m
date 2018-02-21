@@ -1,81 +1,70 @@
-Return-Path: <amir73il@gmail.com>
+Return-Path: <linux-unionfs-owner@vger.kernel.org>
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38996 "EHLO
+        mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932556AbeBULm4 (ORCPT
+        <rfc822;linux-unionfs@vger.kernel.org>);
+        Wed, 21 Feb 2018 06:42:56 -0500
+Date: Wed, 21 Feb 2018 12:42:58 +0100
+From: Greg KH <gregkh@linuxfoundation.org>
+Subject: Re: FAILED: patch "[PATCH] ovl: hash directory inodes for fsnotify"
+ failed to apply to 4.14-stable tree
+Message-ID: <20180221114258.GD6555@kroah.com>
+References: <151870507410538@kroah.com>
+ <CAOQ4uxhBfq2_J+190kkoTcr2FDYDYrF2J99opRLdDjMDpE-8RA@mail.gmail.com>
+ <20180215154431.GA26404@axis.com>
 MIME-Version: 1.0
-In-Reply-To: <CAOQ4uxgTrL=fNedkfPvqvPB4m7z5u1cbf2e_h_FSxvzU+f0ANQ@mail.gmail.com>
-References: <1515086449-26563-1-git-send-email-amir73il@gmail.com>
- <1515086449-26563-11-git-send-email-amir73il@gmail.com> <CAOQ4uxgTrL=fNedkfPvqvPB4m7z5u1cbf2e_h_FSxvzU+f0ANQ@mail.gmail.com>
-From: Amir Goldstein <amir73il@gmail.com>
-Date: Tue, 27 Feb 2018 13:35:05 +0200
-Message-ID: <CAOQ4uxj4hqQrDUUd0hQ_t=PapcsFQ2Mj5=kv5Rp9q5AeAQ6WEw@mail.gmail.com>
-Subject: Re: [PATCH v2 10/17] ovl: decode lower file handles of unlinked but
- open files
-Content-Type: text/plain; charset="UTF-8"
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: Jeff Layton <jlayton@poochiereds.net>, "J . Bruce Fields" <bfields@fieldses.org>, overlayfs <linux-unionfs@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20180215154431.GA26404@axis.com>
+Sender: linux-unionfs-owner@vger.kernel.org
+To: Niklas Cassel <niklas.cassel@axis.com>
+Cc: Amir Goldstein <amir73il@gmail.com>, Miklos Szeredi <mszeredi@redhat.com>, stable <stable@vger.kernel.org>, overlayfs <linux-unionfs@vger.kernel.org>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-On Thu, Jan 18, 2018 at 4:18 PM, Amir Goldstein <amir73il@gmail.com> wrote:
-> On Thu, Jan 4, 2018 at 7:20 PM, Amir Goldstein <amir73il@gmail.com> wrote:
->> Lookup overlay inode in cache by origin inode, so we can decode a file
->> handle of an open file even if the index has a whiteout index entry to
->> mark this overlay inode was unlinked.
->>
->> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
->> ---
->>  fs/overlayfs/export.c    | 22 ++++++++++++++++++++--
->>  fs/overlayfs/inode.c     | 16 ++++++++++++++++
->>  fs/overlayfs/overlayfs.h |  1 +
->>  3 files changed, 37 insertions(+), 2 deletions(-)
->>
->> diff --git a/fs/overlayfs/export.c b/fs/overlayfs/export.c
->> index 602bada474ba..6ecb54d4b52c 100644
->> --- a/fs/overlayfs/export.c
->> +++ b/fs/overlayfs/export.c
->> @@ -385,13 +385,21 @@ static struct dentry *ovl_lower_fh_to_d(struct super_block *sb,
->>         struct ovl_path *stack = &origin;
->>         struct dentry *dentry = NULL;
->>         struct dentry *index = NULL;
->> +       struct inode *inode = NULL;
->> +       bool is_deleted = false;
->>         int err;
->>
->>         /* First lookup indexed upper by fh */
->>         index = ovl_get_index_fh(ofs, fh);
->>         err = PTR_ERR(index);
->> -       if (IS_ERR(index))
->> -               return ERR_PTR(err);
->> +       if (IS_ERR(index)) {
->> +               if (err != -ESTALE)
->> +                       return ERR_PTR(err);
->> +
->> +               /* Found a whiteout index - treat as deleted inode */
->> +               is_deleted = true;
->> +               index = NULL;
->
-> Ouch! it seems I was misleading you.
-> If we find a whiteout index for dir, we *do* decode+reconnect origin,
-> because we want to find out if this is an unlinked but open non-dir.
-> I guess there are 2 ways to avoid this unneeded decode:
-> 1. mark a "directory index whiteout" differently than "non-dir index whiteout"
-> 2. lookup icache by file handle
->
+On Thu, Feb 15, 2018 at 04:44:31PM +0100, Niklas Cassel wrote:
+> On Thu, Feb 15, 2018 at 05:02:32PM +0200, Amir Goldstein wrote:
+> > On Thu, Feb 15, 2018 at 4:31 PM,  <gregkh@linuxfoundation.org> wrote:
+> > >
+> > > The patch below does not apply to the 4.14-stable tree.
+> > > If someone wants it applied there, or to any other stable or longterm
+> > > tree, then please email the backport, including the original git commit
+> > > id to <stable@vger.kernel.org>.
+> > >
+> > 
+> > Hi Niklas,
+> > 
+> > The conflict resolution of this patch for v4.14 is trivial (just dropping last
+> > hunk of inode.c patch), but I no means to test this right now.
+> > 
+> > Are you able and/or interested to test the attached backport path for
+> > stable kernel v4.14?
+> > 
+> > I have posted an LTP test (inotify07) to test this fix if anyone else
+> > is interested in testing:
+> > https://github.com/linux-test-project/ltp/pull/246
+> > 
+> > Thanks,
+> > Amir.
+> 
+> Hello Amir,
+> 
+> I have already backported+verified the fix to v4.13 in one of our internal
+> trees.
+> 
+> Like you said, I simply dropped the last hunk of the patch that modfied
+> inode.c, i.e. I simply ignored this hunk of the patch:
+> 
+> @@ -685,7 +702,7 @@ struct inode *ovl_get_inode(struct dentry *dentry, struct dentry *upperdentry,
+>  		ovl_set_flag(OVL_IMPURE, inode);
+>  
+>  	/* Check for non-merge dir that may have whiteouts */
+> -	if (S_ISDIR(realinode->i_mode)) {
+> +	if (is_dir) {
+>  		struct ovl_entry *oe = dentry->d_fsdata;
+>  
+>  		if (((upperdentry && lowerdentry) || oe->numlower > 1) ||
+> 
 
-Getting back to this.
-I have implemented lookup icache by file handle and realized that it incurs
-higher CPU usage in the common case because the hash function is more
-expensive. I do not have benchmark numbers to present.
+Ok, last hunk dropped, thanks.
 
-However, I also realized there is a 3rd option, which seems like a
-better option:
-
-- Call the underlying fs fh_to_dentry() operation (and not exportfs_decode_fh())
-  to get a possibly disconnected origin dentry
-- Lookup overlay inode by origin inode
-- IF overlay inode not cached lookup index by origin fh
-- IF origin dentry is a disconnected directory AND overlay inode is not cached
-  AND index is not found, only then call exportfs_decode_fh() of origin fh
-  to reconnect the origin dir
-
-I'll try to write this up.
-
-Thanks,
-Amir.
+greg k-h
