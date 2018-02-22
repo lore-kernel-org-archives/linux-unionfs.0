@@ -1,103 +1,82 @@
 Return-Path: <yi.zhang@huawei.com>
 From: "zhangyi (F)" <yi.zhang@huawei.com>
-Subject: [xfstests PATCH v4 1/5] common/rc: improve dev mounted check helper
-Date: Thu, 22 Feb 2018 10:18:30 +0800
-Message-ID: <20180222021834.26145-2-yi.zhang@huawei.com>
-In-Reply-To: <20180222021834.26145-1-yi.zhang@huawei.com>
-References: <20180222021834.26145-1-yi.zhang@huawei.com>
+Subject: [xfstests PATCH v4 0/5] overlay: add overlay filesystem dirs check
+Date: Thu, 22 Feb 2018 10:18:29 +0800
+Message-ID: <20180222021834.26145-1-yi.zhang@huawei.com>
 MIME-Version: 1.0
 Content-Type: text/plain
 To: eguan@redhat.com, fstests@vger.kernel.org
 Cc: linux-unionfs@vger.kernel.org, miklos@szeredi.hu, amir73il@gmail.com, yi.zhang@huawei.com, miaoxie@huawei.com, yangerkun@huawei.com
 List-ID: <linux-unionfs@vger.kernel.org>
 
-There is a problem of missing fstype check in _is_mounted() helper,
-it will return the mountpoint if only the device arguments matches.
+Hi Eryu and Amir:
 
-For example:
-  Base mounted filesystem:
-    /dev/sda2 on /boot type ext4 (rw,relatime,data=ordered)
+Sorry for the late, I have handle comments from last iteration in patch
+{5,6}/6, patch 6/6 will post separately later, please review.
 
-  FSTYPE=xfs
-  mountpoint=`_is_mounted /dev/sda1`
-  echo "$mountpoint"
+Thanks,
+Yi.
 
-  Output: /boot
+Changes since v3:
+- Move overlay checker after _unmount in overlay/{038,041}, and embed
+  checker into unmount_dirs() in overlay/{051,053,055}.
+- split out patch "overlay: correct test mount options"
 
-This patch rename _is_mounted to _is_dev_mounted because it check
-the given device only (not mount dir), and add an optional "fstype"
-parameter, let user specify file system type instead of default
-FSTYPE. Finally, use findmnt instead of mount to avoid complex
-processing of mount info and fix this problem simply.
+Changes since v2:
+- Rename _is_mounted to _is_dev_mounted and use findmnt instead of mount.
+- Fix mistakes in patch 2/6 and introduce _is_dir_mountpoint helper, also
+  introduce fsck options use for overlayfs.
+- Add overlay/049 into patch 4/6 to skip fs check.
+- Add nfs export cases into patch 5/6 to do correct dirs check.
+- Add the "missing feature" of test mount options.
 
-Signed-off-by: zhangyi (F) <yi.zhang@huawei.com>
----
- common/rc  | 29 ++++++++++-------------------
- common/xfs |  2 +-
- 2 files changed, 11 insertions(+), 20 deletions(-)
+Changes since v1:
+- Details comments in patch 1/5.
+- Improve _overlay_check_scratch_dirs to accept extra options.
+- Fix basic filesystem mounted check in _overlay_check_fs.
+- Improve overlay/044 in patch 5/5 to add index=on option.
 
-diff --git a/common/rc b/common/rc
-index a6caca9..17ff7b2 100644
---- a/common/rc
-+++ b/common/rc
-@@ -2372,27 +2372,18 @@ _scratch_mkfs_richacl()
- 	esac
- }
- 
--# check that a FS on a device is mounted
--# if so, return mount point
--#
--_is_mounted()
-+# check if the given device is mounted, if so, return mount point
-+_is_dev_mounted()
- {
--    if [ $# -ne 1 ]
--    then
--	echo "Usage: _is_mounted device" 1>&2
--	exit 1
--    fi
-+	local dev=$1
-+	local fstype=${2:-$FSTYP}
- 
--    device=$1
-+	if [ $# -lt 1 ]; then
-+		echo "Usage: _is_dev_mounted <device> [fstype]" 1>&2
-+		exit 1
-+	fi
- 
--    if _mount | grep "$device " | $AWK_PROG -v pattern="type $FSTYP" '
--        pattern        { print $3 ; exit 0 }
--        END            { exit 1 }
--    '
--    then
--        echo "_is_mounted: $device is not a mounted $FSTYP FS"
--        exit 1
--    fi
-+	findmnt -rncv -S $dev -t $fstype -o TARGET | head -1
- }
- 
- # remount a FS to a new mode (ro or rw)
-@@ -2432,7 +2423,7 @@ _umount_or_remount_ro()
-     fi
- 
-     device=$1
--    mountpoint=`_is_mounted $device`
-+    mountpoint=`_is_dev_mounted $device`
- 
-     if [ $USE_REMOUNT -eq 0 ]; then
-         $UMOUNT_PROG $device
-diff --git a/common/xfs b/common/xfs
-index 9b20b03..572b084 100644
---- a/common/xfs
-+++ b/common/xfs
-@@ -355,7 +355,7 @@ _check_xfs_filesystem()
- 	ok=1
- 
- 	# Run online scrub if we can.
--	mntpt="$(_is_mounted $device)"
-+	mntpt="$(_is_dev_mounted $device)"
- 	if [ -n "$mntpt" ] && _supports_xfs_scrub "$mntpt" "$device"; then
- 		"$XFS_SCRUB_PROG" $scrubflag -v -d -n $device > $tmp.scrub 2>&1
- 		if [ $? -ne 0 ]; then
+----------
+
+Background:
+
+This patchset implement filesystem check for overlay filesystem, base on
+my "overlay: add fsck.overlay basic tests" patchset and works only if
+fsck.overlay[1] exists (otherwise not run).
+
+[1] https://github.com/hisilicon/overlayfs-progs
+
+
+zhangyi (F) (5):
+  common/rc: improve dev mounted check helper
+  overlay: hook filesystem check helper
+  overlay/003: fix fs check failure
+  overlay: skip check for tests finished with corrupt filesystem
+  overlay: correct scratch dirs check
+
+ README.overlay    |  10 ++++-
+ common/config     |   4 ++
+ common/overlay    | 125 ++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ common/rc         |  47 +++++++++++---------
+ common/xfs        |   2 +-
+ tests/overlay/003 |   1 -
+ tests/overlay/005 |   7 ++-
+ tests/overlay/010 |   7 ++-
+ tests/overlay/014 |  10 ++++-
+ tests/overlay/019 |   2 +-
+ tests/overlay/031 |   2 +-
+ tests/overlay/035 |   7 ++-
+ tests/overlay/036 |   6 ++-
+ tests/overlay/037 |   7 ++-
+ tests/overlay/038 |  10 ++++-
+ tests/overlay/041 |  10 ++++-
+ tests/overlay/043 |   7 ++-
+ tests/overlay/044 |   8 +++-
+ tests/overlay/049 |   2 +-
+ tests/overlay/051 |  10 ++++-
+ tests/overlay/053 |  10 ++++-
+ tests/overlay/055 |  10 ++++-
+ 22 files changed, 260 insertions(+), 44 deletions(-)
+
 -- 
 2.5.0
