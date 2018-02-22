@@ -1,8 +1,8 @@
 Return-Path: <yi.zhang@huawei.com>
 From: "zhangyi (F)" <yi.zhang@huawei.com>
-Subject: [xfstests PATCH v4 5/5] overlay: correct scratch dirs check
-Date: Thu, 22 Feb 2018 10:18:34 +0800
-Message-ID: <20180222021834.26145-6-yi.zhang@huawei.com>
+Subject: [xfstests PATCH v4 1/5] common/rc: improve dev mounted check helper
+Date: Thu, 22 Feb 2018 10:18:30 +0800
+Message-ID: <20180222021834.26145-2-yi.zhang@huawei.com>
 In-Reply-To: <20180222021834.26145-1-yi.zhang@huawei.com>
 References: <20180222021834.26145-1-yi.zhang@huawei.com>
 MIME-Version: 1.0
@@ -11,416 +11,93 @@ To: eguan@redhat.com, fstests@vger.kernel.org
 Cc: linux-unionfs@vger.kernel.org, miklos@szeredi.hu, amir73il@gmail.com, yi.zhang@huawei.com, miaoxie@huawei.com, yangerkun@huawei.com
 List-ID: <linux-unionfs@vger.kernel.org>
 
-Tests that use _overlay_scratch_mount_dirs instead of _scratch_mount
-should use _require_overlay_scratch_dirs instead of _require_scratch
-because these tests are either mounting with multiple lower dirs or
-mounting with non-default lower/upper/work dir, so
-_check_overlay_scratch_fs won't handle these cases correctly, we need
-to call _overlay_check_scratch_dirs with the correct arguments.
+There is a problem of missing fstype check in _is_mounted() helper,
+it will return the mountpoint if only the device arguments matches.
 
-This patch modify these tests to optionally call
-_overlay_check_scratch_dirs at the end of the test or after
-_scratch_umount to mount base filesystem only and run the checker.
+For example:
+  Base mounted filesystem:
+    /dev/sda2 on /boot type ext4 (rw,relatime,data=ordered)
+
+  FSTYPE=xfs
+  mountpoint=`_is_mounted /dev/sda1`
+  echo "$mountpoint"
+
+  Output: /boot
+
+This patch rename _is_mounted to _is_dev_mounted because it check
+the given device only (not mount dir), and add an optional "fstype"
+parameter, let user specify file system type instead of default
+FSTYPE. Finally, use findmnt instead of mount to avoid complex
+processing of mount info and fix this problem simply.
 
 Signed-off-by: zhangyi (F) <yi.zhang@huawei.com>
-Reviewed-by: Amir Goldstein <amir73il@gmail.com>
 ---
- tests/overlay/005 |  7 ++++++-
- tests/overlay/010 |  7 ++++++-
- tests/overlay/014 | 10 +++++++++-
- tests/overlay/035 |  7 ++++++-
- tests/overlay/036 |  6 +++++-
- tests/overlay/037 |  7 ++++++-
- tests/overlay/038 | 10 +++++++++-
- tests/overlay/041 | 10 +++++++++-
- tests/overlay/043 |  7 ++++++-
- tests/overlay/044 |  8 +++++++-
- tests/overlay/051 | 10 ++++++++--
- tests/overlay/053 | 10 ++++++++--
- tests/overlay/055 | 10 ++++++++--
- 13 files changed, 93 insertions(+), 16 deletions(-)
+ common/rc  | 29 ++++++++++-------------------
+ common/xfs |  2 +-
+ 2 files changed, 11 insertions(+), 20 deletions(-)
 
-diff --git a/tests/overlay/005 b/tests/overlay/005
-index 17992a3..87fc9bb 100755
---- a/tests/overlay/005
-+++ b/tests/overlay/005
-@@ -54,7 +54,9 @@ rm -f $seqres.full
- # Modify as appropriate.
- _supported_fs overlay
- _supported_os Linux
--_require_scratch
-+# Use non-default scratch underlying overlay dirs, we need to check
-+# them explicity after test.
-+_require_scratch_nocheck
- _require_loop
- 
- # Remove all files from previous tests
-@@ -102,6 +104,9 @@ $XFS_IO_PROG -f -c "o" ${SCRATCH_MNT}/test_file \
- # unmount overlayfs
- $UMOUNT_PROG $SCRATCH_MNT
- 
-+# check overlayfs
-+_overlay_check_scratch_dirs $lowerd $upperd $workd
-+
- # unmount undelying xfs, this tiggers panic if memleak happens
- $UMOUNT_PROG ${OVL_BASE_SCRATCH_MNT}/uppermnt
- $UMOUNT_PROG ${OVL_BASE_SCRATCH_MNT}/lowermnt
-diff --git a/tests/overlay/010 b/tests/overlay/010
-index f55ebec..32af89c 100755
---- a/tests/overlay/010
-+++ b/tests/overlay/010
-@@ -48,7 +48,9 @@ rm -f $seqres.full
- # real QA test starts here
- _supported_fs overlay
- _supported_os Linux
--_require_scratch
-+# Use non-default scratch underlying overlay dirs, we need to check
-+# them explicity after test.
-+_require_scratch_nocheck
- 
- # Remove all files from previous tests
- _scratch_mkfs
-@@ -70,6 +72,9 @@ mknod $lowerdir2/testdir/a c 0 0
- _overlay_scratch_mount_dirs "$lowerdir2:$lowerdir1" $upperdir $workdir
- rm -rf $SCRATCH_MNT/testdir
- 
-+# check overlayfs
-+_overlay_check_scratch_dirs "$lowerdir2:$lowerdir1" $upperdir $workdir
-+
- # success, all done
- echo "Silence is golden"
- status=0
-diff --git a/tests/overlay/014 b/tests/overlay/014
-index 9f308d3..67fad9f 100755
---- a/tests/overlay/014
-+++ b/tests/overlay/014
-@@ -53,7 +53,9 @@ rm -f $seqres.full
- # real QA test starts here
- _supported_fs overlay
- _supported_os Linux
--_require_scratch
-+# Use non-default scratch underlying overlay dirs, we need to check
-+# them explicity after test.
-+_require_scratch_nocheck
- 
- # Remove all files from previous tests
- _scratch_mkfs
-@@ -78,6 +80,9 @@ mkdir -p $SCRATCH_MNT/testdir/visibledir
- # unmount overlayfs but not base fs
- $UMOUNT_PROG $SCRATCH_MNT
- 
-+# check overlayfs
-+_overlay_check_scratch_dirs $lowerdir1 $lowerdir2 $workdir2
-+
- # mount overlay again, with lowerdir1 and lowerdir2 as multiple lowerdirs,
- # and create a new file in testdir, triggers copyup from lowerdir,
- # copyup should not copy overlayfs private xattr
-@@ -90,6 +95,9 @@ $UMOUNT_PROG $SCRATCH_MNT
- _overlay_scratch_mount_dirs "$lowerdir2:$lowerdir1" $upperdir $workdir
- ls $SCRATCH_MNT/testdir
- 
-+# check overlayfs
-+_overlay_check_scratch_dirs "$lowerdir2:$lowerdir1" $upperdir $workdir
-+
- # success, all done
- status=0
- exit
-diff --git a/tests/overlay/035 b/tests/overlay/035
-index 0544774..d1b2c19 100755
---- a/tests/overlay/035
-+++ b/tests/overlay/035
-@@ -51,7 +51,9 @@ rm -f $seqres.full
- # real QA test starts here
- _supported_fs overlay
- _supported_os Linux
--_require_scratch
-+# Use non-default scratch underlying overlay dirs, we need to check
-+# them explicity after test.
-+_require_scratch_nocheck
- _require_chattr i
- 
- # Remove all files from previous tests
-@@ -81,6 +83,9 @@ _overlay_scratch_mount_dirs $lowerdir2 $upperdir $workdir
- touch $SCRATCH_MNT/bar 2>&1 | _filter_scratch
- _scratch_remount rw 2>&1 | _filter_ro_mount
- 
-+# check overlayfs
-+_overlay_check_scratch_dirs $lowerdir2 $upperdir $workdir
-+
- # success, all done
- status=0
- exit
-diff --git a/tests/overlay/036 b/tests/overlay/036
-index e04aaee..8d3ccf4 100755
---- a/tests/overlay/036
-+++ b/tests/overlay/036
-@@ -69,7 +69,9 @@ rm -f $seqres.full
- # real QA test starts here
- _supported_fs overlay
- _supported_os Linux
--_require_scratch
-+# Use non-default scratch underlying overlay dirs, we need to check
-+# them explicity after test.
-+_require_scratch_nocheck
- _require_scratch_feature index
- 
- # Remove all files from previous tests
-@@ -110,6 +112,8 @@ _overlay_mount_dirs $lowerdir $upperdir $workdir2 \
- _overlay_mount_dirs $lowerdir2 $upperdir2 $workdir \
- 	    overlay3 $SCRATCH_MNT -oindex=on 2>&1 | _filter_busy_mount
- 
-+# check overlayfs
-+_overlay_check_scratch_dirs $lowerdir $upperdir $workdir
- 
- # success, all done
- status=0
-diff --git a/tests/overlay/037 b/tests/overlay/037
-index 6710dda..4e2e5df 100755
---- a/tests/overlay/037
-+++ b/tests/overlay/037
-@@ -55,7 +55,9 @@ rm -f $seqres.full
- # real QA test starts here
- _supported_fs overlay
- _supported_os Linux
--_require_scratch
-+# Use non-default scratch underlying overlay dirs, we need to check
-+# them explicity after test.
-+_require_scratch_nocheck
- _require_scratch_feature index
- 
- # Remove all files from previous tests
-@@ -87,6 +89,9 @@ $UMOUNT_PROG $SCRATCH_MNT 2>/dev/null
- # Mount overlay with original lowerdir, upperdir, workdir and index=on - expect success
- _overlay_scratch_mount_dirs $lowerdir $upperdir $workdir -oindex=on
- 
-+# check overlayfs
-+_overlay_check_scratch_dirs $lowerdir $upperdir $workdir -oindex=on
-+
- # success, all done
- status=0
- exit
-diff --git a/tests/overlay/038 b/tests/overlay/038
-index bd87156..972a16e 100755
---- a/tests/overlay/038
-+++ b/tests/overlay/038
-@@ -46,7 +46,9 @@ _cleanup()
- # real QA test starts here
- _supported_fs overlay
- _supported_os Linux
--_require_scratch
-+# Use non-default scratch underlying overlay dirs, we need to check
-+# them explicity after test.
-+_require_scratch_nocheck
- _require_attrs
- _require_test_program "t_dir_type"
- 
-@@ -163,6 +165,9 @@ subdir_d=$($here/src/t_dir_type $pure_lower_dir $pure_lower_subdir_st_ino)
- 
- _scratch_unmount
- 
-+# check overlayfs
-+_check_scratch_fs
-+
- # Verify pure lower residing in dir which has another lower layer
- _scratch_mkfs
- 
-@@ -202,6 +207,9 @@ subdir_d=$($here/src/t_dir_type $pure_lower_dir $pure_lower_subdir_st_ino)
- [[ $subdir_d == "subdir d" ]] || \
- 	echo "Pure lower in dir which has another lower layer: Invalid d_ino reported for subdir"
- 
-+# check overlayfs
-+_overlay_check_scratch_dirs "$middir:$lowerdir" $upperdir $workdir
-+
- echo "Silence is golden"
- status=0
- exit
-diff --git a/tests/overlay/041 b/tests/overlay/041
-index 11efacb..4e72348 100755
---- a/tests/overlay/041
-+++ b/tests/overlay/041
-@@ -48,7 +48,9 @@ _cleanup()
- # real QA test starts here
- _supported_fs overlay
- _supported_os Linux
--_require_scratch
-+# Use non-default scratch underlying overlay dirs, we need to check
-+# them explicity after test.
-+_require_scratch_nocheck
- _require_test
- _require_attrs
- _require_test_program "t_dir_type"
-@@ -168,6 +170,9 @@ subdir_d=$($here/src/t_dir_type $pure_lower_dir $pure_lower_subdir_st_ino)
- 
- _scratch_unmount
- 
-+# check overlayfs
-+_overlay_check_scratch_dirs $lowerdir $upperdir $workdir
-+
- # Verify pure lower residing in dir which has another lower layer
- middir=$OVL_BASE_TEST_DIR/$seq-ovl-mid
- lowerdir=$OVL_BASE_TEST_DIR/$seq-ovl-lower
-@@ -206,6 +211,9 @@ subdir_d=$($here/src/t_dir_type $pure_lower_dir $pure_lower_subdir_st_ino)
- [[ $subdir_d == "subdir d" ]] || \
- 	echo "Pure lower in dir which has another lower layer: Invalid d_ino reported for subdir"
- 
-+# check overlayfs
-+_overlay_check_scratch_dirs "$middir:$lowerdir" $upperdir $workdir
-+
- echo "Silence is golden"
- status=0
- exit
-diff --git a/tests/overlay/043 b/tests/overlay/043
-index 699c4e1..46df686 100755
---- a/tests/overlay/043
-+++ b/tests/overlay/043
-@@ -56,7 +56,9 @@ _cleanup()
- # real QA test starts here
- _supported_fs overlay
- _supported_os Linux
--_require_scratch
-+# Use non-default scratch underlying overlay dirs, we need to check
-+# them explicity after test.
-+_require_scratch_nocheck
- _require_test
- _require_test_program "af_unix"
- _require_test_program "t_dir_type"
-@@ -153,6 +155,9 @@ _overlay_scratch_mount_dirs $lowerdir $upperdir $workdir
- # Compare inode numbers before/after mount cycle
- check_inode_numbers $testdir $tmp.after_move $tmp.after_cycle
- 
-+# check overlayfs
-+_overlay_check_scratch_dirs $lowerdir $upperdir $workdir
-+
- echo "Silence is golden"
- status=0
- exit
-diff --git a/tests/overlay/044 b/tests/overlay/044
-index e57f6f7..2ab3035 100755
---- a/tests/overlay/044
-+++ b/tests/overlay/044
-@@ -49,7 +49,9 @@ _cleanup()
- # real QA test starts here
- _supported_fs overlay
- _supported_os Linux
--_require_scratch
-+# Use non-default scratch underlying overlay dirs, we need to check
-+# them explicity after test.
-+_require_scratch_nocheck
- _require_test
- _require_scratch_feature index
- _require_test_program "t_dir_type"
-@@ -122,6 +124,7 @@ check_ino_nlink $SCRATCH_MNT $tmp.before $tmp.after_one
- 
- # Verify that the hardlinks survive a mount cycle
- $UMOUNT_PROG $SCRATCH_MNT
-+_overlay_check_scratch_dirs $lowerdir $upperdir $workdir -o index=on
- _overlay_scratch_mount_dirs $lowerdir $upperdir $workdir -o index=on
- 
- echo "== After mount cycle =="
-@@ -138,5 +141,8 @@ echo "== After write two =="
- cat $FILES
- check_ino_nlink $SCRATCH_MNT $tmp.after_one $tmp.after_two
- 
-+# check overlayfs
-+_overlay_check_scratch_dirs $lowerdir $upperdir $workdir -o index=on
-+
- status=0
- exit
-diff --git a/tests/overlay/051 b/tests/overlay/051
-index ae7844d..04bd133 100755
---- a/tests/overlay/051
-+++ b/tests/overlay/051
-@@ -61,8 +61,10 @@ _cleanup()
- _supported_fs overlay
- _supported_os Linux
- _require_test
--_require_scratch
- _require_test_program "open_by_handle"
-+# Use non-default scratch underlying overlay dirs, we need to check
-+# them explicity after test.
-+_require_scratch_nocheck
- # We need to require both features together, because nfs_export cannot
- # be enabled when index is disabled
- _require_scratch_overlay_features index nfs_export
-@@ -122,10 +124,14 @@ mount_dirs()
- 				-o "index=on,nfs_export=on"
+diff --git a/common/rc b/common/rc
+index a6caca9..17ff7b2 100644
+--- a/common/rc
++++ b/common/rc
+@@ -2372,27 +2372,18 @@ _scratch_mkfs_richacl()
+ 	esac
  }
  
--# Unmount the overlay without unmounting base fs
-+# Unmount the overlay without unmounting base fs and check the
-+# underlying dirs
- unmount_dirs()
+-# check that a FS on a device is mounted
+-# if so, return mount point
+-#
+-_is_mounted()
++# check if the given device is mounted, if so, return mount point
++_is_dev_mounted()
  {
- 	$UMOUNT_PROG $SCRATCH_MNT
-+
-+	_overlay_check_scratch_dirs $middle:$lower $upper $work \
-+				-o "index=on,nfs_export=on"
+-    if [ $# -ne 1 ]
+-    then
+-	echo "Usage: _is_mounted device" 1>&2
+-	exit 1
+-    fi
++	local dev=$1
++	local fstype=${2:-$FSTYP}
+ 
+-    device=$1
++	if [ $# -lt 1 ]; then
++		echo "Usage: _is_dev_mounted <device> [fstype]" 1>&2
++		exit 1
++	fi
+ 
+-    if _mount | grep "$device " | $AWK_PROG -v pattern="type $FSTYP" '
+-        pattern        { print $3 ; exit 0 }
+-        END            { exit 1 }
+-    '
+-    then
+-        echo "_is_mounted: $device is not a mounted $FSTYP FS"
+-        exit 1
+-    fi
++	findmnt -rncv -S $dev -t $fstype -o TARGET | head -1
  }
  
- # Check non-stale file handles of lower/upper files and verify
-diff --git a/tests/overlay/053 b/tests/overlay/053
-index d4fdcde..d766cde 100755
---- a/tests/overlay/053
-+++ b/tests/overlay/053
-@@ -63,8 +63,10 @@ _cleanup()
- _supported_fs overlay
- _supported_os Linux
- _require_test
--_require_scratch
- _require_test_program "open_by_handle"
-+# Use non-default scratch underlying overlay dirs, we need to check
-+# them explicity after test.
-+_require_scratch_nocheck
- # We need to require all features together, because nfs_export cannot
- # be enabled when index is disabled
- _require_scratch_overlay_features index nfs_export redirect_dir
-@@ -118,10 +120,14 @@ mount_dirs()
- 				-o "index=on,nfs_export=on,redirect_dir=on"
- }
+ # remount a FS to a new mode (ro or rw)
+@@ -2432,7 +2423,7 @@ _umount_or_remount_ro()
+     fi
  
--# Unmount the overlay without unmounting base fs
-+# Unmount the overlay without unmounting base fs and check the
-+# underlying dirs
- unmount_dirs()
- {
- 	$UMOUNT_PROG $SCRATCH_MNT
-+
-+	_overlay_check_scratch_dirs $middle:$lower $upper $work \
-+				-o "index=on,nfs_export=on,redirect_dir=on"
- }
+     device=$1
+-    mountpoint=`_is_mounted $device`
++    mountpoint=`_is_dev_mounted $device`
  
- # Check non-stale file handles of lower/upper moved files
-diff --git a/tests/overlay/055 b/tests/overlay/055
-index 70fe6ac..02da6ef 100755
---- a/tests/overlay/055
-+++ b/tests/overlay/055
-@@ -67,8 +67,10 @@ _cleanup()
- _supported_fs overlay
- _supported_os Linux
- _require_test
--_require_scratch
- _require_test_program "open_by_handle"
-+# Use non-default scratch underlying overlay dirs, we need to check
-+# them explicity after test.
-+_require_scratch_nocheck
- # We need to require all features together, because nfs_export cannot
- # be enabled when index is disabled
- _require_scratch_overlay_features index nfs_export redirect_dir
-@@ -122,10 +124,14 @@ mount_dirs()
- 				-o "index=on,nfs_export=on,redirect_dir=on"
- }
+     if [ $USE_REMOUNT -eq 0 ]; then
+         $UMOUNT_PROG $device
+diff --git a/common/xfs b/common/xfs
+index 9b20b03..572b084 100644
+--- a/common/xfs
++++ b/common/xfs
+@@ -355,7 +355,7 @@ _check_xfs_filesystem()
+ 	ok=1
  
--# Unmount the overlay without unmounting base fs
-+# Unmount the overlay without unmounting base fs and check the
-+# underlying dirs
- unmount_dirs()
- {
- 	$UMOUNT_PROG $SCRATCH_MNT
-+
-+	_overlay_check_scratch_dirs $middle:$lower $upper $work \
-+				-o "index=on,nfs_export=on,redirect_dir=on"
- }
- 
- # Check file handles of dir with ancestor under lower redirect
+ 	# Run online scrub if we can.
+-	mntpt="$(_is_mounted $device)"
++	mntpt="$(_is_dev_mounted $device)"
+ 	if [ -n "$mntpt" ] && _supports_xfs_scrub "$mntpt" "$device"; then
+ 		"$XFS_SCRUB_PROG" $scrubflag -v -d -n $device > $tmp.scrub 2>&1
+ 		if [ $? -ne 0 ]; then
 -- 
 2.5.0
