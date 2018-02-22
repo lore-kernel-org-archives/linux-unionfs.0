@@ -1,252 +1,179 @@
-Return-Path: <yangerkun@huawei.com>
-From: yangerkun <yangerkun@huawei.com>
-Subject: [xfstests PATCH] overlay: add origin test for fsck.overlay
-Date: Fri, 23 Feb 2018 20:03:25 +0800
-Message-ID: <20180223120325.33255-1-yangerkun@huawei.com>
+Return-Path: <yi.zhang@huawei.com>
+From: "zhangyi (F)" <yi.zhang@huawei.com>
+Subject: [xfstests PATCH v2] overlay: correct test mount options
+Date: Thu, 22 Feb 2018 10:54:13 +0800
+Message-ID: <20180222025413.31131-1-yi.zhang@huawei.com>
 MIME-Version: 1.0
 Content-Type: text/plain
-To: linux-unionfs@vger.kernel.org, fstests@vger.kernel.org
-Cc: miklos@szeredi.hu, amir73il@gmail.com, eguan@redhat.com, yi.zhang@huawei.com, miaoxie@huawei.com, zhaohongjiang@huawei.com, yangerkun@huawei.com
+To: eguan@redhat.com, fstests@vger.kernel.org
+Cc: linux-unionfs@vger.kernel.org, miklos@szeredi.hu, amir73il@gmail.com, yi.zhang@huawei.com, miaoxie@huawei.com, yangerkun@huawei.com
 List-ID: <linux-unionfs@vger.kernel.org>
 
-Add fsck.overlay test case to test it how to deal with origin xattr
-in file or dir of overlayfs.
+Current overlay's _test_mount functions mount base test filesystem
+with TEST_FS_MOUNT_OPTS and mount test overlayfs with MOUNT_OPTIONS
+instead of TEST_FS_MOUNT_OPTS. The TEST_FS_MOUNT_OPTS variable
+should be used for test overlayfs like MOUNT_OPTIONS use for scratch
+overlayfs.
 
-Signed-off-by: yangerkun <yangerkun@huawei.com>
+This patch rename OVL_BASE_MOUNT_OPTIONS to
+OVL_BASE_SCRATCH_MOUNT_OPTIONS and introduce an counterpart variable
+OVL_BASE_TEST_MOUNT_OPTIONS for test base filesystem, and then use
+TEST_FS_MOUNT_OPTS for test overlayfs. We also modify overlay mount
+helpers to adapt mount options.
+
+Signed-off-by: zhangyi (F) <yi.zhang@huawei.com>
 ---
- tests/overlay/057     | 200 ++++++++++++++++++++++++++++++++++++++++++++++++++
- tests/overlay/057.out |   6 ++
- tests/overlay/group   |   1 +
- 3 files changed, 207 insertions(+)
- create mode 100644 tests/overlay/057
- create mode 100644 tests/overlay/057.out
 
-diff --git a/tests/overlay/057 b/tests/overlay/057
-new file mode 100644
-index 00000000..c2299c4f
---- /dev/null
-+++ b/tests/overlay/057
-@@ -0,0 +1,200 @@
-+#! /bin/bash
-+# FS QA Test 057
-+#
-+# Test fsck.overlay how to deal with origin xattr in overlayfs.
-+#
-+#-----------------------------------------------------------------------
-+# Copyright (c) 2018 Huawei.  All Rights Reserved.
-+
-+# This program is free software; you can redistribute it and/or
-+# modify it under the terms of the GNU General Public License as
-+# published by the Free Software Foundation.
-+#
-+# This program is distributed in the hope that it would be useful,
-+# but WITHOUT ANY WARRANTY; without even the implied warranty of
-+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+# GNU General Public License for more details.
-+#
-+# You should have received a copy of the GNU General Public License
-+# along with this program; if not, write the Free Software Foundation,
-+# Inc.,  51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-+#-----------------------------------------------------------------------
-+#
-+
-+seq=`basename $0`
-+seqres=$RESULT_DIR/$seq
-+echo "QA output created by $seq"
-+
-+here=`pwd`
-+tmp=/tmp/$$
-+status=1        # failure is the default!
-+trap "_cleanup; exit \$status" 0 1 2 3 15
-+
-+_cleanup()
-+{
-+	cd /
-+	rm -f $tmp.*
+Changes since v1:
+- Rename _overlay_mount_dirs() to _do_overlay_mount_dirs() to do
+  the actual overlayfs mount operation, and introduce another
+  _overlay_mount_dirs() to mount optional overlayfs for tests use.
+
+---
+ common/config  | 17 +++++++++++++----
+ common/overlay | 32 +++++++++++++++++++++++---------
+ 2 files changed, 36 insertions(+), 13 deletions(-)
+
+diff --git a/common/config b/common/config
+index 20f0e5f..fd04a16 100644
+--- a/common/config
++++ b/common/config
+@@ -346,6 +346,9 @@ _test_mount_opts()
+ 	glusterfs)
+ 		export TEST_FS_MOUNT_OPTS=$GLUSTERFS_MOUNT_OPTIONS
+ 		;;
++	overlay)
++		export TEST_FS_MOUNT_OPTS=$OVERLAY_MOUNT_OPTIONS
++		;;
+ 	ext2|ext3|ext4|ext4dev)
+ 		# acls & xattrs aren't turned on by default on older ext$FOO
+ 		export TEST_FS_MOUNT_OPTS="-o acl,user_xattr $EXT_MOUNT_OPTIONS"
+@@ -546,16 +549,19 @@ _overlay_config_override()
+ 	# Store original base fs vars
+ 	export OVL_BASE_TEST_DEV="$TEST_DEV"
+ 	export OVL_BASE_TEST_DIR="$TEST_DIR"
+-	# If config does not set MOUNT_OPTIONS, its value may be
+-	# leftover from previous _overlay_config_override, so
++	# If config does not set MOUNT_OPTIONS and TEST_FS_MOUNT_OPTS, its
++	# value may be leftover from previous _overlay_config_override, so
+ 	# don't use that value for base fs mount
+ 	[ "$MOUNT_OPTIONS" != "$OVERLAY_MOUNT_OPTIONS" ] || unset MOUNT_OPTIONS
+-	export OVL_BASE_MOUNT_OPTIONS="$MOUNT_OPTIONS"
++	export OVL_BASE_SCRATCH_MOUNT_OPTIONS="$MOUNT_OPTIONS"
++	[ "$TEST_FS_MOUNT_OPTS" != "$OVERLAY_MOUNT_OPTIONS" ] || unset TEST_FS_MOUNT_OPTS
++	export OVL_BASE_TEST_MOUNT_OPTIONS="$TEST_FS_MOUNT_OPTS"
+ 
+ 	# Set TEST vars to overlay base and mount dirs inside base fs
+ 	export TEST_DEV="$OVL_BASE_TEST_DIR"
+ 	export TEST_DIR="$OVL_BASE_TEST_DIR/$OVL_MNT"
+ 	export MOUNT_OPTIONS="$OVERLAY_MOUNT_OPTIONS"
++	export TEST_FS_MOUNT_OPTS="$OVERLAY_MOUNT_OPTIONS"
+ 
+ 	[ -b "$SCRATCH_DEV" ] || return 0
+ 
+@@ -580,7 +586,10 @@ _overlay_config_restore()
+ 	[ -z "$OVL_BASE_TEST_DIR" ] || export TEST_DIR=$OVL_BASE_TEST_DIR
+ 	[ -z "$OVL_BASE_SCRATCH_DEV" ] || export SCRATCH_DEV=$OVL_BASE_SCRATCH_DEV
+ 	[ -z "$OVL_BASE_SCRATCH_MNT" ] || export SCRATCH_MNT=$OVL_BASE_SCRATCH_MNT
+-	[ -z "$OVL_BASE_MOUNT_OPTIONS" ] || export MOUNT_OPTIONS=$OVL_BASE_MOUNT_OPTIONS
++	[ -z "$OVL_BASE_SCRATCH_MOUNT_OPTIONS" ] || \
++		export MOUNT_OPTIONS=$OVL_BASE_SCRATCH_MOUNT_OPTIONS
++	[ -z "$OVL_BASE_TEST_MOUNT_OPTIONS" ] || \
++		export TEST_FS_MOUNT_OPTS=$OVL_BASE_TEST_MOUNT_OPTIONS
+ }
+ 
+ # Parse config section options. This function will parse all the configuration
+diff --git a/common/overlay b/common/overlay
+index 29f9bf8..46a876b 100644
+--- a/common/overlay
++++ b/common/overlay
+@@ -12,7 +12,7 @@ export OVL_XATTR_NLINK="trusted.overlay.nlink"
+ export OVL_XATTR_UPPER="trusted.overlay.upper"
+ 
+ # helper function to do the actual overlayfs mount operation
+-_overlay_mount_dirs()
++_do_overlay_mount_dirs()
+ {
+ 	local lowerdir=$1
+ 	local upperdir=$2
+@@ -20,7 +20,19 @@ _overlay_mount_dirs()
+ 	shift 3
+ 
+ 	$MOUNT_PROG -t overlay -o lowerdir=$lowerdir -o upperdir=$upperdir \
+-		    -o workdir=$workdir `_common_dev_mount_options $*`
++		    -o workdir=$workdir $*
 +}
 +
-+# get standard environment, filters and checks
-+. ./common/rc
-+. ./common/filter
-+. ./common/attr
-+
-+#remove previous $seqres.full before test
-+rm -f $seqres.full
-+
-+# real QA test start here
-+_supported_fs overlay
-+_supported_os Linux
-+_require_scratch_nocheck
-+_require_attrs
-+_require_command "$FSCK_OVERLAY_PROG" fsck.overlay
-+
-+# Remove all files from previous tests
-+_scratch_mkfs
-+
-+create_origin()
++# Mount overlayfs with optional dirs and mount point
++_overlay_mount_dirs()
 +{
 +	local lowerdir=$1
 +	local upperdir=$2
 +	local workdir=$3
++	shift 3
 +
-+	mkdir $lowerdir/testdir
-+	touch $lowerdir/testfile
-+
-+	_overlay_scratch_mount_dirs $lowerdir $upperdir $workdir
-+
-+	# Copy up files and directory
-+	touch $SCRATCH_MNT/{testdir,testfile}
-+	$UMOUNT_PROG $SCRATCH_MNT
-+}
-+
-+# Get the origin xattr of file or dir, maybe null
-+get_origin()
-+{
-+	local target=$1
-+	local value
-+
-+	value=`$GETFATTR_PROG --absolute-names --only-values -n \
-+		$OVL_XATTR_ORIGIN $target 2>&1`
-+	[ $? -eq 1 ] && return 1
-+
-+	if [ -n "$value" ]
-+	then
-+		value=`echo $value | base64`
-+		echo "0s"${value}
-+	else
-+		echo ""
-+	fi
-+	return 0
-+}
-+
-+set_origin()
-+{
-+	local target=$1
-+	local value=$2
-+
-+	if [ -n "$value" ]
-+	then
-+		$SETFATTR_PROG -n $OVL_XATTR_ORIGIN -v $value $target
-+	else
-+		$SETFATTR_PROG -n $OVL_XATTR_ORIGIN $target
-+	fi
-+}
-+
-+# Value of origin equals to the expect value?(1 : equal, 0 : not equal)
-+check_origin()
-+{
-+	local target=$1
-+	local expres=$2
-+	local expect=$3
-+	local origin
-+
-+	origin=`get_origin $target`
-+	if [ $? -eq 1 ]
-+	then
-+		[ $expect -eq 0 ] || echo "Missing origin xattr"
-+	else
-+		[ "$origin" == "$expres" ] && ( [ $expect -eq 1 ] \
-+			|| echo "Invalid origin xattr" )
-+	fi
-+}
-+
-+# Create test directories
-+lowerdir=$OVL_BASE_SCRATCH_MNT/lower
-+lowerdir2=$OVL_BASE_SCRATCH_MNT/lower2
-+upperdir=$OVL_BASE_SCRATCH_MNT/upper
-+workdir=$OVL_BASE_SCRATCH_MNT/workdir
-+
-+make_test_dirs()
-+{
-+	rm -rf $lowerdir $lowerdir2 $upperdir  $workdir
-+	mkdir -p $lowerdir $lowerdir2 $upperdir $workdir
-+}
-+
-+# Test valid origin xattr created when copyup, should not remove
-+make_test_dirs
-+echo "valid origin"
-+create_origin $lowerdir $upperdir $workdir
-+origin1=`get_origin $upperdir/testdir`
-+origin2=`get_origin $upperdir/testfile`
-+_overlay_fsck_dirs $lowerdir $upperdir $workdir -p >> $seqres.full 2>&1 || \
-+	echo "fsck should not fail"
-+check_origin $upperdir/testdir "$origin1" 1
-+check_origin $upperdir/testfile "$origin2" 1
-+
-+# Test invalid origin xattr point to a missing lower target, should remove
-+make_test_dirs
-+echo "invalid origin"
-+create_origin $lowerdir $upperdir $workdir
-+rm -rf $lowerdir/{testfile,testdir}
-+origin1=`get_origin $upperdir/testdir`
-+origin2=`get_origin $upperdir/testfile`
-+_overlay_fsck_dirs $lowerdir $upperdir $workdir -p >> $seqres.full 2>&1 || \
-+	echo "fsck should not fail"
-+check_origin $upperdir/testdir "$origin1" 0
-+check_origin $upperdir/testfile "$origin2" 0
-+
-+# Test invalid origin xattr when there is no lower layer, should remove
-+make_test_dirs
-+echo "invalid origin(2)"
-+create_origin $lowerdir2 $lowerdir $workdir
-+origin1=`get_origin $lowerdir/testdir`
-+origin2=`get_origin $lowerdir/testfile`
-+_overlay_fsck_dirs $lowerdir $upperdir $workdir -p >> $seqres.full 2>&1 || \
-+	echo "fsck should not fail"
-+check_origin $lowerdir/testdir "$origin1" 0
-+check_origin $lowerdir/testfile "$origin2" 0
-+
-+# Test invalid origin xattr which value of origin has changed, should remove
-+make_test_dirs
-+echo "invalid origin(3)"
-+create_origin $lowerdir $upperdir $workdir
-+origin=`get_origin $upperdir/testdir`
-+set_origin $upperdir/testdir $"origin"${origin}
-+origin=`get_origin $upperdir/testfile`
-+set_origin $upperdir/testfile $"origin"${origin}
-+origin1=`get_origin $upperdir/testdir`
-+origin2=`get_origin $upperdir/testfile`
-+_overlay_fsck_dirs $lowerdir $upperdir $workdir -p >> $seqres.full 2>&1 || \
-+	echo "fsck should not fail"
-+check_origin $upperdir/testdir "$origin1" 0
-+check_origin $upperdir/testfile "$origin2" 0
-+
-+# Test valid origin xattr which the value is NULL
-+make_test_dirs
-+echo "valid origin(2)"
-+create_origin $lowerdir $upperdir $workdir
-+set_origin $upperdir/testdir ""
-+set_origin $upperdir/testfile ""
-+origin1=`get_origin $upperdir/testdir`
-+origin2=`get_origin $upperdir/testfile`
-+_overlay_fsck_dirs $lowerdir $upperdir $workdir -p >> $seqres.full 2>&1 || \
-+	echo "fsck should not fail"
-+check_origin $upperdir/testdir "$origin1" 1
-+check_origin $upperdir/testfile "$origin2" 1
-+
-+# sucess, all done
-+status=0
-+exit
-diff --git a/tests/overlay/057.out b/tests/overlay/057.out
-new file mode 100644
-index 00000000..7c375880
---- /dev/null
-+++ b/tests/overlay/057.out
-@@ -0,0 +1,6 @@
-+QA output created by 057
-+valid origin
-+invalid origin
-+invalid origin(2)
-+invalid origin(3)
-+valid origin(2)
-diff --git a/tests/overlay/group b/tests/overlay/group
-index 65f1fe63..b595a003 100644
---- a/tests/overlay/group
-+++ b/tests/overlay/group
-@@ -59,3 +59,4 @@
- 054 auto quick copyup redirect exportfs
- 055 auto quick copyup redirect exportfs nonsamefs
- 056 auto quick fsck
-+057 auto quick fsck
++	_do_overlay_mount_dirs $lowerdir $upperdir $workdir \
++			       `_common_dev_mount_options $*`
+ }
+ 
+ # Mount with same options/mnt/dev of scratch mount, but optionally
+@@ -58,7 +70,7 @@ _overlay_mount()
+ 
+ 	_overlay_mkdirs $dir
+ 
+-	_overlay_mount_dirs $dir/$OVL_LOWER $dir/$OVL_UPPER $dir/$OVL_WORK \
++	_do_overlay_mount_dirs $dir/$OVL_LOWER $dir/$OVL_UPPER $dir/$OVL_WORK \
+ 				$* $dir $mnt
+ }
+ 
+@@ -86,26 +98,28 @@ _overlay_base_test_mount()
+ {
+ 	_overlay_base_mount OVL_BASE_TEST_DEV OVL_BASE_TEST_DIR \
+ 			"$OVL_BASE_TEST_DEV" "$OVL_BASE_TEST_DIR" \
+-			$TEST_FS_MOUNT_OPTS $SELINUX_MOUNT_OPTIONS
++			$OVL_BASE_TEST_MOUNT_OPTIONS $SELINUX_MOUNT_OPTIONS
+ }
+ 
+ _overlay_test_mount()
+ {
+ 	_overlay_base_test_mount && \
+-		_overlay_mount $OVL_BASE_TEST_DIR $TEST_DIR $*
++		_overlay_mount $OVL_BASE_TEST_DIR $TEST_DIR \
++			       $TEST_FS_MOUNT_OPTS $SELINUX_MOUNT_OPTIONS $*
+ }
+ 
+ _overlay_base_scratch_mount()
+ {
+ 	_overlay_base_mount OVL_BASE_SCRATCH_DEV OVL_BASE_SCRATCH_MNT \
+ 			"$OVL_BASE_SCRATCH_DEV" "$OVL_BASE_SCRATCH_MNT" \
+-			$OVL_BASE_MOUNT_OPTIONS $SELINUX_MOUNT_OPTIONS
++			$OVL_BASE_SCRATCH_MOUNT_OPTIONS $SELINUX_MOUNT_OPTIONS
+ }
+ 
+ _overlay_scratch_mount()
+ {
+ 	_overlay_base_scratch_mount && \
+-		_overlay_mount $OVL_BASE_SCRATCH_MNT $SCRATCH_MNT $*
++		_overlay_mount $OVL_BASE_SCRATCH_MNT $SCRATCH_MNT \
++			       `_common_dev_mount_options $*`
+ }
+ 
+ _overlay_base_unmount()
+@@ -305,7 +319,7 @@ _check_overlay_test_fs()
+ 	_overlay_check_fs "$TEST_DIR" \
+ 		OVL_BASE_TEST_DEV OVL_BASE_TEST_DIR \
+ 		"$OVL_BASE_TEST_DEV" "$OVL_BASE_TEST_DIR" \
+-		$TEST_FS_MOUNT_OPTS $SELINUX_MOUNT_OPTIONS
++		$OVL_BASE_TEST_MOUNT_OPTIONS $SELINUX_MOUNT_OPTIONS
+ }
+ 
+ _check_overlay_scratch_fs()
+@@ -313,5 +327,5 @@ _check_overlay_scratch_fs()
+ 	_overlay_check_fs "$SCRATCH_MNT" \
+ 		OVL_BASE_SCRATCH_DEV OVL_BASE_SCRATCH_MNT \
+ 		"$OVL_BASE_SCRATCH_DEV" "$OVL_BASE_SCRATCH_MNT" \
+-		$OVL_BASE_MOUNT_OPTIONS $SELINUX_MOUNT_OPTIONS
++		$OVL_BASE_SCRATCH_MOUNT_OPTIONS $SELINUX_MOUNT_OPTIONS
+ }
 -- 
-2.13.6
+2.5.0
