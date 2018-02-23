@@ -1,66 +1,58 @@
-Return-Path: <yi.zhang@huawei.com>
-From: "zhangyi (F)" <yi.zhang@huawei.com>
-Subject: [xfstests PATCH v4 4/5] overlay: skip check for tests finished with corrupt filesystem
-Date: Thu, 22 Feb 2018 10:18:33 +0800
-Message-ID: <20180222021834.26145-5-yi.zhang@huawei.com>
-In-Reply-To: <20180222021834.26145-1-yi.zhang@huawei.com>
-References: <20180222021834.26145-1-yi.zhang@huawei.com>
+Return-Path: <yangerkun@huawei.com>
+From: yangerkun <yangerkun@huawei.com>
+Subject: [PATCH] fsck.overlay: fix report bug
+Date: Fri, 23 Feb 2018 20:00:16 +0800
+Message-ID: <20180223120016.32728-1-yangerkun@huawei.com>
 MIME-Version: 1.0
 Content-Type: text/plain
-To: eguan@redhat.com, fstests@vger.kernel.org
-Cc: linux-unionfs@vger.kernel.org, miklos@szeredi.hu, amir73il@gmail.com, yi.zhang@huawei.com, miaoxie@huawei.com, yangerkun@huawei.com
+To: linux-unionfs@vger.kernel.org, fstests@vger.kernel.org
+Cc: miklos@szeredi.hu, amir73il@gmail.com, eguan@redhat.com, yi.zhang@huawei.com, miaoxie@huawei.com, zhaohongjiang@huawei.com, yangerkun@huawei.com
 List-ID: <linux-unionfs@vger.kernel.org>
 
-No post-test check of the overlay dirs is required if case leaves
-corrupt filesystem after test. We shoud use _require_scratch_nocheck()
-instead of _require_scratch() in these cases.
+Now, the ovl_scan_check will not show all the infomation
+about the invalid xattr.
 
-Signed-off-by: zhangyi (F) <yi.zhang@huawei.com>
-Reviewed-by: Amir Goldstein <amir73il@gmail.com>
+Signed-off-by: yangerkun <yangerkun@huawei.com>
 ---
- tests/overlay/019 | 2 +-
- tests/overlay/031 | 2 +-
- tests/overlay/049 | 2 +-
- 3 files changed, 3 insertions(+), 3 deletions(-)
+ check.c | 19 +++++++++++++------
+ 1 file changed, 13 insertions(+), 6 deletions(-)
 
-diff --git a/tests/overlay/019 b/tests/overlay/019
-index 3e2bc4e..575aaf7 100755
---- a/tests/overlay/019
-+++ b/tests/overlay/019
-@@ -46,7 +46,7 @@ rm -f $seqres.full
- # real QA test starts here
- _supported_fs overlay
- _supported_os Linux
--_require_scratch
-+_require_scratch_nocheck
+diff --git a/check.c b/check.c
+index 10d345f..e109620 100644
+--- a/check.c
++++ b/check.c
+@@ -904,19 +904,26 @@ static void ovl_scan_report(struct scan_ctx *sctx)
+ /* Report the invalid targets left */
+ static void ovl_scan_check(struct scan_ctx *sctx)
+ {
+-	if (sctx->i_whiteouts)
++	bool incons = false;
++
++	if (sctx->i_whiteouts) {
+ 		print_info(_("Invalid whiteouts %d left!\n"),
+ 			     sctx->i_whiteouts);
+-	else if (sctx->i_redirects)
++		incons = true;
++	}
++	if (sctx->i_redirects) {
+ 		print_info(_("Invalid redirect directories %d left!\n"),
+ 			     sctx->i_redirects);
+-	else if (sctx->m_impure)
++		incons = true;
++	}
++	if (sctx->m_impure) {
+ 		print_info(_("Directories %d missing impure xattr!\n"),
+ 			     sctx->m_impure);
+-	else
+-		return;
++		incons = true;
++	}
  
- # Remove all files from previous tests
- _scratch_mkfs
-diff --git a/tests/overlay/031 b/tests/overlay/031
-index 186b409..90a06af 100755
---- a/tests/overlay/031
-+++ b/tests/overlay/031
-@@ -67,7 +67,7 @@ rm -f $seqres.full
- # real QA test starts here
- _supported_fs overlay
- _supported_os Linux
--_require_scratch
-+_require_scratch_nocheck
+-	set_inconsistency(&status);
++	if (incons)
++		set_inconsistency(&status);
+ }
  
- # remove all files from previous runs
- _scratch_mkfs
-diff --git a/tests/overlay/049 b/tests/overlay/049
-index ef00138..1dafc46 100755
---- a/tests/overlay/049
-+++ b/tests/overlay/049
-@@ -72,7 +72,7 @@ rm -f $seqres.full
- # real QA test starts here
- _supported_fs overlay
- _supported_os Linux
--_require_scratch
-+_require_scratch_nocheck
- _require_scratch_feature redirect_dir
- 
- # remove all files from previous runs
+ /* Scan upperdir and each lowerdirs, check and fix inconsistency */
 -- 
-2.5.0
+2.13.6
