@@ -1,98 +1,38 @@
-Return-Path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mx3-rdu2.redhat.com ([66.187.233.73]:33936 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1751980AbeC2TjD (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 29 Mar 2018 15:39:03 -0400
-From: Vivek Goyal <vgoyal@redhat.com>
-Subject: [PATCH v13 21/28] ovl: Set redirect on metacopy files upon rename
-Date: Thu, 29 Mar 2018 15:38:47 -0400
-Message-Id: <20180329193854.13814-22-vgoyal@redhat.com>
-In-Reply-To: <20180329193854.13814-1-vgoyal@redhat.com>
-References: <20180329193854.13814-1-vgoyal@redhat.com>
-Sender: linux-unionfs-owner@vger.kernel.org
-To: linux-unionfs@vger.kernel.org
-Cc: miklos@szeredi.hu, amir73il@gmail.com, vgoyal@redhat.com
+Return-Path: <yi.zhang@huawei.com>
+From: "zhangyi (F)" <yi.zhang@huawei.com>
+Subject: [xfstests PATCH v5 3/5] overlay/003: fix fs check failure
+Date: Thu, 1 Mar 2018 20:13:45 +0800
+Message-ID: <20180301121347.5824-4-yi.zhang@huawei.com>
+In-Reply-To: <20180301121347.5824-1-yi.zhang@huawei.com>
+References: <20180301121347.5824-1-yi.zhang@huawei.com>
+MIME-Version: 1.0
+Content-Type: text/plain
+To: eguan@redhat.com, fstests@vger.kernel.org
+Cc: linux-unionfs@vger.kernel.org, miklos@szeredi.hu, amir73il@gmail.com, yi.zhang@huawei.com, miaoxie@huawei.com, yangerkun@huawei.com
 List-ID: <linux-unionfs@vger.kernel.org>
 
-Set redirect on metacopy files upon rename. This will help find data dentry
-in lower dirs.
+_check_overlay_scratch_fs() will check lowerdir of overlay filesystem,
+this case remove this directory after test will lead to check failure,
+and it is not really necessary to remove this directory, so keep this
+directory.
 
-Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
+Signed-off-by: zhangyi (F) <yi.zhang@huawei.com>
+Reviewed-by: Amir Goldstein <amir73il@gmail.com>
 ---
- fs/overlayfs/dir.c | 50 +++++++++++++++++++++++++++++++++++++-------------
- 1 file changed, 37 insertions(+), 13 deletions(-)
+ tests/overlay/003 | 1 -
+ 1 file changed, 1 deletion(-)
 
-diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
-index 3ea052b6bac7..7c0a02d9f6bd 100644
---- a/fs/overlayfs/dir.c
-+++ b/fs/overlayfs/dir.c
-@@ -968,6 +968,27 @@ static void ovl_rename_unlock_ovl_inodes(struct dentry *old, struct dentry *new,
- 		mutex_unlock(&OVL_I(d_inode(new))->lock);
- }
+diff --git a/tests/overlay/003 b/tests/overlay/003
+index f980edb..154531e 100755
+--- a/tests/overlay/003
++++ b/tests/overlay/003
+@@ -92,7 +92,6 @@ ls ${SCRATCH_MNT}/
+ # unmount overlayfs but not base fs
+ $UMOUNT_PROG $SCRATCH_MNT
  
-+static bool ovl_relative_redirect(struct dentry *dentry, bool samedir)
-+{
-+	if (d_is_dir(dentry))
-+		return samedir;
-+
-+	/*
-+	 * For non-dir hardlinked files, we need absolute redirects
-+	 * in general as two upper hardlinks could be in different
-+	 * dirs. We could put a relative redirect now and convert
-+	 * it to absolute redirect later. But when nlink > 1 and
-+	 * indexing is on, that means relative redirect needs to be
-+	 * converted to absolute during copy up of another lower
-+	 * hardllink as well.
-+	 *
-+	 * So without optimizing too much, just check if non-dir
-+	 * has nlink > 1 or not. If yes, set absolute redirect to
-+	 * begin with.
-+	 */
-+	return (d_inode(dentry)->i_nlink > 1 ? false : samedir);
-+}
-+
- static int ovl_rename(struct inode *olddir, struct dentry *old,
- 		      struct inode *newdir, struct dentry *new,
- 		      unsigned int flags)
-@@ -1131,22 +1152,25 @@ static int ovl_rename(struct inode *olddir, struct dentry *old,
- 		goto out_dput;
- 
- 	err = 0;
--	if (is_dir) {
--		if (ovl_type_merge_or_lower(old))
--			err = ovl_set_redirect(old, samedir);
--		else if (!old_opaque && ovl_type_merge(new->d_parent))
--			err = ovl_set_opaque_xerr(old, olddentry, -EXDEV);
--		if (err)
--			goto out_dput;
--	}
--	if (!overwrite && new_is_dir) {
-+	if (ovl_type_merge_or_lower(old))
-+		err = ovl_set_redirect(old,
-+				       ovl_relative_redirect(old, samedir));
-+	else if (is_dir && !old_opaque && ovl_type_merge(new->d_parent))
-+		err = ovl_set_opaque_xerr(old, olddentry, -EXDEV);
-+
-+	if (err)
-+		goto out_dput;
-+
-+	if (!overwrite) {
- 		if (ovl_type_merge_or_lower(new))
--			err = ovl_set_redirect(new, samedir);
--		else if (!new_opaque && ovl_type_merge(old->d_parent))
-+			err = ovl_set_redirect(new, ovl_relative_redirect(new,
-+					       samedir));
-+		else if (new_is_dir && !new_opaque &&
-+			 ovl_type_merge(old->d_parent))
- 			err = ovl_set_opaque_xerr(new, newdentry, -EXDEV);
--		if (err)
--			goto out_dput;
- 	}
-+	if (err)
-+		goto out_dput;
- 
- 	err = ovl_do_rename(old_upperdir->d_inode, olddentry,
- 			    new_upperdir->d_inode, newdentry, flags);
+-rm -rf $lowerdir
+ echo "Silence is golden"
+ # success, all done
+ status=0
 -- 
-2.13.6
-
+2.5.0
