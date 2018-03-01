@@ -1,98 +1,87 @@
-Return-Path: <vgoyal@redhat.com>
-From: Vivek Goyal <vgoyal@redhat.com>
-Subject: [PATCH v12 05/17] ovl: Copy up only metadata during copy up where it makes sense
-Date: Tue,  6 Mar 2018 15:53:56 -0500
-Message-Id: <20180306205408.23383-6-vgoyal@redhat.com>
-In-Reply-To: <20180306205408.23383-1-vgoyal@redhat.com>
-References: <20180306205408.23383-1-vgoyal@redhat.com>
-To: linux-unionfs@vger.kernel.org
-Cc: miklos@szeredi.hu, amir73il@gmail.com, vgoyal@redhat.com
+Return-Path: <yi.zhang@huawei.com>
+From: "zhangyi (F)" <yi.zhang@huawei.com>
+Subject: [xfstests PATCH v5 0/5] overlay: add overlay filesystem dirs check
+Date: Thu, 1 Mar 2018 20:13:42 +0800
+Message-ID: <20180301121347.5824-1-yi.zhang@huawei.com>
+MIME-Version: 1.0
+Content-Type: text/plain
+To: eguan@redhat.com, fstests@vger.kernel.org
+Cc: linux-unionfs@vger.kernel.org, miklos@szeredi.hu, amir73il@gmail.com, yi.zhang@huawei.com, miaoxie@huawei.com, yangerkun@huawei.com
 List-ID: <linux-unionfs@vger.kernel.org>
 
-If it makes sense to copy up only metadata during copy up, do it. This
-is done for regular files which are not opened for WRITE and have origin
-being saved.
+Hi Eryu and Amir:
 
-Right now ->metacopy is set to 0 always. Last patch in the series will
-remove the hard coded statement and enable metacopy feature.
+I have handle comments from last iteration in patch {2,5}/5, please
+review.
 
-Currently ovl_set_origin() returns success even if specified xattr could
-not be set due to -EOPNOTSUPP returned by upper. IOW, ovl_set_origin()
-operation is optional and copy up operation continues.
+Thanks,
+Yi.
 
-With metadata copy up, ovl_set_origin() can't be optional. We need to know
-if origin could be set or not. If it could not be set, then either disable
-metacopy or abort copy up operation. I have take then later approach and
-disable metacopy for this inode.
+Changes since v4:
+- Clarify comments in patch 2/5, and move _overlay_check_scratch_dirs
+  helper to patch 5/5.
+- Modify input arguments of _overlay_fsck_dirs in _overlay_check_dirs.
+- Modify OVL_FSCK_OPTIONS example in README.overlay.
 
-Normally we should not run into this path as metacopy will not be enabled
-if upper does not support xattr. This check is done during mount. This
-path can only hit if checks during mount pass but at some point of time
-later upper still returns -EOPNOTSUPP. So its a saftey mechanism to handle
-that unexpected -EOPNOTSUPP.
+Changes since v3:
+- Move overlay checker after _unmount in overlay/{038,041}, and embed
+  checker into unmount_dirs() in overlay/{051,053,055}.
+- split out patch "overlay: correct test mount options"
 
-Reviewed-by: Amir Goldstein <amir73il@gmail.com>
-Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
----
- fs/overlayfs/copy_up.c | 25 ++++++++++++++++++++++++-
- 1 file changed, 24 insertions(+), 1 deletion(-)
+Changes since v2:
+- Rename _is_mounted to _is_dev_mounted and use findmnt instead of mount.
+- Fix mistakes in patch 2/6 and introduce _is_dir_mountpoint helper, also
+  introduce fsck options use for overlayfs.
+- Add overlay/049 into patch 4/6 to skip fs check.
+- Add nfs export cases into patch 5/6 to do correct dirs check.
+- Add the "missing feature" of test mount options.
 
-diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
-index 98403b1d40c2..45e396a0fd6a 100644
---- a/fs/overlayfs/copy_up.c
-+++ b/fs/overlayfs/copy_up.c
-@@ -232,6 +232,26 @@ int ovl_set_attr(struct dentry *upperdentry, struct kstat *stat)
- 	return err;
- }
- 
-+static bool ovl_need_meta_copy_up(struct dentry *dentry, umode_t mode,
-+				  int flags)
-+{
-+	struct ovl_fs *ofs = dentry->d_sb->s_fs_info;
-+
-+	/* TODO: Will enable metacopy in last patch of series */
-+	return false;
-+
-+	if (!ofs->config.metacopy)
-+		return false;
-+
-+	if (!S_ISREG(mode))
-+		return false;
-+
-+	if (flags && ((OPEN_FMODE(flags) & FMODE_WRITE) || (flags & O_TRUNC)))
-+		return false;
-+
-+	return true;
-+}
-+
- struct ovl_fh *ovl_encode_fh(struct dentry *real, bool is_upper)
- {
- 	struct ovl_fh *fh;
-@@ -416,6 +436,7 @@ struct ovl_copy_up_ctx {
- 	bool tmpfile;
- 	bool origin;
- 	bool indexed;
-+	bool metacopy;
- };
- 
- static int ovl_link_up(struct ovl_copy_up_ctx *c)
-@@ -553,7 +574,7 @@ static int ovl_copy_up_inode(struct ovl_copy_up_ctx *c, struct dentry *temp)
- 			return err;
- 	}
- 
--	if (S_ISREG(c->stat.mode)) {
-+	if (S_ISREG(c->stat.mode) && !c->metacopy) {
- 		struct path upperpath;
- 
- 		ovl_path_upper(c->dentry, &upperpath);
-@@ -729,6 +750,8 @@ static int ovl_copy_up_one(struct dentry *parent, struct dentry *dentry,
- 	if (err)
- 		return err;
- 
-+	ctx.metacopy = ovl_need_meta_copy_up(dentry, ctx.stat.mode, flags);
-+
- 	if (parent) {
- 		ovl_path_upper(parent, &parentpath);
- 		ctx.destdir = parentpath.dentry;
+Changes since v1:
+- Details comments in patch 1/5.
+- Improve _overlay_check_scratch_dirs to accept extra options.
+- Fix basic filesystem mounted check in _overlay_check_fs.
+- Improve overlay/044 in patch 5/5 to add index=on option.
+
+----------
+
+Background:
+
+This patchset implement filesystem check for overlay filesystem, base on
+my "overlay: add fsck.overlay basic tests" patchset and works only if
+fsck.overlay[1] exists (otherwise not run).
+
+[1] https://github.com/hisilicon/overlayfs-progs
+
+zhangyi (F) (5):
+  common/rc: improve dev mounted check helper
+  overlay: hook filesystem check helper
+  overlay/003: fix fs check failure
+  overlay: skip check for tests finished with corrupt filesystem
+  overlay: correct scratch dirs check
+
+ README.overlay    |  10 ++++-
+ common/config     |   4 ++
+ common/overlay    | 128 ++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ common/rc         |  47 +++++++++++---------
+ common/xfs        |   2 +-
+ tests/overlay/003 |   1 -
+ tests/overlay/005 |   7 ++-
+ tests/overlay/010 |   7 ++-
+ tests/overlay/014 |  10 ++++-
+ tests/overlay/019 |   2 +-
+ tests/overlay/031 |   2 +-
+ tests/overlay/035 |   7 ++-
+ tests/overlay/036 |   6 ++-
+ tests/overlay/037 |   7 ++-
+ tests/overlay/038 |  10 ++++-
+ tests/overlay/041 |  10 ++++-
+ tests/overlay/043 |   7 ++-
+ tests/overlay/044 |   8 +++-
+ tests/overlay/049 |   2 +-
+ tests/overlay/051 |  10 ++++-
+ tests/overlay/053 |  10 ++++-
+ tests/overlay/055 |  10 ++++-
+ 22 files changed, 263 insertions(+), 44 deletions(-)
+
 -- 
-2.13.6
+2.5.0
