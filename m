@@ -1,44 +1,49 @@
-Return-Path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mx3-rdu2.redhat.com ([66.187.233.73]:39490 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1751906AbeC2TjD (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 29 Mar 2018 15:39:03 -0400
-From: Vivek Goyal <vgoyal@redhat.com>
-Subject: [PATCH v13 19/28] ovl: Treat metacopy dentries as type OVL_PATH_MERGE
-Date: Thu, 29 Mar 2018 15:38:45 -0400
-Message-Id: <20180329193854.13814-20-vgoyal@redhat.com>
-In-Reply-To: <20180329193854.13814-1-vgoyal@redhat.com>
-References: <20180329193854.13814-1-vgoyal@redhat.com>
-Sender: linux-unionfs-owner@vger.kernel.org
-To: linux-unionfs@vger.kernel.org
-Cc: miklos@szeredi.hu, amir73il@gmail.com, vgoyal@redhat.com
+MIME-Version: 1.0
+In-Reply-To: <CAOQ4uxjfmrJ3OPAOJ_cVQjfmMeHbcJL3gWVdHEATa_FGPWLzCA@mail.gmail.com>
+References: <CAJfpegtMhcAFpVk0TkAxdoiJzDqYFHFNzykztTGWfii52rPazA@mail.gmail.com>
+	<CAOQ4uxjfmrJ3OPAOJ_cVQjfmMeHbcJL3gWVdHEATa_FGPWLzCA@mail.gmail.com>
+Date: Fri, 2 Mar 2018 10:14:35 +0100
+Message-ID: <CAJfpeguueNEu+vJteL-6MVnerWmN=fNKbNbrP7tMDZg-exFccg@mail.gmail.com>
+Subject: Re: Weird overlayfs/xfs bug on v4.15
+From: Miklos Szeredi <miklos@szeredi.hu>
+Content-Type: text/plain; charset="UTF-8"
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: "Darrick J. Wong" <darrick.wong@oracle.com>, linux-xfs <linux-xfs@vger.kernel.org>, overlayfs <linux-unionfs@vger.kernel.org>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-Right now OVL_PATH_MERGE is used only for merged directories.
-But conceptually, a metacopy dentry (backed by a lower data dentry) is
-a merged entity as well.
+On Fri, Mar 2, 2018 at 10:07 AM, Amir Goldstein <amir73il@gmail.com> wrote:
+> On Fri, Mar 2, 2018 at 10:25 AM, Miklos Szeredi <miklos@szeredi.hu> wrote:
+>> Hi,
+>>
+>> I get xfstests failure of overlay/017 on a kvm guest.  The symptom is
+>> that the chardev turns into a whiteout (i.e. the 1/1 device number
+>> magically turns to 0/0 after flushing the caches) but then turns back
+>> into the old chardev on remount or another cache flush.  So the
+>> underlying xfs is not currupted but the cache is (verified that i_rdev
+>> was indeed zeroed out on the relevant inode).
+>>
+>> Btw. i_rdev on the blkdev also turned zero, but the test doesn't
+>> respond to that, because it's only checking the inum and not other
+>> attributes.
+>>
+>> The test triggers reliably, but shows signs of a heisenbug (e.g.
+>> adding printks lessens or eliminates the chance of triggering)
+>>
+>> Attaching the full xfs trace, the output of the testcase and guest
+>> kernel config.
+>>
+>> Haven't been able to reproduce without overlayfs, so possibly
+>> overlayfs is the culprit.
+>>
+>> Any ideas?
+>>
+>
+> That is supposed to be fixed by
+> acd1d71598f7 xfs: preserve i_rdev when recycling a reclaimable inode
+>
+> It fixes a v4.15 regression.
 
-So mark metacopy dentries as OVL_PATH_MERGE and ovl_rename() makes use
-of this property later to set redirect on a metacopy file.
+Ah, thanks.  Missed that due to not having the Cc: stable tag.
 
-Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
----
- fs/overlayfs/util.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
-index 927960aa57ee..29f7336ade88 100644
---- a/fs/overlayfs/util.c
-+++ b/fs/overlayfs/util.c
-@@ -118,7 +118,7 @@ enum ovl_path_type ovl_path_type(struct dentry *dentry)
- 		 */
- 		if (oe->numlower) {
- 			type |= __OVL_PATH_ORIGIN;
--			if (d_is_dir(dentry))
-+			if (d_is_dir(dentry) || !ovl_has_upperdata(dentry))
- 				type |= __OVL_PATH_MERGE;
- 		}
- 	} else {
--- 
-2.13.6
-
+Thanks,
+Miklos
