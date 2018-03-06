@@ -1,160 +1,132 @@
-Return-Path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mx3-rdu2.redhat.com ([66.187.233.73]:33432 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1754052AbeCFUyS (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 6 Mar 2018 15:54:18 -0500
+Return-Path: <vgoyal@redhat.com>
 From: Vivek Goyal <vgoyal@redhat.com>
-Subject: [PATCH v12 12/17] ovl: Do not expose metacopy only upper dentry from d_real()
-Date: Tue,  6 Mar 2018 15:54:03 -0500
-Message-Id: <20180306205408.23383-13-vgoyal@redhat.com>
+Subject: [PATCH v12 04/17] ovl: Move the copy up helpers to copy_up.c
+Date: Tue,  6 Mar 2018 15:53:55 -0500
+Message-Id: <20180306205408.23383-5-vgoyal@redhat.com>
 In-Reply-To: <20180306205408.23383-1-vgoyal@redhat.com>
 References: <20180306205408.23383-1-vgoyal@redhat.com>
-Sender: linux-unionfs-owner@vger.kernel.org
 To: linux-unionfs@vger.kernel.org
 Cc: miklos@szeredi.hu, amir73il@gmail.com, vgoyal@redhat.com
 List-ID: <linux-unionfs@vger.kernel.org>
 
-d_real() can make a upper metacopy dentry/inode visible to the vfs layer.
-This is something new and vfs layer does not know that this inode contains
-only metadata and not data. And this could break things.
+Right now two copy up helpers are in inode.c. Amir suggested it might
+be better to move these to copy_up.c.
 
-So to be safe, do not expose metacopy only dentry/inode to vfs using
-d_real().
-
-IOW, d_real() will not reuturn metacopy dentry. Instead, it will return
-dentry corresponding lower dentry/inode which has file data.
-
-For regular d_real() call (inode == NULL, D_REAL_UPPER not set), if upper
-dentry inode is metacopy only and does not have data, return lower dentry.
-
-If d_real() is called with flag D_REAL_UPPER, return upper dentry only if
-it has data (flag OVL_UPPERDATA is set).
-
-Similiarly, if d_real(inode=X) is called, a warning is emitted if returned
-dentry/inode does not have OVL_UPPERDATA set. This should not happen as
-we never made this metacopy inode visible to vfs so nobody should be
-calling overlayfs back with inode=metacopy_inode.
-
-I scanned the code and I don't think it breaks any of the existing code.
-There are two users of D_REAL_UPPER. may_write_real() and
-update_ovl_inode_times().
-
-may_write_real(), will get an NULL dentry if upper inode is metacopy only
-and it will return -EPERM. Effectively, we are disallowing modifications
-to metacopy only inode from this interface. Though there is opportunity
-to improve it. (Allow chattr on metacopy inodes).
-
-update_ovl_inode_times() gets inode mtime and ctime from real inode. It
-should not be broken for metacopy inode as well for following reasons.
-
-- For any metadata operations (setattr, acl etc), overlay always calls
-  ovl_copyattr() and updates ovl inode mtime and ctime. So there is no
-  need to update mtime and ctime in this case. Its already updated, hence
-  even if d_real(D_REAL_UPPER) returns nil, it should be fine.
-
-- For metadata inode, mtime should be same as lower and not change. (data
-  can't be modified on metadata inode without copyup). IOW, mtime of
-  ovl dentry should be same as mtime of underlying metadata inode on upper
-  always. So there is no need to update it.
-
-- For file writes, ctime and mtime will be updated. But in that case
-  first data will be copied up and this will not be a metadata inode
-  anymore. And furthr call to d_real(D_REAL_UPPER) will return upper
-  inode and new mtime and ctime will be obtainable.
-
-So atime updates should work just fine for metacopy inodes. I think only
-corner case is if somehow underlying filesystem changes ctime of upper
-metadata inode without overlay knowing about it. Not sure how that
-can happen. If somehow is affected by that, then we probably can implement
-another flag which will allow caller to get metacopy inode as well.
-Something like d_real(D_REAL_UPPER | D_METACOPY). And that should solve
-this issue.
+There will one more related function which will come in later patch.
 
 Reviewed-by: Amir Goldstein <amir73il@gmail.com>
 Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
 ---
- fs/overlayfs/overlayfs.h |  1 +
- fs/overlayfs/super.c     | 21 +++++++++++++++++----
- fs/overlayfs/util.c      |  8 ++++++++
- 3 files changed, 26 insertions(+), 4 deletions(-)
+ fs/overlayfs/copy_up.c   | 32 ++++++++++++++++++++++++++++++++
+ fs/overlayfs/inode.c     | 32 --------------------------------
+ fs/overlayfs/overlayfs.h |  2 +-
+ 3 files changed, 33 insertions(+), 33 deletions(-)
 
-diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-index 2d682923252e..24725b6668b9 100644
---- a/fs/overlayfs/overlayfs.h
-+++ b/fs/overlayfs/overlayfs.h
-@@ -225,6 +225,7 @@ void ovl_path_lowerdata(struct dentry *dentry, struct path *path);
- enum ovl_path_type ovl_path_real(struct dentry *dentry, struct path *path);
- struct dentry *ovl_dentry_upper(struct dentry *dentry);
- struct dentry *ovl_dentry_lower(struct dentry *dentry);
-+struct dentry *ovl_dentry_lowerdata(struct dentry *dentry);
- struct dentry *ovl_dentry_real(struct dentry *dentry);
- struct dentry *ovl_i_dentry_upper(struct inode *inode);
- struct inode *ovl_inode_upper(struct inode *inode);
-diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-index d3dbdd695722..4be4e47cbf57 100644
---- a/fs/overlayfs/super.c
-+++ b/fs/overlayfs/super.c
-@@ -96,8 +96,14 @@ static struct dentry *ovl_d_real(struct dentry *dentry,
- 	struct dentry *real;
- 	int err;
- 
--	if (flags & D_REAL_UPPER)
--		return ovl_dentry_upper(dentry);
-+	if (flags & D_REAL_UPPER) {
-+		real = ovl_dentry_upper(dentry);
-+		if (!real)
-+			return NULL;
-+		if (!ovl_has_upperdata(dentry))
-+			return NULL;
-+		return real;
-+	}
- 
- 	if (!d_is_reg(dentry)) {
- 		if (!inode || inode == d_inode(dentry))
-@@ -113,15 +119,22 @@ static struct dentry *ovl_d_real(struct dentry *dentry,
- 
- 	real = ovl_dentry_upper(dentry);
- 	if (real && (!inode || inode == d_inode(real))) {
-+		bool metacopy = !ovl_has_upperdata(dentry);
- 		if (!inode) {
- 			err = ovl_check_append_only(d_inode(real), open_flags);
- 			if (err)
- 				return ERR_PTR(err);
--		}
-+
-+			if (unlikely(metacopy))
-+				goto lower;
-+		} else if (unlikely(metacopy))
-+			goto bug;
-+
- 		return real;
- 	}
- 
--	real = ovl_dentry_lower(dentry);
-+lower:
-+	real = ovl_dentry_lowerdata(dentry);
- 	if (!real)
- 		goto bug;
- 
-diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
-index 274bbfc855e0..36d41f7001e3 100644
---- a/fs/overlayfs/util.c
-+++ b/fs/overlayfs/util.c
-@@ -186,6 +186,14 @@ struct dentry *ovl_dentry_lower(struct dentry *dentry)
- 	return oe->numlower ? oe->lowerstack[0].dentry : NULL;
+diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
+index 2de4ab3254a4..98403b1d40c2 100644
+--- a/fs/overlayfs/copy_up.c
++++ b/fs/overlayfs/copy_up.c
+@@ -826,6 +826,38 @@ int ovl_copy_up_flags(struct dentry *dentry, int flags)
+ 	return err;
  }
  
-+struct dentry *ovl_dentry_lowerdata(struct dentry *dentry)
++static bool ovl_open_need_copy_up(struct dentry *dentry, int flags)
 +{
-+	struct ovl_entry *oe = dentry->d_fsdata;
-+	int idx = oe->numlower - 1;
++	/* Copy up of disconnected dentry does not set upper alias */
++	if (ovl_dentry_upper(dentry) &&
++	    (ovl_dentry_has_upper_alias(dentry) ||
++	     (dentry->d_flags & DCACHE_DISCONNECTED)))
++		return false;
 +
-+	return oe->lowerstack[idx].dentry;
++	if (special_file(d_inode(dentry)->i_mode))
++		return false;
++
++	if (!(OPEN_FMODE(flags) & FMODE_WRITE) && !(flags & O_TRUNC))
++		return false;
++
++	return true;
 +}
 +
- struct dentry *ovl_dentry_real(struct dentry *dentry)
++int ovl_open_maybe_copy_up(struct dentry *dentry, unsigned int file_flags)
++{
++	int err = 0;
++
++	if (ovl_open_need_copy_up(dentry, file_flags)) {
++		err = ovl_want_write(dentry);
++		if (!err) {
++			err = ovl_copy_up_flags(dentry, file_flags);
++			ovl_drop_write(dentry);
++		}
++	}
++
++	return err;
++}
++
+ int ovl_copy_up(struct dentry *dentry)
  {
- 	return ovl_dentry_upper(dentry) ?: ovl_dentry_lower(dentry);
+ 	return ovl_copy_up_flags(dentry, 0);
+diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
+index fcd97b783fa1..165e1b52f619 100644
+--- a/fs/overlayfs/inode.c
++++ b/fs/overlayfs/inode.c
+@@ -349,38 +349,6 @@ struct posix_acl *ovl_get_acl(struct inode *inode, int type)
+ 	return acl;
+ }
+ 
+-static bool ovl_open_need_copy_up(struct dentry *dentry, int flags)
+-{
+-	/* Copy up of disconnected dentry does not set upper alias */
+-	if (ovl_dentry_upper(dentry) &&
+-	    (ovl_dentry_has_upper_alias(dentry) ||
+-	     (dentry->d_flags & DCACHE_DISCONNECTED)))
+-		return false;
+-
+-	if (special_file(d_inode(dentry)->i_mode))
+-		return false;
+-
+-	if (!(OPEN_FMODE(flags) & FMODE_WRITE) && !(flags & O_TRUNC))
+-		return false;
+-
+-	return true;
+-}
+-
+-int ovl_open_maybe_copy_up(struct dentry *dentry, unsigned int file_flags)
+-{
+-	int err = 0;
+-
+-	if (ovl_open_need_copy_up(dentry, file_flags)) {
+-		err = ovl_want_write(dentry);
+-		if (!err) {
+-			err = ovl_copy_up_flags(dentry, file_flags);
+-			ovl_drop_write(dentry);
+-		}
+-	}
+-
+-	return err;
+-}
+-
+ int ovl_update_time(struct inode *inode, struct timespec *ts, int flags)
+ {
+ 	struct dentry *alias;
+diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
+index 0df25a9c94bd..21f3bfea665c 100644
+--- a/fs/overlayfs/overlayfs.h
++++ b/fs/overlayfs/overlayfs.h
+@@ -320,7 +320,6 @@ int ovl_xattr_get(struct dentry *dentry, struct inode *inode, const char *name,
+ 		  void *value, size_t size);
+ ssize_t ovl_listxattr(struct dentry *dentry, char *list, size_t size);
+ struct posix_acl *ovl_get_acl(struct inode *inode, int type);
+-int ovl_open_maybe_copy_up(struct dentry *dentry, unsigned int file_flags);
+ int ovl_update_time(struct inode *inode, struct timespec *ts, int flags);
+ bool ovl_is_private_xattr(const char *name);
+ 
+@@ -358,6 +357,7 @@ int ovl_cleanup(struct inode *dir, struct dentry *dentry);
+ /* copy_up.c */
+ int ovl_copy_up(struct dentry *dentry);
+ int ovl_copy_up_flags(struct dentry *dentry, int flags);
++int ovl_open_maybe_copy_up(struct dentry *dentry, unsigned int file_flags);
+ int ovl_copy_xattr(struct dentry *old, struct dentry *new);
+ int ovl_set_attr(struct dentry *upper, struct kstat *stat);
+ struct ovl_fh *ovl_encode_fh(struct dentry *real, bool is_upper);
 -- 
 2.13.6
-
