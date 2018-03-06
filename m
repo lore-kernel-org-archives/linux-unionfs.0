@@ -1,39 +1,36 @@
-Return-Path: <amir73il@gmail.com>
-Return-Path: <amir73il@gmail.com>
-From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH v2 0/5] Yet another overlayfs exportfs test
-Date: Thu, 29 Mar 2018 15:06:45 +0300
-Message-Id: <1522325210-17900-1-git-send-email-amir73il@gmail.com>
-To: Eryu Guan <eguan@redhat.com>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, fstests@vger.kernel.org
+Return-Path: <vgoyal@redhat.com>
+From: Vivek Goyal <vgoyal@redhat.com>
+Subject: [PATCH v12 17/17] ovl: Enable metadata only feature
+Date: Tue,  6 Mar 2018 15:54:08 -0500
+Message-Id: <20180306205408.23383-18-vgoyal@redhat.com>
+In-Reply-To: <20180306205408.23383-1-vgoyal@redhat.com>
+References: <20180306205408.23383-1-vgoyal@redhat.com>
+To: linux-unionfs@vger.kernel.org
+Cc: miklos@szeredi.hu, amir73il@gmail.com, vgoyal@redhat.com
 List-ID: <linux-unionfs@vger.kernel.org>
 
-Eryu,
+All the bits are in patches before this. So it is time to enable the
+metadata only copy up feature.
 
-I fixed your review comments.
-Separated the -h fix patch and added a re-send of the
-fix commit documentation fix to the series.
+Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
+Reviewed-by: Amir Goldstein <amir73il@gmail.com>
+---
+ fs/overlayfs/copy_up.c | 3 ---
+ 1 file changed, 3 deletions(-)
 
-Thanks,
-Amir.
-
-Amir Goldstein (5):
-  overlay/[054,055]: Document the fix commit
-  open_by_handle: make -h (help) a valid option
-  open_by_handle: add -n option to suppress drop caches
-  open_by_handle: add -s option to sleep and keep files open by handle
-  overlay: test decoding overlay file handles with warm/cold dentry
-    cache
-
- src/open_by_handle.c  |  59 +++++++++++++++-------
- tests/overlay/054     |   3 ++
- tests/overlay/055     |   3 ++
- tests/overlay/058     | 137 ++++++++++++++++++++++++++++++++++++++++++++++++++
- tests/overlay/058.out |   9 ++++
- tests/overlay/group   |   1 +
- 6 files changed, 194 insertions(+), 18 deletions(-)
- create mode 100755 tests/overlay/058
- create mode 100644 tests/overlay/058.out
-
+diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
+index 704febd2e2fa..0fbc35fdcb06 100644
+--- a/fs/overlayfs/copy_up.c
++++ b/fs/overlayfs/copy_up.c
+@@ -247,9 +247,6 @@ static bool ovl_need_meta_copy_up(struct dentry *dentry, umode_t mode,
+ {
+ 	struct ovl_fs *ofs = dentry->d_sb->s_fs_info;
+ 
+-	/* TODO: Will enable metacopy in last patch of series */
+-	return false;
+-
+ 	if (!ofs->config.metacopy)
+ 		return false;
+ 
 -- 
-2.7.4
+2.13.6
