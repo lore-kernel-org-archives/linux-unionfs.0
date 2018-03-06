@@ -1,154 +1,98 @@
 Return-Path: <vgoyal@redhat.com>
-Date: Mon, 12 Mar 2018 13:46:07 -0400
 From: Vivek Goyal <vgoyal@redhat.com>
-Subject: [PATCH] xfstest: overlay: Absolute redirect should be followed even
- if ancestor is opaque
-Message-ID: <20180312174607.GC2718@redhat.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-To: eguan@redhat.com, fstests@vger.kernel.org, Amir Goldstein <amir73il@gmail.com>
-Cc: linux-unionfs@vger.kernel.org, miklos@szeredi.hu
+Subject: [PATCH v12 05/17] ovl: Copy up only metadata during copy up where it makes sense
+Date: Tue,  6 Mar 2018 15:53:56 -0500
+Message-Id: <20180306205408.23383-6-vgoyal@redhat.com>
+In-Reply-To: <20180306205408.23383-1-vgoyal@redhat.com>
+References: <20180306205408.23383-1-vgoyal@redhat.com>
+To: linux-unionfs@vger.kernel.org
+Cc: miklos@szeredi.hu, amir73il@gmail.com, vgoyal@redhat.com
 List-ID: <linux-unionfs@vger.kernel.org>
 
-Typically, when following absolute redirect, if an opauqe dentry is
-found, lookup in further lower directories is stopped. But if a
-child dentry has another absolute redirect, then lookup in further
-lower layers should continue.
+If it makes sense to copy up only metadata during copy up, do it. This
+is done for regular files which are not opened for WRITE and have origin
+being saved.
 
-Say, following is example setup.
-upper:  /redirect (redirect=/a/b/c)
-lower1: /a/[b]/c       ([b] is opaque) (c has absolute redirect=/a/b/d/)
-lower0: /a/b/d/foo
+Right now ->metacopy is set to 0 always. Last patch in the series will
+remove the hard coded statement and enable metacopy feature.
 
-"redirect" directory in upper should merge with lower1:/a/b/c/ and
-lower0:/a/b/d/, despite lower1:/a/b/ being opaque.
+Currently ovl_set_origin() returns success even if specified xattr could
+not be set due to -EOPNOTSUPP returned by upper. IOW, ovl_set_origin()
+operation is optional and copy up operation continues.
 
-This example and kernel fix has come from Amir Goldstein. I am just putting
-a test for it to make sure its not broken down the line.
+With metadata copy up, ovl_set_origin() can't be optional. We need to know
+if origin could be set or not. If it could not be set, then either disable
+metacopy or abort copy up operation. I have take then later approach and
+disable metacopy for this inode.
 
+Normally we should not run into this path as metacopy will not be enabled
+if upper does not support xattr. This check is done during mount. This
+path can only hit if checks during mount pass but at some point of time
+later upper still returns -EOPNOTSUPP. So its a saftey mechanism to handle
+that unexpected -EOPNOTSUPP.
+
+Reviewed-by: Amir Goldstein <amir73il@gmail.com>
 Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
 ---
- tests/overlay/057     |   97 ++++++++++++++++++++++++++++++++++++++++++++++++++
- tests/overlay/057.out |    2 +
- tests/overlay/group   |    1 
- 3 files changed, 100 insertions(+)
+ fs/overlayfs/copy_up.c | 25 ++++++++++++++++++++++++-
+ 1 file changed, 24 insertions(+), 1 deletion(-)
 
-Index: xfstests-dev/tests/overlay/057
-===================================================================
---- /dev/null	1970-01-01 00:00:00.000000000 +0000
-+++ xfstests-dev/tests/overlay/057	2018-03-12 13:28:02.274818432 -0400
-@@ -0,0 +1,97 @@
-+#! /bin/bash
-+# FS QA Test No. 057
-+#
-+# Test absolute redirect is followed even if ancestor is opaque
-+#
-+# Typically, when following absolute redirect, if an opauqe dentry is
-+# found, lookup in further lower directories is stopped. But if a
-+# child dentry has another absolute redirect, then lookup in further
-+# lower layers should continue.
-+#
-+# Say, following is example setup.
-+# upper:  /redirect (redirect=/a/b/c)
-+# lower1: /a/[b]/c       ([b] is opaque) (c has absolute redirect=/a/b/d/)
-+# lower0: /a/b/d/foo
-+#
-+# "redirect" directory in upper should merge with lower1:/a/b/c/ and
-+# lower0:/a/b/d/, despite lower1:/a/b/ being opaque.
-+#
-+#-----------------------------------------------------------------------
-+# Copyright (C) 2018 Red Hat, Inc. All Rights Reserved.
-+# Author: Vivek Goyal <vgoyal@redhat.com>
-+#
-+# This program is free software; you can redistribute it and/or
-+# modify it under the terms of the GNU General Public License as
-+# published by the Free Software Foundation.
-+#
-+# This program is distributed in the hope that it would be useful,
-+# but WITHOUT ANY WARRANTY; without even the implied warranty of
-+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+# GNU General Public License for more details.
-+#
-+# You should have received a copy of the GNU General Public License
-+# along with this program; if not, write the Free Software Foundation,
-+# Inc.,  51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-+#-----------------------------------------------------------------------
-+#
-+
-+seq=`basename $0`
-+seqres=$RESULT_DIR/$seq
-+echo "QA output created by $seq"
-+
-+here=`pwd`
-+tmp=/tmp/$$
-+status=1	# failure is the default!
-+trap "_cleanup; exit \$status" 0 1 2 3 15
-+
-+_cleanup()
+diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
+index 98403b1d40c2..45e396a0fd6a 100644
+--- a/fs/overlayfs/copy_up.c
++++ b/fs/overlayfs/copy_up.c
+@@ -232,6 +232,26 @@ int ovl_set_attr(struct dentry *upperdentry, struct kstat *stat)
+ 	return err;
+ }
+ 
++static bool ovl_need_meta_copy_up(struct dentry *dentry, umode_t mode,
++				  int flags)
 +{
-+	cd /
-+	rm -f $tmp.*
++	struct ovl_fs *ofs = dentry->d_sb->s_fs_info;
++
++	/* TODO: Will enable metacopy in last patch of series */
++	return false;
++
++	if (!ofs->config.metacopy)
++		return false;
++
++	if (!S_ISREG(mode))
++		return false;
++
++	if (flags && ((OPEN_FMODE(flags) & FMODE_WRITE) || (flags & O_TRUNC)))
++		return false;
++
++	return true;
 +}
 +
-+# get standard environment, filters and checks
-+. ./common/rc
-+. ./common/filter
+ struct ovl_fh *ovl_encode_fh(struct dentry *real, bool is_upper)
+ {
+ 	struct ovl_fh *fh;
+@@ -416,6 +436,7 @@ struct ovl_copy_up_ctx {
+ 	bool tmpfile;
+ 	bool origin;
+ 	bool indexed;
++	bool metacopy;
+ };
+ 
+ static int ovl_link_up(struct ovl_copy_up_ctx *c)
+@@ -553,7 +574,7 @@ static int ovl_copy_up_inode(struct ovl_copy_up_ctx *c, struct dentry *temp)
+ 			return err;
+ 	}
+ 
+-	if (S_ISREG(c->stat.mode)) {
++	if (S_ISREG(c->stat.mode) && !c->metacopy) {
+ 		struct path upperpath;
+ 
+ 		ovl_path_upper(c->dentry, &upperpath);
+@@ -729,6 +750,8 @@ static int ovl_copy_up_one(struct dentry *parent, struct dentry *dentry,
+ 	if (err)
+ 		return err;
+ 
++	ctx.metacopy = ovl_need_meta_copy_up(dentry, ctx.stat.mode, flags);
 +
-+# remove previous $seqres.full before test
-+rm -f $seqres.full
-+
-+# real QA test starts here
-+_supported_fs overlay
-+_supported_os Linux
-+_require_scratch_nocheck
-+_require_scratch_overlay_features redirect_dir
-+
-+# remove all files from previous tests
-+_scratch_mkfs
-+
-+# Create test directories
-+lowerdir=$OVL_BASE_SCRATCH_MNT/lower
-+lowerdir2=$OVL_BASE_SCRATCH_MNT/lower2
-+upperdir=$OVL_BASE_SCRATCH_MNT/upper
-+workdir=$OVL_BASE_SCRATCH_MNT/workdir
-+workdir2=$OVL_BASE_SCRATCH_MNT/workdir2
-+
-+make_test_dirs()
-+{
-+	rm -rf $lowerdir $lowerdir2 $upperdir $workdir $workdir2
-+        mkdir -p $lowerdir $lowerdir2 $upperdir $workdir $workdir2
-+}
-+
-+make_test_dirs
-+mkdir -p $lowerdir/origin
-+touch $lowerdir/origin/foo
-+_overlay_scratch_mount_dirs $lowerdir $lowerdir2 $workdir2
-+mkdir $SCRATCH_MNT/pure
-+mv $SCRATCH_MNT/origin $SCRATCH_MNT/pure/redirect
-+$UMOUNT_PROG $SCRATCH_MNT
-+_overlay_scratch_mount_dirs $lowerdir2:$lowerdir $upperdir $workdir
-+mv $SCRATCH_MNT/pure/redirect $SCRATCH_MNT/redirect
-+$UMOUNT_PROG $SCRATCH_MNT
-+_overlay_scratch_mount_dirs $lowerdir2:$lowerdir $upperdir $workdir
-+ls $SCRATCH_MNT/redirect/
-+
-+# success, all done
-+status=0
-+exit
-Index: xfstests-dev/tests/overlay/group
-===================================================================
---- xfstests-dev.orig/tests/overlay/group	2018-02-28 15:27:29.981693615 -0500
-+++ xfstests-dev/tests/overlay/group	2018-03-12 09:31:45.692818432 -0400
-@@ -59,3 +59,4 @@
- 054 auto quick copyup redirect exportfs
- 055 auto quick copyup redirect exportfs nonsamefs
- 056 auto quick fsck
-+057 auto quick redirect
-Index: xfstests-dev/tests/overlay/057.out
-===================================================================
---- /dev/null	1970-01-01 00:00:00.000000000 +0000
-+++ xfstests-dev/tests/overlay/057.out	2018-03-12 13:09:42.061818432 -0400
-@@ -0,0 +1,2 @@
-+QA output created by 057
-+foo
+ 	if (parent) {
+ 		ovl_path_upper(parent, &parentpath);
+ 		ctx.destdir = parentpath.dentry;
+-- 
+2.13.6
