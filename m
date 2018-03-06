@@ -1,104 +1,120 @@
-Return-Path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mx3-rdu2.redhat.com ([66.187.233.73]:49988 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1751403AbeC2TjD (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 29 Mar 2018 15:39:03 -0400
+Return-Path: <vgoyal@redhat.com>
 From: Vivek Goyal <vgoyal@redhat.com>
-Subject: [PATCH v13 07/28] ovl: Copy up only metadata during copy up where it makes sense
-Date: Thu, 29 Mar 2018 15:38:33 -0400
-Message-Id: <20180329193854.13814-8-vgoyal@redhat.com>
-In-Reply-To: <20180329193854.13814-1-vgoyal@redhat.com>
-References: <20180329193854.13814-1-vgoyal@redhat.com>
-Sender: linux-unionfs-owner@vger.kernel.org
+Subject: [PATCH v12 06/17] ovl: Add helper ovl_already_copied_up()
+Date: Tue,  6 Mar 2018 15:53:57 -0500
+Message-Id: <20180306205408.23383-7-vgoyal@redhat.com>
+In-Reply-To: <20180306205408.23383-1-vgoyal@redhat.com>
+References: <20180306205408.23383-1-vgoyal@redhat.com>
 To: linux-unionfs@vger.kernel.org
 Cc: miklos@szeredi.hu, amir73il@gmail.com, vgoyal@redhat.com
 List-ID: <linux-unionfs@vger.kernel.org>
 
-If it makes sense to copy up only metadata during copy up, do it. This
-is done for regular files which are not opened for WRITE and have origin
-being saved.
+There are couple of places where we need to know if file is already copied
+up (in lockless manner). Right now its open coded and there are only
+two conditions to check. Soon this patch series will introduce another
+condition to check and Amir wants to introduce one more. So introduce
+a helper instead to check this so that code is easier to read.
 
-Right now ->metacopy is set to 0 always. Last patch in the series will
-remove the hard coded statement and enable metacopy feature.
-
-Currently ovl_set_origin() returns success even if specified xattr could
-not be set due to -EOPNOTSUPP returned by upper. IOW, ovl_set_origin()
-operation is optional and copy up operation continues.
-
-With metadata copy up, ovl_set_origin() can't be optional. We need to know
-if origin could be set or not. If it could not be set, then either disable
-metacopy or abort copy up operation. I have take then later approach and
-disable metacopy for this inode.
-
-Normally we should not run into this path as metacopy will not be enabled
-if upper does not support xattr. This check is done during mount. This
-path can only hit if checks during mount pass but at some point of time
-later upper still returns -EOPNOTSUPP. So its a saftey mechanism to handle
-that unexpected -EOPNOTSUPP.
-
-Reviewed-by: Amir Goldstein <amir73il@gmail.com>
 Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
+Reviewed-by: Amir Goldstein <amir73il@gmail.com>
 ---
- fs/overlayfs/copy_up.c | 25 ++++++++++++++++++++++++-
- 1 file changed, 24 insertions(+), 1 deletion(-)
+ fs/overlayfs/copy_up.c   | 20 ++------------------
+ fs/overlayfs/overlayfs.h |  1 +
+ fs/overlayfs/util.c      | 26 +++++++++++++++++++++++++-
+ 3 files changed, 28 insertions(+), 19 deletions(-)
 
 diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
-index 98403b1d40c2..45e396a0fd6a 100644
+index 45e396a0fd6a..8d9af7fdc8a4 100644
 --- a/fs/overlayfs/copy_up.c
 +++ b/fs/overlayfs/copy_up.c
-@@ -232,6 +232,26 @@ int ovl_set_attr(struct dentry *upperdentry, struct kstat *stat)
- 	return err;
+@@ -810,21 +810,7 @@ int ovl_copy_up_flags(struct dentry *dentry, int flags)
+ 		struct dentry *next;
+ 		struct dentry *parent = NULL;
+ 
+-		/*
+-		 * Check if copy-up has happened as well as for upper alias (in
+-		 * case of hard links) is there.
+-		 *
+-		 * Both checks are lockless:
+-		 *  - false negatives: will recheck under oi->lock
+-		 *  - false positives:
+-		 *    + ovl_dentry_upper() uses memory barriers to ensure the
+-		 *      upper dentry is up-to-date
+-		 *    + ovl_dentry_has_upper_alias() relies on locking of
+-		 *      upper parent i_rwsem to prevent reordering copy-up
+-		 *      with rename.
+-		 */
+-		if (ovl_dentry_upper(dentry) &&
+-		    (ovl_dentry_has_upper_alias(dentry) || disconnected))
++		if (ovl_already_copied_up(dentry))
+ 			break;
+ 
+ 		next = dget(dentry);
+@@ -852,9 +838,7 @@ int ovl_copy_up_flags(struct dentry *dentry, int flags)
+ static bool ovl_open_need_copy_up(struct dentry *dentry, int flags)
+ {
+ 	/* Copy up of disconnected dentry does not set upper alias */
+-	if (ovl_dentry_upper(dentry) &&
+-	    (ovl_dentry_has_upper_alias(dentry) ||
+-	     (dentry->d_flags & DCACHE_DISCONNECTED)))
++	if (ovl_already_copied_up(dentry))
+ 		return false;
+ 
+ 	if (special_file(d_inode(dentry)->i_mode))
+diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
+index 21f3bfea665c..11f87f3099a1 100644
+--- a/fs/overlayfs/overlayfs.h
++++ b/fs/overlayfs/overlayfs.h
+@@ -241,6 +241,7 @@ bool ovl_is_whiteout(struct dentry *dentry);
+ struct file *ovl_path_open(struct path *path, int flags);
+ int ovl_copy_up_start(struct dentry *dentry);
+ void ovl_copy_up_end(struct dentry *dentry);
++bool ovl_already_copied_up(struct dentry *dentry);
+ bool ovl_check_origin_xattr(struct dentry *dentry);
+ bool ovl_check_dir_xattr(struct dentry *dentry, const char *name);
+ int ovl_check_setxattr(struct dentry *dentry, struct dentry *upperdentry,
+diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
+index 930784a26623..4e537eeb594e 100644
+--- a/fs/overlayfs/util.c
++++ b/fs/overlayfs/util.c
+@@ -339,13 +339,37 @@ struct file *ovl_path_open(struct path *path, int flags)
+ 	return dentry_open(path, flags | O_NOATIME, current_cred());
  }
  
-+static bool ovl_need_meta_copy_up(struct dentry *dentry, umode_t mode,
-+				  int flags)
++bool ovl_already_copied_up(struct dentry *dentry)
 +{
-+	struct ovl_fs *ofs = dentry->d_sb->s_fs_info;
++	bool disconnected = dentry->d_flags & DCACHE_DISCONNECTED;
 +
-+	/* TODO: Will enable metacopy in last patch of series */
++	/*
++	 * Check if copy-up has happened as well as for upper alias (in
++	 * case of hard links) is there.
++	 *
++	 * Both checks are lockless:
++	 *  - false negatives: will recheck under oi->lock
++	 *  - false positives:
++	 *    + ovl_dentry_upper() uses memory barriers to ensure the
++	 *      upper dentry is up-to-date
++	 *    + ovl_dentry_has_upper_alias() relies on locking of
++	 *      upper parent i_rwsem to prevent reordering copy-up
++	 *      with rename.
++	 */
++	if (ovl_dentry_upper(dentry) &&
++	    (ovl_dentry_has_upper_alias(dentry) || disconnected))
++		return true;
++
 +	return false;
-+
-+	if (!ofs->config.metacopy)
-+		return false;
-+
-+	if (!S_ISREG(mode))
-+		return false;
-+
-+	if (flags && ((OPEN_FMODE(flags) & FMODE_WRITE) || (flags & O_TRUNC)))
-+		return false;
-+
-+	return true;
 +}
 +
- struct ovl_fh *ovl_encode_fh(struct dentry *real, bool is_upper)
+ int ovl_copy_up_start(struct dentry *dentry)
  {
- 	struct ovl_fh *fh;
-@@ -416,6 +436,7 @@ struct ovl_copy_up_ctx {
- 	bool tmpfile;
- 	bool origin;
- 	bool indexed;
-+	bool metacopy;
- };
+ 	struct ovl_inode *oi = OVL_I(d_inode(dentry));
+ 	int err;
  
- static int ovl_link_up(struct ovl_copy_up_ctx *c)
-@@ -553,7 +574,7 @@ static int ovl_copy_up_inode(struct ovl_copy_up_ctx *c, struct dentry *temp)
- 			return err;
+ 	err = mutex_lock_interruptible(&oi->lock);
+-	if (!err && ovl_dentry_has_upper_alias(dentry)) {
++	if (!err && ovl_already_copied_up(dentry)) {
+ 		err = 1; /* Already copied up */
+ 		mutex_unlock(&oi->lock);
  	}
- 
--	if (S_ISREG(c->stat.mode)) {
-+	if (S_ISREG(c->stat.mode) && !c->metacopy) {
- 		struct path upperpath;
- 
- 		ovl_path_upper(c->dentry, &upperpath);
-@@ -729,6 +750,8 @@ static int ovl_copy_up_one(struct dentry *parent, struct dentry *dentry,
- 	if (err)
- 		return err;
- 
-+	ctx.metacopy = ovl_need_meta_copy_up(dentry, ctx.stat.mode, flags);
-+
- 	if (parent) {
- 		ovl_path_upper(parent, &parentpath);
- 		ctx.destdir = parentpath.dentry;
 -- 
 2.13.6
-
