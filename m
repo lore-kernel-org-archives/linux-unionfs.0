@@ -1,74 +1,80 @@
-Return-Path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mx3-rdu2.redhat.com ([66.187.233.73]:39496 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1751941AbeC2TjD (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 29 Mar 2018 15:39:03 -0400
+Return-Path: <vgoyal@redhat.com>
 From: Vivek Goyal <vgoyal@redhat.com>
-Subject: [PATCH v13 18/28] ovl: Check redirects for metacopy files
-Date: Thu, 29 Mar 2018 15:38:44 -0400
-Message-Id: <20180329193854.13814-19-vgoyal@redhat.com>
-In-Reply-To: <20180329193854.13814-1-vgoyal@redhat.com>
-References: <20180329193854.13814-1-vgoyal@redhat.com>
-Sender: linux-unionfs-owner@vger.kernel.org
+Subject: [PATCH v12 03/17] ovl: During copy up, first copy up metadata and then data
+Date: Tue,  6 Mar 2018 15:53:54 -0500
+Message-Id: <20180306205408.23383-4-vgoyal@redhat.com>
+In-Reply-To: <20180306205408.23383-1-vgoyal@redhat.com>
+References: <20180306205408.23383-1-vgoyal@redhat.com>
 To: linux-unionfs@vger.kernel.org
 Cc: miklos@szeredi.hu, amir73il@gmail.com, vgoyal@redhat.com
 List-ID: <linux-unionfs@vger.kernel.org>
 
-Right now we rely on path based lookup for data origin of metacopy upper.
-This will work only if upper has not been renamed. We solved this problem
-already for merged directories using redirect. Use same logic for metacopy
-files.
+Just a little re-ordering of code. This helps with next patch where after
+copying up metadata, we skip data copying step, if needed.
 
-This patch just goes on to check redirects for metacopy files.
-
+Reviewed-by: Amir Goldstein <amir73il@gmail.com>
 Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
 ---
- fs/overlayfs/namei.c | 24 ++++++++++++------------
- 1 file changed, 12 insertions(+), 12 deletions(-)
+ fs/overlayfs/copy_up.c | 36 +++++++++++++++++-------------------
+ 1 file changed, 17 insertions(+), 19 deletions(-)
 
-diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
-index 1dba89e9543f..a7a9588f64b7 100644
---- a/fs/overlayfs/namei.c
-+++ b/fs/overlayfs/namei.c
-@@ -260,18 +260,19 @@ static int ovl_lookup_single(struct dentry *base, struct ovl_lookup_data *d,
- 			goto out_err;
- 		d->stop = !err;
- 		d->metacopy = !!err;
--		goto out;
--	}
--	if (last_element)
--		d->is_dir = true;
--	if (d->last)
--		goto out;
+diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
+index d855f508fa20..2de4ab3254a4 100644
+--- a/fs/overlayfs/copy_up.c
++++ b/fs/overlayfs/copy_up.c
+@@ -536,28 +536,10 @@ static int ovl_copy_up_inode(struct ovl_copy_up_ctx *c, struct dentry *temp)
+ {
+ 	int err;
+ 
+-	if (S_ISREG(c->stat.mode)) {
+-		struct path upperpath;
 -
--	if (ovl_is_opaquedir(this)) {
--		d->stop = true;
-+		if (!d->metacopy)
-+			goto out;
-+	} else {
- 		if (last_element)
--			d->opaque = true;
--		goto out;
-+			d->is_dir = true;
-+		if (d->last)
-+			goto out;
-+		if (ovl_is_opaquedir(this)) {
-+			d->stop = true;
-+			if (last_element)
-+				d->opaque = true;
-+			goto out;
-+		}
- 	}
- 	err = ovl_check_redirect(this, d, prelen, post);
+-		ovl_path_upper(c->dentry, &upperpath);
+-		BUG_ON(upperpath.dentry != NULL);
+-		upperpath.dentry = temp;
+-
+-		err = ovl_copy_up_data(&c->lowerpath, &upperpath, c->stat.size);
+-		if (err)
+-			return err;
+-	}
+-
+ 	err = ovl_copy_xattr(c->lowerpath.dentry, temp);
  	if (err)
-@@ -859,7 +860,6 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
- 		}
- 		if (upperdentry && !d.is_dir) {
- 			unsigned int origin_ctr = 0;
--			BUG_ON(d.redirect);
- 			/*
- 			 * Lookup copy up origin by decoding origin file handle.
- 			 * We may get a disconnected dentry, which is fine,
+ 		return err;
+ 
+-	inode_lock(temp->d_inode);
+-	err = ovl_set_attr(temp, &c->stat);
+-	inode_unlock(temp->d_inode);
+-	if (err)
+-		return err;
+-
+ 	/*
+ 	 * Store identifier of lower inode in upper inode xattr to
+ 	 * allow lookup of the copy up origin inode.
+@@ -571,7 +553,23 @@ static int ovl_copy_up_inode(struct ovl_copy_up_ctx *c, struct dentry *temp)
+ 			return err;
+ 	}
+ 
+-	return 0;
++	if (S_ISREG(c->stat.mode)) {
++		struct path upperpath;
++
++		ovl_path_upper(c->dentry, &upperpath);
++		BUG_ON(upperpath.dentry != NULL);
++		upperpath.dentry = temp;
++
++		err = ovl_copy_up_data(&c->lowerpath, &upperpath, c->stat.size);
++		if (err)
++			return err;
++	}
++
++	inode_lock(temp->d_inode);
++	err = ovl_set_attr(temp, &c->stat);
++	inode_unlock(temp->d_inode);
++
++	return err;
+ }
+ 
+ static int ovl_copy_up_locked(struct ovl_copy_up_ctx *c)
 -- 
 2.13.6
-
