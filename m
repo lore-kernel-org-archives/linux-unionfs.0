@@ -1,71 +1,44 @@
-Return-Path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mx3-rdu2.redhat.com ([66.187.233.73]:49994 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1751642AbeC2TjD (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 29 Mar 2018 15:39:03 -0400
-From: Vivek Goyal <vgoyal@redhat.com>
-Subject: [PATCH v13 13/28] ovl: Add helper ovl_dentry_lowerdata() to get lower data dentry
-Date: Thu, 29 Mar 2018 15:38:39 -0400
-Message-Id: <20180329193854.13814-14-vgoyal@redhat.com>
-In-Reply-To: <20180329193854.13814-1-vgoyal@redhat.com>
-References: <20180329193854.13814-1-vgoyal@redhat.com>
-Sender: linux-unionfs-owner@vger.kernel.org
-To: linux-unionfs@vger.kernel.org
-Cc: miklos@szeredi.hu, amir73il@gmail.com, vgoyal@redhat.com
+Return-Path: <amir73il@gmail.com>
+MIME-Version: 1.0
+In-Reply-To: <CAJfpegt_QW8ByGtDhNWy5rT70H+kxoW5duRNOAKA5Az_QsoJ_Q@mail.gmail.com>
+References: <20180306040223.2970-1-yangerkun@huawei.com> <CAOQ4uxi2Ts+=4NhOyTCpoBxsW1_tAuVS3s_reNz0Nuba+AEDUA@mail.gmail.com>
+ <CAJfpegt_QW8ByGtDhNWy5rT70H+kxoW5duRNOAKA5Az_QsoJ_Q@mail.gmail.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Date: Tue, 6 Mar 2018 10:34:12 +0200
+Message-ID: <CAOQ4uxhYmOyWFf3ARQ_hdrEwN6vxUb5J4Gq=8E2CUeGWJKDrjg@mail.gmail.com>
+Subject: Re: [PATCH] overlay: ovl_get_inode should treat file and dir as same
+ while no upper_mnt
+Content-Type: text/plain; charset="UTF-8"
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: yangerkun <yangerkun@huawei.com>, overlayfs <linux-unionfs@vger.kernel.org>, "zhangyi (F)" <yi.zhang@huawei.com>, Miao Xie <miaoxie@huawei.com>, zhaohongjiang@huawei.com, Chengguang Xu <cgxu519@icloud.com>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-Now we have the notion of data dentry and metacopy dentry. ovl_dentry_lower()
-will return lower dentry at idx 0, but it could be either data or metacopy
-dentry. Now we support metacopy dentries in lower layers so it is possible
-that lowerstack[0] is metacopy dentry while lowerstack[1] is actual data
-dentry.
+On Tue, Mar 6, 2018 at 10:16 AM, Miklos Szeredi <miklos@szeredi.hu> wrote:
+> On Tue, Mar 6, 2018 at 7:44 AM, Amir Goldstein <amir73il@gmail.com> wrote:
+>> On Tue, Mar 6, 2018 at 6:02 AM, yangerkun <yangerkun@huawei.com> wrote:
+>>>
+>>> When there is no upper_mnt, lower multi hardlink should not construct
+>>> multi inode for overlay since there won't copyup.
+>>>
+>>
+>> This doesn't really describe a problem.
+>> AFAIK, the only problem has to do with fsnotify and the fix is already in
+>> overlayfs-next:
+>> 764baba80168 ovl: hash non-dir by lower inode for fsnotify
+>>
+>> Miklos,
+>>
+>> Are you planning to send a pull request soon?
+>
+> OK, I'll submit the pending patches for -rc5.
+>
+> Do you see any fixes that I missed?
+>
 
-So add an helper which returns lowest most dentry which is supposed to be
-data dentry.
+No, I don't.
 
-Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
----
- fs/overlayfs/overlayfs.h |  1 +
- fs/overlayfs/util.c      | 14 ++++++++++++++
- 2 files changed, 15 insertions(+)
+There's Chengguang syncfs optimization, but that is not a fix, so I
+reccon, not rc5 material.
 
-diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-index 4eb4b765887f..214d9f08c574 100644
---- a/fs/overlayfs/overlayfs.h
-+++ b/fs/overlayfs/overlayfs.h
-@@ -226,6 +226,7 @@ void ovl_path_lowerdata(struct dentry *dentry, struct path *path);
- enum ovl_path_type ovl_path_real(struct dentry *dentry, struct path *path);
- struct dentry *ovl_dentry_upper(struct dentry *dentry);
- struct dentry *ovl_dentry_lower(struct dentry *dentry);
-+struct dentry *ovl_dentry_lowerdata(struct dentry *dentry);
- struct dentry *ovl_dentry_real(struct dentry *dentry);
- struct dentry *ovl_i_dentry_upper(struct inode *inode);
- struct inode *ovl_inode_upper(struct inode *inode);
-diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
-index fd98329e820c..394674c4c820 100644
---- a/fs/overlayfs/util.c
-+++ b/fs/overlayfs/util.c
-@@ -186,6 +186,20 @@ struct dentry *ovl_dentry_lower(struct dentry *dentry)
- 	return oe->numlower ? oe->lowerstack[0].dentry : NULL;
- }
- 
-+/*
-+ * ovl_dentry_lower() could return either a data dentry or metacopy dentry
-+ * dependig on what is stored in lowerstack[0]. At times we need to find
-+ * lower dentry which has data (and not metacopy dntry). This helper
-+ * returns the lower data dentry.
-+ */
-+struct dentry *ovl_dentry_lowerdata(struct dentry *dentry)
-+{
-+	struct ovl_entry *oe = dentry->d_fsdata;
-+	int idx = oe->numlower - 1;
-+
-+	return idx >= 0 ? oe->lowerstack[idx].dentry : NULL;
-+}
-+
- struct dentry *ovl_dentry_real(struct dentry *dentry)
- {
- 	return ovl_dentry_upper(dentry) ?: ovl_dentry_lower(dentry);
--- 
-2.13.6
-
+Thanks,
+Amir.
