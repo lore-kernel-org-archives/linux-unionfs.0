@@ -1,9 +1,9 @@
 Return-Path: <vgoyal@redhat.com>
-Date: Thu, 29 Mar 2018 10:01:14 -0400
+Date: Wed, 7 Mar 2018 10:19:57 -0500
 From: Vivek Goyal <vgoyal@redhat.com>
 Subject: Re: [PATCH v12 16/17] ovl: Set redirect on upper inode when it is
  linked
-Message-ID: <20180329140114.GA2749@redhat.com>
+Message-ID: <20180307151957.GF5350@redhat.com>
 References: <20180306205408.23383-1-vgoyal@redhat.com>
  <20180306205408.23383-17-vgoyal@redhat.com>
  <CAOQ4uxjAwUk7n_kBZKic9snMw4Sz_ad-a4AJ4h4hNzniQv9+9Q@mail.gmail.com>
@@ -54,15 +54,10 @@ On Wed, Mar 07, 2018 at 10:02:20AM +0200, Amir Goldstein wrote:
 >                 err = ovl_do_link(ovl_dentry_upper(hardlink), dir,
 > newdentry, debug);
 
-Amir,
+Ok, I will look into it and modify if it does not turn out to be
+significant change.
 
-Are you particular about this change? I looked at ovl_create_real() and
-I see that right now both "newdentry" and "hardlink" are real dentries.
-And I like it. Mixing real dentries and overlay dentries in functions
-is often very confusing, especially given the fact that we don't have
-any prefix/postfix to differentiate between two.
-
-So I would rather prefer to leave it as it is.
-
-Thanks
 Vivek
+> 
+> Thanks,
+> Amir.
