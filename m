@@ -1,173 +1,261 @@
-Return-Path: <amir73il@gmail.com>
-Return-Path: <amir73il@gmail.com>
-From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH v9 1/7] ovl: factor out ovl_map_dev_ino() helper
-Date: Thu, 29 Mar 2018 17:18:47 +0300
-Message-Id: <1522333133-24772-2-git-send-email-amir73il@gmail.com>
-In-Reply-To: <1522333133-24772-1-git-send-email-amir73il@gmail.com>
-References: <1522333133-24772-1-git-send-email-amir73il@gmail.com>
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: linux-unionfs@vger.kernel.org
+Return-Path: <vgoyal@redhat.com>
+Date: Wed, 7 Mar 2018 10:43:28 -0500
+From: Vivek Goyal <vgoyal@redhat.com>
+Subject: Re: [PATCH v12 02/17] ovl: Provide a mount option metacopy=on/off
+ for metadata copyup
+Message-ID: <20180307154328.GG5350@redhat.com>
+References: <20180306205408.23383-1-vgoyal@redhat.com>
+ <20180306205408.23383-3-vgoyal@redhat.com>
+ <CAOQ4uxhCnS+T+8GX5RWHLLF5xUMc+v7uwpiMXnbCq+7Ez85cvQ@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAOQ4uxhCnS+T+8GX5RWHLLF5xUMc+v7uwpiMXnbCq+7Ez85cvQ@mail.gmail.com>
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: overlayfs <linux-unionfs@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-A helper for ovl_getattr() to map the values of st_dev and st_ino
-according to constant st_ino rules.
+On Wed, Mar 07, 2018 at 10:47:13AM +0200, Amir Goldstein wrote:
+> On Tue, Mar 6, 2018 at 10:53 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
+> > By default metadata only copy up is disabled. Provide a mount option so
+> > that users can choose one way or other.
+> >
+> > Also provide a kernel config and module option to enable/disable
+> > metacopy feature.
+> >
+> > metacopy feature requires redirect_dir=on when upper is present. Otherwise,
+> > it requires redirect_dir=follow atleast.
+> >
+> > Like index feature, we verify on mount that upper root is not being
+> > reused with a different lower root. This hopes to get the configuration
+> > right and detect the copied layers use case. But this does only so
+> > much as we don't verify all the lowers. So it is possible that a lower is
+> > missing and later data copy up fails.
+> >
+> > Reviewed-by: Amir Goldstein <amir73il@gmail.com>
+> > Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
+> > ---
+> >  Documentation/filesystems/overlayfs.txt | 30 ++++++++++++++++++++++++-
+> >  fs/overlayfs/Kconfig                    | 17 ++++++++++++++
+> >  fs/overlayfs/ovl_entry.h                |  1 +
+> >  fs/overlayfs/super.c                    | 40 ++++++++++++++++++++++++++++++++-
+> >  4 files changed, 86 insertions(+), 2 deletions(-)
+> >
+> > diff --git a/Documentation/filesystems/overlayfs.txt b/Documentation/filesystems/overlayfs.txt
+> > index 6ea1e64d1464..b7720e61973c 100644
+> > --- a/Documentation/filesystems/overlayfs.txt
+> > +++ b/Documentation/filesystems/overlayfs.txt
+> > @@ -249,6 +249,30 @@ rightmost one and going left.  In the above example lower1 will be the
+> >  top, lower2 the middle and lower3 the bottom layer.
+> >
+> >
+> > +Metadata only copyup
+> > +--------------------
+> > +
+> > +When metadata only copy up feature is enabled, overlayfs will only copy
+> > +up metadata (as opposed to whole file), when a metadata specific operation
+> > +like chown/chmod is performed. Full file will be copied up later when
+> > +file is opened for WRITE operation.
+> > +
+> > +IOW, this is delayed data copy up operation and data is copied up when
+> > +there is a need to actually modify data.
+> > +
+> > +There are multiple ways to enable/disable this feature. A config option
+> > +CONFIG_OVERLAY_FS_METACOPY can be set/unset to enable/disable this feature
+> > +by default. Or one can enable/disable it at module load time with module
+> > +parameter metacopy=on/off. Lastly, there is also a per mount option
+> > +metacopy=on/off to enable/disable this feature per mount.
+> > +
+> > +Do not use metacopy=on with untrusted upper/lower directories. Otherwise
+> > +it is possible that an attacker can create an handcrafted file with
+> > +appropriate REDIRECT and METACOPY xattrs, and gain access to file on lower
+> > +pointed by REDIRECT. This should not be possible on local system as setting
+> > +"trusted." xattrs will require CAP_SYS_ADMIN. But it should be possible
+> > +for untrusted layers like from a pen drive.
+> > +
+> >  Sharing and copying layers
+> >  --------------------------
+> >
+> > @@ -267,7 +291,7 @@ though it will not result in a crash or deadlock.
+> >  Mounting an overlay using an upper layer path, where the upper layer path
+> >  was previously used by another mounted overlay in combination with a
+> >  different lower layer path, is allowed, unless the "inodes index" feature
+> > -is enabled.
+> > +or "metadata only copyup" feature is enabled.
+> >
+> >  With the "inodes index" feature, on the first time mount, an NFS file
+> >  handle of the lower layer root directory, along with the UUID of the lower
+> > @@ -280,6 +304,10 @@ lower root origin, mount will fail with ESTALE.  An overlayfs mount with
+> >  does not support NFS export, lower filesystem does not have a valid UUID or
+> >  if the upper filesystem does not support extended attributes.
+> >
+> > +For "metadata only copyup" feature there is no verification mechanism at
+> > +mount time. So if same upper is mouted with different set of lower, mount
+> > +probably will succeed but expect the unexpected later on. So don't do it.
+> > +
+> >  It is quite a common practice to copy overlay layers to a different
+> >  directory tree on the same or different underlying filesystem, and even
+> >  to a different machine.  With the "inodes index" feature, trying to mount
+> > diff --git a/fs/overlayfs/Kconfig b/fs/overlayfs/Kconfig
+> > index 406e72de88f6..e1974db486a9 100644
+> > --- a/fs/overlayfs/Kconfig
+> > +++ b/fs/overlayfs/Kconfig
+> > @@ -72,3 +72,20 @@ config OVERLAY_FS_NFS_EXPORT
+> >           Note, that the NFS export feature is not backward compatible.
+> >           That is, mounting an overlay which has a full index on a kernel
+> >           that doesn't support this feature will have unexpected results.
+> > +
+> > +config OVERLAY_FS_METACOPY
+> > +       bool "Overlayfs: turn on metadata only copy up feature by default"
+> > +       depends on OVERLAY_FS
+> > +       depends on !OVERLAY_FS_NFS_EXPORT
+> > +       select OVERLAY_FS_REDIRECT_DIR
+> > +       help
+> > +         If this config option is enabled then overlay filesystems will
+> > +         copy up only metadata where appropriate and data copy up will
+> > +         happen when a file is opended for WRITE operation. It is still
+> > +         possible to turn off this feature globally with the "metacopy=off"
+> > +         module option or on a filesystem instance basis with the
+> > +         "metacopy=off" mount option.
+> > +
+> > +         Note, that this feature is not backward compatible.  That is,
+> > +         mounting an overlay which has metacopy only inodes on a kernel
+> > +         that doesn't support this feature will have unexpected results.
+> > diff --git a/fs/overlayfs/ovl_entry.h b/fs/overlayfs/ovl_entry.h
+> > index bfef6edcc111..7dc55628080d 100644
+> > --- a/fs/overlayfs/ovl_entry.h
+> > +++ b/fs/overlayfs/ovl_entry.h
+> > @@ -18,6 +18,7 @@ struct ovl_config {
+> >         const char *redirect_mode;
+> >         bool index;
+> >         bool nfs_export;
+> > +       bool metacopy;
+> >  };
+> >
+> >  struct ovl_layer {
+> > diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+> > index 9ee37c76091d..0e124b9d902d 100644
+> > --- a/fs/overlayfs/super.c
+> > +++ b/fs/overlayfs/super.c
+> > @@ -58,6 +58,11 @@ static void ovl_entry_stack_free(struct ovl_entry *oe)
+> >                 dput(oe->lowerstack[i].dentry);
+> >  }
+> >
+> > +static bool ovl_metacopy_def = IS_ENABLED(CONFIG_OVERLAY_FS_METACOPY);
+> > +module_param_named(metacopy, ovl_metacopy_def, bool, 0644);
+> > +MODULE_PARM_DESC(ovl_metacopy_def,
+> > +                "Default to on or off for the metadata only copy up feature");
+> > +
+> >  static void ovl_dentry_release(struct dentry *dentry)
+> >  {
+> >         struct ovl_entry *oe = dentry->d_fsdata;
+> > @@ -350,6 +355,9 @@ static int ovl_show_options(struct seq_file *m, struct dentry *dentry)
+> >         if (ofs->config.nfs_export != ovl_nfs_export_def)
+> >                 seq_printf(m, ",nfs_export=%s", ofs->config.nfs_export ?
+> >                                                 "on" : "off");
+> > +       if (ofs->config.metacopy != ovl_metacopy_def)
+> > +               seq_printf(m, ",metacopy=%s",
+> > +                          ofs->config.metacopy ? "on" : "off");
+> >         return 0;
+> >  }
+> >
+> > @@ -384,6 +392,8 @@ enum {
+> >         OPT_INDEX_OFF,
+> >         OPT_NFS_EXPORT_ON,
+> >         OPT_NFS_EXPORT_OFF,
+> > +       OPT_METACOPY_ON,
+> > +       OPT_METACOPY_OFF,
+> >         OPT_ERR,
+> >  };
+> >
+> > @@ -397,6 +407,8 @@ static const match_table_t ovl_tokens = {
+> >         {OPT_INDEX_OFF,                 "index=off"},
+> >         {OPT_NFS_EXPORT_ON,             "nfs_export=on"},
+> >         {OPT_NFS_EXPORT_OFF,            "nfs_export=off"},
+> > +       {OPT_METACOPY_ON,               "metacopy=on"},
+> > +       {OPT_METACOPY_OFF,              "metacopy=off"},
+> >         {OPT_ERR,                       NULL}
+> >  };
+> >
+> > @@ -511,6 +523,14 @@ static int ovl_parse_opt(char *opt, struct ovl_config *config)
+> >                         config->nfs_export = false;
+> >                         break;
+> >
+> > +               case OPT_METACOPY_ON:
+> > +                       config->metacopy = true;
+> > +                       break;
+> > +
+> > +               case OPT_METACOPY_OFF:
+> > +                       config->metacopy = false;
+> > +                       break;
+> > +
+> >                 default:
+> >                         pr_err("overlayfs: unrecognized mount option \"%s\" or missing value\n", p);
+> >                         return -EINVAL;
+> > @@ -993,7 +1013,8 @@ static int ovl_make_workdir(struct ovl_fs *ofs, struct path *workpath)
+> >         if (err) {
+> >                 ofs->noxattr = true;
+> >                 ofs->config.index = false;
+> > -               pr_warn("overlayfs: upper fs does not support xattr, falling back to index=off.\n");
+> > +               ofs->config.metacopy = false;
+> > +               pr_warn("overlayfs: upper fs does not support xattr, falling back to index=off and metacopy=off.\n");
+> >                 err = 0;
+> >         } else {
+> >                 vfs_removexattr(ofs->workdir, OVL_XATTR_OPAQUE);
+> > @@ -1012,6 +1033,11 @@ static int ovl_make_workdir(struct ovl_fs *ofs, struct path *workpath)
+> >                 ofs->config.nfs_export = false;
+> >         }
+> >
+> > +       /* metacopy feature with upper requires redirect_dir=on */
+> > +       if (ofs->config.metacopy && !ofs->config.redirect_dir) {
+> > +               pr_warn("overlayfs: metadata only copyup requires \"redirect_dir=on\", falling back to metacopy=off.\n");
+> > +               ofs->config.metacopy = false;
+> > +       }
+> >  out:
+> >         mnt_drop_write(mnt);
+> >         return err;
+> > @@ -1188,6 +1214,12 @@ static struct ovl_entry *ovl_get_lowerstack(struct super_block *sb,
+> >                 ofs->config.nfs_export = false;
+> >         }
+> >
+> > +       if (!ofs->config.upperdir && ofs->config.metacopy &&
+> > +           !ofs->config.redirect_follow) {
+> > +               ofs->config.metacopy = false;
+> > +               pr_warn("overlayfs: metadata only copyup requires \"redirect_dir=follow\" on non-upper mount, falling back to metacopy=off.\n");
+> > +       }
+> > +
+> >         err = -ENOMEM;
+> >         stack = kcalloc(stacklen, sizeof(struct path), GFP_KERNEL);
+> >         if (!stack)
+> > @@ -1263,6 +1295,7 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
+> >
+> >         ofs->config.index = ovl_index_def;
+> >         ofs->config.nfs_export = ovl_nfs_export_def;
+> > +       ofs->config.metacopy = ovl_metacopy_def;
+> >         err = ovl_parse_opt((char *) data, &ofs->config);
+> >         if (err)
+> >                 goto out_err;
+> > @@ -1331,6 +1364,11 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
+> >                 }
+> >         }
+> >
+> > +       if (ofs->config.metacopy && ofs->config.nfs_export) {
+> > +               pr_warn("overlayfs: Metadata copy up requires NFS export disabled, falling back to metacopy=off.\n");
+> > +               ofs->config.metacopy = false;
+> > +       }
+> > +
+> 
+> Is should probably be the other way around - metacopy should prevail
+> and we should fall back to nfs_export=off (just like non-upper mount
+> with redirect_follow)
+> it's rather user can access file data then export to NFS.
+> 
+> If user prefers to risk not being able to access file data in favor of
+> NFS export, then
+> user should opt-in with metacopy=off, just like user needs to opt-in
+> to redirect_dir=nofollow
+> in order to NFS export a non-upper overlayfs.
 
-Signed-off-by: Amir Goldstein <amir73il@gmail.com>
----
- fs/overlayfs/inode.c     | 83 +++++++++++++++++++++++++-----------------------
- fs/overlayfs/overlayfs.h |  1 +
- fs/overlayfs/util.c      |  7 ++++
- 3 files changed, 52 insertions(+), 39 deletions(-)
+Ok, makes sense. I will change it. Fall back to nfs_export=off.
 
-diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
-index 4689716f23d8..1ae53357b228 100644
---- a/fs/overlayfs/inode.c
-+++ b/fs/overlayfs/inode.c
-@@ -16,13 +16,6 @@
- #include "overlayfs.h"
- 
- 
--static dev_t ovl_get_pseudo_dev(struct dentry *dentry)
--{
--	struct ovl_entry *oe = dentry->d_fsdata;
--
--	return oe->lowerstack[0].layer->pseudo_dev;
--}
--
- int ovl_setattr(struct dentry *dentry, struct iattr *attr)
- {
- 	int err;
-@@ -66,6 +59,43 @@ int ovl_setattr(struct dentry *dentry, struct iattr *attr)
- 	return err;
- }
- 
-+static int ovl_map_dev_ino(struct dentry *dentry, struct kstat *stat)
-+{
-+	struct ovl_layer *lower_layer = ovl_layer_lower(dentry);
-+	bool samefs = ovl_same_sb(dentry->d_sb);
-+
-+	if (samefs) {
-+		/*
-+		 * When all layers are on the same fs, all real inode
-+		 * number are unique, so we use the overlay st_dev,
-+		 * which is friendly to du -x.
-+		 */
-+		stat->dev = dentry->d_sb->s_dev;
-+	} else if (S_ISDIR(dentry->d_inode->i_mode)) {
-+		/*
-+		 * Always use the overlay st_dev for directories, so 'find
-+		 * -xdev' will scan the entire overlay mount and won't cross the
-+		 * overlay mount boundaries.
-+		 *
-+		 * If not all layers are on the same fs the pair {real st_ino;
-+		 * overlay st_dev} is not unique, so use the non persistent
-+		 * overlay st_ino for directories.
-+		 */
-+		stat->dev = dentry->d_sb->s_dev;
-+		stat->ino = dentry->d_inode->i_ino;
-+	} else if (lower_layer) {
-+		/*
-+		 * For non-samefs setup, if we cannot map all layers st_ino
-+		 * to a unified address space, we need to make sure that st_dev
-+		 * is unique per layer. Upper layer uses real st_dev and lower
-+		 * layers use the unique anonymous bdev.
-+		 */
-+		stat->dev = lower_layer->pseudo_dev;
-+	}
-+
-+	return 0;
-+}
-+
- int ovl_getattr(const struct path *path, struct kstat *stat,
- 		u32 request_mask, unsigned int flags)
- {
-@@ -84,10 +114,10 @@ int ovl_getattr(const struct path *path, struct kstat *stat,
- 		goto out;
- 
- 	/*
--	 * For non-dir or same fs, we use st_ino of the copy up origin, if we
--	 * know it. This guaranties constant st_dev/st_ino across copy up.
-+	 * For non-dir or same fs, we use st_ino of the copy up origin.
-+	 * This guaranties constant st_dev/st_ino across copy up.
- 	 *
--	 * If filesystem supports NFS export ops, this also guaranties
-+	 * If lower filesystem supports NFS file handles, this also guaranties
- 	 * persistent st_ino across mount cycle.
- 	 */
- 	if (!is_dir || samefs) {
-@@ -123,38 +153,13 @@ int ovl_getattr(const struct path *path, struct kstat *stat,
- 
- 			if (samefs)
- 				WARN_ON_ONCE(stat->dev != lowerstat.dev);
--			else
--				stat->dev = ovl_get_pseudo_dev(dentry);
--		}
--		if (samefs) {
--			/*
--			 * When all layers are on the same fs, all real inode
--			 * number are unique, so we use the overlay st_dev,
--			 * which is friendly to du -x.
--			 */
--			stat->dev = dentry->d_sb->s_dev;
--		} else if (!OVL_TYPE_UPPER(type)) {
--			/*
--			 * For non-samefs setup, to make sure that st_dev/st_ino
--			 * pair is unique across the system, we use a unique
--			 * anonymous st_dev for lower layer inode.
--			 */
--			stat->dev = ovl_get_pseudo_dev(dentry);
- 		}
--	} else {
--		/*
--		 * Always use the overlay st_dev for directories, so 'find
--		 * -xdev' will scan the entire overlay mount and won't cross the
--		 * overlay mount boundaries.
--		 *
--		 * If not all layers are on the same fs the pair {real st_ino;
--		 * overlay st_dev} is not unique, so use the non persistent
--		 * overlay st_ino for directories.
--		 */
--		stat->dev = dentry->d_sb->s_dev;
--		stat->ino = dentry->d_inode->i_ino;
- 	}
- 
-+	err = ovl_map_dev_ino(dentry, stat);
-+	if (err)
-+		goto out;
-+
- 	/*
- 	 * It's probably not worth it to count subdirs to get the
- 	 * correct link count.  nlink=1 seems to pacify 'find' and
-diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-index 225ff1171147..4432599ecbc6 100644
---- a/fs/overlayfs/overlayfs.h
-+++ b/fs/overlayfs/overlayfs.h
-@@ -215,6 +215,7 @@ void ovl_path_lower(struct dentry *dentry, struct path *path);
- enum ovl_path_type ovl_path_real(struct dentry *dentry, struct path *path);
- struct dentry *ovl_dentry_upper(struct dentry *dentry);
- struct dentry *ovl_dentry_lower(struct dentry *dentry);
-+struct ovl_layer *ovl_layer_lower(struct dentry *dentry);
- struct dentry *ovl_dentry_real(struct dentry *dentry);
- struct dentry *ovl_i_dentry_upper(struct inode *inode);
- struct inode *ovl_inode_upper(struct inode *inode);
-diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
-index 493f9b76fbf6..5042293d2078 100644
---- a/fs/overlayfs/util.c
-+++ b/fs/overlayfs/util.c
-@@ -172,6 +172,13 @@ struct dentry *ovl_dentry_lower(struct dentry *dentry)
- 	return oe->numlower ? oe->lowerstack[0].dentry : NULL;
- }
- 
-+struct ovl_layer *ovl_layer_lower(struct dentry *dentry)
-+{
-+	struct ovl_entry *oe = dentry->d_fsdata;
-+
-+	return oe->numlower ? oe->lowerstack[0].layer : NULL;
-+}
-+
- struct dentry *ovl_dentry_real(struct dentry *dentry)
- {
- 	return ovl_dentry_upper(dentry) ?: ovl_dentry_lower(dentry);
--- 
-2.7.4
+Vivek
