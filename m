@@ -1,93 +1,81 @@
-Return-Path: <amir73il@gmail.com>
-MIME-Version: 1.0
-In-Reply-To: <20180308221804.15708-2-vgoyal@redhat.com>
-References: <20180308221804.15708-1-vgoyal@redhat.com> <20180308221804.15708-2-vgoyal@redhat.com>
-From: Amir Goldstein <amir73il@gmail.com>
-Date: Fri, 9 Mar 2018 00:25:01 +0200
-Message-ID: <CAOQ4uxiF4Kcva-iHj9PSd+wz9Xvy-bJP4GsbKY1WFnfH4pOZyQ@mail.gmail.com>
-Subject: Re: [PATCH 1/3] ovl: Set d->last properly during lookup
-Content-Type: text/plain; charset="UTF-8"
-To: Vivek Goyal <vgoyal@redhat.com>
-Cc: overlayfs <linux-unionfs@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>
+Return-Path: <vgoyal@redhat.com>
+From: Vivek Goyal <vgoyal@redhat.com>
+Subject: [PATCH 1/3] ovl: Set d->last properly during lookup
+Date: Thu,  8 Mar 2018 17:18:02 -0500
+Message-Id: <20180308221804.15708-2-vgoyal@redhat.com>
+In-Reply-To: <20180308221804.15708-1-vgoyal@redhat.com>
+References: <20180308221804.15708-1-vgoyal@redhat.com>
+To: linux-unionfs@vger.kernel.org
+Cc: miklos@szeredi.hu, amir73il@gmail.com, vgoyal@redhat.com
 List-ID: <linux-unionfs@vger.kernel.org>
 
-On Fri, Mar 9, 2018 at 12:18 AM, Vivek Goyal <vgoyal@redhat.com> wrote:
-> d->last signifies that this is the last layer we are looking into and there
-> is no more. And that means this allows for some optimzation opportunities
-> during lookup. For example, in ovl_lookup_single() we don't have to check
-> for opaque xattr of a directory is this is the last layer we are looking
-> into (d->last = true).
->
-> But knowing for sure whether we are looking into last layer can be very
-> tricky. If redirects are not enabled, then we can look at poe->numlower
-> and figure out if the lookup we are about to is last layer or not. But
-> if redircts are enabled then it is possible poe->numlower suggests that
-> we are looking in last layer, but there is an absolute redirect present
-> in found element and that redirects us to a layer in root and that means
-> lookup will continue in lower layers further.
->
-> For example, consider following.
->
-> /upperdir/pure (opaque=y)
-> /upperdir/pure/foo (opaque=y,redirect=/bar)
-> /lowerdir/bar
->
-> In this case pure is "pure upper". When we look for "foo", that time
-> poe->numlower=0. But that alone does not mean that we will not search
-> for a merge candidate in /lowerdir. Absolute redirect changes that.
->
-> IOW, d->last should not be set just based on poe->numlower if redirects
-> are enabled. That can lead to setting d->last while it should not have
-> and that means we will not check for opaque xattr while we should have.
->
-> So do this.
->
-> - If redirects are not enabled, then continue to rely on poe->numlower
->   information to determine if it is last layer or not.
->
-> - If redirects are enabled, then set d->last = true only if this is the
->   last layer in root ovl_entry (roe).
->
-> Suggested-by: Amir Goldstein <amir73il@gmail.com>
-> Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
+d->last signifies that this is the last layer we are looking into and there
+is no more. And that means this allows for some optimzation opportunities
+during lookup. For example, in ovl_lookup_single() we don't have to check
+for opaque xattr of a directory is this is the last layer we are looking
+into (d->last = true).
 
-Reviewed-by: Amir Goldstein <amir73il@gmail.com>
+But knowing for sure whether we are looking into last layer can be very
+tricky. If redirects are not enabled, then we can look at poe->numlower
+and figure out if the lookup we are about to is last layer or not. But
+if redircts are enabled then it is possible poe->numlower suggests that
+we are looking in last layer, but there is an absolute redirect present
+in found element and that redirects us to a layer in root and that means
+lookup will continue in lower layers further.
 
-Much better description than my RFC patch :-)
-One minor error
+For example, consider following.
 
-> ---
->  fs/overlayfs/namei.c | 8 ++++++--
->  1 file changed, 6 insertions(+), 2 deletions(-)
->
-> diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
-> index de3e6da1d5a5..2e173cfbda0e 100644
-> --- a/fs/overlayfs/namei.c
-> +++ b/fs/overlayfs/namei.c
-> @@ -815,7 +815,7 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
->                 .is_dir = false,
->                 .opaque = false,
->                 .stop = false,
-> -               .last = !poe->numlower,
-> +               .last = ofs->config.redirect_follow ? false : !poe->numlower,
->                 .redirect = NULL,
->         };
->
-> @@ -873,7 +873,11 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
->         for (i = 0; !d.stop && i < poe->numlower; i++) {
->                 struct ovl_path lower = poe->lowerstack[i];
->
-> -               d.last = i == poe->numlower - 1;
-> +               if (!ofs->config.redirect_follow)
-> +                       d.last = i == poe->numlower - 1;
-> +               else
-> +                       d.last = lower.layer->idx == roe->numlower - 1;
-> +
+/upperdir/pure (opaque=y)
+/upperdir/pure/foo (opaque=y,redirect=/bar)
+/lowerdir/bar
 
-Should be lower.layer->idx == roe->numlower. (idx 0 is upper)
+In this case pure is "pure upper". When we look for "foo", that time
+poe->numlower=0. But that alone does not mean that we will not search
+for a merge candidate in /lowerdir. Absolute redirect changes that.
 
-But to be honest I did not verify that xattr checks are optimized away with
-my RFC patch, just that the test case above behaves as expected.
+IOW, d->last should not be set just based on poe->numlower if redirects
+are enabled. That can lead to setting d->last while it should not have
+and that means we will not check for opaque xattr while we should have.
 
-Thanks,
-Amir.
+So do this.
+
+- If redirects are not enabled, then continue to rely on poe->numlower
+  information to determine if it is last layer or not.
+
+- If redirects are enabled, then set d->last = true only if this is the
+  last layer in root ovl_entry (roe).
+
+Suggested-by: Amir Goldstein <amir73il@gmail.com>
+Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
+---
+ fs/overlayfs/namei.c | 8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
+
+diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
+index de3e6da1d5a5..2e173cfbda0e 100644
+--- a/fs/overlayfs/namei.c
++++ b/fs/overlayfs/namei.c
+@@ -815,7 +815,7 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
+ 		.is_dir = false,
+ 		.opaque = false,
+ 		.stop = false,
+-		.last = !poe->numlower,
++		.last = ofs->config.redirect_follow ? false : !poe->numlower,
+ 		.redirect = NULL,
+ 	};
+ 
+@@ -873,7 +873,11 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
+ 	for (i = 0; !d.stop && i < poe->numlower; i++) {
+ 		struct ovl_path lower = poe->lowerstack[i];
+ 
+-		d.last = i == poe->numlower - 1;
++		if (!ofs->config.redirect_follow)
++			d.last = i == poe->numlower - 1;
++		else
++			d.last = lower.layer->idx == roe->numlower - 1;
++
+ 		err = ovl_lookup_layer(lower.dentry, &d, &this);
+ 		if (err)
+ 			goto out_put;
+-- 
+2.13.6
