@@ -1,66 +1,100 @@
-Return-Path: <amir73il@gmail.com>
-MIME-Version: 1.0
-In-Reply-To: <3581e04c-f4c7-226a-f88b-ec0ea394aa8d@huawei.com>
-References: <20171117054919.712-1-yi.zhang@huawei.com> <CAOQ4uxgCN-ZdLsZQmYYW-PyJLB4WWsr9A8gqOtcSC6S9Uj8qZA@mail.gmail.com>
- <8d55fcce-ebbf-4779-87de-8406fe475073@huawei.com> <CAOQ4uxge7XzeJPDSdpQYEHH7iQwJD0-t78gHBbKtMUsO0dQrgw@mail.gmail.com>
- <3581e04c-f4c7-226a-f88b-ec0ea394aa8d@huawei.com>
-From: Amir Goldstein <amir73il@gmail.com>
-Date: Thu, 8 Mar 2018 09:37:31 +0200
-Message-ID: <CAOQ4uxh1ZXYyTiRXHGH1K9DyZrn8LLSdsqLvh+ueUwha_uYvxQ@mail.gmail.com>
+Return-Path: <yangerkun@huawei.com>
 Subject: Re: [fsck.overlay RFC PATCH] overlay: add fsck utility
-Content-Type: text/plain; charset="UTF-8"
-To: yangerkun <yangerkun@huawei.com>
+References: <20171117054919.712-1-yi.zhang@huawei.com>
+ <CAOQ4uxgCN-ZdLsZQmYYW-PyJLB4WWsr9A8gqOtcSC6S9Uj8qZA@mail.gmail.com>
+ <8d55fcce-ebbf-4779-87de-8406fe475073@huawei.com>
+ <CAOQ4uxge7XzeJPDSdpQYEHH7iQwJD0-t78gHBbKtMUsO0dQrgw@mail.gmail.com>
+ <CAOQ4uxjbgQrg8MX0smdgYrV8_i3086ND_4d+Wpmcg+4G9RqY3Q@mail.gmail.com>
+From: yangerkun <yangerkun@huawei.com>
+Message-ID: <f8883059-9e63-ebbc-ac86-e524995dc480@huawei.com>
+Date: Thu, 8 Mar 2018 10:38:51 +0800
+MIME-Version: 1.0
+In-Reply-To: <CAOQ4uxjbgQrg8MX0smdgYrV8_i3086ND_4d+Wpmcg+4G9RqY3Q@mail.gmail.com>
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 7bit
+To: Amir Goldstein <amir73il@gmail.com>
 Cc: "zhangyi (F)" <yi.zhang@huawei.com>, overlayfs <linux-unionfs@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>, Miao Xie <miaoxie@huawei.com>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-On Thu, Mar 8, 2018 at 4:32 AM, yangerkun <yangerkun@huawei.com> wrote:
-[...]
+
+
+On 3/7/2018 7:20 PM, Amir Goldstein wrote:
+> On Wed, Mar 7, 2018 at 1:14 PM, Amir Goldstein <amir73il@gmail.com> wrote:
+>> On Wed, Mar 7, 2018 at 11:25 AM, yangerkun <yangerkun@huawei.com> wrote:
+>>>
+>>>
+>>> On 11/18/2017 1:13 AM, Amir Goldstein wrote:
+>>>>
+>>>> [adding fstests in CC with full patch inline to collect wisdom from
+>>>> other fs developers]
+>>>>
+>>>> On Fri, Nov 17, 2017 at 7:49 AM, zhangyi (F) <yi.zhang@huawei.com> wrote:
+>>>>>
+>>>>> Hi,
+>>>
+>>> [...]
+>>>>>
+>>>>>
+>>>>> Todo
+>>>>> ====
+>>>>>
+>>>>> 1. Overlay filesystem mounted check. Prevent fscking when overlay is
+>>>>> online. Now, We cannot distinguish mounted directories if overlayfs was
+>>>>> mounted with relative path.
+>>>>
+>>>>
+>>>> This should be handled by kernel.
+>>>> We now already grab an advisory exclusive I_OVL_INUSE lock on both
+>>>> upperdir and workdir.
+>>>> fsck.overlay can try to open upperdir/workdir with O_EXCL|O_DIRECTORY
+>>>> and kernel should fail this open if overlayfs is holding the  I_OVL_INUSE.
+>>>> Read the man page section on O_EXCL and block device. This is how
+>>>> e2fsck and friends get exclusive access w.r.t mount.
+>>>>
 >>>
 >>> In fsck.overlay, lower layer file/dir may be modified with there is not
 >>> I_OVL_INUSE in lower layer, but we cannot check does lower layer mounted
 >>> with I_OVL_INUSE.
 >>>
 >>
->> Can you list the possible modifications the fsck.overlay can do on lower
->> layer?
+>> Can you list the possible modifications the fsck.overlay can do on lower layer?
 >> What exactly are we trying to protect from?
->
->
-> A orphan whiteout and invalid redirect in lower layer will be removed
-> automatic or ask user.
-> Since we cannot change anything for lower layer when overlay has been
-> mounted, so we need run fsck.overlay first before mount to ensure
-> consistency.
-
-FWIW, I don't think that removing orphan whiteouts and invalid redirects
-from lower layer can cause any damage when overlayfs is mounted
-(famous last words), but I agree that in principle we should avoid fsck
-on layers while overlayfs is mounted.
-
-How about this - by default, lower layers are considered read-only and
-fsck -a won't modify them, only report errors. fsck -y can be used to force
-fixing lower layers. Maybe another flag could be used to indicate that
-lower layers could be modified.
-
 >>
->>
->>> Maybe we need adopt another way? How about store pwd in ofs.config when
->>> we
+> 
+> Also, if we follow my suggestion above for upperdir/workdir
+> fsck.overlay may still
+> try to aquire I_OVL_INUSE on lowerdir with O_EXCL|O_DIRECTORY and kernel
+> can test I_OVL_INUSE flag on lowerdir without trying to set it on mount.
+
+It's good when we want to mount overlayfs with fsck.overlay is running; 
+But when there is a mounted overlayfs before fsck.overlay, we cannot use 
+this way to check if the lower layer has already been used.
+> 
+>>> Maybe we need adopt another way? How about store pwd in ofs.config when we
 >>> mount the overlay.
 >>>
 >>
 >> I don't understand what that means.
->
->
-> We can use the parameters passed in by fsck.overlay and current working
-> directory to construct absolute path for lower layers and upper layer; but
-> when we want to get the information about mounted overlayfs through
-> mountinfo, we cannot construct the absolute path of lower layer and upper
-> layer without the pwd when we mount an overlayfs.
-
-I see. I think that dealing with paths is wrong. pwd is not enough,
-you also need
-to know the mount ns root path. It's just not good to use path as an identifier.
-
+>>
+>> Instead of relying on the partial information available in /proc/<pid>/mountinfo
+>> we can export more interesting information from kernel per overlayfs mount,
+>> see for example the information available at /proc/fs/ext4/<blockdev>/
+>>
+>> For example, we can expose "layers" information, including the file handle of
+>> all layers root dir, so fsck.overlay can figure out if any upper/lower
+>> dir are in-use
+>> without needing to resolve paths.
+>>
+>> There is probably other interesting information from ofs.config that can
+>> be exposed this way.
+>>
+>> Instead of <blockdev> (in the ext4 case) the key would have to be the overlayfs
+>> anonymous dev, which can be read by stat(2) on any overlay directory.
+>>
+>> Thanks,
+>> Amir.
+> 
+> .
+> 
 Thanks,
-Amir.
+yangerkun.
