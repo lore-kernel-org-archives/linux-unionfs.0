@@ -1,103 +1,85 @@
-Return-Path: <yi.zhang@huawei.com>
-From: "zhangyi (F)" <yi.zhang@huawei.com>
-Subject: [xfstests PATCH v5 1/5] common/rc: improve dev mounted check helper
-Date: Thu, 1 Mar 2018 20:13:43 +0800
-Message-ID: <20180301121347.5824-2-yi.zhang@huawei.com>
-In-Reply-To: <20180301121347.5824-1-yi.zhang@huawei.com>
-References: <20180301121347.5824-1-yi.zhang@huawei.com>
+Return-Path: <amir73il@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain
-To: eguan@redhat.com, fstests@vger.kernel.org
-Cc: linux-unionfs@vger.kernel.org, miklos@szeredi.hu, amir73il@gmail.com, yi.zhang@huawei.com, miaoxie@huawei.com, yangerkun@huawei.com
+In-Reply-To: <20180308170343.GB2732@redhat.com>
+References: <20180306205408.23383-1-vgoyal@redhat.com> <20180306205408.23383-9-vgoyal@redhat.com>
+ <CAOQ4uxgzJpqcKUr-FkYPEo3pZTG8L6LkNdYJcmm2kdGr2J9Dqg@mail.gmail.com>
+ <20180307202708.GK5350@redhat.com> <CAOQ4uxhLXv-iw-JzWury11X2tVn-mX0JEmig2dJZurHMM+CcCQ@mail.gmail.com>
+ <20180308170343.GB2732@redhat.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Date: Thu, 8 Mar 2018 19:54:26 +0200
+Message-ID: <CAOQ4uxj8ZzuVw9SmEc+Vu_FVeESvve-MffrPgs2tf1sD=2rRew@mail.gmail.com>
+Subject: Re: [PATCH v12 08/17] ovl: Modify ovl_lookup() and friends to lookup
+ metacopy dentry
+Content-Type: text/plain; charset="UTF-8"
+To: Vivek Goyal <vgoyal@redhat.com>
+Cc: overlayfs <linux-unionfs@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-There is a problem of missing fstype check in _is_mounted() helper,
-it will return the mountpoint if only the device arguments matches.
+On Thu, Mar 8, 2018 at 7:03 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
+> On Thu, Mar 08, 2018 at 10:43:09AM +0200, Amir Goldstein wrote:
+>> On Wed, Mar 7, 2018 at 10:27 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
+>> > On Wed, Mar 07, 2018 at 04:42:54PM +0200, Amir Goldstein wrote:
+>> [...]
+>>
+>> >> >  static bool ovl_is_opaquedir(struct dentry *dentry)
+>> >> >  {
+>> >> >         return ovl_check_dir_xattr(dentry, OVL_XATTR_OPAQUE);
+>> >> > @@ -242,9 +265,16 @@ static int ovl_lookup_single(struct dentry *base, struct ovl_lookup_data *d,
+>> >> >                 goto put_and_out;
+>> >> >         }
+>> >> >         if (!d_can_lookup(this)) {
+>> >> > -               d->stop = true;
+>> >> >                 if (d->is_dir)
+>> >>
+>> >> You need to set d->stop here because this is a non-dir below upper dir.
+>> >
+>> > With metacopy dentry on regular files, we want to do d->stop=true only
+>> > if this is not a metacopy. Otherwise we want to continue to do path
+>> > based lookup in lower layers. That's the whole point of this patch
+>> > series.
+>> >
+>>
+>> Yes we do, but the point that yo missed about (d->is_dir) check is that it means
+>> that upper layer was a directory (e.g. upperdir/foo) and underneath it we find
+>> a non-dir (e.g. lowerdir/foo). This is a case were lookup needs to stop and
+>> result in a non-merge pure upper dir.
+>
+> But d->is_dir does not necessarily reflect the state of upper. It
+> reflects the state of last found dentry. And in case of redirect, last
+> found dentry can very well be parent of current dentry.
+>
+> For example, say you have upperdir/foo and it has redirect set to
+> lowerdir/bar/bar-child.txt. Now, by the time we find bar-child.txt
+> d->is_dir is always true because it reflects the state of parent "bar"
+> dentry which is always directory. I mean it does not reflect state
+> of upperdir/foo. And that state is already lost.
+>
+> If we really want to make sure that we don't merge upper dir with lower
+> non-dir, then we need to do this check in ovl_lookup() and not in
+> ovl_lookup_single(), IMHO.
+>
 
-For example:
-  Base mounted filesystem:
-    /dev/sda2 on /boot type ext4 (rw,relatime,data=ordered)
+Maybe. need to see a patch.
 
-  FSTYPE=xfs
-  mountpoint=`_is_mounted /dev/sda1`
-  echo "$mountpoint"
+Currently, d->is_dir can be used to stop merge dir lookup,
+but with introduction of a merge-non-dir (i.e. metacopy)
+ovl_lookup_layer() is broken, because it looses previous layer
+d->is_dir information while doing absolute path lookup.
 
-  Output: /boot
+If I am not mistaken, it looks like ovl_lookup_layer() is already
+broken w.r.t d->opaque. It should not be setting d->opaque
+when doing ovl_lookup_single() on a non-last path element
+if it find an opaquedir.
 
-This patch rename _is_mounted to _is_dev_mounted because it check
-the given device only (not mount dir), and add an optional "fstype"
-parameter, let user specify file system type instead of default
-FSTYPE. Finally, use findmnt instead of mount to avoid complex
-processing of mount info and fix this problem simply.
+You can tell if ovl_lookup_single() is being called for a last path
+element from ovl_lookup_layer() if 'post' is an empty string.
+You can use that to determine if you need to set d->is_dir for
+directory and d->stop for non-dir if (d->is_dir).
 
-Signed-off-by: zhangyi (F) <yi.zhang@huawei.com>
----
- common/rc  | 29 ++++++++++-------------------
- common/xfs |  2 +-
- 2 files changed, 11 insertions(+), 20 deletions(-)
+I lean towards getting the semantics of ovl_lookup_layer()
+ovl_lookup_single() and the ovl_lookup_data state adjusted
+to metacopy lookup and getting rid of the hidden assumptions
+that are inside current code.
 
-diff --git a/common/rc b/common/rc
-index a68e6cc..1dae3bf 100644
---- a/common/rc
-+++ b/common/rc
-@@ -2381,27 +2381,18 @@ _scratch_mkfs_richacl()
- 	esac
- }
- 
--# check that a FS on a device is mounted
--# if so, return mount point
--#
--_is_mounted()
-+# check if the given device is mounted, if so, return mount point
-+_is_dev_mounted()
- {
--    if [ $# -ne 1 ]
--    then
--	echo "Usage: _is_mounted device" 1>&2
--	exit 1
--    fi
-+	local dev=$1
-+	local fstype=${2:-$FSTYP}
- 
--    device=$1
-+	if [ $# -lt 1 ]; then
-+		echo "Usage: _is_dev_mounted <device> [fstype]" 1>&2
-+		exit 1
-+	fi
- 
--    if _mount | grep "$device " | $AWK_PROG -v pattern="type $FSTYP" '
--        pattern        { print $3 ; exit 0 }
--        END            { exit 1 }
--    '
--    then
--        echo "_is_mounted: $device is not a mounted $FSTYP FS"
--        exit 1
--    fi
-+	findmnt -rncv -S $dev -t $fstype -o TARGET | head -1
- }
- 
- # remount a FS to a new mode (ro or rw)
-@@ -2441,7 +2432,7 @@ _umount_or_remount_ro()
-     fi
- 
-     device=$1
--    mountpoint=`_is_mounted $device`
-+    mountpoint=`_is_dev_mounted $device`
- 
-     if [ $USE_REMOUNT -eq 0 ]; then
-         $UMOUNT_PROG $device
-diff --git a/common/xfs b/common/xfs
-index 354f584..37cd80c 100644
---- a/common/xfs
-+++ b/common/xfs
-@@ -356,7 +356,7 @@ _check_xfs_filesystem()
- 	ok=1
- 
- 	# Run online scrub if we can.
--	mntpt="$(_is_mounted $device)"
-+	mntpt="$(_is_dev_mounted $device)"
- 	if [ -n "$mntpt" ] && _supports_xfs_scrub "$mntpt" "$device"; then
- 		"$XFS_SCRUB_PROG" $scrubflag -v -d -n $device > $tmp.scrub 2>&1
- 		if [ $? -ne 0 ]; then
--- 
-2.5.0
+Thanks,
+Amir.
