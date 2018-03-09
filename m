@@ -1,128 +1,42 @@
-Return-Path: <amir73il@gmail.com>
-Return-Path: <amir73il@gmail.com>
-From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH v9 6/7] ovl: add support for "xino" mount option
-Date: Thu, 29 Mar 2018 17:18:52 +0300
-Message-Id: <1522333133-24772-7-git-send-email-amir73il@gmail.com>
-In-Reply-To: <1522333133-24772-1-git-send-email-amir73il@gmail.com>
-References: <1522333133-24772-1-git-send-email-amir73il@gmail.com>
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: linux-unionfs@vger.kernel.org
+Return-Path: <vgoyal@redhat.com>
+From: Vivek Goyal <vgoyal@redhat.com>
+Subject: [PATCH v2 2/4] ovl: Do not check for redirect if this is last layer
+Date: Fri,  9 Mar 2018 15:44:42 -0500
+Message-Id: <20180309204444.13237-3-vgoyal@redhat.com>
+In-Reply-To: <20180309204444.13237-1-vgoyal@redhat.com>
+References: <20180309204444.13237-1-vgoyal@redhat.com>
+To: linux-unionfs@vger.kernel.org
+Cc: miklos@szeredi.hu, amir73il@gmail.com, vgoyal@redhat.com
 List-ID: <linux-unionfs@vger.kernel.org>
 
-With mount option "xino", mounter declares that there are enough
-free high bits in underlying fs to hold the layer fsid.
-If overlayfs does encounter underlying inodes using the high xino
-bits reserved for layer fsid, a warning will be emitted and the original
-inode number will be used.
+If we are looking in last layer, then there should not be any need to
+process redirect. redirect information is used only for lookup in next
+lower layer and there is no more lower layer to look into. So no need
+to process redirects.
 
-The mount option name "xino" goes after a similar meaning mount option
-of aufs, but in overlayfs case, the mapping is stateless.
+IOW, ignore redirects on lowest layer.
 
-An example for a use case of "xino" is when upper/lower is on an xfs
-filesystem. xfs uses 64bit inode numbers, but it currently never uses the
-upper 8bit for inode numbers exposed via stat(2) and that is not likely to
-change in the future without user opting-in for a new xfs feature. The
-actual number of unused upper bit is much larger and determined by the xfs
-filesystem geometry (64 - agno_log - agblklog - inopblog). That means
-that for all practical purpose, there are enough unused bits in xfs
-inode numbers for more than OVL_MAX_STACK unique fsid's.
-
-Another example for a use case of "xino" is when upper/lower is on tmpfs.
-tmpfs inode numbers are allocated sequentially since boot, so they will
-practially never use the high inode number bits.
-
-Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
+Reviewed-by: Amir Goldstein <amir73il@gmail.com>
 ---
- fs/overlayfs/ovl_entry.h |  1 +
- fs/overlayfs/super.c     | 34 ++++++++++++++++++++++++++++++++--
- 2 files changed, 33 insertions(+), 2 deletions(-)
+ fs/overlayfs/namei.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff --git a/fs/overlayfs/ovl_entry.h b/fs/overlayfs/ovl_entry.h
-index 6a077fb2a75f..e830470c77bd 100644
---- a/fs/overlayfs/ovl_entry.h
-+++ b/fs/overlayfs/ovl_entry.h
-@@ -18,6 +18,7 @@ struct ovl_config {
- 	const char *redirect_mode;
- 	bool index;
- 	bool nfs_export;
-+	bool xino;
- };
- 
- struct ovl_sb {
-diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-index d7284444f404..26a5db244081 100644
---- a/fs/overlayfs/super.c
-+++ b/fs/overlayfs/super.c
-@@ -352,6 +352,8 @@ static int ovl_show_options(struct seq_file *m, struct dentry *dentry)
- 	if (ofs->config.nfs_export != ovl_nfs_export_def)
- 		seq_printf(m, ",nfs_export=%s", ofs->config.nfs_export ?
- 						"on" : "off");
-+	if (ofs->config.xino)
-+		seq_puts(m, ",xino");
- 	return 0;
- }
- 
-@@ -386,6 +388,7 @@ enum {
- 	OPT_INDEX_OFF,
- 	OPT_NFS_EXPORT_ON,
- 	OPT_NFS_EXPORT_OFF,
-+	OPT_XINO,
- 	OPT_ERR,
- };
- 
-@@ -399,6 +402,7 @@ static const match_table_t ovl_tokens = {
- 	{OPT_INDEX_OFF,			"index=off"},
- 	{OPT_NFS_EXPORT_ON,		"nfs_export=on"},
- 	{OPT_NFS_EXPORT_OFF,		"nfs_export=off"},
-+	{OPT_XINO,			"xino"},
- 	{OPT_ERR,			NULL}
- };
- 
-@@ -513,6 +517,10 @@ static int ovl_parse_opt(char *opt, struct ovl_config *config)
- 			config->nfs_export = false;
- 			break;
- 
-+		case OPT_XINO:
-+			config->xino = true;
-+			break;
-+
- 		default:
- 			pr_err("overlayfs: unrecognized mount option \"%s\" or missing value\n", p);
- 			return -EINVAL;
-@@ -1197,9 +1205,31 @@ static int ovl_get_lower_layers(struct ovl_fs *ofs, struct path *stack,
- 		ofs->numlower++;
+diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
+index 78798367c4f0..e27afd8d378a 100644
+--- a/fs/overlayfs/namei.c
++++ b/fs/overlayfs/namei.c
+@@ -248,7 +248,10 @@ static int ovl_lookup_single(struct dentry *base, struct ovl_lookup_data *d,
+ 		goto out;
  	}
- 
--	/* When all layers on same fs, overlay can use real inode numbers */
--	if (!ofs->numlowerfs || (ofs->numlowerfs == 1 && !ofs->upper_mnt))
-+	/*
-+	 * When all layers on same fs, overlay can use real inode numbers.
-+	 * With mount option "xino", mounter declares that there are enough
-+	 * free high bits in underlying fs to hold the unique fsid.
-+	 * If overlayfs does encounter underlying inodes using the high xino
-+	 * bits reserved for fsid, it emits a warning and uses the original
-+	 * inode number.
-+	 */
-+	if (!ofs->numlowerfs || (ofs->numlowerfs == 1 && !ofs->upper_mnt)) {
- 		ofs->xino_bits = 0;
-+		ofs->config.xino = false;
-+	} else if (ofs->config.xino && !ofs->xino_bits) {
-+		/*
-+		 * This is a roundup of number of bits needed for numlowerfs+1
-+		 * (i.e. ilog2(numlowerfs+1 - 1) + 1). fsid 0 is reserved for
-+		 * upper fs even with non upper overlay.
-+		 */
-+		BUILD_BUG_ON(ilog2(OVL_MAX_STACK) > 31);
-+		ofs->xino_bits = ilog2(ofs->numlowerfs) + 1;
-+	}
+ 	d->is_dir = true;
+-	if (!d->last && ovl_is_opaquedir(this)) {
++	if (d->last)
++		goto out;
 +
-+	if (ofs->xino_bits) {
-+		pr_info("overlayfs: \"xino\" feature enabled using %d upper inode bits.\n",
-+			ofs->xino_bits);
-+	}
- 
- 	err = 0;
- out:
++	if (ovl_is_opaquedir(this)) {
+ 		d->stop = d->opaque = true;
+ 		goto out;
+ 	}
 -- 
-2.7.4
+2.13.6
