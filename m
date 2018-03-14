@@ -1,75 +1,71 @@
-Return-Path: <trondmy@primarydata.com>
-From: Trond Myklebust <trondmy@primarydata.com>
-Subject: Re: readdir returns d_type=DT_UNKNOWN to overlay exported dir (NFSv3)
-Date: Wed, 14 Mar 2018 15:06:23 +0000
-Message-ID: <1521039981.40526.11.camel@primarydata.com>
-References: <CALLuPvpczs-UiDkoHURAu7weCHJCv9U6xKxDKck=5U85T55ukw@mail.gmail.com>
-	 <1521025377.4552.6.camel@kernel.org>
-	 <1521037013.40526.8.camel@primarydata.com>
-	 <1521037854.4552.19.camel@kernel.org>
-	 <CAOQ4uxig8aM2WnVQniAXWBOWtnv8ciqqBWXZZgG-foVW04bofQ@mail.gmail.com>
-In-Reply-To: <CAOQ4uxig8aM2WnVQniAXWBOWtnv8ciqqBWXZZgG-foVW04bofQ@mail.gmail.com>
-Content-Language: en-US
-Content-ID: <DFF864CF8829A84F8D8B494D143EE7E2@namprd11.prod.outlook.com>
+Return-Path: <amir73il@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: base64
-To: "amir73il@gmail.com" <amir73il@gmail.com>, "jlayton@kernel.org" <jlayton@kernel.org>
-Cc: "bfields@fieldses.org" <bfields@fieldses.org>, "miklos@szeredi.hu" <miklos@szeredi.hu>, "eddiehorng.tw@gmail.com" <eddiehorng.tw@gmail.com>, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>
+In-Reply-To: <1521037854.4552.19.camel@kernel.org>
+References: <CALLuPvpczs-UiDkoHURAu7weCHJCv9U6xKxDKck=5U85T55ukw@mail.gmail.com>
+ <1521025377.4552.6.camel@kernel.org> <1521037013.40526.8.camel@primarydata.com>
+ <1521037854.4552.19.camel@kernel.org>
+From: Amir Goldstein <amir73il@gmail.com>
+Date: Wed, 14 Mar 2018 17:03:11 +0200
+Message-ID: <CAOQ4uxig8aM2WnVQniAXWBOWtnv8ciqqBWXZZgG-foVW04bofQ@mail.gmail.com>
+Subject: Re: readdir returns d_type=DT_UNKNOWN to overlay exported dir (NFSv3)
+Content-Type: text/plain; charset="UTF-8"
+To: Jeff Layton <jlayton@kernel.org>
+Cc: Trond Myklebust <trondmy@primarydata.com>, "eddiehorng.tw@gmail.com" <eddiehorng.tw@gmail.com>, "bfields@fieldses.org" <bfields@fieldses.org>, "miklos@szeredi.hu" <miklos@szeredi.hu>, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-T24gV2VkLCAyMDE4LTAzLTE0IGF0IDE3OjAzICswMjAwLCBBbWlyIEdvbGRzdGVpbiB3cm90ZToN
-Cj4gT24gV2VkLCBNYXIgMTQsIDIwMTggYXQgNDozMCBQTSwgSmVmZiBMYXl0b24gPGpsYXl0b25A
-a2VybmVsLm9yZz4NCj4gd3JvdGU6DQo+ID4gT24gV2VkLCAyMDE4LTAzLTE0IGF0IDE0OjE2ICsw
-MDAwLCBUcm9uZCBNeWtsZWJ1c3Qgd3JvdGU6DQo+ID4gPiBPbiBXZWQsIDIwMTgtMDMtMTQgYXQg
-MDc6MDIgLTA0MDAsIEplZmYgTGF5dG9uIHdyb3RlOg0KPiA+ID4gPiBPbiBXZWQsIDIwMTgtMDMt
-MTQgYXQgMTY6NDIgKzA4MDAsIEVkZGllIEhvcm5nIHdyb3RlOg0KPiA+ID4gPiA+IEhpIEFtaXIs
-DQo+ID4gPiA+ID4gU2luY2UgdGhlIGZsb2NrIGlzc3VlIGlzIGNsYXJpZmllZCwgSSB3b3VsZCBs
-aWtlIHRvIHN0YXJ0DQo+ID4gPiA+ID4gdGhpcyBuZXcNCj4gPiA+ID4gPiB0aHJlYWQgdG8gZGlz
-Y3VzcyBpZiB3ZSBjYW4gZmluZCB0aGUgY2F1c2Ugb2YNCj4gPiA+ID4gPiBkX3R5cGU9RFRfVU5L
-Tk9XTi4NCj4gPiA+ID4gPiBGaXJzdA0KPiA+ID4gPiANCj4gPiA+ID4gVGhpcyBzb3VuZHMgbGlr
-ZSBOT1RBQlVHIHRvIG1lLiBBcyByZWFkZGlyKDMpIHN0YXRlczoNCj4gPiA+ID4gDQo+ID4gPiA+
-IEN1cnJlbnRseSwgb25seSBzb21lIGZpbGVzeXN0ZW1zIChhbW9uZyB0aGVtOiBCdHJmcywgZXh0
-MiwNCj4gPiA+ID4gZXh0MywNCj4gPiA+ID4gYW5kIGV4dDQpIGhhdmUgZnVsbA0KPiA+ID4gPiBz
-dXBwb3J0ICBmb3IgIHJldHVybmluZyAgdGhlICBmaWxlICB0eXBlICBpbg0KPiA+ID4gPiBkX3R5
-cGUuICAgQWxsICBhcHBsaWNhdGlvbnMgIG11c3QgIHByb3Blcmx5ICBoYW5kbGUgIGEgcmV0dXJu
-DQo+ID4gPiA+IG9mDQo+ID4gPiA+IERUX1VOS05PV04uDQo+ID4gPiA+IA0KPiA+ID4gPiBBcHBs
-aWNhdGlvbnMgdGhhdCByZWx5IHNvbGVseSBvbiBkX3R5cGUgYXJlIGVmZmVjdGl2ZWx5IGJyb2tl
-bi4NCj4gPiA+ID4gWW91DQo+ID4gPiA+IGFsd2F5cyBuZWVkIHRvIGJlIGFibGUgdG8gZm9sbG93
-IHVwIHdpdGggYSBzdGF0IG9yIGVxdWl2YWxlbnQuDQo+ID4gPiA+IA0KPiA+ID4gDQo+ID4gPiBZ
-ZXMsIGJ1dCBvbmUgb2YgdGhlIG1haW4gc3VjaCBhcHBsaWNhdGlvbnMgaXMgdGhlICJmaW5kIiB1
-dGlsaXR5LA0KPiA+ID4gd2hpY2gNCj4gPiA+IHVzZXMgaXQgdG8gYXZvaWQgY2FsbGluZyBzdGF0
-KCkgaW4gb3JkZXIgdG8gZGlzY292ZXIgdGhlDQo+ID4gPiBkaXJlY3Rvcmllcy4NCj4gPiA+IEZv
-ciB0aGF0IHJlYXNvbiwgTkZTIGRvZXMgdHJ5IHRvIHNldCB0aGUgZF90eXBlIGZsYWcgd2hlbiBp
-dCBpcw0KPiA+ID4gdXNpbmcNCj4gPiA+IHJlYWRkaXJwbHVzLCBhbmQgdGhlIHNlcnZlciByZXR1
-cm5zIGF0dHJpYnV0ZXMgZm9yIHRoZSBlbnRyeSBpbg0KPiA+ID4gcXVlc3Rpb24uIE90aGVyd2lz
-ZSwgaXQgaXMgZm9yY2VkIHRvIGRlZmF1bHQgdG8gRFRfVU5LTk9XTi4NCj4gPiA+IA0KPiA+IA0K
-PiA+IFllcywgZGlkbid0IG1lYW4gdG8gaW1wbHkgdGhhdCB3ZSBzaG91bGRuJ3QgdHJ5IHRvIGZp
-bGwgdGhlc2Ugb3V0DQo+ID4gd2hlcmUNCj4gPiB3ZSBjYW4sIGp1c3QgdGhhdCB0aGVyZSBhcmUg
-c2l0dWF0aW9ucyB3aGVyZSB3ZSBtaWdodCBub3QgYmUgYWJsZQ0KPiA+IHRvIGRvDQo+ID4gc28g
-d2l0aG91dCB0YWtpbmcgYSBwZXJmb3JtYW5jZSBoaXQuDQo+ID4gDQo+ID4gPiBOb3RlIHRoYXQg
-aW4gdGhlIGNhc2VzIHdoZXJlIHRoZSByZWFkZGlyIGVudHJ5IGhhcyBhIG1hdGNoaW5nDQo+ID4g
-PiBkZW50cnksDQo+ID4gPiB3ZSBwcm9iYWJseSBjb3VsZCB0cnkgdG8gZG8gYmV0dGVyIGJ5IGRv
-aW5nIGEgZF9sb29rdXAoKSBhbmQgdGhlbg0KPiA+ID4gZmlsbGluZyB0aGUgZF90eXBlLiBJcyB0
-aGF0IHdvcnRoIGRvaW5nPw0KPiA+ID4gDQo+ID4gDQo+ID4gSSBsaWtlIHRoYXQgaWRlYS4gRmls
-bGluZyBvdXQgd2hhdCBpbmZvIHdlIGNhbiBmcm9tIHRoZSBsb2NhbCBjYWNoZQ0KPiA+IGlzDQo+
-ID4gYWxtb3N0IGFsd2F5cyB3b3J0aHdoaWxlLg0KPiA+IA0KPiA+IEFuIGlub2RlJ3MgZF90eXBl
-IGNhbiBuZXZlciBjaGFuZ2UsIHNvIHlvdSBjYW4ganVzdCB2ZXQgdGhlIGZpbGVpZA0KPiA+IG9y
-IGZoDQo+ID4gaW4gdGhlIGVudHJ5MyB2cy4gdGhlIGlub2RlIHRoYXQgY29tZXMgYmFjayBmcm9t
-IGRfbG9va3VwLiBJZiB0aGV5DQo+ID4gbWF0Y2gNCj4gPiB0aGVuIHlvdSBjYW4gcmVsaWFibHkg
-ZmlsbCB0aGF0IG91dC4NCj4gPiANCj4gDQo+IElyb25pY2FsbHksIHRoaXMgaXMgd2hlcmUgTkZT
-IG92ZXIgb3ZlcmxheWZzIG1heSBmYWlsLCBiZWNhdXNlIGluDQo+IG92ZXJsYXlmcw0KPiBkX2lu
-byBpcyBub3QgYWx3YXlzIGNvbnNpc3RlbnQgd2l0aCBzdF9pbm8uIFNpbmNlIHY0LjE1LCBkX2lu
-byBpcw0KPiBjb25zaXN0ZW50DQo+IHdpdGggc3RfaW5vIGZvciB0aGUgY2FzZSBvZiBhbGwgbGF5
-ZXJzIG9uIHRoZSBzYW1lIGZpbGVzeXN0ZW0uIEkNCj4gYWxyZWFkeSBwb3N0ZWQNCj4gYSBQT0Mg
-Zm9yIGZpeGluZyBkX2luby9zdF9pbm8gZm9yIG5vbi1zYW1lZnMsIGJ1dCBpdCBuZXZlciBnb3QN
-Cj4gbWVyZ2VkLg0KPg0KPiBXaGF0IHB1enpsZXMgbWUgdy5yLnQuIHRoaXMgIm5vbmJ1ZyIgcmVw
-b3J0IGlzIHRoYXQgSSBkb24ndA0KPiB1bmRlcnN0YW5kIHdoeQ0KPiBORlMgb3ZlciBvdmVybGF5
-ZnMgd291bGQgYmVoYXZlIGRpZmZlcmVudGx5IHZzLiBORlMgb3ZlciBsb2NhbCBmcy4NCj4gSSBh
-bSBob3BpbmcgaXQgZG9lcyBub3QgcG9pbnQgdG8gYSBkaWZmZXJlbnQgcHJvYmxlbSwgc28gd291
-bGQgbG92ZQ0KPiB0bw0KPiBnZXQgYSBtb3JlIGRldGFpbGVkIGFuYWx5c2lzIG9mIHdoYXQncyBn
-b2luZyBvbiBiZXR3ZWVuIG5mc2QgYW5kDQo+IG92ZXJsYXlmcy4NCg0KVGhlIGJlaGF2aW91ciBi
-ZWluZyBkZXNjcmliZWQgaXMgdHJ1ZSBvZiB0aGUgcmVndWxhciBORlMgY2xpZW50LiBJdCBoYXMN
-Cm5vdGhpbmcgdG8gZG8gd2l0aCBvdmVybGF5ZnMuDQoNCi0tIA0KVHJvbmQgTXlrbGVidXN0DQpM
-aW51eCBORlMgY2xpZW50IG1haW50YWluZXIsIFByaW1hcnlEYXRhDQp0cm9uZC5teWtsZWJ1c3RA
-cHJpbWFyeWRhdGEuY29tDQo=
+On Wed, Mar 14, 2018 at 4:30 PM, Jeff Layton <jlayton@kernel.org> wrote:
+> On Wed, 2018-03-14 at 14:16 +0000, Trond Myklebust wrote:
+>> On Wed, 2018-03-14 at 07:02 -0400, Jeff Layton wrote:
+>> > On Wed, 2018-03-14 at 16:42 +0800, Eddie Horng wrote:
+>> > > Hi Amir,
+>> > > Since the flock issue is clarified, I would like to start this new
+>> > > thread to discuss if we can find the cause of d_type=DT_UNKNOWN.
+>> > > First
+>> >
+>> > This sounds like NOTABUG to me. As readdir(3) states:
+>> >
+>> > Currently, only some filesystems (among them: Btrfs, ext2, ext3,
+>> > and ext4) have full support  for  returning  the  file  type  in
+>> > d_type.   All  applications  must  properly  handle  a return of
+>> > DT_UNKNOWN.
+>> >
+>> > Applications that rely solely on d_type are effectively broken. You
+>> > always need to be able to follow up with a stat or equivalent.
+>> >
+>>
+>> Yes, but one of the main such applications is the "find" utility, which
+>> uses it to avoid calling stat() in order to discover the directories.
+>> For that reason, NFS does try to set the d_type flag when it is using
+>> readdirplus, and the server returns attributes for the entry in
+>> question. Otherwise, it is forced to default to DT_UNKNOWN.
+>>
+>
+> Yes, didn't mean to imply that we shouldn't try to fill these out where
+> we can, just that there are situations where we might not be able to do
+> so without taking a performance hit.
+>
+>> Note that in the cases where the readdir entry has a matching dentry,
+>> we probably could try to do better by doing a d_lookup() and then
+>> filling the d_type. Is that worth doing?
+>>
+>
+> I like that idea. Filling out what info we can from the local cache is
+> almost always worthwhile.
+>
+> An inode's d_type can never change, so you can just vet the fileid or fh
+> in the entry3 vs. the inode that comes back from d_lookup. If they match
+> then you can reliably fill that out.
+>
+
+Ironically, this is where NFS over overlayfs may fail, because in overlayfs
+d_ino is not always consistent with st_ino. Since v4.15, d_ino is consistent
+with st_ino for the case of all layers on the same filesystem. I already posted
+a POC for fixing d_ino/st_ino for non-samefs, but it never got merged.
+
+What puzzles me w.r.t. this "nonbug" report is that I don't understand why
+NFS over overlayfs would behave differently vs. NFS over local fs.
+I am hoping it does not point to a different problem, so would love to
+get a more detailed analysis of what's going on between nfsd and overlayfs.
+
+Thanks,
+Amir.
