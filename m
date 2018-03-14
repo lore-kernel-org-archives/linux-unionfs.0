@@ -1,67 +1,68 @@
-Return-Path: <trondmy@primarydata.com>
-From: Trond Myklebust <trondmy@primarydata.com>
-Subject: Re: readdir returns d_type=DT_UNKNOWN to overlay exported dir (NFSv3)
-Date: Wed, 14 Mar 2018 14:16:55 +0000
-Message-ID: <1521037013.40526.8.camel@primarydata.com>
-References: <CALLuPvpczs-UiDkoHURAu7weCHJCv9U6xKxDKck=5U85T55ukw@mail.gmail.com>
-	 <1521025377.4552.6.camel@kernel.org>
-In-Reply-To: <1521025377.4552.6.camel@kernel.org>
-Content-Language: en-US
-Content-ID: <599B08CC21D65E48AB9DC82EF7CD23CE@namprd11.prod.outlook.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: base64
-To: "eddiehorng.tw@gmail.com" <eddiehorng.tw@gmail.com>, "jlayton@kernel.org" <jlayton@kernel.org>
-Cc: "bfields@fieldses.org" <bfields@fieldses.org>, "miklos@szeredi.hu" <miklos@szeredi.hu>, "amir73il@gmail.com" <amir73il@gmail.com>, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>
+Return-Path: <jlayton@kernel.org>
+Message-ID: <1521025377.4552.6.camel@kernel.org>
+Subject: Re: readdir returns d_type=DT_UNKNOWN to overlay exported dir
+ (NFSv3)
+From: Jeff Layton <jlayton@kernel.org>
+Date: Wed, 14 Mar 2018 07:02:57 -0400
+In-Reply-To: <CALLuPvpczs-UiDkoHURAu7weCHJCv9U6xKxDKck=5U85T55ukw@mail.gmail.com>
+References: 
+	<CALLuPvpczs-UiDkoHURAu7weCHJCv9U6xKxDKck=5U85T55ukw@mail.gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
+To: Eddie Horng <eddiehorng.tw@gmail.com>
+Cc: Amir Goldstein <amir73il@gmail.com>, Miklos Szeredi <miklos@szeredi.hu>, overlayfs <linux-unionfs@vger.kernel.org>, Trond Myklebust <trondmy@primarydata.com>, "J. Bruce Fields" <bfields@fieldses.org>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-T24gV2VkLCAyMDE4LTAzLTE0IGF0IDA3OjAyIC0wNDAwLCBKZWZmIExheXRvbiB3cm90ZToNCj4g
-T24gV2VkLCAyMDE4LTAzLTE0IGF0IDE2OjQyICswODAwLCBFZGRpZSBIb3JuZyB3cm90ZToNCj4g
-PiBIaSBBbWlyLA0KPiA+IFNpbmNlIHRoZSBmbG9jayBpc3N1ZSBpcyBjbGFyaWZpZWQsIEkgd291
-bGQgbGlrZSB0byBzdGFydCB0aGlzIG5ldw0KPiA+IHRocmVhZCB0byBkaXNjdXNzIGlmIHdlIGNh
-biBmaW5kIHRoZSBjYXVzZSBvZiBkX3R5cGU9RFRfVU5LTk9XTi4NCj4gPiBGaXJzdA0KPiANCj4g
-VGhpcyBzb3VuZHMgbGlrZSBOT1RBQlVHIHRvIG1lLiBBcyByZWFkZGlyKDMpIHN0YXRlczoNCj4g
-DQo+IEN1cnJlbnRseSwgb25seSBzb21lIGZpbGVzeXN0ZW1zIChhbW9uZyB0aGVtOiBCdHJmcywg
-ZXh0MiwgZXh0MywNCj4gYW5kIGV4dDQpIGhhdmUgZnVsbCBzdXBwb3J0ICBmb3IgIHJldHVybmlu
-ZyAgdGhlICBmaWxlICB0eXBlICBpbg0KPiBkX3R5cGUuICAgQWxsICBhcHBsaWNhdGlvbnMgIG11
-c3QgIHByb3Blcmx5ICBoYW5kbGUgIGEgcmV0dXJuIG9mDQo+IERUX1VOS05PV04uDQo+IA0KPiBB
-cHBsaWNhdGlvbnMgdGhhdCByZWx5IHNvbGVseSBvbiBkX3R5cGUgYXJlIGVmZmVjdGl2ZWx5IGJy
-b2tlbi4gWW91DQo+IGFsd2F5cyBuZWVkIHRvIGJlIGFibGUgdG8gZm9sbG93IHVwIHdpdGggYSBz
-dGF0IG9yIGVxdWl2YWxlbnQuDQo+IA0KDQpZZXMsIGJ1dCBvbmUgb2YgdGhlIG1haW4gc3VjaCBh
-cHBsaWNhdGlvbnMgaXMgdGhlICJmaW5kIiB1dGlsaXR5LCB3aGljaA0KdXNlcyBpdCB0byBhdm9p
-ZCBjYWxsaW5nIHN0YXQoKSBpbiBvcmRlciB0byBkaXNjb3ZlciB0aGUgZGlyZWN0b3JpZXMuDQpG
-b3IgdGhhdCByZWFzb24sIE5GUyBkb2VzIHRyeSB0byBzZXQgdGhlIGRfdHlwZSBmbGFnIHdoZW4g
-aXQgaXMgdXNpbmcNCnJlYWRkaXJwbHVzLCBhbmQgdGhlIHNlcnZlciByZXR1cm5zIGF0dHJpYnV0
-ZXMgZm9yIHRoZSBlbnRyeSBpbg0KcXVlc3Rpb24uIE90aGVyd2lzZSwgaXQgaXMgZm9yY2VkIHRv
-IGRlZmF1bHQgdG8gRFRfVU5LTk9XTi4NCg0KTm90ZSB0aGF0IGluIHRoZSBjYXNlcyB3aGVyZSB0
-aGUgcmVhZGRpciBlbnRyeSBoYXMgYSBtYXRjaGluZyBkZW50cnksDQp3ZSBwcm9iYWJseSBjb3Vs
-ZCB0cnkgdG8gZG8gYmV0dGVyIGJ5IGRvaW5nIGEgZF9sb29rdXAoKSBhbmQgdGhlbg0KZmlsbGlu
-ZyB0aGUgZF90eXBlLiBJcyB0aGF0IHdvcnRoIGRvaW5nPw0KDQo+ID4gb2YgYWxsIEkgdHJpZWQg
-cmRpcnBsdXMgYW5kIG5vcmRpcnBsdXMgbW91bnQgb3B0aW9uIGJ1dCBnb3Qgbm8NCj4gPiBkaWZm
-ZXJlbmNlLiBUaGVuIEkgcm91Z2hseSB0cmFjZSBjYWxsIGZsb3cgb2YgbmZzM19kZWNvZGVfZGly
-ZW50KCApDQo+ID4gYXMNCj4gPiBiZWxvdzoNCj4gPiANCj4gPiBkZWNvZGVfZmF0dHIzKCkNCj4g
-PiAgICAgZmF0dHItPm1vZGUgPSAoYmUzMl90b19jcHVwKHArKykgJiB+U19JRk1UKSB8IGZtb2Rl
-Ow0KPiA+ICAgICBmYXR0ci0+dmFsaWQgfD0gTkZTX0FUVFJfRkFUVFJfVjM7DQo+ID4gDQo+ID4g
-ZGVjb2RlX3Bvc3Rfb3BfYXR0cigpDQo+ID4gICAgIHAgPSB4ZHJfaW5saW5lX2RlY29kZSh4ZHIs
-IDQpOw0KPiA+ICAgICBpZiAoKnAgIT0geGRyX3plcm8pDQo+ID4gICAgICAgIHJldHVybiBkZWNv
-ZGVfZmF0dHIzKHhkciwgZmF0dHIpOw0KPiA+IA0KPiA+IG5mczNfZGVjb2RlX2RpcmVudCgpDQo+
-ID4gICAgIGVudHJ5LT5kX3R5cGUgPSBEVF9VTktOT1dOOw0KPiA+ICAgICBpZiAoZW50cnktPmZh
-dHRyLT52YWxpZCAmIE5GU19BVFRSX0ZBVFRSX1YzKQ0KPiA+ICAgICAgICAgZW50cnktPmRfdHlw
-ZSA9IG5mc191bW9kZV90b19kdHlwZShlbnRyeS0+ZmF0dHItPm1vZGUpOw0KPiA+IA0KPiA+IElu
-IG92ZXJsYXkgZXhwb3J0ZWQgY2FzZSwgZGVjb2RlX3Bvc3Rfb3BfYXR0ciBoaXRzICpwPT14ZHJf
-emVybywgc28NCj4gPiBkZWNvZGVfZmF0dHIzIGlzIG5vdCBjYWxsZWQsIHRoZW4gZF90eXBlIHJl
-YW1pbnMgRFRfVU5LTk9XTiBpbg0KPiA+IG5mczNfZGVjb2RlX2RpcmVudC4gSXQgc2VlbXMgbmZz
-NF9kZWNvZGVfZGlyZW50IGhhcyB2ZXJ5IGRpZmZlcmVudA0KPiA+IHdheQ0KPiA+IHRvIGRlY29k
-ZSBmaWxlIGF0dHIgYW5kIG1heWJlIHRoZSB4ZHIgbGF5b3V0IGlzIHF1aXRlIGRpZmZlcmVudCBh
-cw0KPiA+IHdlbGwuSSBoYXZlIG5vdCBpZGVhIGFib3V0IGhvdyB0aGUgeGRyIHRvIGJlIGZpbGxl
-ZCBmcm9tIG92ZXJsYXkNCj4gPiBhbmQNCj4gPiBuZnNkJ3Mgb3V0cHV0LiBDb3VsZCBzb21lIG9m
-IHlvdSBtYXN0ZXIgZ2l2ZSBhIGhpbnQ/DQo+IA0KPiBWZXJ5IGRpZmZlcmVudC4NCj4gDQo+IFRo
-ZSB2MyBjbGllbnQgd2lsbCBzb21ldGltZXMgaXNzdWUgYSBSRUFERElSIChqdXN0IG5hbWVzIGFu
-ZCBmaWxlaWRzDQo+IG9mDQo+IGRpcmVudHMpIGFuZCBzb21ldGltZXMgYSBSRUFERElSUExVUyAo
-c2FtZSBhcyBSRUFERElSICsgYXR0cmlidXRlcykNCj4gZGVwZW5kaW5nIG9uIHRoZSBleHBlY3Rl
-ZCBzaXplIG9mIHRoZSByZXN1bHQgYW5kIHdoYXQgc29ydCBvZiBhY2Nlc3MNCj4gcGF0dGVybiB0
-aGUgYXBwbGljYXRpb24gaGFzLiBJZiB5b3UgZ2V0IGJhY2sgRFRfVU5LTk9XTiwgaXQncyBxdWl0
-ZQ0KPiBwb3NzaWJsZSB0aGF0IGl0IGNob3NlIHRvIHVzZSBhIFJFQURESVIgYW5kIHRoZXJlZm9y
-ZSBkb2Vzbid0IGhhdmUNCj4gZW5vdWdoIGluZm8gdG8gZmlsbCBvdXQgdGhlIGRfdHlwZS4NCj4g
-DQo+IENoZWVycywNCi0tIA0KVHJvbmQgTXlrbGVidXN0DQpMaW51eCBORlMgY2xpZW50IG1haW50
-YWluZXIsIFByaW1hcnlEYXRhDQp0cm9uZC5teWtsZWJ1c3RAcHJpbWFyeWRhdGEuY29tDQo=
+On Wed, 2018-03-14 at 16:42 +0800, Eddie Horng wrote:
+> Hi Amir,
+> Since the flock issue is clarified, I would like to start this new
+> thread to discuss if we can find the cause of d_type=DT_UNKNOWN. First
+
+This sounds like NOTABUG to me. As readdir(3) states:
+
+Currently, only some filesystems (among them: Btrfs, ext2, ext3,
+and ext4) have full support  for  returning  the  file  type  in
+d_type.   All  applications  must  properly  handle  a return of
+DT_UNKNOWN.
+
+Applications that rely solely on d_type are effectively broken. You
+always need to be able to follow up with a stat or equivalent.
+
+> of all I tried rdirplus and nordirplus mount option but got no
+> difference. Then I roughly trace call flow of nfs3_decode_dirent( ) as
+> below:
+> 
+> decode_fattr3()
+>     fattr->mode = (be32_to_cpup(p++) & ~S_IFMT) | fmode;
+>     fattr->valid |= NFS_ATTR_FATTR_V3;
+> 
+> decode_post_op_attr()
+>     p = xdr_inline_decode(xdr, 4);
+>     if (*p != xdr_zero)
+>        return decode_fattr3(xdr, fattr);
+> 
+> nfs3_decode_dirent()
+>     entry->d_type = DT_UNKNOWN;
+>     if (entry->fattr->valid & NFS_ATTR_FATTR_V3)
+>         entry->d_type = nfs_umode_to_dtype(entry->fattr->mode);
+> 
+> In overlay exported case, decode_post_op_attr hits *p==xdr_zero, so
+> decode_fattr3 is not called, then d_type reamins DT_UNKNOWN in
+> nfs3_decode_dirent. It seems nfs4_decode_dirent has very different way
+> to decode file attr and maybe the xdr layout is quite different as
+> well.I have not idea about how the xdr to be filled from overlay and
+> nfsd's output. Could some of you master give a hint?
+
+Very different.
+
+The v3 client will sometimes issue a READDIR (just names and fileids of
+dirents) and sometimes a READDIRPLUS (same as READDIR + attributes)
+depending on the expected size of the result and what sort of access
+pattern the application has. If you get back DT_UNKNOWN, it's quite
+possible that it chose to use a READDIR and therefore doesn't have
+enough info to fill out the d_type.
+
+Cheers,
+-- 
+Jeff Layton <jlayton@kernel.org>
