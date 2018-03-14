@@ -1,251 +1,66 @@
-Return-Path: <yi.zhang@huawei.com>
-From: "zhangyi (F)" <yi.zhang@huawei.com>
-Subject: [RFC PATCH 3/4] ovl: enable features according to mount options
-Date: Thu, 22 Mar 2018 19:35:54 +0800
-Message-ID: <20180322113555.47858-4-yi.zhang@huawei.com>
-In-Reply-To: <20180322113555.47858-1-yi.zhang@huawei.com>
-References: <20180322113555.47858-1-yi.zhang@huawei.com>
+Return-Path: <linux-unionfs-owner@vger.kernel.org>
+Received: from mout.gmx.net ([212.227.15.15]:60339 "EHLO mout.gmx.net"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751289AbeCNIpC (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Wed, 14 Mar 2018 04:45:02 -0400
 MIME-Version: 1.0
-Content-Type: text/plain
-To: linux-unionfs@vger.kernel.org
-Cc: miklos@szeredi.hu, amir73il@gmail.com, yi.zhang@huawei.com, miaoxie@huawei.com, yangerkun@huawei.com
+Message-ID: <trinity-208a0783-1c9b-4d25-8080-109e2f7a20a2-1521017094371@3c-app-mailcom-bs05>
+From: "Chengguang Xu" <cgxu519@gmx.com>
+Subject: Re: Question about the condition of fsck.overlay
+Content-Type: text/plain; charset=UTF-8
+Date: Wed, 14 Mar 2018 09:44:54 +0100
+In-Reply-To: <8f3b85fe-902a-820e-d2ab-9a525e299c32@huawei.com>
+References: <trinity-9a7c9bff-31ae-42a1-b375-40fb8a4b83f5-1521012033735@3c-app-mailcom-bs05>
+ <8f3b85fe-902a-820e-d2ab-9a525e299c32@huawei.com>
+Sender: linux-unionfs-owner@vger.kernel.org
+To: "zhangyi (F)" <yi.zhang@huawei.com>
+Cc: overlayfs <linux-unionfs@vger.kernel.org>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-Unlike common disk filesystems, overlay filesystem enable features
-through mount options(e.g. -o index=on will enable index feature),
-so it's a good time to save enabled features on the upper root dir
-according to mount options. The given feature will be enabled when
-user give option "-o xxx=on" during mount time.
+Hi Zhangyi,
 
-This patch add three already support features: redirect_dir, index
-and nfs_export, the first one belongs to the incompatable feature set,
-and the other two belong to the ro_compatable feature set.
+Thanks for your kind explanation!
 
-eg:
-mount -t overlay -olowerdir=lower,upperdir=upper,workdir=work \
-  -oredirect_dir=on,index=on,nfs_export=on overlay merge
-
-trusted.overlay.feature_ro_compat="index,nfs_export"
-trusted.overlay.feature_incompat="redirect_dir"
-
-This patch also introduce three sets of feature check/set helper
-functions ovl_has_xxx_feature() and ovl_set_xxx_feature() which
-learn from ext4 filesystem driver.
-
-Suggested-by: Amir Goldstein <amir73il@gmail.com>
-Signed-off-by: zhangyi (F) <yi.zhang@huawei.com>
----
- fs/overlayfs/overlayfs.h | 73 ++++++++++++++++++++++++++++++++++++++++++++++++
- fs/overlayfs/ovl_entry.h |  2 ++
- fs/overlayfs/super.c     | 71 ++++++++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 146 insertions(+)
-
-diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-index 121e81cc1550..53ed4e73f889 100644
---- a/fs/overlayfs/overlayfs.h
-+++ b/fs/overlayfs/overlayfs.h
-@@ -47,6 +47,79 @@ enum ovl_entry_flag {
- };
- 
- /* Features */
-+enum ovl_feature_flag {
-+	OVL_FEATURE_COMPAT,
-+	OVL_FEATURE_RO_COMPAT,
-+	OVL_FEATURE_INCOMPAT,
-+	OVL_FEATURE_MAX,
-+};
-+
-+#define OVL_FEATURE_RO_COMPAT_INDEX		"index"
-+#define OVL_FEATURE_RO_COMPAT_NFS_EXPORT	"nfs_export"
-+
-+#define OVL_FEATURE_INCOMPAT_REDIRECT_DIR	"redirect_dir"
-+
-+int ovl_set_feature_set(struct super_block *sb,
-+			enum ovl_feature_flag flag, const char *new);
-+
-+#define OVL_FEATURE_COMPAT_FUNCS(name, flagname) \
-+static inline bool ovl_has_feature_##name(struct super_block *sb) \
-+{ \
-+	bool exist;\
-+	down_read(&OVL_FS(sb)->feature.lock); \
-+	exist = ((OVL_FS(sb)->feature.compat) && \
-+		(strstr(OVL_FS(sb)->feature.compat, \
-+			OVL_FEATURE_COMPAT_##flagname))); \
-+	up_read(&OVL_FS(sb)->feature.lock); \
-+	return exist; \
-+} \
-+static inline int ovl_set_feature_##name(struct super_block *sb) \
-+{ \
-+	return ovl_set_feature_set(sb, OVL_FEATURE_COMPAT, \
-+			OVL_FEATURE_COMPAT_##flagname); \
-+} \
-+
-+#define OVL_FEATURE_RO_COMPAT_FUNCS(name, flagname) \
-+static inline bool ovl_has_feature_##name(struct super_block *sb) \
-+{ \
-+	bool exist;\
-+	down_read(&OVL_FS(sb)->feature.lock); \
-+	exist = ((OVL_FS(sb)->feature.ro_compat) && \
-+		(strstr(OVL_FS(sb)->feature.ro_compat, \
-+			OVL_FEATURE_RO_COMPAT_##flagname))); \
-+	up_read(&OVL_FS(sb)->feature.lock); \
-+	return exist; \
-+} \
-+static inline int ovl_set_feature_##name(struct super_block *sb) \
-+{ \
-+	return ovl_set_feature_set(sb, OVL_FEATURE_RO_COMPAT, \
-+			OVL_FEATURE_RO_COMPAT_##flagname); \
-+} \
-+
-+#define OVL_FEATURE_INCOMPAT_FUNCS(name, flagname) \
-+static inline bool ovl_has_feature_##name(struct super_block *sb) \
-+{ \
-+	bool exist;\
-+	down_read(&OVL_FS(sb)->feature.lock); \
-+	exist = ((OVL_FS(sb)->feature.incompat) && \
-+		(strstr(OVL_FS(sb)->feature.incompat, \
-+			OVL_FEATURE_INCOMPAT_##flagname))); \
-+	up_read(&OVL_FS(sb)->feature.lock); \
-+	return exist; \
-+} \
-+static inline int ovl_set_feature_##name(struct super_block *sb) \
-+{ \
-+	return ovl_set_feature_set(sb, OVL_FEATURE_INCOMPAT, \
-+			OVL_FEATURE_INCOMPAT_##flagname); \
-+} \
-+
-+
-+OVL_FEATURE_RO_COMPAT_FUNCS(index,		INDEX)
-+OVL_FEATURE_RO_COMPAT_FUNCS(nfs_export,		NFS_EXPORT)
-+
-+OVL_FEATURE_INCOMPAT_FUNCS(redirect_dir,	REDIRECT_DIR)
-+
-+
- static inline bool ovl_has_unknown_compat_features(struct super_block *sb)
- {
- 	return (OVL_FS(sb)->feature.compat_unknown != NULL);
-diff --git a/fs/overlayfs/ovl_entry.h b/fs/overlayfs/ovl_entry.h
-index f8c5e0191a12..ff8bf783a097 100644
---- a/fs/overlayfs/ovl_entry.h
-+++ b/fs/overlayfs/ovl_entry.h
-@@ -36,6 +36,8 @@ struct ovl_feature {
- 	char *compat;
- 	char *ro_compat;
- 	char *incompat;
-+	struct rw_semaphore lock;	/* protect feature string */
-+
- 	const char *compat_unknown;
- 	const char *ro_compat_unknown;
- 	const char *incompat_unknown;
-diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-index 19b7d0869fbd..4787f9356dfd 100644
---- a/fs/overlayfs/super.c
-+++ b/fs/overlayfs/super.c
-@@ -189,13 +189,22 @@ static const char *ovl_feature_compat_supp[] = {
- };
- 
- static const char *ovl_feature_ro_compat_supp[] = {
-+	OVL_FEATURE_RO_COMPAT_INDEX,
-+	OVL_FEATURE_RO_COMPAT_NFS_EXPORT,
- 	NULL
- };
- 
- static const char *ovl_feature_incompat_supp[] = {
-+	OVL_FEATURE_INCOMPAT_REDIRECT_DIR,
- 	NULL
- };
- 
-+static const char *ovl_feature_set[] = {
-+	OVL_XATTR_FEATURE_COMPAT,
-+	OVL_XATTR_FEATURE_RO_COMPAT,
-+	OVL_XATTR_FEATURE_INCOMPAT
-+};
-+
- /*
-  * Get overlay feature from the real root dentry.
-  *
-@@ -431,6 +440,8 @@ static int ovl_init_features(struct dentry *root, struct ovl_feature *of)
- {
- 	int err;
- 
-+	init_rwsem(&of->lock);
-+
- 	err = ovl_get_feature_set(root, OVL_XATTR_FEATURE_COMPAT,
- 				  ovl_feature_compat_supp, &of->compat,
- 				  &of->compat_unknown);
-@@ -487,6 +498,49 @@ static bool ovl_check_feature_ok(struct super_block *sb, bool readonly)
- 	return true;
- }
- 
-+/*
-+ * Set one specified feature to the upper root dir
-+ *
-+ * @sb: overlay super block
-+ * @flag: feature set flag, compat/ro compat/incompat
-+ * @new: new feature want to set
-+ * Return 0 if success, errno otherwise.
-+ */
-+int ovl_set_feature_set(struct super_block *sb,
-+			enum ovl_feature_flag flag, const char *new)
-+{
-+	struct ovl_feature *of = &OVL_FS(sb)->feature;
-+	bool update = false;
-+	char **feature;
-+	int err;
-+
-+	/* Don't set feature if no upper layer */
-+	if (!OVL_FS(sb)->upper_mnt)
-+		return 0;
-+
-+	down_write(&of->lock);
-+	if (flag == OVL_FEATURE_COMPAT)
-+		feature = &of->compat;
-+	else if (flag == OVL_FEATURE_RO_COMPAT)
-+		feature = &of->ro_compat;
-+	else
-+		feature = &of->incompat;
-+
-+	err = ovl_update_feature(feature, new, &update);
-+	if (err)
-+		goto out;
-+	if (!update)
-+		goto out;
-+
-+	/* Set updated compat features to upper root dir */
-+	err = ovl_set_feature(sb->s_root, ovl_dentry_upper(sb->s_root),
-+			      ovl_feature_set[flag],  *feature);
-+out:
-+	up_write(&of->lock);
-+	return err;
-+}
-+
-+
- static struct kmem_cache *ovl_inode_cachep;
- 
- static struct inode *ovl_alloc_inode(struct super_block *sb)
-@@ -1689,6 +1743,23 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
- 	if (!ovl_check_feature_ok(sb, (sb_rdonly(sb))))
- 		goto out_free_root;
- 
-+	/* Turn on features according to mount options */
-+	if (ofs->config.index && !ovl_has_feature_index(sb)) {
-+		err = ovl_set_feature_index(sb);
-+		if (err)
-+			goto out_free_root;
-+	}
-+	if (ofs->config.nfs_export && !ovl_has_feature_nfs_export(sb)) {
-+		err = ovl_set_feature_nfs_export(sb);
-+		if (err)
-+			goto out_free_root;
-+	}
-+	if (ofs->config.redirect_dir && !ovl_has_feature_redirect_dir(sb)) {
-+		err = ovl_set_feature_redirect_dir(sb);
-+		if (err)
-+			goto out_free_root;
-+	}
-+
- 	return 0;
- 
- out_free_root:
--- 
-2.13.6
+> Sent: Wednesday, March 14, 2018 at 4:38 PM
+> From: "zhangyi (F)" <yi.zhang@huawei.com>
+> To: "Chengguang Xu" <cgxu519@gmx.com>
+> Cc: overlayfs <linux-unionfs@vger.kernel.org>
+> Subject: Re: Question about the condition of fsck.overlay
+>
+> Hi Chengguang,
+> 
+> On 2018/3/14 15:20, Chengguang Xu Wrote:
+> > Hi Zhangyi,
+> > 
+> > Please let me ask a simple question about fsck.overlay,
+> > is it possible to run any kernel version of overlayfs?
+> > 
+> 
+> No, current fsck.overlay can recognize whiteout/redirect_dir/impure
+> xattr feature only, it don't know index and nfs_export features. So,
+> if run current version of fsck.overlay on overlayfs which was mounted
+> with index=on or nfs_export=on, if cannot guarantee the relationship
+> between dirs/files in indexdir and upper dir, so may lead to
+> inconsistency in indexdir.
+> 
+> This drawback will be addressed through introduce overlay feature
+> set as Amir suggested, I will post it soon and maybe write a NOTE
+> or BUG in README is better before everything is done.
+> 
+> > I know some advanced features are only implemented in high
+> > kernel version, I just want to make sure if the common check
+> > and repair functions are available for 4.4 kernel? Any conditions?
+> > 
+> 
+> Yes, I think current fsck.overlay can support <= 4.12 kernel well(not
+> check origin xattr, but not harmful), it can support overlayfs without
+> index dir.
+> 
+> Thanks,
+> Yi.
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-unionfs" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
