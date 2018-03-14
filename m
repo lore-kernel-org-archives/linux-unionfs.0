@@ -1,51 +1,55 @@
-Return-Path: <guaneryu@gmail.com>
-Return-Path: <guaneryu@gmail.com>
-Date: Fri, 16 Mar 2018 10:53:20 +0800
-From: Eryu Guan <guaneryu@gmail.com>
-Subject: Re: [PATCH V3] xfstest: overlay: Absolute redirect should be
- followed even if ancestor is opaque
-Message-ID: <20180316025320.GL30836@localhost.localdomain>
-References: <20180314131618.GA1001@redhat.com>
+Return-Path: <amir73il@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
 In-Reply-To: <20180314131618.GA1001@redhat.com>
+References: <20180314131618.GA1001@redhat.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Date: Wed, 14 Mar 2018 22:19:10 +0200
+Message-ID: <CAOQ4uxixBkkDECGjb7u0AMVdjD9HcpZ3+DAKD8eP5PfkQm8Qew@mail.gmail.com>
+Subject: Re: [PATCH V3] xfstest: overlay: Absolute redirect should be followed
+ even if ancestor is opaque
+Content-Type: text/plain; charset="UTF-8"
 To: Vivek Goyal <vgoyal@redhat.com>
-Cc: fstests@vger.kernel.org, Amir Goldstein <amir73il@gmail.com>, linux-unionfs@vger.kernel.org, Miklos Szeredi <miklos@szeredi.hu>
+Cc: Eryu Guan <eguan@redhat.com>, fstests <fstests@vger.kernel.org>, overlayfs <linux-unionfs@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-On Wed, Mar 14, 2018 at 09:16:18AM -0400, Vivek Goyal wrote:
+On Wed, Mar 14, 2018 at 3:16 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
 > Typically, when following absolute redirect, if an opauqe dentry is
 > found, lookup in further lower directories is stopped. But if a
 > child dentry has another absolute redirect, then lookup in further
 > lower layers should continue.
-> 
+>
 > Say, following is example setup.
 > upper:  /redirect (redirect=/a/b/c)
 > lower1: /a/[b]/c       ([b] is opaque) (c has absolute redirect=/a/b/d/)
 > lower0: /a/b/d/foo
-> 
+>
 > "redirect" directory in upper should merge with lower1:/a/b/c/ and
 > lower0:/a/b/d/, despite lower1:/a/b/ being opaque.
-> 
+>
 > This example and kernel fix has come from Amir Goldstein. I am just putting
 > a test for it to make sure its not broken down the line.
-> 
+>
 > v3: Took care of more comments from amir.
 >     - Added some comments.
 >     - Added _overlay_check_scratch_dirs call.
-> 
+>
 > Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
+
+Thanks,
+
+Reviewed-by: Amir Goldstein <amir73il@gmail.com>
+
+
 > ---
 >  tests/overlay/057     |  100 ++++++++++++++++++++++++++++++++++++++++++++++++++
 >  tests/overlay/057.out |    2 +
->  tests/overlay/group   |    1 
+>  tests/overlay/group   |    1
 >  3 files changed, 103 insertions(+)
-> 
+>
 > Index: xfstests-dev/tests/overlay/057
 > ===================================================================
-> --- /dev/null	1970-01-01 00:00:00.000000000 +0000
-> +++ xfstests-dev/tests/overlay/057	2018-03-14 09:10:00.577179042 -0400
+> --- /dev/null   1970-01-01 00:00:00.000000000 +0000
+> +++ xfstests-dev/tests/overlay/057      2018-03-14 09:10:00.577179042 -0400
 > @@ -0,0 +1,100 @@
 > +#! /bin/bash
 > +# FS QA Test No. 057
@@ -90,13 +94,13 @@ On Wed, Mar 14, 2018 at 09:16:18AM -0400, Vivek Goyal wrote:
 > +
 > +here=`pwd`
 > +tmp=/tmp/$$
-> +status=1	# failure is the default!
+> +status=1       # failure is the default!
 > +trap "_cleanup; exit \$status" 0 1 2 3 15
 > +
 > +_cleanup()
 > +{
-> +	cd /
-> +	rm -f $tmp.*
+> +       cd /
+> +       rm -f $tmp.*
 > +}
 > +
 > +# get standard environment, filters and checks
@@ -135,21 +139,6 @@ On Wed, Mar 14, 2018 at 09:16:18AM -0400, Vivek Goyal wrote:
 > +$UMOUNT_PROG $SCRATCH_MNT
 > +_overlay_scratch_mount_dirs $lowerdir2:$lowerdir $upperdir $workdir -o redirect_dir=on
 > +mv $SCRATCH_MNT/pure/redirect $SCRATCH_MNT/redirect
-
-I think we'd better do a "ls $SCRATCH_MNT/redirect/" here too, right
-after the rename and before mount cycle, to make sure 'foo' is there as
-well. I can add it on commit (and change the .out file too) if this
-change looks OK to you.
-
-BTW, I stopped using eguan@redhat.com, please refer to the following
-email (though it's not so obvious..)
-
-[ANNOUNCE] fstests: master branch updated to 5e6514523342, and Eryu's comming role change
-https://www.spinics.net/lists/fstests/msg09052.html
-
-Thanks,
-Eryu
-
 > +
 > +# Verify that redirects are followed after mount cycle
 > +$UMOUNT_PROG $SCRATCH_MNT
@@ -164,8 +153,8 @@ Eryu
 > +exit
 > Index: xfstests-dev/tests/overlay/group
 > ===================================================================
-> --- xfstests-dev.orig/tests/overlay/group	2018-02-28 15:27:29.981693615 -0500
-> +++ xfstests-dev/tests/overlay/group	2018-03-12 09:31:45.692818432 -0400
+> --- xfstests-dev.orig/tests/overlay/group       2018-02-28 15:27:29.981693615 -0500
+> +++ xfstests-dev/tests/overlay/group    2018-03-12 09:31:45.692818432 -0400
 > @@ -59,3 +59,4 @@
 >  054 auto quick copyup redirect exportfs
 >  055 auto quick copyup redirect exportfs nonsamefs
@@ -173,12 +162,8 @@ Eryu
 > +057 auto quick redirect
 > Index: xfstests-dev/tests/overlay/057.out
 > ===================================================================
-> --- /dev/null	1970-01-01 00:00:00.000000000 +0000
-> +++ xfstests-dev/tests/overlay/057.out	2018-03-12 13:09:42.061818432 -0400
+> --- /dev/null   1970-01-01 00:00:00.000000000 +0000
+> +++ xfstests-dev/tests/overlay/057.out  2018-03-12 13:09:42.061818432 -0400
 > @@ -0,0 +1,2 @@
 > +QA output created by 057
 > +foo
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-unionfs" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
