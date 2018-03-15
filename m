@@ -1,82 +1,134 @@
-Return-Path: <eddiehorng.tw@gmail.com>
+Return-Path: <amir73il@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <CAOQ4uxhxMKL1-gQdgsChG=EUNH+wVnfxrXkkO-nyas4wdfdtyQ@mail.gmail.com>
+In-Reply-To: <CAOQ4uxhO6rEA+gru45ZuWc-9twRguuPRmfZmQiTfQu+QKTtM7w@mail.gmail.com>
 References: <CALLuPvpczs-UiDkoHURAu7weCHJCv9U6xKxDKck=5U85T55ukw@mail.gmail.com>
  <CALLuPvr+z_NiGVBDhOOtsahjSo0Vn9Y5wi+Pg6FDvFjKkwZPZA@mail.gmail.com>
  <CAOQ4uxi1qFM5UguMswnAWWCGNVwzNYMr_rJtN=+Bt9tUhhPFuA@mail.gmail.com>
  <1521120161.86246.4.camel@primarydata.com> <CALLuPvooC7jjPRPfGc3MPKN0bX3aiN_51A_9ugs+1Sk3=sshzA@mail.gmail.com>
- <CAOQ4uxhO6rEA+gru45ZuWc-9twRguuPRmfZmQiTfQu+QKTtM7w@mail.gmail.com> <CAOQ4uxhxMKL1-gQdgsChG=EUNH+wVnfxrXkkO-nyas4wdfdtyQ@mail.gmail.com>
-From: Eddie Horng <eddiehorng.tw@gmail.com>
-Date: Fri, 16 Mar 2018 14:25:36 +0800
-Message-ID: <CALLuPvpncQ7nXNb1Sg5zSUj6cqbQydB0G=d70jf=1LHYgC5WhQ@mail.gmail.com>
+ <CAOQ4uxhO6rEA+gru45ZuWc-9twRguuPRmfZmQiTfQu+QKTtM7w@mail.gmail.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Date: Thu, 15 Mar 2018 23:48:46 +0200
+Message-ID: <CAOQ4uxhxMKL1-gQdgsChG=EUNH+wVnfxrXkkO-nyas4wdfdtyQ@mail.gmail.com>
 Subject: Re: readdir returns d_type=DT_UNKNOWN to overlay exported dir (NFSv3)
-Content-Type: text/plain; charset="UTF-8"
-To: Amir Goldstein <amir73il@gmail.com>
+Content-Type: multipart/mixed; boundary="000000000000ce401905677a74ed"
+To: Eddie Horng <eddiehorng.tw@gmail.com>
 Cc: Trond Myklebust <trondmy@primarydata.com>, "bfields@fieldses.org" <bfields@fieldses.org>, "miklos@szeredi.hu" <miklos@szeredi.hu>, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>, "jlayton@kernel.org" <jlayton@kernel.org>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-2018-03-16 5:48 GMT+08:00 Amir Goldstein <amir73il@gmail.com>:
-> On Thu, Mar 15, 2018 at 8:40 PM, Amir Goldstein <amir73il@gmail.com> wrote:
->> On Thu, Mar 15, 2018 at 4:30 PM, Eddie Horng <eddiehorng.tw@gmail.com> wrote:
-> [...]
->> The problem *is* with nfsd+overlayfs, because nfsd verifies
->> in compose_entry_fh() that (dchild->d_inode->i_ino == ino), but it is not.
->> In that case, encode_entryplus_baggage() falls back to encoding xdr_zero.
->> In overlayfs stat.st_ino is consistent with readdir d_ino since kernel version
->> v4.15 and only for all layers on the same fs.
->>
->> However, there is no guaranty that inode->i_ino is the same as stat.st_ino.
->> Overlayfs exposes only stat.st_ino to user (as well as readdir d_ino), but
->> never (to my knowledge) does it expose inode->i_ino.
->>
->> There was a nfsd fix for a somewhat similar problem that went into v4.16-rc1:
->> 76c479480b9a nfsd: encode stat->mtime for getattr instead of inode->i_mtime
->>
->> The solution to the problem is to either convert all references of
->> nfsd to i_inode
->> with references to st_ino, or make sure to set inode->i_ino correctly for
->> overlayfs inodes.
->>
->> From first glimps, the change in nfsd looks non trivial.
->> The change to overlayfs seems doable, but didn't look closely yet.
->> Will try to come up with test patch for you.
->>
+--000000000000ce401905677a74ed
+Content-Type: text/plain; charset="UTF-8"
+
+On Thu, Mar 15, 2018 at 8:40 PM, Amir Goldstein <amir73il@gmail.com> wrote:
+> On Thu, Mar 15, 2018 at 4:30 PM, Eddie Horng <eddiehorng.tw@gmail.com> wrote:
+[...]
+> The problem *is* with nfsd+overlayfs, because nfsd verifies
+> in compose_entry_fh() that (dchild->d_inode->i_ino == ino), but it is not.
+> In that case, encode_entryplus_baggage() falls back to encoding xdr_zero.
+> In overlayfs stat.st_ino is consistent with readdir d_ino since kernel version
+> v4.15 and only for all layers on the same fs.
 >
-> Eddie,
+> However, there is no guaranty that inode->i_ino is the same as stat.st_ino.
+> Overlayfs exposes only stat.st_ino to user (as well as readdir d_ino), but
+> never (to my knowledge) does it expose inode->i_ino.
 >
-> Please try this patch. It worked for me.
+> There was a nfsd fix for a somewhat similar problem that went into v4.16-rc1:
+> 76c479480b9a nfsd: encode stat->mtime for getattr instead of inode->i_mtime
 >
-> Thanks,
-> Amir.
+> The solution to the problem is to either convert all references of
+> nfsd to i_inode
+> with references to st_ino, or make sure to set inode->i_ino correctly for
+> overlayfs inodes.
+>
+> From first glimps, the change in nfsd looks non trivial.
+> The change to overlayfs seems doable, but didn't look closely yet.
+> Will try to come up with test patch for you.
+>
 
-Hi Amir,
-The patch works like a charm in my first test, but when I switch lower
-layer to different fs then upper and merged, problem comes again. The
-configuration is:
-/dev/loop0 /ro_mount ext4 rw,relatime,data=ordered 0 0
-none /share overlay
-rw,relatime,lowerdir=/ro_mount,upperdir=/base/upper,workdir=/base/work,index=on,nfs_export=on
-0 0
-localhost:/share /mnt/n nfs
-rw,relatime,vers=3,rsize=1048576,wsize=1048576,namlen=255,hard,proto=tcp,timeo=600,retrans=2,sec=sys,mountaddr=127.0.0.1,mountvers=3,mountport=40970,mountproto=udp,local_lock=none,addr=127.0.0.1
-0 0
+Eddie,
 
-/ro_mount/
-|-- lost+found
-|-- ro-dir
-`-- ro-file
+Please try this patch. It worked for me.
 
-result:
-readdir: lost+found ino(b) type(0)
-readdir: ro-file ino(c) type(0)
-readdir: .. ino(e0001) type(0)
-readdir: ro-dir ino(2003) type(0)
-readdir: . ino(e0003) type(0)
+Thanks,
+Amir.
 
-ps. /ro_mount is created by:
-truncate -s 1g image
-mkfs.ext4 image
-mount image /ro_mount
+--000000000000ce401905677a74ed
+Content-Type: text/x-patch; charset="US-ASCII";
+	name="0001-ovl-set-i_ino-to-the-value-of-st_ino-for-NFS-export.patch"
+Content-Disposition: attachment;
+	filename="0001-ovl-set-i_ino-to-the-value-of-st_ino-for-NFS-export.patch"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_jet1s06e0
 
-thanks,
-Eddie
+RnJvbSA1ZGZlNzVlYWYxYWVjMDgwZDExMGRmMzQzYWEzMzlhZDdiODE2NjcwIE1vbiBTZXAgMTcg
+MDA6MDA6MDAgMjAwMQpGcm9tOiBBbWlyIEdvbGRzdGVpbiA8YW1pcjczaWxAZ21haWwuY29tPgpE
+YXRlOiBUaHUsIDE1IE1hciAyMDE4IDIzOjM5OjAxICswMjAwClN1YmplY3Q6IFtQQVRDSF0gb3Zs
+OiBzZXQgaV9pbm8gdG8gdGhlIHZhbHVlIG9mIHN0X2lubyBmb3IgTkZTIGV4cG9ydAoKV2hlbiBO
+RlMgZXhwb3J0IGlzIGVuYWJsZWQgYW5kIGRfaW5vIGlzIGNvbnNpc3RlbnQgd2l0aCBzdF9pbm8K
+KHNhbWVmcyksIHNldCB0aGUgc2FtZSB2YWx1ZSB0byBpX2lubywgYmVjYXVzZSBuZnNkIHJlYWRk
+aXJwbHVzCmNvbXBhcmVzIGRfaW5vIHZhbHVlcyB0byBpX2lubyB2YWx1ZXMgb2YgY2hpbGQgZW50
+cmllcy4gV2hlbiBjYWxsZWQKZnJvbSBvdmxfbmV3X2lub2RlKCksIGlubyBhcmcgaXMgMCwgc28g
+aV9pbm8gd2lsbCBiZSB1cGRhdGVkIHRvIHJlYWwKdXBwZXIgaW5vZGUgaV9pbm8gb24gb3ZsX2lu
+b2RlX2luaXQoKSBvciBvdmxfaW5vZGVfdXBkYXRlKCkuCgpSZXBvcnRlZC1ieTogRWRkaWUgSG9y
+bmcgPGVkZGllaG9ybmcudHdAZ21haWwuY29tPgpTaWduZWQtb2ZmLWJ5OiBBbWlyIEdvbGRzdGVp
+biA8YW1pcjczaWxAZ21haWwuY29tPgotLS0KIGZzL292ZXJsYXlmcy9pbm9kZS5jIHwgMjEgKysr
+KysrKysrKysrKysrKystLS0tCiBmcy9vdmVybGF5ZnMvdXRpbC5jICB8ICA4ICsrKysrKystCiAy
+IGZpbGVzIGNoYW5nZWQsIDI0IGluc2VydGlvbnMoKyksIDUgZGVsZXRpb25zKC0pCgpkaWZmIC0t
+Z2l0IGEvZnMvb3ZlcmxheWZzL2lub2RlLmMgYi9mcy9vdmVybGF5ZnMvaW5vZGUuYwppbmRleCAz
+YjFiZDQ2OWFjY2QuLjQ2ODk3MTZmMjNkOCAxMDA2NDQKLS0tIGEvZnMvb3ZlcmxheWZzL2lub2Rl
+LmMKKysrIGIvZnMvb3ZlcmxheWZzL2lub2RlLmMKQEAgLTQ1OSw5ICs0NTksMjAgQEAgc3RhdGlj
+IGlubGluZSB2b2lkIG92bF9sb2NrZGVwX2Fubm90YXRlX2lub2RlX211dGV4X2tleShzdHJ1Y3Qg
+aW5vZGUgKmlub2RlKQogI2VuZGlmCiB9CiAKLXN0YXRpYyB2b2lkIG92bF9maWxsX2lub2RlKHN0
+cnVjdCBpbm9kZSAqaW5vZGUsIHVtb2RlX3QgbW9kZSwgZGV2X3QgcmRldikKK3N0YXRpYyB2b2lk
+IG92bF9maWxsX2lub2RlKHN0cnVjdCBpbm9kZSAqaW5vZGUsIHVtb2RlX3QgbW9kZSwgZGV2X3Qg
+cmRldiwKKwkJCSAgIHVuc2lnbmVkIGxvbmcgaW5vKQogewotCWlub2RlLT5pX2lubyA9IGdldF9u
+ZXh0X2lubygpOworCS8qCisJICogV2hlbiBORlMgZXhwb3J0IGlzIGVuYWJsZWQgYW5kIGRfaW5v
+IGlzIGNvbnNpc3RlbnQgd2l0aCBzdF9pbm8KKwkgKiAoc2FtZWZzKSwgc2V0IHRoZSBzYW1lIHZh
+bHVlIHRvIGlfaW5vLCBiZWNhdXNlIG5mc2QgcmVhZGRpcnBsdXMKKwkgKiBjb21wYXJlcyBkX2lu
+byB2YWx1ZXMgdG8gaV9pbm8gdmFsdWVzIG9mIGNoaWxkIGVudHJpZXMuIFdoZW4gY2FsbGVkCisJ
+ICogZnJvbSBvdmxfbmV3X2lub2RlKCksIGlubyBhcmcgaXMgMCwgc28gaV9pbm8gd2lsbCBiZSB1
+cGRhdGVkIHRvIHJlYWwKKwkgKiB1cHBlciBpbm9kZSBpX2lubyBvbiBvdmxfaW5vZGVfaW5pdCgp
+IG9yIG92bF9pbm9kZV91cGRhdGUoKS4KKwkgKi8KKwlpZiAoaW5vZGUtPmlfc2ItPnNfZXhwb3J0
+X29wICYmIG92bF9zYW1lX3NiKGlub2RlLT5pX3NiKSkKKwkJaW5vZGUtPmlfaW5vID0gaW5vOwor
+CWVsc2UKKwkJaW5vZGUtPmlfaW5vID0gZ2V0X25leHRfaW5vKCk7CiAJaW5vZGUtPmlfbW9kZSA9
+IG1vZGU7CiAJaW5vZGUtPmlfZmxhZ3MgfD0gU19OT0NNVElNRTsKICNpZmRlZiBDT05GSUdfRlNf
+UE9TSVhfQUNMCkBAIC01OTcsNyArNjA4LDcgQEAgc3RydWN0IGlub2RlICpvdmxfbmV3X2lub2Rl
+KHN0cnVjdCBzdXBlcl9ibG9jayAqc2IsIHVtb2RlX3QgbW9kZSwgZGV2X3QgcmRldikKIAogCWlu
+b2RlID0gbmV3X2lub2RlKHNiKTsKIAlpZiAoaW5vZGUpCi0JCW92bF9maWxsX2lub2RlKGlub2Rl
+LCBtb2RlLCByZGV2KTsKKwkJb3ZsX2ZpbGxfaW5vZGUoaW5vZGUsIG1vZGUsIHJkZXYsIDApOwog
+CiAJcmV0dXJuIGlub2RlOwogfQpAQCAtNzEwLDYgKzcyMSw3IEBAIHN0cnVjdCBpbm9kZSAqb3Zs
+X2dldF9pbm9kZShzdHJ1Y3Qgc3VwZXJfYmxvY2sgKnNiLCBzdHJ1Y3QgZGVudHJ5ICp1cHBlcmRl
+bnRyeSwKIAlzdHJ1Y3QgaW5vZGUgKmlub2RlOwogCWJvb2wgYnlsb3dlciA9IG92bF9oYXNoX2J5
+bG93ZXIoc2IsIHVwcGVyZGVudHJ5LCBsb3dlcmRlbnRyeSwgaW5kZXgpOwogCWJvb2wgaXNfZGly
+OworCXVuc2lnbmVkIGxvbmcgaW5vID0gMDsKIAogCWlmICghcmVhbGlub2RlKQogCQlyZWFsaW5v
+ZGUgPSBkX2lub2RlKGxvd2VyZGVudHJ5KTsKQEAgLTc0OCwxMyArNzYwLDE0IEBAIHN0cnVjdCBp
+bm9kZSAqb3ZsX2dldF9pbm9kZShzdHJ1Y3Qgc3VwZXJfYmxvY2sgKnNiLCBzdHJ1Y3QgZGVudHJ5
+ICp1cHBlcmRlbnRyeSwKIAkJaWYgKCFpc19kaXIpCiAJCQlubGluayA9IG92bF9nZXRfbmxpbmso
+bG93ZXJkZW50cnksIHVwcGVyZGVudHJ5LCBubGluayk7CiAJCXNldF9ubGluayhpbm9kZSwgbmxp
+bmspOworCQlpbm8gPSBrZXktPmlfaW5vOwogCX0gZWxzZSB7CiAJCS8qIExvd2VyIGhhcmRsaW5r
+IHRoYXQgd2lsbCBiZSBicm9rZW4gb24gY29weSB1cCAqLwogCQlpbm9kZSA9IG5ld19pbm9kZShz
+Yik7CiAJCWlmICghaW5vZGUpCiAJCQlnb3RvIG91dF9ub21lbTsKIAl9Ci0Jb3ZsX2ZpbGxfaW5v
+ZGUoaW5vZGUsIHJlYWxpbm9kZS0+aV9tb2RlLCByZWFsaW5vZGUtPmlfcmRldik7CisJb3ZsX2Zp
+bGxfaW5vZGUoaW5vZGUsIHJlYWxpbm9kZS0+aV9tb2RlLCByZWFsaW5vZGUtPmlfcmRldiwgaW5v
+KTsKIAlvdmxfaW5vZGVfaW5pdChpbm9kZSwgdXBwZXJkZW50cnksIGxvd2VyZGVudHJ5KTsKIAog
+CWlmICh1cHBlcmRlbnRyeSAmJiBvdmxfaXNfaW1wdXJlZGlyKHVwcGVyZGVudHJ5KSkKZGlmZiAt
+LWdpdCBhL2ZzL292ZXJsYXlmcy91dGlsLmMgYi9mcy9vdmVybGF5ZnMvdXRpbC5jCmluZGV4IDkz
+MDc4NGEyNjYyMy4uNDkzZjliNzZmYmY2IDEwMDY0NAotLS0gYS9mcy9vdmVybGF5ZnMvdXRpbC5j
+CisrKyBiL2ZzL292ZXJsYXlmcy91dGlsLmMKQEAgLTI3OSwxMiArMjc5LDE2IEBAIHZvaWQgb3Zs
+X2RlbnRyeV9zZXRfcmVkaXJlY3Qoc3RydWN0IGRlbnRyeSAqZGVudHJ5LCBjb25zdCBjaGFyICpy
+ZWRpcmVjdCkKIHZvaWQgb3ZsX2lub2RlX2luaXQoc3RydWN0IGlub2RlICppbm9kZSwgc3RydWN0
+IGRlbnRyeSAqdXBwZXJkZW50cnksCiAJCSAgICBzdHJ1Y3QgZGVudHJ5ICpsb3dlcmRlbnRyeSkK
+IHsKKwlzdHJ1Y3QgaW5vZGUgKnJlYWxpbm9kZSA9IGRfaW5vZGUodXBwZXJkZW50cnkgPzogbG93
+ZXJkZW50cnkpOworCiAJaWYgKHVwcGVyZGVudHJ5KQogCQlPVkxfSShpbm9kZSktPl9fdXBwZXJk
+ZW50cnkgPSB1cHBlcmRlbnRyeTsKIAlpZiAobG93ZXJkZW50cnkpCiAJCU9WTF9JKGlub2RlKS0+
+bG93ZXIgPSBpZ3JhYihkX2lub2RlKGxvd2VyZGVudHJ5KSk7CiAKLQlvdmxfY29weWF0dHIoZF9p
+bm9kZSh1cHBlcmRlbnRyeSA/OiBsb3dlcmRlbnRyeSksIGlub2RlKTsKKwlvdmxfY29weWF0dHIo
+cmVhbGlub2RlLCBpbm9kZSk7CisJaWYgKCFpbm9kZS0+aV9pbm8pCisJCWlub2RlLT5pX2lubyA9
+IHJlYWxpbm9kZS0+aV9pbm87CiB9CiAKIHZvaWQgb3ZsX2lub2RlX3VwZGF0ZShzdHJ1Y3QgaW5v
+ZGUgKmlub2RlLCBzdHJ1Y3QgZGVudHJ5ICp1cHBlcmRlbnRyeSkKQEAgLTI5OSw2ICszMDMsOCBA
+QCB2b2lkIG92bF9pbm9kZV91cGRhdGUoc3RydWN0IGlub2RlICppbm9kZSwgc3RydWN0IGRlbnRy
+eSAqdXBwZXJkZW50cnkpCiAJc21wX3dtYigpOwogCU9WTF9JKGlub2RlKS0+X191cHBlcmRlbnRy
+eSA9IHVwcGVyZGVudHJ5OwogCWlmIChpbm9kZV91bmhhc2hlZChpbm9kZSkpIHsKKwkJaWYgKCFp
+bm9kZS0+aV9pbm8pCisJCQlpbm9kZS0+aV9pbm8gPSB1cHBlcmlub2RlLT5pX2lubzsKIAkJaW5v
+ZGUtPmlfcHJpdmF0ZSA9IHVwcGVyaW5vZGU7CiAJCV9faW5zZXJ0X2lub2RlX2hhc2goaW5vZGUs
+ICh1bnNpZ25lZCBsb25nKSB1cHBlcmlub2RlKTsKIAl9Ci0tIAoyLjcuNAoK
+--000000000000ce401905677a74ed--
