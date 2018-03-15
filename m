@@ -1,66 +1,72 @@
-Return-Path: <trondmy@primarydata.com>
-From: Trond Myklebust <trondmy@primarydata.com>
-Subject: Re: readdir returns d_type=DT_UNKNOWN to overlay exported dir (NFSv3)
-Date: Thu, 15 Mar 2018 13:22:43 +0000
-Message-ID: <1521120161.86246.4.camel@primarydata.com>
-References: <CALLuPvpczs-UiDkoHURAu7weCHJCv9U6xKxDKck=5U85T55ukw@mail.gmail.com>
-	 <CALLuPvr+z_NiGVBDhOOtsahjSo0Vn9Y5wi+Pg6FDvFjKkwZPZA@mail.gmail.com>
-	 <CAOQ4uxi1qFM5UguMswnAWWCGNVwzNYMr_rJtN=+Bt9tUhhPFuA@mail.gmail.com>
-In-Reply-To: <CAOQ4uxi1qFM5UguMswnAWWCGNVwzNYMr_rJtN=+Bt9tUhhPFuA@mail.gmail.com>
-Content-Language: en-US
-Content-ID: <8B08BE8934E86B4A95A65CBC3F239BE4@namprd11.prod.outlook.com>
+Return-Path: <amir73il@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: base64
-To: "amir73il@gmail.com" <amir73il@gmail.com>, "eddiehorng.tw@gmail.com" <eddiehorng.tw@gmail.com>
-Cc: "bfields@fieldses.org" <bfields@fieldses.org>, "miklos@szeredi.hu" <miklos@szeredi.hu>, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>, "jlayton@kernel.org" <jlayton@kernel.org>
+In-Reply-To: <CALLuPvr+z_NiGVBDhOOtsahjSo0Vn9Y5wi+Pg6FDvFjKkwZPZA@mail.gmail.com>
+References: <CALLuPvpczs-UiDkoHURAu7weCHJCv9U6xKxDKck=5U85T55ukw@mail.gmail.com>
+ <CALLuPvr+z_NiGVBDhOOtsahjSo0Vn9Y5wi+Pg6FDvFjKkwZPZA@mail.gmail.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Date: Thu, 15 Mar 2018 15:13:01 +0200
+Message-ID: <CAOQ4uxi1qFM5UguMswnAWWCGNVwzNYMr_rJtN=+Bt9tUhhPFuA@mail.gmail.com>
+Subject: Re: readdir returns d_type=DT_UNKNOWN to overlay exported dir (NFSv3)
+Content-Type: text/plain; charset="UTF-8"
+To: Eddie Horng <eddiehorng.tw@gmail.com>
+Cc: Jeff Layton <jlayton@kernel.org>, Miklos Szeredi <miklos@szeredi.hu>, overlayfs <linux-unionfs@vger.kernel.org>, Trond Myklebust <trondmy@primarydata.com>, "J. Bruce Fields" <bfields@fieldses.org>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-T24gVGh1LCAyMDE4LTAzLTE1IGF0IDE1OjEzICswMjAwLCBBbWlyIEdvbGRzdGVpbiB3cm90ZToN
-Cj4gT24gVGh1LCBNYXIgMTUsIDIwMTggYXQgMTE6NDcgQU0sIEVkZGllIEhvcm5nIDxlZGRpZWhv
-cm5nLnR3QGdtYWlsLmNvDQo+IG0+IHdyb3RlOg0KPiA+IEkgdHJpZWQgdG8gdHJhY2sgdGhlIGRp
-ZmZlcmVuY2UgYmV0d2VlbiBvdmVybGF5LU5GU3YzIGFuZCBleHQ0LQ0KPiA+IE5GU3YzDQo+ID4g
-b2YgZW5jb2RlX3Bvc3Rfb3BfYXR0ci4NCj4gPiBtb3VudCBjb25maWd1cmF0aW9uOg0KPiA+IG5v
-bmUgL3NoYXJlIG92ZXJsYXkNCj4gPiBydyxyZWxhdGltZSxsb3dlcmRpcj0vYmFzZS9sb3dlcix1
-cHBlcmRpcj0vYmFzZS91cHBlcix3b3JrZGlyPS9iYXNlDQo+ID4gL3dvcmssaW5kZXg9b24sbmZz
-X2V4cG9ydD1vbg0KPiA+IDAgMA0KPiA+IGxvY2FsaG9zdDovc2hhcmUgL21udC9uIG5mcw0KPiA+
-IHJ3LHJlbGF0aW1lLHZlcnM9Myxyc2l6ZT0xMDQ4NTc2LHdzaXplPTEwNDg1NzYsbmFtbGVuPTI1
-NSxoYXJkLHByb3QNCj4gPiBvPXRjcCx0aW1lbz02MDAscmV0cmFucz0yLHNlYz1zeXMsbW91bnRh
-ZGRyPTEyNy4wLjAuMSxtb3VudHZlcnM9MyxtDQo+ID4gb3VudHBvcnQ9NDA5MzEsbW91bnRwcm90
-bz11ZHAsbG9jYWxfbG9jaz1ub25lLGFkZHI9MTI3LjAuMC4xDQo+ID4gMCAwDQo+ID4gL2Rldi9s
-b29wMCAvc2hhcmUyIGV4dDQgcncscmVsYXRpbWUsZGF0YT1vcmRlcmVkIDAgMA0KPiA+IGxvY2Fs
-aG9zdDovc2hhcmUyIC9tbnQvbjIgbmZzDQo+ID4gcncscmVsYXRpbWUsdmVycz0zLHJzaXplPTEw
-NDg1NzYsd3NpemU9MTA0ODU3NixuYW1sZW49MjU1LGhhcmQscHJvdA0KPiA+IG89dGNwLHRpbWVv
-PTYwMCxyZXRyYW5zPTIsc2VjPXN5cyxtb3VudGFkZHI9MTI3LjAuMC4xLG1vdW50dmVycz0zLG0N
-Cj4gPiBvdW50cG9ydD00MDkzMSxtb3VudHByb3RvPXVkcCxsb2NhbF9sb2NrPW5vbmUsYWRkcj0x
-MjcuMC4wLjENCj4gPiAwIDANCj4gPiANCj4gPiBmaWxlIHRyZWU6DQo+ID4gL21udC9uDQo+ID4g
-PiAtLSBkaXJBDQo+ID4gPiAgIGAtLSBiYXINCj4gPiA+IC0tIGRpckwNCj4gPiA+ICAgYC0tIHJv
-LWZpbGUNCj4gPiANCj4gPiBgLS0gZm9vDQo+ID4gDQo+ID4gL21udC9uMg0KPiA+IGAtLSBsb3N0
-K2ZvdW5kDQo+ID4gDQo+ID4gQXR0YWNoZWQgbG9nIGFyZSBkbWVzZyBzdGFydCBmcm9tICJyZWFk
-ZGlyIC9tbnQvbiAobjIpIiB3aXRoIG5mcw0KPiA+IGFuZA0KPiA+IG5mc2QgbG9nIGFyZSBlbmFi
-bGVkIGFsbCBieSBzdW5ycGMubmZzKGQpX2RlYnVnLiBJIGFsc28gYWRkIGENCj4gPiBkdW1wX3N0
-YWNrKCkgaW4gdGhlIGJlZ2lubmluZyBvZiBlbmNvZGVfcG9zdF9vcF9hdHRyLg0KPiA+IA0KPiA+
-IEl0IHNlZW1zIG92ZXJsYXkgYW5kIGV4dDQgaGF2ZSBkaWZmZXJlbnQgY2FsbCBmbG93IGFmdGVy
-ICJuZnNkOg0KPiA+IFJFQURESVIrIiwgdGhlcmUgaXMgbm8gZmFpbHVyZSBpbiBvdmVybGF5J3Mg
-ZW5jb2RlX3Bvc3Rfb3BfYXR0ciwNCj4gPiBuZnNkDQo+ID4gZG9lcyBmaWxsIHRoZSBhdHRycywg
-c2FtZSBhcyBleHQ0IGJ1dCBpdCBoYXMgYWRkaXRpb25hbCByZWFkZGlyDQo+ID4gY2FsbA0KPiA+
-IHRvIGNoaWxkIG5vZGUgb2YgIi8iLiBJJ20gbm90IHN1cmUgaWYgdGhpcyBpcyBub3JtYWwgdG8g
-b3ZlcmxheSBhbmQNCj4gPiBpcw0KPiA+IHRoZSBjYXVzZSBvZiBEVF9VTktOT1dOLg0KPiANCj4g
-SSB0cmllZCB0byBmb2xsb3cgbmZzZCByZWFkZGlyIGNvZGUgdG8gc2VlIHdoZXJlIHRoZSBkaWZm
-ZXJlbmNlIGNhbg0KPiBjb21lDQo+IGZyb20sIGJ1dCBub3RoaW5nIHBvcGVkIGF0IG1lIHNvIGZh
-ci4NCj4gDQo+ID4gDQo+ID4gSW4gYWRkaXRpb25hbCwgb3ZlcmxheSByZXR1cm5zIERUX1VOS05P
-V04gdG8gZWl0aGVyIGxvd2VyIGRpciBvcg0KPiA+IG1lcmdlZCBkaXIuDQo+IA0KPiBZb3VyIHRl
-c3QgaXMgcmVhZGRpciBvZiBhIG1lcmdlZCBkaXIsIHRoZSBiZWhhdmlvciBjb3VsZCBkaWZmZXIg
-d2hlbg0KPiByZWFkZGlyIG9mDQo+IGFuIG92ZXJsYXlmcyBub24gbWVyZ2VkIGRpci4NCj4gDQo+
-IFBsZWFzZSBzZW5kIHRoZSBvdXRwdXQgYW5kIGRtZXNnIG9mIHJlYWRkaXIgb2YgdGhlIG5vbi1t
-ZXJnZWQgbG93ZXINCj4gZGlyOg0KPiANCj4gL3JlYWRkaXIvYS5vdXQgL21udC9uL2RpckwNCj4g
-DQo+IFBsZWFzZSBtb3VudCBhbiBORlMgc2hhcmUgb2YgL2Jhc2UgYW5kIHNlbmQgdGhlIG91dHB1
-dCBvZiB0aGUgc2FtZQ0KPiBkaXI6DQo+IA0KPiAvcmVhZGRpci9hLm91dCAvbW50L25fYmFzZS9s
-b3dlci9uL2RpckwNCj4gDQo+IFJpZ2h0IG5vdyBJIHNwZWN1bGF0ZSB0aGF0IHRoZSBpc3N1ZSB5
-b3UgcmVwb3J0IGlzIHJlbGF0ZWQgdG8NCj4gaG93IG1lcmdlZCBkaXJzIGFyZSBpdGVyYXRlZCwg
-YnV0IG5vdCBzdXJlIGV4YWN0bHkgd2h5Lg0KDQpmcy9uZnNkIGhhcyBub3RoaW5nIHRvIGRvIHdp
-dGggJHtTVUJKRUNUfS4NCg0KSWYgeW91IHdhbnQgdG8gdHJhY2Ugd2hlcmUgdGhlIERUX1VOS05P
-V04gaXMgY29taW5nIGZyb20sIHRoZW4geW91IG5lZWQNCnRvIGxvb2sgYXQgdGhlIF9jbGllbnRf
-IGNvZGUgaW4gZnMvbmZzL25mczN4ZHIuYzpuZnMzX2RlY29kZV9kaXJlbnQoKS4gDQoNCi0tIA0K
-VHJvbmQgTXlrbGVidXN0DQpMaW51eCBORlMgY2xpZW50IG1haW50YWluZXIsIFByaW1hcnlEYXRh
-DQp0cm9uZC5teWtsZWJ1c3RAcHJpbWFyeWRhdGEuY29tDQo=
+On Thu, Mar 15, 2018 at 11:47 AM, Eddie Horng <eddiehorng.tw@gmail.com> wrote:
+> I tried to track the difference between overlay-NFSv3 and ext4-NFSv3
+> of encode_post_op_attr.
+> mount configuration:
+> none /share overlay
+> rw,relatime,lowerdir=/base/lower,upperdir=/base/upper,workdir=/base/work,index=on,nfs_export=on
+> 0 0
+> localhost:/share /mnt/n nfs
+> rw,relatime,vers=3,rsize=1048576,wsize=1048576,namlen=255,hard,proto=tcp,timeo=600,retrans=2,sec=sys,mountaddr=127.0.0.1,mountvers=3,mountport=40931,mountproto=udp,local_lock=none,addr=127.0.0.1
+> 0 0
+> /dev/loop0 /share2 ext4 rw,relatime,data=ordered 0 0
+> localhost:/share2 /mnt/n2 nfs
+> rw,relatime,vers=3,rsize=1048576,wsize=1048576,namlen=255,hard,proto=tcp,timeo=600,retrans=2,sec=sys,mountaddr=127.0.0.1,mountvers=3,mountport=40931,mountproto=udp,local_lock=none,addr=127.0.0.1
+> 0 0
+>
+> file tree:
+> /mnt/n
+> |-- dirA
+> |   `-- bar
+> |-- dirL
+> |   `-- ro-file
+> `-- foo
+>
+> /mnt/n2
+> `-- lost+found
+>
+> Attached log are dmesg start from "readdir /mnt/n (n2)" with nfs and
+> nfsd log are enabled all by sunrpc.nfs(d)_debug. I also add a
+> dump_stack() in the beginning of encode_post_op_attr.
+>
+> It seems overlay and ext4 have different call flow after "nfsd:
+> READDIR+", there is no failure in overlay's encode_post_op_attr, nfsd
+> does fill the attrs, same as ext4 but it has additional readdir call
+> to child node of "/". I'm not sure if this is normal to overlay and is
+> the cause of DT_UNKNOWN.
+
+I tried to follow nfsd readdir code to see where the difference can come
+from, but nothing poped at me so far.
+
+>
+> In additional, overlay returns DT_UNKNOWN to either lower dir or merged dir.
+
+Your test is readdir of a merged dir, the behavior could differ when readdir of
+an overlayfs non merged dir.
+
+Please send the output and dmesg of readdir of the non-merged lower dir:
+
+/readdir/a.out /mnt/n/dirL
+
+Please mount an NFS share of /base and send the output of the same dir:
+
+/readdir/a.out /mnt/n_base/lower/n/dirL
+
+Right now I speculate that the issue you report is related to
+how merged dirs are iterated, but not sure exactly why.
+
+Thanks,
+Amir.
