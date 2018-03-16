@@ -1,76 +1,60 @@
-Return-Path: <vgoyal@redhat.com>
-From: Vivek Goyal <vgoyal@redhat.com>
-Subject: [PATCH v12 16/17] ovl: Set redirect on upper inode when it is linked
-Date: Tue,  6 Mar 2018 15:54:07 -0500
-Message-Id: <20180306205408.23383-17-vgoyal@redhat.com>
-In-Reply-To: <20180306205408.23383-1-vgoyal@redhat.com>
-References: <20180306205408.23383-1-vgoyal@redhat.com>
-To: linux-unionfs@vger.kernel.org
-Cc: miklos@szeredi.hu, amir73il@gmail.com, vgoyal@redhat.com
+Return-Path: <guaneryu@gmail.com>
+Return-Path: <guaneryu@gmail.com>
+Date: Fri, 16 Mar 2018 14:18:56 +0800
+From: Eryu Guan <guaneryu@gmail.com>
+Subject: Re: [PATCH V3] xfstest: overlay: Absolute redirect should be
+ followed even if ancestor is opaque
+Message-ID: <20180316061856.GP30836@localhost.localdomain>
+References: <20180314131618.GA1001@redhat.com>
+ <20180316025320.GL30836@localhost.localdomain>
+ <20180316025554.GM30836@localhost.localdomain>
+ <CAOQ4uximE5LCYk4OGtOoY2VDOPSH+ym7aVEAoEgWGa+u79FOvQ@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAOQ4uximE5LCYk4OGtOoY2VDOPSH+ym7aVEAoEgWGa+u79FOvQ@mail.gmail.com>
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: Vivek Goyal <vgoyal@redhat.com>, fstests <fstests@vger.kernel.org>, overlayfs <linux-unionfs@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-When we create a hardlink to a metacopy upper file, first the redirect
-on that inode. Path based lookup will not work with newly created link
-and redirect will solve that issue.
+On Fri, Mar 16, 2018 at 07:58:35AM +0200, Amir Goldstein wrote:
+> On Fri, Mar 16, 2018 at 4:55 AM, Eryu Guan <guaneryu@gmail.com> wrote:
+> > On Fri, Mar 16, 2018 at 10:53:20AM +0800, Eryu Guan wrote:
+> >
+> >> > +# Create opaque parent with absolute redirect child in middle layer
+> >> > +mkdir $SCRATCH_MNT/pure
+> >> > +mv $SCRATCH_MNT/origin $SCRATCH_MNT/pure/redirect
+> >> > +$UMOUNT_PROG $SCRATCH_MNT
+> >> > +_overlay_scratch_mount_dirs $lowerdir2:$lowerdir $upperdir $workdir -o redirect_dir=on
+> >> > +mv $SCRATCH_MNT/pure/redirect $SCRATCH_MNT/redirect
+> >>
+> >> I think we'd better do a "ls $SCRATCH_MNT/redirect/" here too, right
+> >> after the rename and before mount cycle, to make sure 'foo' is there as
+> >> well. I can add it on commit (and change the .out file too) if this
+> >> change looks OK to you.
+> >
+> 
+> OK, but...
+> 
+> > Something like this:
+> >
+> > git a/tests/overlay/057 b/tests/overlay/057
+> > index 10b46bfa8cff..d54024e98bcd 100644
+> > --- a/tests/overlay/057
+> > +++ b/tests/overlay/057
+> > @@ -86,6 +86,8 @@ mv $SCRATCH_MNT/origin $SCRATCH_MNT/pure/redirect
+> >  $UMOUNT_PROG $SCRATCH_MNT
+> >  _overlay_scratch_mount_dirs $lowerdir2:$lowerdir $upperdir $workdir -o redirect_dir=on
+> >  mv $SCRATCH_MNT/pure/redirect $SCRATCH_MNT/redirect
+> > +# Verify that redirects are followed
+> 
+> The wording here is not technically accurate.
+> "redirect" are "followed" on lookup and there is no lookup here
+> (dentry is already in cache). It would be more accurate to say
+> some thing like "List content of renamed merge dir before mount cycle"
+> and then maybe to use the same language, "Verify that redirects are
+> followed by listing content of renamed merge dir after after cycle".
 
-Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
----
- fs/overlayfs/dir.c | 18 ++++++++++++++----
- 1 file changed, 14 insertions(+), 4 deletions(-)
+I'll update as suggested. Thanks!
 
-diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
-index b955f6fede06..da5c4b8ee919 100644
---- a/fs/overlayfs/dir.c
-+++ b/fs/overlayfs/dir.c
-@@ -24,6 +24,8 @@ module_param_named(redirect_max, ovl_redirect_max, ushort, 0644);
- MODULE_PARM_DESC(ovl_redirect_max,
- 		 "Maximum length of absolute redirect xattr value");
- 
-+static int ovl_set_redirect(struct dentry *dentry, bool samedir);
-+
- int ovl_cleanup(struct inode *wdir, struct dentry *wdentry)
- {
- 	int err;
-@@ -468,6 +470,9 @@ static int ovl_create_or_link(struct dentry *dentry, struct inode *inode,
- 	const struct cred *old_cred;
- 	struct cred *override_cred;
- 	struct dentry *parent = dentry->d_parent;
-+	struct dentry *hardlink_upper;
-+
-+	hardlink_upper = hardlink ? ovl_dentry_upper(hardlink) : NULL;
- 
- 	err = ovl_copy_up(parent);
- 	if (err)
-@@ -502,12 +507,18 @@ static int ovl_create_or_link(struct dentry *dentry, struct inode *inode,
- 		put_cred(override_creds(override_cred));
- 		put_cred(override_cred);
- 
-+		if (hardlink && ovl_is_metacopy_dentry(hardlink)) {
-+			err = ovl_set_redirect(hardlink, false);
-+			if (err)
-+				goto out_revert_creds;
-+		}
-+
- 		if (!ovl_dentry_is_whiteout(dentry))
- 			err = ovl_create_upper(dentry, inode, attr,
--						hardlink);
-+					       hardlink_upper);
- 		else
- 			err = ovl_create_over_whiteout(dentry, inode, attr,
--							hardlink);
-+					               hardlink_upper);
- 	}
- out_revert_creds:
- 	revert_creds(old_cred);
-@@ -602,8 +613,7 @@ static int ovl_link(struct dentry *old, struct inode *newdir,
- 	inode = d_inode(old);
- 	ihold(inode);
- 
--	err = ovl_create_or_link(new, inode, NULL, ovl_dentry_upper(old),
--				 ovl_type_origin(old));
-+	err = ovl_create_or_link(new, inode, NULL, old, ovl_type_origin(old));
- 	if (err)
- 		iput(inode);
- 
--- 
-2.13.6
+Eryu
