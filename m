@@ -1,127 +1,68 @@
-Return-Path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mx3-rdu2.redhat.com ([66.187.233.73]:33914 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1751862AbeC2TjD (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 29 Mar 2018 15:39:03 -0400
-From: Vivek Goyal <vgoyal@redhat.com>
-Subject: [PATCH v13 14/28] ovl: Do not expose metacopy only dentry from d_real()
-Date: Thu, 29 Mar 2018 15:38:40 -0400
-Message-Id: <20180329193854.13814-15-vgoyal@redhat.com>
-In-Reply-To: <20180329193854.13814-1-vgoyal@redhat.com>
-References: <20180329193854.13814-1-vgoyal@redhat.com>
-Sender: linux-unionfs-owner@vger.kernel.org
-To: linux-unionfs@vger.kernel.org
-Cc: miklos@szeredi.hu, amir73il@gmail.com, vgoyal@redhat.com
+Return-Path: <jlayton@kernel.org>
+Message-ID: <1521564929.4686.21.camel@kernel.org>
+Subject: Re: [fsck.overlay RFC PATCH] overlay: add fsck utility
+From: Jeff Layton <jlayton@kernel.org>
+Date: Tue, 20 Mar 2018 12:55:29 -0400
+In-Reply-To: <CAJfpegtGWK=xY0VgAAaSi2PHnTQ-buyoMG5TbezeAQ64c8OR+g@mail.gmail.com>
+References: <20171117054919.712-1-yi.zhang@huawei.com>
+	 <CAOQ4uxgCN-ZdLsZQmYYW-PyJLB4WWsr9A8gqOtcSC6S9Uj8qZA@mail.gmail.com>
+	 <8d55fcce-ebbf-4779-87de-8406fe475073@huawei.com>
+	 <CAOQ4uxge7XzeJPDSdpQYEHH7iQwJD0-t78gHBbKtMUsO0dQrgw@mail.gmail.com>
+	 <CAOQ4uxjbgQrg8MX0smdgYrV8_i3086ND_4d+Wpmcg+4G9RqY3Q@mail.gmail.com>
+	 <f8883059-9e63-ebbc-ac86-e524995dc480@huawei.com>
+	 <CAOQ4uxhuf_vnRsv-D5jJMBE5Wm8X19X1Cuf3XrXYRiSCFKyLmg@mail.gmail.com>
+	 <CAJfpegtGWK=xY0VgAAaSi2PHnTQ-buyoMG5TbezeAQ64c8OR+g@mail.gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
+To: Miklos Szeredi <miklos@szeredi.hu>, Amir Goldstein <amir73il@gmail.com>
+Cc: yangerkun <yangerkun@huawei.com>, "zhangyi (F)" <yi.zhang@huawei.com>, overlayfs <linux-unionfs@vger.kernel.org>, Miao Xie <miaoxie@huawei.com>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-d_real() can make a upper or lower metacopy dentry/inode visible to the vfs
-layer. This is something new and vfs layer does not know that this inode
-contains only metadata and not data. And this could break things.
+On Tue, 2018-03-20 at 17:44 +0100, Miklos Szeredi wrote:
+> On Thu, Mar 8, 2018 at 8:51 AM, Amir Goldstein <amir73il@gmail.com> wrote:
+> > On Thu, Mar 8, 2018 at 4:38 AM, yangerkun <yangerkun@huawei.com> wrote:
+> > > 
+> > 
+> > [...]
+> > > > > > 
+> > > > > > In fsck.overlay, lower layer file/dir may be modified with there is not
+> > > > > > I_OVL_INUSE in lower layer, but we cannot check does lower layer mounted
+> > > > > > with I_OVL_INUSE.
+> > > > > > 
+> > 
+> > [...]
+> > > > Also, if we follow my suggestion above for upperdir/workdir
+> > > > fsck.overlay may still
+> > > > try to aquire I_OVL_INUSE on lowerdir with O_EXCL|O_DIRECTORY and kernel
+> > > > can test I_OVL_INUSE flag on lowerdir without trying to set it on mount.
+> > > 
+> > > 
+> > > It's good when we want to mount overlayfs with fsck.overlay is running; But
+> > > when there is a mounted overlayfs before fsck.overlay, we cannot use this
+> > > way to check if the lower layer has already been used.
+> > 
+> > Perhaps we should acquire a shared POSIX lock from kernel on lower/upper/work
+> > dirs and fsck.overlay should acquire an exclusive POSIX lock.
+> > 
+> > I'm not sure how acquiring a POSIX lock from kernel should work and which
+> > task should be the owner of the lock, but generally overlayfs could either have
+> > a single owner task in the kernel for all super blocks or one owner
+> > per sb, in which
+> > case, we could acquire an exclusive lock on work/upper dirs instead of using
+> > the custom  I_OVL_INUSE lock.
+> > 
+> > Just a thought - not sure if this makes sense. CC'ing Jeff for reality check.
+> 
+> Much better to use flock(2) locks which, unlike POSIX locks, have sane
+> semantics.   The owner is not a task but a file, so just need to keep
+> an file open referring to each layer's root in overlayfs.
+> 
 
-So to be safe, do not expose metacopy only dentry/inode to vfs using
-d_real().
+Oops, missed this thread before.
 
-IOW, d_real() will not reuturn metacopy dentry. Instead, it will return
-dentry corresponding lower data dentry/inode which has file data.
-
-For regular d_real() call (inode == NULL, D_REAL_UPPER not set), if upper
-dentry inode is metacopy only and does not have data, return lower dentry.
-
-If d_real() is called with flag D_REAL_UPPER, return upper dentry only if
-it has data (flag OVL_UPPERDATA is set).
-
-Similiarly, if d_real(inode=X) is called, a warning is emitted if returned
-dentry/inode does not have OVL_UPPERDATA set. This should not happen as
-we never made this metacopy inode visible to vfs so nobody should be
-calling overlayfs back with inode=metacopy_inode.
-
-I scanned the code and I don't think it breaks any of the existing code.
-There are two users of D_REAL_UPPER. may_write_real() and
-update_ovl_inode_times().
-
-may_write_real(), will get an NULL dentry if upper inode is metacopy only
-and it will return -EPERM. Effectively, we are disallowing modifications
-to metacopy only inode from this interface. Though there is opportunity
-to improve it. (Allow chattr on metacopy inodes).
-
-update_ovl_inode_times() gets inode mtime and ctime from real inode. It
-should not be broken for metacopy inode as well for following reasons.
-
-- For any metadata operations (setattr, acl etc), overlay always calls
-  ovl_copyattr() and updates ovl inode mtime and ctime. So there is no
-  need to update mtime and ctime in this case. Its already updated, hence
-  even if d_real(D_REAL_UPPER) returns nil, it should be fine.
-
-- For metadata inode, mtime should be same as lower and not change. (data
-  can't be modified on metadata inode without copyup). IOW, mtime of
-  ovl dentry should be same as mtime of underlying metadata inode on upper
-  always. So there is no need to update it.
-
-- For file writes, ctime and mtime will be updated. But in that case
-  first data will be copied up and this will not be a metadata inode
-  anymore. And furthr call to d_real(D_REAL_UPPER) will return upper
-  inode and new mtime and ctime will be obtainable.
-
-So atime updates should work just fine for metacopy inodes. I think only
-corner case is if somehow underlying filesystem changes ctime of upper
-metadata inode without overlay knowing about it. Not sure how that
-can happen. If somehow is affected by that, then we probably can implement
-another flag which will allow caller to get metacopy inode as well.
-Something like d_real(D_REAL_UPPER | D_METACOPY). And that should solve
-this issue.
-
-Reviewed-by: Amir Goldstein <amir73il@gmail.com>
-Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
----
- fs/overlayfs/super.c | 21 +++++++++++++++++----
- 1 file changed, 17 insertions(+), 4 deletions(-)
-
-diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-index f77acb8d632a..a5f796452c9f 100644
---- a/fs/overlayfs/super.c
-+++ b/fs/overlayfs/super.c
-@@ -96,8 +96,14 @@ static struct dentry *ovl_d_real(struct dentry *dentry,
- 	struct dentry *real;
- 	int err;
- 
--	if (flags & D_REAL_UPPER)
--		return ovl_dentry_upper(dentry);
-+	if (flags & D_REAL_UPPER) {
-+		real = ovl_dentry_upper(dentry);
-+		if (!real)
-+			return NULL;
-+		if (!ovl_has_upperdata(dentry))
-+			return NULL;
-+		return real;
-+	}
- 
- 	if (!d_is_reg(dentry)) {
- 		if (!inode || inode == d_inode(dentry))
-@@ -113,15 +119,22 @@ static struct dentry *ovl_d_real(struct dentry *dentry,
- 
- 	real = ovl_dentry_upper(dentry);
- 	if (real && (!inode || inode == d_inode(real))) {
-+		bool metacopy = !ovl_has_upperdata(dentry);
- 		if (!inode) {
- 			err = ovl_check_append_only(d_inode(real), open_flags);
- 			if (err)
- 				return ERR_PTR(err);
--		}
-+
-+			if (unlikely(metacopy))
-+				goto lower;
-+		} else if (unlikely(metacopy))
-+			goto bug;
-+
- 		return real;
- 	}
- 
--	real = ovl_dentry_lower(dentry);
-+lower:
-+	real = ovl_dentry_lowerdata(dentry);
- 	if (!real)
- 		goto bug;
- 
+Yes, a flock lock should be fine as long as you're locking the whole
+file (and I assume you would be here). If you need byte ranges, consider
+OFD locks.
 -- 
-2.13.6
-
+Jeff Layton <jlayton@kernel.org>
