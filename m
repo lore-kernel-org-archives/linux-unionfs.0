@@ -1,87 +1,50 @@
-Return-Path: <linux-unionfs-owner@vger.kernel.org>
-Received: from szxga06-in.huawei.com ([45.249.212.32]:44744 "EHLO huawei.com"
-        rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1751106AbeC2I7m (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 29 Mar 2018 04:59:42 -0400
-From: yangerkun <yangerkun@huawei.com>
-Subject: [RFC PATCH 1/2] fs/locks: add flock_setlk to help set flock
-Date: Thu, 29 Mar 2018 17:08:45 +0800
-Message-ID: <20180329090845.39911-1-yangerkun@huawei.com>
 MIME-Version: 1.0
-Content-Type: text/plain
-Sender: linux-unionfs-owner@vger.kernel.org
-To: jlayton@kernel.org, miklos@szeredi.hu, amir73il@gmail.com
-Cc: linux-unionfs@vger.kernel.org, yi.zhang@huawei.com, miaoxie@huawei.com, yangerkun@huawei.com
+In-Reply-To: <CAOQ4uxjCRLPzZ4y8Ak-SOBfa1-t7rAaRAveJHHfde0fnkgn0Sw@mail.gmail.com>
+References: <1520767374-19374-1-git-send-email-amir73il@gmail.com>
+	<1520767374-19374-4-git-send-email-amir73il@gmail.com>
+	<CAJfpegtgJWinj=81rdm9+8VjTo8PDnNPU8d587dvaZj6X1nvQA@mail.gmail.com>
+	<CAOQ4uxhZEneTh3+Fa9h4resHge8ODQwD8ti7Hqj7WE5QF5J0+w@mail.gmail.com>
+	<CAOQ4uxjCRLPzZ4y8Ak-SOBfa1-t7rAaRAveJHHfde0fnkgn0Sw@mail.gmail.com>
+Date: Thu, 22 Mar 2018 16:34:03 +0100
+Message-ID: <CAJfpegtDmjZOepc=TMQ1CtzhhmmBX4KiXChUej15kAiYsxThVA@mail.gmail.com>
+Subject: Re: [PATCH v2 3/3] ovl: lookup in inode cache first when decoding
+ lower file handle
+From: Miklos Szeredi <miklos@szeredi.hu>
+Content-Type: text/plain; charset="UTF-8"
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: overlayfs <linux-unionfs@vger.kernel.org>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-Split sys_flock(), add flock_setlk() routine to help kernel set
-flock easily.
+On Thu, Mar 22, 2018 at 4:20 PM, Amir Goldstein <amir73il@gmail.com> wrote:
+> On Thu, Mar 22, 2018 at 1:55 PM, Amir Goldstein <amir73il@gmail.com> wrote:
 
-Signed-off-by: yangerkun <yangerkun@huawei.com>
----
- fs/locks.c         | 29 +++++++++++++++++------------
- include/linux/fs.h |  1 +
- 2 files changed, 18 insertions(+), 12 deletions(-)
+> Yes, it is a mistake as you observed.
+> I was trying to understand why it didn't affect the tests.
+>
+> Apparently, the case where underlying dentry is disconnected
+> and overlay inode is in cache is harder to reproduce and is not covered by
+> the current tests. I think it requires:
+> - encoding non-upper non-dir overlay file handle
+> - drop caches
+> - open by non-upper file handle (disconnected underlying and not in
+> overlay icache)
+> - open by non-upper file handle again (disconnected underlying and in
+> overlay icache)
+>
+> The current tests only cover:
+> - encoding non-upper non-dir overlay file handle
+> - drop caches
+> - open by non-upper file handle (disconnected underlying and not in
+> overlay icache)
+> AND:
+> - encoding non-upper non-dir overlay file handle AND keep the file open
+> - drop caches
+> - open by non-upper file handle (connected underlying and in overlay icache)
+>
+> I will add the missing tests to my TODO.
+> I suppose you will be fixing this bug on commit?
 
-diff --git a/fs/locks.c b/fs/locks.c
-index d6ff4be..aeef6cf 100644
---- a/fs/locks.c
-+++ b/fs/locks.c
-@@ -1974,6 +1974,22 @@ int locks_lock_inode_wait(struct inode *inode, struct file_lock *fl)
- }
- EXPORT_SYMBOL(locks_lock_inode_wait);
- 
-+int flock_setlk(struct file *filp, struct file_lock *lock)
-+{
-+	int err;
-+
-+	err = security_file_lock(filp, lock->fl_type);
-+	if (err)
-+		return err;
-+
-+	if (filp->f_op->flock && is_remote_lock(filp))
-+		return filp->f_op->flock(filp,
-+					(lock->fl_flags & FL_SLEEP) ? F_SETLKW : F_SETLK,
-+					lock);
-+	else
-+		return locks_lock_file_wait(filp, lock);
-+}
-+
- /**
-  *	sys_flock: - flock() system call.
-  *	@fd: the file descriptor to lock.
-@@ -2019,18 +2035,7 @@ int locks_lock_inode_wait(struct inode *inode, struct file_lock *fl)
- 	if (can_sleep)
- 		lock->fl_flags |= FL_SLEEP;
- 
--	error = security_file_lock(f.file, lock->fl_type);
--	if (error)
--		goto out_free;
--
--	if (f.file->f_op->flock && is_remote_lock(f.file))
--		error = f.file->f_op->flock(f.file,
--					  (can_sleep) ? F_SETLKW : F_SETLK,
--					  lock);
--	else
--		error = locks_lock_file_wait(f.file, lock);
--
-- out_free:
-+	error = flock_setlk(f.file, lock);
- 	locks_free_lock(lock);
- 
-  out_putf:
-diff --git a/include/linux/fs.h b/include/linux/fs.h
-index 2a81556..3dab90c 100644
---- a/include/linux/fs.h
-+++ b/include/linux/fs.h
-@@ -1090,6 +1090,7 @@ extern int fcntl_setlk64(unsigned int, struct file *, unsigned int,
- extern int vfs_lock_file(struct file *, unsigned int, struct file_lock *, struct file_lock *);
- extern int vfs_cancel_lock(struct file *filp, struct file_lock *fl);
- extern int locks_lock_inode_wait(struct inode *inode, struct file_lock *fl);
-+extern int flock_setlk(struct file *filp, struct file_lock *fl);
- extern int __break_lease(struct inode *inode, unsigned int flags, unsigned int type);
- extern void lease_get_mtime(struct inode *, struct timespec *time);
- extern int generic_setlease(struct file *, long, struct file_lock **, void **priv);
--- 
-1.8.3.1
+Yes.
 
+Thanks,
+Miklos
