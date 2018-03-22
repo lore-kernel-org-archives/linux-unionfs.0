@@ -1,108 +1,49 @@
-Return-Path: <vgoyal@redhat.com>
-From: Vivek Goyal <vgoyal@redhat.com>
-Subject: [PATCH v13 12/28] ovl: Fix ovl_getattr() to get number of blocks from lower
-Date: Thu, 29 Mar 2018 15:38:38 -0400
-Message-Id: <20180329193854.13814-13-vgoyal@redhat.com>
-In-Reply-To: <20180329193854.13814-1-vgoyal@redhat.com>
-References: <20180329193854.13814-1-vgoyal@redhat.com>
+Return-Path: <yi.zhang@huawei.com>
+From: "zhangyi (F)" <yi.zhang@huawei.com>
+Subject: [RFC PATCH 4/4] ovl: fix redirect feature for backward compatibility
+Date: Thu, 22 Mar 2018 19:35:55 +0800
+Message-ID: <20180322113555.47858-5-yi.zhang@huawei.com>
+In-Reply-To: <20180322113555.47858-1-yi.zhang@huawei.com>
+References: <20180322113555.47858-1-yi.zhang@huawei.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 To: linux-unionfs@vger.kernel.org
-Cc: miklos@szeredi.hu, amir73il@gmail.com, vgoyal@redhat.com
+Cc: miklos@szeredi.hu, amir73il@gmail.com, yi.zhang@huawei.com, miaoxie@huawei.com, yangerkun@huawei.com
 List-ID: <linux-unionfs@vger.kernel.org>
 
-If an inode has been copied up metadata only, then we need to query the
-number of blocks from lower and fill up the stat->st_blocks.
+For a redirect dir was created before the overlayfs support
+"feature set", upper root dir does not contain the redirect dir
+feature xattr. In that case, we cannot detect this feature during
+mount time, so fix this feature set once a redirect xattr is detected
+in ovl_lookup().
 
-We need to be careful about races where we are doing stat on one cpu and
-data copy up is taking place on other cpu. We want to return
-stat->st_blocks either from lower or stable upper and not something in
-between. Hence, ovl_has_upperdata() is called first to figure out whether
-block reporting will take place from lower or upper.
-
-Reviewed-by: Amir Goldstein <amir73il@gmail.com>
-Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
+Signed-off-by: zhangyi (F) <yi.zhang@huawei.com>
 ---
- fs/overlayfs/inode.c     | 17 ++++++++++++++++-
- fs/overlayfs/overlayfs.h |  1 +
- fs/overlayfs/util.c      | 16 ++++++++++++++++
- 3 files changed, 33 insertions(+), 1 deletion(-)
+ fs/overlayfs/namei.c | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
-diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
-index e1dbfed0c449..cd03f3e642fd 100644
---- a/fs/overlayfs/inode.c
-+++ b/fs/overlayfs/inode.c
-@@ -76,6 +76,9 @@ int ovl_getattr(const struct path *path, struct kstat *stat,
- 	bool is_dir = S_ISDIR(dentry->d_inode->i_mode);
- 	bool samefs = ovl_same_sb(dentry->d_sb);
- 	int err;
-+	bool metacopy = false;
-+
-+	metacopy = ovl_is_metacopy_dentry(dentry);
+diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
+index 70fcfcc684cc..9325c5a870c0 100644
+--- a/fs/overlayfs/namei.c
++++ b/fs/overlayfs/namei.c
+@@ -914,6 +914,18 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
+ 		ctr++;
  
- 	type = ovl_path_real(dentry, &realpath);
- 	old_cred = ovl_override_creds(dentry->d_sb);
-@@ -93,7 +96,8 @@ int ovl_getattr(const struct path *path, struct kstat *stat,
- 	if (!is_dir || samefs) {
- 		if (OVL_TYPE_ORIGIN(type)) {
- 			struct kstat lowerstat;
--			u32 lowermask = STATX_INO | (!is_dir ? STATX_NLINK : 0);
-+			u32 lowermask = STATX_INO | STATX_BLOCKS |
-+					(!is_dir ? STATX_NLINK : 0);
- 
- 			ovl_path_lower(dentry, &realpath);
- 			err = vfs_getattr(&realpath, &lowerstat,
-@@ -126,6 +130,17 @@ int ovl_getattr(const struct path *path, struct kstat *stat,
- 			else
- 				stat->dev = ovl_get_pseudo_dev(dentry);
- 		}
-+		if (metacopy) {
-+			struct kstat lowerdatastat;
-+			u32 lowermask = STATX_BLOCKS;
-+
-+			ovl_path_lowerdata(dentry, &realpath);
-+			err = vfs_getattr(&realpath, &lowerdatastat,
-+					  lowermask, flags);
+ 		/*
++		 * Detect redirect xattr but not enable this feature, this
++		 * redirect maybe set by the old overlay driver, fix this
++		 * feature for backward compatibility.
++		 */
++		if (d.redirect && !ofs->config.redirect_dir &&
++		    !ovl_has_feature_redirect_dir(dentry->d_sb)) {
++			err = ovl_set_feature_redirect_dir(dentry->d_sb);
 +			if (err)
-+				goto out;
-+			stat->blocks = lowerdatastat.blocks;
++				goto out_put;
 +		}
- 		if (samefs) {
- 			/*
- 			 * When all layers are on the same fs, all real inode
-diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-index 7a9b6de16c89..4eb4b765887f 100644
---- a/fs/overlayfs/overlayfs.h
-+++ b/fs/overlayfs/overlayfs.h
-@@ -274,6 +274,7 @@ int ovl_nlink_start(struct dentry *dentry, bool *locked);
- void ovl_nlink_end(struct dentry *dentry, bool locked);
- int ovl_lock_rename_workdir(struct dentry *workdir, struct dentry *upperdir);
- int ovl_check_metacopy_xattr(struct dentry *dentry);
-+bool ovl_is_metacopy_dentry(struct dentry *dentry);
- 
- static inline bool ovl_is_impuredir(struct dentry *dentry)
- {
-diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
-index 2a467f9fcbfa..fd98329e820c 100644
---- a/fs/overlayfs/util.c
-+++ b/fs/overlayfs/util.c
-@@ -776,3 +776,19 @@ int ovl_check_metacopy_xattr(struct dentry *dentry)
- 	pr_warn_ratelimited("overlayfs: failed to get metacopy (%i)\n", res);
- 	return res;
- }
 +
-+bool ovl_is_metacopy_dentry(struct dentry *dentry)
-+{
-+	struct ovl_entry *oe = dentry->d_fsdata;
-+
-+	if (!d_is_reg(dentry))
-+		return false;
-+
-+	if (ovl_dentry_upper(dentry)) {
-+		if (!ovl_has_upperdata(dentry))
-+			return true;
-+		return false;
-+	}
-+
-+	return (oe->numlower > 1);
-+}
++		/*
+ 		 * Following redirects can have security consequences: it's like
+ 		 * a symlink into the lower layer without the permission checks.
+ 		 * This is only a problem if the upper layer is untrusted (e.g
 -- 
 2.13.6
