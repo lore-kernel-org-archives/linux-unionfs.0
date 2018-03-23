@@ -1,104 +1,71 @@
-Return-Path: <yi.zhang@huawei.com>
-From: "zhangyi (F)" <yi.zhang@huawei.com>
-Subject: [RFC PATCH 2/4] ovl: update features on upper root dir from lower layers
-Date: Thu, 22 Mar 2018 19:35:53 +0800
-Message-ID: <20180322113555.47858-3-yi.zhang@huawei.com>
-In-Reply-To: <20180322113555.47858-1-yi.zhang@huawei.com>
-References: <20180322113555.47858-1-yi.zhang@huawei.com>
 MIME-Version: 1.0
-Content-Type: text/plain
-To: linux-unionfs@vger.kernel.org
-Cc: miklos@szeredi.hu, amir73il@gmail.com, yi.zhang@huawei.com, miaoxie@huawei.com, yangerkun@huawei.com
+In-Reply-To: <20180323140040.GA4954@redhat.com>
+References: <1510073889-11657-1-git-send-email-amir73il@gmail.com>
+	<CAJfpegvBEXgi=P8Sciv+U6VqcjsLJChR1OdwZyZA_PoL3MNTNA@mail.gmail.com>
+	<CAOQ4uxiGQqGQy_te6PU7h1C_i1-JMEvfsG5B63GmLJDGrhNYLA@mail.gmail.com>
+	<CAJfpegu6knx6oZ7-GKpeG0AtOT3MgtT_F+QBY7EeHj1cg-hb6g@mail.gmail.com>
+	<CAOQ4uxg65nMyqAcyT5dW7A2ef9PDx1MKzFO-W2nV=XoT+=m0Ew@mail.gmail.com>
+	<CAJfpegs5ee14Mrdzzmd4T24Hfsvqqt6X=AiU4wk=fv2F1b3BvQ@mail.gmail.com>
+	<20180323140040.GA4954@redhat.com>
+Date: Fri, 23 Mar 2018 17:05:17 +0100
+Message-ID: <CAJfpegsmeWNdRo2RSik=Pw0V6NLnnupEVK+aVCZAfjXP0wXkSw@mail.gmail.com>
+Subject: Re: [PATCH v8 0/9] Overlayfs: constant st_ino/d_ino for non-samefs
+From: Miklos Szeredi <miklos@szeredi.hu>
+Content-Type: text/plain; charset="UTF-8"
+To: Vivek Goyal <vgoyal@redhat.com>
+Cc: Amir Goldstein <amir73il@gmail.com>, Chandan Rajendra <chandan@linux.vnet.ibm.com>, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>, Eddie Horng <eddiehorng.tw@gmail.com>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-If user mount overlay with lower dirs which used to be upper root dirs
-at previous mount of overlay, maybe some features was enabled and the
-the lower root dir may contain feature xattr, so features on the lower
-layers maybe more than that on the upper root dir. In that case, we
-should copy up (or append) all features from the lower layers to the
-upper root dir during mount time.
+On Fri, Mar 23, 2018 at 3:00 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
+> On Thu, Mar 22, 2018 at 04:36:25PM +0100, Miklos Szeredi wrote:
+>> On Thu, Mar 22, 2018 at 4:07 PM, Amir Goldstein <amir73il@gmail.com> wrote:
+>> > On Thu, Mar 22, 2018 at 4:19 PM, Miklos Szeredi <miklos@szeredi.hu> wrote:
+>> >> On Sat, Mar 17, 2018 at 9:29 AM, Amir Goldstein <amir73il@gmail.com> wrote:
+>> >>> On Wed, Nov 8, 2017 at 12:53 PM, Miklos Szeredi <miklos@szeredi.hu> wrote:
+>> >>>> On Tue, Nov 7, 2017 at 5:58 PM, Amir Goldstein <amir73il@gmail.com> wrote:
+>> >>> [...]
+>> >>>
+>> >>>> The -oxino patches are interesting, but maybe we should leave them
+>> >>>> brewing for another cycle.  Do you agree?
+>> >>>>
+>> >>>
+>> >>> Miklos,
+>> >>>
+>> >>> FYI, I pushed ovl-xino branch that is rebased on v4.16-rc5 and on top
+>> >>> of a few fixes in branch ovl-fixes:
+>> >>> * 5668064a61f6 - ovl: set i_ino to the value of st_ino for NFS export
+>> >>> * 579515ad5c75 - ovl: opaque xattr should overrule redirect xattr
+>> >>> * 0161362aeab7 - ovl: fix lookup with middle layer opaque dir and
+>> >>> absolute path redirects
+>> >>
+>> >> I'm a bit confused about this last one.  It's in Vivek's lookup fixes
+>> >> series as well but in a slightly different form.  Which one should I
+>> >> be looking at?
+>> >>
+>> >
+>> > Vivek's patch is the later version (so v2).
+>> > There are 2 differences between v1 and v2:
+>> > 1. Vivek's commit message is more elaborate, so should take it.
+>> > 2. Vivek's patch sets only d->stop and not d->opaque
+>> > This difference is purely semantic, because d->opaque is
+>> > ignored in ovl_lookup() for anything but the upper layer.
+>> >
+>> > I am fine with the semantic change, but wasn't sure if you
+>> > had other meaning in mind w.r.t d->opaque and metadata
+>> > going forward.
+>>
+>> I think clearing opaque it is the correct thing to do even if it
+>> doesn't have any effect.
+>
+> Hi Miklos,
+>
+> I am fine with anything. I was just trying to make it semantically
+> more clear. That is when ovl_lookup_layer() is called, what do fields
+> in ovl_data{} reflect. I felt that "->opaque" should reflect the
+> property of last element of the path. And if we stick to it, then we
+> should not clear d->opauque when absolute redirect is found.
 
-This patch doesn't add any features. After this patch, the upper root
-dir will contain all features on every lower root dir after mount.
+Right.  In the light of the rest of your patchset it makes sense.
 
-eg:
-upper: "trusted.overlay.feature_compat=a,b,c,d"
-lower0: "trusted.overlay.feature_compat=a,b,c"
-lower1: "trusted.overlay.feature_compat=b,c,d"
-
-Signed-off-by: zhangyi (F) <yi.zhang@huawei.com>
----
- fs/overlayfs/super.c | 39 ++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 38 insertions(+), 1 deletion(-)
-
-diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-index 10772ae237b4..19b7d0869fbd 100644
---- a/fs/overlayfs/super.c
-+++ b/fs/overlayfs/super.c
-@@ -231,6 +231,31 @@ static char *ovl_get_feature(struct dentry *realroot, const char *set)
- }
- 
- /*
-+ * Set overlay feature on the upper root dentry.
-+ *
-+ * @root: overlay root dir
-+ * @upper: upper root dir
-+ * @set: feature set xattr name
-+ * @feature: feature string
-+ * Return 0 if success, errorno otherwise.
-+ */
-+static int ovl_set_feature(struct dentry *root, struct dentry *upper,
-+			   const char *set, const char *feature)
-+{
-+	int err;
-+
-+	err = ovl_want_write(root);
-+	if (err)
-+		return err;
-+
-+	err = ovl_check_setxattr(root, upper, set, feature,
-+				 strlen(feature), 0);
-+
-+	ovl_drop_write(root);
-+	return err;
-+}
-+
-+/*
-  * Add new feature to (or generate new) features string, set update flag
-  * if new feature added.
-  *
-@@ -344,6 +369,7 @@ static int ovl_get_feature_set(struct dentry *root, const char *set,
- 	struct ovl_entry *oe = root->d_fsdata;
- 	char *buf = NULL;
- 	int i;
-+	bool update = false;
- 	int err;
- 
- 	WARN_ON(*feature || *unknown);
-@@ -373,12 +399,23 @@ static int ovl_get_feature_set(struct dentry *root, const char *set,
- 			continue;
- 
- 		err = ovl_parse_feature(buf, supp, feature,
--					unknown, NULL);
-+					unknown, &update);
- 		kfree(buf);
- 		if (err)
- 			return err;
- 	}
- 
-+	/*
-+	 * If features on the lower layers are more than that on the
-+	 * upper dir, update them.
-+	 */
-+	if (upperroot && update) {
-+		err = ovl_set_feature(root, ovl_dentry_upper(root),
-+				      set, *feature);
-+		if (err)
-+			return err;
-+	}
-+
- 	return 0;
- }
- 
--- 
-2.13.6
+Thanks,
+Miklos
