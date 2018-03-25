@@ -1,111 +1,45 @@
-Return-Path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mx3-rdu2.redhat.com ([66.187.233.73]:46858 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1751227AbeC2TjC (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 29 Mar 2018 15:39:02 -0400
-From: Vivek Goyal <vgoyal@redhat.com>
-Subject: [PATCH v13 02/28] ovl: Initialize ovl_inode->redirect in ovl_get_inode()
-Date: Thu, 29 Mar 2018 15:38:28 -0400
-Message-Id: <20180329193854.13814-3-vgoyal@redhat.com>
-In-Reply-To: <20180329193854.13814-1-vgoyal@redhat.com>
-References: <20180329193854.13814-1-vgoyal@redhat.com>
-Sender: linux-unionfs-owner@vger.kernel.org
-To: linux-unionfs@vger.kernel.org
-Cc: miklos@szeredi.hu, amir73il@gmail.com, vgoyal@redhat.com
+Return-Path: <amir73il@gmail.com>
+Return-Path: <amir73il@gmail.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Subject: [PATCH 0/3] Yet another overlayfs exportfs test
+Date: Sun, 25 Mar 2018 17:53:08 +0300
+Message-Id: <1521989591-9496-1-git-send-email-amir73il@gmail.com>
+To: Eryu Guan <eguan@redhat.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, fstests@vger.kernel.org
 List-ID: <linux-unionfs@vger.kernel.org>
 
-All the inode/ovl_inode properties ideally should be initialized in
-ovl_get_inode(). Otherwise this can be a problem for the cases where
-multiple dentries point to same inode (hardlinks, disconnected dentries).
+Eryu,
 
-As of now this is not a problem as redirects are used only for directories
-which don't share inode. But soon I want to use redirects for regular files
-also and there it will become an issue.
+This test should pass on upstream kernel.
+It provides test coverage for a state of inode/dentry cache that
+was not covered by previous tests.
+I had to extend open_by_handle again to reproduce the uncovered
+cache state.
 
-Hence, move ->redirect initialization in ovl_get_inode().
+Miklos,
 
-Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
----
- fs/overlayfs/export.c    | 2 +-
- fs/overlayfs/inode.c     | 5 ++++-
- fs/overlayfs/namei.c     | 4 +---
- fs/overlayfs/overlayfs.h | 2 +-
- 4 files changed, 7 insertions(+), 6 deletions(-)
+I used tracing on index lookup with this test to verify correctness
+of ("ovl: lookup in inode cache first when decoding lower file handle").
+With your review fix, index lookup is called for non-dir after mount
+cycle, but not called after opening by file handle again, when the
+diconnected dentries are still in cache.
 
-diff --git a/fs/overlayfs/export.c b/fs/overlayfs/export.c
-index 9868c173068e..e668329f7361 100644
---- a/fs/overlayfs/export.c
-+++ b/fs/overlayfs/export.c
-@@ -305,7 +305,7 @@ static struct dentry *ovl_obtain_alias(struct super_block *sb,
- 	if (d_is_dir(upper ?: lower))
- 		return ERR_PTR(-EIO);
- 
--	inode = ovl_get_inode(sb, dget(upper), lower, index, !!lower);
-+	inode = ovl_get_inode(sb, dget(upper), lower, index, !!lower, NULL);
- 	if (IS_ERR(inode)) {
- 		dput(upper);
- 		return ERR_CAST(inode);
-diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
-index 06ef9a7a7d1a..2e7ee09c7831 100644
---- a/fs/overlayfs/inode.c
-+++ b/fs/overlayfs/inode.c
-@@ -704,7 +704,7 @@ static bool ovl_hash_bylower(struct super_block *sb, struct dentry *upper,
- 
- struct inode *ovl_get_inode(struct super_block *sb, struct dentry *upperdentry,
- 			    struct dentry *lowerdentry, struct dentry *index,
--			    unsigned int numlower)
-+			    unsigned int numlower, char *redirect)
- {
- 	struct inode *realinode = upperdentry ? d_inode(upperdentry) : NULL;
- 	struct inode *inode;
-@@ -741,6 +741,7 @@ struct inode *ovl_get_inode(struct super_block *sb, struct dentry *upperdentry,
- 			}
- 
- 			dput(upperdentry);
-+			kfree(redirect);
- 			goto out;
- 		}
- 
-@@ -763,6 +764,8 @@ struct inode *ovl_get_inode(struct super_block *sb, struct dentry *upperdentry,
- 	if (index)
- 		ovl_set_flag(OVL_INDEX, inode);
- 
-+	OVL_I(inode)->redirect = redirect;
-+
- 	/* Check for non-merge dir that may have whiteouts */
- 	if (is_dir) {
- 		if (((upperdentry && lowerdentry) || numlower > 1) ||
-diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
-index ec92fa2f7d5f..0b325e65864c 100644
---- a/fs/overlayfs/namei.c
-+++ b/fs/overlayfs/namei.c
-@@ -999,12 +999,10 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
- 		if (ctr)
- 			origin = stack[0].dentry;
- 		inode = ovl_get_inode(dentry->d_sb, upperdentry, origin, index,
--				      ctr);
-+				      ctr, upperredirect);
- 		err = PTR_ERR(inode);
- 		if (IS_ERR(inode))
- 			goto out_free_oe;
--
--		OVL_I(inode)->redirect = upperredirect;
- 	}
- 
- 	revert_creds(old_cred);
-diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-index 225ff1171147..a65ce7fd1b6e 100644
---- a/fs/overlayfs/overlayfs.h
-+++ b/fs/overlayfs/overlayfs.h
-@@ -330,7 +330,7 @@ struct inode *ovl_lookup_inode(struct super_block *sb, struct dentry *real,
- 			       bool is_upper);
- struct inode *ovl_get_inode(struct super_block *sb, struct dentry *upperdentry,
- 			    struct dentry *lowerdentry, struct dentry *index,
--			    unsigned int numlower);
-+			    unsigned int numlower, char *redirect);
- static inline void ovl_copyattr(struct inode *from, struct inode *to)
- {
- 	to->i_uid = from->i_uid;
+Thanks,
+Amir.
+
+Amir Goldstein (3):
+  open_by_handle: add -n option to suppress drop caches
+  open_by_handle: add -s option to sleep and keep files open by handle
+  overlay: test decoding overlay file handles with warm/cold dentry
+    cache
+
+ src/open_by_handle.c  |  57 ++++++++++++++-------
+ tests/overlay/058     | 137 ++++++++++++++++++++++++++++++++++++++++++++++++++
+ tests/overlay/058.out |   9 ++++
+ tests/overlay/group   |   1 +
+ 4 files changed, 186 insertions(+), 18 deletions(-)
+ create mode 100755 tests/overlay/058
+ create mode 100644 tests/overlay/058.out
+
 -- 
-2.13.6
-
+2.7.4
