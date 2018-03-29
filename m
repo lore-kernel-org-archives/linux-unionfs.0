@@ -1,129 +1,69 @@
 Return-Path: <amir73il@gmail.com>
-Return-Path: <amir73il@gmail.com>
+MIME-Version: 1.0
+In-Reply-To: <20180329140114.GA2749@redhat.com>
+References: <20180306205408.23383-1-vgoyal@redhat.com> <20180306205408.23383-17-vgoyal@redhat.com>
+ <CAOQ4uxjAwUk7n_kBZKic9snMw4Sz_ad-a4AJ4h4hNzniQv9+9Q@mail.gmail.com> <20180329140114.GA2749@redhat.com>
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH] ovl: set i_ino to the value of st_ino for NFS export
-Date: Fri, 16 Mar 2018 09:39:59 +0200
-Message-Id: <1521185999-12801-1-git-send-email-amir73il@gmail.com>
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: Eddie Horng <eddiehorng.tw@gmail.com>, Trond Myklebust <trondmy@primarydata.com>, Jeff Layton <jlayton@poochiereds.net>, "J . Bruce Fields" <bfields@fieldses.org>, linux-unionfs@vger.kernel.org
+Date: Thu, 29 Mar 2018 17:09:01 +0300
+Message-ID: <CAOQ4uxhyys31iy7TMFnQbBcW-iQW6p7wcGjq1xBvtOjFyduwTg@mail.gmail.com>
+Subject: Re: [PATCH v12 16/17] ovl: Set redirect on upper inode when it is linked
+Content-Type: text/plain; charset="UTF-8"
+To: Vivek Goyal <vgoyal@redhat.com>
+Cc: overlayfs <linux-unionfs@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-Eddie Horng reported that readdir of an overlayfs directory that
-was exported via NFSv3 returns entries with d_type set to DT_UNKNOWN.
-The reason is that while preparing the response for readdirplus, nfsd
-checks inside encode_entryplus_baggage() that a child dentry's inode
-number matches the value of d_ino returns by overlayfs readdir iterator.
+On Thu, Mar 29, 2018 at 5:01 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
+> On Wed, Mar 07, 2018 at 10:02:20AM +0200, Amir Goldstein wrote:
+>> On Tue, Mar 6, 2018 at 10:54 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
+>> > When we create a hardlink to a metacopy upper file, first the redirect
+>> > on that inode. Path based lookup will not work with newly created link
+>> > and redirect will solve that issue.
+>> >
+>> > Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
+>> > ---
+>> >  fs/overlayfs/dir.c | 18 ++++++++++++++----
+>> >  1 file changed, 14 insertions(+), 4 deletions(-)
+>> >
+>> > diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
+>> > index b955f6fede06..da5c4b8ee919 100644
+>> > --- a/fs/overlayfs/dir.c
+>> > +++ b/fs/overlayfs/dir.c
+>> > @@ -24,6 +24,8 @@ module_param_named(redirect_max, ovl_redirect_max, ushort, 0644);
+>> >  MODULE_PARM_DESC(ovl_redirect_max,
+>> >                  "Maximum length of absolute redirect xattr value");
+>> >
+>> > +static int ovl_set_redirect(struct dentry *dentry, bool samedir);
+>> > +
+>> >  int ovl_cleanup(struct inode *wdir, struct dentry *wdentry)
+>> >  {
+>> >         int err;
+>> > @@ -468,6 +470,9 @@ static int ovl_create_or_link(struct dentry *dentry, struct inode *inode,
+>> >         const struct cred *old_cred;
+>> >         struct cred *override_cred;
+>> >         struct dentry *parent = dentry->d_parent;
+>> > +       struct dentry *hardlink_upper;
+>> > +
+>> > +       hardlink_upper = hardlink ? ovl_dentry_upper(hardlink) : NULL;
+>>
+>> IMO it would be nicer to pass overlay hardlink dentry all the way to
+>> ovl_create_real() and then just:
+>>
+>>         if (hardlink) {
+>>                 err = ovl_do_link(ovl_dentry_upper(hardlink), dir,
+>> newdentry, debug);
+>
+> Amir,
+>
+> Are you particular about this change? I looked at ovl_create_real() and
+> I see that right now both "newdentry" and "hardlink" are real dentries.
+> And I like it. Mixing real dentries and overlay dentries in functions
+> is often very confusing, especially given the fact that we don't have
+> any prefix/postfix to differentiate between two.
+>
+> So I would rather prefer to leave it as it is.
+>
 
-Because the overlayfs inodes use arbitrary inode numbers that are not
-correlated with the values of st_ino/d_ino, NFSv3 falls back to not
-encoding d_type. Although this is an allowed behavior, we can fix it for
-the case of all overlayfs layers on the same underlying filesystem.
+I can live with that :)
 
-When NFS export is enabled and d_ino is consistent with st_ino
-(samefs), set the same value also to i_ino in ovl_fill_inode() for all
-overlayfs inodes, nfsd readdirplus sanity checks will pass.
-ovl_fill_inode() may be called from ovl_new_inode(), before real inode
-was created with ino arg 0. In that case, i_ino will be updated to real
-upper inode i_ino on ovl_inode_init() or ovl_inode_update().
-
-Reported-by: Eddie Horng <eddiehorng.tw@gmail.com>
-Tested-by: Eddie Horng <eddiehorng.tw@gmail.com>
-Signed-off-by: Amir Goldstein <amir73il@gmail.com>
----
- fs/overlayfs/inode.c | 21 +++++++++++++++++----
- fs/overlayfs/util.c  |  8 +++++++-
- 2 files changed, 24 insertions(+), 5 deletions(-)
-
-diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
-index 3b1bd469accd..4689716f23d8 100644
---- a/fs/overlayfs/inode.c
-+++ b/fs/overlayfs/inode.c
-@@ -459,9 +459,20 @@ static inline void ovl_lockdep_annotate_inode_mutex_key(struct inode *inode)
- #endif
- }
- 
--static void ovl_fill_inode(struct inode *inode, umode_t mode, dev_t rdev)
-+static void ovl_fill_inode(struct inode *inode, umode_t mode, dev_t rdev,
-+			   unsigned long ino)
- {
--	inode->i_ino = get_next_ino();
-+	/*
-+	 * When NFS export is enabled and d_ino is consistent with st_ino
-+	 * (samefs), set the same value to i_ino, because nfsd readdirplus
-+	 * compares d_ino values to i_ino values of child entries. When called
-+	 * from ovl_new_inode(), ino arg is 0, so i_ino will be updated to real
-+	 * upper inode i_ino on ovl_inode_init() or ovl_inode_update().
-+	 */
-+	if (inode->i_sb->s_export_op && ovl_same_sb(inode->i_sb))
-+		inode->i_ino = ino;
-+	else
-+		inode->i_ino = get_next_ino();
- 	inode->i_mode = mode;
- 	inode->i_flags |= S_NOCMTIME;
- #ifdef CONFIG_FS_POSIX_ACL
-@@ -597,7 +608,7 @@ struct inode *ovl_new_inode(struct super_block *sb, umode_t mode, dev_t rdev)
- 
- 	inode = new_inode(sb);
- 	if (inode)
--		ovl_fill_inode(inode, mode, rdev);
-+		ovl_fill_inode(inode, mode, rdev, 0);
- 
- 	return inode;
- }
-@@ -710,6 +721,7 @@ struct inode *ovl_get_inode(struct super_block *sb, struct dentry *upperdentry,
- 	struct inode *inode;
- 	bool bylower = ovl_hash_bylower(sb, upperdentry, lowerdentry, index);
- 	bool is_dir;
-+	unsigned long ino = 0;
- 
- 	if (!realinode)
- 		realinode = d_inode(lowerdentry);
-@@ -748,13 +760,14 @@ struct inode *ovl_get_inode(struct super_block *sb, struct dentry *upperdentry,
- 		if (!is_dir)
- 			nlink = ovl_get_nlink(lowerdentry, upperdentry, nlink);
- 		set_nlink(inode, nlink);
-+		ino = key->i_ino;
- 	} else {
- 		/* Lower hardlink that will be broken on copy up */
- 		inode = new_inode(sb);
- 		if (!inode)
- 			goto out_nomem;
- 	}
--	ovl_fill_inode(inode, realinode->i_mode, realinode->i_rdev);
-+	ovl_fill_inode(inode, realinode->i_mode, realinode->i_rdev, ino);
- 	ovl_inode_init(inode, upperdentry, lowerdentry);
- 
- 	if (upperdentry && ovl_is_impuredir(upperdentry))
-diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
-index 930784a26623..493f9b76fbf6 100644
---- a/fs/overlayfs/util.c
-+++ b/fs/overlayfs/util.c
-@@ -279,12 +279,16 @@ void ovl_dentry_set_redirect(struct dentry *dentry, const char *redirect)
- void ovl_inode_init(struct inode *inode, struct dentry *upperdentry,
- 		    struct dentry *lowerdentry)
- {
-+	struct inode *realinode = d_inode(upperdentry ?: lowerdentry);
-+
- 	if (upperdentry)
- 		OVL_I(inode)->__upperdentry = upperdentry;
- 	if (lowerdentry)
- 		OVL_I(inode)->lower = igrab(d_inode(lowerdentry));
- 
--	ovl_copyattr(d_inode(upperdentry ?: lowerdentry), inode);
-+	ovl_copyattr(realinode, inode);
-+	if (!inode->i_ino)
-+		inode->i_ino = realinode->i_ino;
- }
- 
- void ovl_inode_update(struct inode *inode, struct dentry *upperdentry)
-@@ -299,6 +303,8 @@ void ovl_inode_update(struct inode *inode, struct dentry *upperdentry)
- 	smp_wmb();
- 	OVL_I(inode)->__upperdentry = upperdentry;
- 	if (inode_unhashed(inode)) {
-+		if (!inode->i_ino)
-+			inode->i_ino = upperinode->i_ino;
- 		inode->i_private = upperinode;
- 		__insert_inode_hash(inode, (unsigned long) upperinode);
- 	}
--- 
-2.7.4
+Thanks,
+Amir.
