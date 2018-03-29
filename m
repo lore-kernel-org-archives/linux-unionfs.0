@@ -1,91 +1,84 @@
 Return-Path: <vgoyal@redhat.com>
 From: Vivek Goyal <vgoyal@redhat.com>
-Subject: [PATCH v2 4/4] ovl: fix lookup with middle layer opaque dir and absolute path redirects
-Date: Fri,  9 Mar 2018 15:44:44 -0500
-Message-Id: <20180309204444.13237-5-vgoyal@redhat.com>
-In-Reply-To: <20180309204444.13237-1-vgoyal@redhat.com>
-References: <20180309204444.13237-1-vgoyal@redhat.com>
+Subject: [PATCH v13 00/28] overlayfs: Delayed copy up of data
+Date: Thu, 29 Mar 2018 15:38:26 -0400
+Message-Id: <20180329193854.13814-1-vgoyal@redhat.com>
 To: linux-unionfs@vger.kernel.org
 Cc: miklos@szeredi.hu, amir73il@gmail.com, vgoyal@redhat.com
 List-ID: <linux-unionfs@vger.kernel.org>
 
-From: Amir Goldstein <amir73il@gmail.com>
+Hi,
 
-As of now if we encounter an opaque dir while looking for a dentry, we set
-d->last=true. This means that there is no need to look further in any of
-the lower layers. This works fine as long as there are no redirets or
-relative redircts. But what if there is an absolute redirect on the
-children dentry of opaque directory. We still need to continue to look into
-next lower layer. This patch fixes it.
+Here are the V13 of metadata only copy up patches.
 
-Here is first example to demonstrate the issue. Say you have following setup.
+These apply on top of 4.16.0-rc7 kernel + "ovl: Bunch of ovl_lookup() path fixes" patch series.
 
-upper:  /redirect (redirect=/a/b/c)
-lower1: /a/[b]/c       ([b] is opaque) (c has absolute redirect=/a/b/d/foo)
-lower0: /a/b/d/foo
+Patches are also available here.
 
-Now "redirect" dir should merge with lower1:/a/b/c/ and lower0:/a/b/d. Note,
-despite the fact lower1:/a/[b] is opaque, we need to continue to look into
-lower0 because children c has an absolute redirect.
+https://github.com/rhvgoyal/linux/commits/metacopy-v13
 
-Following is second example.
+Changes from V12:
 
-Watch me make foo disappear:
+- Primarily took care of Amir's comments.
+- Redirects are now placed on regular file also and that opened bunch
+  of races. Fixed those issues.
+- Posted few ovl_lookup() fixes and rebased these patches on top of
+  the fixes. ("ovl: Bunch of ovl_lookup() path fixes")
+- Now metacopy file with upper is also marked as OVL_TYPE_MERGED and
+  rename code makes use of that assumption. (Suggested by Amir).
+- Fixed an issue where OVL_TYPE_ORIGIN was being set even for broken
+  hardlinks with metacopy.
+- Fixed races w.r.t remove redirect path.
+- During rename, set relative redirect if nlink=1, otherwise set
+  absolute redirect on metacopy files.
 
- $ mkdir lower middle upper work work2 merged
- $ mkdir lower/origin
- $ touch lower/origin/foo
- $ mount -t overlay none merged/ \
-         -olowerdir=lower,upperdir=middle,workdir=work2
- $ mkdir merged/pure
- $ mv merged/origin merged/pure/redirect
- $ umount merged
- $ mount -t overlay none merged/ \
-         -olowerdir=middle:lower,upperdir=upper,workdir=work
- $ mv merged/pure/redirect merged/redirect
+Any comments and feedback is welcome.
 
-Now you see foo inside a twice redirected merged dir:
+Thanks
+Vivek
 
- $ ls merged/redirect
- foo
- $ umount merged
- $ mount -t overlay none merged/ \
-         -olowerdir=middle:lower,upperdir=upper,workdir=work
+Vivek Goyal (28):
+  ovl: Set OVL_INDEX flag in ovl_get_inode()
+  ovl: Initialize ovl_inode->redirect in ovl_get_inode()
+  ovl: Rename local variable locked to new_locked
+  ovl: Provide a mount option metacopy=on/off for metadata copyup
+  ovl: During copy up, first copy up metadata and then data
+  ovl: Move the copy up helpers to copy_up.c
+  ovl: Copy up only metadata during copy up where it makes sense
+  ovl: Add helper ovl_already_copied_up()
+  ovl: A new xattr OVL_XATTR_METACOPY for file on upper
+  ovl: Modify ovl_lookup() and friends to lookup metacopy dentry
+  ovl: Copy up meta inode data from lowest data inode
+  ovl: Fix ovl_getattr() to get number of blocks from lower
+  ovl: Add helper ovl_dentry_lowerdata() to get lower data dentry
+  ovl: Do not expose metacopy only dentry from d_real()
+  ovl: Move some of ovl_nlink_start() functionality in ovl_nlink_prep()
+  ovl: Create locked version of ovl_nlink_start() and ovl_nlink_end()
+  ovl: During rename lock both source and target ovl_inode
+  ovl: Check redirects for metacopy files
+  ovl: Treat metacopy dentries as type OVL_PATH_MERGE
+  ovl: Do not set dentry type ORIGIN for broken hardlinks
+  ovl: Set redirect on metacopy files upon rename
+  ovl: Set redirect on upper inode when it is linked
+  ovl: Remove redirect when data of a metacopy file is copied up
+  ovl: Do not error if REDIRECT XATTR is missing
+  ovl: Use out_err insteada of out_nomem
+  ovl: Re-check redirect xattr during inode initialization
+  ovl: Verify a data dentry has been found for metacopy inode
+  ovl: Enable metadata only feature
 
-After mount cycle you don't see foo inside the same dir:
+ Documentation/filesystems/overlayfs.txt |  30 +++-
+ fs/overlayfs/Kconfig                    |  19 +++
+ fs/overlayfs/copy_up.c                  | 165 +++++++++++++++----
+ fs/overlayfs/dir.c                      | 166 ++++++++++++++++---
+ fs/overlayfs/export.c                   |   7 +-
+ fs/overlayfs/inode.c                    | 140 +++++++++++-----
+ fs/overlayfs/namei.c                    | 121 ++++++++++----
+ fs/overlayfs/overlayfs.h                |  30 +++-
+ fs/overlayfs/ovl_entry.h                |   1 +
+ fs/overlayfs/super.c                    |  62 ++++++-
+ fs/overlayfs/util.c                     | 281 +++++++++++++++++++++++++++++---
+ 11 files changed, 861 insertions(+), 161 deletions(-)
 
- $ ls merged/redirect
-
-During middle layer lookup, the opaqueness of middle/pure is left in
-the lookup state and then middle/pure/redirect is wrongly treated as
-opaque.
-
-Fixes: 02b69b284cd7 ("ovl: lookup redirects")
-Cc: <stable@vger.kernel.org> #v4.10
-Signed-off-by: Amir Goldstein <amir73il@gmail.com>
-Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
----
- fs/overlayfs/namei.c | 8 ++++++++
- 1 file changed, 8 insertions(+)
-
-diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
-index de08a67405d0..096d5853af7d 100644
---- a/fs/overlayfs/namei.c
-+++ b/fs/overlayfs/namei.c
-@@ -56,6 +56,14 @@ static int ovl_check_redirect(struct dentry *dentry, struct ovl_lookup_data *d,
- 			if (s == next)
- 				goto invalid;
- 		}
-+		/*
-+		 * One of the ancestor path elements in an absolute path
-+		 * lookup in ovl_lookup_layer() could have been opaque, but it
-+		 * possible for a decendant path element to reset opaqueness in
-+		 * case this path element has an absolute redirect to a lower
-+		 * layer.
-+		 */
-+		d->stop = false;
- 	} else {
- 		if (strchr(buf, '/') != NULL)
- 			goto invalid;
 -- 
 2.13.6
