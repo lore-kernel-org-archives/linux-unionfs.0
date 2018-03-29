@@ -1,247 +1,393 @@
-Return-Path: <amir73il@gmail.com>
-Return-Path: <amir73il@gmail.com>
-From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH v9 3/7] ovl: constant st_ino for non-samefs with xino
-Date: Thu, 29 Mar 2018 17:18:49 +0300
-Message-Id: <1522333133-24772-4-git-send-email-amir73il@gmail.com>
-In-Reply-To: <1522333133-24772-1-git-send-email-amir73il@gmail.com>
-References: <1522333133-24772-1-git-send-email-amir73il@gmail.com>
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: linux-unionfs@vger.kernel.org
+Return-Path: <linux-unionfs-owner@vger.kernel.org>
+Received: from mx3-rdu2.redhat.com ([66.187.233.73]:50006 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1751868AbeC2TjD (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Thu, 29 Mar 2018 15:39:03 -0400
+From: Vivek Goyal <vgoyal@redhat.com>
+Subject: [PATCH v13 09/28] ovl: A new xattr OVL_XATTR_METACOPY for file on upper
+Date: Thu, 29 Mar 2018 15:38:35 -0400
+Message-Id: <20180329193854.13814-10-vgoyal@redhat.com>
+In-Reply-To: <20180329193854.13814-1-vgoyal@redhat.com>
+References: <20180329193854.13814-1-vgoyal@redhat.com>
+Sender: linux-unionfs-owner@vger.kernel.org
+To: linux-unionfs@vger.kernel.org
+Cc: miklos@szeredi.hu, amir73il@gmail.com, vgoyal@redhat.com
 List-ID: <linux-unionfs@vger.kernel.org>
 
-On 64bit systems, when overlay layers are not all on the same fs, but
-all inode numbers of underlying fs are not using the high bits, use the
-high bits to partition the overlay st_ino address space.  The high bits
-hold the fsid (upper fsid is 0).  This way overlay inode numbers are unique
-and all inodes use overlay st_dev.  Inode numbers are also persistent
-for a given layer configuration.
+Now we will have the capability to have upper inodes which might be only
+metadata copy up and data is still on lower inode. So add a new xattr
+OVL_XATTR_METACOPY to distinguish between two cases.
 
-Currently, our only indication for available high ino bits is from a
-filesystem that supports file handles and uses the default encode_fh()
-operation, which encodes a 32bit inode number.
+Presence of OVL_XATTR_METACOPY reflects that file has been copied up
+metadata only and and data will be copied up later from lower origin.
+So this xattr is set when a metadata copy takes place and cleared when
+data copy takes place.
 
-Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+We also use a bit in ovl_inode->flags to cache OVL_UPPERDATA which reflects
+whether ovl inode has data or not (as opposed to metadata only copy up).
+
+If a file is copied up metadata only and later when same file is opened
+for WRITE, then data copy up takes place. We copy up data, remove METACOPY
+xattr and then set the UPPERDATA flag in ovl_inode->flags. While all
+these operations happen with oi->lock held, read side of oi->flags can be
+lockless. That is another thread on another cpu can check if UPPERDATA
+flag is set or not.
+
+So this gives us an ordering requirement w.r.t UPPERDATA flag. That is, if
+another cpu sees UPPERDATA flag set, then it should be guaranteed that
+effects of data copy up and remove xattr operations are also visible.
+
+For example.
+
+	CPU1				CPU2
+ovl_d_real()				acquire(oi->lock)
+ ovl_open_maybe_copy_up()                ovl_copy_up_data()
+  open_open_need_copy_up()		 vfs_removexattr()
+   ovl_already_copied_up()
+    ovl_dentry_needs_data_copy_up()	 ovl_set_flag(OVL_UPPERDATA)
+     ovl_test_flag(OVL_UPPERDATA)       release(oi->lock)
+
+Say CPU2 is copying up data and in the end sets UPPERDATA flag. But if
+CPU1 perceives the effects of setting UPPERDATA flag but not the effects
+of preceeding operations (ex. upper that is not fully copied up), it will be
+a problem.
+
+Hence this patch introduces smp_wmb() on setting UPPERDATA flag operation
+and smp_rmb() on UPPERDATA flag test operation.
+
+May be some other lock or barrier is already covering it. But I am not sure
+what that is and is it obvious enough that we will not break it in future.
+
+So hence trying to be safe here and introducing barriers explicitly for
+UPPERDATA flag/bit.
+
+Reviewed-by: Amir Goldstein <amir73il@gmail.com>
+Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
 ---
- fs/overlayfs/inode.c     | 31 +++++++++++++++++++++++++++++--
- fs/overlayfs/overlayfs.h |  3 ++-
- fs/overlayfs/ovl_entry.h |  2 ++
- fs/overlayfs/super.c     | 26 ++++++++++++++++++++++----
- fs/overlayfs/util.c      | 24 +++++++++++++++++++++---
- 5 files changed, 76 insertions(+), 10 deletions(-)
+ fs/overlayfs/copy_up.c   | 56 ++++++++++++++++++++++++++++++----
+ fs/overlayfs/dir.c       |  1 +
+ fs/overlayfs/overlayfs.h | 18 +++++++++--
+ fs/overlayfs/super.c     |  1 +
+ fs/overlayfs/util.c      | 78 +++++++++++++++++++++++++++++++++++++++++++++---
+ 5 files changed, 143 insertions(+), 11 deletions(-)
 
-diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
-index 89dfab20fe0e..7fc9c83bf2ff 100644
---- a/fs/overlayfs/inode.c
-+++ b/fs/overlayfs/inode.c
-@@ -63,6 +63,7 @@ static int ovl_map_dev_ino(struct dentry *dentry, struct kstat *stat)
- {
- 	struct ovl_layer *lower_layer = ovl_layer_lower(dentry);
- 	bool samefs = ovl_same_sb(dentry->d_sb);
-+	int xinobits = ovl_xino_bits(dentry->d_sb);
- 
- 	if (samefs) {
- 		/*
-@@ -71,7 +72,31 @@ static int ovl_map_dev_ino(struct dentry *dentry, struct kstat *stat)
- 		 * which is friendly to du -x.
- 		 */
- 		stat->dev = dentry->d_sb->s_dev;
--	} else if (S_ISDIR(dentry->d_inode->i_mode)) {
-+		return 0;
-+	} else if (xinobits) {
-+		/*
-+		 * All inode numbers of underlying fs should not be using the
-+		 * high xinobits, so we use high xinobits to partition the
-+		 * overlay st_ino address space. The high bits holds the fsid
-+		 * (upper fsid is 0). This way overlay inode numbers are unique
-+		 * and all inodes use overlay st_dev. Inode numbers are also
-+		 * persistent for a given layer configuration.
-+		 */
-+		if (stat->ino >> (64 - xinobits)) {
-+			pr_warn_ratelimited("overlayfs: inode number too big (%pd2, ino=%llu, xinobits=%d)\n",
-+					    dentry, stat->ino, xinobits);
-+		} else {
-+			if (lower_layer) {
-+				stat->ino |= ((u64)lower_layer->fsid)
-+					     << (64 - xinobits);
-+			}
-+			stat->dev = dentry->d_sb->s_dev;
-+			return 0;
-+		}
-+	}
-+
-+	/* The inode could not be mapped to a unified st_ino address space */
-+	if (S_ISDIR(dentry->d_inode->i_mode)) {
- 		/*
- 		 * Always use the overlay st_dev for directories, so 'find
- 		 * -xdev' will scan the entire overlay mount and won't cross the
-@@ -117,11 +142,13 @@ int ovl_getattr(const struct path *path, struct kstat *stat,
- 	/*
- 	 * For non-dir or same fs, we use st_ino of the copy up origin.
- 	 * This guaranties constant st_dev/st_ino across copy up.
-+	 * With xino feature and non-samefs, we use st_ino of the copy up
-+	 * origin masked with high bits that represent the layer id.
- 	 *
- 	 * If lower filesystem supports NFS file handles, this also guaranties
- 	 * persistent st_ino across mount cycle.
- 	 */
--	if (!is_dir || samefs) {
-+	if (!is_dir || samefs || ovl_xino_bits(dentry->d_sb)) {
- 		if (OVL_TYPE_ORIGIN(type)) {
- 			struct kstat lowerstat;
- 			u32 lowermask = STATX_INO | (!is_dir ? STATX_NLINK : 0);
-diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-index 4432599ecbc6..09f5b8ce70aa 100644
---- a/fs/overlayfs/overlayfs.h
-+++ b/fs/overlayfs/overlayfs.h
-@@ -202,7 +202,8 @@ void ovl_drop_write(struct dentry *dentry);
- struct dentry *ovl_workdir(struct dentry *dentry);
- const struct cred *ovl_override_creds(struct super_block *sb);
- struct super_block *ovl_same_sb(struct super_block *sb);
--bool ovl_can_decode_fh(struct super_block *sb);
-+int ovl_xino_bits(struct super_block *sb);
-+int ovl_can_decode_fh(struct super_block *sb);
- struct dentry *ovl_indexdir(struct super_block *sb);
- bool ovl_index_all(struct super_block *sb);
- bool ovl_verify_lower(struct super_block *sb);
-diff --git a/fs/overlayfs/ovl_entry.h b/fs/overlayfs/ovl_entry.h
-index e1c838c27a74..6a077fb2a75f 100644
---- a/fs/overlayfs/ovl_entry.h
-+++ b/fs/overlayfs/ovl_entry.h
-@@ -63,6 +63,8 @@ struct ovl_fs {
- 	/* Did we take the inuse lock? */
- 	bool upperdir_locked;
- 	bool workdir_locked;
-+	/* Inode numbers in all layers do not use the high xino_bits */
-+	int xino_bits;
- };
- 
- /* private information held for every overlayfs dentry */
-diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-index 7d97d30cad39..d7284444f404 100644
---- a/fs/overlayfs/super.c
-+++ b/fs/overlayfs/super.c
-@@ -17,6 +17,7 @@
- #include <linux/statfs.h>
- #include <linux/seq_file.h>
- #include <linux/posix_acl_xattr.h>
-+#include <linux/exportfs.h>
- #include "overlayfs.h"
- 
- MODULE_AUTHOR("Miklos Szeredi <miklos@szeredi.hu>");
-@@ -701,6 +702,7 @@ static int ovl_check_namelen(struct path *path, struct ovl_fs *ofs,
- static int ovl_lower_dir(const char *name, struct path *path,
- 			 struct ovl_fs *ofs, int *stack_depth, bool *remote)
- {
-+	int fh_type;
- 	int err;
- 
- 	err = ovl_mount_dir_noesc(name, path);
-@@ -720,15 +722,19 @@ static int ovl_lower_dir(const char *name, struct path *path,
- 	 * The inodes index feature and NFS export need to encode and decode
- 	 * file handles, so they require that all layers support them.
- 	 */
-+	fh_type = ovl_can_decode_fh(path->dentry->d_sb);
- 	if ((ofs->config.nfs_export ||
--	     (ofs->config.index && ofs->config.upperdir)) &&
--	    !ovl_can_decode_fh(path->dentry->d_sb)) {
-+	     (ofs->config.index && ofs->config.upperdir)) && !fh_type) {
- 		ofs->config.index = false;
- 		ofs->config.nfs_export = false;
- 		pr_warn("overlayfs: fs on '%s' does not support file handles, falling back to index=off,nfs_export=off.\n",
- 			name);
- 	}
- 
-+	/* Check if lower fs has 32bit inode numbers */
-+	if (fh_type != FILEID_INO32_GEN)
-+		ofs->xino_bits = 0;
-+
- 	return 0;
- 
- out_put:
-@@ -952,6 +958,7 @@ static int ovl_make_workdir(struct ovl_fs *ofs, struct path *workpath)
- {
- 	struct vfsmount *mnt = ofs->upper_mnt;
- 	struct dentry *temp;
-+	int fh_type;
- 	int err;
- 
- 	err = mnt_want_write(mnt);
-@@ -1001,12 +1008,16 @@ static int ovl_make_workdir(struct ovl_fs *ofs, struct path *workpath)
- 	}
- 
- 	/* Check if upper/work fs supports file handles */
--	if (ofs->config.index &&
--	    !ovl_can_decode_fh(ofs->workdir->d_sb)) {
-+	fh_type = ovl_can_decode_fh(ofs->workdir->d_sb);
-+	if (ofs->config.index && !fh_type) {
- 		ofs->config.index = false;
- 		pr_warn("overlayfs: upper fs does not support file handles, falling back to index=off.\n");
- 	}
- 
-+	/* Check if upper fs has 32bit inode numbers */
-+	if (fh_type != FILEID_INO32_GEN)
-+		ofs->xino_bits = 0;
-+
- 	/* NFS export of r/w mount depends on index */
- 	if (ofs->config.nfs_export && !ofs->config.index) {
- 		pr_warn("overlayfs: NFS export requires \"index=on\", falling back to nfs_export=off.\n");
-@@ -1185,6 +1196,11 @@ static int ovl_get_lower_layers(struct ovl_fs *ofs, struct path *stack,
- 		}
- 		ofs->numlower++;
- 	}
-+
-+	/* When all layers on same fs, overlay can use real inode numbers */
-+	if (!ofs->numlowerfs || (ofs->numlowerfs == 1 && !ofs->upper_mnt))
-+		ofs->xino_bits = 0;
-+
- 	err = 0;
- out:
- 	return err;
-@@ -1308,6 +1324,8 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
- 
- 	sb->s_stack_depth = 0;
- 	sb->s_maxbytes = MAX_LFS_FILESIZE;
-+	/* Assume underlaying fs uses 32bit inodes unless proven otherwise */
-+	ofs->xino_bits = BITS_PER_LONG - 32;
- 	if (ofs->config.upperdir) {
- 		if (!ofs->config.workdir) {
- 			pr_err("overlayfs: missing 'workdir'\n");
-diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
-index 9dfec74ec77d..3bdba8b332f4 100644
---- a/fs/overlayfs/util.c
-+++ b/fs/overlayfs/util.c
-@@ -55,10 +55,28 @@ struct super_block *ovl_same_sb(struct super_block *sb)
- 		return NULL;
+diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
+index 8d9af7fdc8a4..9801ae7baa5d 100644
+--- a/fs/overlayfs/copy_up.c
++++ b/fs/overlayfs/copy_up.c
+@@ -195,6 +195,16 @@ static int ovl_copy_up_data(struct path *old, struct path *new, loff_t len)
+ 	return error;
  }
  
--bool ovl_can_decode_fh(struct super_block *sb)
-+int ovl_xino_bits(struct super_block *sb)
- {
--	return (sb->s_export_op && sb->s_export_op->fh_to_dentry &&
--		!uuid_is_null(&sb->s_uuid));
-+	struct ovl_fs *ofs = sb->s_fs_info;
++static int ovl_set_size(struct dentry *upperdentry, struct kstat *stat)
++{
++	struct iattr attr = {
++		.ia_valid = ATTR_SIZE,
++		.ia_size = stat->size,
++	};
 +
-+	return ofs->xino_bits;
++	return notify_change(upperdentry, &attr, NULL);
 +}
 +
-+/*
-+ * Check if underlying fs supports file handles and try to determine encoding
-+ * type, in order to deduce maximum inode number used by fs.
-+ *
-+ * Return 0 if file handles are not supported.
-+ * Return 1 (FILEID_INO32_GEN) if fs uses the default 32bit inode encoding.
-+ * Return -1 if fs uses a non default encoding with unknown inode size.
-+ */
-+int ovl_can_decode_fh(struct super_block *sb)
-+{
-+	if (!sb->s_export_op || !sb->s_export_op->fh_to_dentry ||
-+	    uuid_is_null(&sb->s_uuid))
-+		return 0;
+ static int ovl_set_timestamps(struct dentry *upperdentry, struct kstat *stat)
+ {
+ 	struct iattr attr = {
+@@ -586,8 +596,18 @@ static int ovl_copy_up_inode(struct ovl_copy_up_ctx *c, struct dentry *temp)
+ 			return err;
+ 	}
+ 
++	if (c->metacopy) {
++		err = ovl_check_setxattr(c->dentry, temp, OVL_XATTR_METACOPY,
++					 NULL, 0, -EOPNOTSUPP);
++		if (err)
++			return err;
++	}
 +
-+	return sb->s_export_op->encode_fh ? -1 : FILEID_INO32_GEN;
+ 	inode_lock(temp->d_inode);
+-	err = ovl_set_attr(temp, &c->stat);
++	if (c->metacopy)
++		err = ovl_set_size(temp, &c->stat);
++	if (!err)
++		err = ovl_set_attr(temp, &c->stat);
+ 	inode_unlock(temp->d_inode);
+ 
+ 	return err;
+@@ -625,6 +645,8 @@ static int ovl_copy_up_locked(struct ovl_copy_up_ctx *c)
+ 	if (err)
+ 		goto out_cleanup;
+ 
++	if (!c->metacopy)
++		ovl_set_upperdata(d_inode(c->dentry));
+ 	inode = d_inode(c->dentry);
+ 	ovl_inode_update(inode, newdentry);
+ 	if (S_ISDIR(inode->i_mode))
+@@ -729,6 +751,28 @@ static int ovl_do_copy_up(struct ovl_copy_up_ctx *c)
+ 	return err;
  }
  
- struct dentry *ovl_indexdir(struct super_block *sb)
++/* Copy up data of an inode which was copied up metadata only in the past. */
++static int ovl_copy_up_meta_inode_data(struct ovl_copy_up_ctx *c)
++{
++	struct path upperpath;
++	int err;
++
++	ovl_path_upper(c->dentry, &upperpath);
++	if (WARN_ON(upperpath.dentry == NULL))
++		return -EIO;
++
++	err = ovl_copy_up_data(&c->lowerpath, &upperpath, c->stat.size);
++	if (err)
++		return err;
++
++	err = vfs_removexattr(upperpath.dentry, OVL_XATTR_METACOPY);
++	if (err)
++		return err;
++
++	ovl_set_upperdata(d_inode(c->dentry));
++	return err;
++}
++
+ static int ovl_copy_up_one(struct dentry *parent, struct dentry *dentry,
+ 			   int flags)
+ {
+@@ -775,7 +819,7 @@ static int ovl_copy_up_one(struct dentry *parent, struct dentry *dentry,
+ 	}
+ 	ovl_do_check_copy_up(ctx.lowerpath.dentry);
+ 
+-	err = ovl_copy_up_start(dentry);
++	err = ovl_copy_up_start(dentry, flags);
+ 	/* err < 0: interrupted, err > 0: raced with another copy-up */
+ 	if (unlikely(err)) {
+ 		if (err > 0)
+@@ -785,6 +829,8 @@ static int ovl_copy_up_one(struct dentry *parent, struct dentry *dentry,
+ 			err = ovl_do_copy_up(&ctx);
+ 		if (!err && parent && !ovl_dentry_has_upper_alias(dentry))
+ 			err = ovl_link_up(&ctx);
++		if (!err && ovl_dentry_needs_data_copy_up_locked(dentry, flags))
++			err = ovl_copy_up_meta_inode_data(&ctx);
+ 		ovl_copy_up_end(dentry);
+ 	}
+ 	do_delayed_call(&done);
+@@ -810,7 +856,7 @@ int ovl_copy_up_flags(struct dentry *dentry, int flags)
+ 		struct dentry *next;
+ 		struct dentry *parent = NULL;
+ 
+-		if (ovl_already_copied_up(dentry))
++		if (ovl_already_copied_up(dentry, flags))
+ 			break;
+ 
+ 		next = dget(dentry);
+@@ -838,13 +884,13 @@ int ovl_copy_up_flags(struct dentry *dentry, int flags)
+ static bool ovl_open_need_copy_up(struct dentry *dentry, int flags)
+ {
+ 	/* Copy up of disconnected dentry does not set upper alias */
+-	if (ovl_already_copied_up(dentry))
++	if (ovl_already_copied_up(dentry, flags))
+ 		return false;
+ 
+ 	if (special_file(d_inode(dentry)->i_mode))
+ 		return false;
+ 
+-	if (!(OPEN_FMODE(flags) & FMODE_WRITE) && !(flags & O_TRUNC))
++	if (!ovl_open_flags_need_copy_up(flags))
+ 		return false;
+ 
+ 	return true;
+diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
+index 8a38f3136547..7617a03acc30 100644
+--- a/fs/overlayfs/dir.c
++++ b/fs/overlayfs/dir.c
+@@ -189,6 +189,7 @@ static void ovl_instantiate(struct dentry *dentry, struct inode *inode,
+ 	ovl_dentry_version_inc(dentry->d_parent, false);
+ 	ovl_dentry_set_upper_alias(dentry);
+ 	if (!hardlink) {
++		ovl_set_upperdata(inode);
+ 		ovl_inode_update(inode, newdentry);
+ 		ovl_copyattr(newdentry->d_inode, inode);
+ 	} else {
+diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
+index c7c9d717d546..8608f3ec8f44 100644
+--- a/fs/overlayfs/overlayfs.h
++++ b/fs/overlayfs/overlayfs.h
+@@ -28,6 +28,7 @@ enum ovl_path_type {
+ #define OVL_XATTR_IMPURE OVL_XATTR_PREFIX "impure"
+ #define OVL_XATTR_NLINK OVL_XATTR_PREFIX "nlink"
+ #define OVL_XATTR_UPPER OVL_XATTR_PREFIX "upper"
++#define OVL_XATTR_METACOPY OVL_XATTR_PREFIX "metacopy"
+ 
+ enum ovl_inode_flag {
+ 	/* Pure upper dir that may contain non pure upper entries */
+@@ -35,6 +36,7 @@ enum ovl_inode_flag {
+ 	/* Non-merge dir that may contain whiteout entries */
+ 	OVL_WHITEOUTS,
+ 	OVL_INDEX,
++	OVL_UPPERDATA,
+ };
+ 
+ enum ovl_entry_flag {
+@@ -196,6 +198,14 @@ static inline struct dentry *ovl_do_tmpfile(struct dentry *dentry, umode_t mode)
+ 	return ret;
+ }
+ 
++static inline bool ovl_open_flags_need_copy_up(int flags)
++{
++	if (!flags)
++		return false;
++
++	return ((OPEN_FMODE(flags) & FMODE_WRITE) || (flags & O_TRUNC));
++}
++
+ /* util.c */
+ int ovl_want_write(struct dentry *dentry);
+ void ovl_drop_write(struct dentry *dentry);
+@@ -230,6 +240,10 @@ bool ovl_dentry_is_whiteout(struct dentry *dentry);
+ void ovl_dentry_set_opaque(struct dentry *dentry);
+ bool ovl_dentry_has_upper_alias(struct dentry *dentry);
+ void ovl_dentry_set_upper_alias(struct dentry *dentry);
++bool ovl_dentry_needs_data_copy_up(struct dentry *dentry, int flags);
++bool ovl_dentry_needs_data_copy_up_locked(struct dentry *dentry, int flags);
++bool ovl_has_upperdata(struct dentry *dentry);
++void ovl_set_upperdata(struct inode *inode);
+ bool ovl_redirect_dir(struct super_block *sb);
+ const char *ovl_dentry_get_redirect(struct dentry *dentry);
+ void ovl_dentry_set_redirect(struct dentry *dentry, const char *redirect);
+@@ -240,9 +254,9 @@ void ovl_dentry_version_inc(struct dentry *dentry, bool impurity);
+ u64 ovl_dentry_version_get(struct dentry *dentry);
+ bool ovl_is_whiteout(struct dentry *dentry);
+ struct file *ovl_path_open(struct path *path, int flags);
+-int ovl_copy_up_start(struct dentry *dentry);
++int ovl_copy_up_start(struct dentry *dentry, int flags);
+ void ovl_copy_up_end(struct dentry *dentry);
+-bool ovl_already_copied_up(struct dentry *dentry);
++bool ovl_already_copied_up(struct dentry *dentry, int flags);
+ bool ovl_check_origin_xattr(struct dentry *dentry);
+ bool ovl_check_dir_xattr(struct dentry *dentry, const char *name);
+ int ovl_check_setxattr(struct dentry *dentry, struct dentry *upperdentry,
+diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+index ddff54fa9e85..f77acb8d632a 100644
+--- a/fs/overlayfs/super.c
++++ b/fs/overlayfs/super.c
+@@ -1398,6 +1398,7 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
+ 	/* Root is always merge -> can have whiteouts */
+ 	ovl_set_flag(OVL_WHITEOUTS, d_inode(root_dentry));
+ 	ovl_dentry_set_flag(OVL_E_CONNECTED, root_dentry);
++	ovl_set_upperdata(d_inode(root_dentry));
+ 	ovl_inode_init(d_inode(root_dentry), upperpath.dentry,
+ 		       ovl_dentry_lower(root_dentry));
+ 
+diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
+index 4e537eeb594e..7929cc872df6 100644
+--- a/fs/overlayfs/util.c
++++ b/fs/overlayfs/util.c
+@@ -256,6 +256,62 @@ void ovl_dentry_set_upper_alias(struct dentry *dentry)
+ 	ovl_dentry_set_flag(OVL_E_UPPER_ALIAS, dentry);
+ }
+ 
++static bool ovl_should_check_upperdata(struct dentry *dentry)
++{
++	if (!S_ISREG(d_inode(dentry)->i_mode))
++		return false;
++
++	if (!ovl_dentry_lower(dentry))
++		return false;
++
++	return true;
++}
++
++bool ovl_has_upperdata(struct dentry *dentry)
++{
++	if (!ovl_should_check_upperdata(dentry))
++		return true;
++
++	if (!ovl_test_flag(OVL_UPPERDATA, d_inode(dentry)))
++		return false;
++	/*
++	 * Pairs with smp_wmb() in ovl_set_upperdata(). Main user of
++	 * ovl_has_upperdata() is ovl_copy_up_meta_inode_data(). Make sure
++	 * if setting of OVL_UPPERDATA is visible, then effects of writes
++	 * before that are visible too.
++	 */
++	smp_rmb();
++	return true;
++}
++
++void ovl_set_upperdata(struct inode *inode)
++{
++	/*
++	 * Pairs with smp_rmb() in ovl_has_upperdata(). Make sure
++	 * if OVL_UPPERDATA flag is visible, then effects of write operations
++	 * before it are visible as well.
++	 */
++	smp_wmb();
++	ovl_set_flag(OVL_UPPERDATA, inode);
++}
++
++/* Caller should hold ovl_inode->lock */
++bool ovl_dentry_needs_data_copy_up_locked(struct dentry *dentry, int flags)
++{
++	if (!ovl_open_flags_need_copy_up(flags))
++		return false;
++
++	return !ovl_test_flag(OVL_UPPERDATA, d_inode(dentry));
++}
++
++bool ovl_dentry_needs_data_copy_up(struct dentry *dentry, int flags)
++{
++	if (!ovl_open_flags_need_copy_up(flags))
++		return false;
++
++	return !ovl_has_upperdata(dentry);
++}
++
+ bool ovl_redirect_dir(struct super_block *sb)
+ {
+ 	struct ovl_fs *ofs = sb->s_fs_info;
+@@ -339,7 +395,20 @@ struct file *ovl_path_open(struct path *path, int flags)
+ 	return dentry_open(path, flags | O_NOATIME, current_cred());
+ }
+ 
+-bool ovl_already_copied_up(struct dentry *dentry)
++/* Caller should hold ovl_inode->lock */
++static bool ovl_already_copied_up_locked(struct dentry *dentry, int flags)
++{
++	bool disconnected = dentry->d_flags & DCACHE_DISCONNECTED;
++
++	if (ovl_dentry_upper(dentry) &&
++	    (ovl_dentry_has_upper_alias(dentry) || disconnected) &&
++	    !ovl_dentry_needs_data_copy_up_locked(dentry, flags))
++		return true;
++
++	return false;
++}
++
++bool ovl_already_copied_up(struct dentry *dentry, int flags)
+ {
+ 	bool disconnected = dentry->d_flags & DCACHE_DISCONNECTED;
+ 
+@@ -357,19 +426,20 @@ bool ovl_already_copied_up(struct dentry *dentry)
+ 	 *      with rename.
+ 	 */
+ 	if (ovl_dentry_upper(dentry) &&
+-	    (ovl_dentry_has_upper_alias(dentry) || disconnected))
++	    (ovl_dentry_has_upper_alias(dentry) || disconnected) &&
++	    !ovl_dentry_needs_data_copy_up(dentry, flags))
+ 		return true;
+ 
+ 	return false;
+ }
+ 
+-int ovl_copy_up_start(struct dentry *dentry)
++int ovl_copy_up_start(struct dentry *dentry, int flags)
+ {
+ 	struct ovl_inode *oi = OVL_I(d_inode(dentry));
+ 	int err;
+ 
+ 	err = mutex_lock_interruptible(&oi->lock);
+-	if (!err && ovl_already_copied_up(dentry)) {
++	if (!err && ovl_already_copied_up_locked(dentry, flags)) {
+ 		err = 1; /* Already copied up */
+ 		mutex_unlock(&oi->lock);
+ 	}
 -- 
-2.7.4
+2.13.6
+
