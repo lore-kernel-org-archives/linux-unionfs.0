@@ -1,82 +1,213 @@
-Return-Path: <eddiehorng.tw@gmail.com>
+Return-Path: <guaneryu@gmail.com>
+Return-Path: <guaneryu@gmail.com>
+Date: Thu, 29 Mar 2018 11:39:39 +0800
+From: Eryu Guan <guaneryu@gmail.com>
+Subject: Re: [PATCH 3/3] overlay: test decoding overlay file handles with
+ warm/cold dentry cache
+Message-ID: <20180329033939.GJ30836@localhost.localdomain>
+References: <1521989591-9496-1-git-send-email-amir73il@gmail.com>
+ <1521989591-9496-4-git-send-email-amir73il@gmail.com>
 MIME-Version: 1.0
-From: Eddie Horng <eddiehorng.tw@gmail.com>
-Date: Mon, 12 Mar 2018 15:13:53 +0800
-Message-ID: <CALLuPvrEfoMPxqC3n=KovgV7DBo3pMtLK8VaFV7yWOmiFsZSDw@mail.gmail.com>
-Subject: flock fails in overlay nfs-exported file
-Content-Type: multipart/alternative; boundary="001a1134f94e794323056731e214"
-To: miklos@szeredi.hu
-Cc: linux-unionfs@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1521989591-9496-4-git-send-email-amir73il@gmail.com>
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, fstests@vger.kernel.org
 List-ID: <linux-unionfs@vger.kernel.org>
 
---001a1134f94e794323056731e214
-Content-Type: text/plain; charset="UTF-8"
+On Sun, Mar 25, 2018 at 05:53:11PM +0300, Amir Goldstein wrote:
+> When opening a non-dir by file handle and the decoded inode/dentry
+> are not in cache, the resulting dentry is "disconnected" (i.e. unknown
+> path). This is a common case that is already covered by previous tests.
+> This test covers the case of decoding an overlay file handle, while a
+> disconnected dentry is still in cache.
+> 
+> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+> ---
+>  tests/overlay/058     | 137 ++++++++++++++++++++++++++++++++++++++++++++++++++
+>  tests/overlay/058.out |   9 ++++
+>  tests/overlay/group   |   1 +
+>  3 files changed, 147 insertions(+)
+>  create mode 100755 tests/overlay/058
+>  create mode 100644 tests/overlay/058.out
+> 
+> diff --git a/tests/overlay/058 b/tests/overlay/058
+> new file mode 100755
+> index 0000000..4c4ca45
+> --- /dev/null
+> +++ b/tests/overlay/058
+> @@ -0,0 +1,137 @@
+> +#! /bin/bash
+> +# FS QA Test No. 058
+> +#
+> +# Test decoding overlay file handles with warm/cold dentry cache
+> +#
+> +# When opening a non-dir by file handle and the decoded inode/dentry
+> +# are not in cache, the resulting dentry is "disconnected" (i.e. unknown
+> +# path). This is a common case that is already covered by previous tests.
+> +# This test covers the case of decoding an overlay file handle, while a
+> +# disconnected dentry is still in cache.
+> +#
+> +# This test requires and enables overlayfs NFS export support.
+> +# NFS export support depends on and requires overlayfs index feature.
+> +#
+> +#-----------------------------------------------------------------------
+> +# Copyright (C) 2018 CTERA Networks. All Rights Reserved.
+> +# Author: Amir Goldstein <amir73il@gmail.com>
+> +#
+> +# This program is free software; you can redistribute it and/or
+> +# modify it under the terms of the GNU General Public License as
+> +# published by the Free Software Foundation.
+> +#
+> +# This program is distributed in the hope that it would be useful,
+> +# but WITHOUT ANY WARRANTY; without even the implied warranty of
+> +# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> +# GNU General Public License for more details.
+> +#
+> +# You should have received a copy of the GNU General Public License
+> +# along with this program; if not, write the Free Software Foundation,
+> +# Inc.,  51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+> +#-----------------------------------------------------------------------
+> +#
+> +
+> +seq=`basename $0`
+> +seqres=$RESULT_DIR/$seq
+> +echo "QA output created by $seq"
+> +
+> +here=`pwd`
+> +tmp=/tmp/$$
+> +status=1	# failure is the default!
+> +trap "_cleanup; exit \$status" 0 1 2 3 15
+> +
+> +_cleanup()
+> +{
+> +	$KILLALL_PROG -9 open_by_handle >/dev/null 2>&1
+> +	wait
+> +	cd /
+> +	rm -f $tmp.*
+> +}
+> +
+> +# get standard environment, filters and checks
+> +. ./common/rc
+> +. ./common/filter
+> +
+> +# real QA test starts here
+> +
+> +_supported_fs overlay
+> +_supported_os Linux
+> +_require_scratch
+> +_require_test_program "open_by_handle"
+> +# We need to require all features together, because nfs_export cannot
+> +# be enabled when index is disabled
+> +_require_scratch_overlay_features index nfs_export
+> +_require_command "$KILLALL_PROG" killall
+> +
+> +# All overlay dirs are on scratch partition
+> +lower=$OVL_BASE_SCRATCH_MNT/$OVL_LOWER
+> +upper=$OVL_BASE_SCRATCH_MNT/$OVL_UPPER
+> +work=$OVL_BASE_SCRATCH_MNT/$OVL_WORK
+> +
+> +# Keep this number > 1, because open_by_handle -rp does faccessat()
+> +# on file file000000, which makes that dentry connected
+> +NUMFILES=10
+> +
+> +# Create test dir and empty test files
+> +create_test_files()
+> +{
+> +	local dir=$1
+> +	local opt=$2
+> +
+> +	mkdir -p $dir
+> +	$here/src/open_by_handle -cp $opt $dir $NUMFILES
+> +}
+> +
+> +# Test encode/decode file handles on overlay mount
+> +test_file_handles()
+> +{
+> +	local dir=$1
+> +	shift
+> +
+> +	echo test_file_handles $dir $* | _filter_scratch | \
+> +				sed -e "s,$tmp\.,,g"
+> +	$here/src/open_by_handle $* $dir $NUMFILES
+> +}
+> +
+> +# Create lower/upper dir and files
+> +_scratch_mkfs
+> +create_test_files $upper/uppertestdir -w
+> +create_test_files $lower/lowertestdir -w
+> +_scratch_mount -o "index=on,nfs_export=on"
+> +# Encode upper file handles
+> +test_file_handles $SCRATCH_MNT/uppertestdir -p -o $tmp.upper_file_handles
+> +# Encode lower file handles
+> +test_file_handles $SCRATCH_MNT/lowertestdir -p -o $tmp.lower_file_handles
+> +
+> +# Check decode and read from stored file handles with warm caches -
+> +# At this time, all non-dir dentries are connected, because the entries
+> +# were created on lookup, before encoding the file handles.
+> +test_file_handles $SCRATCH_MNT -rnp -i $tmp.upper_file_handles
+> +test_file_handles $SCRATCH_MNT -rnp -i $tmp.lower_file_handles
+> +
+> +# Check decode and read/readdir from stored file handles with cold caches -
+> +# -s sleeps in the background to keep files open and keep disconnected
+> +# overlay dentries in cache
+> +_scratch_cycle_mount "index=on,nfs_export=on"
+> +test_file_handles $SCRATCH_MNT -rnps -i $tmp.upper_file_handles &
+> +# Give the above 1 second to get to sleep loop
+> +sleep 1
+> +test_file_handles $SCRATCH_MNT -rnps -i $tmp.lower_file_handles &
+> +# Give the above 1 second to get to sleep loop
+> +sleep 1
+> +
+> +# Check decode and read/readdir from stored file handles with warm caches -
+> +# At this time, all non-dir dentries are disconnected, because there was
+> +# no lookup to the files since drop caches. The expection to this rule
+> +# is lower and upper file000000. open_by_handle -rp above did faccessat()
+> +# on file file000000, which created a connected dentry alias in addition
+> +# to the disconnected dentry alias.
+> +test_file_handles $SCRATCH_MNT -rnp -i $tmp.upper_file_handles
+> +test_file_handles $SCRATCH_MNT -rnp -i $tmp.lower_file_handles
+> +
+> +# SIGPIPE avoids Terminated/Killed message from bash
+> +$KILLALL_PROG -q -13 open_by_handle
 
-Hello Miklos,
-I'd like to report a flock(2) problem to overlay nfs-exported files. The
-error return from flock(2) is "Bad file descriptor".
+I think SIGINT is more proper?
 
-Environment:
-OS: Ubuntu 14.04.2 LTS
-Kernel: 4.16.0-041600rc4-generic (from
-http://kernel.ubuntu.com/~kernel-ppa/mainline/v4.16-rc4/)
+Thanks,
+Eryu
 
-Reproduce step:
-(nfs server side)
-mount -t overlay
--orw,lowerdir=/mnt/ro,upperdir=/mnt/u,workdir=/mnt/w,nfs_export=on,index=on
-none /mnt/m
-touch /mnt/m/foo
-(nfs client side)
-mount server:/mnt/m /mnt/n
-
-flock /mnt/n/foo
-failed to lock file '/mnt/n/foo': Bad file descriptor
-
-The simple flock(2) wrap program is:
-int main(int argc, void **argv) {
-char *filename=argv[1];
-int fd = open(filename, O_RDONLY);;
-int flock_result = flock(fd, LOCK_EX | LOCK_NB);
-if (flock_result != 0) {
-      printf("failed to lock file '%s': %s\n", filename, strerror(errno));
-      goto out;
-    }
-    printf("flock succeed\n");
-out:
-    close(fd);
-}
-
-Thanks!
-
---001a1134f94e794323056731e214
-Content-Type: text/html; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-
-<div dir=3D"ltr">Hello=C2=A0Miklos,<div>I&#39;d like to report a flock(2) p=
-roblem to=C2=A0overlay nfs-exported files. The error return from flock(2) i=
-s &quot;Bad file descriptor&quot;.</div><div><br></div><div>Environment:</d=
-iv><div>OS:=C2=A0Ubuntu 14.04.2 LTS</div><div>Kernel:=C2=A04.16.0-041600rc4=
--generic (from=C2=A0<a href=3D"http://kernel.ubuntu.com/~kernel-ppa/mainlin=
-e/v4.16-rc4/">http://kernel.ubuntu.com/~kernel-ppa/mainline/v4.16-rc4/</a>)=
-</div><div><br></div><div>Reproduce step:</div><div>(nfs server side)</div>=
-<div>mount -t overlay -orw,lowerdir=3D/mnt/ro,upperdir=3D/mnt/u,workdir=3D/=
-mnt/w,nfs_export=3Don,index=3Don none /mnt/m<br></div><div>touch /mnt/m/foo=
-</div><div>(nfs client side)</div><div>mount server:/mnt/m /mnt/n<br></div>=
-<div><br></div><div>flock /mnt/n/foo</div><div>failed to lock file &#39;/mn=
-t/n/foo&#39;: Bad file descriptor<br></div><div><br></div><div>The simple f=
-lock(2) wrap program is:</div><div><div>int main(int argc, void **argv) {</=
-div><div><span class=3D"gmail-Apple-tab-span" style=3D"white-space:pre">	</=
-span>char *filename=3Dargv[1];</div><div><span class=3D"gmail-Apple-tab-spa=
-n" style=3D"white-space:pre">	</span>int fd =3D open(filename, O_RDONLY);;<=
-/div><div><span class=3D"gmail-Apple-tab-span" style=3D"white-space:pre">	<=
-/span>int flock_result =3D flock(fd, LOCK_EX | LOCK_NB);</div><div><span cl=
-ass=3D"gmail-Apple-tab-span" style=3D"white-space:pre">	</span>if (flock_re=
-sult !=3D 0) {</div><div>=C2=A0 =C2=A0 =C2=A0 printf(&quot;failed to lock f=
-ile &#39;%s&#39;: %s\n&quot;, filename, strerror(errno));</div><div>=C2=A0 =
-=C2=A0 =C2=A0 goto out;</div><div>=C2=A0 =C2=A0 }</div><div>=C2=A0 =C2=A0 p=
-rintf(&quot;flock succeed\n&quot;);</div><div>out: =C2=A0 =C2=A0</div><div>=
-=C2=A0 =C2=A0 close(fd);</div><div>}</div></div><div><br></div><div>Thanks!=
-</div></div>
-
---001a1134f94e794323056731e214--
+> +wait
+> +
+> +status=0
+> +exit
+> diff --git a/tests/overlay/058.out b/tests/overlay/058.out
+> new file mode 100644
+> index 0000000..6ff9811
+> --- /dev/null
+> +++ b/tests/overlay/058.out
+> @@ -0,0 +1,9 @@
+> +QA output created by 058
+> +test_file_handles SCRATCH_MNT/uppertestdir -p -o upper_file_handles
+> +test_file_handles SCRATCH_MNT/lowertestdir -p -o lower_file_handles
+> +test_file_handles SCRATCH_MNT -rnp -i upper_file_handles
+> +test_file_handles SCRATCH_MNT -rnp -i lower_file_handles
+> +test_file_handles SCRATCH_MNT -rnps -i upper_file_handles
+> +test_file_handles SCRATCH_MNT -rnps -i lower_file_handles
+> +test_file_handles SCRATCH_MNT -rnp -i upper_file_handles
+> +test_file_handles SCRATCH_MNT -rnp -i lower_file_handles
+> diff --git a/tests/overlay/group b/tests/overlay/group
+> index c49ae3a..359ed42 100644
+> --- a/tests/overlay/group
+> +++ b/tests/overlay/group
+> @@ -60,3 +60,4 @@
+>  055 auto quick copyup redirect exportfs nonsamefs
+>  056 auto quick fsck
+>  057 auto quick redirect
+> +058 auto quick exportfs
+> -- 
+> 2.7.4
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-unionfs" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
