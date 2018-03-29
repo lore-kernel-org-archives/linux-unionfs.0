@@ -1,141 +1,145 @@
 Return-Path: <amir73il@gmail.com>
 Return-Path: <amir73il@gmail.com>
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH v2 3/5] open_by_handle: add -n option to suppress drop caches
-Date: Thu, 29 Mar 2018 15:06:48 +0300
-Message-Id: <1522325210-17900-4-git-send-email-amir73il@gmail.com>
-In-Reply-To: <1522325210-17900-1-git-send-email-amir73il@gmail.com>
-References: <1522325210-17900-1-git-send-email-amir73il@gmail.com>
-To: Eryu Guan <eguan@redhat.com>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, fstests@vger.kernel.org
+Subject: [PATCH v9 5/7] ovl: consistent d_ino for non-samefs with xino
+Date: Thu, 29 Mar 2018 17:18:51 +0300
+Message-Id: <1522333133-24772-6-git-send-email-amir73il@gmail.com>
+In-Reply-To: <1522333133-24772-1-git-send-email-amir73il@gmail.com>
+References: <1522333133-24772-1-git-send-email-amir73il@gmail.com>
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: linux-unionfs@vger.kernel.org
 List-ID: <linux-unionfs@vger.kernel.org>
 
-By default, open_by_handle drops inode and page caches before trying
-to open by file handles. Add an option to suppress drop caches for
-testing open by handle with warm caches.
+When overlay layers are not all on the same fs, but all inode numbers
+of underlying fs do not use the high 'xino' bits, overlay st_ino values
+are constant and persistent.
 
-Usage: open_by_handle -n <test_dir> [N]
+In that case, relax non-samefs constraint for consistent d_ino and always
+iterate non-merge dir using ovl_fill_real() actor so we can remap lower
+inode numbers to unique lower fs range.
 
 Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- src/open_by_handle.c | 41 +++++++++++++++++++++++++----------------
- 1 file changed, 25 insertions(+), 16 deletions(-)
+ fs/overlayfs/readdir.c | 45 +++++++++++++++++++++++++++++++++++++++------
+ 1 file changed, 39 insertions(+), 6 deletions(-)
 
-diff --git a/src/open_by_handle.c b/src/open_by_handle.c
-index 7dfb395..d3beb78 100644
---- a/src/open_by_handle.c
-+++ b/src/open_by_handle.c
-@@ -27,7 +27,7 @@
+diff --git a/fs/overlayfs/readdir.c b/fs/overlayfs/readdir.c
+index c11f5c0906c3..ef1fe42ff7bb 100644
+--- a/fs/overlayfs/readdir.c
++++ b/fs/overlayfs/readdir.c
+@@ -120,6 +120,10 @@ static bool ovl_calc_d_ino(struct ovl_readdir_data *rdd,
+ 	if (!rdd->dentry)
+ 		return false;
  
++	/* Always recalc d_ino when remapping lower inode numbers */
++	if (ovl_xino_bits(rdd->dentry->d_sb))
++		return true;
++
+ 	/* Always recalc d_ino for parent */
+ 	if (strcmp(p->name, "..") == 0)
+ 		return true;
+@@ -435,6 +439,19 @@ static struct ovl_dir_cache *ovl_cache_get(struct dentry *dentry)
+ 	return cache;
+ }
+ 
++/* Map inode number to lower fs unique range */
++static u64 ovl_remap_lower_ino(u64 ino, int xinobits, int fsid,
++			       const char *name, int namelen)
++{
++	if (ino >> (64 - xinobits)) {
++		pr_warn_ratelimited("overlayfs: d_ino too big (%.*s, ino=%llu, xinobits=%d)\n",
++				    namelen, name, ino, xinobits);
++		return ino;
++	}
++
++	return ino | ((u64)fsid) << (64 - xinobits);
++}
++
  /*
+  * Set d_ino for upper entries. Non-upper entries should always report
+  * the uppermost real inode ino and should not call this function.
+@@ -452,9 +469,10 @@ static int ovl_cache_update_ino(struct path *path, struct ovl_cache_entry *p)
+ 	struct dentry *this = NULL;
+ 	enum ovl_path_type type;
+ 	u64 ino = p->real_ino;
++	int xinobits = ovl_xino_bits(dir->d_sb);
+ 	int err = 0;
  
--usage: open_by_handle [-cludmrwapkh] [<-i|-o> <handles_file>] <test_dir> [num_files]
-+usage: open_by_handle [-cludmrwapknh] [<-i|-o> <handles_file>] <test_dir> [num_files]
+-	if (!ovl_same_sb(dir->d_sb))
++	if (!ovl_same_sb(dir->d_sb) && !xinobits)
+ 		goto out;
  
- Examples:
+ 	if (p->name[0] == '.') {
+@@ -491,6 +509,10 @@ static int ovl_cache_update_ino(struct path *path, struct ovl_cache_entry *p)
  
-@@ -43,36 +43,39 @@ Examples:
- 
-    open_by_handle -p <test_dir> [N]
- 
--3. Get file handles for existing test set and write them to a file.
--   Read file handles from file and open files by handle:
-+3. Get file handles for existing test set and write them to a file:
- 
-    open_by_handle -p -o <handles_file> <test_dir> [N]
--   open_by_handle -p -i <handles_file> <test_dir> [N]
- 
--4. Get file handles for existing test set, write data to files,
-+4. Read file handles from file and open files by handle without
-+   dropping caches beforehand:
-+
-+   open_by_handle -np -i <handles_file> <test_dir> [N]
-+
-+5. Get file handles for existing test set, write data to files,
-    drop caches, open all files by handle, read and verify written
-    data, write new data to file:
- 
-    open_by_handle -rwa <test_dir> [N]
- 
--5. Get file handles for existing test set, unlink all test files,
-+6. Get file handles for existing test set, unlink all test files,
-    remove test_dir, drop caches, try to open all files by handle
-    and expect ESTALE:
- 
-    open_by_handle -dp <test_dir> [N]
- 
--6. Get file handles for existing test set, keep open file handles for all
-+7. Get file handles for existing test set, keep open file handles for all
-    test files, unlink all test files, drop caches and try to open all files
-    by handle (should work):
- 
-    open_by_handle -dk <test_dir> [N]
- 
--7. Get file handles for existing test set, rename all test files,
-+8. Get file handles for existing test set, rename all test files,
-    drop caches, try to open all files by handle (should work):
- 
-    open_by_handle -m <test_dir> [N]
- 
--8. Get file handles for existing test set, hardlink all test files,
-+9. Get file handles for existing test set, hardlink all test files,
-    then unlink the original files, drop caches and try to open all
-    files by handle (should work):
- 
-@@ -109,10 +112,11 @@ struct handle {
- 
- void usage(void)
- {
--	fprintf(stderr, "usage: open_by_handle [-cludmrwapkh] [<-i|-o> <handles_file>] <test_dir> [num_files]\n");
-+	fprintf(stderr, "usage: open_by_handle [-cludmrwapknh] [<-i|-o> <handles_file>] <test_dir> [num_files]\n");
- 	fprintf(stderr, "\n");
- 	fprintf(stderr, "open_by_handle -c <test_dir> [N] - create N test files under test_dir, try to get file handles and exit\n");
- 	fprintf(stderr, "open_by_handle    <test_dir> [N] - get file handles of test files, drop caches and try to open by handle\n");
-+	fprintf(stderr, "open_by_handle -n <test_dir> [N] - get file handles of test files and try to open by handle without drop caches\n");
- 	fprintf(stderr, "open_by_handle -k <test_dir> [N] - get file handles of files that are kept open, drop caches and try to open by handle\n");
- 	fprintf(stderr, "open_by_handle -w <test_dir> [N] - write data to test files before open by handle\n");
- 	fprintf(stderr, "open_by_handle -r <test_dir> [N] - read data from test files after open by handle and verify written data\n");
-@@ -144,12 +148,12 @@ int main(int argc, char **argv)
- 	int	numfiles = 1;
- 	int	create = 0, delete = 0, nlink = 1, move = 0;
- 	int	rd = 0, wr = 0, wrafter = 0, parent = 0;
--	int	keepopen = 0;
-+	int	keepopen = 0, drop_caches = 1;
- 
- 	if (argc < 2)
- 		usage();
- 
--	while ((c = getopt(argc, argv, "cludmrwapkhi:o:")) != -1) {
-+	while ((c = getopt(argc, argv, "cludmrwapknhi:o:")) != -1) {
- 		switch (c) {
- 		case 'c':
- 			create = 1;
-@@ -186,6 +190,9 @@ int main(int argc, char **argv)
- 		case 'k':
- 			keepopen = 1;
- 			break;
-+		case 'n':
-+			drop_caches = 0;
-+			break;
- 		case 'i':
- 			infile = optarg;
- 			in_fd = open(infile, O_RDONLY);
-@@ -438,10 +445,12 @@ int main(int argc, char **argv)
- 	 * buftarg page cache is emptied so that the inode cluster has to be
- 	 * fetched from disk again for the open_by_handle() call.
- 	 */
--	ret = system("echo 3 > /proc/sys/vm/drop_caches");
--	if (ret < 0) {
--		perror("drop_caches");
--		return EXIT_FAILURE;
-+	if (drop_caches) {
-+		ret = system("echo 3 > /proc/sys/vm/drop_caches");
-+		if (ret < 0) {
-+			perror("drop_caches");
-+			return EXIT_FAILURE;
-+		}
+ 		WARN_ON_ONCE(dir->d_sb->s_dev != stat.dev);
+ 		ino = stat.ino;
++	} else if (xinobits && !OVL_TYPE_UPPER(type)) {
++		ino = ovl_remap_lower_ino(ino, xinobits,
++					  ovl_layer_lower(this)->fsid,
++					  p->name, p->len);
  	}
  
- 	/*
+ out:
+@@ -618,6 +640,8 @@ struct ovl_readdir_translate {
+ 	struct ovl_dir_cache *cache;
+ 	struct dir_context ctx;
+ 	u64 parent_ino;
++	int fsid;
++	int xinobits;
+ };
+ 
+ static int ovl_fill_real(struct dir_context *ctx, const char *name,
+@@ -628,14 +652,17 @@ static int ovl_fill_real(struct dir_context *ctx, const char *name,
+ 		container_of(ctx, struct ovl_readdir_translate, ctx);
+ 	struct dir_context *orig_ctx = rdt->orig_ctx;
+ 
+-	if (rdt->parent_ino && strcmp(name, "..") == 0)
++	if (rdt->parent_ino && strcmp(name, "..") == 0) {
+ 		ino = rdt->parent_ino;
+-	else if (rdt->cache) {
++	} else if (rdt->cache) {
+ 		struct ovl_cache_entry *p;
+ 
+ 		p = ovl_cache_entry_find(&rdt->cache->root, name, namelen);
+ 		if (p)
+ 			ino = p->ino;
++	} else if (rdt->xinobits) {
++		ino = ovl_remap_lower_ino(ino, rdt->xinobits, rdt->fsid,
++					  name, namelen);
+ 	}
+ 
+ 	return orig_ctx->actor(orig_ctx, name, namelen, offset, ino, d_type);
+@@ -646,11 +673,16 @@ static int ovl_iterate_real(struct file *file, struct dir_context *ctx)
+ 	int err;
+ 	struct ovl_dir_file *od = file->private_data;
+ 	struct dentry *dir = file->f_path.dentry;
++	struct ovl_layer *lower_layer = ovl_layer_lower(dir);
+ 	struct ovl_readdir_translate rdt = {
+ 		.ctx.actor = ovl_fill_real,
+ 		.orig_ctx = ctx,
++		.xinobits = ovl_xino_bits(dir->d_sb),
+ 	};
+ 
++	if (rdt.xinobits && lower_layer)
++		rdt.fsid = lower_layer->fsid;
++
+ 	if (OVL_TYPE_MERGE(ovl_path_type(dir->d_parent))) {
+ 		struct kstat stat;
+ 		struct path statpath = file->f_path;
+@@ -693,9 +725,10 @@ static int ovl_iterate(struct file *file, struct dir_context *ctx)
+ 		 * dir is impure then need to adjust d_ino for copied up
+ 		 * entries.
+ 		 */
+-		if (ovl_same_sb(dentry->d_sb) &&
+-		    (ovl_test_flag(OVL_IMPURE, d_inode(dentry)) ||
+-		     OVL_TYPE_MERGE(ovl_path_type(dentry->d_parent)))) {
++		if (ovl_xino_bits(dentry->d_sb) ||
++		    (ovl_same_sb(dentry->d_sb) &&
++		     (ovl_test_flag(OVL_IMPURE, d_inode(dentry)) ||
++		      OVL_TYPE_MERGE(ovl_path_type(dentry->d_parent))))) {
+ 			return ovl_iterate_real(file, ctx);
+ 		}
+ 		return iterate_dir(od->realfile, ctx);
 -- 
 2.7.4
