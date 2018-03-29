@@ -1,70 +1,108 @@
-Return-Path: <amir73il@gmail.com>
-MIME-Version: 1.0
-In-Reply-To: <20180329193854.13814-13-vgoyal@redhat.com>
-References: <20180329193854.13814-1-vgoyal@redhat.com> <20180329193854.13814-13-vgoyal@redhat.com>
-From: Amir Goldstein <amir73il@gmail.com>
-Date: Fri, 30 Mar 2018 12:24:15 +0300
-Message-ID: <CAOQ4uxhaD9bkmm3UCSM_E30SX7SEuJHzfa8xrNyRnJ4wqLBm7A@mail.gmail.com>
-Subject: Re: [PATCH v13 12/28] ovl: Fix ovl_getattr() to get number of blocks
- from lower
-Content-Type: text/plain; charset="UTF-8"
-To: Vivek Goyal <vgoyal@redhat.com>
-Cc: overlayfs <linux-unionfs@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>
+Return-Path: <vgoyal@redhat.com>
+From: Vivek Goyal <vgoyal@redhat.com>
+Subject: [PATCH v13 12/28] ovl: Fix ovl_getattr() to get number of blocks from lower
+Date: Thu, 29 Mar 2018 15:38:38 -0400
+Message-Id: <20180329193854.13814-13-vgoyal@redhat.com>
+In-Reply-To: <20180329193854.13814-1-vgoyal@redhat.com>
+References: <20180329193854.13814-1-vgoyal@redhat.com>
+To: linux-unionfs@vger.kernel.org
+Cc: miklos@szeredi.hu, amir73il@gmail.com, vgoyal@redhat.com
 List-ID: <linux-unionfs@vger.kernel.org>
 
-On Thu, Mar 29, 2018 at 10:38 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
-> If an inode has been copied up metadata only, then we need to query the
-> number of blocks from lower and fill up the stat->st_blocks.
->
-> We need to be careful about races where we are doing stat on one cpu and
-> data copy up is taking place on other cpu. We want to return
-> stat->st_blocks either from lower or stable upper and not something in
-> between. Hence, ovl_has_upperdata() is called first to figure out whether
-> block reporting will take place from lower or upper.
->
-> Reviewed-by: Amir Goldstein <amir73il@gmail.com>
-> Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
-> ---
->  fs/overlayfs/inode.c     | 17 ++++++++++++++++-
->  fs/overlayfs/overlayfs.h |  1 +
->  fs/overlayfs/util.c      | 16 ++++++++++++++++
->  3 files changed, 33 insertions(+), 1 deletion(-)
->
-> diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
-> index e1dbfed0c449..cd03f3e642fd 100644
-> --- a/fs/overlayfs/inode.c
-> +++ b/fs/overlayfs/inode.c
-> @@ -76,6 +76,9 @@ int ovl_getattr(const struct path *path, struct kstat *stat,
->         bool is_dir = S_ISDIR(dentry->d_inode->i_mode);
->         bool samefs = ovl_same_sb(dentry->d_sb);
->         int err;
-> +       bool metacopy = false;
-> +
-> +       metacopy = ovl_is_metacopy_dentry(dentry);
->
->         type = ovl_path_real(dentry, &realpath);
->         old_cred = ovl_override_creds(dentry->d_sb);
-> @@ -93,7 +96,8 @@ int ovl_getattr(const struct path *path, struct kstat *stat,
->         if (!is_dir || samefs) {
->                 if (OVL_TYPE_ORIGIN(type)) {
->                         struct kstat lowerstat;
-> -                       u32 lowermask = STATX_INO | (!is_dir ? STATX_NLINK : 0);
-> +                       u32 lowermask = STATX_INO | STATX_BLOCKS |
-> +                                       (!is_dir ? STATX_NLINK : 0);
+If an inode has been copied up metadata only, then we need to query the
+number of blocks from lower and fill up the stat->st_blocks.
 
-Leftover.
+We need to be careful about races where we are doing stat on one cpu and
+data copy up is taking place on other cpu. We want to return
+stat->st_blocks either from lower or stable upper and not something in
+between. Hence, ovl_has_upperdata() is called first to figure out whether
+block reporting will take place from lower or upper.
 
-But I think you could do with one vfs_getattr():
+Reviewed-by: Amir Goldstein <amir73il@gmail.com>
+Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
+---
+ fs/overlayfs/inode.c     | 17 ++++++++++++++++-
+ fs/overlayfs/overlayfs.h |  1 +
+ fs/overlayfs/util.c      | 16 ++++++++++++++++
+ 3 files changed, 33 insertions(+), 1 deletion(-)
 
-         if (!is_dir || samefs) {
-                   u32 lowermask = metacopy ? STATX_BLOCKS : 0;
-                   if (OVL_TYPE_ORIGIN(type))
-                           lowermask |= STATX_INO | (!is_dir ? STATX_NLINK : 0);
-                   if (lowermask) {
-                           ovl_path_lower(dentry, &realpath);
-                           err = vfs_getattr(&realpath, &lowerstat,
-
-...
-
-Thanks,
-Amir.
+diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
+index e1dbfed0c449..cd03f3e642fd 100644
+--- a/fs/overlayfs/inode.c
++++ b/fs/overlayfs/inode.c
+@@ -76,6 +76,9 @@ int ovl_getattr(const struct path *path, struct kstat *stat,
+ 	bool is_dir = S_ISDIR(dentry->d_inode->i_mode);
+ 	bool samefs = ovl_same_sb(dentry->d_sb);
+ 	int err;
++	bool metacopy = false;
++
++	metacopy = ovl_is_metacopy_dentry(dentry);
+ 
+ 	type = ovl_path_real(dentry, &realpath);
+ 	old_cred = ovl_override_creds(dentry->d_sb);
+@@ -93,7 +96,8 @@ int ovl_getattr(const struct path *path, struct kstat *stat,
+ 	if (!is_dir || samefs) {
+ 		if (OVL_TYPE_ORIGIN(type)) {
+ 			struct kstat lowerstat;
+-			u32 lowermask = STATX_INO | (!is_dir ? STATX_NLINK : 0);
++			u32 lowermask = STATX_INO | STATX_BLOCKS |
++					(!is_dir ? STATX_NLINK : 0);
+ 
+ 			ovl_path_lower(dentry, &realpath);
+ 			err = vfs_getattr(&realpath, &lowerstat,
+@@ -126,6 +130,17 @@ int ovl_getattr(const struct path *path, struct kstat *stat,
+ 			else
+ 				stat->dev = ovl_get_pseudo_dev(dentry);
+ 		}
++		if (metacopy) {
++			struct kstat lowerdatastat;
++			u32 lowermask = STATX_BLOCKS;
++
++			ovl_path_lowerdata(dentry, &realpath);
++			err = vfs_getattr(&realpath, &lowerdatastat,
++					  lowermask, flags);
++			if (err)
++				goto out;
++			stat->blocks = lowerdatastat.blocks;
++		}
+ 		if (samefs) {
+ 			/*
+ 			 * When all layers are on the same fs, all real inode
+diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
+index 7a9b6de16c89..4eb4b765887f 100644
+--- a/fs/overlayfs/overlayfs.h
++++ b/fs/overlayfs/overlayfs.h
+@@ -274,6 +274,7 @@ int ovl_nlink_start(struct dentry *dentry, bool *locked);
+ void ovl_nlink_end(struct dentry *dentry, bool locked);
+ int ovl_lock_rename_workdir(struct dentry *workdir, struct dentry *upperdir);
+ int ovl_check_metacopy_xattr(struct dentry *dentry);
++bool ovl_is_metacopy_dentry(struct dentry *dentry);
+ 
+ static inline bool ovl_is_impuredir(struct dentry *dentry)
+ {
+diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
+index 2a467f9fcbfa..fd98329e820c 100644
+--- a/fs/overlayfs/util.c
++++ b/fs/overlayfs/util.c
+@@ -776,3 +776,19 @@ int ovl_check_metacopy_xattr(struct dentry *dentry)
+ 	pr_warn_ratelimited("overlayfs: failed to get metacopy (%i)\n", res);
+ 	return res;
+ }
++
++bool ovl_is_metacopy_dentry(struct dentry *dentry)
++{
++	struct ovl_entry *oe = dentry->d_fsdata;
++
++	if (!d_is_reg(dentry))
++		return false;
++
++	if (ovl_dentry_upper(dentry)) {
++		if (!ovl_has_upperdata(dentry))
++			return true;
++		return false;
++	}
++
++	return (oe->numlower > 1);
++}
+-- 
+2.13.6
