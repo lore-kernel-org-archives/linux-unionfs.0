@@ -1,46 +1,39 @@
-Return-Path: <yi.zhang@huawei.com>
-From: "zhangyi (F)" <yi.zhang@huawei.com>
-Subject: [RFC PATCH 0/4] ovl: implement overlay feature set
-Date: Thu, 22 Mar 2018 19:35:51 +0800
-Message-ID: <20180322113555.47858-1-yi.zhang@huawei.com>
-MIME-Version: 1.0
-Content-Type: text/plain
-To: linux-unionfs@vger.kernel.org
-Cc: miklos@szeredi.hu, amir73il@gmail.com, yi.zhang@huawei.com, miaoxie@huawei.com, yangerkun@huawei.com
+Return-Path: <amir73il@gmail.com>
+Return-Path: <amir73il@gmail.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Subject: [PATCH v2 0/5] Yet another overlayfs exportfs test
+Date: Thu, 29 Mar 2018 15:06:45 +0300
+Message-Id: <1522325210-17900-1-git-send-email-amir73il@gmail.com>
+To: Eryu Guan <eguan@redhat.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, fstests@vger.kernel.org
 List-ID: <linux-unionfs@vger.kernel.org>
 
-Hi All,
+Eryu,
 
-This is overlay feature set support patches, introduce incompatable,
-read-only compatable and incompatable feature set, store on the upper
-root dir via "trusted.overlay.feature_[compat|ro_compat|incompat]"
-xattrs.
+I fixed your review comments.
+Separated the -h fix patch and added a re-send of the
+fix commit documentation fix to the series.
 
-This patch set base on Linux 4.16-rc6.
+Thanks,
+Amir.
 
-Patch 1: Implement feature xattr and mount check, refuse mount if no
-         backward incompatible feature is detected.
-Patch 2: Copy up feature xattr from the lower root dirs to the upper
-         root dir to prevent feature lost.
-Patch 3: Add three already support feature: redirect dir, index and
-         nfs_export, enable them when user give enable mount option.
-patch 4: Fix redircet feature once a redirect xattr is detected for
-         the case of overlay was mounted in the old kernel.
-(PS: Not sure this patch is necessary, maybe just give a warning message
-and handle this by fsck.overlay? If necessary, check indexdir during
-mount time is also necessary too).
+Amir Goldstein (5):
+  overlay/[054,055]: Document the fix commit
+  open_by_handle: make -h (help) a valid option
+  open_by_handle: add -n option to suppress drop caches
+  open_by_handle: add -s option to sleep and keep files open by handle
+  overlay: test decoding overlay file handles with warm/cold dentry
+    cache
 
-zhangyi (F) (4):
-  ovl: add feature set support
-  ovl: update features on upper root dir from lower layers
-  ovl: enable features according to mount options
-  ovl: fix redirect feature for backward compatibility
-
- fs/overlayfs/namei.c     |  12 ++
- fs/overlayfs/overlayfs.h |  90 +++++++++++
- fs/overlayfs/ovl_entry.h |  18 +++
- fs/overlayfs/super.c     | 410 ++++++++++++++++++++++++++++++++++++++++++++++-
- 4 files changed, 525 insertions(+), 5 deletions(-)
+ src/open_by_handle.c  |  59 +++++++++++++++-------
+ tests/overlay/054     |   3 ++
+ tests/overlay/055     |   3 ++
+ tests/overlay/058     | 137 ++++++++++++++++++++++++++++++++++++++++++++++++++
+ tests/overlay/058.out |   9 ++++
+ tests/overlay/group   |   1 +
+ 6 files changed, 194 insertions(+), 18 deletions(-)
+ create mode 100755 tests/overlay/058
+ create mode 100644 tests/overlay/058.out
 
 -- 
-2.13.6
+2.7.4
