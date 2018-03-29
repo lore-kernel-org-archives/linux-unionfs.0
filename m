@@ -1,65 +1,104 @@
-Return-Path: <amir73il@gmail.com>
-Return-Path: <amir73il@gmail.com>
-From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH v9 0/7] Overlayfs: constant st_ino/d_ino for non-samefs
-Date: Thu, 29 Mar 2018 17:18:46 +0300
-Message-Id: <1522333133-24772-1-git-send-email-amir73il@gmail.com>
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: linux-unionfs@vger.kernel.org
+Return-Path: <linux-unionfs-owner@vger.kernel.org>
+Received: from mx3-rdu2.redhat.com ([66.187.233.73]:49988 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1751403AbeC2TjD (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Thu, 29 Mar 2018 15:39:03 -0400
+From: Vivek Goyal <vgoyal@redhat.com>
+Subject: [PATCH v13 07/28] ovl: Copy up only metadata during copy up where it makes sense
+Date: Thu, 29 Mar 2018 15:38:33 -0400
+Message-Id: <20180329193854.13814-8-vgoyal@redhat.com>
+In-Reply-To: <20180329193854.13814-1-vgoyal@redhat.com>
+References: <20180329193854.13814-1-vgoyal@redhat.com>
+Sender: linux-unionfs-owner@vger.kernel.org
+To: linux-unionfs@vger.kernel.org
+Cc: miklos@szeredi.hu, amir73il@gmail.com, vgoyal@redhat.com
 List-ID: <linux-unionfs@vger.kernel.org>
 
-Miklos,
+If it makes sense to copy up only metadata during copy up, do it. This
+is done for regular files which are not opened for WRITE and have origin
+being saved.
 
-This series provides a solution for some interesting non-samefs cases:
-- All the ext* family
-- Many other fs with default encode_fh
-- xfs and tmpfs with overlay "xino" mount option
+Right now ->metacopy is set to 0 always. Last patch in the series will
+remove the hard coded statement and enable metacopy feature.
 
-The patches are also available on my ovl-xino branch [2]. They are based
-on some earlier fix patches and they do not conflict with the NFS export
-optimization patches (ovl-nfs-export branch).
+Currently ovl_set_origin() returns success even if specified xattr could
+not be set due to -EOPNOTSUPP returned by upper. IOW, ovl_set_origin()
+operation is optional and copy up operation continues.
 
-I tested this with upstream overlay/nonsamefs xfstest group:
-- Tests pass for ext4
-- Tests fail for xfs
-- Tests pass for xfs with OVERLAY_MOUNT_OPTIONS=-oxino
+With metadata copy up, ovl_set_origin() can't be optional. We need to know
+if origin could be set or not. If it could not be set, then either disable
+metacopy or abort copy up operation. I have take then later approach and
+disable metacopy for this inode.
 
-I also added --xino option to unionmount-testsuite [2], along with
-the --verify option, the test verifies constant st_ino and that all
-objects are on overlay st_dev.
+Normally we should not run into this path as metacopy will not be enabled
+if upper does not support xattr. This check is done during mount. This
+path can only hit if checks during mount pass but at some point of time
+later upper still returns -EOPNOTSUPP. So its a saftey mechanism to handle
+that unexpected -EOPNOTSUPP.
 
-Changes since v8:
-- Use unique fsid instead of layer id
-- Assign pseudo_dev per fsid instead of per layer
-- Limit "xino" feature to 64bit systems
-- Assign xino value i_ino as well for NFSv3 readdir
-- Add "xino" documentation patch
+Reviewed-by: Amir Goldstein <amir73il@gmail.com>
+Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
+---
+ fs/overlayfs/copy_up.c | 25 ++++++++++++++++++++++++-
+ 1 file changed, 24 insertions(+), 1 deletion(-)
 
-Thanks,
-Amir.
-
-[1] https://github.com/amir73il/linux/commits/ovl-xino
-[2] https://github.com/amir73il/unionmount-testsuite/commits/overlayfs-devel
-
-Amir Goldstein (7):
-  ovl: factor out ovl_map_dev_ino() helper
-  ovl: allocate anon bdev per unique lower fs
-  ovl: constant st_ino for non-samefs with xino
-  ovl: consistent i_ino for non-samefs with xino
-  ovl: consistent d_ino for non-samefs with xino
-  ovl: add support for "xino" mount option
-  ovl: update documentation w.r.t "xino" feature
-
- Documentation/filesystems/overlayfs.txt |  39 +++++++--
- fs/overlayfs/export.c                   |   2 +-
- fs/overlayfs/inode.c                    | 140 +++++++++++++++++++++-----------
- fs/overlayfs/namei.c                    |   4 +-
- fs/overlayfs/overlayfs.h                |   6 +-
- fs/overlayfs/ovl_entry.h                |  21 +++--
- fs/overlayfs/readdir.c                  |  45 ++++++++--
- fs/overlayfs/super.c                    | 120 ++++++++++++++++++++++-----
- fs/overlayfs/util.c                     |  38 ++++++++-
- 9 files changed, 318 insertions(+), 97 deletions(-)
-
+diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
+index 98403b1d40c2..45e396a0fd6a 100644
+--- a/fs/overlayfs/copy_up.c
++++ b/fs/overlayfs/copy_up.c
+@@ -232,6 +232,26 @@ int ovl_set_attr(struct dentry *upperdentry, struct kstat *stat)
+ 	return err;
+ }
+ 
++static bool ovl_need_meta_copy_up(struct dentry *dentry, umode_t mode,
++				  int flags)
++{
++	struct ovl_fs *ofs = dentry->d_sb->s_fs_info;
++
++	/* TODO: Will enable metacopy in last patch of series */
++	return false;
++
++	if (!ofs->config.metacopy)
++		return false;
++
++	if (!S_ISREG(mode))
++		return false;
++
++	if (flags && ((OPEN_FMODE(flags) & FMODE_WRITE) || (flags & O_TRUNC)))
++		return false;
++
++	return true;
++}
++
+ struct ovl_fh *ovl_encode_fh(struct dentry *real, bool is_upper)
+ {
+ 	struct ovl_fh *fh;
+@@ -416,6 +436,7 @@ struct ovl_copy_up_ctx {
+ 	bool tmpfile;
+ 	bool origin;
+ 	bool indexed;
++	bool metacopy;
+ };
+ 
+ static int ovl_link_up(struct ovl_copy_up_ctx *c)
+@@ -553,7 +574,7 @@ static int ovl_copy_up_inode(struct ovl_copy_up_ctx *c, struct dentry *temp)
+ 			return err;
+ 	}
+ 
+-	if (S_ISREG(c->stat.mode)) {
++	if (S_ISREG(c->stat.mode) && !c->metacopy) {
+ 		struct path upperpath;
+ 
+ 		ovl_path_upper(c->dentry, &upperpath);
+@@ -729,6 +750,8 @@ static int ovl_copy_up_one(struct dentry *parent, struct dentry *dentry,
+ 	if (err)
+ 		return err;
+ 
++	ctx.metacopy = ovl_need_meta_copy_up(dentry, ctx.stat.mode, flags);
++
+ 	if (parent) {
+ 		ovl_path_upper(parent, &parentpath);
+ 		ctx.destdir = parentpath.dentry;
 -- 
-2.7.4
+2.13.6
+
