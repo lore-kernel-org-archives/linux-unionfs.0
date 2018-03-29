@@ -1,87 +1,50 @@
-Return-Path: <yi.zhang@huawei.com>
-From: "zhangyi (F)" <yi.zhang@huawei.com>
-Subject: [xfstests PATCH v5 0/5] overlay: add overlay filesystem dirs check
-Date: Thu, 1 Mar 2018 20:13:42 +0800
-Message-ID: <20180301121347.5824-1-yi.zhang@huawei.com>
-MIME-Version: 1.0
-Content-Type: text/plain
-To: eguan@redhat.com, fstests@vger.kernel.org
-Cc: linux-unionfs@vger.kernel.org, miklos@szeredi.hu, amir73il@gmail.com, yi.zhang@huawei.com, miaoxie@huawei.com, yangerkun@huawei.com
+Return-Path: <amir73il@gmail.com>
+Return-Path: <amir73il@gmail.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Subject: [PATCH v2 1/5] overlay/[054,055]: Document the fix commit
+Date: Thu, 29 Mar 2018 15:06:46 +0300
+Message-Id: <1522325210-17900-2-git-send-email-amir73il@gmail.com>
+In-Reply-To: <1522325210-17900-1-git-send-email-amir73il@gmail.com>
+References: <1522325210-17900-1-git-send-email-amir73il@gmail.com>
+To: Eryu Guan <eguan@redhat.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, fstests@vger.kernel.org
 List-ID: <linux-unionfs@vger.kernel.org>
 
-Hi Eryu and Amir:
+This fix was merged for v4.16-rc5.
 
-I have handle comments from last iteration in patch {2,5}/5, please
-review.
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+---
+ tests/overlay/054 | 3 +++
+ tests/overlay/055 | 3 +++
+ 2 files changed, 6 insertions(+)
 
-Thanks,
-Yi.
-
-Changes since v4:
-- Clarify comments in patch 2/5, and move _overlay_check_scratch_dirs
-  helper to patch 5/5.
-- Modify input arguments of _overlay_fsck_dirs in _overlay_check_dirs.
-- Modify OVL_FSCK_OPTIONS example in README.overlay.
-
-Changes since v3:
-- Move overlay checker after _unmount in overlay/{038,041}, and embed
-  checker into unmount_dirs() in overlay/{051,053,055}.
-- split out patch "overlay: correct test mount options"
-
-Changes since v2:
-- Rename _is_mounted to _is_dev_mounted and use findmnt instead of mount.
-- Fix mistakes in patch 2/6 and introduce _is_dir_mountpoint helper, also
-  introduce fsck options use for overlayfs.
-- Add overlay/049 into patch 4/6 to skip fs check.
-- Add nfs export cases into patch 5/6 to do correct dirs check.
-- Add the "missing feature" of test mount options.
-
-Changes since v1:
-- Details comments in patch 1/5.
-- Improve _overlay_check_scratch_dirs to accept extra options.
-- Fix basic filesystem mounted check in _overlay_check_fs.
-- Improve overlay/044 in patch 5/5 to add index=on option.
-
-----------
-
-Background:
-
-This patchset implement filesystem check for overlay filesystem, base on
-my "overlay: add fsck.overlay basic tests" patchset and works only if
-fsck.overlay[1] exists (otherwise not run).
-
-[1] https://github.com/hisilicon/overlayfs-progs
-
-zhangyi (F) (5):
-  common/rc: improve dev mounted check helper
-  overlay: hook filesystem check helper
-  overlay/003: fix fs check failure
-  overlay: skip check for tests finished with corrupt filesystem
-  overlay: correct scratch dirs check
-
- README.overlay    |  10 ++++-
- common/config     |   4 ++
- common/overlay    | 128 ++++++++++++++++++++++++++++++++++++++++++++++++++++++
- common/rc         |  47 +++++++++++---------
- common/xfs        |   2 +-
- tests/overlay/003 |   1 -
- tests/overlay/005 |   7 ++-
- tests/overlay/010 |   7 ++-
- tests/overlay/014 |  10 ++++-
- tests/overlay/019 |   2 +-
- tests/overlay/031 |   2 +-
- tests/overlay/035 |   7 ++-
- tests/overlay/036 |   6 ++-
- tests/overlay/037 |   7 ++-
- tests/overlay/038 |  10 ++++-
- tests/overlay/041 |  10 ++++-
- tests/overlay/043 |   7 ++-
- tests/overlay/044 |   8 +++-
- tests/overlay/049 |   2 +-
- tests/overlay/051 |  10 ++++-
- tests/overlay/053 |  10 ++++-
- tests/overlay/055 |  10 ++++-
- 22 files changed, 263 insertions(+), 44 deletions(-)
-
+diff --git a/tests/overlay/054 b/tests/overlay/054
+index f7ade96..a1011e4 100755
+--- a/tests/overlay/054
++++ b/tests/overlay/054
+@@ -22,6 +22,9 @@
+ # dir rename support (redirect_dir).
+ # NFS export support depends on and requires overlayfs index feature.
+ #
++# Regression test for kernel commit 2ca3c148a062 ("ovl: check lower ancestry
++# on encode of lower dir file handle")
++#
+ #-----------------------------------------------------------------------
+ # Copyright (C) 2018 CTERA Networks. All Rights Reserved.
+ # Author: Amir Goldstein <amir73il@gmail.com>
+diff --git a/tests/overlay/055 b/tests/overlay/055
+index 02da6ef..0bb9039 100755
+--- a/tests/overlay/055
++++ b/tests/overlay/055
+@@ -20,6 +20,9 @@
+ # dir rename support (redirect_dir).
+ # NFS export support depends on and requires overlayfs index feature.
+ #
++# Regression test for kernel commit 2ca3c148a062 ("ovl: check lower ancestry
++# on encode of lower dir file handle")
++#
+ #-----------------------------------------------------------------------
+ # Copyright (C) 2018 CTERA Networks. All Rights Reserved.
+ # Author: Amir Goldstein <amir73il@gmail.com>
 -- 
-2.5.0
+2.7.4
