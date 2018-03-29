@@ -1,196 +1,128 @@
 Return-Path: <amir73il@gmail.com>
 Return-Path: <amir73il@gmail.com>
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH 3/3] overlay: test decoding overlay file handles with warm/cold dentry cache
-Date: Sun, 25 Mar 2018 17:53:11 +0300
-Message-Id: <1521989591-9496-4-git-send-email-amir73il@gmail.com>
-In-Reply-To: <1521989591-9496-1-git-send-email-amir73il@gmail.com>
-References: <1521989591-9496-1-git-send-email-amir73il@gmail.com>
+Subject: [PATCH v2 4/5] open_by_handle: add -s option to sleep and keep files open by handle
+Date: Thu, 29 Mar 2018 15:06:49 +0300
+Message-Id: <1522325210-17900-5-git-send-email-amir73il@gmail.com>
+In-Reply-To: <1522325210-17900-1-git-send-email-amir73il@gmail.com>
+References: <1522325210-17900-1-git-send-email-amir73il@gmail.com>
 To: Eryu Guan <eguan@redhat.com>
 Cc: Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, fstests@vger.kernel.org
 List-ID: <linux-unionfs@vger.kernel.org>
 
-When opening a non-dir by file handle and the decoded inode/dentry
-are not in cache, the resulting dentry is "disconnected" (i.e. unknown
-path). This is a common case that is already covered by previous tests.
-This test covers the case of decoding an overlay file handle, while a
-disconnected dentry is still in cache.
+This feature is needed for tests that need to open file by handle and
+then perform operations while that file is open. This will be used by
+an overlay test to keep disconnected dentries in dcache.
+
+Usage: open_by_handle -s <test_dir>
+
+On success, the program will run until it gets a terminating signal.
 
 Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- tests/overlay/058     | 137 ++++++++++++++++++++++++++++++++++++++++++++++++++
- tests/overlay/058.out |   9 ++++
- tests/overlay/group   |   1 +
- 3 files changed, 147 insertions(+)
- create mode 100755 tests/overlay/058
- create mode 100644 tests/overlay/058.out
+ src/open_by_handle.c | 30 ++++++++++++++++++++++--------
+ 1 file changed, 22 insertions(+), 8 deletions(-)
 
-diff --git a/tests/overlay/058 b/tests/overlay/058
-new file mode 100755
-index 0000000..4c4ca45
---- /dev/null
-+++ b/tests/overlay/058
-@@ -0,0 +1,137 @@
-+#! /bin/bash
-+# FS QA Test No. 058
-+#
-+# Test decoding overlay file handles with warm/cold dentry cache
-+#
-+# When opening a non-dir by file handle and the decoded inode/dentry
-+# are not in cache, the resulting dentry is "disconnected" (i.e. unknown
-+# path). This is a common case that is already covered by previous tests.
-+# This test covers the case of decoding an overlay file handle, while a
-+# disconnected dentry is still in cache.
-+#
-+# This test requires and enables overlayfs NFS export support.
-+# NFS export support depends on and requires overlayfs index feature.
-+#
-+#-----------------------------------------------------------------------
-+# Copyright (C) 2018 CTERA Networks. All Rights Reserved.
-+# Author: Amir Goldstein <amir73il@gmail.com>
-+#
-+# This program is free software; you can redistribute it and/or
-+# modify it under the terms of the GNU General Public License as
-+# published by the Free Software Foundation.
-+#
-+# This program is distributed in the hope that it would be useful,
-+# but WITHOUT ANY WARRANTY; without even the implied warranty of
-+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+# GNU General Public License for more details.
-+#
-+# You should have received a copy of the GNU General Public License
-+# along with this program; if not, write the Free Software Foundation,
-+# Inc.,  51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-+#-----------------------------------------------------------------------
-+#
+diff --git a/src/open_by_handle.c b/src/open_by_handle.c
+index d3beb78..f5be235 100644
+--- a/src/open_by_handle.c
++++ b/src/open_by_handle.c
+@@ -27,7 +27,7 @@
+ 
+ /*
+ 
+-usage: open_by_handle [-cludmrwapknh] [<-i|-o> <handles_file>] <test_dir> [num_files]
++usage: open_by_handle [-cludmrwapknhs] [<-i|-o> <handles_file>] <test_dir> [num_files]
+ 
+ Examples:
+ 
+@@ -48,9 +48,9 @@ Examples:
+    open_by_handle -p -o <handles_file> <test_dir> [N]
+ 
+ 4. Read file handles from file and open files by handle without
+-   dropping caches beforehand:
++   dropping caches beforehand. Sleep afterhand to keep files open:
+ 
+-   open_by_handle -np -i <handles_file> <test_dir> [N]
++   open_by_handle -nps -i <handles_file> <test_dir> [N]
+ 
+ 5. Get file handles for existing test set, write data to files,
+    drop caches, open all files by handle, read and verify written
+@@ -112,7 +112,7 @@ struct handle {
+ 
+ void usage(void)
+ {
+-	fprintf(stderr, "usage: open_by_handle [-cludmrwapknh] [<-i|-o> <handles_file>] <test_dir> [num_files]\n");
++	fprintf(stderr, "usage: open_by_handle [-cludmrwapknhs] [<-i|-o> <handles_file>] <test_dir> [num_files]\n");
+ 	fprintf(stderr, "\n");
+ 	fprintf(stderr, "open_by_handle -c <test_dir> [N] - create N test files under test_dir, try to get file handles and exit\n");
+ 	fprintf(stderr, "open_by_handle    <test_dir> [N] - get file handles of test files, drop caches and try to open by handle\n");
+@@ -128,6 +128,7 @@ void usage(void)
+ 	fprintf(stderr, "open_by_handle -p <test_dir>     - create/delete and try to open by handle also test_dir itself\n");
+ 	fprintf(stderr, "open_by_handle -i <handles_file> <test_dir> [N] - read test files handles from file and try to open by handle\n");
+ 	fprintf(stderr, "open_by_handle -o <handles_file> <test_dir> [N] - get file handles of test files and write handles to file\n");
++	fprintf(stderr, "open_by_handle -s <test_dir> [N] - wait in sleep loop after opening files by handle to keep them open\n");
+ 	exit(EXIT_FAILURE);
+ }
+ 
+@@ -148,12 +149,12 @@ int main(int argc, char **argv)
+ 	int	numfiles = 1;
+ 	int	create = 0, delete = 0, nlink = 1, move = 0;
+ 	int	rd = 0, wr = 0, wrafter = 0, parent = 0;
+-	int	keepopen = 0, drop_caches = 1;
++	int	keepopen = 0, drop_caches = 1, sleep_loop = 0;
+ 
+ 	if (argc < 2)
+ 		usage();
+ 
+-	while ((c = getopt(argc, argv, "cludmrwapknhi:o:")) != -1) {
++	while ((c = getopt(argc, argv, "cludmrwapknhi:o:s")) != -1) {
+ 		switch (c) {
+ 		case 'c':
+ 			create = 1;
+@@ -209,6 +210,9 @@ int main(int argc, char **argv)
+ 				return EXIT_FAILURE;
+ 			}
+ 			break;
++		case 's':
++			sleep_loop = 1;
++			break;
+ 		default:
+ 			fprintf(stderr, "illegal option '%s'\n", argv[optind]);
+ 		case 'h':
+@@ -478,7 +482,8 @@ int main(int argc, char **argv)
+ 				perror(fname);
+ 				return EXIT_FAILURE;
+ 			}
+-			close(fd);
++			if (!sleep_loop)
++				close(fd);
+ 			continue;
+ 		} else if (!nlink && !keepopen && fd < 0 && (errno == ENOENT || errno == ESTALE)) {
+ 			continue;
+@@ -529,7 +534,8 @@ int main(int argc, char **argv)
+ 					return EXIT_FAILURE;
+ 				}
+ 			}
+-			close(fd);
++			if (!sleep_loop)
++				close(fd);
+ 		} else if (nlink || !(errno == ENOENT || errno == ESTALE)) {
+ 			printf("open_by_handle(%s) returned %d incorrectly on %s dir!\n",
+ 					dname, errno,
+@@ -540,5 +546,13 @@ int main(int argc, char **argv)
+ 
+ 	if (failed)
+ 		return EXIT_FAILURE;
 +
-+seq=`basename $0`
-+seqres=$RESULT_DIR/$seq
-+echo "QA output created by $seq"
++	/*
++	 * Sleep keeping files open by handle - the program need to be killed
++	 * to release the open files.
++	 */
++	while (sleep_loop)
++		sleep(1);
 +
-+here=`pwd`
-+tmp=/tmp/$$
-+status=1	# failure is the default!
-+trap "_cleanup; exit \$status" 0 1 2 3 15
-+
-+_cleanup()
-+{
-+	$KILLALL_PROG -9 open_by_handle >/dev/null 2>&1
-+	wait
-+	cd /
-+	rm -f $tmp.*
-+}
-+
-+# get standard environment, filters and checks
-+. ./common/rc
-+. ./common/filter
-+
-+# real QA test starts here
-+
-+_supported_fs overlay
-+_supported_os Linux
-+_require_scratch
-+_require_test_program "open_by_handle"
-+# We need to require all features together, because nfs_export cannot
-+# be enabled when index is disabled
-+_require_scratch_overlay_features index nfs_export
-+_require_command "$KILLALL_PROG" killall
-+
-+# All overlay dirs are on scratch partition
-+lower=$OVL_BASE_SCRATCH_MNT/$OVL_LOWER
-+upper=$OVL_BASE_SCRATCH_MNT/$OVL_UPPER
-+work=$OVL_BASE_SCRATCH_MNT/$OVL_WORK
-+
-+# Keep this number > 1, because open_by_handle -rp does faccessat()
-+# on file file000000, which makes that dentry connected
-+NUMFILES=10
-+
-+# Create test dir and empty test files
-+create_test_files()
-+{
-+	local dir=$1
-+	local opt=$2
-+
-+	mkdir -p $dir
-+	$here/src/open_by_handle -cp $opt $dir $NUMFILES
-+}
-+
-+# Test encode/decode file handles on overlay mount
-+test_file_handles()
-+{
-+	local dir=$1
-+	shift
-+
-+	echo test_file_handles $dir $* | _filter_scratch | \
-+				sed -e "s,$tmp\.,,g"
-+	$here/src/open_by_handle $* $dir $NUMFILES
-+}
-+
-+# Create lower/upper dir and files
-+_scratch_mkfs
-+create_test_files $upper/uppertestdir -w
-+create_test_files $lower/lowertestdir -w
-+_scratch_mount -o "index=on,nfs_export=on"
-+# Encode upper file handles
-+test_file_handles $SCRATCH_MNT/uppertestdir -p -o $tmp.upper_file_handles
-+# Encode lower file handles
-+test_file_handles $SCRATCH_MNT/lowertestdir -p -o $tmp.lower_file_handles
-+
-+# Check decode and read from stored file handles with warm caches -
-+# At this time, all non-dir dentries are connected, because the entries
-+# were created on lookup, before encoding the file handles.
-+test_file_handles $SCRATCH_MNT -rnp -i $tmp.upper_file_handles
-+test_file_handles $SCRATCH_MNT -rnp -i $tmp.lower_file_handles
-+
-+# Check decode and read/readdir from stored file handles with cold caches -
-+# -s sleeps in the background to keep files open and keep disconnected
-+# overlay dentries in cache
-+_scratch_cycle_mount "index=on,nfs_export=on"
-+test_file_handles $SCRATCH_MNT -rnps -i $tmp.upper_file_handles &
-+# Give the above 1 second to get to sleep loop
-+sleep 1
-+test_file_handles $SCRATCH_MNT -rnps -i $tmp.lower_file_handles &
-+# Give the above 1 second to get to sleep loop
-+sleep 1
-+
-+# Check decode and read/readdir from stored file handles with warm caches -
-+# At this time, all non-dir dentries are disconnected, because there was
-+# no lookup to the files since drop caches. The expection to this rule
-+# is lower and upper file000000. open_by_handle -rp above did faccessat()
-+# on file file000000, which created a connected dentry alias in addition
-+# to the disconnected dentry alias.
-+test_file_handles $SCRATCH_MNT -rnp -i $tmp.upper_file_handles
-+test_file_handles $SCRATCH_MNT -rnp -i $tmp.lower_file_handles
-+
-+# SIGPIPE avoids Terminated/Killed message from bash
-+$KILLALL_PROG -q -13 open_by_handle
-+wait
-+
-+status=0
-+exit
-diff --git a/tests/overlay/058.out b/tests/overlay/058.out
-new file mode 100644
-index 0000000..6ff9811
---- /dev/null
-+++ b/tests/overlay/058.out
-@@ -0,0 +1,9 @@
-+QA output created by 058
-+test_file_handles SCRATCH_MNT/uppertestdir -p -o upper_file_handles
-+test_file_handles SCRATCH_MNT/lowertestdir -p -o lower_file_handles
-+test_file_handles SCRATCH_MNT -rnp -i upper_file_handles
-+test_file_handles SCRATCH_MNT -rnp -i lower_file_handles
-+test_file_handles SCRATCH_MNT -rnps -i upper_file_handles
-+test_file_handles SCRATCH_MNT -rnps -i lower_file_handles
-+test_file_handles SCRATCH_MNT -rnp -i upper_file_handles
-+test_file_handles SCRATCH_MNT -rnp -i lower_file_handles
-diff --git a/tests/overlay/group b/tests/overlay/group
-index c49ae3a..359ed42 100644
---- a/tests/overlay/group
-+++ b/tests/overlay/group
-@@ -60,3 +60,4 @@
- 055 auto quick copyup redirect exportfs nonsamefs
- 056 auto quick fsck
- 057 auto quick redirect
-+058 auto quick exportfs
+ 	return EXIT_SUCCESS;
+ }
 -- 
 2.7.4
