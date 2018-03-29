@@ -1,49 +1,127 @@
-Return-Path: <yi.zhang@huawei.com>
-From: "zhangyi (F)" <yi.zhang@huawei.com>
-Subject: [RFC PATCH 4/4] ovl: fix redirect feature for backward compatibility
-Date: Thu, 22 Mar 2018 19:35:55 +0800
-Message-ID: <20180322113555.47858-5-yi.zhang@huawei.com>
-In-Reply-To: <20180322113555.47858-1-yi.zhang@huawei.com>
-References: <20180322113555.47858-1-yi.zhang@huawei.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+Return-Path: <linux-unionfs-owner@vger.kernel.org>
+Received: from mx3-rdu2.redhat.com ([66.187.233.73]:33914 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1751862AbeC2TjD (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Thu, 29 Mar 2018 15:39:03 -0400
+From: Vivek Goyal <vgoyal@redhat.com>
+Subject: [PATCH v13 14/28] ovl: Do not expose metacopy only dentry from d_real()
+Date: Thu, 29 Mar 2018 15:38:40 -0400
+Message-Id: <20180329193854.13814-15-vgoyal@redhat.com>
+In-Reply-To: <20180329193854.13814-1-vgoyal@redhat.com>
+References: <20180329193854.13814-1-vgoyal@redhat.com>
+Sender: linux-unionfs-owner@vger.kernel.org
 To: linux-unionfs@vger.kernel.org
-Cc: miklos@szeredi.hu, amir73il@gmail.com, yi.zhang@huawei.com, miaoxie@huawei.com, yangerkun@huawei.com
+Cc: miklos@szeredi.hu, amir73il@gmail.com, vgoyal@redhat.com
 List-ID: <linux-unionfs@vger.kernel.org>
 
-For a redirect dir was created before the overlayfs support
-"feature set", upper root dir does not contain the redirect dir
-feature xattr. In that case, we cannot detect this feature during
-mount time, so fix this feature set once a redirect xattr is detected
-in ovl_lookup().
+d_real() can make a upper or lower metacopy dentry/inode visible to the vfs
+layer. This is something new and vfs layer does not know that this inode
+contains only metadata and not data. And this could break things.
 
-Signed-off-by: zhangyi (F) <yi.zhang@huawei.com>
+So to be safe, do not expose metacopy only dentry/inode to vfs using
+d_real().
+
+IOW, d_real() will not reuturn metacopy dentry. Instead, it will return
+dentry corresponding lower data dentry/inode which has file data.
+
+For regular d_real() call (inode == NULL, D_REAL_UPPER not set), if upper
+dentry inode is metacopy only and does not have data, return lower dentry.
+
+If d_real() is called with flag D_REAL_UPPER, return upper dentry only if
+it has data (flag OVL_UPPERDATA is set).
+
+Similiarly, if d_real(inode=X) is called, a warning is emitted if returned
+dentry/inode does not have OVL_UPPERDATA set. This should not happen as
+we never made this metacopy inode visible to vfs so nobody should be
+calling overlayfs back with inode=metacopy_inode.
+
+I scanned the code and I don't think it breaks any of the existing code.
+There are two users of D_REAL_UPPER. may_write_real() and
+update_ovl_inode_times().
+
+may_write_real(), will get an NULL dentry if upper inode is metacopy only
+and it will return -EPERM. Effectively, we are disallowing modifications
+to metacopy only inode from this interface. Though there is opportunity
+to improve it. (Allow chattr on metacopy inodes).
+
+update_ovl_inode_times() gets inode mtime and ctime from real inode. It
+should not be broken for metacopy inode as well for following reasons.
+
+- For any metadata operations (setattr, acl etc), overlay always calls
+  ovl_copyattr() and updates ovl inode mtime and ctime. So there is no
+  need to update mtime and ctime in this case. Its already updated, hence
+  even if d_real(D_REAL_UPPER) returns nil, it should be fine.
+
+- For metadata inode, mtime should be same as lower and not change. (data
+  can't be modified on metadata inode without copyup). IOW, mtime of
+  ovl dentry should be same as mtime of underlying metadata inode on upper
+  always. So there is no need to update it.
+
+- For file writes, ctime and mtime will be updated. But in that case
+  first data will be copied up and this will not be a metadata inode
+  anymore. And furthr call to d_real(D_REAL_UPPER) will return upper
+  inode and new mtime and ctime will be obtainable.
+
+So atime updates should work just fine for metacopy inodes. I think only
+corner case is if somehow underlying filesystem changes ctime of upper
+metadata inode without overlay knowing about it. Not sure how that
+can happen. If somehow is affected by that, then we probably can implement
+another flag which will allow caller to get metacopy inode as well.
+Something like d_real(D_REAL_UPPER | D_METACOPY). And that should solve
+this issue.
+
+Reviewed-by: Amir Goldstein <amir73il@gmail.com>
+Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
 ---
- fs/overlayfs/namei.c | 12 ++++++++++++
- 1 file changed, 12 insertions(+)
+ fs/overlayfs/super.c | 21 +++++++++++++++++----
+ 1 file changed, 17 insertions(+), 4 deletions(-)
 
-diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
-index 70fcfcc684cc..9325c5a870c0 100644
---- a/fs/overlayfs/namei.c
-+++ b/fs/overlayfs/namei.c
-@@ -914,6 +914,18 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
- 		ctr++;
+diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+index f77acb8d632a..a5f796452c9f 100644
+--- a/fs/overlayfs/super.c
++++ b/fs/overlayfs/super.c
+@@ -96,8 +96,14 @@ static struct dentry *ovl_d_real(struct dentry *dentry,
+ 	struct dentry *real;
+ 	int err;
  
- 		/*
-+		 * Detect redirect xattr but not enable this feature, this
-+		 * redirect maybe set by the old overlay driver, fix this
-+		 * feature for backward compatibility.
-+		 */
-+		if (d.redirect && !ofs->config.redirect_dir &&
-+		    !ovl_has_feature_redirect_dir(dentry->d_sb)) {
-+			err = ovl_set_feature_redirect_dir(dentry->d_sb);
-+			if (err)
-+				goto out_put;
-+		}
+-	if (flags & D_REAL_UPPER)
+-		return ovl_dentry_upper(dentry);
++	if (flags & D_REAL_UPPER) {
++		real = ovl_dentry_upper(dentry);
++		if (!real)
++			return NULL;
++		if (!ovl_has_upperdata(dentry))
++			return NULL;
++		return real;
++	}
+ 
+ 	if (!d_is_reg(dentry)) {
+ 		if (!inode || inode == d_inode(dentry))
+@@ -113,15 +119,22 @@ static struct dentry *ovl_d_real(struct dentry *dentry,
+ 
+ 	real = ovl_dentry_upper(dentry);
+ 	if (real && (!inode || inode == d_inode(real))) {
++		bool metacopy = !ovl_has_upperdata(dentry);
+ 		if (!inode) {
+ 			err = ovl_check_append_only(d_inode(real), open_flags);
+ 			if (err)
+ 				return ERR_PTR(err);
+-		}
 +
-+		/*
- 		 * Following redirects can have security consequences: it's like
- 		 * a symlink into the lower layer without the permission checks.
- 		 * This is only a problem if the upper layer is untrusted (e.g
++			if (unlikely(metacopy))
++				goto lower;
++		} else if (unlikely(metacopy))
++			goto bug;
++
+ 		return real;
+ 	}
+ 
+-	real = ovl_dentry_lower(dentry);
++lower:
++	real = ovl_dentry_lowerdata(dentry);
+ 	if (!real)
+ 		goto bug;
+ 
 -- 
 2.13.6
+
