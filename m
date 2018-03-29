@@ -1,263 +1,173 @@
 Return-Path: <amir73il@gmail.com>
-MIME-Version: 1.0
-In-Reply-To: <20180301064526.17216-1-houtao1@huawei.com>
-References: <20180301064526.17216-1-houtao1@huawei.com>
+Return-Path: <amir73il@gmail.com>
 From: Amir Goldstein <amir73il@gmail.com>
-Date: Thu, 1 Mar 2018 14:10:45 +0200
-Message-ID: <CAOQ4uxj0SAyJUAaGOvAhp_iOzo3-51ntQzeivDvoKfjDefjvVg@mail.gmail.com>
-Subject: Re: [RFC][PATCH v3] overlay: hardlink all whiteout files into a
- single one
-Content-Type: text/plain; charset="UTF-8"
-To: Hou Tao <houtao1@huawei.com>
-Cc: overlayfs <linux-unionfs@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>
+Subject: [PATCH v9 1/7] ovl: factor out ovl_map_dev_ino() helper
+Date: Thu, 29 Mar 2018 17:18:47 +0300
+Message-Id: <1522333133-24772-2-git-send-email-amir73il@gmail.com>
+In-Reply-To: <1522333133-24772-1-git-send-email-amir73il@gmail.com>
+References: <1522333133-24772-1-git-send-email-amir73il@gmail.com>
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: linux-unionfs@vger.kernel.org
 List-ID: <linux-unionfs@vger.kernel.org>
 
-On Thu, Mar 1, 2018 at 8:45 AM, Hou Tao <houtao1@huawei.com> wrote:
-> Now each whiteout file will be assigned a new inode. To reduce the
-> overhead of allocating and freeing inodes in upper fs, creating a
-> singleton whiteout file under workdir and hardlink all whiteout files
-> into it.
->
-> The effect is obvious: under a KVM VM, the time used for removing the
-> linux kernel source tree is reduced from 17s to 10s.
->
-> Got the idea from aufs4.
->
-> Signed-off-by: Hou Tao <houtao1@huawei.com>
-> ---
-> v3:
->     * rebased on 4.16-rc3
->     * add a limitation on the hardlinks of singleton whiteout, and it
->       can be adjusted by module param singleton_wt_link_max. During
->       the mount procoess, if the value of limit is less than or equal to 1,
->       the singleon whiteout will be disabled (suggested by Amir)
->     * rename ovl_make_singleton_whiteout_nolock() to
->       ovl_make_singleton_whiteout_locked() (also from Amir)
->     * check errors more strictly: treat singleton whiteout creation
->       failure as an error and abort the mount or unlink procedure
->     * remove unnecessary mnt_want_write() from ovl_make_singleton_whiteout(),
->       because mnt_want_write() has been invoked by its caller.
->     * document the lock assertions for newly-added helpers
-> v2:
->     * address the comments from Miklos and Amir: handle -EMLINK and -EXDEV
->       when hard-linking whiteout file to the singleton
->
->     * move the singleton whiteout from workbasedir to workdir to simplify
->       the lock of inodes
-> v1:
->     * https://www.spinics.net/lists/linux-unionfs/msg04023.html
-> ---
->  fs/overlayfs/dir.c       | 150 +++++++++++++++++++++++++++++++++++++++++++++--
->  fs/overlayfs/overlayfs.h |   5 +-
->  fs/overlayfs/ovl_entry.h |   5 ++
->  fs/overlayfs/readdir.c   |   2 +-
->  fs/overlayfs/super.c     |   5 ++
->  fs/overlayfs/util.c      |   4 +-
->  6 files changed, 161 insertions(+), 10 deletions(-)
->
-> diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
-> index 839709c7803a..c87360d22f92 100644
-> --- a/fs/overlayfs/dir.c
-> +++ b/fs/overlayfs/dir.c
-> @@ -24,6 +24,12 @@ module_param_named(redirect_max, ovl_redirect_max, ushort, 0644);
->  MODULE_PARM_DESC(ovl_redirect_max,
->                  "Maximum length of absolute redirect xattr value");
->
-> +static unsigned int ovl_singleton_wt_link_max = 255;
-> +module_param_named(singleton_whiteout_link_max,
-> +               ovl_singleton_wt_link_max, uint, 0644);
-> +MODULE_PARM_DESC(ovl_singleton_wt_link_max,
-> +               "Maximum hardlinks of a whiteout singleton");
-> +
->  int ovl_cleanup(struct inode *wdir, struct dentry *wdentry)
->  {
->         int err;
-> @@ -62,18 +68,149 @@ struct dentry *ovl_lookup_temp(struct dentry *workdir)
->         return temp;
->  }
->
-> +#define OVL_SINGLETON_WHITEOUT_NAME "whiteout"
-> +
-> +/* caller holds write lock (i_rwsem) of dir */
-> +static int ovl_make_singleton_whiteout_locked(struct ovl_fs *ofs,
-> +               struct dentry *dir, const char *name)
-> +{
-> +       int err = 0;
-> +       struct inode *inode = d_inode(dir);
-> +       struct dentry *whiteout;
-> +
-> +       whiteout = lookup_one_len(name, dir, strlen(name));
-> +       if (IS_ERR(whiteout))
-> +               return PTR_ERR(whiteout);
-> +
-> +       if (ovl_is_whiteout(whiteout)) {
-> +               ofs->whiteout = whiteout;
-> +       } else if (!whiteout->d_inode) {
-> +               err = ovl_do_whiteout(inode, whiteout);
-> +               if (!err)
-> +                       ofs->whiteout = whiteout;
-> +               else
-> +                       dput(whiteout);
-> +       } else {
-> +               /*
-> +                * fallback to creating new whiteout file if
-> +                * a non-whiteout file already exists
-> +                */
-> +               dput(whiteout);
-> +       }
-> +
-> +       return err;
-> +}
-> +
-> +/*
-> + * create a new whiteout file under workdir if it doesn't exist.
-> + * If a non-whiteout file already exists, no error will be reported
-> + * and the needed whiteout file will be newly created instead of
-> + * being linked to a singleton whiteout.
-> + */
-> +int ovl_make_singleton_whiteout(struct ovl_fs *ofs)
-> +{
-> +       int err;
-> +       struct inode *dir;
-> +
-> +       /* disable singleton whiteout */
-> +       if (ovl_singleton_wt_link_max <= 1)
-> +               return 0;
-> +
-> +       dir = d_inode(ofs->workdir);
-> +       inode_lock_nested(dir, I_MUTEX_PARENT);
-> +
-> +       err = ovl_make_singleton_whiteout_locked(ofs, ofs->workdir,
-> +                       OVL_SINGLETON_WHITEOUT_NAME);
-> +
-> +       inode_unlock(dir);
-> +
-> +       return err;
-> +}
-> +
-> +/*
-> + * caller holds i_mutex of workdir to ensure the operations
-> + * on the singletion whiteout are serialized.
-> + */
-> +static int ovl_link_to_singleton_whiteout(struct ovl_fs *ofs,
-> +               struct dentry *whiteout, bool *create_instead)
-> +{
-> +       int err;
-> +       struct inode *wdir = d_inode(ofs->workdir);
-> +       struct dentry *singleton;
-> +       bool retried = false;
-> +
-> +       *create_instead = false;
-> +retry:
-> +       singleton = ofs->whiteout;
-> +       /* Create a new singletion whiteout when the limit is exceeded */
-> +       if (1 < ovl_singleton_wt_link_max &&
+A helper for ovl_getattr() to map the values of st_dev and st_ino
+according to constant st_ino rules.
 
-It's hard for me to look at this Java style where constant comes first...
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+---
+ fs/overlayfs/inode.c     | 83 +++++++++++++++++++++++++-----------------------
+ fs/overlayfs/overlayfs.h |  1 +
+ fs/overlayfs/util.c      |  7 ++++
+ 3 files changed, 52 insertions(+), 39 deletions(-)
 
-> +               singleton->d_inode->i_nlink >= ovl_singleton_wt_link_max)
-> +               err = -EMLINK;
-> +       else
-> +               err = ovl_do_link(singleton, wdir, whiteout, false);
-> +
-> +       if (!err) {
-> +               goto out;
-> +       } else if (err == -EMLINK && !retried) {
-> +               /*
-> +                * The singleton already has the maximum number of links to it,
-> +                * so remove the old singleton and create a new one
-> +                */
-> +               ofs->whiteout = NULL;
-> +               err = ovl_do_unlink(wdir, singleton);
-> +               if (err) {
-> +                       dput(singleton);
-> +                       goto out;
-> +               }
-> +
-> +               dput(singleton);
-> +               err = ovl_make_singleton_whiteout_locked(ofs, ofs->workdir,
-> +                               OVL_SINGLETON_WHITEOUT_NAME);
-> +               if (err)
-> +                       goto out;
-> +
-> +               retried = true;
-> +               if (ofs->whiteout)
-> +                       goto retry;
-> +               else
-> +                       goto out_fallback;
-> +       } else if (err == -EXDEV) {
-> +               /*
-> +                * upper fs may have a project id different than singleton,
-> +                * so fall back to create whiteout directly
-> +                */
-
-I know I pointed out the EXDEV case, but would also like to point out that
-if link fails to different proj id, so will rename, so maybe we can fail the
-whiteout already.
-
-> +               goto out_fallback;
-> +       } else {
-> +               goto out;
-> +       }
-> +
-> +out_fallback:
-> +       *create_instead = true;
-> +out:
-> +       return err;
-
-
-You don't really need those labels.
-You get return err instead of goto out
-and you can *create_instead = true instead of goto out_fallback
-If you ask me, I would return 1 for create_instead and avoid the
-create_instead argument altogether.
-
-
-> +}
-> +
->  /* caller holds i_mutex on workdir */
-> -static struct dentry *ovl_whiteout(struct dentry *workdir)
-> +static struct dentry *ovl_whiteout(struct ovl_fs *ofs, struct dentry *workdir)
->  {
->         int err;
->         struct dentry *whiteout;
->         struct inode *wdir = workdir->d_inode;
-> +       bool create_instead;
->
->         whiteout = ovl_lookup_temp(workdir);
->         if (IS_ERR(whiteout))
->                 return whiteout;
->
-> -       err = ovl_do_whiteout(wdir, whiteout);
-> +       if (workdir == ofs->workdir && ofs->whiteout)
-
-That's a damn shame, because for rm -rf of a large lower tree,
-the whiteouts from upper dir will be removed anyway, but the
-whiteouts from index dir with nfs_export=on will stay forever
-(or until we figure out the best way to clean them), so deduplicating
-the whiteouts in index dir will be most beneficial.
-
-The reason I am not objecting to merge of singleton whiteout as is
-is because the right way to implement singleton whiteout for
-index dir would be to use the index dir as the work dir, as Miklos
-suggested (i.e. ofs->workdir == ofs->indexdir), so there will
-always be only one directory where whiteouts are created.
-
-> +               err = ovl_link_to_singleton_whiteout(ofs, whiteout,
-> +                               &create_instead);
-
-A construct of if else without {} should be limited to one line.
-You will avoid that problem if you drop create_instead arg.
-
-> +       else
-> +               create_instead = true;
-> +
-> +       if (create_instead)
-
-That could be if (err > 0) if you follow my suggestion
-
-> +               err = ovl_do_whiteout(wdir, whiteout);
-> +
-
-Thanks,
-Amir.
+diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
+index 4689716f23d8..1ae53357b228 100644
+--- a/fs/overlayfs/inode.c
++++ b/fs/overlayfs/inode.c
+@@ -16,13 +16,6 @@
+ #include "overlayfs.h"
+ 
+ 
+-static dev_t ovl_get_pseudo_dev(struct dentry *dentry)
+-{
+-	struct ovl_entry *oe = dentry->d_fsdata;
+-
+-	return oe->lowerstack[0].layer->pseudo_dev;
+-}
+-
+ int ovl_setattr(struct dentry *dentry, struct iattr *attr)
+ {
+ 	int err;
+@@ -66,6 +59,43 @@ int ovl_setattr(struct dentry *dentry, struct iattr *attr)
+ 	return err;
+ }
+ 
++static int ovl_map_dev_ino(struct dentry *dentry, struct kstat *stat)
++{
++	struct ovl_layer *lower_layer = ovl_layer_lower(dentry);
++	bool samefs = ovl_same_sb(dentry->d_sb);
++
++	if (samefs) {
++		/*
++		 * When all layers are on the same fs, all real inode
++		 * number are unique, so we use the overlay st_dev,
++		 * which is friendly to du -x.
++		 */
++		stat->dev = dentry->d_sb->s_dev;
++	} else if (S_ISDIR(dentry->d_inode->i_mode)) {
++		/*
++		 * Always use the overlay st_dev for directories, so 'find
++		 * -xdev' will scan the entire overlay mount and won't cross the
++		 * overlay mount boundaries.
++		 *
++		 * If not all layers are on the same fs the pair {real st_ino;
++		 * overlay st_dev} is not unique, so use the non persistent
++		 * overlay st_ino for directories.
++		 */
++		stat->dev = dentry->d_sb->s_dev;
++		stat->ino = dentry->d_inode->i_ino;
++	} else if (lower_layer) {
++		/*
++		 * For non-samefs setup, if we cannot map all layers st_ino
++		 * to a unified address space, we need to make sure that st_dev
++		 * is unique per layer. Upper layer uses real st_dev and lower
++		 * layers use the unique anonymous bdev.
++		 */
++		stat->dev = lower_layer->pseudo_dev;
++	}
++
++	return 0;
++}
++
+ int ovl_getattr(const struct path *path, struct kstat *stat,
+ 		u32 request_mask, unsigned int flags)
+ {
+@@ -84,10 +114,10 @@ int ovl_getattr(const struct path *path, struct kstat *stat,
+ 		goto out;
+ 
+ 	/*
+-	 * For non-dir or same fs, we use st_ino of the copy up origin, if we
+-	 * know it. This guaranties constant st_dev/st_ino across copy up.
++	 * For non-dir or same fs, we use st_ino of the copy up origin.
++	 * This guaranties constant st_dev/st_ino across copy up.
+ 	 *
+-	 * If filesystem supports NFS export ops, this also guaranties
++	 * If lower filesystem supports NFS file handles, this also guaranties
+ 	 * persistent st_ino across mount cycle.
+ 	 */
+ 	if (!is_dir || samefs) {
+@@ -123,38 +153,13 @@ int ovl_getattr(const struct path *path, struct kstat *stat,
+ 
+ 			if (samefs)
+ 				WARN_ON_ONCE(stat->dev != lowerstat.dev);
+-			else
+-				stat->dev = ovl_get_pseudo_dev(dentry);
+-		}
+-		if (samefs) {
+-			/*
+-			 * When all layers are on the same fs, all real inode
+-			 * number are unique, so we use the overlay st_dev,
+-			 * which is friendly to du -x.
+-			 */
+-			stat->dev = dentry->d_sb->s_dev;
+-		} else if (!OVL_TYPE_UPPER(type)) {
+-			/*
+-			 * For non-samefs setup, to make sure that st_dev/st_ino
+-			 * pair is unique across the system, we use a unique
+-			 * anonymous st_dev for lower layer inode.
+-			 */
+-			stat->dev = ovl_get_pseudo_dev(dentry);
+ 		}
+-	} else {
+-		/*
+-		 * Always use the overlay st_dev for directories, so 'find
+-		 * -xdev' will scan the entire overlay mount and won't cross the
+-		 * overlay mount boundaries.
+-		 *
+-		 * If not all layers are on the same fs the pair {real st_ino;
+-		 * overlay st_dev} is not unique, so use the non persistent
+-		 * overlay st_ino for directories.
+-		 */
+-		stat->dev = dentry->d_sb->s_dev;
+-		stat->ino = dentry->d_inode->i_ino;
+ 	}
+ 
++	err = ovl_map_dev_ino(dentry, stat);
++	if (err)
++		goto out;
++
+ 	/*
+ 	 * It's probably not worth it to count subdirs to get the
+ 	 * correct link count.  nlink=1 seems to pacify 'find' and
+diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
+index 225ff1171147..4432599ecbc6 100644
+--- a/fs/overlayfs/overlayfs.h
++++ b/fs/overlayfs/overlayfs.h
+@@ -215,6 +215,7 @@ void ovl_path_lower(struct dentry *dentry, struct path *path);
+ enum ovl_path_type ovl_path_real(struct dentry *dentry, struct path *path);
+ struct dentry *ovl_dentry_upper(struct dentry *dentry);
+ struct dentry *ovl_dentry_lower(struct dentry *dentry);
++struct ovl_layer *ovl_layer_lower(struct dentry *dentry);
+ struct dentry *ovl_dentry_real(struct dentry *dentry);
+ struct dentry *ovl_i_dentry_upper(struct inode *inode);
+ struct inode *ovl_inode_upper(struct inode *inode);
+diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
+index 493f9b76fbf6..5042293d2078 100644
+--- a/fs/overlayfs/util.c
++++ b/fs/overlayfs/util.c
+@@ -172,6 +172,13 @@ struct dentry *ovl_dentry_lower(struct dentry *dentry)
+ 	return oe->numlower ? oe->lowerstack[0].dentry : NULL;
+ }
+ 
++struct ovl_layer *ovl_layer_lower(struct dentry *dentry)
++{
++	struct ovl_entry *oe = dentry->d_fsdata;
++
++	return oe->numlower ? oe->lowerstack[0].layer : NULL;
++}
++
+ struct dentry *ovl_dentry_real(struct dentry *dentry)
+ {
+ 	return ovl_dentry_upper(dentry) ?: ovl_dentry_lower(dentry);
+-- 
+2.7.4
