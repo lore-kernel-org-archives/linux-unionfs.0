@@ -1,132 +1,46 @@
-Return-Path: <vgoyal@redhat.com>
-From: Vivek Goyal <vgoyal@redhat.com>
-Subject: [PATCH v12 04/17] ovl: Move the copy up helpers to copy_up.c
-Date: Tue,  6 Mar 2018 15:53:55 -0500
-Message-Id: <20180306205408.23383-5-vgoyal@redhat.com>
-In-Reply-To: <20180306205408.23383-1-vgoyal@redhat.com>
-References: <20180306205408.23383-1-vgoyal@redhat.com>
-To: linux-unionfs@vger.kernel.org
-Cc: miklos@szeredi.hu, amir73il@gmail.com, vgoyal@redhat.com
+Return-Path: <amir73il@gmail.com>
+MIME-Version: 1.0
+In-Reply-To: <CAJfpegthMY9PRyMLEiLuu56Y-=tJybDC_4-0MLrSWt1s7Avg1w@mail.gmail.com>
+References: <1522333133-24772-1-git-send-email-amir73il@gmail.com>
+ <1522333133-24772-4-git-send-email-amir73il@gmail.com> <CAJfpegtbvrTTnaoB8k9USp_Ev_PWA64efnaEt+JC_rdYU1sfWg@mail.gmail.com>
+ <CAOQ4uxiPB5BB8Wm=qe=HPohDqVMiwFy2niWa5vstgc0Y=nRhyg@mail.gmail.com>
+ <CAJfpeguaR0u=JL_ZwAv2cTX3jcwWDPDJ-uk6Fhxua_5BnK8Cww@mail.gmail.com>
+ <CAOQ4uxgg+ntFoFh9zaPP2Xi-0dw-UfCvNawgAptFEN0gVCzQ-Q@mail.gmail.com>
+ <CAJfpegvDW0XvX2dfNqt8_cWGkfU9bNfKkiLzxea+mFWF8Po0XA@mail.gmail.com>
+ <CAOQ4uxhoMyPD1MQZX4nAzBSag_NrXpZ1ZMOJ8JoW42xVTNW0Yw@mail.gmail.com> <CAJfpegthMY9PRyMLEiLuu56Y-=tJybDC_4-0MLrSWt1s7Avg1w@mail.gmail.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Date: Fri, 30 Mar 2018 01:10:47 +0300
+Message-ID: <CAOQ4uxhvr9UCBNN_RpGPkGai6F9v-g+RD-0H0gw7Ppu2pYS+_A@mail.gmail.com>
+Subject: Re: [PATCH v9 3/7] ovl: constant st_ino for non-samefs with xino
+Content-Type: text/plain; charset="UTF-8"
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: overlayfs <linux-unionfs@vger.kernel.org>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-Right now two copy up helpers are in inode.c. Amir suggested it might
-be better to move these to copy_up.c.
+On Thu, Mar 29, 2018 at 11:04 PM, Miklos Szeredi <miklos@szeredi.hu> wrote:
+> On Thu, Mar 29, 2018 at 9:49 PM, Amir Goldstein <amir73il@gmail.com> wrote:
+>> On Thu, Mar 29, 2018 at 10:41 PM, Miklos Szeredi <miklos@szeredi.hu> wrote:
+>>> On Thu, Mar 29, 2018 at 9:02 PM, Amir Goldstein <amir73il@gmail.com> wrote:
+>>>
+>>>> So you mean same as other features?
+>>>>
+>>>> OVERLAY_FS_XINO defaults to n
+>>>> and mount options xino=on/off.
+>>>
+>>> Yes.
+>>>
+>>
+>> Wait a minute, but if OVERLAY_FS_XINO=y it doesn't mean
+>> that all overlay mounts enforce xino, does it?
+>
+> Right.
+>
+>> I think it should be something like
+>> OVERLAY_FS_XINO_AUTO to determine only if the auto enabling
+>> of xino (i.e. for 32bit file handle encoding) is enabled.
+>
 
-There will one more related function which will come in later patch.
+Pushed with this change to ovl-xino-v10
 
-Reviewed-by: Amir Goldstein <amir73il@gmail.com>
-Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
----
- fs/overlayfs/copy_up.c   | 32 ++++++++++++++++++++++++++++++++
- fs/overlayfs/inode.c     | 32 --------------------------------
- fs/overlayfs/overlayfs.h |  2 +-
- 3 files changed, 33 insertions(+), 33 deletions(-)
-
-diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
-index 2de4ab3254a4..98403b1d40c2 100644
---- a/fs/overlayfs/copy_up.c
-+++ b/fs/overlayfs/copy_up.c
-@@ -826,6 +826,38 @@ int ovl_copy_up_flags(struct dentry *dentry, int flags)
- 	return err;
- }
- 
-+static bool ovl_open_need_copy_up(struct dentry *dentry, int flags)
-+{
-+	/* Copy up of disconnected dentry does not set upper alias */
-+	if (ovl_dentry_upper(dentry) &&
-+	    (ovl_dentry_has_upper_alias(dentry) ||
-+	     (dentry->d_flags & DCACHE_DISCONNECTED)))
-+		return false;
-+
-+	if (special_file(d_inode(dentry)->i_mode))
-+		return false;
-+
-+	if (!(OPEN_FMODE(flags) & FMODE_WRITE) && !(flags & O_TRUNC))
-+		return false;
-+
-+	return true;
-+}
-+
-+int ovl_open_maybe_copy_up(struct dentry *dentry, unsigned int file_flags)
-+{
-+	int err = 0;
-+
-+	if (ovl_open_need_copy_up(dentry, file_flags)) {
-+		err = ovl_want_write(dentry);
-+		if (!err) {
-+			err = ovl_copy_up_flags(dentry, file_flags);
-+			ovl_drop_write(dentry);
-+		}
-+	}
-+
-+	return err;
-+}
-+
- int ovl_copy_up(struct dentry *dentry)
- {
- 	return ovl_copy_up_flags(dentry, 0);
-diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
-index fcd97b783fa1..165e1b52f619 100644
---- a/fs/overlayfs/inode.c
-+++ b/fs/overlayfs/inode.c
-@@ -349,38 +349,6 @@ struct posix_acl *ovl_get_acl(struct inode *inode, int type)
- 	return acl;
- }
- 
--static bool ovl_open_need_copy_up(struct dentry *dentry, int flags)
--{
--	/* Copy up of disconnected dentry does not set upper alias */
--	if (ovl_dentry_upper(dentry) &&
--	    (ovl_dentry_has_upper_alias(dentry) ||
--	     (dentry->d_flags & DCACHE_DISCONNECTED)))
--		return false;
--
--	if (special_file(d_inode(dentry)->i_mode))
--		return false;
--
--	if (!(OPEN_FMODE(flags) & FMODE_WRITE) && !(flags & O_TRUNC))
--		return false;
--
--	return true;
--}
--
--int ovl_open_maybe_copy_up(struct dentry *dentry, unsigned int file_flags)
--{
--	int err = 0;
--
--	if (ovl_open_need_copy_up(dentry, file_flags)) {
--		err = ovl_want_write(dentry);
--		if (!err) {
--			err = ovl_copy_up_flags(dentry, file_flags);
--			ovl_drop_write(dentry);
--		}
--	}
--
--	return err;
--}
--
- int ovl_update_time(struct inode *inode, struct timespec *ts, int flags)
- {
- 	struct dentry *alias;
-diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-index 0df25a9c94bd..21f3bfea665c 100644
---- a/fs/overlayfs/overlayfs.h
-+++ b/fs/overlayfs/overlayfs.h
-@@ -320,7 +320,6 @@ int ovl_xattr_get(struct dentry *dentry, struct inode *inode, const char *name,
- 		  void *value, size_t size);
- ssize_t ovl_listxattr(struct dentry *dentry, char *list, size_t size);
- struct posix_acl *ovl_get_acl(struct inode *inode, int type);
--int ovl_open_maybe_copy_up(struct dentry *dentry, unsigned int file_flags);
- int ovl_update_time(struct inode *inode, struct timespec *ts, int flags);
- bool ovl_is_private_xattr(const char *name);
- 
-@@ -358,6 +357,7 @@ int ovl_cleanup(struct inode *dir, struct dentry *dentry);
- /* copy_up.c */
- int ovl_copy_up(struct dentry *dentry);
- int ovl_copy_up_flags(struct dentry *dentry, int flags);
-+int ovl_open_maybe_copy_up(struct dentry *dentry, unsigned int file_flags);
- int ovl_copy_xattr(struct dentry *old, struct dentry *new);
- int ovl_set_attr(struct dentry *upper, struct kstat *stat);
- struct ovl_fh *ovl_encode_fh(struct dentry *real, bool is_upper);
--- 
-2.13.6
+Thanks,
+Amir.
