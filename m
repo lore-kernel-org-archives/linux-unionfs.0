@@ -1,120 +1,93 @@
-Return-Path: <vgoyal@redhat.com>
-From: Vivek Goyal <vgoyal@redhat.com>
-Subject: [PATCH v12 06/17] ovl: Add helper ovl_already_copied_up()
-Date: Tue,  6 Mar 2018 15:53:57 -0500
-Message-Id: <20180306205408.23383-7-vgoyal@redhat.com>
-In-Reply-To: <20180306205408.23383-1-vgoyal@redhat.com>
-References: <20180306205408.23383-1-vgoyal@redhat.com>
-To: linux-unionfs@vger.kernel.org
-Cc: miklos@szeredi.hu, amir73il@gmail.com, vgoyal@redhat.com
+MIME-Version: 1.0
+In-Reply-To: <20180309204444.13237-2-vgoyal@redhat.com>
+References: <20180309204444.13237-1-vgoyal@redhat.com>
+	<20180309204444.13237-2-vgoyal@redhat.com>
+Date: Thu, 29 Mar 2018 11:50:47 +0200
+Message-ID: <CAJfpegu3WL37EZXSyJ3vMgr4=-4BCuiczBFwjb13DPndOAV2Fw@mail.gmail.com>
+Subject: Re: [PATCH v2 1/4] ovl: Set d->last properly during lookup
+From: Miklos Szeredi <miklos@szeredi.hu>
+Content-Type: text/plain; charset="UTF-8"
+To: Vivek Goyal <vgoyal@redhat.com>
+Cc: overlayfs <linux-unionfs@vger.kernel.org>, Amir Goldstein <amir73il@gmail.com>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-There are couple of places where we need to know if file is already copied
-up (in lockless manner). Right now its open coded and there are only
-two conditions to check. Soon this patch series will introduce another
-condition to check and Amir wants to introduce one more. So introduce
-a helper instead to check this so that code is easier to read.
+On Fri, Mar 9, 2018 at 9:44 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
+> d->last signifies that this is the last layer we are looking into and there
+> is no more. And that means this allows for some optimzation opportunities
+> during lookup. For example, in ovl_lookup_single() we don't have to check
+> for opaque xattr of a directory is this is the last layer we are looking
+> into (d->last = true).
+>
+> But knowing for sure whether we are looking into last layer can be very
+> tricky. If redirects are not enabled, then we can look at poe->numlower
+> and figure out if the lookup we are about to is last layer or not. But
+> if redircts are enabled then it is possible poe->numlower suggests that
+> we are looking in last layer, but there is an absolute redirect present
+> in found element and that redirects us to a layer in root and that means
+> lookup will continue in lower layers further.
+>
+> For example, consider following.
+>
+> /upperdir/pure (opaque=y)
+> /upperdir/pure/foo (opaque=y,redirect=/bar)
+> /lowerdir/bar
+>
+> In this case pure is "pure upper". When we look for "foo", that time
+> poe->numlower=0. But that alone does not mean that we will not search
+> for a merge candidate in /lowerdir. Absolute redirect changes that.
+>
+> IOW, d->last should not be set just based on poe->numlower if redirects
+> are enabled. That can lead to setting d->last while it should not have
+> and that means we will not check for opaque xattr while we should have.
+>
+> So do this.
+>
+> - If redirects are not enabled, then continue to rely on poe->numlower
+>   information to determine if it is last layer or not.
+>
+> - If redirects are enabled, then set d->last = true only if this is the
+>   last layer in root ovl_entry (roe).
+>
+> Suggested-by: Amir Goldstein <amir73il@gmail.com>
+> Reviewed-by: Amir Goldstein <amir73il@gmail.com>
+> Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
 
-Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
-Reviewed-by: Amir Goldstein <amir73il@gmail.com>
----
- fs/overlayfs/copy_up.c   | 20 ++------------------
- fs/overlayfs/overlayfs.h |  1 +
- fs/overlayfs/util.c      | 26 +++++++++++++++++++++++++-
- 3 files changed, 28 insertions(+), 19 deletions(-)
+Added:
 
-diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
-index 45e396a0fd6a..8d9af7fdc8a4 100644
---- a/fs/overlayfs/copy_up.c
-+++ b/fs/overlayfs/copy_up.c
-@@ -810,21 +810,7 @@ int ovl_copy_up_flags(struct dentry *dentry, int flags)
- 		struct dentry *next;
- 		struct dentry *parent = NULL;
- 
--		/*
--		 * Check if copy-up has happened as well as for upper alias (in
--		 * case of hard links) is there.
--		 *
--		 * Both checks are lockless:
--		 *  - false negatives: will recheck under oi->lock
--		 *  - false positives:
--		 *    + ovl_dentry_upper() uses memory barriers to ensure the
--		 *      upper dentry is up-to-date
--		 *    + ovl_dentry_has_upper_alias() relies on locking of
--		 *      upper parent i_rwsem to prevent reordering copy-up
--		 *      with rename.
--		 */
--		if (ovl_dentry_upper(dentry) &&
--		    (ovl_dentry_has_upper_alias(dentry) || disconnected))
-+		if (ovl_already_copied_up(dentry))
- 			break;
- 
- 		next = dget(dentry);
-@@ -852,9 +838,7 @@ int ovl_copy_up_flags(struct dentry *dentry, int flags)
- static bool ovl_open_need_copy_up(struct dentry *dentry, int flags)
- {
- 	/* Copy up of disconnected dentry does not set upper alias */
--	if (ovl_dentry_upper(dentry) &&
--	    (ovl_dentry_has_upper_alias(dentry) ||
--	     (dentry->d_flags & DCACHE_DISCONNECTED)))
-+	if (ovl_already_copied_up(dentry))
- 		return false;
- 
- 	if (special_file(d_inode(dentry)->i_mode))
-diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-index 21f3bfea665c..11f87f3099a1 100644
---- a/fs/overlayfs/overlayfs.h
-+++ b/fs/overlayfs/overlayfs.h
-@@ -241,6 +241,7 @@ bool ovl_is_whiteout(struct dentry *dentry);
- struct file *ovl_path_open(struct path *path, int flags);
- int ovl_copy_up_start(struct dentry *dentry);
- void ovl_copy_up_end(struct dentry *dentry);
-+bool ovl_already_copied_up(struct dentry *dentry);
- bool ovl_check_origin_xattr(struct dentry *dentry);
- bool ovl_check_dir_xattr(struct dentry *dentry, const char *name);
- int ovl_check_setxattr(struct dentry *dentry, struct dentry *upperdentry,
-diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
-index 930784a26623..4e537eeb594e 100644
---- a/fs/overlayfs/util.c
-+++ b/fs/overlayfs/util.c
-@@ -339,13 +339,37 @@ struct file *ovl_path_open(struct path *path, int flags)
- 	return dentry_open(path, flags | O_NOATIME, current_cred());
- }
- 
-+bool ovl_already_copied_up(struct dentry *dentry)
-+{
-+	bool disconnected = dentry->d_flags & DCACHE_DISCONNECTED;
-+
-+	/*
-+	 * Check if copy-up has happened as well as for upper alias (in
-+	 * case of hard links) is there.
-+	 *
-+	 * Both checks are lockless:
-+	 *  - false negatives: will recheck under oi->lock
-+	 *  - false positives:
-+	 *    + ovl_dentry_upper() uses memory barriers to ensure the
-+	 *      upper dentry is up-to-date
-+	 *    + ovl_dentry_has_upper_alias() relies on locking of
-+	 *      upper parent i_rwsem to prevent reordering copy-up
-+	 *      with rename.
-+	 */
-+	if (ovl_dentry_upper(dentry) &&
-+	    (ovl_dentry_has_upper_alias(dentry) || disconnected))
-+		return true;
-+
-+	return false;
-+}
-+
- int ovl_copy_up_start(struct dentry *dentry)
- {
- 	struct ovl_inode *oi = OVL_I(d_inode(dentry));
- 	int err;
- 
- 	err = mutex_lock_interruptible(&oi->lock);
--	if (!err && ovl_dentry_has_upper_alias(dentry)) {
-+	if (!err && ovl_already_copied_up(dentry)) {
- 		err = 1; /* Already copied up */
- 		mutex_unlock(&oi->lock);
- 	}
--- 
-2.13.6
+Fixes: 02b69b284cd7 ("ovl: lookup redirects")
+Cc: <stable@vger.kernel.org> #v4.10
+
+
+> ---
+>  fs/overlayfs/namei.c | 8 ++++++--
+>  1 file changed, 6 insertions(+), 2 deletions(-)
+>
+> diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
+> index de3e6da1d5a5..78798367c4f0 100644
+> --- a/fs/overlayfs/namei.c
+> +++ b/fs/overlayfs/namei.c
+> @@ -815,7 +815,7 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
+>                 .is_dir = false,
+>                 .opaque = false,
+>                 .stop = false,
+> -               .last = !poe->numlower,
+> +               .last = ofs->config.redirect_follow ? false : !poe->numlower,
+>                 .redirect = NULL,
+>         };
+>
+> @@ -873,7 +873,11 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
+>         for (i = 0; !d.stop && i < poe->numlower; i++) {
+>                 struct ovl_path lower = poe->lowerstack[i];
+>
+> -               d.last = i == poe->numlower - 1;
+> +               if (!ofs->config.redirect_follow)
+> +                       d.last = i == poe->numlower - 1;
+> +               else
+> +                       d.last = lower.layer->idx == roe->numlower;
+> +
+>                 err = ovl_lookup_layer(lower.dentry, &d, &this);
+>                 if (err)
+>                         goto out_put;
+> --
+> 2.13.6
+>
