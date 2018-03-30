@@ -1,58 +1,69 @@
-Return-Path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mx3-rdu2.redhat.com ([66.187.233.73]:43748 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1754033AbeCFUyR (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 6 Mar 2018 15:54:17 -0500
-From: Vivek Goyal <vgoyal@redhat.com>
-Subject: [PATCH v12 14/17] ovl: Set redirect on metacopy files upon rename
-Date: Tue,  6 Mar 2018 15:54:05 -0500
-Message-Id: <20180306205408.23383-15-vgoyal@redhat.com>
-In-Reply-To: <20180306205408.23383-1-vgoyal@redhat.com>
-References: <20180306205408.23383-1-vgoyal@redhat.com>
-Sender: linux-unionfs-owner@vger.kernel.org
-To: linux-unionfs@vger.kernel.org
-Cc: miklos@szeredi.hu, amir73il@gmail.com, vgoyal@redhat.com
+Return-Path: <amir73il@gmail.com>
+MIME-Version: 1.0
+In-Reply-To: <20180329193854.13814-21-vgoyal@redhat.com>
+References: <20180329193854.13814-1-vgoyal@redhat.com> <20180329193854.13814-21-vgoyal@redhat.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Date: Fri, 30 Mar 2018 12:54:14 +0300
+Message-ID: <CAOQ4uxiJpXWXjWMWPa9DGzP06etO7-Y82MKdgroiD08Fhx9H6A@mail.gmail.com>
+Subject: Re: [PATCH v13 20/28] ovl: Do not set dentry type ORIGIN for broken hardlinks
+Content-Type: text/plain; charset="UTF-8"
+To: Vivek Goyal <vgoyal@redhat.com>
+Cc: overlayfs <linux-unionfs@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-Set redirect on metacopy files upon rename. This will help find data dentry
-in lower dirs.
+On Thu, Mar 29, 2018 at 10:38 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
+> If a dentry has copy up origin, we set flag OVL_PATH_ORIGIN. So far
+> this decision was easy that we had to check only for oe->numlower
+> and if it is non-zero, we knew there is copy up origin. (For non-dir
+> we installed origin dentry in lowerstack[0]).
+>
+> But we don't create ORGIN xattr for broken hardlinks (index=off). And
+> with metacopy feature it is possible that we will still install
+> lowerstack[0]. But that's lower data dentry of metacopy upper of broken
+> hardlink and not ORIGIN XATTR is not set.
+>
+> So two differentiate between two cases, do not set OVL_PATH_ORIGIN if
+> we have a broken hardlink.
+>
+> Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
+> ---
+>  fs/overlayfs/util.c | 9 ++++++++-
+>  1 file changed, 8 insertions(+), 1 deletion(-)
+>
+> diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
+> index 29f7336ade88..961d65bd25c9 100644
+> --- a/fs/overlayfs/util.c
+> +++ b/fs/overlayfs/util.c
+> @@ -117,7 +117,14 @@ enum ovl_path_type ovl_path_type(struct dentry *dentry)
+>                  * Non-dir dentry can hold lower dentry of its copy up origin.
 
-Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
----
- fs/overlayfs/dir.c | 13 +++++++++----
- 1 file changed, 9 insertions(+), 4 deletions(-)
+This comment needs updating with metacopy.
 
-diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
-index cdeae4bdbfce..b955f6fede06 100644
---- a/fs/overlayfs/dir.c
-+++ b/fs/overlayfs/dir.c
-@@ -1048,9 +1048,11 @@ static int ovl_rename(struct inode *olddir, struct dentry *old,
- 			err = ovl_set_redirect(old, samedir);
- 		else if (!old_opaque && ovl_type_merge(new->d_parent))
- 			err = ovl_set_opaque_xerr(old, olddentry, -EXDEV);
--		if (err)
--			goto out_dput;
--	}
-+	} else if (ovl_is_metacopy_dentry(old))
-+			err = ovl_set_redirect(old, false);
-+	if (err)
-+		goto out_dput;
-+
- 	if (!overwrite && new_is_dir) {
- 		if (ovl_type_merge_or_lower(new))
- 			err = ovl_set_redirect(new, samedir);
-@@ -1058,7 +1060,10 @@ static int ovl_rename(struct inode *olddir, struct dentry *old,
- 			err = ovl_set_opaque_xerr(new, newdentry, -EXDEV);
- 		if (err)
- 			goto out_dput;
--	}
-+	} else if (!overwrite && ovl_is_metacopy_dentry(new))
-+			err = ovl_set_redirect(new, false);
-+	if (err)
-+		goto out_dput;
- 
- 	err = ovl_do_rename(old_upperdir->d_inode, olddentry,
- 			    new_upperdir->d_inode, newdentry, flags);
--- 
-2.13.6
+>                  */
+>                 if (oe->numlower) {
+> -                       type |= __OVL_PATH_ORIGIN;
+> +                       /*
+> +                        * ORIGIN is created for everyting except broken
+> +                        * hardlinks
+> +                        */
+> +                       if (!(d_inode(dentry)->i_nlink > 1 &&
+> +                           !ovl_test_flag(OVL_INDEX, d_inode(dentry))))
+> +                               type |= __OVL_PATH_ORIGIN;
+> +
 
+I don't like relying on overlay nlink. it is not reliable.
+And I think you missed the directory case.
+The information you need was available during lookup
+and we did not keep it (was lower verified by origin fh).
+Most likely what we need to do it store OVL_ORIGIN inode flag
+during lookup and then use ovl_test_flag(OVL_ORIGIN)
+in place of OVL_TYPE_ORIGIN(type).
+
+If I am not mistaken, you could set flag OVL_ORIGIN in
+ovl_get_inode() IFF (upperdentry && bylower), but to be honest
+the rules became so complicated that I can't say for sure.
+At least I concentrated all the rules in one helper ovl_hash_bylower(),
+so I hope that helps.
+
+Thanks,
+Amir.
