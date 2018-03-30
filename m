@@ -1,145 +1,138 @@
 Return-Path: <amir73il@gmail.com>
-Return-Path: <amir73il@gmail.com>
+MIME-Version: 1.0
+In-Reply-To: <CAOQ4uxiO8fRn6TB54SANB4cp4uURDJ6wQVNT8mF29nH67F7M+A@mail.gmail.com>
+References: <20180329193854.13814-1-vgoyal@redhat.com> <20180329193854.13814-11-vgoyal@redhat.com>
+ <CAOQ4uxiO8fRn6TB54SANB4cp4uURDJ6wQVNT8mF29nH67F7M+A@mail.gmail.com>
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH v9 5/7] ovl: consistent d_ino for non-samefs with xino
-Date: Thu, 29 Mar 2018 17:18:51 +0300
-Message-Id: <1522333133-24772-6-git-send-email-amir73il@gmail.com>
-In-Reply-To: <1522333133-24772-1-git-send-email-amir73il@gmail.com>
-References: <1522333133-24772-1-git-send-email-amir73il@gmail.com>
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: linux-unionfs@vger.kernel.org
+Date: Fri, 30 Mar 2018 12:12:18 +0300
+Message-ID: <CAOQ4uxhouT+uR0sZEd+gn7cGkcRUxc46us2-m5gwzQbAGfFnaA@mail.gmail.com>
+Subject: Re: [PATCH v13 10/28] ovl: Modify ovl_lookup() and friends to lookup
+ metacopy dentry
+Content-Type: text/plain; charset="UTF-8"
+To: Vivek Goyal <vgoyal@redhat.com>
+Cc: overlayfs <linux-unionfs@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-When overlay layers are not all on the same fs, but all inode numbers
-of underlying fs do not use the high 'xino' bits, overlay st_ino values
-are constant and persistent.
+On Fri, Mar 30, 2018 at 8:49 AM, Amir Goldstein <amir73il@gmail.com> wrote:
+> On Thu, Mar 29, 2018 at 10:38 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
+>> This patch modifies ovl_lookup() and friends to lookup metacopy dentries.
+>> It also allows for presence of metacopy dentries in lower layer.
+>>
+>> During lookup, check for presence of OVL_XATTR_METACOPY and if not present,
+>> set OVL_UPPERDATA bit in flags.
+>>
+>> We don't support metacopy feature with nfs_export. So in nfs_export code,
+>> we set OVL_UPPERDATA flag set unconditionally if upper inode exists.
+>>
+>> Do not follow metacopy origin if we find a metacopy only inode and metacopy
+>> feature is not enabled for that mount. Like redirect, this can have security
+>> implications where an attacker could hand craft upper and try to gain
+>> access to file on lower which it should not have to begin with.
+>>
+>> Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
+>> ---
+[...]
 
-In that case, relax non-samefs constraint for consistent d_ino and always
-iterate non-merge dir using ovl_fill_real() actor so we can remap lower
-inode numbers to unique lower fs range.
+>> @@ -917,16 +929,35 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
+>>                  * When "verify_lower" feature is enabled, do not merge with a
+>>                  * lower dir that does not match a stored origin xattr. In any
+>>                  * case, only verified origin is used for index lookup.
+>> +                *
+>> +                * For non-dir dentry, make sure dentry found by lookup
+>> +                * matches the origin stored in upper. Otherwise its an
+>> +                * error.
+>>                  */
+>> -               if (upperdentry && !ctr && ovl_verify_lower(dentry->d_sb)) {
+>> +               if (upperdentry && !ctr &&
+>> +                   ((d.is_dir && ovl_verify_lower(dentry->d_sb)) ||
+>> +                    (!d.is_dir && origin_path))) {
+>>                         err = ovl_verify_origin(upperdentry, this, false);
+>>                         if (err) {
+>>                                 dput(this);
+>> -                               break;
+>> +                               if (d.is_dir)
+>> +                                       break;
+>> +                               goto out_put;
+>>                         }
+>> -
+>>                         /* Bless lower dir as verified origin */
+>> -                       origin = this;
+>> +                       if (d.is_dir)
+>> +                               origin = this;
+>
+> It's ok to bless verified non-dir as well.
+> It is going to be blesses anyway, just above index lookup if ctr > 0.
 
-Signed-off-by: Amir Goldstein <amir73il@gmail.com>
----
- fs/overlayfs/readdir.c | 45 +++++++++++++++++++++++++++++++++++++++------
- 1 file changed, 39 insertions(+), 6 deletions(-)
+>
+>> +               }
+>> +
+>> +               if (d.metacopy)
+>> +                       metacopy = true;
+>> +               /*
+>> +                * Do not store intermediate metacopy dentries in chain,
+>> +                * except top most lower metacopy dentry
+>> +                */
+>> +               if (d.metacopy && ctr) {
+>> +                       dput(this);
+>> +                       continue;
+>>                 }
+>>
+>>                 stack[ctr].dentry = this;
+>> @@ -960,6 +991,34 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
+>>                 }
+>>         }
+>>
+>> +       if (metacopy) {
+>> +               BUG_ON(d.is_dir);
+>
+> Yeh, I think that is really a bug, because you need to detect
+> the case of dir in lower layer under metacopy in upper layer
+> and do something about it.
+>
+>> +               /*
+>> +                * Found a metacopy dentry but did not find corresponding
+>> +                * data dentry
+>> +                */
+>> +               if (d.metacopy) {
+>> +                       err = -ESTALE;
+>> +                       goto out_put;
+>> +               }
+>> +
+>> +               err = -EPERM;
+>> +               if (!ofs->config.metacopy) {
+>> +                       pr_warn_ratelimited("overlay: refusing to follow"
+>> +                                           " metacopy origin for (%pd2)\n",
+>> +                                           dentry);
+>> +                       goto out_put;
+>> +               }
 
-diff --git a/fs/overlayfs/readdir.c b/fs/overlayfs/readdir.c
-index c11f5c0906c3..ef1fe42ff7bb 100644
---- a/fs/overlayfs/readdir.c
-+++ b/fs/overlayfs/readdir.c
-@@ -120,6 +120,10 @@ static bool ovl_calc_d_ino(struct ovl_readdir_data *rdd,
- 	if (!rdd->dentry)
- 		return false;
- 
-+	/* Always recalc d_ino when remapping lower inode numbers */
-+	if (ovl_xino_bits(rdd->dentry->d_sb))
-+		return true;
-+
- 	/* Always recalc d_ino for parent */
- 	if (strcmp(p->name, "..") == 0)
- 		return true;
-@@ -435,6 +439,19 @@ static struct ovl_dir_cache *ovl_cache_get(struct dentry *dentry)
- 	return cache;
- }
- 
-+/* Map inode number to lower fs unique range */
-+static u64 ovl_remap_lower_ino(u64 ino, int xinobits, int fsid,
-+			       const char *name, int namelen)
-+{
-+	if (ino >> (64 - xinobits)) {
-+		pr_warn_ratelimited("overlayfs: d_ino too big (%.*s, ino=%llu, xinobits=%d)\n",
-+				    namelen, name, ino, xinobits);
-+		return ino;
-+	}
-+
-+	return ino | ((u64)fsid) << (64 - xinobits);
-+}
-+
- /*
-  * Set d_ino for upper entries. Non-upper entries should always report
-  * the uppermost real inode ino and should not call this function.
-@@ -452,9 +469,10 @@ static int ovl_cache_update_ino(struct path *path, struct ovl_cache_entry *p)
- 	struct dentry *this = NULL;
- 	enum ovl_path_type type;
- 	u64 ino = p->real_ino;
-+	int xinobits = ovl_xino_bits(dir->d_sb);
- 	int err = 0;
- 
--	if (!ovl_same_sb(dir->d_sb))
-+	if (!ovl_same_sb(dir->d_sb) && !xinobits)
- 		goto out;
- 
- 	if (p->name[0] == '.') {
-@@ -491,6 +509,10 @@ static int ovl_cache_update_ino(struct path *path, struct ovl_cache_entry *p)
- 
- 		WARN_ON_ONCE(dir->d_sb->s_dev != stat.dev);
- 		ino = stat.ino;
-+	} else if (xinobits && !OVL_TYPE_UPPER(type)) {
-+		ino = ovl_remap_lower_ino(ino, xinobits,
-+					  ovl_layer_lower(this)->fsid,
-+					  p->name, p->len);
- 	}
- 
- out:
-@@ -618,6 +640,8 @@ struct ovl_readdir_translate {
- 	struct ovl_dir_cache *cache;
- 	struct dir_context ctx;
- 	u64 parent_ino;
-+	int fsid;
-+	int xinobits;
- };
- 
- static int ovl_fill_real(struct dir_context *ctx, const char *name,
-@@ -628,14 +652,17 @@ static int ovl_fill_real(struct dir_context *ctx, const char *name,
- 		container_of(ctx, struct ovl_readdir_translate, ctx);
- 	struct dir_context *orig_ctx = rdt->orig_ctx;
- 
--	if (rdt->parent_ino && strcmp(name, "..") == 0)
-+	if (rdt->parent_ino && strcmp(name, "..") == 0) {
- 		ino = rdt->parent_ino;
--	else if (rdt->cache) {
-+	} else if (rdt->cache) {
- 		struct ovl_cache_entry *p;
- 
- 		p = ovl_cache_entry_find(&rdt->cache->root, name, namelen);
- 		if (p)
- 			ino = p->ino;
-+	} else if (rdt->xinobits) {
-+		ino = ovl_remap_lower_ino(ino, rdt->xinobits, rdt->fsid,
-+					  name, namelen);
- 	}
- 
- 	return orig_ctx->actor(orig_ctx, name, namelen, offset, ino, d_type);
-@@ -646,11 +673,16 @@ static int ovl_iterate_real(struct file *file, struct dir_context *ctx)
- 	int err;
- 	struct ovl_dir_file *od = file->private_data;
- 	struct dentry *dir = file->f_path.dentry;
-+	struct ovl_layer *lower_layer = ovl_layer_lower(dir);
- 	struct ovl_readdir_translate rdt = {
- 		.ctx.actor = ovl_fill_real,
- 		.orig_ctx = ctx,
-+		.xinobits = ovl_xino_bits(dir->d_sb),
- 	};
- 
-+	if (rdt.xinobits && lower_layer)
-+		rdt.fsid = lower_layer->fsid;
-+
- 	if (OVL_TYPE_MERGE(ovl_path_type(dir->d_parent))) {
- 		struct kstat stat;
- 		struct path statpath = file->f_path;
-@@ -693,9 +725,10 @@ static int ovl_iterate(struct file *file, struct dir_context *ctx)
- 		 * dir is impure then need to adjust d_ino for copied up
- 		 * entries.
- 		 */
--		if (ovl_same_sb(dentry->d_sb) &&
--		    (ovl_test_flag(OVL_IMPURE, d_inode(dentry)) ||
--		     OVL_TYPE_MERGE(ovl_path_type(dentry->d_parent)))) {
-+		if (ovl_xino_bits(dentry->d_sb) ||
-+		    (ovl_same_sb(dentry->d_sb) &&
-+		     (ovl_test_flag(OVL_IMPURE, d_inode(dentry)) ||
-+		      OVL_TYPE_MERGE(ovl_path_type(dentry->d_parent))))) {
- 			return ovl_iterate_real(file, ctx);
- 		}
- 		return iterate_dir(od->realfile, ctx);
--- 
-2.7.4
+in (!origin_path) lower was followed by name/redirect and not
+verified by origin, we should not lookup index of non-dir below.
+Right now non-dir index entries assume that origin xattr exists
+and matches the entry name. We may be able to relax that in
+the future using non-dir redirect, but we are not there yet.
+
+
+>> +       } else if (!d.is_dir && upperdentry && !ctr && origin_path) {
+>> +               if (WARN_ON(stack != NULL)) {
+>> +                       err = -EIO;
+>> +                       goto out_put;
+>> +               }
+>> +               stack = origin_path;
+>> +               ctr = 1;
+>> +               origin_path = NULL;
+>> +       }
+>> +
+>>         /*
+>>          * Lookup index by lower inode and verify it matches upper inode.
+>>          * We only trust dir index if we verified that lower dir matches
+         * origin, otherwise dir index entries may be inconsistent and we
+         * ignore them. Always lookup index of non-dir and non-upper.
+         */
+        if (ctr && (!upperdentry || !d.is_dir))
+                origin = stack[0].dentry;
+
+So this condition needs to be fixed.
+
+Thanks,
+Amir.
