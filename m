@@ -1,69 +1,48 @@
-Return-Path: <vgoyal@redhat.com>
-From: Vivek Goyal <vgoyal@redhat.com>
-Subject: [PATCH v13 01/28] ovl: Set OVL_INDEX flag in ovl_get_inode()
-Date: Thu, 29 Mar 2018 15:38:27 -0400
-Message-Id: <20180329193854.13814-2-vgoyal@redhat.com>
-In-Reply-To: <20180329193854.13814-1-vgoyal@redhat.com>
-References: <20180329193854.13814-1-vgoyal@redhat.com>
-To: linux-unionfs@vger.kernel.org
-Cc: miklos@szeredi.hu, amir73il@gmail.com, vgoyal@redhat.com
+Return-Path: <amir73il@gmail.com>
+MIME-Version: 1.0
+In-Reply-To: <20180329193854.13814-20-vgoyal@redhat.com>
+References: <20180329193854.13814-1-vgoyal@redhat.com> <20180329193854.13814-20-vgoyal@redhat.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Date: Fri, 30 Mar 2018 09:52:36 +0300
+Message-ID: <CAOQ4uxg3g4ZFi6eVyZ1NbMUPZ4ZAXzmoiAykMZmj1k1upW6aAA@mail.gmail.com>
+Subject: Re: [PATCH v13 19/28] ovl: Treat metacopy dentries as type OVL_PATH_MERGE
+Content-Type: text/plain; charset="UTF-8"
+To: Vivek Goyal <vgoyal@redhat.com>
+Cc: overlayfs <linux-unionfs@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-All the inode/ovl_inode initialization should happen in ovl_get_inode().
-This is especially useful when multiple dentries are pointing to same
-inode and inode is already in the cash. In that case, we don't have to
-initialize the OVL_INDEX. We don't even take ovl_inode->lock in ovl_lookup()
-and that can run into issues for the case of shared inode.
+On Thu, Mar 29, 2018 at 10:38 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
+> Right now OVL_PATH_MERGE is used only for merged directories.
+> But conceptually, a metacopy dentry (backed by a lower data dentry) is
+> a merged entity as well.
+>
+> So mark metacopy dentries as OVL_PATH_MERGE and ovl_rename() makes use
+> of this property later to set redirect on a metacopy file.
+>
+> Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
+Reviewed-by: Amir Goldstein <amir73il@gmail.com>
 
-So move OVL_INDEX flag setting in ovl_get_inode().
-
-Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
----
- fs/overlayfs/export.c | 3 ---
- fs/overlayfs/inode.c  | 3 +++
- fs/overlayfs/namei.c  | 2 --
- 3 files changed, 3 insertions(+), 5 deletions(-)
-
-diff --git a/fs/overlayfs/export.c b/fs/overlayfs/export.c
-index 87bd4148f4fb..9868c173068e 100644
---- a/fs/overlayfs/export.c
-+++ b/fs/overlayfs/export.c
-@@ -311,9 +311,6 @@ static struct dentry *ovl_obtain_alias(struct super_block *sb,
- 		return ERR_CAST(inode);
- 	}
- 
--	if (index)
--		ovl_set_flag(OVL_INDEX, inode);
--
- 	dentry = d_find_any_alias(inode);
- 	if (!dentry) {
- 		dentry = d_alloc_anon(inode->i_sb);
-diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
-index 3b1bd469accd..06ef9a7a7d1a 100644
---- a/fs/overlayfs/inode.c
-+++ b/fs/overlayfs/inode.c
-@@ -760,6 +760,9 @@ struct inode *ovl_get_inode(struct super_block *sb, struct dentry *upperdentry,
- 	if (upperdentry && ovl_is_impuredir(upperdentry))
- 		ovl_set_flag(OVL_IMPURE, inode);
- 
-+	if (index)
-+		ovl_set_flag(OVL_INDEX, inode);
-+
- 	/* Check for non-merge dir that may have whiteouts */
- 	if (is_dir) {
- 		if (((upperdentry && lowerdentry) || numlower > 1) ||
-diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
-index f55c00bf9e17..ec92fa2f7d5f 100644
---- a/fs/overlayfs/namei.c
-+++ b/fs/overlayfs/namei.c
-@@ -1005,8 +1005,6 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
- 			goto out_free_oe;
- 
- 		OVL_I(inode)->redirect = upperredirect;
--		if (index)
--			ovl_set_flag(OVL_INDEX, inode);
- 	}
- 
- 	revert_creds(old_cred);
--- 
-2.13.6
+> ---
+>  fs/overlayfs/util.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+>
+> diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
+> index 927960aa57ee..29f7336ade88 100644
+> --- a/fs/overlayfs/util.c
+> +++ b/fs/overlayfs/util.c
+> @@ -118,7 +118,7 @@ enum ovl_path_type ovl_path_type(struct dentry *dentry)
+>                  */
+>                 if (oe->numlower) {
+>                         type |= __OVL_PATH_ORIGIN;
+> -                       if (d_is_dir(dentry))
+> +                       if (d_is_dir(dentry) || !ovl_has_upperdata(dentry))
+>                                 type |= __OVL_PATH_MERGE;
+>                 }
+>         } else {
+> --
+> 2.13.6
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-unionfs" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
