@@ -1,161 +1,115 @@
-Return-Path: <vgoyal@redhat.com>
-Date: Wed, 14 Mar 2018 09:16:18 -0400
-From: Vivek Goyal <vgoyal@redhat.com>
-Subject: [PATCH V3] xfstest: overlay: Absolute redirect should be followed
- even if ancestor is opaque
-Message-ID: <20180314131618.GA1001@redhat.com>
+Return-Path: <amir73il@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-To: eguan@redhat.com, fstests@vger.kernel.org, Amir Goldstein <amir73il@gmail.com>
-Cc: linux-unionfs@vger.kernel.org, Miklos Szeredi <miklos@szeredi.hu>
+In-Reply-To: <20180329193854.13814-3-vgoyal@redhat.com>
+References: <20180329193854.13814-1-vgoyal@redhat.com> <20180329193854.13814-3-vgoyal@redhat.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Date: Fri, 30 Mar 2018 07:57:16 +0300
+Message-ID: <CAOQ4uxhM-Fg1R0MjmTyuaVnWg5BsZHUW0H0hEY2cHqU36vLpBA@mail.gmail.com>
+Subject: Re: [PATCH v13 02/28] ovl: Initialize ovl_inode->redirect in ovl_get_inode()
+Content-Type: text/plain; charset="UTF-8"
+To: Vivek Goyal <vgoyal@redhat.com>
+Cc: overlayfs <linux-unionfs@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-Typically, when following absolute redirect, if an opauqe dentry is
-found, lookup in further lower directories is stopped. But if a
-child dentry has another absolute redirect, then lookup in further
-lower layers should continue.
+On Thu, Mar 29, 2018 at 10:38 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
+> All the inode/ovl_inode properties ideally should be initialized in
+> ovl_get_inode(). Otherwise this can be a problem for the cases where
+> multiple dentries point to same inode (hardlinks, disconnected dentries).
+>
+> As of now this is not a problem as redirects are used only for directories
+> which don't share inode. But soon I want to use redirects for regular files
+> also and there it will become an issue.
+>
+> Hence, move ->redirect initialization in ovl_get_inode().
+>
+> Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
+Reviewed-by: Amir Goldstein <amir73il@gmail.com>
 
-Say, following is example setup.
-upper:  /redirect (redirect=/a/b/c)
-lower1: /a/[b]/c       ([b] is opaque) (c has absolute redirect=/a/b/d/)
-lower0: /a/b/d/foo
+> ---
+>  fs/overlayfs/export.c    | 2 +-
+>  fs/overlayfs/inode.c     | 5 ++++-
+>  fs/overlayfs/namei.c     | 4 +---
+>  fs/overlayfs/overlayfs.h | 2 +-
+>  4 files changed, 7 insertions(+), 6 deletions(-)
+>
+> diff --git a/fs/overlayfs/export.c b/fs/overlayfs/export.c
+> index 9868c173068e..e668329f7361 100644
+> --- a/fs/overlayfs/export.c
+> +++ b/fs/overlayfs/export.c
+> @@ -305,7 +305,7 @@ static struct dentry *ovl_obtain_alias(struct super_block *sb,
+>         if (d_is_dir(upper ?: lower))
+>                 return ERR_PTR(-EIO);
+>
+> -       inode = ovl_get_inode(sb, dget(upper), lower, index, !!lower);
 
-"redirect" directory in upper should merge with lower1:/a/b/c/ and
-lower0:/a/b/d/, despite lower1:/a/b/ being opaque.
+I'd leave a TODO comment here for fixing metacopy+NFS export support
+You may add the comment in later patch, just don't forget.
 
-This example and kernel fix has come from Amir Goldstein. I am just putting
-a test for it to make sure its not broken down the line.
-
-v3: Took care of more comments from amir.
-    - Added some comments.
-    - Added _overlay_check_scratch_dirs call.
-
-Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
----
- tests/overlay/057     |  100 ++++++++++++++++++++++++++++++++++++++++++++++++++
- tests/overlay/057.out |    2 +
- tests/overlay/group   |    1 
- 3 files changed, 103 insertions(+)
-
-Index: xfstests-dev/tests/overlay/057
-===================================================================
---- /dev/null	1970-01-01 00:00:00.000000000 +0000
-+++ xfstests-dev/tests/overlay/057	2018-03-14 09:10:00.577179042 -0400
-@@ -0,0 +1,100 @@
-+#! /bin/bash
-+# FS QA Test No. 057
-+#
-+# Test absolute redirect is followed even if ancestor is opaque
-+#
-+# Typically, when following absolute redirect, if an opauqe dentry is
-+# found, lookup in further lower directories is stopped. But if a
-+# child dentry has another absolute redirect, then lookup in further
-+# lower layers should continue.
-+#
-+# Say, following is example setup.
-+# upper:  /redirect (redirect=/a/b/c)
-+# lower1: /a/[b]/c       ([b] is opaque) (c has absolute redirect=/a/b/d/)
-+# lower0: /a/b/d/foo
-+#
-+# "redirect" directory in upper should merge with lower1:/a/b/c/ and
-+# lower0:/a/b/d/, despite lower1:/a/b/ being opaque.
-+#
-+#-----------------------------------------------------------------------
-+# Copyright (C) 2018 Red Hat, Inc. All Rights Reserved.
-+# Author: Vivek Goyal <vgoyal@redhat.com>
-+#
-+# This program is free software; you can redistribute it and/or
-+# modify it under the terms of the GNU General Public License as
-+# published by the Free Software Foundation.
-+#
-+# This program is distributed in the hope that it would be useful,
-+# but WITHOUT ANY WARRANTY; without even the implied warranty of
-+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+# GNU General Public License for more details.
-+#
-+# You should have received a copy of the GNU General Public License
-+# along with this program; if not, write the Free Software Foundation,
-+# Inc.,  51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-+#-----------------------------------------------------------------------
-+#
-+
-+seq=`basename $0`
-+seqres=$RESULT_DIR/$seq
-+echo "QA output created by $seq"
-+
-+here=`pwd`
-+tmp=/tmp/$$
-+status=1	# failure is the default!
-+trap "_cleanup; exit \$status" 0 1 2 3 15
-+
-+_cleanup()
-+{
-+	cd /
-+	rm -f $tmp.*
-+}
-+
-+# get standard environment, filters and checks
-+. ./common/rc
-+. ./common/filter
-+
-+# remove previous $seqres.full before test
-+rm -f $seqres.full
-+
-+# real QA test starts here
-+_supported_fs overlay
-+_supported_os Linux
-+# We use non-default scratch underlying overlay dirs, we need to check
-+# them explicity after test.
-+_require_scratch_nocheck
-+_require_scratch_overlay_features redirect_dir
-+
-+# remove all files from previous tests
-+_scratch_mkfs
-+
-+# Create test directories
-+lowerdir=$OVL_BASE_SCRATCH_MNT/lower
-+lowerdir2=$OVL_BASE_SCRATCH_MNT/lower2
-+upperdir=$OVL_BASE_SCRATCH_MNT/upper
-+workdir=$OVL_BASE_SCRATCH_MNT/workdir
-+workdir2=$OVL_BASE_SCRATCH_MNT/workdir2
-+
-+mkdir -p $lowerdir $lowerdir2 $upperdir $workdir $workdir2
-+mkdir -p $lowerdir/origin
-+touch $lowerdir/origin/foo
-+_overlay_scratch_mount_dirs $lowerdir $lowerdir2 $workdir2 -o redirect_dir=on
-+
-+# Create opaque parent with absolute redirect child in middle layer
-+mkdir $SCRATCH_MNT/pure
-+mv $SCRATCH_MNT/origin $SCRATCH_MNT/pure/redirect
-+$UMOUNT_PROG $SCRATCH_MNT
-+_overlay_scratch_mount_dirs $lowerdir2:$lowerdir $upperdir $workdir -o redirect_dir=on
-+mv $SCRATCH_MNT/pure/redirect $SCRATCH_MNT/redirect
-+
-+# Verify that redirects are followed after mount cycle
-+$UMOUNT_PROG $SCRATCH_MNT
-+_overlay_scratch_mount_dirs $lowerdir2:$lowerdir $upperdir $workdir -o redirect_dir=on
-+ls $SCRATCH_MNT/redirect/
-+
-+# check overlayfs
-+_overlay_check_scratch_dirs "$lowerdir2:$lowerdir" $upperdir $workdir -o redirect_dir=on
-+
-+# success, all done
-+status=0
-+exit
-Index: xfstests-dev/tests/overlay/group
-===================================================================
---- xfstests-dev.orig/tests/overlay/group	2018-02-28 15:27:29.981693615 -0500
-+++ xfstests-dev/tests/overlay/group	2018-03-12 09:31:45.692818432 -0400
-@@ -59,3 +59,4 @@
- 054 auto quick copyup redirect exportfs
- 055 auto quick copyup redirect exportfs nonsamefs
- 056 auto quick fsck
-+057 auto quick redirect
-Index: xfstests-dev/tests/overlay/057.out
-===================================================================
---- /dev/null	1970-01-01 00:00:00.000000000 +0000
-+++ xfstests-dev/tests/overlay/057.out	2018-03-12 13:09:42.061818432 -0400
-@@ -0,0 +1,2 @@
-+QA output created by 057
-+foo
+> +       inode = ovl_get_inode(sb, dget(upper), lower, index, !!lower, NULL);
+>         if (IS_ERR(inode)) {
+>                 dput(upper);
+>                 return ERR_CAST(inode);
+> diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
+> index 06ef9a7a7d1a..2e7ee09c7831 100644
+> --- a/fs/overlayfs/inode.c
+> +++ b/fs/overlayfs/inode.c
+> @@ -704,7 +704,7 @@ static bool ovl_hash_bylower(struct super_block *sb, struct dentry *upper,
+>
+>  struct inode *ovl_get_inode(struct super_block *sb, struct dentry *upperdentry,
+>                             struct dentry *lowerdentry, struct dentry *index,
+> -                           unsigned int numlower)
+> +                           unsigned int numlower, char *redirect)
+>  {
+>         struct inode *realinode = upperdentry ? d_inode(upperdentry) : NULL;
+>         struct inode *inode;
+> @@ -741,6 +741,7 @@ struct inode *ovl_get_inode(struct super_block *sb, struct dentry *upperdentry,
+>                         }
+>
+>                         dput(upperdentry);
+> +                       kfree(redirect);
+>                         goto out;
+>                 }
+>
+> @@ -763,6 +764,8 @@ struct inode *ovl_get_inode(struct super_block *sb, struct dentry *upperdentry,
+>         if (index)
+>                 ovl_set_flag(OVL_INDEX, inode);
+>
+> +       OVL_I(inode)->redirect = redirect;
+> +
+>         /* Check for non-merge dir that may have whiteouts */
+>         if (is_dir) {
+>                 if (((upperdentry && lowerdentry) || numlower > 1) ||
+> diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
+> index ec92fa2f7d5f..0b325e65864c 100644
+> --- a/fs/overlayfs/namei.c
+> +++ b/fs/overlayfs/namei.c
+> @@ -999,12 +999,10 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
+>                 if (ctr)
+>                         origin = stack[0].dentry;
+>                 inode = ovl_get_inode(dentry->d_sb, upperdentry, origin, index,
+> -                                     ctr);
+> +                                     ctr, upperredirect);
+>                 err = PTR_ERR(inode);
+>                 if (IS_ERR(inode))
+>                         goto out_free_oe;
+> -
+> -               OVL_I(inode)->redirect = upperredirect;
+>         }
+>
+>         revert_creds(old_cred);
+> diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
+> index 225ff1171147..a65ce7fd1b6e 100644
+> --- a/fs/overlayfs/overlayfs.h
+> +++ b/fs/overlayfs/overlayfs.h
+> @@ -330,7 +330,7 @@ struct inode *ovl_lookup_inode(struct super_block *sb, struct dentry *real,
+>                                bool is_upper);
+>  struct inode *ovl_get_inode(struct super_block *sb, struct dentry *upperdentry,
+>                             struct dentry *lowerdentry, struct dentry *index,
+> -                           unsigned int numlower);
+> +                           unsigned int numlower, char *redirect);
+>  static inline void ovl_copyattr(struct inode *from, struct inode *to)
+>  {
+>         to->i_uid = from->i_uid;
+> --
+> 2.13.6
+>
