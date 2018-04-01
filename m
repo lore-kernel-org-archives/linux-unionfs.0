@@ -5,9 +5,9 @@ Mime-Version: 1.0 (Mac OS X Mail 11.2 \(3445.5.20\))
 Subject: Re: [PATCH 1/2] ovl: add option parsing support for remount
 From: "cgxu519@gmx.com" <cgxu519@gmx.com>
 In-Reply-To: <CAOQ4uxhRyG-0JYNWsVhkzQ0+ue-xdSVkfM7gX4LdNu9kkoWNTg@mail.gmail.com>
-Date: Sun, 1 Apr 2018 17:03:32 +0800
+Date: Sun, 1 Apr 2018 16:50:18 +0800
 Content-Transfer-Encoding: quoted-printable
-Message-Id: <05A573BD-BED7-4E3B-995E-71D676C8514C@gmx.com>
+Message-Id: <B1EDA16B-2547-4DA9-9687-4417C11491A3@gmx.com>
 References: <1522558675-70756-1-git-send-email-cgxu519@gmx.com>
  <CAOQ4uxhRyG-0JYNWsVhkzQ0+ue-xdSVkfM7gX4LdNu9kkoWNTg@mail.gmail.com>
 To: Amir Goldstein <amir73il@gmail.com>
@@ -81,10 +81,13 @@ kstrdup(ovl_redirect_mode_def(),
 >=20
 > You can move this chunk into ovl_parse_redirect_mode() no?
 
-It should be OK, let=A1=AFs move into ovl_parse_redirect_mode().
+I just guess the purpose of sending "config->redirect_mode=A1=B1 as =
+function parameter,
+then I think the author hopes adding =A1=AEconst=A1=AF attribution to =
+the string when doing
+comparison. I=A1=AFm not so sure should break the rule or not, What do =
+you think?
 
-Thanks,
-Chengguang.
 
 >=20
 >>        return ovl_parse_redirect_mode(config, config->redirect_mode);
@@ -118,3 +121,8 @@ Chengguang.
 >> --
 >> 1.8.3.1
 >>=20
+> --
+> To unsubscribe from this list: send the line "unsubscribe =
+linux-unionfs" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
