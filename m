@@ -1,139 +1,120 @@
-Return-Path: <vgoyal@redhat.com>
-Date: Mon, 2 Apr 2018 08:39:12 -0400
-From: Vivek Goyal <vgoyal@redhat.com>
-Subject: Re: [PATCH v13 27/28] ovl: Verify a data dentry has been found for
- metacopy inode
-Message-ID: <20180402123912.GA23306@redhat.com>
-References: <20180329193854.13814-1-vgoyal@redhat.com>
- <20180329193854.13814-28-vgoyal@redhat.com>
- <CAOQ4uxhU6U=PRXod37xNJPC0B081CrLtuVBmOECnTG7j6VWn+g@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAOQ4uxhU6U=PRXod37xNJPC0B081CrLtuVBmOECnTG7j6VWn+g@mail.gmail.com>
+Return-Path: <cgxu519@gmx.com>
+Content-Type: text/plain;
+	charset=gb2312
+Mime-Version: 1.0 (Mac OS X Mail 11.2 \(3445.5.20\))
+Subject: Re: [PATCH 1/2] ovl: add option parsing support for remount
+From: "cgxu519@gmx.com" <cgxu519@gmx.com>
+In-Reply-To: <CAOQ4uxhRyG-0JYNWsVhkzQ0+ue-xdSVkfM7gX4LdNu9kkoWNTg@mail.gmail.com>
+Date: Sun, 1 Apr 2018 17:03:32 +0800
+Content-Transfer-Encoding: quoted-printable
+Message-Id: <05A573BD-BED7-4E3B-995E-71D676C8514C@gmx.com>
+References: <1522558675-70756-1-git-send-email-cgxu519@gmx.com>
+ <CAOQ4uxhRyG-0JYNWsVhkzQ0+ue-xdSVkfM7gX4LdNu9kkoWNTg@mail.gmail.com>
 To: Amir Goldstein <amir73il@gmail.com>
-Cc: overlayfs <linux-unionfs@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>
+Cc: "cgxu519@gmx.com" <cgxu519@gmx.com>, overlayfs <linux-unionfs@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-On Fri, Mar 30, 2018 at 01:53:24PM +0300, Amir Goldstein wrote:
-> On Thu, Mar 29, 2018 at 10:38 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
-> > If we find a upper metacopy inode, make sure we also found associated data
-> > dentry in lower. Otherwise copy up operation later will fail.
-> >
-> > There are two cases where this can happen. First case is that somehow
-> > data file was removed from lower layer. Other case is that REDIRECT
-> > xattr was removed due to copy up of file on another cpu (when inode is
-> > shared between two dentries) and hence ovl_lookup() could not find the
-> > correct dentry.
-> >
-> 
-> Remind me again why we remove REDIRECT xattr?
-> Is it a must for functionality or just for being boy scouts?
+=D4=DA 2018=C4=EA4=D4=C21=C8=D5=A3=AC=CF=C2=CE=E73:11=A3=ACAmir =
+Goldstein <amir73il@gmail.com> =D0=B4=B5=C0=A3=BA
+>=20
+> On Sun, Apr 1, 2018 at 7:57 AM, Chengguang Xu <cgxu519@gmx.com> wrote:
+>> Some overlayfs mount options cannot be changed via remount,
+>> but remount operation does not return proper error even if
+>> we specify different value to unchangeable options.
+>>=20
+>> This patch add option parsing support for remount so we can
+>> recogonize unchangeable options in remount.
+>>=20
+>> Signed-off-by: Chengguang Xu <cgxu519@gmx.com>
+>> ---
+>> fs/overlayfs/super.c | 19 +++++++++++++------
+>> 1 file changed, 13 insertions(+), 6 deletions(-)
+>>=20
+>> diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+>> index 7c24619..5c8944b 100644
+>> --- a/fs/overlayfs/super.c
+>> +++ b/fs/overlayfs/super.c
+>> @@ -446,14 +446,10 @@ static int ovl_parse_redirect_mode(struct =
+ovl_config *config, const char *mode)
+>>        return 0;
+>> }
+>>=20
+>> -static int ovl_parse_opt(char *opt, struct ovl_config *config)
+>> +static int ovl_parse_opt(char *opt, struct ovl_config *config, bool =
+remount)
+>> {
+>>        char *p;
+>>=20
+>> -       config->redirect_mode =3D kstrdup(ovl_redirect_mode_def(), =
+GFP_KERNEL);
+>> -       if (!config->redirect_mode)
+>> -               return -ENOMEM;
+>> -
+>>        while ((p =3D ovl_next_opt(&opt)) !=3D NULL) {
+>>                int token;
+>>                substring_t args[MAX_OPT_ARGS];
+>> @@ -517,6 +513,9 @@ static int ovl_parse_opt(char *opt, struct =
+ovl_config *config)
+>>                }
+>>        }
+>>=20
+>> +       if (remount)
+>> +               return 0;
+>> +
+>>        /* Workdir is useless in non-upper mount */
+>>        if (!config->upperdir && config->workdir) {
+>>                pr_info("overlayfs: option \"workdir=3D%s\" is useless =
+in a non-upper mount, ignore\n",
+>> @@ -525,6 +524,13 @@ static int ovl_parse_opt(char *opt, struct =
+ovl_config *config)
+>>                config->workdir =3D NULL;
+>>        }
+>>=20
+>> +       if (!config->redirect_mode) {
+>> +               config->redirect_mode =3D =
+kstrdup(ovl_redirect_mode_def(),
+>> +                                                       GFP_KERNEL);
+>> +               if (!config->redirect_mode)
+>> +                       return -ENOMEM;
+>> +       }
+>> +
+>=20
+> You can move this chunk into ovl_parse_redirect_mode() no?
 
-Cleaning REDIRECT is not must for the functionality. It is just more
-about cleanup as that redirect is not needed anymore.
+It should be OK, let=A1=AFs move into ovl_parse_redirect_mode().
 
-> I would prefer to avoid having to deal with races of this sort.
-> You can cleanup REDIRECT for non-dir that is not metacopy
-> on lookup when finding a I_NEW inode.
+Thanks,
+Chengguang.
 
-Hmm.., ok, that sounds reasonable too. Can look into it.
-
-> 
-> 
-> > First case is an error while second case is not error. If file has been
-> > copied up, then it does not matter if data dentry was found or not.
-> >
-> > Redirect removal is protected using ovl_inode->lock and ovl_lookup() does
-> > not have access to that lock. So to differentiate between these two
-> > cases, take appropriate inode lock in ovl_get_inode() and make sure a
-> > data dentry has been found for metacopy inode. Otherwise lookup failed
-> > and its an error.
-> >
-> > For example, say two files are hardlinked, foo.txt and bar.txt. Say foo.txt
-> > is renamed to foo-renamed.txt gets copied up metadata only. This will also
-> > put a redirect "/foo.txt" on hardlnk  inode. Now assume foo-renamed.txt
-> > is opened for write and is undergoing data copy up on one cpu and bar.txt
-> > is under going ovl_lookup() on other cpu. Data copy up path will remove
-> > REDIRECT and METACOPY xattr. It is possible that METACOPY xattr is
-> > visible to ovl_lookup() but by the REDIRECT xattr was gone by the time.
-> > That means no data dentry will be found but at the same time now inode
-> > is not metacopy inode. So data dentry is not required. So this is not
-> > error case. But if inode was still metacopy but data dentry was not found
-> > this is error case. (May be due to underlying layer changed). Fix it by
-> > returning -ESTALE.
-> >
-> > If inode was found in cache, then take ovl_inode->lock before checking
-> > status of inode. If inode has been allocated, then it is returned with
-> > inode lock anyway and other threads will block on that lock, so no need
-> > to take ovl_inode->lock.
-> >
-> > Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
-> > ---
-> >  fs/overlayfs/export.c    |  3 ++-
-> >  fs/overlayfs/inode.c     | 49 +++++++++++++++++++++++++++++++++++++++++++++++-
-> >  fs/overlayfs/namei.c     | 14 ++++----------
-> >  fs/overlayfs/overlayfs.h |  3 ++-
-> >  4 files changed, 56 insertions(+), 13 deletions(-)
-> >
-> > diff --git a/fs/overlayfs/export.c b/fs/overlayfs/export.c
-> > index 1c233096e59c..e8575d4d2c77 100644
-> > --- a/fs/overlayfs/export.c
-> > +++ b/fs/overlayfs/export.c
-> > @@ -305,7 +305,8 @@ static struct dentry *ovl_obtain_alias(struct super_block *sb,
-> >         if (d_is_dir(upper ?: lower))
-> >                 return ERR_PTR(-EIO);
-> >
-> > -       inode = ovl_get_inode(sb, dget(upper), lower, index, !!lower, NULL);
-> > +       inode = ovl_get_inode(sb, dget(upper), lower, index, !!lower, NULL,
-> > +                             false);
-> >         if (IS_ERR(inode)) {
-> >                 dput(upper);
-> >                 return ERR_CAST(inode);
-> > diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
-> > index 6a0c85699024..7e30f4a7cdd9 100644
-> > --- a/fs/overlayfs/inode.c
-> > +++ b/fs/overlayfs/inode.c
-> > @@ -685,9 +685,42 @@ static bool ovl_hash_bylower(struct super_block *sb, struct dentry *upper,
-> >         return true;
-> >  }
-> >
-> > +static bool ovl_verify_metacopy_data(struct super_block *sb,
-> > +                                    struct inode *inode, bool metacopydata)
-> > +{
-> > +       struct ovl_fs *ofs = sb->s_fs_info;
-> > +       struct ovl_inode *oi = OVL_I(inode);
-> > +       bool metacopy = false;
-> > +
-> > +       /* A metacopy data dentry was found. So no need to do further checks */
-> > +       if (metacopydata)
-> > +               return true;
-> > +
-> > +       /*
-> > +        * Metacopy feature not enabled. No metadata data copy up should take
-> > +        * place. So no further checks needed.
-> > +        */
-> > +       if (!ofs->config.metacopy)
-> > +               return true;
-> > +
-> > +       if (!S_ISREG(inode->i_mode))
-> > +               return true;
-> > +
-> > +       /*
-> > +        * Metacopy feature is enabled and we have not found metacopy data
-> > +        * dentry. Make sure this inode is not metacopy inode.
-> > +        */
-> > +       mutex_lock(&oi->lock);
-> > +       metacopy = !ovl_test_flag(OVL_UPPERDATA, inode);
-> > +       mutex_unlock(&oi->lock);
-> > +
-> 
-> FYI, the reason you need mutex_lock_interruptible is so if other CPU
-> is busy with large copy up, the process that does lookup() can
-> be interrupted by user.
-> This is not likley to be a problem here, because race condition suggests that
-> copy up of data is complete by now, but nevertheless.
-
-Ok, good to know.
-
-Vivek
+>=20
+>>        return ovl_parse_redirect_mode(config, config->redirect_mode);
+>> }
+>>=20
+>> @@ -1250,6 +1256,7 @@ static int ovl_fill_super(struct super_block =
+*sb, void *data, int silent)
+>>        struct ovl_entry *oe;
+>>        struct ovl_fs *ofs;
+>>        struct cred *cred;
+>> +       bool remount =3D false;
+>=20
+> This helper var is not needed.
+>=20
+> Thanks,
+> Amir.
+>=20
+>>        int err;
+>>=20
+>>        err =3D -ENOMEM;
+>> @@ -1263,7 +1270,7 @@ static int ovl_fill_super(struct super_block =
+*sb, void *data, int silent)
+>>=20
+>>        ofs->config.index =3D ovl_index_def;
+>>        ofs->config.nfs_export =3D ovl_nfs_export_def;
+>> -       err =3D ovl_parse_opt((char *) data, &ofs->config);
+>> +       err =3D ovl_parse_opt((char *) data, &ofs->config, remount);
+>>        if (err)
+>>                goto out_err;
+>>=20
+>> --
+>> 1.8.3.1
+>>=20
