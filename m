@@ -1,57 +1,45 @@
-Return-Path: <vgoyal@redhat.com>
-From: Vivek Goyal <vgoyal@redhat.com>
-Subject: [PATCH v14 29/31] ovl: Do not do metadata only copy-up for truncate operation
-Date: Thu, 26 Apr 2018 15:10:11 -0400
-Message-Id: <20180426191013.13219-30-vgoyal@redhat.com>
-In-Reply-To: <20180426191013.13219-1-vgoyal@redhat.com>
-References: <20180426191013.13219-1-vgoyal@redhat.com>
-To: linux-unionfs@vger.kernel.org
-Cc: miklos@szeredi.hu, amir73il@gmail.com, vgoyal@redhat.com
+Return-Path: <amir73il@gmail.com>
+MIME-Version: 1.0
+In-Reply-To: <0A20195D-8A68-4955-AAE2-992A926B7333@gmx.com>
+References: <1522558675-70756-1-git-send-email-cgxu519@gmx.com>
+ <1522558675-70756-2-git-send-email-cgxu519@gmx.com> <CAOQ4uxhyT5V4+8OBgDk3aVHcXtmvN62ZYiHppoAGMbNNCSmDYw@mail.gmail.com>
+ <8935A82A-6C2B-46B8-9E88-D1FD987C4542@gmx.com> <CAOQ4uxioPwtEBZyYps-hnyAXoH_zVr2pdP-Rkc4Xb_ZMicw16w@mail.gmail.com>
+ <C2127448-4F45-43F9-AF2E-2CF51BC980A4@gmx.com> <CAOQ4uxhc9ceXeS-WJYc8MPh73ipVUxEO7iK5uCVikfrpq2bG7A@mail.gmail.com>
+ <5FEFAF00-D681-4FD2-AF4A-CDEB8A2B3CC6@gmx.com> <CAOQ4uxhQ6exzwNTzTo01Tby7pk0ONWgqZyHOBnB31Yr5vPtPjg@mail.gmail.com>
+ <0A20195D-8A68-4955-AAE2-992A926B7333@gmx.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Date: Mon, 2 Apr 2018 16:09:35 +0300
+Message-ID: <CAOQ4uxh7TCiNp1PYu-GfJAQwgVMrHPGScGX6b1yz4nOxrt1=7A@mail.gmail.com>
+Subject: Re: [PATCH 2/2] ovl: return error when specifying unchangeable
+ options in remount
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+To: "cgxu519@gmx.com" <cgxu519@gmx.com>
+Cc: overlayfs <linux-unionfs@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-truncate should copy up full file (and not do metacopy only), otherwise
-it will be broken. For example, use truncate to increase size of a file
-so that any read beyong existing size will return null bytes. If we
-don't copy up full file, then we end up opening lower file and read
-from it only reads upto the old size (and not new size after truncate).
-Hence to avoid such situations, copy up data as well when file size
-changes.
+On Mon, Apr 2, 2018 at 3:32 PM, cgxu519@gmx.com <cgxu519@gmx.com> wrote:
+[...]
 
-So far it was being done by d_real(O_WRONLY) call in truncate()
-path. Now that patch has been reverted. So force full copy up in
-ovl_setattr() if size of file is changing.
+>> What you gain is shorter and more generic code to print the error:
+>> "overlayfs: option %s cannot be changed on remount"
+>> AND
+>> "overlayfs: option %s cannot be added on remount=E2=80=9D
+>
+> I=E2=80=99m wondering how we deal with the case which is specifying same =
+option
+> several times in a remount. More specifically current lowerdir=3Daaa and
+> specify options -o remount,lowerdir=3Dbbb,lowerdir=3Daaa,ro then if we fa=
+il
+> at first different value, it seems we will break compatibility with mount
+> in parsing options.
+>
 
-Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
----
- fs/overlayfs/inode.c | 7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+I don't think we should care. if user does that on purpose user
+should get an error.
+only if user does something sane, like mount -o remount,lowerdir=3Dbbb
+and mount command reorders that in a weird way we may need to handle
+this case.
 
-diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
-index 19e96d4717bd..0802b67e0776 100644
---- a/fs/overlayfs/inode.c
-+++ b/fs/overlayfs/inode.c
-@@ -18,7 +18,7 @@
- 
- int ovl_setattr(struct dentry *dentry, struct iattr *attr)
- {
--	int err;
-+	int err, copy_up_flags = 0;
- 	struct dentry *upperdentry;
- 	const struct cred *old_cred;
- 
-@@ -45,9 +45,12 @@ int ovl_setattr(struct dentry *dentry, struct iattr *attr)
- 		err = -ETXTBSY;
- 		if (atomic_read(&realinode->i_writecount) < 0)
- 			goto out_drop_write;
-+
-+		/* Truncate should trigger data copy up as well */
-+		copy_up_flags = O_WRONLY;
- 	}
- 
--	err = ovl_copy_up(dentry);
-+	err = ovl_copy_up_flags(dentry, copy_up_flags);
- 	if (!err) {
- 		struct inode *winode = NULL;
- 
--- 
-2.13.6
+Thanks,
+Amir.
