@@ -1,49 +1,81 @@
-Return-Path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mx3-rdu2.redhat.com ([66.187.233.73]:34234 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1753498AbeDZTKm (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 26 Apr 2018 15:10:42 -0400
-From: Vivek Goyal <vgoyal@redhat.com>
-Subject: [PATCH v14 30/31] ovl: Do not do metacopy only for ioctl modifying file attr
-Date: Thu, 26 Apr 2018 15:10:12 -0400
-Message-Id: <20180426191013.13219-31-vgoyal@redhat.com>
-In-Reply-To: <20180426191013.13219-1-vgoyal@redhat.com>
-References: <20180426191013.13219-1-vgoyal@redhat.com>
-Sender: linux-unionfs-owner@vger.kernel.org
-To: linux-unionfs@vger.kernel.org
-Cc: miklos@szeredi.hu, amir73il@gmail.com, vgoyal@redhat.com
+Return-Path: <amir73il@gmail.com>
+MIME-Version: 1.0
+In-Reply-To: <20180402201149.GH23306@redhat.com>
+References: <20180329193854.13814-1-vgoyal@redhat.com> <20180329193854.13814-13-vgoyal@redhat.com>
+ <CAOQ4uxhaD9bkmm3UCSM_E30SX7SEuJHzfa8xrNyRnJ4wqLBm7A@mail.gmail.com> <20180402201149.GH23306@redhat.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Date: Mon, 2 Apr 2018 23:27:33 +0300
+Message-ID: <CAOQ4uxiRt8oSvBPhZ5BtvnrXJq2X9E_WVzYMcO0vvEMm7jNiDA@mail.gmail.com>
+Subject: Re: [PATCH v13 12/28] ovl: Fix ovl_getattr() to get number of blocks
+ from lower
+Content-Type: text/plain; charset="UTF-8"
+To: Vivek Goyal <vgoyal@redhat.com>
+Cc: overlayfs <linux-unionfs@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-ovl_copy_up() by default will only do metadata only copy up (if enabled).
-That means when ovl_real_ioctl() calls ovl_real_file(), it will still
-get the lower file (as ovl_real_file() opens data file and not metacopy).
-And that means "chattr +i" will end up modifying lower inode.
+On Mon, Apr 2, 2018 at 11:11 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
+> On Fri, Mar 30, 2018 at 12:24:15PM +0300, Amir Goldstein wrote:
+>> On Thu, Mar 29, 2018 at 10:38 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
+>> > If an inode has been copied up metadata only, then we need to query the
+>> > number of blocks from lower and fill up the stat->st_blocks.
+>> >
+>> > We need to be careful about races where we are doing stat on one cpu and
+>> > data copy up is taking place on other cpu. We want to return
+>> > stat->st_blocks either from lower or stable upper and not something in
+>> > between. Hence, ovl_has_upperdata() is called first to figure out whether
+>> > block reporting will take place from lower or upper.
+>> >
+>> > Reviewed-by: Amir Goldstein <amir73il@gmail.com>
+>> > Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
+>> > ---
+>> >  fs/overlayfs/inode.c     | 17 ++++++++++++++++-
+>> >  fs/overlayfs/overlayfs.h |  1 +
+>> >  fs/overlayfs/util.c      | 16 ++++++++++++++++
+>> >  3 files changed, 33 insertions(+), 1 deletion(-)
+>> >
+>> > diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
+>> > index e1dbfed0c449..cd03f3e642fd 100644
+>> > --- a/fs/overlayfs/inode.c
+>> > +++ b/fs/overlayfs/inode.c
+>> > @@ -76,6 +76,9 @@ int ovl_getattr(const struct path *path, struct kstat *stat,
+>> >         bool is_dir = S_ISDIR(dentry->d_inode->i_mode);
+>> >         bool samefs = ovl_same_sb(dentry->d_sb);
+>> >         int err;
+>> > +       bool metacopy = false;
+>> > +
+>> > +       metacopy = ovl_is_metacopy_dentry(dentry);
+>> >
+>> >         type = ovl_path_real(dentry, &realpath);
+>> >         old_cred = ovl_override_creds(dentry->d_sb);
+>> > @@ -93,7 +96,8 @@ int ovl_getattr(const struct path *path, struct kstat *stat,
+>> >         if (!is_dir || samefs) {
+>> >                 if (OVL_TYPE_ORIGIN(type)) {
+>> >                         struct kstat lowerstat;
+>> > -                       u32 lowermask = STATX_INO | (!is_dir ? STATX_NLINK : 0);
+>> > +                       u32 lowermask = STATX_INO | STATX_BLOCKS |
+>> > +                                       (!is_dir ? STATX_NLINK : 0);
+>>
+>> Leftover.
+>>
+>> But I think you could do with one vfs_getattr():
+>>
+>>          if (!is_dir || samefs) {
+>>                    u32 lowermask = metacopy ? STATX_BLOCKS : 0;
+>>                    if (OVL_TYPE_ORIGIN(type))
+>>                            lowermask |= STATX_INO | (!is_dir ? STATX_NLINK : 0);
+>>                    if (lowermask) {
+>>                            ovl_path_lower(dentry, &realpath);
+>>                            err = vfs_getattr(&realpath, &lowerstat,
+>
+> We now support mid layer metacopy dentries. So we will need to do
+> vfs_getattr() on lowest data dentry for data blocks. While rest of
+> the info (inode number and nlink) comes from top most lower dentry.
+>
+> So I don't think we can get rid of extra vfs_getattr()?
+>
 
-There seem to be two ways to solve this.
-A. Open metacopy file in ovl_real_ioctl() and do operations on that
-B. Force full copy up when FS_IOC_SETFLAGS is called.
+Right. didn't notice that subtle detail, better amend commit message
+to mention that.
 
-I am resorting to option B for now as it feels little safer option. If
-there are performance issues due to this, we can revisit it.
-
-Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
----
- fs/overlayfs/file.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/fs/overlayfs/file.c b/fs/overlayfs/file.c
-index d61c8355b892..9a9efaac71f4 100644
---- a/fs/overlayfs/file.c
-+++ b/fs/overlayfs/file.c
-@@ -397,7 +397,7 @@ long ovl_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
- 		if (ret)
- 			return ret;
- 
--		ret = ovl_copy_up(file_dentry(file));
-+		ret = ovl_copy_up_flags(file_dentry(file), O_WRONLY);
- 		if (!ret) {
- 			ret = ovl_real_ioctl(file, cmd, arg);
- 
--- 
-2.13.6
-
+Thanks,
+Amir.
