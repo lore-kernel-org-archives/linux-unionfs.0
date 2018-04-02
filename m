@@ -1,55 +1,55 @@
-Return-Path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mx3-rdu2.redhat.com ([66.187.233.73]:37438 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1752872AbeDZTKk (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 26 Apr 2018 15:10:40 -0400
-From: Vivek Goyal <vgoyal@redhat.com>
-Subject: [PATCH v14 22/31] ovl: Do not set dentry type ORIGIN for broken hardlinks
-Date: Thu, 26 Apr 2018 15:10:04 -0400
-Message-Id: <20180426191013.13219-23-vgoyal@redhat.com>
-In-Reply-To: <20180426191013.13219-1-vgoyal@redhat.com>
-References: <20180426191013.13219-1-vgoyal@redhat.com>
-Sender: linux-unionfs-owner@vger.kernel.org
-To: linux-unionfs@vger.kernel.org
-Cc: miklos@szeredi.hu, amir73il@gmail.com, vgoyal@redhat.com
+Return-Path: <amir73il@gmail.com>
+MIME-Version: 1.0
+In-Reply-To: <20180402193518.GF23306@redhat.com>
+References: <20180329193854.13814-1-vgoyal@redhat.com> <20180329193854.13814-27-vgoyal@redhat.com>
+ <CAOQ4uxiXV-tZHU6ZKkHkZ3+bWk90AB2B7f_DcFHYGL9+mqtNpQ@mail.gmail.com> <20180402193518.GF23306@redhat.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Date: Mon, 2 Apr 2018 23:25:11 +0300
+Message-ID: <CAOQ4uxjnBX2p5pu1Dic9HmJVTmetEM5sX6P2hO=WvsfY9Fmbxw@mail.gmail.com>
+Subject: Re: [PATCH v13 26/28] ovl: Re-check redirect xattr during inode initialization
+Content-Type: text/plain; charset="UTF-8"
+To: Vivek Goyal <vgoyal@redhat.com>
+Cc: overlayfs <linux-unionfs@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-If a dentry has copy up origin, we set flag OVL_PATH_ORIGIN. So far
-this decision was easy that we had to check only for oe->numlower
-and if it is non-zero, we knew there is copy up origin. (For non-dir
-we installed origin dentry in lowerstack[0]).
+On Mon, Apr 2, 2018 at 10:35 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
+> On Fri, Mar 30, 2018 at 11:56:42AM +0300, Amir Goldstein wrote:
+>> On Thu, Mar 29, 2018 at 10:38 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
+>> > So far redirect could be placed on directories only and now it can be
+>> > placed on regular files as well. Also it could be completely removed
+>> > when a metacopy copy up file's data is copied up. That means if a redirect
+>> > is present during ovl_lookup(), it could be gone by the time ovl_get_inode()
+>> > happens.
+>> >
+>>
+>> There is a bit of a mess in the assumptions.
+>>
+>> If the inode is pure upper or indexed origin, than the alleged race ends up
+>> in !(inode->i_state & I_NEW) and you discard redirect anyway.
+>
+> Can't these also happen when I_NEW=true. I mean inode could be flushed
+> out of cache. Say one cpu is doing ovl_lookup() and thread got blocked
+> while other cpu did copy up of file on other cpu, removed redirect and
+> inode got flushed out of cache. Now cpu1 resumes execuction, creates
+> a new inode but it needs to re-check if redirect is still present or
+> not?
+>
 
-But we don't create ORGIN xattr for broken hardlinks (index=off). And
-with metacopy feature it is possible that we will install lowerstack[0]
-but ORIGIN xattr is not there. It is data dentry of upper metacopy dentry
-which has been found using regular name based lookup or using REDIRECT.
-So with addition of this new case, just presence of oe->numlower is
-not sufficient to guarantee that ORIGIN xattr is present.
+Not sure. Best to drop the idea of removing REDIRECT on copy up
+and be done with it.
 
-So two differentiate between two cases, look at OVL_CONST_INO flag. If
-this flag is set and upperdentry is there, that means ORIGIN xattr
-must be present. OVL_CONST_INO is not set if lower hardlink is broken
-or will be broken over copy up.
+>>
+>> If the inode is non-indexed copyup, then it is a different inode on disk
+>> and different struct ovl_inode in memory than the inode of the copy up
+>> we are allegedly racing with (they are broken hardlinks), so there is no
+>> issue.
+>
+> Agreed that in case of broken hardlinks this race does not exist. But
+> do we really want to optimize it here?
+>
 
-Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
----
- fs/overlayfs/util.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+Well, if you are going to cleanup REDIRECT only on I_NEW,
+then no need to special case broken hardlinks.
 
-diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
-index f85ff5714852..69acce1c9026 100644
---- a/fs/overlayfs/util.c
-+++ b/fs/overlayfs/util.c
-@@ -133,7 +133,8 @@ enum ovl_path_type ovl_path_type(struct dentry *dentry)
- 		 * Non-dir dentry can hold lower dentry of its copy up origin.
- 		 */
- 		if (oe->numlower) {
--			type |= __OVL_PATH_ORIGIN;
-+			if (ovl_test_flag(OVL_CONST_INO, d_inode(dentry)))
-+				type |= __OVL_PATH_ORIGIN;
- 			if (d_is_dir(dentry) ||
- 			    !ovl_has_upperdata(d_inode(dentry)))
- 				type |= __OVL_PATH_MERGE;
--- 
-2.13.6
-
+Thanks,
+Amir.
