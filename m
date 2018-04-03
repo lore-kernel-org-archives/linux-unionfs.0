@@ -1,123 +1,95 @@
-Return-Path: <cgxu519@gmx.com>
-From: Chengguang Xu <cgxu519@gmx.com>
-Subject: [PATCH v5 1/3] ovl: adjust option parsing for supporting remount
-Date: Sat, 14 Apr 2018 14:35:42 +0800
-Message-Id: <1523687744-10103-2-git-send-email-cgxu519@gmx.com>
-In-Reply-To: <1523687744-10103-1-git-send-email-cgxu519@gmx.com>
-References: <1523687744-10103-1-git-send-email-cgxu519@gmx.com>
-To: linux-unionfs@vger.kernel.org
-Cc: miklos@szeredi.hu, amir73il@gmail.com, Chengguang Xu <cgxu519@gmx.com>
+Return-Path: <vgoyal@redhat.com>
+Date: Tue, 3 Apr 2018 08:31:22 -0400
+From: Vivek Goyal <vgoyal@redhat.com>
+Subject: Re: [PATCH v13 18/28] ovl: Check redirects for metacopy files
+Message-ID: <20180403123122.GA9097@redhat.com>
+References: <20180329193854.13814-1-vgoyal@redhat.com>
+ <20180329193854.13814-19-vgoyal@redhat.com>
+ <CAOQ4uxhVdgZPpKahSruuGNqYeU8TPn=h4=PGD2vRN7vxcF-FSQ@mail.gmail.com>
+ <20180402202910.GI23306@redhat.com>
+ <CAOQ4uxjESSZp=UfNzFwA9a=ixHDwYDuWBJs0ZjKWOE2_tY4KWQ@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAOQ4uxjESSZp=UfNzFwA9a=ixHDwYDuWBJs0ZjKWOE2_tY4KWQ@mail.gmail.com>
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: overlayfs <linux-unionfs@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-Adjust ovl_parse_opt() and ovl_parse_redirect_mode() to support option
-parsing in remount.
+On Tue, Apr 03, 2018 at 08:44:33AM +0300, Amir Goldstein wrote:
+> On Mon, Apr 2, 2018 at 11:29 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
+> > On Fri, Mar 30, 2018 at 01:02:32PM +0300, Amir Goldstein wrote:
+> >> On Thu, Mar 29, 2018 at 10:38 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
+> >> > Right now we rely on path based lookup for data origin of metacopy upper.
+> >> > This will work only if upper has not been renamed. We solved this problem
+> >> > already for merged directories using redirect. Use same logic for metacopy
+> >> > files.
+> >> >
+> >> > This patch just goes on to check redirects for metacopy files.
+> >> >
+> >>
+> >> The patch changes the logic very subtly, but it is really hard to
+> >> follow because of convoluted diff. Please make changes that don't
+> >> change logic in a separate patch.
+> >>
+> >> > Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
+> >> > ---
+> >> >  fs/overlayfs/namei.c | 24 ++++++++++++------------
+> >> >  1 file changed, 12 insertions(+), 12 deletions(-)
+> >> >
+> >> > diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
+> >> > index 1dba89e9543f..a7a9588f64b7 100644
+> >> > --- a/fs/overlayfs/namei.c
+> >> > +++ b/fs/overlayfs/namei.c
+> >> > @@ -260,18 +260,19 @@ static int ovl_lookup_single(struct dentry *base, struct ovl_lookup_data *d,
+> >> >                         goto out_err;
+> >> >                 d->stop = !err;
+> >> >                 d->metacopy = !!err;
+> >> > -               goto out;
+> >> > -       }
+> >> > -       if (last_element)
+> >> > -               d->is_dir = true;
+> >> > -       if (d->last)
+> >> > -               goto out;
+> >> > -
+> >> > -       if (ovl_is_opaquedir(this)) {
+> >> > -               d->stop = true;
+> >> > +               if (!d->metacopy)
+> >> > +                       goto out;
+> >> > +       } else {
+> >> >                 if (last_element)
+> >> > -                       d->opaque = true;
+> >> > -               goto out;
+> >> > +                       d->is_dir = true;
+> >> > +               if (d->last)
+> >> > +                       goto out;
+> >>
+> >> If I am not mistaken, d->last test is relevant to both did and non-dir,
+> >> because it also prevents the unneeded check redirect.
+> >
+> > It is just an optimization which we do only for directories as of now
+> > and this patch does not change that behavior. For non-dirs we never
+> > check redirects anyway as of now.
+> 
+> This is a moot argument.
+> Of course this patch changes behavior.
+> If adds the ability to redirect non-dir and it should add the same logic as
+> for dir.
+> 
+> >
+> > One could argue that this optimization should be introduced for metacopy
+> > files as well. I could do that. Just that I did not focus too much
+> > on optimizations a lot. This series has been growing and dragging
+> > enough, that I want to focus on correctness first. And worry about
+> > optimizations later.
+> 
+> I hear your frustration, but I think the patch set is progressing very nicely
+> (and got a few prep patches already in overlayfs-next), so this isn't going
+> to break you ;-)
+> 
+>  if (!d->metacopy || d->last)
+>          goto out;
 
-Signed-off-by: Chengguang Xu <cgxu519@gmx.com>
----
-Changes since v3:
-- Delete redundant argument of ovl_parse_redirect_mode()
+Ok, I will add this.
 
-Changes since v2:
-- Move default initialization of redirect_mode to fill_super()
-just before calling parse_opt().
-- Move workdir validation check to fill_super().
-- Move remount option validation to ovl_remount().
-
-Changes since v1:
-- Add remount option validation to parse_opt()
-
- fs/overlayfs/super.c | 43 ++++++++++++++++++++++++-------------------
- 1 file changed, 24 insertions(+), 19 deletions(-)
-
-diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-index e8551c9..e99864e 100644
---- a/fs/overlayfs/super.c
-+++ b/fs/overlayfs/super.c
-@@ -455,23 +455,26 @@ static char *ovl_next_opt(char **s)
- 	return sbegin;
- }
- 
--static int ovl_parse_redirect_mode(struct ovl_config *config, const char *mode)
-+static int ovl_parse_redirect_mode(struct ovl_config *config)
- {
--	if (strcmp(mode, "on") == 0) {
-+	if (!config->redirect_mode)
-+		return 0;
-+
-+	if (strcmp(config->redirect_mode, "on") == 0) {
- 		config->redirect_dir = true;
- 		/*
- 		 * Does not make sense to have redirect creation without
- 		 * redirect following.
- 		 */
- 		config->redirect_follow = true;
--	} else if (strcmp(mode, "follow") == 0) {
-+	} else if (strcmp(config->redirect_mode, "follow") == 0) {
- 		config->redirect_follow = true;
--	} else if (strcmp(mode, "off") == 0) {
-+	} else if (strcmp(config->redirect_mode, "off") == 0) {
- 		if (ovl_redirect_always_follow)
- 			config->redirect_follow = true;
--	} else if (strcmp(mode, "nofollow") != 0) {
-+	} else if (strcmp(config->redirect_mode, "nofollow") != 0) {
- 		pr_err("overlayfs: bad mount option \"redirect_dir=%s\"\n",
--		       mode);
-+		       config->redirect_mode);
- 		return -EINVAL;
- 	}
- 
-@@ -482,10 +485,6 @@ static int ovl_parse_opt(char *opt, struct ovl_config *config)
- {
- 	char *p;
- 
--	config->redirect_mode = kstrdup(ovl_redirect_mode_def(), GFP_KERNEL);
--	if (!config->redirect_mode)
--		return -ENOMEM;
--
- 	while ((p = ovl_next_opt(&opt)) != NULL) {
- 		int token;
- 		substring_t args[MAX_OPT_ARGS];
-@@ -561,15 +560,7 @@ static int ovl_parse_opt(char *opt, struct ovl_config *config)
- 		}
- 	}
- 
--	/* Workdir is useless in non-upper mount */
--	if (!config->upperdir && config->workdir) {
--		pr_info("overlayfs: option \"workdir=%s\" is useless in a non-upper mount, ignore\n",
--			config->workdir);
--		kfree(config->workdir);
--		config->workdir = NULL;
--	}
--
--	return ovl_parse_redirect_mode(config, config->redirect_mode);
-+	return ovl_parse_redirect_mode(config);
- }
- 
- #define OVL_WORKDIR_NAME "work"
-@@ -1376,10 +1367,24 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
- 	ofs->config.index = ovl_index_def;
- 	ofs->config.nfs_export = ovl_nfs_export_def;
- 	ofs->config.xino = ovl_xino_def();
-+
-+	ofs->config.redirect_mode = kstrdup(ovl_redirect_mode_def(),
-+							GFP_KERNEL);
-+	if (!ofs->config.redirect_mode)
-+		return -ENOMEM;
-+
- 	err = ovl_parse_opt((char *) data, &ofs->config);
- 	if (err)
- 		goto out_err;
- 
-+	/* Workdir is useless in non-upper mount */
-+	if (!ofs->config.upperdir && ofs->config.workdir) {
-+		pr_info("overlayfs: option \"workdir=%s\" is useless in a non-upper mount, ignore\n",
-+			ofs->config.workdir);
-+		kfree(ofs->config.workdir);
-+		ofs->config.workdir = NULL;
-+	}
-+
- 	err = -EINVAL;
- 	if (!ofs->config.lowerdir) {
- 		if (!silent)
--- 
-1.8.3.1
+Vivek
