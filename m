@@ -1,195 +1,67 @@
 Return-Path: <vgoyal@redhat.com>
-Date: Mon, 2 Apr 2018 15:35:18 -0400
+Date: Mon, 9 Apr 2018 08:18:15 -0400
 From: Vivek Goyal <vgoyal@redhat.com>
-Subject: Re: [PATCH v13 26/28] ovl: Re-check redirect xattr during inode
- initialization
-Message-ID: <20180402193518.GF23306@redhat.com>
-References: <20180329193854.13814-1-vgoyal@redhat.com>
- <20180329193854.13814-27-vgoyal@redhat.com>
- <CAOQ4uxiXV-tZHU6ZKkHkZ3+bWk90AB2B7f_DcFHYGL9+mqtNpQ@mail.gmail.com>
+Subject: Re: [PATCH v13 27/28] ovl: Verify a data dentry has been found for
+ metacopy inode
+Message-ID: <20180409121815.GA21673@redhat.com>
+References: <CAOQ4uxjB3vPtS+veYMSP1ZsBxbZs8O6QBQ6d81FQWgpjjP+Ntg@mail.gmail.com>
+ <20180405143757.GA4017@redhat.com>
+ <20180405182211.GB4017@redhat.com>
+ <CAOQ4uxivYrzF-M0Csy6Kr=gsLHAkApZ1apjiET=ZkgW2f-X_Rw@mail.gmail.com>
+ <20180405204543.GA19532@redhat.com>
+ <CAOQ4uxjZpVurV=8LV7X1V-oS4wVUOHYJQo6_NBXBdZ=nmLT4Ag@mail.gmail.com>
+ <20180406153716.GA18336@redhat.com>
+ <CAOQ4uxj3bOJx4W5U=XMMP=iCTyYw8=2qL8wdR31zT0tTzxQ=9A@mail.gmail.com>
+ <20180406173203.GB382@redhat.com>
+ <CAOQ4uxiKe+UPbPtWGfqFtQSZjPqo7Zm94-+Nk1_cC5e8sFN8LQ@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <CAOQ4uxiXV-tZHU6ZKkHkZ3+bWk90AB2B7f_DcFHYGL9+mqtNpQ@mail.gmail.com>
+In-Reply-To: <CAOQ4uxiKe+UPbPtWGfqFtQSZjPqo7Zm94-+Nk1_cC5e8sFN8LQ@mail.gmail.com>
 To: Amir Goldstein <amir73il@gmail.com>
 Cc: overlayfs <linux-unionfs@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-On Fri, Mar 30, 2018 at 11:56:42AM +0300, Amir Goldstein wrote:
-> On Thu, Mar 29, 2018 at 10:38 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
-> > So far redirect could be placed on directories only and now it can be
-> > placed on regular files as well. Also it could be completely removed
-> > when a metacopy copy up file's data is copied up. That means if a redirect
-> > is present during ovl_lookup(), it could be gone by the time ovl_get_inode()
-> > happens.
+On Fri, Apr 06, 2018 at 11:10:05PM +0300, Amir Goldstein wrote:
+> On Fri, Apr 6, 2018 at 8:32 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
+> [...]
+> >> >>
+> >> >> Back to the original question: how should ovl_inode->redirect
+> >> >> be protected if at all it needs protection?
+> >> >
+> >> > At this point I am thinking at max we need to just take ovl_inode->lock
+> >> > to protect ovl_inode->redirect. It just makes it little safer and
+> >> > relatively easier to understand.
+> >> >
+> >>
+> >> I agree. I don't think ovl_inode->lock is needed, but I would
+> >> add a comment explaining why (VFS inode lock).
+> >>
+> >> The problem is that we cannot get rid of d_lock for path traversal
+> >> and I don't see how we can easily take both ovl dentry d_lock with
+> >> ovl_inode->lock, because the latter is a sleeping lock, but layering
+> >> wise it is logically below the overlay dentry lock.
+> >
+> > Actually, I think ovl_inode->lock is at same layer as inode->i_rwsem. So
+> > VFS first takes i_rwsem and then d_lock. And we probably should do the
+> > same thing. In fact we are already taking ovl_inode->lock in
+> > ovl_nlink_start() first and then calling ovl_set_redirect() which takes
+> > d_lock.
 > >
 > 
-> There is a bit of a mess in the assumptions.
+> It's not completely ok that we do that.
 > 
-> If the inode is pure upper or indexed origin, than the alleged race ends up
-> in !(inode->i_state & I_NEW) and you discard redirect anyway.
+> If we can always abide to the rules of locking order:
+> VFS overlay layer locks -> internal overlay locks -> VFS underlying fs locks
 
-Can't these also happen when I_NEW=true. I mean inode could be flushed
-out of cache. Say one cpu is doing ovl_lookup() and thread got blocked
-while other cpu did copy up of file on other cpu, removed redirect and
-inode got flushed out of cache. Now cpu1 resumes execuction, creates
-a new inode but it needs to re-check if redirect is still present or
-not?
+Sure, and that's what will happen when we move ovl_set_redirect() above
+lock_rename().
 
-> 
-> If the inode is non-indexed copyup, then it is a different inode on disk
-> and different struct ovl_inode in memory than the inode of the copy up
-> we are allegedly racing with (they are broken hardlinks), so there is no
-> issue.
+- When ovl_rename() is called, VFS is holding ovl layer locks.
+- ovl_nlink_start() and ovl_set_redrect() with take internal
+  overlay lock (ovl_inode->lock)
+- And then lock_rename() will take VFS underlying fs lock.
 
-Agreed that in case of broken hardlinks this race does not exist. But
-do we really want to optimize it here? 
-
-> 
-> > Or it is possible that ovl_lookup() does not see a redirect and a rename
-> > is taking place on a hard link and that places a redirect. And by the
-> > time ovl_lookup() calls ovl_get_inode(), it sets ovl_inode->redirect = NULL
-> > (Assume inode got flushed out of cache and was allocated new).
-> 
-> Same as above.
-> 
-> I am not saying there are no races between lookup and rename/link,
-> but IMO the text above does not describe them or proves that they exist.
-> 
-
-I can try to give more details. But I think if inode gets flushed out
-of cache, then we need to query redirect info again.
+So ordering of locks will be exactly as you like it.
 
 Vivek
-> >
-> > IOW, because we check and process redirect without locks in ovl_lookup(),
-> > many possibilities open up for regular files. So for such cases, do not
-> > use the redirect provided by the caller. Instead query it and install
-> > in ovl_inode->redirect.
-> >
-> > Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
-> > ---
-> >  fs/overlayfs/inode.c     | 19 ++++++++++++++++++-
-> >  fs/overlayfs/overlayfs.h |  1 +
-> >  fs/overlayfs/util.c      | 42 ++++++++++++++++++++++++++++++++++++++++++
-> >  3 files changed, 61 insertions(+), 1 deletion(-)
-> >
-> > diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
-> > index 3dccfa1ee123..6a0c85699024 100644
-> > --- a/fs/overlayfs/inode.c
-> > +++ b/fs/overlayfs/inode.c
-> > @@ -694,6 +694,7 @@ struct inode *ovl_get_inode(struct super_block *sb, struct dentry *upperdentry,
-> >         bool bylower = ovl_hash_bylower(sb, upperdentry, lowerdentry, index);
-> >         bool is_dir, metacopy = false;
-> >         int err = -ENOMEM;
-> > +       char *new_redirect = NULL;
-> >
-> >         if (!realinode)
-> >                 realinode = d_inode(lowerdentry);
-> > @@ -754,7 +755,18 @@ struct inode *ovl_get_inode(struct super_block *sb, struct dentry *upperdentry,
-> >         if (upperdentry && !metacopy)
-> >                 ovl_set_flag(OVL_UPPERDATA, inode);
-> >
-> > -       OVL_I(inode)->redirect = redirect;
-> > +       if (!metacopy) {
-> > +               OVL_I(inode)->redirect = redirect;
-> > +               redirect = NULL;
-> > +       } else if (upperdentry) {
-> > +               new_redirect = ovl_get_redirect_xattr(upperdentry);
-> > +               if (IS_ERR(new_redirect)) {
-> > +                       err = PTR_ERR(new_redirect);
-> > +                       goto out_err_inode;
-> > +               }
-> > +               OVL_I(inode)->redirect = new_redirect;
-> > +               new_redirect = NULL;
-> > +       }
-> >
-> >         /* Check for non-merge dir that may have whiteouts */
-> >         if (is_dir) {
-> > @@ -764,11 +776,16 @@ struct inode *ovl_get_inode(struct super_block *sb, struct dentry *upperdentry,
-> >                 }
-> >         }
-> >
-> > +       kfree(redirect);
-> >         if (inode->i_state & I_NEW)
-> >                 unlock_new_inode(inode);
-> >  out:
-> >         return inode;
-> >
-> > +out_err_inode:
-> > +       if (inode->i_state & I_NEW)
-> > +               unlock_new_inode(inode);
-> > +       iput(inode);
-> >  out_err:
-> >         inode = ERR_PTR(err);
-> >         goto out;
-> > diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-> > index 429713653b3b..a3bee7619fbb 100644
-> > --- a/fs/overlayfs/overlayfs.h
-> > +++ b/fs/overlayfs/overlayfs.h
-> > @@ -279,6 +279,7 @@ void ovl_nlink_end_locked(struct dentry *dentry);
-> >  int ovl_lock_rename_workdir(struct dentry *workdir, struct dentry *upperdir);
-> >  int ovl_check_metacopy_xattr(struct dentry *dentry);
-> >  bool ovl_is_metacopy_dentry(struct dentry *dentry);
-> > +char *ovl_get_redirect_xattr(struct dentry *dentry);
-> >
-> >  static inline bool ovl_is_impuredir(struct dentry *dentry)
-> >  {
-> > diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
-> > index 961d65bd25c9..3d090b6f9fc2 100644
-> > --- a/fs/overlayfs/util.c
-> > +++ b/fs/overlayfs/util.c
-> > @@ -833,3 +833,45 @@ bool ovl_is_metacopy_dentry(struct dentry *dentry)
-> >
-> >         return (oe->numlower > 1);
-> >  }
-> > +
-> > +char *ovl_get_redirect_xattr(struct dentry *dentry)
-> > +{
-> > +       int res;
-> > +       char *s, *next, *buf = NULL;
-> > +
-> > +       res = vfs_getxattr(dentry, OVL_XATTR_REDIRECT, NULL, 0);
-> > +       if (res < 0) {
-> > +               if (res == -ENODATA || res == -EOPNOTSUPP)
-> > +                       return NULL;
-> > +               return ERR_PTR(res);
-> > +       }
-> > +
-> > +       buf = kzalloc(res + 1, GFP_KERNEL);
-> > +       if (!buf)
-> > +               return ERR_PTR(-ENOMEM);
-> > +
-> > +       res = vfs_getxattr(dentry, OVL_XATTR_REDIRECT, buf, res);
-> > +       if (res < 0) {
-> > +               kfree(buf);
-> > +               return ERR_PTR(res);
-> > +        }
-> > +       if (res == 0)
-> > +               goto invalid;
-> > +
-> > +       if (buf[0] == '/') {
-> > +               for (s = buf; *s++ == '/'; s = next) {
-> > +                       next = strchrnul(s, '/');
-> > +                       if (s == next)
-> > +                               goto invalid;
-> > +               }
-> > +       } else {
-> > +               if (strchr(buf, '/') != NULL)
-> > +                       goto invalid;
-> > +       }
-> > +
-> > +       return buf;
-> > +invalid:
-> > +       pr_warn_ratelimited("overlayfs: invalid redirect (%s)\n", buf);
-> > +       kfree(buf);
-> > +       return ERR_PTR(-EINVAL);
-> > +}
-> > --
-> > 2.13.6
-> >
-> 
-> If you really end up needing this helper, you should use it from lookup as well.
-> 
-> Thanks,
-> Amir.
