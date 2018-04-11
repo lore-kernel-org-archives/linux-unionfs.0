@@ -1,165 +1,51 @@
-Return-Path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mx3-rdu2.redhat.com ([66.187.233.73]:38248 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1753003AbeDZTKl (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 26 Apr 2018 15:10:41 -0400
-From: Vivek Goyal <vgoyal@redhat.com>
-Subject: [PATCH v14 25/31] ovl: Check redirect on index as well
-Date: Thu, 26 Apr 2018 15:10:07 -0400
-Message-Id: <20180426191013.13219-26-vgoyal@redhat.com>
-In-Reply-To: <20180426191013.13219-1-vgoyal@redhat.com>
-References: <20180426191013.13219-1-vgoyal@redhat.com>
-Sender: linux-unionfs-owner@vger.kernel.org
-To: linux-unionfs@vger.kernel.org
-Cc: miklos@szeredi.hu, amir73il@gmail.com, vgoyal@redhat.com
+MIME-Version: 1.0
+In-Reply-To: <CAOQ4uxjsaK0pkxHNLYe=kMwTCmA+gcH5dUXtM0EV0RjPawCbvA@mail.gmail.com>
+References: <779D1CE1-7805-4026-BC7D-3773D5E37B34@gmx.com>
+	<CAOQ4uxjuO8ZUH_9Y68-y0JQsF9yunTarF6YFCtSW20V_EjXUFA@mail.gmail.com>
+	<C665F64A-11F7-4F6F-82D4-8F287A983E30@gmx.com>
+	<CAJfpegvLerH4J_zzXCMHOhbuwJT5-NYZiY91Dnc1GAUyKTu8zA@mail.gmail.com>
+	<CAOQ4uxjsaK0pkxHNLYe=kMwTCmA+gcH5dUXtM0EV0RjPawCbvA@mail.gmail.com>
+Date: Wed, 11 Apr 2018 11:04:10 +0200
+Message-ID: <CAJfpegtRmBkpJK-qNnmrWXSaX1EorjBfix9Qmu_Ha4=9HSnRQw@mail.gmail.com>
+Subject: Re: question of copying stack in ovl_lookup()
+From: Miklos Szeredi <miklos@szeredi.hu>
+Content-Type: text/plain; charset="UTF-8"
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: "cgxu519@gmx.com" <cgxu519@gmx.com>, overlayfs <linux-unionfs@vger.kernel.org>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-Right now we seem to check redirect only if upperdentry is found. But it
-is possible that there is no upperdentry but later we found an index.
+On Wed, Apr 11, 2018 at 10:35 AM, Amir Goldstein <amir73il@gmail.com> wrote:
 
-We need to check redirect on index as well and set it in ovl_inode->redirect.
-Otherwise link code can assume that dentry does not have redirect and
-place a new one which breaks things. In my testing overlay/033 test
-started failing in xfstests. Following are the details.
+> We could pack the ovl_entry further to 32 bytes with or without cache
+> pool. Not sure if it is worse it though(?):
+>
+> struct ovl_path {
+>         unsigned short reserved;
+>         unsigned short layer_idx;
+>         struct dentry *dentry;
+> };
+>
+> struct ovl_entry {
+>         union {
+>                 struct {
+>                         unsigned long flags;
 
-For example do following.
+Heh, this anonymous struct is no longer needed.
 
-$ mkdir lower upper work merged
+>                 };
+>                 struct rcu_head rcu;
 
-- Make lower dir with 4 links.
-  $ echo "foo" > lower/l0.txt
-  $ ln  lower/l0.txt lower/l1.txt
-  $ ln  lower/l0.txt lower/l2.txt
-  $ ln  lower/l0.txt lower/l3.txt
+Not sure what are we protecting in overlay_entry with rcu.  A comment
+somewhere would be good.  Will need to investigate...
 
-- Mount with index on and metacopy on.
+>         };
+>         union {
+>                 unsigned short numlower;
+>                 struct ovl_path lowerstack[1];
+>         };
+> };
 
-  $ mount -t overlay -o lowerdir=lower,upperdir=upper,workdir=work,index=on,metacopy=on none merged
+Ugly.
 
-- Link lower
-
-  $ ln merged/l0.txt merged/l4.txt
-    (This will metadata copy up of l0.txt and put an absolute redirect
-     /l0.txt)
-
-  $ echo 2 > /proc/sys/vm/drop/caches
-
-  $ ls merged/l1.txt
-  (Now l1.txt will be looked up. There is no upper dentry but there is
-   lower dentry and index will be found. We don't check for redirect on
-   index, hence ovl_inode->redirect will be NULL.)
-
-- Link Upper
-
-  $ ln merged/l4.txt merged/l5.txt
-  (Lookup of l4.txt will use inode from l1.txt lookup which is still in
-   cache. It has ovl_inode->redirect NULL, hence link will put a new
-   redirect and replace /l0.txt with /l4.txt
-
-- Drop caches.
-  echo 2 > /proc/sys/vm/drop_caches
-
-- List l1.txt and it returns -ESTALE
-
-  $ ls merged/l0.txt
-
-  (It returns stale because, we found a metacopy of l0.txt in upper
-   and it has redirect l4.txt but there is no file named l4.txt in
-   lower layer. So lower data copy is not found and -ESTALE is returned.)
-
-So problem here is that we did not process redirect on index. Check
-redirect on index as well and then problem is fixed.
-
-Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
----
- fs/overlayfs/namei.c     |  9 ++++++++-
- fs/overlayfs/overlayfs.h |  1 +
- fs/overlayfs/util.c      | 42 ++++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 51 insertions(+), 1 deletion(-)
-
-diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
-index 41cbde97a212..c6ad8117a1f5 100644
---- a/fs/overlayfs/namei.c
-+++ b/fs/overlayfs/namei.c
-@@ -1067,8 +1067,15 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
- 
- 	if (upperdentry)
- 		ovl_dentry_set_upper_alias(dentry);
--	else if (index)
-+	else if (index) {
- 		upperdentry = dget(index);
-+		upperredirect = ovl_get_redirect_xattr(upperdentry);
-+		if (IS_ERR(upperredirect)) {
-+			err = PTR_ERR(upperredirect);
-+			upperredirect = NULL;
-+			goto out_free_oe;
-+		}
-+	}
- 
- 	if (upperdentry || ctr) {
- 		struct dentry *lowerdata = NULL;
-diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-index e2c6a2f5addf..a0f3a6fa3029 100644
---- a/fs/overlayfs/overlayfs.h
-+++ b/fs/overlayfs/overlayfs.h
-@@ -284,6 +284,7 @@ int ovl_lock_rename_workdir(struct dentry *workdir, struct dentry *upperdir);
- void ovl_copytimes(struct inode *inode);
- int ovl_check_metacopy_xattr(struct dentry *dentry);
- bool ovl_is_metacopy_dentry(struct dentry *dentry);
-+char *ovl_get_redirect_xattr(struct dentry *dentry);
- 
- static inline void ovl_copytimes_with_parent(struct dentry *dentry)
- {
-diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
-index 69acce1c9026..1a5691a9e425 100644
---- a/fs/overlayfs/util.c
-+++ b/fs/overlayfs/util.c
-@@ -889,3 +889,45 @@ bool ovl_is_metacopy_dentry(struct dentry *dentry)
- 
- 	return (oe->numlower > 1);
- }
-+
-+char *ovl_get_redirect_xattr(struct dentry *dentry)
-+{
-+	int res;
-+	char *s, *next, *buf = NULL;
-+
-+	res = vfs_getxattr(dentry, OVL_XATTR_REDIRECT, NULL, 0);
-+	if (res < 0) {
-+		if (res == -ENODATA || res == -EOPNOTSUPP)
-+			return NULL;
-+		return ERR_PTR(res);
-+	}
-+
-+	buf = kzalloc(res + 1, GFP_KERNEL);
-+	if (!buf)
-+		return ERR_PTR(-ENOMEM);
-+
-+	res = vfs_getxattr(dentry, OVL_XATTR_REDIRECT, buf, res);
-+	if (res < 0) {
-+		kfree(buf);
-+		return ERR_PTR(res);
-+        }
-+	if (res == 0)
-+		goto invalid;
-+
-+	if (buf[0] == '/') {
-+		for (s = buf; *s++ == '/'; s = next) {
-+			next = strchrnul(s, '/');
-+			if (s == next)
-+				goto invalid;
-+		}
-+	} else {
-+		if (strchr(buf, '/') != NULL)
-+			goto invalid;
-+	}
-+
-+	return buf;
-+invalid:
-+	pr_warn_ratelimited("overlayfs: invalid redirect (%s)\n", buf);
-+	kfree(buf);
-+	return ERR_PTR(-EINVAL);
-+}
--- 
-2.13.6
-
+Thanks,
+Miklos
