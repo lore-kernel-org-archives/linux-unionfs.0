@@ -1,61 +1,68 @@
 Return-Path: <amir73il@gmail.com>
-Return-Path: <amir73il@gmail.com>
+MIME-Version: 1.0
+In-Reply-To: <AC729CAD-5B27-439D-B899-E592A936DC5C@gmx.com>
+References: <1522834036-132136-1-git-send-email-cgxu519@gmx.com>
+ <CAOQ4uxgeD6zHm+D1B2H-P4WUpAgK2BgpSw6KXsiyiEaJpSpR9Q@mail.gmail.com> <AC729CAD-5B27-439D-B899-E592A936DC5C@gmx.com>
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH v2 3/4] overlay/043: require and enable redirect_dir
-Date: Wed, 25 Apr 2018 23:53:26 -0600
-Message-Id: <1524722007-30891-4-git-send-email-amir73il@gmail.com>
-In-Reply-To: <1524722007-30891-1-git-send-email-amir73il@gmail.com>
-References: <1524722007-30891-1-git-send-email-amir73il@gmail.com>
-To: Eryu Guan <eguan@redhat.com>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, fstests@vger.kernel.org
+Date: Wed, 11 Apr 2018 10:02:50 +0300
+Message-ID: <CAOQ4uxj=_-QJObGu+6BX3JNQCC2Q0KqHS7Z0qWV++5vVa4Cpeg@mail.gmail.com>
+Subject: Re: [PATCH v2 1/2] ovl: add option parsing support for remount
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+To: Chengguang Xu <cgxu519@gmx.com>
+Cc: overlayfs <linux-unionfs@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-This test renames a merge directory so it needs to enable
-redirect_dir feature, which is not enabled by default.
+On Wed, Apr 11, 2018 at 8:59 AM,  <cgxu519@gmx.com> wrote:
+> =E5=9C=A8 2018=E5=B9=B44=E6=9C=884=E6=97=A5=EF=BC=8C=E4=B8=8B=E5=8D=886:4=
+4=EF=BC=8CAmir Goldstein <amir73il@gmail.com> =E5=86=99=E9=81=93=EF=BC=9A
+>>
+>> On Wed, Apr 4, 2018 at 12:27 PM, Chengguang Xu <cgxu519@gmx.com> wrote:
+>>> Some overlayfs mount options cannot be changed via remount,
+>>> but remount operation does not return proper error even if
+>>> we specify different value to unchangeable options.
+>>>
+>>> This patch add option parsing support for remount so we can
+>>> recogonize unchangeable options in remount.
+>>>
+>>> Signed-off-by: Chengguang Xu <cgxu519@gmx.com>
+>>> ---
+>>>
+>>> Changes since v1:
+>>> - Add remount option validation to parse_opt()
+>>>
+>>> fs/overlayfs/super.c | 133 ++++++++++++++++++++++++++++++++++++++++++++=
+++++---
+>>> 1 file changed, 127 insertions(+), 6 deletions(-)
+>>>
+>>> diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+>>> index 7c24619..4112720 100644
+>>> --- a/fs/overlayfs/super.c
+>>> +++ b/fs/overlayfs/super.c
+>>> @@ -425,6 +425,16 @@ static char *ovl_next_opt(char **s)
+>>>
+>>> static int ovl_parse_redirect_mode(struct ovl_config *config, const cha=
+r *mode)
+>>> {
+>>> +
+>>> +       if (!mode) {
+>>> +               config->redirect_mode =3D kstrdup(ovl_redirect_mode_def=
+(),
+>>> +                                                       GFP_KERNEL);
+>>> +               if (!config->redirect_mode)
+>>> +                       return -ENOMEM;
+>>> +
+>>> +               mode =3D config->redirect_mode;
+>>> +       }
+>>
+>> This makes @mode argument to function redundant.
+>
+> Maybe moving default initialization before calling parse_opt() is better,
+> what do you think?
+>
 
-Signed-off-by: Amir Goldstein <amir73il@gmail.com>
----
- tests/overlay/043 | 9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+I think it's ok. Most other options are initialized to default before
+parse_opt().
 
-diff --git a/tests/overlay/043 b/tests/overlay/043
-index 46df686..f70ee7f 100755
---- a/tests/overlay/043
-+++ b/tests/overlay/043
-@@ -62,6 +62,8 @@ _require_scratch_nocheck
- _require_test
- _require_test_program "af_unix"
- _require_test_program "t_dir_type"
-+# Require redirect_dir for renaming a merge directory
-+_require_scratch_feature redirect_dir
- 
- rm -f $seqres.full
- 
-@@ -83,7 +85,8 @@ _scratch_mkfs >>$seqres.full 2>&1
- upperdir=$OVL_BASE_SCRATCH_MNT/$OVL_UPPER
- workdir=$OVL_BASE_SCRATCH_MNT/$OVL_WORK
- 
--_overlay_scratch_mount_dirs $lowerdir $upperdir $workdir
-+# Enable redirect_dir for renaming a merge directory
-+_overlay_scratch_mount_dirs $lowerdir $upperdir $workdir -o redirect_dir=on
- 
- FILES="dir file symlink chrdev blkdev fifo socket"
- 
-@@ -150,13 +153,13 @@ check_inode_numbers $testdir $tmp.after_copyup $tmp.after_move
- 
- # Verify that the inode numbers survive a mount cycle
- $UMOUNT_PROG $SCRATCH_MNT
--_overlay_scratch_mount_dirs $lowerdir $upperdir $workdir
-+_overlay_scratch_mount_dirs $lowerdir $upperdir $workdir -o redirect_dir=on
- 
- # Compare inode numbers before/after mount cycle
- check_inode_numbers $testdir $tmp.after_move $tmp.after_cycle
- 
- # check overlayfs
--_overlay_check_scratch_dirs $lowerdir $upperdir $workdir
-+_overlay_check_scratch_dirs $lowerdir $upperdir $workdir -o redirect_dir=on
- 
- echo "Silence is golden"
- status=0
--- 
-2.7.4
+Thanks,
+Amir.
