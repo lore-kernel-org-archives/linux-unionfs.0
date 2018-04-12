@@ -1,7 +1,7 @@
 From: Miklos Szeredi <mszeredi@redhat.com>
-Subject: [RFC PATCH 22/35] ovl: copy-up on MAP_SHARED
-Date: Thu, 12 Apr 2018 17:08:13 +0200
-Message-ID: <20180412150826.20988-23-mszeredi@redhat.com>
+Subject: [RFC PATCH 21/35] vfs: add f_op->pre_mmap()
+Date: Thu, 12 Apr 2018 17:08:12 +0200
+Message-ID: <20180412150826.20988-22-mszeredi@redhat.com>
 References: <20180412150826.20988-1-mszeredi@redhat.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20180412150826.20988-1-mszeredi@redhat.com>
@@ -10,206 +10,81 @@ To: linux-unionfs@vger.kernel.org
 Cc: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 
-A corner case of a corner case is when
+This is needed by overlayfs to be able to copy up a file from a read-only
+lower layer to a writable layer when being mapped shared.  When copying up,
+overlayfs takes VFS locks that would violate locking order when nested
+inside mmap_sem.
 
- - file opened for O_RDONLY
- - which is then memory mapped SHARED
- - file opened for O_WRONLY
- - contents modified
- - contents read back though the shared mapping
-
-Unfortunately it looks very difficult to do anything about the established
-shared map after the file is copied up.
-
-Instead, when a read-only file is mapped shared, copy up the file before
-actually doing the map.  This may result in unnecessary copy-ups (but so
-may copy-up on open(O_RDWR) for exampe).
-
-We can revisit this later if it turns out to be a performance problem in
-real life.
+Add a new f_op->pre_mmap method, which is called before taking mmap_sem.
 
 Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
 ---
- fs/overlayfs/Kconfig     | 21 +++++++++++++++++++++
- fs/overlayfs/file.c      | 22 ++++++++++++++++++++++
- fs/overlayfs/overlayfs.h |  7 +++++++
- fs/overlayfs/ovl_entry.h |  1 +
- fs/overlayfs/super.c     | 22 ++++++++++++++++++++++
- 5 files changed, 73 insertions(+)
+ Documentation/filesystems/Locking | 1 +
+ Documentation/filesystems/vfs.txt | 3 +++
+ include/linux/fs.h                | 1 +
+ mm/util.c                         | 5 +++++
+ 4 files changed, 10 insertions(+)
 
-diff --git a/fs/overlayfs/Kconfig b/fs/overlayfs/Kconfig
-index 17032631c5cf..991c0a5a0e00 100644
---- a/fs/overlayfs/Kconfig
-+++ b/fs/overlayfs/Kconfig
-@@ -103,3 +103,24 @@ config OVERLAY_FS_XINO_AUTO
- 	  For more information, see Documentation/filesystems/overlayfs.txt
+diff --git a/Documentation/filesystems/Locking b/Documentation/filesystems/Locking
+index 75d2d57e2c44..60e76060baff 100644
+--- a/Documentation/filesystems/Locking
++++ b/Documentation/filesystems/Locking
+@@ -442,6 +442,7 @@ prototypes:
+ 	unsigned int (*poll) (struct file *, struct poll_table_struct *);
+ 	long (*unlocked_ioctl) (struct file *, unsigned int, unsigned long);
+ 	long (*compat_ioctl) (struct file *, unsigned int, unsigned long);
++	int (*pre_mmap) (struct file *, unsigned long, unsigned long);
+ 	int (*mmap) (struct file *, struct vm_area_struct *);
+ 	int (*open) (struct inode *, struct file *);
+ 	int (*flush) (struct file *);
+diff --git a/Documentation/filesystems/vfs.txt b/Documentation/filesystems/vfs.txt
+index 5fd325df59e2..2bc77ea8aef4 100644
+--- a/Documentation/filesystems/vfs.txt
++++ b/Documentation/filesystems/vfs.txt
+@@ -859,6 +859,7 @@ struct file_operations {
+ 	unsigned int (*poll) (struct file *, struct poll_table_struct *);
+ 	long (*unlocked_ioctl) (struct file *, unsigned int, unsigned long);
+ 	long (*compat_ioctl) (struct file *, unsigned int, unsigned long);
++	int (*pre_mmap) (struct file *, unsigned long, unsigned long);
+ 	int (*mmap) (struct file *, struct vm_area_struct *);
+ 	int (*mremap)(struct file *, struct vm_area_struct *);
+ 	int (*open) (struct inode *, struct file *);
+@@ -906,6 +907,8 @@ otherwise noted.
+   compat_ioctl: called by the ioctl(2) system call when 32 bit system calls
+  	 are used on 64 bit kernels.
  
- 	  If unsure, say N.
++  pre_mmap: called before mmap, without mmap_sem being held yet.
 +
-+config OVERLAY_FS_COPY_UP_SHARED
-+       bool "Overlayfs: copy up when mapping a file shared"
-+       default n
-+       depends on OVERLAY_FS
-+       help
-+         If this option is enabled then on mapping a file with MAP_SHARED
-+	 overlayfs copies up the file in anticipation of it being modified (just
-+	 like we copy up the file on O_WRONLY and O_RDWR in anticipation of
-+	 modification).  This does not interfere with shared library loading, as
-+	 that uses MAP_PRIVATE.  But there might be use cases out there where
-+	 this impacts performance and disk usage.
-+
-+	 This just selects the default, the feature can also be enabled or
-+	 disabled in the running kernel or individually on each overlay mount.
-+
-+	 To get maximally standard compliant behavior, enable this option.
-+
-+	 To get a maximally backward compatible kernel, disable this option.
-+
-+	 If unsure, say N.
-diff --git a/fs/overlayfs/file.c b/fs/overlayfs/file.c
-index 39b1b73334ad..23638d8ebab5 100644
---- a/fs/overlayfs/file.c
-+++ b/fs/overlayfs/file.c
-@@ -10,6 +10,7 @@
- #include <linux/file.h>
- #include <linux/mount.h>
- #include <linux/xattr.h>
-+#include <linux/mman.h>
- #include <linux/uio.h>
- #include "overlayfs.h"
+   mmap: called by the mmap(2) system call
  
-@@ -245,6 +246,26 @@ static int ovl_fsync(struct file *file, loff_t start, loff_t end, int datasync)
- 	return ret;
- }
+   open: called by the VFS when an inode should be opened. When the VFS
+diff --git a/include/linux/fs.h b/include/linux/fs.h
+index 1add10f04b56..e28a2cf50fa7 100644
+--- a/include/linux/fs.h
++++ b/include/linux/fs.h
+@@ -1716,6 +1716,7 @@ struct file_operations {
+ 	__poll_t (*poll) (struct file *, struct poll_table_struct *);
+ 	long (*unlocked_ioctl) (struct file *, unsigned int, unsigned long);
+ 	long (*compat_ioctl) (struct file *, unsigned int, unsigned long);
++	int (*pre_mmap) (struct file *, unsigned long, unsigned long);
+ 	int (*mmap) (struct file *, struct vm_area_struct *);
+ 	unsigned long mmap_supported_flags;
+ 	int (*open) (struct inode *, struct file *);
+diff --git a/mm/util.c b/mm/util.c
+index c1250501364f..0a48f9077bad 100644
+--- a/mm/util.c
++++ b/mm/util.c
+@@ -350,6 +350,11 @@ unsigned long vm_mmap_pgoff(struct file *file, unsigned long addr,
  
-+static int ovl_pre_mmap(struct file *file, unsigned long prot,
-+			unsigned long flag)
-+{
-+	int err = 0;
-+
-+	/*
-+	 * Take MAP_SHARED as hint about future writes to the file (through
-+	 * another file descriptor).  Caller might not have had such an intent,
-+	 * but we hope MAP_PRIVATE will be used in most such cases.
-+	 *
-+	 * If we don't copy up now and the file is modified, it becomes really
-+	 * difficult to change the mapping to match that of the file's content
-+	 * later.
-+	 */
-+	if ((flag & MAP_SHARED) && ovl_copy_up_shared(file_inode(file)->i_sb))
-+		err = ovl_copy_up(file_dentry(file));
-+
-+	return err;
-+}
-+
- static int ovl_mmap(struct file *file, struct vm_area_struct *vma)
- {
- 	struct fd real;
-@@ -434,6 +455,7 @@ const struct file_operations ovl_file_operations = {
- 	.read_iter	= ovl_read_iter,
- 	.write_iter	= ovl_write_iter,
- 	.fsync		= ovl_fsync,
-+	.pre_mmap	= ovl_pre_mmap,
- 	.mmap		= ovl_mmap,
- 	.fallocate	= ovl_fallocate,
- 	.unlocked_ioctl	= ovl_ioctl,
-diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-index b29c1688f372..dad54bc8de7d 100644
---- a/fs/overlayfs/overlayfs.h
-+++ b/fs/overlayfs/overlayfs.h
-@@ -279,6 +279,13 @@ static inline unsigned int ovl_xino_bits(struct super_block *sb)
- 	return ofs->xino_bits;
- }
- 
-+static inline bool ovl_copy_up_shared(struct super_block *sb)
-+{
-+	struct ovl_fs *ofs = sb->s_fs_info;
-+
-+	return !(sb->s_flags & SB_RDONLY) && ofs->config.copy_up_shared;
-+}
-+
- 
- /* namei.c */
- int ovl_check_fh_len(struct ovl_fh *fh, int fh_len);
-diff --git a/fs/overlayfs/ovl_entry.h b/fs/overlayfs/ovl_entry.h
-index 41655a7d6894..3bea47c63fd9 100644
---- a/fs/overlayfs/ovl_entry.h
-+++ b/fs/overlayfs/ovl_entry.h
-@@ -18,6 +18,7 @@ struct ovl_config {
- 	const char *redirect_mode;
- 	bool index;
- 	bool nfs_export;
-+	bool copy_up_shared;
- 	int xino;
- };
- 
-diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-index ad6a5baf226b..c3d8c7ea180f 100644
---- a/fs/overlayfs/super.c
-+++ b/fs/overlayfs/super.c
-@@ -56,6 +56,12 @@ module_param_named(xino_auto, ovl_xino_auto_def, bool, 0644);
- MODULE_PARM_DESC(ovl_xino_auto_def,
- 		 "Auto enable xino feature");
- 
-+static bool ovl_copy_up_shared_def =
-+	IS_ENABLED(CONFIG_OVERLAY_FS_COPY_UP_SHARED);
-+module_param_named(copy_up_shared, ovl_copy_up_shared_def, bool, 0644);
-+MODULE_PARM_DESC(ovl_copy_up_shared_def,
-+		 "Copy up when mapping a file shared");
-+
- static void ovl_entry_stack_free(struct ovl_entry *oe)
- {
- 	unsigned int i;
-@@ -380,6 +386,9 @@ static int ovl_show_options(struct seq_file *m, struct dentry *dentry)
- 						"on" : "off");
- 	if (ofs->config.xino != ovl_xino_def())
- 		seq_printf(m, ",xino=%s", ovl_xino_str[ofs->config.xino]);
-+	if (ofs->config.copy_up_shared != ovl_copy_up_shared_def)
-+		seq_printf(m, ",copy_up_shared=%s",
-+			   ofs->config.copy_up_shared ? "on" : "off");
- 	return 0;
- }
- 
-@@ -417,6 +426,8 @@ enum {
- 	OPT_XINO_ON,
- 	OPT_XINO_OFF,
- 	OPT_XINO_AUTO,
-+	OPT_COPY_UP_SHARED_ON,
-+	OPT_COPY_UP_SHARED_OFF,
- 	OPT_ERR,
- };
- 
-@@ -433,6 +444,8 @@ static const match_table_t ovl_tokens = {
- 	{OPT_XINO_ON,			"xino=on"},
- 	{OPT_XINO_OFF,			"xino=off"},
- 	{OPT_XINO_AUTO,			"xino=auto"},
-+	{OPT_COPY_UP_SHARED_ON,		"copy_up_shared=on"},
-+	{OPT_COPY_UP_SHARED_OFF,	"copy_up_shared=off"},
- 	{OPT_ERR,			NULL}
- };
- 
-@@ -559,6 +572,14 @@ static int ovl_parse_opt(char *opt, struct ovl_config *config)
- 			config->xino = OVL_XINO_AUTO;
- 			break;
- 
-+		case OPT_COPY_UP_SHARED_ON:
-+			config->copy_up_shared = true;
-+			break;
-+
-+		case OPT_COPY_UP_SHARED_OFF:
-+			config->copy_up_shared = false;
-+			break;
-+
- 		default:
- 			pr_err("overlayfs: unrecognized mount option \"%s\" or missing value\n", p);
- 			return -EINVAL;
-@@ -1380,6 +1401,7 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
- 	ofs->config.index = ovl_index_def;
- 	ofs->config.nfs_export = ovl_nfs_export_def;
- 	ofs->config.xino = ovl_xino_def();
-+	ofs->config.copy_up_shared = ovl_copy_up_shared_def;
- 	err = ovl_parse_opt((char *) data, &ofs->config);
- 	if (err)
- 		goto out_err;
+ 	ret = security_mmap_file(file, prot, flag);
+ 	if (!ret) {
++		if (file && file->f_op->pre_mmap) {
++			ret = file->f_op->pre_mmap(file, prot, flag);
++			if (ret)
++				return ret;
++		}
+ 		if (down_write_killable(&mm->mmap_sem))
+ 			return -EINTR;
+ 		ret = do_mmap_pgoff(file, addr, len, prot, flag, pgoff,
 -- 
 2.14.3
