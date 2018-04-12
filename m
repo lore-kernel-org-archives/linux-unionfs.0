@@ -1,105 +1,31 @@
-From: Matthew Wilcox <willy@infradead.org>
-Subject: Re: [RFC PATCH 02/35] vfs: add path_open()
-Date: Thu, 12 Apr 2018 09:38:56 -0700
-Message-ID: <20180412163856.GB24728@bombadil.infradead.org>
-References: <20180412150826.20988-1-mszeredi@redhat.com>
- <20180412150826.20988-3-mszeredi@redhat.com>
+From: Miklos Szeredi <miklos@szeredi.hu>
+Subject: Re: [RFC PATCH 01/35] vfs: clean up dedup
+Date: Thu, 12 Apr 2018 19:24:00 +0200
+Message-ID: <CAJfpegt18KcursBrY23vz8xKst=rbX-g2pU27-9yvfvqf39_Dg@mail.gmail.com>
+References: <20180412150826.20988-1-mszeredi@redhat.com> <20180412150826.20988-2-mszeredi@redhat.com>
+ <20180412162500.GA24728@bombadil.infradead.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180412150826.20988-3-mszeredi@redhat.com>
+In-Reply-To: <20180412162500.GA24728@bombadil.infradead.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Miklos Szeredi <mszeredi@redhat.com>
-Cc: linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Matthew Wilcox <willy@infradead.org>
+Cc: Miklos Szeredi <mszeredi@redhat.com>, overlayfs <linux-unionfs@vger.kernel.org>, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 
-On Thu, Apr 12, 2018 at 05:07:53PM +0200, Miklos Szeredi wrote:
-> Currently opening an overlay file results in:
-> 
->  - the real file on the underlying layer being opened
->  - f_path being set to the overlay {mount, dentry} pair
-> 
-> This patch adds a new helper that allows the above to be explicitly
-> performed.  I.e. it's the same as dentry_open(), except the underlying
-> inode to open is given as a separate argument.
-> 
-> This is in preparation for stacking I/O operations on overlay files.
-> 
-> Later, when implicit opening is removed, dentry_open() can be implemented
-> by just calling path_open().
-> 
-> Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
-> ---
->  fs/open.c          | 27 +++++++++++++++++++++++++++
->  include/linux/fs.h |  2 ++
->  2 files changed, 29 insertions(+)
-> 
-> diff --git a/fs/open.c b/fs/open.c
-> index 7ea118471dce..8c315f9ec2f6 100644
-> --- a/fs/open.c
-> +++ b/fs/open.c
-> @@ -866,6 +866,33 @@ int vfs_open(const struct path *path, struct file *file,
->  	return do_dentry_open(file, d_backing_inode(dentry), NULL, cred);
->  }
->  
+On Thu, Apr 12, 2018 at 6:25 PM, Matthew Wilcox <willy@infradead.org> wrote:
+> On Thu, Apr 12, 2018 at 05:07:52PM +0200, Miklos Szeredi wrote:
+>> +ssize_t vfs_dedupe_file_range_one(struct file *src_file, u64 src_pos, u64 len,
+>> +                           struct file *dst_file, u64 dst_pos)
+>
+> Why u64 instead of loff_t?
 
-This really warrants some kernel-doc.  Let me try to get this started and
-you can fix it:
+Peculiarity of f_op->dedupe_file_range().
 
-/**
- * path_open() - Open an inode by a particular name.
- * @path: The name of the file.
- * @flags: The O_ flags used to open this file.
- * @inode: The inode to open.
- * @cred: The task's credentials used when opening this file.
- *
- * ...
- *
- * Context: Process context.
- * Return: A pointer to a struct file or an IS_ERR pointer.  Cannot return NULL.
- */
+I think a cleanup of copyfile/clone/dedupe interfaces would be good.
+Perhaps merge them into one?  Or just merge copyfile/clone?  Even if
+not merging it should make sense to make argument types and argument
+order the same.
 
-> +struct file *path_open(const struct path *path, int flags, struct inode *inode,
-> +		       const struct cred *cred)
-> +{
-> +	struct file *file;
-> +	int retval;
-> +
-> +	file = get_empty_filp();
-> +	if (!IS_ERR(file)) {
-> +		file->f_flags = flags;
-> +		file->f_path = *path;
-> +		retval = do_dentry_open(file, inode, NULL, cred);
-> +		if (retval) {
-> +			put_filp(file);
-> +			file = ERR_PTR(retval);
-> +		} else {
-> +			retval = open_check_o_direct(file);
-> +			if (retval) {
-> +				fput(file);
-> +				file = ERR_PTR(retval);
-> +			}
-> +		}
-> +	}
-> +
-> +	return file;
-
-I'd find this clearer written like this ...
-
-+	file = get_empty_filp();
-+	if (IS_ERR(file))
-+		return file;
-+
-+	file->f_flags = flags;
-+	file->f_path = *path;
-+	retval = do_dentry_open(file, inode, NULL, cred);
-+	if (retval)
-+		goto err;
-+	retval = open_check_o_direct(file);
-+	if (retval)
-+		goto err;
-+	return file;
-+err:
-+	put_filp(file);
-+	return ERR_PTR(retval);
+Thanks,
+Miklos
