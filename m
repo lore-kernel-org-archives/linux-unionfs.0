@@ -1,7 +1,7 @@
 From: Miklos Szeredi <mszeredi@redhat.com>
-Subject: [RFC PATCH 33/35] Revert "fsnotify: support overlayfs"
-Date: Thu, 12 Apr 2018 17:08:24 +0200
-Message-ID: <20180412150826.20988-34-mszeredi@redhat.com>
+Subject: [RFC PATCH 35/35] ovl: fix documentation of non-standard behavior
+Date: Thu, 12 Apr 2018 17:08:26 +0200
+Message-ID: <20180412150826.20988-36-mszeredi@redhat.com>
 References: <20180412150826.20988-1-mszeredi@redhat.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20180412150826.20988-1-mszeredi@redhat.com>
@@ -10,67 +10,91 @@ To: linux-unionfs@vger.kernel.org
 Cc: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 
-This reverts commit f3fbbb079263bd29ae592478de6808db7e708267.
+We can now drop description of the ro/rw inconsistency from the
+documentation.
 
-Overlayfs now works correctly without adding hacks to fsnotify.
+Also clarify, that now fully standard compliant behavior can be enabled
+with kernel/module/mount options.
 
 Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
 ---
- include/linux/fsnotify.h | 14 +++++---------
- 1 file changed, 5 insertions(+), 9 deletions(-)
+ Documentation/filesystems/overlayfs.txt | 64 ++++++++++++++++++++++-----------
+ 1 file changed, 43 insertions(+), 21 deletions(-)
 
-diff --git a/include/linux/fsnotify.h b/include/linux/fsnotify.h
-index bdaf22582f6e..fd1ce10553bf 100644
---- a/include/linux/fsnotify.h
-+++ b/include/linux/fsnotify.h
-@@ -30,11 +30,7 @@ static inline int fsnotify_parent(const struct path *path, struct dentry *dentry
- static inline int fsnotify_perm(struct file *file, int mask)
- {
- 	const struct path *path = &file->f_path;
--	/*
--	 * Do not use file_inode() here or anywhere in this file to get the
--	 * inode.  That would break *notity on overlayfs.
--	 */
--	struct inode *inode = path->dentry->d_inode;
-+	struct inode *inode = file_inode(file);
- 	__u32 fsnotify_mask = 0;
- 	int ret;
+diff --git a/Documentation/filesystems/overlayfs.txt b/Documentation/filesystems/overlayfs.txt
+index 961b287ef323..095186080d23 100644
+--- a/Documentation/filesystems/overlayfs.txt
++++ b/Documentation/filesystems/overlayfs.txt
+@@ -306,27 +306,49 @@ the copied layers will fail the verification of the lower root file handle.
+ Non-standard behavior
+ ---------------------
  
-@@ -178,7 +174,7 @@ static inline void fsnotify_mkdir(struct inode *inode, struct dentry *dentry)
- static inline void fsnotify_access(struct file *file)
- {
- 	const struct path *path = &file->f_path;
--	struct inode *inode = path->dentry->d_inode;
-+	struct inode *inode = file_inode(file);
- 	__u32 mask = FS_ACCESS;
+-The copy_up operation essentially creates a new, identical file and
+-moves it over to the old name.  Any open files referring to this inode
+-will access the old data.
+-
+-The new file may be on a different filesystem, so both st_dev and st_ino
+-of the real file may change.  The values of st_dev and st_ino returned by
+-stat(2) on an overlay object are often not the same as the real file
+-stat(2) values to prevent the values from changing on copy_up.
+-
+-Unless "xino" feature is enabled, when overlay layers are not all on the
+-same underlying filesystem, the value of st_dev may be different for two
+-non-directory objects in the same overlay filesystem and the value of
+-st_ino for directory objects may be non persistent and could change even
+-while the overlay filesystem is still mounted.
+-
+-Unless "inode index" feature is enabled, if a file with multiple hard
+-links is copied up, then this will "break" the link.  Changes will not be
+-propagated to other names referring to the same inode.
+-
+-Unless "redirect_dir" feature is enabled, rename(2) on a lower or merged
+-directory will fail with EXDEV.
++Overlayfs can now act as a POSIX compliant filesystem with the following
++features turned on:
++
++1) "redirect_dir"
++
++Enabled with the mount option or module option: "redirect_dir=on" or with
++the kernel config option CONFIG_OVERLAY_FS_REDIRECT_DIR=y.
++
++If this feature is disabled, then rename(2) on a lower or merged directory
++will fail with EXDEV ("Invalid cross-device link").
++
++2) "inode index"
++
++Enabled with the mount option or module option "index=on" or with the
++kernel config option CONFIG_OVERLAY_FS_INDEX=y.
++
++If this feature is disabled and a file with multiple hard links is copied
++up, then this will "break" the link.  Changes will not be propagated to
++other names referring to the same inode.
++
++3) "xino"
++
++Enabled with the mount option "xino=auto" or "xino=on", with the module
++option "xino_auto=on" or with the kernel config option
++CONFIG_OVERLAY_FS_XINO_AUTO=y.  Also implicitly enabled by using the same
++underlying filesystem for all layers making up the overlay.
++
++If this feature is disabled or the underlying filesystem doesn't have
++enough free bits in the inode number, then overlayfs will not be able to
++guarantee that the values of st_ino and st_dev returned by stat(2) and the
++value of d_ino returned by readdir(3) will act like on a normal filesystem.
++E.g. the value of st_dev may be different for two objects in the same
++overlay filesystem and the value of st_ino for directory objects may not be
++persistent and could change even while the overlay filesystem is mounted.
++
++4) "copy_up_shared"
++
++Enabled with the mount option or module option "copy_up_shared=on" or with
++the kernel config option CONFIG_OVERLAY_FS_COPY_UP_SHARED=y.
++
++If this feature is disabled, then a memory mapping created with MAP_SHARED
++might contain stale data if the file has been copied up and modified in the
++meantime.
  
- 	if (S_ISDIR(inode->i_mode))
-@@ -196,7 +192,7 @@ static inline void fsnotify_access(struct file *file)
- static inline void fsnotify_modify(struct file *file)
- {
- 	const struct path *path = &file->f_path;
--	struct inode *inode = path->dentry->d_inode;
-+	struct inode *inode = file_inode(file);
- 	__u32 mask = FS_MODIFY;
  
- 	if (S_ISDIR(inode->i_mode))
-@@ -214,7 +210,7 @@ static inline void fsnotify_modify(struct file *file)
- static inline void fsnotify_open(struct file *file)
- {
- 	const struct path *path = &file->f_path;
--	struct inode *inode = path->dentry->d_inode;
-+	struct inode *inode = file_inode(file);
- 	__u32 mask = FS_OPEN;
- 
- 	if (S_ISDIR(inode->i_mode))
-@@ -230,7 +226,7 @@ static inline void fsnotify_open(struct file *file)
- static inline void fsnotify_close(struct file *file)
- {
- 	const struct path *path = &file->f_path;
--	struct inode *inode = path->dentry->d_inode;
-+	struct inode *inode = file_inode(file);
- 	fmode_t mode = file->f_mode;
- 	__u32 mask = (mode & FMODE_WRITE) ? FS_CLOSE_WRITE : FS_CLOSE_NOWRITE;
- 
+ Changes to underlying filesystems
 -- 
 2.14.3
