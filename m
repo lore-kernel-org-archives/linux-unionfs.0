@@ -1,7 +1,7 @@
 From: Miklos Szeredi <mszeredi@redhat.com>
-Subject: [RFC PATCH 26/35] Revert "ovl: fix may_write_real() for overlayfs directories"
-Date: Thu, 12 Apr 2018 17:08:17 +0200
-Message-ID: <20180412150826.20988-27-mszeredi@redhat.com>
+Subject: [RFC PATCH 33/35] Revert "fsnotify: support overlayfs"
+Date: Thu, 12 Apr 2018 17:08:24 +0200
+Message-ID: <20180412150826.20988-34-mszeredi@redhat.com>
 References: <20180412150826.20988-1-mszeredi@redhat.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20180412150826.20988-1-mszeredi@redhat.com>
@@ -10,29 +10,67 @@ To: linux-unionfs@vger.kernel.org
 Cc: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 
-This reverts commit 954c736f865d6c0c68ae4263a2f3502ee7c447a3.
+This reverts commit f3fbbb079263bd29ae592478de6808db7e708267.
 
-Overlayfs no longer relies on the vfs for checking writability of files.
+Overlayfs now works correctly without adding hacks to fsnotify.
 
 Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
 ---
- fs/namespace.c | 4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ include/linux/fsnotify.h | 14 +++++---------
+ 1 file changed, 5 insertions(+), 9 deletions(-)
 
-diff --git a/fs/namespace.c b/fs/namespace.c
-index 9d1374ab6e06..9ec9bf74116b 100644
---- a/fs/namespace.c
-+++ b/fs/namespace.c
-@@ -468,9 +468,7 @@ static inline int may_write_real(struct file *file)
+diff --git a/include/linux/fsnotify.h b/include/linux/fsnotify.h
+index bdaf22582f6e..fd1ce10553bf 100644
+--- a/include/linux/fsnotify.h
++++ b/include/linux/fsnotify.h
+@@ -30,11 +30,7 @@ static inline int fsnotify_parent(const struct path *path, struct dentry *dentry
+ static inline int fsnotify_perm(struct file *file, int mask)
+ {
+ 	const struct path *path = &file->f_path;
+-	/*
+-	 * Do not use file_inode() here or anywhere in this file to get the
+-	 * inode.  That would break *notity on overlayfs.
+-	 */
+-	struct inode *inode = path->dentry->d_inode;
++	struct inode *inode = file_inode(file);
+ 	__u32 fsnotify_mask = 0;
+ 	int ret;
  
- 	/* File refers to upper, writable layer? */
- 	upperdentry = d_real(dentry, NULL, 0, D_REAL_UPPER);
--	if (upperdentry &&
--	    (file_inode(file) == d_inode(upperdentry) ||
--	     file_inode(file) == d_inode(dentry)))
-+	if (upperdentry && file_inode(file) == d_inode(upperdentry))
- 		return 0;
+@@ -178,7 +174,7 @@ static inline void fsnotify_mkdir(struct inode *inode, struct dentry *dentry)
+ static inline void fsnotify_access(struct file *file)
+ {
+ 	const struct path *path = &file->f_path;
+-	struct inode *inode = path->dentry->d_inode;
++	struct inode *inode = file_inode(file);
+ 	__u32 mask = FS_ACCESS;
  
- 	/* Lower layer: can't write to real file, sorry... */
+ 	if (S_ISDIR(inode->i_mode))
+@@ -196,7 +192,7 @@ static inline void fsnotify_access(struct file *file)
+ static inline void fsnotify_modify(struct file *file)
+ {
+ 	const struct path *path = &file->f_path;
+-	struct inode *inode = path->dentry->d_inode;
++	struct inode *inode = file_inode(file);
+ 	__u32 mask = FS_MODIFY;
+ 
+ 	if (S_ISDIR(inode->i_mode))
+@@ -214,7 +210,7 @@ static inline void fsnotify_modify(struct file *file)
+ static inline void fsnotify_open(struct file *file)
+ {
+ 	const struct path *path = &file->f_path;
+-	struct inode *inode = path->dentry->d_inode;
++	struct inode *inode = file_inode(file);
+ 	__u32 mask = FS_OPEN;
+ 
+ 	if (S_ISDIR(inode->i_mode))
+@@ -230,7 +226,7 @@ static inline void fsnotify_open(struct file *file)
+ static inline void fsnotify_close(struct file *file)
+ {
+ 	const struct path *path = &file->f_path;
+-	struct inode *inode = path->dentry->d_inode;
++	struct inode *inode = file_inode(file);
+ 	fmode_t mode = file->f_mode;
+ 	__u32 mask = (mode & FMODE_WRITE) ? FS_CLOSE_WRITE : FS_CLOSE_NOWRITE;
+ 
 -- 
 2.14.3
