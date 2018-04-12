@@ -1,7 +1,7 @@
 From: Miklos Szeredi <mszeredi@redhat.com>
-Subject: [RFC PATCH 30/35] Revert "vfs: make argument of d_real_inode() const"
-Date: Thu, 12 Apr 2018 17:08:21 +0200
-Message-ID: <20180412150826.20988-31-mszeredi@redhat.com>
+Subject: [RFC PATCH 29/35] Revert "vfs: do get_write_access() on upper layer of overlayfs"
+Date: Thu, 12 Apr 2018 17:08:20 +0200
+Message-ID: <20180412150826.20988-30-mszeredi@redhat.com>
 References: <20180412150826.20988-1-mszeredi@redhat.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20180412150826.20988-1-mszeredi@redhat.com>
@@ -10,31 +10,70 @@ To: linux-unionfs@vger.kernel.org
 Cc: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 
-This reverts commit 7b1742eb06ead6d02a6cf3c44587088e5392d1aa.
+This reverts commit 4d0c5ba2ff79ef9f5188998b29fd28fcb05f3667.
 
-No user of d_real_inode() remains, so it can be removed.
+We now get write access on both overlay and underlying layers so this patch
+is no longer needed for correct operation.
 
 Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
 ---
- include/linux/dcache.h | 5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ fs/locks.c |  3 +--
+ fs/open.c  | 15 ++-------------
+ 2 files changed, 3 insertions(+), 15 deletions(-)
 
-diff --git a/include/linux/dcache.h b/include/linux/dcache.h
-index 8ca25ea3b9db..c2dea5e78f54 100644
---- a/include/linux/dcache.h
-+++ b/include/linux/dcache.h
-@@ -593,10 +593,9 @@ static inline struct dentry *d_real(struct dentry *dentry,
-  * If dentry is on a union/overlay, then return the underlying, real inode.
-  * Otherwise return d_inode().
-  */
--static inline struct inode *d_real_inode(const struct dentry *dentry)
-+static inline struct inode *d_real_inode(struct dentry *dentry)
- {
--	/* This usage of d_real() results in const dentry */
--	return d_backing_inode(d_real((struct dentry *) dentry, NULL, 0));
-+	return d_backing_inode(d_real(dentry, NULL, 0));
- }
+diff --git a/fs/locks.c b/fs/locks.c
+index d6ff4beb70ce..8e9431a178a5 100644
+--- a/fs/locks.c
++++ b/fs/locks.c
+@@ -1654,8 +1654,7 @@ check_conflicting_open(const struct dentry *dentry, const long arg, int flags)
+ 	if (flags & FL_LAYOUT)
+ 		return 0;
  
- struct name_snapshot {
+-	if ((arg == F_RDLCK) &&
+-	    (atomic_read(&d_real_inode(dentry)->i_writecount) > 0))
++	if ((arg == F_RDLCK) && (atomic_read(&inode->i_writecount) > 0))
+ 		return -EAGAIN;
+ 
+ 	if ((arg == F_WRLCK) && ((d_count(dentry) > 1) ||
+diff --git a/fs/open.c b/fs/open.c
+index 73f3d0f35742..1b2f22d25545 100644
+--- a/fs/open.c
++++ b/fs/open.c
+@@ -68,7 +68,6 @@ int do_truncate(struct dentry *dentry, loff_t length, unsigned int time_attrs,
+ long vfs_truncate(const struct path *path, loff_t length)
+ {
+ 	struct inode *inode;
+-	struct dentry *upperdentry;
+ 	long error;
+ 
+ 	inode = path->dentry->d_inode;
+@@ -91,17 +90,7 @@ long vfs_truncate(const struct path *path, loff_t length)
+ 	if (IS_APPEND(inode))
+ 		goto mnt_drop_write_and_out;
+ 
+-	/*
+-	 * If this is an overlayfs then do as if opening the file so we get
+-	 * write access on the upper inode, not on the overlay inode.  For
+-	 * non-overlay filesystems d_real() is an identity function.
+-	 */
+-	upperdentry = d_real(path->dentry, NULL, O_WRONLY);
+-	error = PTR_ERR(upperdentry);
+-	if (IS_ERR(upperdentry))
+-		goto mnt_drop_write_and_out;
+-
+-	error = get_write_access(upperdentry->d_inode);
++	error = get_write_access(inode);
+ 	if (error)
+ 		goto mnt_drop_write_and_out;
+ 
+@@ -120,7 +109,7 @@ long vfs_truncate(const struct path *path, loff_t length)
+ 		error = do_truncate(path->dentry, length, 0, NULL);
+ 
+ put_write_and_out:
+-	put_write_access(upperdentry->d_inode);
++	put_write_access(inode);
+ mnt_drop_write_and_out:
+ 	mnt_drop_write(path->mnt);
+ out:
 -- 
 2.14.3
