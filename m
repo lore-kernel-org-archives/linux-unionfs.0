@@ -1,7 +1,7 @@
 From: Miklos Szeredi <mszeredi@redhat.com>
-Subject: [RFC PATCH 03/35] vfs: optionally don't account file in nr_files
-Date: Thu, 12 Apr 2018 17:07:54 +0200
-Message-ID: <20180412150826.20988-4-mszeredi@redhat.com>
+Subject: [RFC PATCH 01/35] vfs: clean up dedup
+Date: Thu, 12 Apr 2018 17:07:52 +0200
+Message-ID: <20180412150826.20988-2-mszeredi@redhat.com>
 References: <20180412150826.20988-1-mszeredi@redhat.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20180412150826.20988-1-mszeredi@redhat.com>
@@ -10,152 +10,158 @@ To: linux-unionfs@vger.kernel.org
 Cc: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 
-Stacking file operations in overlay will store an extra open file for each
-overlay file opened.
+Extract vfs_dedupe_file_range_one() helper to deal with a single dedup
+request.
 
-The overhead is just that of "struct file" which is about 256bytes, because
-overlay already pins an extra dentry and inode when the file is open, which
-add up to a much larger overhead.
-
-For fear of breaking working setups, don't start accounting the extra file.
-
-The implementation adds a bool argument to path_open() to control whether
-the returned file is to be accounted or not.  If the file is not accounted,
-f_mode will contain FMODE_NOACCOUNT, so that when freeing the file the
-count is not decremented.
+Export this helper to modules, so it can be used by overlayfs to stack the
+dedupe method.
 
 Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
 ---
- fs/file_table.c    | 13 +++++++++----
- fs/internal.h      |  7 ++++++-
- fs/open.c          | 10 +++++-----
- include/linux/fs.h |  5 ++++-
- 4 files changed, 24 insertions(+), 11 deletions(-)
+ fs/read_write.c    | 90 ++++++++++++++++++++++++++++++------------------------
+ include/linux/fs.h |  3 ++
+ 2 files changed, 53 insertions(+), 40 deletions(-)
 
-diff --git a/fs/file_table.c b/fs/file_table.c
-index 7ec0b3e5f05d..60376bfa04cf 100644
---- a/fs/file_table.c
-+++ b/fs/file_table.c
-@@ -51,7 +51,8 @@ static void file_free_rcu(struct rcu_head *head)
- 
- static inline void file_free(struct file *f)
- {
--	percpu_counter_dec(&nr_files);
-+	if (!(f->f_mode & FMODE_NOACCOUNT))
-+		percpu_counter_dec(&nr_files);
- 	call_rcu(&f->f_u.fu_rcuhead, file_free_rcu);
+diff --git a/fs/read_write.c b/fs/read_write.c
+index f8547b82dfb3..82aa0d32d0cd 100644
+--- a/fs/read_write.c
++++ b/fs/read_write.c
+@@ -1937,6 +1937,44 @@ int vfs_dedupe_file_range_compare(struct inode *src, loff_t srcoff,
  }
+ EXPORT_SYMBOL(vfs_dedupe_file_range_compare);
  
-@@ -100,7 +101,7 @@ int proc_nr_files(struct ctl_table *table, int write,
-  * done, you will imbalance int the mount's writer count
-  * and a warning at __fput() time.
-  */
--struct file *get_empty_filp(void)
-+struct file *__get_empty_filp(bool account)
- {
- 	const struct cred *cred = current_cred();
- 	static long old_max;
-@@ -110,7 +111,8 @@ struct file *get_empty_filp(void)
- 	/*
- 	 * Privileged users can go above max_files
- 	 */
--	if (get_nr_files() >= files_stat.max_files && !capable(CAP_SYS_ADMIN)) {
-+	if (account &&
-+	    get_nr_files() >= files_stat.max_files && !capable(CAP_SYS_ADMIN)) {
- 		/*
- 		 * percpu_counters are inaccurate.  Do an expensive check before
- 		 * we go and fail.
-@@ -123,7 +125,10 @@ struct file *get_empty_filp(void)
- 	if (unlikely(!f))
- 		return ERR_PTR(-ENOMEM);
- 
--	percpu_counter_inc(&nr_files);
-+	if (account)
-+		percpu_counter_inc(&nr_files);
-+	else
-+		f->f_mode = FMODE_NOACCOUNT;
- 	f->f_cred = get_cred(cred);
- 	error = security_file_alloc(f);
- 	if (unlikely(error)) {
-diff --git a/fs/internal.h b/fs/internal.h
-index df262f41a0ef..3319bf39e339 100644
---- a/fs/internal.h
-+++ b/fs/internal.h
-@@ -85,7 +85,12 @@ extern void chroot_fs_refs(const struct path *, const struct path *);
- /*
-  * file_table.c
-  */
--extern struct file *get_empty_filp(void);
-+extern struct file *__get_empty_filp(bool account);
-+
-+static inline struct file *get_empty_filp(void)
++ssize_t vfs_dedupe_file_range_one(struct file *src_file, u64 src_pos, u64 len,
++			      struct file *dst_file, u64 dst_pos)
 +{
-+	return __get_empty_filp(true);
++	ssize_t ret;
++
++	ret = mnt_want_write_file(dst_file);
++	if (ret)
++		return ret;
++
++	ret = clone_verify_area(dst_file, dst_pos, len, true);
++	if (ret < 0)
++		goto out_drop_write;
++
++	ret = -EINVAL;
++	if (!(capable(CAP_SYS_ADMIN) || (dst_file->f_mode & FMODE_WRITE)))
++		goto out_drop_write;
++
++	ret = -EXDEV;
++	if (src_file->f_path.mnt != dst_file->f_path.mnt)
++		goto out_drop_write;
++
++	ret = -EISDIR;
++	if (S_ISDIR(file_inode(dst_file)->i_mode))
++		goto out_drop_write;
++
++	ret = -EINVAL;
++	if (!dst_file->f_op->dedupe_file_range)
++		goto out_drop_write;
++
++	ret = dst_file->f_op->dedupe_file_range(src_file, src_pos, len,
++						dst_file, dst_pos);
++out_drop_write:
++	mnt_drop_write_file(dst_file);
++
++	return ret;
 +}
- 
- /*
-  * super.c
-diff --git a/fs/open.c b/fs/open.c
-index 8c315f9ec2f6..d509705d5740 100644
---- a/fs/open.c
-+++ b/fs/open.c
-@@ -700,8 +700,8 @@ static int do_dentry_open(struct file *f,
- 	static const struct file_operations empty_fops = {};
- 	int error;
- 
--	f->f_mode = OPEN_FMODE(f->f_flags) | FMODE_LSEEK |
--				FMODE_PREAD | FMODE_PWRITE;
-+	f->f_mode = (f->f_mode & FMODE_NOACCOUNT) | OPEN_FMODE(f->f_flags) |
-+		FMODE_LSEEK | FMODE_PREAD | FMODE_PWRITE;
- 
- 	path_get(&f->f_path);
- 	f->f_inode = inode;
-@@ -711,7 +711,7 @@ static int do_dentry_open(struct file *f,
- 	f->f_wb_err = filemap_sample_wb_err(f->f_mapping);
- 
- 	if (unlikely(f->f_flags & O_PATH)) {
--		f->f_mode = FMODE_PATH;
-+		f->f_mode = (f->f_mode & FMODE_NOACCOUNT) | FMODE_PATH;
- 		f->f_op = &empty_fops;
- 		return 0;
- 	}
-@@ -867,12 +867,12 @@ int vfs_open(const struct path *path, struct file *file,
- }
- 
- struct file *path_open(const struct path *path, int flags, struct inode *inode,
--		       const struct cred *cred)
-+		       const struct cred *cred, bool account)
++EXPORT_SYMBOL(vfs_dedupe_file_range_one);
++
+ int vfs_dedupe_file_range(struct file *file, struct file_dedupe_range *same)
  {
- 	struct file *file;
- 	int retval;
+ 	struct file_dedupe_range_info *info;
+@@ -1945,10 +1983,7 @@ int vfs_dedupe_file_range(struct file *file, struct file_dedupe_range *same)
+ 	u64 len;
+ 	int i;
+ 	int ret;
+-	bool is_admin = capable(CAP_SYS_ADMIN);
+ 	u16 count = same->dest_count;
+-	struct file *dst_file;
+-	loff_t dst_off;
+ 	ssize_t deduped;
  
--	file = get_empty_filp();
-+	file = __get_empty_filp(account);
- 	if (!IS_ERR(file)) {
- 		file->f_flags = flags;
- 		file->f_path = *path;
+ 	if (!(file->f_mode & FMODE_READ))
+@@ -1983,54 +2018,29 @@ int vfs_dedupe_file_range(struct file *file, struct file_dedupe_range *same)
+ 	}
+ 
+ 	for (i = 0, info = same->info; i < count; i++, info++) {
+-		struct inode *dst;
+ 		struct fd dst_fd = fdget(info->dest_fd);
++		struct file *dst_file = dst_fd.file;
+ 
+-		dst_file = dst_fd.file;
+ 		if (!dst_file) {
+ 			info->status = -EBADF;
+ 			goto next_loop;
+ 		}
+-		dst = file_inode(dst_file);
+-
+-		ret = mnt_want_write_file(dst_file);
+-		if (ret) {
+-			info->status = ret;
+-			goto next_loop;
+-		}
+-
+-		dst_off = info->dest_offset;
+-		ret = clone_verify_area(dst_file, dst_off, len, true);
+-		if (ret < 0) {
+-			info->status = ret;
+-			goto next_file;
+-		}
+-		ret = 0;
+ 
+ 		if (info->reserved) {
+ 			info->status = -EINVAL;
+-		} else if (!(is_admin || (dst_file->f_mode & FMODE_WRITE))) {
+-			info->status = -EINVAL;
+-		} else if (file->f_path.mnt != dst_file->f_path.mnt) {
+-			info->status = -EXDEV;
+-		} else if (S_ISDIR(dst->i_mode)) {
+-			info->status = -EISDIR;
+-		} else if (dst_file->f_op->dedupe_file_range == NULL) {
+-			info->status = -EINVAL;
+-		} else {
+-			deduped = dst_file->f_op->dedupe_file_range(file, off,
+-							len, dst_file,
+-							info->dest_offset);
+-			if (deduped == -EBADE)
+-				info->status = FILE_DEDUPE_RANGE_DIFFERS;
+-			else if (deduped < 0)
+-				info->status = deduped;
+-			else
+-				info->bytes_deduped += deduped;
++			goto next_loop;
+ 		}
+ 
+-next_file:
+-		mnt_drop_write_file(dst_file);
++		deduped = vfs_dedupe_file_range_one(file, off, len,
++						    dst_file,
++						    info->dest_offset);
++		if (deduped == -EBADE)
++			info->status = FILE_DEDUPE_RANGE_DIFFERS;
++		else if (deduped < 0)
++			info->status = deduped;
++		else
++			info->bytes_deduped += deduped;
++
+ next_loop:
+ 		fdput(dst_fd);
+ 
 diff --git a/include/linux/fs.h b/include/linux/fs.h
-index c6d7e3b00163..0b215faa30ae 100644
+index c6baf767619e..f0f87f2beb79 100644
 --- a/include/linux/fs.h
 +++ b/include/linux/fs.h
-@@ -152,6 +152,9 @@ typedef int (dio_iodone_t)(struct kiocb *iocb, loff_t offset,
- /* File is capable of returning -EAGAIN if I/O will block */
- #define FMODE_NOWAIT	((__force fmode_t)0x8000000)
+@@ -1809,6 +1809,9 @@ extern int vfs_dedupe_file_range_compare(struct inode *src, loff_t srcoff,
+ 					 loff_t len, bool *is_same);
+ extern int vfs_dedupe_file_range(struct file *file,
+ 				 struct file_dedupe_range *same);
++extern ssize_t vfs_dedupe_file_range_one(struct file *src_file, u64 src_pos,
++					 u64 len, struct file *dst_file,
++					 u64 dst_pos);
  
-+/* File does not contribute to nr_files count */
-+#define FMODE_NOACCOUNT	((__force fmode_t)0x10000000)
-+
- /*
-  * Flag for rw_copy_check_uvector and compat_rw_copy_check_uvector
-  * that indicates that they should check the contents of the iovec are
-@@ -2402,7 +2405,7 @@ extern struct file *file_open_root(struct dentry *, struct vfsmount *,
- 				   const char *, int, umode_t);
- extern struct file * dentry_open(const struct path *, int, const struct cred *);
- extern struct file *path_open(const struct path *, int, struct inode *,
--			      const struct cred *);
-+			      const struct cred *, bool);
- extern int filp_close(struct file *, fl_owner_t id);
- 
- extern struct filename *getname_flags(const char __user *, int, int *);
+ struct super_operations {
+    	struct inode *(*alloc_inode)(struct super_block *sb);
 -- 
 2.14.3
