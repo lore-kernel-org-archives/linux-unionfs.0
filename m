@@ -1,7 +1,7 @@
 From: Miklos Szeredi <mszeredi@redhat.com>
-Subject: [RFC PATCH 15/35] ovl: readd fallocate
-Date: Thu, 12 Apr 2018 17:08:06 +0200
-Message-ID: <20180412150826.20988-16-mszeredi@redhat.com>
+Subject: [RFC PATCH 14/35] ovl: readd mmap
+Date: Thu, 12 Apr 2018 17:08:05 +0200
+Message-ID: <20180412150826.20988-15-mszeredi@redhat.com>
 References: <20180412150826.20988-1-mszeredi@redhat.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20180412150826.20988-1-mszeredi@redhat.com>
@@ -10,24 +10,23 @@ To: linux-unionfs@vger.kernel.org
 Cc: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 
-Implement stacked fallocate.
+Implement stacked mmap.
 
 Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
 ---
- fs/overlayfs/file.c | 24 ++++++++++++++++++++++++
- 1 file changed, 24 insertions(+)
+ fs/overlayfs/file.c | 28 ++++++++++++++++++++++++++++
+ 1 file changed, 28 insertions(+)
 
 diff --git a/fs/overlayfs/file.c b/fs/overlayfs/file.c
-index f1cc2fdc62c1..05e3e2f80b89 100644
+index 4417527667ff..f1cc2fdc62c1 100644
 --- a/fs/overlayfs/file.c
 +++ b/fs/overlayfs/file.c
-@@ -268,6 +268,29 @@ static int ovl_mmap(struct file *file, struct vm_area_struct *vma)
+@@ -241,6 +241,33 @@ static int ovl_fsync(struct file *file, loff_t start, loff_t end, int datasync)
  	return ret;
  }
  
-+long ovl_fallocate(struct file *file, int mode, loff_t offset, loff_t len)
++static int ovl_mmap(struct file *file, struct vm_area_struct *vma)
 +{
-+	struct inode *inode = file_inode(file);
 +	struct fd real;
 +	const struct cred *old_cred;
 +	int ret;
@@ -36,14 +35,19 @@ index f1cc2fdc62c1..05e3e2f80b89 100644
 +	if (ret)
 +		return ret;
 +
++	/* transfer ref: */
++	fput(vma->vm_file);
++	vma->vm_file = get_file(real.file);
++	fdput(real);
++
++	if (!vma->vm_file->f_op->mmap)
++		return -ENODEV;
++
 +	old_cred = ovl_override_creds(file_inode(file)->i_sb);
-+	ret = vfs_fallocate(real.file, mode, offset, len);
++	ret = call_mmap(vma->vm_file, vma);
 +	revert_creds(old_cred);
 +
-+	/* Update size */
-+	ovl_copyattr(ovl_inode_real(inode), inode);
-+
-+	fdput(real);
++	ovl_file_accessed(file);
 +
 +	return ret;
 +}
@@ -51,11 +55,11 @@ index f1cc2fdc62c1..05e3e2f80b89 100644
  const struct file_operations ovl_file_operations = {
  	.open		= ovl_open,
  	.release	= ovl_release,
-@@ -276,4 +299,5 @@ const struct file_operations ovl_file_operations = {
+@@ -248,4 +275,5 @@ const struct file_operations ovl_file_operations = {
+ 	.read_iter	= ovl_read_iter,
  	.write_iter	= ovl_write_iter,
  	.fsync		= ovl_fsync,
- 	.mmap		= ovl_mmap,
-+	.fallocate	= ovl_fallocate,
++	.mmap		= ovl_mmap,
  };
 -- 
 2.14.3
