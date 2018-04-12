@@ -1,7 +1,7 @@
 From: Miklos Szeredi <mszeredi@redhat.com>
-Subject: [RFC PATCH 17/35] ovl: readd fiemap
-Date: Thu, 12 Apr 2018 17:08:08 +0200
-Message-ID: <20180412150826.20988-18-mszeredi@redhat.com>
+Subject: [RFC PATCH 26/35] Revert "ovl: fix may_write_real() for overlayfs directories"
+Date: Thu, 12 Apr 2018 17:08:17 +0200
+Message-ID: <20180412150826.20988-27-mszeredi@redhat.com>
 References: <20180412150826.20988-1-mszeredi@redhat.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20180412150826.20988-1-mszeredi@redhat.com>
@@ -10,76 +10,29 @@ To: linux-unionfs@vger.kernel.org
 Cc: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 
-Implement stacked fiemap().
+This reverts commit 954c736f865d6c0c68ae4263a2f3502ee7c447a3.
 
-Need to split inode operations for regular file (which has fiemap) and
-special file (which doesn't have fiemap).
+Overlayfs no longer relies on the vfs for checking writability of files.
 
 Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
 ---
- fs/overlayfs/inode.c | 29 ++++++++++++++++++++++++++++-
- 1 file changed, 28 insertions(+), 1 deletion(-)
+ fs/namespace.c | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
-index 3b996639e1ad..b723327501f7 100644
---- a/fs/overlayfs/inode.c
-+++ b/fs/overlayfs/inode.c
-@@ -455,6 +455,23 @@ int ovl_update_time(struct inode *inode, struct timespec *ts, int flags)
- 	return 0;
- }
+diff --git a/fs/namespace.c b/fs/namespace.c
+index 9d1374ab6e06..9ec9bf74116b 100644
+--- a/fs/namespace.c
++++ b/fs/namespace.c
+@@ -468,9 +468,7 @@ static inline int may_write_real(struct file *file)
  
-+static int ovl_fiemap(struct inode *inode, struct fiemap_extent_info *fieinfo,
-+		      u64 start, u64 len)
-+{
-+	int err;
-+	struct inode *realinode = ovl_inode_real(inode);
-+	const struct cred *old_cred;
-+
-+	if (!realinode->i_op->fiemap)
-+		return -EOPNOTSUPP;
-+
-+	old_cred = ovl_override_creds(inode->i_sb);
-+	err = realinode->i_op->fiemap(realinode, fieinfo, start, len);
-+	revert_creds(old_cred);
-+
-+	return err;
-+}
-+
- static const struct inode_operations ovl_file_inode_operations = {
- 	.setattr	= ovl_setattr,
- 	.permission	= ovl_permission,
-@@ -462,6 +479,7 @@ static const struct inode_operations ovl_file_inode_operations = {
- 	.listxattr	= ovl_listxattr,
- 	.get_acl	= ovl_get_acl,
- 	.update_time	= ovl_update_time,
-+	.fiemap		= ovl_fiemap,
- };
+ 	/* File refers to upper, writable layer? */
+ 	upperdentry = d_real(dentry, NULL, 0, D_REAL_UPPER);
+-	if (upperdentry &&
+-	    (file_inode(file) == d_inode(upperdentry) ||
+-	     file_inode(file) == d_inode(dentry)))
++	if (upperdentry && file_inode(file) == d_inode(upperdentry))
+ 		return 0;
  
- static const struct inode_operations ovl_symlink_inode_operations = {
-@@ -472,6 +490,15 @@ static const struct inode_operations ovl_symlink_inode_operations = {
- 	.update_time	= ovl_update_time,
- };
- 
-+static const struct inode_operations ovl_special_inode_operations = {
-+	.setattr	= ovl_setattr,
-+	.permission	= ovl_permission,
-+	.getattr	= ovl_getattr,
-+	.listxattr	= ovl_listxattr,
-+	.get_acl	= ovl_get_acl,
-+	.update_time	= ovl_update_time,
-+};
-+
- /*
-  * It is possible to stack overlayfs instance on top of another
-  * overlayfs instance as lower layer. We need to annonate the
-@@ -555,7 +582,7 @@ static void ovl_fill_inode(struct inode *inode, umode_t mode, dev_t rdev,
- 		break;
- 
- 	default:
--		inode->i_op = &ovl_file_inode_operations;
-+		inode->i_op = &ovl_special_inode_operations;
- 		init_special_inode(inode, mode, rdev);
- 		break;
- 	}
+ 	/* Lower layer: can't write to real file, sorry... */
 -- 
 2.14.3
