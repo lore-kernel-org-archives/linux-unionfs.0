@@ -1,7 +1,7 @@
 From: Miklos Szeredi <mszeredi@redhat.com>
-Subject: [RFC PATCH 04/35] ovl: copy up times
-Date: Thu, 12 Apr 2018 17:07:55 +0200
-Message-ID: <20180412150826.20988-5-mszeredi@redhat.com>
+Subject: [RFC PATCH 03/35] vfs: optionally don't account file in nr_files
+Date: Thu, 12 Apr 2018 17:07:54 +0200
+Message-ID: <20180412150826.20988-4-mszeredi@redhat.com>
 References: <20180412150826.20988-1-mszeredi@redhat.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20180412150826.20988-1-mszeredi@redhat.com>
@@ -10,107 +10,152 @@ To: linux-unionfs@vger.kernel.org
 Cc: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 
-Copy up mtime and ctime to overlay inode after times in real object are
-modified.  Be careful not to dirty cachelines when not necessary.
+Stacking file operations in overlay will store an extra open file for each
+overlay file opened.
 
-This is in preparation for moving overlay functionality out of the VFS.
+The overhead is just that of "struct file" which is about 256bytes, because
+overlay already pins an extra dentry and inode when the file is open, which
+add up to a much larger overhead.
 
-This patch shouldn't have any observable effect.
+For fear of breaking working setups, don't start accounting the extra file.
+
+The implementation adds a bool argument to path_open() to control whether
+the returned file is to be accounted or not.  If the file is not accounted,
+f_mode will contain FMODE_NOACCOUNT, so that when freeing the file the
+count is not decremented.
 
 Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
 ---
- fs/overlayfs/dir.c       |  5 +++++
- fs/overlayfs/inode.c     |  1 +
- fs/overlayfs/overlayfs.h |  7 +++++++
- fs/overlayfs/util.c      | 19 +++++++++++++++++++
- 4 files changed, 32 insertions(+)
+ fs/file_table.c    | 13 +++++++++----
+ fs/internal.h      |  7 ++++++-
+ fs/open.c          | 10 +++++-----
+ include/linux/fs.h |  5 ++++-
+ 4 files changed, 24 insertions(+), 11 deletions(-)
 
-diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
-index 839709c7803a..cd0fa2363723 100644
---- a/fs/overlayfs/dir.c
-+++ b/fs/overlayfs/dir.c
-@@ -507,6 +507,7 @@ static int ovl_create_or_link(struct dentry *dentry, struct inode *inode,
- 		else
- 			err = ovl_create_over_whiteout(dentry, inode, attr,
- 							hardlink);
-+		ovl_copytimes_with_parent(dentry);
- 	}
- out_revert_creds:
- 	revert_creds(old_cred);
-@@ -768,6 +769,7 @@ static int ovl_do_remove(struct dentry *dentry, bool is_dir)
- 			drop_nlink(dentry->d_inode);
- 	}
- 	ovl_nlink_end(dentry, locked);
-+	ovl_copytimes_with_parent(dentry);
- out_drop_write:
- 	ovl_drop_write(dentry);
- out:
-@@ -1079,6 +1081,9 @@ static int ovl_rename(struct inode *olddir, struct dentry *old,
- 	ovl_dentry_version_inc(new->d_parent, ovl_type_origin(old) ||
- 			       (d_inode(new) && ovl_type_origin(new)));
+diff --git a/fs/file_table.c b/fs/file_table.c
+index 7ec0b3e5f05d..60376bfa04cf 100644
+--- a/fs/file_table.c
++++ b/fs/file_table.c
+@@ -51,7 +51,8 @@ static void file_free_rcu(struct rcu_head *head)
  
-+	ovl_copytimes_with_parent(old);
-+	ovl_copytimes_with_parent(new);
-+
- out_dput:
- 	dput(newdentry);
- out_dput_old:
-diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
-index 6e3815fb006b..33635106c5f7 100644
---- a/fs/overlayfs/inode.c
-+++ b/fs/overlayfs/inode.c
-@@ -303,6 +303,7 @@ int ovl_xattr_set(struct dentry *dentry, struct inode *inode, const char *name,
- 		err = vfs_removexattr(realdentry, name);
- 	}
- 	revert_creds(old_cred);
-+	ovl_copytimes(d_inode(dentry));
- 
- out_drop_write:
- 	ovl_drop_write(dentry);
-diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-index e0b7de799f6b..eef720ef0f07 100644
---- a/fs/overlayfs/overlayfs.h
-+++ b/fs/overlayfs/overlayfs.h
-@@ -258,6 +258,13 @@ bool ovl_need_index(struct dentry *dentry);
- int ovl_nlink_start(struct dentry *dentry, bool *locked);
- void ovl_nlink_end(struct dentry *dentry, bool locked);
- int ovl_lock_rename_workdir(struct dentry *workdir, struct dentry *upperdir);
-+void ovl_copytimes(struct inode *inode);
-+
-+static inline void ovl_copytimes_with_parent(struct dentry *dentry)
-+{
-+	ovl_copytimes(d_inode(dentry));
-+	ovl_copytimes(d_inode(dentry->d_parent));
-+}
- 
- static inline bool ovl_is_impuredir(struct dentry *dentry)
+ static inline void file_free(struct file *f)
  {
-diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
-index 6f1078028c66..11e62e70733a 100644
---- a/fs/overlayfs/util.c
-+++ b/fs/overlayfs/util.c
-@@ -675,3 +675,22 @@ int ovl_lock_rename_workdir(struct dentry *workdir, struct dentry *upperdir)
- 	pr_err("overlayfs: failed to lock workdir+upperdir\n");
- 	return -EIO;
+-	percpu_counter_dec(&nr_files);
++	if (!(f->f_mode & FMODE_NOACCOUNT))
++		percpu_counter_dec(&nr_files);
+ 	call_rcu(&f->f_u.fu_rcuhead, file_free_rcu);
  }
+ 
+@@ -100,7 +101,7 @@ int proc_nr_files(struct ctl_table *table, int write,
+  * done, you will imbalance int the mount's writer count
+  * and a warning at __fput() time.
+  */
+-struct file *get_empty_filp(void)
++struct file *__get_empty_filp(bool account)
+ {
+ 	const struct cred *cred = current_cred();
+ 	static long old_max;
+@@ -110,7 +111,8 @@ struct file *get_empty_filp(void)
+ 	/*
+ 	 * Privileged users can go above max_files
+ 	 */
+-	if (get_nr_files() >= files_stat.max_files && !capable(CAP_SYS_ADMIN)) {
++	if (account &&
++	    get_nr_files() >= files_stat.max_files && !capable(CAP_SYS_ADMIN)) {
+ 		/*
+ 		 * percpu_counters are inaccurate.  Do an expensive check before
+ 		 * we go and fail.
+@@ -123,7 +125,10 @@ struct file *get_empty_filp(void)
+ 	if (unlikely(!f))
+ 		return ERR_PTR(-ENOMEM);
+ 
+-	percpu_counter_inc(&nr_files);
++	if (account)
++		percpu_counter_inc(&nr_files);
++	else
++		f->f_mode = FMODE_NOACCOUNT;
+ 	f->f_cred = get_cred(cred);
+ 	error = security_file_alloc(f);
+ 	if (unlikely(error)) {
+diff --git a/fs/internal.h b/fs/internal.h
+index df262f41a0ef..3319bf39e339 100644
+--- a/fs/internal.h
++++ b/fs/internal.h
+@@ -85,7 +85,12 @@ extern void chroot_fs_refs(const struct path *, const struct path *);
+ /*
+  * file_table.c
+  */
+-extern struct file *get_empty_filp(void);
++extern struct file *__get_empty_filp(bool account);
 +
-+void ovl_copytimes(struct inode *inode)
++static inline struct file *get_empty_filp(void)
 +{
-+	struct inode *upperinode;
-+
-+	if (!inode)
-+		return;
-+
-+	upperinode = ovl_inode_upper(inode);
-+
-+	if (!upperinode)
-+		return;
-+
-+	if ((!timespec_equal(&inode->i_mtime, &upperinode->i_mtime) ||
-+	     !timespec_equal(&inode->i_ctime, &upperinode->i_ctime))) {
-+		inode->i_mtime = upperinode->i_mtime;
-+		inode->i_ctime = upperinode->i_ctime;
-+	}
++	return __get_empty_filp(true);
 +}
+ 
+ /*
+  * super.c
+diff --git a/fs/open.c b/fs/open.c
+index 8c315f9ec2f6..d509705d5740 100644
+--- a/fs/open.c
++++ b/fs/open.c
+@@ -700,8 +700,8 @@ static int do_dentry_open(struct file *f,
+ 	static const struct file_operations empty_fops = {};
+ 	int error;
+ 
+-	f->f_mode = OPEN_FMODE(f->f_flags) | FMODE_LSEEK |
+-				FMODE_PREAD | FMODE_PWRITE;
++	f->f_mode = (f->f_mode & FMODE_NOACCOUNT) | OPEN_FMODE(f->f_flags) |
++		FMODE_LSEEK | FMODE_PREAD | FMODE_PWRITE;
+ 
+ 	path_get(&f->f_path);
+ 	f->f_inode = inode;
+@@ -711,7 +711,7 @@ static int do_dentry_open(struct file *f,
+ 	f->f_wb_err = filemap_sample_wb_err(f->f_mapping);
+ 
+ 	if (unlikely(f->f_flags & O_PATH)) {
+-		f->f_mode = FMODE_PATH;
++		f->f_mode = (f->f_mode & FMODE_NOACCOUNT) | FMODE_PATH;
+ 		f->f_op = &empty_fops;
+ 		return 0;
+ 	}
+@@ -867,12 +867,12 @@ int vfs_open(const struct path *path, struct file *file,
+ }
+ 
+ struct file *path_open(const struct path *path, int flags, struct inode *inode,
+-		       const struct cred *cred)
++		       const struct cred *cred, bool account)
+ {
+ 	struct file *file;
+ 	int retval;
+ 
+-	file = get_empty_filp();
++	file = __get_empty_filp(account);
+ 	if (!IS_ERR(file)) {
+ 		file->f_flags = flags;
+ 		file->f_path = *path;
+diff --git a/include/linux/fs.h b/include/linux/fs.h
+index c6d7e3b00163..0b215faa30ae 100644
+--- a/include/linux/fs.h
++++ b/include/linux/fs.h
+@@ -152,6 +152,9 @@ typedef int (dio_iodone_t)(struct kiocb *iocb, loff_t offset,
+ /* File is capable of returning -EAGAIN if I/O will block */
+ #define FMODE_NOWAIT	((__force fmode_t)0x8000000)
+ 
++/* File does not contribute to nr_files count */
++#define FMODE_NOACCOUNT	((__force fmode_t)0x10000000)
++
+ /*
+  * Flag for rw_copy_check_uvector and compat_rw_copy_check_uvector
+  * that indicates that they should check the contents of the iovec are
+@@ -2402,7 +2405,7 @@ extern struct file *file_open_root(struct dentry *, struct vfsmount *,
+ 				   const char *, int, umode_t);
+ extern struct file * dentry_open(const struct path *, int, const struct cred *);
+ extern struct file *path_open(const struct path *, int, struct inode *,
+-			      const struct cred *);
++			      const struct cred *, bool);
+ extern int filp_close(struct file *, fl_owner_t id);
+ 
+ extern struct filename *getname_flags(const char __user *, int, int *);
 -- 
 2.14.3
