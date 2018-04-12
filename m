@@ -1,7 +1,7 @@
 From: Miklos Szeredi <mszeredi@redhat.com>
-Subject: [RFC PATCH 05/35] ovl: copy up inode flags
-Date: Thu, 12 Apr 2018 17:07:56 +0200
-Message-ID: <20180412150826.20988-6-mszeredi@redhat.com>
+Subject: [RFC PATCH 10/35] ovl: add helper to return real file
+Date: Thu, 12 Apr 2018 17:08:01 +0200
+Message-ID: <20180412150826.20988-11-mszeredi@redhat.com>
 References: <20180412150826.20988-1-mszeredi@redhat.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20180412150826.20988-1-mszeredi@redhat.com>
@@ -10,46 +10,93 @@ To: linux-unionfs@vger.kernel.org
 Cc: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 
-On inode creation copy certain inode flags from the underlying real inode
-to the overlay inode.
+In the common case we can just use the real file cached in
+file->private_data.  There are two exceptions:
 
-This is in preparation for moving overlay functionality out of the VFS.
+1) File has been copied up since open: in this unlikely corner case just
+use a throwaway real file for the operation.  If ever this becomes a
+perfomance problem (very unlikely, since overlayfs has been doing most fine
+without correctly handling this case at all), then we can deal with that by
+updating the cached real file.
+
+2) File's f_flags have changed since open: no need to reopen the cached
+real file, we can just change the flags there as well.
 
 Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
 ---
- fs/overlayfs/overlayfs.h | 7 +++++++
- fs/overlayfs/util.c      | 1 +
- 2 files changed, 8 insertions(+)
+ fs/overlayfs/file.c | 60 +++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 60 insertions(+)
 
-diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-index eef720ef0f07..265cb288417a 100644
---- a/fs/overlayfs/overlayfs.h
-+++ b/fs/overlayfs/overlayfs.h
-@@ -357,6 +357,13 @@ static inline void ovl_copyattr(struct inode *from, struct inode *to)
- 	to->i_ctime = from->i_ctime;
+diff --git a/fs/overlayfs/file.c b/fs/overlayfs/file.c
+index a0b606885c41..409b542ff30c 100644
+--- a/fs/overlayfs/file.c
++++ b/fs/overlayfs/file.c
+@@ -31,6 +31,66 @@ static struct file *ovl_open_realfile(const struct file *file)
+ 	return realfile;
  }
  
-+static inline void ovl_copyflags(struct inode *from, struct inode *to)
-+{
-+	unsigned int mask = S_SYNC | S_IMMUTABLE | S_APPEND | S_NOATIME;
++#define OVL_SETFL_MASK (O_APPEND | O_NONBLOCK | O_NDELAY | O_DIRECT)
 +
-+	inode_set_flags(to, from->i_flags & mask, mask);
++static int ovl_change_flags(struct file *file, unsigned int flags)
++{
++	struct inode *inode = file_inode(file);
++	int err;
++
++	/* No atime modificaton on underlying */
++	flags |= O_NOATIME;
++
++	/* If some flag changed that cannot be changed then something's amiss */
++	if (WARN_ON((file->f_flags ^ flags) & ~OVL_SETFL_MASK))
++		return -EIO;
++
++	flags &= OVL_SETFL_MASK;
++
++	if (((flags ^ file->f_flags) & O_APPEND) && IS_APPEND(inode))
++		return -EPERM;
++
++	if (flags & O_DIRECT) {
++		if (!file->f_mapping->a_ops ||
++		    !file->f_mapping->a_ops->direct_IO)
++			return -EINVAL;
++	}
++
++	if (file->f_op->check_flags) {
++		err = file->f_op->check_flags(flags);
++		if (err)
++			return err;
++	}
++
++	spin_lock(&file->f_lock);
++	file->f_flags = (file->f_flags & ~OVL_SETFL_MASK) | flags;
++	spin_unlock(&file->f_lock);
++
++	return 0;
 +}
 +
- /* dir.c */
- extern const struct inode_operations ovl_dir_inode_operations;
- struct dentry *ovl_lookup_temp(struct dentry *workdir);
-diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
-index 11e62e70733a..586f8d7440bb 100644
---- a/fs/overlayfs/util.c
-+++ b/fs/overlayfs/util.c
-@@ -310,6 +310,7 @@ void ovl_inode_init(struct inode *inode, struct dentry *upperdentry,
- 		OVL_I(inode)->lower = igrab(d_inode(lowerdentry));
- 
- 	ovl_copyattr(realinode, inode);
-+	ovl_copyflags(realinode, inode);
- 	if (!inode->i_ino)
- 		inode->i_ino = realinode->i_ino;
- }
++static int ovl_real_file(const struct file *file, struct fd *real)
++{
++	struct inode *inode = file_inode(file);
++
++	real->flags = 0;
++	real->file = file->private_data;
++
++	/* Has it been copied up since we'd opened it? */
++	if (unlikely(file_inode(real->file) != ovl_inode_real(inode))) {
++		real->flags = FDPUT_FPUT;
++		real->file = ovl_open_realfile(file);
++
++		return PTR_ERR_OR_ZERO(real->file);
++	}
++
++	/* Did the flags change since open? */
++	if (unlikely((file->f_flags ^ real->file->f_flags) & ~O_NOATIME))
++		return ovl_change_flags(real->file, file->f_flags);
++
++	return 0;
++}
++
+ static int ovl_open(struct inode *inode, struct file *file)
+ {
+ 	struct dentry *dentry = file_dentry(file);
 -- 
 2.14.3
