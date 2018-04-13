@@ -1,101 +1,89 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [RFC PATCH 11/35] ovl: readd read_iter
-Date: Fri, 13 Apr 2018 16:35:21 +0300
-Message-ID: <CAOQ4uxgzVxjtKZomyxy27uEeZ7mpLNXV71NpQoi51NjP4gtyig@mail.gmail.com>
-References: <20180412150826.20988-1-mszeredi@redhat.com> <20180412150826.20988-12-mszeredi@redhat.com>
+Subject: Re: [RFC PATCH 24/35] Revert "ovl: fix relatime for directories"
+Date: Fri, 13 Apr 2018 17:02:00 +0300
+Message-ID: <CAOQ4uxikOObrKptxGUFWkkko0LcaidYpVbDcVJJA3cFF8fwMAA@mail.gmail.com>
+References: <20180412150826.20988-1-mszeredi@redhat.com> <20180412150826.20988-25-mszeredi@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180412150826.20988-12-mszeredi@redhat.com>
+In-Reply-To: <20180412150826.20988-25-mszeredi@redhat.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Miklos Szeredi <mszeredi@redhat.com>
 Cc: overlayfs <linux-unionfs@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>
 List-Id: linux-unionfs@vger.kernel.org
 
 On Thu, Apr 12, 2018 at 6:08 PM, Miklos Szeredi <mszeredi@redhat.com> wrote:
-> Implement stacked reading.
+> This reverts commit cd91304e7190b4c4802f8e413ab2214b233e0260.
 >
-
-I couldn't decipher the meaning of "readd" in the subject of this
-and other file ops pacthes??
-
+> Overlayfs no longer relies on the vfs correct atime handling.
+>
 > Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
 > ---
->  fs/overlayfs/file.c | 56 +++++++++++++++++++++++++++++++++++++++++++++++++++++
->  1 file changed, 56 insertions(+)
+>  fs/inode.c             | 21 ++++-----------------
+>  fs/overlayfs/super.c   |  3 ---
+>  include/linux/dcache.h |  3 ---
+>  3 files changed, 4 insertions(+), 23 deletions(-)
 >
-> diff --git a/fs/overlayfs/file.c b/fs/overlayfs/file.c
-> index 409b542ff30c..a19429c5965d 100644
-> --- a/fs/overlayfs/file.c
-> +++ b/fs/overlayfs/file.c
-> @@ -9,6 +9,7 @@
->  #include <linux/cred.h>
->  #include <linux/file.h>
->  #include <linux/xattr.h>
-> +#include <linux/uio.h>
->  #include "overlayfs.h"
+> diff --git a/fs/inode.c b/fs/inode.c
+> index ef362364d396..163715de8cb2 100644
+> --- a/fs/inode.c
+> +++ b/fs/inode.c
+> @@ -1570,24 +1570,11 @@ EXPORT_SYMBOL(bmap);
+>  static void update_ovl_inode_times(struct dentry *dentry, struct inode *inode,
+>                                bool rcu)
+>  {
+> -       struct dentry *upperdentry;
+> +       if (!rcu) {
+> +               struct inode *realinode = d_real_inode(dentry);
 >
->  static struct file *ovl_open_realfile(const struct file *file)
-> @@ -129,8 +130,63 @@ static loff_t ovl_llseek(struct file *file, loff_t offset, int whence)
->                                         i_size_read(realinode));
+> -       /*
+> -        * Nothing to do if in rcu or if non-overlayfs
+> -        */
+> -       if (rcu || likely(!(dentry->d_flags & DCACHE_OP_REAL)))
+> -               return;
+> -
+> -       upperdentry = d_real(dentry, NULL, 0, D_REAL_UPPER);
+> -
+> -       /*
+> -        * If file is on lower then we can't update atime, so no worries about
+> -        * stale mtime/ctime.
+> -        */
+> -       if (upperdentry) {
+> -               struct inode *realinode = d_inode(upperdentry);
+> -
+> -               if ((!timespec_equal(&inode->i_mtime, &realinode->i_mtime) ||
+> +               if (unlikely(inode != realinode) &&
+> +                   (!timespec_equal(&inode->i_mtime, &realinode->i_mtime) ||
+>                      !timespec_equal(&inode->i_ctime, &realinode->i_ctime))) {
+>                         inode->i_mtime = realinode->i_mtime;
+>                         inode->i_ctime = realinode->i_ctime;
+> diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+> index c3d8c7ea180f..006dc70d7425 100644
+> --- a/fs/overlayfs/super.c
+> +++ b/fs/overlayfs/super.c
+> @@ -107,9 +107,6 @@ static struct dentry *ovl_d_real(struct dentry *dentry,
+>         if (inode && d_inode(dentry) == inode)
+>                 return dentry;
+>
+> -       if (flags & D_REAL_UPPER)
+> -               return ovl_dentry_upper(dentry);
+> -
+>         if (!d_is_reg(dentry)) {
+>                 if (!inode || inode == d_inode(dentry))
+>                         return dentry;
+> diff --git a/include/linux/dcache.h b/include/linux/dcache.h
+> index 82a99d366aec..4c7ab11c627a 100644
+> --- a/include/linux/dcache.h
+> +++ b/include/linux/dcache.h
+> @@ -565,9 +565,6 @@ static inline struct dentry *d_backing_dentry(struct dentry *upper)
+>         return upper;
 >  }
 >
-> +static void ovl_file_accessed(struct file *file)
-> +{
-> +       struct inode *inode = file_inode(file);
-> +
-> +       if ((file->f_flags & O_NOATIME) || !ovl_inode_upper(inode))
-> +               return;
-> +
-> +       ovl_copytimes(inode);
-> +       touch_atime(&file->f_path);
-> +}
-> +
-> +static rwf_t ovl_iocb_to_rwf(struct kiocb *iocb)
-> +{
-> +       int ifl = iocb->ki_flags;
-> +       rwf_t flags = 0;
-> +
-> +       if (ifl & IOCB_NOWAIT)
-> +               flags |= RWF_NOWAIT;
-> +       if (ifl & IOCB_HIPRI)
-> +               flags |= RWF_HIPRI;
-> +       if (ifl & IOCB_DSYNC)
-> +               flags |= RWF_DSYNC;
-> +       if (ifl & IOCB_SYNC)
-> +               flags |= RWF_SYNC;
-> +
-> +       return flags;
-> +}
-> +
-> +static ssize_t ovl_read_iter(struct kiocb *iocb, struct iov_iter *iter)
-> +{
-> +       struct file *file = iocb->ki_filp;
-> +       struct fd real;
-> +       const struct cred *old_cred;
-> +       ssize_t ret;
-> +
-> +       if (!iov_iter_count(iter))
-> +               return 0;
-> +
-> +       ret = ovl_real_file(file, &real);
-> +       if (ret)
-> +               return ret;
-> +
-> +       old_cred = ovl_override_creds(file_inode(file)->i_sb);
-> +       ret = vfs_iter_read(real.file, iter, &iocb->ki_pos,
-> +                           ovl_iocb_to_rwf(iocb));
-> +       revert_creds(old_cred);
-> +
-> +       ovl_file_accessed(file);
-> +
-> +       fdput(real);
+> -/* d_real() flags */
+> -#define D_REAL_UPPER   0x2     /* return upper dentry or NULL if non-upper */
+> -
 
-I find it confusing that the name of ovl_real_file() does not suggest it
-may take a reference, so this  fdput() looks unbalanced.
-
-All other ovl_XXX_{real,upper,lower} helpers do not take a reference.
-Perhaps something along the lines of ovl_file_real_fdget().
+Premature removal of constant. Still in use by may_write_real() at this point.
 
 Thanks,
 Amir.
