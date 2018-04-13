@@ -1,30 +1,82 @@
-Return-Path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.17.22]:48075 "EHLO mout.gmx.net"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752212AbeDJB3Y (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 9 Apr 2018 21:29:24 -0400
-Received: from [172.17.46.226] ([122.224.77.194]) by mail.gmx.com (mrgmx103
- [212.227.17.174]) with ESMTPSA (Nemesis) id 0LjquD-1eUjWN2seH-00brzV for
- <linux-unionfs@vger.kernel.org>; Tue, 10 Apr 2018 03:29:23 +0200
-From: "cgxu519@gmx.com" <cgxu519@gmx.com>
-Content-Type: text/plain;
-        charset=gb2312
-Content-Transfer-Encoding: 8BIT
-Mime-Version: 1.0 (Mac OS X Mail 11.3 \(3445.6.18\))
-Subject: question of copying stack in ovl_lookup()
-Message-Id: <779D1CE1-7805-4026-BC7D-3773D5E37B34@gmx.com>
-Date: Tue, 10 Apr 2018 09:29:19 +0800
-Sender: linux-unionfs-owner@vger.kernel.org
-To: overlayfs <linux-unionfs@vger.kernel.org>
+Return-Path: <cgxu519@gmx.com>
+From: Chengguang Xu <cgxu519@gmx.com>
+Subject: [PATCH v4 2/3] ovl: move the code of ovl_remount() to behind ovl_parse_opt()
+Date: Fri, 13 Apr 2018 20:39:15 +0800
+Message-Id: <1523623156-6035-3-git-send-email-cgxu519@gmx.com>
+In-Reply-To: <1523623156-6035-1-git-send-email-cgxu519@gmx.com>
+References: <1523623156-6035-1-git-send-email-cgxu519@gmx.com>
+To: linux-unionfs@vger.kernel.org
+Cc: miklos@szeredi.hu, amir73il@gmail.com, Chengguang Xu <cgxu519@gmx.com>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-Hi guys,
+Move the code of ovl_remount() around without any functional change,
+so that ovl_remount() can call ovl_parse_opt() without explicit
+statement.
 
-I��m a little curious for below code in ovl_lookup, is there any background for
-copy stack instead of directly using it?
+Signed-off-by: Chengguang Xu <cgxu519@gmx.com>
+---
+ fs/overlayfs/super.c | 42 +++++++++++++++++++++---------------------
+ 1 file changed, 21 insertions(+), 21 deletions(-)
 
-memcpy(oe->lowerstack, stack, sizeof(struct ovl_path) * ctr);
-
-
-Thanks,
-Chengguang.
+diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+index e99864e..0293635a 100644
+--- a/fs/overlayfs/super.c
++++ b/fs/overlayfs/super.c
+@@ -379,27 +379,6 @@ static int ovl_show_options(struct seq_file *m, struct dentry *dentry)
+ 	return 0;
+ }
+ 
+-static int ovl_remount(struct super_block *sb, int *flags, char *data)
+-{
+-	struct ovl_fs *ofs = sb->s_fs_info;
+-
+-	if (!(*flags & SB_RDONLY) && ovl_force_readonly(ofs))
+-		return -EROFS;
+-
+-	return 0;
+-}
+-
+-static const struct super_operations ovl_super_operations = {
+-	.alloc_inode	= ovl_alloc_inode,
+-	.destroy_inode	= ovl_destroy_inode,
+-	.drop_inode	= generic_delete_inode,
+-	.put_super	= ovl_put_super,
+-	.sync_fs	= ovl_sync_fs,
+-	.statfs		= ovl_statfs,
+-	.show_options	= ovl_show_options,
+-	.remount_fs	= ovl_remount,
+-};
+-
+ enum {
+ 	OPT_LOWERDIR,
+ 	OPT_UPPERDIR,
+@@ -563,6 +542,27 @@ static int ovl_parse_opt(char *opt, struct ovl_config *config)
+ 	return ovl_parse_redirect_mode(config);
+ }
+ 
++static int ovl_remount(struct super_block *sb, int *flags, char *data)
++{
++	struct ovl_fs *ofs = sb->s_fs_info;
++
++	if (!(*flags & SB_RDONLY) && ovl_force_readonly(ofs))
++		return -EROFS;
++
++	return 0;
++}
++
++static const struct super_operations ovl_super_operations = {
++	.alloc_inode	= ovl_alloc_inode,
++	.destroy_inode	= ovl_destroy_inode,
++	.drop_inode	= generic_delete_inode,
++	.put_super	= ovl_put_super,
++	.sync_fs	= ovl_sync_fs,
++	.statfs		= ovl_statfs,
++	.show_options	= ovl_show_options,
++	.remount_fs	= ovl_remount,
++};
++
+ #define OVL_WORKDIR_NAME "work"
+ #define OVL_INDEXDIR_NAME "index"
+ 
+-- 
+1.8.3.1
