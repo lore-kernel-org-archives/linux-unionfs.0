@@ -1,202 +1,175 @@
-Return-Path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mx3-rdu2.redhat.com ([66.187.233.73]:40980 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1752353AbeDZTKk (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 26 Apr 2018 15:10:40 -0400
-From: Vivek Goyal <vgoyal@redhat.com>
-Subject: [PATCH v14 14/31] ovl: Store lower data inode in ovl_inode
-Date: Thu, 26 Apr 2018 15:09:56 -0400
-Message-Id: <20180426191013.13219-15-vgoyal@redhat.com>
-In-Reply-To: <20180426191013.13219-1-vgoyal@redhat.com>
-References: <20180426191013.13219-1-vgoyal@redhat.com>
-Sender: linux-unionfs-owner@vger.kernel.org
-To: linux-unionfs@vger.kernel.org
-Cc: miklos@szeredi.hu, amir73il@gmail.com, vgoyal@redhat.com
+Return-Path: <amir73il@gmail.com>
+MIME-Version: 1.0
+In-Reply-To: <1523547406-67046-2-git-send-email-cgxu519@gmx.com>
+References: <1523547406-67046-1-git-send-email-cgxu519@gmx.com> <1523547406-67046-2-git-send-email-cgxu519@gmx.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Date: Fri, 13 Apr 2018 10:10:32 +0300
+Message-ID: <CAOQ4uxgtyQUDdw6+En=_4_HjOnN3Tn70otNDqg_rKmHXUSw1Ow@mail.gmail.com>
+Subject: Re: [PATCH v3 2/2] ovl: return error when specifying unchangeable
+ options in remount
+Content-Type: text/plain; charset="UTF-8"
+To: Chengguang Xu <cgxu519@gmx.com>
+Cc: overlayfs <linux-unionfs@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-Right now ovl_inode stores inode pointer for lower inode. This helps
-with quickly getting lower inode given overlay inode (ovl_inode_lower()).
+On Thu, Apr 12, 2018 at 6:36 PM, Chengguang Xu <cgxu519@gmx.com> wrote:
+> Check remount options and return error if there is any unchangeable
+> option.
+>
+> Signed-off-by: Chengguang Xu <cgxu519@gmx.com>
+> ---
+> Changes since v2:
+> - Introduce two macro helpers to simplify remount option validation.
+>
+> Changes since v1:
+> - Refactor ovl_free_fs(), move config freeing operations to ovl_free_config()
+>
+>  fs/overlayfs/super.c | 103 ++++++++++++++++++++++++++++++++++++++-------------
+>  1 file changed, 78 insertions(+), 25 deletions(-)
+>
+> diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+> index a2a7b7a..dd9f828 100644
+> --- a/fs/overlayfs/super.c
+> +++ b/fs/overlayfs/super.c
+> @@ -230,6 +230,14 @@ static void ovl_destroy_inode(struct inode *inode)
+>         call_rcu(&inode->i_rcu, ovl_i_callback);
+>  }
+>
+> +static void ovl_free_config(struct ovl_config *config)
+> +{
+> +       kfree(config->lowerdir);
+> +       kfree(config->upperdir);
+> +       kfree(config->workdir);
+> +       kfree(config->redirect_mode);
+> +}
+> +
+>  static void ovl_free_fs(struct ovl_fs *ofs)
+>  {
+>         unsigned i;
+> @@ -249,10 +257,7 @@ static void ovl_free_fs(struct ovl_fs *ofs)
+>         kfree(ofs->lower_layers);
+>         kfree(ofs->lower_fs);
+>
+> -       kfree(ofs->config.lowerdir);
+> -       kfree(ofs->config.upperdir);
+> -       kfree(ofs->config.workdir);
+> -       kfree(ofs->config.redirect_mode);
+> +       ovl_free_config(&ofs->config);
+>         if (ofs->creator_cred)
+>                 put_cred(ofs->creator_cred);
+>         kfree(ofs);
+> @@ -379,27 +384,6 @@ static int ovl_show_options(struct seq_file *m, struct dentry *dentry)
+>         return 0;
+>  }
+>
+> -static int ovl_remount(struct super_block *sb, int *flags, char *data)
+> -{
+> -       struct ovl_fs *ofs = sb->s_fs_info;
+> -
+> -       if (!(*flags & SB_RDONLY) && ovl_force_readonly(ofs))
+> -               return -EROFS;
+> -
+> -       return 0;
+> -}
+> -
+> -static const struct super_operations ovl_super_operations = {
+> -       .alloc_inode    = ovl_alloc_inode,
+> -       .destroy_inode  = ovl_destroy_inode,
+> -       .drop_inode     = generic_delete_inode,
+> -       .put_super      = ovl_put_super,
+> -       .sync_fs        = ovl_sync_fs,
+> -       .statfs         = ovl_statfs,
+> -       .show_options   = ovl_show_options,
+> -       .remount_fs     = ovl_remount,
+> -};
+> -
 
-Now with metadata only copy-up, we can have metacopy inode in middle
-layer as well and inode containing data can be different from ->lower.
-I need to be able to open the real file in ovl_open_realfile() and
-for that I need to quickly find the lower data inode.
+It would have been better to add a patch that only moves code around
+without changing it. Makes reviewing the actual changes easier.
 
-Hence store lower data inode also in ovl_inode. Also provide an
-helper ovl_inode_lowerdata() to access this field.
+>  enum {
+>         OPT_LOWERDIR,
+>         OPT_UPPERDIR,
+> @@ -563,6 +547,75 @@ static int ovl_parse_opt(char *opt, struct ovl_config *config)
+>         return ovl_parse_redirect_mode(config, config->redirect_mode);
+>  }
+>
+> +#define ovl_option_bool_neq(new, old, x, y, z) \
+> +do { \
+> +       if (new->x != old->x) { \
+> +               pr_err("overlayfs: option %s cannot be changed on remount.\n", y); \
+> +               goto z; \
+> +       } \
+> +} while (0)
+> +
+> +#define ovl_option_string_neq(new, old, x, y, z) \
+> +do { \
+> +       if (new->x && (!old->x || strcmp(new->x, old->x))) { \
+> +               pr_err("overlayfs: option %s cannot be changed on remount.\n", y); \
+> +               goto z; \
+> +       } \
+> +} while (0)
+> +
+> +static int ovl_remount(struct super_block *sb, int *flags, char *data)
+> +{
+> +       struct ovl_fs *ofs = sb->s_fs_info;
+> +       struct ovl_config *old_config = &ofs->config;
+> +       struct ovl_config *new_config;
+> +       int err;
+> +
+> +       if (!(*flags & SB_RDONLY) && ovl_force_readonly(ofs))
+> +               return -EROFS;
+> +
+> +       new_config = kzalloc(sizeof(struct ovl_config), GFP_KERNEL);
+> +       if (!new_config)
+> +               return -ENOMEM;
+> +
+> +       new_config->index = old_config->index;
+> +       new_config->nfs_export = old_config->nfs_export;
+> +
+> +       err = ovl_parse_opt((char *)data, new_config);
+> +       if (err)
+> +               goto out_err;
+> +
+> +       err = -EINVAL;
+> +       ovl_option_bool_neq(new_config, old_config, index,
+> +                                               "index", out_err);
+> +       ovl_option_bool_neq(new_config, old_config, nfs_export,
+> +                                               "nfs_export", out_err);
+> +       ovl_option_string_neq(new_config, old_config, lowerdir,
+> +                                               "lowerdir", out_err);
+> +       ovl_option_string_neq(new_config, old_config, upperdir,
+> +                                               "upperdir", out_err);
+> +       ovl_option_string_neq(new_config, old_config, workdir,
+> +                                               "workdir", out_err);
+> +       ovl_option_string_neq(new_config, old_config, redirect_mode,
+> +                                               "redirect_mode", out_err);
+> +       return 0;
+> +
 
-Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
----
- fs/overlayfs/export.c    |  3 ++-
- fs/overlayfs/inode.c     |  5 +++--
- fs/overlayfs/namei.c     |  5 ++++-
- fs/overlayfs/overlayfs.h |  6 ++++--
- fs/overlayfs/ovl_entry.h |  1 +
- fs/overlayfs/super.c     |  4 +++-
- fs/overlayfs/util.c      | 10 +++++++++-
- 7 files changed, 26 insertions(+), 8 deletions(-)
+Ok. Those macros are ill for several reasons.
+Let's just blame me for proposing the macros inside ovl_parse_opt().
+I agree that doing the validations inside ovl_remount() is cleaner.
 
-diff --git a/fs/overlayfs/export.c b/fs/overlayfs/export.c
-index e1f6546b6c84..d43d926ae68e 100644
---- a/fs/overlayfs/export.c
-+++ b/fs/overlayfs/export.c
-@@ -305,7 +305,8 @@ static struct dentry *ovl_obtain_alias(struct super_block *sb,
- 	if (d_is_dir(upper ?: lower))
- 		return ERR_PTR(-EIO);
- 
--	inode = ovl_get_inode(sb, dget(upper), lowerpath, index, !!lower, NULL);
-+	inode = ovl_get_inode(sb, dget(upper), lowerpath, index, !!lower, NULL,
-+			      NULL);
- 	if (IS_ERR(inode)) {
- 		dput(upper);
- 		return ERR_CAST(inode);
-diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
-index 9d17f15480de..a6cd57741a1f 100644
---- a/fs/overlayfs/inode.c
-+++ b/fs/overlayfs/inode.c
-@@ -802,7 +802,8 @@ static bool ovl_hash_bylower(struct super_block *sb, struct dentry *upper,
- 
- struct inode *ovl_get_inode(struct super_block *sb, struct dentry *upperdentry,
- 			    struct ovl_path *lowerpath, struct dentry *index,
--			    unsigned int numlower, char *redirect)
-+			    unsigned int numlower, char *redirect,
-+			    struct dentry *lowerdata)
- {
- 	struct inode *realinode = upperdentry ? d_inode(upperdentry) : NULL;
- 	struct inode *inode;
-@@ -861,7 +862,7 @@ struct inode *ovl_get_inode(struct super_block *sb, struct dentry *upperdentry,
- 		}
- 	}
- 	ovl_fill_inode(inode, realinode->i_mode, realinode->i_rdev, ino, fsid);
--	ovl_inode_init(inode, upperdentry, lowerdentry);
-+	ovl_inode_init(inode, upperdentry, lowerdentry, lowerdata);
- 
- 	if (upperdentry && ovl_is_impuredir(upperdentry))
- 		ovl_set_flag(OVL_IMPURE, inode);
-diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
-index 682f0d402986..b25e32cf5916 100644
---- a/fs/overlayfs/namei.c
-+++ b/fs/overlayfs/namei.c
-@@ -1070,8 +1070,11 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
- 		upperdentry = dget(index);
- 
- 	if (upperdentry || ctr) {
-+		struct dentry *lowerdata = NULL;
-+		if (ctr > 1 && !d.is_dir)
-+			lowerdata = stack[ctr - 1].dentry;
- 		inode = ovl_get_inode(dentry->d_sb, upperdentry, stack, index,
--				      ctr, upperredirect);
-+				      ctr, upperredirect, lowerdata);
- 		err = PTR_ERR(inode);
- 		if (IS_ERR(inode))
- 			goto out_free_oe;
-diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-index 29b28ee50b0f..29c3498a7e61 100644
---- a/fs/overlayfs/overlayfs.h
-+++ b/fs/overlayfs/overlayfs.h
-@@ -234,6 +234,7 @@ struct dentry *ovl_dentry_real_data(struct dentry *dentry);
- struct dentry *ovl_i_dentry_upper(struct inode *inode);
- struct inode *ovl_inode_upper(struct inode *inode);
- struct inode *ovl_inode_lower(struct inode *inode);
-+struct inode *ovl_inode_lowerdata(struct inode *inode);
- struct inode *ovl_inode_real(struct inode *inode);
- struct ovl_dir_cache *ovl_dir_cache(struct inode *inode);
- void ovl_set_dir_cache(struct inode *inode, struct ovl_dir_cache *cache);
-@@ -253,7 +254,7 @@ bool ovl_redirect_dir(struct super_block *sb);
- const char *ovl_dentry_get_redirect(struct dentry *dentry);
- void ovl_dentry_set_redirect(struct dentry *dentry, const char *redirect);
- void ovl_inode_init(struct inode *inode, struct dentry *upperdentry,
--		    struct dentry *lowerdentry);
-+		    struct dentry *lowerdentry, struct dentry *lowerdata);
- void ovl_inode_update(struct inode *inode, struct dentry *upperdentry);
- void ovl_dentry_version_inc(struct dentry *dentry, bool impurity);
- u64 ovl_dentry_version_get(struct dentry *dentry);
-@@ -373,7 +374,8 @@ struct inode *ovl_lookup_inode(struct super_block *sb, struct dentry *real,
- 			       bool is_upper);
- struct inode *ovl_get_inode(struct super_block *sb, struct dentry *upperdentry,
- 			    struct ovl_path *lowerpath, struct dentry *index,
--			    unsigned int numlower, char *redirect);
-+			    unsigned int numlower, char *redirect,
-+			    struct dentry *lowerdata);
- static inline void ovl_copyattr(struct inode *from, struct inode *to)
- {
- 	to->i_uid = from->i_uid;
-diff --git a/fs/overlayfs/ovl_entry.h b/fs/overlayfs/ovl_entry.h
-index da65118a0567..83e031e31ff9 100644
---- a/fs/overlayfs/ovl_entry.h
-+++ b/fs/overlayfs/ovl_entry.h
-@@ -97,6 +97,7 @@ struct ovl_inode {
- 	struct inode vfs_inode;
- 	struct dentry *__upperdentry;
- 	struct inode *lower;
-+	struct inode *lowerdata;
- 
- 	/* synchronize copy up and more */
- 	struct mutex lock;
-diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-index 6f5e7ccc3d8f..b81ec9d22ac5 100644
---- a/fs/overlayfs/super.c
-+++ b/fs/overlayfs/super.c
-@@ -182,6 +182,7 @@ static struct inode *ovl_alloc_inode(struct super_block *sb)
- 	oi->flags = 0;
- 	oi->__upperdentry = NULL;
- 	oi->lower = NULL;
-+	oi->lowerdata = NULL;
- 	mutex_init(&oi->lock);
- 
- 	return &oi->vfs_inode;
-@@ -200,6 +201,7 @@ static void ovl_destroy_inode(struct inode *inode)
- 
- 	dput(oi->__upperdentry);
- 	iput(oi->lower);
-+	iput(oi->lowerdata);
- 	kfree(oi->redirect);
- 	ovl_dir_cache_free(inode);
- 	mutex_destroy(&oi->lock);
-@@ -1505,7 +1507,7 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
- 	ovl_dentry_set_flag(OVL_E_CONNECTED, root_dentry);
- 	ovl_set_upperdata(d_inode(root_dentry));
- 	ovl_inode_init(d_inode(root_dentry), upperpath.dentry,
--		       ovl_dentry_lower(root_dentry));
-+		       ovl_dentry_lower(root_dentry), NULL);
- 
- 	sb->s_root = root_dentry;
- 
-diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
-index 338de6bdae07..58aa14a02bb0 100644
---- a/fs/overlayfs/util.c
-+++ b/fs/overlayfs/util.c
-@@ -262,6 +262,12 @@ struct inode *ovl_inode_real(struct inode *inode)
- 	return ovl_inode_upper(inode) ?: ovl_inode_lower(inode);
- }
- 
-+/* Return inode which containers lower data. Do not return metacopy */
-+struct inode *ovl_inode_lowerdata(struct inode *inode)
-+{
-+	return OVL_I(inode)->lowerdata ?: ovl_inode_lower(inode);
-+}
-+
- 
- struct ovl_dir_cache *ovl_dir_cache(struct inode *inode)
- {
-@@ -396,7 +402,7 @@ void ovl_dentry_set_redirect(struct dentry *dentry, const char *redirect)
- }
- 
- void ovl_inode_init(struct inode *inode, struct dentry *upperdentry,
--		    struct dentry *lowerdentry)
-+		    struct dentry *lowerdentry, struct dentry *lowerdata)
- {
- 	struct inode *realinode = d_inode(upperdentry ?: lowerdentry);
- 
-@@ -404,6 +410,8 @@ void ovl_inode_init(struct inode *inode, struct dentry *upperdentry,
- 		OVL_I(inode)->__upperdentry = upperdentry;
- 	if (lowerdentry)
- 		OVL_I(inode)->lower = igrab(d_inode(lowerdentry));
-+	if (lowerdata)
-+		OVL_I(inode)->lowerdata = igrab(d_inode(lowerdata));
- 
- 	ovl_copyattr(realinode, inode);
- 	ovl_copyflags(realinode, inode);
--- 
-2.13.6
+If at all macros are in order in this context, they should look
+something like this:
 
+static bool ovl_opt_bool_neq(bool new, bool old, const char *name)
+{
+       if (new != old) {
+               pr_err("overlayfs: option \"%s\" cannot be %s on
+remount.\n", name,
+                         new ? "enabled" : "disabled");
+               return true;
+       }
+       return false;
+}
+
+#define ovl_config_opt_neq(old, new, name, type) \
+       ovl_opt_##type##_neq((old)->name, (new)->name, #name)
+
+   if (ovl_config_opt_neq(new_config, old_config, index, bool))
+        goto out_err;
+
+Thanks,
+Amir.
