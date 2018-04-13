@@ -1,133 +1,136 @@
-From: Vivek Goyal <vgoyal@redhat.com>
-Subject: Re: [RFC PATCH 04/35] ovl: copy up times
-Date: Fri, 13 Apr 2018 10:23:13 -0400
-Message-ID: <20180413142313.GA2706@redhat.com>
-References: <20180412150826.20988-1-mszeredi@redhat.com>
- <20180412150826.20988-5-mszeredi@redhat.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Subject: Re: [RFC PATCH 16/35] ovl: readd lsattr/chattr support
+Date: Fri, 13 Apr 2018 17:48:56 +0300
+Message-ID: <CAOQ4uxjcB5_S15khi3yZ4MZcyQTHTup8ka-Oy_ts4bfHE1P8bw@mail.gmail.com>
+References: <20180412150826.20988-1-mszeredi@redhat.com> <20180412150826.20988-17-mszeredi@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180412150826.20988-5-mszeredi@redhat.com>
+In-Reply-To: <20180412150826.20988-17-mszeredi@redhat.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Miklos Szeredi <mszeredi@redhat.com>
-Cc: linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: overlayfs <linux-unionfs@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>
 List-Id: linux-unionfs@vger.kernel.org
 
-On Thu, Apr 12, 2018 at 05:07:55PM +0200, Miklos Szeredi wrote:
-> Copy up mtime and ctime to overlay inode after times in real object are
-> modified.  Be careful not to dirty cachelines when not necessary.
-> 
-> This is in preparation for moving overlay functionality out of the VFS.
-> 
-> This patch shouldn't have any observable effect.
-
-So there are bunch of operations which will change inode ctime. I had
-missed this in my metadata only copy up patch series and that would broken
-atime updates in some cases.
-
-Vivek
-
-> 
+On Thu, Apr 12, 2018 at 6:08 PM, Miklos Szeredi <mszeredi@redhat.com> wrote:
+> Implement FS_IOC_GETFLAGS and FS_IOC_SETFLAGS.
+>
+> Needs vfs_ioctl() exported to modules.
+>
 > Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
 > ---
->  fs/overlayfs/dir.c       |  5 +++++
->  fs/overlayfs/inode.c     |  1 +
->  fs/overlayfs/overlayfs.h |  7 +++++++
->  fs/overlayfs/util.c      | 19 +++++++++++++++++++
->  4 files changed, 32 insertions(+)
-> 
-> diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
-> index 839709c7803a..cd0fa2363723 100644
-> --- a/fs/overlayfs/dir.c
-> +++ b/fs/overlayfs/dir.c
-> @@ -507,6 +507,7 @@ static int ovl_create_or_link(struct dentry *dentry, struct inode *inode,
->  		else
->  			err = ovl_create_over_whiteout(dentry, inode, attr,
->  							hardlink);
-> +		ovl_copytimes_with_parent(dentry);
->  	}
->  out_revert_creds:
->  	revert_creds(old_cred);
-> @@ -768,6 +769,7 @@ static int ovl_do_remove(struct dentry *dentry, bool is_dir)
->  			drop_nlink(dentry->d_inode);
->  	}
->  	ovl_nlink_end(dentry, locked);
-> +	ovl_copytimes_with_parent(dentry);
->  out_drop_write:
->  	ovl_drop_write(dentry);
->  out:
-> @@ -1079,6 +1081,9 @@ static int ovl_rename(struct inode *olddir, struct dentry *old,
->  	ovl_dentry_version_inc(new->d_parent, ovl_type_origin(old) ||
->  			       (d_inode(new) && ovl_type_origin(new)));
->  
-> +	ovl_copytimes_with_parent(old);
-> +	ovl_copytimes_with_parent(new);
-> +
->  out_dput:
->  	dput(newdentry);
->  out_dput_old:
-> diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
-> index 6e3815fb006b..33635106c5f7 100644
-> --- a/fs/overlayfs/inode.c
-> +++ b/fs/overlayfs/inode.c
-> @@ -303,6 +303,7 @@ int ovl_xattr_set(struct dentry *dentry, struct inode *inode, const char *name,
->  		err = vfs_removexattr(realdentry, name);
->  	}
->  	revert_creds(old_cred);
-> +	ovl_copytimes(d_inode(dentry));
->  
->  out_drop_write:
->  	ovl_drop_write(dentry);
-> diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-> index e0b7de799f6b..eef720ef0f07 100644
-> --- a/fs/overlayfs/overlayfs.h
-> +++ b/fs/overlayfs/overlayfs.h
-> @@ -258,6 +258,13 @@ bool ovl_need_index(struct dentry *dentry);
->  int ovl_nlink_start(struct dentry *dentry, bool *locked);
->  void ovl_nlink_end(struct dentry *dentry, bool locked);
->  int ovl_lock_rename_workdir(struct dentry *workdir, struct dentry *upperdir);
-> +void ovl_copytimes(struct inode *inode);
-> +
-> +static inline void ovl_copytimes_with_parent(struct dentry *dentry)
-> +{
-> +	ovl_copytimes(d_inode(dentry));
-> +	ovl_copytimes(d_inode(dentry->d_parent));
-> +}
->  
->  static inline bool ovl_is_impuredir(struct dentry *dentry)
->  {
-> diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
-> index 6f1078028c66..11e62e70733a 100644
-> --- a/fs/overlayfs/util.c
-> +++ b/fs/overlayfs/util.c
-> @@ -675,3 +675,22 @@ int ovl_lock_rename_workdir(struct dentry *workdir, struct dentry *upperdir)
->  	pr_err("overlayfs: failed to lock workdir+upperdir\n");
->  	return -EIO;
+>  fs/internal.h       |  1 -
+>  fs/ioctl.c          |  1 +
+>  fs/overlayfs/file.c | 59 +++++++++++++++++++++++++++++++++++++++++++++++++++++
+>  include/linux/fs.h  |  2 ++
+>  4 files changed, 62 insertions(+), 1 deletion(-)
+>
+> diff --git a/fs/internal.h b/fs/internal.h
+> index 3319bf39e339..d5108d9c6a2f 100644
+> --- a/fs/internal.h
+> +++ b/fs/internal.h
+> @@ -176,7 +176,6 @@ extern const struct dentry_operations ns_dentry_operations;
+>   */
+>  extern int do_vfs_ioctl(struct file *file, unsigned int fd, unsigned int cmd,
+>                     unsigned long arg);
+> -extern long vfs_ioctl(struct file *file, unsigned int cmd, unsigned long arg);
+>
+>  /*
+>   * iomap support:
+> diff --git a/fs/ioctl.c b/fs/ioctl.c
+> index 5ace7efb0d04..696f4c46a868 100644
+> --- a/fs/ioctl.c
+> +++ b/fs/ioctl.c
+> @@ -49,6 +49,7 @@ long vfs_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
+>   out:
+>         return error;
 >  }
-> +
-> +void ovl_copytimes(struct inode *inode)
+> +EXPORT_SYMBOL(vfs_ioctl);
+>
+>  static int ioctl_fibmap(struct file *filp, int __user *p)
+>  {
+> diff --git a/fs/overlayfs/file.c b/fs/overlayfs/file.c
+> index 05e3e2f80b89..cc004ff1b05b 100644
+> --- a/fs/overlayfs/file.c
+> +++ b/fs/overlayfs/file.c
+> @@ -8,6 +8,7 @@
+>
+>  #include <linux/cred.h>
+>  #include <linux/file.h>
+> +#include <linux/mount.h>
+>  #include <linux/xattr.h>
+>  #include <linux/uio.h>
+>  #include "overlayfs.h"
+> @@ -291,6 +292,63 @@ long ovl_fallocate(struct file *file, int mode, loff_t offset, loff_t len)
+>         return ret;
+>  }
+>
+> +static long ovl_real_ioctl(struct file *file, unsigned int cmd,
+> +                          unsigned long arg)
 > +{
-> +	struct inode *upperinode;
+> +       struct fd real;
+> +       const struct cred *old_cred;
+> +       long ret;
 > +
-> +	if (!inode)
-> +		return;
+> +       ret = ovl_real_file(file, &real);
+> +       if (ret)
+> +               return ret;
 > +
-> +	upperinode = ovl_inode_upper(inode);
+> +       old_cred = ovl_override_creds(file_inode(file)->i_sb);
+> +       ret = vfs_ioctl(real.file, cmd, arg);
+> +       revert_creds(old_cred);
 > +
-> +	if (!upperinode)
-> +		return;
+> +       fdput(real);
 > +
-> +	if ((!timespec_equal(&inode->i_mtime, &upperinode->i_mtime) ||
-> +	     !timespec_equal(&inode->i_ctime, &upperinode->i_ctime))) {
-> +		inode->i_mtime = upperinode->i_mtime;
-> +		inode->i_ctime = upperinode->i_ctime;
-> +	}
+> +       return ret;
 > +}
-> -- 
-> 2.14.3
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-unionfs" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> +
+> +long ovl_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
+> +{
+> +       long ret;
+> +       struct inode *inode = file_inode(file);
+> +
+> +       switch (cmd) {
+> +       case FS_IOC_GETFLAGS:
+> +               ret = ovl_real_ioctl(file, cmd, arg);
+> +               break;
+> +
+> +       case FS_IOC_SETFLAGS:
+> +               if (!inode_owner_or_capable(inode))
+> +                       return -EACCES;
+> +
+> +               ret = mnt_want_write_file(file);
+> +               if (ret)
+> +                       return ret;
+> +
+> +               ret = ovl_copy_up(file_dentry(file));
+> +               if (!ret) {
+> +                       ret = ovl_real_ioctl(file, cmd, arg);
+> +
+> +                       inode_lock(inode);
+> +                       ovl_copyflags(ovl_inode_real(inode), inode);
+> +                       inode_unlock(inode);
+> +               }
+> +
+> +               mnt_drop_write_file(file);
+> +               break;
+> +
+> +       default:
+> +               ret = -ENOTTY;
+
+I am wondering out loud.
+This is a change of behavior that fs specific ioctls cannot be executed
+on overlay file - arguably a good change of behavior, but still a change
+that applications may got dependent on.
+
+Would it have been better to opt-in for this change by a more generic
+config/mount options, for example "consistent_fd" , instead of
+"copy_up_shared" and then we can choose whether or not to
+pass though unknown ioctls to real file.
+
+I know we removed the want_write_file() protection from VFS, but
+still, pass through of ioctls was the legacy behavior. Thoughts?
+I don't mind to wait and see if someone shouts.
+
+Thanks,
+Amir.
