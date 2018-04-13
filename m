@@ -1,48 +1,123 @@
-Return-Path: <amir73il@gmail.com>
-Return-Path: <amir73il@gmail.com>
-From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH v2 2/4] overlay/041: fix call to _overlay_check_scratch_dirs
-Date: Wed, 25 Apr 2018 23:53:25 -0600
-Message-Id: <1524722007-30891-3-git-send-email-amir73il@gmail.com>
-In-Reply-To: <1524722007-30891-1-git-send-email-amir73il@gmail.com>
-References: <1524722007-30891-1-git-send-email-amir73il@gmail.com>
-To: Eryu Guan <eguan@redhat.com>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, fstests@vger.kernel.org
+Return-Path: <cgxu519@gmx.com>
+From: Chengguang Xu <cgxu519@gmx.com>
+Subject: [PATCH v4 1/3] ovl: adjust option parsing for supporting remount
+Date: Fri, 13 Apr 2018 20:39:14 +0800
+Message-Id: <1523623156-6035-2-git-send-email-cgxu519@gmx.com>
+In-Reply-To: <1523623156-6035-1-git-send-email-cgxu519@gmx.com>
+References: <1523623156-6035-1-git-send-email-cgxu519@gmx.com>
+To: linux-unionfs@vger.kernel.org
+Cc: miklos@szeredi.hu, amir73il@gmail.com, Chengguang Xu <cgxu519@gmx.com>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-_overlay_check_scratch_dirs needs to base scratch fs to be mounted,
-so only unmount overlay before check.
+Adjust ovl_parse_opt() and ovl_parse_redirect_mode() to support option
+parsing in remount.
 
-Remove redundant definition of upperdir/workdir path, which also
-uses hardcoded path instead of the config vars OVL_UPPER/OVL_WORK.
-
-Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+Signed-off-by: Chengguang Xu <cgxu519@gmx.com>
 ---
- tests/overlay/041 | 5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+Changes since v3:
+- Delete redundant argument of ovl_parse_redirect_mode()
 
-diff --git a/tests/overlay/041 b/tests/overlay/041
-index 4e72348..f3be746 100755
---- a/tests/overlay/041
-+++ b/tests/overlay/041
-@@ -168,7 +168,7 @@ subdir_d=$($here/src/t_dir_type $pure_lower_dir $pure_lower_subdir_st_ino)
- [[ $subdir_d == "subdir d" ]] || \
- 	echo "Merged dir: Invalid d_ino reported for subdir"
+Changes since v2:
+- Move default initialization of redirect_mode to fill_super()
+just before calling parse_opt().
+- Move workdir validation check to fill_super().
+- Move remount option validation to ovl_remount().
+
+Changes since v1:
+- Add remount option validation to parse_opt()
+
+ fs/overlayfs/super.c | 43 ++++++++++++++++++++++++-------------------
+ 1 file changed, 24 insertions(+), 19 deletions(-)
+
+diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+index e8551c9..e99864e 100644
+--- a/fs/overlayfs/super.c
++++ b/fs/overlayfs/super.c
+@@ -455,23 +455,26 @@ static char *ovl_next_opt(char **s)
+ 	return sbegin;
+ }
  
--_scratch_unmount
-+$UMOUNT_PROG $SCRATCH_MNT
+-static int ovl_parse_redirect_mode(struct ovl_config *config, const char *mode)
++static int ovl_parse_redirect_mode(struct ovl_config *config)
+ {
+-	if (strcmp(mode, "on") == 0) {
++	if (!config->redirect_mode)
++		return 0;
++
++	if (strcmp(config->redirect_mode, "on") == 0) {
+ 		config->redirect_dir = true;
+ 		/*
+ 		 * Does not make sense to have redirect creation without
+ 		 * redirect following.
+ 		 */
+ 		config->redirect_follow = true;
+-	} else if (strcmp(mode, "follow") == 0) {
++	} else if (strcmp(config->redirect_mode, "follow") == 0) {
+ 		config->redirect_follow = true;
+-	} else if (strcmp(mode, "off") == 0) {
++	} else if (strcmp(config->redirect_mode, "off") == 0) {
+ 		if (ovl_redirect_always_follow)
+ 			config->redirect_follow = true;
+-	} else if (strcmp(mode, "nofollow") != 0) {
++	} else if (strcmp(config->redirect_mode, "nofollow") != 0) {
+ 		pr_err("overlayfs: bad mount option \"redirect_dir=%s\"\n",
+-		       mode);
++		       config->redirect_mode);
+ 		return -EINVAL;
+ 	}
  
- # check overlayfs
- _overlay_check_scratch_dirs $lowerdir $upperdir $workdir
-@@ -186,9 +186,6 @@ mkdir -p $lowerdir/test_dir/pure_lower_dir/subdir
+@@ -482,10 +485,6 @@ static int ovl_parse_opt(char *opt, struct ovl_config *config)
+ {
+ 	char *p;
  
- _scratch_mkfs
- 
--upperdir=$OVL_BASE_SCRATCH_MNT/ovl-upper
--workdir=$OVL_BASE_SCRATCH_MNT/ovl-work
+-	config->redirect_mode = kstrdup(ovl_redirect_mode_def(), GFP_KERNEL);
+-	if (!config->redirect_mode)
+-		return -ENOMEM;
 -
- _overlay_scratch_mount_dirs $middir:$lowerdir $upperdir $workdir
+ 	while ((p = ovl_next_opt(&opt)) != NULL) {
+ 		int token;
+ 		substring_t args[MAX_OPT_ARGS];
+@@ -561,15 +560,7 @@ static int ovl_parse_opt(char *opt, struct ovl_config *config)
+ 		}
+ 	}
  
- # Copy up test_dir
+-	/* Workdir is useless in non-upper mount */
+-	if (!config->upperdir && config->workdir) {
+-		pr_info("overlayfs: option \"workdir=%s\" is useless in a non-upper mount, ignore\n",
+-			config->workdir);
+-		kfree(config->workdir);
+-		config->workdir = NULL;
+-	}
+-
+-	return ovl_parse_redirect_mode(config, config->redirect_mode);
++	return ovl_parse_redirect_mode(config);
+ }
+ 
+ #define OVL_WORKDIR_NAME "work"
+@@ -1376,10 +1367,24 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
+ 	ofs->config.index = ovl_index_def;
+ 	ofs->config.nfs_export = ovl_nfs_export_def;
+ 	ofs->config.xino = ovl_xino_def();
++
++	ofs->config.redirect_mode = kstrdup(ovl_redirect_mode_def(),
++							GFP_KERNEL);
++	if (!ofs->config.redirect_mode)
++		return -ENOMEM;
++
+ 	err = ovl_parse_opt((char *) data, &ofs->config);
+ 	if (err)
+ 		goto out_err;
+ 
++	/* Workdir is useless in non-upper mount */
++	if (!ofs->config.upperdir && ofs->config.workdir) {
++		pr_info("overlayfs: option \"workdir=%s\" is useless in a non-upper mount, ignore\n",
++			ofs->config.workdir);
++		kfree(ofs->config.workdir);
++		ofs->config.workdir = NULL;
++	}
++
+ 	err = -EINVAL;
+ 	if (!ofs->config.lowerdir) {
+ 		if (!silent)
 -- 
-2.7.4
+1.8.3.1
