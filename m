@@ -1,8 +1,8 @@
 Return-Path: <cgxu519@gmx.com>
 From: Chengguang Xu <cgxu519@gmx.com>
-Subject: [PATCH v7 0/3] option validation in remount
-Date: Mon, 16 Apr 2018 09:37:05 +0800
-Message-Id: <1523842628-11651-1-git-send-email-cgxu519@gmx.com>
+Subject: [PATCH v5 0/3] option validation in remount
+Date: Sat, 14 Apr 2018 14:35:41 +0800
+Message-Id: <1523687744-10103-1-git-send-email-cgxu519@gmx.com>
 To: linux-unionfs@vger.kernel.org
 Cc: miklos@szeredi.hu, amir73il@gmail.com, Chengguang Xu <cgxu519@gmx.com>
 List-ID: <linux-unionfs@vger.kernel.org>
@@ -22,15 +22,15 @@ This is also a starting point to exploring how to change options
 
 Thanks,
 Chengguang.
-
 ---
+
 Chengguang Xu (3):
   ovl: adjust option parsing for supporting remount
   ovl: move the code of ovl_remount() to behind ovl_parse_opt()
   ovl: print warning when specifying unchangeable options in remount
 
- fs/overlayfs/super.c | 152 ++++++++++++++++++++++++++++++++++++---------------
- 1 file changed, 109 insertions(+), 43 deletions(-)
+ fs/overlayfs/super.c | 155 +++++++++++++++++++++++++++++++++++++--------------
+ 1 file changed, 113 insertions(+), 42 deletions(-)
 
 -- 
 1.8.3.1
