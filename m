@@ -1,40 +1,36 @@
-Return-Path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mx3-rdu2.redhat.com ([66.187.233.73]:41468 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1752754AbeDZTKk (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 26 Apr 2018 15:10:40 -0400
-From: Vivek Goyal <vgoyal@redhat.com>
-Subject: [PATCH v14 28/31] ovl: Disbale metacopy for MAP_SHARED mmap()
-Date: Thu, 26 Apr 2018 15:10:10 -0400
-Message-Id: <20180426191013.13219-29-vgoyal@redhat.com>
-In-Reply-To: <20180426191013.13219-1-vgoyal@redhat.com>
-References: <20180426191013.13219-1-vgoyal@redhat.com>
-Sender: linux-unionfs-owner@vger.kernel.org
+Return-Path: <cgxu519@gmx.com>
+From: Chengguang Xu <cgxu519@gmx.com>
+Subject: [PATCH v6 0/3] option validation in remount
+Date: Sun, 15 Apr 2018 11:10:30 +0800
+Message-Id: <1523761833-7304-1-git-send-email-cgxu519@gmx.com>
 To: linux-unionfs@vger.kernel.org
-Cc: miklos@szeredi.hu, amir73il@gmail.com, vgoyal@redhat.com
+Cc: miklos@szeredi.hu, amir73il@gmail.com, Chengguang Xu <cgxu519@gmx.com>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-When user chose the option of copying up a file when mmap(MAP_SHARED)
-happens, then do full copy up and not just metacopy.
+Some overlayfs mount options cannot be changed via remount,
+but current remount does not validate options even if specifying
+unrecognized options.
 
-Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
+This patch series adjust option parsing to support remount,
+Considering backward compatibility, in current stage we only print
+warning message but not return error when detecting unchangeable
+options in remount. However, if user specify unrecognized or invalid
+options then return -EINVAL.
+
+This is also a starting point to exploring how to change options
+(e.g. ro->rw with specifying workdir&upperdir) in remount.
+
+Thanks,
+Chengguang.
 ---
- fs/overlayfs/file.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/fs/overlayfs/file.c b/fs/overlayfs/file.c
-index be531b79d2e5..d61c8355b892 100644
---- a/fs/overlayfs/file.c
-+++ b/fs/overlayfs/file.c
-@@ -304,7 +304,7 @@ static int ovl_pre_mmap(struct file *file, unsigned long prot,
- 	 * later.
- 	 */
- 	if ((flag & MAP_SHARED) && ovl_copy_up_shared(file_inode(file)->i_sb))
--		err = ovl_copy_up(file_dentry(file));
-+		err = ovl_copy_up_flags(file_dentry(file), O_WRONLY);
- 
- 	return err;
- }
+Chengguang Xu (3):
+  ovl: adjust option parsing for supporting remount
+  ovl: move the code of ovl_remount() to behind ovl_parse_opt()
+  ovl: print warning when specifying unchangeable options in remount
+
+ fs/overlayfs/super.c | 151 ++++++++++++++++++++++++++++++++++++---------------
+ 1 file changed, 108 insertions(+), 43 deletions(-)
+
 -- 
-2.13.6
-
+1.8.3.1
