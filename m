@@ -1,114 +1,123 @@
-Return-Path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mx3-rdu2.redhat.com ([66.187.233.73]:34232 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1753529AbeDZTKn (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 26 Apr 2018 15:10:43 -0400
-From: Vivek Goyal <vgoyal@redhat.com>
-Subject: [PATCH v14 26/31] ovl: Allow ovl_open_realfile() to open metacopy inode
-Date: Thu, 26 Apr 2018 15:10:08 -0400
-Message-Id: <20180426191013.13219-27-vgoyal@redhat.com>
-In-Reply-To: <20180426191013.13219-1-vgoyal@redhat.com>
-References: <20180426191013.13219-1-vgoyal@redhat.com>
-Sender: linux-unionfs-owner@vger.kernel.org
+Return-Path: <cgxu519@gmx.com>
+From: Chengguang Xu <cgxu519@gmx.com>
+Subject: [PATCH v6 1/3] ovl: adjust option parsing for supporting remount
+Date: Sun, 15 Apr 2018 11:10:31 +0800
+Message-Id: <1523761833-7304-2-git-send-email-cgxu519@gmx.com>
+In-Reply-To: <1523761833-7304-1-git-send-email-cgxu519@gmx.com>
+References: <1523761833-7304-1-git-send-email-cgxu519@gmx.com>
 To: linux-unionfs@vger.kernel.org
-Cc: miklos@szeredi.hu, amir73il@gmail.com, vgoyal@redhat.com
+Cc: miklos@szeredi.hu, amir73il@gmail.com, Chengguang Xu <cgxu519@gmx.com>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-Most of the time we need to open inode containing data (and not metacopy)
-but when fsync happens, in that case we need to make sure upper metacopy
-inode is fsynced too. In that case we need to open metacopy inode
-temporarily.
+Adjust ovl_parse_opt() and ovl_parse_redirect_mode() to support option
+parsing in remount.
 
-Add a parameter to ovl_open_realfile() which specifies whether to open
-data inode or metacopy inode. Later fsync patch will make use of this
-functionality.
-
-Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
+Signed-off-by: Chengguang Xu <cgxu519@gmx.com>
 ---
- fs/overlayfs/file.c | 34 ++++++++++++++++++++++++++++------
- 1 file changed, 28 insertions(+), 6 deletions(-)
+Changes since v3:
+- Delete redundant argument of ovl_parse_redirect_mode()
 
-diff --git a/fs/overlayfs/file.c b/fs/overlayfs/file.c
-index 558a859b2658..08387639ba6e 100644
---- a/fs/overlayfs/file.c
-+++ b/fs/overlayfs/file.c
-@@ -14,7 +14,7 @@
- #include <linux/uio.h>
- #include "overlayfs.h"
- 
--static struct file *ovl_open_realfile(const struct file *file)
-+static struct file *ovl_open_realfile(const struct file *file, bool meta)
- {
- 	struct inode *inode = file_inode(file);
- 	struct inode *upperinode = ovl_inode_upper(inode);
-@@ -28,7 +28,13 @@ static struct file *ovl_open_realfile(const struct file *file)
- 
- 	/* Always open file which contains data. Do not open metacopy. */
- 	realinode = upperreal ? upperinode : ovl_inode_lowerdata(inode);
--
-+	if (upperinode && (meta || ovl_has_upperdata(inode))) {
-+		realinode = upperinode;
-+		upperreal = true;
-+	} else {
-+		realinode = meta ? ovl_inode_lower(inode) :
-+				 ovl_inode_lowerdata(inode);
-+	}
- 	old_cred = ovl_override_creds(inode->i_sb);
- 	realfile = path_open(&file->f_path, file->f_flags | O_NOATIME,
- 			     realinode, current_cred(), false);
-@@ -80,17 +86,23 @@ static int ovl_change_flags(struct file *file, unsigned int flags)
- 	return 0;
+Changes since v2:
+- Move default initialization of redirect_mode to fill_super()
+just before calling parse_opt().
+- Move workdir validation check to fill_super().
+- Move remount option validation to ovl_remount().
+
+Changes since v1:
+- Add remount option validation to parse_opt()
+
+ fs/overlayfs/super.c | 43 ++++++++++++++++++++++++-------------------
+ 1 file changed, 24 insertions(+), 19 deletions(-)
+
+diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+index e8551c9..e99864e 100644
+--- a/fs/overlayfs/super.c
++++ b/fs/overlayfs/super.c
+@@ -455,23 +455,26 @@ static char *ovl_next_opt(char **s)
+ 	return sbegin;
  }
  
--static int ovl_real_file(const struct file *file, struct fd *real)
-+static int _ovl_real_file(const struct file *file, struct fd *real, bool meta)
+-static int ovl_parse_redirect_mode(struct ovl_config *config, const char *mode)
++static int ovl_parse_redirect_mode(struct ovl_config *config)
  {
- 	struct inode *inode = file_inode(file);
-+	struct inode *real_inode;
- 
- 	real->flags = 0;
- 	real->file = file->private_data;
- 
-+	if (meta)
-+		real_inode = ovl_inode_real(inode);
-+	else
-+		real_inode = ovl_inode_real_data(inode);
+-	if (strcmp(mode, "on") == 0) {
++	if (!config->redirect_mode)
++		return 0;
 +
- 	/* Has it been copied up since we'd opened it? */
--	if (unlikely(file_inode(real->file) != ovl_inode_real_data(inode))) {
-+	if (unlikely(file_inode(real->file) != real_inode)) {
- 		real->flags = FDPUT_FPUT;
--		real->file = ovl_open_realfile(file);
-+		real->file = ovl_open_realfile(file, meta);
- 
- 		return PTR_ERR_OR_ZERO(real->file);
++	if (strcmp(config->redirect_mode, "on") == 0) {
+ 		config->redirect_dir = true;
+ 		/*
+ 		 * Does not make sense to have redirect creation without
+ 		 * redirect following.
+ 		 */
+ 		config->redirect_follow = true;
+-	} else if (strcmp(mode, "follow") == 0) {
++	} else if (strcmp(config->redirect_mode, "follow") == 0) {
+ 		config->redirect_follow = true;
+-	} else if (strcmp(mode, "off") == 0) {
++	} else if (strcmp(config->redirect_mode, "off") == 0) {
+ 		if (ovl_redirect_always_follow)
+ 			config->redirect_follow = true;
+-	} else if (strcmp(mode, "nofollow") != 0) {
++	} else if (strcmp(config->redirect_mode, "nofollow") != 0) {
+ 		pr_err("overlayfs: bad mount option \"redirect_dir=%s\"\n",
+-		       mode);
++		       config->redirect_mode);
+ 		return -EINVAL;
  	}
-@@ -102,6 +114,16 @@ static int ovl_real_file(const struct file *file, struct fd *real)
- 	return 0;
+ 
+@@ -482,10 +485,6 @@ static int ovl_parse_opt(char *opt, struct ovl_config *config)
+ {
+ 	char *p;
+ 
+-	config->redirect_mode = kstrdup(ovl_redirect_mode_def(), GFP_KERNEL);
+-	if (!config->redirect_mode)
+-		return -ENOMEM;
+-
+ 	while ((p = ovl_next_opt(&opt)) != NULL) {
+ 		int token;
+ 		substring_t args[MAX_OPT_ARGS];
+@@ -561,15 +560,7 @@ static int ovl_parse_opt(char *opt, struct ovl_config *config)
+ 		}
+ 	}
+ 
+-	/* Workdir is useless in non-upper mount */
+-	if (!config->upperdir && config->workdir) {
+-		pr_info("overlayfs: option \"workdir=%s\" is useless in a non-upper mount, ignore\n",
+-			config->workdir);
+-		kfree(config->workdir);
+-		config->workdir = NULL;
+-	}
+-
+-	return ovl_parse_redirect_mode(config, config->redirect_mode);
++	return ovl_parse_redirect_mode(config);
  }
  
-+static int ovl_real_file(const struct file *file, struct fd *real)
-+{
-+	return _ovl_real_file(file, real, false);
-+}
+ #define OVL_WORKDIR_NAME "work"
+@@ -1376,10 +1367,24 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
+ 	ofs->config.index = ovl_index_def;
+ 	ofs->config.nfs_export = ovl_nfs_export_def;
+ 	ofs->config.xino = ovl_xino_def();
 +
-+static int ovl_real_meta_file(const struct file *file, struct fd *real)
-+{
-+	return _ovl_real_file(file, real, true);
-+}
++	ofs->config.redirect_mode = kstrdup(ovl_redirect_mode_def(),
++							GFP_KERNEL);
++	if (!ofs->config.redirect_mode)
++		return -ENOMEM;
 +
- static int ovl_open(struct inode *inode, struct file *file)
- {
- 	struct dentry *dentry = file_dentry(file);
-@@ -115,7 +137,7 @@ static int ovl_open(struct inode *inode, struct file *file)
- 	/* No longer need these flags, so don't pass them on to underlying fs */
- 	file->f_flags &= ~(O_CREAT | O_EXCL | O_NOCTTY | O_TRUNC);
+ 	err = ovl_parse_opt((char *) data, &ofs->config);
+ 	if (err)
+ 		goto out_err;
  
--	realfile = ovl_open_realfile(file);
-+	realfile = ovl_open_realfile(file, false);
- 	if (IS_ERR(realfile))
- 		return PTR_ERR(realfile);
- 
++	/* Workdir is useless in non-upper mount */
++	if (!ofs->config.upperdir && ofs->config.workdir) {
++		pr_info("overlayfs: option \"workdir=%s\" is useless in a non-upper mount, ignore\n",
++			ofs->config.workdir);
++		kfree(ofs->config.workdir);
++		ofs->config.workdir = NULL;
++	}
++
+ 	err = -EINVAL;
+ 	if (!ofs->config.lowerdir) {
+ 		if (!silent)
 -- 
-2.13.6
-
+1.8.3.1
