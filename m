@@ -1,88 +1,82 @@
-Return-Path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mx3-rdu2.redhat.com ([66.187.233.73]:34202 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1751852AbeDZTKk (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 26 Apr 2018 15:10:40 -0400
-From: Vivek Goyal <vgoyal@redhat.com>
-Subject: [PATCH v14 05/31] ovl: Copy up only metadata during copy up where it makes sense
-Date: Thu, 26 Apr 2018 15:09:47 -0400
-Message-Id: <20180426191013.13219-6-vgoyal@redhat.com>
-In-Reply-To: <20180426191013.13219-1-vgoyal@redhat.com>
-References: <20180426191013.13219-1-vgoyal@redhat.com>
-Sender: linux-unionfs-owner@vger.kernel.org
+Return-Path: <cgxu519@gmx.com>
+From: Chengguang Xu <cgxu519@gmx.com>
+Subject: [PATCH v7 2/3] ovl: move the code of ovl_remount() to behind ovl_parse_opt()
+Date: Mon, 16 Apr 2018 09:37:07 +0800
+Message-Id: <1523842628-11651-3-git-send-email-cgxu519@gmx.com>
+In-Reply-To: <1523842628-11651-1-git-send-email-cgxu519@gmx.com>
+References: <1523842628-11651-1-git-send-email-cgxu519@gmx.com>
 To: linux-unionfs@vger.kernel.org
-Cc: miklos@szeredi.hu, amir73il@gmail.com, vgoyal@redhat.com
+Cc: miklos@szeredi.hu, amir73il@gmail.com, Chengguang Xu <cgxu519@gmx.com>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-If it makes sense to copy up only metadata during copy up, do it. This
-is done for regular files which are not opened for WRITE.
+Move the code of ovl_remount() around without any functional change,
+so that ovl_remount() can call ovl_parse_opt() without explicit
+statement.
 
-Right now ->metacopy is set to 0 always. Last patch in the series will
-remove the hard coded statement and enable metacopy feature.
-
-Reviewed-by: Amir Goldstein <amir73il@gmail.com>
-Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
+Signed-off-by: Chengguang Xu <cgxu519@gmx.com>
 ---
- fs/overlayfs/copy_up.c | 25 ++++++++++++++++++++++++-
- 1 file changed, 24 insertions(+), 1 deletion(-)
+ fs/overlayfs/super.c | 42 +++++++++++++++++++++---------------------
+ 1 file changed, 21 insertions(+), 21 deletions(-)
 
-diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
-index 7e2dc41ad693..38b332d7c7e4 100644
---- a/fs/overlayfs/copy_up.c
-+++ b/fs/overlayfs/copy_up.c
-@@ -416,6 +416,7 @@ struct ovl_copy_up_ctx {
- 	bool tmpfile;
- 	bool origin;
- 	bool indexed;
-+	bool metacopy;
- };
- 
- static int ovl_link_up(struct ovl_copy_up_ctx *c)
-@@ -553,7 +554,7 @@ static int ovl_copy_up_inode(struct ovl_copy_up_ctx *c, struct dentry *temp)
- 			return err;
- 	}
- 
--	if (S_ISREG(c->stat.mode)) {
-+	if (S_ISREG(c->stat.mode) && !c->metacopy) {
- 		struct path upperpath;
- 
- 		ovl_path_upper(c->dentry, &upperpath);
-@@ -708,6 +709,26 @@ static int ovl_do_copy_up(struct ovl_copy_up_ctx *c)
- 	return err;
+diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+index e99864e..0293635a 100644
+--- a/fs/overlayfs/super.c
++++ b/fs/overlayfs/super.c
+@@ -379,27 +379,6 @@ static int ovl_show_options(struct seq_file *m, struct dentry *dentry)
+ 	return 0;
  }
  
-+static bool ovl_need_meta_copy_up(struct dentry *dentry, umode_t mode,
-+				  int flags)
+-static int ovl_remount(struct super_block *sb, int *flags, char *data)
+-{
+-	struct ovl_fs *ofs = sb->s_fs_info;
+-
+-	if (!(*flags & SB_RDONLY) && ovl_force_readonly(ofs))
+-		return -EROFS;
+-
+-	return 0;
+-}
+-
+-static const struct super_operations ovl_super_operations = {
+-	.alloc_inode	= ovl_alloc_inode,
+-	.destroy_inode	= ovl_destroy_inode,
+-	.drop_inode	= generic_delete_inode,
+-	.put_super	= ovl_put_super,
+-	.sync_fs	= ovl_sync_fs,
+-	.statfs		= ovl_statfs,
+-	.show_options	= ovl_show_options,
+-	.remount_fs	= ovl_remount,
+-};
+-
+ enum {
+ 	OPT_LOWERDIR,
+ 	OPT_UPPERDIR,
+@@ -563,6 +542,27 @@ static int ovl_parse_opt(char *opt, struct ovl_config *config)
+ 	return ovl_parse_redirect_mode(config);
+ }
+ 
++static int ovl_remount(struct super_block *sb, int *flags, char *data)
 +{
-+	struct ovl_fs *ofs = dentry->d_sb->s_fs_info;
++	struct ovl_fs *ofs = sb->s_fs_info;
 +
-+	/* TODO: Will enable metacopy in last patch of series */
-+	return false;
++	if (!(*flags & SB_RDONLY) && ovl_force_readonly(ofs))
++		return -EROFS;
 +
-+	if (!ofs->config.metacopy)
-+		return false;
-+
-+	if (!S_ISREG(mode))
-+		return false;
-+
-+	if (flags && ((OPEN_FMODE(flags) & FMODE_WRITE) || (flags & O_TRUNC)))
-+		return false;
-+
-+	return true;
++	return 0;
 +}
 +
- static int ovl_copy_up_one(struct dentry *parent, struct dentry *dentry,
- 			   int flags)
- {
-@@ -729,6 +750,8 @@ static int ovl_copy_up_one(struct dentry *parent, struct dentry *dentry,
- 	if (err)
- 		return err;
- 
-+	ctx.metacopy = ovl_need_meta_copy_up(dentry, ctx.stat.mode, flags);
++static const struct super_operations ovl_super_operations = {
++	.alloc_inode	= ovl_alloc_inode,
++	.destroy_inode	= ovl_destroy_inode,
++	.drop_inode	= generic_delete_inode,
++	.put_super	= ovl_put_super,
++	.sync_fs	= ovl_sync_fs,
++	.statfs		= ovl_statfs,
++	.show_options	= ovl_show_options,
++	.remount_fs	= ovl_remount,
++};
 +
- 	if (parent) {
- 		ovl_path_upper(parent, &parentpath);
- 		ctx.destdir = parentpath.dentry;
+ #define OVL_WORKDIR_NAME "work"
+ #define OVL_INDEXDIR_NAME "index"
+ 
 -- 
-2.13.6
-
+1.8.3.1
