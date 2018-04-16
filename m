@@ -1,31 +1,44 @@
-Return-Path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-yw0-f176.google.com ([209.85.161.176]:47093 "EHLO
-        mail-yw0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751183AbeDPP1U (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 16 Apr 2018 11:27:20 -0400
-MIME-Version: 1.0
-In-Reply-To: <20180416104141.17134-1-mszeredi@redhat.com>
-References: <20180416104141.17134-1-mszeredi@redhat.com>
-From: Amir Goldstein <amir73il@gmail.com>
-Date: Mon, 16 Apr 2018 18:27:19 +0300
-Message-ID: <CAOQ4uxjtcKFvKq2orqTKQtW0VMb5hJKc8-7AATOY=GP5XGvZfg@mail.gmail.com>
-Subject: Re: [PATCH 1/2] overlay/40: clean up properly after setting immutable
-Content-Type: text/plain; charset="UTF-8"
-Sender: linux-unionfs-owner@vger.kernel.org
-To: Miklos Szeredi <mszeredi@redhat.com>
-Cc: fstests <fstests@vger.kernel.org>, overlayfs <linux-unionfs@vger.kernel.org>, Eryu Guan <eguan@redhat.com>
+Return-Path: <mszeredi@redhat.com>
+Return-Path: <mszeredi@redhat.com>
+From: Miklos Szeredi <mszeredi@redhat.com>
+Subject: [PATCH 1/2] overlay/40: clean up properly after setting immutable
+Date: Mon, 16 Apr 2018 12:41:40 +0200
+Message-Id: <20180416104141.17134-1-mszeredi@redhat.com>
+To: fstests@vger.kernel.org
+Cc: linux-unionfs@vger.kernel.org, Eryu Guan <eguan@redhat.com>, Amir Goldstein <amir73il@gmail.com>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-On Mon, Apr 16, 2018 at 1:41 PM, Miklos Szeredi <mszeredi@redhat.com> wrote:
-> Test program expects only immutable on lower layer (test failure), but does
-> not expect the immutable file to be on the upper layer.  The later case is
-> actually what *should* happen, except overlayfs didn't properly implement
-> this case yet (but is now in the works).
->
-> Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
+Test program expects only immutable on lower layer (test failure), but does
+not expect the immutable file to be on the upper layer.  The later case is
+actually what *should* happen, except overlayfs didn't properly implement
+this case yet (but is now in the works).
 
-Looks good.
+Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
+---
+ tests/overlay/040 | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-Thanks,
-Amir.
+diff --git a/tests/overlay/040 b/tests/overlay/040
+index 369fef3c3a47..4fff7570c2c6 100755
+--- a/tests/overlay/040
++++ b/tests/overlay/040
+@@ -41,7 +41,8 @@ trap "_cleanup; exit \$status" 0 1 2 3 15
+ _cleanup()
+ {
+ 	cd /
+-	$CHATTR_PROG -i $lowerdir/foo
++	$CHATTR_PROG -i $lowerdir/foo > /dev/null 2>&1
++	$CHATTR_PROG -i $upperdir/foo > /dev/null 2>&1
+ 	rm -f $tmp.*
+ }
+ 
+@@ -63,6 +64,7 @@ _scratch_mkfs
+ 
+ # prepare lower test file
+ lowerdir=$OVL_BASE_SCRATCH_MNT/$OVL_LOWER
++upperdir=$OVL_BASE_SCRATCH_MNT/$OVL_UPPER
+ mkdir -p $lowerdir
+ touch $lowerdir/foo
+ 
+-- 
+2.14.3
