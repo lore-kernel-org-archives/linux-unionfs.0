@@ -1,47 +1,53 @@
-Return-Path: <vgoyal@redhat.com>
-From: Vivek Goyal <vgoyal@redhat.com>
-Subject: [PATCH v14 19/31] ovl: Check redirects for metacopy files
-Date: Thu, 26 Apr 2018 15:10:01 -0400
-Message-Id: <20180426191013.13219-20-vgoyal@redhat.com>
-In-Reply-To: <20180426191013.13219-1-vgoyal@redhat.com>
-References: <20180426191013.13219-1-vgoyal@redhat.com>
+Return-Path: <linux-unionfs-owner@vger.kernel.org>
+Received: from mx2.suse.de ([195.135.220.15]:56016 "EHLO mx2.suse.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752840AbeDPOfa (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Mon, 16 Apr 2018 10:35:30 -0400
+Received: from relay1.suse.de (charybdis-ext.suse.de [195.135.220.254])
+        by mx2.suse.de (Postfix) with ESMTP id 5C40BABC8
+        for <linux-unionfs@vger.kernel.org>; Mon, 16 Apr 2018 14:35:29 +0000 (UTC)
+From: Goldwyn Rodrigues <rgoldwyn@suse.de>
+Subject: [PATCH] ovl: copy up files with incompatible xattrs
+Date: Mon, 16 Apr 2018 09:35:25 -0500
+Message-Id: <20180416143525.8328-1-rgoldwyn@suse.de>
+Sender: linux-unionfs-owner@vger.kernel.org
 To: linux-unionfs@vger.kernel.org
-Cc: miklos@szeredi.hu, amir73il@gmail.com, vgoyal@redhat.com
+Cc: rgoldwyn@suse.com, Fabian Vogt <fvogt@suse.com>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-Right now we rely on path based lookup for data origin of metacopy upper.
-This will work only if upper has not been renamed. We solved this problem
-already for merged directories using redirect. Use same logic for metacopy
-files.
+From: Fabian Vogt <fvogt@suse.com>
 
-This patch just goes on to check redirects for metacopy files.
+xattrs are not guarantees to be compatible across different filesystems.
+Operations which lead to copying of files to the upper layer fail with an
+"Operation not supported" error from the filesystem if a xattr could not be
+written in the upper layer. We can safely ignore "system" xattrs.
 
-Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
+One easy to hit example is using NFS as a read-only lower layer and !NFS as
+upper layer to store changes. Files on NFS can have the "system.nfs4_acl"
+xattr set to make the full information available to userspace, but it cannot
+be written to on other filesystems.
+
+Signed-off-by: Fabian Vogt <fvogt@suse.com>
+Signed-off-by: Goldwyn Rodrigues <rgoldwyn@suse.com>
 ---
- fs/overlayfs/namei.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/overlayfs/copy_up.c | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
-index 880c7faea41a..41cbde97a212 100644
---- a/fs/overlayfs/namei.c
-+++ b/fs/overlayfs/namei.c
-@@ -268,7 +268,8 @@ static int ovl_lookup_single(struct dentry *base, struct ovl_lookup_data *d,
- 			goto out_err;
- 		d->stop = !err;
- 		d->metacopy = !!err;
--		goto out;
-+		if (!d->metacopy || d->last)
-+			goto out;
- 	} else {
- 		if (last_element) {
- 			if (d->metacopy) {
-@@ -874,7 +875,6 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
+diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
+index d855f508fa20..e7662e9664be 100644
+--- a/fs/overlayfs/copy_up.c
++++ b/fs/overlayfs/copy_up.c
+@@ -125,6 +125,10 @@ int ovl_copy_xattr(struct dentry *old, struct dentry *new)
+ 			continue; /* Discard */
  		}
- 		if (upperdentry && !d.is_dir) {
- 			unsigned int origin_ctr = 0;
--			BUG_ON(d.redirect);
- 			/*
- 			 * Lookup copy up origin by decoding origin file handle.
- 			 * We may get a disconnected dentry, which is fine,
+ 		error = vfs_setxattr(new, name, value, size, 0);
++		if (error == -EOPNOTSUPP && strncmp("system.", name, 7) == 0) {
++			error = 0;
++			continue; /* Discard */
++		}
+ 		if (error)
+ 			break;
+ 	}
 -- 
-2.13.6
+2.16.2
+
