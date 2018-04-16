@@ -1,57 +1,31 @@
-Return-Path: <vgoyal@redhat.com>
-From: Vivek Goyal <vgoyal@redhat.com>
-Subject: [PATCH v14 21/31] ovl: Add an inode flag OVL_CONST_INO
-Date: Thu, 26 Apr 2018 15:10:03 -0400
-Message-Id: <20180426191013.13219-22-vgoyal@redhat.com>
-In-Reply-To: <20180426191013.13219-1-vgoyal@redhat.com>
-References: <20180426191013.13219-1-vgoyal@redhat.com>
-To: linux-unionfs@vger.kernel.org
-Cc: miklos@szeredi.hu, amir73il@gmail.com, vgoyal@redhat.com
+Return-Path: <linux-unionfs-owner@vger.kernel.org>
+Received: from mail-yw0-f176.google.com ([209.85.161.176]:47093 "EHLO
+        mail-yw0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751183AbeDPP1U (ORCPT
+        <rfc822;linux-unionfs@vger.kernel.org>);
+        Mon, 16 Apr 2018 11:27:20 -0400
+MIME-Version: 1.0
+In-Reply-To: <20180416104141.17134-1-mszeredi@redhat.com>
+References: <20180416104141.17134-1-mszeredi@redhat.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Date: Mon, 16 Apr 2018 18:27:19 +0300
+Message-ID: <CAOQ4uxjtcKFvKq2orqTKQtW0VMb5hJKc8-7AATOY=GP5XGvZfg@mail.gmail.com>
+Subject: Re: [PATCH 1/2] overlay/40: clean up properly after setting immutable
+Content-Type: text/plain; charset="UTF-8"
+Sender: linux-unionfs-owner@vger.kernel.org
+To: Miklos Szeredi <mszeredi@redhat.com>
+Cc: fstests <fstests@vger.kernel.org>, overlayfs <linux-unionfs@vger.kernel.org>, Eryu Guan <eguan@redhat.com>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-Add an ovl_inode flag OVL_CONST_INO. This flag signifies if inode number
-will remain constant over copy up or not. This flag does not get updated
-over copy up and remains unmodifed after setting once.
+On Mon, Apr 16, 2018 at 1:41 PM, Miklos Szeredi <mszeredi@redhat.com> wrote:
+> Test program expects only immutable on lower layer (test failure), but does
+> not expect the immutable file to be on the upper layer.  The later case is
+> actually what *should* happen, except overlayfs didn't properly implement
+> this case yet (but is now in the works).
+>
+> Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
 
-Next patch in the series will make use of this flag. It will basically
-figure out if dentry is of type ORIGIN or not. And this can be derived
-by this flag.
+Looks good.
 
-ORIGIN = (upperdentry && ovl_test_flag(OVL_CONST_INO, inode)).
-
-Suggested-by: Amir Goldstein <amir73il@gmail.com>
-Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
----
- fs/overlayfs/inode.c     | 3 +++
- fs/overlayfs/overlayfs.h | 2 ++
- 2 files changed, 5 insertions(+)
-
-diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
-index a6cd57741a1f..19e96d4717bd 100644
---- a/fs/overlayfs/inode.c
-+++ b/fs/overlayfs/inode.c
-@@ -881,6 +881,9 @@ struct inode *ovl_get_inode(struct super_block *sb, struct dentry *upperdentry,
- 
- 	OVL_I(inode)->redirect = redirect;
- 
-+	if (bylower)
-+		ovl_set_flag(OVL_CONST_INO, inode);
-+
- 	/* Check for non-merge dir that may have whiteouts */
- 	if (is_dir) {
- 		if (((upperdentry && lowerdentry) || numlower > 1) ||
-diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-index e24af484967f..e2c6a2f5addf 100644
---- a/fs/overlayfs/overlayfs.h
-+++ b/fs/overlayfs/overlayfs.h
-@@ -38,6 +38,8 @@ enum ovl_inode_flag {
- 	OVL_WHITEOUTS,
- 	OVL_INDEX,
- 	OVL_UPPERDATA,
-+	/* Inode number will remain constant over copy up. */
-+	OVL_CONST_INO,
- };
- 
- enum ovl_entry_flag {
--- 
-2.13.6
+Thanks,
+Amir.
