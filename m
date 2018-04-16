@@ -1,90 +1,123 @@
-Return-Path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mx3-rdu2.redhat.com ([66.187.233.73]:38230 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1752418AbeDZTKk (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 26 Apr 2018 15:10:40 -0400
-From: Vivek Goyal <vgoyal@redhat.com>
-Subject: [PATCH v14 08/31] ovl: Use out_err instead of out_nomem
-Date: Thu, 26 Apr 2018 15:09:50 -0400
-Message-Id: <20180426191013.13219-9-vgoyal@redhat.com>
-In-Reply-To: <20180426191013.13219-1-vgoyal@redhat.com>
-References: <20180426191013.13219-1-vgoyal@redhat.com>
-Sender: linux-unionfs-owner@vger.kernel.org
+Return-Path: <cgxu519@gmx.com>
+From: Chengguang Xu <cgxu519@gmx.com>
+Subject: [PATCH v7 1/3] ovl: adjust option parsing for supporting remount
+Date: Mon, 16 Apr 2018 09:37:06 +0800
+Message-Id: <1523842628-11651-2-git-send-email-cgxu519@gmx.com>
+In-Reply-To: <1523842628-11651-1-git-send-email-cgxu519@gmx.com>
+References: <1523842628-11651-1-git-send-email-cgxu519@gmx.com>
 To: linux-unionfs@vger.kernel.org
-Cc: miklos@szeredi.hu, amir73il@gmail.com, vgoyal@redhat.com
+Cc: miklos@szeredi.hu, amir73il@gmail.com, Chengguang Xu <cgxu519@gmx.com>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-Right now we use goto out_nomem which assumes error code is -ENOMEM. But
-there are other errors returned like -ESTALE as well. So instead of out_nomem,
-use out_err which will do ERR_PTR(err). That way one can putt error code
-in err and jump to out_err.
+Adjust ovl_parse_opt() and ovl_parse_redirect_mode() to support option
+parsing in remount.
 
-This just code reorganization and no change of functionality.
-
-I am about to add more code and this organization helps laying more code
-and error paths on top of it.
-
-Reviewed-by: Amir Goldstein <amir73il@gmail.com>
-Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
+Signed-off-by: Chengguang Xu <cgxu519@gmx.com>
 ---
- fs/overlayfs/inode.c | 17 ++++++++++-------
- 1 file changed, 10 insertions(+), 7 deletions(-)
+Changes since v3:
+- Delete redundant argument of ovl_parse_redirect_mode()
 
-diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
-index 8a25bb569bdd..59b1c84076ec 100644
---- a/fs/overlayfs/inode.c
-+++ b/fs/overlayfs/inode.c
-@@ -778,6 +778,7 @@ struct inode *ovl_get_inode(struct super_block *sb, struct dentry *upperdentry,
- 	int fsid = bylower ? lowerpath->layer->fsid : 0;
- 	bool is_dir;
- 	unsigned long ino = 0;
-+	int err = -ENOMEM;
- 
- 	if (!realinode)
- 		realinode = d_inode(lowerdentry);
-@@ -795,7 +796,7 @@ struct inode *ovl_get_inode(struct super_block *sb, struct dentry *upperdentry,
- 		inode = iget5_locked(sb, (unsigned long) key,
- 				     ovl_inode_test, ovl_inode_set, key);
- 		if (!inode)
--			goto out_nomem;
-+			goto out_err;
- 		if (!(inode->i_state & I_NEW)) {
- 			/*
- 			 * Verify that the underlying files stored in the inode
-@@ -804,8 +805,8 @@ struct inode *ovl_get_inode(struct super_block *sb, struct dentry *upperdentry,
- 			if (!ovl_verify_inode(inode, lowerdentry, upperdentry,
- 					      true)) {
- 				iput(inode);
--				inode = ERR_PTR(-ESTALE);
--				goto out;
-+				err = -ESTALE;
-+				goto out_err;
- 			}
- 
- 			dput(upperdentry);
-@@ -821,8 +822,10 @@ struct inode *ovl_get_inode(struct super_block *sb, struct dentry *upperdentry,
- 	} else {
- 		/* Lower hardlink that will be broken on copy up */
- 		inode = new_inode(sb);
--		if (!inode)
--			goto out_nomem;
-+		if (!inode) {
-+			err = -ENOMEM;
-+			goto out_err;
-+		}
- 	}
- 	ovl_fill_inode(inode, realinode->i_mode, realinode->i_rdev, ino, fsid);
- 	ovl_inode_init(inode, upperdentry, lowerdentry);
-@@ -848,7 +851,7 @@ struct inode *ovl_get_inode(struct super_block *sb, struct dentry *upperdentry,
- out:
- 	return inode;
- 
--out_nomem:
--	inode = ERR_PTR(-ENOMEM);
-+out_err:
-+	inode = ERR_PTR(err);
- 	goto out;
+Changes since v2:
+- Move default initialization of redirect_mode to fill_super()
+just before calling parse_opt().
+- Move workdir validation check to fill_super().
+- Move remount option validation to ovl_remount().
+
+Changes since v1:
+- Add remount option validation to parse_opt()
+
+ fs/overlayfs/super.c | 43 ++++++++++++++++++++++++-------------------
+ 1 file changed, 24 insertions(+), 19 deletions(-)
+
+diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+index e8551c9..e99864e 100644
+--- a/fs/overlayfs/super.c
++++ b/fs/overlayfs/super.c
+@@ -455,23 +455,26 @@ static char *ovl_next_opt(char **s)
+ 	return sbegin;
  }
+ 
+-static int ovl_parse_redirect_mode(struct ovl_config *config, const char *mode)
++static int ovl_parse_redirect_mode(struct ovl_config *config)
+ {
+-	if (strcmp(mode, "on") == 0) {
++	if (!config->redirect_mode)
++		return 0;
++
++	if (strcmp(config->redirect_mode, "on") == 0) {
+ 		config->redirect_dir = true;
+ 		/*
+ 		 * Does not make sense to have redirect creation without
+ 		 * redirect following.
+ 		 */
+ 		config->redirect_follow = true;
+-	} else if (strcmp(mode, "follow") == 0) {
++	} else if (strcmp(config->redirect_mode, "follow") == 0) {
+ 		config->redirect_follow = true;
+-	} else if (strcmp(mode, "off") == 0) {
++	} else if (strcmp(config->redirect_mode, "off") == 0) {
+ 		if (ovl_redirect_always_follow)
+ 			config->redirect_follow = true;
+-	} else if (strcmp(mode, "nofollow") != 0) {
++	} else if (strcmp(config->redirect_mode, "nofollow") != 0) {
+ 		pr_err("overlayfs: bad mount option \"redirect_dir=%s\"\n",
+-		       mode);
++		       config->redirect_mode);
+ 		return -EINVAL;
+ 	}
+ 
+@@ -482,10 +485,6 @@ static int ovl_parse_opt(char *opt, struct ovl_config *config)
+ {
+ 	char *p;
+ 
+-	config->redirect_mode = kstrdup(ovl_redirect_mode_def(), GFP_KERNEL);
+-	if (!config->redirect_mode)
+-		return -ENOMEM;
+-
+ 	while ((p = ovl_next_opt(&opt)) != NULL) {
+ 		int token;
+ 		substring_t args[MAX_OPT_ARGS];
+@@ -561,15 +560,7 @@ static int ovl_parse_opt(char *opt, struct ovl_config *config)
+ 		}
+ 	}
+ 
+-	/* Workdir is useless in non-upper mount */
+-	if (!config->upperdir && config->workdir) {
+-		pr_info("overlayfs: option \"workdir=%s\" is useless in a non-upper mount, ignore\n",
+-			config->workdir);
+-		kfree(config->workdir);
+-		config->workdir = NULL;
+-	}
+-
+-	return ovl_parse_redirect_mode(config, config->redirect_mode);
++	return ovl_parse_redirect_mode(config);
+ }
+ 
+ #define OVL_WORKDIR_NAME "work"
+@@ -1376,10 +1367,24 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
+ 	ofs->config.index = ovl_index_def;
+ 	ofs->config.nfs_export = ovl_nfs_export_def;
+ 	ofs->config.xino = ovl_xino_def();
++
++	ofs->config.redirect_mode = kstrdup(ovl_redirect_mode_def(),
++							GFP_KERNEL);
++	if (!ofs->config.redirect_mode)
++		return -ENOMEM;
++
+ 	err = ovl_parse_opt((char *) data, &ofs->config);
+ 	if (err)
+ 		goto out_err;
+ 
++	/* Workdir is useless in non-upper mount */
++	if (!ofs->config.upperdir && ofs->config.workdir) {
++		pr_info("overlayfs: option \"workdir=%s\" is useless in a non-upper mount, ignore\n",
++			ofs->config.workdir);
++		kfree(ofs->config.workdir);
++		ofs->config.workdir = NULL;
++	}
++
+ 	err = -EINVAL;
+ 	if (!ofs->config.lowerdir) {
+ 		if (!silent)
 -- 
-2.13.6
-
+1.8.3.1
