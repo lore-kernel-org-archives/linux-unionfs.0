@@ -1,95 +1,71 @@
-Return-Path: <cgxu519@gmx.com>
-From: Chengguang Xu <cgxu519@gmx.com>
-Subject: [PATCH 1/3] ovl: refactor lowerstack related functions
-Date: Tue, 17 Apr 2018 10:42:43 +0800
-Message-Id: <1523932965-25792-1-git-send-email-cgxu519@gmx.com>
-To: linux-unionfs@vger.kernel.org
-Cc: miklos@szeredi.hu, amir73il@gmail.com, Chengguang Xu <cgxu519@gmx.com>
+Return-Path: <amir73il@gmail.com>
+Return-Path: <amir73il@gmail.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Subject: [PATCH 1/2] common/rc: factor out _require_scratch_fs_option
+Date: Wed, 18 Apr 2018 17:16:57 +0300
+Message-Id: <1524061018-20413-2-git-send-email-amir73il@gmail.com>
+In-Reply-To: <1524061018-20413-1-git-send-email-amir73il@gmail.com>
+References: <1524061018-20413-1-git-send-email-amir73il@gmail.com>
+To: Eryu Guan <eguan@redhat.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, fstests@vger.kernel.org
 List-ID: <linux-unionfs@vger.kernel.org>
 
-Introduce __ovl_path_lower() to handle lowerstack related things
-and refactor ovl_dentry_lower()/ovl_layer_lower() based on it.
+Factor out _require_scratch_fs_option and _check_scratch_fs_option
+from the helper _require_scratch_dax.
+Those are generic helpers to test if mount option is supported and
+if mount option was enabled.
 
-Signed-off-by: Chengguang Xu <cgxu519@gmx.com>
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- fs/overlayfs/overlayfs.h |  1 +
- fs/overlayfs/util.c      | 35 +++++++++++++++++++++++++++++++----
- 2 files changed, 32 insertions(+), 4 deletions(-)
+ common/rc | 29 ++++++++++++++++++++++-------
+ 1 file changed, 22 insertions(+), 7 deletions(-)
 
-diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-index e0b7de7..abb5cf4 100644
---- a/fs/overlayfs/overlayfs.h
-+++ b/fs/overlayfs/overlayfs.h
-@@ -215,6 +215,7 @@ static inline struct dentry *ovl_do_tmpfile(struct dentry *dentry, umode_t mode)
- enum ovl_path_type ovl_path_real(struct dentry *dentry, struct path *path);
- struct dentry *ovl_dentry_upper(struct dentry *dentry);
- struct dentry *ovl_dentry_lower(struct dentry *dentry);
-+struct vfsmount *ovl_mnt_lower(struct dentry *dentry);
- struct ovl_layer *ovl_layer_lower(struct dentry *dentry);
- struct dentry *ovl_dentry_real(struct dentry *dentry);
- struct dentry *ovl_i_dentry_upper(struct inode *inode);
-diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
-index 6f10780..a3459e6 100644
---- a/fs/overlayfs/util.c
-+++ b/fs/overlayfs/util.c
-@@ -157,8 +157,8 @@ void ovl_path_lower(struct dentry *dentry, struct path *path)
- 	struct ovl_entry *oe = dentry->d_fsdata;
- 
- 	if (oe->numlower) {
--		path->mnt = oe->lowerstack[0].layer->mnt;
--		path->dentry = oe->lowerstack[0].dentry;
-+		path->mnt = ovl_mnt_lower(dentry);
-+		path->dentry = ovl_dentry_lower(dentry);
- 	} else {
- 		*path = (struct path) { };
- 	}
-@@ -181,18 +181,45 @@ struct dentry *ovl_dentry_upper(struct dentry *dentry)
- 	return ovl_upperdentry_dereference(OVL_I(d_inode(dentry)));
+diff --git a/common/rc b/common/rc
+index 622afd6..23c3978 100644
+--- a/common/rc
++++ b/common/rc
+@@ -3036,20 +3036,35 @@ _require_scratch_shutdown()
+ 	_scratch_unmount
  }
  
-+struct ovl_path *__ovl_path_lower(struct ovl_entry *oe, int layer)
+-# Does dax mount option work on this dev/fs?
+-_require_scratch_dax()
++_check_scratch_fs_option()
 +{
-+	if (layer > oe->numlower)
-+		return NULL;
++	local opt=$1
 +
-+	return &oe->lowerstack[layer - 1];
++	_fs_options $SCRATCH_DEV | grep -qw "$opt"
 +}
 +
-+struct vfsmount *ovl_mnt_lower(struct dentry *dentry)
-+{
-+	struct ovl_entry *oe = dentry->d_fsdata;
-+	struct ovl_path *path = __ovl_path_lower(oe, 1);
++# Does mount option work on this dev/fs?
++_require_scratch_fs_option()
+ {
++	local opt=$1
 +
-+	if (path)
-+		return path->layer->mnt;
-+	else
-+		return NULL;
+ 	_require_scratch
+ 	_scratch_mkfs > /dev/null 2>&1
+-	_try_scratch_mount -o dax || \
+-		_notrun "mount $SCRATCH_DEV with dax failed"
+-	# Check options to be sure. XFS ignores dax option
++	_try_scratch_mount -o "$opt" || \
++		_notrun "mount $SCRATCH_DEV with $opt failed"
++	# Check options to be sure. For example, XFS ignores dax option
+ 	# and goes on if dev underneath does not support dax.
+-	_fs_options $SCRATCH_DEV | grep -qw "dax" || \
+-		_notrun "$SCRATCH_DEV $FSTYP does not support -o dax"
++	_check_scratch_fs_option "$opt" || \
++		_notrun "$SCRATCH_DEV $FSTYP does not support -o $opt"
+ 	_scratch_unmount
+ }
+ 
++# Does dax mount option work on this dev/fs?
++_require_scratch_dax()
++{
++	_require_scratch_fs_option "dax"
 +}
 +
- struct dentry *ovl_dentry_lower(struct dentry *dentry)
+ # Does norecovery support by this fs?
+ _require_norecovery()
  {
- 	struct ovl_entry *oe = dentry->d_fsdata;
-+	struct ovl_path *path = __ovl_path_lower(oe, 1);
- 
--	return oe->numlower ? oe->lowerstack[0].dentry : NULL;
-+	if (path)
-+		return path->dentry;
-+	else
-+		return NULL;
- }
- 
- struct ovl_layer *ovl_layer_lower(struct dentry *dentry)
- {
- 	struct ovl_entry *oe = dentry->d_fsdata;
-+	struct ovl_path *path = __ovl_path_lower(oe, 1);
- 
--	return oe->numlower ? oe->lowerstack[0].layer : NULL;
-+	if (path)
-+		return path->layer;
-+	else
-+		return NULL;
- }
- 
- struct dentry *ovl_dentry_real(struct dentry *dentry)
 -- 
-1.8.3.1
+2.7.4
