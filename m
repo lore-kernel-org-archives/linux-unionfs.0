@@ -1,30 +1,43 @@
-MIME-Version: 1.0
-In-Reply-To: <1524061018-20413-1-git-send-email-amir73il@gmail.com>
-References: <1524061018-20413-1-git-send-email-amir73il@gmail.com>
-Date: Wed, 18 Apr 2018 16:23:18 +0200
-Message-ID: <CAJfpegsQ01V9Jyboy+9W9eahMDNM7nggLHFkbD=13hNhX+Du0g@mail.gmail.com>
-Subject: Re: [PATCH 0/2] Fix failing overlay nonsamefs fstests
-From: Miklos Szeredi <miklos@szeredi.hu>
-Content-Type: text/plain; charset="UTF-8"
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: Eryu Guan <eguan@redhat.com>, overlayfs <linux-unionfs@vger.kernel.org>, fstests <fstests@vger.kernel.org>
+Return-Path: <amir73il@gmail.com>
+Return-Path: <amir73il@gmail.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Subject: [PATCH 0/2] Fix failing overlay nonsamefs fstests
+Date: Wed, 18 Apr 2018 17:16:56 +0300
+Message-Id: <1524061018-20413-1-git-send-email-amir73il@gmail.com>
+To: Eryu Guan <eguan@redhat.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, fstests@vger.kernel.org
 List-ID: <linux-unionfs@vger.kernel.org>
 
-On Wed, Apr 18, 2018 at 4:16 PM, Amir Goldstein <amir73il@gmail.com> wrote:
+Eryu,
 
-> FYI, Miklos has a patch set in review to fix the last of the
-> non-standard behavior tracking test that is still failing (overlay/016).
-> After that patch set is merged, all overlay tests will be expected to
-> pass on master - new era ;-)
+The modified 3 tests were introduced to track a non-standard
+behavior of overlayfs w.r.t. inode numbers with nonsamefs
+configuration.
 
-Oh, we can write new tests that don't pass ;)
+This behavior cannot be fixed with all underlying filesystems
+unless user opts-in for the xino feature.
 
-For example -ostrictatime mounts are not going to behave POSIX'ly (and
-probably nobody cares, but still).  And we have that minor weirdness
-with directory nlink being constant 1.   And probably some others.
+xino feature was introduced in kernel v4.17-rc1. This patch
+set converts the tests to notrun instead of failing on old kernels
+and opts-in for xino with new kernels.
 
-Not that there's a hurry to test these... So yeah, having all tests
-pass would be nice :)
+FYI, Miklos has a patch set in review to fix the last of the
+non-standard behavior tracking test that is still failing (overlay/016).
+After that patch set is merged, all overlay tests will be expected to
+pass on master - new era ;-)
 
 Thanks,
-Miklos
+Amir.
+
+Amir Goldstein (2):
+  common/rc: factor out _require_scratch_fs_option
+  overlay/04{1,3,4}: enable xino feature
+
+ common/rc         | 29 ++++++++++++++++++++++-------
+ tests/overlay/041 | 15 +++++++++++----
+ tests/overlay/043 | 13 ++++++++++---
+ tests/overlay/044 | 15 +++++++++++----
+ 4 files changed, 54 insertions(+), 18 deletions(-)
+
+-- 
+2.7.4
