@@ -1,101 +1,74 @@
-Return-Path: <amir73il@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <CAJfpegv3AFBR6J1Bd9tSw0KrahC33W6Cfk73R8=Ejkb08WKXfA@mail.gmail.com>
+In-Reply-To: <CAOQ4uxhQku0jchmxynrQ2CXunSnDuWppaK3d2e41+txzsJQPzQ@mail.gmail.com>
 References: <1524061018-20413-1-git-send-email-amir73il@gmail.com>
- <CAJfpegsQ01V9Jyboy+9W9eahMDNM7nggLHFkbD=13hNhX+Du0g@mail.gmail.com>
- <CAOQ4uxg=aQpHWFEz4M+Kz9gOtu6XJd8rGw1oa4zrtyMZ+T7ogQ@mail.gmail.com>
- <CAJfpegsKYh5hWofQxO5gVCLL3PoAGSaVEF8O+K72tk+TBjEJwQ@mail.gmail.com>
- <CAOQ4uxhQku0jchmxynrQ2CXunSnDuWppaK3d2e41+txzsJQPzQ@mail.gmail.com> <CAJfpegv3AFBR6J1Bd9tSw0KrahC33W6Cfk73R8=Ejkb08WKXfA@mail.gmail.com>
-From: Amir Goldstein <amir73il@gmail.com>
-Date: Mon, 23 Apr 2018 08:57:21 -0700
-Message-ID: <CAOQ4uxiALH82=9Q4y1DNO1_-LmKy4WPpevypKndcFw-ATtNkRg@mail.gmail.com>
+	<CAJfpegsQ01V9Jyboy+9W9eahMDNM7nggLHFkbD=13hNhX+Du0g@mail.gmail.com>
+	<CAOQ4uxg=aQpHWFEz4M+Kz9gOtu6XJd8rGw1oa4zrtyMZ+T7ogQ@mail.gmail.com>
+	<CAJfpegsKYh5hWofQxO5gVCLL3PoAGSaVEF8O+K72tk+TBjEJwQ@mail.gmail.com>
+	<CAOQ4uxhQku0jchmxynrQ2CXunSnDuWppaK3d2e41+txzsJQPzQ@mail.gmail.com>
+Date: Mon, 23 Apr 2018 17:12:21 +0200
+Message-ID: <CAJfpegv3AFBR6J1Bd9tSw0KrahC33W6Cfk73R8=Ejkb08WKXfA@mail.gmail.com>
 Subject: Re: [PATCH 0/2] Fix failing overlay nonsamefs fstests
+From: Miklos Szeredi <miklos@szeredi.hu>
 Content-Type: text/plain; charset="UTF-8"
-To: Miklos Szeredi <miklos@szeredi.hu>
+To: Amir Goldstein <amir73il@gmail.com>
 Cc: Eryu Guan <eguan@redhat.com>, overlayfs <linux-unionfs@vger.kernel.org>, fstests <fstests@vger.kernel.org>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-On Mon, Apr 23, 2018 at 8:12 AM, Miklos Szeredi <miklos@szeredi.hu> wrote:
-> On Mon, Apr 23, 2018 at 4:50 PM, Amir Goldstein <amir73il@gmail.com> wrote:
->> On Mon, Apr 23, 2018 at 6:37 AM, Miklos Szeredi <miklos@szeredi.hu> wrote:
->>> On Wed, Apr 18, 2018 at 4:30 PM, Amir Goldstein <amir73il@gmail.com> wrote:
->>>> On Wed, Apr 18, 2018 at 5:23 PM, Miklos Szeredi <miklos@szeredi.hu> wrote:
->>>>> On Wed, Apr 18, 2018 at 4:16 PM, Amir Goldstein <amir73il@gmail.com> wrote:
->>>>>
->>>>>> FYI, Miklos has a patch set in review to fix the last of the
->>>>>> non-standard behavior tracking test that is still failing (overlay/016).
->>>>>> After that patch set is merged, all overlay tests will be expected to
->>>>>> pass on master - new era ;-)
->>>>>
->>>>> Oh, we can write new tests that don't pass ;)
->>>
->>> Another one:
->>>
->>> fstat() returns incorrect st_ctime after unlink of a lower file/directory.
->>>
->>> Alternative fixes:
->>>
->>> 1) take some attributes from whiteout
->>>
->>> 2) metacopy up to tmpfile
-
-I have patches to copy up to an "orphan index":
-https://github.com/amir73il/linux/commits/ovl-rocopyup
-
-combine that with metacopy and you have a ready and
-inexpensive place holder for st_ctime of unlinked file.
-
->>>
->>> But first of all, we need a test case that fails, otherwise there's no
->>> motivation to do the fix ;)
->>>
+On Mon, Apr 23, 2018 at 4:50 PM, Amir Goldstein <amir73il@gmail.com> wrote:
+> On Mon, Apr 23, 2018 at 6:37 AM, Miklos Szeredi <miklos@szeredi.hu> wrote:
+>> On Wed, Apr 18, 2018 at 4:30 PM, Amir Goldstein <amir73il@gmail.com> wrote:
+>>> On Wed, Apr 18, 2018 at 5:23 PM, Miklos Szeredi <miklos@szeredi.hu> wrote:
+>>>> On Wed, Apr 18, 2018 at 4:16 PM, Amir Goldstein <amir73il@gmail.com> wrote:
+>>>>
+>>>>> FYI, Miklos has a patch set in review to fix the last of the
+>>>>> non-standard behavior tracking test that is still failing (overlay/016).
+>>>>> After that patch set is merged, all overlay tests will be expected to
+>>>>> pass on master - new era ;-)
+>>>>
+>>>> Oh, we can write new tests that don't pass ;)
 >>
->> I admit that the failing xfstests I wrote have had a "motivating"
->> effect, but going forward, I feel that xfstests is not really the place
->> for these sort of weird behavior tests. I find it to be more suiting as
->> a regression tracking test suite and special test case coverage.
+>> Another one:
 >>
->> IMO, parent ctime fits better to a POSIX compliance test suite, such
->> as pdjfstest.
+>> fstat() returns incorrect st_ctime after unlink of a lower file/directory.
+>>
+>> Alternative fixes:
+>>
+>> 1) take some attributes from whiteout
+>>
+>> 2) metacopy up to tmpfile
+>>
+>> But first of all, we need a test case that fails, otherwise there's no
+>> motivation to do the fix ;)
+>>
 >
-> I'm not talking about parent ctime, rather victim ctime (updated due
-> to nlink change).
+> I admit that the failing xfstests I wrote have had a "motivating"
+> effect, but going forward, I feel that xfstests is not really the place
+> for these sort of weird behavior tests. I find it to be more suiting as
+> a regression tracking test suite and special test case coverage.
 >
->>
->> And besides, overlayfs now feels it is in a functional state that is worthy
->> of PASS. Sure, that is a very subjective observation.
->>
->>> I'm wondering, would it make sense to manually add "rotation points"
->>> to plain xfstest test cases?
->>
->> Can you give an example of an xfstest and a rotation point?
->
-> Any test where there is a setup phase and a test phase is asking for a
-> rotation point (i.e. set up on lower (no-overlay) and then modify on
-> overlay).
+> IMO, parent ctime fits better to a POSIX compliance test suite, such
+> as pdjfstest.
 
-xfstest cases do not have a setup phase and run phase, so
-I don't see a way that this could be done elegantly without
-modifying all test cases.
+I'm not talking about parent ctime, rather victim ctime (updated due
+to nlink change).
 
 >
-> I haven't thought about individual test cases, just wondering if
-> there's already a testcase testing st_ctime on unlink for example,
-> that is only not failing because there isn't a rotation of overlay
-> after the setup phase.
+> And besides, overlayfs now feels it is in a functional state that is worthy
+> of PASS. Sure, that is a very subjective observation.
 >
+>> I'm wondering, would it make sense to manually add "rotation points"
+>> to plain xfstest test cases?
+>
+> Can you give an example of an xfstest and a rotation point?
 
->From what I can see there are a few tests checking ctime update,
-mainly regression tests for btrfs ctime update bugs:
-$ git grep ctime.update tests/
-tests/generic/221:# Check ctime updates when calling futimens without
-UTIME_OMIT for the
-tests/generic/236:# Check ctime updated or not if file linked
-tests/generic/236:# check ctime updated
-tests/generic/277:# Check if ctime update caused by chattr is written to disk
-tests/generic/408:      echo "ctime updated"
+Any test where there is a setup phase and a test phase is asking for a
+rotation point (i.e. set up on lower (no-overlay) and then modify on
+overlay).
 
-generic/236 tests the link use case, but no test for unlink AFAIK.
+I haven't thought about individual test cases, just wondering if
+there's already a testcase testing st_ctime on unlink for example,
+that is only not failing because there isn't a rotation of overlay
+after the setup phase.
 
 Thanks,
-Amir.
+Miklos
