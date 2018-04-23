@@ -1,322 +1,95 @@
-Return-Path: <vgoyal@redhat.com>
-Date: Mon, 2 Apr 2018 11:06:51 -0400
-From: Vivek Goyal <vgoyal@redhat.com>
-Subject: Re: [PATCH v13 10/28] ovl: Modify ovl_lookup() and friends to lookup
- metacopy dentry
-Message-ID: <20180402150651.GC23306@redhat.com>
-References: <20180329193854.13814-1-vgoyal@redhat.com>
- <20180329193854.13814-11-vgoyal@redhat.com>
- <CAOQ4uxiO8fRn6TB54SANB4cp4uURDJ6wQVNT8mF29nH67F7M+A@mail.gmail.com>
+Return-Path: <amir73il@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAOQ4uxiO8fRn6TB54SANB4cp4uURDJ6wQVNT8mF29nH67F7M+A@mail.gmail.com>
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: overlayfs <linux-unionfs@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>
+In-Reply-To: <CAOQ4uxi9VBjN-xiGddepS3B_O=iteaV=dwew8_xdZ6R9seQqSA@mail.gmail.com>
+References: <1510555438-28996-1-git-send-email-amir73il@gmail.com>
+ <CAOQ4uxgnzRummiQm0DNP52QxGoJ8XN+EtEkYBWxyTD5YUWf+nQ@mail.gmail.com> <CAOQ4uxi9VBjN-xiGddepS3B_O=iteaV=dwew8_xdZ6R9seQqSA@mail.gmail.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Date: Mon, 23 Apr 2018 08:44:36 -0700
+Message-ID: <CAOQ4uxgcyceCiFJTLj1jZSfcFPifKUn9S6tbP36q=xqHTFN6BQ@mail.gmail.com>
+Subject: Re: [PATCH v2] tmpfs: allow decoding a file handle of an unlinked file
+Content-Type: text/plain; charset="UTF-8"
+To: Hugh Dickins <hughd@google.com>, Al Viro <viro@zeniv.linux.org.uk>
+Cc: Jeff Layton <jlayton@poochiereds.net>, "J . Bruce Fields" <bfields@fieldses.org>, James Bottomley <James.Bottomley@hansenpartnership.com>, overlayfs <linux-unionfs@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>, Linux MM <linux-mm@kvack.org>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-On Fri, Mar 30, 2018 at 08:49:26AM +0300, Amir Goldstein wrote:
-> On Thu, Mar 29, 2018 at 10:38 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
-> > This patch modifies ovl_lookup() and friends to lookup metacopy dentries.
-> > It also allows for presence of metacopy dentries in lower layer.
-> >
-> > During lookup, check for presence of OVL_XATTR_METACOPY and if not present,
-> > set OVL_UPPERDATA bit in flags.
-> >
-> > We don't support metacopy feature with nfs_export. So in nfs_export code,
-> > we set OVL_UPPERDATA flag set unconditionally if upper inode exists.
-> >
-> > Do not follow metacopy origin if we find a metacopy only inode and metacopy
-> > feature is not enabled for that mount. Like redirect, this can have security
-> > implications where an attacker could hand craft upper and try to gain
-> > access to file on lower which it should not have to begin with.
-> >
-> > Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
-> > ---
-> >  fs/overlayfs/export.c    |  3 ++
-> >  fs/overlayfs/inode.c     |  6 +++-
-> >  fs/overlayfs/namei.c     | 90 ++++++++++++++++++++++++++++++++++++++++++------
-> >  fs/overlayfs/overlayfs.h |  1 +
-> >  fs/overlayfs/util.c      | 22 ++++++++++++
-> >  5 files changed, 110 insertions(+), 12 deletions(-)
-> >
-> > diff --git a/fs/overlayfs/export.c b/fs/overlayfs/export.c
-> > index e668329f7361..1c233096e59c 100644
-> > --- a/fs/overlayfs/export.c
-> > +++ b/fs/overlayfs/export.c
-> > @@ -311,6 +311,9 @@ static struct dentry *ovl_obtain_alias(struct super_block *sb,
-> >                 return ERR_CAST(inode);
-> >         }
-> >
-> > +       if (upper)
-> > +               ovl_set_flag(OVL_UPPERDATA, inode);
-> > +
-> >         dentry = d_find_any_alias(inode);
-> >         if (!dentry) {
-> >                 dentry = d_alloc_anon(inode->i_sb);
-> > diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
-> > index 3991a890b464..e1dbfed0c449 100644
-> > --- a/fs/overlayfs/inode.c
-> > +++ b/fs/overlayfs/inode.c
-> > @@ -677,7 +677,7 @@ struct inode *ovl_get_inode(struct super_block *sb, struct dentry *upperdentry,
-> >         struct inode *realinode = upperdentry ? d_inode(upperdentry) : NULL;
-> >         struct inode *inode;
-> >         bool bylower = ovl_hash_bylower(sb, upperdentry, lowerdentry, index);
-> > -       bool is_dir;
-> > +       bool is_dir, metacopy = false;
-> >
-> >         if (!realinode)
-> >                 realinode = d_inode(lowerdentry);
-> > @@ -732,6 +732,10 @@ struct inode *ovl_get_inode(struct super_block *sb, struct dentry *upperdentry,
-> >         if (index)
-> >                 ovl_set_flag(OVL_INDEX, inode);
-> >
-> > +       metacopy = ovl_check_metacopy_xattr(upperdentry ?: lowerdentry);
-> 
-> No reason to check metacopy on lowerdentry.
+On Sat, Jan 27, 2018 at 2:02 PM, Amir Goldstein <amir73il@gmail.com> wrote:
+> On Fri, Jan 5, 2018 at 5:40 PM, Amir Goldstein <amir73il@gmail.com> wrote:
+>> On Mon, Nov 13, 2017 at 8:43 AM, Amir Goldstein <amir73il@gmail.com> wrote:
+>>> tmpfs uses the helper d_find_alias() to find a dentry from a decoded
+>>> inode, but d_find_alias() skips unhashed dentries, so unlinked files
+>>> cannot be decoded from a file handle.
+>>>
+>>> This can be reproduced using xfstests test program open_by_handle:
+>>> $ open_by handle -c /tmp/testdir
+>>> $ open_by_handle -dk /tmp/testdir
+>>> open_by_handle(/tmp/testdir/file000000) returned 116 incorrectly on an
+>>> unlinked open file!
+>>>
+>>> To fix this, if d_find_alias() can't find a hashed alias, call
+>>> d_find_any_alias() to return an unhashed one.
+>>>
+>>> Cc: Hugh Dickins <hughd@google.com>
+>>> Cc: Al Viro <viro@zeniv.linux.org.uk>
+>>> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+>>> ---
+>>>
+>>> Al, Miklos,
+>>>
+>>> Can either of you take this patch through your tree?
+>>>
+>>> Thanks,
+>>> Amir.
+>>>
+>>> Changes since v1:
+>>> - Prefer a hashed alias (James)
+>>> - Use existing d_find_any_alias() helper
+>>>
+>>>  mm/shmem.c | 11 ++++++++++-
+>>>  1 file changed, 10 insertions(+), 1 deletion(-)
+>>>
+>>> diff --git a/mm/shmem.c b/mm/shmem.c
+>>> index 07a1d22807be..5d3fa4099f54 100644
+>>> --- a/mm/shmem.c
+>>> +++ b/mm/shmem.c
+>>> @@ -3404,6 +3404,15 @@ static int shmem_match(struct inode *ino, void *vfh)
+>>>         return ino->i_ino == inum && fh[0] == ino->i_generation;
+>>>  }
+>>>
+>>> +/* Find any alias of inode, but prefer a hashed alias */
+>>> +static struct dentry *shmem_find_alias(struct inode *inode)
+>>> +{
+>>> +       struct dentry *alias = d_find_alias(inode);
+>>> +
+>>> +       return alias ?: d_find_any_alias(inode);
+>>> +}
+>>> +
+>>> +
+>>>  static struct dentry *shmem_fh_to_dentry(struct super_block *sb,
+>>>                 struct fid *fid, int fh_len, int fh_type)
+>>>  {
+>>> @@ -3420,7 +3429,7 @@ static struct dentry *shmem_fh_to_dentry(struct super_block *sb,
+>>>         inode = ilookup5(sb, (unsigned long)(inum + fid->raw[0]),
+>>>                         shmem_match, fid->raw);
+>>>         if (inode) {
+>>> -               dentry = d_find_alias(inode);
+>>> +               dentry = shmem_find_alias(inode);
+>>>                 iput(inode);
+>>>         }
+>>>
+>>> --
+>>
+>> Hugh,
+>>
+>> Did you get a chance to look at this patch?
+>>
+>> The test for decoding a file handle of an unlinked file has already been
+>> merged to xfstest generic/467 and the test is failing on tmpfs without this
+>> change.
+>>
+>> Can you please take or ACK this patch?
+>>
+>
+> Ping.
+>
 
-Right. Will change it.
-
-> 
-> > +       if (upperdentry && !metacopy)
-> > +               ovl_set_flag(OVL_UPPERDATA, inode);
-> > +
-> >         OVL_I(inode)->redirect = redirect;
-> >
-> >         /* Check for non-merge dir that may have whiteouts */
-> > diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
-> > index 0b325e65864c..1dba89e9543f 100644
-> > --- a/fs/overlayfs/namei.c
-> > +++ b/fs/overlayfs/namei.c
-> > @@ -24,6 +24,7 @@ struct ovl_lookup_data {
-> >         bool stop;
-> >         bool last;
-> >         char *redirect;
-> > +       bool metacopy;
-> >  };
-> >
-> >  static int ovl_check_redirect(struct dentry *dentry, struct ovl_lookup_data *d,
-> > @@ -252,9 +253,13 @@ static int ovl_lookup_single(struct dentry *base, struct ovl_lookup_data *d,
-> >                 goto put_and_out;
-> >         }
-> >         if (!d_can_lookup(this)) {
-> > -               d->stop = true;
-> 
-> upper was a dir. You look in lower and find a non-dir. you need to stop
-> going to next layer. goto put_and_out won't do that.
-
-Ok, will set d->stop = true before "goto put_and_out" to handle this
-case.
-
-> 
-> Similarly, you need to handle the case where dir is found below
-> non-dir with metacopy.
-
-Ok, will look into it.
-
-> 
-> >                 if (d->is_dir)
-> >                         goto put_and_out;
-> > +               err = ovl_check_metacopy_xattr(this);
-> > +               if (err < 0)
-> > +                       goto out_err;
-> > +               d->stop = !err;
-> > +               d->metacopy = !!err;
-> >                 goto out;
-> >         }
-> >         if (last_element)
-> > @@ -815,7 +820,7 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
-> >         struct ovl_fs *ofs = dentry->d_sb->s_fs_info;
-> >         struct ovl_entry *poe = dentry->d_parent->d_fsdata;
-> >         struct ovl_entry *roe = dentry->d_sb->s_root->d_fsdata;
-> > -       struct ovl_path *stack = NULL;
-> > +       struct ovl_path *stack = NULL, *origin_path = NULL;
-> >         struct dentry *upperdir, *upperdentry = NULL;
-> >         struct dentry *origin = NULL;
-> >         struct dentry *index = NULL;
-> > @@ -826,6 +831,7 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
-> >         struct dentry *this;
-> >         unsigned int i;
-> >         int err;
-> > +       bool metacopy = false;
-> >         struct ovl_lookup_data d = {
-> >                 .name = dentry->d_name,
-> >                 .is_dir = false,
-> > @@ -833,6 +839,7 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
-> >                 .stop = false,
-> >                 .last = ofs->config.redirect_follow ? false : !poe->numlower,
-> >                 .redirect = NULL,
-> > +               .metacopy = false,
-> >         };
-> >
-> >         if (dentry->d_name.len > ofs->namelen)
-> > @@ -851,7 +858,8 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
-> >                         goto out;
-> >                 }
-> >                 if (upperdentry && !d.is_dir) {
-> > -                       BUG_ON(!d.stop || d.redirect);
-> > +                       unsigned int origin_ctr = 0;
-> > +                       BUG_ON(d.redirect);
-> >                         /*
-> >                          * Lookup copy up origin by decoding origin file handle.
-> >                          * We may get a disconnected dentry, which is fine,
-> > @@ -862,16 +870,20 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
-> >                          * number - it's the same as if we held a reference
-> >                          * to a dentry in lower layer that was moved under us.
-> >                          */
-> > -                       err = ovl_check_origin(ofs, upperdentry, &stack, &ctr);
-> > +                       err = ovl_check_origin(ofs, upperdentry, &origin_path,
-> > +                                              &origin_ctr);
-> >                         if (err)
-> >                                 goto out_put_upper;
-> > +
-> > +                       if (d.metacopy)
-> > +                               metacopy = true;
-> >                 }
-> >
-> >                 if (d.redirect) {
-> >                         err = -ENOMEM;
-> >                         upperredirect = kstrdup(d.redirect, GFP_KERNEL);
-> >                         if (!upperredirect)
-> > -                               goto out_put_upper;
-> > +                               goto out_put_origin;
-> >                         if (d.redirect[0] == '/')
-> >                                 poe = roe;
-> >                 }
-> > @@ -883,7 +895,7 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
-> >                 stack = kcalloc(ofs->numlower, sizeof(struct ovl_path),
-> >                                 GFP_KERNEL);
-> >                 if (!stack)
-> > -                       goto out_put_upper;
-> > +                       goto out_put_origin;
-> >         }
-> >
-> >         for (i = 0; !d.stop && i < poe->numlower; i++) {
-> > @@ -905,7 +917,7 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
-> >                  * If no origin fh is stored in upper of a merge dir, store fh
-> >                  * of lower dir and set upper parent "impure".
-> >                  */
-> > -               if (upperdentry && !ctr && !ofs->noxattr) {
-> > +               if (upperdentry && !ctr && !ofs->noxattr && d.is_dir) {
-> >                         err = ovl_fix_origin(dentry, this, upperdentry);
-> >                         if (err) {
-> >                                 dput(this);
-> > @@ -917,16 +929,35 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
-> >                  * When "verify_lower" feature is enabled, do not merge with a
-> >                  * lower dir that does not match a stored origin xattr. In any
-> >                  * case, only verified origin is used for index lookup.
-> > +                *
-> > +                * For non-dir dentry, make sure dentry found by lookup
-> > +                * matches the origin stored in upper. Otherwise its an
-> > +                * error.
-> >                  */
-> > -               if (upperdentry && !ctr && ovl_verify_lower(dentry->d_sb)) {
-> > +               if (upperdentry && !ctr &&
-> > +                   ((d.is_dir && ovl_verify_lower(dentry->d_sb)) ||
-> > +                    (!d.is_dir && origin_path))) {
-> >                         err = ovl_verify_origin(upperdentry, this, false);
-> >                         if (err) {
-> >                                 dput(this);
-> > -                               break;
-> > +                               if (d.is_dir)
-> > +                                       break;
-> > +                               goto out_put;
-> >                         }
-> > -
-> >                         /* Bless lower dir as verified origin */
-> > -                       origin = this;
-> > +                       if (d.is_dir)
-> > +                               origin = this;
-> 
-> It's ok to bless verified non-dir as well.
-> It is going to be blesses anyway, just above index lookup if ctr > 0.
-
-Hmm..., make sense to trust origin once we have verified origin both
-for dir and non-dir. Will do.
-
-> 
-> > +               }
-> > +
-> > +               if (d.metacopy)
-> > +                       metacopy = true;
-> > +               /*
-> > +                * Do not store intermediate metacopy dentries in chain,
-> > +                * except top most lower metacopy dentry
-> > +                */
-> > +               if (d.metacopy && ctr) {
-> > +                       dput(this);
-> > +                       continue;
-> >                 }
-> >
-> >                 stack[ctr].dentry = this;
-> > @@ -960,6 +991,34 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
-> >                 }
-> >         }
-> >
-> > +       if (metacopy) {
-> > +               BUG_ON(d.is_dir);
-> 
-> Yeh, I think that is really a bug, because you need to detect
-> the case of dir in lower layer under metacopy in upper layer
-> and do something about it.
-> 
-> > +               /*
-> > +                * Found a metacopy dentry but did not find corresponding
-> > +                * data dentry
-> > +                */
-> > +               if (d.metacopy) {
-> > +                       err = -ESTALE;
-> > +                       goto out_put;
-> > +               }
-> > +
-> > +               err = -EPERM;
-> > +               if (!ofs->config.metacopy) {
-> > +                       pr_warn_ratelimited("overlay: refusing to follow"
-> > +                                           " metacopy origin for (%pd2)\n",
-> > +                                           dentry);
-> > +                       goto out_put;
-> > +               }
-> > +       } else if (!d.is_dir && upperdentry && !ctr && origin_path) {
-> > +               if (WARN_ON(stack != NULL)) {
-> > +                       err = -EIO;
-> > +                       goto out_put;
-> > +               }
-> > +               stack = origin_path;
-> > +               ctr = 1;
-> > +               origin_path = NULL;
-> > +       }
-> > +
-> >         /*
-> >          * Lookup index by lower inode and verify it matches upper inode.
-> >          * We only trust dir index if we verified that lower dir matches
-> > @@ -1006,6 +1065,10 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
-> >         }
-> >
-> >         revert_creds(old_cred);
-> > +       if (origin_path) {
-> > +               dput(origin_path->dentry);
-> > +               kfree(origin_path);
-> > +       }
-> >         dput(index);
-> >         kfree(stack);
-> >         kfree(d.redirect);
-> > @@ -1019,6 +1082,11 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
-> >         for (i = 0; i < ctr; i++)
-> >                 dput(stack[i].dentry);
-> >         kfree(stack);
-> > +out_put_origin:
-> > +       if (origin_path) {
-> > +               dput(origin_path->dentry);
-> > +               kfree(origin_path);
-> > +       }
-> 
-> There is no need for the new goto label.
-> Just add this in existing out_put_upper label.
-
-Ok, I should be able to club this with out_put_upper label.
-
-Vivek
-
-> 
-> Thanks,
-> Amir,
+Ping^2
