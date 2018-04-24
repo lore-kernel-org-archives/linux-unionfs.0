@@ -1,65 +1,57 @@
-From: Miklos Szeredi <miklos@szeredi.hu>
-Subject: Re: [RFC PATCH 13/35] ovl: readd fsync
-Date: Mon, 23 Apr 2018 16:09:03 +0200
-Message-ID: <CAJfpegt5qkjm2BTejkpSk9QKNEyvKOHYnk+bEUq35=Ryk4a+=w@mail.gmail.com>
-References: <20180412150826.20988-1-mszeredi@redhat.com> <20180412150826.20988-14-mszeredi@redhat.com>
- <20180423133617.GB2794@redhat.com> <CAJfpegsmxOtn9yjy4fvsYOt7cL49mzOM00bh8+CgxJcT3meLBQ@mail.gmail.com>
- <20180423135309.GC2794@redhat.com>
+From: Vivek Goyal <vgoyal@redhat.com>
+Subject: Re: [RFC PATCH 07/35] ovl: copy up file size as well
+Date: Tue, 24 Apr 2018 14:10:57 -0400
+Message-ID: <20180424181057.GA2700@redhat.com>
+References: <20180412150826.20988-1-mszeredi@redhat.com>
+ <20180412150826.20988-8-mszeredi@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180423135309.GC2794@redhat.com>
+Content-Disposition: inline
+In-Reply-To: <20180412150826.20988-8-mszeredi@redhat.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Vivek Goyal <vgoyal@redhat.com>
-Cc: Miklos Szeredi <mszeredi@redhat.com>, overlayfs <linux-unionfs@vger.kernel.org>, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Miklos Szeredi <mszeredi@redhat.com>
+Cc: linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 
-On Mon, Apr 23, 2018 at 3:53 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
-> On Mon, Apr 23, 2018 at 03:39:45PM +0200, Miklos Szeredi wrote:
->> On Mon, Apr 23, 2018 at 3:36 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
->> > On Thu, Apr 12, 2018 at 05:08:04PM +0200, Miklos Szeredi wrote:
->> >> Implement stacked fsync().
->> >>
->> >> Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
->> >> ---
->> >>  fs/overlayfs/file.c | 20 ++++++++++++++++++++
->> >>  1 file changed, 20 insertions(+)
->> >>
->> >> diff --git a/fs/overlayfs/file.c b/fs/overlayfs/file.c
->> >> index b98204c1c19c..4417527667ff 100644
->> >> --- a/fs/overlayfs/file.c
->> >> +++ b/fs/overlayfs/file.c
->> >> @@ -222,10 +222,30 @@ static ssize_t ovl_write_iter(struct kiocb *iocb, struct iov_iter *iter)
->> >>       return ret;
->> >>  }
->> >>
->> >> +static int ovl_fsync(struct file *file, loff_t start, loff_t end, int datasync)
->> >> +{
->> >> +     struct fd real;
->> >> +     const struct cred *old_cred;
->> >> +     int ret;
->> >> +
->> >> +     ret = ovl_real_file(file, &real);
->> >> +     if (ret)
->> >> +             return ret;
->> >> +
->> >> +     old_cred = ovl_override_creds(file_inode(file)->i_sb);
->> >> +     ret = vfs_fsync_range(real.file, start, end, datasync);
->> >> +     revert_creds(old_cred);
->> >
->> > Can we avoid calling fsync() on real file if it is not upper. Is it worth
->> > optimizing.
->>
->> Not sure it's worth bothering with.   If caller of fsync(2) didn't
->> worry about cost, then why should we?
->
-> I was thinking more from the point of view of metadata copy up patches.
-> For a metacopy file, I was thinking if I can just issue fsync() on upper
-> file and skip it on lower file.
+On Thu, Apr 12, 2018 at 05:07:58PM +0200, Miklos Szeredi wrote:
+> Copy i_size of the underlying inode to the overlay inode in ovl_copyattr().
+> 
+> This is in preparation for stacking I/O operations on overlay files.
+> 
+> This patch shouldn't have any observable effect.
+> 
+> Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
+> ---
+>  fs/overlayfs/overlayfs.h | 2 ++
+>  1 file changed, 2 insertions(+)
+> 
+> diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
+> index 265cb288417a..10f5f3bf9d96 100644
+> --- a/fs/overlayfs/overlayfs.h
+> +++ b/fs/overlayfs/overlayfs.h
+> @@ -9,6 +9,7 @@
+>  
+>  #include <linux/kernel.h>
+>  #include <linux/uuid.h>
+> +#include <linux/fs.h>
+>  #include "ovl_entry.h"
+>  
+>  enum ovl_path_type {
+> @@ -355,6 +356,7 @@ static inline void ovl_copyattr(struct inode *from, struct inode *to)
+>  	to->i_atime = from->i_atime;
+>  	to->i_mtime = from->i_mtime;
+>  	to->i_ctime = from->i_ctime;
+> +	i_size_write(to, i_size_read(from));
+>  }
 
-Ah, in that case I agree with  doing fsync only on upper.   If there's
-a choice in implementing the given functionality (and performance
-doesn't matter) then the simplest one should be chosen.
+With this change, is following comment in ovl_getattr() stale now.
 
-Thanks,
-Miklos
+	 /*
+         * We don't initialize inode->size, which just means that
+         * inode_newsize_ok() will always check against MAX_LFS_FILESIZE and not
+         * check for a swapfile (which this won't be anyway).
+	 */
+
+Thanks
+Vivek
