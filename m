@@ -1,64 +1,144 @@
-Return-Path: <vgoyal@redhat.com>
-From: Vivek Goyal <vgoyal@redhat.com>
-Subject: [PATCH v14 16/31] ovl: Always open file/inode which contains data and not metacopy
-Date: Thu, 26 Apr 2018 15:09:58 -0400
-Message-Id: <20180426191013.13219-17-vgoyal@redhat.com>
-In-Reply-To: <20180426191013.13219-1-vgoyal@redhat.com>
-References: <20180426191013.13219-1-vgoyal@redhat.com>
-To: linux-unionfs@vger.kernel.org
-Cc: miklos@szeredi.hu, amir73il@gmail.com, vgoyal@redhat.com
+Return-Path: <amir73il@gmail.com>
+MIME-Version: 1.0
+In-Reply-To: <20180425054807.GG11384@desktop>
+References: <1524061018-20413-1-git-send-email-amir73il@gmail.com>
+ <1524061018-20413-3-git-send-email-amir73il@gmail.com> <20180425054807.GG11384@desktop>
+From: Amir Goldstein <amir73il@gmail.com>
+Date: Wed, 25 Apr 2018 08:32:26 -0700
+Message-ID: <CAOQ4uxj9WQXMCaHWeogrXuhz1Zr8=+APEZtHUabFau49vb6yzw@mail.gmail.com>
+Subject: Re: [PATCH 2/2] overlay/04{1,3,4}: enable xino feature
+Content-Type: text/plain; charset="UTF-8"
+To: Eryu Guan <guaneryu@gmail.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, overlayfs <linux-unionfs@vger.kernel.org>, fstests <fstests@vger.kernel.org>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-ovl_open() should open file which contains data and not open metacopy
-inode.
+On Tue, Apr 24, 2018 at 10:48 PM, Eryu Guan <guaneryu@gmail.com> wrote:
+> On Wed, Apr 18, 2018 at 05:16:58PM +0300, Amir Goldstein wrote:
+>> These tests check for constant inode number on copy up with nonsamefs
+>> layer configuration. This problem is fixes only when opting-in with the
+>> xino=on mount option, so let the tests enable the mount option on new
+>> kernels and notrun on old kernels.
+>>
+>> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+>> ---
+>>  tests/overlay/041 | 15 +++++++++++----
+>>  tests/overlay/043 | 13 ++++++++++---
+>>  tests/overlay/044 | 15 +++++++++++----
+>>  3 files changed, 32 insertions(+), 11 deletions(-)
+>>
+>> diff --git a/tests/overlay/041 b/tests/overlay/041
+>> index 4e72348..9de61f7 100755
+>> --- a/tests/overlay/041
+>> +++ b/tests/overlay/041
+>> @@ -70,7 +70,14 @@ _scratch_mkfs
+>>  upperdir=$OVL_BASE_SCRATCH_MNT/$OVL_UPPER
+>>  workdir=$OVL_BASE_SCRATCH_MNT/$OVL_WORK
+>>
+>> -_overlay_scratch_mount_dirs $lowerdir $upperdir $workdir
+>> +# enabling xino in this test requires that base filesystem inode numbers will
+>> +# not use bit 63 in inode number of the test files, because bit 63 is used by
+>> +# overlayfs to indicate the layer. Let's just assume that this is true for all
+>> +# tested filesystems and if we are wrong, the test may fail
+>> +_overlay_scratch_mount_dirs $lowerdir $upperdir $workdir -o xino=on ||
+>> +     _notrun "mount overlay with xino failed"
+>> +_check_scratch_fs_option "xino" || \
+>> +     _notrun "faild to enable xino"
+>>
+>>  test_dir=$SCRATCH_MNT/test_dir/
+>>
+>> @@ -171,7 +178,7 @@ subdir_d=$($here/src/t_dir_type $pure_lower_dir $pure_lower_subdir_st_ino)
+>>  _scratch_unmount
+>>
+>>  # check overlayfs
+>> -_overlay_check_scratch_dirs $lowerdir $upperdir $workdir
+>> +_overlay_check_scratch_dirs $lowerdir $upperdir $workdir -o xino=on
+>>
+>>  # Verify pure lower residing in dir which has another lower layer
+>>  middir=$OVL_BASE_TEST_DIR/$seq-ovl-mid
+>> @@ -189,7 +196,7 @@ _scratch_mkfs
+>>  upperdir=$OVL_BASE_SCRATCH_MNT/ovl-upper
+>>  workdir=$OVL_BASE_SCRATCH_MNT/ovl-work
+>>
+>> -_overlay_scratch_mount_dirs $middir:$lowerdir $upperdir $workdir
+>> +_overlay_scratch_mount_dirs $middir:$lowerdir $upperdir $workdir -o xino=on
+>>
+>>  # Copy up test_dir
+>>  touch $test_dir/test_file
+>> @@ -212,7 +219,7 @@ subdir_d=$($here/src/t_dir_type $pure_lower_dir $pure_lower_subdir_st_ino)
+>>       echo "Pure lower in dir which has another lower layer: Invalid d_ino reported for subdir"
+>>
+>>  # check overlayfs
+>> -_overlay_check_scratch_dirs "$middir:$lowerdir" $upperdir $workdir
+>> +_overlay_check_scratch_dirs "$middir:$lowerdir" $upperdir $workdir -o xino=on
+>
+> 041 fails the fsck.overlay check, but I think that's a different issue.
 
-Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
----
- fs/overlayfs/file.c | 16 ++++++++++++----
- 1 file changed, 12 insertions(+), 4 deletions(-)
+Right. Will look into that.
 
-diff --git a/fs/overlayfs/file.c b/fs/overlayfs/file.c
-index 23638d8ebab5..558a859b2658 100644
---- a/fs/overlayfs/file.c
-+++ b/fs/overlayfs/file.c
-@@ -18,18 +18,26 @@ static struct file *ovl_open_realfile(const struct file *file)
- {
- 	struct inode *inode = file_inode(file);
- 	struct inode *upperinode = ovl_inode_upper(inode);
--	struct inode *realinode = upperinode ?: ovl_inode_lower(inode);
-+	struct inode *realinode;
- 	struct file *realfile;
-+	bool upperreal = false;
- 	const struct cred *old_cred;
- 
-+	if (upperinode && ovl_has_upperdata(inode))
-+		upperreal = true;
-+
-+	/* Always open file which contains data. Do not open metacopy. */
-+	realinode = upperreal ? upperinode : ovl_inode_lowerdata(inode);
-+
- 	old_cred = ovl_override_creds(inode->i_sb);
- 	realfile = path_open(&file->f_path, file->f_flags | O_NOATIME,
- 			     realinode, current_cred(), false);
- 	revert_creds(old_cred);
- 
- 	pr_debug("open(%p[%pD2/%c], 0%o) -> (%p, 0%o)\n",
--		 file, file, upperinode ? 'u' : 'l', file->f_flags,
--		 realfile, IS_ERR(realfile) ? 0 : realfile->f_flags);
-+		 file, file, upperreal ? 'u' : 'l',
-+		 file->f_flags, realfile,
-+		 IS_ERR(realfile) ? 0 : realfile->f_flags);
- 
- 	return realfile;
- }
-@@ -80,7 +88,7 @@ static int ovl_real_file(const struct file *file, struct fd *real)
- 	real->file = file->private_data;
- 
- 	/* Has it been copied up since we'd opened it? */
--	if (unlikely(file_inode(real->file) != ovl_inode_real(inode))) {
-+	if (unlikely(file_inode(real->file) != ovl_inode_real_data(inode))) {
- 		real->flags = FDPUT_FPUT;
- 		real->file = ovl_open_realfile(file);
- 
--- 
-2.13.6
+>
+> *** fsck.overlay output ***
+> fsck.overlay:[Error]: Faile to resolve upperdir:/mnt/scratch/ovl-upper:No such file or directory
+> Please specify correct lowerdirs and upperdir!
+>
+> Usage:
+>         fsck.overlay [-o lowerdir=<lowers>,upperdir=<upper>,workdir=<work>] [-pnyvhV]
+>
+> Options:
+> -o,                       specify underlying directories of overlayfs
+>                           multiple lower directories use ':' as separator
+> -p,                       automatic repair (no questions)
+> -n,                       make no changes to the filesystem
+> -y,                       assume "yes" to all questions
+> -v, --verbose             print more messages of overlayfs
+> -h, --help                display this usage of overlayfs
+> -V, --version             display version information
+> *** end fsck.overlay output
+>
+>>
+>>  echo "Silence is golden"
+>>  status=0
+>> diff --git a/tests/overlay/043 b/tests/overlay/043
+>> index 46df686..66771c0 100755
+>> --- a/tests/overlay/043
+>> +++ b/tests/overlay/043
+>> @@ -83,7 +83,14 @@ _scratch_mkfs >>$seqres.full 2>&1
+>>  upperdir=$OVL_BASE_SCRATCH_MNT/$OVL_UPPER
+>>  workdir=$OVL_BASE_SCRATCH_MNT/$OVL_WORK
+>>
+>> -_overlay_scratch_mount_dirs $lowerdir $upperdir $workdir
+>> +# enabling xino in this test requires that base filesystem inode numbers will
+>> +# not use bit 63 in inode number of the test files, because bit 63 is used by
+>> +# overlayfs to indicate the layer. Let's just assume that this is true for all
+>> +# tested filesystems and if we are wrong, the test may fail
+>> +_overlay_scratch_mount_dirs $lowerdir $upperdir $workdir -o xino=on || \
+>> +     _notrun "mount overlay with xino failed"
+>> +_check_scratch_fs_option "xino" || \
+>> +     _notrun "faild to enable xino"
+>
+> 043 still fails for me, kernel is v4.17-rc2
+>
+> [root@fedoravm xfstests]# diff -u tests/overlay/043.out /root/workspace/xfstests/results//xfs_4k/overlay/043.out.bad
+> --- tests/overlay/043.out       2018-02-25 15:15:00.135387405 +0800
+> +++ /root/workspace/xfstests/results//xfs_4k/overlay/043.out.bad        2018-04-25 13:44:24.378262790 +0800
+> @@ -1,2 +1,11 @@
+>  QA output created by 043
+> +--- /tmp/29215.after_copyup    2018-04-25 13:44:23.888271267 +0800
+> ++++ /tmp/29215.after_move      2018-04-25 13:44:24.115267339 +0800
+> +@@ -1,4 +1,4 @@
+> +-9223372036888371331 dir
+> ++50333121 dir
+> + 9223372036871553155 file
+> + 9223372036871553156 symlink
+> + 9223372036871553157 chrdev
+> +dir not found by ino 9223372036888371331 (from /tmp/29215.after_copyup)
+>  Silence is golden
+>
+> I used ext4 as underlying filesystem, but xfs failed too.
+
+
+It's a test bug. missing _require_scratch_feature redirect_dir
+Like was added to the original 017 test.
+Will send a patch.
+
+Thanks,
+Amir.
