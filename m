@@ -1,68 +1,112 @@
-Return-Path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mx3-rdu2.redhat.com ([66.187.233.73]:41472 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1752786AbeDZTKk (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 26 Apr 2018 15:10:40 -0400
+Return-Path: <vgoyal@redhat.com>
 From: Vivek Goyal <vgoyal@redhat.com>
-Subject: [PATCH v14 27/31] ovl: Issue fsync on upper metacopy inode as well
-Date: Thu, 26 Apr 2018 15:10:09 -0400
-Message-Id: <20180426191013.13219-28-vgoyal@redhat.com>
+Subject: [PATCH v14 01/31] ovl: Initialize ovl_inode->redirect in ovl_get_inode()
+Date: Thu, 26 Apr 2018 15:09:43 -0400
+Message-Id: <20180426191013.13219-2-vgoyal@redhat.com>
 In-Reply-To: <20180426191013.13219-1-vgoyal@redhat.com>
 References: <20180426191013.13219-1-vgoyal@redhat.com>
-Sender: linux-unionfs-owner@vger.kernel.org
 To: linux-unionfs@vger.kernel.org
 Cc: miklos@szeredi.hu, amir73il@gmail.com, vgoyal@redhat.com
 List-ID: <linux-unionfs@vger.kernel.org>
 
-When a fsync happens, it calls fsync on real underlying file. If a file
-has been metadata only copied up on upper, then file containing data
-is the real file and fsync will be called on lower data file.
+ovl_inode->redirect is an inode property and should be initialized
+in ovl_get_inode() only when we are adding a new inode to cache. If
+inode is already in cache, it is already initialized and we should
+not be touching ovl_inode->redirect field.
 
-We should be issuing fsync on upper metacopy inode as well to make sure
-upper inode has been made persistent on disk.
+As of now this is not a problem as redirects are used only for directories
+which don't share inode. But soon I want to use redirects for regular files
+also and there it can become an issue.
 
+Hence, move ->redirect initialization in ovl_get_inode().
+
+Reviewed-by: Amir Goldstein <amir73il@gmail.com>
 Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
 ---
- fs/overlayfs/file.c | 15 ++++++++++++++-
- 1 file changed, 14 insertions(+), 1 deletion(-)
+ fs/overlayfs/export.c    | 2 +-
+ fs/overlayfs/inode.c     | 5 ++++-
+ fs/overlayfs/namei.c     | 9 +--------
+ fs/overlayfs/overlayfs.h | 2 +-
+ 4 files changed, 7 insertions(+), 11 deletions(-)
 
-diff --git a/fs/overlayfs/file.c b/fs/overlayfs/file.c
-index 08387639ba6e..be531b79d2e5 100644
---- a/fs/overlayfs/file.c
-+++ b/fs/overlayfs/file.c
-@@ -259,18 +259,31 @@ static ssize_t ovl_write_iter(struct kiocb *iocb, struct iov_iter *iter)
+diff --git a/fs/overlayfs/export.c b/fs/overlayfs/export.c
+index 425a94672300..5b7fee1a81ec 100644
+--- a/fs/overlayfs/export.c
++++ b/fs/overlayfs/export.c
+@@ -305,7 +305,7 @@ static struct dentry *ovl_obtain_alias(struct super_block *sb,
+ 	if (d_is_dir(upper ?: lower))
+ 		return ERR_PTR(-EIO);
  
- static int ovl_fsync(struct file *file, loff_t start, loff_t end, int datasync)
+-	inode = ovl_get_inode(sb, dget(upper), lowerpath, index, !!lower);
++	inode = ovl_get_inode(sb, dget(upper), lowerpath, index, !!lower, NULL);
+ 	if (IS_ERR(inode)) {
+ 		dput(upper);
+ 		return ERR_CAST(inode);
+diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
+index b723327501f7..a3b9124f95d6 100644
+--- a/fs/overlayfs/inode.c
++++ b/fs/overlayfs/inode.c
+@@ -801,7 +801,7 @@ static bool ovl_hash_bylower(struct super_block *sb, struct dentry *upper,
+ 
+ struct inode *ovl_get_inode(struct super_block *sb, struct dentry *upperdentry,
+ 			    struct ovl_path *lowerpath, struct dentry *index,
+-			    unsigned int numlower)
++			    unsigned int numlower, char *redirect)
  {
--	struct fd real;
-+	struct fd real, metareal = {0};
- 	const struct cred *old_cred;
- 	int ret;
-+	struct inode *upperinode = NULL;
+ 	struct inode *realinode = upperdentry ? d_inode(upperdentry) : NULL;
+ 	struct inode *inode;
+@@ -841,6 +841,7 @@ struct inode *ovl_get_inode(struct super_block *sb, struct dentry *upperdentry,
+ 			}
  
- 	ret = ovl_real_file(file, &real);
- 	if (ret)
- 		return ret;
+ 			dput(upperdentry);
++			kfree(redirect);
+ 			goto out;
+ 		}
  
-+	/* If we have upper metacopy, issue additional fsync on it */
-+	upperinode = ovl_inode_upper(file_inode(file));
-+	if (!datasync && upperinode && (file_inode(real.file) != upperinode)) {
-+		ret = ovl_real_meta_file(file, &metareal);
-+		if (ret)
-+			goto put_real;
-+	}
+@@ -864,6 +865,8 @@ struct inode *ovl_get_inode(struct super_block *sb, struct dentry *upperdentry,
+ 	if (index)
+ 		ovl_set_flag(OVL_INDEX, inode);
+ 
++	OVL_I(inode)->redirect = redirect;
 +
- 	old_cred = ovl_override_creds(file_inode(file)->i_sb);
- 	ret = vfs_fsync_range(real.file, start, end, datasync);
-+	if (!ret && metareal.file)
-+		ret = vfs_fsync(metareal.file, datasync);
+ 	/* Check for non-merge dir that may have whiteouts */
+ 	if (is_dir) {
+ 		if (((upperdentry && lowerdentry) || numlower > 1) ||
+diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
+index 2dba29eadde6..ac81e2c2c976 100644
+--- a/fs/overlayfs/namei.c
++++ b/fs/overlayfs/namei.c
+@@ -1005,17 +1005,10 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
+ 
+ 	if (upperdentry || ctr) {
+ 		inode = ovl_get_inode(dentry->d_sb, upperdentry, stack, index,
+-				      ctr);
++				      ctr, upperredirect);
+ 		err = PTR_ERR(inode);
+ 		if (IS_ERR(inode))
+ 			goto out_free_oe;
+-
+-		/*
+-		 * NB: handle redirected hard links when non-dir redirects
+-		 * become possible
+-		 */
+-		WARN_ON(OVL_I(inode)->redirect);
+-		OVL_I(inode)->redirect = upperredirect;
+ 	}
+ 
  	revert_creds(old_cred);
- 
-+	fdput(metareal);
-+put_real:
- 	fdput(real);
- 
- 	return ret;
+diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
+index dad54bc8de7d..2b68175f7400 100644
+--- a/fs/overlayfs/overlayfs.h
++++ b/fs/overlayfs/overlayfs.h
+@@ -354,7 +354,7 @@ struct inode *ovl_lookup_inode(struct super_block *sb, struct dentry *real,
+ 			       bool is_upper);
+ struct inode *ovl_get_inode(struct super_block *sb, struct dentry *upperdentry,
+ 			    struct ovl_path *lowerpath, struct dentry *index,
+-			    unsigned int numlower);
++			    unsigned int numlower, char *redirect);
+ static inline void ovl_copyattr(struct inode *from, struct inode *to)
+ {
+ 	to->i_uid = from->i_uid;
 -- 
 2.13.6
-
