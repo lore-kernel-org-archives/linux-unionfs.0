@@ -1,41 +1,86 @@
-From: Miklos Szeredi <mszeredi@redhat.com>
-Subject: Re: [RFC PATCH 00/35] overlayfs: stack file operations
-Date: Wed, 25 Apr 2018 21:44:36 +0200
-Message-ID: <CAOssrKfeopc43SbHKOL9TL82U57_9Z2TaLwH5kqh7-3PuE3MBQ@mail.gmail.com>
-References: <20180412150826.20988-1-mszeredi@redhat.com> <5342.1524667789@jrobl>
+From: Vivek Goyal <vgoyal@redhat.com>
+Subject: Re: [RFC PATCH 09/35] ovl: stack file ops
+Date: Thu, 26 Apr 2018 10:13:37 -0400
+Message-ID: <20180426141337.GA4308@redhat.com>
+References: <20180412150826.20988-1-mszeredi@redhat.com>
+ <20180412150826.20988-10-mszeredi@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <5342.1524667789@jrobl>
+Content-Disposition: inline
+In-Reply-To: <20180412150826.20988-10-mszeredi@redhat.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "J. R. Okajima" <hooanon05g@gmail.com>
-Cc: overlayfs <linux-unionfs@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, lkml <linux-kernel@vger.kernel.org>
+To: Miklos Szeredi <mszeredi@redhat.com>
+Cc: linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 
-On Wed, Apr 25, 2018 at 4:49 PM, J. R. Okajima <hooanon05g@gmail.com> wrote:
-> Miklos Szeredi:
->> This patch series reverts the VFS hacks (with the exception of d_path) and
->
-> I totally agree with removing d_real things.
-> It must be good to the world.
->
-> If I understand correctly, this series affects file_inode() too.
-> So there may exist more commits to revert such as
->         fea6d2a6 2017-02-14 vfs: Use upper filesystem inode in bprm_fill_uid()
+On Thu, Apr 12, 2018 at 05:08:00PM +0200, Miklos Szeredi wrote:
 
+[..]
+> diff --git a/fs/overlayfs/file.c b/fs/overlayfs/file.c
+> new file mode 100644
+> index 000000000000..a0b606885c41
+> --- /dev/null
+> +++ b/fs/overlayfs/file.c
+> @@ -0,0 +1,76 @@
+> +/*
+> + * Copyright (C) 2017 Red Hat, Inc.
+> + *
+> + * This program is free software; you can redistribute it and/or modify it
+> + * under the terms of the GNU General Public License version 2 as published by
+> + * the Free Software Foundation.
+> + */
+> +
+> +#include <linux/cred.h>
+> +#include <linux/file.h>
+> +#include <linux/xattr.h>
+> +#include "overlayfs.h"
+> +
+> +static struct file *ovl_open_realfile(const struct file *file)
+> +{
+> +	struct inode *inode = file_inode(file);
+> +	struct inode *upperinode = ovl_inode_upper(inode);
+> +	struct inode *realinode = upperinode ?: ovl_inode_lower(inode);
+> +	struct file *realfile;
+> +	const struct cred *old_cred;
+> +
+> +	old_cred = ovl_override_creds(inode->i_sb);
+> +	realfile = path_open(&file->f_path, file->f_flags | O_NOATIME,
+> +			     realinode, current_cred(), false);
+> +	revert_creds(old_cred);
+> +
+> +	pr_debug("open(%p[%pD2/%c], 0%o) -> (%p, 0%o)\n",
+> +		 file, file, upperinode ? 'u' : 'l', file->f_flags,
+> +		 realfile, IS_ERR(realfile) ? 0 : realfile->f_flags);
+> +
+> +	return realfile;
+> +}
+> +
+> +static int ovl_open(struct inode *inode, struct file *file)
+> +{
+> +	struct dentry *dentry = file_dentry(file);
 
-Yep.
+Hi Miklos,
 
->
-> Here is another question.
-> Does overlayfs support atomic_open?
+There is one thing I can't wrap my head around, so I better ask.
 
-No.  Overlayfs doesn't support network filesystems as modifiable
-(upper) layer, and that's where atomic_open makes sense.  I think
-actually no filesystem that defines atomic_open() can be used as upper
-layer.   So that's currently not a worry.  If it turns out to be a
-requirement to use such filesystem as upper, then I'll worry about
-atomic_open().
+file_dentry() will call ovl_d_real() and try to find dentry based on
+inode installed in f->f_inode. If ovl_d_real() can't find inode dentry
+matching the passed in inode, it warns.
 
-Thanks,
-Miklos
+Assume, I have a stacked overlay configuration. Let me call top level
+overlay layer ovl1 and lower level overlay layer ovl2. Say I open a 
+file foo.txt. Now ovl_open() in ovl1 decides that realinode is a lower
+inode and installs that inode f->f_inode of realfile. (This should be
+ovl2 layer inode, let me call it ovl2_inode). Now ovl_open() of ovl2 layer
+will be called and it will call file_dentry() and will look for dentry
+corresponding to ovl2_inode. I am wondering what if a copy up of foo.txt
+was triggered in ovl1 and by the time we called ovl_d_real(dentry,
+ovl2_inode), it will start comparing with inode of ovl1_upper and never
+find ovl2_inode.
+
+IOW, I am not able to figure out how do we protect agains copy up races
+when ovl_open() calls file_dentry().
+
+Thanks
+Vivek
