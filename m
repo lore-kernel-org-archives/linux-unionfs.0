@@ -1,95 +1,120 @@
-Return-Path: <amir73il@gmail.com>
-MIME-Version: 1.0
-In-Reply-To: <CAOQ4uxi9VBjN-xiGddepS3B_O=iteaV=dwew8_xdZ6R9seQqSA@mail.gmail.com>
-References: <1510555438-28996-1-git-send-email-amir73il@gmail.com>
- <CAOQ4uxgnzRummiQm0DNP52QxGoJ8XN+EtEkYBWxyTD5YUWf+nQ@mail.gmail.com> <CAOQ4uxi9VBjN-xiGddepS3B_O=iteaV=dwew8_xdZ6R9seQqSA@mail.gmail.com>
-From: Amir Goldstein <amir73il@gmail.com>
-Date: Mon, 23 Apr 2018 08:44:36 -0700
-Message-ID: <CAOQ4uxgcyceCiFJTLj1jZSfcFPifKUn9S6tbP36q=xqHTFN6BQ@mail.gmail.com>
-Subject: Re: [PATCH v2] tmpfs: allow decoding a file handle of an unlinked file
-Content-Type: text/plain; charset="UTF-8"
-To: Hugh Dickins <hughd@google.com>, Al Viro <viro@zeniv.linux.org.uk>
-Cc: Jeff Layton <jlayton@poochiereds.net>, "J . Bruce Fields" <bfields@fieldses.org>, James Bottomley <James.Bottomley@hansenpartnership.com>, overlayfs <linux-unionfs@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>, Linux MM <linux-mm@kvack.org>
+Return-Path: <vgoyal@redhat.com>
+From: Vivek Goyal <vgoyal@redhat.com>
+Subject: [PATCH v14 06/31] ovl: Add helper ovl_already_copied_up()
+Date: Thu, 26 Apr 2018 15:09:48 -0400
+Message-Id: <20180426191013.13219-7-vgoyal@redhat.com>
+In-Reply-To: <20180426191013.13219-1-vgoyal@redhat.com>
+References: <20180426191013.13219-1-vgoyal@redhat.com>
+To: linux-unionfs@vger.kernel.org
+Cc: miklos@szeredi.hu, amir73il@gmail.com, vgoyal@redhat.com
 List-ID: <linux-unionfs@vger.kernel.org>
 
-On Sat, Jan 27, 2018 at 2:02 PM, Amir Goldstein <amir73il@gmail.com> wrote:
-> On Fri, Jan 5, 2018 at 5:40 PM, Amir Goldstein <amir73il@gmail.com> wrote:
->> On Mon, Nov 13, 2017 at 8:43 AM, Amir Goldstein <amir73il@gmail.com> wrote:
->>> tmpfs uses the helper d_find_alias() to find a dentry from a decoded
->>> inode, but d_find_alias() skips unhashed dentries, so unlinked files
->>> cannot be decoded from a file handle.
->>>
->>> This can be reproduced using xfstests test program open_by_handle:
->>> $ open_by handle -c /tmp/testdir
->>> $ open_by_handle -dk /tmp/testdir
->>> open_by_handle(/tmp/testdir/file000000) returned 116 incorrectly on an
->>> unlinked open file!
->>>
->>> To fix this, if d_find_alias() can't find a hashed alias, call
->>> d_find_any_alias() to return an unhashed one.
->>>
->>> Cc: Hugh Dickins <hughd@google.com>
->>> Cc: Al Viro <viro@zeniv.linux.org.uk>
->>> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
->>> ---
->>>
->>> Al, Miklos,
->>>
->>> Can either of you take this patch through your tree?
->>>
->>> Thanks,
->>> Amir.
->>>
->>> Changes since v1:
->>> - Prefer a hashed alias (James)
->>> - Use existing d_find_any_alias() helper
->>>
->>>  mm/shmem.c | 11 ++++++++++-
->>>  1 file changed, 10 insertions(+), 1 deletion(-)
->>>
->>> diff --git a/mm/shmem.c b/mm/shmem.c
->>> index 07a1d22807be..5d3fa4099f54 100644
->>> --- a/mm/shmem.c
->>> +++ b/mm/shmem.c
->>> @@ -3404,6 +3404,15 @@ static int shmem_match(struct inode *ino, void *vfh)
->>>         return ino->i_ino == inum && fh[0] == ino->i_generation;
->>>  }
->>>
->>> +/* Find any alias of inode, but prefer a hashed alias */
->>> +static struct dentry *shmem_find_alias(struct inode *inode)
->>> +{
->>> +       struct dentry *alias = d_find_alias(inode);
->>> +
->>> +       return alias ?: d_find_any_alias(inode);
->>> +}
->>> +
->>> +
->>>  static struct dentry *shmem_fh_to_dentry(struct super_block *sb,
->>>                 struct fid *fid, int fh_len, int fh_type)
->>>  {
->>> @@ -3420,7 +3429,7 @@ static struct dentry *shmem_fh_to_dentry(struct super_block *sb,
->>>         inode = ilookup5(sb, (unsigned long)(inum + fid->raw[0]),
->>>                         shmem_match, fid->raw);
->>>         if (inode) {
->>> -               dentry = d_find_alias(inode);
->>> +               dentry = shmem_find_alias(inode);
->>>                 iput(inode);
->>>         }
->>>
->>> --
->>
->> Hugh,
->>
->> Did you get a chance to look at this patch?
->>
->> The test for decoding a file handle of an unlinked file has already been
->> merged to xfstest generic/467 and the test is failing on tmpfs without this
->> change.
->>
->> Can you please take or ACK this patch?
->>
->
-> Ping.
->
+There are couple of places where we need to know if file is already copied
+up (in lockless manner). Right now its open coded and there are only
+two conditions to check. Soon this patch series will introduce another
+condition to check and Amir wants to introduce one more. So introduce
+a helper instead to check this so that code is easier to read.
 
-Ping^2
+Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
+Reviewed-by: Amir Goldstein <amir73il@gmail.com>
+---
+ fs/overlayfs/copy_up.c   | 20 ++------------------
+ fs/overlayfs/overlayfs.h |  1 +
+ fs/overlayfs/util.c      | 26 +++++++++++++++++++++++++-
+ 3 files changed, 28 insertions(+), 19 deletions(-)
+
+diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
+index 38b332d7c7e4..6ac3220b0834 100644
+--- a/fs/overlayfs/copy_up.c
++++ b/fs/overlayfs/copy_up.c
+@@ -810,21 +810,7 @@ int ovl_copy_up_flags(struct dentry *dentry, int flags)
+ 		struct dentry *next;
+ 		struct dentry *parent = NULL;
+ 
+-		/*
+-		 * Check if copy-up has happened as well as for upper alias (in
+-		 * case of hard links) is there.
+-		 *
+-		 * Both checks are lockless:
+-		 *  - false negatives: will recheck under oi->lock
+-		 *  - false positives:
+-		 *    + ovl_dentry_upper() uses memory barriers to ensure the
+-		 *      upper dentry is up-to-date
+-		 *    + ovl_dentry_has_upper_alias() relies on locking of
+-		 *      upper parent i_rwsem to prevent reordering copy-up
+-		 *      with rename.
+-		 */
+-		if (ovl_dentry_upper(dentry) &&
+-		    (ovl_dentry_has_upper_alias(dentry) || disconnected))
++		if (ovl_already_copied_up(dentry))
+ 			break;
+ 
+ 		next = dget(dentry);
+@@ -852,9 +838,7 @@ int ovl_copy_up_flags(struct dentry *dentry, int flags)
+ static bool ovl_open_need_copy_up(struct dentry *dentry, int flags)
+ {
+ 	/* Copy up of disconnected dentry does not set upper alias */
+-	if (ovl_dentry_upper(dentry) &&
+-	    (ovl_dentry_has_upper_alias(dentry) ||
+-	     (dentry->d_flags & DCACHE_DISCONNECTED)))
++	if (ovl_already_copied_up(dentry))
+ 		return false;
+ 
+ 	if (special_file(d_inode(dentry)->i_mode))
+diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
+index 199a39762d1d..390881752e70 100644
+--- a/fs/overlayfs/overlayfs.h
++++ b/fs/overlayfs/overlayfs.h
+@@ -244,6 +244,7 @@ bool ovl_is_whiteout(struct dentry *dentry);
+ struct file *ovl_path_open(struct path *path, int flags);
+ int ovl_copy_up_start(struct dentry *dentry);
+ void ovl_copy_up_end(struct dentry *dentry);
++bool ovl_already_copied_up(struct dentry *dentry);
+ bool ovl_check_origin_xattr(struct dentry *dentry);
+ bool ovl_check_dir_xattr(struct dentry *dentry, const char *name);
+ int ovl_check_setxattr(struct dentry *dentry, struct dentry *upperdentry,
+diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
+index 586f8d7440bb..ce15e211a33b 100644
+--- a/fs/overlayfs/util.c
++++ b/fs/overlayfs/util.c
+@@ -369,13 +369,37 @@ struct file *ovl_path_open(struct path *path, int flags)
+ 	return dentry_open(path, flags | O_NOATIME, current_cred());
+ }
+ 
++bool ovl_already_copied_up(struct dentry *dentry)
++{
++	bool disconnected = dentry->d_flags & DCACHE_DISCONNECTED;
++
++	/*
++	 * Check if copy-up has happened as well as for upper alias (in
++	 * case of hard links) is there.
++	 *
++	 * Both checks are lockless:
++	 *  - false negatives: will recheck under oi->lock
++	 *  - false positives:
++	 *    + ovl_dentry_upper() uses memory barriers to ensure the
++	 *      upper dentry is up-to-date
++	 *    + ovl_dentry_has_upper_alias() relies on locking of
++	 *      upper parent i_rwsem to prevent reordering copy-up
++	 *      with rename.
++	 */
++	if (ovl_dentry_upper(dentry) &&
++	    (ovl_dentry_has_upper_alias(dentry) || disconnected))
++		return true;
++
++	return false;
++}
++
+ int ovl_copy_up_start(struct dentry *dentry)
+ {
+ 	struct ovl_inode *oi = OVL_I(d_inode(dentry));
+ 	int err;
+ 
+ 	err = mutex_lock_interruptible(&oi->lock);
+-	if (!err && ovl_dentry_has_upper_alias(dentry)) {
++	if (!err && ovl_already_copied_up(dentry)) {
+ 		err = 1; /* Already copied up */
+ 		mutex_unlock(&oi->lock);
+ 	}
+-- 
+2.13.6
