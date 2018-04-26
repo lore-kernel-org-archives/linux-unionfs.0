@@ -1,11 +1,11 @@
 Return-Path: <amir73il@gmail.com>
 Return-Path: <amir73il@gmail.com>
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH 1/2] common/rc: factor out _require_scratch_fs_option
-Date: Wed, 18 Apr 2018 17:16:57 +0300
-Message-Id: <1524061018-20413-2-git-send-email-amir73il@gmail.com>
-In-Reply-To: <1524061018-20413-1-git-send-email-amir73il@gmail.com>
-References: <1524061018-20413-1-git-send-email-amir73il@gmail.com>
+Subject: [PATCH v2 1/4] common/rc: factor out _require_scratch_fs_option
+Date: Wed, 25 Apr 2018 23:53:24 -0600
+Message-Id: <1524722007-30891-2-git-send-email-amir73il@gmail.com>
+In-Reply-To: <1524722007-30891-1-git-send-email-amir73il@gmail.com>
+References: <1524722007-30891-1-git-send-email-amir73il@gmail.com>
 To: Eryu Guan <eguan@redhat.com>
 Cc: Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, fstests@vger.kernel.org
 List-ID: <linux-unionfs@vger.kernel.org>
@@ -21,7 +21,7 @@ Signed-off-by: Amir Goldstein <amir73il@gmail.com>
  1 file changed, 22 insertions(+), 7 deletions(-)
 
 diff --git a/common/rc b/common/rc
-index 622afd6..23c3978 100644
+index 366489b..78bc59d 100644
 --- a/common/rc
 +++ b/common/rc
 @@ -3036,20 +3036,35 @@ _require_scratch_shutdown()
