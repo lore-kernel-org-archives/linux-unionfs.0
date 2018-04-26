@@ -1,133 +1,86 @@
-Return-Path: <cgxu519@gmx.com>
-From: Chengguang Xu <cgxu519@gmx.com>
-Subject: [PATCH v4 3/3] ovl: return error when specifying unchangeable options in remount
-Date: Fri, 13 Apr 2018 20:39:16 +0800
-Message-Id: <1523623156-6035-4-git-send-email-cgxu519@gmx.com>
-In-Reply-To: <1523623156-6035-1-git-send-email-cgxu519@gmx.com>
-References: <1523623156-6035-1-git-send-email-cgxu519@gmx.com>
+Return-Path: <linux-unionfs-owner@vger.kernel.org>
+Received: from mx3-rdu2.redhat.com ([66.187.233.73]:40954 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1751645AbeDZTKk (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Thu, 26 Apr 2018 15:10:40 -0400
+From: Vivek Goyal <vgoyal@redhat.com>
+Subject: [PATCH v14 04/31] ovl: During copy up, first copy up metadata and then data
+Date: Thu, 26 Apr 2018 15:09:46 -0400
+Message-Id: <20180426191013.13219-5-vgoyal@redhat.com>
+In-Reply-To: <20180426191013.13219-1-vgoyal@redhat.com>
+References: <20180426191013.13219-1-vgoyal@redhat.com>
+Sender: linux-unionfs-owner@vger.kernel.org
 To: linux-unionfs@vger.kernel.org
-Cc: miklos@szeredi.hu, amir73il@gmail.com, Chengguang Xu <cgxu519@gmx.com>
+Cc: miklos@szeredi.hu, amir73il@gmail.com, vgoyal@redhat.com
 List-ID: <linux-unionfs@vger.kernel.org>
 
-Check remount options and return error if there is any unchangeable
-option.
+Just a little re-ordering of code. This helps with next patch where after
+copying up metadata, we skip data copying step, if needed.
 
-Signed-off-by: Chengguang Xu <cgxu519@gmx.com>
+Reviewed-by: Amir Goldstein <amir73il@gmail.com>
+Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
 ---
-Changes since v3:
-- Fix error prone macro helper.
-- Make another new patch to only include code around.
+ fs/overlayfs/copy_up.c | 36 +++++++++++++++++-------------------
+ 1 file changed, 17 insertions(+), 19 deletions(-)
 
-Changes since v2:
-- Introduce two macro helpers to simplify remount option validation.
-
-Changes since v1:
-- Refactor ovl_free_fs(), move config freeing operations to ovl_free_config().
-
- fs/overlayfs/super.c | 69 +++++++++++++++++++++++++++++++++++++++++++++++++---
- 1 file changed, 65 insertions(+), 4 deletions(-)
-
-diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-index 0293635a..36587cbf 100644
---- a/fs/overlayfs/super.c
-+++ b/fs/overlayfs/super.c
-@@ -230,6 +230,14 @@ static void ovl_destroy_inode(struct inode *inode)
- 	call_rcu(&inode->i_rcu, ovl_i_callback);
- }
- 
-+static void ovl_free_config(struct ovl_config *config)
-+{
-+	kfree(config->lowerdir);
-+	kfree(config->upperdir);
-+	kfree(config->workdir);
-+	kfree(config->redirect_mode);
-+}
-+
- static void ovl_free_fs(struct ovl_fs *ofs)
+diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
+index 4afc97872c2d..7e2dc41ad693 100644
+--- a/fs/overlayfs/copy_up.c
++++ b/fs/overlayfs/copy_up.c
+@@ -536,28 +536,10 @@ static int ovl_copy_up_inode(struct ovl_copy_up_ctx *c, struct dentry *temp)
  {
- 	unsigned i;
-@@ -249,10 +257,7 @@ static void ovl_free_fs(struct ovl_fs *ofs)
- 	kfree(ofs->lower_layers);
- 	kfree(ofs->lower_fs);
+ 	int err;
  
--	kfree(ofs->config.lowerdir);
--	kfree(ofs->config.upperdir);
--	kfree(ofs->config.workdir);
--	kfree(ofs->config.redirect_mode);
-+	ovl_free_config(&ofs->config);
- 	if (ofs->creator_cred)
- 		put_cred(ofs->creator_cred);
- 	kfree(ofs);
-@@ -542,14 +547,70 @@ static int ovl_parse_opt(char *opt, struct ovl_config *config)
- 	return ovl_parse_redirect_mode(config);
- }
+-	if (S_ISREG(c->stat.mode)) {
+-		struct path upperpath;
+-
+-		ovl_path_upper(c->dentry, &upperpath);
+-		BUG_ON(upperpath.dentry != NULL);
+-		upperpath.dentry = temp;
+-
+-		err = ovl_copy_up_data(&c->lowerpath, &upperpath, c->stat.size);
+-		if (err)
+-			return err;
+-	}
+-
+ 	err = ovl_copy_xattr(c->lowerpath.dentry, temp);
+ 	if (err)
+ 		return err;
  
-+static bool ovl_opt_bool_neq(bool new, bool old, const char *name)
-+{
-+	if (new != old) {
-+		pr_err("overlayfs: option \"%s\" cannot be %s on remount.\n",
-+					name, new ? "enabled" : "disabled");
-+		return true;
+-	inode_lock(temp->d_inode);
+-	err = ovl_set_attr(temp, &c->stat);
+-	inode_unlock(temp->d_inode);
+-	if (err)
+-		return err;
+-
+ 	/*
+ 	 * Store identifier of lower inode in upper inode xattr to
+ 	 * allow lookup of the copy up origin inode.
+@@ -571,7 +553,23 @@ static int ovl_copy_up_inode(struct ovl_copy_up_ctx *c, struct dentry *temp)
+ 			return err;
+ 	}
+ 
+-	return 0;
++	if (S_ISREG(c->stat.mode)) {
++		struct path upperpath;
++
++		ovl_path_upper(c->dentry, &upperpath);
++		BUG_ON(upperpath.dentry != NULL);
++		upperpath.dentry = temp;
++
++		err = ovl_copy_up_data(&c->lowerpath, &upperpath, c->stat.size);
++		if (err)
++			return err;
 +	}
-+	return false;
-+}
 +
-+static bool ovl_opt_string_neq(const char *new, const char *old,
-+						const char *name)
-+{
-+	if (new && (!old || strcmp(new, old))) {
-+		pr_err("overlayfs: option \"%s\" cannot be changed on remount.\n",
-+									name);
-+		return true;
-+	}
-+	return false;
-+}
++	inode_lock(temp->d_inode);
++	err = ovl_set_attr(temp, &c->stat);
++	inode_unlock(temp->d_inode);
 +
-+#define ovl_config_opt_neq(old, new, name, type) \
-+	ovl_opt_##type##_neq((old)->name, (new)->name, #name)
-+
- static int ovl_remount(struct super_block *sb, int *flags, char *data)
- {
- 	struct ovl_fs *ofs = sb->s_fs_info;
-+	struct ovl_config *oc = &ofs->config;
-+	struct ovl_config *nc;
-+	int err;
- 
- 	if (!(*flags & SB_RDONLY) && ovl_force_readonly(ofs))
- 		return -EROFS;
- 
-+	nc = kzalloc(sizeof(struct ovl_config), GFP_KERNEL);
-+	if (!nc)
-+		return -ENOMEM;
-+
-+	nc->index = oc->index;
-+	nc->nfs_export = oc->nfs_export;
-+
-+	err = ovl_parse_opt((char *)data, nc);
-+	if (err)
-+		goto out_err;
-+
-+	err = -EINVAL;
-+	if (ovl_config_opt_neq(nc, oc, index, bool))
-+		goto out_err;
-+	if (ovl_config_opt_neq(nc, oc, nfs_export, bool))
-+		goto out_err;
-+	if (ovl_config_opt_neq(nc, oc, lowerdir, string))
-+		goto out_err;
-+	if (ovl_config_opt_neq(nc, oc, upperdir, string))
-+		goto out_err;
-+	if (ovl_config_opt_neq(nc, oc, workdir, string))
-+		goto out_err;
-+	if (ovl_config_opt_neq(nc, oc, redirect_mode, string))
-+		goto out_err;
-+
- 	return 0;
-+out_err:
-+	ovl_free_config(nc);
-+	kfree(nc);
 +	return err;
  }
  
- static const struct super_operations ovl_super_operations = {
+ static int ovl_copy_up_locked(struct ovl_copy_up_ctx *c)
 -- 
-1.8.3.1
+2.13.6
+
