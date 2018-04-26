@@ -1,12 +1,12 @@
 Return-Path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mx3-rdu2.redhat.com ([66.187.233.73]:40974 "EHLO mx1.redhat.com"
+Received: from mx3-rdu2.redhat.com ([66.187.233.73]:34208 "EHLO mx1.redhat.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1752285AbeDZTKk (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        id S1752395AbeDZTKk (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
         Thu, 26 Apr 2018 15:10:40 -0400
 From: Vivek Goyal <vgoyal@redhat.com>
-Subject: [PATCH v14 09/31] ovl: Modify ovl_lookup() and friends to lookup metacopy dentry
-Date: Thu, 26 Apr 2018 15:09:51 -0400
-Message-Id: <20180426191013.13219-10-vgoyal@redhat.com>
+Subject: [PATCH v14 03/31] ovl: Provide a mount option metacopy=on/off for metadata copyup
+Date: Thu, 26 Apr 2018 15:09:45 -0400
+Message-Id: <20180426191013.13219-4-vgoyal@redhat.com>
 In-Reply-To: <20180426191013.13219-1-vgoyal@redhat.com>
 References: <20180426191013.13219-1-vgoyal@redhat.com>
 Sender: linux-unionfs-owner@vger.kernel.org
@@ -14,328 +14,255 @@ To: linux-unionfs@vger.kernel.org
 Cc: miklos@szeredi.hu, amir73il@gmail.com, vgoyal@redhat.com
 List-ID: <linux-unionfs@vger.kernel.org>
 
-This patch modifies ovl_lookup() and friends to lookup metacopy dentries.
-It also allows for presence of metacopy dentries in lower layer.
+By default metadata only copy up is disabled. Provide a mount option so
+that users can choose one way or other.
 
-During lookup, check for presence of OVL_XATTR_METACOPY and if not present,
-set OVL_UPPERDATA bit in flags.
+Also provide a kernel config and module option to enable/disable
+metacopy feature.
 
-We don't support metacopy feature with nfs_export. So in nfs_export code,
-we set OVL_UPPERDATA flag set unconditionally if upper inode exists.
+metacopy feature requires redirect_dir=on when upper is present. Otherwise,
+it requires redirect_dir=follow atleast.
 
-Do not follow metacopy origin if we find a metacopy only inode and metacopy
-feature is not enabled for that mount. Like redirect, this can have security
-implications where an attacker could hand craft upper and try to gain
-access to file on lower which it should not have to begin with.
+As of now, metacopy does not work with nfs_export=on. So if both metacopy=on
+and nfs_export=on then nfs_export is disabled.
 
+Reviewed-by: Amir Goldstein <amir73il@gmail.com>
 Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
 ---
- fs/overlayfs/export.c    |   3 ++
- fs/overlayfs/inode.c     |  11 ++++-
- fs/overlayfs/namei.c     | 102 ++++++++++++++++++++++++++++++++++++++++-------
- fs/overlayfs/overlayfs.h |   1 +
- fs/overlayfs/util.c      |  22 ++++++++++
- 5 files changed, 124 insertions(+), 15 deletions(-)
+ Documentation/filesystems/overlayfs.txt | 30 ++++++++++++++++++++-
+ fs/overlayfs/Kconfig                    | 19 ++++++++++++++
+ fs/overlayfs/ovl_entry.h                |  1 +
+ fs/overlayfs/super.c                    | 46 ++++++++++++++++++++++++++++++---
+ 4 files changed, 92 insertions(+), 4 deletions(-)
 
-diff --git a/fs/overlayfs/export.c b/fs/overlayfs/export.c
-index 5b7fee1a81ec..e1f6546b6c84 100644
---- a/fs/overlayfs/export.c
-+++ b/fs/overlayfs/export.c
-@@ -311,6 +311,9 @@ static struct dentry *ovl_obtain_alias(struct super_block *sb,
- 		return ERR_CAST(inode);
- 	}
+diff --git a/Documentation/filesystems/overlayfs.txt b/Documentation/filesystems/overlayfs.txt
+index 095186080d23..d6f393b0c76c 100644
+--- a/Documentation/filesystems/overlayfs.txt
++++ b/Documentation/filesystems/overlayfs.txt
+@@ -266,6 +266,30 @@ rightmost one and going left.  In the above example lower1 will be the
+ top, lower2 the middle and lower3 the bottom layer.
  
-+	if (upper)
-+		ovl_set_flag(OVL_UPPERDATA, inode);
+ 
++Metadata only copy up
++--------------------
 +
- 	dentry = d_find_any_alias(inode);
- 	if (!dentry) {
- 		dentry = d_alloc_anon(inode->i_sb);
-diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
-index 59b1c84076ec..40509b7a50d2 100644
---- a/fs/overlayfs/inode.c
-+++ b/fs/overlayfs/inode.c
-@@ -776,7 +776,7 @@ struct inode *ovl_get_inode(struct super_block *sb, struct dentry *upperdentry,
- 	struct dentry *lowerdentry = lowerpath ? lowerpath->dentry : NULL;
- 	bool bylower = ovl_hash_bylower(sb, upperdentry, lowerdentry, index);
- 	int fsid = bylower ? lowerpath->layer->fsid : 0;
--	bool is_dir;
-+	bool is_dir, metacopy = false;
- 	unsigned long ino = 0;
- 	int err = -ENOMEM;
- 
-@@ -836,6 +836,15 @@ struct inode *ovl_get_inode(struct super_block *sb, struct dentry *upperdentry,
- 	if (index)
- 		ovl_set_flag(OVL_INDEX, inode);
- 
-+	if (upperdentry) {
-+		err = ovl_check_metacopy_xattr(upperdentry);
-+		if (err < 0)
-+			goto out_err;
-+		metacopy = err;
-+		if (!metacopy)
-+			ovl_set_flag(OVL_UPPERDATA, inode);
-+	}
++When metadata only copy up feature is enabled, overlayfs will only copy
++up metadata (as opposed to whole file), when a metadata specific operation
++like chown/chmod is performed. Full file will be copied up later when
++file is opened for WRITE operation.
 +
- 	OVL_I(inode)->redirect = redirect;
++In other words, this is delayed data copy up operation and data is copied
++up when there is a need to actually modify data.
++
++There are multiple ways to enable/disable this feature. A config option
++CONFIG_OVERLAY_FS_METACOPY can be set/unset to enable/disable this feature
++by default. Or one can enable/disable it at module load time with module
++parameter metacopy=on/off. Lastly, there is also a per mount option
++metacopy=on/off to enable/disable this feature per mount.
++
++Do not use metacopy=on with untrusted upper/lower directories. Otherwise
++it is possible that an attacker can create an handcrafted file with
++appropriate REDIRECT and METACOPY xattrs, and gain access to file on lower
++pointed by REDIRECT. This should not be possible on local system as setting
++"trusted." xattrs will require CAP_SYS_ADMIN. But it should be possible
++for untrusted layers like from a pen drive.
++
+ Sharing and copying layers
+ --------------------------
  
- 	/* Check for non-merge dir that may have whiteouts */
-diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
-index ac81e2c2c976..682f0d402986 100644
---- a/fs/overlayfs/namei.c
-+++ b/fs/overlayfs/namei.c
-@@ -24,6 +24,7 @@ struct ovl_lookup_data {
- 	bool stop;
- 	bool last;
- 	char *redirect;
+@@ -284,7 +308,7 @@ though it will not result in a crash or deadlock.
+ Mounting an overlay using an upper layer path, where the upper layer path
+ was previously used by another mounted overlay in combination with a
+ different lower layer path, is allowed, unless the "inodes index" feature
+-is enabled.
++or "metadata only copy up" feature is enabled.
+ 
+ With the "inodes index" feature, on the first time mount, an NFS file
+ handle of the lower layer root directory, along with the UUID of the lower
+@@ -297,6 +321,10 @@ lower root origin, mount will fail with ESTALE.  An overlayfs mount with
+ does not support NFS export, lower filesystem does not have a valid UUID or
+ if the upper filesystem does not support extended attributes.
+ 
++For "metadata only copy up" feature there is no verification mechanism at
++mount time. So if same upper is mouted with different set of lower, mount
++probably will succeed but expect the unexpected later on. So don't do it.
++
+ It is quite a common practice to copy overlay layers to a different
+ directory tree on the same or different underlying filesystem, and even
+ to a different machine.  With the "inodes index" feature, trying to mount
+diff --git a/fs/overlayfs/Kconfig b/fs/overlayfs/Kconfig
+index 991c0a5a0e00..2e75a35e2726 100644
+--- a/fs/overlayfs/Kconfig
++++ b/fs/overlayfs/Kconfig
+@@ -64,6 +64,7 @@ config OVERLAY_FS_NFS_EXPORT
+ 	bool "Overlayfs: turn on NFS export feature by default"
+ 	depends on OVERLAY_FS
+ 	depends on OVERLAY_FS_INDEX
++	depends on !OVERLAY_FS_METACOPY
+ 	help
+ 	  If this config option is enabled then overlay filesystems will use
+ 	  the inodes index dir to decode overlay NFS file handles by default.
+@@ -124,3 +125,21 @@ config OVERLAY_FS_COPY_UP_SHARED
+ 	 To get a maximally backward compatible kernel, disable this option.
+ 
+ 	 If unsure, say N.
++
++config OVERLAY_FS_METACOPY
++	bool "Overlayfs: turn on metadata only copy up feature by default"
++	depends on OVERLAY_FS
++	select OVERLAY_FS_REDIRECT_DIR
++	help
++	  If this config option is enabled then overlay filesystems will
++	  copy up only metadata where appropriate and data copy up will
++	  happen when a file is opended for WRITE operation. It is still
++	  possible to turn off this feature globally with the "metacopy=off"
++	  module option or on a filesystem instance basis with the
++	  "metacopy=off" mount option.
++
++	  Note, that this feature is not backward compatible.  That is,
++	  mounting an overlay which has metacopy only inodes on a kernel
++	  that doesn't support this feature will have unexpected results.
++
++	  If unsure, say N.
+diff --git a/fs/overlayfs/ovl_entry.h b/fs/overlayfs/ovl_entry.h
+index 3bea47c63fd9..da65118a0567 100644
+--- a/fs/overlayfs/ovl_entry.h
++++ b/fs/overlayfs/ovl_entry.h
+@@ -20,6 +20,7 @@ struct ovl_config {
+ 	bool nfs_export;
+ 	bool copy_up_shared;
+ 	int xino;
 +	bool metacopy;
  };
  
- static int ovl_check_redirect(struct dentry *dentry, struct ovl_lookup_data *d,
-@@ -253,19 +254,29 @@ static int ovl_lookup_single(struct dentry *base, struct ovl_lookup_data *d,
- 		goto put_and_out;
- 	}
- 	if (!d_can_lookup(this)) {
--		d->stop = true;
--		if (d->is_dir)
-+		if (d->is_dir) {
-+			d->stop = true;
- 			goto put_and_out;
--
-+		}
- 		/*
- 		 * NB: handle failure to lookup non-last element when non-dir
- 		 * redirects become possible
- 		 */
- 		WARN_ON(!last_element);
-+		err = ovl_check_metacopy_xattr(this);
-+		if (err < 0)
-+			goto out_err;
-+		d->stop = !err;
-+		d->metacopy = !!err;
- 		goto out;
- 	}
--	if (last_element)
-+	if (last_element) {
-+		if (d->metacopy) {
-+			err = -ESTALE;
-+			goto out_err;
-+		}
- 		d->is_dir = true;
-+	}
- 	if (d->last)
- 		goto out;
- 
-@@ -823,7 +834,7 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
- 	struct ovl_fs *ofs = dentry->d_sb->s_fs_info;
- 	struct ovl_entry *poe = dentry->d_parent->d_fsdata;
- 	struct ovl_entry *roe = dentry->d_sb->s_root->d_fsdata;
--	struct ovl_path *stack = NULL;
-+	struct ovl_path *stack = NULL, *origin_path = NULL;
- 	struct dentry *upperdir, *upperdentry = NULL;
- 	struct dentry *origin = NULL;
- 	struct dentry *index = NULL;
-@@ -834,6 +845,7 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
- 	struct dentry *this;
- 	unsigned int i;
- 	int err;
-+	bool metacopy = false;
- 	struct ovl_lookup_data d = {
- 		.name = dentry->d_name,
- 		.is_dir = false,
-@@ -841,6 +853,7 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
- 		.stop = false,
- 		.last = ofs->config.redirect_follow ? false : !poe->numlower,
- 		.redirect = NULL,
-+		.metacopy = false,
- 	};
- 
- 	if (dentry->d_name.len > ofs->namelen)
-@@ -859,7 +872,8 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
- 			goto out;
- 		}
- 		if (upperdentry && !d.is_dir) {
--			BUG_ON(!d.stop || d.redirect);
-+			unsigned int origin_ctr = 0;
-+			BUG_ON(d.redirect);
- 			/*
- 			 * Lookup copy up origin by decoding origin file handle.
- 			 * We may get a disconnected dentry, which is fine,
-@@ -870,9 +884,13 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
- 			 * number - it's the same as if we held a reference
- 			 * to a dentry in lower layer that was moved under us.
- 			 */
--			err = ovl_check_origin(ofs, upperdentry, &stack, &ctr);
-+			err = ovl_check_origin(ofs, upperdentry, &origin_path,
-+					       &origin_ctr);
- 			if (err)
- 				goto out_put_upper;
-+
-+			if (d.metacopy)
-+				metacopy = true;
- 		}
- 
- 		if (d.redirect) {
-@@ -913,7 +931,7 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
- 		 * If no origin fh is stored in upper of a merge dir, store fh
- 		 * of lower dir and set upper parent "impure".
- 		 */
--		if (upperdentry && !ctr && !ofs->noxattr) {
-+		if (upperdentry && !ctr && !ofs->noxattr && d.is_dir) {
- 			err = ovl_fix_origin(dentry, this, upperdentry);
- 			if (err) {
- 				dput(this);
-@@ -925,18 +943,36 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
- 		 * When "verify_lower" feature is enabled, do not merge with a
- 		 * lower dir that does not match a stored origin xattr. In any
- 		 * case, only verified origin is used for index lookup.
-+		 *
-+		 * For non-dir dentry, make sure dentry found by lookup
-+		 * matches the origin stored in upper. Otherwise its an
-+		 * error.
- 		 */
--		if (upperdentry && !ctr && ovl_verify_lower(dentry->d_sb)) {
-+		if (upperdentry && !ctr &&
-+		    ((d.is_dir && ovl_verify_lower(dentry->d_sb)) ||
-+		     (!d.is_dir && origin_path))) {
- 			err = ovl_verify_origin(upperdentry, this, false);
- 			if (err) {
- 				dput(this);
--				break;
-+				if (d.is_dir)
-+					break;
-+				goto out_put;
- 			}
--
--			/* Bless lower dir as verified origin */
-+			/* Bless lower as verified origin */
- 			origin = this;
- 		}
- 
-+		if (d.metacopy)
-+			metacopy = true;
-+		/*
-+		 * Do not store intermediate metacopy dentries in chain,
-+		 * except top most lower metacopy dentry
-+		 */
-+		if (d.metacopy && ctr) {
-+			dput(this);
-+			continue;
-+		}
-+
- 		stack[ctr].dentry = this;
- 		stack[ctr].layer = lower.layer;
- 		ctr++;
-@@ -968,13 +1004,43 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
- 		}
- 	}
- 
-+	if (metacopy) {
-+		/*
-+		 * Found a metacopy dentry but did not find corresponding
-+		 * data dentry
-+		 */
-+		if (d.metacopy) {
-+			err = -ESTALE;
-+			goto out_put;
-+		}
-+
-+		err = -EPERM;
-+		if (!ofs->config.metacopy) {
-+			pr_warn_ratelimited("overlay: refusing to follow"
-+					    " metacopy origin for (%pd2)\n",
-+					    dentry);
-+			goto out_put;
-+		}
-+	} else if (!d.is_dir && upperdentry && !ctr && origin_path) {
-+		if (WARN_ON(stack != NULL)) {
-+			err = -EIO;
-+			goto out_put;
-+		}
-+		stack = origin_path;
-+		ctr = 1;
-+		origin_path = NULL;
-+	}
-+
- 	/*
- 	 * Lookup index by lower inode and verify it matches upper inode.
- 	 * We only trust dir index if we verified that lower dir matches
- 	 * origin, otherwise dir index entries may be inconsistent and we
--	 * ignore them. Always lookup index of non-dir and non-upper.
-+	 * ignore them.
-+	 * For non-dir metacopy dentry, we already set origin if we verified
-+	 * that lower matched origin. If not, skip looking up index.
-+	 * Always lookup index of non-dir non-metacopy and non-upper.
- 	 */
--	if (ctr && (!upperdentry || !d.is_dir))
-+	if (ctr && (!upperdentry || (!d.is_dir && !metacopy)))
- 		origin = stack[0].dentry;
- 
- 	if (origin && ovl_indexdir(dentry->d_sb) &&
-@@ -1012,6 +1078,10 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
- 	}
- 
- 	revert_creds(old_cred);
-+	if (origin_path) {
-+		dput(origin_path->dentry);
-+		kfree(origin_path);
-+	}
- 	dput(index);
- 	kfree(stack);
- 	kfree(d.redirect);
-@@ -1026,6 +1096,10 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
- 		dput(stack[i].dentry);
- 	kfree(stack);
- out_put_upper:
-+	if (origin_path) {
-+		dput(origin_path->dentry);
-+		kfree(origin_path);
-+	}
- 	dput(upperdentry);
- 	kfree(upperredirect);
- out:
-diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-index e21156425361..790314079950 100644
---- a/fs/overlayfs/overlayfs.h
-+++ b/fs/overlayfs/overlayfs.h
-@@ -275,6 +275,7 @@ int ovl_nlink_start(struct dentry *dentry, bool *locked);
- void ovl_nlink_end(struct dentry *dentry, bool locked);
- int ovl_lock_rename_workdir(struct dentry *workdir, struct dentry *upperdir);
- void ovl_copytimes(struct inode *inode);
-+int ovl_check_metacopy_xattr(struct dentry *dentry);
- 
- static inline void ovl_copytimes_with_parent(struct dentry *dentry)
- {
-diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
-index 3b64ecf5cb9b..a32509814f54 100644
---- a/fs/overlayfs/util.c
-+++ b/fs/overlayfs/util.c
-@@ -789,3 +789,25 @@ void ovl_copytimes(struct inode *inode)
- 		inode->i_ctime = upperinode->i_ctime;
- 	}
+ struct ovl_sb {
+diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+index ab1642fcece3..f26b79b3fae1 100644
+--- a/fs/overlayfs/super.c
++++ b/fs/overlayfs/super.c
+@@ -70,6 +70,11 @@ static void ovl_entry_stack_free(struct ovl_entry *oe)
+ 		dput(oe->lowerstack[i].dentry);
  }
+ 
++static bool ovl_metacopy_def = IS_ENABLED(CONFIG_OVERLAY_FS_METACOPY);
++module_param_named(metacopy, ovl_metacopy_def, bool, 0644);
++MODULE_PARM_DESC(ovl_metacopy_def,
++		 "Default to on or off for the metadata only copy up feature");
 +
-+/* err < 0, 0 if no metacopy xattr, 1 if metacopy xattr found */
-+int ovl_check_metacopy_xattr(struct dentry *dentry)
-+{
-+	int res;
+ static void ovl_dentry_release(struct dentry *dentry)
+ {
+ 	struct ovl_entry *oe = dentry->d_fsdata;
+@@ -351,6 +356,9 @@ static int ovl_show_options(struct seq_file *m, struct dentry *dentry)
+ 	if (ofs->config.copy_up_shared != ovl_copy_up_shared_def)
+ 		seq_printf(m, ",copy_up_shared=%s",
+ 			   ofs->config.copy_up_shared ? "on" : "off");
++	if (ofs->config.metacopy != ovl_metacopy_def)
++		seq_printf(m, ",metacopy=%s",
++			   ofs->config.metacopy ? "on" : "off");
+ 	return 0;
+ }
+ 
+@@ -390,6 +398,8 @@ enum {
+ 	OPT_XINO_AUTO,
+ 	OPT_COPY_UP_SHARED_ON,
+ 	OPT_COPY_UP_SHARED_OFF,
++	OPT_METACOPY_ON,
++	OPT_METACOPY_OFF,
+ 	OPT_ERR,
+ };
+ 
+@@ -408,6 +418,8 @@ static const match_table_t ovl_tokens = {
+ 	{OPT_XINO_AUTO,			"xino=auto"},
+ 	{OPT_COPY_UP_SHARED_ON,		"copy_up_shared=on"},
+ 	{OPT_COPY_UP_SHARED_OFF,	"copy_up_shared=off"},
++	{OPT_METACOPY_ON,		"metacopy=on"},
++	{OPT_METACOPY_OFF,		"metacopy=off"},
+ 	{OPT_ERR,			NULL}
+ };
+ 
+@@ -460,6 +472,7 @@ static int ovl_parse_redirect_mode(struct ovl_config *config, const char *mode)
+ static int ovl_parse_opt(char *opt, struct ovl_config *config)
+ {
+ 	char *p;
++	int err;
+ 
+ 	config->redirect_mode = kstrdup(ovl_redirect_mode_def(), GFP_KERNEL);
+ 	if (!config->redirect_mode)
+@@ -542,6 +555,14 @@ static int ovl_parse_opt(char *opt, struct ovl_config *config)
+ 			config->copy_up_shared = false;
+ 			break;
+ 
++		case OPT_METACOPY_ON:
++			config->metacopy = true;
++			break;
 +
-+	/* Only regular files can have metacopy xattr */
-+	if (!S_ISREG(d_inode(dentry)->i_mode))
-+		return 0;
++		case OPT_METACOPY_OFF:
++			config->metacopy = false;
++			break;
 +
-+	res = vfs_getxattr(dentry, OVL_XATTR_METACOPY, NULL, 0);
-+	if (res < 0) {
-+		if (res == -ENODATA || res == -EOPNOTSUPP)
-+			return 0;
-+		goto out;
+ 		default:
+ 			pr_err("overlayfs: unrecognized mount option \"%s\" or missing value\n", p);
+ 			return -EINVAL;
+@@ -556,7 +577,20 @@ static int ovl_parse_opt(char *opt, struct ovl_config *config)
+ 		config->workdir = NULL;
+ 	}
+ 
+-	return ovl_parse_redirect_mode(config, config->redirect_mode);
++	err = ovl_parse_redirect_mode(config, config->redirect_mode);
++	if (err)
++		return err;
++
++	/* metacopy feature with upper requires redirect_dir=on */
++	if (config->upperdir && config->metacopy && !config->redirect_dir) {
++		pr_warn("overlayfs: metadata only copy up requires \"redirect_dir=on\", falling back to metacopy=off.\n");
++		config->metacopy = false;
++	} else if (config->metacopy && !config->redirect_follow) {
++		pr_warn("overlayfs: metadata only copy up requires \"redirect_dir=follow\" on non-upper mount, falling back to metacopy=off.\n");
++		config->metacopy = false;
 +	}
 +
-+	return 1;
-+out:
-+	pr_warn_ratelimited("overlayfs: failed to get metacopy (%i)\n", res);
-+	return res;
-+}
++	return 0;
+ }
+ 
+ #define OVL_WORKDIR_NAME "work"
+@@ -1030,7 +1064,8 @@ static int ovl_make_workdir(struct ovl_fs *ofs, struct path *workpath)
+ 	if (err) {
+ 		ofs->noxattr = true;
+ 		ofs->config.index = false;
+-		pr_warn("overlayfs: upper fs does not support xattr, falling back to index=off.\n");
++		ofs->config.metacopy = false;
++		pr_warn("overlayfs: upper fs does not support xattr, falling back to index=off and metacopy=off.\n");
+ 		err = 0;
+ 	} else {
+ 		vfs_removexattr(ofs->workdir, OVL_XATTR_OPAQUE);
+@@ -1052,7 +1087,6 @@ static int ovl_make_workdir(struct ovl_fs *ofs, struct path *workpath)
+ 		pr_warn("overlayfs: NFS export requires \"index=on\", falling back to nfs_export=off.\n");
+ 		ofs->config.nfs_export = false;
+ 	}
+-
+ out:
+ 	mnt_drop_write(mnt);
+ 	return err;
+@@ -1364,6 +1398,7 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
+ 	ofs->config.nfs_export = ovl_nfs_export_def;
+ 	ofs->config.xino = ovl_xino_def();
+ 	ofs->config.copy_up_shared = ovl_copy_up_shared_def;
++	ofs->config.metacopy = ovl_metacopy_def;
+ 	err = ovl_parse_opt((char *) data, &ofs->config);
+ 	if (err)
+ 		goto out_err;
+@@ -1434,6 +1469,11 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
+ 		}
+ 	}
+ 
++	if (ofs->config.metacopy && ofs->config.nfs_export) {
++		pr_warn("overlayfs: NFS export is not supported with metadata only copy up, falling back to nfs_export=off.\n");
++		ofs->config.nfs_export = false;
++	}
++
+ 	if (ofs->config.nfs_export)
+ 		sb->s_export_op = &ovl_export_operations;
+ 
 -- 
 2.13.6
 
