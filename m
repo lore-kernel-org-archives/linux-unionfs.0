@@ -1,120 +1,171 @@
-Return-Path: <vgoyal@redhat.com>
-From: Vivek Goyal <vgoyal@redhat.com>
-Subject: [PATCH v14 06/31] ovl: Add helper ovl_already_copied_up()
-Date: Thu, 26 Apr 2018 15:09:48 -0400
-Message-Id: <20180426191013.13219-7-vgoyal@redhat.com>
-In-Reply-To: <20180426191013.13219-1-vgoyal@redhat.com>
-References: <20180426191013.13219-1-vgoyal@redhat.com>
-To: linux-unionfs@vger.kernel.org
-Cc: miklos@szeredi.hu, amir73il@gmail.com, vgoyal@redhat.com
+Return-Path: <guaneryu@gmail.com>
+Return-Path: <guaneryu@gmail.com>
+Date: Fri, 27 Apr 2018 10:43:04 +0800
+From: Eryu Guan <guaneryu@gmail.com>
+Subject: Re: [PATCH v2 4/4] overlay/04{1,3,4}: enable xino feature
+Message-ID: <20180427024304.GL11384@desktop>
+References: <1524722007-30891-1-git-send-email-amir73il@gmail.com>
+ <1524722007-30891-5-git-send-email-amir73il@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1524722007-30891-5-git-send-email-amir73il@gmail.com>
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, fstests@vger.kernel.org
 List-ID: <linux-unionfs@vger.kernel.org>
 
-There are couple of places where we need to know if file is already copied
-up (in lockless manner). Right now its open coded and there are only
-two conditions to check. Soon this patch series will introduce another
-condition to check and Amir wants to introduce one more. So introduce
-a helper instead to check this so that code is easier to read.
+On Wed, Apr 25, 2018 at 11:53:27PM -0600, Amir Goldstein wrote:
+> These tests check for constant inode number on copy up with nonsamefs
+> layer configuration. This problem is fixes only when opting-in with the
+> xino=on mount option, so let the tests enable the mount option on new
+> kernels and notrun on old kernels.
+> 
+> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+> ---
+>  tests/overlay/041 | 16 ++++++++++++----
+>  tests/overlay/043 | 16 ++++++++++++----
+>  tests/overlay/044 | 16 ++++++++++++----
+>  3 files changed, 36 insertions(+), 12 deletions(-)
+> 
+> diff --git a/tests/overlay/041 b/tests/overlay/041
+> index f3be746..78f8179 100755
+> --- a/tests/overlay/041
+> +++ b/tests/overlay/041
+> @@ -70,7 +70,15 @@ _scratch_mkfs
+>  upperdir=$OVL_BASE_SCRATCH_MNT/$OVL_UPPER
+>  workdir=$OVL_BASE_SCRATCH_MNT/$OVL_WORK
+>  
+> -_overlay_scratch_mount_dirs $lowerdir $upperdir $workdir
+> +# Enabling xino in this test requires that base filesystem inode numbers will
+> +# not use bit 63 in inode number of the test files, because bit 63 is used by
+> +# overlayfs to indicate the layer. Let's just assume that this is true for all
+> +# tested filesystems and if we are wrong, the test may fail.
+> +_overlay_scratch_mount_dirs $lowerdir $upperdir $workdir -o xino=on ||
+> +	_notrun "mount overlay with xino failed"
 
-Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
-Reviewed-by: Amir Goldstein <amir73il@gmail.com>
----
- fs/overlayfs/copy_up.c   | 20 ++------------------
- fs/overlayfs/overlayfs.h |  1 +
- fs/overlayfs/util.c      | 26 +++++++++++++++++++++++++-
- 3 files changed, 28 insertions(+), 19 deletions(-)
+The _notrun message seems to indicate there's a failure (I can see that
+it's copied from _require_scratch_dax), which may confuse users. I can
+change it to something like below on commit, if you have better messages
+please advise :)
 
-diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
-index 38b332d7c7e4..6ac3220b0834 100644
---- a/fs/overlayfs/copy_up.c
-+++ b/fs/overlayfs/copy_up.c
-@@ -810,21 +810,7 @@ int ovl_copy_up_flags(struct dentry *dentry, int flags)
- 		struct dentry *next;
- 		struct dentry *parent = NULL;
- 
--		/*
--		 * Check if copy-up has happened as well as for upper alias (in
--		 * case of hard links) is there.
--		 *
--		 * Both checks are lockless:
--		 *  - false negatives: will recheck under oi->lock
--		 *  - false positives:
--		 *    + ovl_dentry_upper() uses memory barriers to ensure the
--		 *      upper dentry is up-to-date
--		 *    + ovl_dentry_has_upper_alias() relies on locking of
--		 *      upper parent i_rwsem to prevent reordering copy-up
--		 *      with rename.
--		 */
--		if (ovl_dentry_upper(dentry) &&
--		    (ovl_dentry_has_upper_alias(dentry) || disconnected))
-+		if (ovl_already_copied_up(dentry))
- 			break;
- 
- 		next = dget(dentry);
-@@ -852,9 +838,7 @@ int ovl_copy_up_flags(struct dentry *dentry, int flags)
- static bool ovl_open_need_copy_up(struct dentry *dentry, int flags)
- {
- 	/* Copy up of disconnected dentry does not set upper alias */
--	if (ovl_dentry_upper(dentry) &&
--	    (ovl_dentry_has_upper_alias(dentry) ||
--	     (dentry->d_flags & DCACHE_DISCONNECTED)))
-+	if (ovl_already_copied_up(dentry))
- 		return false;
- 
- 	if (special_file(d_inode(dentry)->i_mode))
-diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-index 199a39762d1d..390881752e70 100644
---- a/fs/overlayfs/overlayfs.h
-+++ b/fs/overlayfs/overlayfs.h
-@@ -244,6 +244,7 @@ bool ovl_is_whiteout(struct dentry *dentry);
- struct file *ovl_path_open(struct path *path, int flags);
- int ovl_copy_up_start(struct dentry *dentry);
- void ovl_copy_up_end(struct dentry *dentry);
-+bool ovl_already_copied_up(struct dentry *dentry);
- bool ovl_check_origin_xattr(struct dentry *dentry);
- bool ovl_check_dir_xattr(struct dentry *dentry, const char *name);
- int ovl_check_setxattr(struct dentry *dentry, struct dentry *upperdentry,
-diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
-index 586f8d7440bb..ce15e211a33b 100644
---- a/fs/overlayfs/util.c
-+++ b/fs/overlayfs/util.c
-@@ -369,13 +369,37 @@ struct file *ovl_path_open(struct path *path, int flags)
- 	return dentry_open(path, flags | O_NOATIME, current_cred());
- }
- 
-+bool ovl_already_copied_up(struct dentry *dentry)
-+{
-+	bool disconnected = dentry->d_flags & DCACHE_DISCONNECTED;
-+
-+	/*
-+	 * Check if copy-up has happened as well as for upper alias (in
-+	 * case of hard links) is there.
-+	 *
-+	 * Both checks are lockless:
-+	 *  - false negatives: will recheck under oi->lock
-+	 *  - false positives:
-+	 *    + ovl_dentry_upper() uses memory barriers to ensure the
-+	 *      upper dentry is up-to-date
-+	 *    + ovl_dentry_has_upper_alias() relies on locking of
-+	 *      upper parent i_rwsem to prevent reordering copy-up
-+	 *      with rename.
-+	 */
-+	if (ovl_dentry_upper(dentry) &&
-+	    (ovl_dentry_has_upper_alias(dentry) || disconnected))
-+		return true;
-+
-+	return false;
-+}
-+
- int ovl_copy_up_start(struct dentry *dentry)
- {
- 	struct ovl_inode *oi = OVL_I(d_inode(dentry));
- 	int err;
- 
- 	err = mutex_lock_interruptible(&oi->lock);
--	if (!err && ovl_dentry_has_upper_alias(dentry)) {
-+	if (!err && ovl_already_copied_up(dentry)) {
- 		err = 1; /* Already copied up */
- 		mutex_unlock(&oi->lock);
- 	}
--- 
-2.13.6
+	_notrun "cannot mount overlay with xino=on option"
+
+> +# Not using _check_scratch_fs_option because it uses grep -w
+> +_fs_options $SCRATCH_DEV | grep -q "xino=on" || \
+> +	_notrun "failed to enable xino"
+
+	_notrun "cannot enable xino feature"
+
+Thanks,
+Eryu
+
+>  
+>  test_dir=$SCRATCH_MNT/test_dir/
+>  
+> @@ -171,7 +179,7 @@ subdir_d=$($here/src/t_dir_type $pure_lower_dir $pure_lower_subdir_st_ino)
+>  $UMOUNT_PROG $SCRATCH_MNT
+>  
+>  # check overlayfs
+> -_overlay_check_scratch_dirs $lowerdir $upperdir $workdir
+> +_overlay_check_scratch_dirs $lowerdir $upperdir $workdir -o xino=on
+>  
+>  # Verify pure lower residing in dir which has another lower layer
+>  middir=$OVL_BASE_TEST_DIR/$seq-ovl-mid
+> @@ -186,7 +194,7 @@ mkdir -p $lowerdir/test_dir/pure_lower_dir/subdir
+>  
+>  _scratch_mkfs
+>  
+> -_overlay_scratch_mount_dirs $middir:$lowerdir $upperdir $workdir
+> +_overlay_scratch_mount_dirs $middir:$lowerdir $upperdir $workdir -o xino=on
+>  
+>  # Copy up test_dir
+>  touch $test_dir/test_file
+> @@ -209,7 +217,7 @@ subdir_d=$($here/src/t_dir_type $pure_lower_dir $pure_lower_subdir_st_ino)
+>  	echo "Pure lower in dir which has another lower layer: Invalid d_ino reported for subdir"
+>  
+>  # check overlayfs
+> -_overlay_check_scratch_dirs "$middir:$lowerdir" $upperdir $workdir
+> +_overlay_check_scratch_dirs "$middir:$lowerdir" $upperdir $workdir -o xino=on
+>  
+>  echo "Silence is golden"
+>  status=0
+> diff --git a/tests/overlay/043 b/tests/overlay/043
+> index f70ee7f..c865b51 100755
+> --- a/tests/overlay/043
+> +++ b/tests/overlay/043
+> @@ -85,8 +85,16 @@ _scratch_mkfs >>$seqres.full 2>&1
+>  upperdir=$OVL_BASE_SCRATCH_MNT/$OVL_UPPER
+>  workdir=$OVL_BASE_SCRATCH_MNT/$OVL_WORK
+>  
+> -# Enable redirect_dir for renaming a merge directory
+> -_overlay_scratch_mount_dirs $lowerdir $upperdir $workdir -o redirect_dir=on
+> +# Enable redirect_dir for renaming a merge directory.
+> +# Enabling xino in this test requires that base filesystem inode numbers will
+> +# not use bit 63 in inode number of the test files, because bit 63 is used by
+> +# overlayfs to indicate the layer. Let's just assume that this is true for all
+> +# tested filesystems and if we are wrong, the test may fail.
+> +_overlay_scratch_mount_dirs $lowerdir $upperdir $workdir -o redirect_dir=on,xino=on || \
+> +	_notrun "mount overlay with xino failed"
+> +# Not using _check_scratch_fs_option because it uses grep -w
+> +_fs_options $SCRATCH_DEV | grep -q "xino=on" || \
+> +	_notrun "failed to enable xino"
+>  
+>  FILES="dir file symlink chrdev blkdev fifo socket"
+>  
+> @@ -153,13 +161,13 @@ check_inode_numbers $testdir $tmp.after_copyup $tmp.after_move
+>  
+>  # Verify that the inode numbers survive a mount cycle
+>  $UMOUNT_PROG $SCRATCH_MNT
+> -_overlay_scratch_mount_dirs $lowerdir $upperdir $workdir -o redirect_dir=on
+> +_overlay_scratch_mount_dirs $lowerdir $upperdir $workdir -o redirect_dir=on,xino=on
+>  
+>  # Compare inode numbers before/after mount cycle
+>  check_inode_numbers $testdir $tmp.after_move $tmp.after_cycle
+>  
+>  # check overlayfs
+> -_overlay_check_scratch_dirs $lowerdir $upperdir $workdir -o redirect_dir=on
+> +_overlay_check_scratch_dirs $lowerdir $upperdir $workdir -o redirect_dir=on,xino=on
+>  
+>  echo "Silence is golden"
+>  status=0
+> diff --git a/tests/overlay/044 b/tests/overlay/044
+> index 2ab3035..bcc30ac 100755
+> --- a/tests/overlay/044
+> +++ b/tests/overlay/044
+> @@ -99,8 +99,16 @@ _scratch_mkfs >>$seqres.full 2>&1
+>  upperdir=$OVL_BASE_SCRATCH_MNT/$OVL_UPPER
+>  workdir=$OVL_BASE_SCRATCH_MNT/$OVL_WORK
+>  
+> -# Enable overlay index feature to prevent breaking hardlinks on copy up
+> -_overlay_scratch_mount_dirs $lowerdir $upperdir $workdir -o index=on
+> +# Enable overlay index feature to prevent breaking hardlinks on copy up.
+> +# Enabling xino in this test requires that base filesystem inode numbers will
+> +# not use bit 63 in inode number of the test files, because bit 63 is used by
+> +# overlayfs to indicate the layer. Let's just assume that this is true for all
+> +# tested filesystems and if we are wrong, the test may fail.
+> +_overlay_scratch_mount_dirs $lowerdir $upperdir $workdir -o index=on,xino=on || \
+> +	_notrun "mount overlay with xino failed"
+> +# Not using _check_scratch_fs_option because it uses grep -w
+> +_fs_options $SCRATCH_DEV | grep -q "xino=on" || \
+> +	_notrun "failed to enable xino"
+>  
+>  rm -f $tmp.*
+>  
+> @@ -124,8 +132,8 @@ check_ino_nlink $SCRATCH_MNT $tmp.before $tmp.after_one
+>  
+>  # Verify that the hardlinks survive a mount cycle
+>  $UMOUNT_PROG $SCRATCH_MNT
+> -_overlay_check_scratch_dirs $lowerdir $upperdir $workdir -o index=on
+> -_overlay_scratch_mount_dirs $lowerdir $upperdir $workdir -o index=on
+> +_overlay_check_scratch_dirs $lowerdir $upperdir $workdir -o index=on,xino=on
+> +_overlay_scratch_mount_dirs $lowerdir $upperdir $workdir -o index=on,xino=on
+>  
+>  echo "== After mount cycle =="
+>  cat $FILES
+> -- 
+> 2.7.4
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-unionfs" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
