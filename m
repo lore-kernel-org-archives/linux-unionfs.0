@@ -1,82 +1,71 @@
-Return-Path: <cgxu519@gmx.com>
-From: Chengguang Xu <cgxu519@gmx.com>
-Subject: [PATCH v7 2/3] ovl: move the code of ovl_remount() to behind ovl_parse_opt()
-Date: Mon, 16 Apr 2018 09:37:07 +0800
-Message-Id: <1523842628-11651-3-git-send-email-cgxu519@gmx.com>
-In-Reply-To: <1523842628-11651-1-git-send-email-cgxu519@gmx.com>
-References: <1523842628-11651-1-git-send-email-cgxu519@gmx.com>
-To: linux-unionfs@vger.kernel.org
-Cc: miklos@szeredi.hu, amir73il@gmail.com, Chengguang Xu <cgxu519@gmx.com>
+Return-Path: <amir73il@gmail.com>
+MIME-Version: 1.0
+In-Reply-To: <20180426191013.13219-27-vgoyal@redhat.com>
+References: <20180426191013.13219-1-vgoyal@redhat.com> <20180426191013.13219-27-vgoyal@redhat.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Date: Sat, 28 Apr 2018 02:05:03 -0700
+Message-ID: <CAOQ4uxhQ4kM2R5d3u3C9YD2NRMiuiiaPk_aM+B8fWng6X-tFYg@mail.gmail.com>
+Subject: Re: [PATCH v14 26/31] ovl: Allow ovl_open_realfile() to open metacopy inode
+Content-Type: text/plain; charset="UTF-8"
+To: Vivek Goyal <vgoyal@redhat.com>
+Cc: overlayfs <linux-unionfs@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-Move the code of ovl_remount() around without any functional change,
-so that ovl_remount() can call ovl_parse_opt() without explicit
-statement.
+On Thu, Apr 26, 2018 at 12:10 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
+> Most of the time we need to open inode containing data (and not metacopy)
+> but when fsync happens, in that case we need to make sure upper metacopy
+> inode is fsynced too. In that case we need to open metacopy inode
+> temporarily.
+>
+> Add a parameter to ovl_open_realfile() which specifies whether to open
+> data inode or metacopy inode. Later fsync patch will make use of this
+> functionality.
 
-Signed-off-by: Chengguang Xu <cgxu519@gmx.com>
----
- fs/overlayfs/super.c | 42 +++++++++++++++++++++---------------------
- 1 file changed, 21 insertions(+), 21 deletions(-)
+I don't think fsync patch is needed so
+>
+> Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
+> ---
+>  fs/overlayfs/file.c | 34 ++++++++++++++++++++++++++++------
+>  1 file changed, 28 insertions(+), 6 deletions(-)
+>
+> diff --git a/fs/overlayfs/file.c b/fs/overlayfs/file.c
+> index 558a859b2658..08387639ba6e 100644
+> --- a/fs/overlayfs/file.c
+> +++ b/fs/overlayfs/file.c
+> @@ -14,7 +14,7 @@
+>  #include <linux/uio.h>
+>  #include "overlayfs.h"
+>
+> -static struct file *ovl_open_realfile(const struct file *file)
+> +static struct file *ovl_open_realfile(const struct file *file, bool meta)
+>  {
+>         struct inode *inode = file_inode(file);
+>         struct inode *upperinode = ovl_inode_upper(inode);
+> @@ -28,7 +28,13 @@ static struct file *ovl_open_realfile(const struct file *file)
+>
+>         /* Always open file which contains data. Do not open metacopy. */
+>         realinode = upperreal ? upperinode : ovl_inode_lowerdata(inode);
+> -
+> +       if (upperinode && (meta || ovl_has_upperdata(inode))) {
+> +               realinode = upperinode;
+> +               upperreal = true;
+> +       } else {
+> +               realinode = meta ? ovl_inode_lower(inode) :
+> +                                ovl_inode_lowerdata(inode);
+> +       }
+>         old_cred = ovl_override_creds(inode->i_sb);
+>         realfile = path_open(&file->f_path, file->f_flags | O_NOATIME,
+>                              realinode, current_cred(), false);
+> @@ -80,17 +86,23 @@ static int ovl_change_flags(struct file *file, unsigned int flags)
+>         return 0;
+>  }
+>
+> -static int ovl_real_file(const struct file *file, struct fd *real)
+> +static int _ovl_real_file(const struct file *file, struct fd *real, bool meta)
 
-diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-index e99864e..0293635a 100644
---- a/fs/overlayfs/super.c
-+++ b/fs/overlayfs/super.c
-@@ -379,27 +379,6 @@ static int ovl_show_options(struct seq_file *m, struct dentry *dentry)
- 	return 0;
- }
- 
--static int ovl_remount(struct super_block *sb, int *flags, char *data)
--{
--	struct ovl_fs *ofs = sb->s_fs_info;
--
--	if (!(*flags & SB_RDONLY) && ovl_force_readonly(ofs))
--		return -EROFS;
--
--	return 0;
--}
--
--static const struct super_operations ovl_super_operations = {
--	.alloc_inode	= ovl_alloc_inode,
--	.destroy_inode	= ovl_destroy_inode,
--	.drop_inode	= generic_delete_inode,
--	.put_super	= ovl_put_super,
--	.sync_fs	= ovl_sync_fs,
--	.statfs		= ovl_statfs,
--	.show_options	= ovl_show_options,
--	.remount_fs	= ovl_remount,
--};
--
- enum {
- 	OPT_LOWERDIR,
- 	OPT_UPPERDIR,
-@@ -563,6 +542,27 @@ static int ovl_parse_opt(char *opt, struct ovl_config *config)
- 	return ovl_parse_redirect_mode(config);
- }
- 
-+static int ovl_remount(struct super_block *sb, int *flags, char *data)
-+{
-+	struct ovl_fs *ofs = sb->s_fs_info;
-+
-+	if (!(*flags & SB_RDONLY) && ovl_force_readonly(ofs))
-+		return -EROFS;
-+
-+	return 0;
-+}
-+
-+static const struct super_operations ovl_super_operations = {
-+	.alloc_inode	= ovl_alloc_inode,
-+	.destroy_inode	= ovl_destroy_inode,
-+	.drop_inode	= generic_delete_inode,
-+	.put_super	= ovl_put_super,
-+	.sync_fs	= ovl_sync_fs,
-+	.statfs		= ovl_statfs,
-+	.show_options	= ovl_show_options,
-+	.remount_fs	= ovl_remount,
-+};
-+
- #define OVL_WORKDIR_NAME "work"
- #define OVL_INDEXDIR_NAME "index"
- 
--- 
-1.8.3.1
+I don't think you need to change this function.
+I think you need to use ovl_open_realfile() from ovl_fsync_file()
+if you realize this is metacopy case.
+
+Thanks,
+Amir.
