@@ -1,88 +1,172 @@
-Return-Path: <vgoyal@redhat.com>
-Date: Wed, 4 Apr 2018 09:41:10 -0400
-From: Vivek Goyal <vgoyal@redhat.com>
-Subject: Re: [PATCH v12 15/17] ovl: Remove redirect when data of a metacopy
- file is copied up
-Message-ID: <20180404134110.GB12921@redhat.com>
-References: <20180306205408.23383-1-vgoyal@redhat.com>
- <20180306205408.23383-16-vgoyal@redhat.com>
- <CAOQ4uxhey5gG+oB1BUM465-S29rBgU90T8iAwE3Nb5KxWoWepA@mail.gmail.com>
+Return-Path: <amir73il@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAOQ4uxhey5gG+oB1BUM465-S29rBgU90T8iAwE3Nb5KxWoWepA@mail.gmail.com>
-To: Amir Goldstein <amir73il@gmail.com>
+In-Reply-To: <20180426191013.13219-26-vgoyal@redhat.com>
+References: <20180426191013.13219-1-vgoyal@redhat.com> <20180426191013.13219-26-vgoyal@redhat.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Date: Sat, 28 Apr 2018 02:26:21 -0700
+Message-ID: <CAOQ4uxgTqWfMTTT9U3yxN4VDETin2eYGWT1GNgCtsHDi6QB7bw@mail.gmail.com>
+Subject: Re: [PATCH v14 25/31] ovl: Check redirect on index as well
+Content-Type: text/plain; charset="UTF-8"
+To: Vivek Goyal <vgoyal@redhat.com>
 Cc: overlayfs <linux-unionfs@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-On Wed, Mar 07, 2018 at 10:21:30AM +0200, Amir Goldstein wrote:
-> On Tue, Mar 6, 2018 at 10:54 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
-> > When a metacopy file is no longer a metacopy and data has been copied up,
-> > remove REDIRECT xattr. Its not needed anymore.
-> >
-> > Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
-> > ---
-> >  fs/overlayfs/copy_up.c | 9 +++++++++
-> >  1 file changed, 9 insertions(+)
-> >
-> > diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
-> > index 0c8d2755bd25..704febd2e2fa 100644
-> > --- a/fs/overlayfs/copy_up.c
-> > +++ b/fs/overlayfs/copy_up.c
-> > @@ -775,6 +775,15 @@ static int ovl_copy_up_meta_inode_data(struct ovl_copy_up_ctx *c)
-> >         if (err)
-> >                 return err;
-> >
-> > +       /*
-> > +        * A metacopy files does not need redirect xattr once data has
-> > +        * been copied up.
-> > +        */
-> > +       err = vfs_removexattr(upperpath.dentry, OVL_XATTR_REDIRECT);
-> > +       if (err && err != -ENODATA && err != -EOPNOTSUPP)
-> > +               return err;
-> > +
-> > +       err = 0;
-> >         ovl_set_upperdata(d_inode(c->dentry));
-> >         return err;
-> 
-> By intuition, I would say that removing redirect should be done after setting
-> upperdata flag. Not sure if it really matters in real life.
-> Maybe when racing a lookup of a metacopy hardlink and copy up data of
-> an upper alias?
-> 
-> Also, it would make sense to also ovl_dentry_set_redirect(c->dentry, NULL)
-> probably use a helper ovl_clear_redirect() for the locking.
-> 
-> But that highlights a serious problem with current patches -
-> Access to OVL_I(inode)->redirect is protected with parent mutex in ovl_lookup()
+On Thu, Apr 26, 2018 at 12:10 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
+> Right now we seem to check redirect only if upperdentry is found. But it
+> is possible that there is no upperdentry but later we found an index.
+>
+> We need to check redirect on index as well and set it in ovl_inode->redirect.
+> Otherwise link code can assume that dentry does not have redirect and
+> place a new one which breaks things. In my testing overlay/033 test
+> started failing in xfstests. Following are the details.
+>
+> For example do following.
+>
+> $ mkdir lower upper work merged
+>
+> - Make lower dir with 4 links.
+>   $ echo "foo" > lower/l0.txt
+>   $ ln  lower/l0.txt lower/l1.txt
+>   $ ln  lower/l0.txt lower/l2.txt
+>   $ ln  lower/l0.txt lower/l3.txt
+>
+> - Mount with index on and metacopy on.
+>
+>   $ mount -t overlay -o lowerdir=lower,upperdir=upper,workdir=work,index=on,metacopy=on none merged
+>
+> - Link lower
+>
+>   $ ln merged/l0.txt merged/l4.txt
+>     (This will metadata copy up of l0.txt and put an absolute redirect
+>      /l0.txt)
+>
+>   $ echo 2 > /proc/sys/vm/drop/caches
+>
+>   $ ls merged/l1.txt
+>   (Now l1.txt will be looked up. There is no upper dentry but there is
+>    lower dentry and index will be found. We don't check for redirect on
+>    index, hence ovl_inode->redirect will be NULL.)
+>
+> - Link Upper
+>
+>   $ ln merged/l4.txt merged/l5.txt
+>   (Lookup of l4.txt will use inode from l1.txt lookup which is still in
+>    cache. It has ovl_inode->redirect NULL, hence link will put a new
+>    redirect and replace /l0.txt with /l4.txt
+>
+> - Drop caches.
+>   echo 2 > /proc/sys/vm/drop_caches
+>
+> - List l1.txt and it returns -ESTALE
+>
+>   $ ls merged/l0.txt
+>
+>   (It returns stale because, we found a metacopy of l0.txt in upper
+>    and it has redirect l4.txt but there is no file named l4.txt in
+>    lower layer. So lower data copy is not found and -ESTALE is returned.)
+>
+> So problem here is that we did not process redirect on index. Check
+> redirect on index as well and then problem is fixed.
+>
+> Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
 
-> and additionally with dentry->d_lock in ovl_rename()
-> That is sufficient for directories which can only have a single dentry
-> alias to an
-> inode but not at all sufficient for non-directories.
+Reviewed-by: Amir Goldstein <amir73il@gmail.com>
 
-Quick question on this. For non-dir files, will ovl_inode->redirect be
-protected by VFS locking. Atleast for our use case. We seem to be touching
-ovl_inode->redirect in rename, link and lookup path.
+After addressing comment below
 
-VFS rename locks both source and destination inodes and link path will
-lock source and destination as well. So I think a rename and link can
-not make progress in parallel if any or the source or target is files
-are common. If that's the case two redirect writers can't stomp over
-each other.
+> ---
+>  fs/overlayfs/namei.c     |  9 ++++++++-
+>  fs/overlayfs/overlayfs.h |  1 +
+>  fs/overlayfs/util.c      | 42 ++++++++++++++++++++++++++++++++++++++++++
+>  3 files changed, 51 insertions(+), 1 deletion(-)
+>
+> diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
+> index 41cbde97a212..c6ad8117a1f5 100644
+> --- a/fs/overlayfs/namei.c
+> +++ b/fs/overlayfs/namei.c
+> @@ -1067,8 +1067,15 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
+>
+>         if (upperdentry)
+>                 ovl_dentry_set_upper_alias(dentry);
+> -       else if (index)
+> +       else if (index) {
+>                 upperdentry = dget(index);
+> +               upperredirect = ovl_get_redirect_xattr(upperdentry);
+> +               if (IS_ERR(upperredirect)) {
+> +                       err = PTR_ERR(upperredirect);
+> +                       upperredirect = NULL;
+> +                       goto out_free_oe;
+> +               }
+> +       }
+>
+>         if (upperdentry || ctr) {
+>                 struct dentry *lowerdata = NULL;
+> diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
+> index e2c6a2f5addf..a0f3a6fa3029 100644
+> --- a/fs/overlayfs/overlayfs.h
+> +++ b/fs/overlayfs/overlayfs.h
+> @@ -284,6 +284,7 @@ int ovl_lock_rename_workdir(struct dentry *workdir, struct dentry *upperdir);
+>  void ovl_copytimes(struct inode *inode);
+>  int ovl_check_metacopy_xattr(struct dentry *dentry);
+>  bool ovl_is_metacopy_dentry(struct dentry *dentry);
+> +char *ovl_get_redirect_xattr(struct dentry *dentry);
+>
+>  static inline void ovl_copytimes_with_parent(struct dentry *dentry)
+>  {
+> diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
+> index 69acce1c9026..1a5691a9e425 100644
+> --- a/fs/overlayfs/util.c
+> +++ b/fs/overlayfs/util.c
+> @@ -889,3 +889,45 @@ bool ovl_is_metacopy_dentry(struct dentry *dentry)
+>
+>         return (oe->numlower > 1);
+>  }
+> +
+> +char *ovl_get_redirect_xattr(struct dentry *dentry)
+> +{
+> +       int res;
+> +       char *s, *next, *buf = NULL;
+> +
+> +       res = vfs_getxattr(dentry, OVL_XATTR_REDIRECT, NULL, 0);
+> +       if (res < 0) {
+> +               if (res == -ENODATA || res == -EOPNOTSUPP)
+> +                       return NULL;
+> +               return ERR_PTR(res);
+> +       }
+> +
+> +       buf = kzalloc(res + 1, GFP_KERNEL);
+> +       if (!buf)
+> +               return ERR_PTR(-ENOMEM);
+> +
+> +       res = vfs_getxattr(dentry, OVL_XATTR_REDIRECT, buf, res);
+> +       if (res < 0) {
+> +               kfree(buf);
+> +               return ERR_PTR(res);
+> +        }
+> +       if (res == 0)
+> +               goto invalid;
+> +
+> +       if (buf[0] == '/') {
+> +               for (s = buf; *s++ == '/'; s = next) {
+> +                       next = strchrnul(s, '/');
+> +                       if (s == next)
+> +                               goto invalid;
+> +               }
+> +       } else {
+> +               if (strchr(buf, '/') != NULL)
+> +                       goto invalid;
+> +       }
+> +
+> +       return buf;
+> +invalid:
+> +       pr_warn_ratelimited("overlayfs: invalid redirect (%s)\n", buf);
+> +       kfree(buf);
+> +       return ERR_PTR(-EINVAL);
+> +}
+> --
 
-Lookup path will only set ovl_inode->redirect only if inode state is
-I_NEW and that means other vfs operations on same inode could not be
-making any progress.
+Please add argument 'postlen' or 'padding' and use this helper
+from ovl_check_redirect() instead of duplicating code.
 
-Now comes question of copy up path when we remove redirect xattr and
-modify ovl_inode->redirect. I don't know if we can assume that
-VFS is holding inode lock when copy up happens. If this assumption is
-valid, then it means rename and link can't make progress and it is
-safe to modify ovl_inode->redirect.
-
-I guess this assumption might not be valid, and that's why we need
-ovl_inode->lock. Not sure though. Can you throw some light at it.
-
-Thanks
-Vivek
+Thanks,
+Amir.
