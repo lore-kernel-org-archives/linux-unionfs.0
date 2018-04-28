@@ -1,38 +1,27 @@
-Return-Path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mga07.intel.com ([134.134.136.100]:11907 "EHLO mga07.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752878AbeDLQNn (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 12 Apr 2018 12:13:43 -0400
-Date: Fri, 13 Apr 2018 00:13:09 +0800
-From: kbuild test robot <lkp@intel.com>
-Subject: [miklos-vfs:overlayfs-rorw 35/54] fs/overlayfs/file.c:315:6: sparse:
- symbol 'ovl_ioctl' was not declared. Should it be static?
-Message-ID: <201804130058.N6wp9opo%fengguang.wu@intel.com>
+Return-Path: <amir73il@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Sender: linux-unionfs-owner@vger.kernel.org
-To: Miklos Szeredi <mszeredi@redhat.com>
-Cc: kbuild-all@01.org, linux-unionfs@vger.kernel.org
+In-Reply-To: <20180426191013.13219-28-vgoyal@redhat.com>
+References: <20180426191013.13219-1-vgoyal@redhat.com> <20180426191013.13219-28-vgoyal@redhat.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Date: Sat, 28 Apr 2018 01:54:53 -0700
+Message-ID: <CAOQ4uxifhnk6odkx36a+r-RySu4y_H6e=JAh_kfpR+vBqehZSw@mail.gmail.com>
+Subject: Re: [PATCH v14 27/31] ovl: Issue fsync on upper metacopy inode as well
+Content-Type: text/plain; charset="UTF-8"
+To: Vivek Goyal <vgoyal@redhat.com>
+Cc: overlayfs <linux-unionfs@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-tree:   https://git.kernel.org/pub/scm/linux/kernel/git/mszeredi/vfs.git overlayfs-rorw
-head:   9b82e69abc05b81650d3be96a50602700fc80bc4
-commit: f8395fc9f072cf62488d4b128151650bede9bc00 [35/54] ovl: readd lsattr/chattr support
-reproduce:
-        # apt-get install sparse
-        git checkout f8395fc9f072cf62488d4b128151650bede9bc00
-        make ARCH=x86_64 allmodconfig
-        make C=1 CF=-D__CHECK_ENDIAN__
+On Thu, Apr 26, 2018 at 12:10 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
+> When a fsync happens, it calls fsync on real underlying file. If a file
+> has been metadata only copied up on upper, then file containing data
+> is the real file and fsync will be called on lower data file.
+>
+> We should be issuing fsync on upper metacopy inode as well to make sure
+> upper inode has been made persistent on disk.
 
+This is papering over a bug in Miklos's patch.
+fsync should ONLY ever sync upper inode.
+same as a bug that was recently fixed in ovl_dir_fsync().
 
-sparse warnings: (new ones prefixed by >>)
-
-   fs/overlayfs/file.c:272:6: sparse: symbol 'ovl_fallocate' was not declared. Should it be static?
->> fs/overlayfs/file.c:315:6: sparse: symbol 'ovl_ioctl' was not declared. Should it be static?
-
-Please review and possibly fold the followup patch.
-
----
-0-DAY kernel test infrastructure                Open Source Technology Center
-https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
+Thanks,
+Amir.
