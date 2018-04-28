@@ -1,125 +1,64 @@
-Return-Path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mx3-rdu2.redhat.com ([66.187.233.73]:34236 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1753981AbeDZTKp (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 26 Apr 2018 15:10:45 -0400
-From: Vivek Goyal <vgoyal@redhat.com>
-Subject: [PATCH v14 24/31] ovl: Set redirect on upper inode when it is linked
-Date: Thu, 26 Apr 2018 15:10:06 -0400
-Message-Id: <20180426191013.13219-25-vgoyal@redhat.com>
-In-Reply-To: <20180426191013.13219-1-vgoyal@redhat.com>
-References: <20180426191013.13219-1-vgoyal@redhat.com>
-Sender: linux-unionfs-owner@vger.kernel.org
-To: linux-unionfs@vger.kernel.org
-Cc: miklos@szeredi.hu, amir73il@gmail.com, vgoyal@redhat.com
+Return-Path: <amir73il@gmail.com>
+MIME-Version: 1.0
+In-Reply-To: <20180426191013.13219-22-vgoyal@redhat.com>
+References: <20180426191013.13219-1-vgoyal@redhat.com> <20180426191013.13219-22-vgoyal@redhat.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Date: Sat, 28 Apr 2018 01:33:49 -0700
+Message-ID: <CAOQ4uxjLm+iyJYJPaR04Pxdd8kvj860y-_eQChNxitxoh+mnMw@mail.gmail.com>
+Subject: Re: [PATCH v14 21/31] ovl: Add an inode flag OVL_CONST_INO
+Content-Type: text/plain; charset="UTF-8"
+To: Vivek Goyal <vgoyal@redhat.com>
+Cc: overlayfs <linux-unionfs@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-When we create a hardlink to a metacopy upper file, first the redirect
-on that inode. Path based lookup will not work with newly created link
-and redirect will solve that issue.
+On Thu, Apr 26, 2018 at 12:10 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
+> Add an ovl_inode flag OVL_CONST_INO. This flag signifies if inode number
+> will remain constant over copy up or not. This flag does not get updated
+> over copy up and remains unmodifed after setting once.
+>
+> Next patch in the series will make use of this flag. It will basically
+> figure out if dentry is of type ORIGIN or not. And this can be derived
+> by this flag.
+>
+> ORIGIN = (upperdentry && ovl_test_flag(OVL_CONST_INO, inode)).
+>
+> Suggested-by: Amir Goldstein <amir73il@gmail.com>
+> Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
 
-Also use absolute redirect as two hardlinks could be in different directores
-and relative redirect will not work.
+Reviewed-by: Amir Goldstein <amir73il@gmail.com>
 
-I have not put any additional locking around setting redirects while
-introducing redirects for non-dir files. For now it feels like existing
-locking is sufficient. If that's not the case, we will have add more
-locking. Following is my rationale about why do I think current locking
-seems ok.
-
-Basic problem for non-dir files is that more than on dentry could be
-pointing to same inode and in theory only relying on dentry based locks
-(d->d_lock) did not seem sufficient.
-
-We set redirect upon rename and upon link creation. In both the paths
-for non-dir file, VFS locks both source and target inodes (->i_rwsem).
-That means vfs rename and link operations on same source and target
-can't he happening in parallel (Even if there are multiple dentries
-pointing to same inode). So that probably means that at a time on an inode,
-only one call of ovl_set_redirect() could be working and we don't need
-additional locking in ovl_set_redirect().
-
-ovl_inode->redirect is initialized only when inode is created new. That
-means it should not race with any other path and setting ovl_inode->redirect
-should be fine.
-
-Reading of ovl_inode->redirect happens in ovl_get_redirect() path. And this
-called only in ovl_set_redirect(). And ovl_set_redirect() already seemed
-to be protected using ->i_rwsem. That means ovl_set_redirect() and
-ovl_get_redirect() on source/target inode should not make progress in
-parallel and is mutually exclusive. Hence no additional locking required.
-
-Now, only case where ovl_set_redirect() and ovl_get_redirect() could race
-seems to be case of absolute redirects where ovl_get_redirect() has to
-travel up the tree. In that case we already take d->d_lock and that should
-be sufficient as directories will not have multiple dentries pointing to
-same inode.
-
-So given VFS locking and current usage of redirect, current locking around
-redirect seems to be ok for non-dir as well. Once we have the logic to
-remove redirect when metacopy file gets copied up, then we probably will
-need additional locking.
-
-Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
----
- fs/overlayfs/dir.c | 19 +++++++++++++++----
- 1 file changed, 15 insertions(+), 4 deletions(-)
-
-diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
-index 1acea6887b05..546ad7d34160 100644
---- a/fs/overlayfs/dir.c
-+++ b/fs/overlayfs/dir.c
-@@ -24,6 +24,8 @@ module_param_named(redirect_max, ovl_redirect_max, ushort, 0644);
- MODULE_PARM_DESC(ovl_redirect_max,
- 		 "Maximum length of absolute redirect xattr value");
- 
-+static int ovl_set_redirect(struct dentry *dentry, bool samedir);
-+
- int ovl_cleanup(struct inode *wdir, struct dentry *wdentry)
- {
- 	int err;
-@@ -468,6 +470,9 @@ static int ovl_create_or_link(struct dentry *dentry, struct inode *inode,
- 	const struct cred *old_cred;
- 	struct cred *override_cred;
- 	struct dentry *parent = dentry->d_parent;
-+	struct dentry *hardlink_upper;
-+
-+	hardlink_upper = hardlink ? ovl_dentry_upper(hardlink) : NULL;
- 
- 	err = ovl_copy_up(parent);
- 	if (err)
-@@ -502,12 +507,19 @@ static int ovl_create_or_link(struct dentry *dentry, struct inode *inode,
- 		put_cred(override_creds(override_cred));
- 		put_cred(override_cred);
- 
-+		if (hardlink && ovl_is_metacopy_dentry(hardlink)) {
-+			err = ovl_set_redirect(hardlink, false);
-+			if (err)
-+				goto out_revert_creds;
-+		}
-+
-+
- 		if (!ovl_dentry_is_whiteout(dentry))
- 			err = ovl_create_upper(dentry, inode, attr,
--						hardlink);
-+						hardlink_upper);
- 		else
- 			err = ovl_create_over_whiteout(dentry, inode, attr,
--							hardlink);
-+							hardlink_upper);
- 		ovl_copytimes_with_parent(dentry);
- 	}
- out_revert_creds:
-@@ -603,8 +615,7 @@ static int ovl_link(struct dentry *old, struct inode *newdir,
- 	inode = d_inode(old);
- 	ihold(inode);
- 
--	err = ovl_create_or_link(new, inode, NULL, ovl_dentry_upper(old),
--				 ovl_type_origin(old));
-+	err = ovl_create_or_link(new, inode, NULL, old, ovl_type_origin(old));
- 	if (err)
- 		iput(inode);
- 
--- 
-2.13.6
-
+> ---
+>  fs/overlayfs/inode.c     | 3 +++
+>  fs/overlayfs/overlayfs.h | 2 ++
+>  2 files changed, 5 insertions(+)
+>
+> diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
+> index a6cd57741a1f..19e96d4717bd 100644
+> --- a/fs/overlayfs/inode.c
+> +++ b/fs/overlayfs/inode.c
+> @@ -881,6 +881,9 @@ struct inode *ovl_get_inode(struct super_block *sb, struct dentry *upperdentry,
+>
+>         OVL_I(inode)->redirect = redirect;
+>
+> +       if (bylower)
+> +               ovl_set_flag(OVL_CONST_INO, inode);
+> +
+>         /* Check for non-merge dir that may have whiteouts */
+>         if (is_dir) {
+>                 if (((upperdentry && lowerdentry) || numlower > 1) ||
+> diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
+> index e24af484967f..e2c6a2f5addf 100644
+> --- a/fs/overlayfs/overlayfs.h
+> +++ b/fs/overlayfs/overlayfs.h
+> @@ -38,6 +38,8 @@ enum ovl_inode_flag {
+>         OVL_WHITEOUTS,
+>         OVL_INDEX,
+>         OVL_UPPERDATA,
+> +       /* Inode number will remain constant over copy up. */
+> +       OVL_CONST_INO,
+>  };
+>
+>  enum ovl_entry_flag {
+> --
+> 2.13.6
+>
