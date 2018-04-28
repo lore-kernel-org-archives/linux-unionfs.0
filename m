@@ -1,99 +1,59 @@
 Return-Path: <amir73il@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <1522558675-70756-1-git-send-email-cgxu519@gmx.com>
-References: <1522558675-70756-1-git-send-email-cgxu519@gmx.com>
+In-Reply-To: <20180426191013.13219-20-vgoyal@redhat.com>
+References: <20180426191013.13219-1-vgoyal@redhat.com> <20180426191013.13219-20-vgoyal@redhat.com>
 From: Amir Goldstein <amir73il@gmail.com>
-Date: Sun, 1 Apr 2018 10:11:30 +0300
-Message-ID: <CAOQ4uxhRyG-0JYNWsVhkzQ0+ue-xdSVkfM7gX4LdNu9kkoWNTg@mail.gmail.com>
-Subject: Re: [PATCH 1/2] ovl: add option parsing support for remount
+Date: Sat, 28 Apr 2018 01:32:33 -0700
+Message-ID: <CAOQ4uxiCtAuH1w4DkAjPfAJfoSoUPq4wdMx-XGPPfsPXVeHbNg@mail.gmail.com>
+Subject: Re: [PATCH v14 19/31] ovl: Check redirects for metacopy files
 Content-Type: text/plain; charset="UTF-8"
-To: Chengguang Xu <cgxu519@gmx.com>
+To: Vivek Goyal <vgoyal@redhat.com>
 Cc: overlayfs <linux-unionfs@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-On Sun, Apr 1, 2018 at 7:57 AM, Chengguang Xu <cgxu519@gmx.com> wrote:
-> Some overlayfs mount options cannot be changed via remount,
-> but remount operation does not return proper error even if
-> we specify different value to unchangeable options.
+On Thu, Apr 26, 2018 at 12:10 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
+> Right now we rely on path based lookup for data origin of metacopy upper.
+> This will work only if upper has not been renamed. We solved this problem
+> already for merged directories using redirect. Use same logic for metacopy
+> files.
 >
-> This patch add option parsing support for remount so we can
-> recogonize unchangeable options in remount.
+> This patch just goes on to check redirects for metacopy files.
 >
-> Signed-off-by: Chengguang Xu <cgxu519@gmx.com>
+> Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
+
+Reviewed-by: Amir Goldstein <amir73il@gmail.com>
+
+
 > ---
->  fs/overlayfs/super.c | 19 +++++++++++++------
->  1 file changed, 13 insertions(+), 6 deletions(-)
+>  fs/overlayfs/namei.c | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
 >
-> diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-> index 7c24619..5c8944b 100644
-> --- a/fs/overlayfs/super.c
-> +++ b/fs/overlayfs/super.c
-> @@ -446,14 +446,10 @@ static int ovl_parse_redirect_mode(struct ovl_config *config, const char *mode)
->         return 0;
->  }
->
-> -static int ovl_parse_opt(char *opt, struct ovl_config *config)
-> +static int ovl_parse_opt(char *opt, struct ovl_config *config, bool remount)
->  {
->         char *p;
->
-> -       config->redirect_mode = kstrdup(ovl_redirect_mode_def(), GFP_KERNEL);
-> -       if (!config->redirect_mode)
-> -               return -ENOMEM;
-> -
->         while ((p = ovl_next_opt(&opt)) != NULL) {
->                 int token;
->                 substring_t args[MAX_OPT_ARGS];
-> @@ -517,6 +513,9 @@ static int ovl_parse_opt(char *opt, struct ovl_config *config)
+> diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
+> index 880c7faea41a..41cbde97a212 100644
+> --- a/fs/overlayfs/namei.c
+> +++ b/fs/overlayfs/namei.c
+> @@ -268,7 +268,8 @@ static int ovl_lookup_single(struct dentry *base, struct ovl_lookup_data *d,
+>                         goto out_err;
+>                 d->stop = !err;
+>                 d->metacopy = !!err;
+> -               goto out;
+> +               if (!d->metacopy || d->last)
+> +                       goto out;
+>         } else {
+>                 if (last_element) {
+>                         if (d->metacopy) {
+> @@ -874,7 +875,6 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
 >                 }
->         }
->
-> +       if (remount)
-> +               return 0;
-> +
->         /* Workdir is useless in non-upper mount */
->         if (!config->upperdir && config->workdir) {
->                 pr_info("overlayfs: option \"workdir=%s\" is useless in a non-upper mount, ignore\n",
-> @@ -525,6 +524,13 @@ static int ovl_parse_opt(char *opt, struct ovl_config *config)
->                 config->workdir = NULL;
->         }
->
-> +       if (!config->redirect_mode) {
-> +               config->redirect_mode = kstrdup(ovl_redirect_mode_def(),
-> +                                                       GFP_KERNEL);
-> +               if (!config->redirect_mode)
-> +                       return -ENOMEM;
-> +       }
-> +
-
-You can move this chunk into ovl_parse_redirect_mode() no?
-
->         return ovl_parse_redirect_mode(config, config->redirect_mode);
->  }
->
-> @@ -1250,6 +1256,7 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
->         struct ovl_entry *oe;
->         struct ovl_fs *ofs;
->         struct cred *cred;
-> +       bool remount = false;
-
-This helper var is not needed.
-
-Thanks,
-Amir.
-
->         int err;
->
->         err = -ENOMEM;
-> @@ -1263,7 +1270,7 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
->
->         ofs->config.index = ovl_index_def;
->         ofs->config.nfs_export = ovl_nfs_export_def;
-> -       err = ovl_parse_opt((char *) data, &ofs->config);
-> +       err = ovl_parse_opt((char *) data, &ofs->config, remount);
->         if (err)
->                 goto out_err;
+>                 if (upperdentry && !d.is_dir) {
+>                         unsigned int origin_ctr = 0;
+> -                       BUG_ON(d.redirect);
+>                         /*
+>                          * Lookup copy up origin by decoding origin file handle.
+>                          * We may get a disconnected dentry, which is fine,
+> --
+> 2.13.6
 >
 > --
-> 1.8.3.1
->
+> To unsubscribe from this list: send the line "unsubscribe linux-unionfs" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
