@@ -1,106 +1,61 @@
-Return-Path: <amir73il@gmail.com>
-Return-Path: <amir73il@gmail.com>
-From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH 1/2] common/rc: decouple xfs_io flink check from xfs_io -T check
-Date: Sun,  6 May 2018 09:36:07 +0300
-Message-Id: <1525588568-1714-2-git-send-email-amir73il@gmail.com>
-In-Reply-To: <1525588568-1714-1-git-send-email-amir73il@gmail.com>
-References: <1525588568-1714-1-git-send-email-amir73il@gmail.com>
-To: Eryu Guan <eguan@redhat.com>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, fstests@vger.kernel.org
+Return-Path: <linux-unionfs-owner@vger.kernel.org>
+Received: from mx2.suse.de ([195.135.220.15]:52971 "EHLO mx2.suse.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751140AbeECP0s (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Thu, 3 May 2018 11:26:48 -0400
+From: Goldwyn Rodrigues <rgoldwyn@suse.de>
+Subject: [PATCH 1/3] Perform splice in copy_file_range if in/out SB are not same
+Date: Thu,  3 May 2018 10:26:33 -0500
+Message-Id: <20180503152635.14974-2-rgoldwyn@suse.de>
+In-Reply-To: <20180503152635.14974-1-rgoldwyn@suse.de>
+References: <20180503152635.14974-1-rgoldwyn@suse.de>
+Sender: linux-unionfs-owner@vger.kernel.org
+To: linux-fsdevel@vger.kernel.org
+Cc: hch@lst.de, smfrench@gmail.com, linux-unionfs@vger.kernel.org, Anna.Schumaker@Netapp.com, darrick.wong@oracle.com, Goldwyn Rodrigues <rgoldwyn@suse.com>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-The 3 tests that _require_xfs_io_command "flink", actually require
-O_TMPFILE support and flink command, but the former is far unlikely
-to be missing. The test btrfs/058 doesn't even use the flink command.
+From: Goldwyn Rodrigues <rgoldwyn@suse.com>
 
-When running these tests on a filesystem that does not support O_TMPFILE
-(e.g. overlayfs) the result is not very infomative:
+While performing copy_file_range(), if superblocks of file_in and
+file_out don't match, instead of returning -EXDEV, perform
+splice for a faster copy.
 
- generic/004 1s ... [not run] xfs_io flink failed (old kernel/wrong fs?)
-
-Decouple the requirements for "flink" command and "-T" command line flag
-and require the former explicitly in tests that use it.
-
-As a result the report is now more informative:
-
- generic/004 1s ... [not run] O_TMPFILE is not supported
-
-Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+Signed-off-by: Goldwyn Rodrigues <rgoldwyn@suse.com>
 ---
- common/rc         | 15 +++++++++++----
- tests/btrfs/058   |  4 +---
- tests/generic/004 |  1 +
- tests/generic/389 |  1 +
- 4 files changed, 14 insertions(+), 7 deletions(-)
+ fs/read_write.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/common/rc b/common/rc
-index 9ffab7f..3dabdc9 100644
---- a/common/rc
-+++ b/common/rc
-@@ -2147,13 +2147,20 @@ _require_xfs_io_command()
- 			-c "fiemap -v $param" $testfile 2>&1`
- 		param_checked=1
- 		;;
--	"flink" )
--		testio=`$XFS_IO_PROG -T -F -c "flink $testfile" \
--			$TEST_DIR 2>&1`
-+	"flink")
-+		local testlink=$TEST_DIR/$$.link.xfs_io
-+		testio=`$XFS_IO_PROG -F -f -c "flink $testlink" $testfile 2>&1`
-+		rm -f $testlink > /dev/null 2>&1
-+		;;
-+	"-T")
-+		# Check O_TMPFILE support in xfs_io, kernel and fs
-+		testio=`$XFS_IO_PROG -T -c quit $TEST_DIR 2>&1`
- 		echo $testio | egrep -q "invalid option|Is a directory" && \
- 			_notrun "xfs_io $command support is missing"
-+		echo $testio | grep -q "Operation not supported" && \
-+			_notrun "O_TMPFILE is not supported"
- 		;;
--	"fsmap" )
-+	"fsmap")
- 		testio=`$XFS_IO_PROG -f -c "fsmap" $testfile 2>&1`
- 		echo $testio | grep -q "Inappropriate ioctl" && \
- 			_notrun "xfs_io $command support is missing"
-diff --git a/tests/btrfs/058 b/tests/btrfs/058
-index ed39f94..f139d0c 100755
---- a/tests/btrfs/058
-+++ b/tests/btrfs/058
-@@ -53,9 +53,7 @@ _cleanup()
- _supported_fs btrfs
- _supported_os Linux
- _require_scratch
--# Requiring flink command tests for the presence of the -T option used
--# to pass O_TMPFILE to open(2).
--_require_xfs_io_command "flink"
-+_require_xfs_io_command "-T"
+diff --git a/fs/read_write.c b/fs/read_write.c
+index c4eabbfc90df..e71270033402 100644
+--- a/fs/read_write.c
++++ b/fs/read_write.c
+@@ -1575,15 +1575,14 @@ ssize_t vfs_copy_file_range(struct file *file_in, loff_t pos_in,
+ 	    (file_out->f_flags & O_APPEND))
+ 		return -EBADF;
  
- rm -f $seqres.full
+-	/* this could be relaxed once a method supports cross-fs copies */
+-	if (inode_in->i_sb != inode_out->i_sb)
+-		return -EXDEV;
+-
+ 	if (len == 0)
+ 		return 0;
  
-diff --git a/tests/generic/004 b/tests/generic/004
-index d0926f1..df6f215 100755
---- a/tests/generic/004
-+++ b/tests/generic/004
-@@ -45,6 +45,7 @@ _supported_fs generic
- _supported_os Linux
+ 	file_start_write(file_out);
  
- _require_test
-+_require_xfs_io_command "-T"
- _require_xfs_io_command "flink"
++	if (inode_in->i_sb != inode_out->i_sb)
++		goto do_splice;
++
+ 	/*
+ 	 * Try cloning first, this is supported by more file systems, and
+ 	 * more efficient if both clone and copy are supported (e.g. NFS).
+@@ -1604,6 +1603,7 @@ ssize_t vfs_copy_file_range(struct file *file_in, loff_t pos_in,
+ 			goto done;
+ 	}
  
- rm -f $seqres.full
-diff --git a/tests/generic/389 b/tests/generic/389
-index 6d63eda..1b7bd77 100755
---- a/tests/generic/389
-+++ b/tests/generic/389
-@@ -47,6 +47,7 @@ _supported_fs generic
- _supported_os Linux
- 
- _require_test
-+_require_xfs_io_command "-T"
- _require_xfs_io_command "flink"
- _require_acls
++do_splice:
+ 	ret = do_splice_direct(file_in, &pos_in, file_out, &pos_out,
+ 			len > MAX_RW_COUNT ? MAX_RW_COUNT : len, 0);
  
 -- 
-2.7.4
+2.16.3
+
