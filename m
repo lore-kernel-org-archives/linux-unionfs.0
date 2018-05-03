@@ -1,14 +1,13 @@
 Return-Path: <amir73il@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <CAOQ4uxj5G33vzQabE7hVfyF9v5YT0XxjxK6u5_Vo-g2e_vgO_A@mail.gmail.com>
+In-Reply-To: <20180503151220.GB10792@redhat.com>
 References: <20180426191013.13219-1-vgoyal@redhat.com> <20180426191013.13219-10-vgoyal@redhat.com>
  <CAOQ4uxg5xDZJVuys69QtGBRGcs3=zfkJQoZgTZRp+cG+GGVzEQ@mail.gmail.com>
  <20180430140243.GB7960@redhat.com> <CAOQ4uximhvDrOn6s-5X-BeGvfG0RtTBU-WA6fEjfyYEkn4jvNw@mail.gmail.com>
- <CAOQ4uxg5zDffN8VneWQCTd4N+trCCx0v7=paL9_hdMZj5CidYA@mail.gmail.com>
- <20180503151220.GB10792@redhat.com> <CAOQ4uxj5G33vzQabE7hVfyF9v5YT0XxjxK6u5_Vo-g2e_vgO_A@mail.gmail.com>
+ <CAOQ4uxg5zDffN8VneWQCTd4N+trCCx0v7=paL9_hdMZj5CidYA@mail.gmail.com> <20180503151220.GB10792@redhat.com>
 From: Amir Goldstein <amir73il@gmail.com>
-Date: Fri, 4 May 2018 10:04:22 +0300
-Message-ID: <CAOQ4uxjgymQDswFOQkLOgRXtoZFw77V3ycWy4Uvjrrs5KAQ0rw@mail.gmail.com>
+Date: Thu, 3 May 2018 23:07:46 +0300
+Message-ID: <CAOQ4uxj5G33vzQabE7hVfyF9v5YT0XxjxK6u5_Vo-g2e_vgO_A@mail.gmail.com>
 Subject: Re: [PATCH v14 09/31] ovl: Modify ovl_lookup() and friends to lookup
  metacopy dentry
 Content-Type: text/plain; charset="UTF-8"
@@ -16,92 +15,99 @@ To: Vivek Goyal <vgoyal@redhat.com>
 Cc: overlayfs <linux-unionfs@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-On Thu, May 3, 2018 at 11:07 PM, Amir Goldstein <amir73il@gmail.com> wrote:
-> On Thu, May 3, 2018 at 6:12 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
->> On Tue, May 01, 2018 at 05:37:09PM +0300, Amir Goldstein wrote:
-[...]
-
->>>
->>> w.r.t METACOPY things will get complicated if we remove
->>> METACOPY xattr and the upper does not have ORIGIN.
+On Thu, May 3, 2018 at 6:12 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
+> On Tue, May 01, 2018 at 05:37:09PM +0300, Amir Goldstein wrote:
+>> On Mon, Apr 30, 2018 at 9:08 PM, Amir Goldstein <amir73il@gmail.com> wrote:
+>> > On Mon, Apr 30, 2018 at 5:02 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
+>> [...]
+>> >>
+>> >> I think we need to check metacopy here otherwise it becomes racy. For
+>> >> example, what if there is a hard link (say, l1 and l2) with metacopy xattr.
+>> >> ovl_lookup(l1) will think metacopy is on while another thread on another
+>> >> cpu might have trigged copy up, remove metacopy xattr. And it is possible
+>> >> that inode got flushed out of cache. So by the time ovl_lookup(l1), calls
+>> >> iget5_locked(), it will get a new inode and it will initialize inode
+>> >> with wrong information.
+>> >>
+>> >> I had done similar thing for REDIRECT, but once we removed logic to
+>> >> remove REDIRECT on copy up, I felt I did not have to check redirect
+>> >> again here.
+>> >>
+>> >> In general, I feel that once we have the inode lock, we should check
+>> >> metacopy and redirect both and then initialize inode. And not rely
+>> >> on information which was checked outside the lock and might have
+>> >> been stale by now.
+>> >>
+>> >
+>> > Hmmm... so as you once already said, we have a race with INDEX as well.
+>> > In general, I feel it would be better to do a minimal sanity check inside
+>> > inode lock for INDEX and METACOPY (maybe REDIRECT) and make
+>> > sure they are consistent with the info in ovl_inode_info.
+>> > If they are not, return -ESTALE and that may result in re-calling
+>> > lookup.
+>> >
 >>
->> I am not able to understand the problem you are referring to.
+>> After thinking about it some more, I believe the way we should do it
+>> is implement ovl_iget_locked() and call it from ovl_lookup() *before*
+>> we lookup index.
 >>
->>> In that case we may have an inode that is already hashed by lower,
->>> but for a new lookup that does not see METACOPY xattr it
->>> looks up the inode in cache by upper and this is not good.
+>> Then, *after* looking up index,
+>> If this turns out to be a broken hardlink, we throw away the
+>> inode that we got by lower and get a new inode hashed by upper.
 >>
->> Here is my understanding. Following happens without metacopy feature.
+>> Then we can initialize the inode with another helper
+>> or directly in ovl_lookup() and unlock_new_inode().
 >>
->> - As of now, only time we do not create ORIGIN on upper is for the
->>   case of broken hardlink. (for a non-dir file).
->>
->> - In case of broken hard link (index=off), if file is on lower only, we
->>   do not put new inode in inode cache at all. Once file gets copied up,
->>   we hash it by upper inode. And reported inode number changes over
->>   copy up.
->>
->> Now above behavior should remain same even with metacopy=on. For the
->> case of broken hard link.
->>
->> - If file is on lower only, we will not put inode in cache. And once
->>   file gets copied up metadata only, we will hash it with upper inode.
->>
->>   The only difference here is that without metacopy non-dir file will
->>   have lowerdentry=NULL while with metacopy on, lowerdentry will be
->>   non-null. But bylower should still be false because of following
->>   check in ovl_hash_bylower().
->>
->>   /* No, if lower hardlink is or will be broken on copy up */
->>    if ((upper || !ovl_indexdir(sb)) &&
->>             !d_is_dir(lower) && d_inode(lower)->i_nlink > 1)
->>                 return false;
->>
->> And if bylower is false, we hash inode using upper inode as key.
->>
->>                 struct inode *key = d_inode(bylower ? lowerdentry :
->>                                                       upperdentry);
->>
->> IOW, despite the fact lowerdentry is there (without ORIGIN on upper),
->> we don't use that lowerdentry for inode hashing. And hence behavior
->> should not change.
->>
->> What am I missing?
->>
+>> w.r.t METACOPY things will get complicated if we remove
+>> METACOPY xattr and the upper does not have ORIGIN.
 >
-> Just maybe missing the case of nlink=1 and ORIGIN cannot be
-> followed because lower fs doesn't support file handles.
-> I just wanted to make sure this case is handled correctly.
+> I am not able to understand the problem you are referring to.
+>
+>> In that case we may have an inode that is already hashed by lower,
+>> but for a new lookup that does not see METACOPY xattr it
+>> looks up the inode in cache by upper and this is not good.
+>
+> Here is my understanding. Following happens without metacopy feature.
+>
+> - As of now, only time we do not create ORIGIN on upper is for the
+>   case of broken hardlink. (for a non-dir file).
+>
+> - In case of broken hard link (index=off), if file is on lower only, we
+>   do not put new inode in inode cache at all. Once file gets copied up,
+>   we hash it by upper inode. And reported inode number changes over
+>   copy up.
+>
+> Now above behavior should remain same even with metacopy=on. For the
+> case of broken hard link.
+>
+> - If file is on lower only, we will not put inode in cache. And once
+>   file gets copied up metadata only, we will hash it with upper inode.
+>
+>   The only difference here is that without metacopy non-dir file will
+>   have lowerdentry=NULL while with metacopy on, lowerdentry will be
+>   non-null. But bylower should still be false because of following
+>   check in ovl_hash_bylower().
+>
+>   /* No, if lower hardlink is or will be broken on copy up */
+>    if ((upper || !ovl_indexdir(sb)) &&
+>             !d_is_dir(lower) && d_inode(lower)->i_nlink > 1)
+>                 return false;
+>
+> And if bylower is false, we hash inode using upper inode as key.
+>
+>                 struct inode *key = d_inode(bylower ? lowerdentry :
+>                                                       upperdentry);
+>
+> IOW, despite the fact lowerdentry is there (without ORIGIN on upper),
+> we don't use that lowerdentry for inode hashing. And hence behavior
+> should not change.
+>
+> What am I missing?
 >
 
-OK. re-read the code and ready to explain the situation.
-
-The meaning of new OVL_CONST_INO flag is:
-"inode preserves st_ino across copy up".
-If lower fs support file handles it also means:
-"...and across eviction from inode cache".
-but if lower fs does not support file handles it means:
-"...while non-dir inode remains in cache"
-
-How does METACOPY change the situation?
-very slightly - with METACOPY, instead of st_ino change
-after copy_up+cache_evict, st_ino will not change after
-meta_copy_up+cache_evict, but will change after
-data_copy_up+cache_evict, which is not a problem as
-far as I can tell.
-
-Specifically, removing METACOPY xattr will not change
-st_ino nor hash_by_lower until after cache eviction and as
-long as we have one-to-one mapping of upper inode to
-lower inode that's good enough.
-
-Things will only break with filesystem inconsistencies
-like in xfstest overlay/049, but AFAICT, METACOPY does
-not introduce any real regressions, the only thing it does
-is add another way of creating an inconsistency with
-redirect on non-dir, which probably calls for a new xfstest.
-
-I hope I got it all right.
+Just maybe missing the case of nlink=1 and ORIGIN cannot be
+followed because lower fs doesn't support file handles.
+I just wanted to make sure this case is handled correctly.
 
 Thanks,
 Amir.
