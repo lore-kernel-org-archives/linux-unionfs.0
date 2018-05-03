@@ -1,73 +1,100 @@
-Return-Path: <amir73il@gmail.com>
-Return-Path: <amir73il@gmail.com>
-From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH v4 7/9] vfs: export alloc_inode() and destroy_inode()
-Date: Fri, 18 May 2018 11:29:35 +0300
-Message-Id: <1526632177-28832-8-git-send-email-amir73il@gmail.com>
-In-Reply-To: <1526632177-28832-1-git-send-email-amir73il@gmail.com>
-References: <1526632177-28832-1-git-send-email-amir73il@gmail.com>
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: Al Viro <viro@zeniv.linux.org.uk>, Vivek Goyal <vgoyal@redhat.com>, linux-unionfs@vger.kernel.org
+Return-Path: <linux-unionfs-owner@vger.kernel.org>
+Received: from mx3-rdu2.redhat.com ([66.187.233.73]:48010 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1751108AbeECUby (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Thu, 3 May 2018 16:31:54 -0400
+Date: Thu, 3 May 2018 16:31:53 -0400
+From: Vivek Goyal <vgoyal@redhat.com>
+Subject: Re: [PATCH v14 16/31] ovl: Always open file/inode which contains
+ data and not metacopy
+Message-ID: <20180503203153.GD10792@redhat.com>
+References: <20180426191013.13219-1-vgoyal@redhat.com>
+ <20180426191013.13219-17-vgoyal@redhat.com>
+ <CAOQ4uxjjD0o3H54OozyUfoUSJUw9iqQKvi1m+sTd9hfiA3YOgA@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAOQ4uxjjD0o3H54OozyUfoUSJUw9iqQKvi1m+sTd9hfiA3YOgA@mail.gmail.com>
+Sender: linux-unionfs-owner@vger.kernel.org
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: overlayfs <linux-unionfs@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-They are needed by overlayfs.
+On Sat, Apr 28, 2018 at 01:49:38AM -0700, Amir Goldstein wrote:
+> On Thu, Apr 26, 2018 at 12:09 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
+> > ovl_open() should open file which contains data and not open metacopy
+> > inode.
+> >
+> > Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
+> 
+> This looks fine, but I don't see a reason to separate it from 26/31
+> first allow only data open, then allow also meta open..
+> Anyway, I am not sure about the cleanest way to sort all the cases.
 
-Signed-off-by: Amir Goldstein <amir73il@gmail.com>
----
- fs/inode.c         | 6 ++++--
- include/linux/fs.h | 2 ++
- 2 files changed, 6 insertions(+), 2 deletions(-)
+Ok, I have simplified it now. Merged fsync and patch 26 in one. Also
+got rid of separate function to open meta file. I now have just added
+a parameter to ovl_open_realfile() and ovl_real_file() which specifies
+that its fine to open metacopy inode.
 
-diff --git a/fs/inode.c b/fs/inode.c
-index 6bb3950ae896..5171807da7e8 100644
---- a/fs/inode.c
-+++ b/fs/inode.c
-@@ -201,7 +201,7 @@ int inode_init_always(struct super_block *sb, struct inode *inode)
- }
- EXPORT_SYMBOL(inode_init_always);
- 
--static struct inode *alloc_inode(struct super_block *sb)
-+struct inode *alloc_inode(struct super_block *sb)
- {
- 	struct inode *inode;
- 
-@@ -223,6 +223,7 @@ static struct inode *alloc_inode(struct super_block *sb)
- 
- 	return inode;
- }
-+EXPORT_SYMBOL(alloc_inode);
- 
- void free_inode_nonrcu(struct inode *inode)
- {
-@@ -258,7 +259,7 @@ static void i_callback(struct rcu_head *head)
- 	kmem_cache_free(inode_cachep, inode);
- }
- 
--static void destroy_inode(struct inode *inode)
-+void destroy_inode(struct inode *inode)
- {
- 	BUG_ON(!list_empty(&inode->i_lru));
- 	__destroy_inode(inode);
-@@ -267,6 +268,7 @@ static void destroy_inode(struct inode *inode)
- 	else
- 		call_rcu(&inode->i_rcu, i_callback);
- }
-+EXPORT_SYMBOL(destroy_inode);
- 
- /**
-  * drop_nlink - directly drop an inode's link count
-diff --git a/include/linux/fs.h b/include/linux/fs.h
-index 3114c1fe5c83..7559f51a14d3 100644
---- a/include/linux/fs.h
-+++ b/include/linux/fs.h
-@@ -2911,6 +2911,8 @@ extern void __iget(struct inode * inode);
- extern void iget_failed(struct inode *);
- extern void clear_inode(struct inode *);
- extern void __destroy_inode(struct inode *);
-+extern void destroy_inode(struct inode *inode);
-+extern struct inode *alloc_inode(struct super_block *sb);
- extern struct inode *new_inode_pseudo(struct super_block *sb);
- extern struct inode *new_inode(struct super_block *sb);
- extern void free_inode_nonrcu(struct inode *inode);
--- 
-2.7.4
+That feels much cleaner to me now.
+
+Vivek
+> 
+> > ---
+> >  fs/overlayfs/file.c | 16 ++++++++++++----
+> >  1 file changed, 12 insertions(+), 4 deletions(-)
+> >
+> > diff --git a/fs/overlayfs/file.c b/fs/overlayfs/file.c
+> > index 23638d8ebab5..558a859b2658 100644
+> > --- a/fs/overlayfs/file.c
+> > +++ b/fs/overlayfs/file.c
+> > @@ -18,18 +18,26 @@ static struct file *ovl_open_realfile(const struct file *file)
+> >  {
+> >         struct inode *inode = file_inode(file);
+> >         struct inode *upperinode = ovl_inode_upper(inode);
+> > -       struct inode *realinode = upperinode ?: ovl_inode_lower(inode);
+> > +       struct inode *realinode;
+> >         struct file *realfile;
+> > +       bool upperreal = false;
+> >         const struct cred *old_cred;
+> >
+> > +       if (upperinode && ovl_has_upperdata(inode))
+> > +               upperreal = true;
+> > +
+> > +       /* Always open file which contains data. Do not open metacopy. */
+> > +       realinode = upperreal ? upperinode : ovl_inode_lowerdata(inode);
+> > +
+> >         old_cred = ovl_override_creds(inode->i_sb);
+> >         realfile = path_open(&file->f_path, file->f_flags | O_NOATIME,
+> >                              realinode, current_cred(), false);
+> >         revert_creds(old_cred);
+> >
+> >         pr_debug("open(%p[%pD2/%c], 0%o) -> (%p, 0%o)\n",
+> > -                file, file, upperinode ? 'u' : 'l', file->f_flags,
+> > -                realfile, IS_ERR(realfile) ? 0 : realfile->f_flags);
+> > +                file, file, upperreal ? 'u' : 'l',
+> > +                file->f_flags, realfile,
+> > +                IS_ERR(realfile) ? 0 : realfile->f_flags);
+> >
+> >         return realfile;
+> >  }
+> > @@ -80,7 +88,7 @@ static int ovl_real_file(const struct file *file, struct fd *real)
+> >         real->file = file->private_data;
+> >
+> >         /* Has it been copied up since we'd opened it? */
+> > -       if (unlikely(file_inode(real->file) != ovl_inode_real(inode))) {
+> > +       if (unlikely(file_inode(real->file) != ovl_inode_real_data(inode))) {
+> >                 real->flags = FDPUT_FPUT;
+> >                 real->file = ovl_open_realfile(file);
+> >
+> > --
+> > 2.13.6
+> >
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-unionfs" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-unionfs" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
