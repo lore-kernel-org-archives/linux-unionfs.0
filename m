@@ -1,124 +1,162 @@
-Return-Path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mx2.suse.de ([195.135.220.15]:45342 "EHLO mx2.suse.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1755727AbeEHVYW (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 8 May 2018 17:24:22 -0400
-From: Goldwyn Rodrigues <rgoldwyn@suse.de>
-Subject: [PATCH 1/4] copy_file_range: refactor vfs_copy_file_range
-Date: Tue,  8 May 2018 16:24:02 -0500
-Message-Id: <20180508212405.15297-2-rgoldwyn@suse.de>
-In-Reply-To: <20180508212405.15297-1-rgoldwyn@suse.de>
-References: <20180508212405.15297-1-rgoldwyn@suse.de>
-Sender: linux-unionfs-owner@vger.kernel.org
-To: linux-fsdevel@vger.kernel.org
-Cc: hch@lst.de, smfrench@gmail.com, linux-unionfs@vger.kernel.org, david@fromorbit.com, Goldwyn Rodrigues <rgoldwyn@suse.com>
+Return-Path: <amir73il@gmail.com>
+Return-Path: <amir73il@gmail.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Subject: [PATCH 2/2] overlay: test multiple origin references to the same lower file
+Date: Fri,  4 May 2018 12:41:31 +0300
+Message-Id: <1525426891-6121-3-git-send-email-amir73il@gmail.com>
+In-Reply-To: <1525426891-6121-1-git-send-email-amir73il@gmail.com>
+References: <1525426891-6121-1-git-send-email-amir73il@gmail.com>
+To: Eryu Guan <eguan@redhat.com>
+Cc: Vivek Goyal <vgoyal@redhat.com>, Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, fstests@vger.kernel.org
 List-ID: <linux-unionfs@vger.kernel.org>
 
-From: Goldwyn Rodrigues <rgoldwyn@suse.com>
+Multiple origin references to the same lower file from upper files that
+are not hardlinks will falsely return the same st_ino/st_dev for two
+different overlay files and will cause 'diff' to falsely report that
+content of files is the same when it is not.
 
-Preparatory patch to carve out do_copy_file_range() from
-vfs_copy_file_range
+This test checks that overlayfs detects and fails lookup of a multiply
+referenced origin.
 
-Signed-off-by: Goldwyn Rodrigues <rgoldwyn@suse.com>
+The check for multiply referenced origin was a by-product of kernel
+commit 31747eda41ef ("ovl: hash directory inodes for fsnotify")
+
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- fs/read_write.c | 67 ++++++++++++++++++++++++++++++++-------------------------
- 1 file changed, 38 insertions(+), 29 deletions(-)
+ tests/overlay/059     | 105 ++++++++++++++++++++++++++++++++++++++++++++++++++
+ tests/overlay/059.out |   2 +
+ tests/overlay/group   |   1 +
+ 3 files changed, 108 insertions(+)
+ create mode 100755 tests/overlay/059
+ create mode 100644 tests/overlay/059.out
 
-diff --git a/fs/read_write.c b/fs/read_write.c
-index c4eabbfc90df..7d9dfb62ba7d 100644
---- a/fs/read_write.c
-+++ b/fs/read_write.c
-@@ -1541,6 +1541,42 @@ COMPAT_SYSCALL_DEFINE4(sendfile64, int, out_fd, int, in_fd,
- }
- #endif
- 
-+ssize_t do_copy_file_range(struct file *file_in, loff_t pos_in,
-+			    struct file *file_out, loff_t pos_out,
-+			    size_t len, unsigned int flags,
-+			    unsigned int splice_flags)
+diff --git a/tests/overlay/059 b/tests/overlay/059
+new file mode 100755
+index 0000000..5ac2b1b
+--- /dev/null
++++ b/tests/overlay/059
+@@ -0,0 +1,105 @@
++#! /bin/bash
++# FS QA Test 059
++#
++# Test multiple origin references to the same lower file.
++#
++# Multiple origin references to the same lower file from upper files that
++# are not hardlinks will falsely return the same st_ino/st_dev for two
++# different overlay files and will cause 'diff' to falsely report that
++# content of files is the same when it is not.
++#
++# This test checks that overlayfs detects and fails lookup of a multiply
++# referenced origin.
++#
++# The check for multiply referenced origin was a by-product of kernel
++# commit 31747eda41ef ("ovl: hash directory inodes for fsnotify")
++#
++#-----------------------------------------------------------------------
++# Copyright (C) 2018 CTERA Networks. All Rights Reserved.
++# Author: Amir Goldstein <amir73il@gmail.com>
++#
++# This program is free software; you can redistribute it and/or
++# modify it under the terms of the GNU General Public License as
++# published by the Free Software Foundation.
++#
++# This program is distributed in the hope that it would be useful,
++# but WITHOUT ANY WARRANTY; without even the implied warranty of
++# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++# GNU General Public License for more details.
++#
++# You should have received a copy of the GNU General Public License
++# along with this program; if not, write the Free Software Foundation,
++# Inc.,  51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
++#-----------------------------------------------------------------------
++#
++
++seq=`basename $0`
++seqres=$RESULT_DIR/$seq
++echo "QA output created by $seq"
++
++here=`pwd`
++tmp=/tmp/$$
++status=1	# failure is the default!
++trap "_cleanup; exit \$status" 0 1 2 3 15
++
++_cleanup()
 +{
-+	ssize_t ret = 0;
-+
-+	if (flags != 0)
-+		return -EINVAL;
-+
-+	if (len == 0)
-+		return 0;
-+
-+	/*
-+	 * Try cloning first, this is supported by more file systems, and
-+	 * more efficient if both clone and copy are supported (e.g. NFS).
-+	 */
-+	if (file_in->f_op->clone_file_range) {
-+		ret = file_in->f_op->clone_file_range(file_in, pos_in,
-+				file_out, pos_out, len);
-+		if (ret == 0)
-+			return len;
-+	}
-+
-+	if (file_out->f_op->copy_file_range) {
-+		ret = file_out->f_op->copy_file_range(file_in, pos_in, file_out,
-+						      pos_out, len, flags);
-+		if (ret != -EOPNOTSUPP)
-+			return ret;
-+	}
-+
-+	ret = do_splice_direct(file_in, &pos_in, file_out, &pos_out,
-+			len > MAX_RW_COUNT ? MAX_RW_COUNT : len, splice_flags);
-+	return ret;
++	cd /
++	rm -f $tmp.*
 +}
 +
- /*
-  * copy_file_range() differs from regular file read and write in that it
-  * specifically allows return partial success.  When it does so is up to
-@@ -1554,9 +1590,6 @@ ssize_t vfs_copy_file_range(struct file *file_in, loff_t pos_in,
- 	struct inode *inode_out = file_inode(file_out);
- 	ssize_t ret;
- 
--	if (flags != 0)
--		return -EINVAL;
--
- 	if (S_ISDIR(inode_in->i_mode) || S_ISDIR(inode_out->i_mode))
- 		return -EISDIR;
- 	if (!S_ISREG(inode_in->i_mode) || !S_ISREG(inode_out->i_mode))
-@@ -1579,35 +1612,11 @@ ssize_t vfs_copy_file_range(struct file *file_in, loff_t pos_in,
- 	if (inode_in->i_sb != inode_out->i_sb)
- 		return -EXDEV;
- 
--	if (len == 0)
--		return 0;
--
- 	file_start_write(file_out);
- 
--	/*
--	 * Try cloning first, this is supported by more file systems, and
--	 * more efficient if both clone and copy are supported (e.g. NFS).
--	 */
--	if (file_in->f_op->clone_file_range) {
--		ret = file_in->f_op->clone_file_range(file_in, pos_in,
--				file_out, pos_out, len);
--		if (ret == 0) {
--			ret = len;
--			goto done;
--		}
--	}
--
--	if (file_out->f_op->copy_file_range) {
--		ret = file_out->f_op->copy_file_range(file_in, pos_in, file_out,
--						      pos_out, len, flags);
--		if (ret != -EOPNOTSUPP)
--			goto done;
--	}
--
--	ret = do_splice_direct(file_in, &pos_in, file_out, &pos_out,
--			len > MAX_RW_COUNT ? MAX_RW_COUNT : len, 0);
-+	ret = do_copy_file_range(file_in, pos_in,
-+			file_out, pos_out, len, flags, 0);
- 
--done:
- 	if (ret > 0) {
- 		fsnotify_access(file_in);
- 		add_rchar(current, ret);
++# Rename lower file to create copy up with origin xattr
++create_origin_ref()
++{
++	local ref=$1
++
++	touch $lowerdir/origin
++
++	# Enabling redirect_dir may seem irrelevant to rename of non-dir,
++	# but with upcoming 'metacopy' feature, redirects will be set also
++	# on non-dir and may also create multiple redirects.
++	_scratch_mount -o redirect_dir=on
++	mv $SCRATCH_MNT/origin $SCRATCH_MNT/$ref
++
++	$UMOUNT_PROG $SCRATCH_MNT
++}
++
++# get standard environment, filters and checks
++. ./common/rc
++. ./common/filter
++
++rm -f $seqres.full
++
++# real QA test starts here
++_supported_fs overlay
++_supported_os Linux
++_require_scratch_nocheck
++_require_scratch_feature redirect_dir
++
++# remove all files from previous runs
++_scratch_mkfs
++
++upperdir=$OVL_BASE_SCRATCH_MNT/$OVL_UPPER
++lowerdir=$OVL_BASE_SCRATCH_MNT/$OVL_LOWER
++
++# Create copied up file with origin xattr
++create_origin_ref ref1
++# Duplicate the copied up file
++cp -a $upperdir/ref1 $upperdir/ref2
++
++# Diverge the content of the two copies of file
++# and the content of two copies of redirected dir
++echo right >> $upperdir/ref1
++echo wrong >> $upperdir/ref2
++
++_scratch_mount -o redirect_dir=on
++
++# If both copies of file use the same st_dev/st_ino in overlay
++# diff won't detect that their content differs
++diff -q $SCRATCH_MNT/ref1 $SCRATCH_MNT/ref2 &>/dev/null && \
++	echo "diff on duplicated upper files doesn't know right from wrong!"
++
++# success, all done
++echo "Silence is golden"
++status=0
++exit
+diff --git a/tests/overlay/059.out b/tests/overlay/059.out
+new file mode 100644
+index 0000000..36ebeea
+--- /dev/null
++++ b/tests/overlay/059.out
+@@ -0,0 +1,2 @@
++QA output created by 059
++Silence is golden
+diff --git a/tests/overlay/group b/tests/overlay/group
+index 359ed42..40445a0 100644
+--- a/tests/overlay/group
++++ b/tests/overlay/group
+@@ -61,3 +61,4 @@
+ 056 auto quick fsck
+ 057 auto quick redirect
+ 058 auto quick exportfs
++059 auto quick copyup
 -- 
-2.16.3
-
+2.7.4
