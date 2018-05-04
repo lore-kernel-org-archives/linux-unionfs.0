@@ -1,28 +1,34 @@
-Return-Path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mx2.suse.de ([195.135.220.15]:45302 "EHLO mx2.suse.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751533AbeEHVYK (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 8 May 2018 17:24:10 -0400
-From: Goldwyn Rodrigues <rgoldwyn@suse.de>
-Subject: [PATCH v1 0/5] Enable holes on copy_file_range()
-Date: Tue,  8 May 2018 16:24:01 -0500
-Message-Id: <20180508212405.15297-1-rgoldwyn@suse.de>
-Sender: linux-unionfs-owner@vger.kernel.org
-To: linux-fsdevel@vger.kernel.org
-Cc: hch@lst.de, smfrench@gmail.com, linux-unionfs@vger.kernel.org, david@fromorbit.com
+Return-Path: <amir73il@gmail.com>
+Return-Path: <amir73il@gmail.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Subject: [PATCH 1/2] overlay/049: update fix commit id
+Date: Fri,  4 May 2018 12:41:30 +0300
+Message-Id: <1525426891-6121-2-git-send-email-amir73il@gmail.com>
+In-Reply-To: <1525426891-6121-1-git-send-email-amir73il@gmail.com>
+References: <1525426891-6121-1-git-send-email-amir73il@gmail.com>
+To: Eryu Guan <eguan@redhat.com>
+Cc: Vivek Goyal <vgoyal@redhat.com>, Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, fstests@vger.kernel.org
 List-ID: <linux-unionfs@vger.kernel.org>
 
-If copy_file_range performs a copy using splice, it converts holes
-to zeros. This effort primarily changes this behavior to create
-holes when it is possible. 
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+---
+ tests/overlay/049 | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-Even if copy_file_range() or clone_file_range() does not work for different
-mounted filesystems, We should be able to splice files if they do not
-belong the same super_block.
-
-Changes since v0:
-- [Amir] Carved out do_copy_file_range() which can be used by overlayfs
-
+diff --git a/tests/overlay/049 b/tests/overlay/049
+index 1dafc46..376acf5 100755
+--- a/tests/overlay/049
++++ b/tests/overlay/049
+@@ -10,8 +10,8 @@
+ # This test checks that overlayfs detects and fails lookup of a multiply
+ # redirected dir.
+ #
+-# The check for multiply redirected dir was implemented by kernel titled
+-# "ovl: hash directory inodes for fsnotify"
++# The check for multiply redirected dir was a by-product of kernel
++# commit 31747eda41ef ("ovl: hash directory inodes for fsnotify")
+ #
+ #-----------------------------------------------------------------------
+ # Copyright (C) 2018 CTERA Networks. All Rights Reserved.
 -- 
-Goldwyn
-
+2.7.4
