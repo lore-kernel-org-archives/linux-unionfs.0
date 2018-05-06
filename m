@@ -1,82 +1,54 @@
-Return-Path: <vgoyal@redhat.com>
-From: Vivek Goyal <vgoyal@redhat.com>
-Subject: [PATCH v15 06/30] ovl: Copy up only metadata during copy up where it makes sense
-Date: Mon,  7 May 2018 13:40:38 -0400
-Message-Id: <20180507174102.24086-7-vgoyal@redhat.com>
-In-Reply-To: <20180507174102.24086-1-vgoyal@redhat.com>
-References: <20180507174102.24086-1-vgoyal@redhat.com>
-To: linux-unionfs@vger.kernel.org
-Cc: miklos@szeredi.hu, amir73il@gmail.com, vgoyal@redhat.com
+Return-Path: <amir73il@gmail.com>
+Return-Path: <amir73il@gmail.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Subject: [PATCH 2/2] generic/{159,160}: require chattr instead of lsattr
+Date: Sun,  6 May 2018 09:36:08 +0300
+Message-Id: <1525588568-1714-3-git-send-email-amir73il@gmail.com>
+In-Reply-To: <1525588568-1714-1-git-send-email-amir73il@gmail.com>
+References: <1525588568-1714-1-git-send-email-amir73il@gmail.com>
+To: Eryu Guan <eguan@redhat.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, fstests@vger.kernel.org
 List-ID: <linux-unionfs@vger.kernel.org>
 
-If it makes sense to copy up only metadata during copy up, do it. This
-is done for regular files which are not opened for WRITE.
+The tests _require_test_lsattr, but don't actually use lsattr.
+They use chattr +i/-i, so require the appropriate command.
 
-Right now ->metacopy is set to 0 always. Last patch in the series will
-remove the hard coded statement and enable metacopy feature.
+_require_test_lsattr checks the FS_IOC_GETFLAGS ioctl on a directory
+and that is not supported in overlayfs. _require_chattr checks the
+ioctl on a file, which is supported in overlayfs, so this change makes
+the tests run and pass on overlayfs.
 
-Reviewed-by: Amir Goldstein <amir73il@gmail.com>
-Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- fs/overlayfs/copy_up.c | 25 ++++++++++++++++++++++++-
- 1 file changed, 24 insertions(+), 1 deletion(-)
+ tests/generic/159 | 2 +-
+ tests/generic/160 | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
-index 7e2dc41ad693..38b332d7c7e4 100644
---- a/fs/overlayfs/copy_up.c
-+++ b/fs/overlayfs/copy_up.c
-@@ -416,6 +416,7 @@ struct ovl_copy_up_ctx {
- 	bool tmpfile;
- 	bool origin;
- 	bool indexed;
-+	bool metacopy;
- };
+diff --git a/tests/generic/159 b/tests/generic/159
+index 7e52d5c..f517b55 100755
+--- a/tests/generic/159
++++ b/tests/generic/159
+@@ -43,7 +43,7 @@ _cleanup()
  
- static int ovl_link_up(struct ovl_copy_up_ctx *c)
-@@ -553,7 +554,7 @@ static int ovl_copy_up_inode(struct ovl_copy_up_ctx *c, struct dentry *temp)
- 			return err;
- 	}
+ # real QA test starts here
+ _supported_os Linux
+-_require_test_lsattr
++_require_chattr i
+ _require_test_reflink
  
--	if (S_ISREG(c->stat.mode)) {
-+	if (S_ISREG(c->stat.mode) && !c->metacopy) {
- 		struct path upperpath;
+ rm -f $seqres.full
+diff --git a/tests/generic/160 b/tests/generic/160
+index 409b15e..cd1044d 100755
+--- a/tests/generic/160
++++ b/tests/generic/160
+@@ -43,7 +43,7 @@ _cleanup()
  
- 		ovl_path_upper(c->dentry, &upperpath);
-@@ -708,6 +709,26 @@ static int ovl_do_copy_up(struct ovl_copy_up_ctx *c)
- 	return err;
- }
+ # real QA test starts here
+ _supported_os Linux
+-_require_test_lsattr
++_require_chattr i
+ _require_test_dedupe
  
-+static bool ovl_need_meta_copy_up(struct dentry *dentry, umode_t mode,
-+				  int flags)
-+{
-+	struct ovl_fs *ofs = dentry->d_sb->s_fs_info;
-+
-+	/* TODO: Will enable metacopy in last patch of series */
-+	return false;
-+
-+	if (!ofs->config.metacopy)
-+		return false;
-+
-+	if (!S_ISREG(mode))
-+		return false;
-+
-+	if (flags && ((OPEN_FMODE(flags) & FMODE_WRITE) || (flags & O_TRUNC)))
-+		return false;
-+
-+	return true;
-+}
-+
- static int ovl_copy_up_one(struct dentry *parent, struct dentry *dentry,
- 			   int flags)
- {
-@@ -729,6 +750,8 @@ static int ovl_copy_up_one(struct dentry *parent, struct dentry *dentry,
- 	if (err)
- 		return err;
- 
-+	ctx.metacopy = ovl_need_meta_copy_up(dentry, ctx.stat.mode, flags);
-+
- 	if (parent) {
- 		ovl_path_upper(parent, &parentpath);
- 		ctx.destdir = parentpath.dentry;
+ rm -f $seqres.full
 -- 
-2.13.6
+2.7.4
