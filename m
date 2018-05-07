@@ -1,7 +1,7 @@
 From: Miklos Szeredi <mszeredi@redhat.com>
-Subject: [PATCH v2 24/35] vfs: simplify dentry_open()
-Date: Mon,  7 May 2018 10:37:56 +0200
-Message-ID: <20180507083807.28792-25-mszeredi@redhat.com>
+Subject: [PATCH v2 22/35] vfs: don't open real
+Date: Mon,  7 May 2018 10:37:54 +0200
+Message-ID: <20180507083807.28792-23-mszeredi@redhat.com>
 References: <20180507083807.28792-1-mszeredi@redhat.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20180507083807.28792-1-mszeredi@redhat.com>
@@ -10,43 +10,36 @@ To: linux-unionfs@vger.kernel.org
 Cc: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, Al Viro <viro@zeniv.linux.org.uk>
 List-Id: linux-unionfs@vger.kernel.org
 
-dentry_open() can now just call path_open().
+Let overlayfs do its thing when opening a file.
+
+This enables stacking and fixes the corner case when a file is opened for
+read, modified through a writable open, and data is read from the read-only
+file.  After this patch the read-only open will not return stale data even
+in this case.
 
 Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
 ---
- fs/open.c | 15 +--------------
- 1 file changed, 1 insertion(+), 14 deletions(-)
+ fs/open.c | 7 +------
+ 1 file changed, 1 insertion(+), 6 deletions(-)
 
 diff --git a/fs/open.c b/fs/open.c
-index 244cd2ecfefd..1d4bc541c619 100644
+index 6e52fd6fea7c..244cd2ecfefd 100644
 --- a/fs/open.c
 +++ b/fs/open.c
-@@ -935,25 +935,12 @@ EXPORT_SYMBOL(path_open);
- struct file *dentry_open(const struct path *path, int flags,
- 			 const struct cred *cred)
+@@ -897,13 +897,8 @@ EXPORT_SYMBOL(file_path);
+ int vfs_open(const struct path *path, struct file *file,
+ 	     const struct cred *cred)
  {
--	int error;
--	struct file *f;
+-	struct dentry *dentry = d_real(path->dentry, NULL, file->f_flags, 0);
 -
- 	validate_creds(cred);
- 
- 	/* We must always pass in a valid mount pointer. */
- 	BUG_ON(!path->mnt);
- 
--	f = get_empty_filp();
--	if (IS_ERR(f))
--		return f;
+-	if (IS_ERR(dentry))
+-		return PTR_ERR(dentry);
 -
--	f->f_flags = flags;
--	error = vfs_open(path, f, cred);
--	if (error) {
--		put_filp(f);
--		return ERR_PTR(error);
--	}
--	return f;
-+	return path_open(path, flags, d_backing_inode(path->dentry), cred, true);
+ 	file->f_path = *path;
+-	return do_dentry_open(file, d_backing_inode(dentry), NULL, cred);
++	return do_dentry_open(file, d_backing_inode(path->dentry), NULL, cred);
  }
- EXPORT_SYMBOL(dentry_open);
  
+ /**
 -- 
 2.14.3
