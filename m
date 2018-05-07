@@ -1,7 +1,7 @@
 From: Miklos Szeredi <mszeredi@redhat.com>
-Subject: [PATCH v2 09/35] ovl: copy up file size as well
-Date: Mon,  7 May 2018 10:37:41 +0200
-Message-ID: <20180507083807.28792-10-mszeredi@redhat.com>
+Subject: [PATCH v2 21/35] ovl: add reflink/copyfile/dedup support
+Date: Mon,  7 May 2018 10:37:53 +0200
+Message-ID: <20180507083807.28792-22-mszeredi@redhat.com>
 References: <20180507083807.28792-1-mszeredi@redhat.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20180507083807.28792-1-mszeredi@redhat.com>
@@ -10,59 +10,116 @@ To: linux-unionfs@vger.kernel.org
 Cc: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 
-Copy i_size of the underlying inode to the overlay inode in ovl_copyattr().
-
-This is in preparation for stacking I/O operations on overlay files.
-
-This patch shouldn't have any observable effect.
-
-Remove stale comment from ovl_setattr() [spotted by Vivek Goyal].
+Since set of arguments are so similar, handle in a common helper.
 
 Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
 ---
- fs/overlayfs/inode.c     | 9 ---------
- fs/overlayfs/overlayfs.h | 2 ++
- 2 files changed, 2 insertions(+), 9 deletions(-)
+ fs/overlayfs/file.c | 88 +++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 88 insertions(+)
 
-diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
-index f7b1910bb9d4..ba3f832cc39a 100644
---- a/fs/overlayfs/inode.c
-+++ b/fs/overlayfs/inode.c
-@@ -22,15 +22,6 @@ int ovl_setattr(struct dentry *dentry, struct iattr *attr)
- 	struct dentry *upperdentry;
- 	const struct cred *old_cred;
- 
--	/*
--	 * Check for permissions before trying to copy-up.  This is redundant
--	 * since it will be rechecked later by ->setattr() on upper dentry.  But
--	 * without this, copy-up can be triggered by just about anybody.
--	 *
--	 * We don't initialize inode->size, which just means that
--	 * inode_newsize_ok() will always check against MAX_LFS_FILESIZE and not
--	 * check for a swapfile (which this won't be anyway).
--	 */
- 	err = setattr_prepare(dentry, attr);
- 	if (err)
- 		return err;
-diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-index 4e26778774c3..b9f7c632ab9c 100644
---- a/fs/overlayfs/overlayfs.h
-+++ b/fs/overlayfs/overlayfs.h
-@@ -9,6 +9,7 @@
- 
- #include <linux/kernel.h>
- #include <linux/uuid.h>
-+#include <linux/fs.h>
- #include "ovl_entry.h"
- 
- enum ovl_path_type {
-@@ -348,6 +349,7 @@ static inline void ovl_copyattr(struct inode *from, struct inode *to)
- 	to->i_atime = from->i_atime;
- 	to->i_mtime = from->i_mtime;
- 	to->i_ctime = from->i_ctime;
-+	i_size_write(to, i_size_read(from));
+diff --git a/fs/overlayfs/file.c b/fs/overlayfs/file.c
+index ce871a15e185..2ac95c95e8e6 100644
+--- a/fs/overlayfs/file.c
++++ b/fs/overlayfs/file.c
+@@ -382,6 +382,90 @@ static long ovl_compat_ioctl(struct file *file, unsigned int cmd,
+ 	return ovl_ioctl(file, cmd, arg);
  }
  
- static inline void ovl_copyflags(struct inode *from, struct inode *to)
++enum ovl_copyop {
++	OVL_COPY,
++	OVL_CLONE,
++	OVL_DEDUPE,
++};
++
++static s64 ovl_copyfile(struct file *file_in, loff_t pos_in,
++			struct file *file_out, loff_t pos_out,
++			u64 len, unsigned int flags, enum ovl_copyop op)
++{
++	struct inode *inode_out = file_inode(file_out);
++	struct fd real_in, real_out;
++	const struct cred *old_cred;
++	s64 ret;
++
++	ret = ovl_real_fdget(file_out, &real_out);
++	if (ret)
++		return ret;
++
++	ret = ovl_real_fdget(file_in, &real_in);
++	if (ret) {
++		fdput(real_out);
++		return ret;
++	}
++
++	old_cred = ovl_override_creds(file_inode(file_out)->i_sb);
++	switch (op) {
++	case OVL_COPY:
++		ret = vfs_copy_file_range(real_in.file, pos_in,
++					  real_out.file, pos_out, len, flags);
++		break;
++
++	case OVL_CLONE:
++		ret = vfs_clone_file_range(real_in.file, pos_in,
++					   real_out.file, pos_out, len);
++		break;
++
++	case OVL_DEDUPE:
++		ret = vfs_dedupe_file_range_one(real_in.file, pos_in,
++						real_out.file, pos_out, len);
++		break;
++	}
++	revert_creds(old_cred);
++
++	/* Update size */
++	ovl_copyattr(ovl_inode_real(inode_out), inode_out);
++
++	fdput(real_in);
++	fdput(real_out);
++
++	return ret;
++}
++
++static ssize_t ovl_copy_file_range(struct file *file_in, loff_t pos_in,
++				   struct file *file_out, loff_t pos_out,
++				   size_t len, unsigned int flags)
++{
++	return ovl_copyfile(file_in, pos_in, file_out, pos_out, len, flags,
++			    OVL_COPY);
++}
++
++static int ovl_clone_file_range(struct file *file_in, loff_t pos_in,
++				struct file *file_out, loff_t pos_out, u64 len)
++{
++	return ovl_copyfile(file_in, pos_in, file_out, pos_out, len, 0,
++			    OVL_CLONE);
++}
++
++static s64 ovl_dedupe_file_range(struct file *file_in, loff_t pos_in,
++				 struct file *file_out, loff_t pos_out,
++				 u64 len)
++{
++	/*
++	 * Don't copy up because of a dedupe request, this wouldn't make sense
++	 * most of the time (data would be duplicated instead of deduplicated).
++	 */
++	if (!ovl_inode_upper(file_inode(file_in)) ||
++	    !ovl_inode_upper(file_inode(file_out)))
++		return -EPERM;
++
++	return ovl_copyfile(file_in, pos_in, file_out, pos_out, len, 0,
++			    OVL_DEDUPE);
++}
++
+ const struct file_operations ovl_file_operations = {
+ 	.open		= ovl_open,
+ 	.release	= ovl_release,
+@@ -393,4 +477,8 @@ const struct file_operations ovl_file_operations = {
+ 	.fallocate	= ovl_fallocate,
+ 	.unlocked_ioctl	= ovl_ioctl,
+ 	.compat_ioctl	= ovl_compat_ioctl,
++
++	.copy_file_range	= ovl_copy_file_range,
++	.clone_file_range	= ovl_clone_file_range,
++	.dedupe_file_range	= ovl_dedupe_file_range,
+ };
 -- 
 2.14.3
