@@ -1,61 +1,166 @@
 From: Miklos Szeredi <mszeredi@redhat.com>
-Subject: [PATCH v2 05/35] vfs: export vfs_dedupe_file_range_one() to modules
-Date: Mon,  7 May 2018 10:37:37 +0200
-Message-ID: <20180507083807.28792-6-mszeredi@redhat.com>
+Subject: [PATCH v2 06/35] ovl: copy up times
+Date: Mon,  7 May 2018 10:37:38 +0200
+Message-ID: <20180507083807.28792-7-mszeredi@redhat.com>
 References: <20180507083807.28792-1-mszeredi@redhat.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20180507083807.28792-1-mszeredi@redhat.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-unionfs@vger.kernel.org
-Cc: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, Al Viro <viro@zeniv.linux.org.uk>
+Cc: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 
-This is needed by the stacked dedupe implementation in overlayfs.
+Copy up mtime and ctime to overlay inode after times in real object are
+modified.  Be careful not to dirty cachelines when not necessary.
+
+This is in preparation for moving overlay functionality out of the VFS.
+
+This patch shouldn't have any observable effect.
 
 Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
 ---
- fs/read_write.c    | 6 +++---
- include/linux/fs.h | 4 ++++
- 2 files changed, 7 insertions(+), 3 deletions(-)
+ fs/overlayfs/dir.c       | 33 +++++++++++++++++++++++++--------
+ fs/overlayfs/inode.c     |  3 +++
+ fs/overlayfs/overlayfs.h |  2 +-
+ fs/overlayfs/util.c      | 10 +++++++++-
+ 4 files changed, 38 insertions(+), 10 deletions(-)
 
-diff --git a/fs/read_write.c b/fs/read_write.c
-index 023df230e2a0..08708f903fc5 100644
---- a/fs/read_write.c
-+++ b/fs/read_write.c
-@@ -1964,9 +1964,8 @@ int vfs_dedupe_file_range_compare(struct inode *src, loff_t srcoff,
- }
- EXPORT_SYMBOL(vfs_dedupe_file_range_compare);
- 
--static s64 vfs_dedupe_file_range_one(struct file *src_file, loff_t src_pos,
--				     struct file *dst_file, loff_t dst_pos,
--				     u64 len)
-+s64 vfs_dedupe_file_range_one(struct file *src_file, loff_t src_pos,
-+			      struct file *dst_file, loff_t dst_pos, u64 len)
+diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
+index 839709c7803a..47dc980e8b33 100644
+--- a/fs/overlayfs/dir.c
++++ b/fs/overlayfs/dir.c
+@@ -186,11 +186,11 @@ static int ovl_set_opaque(struct dentry *dentry, struct dentry *upperdentry)
+ static void ovl_instantiate(struct dentry *dentry, struct inode *inode,
+ 			    struct dentry *newdentry, bool hardlink)
  {
- 	s64 ret;
+-	ovl_dentry_version_inc(dentry->d_parent, false);
++	ovl_dir_modified(dentry->d_parent, false);
++	ovl_copyattr(d_inode(newdentry), inode);
+ 	ovl_dentry_set_upper_alias(dentry);
+ 	if (!hardlink) {
+ 		ovl_inode_update(inode, newdentry);
+-		ovl_copyattr(newdentry->d_inode, inode);
+ 	} else {
+ 		WARN_ON(ovl_inode_real(inode) != d_inode(newdentry));
+ 		dput(newdentry);
+@@ -658,7 +658,7 @@ static int ovl_remove_and_whiteout(struct dentry *dentry,
+ 	if (err)
+ 		goto out_d_drop;
  
-@@ -2001,6 +2000,7 @@ static s64 vfs_dedupe_file_range_one(struct file *src_file, loff_t src_pos,
+-	ovl_dentry_version_inc(dentry->d_parent, true);
++	ovl_dir_modified(dentry->d_parent, true);
+ out_d_drop:
+ 	d_drop(dentry);
+ out_dput_upper:
+@@ -703,7 +703,7 @@ static int ovl_remove_upper(struct dentry *dentry, bool is_dir,
+ 		err = vfs_rmdir(dir, upper);
+ 	else
+ 		err = vfs_unlink(dir, upper, NULL);
+-	ovl_dentry_version_inc(dentry->d_parent, ovl_type_origin(dentry));
++	ovl_dir_modified(dentry->d_parent, ovl_type_origin(dentry));
  
- 	return ret;
- }
-+EXPORT_SYMBOL(vfs_dedupe_file_range_one);
+ 	/*
+ 	 * Keeping this dentry hashed would mean having to release
+@@ -733,6 +733,7 @@ static int ovl_do_remove(struct dentry *dentry, bool is_dir)
+ 	int err;
+ 	bool locked = false;
+ 	const struct cred *old_cred;
++	struct dentry *upperdentry;
+ 	bool lower_positive = ovl_lower_positive(dentry);
+ 	LIST_HEAD(list);
  
- int vfs_dedupe_file_range(struct file *file, struct file_dedupe_range *same)
- {
-diff --git a/include/linux/fs.h b/include/linux/fs.h
-index 26685011c4bd..c85a8059f038 100644
---- a/include/linux/fs.h
-+++ b/include/linux/fs.h
-@@ -1817,6 +1817,10 @@ extern int vfs_dedupe_file_range_compare(struct inode *src, loff_t srcoff,
- 					 loff_t len, bool *is_same);
- extern int vfs_dedupe_file_range(struct file *file,
- 				 struct file_dedupe_range *same);
-+extern s64 vfs_dedupe_file_range_one(struct file *src_file, loff_t src_pos,
-+				     struct file *dst_file, loff_t dst_pos,
-+				     u64 len);
+@@ -768,6 +769,17 @@ static int ovl_do_remove(struct dentry *dentry, bool is_dir)
+ 			drop_nlink(dentry->d_inode);
+ 	}
+ 	ovl_nlink_end(dentry, locked);
 +
++	/*
++	 * Copy ctime
++	 *
++	 * Note: we fail to update ctime if there was no copy-up, only a
++	 * whiteout
++	 */
++	upperdentry = ovl_dentry_upper(dentry);
++	if (upperdentry)
++		ovl_copyattr(d_inode(upperdentry), d_inode(dentry));
++
+ out_drop_write:
+ 	ovl_drop_write(dentry);
+ out:
+@@ -1074,10 +1086,15 @@ static int ovl_rename(struct inode *olddir, struct dentry *old,
+ 			drop_nlink(d_inode(new));
+ 	}
  
- struct super_operations {
-    	struct inode *(*alloc_inode)(struct super_block *sb);
+-	ovl_dentry_version_inc(old->d_parent, ovl_type_origin(old) ||
+-			       (!overwrite && ovl_type_origin(new)));
+-	ovl_dentry_version_inc(new->d_parent, ovl_type_origin(old) ||
+-			       (d_inode(new) && ovl_type_origin(new)));
++	ovl_dir_modified(old->d_parent, ovl_type_origin(old) ||
++			 (!overwrite && ovl_type_origin(new)));
++	ovl_dir_modified(new->d_parent, ovl_type_origin(old) ||
++			 (d_inode(new) && ovl_type_origin(new)));
++
++	/* copy ctime: */
++	ovl_copyattr(d_inode(olddentry), d_inode(old));
++	if (d_inode(new) && ovl_dentry_upper(new))
++		ovl_copyattr(d_inode(newdentry), d_inode(new));
+ 
+ out_dput:
+ 	dput(newdentry);
+diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
+index 6e3815fb006b..d3700f0de165 100644
+--- a/fs/overlayfs/inode.c
++++ b/fs/overlayfs/inode.c
+@@ -304,6 +304,9 @@ int ovl_xattr_set(struct dentry *dentry, struct inode *inode, const char *name,
+ 	}
+ 	revert_creds(old_cred);
+ 
++	/* copy c/mtime */
++	ovl_copyattr(d_inode(realdentry), inode);
++
+ out_drop_write:
+ 	ovl_drop_write(dentry);
+ out:
+diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
+index e0b7de799f6b..271561fa7882 100644
+--- a/fs/overlayfs/overlayfs.h
++++ b/fs/overlayfs/overlayfs.h
+@@ -237,7 +237,7 @@ void ovl_dentry_set_redirect(struct dentry *dentry, const char *redirect);
+ void ovl_inode_init(struct inode *inode, struct dentry *upperdentry,
+ 		    struct dentry *lowerdentry);
+ void ovl_inode_update(struct inode *inode, struct dentry *upperdentry);
+-void ovl_dentry_version_inc(struct dentry *dentry, bool impurity);
++void ovl_dir_modified(struct dentry *dentry, bool impurity);
+ u64 ovl_dentry_version_get(struct dentry *dentry);
+ bool ovl_is_whiteout(struct dentry *dentry);
+ struct file *ovl_path_open(struct path *path, int flags);
+diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
+index 6f1078028c66..30a05d1d679d 100644
+--- a/fs/overlayfs/util.c
++++ b/fs/overlayfs/util.c
+@@ -333,7 +333,7 @@ void ovl_inode_update(struct inode *inode, struct dentry *upperdentry)
+ 	}
+ }
+ 
+-void ovl_dentry_version_inc(struct dentry *dentry, bool impurity)
++static void ovl_dentry_version_inc(struct dentry *dentry, bool impurity)
+ {
+ 	struct inode *inode = d_inode(dentry);
+ 
+@@ -348,6 +348,14 @@ void ovl_dentry_version_inc(struct dentry *dentry, bool impurity)
+ 		OVL_I(inode)->version++;
+ }
+ 
++void ovl_dir_modified(struct dentry *dentry, bool impurity)
++{
++	/* Copy mtime/ctime */
++	ovl_copyattr(d_inode(ovl_dentry_upper(dentry)), d_inode(dentry));
++
++	ovl_dentry_version_inc(dentry, impurity);
++}
++
+ u64 ovl_dentry_version_get(struct dentry *dentry)
+ {
+ 	struct inode *inode = d_inode(dentry);
 -- 
 2.14.3
