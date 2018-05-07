@@ -1,89 +1,28 @@
-From: Miklos Szeredi <mszeredi@redhat.com>
-Subject: [PATCH v2 01/35] vfs: add path_open()
-Date: Mon,  7 May 2018 10:37:33 +0200
-Message-ID: <20180507083807.28792-2-mszeredi@redhat.com>
-References: <20180507083807.28792-1-mszeredi@redhat.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Subject: Re: [PATCH v2 22/35] vfs: don't open real
+Date: Mon, 7 May 2018 13:27:19 +0300
+Message-ID: <CAOQ4uxi-_0xkSgHnzBhJLnWTyz_m0VXTx9206k2vZA6dgtQYmQ@mail.gmail.com>
+References: <20180507083807.28792-1-mszeredi@redhat.com> <20180507083807.28792-23-mszeredi@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180507083807.28792-1-mszeredi@redhat.com>
+In-Reply-To: <20180507083807.28792-23-mszeredi@redhat.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-unionfs@vger.kernel.org
-Cc: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, Al Viro <viro@zeniv.linux.org.uk>
+To: Miklos Szeredi <mszeredi@redhat.com>
+Cc: overlayfs <linux-unionfs@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>, Al Viro <viro@zeniv.linux.org.uk>
 List-Id: linux-unionfs@vger.kernel.org
 
-Currently opening an overlay file results in:
+On Mon, May 7, 2018 at 11:37 AM, Miklos Szeredi <mszeredi@redhat.com> wrote:
+> Let overlayfs do its thing when opening a file.
+>
+> This enables stacking and fixes the corner case when a file is opened for
+> read, modified through a writable open, and data is read from the read-only
+> file.  After this patch the read-only open will not return stale data even
+> in this case.
+>
 
- - the real file on the underlying layer being opened
- - f_path being set to the overlay {mount, dentry} pair
+So now you can get rid of ovl_do_check_copy_up() and the check_copy_up
+module param ;-)
 
-This patch adds a new helper that allows the above to be explicitly
-performed.  I.e. it's the same as dentry_open(), except the underlying
-inode to open is given as a separate argument.
-
-This is in preparation for stacking I/O operations on overlay files.
-
-Later, when implicit opening is removed, dentry_open() can be implemented
-by just calling path_open().
-
-Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
----
- fs/open.c          | 31 +++++++++++++++++++++++++++++++
- include/linux/fs.h |  2 ++
- 2 files changed, 33 insertions(+)
-
-diff --git a/fs/open.c b/fs/open.c
-index c5ee7cd60424..d0bf7f061a1a 100644
---- a/fs/open.c
-+++ b/fs/open.c
-@@ -906,6 +906,37 @@ int vfs_open(const struct path *path, struct file *file,
- 	return do_dentry_open(file, d_backing_inode(dentry), NULL, cred);
- }
- 
-+/**
-+ * path_open() - Open an inode by a particular name.
-+ * @path: The name of the file.
-+ * @flags: The O_ flags used to open this file.
-+ * @inode: The inode to open.
-+ * @cred: The task's credentials used when opening this file.
-+ *
-+ * Context: Process context.
-+ * Return: A pointer to a struct file or an IS_ERR pointer.  Cannot return NULL.
-+ */
-+struct file *path_open(const struct path *path, int flags, struct inode *inode,
-+		       const struct cred *cred)
-+{
-+	struct file *file;
-+	int retval;
-+
-+	file = get_empty_filp();
-+	if (IS_ERR(file))
-+		return file;
-+
-+	file->f_flags = flags;
-+	file->f_path = *path;
-+	retval = do_dentry_open(file, inode, NULL, cred);
-+	if (retval) {
-+		put_filp(file);
-+		return ERR_PTR(retval);
-+	}
-+	return file;
-+}
-+EXPORT_SYMBOL(path_open);
-+
- struct file *dentry_open(const struct path *path, int flags,
- 			 const struct cred *cred)
- {
-diff --git a/include/linux/fs.h b/include/linux/fs.h
-index 8007a31c4d3c..d97a661342c8 100644
---- a/include/linux/fs.h
-+++ b/include/linux/fs.h
-@@ -2401,6 +2401,8 @@ extern struct file *filp_open(const char *, int, umode_t);
- extern struct file *file_open_root(struct dentry *, struct vfsmount *,
- 				   const char *, int, umode_t);
- extern struct file * dentry_open(const struct path *, int, const struct cred *);
-+extern struct file *path_open(const struct path *, int, struct inode *,
-+			      const struct cred *);
- extern int filp_close(struct file *, fl_owner_t id);
- 
- extern struct filename *getname_flags(const char __user *, int, int *);
--- 
-2.14.3
+Thanks,
+Amir.
