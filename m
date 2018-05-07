@@ -1,55 +1,89 @@
 From: Miklos Szeredi <mszeredi@redhat.com>
-Subject: [PATCH v2 07/35] ovl: copy up inode flags
-Date: Mon,  7 May 2018 10:37:39 +0200
-Message-ID: <20180507083807.28792-8-mszeredi@redhat.com>
+Subject: [PATCH v2 01/35] vfs: add path_open()
+Date: Mon,  7 May 2018 10:37:33 +0200
+Message-ID: <20180507083807.28792-2-mszeredi@redhat.com>
 References: <20180507083807.28792-1-mszeredi@redhat.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20180507083807.28792-1-mszeredi@redhat.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-unionfs@vger.kernel.org
-Cc: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, Al Viro <viro@zeniv.linux.org.uk>
 List-Id: linux-unionfs@vger.kernel.org
 
-On inode creation copy certain inode flags from the underlying real inode
-to the overlay inode.
+Currently opening an overlay file results in:
 
-This is in preparation for moving overlay functionality out of the VFS.
+ - the real file on the underlying layer being opened
+ - f_path being set to the overlay {mount, dentry} pair
+
+This patch adds a new helper that allows the above to be explicitly
+performed.  I.e. it's the same as dentry_open(), except the underlying
+inode to open is given as a separate argument.
+
+This is in preparation for stacking I/O operations on overlay files.
+
+Later, when implicit opening is removed, dentry_open() can be implemented
+by just calling path_open().
 
 Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
 ---
- fs/overlayfs/overlayfs.h | 7 +++++++
- fs/overlayfs/util.c      | 1 +
- 2 files changed, 8 insertions(+)
+ fs/open.c          | 31 +++++++++++++++++++++++++++++++
+ include/linux/fs.h |  2 ++
+ 2 files changed, 33 insertions(+)
 
-diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-index 271561fa7882..4e26778774c3 100644
---- a/fs/overlayfs/overlayfs.h
-+++ b/fs/overlayfs/overlayfs.h
-@@ -350,6 +350,13 @@ static inline void ovl_copyattr(struct inode *from, struct inode *to)
- 	to->i_ctime = from->i_ctime;
+diff --git a/fs/open.c b/fs/open.c
+index c5ee7cd60424..d0bf7f061a1a 100644
+--- a/fs/open.c
++++ b/fs/open.c
+@@ -906,6 +906,37 @@ int vfs_open(const struct path *path, struct file *file,
+ 	return do_dentry_open(file, d_backing_inode(dentry), NULL, cred);
  }
  
-+static inline void ovl_copyflags(struct inode *from, struct inode *to)
++/**
++ * path_open() - Open an inode by a particular name.
++ * @path: The name of the file.
++ * @flags: The O_ flags used to open this file.
++ * @inode: The inode to open.
++ * @cred: The task's credentials used when opening this file.
++ *
++ * Context: Process context.
++ * Return: A pointer to a struct file or an IS_ERR pointer.  Cannot return NULL.
++ */
++struct file *path_open(const struct path *path, int flags, struct inode *inode,
++		       const struct cred *cred)
 +{
-+	unsigned int mask = S_SYNC | S_IMMUTABLE | S_APPEND | S_NOATIME;
++	struct file *file;
++	int retval;
 +
-+	inode_set_flags(to, from->i_flags & mask, mask);
++	file = get_empty_filp();
++	if (IS_ERR(file))
++		return file;
++
++	file->f_flags = flags;
++	file->f_path = *path;
++	retval = do_dentry_open(file, inode, NULL, cred);
++	if (retval) {
++		put_filp(file);
++		return ERR_PTR(retval);
++	}
++	return file;
 +}
++EXPORT_SYMBOL(path_open);
 +
- /* dir.c */
- extern const struct inode_operations ovl_dir_inode_operations;
- struct dentry *ovl_lookup_temp(struct dentry *workdir);
-diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
-index 30a05d1d679d..25d202b47326 100644
---- a/fs/overlayfs/util.c
-+++ b/fs/overlayfs/util.c
-@@ -310,6 +310,7 @@ void ovl_inode_init(struct inode *inode, struct dentry *upperdentry,
- 		OVL_I(inode)->lower = igrab(d_inode(lowerdentry));
+ struct file *dentry_open(const struct path *path, int flags,
+ 			 const struct cred *cred)
+ {
+diff --git a/include/linux/fs.h b/include/linux/fs.h
+index 8007a31c4d3c..d97a661342c8 100644
+--- a/include/linux/fs.h
++++ b/include/linux/fs.h
+@@ -2401,6 +2401,8 @@ extern struct file *filp_open(const char *, int, umode_t);
+ extern struct file *file_open_root(struct dentry *, struct vfsmount *,
+ 				   const char *, int, umode_t);
+ extern struct file * dentry_open(const struct path *, int, const struct cred *);
++extern struct file *path_open(const struct path *, int, struct inode *,
++			      const struct cred *);
+ extern int filp_close(struct file *, fl_owner_t id);
  
- 	ovl_copyattr(realinode, inode);
-+	ovl_copyflags(realinode, inode);
- 	if (!inode->i_ino)
- 		inode->i_ino = realinode->i_ino;
- }
+ extern struct filename *getname_flags(const char __user *, int, int *);
 -- 
 2.14.3
