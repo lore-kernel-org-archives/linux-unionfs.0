@@ -1,7 +1,7 @@
 From: Miklos Szeredi <mszeredi@redhat.com>
-Subject: [PATCH v2 33/35] Revert "fsnotify: support overlayfs"
-Date: Mon,  7 May 2018 10:38:05 +0200
-Message-ID: <20180507083807.28792-34-mszeredi@redhat.com>
+Subject: [PATCH v2 27/35] vfs: fix freeze protection in mnt_want_write_file() for overlayfs
+Date: Mon,  7 May 2018 10:37:59 +0200
+Message-ID: <20180507083807.28792-28-mszeredi@redhat.com>
 References: <20180507083807.28792-1-mszeredi@redhat.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20180507083807.28792-1-mszeredi@redhat.com>
@@ -10,67 +10,45 @@ To: linux-unionfs@vger.kernel.org
 Cc: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, Al Viro <viro@zeniv.linux.org.uk>
 List-Id: linux-unionfs@vger.kernel.org
 
-This reverts commit f3fbbb079263bd29ae592478de6808db7e708267.
+The underlying real file used by overlayfs still contains the overlay path.
+This results in mnt_want_write_file() calls by the filesystem getting
+freeze protection on the wrong inode (the overlayfs one instead of the real
+one).
 
-Overlayfs now works correctly without adding hacks to fsnotify.
+Fix by using file_inode(file)->i_sb instead of file->f_path.mnt->mnt_sb.
 
+Reported-by: Amir Goldstein <amir73il@gmail.com>
 Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
 ---
- include/linux/fsnotify.h | 14 +++++---------
- 1 file changed, 5 insertions(+), 9 deletions(-)
+ fs/namespace.c | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff --git a/include/linux/fsnotify.h b/include/linux/fsnotify.h
-index bdaf22582f6e..fd1ce10553bf 100644
---- a/include/linux/fsnotify.h
-+++ b/include/linux/fsnotify.h
-@@ -30,11 +30,7 @@ static inline int fsnotify_parent(const struct path *path, struct dentry *dentry
- static inline int fsnotify_perm(struct file *file, int mask)
+diff --git a/fs/namespace.c b/fs/namespace.c
+index 5286c5313e67..0d9023a9af4f 100644
+--- a/fs/namespace.c
++++ b/fs/namespace.c
+@@ -441,10 +441,10 @@ int mnt_want_write_file(struct file *file)
  {
- 	const struct path *path = &file->f_path;
--	/*
--	 * Do not use file_inode() here or anywhere in this file to get the
--	 * inode.  That would break *notity on overlayfs.
--	 */
--	struct inode *inode = path->dentry->d_inode;
-+	struct inode *inode = file_inode(file);
- 	__u32 fsnotify_mask = 0;
  	int ret;
  
-@@ -178,7 +174,7 @@ static inline void fsnotify_mkdir(struct inode *inode, struct dentry *dentry)
- static inline void fsnotify_access(struct file *file)
- {
- 	const struct path *path = &file->f_path;
--	struct inode *inode = path->dentry->d_inode;
-+	struct inode *inode = file_inode(file);
- 	__u32 mask = FS_ACCESS;
+-	sb_start_write(file->f_path.mnt->mnt_sb);
++	sb_start_write(file_inode(file)->i_sb);
+ 	ret = __mnt_want_write_file(file);
+ 	if (ret)
+-		sb_end_write(file->f_path.mnt->mnt_sb);
++		sb_end_write(file_inode(file)->i_sb);
+ 	return ret;
+ }
+ EXPORT_SYMBOL_GPL(mnt_want_write_file);
+@@ -486,7 +486,8 @@ void __mnt_drop_write_file(struct file *file)
  
- 	if (S_ISDIR(inode->i_mode))
-@@ -196,7 +192,7 @@ static inline void fsnotify_access(struct file *file)
- static inline void fsnotify_modify(struct file *file)
+ void mnt_drop_write_file(struct file *file)
  {
- 	const struct path *path = &file->f_path;
--	struct inode *inode = path->dentry->d_inode;
-+	struct inode *inode = file_inode(file);
- 	__u32 mask = FS_MODIFY;
- 
- 	if (S_ISDIR(inode->i_mode))
-@@ -214,7 +210,7 @@ static inline void fsnotify_modify(struct file *file)
- static inline void fsnotify_open(struct file *file)
- {
- 	const struct path *path = &file->f_path;
--	struct inode *inode = path->dentry->d_inode;
-+	struct inode *inode = file_inode(file);
- 	__u32 mask = FS_OPEN;
- 
- 	if (S_ISDIR(inode->i_mode))
-@@ -230,7 +226,7 @@ static inline void fsnotify_open(struct file *file)
- static inline void fsnotify_close(struct file *file)
- {
- 	const struct path *path = &file->f_path;
--	struct inode *inode = path->dentry->d_inode;
-+	struct inode *inode = file_inode(file);
- 	fmode_t mode = file->f_mode;
- 	__u32 mask = (mode & FMODE_WRITE) ? FS_CLOSE_WRITE : FS_CLOSE_NOWRITE;
+-	mnt_drop_write(file->f_path.mnt);
++	__mnt_drop_write_file(file);
++	sb_end_write(file_inode(file)->i_sb);
+ }
+ EXPORT_SYMBOL(mnt_drop_write_file);
  
 -- 
 2.14.3
