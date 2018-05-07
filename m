@@ -1,7 +1,7 @@
 From: Miklos Szeredi <mszeredi@redhat.com>
-Subject: [PATCH v2 32/35] Partially revert "locks: fix file locking on overlayfs"
-Date: Mon,  7 May 2018 10:38:04 +0200
-Message-ID: <20180507083807.28792-33-mszeredi@redhat.com>
+Subject: [PATCH v2 30/35] Revert "vfs: add flags to d_real()"
+Date: Mon,  7 May 2018 10:38:02 +0200
+Message-ID: <20180507083807.28792-31-mszeredi@redhat.com>
 References: <20180507083807.28792-1-mszeredi@redhat.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20180507083807.28792-1-mszeredi@redhat.com>
@@ -10,149 +10,138 @@ To: linux-unionfs@vger.kernel.org
 Cc: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, Al Viro <viro@zeniv.linux.org.uk>
 List-Id: linux-unionfs@vger.kernel.org
 
-This partially reverts commit c568d68341be7030f5647def68851e469b21ca11.
+This reverts commit 495e642939114478a5237a7d91661ba93b76f15a.
 
-Overlayfs files will now automatically get the correct locks, no need to
-hack overlay support in VFS.
-
-It is a partial revert, because it leaves the locks_inode() calls in place
-and defines locks_inode() to file_inode().  We could revert those as well,
-but it would be unnecessary code churn and it makes sense to document that
-we are getting the inode for locking purposes.
+No user of "flags" argument of d_real() remain.
 
 Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
 ---
- fs/locks.c              | 17 ++++++-----------
- fs/overlayfs/super.c    |  2 +-
- include/linux/fs.h      | 13 +------------
- include/uapi/linux/fs.h |  1 -
- 4 files changed, 8 insertions(+), 25 deletions(-)
+ Documentation/filesystems/Locking |  2 +-
+ Documentation/filesystems/vfs.txt |  2 +-
+ fs/open.c                         |  2 +-
+ fs/overlayfs/super.c              |  4 ++--
+ include/linux/dcache.h            | 11 +++++------
+ include/linux/fs.h                |  2 +-
+ 6 files changed, 11 insertions(+), 12 deletions(-)
 
-diff --git a/fs/locks.c b/fs/locks.c
-index 9c0e5f3da66c..40bcbaaa3f52 100644
---- a/fs/locks.c
-+++ b/fs/locks.c
-@@ -139,11 +139,6 @@
- #define IS_OFDLCK(fl)	(fl->fl_flags & FL_OFDLCK)
- #define IS_REMOTELCK(fl)	(fl->fl_pid <= 0)
+diff --git a/Documentation/filesystems/Locking b/Documentation/filesystems/Locking
+index 60e76060baff..a4afe96f0112 100644
+--- a/Documentation/filesystems/Locking
++++ b/Documentation/filesystems/Locking
+@@ -22,7 +22,7 @@ prototypes:
+ 	struct vfsmount *(*d_automount)(struct path *path);
+ 	int (*d_manage)(const struct path *, bool);
+ 	struct dentry *(*d_real)(struct dentry *, const struct inode *,
+-				 unsigned int, unsigned int);
++				 unsigned int);
  
--static inline bool is_remote_lock(struct file *filp)
--{
--	return likely(!(filp->f_path.dentry->d_sb->s_flags & SB_NOREMOTELOCK));
--}
--
- static bool lease_breaking(struct file_lock *fl)
- {
- 	return fl->fl_flags & (FL_UNLOCK_PENDING | FL_DOWNGRADE_PENDING);
-@@ -1875,7 +1870,7 @@ EXPORT_SYMBOL(generic_setlease);
- int
- vfs_setlease(struct file *filp, long arg, struct file_lock **lease, void **priv)
- {
--	if (filp->f_op->setlease && is_remote_lock(filp))
-+	if (filp->f_op->setlease)
- 		return filp->f_op->setlease(filp, arg, lease, priv);
- 	else
- 		return generic_setlease(filp, arg, lease, priv);
-@@ -2022,7 +2017,7 @@ SYSCALL_DEFINE2(flock, unsigned int, fd, unsigned int, cmd)
- 	if (error)
- 		goto out_free;
+ locking rules:
+ 		rename_lock	->d_lock	may block	rcu-walk
+diff --git a/Documentation/filesystems/vfs.txt b/Documentation/filesystems/vfs.txt
+index 2bc77ea8aef4..af54d3651ff8 100644
+--- a/Documentation/filesystems/vfs.txt
++++ b/Documentation/filesystems/vfs.txt
+@@ -991,7 +991,7 @@ struct dentry_operations {
+ 	struct vfsmount *(*d_automount)(struct path *);
+ 	int (*d_manage)(const struct path *, bool);
+ 	struct dentry *(*d_real)(struct dentry *, const struct inode *,
+-				 unsigned int, unsigned int);
++				 unsigned int);
+ };
  
--	if (f.file->f_op->flock && is_remote_lock(f.file))
-+	if (f.file->f_op->flock)
- 		error = f.file->f_op->flock(f.file,
- 					  (can_sleep) ? F_SETLKW : F_SETLK,
- 					  lock);
-@@ -2048,7 +2043,7 @@ SYSCALL_DEFINE2(flock, unsigned int, fd, unsigned int, cmd)
-  */
- int vfs_test_lock(struct file *filp, struct file_lock *fl)
- {
--	if (filp->f_op->lock && is_remote_lock(filp))
-+	if (filp->f_op->lock)
- 		return filp->f_op->lock(filp, F_GETLK, fl);
- 	posix_test_lock(filp, fl);
- 	return 0;
-@@ -2191,7 +2186,7 @@ int fcntl_getlk(struct file *filp, unsigned int cmd, struct flock *flock)
-  */
- int vfs_lock_file(struct file *filp, unsigned int cmd, struct file_lock *fl, struct file_lock *conf)
- {
--	if (filp->f_op->lock && is_remote_lock(filp))
-+	if (filp->f_op->lock)
- 		return filp->f_op->lock(filp, cmd, fl);
- 	else
- 		return posix_lock_file(filp, fl, conf);
-@@ -2513,7 +2508,7 @@ locks_remove_flock(struct file *filp, struct file_lock_context *flctx)
- 	if (list_empty(&flctx->flc_flock))
- 		return;
- 
--	if (filp->f_op->flock && is_remote_lock(filp))
-+	if (filp->f_op->flock)
- 		filp->f_op->flock(filp, F_SETLKW, &fl);
- 	else
- 		flock_lock_inode(inode, &fl);
-@@ -2600,7 +2595,7 @@ EXPORT_SYMBOL(posix_unblock_lock);
-  */
- int vfs_cancel_lock(struct file *filp, struct file_lock *fl)
- {
--	if (filp->f_op->lock && is_remote_lock(filp))
-+	if (filp->f_op->lock)
- 		return filp->f_op->lock(filp, F_CANCELLK, fl);
- 	return 0;
- }
+   d_revalidate: called when the VFS needs to revalidate a dentry. This
+diff --git a/fs/open.c b/fs/open.c
+index 2db39216c393..127b49819afb 100644
+--- a/fs/open.c
++++ b/fs/open.c
+@@ -96,7 +96,7 @@ long vfs_truncate(const struct path *path, loff_t length)
+ 	 * write access on the upper inode, not on the overlay inode.  For
+ 	 * non-overlay filesystems d_real() is an identity function.
+ 	 */
+-	upperdentry = d_real(path->dentry, NULL, O_WRONLY, 0);
++	upperdentry = d_real(path->dentry, NULL, O_WRONLY);
+ 	error = PTR_ERR(upperdentry);
+ 	if (IS_ERR(upperdentry))
+ 		goto mnt_drop_write_and_out;
 diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-index 7779fc610767..f2a83fabe2eb 100644
+index 006dc70d7425..7779fc610767 100644
 --- a/fs/overlayfs/super.c
 +++ b/fs/overlayfs/super.c
-@@ -1479,7 +1479,7 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
- 	sb->s_op = &ovl_super_operations;
- 	sb->s_xattr = ovl_xattr_handlers;
- 	sb->s_fs_info = ofs;
--	sb->s_flags |= SB_POSIXACL | SB_NOREMOTELOCK;
-+	sb->s_flags |= SB_POSIXACL;
+@@ -98,7 +98,7 @@ static int ovl_check_append_only(struct inode *inode, int flag)
  
- 	err = -ENOMEM;
- 	root_dentry = d_make_root(ovl_new_inode(sb, S_IFDIR, 0));
+ static struct dentry *ovl_d_real(struct dentry *dentry,
+ 				 const struct inode *inode,
+-				 unsigned int open_flags, unsigned int flags)
++				 unsigned int open_flags)
+ {
+ 	struct dentry *real;
+ 	int err;
+@@ -134,7 +134,7 @@ static struct dentry *ovl_d_real(struct dentry *dentry,
+ 		goto bug;
+ 
+ 	/* Handle recursion */
+-	real = d_real(real, inode, open_flags, 0);
++	real = d_real(real, inode, open_flags);
+ 
+ 	if (!inode || inode == d_inode(real))
+ 		return real;
+diff --git a/include/linux/dcache.h b/include/linux/dcache.h
+index b2b829bcb7c0..58fcc66ddccd 100644
+--- a/include/linux/dcache.h
++++ b/include/linux/dcache.h
+@@ -146,7 +146,7 @@ struct dentry_operations {
+ 	struct vfsmount *(*d_automount)(struct path *);
+ 	int (*d_manage)(const struct path *, bool);
+ 	struct dentry *(*d_real)(struct dentry *, const struct inode *,
+-				 unsigned int, unsigned int);
++				 unsigned int);
+ } ____cacheline_aligned;
+ 
+ /*
+@@ -567,8 +567,7 @@ static inline struct dentry *d_backing_dentry(struct dentry *upper)
+  * d_real - Return the real dentry
+  * @dentry: the dentry to query
+  * @inode: inode to select the dentry from multiple layers (can be NULL)
+- * @open_flags: open flags to control copy-up behavior
+- * @flags: flags to control what is returned by this function
++ * @flags: open flags to control copy-up behavior
+  *
+  * If dentry is on a union/overlay, then return the underlying, real dentry.
+  * Otherwise return the dentry itself.
+@@ -577,10 +576,10 @@ static inline struct dentry *d_backing_dentry(struct dentry *upper)
+  */
+ static inline struct dentry *d_real(struct dentry *dentry,
+ 				    const struct inode *inode,
+-				    unsigned int open_flags, unsigned int flags)
++				    unsigned int flags)
+ {
+ 	if (unlikely(dentry->d_flags & DCACHE_OP_REAL))
+-		return dentry->d_op->d_real(dentry, inode, open_flags, flags);
++		return dentry->d_op->d_real(dentry, inode, flags);
+ 	else
+ 		return dentry;
+ }
+@@ -595,7 +594,7 @@ static inline struct dentry *d_real(struct dentry *dentry,
+ static inline struct inode *d_real_inode(const struct dentry *dentry)
+ {
+ 	/* This usage of d_real() results in const dentry */
+-	return d_backing_inode(d_real((struct dentry *) dentry, NULL, 0, 0));
++	return d_backing_inode(d_real((struct dentry *) dentry, NULL, 0));
+ }
+ 
+ struct name_snapshot {
 diff --git a/include/linux/fs.h b/include/linux/fs.h
-index ba3078693d4a..417e692a606a 100644
+index ebe311541873..ba3078693d4a 100644
 --- a/include/linux/fs.h
 +++ b/include/linux/fs.h
-@@ -1050,17 +1050,7 @@ struct file_lock_context {
+@@ -1244,7 +1244,7 @@ static inline struct inode *file_inode(const struct file *f)
  
- extern void send_sigio(struct fown_struct *fown, int fd, int band);
+ static inline struct dentry *file_dentry(const struct file *file)
+ {
+-	return d_real(file->f_path.dentry, file_inode(file), 0, 0);
++	return d_real(file->f_path.dentry, file_inode(file), 0);
+ }
  
--/*
-- * Return the inode to use for locking
-- *
-- * For overlayfs this should be the overlay inode, not the real inode returned
-- * by file_inode().  For any other fs file_inode(filp) and locks_inode(filp) are
-- * equal.
-- */
--static inline struct inode *locks_inode(const struct file *f)
--{
--	return f->f_path.dentry->d_inode;
--}
-+#define locks_inode(f) file_inode(f)
- 
- #ifdef CONFIG_FILE_LOCKING
- extern int fcntl_getlk(struct file *, unsigned int, struct flock *);
-@@ -1300,7 +1290,6 @@ extern int send_sigurg(struct fown_struct *fown);
- 
- /* These sb flags are internal to the kernel */
- #define SB_SUBMOUNT     (1<<26)
--#define SB_NOREMOTELOCK	(1<<27)
- #define SB_NOSEC	(1<<28)
- #define SB_BORN		(1<<29)
- #define SB_ACTIVE	(1<<30)
-diff --git a/include/uapi/linux/fs.h b/include/uapi/linux/fs.h
-index d2a8313fabd7..2840ddcece73 100644
---- a/include/uapi/linux/fs.h
-+++ b/include/uapi/linux/fs.h
-@@ -134,7 +134,6 @@ struct inodes_stat_t {
- 
- /* These sb flags are internal to the kernel */
- #define MS_SUBMOUNT     (1<<26)
--#define MS_NOREMOTELOCK	(1<<27)
- #define MS_NOSEC	(1<<28)
- #define MS_BORN		(1<<29)
- #define MS_ACTIVE	(1<<30)
+ static inline int locks_lock_file_wait(struct file *filp, struct file_lock *fl)
 -- 
 2.14.3
