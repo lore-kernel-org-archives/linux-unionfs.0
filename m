@@ -1,193 +1,90 @@
-Return-Path: <amir73il@gmail.com>
-Return-Path: <amir73il@gmail.com>
-From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH v4 4/9] ovl: create helper ovl_create_temp()
-Date: Fri, 18 May 2018 11:29:32 +0300
-Message-Id: <1526632177-28832-5-git-send-email-amir73il@gmail.com>
-In-Reply-To: <1526632177-28832-1-git-send-email-amir73il@gmail.com>
-References: <1526632177-28832-1-git-send-email-amir73il@gmail.com>
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: Al Viro <viro@zeniv.linux.org.uk>, Vivek Goyal <vgoyal@redhat.com>, linux-unionfs@vger.kernel.org
+Return-Path: <linux-unionfs-owner@vger.kernel.org>
+Received: from mx3-rdu2.redhat.com ([66.187.233.73]:59020 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1752272AbeEGRlM (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Mon, 7 May 2018 13:41:12 -0400
+From: Vivek Goyal <vgoyal@redhat.com>
+Subject: [PATCH v15 09/30] ovl: Use out_err instead of out_nomem
+Date: Mon,  7 May 2018 13:40:41 -0400
+Message-Id: <20180507174102.24086-10-vgoyal@redhat.com>
+In-Reply-To: <20180507174102.24086-1-vgoyal@redhat.com>
+References: <20180507174102.24086-1-vgoyal@redhat.com>
+Sender: linux-unionfs-owner@vger.kernel.org
+To: linux-unionfs@vger.kernel.org
+Cc: miklos@szeredi.hu, amir73il@gmail.com, vgoyal@redhat.com
 List-ID: <linux-unionfs@vger.kernel.org>
 
-Al Viro suggested to simplify callers of ovl_create_real() by
-returning the created dentry (or ERR_PTR) from ovl_create_real().
-This prep patch makes Al's patch change less callers.
+Right now we use goto out_nomem which assumes error code is -ENOMEM. But
+there are other errors returned like -ESTALE as well. So instead of out_nomem,
+use out_err which will do ERR_PTR(err). That way one can putt error code
+in err and jump to out_err.
 
-Also used ovl_create_temp() in ovl_create_index() instead of calling
-ovl_do_mkdir() directly, so now all callers of ovl_do_mkdir() are routed
-through ovl_create_real(), which paves the way for Al's fix for non-hashed
-result from vfs_mkdir().
+This just code reorganization and no change of functionality.
 
-Suggested-by: Al Viro <viro@zeniv.linux.org.uk>
-Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+I am about to add more code and this organization helps laying more code
+and error paths on top of it.
+
+Reviewed-by: Amir Goldstein <amir73il@gmail.com>
+Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
 ---
- fs/overlayfs/copy_up.c   | 26 +++++++-------------------
- fs/overlayfs/dir.c       | 44 +++++++++++++++++++++++++++-----------------
- fs/overlayfs/overlayfs.h |  3 ++-
- 3 files changed, 36 insertions(+), 37 deletions(-)
+ fs/overlayfs/inode.c | 17 ++++++++++-------
+ 1 file changed, 10 insertions(+), 7 deletions(-)
 
-diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
-index 5f4c78b1bbeb..f3024060be42 100644
---- a/fs/overlayfs/copy_up.c
-+++ b/fs/overlayfs/copy_up.c
-@@ -365,14 +365,10 @@ static int ovl_create_index(struct dentry *dentry, struct dentry *origin,
- 	if (err)
- 		return err;
+diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
+index daab9358db07..c128d5d54d0f 100644
+--- a/fs/overlayfs/inode.c
++++ b/fs/overlayfs/inode.c
+@@ -772,6 +772,7 @@ struct inode *ovl_get_inode(struct ovl_inode_params *oip)
+ 	int fsid = bylower ? oip->lowerpath->layer->fsid : 0;
+ 	bool is_dir;
+ 	unsigned long ino = 0;
++	int err = -ENOMEM;
  
--	temp = ovl_lookup_temp(indexdir);
-+	temp = ovl_create_temp(indexdir, OVL_CATTR(S_IFDIR | 0));
- 	if (IS_ERR(temp))
- 		goto temp_err;
+ 	if (!realinode)
+ 		realinode = d_inode(lowerdentry);
+@@ -789,7 +790,7 @@ struct inode *ovl_get_inode(struct ovl_inode_params *oip)
+ 		inode = iget5_locked(oip->sb, (unsigned long) key,
+ 				     ovl_inode_test, ovl_inode_set, key);
+ 		if (!inode)
+-			goto out_nomem;
++			goto out_err;
+ 		if (!(inode->i_state & I_NEW)) {
+ 			/*
+ 			 * Verify that the underlying files stored in the inode
+@@ -798,8 +799,8 @@ struct inode *ovl_get_inode(struct ovl_inode_params *oip)
+ 			if (!ovl_verify_inode(inode, lowerdentry, upperdentry,
+ 					      true)) {
+ 				iput(inode);
+-				inode = ERR_PTR(-ESTALE);
+-				goto out;
++				err = -ESTALE;
++				goto out_err;
+ 			}
  
--	err = ovl_do_mkdir(dir, temp, S_IFDIR);
--	if (err)
--		goto out;
--
- 	err = ovl_set_upper_fh(upper, temp);
- 	if (err)
- 		goto out_cleanup;
-@@ -500,21 +496,13 @@ static int ovl_get_tmpfile(struct ovl_copy_up_ctx *c, struct dentry **tempp)
- 	if (new_creds)
- 		old_creds = override_creds(new_creds);
- 
--	if (c->tmpfile) {
-+	if (c->tmpfile)
- 		temp = ovl_do_tmpfile(c->workdir, c->stat.mode);
--		if (IS_ERR(temp))
--			goto temp_err;
--	} else {
--		temp = ovl_lookup_temp(c->workdir);
--		if (IS_ERR(temp))
--			goto temp_err;
--
--		err = ovl_create_real(d_inode(c->workdir), temp, &cattr);
--		if (err) {
--			dput(temp);
--			goto out;
--		}
--	}
-+	else
-+		temp = ovl_create_temp(c->workdir, &cattr);
-+	if (IS_ERR(temp))
-+		goto temp_err;
-+
- 	err = 0;
- 	*tempp = temp;
+ 			dput(upperdentry);
+@@ -815,8 +816,10 @@ struct inode *ovl_get_inode(struct ovl_inode_params *oip)
+ 	} else {
+ 		/* Lower hardlink that will be broken on copy up */
+ 		inode = new_inode(oip->sb);
+-		if (!inode)
+-			goto out_nomem;
++		if (!inode) {
++			err = -ENOMEM;
++			goto out_err;
++		}
+ 	}
+ 	ovl_fill_inode(inode, realinode->i_mode, realinode->i_rdev, ino, fsid);
+ 	ovl_inode_init(inode, upperdentry, lowerdentry);
+@@ -842,7 +845,7 @@ struct inode *ovl_get_inode(struct ovl_inode_params *oip)
  out:
-diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
-index 4b172faa3d29..41a8940964e3 100644
---- a/fs/overlayfs/dir.c
-+++ b/fs/overlayfs/dir.c
-@@ -160,6 +160,25 @@ int ovl_create_real(struct inode *dir, struct dentry *newdentry,
- 	return err;
+ 	return inode;
+ 
+-out_nomem:
+-	inode = ERR_PTR(-ENOMEM);
++out_err:
++	inode = ERR_PTR(err);
+ 	goto out;
  }
- 
-+struct dentry *ovl_create_temp(struct dentry *workdir, struct ovl_cattr *attr)
-+{
-+	struct inode *wdir = workdir->d_inode;
-+	struct dentry *temp;
-+	int err;
-+
-+	temp = ovl_lookup_temp(workdir);
-+	if (IS_ERR(temp))
-+		return temp;
-+
-+	err = ovl_create_real(wdir, temp, attr);
-+	if (err) {
-+		dput(temp);
-+		return ERR_PTR(err);
-+	}
-+
-+	return temp;
-+}
-+
- static int ovl_set_opaque_xerr(struct dentry *dentry, struct dentry *upper,
- 			       int xerr)
- {
-@@ -280,15 +299,11 @@ static struct dentry *ovl_clear_empty(struct dentry *dentry,
- 	if (upper->d_parent->d_inode != udir)
- 		goto out_unlock;
- 
--	opaquedir = ovl_lookup_temp(workdir);
-+	opaquedir = ovl_create_temp(workdir, OVL_CATTR(stat.mode));
- 	err = PTR_ERR(opaquedir);
- 	if (IS_ERR(opaquedir))
- 		goto out_unlock;
- 
--	err = ovl_create_real(wdir, opaquedir, OVL_CATTR(stat.mode));
--	if (err)
--		goto out_dput;
--
- 	err = ovl_copy_xattr(upper, opaquedir);
- 	if (err)
- 		goto out_cleanup;
-@@ -318,7 +333,6 @@ static struct dentry *ovl_clear_empty(struct dentry *dentry,
- 
- out_cleanup:
- 	ovl_cleanup(wdir, opaquedir);
--out_dput:
- 	dput(opaquedir);
- out_unlock:
- 	unlock_rename(workdir, upperdir);
-@@ -379,20 +393,16 @@ static int ovl_create_over_whiteout(struct dentry *dentry, struct inode *inode,
- 	if (err)
- 		goto out;
- 
--	newdentry = ovl_lookup_temp(workdir);
--	err = PTR_ERR(newdentry);
--	if (IS_ERR(newdentry))
--		goto out_unlock;
--
- 	upper = lookup_one_len(dentry->d_name.name, upperdir,
- 			       dentry->d_name.len);
- 	err = PTR_ERR(upper);
- 	if (IS_ERR(upper))
--		goto out_dput;
-+		goto out_unlock;
- 
--	err = ovl_create_real(wdir, newdentry, cattr);
--	if (err)
--		goto out_dput2;
-+	newdentry = ovl_create_temp(workdir, cattr);
-+	err = PTR_ERR(newdentry);
-+	if (IS_ERR(newdentry))
-+		goto out_dput;
- 
- 	/*
- 	 * mode could have been mutilated due to umask (e.g. sgid directory)
-@@ -441,9 +451,9 @@ static int ovl_create_over_whiteout(struct dentry *dentry, struct inode *inode,
- 	ovl_instantiate(dentry, inode, newdentry, hardlink);
- 	newdentry = NULL;
- out_dput2:
--	dput(upper);
--out_dput:
- 	dput(newdentry);
-+out_dput:
-+	dput(upper);
- out_unlock:
- 	unlock_rename(workdir, upperdir);
- out:
-diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-index fafaf9b255c5..e72eec6d440f 100644
---- a/fs/overlayfs/overlayfs.h
-+++ b/fs/overlayfs/overlayfs.h
-@@ -360,6 +360,7 @@ static inline void ovl_copyflags(struct inode *from, struct inode *to)
- 
- /* dir.c */
- extern const struct inode_operations ovl_dir_inode_operations;
-+int ovl_cleanup(struct inode *dir, struct dentry *dentry);
- struct dentry *ovl_lookup_temp(struct dentry *workdir);
- int ovl_cleanup_and_whiteout(struct dentry *workdir, struct inode *dir,
- 			     struct dentry *dentry);
-@@ -374,7 +375,7 @@ struct ovl_cattr {
- 
- int ovl_create_real(struct inode *dir, struct dentry *newdentry,
- 		    struct ovl_cattr *attr);
--int ovl_cleanup(struct inode *dir, struct dentry *dentry);
-+struct dentry *ovl_create_temp(struct dentry *workdir, struct ovl_cattr *attr);
- 
- /* file.c */
- extern const struct file_operations ovl_file_operations;
 -- 
-2.7.4
+2.13.6
+
