@@ -1,20 +1,13 @@
 Return-Path: <vgoyal@redhat.com>
-Date: Tue, 8 May 2018 09:56:42 -0400
 From: Vivek Goyal <vgoyal@redhat.com>
-Subject: Re: [PATCH v15 02/30] ovl: Initialize ovl_inode->redirect in
- ovl_get_inode()
-Message-ID: <20180508135642.GF3501@redhat.com>
+Subject: [PATCH v15 02/30] ovl: Initialize ovl_inode->redirect in ovl_get_inode()
+Date: Mon,  7 May 2018 13:40:34 -0400
+Message-Id: <20180507174102.24086-3-vgoyal@redhat.com>
+In-Reply-To: <20180507174102.24086-1-vgoyal@redhat.com>
 References: <20180507174102.24086-1-vgoyal@redhat.com>
- <20180507174102.24086-3-vgoyal@redhat.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20180507174102.24086-3-vgoyal@redhat.com>
 To: linux-unionfs@vger.kernel.org
-Cc: miklos@szeredi.hu, amir73il@gmail.com
+Cc: miklos@szeredi.hu, amir73il@gmail.com, vgoyal@redhat.com
 List-ID: <linux-unionfs@vger.kernel.org>
-
-Subject: ovl: Initialize ovl_inode->redirect in ovl_get_inode()
 
 ovl_inode->redirect is an inode property and should be initialized
 in ovl_get_inode() only when we are adding a new inode to cache. If
@@ -23,23 +16,38 @@ not be touching ovl_inode->redirect field.
 
 As of now this is not a problem as redirects are used only for directories
 which don't share inode. But soon I want to use redirects for regular files
-also and there it can become an issue. 
+also and there it can become an issue.
 
 Hence, move ->redirect initialization in ovl_get_inode().
 
 Reviewed-by: Amir Goldstein <amir73il@gmail.com>
 Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
 ---
- fs/overlayfs/inode.c     |    3 +++
- fs/overlayfs/namei.c     |    8 +-------
- fs/overlayfs/ovl_entry.h |    1 +
- 3 files changed, 5 insertions(+), 7 deletions(-)
+ fs/overlayfs/export.c    |  3 ++-
+ fs/overlayfs/inode.c     |  3 +++
+ fs/overlayfs/namei.c     | 10 ++--------
+ fs/overlayfs/ovl_entry.h |  1 +
+ 4 files changed, 8 insertions(+), 9 deletions(-)
 
-Index: rhvgoyal-linux/fs/overlayfs/inode.c
-===================================================================
---- rhvgoyal-linux.orig/fs/overlayfs/inode.c	2018-05-07 16:42:22.395350785 -0400
-+++ rhvgoyal-linux/fs/overlayfs/inode.c	2018-05-07 16:42:24.825350785 -0400
-@@ -836,6 +836,7 @@ struct inode *ovl_get_inode(struct super
+diff --git a/fs/overlayfs/export.c b/fs/overlayfs/export.c
+index 867946adcbc5..0549286cc55e 100644
+--- a/fs/overlayfs/export.c
++++ b/fs/overlayfs/export.c
+@@ -300,7 +300,8 @@ static struct dentry *ovl_obtain_alias(struct super_block *sb,
+ 	struct dentry *dentry;
+ 	struct inode *inode;
+ 	struct ovl_entry *oe;
+-	struct ovl_inode_params oip = {sb, NULL, lowerpath, index, !!lower};
++	struct ovl_inode_params oip = {sb, NULL, lowerpath, index, !!lower,
++				       NULL};
+ 
+ 	/* We get overlay directory dentries with ovl_lookup_real() */
+ 	if (d_is_dir(upper ?: lower))
+diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
+index 2fe9538fffc9..d85d753f23fc 100644
+--- a/fs/overlayfs/inode.c
++++ b/fs/overlayfs/inode.c
+@@ -835,6 +835,7 @@ struct inode *ovl_get_inode(struct ovl_inode_params *oip)
  			}
  
  			dput(upperdentry);
@@ -47,7 +55,7 @@ Index: rhvgoyal-linux/fs/overlayfs/inode.c
  			goto out;
  		}
  
-@@ -859,6 +860,8 @@ struct inode *ovl_get_inode(struct super
+@@ -858,6 +859,8 @@ struct inode *ovl_get_inode(struct ovl_inode_params *oip)
  	if (oip->index)
  		ovl_set_flag(OVL_INDEX, inode);
  
@@ -56,30 +64,19 @@ Index: rhvgoyal-linux/fs/overlayfs/inode.c
  	/* Check for non-merge dir that may have whiteouts */
  	if (is_dir) {
  		if (((upperdentry && lowerdentry) || oip->numlower > 1) ||
-Index: rhvgoyal-linux/fs/overlayfs/ovl_entry.h
-===================================================================
---- rhvgoyal-linux.orig/fs/overlayfs/ovl_entry.h	2018-05-07 16:42:22.396350785 -0400
-+++ rhvgoyal-linux/fs/overlayfs/ovl_entry.h	2018-05-07 16:42:24.826350785 -0400
-@@ -106,6 +106,7 @@ struct ovl_inode_params {
- 	struct ovl_path *lowerpath;
- 	struct dentry *index;
- 	unsigned int numlower;
-+	char *redirect;
- };
+diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
+index 1ab68454bfb6..8fd817bf5529 100644
+--- a/fs/overlayfs/namei.c
++++ b/fs/overlayfs/namei.c
+@@ -1005,19 +1005,13 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
  
- static inline struct ovl_inode *OVL_I(struct inode *inode)
-Index: rhvgoyal-linux/fs/overlayfs/namei.c
-===================================================================
---- rhvgoyal-linux.orig/fs/overlayfs/namei.c	2018-05-07 16:42:24.827350785 -0400
-+++ rhvgoyal-linux/fs/overlayfs/namei.c	2018-05-07 16:42:56.609350785 -0400
-@@ -1009,19 +1009,13 @@ struct dentry *ovl_lookup(struct inode *
- 			.lowerpath = stack,
- 			.index = index,
- 			.numlower = ctr,
-+			.redirect = upperredirect,
- 		};
+ 	if (upperdentry || ctr) {
+ 		struct ovl_inode_params oip = {dentry->d_sb, upperdentry,
+-					       stack, index, ctr};
++					       stack, index, ctr,
++					       upperredirect};
  
- 		inode = ovl_get_inode(dentry->d_sb, &oip);
+ 		inode = ovl_get_inode(&oip);
  		err = PTR_ERR(inode);
  		if (IS_ERR(inode))
  			goto out_free_oe;
@@ -93,3 +90,17 @@ Index: rhvgoyal-linux/fs/overlayfs/namei.c
  	}
  
  	revert_creds(old_cred);
+diff --git a/fs/overlayfs/ovl_entry.h b/fs/overlayfs/ovl_entry.h
+index 11e9abe7e381..07b8cb2785c8 100644
+--- a/fs/overlayfs/ovl_entry.h
++++ b/fs/overlayfs/ovl_entry.h
+@@ -107,6 +107,7 @@ struct ovl_inode_params {
+ 	struct ovl_path *lowerpath;
+ 	struct dentry *index;
+ 	unsigned int numlower;
++	char *redirect;
+ };
+ 
+ static inline struct ovl_inode *OVL_I(struct inode *inode)
+-- 
+2.13.6
