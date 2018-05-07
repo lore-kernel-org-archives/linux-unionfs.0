@@ -1,59 +1,24 @@
+Return-Path: <amir73il@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <20180512012557.GJ30522@ZenIV.linux.org.uk>
-References: <20180512012557.GJ30522@ZenIV.linux.org.uk>
-Date: Mon, 14 May 2018 17:04:44 +0200
-Message-ID: <CAJfpegvU9BM+BL7CyxERNnYNpdG=hpXSZSNL7KcZ4-qR3XUbcA@mail.gmail.com>
-Subject: Re: [RFC][PATCH] ovl_create_index(): vfs_mkdir() might succeed
- leaving dentry negative unhashed
-From: Miklos Szeredi <miklos@szeredi.hu>
+In-Reply-To: <20180507174102.24086-25-vgoyal@redhat.com>
+References: <20180507174102.24086-1-vgoyal@redhat.com> <20180507174102.24086-25-vgoyal@redhat.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Date: Mon, 7 May 2018 21:21:42 +0300
+Message-ID: <CAOQ4uxivnmtxa8o6=OUyyA3+xaxLSOjFvOmF7fuUirmbGEXd-w@mail.gmail.com>
+Subject: Re: [PATCH v15 24/30] ovl: Set redirect on metacopy files upon rename
 Content-Type: text/plain; charset="UTF-8"
-To: Al Viro <viro@zeniv.linux.org.uk>
-Cc: linux-fsdevel@vger.kernel.org, overlayfs <linux-unionfs@vger.kernel.org>
+To: Vivek Goyal <vgoyal@redhat.com>
+Cc: overlayfs <linux-unionfs@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-On Sat, May 12, 2018 at 3:25 AM, Al Viro <viro@zeniv.linux.org.uk> wrote:
-> [same story as with the previous two patches]
+On Mon, May 7, 2018 at 8:40 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
+> Set redirect on metacopy files upon rename. This will help find data dentry
+> in lower dirs.
 >
-> Signed-off-by: Al Viro <viro@zeniv.linux.org.uk>
-> ---
-> diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
-> index 8bede0742619..cdd8f8816d2a 100644
-> --- a/fs/overlayfs/copy_up.c
-> +++ b/fs/overlayfs/copy_up.c
-> @@ -373,6 +373,22 @@ static int ovl_create_index(struct dentry *dentry, struct dentry *origin,
->         if (err)
->                 goto out;
->
-> +       if (unlikely(d_unhashed(temp))) {
-> +               struct dentry *d = lookup_one_len(temp->d_name.name,
-> +                                                 temp->d_parent,
-> +                                                 temp->d_name.len);
-> +               if (IS_ERR(d)) {
-> +                       err = PTR_ERR(d);
-> +                       goto out;
+> Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
+> Reviewed-by: Amir Goldstein <amir73il@gmail.com>
 
-This violates the "If -1 is returned, no directory shall be created" rule.
-
-lookup_one_len() does various permission checks.  The normal DAC check
-is not a worry, because of the lock on the parent. But is it
-guaranteed that MAC allows lookup if it allowed mkdir?
-
-Then there's still the theoretical possibility of the lookup failing
-with ENOMEM,  probably not worth worrying about too much (maybe emit a
-warning).
+Looks OK.
 
 Thanks,
-Miklos
-
-> +               }
-> +               dput(temp);
-> +               temp = d;
-> +               if (d_is_negative(temp)) {
-> +                       err = -EIO;
-> +                       goto out;
-> +               }
-> +       }
-> +
->         err = ovl_set_upper_fh(upper, temp);
->         if (err)
->                 goto out_cleanup;
+Amir.
