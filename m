@@ -1,7 +1,7 @@
 From: Miklos Szeredi <mszeredi@redhat.com>
-Subject: [PATCH v2 29/35] Revert "vfs: update ovl inode before relatime check"
-Date: Mon,  7 May 2018 10:38:01 +0200
-Message-ID: <20180507083807.28792-30-mszeredi@redhat.com>
+Subject: [PATCH v2 28/35] Revert "ovl: fix relatime for directories"
+Date: Mon,  7 May 2018 10:38:00 +0200
+Message-ID: <20180507083807.28792-29-mszeredi@redhat.com>
 References: <20180507083807.28792-1-mszeredi@redhat.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20180507083807.28792-1-mszeredi@redhat.com>
@@ -10,133 +10,77 @@ To: linux-unionfs@vger.kernel.org
 Cc: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, Al Viro <viro@zeniv.linux.org.uk>
 List-Id: linux-unionfs@vger.kernel.org
 
-This reverts commit 598e3c8f72f5b77c84d2cb26cfd936ffb3cfdbaa.
+This reverts commit cd91304e7190b4c4802f8e413ab2214b233e0260.
 
 Overlayfs no longer relies on the vfs correct atime handling.
 
 Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
 ---
- fs/inode.c         | 33 ++++++---------------------------
- fs/internal.h      |  7 -------
- fs/namei.c         |  2 +-
- include/linux/fs.h |  1 +
- 4 files changed, 8 insertions(+), 35 deletions(-)
+ fs/inode.c             | 21 ++++-----------------
+ fs/overlayfs/super.c   |  3 ---
+ include/linux/dcache.h |  3 ---
+ 3 files changed, 4 insertions(+), 23 deletions(-)
 
 diff --git a/fs/inode.c b/fs/inode.c
-index e97d0193221d..9818c0f48cfa 100644
+index 13ceb98c3bd3..e97d0193221d 100644
 --- a/fs/inode.c
 +++ b/fs/inode.c
-@@ -1567,37 +1567,17 @@ sector_t bmap(struct inode *inode, sector_t block)
+@@ -1573,24 +1573,11 @@ EXPORT_SYMBOL(bmap);
+ static void update_ovl_inode_times(struct dentry *dentry, struct inode *inode,
+ 			       bool rcu)
+ {
+-	struct dentry *upperdentry;
++	if (!rcu) {
++		struct inode *realinode = d_real_inode(dentry);
+ 
+-	/*
+-	 * Nothing to do if in rcu or if non-overlayfs
+-	 */
+-	if (rcu || likely(!(dentry->d_flags & DCACHE_OP_REAL)))
+-		return;
+-
+-	upperdentry = d_real(dentry, NULL, 0, D_REAL_UPPER);
+-
+-	/*
+-	 * If file is on lower then we can't update atime, so no worries about
+-	 * stale mtime/ctime.
+-	 */
+-	if (upperdentry) {
+-		struct inode *realinode = d_inode(upperdentry);
+-
+-		if ((!timespec_equal(&inode->i_mtime, &realinode->i_mtime) ||
++		if (unlikely(inode != realinode) &&
++		    (!timespec_equal(&inode->i_mtime, &realinode->i_mtime) ||
+ 		     !timespec_equal(&inode->i_ctime, &realinode->i_ctime))) {
+ 			inode->i_mtime = realinode->i_mtime;
+ 			inode->i_ctime = realinode->i_ctime;
+diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+index c3d8c7ea180f..006dc70d7425 100644
+--- a/fs/overlayfs/super.c
++++ b/fs/overlayfs/super.c
+@@ -107,9 +107,6 @@ static struct dentry *ovl_d_real(struct dentry *dentry,
+ 	if (inode && d_inode(dentry) == inode)
+ 		return dentry;
+ 
+-	if (flags & D_REAL_UPPER)
+-		return ovl_dentry_upper(dentry);
+-
+ 	if (!d_is_reg(dentry)) {
+ 		if (!inode || inode == d_inode(dentry))
+ 			return dentry;
+diff --git a/include/linux/dcache.h b/include/linux/dcache.h
+index 94acbde17bb1..b2b829bcb7c0 100644
+--- a/include/linux/dcache.h
++++ b/include/linux/dcache.h
+@@ -563,9 +563,6 @@ static inline struct dentry *d_backing_dentry(struct dentry *upper)
+ 	return upper;
  }
- EXPORT_SYMBOL(bmap);
  
--/*
-- * Update times in overlayed inode from underlying real inode
-- */
--static void update_ovl_inode_times(struct dentry *dentry, struct inode *inode,
--			       bool rcu)
--{
--	if (!rcu) {
--		struct inode *realinode = d_real_inode(dentry);
+-/* d_real() flags */
+-#define D_REAL_UPPER	0x2	/* return upper dentry or NULL if non-upper */
 -
--		if (unlikely(inode != realinode) &&
--		    (!timespec_equal(&inode->i_mtime, &realinode->i_mtime) ||
--		     !timespec_equal(&inode->i_ctime, &realinode->i_ctime))) {
--			inode->i_mtime = realinode->i_mtime;
--			inode->i_ctime = realinode->i_ctime;
--		}
--	}
--}
--
- /*
-  * With relative atime, only update atime if the previous atime is
-  * earlier than either the ctime or mtime or if at least a day has
-  * passed since the last atime update.
-  */
--static int relatime_need_update(const struct path *path, struct inode *inode,
--				struct timespec now, bool rcu)
-+static int relatime_need_update(struct vfsmount *mnt, struct inode *inode,
-+			     struct timespec now)
- {
- 
--	if (!(path->mnt->mnt_flags & MNT_RELATIME))
-+	if (!(mnt->mnt_flags & MNT_RELATIME))
- 		return 1;
--
--	update_ovl_inode_times(path->dentry, inode, rcu);
- 	/*
- 	 * Is mtime younger than atime? If yes, update atime:
- 	 */
-@@ -1668,8 +1648,7 @@ static int update_time(struct inode *inode, struct timespec *time, int flags)
-  *	This function automatically handles read only file systems and media,
-  *	as well as the "noatime" flag and inode specific "noatime" markers.
-  */
--bool __atime_needs_update(const struct path *path, struct inode *inode,
--			  bool rcu)
-+bool atime_needs_update(const struct path *path, struct inode *inode)
- {
- 	struct vfsmount *mnt = path->mnt;
- 	struct timespec now;
-@@ -1695,7 +1674,7 @@ bool __atime_needs_update(const struct path *path, struct inode *inode,
- 
- 	now = current_time(inode);
- 
--	if (!relatime_need_update(path, inode, now, rcu))
-+	if (!relatime_need_update(mnt, inode, now))
- 		return false;
- 
- 	if (timespec_equal(&inode->i_atime, &now))
-@@ -1710,7 +1689,7 @@ void touch_atime(const struct path *path)
- 	struct inode *inode = d_inode(path->dentry);
- 	struct timespec now;
- 
--	if (!__atime_needs_update(path, inode, false))
-+	if (!atime_needs_update(path, inode))
- 		return;
- 
- 	if (!sb_start_write_trylock(inode->i_sb))
-diff --git a/fs/internal.h b/fs/internal.h
-index 29c9a2fab592..6ada1f356da6 100644
---- a/fs/internal.h
-+++ b/fs/internal.h
-@@ -138,13 +138,6 @@ extern long prune_icache_sb(struct super_block *sb, struct shrink_control *sc);
- extern void inode_add_lru(struct inode *inode);
- extern int dentry_needs_remove_privs(struct dentry *dentry);
- 
--extern bool __atime_needs_update(const struct path *, struct inode *, bool);
--static inline bool atime_needs_update_rcu(const struct path *path,
--					  struct inode *inode)
--{
--	return __atime_needs_update(path, inode, true);
--}
--
- /*
-  * fs-writeback.c
-  */
-diff --git a/fs/namei.c b/fs/namei.c
-index 186bd2464fd5..54ab8ccb8d6d 100644
---- a/fs/namei.c
-+++ b/fs/namei.c
-@@ -1013,7 +1013,7 @@ const char *get_link(struct nameidata *nd)
- 	if (!(nd->flags & LOOKUP_RCU)) {
- 		touch_atime(&last->link);
- 		cond_resched();
--	} else if (atime_needs_update_rcu(&last->link, inode)) {
-+	} else if (atime_needs_update(&last->link, inode)) {
- 		if (unlikely(unlazy_walk(nd)))
- 			return ERR_PTR(-ECHILD);
- 		touch_atime(&last->link);
-diff --git a/include/linux/fs.h b/include/linux/fs.h
-index c85a8059f038..ebe311541873 100644
---- a/include/linux/fs.h
-+++ b/include/linux/fs.h
-@@ -2066,6 +2066,7 @@ enum file_time_flags {
- 	S_VERSION = 8,
- };
- 
-+extern bool atime_needs_update(const struct path *, struct inode *);
- extern void touch_atime(const struct path *);
- static inline void file_accessed(struct file *file)
- {
+ /**
+  * d_real - Return the real dentry
+  * @dentry: the dentry to query
 -- 
 2.14.3
