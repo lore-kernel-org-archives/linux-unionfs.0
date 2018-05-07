@@ -1,12 +1,12 @@
 Return-Path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mx3-rdu2.redhat.com ([66.187.233.73]:46002 "EHLO mx1.redhat.com"
+Received: from mx3-rdu2.redhat.com ([66.187.233.73]:56616 "EHLO mx1.redhat.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1752223AbeEGRlO (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 7 May 2018 13:41:14 -0400
+        id S1752432AbeEGRlM (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Mon, 7 May 2018 13:41:12 -0400
 From: Vivek Goyal <vgoyal@redhat.com>
-Subject: [PATCH v15 24/30] ovl: Set redirect on metacopy files upon rename
-Date: Mon,  7 May 2018 13:40:56 -0400
-Message-Id: <20180507174102.24086-25-vgoyal@redhat.com>
+Subject: [PATCH v15 11/30] ovl: Copy up meta inode data from lowest data inode
+Date: Mon,  7 May 2018 13:40:43 -0400
+Message-Id: <20180507174102.24086-12-vgoyal@redhat.com>
 In-Reply-To: <20180507174102.24086-1-vgoyal@redhat.com>
 References: <20180507174102.24086-1-vgoyal@redhat.com>
 Sender: linux-unionfs-owner@vger.kernel.org
@@ -14,118 +14,104 @@ To: linux-unionfs@vger.kernel.org
 Cc: miklos@szeredi.hu, amir73il@gmail.com, vgoyal@redhat.com
 List-ID: <linux-unionfs@vger.kernel.org>
 
-Set redirect on metacopy files upon rename. This will help find data dentry
-in lower dirs.
+So far lower could not be a meta inode. So whenever it was time to copy
+up data of a meta inode, we could copy it up from top most lower dentry.
 
-Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
+But now lower itself can be a metacopy inode. That means data copy up
+needs to take place from a data inode in metacopy inode chain. Find
+lower data inode in the chain and use that for data copy up.
+
+Introduced a helper called ovl_path_lowerdata() to find the lower
+data inode chain.
+
 Reviewed-by: Amir Goldstein <amir73il@gmail.com>
+Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
 ---
- fs/overlayfs/dir.c | 66 +++++++++++++++++++++++++++++++++++++-----------------
- 1 file changed, 46 insertions(+), 20 deletions(-)
+ fs/overlayfs/copy_up.c   | 14 ++++++++++----
+ fs/overlayfs/overlayfs.h |  1 +
+ fs/overlayfs/util.c      | 14 ++++++++++++++
+ 3 files changed, 25 insertions(+), 4 deletions(-)
 
-diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
-index bdaa5e4fa603..602b0ac1f4d4 100644
---- a/fs/overlayfs/dir.c
-+++ b/fs/overlayfs/dir.c
-@@ -811,13 +811,13 @@ static bool ovl_can_move(struct dentry *dentry)
- 		!d_is_dir(dentry) || !ovl_type_merge_or_lower(dentry);
- }
+diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
+index 7453913ca61b..5a865a4cf3d7 100644
+--- a/fs/overlayfs/copy_up.c
++++ b/fs/overlayfs/copy_up.c
+@@ -565,13 +565,15 @@ static int ovl_copy_up_inode(struct ovl_copy_up_ctx *c, struct dentry *temp)
+ 	}
  
--static char *ovl_get_redirect(struct dentry *dentry, bool samedir)
-+static char *ovl_get_redirect(struct dentry *dentry, bool abs_redirect)
+ 	if (S_ISREG(c->stat.mode) && !c->metacopy) {
+-		struct path upperpath;
++		struct path upperpath, datapath;
+ 
+ 		ovl_path_upper(c->dentry, &upperpath);
+ 		BUG_ON(upperpath.dentry != NULL);
+ 		upperpath.dentry = temp;
+ 
+-		err = ovl_copy_up_data(&c->lowerpath, &upperpath, c->stat.size);
++		ovl_path_lowerdata(c->dentry, &datapath);
++		BUG_ON(datapath.dentry == NULL);
++		err = ovl_copy_up_data(&datapath, &upperpath, c->stat.size);
+ 		if (err)
+ 			return err;
+ 	}
+@@ -754,14 +756,18 @@ static bool ovl_need_meta_copy_up(struct dentry *dentry, umode_t mode,
+ /* Copy up data of an inode which was copied up metadata only in the past. */
+ static int ovl_copy_up_meta_inode_data(struct ovl_copy_up_ctx *c)
  {
- 	char *buf, *ret;
- 	struct dentry *d, *tmp;
- 	int buflen = ovl_redirect_max + 1;
+-	struct path upperpath;
++	struct path upperpath, datapath;
+ 	int err;
  
--	if (samedir) {
-+	if (!abs_redirect) {
- 		ret = kstrndup(dentry->d_name.name, dentry->d_name.len,
- 			       GFP_KERNEL);
- 		goto out;
-@@ -871,15 +871,43 @@ static char *ovl_get_redirect(struct dentry *dentry, bool samedir)
- 	return ret ? ret : ERR_PTR(-ENOMEM);
+ 	ovl_path_upper(c->dentry, &upperpath);
+ 	if (WARN_ON(upperpath.dentry == NULL))
+ 		return -EIO;
+ 
+-	err = ovl_copy_up_data(&c->lowerpath, &upperpath, c->stat.size);
++	ovl_path_lowerdata(c->dentry, &datapath);
++	if (WARN_ON(datapath.dentry == NULL))
++		return -EIO;
++
++	err = ovl_copy_up_data(&datapath, &upperpath, c->stat.size);
+ 	if (err)
+ 		return err;
+ 
+diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
+index e8954fff1c45..ee66307451f0 100644
+--- a/fs/overlayfs/overlayfs.h
++++ b/fs/overlayfs/overlayfs.h
+@@ -223,6 +223,7 @@ bool ovl_dentry_weird(struct dentry *dentry);
+ enum ovl_path_type ovl_path_type(struct dentry *dentry);
+ void ovl_path_upper(struct dentry *dentry, struct path *path);
+ void ovl_path_lower(struct dentry *dentry, struct path *path);
++void ovl_path_lowerdata(struct dentry *dentry, struct path *path);
+ enum ovl_path_type ovl_path_real(struct dentry *dentry, struct path *path);
+ struct dentry *ovl_dentry_upper(struct dentry *dentry);
+ struct dentry *ovl_dentry_lower(struct dentry *dentry);
+diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
+index ab9a8fae0f99..74b38e17a476 100644
+--- a/fs/overlayfs/util.c
++++ b/fs/overlayfs/util.c
+@@ -164,6 +164,20 @@ void ovl_path_lower(struct dentry *dentry, struct path *path)
+ 	}
  }
  
-+static bool ovl_need_absolute_redirect(struct dentry *dentry, bool samedir)
++void ovl_path_lowerdata(struct dentry *dentry, struct path *path)
 +{
-+	struct dentry *lowerdentry;
++	struct ovl_entry *oe = dentry->d_fsdata;
++	int idx = oe->numlower - 1;
 +
-+	if (!samedir)
-+		return true;
++	if (!oe->numlower) {
++		*path = (struct path) { };
++		return;
++	}
 +
-+	if (d_is_dir(dentry))
-+		return false;
-+
-+	/*
-+	 * For non-dir hardlinked files, we need absolute redirects
-+	 * in general as two upper hardlinks could be in different
-+	 * dirs. We could put a relative redirect now and convert
-+	 * it to absolute redirect later. But when nlink > 1 and
-+	 * indexing is on, that means relative redirect needs to be
-+	 * converted to absolute during copy up of another lower
-+	 * hardllink as well.
-+	 *
-+	 * So without optimizing too much, just check if lower is
-+	 * a hard link or not. If lower is hard link, put absolute
-+	 * redirect.
-+	 */
-+	lowerdentry = ovl_dentry_lower(dentry);
-+	return (d_inode(lowerdentry)->i_nlink > 1);
++	path->mnt = oe->lowerstack[idx].layer->mnt;
++	path->dentry = oe->lowerstack[idx].dentry;
 +}
 +
- static int ovl_set_redirect(struct dentry *dentry, bool samedir)
+ enum ovl_path_type ovl_path_real(struct dentry *dentry, struct path *path)
  {
- 	int err;
- 	const char *redirect = ovl_dentry_get_redirect(dentry);
-+	bool absolute_redirect = ovl_need_absolute_redirect(dentry, samedir);
- 
--	if (redirect && (samedir || redirect[0] == '/'))
-+	if (redirect && (!absolute_redirect || redirect[0] == '/'))
- 		return 0;
- 
--	redirect = ovl_get_redirect(dentry, samedir);
-+	redirect = ovl_get_redirect(dentry, absolute_redirect);
- 	if (IS_ERR(redirect))
- 		return PTR_ERR(redirect);
- 
-@@ -1055,22 +1083,20 @@ static int ovl_rename(struct inode *olddir, struct dentry *old,
- 		goto out_dput;
- 
- 	err = 0;
--	if (is_dir) {
--		if (ovl_type_merge_or_lower(old))
--			err = ovl_set_redirect(old, samedir);
--		else if (!old_opaque && ovl_type_merge(new->d_parent))
--			err = ovl_set_opaque_xerr(old, olddentry, -EXDEV);
--		if (err)
--			goto out_dput;
--	}
--	if (!overwrite && new_is_dir) {
--		if (ovl_type_merge_or_lower(new))
--			err = ovl_set_redirect(new, samedir);
--		else if (!new_opaque && ovl_type_merge(old->d_parent))
--			err = ovl_set_opaque_xerr(new, newdentry, -EXDEV);
--		if (err)
--			goto out_dput;
--	}
-+	if (ovl_type_merge_or_lower(old))
-+		err = ovl_set_redirect(old, samedir);
-+	else if (is_dir && !old_opaque && ovl_type_merge(new->d_parent))
-+		err = ovl_set_opaque_xerr(old, olddentry, -EXDEV);
-+	if (err)
-+		goto out_dput;
-+
-+	if (!overwrite && ovl_type_merge_or_lower(new))
-+		err = ovl_set_redirect(new, samedir);
-+	else if (!overwrite && new_is_dir && !new_opaque &&
-+		 ovl_type_merge(old->d_parent))
-+		err = ovl_set_opaque_xerr(new, newdentry, -EXDEV);
-+	if (err)
-+		goto out_dput;
- 
- 	err = ovl_do_rename(old_upperdir->d_inode, olddentry,
- 			    new_upperdir->d_inode, newdentry, flags);
+ 	enum ovl_path_type type = ovl_path_type(dentry);
 -- 
 2.13.6
 
