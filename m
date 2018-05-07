@@ -1,71 +1,161 @@
 From: Miklos Szeredi <mszeredi@redhat.com>
-Subject: [PATCH v2 08/35] Revert "Revert "ovl: get_write_access() in truncate""
-Date: Mon,  7 May 2018 10:37:40 +0200
-Message-ID: <20180507083807.28792-9-mszeredi@redhat.com>
+Subject: [PATCH v2 02/35] vfs: optionally don't account file in nr_files
+Date: Mon,  7 May 2018 10:37:34 +0200
+Message-ID: <20180507083807.28792-3-mszeredi@redhat.com>
 References: <20180507083807.28792-1-mszeredi@redhat.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20180507083807.28792-1-mszeredi@redhat.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-unionfs@vger.kernel.org
-Cc: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, Al Viro <viro@zeniv.linux.org.uk>
 List-Id: linux-unionfs@vger.kernel.org
 
-This reverts commit 31c3a7069593b072bd57192b63b62f9a7e994e9a.
+Stacking file operations in overlay will store an extra open file for each
+overlay file opened.
 
-Re-add functionality dealing with i_writecount on truncate to overlayfs.
-This patch shouldn't have any observable effects, since we just re-assert
-the writecout that vfs_truncate() already got for us.
+The overhead is just that of "struct file" which is about 256bytes, because
+overlay already pins an extra dentry and inode when the file is open, which
+add up to a much larger overhead.
 
-This is in preparation for moving overlay functionality out of the VFS.
+For fear of breaking working setups, don't start accounting the extra file.
+
+The implementation adds a bool argument to path_open() to control whether
+the returned file is to be accounted or not.  If the file is not accounted,
+f_mode will contain FMODE_NOACCOUNT, so that when freeing the file the
+count is not decremented.
 
 Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
 ---
- fs/overlayfs/inode.c | 21 +++++++++++++++++++++
- 1 file changed, 21 insertions(+)
+ fs/file_table.c    | 13 +++++++++----
+ fs/internal.h      |  7 ++++++-
+ fs/open.c          | 10 +++++-----
+ include/linux/fs.h |  5 ++++-
+ 4 files changed, 24 insertions(+), 11 deletions(-)
 
-diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
-index d3700f0de165..f7b1910bb9d4 100644
---- a/fs/overlayfs/inode.c
-+++ b/fs/overlayfs/inode.c
-@@ -39,10 +39,27 @@ int ovl_setattr(struct dentry *dentry, struct iattr *attr)
- 	if (err)
- 		goto out;
+diff --git a/fs/file_table.c b/fs/file_table.c
+index 7ec0b3e5f05d..60376bfa04cf 100644
+--- a/fs/file_table.c
++++ b/fs/file_table.c
+@@ -51,7 +51,8 @@ static void file_free_rcu(struct rcu_head *head)
  
-+	if (attr->ia_valid & ATTR_SIZE) {
-+		struct inode *realinode = d_inode(ovl_dentry_real(dentry));
-+
-+		err = -ETXTBSY;
-+		if (atomic_read(&realinode->i_writecount) < 0)
-+			goto out_drop_write;
-+	}
-+
- 	err = ovl_copy_up(dentry);
- 	if (!err) {
-+		struct inode *winode = NULL;
-+
- 		upperdentry = ovl_dentry_upper(dentry);
+ static inline void file_free(struct file *f)
+ {
+-	percpu_counter_dec(&nr_files);
++	if (!(f->f_mode & FMODE_NOACCOUNT))
++		percpu_counter_dec(&nr_files);
+ 	call_rcu(&f->f_u.fu_rcuhead, file_free_rcu);
+ }
  
-+		if (attr->ia_valid & ATTR_SIZE) {
-+			winode = d_inode(upperdentry);
-+			err = get_write_access(winode);
-+			if (err)
-+				goto out_drop_write;
-+		}
-+
- 		if (attr->ia_valid & (ATTR_KILL_SUID|ATTR_KILL_SGID))
- 			attr->ia_valid &= ~ATTR_MODE;
+@@ -100,7 +101,7 @@ int proc_nr_files(struct ctl_table *table, int write,
+  * done, you will imbalance int the mount's writer count
+  * and a warning at __fput() time.
+  */
+-struct file *get_empty_filp(void)
++struct file *__get_empty_filp(bool account)
+ {
+ 	const struct cred *cred = current_cred();
+ 	static long old_max;
+@@ -110,7 +111,8 @@ struct file *get_empty_filp(void)
+ 	/*
+ 	 * Privileged users can go above max_files
+ 	 */
+-	if (get_nr_files() >= files_stat.max_files && !capable(CAP_SYS_ADMIN)) {
++	if (account &&
++	    get_nr_files() >= files_stat.max_files && !capable(CAP_SYS_ADMIN)) {
+ 		/*
+ 		 * percpu_counters are inaccurate.  Do an expensive check before
+ 		 * we go and fail.
+@@ -123,7 +125,10 @@ struct file *get_empty_filp(void)
+ 	if (unlikely(!f))
+ 		return ERR_PTR(-ENOMEM);
  
-@@ -53,7 +70,11 @@ int ovl_setattr(struct dentry *dentry, struct iattr *attr)
- 		if (!err)
- 			ovl_copyattr(upperdentry->d_inode, dentry->d_inode);
- 		inode_unlock(upperdentry->d_inode);
+-	percpu_counter_inc(&nr_files);
++	if (account)
++		percpu_counter_inc(&nr_files);
++	else
++		f->f_mode = FMODE_NOACCOUNT;
+ 	f->f_cred = get_cred(cred);
+ 	error = security_file_alloc(f);
+ 	if (unlikely(error)) {
+diff --git a/fs/internal.h b/fs/internal.h
+index e08972db0303..b82725ba3054 100644
+--- a/fs/internal.h
++++ b/fs/internal.h
+@@ -93,7 +93,12 @@ extern void chroot_fs_refs(const struct path *, const struct path *);
+ /*
+  * file_table.c
+  */
+-extern struct file *get_empty_filp(void);
++extern struct file *__get_empty_filp(bool account);
 +
-+		if (winode)
-+			put_write_access(winode);
++static inline struct file *get_empty_filp(void)
++{
++	return __get_empty_filp(true);
++}
+ 
+ /*
+  * super.c
+diff --git a/fs/open.c b/fs/open.c
+index d0bf7f061a1a..6e52fd6fea7c 100644
+--- a/fs/open.c
++++ b/fs/open.c
+@@ -732,8 +732,8 @@ static int do_dentry_open(struct file *f,
+ 	static const struct file_operations empty_fops = {};
+ 	int error;
+ 
+-	f->f_mode = OPEN_FMODE(f->f_flags) | FMODE_LSEEK |
+-				FMODE_PREAD | FMODE_PWRITE;
++	f->f_mode = (f->f_mode & FMODE_NOACCOUNT) | OPEN_FMODE(f->f_flags) |
++		FMODE_LSEEK | FMODE_PREAD | FMODE_PWRITE;
+ 
+ 	path_get(&f->f_path);
+ 	f->f_inode = inode;
+@@ -743,7 +743,7 @@ static int do_dentry_open(struct file *f,
+ 	f->f_wb_err = filemap_sample_wb_err(f->f_mapping);
+ 
+ 	if (unlikely(f->f_flags & O_PATH)) {
+-		f->f_mode = FMODE_PATH;
++		f->f_mode = (f->f_mode & FMODE_NOACCOUNT) | FMODE_PATH;
+ 		f->f_op = &empty_fops;
+ 		goto done;
  	}
-+out_drop_write:
- 	ovl_drop_write(dentry);
- out:
- 	return err;
+@@ -917,12 +917,12 @@ int vfs_open(const struct path *path, struct file *file,
+  * Return: A pointer to a struct file or an IS_ERR pointer.  Cannot return NULL.
+  */
+ struct file *path_open(const struct path *path, int flags, struct inode *inode,
+-		       const struct cred *cred)
++		       const struct cred *cred, bool account)
+ {
+ 	struct file *file;
+ 	int retval;
+ 
+-	file = get_empty_filp();
++	file = __get_empty_filp(account);
+ 	if (IS_ERR(file))
+ 		return file;
+ 
+diff --git a/include/linux/fs.h b/include/linux/fs.h
+index d97a661342c8..af49b55ff439 100644
+--- a/include/linux/fs.h
++++ b/include/linux/fs.h
+@@ -153,6 +153,9 @@ typedef int (dio_iodone_t)(struct kiocb *iocb, loff_t offset,
+ /* File is capable of returning -EAGAIN if I/O will block */
+ #define FMODE_NOWAIT	((__force fmode_t)0x8000000)
+ 
++/* File does not contribute to nr_files count */
++#define FMODE_NOACCOUNT	((__force fmode_t)0x10000000)
++
+ /*
+  * Flag for rw_copy_check_uvector and compat_rw_copy_check_uvector
+  * that indicates that they should check the contents of the iovec are
+@@ -2402,7 +2405,7 @@ extern struct file *file_open_root(struct dentry *, struct vfsmount *,
+ 				   const char *, int, umode_t);
+ extern struct file * dentry_open(const struct path *, int, const struct cred *);
+ extern struct file *path_open(const struct path *, int, struct inode *,
+-			      const struct cred *);
++			      const struct cred *, bool);
+ extern int filp_close(struct file *, fl_owner_t id);
+ 
+ extern struct filename *getname_flags(const char __user *, int, int *);
 -- 
 2.14.3
