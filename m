@@ -1,133 +1,90 @@
 From: Miklos Szeredi <mszeredi@redhat.com>
-Subject: [PATCH v2 00/35] overlayfs: stack file operations
-Date: Mon,  7 May 2018 10:37:32 +0200
-Message-ID: <20180507083807.28792-1-mszeredi@redhat.com>
+Subject: [PATCH v2 03/35] vfs: add f_op->pre_mmap()
+Date: Mon,  7 May 2018 10:37:35 +0200
+Message-ID: <20180507083807.28792-4-mszeredi@redhat.com>
+References: <20180507083807.28792-1-mszeredi@redhat.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20180507083807.28792-1-mszeredi@redhat.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-unionfs@vger.kernel.org
 Cc: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, Al Viro <viro@zeniv.linux.org.uk>
 List-Id: linux-unionfs@vger.kernel.org
 
-[Al, can you please review the vfs affecting patches? ]
+This is needed by overlayfs to be able to copy up a file from a read-only
+lower layer to a writable layer when being mapped shared.  When copying up,
+overlayfs takes VFS locks that would violate locking order when nested
+inside mmap_sem.
 
-Up till now overlayfs didn't stack regular file operations.  Instead, when
-a file was opened on an overlay, the file from one of the underlying layers
-would be opened and any file operations performed would directly go to the
-underlying file on a real filesystem.
+Add a new f_op->pre_mmap method, which is called before taking mmap_sem.
 
-This works well mostly, but various hacks were added to the VFS to work
-around issues with this:
-
- - d_path() and friends
- - relatime handling
- - file locking
- - fsnotify
- - writecount handling
-
-There are also issues that are unresolved before this patchset:
-
- - ioctl's that need write access but can be performed on a O_RDONLY fd
- - ro/rw inconsistency: file on lower layer opened for read-only will
-   return stale data on read after copy-up and modification
- - ro/rw inconsistency for mmap: file on lower layer mapped shared will
-   contain stale data after copy-up and modification
-
-This patch series reverts the VFS hacks (with the exception of d_path) and
-fixes the unresoved issues.  We need to keep d_path related hacks, because
-memory maps are still not stacked, yet d_path() should keep working on
-vma->vm_file->f_path.
-
-No regressions were observed after running various test suites (xfstests,
-ltp, unionmount-testsuite, pjd-fstest).
-
-Performance impact of stacking was found to be minimal.  Memory use for
-open overlay files increases by about 256bytes or 12% of total (files +
-pinned dentries + pinned inodes).
-
-Git tree is here:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/mszeredi/vfs.git overlayfs-rorw
-
-Thanks,
-Miklos
-
-Changes from v1:
-
- - split out dedupe API cleanup
- - update documentation and comments
- - clean up directory modification helpers inside overlayfs
- - make functions static
- - added compat ioctl
- - check for upper files in dedupe
- - bring back d_real_inode() as a new user just cropped up in 4.17
-
+Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
 ---
-Miklos Szeredi (35):
-  vfs: add path_open()
-  vfs: optionally don't account file in nr_files
-  vfs: add f_op->pre_mmap()
-  vfs: export vfs_ioctl() to modules
-  vfs: export vfs_dedupe_file_range_one() to modules
-  ovl: copy up times
-  ovl: copy up inode flags
-  Revert "Revert "ovl: get_write_access() in truncate""
-  ovl: copy up file size as well
-  ovl: deal with overlay files in ovl_d_real()
-  ovl: stack file ops
-  ovl: add helper to return real file
-  ovl: add ovl_read_iter()
-  ovl: add ovl_write_iter()
-  ovl: add ovl_fsync()
-  ovl: add ovl_mmap()
-  ovl: add ovl_fallocate()
-  ovl: add lsattr/chattr support
-  ovl: add ovl_fiemap()
-  ovl: add O_DIRECT support
-  ovl: add reflink/copyfile/dedup support
-  vfs: don't open real
-  ovl: copy-up on MAP_SHARED
-  vfs: simplify dentry_open()
-  Revert "ovl: fix may_write_real() for overlayfs directories"
-  Revert "ovl: don't allow writing ioctl on lower layer"
-  vfs: fix freeze protection in mnt_want_write_file() for overlayfs
-  Revert "ovl: fix relatime for directories"
-  Revert "vfs: update ovl inode before relatime check"
-  Revert "vfs: add flags to d_real()"
-  Revert "vfs: do get_write_access() on upper layer of overlayfs"
-  Partially revert "locks: fix file locking on overlayfs"
-  Revert "fsnotify: support overlayfs"
-  vfs: remove open_flags from d_real()
-  ovl: fix documentation of non-standard behavior
+ Documentation/filesystems/Locking | 1 +
+ Documentation/filesystems/vfs.txt | 3 +++
+ include/linux/fs.h                | 1 +
+ mm/util.c                         | 5 +++++
+ 4 files changed, 10 insertions(+)
 
- Documentation/filesystems/Locking       |   4 +-
- Documentation/filesystems/overlayfs.txt |  60 ++--
- Documentation/filesystems/vfs.txt       |  19 +-
- fs/file_table.c                         |  13 +-
- fs/inode.c                              |  46 +--
- fs/internal.h                           |  17 +-
- fs/ioctl.c                              |   1 +
- fs/locks.c                              |  20 +-
- fs/namei.c                              |   2 +-
- fs/namespace.c                          |  69 +----
- fs/open.c                               |  74 ++---
- fs/overlayfs/Kconfig                    |  21 ++
- fs/overlayfs/Makefile                   |   4 +-
- fs/overlayfs/dir.c                      |  33 ++-
- fs/overlayfs/file.c                     | 506 ++++++++++++++++++++++++++++++++
- fs/overlayfs/inode.c                    |  63 +++-
- fs/overlayfs/overlayfs.h                |  21 +-
- fs/overlayfs/ovl_entry.h                |   1 +
- fs/overlayfs/super.c                    |  65 ++--
- fs/overlayfs/util.c                     |  11 +-
- fs/read_write.c                         |   6 +-
- fs/xattr.c                              |   9 +-
- include/linux/dcache.h                  |  15 +-
- include/linux/fs.h                      |  28 +-
- include/linux/fsnotify.h                |  14 +-
- include/uapi/linux/fs.h                 |   1 -
- mm/util.c                               |   5 +
- 27 files changed, 824 insertions(+), 304 deletions(-)
- create mode 100644 fs/overlayfs/file.c
-
+diff --git a/Documentation/filesystems/Locking b/Documentation/filesystems/Locking
+index 75d2d57e2c44..60e76060baff 100644
+--- a/Documentation/filesystems/Locking
++++ b/Documentation/filesystems/Locking
+@@ -442,6 +442,7 @@ prototypes:
+ 	unsigned int (*poll) (struct file *, struct poll_table_struct *);
+ 	long (*unlocked_ioctl) (struct file *, unsigned int, unsigned long);
+ 	long (*compat_ioctl) (struct file *, unsigned int, unsigned long);
++	int (*pre_mmap) (struct file *, unsigned long, unsigned long);
+ 	int (*mmap) (struct file *, struct vm_area_struct *);
+ 	int (*open) (struct inode *, struct file *);
+ 	int (*flush) (struct file *);
+diff --git a/Documentation/filesystems/vfs.txt b/Documentation/filesystems/vfs.txt
+index 5fd325df59e2..2bc77ea8aef4 100644
+--- a/Documentation/filesystems/vfs.txt
++++ b/Documentation/filesystems/vfs.txt
+@@ -859,6 +859,7 @@ struct file_operations {
+ 	unsigned int (*poll) (struct file *, struct poll_table_struct *);
+ 	long (*unlocked_ioctl) (struct file *, unsigned int, unsigned long);
+ 	long (*compat_ioctl) (struct file *, unsigned int, unsigned long);
++	int (*pre_mmap) (struct file *, unsigned long, unsigned long);
+ 	int (*mmap) (struct file *, struct vm_area_struct *);
+ 	int (*mremap)(struct file *, struct vm_area_struct *);
+ 	int (*open) (struct inode *, struct file *);
+@@ -906,6 +907,8 @@ otherwise noted.
+   compat_ioctl: called by the ioctl(2) system call when 32 bit system calls
+  	 are used on 64 bit kernels.
+ 
++  pre_mmap: called before mmap, without mmap_sem being held yet.
++
+   mmap: called by the mmap(2) system call
+ 
+   open: called by the VFS when an inode should be opened. When the VFS
+diff --git a/include/linux/fs.h b/include/linux/fs.h
+index af49b55ff439..898fb798a3ff 100644
+--- a/include/linux/fs.h
++++ b/include/linux/fs.h
+@@ -1716,6 +1716,7 @@ struct file_operations {
+ 	__poll_t (*poll) (struct file *, struct poll_table_struct *);
+ 	long (*unlocked_ioctl) (struct file *, unsigned int, unsigned long);
+ 	long (*compat_ioctl) (struct file *, unsigned int, unsigned long);
++	int (*pre_mmap) (struct file *, unsigned long, unsigned long);
+ 	int (*mmap) (struct file *, struct vm_area_struct *);
+ 	unsigned long mmap_supported_flags;
+ 	int (*open) (struct inode *, struct file *);
+diff --git a/mm/util.c b/mm/util.c
+index 45fc3169e7b0..11cd375e1a19 100644
+--- a/mm/util.c
++++ b/mm/util.c
+@@ -352,6 +352,11 @@ unsigned long vm_mmap_pgoff(struct file *file, unsigned long addr,
+ 
+ 	ret = security_mmap_file(file, prot, flag);
+ 	if (!ret) {
++		if (file && file->f_op->pre_mmap) {
++			ret = file->f_op->pre_mmap(file, prot, flag);
++			if (ret)
++				return ret;
++		}
+ 		if (down_write_killable(&mm->mmap_sem))
+ 			return -EINTR;
+ 		ret = do_mmap_pgoff(file, addr, len, prot, flag, pgoff,
 -- 
 2.14.3
