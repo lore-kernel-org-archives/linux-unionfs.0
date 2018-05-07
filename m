@@ -1,204 +1,107 @@
 From: Miklos Szeredi <mszeredi@redhat.com>
-Subject: [PATCH v2 34/35] vfs: remove open_flags from d_real()
-Date: Mon,  7 May 2018 10:38:06 +0200
-Message-ID: <20180507083807.28792-35-mszeredi@redhat.com>
+Subject: [PATCH v2 35/35] ovl: fix documentation of non-standard behavior
+Date: Mon,  7 May 2018 10:38:07 +0200
+Message-ID: <20180507083807.28792-36-mszeredi@redhat.com>
 References: <20180507083807.28792-1-mszeredi@redhat.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20180507083807.28792-1-mszeredi@redhat.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-unionfs@vger.kernel.org
-Cc: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, Al Viro <viro@zeniv.linux.org.uk>
+Cc: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 
-Opening regular files on overlayfs is now handled via ovl_open().  Remove
-the now unused "open_flags" argument from d_op->d_real() and the d_real()
-helper.
+We can now drop description of the ro/rw inconsistency from the
+documentation.
+
+Also clarify, that now fully standard compliant behavior can be enabled
+with kernel/module/mount options.
 
 Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
 ---
- Documentation/filesystems/Locking |  3 +--
- Documentation/filesystems/vfs.txt | 16 ++++------------
- fs/overlayfs/super.c              | 36 +++---------------------------------
- include/linux/dcache.h            | 11 ++++-------
- include/linux/fs.h                |  2 +-
- 5 files changed, 13 insertions(+), 55 deletions(-)
+ Documentation/filesystems/overlayfs.txt | 60 +++++++++++++++++++++------------
+ 1 file changed, 39 insertions(+), 21 deletions(-)
 
-diff --git a/Documentation/filesystems/Locking b/Documentation/filesystems/Locking
-index a4afe96f0112..e1d7e43d302c 100644
---- a/Documentation/filesystems/Locking
-+++ b/Documentation/filesystems/Locking
-@@ -21,8 +21,7 @@ prototypes:
- 	char *(*d_dname)((struct dentry *dentry, char *buffer, int buflen);
- 	struct vfsmount *(*d_automount)(struct path *path);
- 	int (*d_manage)(const struct path *, bool);
--	struct dentry *(*d_real)(struct dentry *, const struct inode *,
--				 unsigned int);
-+	struct dentry *(*d_real)(struct dentry *, const struct inode *);
+diff --git a/Documentation/filesystems/overlayfs.txt b/Documentation/filesystems/overlayfs.txt
+index 961b287ef323..97eae826adf9 100644
+--- a/Documentation/filesystems/overlayfs.txt
++++ b/Documentation/filesystems/overlayfs.txt
+@@ -10,10 +10,6 @@ union-filesystems).  An overlay-filesystem tries to present a
+ filesystem which is the result over overlaying one filesystem on top
+ of the other.
  
- locking rules:
- 		rename_lock	->d_lock	may block	rcu-walk
-diff --git a/Documentation/filesystems/vfs.txt b/Documentation/filesystems/vfs.txt
-index af54d3651ff8..8b03c5e675bf 100644
---- a/Documentation/filesystems/vfs.txt
-+++ b/Documentation/filesystems/vfs.txt
-@@ -990,8 +990,7 @@ struct dentry_operations {
- 	char *(*d_dname)(struct dentry *, char *, int);
- 	struct vfsmount *(*d_automount)(struct path *);
- 	int (*d_manage)(const struct path *, bool);
--	struct dentry *(*d_real)(struct dentry *, const struct inode *,
--				 unsigned int);
-+	struct dentry *(*d_real)(struct dentry *, const struct inode *);
- };
- 
-   d_revalidate: called when the VFS needs to revalidate a dentry. This
-@@ -1125,22 +1124,15 @@ struct dentry_operations {
- 	dentry being transited from.
- 
-   d_real: overlay/union type filesystems implement this method to return one of
--	the underlying dentries hidden by the overlay.  It is used in three
-+	the underlying dentries hidden by the overlay.  It is used in two
- 	different modes:
- 
--	Called from open it may need to copy-up the file depending on the
--	supplied open flags.  This mode is selected with a non-zero flags
--	argument.  In this mode the d_real method can return an error.
+-The result will inevitably fail to look exactly like a normal
+-filesystem for various technical reasons.  The expectation is that
+-many use cases will be able to ignore these differences.
 -
- 	Called from file_dentry() it returns the real dentry matching the inode
- 	argument.  The real dentry may be from a lower layer already copied up,
- 	but still referenced from the file.  This mode is selected with a
--	non-NULL inode argument.  This will always succeed.
--
--	With NULL inode and zero flags the topmost real underlying dentry is
--	returned.  This will always succeed.
-+	non-NULL inode argument.
  
--	This method is never called with both non-NULL inode and non-zero flags.
-+	With NULL inode the topmost real underlying dentry is returned.
+ Overlay objects
+ ---------------
+@@ -306,27 +302,49 @@ the copied layers will fail the verification of the lower root file handle.
+ Non-standard behavior
+ ---------------------
  
- Each dentry has a pointer to its parent dentry, as well as a hash list
- of child dentries. Child dentries are basically like files in a
-diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-index f2a83fabe2eb..492d534058ae 100644
---- a/fs/overlayfs/super.c
-+++ b/fs/overlayfs/super.c
-@@ -80,28 +80,10 @@ static void ovl_dentry_release(struct dentry *dentry)
- 	}
- }
+-The copy_up operation essentially creates a new, identical file and
+-moves it over to the old name.  Any open files referring to this inode
+-will access the old data.
++Overlayfs can now act as a POSIX compliant filesystem with the following
++features turned on:
++
++1) "redirect_dir"
++
++Enabled with the mount option or module option: "redirect_dir=on" or with
++the kernel config option CONFIG_OVERLAY_FS_REDIRECT_DIR=y.
++
++If this feature is disabled, then rename(2) on a lower or merged directory
++will fail with EXDEV ("Invalid cross-device link").
++
++2) "inode index"
++
++Enabled with the mount option or module option "index=on" or with the
++kernel config option CONFIG_OVERLAY_FS_INDEX=y.
++
++If this feature is disabled and a file with multiple hard links is copied
++up, then this will "break" the link.  Changes will not be propagated to
++other names referring to the same inode.
++
++3) "xino"
++
++Enabled with the mount option "xino=auto" or "xino=on", with the module
++option "xino_auto=on" or with the kernel config option
++CONFIG_OVERLAY_FS_XINO_AUTO=y.  Also implicitly enabled by using the same
++underlying filesystem for all layers making up the overlay.
  
--static int ovl_check_append_only(struct inode *inode, int flag)
--{
--	/*
--	 * This test was moot in vfs may_open() because overlay inode does
--	 * not have the S_APPEND flag, so re-check on real upper inode
--	 */
--	if (IS_APPEND(inode)) {
--		if  ((flag & O_ACCMODE) != O_RDONLY && !(flag & O_APPEND))
--			return -EPERM;
--		if (flag & O_TRUNC)
--			return -EPERM;
--	}
--
--	return 0;
--}
--
- static struct dentry *ovl_d_real(struct dentry *dentry,
--				 const struct inode *inode,
--				 unsigned int open_flags)
-+				 const struct inode *inode)
- {
- 	struct dentry *real;
--	int err;
+-The new file may be on a different filesystem, so both st_dev and st_ino
+-of the real file may change.  The values of st_dev and st_ino returned by
+-stat(2) on an overlay object are often not the same as the real file
+-stat(2) values to prevent the values from changing on copy_up.
++If this feature is disabled or the underlying filesystem doesn't have
++enough free bits in the inode number, then overlayfs will not be able to
++guarantee that the values of st_ino and st_dev returned by stat(2) and the
++value of d_ino returned by readdir(3) will act like on a normal filesystem.
++E.g. the value of st_dev may be different for two objects in the same
++overlay filesystem and the value of st_ino for directory objects may not be
++persistent and could change even while the overlay filesystem is mounted.
  
- 	/* It's an overlay file */
- 	if (inode && d_inode(dentry) == inode)
-@@ -113,28 +95,16 @@ static struct dentry *ovl_d_real(struct dentry *dentry,
- 		goto bug;
- 	}
+-Unless "xino" feature is enabled, when overlay layers are not all on the
+-same underlying filesystem, the value of st_dev may be different for two
+-non-directory objects in the same overlay filesystem and the value of
+-st_ino for directory objects may be non persistent and could change even
+-while the overlay filesystem is still mounted.
++4) "copy_up_shared"
  
--	if (open_flags) {
--		err = ovl_open_maybe_copy_up(dentry, open_flags);
--		if (err)
--			return ERR_PTR(err);
--	}
--
- 	real = ovl_dentry_upper(dentry);
--	if (real && (!inode || inode == d_inode(real))) {
--		if (!inode) {
--			err = ovl_check_append_only(d_inode(real), open_flags);
--			if (err)
--				return ERR_PTR(err);
--		}
-+	if (real && (!inode || inode == d_inode(real)))
- 		return real;
--	}
+-Unless "inode index" feature is enabled, if a file with multiple hard
+-links is copied up, then this will "break" the link.  Changes will not be
+-propagated to other names referring to the same inode.
++Enabled with the mount option or module option "copy_up_shared=on" or with
++the kernel config option CONFIG_OVERLAY_FS_COPY_UP_SHARED=y.
  
- 	real = ovl_dentry_lower(dentry);
- 	if (!real)
- 		goto bug;
+-Unless "redirect_dir" feature is enabled, rename(2) on a lower or merged
+-directory will fail with EXDEV.
++If this feature is disabled, then a memory mapping created with MAP_SHARED
++might contain stale data if the file has been copied up and modified in the
++meantime.
  
- 	/* Handle recursion */
--	real = d_real(real, inode, open_flags);
-+	real = d_real(real, inode);
  
- 	if (!inode || inode == d_inode(real))
- 		return real;
-diff --git a/include/linux/dcache.h b/include/linux/dcache.h
-index 58fcc66ddccd..2458b18b9356 100644
---- a/include/linux/dcache.h
-+++ b/include/linux/dcache.h
-@@ -145,8 +145,7 @@ struct dentry_operations {
- 	char *(*d_dname)(struct dentry *, char *, int);
- 	struct vfsmount *(*d_automount)(struct path *);
- 	int (*d_manage)(const struct path *, bool);
--	struct dentry *(*d_real)(struct dentry *, const struct inode *,
--				 unsigned int);
-+	struct dentry *(*d_real)(struct dentry *, const struct inode *);
- } ____cacheline_aligned;
- 
- /*
-@@ -567,7 +566,6 @@ static inline struct dentry *d_backing_dentry(struct dentry *upper)
-  * d_real - Return the real dentry
-  * @dentry: the dentry to query
-  * @inode: inode to select the dentry from multiple layers (can be NULL)
-- * @flags: open flags to control copy-up behavior
-  *
-  * If dentry is on a union/overlay, then return the underlying, real dentry.
-  * Otherwise return the dentry itself.
-@@ -575,11 +573,10 @@ static inline struct dentry *d_backing_dentry(struct dentry *upper)
-  * See also: Documentation/filesystems/vfs.txt
-  */
- static inline struct dentry *d_real(struct dentry *dentry,
--				    const struct inode *inode,
--				    unsigned int flags)
-+				    const struct inode *inode)
- {
- 	if (unlikely(dentry->d_flags & DCACHE_OP_REAL))
--		return dentry->d_op->d_real(dentry, inode, flags);
-+		return dentry->d_op->d_real(dentry, inode);
- 	else
- 		return dentry;
- }
-@@ -594,7 +591,7 @@ static inline struct dentry *d_real(struct dentry *dentry,
- static inline struct inode *d_real_inode(const struct dentry *dentry)
- {
- 	/* This usage of d_real() results in const dentry */
--	return d_backing_inode(d_real((struct dentry *) dentry, NULL, 0));
-+	return d_backing_inode(d_real((struct dentry *) dentry, NULL));
- }
- 
- struct name_snapshot {
-diff --git a/include/linux/fs.h b/include/linux/fs.h
-index 417e692a606a..8b8d793b3774 100644
---- a/include/linux/fs.h
-+++ b/include/linux/fs.h
-@@ -1234,7 +1234,7 @@ static inline struct inode *file_inode(const struct file *f)
- 
- static inline struct dentry *file_dentry(const struct file *file)
- {
--	return d_real(file->f_path.dentry, file_inode(file), 0);
-+	return d_real(file->f_path.dentry, file_inode(file));
- }
- 
- static inline int locks_lock_file_wait(struct file *filp, struct file_lock *fl)
+ Changes to underlying filesystems
 -- 
 2.14.3
