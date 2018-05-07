@@ -1,7 +1,7 @@
 From: Miklos Szeredi <mszeredi@redhat.com>
-Subject: [PATCH v2 06/35] ovl: copy up times
-Date: Mon,  7 May 2018 10:37:38 +0200
-Message-ID: <20180507083807.28792-7-mszeredi@redhat.com>
+Subject: [PATCH v2 07/35] ovl: copy up inode flags
+Date: Mon,  7 May 2018 10:37:39 +0200
+Message-ID: <20180507083807.28792-8-mszeredi@redhat.com>
 References: <20180507083807.28792-1-mszeredi@redhat.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20180507083807.28792-1-mszeredi@redhat.com>
@@ -10,157 +10,46 @@ To: linux-unionfs@vger.kernel.org
 Cc: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 
-Copy up mtime and ctime to overlay inode after times in real object are
-modified.  Be careful not to dirty cachelines when not necessary.
+On inode creation copy certain inode flags from the underlying real inode
+to the overlay inode.
 
 This is in preparation for moving overlay functionality out of the VFS.
 
-This patch shouldn't have any observable effect.
-
 Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
 ---
- fs/overlayfs/dir.c       | 33 +++++++++++++++++++++++++--------
- fs/overlayfs/inode.c     |  3 +++
- fs/overlayfs/overlayfs.h |  2 +-
- fs/overlayfs/util.c      | 10 +++++++++-
- 4 files changed, 38 insertions(+), 10 deletions(-)
+ fs/overlayfs/overlayfs.h | 7 +++++++
+ fs/overlayfs/util.c      | 1 +
+ 2 files changed, 8 insertions(+)
 
-diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
-index 839709c7803a..47dc980e8b33 100644
---- a/fs/overlayfs/dir.c
-+++ b/fs/overlayfs/dir.c
-@@ -186,11 +186,11 @@ static int ovl_set_opaque(struct dentry *dentry, struct dentry *upperdentry)
- static void ovl_instantiate(struct dentry *dentry, struct inode *inode,
- 			    struct dentry *newdentry, bool hardlink)
- {
--	ovl_dentry_version_inc(dentry->d_parent, false);
-+	ovl_dir_modified(dentry->d_parent, false);
-+	ovl_copyattr(d_inode(newdentry), inode);
- 	ovl_dentry_set_upper_alias(dentry);
- 	if (!hardlink) {
- 		ovl_inode_update(inode, newdentry);
--		ovl_copyattr(newdentry->d_inode, inode);
- 	} else {
- 		WARN_ON(ovl_inode_real(inode) != d_inode(newdentry));
- 		dput(newdentry);
-@@ -658,7 +658,7 @@ static int ovl_remove_and_whiteout(struct dentry *dentry,
- 	if (err)
- 		goto out_d_drop;
- 
--	ovl_dentry_version_inc(dentry->d_parent, true);
-+	ovl_dir_modified(dentry->d_parent, true);
- out_d_drop:
- 	d_drop(dentry);
- out_dput_upper:
-@@ -703,7 +703,7 @@ static int ovl_remove_upper(struct dentry *dentry, bool is_dir,
- 		err = vfs_rmdir(dir, upper);
- 	else
- 		err = vfs_unlink(dir, upper, NULL);
--	ovl_dentry_version_inc(dentry->d_parent, ovl_type_origin(dentry));
-+	ovl_dir_modified(dentry->d_parent, ovl_type_origin(dentry));
- 
- 	/*
- 	 * Keeping this dentry hashed would mean having to release
-@@ -733,6 +733,7 @@ static int ovl_do_remove(struct dentry *dentry, bool is_dir)
- 	int err;
- 	bool locked = false;
- 	const struct cred *old_cred;
-+	struct dentry *upperdentry;
- 	bool lower_positive = ovl_lower_positive(dentry);
- 	LIST_HEAD(list);
- 
-@@ -768,6 +769,17 @@ static int ovl_do_remove(struct dentry *dentry, bool is_dir)
- 			drop_nlink(dentry->d_inode);
- 	}
- 	ovl_nlink_end(dentry, locked);
-+
-+	/*
-+	 * Copy ctime
-+	 *
-+	 * Note: we fail to update ctime if there was no copy-up, only a
-+	 * whiteout
-+	 */
-+	upperdentry = ovl_dentry_upper(dentry);
-+	if (upperdentry)
-+		ovl_copyattr(d_inode(upperdentry), d_inode(dentry));
-+
- out_drop_write:
- 	ovl_drop_write(dentry);
- out:
-@@ -1074,10 +1086,15 @@ static int ovl_rename(struct inode *olddir, struct dentry *old,
- 			drop_nlink(d_inode(new));
- 	}
- 
--	ovl_dentry_version_inc(old->d_parent, ovl_type_origin(old) ||
--			       (!overwrite && ovl_type_origin(new)));
--	ovl_dentry_version_inc(new->d_parent, ovl_type_origin(old) ||
--			       (d_inode(new) && ovl_type_origin(new)));
-+	ovl_dir_modified(old->d_parent, ovl_type_origin(old) ||
-+			 (!overwrite && ovl_type_origin(new)));
-+	ovl_dir_modified(new->d_parent, ovl_type_origin(old) ||
-+			 (d_inode(new) && ovl_type_origin(new)));
-+
-+	/* copy ctime: */
-+	ovl_copyattr(d_inode(olddentry), d_inode(old));
-+	if (d_inode(new) && ovl_dentry_upper(new))
-+		ovl_copyattr(d_inode(newdentry), d_inode(new));
- 
- out_dput:
- 	dput(newdentry);
-diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
-index 6e3815fb006b..d3700f0de165 100644
---- a/fs/overlayfs/inode.c
-+++ b/fs/overlayfs/inode.c
-@@ -304,6 +304,9 @@ int ovl_xattr_set(struct dentry *dentry, struct inode *inode, const char *name,
- 	}
- 	revert_creds(old_cred);
- 
-+	/* copy c/mtime */
-+	ovl_copyattr(d_inode(realdentry), inode);
-+
- out_drop_write:
- 	ovl_drop_write(dentry);
- out:
 diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-index e0b7de799f6b..271561fa7882 100644
+index 271561fa7882..4e26778774c3 100644
 --- a/fs/overlayfs/overlayfs.h
 +++ b/fs/overlayfs/overlayfs.h
-@@ -237,7 +237,7 @@ void ovl_dentry_set_redirect(struct dentry *dentry, const char *redirect);
- void ovl_inode_init(struct inode *inode, struct dentry *upperdentry,
- 		    struct dentry *lowerdentry);
- void ovl_inode_update(struct inode *inode, struct dentry *upperdentry);
--void ovl_dentry_version_inc(struct dentry *dentry, bool impurity);
-+void ovl_dir_modified(struct dentry *dentry, bool impurity);
- u64 ovl_dentry_version_get(struct dentry *dentry);
- bool ovl_is_whiteout(struct dentry *dentry);
- struct file *ovl_path_open(struct path *path, int flags);
-diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
-index 6f1078028c66..30a05d1d679d 100644
---- a/fs/overlayfs/util.c
-+++ b/fs/overlayfs/util.c
-@@ -333,7 +333,7 @@ void ovl_inode_update(struct inode *inode, struct dentry *upperdentry)
- 	}
+@@ -350,6 +350,13 @@ static inline void ovl_copyattr(struct inode *from, struct inode *to)
+ 	to->i_ctime = from->i_ctime;
  }
  
--void ovl_dentry_version_inc(struct dentry *dentry, bool impurity)
-+static void ovl_dentry_version_inc(struct dentry *dentry, bool impurity)
- {
- 	struct inode *inode = d_inode(dentry);
- 
-@@ -348,6 +348,14 @@ void ovl_dentry_version_inc(struct dentry *dentry, bool impurity)
- 		OVL_I(inode)->version++;
- }
- 
-+void ovl_dir_modified(struct dentry *dentry, bool impurity)
++static inline void ovl_copyflags(struct inode *from, struct inode *to)
 +{
-+	/* Copy mtime/ctime */
-+	ovl_copyattr(d_inode(ovl_dentry_upper(dentry)), d_inode(dentry));
++	unsigned int mask = S_SYNC | S_IMMUTABLE | S_APPEND | S_NOATIME;
 +
-+	ovl_dentry_version_inc(dentry, impurity);
++	inode_set_flags(to, from->i_flags & mask, mask);
 +}
 +
- u64 ovl_dentry_version_get(struct dentry *dentry)
- {
- 	struct inode *inode = d_inode(dentry);
+ /* dir.c */
+ extern const struct inode_operations ovl_dir_inode_operations;
+ struct dentry *ovl_lookup_temp(struct dentry *workdir);
+diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
+index 30a05d1d679d..25d202b47326 100644
+--- a/fs/overlayfs/util.c
++++ b/fs/overlayfs/util.c
+@@ -310,6 +310,7 @@ void ovl_inode_init(struct inode *inode, struct dentry *upperdentry,
+ 		OVL_I(inode)->lower = igrab(d_inode(lowerdentry));
+ 
+ 	ovl_copyattr(realinode, inode);
++	ovl_copyflags(realinode, inode);
+ 	if (!inode->i_ino)
+ 		inode->i_ino = realinode->i_ino;
+ }
 -- 
 2.14.3
