@@ -1,12 +1,12 @@
 Return-Path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mx3-rdu2.redhat.com ([66.187.233.73]:59020 "EHLO mx1.redhat.com"
+Received: from mx3-rdu2.redhat.com ([66.187.233.73]:45956 "EHLO mx1.redhat.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1752272AbeEGRlM (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        id S1752253AbeEGRlM (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
         Mon, 7 May 2018 13:41:12 -0400
 From: Vivek Goyal <vgoyal@redhat.com>
-Subject: [PATCH v15 09/30] ovl: Use out_err instead of out_nomem
-Date: Mon,  7 May 2018 13:40:41 -0400
-Message-Id: <20180507174102.24086-10-vgoyal@redhat.com>
+Subject: [PATCH v15 07/30] ovl: Add helper ovl_already_copied_up()
+Date: Mon,  7 May 2018 13:40:39 -0400
+Message-Id: <20180507174102.24086-8-vgoyal@redhat.com>
 In-Reply-To: <20180507174102.24086-1-vgoyal@redhat.com>
 References: <20180507174102.24086-1-vgoyal@redhat.com>
 Sender: linux-unionfs-owner@vger.kernel.org
@@ -14,77 +14,113 @@ To: linux-unionfs@vger.kernel.org
 Cc: miklos@szeredi.hu, amir73il@gmail.com, vgoyal@redhat.com
 List-ID: <linux-unionfs@vger.kernel.org>
 
-Right now we use goto out_nomem which assumes error code is -ENOMEM. But
-there are other errors returned like -ESTALE as well. So instead of out_nomem,
-use out_err which will do ERR_PTR(err). That way one can putt error code
-in err and jump to out_err.
+There are couple of places where we need to know if file is already copied
+up (in lockless manner). Right now its open coded and there are only
+two conditions to check. Soon this patch series will introduce another
+condition to check and Amir wants to introduce one more. So introduce
+a helper instead to check this so that code is easier to read.
 
-This just code reorganization and no change of functionality.
-
-I am about to add more code and this organization helps laying more code
-and error paths on top of it.
-
-Reviewed-by: Amir Goldstein <amir73il@gmail.com>
 Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
+Reviewed-by: Amir Goldstein <amir73il@gmail.com>
 ---
- fs/overlayfs/inode.c | 17 ++++++++++-------
- 1 file changed, 10 insertions(+), 7 deletions(-)
+ fs/overlayfs/copy_up.c   | 20 ++------------------
+ fs/overlayfs/overlayfs.h |  1 +
+ fs/overlayfs/util.c      | 26 +++++++++++++++++++++++++-
+ 3 files changed, 28 insertions(+), 19 deletions(-)
 
-diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
-index daab9358db07..c128d5d54d0f 100644
---- a/fs/overlayfs/inode.c
-+++ b/fs/overlayfs/inode.c
-@@ -772,6 +772,7 @@ struct inode *ovl_get_inode(struct ovl_inode_params *oip)
- 	int fsid = bylower ? oip->lowerpath->layer->fsid : 0;
- 	bool is_dir;
- 	unsigned long ino = 0;
-+	int err = -ENOMEM;
+diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
+index 38b332d7c7e4..6ac3220b0834 100644
+--- a/fs/overlayfs/copy_up.c
++++ b/fs/overlayfs/copy_up.c
+@@ -810,21 +810,7 @@ int ovl_copy_up_flags(struct dentry *dentry, int flags)
+ 		struct dentry *next;
+ 		struct dentry *parent = NULL;
  
- 	if (!realinode)
- 		realinode = d_inode(lowerdentry);
-@@ -789,7 +790,7 @@ struct inode *ovl_get_inode(struct ovl_inode_params *oip)
- 		inode = iget5_locked(oip->sb, (unsigned long) key,
- 				     ovl_inode_test, ovl_inode_set, key);
- 		if (!inode)
--			goto out_nomem;
-+			goto out_err;
- 		if (!(inode->i_state & I_NEW)) {
- 			/*
- 			 * Verify that the underlying files stored in the inode
-@@ -798,8 +799,8 @@ struct inode *ovl_get_inode(struct ovl_inode_params *oip)
- 			if (!ovl_verify_inode(inode, lowerdentry, upperdentry,
- 					      true)) {
- 				iput(inode);
--				inode = ERR_PTR(-ESTALE);
--				goto out;
-+				err = -ESTALE;
-+				goto out_err;
- 			}
+-		/*
+-		 * Check if copy-up has happened as well as for upper alias (in
+-		 * case of hard links) is there.
+-		 *
+-		 * Both checks are lockless:
+-		 *  - false negatives: will recheck under oi->lock
+-		 *  - false positives:
+-		 *    + ovl_dentry_upper() uses memory barriers to ensure the
+-		 *      upper dentry is up-to-date
+-		 *    + ovl_dentry_has_upper_alias() relies on locking of
+-		 *      upper parent i_rwsem to prevent reordering copy-up
+-		 *      with rename.
+-		 */
+-		if (ovl_dentry_upper(dentry) &&
+-		    (ovl_dentry_has_upper_alias(dentry) || disconnected))
++		if (ovl_already_copied_up(dentry))
+ 			break;
  
- 			dput(upperdentry);
-@@ -815,8 +816,10 @@ struct inode *ovl_get_inode(struct ovl_inode_params *oip)
- 	} else {
- 		/* Lower hardlink that will be broken on copy up */
- 		inode = new_inode(oip->sb);
--		if (!inode)
--			goto out_nomem;
-+		if (!inode) {
-+			err = -ENOMEM;
-+			goto out_err;
-+		}
- 	}
- 	ovl_fill_inode(inode, realinode->i_mode, realinode->i_rdev, ino, fsid);
- 	ovl_inode_init(inode, upperdentry, lowerdentry);
-@@ -842,7 +845,7 @@ struct inode *ovl_get_inode(struct ovl_inode_params *oip)
- out:
- 	return inode;
+ 		next = dget(dentry);
+@@ -852,9 +838,7 @@ int ovl_copy_up_flags(struct dentry *dentry, int flags)
+ static bool ovl_open_need_copy_up(struct dentry *dentry, int flags)
+ {
+ 	/* Copy up of disconnected dentry does not set upper alias */
+-	if (ovl_dentry_upper(dentry) &&
+-	    (ovl_dentry_has_upper_alias(dentry) ||
+-	     (dentry->d_flags & DCACHE_DISCONNECTED)))
++	if (ovl_already_copied_up(dentry))
+ 		return false;
  
--out_nomem:
--	inode = ERR_PTR(-ENOMEM);
-+out_err:
-+	inode = ERR_PTR(err);
- 	goto out;
+ 	if (special_file(d_inode(dentry)->i_mode))
+diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
+index 396d9ecca919..d8c182f9ec4f 100644
+--- a/fs/overlayfs/overlayfs.h
++++ b/fs/overlayfs/overlayfs.h
+@@ -244,6 +244,7 @@ bool ovl_is_whiteout(struct dentry *dentry);
+ struct file *ovl_path_open(struct path *path, int flags);
+ int ovl_copy_up_start(struct dentry *dentry);
+ void ovl_copy_up_end(struct dentry *dentry);
++bool ovl_already_copied_up(struct dentry *dentry);
+ bool ovl_check_origin_xattr(struct dentry *dentry);
+ bool ovl_check_dir_xattr(struct dentry *dentry, const char *name);
+ int ovl_check_setxattr(struct dentry *dentry, struct dentry *upperdentry,
+diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
+index 25d202b47326..43235294e77b 100644
+--- a/fs/overlayfs/util.c
++++ b/fs/overlayfs/util.c
+@@ -377,13 +377,37 @@ struct file *ovl_path_open(struct path *path, int flags)
+ 	return dentry_open(path, flags | O_NOATIME, current_cred());
  }
+ 
++bool ovl_already_copied_up(struct dentry *dentry)
++{
++	bool disconnected = dentry->d_flags & DCACHE_DISCONNECTED;
++
++	/*
++	 * Check if copy-up has happened as well as for upper alias (in
++	 * case of hard links) is there.
++	 *
++	 * Both checks are lockless:
++	 *  - false negatives: will recheck under oi->lock
++	 *  - false positives:
++	 *    + ovl_dentry_upper() uses memory barriers to ensure the
++	 *      upper dentry is up-to-date
++	 *    + ovl_dentry_has_upper_alias() relies on locking of
++	 *      upper parent i_rwsem to prevent reordering copy-up
++	 *      with rename.
++	 */
++	if (ovl_dentry_upper(dentry) &&
++	    (ovl_dentry_has_upper_alias(dentry) || disconnected))
++		return true;
++
++	return false;
++}
++
+ int ovl_copy_up_start(struct dentry *dentry)
+ {
+ 	struct ovl_inode *oi = OVL_I(d_inode(dentry));
+ 	int err;
+ 
+ 	err = mutex_lock_interruptible(&oi->lock);
+-	if (!err && ovl_dentry_has_upper_alias(dentry)) {
++	if (!err && ovl_already_copied_up(dentry)) {
+ 		err = 1; /* Already copied up */
+ 		mutex_unlock(&oi->lock);
+ 	}
 -- 
 2.13.6
 
