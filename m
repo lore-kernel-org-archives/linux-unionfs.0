@@ -1,7 +1,7 @@
 From: Miklos Szeredi <mszeredi@redhat.com>
-Subject: [PATCH v2 35/35] ovl: fix documentation of non-standard behavior
-Date: Mon,  7 May 2018 10:38:07 +0200
-Message-ID: <20180507083807.28792-36-mszeredi@redhat.com>
+Subject: [PATCH v2 23/35] ovl: copy-up on MAP_SHARED
+Date: Mon,  7 May 2018 10:37:55 +0200
+Message-ID: <20180507083807.28792-24-mszeredi@redhat.com>
 References: <20180507083807.28792-1-mszeredi@redhat.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20180507083807.28792-1-mszeredi@redhat.com>
@@ -10,98 +10,206 @@ To: linux-unionfs@vger.kernel.org
 Cc: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 
-We can now drop description of the ro/rw inconsistency from the
-documentation.
+A corner case of a corner case is when
 
-Also clarify, that now fully standard compliant behavior can be enabled
-with kernel/module/mount options.
+ - file opened for O_RDONLY
+ - which is then memory mapped SHARED
+ - file opened for O_WRONLY
+ - contents modified
+ - contents read back though the shared mapping
+
+Unfortunately it looks very difficult to do anything about the established
+shared map after the file is copied up.
+
+Instead, when a read-only file is mapped shared, copy up the file before
+actually doing the map.  This may result in unnecessary copy-ups (but so
+may copy-up on open(O_RDWR) for exampe).
+
+We can revisit this later if it turns out to be a performance problem in
+real life.
 
 Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
 ---
- Documentation/filesystems/overlayfs.txt | 60 +++++++++++++++++++++------------
- 1 file changed, 39 insertions(+), 21 deletions(-)
+ fs/overlayfs/Kconfig     | 21 +++++++++++++++++++++
+ fs/overlayfs/file.c      | 22 ++++++++++++++++++++++
+ fs/overlayfs/overlayfs.h |  7 +++++++
+ fs/overlayfs/ovl_entry.h |  1 +
+ fs/overlayfs/super.c     | 22 ++++++++++++++++++++++
+ 5 files changed, 73 insertions(+)
 
-diff --git a/Documentation/filesystems/overlayfs.txt b/Documentation/filesystems/overlayfs.txt
-index 961b287ef323..97eae826adf9 100644
---- a/Documentation/filesystems/overlayfs.txt
-+++ b/Documentation/filesystems/overlayfs.txt
-@@ -10,10 +10,6 @@ union-filesystems).  An overlay-filesystem tries to present a
- filesystem which is the result over overlaying one filesystem on top
- of the other.
+diff --git a/fs/overlayfs/Kconfig b/fs/overlayfs/Kconfig
+index 17032631c5cf..991c0a5a0e00 100644
+--- a/fs/overlayfs/Kconfig
++++ b/fs/overlayfs/Kconfig
+@@ -103,3 +103,24 @@ config OVERLAY_FS_XINO_AUTO
+ 	  For more information, see Documentation/filesystems/overlayfs.txt
  
--The result will inevitably fail to look exactly like a normal
--filesystem for various technical reasons.  The expectation is that
--many use cases will be able to ignore these differences.
--
- 
- Overlay objects
- ---------------
-@@ -306,27 +302,49 @@ the copied layers will fail the verification of the lower root file handle.
- Non-standard behavior
- ---------------------
- 
--The copy_up operation essentially creates a new, identical file and
--moves it over to the old name.  Any open files referring to this inode
--will access the old data.
-+Overlayfs can now act as a POSIX compliant filesystem with the following
-+features turned on:
+ 	  If unsure, say N.
 +
-+1) "redirect_dir"
++config OVERLAY_FS_COPY_UP_SHARED
++       bool "Overlayfs: copy up when mapping a file shared"
++       default n
++       depends on OVERLAY_FS
++       help
++         If this option is enabled then on mapping a file with MAP_SHARED
++	 overlayfs copies up the file in anticipation of it being modified (just
++	 like we copy up the file on O_WRONLY and O_RDWR in anticipation of
++	 modification).  This does not interfere with shared library loading, as
++	 that uses MAP_PRIVATE.  But there might be use cases out there where
++	 this impacts performance and disk usage.
 +
-+Enabled with the mount option or module option: "redirect_dir=on" or with
-+the kernel config option CONFIG_OVERLAY_FS_REDIRECT_DIR=y.
++	 This just selects the default, the feature can also be enabled or
++	 disabled in the running kernel or individually on each overlay mount.
 +
-+If this feature is disabled, then rename(2) on a lower or merged directory
-+will fail with EXDEV ("Invalid cross-device link").
++	 To get maximally standard compliant behavior, enable this option.
 +
-+2) "inode index"
++	 To get a maximally backward compatible kernel, disable this option.
 +
-+Enabled with the mount option or module option "index=on" or with the
-+kernel config option CONFIG_OVERLAY_FS_INDEX=y.
-+
-+If this feature is disabled and a file with multiple hard links is copied
-+up, then this will "break" the link.  Changes will not be propagated to
-+other names referring to the same inode.
-+
-+3) "xino"
-+
-+Enabled with the mount option "xino=auto" or "xino=on", with the module
-+option "xino_auto=on" or with the kernel config option
-+CONFIG_OVERLAY_FS_XINO_AUTO=y.  Also implicitly enabled by using the same
-+underlying filesystem for all layers making up the overlay.
++	 If unsure, say N.
+diff --git a/fs/overlayfs/file.c b/fs/overlayfs/file.c
+index 2ac95c95e8e6..a60734ec89ec 100644
+--- a/fs/overlayfs/file.c
++++ b/fs/overlayfs/file.c
+@@ -10,6 +10,7 @@
+ #include <linux/file.h>
+ #include <linux/mount.h>
+ #include <linux/xattr.h>
++#include <linux/mman.h>
+ #include <linux/uio.h>
+ #include "overlayfs.h"
  
--The new file may be on a different filesystem, so both st_dev and st_ino
--of the real file may change.  The values of st_dev and st_ino returned by
--stat(2) on an overlay object are often not the same as the real file
--stat(2) values to prevent the values from changing on copy_up.
-+If this feature is disabled or the underlying filesystem doesn't have
-+enough free bits in the inode number, then overlayfs will not be able to
-+guarantee that the values of st_ino and st_dev returned by stat(2) and the
-+value of d_ino returned by readdir(3) will act like on a normal filesystem.
-+E.g. the value of st_dev may be different for two objects in the same
-+overlay filesystem and the value of st_ino for directory objects may not be
-+persistent and could change even while the overlay filesystem is mounted.
+@@ -256,6 +257,26 @@ static int ovl_fsync(struct file *file, loff_t start, loff_t end, int datasync)
+ 	return ret;
+ }
  
--Unless "xino" feature is enabled, when overlay layers are not all on the
--same underlying filesystem, the value of st_dev may be different for two
--non-directory objects in the same overlay filesystem and the value of
--st_ino for directory objects may be non persistent and could change even
--while the overlay filesystem is still mounted.
-+4) "copy_up_shared"
++static int ovl_pre_mmap(struct file *file, unsigned long prot,
++			unsigned long flag)
++{
++	int err = 0;
++
++	/*
++	 * Take MAP_SHARED as hint about future writes to the file (through
++	 * another file descriptor).  Caller might not have had such an intent,
++	 * but we hope MAP_PRIVATE will be used in most such cases.
++	 *
++	 * If we don't copy up now and the file is modified, it becomes really
++	 * difficult to change the mapping to match that of the file's content
++	 * later.
++	 */
++	if ((flag & MAP_SHARED) && ovl_copy_up_shared(file_inode(file)->i_sb))
++		err = ovl_copy_up(file_dentry(file));
++
++	return err;
++}
++
+ static int ovl_mmap(struct file *file, struct vm_area_struct *vma)
+ {
+ 	struct fd real;
+@@ -473,6 +494,7 @@ const struct file_operations ovl_file_operations = {
+ 	.read_iter	= ovl_read_iter,
+ 	.write_iter	= ovl_write_iter,
+ 	.fsync		= ovl_fsync,
++	.pre_mmap	= ovl_pre_mmap,
+ 	.mmap		= ovl_mmap,
+ 	.fallocate	= ovl_fallocate,
+ 	.unlocked_ioctl	= ovl_ioctl,
+diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
+index edbf69c8f45d..caaa47cea2aa 100644
+--- a/fs/overlayfs/overlayfs.h
++++ b/fs/overlayfs/overlayfs.h
+@@ -272,6 +272,13 @@ static inline unsigned int ovl_xino_bits(struct super_block *sb)
+ 	return ofs->xino_bits;
+ }
  
--Unless "inode index" feature is enabled, if a file with multiple hard
--links is copied up, then this will "break" the link.  Changes will not be
--propagated to other names referring to the same inode.
-+Enabled with the mount option or module option "copy_up_shared=on" or with
-+the kernel config option CONFIG_OVERLAY_FS_COPY_UP_SHARED=y.
++static inline bool ovl_copy_up_shared(struct super_block *sb)
++{
++	struct ovl_fs *ofs = sb->s_fs_info;
++
++	return !(sb->s_flags & SB_RDONLY) && ofs->config.copy_up_shared;
++}
++
  
--Unless "redirect_dir" feature is enabled, rename(2) on a lower or merged
--directory will fail with EXDEV.
-+If this feature is disabled, then a memory mapping created with MAP_SHARED
-+might contain stale data if the file has been copied up and modified in the
-+meantime.
+ /* namei.c */
+ int ovl_check_fh_len(struct ovl_fh *fh, int fh_len);
+diff --git a/fs/overlayfs/ovl_entry.h b/fs/overlayfs/ovl_entry.h
+index 41655a7d6894..3bea47c63fd9 100644
+--- a/fs/overlayfs/ovl_entry.h
++++ b/fs/overlayfs/ovl_entry.h
+@@ -18,6 +18,7 @@ struct ovl_config {
+ 	const char *redirect_mode;
+ 	bool index;
+ 	bool nfs_export;
++	bool copy_up_shared;
+ 	int xino;
+ };
  
+diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+index ad6a5baf226b..c3d8c7ea180f 100644
+--- a/fs/overlayfs/super.c
++++ b/fs/overlayfs/super.c
+@@ -56,6 +56,12 @@ module_param_named(xino_auto, ovl_xino_auto_def, bool, 0644);
+ MODULE_PARM_DESC(ovl_xino_auto_def,
+ 		 "Auto enable xino feature");
  
- Changes to underlying filesystems
++static bool ovl_copy_up_shared_def =
++	IS_ENABLED(CONFIG_OVERLAY_FS_COPY_UP_SHARED);
++module_param_named(copy_up_shared, ovl_copy_up_shared_def, bool, 0644);
++MODULE_PARM_DESC(ovl_copy_up_shared_def,
++		 "Copy up when mapping a file shared");
++
+ static void ovl_entry_stack_free(struct ovl_entry *oe)
+ {
+ 	unsigned int i;
+@@ -380,6 +386,9 @@ static int ovl_show_options(struct seq_file *m, struct dentry *dentry)
+ 						"on" : "off");
+ 	if (ofs->config.xino != ovl_xino_def())
+ 		seq_printf(m, ",xino=%s", ovl_xino_str[ofs->config.xino]);
++	if (ofs->config.copy_up_shared != ovl_copy_up_shared_def)
++		seq_printf(m, ",copy_up_shared=%s",
++			   ofs->config.copy_up_shared ? "on" : "off");
+ 	return 0;
+ }
+ 
+@@ -417,6 +426,8 @@ enum {
+ 	OPT_XINO_ON,
+ 	OPT_XINO_OFF,
+ 	OPT_XINO_AUTO,
++	OPT_COPY_UP_SHARED_ON,
++	OPT_COPY_UP_SHARED_OFF,
+ 	OPT_ERR,
+ };
+ 
+@@ -433,6 +444,8 @@ static const match_table_t ovl_tokens = {
+ 	{OPT_XINO_ON,			"xino=on"},
+ 	{OPT_XINO_OFF,			"xino=off"},
+ 	{OPT_XINO_AUTO,			"xino=auto"},
++	{OPT_COPY_UP_SHARED_ON,		"copy_up_shared=on"},
++	{OPT_COPY_UP_SHARED_OFF,	"copy_up_shared=off"},
+ 	{OPT_ERR,			NULL}
+ };
+ 
+@@ -559,6 +572,14 @@ static int ovl_parse_opt(char *opt, struct ovl_config *config)
+ 			config->xino = OVL_XINO_AUTO;
+ 			break;
+ 
++		case OPT_COPY_UP_SHARED_ON:
++			config->copy_up_shared = true;
++			break;
++
++		case OPT_COPY_UP_SHARED_OFF:
++			config->copy_up_shared = false;
++			break;
++
+ 		default:
+ 			pr_err("overlayfs: unrecognized mount option \"%s\" or missing value\n", p);
+ 			return -EINVAL;
+@@ -1380,6 +1401,7 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
+ 	ofs->config.index = ovl_index_def;
+ 	ofs->config.nfs_export = ovl_nfs_export_def;
+ 	ofs->config.xino = ovl_xino_def();
++	ofs->config.copy_up_shared = ovl_copy_up_shared_def;
+ 	err = ovl_parse_opt((char *) data, &ofs->config);
+ 	if (err)
+ 		goto out_err;
 -- 
 2.14.3
