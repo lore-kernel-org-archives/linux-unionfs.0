@@ -1,7 +1,7 @@
 From: Miklos Szeredi <mszeredi@redhat.com>
-Subject: [PATCH v2 16/35] ovl: add ovl_mmap()
-Date: Mon,  7 May 2018 10:37:48 +0200
-Message-ID: <20180507083807.28792-17-mszeredi@redhat.com>
+Subject: [PATCH v2 15/35] ovl: add ovl_fsync()
+Date: Mon,  7 May 2018 10:37:47 +0200
+Message-ID: <20180507083807.28792-16-mszeredi@redhat.com>
 References: <20180507083807.28792-1-mszeredi@redhat.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20180507083807.28792-1-mszeredi@redhat.com>
@@ -10,22 +10,22 @@ To: linux-unionfs@vger.kernel.org
 Cc: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 
-Implement stacked mmap.
+Implement stacked fsync().
 
 Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
 ---
- fs/overlayfs/file.c | 28 ++++++++++++++++++++++++++++
- 1 file changed, 28 insertions(+)
+ fs/overlayfs/file.c | 20 ++++++++++++++++++++
+ 1 file changed, 20 insertions(+)
 
 diff --git a/fs/overlayfs/file.c b/fs/overlayfs/file.c
-index 419aa3f9967b..b75ee0a3655e 100644
+index a7af56861aa5..419aa3f9967b 100644
 --- a/fs/overlayfs/file.c
 +++ b/fs/overlayfs/file.c
-@@ -252,6 +252,33 @@ static int ovl_fsync(struct file *file, loff_t start, loff_t end, int datasync)
+@@ -233,10 +233,30 @@ static ssize_t ovl_write_iter(struct kiocb *iocb, struct iov_iter *iter)
  	return ret;
  }
  
-+static int ovl_mmap(struct file *file, struct vm_area_struct *vma)
++static int ovl_fsync(struct file *file, loff_t start, loff_t end, int datasync)
 +{
 +	struct fd real;
 +	const struct cred *old_cred;
@@ -35,19 +35,11 @@ index 419aa3f9967b..b75ee0a3655e 100644
 +	if (ret)
 +		return ret;
 +
-+	/* transfer ref: */
-+	fput(vma->vm_file);
-+	vma->vm_file = get_file(real.file);
-+	fdput(real);
-+
-+	if (!vma->vm_file->f_op->mmap)
-+		return -ENODEV;
-+
 +	old_cred = ovl_override_creds(file_inode(file)->i_sb);
-+	ret = call_mmap(vma->vm_file, vma);
++	ret = vfs_fsync_range(real.file, start, end, datasync);
 +	revert_creds(old_cred);
 +
-+	ovl_file_accessed(file);
++	fdput(real);
 +
 +	return ret;
 +}
@@ -55,11 +47,10 @@ index 419aa3f9967b..b75ee0a3655e 100644
  const struct file_operations ovl_file_operations = {
  	.open		= ovl_open,
  	.release	= ovl_release,
-@@ -259,4 +286,5 @@ const struct file_operations ovl_file_operations = {
+ 	.llseek		= ovl_llseek,
  	.read_iter	= ovl_read_iter,
  	.write_iter	= ovl_write_iter,
- 	.fsync		= ovl_fsync,
-+	.mmap		= ovl_mmap,
++	.fsync		= ovl_fsync,
  };
 -- 
 2.14.3
