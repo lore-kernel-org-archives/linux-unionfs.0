@@ -1,18 +1,18 @@
+Return-Path: <amir73il@gmail.com>
 MIME-Version: 1.0
 In-Reply-To: <20180507174102.24086-11-vgoyal@redhat.com>
-References: <20180507174102.24086-1-vgoyal@redhat.com>
-	<20180507174102.24086-11-vgoyal@redhat.com>
-Date: Thu, 10 May 2018 11:19:23 +0200
-Message-ID: <CAJfpegvzDAMx66TMhHTacYEUpowRcEYKkFuhD+TQoV83MfXPmQ@mail.gmail.com>
+References: <20180507174102.24086-1-vgoyal@redhat.com> <20180507174102.24086-11-vgoyal@redhat.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Date: Mon, 7 May 2018 22:14:06 +0300
+Message-ID: <CAOQ4uxhuwQZVt-FXhpUc7vaO4iwRL9sFg=oo=0Aw5=r1XsXoKw@mail.gmail.com>
 Subject: Re: [PATCH v15 10/30] ovl: Modify ovl_lookup() and friends to lookup
  metacopy dentry
-From: Miklos Szeredi <miklos@szeredi.hu>
 Content-Type: text/plain; charset="UTF-8"
 To: Vivek Goyal <vgoyal@redhat.com>
-Cc: overlayfs <linux-unionfs@vger.kernel.org>, Amir Goldstein <amir73il@gmail.com>
+Cc: overlayfs <linux-unionfs@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-On Mon, May 7, 2018 at 7:40 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
+On Mon, May 7, 2018 at 8:40 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
 > This patch modifies ovl_lookup() and friends to lookup metacopy dentries.
 > It also allows for presence of metacopy dentries in lower layer.
 >
@@ -28,6 +28,11 @@ On Mon, May 7, 2018 at 7:40 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
 > access to file on lower which it should not have to begin with.
 >
 > Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
+
+OK, you may add
+
+Reviewed-by: Amir Goldstein <amir73il@gmail.com>
+
 > ---
 >  fs/overlayfs/export.c    |   3 ++
 >  fs/overlayfs/inode.c     |  11 ++++-
@@ -107,23 +112,6 @@ On Mon, May 7, 2018 at 7:40 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
 >                  * redirects become possible
 >                  */
 >                 WARN_ON(!last_element);
-
-This warning now triggers if we have a metacopy inode on upper
-(d->is_dir == false) but lookup on lower layer fails in the middle
-because a path element is not a directory (contrary to the comment,
-this is not related to redirects, but to non-dir "merge" objects,
-which we call metacopy).
-
-I think we should handle this case together with the d->is_dir case
-above: stop and get out.   Lookup should handle the case where we
-failed to find the data dentry.   BTW, I think EIO is more appropriate
-for this than ESTALE.  The former means (among other things)
-filesystem image is corrupted.  The latter means some inconsistencies
-were found when performing an operation.   They are similar, but while
-EIO is permanent (until the source of the error is corrected) ESTALE
-can go away (e.g. if redoing the lookup or mounting the filesystem
-fresh).
-
 > +               err = ovl_check_metacopy_xattr(this);
 > +               if (err < 0)
 > +                       goto out_err;
@@ -135,9 +123,6 @@ fresh).
 > +       if (last_element) {
 > +               if (d->metacopy) {
 > +                       err = -ESTALE;
-
-Again, just stop and get out and caller will detect the error.
-
 > +                       goto out_err;
 > +               }
 >                 d->is_dir = true;
@@ -212,12 +197,6 @@ Again, just stop and get out and caller will detect the error.
 > +                * For non-dir dentry, make sure dentry found by lookup
 > +                * matches the origin stored in upper. Otherwise its an
 > +                * error.
-
-Umm, why we need to be so strict?  This would  break the case where
-the layers are copied with xattr intact, but the origin pointer will
-obviously be "wrong", which shouldn't be a problem, since that's only
-needed to get a unique st_ino, nothing else.
-
 >                  */
 > -               if (upperdentry && !ctr && ovl_verify_lower(dentry->d_sb)) {
 > +               if (upperdentry && !ctr &&
@@ -242,13 +221,6 @@ needed to get a unique st_ino, nothing else.
 > +               /*
 > +                * Do not store intermediate metacopy dentries in chain,
 > +                * except top most lower metacopy dentry
-
-I don't get it.  We need the bottom most metacopy dentry, not the
-topmost.  Am I missing something?
-
-We also need to check file type here, only regular file makes sense as
-metacopy, so if it's something else, then get out with EIO.
-
 > +                */
 > +               if (d.metacopy && ctr) {
 > +                       dput(this);
@@ -269,9 +241,6 @@ metacopy, so if it's something else, then get out with EIO.
 > +                */
 > +               if (d.metacopy) {
 > +                       err = -ESTALE;
-
--EIO.
-
 > +                       goto out_put;
 > +               }
 > +
