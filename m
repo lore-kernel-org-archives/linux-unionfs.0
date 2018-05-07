@@ -1,88 +1,140 @@
-From: Randy Dunlap <rdunlap@infradead.org>
-Subject: Re: [PATCH v2 23/35] ovl: copy-up on MAP_SHARED
-Date: Mon, 7 May 2018 12:28:34 -0700
-Message-ID: <8f464b5f-a479-6bfe-3abf-b2ed6efe5eb6@infradead.org>
+From: "Darrick J. Wong" <darrick.wong@oracle.com>
+Subject: Re: [PATCH v2 21/35] ovl: add reflink/copyfile/dedup support
+Date: Mon, 7 May 2018 13:43:50 -0700
+Message-ID: <20180507204350.GB9510@magnolia>
 References: <20180507083807.28792-1-mszeredi@redhat.com>
- <20180507083807.28792-24-mszeredi@redhat.com>
+ <20180507083807.28792-22-mszeredi@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180507083807.28792-24-mszeredi@redhat.com>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <20180507083807.28792-22-mszeredi@redhat.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Miklos Szeredi <mszeredi@redhat.com>, linux-unionfs@vger.kernel.org
-Cc: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Miklos Szeredi <mszeredi@redhat.com>
+Cc: linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 
-On 05/07/2018 01:37 AM, Miklos Szeredi wrote:
-> A corner case of a corner case is when
-> 
->  - file opened for O_RDONLY
->  - which is then memory mapped SHARED
->  - file opened for O_WRONLY
->  - contents modified
->  - contents read back though the shared mapping
-> 
-> Unfortunately it looks very difficult to do anything about the established
-> shared map after the file is copied up.
-> 
-> Instead, when a read-only file is mapped shared, copy up the file before
-> actually doing the map.  This may result in unnecessary copy-ups (but so
-> may copy-up on open(O_RDWR) for exampe).
-
-                              for example).
-
-> 
-> We can revisit this later if it turns out to be a performance problem in
-> real life.
+On Mon, May 07, 2018 at 10:37:53AM +0200, Miklos Szeredi wrote:
+> Since set of arguments are so similar, handle in a common helper.
 > 
 > Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
 > ---
->  fs/overlayfs/Kconfig     | 21 +++++++++++++++++++++
->  fs/overlayfs/file.c      | 22 ++++++++++++++++++++++
->  fs/overlayfs/overlayfs.h |  7 +++++++
->  fs/overlayfs/ovl_entry.h |  1 +
->  fs/overlayfs/super.c     | 22 ++++++++++++++++++++++
->  5 files changed, 73 insertions(+)
+>  fs/overlayfs/file.c | 88 +++++++++++++++++++++++++++++++++++++++++++++++++++++
+>  1 file changed, 88 insertions(+)
 > 
-> diff --git a/fs/overlayfs/Kconfig b/fs/overlayfs/Kconfig
-> index 17032631c5cf..991c0a5a0e00 100644
-> --- a/fs/overlayfs/Kconfig
-> +++ b/fs/overlayfs/Kconfig
-> @@ -103,3 +103,24 @@ config OVERLAY_FS_XINO_AUTO
->  	  For more information, see Documentation/filesystems/overlayfs.txt
+> diff --git a/fs/overlayfs/file.c b/fs/overlayfs/file.c
+> index ce871a15e185..2ac95c95e8e6 100644
+> --- a/fs/overlayfs/file.c
+> +++ b/fs/overlayfs/file.c
+> @@ -382,6 +382,90 @@ static long ovl_compat_ioctl(struct file *file, unsigned int cmd,
+>  	return ovl_ioctl(file, cmd, arg);
+>  }
 >  
->  	  If unsure, say N.
+> +enum ovl_copyop {
+> +	OVL_COPY,
+> +	OVL_CLONE,
+> +	OVL_DEDUPE,
+> +};
 > +
-> +config OVERLAY_FS_COPY_UP_SHARED
-> +       bool "Overlayfs: copy up when mapping a file shared"
-
-	                                        a shared file" ??
-
-> +       default n
-> +       depends on OVERLAY_FS
-> +       help
-> +         If this option is enabled then on mapping a file with MAP_SHARED
-> +	 overlayfs copies up the file in anticipation of it being modified (just
-> +	 like we copy up the file on O_WRONLY and O_RDWR in anticipation of
-> +	 modification).  This does not interfere with shared library loading, as
-> +	 that uses MAP_PRIVATE.  But there might be use cases out there where
-> +	 this impacts performance and disk usage.
+> +static s64 ovl_copyfile(struct file *file_in, loff_t pos_in,
+> +			struct file *file_out, loff_t pos_out,
+> +			u64 len, unsigned int flags, enum ovl_copyop op)
+> +{
+> +	struct inode *inode_out = file_inode(file_out);
+> +	struct fd real_in, real_out;
+> +	const struct cred *old_cred;
+> +	s64 ret;
 > +
-> +	 This just selects the default, the feature can also be enabled or
-> +	 disabled in the running kernel or individually on each overlay mount.
+> +	ret = ovl_real_fdget(file_out, &real_out);
+> +	if (ret)
+> +		return ret;
 > +
-> +	 To get maximally standard compliant behavior, enable this option.
+> +	ret = ovl_real_fdget(file_in, &real_in);
+> +	if (ret) {
+> +		fdput(real_out);
+> +		return ret;
+> +	}
 > +
-> +	 To get a maximally backward compatible kernel, disable this option.
+> +	old_cred = ovl_override_creds(file_inode(file_out)->i_sb);
+> +	switch (op) {
+> +	case OVL_COPY:
+> +		ret = vfs_copy_file_range(real_in.file, pos_in,
+> +					  real_out.file, pos_out, len, flags);
+> +		break;
 > +
-> +	 If unsure, say N.
+> +	case OVL_CLONE:
+> +		ret = vfs_clone_file_range(real_in.file, pos_in,
+> +					   real_out.file, pos_out, len);
+> +		break;
+> +
+> +	case OVL_DEDUPE:
+> +		ret = vfs_dedupe_file_range_one(real_in.file, pos_in,
+> +						real_out.file, pos_out, len);
+> +		break;
+> +	}
+> +	revert_creds(old_cred);
+> +
+> +	/* Update size */
+> +	ovl_copyattr(ovl_inode_real(inode_out), inode_out);
+> +
+> +	fdput(real_in);
+> +	fdput(real_out);
+> +
+> +	return ret;
+> +}
+> +
+> +static ssize_t ovl_copy_file_range(struct file *file_in, loff_t pos_in,
+> +				   struct file *file_out, loff_t pos_out,
+> +				   size_t len, unsigned int flags)
+> +{
+> +	return ovl_copyfile(file_in, pos_in, file_out, pos_out, len, flags,
+> +			    OVL_COPY);
+> +}
+> +
+> +static int ovl_clone_file_range(struct file *file_in, loff_t pos_in,
+> +				struct file *file_out, loff_t pos_out, u64 len)
+> +{
+> +	return ovl_copyfile(file_in, pos_in, file_out, pos_out, len, 0,
+> +			    OVL_CLONE);
+> +}
+> +
+> +static s64 ovl_dedupe_file_range(struct file *file_in, loff_t pos_in,
+> +				 struct file *file_out, loff_t pos_out,
+> +				 u64 len)
+> +{
+> +	/*
+> +	 * Don't copy up because of a dedupe request, this wouldn't make sense
+> +	 * most of the time (data would be duplicated instead of deduplicated).
+> +	 */
+> +	if (!ovl_inode_upper(file_inode(file_in)) ||
+> +	    !ovl_inode_upper(file_inode(file_out)))
+> +		return -EPERM;
 
-For Kconfig (coding-style.rst):
-Lines under a ``config`` definition are indented with one tab, while help text
-is indented an additional two spaces.
+/me wonders, why not EOPNOTSUPP?  That's what we've been using (in xfs
+anyway) for "filesystem doesn't want to let you do this".
 
+(Or I guess EXDEV, but "cross-device link not supported" might not be
+quite what you want users to see...)
 
--- 
-~Randy
+--D
+
+> +
+> +	return ovl_copyfile(file_in, pos_in, file_out, pos_out, len, 0,
+> +			    OVL_DEDUPE);
+> +}
+> +
+>  const struct file_operations ovl_file_operations = {
+>  	.open		= ovl_open,
+>  	.release	= ovl_release,
+> @@ -393,4 +477,8 @@ const struct file_operations ovl_file_operations = {
+>  	.fallocate	= ovl_fallocate,
+>  	.unlocked_ioctl	= ovl_ioctl,
+>  	.compat_ioctl	= ovl_compat_ioctl,
+> +
+> +	.copy_file_range	= ovl_copy_file_range,
+> +	.clone_file_range	= ovl_clone_file_range,
+> +	.dedupe_file_range	= ovl_dedupe_file_range,
+>  };
+> -- 
+> 2.14.3
+> 
