@@ -1,66 +1,394 @@
-Return-Path: <vgoyal@redhat.com>
-From: Vivek Goyal <vgoyal@redhat.com>
-Subject: [PATCH v15 12/30] ovl: Add helper ovl_dentry_lowerdata() to get lower data dentry
-Date: Mon,  7 May 2018 13:40:44 -0400
-Message-Id: <20180507174102.24086-13-vgoyal@redhat.com>
-In-Reply-To: <20180507174102.24086-1-vgoyal@redhat.com>
-References: <20180507174102.24086-1-vgoyal@redhat.com>
-To: linux-unionfs@vger.kernel.org
-Cc: miklos@szeredi.hu, amir73il@gmail.com, vgoyal@redhat.com
+Return-Path: <amir73il@gmail.com>
+MIME-Version: 1.0
+In-Reply-To: <20180508173812.GH3501@redhat.com>
+References: <20180508173812.GH3501@redhat.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Date: Tue, 8 May 2018 21:24:23 +0300
+Message-ID: <CAOQ4uxjw0U9f-tN9SuKh-kmsFGZ6SdYorM=h6RNDawQXEcZQeQ@mail.gmail.com>
+Subject: Re: [PATCH] xfstest: overlay: Add tests for overlay metadata only
+ copy up feature
+Content-Type: text/plain; charset="UTF-8"
+To: Vivek Goyal <vgoyal@redhat.com>
+Cc: fstests <fstests@vger.kernel.org>, overlayfs <linux-unionfs@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>, Eryu Guan <guaneryu@gmail.com>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-Now we have the notion of data dentry and metacopy dentry. ovl_dentry_lower()
-will return uppermost lower dentry, but it could be either data or metacopy
-dentry. Now we support metacopy dentries in lower layers so it is possible
-that lowerstack[0] is metacopy dentry while lowerstack[1] is actual data
-dentry.
+On Tue, May 8, 2018 at 8:38 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
+> Add tests for proposed metadata only copy up feature in overlayfs.
+>
+> Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
+> ---
+>  common/overlay        |    1
+>  tests/overlay/059     |  281 ++++++++++++++++++++++++++++++++++++++++++++++++++
+>  tests/overlay/059.out |   42 +++++++
+>  tests/overlay/group   |    1
+>  4 files changed, 325 insertions(+)
+>
+> Index: xfstests-dev/tests/overlay/059
+> ===================================================================
+> --- /dev/null   1970-01-01 00:00:00.000000000 +0000
+> +++ xfstests-dev/tests/overlay/059      2018-05-08 13:32:13.828919038 -0400
+> @@ -0,0 +1,281 @@
+> +#! /bin/bash
+> +# FS QA Test No. 059
+> +#
+> +# Test metadata only copy up functionality.
+> +#
+> +#-----------------------------------------------------------------------
+> +# Copyright (C) 2018 Red Hat, Inc. All Rights Reserved.
+> +# Author: Vivek Goyal <vgoyal@redhat.com>
+> +#
+> +# This program is free software; you can redistribute it and/or
+> +# modify it under the terms of the GNU General Public License as
+> +# published by the Free Software Foundation.
+> +#
+> +# This program is distributed in the hope that it would be useful,
+> +# but WITHOUT ANY WARRANTY; without even the implied warranty of
+> +# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> +# GNU General Public License for more details.
+> +#
+> +# You should have received a copy of the GNU General Public License
+> +# along with this program; if not, write the Free Software Foundation,
+> +# Inc.,  51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+> +#-----------------------------------------------------------------------
+> +#
+> +
+> +seq=`basename $0`
+> +seqres=$RESULT_DIR/$seq
+> +echo "QA output created by $seq"
+> +
+> +here=`pwd`
+> +tmp=/tmp/$$
+> +status=1       # failure is the default!
+> +trap "_cleanup; exit \$status" 0 1 2 3 15
+> +
+> +_cleanup()
+> +{
+> +       cd /
+> +       rm -f $tmp.*
+> +}
+> +
+> +# get standard environment, filters and checks
+> +. ./common/rc
+> +. ./common/filter
+> +
+> +# remove previous $seqres.full before test
+> +rm -f $seqres.full
+> +
+> +# real QA test starts here
+> +_supported_fs overlay
+> +_supported_os Linux
+> +# We use non-default scratch underlying overlay dirs, we need to check
+> +# them explicity after test.
+> +_require_scratch_nocheck
+> +_require_scratch_overlay_features redirect_dir
 
-So add an helper which returns lowest most dentry which is supposed to be
-data dentry.
+_require_scratch_overlay_features index redirect_dir metacopy
 
-Reviewed-by: Amir Goldstein <amir73il@gmail.com>
-Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
----
- fs/overlayfs/overlayfs.h |  1 +
- fs/overlayfs/util.c      | 14 ++++++++++++++
- 2 files changed, 15 insertions(+)
+> +
+> +# remove all files from previous tests
+> +_scratch_mkfs
+> +
+> +# File size on lower
+> +lowername="lowerfile"
+> +lowerlink="lowerfile-link"
+> +lowersize="16384"
+> +lowerdata="lower"
+> +
+> +udirname="pureupper"
+> +ufile="upperfile"
+> +
+> +# Check metacopy xattr
+> +check_metacopy()
+> +{
+> +        local target=$1 exist=$2
+> +       local out_f target_f
+> +       local msg
+> +
+> +        out_f=$($GETFATTR_PROG --absolute-names --only-values -n \
+> +               $OVL_XATTR_METACOPY $target 2>&1 | _filter_scratch)
+> +
+> +       if [ "$exist" == "y" ];then
+> +               [ "$out_f" == "" ] && return
+> +               echo "Metacopy xattr does not exist on ${target}. stdout=$out_f"
+> +               return
+> +       fi
+> +
+> +       if [ "$out_f" == "" ];then
+> +               echo "Metacopy xattr exists on ${target} unexpectedly."
+> +               return
+> +       fi
+> +
+> +       target_f=`echo $target | _filter_scratch`
+> +       msg="$target_f: trusted.overlay.metacopy: No such attribute"
+> +
+> +       [ "$out_f" == "$msg" ] && return
+> +
+> +       echo "Error while checking xattr on ${target}. stdout=$out"
+> +}
+> +
+> +# Check redirect xattr
+> +check_redirect()
+> +{
+> +       local target=$1
+> +       local expect=$2
+> +
+> +       value=$($GETFATTR_PROG --absolute-names --only-values -n \
+> +               $OVL_XATTR_REDIRECT $target)
+> +
+> +       [[ "$value" == "$expect" ]] || echo "Redirect xattr incorrect. Expected=\"$expect\", actual=\"$value\""
+> +}
+> +
+> +# Check size
+> +check_size()
+> +{
+> +       local target=$1 expected_size=$2
+> +       local size nr_blocks blocksize stat_data
+> +
+> +       stat_data=$(stat -c "%s %b %B" $target)
+> +       size=`echo $stat_data | cut -d " " -f1`
+> +       nr_blocks=`echo $stat_data | cut -d " " -f2`
+> +       blocksize=`echo $stat_data | cut -d " " -f3`
+> +
+> +       [ "$size" == "$expected_size" ] || echo "Expected file size $expected_size but actual size is $size"
+> +
+> +       size=$(( $nr_blocks * $blocksize ))
+> +
+> +       [ "$size" == "$expected_size" ] || echo "Expected file size $expected_size but actual size is ${size}. nr_blocks=$nr_blocks blocksize=$blocksize"
+> +}
+> +
+> +check_contents()
+> +{
+> +       local target=$1 expected=$2
+> +       local actual target_f
+> +
+> +       target_f=`echo $target | _filter_scratch`
+> +
+> +       read actual<$target
+> +
+> +       [ "$actual" == "$expected" ] || echo "Expected file $target_f contents to be \"$expected\" but actual contents are \"$actual\""
+> +}
+> +
+> +check_file_properties()
+> +{
+> +       local target=$1 expected_size=$2 expected_content=$3
+> +
+> +       check_size $target $expected_size
+> +       check_contents $target $expected_content
+> +}
+> +
+> +mount_overlay()
+> +{
+> +       local _lowerdir=$1
+> +
+> +       _overlay_scratch_mount_dirs "$_lowerdir" $upperdir $workdir -o redirect_dir=on,index=on,metacopy=on
+> +}
+> +
+> +umount_overlay()
+> +{
+> +       $UMOUNT_PROG $SCRATCH_MNT
+> +}
+> +
+> +# Assumes it is called with overlay mounted.
+> +test_common()
+> +{
+> +       local _lowerdir=$1 _target=$2 _size=$3 _data="$4" _redirect=$5
+> +
+> +       echo "check properties of metadata copied up file"
+> +       check_file_properties $SCRATCH_MNT/$_target $_size "$_data"
+> +
+> +       # Do a mount cycle and check size and contents again.
+> +       echo "Unmount and Mount again"
+> +       umount_overlay
+> +       mount_overlay $_lowerdir
+> +       echo "check properties of metadata copied up file"
+> +       check_file_properties $SCRATCH_MNT/$_target $_size "$_data"
+> +
+> +       # Make sure copied up file is a metacopy file.
+> +       umount_overlay
+> +       check_metacopy $upperdir/$_target "y"
+> +       [ -n "$_redirect" ] && check_redirect $upperdir/$_target "$_redirect"
+> +
 
-diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-index ee66307451f0..4f2bb472c07b 100644
---- a/fs/overlayfs/overlayfs.h
-+++ b/fs/overlayfs/overlayfs.h
-@@ -227,6 +227,7 @@ void ovl_path_lowerdata(struct dentry *dentry, struct path *path);
- enum ovl_path_type ovl_path_real(struct dentry *dentry, struct path *path);
- struct dentry *ovl_dentry_upper(struct dentry *dentry);
- struct dentry *ovl_dentry_lower(struct dentry *dentry);
-+struct dentry *ovl_dentry_lowerdata(struct dentry *dentry);
- struct ovl_layer *ovl_layer_lower(struct dentry *dentry);
- struct dentry *ovl_dentry_real(struct dentry *dentry);
- struct dentry *ovl_i_dentry_upper(struct inode *inode);
-diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
-index 74b38e17a476..58c4031c1b88 100644
---- a/fs/overlayfs/util.c
-+++ b/fs/overlayfs/util.c
-@@ -209,6 +209,20 @@ struct ovl_layer *ovl_layer_lower(struct dentry *dentry)
- 	return oe->numlower ? oe->lowerstack[0].layer : NULL;
- }
- 
-+/*
-+ * ovl_dentry_lower() could return either a data dentry or metacopy dentry
-+ * dependig on what is stored in lowerstack[0]. At times we need to find
-+ * lower dentry which has data (and not metacopy dentry). This helper
-+ * returns the lower data dentry.
-+ */
-+struct dentry *ovl_dentry_lowerdata(struct dentry *dentry)
-+{
-+	struct ovl_entry *oe = dentry->d_fsdata;
-+	int idx = oe->numlower - 1;
-+
-+	return idx >= 0 ? oe->lowerstack[idx].dentry : NULL;
-+}
-+
- struct dentry *ovl_dentry_real(struct dentry *dentry)
- {
- 	return ovl_dentry_upper(dentry) ?: ovl_dentry_lower(dentry);
--- 
-2.13.6
+Please check that upper file has no content before data copy up
+and that it has content after data copy up.
+
+> +       # Trigger data copy up and check absence of metacopy xattr.
+> +       mount_overlay $_lowerdir
+> +       $XFS_IO_PROG -c "open -a $SCRATCH_MNT/$_target"
+> +       echo "check properties of data copied up file"
+> +       check_file_properties $SCRATCH_MNT/$_target $_size "$_data"
+> +       umount_overlay
+> +       check_metacopy $upperdir/$_target "n"
+> +}
+> +
+> +create_basic_files()
+> +{
+> +       _scratch_mkfs
+> +       mkdir -p $lowerdir $lowerdir2 $upperdir $workdir $workdir2
+> +       mkdir -p $upperdir/$udirname
+> +       echo "$lowerdata" > $lowerdir/$lowername
+> +       chmod 600 $lowerdir/$lowername
+> +       # Create a file of size lowersize.
+> +       $XFS_IO_PROG -c "falloc 0 $lowersize" $lowerdir/$lowername
+> +}
+> +
+> +create_lower_link()
+> +{
+> +       ln $lowerdir/$lowername $lowerdir/$lowerlink
+> +}
+> +
+> +prepare_midlayer()
+> +{
+> +       _scratch_mkfs
+> +       create_basic_files
+> +       # Create midlayer
+> +       _overlay_scratch_mount_dirs $lowerdir $lowerdir2 $workdir2 -o redirect_dir=on,index=on,metacopy=on
+> +       # Trigger a metacopy
+> +       chmod 400 $SCRATCH_MNT/$lowername
+> +       umount_overlay
+> +}
+> +
+> +# Create test directories
+> +lowerdir=$OVL_BASE_SCRATCH_MNT/lower
+> +lowerdir2=$OVL_BASE_SCRATCH_MNT/lower2
+> +upperdir=$OVL_BASE_SCRATCH_MNT/upper
+> +workdir=$OVL_BASE_SCRATCH_MNT/workdir
+> +workdir2=$OVL_BASE_SCRATCH_MNT/workdir2
+> +
+> +# Test simple metacopy
+> +create_basic_files
+> +
+> +# Make sure metacopy feature is supported by kernel, otherwise do not
+> +# run test.
+> +mount_overlay $lowerdir || _notrun "mount overlay with metacopy failed"
+
+You don't need that here if you require the metacopy feature above.
+
+> +umount_overlay
+> +
+> +# Tests start here
+> +echo "== Check Simple Metacopy =="
+> +mount_overlay $lowerdir
+> +chmod 400 $SCRATCH_MNT/$lowername
+> +test_common $lowerdir $lowername $lowersize "$lowerdata"
+> +
+> +# Test midlayer metacopy
+> +echo -e "\n== Check Midlayer Metacopy =="
+> +prepare_midlayer
+> +mount_overlay "$lowerdir2:$lowerdir"
+> +chmod 400 $SCRATCH_MNT/$lowername
+> +test_common "$lowerdir2:$lowerdir" $lowername $lowersize "$lowerdata"
+> +
+> +# Test Rename Redirect
+> +echo -e "\n== Check Rename Redirect =="
+> +create_basic_files
+> +mount_overlay $lowerdir
+> +mv $SCRATCH_MNT/$lowername $SCRATCH_MNT/$ufile
+> +test_common $lowerdir $ufile $lowersize "$lowerdata" "$lowername"
+> +
+> +# Test midlayer rename redirect
+> +echo -e "\n== Check Midlayer Rename Redirect =="
+> +prepare_midlayer
+> +mount_overlay "$lowerdir2:$lowerdir"
+> +mv $SCRATCH_MNT/$lowername $SCRATCH_MNT/$ufile
+> +test_common "$lowerdir2:$lowerdir" $ufile $lowersize "$lowerdata" "$lowername"
+> +
+> +# Test Link Redirect
+> +echo -e "\n== Check Link Redirect =="
+> +create_basic_files
+> +mount_overlay $lowerdir
+> +ln $SCRATCH_MNT/$lowername $SCRATCH_MNT/$udirname/$ufile
+> +test_common $lowerdir $udirname/$ufile $lowersize "$lowerdata" "/$lowername"
+> +
+> +# Test midlayer link redirect
+> +echo -e "\n== Check Midlayer Link Redirect =="
+> +prepare_midlayer
+> +mount_overlay "$lowerdir2:$lowerdir"
+> +ln $SCRATCH_MNT/$lowername $SCRATCH_MNT/$udirname/$ufile
+> +test_common "$lowerdir2:$lowerdir" $udirname/$ufile $lowersize "$lowerdata" \
+> +               "/$lowername"
+> +
+> +# Test lower link file gets absolute redirect upon rename
+> +echo -e "\n== Check Lower Link Rename Absolute Redirect =="
+> +create_basic_files
+> +create_lower_link
+> +mount_overlay $lowerdir
+> +mv $SCRATCH_MNT/$lowerlink $SCRATCH_MNT/$ufile
+> +test_common $lowerdir $ufile $lowersize "$lowerdata" "/$lowerlink"
+> +
+> +# success, all done
+> +status=0
+> +exit
+> Index: xfstests-dev/common/overlay
+> ===================================================================
+> --- xfstests-dev.orig/common/overlay    2018-05-08 13:31:59.492919038 -0400
+> +++ xfstests-dev/common/overlay 2018-05-08 13:32:13.828919038 -0400
+> @@ -10,6 +10,7 @@ export OVL_XATTR_IMPURE="trusted.overlay
+>  export OVL_XATTR_ORIGIN="trusted.overlay.origin"
+>  export OVL_XATTR_NLINK="trusted.overlay.nlink"
+>  export OVL_XATTR_UPPER="trusted.overlay.upper"
+> +export OVL_XATTR_METACOPY="trusted.overlay.metacopy"
+>
+>  # helper function to do the actual overlayfs mount operation
+>  _overlay_mount_dirs()
+> Index: xfstests-dev/tests/overlay/059.out
+> ===================================================================
+> --- /dev/null   1970-01-01 00:00:00.000000000 +0000
+> +++ xfstests-dev/tests/overlay/059.out  2018-05-08 13:32:13.829919038 -0400
+> @@ -0,0 +1,42 @@
+> +QA output created by 059
+> +== Check Simple Metacopy ==
+> +check properties of metadata copied up file
+> +Unmount and Mount again
+> +check properties of metadata copied up file
+> +check properties of data copied up file
+> +
+> +== Check Midlayer Metacopy ==
+> +check properties of metadata copied up file
+> +Unmount and Mount again
+> +check properties of metadata copied up file
+> +check properties of data copied up file
+> +
+> +== Check Rename Redirect ==
+> +check properties of metadata copied up file
+> +Unmount and Mount again
+> +check properties of metadata copied up file
+> +check properties of data copied up file
+> +
+> +== Check Midlayer Rename Redirect ==
+> +check properties of metadata copied up file
+> +Unmount and Mount again
+> +check properties of metadata copied up file
+> +check properties of data copied up file
+> +
+> +== Check Link Redirect ==
+> +check properties of metadata copied up file
+> +Unmount and Mount again
+> +check properties of metadata copied up file
+> +check properties of data copied up file
+> +
+> +== Check Midlayer Link Redirect ==
+> +check properties of metadata copied up file
+> +Unmount and Mount again
+> +check properties of metadata copied up file
+> +check properties of data copied up file
+> +
+> +== Check Lower Link Rename Absolute Redirect ==
+> +check properties of metadata copied up file
+> +Unmount and Mount again
+> +check properties of metadata copied up file
+> +check properties of data copied up file
+> Index: xfstests-dev/tests/overlay/group
+> ===================================================================
+> --- xfstests-dev.orig/tests/overlay/group       2018-05-08 13:31:59.492919038 -0400
+> +++ xfstests-dev/tests/overlay/group    2018-05-08 13:32:13.829919038 -0400
+> @@ -61,3 +61,4 @@
+>  056 auto quick fsck
+>  057 auto quick redirect
+>  058 auto quick exportfs
+> +059 auto quick
+
+Let's start a metacopy test group.
+
+Thanks,
+Amir.
