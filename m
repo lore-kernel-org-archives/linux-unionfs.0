@@ -1,92 +1,164 @@
-From: Miklos Szeredi <miklos@szeredi.hu>
-Subject: Re: [PATCH v2 23/35] ovl: copy-up on MAP_SHARED
-Date: Tue, 8 May 2018 17:03:49 +0200
-Message-ID: <CAJfpegu-MDi21vBYnyqRBKG40ugPNDY9YUZmkmQ7A5pFp=ak0Q@mail.gmail.com>
-References: <20180507083807.28792-1-mszeredi@redhat.com> <20180507083807.28792-24-mszeredi@redhat.com>
- <8f464b5f-a479-6bfe-3abf-b2ed6efe5eb6@infradead.org>
+From: Jeff Layton <jlayton@kernel.org>
+Subject: Re: [PATCH v2 32/35] Partially revert "locks: fix file locking on
+ overlayfs"
+Date: Tue, 08 May 2018 11:15:47 -0400
+Message-ID: <129bf5c889e3317d6372a2f251cbd56458347224.camel@kernel.org>
+References: <20180507083807.28792-1-mszeredi@redhat.com>
+         <20180507083807.28792-33-mszeredi@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <8f464b5f-a479-6bfe-3abf-b2ed6efe5eb6@infradead.org>
+In-Reply-To: <20180507083807.28792-33-mszeredi@redhat.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Randy Dunlap <rdunlap@infradead.org>
-Cc: Miklos Szeredi <mszeredi@redhat.com>, overlayfs <linux-unionfs@vger.kernel.org>, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Miklos Szeredi <mszeredi@redhat.com>, linux-unionfs@vger.kernel.org
+Cc: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, Al Viro <viro@zeniv.linux.org.uk>
 List-Id: linux-unionfs@vger.kernel.org
 
-On Mon, May 7, 2018 at 9:28 PM, Randy Dunlap <rdunlap@infradead.org> wrote:
-> On 05/07/2018 01:37 AM, Miklos Szeredi wrote:
->> A corner case of a corner case is when
->>
->>  - file opened for O_RDONLY
->>  - which is then memory mapped SHARED
->>  - file opened for O_WRONLY
->>  - contents modified
->>  - contents read back though the shared mapping
->>
->> Unfortunately it looks very difficult to do anything about the established
->> shared map after the file is copied up.
->>
->> Instead, when a read-only file is mapped shared, copy up the file before
->> actually doing the map.  This may result in unnecessary copy-ups (but so
->> may copy-up on open(O_RDWR) for exampe).
->
->                               for example).
->
->>
->> We can revisit this later if it turns out to be a performance problem in
->> real life.
->>
->> Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
->> ---
->>  fs/overlayfs/Kconfig     | 21 +++++++++++++++++++++
->>  fs/overlayfs/file.c      | 22 ++++++++++++++++++++++
->>  fs/overlayfs/overlayfs.h |  7 +++++++
->>  fs/overlayfs/ovl_entry.h |  1 +
->>  fs/overlayfs/super.c     | 22 ++++++++++++++++++++++
->>  5 files changed, 73 insertions(+)
->>
->> diff --git a/fs/overlayfs/Kconfig b/fs/overlayfs/Kconfig
->> index 17032631c5cf..991c0a5a0e00 100644
->> --- a/fs/overlayfs/Kconfig
->> +++ b/fs/overlayfs/Kconfig
->> @@ -103,3 +103,24 @@ config OVERLAY_FS_XINO_AUTO
->>         For more information, see Documentation/filesystems/overlayfs.txt
->>
->>         If unsure, say N.
->> +
->> +config OVERLAY_FS_COPY_UP_SHARED
->> +       bool "Overlayfs: copy up when mapping a file shared"
->
->                                                 a shared file" ??
+On Mon, 2018-05-07 at 10:38 +0200, Miklos Szeredi wrote:
+> This partially reverts commit c568d68341be7030f5647def68851e469b21ca11.
+> 
+> Overlayfs files will now automatically get the correct locks, no need to
+> hack overlay support in VFS.
+> 
+> It is a partial revert, because it leaves the locks_inode() calls in place
+> and defines locks_inode() to file_inode().  We could revert those as well,
+> but it would be unnecessary code churn and it makes sense to document that
+> we are getting the inode for locking purposes.
+> 
+> Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
+> ---
+>  fs/locks.c              | 17 ++++++-----------
+>  fs/overlayfs/super.c    |  2 +-
+>  include/linux/fs.h      | 13 +------------
+>  include/uapi/linux/fs.h |  1 -
+>  4 files changed, 8 insertions(+), 25 deletions(-)
+> 
+> diff --git a/fs/locks.c b/fs/locks.c
+> index 9c0e5f3da66c..40bcbaaa3f52 100644
+> --- a/fs/locks.c
+> +++ b/fs/locks.c
+> @@ -139,11 +139,6 @@
+>  #define IS_OFDLCK(fl)	(fl->fl_flags & FL_OFDLCK)
+>  #define IS_REMOTELCK(fl)	(fl->fl_pid <= 0)
+>  
+> -static inline bool is_remote_lock(struct file *filp)
+> -{
+> -	return likely(!(filp->f_path.dentry->d_sb->s_flags & SB_NOREMOTELOCK));
+> -}
+> -
+>  static bool lease_breaking(struct file_lock *fl)
+>  {
+>  	return fl->fl_flags & (FL_UNLOCK_PENDING | FL_DOWNGRADE_PENDING);
+> @@ -1875,7 +1870,7 @@ EXPORT_SYMBOL(generic_setlease);
+>  int
+>  vfs_setlease(struct file *filp, long arg, struct file_lock **lease, void **priv)
+>  {
+> -	if (filp->f_op->setlease && is_remote_lock(filp))
+> +	if (filp->f_op->setlease)
+>  		return filp->f_op->setlease(filp, arg, lease, priv);
+>  	else
+>  		return generic_setlease(filp, arg, lease, priv);
+> @@ -2022,7 +2017,7 @@ SYSCALL_DEFINE2(flock, unsigned int, fd, unsigned int, cmd)
+>  	if (error)
+>  		goto out_free;
+>  
+> -	if (f.file->f_op->flock && is_remote_lock(f.file))
+> +	if (f.file->f_op->flock)
+>  		error = f.file->f_op->flock(f.file,
+>  					  (can_sleep) ? F_SETLKW : F_SETLK,
+>  					  lock);
+> @@ -2048,7 +2043,7 @@ SYSCALL_DEFINE2(flock, unsigned int, fd, unsigned int, cmd)
+>   */
+>  int vfs_test_lock(struct file *filp, struct file_lock *fl)
+>  {
+> -	if (filp->f_op->lock && is_remote_lock(filp))
+> +	if (filp->f_op->lock)
+>  		return filp->f_op->lock(filp, F_GETLK, fl);
+>  	posix_test_lock(filp, fl);
+>  	return 0;
+> @@ -2191,7 +2186,7 @@ int fcntl_getlk(struct file *filp, unsigned int cmd, struct flock *flock)
+>   */
+>  int vfs_lock_file(struct file *filp, unsigned int cmd, struct file_lock *fl, struct file_lock *conf)
+>  {
+> -	if (filp->f_op->lock && is_remote_lock(filp))
+> +	if (filp->f_op->lock)
+>  		return filp->f_op->lock(filp, cmd, fl);
+>  	else
+>  		return posix_lock_file(filp, fl, conf);
+> @@ -2513,7 +2508,7 @@ locks_remove_flock(struct file *filp, struct file_lock_context *flctx)
+>  	if (list_empty(&flctx->flc_flock))
+>  		return;
+>  
+> -	if (filp->f_op->flock && is_remote_lock(filp))
+> +	if (filp->f_op->flock)
+>  		filp->f_op->flock(filp, F_SETLKW, &fl);
+>  	else
+>  		flock_lock_inode(inode, &fl);
+> @@ -2600,7 +2595,7 @@ EXPORT_SYMBOL(posix_unblock_lock);
+>   */
+>  int vfs_cancel_lock(struct file *filp, struct file_lock *fl)
+>  {
+> -	if (filp->f_op->lock && is_remote_lock(filp))
+> +	if (filp->f_op->lock)
+>  		return filp->f_op->lock(filp, F_CANCELLK, fl);
+>  	return 0;
+>  }
+> diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+> index 7779fc610767..f2a83fabe2eb 100644
+> --- a/fs/overlayfs/super.c
+> +++ b/fs/overlayfs/super.c
+> @@ -1479,7 +1479,7 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
+>  	sb->s_op = &ovl_super_operations;
+>  	sb->s_xattr = ovl_xattr_handlers;
+>  	sb->s_fs_info = ofs;
+> -	sb->s_flags |= SB_POSIXACL | SB_NOREMOTELOCK;
+> +	sb->s_flags |= SB_POSIXACL;
+>  
+>  	err = -ENOMEM;
+>  	root_dentry = d_make_root(ovl_new_inode(sb, S_IFDIR, 0));
+> diff --git a/include/linux/fs.h b/include/linux/fs.h
+> index ba3078693d4a..417e692a606a 100644
+> --- a/include/linux/fs.h
+> +++ b/include/linux/fs.h
+> @@ -1050,17 +1050,7 @@ struct file_lock_context {
+>  
+>  extern void send_sigio(struct fown_struct *fown, int fd, int band);
+>  
+> -/*
+> - * Return the inode to use for locking
+> - *
+> - * For overlayfs this should be the overlay inode, not the real inode returned
+> - * by file_inode().  For any other fs file_inode(filp) and locks_inode(filp) are
+> - * equal.
+> - */
+> -static inline struct inode *locks_inode(const struct file *f)
+> -{
+> -	return f->f_path.dentry->d_inode;
+> -}
+> +#define locks_inode(f) file_inode(f)
+>  
+>  #ifdef CONFIG_FILE_LOCKING
+>  extern int fcntl_getlk(struct file *, unsigned int, struct flock *);
+> @@ -1300,7 +1290,6 @@ extern int send_sigurg(struct fown_struct *fown);
+>  
+>  /* These sb flags are internal to the kernel */
+>  #define SB_SUBMOUNT     (1<<26)
+> -#define SB_NOREMOTELOCK	(1<<27)
+>  #define SB_NOSEC	(1<<28)
+>  #define SB_BORN		(1<<29)
+>  #define SB_ACTIVE	(1<<30)
+> diff --git a/include/uapi/linux/fs.h b/include/uapi/linux/fs.h
+> index d2a8313fabd7..2840ddcece73 100644
+> --- a/include/uapi/linux/fs.h
+> +++ b/include/uapi/linux/fs.h
+> @@ -134,7 +134,6 @@ struct inodes_stat_t {
+>  
+>  /* These sb flags are internal to the kernel */
+>  #define MS_SUBMOUNT     (1<<26)
+> -#define MS_NOREMOTELOCK	(1<<27)
+>  #define MS_NOSEC	(1<<28)
+>  #define MS_BORN		(1<<29)
+>  #define MS_ACTIVE	(1<<30)
 
-This is referring to MAP_SHARED flag of mmap().  So it's the mapping
-that is shared, not the file.
-
->
->> +       default n
->> +       depends on OVERLAY_FS
->> +       help
->> +         If this option is enabled then on mapping a file with MAP_SHARED
->> +      overlayfs copies up the file in anticipation of it being modified (just
->> +      like we copy up the file on O_WRONLY and O_RDWR in anticipation of
->> +      modification).  This does not interfere with shared library loading, as
->> +      that uses MAP_PRIVATE.  But there might be use cases out there where
->> +      this impacts performance and disk usage.
->> +
->> +      This just selects the default, the feature can also be enabled or
->> +      disabled in the running kernel or individually on each overlay mount.
->> +
->> +      To get maximally standard compliant behavior, enable this option.
->> +
->> +      To get a maximally backward compatible kernel, disable this option.
->> +
->> +      If unsure, say N.
->
-> For Kconfig (coding-style.rst):
-> Lines under a ``config`` definition are indented with one tab, while help text
-> is indented an additional two spaces.
-
-Not sure what went wrong there.  Fixed now.
-
-Thanks,
-Miklos
+Acked-by: Jeff Layton <jlayton@kernel.org>
