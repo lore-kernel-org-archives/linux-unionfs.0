@@ -1,81 +1,48 @@
-Return-Path: <cgxu519@gmx.com>
-Content-Type: text/plain;
-	charset=gb2312
-Mime-Version: 1.0 (Mac OS X Mail 11.3 \(3445.6.18\))
-Subject: Re: [PATCH v5] ovl: Check link ability between upperdir and workdir
-From: "cgxu519@gmx.com" <cgxu519@gmx.com>
-In-Reply-To: <CAJfpegu+o2JmDsi-S_ggm=Nyg73j7mxe8016+UAovR-NZi9YuQ@mail.gmail.com>
-Date: Fri, 11 May 2018 14:26:08 +0800
-Content-Transfer-Encoding: quoted-printable
-Message-Id: <CB390F3F-4506-4D7F-ABDF-A3421B9C5AF7@gmx.com>
-References: <1516464659-130410-1-git-send-email-cgxu519@icloud.com>
- <CAOQ4uxge28c0TmCbP+pS_nxQD1CpygEHUNZLAtdQjNHzd9KpyQ@mail.gmail.com>
- <CAJfpegsDRMutL39Viep8yvVSYUxdGdrJpe9b2yUstTkt_p5Ygw@mail.gmail.com>
- <B7E9E89A-DFFD-4E87-987F-591856C26EAC@gmx.com>
- <CAJfpegu+o2JmDsi-S_ggm=Nyg73j7mxe8016+UAovR-NZi9YuQ@mail.gmail.com>
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: "cgxu519@gmx.com" <cgxu519@gmx.com>, Amir Goldstein <amir73il@gmail.com>, Chengguang Xu <cgxu519@icloud.com>, overlayfs <linux-unionfs@vger.kernel.org>
+Return-Path: <linux-unionfs-owner@vger.kernel.org>
+Received: from verein.lst.de ([213.95.11.211]:38273 "EHLO newverein.lst.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1755072AbeEHQV0 (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Tue, 8 May 2018 12:21:26 -0400
+Date: Tue, 8 May 2018 18:24:49 +0200
+From: Christoph Hellwig <hch@lst.de>
+Subject: Re: [PATCH 3/3] ovl: Use splice_with_holes in copy_up
+Message-ID: <20180508162449.GA1389@lst.de>
+References: <20180503152635.14974-4-rgoldwyn@suse.de> <CAOQ4uxhjhds4avkGBTHsqLp72nWjP=mAFPtxmUarcF1-jp89ng@mail.gmail.com> <20180503221142.GC10363@dastard> <8317eac5-d305-4bbd-5d93-4fa6801c8b6a@suse.de> <20180505231641.GF10363@dastard> <20180507121638.GA27632@lst.de> <20180507231646.GK10363@dastard> <20180508040242.GA19735@lst.de> <20180508100624.GL10363@dastard> <5fd8ee75-58ee-c254-2912-f28e913bd6ad@suse.de>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <5fd8ee75-58ee-c254-2912-f28e913bd6ad@suse.de>
+Sender: linux-unionfs-owner@vger.kernel.org
+To: Goldwyn Rodrigues <rgoldwyn@suse.de>
+Cc: Dave Chinner <david@fromorbit.com>, Christoph Hellwig <hch@lst.de>, Amir Goldstein <amir73il@gmail.com>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Steve French <smfrench@gmail.com>, overlayfs <linux-unionfs@vger.kernel.org>, Anna Schumaker <Anna.Schumaker@netapp.com>, "Darrick J. Wong" <darrick.wong@oracle.com>, Goldwyn Rodrigues <rgoldwyn@suse.com>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-=D4=DA 2018=C4=EA4=D4=C24=C8=D5=A3=AC=CF=C2=CE=E75:30=A3=ACMiklos =
-Szeredi <miklos@szeredi.hu> =D0=B4=B5=C0=A3=BA
->=20
-> On Sun, Apr 1, 2018 at 7:56 AM, cgxu519@gmx.com <cgxu519@gmx.com> =
-wrote:
->> =D4=DA 2018=C4=EA3=D4=C229=C8=D5=A3=AC=CF=C2=CE=E78:54=A3=ACMiklos =
-Szeredi <miklos@szeredi.hu> =D0=B4=B5=C0=A3=BA
->>>=20
->>> On Sat, Jan 20, 2018 at 7:32 PM, Amir Goldstein <amir73il@gmail.com> =
-wrote:
->>>> On Sat, Jan 20, 2018 at 6:10 PM, Chengguang Xu <cgxu519@icloud.com> =
-wrote:
->>>>> Inspired by encountering unexpected write error with
->>>>> error code -EXDEV when upperdir and workdir having
->>>>> different project quotas. The reason of the error is
->>>>> project quota asks files in it strictly inherit
->>>>> project id of it=A1=AFs own, so rename/link operations
->>>>> between those directories will fail and it may cause
->>>>> failure during copy-up/index-link operations in overlayfs.
->>>>>=20
->>>>> So if upper filesystem supports O_TMPFILE, try to check
->>>>> link ability between upperdir and workdir and if check
->>>>> fails, print a proper warning message to indicate potential
->>>>> possibility of write failure.
->>>>>=20
->>>>> The failure of the check does not directly lead to
->>>>> read-only mounting because in some use cases may only
->>>>> write to upperdir and do not modify anything in lowerdirs.
->>>=20
->>> Thinking about a bit more: this assumes that mounter has create
->>> permission under upper layer root.  That assumption would be true in
->>> ordinary setups.  But if we break that assumption and deny create in
->>> the root of the upper layer, we could still have a perfectly working
->>> setup (as long as there's no need to copy-up anything in that
->>> directory).
->>=20
->> Isn=A1=AFt it similar to the check which upperdir and workdir must be =
-in same filesystem?
->> If we set project quota then the related directories will behave like =
-sub-filesystem.
->=20
->=20
-> I agree with that.
->=20
-> What I'm saying is that your implementation may give a false positive
-> (i.e. warning on an otherwise perfectly working setup).
+On Tue, May 08, 2018 at 11:11:33AM -0500, Goldwyn Rodrigues wrote:
+> What should the default behavior (without flags) be?
 
-I think we can check error code(-EXDEV) to filter out the case of false =
-positive,
-if it makes sense, I will send revised patch.
+Create holes if and how the file systems thinks is best.  That
+might even include creating holes if the original file didnt have
+any.
 
->=20
-> Worse yet, it may change the result of the tmpfile test in such a
-> case, which is a regression.
+> options: CFR_FILL_HOLES or CFR_KEEP_HOLES. Alternatively, we can
+> document the state of holes in the destination is not determinant and
+> coreutils/cp can perform the lseek(SEEK_HOLE/DATA)
 
-Yes, it=A1=AFs better to keep tmpfile test as it is.
+Create holes by default, and no flag that just create confusion as
+holes are a file system implementation detail subject to change
+at any time.
 
->=20
-> So I think the implementation needs to be rethought.
+> If cp calls copy_file_range(), it will clone the portion if the
+> filesystem supports it, which may not work with "cp --reflink=never"
+> option. In that case, should we have CFR_NO_REFLINK option for
+> copy_file_range()?
 
-Thanks,
-Chengguang.
+cp --reflink=never is pretty idiotic.  Think of inline dedup for example
+which will just create reflink behinds its back in the file system,
+or just dedup invisibly to it in the storage device.
+
+> 
+> 
+> -- 
+> Goldwyn
+---end quoted text---
