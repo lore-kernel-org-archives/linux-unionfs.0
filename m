@@ -1,56 +1,75 @@
-Return-Path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mx3-rdu2.redhat.com ([66.187.233.73]:56628 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1752529AbeEGRlM (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 7 May 2018 13:41:12 -0400
-From: Vivek Goyal <vgoyal@redhat.com>
-Subject: [PATCH v15 23/30] ovl: Do not set dentry type ORIGIN for broken hardlinks
-Date: Mon,  7 May 2018 13:40:55 -0400
-Message-Id: <20180507174102.24086-24-vgoyal@redhat.com>
-In-Reply-To: <20180507174102.24086-1-vgoyal@redhat.com>
-References: <20180507174102.24086-1-vgoyal@redhat.com>
-Sender: linux-unionfs-owner@vger.kernel.org
-To: linux-unionfs@vger.kernel.org
-Cc: miklos@szeredi.hu, amir73il@gmail.com, vgoyal@redhat.com
+Return-Path: <amir73il@gmail.com>
+MIME-Version: 1.0
+In-Reply-To: <20180508142617.GG3501@redhat.com>
+References: <20180507174102.24086-1-vgoyal@redhat.com> <20180507174102.24086-18-vgoyal@redhat.com>
+ <CAOQ4uxiXqKF1Vbg6HitUg6ax_Xy67mKDVS1t+P7pMT_57X=L5g@mail.gmail.com>
+ <20180507205937.GB2945@redhat.com> <CAOQ4uxjozJMc6dLoj-tbX06YKYaBN7t5QUq1C0w+apV=Y=K-7w@mail.gmail.com>
+ <20180508125043.GA3501@redhat.com> <CAOQ4uxiwc+8wxom4b_aJwV1VospoADx5U9iqyPpgmJayyFKZSw@mail.gmail.com>
+ <20180508142617.GG3501@redhat.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Date: Tue, 8 May 2018 18:04:09 +0300
+Message-ID: <CAOQ4uxia4LjhrTBEJEGvaUe6k=STxmLRchOF2Xqw3zw4Fe0G7g@mail.gmail.com>
+Subject: Re: [PATCH v15 17/30] ovl: Open file with data except for the case of fsync
+Content-Type: text/plain; charset="UTF-8"
+To: Vivek Goyal <vgoyal@redhat.com>
+Cc: overlayfs <linux-unionfs@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-If a dentry has copy up origin, we set flag OVL_PATH_ORIGIN. So far
-this decision was easy that we had to check only for oe->numlower
-and if it is non-zero, we knew there is copy up origin. (For non-dir
-we installed origin dentry in lowerstack[0]).
+On Tue, May 8, 2018 at 5:26 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
+> On Tue, May 08, 2018 at 05:14:42PM +0300, Amir Goldstein wrote:
+>> On Tue, May 8, 2018 at 3:50 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
+>> >
+>> [...]
+>> >
+>> > Ok, here is the updated patch. I have not defined quivalent of
+>> > ovl_real_meta_file() as there are no users.
+>> >
+>> >
+>> > Subject: ovl: Open file with data except for the case of fsync
+>> >
+>> > ovl_open() should open file which contains data and not open metacopy
+>> > inode. With the introduction of metacopy inodes, with current implementaion
+>> > we will end up opening metacopy inode as well.
+>> >
+>> > But there can be certain circumstances like ovl_fsync() where we
+>> > want to allow opening a metacopy inode instead.
+>> >
+>> > Hence, change ovl_open_realfile() and ovl_open_real() and add extra
+>> > parameter which specifies whether to allow opening metacopy inode or not.
+>> > If this parameter is false, we look for data inode and open that.
+>> >
+>> > This should allow covering both the cases.
+>> >
+>> > Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
+>>
+>> Nice! much shorter. You can add
+>> Reviewed-by: Amir Goldstein <amir73il@gmail.com>
+>>
+>> BTW, I have never given that much thought, but I see that you
+>> added Reviewed-by before Signed-off-by in some of the patches
+>> and after SOB in other patches.
+>> Of course it doesn't really matter and there isn't a single convention
+>> in the kernel, but the way I always thought about it is:
+>> You sign-off at the bottom on the complete work including all the tags
+>> may have added.
+>
+> I was thinking about it and looked at some of the kernel commits and
+> there seem to be a mix. There does not seem to be a fixed convention
+> on the order of these tags.
+>
+> My take away was that they seem to be ordered FIFO order. So I
+> do my Signed-off-by:, then you have your Reviewed-by and when
+> Miklos merges these, he will put his sign-off-by.
+>
+> Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
+> Reviewed-by: Amir Goldstein <amir73il@gmail.com>
+> Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
+>
+> If you do not disagree with above, I will make order of Reviewed-by
+> consistent in whole series and push again metacopy-next branch.
+>
 
-But we don't create ORGIN xattr for broken hardlinks (index=off). And
-with metacopy feature it is possible that we will install lowerstack[0]
-but ORIGIN xattr is not there. It is data dentry of upper metacopy dentry
-which has been found using regular name based lookup or using REDIRECT.
-So with addition of this new case, just presence of oe->numlower is
-not sufficient to guarantee that ORIGIN xattr is present.
+I am fine with the above.
 
-So to differentiate between two cases, look at OVL_CONST_INO flag. If
-this flag is set and upperdentry is there, that means it can be marked
-as type ORIGIN. OVL_CONST_INO is not set if lower hardlink is broken
-or will be broken over copy up.
-
-Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
-Reviewed-by: Amir Goldstein <amir73il@gmail.com>
----
- fs/overlayfs/util.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
-
-diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
-index 92ead380f3ec..73b4129ffeff 100644
---- a/fs/overlayfs/util.c
-+++ b/fs/overlayfs/util.c
-@@ -133,7 +133,8 @@ enum ovl_path_type ovl_path_type(struct dentry *dentry)
- 		 * Non-dir dentry can hold lower dentry of its copy up origin.
- 		 */
- 		if (oe->numlower) {
--			type |= __OVL_PATH_ORIGIN;
-+			if (ovl_test_flag(OVL_CONST_INO, d_inode(dentry)))
-+				type |= __OVL_PATH_ORIGIN;
- 			if (d_is_dir(dentry) ||
- 			    !ovl_has_upperdata(d_inode(dentry)))
- 				type |= __OVL_PATH_MERGE;
--- 
-2.13.6
-
+Thanks,
+Amir.
