@@ -1,47 +1,28 @@
-Return-Path: <amir73il@gmail.com>
-Return-Path: <amir73il@gmail.com>
-From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH v4 1/9] ovl: remove WARN_ON() real inode attributes mismatch
-Date: Fri, 18 May 2018 11:29:29 +0300
-Message-Id: <1526632177-28832-2-git-send-email-amir73il@gmail.com>
-In-Reply-To: <1526632177-28832-1-git-send-email-amir73il@gmail.com>
-References: <1526632177-28832-1-git-send-email-amir73il@gmail.com>
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: Al Viro <viro@zeniv.linux.org.uk>, Vivek Goyal <vgoyal@redhat.com>, linux-unionfs@vger.kernel.org
+Return-Path: <linux-unionfs-owner@vger.kernel.org>
+Received: from mx2.suse.de ([195.135.220.15]:45302 "EHLO mx2.suse.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751533AbeEHVYK (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Tue, 8 May 2018 17:24:10 -0400
+From: Goldwyn Rodrigues <rgoldwyn@suse.de>
+Subject: [PATCH v1 0/5] Enable holes on copy_file_range()
+Date: Tue,  8 May 2018 16:24:01 -0500
+Message-Id: <20180508212405.15297-1-rgoldwyn@suse.de>
+Sender: linux-unionfs-owner@vger.kernel.org
+To: linux-fsdevel@vger.kernel.org
+Cc: hch@lst.de, smfrench@gmail.com, linux-unionfs@vger.kernel.org, david@fromorbit.com
 List-ID: <linux-unionfs@vger.kernel.org>
 
-Overlayfs should cope with online changes to underlying layer
-without crashing the kernel, which is what xfstest overlay/019
-checks.
+If copy_file_range performs a copy using splice, it converts holes
+to zeros. This effort primarily changes this behavior to create
+holes when it is possible. 
 
-This test may sometimes trigger WARN_ON() in ovl_create_or_link()
-when linking an overlay inode that has been changed on underlying
-layer.
+Even if copy_file_range() or clone_file_range() does not work for different
+mounted filesystems, We should be able to splice files if they do not
+belong the same super_block.
 
-Remove those WARN_ON() to prevent the stress test from failing.
+Changes since v0:
+- [Amir] Carved out do_copy_file_range() which can be used by overlayfs
 
-Signed-off-by: Amir Goldstein <amir73il@gmail.com>
----
- fs/overlayfs/dir.c | 7 -------
- 1 file changed, 7 deletions(-)
-
-diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
-index 47dc980e8b33..33387c4887b9 100644
---- a/fs/overlayfs/dir.c
-+++ b/fs/overlayfs/dir.c
-@@ -510,13 +510,6 @@ static int ovl_create_or_link(struct dentry *dentry, struct inode *inode,
- 	}
- out_revert_creds:
- 	revert_creds(old_cred);
--	if (!err) {
--		struct inode *realinode = d_inode(ovl_dentry_upper(dentry));
--
--		WARN_ON(inode->i_mode != realinode->i_mode);
--		WARN_ON(!uid_eq(inode->i_uid, realinode->i_uid));
--		WARN_ON(!gid_eq(inode->i_gid, realinode->i_gid));
--	}
- 	return err;
- }
- 
 -- 
-2.7.4
+Goldwyn
+
