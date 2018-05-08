@@ -1,129 +1,49 @@
 From: Miklos Szeredi <miklos@szeredi.hu>
-Subject: Re: [PATCH v2 21/35] ovl: add reflink/copyfile/dedup support
-Date: Tue, 8 May 2018 16:13:01 +0200
-Message-ID: <CAJfpegu_iYLUeYU_OgZryFmCqa_a9MHt32nnsu7h_+JVXJ2d4w@mail.gmail.com>
-References: <20180507083807.28792-1-mszeredi@redhat.com> <20180507083807.28792-22-mszeredi@redhat.com>
- <20180507204350.GB9510@magnolia>
+Subject: Re: [RFC PATCH 00/35] overlayfs: stack file operations
+Date: Tue, 8 May 2018 16:25:12 +0200
+Message-ID: <CAJfpegtu9AATAJFc-jRfaYZcyvvLKhKti+UsaSQO7BPSP_phvw@mail.gmail.com>
+References: <20180412150826.20988-1-mszeredi@redhat.com> <CAJfpegvnq-+wvmtfX65ts+9eRE-ONGcj6AJyRqhqF1Z=h9bOiA@mail.gmail.com>
+ <CAOQ4uxhASo_smS3xXcMP=FD=MCr4g1rpJqkWYbgN6b7AbjeXXg@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180507204350.GB9510@magnolia>
+In-Reply-To: <CAOQ4uxhASo_smS3xXcMP=FD=MCr4g1rpJqkWYbgN6b7AbjeXXg@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Darrick J. Wong" <darrick.wong@oracle.com>
-Cc: Miklos Szeredi <mszeredi@redhat.com>, overlayfs <linux-unionfs@vger.kernel.org>, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: overlayfs <linux-unionfs@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>, Vivek Goyal <vgoyal@redhat.com>, "J. R. Okajima" <hooanon05g@gmail.com>, Ritesh Harjani <riteshh@codeaurora.org>, Matthew Wilcox <willy@infradead.org>, Miklos Szeredi <mszeredi@redhat.com>
 List-Id: linux-unionfs@vger.kernel.org
 
-On Mon, May 7, 2018 at 10:43 PM, Darrick J. Wong
-<darrick.wong@oracle.com> wrote:
-> On Mon, May 07, 2018 at 10:37:53AM +0200, Miklos Szeredi wrote:
->> Since set of arguments are so similar, handle in a common helper.
+On Sat, May 5, 2018 at 6:37 PM, Amir Goldstein <amir73il@gmail.com> wrote:
+> On Fri, May 4, 2018 at 6:23 PM, Miklos Szeredi <miklos@szeredi.hu> wrote:
+>> On Thu, Apr 12, 2018 at 5:07 PM, Miklos Szeredi <mszeredi@redhat.com> wrote:
 >>
->> Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
->> ---
->>  fs/overlayfs/file.c | 88 +++++++++++++++++++++++++++++++++++++++++++++++++++++
->>  1 file changed, 88 insertions(+)
+>>> Git tree is here:
+>>>
+>>>   git://git.kernel.org/pub/scm/linux/kernel/git/mszeredi/vfs.git overlayfs-rorw
 >>
->> diff --git a/fs/overlayfs/file.c b/fs/overlayfs/file.c
->> index ce871a15e185..2ac95c95e8e6 100644
->> --- a/fs/overlayfs/file.c
->> +++ b/fs/overlayfs/file.c
->> @@ -382,6 +382,90 @@ static long ovl_compat_ioctl(struct file *file, unsigned int cmd,
->>       return ovl_ioctl(file, cmd, arg);
->>  }
+>> Thanks everyone for your review.
 >>
->> +enum ovl_copyop {
->> +     OVL_COPY,
->> +     OVL_CLONE,
->> +     OVL_DEDUPE,
->> +};
->> +
->> +static s64 ovl_copyfile(struct file *file_in, loff_t pos_in,
->> +                     struct file *file_out, loff_t pos_out,
->> +                     u64 len, unsigned int flags, enum ovl_copyop op)
->> +{
->> +     struct inode *inode_out = file_inode(file_out);
->> +     struct fd real_in, real_out;
->> +     const struct cred *old_cred;
->> +     s64 ret;
->> +
->> +     ret = ovl_real_fdget(file_out, &real_out);
->> +     if (ret)
->> +             return ret;
->> +
->> +     ret = ovl_real_fdget(file_in, &real_in);
->> +     if (ret) {
->> +             fdput(real_out);
->> +             return ret;
->> +     }
->> +
->> +     old_cred = ovl_override_creds(file_inode(file_out)->i_sb);
->> +     switch (op) {
->> +     case OVL_COPY:
->> +             ret = vfs_copy_file_range(real_in.file, pos_in,
->> +                                       real_out.file, pos_out, len, flags);
->> +             break;
->> +
->> +     case OVL_CLONE:
->> +             ret = vfs_clone_file_range(real_in.file, pos_in,
->> +                                        real_out.file, pos_out, len);
->> +             break;
->> +
->> +     case OVL_DEDUPE:
->> +             ret = vfs_dedupe_file_range_one(real_in.file, pos_in,
->> +                                             real_out.file, pos_out, len);
->> +             break;
->> +     }
->> +     revert_creds(old_cred);
->> +
->> +     /* Update size */
->> +     ovl_copyattr(ovl_inode_real(inode_out), inode_out);
->> +
->> +     fdput(real_in);
->> +     fdput(real_out);
->> +
->> +     return ret;
->> +}
->> +
->> +static ssize_t ovl_copy_file_range(struct file *file_in, loff_t pos_in,
->> +                                struct file *file_out, loff_t pos_out,
->> +                                size_t len, unsigned int flags)
->> +{
->> +     return ovl_copyfile(file_in, pos_in, file_out, pos_out, len, flags,
->> +                         OVL_COPY);
->> +}
->> +
->> +static int ovl_clone_file_range(struct file *file_in, loff_t pos_in,
->> +                             struct file *file_out, loff_t pos_out, u64 len)
->> +{
->> +     return ovl_copyfile(file_in, pos_in, file_out, pos_out, len, 0,
->> +                         OVL_CLONE);
->> +}
->> +
->> +static s64 ovl_dedupe_file_range(struct file *file_in, loff_t pos_in,
->> +                              struct file *file_out, loff_t pos_out,
->> +                              u64 len)
->> +{
->> +     /*
->> +      * Don't copy up because of a dedupe request, this wouldn't make sense
->> +      * most of the time (data would be duplicated instead of deduplicated).
->> +      */
->> +     if (!ovl_inode_upper(file_inode(file_in)) ||
->> +         !ovl_inode_upper(file_inode(file_out)))
->> +             return -EPERM;
+>> Force pushed new version to the above branch.
+>>
+>> Hopefully no comment was missed (I didn't add more reverts yet, those
+>> can wait).  I'll do a mailbomb as well next week and start processing
+>> the metacopy patches.
+>>
 >
-> /me wonders, why not EOPNOTSUPP?  That's what we've been using (in xfs
-> anyway) for "filesystem doesn't want to let you do this".
-
-EOPNOTSUPP might be interpreted as "this filesystem doesn't support
-dedupe", even though here it's just "these two particular files don't
-support dedupe".
-
+> Ran -g auto xfstests on overlay over xfs+reflink.
+> There are no failures and no changes w.r.t skipped tests since v4.17-rc1.
 >
-> (Or I guess EXDEV, but "cross-device link not supported" might not be
-> quite what you want users to see...)
+> ACK on w.r.t addressing my review comments.
+>
+> ACK on the freeze protection fix.
+> Not sure if the fact that we take __mnt_want_write() on overlay and not on
+> upper_mnt for ovl_real_ioctl() is a problem (i.e. can upper_mnt become
+> readonly from under overlay? and do we care?).
 
-Hmm, I like EPERM better.   EPERM means something like  "you can't do
-this for some unspecified reason".  This is exactly the case here.
+I don't think we care.  The mount part of the real path doesn't play a
+very important part because it's private to the overlay and it's never
+modified.  It would be interesting to dig into the places it is used
+(may not be necessary in all cases), but that's for later.
 
 Thanks,
 Miklos
