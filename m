@@ -1,73 +1,136 @@
-Return-Path: <amir73il@gmail.com>
+Return-Path: <linux-unionfs-owner@vger.kernel.org>
+Received: from mail-yw0-f195.google.com ([209.85.161.195]:40697 "EHLO
+        mail-yw0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753107AbeEIFoI (ORCPT
+        <rfc822;linux-unionfs@vger.kernel.org>);
+        Wed, 9 May 2018 01:44:08 -0400
 MIME-Version: 1.0
-In-Reply-To: <CAOQ4uximhvDrOn6s-5X-BeGvfG0RtTBU-WA6fEjfyYEkn4jvNw@mail.gmail.com>
-References: <20180426191013.13219-1-vgoyal@redhat.com> <20180426191013.13219-10-vgoyal@redhat.com>
- <CAOQ4uxg5xDZJVuys69QtGBRGcs3=zfkJQoZgTZRp+cG+GGVzEQ@mail.gmail.com>
- <20180430140243.GB7960@redhat.com> <CAOQ4uximhvDrOn6s-5X-BeGvfG0RtTBU-WA6fEjfyYEkn4jvNw@mail.gmail.com>
+In-Reply-To: <20180508212405.15297-2-rgoldwyn@suse.de>
+References: <20180508212405.15297-1-rgoldwyn@suse.de> <20180508212405.15297-2-rgoldwyn@suse.de>
 From: Amir Goldstein <amir73il@gmail.com>
-Date: Tue, 1 May 2018 17:37:09 +0300
-Message-ID: <CAOQ4uxg5zDffN8VneWQCTd4N+trCCx0v7=paL9_hdMZj5CidYA@mail.gmail.com>
-Subject: Re: [PATCH v14 09/31] ovl: Modify ovl_lookup() and friends to lookup
- metacopy dentry
+Date: Wed, 9 May 2018 08:44:06 +0300
+Message-ID: <CAOQ4uxjy9cvJjX35YKk5HqgUJbTv0PhHOspJVu-vg57XnxA=fA@mail.gmail.com>
+Subject: Re: [PATCH 1/4] copy_file_range: refactor vfs_copy_file_range
 Content-Type: text/plain; charset="UTF-8"
-To: Vivek Goyal <vgoyal@redhat.com>
-Cc: overlayfs <linux-unionfs@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>
+Sender: linux-unionfs-owner@vger.kernel.org
+To: Goldwyn Rodrigues <rgoldwyn@suse.de>
+Cc: linux-fsdevel <linux-fsdevel@vger.kernel.org>, Christoph Hellwig <hch@lst.de>, Steve French <smfrench@gmail.com>, overlayfs <linux-unionfs@vger.kernel.org>, Dave Chinner <david@fromorbit.com>, Goldwyn Rodrigues <rgoldwyn@suse.com>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-On Mon, Apr 30, 2018 at 9:08 PM, Amir Goldstein <amir73il@gmail.com> wrote:
-> On Mon, Apr 30, 2018 at 5:02 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
-[...]
->>
->> I think we need to check metacopy here otherwise it becomes racy. For
->> example, what if there is a hard link (say, l1 and l2) with metacopy xattr.
->> ovl_lookup(l1) will think metacopy is on while another thread on another
->> cpu might have trigged copy up, remove metacopy xattr. And it is possible
->> that inode got flushed out of cache. So by the time ovl_lookup(l1), calls
->> iget5_locked(), it will get a new inode and it will initialize inode
->> with wrong information.
->>
->> I had done similar thing for REDIRECT, but once we removed logic to
->> remove REDIRECT on copy up, I felt I did not have to check redirect
->> again here.
->>
->> In general, I feel that once we have the inode lock, we should check
->> metacopy and redirect both and then initialize inode. And not rely
->> on information which was checked outside the lock and might have
->> been stale by now.
->>
+On Wed, May 9, 2018 at 12:24 AM, Goldwyn Rodrigues <rgoldwyn@suse.de> wrote:
+> From: Goldwyn Rodrigues <rgoldwyn@suse.com>
 >
-> Hmmm... so as you once already said, we have a race with INDEX as well.
-> In general, I feel it would be better to do a minimal sanity check inside
-> inode lock for INDEX and METACOPY (maybe REDIRECT) and make
-> sure they are consistent with the info in ovl_inode_info.
-> If they are not, return -ESTALE and that may result in re-calling
-> lookup.
+> Preparatory patch to carve out do_copy_file_range() from
+> vfs_copy_file_range
 >
+> Signed-off-by: Goldwyn Rodrigues <rgoldwyn@suse.com>
+> ---
+>  fs/read_write.c | 67 ++++++++++++++++++++++++++++++++-------------------------
+>  1 file changed, 38 insertions(+), 29 deletions(-)
+>
+> diff --git a/fs/read_write.c b/fs/read_write.c
+> index c4eabbfc90df..7d9dfb62ba7d 100644
+> --- a/fs/read_write.c
+> +++ b/fs/read_write.c
+> @@ -1541,6 +1541,42 @@ COMPAT_SYSCALL_DEFINE4(sendfile64, int, out_fd, int, in_fd,
+>  }
+>  #endif
+>
+> +ssize_t do_copy_file_range(struct file *file_in, loff_t pos_in,
+> +                           struct file *file_out, loff_t pos_out,
+> +                           size_t len, unsigned int flags,
+> +                           unsigned int splice_flags)
+> +{
+> +       ssize_t ret = 0;
+> +
+> +       if (flags != 0)
+> +               return -EINVAL;
 
-After thinking about it some more, I believe the way we should do it
-is implement ovl_iget_locked() and call it from ovl_lookup() *before*
-we lookup index.
+If you leave that here, you cannot pass in SPLICE_F_MOVE.
+Better leave this API guard in the vfs_ helper.
 
-Then, *after* looking up index,
-If this turns out to be a broken hardlink, we throw away the
-inode that we got by lower and get a new inode hashed by upper.
-
-Then we can initialize the inode with another helper
-or directly in ovl_lookup() and unlock_new_inode().
-
-w.r.t METACOPY things will get complicated if we remove
-METACOPY xattr and the upper does not have ORIGIN.
-In that case we may have an inode that is already hashed by lower,
-but for a new lookup that does not see METACOPY xattr it
-looks up the inode in cache by upper and this is not good.
-
-There is one solution that you will surely not like -
-instead of removing METACOPY xattr set METACOPY=n.
-That means we still need to lookup lower layers for origin inode,
-but we do set UPPERDATA flag.
-
-There may be other solutions to the problem, but I cannot think
-of any right now.
-
-Thanks,
-Amir.
+> +
+> +       if (len == 0)
+> +               return 0;
+> +
+> +       /*
+> +        * Try cloning first, this is supported by more file systems, and
+> +        * more efficient if both clone and copy are supported (e.g. NFS).
+> +        */
+> +       if (file_in->f_op->clone_file_range) {
+> +               ret = file_in->f_op->clone_file_range(file_in, pos_in,
+> +                               file_out, pos_out, len);
+> +               if (ret == 0)
+> +                       return len;
+> +       }
+> +
+> +       if (file_out->f_op->copy_file_range) {
+> +               ret = file_out->f_op->copy_file_range(file_in, pos_in, file_out,
+> +                                                     pos_out, len, flags);
+> +               if (ret != -EOPNOTSUPP)
+> +                       return ret;
+> +       }
+> +
+> +       ret = do_splice_direct(file_in, &pos_in, file_out, &pos_out,
+> +                       len > MAX_RW_COUNT ? MAX_RW_COUNT : len, splice_flags);
+> +       return ret;
+> +}
+> +
+>  /*
+>   * copy_file_range() differs from regular file read and write in that it
+>   * specifically allows return partial success.  When it does so is up to
+> @@ -1554,9 +1590,6 @@ ssize_t vfs_copy_file_range(struct file *file_in, loff_t pos_in,
+>         struct inode *inode_out = file_inode(file_out);
+>         ssize_t ret;
+>
+> -       if (flags != 0)
+> -               return -EINVAL;
+> -
+>         if (S_ISDIR(inode_in->i_mode) || S_ISDIR(inode_out->i_mode))
+>                 return -EISDIR;
+>         if (!S_ISREG(inode_in->i_mode) || !S_ISREG(inode_out->i_mode))
+> @@ -1579,35 +1612,11 @@ ssize_t vfs_copy_file_range(struct file *file_in, loff_t pos_in,
+>         if (inode_in->i_sb != inode_out->i_sb)
+>                 return -EXDEV;
+>
+> -       if (len == 0)
+> -               return 0;
+> -
+>         file_start_write(file_out);
+>
+> -       /*
+> -        * Try cloning first, this is supported by more file systems, and
+> -        * more efficient if both clone and copy are supported (e.g. NFS).
+> -        */
+> -       if (file_in->f_op->clone_file_range) {
+> -               ret = file_in->f_op->clone_file_range(file_in, pos_in,
+> -                               file_out, pos_out, len);
+> -               if (ret == 0) {
+> -                       ret = len;
+> -                       goto done;
+> -               }
+> -       }
+> -
+> -       if (file_out->f_op->copy_file_range) {
+> -               ret = file_out->f_op->copy_file_range(file_in, pos_in, file_out,
+> -                                                     pos_out, len, flags);
+> -               if (ret != -EOPNOTSUPP)
+> -                       goto done;
+> -       }
+> -
+> -       ret = do_splice_direct(file_in, &pos_in, file_out, &pos_out,
+> -                       len > MAX_RW_COUNT ? MAX_RW_COUNT : len, 0);
+> +       ret = do_copy_file_range(file_in, pos_in,
+> +                       file_out, pos_out, len, flags, 0);
+>
+> -done:
+>         if (ret > 0) {
+>                 fsnotify_access(file_in);
+>                 add_rchar(current, ret);
+> --
+> 2.16.3
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-unionfs" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
