@@ -1,72 +1,43 @@
 Return-Path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mx2.suse.de ([195.135.220.15]:55645 "EHLO mx2.suse.de"
+Received: from mx2.suse.de ([195.135.220.15]:59403 "EHLO mx2.suse.de"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1756394AbeEJB6c (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 9 May 2018 21:58:32 -0400
+        id S964943AbeEITId (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Wed, 9 May 2018 15:08:33 -0400
+Subject: Re: [PATCH 2/4] copy_file_range: Perform splice if in/out SB are not
+ same
+References: <20180508212405.15297-1-rgoldwyn@suse.de>
+ <20180508212405.15297-3-rgoldwyn@suse.de>
+ <a0ed27fb-c085-f1fc-733b-964db4ca20f4@redhat.com>
 From: Goldwyn Rodrigues <rgoldwyn@suse.de>
-Subject: [PATCH 2/4] copy_file_range: Perform splice if in/out SB are not same
-Date: Wed,  9 May 2018 20:58:18 -0500
-Message-Id: <20180510015820.17700-3-rgoldwyn@suse.de>
-In-Reply-To: <20180510015820.17700-1-rgoldwyn@suse.de>
-References: <20180510015820.17700-1-rgoldwyn@suse.de>
+Message-ID: <4afb2ef0-7cf9-a2c4-4ad8-d91f9ea3d3df@suse.de>
+Date: Wed, 9 May 2018 14:08:27 -0500
+MIME-Version: 1.0
+In-Reply-To: <a0ed27fb-c085-f1fc-733b-964db4ca20f4@redhat.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-unionfs-owner@vger.kernel.org
-To: linux-fsdevel@vger.kernel.org
-Cc: hch@lst.de, linux-unionfs@vger.kernel.org, david@fromorbit.com, viro@zeniv.linux.org.uk, Goldwyn Rodrigues <rgoldwyn@suse.com>
+To: Florian Weimer <fweimer@redhat.com>, linux-fsdevel@vger.kernel.org
+Cc: hch@lst.de, smfrench@gmail.com, linux-unionfs@vger.kernel.org, david@fromorbit.com, Goldwyn Rodrigues <rgoldwyn@suse.com>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-From: Goldwyn Rodrigues <rgoldwyn@suse.com>
 
-While performing copy_file_range(), if superblocks of file_in and
-file_out don't match, instead of returning -EXDEV, perform
-splice for a faster copy.
 
-Signed-off-by: Goldwyn Rodrigues <rgoldwyn@suse.com>
-Reviewed-by: Amir Goldstein <amir73il@gmail.com>
----
- fs/read_write.c | 11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
+On 05/08/2018 04:57 PM, Florian Weimer wrote:
+> On 05/08/2018 11:24 PM, Goldwyn Rodrigues wrote:
+>> While performing copy_file_range(), if superblocks of file_in and
+>> file_out don't match, instead of returning -EXDEV, perform
+>> splice for a faster copy.
+> 
+> We have a userspace emulation in glibc which used to be quite faithful,
+> including the EXDEV error (which is not strictly necessary to produce).
+> 
+> Should we change glibc to perform a userspace copy if the system call
+> returns EXDEV due to an older kernel?
+> 
 
-diff --git a/fs/read_write.c b/fs/read_write.c
-index 525f2a67e15a..1b8fc9eada69 100644
---- a/fs/read_write.c
-+++ b/fs/read_write.c
-@@ -1545,11 +1545,16 @@ static ssize_t do_copy_file_range(struct file *file_in, loff_t pos_in,
- 			    struct file *file_out, loff_t pos_out,
- 			    size_t len, unsigned int flags)
- {
-+	struct inode *inode_in = file_inode(file_in);
-+	struct inode *inode_out = file_inode(file_out);
- 	ssize_t ret = 0;
- 
- 	if (len == 0)
- 		return 0;
- 
-+	if (inode_in->i_sb != inode_out->i_sb)
-+		goto splice;
-+
- 	/*
- 	 * Try cloning first, this is supported by more file systems, and
- 	 * more efficient if both clone and copy are supported (e.g. NFS).
-@@ -1567,7 +1572,7 @@ static ssize_t do_copy_file_range(struct file *file_in, loff_t pos_in,
- 		if (ret != -EOPNOTSUPP)
- 			return ret;
- 	}
--
-+splice:
- 	ret = do_splice_direct(file_in, &pos_in, file_out, &pos_out,
- 			len > MAX_RW_COUNT ? MAX_RW_COUNT : len, 0);
- 	return ret;
-@@ -1607,10 +1612,6 @@ ssize_t vfs_copy_file_range(struct file *file_in, loff_t pos_in,
- 	    (file_out->f_flags & O_APPEND))
- 		return -EBADF;
- 
--	/* this could be relaxed once a method supports cross-fs copies */
--	if (inode_in->i_sb != inode_out->i_sb)
--		return -EXDEV;
--
- 	file_start_write(file_out);
- 
- 	ret = do_copy_file_range(file_in, pos_in,
+I don't seen any purpose. The user would anyways have to perform a copy
+if it receives -EXDEV.
+
 -- 
-2.16.3
-
+Goldwyn
