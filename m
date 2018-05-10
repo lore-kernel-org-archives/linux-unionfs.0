@@ -1,60 +1,44 @@
 Return-Path: <vgoyal@redhat.com>
-Date: Thu, 10 May 2018 15:39:13 -0400
+Date: Thu, 10 May 2018 11:32:32 -0400
 From: Vivek Goyal <vgoyal@redhat.com>
 Subject: Re: [PATCH v15 10/30] ovl: Modify ovl_lookup() and friends to lookup
  metacopy dentry
-Message-ID: <20180510193913.GA11152@redhat.com>
+Message-ID: <20180510153232.GA7651@redhat.com>
 References: <20180507174102.24086-1-vgoyal@redhat.com>
  <20180507174102.24086-11-vgoyal@redhat.com>
  <CAJfpegvzDAMx66TMhHTacYEUpowRcEYKkFuhD+TQoV83MfXPmQ@mail.gmail.com>
+ <CAJfpegtizFNe3tm7reYMYGBsmD-dzZTHNsSGrb5BZ_gaeu2Sfw@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <CAJfpegvzDAMx66TMhHTacYEUpowRcEYKkFuhD+TQoV83MfXPmQ@mail.gmail.com>
+In-Reply-To: <CAJfpegtizFNe3tm7reYMYGBsmD-dzZTHNsSGrb5BZ_gaeu2Sfw@mail.gmail.com>
 To: Miklos Szeredi <miklos@szeredi.hu>
 Cc: overlayfs <linux-unionfs@vger.kernel.org>, Amir Goldstein <amir73il@gmail.com>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-On Thu, May 10, 2018 at 11:19:23AM +0200, Miklos Szeredi wrote:
-
+On Thu, May 10, 2018 at 11:36:16AM +0200, Miklos Szeredi wrote:
 [..]
-> > @@ -925,18 +943,36 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
-> >                  * When "verify_lower" feature is enabled, do not merge with a
-> >                  * lower dir that does not match a stored origin xattr. In any
-> >                  * case, only verified origin is used for index lookup.
-> > +                *
-> > +                * For non-dir dentry, make sure dentry found by lookup
-> > +                * matches the origin stored in upper. Otherwise its an
-> > +                * error.
+> > We also need to check file type here, only regular file makes sense as
+> > metacopy, so if it's something else, then get out with EIO.
 > 
-> Umm, why we need to be so strict?  This would  break the case where
-> the layers are copied with xattr intact, but the origin pointer will
-> obviously be "wrong", which shouldn't be a problem, since that's only
-> needed to get a unique st_ino, nothing else.
+> I meant file type of *data* inode.  Type of metacopy inode is already
+> checked by ovl_check_metacopy_xattr().
 
-So I have few questions at this point of time, I am not clear about what
-should be the behavior.
+Hi Miklos,
 
-- Layer copying does not work with index=on. So if index is on, it is fair
-  to assume that layer copying will not be allowed and that configuration
-  is not supported. If yes, then we could enforce this check with index=on
-  and not in other cases.
+IIUC, ovl_lookup_single() will make sure we don't return directory dentry
+for a metacopy upper (After your suggested changes).
 
-- If we do not enforce ORIGIN verification for non-dir metacopy and
-  overlay is mounted again after layer copy, then before data copy up we
-  will report inode number of lowerstack[0]. And after data copy up it
-  could be inode number of any of the following.
+        if (last_element) {
+                if (d->metacopy) {
+                        d->stop = true;
+                        goto put_and_out;
+                }
+                d->is_dir = true;
+        }
 
-  A. lower inode (if previous overlay dentry has not been flushed, it will
-  		  have CONST_INO set.).
-  B. upper inode (if previous overlay dentry got flushed out, and new
-     lookup could not decode ORIGIN).
-
-  C. older lower inode (if previous overlay dentry got flushed out, and
-     new lookup decoded previous inode before layer copy up.)
-
-I guess both B and C will happen with existing code even with normal copy
-up. So this behavior with metacopy files might not be a huge concern.
+If that's the case, then we probably don't need additional check in
+ovl_lookup().
 
 Thanks
 Vivek
