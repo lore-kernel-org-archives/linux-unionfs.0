@@ -1,128 +1,81 @@
-Return-Path: <amir73il@gmail.com>
-Return-Path: <amir73il@gmail.com>
-From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH v2 1/3] ovl: use d_instantiate_new() to instantiate a new dentry
-Date: Sat, 12 May 2018 12:17:09 +0300
-Message-Id: <1526116631-24186-2-git-send-email-amir73il@gmail.com>
-In-Reply-To: <1526116631-24186-1-git-send-email-amir73il@gmail.com>
-References: <1526116631-24186-1-git-send-email-amir73il@gmail.com>
+Return-Path: <cgxu519@gmx.com>
+Content-Type: text/plain;
+	charset=gb2312
+Mime-Version: 1.0 (Mac OS X Mail 11.3 \(3445.6.18\))
+Subject: Re: [PATCH v5] ovl: Check link ability between upperdir and workdir
+From: "cgxu519@gmx.com" <cgxu519@gmx.com>
+In-Reply-To: <CAJfpegu+o2JmDsi-S_ggm=Nyg73j7mxe8016+UAovR-NZi9YuQ@mail.gmail.com>
+Date: Fri, 11 May 2018 14:26:08 +0800
+Content-Transfer-Encoding: quoted-printable
+Message-Id: <CB390F3F-4506-4D7F-ABDF-A3421B9C5AF7@gmx.com>
+References: <1516464659-130410-1-git-send-email-cgxu519@icloud.com>
+ <CAOQ4uxge28c0TmCbP+pS_nxQD1CpygEHUNZLAtdQjNHzd9KpyQ@mail.gmail.com>
+ <CAJfpegsDRMutL39Viep8yvVSYUxdGdrJpe9b2yUstTkt_p5Ygw@mail.gmail.com>
+ <B7E9E89A-DFFD-4E87-987F-591856C26EAC@gmx.com>
+ <CAJfpegu+o2JmDsi-S_ggm=Nyg73j7mxe8016+UAovR-NZi9YuQ@mail.gmail.com>
 To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: Al Viro <viro@zeniv.linux.org.uk>, linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
+Cc: "cgxu519@gmx.com" <cgxu519@gmx.com>, Amir Goldstein <amir73il@gmail.com>, Chengguang Xu <cgxu519@icloud.com>, overlayfs <linux-unionfs@vger.kernel.org>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-Currently, there is a small window where ovl_obtain_alias() can
-race with ovl_instantiate() and create two aliases for an overlay
-directory inode, see Al's explanation in this post:
-https://marc.info/?l=linux-fsdevel&m=152599914515224&w=2
+=D4=DA 2018=C4=EA4=D4=C24=C8=D5=A3=AC=CF=C2=CE=E75:30=A3=ACMiklos =
+Szeredi <miklos@szeredi.hu> =D0=B4=B5=C0=A3=BA
+>=20
+> On Sun, Apr 1, 2018 at 7:56 AM, cgxu519@gmx.com <cgxu519@gmx.com> =
+wrote:
+>> =D4=DA 2018=C4=EA3=D4=C229=C8=D5=A3=AC=CF=C2=CE=E78:54=A3=ACMiklos =
+Szeredi <miklos@szeredi.hu> =D0=B4=B5=C0=A3=BA
+>>>=20
+>>> On Sat, Jan 20, 2018 at 7:32 PM, Amir Goldstein <amir73il@gmail.com> =
+wrote:
+>>>> On Sat, Jan 20, 2018 at 6:10 PM, Chengguang Xu <cgxu519@icloud.com> =
+wrote:
+>>>>> Inspired by encountering unexpected write error with
+>>>>> error code -EXDEV when upperdir and workdir having
+>>>>> different project quotas. The reason of the error is
+>>>>> project quota asks files in it strictly inherit
+>>>>> project id of it=A1=AFs own, so rename/link operations
+>>>>> between those directories will fail and it may cause
+>>>>> failure during copy-up/index-link operations in overlayfs.
+>>>>>=20
+>>>>> So if upper filesystem supports O_TMPFILE, try to check
+>>>>> link ability between upperdir and workdir and if check
+>>>>> fails, print a proper warning message to indicate potential
+>>>>> possibility of write failure.
+>>>>>=20
+>>>>> The failure of the check does not directly lead to
+>>>>> read-only mounting because in some use cases may only
+>>>>> write to upperdir and do not modify anything in lowerdirs.
+>>>=20
+>>> Thinking about a bit more: this assumes that mounter has create
+>>> permission under upper layer root.  That assumption would be true in
+>>> ordinary setups.  But if we break that assumption and deny create in
+>>> the root of the upper layer, we could still have a perfectly working
+>>> setup (as long as there's no need to copy-up anything in that
+>>> directory).
+>>=20
+>> Isn=A1=AFt it similar to the check which upperdir and workdir must be =
+in same filesystem?
+>> If we set project quota then the related directories will behave like =
+sub-filesystem.
+>=20
+>=20
+> I agree with that.
+>=20
+> What I'm saying is that your implementation may give a false positive
+> (i.e. warning on an otherwise perfectly working setup).
 
-This patch fixes the race, by using the d_instantiate_new() helper.
+I think we can check error code(-EXDEV) to filter out the case of false =
+positive,
+if it makes sense, I will send revised patch.
 
-Another logic change by this patch is that if there is an
-inconcsistency and a new created upper inode apears to already
-exist in icache (hashed by the same real upper inode), we will
-export this error to user instead of silently not hashing the new
-inode.
+>=20
+> Worse yet, it may change the result of the tmpfile test in such a
+> case, which is a regression.
 
-Backporting only makes sense for v4.16 where NFS export was introduced.
+Yes, it=A1=AFs better to keep tmpfile test as it is.
 
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: <stable@vger.kernel.org> #v4.16
-Signed-off-by: Amir Goldstein <amir73il@gmail.com>
----
- fs/overlayfs/dir.c       | 27 +++++++++++++++++----------
- fs/overlayfs/inode.c     |  6 ++++++
- fs/overlayfs/overlayfs.h |  1 +
- 3 files changed, 24 insertions(+), 10 deletions(-)
+>=20
+> So I think the implementation needs to be rethought.
 
-diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
-index 47dc980e8b33..c41825a5ed5f 100644
---- a/fs/overlayfs/dir.c
-+++ b/fs/overlayfs/dir.c
-@@ -183,23 +183,30 @@ static int ovl_set_opaque(struct dentry *dentry, struct dentry *upperdentry)
- }
- 
- /* Common operations required to be done after creation of file on upper */
--static void ovl_instantiate(struct dentry *dentry, struct inode *inode,
--			    struct dentry *newdentry, bool hardlink)
-+static int ovl_instantiate(struct dentry *dentry, struct inode *inode,
-+			   struct dentry *newdentry, bool hardlink)
- {
- 	ovl_dir_modified(dentry->d_parent, false);
--	ovl_copyattr(d_inode(newdentry), inode);
- 	ovl_dentry_set_upper_alias(dentry);
- 	if (!hardlink) {
--		ovl_inode_update(inode, newdentry);
-+		int err;
-+
-+		ovl_inode_init(inode, newdentry, NULL);
-+		err = ovl_insert_inode_locked(inode, d_inode(newdentry));
-+		if (err)
-+			return err;
-+
-+		d_instantiate_new(dentry, inode);
- 	} else {
- 		WARN_ON(ovl_inode_real(inode) != d_inode(newdentry));
- 		dput(newdentry);
- 		inc_nlink(inode);
--	}
--	d_instantiate(dentry, inode);
--	/* Force lookup of new upper hardlink to find its lower */
--	if (hardlink)
-+		d_instantiate(dentry, inode);
-+		/* Force lookup of new upper hardlink to find its lower */
- 		d_drop(dentry);
-+	}
-+
-+	return 0;
- }
- 
- static bool ovl_type_merge(struct dentry *dentry)
-@@ -238,7 +245,7 @@ static int ovl_create_upper(struct dentry *dentry, struct inode *inode,
- 		ovl_set_opaque(dentry, newdentry);
- 	}
- 
--	ovl_instantiate(dentry, inode, newdentry, !!hardlink);
-+	err = ovl_instantiate(dentry, inode, newdentry, !!hardlink);
- 	newdentry = NULL;
- out_dput:
- 	dput(newdentry);
-@@ -439,7 +446,7 @@ static int ovl_create_over_whiteout(struct dentry *dentry, struct inode *inode,
- 		if (err)
- 			goto out_cleanup;
- 	}
--	ovl_instantiate(dentry, inode, newdentry, !!hardlink);
-+	err = ovl_instantiate(dentry, inode, newdentry, !!hardlink);
- 	newdentry = NULL;
- out_dput2:
- 	dput(upper);
-diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
-index 7abcf96e94fc..70c966b1bb5a 100644
---- a/fs/overlayfs/inode.c
-+++ b/fs/overlayfs/inode.c
-@@ -741,6 +741,12 @@ static bool ovl_verify_inode(struct inode *inode, struct dentry *lowerdentry,
- 	return true;
- }
- 
-+int ovl_insert_inode_locked(struct inode *inode, struct inode *realinode)
-+{
-+	return insert_inode_locked4(inode, (unsigned long) realinode,
-+				    ovl_inode_test, realinode);
-+}
-+
- struct inode *ovl_lookup_inode(struct super_block *sb, struct dentry *real,
- 			       bool is_upper)
- {
-diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-index caaa47cea2aa..dd320be86600 100644
---- a/fs/overlayfs/overlayfs.h
-+++ b/fs/overlayfs/overlayfs.h
-@@ -343,6 +343,7 @@ int ovl_update_time(struct inode *inode, struct timespec *ts, int flags);
- bool ovl_is_private_xattr(const char *name);
- 
- struct inode *ovl_new_inode(struct super_block *sb, umode_t mode, dev_t rdev);
-+int ovl_insert_inode_locked(struct inode *inode, struct inode *realinode);
- struct inode *ovl_lookup_inode(struct super_block *sb, struct dentry *real,
- 			       bool is_upper);
- struct inode *ovl_get_inode(struct super_block *sb, struct dentry *upperdentry,
--- 
-2.7.4
+Thanks,
+Chengguang.
