@@ -1,164 +1,124 @@
-From: Jeff Layton <jlayton@kernel.org>
-Subject: Re: [PATCH v2 32/35] Partially revert "locks: fix file locking on
- overlayfs"
-Date: Tue, 08 May 2018 11:15:47 -0400
-Message-ID: <129bf5c889e3317d6372a2f251cbd56458347224.camel@kernel.org>
+From: Vivek Goyal <vgoyal@redhat.com>
+Subject: Re: [PATCH v2 22/35] vfs: don't open real
+Date: Fri, 11 May 2018 14:54:30 -0400
+Message-ID: <20180511185430.GE6044@redhat.com>
 References: <20180507083807.28792-1-mszeredi@redhat.com>
-         <20180507083807.28792-33-mszeredi@redhat.com>
+ <20180507083807.28792-23-mszeredi@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180507083807.28792-33-mszeredi@redhat.com>
+Content-Disposition: inline
+In-Reply-To: <20180507083807.28792-23-mszeredi@redhat.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Miklos Szeredi <mszeredi@redhat.com>, linux-unionfs@vger.kernel.org
-Cc: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, Al Viro <viro@zeniv.linux.org.uk>
+To: Miklos Szeredi <mszeredi@redhat.com>
+Cc: linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, Al Viro <viro@zeniv.linux.org.uk>, linux-security-module@vger.kernel.org, Daniel J Walsh <dwalsh@redhat.com>, Paul Moore <pmoore@redhat.com>, Stephen Smalley <sds@tycho.nsa.gov>
 List-Id: linux-unionfs@vger.kernel.org
 
-On Mon, 2018-05-07 at 10:38 +0200, Miklos Szeredi wrote:
-> This partially reverts commit c568d68341be7030f5647def68851e469b21ca11.
+On Mon, May 07, 2018 at 10:37:54AM +0200, Miklos Szeredi wrote:
+> Let overlayfs do its thing when opening a file.
 > 
-> Overlayfs files will now automatically get the correct locks, no need to
-> hack overlay support in VFS.
-> 
-> It is a partial revert, because it leaves the locks_inode() calls in place
-> and defines locks_inode() to file_inode().  We could revert those as well,
-> but it would be unnecessary code churn and it makes sense to document that
-> we are getting the inode for locking purposes.
+> This enables stacking and fixes the corner case when a file is opened for
+> read, modified through a writable open, and data is read from the read-only
+> file.  After this patch the read-only open will not return stale data even
+> in this case.
+
+[CC Dan, Steven, Paul, linux-security-module list]
+
+Hi Miklos,
+
+I was running selinux-testsuite and one of the tests seems to fail. I
+think this is side effect of installing overlay inode in file->f_inode
+instead of real underlying inode.
+
+Following test is failing.
+
+sub test_90_1 {
+    print "Attempting to enter domain with bad entrypoint, should fail.\n";
+    $result = system(
+"runcon -t test_overlay_client_t -l s0:c10,c20 $basedir/container1/merged/badentrypoint >/dev/null 2>&1"
+    );
+    ok($result);
+    return;
+}
+
+Basically, this test has an executable named "badentrypoint" with selinux
+label "unconfined_u:object_r:test_overlay_files_ro_t:s0". And we mount
+overlay with context=unconfined_u:object_r:test_overlay_files_rwx_t:s0:c10,c20
+
+So effectively overlay inode of "badentrypoint" now gets the label
+specified by "context=".
+
+I think intent of test is that this file's real label is "...ro_t". That
+means this file is not supposed to be executed and any attempt to execute
+it should be denied.
+
+Currently test works and execution fails with following avc.
+
+AVC avc:  denied  { entrypoint } for  pid=1425 comm="runcon" path="/root/git/selinux-testsuite/tests/overlay/container1/merged/badentrypoint" dev="dm-0" ino=34515261 scontext=unconfined_u:unconfined_r:test_overlay_client_t:s0:c10,c20 tcontext=unconfined_u:object_r:test_overlay_files_ro_t:s0 tclass=file permissive=0
+
+But with new patches, this test starts passing. 
+
+I think currently selinux_bprm_set_creds() returns error. It does
+checks on inode returned by file_inode() and as of now that inode is
+real inode and that inode has real lable of "...ro_t" and permission
+to execute that file is denied.
+
+But after the patches file_inode() returns overlay inode. Which has
+the label specified by context= mount option "...rwx_t". And that
+label allows executing file, so file execution is not blocked by
+selinux.
+
+I feel that even now code is working accidently. Ideally our theme was
+that task's credential as checked against overlay inode and mounter's
+creds are checked against underlying inode to determine if certain
+permission is allowed. So ideally mounter should not have been allwed
+to execute a file of type "...ro_t". But we don't have that workflow
+and VFS calls into selinux and selinux checks the underlying file's
+label against task.
+
+It worked so far but the moment we install overlay inode in file, selinux
+checks it against overlay inode label and allows permission to execute and
+mounter is never checked against real inode.
+
+I am not sure what's the right solution. So far selinux is not aware of
+two levels of checks and if two levels of checks are to be performed, it
+somehow needs to be enforced by overlay and call same hook on two levels.
+
+Thought of atleast starting a conversation on this.
+
+Thanks
+Vivek
+
+
 > 
 > Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
 > ---
->  fs/locks.c              | 17 ++++++-----------
->  fs/overlayfs/super.c    |  2 +-
->  include/linux/fs.h      | 13 +------------
->  include/uapi/linux/fs.h |  1 -
->  4 files changed, 8 insertions(+), 25 deletions(-)
+>  fs/open.c | 7 +------
+>  1 file changed, 1 insertion(+), 6 deletions(-)
 > 
-> diff --git a/fs/locks.c b/fs/locks.c
-> index 9c0e5f3da66c..40bcbaaa3f52 100644
-> --- a/fs/locks.c
-> +++ b/fs/locks.c
-> @@ -139,11 +139,6 @@
->  #define IS_OFDLCK(fl)	(fl->fl_flags & FL_OFDLCK)
->  #define IS_REMOTELCK(fl)	(fl->fl_pid <= 0)
->  
-> -static inline bool is_remote_lock(struct file *filp)
-> -{
-> -	return likely(!(filp->f_path.dentry->d_sb->s_flags & SB_NOREMOTELOCK));
-> -}
+> diff --git a/fs/open.c b/fs/open.c
+> index 6e52fd6fea7c..244cd2ecfefd 100644
+> --- a/fs/open.c
+> +++ b/fs/open.c
+> @@ -897,13 +897,8 @@ EXPORT_SYMBOL(file_path);
+>  int vfs_open(const struct path *path, struct file *file,
+>  	     const struct cred *cred)
+>  {
+> -	struct dentry *dentry = d_real(path->dentry, NULL, file->f_flags, 0);
 > -
->  static bool lease_breaking(struct file_lock *fl)
->  {
->  	return fl->fl_flags & (FL_UNLOCK_PENDING | FL_DOWNGRADE_PENDING);
-> @@ -1875,7 +1870,7 @@ EXPORT_SYMBOL(generic_setlease);
->  int
->  vfs_setlease(struct file *filp, long arg, struct file_lock **lease, void **priv)
->  {
-> -	if (filp->f_op->setlease && is_remote_lock(filp))
-> +	if (filp->f_op->setlease)
->  		return filp->f_op->setlease(filp, arg, lease, priv);
->  	else
->  		return generic_setlease(filp, arg, lease, priv);
-> @@ -2022,7 +2017,7 @@ SYSCALL_DEFINE2(flock, unsigned int, fd, unsigned int, cmd)
->  	if (error)
->  		goto out_free;
->  
-> -	if (f.file->f_op->flock && is_remote_lock(f.file))
-> +	if (f.file->f_op->flock)
->  		error = f.file->f_op->flock(f.file,
->  					  (can_sleep) ? F_SETLKW : F_SETLK,
->  					  lock);
-> @@ -2048,7 +2043,7 @@ SYSCALL_DEFINE2(flock, unsigned int, fd, unsigned int, cmd)
->   */
->  int vfs_test_lock(struct file *filp, struct file_lock *fl)
->  {
-> -	if (filp->f_op->lock && is_remote_lock(filp))
-> +	if (filp->f_op->lock)
->  		return filp->f_op->lock(filp, F_GETLK, fl);
->  	posix_test_lock(filp, fl);
->  	return 0;
-> @@ -2191,7 +2186,7 @@ int fcntl_getlk(struct file *filp, unsigned int cmd, struct flock *flock)
->   */
->  int vfs_lock_file(struct file *filp, unsigned int cmd, struct file_lock *fl, struct file_lock *conf)
->  {
-> -	if (filp->f_op->lock && is_remote_lock(filp))
-> +	if (filp->f_op->lock)
->  		return filp->f_op->lock(filp, cmd, fl);
->  	else
->  		return posix_lock_file(filp, fl, conf);
-> @@ -2513,7 +2508,7 @@ locks_remove_flock(struct file *filp, struct file_lock_context *flctx)
->  	if (list_empty(&flctx->flc_flock))
->  		return;
->  
-> -	if (filp->f_op->flock && is_remote_lock(filp))
-> +	if (filp->f_op->flock)
->  		filp->f_op->flock(filp, F_SETLKW, &fl);
->  	else
->  		flock_lock_inode(inode, &fl);
-> @@ -2600,7 +2595,7 @@ EXPORT_SYMBOL(posix_unblock_lock);
->   */
->  int vfs_cancel_lock(struct file *filp, struct file_lock *fl)
->  {
-> -	if (filp->f_op->lock && is_remote_lock(filp))
-> +	if (filp->f_op->lock)
->  		return filp->f_op->lock(filp, F_CANCELLK, fl);
->  	return 0;
+> -	if (IS_ERR(dentry))
+> -		return PTR_ERR(dentry);
+> -
+>  	file->f_path = *path;
+> -	return do_dentry_open(file, d_backing_inode(dentry), NULL, cred);
+> +	return do_dentry_open(file, d_backing_inode(path->dentry), NULL, cred);
 >  }
-> diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-> index 7779fc610767..f2a83fabe2eb 100644
-> --- a/fs/overlayfs/super.c
-> +++ b/fs/overlayfs/super.c
-> @@ -1479,7 +1479,7 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
->  	sb->s_op = &ovl_super_operations;
->  	sb->s_xattr = ovl_xattr_handlers;
->  	sb->s_fs_info = ofs;
-> -	sb->s_flags |= SB_POSIXACL | SB_NOREMOTELOCK;
-> +	sb->s_flags |= SB_POSIXACL;
 >  
->  	err = -ENOMEM;
->  	root_dentry = d_make_root(ovl_new_inode(sb, S_IFDIR, 0));
-> diff --git a/include/linux/fs.h b/include/linux/fs.h
-> index ba3078693d4a..417e692a606a 100644
-> --- a/include/linux/fs.h
-> +++ b/include/linux/fs.h
-> @@ -1050,17 +1050,7 @@ struct file_lock_context {
->  
->  extern void send_sigio(struct fown_struct *fown, int fd, int band);
->  
-> -/*
-> - * Return the inode to use for locking
-> - *
-> - * For overlayfs this should be the overlay inode, not the real inode returned
-> - * by file_inode().  For any other fs file_inode(filp) and locks_inode(filp) are
-> - * equal.
-> - */
-> -static inline struct inode *locks_inode(const struct file *f)
-> -{
-> -	return f->f_path.dentry->d_inode;
-> -}
-> +#define locks_inode(f) file_inode(f)
->  
->  #ifdef CONFIG_FILE_LOCKING
->  extern int fcntl_getlk(struct file *, unsigned int, struct flock *);
-> @@ -1300,7 +1290,6 @@ extern int send_sigurg(struct fown_struct *fown);
->  
->  /* These sb flags are internal to the kernel */
->  #define SB_SUBMOUNT     (1<<26)
-> -#define SB_NOREMOTELOCK	(1<<27)
->  #define SB_NOSEC	(1<<28)
->  #define SB_BORN		(1<<29)
->  #define SB_ACTIVE	(1<<30)
-> diff --git a/include/uapi/linux/fs.h b/include/uapi/linux/fs.h
-> index d2a8313fabd7..2840ddcece73 100644
-> --- a/include/uapi/linux/fs.h
-> +++ b/include/uapi/linux/fs.h
-> @@ -134,7 +134,6 @@ struct inodes_stat_t {
->  
->  /* These sb flags are internal to the kernel */
->  #define MS_SUBMOUNT     (1<<26)
-> -#define MS_NOREMOTELOCK	(1<<27)
->  #define MS_NOSEC	(1<<28)
->  #define MS_BORN		(1<<29)
->  #define MS_ACTIVE	(1<<30)
-
-Acked-by: Jeff Layton <jlayton@kernel.org>
+>  /**
+> -- 
+> 2.14.3
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-unionfs" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
