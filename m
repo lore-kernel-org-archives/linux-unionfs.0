@@ -1,122 +1,118 @@
-Return-Path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mx2.suse.de ([195.135.220.15]:59662 "EHLO mx2.suse.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752537AbeENO4s (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 14 May 2018 10:56:48 -0400
-From: Goldwyn Rodrigues <rgoldwyn@suse.de>
-Subject: [PATCH 3/4] copy_file_range: splice with holes
-Date: Mon, 14 May 2018 09:56:36 -0500
-Message-Id: <20180514145637.22711-4-rgoldwyn@suse.de>
-In-Reply-To: <20180514145637.22711-1-rgoldwyn@suse.de>
-References: <20180514145637.22711-1-rgoldwyn@suse.de>
-Sender: linux-unionfs-owner@vger.kernel.org
-To: linux-fsdevel@vger.kernel.org
-Cc: hch@lst.de, linux-unionfs@vger.kernel.org, david@fromorbit.com, amir73il@gmail.com, Goldwyn Rodrigues <rgoldwyn@suse.com>
+Return-Path: <amir73il@gmail.com>
+Return-Path: <amir73il@gmail.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Subject: [PATCH v2 3/3] ovl: make ovl_create_real() cope with vfs_mkdir() safely
+Date: Sat, 12 May 2018 12:17:11 +0300
+Message-Id: <1526116631-24186-4-git-send-email-amir73il@gmail.com>
+In-Reply-To: <1526116631-24186-1-git-send-email-amir73il@gmail.com>
+References: <1526116631-24186-1-git-send-email-amir73il@gmail.com>
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: Al Viro <viro@zeniv.linux.org.uk>, linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
 List-ID: <linux-unionfs@vger.kernel.org>
 
-From: Goldwyn Rodrigues <rgoldwyn@suse.com>
+From: Al Viro <viro@zeniv.linux.org.uk>
 
-copy_file_range calls do_splice_direct() if fs->clone_file_range
-or fs->copy_file_range() is not available. However, do_splice_direct()
-converts holes to zeros. Detect holes in the file_in range, and
-create them in the corresponding file_out range.
+vfs_mkdir() may succeed and leave the dentry passed to it unhashed and
+negative.  ovl_create_real() is the last caller breaking when that
+happens.
 
-If there is already data present at the offset in file_out, attempt
-to punch a hole there. If the operation is not supported, fall
-back to performing splice on the whole range.
+Pass newdentry to ovl_create_real() by ref, so in the case above, if
+lookup finds a good dentry, newdentry will be replaced by the positive
+hashed one.
 
-Signed-off-by: Goldwyn Rodrigues <rgoldwyn@suse.com>
-Reviewed-by: Amir Goldstein <amir73il@gmail.com>
+[amir: split re-factoring to prep patch and pass dentry by ref]
+
+Signed-off-by: Al Viro <viro@zeniv.linux.org.uk>
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- fs/read_write.c | 60 +++++++++++++++++++++++++++++++++++++++++++++++++++++----
- 1 file changed, 56 insertions(+), 4 deletions(-)
+ fs/overlayfs/dir.c       | 24 +++++++++++++++++++++---
+ fs/overlayfs/overlayfs.h |  2 +-
+ fs/overlayfs/super.c     |  2 +-
+ 3 files changed, 23 insertions(+), 5 deletions(-)
 
-diff --git a/fs/read_write.c b/fs/read_write.c
-index 1b8fc9eada69..3c6a13101e6e 100644
---- a/fs/read_write.c
-+++ b/fs/read_write.c
-@@ -20,6 +20,7 @@
- #include <linux/compat.h>
- #include <linux/mount.h>
- #include <linux/fs.h>
-+#include <linux/falloc.h>
- #include "internal.h"
- 
- #include <linux/uaccess.h>
-@@ -1547,7 +1548,8 @@ static ssize_t do_copy_file_range(struct file *file_in, loff_t pos_in,
- {
- 	struct inode *inode_in = file_inode(file_in);
- 	struct inode *inode_out = file_inode(file_out);
--	ssize_t ret = 0;
-+	ssize_t ret = 0, total = 0;
-+	loff_t size, end;
- 
- 	if (len == 0)
- 		return 0;
-@@ -1572,10 +1574,60 @@ static ssize_t do_copy_file_range(struct file *file_in, loff_t pos_in,
- 		if (ret != -EOPNOTSUPP)
- 			return ret;
- 	}
-+
- splice:
--	ret = do_splice_direct(file_in, &pos_in, file_out, &pos_out,
--			len > MAX_RW_COUNT ? MAX_RW_COUNT : len, 0);
--	return ret;
-+	while (total < len) {
-+		end = vfs_llseek(file_in, pos_in, SEEK_HOLE);
-+
-+		/* Starting position is already in a hole */
-+		if (end == pos_in)
-+			goto hole;
-+		size = end - pos_in;
-+do_splice:
-+		if (size > len - total)
-+			size = len - total;
-+		ret = do_splice_direct(file_in, &pos_in, file_out,
-+				&pos_out, size, 0);
-+		if (ret < 0)
-+			goto out;
-+		total += ret;
-+		if (total == len)
-+			break;
-+hole:
-+		end = vfs_llseek(file_in, pos_in, SEEK_DATA);
-+		if (end < 0) {
-+			ret = end;
-+			goto out;
-+		}
-+		size = end - pos_in;
-+		if (size > len - total)
-+			size = len - total;
-+		/* Data on offset, punch holes */
-+		if (size && (i_size_read(file_out->f_inode) > pos_out)) {
-+			int mode = FALLOC_FL_PUNCH_HOLE | FALLOC_FL_KEEP_SIZE;
-+			ret = -EOPNOTSUPP;
-+			if (file_out->f_op->fallocate)
-+				ret = file_out->f_op->fallocate(file_out, mode,
-+						pos_out, size);
-+			if (ret < 0) {
-+				/*
-+				 * The filesystem does not support punching
-+				 * holes. Perform splice on the remaining range.
-+				 */
-+				if (ret == -EOPNOTSUPP) {
-+					size = len - total;
-+					goto do_splice;
-+				}
-+				goto out;
-+			}
-+		}
-+		pos_out += size;
-+		pos_in = end;
-+		total += size;
-+	}
-+
-+out:
-+	return total ? total : ret;
+diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
+index eb3fed19b1af..aeb40dcd9dd4 100644
+--- a/fs/overlayfs/dir.c
++++ b/fs/overlayfs/dir.c
+@@ -114,9 +114,10 @@ int ovl_cleanup_and_whiteout(struct dentry *workdir, struct inode *dir,
+ 	goto out;
  }
  
- /*
+-int ovl_create_real(struct inode *dir, struct dentry *newdentry,
++int ovl_create_real(struct inode *dir, struct dentry **pnewdentry,
+ 		    struct cattr *attr, struct dentry *hardlink, bool debug)
+ {
++	struct dentry *newdentry = *pnewdentry;
+ 	int err;
+ 
+ 	if (newdentry->d_inode)
+@@ -140,6 +141,23 @@ int ovl_create_real(struct inode *dir, struct dentry *newdentry,
+ 		case S_IFSOCK:
+ 			err = ovl_do_mknod(dir, newdentry,
+ 					   attr->mode, attr->rdev, debug);
++			/*
++			 * vfs_mkdir() may succeed and leave the dentry passed
++			 * to it unhashed and negative. If that happens, try to
++			 * lookup a new hashed and positive dentry.
++			 */
++			if (!err && unlikely(d_unhashed(newdentry))) {
++				struct dentry *d;
++
++				d = lookup_one_len(newdentry->d_name.name,
++						   newdentry->d_parent,
++						   newdentry->d_name.len);
++				if (IS_ERR(d))
++					return PTR_ERR(d);
++
++				dput(newdentry);
++				*pnewdentry = newdentry = d;
++			}
+ 			break;
+ 
+ 		case S_IFLNK:
+@@ -171,7 +189,7 @@ struct dentry *ovl_create_temp(struct dentry *workdir, struct cattr *attr,
+ 	if (IS_ERR(temp))
+ 		return temp;
+ 
+-	err = ovl_create_real(wdir, temp, attr, hardlink, true);
++	err = ovl_create_real(wdir, &temp, attr, hardlink, true);
+ 	if (err) {
+ 		dput(temp);
+ 		return ERR_PTR(err);
+@@ -256,7 +274,7 @@ static int ovl_create_upper(struct dentry *dentry, struct inode *inode,
+ 	err = PTR_ERR(newdentry);
+ 	if (IS_ERR(newdentry))
+ 		goto out_unlock;
+-	err = ovl_create_real(udir, newdentry, attr, hardlink, false);
++	err = ovl_create_real(udir, &newdentry, attr, hardlink, false);
+ 	if (err)
+ 		goto out_dput;
+ 
+diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
+index fc0b3e876636..2fb738d3ff6a 100644
+--- a/fs/overlayfs/overlayfs.h
++++ b/fs/overlayfs/overlayfs.h
+@@ -378,7 +378,7 @@ struct cattr {
+ 	umode_t mode;
+ 	const char *link;
+ };
+-int ovl_create_real(struct inode *dir, struct dentry *newdentry,
++int ovl_create_real(struct inode *dir, struct dentry **pnewdentry,
+ 		    struct cattr *attr,
+ 		    struct dentry *hardlink, bool debug);
+ struct dentry *ovl_create_temp(struct dentry *workdir, struct cattr *attr,
+diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+index 492d534058ae..d83c0543c03c 100644
+--- a/fs/overlayfs/super.c
++++ b/fs/overlayfs/super.c
+@@ -603,7 +603,7 @@ static struct dentry *ovl_workdir_create(struct ovl_fs *ofs,
+ 			goto retry;
+ 		}
+ 
+-		err = ovl_create_real(dir, work,
++		err = ovl_create_real(dir, &work,
+ 				      &(struct cattr){.mode = S_IFDIR | 0},
+ 				      NULL, true);
+ 		if (err)
 -- 
-2.16.3
-
+2.7.4
