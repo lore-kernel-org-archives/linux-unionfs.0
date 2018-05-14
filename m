@@ -1,171 +1,183 @@
-From: Vivek Goyal <vgoyal@redhat.com>
+From: Daniel Walsh <dwalsh@redhat.com>
 Subject: Re: [PATCH v2 22/35] vfs: don't open real
-Date: Mon, 14 May 2018 09:58:03 -0400
-Message-ID: <20180514135803.GA2777@redhat.com>
+Date: Mon, 14 May 2018 10:03:42 -0400
+Message-ID: <1569d80a-209f-ea51-8658-b471e5b883ce@redhat.com>
 References: <20180507083807.28792-1-mszeredi@redhat.com>
  <20180507083807.28792-23-mszeredi@redhat.com>
- <20180511185430.GE6044@redhat.com>
- <20180511194248.GF6044@redhat.com>
+ <20180511185430.GE6044@redhat.com> <20180511194248.GF6044@redhat.com>
+Reply-To: dwalsh@redhat.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
 In-Reply-To: <20180511194248.GF6044@redhat.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Miklos Szeredi <mszeredi@redhat.com>, Daniel J Walsh <dwalsh@redhat.com>
+To: Vivek Goyal <vgoyal@redhat.com>, Miklos Szeredi <mszeredi@redhat.com>
 Cc: linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, Al Viro <viro@zeniv.linux.org.uk>, linux-security-module@vger.kernel.org, Paul Moore <pmoore@redhat.com>, Stephen Smalley <sds@tycho.nsa.gov>
 List-Id: linux-unionfs@vger.kernel.org
 
-On Fri, May 11, 2018 at 03:42:48PM -0400, Vivek Goyal wrote:
+On 05/11/2018 03:42 PM, Vivek Goyal wrote:
 > On Fri, May 11, 2018 at 02:54:30PM -0400, Vivek Goyal wrote:
-> > On Mon, May 07, 2018 at 10:37:54AM +0200, Miklos Szeredi wrote:
-> > > Let overlayfs do its thing when opening a file.
-> > > 
-> > > This enables stacking and fixes the corner case when a file is opened for
-> > > read, modified through a writable open, and data is read from the read-only
-> > > file.  After this patch the read-only open will not return stale data even
-> > > in this case.
-> > 
-> > [CC Dan, Steven, Paul, linux-security-module list]
-> > 
-> > Hi Miklos,
-> > 
-> > I was running selinux-testsuite and one of the tests seems to fail. I
-> > think this is side effect of installing overlay inode in file->f_inode
-> > instead of real underlying inode.
-> > 
-> > Following test is failing.
-> > 
-> > sub test_90_1 {
-> >     print "Attempting to enter domain with bad entrypoint, should fail.\n";
-> >     $result = system(
-> > "runcon -t test_overlay_client_t -l s0:c10,c20 $basedir/container1/merged/badentrypoint >/dev/null 2>&1"
-> >     );
-> >     ok($result);
-> >     return;
-> > }
-> 
+>> On Mon, May 07, 2018 at 10:37:54AM +0200, Miklos Szeredi wrote:
+>>> Let overlayfs do its thing when opening a file.
+>>>
+>>> This enables stacking and fixes the corner case when a file is opened for
+>>> read, modified through a writable open, and data is read from the read-only
+>>> file.  After this patch the read-only open will not return stale data even
+>>> in this case.
+>> [CC Dan, Steven, Paul, linux-security-module list]
+>>
+>> Hi Miklos,
+>>
+>> I was running selinux-testsuite and one of the tests seems to fail. I
+>> think this is side effect of installing overlay inode in file->f_inode
+>> instead of real underlying inode.
+>>
+>> Following test is failing.
+>>
+>> sub test_90_1 {
+>>      print "Attempting to enter domain with bad entrypoint, should fail.\n";
+>>      $result = system(
+>> "runcon -t test_overlay_client_t -l s0:c10,c20 $basedir/container1/merged/badentrypoint >/dev/null 2>&1"
+>>      );
+>>      ok($result);
+>>      return;
+>> }
 > I am wondering, shouldn't do_open_execat() have failed. It should have called
 > into inode_permission(MAY_EXEC). And then ovl_inode_permission()
 > will in turn call inode_permission(realinode, MAY_EXEC) with mounter's
 > creds. Shouldn't selinux_inode_permission() have returned that mounter
 > does not have MAY_EXEC permission on inode.
-
-Ok, I noticed that current policy in tests gives exec permission to 
-mounter for ro_t file and that's why inode_permission(MAY_EXEC) does
-not fail.
-
-can_exec(test_overlay_mounter_t, test_overlay_files_ro_t)
-
-Talked to Dan and he mentioned that he was trying to test entrypoint
-failure (and not exec failure) and that's whey he might have allowed exec
-to mounter.
-
-I think that current entrypoint test's expectations are wrong.
-User process sees overlay inode lablel which is rwx_t and that means
-overlay layer will allow entrypoint into that executable. This will be the
-behavior on a normal file system where underlying file's label will be
-completely overridden by context=.
-
-So in my opinion, we should modify testsuite and not run this test with
-context= mounts.
-
-Only little thing to argue is that should we check if mounter has the
-permission for this entrypoint. And currently SELinux checks are not
-two level checks. So this can be implemented once SELinux is made
-aware of multiple levels (if we ever do that).
-
-Thanks
-Vivek
-
-> 
+>
 > Dan, I am wondering if this is a selinux policy issue? In my testing
 > on upstream kernel, do_open_execat() succeeds and it fails much later.
 > I am wondering why that's the case. Is it expected.
-> 
+>
 > Thanks
 > Vivek
-> 
-> 
-> > 
-> > Basically, this test has an executable named "badentrypoint" with selinux
-> > label "unconfined_u:object_r:test_overlay_files_ro_t:s0". And we mount
-> > overlay with context=unconfined_u:object_r:test_overlay_files_rwx_t:s0:c10,c20
-> > 
-> > So effectively overlay inode of "badentrypoint" now gets the label
-> > specified by "context=".
-> > 
-> > I think intent of test is that this file's real label is "...ro_t". That
-> > means this file is not supposed to be executed and any attempt to execute
-> > it should be denied.
-> > 
-> > Currently test works and execution fails with following avc.
-> > 
-> > AVC avc:  denied  { entrypoint } for  pid=1425 comm="runcon" path="/root/git/selinux-testsuite/tests/overlay/container1/merged/badentrypoint" dev="dm-0" ino=34515261 scontext=unconfined_u:unconfined_r:test_overlay_client_t:s0:c10,c20 tcontext=unconfined_u:object_r:test_overlay_files_ro_t:s0 tclass=file permissive=0
-> > 
-> > But with new patches, this test starts passing. 
-> > 
-> > I think currently selinux_bprm_set_creds() returns error. It does
-> > checks on inode returned by file_inode() and as of now that inode is
-> > real inode and that inode has real lable of "...ro_t" and permission
-> > to execute that file is denied.
-> > 
-> > But after the patches file_inode() returns overlay inode. Which has
-> > the label specified by context= mount option "...rwx_t". And that
-> > label allows executing file, so file execution is not blocked by
-> > selinux.
-> > 
-> > I feel that even now code is working accidently. Ideally our theme was
-> > that task's credential as checked against overlay inode and mounter's
-> > creds are checked against underlying inode to determine if certain
-> > permission is allowed. So ideally mounter should not have been allwed
-> > to execute a file of type "...ro_t". But we don't have that workflow
-> > and VFS calls into selinux and selinux checks the underlying file's
-> > label against task.
-> > 
-> > It worked so far but the moment we install overlay inode in file, selinux
-> > checks it against overlay inode label and allows permission to execute and
-> > mounter is never checked against real inode.
-> > 
-> > I am not sure what's the right solution. So far selinux is not aware of
-> > two levels of checks and if two levels of checks are to be performed, it
-> > somehow needs to be enforced by overlay and call same hook on two levels.
-> > 
-> > Thought of atleast starting a conversation on this.
-> > 
-> > Thanks
-> > Vivek
-> > 
-> > 
-> > > 
-> > > Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
-> > > ---
-> > >  fs/open.c | 7 +------
-> > >  1 file changed, 1 insertion(+), 6 deletions(-)
-> > > 
-> > > diff --git a/fs/open.c b/fs/open.c
-> > > index 6e52fd6fea7c..244cd2ecfefd 100644
-> > > --- a/fs/open.c
-> > > +++ b/fs/open.c
-> > > @@ -897,13 +897,8 @@ EXPORT_SYMBOL(file_path);
-> > >  int vfs_open(const struct path *path, struct file *file,
-> > >  	     const struct cred *cred)
-> > >  {
-> > > -	struct dentry *dentry = d_real(path->dentry, NULL, file->f_flags, 0);
-> > > -
-> > > -	if (IS_ERR(dentry))
-> > > -		return PTR_ERR(dentry);
-> > > -
-> > >  	file->f_path = *path;
-> > > -	return do_dentry_open(file, d_backing_inode(dentry), NULL, cred);
-> > > +	return do_dentry_open(file, d_backing_inode(path->dentry), NULL, cred);
-> > >  }
-> > >  
-> > >  /**
-> > > -- 
-> > > 2.14.3
-> > > 
-> > > --
-> > > To unsubscribe from this list: send the line "unsubscribe linux-unionfs" in
-> > > the body of a message to majordomo@vger.kernel.org
-> > > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+>
+>> Basically, this test has an executable named "badentrypoint" with selinux
+>> label "unconfined_u:object_r:test_overlay_files_ro_t:s0". And we mount
+>> overlay with context=unconfined_u:object_r:test_overlay_files_rwx_t:s0:c10,c20
+>>
+>> So effectively overlay inode of "badentrypoint" now gets the label
+>> specified by "context=".
+>>
+>> I think intent of test is that this file's real label is "...ro_t". That
+>> means this file is not supposed to be executed and any attempt to execute
+>> it should be denied.
+>>
+>> Currently test works and execution fails with following avc.
+>>
+>> AVC avc:  denied  { entrypoint } for  pid=1425 comm="runcon" path="/root/git/selinux-testsuite/tests/overlay/container1/merged/badentrypoint" dev="dm-0" ino=34515261 scontext=unconfined_u:unconfined_r:test_overlay_client_t:s0:c10,c20 tcontext=unconfined_u:object_r:test_overlay_files_ro_t:s0 tclass=file permissive=0
+>>
+>> But with new patches, this test starts passing.
+>>
+>> I think currently selinux_bprm_set_creds() returns error. It does
+>> checks on inode returned by file_inode() and as of now that inode is
+>> real inode and that inode has real lable of "...ro_t" and permission
+>> to execute that file is denied.
+>>
+>> But after the patches file_inode() returns overlay inode. Which has
+>> the label specified by context= mount option "...rwx_t". And that
+>> label allows executing file, so file execution is not blocked by
+>> selinux.
+>>
+>> I feel that even now code is working accidently. Ideally our theme was
+>> that task's credential as checked against overlay inode and mounter's
+>> creds are checked against underlying inode to determine if certain
+>> permission is allowed. So ideally mounter should not have been allwed
+>> to execute a file of type "...ro_t". But we don't have that workflow
+>> and VFS calls into selinux and selinux checks the underlying file's
+>> label against task.
+>>
+>> It worked so far but the moment we install overlay inode in file, selinux
+>> checks it against overlay inode label and allows permission to execute and
+>> mounter is never checked against real inode.
+>>
+>> I am not sure what's the right solution. So far selinux is not aware of
+>> two levels of checks and if two levels of checks are to be performed, it
+>> somehow needs to be enforced by overlay and call same hook on two levels.
+>>
+>> Thought of atleast starting a conversation on this.
+>>
+>> Thanks
+>> Vivek
+>>
+>>
+>>> Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
+>>> ---
+>>>   fs/open.c | 7 +------
+>>>   1 file changed, 1 insertion(+), 6 deletions(-)
+>>>
+>>> diff --git a/fs/open.c b/fs/open.c
+>>> index 6e52fd6fea7c..244cd2ecfefd 100644
+>>> --- a/fs/open.c
+>>> +++ b/fs/open.c
+>>> @@ -897,13 +897,8 @@ EXPORT_SYMBOL(file_path);
+>>>   int vfs_open(const struct path *path, struct file *file,
+>>>   	     const struct cred *cred)
+>>>   {
+>>> -	struct dentry *dentry = d_real(path->dentry, NULL, file->f_flags, 0);
+>>> -
+>>> -	if (IS_ERR(dentry))
+>>> -		return PTR_ERR(dentry);
+>>> -
+>>>   	file->f_path = *path;
+>>> -	return do_dentry_open(file, d_backing_inode(dentry), NULL, cred);
+>>> +	return do_dentry_open(file, d_backing_inode(path->dentry), NULL, cred);
+>>>   }
+>>>   
+>>>   /**
+>>> -- 
+>>> 2.14.3
+>>>
+>>> --
+>>> To unsubscribe from this list: send the line "unsubscribe linux-unionfs" in
+>>> the body of a message to majordomo@vger.kernel.org
+>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+Vivek and I talked, and I believe the SELinux check on Entrypoint is 
+wrong.  We should be checking on the overlay context not on the lower 
+level label for entrypoint.
+
+
+A little back ground.  Entrypoint check is looking at the target domain 
+whether it can be entered via the executable.
+
+
+For example we might have a label like apache_t and apache_exec_t, we 
+would write a rules like:
+
+
+allow apache_t apache_exec_t:file entrypoint.
+
+allow user_t apache_t:process transition
+
+allow user_t apache_file_t:file execute
+
+allow user_t bin_t:file execute
+
+
+These rules say a process running as user_t can execute files labeles 
+apache_exec_t and bin_t.  It also says that the user_t type can 
+transition or start a process as apache_t, BUT since we have the 
+entrypoint rule, the only type that user_t can transition to apache_t is 
+the apache_exec_t type.
+
+This would prevent user_t from executing something like
+
+runcon -t apache_t /bin/sh
+
+
+In the case of these tests currently SELinux is verifying that the 
+mounter is able to mount a directory with a different label rwx_t, and 
+then providing the user with content via this label. So the entrypoint 
+check should happen on the new context label, not on the lower label.  
+We need to fix the SELinux test suite to reflect the new behaviour.  I 
+think the current test and current code is actually a bug.
+
+
+would say that the apache_t process type can be entered via
