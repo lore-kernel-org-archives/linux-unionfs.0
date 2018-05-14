@@ -1,117 +1,72 @@
 Return-Path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mx3-rdu2.redhat.com ([66.187.233.73]:56616 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1752432AbeEGRlM (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 7 May 2018 13:41:12 -0400
-From: Vivek Goyal <vgoyal@redhat.com>
-Subject: [PATCH v15 11/30] ovl: Copy up meta inode data from lowest data inode
-Date: Mon,  7 May 2018 13:40:43 -0400
-Message-Id: <20180507174102.24086-12-vgoyal@redhat.com>
-In-Reply-To: <20180507174102.24086-1-vgoyal@redhat.com>
-References: <20180507174102.24086-1-vgoyal@redhat.com>
+Received: from mx2.suse.de ([195.135.220.15]:59652 "EHLO mx2.suse.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1754127AbeENO4q (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Mon, 14 May 2018 10:56:46 -0400
+From: Goldwyn Rodrigues <rgoldwyn@suse.de>
+Subject: [PATCH 2/4] copy_file_range: Perform splice if in/out SB are not same
+Date: Mon, 14 May 2018 09:56:35 -0500
+Message-Id: <20180514145637.22711-3-rgoldwyn@suse.de>
+In-Reply-To: <20180514145637.22711-1-rgoldwyn@suse.de>
+References: <20180514145637.22711-1-rgoldwyn@suse.de>
 Sender: linux-unionfs-owner@vger.kernel.org
-To: linux-unionfs@vger.kernel.org
-Cc: miklos@szeredi.hu, amir73il@gmail.com, vgoyal@redhat.com
+To: linux-fsdevel@vger.kernel.org
+Cc: hch@lst.de, linux-unionfs@vger.kernel.org, david@fromorbit.com, amir73il@gmail.com, Goldwyn Rodrigues <rgoldwyn@suse.com>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-So far lower could not be a meta inode. So whenever it was time to copy
-up data of a meta inode, we could copy it up from top most lower dentry.
+From: Goldwyn Rodrigues <rgoldwyn@suse.com>
 
-But now lower itself can be a metacopy inode. That means data copy up
-needs to take place from a data inode in metacopy inode chain. Find
-lower data inode in the chain and use that for data copy up.
+While performing copy_file_range(), if superblocks of file_in and
+file_out don't match, instead of returning -EXDEV, perform
+splice for a faster copy.
 
-Introduced a helper called ovl_path_lowerdata() to find the lower
-data inode chain.
-
+Signed-off-by: Goldwyn Rodrigues <rgoldwyn@suse.com>
 Reviewed-by: Amir Goldstein <amir73il@gmail.com>
-Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
 ---
- fs/overlayfs/copy_up.c   | 14 ++++++++++----
- fs/overlayfs/overlayfs.h |  1 +
- fs/overlayfs/util.c      | 14 ++++++++++++++
- 3 files changed, 25 insertions(+), 4 deletions(-)
+ fs/read_write.c | 11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
 
-diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
-index 7453913ca61b..5a865a4cf3d7 100644
---- a/fs/overlayfs/copy_up.c
-+++ b/fs/overlayfs/copy_up.c
-@@ -565,13 +565,15 @@ static int ovl_copy_up_inode(struct ovl_copy_up_ctx *c, struct dentry *temp)
- 	}
- 
- 	if (S_ISREG(c->stat.mode) && !c->metacopy) {
--		struct path upperpath;
-+		struct path upperpath, datapath;
- 
- 		ovl_path_upper(c->dentry, &upperpath);
- 		BUG_ON(upperpath.dentry != NULL);
- 		upperpath.dentry = temp;
- 
--		err = ovl_copy_up_data(&c->lowerpath, &upperpath, c->stat.size);
-+		ovl_path_lowerdata(c->dentry, &datapath);
-+		BUG_ON(datapath.dentry == NULL);
-+		err = ovl_copy_up_data(&datapath, &upperpath, c->stat.size);
- 		if (err)
- 			return err;
- 	}
-@@ -754,14 +756,18 @@ static bool ovl_need_meta_copy_up(struct dentry *dentry, umode_t mode,
- /* Copy up data of an inode which was copied up metadata only in the past. */
- static int ovl_copy_up_meta_inode_data(struct ovl_copy_up_ctx *c)
+diff --git a/fs/read_write.c b/fs/read_write.c
+index 525f2a67e15a..1b8fc9eada69 100644
+--- a/fs/read_write.c
++++ b/fs/read_write.c
+@@ -1545,11 +1545,16 @@ static ssize_t do_copy_file_range(struct file *file_in, loff_t pos_in,
+ 			    struct file *file_out, loff_t pos_out,
+ 			    size_t len, unsigned int flags)
  {
--	struct path upperpath;
-+	struct path upperpath, datapath;
- 	int err;
++	struct inode *inode_in = file_inode(file_in);
++	struct inode *inode_out = file_inode(file_out);
+ 	ssize_t ret = 0;
  
- 	ovl_path_upper(c->dentry, &upperpath);
- 	if (WARN_ON(upperpath.dentry == NULL))
- 		return -EIO;
+ 	if (len == 0)
+ 		return 0;
  
--	err = ovl_copy_up_data(&c->lowerpath, &upperpath, c->stat.size);
-+	ovl_path_lowerdata(c->dentry, &datapath);
-+	if (WARN_ON(datapath.dentry == NULL))
-+		return -EIO;
++	if (inode_in->i_sb != inode_out->i_sb)
++		goto splice;
 +
-+	err = ovl_copy_up_data(&datapath, &upperpath, c->stat.size);
- 	if (err)
- 		return err;
- 
-diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-index e8954fff1c45..ee66307451f0 100644
---- a/fs/overlayfs/overlayfs.h
-+++ b/fs/overlayfs/overlayfs.h
-@@ -223,6 +223,7 @@ bool ovl_dentry_weird(struct dentry *dentry);
- enum ovl_path_type ovl_path_type(struct dentry *dentry);
- void ovl_path_upper(struct dentry *dentry, struct path *path);
- void ovl_path_lower(struct dentry *dentry, struct path *path);
-+void ovl_path_lowerdata(struct dentry *dentry, struct path *path);
- enum ovl_path_type ovl_path_real(struct dentry *dentry, struct path *path);
- struct dentry *ovl_dentry_upper(struct dentry *dentry);
- struct dentry *ovl_dentry_lower(struct dentry *dentry);
-diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
-index ab9a8fae0f99..74b38e17a476 100644
---- a/fs/overlayfs/util.c
-+++ b/fs/overlayfs/util.c
-@@ -164,6 +164,20 @@ void ovl_path_lower(struct dentry *dentry, struct path *path)
+ 	/*
+ 	 * Try cloning first, this is supported by more file systems, and
+ 	 * more efficient if both clone and copy are supported (e.g. NFS).
+@@ -1567,7 +1572,7 @@ static ssize_t do_copy_file_range(struct file *file_in, loff_t pos_in,
+ 		if (ret != -EOPNOTSUPP)
+ 			return ret;
  	}
- }
+-
++splice:
+ 	ret = do_splice_direct(file_in, &pos_in, file_out, &pos_out,
+ 			len > MAX_RW_COUNT ? MAX_RW_COUNT : len, 0);
+ 	return ret;
+@@ -1607,10 +1612,6 @@ ssize_t vfs_copy_file_range(struct file *file_in, loff_t pos_in,
+ 	    (file_out->f_flags & O_APPEND))
+ 		return -EBADF;
  
-+void ovl_path_lowerdata(struct dentry *dentry, struct path *path)
-+{
-+	struct ovl_entry *oe = dentry->d_fsdata;
-+	int idx = oe->numlower - 1;
-+
-+	if (!oe->numlower) {
-+		*path = (struct path) { };
-+		return;
-+	}
-+
-+	path->mnt = oe->lowerstack[idx].layer->mnt;
-+	path->dentry = oe->lowerstack[idx].dentry;
-+}
-+
- enum ovl_path_type ovl_path_real(struct dentry *dentry, struct path *path)
- {
- 	enum ovl_path_type type = ovl_path_type(dentry);
+-	/* this could be relaxed once a method supports cross-fs copies */
+-	if (inode_in->i_sb != inode_out->i_sb)
+-		return -EXDEV;
+-
+ 	file_start_write(file_out);
+ 
+ 	ret = do_copy_file_range(file_in, pos_in,
 -- 
-2.13.6
+2.16.3
 
