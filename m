@@ -1,183 +1,146 @@
-From: Daniel Walsh <dwalsh@redhat.com>
-Subject: Re: [PATCH v2 22/35] vfs: don't open real
-Date: Mon, 14 May 2018 10:03:42 -0400
-Message-ID: <1569d80a-209f-ea51-8658-b471e5b883ce@redhat.com>
-References: <20180507083807.28792-1-mszeredi@redhat.com>
- <20180507083807.28792-23-mszeredi@redhat.com>
- <20180511185430.GE6044@redhat.com> <20180511194248.GF6044@redhat.com>
-Reply-To: dwalsh@redhat.com
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180511194248.GF6044@redhat.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Vivek Goyal <vgoyal@redhat.com>, Miklos Szeredi <mszeredi@redhat.com>
-Cc: linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, Al Viro <viro@zeniv.linux.org.uk>, linux-security-module@vger.kernel.org, Paul Moore <pmoore@redhat.com>, Stephen Smalley <sds@tycho.nsa.gov>
+From: Amir Goldstein <amir73il@gmail.com>
+Subject: [PATCH v3 1/4] ovl: use insert_inode_locked4() to hash a newly created inode
+Date: Tue, 15 May 2018 13:26:09 +0300
+Message-ID: <1526379972-20923-2-git-send-email-amir73il@gmail.com>
+References: <1526379972-20923-1-git-send-email-amir73il@gmail.com>
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <1526379972-20923-1-git-send-email-amir73il@gmail.com>
+Sender: stable-owner@vger.kernel.org
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: Al Viro <viro@zeniv.linux.org.uk>, Vivek Goyal <vgoyal@redhat.com>, linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, "#v4 . 16" <stable@vger.kernel.org>
 List-Id: linux-unionfs@vger.kernel.org
 
-On 05/11/2018 03:42 PM, Vivek Goyal wrote:
-> On Fri, May 11, 2018 at 02:54:30PM -0400, Vivek Goyal wrote:
->> On Mon, May 07, 2018 at 10:37:54AM +0200, Miklos Szeredi wrote:
->>> Let overlayfs do its thing when opening a file.
->>>
->>> This enables stacking and fixes the corner case when a file is opened for
->>> read, modified through a writable open, and data is read from the read-only
->>> file.  After this patch the read-only open will not return stale data even
->>> in this case.
->> [CC Dan, Steven, Paul, linux-security-module list]
->>
->> Hi Miklos,
->>
->> I was running selinux-testsuite and one of the tests seems to fail. I
->> think this is side effect of installing overlay inode in file->f_inode
->> instead of real underlying inode.
->>
->> Following test is failing.
->>
->> sub test_90_1 {
->>      print "Attempting to enter domain with bad entrypoint, should fail.\n";
->>      $result = system(
->> "runcon -t test_overlay_client_t -l s0:c10,c20 $basedir/container1/merged/badentrypoint >/dev/null 2>&1"
->>      );
->>      ok($result);
->>      return;
->> }
-> I am wondering, shouldn't do_open_execat() have failed. It should have called
-> into inode_permission(MAY_EXEC). And then ovl_inode_permission()
-> will in turn call inode_permission(realinode, MAY_EXEC) with mounter's
-> creds. Shouldn't selinux_inode_permission() have returned that mounter
-> does not have MAY_EXEC permission on inode.
->
-> Dan, I am wondering if this is a selinux policy issue? In my testing
-> on upstream kernel, do_open_execat() succeeds and it fails much later.
-> I am wondering why that's the case. Is it expected.
->
-> Thanks
-> Vivek
->
->
->> Basically, this test has an executable named "badentrypoint" with selinux
->> label "unconfined_u:object_r:test_overlay_files_ro_t:s0". And we mount
->> overlay with context=unconfined_u:object_r:test_overlay_files_rwx_t:s0:c10,c20
->>
->> So effectively overlay inode of "badentrypoint" now gets the label
->> specified by "context=".
->>
->> I think intent of test is that this file's real label is "...ro_t". That
->> means this file is not supposed to be executed and any attempt to execute
->> it should be denied.
->>
->> Currently test works and execution fails with following avc.
->>
->> AVC avc:  denied  { entrypoint } for  pid=1425 comm="runcon" path="/root/git/selinux-testsuite/tests/overlay/container1/merged/badentrypoint" dev="dm-0" ino=34515261 scontext=unconfined_u:unconfined_r:test_overlay_client_t:s0:c10,c20 tcontext=unconfined_u:object_r:test_overlay_files_ro_t:s0 tclass=file permissive=0
->>
->> But with new patches, this test starts passing.
->>
->> I think currently selinux_bprm_set_creds() returns error. It does
->> checks on inode returned by file_inode() and as of now that inode is
->> real inode and that inode has real lable of "...ro_t" and permission
->> to execute that file is denied.
->>
->> But after the patches file_inode() returns overlay inode. Which has
->> the label specified by context= mount option "...rwx_t". And that
->> label allows executing file, so file execution is not blocked by
->> selinux.
->>
->> I feel that even now code is working accidently. Ideally our theme was
->> that task's credential as checked against overlay inode and mounter's
->> creds are checked against underlying inode to determine if certain
->> permission is allowed. So ideally mounter should not have been allwed
->> to execute a file of type "...ro_t". But we don't have that workflow
->> and VFS calls into selinux and selinux checks the underlying file's
->> label against task.
->>
->> It worked so far but the moment we install overlay inode in file, selinux
->> checks it against overlay inode label and allows permission to execute and
->> mounter is never checked against real inode.
->>
->> I am not sure what's the right solution. So far selinux is not aware of
->> two levels of checks and if two levels of checks are to be performed, it
->> somehow needs to be enforced by overlay and call same hook on two levels.
->>
->> Thought of atleast starting a conversation on this.
->>
->> Thanks
->> Vivek
->>
->>
->>> Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
->>> ---
->>>   fs/open.c | 7 +------
->>>   1 file changed, 1 insertion(+), 6 deletions(-)
->>>
->>> diff --git a/fs/open.c b/fs/open.c
->>> index 6e52fd6fea7c..244cd2ecfefd 100644
->>> --- a/fs/open.c
->>> +++ b/fs/open.c
->>> @@ -897,13 +897,8 @@ EXPORT_SYMBOL(file_path);
->>>   int vfs_open(const struct path *path, struct file *file,
->>>   	     const struct cred *cred)
->>>   {
->>> -	struct dentry *dentry = d_real(path->dentry, NULL, file->f_flags, 0);
->>> -
->>> -	if (IS_ERR(dentry))
->>> -		return PTR_ERR(dentry);
->>> -
->>>   	file->f_path = *path;
->>> -	return do_dentry_open(file, d_backing_inode(dentry), NULL, cred);
->>> +	return do_dentry_open(file, d_backing_inode(path->dentry), NULL, cred);
->>>   }
->>>   
->>>   /**
->>> -- 
->>> 2.14.3
->>>
->>> --
->>> To unsubscribe from this list: send the line "unsubscribe linux-unionfs" in
->>> the body of a message to majordomo@vger.kernel.org
->>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Currently, there is a small window where ovl_obtain_alias() can
+race with ovl_instantiate() and create two different overlay inodes
+with the same underlying real non-dir non-hardlink inode.
 
-Vivek and I talked, and I believe the SELinux check on Entrypoint is 
-wrong.  We should be checking on the overlay context not on the lower 
-level label for entrypoint.
+The race requires an adversary to guess the file handle of the
+yet to be created upper inode and decode the guessed file handle
+after ovl_creat_real(), but before ovl_instantiate().
 
+This patch fixes the race, by using insert_inode_locked4() to add
+a newly created inode to icache.
 
-A little back ground.  Entrypoint check is looking at the target domain 
-whether it can be entered via the executable.
+If the newly created inode apears to already exist in icache (hashed
+by the same real upper inode), we export this error to user instead
+of silently not hashing the new inode.
 
+This race does not affect overlay directory inodes, because those
+are decoded via ovl_lookup_real() and not with ovl_obtain_alias(),
+so avoid using the new helper d_instantiate_new() to reduce backport
+dependencies.
 
-For example we might have a label like apache_t and apache_exec_t, we 
-would write a rules like:
+Backporting only makes sense for v4.16 where NFS export was introduced.
 
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: <stable@vger.kernel.org> #v4.16
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+---
+ fs/overlayfs/dir.c       | 24 ++++++++++++++++++------
+ fs/overlayfs/inode.c     | 18 ++++++++++++++++++
+ fs/overlayfs/overlayfs.h |  1 +
+ 3 files changed, 37 insertions(+), 6 deletions(-)
 
-allow apache_t apache_exec_t:file entrypoint.
-
-allow user_t apache_t:process transition
-
-allow user_t apache_file_t:file execute
-
-allow user_t bin_t:file execute
-
-
-These rules say a process running as user_t can execute files labeles 
-apache_exec_t and bin_t.  It also says that the user_t type can 
-transition or start a process as apache_t, BUT since we have the 
-entrypoint rule, the only type that user_t can transition to apache_t is 
-the apache_exec_t type.
-
-This would prevent user_t from executing something like
-
-runcon -t apache_t /bin/sh
-
-
-In the case of these tests currently SELinux is verifying that the 
-mounter is able to mount a directory with a different label rwx_t, and 
-then providing the user with content via this label. So the entrypoint 
-check should happen on the new context label, not on the lower label.  
-We need to fix the SELinux test suite to reflect the new behaviour.  I 
-think the current test and current code is actually a bug.
-
-
-would say that the apache_t process type can be entered via
+diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
+index 47dc980e8b33..62e6733b755c 100644
+--- a/fs/overlayfs/dir.c
++++ b/fs/overlayfs/dir.c
+@@ -183,14 +183,24 @@ static int ovl_set_opaque(struct dentry *dentry, struct dentry *upperdentry)
+ }
+ 
+ /* Common operations required to be done after creation of file on upper */
+-static void ovl_instantiate(struct dentry *dentry, struct inode *inode,
+-			    struct dentry *newdentry, bool hardlink)
++static int ovl_instantiate(struct dentry *dentry, struct inode *inode,
++			   struct dentry *newdentry, bool hardlink)
+ {
+ 	ovl_dir_modified(dentry->d_parent, false);
+-	ovl_copyattr(d_inode(newdentry), inode);
+ 	ovl_dentry_set_upper_alias(dentry);
+ 	if (!hardlink) {
+-		ovl_inode_update(inode, newdentry);
++		int err;
++
++		ovl_inode_init(inode, newdentry, NULL);
++		/*
++		 * XXX: if we ever use ovl_obtain_alias() to decode directory
++		 * file handles, need to use ovl_insert_inode_locked() and
++		 * d_instantiate_new() here to prevent ovl_obtain_alias()
++		 * from sneaking in before d_instantiate().
++		 */
++		err = ovl_insert_inode(inode, d_inode(newdentry));
++		if (err)
++			return err;
+ 	} else {
+ 		WARN_ON(ovl_inode_real(inode) != d_inode(newdentry));
+ 		dput(newdentry);
+@@ -200,6 +210,8 @@ static void ovl_instantiate(struct dentry *dentry, struct inode *inode,
+ 	/* Force lookup of new upper hardlink to find its lower */
+ 	if (hardlink)
+ 		d_drop(dentry);
++
++	return 0;
+ }
+ 
+ static bool ovl_type_merge(struct dentry *dentry)
+@@ -238,7 +250,7 @@ static int ovl_create_upper(struct dentry *dentry, struct inode *inode,
+ 		ovl_set_opaque(dentry, newdentry);
+ 	}
+ 
+-	ovl_instantiate(dentry, inode, newdentry, !!hardlink);
++	err = ovl_instantiate(dentry, inode, newdentry, !!hardlink);
+ 	newdentry = NULL;
+ out_dput:
+ 	dput(newdentry);
+@@ -439,7 +451,7 @@ static int ovl_create_over_whiteout(struct dentry *dentry, struct inode *inode,
+ 		if (err)
+ 			goto out_cleanup;
+ 	}
+-	ovl_instantiate(dentry, inode, newdentry, !!hardlink);
++	err = ovl_instantiate(dentry, inode, newdentry, !!hardlink);
+ 	newdentry = NULL;
+ out_dput2:
+ 	dput(upper);
+diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
+index 7abcf96e94fc..060c534998d1 100644
+--- a/fs/overlayfs/inode.c
++++ b/fs/overlayfs/inode.c
+@@ -741,6 +741,24 @@ static bool ovl_verify_inode(struct inode *inode, struct dentry *lowerdentry,
+ 	return true;
+ }
+ 
++static int ovl_insert_inode_locked(struct inode *inode, struct inode *realinode)
++{
++	return insert_inode_locked4(inode, (unsigned long) realinode,
++				    ovl_inode_test, realinode);
++}
++
++int ovl_insert_inode(struct inode *inode, struct inode *realinode)
++{
++	int err;
++
++	err = ovl_insert_inode_locked(inode, realinode);
++	if (err)
++		return err;
++
++	unlock_new_inode(inode);
++	return 0;
++}
++
+ struct inode *ovl_lookup_inode(struct super_block *sb, struct dentry *real,
+ 			       bool is_upper)
+ {
+diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
+index caaa47cea2aa..642b25702092 100644
+--- a/fs/overlayfs/overlayfs.h
++++ b/fs/overlayfs/overlayfs.h
+@@ -343,6 +343,7 @@ int ovl_update_time(struct inode *inode, struct timespec *ts, int flags);
+ bool ovl_is_private_xattr(const char *name);
+ 
+ struct inode *ovl_new_inode(struct super_block *sb, umode_t mode, dev_t rdev);
++int ovl_insert_inode(struct inode *inode, struct inode *realinode);
+ struct inode *ovl_lookup_inode(struct super_block *sb, struct dentry *real,
+ 			       bool is_upper);
+ struct inode *ovl_get_inode(struct super_block *sb, struct dentry *upperdentry,
+-- 
+2.7.4
