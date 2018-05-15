@@ -1,124 +1,49 @@
-Return-Path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mx2.suse.de ([195.135.220.15]:55652 "EHLO mx2.suse.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932857AbeEJB6e (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 9 May 2018 21:58:34 -0400
-From: Goldwyn Rodrigues <rgoldwyn@suse.de>
-Subject: [PATCH 3/4] copy_file_range: splice with holes
-Date: Wed,  9 May 2018 20:58:19 -0500
-Message-Id: <20180510015820.17700-4-rgoldwyn@suse.de>
-In-Reply-To: <20180510015820.17700-1-rgoldwyn@suse.de>
-References: <20180510015820.17700-1-rgoldwyn@suse.de>
-Sender: linux-unionfs-owner@vger.kernel.org
-To: linux-fsdevel@vger.kernel.org
-Cc: hch@lst.de, linux-unionfs@vger.kernel.org, david@fromorbit.com, viro@zeniv.linux.org.uk, Goldwyn Rodrigues <rgoldwyn@suse.com>
+Return-Path: <amir73il@gmail.com>
+Return-Path: <amir73il@gmail.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Subject: [PATCH v3 0/4] Overlayfs mkdir related fixes
+Date: Tue, 15 May 2018 13:26:08 +0300
+Message-Id: <1526379972-20923-1-git-send-email-amir73il@gmail.com>
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: Al Viro <viro@zeniv.linux.org.uk>, Vivek Goyal <vgoyal@redhat.com>, linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
 List-ID: <linux-unionfs@vger.kernel.org>
 
-From: Goldwyn Rodrigues <rgoldwyn@suse.com>
+Miklos,
 
-copy_file_range calls do_splice_direct() if fs->clone_file_range
-or fs->copy_file_range() is not available. However, do_splice_direct()
-converts holes to zeros. Detect holes in the file_in range, and
-create them in the corresponding file_out range.
+This is v3 of mkdir fixes, which addresses comments from Vivek
+and yourself as well as fix some issues found in tests of v2.
+The series is based and tested on top of a merge of overlayfs-rorw
+and Al's fixes branch.
 
-If there is already data present at the offset in file_out, attempt
-to punch a hole there. If the operation is not supported, fall
-back to performing splice on the whole range.
+Thanks,
+Amir.
 
-Signed-off-by: Goldwyn Rodrigues <rgoldwyn@suse.com>
-Reviewed-by: Amir Goldstein <amir73il@gmail.com>
----
- fs/read_write.c | 62 +++++++++++++++++++++++++++++++++++++++++++++++++++++----
- 1 file changed, 58 insertions(+), 4 deletions(-)
+Changes since v2:
+- Don't use d_instantiate_new() helper
+- Explain inode hash race (Vivek)
+- Relax WARN_ON() to pass overlay/019 test
+- Create hepler ovl_create_real_dir()
+- pr_warn() when real mkdir succeeds and lookup fails
 
-diff --git a/fs/read_write.c b/fs/read_write.c
-index 1b8fc9eada69..e765fec656af 100644
---- a/fs/read_write.c
-+++ b/fs/read_write.c
-@@ -20,6 +20,7 @@
- #include <linux/compat.h>
- #include <linux/mount.h>
- #include <linux/fs.h>
-+#include <linux/falloc.h>
- #include "internal.h"
- 
- #include <linux/uaccess.h>
-@@ -1547,7 +1548,8 @@ static ssize_t do_copy_file_range(struct file *file_in, loff_t pos_in,
- {
- 	struct inode *inode_in = file_inode(file_in);
- 	struct inode *inode_out = file_inode(file_out);
--	ssize_t ret = 0;
-+	ssize_t ret = 0, total = 0;
-+	loff_t size, end;
- 
- 	if (len == 0)
- 		return 0;
-@@ -1572,10 +1574,62 @@ static ssize_t do_copy_file_range(struct file *file_in, loff_t pos_in,
- 		if (ret != -EOPNOTSUPP)
- 			return ret;
- 	}
-+
- splice:
--	ret = do_splice_direct(file_in, &pos_in, file_out, &pos_out,
--			len > MAX_RW_COUNT ? MAX_RW_COUNT : len, 0);
--	return ret;
-+	while (total < len) {
-+		end = vfs_llseek(file_in, pos_in, SEEK_HOLE);
-+
-+		/* Starting position is already in a hole */
-+		if (end == pos_in)
-+			goto hole;
-+		size = end - pos_in;
-+do_splice:
-+		if (size > len - total)
-+			size = len - total;
-+		ret = do_splice_direct(file_in, &pos_in, file_out, &pos_out,
-+				size, 0);
-+		if (ret < 0)
-+			goto out;
-+		total += ret;
-+		if (total == len)
-+			break;
-+hole:
-+		end = vfs_llseek(file_in, pos_in, SEEK_DATA);
-+		if (end < 0) {
-+			ret = end;
-+			goto out;
-+		}
-+		size = end - pos_in;
-+		if (size > len - total)
-+			size = len - total;
-+		/* Data on offset, punch holes */
-+		if (i_size_read(file_out->f_inode) > pos_out) {
-+			ret = vfs_fallocate(file_out,
-+					FALLOC_FL_PUNCH_HOLE | FALLOC_FL_KEEP_SIZE,
-+					pos_out, size);
-+			if (ret < 0) {
-+				/*
-+				 * The filesystem does not support punching
-+				 * holes. Perform splice on the remaining range.
-+				 */
-+				if (ret == -EOPNOTSUPP) {
-+					size = len - total;
-+					goto do_splice;
-+				}
-+				goto out;
-+			}
-+		}
-+		if (ret < 0) {
-+			ret = end;
-+			goto out;
-+		}
-+		pos_out += size;
-+		pos_in = end;
-+		total += size;
-+	}
-+
-+out:
-+	return total ? total : ret;
- }
- 
- /*
+Changes since v1:
+- Rebase on top of Al's fixes branch
+- Use d_instantiate_new() helper
+- Add re-factoring + Al's vfs_mkdir() safely patch
+
+Al Viro (1):
+  ovl: make ovl_create_real() cope with vfs_mkdir() safely
+
+Amir Goldstein (3):
+  ovl: use insert_inode_locked4() to hash a newly created inode
+  ovl: relax WARN_ON() real inode attributes mismatch
+  ovl: create helper ovl_create_temp()
+
+ fs/overlayfs/copy_up.c   |  27 +++-------
+ fs/overlayfs/dir.c       | 125 +++++++++++++++++++++++++++++++++++------------
+ fs/overlayfs/inode.c     |  18 +++++++
+ fs/overlayfs/overlayfs.h |  12 ++++-
+ fs/overlayfs/super.c     |   2 +-
+ 5 files changed, 130 insertions(+), 54 deletions(-)
+
 -- 
-2.16.3
-
+2.7.4
