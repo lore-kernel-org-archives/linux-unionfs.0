@@ -1,43 +1,50 @@
-From: Vivek Goyal <vgoyal@redhat.com>
-Subject: Re: [PATCH v2 22/35] vfs: don't open real
-Date: Tue, 15 May 2018 16:42:10 -0400
-Message-ID: <20180515204210.GA26411@redhat.com>
-References: <20180507083807.28792-1-mszeredi@redhat.com>
- <20180507083807.28792-23-mszeredi@redhat.com>
- <20180511185430.GE6044@redhat.com>
- <20180511194248.GF6044@redhat.com>
- <20180514135803.GA2777@redhat.com>
+From: Miklos Szeredi <miklos@szeredi.hu>
+Subject: Re: [PATCH v3 1/4] ovl: use insert_inode_locked4() to hash a newly
+ created inode
+Date: Wed, 16 May 2018 10:34:00 +0200
+Message-ID: <CAJfpegtMvjEjC7B4JpnjyYxzbY=pbW_ATKkKCkjKEsQqzxqqNg@mail.gmail.com>
+References: <1526379972-20923-1-git-send-email-amir73il@gmail.com>
+ <1526379972-20923-2-git-send-email-amir73il@gmail.com> <20180515132328.GA11678@redhat.com>
+ <CAOQ4uxizDzcH7rDCTGHCpjD90RwKCqcjGCSyXx6GDU7Oj_nc6Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180514135803.GA2777@redhat.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Miklos Szeredi <mszeredi@redhat.com>, Daniel J Walsh <dwalsh@redhat.com>
-Cc: linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, Al Viro <viro@zeniv.linux.org.uk>, linux-security-module@vger.kernel.org, Paul Moore <pmoore@redhat.com>, Stephen Smalley <sds@tycho.nsa.gov>
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <CAOQ4uxizDzcH7rDCTGHCpjD90RwKCqcjGCSyXx6GDU7Oj_nc6Q@mail.gmail.com>
+Sender: stable-owner@vger.kernel.org
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: Vivek Goyal <vgoyal@redhat.com>, Al Viro <viro@zeniv.linux.org.uk>, overlayfs <linux-unionfs@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, "#v4 . 16" <stable@vger.kernel.org>
 List-Id: linux-unionfs@vger.kernel.org
 
-On Mon, May 14, 2018 at 09:58:03AM -0400, Vivek Goyal wrote:
+On Tue, May 15, 2018 at 3:37 PM, Amir Goldstein <amir73il@gmail.com> wrote:
+> On Tue, May 15, 2018 at 4:23 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
+>> On Tue, May 15, 2018 at 01:26:09PM +0300, Amir Goldstein wrote:
+>>> Currently, there is a small window where ovl_obtain_alias() can
+>>> race with ovl_instantiate() and create two different overlay inodes
+>>> with the same underlying real non-dir non-hardlink inode.
+>>>
+>>> The race requires an adversary to guess the file handle of the
+>>> yet to be created upper inode and decode the guessed file handle
+>>> after ovl_creat_real(), but before ovl_instantiate().
+>>>
+>>> This patch fixes the race, by using insert_inode_locked4() to add
+>>> a newly created inode to icache.
+>>>
+>>> If the newly created inode apears to already exist in icache (hashed
+>>> by the same real upper inode), we export this error to user instead
+>>> of silently not hashing the new inode.
+>>
+>> So we might return an error to user saying operation failed, but still
+>> create file on upper. Does that sound little odd?
+>>
+>
+> Yes, but I don't see a better solution.
 
-[..]
-> Talked to Dan and he mentioned that he was trying to test entrypoint
-> failure (and not exec failure) and that's whey he might have allowed exec
-> to mounter.
-> 
-> I think that current entrypoint test's expectations are wrong.
-> User process sees overlay inode lablel which is rwx_t and that means
-> overlay layer will allow entrypoint into that executable. This will be the
-> behavior on a normal file system where underlying file's label will be
-> completely overridden by context=.
-> 
-> So in my opinion, we should modify testsuite and not run this test with
-> context= mounts.
+Might be better to kick the other, offending inode out, instead of
+returning an error.  It would also simplify the error handling.
 
-Miklos, now a fix has been merged to the tests so that test passes both with
-current kernels and proposed changes.
+We can do that by creating an ovl_inode_test_kick() variant that
+unhashes the inode on match.  Also needs insert_inode_locked4() to use
+hlist_for_each_entry_safe() instead of hlist_for_each_entry().
 
-https://github.com/SELinuxProject/selinux-testsuite/pull/36
-
-Thanks Dan Walsh, Stephen Smalley and Paul More.
-
-Vivek
+Thanks,
+Miklos
