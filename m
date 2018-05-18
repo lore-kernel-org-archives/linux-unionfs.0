@@ -1,96 +1,72 @@
-Return-Path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mx2.suse.de ([195.135.220.15]:53001 "EHLO mx2.suse.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751307AbeECP0w (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 3 May 2018 11:26:52 -0400
-From: Goldwyn Rodrigues <rgoldwyn@suse.de>
-Subject: [PATCH 3/3] ovl: Use splice_with_holes in copy_up
-Date: Thu,  3 May 2018 10:26:35 -0500
-Message-Id: <20180503152635.14974-4-rgoldwyn@suse.de>
-In-Reply-To: <20180503152635.14974-1-rgoldwyn@suse.de>
-References: <20180503152635.14974-1-rgoldwyn@suse.de>
-Sender: linux-unionfs-owner@vger.kernel.org
-To: linux-fsdevel@vger.kernel.org
-Cc: hch@lst.de, smfrench@gmail.com, linux-unionfs@vger.kernel.org, Anna.Schumaker@Netapp.com, darrick.wong@oracle.com, Goldwyn Rodrigues <rgoldwyn@suse.com>
+Return-Path: <amir73il@gmail.com>
+Return-Path: <amir73il@gmail.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Subject: [PATCH v4 0/9] Overlayfs create object related fixes
+Date: Fri, 18 May 2018 11:29:28 +0300
+Message-Id: <1526632177-28832-1-git-send-email-amir73il@gmail.com>
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: Al Viro <viro@zeniv.linux.org.uk>, Vivek Goyal <vgoyal@redhat.com>, linux-unionfs@vger.kernel.org
 List-ID: <linux-unionfs@vger.kernel.org>
 
-From: Goldwyn Rodrigues <rgoldwyn@suse.com>
+Miklos,
 
-Signed-off-by: Goldwyn Rodrigues <rgoldwyn@suse.com>
----
- fs/overlayfs/copy_up.c |  2 +-
- fs/read_write.c        | 10 ++++++----
- include/linux/fs.h     |  2 ++
- 3 files changed, 9 insertions(+), 5 deletions(-)
+This is v4 of create object fixes, which addresses your comments on v3
+and implement Vivek's suggestion to use ovl_get_inode() from create code.
+Please note the change of semantics in ovl_instantiate() w.r.t the
+reference on @inode argument - it now takes its own reference only if it
+uses @inode to instantiate newdentry.
 
-diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
-index 8bede0742619..6634a85255ae 100644
---- a/fs/overlayfs/copy_up.c
-+++ b/fs/overlayfs/copy_up.c
-@@ -175,7 +175,7 @@ static int ovl_copy_up_data(struct path *old, struct path *new, loff_t len)
- 			break;
- 		}
- 
--		bytes = do_splice_direct(old_file, &old_pos,
-+		bytes = splice_with_holes(old_file, &old_pos,
- 					 new_file, &new_pos,
- 					 this_len, SPLICE_F_MOVE);
- 		if (bytes <= 0) {
-diff --git a/fs/read_write.c b/fs/read_write.c
-index 6866e2a27594..0aa8390d4d39 100644
---- a/fs/read_write.c
-+++ b/fs/read_write.c
-@@ -1543,8 +1543,9 @@ COMPAT_SYSCALL_DEFINE4(sendfile64, int, out_fd, int, in_fd,
- #endif
- 
- 
--static ssize_t splice_with_holes(struct file *file_in, loff_t *pos_in,
--		struct file *file_out, loff_t *pos_out,	size_t len)
-+ssize_t splice_with_holes(struct file *file_in, loff_t *pos_in,
-+		struct file *file_out, loff_t *pos_out,	size_t len,
-+		unsigned int flags)
- {
- 	ssize_t ret = 0, total = 0;
- 	loff_t size, end;
-@@ -1556,7 +1557,7 @@ static ssize_t splice_with_holes(struct file *file_in, loff_t *pos_in,
- 		size = end - *pos_in;
- splice:
- 		ret = do_splice_direct(file_in, pos_in, file_out, pos_out,
--				size, 0);
-+				size, flags);
- 		if (ret < 0)
- 			goto out;
- 		total += ret;
-@@ -1598,6 +1599,7 @@ static ssize_t splice_with_holes(struct file *file_in, loff_t *pos_in,
- out:
- 	return total ? total : ret;
- }
-+EXPORT_SYMBOL(splice_with_holes);
- 
- /*
-  * copy_file_range() differs from regular file read and write in that it
-@@ -1663,7 +1665,7 @@ ssize_t vfs_copy_file_range(struct file *file_in, loff_t pos_in,
- 
- do_splice:
- 	ret = splice_with_holes(file_in, &pos_in, file_out, &pos_out,
--			len > MAX_RW_COUNT ? MAX_RW_COUNT : len);
-+			len > MAX_RW_COUNT ? MAX_RW_COUNT : len, 0);
- 
- done:
- 	if (ret > 0) {
-diff --git a/include/linux/fs.h b/include/linux/fs.h
-index 760d8da1b6c7..8f96400ab944 100644
---- a/include/linux/fs.h
-+++ b/include/linux/fs.h
-@@ -1799,6 +1799,8 @@ extern ssize_t vfs_read(struct file *, char __user *, size_t, loff_t *);
- extern ssize_t vfs_write(struct file *, const char __user *, size_t, loff_t *);
- extern ssize_t vfs_readv(struct file *, const struct iovec __user *,
- 		unsigned long, loff_t *, rwf_t);
-+extern ssize_t splice_with_holes(struct file *, loff_t *, struct file *,
-+				   loff_t *, size_t, unsigned int);
- extern ssize_t vfs_copy_file_range(struct file *, loff_t , struct file *,
- 				   loff_t, size_t, unsigned int);
- extern int vfs_clone_file_prep_inodes(struct inode *inode_in, loff_t pos_in,
+The series is based and tested on top of a merge of overlayfs-rorw
+and Al's fixes branch.  It passed xfstests generic/quick and overlay/auto
+including overlay/stress and all unionmount configurations.
+
+Thanks,
+Amir.
+
+Changes since v3:
+- Back to Al's version of ovl_create_real()
+- Remvoe helper ovl_create_real_dir()
+- Add Vivek's ovl_get_inode() cleanup patch
+- Use new iget5_prealloc()
+- Remove cc: stable because this is not a critical fix
+
+Changes since v2:
+- Don't use d_instantiate_new() helper
+- Explain inode hash race (Vivek)
+- Relax WARN_ON() to pass overlay/019 test
+- Create hepler ovl_create_real_dir()
+- pr_warn() when real mkdir succeeds and lookup fails
+
+Changes since v1:
+- Rebase on top of Al's fixes branch
+- Use d_instantiate_new() helper
+- Add re-factoring + Al's vfs_mkdir() safely patch
+
+Amir Goldstein (7):
+  ovl: remove WARN_ON() real inode attributes mismatch
+  ovl: strip debug argument from ovl_do_ helpers
+  ovl: struct cattr cleanups
+  ovl: create helper ovl_create_temp()
+  ovl: make ovl_create_real() cope with vfs_mkdir() safely
+  vfs: export alloc_inode() and destroy_inode()
+  ovl: use iget5_prealloc() to hash a newly created inode
+
+Miklos Szeredi (1):
+  vfs: factor out iget5_prealloc()
+
+Vivek Goyal (1):
+  ovl: Pass argument to ovl_get_inode() in a structure
+
+ fs/inode.c               | 133 +++++++++++++++++-------------
+ fs/overlayfs/copy_up.c   |  34 +++-----
+ fs/overlayfs/dir.c       | 209 +++++++++++++++++++++++++++++------------------
+ fs/overlayfs/export.c    |   8 +-
+ fs/overlayfs/inode.c     |  28 +++++--
+ fs/overlayfs/namei.c     |  10 ++-
+ fs/overlayfs/overlayfs.h |  64 ++++++++-------
+ fs/overlayfs/super.c     |   9 +-
+ include/linux/fs.h       |  14 +++-
+ 9 files changed, 299 insertions(+), 210 deletions(-)
+
 -- 
-2.16.3
-
+2.7.4
