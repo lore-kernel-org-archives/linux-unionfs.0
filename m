@@ -1,192 +1,200 @@
 Return-Path: <amir73il@gmail.com>
 Return-Path: <amir73il@gmail.com>
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH v4 5/9] ovl: make ovl_create_real() cope with vfs_mkdir() safely
-Date: Fri, 18 May 2018 11:29:33 +0300
-Message-Id: <1526632177-28832-6-git-send-email-amir73il@gmail.com>
+Subject: [PATCH v4 6/9] vfs: factor out iget5_prealloc()
+Date: Fri, 18 May 2018 11:29:34 +0300
+Message-Id: <1526632177-28832-7-git-send-email-amir73il@gmail.com>
 In-Reply-To: <1526632177-28832-1-git-send-email-amir73il@gmail.com>
 References: <1526632177-28832-1-git-send-email-amir73il@gmail.com>
 To: Miklos Szeredi <miklos@szeredi.hu>
 Cc: Al Viro <viro@zeniv.linux.org.uk>, Vivek Goyal <vgoyal@redhat.com>, linux-unionfs@vger.kernel.org
 List-ID: <linux-unionfs@vger.kernel.org>
 
-vfs_mkdir() may succeed and leave the dentry passed to it unhashed and
-negative.  ovl_create_real() is the last caller breaking when that
-happens.
+From: Miklos Szeredi <miklos@szeredi.hu>
 
-Make ovl_create_real() return the dentry to be used or ERR_PTR(-E...)
-in case of error; usually that'll be the dentry passed to it, but
-it might be a different one - result of lookup in case of vfs_mkdir()
-leaving looking the inode, etc. up to the next lookup to come.
+Split a helper out of iget5_locked() that takes a preallocated
+inode.  This is needed by overlayfs, but also makes iget5_locked()
+more readable.
 
-In that case (as well as in case of an error), original dentry is
-dropped.  That simplifies the callers.  Moreover, passing ERR_PTR()
-as dentry leads to immediate return of the same ERR_PTR().  That
-simplifies the callers even more.
-
-[amir: split re-factoring of ovl_create_temp() to prep patch
-       add comment about unhashed dir after mkdir
-       add pr_warn() if mkdir succeeds and lookup fails]
-
-Signed-off-by: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- fs/overlayfs/dir.c       | 70 +++++++++++++++++++++++++++++-------------------
- fs/overlayfs/overlayfs.h |  4 +--
- fs/overlayfs/super.c     |  7 ++---
- 3 files changed, 48 insertions(+), 33 deletions(-)
+ fs/inode.c         | 127 ++++++++++++++++++++++++++++++-----------------------
+ include/linux/fs.h |  12 ++++-
+ 2 files changed, 82 insertions(+), 57 deletions(-)
 
-diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
-index 41a8940964e3..6f7400be3fc8 100644
---- a/fs/overlayfs/dir.c
-+++ b/fs/overlayfs/dir.c
-@@ -114,13 +114,18 @@ int ovl_cleanup_and_whiteout(struct dentry *workdir, struct inode *dir,
- 	goto out;
- }
+diff --git a/fs/inode.c b/fs/inode.c
+index 9818c0f48cfa..6bb3950ae896 100644
+--- a/fs/inode.c
++++ b/fs/inode.c
+@@ -1003,6 +1003,71 @@ void unlock_two_nondirectories(struct inode *inode1, struct inode *inode2)
+ EXPORT_SYMBOL(unlock_two_nondirectories);
  
--int ovl_create_real(struct inode *dir, struct dentry *newdentry,
--		    struct ovl_cattr *attr)
-+struct dentry *ovl_create_real(struct inode *dir, struct dentry *newdentry,
-+			       struct ovl_cattr *attr)
- {
- 	int err;
- 
--	if (newdentry->d_inode)
--		return -ESTALE;
-+	if (IS_ERR(newdentry))
-+		return newdentry;
-+
-+	if (newdentry->d_inode) {
-+		dput(newdentry);
-+		return ERR_PTR(-ESTALE);
-+	}
- 
- 	if (attr->hardlink) {
- 		err = ovl_do_link(attr->hardlink, dir, newdentry);
-@@ -132,6 +137,26 @@ int ovl_create_real(struct inode *dir, struct dentry *newdentry,
- 
- 		case S_IFDIR:
- 			err = ovl_do_mkdir(dir, newdentry, attr->mode);
-+			/*
-+			 * vfs_mkdir() may succeed and leave the dentry passed
-+			 * to it unhashed and negative. If that happens, try to
-+			 * lookup a new hashed and positive dentry.
-+			 */
-+			if (!err && unlikely(d_unhashed(newdentry))) {
-+				struct dentry *d;
-+
-+				d = lookup_one_len(newdentry->d_name.name,
-+						   newdentry->d_parent,
-+						   newdentry->d_name.len);
-+				dput(newdentry);
-+				if (IS_ERR(d)) {
-+					err = PTR_ERR(d);
-+					pr_warn("overlayfs: failed lookup after mkdir (%pd2, err=%i).\n",
-+						newdentry, err);
-+					return d;
-+				}
-+				newdentry = d;
-+			}
- 			break;
- 
- 		case S_IFCHR:
-@@ -157,26 +182,17 @@ int ovl_create_real(struct inode *dir, struct dentry *newdentry,
- 		 */
- 		err = -ENOENT;
- 	}
--	return err;
--}
--
--struct dentry *ovl_create_temp(struct dentry *workdir, struct ovl_cattr *attr)
--{
--	struct inode *wdir = workdir->d_inode;
--	struct dentry *temp;
--	int err;
--
--	temp = ovl_lookup_temp(workdir);
--	if (IS_ERR(temp))
--		return temp;
--
--	err = ovl_create_real(wdir, temp, attr);
- 	if (err) {
--		dput(temp);
-+		dput(newdentry);
- 		return ERR_PTR(err);
- 	}
-+	return newdentry;
-+}
- 
--	return temp;
-+struct dentry *ovl_create_temp(struct dentry *workdir, struct ovl_cattr *attr)
+ /**
++ * iget5_prealloc - obtain an inode from a mounted file system
++ * @inode:	pre-allocated inode to use for insert to cache
++ * @hashval:	hash value (usually inode number) to get
++ * @test:	callback used for comparisons between inodes
++ * @set:	callback used to initialize a new struct inode
++ * @data:	opaque data pointer to pass to @test and @set
++ *
++ * Search for the inode specified by @hashval and @data in the inode cache,
++ * and if present it is return it with an increased reference count. This is
++ * a variant of iget5_locked() for callers that don't want to fail on memory
++ * allocation of inode.
++ *
++ * If the inode is not in cache, insert the pre-allocated inode to cache and
++ * return it locked, hashed, and with the I_NEW flag set. The file system gets
++ * to fill it in before unlocking it via unlock_new_inode().
++ *
++ * Note both @test and @set are called with the inode_hash_lock held, so can't
++ * sleep.
++ */
++struct inode *iget5_prealloc(struct inode *inode, unsigned long hashval,
++			     int (*test)(struct inode *, void *),
++			     int (*set)(struct inode *, void *), void *data)
 +{
-+	return ovl_create_real(d_inode(workdir), ovl_lookup_temp(workdir),
-+			       attr);
- }
++	struct hlist_head *head = inode_hashtable + hash(inode->i_sb, hashval);
++	struct inode *old;
++
++again:
++	spin_lock(&inode_hash_lock);
++	old = find_inode(inode->i_sb, head, test, data);
++	if (unlikely(old)) {
++		/*
++		 * Uhhuh, somebody else created the same inode under us.
++		 * Use the old inode instead of the preallocated one.
++		 */
++		spin_unlock(&inode_hash_lock);
++		wait_on_inode(old);
++		if (unlikely(inode_unhashed(old))) {
++			iput(old);
++			goto again;
++		}
++		return old;
++	}
++
++	if (unlikely(set(inode, data))) {
++		inode = NULL;
++		goto unlock;
++	}
++
++	/*
++	 * Return the locked inode with I_NEW set, the
++	 * caller is responsible for filling in the contents
++	 */
++	spin_lock(&inode->i_lock);
++	inode->i_state = I_NEW;
++	hlist_add_head(&inode->i_hash, head);
++	spin_unlock(&inode->i_lock);
++	inode_sb_list_add(inode);
++unlock:
++	spin_unlock(&inode_hash_lock);
++
++	return inode;
++}
++EXPORT_SYMBOL(iget5_prealloc);
++
++/**
+  * iget5_locked - obtain an inode from a mounted file system
+  * @sb:		super block of file system
+  * @hashval:	hash value (usually inode number) to get
+@@ -1026,66 +1091,18 @@ struct inode *iget5_locked(struct super_block *sb, unsigned long hashval,
+ 		int (*test)(struct inode *, void *),
+ 		int (*set)(struct inode *, void *), void *data)
+ {
+-	struct hlist_head *head = inode_hashtable + hash(sb, hashval);
+-	struct inode *inode;
+-again:
+-	spin_lock(&inode_hash_lock);
+-	inode = find_inode(sb, head, test, data);
+-	spin_unlock(&inode_hash_lock);
++	struct inode *inode = ilookup5(sb, hashval, test, data);
  
- static int ovl_set_opaque_xerr(struct dentry *dentry, struct dentry *upper,
-@@ -243,14 +259,14 @@ static int ovl_create_upper(struct dentry *dentry, struct inode *inode,
- 		attr->mode &= ~current_umask();
+-	if (inode) {
+-		wait_on_inode(inode);
+-		if (unlikely(inode_unhashed(inode))) {
+-			iput(inode);
+-			goto again;
+-		}
+-		return inode;
+-	}
+-
+-	inode = alloc_inode(sb);
+-	if (inode) {
+-		struct inode *old;
+-
+-		spin_lock(&inode_hash_lock);
+-		/* We released the lock, so.. */
+-		old = find_inode(sb, head, test, data);
+-		if (!old) {
+-			if (set(inode, data))
+-				goto set_failed;
+-
+-			spin_lock(&inode->i_lock);
+-			inode->i_state = I_NEW;
+-			hlist_add_head(&inode->i_hash, head);
+-			spin_unlock(&inode->i_lock);
+-			inode_sb_list_add(inode);
+-			spin_unlock(&inode_hash_lock);
++	if (!inode) {
++		struct inode *new = alloc_inode(sb);
  
- 	inode_lock_nested(udir, I_MUTEX_PARENT);
--	newdentry = lookup_one_len(dentry->d_name.name, upperdir,
--				   dentry->d_name.len);
-+	newdentry = ovl_create_real(udir,
-+				    lookup_one_len(dentry->d_name.name,
-+						   upperdir,
-+						   dentry->d_name.len),
-+				    attr);
- 	err = PTR_ERR(newdentry);
- 	if (IS_ERR(newdentry))
- 		goto out_unlock;
--	err = ovl_create_real(udir, newdentry, attr);
--	if (err)
--		goto out_dput;
- 
- 	if (ovl_type_merge(dentry->d_parent) && d_is_dir(newdentry)) {
- 		/* Setting opaque here is just an optimization, allow to fail */
-@@ -258,9 +274,7 @@ static int ovl_create_upper(struct dentry *dentry, struct inode *inode,
- 	}
- 
- 	ovl_instantiate(dentry, inode, newdentry, !!attr->hardlink);
--	newdentry = NULL;
--out_dput:
--	dput(newdentry);
-+	err = 0;
- out_unlock:
- 	inode_unlock(udir);
- 	return err;
-diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-index e72eec6d440f..4eb04da240b4 100644
---- a/fs/overlayfs/overlayfs.h
-+++ b/fs/overlayfs/overlayfs.h
-@@ -373,8 +373,8 @@ struct ovl_cattr {
- 
- #define OVL_CATTR(m) (&(struct ovl_cattr) { .mode = (m) })
- 
--int ovl_create_real(struct inode *dir, struct dentry *newdentry,
--		    struct ovl_cattr *attr);
-+struct dentry *ovl_create_real(struct inode *dir, struct dentry *newdentry,
-+			       struct ovl_cattr *attr);
- struct dentry *ovl_create_temp(struct dentry *workdir, struct ovl_cattr *attr);
- 
- /* file.c */
-diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-index ace95319bf1d..cd5c82f105d6 100644
---- a/fs/overlayfs/super.c
-+++ b/fs/overlayfs/super.c
-@@ -603,9 +603,10 @@ static struct dentry *ovl_workdir_create(struct ovl_fs *ofs,
- 			goto retry;
+-			/* Return the locked inode with I_NEW set, the
+-			 * caller is responsible for filling in the contents
+-			 */
+-			return inode;
+-		}
+-
+-		/*
+-		 * Uhhuh, somebody else created the same inode under
+-		 * us. Use the old inode instead of the one we just
+-		 * allocated.
+-		 */
+-		spin_unlock(&inode_hash_lock);
+-		destroy_inode(inode);
+-		inode = old;
+-		wait_on_inode(inode);
+-		if (unlikely(inode_unhashed(inode))) {
+-			iput(inode);
+-			goto again;
++		if (new) {
++			inode = iget5_prealloc(new, hashval, test, set, data);
++			if (inode != new)
++				destroy_inode(new);
  		}
+ 	}
+ 	return inode;
+-
+-set_failed:
+-	spin_unlock(&inode_hash_lock);
+-	destroy_inode(inode);
+-	return NULL;
+ }
+ EXPORT_SYMBOL(iget5_locked);
  
--		err = ovl_create_real(dir, work, OVL_CATTR(attr.ia_mode));
--		if (err)
--			goto out_dput;
-+		work = ovl_create_real(dir, work, OVL_CATTR(attr.ia_mode));
-+		err = PTR_ERR(work);
-+		if (IS_ERR(work))
-+			goto out_err;
+diff --git a/include/linux/fs.h b/include/linux/fs.h
+index 8b8d793b3774..3114c1fe5c83 100644
+--- a/include/linux/fs.h
++++ b/include/linux/fs.h
+@@ -2880,9 +2880,17 @@ extern struct inode *ilookup5_nowait(struct super_block *sb,
+ extern struct inode *ilookup5(struct super_block *sb, unsigned long hashval,
+ 		int (*test)(struct inode *, void *), void *data);
+ extern struct inode *ilookup(struct super_block *sb, unsigned long ino);
++extern struct inode *iget5_prealloc(struct inode *inode, unsigned long hashval,
++		int (*test)(struct inode *, void *),
++		int (*set)(struct inode *, void *),
++		void *data);
++extern struct inode *iget5_locked(struct super_block *sb,
++		unsigned long hashval,
++		int (*test)(struct inode *, void *),
++		int (*set)(struct inode *, void *),
++		void *data);
++extern struct inode *iget_locked(struct super_block *sb, unsigned long ino);
  
- 		/*
- 		 * Try to remove POSIX ACL xattrs from workdir.  We are good if:
+-extern struct inode * iget5_locked(struct super_block *, unsigned long, int (*test)(struct inode *, void *), int (*set)(struct inode *, void *), void *);
+-extern struct inode * iget_locked(struct super_block *, unsigned long);
+ extern struct inode *find_inode_nowait(struct super_block *,
+ 				       unsigned long,
+ 				       int (*match)(struct inode *,
 -- 
 2.7.4
