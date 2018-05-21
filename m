@@ -1,74 +1,73 @@
-Return-Path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mx3-rdu2.redhat.com ([66.187.233.73]:59054 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1751931AbeEGRlM (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 7 May 2018 13:41:12 -0400
-From: Vivek Goyal <vgoyal@redhat.com>
-Subject: [PATCH v15 19/30] ovl: Move some dir related ovl_lookup_single() code in else block
-Date: Mon,  7 May 2018 13:40:51 -0400
-Message-Id: <20180507174102.24086-20-vgoyal@redhat.com>
-In-Reply-To: <20180507174102.24086-1-vgoyal@redhat.com>
-References: <20180507174102.24086-1-vgoyal@redhat.com>
-Sender: linux-unionfs-owner@vger.kernel.org
-To: linux-unionfs@vger.kernel.org
-Cc: miklos@szeredi.hu, amir73il@gmail.com, vgoyal@redhat.com
+Return-Path: <rgoldwyn@suse.de>
+Subject: Re: [PATCH] ovl: copy up files with incompatible xattrs
+References: <20180416143525.8328-1-rgoldwyn@suse.de>
+ <20180517192638.GA4979@redhat.com>
+ <e02269f8-44cc-0271-8f2a-1921374bccfa@suse.de>
+ <CAJfpeguv9fFKnxwMdJq0gh+xr3jJVwDModykTOH7WyEtmVdfZg@mail.gmail.com>
+From: Goldwyn Rodrigues <rgoldwyn@suse.de>
+Message-ID: <fefa8690-2a34-a77b-853c-c5c31cce3bc4@suse.de>
+Date: Mon, 21 May 2018 13:53:47 -0500
+MIME-Version: 1.0
+In-Reply-To: <CAJfpeguv9fFKnxwMdJq0gh+xr3jJVwDModykTOH7WyEtmVdfZg@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 8bit
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: Vivek Goyal <vgoyal@redhat.com>, overlayfs <linux-unionfs@vger.kernel.org>, Fabian Vogt <fvogt@suse.com>, Andreas Gruenbacher <agruenba@redhat.com>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-Move some directory related code in else block. This is pure code
-reorganization and no functionality change.
 
-Next patch enables redirect processing on metacopy files and needs this
-change.  By keeping non-functional changes in a separate patch, next patch
-looks much smaller and cleaner.
 
-Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
-Reviewed-by: Amir Goldstein <amir73il@gmail.com>
----
- fs/overlayfs/namei.c | 29 +++++++++++++++--------------
- 1 file changed, 15 insertions(+), 14 deletions(-)
+On 05/18/2018 02:29 AM, Miklos Szeredi wrote:
+> On Fri, May 18, 2018 at 12:30 AM, Goldwyn Rodrigues <rgoldwyn@suse.de> wrote:
+>>
+>>
+>> On 05/17/2018 02:26 PM, Vivek Goyal wrote:
+>>> On Mon, Apr 16, 2018 at 09:35:25AM -0500, Goldwyn Rodrigues wrote:
+>>>> From: Fabian Vogt <fvogt@suse.com>
+>>>>
+>>>> xattrs are not guarantees to be compatible across different filesystems.
+>>>> Operations which lead to copying of files to the upper layer fail with an
+>>>> "Operation not supported" error from the filesystem if a xattr could not be
+>>>> written in the upper layer. We can safely ignore "system" xattrs.
+>>>>
+>>>> One easy to hit example is using NFS as a read-only lower layer and !NFS as
+>>>> upper layer to store changes. Files on NFS can have the "system.nfs4_acl"
+>>>
+>>> I don't know much about nfs4_acl. But name suggests that it stored ACLs
+>>> there. So if we ignore these over copy up, does that mean we are not
+>>> enforcing ACL policy over copy up. So say some user which was not able
+>>> to read a file when it was on lower, might be able to read it after
+>>> copy up?
+>>>
+>>> Or I have completely misunderstood it?
+>>>
+>>>
+>>
+>> As far as I know, all "system" attributes are filesystem specific (even
+>> if they are the same fstype) and cannot be comprehended by other
+>> filesystems. Hence, they can be ignored.
+>>
+>> Unfortunately, system.nfs4_acl is a part of protocol and is null most of
+>> the times.
+>>
+>> Here is an earlier discussion I found which did not conclude:
+>> https://www.spinics.net/lists/linux-nfs/msg61045.html
+> 
+> It did have a conclusion, except nobody done anything in that direction:
+> 
+> In certain cases nfs4_acl represents the same permissions as file
+> mode.  This case can be detected and the nfs4_acl xattr ignored.
+> 
+> As a first step that's definitely something that could help in most
+> cases.  I'd be reluctant to just ignore copy up errors on system
+> xattrs generally.
 
-diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
-index a2556f981d3e..51e5c1bc5678 100644
---- a/fs/overlayfs/namei.c
-+++ b/fs/overlayfs/namei.c
-@@ -269,22 +269,23 @@ static int ovl_lookup_single(struct dentry *base, struct ovl_lookup_data *d,
- 		d->stop = !err;
- 		d->metacopy = !!err;
- 		goto out;
--	}
--	if (last_element) {
--		if (d->metacopy) {
--			err = -ESTALE;
--			goto out_err;
-+	} else {
-+		if (last_element) {
-+			if (d->metacopy) {
-+				err = -ESTALE;
-+				goto out_err;
-+			}
-+			d->is_dir = true;
- 		}
--		d->is_dir = true;
--	}
--	if (d->last)
--		goto out;
-+		if (d->last)
-+			goto out;
- 
--	if (ovl_is_opaquedir(this)) {
--		d->stop = true;
--		if (last_element)
--			d->opaque = true;
--		goto out;
-+		if (ovl_is_opaquedir(this)) {
-+			d->stop = true;
-+			if (last_element)
-+				d->opaque = true;
-+			goto out;
-+		}
- 	}
- 	err = ovl_check_redirect(this, d, prelen, post);
- 	if (err)
+It seems nfs4_acl is only interpreted by the server and not the client.
+nfs4_acl is carried opaque by the client and decoded only in the
+userspace by nfs4-acl-tools. Not sure if there is a simpler way to do it
+than to copy code from knfsd to client (or use common codebase, if exists).
+
+
 -- 
-2.13.6
-
+Goldwyn
