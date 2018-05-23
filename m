@@ -1,147 +1,269 @@
 Return-Path: <amir73il@gmail.com>
-Return-Path: <amir73il@gmail.com>
+MIME-Version: 1.0
+In-Reply-To: <20180522152135.GB23785@veci.piliscsaba.redhat.com>
+References: <1526632177-28832-1-git-send-email-amir73il@gmail.com>
+ <1526632177-28832-10-git-send-email-amir73il@gmail.com> <20180518150353.GS30522@ZenIV.linux.org.uk>
+ <CAJfpegvAx1yNkDJNcCa-YZOCpz1OgeWK8SE341-iE8L5E8wsKw@mail.gmail.com>
+ <20180518154042.GT30522@ZenIV.linux.org.uk> <CAJfpegt1K0qYcZrws+MnhXr54=8DEG3KbpzaGg-ePOqDPkSMSQ@mail.gmail.com>
+ <20180522152135.GB23785@veci.piliscsaba.redhat.com>
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH] ovl: be more prudent when instantiating a new dentry
-Date: Fri, 11 May 2018 11:46:34 +0300
-Message-Id: <1526028394-406-1-git-send-email-amir73il@gmail.com>
+Date: Wed, 23 May 2018 11:11:24 +0300
+Message-ID: <CAOQ4uxheiADtNS3ay-14zUKLy9XhctM3DDy+fktyOkNs=nZ41g@mail.gmail.com>
+Subject: Re: [PATCH v4 9/9] ovl: use iget5_prealloc() to hash a newly created inode
+Content-Type: text/plain; charset="UTF-8"
 To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: Al Viro <viro@zeniv.linux.org.uk>, linux-unionfs@vger.kernel.org
+Cc: Al Viro <viro@zeniv.linux.org.uk>, Vivek Goyal <vgoyal@redhat.com>, overlayfs <linux-unionfs@vger.kernel.org>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-Currently, there is a small window where ovl_obtain_alias() can
-race with ovl_instantiate() and create two aliases for an overlay
-directory inode, see Al's explanation in this post:
-https://marc.info/?l=linux-fsdevel&m=152599914515224&w=2
+On Tue, May 22, 2018 at 6:21 PM, Miklos Szeredi <miklos@szeredi.hu> wrote:
+> On Fri, May 18, 2018 at 06:01:22PM +0200, Miklos Szeredi wrote:
+>> On Fri, May 18, 2018 at 5:40 PM, Al Viro <viro@zeniv.linux.org.uk> wrote:
+>> > On Fri, May 18, 2018 at 05:11:20PM +0200, Miklos Szeredi wrote:
+>> >> On Fri, May 18, 2018 at 5:03 PM, Al Viro <viro@zeniv.linux.org.uk> wrote:
+>
+>> >> > Mind explaining what the hell is wrong with insert_inode_locked4()?
+>> >>
+>> >> That it doesn't return the old inode if found.
+>> >>
+>> >> Btw, these functions are eerily similar, and it'd be nice to reduce
+>> >> the number of them.
+>
+> How about this one?
+>
 
-This patch does not fix the race, but preparing ovl_instantiate()
-to use the proposed helper d_instantiate_new() to fix the race.
-
-The only logic change by this patch is that if there is an
-inconcsistency and a new created upper inode apears to already
-exist in icache (hashed by the same real upper inode), we will
-export this error to user instead of silently not hashing the new
-inode.
-
-Backporting only makes sense for v4.16 where NFS export was
-introduced, along with followup d_instantiate_new() fix.
-
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: <stable@vger.kernel.org> #v4.16
-Signed-off-by: Amir Goldstein <amir73il@gmail.com>
----
- fs/overlayfs/dir.c       | 31 +++++++++++++++++++++----------
- fs/overlayfs/inode.c     |  6 ++++++
- fs/overlayfs/overlayfs.h |  1 +
- 3 files changed, 28 insertions(+), 10 deletions(-)
-
-Miklos,
-
-Please check carefully that my claim for no logic change is correct.
-
-There are a few ways we can go with this patch -
-Either base it on top of Al's d_instantiate_new() change and use the
-helper in this patch or post another patch later to use d_instantiate_new()
-and leave one independant of Al's changes.
-
-Testing wise, this passed xfstests overlay/quick overlay/stress
-generic/exportfs and a bunch ov unionmount test configurations.
+Pushed tested branch ovl-fixed.
+For sanity check of iget5_locked() also ran xfstests -g quick on btrfs.
 
 Thanks,
 Amir.
 
-diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
-index 47dc980e8b33..3573e5550569 100644
---- a/fs/overlayfs/dir.c
-+++ b/fs/overlayfs/dir.c
-@@ -183,23 +183,34 @@ static int ovl_set_opaque(struct dentry *dentry, struct dentry *upperdentry)
- }
- 
- /* Common operations required to be done after creation of file on upper */
--static void ovl_instantiate(struct dentry *dentry, struct inode *inode,
--			    struct dentry *newdentry, bool hardlink)
-+static int ovl_instantiate(struct dentry *dentry, struct inode *inode,
-+			   struct dentry *newdentry, bool hardlink)
- {
- 	ovl_dir_modified(dentry->d_parent, false);
--	ovl_copyattr(d_inode(newdentry), inode);
- 	ovl_dentry_set_upper_alias(dentry);
- 	if (!hardlink) {
--		ovl_inode_update(inode, newdentry);
-+		int err;
-+
-+		ovl_inode_init(inode, newdentry, NULL);
-+		err = ovl_insert_inode_locked(inode, d_inode(newdentry));
-+		if (err)
-+			return err;
-+		/*
-+		 * TODO: replace this pair with d_instantiate_new() to prevent
-+		 *       ovl_obtain_alias() from sneaking in between them.
-+		 */
-+		unlock_new_inode(inode);
-+		d_instantiate(dentry, inode);
- 	} else {
- 		WARN_ON(ovl_inode_real(inode) != d_inode(newdentry));
- 		dput(newdentry);
- 		inc_nlink(inode);
--	}
--	d_instantiate(dentry, inode);
--	/* Force lookup of new upper hardlink to find its lower */
--	if (hardlink)
-+		d_instantiate(dentry, inode);
-+		/* Force lookup of new upper hardlink to find its lower */
- 		d_drop(dentry);
-+	}
-+
-+	return 0;
- }
- 
- static bool ovl_type_merge(struct dentry *dentry)
-@@ -238,7 +249,7 @@ static int ovl_create_upper(struct dentry *dentry, struct inode *inode,
- 		ovl_set_opaque(dentry, newdentry);
- 	}
- 
--	ovl_instantiate(dentry, inode, newdentry, !!hardlink);
-+	err = ovl_instantiate(dentry, inode, newdentry, !!hardlink);
- 	newdentry = NULL;
- out_dput:
- 	dput(newdentry);
-@@ -439,7 +450,7 @@ static int ovl_create_over_whiteout(struct dentry *dentry, struct inode *inode,
- 		if (err)
- 			goto out_cleanup;
- 	}
--	ovl_instantiate(dentry, inode, newdentry, !!hardlink);
-+	err = ovl_instantiate(dentry, inode, newdentry, !!hardlink);
- 	newdentry = NULL;
- out_dput2:
- 	dput(upper);
-diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
-index 7abcf96e94fc..70c966b1bb5a 100644
---- a/fs/overlayfs/inode.c
-+++ b/fs/overlayfs/inode.c
-@@ -741,6 +741,12 @@ static bool ovl_verify_inode(struct inode *inode, struct dentry *lowerdentry,
- 	return true;
- }
- 
-+int ovl_insert_inode_locked(struct inode *inode, struct inode *realinode)
-+{
-+	return insert_inode_locked4(inode, (unsigned long) realinode,
-+				    ovl_inode_test, realinode);
-+}
-+
- struct inode *ovl_lookup_inode(struct super_block *sb, struct dentry *real,
- 			       bool is_upper)
- {
-diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-index e4e7f1e56225..83241b1b14da 100644
---- a/fs/overlayfs/overlayfs.h
-+++ b/fs/overlayfs/overlayfs.h
-@@ -343,6 +343,7 @@ int ovl_update_time(struct inode *inode, struct timespec *ts, int flags);
- bool ovl_is_private_xattr(const char *name);
- 
- struct inode *ovl_new_inode(struct super_block *sb, umode_t mode, dev_t rdev);
-+int ovl_insert_inode_locked(struct inode *inode, struct inode *realinode);
- struct inode *ovl_lookup_inode(struct super_block *sb, struct dentry *real,
- 			       bool is_upper);
- struct inode *ovl_get_inode(struct super_block *sb, struct dentry *upperdentry,
--- 
-2.7.4
+
+> ---
+>
+> From: Miklos Szeredi <miklos@szeredi.hu>
+> Date: Thu, 17 May 2018 10:53:05 +0200
+> Subject: vfs: factor out inode_insert5()
+>
+> Split out common helper for race free insertion of an already allocated
+> inode into the cache.  Use this from iget5_locked() and
+> insert_inode_locked4().  Make iget5_locked() use new_inode()/iput() instead
+> of alloc_inode()/destroy_inode() directly.
+>
+> Also export to modules for use by filesystems which want to preallocate an
+> inode before file/directory creation.
+>
+> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+> Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
+> ---
+>  fs/inode.c         |  164 ++++++++++++++++++++++++-----------------------------
+>  include/linux/fs.h |    4 +
+>  2 files changed, 79 insertions(+), 89 deletions(-)
+>
+> --- a/fs/inode.c
+> +++ b/fs/inode.c
+> @@ -1003,6 +1003,70 @@ void unlock_two_nondirectories(struct in
+>  EXPORT_SYMBOL(unlock_two_nondirectories);
+>
+>  /**
+> + * inode_insert5 - obtain an inode from a mounted file system
+> + * @inode:     pre-allocated inode to use for insert to cache
+> + * @hashval:   hash value (usually inode number) to get
+> + * @test:      callback used for comparisons between inodes
+> + * @set:       callback used to initialize a new struct inode
+> + * @data:      opaque data pointer to pass to @test and @set
+> + *
+> + * Search for the inode specified by @hashval and @data in the inode cache,
+> + * and if present it is return it with an increased reference count. This is
+> + * a variant of iget5_locked() for callers that don't want to fail on memory
+> + * allocation of inode.
+> + *
+> + * If the inode is not in cache, insert the pre-allocated inode to cache and
+> + * return it locked, hashed, and with the I_NEW flag set. The file system gets
+> + * to fill it in before unlocking it via unlock_new_inode().
+> + *
+> + * Note both @test and @set are called with the inode_hash_lock held, so can't
+> + * sleep.
+> + */
+> +struct inode *inode_insert5(struct inode *inode, unsigned long hashval,
+> +                           int (*test)(struct inode *, void *),
+> +                           int (*set)(struct inode *, void *), void *data)
+> +{
+> +       struct hlist_head *head = inode_hashtable + hash(inode->i_sb, hashval);
+> +       struct inode *old;
+> +
+> +again:
+> +       spin_lock(&inode_hash_lock);
+> +       old = find_inode(inode->i_sb, head, test, data);
+> +       if (unlikely(old)) {
+> +               /*
+> +                * Uhhuh, somebody else created the same inode under us.
+> +                * Use the old inode instead of the preallocated one.
+> +                */
+> +               spin_unlock(&inode_hash_lock);
+> +               wait_on_inode(old);
+> +               if (unlikely(inode_unhashed(old))) {
+> +                       iput(old);
+> +                       goto again;
+> +               }
+> +               return old;
+> +       }
+> +
+> +       if (set && unlikely(set(inode, data))) {
+> +               inode = NULL;
+> +               goto unlock;
+> +       }
+> +
+> +       /*
+> +        * Return the locked inode with I_NEW set, the
+> +        * caller is responsible for filling in the contents
+> +        */
+> +       spin_lock(&inode->i_lock);
+> +       inode->i_state |= I_NEW;
+> +       hlist_add_head(&inode->i_hash, head);
+> +       spin_unlock(&inode->i_lock);
+> +unlock:
+> +       spin_unlock(&inode_hash_lock);
+> +
+> +       return inode;
+> +}
+> +EXPORT_SYMBOL(inode_insert5);
+> +
+> +/**
+>   * iget5_locked - obtain an inode from a mounted file system
+>   * @sb:                super block of file system
+>   * @hashval:   hash value (usually inode number) to get
+> @@ -1026,66 +1090,18 @@ struct inode *iget5_locked(struct super_
+>                 int (*test)(struct inode *, void *),
+>                 int (*set)(struct inode *, void *), void *data)
+>  {
+> -       struct hlist_head *head = inode_hashtable + hash(sb, hashval);
+> -       struct inode *inode;
+> -again:
+> -       spin_lock(&inode_hash_lock);
+> -       inode = find_inode(sb, head, test, data);
+> -       spin_unlock(&inode_hash_lock);
+> -
+> -       if (inode) {
+> -               wait_on_inode(inode);
+> -               if (unlikely(inode_unhashed(inode))) {
+> -                       iput(inode);
+> -                       goto again;
+> -               }
+> -               return inode;
+> -       }
+> +       struct inode *inode = ilookup5(sb, hashval, test, data);
+>
+> -       inode = alloc_inode(sb);
+> -       if (inode) {
+> -               struct inode *old;
+> +       if (!inode) {
+> +               struct inode *new = new_inode(sb);
+>
+> -               spin_lock(&inode_hash_lock);
+> -               /* We released the lock, so.. */
+> -               old = find_inode(sb, head, test, data);
+> -               if (!old) {
+> -                       if (set(inode, data))
+> -                               goto set_failed;
+> -
+> -                       spin_lock(&inode->i_lock);
+> -                       inode->i_state = I_NEW;
+> -                       hlist_add_head(&inode->i_hash, head);
+> -                       spin_unlock(&inode->i_lock);
+> -                       inode_sb_list_add(inode);
+> -                       spin_unlock(&inode_hash_lock);
+> -
+> -                       /* Return the locked inode with I_NEW set, the
+> -                        * caller is responsible for filling in the contents
+> -                        */
+> -                       return inode;
+> -               }
+> -
+> -               /*
+> -                * Uhhuh, somebody else created the same inode under
+> -                * us. Use the old inode instead of the one we just
+> -                * allocated.
+> -                */
+> -               spin_unlock(&inode_hash_lock);
+> -               destroy_inode(inode);
+> -               inode = old;
+> -               wait_on_inode(inode);
+> -               if (unlikely(inode_unhashed(inode))) {
+> -                       iput(inode);
+> -                       goto again;
+> +               if (new) {
+> +                       inode = inode_insert5(new, hashval, test, set, data);
+> +                       if (unlikely(inode != new))
+> +                               iput(new);
+>                 }
+>         }
+>         return inode;
+> -
+> -set_failed:
+> -       spin_unlock(&inode_hash_lock);
+> -       destroy_inode(inode);
+> -       return NULL;
+>  }
+>  EXPORT_SYMBOL(iget5_locked);
+>
+> @@ -1426,43 +1442,13 @@ EXPORT_SYMBOL(insert_inode_locked);
+>  int insert_inode_locked4(struct inode *inode, unsigned long hashval,
+>                 int (*test)(struct inode *, void *), void *data)
+>  {
+> -       struct super_block *sb = inode->i_sb;
+> -       struct hlist_head *head = inode_hashtable + hash(sb, hashval);
+> +       struct inode *old = inode_insert5(inode, hashval, test, NULL, data);
+>
+> -       while (1) {
+> -               struct inode *old = NULL;
+> -
+> -               spin_lock(&inode_hash_lock);
+> -               hlist_for_each_entry(old, head, i_hash) {
+> -                       if (old->i_sb != sb)
+> -                               continue;
+> -                       if (!test(old, data))
+> -                               continue;
+> -                       spin_lock(&old->i_lock);
+> -                       if (old->i_state & (I_FREEING|I_WILL_FREE)) {
+> -                               spin_unlock(&old->i_lock);
+> -                               continue;
+> -                       }
+> -                       break;
+> -               }
+> -               if (likely(!old)) {
+> -                       spin_lock(&inode->i_lock);
+> -                       inode->i_state |= I_NEW;
+> -                       hlist_add_head(&inode->i_hash, head);
+> -                       spin_unlock(&inode->i_lock);
+> -                       spin_unlock(&inode_hash_lock);
+> -                       return 0;
+> -               }
+> -               __iget(old);
+> -               spin_unlock(&old->i_lock);
+> -               spin_unlock(&inode_hash_lock);
+> -               wait_on_inode(old);
+> -               if (unlikely(!inode_unhashed(old))) {
+> -                       iput(old);
+> -                       return -EBUSY;
+> -               }
+> +       if (old != inode) {
+>                 iput(old);
+> +               return -EBUSY;
+>         }
+> +       return 0;
+>  }
+>  EXPORT_SYMBOL(insert_inode_locked4);
+>
+> --- a/include/linux/fs.h
+> +++ b/include/linux/fs.h
+> @@ -2879,6 +2879,10 @@ extern struct inode *ilookup5(struct sup
+>                 int (*test)(struct inode *, void *), void *data);
+>  extern struct inode *ilookup(struct super_block *sb, unsigned long ino);
+>
+> +extern struct inode *inode_insert5(struct inode *inode, unsigned long hashval,
+> +               int (*test)(struct inode *, void *),
+> +               int (*set)(struct inode *, void *),
+> +               void *data);
+>  extern struct inode * iget5_locked(struct super_block *, unsigned long, int (*test)(struct inode *, void *), int (*set)(struct inode *, void *), void *);
+>  extern struct inode * iget_locked(struct super_block *, unsigned long);
+>  extern struct inode *find_inode_nowait(struct super_block *,
