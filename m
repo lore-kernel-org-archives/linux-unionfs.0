@@ -1,118 +1,59 @@
-Return-Path: <amir73il@gmail.com>
-Return-Path: <amir73il@gmail.com>
-From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH v2 3/3] ovl: make ovl_create_real() cope with vfs_mkdir() safely
-Date: Sat, 12 May 2018 12:17:11 +0300
-Message-Id: <1526116631-24186-4-git-send-email-amir73il@gmail.com>
-In-Reply-To: <1526116631-24186-1-git-send-email-amir73il@gmail.com>
-References: <1526116631-24186-1-git-send-email-amir73il@gmail.com>
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: Al Viro <viro@zeniv.linux.org.uk>, linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
+Return-Path: <vgoyal@redhat.com>
+Date: Wed, 23 May 2018 16:00:40 -0400
+From: Vivek Goyal <vgoyal@redhat.com>
+Subject: Re: [PATCH v15 00/30] overlayfs: Delayed copy up of data
+Message-ID: <20180523200040.GA3726@redhat.com>
+References: <20180507174102.24086-1-vgoyal@redhat.com>
+ <20180508134230.GC3501@redhat.com>
+ <CAOQ4uxhF-tij6y7Dd=+-aj1KWZh1ZWXx94imKy-CG_YKrUpFtA@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAOQ4uxhF-tij6y7Dd=+-aj1KWZh1ZWXx94imKy-CG_YKrUpFtA@mail.gmail.com>
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: overlayfs <linux-unionfs@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-From: Al Viro <viro@zeniv.linux.org.uk>
+On Tue, May 08, 2018 at 05:16:54PM +0300, Amir Goldstein wrote:
+> On Tue, May 8, 2018 at 4:42 PM, Vivek Goyal <vgoyal@redhat.com> wrote:
+> > On Mon, May 07, 2018 at 01:40:32PM -0400, Vivek Goyal wrote:
+> >> Hi,
+> >>
+> >> This is V15 of overlayfs metadata only copy-up feature. These patches I
+> >> have rebased on top of Miklos overlayfs-next tree's branch overlayfs-rorw.
+> >>
+> >> git://git.kernel.org/pub/scm/linux/kernel/git/mszeredi/vfs.git overlayfs-rorw
+> >>
+> >> Patches are also available here.
+> >>
+> >> https://github.com/rhvgoyal/linux/commits/metacopy-v15
+> >>
+> >> I have run unionmount-testsuite and "./check -overlay -g quick" and that
+> >> works. Only 4 overlay tests fail, which fail on vanilla kernel too.
+> >>
+> >
+> > Hi Amir,
+> >
+> > I have taken care of your review comments and pushed new patches at
+> > "metcopy-next" branch.
+> >
+> > https://github.com/rhvgoyal/linux/commits/metacopy-next
+> 
+> Looks good.
 
-vfs_mkdir() may succeed and leave the dentry passed to it unhashed and
-negative.  ovl_create_real() is the last caller breaking when that
-happens.
+Given all the work w.r.t fixing races and making use of ovl_get_inode()
+in ovl_instantiate(), I have rebased my patches on top of Amir's ovl-fixes
+branch and pushed it to "metacopy-next-ovl-fixes" branch.
 
-Pass newdentry to ovl_create_real() by ref, so in the case above, if
-lookup finds a good dentry, newdentry will be replaced by the positive
-hashed one.
+https://github.com/rhvgoyal/linux/commits/metacopy-next-ovl-fixes
 
-[amir: split re-factoring to prep patch and pass dentry by ref]
+With usage of ovl_get_inode() in ovl_instantiate(), I realized that I
+should not have to call ovl_set_upperdata() now explicitly as
+ovl_get_inode() will take care of that anyway. So I dropped it. Also
+dropped similar call from export.c as it felt redundant.
 
-Signed-off-by: Al Viro <viro@zeniv.linux.org.uk>
-Signed-off-by: Amir Goldstein <amir73il@gmail.com>
----
- fs/overlayfs/dir.c       | 24 +++++++++++++++++++++---
- fs/overlayfs/overlayfs.h |  2 +-
- fs/overlayfs/super.c     |  2 +-
- 3 files changed, 23 insertions(+), 5 deletions(-)
+I might do another posting of patches once all the ovl_get_inode()
+related cleanup gets merged and shows up in Miklos's tree.
 
-diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
-index eb3fed19b1af..aeb40dcd9dd4 100644
---- a/fs/overlayfs/dir.c
-+++ b/fs/overlayfs/dir.c
-@@ -114,9 +114,10 @@ int ovl_cleanup_and_whiteout(struct dentry *workdir, struct inode *dir,
- 	goto out;
- }
- 
--int ovl_create_real(struct inode *dir, struct dentry *newdentry,
-+int ovl_create_real(struct inode *dir, struct dentry **pnewdentry,
- 		    struct cattr *attr, struct dentry *hardlink, bool debug)
- {
-+	struct dentry *newdentry = *pnewdentry;
- 	int err;
- 
- 	if (newdentry->d_inode)
-@@ -140,6 +141,23 @@ int ovl_create_real(struct inode *dir, struct dentry *newdentry,
- 		case S_IFSOCK:
- 			err = ovl_do_mknod(dir, newdentry,
- 					   attr->mode, attr->rdev, debug);
-+			/*
-+			 * vfs_mkdir() may succeed and leave the dentry passed
-+			 * to it unhashed and negative. If that happens, try to
-+			 * lookup a new hashed and positive dentry.
-+			 */
-+			if (!err && unlikely(d_unhashed(newdentry))) {
-+				struct dentry *d;
-+
-+				d = lookup_one_len(newdentry->d_name.name,
-+						   newdentry->d_parent,
-+						   newdentry->d_name.len);
-+				if (IS_ERR(d))
-+					return PTR_ERR(d);
-+
-+				dput(newdentry);
-+				*pnewdentry = newdentry = d;
-+			}
- 			break;
- 
- 		case S_IFLNK:
-@@ -171,7 +189,7 @@ struct dentry *ovl_create_temp(struct dentry *workdir, struct cattr *attr,
- 	if (IS_ERR(temp))
- 		return temp;
- 
--	err = ovl_create_real(wdir, temp, attr, hardlink, true);
-+	err = ovl_create_real(wdir, &temp, attr, hardlink, true);
- 	if (err) {
- 		dput(temp);
- 		return ERR_PTR(err);
-@@ -256,7 +274,7 @@ static int ovl_create_upper(struct dentry *dentry, struct inode *inode,
- 	err = PTR_ERR(newdentry);
- 	if (IS_ERR(newdentry))
- 		goto out_unlock;
--	err = ovl_create_real(udir, newdentry, attr, hardlink, false);
-+	err = ovl_create_real(udir, &newdentry, attr, hardlink, false);
- 	if (err)
- 		goto out_dput;
- 
-diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-index fc0b3e876636..2fb738d3ff6a 100644
---- a/fs/overlayfs/overlayfs.h
-+++ b/fs/overlayfs/overlayfs.h
-@@ -378,7 +378,7 @@ struct cattr {
- 	umode_t mode;
- 	const char *link;
- };
--int ovl_create_real(struct inode *dir, struct dentry *newdentry,
-+int ovl_create_real(struct inode *dir, struct dentry **pnewdentry,
- 		    struct cattr *attr,
- 		    struct dentry *hardlink, bool debug);
- struct dentry *ovl_create_temp(struct dentry *workdir, struct cattr *attr,
-diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-index 492d534058ae..d83c0543c03c 100644
---- a/fs/overlayfs/super.c
-+++ b/fs/overlayfs/super.c
-@@ -603,7 +603,7 @@ static struct dentry *ovl_workdir_create(struct ovl_fs *ofs,
- 			goto retry;
- 		}
- 
--		err = ovl_create_real(dir, work,
-+		err = ovl_create_real(dir, &work,
- 				      &(struct cattr){.mode = S_IFDIR | 0},
- 				      NULL, true);
- 		if (err)
--- 
-2.7.4
+Thanks
+Vivek
