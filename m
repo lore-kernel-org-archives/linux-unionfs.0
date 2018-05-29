@@ -1,94 +1,72 @@
 From: Miklos Szeredi <mszeredi@redhat.com>
-Subject: [PATCH 01/28] ovl: Initialize ovl_inode->redirect in ovl_get_inode()
-Date: Tue, 29 May 2018 16:45:45 +0200
-Message-ID: <20180529144612.16675-2-mszeredi@redhat.com>
-References: <20180529144612.16675-1-mszeredi@redhat.com>
+Subject: [PATCH 00/28] overlayfs: Delayed copy up of data
+Date: Tue, 29 May 2018 16:45:44 +0200
+Message-ID: <20180529144612.16675-1-mszeredi@redhat.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180529144612.16675-1-mszeredi@redhat.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-unionfs@vger.kernel.org
 Cc: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 
-From: Vivek Goyal <vgoyal@redhat.com>
+In one of the recent converstions, people mentioned that chown/chmod
+lead to copy up files as well as data. We could optimize it so that
+only metadata is copied up during chown/chmod and data is copied up when
+file is opened for WRITE.
 
-ovl_inode->redirect is an inode property and should be initialized in
-ovl_get_inode() only when we are adding a new inode to cache.  If inode is
-already in cache, it is already initialized and we should not be touching
-ovl_inode->redirect field.
+This optimization potentially could be useful with containers and user
+namespaces. In popular scenario, people end up doing chown() on whole
+image directory tree based on container mappings. And this chown copies
+up everything, breaking sharing of page cache between containers.
 
-As of now this is not a problem as redirects are used only for directories
-which don't share inode.  But soon I want to use redirects for regular
-files also and there it can become an issue.
+With these patches, only metadat is copied up during chown() and if file
+is opened for READ, d_real() returns lower dentry/inode. That way,
+different containers can still continue to use page cache. That's the
+use case I have in mind.
 
-Hence, move ->redirect initialization in ovl_get_inode().
-
-Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
-Reviewed-by: Amir Goldstein <amir73il@gmail.com>
-Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
 ---
- fs/overlayfs/inode.c     | 3 +++
- fs/overlayfs/namei.c     | 8 +-------
- fs/overlayfs/overlayfs.h | 1 +
- 3 files changed, 5 insertions(+), 7 deletions(-)
+Vivek Goyal (28):
+  ovl: Initialize ovl_inode->redirect in ovl_get_inode()
+  ovl: Move the copy up helpers to copy_up.c
+  ovl: Provide a mount option metacopy=on/off for metadata copyup
+  ovl: During copy up, first copy up metadata and then data
+  ovl: Copy up only metadata during copy up where it makes sense
+  ovl: Add helper ovl_already_copied_up()
+  ovl: A new xattr OVL_XATTR_METACOPY for file on upper
+  ovl: Use out_err instead of out_nomem
+  ovl: Modify ovl_lookup() and friends to lookup metacopy dentry
+  ovl: Copy up meta inode data from lowest data inode
+  ovl: Add helper ovl_dentry_lowerdata() to get lower data dentry
+  ovl: Fix ovl_getattr() to get number of blocks from lower
+  ovl: Store lower data inode in ovl_inode
+  ovl: Add helper ovl_inode_realdata()
+  ovl: Open file with data except for the case of fsync
+  ovl: Do not expose metacopy only dentry from d_real()
+  ovl: Move some dir related ovl_lookup_single() code in else block
+  ovl: Check redirects for metacopy files
+  ovl: Treat metacopy dentries as type OVL_PATH_MERGE
+  ovl: Add an inode flag OVL_CONST_INO
+  ovl: Do not set dentry type ORIGIN for broken hardlinks
+  ovl: Set redirect on metacopy files upon rename
+  ovl: Set redirect on upper inode when it is linked
+  ovl: Check redirect on index as well
+  ovl: Disbale metacopy for MAP_SHARED mmap()
+  ovl: Do not do metadata only copy-up for truncate operation
+  ovl: Do not do metacopy only for ioctl modifying file attr
+  ovl: Enable metadata only feature
 
-diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
-index cd46dd8e7e54..c365b94fa158 100644
---- a/fs/overlayfs/inode.c
-+++ b/fs/overlayfs/inode.c
-@@ -844,6 +844,7 @@ struct inode *ovl_get_inode(struct super_block *sb,
- 			}
- 
- 			dput(upperdentry);
-+			kfree(oip->redirect);
- 			goto out;
- 		}
- 
-@@ -867,6 +868,8 @@ struct inode *ovl_get_inode(struct super_block *sb,
- 	if (oip->index)
- 		ovl_set_flag(OVL_INDEX, inode);
- 
-+	OVL_I(inode)->redirect = oip->redirect;
-+
- 	/* Check for non-merge dir that may have whiteouts */
- 	if (is_dir) {
- 		if (((upperdentry && lowerdentry) || oip->numlower > 1) ||
-diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
-index 08801b45df00..54f206485ab8 100644
---- a/fs/overlayfs/namei.c
-+++ b/fs/overlayfs/namei.c
-@@ -1009,19 +1009,13 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
- 			.lowerpath = stack,
- 			.index = index,
- 			.numlower = ctr,
-+			.redirect = upperredirect,
- 		};
- 
- 		inode = ovl_get_inode(dentry->d_sb, &oip);
- 		err = PTR_ERR(inode);
- 		if (IS_ERR(inode))
- 			goto out_free_oe;
--
--		/*
--		 * NB: handle redirected hard links when non-dir redirects
--		 * become possible
--		 */
--		WARN_ON(OVL_I(inode)->redirect);
--		OVL_I(inode)->redirect = upperredirect;
- 	}
- 
- 	revert_creds(old_cred);
-diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-index be4f1664f662..1948e38c3c95 100644
---- a/fs/overlayfs/overlayfs.h
-+++ b/fs/overlayfs/overlayfs.h
-@@ -342,6 +342,7 @@ struct ovl_inode_params {
- 	struct ovl_path *lowerpath;
- 	struct dentry *index;
- 	unsigned int numlower;
-+	char *redirect;
- };
- struct inode *ovl_new_inode(struct super_block *sb, umode_t mode, dev_t rdev);
- struct inode *ovl_lookup_inode(struct super_block *sb, struct dentry *real,
+ Documentation/filesystems/overlayfs.txt |  30 +++-
+ fs/overlayfs/Kconfig                    |  19 +++
+ fs/overlayfs/copy_up.c                  | 160 ++++++++++++++++-----
+ fs/overlayfs/dir.c                      |  74 +++++++---
+ fs/overlayfs/export.c                   |   3 +
+ fs/overlayfs/file.c                     |  43 ++++--
+ fs/overlayfs/inode.c                    | 112 +++++++++------
+ fs/overlayfs/namei.c                    | 195 ++++++++++++++++----------
+ fs/overlayfs/overlayfs.h                |  33 ++++-
+ fs/overlayfs/ovl_entry.h                |   6 +-
+ fs/overlayfs/super.c                    |  62 +++++++-
+ fs/overlayfs/util.c                     | 241 +++++++++++++++++++++++++++++++-
+ 12 files changed, 780 insertions(+), 198 deletions(-)
+
 -- 
 2.14.3
