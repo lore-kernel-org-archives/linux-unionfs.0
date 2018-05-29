@@ -1,7 +1,7 @@
 From: Miklos Szeredi <mszeredi@redhat.com>
-Subject: [PATCH 25/28] ovl: Disbale metacopy for MAP_SHARED mmap()
-Date: Tue, 29 May 2018 16:46:09 +0200
-Message-ID: <20180529144612.16675-26-mszeredi@redhat.com>
+Subject: [PATCH 26/28] ovl: Do not do metadata only copy-up for truncate operation
+Date: Tue, 29 May 2018 16:46:10 +0200
+Message-ID: <20180529144612.16675-27-mszeredi@redhat.com>
 References: <20180529144612.16675-1-mszeredi@redhat.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20180529144612.16675-1-mszeredi@redhat.com>
@@ -12,58 +12,52 @@ List-Id: linux-unionfs@vger.kernel.org
 
 From: Vivek Goyal <vgoyal@redhat.com>
 
-When user chose the option of copying up a file when mmap(MAP_SHARED)
-happens, then do full copy up and not just metacopy.
+truncate should copy up full file (and not do metacopy only), otherwise it
+will be broken.  For example, use truncate to increase size of a file so
+that any read beyong existing size will return null bytes.  If we don't
+copy up full file, then we end up opening lower file and read from it only
+reads upto the old size (and not new size after truncate).  Hence to avoid
+such situations, copy up data as well when file size changes.
+
+So far it was being done by d_real(O_WRONLY) call in truncate() path.  Now
+that patch has been reverted.  So force full copy up in ovl_setattr() if
+size of file is changing.
 
 Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
 Reviewed-by: Amir Goldstein <amir73il@gmail.com>
 Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
 ---
- fs/overlayfs/copy_up.c   | 5 +++++
- fs/overlayfs/file.c      | 2 +-
- fs/overlayfs/overlayfs.h | 1 +
- 3 files changed, 7 insertions(+), 1 deletion(-)
+ fs/overlayfs/inode.c | 9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
 
-diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
-index 8c05e9ad9782..c31f198bed99 100644
---- a/fs/overlayfs/copy_up.c
-+++ b/fs/overlayfs/copy_up.c
-@@ -867,6 +867,11 @@ int ovl_open_maybe_copy_up(struct dentry *dentry, unsigned int file_flags)
- 	return err;
- }
- 
-+int ovl_copy_up_with_data(struct dentry *dentry)
-+{
-+	return ovl_copy_up_flags(dentry, O_WRONLY);
-+}
-+
- int ovl_copy_up(struct dentry *dentry)
+diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
+index ac1d2a581a6e..e31d64206a01 100644
+--- a/fs/overlayfs/inode.c
++++ b/fs/overlayfs/inode.c
+@@ -19,6 +19,7 @@
+ int ovl_setattr(struct dentry *dentry, struct iattr *attr)
  {
- 	return ovl_copy_up_flags(dentry, 0);
-diff --git a/fs/overlayfs/file.c b/fs/overlayfs/file.c
-index c7738ef492c8..953295774471 100644
---- a/fs/overlayfs/file.c
-+++ b/fs/overlayfs/file.c
-@@ -296,7 +296,7 @@ static int ovl_pre_mmap(struct file *file, unsigned long prot,
- 	 * later.
- 	 */
- 	if ((flag & MAP_SHARED) && ovl_copy_up_shared(file_inode(file)->i_sb))
--		err = ovl_copy_up(file_dentry(file));
-+		err = ovl_copy_up_with_data(file_dentry(file));
+ 	int err;
++	bool full_copy_up = false;
+ 	struct dentry *upperdentry;
+ 	const struct cred *old_cred;
  
- 	return err;
- }
-diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-index 24f1d0e8a178..93c84929d422 100644
---- a/fs/overlayfs/overlayfs.h
-+++ b/fs/overlayfs/overlayfs.h
-@@ -414,6 +414,7 @@ extern const struct file_operations ovl_file_operations;
+@@ -36,9 +37,15 @@ int ovl_setattr(struct dentry *dentry, struct iattr *attr)
+ 		err = -ETXTBSY;
+ 		if (atomic_read(&realinode->i_writecount) < 0)
+ 			goto out_drop_write;
++
++		/* Truncate should trigger data copy up as well */
++		full_copy_up = true;
+ 	}
  
- /* copy_up.c */
- int ovl_copy_up(struct dentry *dentry);
-+int ovl_copy_up_with_data(struct dentry *dentry);
- int ovl_copy_up_flags(struct dentry *dentry, int flags);
- int ovl_open_maybe_copy_up(struct dentry *dentry, unsigned int file_flags);
- int ovl_copy_xattr(struct dentry *old, struct dentry *new);
+-	err = ovl_copy_up(dentry);
++	if (!full_copy_up)
++		err = ovl_copy_up(dentry);
++	else
++		err = ovl_copy_up_with_data(dentry);
+ 	if (!err) {
+ 		struct inode *winode = NULL;
+ 
 -- 
 2.14.3
