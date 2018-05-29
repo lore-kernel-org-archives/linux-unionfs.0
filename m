@@ -1,7 +1,7 @@
 From: Miklos Szeredi <mszeredi@redhat.com>
-Subject: [PATCH 12/28] ovl: Fix ovl_getattr() to get number of blocks from lower
-Date: Tue, 29 May 2018 16:45:56 +0200
-Message-ID: <20180529144612.16675-13-mszeredi@redhat.com>
+Subject: [PATCH 11/28] ovl: Add helper ovl_dentry_lowerdata() to get lower data dentry
+Date: Tue, 29 May 2018 16:45:55 +0200
+Message-ID: <20180529144612.16675-12-mszeredi@redhat.com>
 References: <20180529144612.16675-1-mszeredi@redhat.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20180529144612.16675-1-mszeredi@redhat.com>
@@ -12,124 +12,58 @@ List-Id: linux-unionfs@vger.kernel.org
 
 From: Vivek Goyal <vgoyal@redhat.com>
 
-If an inode has been copied up metadata only, then we need to query the
-number of blocks from lower and fill up the stat->st_blocks.
+Now we have the notion of data dentry and metacopy dentry.
+ovl_dentry_lower() will return uppermost lower dentry, but it could be
+either data or metacopy dentry.  Now we support metacopy dentries in lower
+layers so it is possible that lowerstack[0] is metacopy dentry while
+lowerstack[1] is actual data dentry.
 
-We need to be careful about races where we are doing stat on one cpu and
-data copy up is taking place on other cpu.  We want to return
-stat->st_blocks either from lower or stable upper and not something in
-between.  Hence, ovl_has_upperdata() is called first to figure out whether
-block reporting will take place from lower or upper.
-
-We now support metacopy dentries in middle layer.  That means number of
-blocks reporting needs to come from lowest data dentry and this could be
-different from lower dentry.  Hence we end up making a separate
-vfs_getxattr() call for metacopy dentries to get number of blocks.
+So add an helper which returns lowest most dentry which is supposed to be
+data dentry.
 
 Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
 Reviewed-by: Amir Goldstein <amir73il@gmail.com>
 Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
 ---
- fs/overlayfs/inode.c     | 35 ++++++++++++++++++++++++++++++++++-
  fs/overlayfs/overlayfs.h |  1 +
- fs/overlayfs/util.c      | 16 ++++++++++++++++
- 3 files changed, 51 insertions(+), 1 deletion(-)
+ fs/overlayfs/util.c      | 13 +++++++++++++
+ 2 files changed, 14 insertions(+)
 
-diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
-index 350e38c5ce7d..6a6693150c37 100644
---- a/fs/overlayfs/inode.c
-+++ b/fs/overlayfs/inode.c
-@@ -145,6 +145,9 @@ int ovl_getattr(const struct path *path, struct kstat *stat,
- 	bool samefs = ovl_same_sb(dentry->d_sb);
- 	struct ovl_layer *lower_layer = NULL;
- 	int err;
-+	bool metacopy_blocks = false;
-+
-+	metacopy_blocks = ovl_is_metacopy_dentry(dentry);
- 
- 	type = ovl_path_real(dentry, &realpath);
- 	old_cred = ovl_override_creds(dentry->d_sb);
-@@ -166,7 +169,8 @@ int ovl_getattr(const struct path *path, struct kstat *stat,
- 			lower_layer = ovl_layer_lower(dentry);
- 		} else if (OVL_TYPE_ORIGIN(type)) {
- 			struct kstat lowerstat;
--			u32 lowermask = STATX_INO | (!is_dir ? STATX_NLINK : 0);
-+			u32 lowermask = STATX_INO | STATX_BLOCKS |
-+					(!is_dir ? STATX_NLINK : 0);
- 
- 			ovl_path_lower(dentry, &realpath);
- 			err = vfs_getattr(&realpath, &lowerstat,
-@@ -195,6 +199,35 @@ int ovl_getattr(const struct path *path, struct kstat *stat,
- 				stat->ino = lowerstat.ino;
- 				lower_layer = ovl_layer_lower(dentry);
- 			}
-+
-+			/*
-+			 * If we are querying a metacopy dentry and lower
-+			 * dentry is data dentry, then use the blocks we
-+			 * queried just now. We don't have to do additional
-+			 * vfs_getattr(). If lower itself is metacopy, then
-+			 * additional vfs_getattr() is unavoidable.
-+			 */
-+			if (metacopy_blocks &&
-+			    realpath.dentry == ovl_dentry_lowerdata(dentry)) {
-+				stat->blocks = lowerstat.blocks;
-+				metacopy_blocks = false;
-+			}
-+		}
-+
-+		if (metacopy_blocks) {
-+			/*
-+			 * If lower is not same as lowerdata or if there was
-+			 * no origin on upper, we can end up here.
-+			 */
-+			struct kstat lowerdatastat;
-+			u32 lowermask = STATX_BLOCKS;
-+
-+			ovl_path_lowerdata(dentry, &realpath);
-+			err = vfs_getattr(&realpath, &lowerdatastat,
-+					  lowermask, flags);
-+			if (err)
-+				goto out;
-+			stat->blocks = lowerdatastat.blocks;
- 		}
- 	}
- 
 diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-index 13b2151cf4df..ae06fd531b75 100644
+index 31795c041d61..13b2151cf4df 100644
 --- a/fs/overlayfs/overlayfs.h
 +++ b/fs/overlayfs/overlayfs.h
-@@ -271,6 +271,7 @@ int ovl_nlink_start(struct dentry *dentry, bool *locked);
- void ovl_nlink_end(struct dentry *dentry, bool locked);
- int ovl_lock_rename_workdir(struct dentry *workdir, struct dentry *upperdir);
- int ovl_check_metacopy_xattr(struct dentry *dentry);
-+bool ovl_is_metacopy_dentry(struct dentry *dentry);
- 
- static inline bool ovl_is_impuredir(struct dentry *dentry)
- {
+@@ -221,6 +221,7 @@ void ovl_path_lowerdata(struct dentry *dentry, struct path *path);
+ enum ovl_path_type ovl_path_real(struct dentry *dentry, struct path *path);
+ struct dentry *ovl_dentry_upper(struct dentry *dentry);
+ struct dentry *ovl_dentry_lower(struct dentry *dentry);
++struct dentry *ovl_dentry_lowerdata(struct dentry *dentry);
+ struct ovl_layer *ovl_layer_lower(struct dentry *dentry);
+ struct dentry *ovl_dentry_real(struct dentry *dentry);
+ struct dentry *ovl_i_dentry_upper(struct inode *inode);
 diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
-index 7c7b95d5da1f..4f9c2ecee74c 100644
+index 32ff67fa0bfb..7c7b95d5da1f 100644
 --- a/fs/overlayfs/util.c
 +++ b/fs/overlayfs/util.c
-@@ -825,3 +825,19 @@ int ovl_check_metacopy_xattr(struct dentry *dentry)
- 	pr_warn_ratelimited("overlayfs: failed to get metacopy (%i)\n", res);
- 	return res;
+@@ -207,6 +207,19 @@ struct ovl_layer *ovl_layer_lower(struct dentry *dentry)
+ 	return oe->numlower ? oe->lowerstack[0].layer : NULL;
  }
-+
-+bool ovl_is_metacopy_dentry(struct dentry *dentry)
+ 
++/*
++ * ovl_dentry_lower() could return either a data dentry or metacopy dentry
++ * dependig on what is stored in lowerstack[0]. At times we need to find
++ * lower dentry which has data (and not metacopy dentry). This helper
++ * returns the lower data dentry.
++ */
++struct dentry *ovl_dentry_lowerdata(struct dentry *dentry)
 +{
 +	struct ovl_entry *oe = dentry->d_fsdata;
 +
-+	if (!d_is_reg(dentry))
-+		return false;
-+
-+	if (ovl_dentry_upper(dentry)) {
-+		if (!ovl_has_upperdata(d_inode(dentry)))
-+			return true;
-+		return false;
-+	}
-+
-+	return (oe->numlower > 1);
++	return oe->numlower ? oe->lowerstack[oe->numlower - 1].dentry : NULL;
 +}
++
+ struct dentry *ovl_dentry_real(struct dentry *dentry)
+ {
+ 	return ovl_dentry_upper(dentry) ?: ovl_dentry_lower(dentry);
 -- 
 2.14.3
