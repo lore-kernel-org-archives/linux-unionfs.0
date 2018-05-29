@@ -1,7 +1,7 @@
 From: Miklos Szeredi <mszeredi@redhat.com>
-Subject: [PATCH 11/39] Revert "Revert "ovl: get_write_access() in truncate""
-Date: Tue, 29 May 2018 16:43:11 +0200
-Message-ID: <20180529144339.16538-12-mszeredi@redhat.com>
+Subject: [PATCH 18/39] ovl: add ovl_fsync()
+Date: Tue, 29 May 2018 16:43:18 +0200
+Message-ID: <20180529144339.16538-19-mszeredi@redhat.com>
 References: <20180529144339.16538-1-mszeredi@redhat.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20180529144339.16538-1-mszeredi@redhat.com>
@@ -10,62 +10,52 @@ To: linux-unionfs@vger.kernel.org
 Cc: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 
-This reverts commit 31c3a7069593b072bd57192b63b62f9a7e994e9a.
+Implement stacked fsync().
 
-Re-add functionality dealing with i_writecount on truncate to overlayfs.
-This patch shouldn't have any observable effects, since we just re-assert
-the writecout that vfs_truncate() already got for us.
-
-This is in preparation for moving overlay functionality out of the VFS.
+Don't sync if lower (noticed by Amir Goldstein).
 
 Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
 ---
- fs/overlayfs/inode.c | 21 +++++++++++++++++++++
- 1 file changed, 21 insertions(+)
+ fs/overlayfs/file.c | 23 +++++++++++++++++++++++
+ 1 file changed, 23 insertions(+)
 
-diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
-index 24fc27683a57..0116ec12451d 100644
---- a/fs/overlayfs/inode.c
-+++ b/fs/overlayfs/inode.c
-@@ -39,10 +39,27 @@ int ovl_setattr(struct dentry *dentry, struct iattr *attr)
- 	if (err)
- 		goto out;
+diff --git a/fs/overlayfs/file.c b/fs/overlayfs/file.c
+index a7af56861aa5..7b47dce4b072 100644
+--- a/fs/overlayfs/file.c
++++ b/fs/overlayfs/file.c
+@@ -233,10 +233,33 @@ static ssize_t ovl_write_iter(struct kiocb *iocb, struct iov_iter *iter)
+ 	return ret;
+ }
  
-+	if (attr->ia_valid & ATTR_SIZE) {
-+		struct inode *realinode = d_inode(ovl_dentry_real(dentry));
++static int ovl_fsync(struct file *file, loff_t start, loff_t end, int datasync)
++{
++	struct fd real;
++	const struct cred *old_cred;
++	int ret;
 +
-+		err = -ETXTBSY;
-+		if (atomic_read(&realinode->i_writecount) < 0)
-+			goto out_drop_write;
++	ret = ovl_real_fdget(file, &real);
++	if (ret)
++		return ret;
++
++	/* Don't sync lower file for fear of receiving EROFS error */
++	if (file_inode(real.file) == ovl_inode_upper(file_inode(file))) {
++		old_cred = ovl_override_creds(file_inode(file)->i_sb);
++		ret = vfs_fsync_range(real.file, start, end, datasync);
++		revert_creds(old_cred);
 +	}
 +
- 	err = ovl_copy_up(dentry);
- 	if (!err) {
-+		struct inode *winode = NULL;
++	fdput(real);
 +
- 		upperdentry = ovl_dentry_upper(dentry);
- 
-+		if (attr->ia_valid & ATTR_SIZE) {
-+			winode = d_inode(upperdentry);
-+			err = get_write_access(winode);
-+			if (err)
-+				goto out_drop_write;
-+		}
++	return ret;
++}
 +
- 		if (attr->ia_valid & (ATTR_KILL_SUID|ATTR_KILL_SGID))
- 			attr->ia_valid &= ~ATTR_MODE;
- 
-@@ -53,7 +70,11 @@ int ovl_setattr(struct dentry *dentry, struct iattr *attr)
- 		if (!err)
- 			ovl_copyattr(upperdentry->d_inode, dentry->d_inode);
- 		inode_unlock(upperdentry->d_inode);
-+
-+		if (winode)
-+			put_write_access(winode);
- 	}
-+out_drop_write:
- 	ovl_drop_write(dentry);
- out:
- 	return err;
+ const struct file_operations ovl_file_operations = {
+ 	.open		= ovl_open,
+ 	.release	= ovl_release,
+ 	.llseek		= ovl_llseek,
+ 	.read_iter	= ovl_read_iter,
+ 	.write_iter	= ovl_write_iter,
++	.fsync		= ovl_fsync,
+ };
 -- 
 2.14.3
