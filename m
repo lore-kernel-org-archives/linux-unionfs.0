@@ -1,7 +1,7 @@
 From: Miklos Szeredi <mszeredi@redhat.com>
-Subject: [PATCH 08/39] vfs: export vfs_dedupe_file_range_one() to modules
-Date: Tue, 29 May 2018 16:43:08 +0200
-Message-ID: <20180529144339.16538-9-mszeredi@redhat.com>
+Subject: [PATCH 23/39] ovl: add O_DIRECT support
+Date: Tue, 29 May 2018 16:43:23 +0200
+Message-ID: <20180529144339.16538-24-mszeredi@redhat.com>
 References: <20180529144339.16538-1-mszeredi@redhat.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20180529144339.16538-1-mszeredi@redhat.com>
@@ -10,52 +10,24 @@ To: linux-unionfs@vger.kernel.org
 Cc: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 
-This is needed by the stacked dedupe implementation in overlayfs.
-
 Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
 ---
- fs/read_write.c    | 6 +++---
- include/linux/fs.h | 4 ++++
- 2 files changed, 7 insertions(+), 3 deletions(-)
+ fs/overlayfs/file.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-diff --git a/fs/read_write.c b/fs/read_write.c
-index 82a53c44c0aa..4d61375a0de4 100644
---- a/fs/read_write.c
-+++ b/fs/read_write.c
-@@ -1964,9 +1964,8 @@ int vfs_dedupe_file_range_compare(struct inode *src, loff_t srcoff,
- }
- EXPORT_SYMBOL(vfs_dedupe_file_range_compare);
+diff --git a/fs/overlayfs/file.c b/fs/overlayfs/file.c
+index 3f610a5b38e4..e5e7ccaaf9ec 100644
+--- a/fs/overlayfs/file.c
++++ b/fs/overlayfs/file.c
+@@ -110,6 +110,9 @@ static int ovl_open(struct inode *inode, struct file *file)
+ 	if (IS_ERR(realfile))
+ 		return PTR_ERR(realfile);
  
--static s64 vfs_dedupe_file_range_one(struct file *src_file, loff_t src_pos,
--				     struct file *dst_file, loff_t dst_pos,
--				     u64 len)
-+s64 vfs_dedupe_file_range_one(struct file *src_file, loff_t src_pos,
-+			      struct file *dst_file, loff_t dst_pos, u64 len)
- {
- 	s64 ret;
- 
-@@ -2001,6 +2000,7 @@ static s64 vfs_dedupe_file_range_one(struct file *src_file, loff_t src_pos,
- 
- 	return ret;
- }
-+EXPORT_SYMBOL(vfs_dedupe_file_range_one);
- 
- int vfs_dedupe_file_range(struct file *file, struct file_dedupe_range *same)
- {
-diff --git a/include/linux/fs.h b/include/linux/fs.h
-index 598c60092c11..6961feda6915 100644
---- a/include/linux/fs.h
-+++ b/include/linux/fs.h
-@@ -1817,6 +1817,10 @@ extern int vfs_dedupe_file_range_compare(struct inode *src, loff_t srcoff,
- 					 loff_t len, bool *is_same);
- extern int vfs_dedupe_file_range(struct file *file,
- 				 struct file_dedupe_range *same);
-+extern s64 vfs_dedupe_file_range_one(struct file *src_file, loff_t src_pos,
-+				     struct file *dst_file, loff_t dst_pos,
-+				     u64 len);
++	/* For O_DIRECT dentry_open() checks f_mapping->a_ops->direct_IO */
++	file->f_mapping = realfile->f_mapping;
 +
+ 	file->private_data = realfile;
  
- struct super_operations {
-    	struct inode *(*alloc_inode)(struct super_block *sb);
+ 	return 0;
 -- 
 2.14.3
