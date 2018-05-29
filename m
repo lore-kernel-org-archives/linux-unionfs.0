@@ -1,7 +1,7 @@
 From: Miklos Szeredi <mszeredi@redhat.com>
-Subject: [PATCH 24/39] ovl: add reflink/copyfile/dedup support
-Date: Tue, 29 May 2018 16:43:24 +0200
-Message-ID: <20180529144339.16538-25-mszeredi@redhat.com>
+Subject: [PATCH 22/39] ovl: add ovl_fiemap()
+Date: Tue, 29 May 2018 16:43:22 +0200
+Message-ID: <20180529144339.16538-23-mszeredi@redhat.com>
 References: <20180529144339.16538-1-mszeredi@redhat.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20180529144339.16538-1-mszeredi@redhat.com>
@@ -10,116 +10,76 @@ To: linux-unionfs@vger.kernel.org
 Cc: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 
-Since set of arguments are so similar, handle in a common helper.
+Implement stacked fiemap().
+
+Need to split inode operations for regular file (which has fiemap) and
+special file (which doesn't have fiemap).
 
 Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
 ---
- fs/overlayfs/file.c | 88 +++++++++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 88 insertions(+)
+ fs/overlayfs/inode.c | 29 ++++++++++++++++++++++++++++-
+ 1 file changed, 28 insertions(+), 1 deletion(-)
 
-diff --git a/fs/overlayfs/file.c b/fs/overlayfs/file.c
-index e5e7ccaaf9ec..ef4bcc80572f 100644
---- a/fs/overlayfs/file.c
-+++ b/fs/overlayfs/file.c
-@@ -385,6 +385,90 @@ static long ovl_compat_ioctl(struct file *file, unsigned int cmd,
- 	return ovl_ioctl(file, cmd, arg);
+diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
+index d6a13da0740f..cd46dd8e7e54 100644
+--- a/fs/overlayfs/inode.c
++++ b/fs/overlayfs/inode.c
+@@ -448,6 +448,23 @@ int ovl_update_time(struct inode *inode, struct timespec *ts, int flags)
+ 	return 0;
  }
  
-+enum ovl_copyop {
-+	OVL_COPY,
-+	OVL_CLONE,
-+	OVL_DEDUPE,
-+};
-+
-+static s64 ovl_copyfile(struct file *file_in, loff_t pos_in,
-+			struct file *file_out, loff_t pos_out,
-+			u64 len, unsigned int flags, enum ovl_copyop op)
++static int ovl_fiemap(struct inode *inode, struct fiemap_extent_info *fieinfo,
++		      u64 start, u64 len)
 +{
-+	struct inode *inode_out = file_inode(file_out);
-+	struct fd real_in, real_out;
++	int err;
++	struct inode *realinode = ovl_inode_real(inode);
 +	const struct cred *old_cred;
-+	s64 ret;
 +
-+	ret = ovl_real_fdget(file_out, &real_out);
-+	if (ret)
-+		return ret;
++	if (!realinode->i_op->fiemap)
++		return -EOPNOTSUPP;
 +
-+	ret = ovl_real_fdget(file_in, &real_in);
-+	if (ret) {
-+		fdput(real_out);
-+		return ret;
-+	}
-+
-+	old_cred = ovl_override_creds(file_inode(file_out)->i_sb);
-+	switch (op) {
-+	case OVL_COPY:
-+		ret = vfs_copy_file_range(real_in.file, pos_in,
-+					  real_out.file, pos_out, len, flags);
-+		break;
-+
-+	case OVL_CLONE:
-+		ret = vfs_clone_file_range(real_in.file, pos_in,
-+					   real_out.file, pos_out, len);
-+		break;
-+
-+	case OVL_DEDUPE:
-+		ret = vfs_dedupe_file_range_one(real_in.file, pos_in,
-+						real_out.file, pos_out, len);
-+		break;
-+	}
++	old_cred = ovl_override_creds(inode->i_sb);
++	err = realinode->i_op->fiemap(realinode, fieinfo, start, len);
 +	revert_creds(old_cred);
 +
-+	/* Update size */
-+	ovl_copyattr(ovl_inode_real(inode_out), inode_out);
-+
-+	fdput(real_in);
-+	fdput(real_out);
-+
-+	return ret;
++	return err;
 +}
 +
-+static ssize_t ovl_copy_file_range(struct file *file_in, loff_t pos_in,
-+				   struct file *file_out, loff_t pos_out,
-+				   size_t len, unsigned int flags)
-+{
-+	return ovl_copyfile(file_in, pos_in, file_out, pos_out, len, flags,
-+			    OVL_COPY);
-+}
-+
-+static int ovl_clone_file_range(struct file *file_in, loff_t pos_in,
-+				struct file *file_out, loff_t pos_out, u64 len)
-+{
-+	return ovl_copyfile(file_in, pos_in, file_out, pos_out, len, 0,
-+			    OVL_CLONE);
-+}
-+
-+static loff_t ovl_dedupe_file_range(struct file *file_in, loff_t pos_in,
-+				    struct file *file_out, loff_t pos_out,
-+				    loff_t len)
-+{
-+	/*
-+	 * Don't copy up because of a dedupe request, this wouldn't make sense
-+	 * most of the time (data would be duplicated instead of deduplicated).
-+	 */
-+	if (!ovl_inode_upper(file_inode(file_in)) ||
-+	    !ovl_inode_upper(file_inode(file_out)))
-+		return -EPERM;
-+
-+	return ovl_copyfile(file_in, pos_in, file_out, pos_out, len, 0,
-+			    OVL_DEDUPE);
-+}
-+
- const struct file_operations ovl_file_operations = {
- 	.open		= ovl_open,
- 	.release	= ovl_release,
-@@ -396,4 +480,8 @@ const struct file_operations ovl_file_operations = {
- 	.fallocate	= ovl_fallocate,
- 	.unlocked_ioctl	= ovl_ioctl,
- 	.compat_ioctl	= ovl_compat_ioctl,
-+
-+	.copy_file_range	= ovl_copy_file_range,
-+	.clone_file_range	= ovl_clone_file_range,
-+	.dedupe_file_range	= ovl_dedupe_file_range,
+ static const struct inode_operations ovl_file_inode_operations = {
+ 	.setattr	= ovl_setattr,
+ 	.permission	= ovl_permission,
+@@ -455,6 +472,7 @@ static const struct inode_operations ovl_file_inode_operations = {
+ 	.listxattr	= ovl_listxattr,
+ 	.get_acl	= ovl_get_acl,
+ 	.update_time	= ovl_update_time,
++	.fiemap		= ovl_fiemap,
  };
+ 
+ static const struct inode_operations ovl_symlink_inode_operations = {
+@@ -465,6 +483,15 @@ static const struct inode_operations ovl_symlink_inode_operations = {
+ 	.update_time	= ovl_update_time,
+ };
+ 
++static const struct inode_operations ovl_special_inode_operations = {
++	.setattr	= ovl_setattr,
++	.permission	= ovl_permission,
++	.getattr	= ovl_getattr,
++	.listxattr	= ovl_listxattr,
++	.get_acl	= ovl_get_acl,
++	.update_time	= ovl_update_time,
++};
++
+ /*
+  * It is possible to stack overlayfs instance on top of another
+  * overlayfs instance as lower layer. We need to annonate the
+@@ -548,7 +575,7 @@ static void ovl_fill_inode(struct inode *inode, umode_t mode, dev_t rdev,
+ 		break;
+ 
+ 	default:
+-		inode->i_op = &ovl_file_inode_operations;
++		inode->i_op = &ovl_special_inode_operations;
+ 		init_special_inode(inode, mode, rdev);
+ 		break;
+ 	}
 -- 
 2.14.3
