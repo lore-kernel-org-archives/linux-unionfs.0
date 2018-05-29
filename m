@@ -1,7 +1,7 @@
 From: Miklos Szeredi <mszeredi@redhat.com>
-Subject: [PATCH 10/28] ovl: Copy up meta inode data from lowest data inode
-Date: Tue, 29 May 2018 16:45:54 +0200
-Message-ID: <20180529144612.16675-11-mszeredi@redhat.com>
+Subject: [PATCH 23/28] ovl: Set redirect on upper inode when it is linked
+Date: Tue, 29 May 2018 16:46:07 +0200
+Message-ID: <20180529144612.16675-24-mszeredi@redhat.com>
 References: <20180529144612.16675-1-mszeredi@redhat.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20180529144612.16675-1-mszeredi@redhat.com>
@@ -12,101 +12,84 @@ List-Id: linux-unionfs@vger.kernel.org
 
 From: Vivek Goyal <vgoyal@redhat.com>
 
-So far lower could not be a meta inode.  So whenever it was time to copy up
-data of a meta inode, we could copy it up from top most lower dentry.
+When we create a hardlink to a metacopy upper file, first the redirect on
+that inode.  Path based lookup will not work with newly created link and
+redirect will solve that issue.
 
-But now lower itself can be a metacopy inode.  That means data copy up
-needs to take place from a data inode in metacopy inode chain.  Find lower
-data inode in the chain and use that for data copy up.
+Also use absolute redirect as two hardlinks could be in different
+directores and relative redirect will not work.
 
-Introduced a helper called ovl_path_lowerdata() to find the lower data
-inode chain.
+I have not put any additional locking around setting redirects while
+introducing redirects for non-dir files.  For now it feels like existing
+locking is sufficient.  If that's not the case, we will have add more
+locking.  Following is my rationale about why do I think current locking
+seems ok.
+
+Basic problem for non-dir files is that more than on dentry could be
+pointing to same inode and in theory only relying on dentry based locks
+(d->d_lock) did not seem sufficient.
+
+We set redirect upon rename and upon link creation.  In both the paths for
+non-dir file, VFS locks both source and target inodes (->i_rwsem).  That
+means vfs rename and link operations on same source and target can't he
+happening in parallel (Even if there are multiple dentries pointing to same
+inode).  So that probably means that at a time on an inode, only one call
+of ovl_set_redirect() could be working and we don't need additional locking
+in ovl_set_redirect().
+
+ovl_inode->redirect is initialized only when inode is created new.  That
+means it should not race with any other path and setting
+ovl_inode->redirect should be fine.
+
+Reading of ovl_inode->redirect happens in ovl_get_redirect() path.  And
+this called only in ovl_set_redirect().  And ovl_set_redirect() already
+seemed to be protected using ->i_rwsem.  That means ovl_set_redirect() and
+ovl_get_redirect() on source/target inode should not make progress in
+parallel and is mutually exclusive.  Hence no additional locking required.
+
+Now, only case where ovl_set_redirect() and ovl_get_redirect() could race
+seems to be case of absolute redirects where ovl_get_redirect() has to
+travel up the tree.  In that case we already take d->d_lock and that should
+be sufficient as directories will not have multiple dentries pointing to
+same inode.
+
+So given VFS locking and current usage of redirect, current locking around
+redirect seems to be ok for non-dir as well.  Once we have the logic to
+remove redirect when metacopy file gets copied up, then we probably will
+need additional locking.
 
 Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
 Reviewed-by: Amir Goldstein <amir73il@gmail.com>
 Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
 ---
- fs/overlayfs/copy_up.c   | 13 +++++++++----
- fs/overlayfs/overlayfs.h |  1 +
- fs/overlayfs/util.c      | 12 ++++++++++++
- 3 files changed, 22 insertions(+), 4 deletions(-)
+ fs/overlayfs/dir.c | 8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
-index 7d01afd345e9..8c05e9ad9782 100644
---- a/fs/overlayfs/copy_up.c
-+++ b/fs/overlayfs/copy_up.c
-@@ -519,13 +519,14 @@ static int ovl_copy_up_inode(struct ovl_copy_up_ctx *c, struct dentry *temp)
- 	}
+diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
+index 1658961a9762..7063e0f588cc 100644
+--- a/fs/overlayfs/dir.c
++++ b/fs/overlayfs/dir.c
+@@ -24,6 +24,8 @@ module_param_named(redirect_max, ovl_redirect_max, ushort, 0644);
+ MODULE_PARM_DESC(ovl_redirect_max,
+ 		 "Maximum length of absolute redirect xattr value");
  
- 	if (S_ISREG(c->stat.mode) && !c->metacopy) {
--		struct path upperpath;
-+		struct path upperpath, datapath;
- 
- 		ovl_path_upper(c->dentry, &upperpath);
- 		BUG_ON(upperpath.dentry != NULL);
- 		upperpath.dentry = temp;
- 
--		err = ovl_copy_up_data(&c->lowerpath, &upperpath, c->stat.size);
-+		ovl_path_lowerdata(c->dentry, &datapath);
-+		err = ovl_copy_up_data(&datapath, &upperpath, c->stat.size);
- 		if (err)
- 			return err;
- 	}
-@@ -706,14 +707,18 @@ static bool ovl_need_meta_copy_up(struct dentry *dentry, umode_t mode,
- /* Copy up data of an inode which was copied up metadata only in the past. */
- static int ovl_copy_up_meta_inode_data(struct ovl_copy_up_ctx *c)
++static int ovl_set_redirect(struct dentry *dentry, bool samedir);
++
+ int ovl_cleanup(struct inode *wdir, struct dentry *wdentry)
  {
--	struct path upperpath;
-+	struct path upperpath, datapath;
  	int err;
- 
- 	ovl_path_upper(c->dentry, &upperpath);
- 	if (WARN_ON(upperpath.dentry == NULL))
- 		return -EIO;
- 
--	err = ovl_copy_up_data(&c->lowerpath, &upperpath, c->stat.size);
-+	ovl_path_lowerdata(c->dentry, &datapath);
-+	if (WARN_ON(datapath.dentry == NULL))
-+		return -EIO;
-+
-+	err = ovl_copy_up_data(&datapath, &upperpath, c->stat.size);
+@@ -656,6 +658,12 @@ static int ovl_link(struct dentry *old, struct inode *newdir,
  	if (err)
- 		return err;
+ 		goto out_drop_write;
  
-diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-index b1f6591b9af4..31795c041d61 100644
---- a/fs/overlayfs/overlayfs.h
-+++ b/fs/overlayfs/overlayfs.h
-@@ -217,6 +217,7 @@ bool ovl_dentry_weird(struct dentry *dentry);
- enum ovl_path_type ovl_path_type(struct dentry *dentry);
- void ovl_path_upper(struct dentry *dentry, struct path *path);
- void ovl_path_lower(struct dentry *dentry, struct path *path);
-+void ovl_path_lowerdata(struct dentry *dentry, struct path *path);
- enum ovl_path_type ovl_path_real(struct dentry *dentry, struct path *path);
- struct dentry *ovl_dentry_upper(struct dentry *dentry);
- struct dentry *ovl_dentry_lower(struct dentry *dentry);
-diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
-index ab9a8fae0f99..32ff67fa0bfb 100644
---- a/fs/overlayfs/util.c
-+++ b/fs/overlayfs/util.c
-@@ -164,6 +164,18 @@ void ovl_path_lower(struct dentry *dentry, struct path *path)
- 	}
- }
- 
-+void ovl_path_lowerdata(struct dentry *dentry, struct path *path)
-+{
-+	struct ovl_entry *oe = dentry->d_fsdata;
-+
-+	if (oe->numlower) {
-+		path->mnt = oe->lowerstack[oe->numlower - 1].layer->mnt;
-+		path->dentry = oe->lowerstack[oe->numlower - 1].dentry;
-+	} else {
-+		*path = (struct path) { };
++	if (ovl_is_metacopy_dentry(old)) {
++		err = ovl_set_redirect(old, false);
++		if (err)
++			goto out_drop_write;
 +	}
-+}
 +
- enum ovl_path_type ovl_path_real(struct dentry *dentry, struct path *path)
- {
- 	enum ovl_path_type type = ovl_path_type(dentry);
+ 	err = ovl_nlink_start(old, &locked);
+ 	if (err)
+ 		goto out_drop_write;
 -- 
 2.14.3
