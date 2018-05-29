@@ -1,7 +1,7 @@
 From: Miklos Szeredi <mszeredi@redhat.com>
-Subject: [PATCH 19/39] ovl: add ovl_mmap()
-Date: Tue, 29 May 2018 16:43:19 +0200
-Message-ID: <20180529144339.16538-20-mszeredi@redhat.com>
+Subject: [PATCH 11/39] Revert "Revert "ovl: get_write_access() in truncate""
+Date: Tue, 29 May 2018 16:43:11 +0200
+Message-ID: <20180529144339.16538-12-mszeredi@redhat.com>
 References: <20180529144339.16538-1-mszeredi@redhat.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20180529144339.16538-1-mszeredi@redhat.com>
@@ -10,56 +10,62 @@ To: linux-unionfs@vger.kernel.org
 Cc: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 
-Implement stacked mmap.
+This reverts commit 31c3a7069593b072bd57192b63b62f9a7e994e9a.
+
+Re-add functionality dealing with i_writecount on truncate to overlayfs.
+This patch shouldn't have any observable effects, since we just re-assert
+the writecout that vfs_truncate() already got for us.
+
+This is in preparation for moving overlay functionality out of the VFS.
 
 Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
 ---
- fs/overlayfs/file.c | 28 ++++++++++++++++++++++++++++
- 1 file changed, 28 insertions(+)
+ fs/overlayfs/inode.c | 21 +++++++++++++++++++++
+ 1 file changed, 21 insertions(+)
 
-diff --git a/fs/overlayfs/file.c b/fs/overlayfs/file.c
-index 7b47dce4b072..4057bbf2e141 100644
---- a/fs/overlayfs/file.c
-+++ b/fs/overlayfs/file.c
-@@ -255,6 +255,33 @@ static int ovl_fsync(struct file *file, loff_t start, loff_t end, int datasync)
- 	return ret;
- }
+diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
+index 24fc27683a57..0116ec12451d 100644
+--- a/fs/overlayfs/inode.c
++++ b/fs/overlayfs/inode.c
+@@ -39,10 +39,27 @@ int ovl_setattr(struct dentry *dentry, struct iattr *attr)
+ 	if (err)
+ 		goto out;
  
-+static int ovl_mmap(struct file *file, struct vm_area_struct *vma)
-+{
-+	struct fd real;
-+	const struct cred *old_cred;
-+	int ret;
++	if (attr->ia_valid & ATTR_SIZE) {
++		struct inode *realinode = d_inode(ovl_dentry_real(dentry));
 +
-+	ret = ovl_real_fdget(file, &real);
-+	if (ret)
-+		return ret;
++		err = -ETXTBSY;
++		if (atomic_read(&realinode->i_writecount) < 0)
++			goto out_drop_write;
++	}
 +
-+	/* transfer ref: */
-+	fput(vma->vm_file);
-+	vma->vm_file = get_file(real.file);
-+	fdput(real);
+ 	err = ovl_copy_up(dentry);
+ 	if (!err) {
++		struct inode *winode = NULL;
 +
-+	if (!vma->vm_file->f_op->mmap)
-+		return -ENODEV;
+ 		upperdentry = ovl_dentry_upper(dentry);
+ 
++		if (attr->ia_valid & ATTR_SIZE) {
++			winode = d_inode(upperdentry);
++			err = get_write_access(winode);
++			if (err)
++				goto out_drop_write;
++		}
 +
-+	old_cred = ovl_override_creds(file_inode(file)->i_sb);
-+	ret = call_mmap(vma->vm_file, vma);
-+	revert_creds(old_cred);
+ 		if (attr->ia_valid & (ATTR_KILL_SUID|ATTR_KILL_SGID))
+ 			attr->ia_valid &= ~ATTR_MODE;
+ 
+@@ -53,7 +70,11 @@ int ovl_setattr(struct dentry *dentry, struct iattr *attr)
+ 		if (!err)
+ 			ovl_copyattr(upperdentry->d_inode, dentry->d_inode);
+ 		inode_unlock(upperdentry->d_inode);
 +
-+	ovl_file_accessed(file);
-+
-+	return ret;
-+}
-+
- const struct file_operations ovl_file_operations = {
- 	.open		= ovl_open,
- 	.release	= ovl_release,
-@@ -262,4 +289,5 @@ const struct file_operations ovl_file_operations = {
- 	.read_iter	= ovl_read_iter,
- 	.write_iter	= ovl_write_iter,
- 	.fsync		= ovl_fsync,
-+	.mmap		= ovl_mmap,
- };
++		if (winode)
++			put_write_access(winode);
+ 	}
++out_drop_write:
+ 	ovl_drop_write(dentry);
+ out:
+ 	return err;
 -- 
 2.14.3
