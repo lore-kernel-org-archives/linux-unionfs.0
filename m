@@ -1,126 +1,128 @@
 From: Miklos Szeredi <mszeredi@redhat.com>
-Subject: [PATCH 00/39] overlayfs: stack file operations
-Date: Tue, 29 May 2018 16:43:00 +0200
-Message-ID: <20180529144339.16538-1-mszeredi@redhat.com>
+Subject: [PATCH 01/39] vfs: dedpue: return loff_t
+Date: Tue, 29 May 2018 16:43:01 +0200
+Message-ID: <20180529144339.16538-2-mszeredi@redhat.com>
+References: <20180529144339.16538-1-mszeredi@redhat.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20180529144339.16538-1-mszeredi@redhat.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-unionfs@vger.kernel.org
 Cc: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 
-Up till now overlayfs didn't stack regular file operations.  Instead, when
-a file was opened on an overlay, the file from one of the underlying layers
-would be opened and any file operations performed would directly go to the
-underlying file on a real filesystem.
+f_op->dedupe_file_range() gets a u64 length to dedup and returns an ssize_t
+actual length deduped.  This breaks badly on 32bit archs since the returned
+length will be truncated and possibly overflow into the sign bit (xfs and
+ocfs2 are affected, btrfs limits actual length to 16MiB).
 
-This works well mostly, but various hacks were added to the VFS to work
-around issues with this:
+Returning loff_t should be good, since clone_verify_area() makes sure that
+the supplied length doesn't overflow.
 
- - d_path() and friends
- - relatime handling
- - file locking
- - fsnotify
- - writecount handling
-
-There are also issues that are unresolved before this patchset:
-
- - ioctl's that need write access but can be performed on a O_RDONLY fd
- - ro/rw inconsistency: file on lower layer opened for read-only will
-   return stale data on read after copy-up and modification
- - ro/rw inconsistency for mmap: file on lower layer mapped shared will
-   contain stale data after copy-up and modification
-
-This patch series reverts the VFS hacks (with the exception of d_path) and
-fixes the unresoved issues.  We need to keep d_path related hacks, because
-memory maps are still not stacked, yet d_path() should keep working on
-vma->vm_file->f_path.
-
-No regressions were observed after running various test suites (xfstests,
-ltp, unionmount-testsuite, pjd-fstest).
-
-Performance impact of stacking was found to be minimal.  Memory use for
-open overlay files increases by about 256bytes or 12%.
-
-Git tree is here:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/mszeredi/vfs.git overlayfs-rorw
-
+Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
 ---
-Miklos Szeredi (39):
-  vfs: dedpue: return loff_t
-  vfs: dedupe: rationalize args
-  vfs: dedupe: extract helper for a single dedup
-  vfs: add path_open()
-  vfs: optionally don't account file in nr_files
-  vfs: add f_op->pre_mmap()
-  vfs: export vfs_ioctl() to modules
-  vfs: export vfs_dedupe_file_range_one() to modules
-  ovl: copy up times
-  ovl: copy up inode flags
-  Revert "Revert "ovl: get_write_access() in truncate""
-  ovl: copy up file size as well
-  ovl: deal with overlay files in ovl_d_real()
-  ovl: stack file ops
-  ovl: add helper to return real file
-  ovl: add ovl_read_iter()
-  ovl: add ovl_write_iter()
-  ovl: add ovl_fsync()
-  ovl: add ovl_mmap()
-  ovl: add ovl_fallocate()
-  ovl: add lsattr/chattr support
-  ovl: add ovl_fiemap()
-  ovl: add O_DIRECT support
-  ovl: add reflink/copyfile/dedup support
-  vfs: don't open real
-  ovl: copy-up on MAP_SHARED
-  ovl: obsolete "check_copy_up" module option
-  ovl: fix documentation of non-standard behavior
-  vfs: simplify dentry_open()
-  Revert "ovl: fix may_write_real() for overlayfs directories"
-  Revert "ovl: don't allow writing ioctl on lower layer"
-  vfs: fix freeze protection in mnt_want_write_file() for overlayfs
-  Revert "ovl: fix relatime for directories"
-  Revert "vfs: update ovl inode before relatime check"
-  Revert "vfs: add flags to d_real()"
-  Revert "vfs: do get_write_access() on upper layer of overlayfs"
-  Partially revert "locks: fix file locking on overlayfs"
-  Revert "fsnotify: support overlayfs"
-  vfs: remove open_flags from d_real()
+ fs/btrfs/ctree.h   |  4 ++--
+ fs/btrfs/ioctl.c   |  6 +++---
+ fs/ocfs2/file.c    | 10 +++++-----
+ fs/read_write.c    |  2 +-
+ fs/xfs/xfs_file.c  |  2 +-
+ include/linux/fs.h |  2 +-
+ 6 files changed, 13 insertions(+), 13 deletions(-)
 
- Documentation/filesystems/Locking       |   4 +-
- Documentation/filesystems/overlayfs.txt |  60 ++--
- Documentation/filesystems/vfs.txt       |  19 +-
- fs/btrfs/ctree.h                        |   5 +-
- fs/btrfs/ioctl.c                        |   7 +-
- fs/file_table.c                         |  13 +-
- fs/inode.c                              |  46 +--
- fs/internal.h                           |  17 +-
- fs/ioctl.c                              |   1 +
- fs/locks.c                              |  20 +-
- fs/namei.c                              |   2 +-
- fs/namespace.c                          |  69 +----
- fs/ocfs2/file.c                         |  10 +-
- fs/open.c                               |  74 ++---
- fs/overlayfs/Kconfig                    |  21 ++
- fs/overlayfs/Makefile                   |   4 +-
- fs/overlayfs/copy_up.c                  |  30 +-
- fs/overlayfs/dir.c                      |  31 +-
- fs/overlayfs/file.c                     | 509 ++++++++++++++++++++++++++++++++
- fs/overlayfs/inode.c                    |  63 +++-
- fs/overlayfs/overlayfs.h                |  21 +-
- fs/overlayfs/ovl_entry.h                |   1 +
- fs/overlayfs/super.c                    |  65 ++--
- fs/overlayfs/util.c                     |  11 +-
- fs/read_write.c                         |  91 +++---
- fs/xattr.c                              |   9 +-
- fs/xfs/xfs_file.c                       |   8 +-
- include/linux/dcache.h                  |  15 +-
- include/linux/fs.h                      |  32 +-
- include/linux/fsnotify.h                |  14 +-
- include/uapi/linux/fs.h                 |   1 -
- mm/util.c                               |   5 +
- 32 files changed, 898 insertions(+), 380 deletions(-)
- create mode 100644 fs/overlayfs/file.c
-
+diff --git a/fs/btrfs/ctree.h b/fs/btrfs/ctree.h
+index 0d422c9908b8..990e011c9f0c 100644
+--- a/fs/btrfs/ctree.h
++++ b/fs/btrfs/ctree.h
+@@ -3271,8 +3271,8 @@ void btrfs_get_block_group_info(struct list_head *groups_list,
+ 				struct btrfs_ioctl_space_info *space);
+ void update_ioctl_balance_args(struct btrfs_fs_info *fs_info, int lock,
+ 			       struct btrfs_ioctl_balance_args *bargs);
+-ssize_t btrfs_dedupe_file_range(struct file *src_file, u64 loff, u64 olen,
+-			   struct file *dst_file, u64 dst_loff);
++loff_t btrfs_dedupe_file_range(struct file *src_file, u64 loff, u64 olen,
++			    struct file *dst_file, u64 dst_loff);
+ 
+ /* file.c */
+ int __init btrfs_auto_defrag_init(void);
+diff --git a/fs/btrfs/ioctl.c b/fs/btrfs/ioctl.c
+index 632e26d6f7ce..1b5cc5fd4868 100644
+--- a/fs/btrfs/ioctl.c
++++ b/fs/btrfs/ioctl.c
+@@ -3194,13 +3194,13 @@ static int btrfs_extent_same(struct inode *src, u64 loff, u64 olen,
+ 
+ #define BTRFS_MAX_DEDUPE_LEN	SZ_16M
+ 
+-ssize_t btrfs_dedupe_file_range(struct file *src_file, u64 loff, u64 olen,
+-				struct file *dst_file, u64 dst_loff)
++loff_t btrfs_dedupe_file_range(struct file *src_file, u64 loff, u64 olen,
++			       struct file *dst_file, u64 dst_loff)
+ {
+ 	struct inode *src = file_inode(src_file);
+ 	struct inode *dst = file_inode(dst_file);
+ 	u64 bs = BTRFS_I(src)->root->fs_info->sb->s_blocksize;
+-	ssize_t res;
++	int res;
+ 
+ 	if (olen > BTRFS_MAX_DEDUPE_LEN)
+ 		olen = BTRFS_MAX_DEDUPE_LEN;
+diff --git a/fs/ocfs2/file.c b/fs/ocfs2/file.c
+index 6ee94bc23f5b..4a81d82ab7f6 100644
+--- a/fs/ocfs2/file.c
++++ b/fs/ocfs2/file.c
+@@ -2537,11 +2537,11 @@ static int ocfs2_file_clone_range(struct file *file_in,
+ 					 len, false);
+ }
+ 
+-static ssize_t ocfs2_file_dedupe_range(struct file *src_file,
+-				       u64 loff,
+-				       u64 len,
+-				       struct file *dst_file,
+-				       u64 dst_loff)
++static loff_t ocfs2_file_dedupe_range(struct file *src_file,
++				      u64 loff,
++				      u64 len,
++				      struct file *dst_file,
++				      u64 dst_loff)
+ {
+ 	int error;
+ 
+diff --git a/fs/read_write.c b/fs/read_write.c
+index c4eabbfc90df..c41e2a1eb7c7 100644
+--- a/fs/read_write.c
++++ b/fs/read_write.c
+@@ -1976,7 +1976,7 @@ int vfs_dedupe_file_range(struct file *file, struct file_dedupe_range *same)
+ 	u16 count = same->dest_count;
+ 	struct file *dst_file;
+ 	loff_t dst_off;
+-	ssize_t deduped;
++	loff_t deduped;
+ 
+ 	if (!(file->f_mode & FMODE_READ))
+ 		return -EINVAL;
+diff --git a/fs/xfs/xfs_file.c b/fs/xfs/xfs_file.c
+index e70fb8ccecea..cf51d47efdb6 100644
+--- a/fs/xfs/xfs_file.c
++++ b/fs/xfs/xfs_file.c
+@@ -872,7 +872,7 @@ xfs_file_clone_range(
+ 				     len, false);
+ }
+ 
+-STATIC ssize_t
++STATIC loff_t
+ xfs_file_dedupe_range(
+ 	struct file	*src_file,
+ 	u64		loff,
+diff --git a/include/linux/fs.h b/include/linux/fs.h
+index 4f637a9b213d..8e49defc7aab 100644
+--- a/include/linux/fs.h
++++ b/include/linux/fs.h
+@@ -1738,7 +1738,7 @@ struct file_operations {
+ 			loff_t, size_t, unsigned int);
+ 	int (*clone_file_range)(struct file *, loff_t, struct file *, loff_t,
+ 			u64);
+-	ssize_t (*dedupe_file_range)(struct file *, u64, u64, struct file *,
++	loff_t (*dedupe_file_range)(struct file *, u64, u64, struct file *,
+ 			u64);
+ } __randomize_layout;
+ 
 -- 
 2.14.3
