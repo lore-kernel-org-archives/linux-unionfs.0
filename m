@@ -1,7 +1,7 @@
 From: Miklos Szeredi <mszeredi@redhat.com>
-Subject: [PATCH 16/39] ovl: add ovl_read_iter()
-Date: Tue, 29 May 2018 16:43:16 +0200
-Message-ID: <20180529144339.16538-17-mszeredi@redhat.com>
+Subject: [PATCH 15/39] ovl: add helper to return real file
+Date: Tue, 29 May 2018 16:43:15 +0200
+Message-ID: <20180529144339.16538-16-mszeredi@redhat.com>
 References: <20180529144339.16538-1-mszeredi@redhat.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20180529144339.16538-1-mszeredi@redhat.com>
@@ -10,99 +10,93 @@ To: linux-unionfs@vger.kernel.org
 Cc: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 
-Implement stacked reading.
+In the common case we can just use the real file cached in
+file->private_data.  There are two exceptions:
+
+1) File has been copied up since open: in this unlikely corner case just
+use a throwaway real file for the operation.  If ever this becomes a
+perfomance problem (very unlikely, since overlayfs has been doing most fine
+without correctly handling this case at all), then we can deal with that by
+updating the cached real file.
+
+2) File's f_flags have changed since open: no need to reopen the cached
+real file, we can just change the flags there as well.
 
 Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
 ---
- fs/overlayfs/file.c | 67 +++++++++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 67 insertions(+)
+ fs/overlayfs/file.c | 60 +++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 60 insertions(+)
 
 diff --git a/fs/overlayfs/file.c b/fs/overlayfs/file.c
-index db8778e7c37a..bbc40a14acf8 100644
+index a0b606885c41..db8778e7c37a 100644
 --- a/fs/overlayfs/file.c
 +++ b/fs/overlayfs/file.c
-@@ -9,6 +9,7 @@
- #include <linux/cred.h>
- #include <linux/file.h>
- #include <linux/xattr.h>
-+#include <linux/uio.h>
- #include "overlayfs.h"
- 
- static struct file *ovl_open_realfile(const struct file *file)
-@@ -129,8 +130,74 @@ static loff_t ovl_llseek(struct file *file, loff_t offset, int whence)
- 					i_size_read(realinode));
+@@ -31,6 +31,66 @@ static struct file *ovl_open_realfile(const struct file *file)
+ 	return realfile;
  }
  
-+static void ovl_file_accessed(struct file *file)
++#define OVL_SETFL_MASK (O_APPEND | O_NONBLOCK | O_NDELAY | O_DIRECT)
++
++static int ovl_change_flags(struct file *file, unsigned int flags)
 +{
-+	struct inode *inode, *upperinode;
++	struct inode *inode = file_inode(file);
++	int err;
 +
-+	if (file->f_flags & O_NOATIME)
-+		return;
++	/* No atime modificaton on underlying */
++	flags |= O_NOATIME;
 +
-+	inode = file_inode(file);
-+	upperinode = ovl_inode_upper(inode);
++	/* If some flag changed that cannot be changed then something's amiss */
++	if (WARN_ON((file->f_flags ^ flags) & ~OVL_SETFL_MASK))
++		return -EIO;
 +
-+	if (!upperinode)
-+		return;
++	flags &= OVL_SETFL_MASK;
 +
-+	if ((!timespec_equal(&inode->i_mtime, &upperinode->i_mtime) ||
-+	     !timespec_equal(&inode->i_ctime, &upperinode->i_ctime))) {
-+		inode->i_mtime = upperinode->i_mtime;
-+		inode->i_ctime = upperinode->i_ctime;
++	if (((flags ^ file->f_flags) & O_APPEND) && IS_APPEND(inode))
++		return -EPERM;
++
++	if (flags & O_DIRECT) {
++		if (!file->f_mapping->a_ops ||
++		    !file->f_mapping->a_ops->direct_IO)
++			return -EINVAL;
 +	}
 +
-+	touch_atime(&file->f_path);
++	if (file->f_op->check_flags) {
++		err = file->f_op->check_flags(flags);
++		if (err)
++			return err;
++	}
++
++	spin_lock(&file->f_lock);
++	file->f_flags = (file->f_flags & ~OVL_SETFL_MASK) | flags;
++	spin_unlock(&file->f_lock);
++
++	return 0;
 +}
 +
-+static rwf_t ovl_iocb_to_rwf(struct kiocb *iocb)
++static int ovl_real_fdget(const struct file *file, struct fd *real)
 +{
-+	int ifl = iocb->ki_flags;
-+	rwf_t flags = 0;
++	struct inode *inode = file_inode(file);
 +
-+	if (ifl & IOCB_NOWAIT)
-+		flags |= RWF_NOWAIT;
-+	if (ifl & IOCB_HIPRI)
-+		flags |= RWF_HIPRI;
-+	if (ifl & IOCB_DSYNC)
-+		flags |= RWF_DSYNC;
-+	if (ifl & IOCB_SYNC)
-+		flags |= RWF_SYNC;
++	real->flags = 0;
++	real->file = file->private_data;
 +
-+	return flags;
++	/* Has it been copied up since we'd opened it? */
++	if (unlikely(file_inode(real->file) != ovl_inode_real(inode))) {
++		real->flags = FDPUT_FPUT;
++		real->file = ovl_open_realfile(file);
++
++		return PTR_ERR_OR_ZERO(real->file);
++	}
++
++	/* Did the flags change since open? */
++	if (unlikely((file->f_flags ^ real->file->f_flags) & ~O_NOATIME))
++		return ovl_change_flags(real->file, file->f_flags);
++
++	return 0;
 +}
 +
-+static ssize_t ovl_read_iter(struct kiocb *iocb, struct iov_iter *iter)
-+{
-+	struct file *file = iocb->ki_filp;
-+	struct fd real;
-+	const struct cred *old_cred;
-+	ssize_t ret;
-+
-+	if (!iov_iter_count(iter))
-+		return 0;
-+
-+	ret = ovl_real_fdget(file, &real);
-+	if (ret)
-+		return ret;
-+
-+	old_cred = ovl_override_creds(file_inode(file)->i_sb);
-+	ret = vfs_iter_read(real.file, iter, &iocb->ki_pos,
-+			    ovl_iocb_to_rwf(iocb));
-+	revert_creds(old_cred);
-+
-+	ovl_file_accessed(file);
-+
-+	fdput(real);
-+
-+	return ret;
-+}
-+
- const struct file_operations ovl_file_operations = {
- 	.open		= ovl_open,
- 	.release	= ovl_release,
- 	.llseek		= ovl_llseek,
-+	.read_iter	= ovl_read_iter,
- };
+ static int ovl_open(struct inode *inode, struct file *file)
+ {
+ 	struct dentry *dentry = file_dentry(file);
 -- 
 2.14.3
