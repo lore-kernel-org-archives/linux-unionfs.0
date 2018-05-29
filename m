@@ -1,61 +1,47 @@
 Return-Path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-co1nam03on0132.outbound.protection.outlook.com ([104.47.40.132]:45034
-        "EHLO NAM03-CO1-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S966949AbeE2Vhp (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 29 May 2018 17:37:45 -0400
-From: Trond Myklebust <trondmy@hammerspace.com>
-Subject: Re: nfs4_acl restricts copy_up in overlayfs
-Date: Tue, 29 May 2018 21:37:42 +0000
-Message-ID: <f2af62fdf8a5bb185ec75cff118178d58b28ceb4.camel@hammerspace.com>
-References: <f74fae81-d1bc-1c0e-7b41-69502bd7c489@suse.de>
-In-Reply-To: <f74fae81-d1bc-1c0e-7b41-69502bd7c489@suse.de>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-ID: <D76013FAA1AD8D48B707A3D47B3B68B3@namprd13.prod.outlook.com>
-Content-Transfer-Encoding: base64
+Received: from mx2.suse.de ([195.135.220.15]:36409 "EHLO mx2.suse.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S966399AbeE2Uc1 (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Tue, 29 May 2018 16:32:27 -0400
+From: Goldwyn Rodrigues <rgoldwyn@suse.de>
+Subject: nfs4_acl restricts copy_up in overlayfs
+Message-ID: <f74fae81-d1bc-1c0e-7b41-69502bd7c489@suse.de>
+Date: Tue, 29 May 2018 15:32:23 -0500
 MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 8bit
 Sender: linux-unionfs-owner@vger.kernel.org
-To: "linux-nfs@vger.kernel.org" <linux-nfs@vger.kernel.org>, "rgoldwyn@suse.de" <rgoldwyn@suse.de>, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>
+To: linux-nfs@vger.kernel.org, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-T24gVHVlLCAyMDE4LTA1LTI5IGF0IDE1OjMyIC0wNTAwLCBHb2xkd3luIFJvZHJpZ3VlcyB3cm90
-ZToNCj4gV2hpbGUgbW91bnRpbmcgb3ZlcmxheWZzIHdpdGggTkZTIGFzIGEgbG93ZXIgZGlyZWN0
-b3J5IGFuZCBhIGxvY2FsDQo+IGZpbGVzeXN0ZW0gYXMgYW4gdXBwZXIgbGF5ZXIgbGVhZHMgdG8g
-Y29weV91cCBmYWlsdXJlcyBiZWNhdXNlIE5GUzQNCj4gaGFzDQo+IGFuIGV4dHJhIHN5c3RlbS5u
-ZnM0X2FjbCB3aGljaCBjYW5ub3QgYmUgY29waWVkIHVwLiBUaGlzIGhhcyBiZWVuDQo+IGRpc2N1
-c3NlZCBiZWZvcmUgWzFdIGFuZCBbMl0gd2l0aCB0aGUgc3VnZ2VzdGlvbiB0aGF0IG5mczRfYWNs
-IGlzDQo+IGRlcml2ZWQgZnJvbSBwb3NpeF9hY2xzIG9yIGp1c3QgaW5vZGUtPmlfbW9kZSAqbW9z
-dCogb2YgdGhlIHRpbWVzIGFuZA0KPiBoZW5jZSBpdCBjYW4gYmUgbWFwcGVkIGJhY2suDQo+IA0K
-PiBUaGUgcHJvYmxlbSBpcyBORlMgY2xpZW50IGtub3dzIG5vdGhpbmcgYWJvdXQgbmZzNF9hY2wg
-YW5kIGl0IGlzDQo+IGRlY29kZWQNCj4gaW4gbmZzNC1hY2wtdG9vbHMuIEV2ZW4gaWYgd2UgbWFr
-ZSBuZnMgY2xpZW50IGNhcGFibGUgb2YgdW5kZXJzdGFuZA0KPiBuZnM0X2FjbCB4YXR0ciwgY2Fu
-IGl0IGJlIHVzZWQgdG8gcGVyZm9ybSBBQ0wncyBmb3IgdGhlIHN5c3RlbS4NCj4gQUZBSVUsDQo+
-IGl0IGlzIHVzZXMgdXNlci9ncm91cCBuYW1lcyBhcyBvcHBvc2VkIHVpZC9naWQgdG8gcGVyZm9y
-bSBpZCBtYXBwaW5nLg0KPiBDYW4gdGhlIGNsaWVudCBtYXAgaXQgYmFjayB0byB1c2VyIG5hbWVz
-IGFuZCBkZXJpdmUgaWYgaXQgaXMganVzdCBhbg0KPiByZXBsaWNhIG9mIGlub2RlJ3MgaV9tb2Rl
-Pw0KPiANCj4gVGhlIGlkZWEgaXMgdG8gc3VwcHJlc3MgbmZzNF9hY2wgaWYgaXQgaXMgdGhlIHNh
-bWUgYXMgaW5vZGUncyBpX21vZGUuDQo+IFRoaXMgbWVhbnMgbmZzNC1hY2wtdG9vbHMvbmZzNF9n
-ZXRhY2wgd291bGQgZ2l2ZSBubyByZXN1bHRzIHdoZW4NCj4gcmVxdWVzdGluZyBmb3IgQUNMcy4g
-VGhpcyB3b3VsZCBicmVhayBleGlzdGluZyBhcHBsaWNhdGlvbnMgaWYgdGhleQ0KPiBleHBlY3Qg
-c29tZSBvdXRwdXQgZnJvbSBuZnM0X2dldGZhY2wuDQo+IA0KPiBJcyB0aGVyZSBhIGJldHRlciB3
-YXkgdG8gaWRlbnRpZnkgaWYgbmZzNF9hY2wgaXMganVzdCBhDQo+IHJlcHJlc2VudGF0aW9uDQo+
-IG9mIGlfbW9kZSBhdCB0aGUgY2xpZW50IGVuZCBhbmQgY2FuIGJlIHNhZmVseSBpZ25vcmVkIGR1
-cmluZyBhbg0KPiBvdmVybGF5ZnMgY29weV91cD8gQ2FuIHdlIGluY2x1ZGUgYSBmbGFnIGZvciB0
-aGlzPw0KPiANCj4gDQo+IFsxXSBodHRwczovL3d3dy5zcGluaWNzLm5ldC9saXN0cy9saW51eC1u
-ZnMvbXNnNjEwNDUuaHRtbA0KPiBbMl0gaHR0cHM6Ly93d3cuc3Bpbmljcy5uZXQvbGlzdHMvbGlu
-dXgtdW5pb25mcy9tc2cwNDczNi5odG1sDQo+IA0KDQpJZiB0aGUgcGVybWlzc2lvbnMgYXJlIHVu
-Y2hhbmdlZCBzbyB0aGF0IG92ZXJsYXlmcyBpcyBub3QgdHJ5aW5nIHRvDQpvdmVycmlkZSB0aGUg
-d2F5IHRoZSBzZXJ2ZXIgaW50ZXJwcmV0cyB0aGUgQUNMLCBhbmQgY3JlZGVudGlhbCBoZWxkIGJ5
-DQp0aGUgdXNlciwgdGhlbiB5b3UgYXJlIGJldHRlciBvZmYgY2FsbGluZyB0aGUgTGludXggY2xp
-ZW50IGZvcg0Kb3Blbi9jbG9zZSBhbmQgcGVybWlzc2lvbnMgY2FsbHMuDQoNCk9uY2UgeW91J3Zl
-IGFsbG93ZWQgdGhlIHVzZXIgdG8gY2htb2Qgb3IgY2hvd24gdGhlIGZpbGUsIHlvdSBhcmUgb24N
-CnlvdXIgb3duLCBiZWNhdXNlIHlvdXIgc2VjdXJpdHkgbW9kZWwgZm9yIHRoZSBmaWxlIHdpbGwg
-aGF2ZSBmb3JrZWQNCndpdGggdGhlIHNlY3VyaXR5IG1vZGVsIHByb3ZpZGVkIGJ5IE5GUy4gQXQg
-dGhhdCBwb2ludCwgdGhlIGZpbGUgaGFkDQpiZXR0ZXIgaGF2ZSBiZWVuIGNvcGllZCB1cCwgYW5k
-IHlvdSdkIGJldHRlciBiZSByZWFkeSB0byBtYW5hZ2UgaXQNCmVudGlyZWx5IGZyb20gb3Zlcmxh
-eWZzLg0KDQpUaGUgYWJvdmUgYXBwbGllcyBub3Qgb25seSB3aGVuIHRoZSBmaWxlIGlzIHN1Ympl
-Y3QgdG8gTkZTdjQgYWNscywgYnV0DQppdCBpcyBhbHNvIHRydWUgd2hlbiB5b3UgYXJlIHVzaW5n
-IHN0cm9uZyBhdXRoZW50aWNhdGlvbiAoaS5lLiBLZXJiZXJvcw0KVikuDQoNCi0tIA0KVHJvbmQg
-TXlrbGVidXN0DQpMaW51eCBORlMgY2xpZW50IG1haW50YWluZXIsIEhhbW1lcnNwYWNlDQp0cm9u
-ZC5teWtsZWJ1c3RAaGFtbWVyc3BhY2UuY29tDQoNCg==
+
+While mounting overlayfs with NFS as a lower directory and a local
+filesystem as an upper layer leads to copy_up failures because NFS4 has
+an extra system.nfs4_acl which cannot be copied up. This has been
+discussed before [1] and [2] with the suggestion that nfs4_acl is
+derived from posix_acls or just inode->i_mode *most* of the times and
+hence it can be mapped back.
+
+The problem is NFS client knows nothing about nfs4_acl and it is decoded
+in nfs4-acl-tools. Even if we make nfs client capable of understand
+nfs4_acl xattr, can it be used to perform ACL's for the system. AFAIU,
+it is uses user/group names as opposed uid/gid to perform id mapping.
+Can the client map it back to user names and derive if it is just an
+replica of inode's i_mode?
+
+The idea is to suppress nfs4_acl if it is the same as inode's i_mode.
+This means nfs4-acl-tools/nfs4_getacl would give no results when
+requesting for ACLs. This would break existing applications if they
+expect some output from nfs4_getfacl.
+
+Is there a better way to identify if nfs4_acl is just a representation
+of i_mode at the client end and can be safely ignored during an
+overlayfs copy_up? Can we include a flag for this?
+
+
+[1] https://www.spinics.net/lists/linux-nfs/msg61045.html
+[2] https://www.spinics.net/lists/linux-unionfs/msg04736.html
+
+-- 
+Goldwyn
