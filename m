@@ -1,7 +1,7 @@
 From: Miklos Szeredi <mszeredi@redhat.com>
-Subject: [PATCH 03/39] vfs: dedupe: extract helper for a single dedup
-Date: Tue, 29 May 2018 16:43:03 +0200
-Message-ID: <20180529144339.16538-4-mszeredi@redhat.com>
+Subject: [PATCH 02/39] vfs: dedupe: rationalize args
+Date: Tue, 29 May 2018 16:43:02 +0200
+Message-ID: <20180529144339.16538-3-mszeredi@redhat.com>
 References: <20180529144339.16538-1-mszeredi@redhat.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20180529144339.16538-1-mszeredi@redhat.com>
@@ -10,139 +10,118 @@ To: linux-unionfs@vger.kernel.org
 Cc: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 
-Extract vfs_dedupe_file_range_one() helper to deal with a single dedup
-request.
+Clean up f_op->dedupe_file_range() interface.
+
+1) Use loff_t for offsets and length instead of u64
+2) Order the arguments the same way as {copy|clone}_file_range().
 
 Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
 ---
- fs/read_write.c | 89 +++++++++++++++++++++++++++++++--------------------------
- 1 file changed, 49 insertions(+), 40 deletions(-)
+ fs/btrfs/ctree.h   | 5 +++--
+ fs/btrfs/ioctl.c   | 5 +++--
+ fs/ocfs2/file.c    | 6 +++---
+ fs/read_write.c    | 4 ++--
+ fs/xfs/xfs_file.c  | 6 +++---
+ include/linux/fs.h | 4 ++--
+ 6 files changed, 16 insertions(+), 14 deletions(-)
 
+diff --git a/fs/btrfs/ctree.h b/fs/btrfs/ctree.h
+index 990e011c9f0c..5968ba5aa0d1 100644
+--- a/fs/btrfs/ctree.h
++++ b/fs/btrfs/ctree.h
+@@ -3271,8 +3271,9 @@ void btrfs_get_block_group_info(struct list_head *groups_list,
+ 				struct btrfs_ioctl_space_info *space);
+ void update_ioctl_balance_args(struct btrfs_fs_info *fs_info, int lock,
+ 			       struct btrfs_ioctl_balance_args *bargs);
+-loff_t btrfs_dedupe_file_range(struct file *src_file, u64 loff, u64 olen,
+-			    struct file *dst_file, u64 dst_loff);
++loff_t btrfs_dedupe_file_range(struct file *src_file, loff_t loff,
++			       struct file *dst_file, loff_t dst_loff,
++			       loff_t olen);
+ 
+ /* file.c */
+ int __init btrfs_auto_defrag_init(void);
+diff --git a/fs/btrfs/ioctl.c b/fs/btrfs/ioctl.c
+index 1b5cc5fd4868..70eac76804df 100644
+--- a/fs/btrfs/ioctl.c
++++ b/fs/btrfs/ioctl.c
+@@ -3194,8 +3194,9 @@ static int btrfs_extent_same(struct inode *src, u64 loff, u64 olen,
+ 
+ #define BTRFS_MAX_DEDUPE_LEN	SZ_16M
+ 
+-loff_t btrfs_dedupe_file_range(struct file *src_file, u64 loff, u64 olen,
+-			       struct file *dst_file, u64 dst_loff)
++loff_t btrfs_dedupe_file_range(struct file *src_file, loff_t loff,
++			       struct file *dst_file, loff_t dst_loff,
++			       loff_t olen)
+ {
+ 	struct inode *src = file_inode(src_file);
+ 	struct inode *dst = file_inode(dst_file);
+diff --git a/fs/ocfs2/file.c b/fs/ocfs2/file.c
+index 4a81d82ab7f6..a024715cd227 100644
+--- a/fs/ocfs2/file.c
++++ b/fs/ocfs2/file.c
+@@ -2538,10 +2538,10 @@ static int ocfs2_file_clone_range(struct file *file_in,
+ }
+ 
+ static loff_t ocfs2_file_dedupe_range(struct file *src_file,
+-				      u64 loff,
+-				      u64 len,
++				      loff_t loff,
+ 				      struct file *dst_file,
+-				      u64 dst_loff)
++				      loff_t dst_loff,
++				      loff_t len)
+ {
+ 	int error;
+ 
 diff --git a/fs/read_write.c b/fs/read_write.c
-index 1818581cadf6..82a53c44c0aa 100644
+index c41e2a1eb7c7..1818581cadf6 100644
 --- a/fs/read_write.c
 +++ b/fs/read_write.c
-@@ -1964,6 +1964,44 @@ int vfs_dedupe_file_range_compare(struct inode *src, loff_t srcoff,
- }
- EXPORT_SYMBOL(vfs_dedupe_file_range_compare);
- 
-+static s64 vfs_dedupe_file_range_one(struct file *src_file, loff_t src_pos,
-+				     struct file *dst_file, loff_t dst_pos,
-+				     u64 len)
-+{
-+	s64 ret;
-+
-+	ret = mnt_want_write_file(dst_file);
-+	if (ret)
-+		return ret;
-+
-+	ret = clone_verify_area(dst_file, dst_pos, len, true);
-+	if (ret < 0)
-+		goto out_drop_write;
-+
-+	ret = -EINVAL;
-+	if (!(capable(CAP_SYS_ADMIN) || (dst_file->f_mode & FMODE_WRITE)))
-+		goto out_drop_write;
-+
-+	ret = -EXDEV;
-+	if (src_file->f_path.mnt != dst_file->f_path.mnt)
-+		goto out_drop_write;
-+
-+	ret = -EISDIR;
-+	if (S_ISDIR(file_inode(dst_file)->i_mode))
-+		goto out_drop_write;
-+
-+	ret = -EINVAL;
-+	if (!dst_file->f_op->dedupe_file_range)
-+		goto out_drop_write;
-+
-+	ret = dst_file->f_op->dedupe_file_range(src_file, src_pos,
-+						dst_file, dst_pos, len);
-+out_drop_write:
-+	mnt_drop_write_file(dst_file);
-+
-+	return ret;
-+}
-+
- int vfs_dedupe_file_range(struct file *file, struct file_dedupe_range *same)
- {
- 	struct file_dedupe_range_info *info;
-@@ -1972,10 +2010,7 @@ int vfs_dedupe_file_range(struct file *file, struct file_dedupe_range *same)
- 	u64 len;
- 	int i;
- 	int ret;
--	bool is_admin = capable(CAP_SYS_ADMIN);
- 	u16 count = same->dest_count;
--	struct file *dst_file;
--	loff_t dst_off;
- 	loff_t deduped;
- 
- 	if (!(file->f_mode & FMODE_READ))
-@@ -2010,54 +2045,28 @@ int vfs_dedupe_file_range(struct file *file, struct file_dedupe_range *same)
- 	}
- 
- 	for (i = 0, info = same->info; i < count; i++, info++) {
--		struct inode *dst;
- 		struct fd dst_fd = fdget(info->dest_fd);
-+		struct file *dst_file = dst_fd.file;
- 
--		dst_file = dst_fd.file;
- 		if (!dst_file) {
- 			info->status = -EBADF;
- 			goto next_loop;
- 		}
--		dst = file_inode(dst_file);
--
--		ret = mnt_want_write_file(dst_file);
--		if (ret) {
--			info->status = ret;
--			goto next_loop;
--		}
--
--		dst_off = info->dest_offset;
--		ret = clone_verify_area(dst_file, dst_off, len, true);
--		if (ret < 0) {
--			info->status = ret;
--			goto next_file;
--		}
--		ret = 0;
- 
- 		if (info->reserved) {
+@@ -2046,8 +2046,8 @@ int vfs_dedupe_file_range(struct file *file, struct file_dedupe_range *same)
  			info->status = -EINVAL;
--		} else if (!(is_admin || (dst_file->f_mode & FMODE_WRITE))) {
--			info->status = -EINVAL;
--		} else if (file->f_path.mnt != dst_file->f_path.mnt) {
--			info->status = -EXDEV;
--		} else if (S_ISDIR(dst->i_mode)) {
--			info->status = -EISDIR;
--		} else if (dst_file->f_op->dedupe_file_range == NULL) {
--			info->status = -EINVAL;
--		} else {
--			deduped = dst_file->f_op->dedupe_file_range(file, off,
--							dst_file,
--							info->dest_offset, len);
--			if (deduped == -EBADE)
--				info->status = FILE_DEDUPE_RANGE_DIFFERS;
--			else if (deduped < 0)
--				info->status = deduped;
--			else
--				info->bytes_deduped += deduped;
-+			goto next_loop;
- 		}
+ 		} else {
+ 			deduped = dst_file->f_op->dedupe_file_range(file, off,
+-							len, dst_file,
+-							info->dest_offset);
++							dst_file,
++							info->dest_offset, len);
+ 			if (deduped == -EBADE)
+ 				info->status = FILE_DEDUPE_RANGE_DIFFERS;
+ 			else if (deduped < 0)
+diff --git a/fs/xfs/xfs_file.c b/fs/xfs/xfs_file.c
+index cf51d47efdb6..75704edfba82 100644
+--- a/fs/xfs/xfs_file.c
++++ b/fs/xfs/xfs_file.c
+@@ -875,10 +875,10 @@ xfs_file_clone_range(
+ STATIC loff_t
+ xfs_file_dedupe_range(
+ 	struct file	*src_file,
+-	u64		loff,
+-	u64		len,
++	loff_t		loff,
+ 	struct file	*dst_file,
+-	u64		dst_loff)
++	loff_t		dst_loff,
++	loff_t		len)
+ {
+ 	struct inode	*srci = file_inode(src_file);
+ 	u64		max_dedupe;
+diff --git a/include/linux/fs.h b/include/linux/fs.h
+index 8e49defc7aab..b0f290944220 100644
+--- a/include/linux/fs.h
++++ b/include/linux/fs.h
+@@ -1738,8 +1738,8 @@ struct file_operations {
+ 			loff_t, size_t, unsigned int);
+ 	int (*clone_file_range)(struct file *, loff_t, struct file *, loff_t,
+ 			u64);
+-	loff_t (*dedupe_file_range)(struct file *, u64, u64, struct file *,
+-			u64);
++	loff_t (*dedupe_file_range)(struct file *, loff_t,
++				    struct file *, loff_t, loff_t);
+ } __randomize_layout;
  
--next_file:
--		mnt_drop_write_file(dst_file);
-+		deduped = vfs_dedupe_file_range_one(file, off, dst_file,
-+						    info->dest_offset, len);
-+		if (deduped == -EBADE)
-+			info->status = FILE_DEDUPE_RANGE_DIFFERS;
-+		else if (deduped < 0)
-+			info->status = deduped;
-+		else
-+			info->bytes_deduped += deduped;
-+
- next_loop:
- 		fdput(dst_fd);
- 
+ struct inode_operations {
 -- 
 2.14.3
