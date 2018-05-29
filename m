@@ -1,7 +1,7 @@
 From: Miklos Szeredi <mszeredi@redhat.com>
-Subject: [PATCH 04/39] vfs: add path_open()
-Date: Tue, 29 May 2018 16:43:04 +0200
-Message-ID: <20180529144339.16538-5-mszeredi@redhat.com>
+Subject: [PATCH 03/39] vfs: dedupe: extract helper for a single dedup
+Date: Tue, 29 May 2018 16:43:03 +0200
+Message-ID: <20180529144339.16538-4-mszeredi@redhat.com>
 References: <20180529144339.16538-1-mszeredi@redhat.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20180529144339.16538-1-mszeredi@redhat.com>
@@ -10,80 +10,139 @@ To: linux-unionfs@vger.kernel.org
 Cc: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 
-Currently opening an overlay file results in:
-
- - the real file on the underlying layer being opened
- - f_path being set to the overlay {mount, dentry} pair
-
-This patch adds a new helper that allows the above to be explicitly
-performed.  I.e. it's the same as dentry_open(), except the underlying
-inode to open is given as a separate argument.
-
-This is in preparation for stacking I/O operations on overlay files.
-
-Later, when implicit opening is removed, dentry_open() can be implemented
-by just calling path_open().
+Extract vfs_dedupe_file_range_one() helper to deal with a single dedup
+request.
 
 Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
 ---
- fs/open.c          | 31 +++++++++++++++++++++++++++++++
- include/linux/fs.h |  2 ++
- 2 files changed, 33 insertions(+)
+ fs/read_write.c | 89 +++++++++++++++++++++++++++++++--------------------------
+ 1 file changed, 49 insertions(+), 40 deletions(-)
 
-diff --git a/fs/open.c b/fs/open.c
-index c5ee7cd60424..d0bf7f061a1a 100644
---- a/fs/open.c
-+++ b/fs/open.c
-@@ -906,6 +906,37 @@ int vfs_open(const struct path *path, struct file *file,
- 	return do_dentry_open(file, d_backing_inode(dentry), NULL, cred);
+diff --git a/fs/read_write.c b/fs/read_write.c
+index 1818581cadf6..82a53c44c0aa 100644
+--- a/fs/read_write.c
++++ b/fs/read_write.c
+@@ -1964,6 +1964,44 @@ int vfs_dedupe_file_range_compare(struct inode *src, loff_t srcoff,
  }
+ EXPORT_SYMBOL(vfs_dedupe_file_range_compare);
  
-+/**
-+ * path_open() - Open an inode by a particular name.
-+ * @path: The name of the file.
-+ * @flags: The O_ flags used to open this file.
-+ * @inode: The inode to open.
-+ * @cred: The task's credentials used when opening this file.
-+ *
-+ * Context: Process context.
-+ * Return: A pointer to a struct file or an IS_ERR pointer.  Cannot return NULL.
-+ */
-+struct file *path_open(const struct path *path, int flags, struct inode *inode,
-+		       const struct cred *cred)
++static s64 vfs_dedupe_file_range_one(struct file *src_file, loff_t src_pos,
++				     struct file *dst_file, loff_t dst_pos,
++				     u64 len)
 +{
-+	struct file *file;
-+	int retval;
++	s64 ret;
 +
-+	file = get_empty_filp();
-+	if (IS_ERR(file))
-+		return file;
++	ret = mnt_want_write_file(dst_file);
++	if (ret)
++		return ret;
 +
-+	file->f_flags = flags;
-+	file->f_path = *path;
-+	retval = do_dentry_open(file, inode, NULL, cred);
-+	if (retval) {
-+		put_filp(file);
-+		return ERR_PTR(retval);
-+	}
-+	return file;
++	ret = clone_verify_area(dst_file, dst_pos, len, true);
++	if (ret < 0)
++		goto out_drop_write;
++
++	ret = -EINVAL;
++	if (!(capable(CAP_SYS_ADMIN) || (dst_file->f_mode & FMODE_WRITE)))
++		goto out_drop_write;
++
++	ret = -EXDEV;
++	if (src_file->f_path.mnt != dst_file->f_path.mnt)
++		goto out_drop_write;
++
++	ret = -EISDIR;
++	if (S_ISDIR(file_inode(dst_file)->i_mode))
++		goto out_drop_write;
++
++	ret = -EINVAL;
++	if (!dst_file->f_op->dedupe_file_range)
++		goto out_drop_write;
++
++	ret = dst_file->f_op->dedupe_file_range(src_file, src_pos,
++						dst_file, dst_pos, len);
++out_drop_write:
++	mnt_drop_write_file(dst_file);
++
++	return ret;
 +}
-+EXPORT_SYMBOL(path_open);
 +
- struct file *dentry_open(const struct path *path, int flags,
- 			 const struct cred *cred)
+ int vfs_dedupe_file_range(struct file *file, struct file_dedupe_range *same)
  {
-diff --git a/include/linux/fs.h b/include/linux/fs.h
-index b0f290944220..9473e68280d0 100644
---- a/include/linux/fs.h
-+++ b/include/linux/fs.h
-@@ -2401,6 +2401,8 @@ extern struct file *filp_open(const char *, int, umode_t);
- extern struct file *file_open_root(struct dentry *, struct vfsmount *,
- 				   const char *, int, umode_t);
- extern struct file * dentry_open(const struct path *, int, const struct cred *);
-+extern struct file *path_open(const struct path *, int, struct inode *,
-+			      const struct cred *);
- extern int filp_close(struct file *, fl_owner_t id);
+ 	struct file_dedupe_range_info *info;
+@@ -1972,10 +2010,7 @@ int vfs_dedupe_file_range(struct file *file, struct file_dedupe_range *same)
+ 	u64 len;
+ 	int i;
+ 	int ret;
+-	bool is_admin = capable(CAP_SYS_ADMIN);
+ 	u16 count = same->dest_count;
+-	struct file *dst_file;
+-	loff_t dst_off;
+ 	loff_t deduped;
  
- extern struct filename *getname_flags(const char __user *, int, int *);
+ 	if (!(file->f_mode & FMODE_READ))
+@@ -2010,54 +2045,28 @@ int vfs_dedupe_file_range(struct file *file, struct file_dedupe_range *same)
+ 	}
+ 
+ 	for (i = 0, info = same->info; i < count; i++, info++) {
+-		struct inode *dst;
+ 		struct fd dst_fd = fdget(info->dest_fd);
++		struct file *dst_file = dst_fd.file;
+ 
+-		dst_file = dst_fd.file;
+ 		if (!dst_file) {
+ 			info->status = -EBADF;
+ 			goto next_loop;
+ 		}
+-		dst = file_inode(dst_file);
+-
+-		ret = mnt_want_write_file(dst_file);
+-		if (ret) {
+-			info->status = ret;
+-			goto next_loop;
+-		}
+-
+-		dst_off = info->dest_offset;
+-		ret = clone_verify_area(dst_file, dst_off, len, true);
+-		if (ret < 0) {
+-			info->status = ret;
+-			goto next_file;
+-		}
+-		ret = 0;
+ 
+ 		if (info->reserved) {
+ 			info->status = -EINVAL;
+-		} else if (!(is_admin || (dst_file->f_mode & FMODE_WRITE))) {
+-			info->status = -EINVAL;
+-		} else if (file->f_path.mnt != dst_file->f_path.mnt) {
+-			info->status = -EXDEV;
+-		} else if (S_ISDIR(dst->i_mode)) {
+-			info->status = -EISDIR;
+-		} else if (dst_file->f_op->dedupe_file_range == NULL) {
+-			info->status = -EINVAL;
+-		} else {
+-			deduped = dst_file->f_op->dedupe_file_range(file, off,
+-							dst_file,
+-							info->dest_offset, len);
+-			if (deduped == -EBADE)
+-				info->status = FILE_DEDUPE_RANGE_DIFFERS;
+-			else if (deduped < 0)
+-				info->status = deduped;
+-			else
+-				info->bytes_deduped += deduped;
++			goto next_loop;
+ 		}
+ 
+-next_file:
+-		mnt_drop_write_file(dst_file);
++		deduped = vfs_dedupe_file_range_one(file, off, dst_file,
++						    info->dest_offset, len);
++		if (deduped == -EBADE)
++			info->status = FILE_DEDUPE_RANGE_DIFFERS;
++		else if (deduped < 0)
++			info->status = deduped;
++		else
++			info->bytes_deduped += deduped;
++
+ next_loop:
+ 		fdput(dst_fd);
+ 
 -- 
 2.14.3
