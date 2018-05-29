@@ -1,7 +1,7 @@
 From: Miklos Szeredi <mszeredi@redhat.com>
-Subject: [PATCH 23/39] ovl: add O_DIRECT support
-Date: Tue, 29 May 2018 16:43:23 +0200
-Message-ID: <20180529144339.16538-24-mszeredi@redhat.com>
+Subject: [PATCH 29/39] vfs: simplify dentry_open()
+Date: Tue, 29 May 2018 16:43:29 +0200
+Message-ID: <20180529144339.16538-30-mszeredi@redhat.com>
 References: <20180529144339.16538-1-mszeredi@redhat.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20180529144339.16538-1-mszeredi@redhat.com>
@@ -10,24 +10,43 @@ To: linux-unionfs@vger.kernel.org
 Cc: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 
+dentry_open() can now just call path_open().
+
 Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
 ---
- fs/overlayfs/file.c | 3 +++
- 1 file changed, 3 insertions(+)
+ fs/open.c | 15 +--------------
+ 1 file changed, 1 insertion(+), 14 deletions(-)
 
-diff --git a/fs/overlayfs/file.c b/fs/overlayfs/file.c
-index 3f610a5b38e4..e5e7ccaaf9ec 100644
---- a/fs/overlayfs/file.c
-+++ b/fs/overlayfs/file.c
-@@ -110,6 +110,9 @@ static int ovl_open(struct inode *inode, struct file *file)
- 	if (IS_ERR(realfile))
- 		return PTR_ERR(realfile);
+diff --git a/fs/open.c b/fs/open.c
+index 244cd2ecfefd..1d4bc541c619 100644
+--- a/fs/open.c
++++ b/fs/open.c
+@@ -935,25 +935,12 @@ EXPORT_SYMBOL(path_open);
+ struct file *dentry_open(const struct path *path, int flags,
+ 			 const struct cred *cred)
+ {
+-	int error;
+-	struct file *f;
+-
+ 	validate_creds(cred);
  
-+	/* For O_DIRECT dentry_open() checks f_mapping->a_ops->direct_IO */
-+	file->f_mapping = realfile->f_mapping;
-+
- 	file->private_data = realfile;
+ 	/* We must always pass in a valid mount pointer. */
+ 	BUG_ON(!path->mnt);
  
- 	return 0;
+-	f = get_empty_filp();
+-	if (IS_ERR(f))
+-		return f;
+-
+-	f->f_flags = flags;
+-	error = vfs_open(path, f, cred);
+-	if (error) {
+-		put_filp(f);
+-		return ERR_PTR(error);
+-	}
+-	return f;
++	return path_open(path, flags, d_backing_inode(path->dentry), cred, true);
+ }
+ EXPORT_SYMBOL(dentry_open);
+ 
 -- 
 2.14.3
