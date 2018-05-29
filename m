@@ -1,7 +1,7 @@
 From: Miklos Szeredi <mszeredi@redhat.com>
-Subject: [PATCH 11/28] ovl: Add helper ovl_dentry_lowerdata() to get lower data dentry
-Date: Tue, 29 May 2018 16:45:55 +0200
-Message-ID: <20180529144612.16675-12-mszeredi@redhat.com>
+Subject: [PATCH 08/28] ovl: Use out_err instead of out_nomem
+Date: Tue, 29 May 2018 16:45:52 +0200
+Message-ID: <20180529144612.16675-9-mszeredi@redhat.com>
 References: <20180529144612.16675-1-mszeredi@redhat.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20180529144612.16675-1-mszeredi@redhat.com>
@@ -12,58 +12,77 @@ List-Id: linux-unionfs@vger.kernel.org
 
 From: Vivek Goyal <vgoyal@redhat.com>
 
-Now we have the notion of data dentry and metacopy dentry.
-ovl_dentry_lower() will return uppermost lower dentry, but it could be
-either data or metacopy dentry.  Now we support metacopy dentries in lower
-layers so it is possible that lowerstack[0] is metacopy dentry while
-lowerstack[1] is actual data dentry.
+Right now we use goto out_nomem which assumes error code is -ENOMEM.  But
+there are other errors returned like -ESTALE as well.  So instead of
+out_nomem, use out_err which will do ERR_PTR(err).  That way one can put
+error code in err and jump to out_err.
 
-So add an helper which returns lowest most dentry which is supposed to be
-data dentry.
+This just code reorganization and no change of functionality.
+
+I am about to add more code and this organization helps laying more code
+and error paths on top of it.
 
 Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
 Reviewed-by: Amir Goldstein <amir73il@gmail.com>
 Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
 ---
- fs/overlayfs/overlayfs.h |  1 +
- fs/overlayfs/util.c      | 13 +++++++++++++
- 2 files changed, 14 insertions(+)
+ fs/overlayfs/inode.c | 17 ++++++++++-------
+ 1 file changed, 10 insertions(+), 7 deletions(-)
 
-diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-index 31795c041d61..13b2151cf4df 100644
---- a/fs/overlayfs/overlayfs.h
-+++ b/fs/overlayfs/overlayfs.h
-@@ -221,6 +221,7 @@ void ovl_path_lowerdata(struct dentry *dentry, struct path *path);
- enum ovl_path_type ovl_path_real(struct dentry *dentry, struct path *path);
- struct dentry *ovl_dentry_upper(struct dentry *dentry);
- struct dentry *ovl_dentry_lower(struct dentry *dentry);
-+struct dentry *ovl_dentry_lowerdata(struct dentry *dentry);
- struct ovl_layer *ovl_layer_lower(struct dentry *dentry);
- struct dentry *ovl_dentry_real(struct dentry *dentry);
- struct dentry *ovl_i_dentry_upper(struct inode *inode);
-diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
-index 32ff67fa0bfb..7c7b95d5da1f 100644
---- a/fs/overlayfs/util.c
-+++ b/fs/overlayfs/util.c
-@@ -207,6 +207,19 @@ struct ovl_layer *ovl_layer_lower(struct dentry *dentry)
- 	return oe->numlower ? oe->lowerstack[0].layer : NULL;
- }
+diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
+index 60c88a09a3f3..0d5615b80422 100644
+--- a/fs/overlayfs/inode.c
++++ b/fs/overlayfs/inode.c
+@@ -782,6 +782,7 @@ struct inode *ovl_get_inode(struct super_block *sb,
+ 	int fsid = bylower ? oip->lowerpath->layer->fsid : 0;
+ 	bool is_dir;
+ 	unsigned long ino = 0;
++	int err = -ENOMEM;
  
-+/*
-+ * ovl_dentry_lower() could return either a data dentry or metacopy dentry
-+ * dependig on what is stored in lowerstack[0]. At times we need to find
-+ * lower dentry which has data (and not metacopy dentry). This helper
-+ * returns the lower data dentry.
-+ */
-+struct dentry *ovl_dentry_lowerdata(struct dentry *dentry)
-+{
-+	struct ovl_entry *oe = dentry->d_fsdata;
-+
-+	return oe->numlower ? oe->lowerstack[oe->numlower - 1].dentry : NULL;
-+}
-+
- struct dentry *ovl_dentry_real(struct dentry *dentry)
- {
- 	return ovl_dentry_upper(dentry) ?: ovl_dentry_lower(dentry);
+ 	if (!realinode)
+ 		realinode = d_inode(lowerdentry);
+@@ -798,7 +799,7 @@ struct inode *ovl_get_inode(struct super_block *sb,
+ 
+ 		inode = ovl_iget5(sb, oip->newinode, key);
+ 		if (!inode)
+-			goto out_nomem;
++			goto out_err;
+ 		if (!(inode->i_state & I_NEW)) {
+ 			/*
+ 			 * Verify that the underlying files stored in the inode
+@@ -807,8 +808,8 @@ struct inode *ovl_get_inode(struct super_block *sb,
+ 			if (!ovl_verify_inode(inode, lowerdentry, upperdentry,
+ 					      true)) {
+ 				iput(inode);
+-				inode = ERR_PTR(-ESTALE);
+-				goto out;
++				err = -ESTALE;
++				goto out_err;
+ 			}
+ 
+ 			dput(upperdentry);
+@@ -824,8 +825,10 @@ struct inode *ovl_get_inode(struct super_block *sb,
+ 	} else {
+ 		/* Lower hardlink that will be broken on copy up */
+ 		inode = new_inode(sb);
+-		if (!inode)
+-			goto out_nomem;
++		if (!inode) {
++			err = -ENOMEM;
++			goto out_err;
++		}
+ 	}
+ 	ovl_fill_inode(inode, realinode->i_mode, realinode->i_rdev, ino, fsid);
+ 	ovl_inode_init(inode, upperdentry, lowerdentry);
+@@ -851,7 +854,7 @@ struct inode *ovl_get_inode(struct super_block *sb,
+ out:
+ 	return inode;
+ 
+-out_nomem:
+-	inode = ERR_PTR(-ENOMEM);
++out_err:
++	inode = ERR_PTR(err);
+ 	goto out;
+ }
 -- 
 2.14.3
