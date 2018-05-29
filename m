@@ -1,162 +1,148 @@
-From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [PATCH 03/39] vfs: dedupe: extract helper for a single dedup
-Date: Tue, 29 May 2018 19:04:47 +0300
-Message-ID: <CAOQ4uxiUUtLAMxvDg8hMcgqZUV96dLs8stJPgh6w-pj4KGvabw@mail.gmail.com>
-References: <20180529144339.16538-1-mszeredi@redhat.com> <20180529144339.16538-4-mszeredi@redhat.com>
- <CAOQ4uxi5Y4mF9b9g5a_ggEUWPToKbRUsuzwN4aGjvnQ6itRkUw@mail.gmail.com>
+From: Randy Dunlap <rdunlap@infradead.org>
+Subject: Re: [PATCH 03/28] ovl: Provide a mount option metacopy=on/off for
+ metadata copyup
+Date: Tue, 29 May 2018 13:44:04 -0700
+Message-ID: <d5621dfa-46f6-4b5a-4d69-6c6fb9370cfe@infradead.org>
+References: <20180529144612.16675-1-mszeredi@redhat.com>
+ <20180529144612.16675-4-mszeredi@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAOQ4uxi5Y4mF9b9g5a_ggEUWPToKbRUsuzwN4aGjvnQ6itRkUw@mail.gmail.com>
+In-Reply-To: <20180529144612.16675-4-mszeredi@redhat.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Miklos Szeredi <mszeredi@redhat.com>
-Cc: overlayfs <linux-unionfs@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>
+To: Miklos Szeredi <mszeredi@redhat.com>, linux-unionfs@vger.kernel.org
+Cc: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 
-On Tue, May 29, 2018 at 6:41 PM, Amir Goldstein <amir73il@gmail.com> wrote:
-> On Tue, May 29, 2018 at 5:43 PM, Miklos Szeredi <mszeredi@redhat.com> wrote:
->> Extract vfs_dedupe_file_range_one() helper to deal with a single dedup
->> request.
->>
->> Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
->> ---
->>  fs/read_write.c | 89 +++++++++++++++++++++++++++++++--------------------------
->>  1 file changed, 49 insertions(+), 40 deletions(-)
->>
->> diff --git a/fs/read_write.c b/fs/read_write.c
->> index 1818581cadf6..82a53c44c0aa 100644
->> --- a/fs/read_write.c
->> +++ b/fs/read_write.c
->> @@ -1964,6 +1964,44 @@ int vfs_dedupe_file_range_compare(struct inode *src, loff_t srcoff,
->>  }
->>  EXPORT_SYMBOL(vfs_dedupe_file_range_compare);
->>
->> +static s64 vfs_dedupe_file_range_one(struct file *src_file, loff_t src_pos,
->> +                                    struct file *dst_file, loff_t dst_pos,
->> +                                    u64 len)
->> +{
->> +       s64 ret;
->> +
->> +       ret = mnt_want_write_file(dst_file);
->> +       if (ret)
->> +               return ret;
->> +
->> +       ret = clone_verify_area(dst_file, dst_pos, len, true);
->> +       if (ret < 0)
->> +               goto out_drop_write;
->> +
->> +       ret = -EINVAL;
->> +       if (!(capable(CAP_SYS_ADMIN) || (dst_file->f_mode & FMODE_WRITE)))
->> +               goto out_drop_write;
->> +
->> +       ret = -EXDEV;
->> +       if (src_file->f_path.mnt != dst_file->f_path.mnt)
->> +               goto out_drop_write;
->> +
->> +       ret = -EISDIR;
->> +       if (S_ISDIR(file_inode(dst_file)->i_mode))
->> +               goto out_drop_write;
->> +
->> +       ret = -EINVAL;
->> +       if (!dst_file->f_op->dedupe_file_range)
->> +               goto out_drop_write;
->> +
->> +       ret = dst_file->f_op->dedupe_file_range(src_file, src_pos,
->> +                                               dst_file, dst_pos, len);
->> +out_drop_write:
->> +       mnt_drop_write_file(dst_file);
->> +
->> +       return ret;
->> +}
->> +
->>  int vfs_dedupe_file_range(struct file *file, struct file_dedupe_range *same)
->>  {
->>         struct file_dedupe_range_info *info;
->> @@ -1972,10 +2010,7 @@ int vfs_dedupe_file_range(struct file *file, struct file_dedupe_range *same)
->>         u64 len;
->>         int i;
->>         int ret;
->> -       bool is_admin = capable(CAP_SYS_ADMIN);
->>         u16 count = same->dest_count;
->> -       struct file *dst_file;
->> -       loff_t dst_off;
->>         loff_t deduped;
->>
->>         if (!(file->f_mode & FMODE_READ))
->> @@ -2010,54 +2045,28 @@ int vfs_dedupe_file_range(struct file *file, struct file_dedupe_range *same)
->>         }
->>
->>         for (i = 0, info = same->info; i < count; i++, info++) {
->> -               struct inode *dst;
->>                 struct fd dst_fd = fdget(info->dest_fd);
->> +               struct file *dst_file = dst_fd.file;
->>
->> -               dst_file = dst_fd.file;
->>                 if (!dst_file) {
->>                         info->status = -EBADF;
->>                         goto next_loop;
->>                 }
->> -               dst = file_inode(dst_file);
->> -
->> -               ret = mnt_want_write_file(dst_file);
->> -               if (ret) {
->> -                       info->status = ret;
->> -                       goto next_loop;
->> -               }
->> -
->> -               dst_off = info->dest_offset;
->> -               ret = clone_verify_area(dst_file, dst_off, len, true);
->> -               if (ret < 0) {
->> -                       info->status = ret;
->> -                       goto next_file;
->> -               }
->> -               ret = 0;
->>
->>                 if (info->reserved) {
->>                         info->status = -EINVAL;
->> -               } else if (!(is_admin || (dst_file->f_mode & FMODE_WRITE))) {
->> -                       info->status = -EINVAL;
->> -               } else if (file->f_path.mnt != dst_file->f_path.mnt) {
->> -                       info->status = -EXDEV;
->> -               } else if (S_ISDIR(dst->i_mode)) {
->> -                       info->status = -EISDIR;
->> -               } else if (dst_file->f_op->dedupe_file_range == NULL) {
->> -                       info->status = -EINVAL;
->> -               } else {
->> -                       deduped = dst_file->f_op->dedupe_file_range(file, off,
->> -                                                       dst_file,
->> -                                                       info->dest_offset, len);
->> -                       if (deduped == -EBADE)
->> -                               info->status = FILE_DEDUPE_RANGE_DIFFERS;
->> -                       else if (deduped < 0)
->> -                               info->status = deduped;
->> -                       else
->> -                               info->bytes_deduped += deduped;
->> +                       goto next_loop;
->>                 }
->>
->> -next_file:
->> -               mnt_drop_write_file(dst_file);
->> +               deduped = vfs_dedupe_file_range_one(file, off, dst_file,
->> +                                                   info->dest_offset, len);
->> +               if (deduped == -EBADE)
->> +                       info->status = FILE_DEDUPE_RANGE_DIFFERS;
->> +               else if (deduped < 0)
->> +                       info->status = deduped;
->> +               else
->> +                       info->bytes_deduped += deduped;
->> +
->>  next_loop:
->>                 fdput(dst_fd);
->>
->
-> Please note that this patch conflicts with but is also an alternative to commit
-> 227627114799 fs: avoid fdput() after failed fdget() in vfs_dedupe_file_range()
-> on Al's fixes => for-next branch.
->
+On 05/29/2018 07:45 AM, Miklos Szeredi wrote:
+> From: Vivek Goyal <vgoyal@redhat.com>
+> 
+> By default metadata only copy up is disabled.  Provide a mount option so
+> that users can choose one way or other.
+> 
+> Also provide a kernel config and module option to enable/disable metacopy
+> feature.
+> 
+> metacopy feature requires redirect_dir=on when upper is present.
+> Otherwise, it requires redirect_dir=follow atleast.
+> 
+> As of now, metacopy does not work with nfs_export=on.  So if both
+> metacopy=on and nfs_export=on then nfs_export is disabled.
+> 
+> Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
+> Reviewed-by: Amir Goldstein <amir73il@gmail.com>
+> Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
+> ---
+>  Documentation/filesystems/overlayfs.txt | 30 ++++++++++++++++++++-
+>  fs/overlayfs/Kconfig                    | 19 ++++++++++++++
+>  fs/overlayfs/ovl_entry.h                |  1 +
+>  fs/overlayfs/super.c                    | 46 ++++++++++++++++++++++++++++++---
+>  4 files changed, 92 insertions(+), 4 deletions(-)
+> 
+> diff --git a/Documentation/filesystems/overlayfs.txt b/Documentation/filesystems/overlayfs.txt
+> index f087bc40c6a5..79be4a77ca08 100644
+> --- a/Documentation/filesystems/overlayfs.txt
+> +++ b/Documentation/filesystems/overlayfs.txt
+> @@ -262,6 +262,30 @@ rightmost one and going left.  In the above example lower1 will be the
+>  top, lower2 the middle and lower3 the bottom layer.
+>  
+>  
+> +Metadata only copy up
+> +--------------------
+> +
+> +When metadata only copy up feature is enabled, overlayfs will only copy
+> +up metadata (as opposed to whole file), when a metadata specific operation
+> +like chown/chmod is performed. Full file will be copied up later when
+> +file is opened for WRITE operation.
+> +
+> +In other words, this is delayed data copy up operation and data is copied
+> +up when there is a need to actually modify data.
+> +
+> +There are multiple ways to enable/disable this feature. A config option
+> +CONFIG_OVERLAY_FS_METACOPY can be set/unset to enable/disable this feature
+> +by default. Or one can enable/disable it at module load time with module
+> +parameter metacopy=on/off. Lastly, there is also a per mount option
+> +metacopy=on/off to enable/disable this feature per mount.
+> +
+> +Do not use metacopy=on with untrusted upper/lower directories. Otherwise
+> +it is possible that an attacker can create an handcrafted file with
 
-Sorry, that's a conflict, and a rather trivial one, but Miklos' patch is not
-an alternative fix.
+                                              a handcrafted
 
-Thanks,
-Amir.
+> +appropriate REDIRECT and METACOPY xattrs, and gain access to file on lower
+> +pointed by REDIRECT. This should not be possible on local system as setting
+> +"trusted." xattrs will require CAP_SYS_ADMIN. But it should be possible
+> +for untrusted layers like from a pen drive.
+> +
+>  Sharing and copying layers
+>  --------------------------
+>  
+> @@ -280,7 +304,7 @@ though it will not result in a crash or deadlock.
+>  Mounting an overlay using an upper layer path, where the upper layer path
+>  was previously used by another mounted overlay in combination with a
+>  different lower layer path, is allowed, unless the "inodes index" feature
+> -is enabled.
+> +or "metadata only copy up" feature is enabled.
+>  
+>  With the "inodes index" feature, on the first time mount, an NFS file
+>  handle of the lower layer root directory, along with the UUID of the lower
+> @@ -293,6 +317,10 @@ lower root origin, mount will fail with ESTALE.  An overlayfs mount with
+>  does not support NFS export, lower filesystem does not have a valid UUID or
+>  if the upper filesystem does not support extended attributes.
+>  
+> +For "metadata only copy up" feature there is no verification mechanism at
+> +mount time. So if same upper is mouted with different set of lower, mount
+
+                                   mounted
+
+> +probably will succeed but expect the unexpected later on. So don't do it.
+> +
+>  It is quite a common practice to copy overlay layers to a different
+>  directory tree on the same or different underlying filesystem, and even
+>  to a different machine.  With the "inodes index" feature, trying to mount
+> diff --git a/fs/overlayfs/Kconfig b/fs/overlayfs/Kconfig
+> index 5d1d40d745c5..e0a090eca65e 100644
+> --- a/fs/overlayfs/Kconfig
+> +++ b/fs/overlayfs/Kconfig
+> @@ -64,6 +64,7 @@ config OVERLAY_FS_NFS_EXPORT
+>  	bool "Overlayfs: turn on NFS export feature by default"
+>  	depends on OVERLAY_FS
+>  	depends on OVERLAY_FS_INDEX
+> +	depends on !OVERLAY_FS_METACOPY
+>  	help
+>  	  If this config option is enabled then overlay filesystems will use
+>  	  the inodes index dir to decode overlay NFS file handles by default.
+
+	  Is that ... dir  ^^^ == directory ?  Please spell it out.
+
+> @@ -124,3 +125,21 @@ config OVERLAY_FS_COPY_UP_SHARED
+>  	  To get a maximally backward compatible kernel, disable this option.
+>  
+>  	  If unsure, say N.
+> +
+> +config OVERLAY_FS_METACOPY
+> +	bool "Overlayfs: turn on metadata only copy up feature by default"
+> +	depends on OVERLAY_FS
+> +	select OVERLAY_FS_REDIRECT_DIR
+> +	help
+> +	  If this config option is enabled then overlay filesystems will
+> +	  copy up only metadata where appropriate and data copy up will
+> +	  happen when a file is opended for WRITE operation. It is still
+
+	                        opened
+
+> +	  possible to turn off this feature globally with the "metacopy=off"
+> +	  module option or on a filesystem instance basis with the
+> +	  "metacopy=off" mount option.
+> +
+> +	  Note, that this feature is not backward compatible.  That is,
+> +	  mounting an overlay which has metacopy only inodes on a kernel
+> +	  that doesn't support this feature will have unexpected results.
+> +
+> +	  If unsure, say N.
+
+
+-- 
+~Randy
