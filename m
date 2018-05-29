@@ -1,7 +1,7 @@
 From: Miklos Szeredi <mszeredi@redhat.com>
-Subject: [PATCH 22/28] ovl: Set redirect on metacopy files upon rename
-Date: Tue, 29 May 2018 16:46:06 +0200
-Message-ID: <20180529144612.16675-23-mszeredi@redhat.com>
+Subject: [PATCH 21/28] ovl: Do not set dentry type ORIGIN for broken hardlinks
+Date: Tue, 29 May 2018 16:46:05 +0200
+Message-ID: <20180529144612.16675-22-mszeredi@redhat.com>
 References: <20180529144612.16675-1-mszeredi@redhat.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20180529144612.16675-1-mszeredi@redhat.com>
@@ -12,118 +12,43 @@ List-Id: linux-unionfs@vger.kernel.org
 
 From: Vivek Goyal <vgoyal@redhat.com>
 
-Set redirect on metacopy files upon rename.  This will help find data
-dentry in lower dirs.
+If a dentry has copy up origin, we set flag OVL_PATH_ORIGIN.  So far this
+decision was easy that we had to check only for oe->numlower and if it is
+non-zero, we knew there is copy up origin.  (For non-dir we installed
+origin dentry in lowerstack[0]).
+
+But we don't create ORGIN xattr for broken hardlinks (index=off).  And with
+metacopy feature it is possible that we will install lowerstack[0] but
+ORIGIN xattr is not there.  It is data dentry of upper metacopy dentry
+which has been found using regular name based lookup or using REDIRECT.  So
+with addition of this new case, just presence of oe->numlower is not
+sufficient to guarantee that ORIGIN xattr is present.
+
+So to differentiate between two cases, look at OVL_CONST_INO flag.  If this
+flag is set and upperdentry is there, that means it can be marked as type
+ORIGIN.  OVL_CONST_INO is not set if lower hardlink is broken or will be
+broken over copy up.
 
 Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
 Reviewed-by: Amir Goldstein <amir73il@gmail.com>
 Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
 ---
- fs/overlayfs/dir.c | 66 +++++++++++++++++++++++++++++++++++++-----------------
- 1 file changed, 46 insertions(+), 20 deletions(-)
+ fs/overlayfs/util.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
-index 8d8e063e4706..1658961a9762 100644
---- a/fs/overlayfs/dir.c
-+++ b/fs/overlayfs/dir.c
-@@ -873,13 +873,13 @@ static bool ovl_can_move(struct dentry *dentry)
- 		!d_is_dir(dentry) || !ovl_type_merge_or_lower(dentry);
- }
- 
--static char *ovl_get_redirect(struct dentry *dentry, bool samedir)
-+static char *ovl_get_redirect(struct dentry *dentry, bool abs_redirect)
- {
- 	char *buf, *ret;
- 	struct dentry *d, *tmp;
- 	int buflen = ovl_redirect_max + 1;
- 
--	if (samedir) {
-+	if (!abs_redirect) {
- 		ret = kstrndup(dentry->d_name.name, dentry->d_name.len,
- 			       GFP_KERNEL);
- 		goto out;
-@@ -933,15 +933,43 @@ static char *ovl_get_redirect(struct dentry *dentry, bool samedir)
- 	return ret ? ret : ERR_PTR(-ENOMEM);
- }
- 
-+static bool ovl_need_absolute_redirect(struct dentry *dentry, bool samedir)
-+{
-+	struct dentry *lowerdentry;
-+
-+	if (!samedir)
-+		return true;
-+
-+	if (d_is_dir(dentry))
-+		return false;
-+
-+	/*
-+	 * For non-dir hardlinked files, we need absolute redirects
-+	 * in general as two upper hardlinks could be in different
-+	 * dirs. We could put a relative redirect now and convert
-+	 * it to absolute redirect later. But when nlink > 1 and
-+	 * indexing is on, that means relative redirect needs to be
-+	 * converted to absolute during copy up of another lower
-+	 * hardllink as well.
-+	 *
-+	 * So without optimizing too much, just check if lower is
-+	 * a hard link or not. If lower is hard link, put absolute
-+	 * redirect.
-+	 */
-+	lowerdentry = ovl_dentry_lower(dentry);
-+	return (d_inode(lowerdentry)->i_nlink > 1);
-+}
-+
- static int ovl_set_redirect(struct dentry *dentry, bool samedir)
- {
- 	int err;
- 	const char *redirect = ovl_dentry_get_redirect(dentry);
-+	bool absolute_redirect = ovl_need_absolute_redirect(dentry, samedir);
- 
--	if (redirect && (samedir || redirect[0] == '/'))
-+	if (redirect && (!absolute_redirect || redirect[0] == '/'))
- 		return 0;
- 
--	redirect = ovl_get_redirect(dentry, samedir);
-+	redirect = ovl_get_redirect(dentry, absolute_redirect);
- 	if (IS_ERR(redirect))
- 		return PTR_ERR(redirect);
- 
-@@ -1117,22 +1145,20 @@ static int ovl_rename(struct inode *olddir, struct dentry *old,
- 		goto out_dput;
- 
- 	err = 0;
--	if (is_dir) {
--		if (ovl_type_merge_or_lower(old))
--			err = ovl_set_redirect(old, samedir);
--		else if (!old_opaque && ovl_type_merge(new->d_parent))
--			err = ovl_set_opaque_xerr(old, olddentry, -EXDEV);
--		if (err)
--			goto out_dput;
--	}
--	if (!overwrite && new_is_dir) {
--		if (ovl_type_merge_or_lower(new))
--			err = ovl_set_redirect(new, samedir);
--		else if (!new_opaque && ovl_type_merge(old->d_parent))
--			err = ovl_set_opaque_xerr(new, newdentry, -EXDEV);
--		if (err)
--			goto out_dput;
--	}
-+	if (ovl_type_merge_or_lower(old))
-+		err = ovl_set_redirect(old, samedir);
-+	else if (is_dir && !old_opaque && ovl_type_merge(new->d_parent))
-+		err = ovl_set_opaque_xerr(old, olddentry, -EXDEV);
-+	if (err)
-+		goto out_dput;
-+
-+	if (!overwrite && ovl_type_merge_or_lower(new))
-+		err = ovl_set_redirect(new, samedir);
-+	else if (!overwrite && new_is_dir && !new_opaque &&
-+		 ovl_type_merge(old->d_parent))
-+		err = ovl_set_opaque_xerr(new, newdentry, -EXDEV);
-+	if (err)
-+		goto out_dput;
- 
- 	err = ovl_do_rename(old_upperdir->d_inode, olddentry,
- 			    new_upperdir->d_inode, newdentry, flags);
+diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
+index 61ace2de3019..1aa9e0c5a327 100644
+--- a/fs/overlayfs/util.c
++++ b/fs/overlayfs/util.c
+@@ -133,7 +133,8 @@ enum ovl_path_type ovl_path_type(struct dentry *dentry)
+ 		 * Non-dir dentry can hold lower dentry of its copy up origin.
+ 		 */
+ 		if (oe->numlower) {
+-			type |= __OVL_PATH_ORIGIN;
++			if (ovl_test_flag(OVL_CONST_INO, d_inode(dentry)))
++				type |= __OVL_PATH_ORIGIN;
+ 			if (d_is_dir(dentry) ||
+ 			    !ovl_has_upperdata(d_inode(dentry)))
+ 				type |= __OVL_PATH_MERGE;
 -- 
 2.14.3
