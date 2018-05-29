@@ -1,7 +1,7 @@
 From: Miklos Szeredi <mszeredi@redhat.com>
-Subject: [PATCH 21/28] ovl: Do not set dentry type ORIGIN for broken hardlinks
-Date: Tue, 29 May 2018 16:46:05 +0200
-Message-ID: <20180529144612.16675-22-mszeredi@redhat.com>
+Subject: [PATCH 20/28] ovl: Add an inode flag OVL_CONST_INO
+Date: Tue, 29 May 2018 16:46:04 +0200
+Message-ID: <20180529144612.16675-21-mszeredi@redhat.com>
 References: <20180529144612.16675-1-mszeredi@redhat.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20180529144612.16675-1-mszeredi@redhat.com>
@@ -12,43 +12,51 @@ List-Id: linux-unionfs@vger.kernel.org
 
 From: Vivek Goyal <vgoyal@redhat.com>
 
-If a dentry has copy up origin, we set flag OVL_PATH_ORIGIN.  So far this
-decision was easy that we had to check only for oe->numlower and if it is
-non-zero, we knew there is copy up origin.  (For non-dir we installed
-origin dentry in lowerstack[0]).
+Add an ovl_inode flag OVL_CONST_INO.  This flag signifies if inode number
+will remain constant over copy up or not.  This flag does not get updated
+over copy up and remains unmodifed after setting once.
 
-But we don't create ORGIN xattr for broken hardlinks (index=off).  And with
-metacopy feature it is possible that we will install lowerstack[0] but
-ORIGIN xattr is not there.  It is data dentry of upper metacopy dentry
-which has been found using regular name based lookup or using REDIRECT.  So
-with addition of this new case, just presence of oe->numlower is not
-sufficient to guarantee that ORIGIN xattr is present.
+Next patch in the series will make use of this flag.  It will basically
+figure out if dentry is of type ORIGIN or not.  And this can be derived by
+this flag.
 
-So to differentiate between two cases, look at OVL_CONST_INO flag.  If this
-flag is set and upperdentry is there, that means it can be marked as type
-ORIGIN.  OVL_CONST_INO is not set if lower hardlink is broken or will be
-broken over copy up.
+ORIGIN = (upperdentry && ovl_test_flag(OVL_CONST_INO, inode)).
 
+Suggested-by: Amir Goldstein <amir73il@gmail.com>
 Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
 Reviewed-by: Amir Goldstein <amir73il@gmail.com>
 Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
 ---
- fs/overlayfs/util.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ fs/overlayfs/inode.c     | 3 +++
+ fs/overlayfs/overlayfs.h | 2 ++
+ 2 files changed, 5 insertions(+)
 
-diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
-index 61ace2de3019..1aa9e0c5a327 100644
---- a/fs/overlayfs/util.c
-+++ b/fs/overlayfs/util.c
-@@ -133,7 +133,8 @@ enum ovl_path_type ovl_path_type(struct dentry *dentry)
- 		 * Non-dir dentry can hold lower dentry of its copy up origin.
- 		 */
- 		if (oe->numlower) {
--			type |= __OVL_PATH_ORIGIN;
-+			if (ovl_test_flag(OVL_CONST_INO, d_inode(dentry)))
-+				type |= __OVL_PATH_ORIGIN;
- 			if (d_is_dir(dentry) ||
- 			    !ovl_has_upperdata(d_inode(dentry)))
- 				type |= __OVL_PATH_MERGE;
+diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
+index d4e643e9098b..ac1d2a581a6e 100644
+--- a/fs/overlayfs/inode.c
++++ b/fs/overlayfs/inode.c
+@@ -883,6 +883,9 @@ struct inode *ovl_get_inode(struct super_block *sb,
+ 
+ 	OVL_I(inode)->redirect = oip->redirect;
+ 
++	if (bylower)
++		ovl_set_flag(OVL_CONST_INO, inode);
++
+ 	/* Check for non-merge dir that may have whiteouts */
+ 	if (is_dir) {
+ 		if (((upperdentry && lowerdentry) || oip->numlower > 1) ||
+diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
+index dcd600201ec8..bde352e414e7 100644
+--- a/fs/overlayfs/overlayfs.h
++++ b/fs/overlayfs/overlayfs.h
+@@ -38,6 +38,8 @@ enum ovl_inode_flag {
+ 	OVL_WHITEOUTS,
+ 	OVL_INDEX,
+ 	OVL_UPPERDATA,
++	/* Inode number will remain constant over copy up. */
++	OVL_CONST_INO,
+ };
+ 
+ enum ovl_entry_flag {
 -- 
 2.14.3
