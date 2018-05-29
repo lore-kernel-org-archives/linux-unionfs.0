@@ -1,7 +1,7 @@
 From: Miklos Szeredi <mszeredi@redhat.com>
-Subject: [PATCH 37/39] Partially revert "locks: fix file locking on overlayfs"
-Date: Tue, 29 May 2018 16:43:37 +0200
-Message-ID: <20180529144339.16538-38-mszeredi@redhat.com>
+Subject: [PATCH 36/39] Revert "vfs: do get_write_access() on upper layer of overlayfs"
+Date: Tue, 29 May 2018 16:43:36 +0200
+Message-ID: <20180529144339.16538-37-mszeredi@redhat.com>
 References: <20180529144339.16538-1-mszeredi@redhat.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20180529144339.16538-1-mszeredi@redhat.com>
@@ -10,150 +10,70 @@ To: linux-unionfs@vger.kernel.org
 Cc: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 
-This partially reverts commit c568d68341be7030f5647def68851e469b21ca11.
+This reverts commit 4d0c5ba2ff79ef9f5188998b29fd28fcb05f3667.
 
-Overlayfs files will now automatically get the correct locks, no need to
-hack overlay support in VFS.
-
-It is a partial revert, because it leaves the locks_inode() calls in place
-and defines locks_inode() to file_inode().  We could revert those as well,
-but it would be unnecessary code churn and it makes sense to document that
-we are getting the inode for locking purposes.
+We now get write access on both overlay and underlying layers so this patch
+is no longer needed for correct operation.
 
 Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
-Acked-by: Jeff Layton <jlayton@kernel.org>
 ---
- fs/locks.c              | 17 ++++++-----------
- fs/overlayfs/super.c    |  2 +-
- include/linux/fs.h      | 13 +------------
- include/uapi/linux/fs.h |  1 -
- 4 files changed, 8 insertions(+), 25 deletions(-)
+ fs/locks.c |  3 +--
+ fs/open.c  | 15 ++-------------
+ 2 files changed, 3 insertions(+), 15 deletions(-)
 
 diff --git a/fs/locks.c b/fs/locks.c
-index 9c0e5f3da66c..40bcbaaa3f52 100644
+index 62bbe8b31f26..9c0e5f3da66c 100644
 --- a/fs/locks.c
 +++ b/fs/locks.c
-@@ -139,11 +139,6 @@
- #define IS_OFDLCK(fl)	(fl->fl_flags & FL_OFDLCK)
- #define IS_REMOTELCK(fl)	(fl->fl_pid <= 0)
+@@ -1654,8 +1654,7 @@ check_conflicting_open(const struct dentry *dentry, const long arg, int flags)
+ 	if (flags & FL_LAYOUT)
+ 		return 0;
  
--static inline bool is_remote_lock(struct file *filp)
--{
--	return likely(!(filp->f_path.dentry->d_sb->s_flags & SB_NOREMOTELOCK));
--}
+-	if ((arg == F_RDLCK) &&
+-	    (atomic_read(&d_real_inode(dentry)->i_writecount) > 0))
++	if ((arg == F_RDLCK) && (atomic_read(&inode->i_writecount) > 0))
+ 		return -EAGAIN;
+ 
+ 	if ((arg == F_WRLCK) && ((d_count(dentry) > 1) ||
+diff --git a/fs/open.c b/fs/open.c
+index 127b49819afb..0d63b57c7f89 100644
+--- a/fs/open.c
++++ b/fs/open.c
+@@ -68,7 +68,6 @@ int do_truncate(struct dentry *dentry, loff_t length, unsigned int time_attrs,
+ long vfs_truncate(const struct path *path, loff_t length)
+ {
+ 	struct inode *inode;
+-	struct dentry *upperdentry;
+ 	long error;
+ 
+ 	inode = path->dentry->d_inode;
+@@ -91,17 +90,7 @@ long vfs_truncate(const struct path *path, loff_t length)
+ 	if (IS_APPEND(inode))
+ 		goto mnt_drop_write_and_out;
+ 
+-	/*
+-	 * If this is an overlayfs then do as if opening the file so we get
+-	 * write access on the upper inode, not on the overlay inode.  For
+-	 * non-overlay filesystems d_real() is an identity function.
+-	 */
+-	upperdentry = d_real(path->dentry, NULL, O_WRONLY);
+-	error = PTR_ERR(upperdentry);
+-	if (IS_ERR(upperdentry))
+-		goto mnt_drop_write_and_out;
 -
- static bool lease_breaking(struct file_lock *fl)
- {
- 	return fl->fl_flags & (FL_UNLOCK_PENDING | FL_DOWNGRADE_PENDING);
-@@ -1875,7 +1870,7 @@ EXPORT_SYMBOL(generic_setlease);
- int
- vfs_setlease(struct file *filp, long arg, struct file_lock **lease, void **priv)
- {
--	if (filp->f_op->setlease && is_remote_lock(filp))
-+	if (filp->f_op->setlease)
- 		return filp->f_op->setlease(filp, arg, lease, priv);
- 	else
- 		return generic_setlease(filp, arg, lease, priv);
-@@ -2022,7 +2017,7 @@ SYSCALL_DEFINE2(flock, unsigned int, fd, unsigned int, cmd)
+-	error = get_write_access(upperdentry->d_inode);
++	error = get_write_access(inode);
  	if (error)
- 		goto out_free;
+ 		goto mnt_drop_write_and_out;
  
--	if (f.file->f_op->flock && is_remote_lock(f.file))
-+	if (f.file->f_op->flock)
- 		error = f.file->f_op->flock(f.file,
- 					  (can_sleep) ? F_SETLKW : F_SETLK,
- 					  lock);
-@@ -2048,7 +2043,7 @@ SYSCALL_DEFINE2(flock, unsigned int, fd, unsigned int, cmd)
-  */
- int vfs_test_lock(struct file *filp, struct file_lock *fl)
- {
--	if (filp->f_op->lock && is_remote_lock(filp))
-+	if (filp->f_op->lock)
- 		return filp->f_op->lock(filp, F_GETLK, fl);
- 	posix_test_lock(filp, fl);
- 	return 0;
-@@ -2191,7 +2186,7 @@ int fcntl_getlk(struct file *filp, unsigned int cmd, struct flock *flock)
-  */
- int vfs_lock_file(struct file *filp, unsigned int cmd, struct file_lock *fl, struct file_lock *conf)
- {
--	if (filp->f_op->lock && is_remote_lock(filp))
-+	if (filp->f_op->lock)
- 		return filp->f_op->lock(filp, cmd, fl);
- 	else
- 		return posix_lock_file(filp, fl, conf);
-@@ -2513,7 +2508,7 @@ locks_remove_flock(struct file *filp, struct file_lock_context *flctx)
- 	if (list_empty(&flctx->flc_flock))
- 		return;
+@@ -120,7 +109,7 @@ long vfs_truncate(const struct path *path, loff_t length)
+ 		error = do_truncate(path->dentry, length, 0, NULL);
  
--	if (filp->f_op->flock && is_remote_lock(filp))
-+	if (filp->f_op->flock)
- 		filp->f_op->flock(filp, F_SETLKW, &fl);
- 	else
- 		flock_lock_inode(inode, &fl);
-@@ -2600,7 +2595,7 @@ EXPORT_SYMBOL(posix_unblock_lock);
-  */
- int vfs_cancel_lock(struct file *filp, struct file_lock *fl)
- {
--	if (filp->f_op->lock && is_remote_lock(filp))
-+	if (filp->f_op->lock)
- 		return filp->f_op->lock(filp, F_CANCELLK, fl);
- 	return 0;
- }
-diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-index 4bca84a17c43..d7df69e5b674 100644
---- a/fs/overlayfs/super.c
-+++ b/fs/overlayfs/super.c
-@@ -1478,7 +1478,7 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
- 	sb->s_op = &ovl_super_operations;
- 	sb->s_xattr = ovl_xattr_handlers;
- 	sb->s_fs_info = ofs;
--	sb->s_flags |= SB_POSIXACL | SB_NOREMOTELOCK;
-+	sb->s_flags |= SB_POSIXACL;
- 
- 	err = -ENOMEM;
- 	root_dentry = d_make_root(ovl_new_inode(sb, S_IFDIR, 0));
-diff --git a/include/linux/fs.h b/include/linux/fs.h
-index 797d6f28a8f0..7471a4208fdc 100644
---- a/include/linux/fs.h
-+++ b/include/linux/fs.h
-@@ -1050,17 +1050,7 @@ struct file_lock_context {
- 
- extern void send_sigio(struct fown_struct *fown, int fd, int band);
- 
--/*
-- * Return the inode to use for locking
-- *
-- * For overlayfs this should be the overlay inode, not the real inode returned
-- * by file_inode().  For any other fs file_inode(filp) and locks_inode(filp) are
-- * equal.
-- */
--static inline struct inode *locks_inode(const struct file *f)
--{
--	return f->f_path.dentry->d_inode;
--}
-+#define locks_inode(f) file_inode(f)
- 
- #ifdef CONFIG_FILE_LOCKING
- extern int fcntl_getlk(struct file *, unsigned int, struct flock *);
-@@ -1300,7 +1290,6 @@ extern int send_sigurg(struct fown_struct *fown);
- 
- /* These sb flags are internal to the kernel */
- #define SB_SUBMOUNT     (1<<26)
--#define SB_NOREMOTELOCK	(1<<27)
- #define SB_NOSEC	(1<<28)
- #define SB_BORN		(1<<29)
- #define SB_ACTIVE	(1<<30)
-diff --git a/include/uapi/linux/fs.h b/include/uapi/linux/fs.h
-index d2a8313fabd7..2840ddcece73 100644
---- a/include/uapi/linux/fs.h
-+++ b/include/uapi/linux/fs.h
-@@ -134,7 +134,6 @@ struct inodes_stat_t {
- 
- /* These sb flags are internal to the kernel */
- #define MS_SUBMOUNT     (1<<26)
--#define MS_NOREMOTELOCK	(1<<27)
- #define MS_NOSEC	(1<<28)
- #define MS_BORN		(1<<29)
- #define MS_ACTIVE	(1<<30)
+ put_write_and_out:
+-	put_write_access(upperdentry->d_inode);
++	put_write_access(inode);
+ mnt_drop_write_and_out:
+ 	mnt_drop_write(path->mnt);
+ out:
 -- 
 2.14.3
