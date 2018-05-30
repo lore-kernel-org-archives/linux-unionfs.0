@@ -1,34 +1,140 @@
-From: Miklos Szeredi <miklos@szeredi.hu>
-Subject: Re: [GIT PULL] overlayfs update for 4.18
-Date: Wed, 30 May 2018 10:36:46 +0200
-Message-ID: <CAJfpegvCR4+j0t1dzM=Mvh05JBkz4R5A4Jp=USTtGBeWEL6dGQ@mail.gmail.com>
-References: <20180529132148.GC23785@veci.piliscsaba.redhat.com>
- <20180529135938.GA5631@infradead.org> <CAJfpeguJ+h5A4ALS3=actNH5UMSWF8Fgoo-RLbmfGuDf0tJicA@mail.gmail.com>
+From: Vivek Goyal <vgoyal@redhat.com>
+Subject: Re: [PATCH 15/28] ovl: Open file with data except for the case of
+ fsync
+Date: Wed, 30 May 2018 10:30:44 -0400
+Message-ID: <20180530143044.GB2717@redhat.com>
+References: <20180529144612.16675-1-mszeredi@redhat.com>
+ <20180529144612.16675-16-mszeredi@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAJfpeguJ+h5A4ALS3=actNH5UMSWF8Fgoo-RLbmfGuDf0tJicA@mail.gmail.com>
+Content-Disposition: inline
+In-Reply-To: <20180529144612.16675-16-mszeredi@redhat.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Christoph Hellwig <hch@infradead.org>
-Cc: Al Viro <viro@zeniv.linux.org.uk>, linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org, overlayfs <linux-unionfs@vger.kernel.org>
+To: Miklos Szeredi <mszeredi@redhat.com>
+Cc: linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 
-On Tue, May 29, 2018 at 4:12 PM, Miklos Szeredi <miklos@szeredi.hu> wrote:
-> On Tue, May 29, 2018 at 3:59 PM, Christoph Hellwig <hch@infradead.org> wrote:
+On Tue, May 29, 2018 at 04:45:59PM +0200, Miklos Szeredi wrote:
+> From: Vivek Goyal <vgoyal@redhat.com>
+> 
+> ovl_open() should open file which contains data and not open metacopy
+> inode.  With the introduction of metacopy inodes, with current
+> implementaion we will end up opening metacopy inode as well.
+> 
+> But there can be certain circumstances like ovl_fsync() where we want to
+> allow opening a metacopy inode instead.
+> 
+> Hence, change ovl_open_realfile() and add _ovl_open_real() and add extra
+> parameter which specifies whether to allow opening metacopy inode or not.
+> If this parameter is false, we look for data inode and open that.
+> 
+> This should allow covering both the cases.
+> 
+> Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
+> Reviewed-by: Amir Goldstein <amir73il@gmail.com>
+> Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
+> ---
+>  fs/overlayfs/file.c | 39 ++++++++++++++++++++++++++++++---------
+>  1 file changed, 30 insertions(+), 9 deletions(-)
+> 
+> diff --git a/fs/overlayfs/file.c b/fs/overlayfs/file.c
+> index 266692ce9a9a..c7738ef492c8 100644
+> --- a/fs/overlayfs/file.c
+> +++ b/fs/overlayfs/file.c
+> @@ -14,11 +14,20 @@
+>  #include <linux/uio.h>
+>  #include "overlayfs.h"
+>  
+> -static struct file *ovl_open_realfile(const struct file *file)
+> +static char ovl_whatisit(struct inode *inode, struct inode *realinode)
+> +{
+> +	if (realinode != ovl_inode_upper(inode))
+> +		return 'l';
+> +	if (ovl_has_upperdata(inode))
+> +		return 'u';
+> +	else
+> +		return 'm';
+> +}
+> +
+> +static struct file *ovl_open_realfile(const struct file *file,
+> +				      struct inode *realinode)
+>  {
+>  	struct inode *inode = file_inode(file);
+> -	struct inode *upperinode = ovl_inode_upper(inode);
+> -	struct inode *realinode = upperinode ?: ovl_inode_lower(inode);
+>  	struct file *realfile;
+>  	const struct cred *old_cred;
+>  
+> @@ -28,7 +37,7 @@ static struct file *ovl_open_realfile(const struct file *file)
+>  	revert_creds(old_cred);
+>  
+>  	pr_debug("open(%p[%pD2/%c], 0%o) -> (%p, 0%o)\n",
+> -		 file, file, upperinode ? 'u' : 'l', file->f_flags,
+> +		 file, file, ovl_whatisit(inode, realinode), file->f_flags,
+>  		 realfile, IS_ERR(realfile) ? 0 : realfile->f_flags);
+>  
+>  	return realfile;
+> @@ -72,17 +81,24 @@ static int ovl_change_flags(struct file *file, unsigned int flags)
+>  	return 0;
+>  }
+>  
+> -static int ovl_real_fdget(const struct file *file, struct fd *real)
+> +static int ovl_real_fdget_meta(const struct file *file, struct fd *real,
+> +			       bool allow_meta)
+>  {
+>  	struct inode *inode = file_inode(file);
+> +	struct inode *realinode;
+>  
+>  	real->flags = 0;
+>  	real->file = file->private_data;
+>  
+> +	if (allow_meta)
+> +		realinode = ovl_inode_real(inode);
+> +	else
+> +		realinode = ovl_inode_realdata(inode);
+> +
+>  	/* Has it been copied up since we'd opened it? */
+> -	if (unlikely(file_inode(real->file) != ovl_inode_real(inode))) {
+> +	if (unlikely(file_inode(real->file) != realinode)) {
+>  		real->flags = FDPUT_FPUT;
+> -		real->file = ovl_open_realfile(file);
+> +		real->file = ovl_open_realfile(file, realinode);
+>  
+>  		return PTR_ERR_OR_ZERO(real->file);
+>  	}
+> @@ -94,6 +110,11 @@ static int ovl_real_fdget(const struct file *file, struct fd *real)
+>  	return 0;
+>  }
+>  
+> +static int ovl_real_fdget(const struct file *file, struct fd *real)
+> +{
+> +	return ovl_real_fdget_meta(file, real, false);
+> +}
+> +
+>  static int ovl_open(struct inode *inode, struct file *file)
+>  {
+>  	struct dentry *dentry = file_dentry(file);
+> @@ -107,7 +128,7 @@ static int ovl_open(struct inode *inode, struct file *file)
+>  	/* No longer need these flags, so don't pass them on to underlying fs */
+>  	file->f_flags &= ~(O_CREAT | O_EXCL | O_NOCTTY | O_TRUNC);
+>  
+> -	realfile = ovl_open_realfile(file);
+> +	realfile = ovl_open_realfile(file, ovl_inode_real(file_inode(file)));
 
->>>       vfs: export vfs_dedupe_file_range_one() to modules
->>
->> Please use EXPORT_SYMBOL_GPL for all these crazy low-level exports.
+Hi Miklos,
 
-I'd argue with the "crazy" part.  This should have been the primary
-interface from the start.  The batched dedupe interface is the crazy
-one:
+Hmm...so there have been some changes in this patch. My original intention
+was that to always open data inode (lower/upper) in ovl_open(). So if upper
+inode is a metacopy only, I will open lower inode instead.
 
- - deduping is page size granularity at worst; performance would not
-be horrible even if we had to do one syscall per page
- - vast majority of the time it will be file size granularity
+But new logic seems to be to always open real inode (that means upper
+metacopy inode as well). And that means that later when read happens
+on the file we will end up opening lower file, read data and close
+lower file.
 
-Why was that batching invented in the first place?
+I am concerned a bit if there are performance implications to this.
+This will be hot path for containers.
 
-Thanks,
-Miklos
+Thanks
+Vivek
