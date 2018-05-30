@@ -1,27 +1,28 @@
 From: Miklos Szeredi <miklos@szeredi.hu>
-Subject: Re: [PATCH 27/39] ovl: obsolete "check_copy_up" module option
-Date: Wed, 30 May 2018 10:26:12 +0200
-Message-ID: <CAJfpegsK2y3M1zY9FPDM1EZ1fmkoWmTYQx=heQdhx6eqH7881A@mail.gmail.com>
-References: <20180529144339.16538-1-mszeredi@redhat.com> <20180529144339.16538-28-mszeredi@redhat.com>
- <CAOQ4uxgbj0x+zMn47PiF819+kFE9Byos-KVGiGp7Mp=Gc0N8Wg@mail.gmail.com>
+Subject: Re: [PATCH 03/28] ovl: Provide a mount option metacopy=on/off for
+ metadata copyup
+Date: Wed, 30 May 2018 10:27:18 +0200
+Message-ID: <CAJfpegtSm8_xHspGtuP5b+4uasG4jU-apAmsjtJ-fVeL8uhZNg@mail.gmail.com>
+References: <20180529144612.16675-1-mszeredi@redhat.com> <20180529144612.16675-4-mszeredi@redhat.com>
+ <d5621dfa-46f6-4b5a-4d69-6c6fb9370cfe@infradead.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAOQ4uxgbj0x+zMn47PiF819+kFE9Byos-KVGiGp7Mp=Gc0N8Wg@mail.gmail.com>
+In-Reply-To: <d5621dfa-46f6-4b5a-4d69-6c6fb9370cfe@infradead.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: Miklos Szeredi <mszeredi@redhat.com>, overlayfs <linux-unionfs@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>
+To: Randy Dunlap <rdunlap@infradead.org>
+Cc: Miklos Szeredi <mszeredi@redhat.com>, overlayfs <linux-unionfs@vger.kernel.org>, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 
-On Tue, May 29, 2018 at 5:13 PM, Amir Goldstein <amir73il@gmail.com> wrote:
-> On Tue, May 29, 2018 at 5:43 PM, Miklos Szeredi <mszeredi@redhat.com> wrote:
+On Tue, May 29, 2018 at 10:44 PM, Randy Dunlap <rdunlap@infradead.org> wrote:
+> On 05/29/2018 07:45 AM, Miklos Szeredi wrote:
 
->> +       WARN(1, "overlayfs: \"check_copy_up\" module option is obsolete\n");
+>> +       If this config option is enabled then overlay filesystems will
+>> +       copy up only metadata where appropriate and data copy up will
+>> +       happen when a file is opended for WRITE operation. It is still
 >
-> I was under the impression that user controlled input should not be generating
-> WARNings... did you mean pr_warm?
+>                                 opened
 
-Okay.
+Thanks for the feedback.  Fixed.
 
-Thanks,
 Miklos
