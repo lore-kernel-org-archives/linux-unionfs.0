@@ -1,97 +1,27 @@
 From: Miklos Szeredi <miklos@szeredi.hu>
-Subject: Re: [PATCH 07/11] ovl: make ovl_create_real() cope with vfs_mkdir() safely
-Date: Wed, 30 May 2018 10:18:03 +0200
-Message-ID: <CAJfpegv1HLghFSczd1oZbrpOaz39r8VD5M47aH1eVJFQxs=keg@mail.gmail.com>
-References: <20180529144143.16378-1-mszeredi@redhat.com> <20180529144143.16378-8-mszeredi@redhat.com>
- <CAOQ4uxg6hVd2k5T20N1u72Of9Eb3O_EAasC0MhDoLY3-o2UrGw@mail.gmail.com>
+Subject: Re: [PATCH 27/39] ovl: obsolete "check_copy_up" module option
+Date: Wed, 30 May 2018 10:26:12 +0200
+Message-ID: <CAJfpegsK2y3M1zY9FPDM1EZ1fmkoWmTYQx=heQdhx6eqH7881A@mail.gmail.com>
+References: <20180529144339.16538-1-mszeredi@redhat.com> <20180529144339.16538-28-mszeredi@redhat.com>
+ <CAOQ4uxgbj0x+zMn47PiF819+kFE9Byos-KVGiGp7Mp=Gc0N8Wg@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAOQ4uxg6hVd2k5T20N1u72Of9Eb3O_EAasC0MhDoLY3-o2UrGw@mail.gmail.com>
+In-Reply-To: <CAOQ4uxgbj0x+zMn47PiF819+kFE9Byos-KVGiGp7Mp=Gc0N8Wg@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Amir Goldstein <amir73il@gmail.com>
 Cc: Miklos Szeredi <mszeredi@redhat.com>, overlayfs <linux-unionfs@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>
 List-Id: linux-unionfs@vger.kernel.org
 
-On Tue, May 29, 2018 at 5:29 PM, Amir Goldstein <amir73il@gmail.com> wrote:
-> On Tue, May 29, 2018 at 5:41 PM, Miklos Szeredi <mszeredi@redhat.com> wrote:
->> From: Amir Goldstein <amir73il@gmail.com>
->>
->> vfs_mkdir() may succeed and leave the dentry passed to it unhashed and
->> negative.  ovl_create_real() is the last caller breaking when that
->> happens.
->>
->> [amir: split re-factoring of ovl_create_temp() to prep patch
->>        add comment about unhashed dir after mkdir
->>        add pr_warn() if mkdir succeeds and lookup fails]
->>
->> Signed-off-by: Al Viro <viro@zeniv.linux.org.uk>
->> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
->> Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
->> ---
->>  fs/overlayfs/dir.c | 35 +++++++++++++++++++++++++++++++++--
->>  1 file changed, 33 insertions(+), 2 deletions(-)
->>
->> diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
->> index 1b181292a624..b33d37d1a87c 100644
->> --- a/fs/overlayfs/dir.c
->> +++ b/fs/overlayfs/dir.c
->> @@ -114,6 +114,37 @@ int ovl_cleanup_and_whiteout(struct dentry *workdir, struct inode *dir,
->>         goto out;
->>  }
->>
->> +static struct dentry *ovl_mkdir_real(struct inode *dir, struct dentry *dentry,
->> +                                    umode_t mode)
->> +{
->> +       int err;
->> +
->> +       err = ovl_do_mkdir(dir, dentry, mode);
->> +       if (err) {
->> +               dput(dentry);
->> +               return ERR_PTR(err);
->> +       }
->> +
->> +       /*
->> +        * vfs_mkdir() may succeed and leave the dentry passed
->> +        * to it unhashed and negative. If that happens, try to
->> +        * lookup a new hashed and positive dentry.
->> +        */
->> +       if (unlikely(d_unhashed(dentry))) {
->> +               struct dentry *d;
->> +
->> +               d = lookup_one_len(dentry->d_name.name, dentry->d_parent,
->> +                                  dentry->d_name.len);
->> +               if (IS_ERR(d)) {
->> +                       pr_warn("overlayfs: failed lookup after mkdir (%pd2, err=%i).\n",
->> +                               dentry, err);
->> +               }
->> +               dput(dentry);
->> +               dentry = d;
->> +       }
->> +       return dentry;
->> +}
->> +
->>  struct dentry *ovl_create_real(struct inode *dir, struct dentry *newdentry,
->>                                struct ovl_cattr *attr)
->>  {
->> @@ -135,8 +166,8 @@ struct dentry *ovl_create_real(struct inode *dir, struct dentry *newdentry,
->>                         break;
->>
->>                 case S_IFDIR:
->> -                       err = ovl_do_mkdir(dir, newdentry, attr->mode);
->> -                       break;
->> +                       /* mkdir is special... */
->> +                       return ovl_mkdir_real(dir, newdentry, attr->mode);
->>
+On Tue, May 29, 2018 at 5:13 PM, Amir Goldstein <amir73il@gmail.com> wrote:
+> On Tue, May 29, 2018 at 5:43 PM, Miklos Szeredi <mszeredi@redhat.com> wrote:
+
+>> +       WARN(1, "overlayfs: \"check_copy_up\" module option is obsolete\n");
 >
-> I like your version with the helper.
-> So do we not care about the WARN_ON below on non-instantiated dentry
-> for directories? or we don't need it at all?
+> I was under the impression that user controlled input should not be generating
+> WARNings... did you mean pr_warm?
 
-I think we do.  Filesystems do all sorts of weird an unexpected
-things.   We should definitely not assume underlying filesystem
-returns in any way sane result.
+Okay.
 
-Fixed, thanks for spotting.
-
+Thanks,
 Miklos
