@@ -1,48 +1,40 @@
-From: Dave Chinner <david@fromorbit.com>
-Subject: Re: [GIT PULL] overlayfs update for 4.18
-Date: Thu, 31 May 2018 08:27:14 +1000
-Message-ID: <20180530222714.GP23861@dastard>
-References: <20180529132148.GC23785@veci.piliscsaba.redhat.com>
- <20180529135938.GA5631@infradead.org>
- <CAJfpeguJ+h5A4ALS3=actNH5UMSWF8Fgoo-RLbmfGuDf0tJicA@mail.gmail.com>
- <CAJfpegvCR4+j0t1dzM=Mvh05JBkz4R5A4Jp=USTtGBeWEL6dGQ@mail.gmail.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Subject: Re: [PATCH 16/28] ovl: Do not expose metacopy only dentry from d_real()
+Date: Thu, 31 May 2018 07:30:06 +0300
+Message-ID: <CAOQ4uxjNzc+=AyfhYBAi_-NkMss7HS3hTRBjYUgkmuFdB6-sRA@mail.gmail.com>
+References: <20180529144612.16675-1-mszeredi@redhat.com> <20180529144612.16675-17-mszeredi@redhat.com>
+ <20180530210556.GD2717@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAJfpegvCR4+j0t1dzM=Mvh05JBkz4R5A4Jp=USTtGBeWEL6dGQ@mail.gmail.com>
+In-Reply-To: <20180530210556.GD2717@redhat.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: Christoph Hellwig <hch@infradead.org>, Al Viro <viro@zeniv.linux.org.uk>, linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org, overlayfs <linux-unionfs@vger.kernel.org>
+To: Vivek Goyal <vgoyal@redhat.com>
+Cc: Miklos Szeredi <mszeredi@redhat.com>, overlayfs <linux-unionfs@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>
 List-Id: linux-unionfs@vger.kernel.org
 
-On Wed, May 30, 2018 at 10:36:46AM +0200, Miklos Szeredi wrote:
-> On Tue, May 29, 2018 at 4:12 PM, Miklos Szeredi <miklos@szeredi.hu> wrote:
-> > On Tue, May 29, 2018 at 3:59 PM, Christoph Hellwig <hch@infradead.org> wrote:
-> 
-> >>>       vfs: export vfs_dedupe_file_range_one() to modules
-> >>
-> >> Please use EXPORT_SYMBOL_GPL for all these crazy low-level exports.
-> 
-> I'd argue with the "crazy" part.  This should have been the primary
-> interface from the start.  The batched dedupe interface is the crazy
-> one:
-> 
->  - deduping is page size granularity at worst; performance would not
-> be horrible even if we had to do one syscall per page
->  - vast majority of the time it will be file size granularity
-> 
-> Why was that batching invented in the first place?
+On Thu, May 31, 2018 at 12:05 AM, Vivek Goyal <vgoyal@redhat.com> wrote:
+> On Tue, May 29, 2018 at 04:46:00PM +0200, Miklos Szeredi wrote:
+>> From: Vivek Goyal <vgoyal@redhat.com>
+>>
+>> Metacopy dentry/inode is internal to overlay and is never exposed outside
+>> of it.  Exception is metacopy upper file used for fsync().  Modify d_real()
+>> to look for dentries/inode which have data, but also allow matching upper
+>> inode without data for the fsync case.
+>>
+>
+> Hi Miklos,
+>
+> I am not able to see how in fsync() path d_real() gets called. If we
+> decide to do fsync() on upper metacopy, then opening upper will not
+> go through d_real(). And we never issue fsync() on lower.
+>
+> So I am scratching my head while trying to understand the d_real() and
+> fsync() connection.
+>
 
-No idea - the batching ioctl interface is what we inherited from the
-btrfs ioctl years ago and there are several dedupe applications out
-there that use it. That's why we pulled it up to the vfs rather than
-invent a new one and have to wait years for apps to start using
-it...
+fsync() exposes real meta inode to vfs, so file_dentry() needs to
+be able to find the real meta upper dentry.
 
-Cheers,
-
-Dave.
--- 
-Dave Chinner
-david@fromorbit.com
+Thanks,
+Amir.
