@@ -1,50 +1,69 @@
-Return-Path: <amir73il@gmail.com>
-Return-Path: <amir73il@gmail.com>
-From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH 0/2] Another overlay test for online inconsistency detection
-Date: Fri,  4 May 2018 12:41:29 +0300
-Message-Id: <1525426891-6121-1-git-send-email-amir73il@gmail.com>
-To: Eryu Guan <eguan@redhat.com>
-Cc: Vivek Goyal <vgoyal@redhat.com>, Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, fstests@vger.kernel.org
+Return-Path: <linux-unionfs-owner@vger.kernel.org>
+Received: from mx2.suse.de ([195.135.220.15]:33128 "EHLO mx2.suse.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750738AbeEaV4q (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Thu, 31 May 2018 17:56:46 -0400
+Subject: Re: nfs4_acl restricts copy_up in overlayfs
+References: <f2af62fdf8a5bb185ec75cff118178d58b28ceb4.camel@hammerspace.com>
+ <2cf94c6b-e819-79af-4ac9-3b19d26dc6d9@suse.de>
+ <75266c983a03f6dbfd5d1a39c94fa6d56a1a8a22.camel@hammerspace.com>
+ <a0617bb0-b7a5-fab2-c72c-595e005bd8f7@suse.de>
+ <20180531004554.GA29116@fieldses.org>
+ <CAJfpegtoLpwo6aA9=uF72UDaKvv_Q3bUbv778VwnSDa72yO9Mw@mail.gmail.com>
+ <128c74cb1507d7eab36ac8d32182dbbc7d3f9f88.camel@hammerspace.com>
+ <CAJfpeguK9rmXK4F7wkE8of7gwDTV_KbM4yWAW8iGJ0RvOMH0-g@mail.gmail.com>
+ <e692f5a6f612660ad0a64e083ed7a1398629aa6d.camel@hammerspace.com>
+ <CAJfpegsW7CwZYJf_EH80aaYotMMBDk1BjR_RA6dz8e=Y3-ox5w@mail.gmail.com>
+ <20180531140619.GA1298@fieldses.org>
+From: Goldwyn Rodrigues <rgoldwyn@suse.de>
+Message-ID: <f48bc5a3-2787-6835-8c45-79ed2fa0edd7@suse.de>
+Date: Thu, 31 May 2018 16:56:42 -0500
+MIME-Version: 1.0
+In-Reply-To: <20180531140619.GA1298@fieldses.org>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+Sender: linux-unionfs-owner@vger.kernel.org
+To: "bfields@fieldses.org" <bfields@fieldses.org>, Miklos Szeredi <miklos@szeredi.hu>
+Cc: Trond Myklebust <trondmy@hammerspace.com>, "agruenba@redhat.com" <agruenba@redhat.com>, "linux-nfs@vger.kernel.org" <linux-nfs@vger.kernel.org>, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-Eryu,
 
-Originally, I wrote overlay/049 to test online inconcsistency detection
-feature, which I wrote as a sub feature of NFS export, so the initial
-version of the test required and eanbled NFS export.
 
-Then, at some point, the test started to pass without NFS export enabled,
-which was a by-product of another fix for inotify I did around the same
-time. So the test got merged without requiring NFS export, but with said
-fix commit on next branch.
+On 05/31/2018 09:06 AM, bfields@fieldses.org wrote:
+> On Thu, May 31, 2018 at 03:30:04PM +0200, Miklos Szeredi wrote:
+>> On Thu, May 31, 2018 at 3:10 PM, Trond Myklebust
+>> <trondmy@hammerspace.com> wrote:
+>>> On Thu, 2018-05-31 at 14:55 +0200, Miklos Szeredi wrote:
+>>>> On Thu, May 31, 2018 at 2:47 PM, Trond Myklebust <trondmy@hammerspace.com> wrote:
+>>>
+>>> IOW: if the user does a chmod, and that is authorised by the underlying
+>>> filesystem, then overlayfs is in charge of any further authorisation to
+>>> that file.
+>>> Adding richacls to that model means that you can attempt to copy the
+>>> ACL and allow the user to modify that instead of doing the chmod, but
+>>> the understanding should be that it's not the same ACL as was been
+>>> enforced by the server, so the copy up of the ACL should be treated as
+>>> a modification of the ACL (and should therefore first be subject to
+>>> authorisation by the server).
+>>
+>> If someone adds the interface for access checking in the NFS client
+>> based on server sercurity model, but without actually having to do the
+>> request, and it works for read-only exports (which make a LOT of sense
+>> for the use cases where overlayfs may be used with NFS) then we can
+>> use that from overlayfs.  Last time Bruce looked this issue, he ran
+>> away screeming, IIRC.
+> 
+> In theory I suppose it's all possible, but I think the only practical
+> thing to do for now is just ignore NFSv4 ACLs.
+> 
 
-On a recent discussion with Vivek, I realized that there was another
-"by-product" inconsistency detection introduced by the same fix commit
-and not covered by overlay/049.
+Ignoring nfs4_acl will override the NFS security model where a user
+which is specifically denied read access in the nfs4_acl will get read
+access if another user who is allowed to read/write edits the file.
 
-The variant overlay/059 checks for this case of malformed multiply
-referenced origin files. I wrote the test to support upcoming 'metacopy'
-feature by Vivek, so it requires and enables redirect_dir, which is
-harmless otherwise.
+I would agree ignoring NFS4 ACLs is the best option.
 
-I tested overlay/059 on several old kernels. The results are:
-- notrun on kernel < v4.10, before "redirect_dir" feature
-- pass on kernels < v4.12, before "origin" was introduced
-- fail on kernels < v4.16, before the fix commit
-- pass on newer kernels
-
-Amir Goldstein (2):
-  overlay/049: update fix commit id
-  overlay: test multiple origin references to the same lower file
-
- tests/overlay/049     |   4 +-
- tests/overlay/059     | 105 ++++++++++++++++++++++++++++++++++++++++++++++++++
- tests/overlay/059.out |   2 +
- tests/overlay/group   |   1 +
- 4 files changed, 110 insertions(+), 2 deletions(-)
- create mode 100755 tests/overlay/059
- create mode 100644 tests/overlay/059.out
 
 -- 
-2.7.4
+Goldwyn
