@@ -1,34 +1,40 @@
 Return-Path: <amir73il@gmail.com>
-MIME-Version: 1.0
-In-Reply-To: <CAJfpeguhXik+bEb+FWf8s=v93yaoqReAUmr1DkG1zBxEYnEfsg@mail.gmail.com>
-References: <20180529144339.16538-1-mszeredi@redhat.com> <20180529144339.16538-7-mszeredi@redhat.com>
- <20180604084827.GE11333@infradead.org> <CAJfpeguhXik+bEb+FWf8s=v93yaoqReAUmr1DkG1zBxEYnEfsg@mail.gmail.com>
+Return-Path: <amir73il@gmail.com>
 From: Amir Goldstein <amir73il@gmail.com>
-Date: Wed, 6 Jun 2018 21:52:45 +0300
-Message-ID: <CAOQ4uxjSuNxyLgzQGLqB6QYN9u+81uBvCnFy9iOJBEb+Nk4y5w@mail.gmail.com>
-Subject: Re: [PATCH 06/39] vfs: add f_op->pre_mmap()
-Content-Type: text/plain; charset="UTF-8"
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: overlayfs <linux-unionfs@vger.kernel.org>
+Subject: [PATCH 0/2] Overlayfs tests for consistent ro/rw fd
+Date: Fri,  1 Jun 2018 13:44:15 +0300
+Message-Id: <1527849857-22951-1-git-send-email-amir73il@gmail.com>
+To: Eryu Guan <guaneryu@gmail.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, Vivek Goyal <vgoyal@redhat.com>, linux-unionfs@vger.kernel.org, fstests@vger.kernel.org
 List-ID: <linux-unionfs@vger.kernel.org>
 
-On Tue, Jun 5, 2018 at 2:36 PM, Miklos Szeredi <miklos@szeredi.hu> wrote:
-> On Mon, Jun 4, 2018 at 10:48 AM, Christoph Hellwig <hch@infradead.org> wrote:
->> On Tue, May 29, 2018 at 04:43:06PM +0200, Miklos Szeredi wrote:
->>> This is needed by overlayfs to be able to copy up a file from a read-only
->>> lower layer to a writable layer when being mapped shared.  When copying up,
->>> overlayfs takes VFS locks that would violate locking order when nested
->>> inside mmap_sem.
->>>
->>> Add a new f_op->pre_mmap method, which is called before taking mmap_sem.
->>
->> NAK.  We really should not add multiple methods for mmap, and everytime
->> this came up we found a better way to solve the problem instead.  Most
->> recent example was the socket zero copy receive code.
->
-> Okay, I'll drop this.
+Eryu,
 
-Need to remove copy_up_shared from overlayfs.txt.
+These changes prepare overlay tests to pass on Miklos
+overlayfs-next branch.
+
+Running -g overlay/quick on master only test overlay/016
+is failing and tests overlay/060 (from Vivek) and overlay/061
+are not run.
+
+With overlayfs-next, all -g overlay/quick tests run and pass.
 
 Thanks,
 Amir.
+
+Amir Goldstein (2):
+  overlay: nicer report when features are not supported
+  overlay/016: split into two tests
+
+ common/overlay        |  9 +++---
+ tests/overlay/016     | 14 ---------
+ tests/overlay/016.out |  3 --
+ tests/overlay/061     | 85 +++++++++++++++++++++++++++++++++++++++++++++++++++
+ tests/overlay/061.out |  4 +++
+ tests/overlay/group   |  1 +
+ 6 files changed, 95 insertions(+), 21 deletions(-)
+ create mode 100755 tests/overlay/061
+ create mode 100644 tests/overlay/061.out
+
+-- 
+2.7.4
