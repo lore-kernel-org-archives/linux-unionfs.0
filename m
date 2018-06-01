@@ -1,33 +1,43 @@
-Return-Path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.15.18]:40273 "EHLO mout.gmx.net"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752498AbeF2Dfh (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 28 Jun 2018 23:35:37 -0400
-Received: from [172.17.46.209] ([122.224.77.194]) by mail.gmx.com (mrgmx003
- [212.227.17.184]) with ESMTPSA (Nemesis) id 0MMShK-1fW0dt0WAo-008HNh for
- <linux-unionfs@vger.kernel.org>; Fri, 29 Jun 2018 05:35:35 +0200
-From: cgxu519 <cgxu519@gmx.com>
-Subject: Postpone copy-up until first real write?
-Message-ID: <490ed00a-7e41-71a5-4318-cc95b36a1b2e@gmx.com>
-Date: Fri, 29 Jun 2018 11:35:32 +0800
+Return-Path: <vgoyal@redhat.com>
+Date: Fri, 1 Jun 2018 10:45:43 -0400
+From: Vivek Goyal <vgoyal@redhat.com>
+Subject: Re: [PATCH 2/2] overlay/016: split into two tests
+Message-ID: <20180601144543.GC3259@redhat.com>
+References: <1527849857-22951-1-git-send-email-amir73il@gmail.com>
+ <1527849857-22951-3-git-send-email-amir73il@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Content-Language: en-US
-Sender: linux-unionfs-owner@vger.kernel.org
-To: linux-unionfs@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1527849857-22951-3-git-send-email-amir73il@gmail.com>
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: Eryu Guan <guaneryu@gmail.com>, Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, fstests@vger.kernel.org
 List-ID: <linux-unionfs@vger.kernel.org>
 
-Hi guys,
+On Fri, Jun 01, 2018 at 01:44:17PM +0300, Amir Goldstein wrote:
 
-I have a simple question about copy-up timing after implementing stacked 
-file operation.
-Could we postpone copy-up until first real write happens?
+[..]
+> +# get standard environment, filters and checks
+> +. ./common/rc
+> +. ./common/filter
+> +
+> +# real QA test starts here
+> +_supported_fs overlay
+> +_supported_os Linux
+> +_require_scratch
+> +_require_scratch_feature copy_up_shared
+> +_require_xfs_io_command "open"
+> +
+> +rm -f $seqres.full
+> +
+> +_scratch_mkfs >>$seqres.full 2>&1
+> +
+> +# Create our test files.
+> +lowerdir=$OVL_BASE_SCRATCH_MNT/$OVL_LOWER
+> +mkdir -p $lowerdir
+> +echo "This is old news" > $lowerdir/foo
 
-The background is consuming much time on open is unexpected for some of 
-our applications.
+foo is not being used in this new test now. Similarly, bar is not being
+used in 016. May be just get rid of file "bar" and just use file
+"foo" in both the tests.
 
-Thanks,
-Chengguang
-
-
+Vivek
