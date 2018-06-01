@@ -1,114 +1,46 @@
-Return-Path: <amir73il@gmail.com>
-Return-Path: <amir73il@gmail.com>
-From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH v2 2/2] overlay/016: split into two tests
-Date: Sat,  2 Jun 2018 21:52:19 +0300
-Message-Id: <1527965539-30607-1-git-send-email-amir73il@gmail.com>
-To: Eryu Guan <guaneryu@gmail.com>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, Vivek Goyal <vgoyal@redhat.com>, linux-unionfs@vger.kernel.org, fstests@vger.kernel.org
+Return-Path: <vgoyal@redhat.com>
+Date: Fri, 1 Jun 2018 08:59:58 -0400
+From: Vivek Goyal <vgoyal@redhat.com>
+Subject: [PATCH V4] xfstest: overlay: Add tests for overlay metadata only
+ copy up feature
+Message-ID: <20180601125958.GB3259@redhat.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+To: fstests@vger.kernel.org, linux-unionfs@vger.kernel.org
+Cc: Amir Goldstein <amir73il@gmail.com>, miklos@szeredi.hu, guaneryu@gmail.com
 List-ID: <linux-unionfs@vger.kernel.org>
 
-overlay/016 tests two cases of ro/rw fd data inconsistecies -
-one using pread and one using mmap read (i.e. mread).
+Hi,
 
-The first case will pass as soon as stacked overlay operations
-patch set is merged. The second case requires enabling a new opt-in
-feature "copy_up_shared" in order to pass.
+Find attached V4 of the patch. I have removed hard coded assumptions about
+number of blocks on lower. Instead now I query for number of blocks
+allocated by filesystem on lower.
 
-Instead of changing the entire test from fail to notrun, split
-the two cases into two tests and require the new feature only
-for the new test.
+Add tests for metadata only copy up feature.
 
-This way, the new test will change from notrun to pass with
-stacked overlay operations and the old test will change from
-fail to pass.
-
-Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
+Reviewed-by: Amir Goldstein <amir73il@gmail.com>
 ---
+ common/overlay        |    1 
+ tests/overlay/060     |  290 ++++++++++++++++++++++++++++++++++++++++++++++++++
+ tests/overlay/060.out |   42 +++++++
+ tests/overlay/group   |    1 
+ 4 files changed, 334 insertions(+)
 
-Changes from v1:
-- Remove unused file bar and use only foo (Vivek)
-
- tests/overlay/016     | 15 ---------
- tests/overlay/016.out |  3 --
- tests/overlay/061     | 84 +++++++++++++++++++++++++++++++++++++++++++++++++++
- tests/overlay/061.out |  4 +++
- tests/overlay/group   |  1 +
- 5 files changed, 89 insertions(+), 18 deletions(-)
- create mode 100755 tests/overlay/061
- create mode 100644 tests/overlay/061.out
-
-diff --git a/tests/overlay/016 b/tests/overlay/016
-index 86a7d28..06d1101 100755
---- a/tests/overlay/016
-+++ b/tests/overlay/016
-@@ -60,13 +60,11 @@ _scratch_mkfs >>$seqres.full 2>&1
- lowerdir=$OVL_BASE_SCRATCH_MNT/$OVL_LOWER
- mkdir -p $lowerdir
- echo "This is old news" > $lowerdir/foo
--echo "This is old news" > $lowerdir/bar
- 
- _scratch_mount
- 
- 
- #
--# case #1:
- # open file for read (rofd)
- # open file for write (rwfd)
- # write to rwfd
-@@ -79,18 +77,5 @@ $XFS_IO_PROG -r $SCRATCH_MNT/foo \
- 	-C "pread -v 0 16" \
- | _filter_xfs_io | _filter_scratch
- 
--#
--# case #2:
--# mmap MAP_SHARED|PROT_READ of rofd
--# write to rwfd
--# read from mapped memory
--#
--$XFS_IO_PROG -r $SCRATCH_MNT/bar \
--	-C "mmap -r 0 16" \
--	-C "open $SCRATCH_MNT/bar" \
--	-C "pwrite -S 0x61 0 16" \
--	-C "mread -v 0 16" \
--| _filter_xfs_io | _filter_scratch
--
- status=0
- exit
-diff --git a/tests/overlay/016.out b/tests/overlay/016.out
-index a28aaa6..02b2ae2 100644
---- a/tests/overlay/016.out
-+++ b/tests/overlay/016.out
-@@ -6,6 +6,3 @@ XXX Bytes, X ops; XX:XX:XX.X (XXX YYY/sec and XXX ops/sec)
- 00000000:  61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61  aaaaaaaaaaaaaaaa
- read 16/16 bytes at offset 0
- XXX Bytes, X ops; XX:XX:XX.X (XXX YYY/sec and XXX ops/sec)
--wrote 16/16 bytes at offset 0
--XXX Bytes, X ops; XX:XX:XX.X (XXX YYY/sec and XXX ops/sec)
--00000000:  61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61  aaaaaaaaaaaaaaaa
-diff --git a/tests/overlay/061 b/tests/overlay/061
-new file mode 100755
-index 0000000..2324e48
---- /dev/null
-+++ b/tests/overlay/061
-@@ -0,0 +1,84 @@
+Index: xfstests-dev/tests/overlay/060
+===================================================================
+--- /dev/null	1970-01-01 00:00:00.000000000 +0000
++++ xfstests-dev/tests/overlay/060	2018-06-01 08:54:03.779228635 -0400
+@@ -0,0 +1,290 @@
 +#! /bin/bash
-+# FSQA Test No. 061
++# FS QA Test No. 060
 +#
-+# Test ro/rw fd data inconsistecies
-+#
-+# This is a variant of test overlay/016 with mread instead of pread.
-+# This test requires and enables copy_up_shared feature.
-+#
-+# This simple test demonstrates a known issue with overlayfs:
-+# - process A opens file F for read + mmap
-+# - process B writes new data to file F
-+# - process A reads old data from mapped memory
++# Test metadata only copy up functionality.
 +#
 +#-----------------------------------------------------------------------
-+#
-+# Copyright (C) 2016 CTERA Networks. All Rights Reserved.
-+# Author: Amir Goldstein <amir73il@gmail.com>
++# Copyright (C) 2018 Red Hat, Inc. All Rights Reserved.
++# Author: Vivek Goyal <vgoyal@redhat.com>
 +#
 +# This program is free software; you can redistribute it and/or
 +# modify it under the terms of the GNU General Public License as
@@ -129,6 +61,7 @@ index 0000000..2324e48
 +seqres=$RESULT_DIR/$seq
 +echo "QA output created by $seq"
 +
++here=`pwd`
 +tmp=/tmp/$$
 +status=1	# failure is the default!
 +trap "_cleanup; exit \$status" 0 1 2 3 15
@@ -143,57 +76,318 @@ index 0000000..2324e48
 +. ./common/rc
 +. ./common/filter
 +
++# remove previous $seqres.full before test
++rm -f $seqres.full
++
 +# real QA test starts here
 +_supported_fs overlay
 +_supported_os Linux
-+_require_scratch
-+_require_scratch_feature copy_up_shared
-+_require_xfs_io_command "open"
++# We use non-default scratch underlying overlay dirs, we need to check
++# them explicity after test.
++_require_scratch_nocheck
++_require_scratch_overlay_features index redirect_dir metacopy
 +
-+rm -f $seqres.full
++# remove all files from previous tests
++_scratch_mkfs
 +
-+_scratch_mkfs >>$seqres.full 2>&1
++# File size on lower
++lowername="lowerfile"
++lowerlink="lowerfile-link"
++lowerdata="lower"
++lowersize="4096"
 +
-+# Create our test files.
-+lowerdir=$OVL_BASE_SCRATCH_MNT/$OVL_LOWER
-+mkdir -p $lowerdir
-+echo "This is old news" > $lowerdir/foo
++# Number of blocks allocated by filesystem on lower. Will be queried later.
++lowerblocks=""
 +
-+_scratch_mount -o copy_up_shared=on
++udirname="pureupper"
++ufile="upperfile"
 +
++# Check metacopy xattr
++check_metacopy()
++{
++        local target=$1 exist=$2
++	local out_f target_f
++	local msg
 +
-+#
-+# mmap MAP_SHARED|PROT_READ of rofd
-+# write to rwfd
-+# read from mapped memory
-+#
-+$XFS_IO_PROG -r $SCRATCH_MNT/foo \
-+	-C "mmap -r 0 16" \
-+	-C "open $SCRATCH_MNT/foo" \
-+	-C "pwrite -S 0x61 0 16" \
-+	-C "mread -v 0 16" \
-+| _filter_xfs_io | _filter_scratch
++        out_f=$($GETFATTR_PROG --absolute-names --only-values -n \
++		$OVL_XATTR_METACOPY $target 2>&1 | _filter_scratch)
 +
++	if [ "$exist" == "y" ];then
++		[ "$out_f" == "" ] && return
++		echo "Metacopy xattr does not exist on ${target}. stdout=$out_f"
++		return
++	fi
++
++	if [ "$out_f" == "" ];then
++		echo "Metacopy xattr exists on ${target} unexpectedly."
++		return
++	fi
++
++	target_f=`echo $target | _filter_scratch`
++	msg="$target_f: trusted.overlay.metacopy: No such attribute"
++
++	[ "$out_f" == "$msg" ] && return
++
++	echo "Error while checking xattr on ${target}. stdout=$out"
++}
++
++# Check redirect xattr
++check_redirect()
++{
++	local target=$1
++	local expect=$2
++
++	value=$($GETFATTR_PROG --absolute-names --only-values -n \
++		$OVL_XATTR_REDIRECT $target)
++
++	[[ "$value" == "$expect" ]] || echo "Redirect xattr incorrect. Expected=\"$expect\", actual=\"$value\""
++}
++
++# Check size
++check_file_size()
++{
++	local target=$1 expected_size=$2 actual_size
++
++	actual_size=$(stat -c "%s" $target)
++
++	[ "$actual_size" == "$expected_size" ] || echo "Expected file size $expected_size but actual size is $actual_size"
++}
++
++check_file_blocks()
++{
++	local target=$1 expected_blocks=$2 nr_blocks
++
++	nr_blocks=$(stat -c "%b" $target)
++
++	[ "$nr_blocks" == "$expected_blocks" ] || echo "Expected $expected_blocks blocks but actual number of blocks is ${nr_blocks}."
++}
++
++check_file_contents()
++{
++	local target=$1 expected=$2
++	local actual target_f
++
++	target_f=`echo $target | _filter_scratch`
++
++	read actual<$target
++
++	[ "$actual" == "$expected" ] || echo "Expected file $target_f contents to be \"$expected\" but actual contents are \"$actual\""
++}
++
++check_file_size_contents()
++{
++	local target=$1 expected_size=$2 expected_content=$3
++
++	check_file_size $target $expected_size
++	check_file_contents $target $expected_content
++}
++
++mount_overlay()
++{
++	local _lowerdir=$1
++
++	_overlay_scratch_mount_dirs "$_lowerdir" $upperdir $workdir -o redirect_dir=on,index=on,metacopy=on
++}
++
++umount_overlay()
++{
++	$UMOUNT_PROG $SCRATCH_MNT
++}
++
++# Assumes it is called with overlay mounted.
++test_common()
++{
++	local _lowerdir=$1 _target=$2 _size=$3 _blocks=$4 _data="$5"
++	local _redirect=$6
++
++	echo "check properties of metadata copied up file"
++	check_file_size_contents $SCRATCH_MNT/$_target $_size "$_data"
++	check_file_blocks $SCRATCH_MNT/$_target $_blocks
++
++	# Do a mount cycle and check size and contents again.
++	echo "Unmount and Mount again"
++	umount_overlay
++	mount_overlay $_lowerdir
++	echo "check properties of metadata copied up file"
++	check_file_size_contents $SCRATCH_MNT/$_target $_size "$_data"
++	check_file_blocks $SCRATCH_MNT/$_target $_blocks
++
++	# Make sure copied up file is a metacopy file.
++	umount_overlay
++	check_metacopy $upperdir/$_target "y"
++	check_file_size_contents $upperdir/$_target $_size ""
++	[ -n "$_redirect" ] && check_redirect $upperdir/$_target "$_redirect"
++
++	# Trigger data copy up and check absence of metacopy xattr.
++	mount_overlay $_lowerdir
++	$XFS_IO_PROG -c "open -a $SCRATCH_MNT/$_target"
++	echo "check properties of data copied up file"
++	check_file_size_contents $SCRATCH_MNT/$_target $_size "$_data"
++	umount_overlay
++	check_metacopy $upperdir/$_target "n"
++	check_file_size_contents $upperdir/$_target $_size "$_data"
++}
++
++create_basic_files()
++{
++	_scratch_mkfs
++	mkdir -p $lowerdir $lowerdir2 $upperdir $workdir $workdir2
++	mkdir -p $upperdir/$udirname
++	echo "$lowerdata" > $lowerdir/$lowername
++	chmod 600 $lowerdir/$lowername
++	# Create a file of size lowersize.
++	$XFS_IO_PROG -c "falloc 0 $lowersize" $lowerdir/$lowername
++	$XFS_IO_PROG -c "fsync" $lowerdir/$lowername
++
++	# Query number of lower
++	lowerblocks=$(stat -c "%b" $lowerdir/$lowername)
++}
++
++create_lower_link()
++{
++	ln $lowerdir/$lowername $lowerdir/$lowerlink
++}
++
++prepare_midlayer()
++{
++	_scratch_mkfs
++	create_basic_files
++	# Create midlayer
++	_overlay_scratch_mount_dirs $lowerdir $lowerdir2 $workdir2 -o redirect_dir=on,index=on,metacopy=on
++	# Trigger a metacopy
++	chmod 400 $SCRATCH_MNT/$lowername
++	umount_overlay
++}
++
++# Create test directories
++lowerdir=$OVL_BASE_SCRATCH_MNT/lower
++lowerdir2=$OVL_BASE_SCRATCH_MNT/lower2
++upperdir=$OVL_BASE_SCRATCH_MNT/upper
++workdir=$OVL_BASE_SCRATCH_MNT/workdir
++workdir2=$OVL_BASE_SCRATCH_MNT/workdir2
++
++# Tests start here
++echo "== Check Simple Metacopy =="
++create_basic_files
++mount_overlay $lowerdir
++chmod 400 $SCRATCH_MNT/$lowername
++test_common $lowerdir $lowername $lowersize $lowerblocks "$lowerdata"
++
++# Test midlayer metacopy
++echo -e "\n== Check Midlayer Metacopy =="
++prepare_midlayer
++mount_overlay "$lowerdir2:$lowerdir"
++chmod 400 $SCRATCH_MNT/$lowername
++test_common "$lowerdir2:$lowerdir" $lowername $lowersize $lowerblocks \
++		"$lowerdata"
++
++# Test Rename Redirect
++echo -e "\n== Check Rename Redirect =="
++create_basic_files
++mount_overlay $lowerdir
++mv $SCRATCH_MNT/$lowername $SCRATCH_MNT/$ufile
++test_common $lowerdir $ufile $lowersize $lowerblocks "$lowerdata" "$lowername"
++
++# Test midlayer rename redirect
++echo -e "\n== Check Midlayer Rename Redirect =="
++prepare_midlayer
++mount_overlay "$lowerdir2:$lowerdir"
++mv $SCRATCH_MNT/$lowername $SCRATCH_MNT/$ufile
++test_common "$lowerdir2:$lowerdir" $ufile $lowersize $lowerblocks "$lowerdata" \
++		"$lowername"
++
++# Test Link Redirect
++echo -e "\n== Check Link Redirect =="
++create_basic_files
++mount_overlay $lowerdir
++ln $SCRATCH_MNT/$lowername $SCRATCH_MNT/$udirname/$ufile
++test_common $lowerdir $udirname/$ufile $lowersize $lowerblocks "$lowerdata" \
++		"/$lowername"
++
++# Test midlayer link redirect
++echo -e "\n== Check Midlayer Link Redirect =="
++prepare_midlayer
++mount_overlay "$lowerdir2:$lowerdir"
++ln $SCRATCH_MNT/$lowername $SCRATCH_MNT/$udirname/$ufile
++test_common "$lowerdir2:$lowerdir" $udirname/$ufile $lowersize $lowerblocks \
++		"$lowerdata" "/$lowername"
++
++# Test lower link file gets absolute redirect upon rename
++echo -e "\n== Check Lower Link Rename Absolute Redirect =="
++create_basic_files
++create_lower_link
++mount_overlay $lowerdir
++mv $SCRATCH_MNT/$lowerlink $SCRATCH_MNT/$ufile
++test_common $lowerdir $ufile $lowersize $lowerblocks "$lowerdata" "/$lowerlink"
++
++# success, all done
 +status=0
 +exit
-diff --git a/tests/overlay/061.out b/tests/overlay/061.out
-new file mode 100644
-index 0000000..0662721
---- /dev/null
-+++ b/tests/overlay/061.out
-@@ -0,0 +1,4 @@
-+QA output created by 061
-+wrote 16/16 bytes at offset 0
-+XXX Bytes, X ops; XX:XX:XX.X (XXX YYY/sec and XXX ops/sec)
-+00000000:  61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61  aaaaaaaaaaaaaaaa
-diff --git a/tests/overlay/group b/tests/overlay/group
-index b73d7e9..ccc71f3 100644
---- a/tests/overlay/group
-+++ b/tests/overlay/group
-@@ -63,3 +63,4 @@
+Index: xfstests-dev/common/overlay
+===================================================================
+--- xfstests-dev.orig/common/overlay	2018-05-29 15:34:50.772714715 -0400
++++ xfstests-dev/common/overlay	2018-05-29 15:34:52.431714715 -0400
+@@ -10,6 +10,7 @@ export OVL_XATTR_IMPURE="trusted.overlay
+ export OVL_XATTR_ORIGIN="trusted.overlay.origin"
+ export OVL_XATTR_NLINK="trusted.overlay.nlink"
+ export OVL_XATTR_UPPER="trusted.overlay.upper"
++export OVL_XATTR_METACOPY="trusted.overlay.metacopy"
+ 
+ # helper function to do the actual overlayfs mount operation
+ _overlay_mount_dirs()
+Index: xfstests-dev/tests/overlay/060.out
+===================================================================
+--- /dev/null	1970-01-01 00:00:00.000000000 +0000
++++ xfstests-dev/tests/overlay/060.out	2018-05-29 15:34:52.431714715 -0400
+@@ -0,0 +1,42 @@
++QA output created by 060
++== Check Simple Metacopy ==
++check properties of metadata copied up file
++Unmount and Mount again
++check properties of metadata copied up file
++check properties of data copied up file
++
++== Check Midlayer Metacopy ==
++check properties of metadata copied up file
++Unmount and Mount again
++check properties of metadata copied up file
++check properties of data copied up file
++
++== Check Rename Redirect ==
++check properties of metadata copied up file
++Unmount and Mount again
++check properties of metadata copied up file
++check properties of data copied up file
++
++== Check Midlayer Rename Redirect ==
++check properties of metadata copied up file
++Unmount and Mount again
++check properties of metadata copied up file
++check properties of data copied up file
++
++== Check Link Redirect ==
++check properties of metadata copied up file
++Unmount and Mount again
++check properties of metadata copied up file
++check properties of data copied up file
++
++== Check Midlayer Link Redirect ==
++check properties of metadata copied up file
++Unmount and Mount again
++check properties of metadata copied up file
++check properties of data copied up file
++
++== Check Lower Link Rename Absolute Redirect ==
++check properties of metadata copied up file
++Unmount and Mount again
++check properties of metadata copied up file
++check properties of data copied up file
+Index: xfstests-dev/tests/overlay/group
+===================================================================
+--- xfstests-dev.orig/tests/overlay/group	2018-05-29 15:34:52.432714715 -0400
++++ xfstests-dev/tests/overlay/group	2018-05-29 15:35:13.736714715 -0400
+@@ -62,3 +62,4 @@
+ 057 auto quick redirect
  058 auto quick exportfs
  059 auto quick copyup
- 060 auto quick metacopy
-+061 auto quick copyup
--- 
-2.7.4
++060 auto quick metacopy
