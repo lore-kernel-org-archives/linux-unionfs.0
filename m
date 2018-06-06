@@ -1,73 +1,117 @@
-From: Miklos Szeredi <miklos@szeredi.hu>
-Subject: [GIT PULL] overlayfs fixes for 4.18
-Date: Wed, 6 Jun 2018 21:34:29 +0200
-Message-ID: <20180606193429.GF23785@veci.piliscsaba.redhat.com>
+From: Mark Fasheh <mfasheh@suse.de>
+Subject: Exporting a unique ino/dev pair to user space
+Date: Wed, 6 Jun 2018 23:38:07 +0200
+Message-ID: <20180606213807.GE9445@wotan.suse.de>
+Reply-To: Mark Fasheh <mfasheh@suse.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-btrfs-owner@vger.kernel.org>
 Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org, viro@zeniv.linux.org.uk, hch@infradead.org
+Sender: linux-btrfs-owner@vger.kernel.org
+To: Al Viro <viro@ZenIV.linux.org.uk>, linux-fsdevel@vger.kernel.org
+Cc: linux-btrfs@vger.kernel.org, linux-unionfs@vger.kernel.org, Dave Chinner <david@fromorbit.com>, Amir Goldstein <amir73il@gmail.com>, Jeff Mahoney <jeffm@suse.com>
 List-Id: linux-unionfs@vger.kernel.org
 
-Hi Linus,
+Hi,
 
-Please pull from:
+We have an inconsistency in how the kernel is exporting inode number /
+device pairs for user space. There's of course stat(2) and statx(2),
+but aside from those we simply dump inode->i_ino and super->s_dev. In
+some cases, the dumped values differ from what is returned via stat(2)
+or statx(2). Some filesystems might even show duplicate (but
+internally different!) pairs when the raw i_ino/s_dev is used.
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/mszeredi/vfs.git tags/ovl-fixes-4.18
+Some examples where we dump raw ino/dev:
 
-This contains a fix for the vfs_mkdir() issue discovered by Al, as well as
-other fixes and cleanups.
+- /proc/<pid>/maps. I've written about how this confuses lsof(8):
+  https://marc.info/?l=linux-btrfs&m=130074451403261&w=2
 
-It's the first overlayfs pull request for 4.18, the only VFS bit here is a
-new inode hash insertion helper.  That helper can be used internally by the
-other two (iget5_locked() and insert_inode_locked4()) so it's a cleanup as
-well.  Alas, no ack from Al (no nak either, mind).
+- Unsurprisingly, many VFS tracepoints dump ino and/or dev. See
+  trace/events/lock.h or trace/events/writeback.h for examples.
 
-I'll follow up with a more controversal pull request that has the meat of
-the overlayfs developement.  The VFS bits got some acks from Christoph
-recently, and one nak that I've purged from the set.
+- eventpoll also dumps the raw ino/dev pair via ep_show_fdinfo()
 
-All of this has been posted and reviewed and generally gone through the
-normal development cycle, it's just hard to get the attention of top level
-vfs maintainers...
+- Audit records the raw ino/dev and passes them around. We do seem to
+  have paths printed from audit as well, but if it's printed with the
+  wrong ino/dev pair I believe my point still stands.
+
+
+This breaks software which expects these pairs to be unique, and can
+put the user in a situation where they might not be able to find an
+inode referenced from the kernel. What's even worse - depending on how
+ino is exported, they might even find the *wrong* inode.
+
+I also should point out that we're likely at this point because
+stat(2) has been using an unsigned long for ino. On a 32 bit system,
+it would have been impossible for the user to get the real inode
+number in the first place. So there probably wasn't much we could do.
+
+These days though, we have statx(2) which will do the right thing on
+all platforms so we no longer have that excuse. The user ought to be
+able to take an ino/dev pair and ultimately find the actual file on
+their system, partially with the help of statx(2).
+
+
+Some examples of how ino is manipulated by filesystems:
+
+- On 64 bit i_ino and kstat->ino tend to be filled in correctly (from
+  what I can tell). stat->dev is not always consistent with super->s_dev.
+
+- On 32 bits, many filesystems employ a transformation to squeeze a 64
+  bit identifier into 32 bits. The exact methods are fs specific,
+  what's important is that we're losing information, introducing the
+  possibility of duplicate inode numbers.
+
+- On all platforms, Btrfs and Overlayfs can have duplicate inode
+  numbers. Of course, device can be different across the fs as well
+  with the kernel reporting s_dev and these filesystems returning
+  a different device via stat() or statx().
+
+
+Getting the inode number portion of this pair fixed would immediately
+solve the situation for all filesystems except Btrfs and
+Overlayfs - they report a different device from stat.
+
+Regarding the device portion of the pair, I'm honestly not sure
+whether Overlayfs cares, and my attempts to fix the s_dev situation
+for Btrfs have all come to the same dead ends that I've hit briefly
+looking into this inode number issue - the problems are intrinsically
+linked.
+
+So my questions are:
+
+1) Do we care about this? On one hand, we've had this inconsistency
+   for a long time, for various reasons. On the other hand, I can point
+   to bugzilla's where these inconsistencies have become a problem.
+
+   In the case that we don't care, any fs-internal solutions are
+   likely to be extremely disruptive to the end user.
+
+
+2) If we do care, how do we fix this?
+
+ 2a) Do we use 64 bit i_ino on 32 bit systems? This has some obvious
+     downsides from a memory usage standpoint. Also it doesn't fully
+     address the issue - we still have a device field that Btrfs and
+     Overlayfs override.
+
+     We could combine this with an intermediate structure between the
+     inode and super block so s_dev could be abstracted out. See my
+     fs_view patches for an example of how this could be done:
+     https://www.spinics.net/lists/linux-fsdevel/msg125492.html
+
+ 2b) Do we call ->getattr for this information? Plumbing a vfsmount to
+     various regions of the kernel like audit, or some of the deeper
+     tracepoints looks ugly and prone to life-timing issues (which
+     vfsmount do we use?). On the upside, we could probably make it
+     really light by only sending down the STATX_INO flag and letting
+     the filesystem optimize accordingly.
+
+ 2c) I don't think we can really use a dedicated callback without
+     passing the vfsmount through since Overlayfs ->getattr might call
+     the lower fs ->getattr. At that point we might as well use getattr.
+
+I'd appreciate any comments or suggestions.
 
 Thanks,
-Miklos
-
----
-Al Viro (1):
-      ovl: make ovl_create_real() cope with vfs_mkdir() safely
-
-Amir Goldstein (6):
-      ovl: update documentation for unionmount-testsuite
-      ovl: remove WARN_ON() real inode attributes mismatch
-      ovl: strip debug argument from ovl_do_ helpers
-      ovl: struct cattr cleanups
-      ovl: create helper ovl_create_temp()
-      ovl: use inode_insert5() to hash a newly created inode
-
-Miklos Szeredi (5):
-      ovl: Kconfig documentation fixes
-      ovl: return dentry from ovl_create_real()
-      ovl: return EIO on internal error
-      ovl: clean up copy-up error paths
-      vfs: factor out inode_insert5()
-
-Vivek Goyal (1):
-      ovl: Pass argument to ovl_get_inode() in a structure
-
----
- Documentation/filesystems/overlayfs.txt |   7 +-
- fs/inode.c                              | 164 ++++++++++++-------------
- fs/overlayfs/Kconfig                    |   6 +-
- fs/overlayfs/copy_up.c                  |  83 ++++---------
- fs/overlayfs/dir.c                      | 208 +++++++++++++++++++++-----------
- fs/overlayfs/export.c                   |   8 +-
- fs/overlayfs/inode.c                    |  28 +++--
- fs/overlayfs/namei.c                    |  10 +-
- fs/overlayfs/overlayfs.h                |  65 +++++-----
- fs/overlayfs/super.c                    |   9 +-
- include/linux/fs.h                      |   4 +
- 11 files changed, 319 insertions(+), 273 deletions(-)
+  --Mark
