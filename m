@@ -1,139 +1,56 @@
 From: "Darrick J. Wong" <darrick.wong@oracle.com>
-Subject: Re: [PATCH 02/39] vfs: dedupe: rationalize args
-Date: Wed, 6 Jun 2018 08:02:33 -0700
-Message-ID: <20180606150233.GB9426@magnolia>
+Subject: Re: [PATCH 01/39] vfs: dedpue: return loff_t
+Date: Wed, 6 Jun 2018 08:09:05 -0700
+Message-ID: <20180606150905.GC9426@magnolia>
 References: <20180529144339.16538-1-mszeredi@redhat.com>
- <20180529144339.16538-3-mszeredi@redhat.com>
+ <20180529144339.16538-2-mszeredi@redhat.com>
+ <20180604084336.GA11333@infradead.org>
+ <CAJfpegun8HyjODXguHstxYrGE2nuSoCCicaHT3yfYWMkxxmVWg@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20180529144339.16538-3-mszeredi@redhat.com>
+In-Reply-To: <CAJfpegun8HyjODXguHstxYrGE2nuSoCCicaHT3yfYWMkxxmVWg@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Miklos Szeredi <mszeredi@redhat.com>
-Cc: linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: Christoph Hellwig <hch@infradead.org>, Miklos Szeredi <mszeredi@redhat.com>, overlayfs <linux-unionfs@vger.kernel.org>, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, linux-xfs <linux-xfs@vger.kernel.org>, ocfs2-devel@oss.oracle.com
 List-Id: linux-unionfs@vger.kernel.org
 
-On Tue, May 29, 2018 at 04:43:02PM +0200, Miklos Szeredi wrote:
-> Clean up f_op->dedupe_file_range() interface.
+On Tue, Jun 05, 2018 at 10:33:22AM +0200, Miklos Szeredi wrote:
+> On Mon, Jun 4, 2018 at 10:43 AM, Christoph Hellwig <hch@infradead.org> wrote:
+> > On Tue, May 29, 2018 at 04:43:01PM +0200, Miklos Szeredi wrote:
+> >> f_op->dedupe_file_range() gets a u64 length to dedup and returns an ssize_t
+> >> actual length deduped.  This breaks badly on 32bit archs since the returned
+> >> length will be truncated and possibly overflow into the sign bit (xfs and
+> >> ocfs2 are affected, btrfs limits actual length to 16MiB).
+> >
+> > Can we just make it return 0 vs errno?  The only time we return
+> > a different length than the one passed in is due to the btrfs cap.
+> >
+> > Given that this API started out on btrfs we should just do the cap
+> > everywhere to not confuse userspace.
 > 
-> 1) Use loff_t for offsets and length instead of u64
-> 2) Order the arguments the same way as {copy|clone}_file_range().
+> And that's a completely arbitrary cap; sure btrfs started out with
+> that, but there's no fundamental reason for that becoming the global
+> limit.  Xfs now added a different, larger limit, so based on what
+> reason should that limit be reduced?
 > 
-> Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
-> ---
->  fs/btrfs/ctree.h   | 5 +++--
->  fs/btrfs/ioctl.c   | 5 +++--
->  fs/ocfs2/file.c    | 6 +++---
->  fs/read_write.c    | 4 ++--
->  fs/xfs/xfs_file.c  | 6 +++---
->  include/linux/fs.h | 4 ++--
->  6 files changed, 16 insertions(+), 14 deletions(-)
-> 
-> diff --git a/fs/btrfs/ctree.h b/fs/btrfs/ctree.h
-> index 990e011c9f0c..5968ba5aa0d1 100644
-> --- a/fs/btrfs/ctree.h
-> +++ b/fs/btrfs/ctree.h
-> @@ -3271,8 +3271,9 @@ void btrfs_get_block_group_info(struct list_head *groups_list,
->  				struct btrfs_ioctl_space_info *space);
->  void update_ioctl_balance_args(struct btrfs_fs_info *fs_info, int lock,
->  			       struct btrfs_ioctl_balance_args *bargs);
-> -loff_t btrfs_dedupe_file_range(struct file *src_file, u64 loff, u64 olen,
-> -			    struct file *dst_file, u64 dst_loff);
-> +loff_t btrfs_dedupe_file_range(struct file *src_file, loff_t loff,
-> +			       struct file *dst_file, loff_t dst_loff,
-> +			       loff_t olen);
->  
->  /* file.c */
->  int __init btrfs_auto_defrag_init(void);
-> diff --git a/fs/btrfs/ioctl.c b/fs/btrfs/ioctl.c
-> index 1b5cc5fd4868..70eac76804df 100644
-> --- a/fs/btrfs/ioctl.c
-> +++ b/fs/btrfs/ioctl.c
-> @@ -3194,8 +3194,9 @@ static int btrfs_extent_same(struct inode *src, u64 loff, u64 olen,
->  
->  #define BTRFS_MAX_DEDUPE_LEN	SZ_16M
->  
-> -loff_t btrfs_dedupe_file_range(struct file *src_file, u64 loff, u64 olen,
-> -			       struct file *dst_file, u64 dst_loff)
-> +loff_t btrfs_dedupe_file_range(struct file *src_file, loff_t loff,
-> +			       struct file *dst_file, loff_t dst_loff,
-> +			       loff_t olen)
->  {
->  	struct inode *src = file_inode(src_file);
->  	struct inode *dst = file_inode(dst_file);
-> diff --git a/fs/ocfs2/file.c b/fs/ocfs2/file.c
-> index 4a81d82ab7f6..a024715cd227 100644
-> --- a/fs/ocfs2/file.c
-> +++ b/fs/ocfs2/file.c
-> @@ -2538,10 +2538,10 @@ static int ocfs2_file_clone_range(struct file *file_in,
->  }
->  
->  static loff_t ocfs2_file_dedupe_range(struct file *src_file,
-> -				      u64 loff,
-> -				      u64 len,
-> +				      loff_t loff,
->  				      struct file *dst_file,
-> -				      u64 dst_loff)
-> +				      loff_t dst_loff,
-> +				      loff_t len)
->  {
->  	int error;
->  
-> diff --git a/fs/read_write.c b/fs/read_write.c
-> index c41e2a1eb7c7..1818581cadf6 100644
-> --- a/fs/read_write.c
-> +++ b/fs/read_write.c
-> @@ -2046,8 +2046,8 @@ int vfs_dedupe_file_range(struct file *file, struct file_dedupe_range *same)
->  			info->status = -EINVAL;
->  		} else {
->  			deduped = dst_file->f_op->dedupe_file_range(file, off,
-> -							len, dst_file,
-> -							info->dest_offset);
-> +							dst_file,
-> +							info->dest_offset, len);
->  			if (deduped == -EBADE)
->  				info->status = FILE_DEDUPE_RANGE_DIFFERS;
->  			else if (deduped < 0)
-> diff --git a/fs/xfs/xfs_file.c b/fs/xfs/xfs_file.c
-> index cf51d47efdb6..75704edfba82 100644
-> --- a/fs/xfs/xfs_file.c
-> +++ b/fs/xfs/xfs_file.c
-> @@ -875,10 +875,10 @@ xfs_file_clone_range(
->  STATIC loff_t
->  xfs_file_dedupe_range(
->  	struct file	*src_file,
-> -	u64		loff,
-> -	u64		len,
-> +	loff_t		loff,
->  	struct file	*dst_file,
-> -	u64		dst_loff)
-> +	loff_t		dst_loff,
-> +	loff_t		len)
->  {
->  	struct inode	*srci = file_inode(src_file);
->  	u64		max_dedupe;
-> diff --git a/include/linux/fs.h b/include/linux/fs.h
-> index 8e49defc7aab..b0f290944220 100644
-> --- a/include/linux/fs.h
-> +++ b/include/linux/fs.h
-> @@ -1738,8 +1738,8 @@ struct file_operations {
->  			loff_t, size_t, unsigned int);
->  	int (*clone_file_range)(struct file *, loff_t, struct file *, loff_t,
->  			u64);
-> -	loff_t (*dedupe_file_range)(struct file *, u64, u64, struct file *,
-> -			u64);
-> +	loff_t (*dedupe_file_range)(struct file *, loff_t,
-> +				    struct file *, loff_t, loff_t);
->  } __randomize_layout;
+> I don't care either way, but at this stage I'm not going to change
+> this patch, unless there's a very good reason to do so, because if I
+> do someone will come and suggest another improvement, ad-infinitum...
 
-XFS/vfs parts look ok,
-Reviewed-by: Darrick J. Wong <darrick.wong@oracle.com>
+I think we should hoist the MAX_RW_COUNT/2 limit to the VFS helpers
+since afaict we generally cap max IO per call at MAX_RW_COUNT.  (I
+probably should've capped ocfs2 back when I did xfs, but forgot).  If
+btrfs wants to keep their lower (16M) limit then they're free to do so;
+the interface documentation allows for this.  One of the btrfs
+developers seems to be working on a patch series to raise the limit[1]
+anyway.
 
 --D
 
->  
->  struct inode_operations {
-> -- 
-> 2.14.3
+[1] https://www.spinics.net/lists/linux-btrfs/msg78392.html
+
 > 
+> Thanks,
+> Miklos
