@@ -1,56 +1,73 @@
-From: "Darrick J. Wong" <darrick.wong@oracle.com>
-Subject: Re: [PATCH 01/39] vfs: dedpue: return loff_t
-Date: Wed, 6 Jun 2018 08:09:05 -0700
-Message-ID: <20180606150905.GC9426@magnolia>
-References: <20180529144339.16538-1-mszeredi@redhat.com>
- <20180529144339.16538-2-mszeredi@redhat.com>
- <20180604084336.GA11333@infradead.org>
- <CAJfpegun8HyjODXguHstxYrGE2nuSoCCicaHT3yfYWMkxxmVWg@mail.gmail.com>
+From: Miklos Szeredi <miklos@szeredi.hu>
+Subject: [GIT PULL] overlayfs fixes for 4.18
+Date: Wed, 6 Jun 2018 21:34:29 +0200
+Message-ID: <20180606193429.GF23785@veci.piliscsaba.redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <CAJfpegun8HyjODXguHstxYrGE2nuSoCCicaHT3yfYWMkxxmVWg@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: Christoph Hellwig <hch@infradead.org>, Miklos Szeredi <mszeredi@redhat.com>, overlayfs <linux-unionfs@vger.kernel.org>, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, linux-xfs <linux-xfs@vger.kernel.org>, ocfs2-devel@oss.oracle.com
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org, viro@zeniv.linux.org.uk, hch@infradead.org
 List-Id: linux-unionfs@vger.kernel.org
 
-On Tue, Jun 05, 2018 at 10:33:22AM +0200, Miklos Szeredi wrote:
-> On Mon, Jun 4, 2018 at 10:43 AM, Christoph Hellwig <hch@infradead.org> wrote:
-> > On Tue, May 29, 2018 at 04:43:01PM +0200, Miklos Szeredi wrote:
-> >> f_op->dedupe_file_range() gets a u64 length to dedup and returns an ssize_t
-> >> actual length deduped.  This breaks badly on 32bit archs since the returned
-> >> length will be truncated and possibly overflow into the sign bit (xfs and
-> >> ocfs2 are affected, btrfs limits actual length to 16MiB).
-> >
-> > Can we just make it return 0 vs errno?  The only time we return
-> > a different length than the one passed in is due to the btrfs cap.
-> >
-> > Given that this API started out on btrfs we should just do the cap
-> > everywhere to not confuse userspace.
-> 
-> And that's a completely arbitrary cap; sure btrfs started out with
-> that, but there's no fundamental reason for that becoming the global
-> limit.  Xfs now added a different, larger limit, so based on what
-> reason should that limit be reduced?
-> 
-> I don't care either way, but at this stage I'm not going to change
-> this patch, unless there's a very good reason to do so, because if I
-> do someone will come and suggest another improvement, ad-infinitum...
+Hi Linus,
 
-I think we should hoist the MAX_RW_COUNT/2 limit to the VFS helpers
-since afaict we generally cap max IO per call at MAX_RW_COUNT.  (I
-probably should've capped ocfs2 back when I did xfs, but forgot).  If
-btrfs wants to keep their lower (16M) limit then they're free to do so;
-the interface documentation allows for this.  One of the btrfs
-developers seems to be working on a patch series to raise the limit[1]
-anyway.
+Please pull from:
 
---D
+  git://git.kernel.org/pub/scm/linux/kernel/git/mszeredi/vfs.git tags/ovl-fixes-4.18
 
-[1] https://www.spinics.net/lists/linux-btrfs/msg78392.html
+This contains a fix for the vfs_mkdir() issue discovered by Al, as well as
+other fixes and cleanups.
 
-> 
-> Thanks,
-> Miklos
+It's the first overlayfs pull request for 4.18, the only VFS bit here is a
+new inode hash insertion helper.  That helper can be used internally by the
+other two (iget5_locked() and insert_inode_locked4()) so it's a cleanup as
+well.  Alas, no ack from Al (no nak either, mind).
+
+I'll follow up with a more controversal pull request that has the meat of
+the overlayfs developement.  The VFS bits got some acks from Christoph
+recently, and one nak that I've purged from the set.
+
+All of this has been posted and reviewed and generally gone through the
+normal development cycle, it's just hard to get the attention of top level
+vfs maintainers...
+
+Thanks,
+Miklos
+
+---
+Al Viro (1):
+      ovl: make ovl_create_real() cope with vfs_mkdir() safely
+
+Amir Goldstein (6):
+      ovl: update documentation for unionmount-testsuite
+      ovl: remove WARN_ON() real inode attributes mismatch
+      ovl: strip debug argument from ovl_do_ helpers
+      ovl: struct cattr cleanups
+      ovl: create helper ovl_create_temp()
+      ovl: use inode_insert5() to hash a newly created inode
+
+Miklos Szeredi (5):
+      ovl: Kconfig documentation fixes
+      ovl: return dentry from ovl_create_real()
+      ovl: return EIO on internal error
+      ovl: clean up copy-up error paths
+      vfs: factor out inode_insert5()
+
+Vivek Goyal (1):
+      ovl: Pass argument to ovl_get_inode() in a structure
+
+---
+ Documentation/filesystems/overlayfs.txt |   7 +-
+ fs/inode.c                              | 164 ++++++++++++-------------
+ fs/overlayfs/Kconfig                    |   6 +-
+ fs/overlayfs/copy_up.c                  |  83 ++++---------
+ fs/overlayfs/dir.c                      | 208 +++++++++++++++++++++-----------
+ fs/overlayfs/export.c                   |   8 +-
+ fs/overlayfs/inode.c                    |  28 +++--
+ fs/overlayfs/namei.c                    |  10 +-
+ fs/overlayfs/overlayfs.h                |  65 +++++-----
+ fs/overlayfs/super.c                    |   9 +-
+ include/linux/fs.h                      |   4 +
+ 11 files changed, 319 insertions(+), 273 deletions(-)
