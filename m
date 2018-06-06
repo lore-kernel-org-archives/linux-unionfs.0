@@ -1,43 +1,40 @@
-Return-Path: <amir73il@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <CAJfpegs=QAc=gQ5NnJpgHB+jn_USXy9rHKhWMpY5XRaFC6Lh+A@mail.gmail.com>
-References: <20180529144339.16538-1-mszeredi@redhat.com> <20180529144339.16538-7-mszeredi@redhat.com>
- <20180604084827.GE11333@infradead.org> <CAJfpeguhXik+bEb+FWf8s=v93yaoqReAUmr1DkG1zBxEYnEfsg@mail.gmail.com>
- <CAOQ4uxjSuNxyLgzQGLqB6QYN9u+81uBvCnFy9iOJBEb+Nk4y5w@mail.gmail.com> <CAJfpegs=QAc=gQ5NnJpgHB+jn_USXy9rHKhWMpY5XRaFC6Lh+A@mail.gmail.com>
-From: Amir Goldstein <amir73il@gmail.com>
-Date: Wed, 27 Jun 2018 15:07:20 +0300
-Message-ID: <CAOQ4uxhQ1+TsxDnqefSEk6yoZuokUeKbLPdPyWFg94mfX1cgNQ@mail.gmail.com>
+In-Reply-To: <CAOQ4uxjSuNxyLgzQGLqB6QYN9u+81uBvCnFy9iOJBEb+Nk4y5w@mail.gmail.com>
+References: <20180529144339.16538-1-mszeredi@redhat.com>
+	<20180529144339.16538-7-mszeredi@redhat.com>
+	<20180604084827.GE11333@infradead.org>
+	<CAJfpeguhXik+bEb+FWf8s=v93yaoqReAUmr1DkG1zBxEYnEfsg@mail.gmail.com>
+	<CAOQ4uxjSuNxyLgzQGLqB6QYN9u+81uBvCnFy9iOJBEb+Nk4y5w@mail.gmail.com>
+Date: Wed, 6 Jun 2018 21:47:39 +0200
+Message-ID: <CAJfpegs=QAc=gQ5NnJpgHB+jn_USXy9rHKhWMpY5XRaFC6Lh+A@mail.gmail.com>
 Subject: Re: [PATCH 06/39] vfs: add f_op->pre_mmap()
+From: Miklos Szeredi <miklos@szeredi.hu>
 Content-Type: text/plain; charset="UTF-8"
-To: Miklos Szeredi <miklos@szeredi.hu>
+To: Amir Goldstein <amir73il@gmail.com>
 Cc: overlayfs <linux-unionfs@vger.kernel.org>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-On Wed, Jun 6, 2018 at 10:47 PM, Miklos Szeredi <miklos@szeredi.hu> wrote:
-> On Wed, Jun 6, 2018 at 8:52 PM, Amir Goldstein <amir73il@gmail.com> wrote:
->> On Tue, Jun 5, 2018 at 2:36 PM, Miklos Szeredi <miklos@szeredi.hu> wrote:
->>> On Mon, Jun 4, 2018 at 10:48 AM, Christoph Hellwig <hch@infradead.org> wrote:
->>>> On Tue, May 29, 2018 at 04:43:06PM +0200, Miklos Szeredi wrote:
->>>>> This is needed by overlayfs to be able to copy up a file from a read-only
->>>>> lower layer to a writable layer when being mapped shared.  When copying up,
->>>>> overlayfs takes VFS locks that would violate locking order when nested
->>>>> inside mmap_sem.
->>>>>
->>>>> Add a new f_op->pre_mmap method, which is called before taking mmap_sem.
+On Wed, Jun 6, 2018 at 8:52 PM, Amir Goldstein <amir73il@gmail.com> wrote:
+> On Tue, Jun 5, 2018 at 2:36 PM, Miklos Szeredi <miklos@szeredi.hu> wrote:
+>> On Mon, Jun 4, 2018 at 10:48 AM, Christoph Hellwig <hch@infradead.org> wrote:
+>>> On Tue, May 29, 2018 at 04:43:06PM +0200, Miklos Szeredi wrote:
+>>>> This is needed by overlayfs to be able to copy up a file from a read-only
+>>>> lower layer to a writable layer when being mapped shared.  When copying up,
+>>>> overlayfs takes VFS locks that would violate locking order when nested
+>>>> inside mmap_sem.
 >>>>
->>>> NAK.  We really should not add multiple methods for mmap, and everytime
->>>> this came up we found a better way to solve the problem instead.  Most
->>>> recent example was the socket zero copy receive code.
+>>>> Add a new f_op->pre_mmap method, which is called before taking mmap_sem.
 >>>
->>> Okay, I'll drop this.
+>>> NAK.  We really should not add multiple methods for mmap, and everytime
+>>> this came up we found a better way to solve the problem instead.  Most
+>>> recent example was the socket zero copy receive code.
 >>
->> Need to remove copy_up_shared from overlayfs.txt.
+>> Okay, I'll drop this.
 >
-> Right.  If the pull goes trough in this cycle, I'll send a followup
-> patch to fix that.
->
+> Need to remove copy_up_shared from overlayfs.txt.
 
-Reminder: stale doc is still in current overlayfs-next.
+Right.  If the pull goes trough in this cycle, I'll send a followup
+patch to fix that.
 
 Thanks,
-Amir.
+Miklos
