@@ -1,42 +1,42 @@
 From: Al Viro <viro@ZenIV.linux.org.uk>
-Subject: Re: [PATCH 05/39] vfs: optionally don't account file in nr_files
-Date: Sun, 10 Jun 2018 05:41:07 +0100
-Message-ID: <20180610044050.GL30522@ZenIV.linux.org.uk>
+Subject: Re: [PATCH 07/39] vfs: export vfs_ioctl() to modules
+Date: Sun, 10 Jun 2018 05:57:04 +0100
+Message-ID: <20180610045657.GM30522@ZenIV.linux.org.uk>
 References: <20180529144339.16538-1-mszeredi@redhat.com>
- <20180529144339.16538-6-mszeredi@redhat.com>
+ <20180529144339.16538-8-mszeredi@redhat.com>
+ <20180604084904.GF11333@infradead.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20180529144339.16538-6-mszeredi@redhat.com>
+In-Reply-To: <20180604084904.GF11333@infradead.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Miklos Szeredi <mszeredi@redhat.com>
-Cc: linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Christoph Hellwig <hch@infradead.org>
+Cc: Miklos Szeredi <mszeredi@redhat.com>, linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 
-On Tue, May 29, 2018 at 04:43:05PM +0200, Miklos Szeredi wrote:
-> +++ b/fs/open.c
-> @@ -732,8 +732,8 @@ static int do_dentry_open(struct file *f,
->  	static const struct file_operations empty_fops = {};
->  	int error;
->  
-> -	f->f_mode = OPEN_FMODE(f->f_flags) | FMODE_LSEEK |
-> -				FMODE_PREAD | FMODE_PWRITE;
-> +	f->f_mode = (f->f_mode & FMODE_NOACCOUNT) | OPEN_FMODE(f->f_flags) |
-> +		FMODE_LSEEK | FMODE_PREAD | FMODE_PWRITE;
+On Mon, Jun 04, 2018 at 01:49:04AM -0700, Christoph Hellwig wrote:
+> On Tue, May 29, 2018 at 04:43:07PM +0200, Miklos Szeredi wrote:
+> > This is needed by the stacked ioctl implementation in overlayfs.
+> 
+> EXPORT_SYMBOL_GPL for exporting random internals, please.  Same
+> for any following patches.
 
-Why bother with this complexity?  I mean, why not simply
-	f->f_mode |= OPEN_FMODE(f->f_flags) | FMODE_LSEEK |
-				FMODE_PREAD | FMODE_PWRITE;
+*blink*
 
-and be done with that...
+Christoph, get real and RTFS - vfs_ioctl() simply calls ->unlocked_ioctl();
+all there is to it.
 
-> @@ -743,7 +743,7 @@ static int do_dentry_open(struct file *f,
->  	f->f_wb_err = filemap_sample_wb_err(f->f_mapping);
->  
->  	if (unlikely(f->f_flags & O_PATH)) {
-> -		f->f_mode = FMODE_PATH;
-> +		f->f_mode = (f->f_mode & FMODE_NOACCOUNT) | FMODE_PATH;
+This isn't even a case of "using that function establishes that the
+caller is a derived work" - *anyone* who can see definition of
+file_operations can bloody well open-code it.  There isn't anything
+establishing derivation here.
 
-That makes no sense at all.  What would ever pass O_PATH opens
-from "noaccount" call site?
+Hell, it could've been a static inline in include/linux/fs.h and it would
+neither differ from many other inlines in there nor need an export at all.
+
+This is really getting close to lxo-worthy levels of bogosity...
+
+More interesting question is why do we want to pass those ioctls to layers
+in the first place, especially if it's something with different availability
+(or, worse yet, argument layouts) before and after copyup.
