@@ -1,48 +1,33 @@
 From: Al Viro <viro@ZenIV.linux.org.uk>
-Subject: Re: [GIT PULL] overlayfs update for 4.18
-Date: Sun, 10 Jun 2018 06:54:38 +0100
-Message-ID: <20180610055326.GR30522@ZenIV.linux.org.uk>
-References: <20180608121330.GG23785@veci.piliscsaba.redhat.com>
- <20180609065208.GA31572@infradead.org>
+Subject: Re: [PATCH 09/11] vfs: factor out inode_insert5()
+Date: Sun, 10 Jun 2018 07:02:15 +0100
+Message-ID: <20180610060159.GS30522@ZenIV.linux.org.uk>
+References: <20180529144143.16378-1-mszeredi@redhat.com>
+ <20180529144143.16378-10-mszeredi@redhat.com>
+ <20180610054902.GQ30522@ZenIV.linux.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20180609065208.GA31572@infradead.org>
+In-Reply-To: <20180610054902.GQ30522@ZenIV.linux.org.uk>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Christoph Hellwig <hch@infradead.org>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, Linus Torvalds <torvalds@linux-foundation.org>, linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org
+To: Miklos Szeredi <mszeredi@redhat.com>
+Cc: linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 
-On Fri, Jun 08, 2018 at 11:52:08PM -0700, Christoph Hellwig wrote:
-> On Fri, Jun 08, 2018 at 02:13:30PM +0200, Miklos Szeredi wrote:
-> > Hi Linus,
+On Sun, Jun 10, 2018 at 06:49:10AM +0100, Al Viro wrote:
+> On Tue, May 29, 2018 at 04:41:41PM +0200, Miklos Szeredi wrote:
+> > From: Miklos Szeredi <miklos@szeredi.hu>
 > > 
-> > Please pull from:
-> > 
-> >   git://git.kernel.org/pub/scm/linux/kernel/git/mszeredi/vfs.git tags/ovl-update-4.18
-> > 
-> > This contains two new features:
-> > 
-> >  1) Stack file operations: this allows removal of several hacks from the
-> >     VFS, proper interaction of read-only open files with copy-up,
-> >     possibility to implement fs modifying ioctls properly, and others.
+> > Split out common helper for race free insertion of an already allocated
+> > inode into the cache.  Use this from iget5_locked() and
+> > insert_inode_locked4().  Make iget5_locked() use new_inode()/iput() instead
+> > of alloc_inode()/destroy_inode() directly.
 > 
-> Which includews all kinds of NAKed or at least non-acked VFS changes.
+> ... thus hitting the sucker with ->evict_inode(), in condition that is quite
+> likely to be unfit to be seen by that.
+> 
+> NAK.
 
-Umm...  The worst of yours had been ->pre_mmap(), right?  He *did* drop that...
-
-> Please get these through Als tree after proper review first.
-
-OK, summary of sort (see fsdevel thread for details):
-	* path_open() is dubious; why not simply use vfsmount/dentry from the
-right layer when opening an underlying file?  Then it would be vfs_open()...
-	* ovl_mmap() is broken, plain and simple.  Failure ends up leaking
-a layer struct file *and* doing double fput() on overlayfs one.
-	* ovl_mmap() is also trivially DoSable - you can trigger tons and tons
-of reopens, each sticking a new (writable layer) struct file into a vma.
-We *do* want some scheme avoiding once-per-operations reopens in the
-copied-up-after-r/o-open case.  See possible kinda-sorta solution on fsdevel;
-I'm not sure I like it, though.
-
-The rest is pretty minor.
+To clarify: objection here is against the switch to new_inode/iput.  The rest is
+sane.  What makes new_inode() better here, anyway?
