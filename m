@@ -1,75 +1,48 @@
 From: Miklos Szeredi <miklos@szeredi.hu>
-Subject: Re: [PATCH 14/39] ovl: stack file ops
-Date: Mon, 11 Jun 2018 09:09:04 +0200
-Message-ID: <CAJfpegtEGuBqmJ+6Kzd0456o0xyebe3LBk66xWQcuzsenqKVeg@mail.gmail.com>
-References: <20180529144339.16538-1-mszeredi@redhat.com> <20180529144339.16538-15-mszeredi@redhat.com>
- <20180610041243.GJ30522@ZenIV.linux.org.uk>
+Subject: Re: [PATCH 07/39] vfs: export vfs_ioctl() to modules
+Date: Mon, 11 Jun 2018 09:19:01 +0200
+Message-ID: <CAJfpegtGtAR25qWgpNisvL8F51h3K6s44zkWBSVVbqecut6tBQ@mail.gmail.com>
+References: <20180529144339.16538-1-mszeredi@redhat.com> <20180529144339.16538-8-mszeredi@redhat.com>
+ <20180604084904.GF11333@infradead.org> <20180610045657.GM30522@ZenIV.linux.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180610041243.GJ30522@ZenIV.linux.org.uk>
+In-Reply-To: <20180610045657.GM30522@ZenIV.linux.org.uk>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Miklos Szeredi <mszeredi@redhat.com>, overlayfs <linux-unionfs@vger.kernel.org>, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Christoph Hellwig <hch@infradead.org>, Miklos Szeredi <mszeredi@redhat.com>, overlayfs <linux-unionfs@vger.kernel.org>, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 
-On Sun, Jun 10, 2018 at 6:13 AM, Al Viro <viro@zeniv.linux.org.uk> wrote:
-> On Tue, May 29, 2018 at 04:43:14PM +0200, Miklos Szeredi wrote:
->> Implement file operations on a regular overlay file.  The underlying file
->> is opened separately and cached in ->private_data.
+On Sun, Jun 10, 2018 at 6:57 AM, Al Viro <viro@zeniv.linux.org.uk> wrote:
+> On Mon, Jun 04, 2018 at 01:49:04AM -0700, Christoph Hellwig wrote:
+>> On Tue, May 29, 2018 at 04:43:07PM +0200, Miklos Szeredi wrote:
+>> > This is needed by the stacked ioctl implementation in overlayfs.
 >>
->> It might be worth making an exception for such files when accounting in
->> nr_file to confirm to userspace expectations.  We are only adding a small
->> overhead (248bytes for the struct file) since the real inode and dentry are
->> pinned by overlayfs anyway.
->>
->> This patch doesn't have any effect, since the vfs will use d_real() to find
->> the real underlying file to open.  The patch at the end of the series will
->> actually enable this functionality.
+>> EXPORT_SYMBOL_GPL for exporting random internals, please.  Same
+>> for any following patches.
 >
->> +static struct file *ovl_open_realfile(const struct file *file)
->> +{
->> +     struct inode *inode = file_inode(file);
->> +     struct inode *upperinode = ovl_inode_upper(inode);
->> +     struct inode *realinode = upperinode ?: ovl_inode_lower(inode);
->> +     struct file *realfile;
->> +     const struct cred *old_cred;
->> +
->> +     old_cred = ovl_override_creds(inode->i_sb);
->> +     realfile = path_open(&file->f_path, file->f_flags | O_NOATIME,
->> +                          realinode, current_cred(), false);
->> +     revert_creds(old_cred);
->> +
->> +     pr_debug("open(%p[%pD2/%c], 0%o) -> (%p, 0%o)\n",
->> +              file, file, upperinode ? 'u' : 'l', file->f_flags,
->> +              realfile, IS_ERR(realfile) ? 0 : realfile->f_flags);
->> +
->> +     return realfile;
->> +}
+> *blink*
 >
-> IDGI.  OK, you open a file in the layer you want; good, but why the hell do you
-> *not* use the dentry/vfsmount from the same layer?
+> Christoph, get real and RTFS - vfs_ioctl() simply calls ->unlocked_ioctl();
+> all there is to it.
 >
-> IOW, why does your path_open() get an explicit inode argument at all?  With the
-> rest of the work done in that series it looks like you should be able to use
-> vfs_open() instead...  Sure, for ovlfs file you want ->f_path on overlayfs and
-> not in a layer, but why do the same for those?
+> This isn't even a case of "using that function establishes that the
+> caller is a derived work" - *anyone* who can see definition of
+> file_operations can bloody well open-code it.  There isn't anything
+> establishing derivation here.
+>
+> Hell, it could've been a static inline in include/linux/fs.h and it would
+> neither differ from many other inlines in there nor need an export at all.
+>
+> This is really getting close to lxo-worthy levels of bogosity...
+>
+> More interesting question is why do we want to pass those ioctls to layers
+> in the first place, especially if it's something with different availability
+> (or, worse yet, argument layouts) before and after copyup.
 
-I'd really like to get there some time but...
-
-List of basic requirements:
-
- - Private mmap of overlay file shares page cache with lower file (and
-hence with all other overlays using the same lower file).
-
- - /proc/PID/maps shows correct path.
-
-Thought about setting f_mapping/i_mapping of overlay file to that of
-underlying file.  But that breaks when doing a copy-up.  We can't just
-go and change those mapping pointers, assumption is that those remain
-constant (we'd need READ_ONCE() for all cases where we use the mapping
-more than once).  It's probably doable, but it's a large and fragile
-change.
+We don't.  Obviously need to make sure to only ever do ioctl's in
+overlayfs that have a common definition across filesystems.  Not a lot
+of those, luckily...
 
 Thanks,
 Miklos
