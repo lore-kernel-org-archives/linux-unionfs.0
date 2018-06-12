@@ -1,74 +1,84 @@
 From: Miklos Szeredi <miklos@szeredi.hu>
-Subject: Re: [PATCH 14/39] ovl: stack file ops
-Date: Tue, 12 Jun 2018 11:24:39 +0200
-Message-ID: <CAJfpegvUkcUw0GXxFesT6V2f27EXW7jkvBpvnG4XB49BPdvjjA@mail.gmail.com>
-References: <20180529144339.16538-1-mszeredi@redhat.com> <20180529144339.16538-15-mszeredi@redhat.com>
- <20180610041243.GJ30522@ZenIV.linux.org.uk> <CAJfpegtEGuBqmJ+6Kzd0456o0xyebe3LBk66xWQcuzsenqKVeg@mail.gmail.com>
- <20180612022926.GY30522@ZenIV.linux.org.uk> <20180612024029.GZ30522@ZenIV.linux.org.uk>
+Subject: Re: [PATCH 09/11] vfs: factor out inode_insert5()
+Date: Tue, 12 Jun 2018 14:38:40 +0200
+Message-ID: <20180612123840.GJ23785@veci.piliscsaba.redhat.com>
+References: <20180529144143.16378-1-mszeredi@redhat.com>
+ <20180529144143.16378-10-mszeredi@redhat.com>
+ <20180610054902.GQ30522@ZenIV.linux.org.uk>
+ <20180610060159.GS30522@ZenIV.linux.org.uk>
+ <CAJfpegt5guR3zJeATw4-N41Ad2n9pcB5mQoLmSLOfocnEoodVg@mail.gmail.com>
+ <20180611113230.GI23785@veci.piliscsaba.redhat.com>
+ <20180611164355.GV30522@ZenIV.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180612024029.GZ30522@ZenIV.linux.org.uk>
+Content-Disposition: inline
+In-Reply-To: <20180611164355.GV30522@ZenIV.linux.org.uk>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Miklos Szeredi <mszeredi@redhat.com>, overlayfs <linux-unionfs@vger.kernel.org>, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, Linus Torvalds <torvalds@linux-foundation.org>
+To: Al Viro <viro@ZenIV.linux.org.uk>
+Cc: Miklos Szeredi <mszeredi@redhat.com>, overlayfs <linux-unionfs@vger.kernel.org>, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 
-On Tue, Jun 12, 2018 at 4:40 AM, Al Viro <viro@zeniv.linux.org.uk> wrote:
-> On Tue, Jun 12, 2018 at 03:29:26AM +0100, Al Viro wrote:
->
->> It might (or might not) work for the filesystems you'd been testing
->> on, but it's a lot of trouble waiting to happen.  Hell, try and use
->> ecryptfs as lower layer, see how fast it'll blow up.  Sure, it's
->> a dumb testcase, but I don't see how to check if something more
->> realistic is trouble-free.
+On Mon, Jun 11, 2018 at 05:43:55PM +0100, Al Viro wrote:
+> On Mon, Jun 11, 2018 at 01:32:30PM +0200, Miklos Szeredi wrote:
+> 
+> > Incremental follows.  I think it's cleaner to initialize i_state and i_sb_list
+> > up front (hence the use of new_inode()), but could just as well add to sb list
+> > afterwards.
+> 
+> > ---
+> > diff --git a/fs/inode.c b/fs/inode.c
+> > index 0df41bb77e0f..03c0d7c1296f 100644
+> > --- a/fs/inode.c
+> > +++ b/fs/inode.c
+> > @@ -1098,8 +1098,10 @@ struct inode *iget5_locked(struct super_block *sb, unsigned long hashval,
+> >  
+> >  		if (new) {
+> >  			inode = inode_insert5(new, hashval, test, set, data);
+> > -			if (unlikely(inode != new))
+> > -				iput(new);
+> > +			if (unlikely(inode != new)) {
+> > +				inode_sb_list_del(inode);
+> > +				destroy_inode(new);
+> > +			}
+> 
+> The thing is, until you put it into the list, it's invisible to everyone other
+> than iget5_locked() - no references in any shared data structures.  Which
+> outweighs the "it's somewhat irregular in not being on the list" considerably,
+> as far as the complexity of analysis goes, especially since there are inodes
+> that never get on that list and it's not something exotic - all sockets and
+> pipes are that way, for starters.  So IMO that should be dealt with in
+> inode_insert5().
 
-That's funny, because when dhowells added the patch to make f_path
-point to the overlay, I was fighting tooth and claw against that
-change on the grounds of being unsafe, but it went through regardless
-(and was in fact one of the biggest headaches in overlay/vfs
-interaction).
+Not sure I understand.
 
-So you might be right that there are bugs in the handling of ecryptfs,
-etc, however the patchset is guaranteed not to cause regressions in
-this area.
+We can put inode_sb_list_add() into inode_insert5().  Then what about users of
+new_inode() + insert_inode_locked4()?  Those supply an inode that is already on
+the sb list.
 
-And yes, it would be best to get rid of that kludge once and for all.
+What about adding to the list after inode_insert5() in the new inode case.
 
->>
->> I'd been trying to come up with some way to salvage that kludge of yours,
->> but I don't see any solutions.  We don't have good proxies for "this
->> filesystem might be unsafe as lower layer" ;-/
->
-> Note that anything that uses file_dentry() anywhere near ->open(),
-> ->read_iter() or ->write_iter() is an instant trouble with your scheme.
-> Such as
-> int nfs_open(struct inode *inode, struct file *filp)
-> {
->         struct nfs_open_context *ctx;
->
->         ctx = alloc_nfs_open_context(file_dentry(filp), filp->f_mode, filp);
->         if (IS_ERR(ctx))
->                 return PTR_ERR(ctx);
->         nfs_file_set_open_context(filp, ctx);
->         put_nfs_open_context(ctx);
->         nfs_fscache_open_file(inode, filp);
->         return 0;
-> }
->
-> You do want to support NFS for lower layers, right?
+This should be equivalent to what we do currently, AFAICS.
 
-There's no change regarding how file_dentry() works.  We've just
-pushed these weird files (f_path points to overlay, f_inode points to
-underlay) down into the guts of overlayfs and are not directly
-referenced from the file table anymore.  That shouldn't make *any*
-difference from the lower fs's pov.
-
-The only difference is that now the real file has creds inherited from
-mounter task.  If lower filesystem's a_ops did some permission
-checking based on that, then that might make a difference in behavior.
-But I guess that difference would be in the positive direction, making
-behavior more consistent.
-
-Thanks,
-Miklos
+---
+diff --git a/fs/inode.c b/fs/inode.c
+index 0df41bb77e0f..ad03d4abc600 100644
+--- a/fs/inode.c
++++ b/fs/inode.c
+@@ -1094,12 +1094,14 @@ struct inode *iget5_locked(struct super_block *sb, unsigned long hashval,
+ 	struct inode *inode = ilookup5(sb, hashval, test, data);
+ 
+ 	if (!inode) {
+-		struct inode *new = new_inode(sb);
++		struct inode *new = new_inode_pseudo(sb);
+ 
+ 		if (new) {
+ 			inode = inode_insert5(new, hashval, test, set, data);
+ 			if (unlikely(inode != new))
+-				iput(new);
++				destroy_inode(new);
++			else
++				inode_sb_list_add(inode);
+ 		}
+ 	}
+ 	return inode;
