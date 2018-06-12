@@ -1,84 +1,65 @@
-From: Miklos Szeredi <miklos@szeredi.hu>
-Subject: Re: [PATCH 09/11] vfs: factor out inode_insert5()
-Date: Tue, 12 Jun 2018 14:38:40 +0200
-Message-ID: <20180612123840.GJ23785@veci.piliscsaba.redhat.com>
-References: <20180529144143.16378-1-mszeredi@redhat.com>
- <20180529144143.16378-10-mszeredi@redhat.com>
- <20180610054902.GQ30522@ZenIV.linux.org.uk>
- <20180610060159.GS30522@ZenIV.linux.org.uk>
- <CAJfpegt5guR3zJeATw4-N41Ad2n9pcB5mQoLmSLOfocnEoodVg@mail.gmail.com>
- <20180611113230.GI23785@veci.piliscsaba.redhat.com>
- <20180611164355.GV30522@ZenIV.linux.org.uk>
+From: Al Viro <viro@ZenIV.linux.org.uk>
+Subject: Re: [PATCH 14/39] ovl: stack file ops
+Date: Tue, 12 Jun 2018 19:24:23 +0100
+Message-ID: <20180612182423.GA30522@ZenIV.linux.org.uk>
+References: <20180529144339.16538-1-mszeredi@redhat.com>
+ <20180529144339.16538-15-mszeredi@redhat.com>
+ <20180610041243.GJ30522@ZenIV.linux.org.uk>
+ <CAJfpegtEGuBqmJ+6Kzd0456o0xyebe3LBk66xWQcuzsenqKVeg@mail.gmail.com>
+ <20180612022926.GY30522@ZenIV.linux.org.uk>
+ <20180612024029.GZ30522@ZenIV.linux.org.uk>
+ <CAJfpegvUkcUw0GXxFesT6V2f27EXW7jkvBpvnG4XB49BPdvjjA@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20180611164355.GV30522@ZenIV.linux.org.uk>
+In-Reply-To: <CAJfpegvUkcUw0GXxFesT6V2f27EXW7jkvBpvnG4XB49BPdvjjA@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Al Viro <viro@ZenIV.linux.org.uk>
-Cc: Miklos Szeredi <mszeredi@redhat.com>, overlayfs <linux-unionfs@vger.kernel.org>, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: Miklos Szeredi <mszeredi@redhat.com>, overlayfs <linux-unionfs@vger.kernel.org>, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, Linus Torvalds <torvalds@linux-foundation.org>
 List-Id: linux-unionfs@vger.kernel.org
 
-On Mon, Jun 11, 2018 at 05:43:55PM +0100, Al Viro wrote:
-> On Mon, Jun 11, 2018 at 01:32:30PM +0200, Miklos Szeredi wrote:
+On Tue, Jun 12, 2018 at 11:24:39AM +0200, Miklos Szeredi wrote:
+
+> > Note that anything that uses file_dentry() anywhere near ->open(),
+> > ->read_iter() or ->write_iter() is an instant trouble with your scheme.
+> > Such as
+> > int nfs_open(struct inode *inode, struct file *filp)
+> > {
+> >         struct nfs_open_context *ctx;
+> >
+> >         ctx = alloc_nfs_open_context(file_dentry(filp), filp->f_mode, filp);
+> >         if (IS_ERR(ctx))
+> >                 return PTR_ERR(ctx);
+> >         nfs_file_set_open_context(filp, ctx);
+> >         put_nfs_open_context(ctx);
+> >         nfs_fscache_open_file(inode, filp);
+> >         return 0;
+> > }
+> >
+> > You do want to support NFS for lower layers, right?
 > 
-> > Incremental follows.  I think it's cleaner to initialize i_state and i_sb_list
-> > up front (hence the use of new_inode()), but could just as well add to sb list
-> > afterwards.
-> 
-> > ---
-> > diff --git a/fs/inode.c b/fs/inode.c
-> > index 0df41bb77e0f..03c0d7c1296f 100644
-> > --- a/fs/inode.c
-> > +++ b/fs/inode.c
-> > @@ -1098,8 +1098,10 @@ struct inode *iget5_locked(struct super_block *sb, unsigned long hashval,
-> >  
-> >  		if (new) {
-> >  			inode = inode_insert5(new, hashval, test, set, data);
-> > -			if (unlikely(inode != new))
-> > -				iput(new);
-> > +			if (unlikely(inode != new)) {
-> > +				inode_sb_list_del(inode);
-> > +				destroy_inode(new);
-> > +			}
-> 
-> The thing is, until you put it into the list, it's invisible to everyone other
-> than iget5_locked() - no references in any shared data structures.  Which
-> outweighs the "it's somewhat irregular in not being on the list" considerably,
-> as far as the complexity of analysis goes, especially since there are inodes
-> that never get on that list and it's not something exotic - all sockets and
-> pipes are that way, for starters.  So IMO that should be dealt with in
-> inode_insert5().
+> There's no change regarding how file_dentry() works.  We've just
+> pushed these weird files (f_path points to overlay, f_inode points to
+> underlay) down into the guts of overlayfs and are not directly
+> referenced from the file table anymore.  That shouldn't make *any*
+> difference from the lower fs's pov.
 
-Not sure I understand.
+*owwww*
+I'd managed to push that particular nest of horrors out of mind ;-/
+Having dug out my notes from back then and grepped around...  The real
+mess is not even /proc/*/maps - it's /proc/*/map_files/* and yes, the
+reasons for that kludge are still valid ;-/
 
-We can put inode_sb_list_add() into inode_insert5().  Then what about users of
-new_inode() + insert_inode_locked4()?  Those supply an inode that is already on
-the sb list.
+Fuck.  OK, so we want to get rid of ->f_path.dentry accesses and see
+that they don't come back.  Leaving them around due to "it won't come
+anywhere near overlayfs" was a mistake of the same kind as leaving
+d_add() in ->lookup() instances where we'd been certain that filesystem
+would never get exported over NFS.  Just as we'd got open-by-handle for
+e.g. NFS, we'd got nothing to prevent ecryptfs as lower layer in
+overlayfs...
 
-What about adding to the list after inode_insert5() in the new inode case.
-
-This should be equivalent to what we do currently, AFAICS.
-
----
-diff --git a/fs/inode.c b/fs/inode.c
-index 0df41bb77e0f..ad03d4abc600 100644
---- a/fs/inode.c
-+++ b/fs/inode.c
-@@ -1094,12 +1094,14 @@ struct inode *iget5_locked(struct super_block *sb, unsigned long hashval,
- 	struct inode *inode = ilookup5(sb, hashval, test, data);
- 
- 	if (!inode) {
--		struct inode *new = new_inode(sb);
-+		struct inode *new = new_inode_pseudo(sb);
- 
- 		if (new) {
- 			inode = inode_insert5(new, hashval, test, set, data);
- 			if (unlikely(inode != new))
--				iput(new);
-+				destroy_inode(new);
-+			else
-+				inode_sb_list_add(inode);
- 		}
- 	}
- 	return inode;
+I hate it, but... consider path_open() objections withdrawn for now.
+Uses of ->vm_file (and rules for those) are too convoluted to untangle
+at the moment.  I still would love to get that straightened out, but
+it's not this cycle fodder, more's the pity...
