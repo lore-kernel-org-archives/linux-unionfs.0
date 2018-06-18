@@ -1,63 +1,36 @@
-From: Miklos Szeredi <miklos@szeredi.hu>
-Subject: Re: [PATCH 01/39] vfs: dedpue: return loff_t
-Date: Mon, 18 Jun 2018 22:08:54 +0200
-Message-ID: <CAJfpeguMN4t80cUCxyTxeHW9_Hb61DzDRPzTa371dc2YQRHuZQ@mail.gmail.com>
-References: <20180529144339.16538-1-mszeredi@redhat.com> <20180529144339.16538-2-mszeredi@redhat.com>
- <20180604084336.GA11333@infradead.org> <CAJfpegun8HyjODXguHstxYrGE2nuSoCCicaHT3yfYWMkxxmVWg@mail.gmail.com>
- <20180606150905.GC9426@magnolia>
+From: Mark Salyzyn <salyzyn@android.com>
+Subject: Re: overlayfs: caller_credentials option bypass creator_cred
+Date: Mon, 18 Jun 2018 14:59:50 -0700
+Message-ID: <aecdeaca-74cf-54b1-3ea9-4751972074f5@android.com>
+References: <20180618154222.19279-1-salyzyn@android.com>
+ <20180618185448.GA8749@redhat.com>
+ <f141f883-0dbd-10ea-83b9-a1b38119b0c5@android.com>
+ <20180618194345.GA15973@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180606150905.GC9426@magnolia>
+In-Reply-To: <20180618194345.GA15973@redhat.com>
+Content-Language: en-GB
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Darrick J. Wong" <darrick.wong@oracle.com>
-Cc: Christoph Hellwig <hch@infradead.org>, Miklos Szeredi <mszeredi@redhat.com>, overlayfs <linux-unionfs@vger.kernel.org>, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, linux-xfs <linux-xfs@vger.kernel.org>, ocfs2-devel@oss.oracle.com
+To: Vivek Goyal <vgoyal@redhat.com>
+Cc: linux-kernel@vger.kernel.org, Miklos Szeredi <miklos@szeredi.hu>, Jonathan Corbet <corbet@lwn.net>, linux-unionfs@vger.kernel.org, linux-doc@vger.kernel.org, Daniel Walsh <dwalsh@redhat.com>, Stephen Smalley <sds@tycho.nsa.gov>
 List-Id: linux-unionfs@vger.kernel.org
 
-On Wed, Jun 6, 2018 at 5:09 PM, Darrick J. Wong <darrick.wong@oracle.com> wrote:
-> On Tue, Jun 05, 2018 at 10:33:22AM +0200, Miklos Szeredi wrote:
->> On Mon, Jun 4, 2018 at 10:43 AM, Christoph Hellwig <hch@infradead.org> wrote:
->> > On Tue, May 29, 2018 at 04:43:01PM +0200, Miklos Szeredi wrote:
->> >> f_op->dedupe_file_range() gets a u64 length to dedup and returns an ssize_t
->> >> actual length deduped.  This breaks badly on 32bit archs since the returned
->> >> length will be truncated and possibly overflow into the sign bit (xfs and
->> >> ocfs2 are affected, btrfs limits actual length to 16MiB).
->> >
->> > Can we just make it return 0 vs errno?  The only time we return
->> > a different length than the one passed in is due to the btrfs cap.
->> >
->> > Given that this API started out on btrfs we should just do the cap
->> > everywhere to not confuse userspace.
->>
->> And that's a completely arbitrary cap; sure btrfs started out with
->> that, but there's no fundamental reason for that becoming the global
->> limit.  Xfs now added a different, larger limit, so based on what
->> reason should that limit be reduced?
->>
->> I don't care either way, but at this stage I'm not going to change
->> this patch, unless there's a very good reason to do so, because if I
->> do someone will come and suggest another improvement, ad-infinitum...
->
-> I think we should hoist the MAX_RW_COUNT/2 limit to the VFS helpers
-> since afaict we generally cap max IO per call at MAX_RW_COUNT.
+On 06/18/2018 12:43 PM, Vivek Goyal wrote:
+> Will it be acceptable to write security policies in such a way so that
+> mounter has access as well.
+Unfortunately No. Policy of minimizing attack surface for a contained 
+root service (init in this case). Just because it can mount, does not 
+mean it can modify critical content; an attacker could use this to open 
+a hole.
 
-I don't quite get it.   That MAX_RW_COUNT is to protect against
-overflows in signed int.
+> Current model does assume that mounter has privileges on underlying files.
 
-Here we have a 64bit interface, so that's irrelevant, we can invent
-any cap we want.  Lets choose our favorite bike shed size.  Mine is
-1G.  But if that turns out too limiting it can be raised arbitrarily
-later.
+Only ones it appears to need is the workdir AFAIK, had to add ability to 
+create in the <wordir> xattr in order to enable r/w mounts later. 
+Although not all corners were tested, I did not see any copy_up issues 
+b/c the caller had the privs in the Android security model when mounted 
+with this new flag.
 
->  (I
-> probably should've capped ocfs2 back when I did xfs, but forgot).  If
-> btrfs wants to keep their lower (16M) limit then they're free to do so;
-> the interface documentation allows for this.  One of the btrfs
-> developers seems to be working on a patch series to raise the limit[1]
-> anyway.
-
-Yep, that got upstreamed now.  Which is good, we can just return zero
-or error from ->dedupe_file_range() and be done with that.
-
-Thanks,
-Miklos
+-- Mark
