@@ -1,40 +1,40 @@
-Return-Path: <amir73il@gmail.com>
-Return-Path: <amir73il@gmail.com>
-From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH 0/2] Overlayfs tests for consistent ro/rw fd
-Date: Fri,  1 Jun 2018 13:44:15 +0300
-Message-Id: <1527849857-22951-1-git-send-email-amir73il@gmail.com>
-To: Eryu Guan <guaneryu@gmail.com>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, Vivek Goyal <vgoyal@redhat.com>, linux-unionfs@vger.kernel.org, fstests@vger.kernel.org
+Return-Path: <cgxu519@gmx.com>
+From: Chengguang Xu <cgxu519@gmx.com>
+Subject: [PATCH] ovl: using posix_acl_xattr_size() to get size instead of posix_acl_to_xattr()
+Date: Fri, 22 Jun 2018 09:49:36 +0800
+Message-Id: <20180622014936.28464-1-cgxu519@gmx.com>
+To: miklos@szeredi.hu
+Cc: linux-unionfs@vger.kernel.org, Chengguang Xu <cgxu519@gmx.com>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-Eryu,
+There is no functional change but it seems better to get size by calling
+posix_acl_xattr_size() instead of calling posix_acl_to_xattr() with
+NULL buffer argument. Additionally, remove unnecessary assignments.
 
-These changes prepare overlay tests to pass on Miklos
-overlayfs-next branch.
+Signed-off-by: Chengguang Xu <cgxu519@gmx.com>
+---
+ fs/overlayfs/dir.c | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-Running -g overlay/quick on master only test overlay/016
-is failing and tests overlay/060 (from Vivek) and overlay/061
-are not run.
-
-With overlayfs-next, all -g overlay/quick tests run and pass.
-
-Thanks,
-Amir.
-
-Amir Goldstein (2):
-  overlay: nicer report when features are not supported
-  overlay/016: split into two tests
-
- common/overlay        |  9 +++---
- tests/overlay/016     | 14 ---------
- tests/overlay/016.out |  3 --
- tests/overlay/061     | 85 +++++++++++++++++++++++++++++++++++++++++++++++++++
- tests/overlay/061.out |  4 +++
- tests/overlay/group   |  1 +
- 6 files changed, 95 insertions(+), 21 deletions(-)
- create mode 100755 tests/overlay/061
- create mode 100644 tests/overlay/061.out
-
+diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
+index f480b1a2cd2e..51c0ae62da0d 100644
+--- a/fs/overlayfs/dir.c
++++ b/fs/overlayfs/dir.c
+@@ -412,13 +412,12 @@ static int ovl_set_upper_acl(struct dentry *upperdentry, const char *name,
+ 	if (!IS_ENABLED(CONFIG_FS_POSIX_ACL) || !acl)
+ 		return 0;
+ 
+-	size = posix_acl_to_xattr(NULL, acl, NULL, 0);
++	size = posix_acl_xattr_size(acl->a_count);
+ 	buffer = kmalloc(size, GFP_KERNEL);
+ 	if (!buffer)
+ 		return -ENOMEM;
+ 
+-	size = posix_acl_to_xattr(&init_user_ns, acl, buffer, size);
+-	err = size;
++	err = posix_acl_to_xattr(&init_user_ns, acl, buffer, size);
+ 	if (err < 0)
+ 		goto out_free;
+ 
 -- 
-2.7.4
+2.17.1
