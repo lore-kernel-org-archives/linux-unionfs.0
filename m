@@ -1,124 +1,79 @@
 From: Mark Salyzyn <salyzyn@android.com>
 Subject: Re: [PATCH v4] overlayfs: override_creds=off option bypass
  creator_cred
-Date: Mon, 25 Jun 2018 08:00:34 -0700
-Message-ID: <4fb5e265-c72d-81be-489b-9f06e3db4218@android.com>
+Date: Mon, 25 Jun 2018 09:07:02 -0700
+Message-ID: <058082af-c3cd-9d0a-8d5c-1999703342d0@android.com>
 References: <20180622171605.52989-1-salyzyn@android.com>
- <20180625123800.GA10739@redhat.com>
+ <CAOQ4uxiUaJHZ5coUNwH1ZYQjVB8dmAo0Y0bDKOmZM81tzCqC8g@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180625123800.GA10739@redhat.com>
+In-Reply-To: <CAOQ4uxiUaJHZ5coUNwH1ZYQjVB8dmAo0Y0bDKOmZM81tzCqC8g@mail.gmail.com>
 Content-Language: en-GB
 Sender: linux-kernel-owner@vger.kernel.org
-To: Vivek Goyal <vgoyal@redhat.com>
-Cc: linux-kernel@vger.kernel.org, Miklos Szeredi <miklos@szeredi.hu>, Jonathan Corbet <corbet@lwn.net>, "Eric W . Biederman" <ebiederm@xmission.com>, Amir Goldstein <amir73il@gmail.com>, Randy Dunlap <rdunlap@infradead.org>, linux-unionfs@vger.kernel.org, linux-doc@vger.kernel.org
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: linux-kernel <linux-kernel@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>, Jonathan Corbet <corbet@lwn.net>, Vivek Goyal <vgoyal@redhat.com>, "Eric W . Biederman" <ebiederm@xmission.com>, Randy Dunlap <rdunlap@infradead.org>, overlayfs <linux-unionfs@vger.kernel.org>, linux-doc@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 
-NB: Amir has asked for me to itemize all the gotcha and security 
-concerns of this feature.
-
-On 06/25/2018 05:38 AM, Vivek Goyal wrote:
-> On Fri, Jun 22, 2018 at 10:16:02AM -0700, Mark Salyzyn wrote:
->> By default, all access to the upper, lower and work directories is the
->> recorded mounter's MAC and DAC credentials.  The incoming accesses are
->> checked against the caller's credentials.
->>
->> If the principles of least privilege are applied, the mounter's
->> credentials might not overlap the credentials of the caller's when
->> accessing the overlayfs filesystem.  For example, a file that a lower
->> DAC privileged caller can execute, is MAC denied to the generally
->> higher DAC privileged mounter, to prevent an attack vector.
-> Hi Mark,
+On 06/22/2018 11:46 PM, Amir Goldstein wrote:
+> Mark,
 >
-> I am wondering, what does it mean that caller is privileged enough to do
-> mknod and set trusted xattrs but it does not have privileges to do mount.
-> If caller is privileged, then it can do mount as well?
-There is only one process, with one set of MAC and DAC security policy, 
-to perform the mounting. There are multitudes of callers that have 
-individually different and non-overlapping MAC and DAC security 
-policies. Some can mount, do mknod, even set xattr, some can not. mount, 
-mknod and xattr in MAC (selinux) rules can individually be controlled. 
-The issues encountered are that the mounter (init) does _not_ have 
-access privileges uniformly to all the files represented by the 
-filesystem, it can not create device nodes. Another caller (adb root) 
-will have mknod and xattr privileges, and yet another caller 
-(system_server for example) has execute privileges for libraries that 
-the mounter (init) does not.
-> Or, what does it mean that a mounter can mount (hence providing access
-> to certain resources on the system) but then mounter itself does not
-> have access to those resources. If mounter does not have access to
-> those resources, then mounter should not be allowed to do the mount
-> and provide access to those resources to a third person?
-Every resource has a MAC (selinux) label in the file system. For 
-example, If the mounter has no vested interest in the ability to create. 
-read or execute the resources, than the mounter will not be granted 
-those rights. The labels are granted a list of rights to a specific 
-"third person", not just _any_ third person.
+> Thanks for the properly documented patch, but this documentation it
+> missing the caveats of this config option and there are severe caveats
+> as was discussed on earlier version of the patch.
 >
-> For example, SELinux context= mount option. So here mounter can create
-> a mount point with label context=foo, and provide access to underlying
-> files/dirs to the caller. Now if mounter itself does not have access
-> to resources on which mount is being created, then how it is supposed
-> to provide that access to unprivileged caller?
+> You should mention the not so minor detail that this option can result
+> in inability to delete files/directories from overlay and there me be other
+> side effects. This is one of those features that should be warning
+> unconditionally that user should really know what user is doing
+Agreed, I would like to prevent it becoming a treatise ...
 
-Not using that option, can't use it, really part of a less security 
-conscious policy. obviously does not work in Android's security model. 
-If we did, and it had blanket rights to do so, the mounter could be 
-granting "random third parties" rights to files that have some specific 
-controlled contexts.
-
-Are you telling me to use the options to grant a string privilege hole, 
-I'd say context= is a far more serious security problem and we need to 
-suppress it's use (!). It is meant to mount untrusted/removable disks, 
-by labelling all contexts at a lowest point, for instance 
-u:object_r:untrusted_file:s0 so that we get no surprises of a strong 
-source context from the filesystem.
-> Going by your analogy of init being attacked, then one simply have to
-> attack init and trick it to mount something with context=foo and gain
-> access to resources mounter itself could not access.
-Yes, they could. Perhaps both our examples are part of Argumentii 
-Absurdum in their simplicity; but alas in Android there are _two_ inits, 
-one that has a limited access to _system_ resources, and another that 
-has limited access to _vendor_ system resources, and the neither is 
-supposed to have blanket rights to the other's resources. Their 
-overlayfs mounts will reflect the privileges.
-> While my example is fully valid for disks, it is not fully valid for
-> overlay as we do two level of checks for many operations. So while overlay
-> inode level check will pass due to context=, underlying file system check
-> will fail. But this two level of checks does not happen outside overlay.
-> SELinux is not aware of stacking of filesystems so it could just do check
-> on overlay inode. So if a caller opens a file and passes file descriptor
-> to another process who is not supposed to access file, with context= mounts,
-> I think SELinux will allow access as second process is allowed to access
-> overlay inode.
-Again, if we use context= mounts, the file privileges will be low, as in 
-all applications, save for a trusted few with careful control, are 
-blocked from u:object_r:untrusted_file:s0. In android, when Fds are 
-passed around, the privilege of the caller will protect the fd from 
-being abused by a third party. Obviously this allows the open privileges 
-of the first caller to be bypassed for the second, but it will clearly 
-block based on the source and target contexts for the file resource and 
-the second caller's access privileges.
+The upperdir tree should match the privileges of the lower tree, and in 
+Android that is enforced by a hard-coded built-in map (fs_config for 
+DAC, restorecon map for MAC) for the caller writers that never causes 
+unexpected adjustments (famous last wurds). The active 
+(writers/creators) callers have _more_ privileges than init 
+(creator/mounter), and are only available on development (userdebug) 
+builds. All else are passive (readers), and although less privileged 
+than init, have demonstrable read MAC privs where init does not.
+> You did not address my concern that the test for setting trusted xattr
+> on mount (ovl_make_workdir) should emit a different kind of warning
+> when override_creds=off. In fact, I think it should emit a warning
+> when override_creds=off unconditionally to indicate that weird things
+> can be expected and we "really hope you know what you are doing".
 >
-> IOW, if mounter is a separate process and if mounter itself can not
-> access a certain resource, then it should not allow other lower privileged
-> processes access to that resource. (Linux SELinux context= mounts). And
-> I am concerned that by taking away checks for mounter's creds later, how
-> do we ensure that privlege escalation did not happen by tricking mounter.
-Again, context= is never to be used lightly, it must be at an untrusted 
-label set.
-
-Yes, a (limited) attack can be mounted(sic) by setting the privileges of 
-the labels to u:object_r:init_exec:s0, but as stated before, init is 
-only granted access to target contexts that it needs (eg: it can not 
-create devices nodes, in /dev or anywhere else, that is granted to 
-u:object_r:ueventd_exec:s0). Of course, no one is allowed execute and 
-context transition for the init_exec label, so this behaviour I speak of 
-is locked down 300 ways. There is no _root_ that also has all the DAC 
-capabilities or blanket MAC privileges.
+> A new security concern I just noticed - overlayfs calls some vfs
+> functions directly to perform operations that are typically not
+> allowed to unprivileged users without checking credentials.
+> In those cases your patch introduces a security vulnerability.
 >
-> Thanks
-> Vivek
-Sincerley -- Mark Salyzyn
+> Examples:
+> - overlayfs calls exportfs_decode_fh() on underlying
+> fs without checking CAP_DAC_READ_SEARCH
+> - overlayfs calls vfs_whiteout() which calls underlying fs mknod
+> without checking CAP_MKNOD
+>
+> Those examples could be easily fixed and you may righfully
+> claim that they are bugs, but the fact is that those "bugs" are
+> harmless until someone creates an irregular security model
+> without capabilities to mount, without capability to mknod.
+>
+> What's worse is that you have to audit the overlayfs code and
+> find all these potential bugs and fix them before changing the
+> assumptions that were made over the years about mounter
+> credentials.
+Thanks, _this_ is what a good review is all about. I will need a deeper 
+dive (b/c I did not see these) into all the 'command paths' to determine 
+any missed/assumed checks. In Android, all the 'caller' issues I have 
+with the existing checks are passive (read), and I would _hate_ to be 
+providing them (unchecked and assumed) DAC privileges. In Android, it is 
+simpler, they would not pass the first barriers, to the internal assumed 
+points in any case, but multilevel security _requires_ us to recheck. 
+The active (create/write) callers are few and trusted, but _should_ be 
+checked w/o assumption (eg: if 'adb push' is not granted CAP_MKNOD, it 
+should be blocked).
+> Thanks,
+> Amir.
+
+Sincerely -- Mark Salyzyn
