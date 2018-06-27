@@ -1,36 +1,43 @@
-Return-Path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mx2.suse.de ([195.135.220.15]:39594 "EHLO mx2.suse.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S933189AbeFRM1N (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 18 Jun 2018 08:27:13 -0400
-Date: Mon, 18 Jun 2018 07:27:09 -0500
-From: Goldwyn Rodrigues <rgoldwyn@suse.de>
-Subject: Do we need DCACHE_WHITEOUT_TYPE?
-Message-ID: <20180618122709.2dims4vjfa26drb3@merlin>
+Return-Path: <amir73il@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Sender: linux-unionfs-owner@vger.kernel.org
-To: viro@ZenIV.linux.org.uk
-Cc: dhowells@redhat.com, linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org
+In-Reply-To: <CAJfpegs=QAc=gQ5NnJpgHB+jn_USXy9rHKhWMpY5XRaFC6Lh+A@mail.gmail.com>
+References: <20180529144339.16538-1-mszeredi@redhat.com> <20180529144339.16538-7-mszeredi@redhat.com>
+ <20180604084827.GE11333@infradead.org> <CAJfpeguhXik+bEb+FWf8s=v93yaoqReAUmr1DkG1zBxEYnEfsg@mail.gmail.com>
+ <CAOQ4uxjSuNxyLgzQGLqB6QYN9u+81uBvCnFy9iOJBEb+Nk4y5w@mail.gmail.com> <CAJfpegs=QAc=gQ5NnJpgHB+jn_USXy9rHKhWMpY5XRaFC6Lh+A@mail.gmail.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Date: Wed, 27 Jun 2018 15:07:20 +0300
+Message-ID: <CAOQ4uxhQ1+TsxDnqefSEk6yoZuokUeKbLPdPyWFg94mfX1cgNQ@mail.gmail.com>
+Subject: Re: [PATCH 06/39] vfs: add f_op->pre_mmap()
+Content-Type: text/plain; charset="UTF-8"
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: overlayfs <linux-unionfs@vger.kernel.org>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-Hi,
+On Wed, Jun 6, 2018 at 10:47 PM, Miklos Szeredi <miklos@szeredi.hu> wrote:
+> On Wed, Jun 6, 2018 at 8:52 PM, Amir Goldstein <amir73il@gmail.com> wrote:
+>> On Tue, Jun 5, 2018 at 2:36 PM, Miklos Szeredi <miklos@szeredi.hu> wrote:
+>>> On Mon, Jun 4, 2018 at 10:48 AM, Christoph Hellwig <hch@infradead.org> wrote:
+>>>> On Tue, May 29, 2018 at 04:43:06PM +0200, Miklos Szeredi wrote:
+>>>>> This is needed by overlayfs to be able to copy up a file from a read-only
+>>>>> lower layer to a writable layer when being mapped shared.  When copying up,
+>>>>> overlayfs takes VFS locks that would violate locking order when nested
+>>>>> inside mmap_sem.
+>>>>>
+>>>>> Add a new f_op->pre_mmap method, which is called before taking mmap_sem.
+>>>>
+>>>> NAK.  We really should not add multiple methods for mmap, and everytime
+>>>> this came up we found a better way to solve the problem instead.  Most
+>>>> recent example was the socket zero copy receive code.
+>>>
+>>> Okay, I'll drop this.
+>>
+>> Need to remove copy_up_shared from overlayfs.txt.
+>
+> Right.  If the pull goes trough in this cycle, I'll send a followup
+> patch to fix that.
+>
 
-There are some DCACHE_*_TYPE which are not used. I assume they were
-added during the development of overlayfs/unionfs and do not seem to
-make sense to keep.
+Reminder: stale doc is still in current overlayfs-next.
 
-Should we revert the following commits?
-
-155e35d4daa8 ("VFS: Introduce inode-getting helpers for layered/unioned fs environments")
-e7f7d2253c05 ("VFS: Add a whiteout dentry type")
-df1a085af1f6 ("VFS: Add a fallthrough flag for marking virtual dentries")
-
-Are there any more commits related or during this merge which are not
-relevant anymore?
-
-Regards,
-
--- 
-Goldwyn
+Thanks,
+Amir.
