@@ -1,192 +1,105 @@
-Return-Path: <amir73il@gmail.com>
-Return-Path: <amir73il@gmail.com>
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH 2/2] overlay/016: split into two tests
-Date: Fri,  1 Jun 2018 13:44:17 +0300
-Message-Id: <1527849857-22951-3-git-send-email-amir73il@gmail.com>
-In-Reply-To: <1527849857-22951-1-git-send-email-amir73il@gmail.com>
-References: <1527849857-22951-1-git-send-email-amir73il@gmail.com>
-To: Eryu Guan <guaneryu@gmail.com>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, Vivek Goyal <vgoyal@redhat.com>, linux-unionfs@vger.kernel.org, fstests@vger.kernel.org
-List-ID: <linux-unionfs@vger.kernel.org>
+Subject: Re: FAILED: patch "[PATCH] ovl: hash non-dir by lower inode for
+ fsnotify" failed to apply to 4.14-stable tree
+Date: Thu, 5 Jul 2018 21:28:56 +0300
+Message-ID: <CAOQ4uxhZTEcAMUUzTNOj-2=4w2u5qkP_Hsz6j2Gi-OoRUeVemQ@mail.gmail.com>
+References: <152086697777252@kroah.com> <CABdQkv8E4Ofv5MSX=U0wk1MZ5=szUSr54vshhn6X_wsB+tEz2g@mail.gmail.com>
+ <20180705151810.GA11929@kroah.com> <CABdQkv_yJL5-DEr4D5D=VTvC7WTq292OCmZteccROHmTwTjY6g@mail.gmail.com>
+ <20180705153051.GA13764@kroah.com> <CABdQkv9mUMF_ewvE2_7AUXpxoS2ZUcbnxo+iL3yF3FU-aVLkBQ@mail.gmail.com>
+ <20180705155710.GA20455@kroah.com> <CABdQkv_8Zu2oQfNYaYpF=hCEfh8dtq4beHvtuys0j_HLhbB2eg@mail.gmail.com>
+ <20180705163212.GA7993@kroah.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <20180705163212.GA7993@kroah.com>
+Sender: stable-owner@vger.kernel.org
+To: Greg KH <gregkh@linuxfoundation.org>
+Cc: Rafael David Tinoco <rafael.tinoco@linaro.org>, stable <stable@vger.kernel.org>, Miklos Szeredi <mszeredi@redhat.com>, overlayfs <linux-unionfs@vger.kernel.org>
+List-Id: linux-unionfs@vger.kernel.org
 
-overlay/016 tests two cases of ro/rw fd data inconsistecies -
-one using pread and one using mmap read (i.e. mread).
+On Thu, Jul 5, 2018 at 7:32 PM, Greg KH <gregkh@linuxfoundation.org> wrote:
+> On Thu, Jul 05, 2018 at 01:15:43PM -0300, Rafael David Tinoco wrote:
+>> > > commit 764baba80168ad3adafb521d2ab483ccbc49e344
+>> > > Author: Amir Goldstein <amir73il@gmail.com>
+>> > > Date:   Sun Feb 4 15:35:09 2018 +0200
+>> > >
+>> > >     ovl: hash non-dir by lower inode for fsnotify
+>> > >
+>> > > INFO: inotify issue with non-dir non-upper files in overlayfs exists
+>> > > in LTS <= v4.14.
+>> > > INFO: LTP inotify08 test fails on * v4.14 and bellow * and should be skipped.
+>> > >
+>> > > And message was informative only (clearly didn't work). Either way, do
+>> > > you think it's worth informing existing LTS bugs, found by test
+>> > > tooling, here ?
+>> >
+>> > Why can't we fix those bugs in the stable kernel releases?  Is it too
+>> > difficult to do so?
+>>
+>> For this inotify bug:
+>>
+>> Commits
+>>
+>>  ovl: hash non-dir by lower inode for fsnotify
+>>  ovl: hash non-indexed dir by upper inode for NFS export
+>>  ovl: do not pass overlay dentry to ovl_get_inode()
+>>  ovl: hash directory inodes for fsnotify
+>>  ovl: no direct iteration for dir with origin xattr
+>>  Revert "ovl: hash directory inodes for fsnotify"
+>>
+>> are needed AND all the logic for setting up "origin" variable in
+>> ovl_lookup, passed to ovl_lookup_index() after it got its prototype
+>> changed, would still be missing (and other refactoring changes,
+>> commits splitting functions and so on).
+>>
+>> So I assumed it was a no-go.
+>
+> It all depends, let's get the git commit ids for these please.  And have
+> you successfully applied and tested that those patches fix the issue?
+> If so, great, let's apply them!
+>
+>> There is also another bug:
+>>
+>> https://bugs.linaro.org/show_bug.cgi?id=3303.
+>>
+>> Fanotify faces a srcu dead-lock when userland stops responding to
+>> events for this other case. Fix for that bug is a 35 patches patchset
+>> (including the fix,  commit 9dd813c15b2c101, for the particular
+>> issue).
+>>
+>> Question is, should I document things of this nature on this list also
+>> ? Even if it is likely a no-go for the backports ? Just as information
+>> ? Should I just bring the attention to the backport need (all patches)
+>> and you decide ?
+>
+> Same as above, if you test them and they work, and they resolve a
+> reported and testable bug, why wouldn't we apply them?
+>
 
-The first case will pass as soon as stacked overlay operations
-patch set is merged. The second case requires enabling a new opt-in
-feature "copy_up_shared" in order to pass.
+So this is the story with overlayfs - besides NFS export in v4.16,
+I don't think overlayfs got any new "features". Since the day it was
+merged upstream (v3.18) it was all about fixing bugs and
+"non-standard-behaviors":
+https://github.com/amir73il/overlayfs/wiki/Overlayfs-non-standard-behavior
 
-Instead of changing the entire test from fail to notrun, split
-the two cases into two tests and require the new feature only
-for the new test.
+Are those non-standard behaviors reported and testable bugs? yes
+but they have been around for so long that applications may have
+become dependent on the non-standard-behavior, so the "bug fixes"
+are often introduced as "features" that are off by default and need to
+be explicitly enabled by config/module/mount option (e.g. redirect_dir
+added in v4.10).
 
-This way, the new test will change from notrun to pass with
-stacked overlay operations and the old test will change from
-fail to pass.
+Now if you want to apply all the fixes to non-standard-behavior,
+I am maintaining a 4.9.y backport branch with *everything*:
+https://github.com/amir73il/linux/commits/overlayfs-4.9.y
 
-Signed-off-by: Amir Goldstein <amir73il@gmail.com>
----
- tests/overlay/016     | 14 ---------
- tests/overlay/016.out |  3 --
- tests/overlay/061     | 85 +++++++++++++++++++++++++++++++++++++++++++++++++++
- tests/overlay/061.out |  4 +++
- tests/overlay/group   |  1 +
- 5 files changed, 90 insertions(+), 17 deletions(-)
- create mode 100755 tests/overlay/061
- create mode 100644 tests/overlay/061.out
+So this branch also includes the NFS export feature, but I suspect
+it going to be hairy to apply $SUBJECT fix in question without applying
+the NFS export patches.
 
-diff --git a/tests/overlay/016 b/tests/overlay/016
-index 86a7d28..08a2f98 100755
---- a/tests/overlay/016
-+++ b/tests/overlay/016
-@@ -66,7 +66,6 @@ _scratch_mount
- 
- 
- #
--# case #1:
- # open file for read (rofd)
- # open file for write (rwfd)
- # write to rwfd
-@@ -79,18 +78,5 @@ $XFS_IO_PROG -r $SCRATCH_MNT/foo \
- 	-C "pread -v 0 16" \
- | _filter_xfs_io | _filter_scratch
- 
--#
--# case #2:
--# mmap MAP_SHARED|PROT_READ of rofd
--# write to rwfd
--# read from mapped memory
--#
--$XFS_IO_PROG -r $SCRATCH_MNT/bar \
--	-C "mmap -r 0 16" \
--	-C "open $SCRATCH_MNT/bar" \
--	-C "pwrite -S 0x61 0 16" \
--	-C "mread -v 0 16" \
--| _filter_xfs_io | _filter_scratch
--
- status=0
- exit
-diff --git a/tests/overlay/016.out b/tests/overlay/016.out
-index a28aaa6..02b2ae2 100644
---- a/tests/overlay/016.out
-+++ b/tests/overlay/016.out
-@@ -6,6 +6,3 @@ XXX Bytes, X ops; XX:XX:XX.X (XXX YYY/sec and XXX ops/sec)
- 00000000:  61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61  aaaaaaaaaaaaaaaa
- read 16/16 bytes at offset 0
- XXX Bytes, X ops; XX:XX:XX.X (XXX YYY/sec and XXX ops/sec)
--wrote 16/16 bytes at offset 0
--XXX Bytes, X ops; XX:XX:XX.X (XXX YYY/sec and XXX ops/sec)
--00000000:  61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61  aaaaaaaaaaaaaaaa
-diff --git a/tests/overlay/061 b/tests/overlay/061
-new file mode 100755
-index 0000000..1b248df
---- /dev/null
-+++ b/tests/overlay/061
-@@ -0,0 +1,85 @@
-+#! /bin/bash
-+# FSQA Test No. 061
-+#
-+# Test ro/rw fd data inconsistecies
-+#
-+# This is a variant of test overlay/016 with mread instead of pread.
-+# This test requires and enables copy_up_shared feature.
-+#
-+# This simple test demonstrates a known issue with overlayfs:
-+# - process A opens file F for read + mmap
-+# - process B writes new data to file F
-+# - process A reads old data from mapped memory
-+#
-+#-----------------------------------------------------------------------
-+#
-+# Copyright (C) 2016 CTERA Networks. All Rights Reserved.
-+# Author: Amir Goldstein <amir73il@gmail.com>
-+#
-+# This program is free software; you can redistribute it and/or
-+# modify it under the terms of the GNU General Public License as
-+# published by the Free Software Foundation.
-+#
-+# This program is distributed in the hope that it would be useful,
-+# but WITHOUT ANY WARRANTY; without even the implied warranty of
-+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+# GNU General Public License for more details.
-+#
-+# You should have received a copy of the GNU General Public License
-+# along with this program; if not, write the Free Software Foundation,
-+# Inc.,  51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-+#-----------------------------------------------------------------------
-+#
-+
-+seq=`basename $0`
-+seqres=$RESULT_DIR/$seq
-+echo "QA output created by $seq"
-+
-+tmp=/tmp/$$
-+status=1	# failure is the default!
-+trap "_cleanup; exit \$status" 0 1 2 3 15
-+
-+_cleanup()
-+{
-+	cd /
-+	rm -f $tmp.*
-+}
-+
-+# get standard environment, filters and checks
-+. ./common/rc
-+. ./common/filter
-+
-+# real QA test starts here
-+_supported_fs overlay
-+_supported_os Linux
-+_require_scratch
-+_require_scratch_feature copy_up_shared
-+_require_xfs_io_command "open"
-+
-+rm -f $seqres.full
-+
-+_scratch_mkfs >>$seqres.full 2>&1
-+
-+# Create our test files.
-+lowerdir=$OVL_BASE_SCRATCH_MNT/$OVL_LOWER
-+mkdir -p $lowerdir
-+echo "This is old news" > $lowerdir/foo
-+echo "This is old news" > $lowerdir/bar
-+
-+_scratch_mount -o copy_up_shared=on
-+
-+
-+#
-+# mmap MAP_SHARED|PROT_READ of rofd
-+# write to rwfd
-+# read from mapped memory
-+#
-+$XFS_IO_PROG -r $SCRATCH_MNT/bar \
-+	-C "mmap -r 0 16" \
-+	-C "open $SCRATCH_MNT/bar" \
-+	-C "pwrite -S 0x61 0 16" \
-+	-C "mread -v 0 16" \
-+| _filter_xfs_io | _filter_scratch
-+
-+status=0
-+exit
-diff --git a/tests/overlay/061.out b/tests/overlay/061.out
-new file mode 100644
-index 0000000..0662721
---- /dev/null
-+++ b/tests/overlay/061.out
-@@ -0,0 +1,4 @@
-+QA output created by 061
-+wrote 16/16 bytes at offset 0
-+XXX Bytes, X ops; XX:XX:XX.X (XXX YYY/sec and XXX ops/sec)
-+00000000:  61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61  aaaaaaaaaaaaaaaa
-diff --git a/tests/overlay/group b/tests/overlay/group
-index b73d7e9..ccc71f3 100644
---- a/tests/overlay/group
-+++ b/tests/overlay/group
-@@ -63,3 +63,4 @@
- 058 auto quick exportfs
- 059 auto quick copyup
- 060 auto quick metacopy
-+061 auto quick copyup
--- 
-2.7.4
+What does the new benevolent Greg have to say about this?
+Would you consider taking all non-standard-behavior fixes to stable?
+If you do, I can help with maintaining the stable overlayfs branches.
+
+Thanks,
+Amir.
