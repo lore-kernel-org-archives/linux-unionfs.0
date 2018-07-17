@@ -1,89 +1,108 @@
-Return-Path: <linux-unionfs-owner@vger.kernel.org>
-Received: from szxga05-in.huawei.com ([45.249.212.191]:10184 "EHLO huawei.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1731722AbeGaLEo (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 31 Jul 2018 07:04:44 -0400
-Received: from DGGEMS409-HUB.china.huawei.com (unknown [172.30.72.59])
-        by Forcepoint Email with ESMTP id 4A0B156D0D38D
-        for <linux-unionfs@vger.kernel.org>; Tue, 31 Jul 2018 17:25:13 +0800 (CST)
-From: "zhangyi (F)" <yi.zhang@huawei.com>
-Subject: [RFC PATCH v2 5/9] ovl: add redirect dir feature when set redirect xattr to dir
-Date: Tue, 31 Jul 2018 17:37:23 +0800
-Message-ID: <20180731093727.26855-6-yi.zhang@huawei.com>
-In-Reply-To: <20180731093727.26855-1-yi.zhang@huawei.com>
-References: <20180731093727.26855-1-yi.zhang@huawei.com>
+Return-Path: <amir73il@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain
-Sender: linux-unionfs-owner@vger.kernel.org
-To: linux-unionfs@vger.kernel.org
-Cc: miklos@szeredi.hu, amir73il@gmail.com, yi.zhang@huawei.com, miaoxie@huawei.com, yangerkun@huawei.com
+In-Reply-To: <CAGr1F2EKAQ-_2BZnBMfiS=b5=R_0G0Ka6LNRZ6nRHsoQtyTFOQ@mail.gmail.com>
+References: <20180712213230.157085-1-adityakali@gooogle.com>
+ <CAOQ4uxj9dvgzVg3EX0q9qX6U4C-DJbs1Ph+Pj+o=8ubmYO0q8A@mail.gmail.com> <CAGr1F2EKAQ-_2BZnBMfiS=b5=R_0G0Ka6LNRZ6nRHsoQtyTFOQ@mail.gmail.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Date: Tue, 17 Jul 2018 17:42:13 +0300
+Message-ID: <CAOQ4uxhi_xfzKgOs2L0ratzUG1wTcJDrxPGUR=4LV_gj6XbJfA@mail.gmail.com>
+Subject: Re: [PATCH] overlayfs: fix warning in ovl_iterate
+Content-Type: text/plain; charset="UTF-8"
+To: Aditya Kali <adityakali@google.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, overlayfs <linux-unionfs@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-Redirect dir feature is backward incompatible because old kernel (which
-not support this feature) may corrupt the merge relationship between
-directories when change the directory which have redirect xattr.
+On Mon, Jul 16, 2018 at 11:14 PM, Aditya Kali <adityakali@google.com> wrote:
+> Hi Amir,
+>
+> On Fri, Jul 13, 2018 at 6:09 AM Amir Goldstein <amir73il@gmail.com> wrote:
+>>
+>> On Fri, Jul 13, 2018 at 12:32 AM, Aditya Kali <adityakali@google.com> wrote:
+>> > From: Aditya Kali <adityakali@google.com>
+>> >
+>> > In ovl_iterate() funciton, we were calling ovl_cache_get() on dentries
+>> > marked OVL_IMPURE which are not refcounted. This results in triggering
+>> > WARN_ON(cache->refcount <= 0).
+>>
+>> Aditya,
+>>
+>> Thanks for the report, but I am afraid your analysis is inaccurate and
+>> the fix is flat out wrong, so let's try to better understand what is going on.
+>>
+>> First of all, the WARNING triggered by your test in WARN_ON(!cache->refcount)
+>> at line 415 of  ovl_cache_get() and not the warning in ovl_cache_put().
+>>
+>> Your statement that dir marked OVL_IMPURE have non refcounted
+>> dir cache is not accurate.
+>> This statement is only true for dirs that are !ovl_dir_is_real() AND
+>> marked OVL_IMPURE, in which case od->cache should be NULL
+>> and therefore ovl_cache_put() is not concerned.
+>>
+> I completely missed that.
+>
+>> Since your test case hits the WARN_ON in ovl_cache_get() it suggests
+>> that the dir was ovl_dir_is_real(), got a dir cache initialized with
+>> ovl_cache_get_impure() and then later became !ovl_dir_is_real()
+>> and got passed into  ovl_cache_get() with an unexpected type
+>> of dir cache.
+>>
+>> Directory can only become !ovl_dir_is_real() on copy up and if dir
+>> was not upper prior to copy up, it could not have been OVL_IMPURE
+>> either. However, if ovl_iterate() is called with non zero ctx->pos,
+>> od->is_real will not be updated, but OVL_IMPURE is checked again.
+>> Meaning that if chown -R iterates on a bunch of files, chowns them
+>> and then continues to iterate on more files, directory will become
+>> OVL_IMPURE, so second ovl_iterate() call with non zero ctx->pos
+>> will initialize an impure dir cache and then on following ls -l we will
+>> hit the WARNING.
+>>
+>> It will be nice if you can add traces in the relevant functions to prove
+>> this is what's happening in your test case.
+>>
+>
+> Thanks for that explanation. I will admit that my knowledge about
+> overlayfs is very limited.
+> My initial hypothesis was based on some tracing I had added that would trigger a
+>     WARN_ON(ovl_test_flag(OVL_IMPURE, d_inode(dentry))
+> in ovl_cache_get() and also in ovl_cache_put().
+>
+> But your explanation for the root cause makes sense.
+>
+>> > It can be reproduced by running the following command (on system with
+>> > docker using overlay2 graph driver):
+>> >
+>> >   docker run --rm drupal:8.5.4-fpm-alpine \
+>> >     sh -c 'cd /var/www/html/vendor/symfony && chown -R www-data:www-data . && ls -l .'
+>>
+>> It's nice to have a one liner reproducer, but if you can come up with
+>> a simple script reproducer that does not include docker that would be
+>> even nicer.
+>> If you write an xfstest for the reproducer you really get the praises ;-)
+>>
+>
+> Will try to convert it to xfstests.
+>
 
-This patch check and set the upper layer's redirect dir feature when
-kernel set redirect xattr to directory in the upper layer.
+Great.
+Note that I am not sure you can rely on behavior of chown -R installed on
+testing host, you may need to write a dedicated C helper, like
+src/t_dir_offset*.c src/t_dir_type.c
+which reads a few dentries, makes sure dir is copied up and continues
+to read more dentries (with non zero offset)
 
-Signed-off-by: zhangyi (F) <yi.zhang@huawei.com>
----
- fs/overlayfs/dir.c       | 11 +++++++++++
- fs/overlayfs/overlayfs.h |  5 ++++-
- 2 files changed, 15 insertions(+), 1 deletion(-)
+[...]
 
-diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
-index f480b1a2cd2e..238999e5f47b 100644
---- a/fs/overlayfs/dir.c
-+++ b/fs/overlayfs/dir.c
-@@ -969,6 +969,7 @@ static int ovl_rename(struct inode *olddir, struct dentry *old,
- 	bool is_dir = d_is_dir(old);
- 	bool new_is_dir = d_is_dir(new);
- 	bool samedir = olddir == newdir;
-+	struct ovl_fs* ofs = old->d_sb->s_fs_info;
- 	struct dentry *opaquedir = NULL;
- 	const struct cred *old_cred = NULL;
- 	LIST_HEAD(list);
-@@ -1061,6 +1062,16 @@ static int ovl_rename(struct inode *olddir, struct dentry *old,
- 		}
- 	}
- 
-+	if ((is_dir && ovl_type_merge_or_lower(old)) ||
-+	    (!overwrite && new_is_dir && ovl_type_merge_or_lower(new))) {
-+		/*
-+		 * Set redirect dir feature to the upper root dir if this
-+		 * feature doesn't exist.
-+		 */
-+		if (!ovl_has_feature_redirect_dir(ofs->upper_layer))
-+			err = ovl_set_feature_redirect_dir(ofs);
-+	}
-+
- 	trap = lock_rename(new_upperdir, old_upperdir);
- 
- 	olddentry = lookup_one_len(old->d_name.name, old_upperdir,
-diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-index d6231acc660a..7ed8ed49266f 100644
---- a/fs/overlayfs/overlayfs.h
-+++ b/fs/overlayfs/overlayfs.h
-@@ -62,7 +62,8 @@ struct ovl_d_feature {
- #define OVL_FEATURE_RO_COMPAT_SUPP		(0)
- #define OVL_FEATURE_RO_COMPAT_UNKNOWN		(~OVL_FEATURE_RO_COMPAT_SUPP)
- 
--#define OVL_FEATURE_INCOMPAT_SUPP		(0)
-+#define OVL_FEATURE_INCOMPAT_REDIRECT_DIR	(1 << 0)
-+#define OVL_FEATURE_INCOMPAT_SUPP		(OVL_FEATURE_INCOMPAT_REDIRECT_DIR)
- #define OVL_FEATURE_INCOMPAT_UNKNOWN		(~OVL_FEATURE_INCOMPAT_SUPP)
- 
- static inline bool ovl_has_unknown_compat_features(struct ovl_layer *layer)
-@@ -129,6 +130,8 @@ static inline int ovl_set_feature_##name(struct ovl_fs *ofs) \
- 			OVL_FEATURE_INCOMPAT_##flagname); \
- } \
- 
-+OVL_FEATURE_INCOMPAT_FUNCS(redirect_dir,	REDIRECT_DIR)
-+
- /*
-  * The tuple (fh,uuid) is a universal unique identifier for a copy up origin,
-  * where:
--- 
-2.13.6
+>
+> I tested the patch and it seems to address the issue. It would be
+> great if you can send the patch with clearer explanation for the root
+> cause.
+> You can add
+> Tested-by: Aditya Kali <adityakali@google.com>
+>
+> Would that be ok?
+>
 
+Done.
+
+Thanks,
+Amir.
