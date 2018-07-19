@@ -1,48 +1,31 @@
-From: Miklos Szeredi <miklos@szeredi.hu>
+From: David Howells <dhowells@redhat.com>
 Subject: Re: [PATCH] vfs: make open_with_fake_path() not contribute to nr_files
-Date: Thu, 19 Jul 2018 10:49:59 +0200
-Message-ID: <CAJfpegvJOXo-e5swL5iNgiyGOQHT3viz86+NMAe1zvOC0Qwaig@mail.gmail.com>
-References: <20180718154637.31878-1-mszeredi@redhat.com> <18289.1531987758@warthog.procyon.org.uk>
+Date: Thu, 19 Jul 2018 16:52:44 +0100
+Message-ID: <30900.1532015564@warthog.procyon.org.uk>
+References: <CAJfpegvJOXo-e5swL5iNgiyGOQHT3viz86+NMAe1zvOC0Qwaig@mail.gmail.com> <20180718154637.31878-1-mszeredi@redhat.com> <18289.1531987758@warthog.procyon.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="us-ascii"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <18289.1531987758@warthog.procyon.org.uk>
+In-Reply-To: <CAJfpegvJOXo-e5swL5iNgiyGOQHT3viz86+NMAe1zvOC0Qwaig@mail.gmail.com>
+Content-ID: <30899.1532015564.1@warthog.procyon.org.uk>
 Sender: linux-kernel-owner@vger.kernel.org
-To: David Howells <dhowells@redhat.com>
-Cc: Miklos Szeredi <mszeredi@redhat.com>, Al Viro <viro@zeniv.linux.org.uk>, overlayfs <linux-unionfs@vger.kernel.org>, linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org, Christoph Hellwig <hch@infradead.org>
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: dhowells@redhat.com, Miklos Szeredi <mszeredi@redhat.com>, Al Viro <viro@zeniv.linux.org.uk>, overlayfs <linux-unionfs@vger.kernel.org>, linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org, Christoph Hellwig <hch@infradead.org>
 List-Id: linux-unionfs@vger.kernel.org
 
-On Thu, Jul 19, 2018 at 10:09 AM, David Howells <dhowells@redhat.com> wrote:
-> Miklos Szeredi <mszeredi@redhat.com> wrote:
->
->> Stacking file operations in overlay will store an extra open file for each
->> overlay file opened.
->>
->> The overhead is just that of "struct file" which is about 256bytes, because
->> overlay already pins an extra dentry and inode when the file is open, which
->> add up to a much larger overhead.
->>
->> For fear of breaking working setups, don't start accounting the extra file.
->
-> Sounds useful for cachefiles too, though Christoph Hellwig objected strongly
-> last time I tried this, so you might want to check with him directly.
+Miklos Szeredi <miklos@szeredi.hu> wrote:
 
-What the cachefiles use case would be?
+> What the cachefiles use case would be?
 
-Overlayfs wants the "shadow" file open only as long as the real file
-is open.  Is the cachefiles case the same?
+Cachfiles has to open the backing file so that it can write to it, and it has
+to do it every time it writes because to leave a bunch of files open
+contributes to ENFILE/EMFILE.
 
-For overlays the real cost of pinned memory by open files  is already
-sunk in the layered dentry references.  Which means overlayfs is
-already pinning substantially more memory for an open file than other
-fs (by about a factor of 2-3, due to pinned lower and/or upper
-dentries and inodes).   If this was a problem in real life, then we'd
-be already be in trouble.  The stacked open file patch only adds the
-overhead of the actual struct file, which is small compared to the
-multiple pinned dentry and inode structs.
+In the near future it's going to have to open the backing file so that it can
+read from it too as I need to switch to using the io context stuff and get rid
+of my usage of bmap().
 
-Christoph already commented on a previous version of the patch and I
-pointed out the above.
+So it would be convenient to be able to keep the open backing file around for
+longer to avoid constantly needing to open/close it.
 
-Thanks,
-Miklos
+David
