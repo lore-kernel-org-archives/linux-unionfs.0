@@ -1,71 +1,144 @@
 Return-Path: <yi.zhang@huawei.com>
+Subject: Re: [xfstests PATCH 1/3] overlay: correct fsck.overlay exit code
+References: <20180728084242.33918-1-yi.zhang@huawei.com>
+ <20180728084242.33918-2-yi.zhang@huawei.com>
+ <CAOQ4uxjLi2VaP_3YiUkLfgkwXfOtnoXYNM1X6RCPW0AkhvwQDw@mail.gmail.com>
 From: "zhangyi (F)" <yi.zhang@huawei.com>
-Subject: [RFC PATCH v2 7/9] ovl: add nfs_export feature when nfs_export is enabled
-Date: Tue, 31 Jul 2018 17:37:25 +0800
-Message-ID: <20180731093727.26855-8-yi.zhang@huawei.com>
-In-Reply-To: <20180731093727.26855-1-yi.zhang@huawei.com>
-References: <20180731093727.26855-1-yi.zhang@huawei.com>
+Message-ID: <315c458e-43b9-7062-02e6-b28f0380e47e@huawei.com>
+Date: Mon, 30 Jul 2018 18:57:06 +0800
 MIME-Version: 1.0
-Content-Type: text/plain
-To: linux-unionfs@vger.kernel.org
-Cc: miklos@szeredi.hu, amir73il@gmail.com, yi.zhang@huawei.com, miaoxie@huawei.com, yangerkun@huawei.com
+In-Reply-To: <CAOQ4uxjLi2VaP_3YiUkLfgkwXfOtnoXYNM1X6RCPW0AkhvwQDw@mail.gmail.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: Eryu Guan <guaneryu@gmail.com>, fstests <fstests@vger.kernel.org>, overlayfs <linux-unionfs@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>, Miao Xie <miaoxie@huawei.com>, yangerkun <yangerkun@huawei.com>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-nfs_export feature is base on index feature and also backward read-only
-compatible. Check the upper layer's nfs_export feature when index dir
-exists and nfs_export was enabled through mount option, set this feature
-if it was not yet set.
+On 2018/7/30 13:38, Amir Goldstein Wrote:
+> On Sat, Jul 28, 2018 at 11:42 AM, zhangyi (F) <yi.zhang@huawei.com> wrote:
+>> fsck.overlay should return correct exit code to show the file system
+>> status after fsck, instead of return 0 means consistency and !0 means
+>> inconsistency or something bad happened.
+>>
+>> Fix the following three exit code after running fsck.overlay:
+>>
+>> - Return FSCK_OK if the input file system is consistent,
+>> - Return FSCK_NONDESTRUCT if the file system inconsistent errors
+>>   corrected,
+>> - Return FSCK_UNCORRECTED if the file system still have inconsistent
+>>   errors.
+>>
+>> This patch also correct the input underlying dirs for some "valid" test
+>> cases, avoid return unexpected exit code which caused by other unrelated
+>> inconsistency.
+> 
+> ... and also adds more test coverage (impure dir) ..
+> too many changes at once.
+> Please separate the exit code change from the rest of the changes.
+> 
 
-Signed-off-by: zhangyi (F) <yi.zhang@huawei.com>
----
- fs/overlayfs/overlayfs.h |  5 ++++-
- fs/overlayfs/super.c     | 11 +++++++++++
- 2 files changed, 15 insertions(+), 1 deletion(-)
+This patch doesn't add impure dir test coverage, it just set impure xattr
+to the parent dir of similuated redirect dir to prevent fsck.overlay return
+FSCK_NONDESTRUCT instead of FSCK_OK, because the previous "valid" test
+case is not "valid" enough, it lose the impure xattr which will be fixed
+by fsck.overlay (that is not the case want to cover).
 
-diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-index 21a41c12168c..0f95e60cae69 100644
---- a/fs/overlayfs/overlayfs.h
-+++ b/fs/overlayfs/overlayfs.h
-@@ -60,7 +60,9 @@ struct ovl_d_feature {
- #define OVL_FEATURE_COMPAT_UNKNOWN		(~OVL_FEATURE_COMPAT_SUPP)
- 
- #define OVL_FEATURE_RO_COMPAT_INDEX		(1 << 0)
--#define OVL_FEATURE_RO_COMPAT_SUPP		(OVL_FEATURE_RO_COMPAT_INDEX)
-+#define OVL_FEATURE_RO_COMPAT_NFS_EXPORT	(1 << 1)
-+#define OVL_FEATURE_RO_COMPAT_SUPP		(OVL_FEATURE_RO_COMPAT_INDEX | \
-+						 OVL_FEATURE_RO_COMPAT_NFS_EXPORT)
- #define OVL_FEATURE_RO_COMPAT_UNKNOWN		(~OVL_FEATURE_RO_COMPAT_SUPP)
- 
- #define OVL_FEATURE_INCOMPAT_REDIRECT_DIR	(1 << 0)
-@@ -132,6 +134,7 @@ static inline int ovl_set_feature_##name(struct ovl_fs *ofs) \
- } \
- 
- OVL_FEATURE_RO_COMPAT_FUNCS(index,		INDEX)
-+OVL_FEATURE_RO_COMPAT_FUNCS(nfs_export, 	NFS_EXPORT)
- OVL_FEATURE_INCOMPAT_FUNCS(redirect_dir,	REDIRECT_DIR)
- 
- /*
-diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-index 197329f7d284..860a533ae5a9 100644
---- a/fs/overlayfs/super.c
-+++ b/fs/overlayfs/super.c
-@@ -1450,6 +1450,17 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
- 				if (err)
- 					goto out_free_oe;
- 			}
-+
-+			/*
-+			 * Set nfs_export feature if index dir exists and
-+			 * nfs_export mount option enabled.
-+			 */
-+			if (ofs->config.nfs_export &&
-+			    !ovl_has_feature_nfs_export(ofs->upper_layer)) {
-+				err = ovl_set_feature_nfs_export(ofs);
-+				if (err)
-+					goto out_free_oe;
-+			}
- 		} else {
- 		        /* Force r/o mount with no index dir */
- 			dput(ofs->workdir);
--- 
-2.13.6
+I can still separate it from the exit code change if you want.
+
+> Usually, Eryu doesn't like adding coverage to existing test, but since
+> there are "not so many" testers of fsck.overlay, maybe he can make an
+> exception, but you do need to declare this change in commit message.
+> 
+>>
+>> Signed-off-by: zhangyi (F) <yi.zhang@huawei.com>
+>> ---
+>>  common/config     | 10 +++++++++
+>>  tests/overlay/045 | 59 +++++++++++++++++++++++++++++++++-------------------
+>>  tests/overlay/046 | 62 ++++++++++++++++++++++++++++++++++---------------------
+>>  tests/overlay/056 | 22 ++++++++++++++------
+>>  4 files changed, 102 insertions(+), 51 deletions(-)
+>>
+>> diff --git a/common/config b/common/config
+>> index 2f1f272..6e83fca 100644
+>> --- a/common/config
+>> +++ b/common/config
+>> @@ -194,6 +194,16 @@ export CHECKBASHISMS_PROG="$(type -P checkbashisms)"
+>>  export XFS_INFO_PROG="$(type -P xfs_info)"
+>>  export DUPEREMOVE_PROG="$(type -P duperemove)"
+>>
+>> +# Export exit code used by fsck-type programs
+>> +export FSCK_OK=0
+>> +export FSCK_NONDESTRUCT=1
+>> +export FSCK_REBOOT=2
+>> +export FSCK_UNCORRECTED=4
+>> +export FSCK_ERROR=8
+>> +export FSCK_USAGE=16
+>> +export FSCK_CANCELED=32
+>> +export FSCK_LIBRARY=128
+>> +
+> 
+> While this is common to e2fsck, I don't think it is "common" enough,
+> so maybe keep those values in a less central file (i.e. common/fsck)
+> and name e2fsprogs and fsck.overlayfs (other?) specifically.
+> 
+
+IIUC, current e2fsprogs related codes in xfstests do not use these exit
+code at all. Keep these into common/overlay now and put them into
+common/fsck if e2fsprogs want to use it the future ?
+
+>>  # use 'udevadm settle' or 'udevsettle' to wait for lv to be settled.
+>>  # newer systems have udevadm command but older systems like RHEL5 don't.
+>>  # But if neither one is available, just set it to "sleep 1" to wait for lv to
+>> diff --git a/tests/overlay/045 b/tests/overlay/045
+>> index acc7087..04db626 100755
+>> --- a/tests/overlay/045
+>> +++ b/tests/overlay/045
+>> @@ -37,6 +37,7 @@ _require_attrs
+>>  _require_command "$FSCK_OVERLAY_PROG" fsck.overlay
+>>
+>>  OVL_XATTR_OPAQUE_VAL=y
+>> +OVL_XATTR_IMPURE_VAL=y
+>>
+>>  # remove all files from previous tests
+>>  _scratch_mkfs
+>> @@ -69,6 +70,15 @@ make_opaque_dir()
+>>         $SETFATTR_PROG -n $OVL_XATTR_OPAQUE -v $OVL_XATTR_OPAQUE_VAL $target
+>>  }
+>>
+>> +# Create impure directories
+>> +make_impure_dir()
+>> +{
+>> +       for dir in $*; do
+>> +               mkdir -p $dir
+>> +               $SETFATTR_PROG -n $OVL_XATTR_IMPURE -v $OVL_XATTR_IMPURE_VAL $dir
+>> +       done
+>> +}
+>> +
+>>  # Create a redirect directory
+>>  make_redirect_dir()
+>>  {
+>> @@ -79,6 +89,19 @@ make_redirect_dir()
+>>         $SETFATTR_PROG -n $OVL_XATTR_REDIRECT -v $value $target
+>>  }
+>>
+>> +# Run fsck.overlay and check return value
+>> +run_fsck()
+>> +{
+>> +       local expect=$1
+>> +       shift 1
+>> +
+>> +       _overlay_fsck_dirs $* >> $seqres.full 2>&1
+>> +       fsck_ret=$?
+>> +
+>> +       [[ "$fsck_ret" == "$expect" ]] || \
+>> +               echo "fsck return unexpected:$expect,$fsck_ret"
+>> +}
+>> +
+> 
+> This helper repeats in every overlay/fsck test.
+> Move it to be a common function?
+> 
+Will do.
+
+Thanks,
+Yi.
