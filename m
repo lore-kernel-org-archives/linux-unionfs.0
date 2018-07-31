@@ -1,112 +1,183 @@
-Return-Path: <adityakali@google.com>
-Return-Path: <adityakali@google.com>
-From: Aditya Kali <adityakali@google.com>
-Subject: [PATCH] overlayfs: fix warning in ovl_iterate
-Date: Thu, 12 Jul 2018 14:32:30 -0700
-Message-Id: <20180712213230.157085-1-adityakali@gooogle.com>
-To: miklos@szeredi.hu
-Cc: linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, Aditya Kali <adityakali@google.com>
+Return-Path: <linux-unionfs-owner@vger.kernel.org>
+Received: from szxga05-in.huawei.com ([45.249.212.191]:10186 "EHLO huawei.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1731961AbeGaLEn (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Tue, 31 Jul 2018 07:04:43 -0400
+Received: from DGGEMS409-HUB.china.huawei.com (unknown [172.30.72.59])
+        by Forcepoint Email with ESMTP id 50A515FF48D25
+        for <linux-unionfs@vger.kernel.org>; Tue, 31 Jul 2018 17:25:13 +0800 (CST)
+From: "zhangyi (F)" <yi.zhang@huawei.com>
+Subject: [RFC PATCH v2 3/9] ovl: check file system features can be mounted properly
+Date: Tue, 31 Jul 2018 17:37:21 +0800
+Message-ID: <20180731093727.26855-4-yi.zhang@huawei.com>
+In-Reply-To: <20180731093727.26855-1-yi.zhang@huawei.com>
+References: <20180731093727.26855-1-yi.zhang@huawei.com>
+MIME-Version: 1.0
+Content-Type: text/plain
+Sender: linux-unionfs-owner@vger.kernel.org
+To: linux-unionfs@vger.kernel.org
+Cc: miklos@szeredi.hu, amir73il@gmail.com, yi.zhang@huawei.com, miaoxie@huawei.com, yangerkun@huawei.com
 List-ID: <linux-unionfs@vger.kernel.org>
 
-From: Aditya Kali <adityakali@google.com>
+Mount operation should fail if unknown incompatible feature is
+detected on any one of the underlying layers, and read-write mount
+operation should fail if unknown read-only compatible feature is
+detected on the upper layer.
 
-In ovl_iterate() funciton, we were calling ovl_cache_get() on dentries
-marked OVL_IMPURE which are not refcounted. This results in triggering
-WARN_ON(cache->refcount <= 0).
-It can be reproduced by running the following command (on system with
-docker using overlay2 graph driver):
+This patch doesn't add any features, so if any feature xattrs is
+detected on the underlying root dir, it will be recognized as
+unknown feature.
 
-  docker run --rm drupal:8.5.4-fpm-alpine \
-    sh -c 'cd /var/www/html/vendor/symfony && chown -R www-data:www-data . && ls -l .'
-
-  # dmesg shows
-
-  [  509.446081] WARNING: CPU: 3 PID: 4964 at fs/overlayfs/readdir.c:415 ovl_iterate+0x25b/0x270 [overlay]
-  [  509.455437] Modules linked in: veth ipt_MASQUERADE nf_conntrack_netlink nfnetlink xfrm_user xfrm_algo iptable_nat nf_conntrack_ipv4 nf_defrag_ipv4 nf_nat_ipv4 xt_addrtype iptable_filter xt_conntrack nf_nat nf_conntrack libcrc32c br_netfilter bridge stp llc overlay sb_edac crct10dif_pclmul crc32_pclmul ghash_clmulni_intel pcbc aesni_intel aes_x86_64 crypto_simd cryptd evdev glue_helper pvpanic sg serio_raw snd_pcsp button snd_pcm snd_timer snd soundcore intel_rapl_perf ip_tables x_tables autofs4 ext4 crc32c_generic crc16 mbcache jbd2 fscrypto sd_mod virtio_scsi virtio_net net_failover scsi_mod failover crc32c_intel virtio_pci psmouse virtio_ring i2c_piix4 virtio
-  [  509.514107] CPU: 3 PID: 4964 Comm: ls Not tainted 4.18.0-rc4+ #1
-  [  509.520217] Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
-  [  509.529545] RIP: 0010:ovl_iterate+0x25b/0x270 [overlay]
-  [  509.534899] Code: ff 89 44 24 04 e8 c5 f7 ff ff 4c 89 f7 e8 6d d0 9e df 4c 63 74 24 04 eb a2 49 8b 06 48 85 c0 74 09 48 83 c0 01 49 89 06 eb 91 <0f> 0b eb f3 44 89 f0 e9 9f fe ff ff 66 0f 1f 84 00 00 00 00 00 0f
-  [  509.553889] RSP: 0018:ffffa677c3f1fe40 EFLAGS: 00010246
-  [  509.559228] RAX: 0000000000000000 RBX: ffff8acee1e99480 RCX: ffff8acf57973c40
-  [  509.566483] RDX: ffffffff00000001 RSI: ffff8acee1ee8020 RDI: ffff8acee1e99480
-  [  509.573754] RBP: ffffa677c3f1fed0 R08: 0000000000000000 R09: 0000000000000000
-  [  509.581000] R10: ffffa677c3f1fe80 R11: 0000000000000000 R12: ffff8acf3aa7f4c0
-  [  509.588239] R13: ffff8acf586b5a00 R14: ffff8acf3e02a240 R15: 0000000000000000
-  [  509.595477] FS:  00007fe259795b88(0000) GS:ffff8acf7fcc0000(0000) knlGS:0000000000000000
-  [  509.603669] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-  [  509.609527] CR2: 00007fe25954086a CR3: 0000000795746003 CR4: 00000000001606e0
-  [  509.616787] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-  [  509.624025] DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
-  [  509.631263] Call Trace:
-  [  509.633832]  iterate_dir+0x172/0x190
-  [  509.637515]  ksys_getdents64+0x9d/0x120
-  [  509.641457]  ? syscall_trace_enter+0x1ae/0x2c0
-  [  509.646009]  ? iterate_dir+0x190/0x190
-  [  509.649864]  ? __x64_sys_getdents64+0x16/0x20
-  [  509.654331]  __x64_sys_getdents64+0x16/0x20
-  [  509.658618]  do_syscall_64+0x55/0x100
-  [  509.662386]  entry_SYSCALL_64_after_hwframe+0x44/0xa9
-  [  509.667545] RIP: 0033:0x7fe25952740e
-  [  509.671224] Code: 0f 05 eb 02 89 18 48 89 d0 5b c3 53 8b 47 14 49 89 f8 39 47 10 48 8d 77 20 7c 37 48 63 3f ba 00 08 00 00 b8 d9 00 00 00 0f 05 <85> c0 48 89 c3 7f 15 c1 e8 1f 74 3a 83 fb fe 74 35 f7 db e8 89 09
-  [  509.690203] RSP: 002b:00007ffd0d30fc60 EFLAGS: 00000246 ORIG_RAX: 00000000000000d9
-  [  509.697892] RAX: ffffffffffffffda RBX: 0000000000000000 RCX: 00007fe25952740e
-  [  509.705132] RDX: 0000000000000800 RSI: 00007fe2597961e0 RDI: 0000000000000003
-  [  509.712465] RBP: 0000000000000000 R08: 00007fe2597961c0 R09: 0000000000000000
-  [  509.719702] R10: 0000000000000000 R11: 0000000000000246 R12: 00005582eb183bc0
-  [  509.726956] R13: 00007fe2597961c0 R14: 0000000000000000 R15: 0000000000000001
-  [  509.734199] ---[ end trace 60478fe83a958f8f ]---
-
-Also reported at https://bugzilla.redhat.com/show_bug.cgi?id=1539540.
-
-Address this by making sure ovl_cache_get_impure() is called instead for
-the OVL_IMPURE dentries. Also handles OVL_IMPURE case in ovl_cache_put().
-
-Fixes: 4edb83bb1041 ('ovl: constant d_ino for non-merge dirs')
-
-Signed-off-by: Aditya Kali <adityakali@google.com>
+Signed-off-by: zhangyi (F) <yi.zhang@huawei.com>
 ---
- fs/overlayfs/readdir.c | 20 ++++++++++++++++----
- 1 file changed, 16 insertions(+), 4 deletions(-)
+ fs/overlayfs/feature.c   | 65 ++++++++++++++++++++++++++++++++++++++++++++++++
+ fs/overlayfs/overlayfs.h | 29 +++++++++++++++++++++
+ fs/overlayfs/super.c     |  8 +++++-
+ 3 files changed, 101 insertions(+), 1 deletion(-)
 
-diff --git a/fs/overlayfs/readdir.c b/fs/overlayfs/readdir.c
-index ef1fe42ff7bb..4e9ce0ccf1f1 100644
---- a/fs/overlayfs/readdir.c
-+++ b/fs/overlayfs/readdir.c
-@@ -241,10 +241,18 @@ void ovl_dir_cache_free(struct inode *inode)
- static void ovl_cache_put(struct ovl_dir_file *od, struct dentry *dentry)
- {
- 	struct ovl_dir_cache *cache = od->cache;
-+	bool is_impure = ovl_test_flag(OVL_IMPURE, d_inode(dentry));
+diff --git a/fs/overlayfs/feature.c b/fs/overlayfs/feature.c
+index eed6644a2a31..fac4d7544475 100644
+--- a/fs/overlayfs/feature.c
++++ b/fs/overlayfs/feature.c
+@@ -117,3 +117,68 @@ int ovl_init_feature_set(struct ovl_fs *ofs, struct ovl_entry *oe)
  
--	WARN_ON(cache->refcount <= 0);
--	cache->refcount--;
--	if (!cache->refcount) {
-+	/*
-+	 * OVL_IMPURE dentry cache is not refcounted. So free it
-+	 * unconditionally.
-+	 */
-+	if (!is_impure) {
-+		WARN_ON(cache->refcount <= 0);
-+		cache->refcount--;
+ 	return 0;
+ }
++
++/*
++ * Check whether this overlay layer can be mounted based on
++ * the features present and the read-only/read-write mount requested.
++ * Returns true if this layer can be mounted as requested,
++ * false if it cannot be.
++ */
++static bool ovl_check_layer_feature(struct ovl_layer *layer, bool readonly)
++{
++	if (ovl_has_unknown_incompat_features(layer)) {
++		pr_err("overlayfs: unknown optional incompat features "
++		       "(0x%llx) enabled on layer %d\n",
++		       layer->incompat & OVL_FEATURE_INCOMPAT_UNKNOWN,
++		       layer->idx);
++		pr_err("overlayfs: filesystem cannot not be safely mounted "
++		       "by this kernel\n");
++		return false;
 +	}
 +
-+	if (!cache->refcount || is_impure) {
- 		if (ovl_dir_cache(d_inode(dentry)) == cache)
- 			ovl_set_dir_cache(d_inode(dentry), NULL);
- 
-@@ -737,7 +745,11 @@ static int ovl_iterate(struct file *file, struct dir_context *ctx)
- 	if (!od->cache) {
- 		struct ovl_dir_cache *cache;
- 
--		cache = ovl_cache_get(dentry);
-+		if (ovl_test_flag(OVL_IMPURE, d_inode(dentry)))
-+			cache = ovl_cache_get_impure(&file->f_path);
-+		else
-+			cache = ovl_cache_get(dentry);
++	if (ovl_has_unknown_ro_compat_features(layer)) {
++		pr_err("overlayfs: unknown optional ro_compat features "
++		       "(0x%llx) enabled on layer %d\n",
++		       layer->ro_compat & OVL_FEATURE_RO_COMPAT_UNKNOWN,
++		       layer->idx);
 +
- 		if (IS_ERR(cache))
- 			return PTR_ERR(cache);
++		if (readonly)
++			return true;
++
++		pr_err("overlayfs: filesystem cannot not be safely mounted "
++		       "read-write by this kernel\n");
++		return false;
++	}
++
++	if (ovl_has_unknown_compat_features(layer)) {
++		pr_warn("overlayfs: unknown optional compat features "
++		        "(0x%llx) enabled on layer %d\n",
++			layer->compat & OVL_FEATURE_COMPAT_UNKNOWN,
++			layer->idx);
++	}
++
++	return true;
++}
++
++/*
++ * Check all layers of overlay filesystem to make sure whether this
++ * filesystem can be mounted. Returns true if all layers can be
++ * mounted as requested, false if any one of them cannot be.
++ */
++bool ovl_check_feature_ok(struct ovl_fs *ofs, bool readonly)
++{
++	int i;
++
++	if (ofs->upper_layer) {
++		if (!ovl_check_layer_feature(ofs->upper_layer, readonly))
++			return false;
++	}
++
++	for (i = 0; i < ofs->numlower; i++) {
++		/* Lower layer is always read-only */
++		if (!ovl_check_layer_feature(&ofs->lower_layers[i], true))
++			return false;
++	}
++
++	return true;
++}
+diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
+index 745f3b89a99e..f1bf21d030ac 100644
+--- a/fs/overlayfs/overlayfs.h
++++ b/fs/overlayfs/overlayfs.h
+@@ -55,6 +55,34 @@ struct ovl_d_feature {
+ 	__be64 incompat;	/* incompatible features */
+ } __packed;
  
++
++#define OVL_FEATURE_COMPAT_SUPP 		(0)
++#define OVL_FEATURE_COMPAT_UNKNOWN		(~OVL_FEATURE_COMPAT_SUPP)
++
++#define OVL_FEATURE_RO_COMPAT_SUPP		(0)
++#define OVL_FEATURE_RO_COMPAT_UNKNOWN		(~OVL_FEATURE_RO_COMPAT_SUPP)
++
++#define OVL_FEATURE_INCOMPAT_SUPP		(0)
++#define OVL_FEATURE_INCOMPAT_UNKNOWN		(~OVL_FEATURE_INCOMPAT_SUPP)
++
++static inline bool ovl_has_unknown_compat_features(struct ovl_layer *layer)
++{
++	return ((layer->feature) && \
++		((layer->compat & OVL_FEATURE_COMPAT_UNKNOWN) != 0));
++}
++
++static inline bool ovl_has_unknown_ro_compat_features(struct ovl_layer *layer)
++{
++	return ((layer->feature) && \
++		((layer->ro_compat & OVL_FEATURE_RO_COMPAT_UNKNOWN) != 0));
++}
++
++static inline bool ovl_has_unknown_incompat_features(struct ovl_layer *layer)
++{
++	return ((layer->feature) && \
++		((layer->incompat & OVL_FEATURE_INCOMPAT_UNKNOWN) != 0));
++}
++
+ /*
+  * The tuple (fh,uuid) is a universal unique identifier for a copy up origin,
+  * where:
+@@ -394,3 +422,4 @@ extern const struct export_operations ovl_export_operations;
+ 
+ /* feature.c */
+ int ovl_init_feature_set(struct ovl_fs *ofs, struct ovl_entry *oe);
++bool ovl_check_feature_ok(struct ovl_fs *ofs, bool readonly);
+diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+index 59b7d4f07b03..f8e516656104 100644
+--- a/fs/overlayfs/super.c
++++ b/fs/overlayfs/super.c
+@@ -385,7 +385,8 @@ static int ovl_remount(struct super_block *sb, int *flags, char *data)
+ {
+ 	struct ovl_fs *ofs = sb->s_fs_info;
+ 
+-	if (!(*flags & SB_RDONLY) && ovl_force_readonly(ofs))
++	if (!(*flags & SB_RDONLY) &&
++	    (ovl_force_readonly(ofs) || !ovl_check_feature_ok(ofs, false)))
+ 		return -EROFS;
+ 
+ 	return 0;
+@@ -1450,6 +1451,11 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
+ 
+ 	}
+ 
++	/* Check the features could be mounted properly by this kernel */
++	err = -EINVAL;
++	if (!ovl_check_feature_ok(ofs, (sb_rdonly(sb))))
++		goto out_free_oe;
++
+ 	/* Show index=off in /proc/mounts for forced r/o mount */
+ 	if (!ofs->indexdir) {
+ 		ofs->config.index = false;
 -- 
-2.11.0
+2.13.6
+
