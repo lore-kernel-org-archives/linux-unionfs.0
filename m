@@ -1,15 +1,15 @@
 Return-Path: <linux-unionfs-owner@vger.kernel.org>
-Received: from szxga05-in.huawei.com ([45.249.212.191]:10186 "EHLO huawei.com"
+Received: from szxga06-in.huawei.com ([45.249.212.32]:51301 "EHLO huawei.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1731961AbeGaLEn (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 31 Jul 2018 07:04:43 -0400
-Received: from DGGEMS409-HUB.china.huawei.com (unknown [172.30.72.59])
-        by Forcepoint Email with ESMTP id 50A515FF48D25
-        for <linux-unionfs@vger.kernel.org>; Tue, 31 Jul 2018 17:25:13 +0800 (CST)
+        id S1731722AbeGaLEr (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Tue, 31 Jul 2018 07:04:47 -0400
+Received: from DGGEMS409-HUB.china.huawei.com (unknown [172.30.72.60])
+        by Forcepoint Email with ESMTP id 0724D2A69669E
+        for <linux-unionfs@vger.kernel.org>; Tue, 31 Jul 2018 17:25:19 +0800 (CST)
 From: "zhangyi (F)" <yi.zhang@huawei.com>
-Subject: [RFC PATCH v2 3/9] ovl: check file system features can be mounted properly
-Date: Tue, 31 Jul 2018 17:37:21 +0800
-Message-ID: <20180731093727.26855-4-yi.zhang@huawei.com>
+Subject: [RFC PATCH v2 9/9] ovl: check redirect_dir feature when detect redirect xattr on dir
+Date: Tue, 31 Jul 2018 17:37:27 +0800
+Message-ID: <20180731093727.26855-10-yi.zhang@huawei.com>
 In-Reply-To: <20180731093727.26855-1-yi.zhang@huawei.com>
 References: <20180731093727.26855-1-yi.zhang@huawei.com>
 MIME-Version: 1.0
@@ -19,165 +19,135 @@ To: linux-unionfs@vger.kernel.org
 Cc: miklos@szeredi.hu, amir73il@gmail.com, yi.zhang@huawei.com, miaoxie@huawei.com, yangerkun@huawei.com
 List-ID: <linux-unionfs@vger.kernel.org>
 
-Mount operation should fail if unknown incompatible feature is
-detected on any one of the underlying layers, and read-write mount
-operation should fail if unknown read-only compatible feature is
-detected on the upper layer.
-
-This patch doesn't add any features, so if any feature xattrs is
-detected on the underlying root dir, it will be recognized as
-unknown feature.
+After we introduce the fsck.overlay program, we could check and fix
+the inconsistency of feature set xattr, so it's a good opportunity
+check the redirect dir feature when we detect redirect xattr on
+directory in the underlying layer. If the feature is necessary
+(OVL_FS_V2 for all layers and OVL_FS_UPPER_V2 for upper layer) but
+the redirect dir feature is missing, the feature set is inconsistent
+and fsck.overlay is required.
 
 Signed-off-by: zhangyi (F) <yi.zhang@huawei.com>
 ---
- fs/overlayfs/feature.c   | 65 ++++++++++++++++++++++++++++++++++++++++++++++++
- fs/overlayfs/overlayfs.h | 29 +++++++++++++++++++++
- fs/overlayfs/super.c     |  8 +++++-
- 3 files changed, 101 insertions(+), 1 deletion(-)
+ fs/overlayfs/feature.c   | 11 +++++++++++
+ fs/overlayfs/namei.c     | 33 ++++++++++++++++++++++++++++++++-
+ fs/overlayfs/overlayfs.h |  1 +
+ 3 files changed, 44 insertions(+), 1 deletion(-)
 
 diff --git a/fs/overlayfs/feature.c b/fs/overlayfs/feature.c
-index eed6644a2a31..fac4d7544475 100644
+index fffa79ee9b15..ed9830ab7ae1 100644
 --- a/fs/overlayfs/feature.c
 +++ b/fs/overlayfs/feature.c
-@@ -117,3 +117,68 @@ int ovl_init_feature_set(struct ovl_fs *ofs, struct ovl_entry *oe)
+@@ -285,3 +285,14 @@ bool ovl_check_feature_ok(struct ovl_fs *ofs, bool readonly)
  
- 	return 0;
+ 	return true;
  }
 +
 +/*
-+ * Check whether this overlay layer can be mounted based on
-+ * the features present and the read-only/read-write mount requested.
-+ * Returns true if this layer can be mounted as requested,
-+ * false if it cannot be.
++ * Feature set on upper layer is necessary when OVL_FS_V2 and
++ * OVL_FS_UPPER_V2, feautre sets on lower layers are necessary
++ * when OVL_FS_V2.
 + */
-+static bool ovl_check_layer_feature(struct ovl_layer *layer, bool readonly)
++bool ovl_feature_necessary(struct ovl_fs *ofs, struct ovl_layer *layer)
 +{
-+	if (ovl_has_unknown_incompat_features(layer)) {
-+		pr_err("overlayfs: unknown optional incompat features "
-+		       "(0x%llx) enabled on layer %d\n",
-+		       layer->incompat & OVL_FEATURE_INCOMPAT_UNKNOWN,
-+		       layer->idx);
-+		pr_err("overlayfs: filesystem cannot not be safely mounted "
-+		       "by this kernel\n");
-+		return false;
-+	}
-+
-+	if (ovl_has_unknown_ro_compat_features(layer)) {
-+		pr_err("overlayfs: unknown optional ro_compat features "
-+		       "(0x%llx) enabled on layer %d\n",
-+		       layer->ro_compat & OVL_FEATURE_RO_COMPAT_UNKNOWN,
-+		       layer->idx);
-+
-+		if (readonly)
-+			return true;
-+
-+		pr_err("overlayfs: filesystem cannot not be safely mounted "
-+		       "read-write by this kernel\n");
-+		return false;
-+	}
-+
-+	if (ovl_has_unknown_compat_features(layer)) {
-+		pr_warn("overlayfs: unknown optional compat features "
-+		        "(0x%llx) enabled on layer %d\n",
-+			layer->compat & OVL_FEATURE_COMPAT_UNKNOWN,
-+			layer->idx);
-+	}
-+
-+	return true;
++	return (ofs->config.format == OVL_FS_UPPER_V2) ?
++			(layer->idx == 0) : (ofs->config.format == OVL_FS_V2);
 +}
+diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
+index bb2d347c0a7e..160c87734092 100644
+--- a/fs/overlayfs/namei.c
++++ b/fs/overlayfs/namei.c
+@@ -24,6 +24,7 @@ struct ovl_lookup_data {
+ 	bool stop;
+ 	bool last;
+ 	char *redirect;
++	bool redirect_xattr;
+ };
+ 
+ static int ovl_check_redirect(struct dentry *dentry, struct ovl_lookup_data *d,
+@@ -35,7 +36,7 @@ static int ovl_check_redirect(struct dentry *dentry, struct ovl_lookup_data *d,
+ 	res = vfs_getxattr(dentry, OVL_XATTR_REDIRECT, NULL, 0);
+ 	if (res < 0) {
+ 		if (res == -ENODATA || res == -EOPNOTSUPP)
+-			return 0;
++			goto out;
+ 		goto fail;
+ 	}
+ 	buf = kzalloc(prelen + res + strlen(post) + 1, GFP_KERNEL);
+@@ -75,6 +76,7 @@ static int ovl_check_redirect(struct dentry *dentry, struct ovl_lookup_data *d,
+ 
+ 	strcat(buf, post);
+ 	kfree(d->redirect);
++	d->redirect_xattr = true;
+ 	d->redirect = buf;
+ 	d->name.name = d->redirect;
+ 	d->name.len = strlen(d->redirect);
+@@ -83,6 +85,8 @@ static int ovl_check_redirect(struct dentry *dentry, struct ovl_lookup_data *d,
+ 
+ err_free:
+ 	kfree(buf);
++out:
++	d->redirect_xattr = false;
+ 	return 0;
+ fail:
+ 	pr_warn_ratelimited("overlayfs: failed to get redirect (%i)\n", res);
+@@ -841,6 +845,7 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
+ 		.stop = false,
+ 		.last = ofs->config.redirect_follow ? false : !poe->numlower,
+ 		.redirect = NULL,
++		.redirect_xattr = false,
+ 	};
+ 
+ 	if (dentry->d_name.len > ofs->namelen)
+@@ -875,6 +880,19 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
+ 				goto out_put_upper;
+ 		}
+ 
++		/*
++		 * Check redirect_dir feature when redirect xattr is detected on
++		 * directory and feature set is required.
++		 */
++		err = -ESTALE;
++		if (d.redirect_xattr && d.is_dir &&
++		    ovl_feature_necessary(ofs, ofs->upper_layer) &&
++		    !ovl_has_feature_redirect_dir(ofs->upper_layer)) {
++			pr_warn_ratelimited("overlayfs: redirect_dir feature missing, "
++					    "running fsck.overlay is recommended\n");
++			goto out_put;
++		}
 +
-+/*
-+ * Check all layers of overlay filesystem to make sure whether this
-+ * filesystem can be mounted. Returns true if all layers can be
-+ * mounted as requested, false if any one of them cannot be.
-+ */
-+bool ovl_check_feature_ok(struct ovl_fs *ofs, bool readonly)
-+{
-+	int i;
+ 		if (d.redirect) {
+ 			err = -ENOMEM;
+ 			upperredirect = kstrdup(d.redirect, GFP_KERNEL);
+@@ -942,6 +960,19 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
+ 		ctr++;
+ 
+ 		/*
++		 * Check redirect_dir feature when redirect xattr is detected on
++		 * directory and feature set is required.
++		 */
++		err = -ESTALE;
++		if (d.redirect_xattr && d.is_dir &&
++		    ovl_feature_necessary(ofs, lower.layer) &&
++		    !ovl_has_feature_redirect_dir(lower.layer)) {
++			pr_warn_ratelimited("overlayfs: redirect_dir feature missing, "
++					    "running fsck.overlay is recommended\n");
++			goto out_put;
++		}
 +
-+	if (ofs->upper_layer) {
-+		if (!ovl_check_layer_feature(ofs->upper_layer, readonly))
-+			return false;
-+	}
-+
-+	for (i = 0; i < ofs->numlower; i++) {
-+		/* Lower layer is always read-only */
-+		if (!ovl_check_layer_feature(&ofs->lower_layers[i], true))
-+			return false;
-+	}
-+
-+	return true;
-+}
++		/*
+ 		 * Following redirects can have security consequences: it's like
+ 		 * a symlink into the lower layer without the permission checks.
+ 		 * This is only a problem if the upper layer is untrusted (e.g
 diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-index 745f3b89a99e..f1bf21d030ac 100644
+index 0f95e60cae69..b3db106b8e22 100644
 --- a/fs/overlayfs/overlayfs.h
 +++ b/fs/overlayfs/overlayfs.h
-@@ -55,6 +55,34 @@ struct ovl_d_feature {
- 	__be64 incompat;	/* incompatible features */
- } __packed;
- 
-+
-+#define OVL_FEATURE_COMPAT_SUPP 		(0)
-+#define OVL_FEATURE_COMPAT_UNKNOWN		(~OVL_FEATURE_COMPAT_SUPP)
-+
-+#define OVL_FEATURE_RO_COMPAT_SUPP		(0)
-+#define OVL_FEATURE_RO_COMPAT_UNKNOWN		(~OVL_FEATURE_RO_COMPAT_SUPP)
-+
-+#define OVL_FEATURE_INCOMPAT_SUPP		(0)
-+#define OVL_FEATURE_INCOMPAT_UNKNOWN		(~OVL_FEATURE_INCOMPAT_SUPP)
-+
-+static inline bool ovl_has_unknown_compat_features(struct ovl_layer *layer)
-+{
-+	return ((layer->feature) && \
-+		((layer->compat & OVL_FEATURE_COMPAT_UNKNOWN) != 0));
-+}
-+
-+static inline bool ovl_has_unknown_ro_compat_features(struct ovl_layer *layer)
-+{
-+	return ((layer->feature) && \
-+		((layer->ro_compat & OVL_FEATURE_RO_COMPAT_UNKNOWN) != 0));
-+}
-+
-+static inline bool ovl_has_unknown_incompat_features(struct ovl_layer *layer)
-+{
-+	return ((layer->feature) && \
-+		((layer->incompat & OVL_FEATURE_INCOMPAT_UNKNOWN) != 0));
-+}
-+
- /*
-  * The tuple (fh,uuid) is a universal unique identifier for a copy up origin,
-  * where:
-@@ -394,3 +422,4 @@ extern const struct export_operations ovl_export_operations;
- 
+@@ -477,3 +477,4 @@ extern const struct export_operations ovl_export_operations;
  /* feature.c */
  int ovl_init_feature_set(struct ovl_fs *ofs, struct ovl_entry *oe);
-+bool ovl_check_feature_ok(struct ovl_fs *ofs, bool readonly);
-diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-index 59b7d4f07b03..f8e516656104 100644
---- a/fs/overlayfs/super.c
-+++ b/fs/overlayfs/super.c
-@@ -385,7 +385,8 @@ static int ovl_remount(struct super_block *sb, int *flags, char *data)
- {
- 	struct ovl_fs *ofs = sb->s_fs_info;
- 
--	if (!(*flags & SB_RDONLY) && ovl_force_readonly(ofs))
-+	if (!(*flags & SB_RDONLY) &&
-+	    (ovl_force_readonly(ofs) || !ovl_check_feature_ok(ofs, false)))
- 		return -EROFS;
- 
- 	return 0;
-@@ -1450,6 +1451,11 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
- 
- 	}
- 
-+	/* Check the features could be mounted properly by this kernel */
-+	err = -EINVAL;
-+	if (!ovl_check_feature_ok(ofs, (sb_rdonly(sb))))
-+		goto out_free_oe;
-+
- 	/* Show index=off in /proc/mounts for forced r/o mount */
- 	if (!ofs->indexdir) {
- 		ofs->config.index = false;
+ bool ovl_check_feature_ok(struct ovl_fs *ofs, bool readonly);
++bool ovl_feature_necessary(struct ovl_fs *ofs, struct ovl_layer *layer);
 -- 
 2.13.6
 
