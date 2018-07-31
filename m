@@ -1,64 +1,83 @@
-From: Mark Fasheh <mfasheh@suse.de>
-Subject: [PATCH 4/4] locks: map correct ino/dev pairs when exporting to userspace
-Date: Tue, 31 Jul 2018 14:10:45 -0700
-Message-ID: <20180731211045.5671-5-mfasheh@suse.de>
-References: <20180731211045.5671-1-mfasheh@suse.de>
-Return-path: <linux-btrfs-owner@vger.kernel.org>
-In-Reply-To: <20180731211045.5671-1-mfasheh@suse.de>
-Sender: linux-btrfs-owner@vger.kernel.org
-To: Al Viro <viro@ZenIV.linux.org.uk>, linux-fsdevel@vger.kernel.org
-Cc: linux-btrfs@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, Amir Goldstein <amir73il@gmail.com>, linux-unionfs@vger.kernel.org, Jeff Mahoney <jeffm@suse.com>, linux-nfs@vger.kernel.org, Mark Fasheh <mfasheh@suse.de>
-List-Id: linux-unionfs@vger.kernel.org
+Return-Path: <linux-unionfs-owner@vger.kernel.org>
+Received: from szxga05-in.huawei.com ([45.249.212.191]:10187 "EHLO huawei.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1731948AbeGaLEm (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Tue, 31 Jul 2018 07:04:42 -0400
+Received: from DGGEMS409-HUB.china.huawei.com (unknown [172.30.72.59])
+        by Forcepoint Email with ESMTP id 54A764082D8A3
+        for <linux-unionfs@vger.kernel.org>; Tue, 31 Jul 2018 17:25:13 +0800 (CST)
+From: "zhangyi (F)" <yi.zhang@huawei.com>
+Subject: [RFC PATCH v2 6/9] ovl: add index feature if index dir exists
+Date: Tue, 31 Jul 2018 17:37:24 +0800
+Message-ID: <20180731093727.26855-7-yi.zhang@huawei.com>
+In-Reply-To: <20180731093727.26855-1-yi.zhang@huawei.com>
+References: <20180731093727.26855-1-yi.zhang@huawei.com>
+MIME-Version: 1.0
+Content-Type: text/plain
+Sender: linux-unionfs-owner@vger.kernel.org
+To: linux-unionfs@vger.kernel.org
+Cc: miklos@szeredi.hu, amir73il@gmail.com, yi.zhang@huawei.com, miaoxie@huawei.com, yangerkun@huawei.com
+List-ID: <linux-unionfs@vger.kernel.org>
 
-/proc/locks does not always print the correct inode number/device pair.
-Update lock_get_status() to use vfs_map_unique_ino_dev() to get the real,
-unique values for userspace.
+Index feature is backward read-only compatible becasue it only affect
+the upper layer, and old kernel (which not support this feature) may
+corrupt the relationship between files in upper dir and index dir when
+change the copied-up linked files.
 
-Signed-off-by: Mark Fasheh <mfasheh@suse.de>
+If the index feature is enabled, kernel will create an index dir in the
+work base dir, so this patch check and set upper layer's index feature
+when overlayfs get or create the index dir.
+
+Signed-off-by: zhangyi (F) <yi.zhang@huawei.com>
 ---
- fs/locks.c | 12 +++++++++---
- 1 file changed, 9 insertions(+), 3 deletions(-)
+ fs/overlayfs/overlayfs.h |  4 +++-
+ fs/overlayfs/super.c     | 11 +++++++++--
+ 2 files changed, 12 insertions(+), 3 deletions(-)
 
-diff --git a/fs/locks.c b/fs/locks.c
-index db7b6917d9c5..3a012df87fd8 100644
---- a/fs/locks.c
-+++ b/fs/locks.c
-@@ -2621,6 +2621,7 @@ static void lock_get_status(struct seq_file *f, struct file_lock *fl,
- 			    loff_t id, char *pfx)
- {
- 	struct inode *inode = NULL;
-+	struct dentry *dentry;
- 	unsigned int fl_pid;
- 	struct pid_namespace *proc_pidns = file_inode(f->file)->i_sb->s_fs_info;
+diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
+index 7ed8ed49266f..21a41c12168c 100644
+--- a/fs/overlayfs/overlayfs.h
++++ b/fs/overlayfs/overlayfs.h
+@@ -59,7 +59,8 @@ struct ovl_d_feature {
+ #define OVL_FEATURE_COMPAT_SUPP 		(0)
+ #define OVL_FEATURE_COMPAT_UNKNOWN		(~OVL_FEATURE_COMPAT_SUPP)
  
-@@ -2633,8 +2634,10 @@ static void lock_get_status(struct seq_file *f, struct file_lock *fl,
- 	if (fl_pid == 0)
- 		return;
+-#define OVL_FEATURE_RO_COMPAT_SUPP		(0)
++#define OVL_FEATURE_RO_COMPAT_INDEX		(1 << 0)
++#define OVL_FEATURE_RO_COMPAT_SUPP		(OVL_FEATURE_RO_COMPAT_INDEX)
+ #define OVL_FEATURE_RO_COMPAT_UNKNOWN		(~OVL_FEATURE_RO_COMPAT_SUPP)
  
--	if (fl->fl_file != NULL)
-+	if (fl->fl_file != NULL) {
- 		inode = locks_inode(fl->fl_file);
-+		dentry = file_dentry(fl->fl_file);
-+	}
+ #define OVL_FEATURE_INCOMPAT_REDIRECT_DIR	(1 << 0)
+@@ -130,6 +131,7 @@ static inline int ovl_set_feature_##name(struct ovl_fs *ofs) \
+ 			OVL_FEATURE_INCOMPAT_##flagname); \
+ } \
  
- 	seq_printf(f, "%lld:%s ", id, pfx);
- 	if (IS_POSIX(fl)) {
-@@ -2681,10 +2684,13 @@ static void lock_get_status(struct seq_file *f, struct file_lock *fl,
- 			       : (fl->fl_type == F_WRLCK) ? "WRITE" : "READ ");
- 	}
- 	if (inode) {
-+		__u64 ino;
-+		dev_t dev;
-+
-+		vfs_map_unique_ino_dev(dentry, &ino, &dev);
- 		/* userspace relies on this representation of dev_t */
- 		seq_printf(f, "%d %02x:%02x:%ld ", fl_pid,
--				MAJOR(inode->i_sb->s_dev),
--				MINOR(inode->i_sb->s_dev), inode->i_ino);
-+				MAJOR(dev), MINOR(dev), inode->i_ino);
- 	} else {
- 		seq_printf(f, "%d <none>:0 ", fl_pid);
- 	}
++OVL_FEATURE_RO_COMPAT_FUNCS(index,		INDEX)
+ OVL_FEATURE_INCOMPAT_FUNCS(redirect_dir,	REDIRECT_DIR)
+ 
+ /*
+diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+index a5bbbddf741c..197329f7d284 100644
+--- a/fs/overlayfs/super.c
++++ b/fs/overlayfs/super.c
+@@ -1443,8 +1443,15 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
+ 		if (err)
+ 			goto out_free_oe;
+ 
+-		/* Force r/o mount with no index dir */
+-		if (!ofs->indexdir) {
++		if (ofs->indexdir) {
++			/* Set index feature if index dir exists */
++			if (!ovl_has_feature_index(ofs->upper_layer)) {
++				err = ovl_set_feature_index(ofs);
++				if (err)
++					goto out_free_oe;
++			}
++		} else {
++		        /* Force r/o mount with no index dir */
+ 			dput(ofs->workdir);
+ 			ofs->workdir = NULL;
+ 			sb->s_flags |= SB_RDONLY;
 -- 
-2.15.1
+2.13.6
 
