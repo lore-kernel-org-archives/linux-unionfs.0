@@ -1,48 +1,71 @@
-Return-Path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-yb0-f181.google.com ([209.85.213.181]:40240 "EHLO
-        mail-yb0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1731720AbeGTP4G (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 20 Jul 2018 11:56:06 -0400
-Received: by mail-yb0-f181.google.com with SMTP id y11-v6so4742980ybm.7
-        for <linux-unionfs@vger.kernel.org>; Fri, 20 Jul 2018 08:07:24 -0700 (PDT)
+Return-Path: <yi.zhang@huawei.com>
+From: "zhangyi (F)" <yi.zhang@huawei.com>
+Subject: [RFC PATCH v2 7/9] ovl: add nfs_export feature when nfs_export is enabled
+Date: Tue, 31 Jul 2018 17:37:25 +0800
+Message-ID: <20180731093727.26855-8-yi.zhang@huawei.com>
+In-Reply-To: <20180731093727.26855-1-yi.zhang@huawei.com>
+References: <20180731093727.26855-1-yi.zhang@huawei.com>
 MIME-Version: 1.0
-From: Amir Goldstein <amir73il@gmail.com>
-Date: Fri, 20 Jul 2018 18:07:22 +0300
-Message-ID: <CAOQ4uxjryJep94sLgVxV7sGab8K3yeeDUZwOYOfLtOOguW1pcA@mail.gmail.com>
-Subject: [ANNOUNCE] unionmount-testsuite: master branch updated to 509b1e7
-Content-Type: text/plain; charset="UTF-8"
-Sender: linux-unionfs-owner@vger.kernel.org
-To: overlayfs <linux-unionfs@vger.kernel.org>
-Cc: Giuseppe Scrivano <gscrivan@redhat.com>
+Content-Type: text/plain
+To: linux-unionfs@vger.kernel.org
+Cc: miklos@szeredi.hu, amir73il@gmail.com, yi.zhang@huawei.com, miaoxie@huawei.com, yangerkun@huawei.com
 List-ID: <linux-unionfs@vger.kernel.org>
 
-Hi All,
+nfs_export feature is base on index feature and also backward read-only
+compatible. Check the upper layer's nfs_export feature when index dir
+exists and nfs_export was enabled through mount option, set this feature
+if it was not yet set.
 
-The master branch on the unionmount-testsuite tree [1] has been updated.
+Signed-off-by: zhangyi (F) <yi.zhang@huawei.com>
+---
+ fs/overlayfs/overlayfs.h |  5 ++++-
+ fs/overlayfs/super.c     | 11 +++++++++++
+ 2 files changed, 15 insertions(+), 1 deletion(-)
 
-Changes in this update:
-- Support for testing a FUSE implementation of overlayfs
-
-Tested with fuse-overlayfs [2], which does not support redirect_dir=on:
-  ./run --ov --fuse=fuse-overlayfs --xdev
-
-Thanks,
-Amir.
-
-[1] https://github.com/amir73il/unionmount-testsuite
-[2] https://github.com/containers/fuse-overlayfs
-
-The head of the master branch is commit:
-
-509b1e7 Ignore overlay kernel module params when testing FUSE
-
-New commits:
-
-Amir Goldstein (3):
-      Fix layer check for FUSE overlayfs
-      Expect EXDEV on ovelray dir rename with old kernels
-      Ignore overlay kernel module params when testing FUSE implementation
-
-Giuseppe Scrivano (1):
-      Support testing a FUSE implementation of overlayfs
+diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
+index 21a41c12168c..0f95e60cae69 100644
+--- a/fs/overlayfs/overlayfs.h
++++ b/fs/overlayfs/overlayfs.h
+@@ -60,7 +60,9 @@ struct ovl_d_feature {
+ #define OVL_FEATURE_COMPAT_UNKNOWN		(~OVL_FEATURE_COMPAT_SUPP)
+ 
+ #define OVL_FEATURE_RO_COMPAT_INDEX		(1 << 0)
+-#define OVL_FEATURE_RO_COMPAT_SUPP		(OVL_FEATURE_RO_COMPAT_INDEX)
++#define OVL_FEATURE_RO_COMPAT_NFS_EXPORT	(1 << 1)
++#define OVL_FEATURE_RO_COMPAT_SUPP		(OVL_FEATURE_RO_COMPAT_INDEX | \
++						 OVL_FEATURE_RO_COMPAT_NFS_EXPORT)
+ #define OVL_FEATURE_RO_COMPAT_UNKNOWN		(~OVL_FEATURE_RO_COMPAT_SUPP)
+ 
+ #define OVL_FEATURE_INCOMPAT_REDIRECT_DIR	(1 << 0)
+@@ -132,6 +134,7 @@ static inline int ovl_set_feature_##name(struct ovl_fs *ofs) \
+ } \
+ 
+ OVL_FEATURE_RO_COMPAT_FUNCS(index,		INDEX)
++OVL_FEATURE_RO_COMPAT_FUNCS(nfs_export, 	NFS_EXPORT)
+ OVL_FEATURE_INCOMPAT_FUNCS(redirect_dir,	REDIRECT_DIR)
+ 
+ /*
+diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+index 197329f7d284..860a533ae5a9 100644
+--- a/fs/overlayfs/super.c
++++ b/fs/overlayfs/super.c
+@@ -1450,6 +1450,17 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
+ 				if (err)
+ 					goto out_free_oe;
+ 			}
++
++			/*
++			 * Set nfs_export feature if index dir exists and
++			 * nfs_export mount option enabled.
++			 */
++			if (ofs->config.nfs_export &&
++			    !ovl_has_feature_nfs_export(ofs->upper_layer)) {
++				err = ovl_set_feature_nfs_export(ofs);
++				if (err)
++					goto out_free_oe;
++			}
+ 		} else {
+ 		        /* Force r/o mount with no index dir */
+ 			dput(ofs->workdir);
+-- 
+2.13.6
