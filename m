@@ -1,132 +1,285 @@
-Return-Path: <linux-unionfs-owner@vger.kernel.org>
-Received: from szxga07-in.huawei.com ([45.249.212.35]:39555 "EHLO huawei.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1731500AbeGaLEg (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 31 Jul 2018 07:04:36 -0400
-Received: from DGGEMS409-HUB.china.huawei.com (unknown [172.30.72.58])
-        by Forcepoint Email with ESMTP id 1BB47F1FBB8A7
-        for <linux-unionfs@vger.kernel.org>; Tue, 31 Jul 2018 17:25:08 +0800 (CST)
+Return-Path: <yi.zhang@huawei.com>
 From: "zhangyi (F)" <yi.zhang@huawei.com>
-Subject: [RFC PATCH v2 0/9] ovl: add feature set support
-Date: Tue, 31 Jul 2018 17:37:18 +0800
-Message-ID: <20180731093727.26855-1-yi.zhang@huawei.com>
+Subject: [RFC PATCH v2 8/9] ovl: force mount underlying layers which have feature sets
+Date: Tue, 31 Jul 2018 17:37:26 +0800
+Message-ID: <20180731093727.26855-9-yi.zhang@huawei.com>
+In-Reply-To: <20180731093727.26855-1-yi.zhang@huawei.com>
+References: <20180731093727.26855-1-yi.zhang@huawei.com>
 MIME-Version: 1.0
 Content-Type: text/plain
-Sender: linux-unionfs-owner@vger.kernel.org
 To: linux-unionfs@vger.kernel.org
 Cc: miklos@szeredi.hu, amir73il@gmail.com, yi.zhang@huawei.com, miaoxie@huawei.com, yangerkun@huawei.com
 List-ID: <linux-unionfs@vger.kernel.org>
 
-Hi all,
+Now, overlay try its best to add feature bitset to the upper layer's
+root directory, but it still cannot guarantee the feature set are
+consistent for compatibility check.
 
-These patch set is the second version to add feature set support for
-overlayfs, have already been handle most suggestions from Amir in the
-last iteration. It do the following things.
+ - Some features in the feature set xattr or the whole xattr may be
+   missing if some features have already been set by the old kernel.
+ - Although we don't set lower layer's feature set xattr directly
+   (it inherit from previous mount when it was upper layer), but the
+   whole feature set xattr may be lost or corrupt when user change the
+   underlying layers.
 
-- Introduce compatible, read-only compatible and incompatible these
-  three kinds of feature set which indicates the features in one layer
-  (not the whole overlay image), save as __be64 bit mask on each layer's
-  root directory via a "trusted.overlay.featre" xattr.
-- Kernel will refuse to mount if unknown incompatible feature are found
-  in any one layer, and refuse to mount read-write if unknown
-  ro-compatible feature are found in the upper layer.
-- Set feature bitset when redirect dir xattr, index and nfs_export
-  feature were set or enabled.
-- Refer the layer which have feature set xattr as on-disk format v2,
-  and the layer that don't have as on-disk format v1.
-- Introduce two Kconfig options (OVERLAY_FS_V2 and OVERLAY_FS_UPPER_V2)
-  and the counterpart module and mount options. when OVERLAY_FS_V2 (or
-  the counterpart module and mount option) is set, on-disk format v2
-  becomes necessary on all layers, when OVERLAY_FS_UPPER_V2 is set,
-  on-disk format v2 is only necessary on the upper layer.
-- Check redirect dir feature when redirect xattr is found on the
-  underlying directory, fsck.overlay is required if redirect dir feature
-  missing.
+So, feature set xattr are optionally for overlayfs now, but we should
+be able to ensure the consistency of feature set for backward
+compatibility check accurately.
 
-This patch set base on Linux-4.18-rc6 and is just request for comments,
-any comment is helpful, does not yet take care of the upcoming metadata
-copy-up feature and update the document, I can handle these in the next
-iteration.
+After we introduce mkfs.overlay and fsck.overlay tools, we can use
+these tools to add, check and fix feature set xattr. So it's time to
+add options to enforce kernel to mount overlayfs with the base on the
+layers that must have feature set xattr, even if it is empty.
 
+After this patch, we refer the underlying layer which have feature set
+xattr as on-disk format v2, and the layer that don't have as on-disk
+format v1. We introduce two Kconfig options: OVERLAY_FS_V2 and
+OVERLAY_FS_UPPER_V2, and the counterpart module and mount options
+"overlayfs_v2=<off/on/upper>".
 
-The counterpart fsck.overlay and mkfs.overlay program available here[*],
-You may want to review it together. From 8b540194 "fsck.overlay: factor
-out common header part from fsck" to the latest one d22ebd9a2
-"mkfs.overlay: update README and turn on mkfs program", total 29 patches.
-I can post the tools patch set if you want.
+If "OVERLAY_FS_V2=n" or "-o overlayfs_v2=off", feature set xattr is not
+required, the underlying layers can be either on-disk format v1 or v2.
+If "OVERLAY_FS_V2=y" or "-o overlayfs_v2=on", all underlying layers of
+overlayfs must be on-disk format v2, kernel will refuse to mount if
+not. If "OVELRAY_FS_UPPER_V2=y" or "-o overlayfs=upper", relax the
+requirement for declaring lower layers feature set, only the upper
+layer have feature set is enough (this is useful for the case of lower
+layer is read-only).
 
-The fsck.overlay do the following:
-- Add "overlayfs_v2=<off/upper/on>" fsck option as same as mount option.
-- If "overlayfs_v2=off", fsck will ask user to create a new feature set
-  xattr for on-disk format v1 layers, and will add the missing feature
-  bit, but these are not required (except fix the corrupt feature set
-  xattr).
-- If "overlayfs_v2=on", consistent feature set xattr are required for
-  all layers, fsck will convert layer format v1 to v2 and ensure the
-  consistency of the feature set on all layers.
-- If "overlayfs_v2=upper", release the requirement of feature set xattr
-  on lower layers, but fsck will still warn if unrepaired corrupt
-  feature xattr left over on the read-only lower layer.
-- Display features to human readable string.
+Note that the feature set xattr create by old kernel before this patch
+or if "OVERLAY_FS_V2=n" may inconsistent, fsck.overlay is required
+before mount with "OVERLAY_FS_V2=y" or "OVERLAY_FS_UPPER_V2=y" next
+time.
 
-The mkfs.overlay do the following:
-- Create new feature set xattr for each underlying layer.
-- Do some basic check of the underlying layers, will refuse to make a
-  new overlay iamge if an old overlayfs already existed or any one layer
-  is mounted.
-- Accept redirect dir, index and nfs_export feature options, and set
-  the corresponding feature bitset.
-- Use for new underlying layers only, doesn't give "force" options.
+Signed-off-by: zhangyi (F) <yi.zhang@huawei.com>
+Suggested-by: Amir Goldstein <amir73il@gmail.com>
+---
+ fs/overlayfs/Kconfig     | 40 ++++++++++++++++++++++++++++++++++++++++
+ fs/overlayfs/feature.c   | 20 +++++++++++++++++++-
+ fs/overlayfs/ovl_entry.h |  7 +++++++
+ fs/overlayfs/super.c     | 43 +++++++++++++++++++++++++++++++++++++++++++
+ 4 files changed, 109 insertions(+), 1 deletion(-)
 
-Thanks,
-Yi.
-
-------------------
-
-[*] https://github.com/hisilicon/overlayfs-progs/commits/feature-set
-
-
-Changes since v1:
-- Feature set xattr contains features in one layer instead of the whole
-  overlay image.
-- Use bitset to store features instead of readable string.
-- Compress all three kind of feature sets into one feature xattr instead
-  of three xattrs.
-- Introduce on-disk format v2 which layer's feature set xatte becomes
-  necessary and add two Kconfig options, two module options and two
-  mount options to enable the requirement of on-disk format v2.
-- Do not auto fix redirect dir feature when redirect xattr was detected
-  on directory, just give a warning message to teach user to run fsck.
-- Set redirect dir feature when overlayfs set redirect xattr on
-  directory.
-
-
-zhangyi (F) (9):
-  ovl: store ovl upper root path in ovl_fs
-  ovl: read feature set from each layer's root dir
-  ovl: check file system features can be mounted properly
-  ovl: add helper funcs to set upper layer feature set
-  ovl: add redirect dir feature when set redirect xattr to dir
-  ovl: add index feature if index dir exists
-  ovl: add nfs_export feature when nfs_export is enabled
-  ovl: force mount underlying layers which have feature sets
-  ovl: check redirect_dir feature when detect redirect xattr on dir
-
- fs/overlayfs/Kconfig     |  40 +++++++
- fs/overlayfs/Makefile    |   2 +-
- fs/overlayfs/dir.c       |  11 ++
- fs/overlayfs/export.c    |  12 +-
- fs/overlayfs/feature.c   | 298 +++++++++++++++++++++++++++++++++++++++++++++++
- fs/overlayfs/inode.c     |   4 +-
- fs/overlayfs/namei.c     |  35 +++++-
- fs/overlayfs/overlayfs.h |  99 ++++++++++++++++
- fs/overlayfs/ovl_entry.h |  23 +++-
- fs/overlayfs/readdir.c   |   2 +-
- fs/overlayfs/super.c     | 118 ++++++++++++++++---
- fs/overlayfs/util.c      |  10 +-
- 12 files changed, 617 insertions(+), 37 deletions(-)
- create mode 100644 fs/overlayfs/feature.c
-
+diff --git a/fs/overlayfs/Kconfig b/fs/overlayfs/Kconfig
+index 9384164253ac..1d7f7bfa5165 100644
+--- a/fs/overlayfs/Kconfig
++++ b/fs/overlayfs/Kconfig
+@@ -103,3 +103,43 @@ config OVERLAY_FS_XINO_AUTO
+ 	  For more information, see Documentation/filesystems/overlayfs.txt
+ 
+ 	  If unsure, say N.
++
++config OVERLAY_FS_V2
++	bool "Overlayfs: overlayfs v2 (force all layers have feature sets)"
++	default n
++	depends on OVERLAY_FS
++	help
++	  If this config option is enabled then overlay feature sets are
++	  necessary for each underlying layer, which is created by mkfs.overlay
++	  or fsck.overlay. In this case it is still possible to turn off with
++	  the "overlayfs_v2=off" module option or on a filesystem instance
++	  basis with the "overlayfs_v2=off" mount option.
++
++	  Note, kernel will refuse to mount overlayfs without feature set in
++	  any one of the underlying layers, so must run mkfs.overlay before
++	  the first mount or run fsck.overlay to tune overlayfs image form v1
++	  to v2 (init feature sets).
++
++	  For more information, see Documentation/filesystems/overlayfs.txt
++
++	  If unsure or don't have the mkfs.overlay and mkfs.overlay tools,
++	  say N.
++
++config OVERLAY_FS_UPPER_V2
++	bool "Overlayfs: upper v2 only (release requirement of the lower layers)"
++	default n
++	depends on OVERLAY_FS_V2
++	help
++	  If this config option is enabled then overlay feature sets are
++	  necessary for the upper layer only, feature sets are optional for
++	  each lower layer. This option is useful for read-only lower layer
++	  which cannot init feature set by mkfs.overlay and fsck.overlay.
++
++	  Note, the lower layers may contain unmarked incompatible features,
++	  mounting an overlay with these lower layers on a kernel that doesn't
++	  support these features will have unexpected results.
++
++	  For more information, see Documentation/filesystems/overlayfs.txt
++
++	  If unsure or don't have the mkfs.overlay and mkfs.overlay tools,
++	  say N.
+diff --git a/fs/overlayfs/feature.c b/fs/overlayfs/feature.c
+index 7c66e71bdd98..fffa79ee9b15 100644
+--- a/fs/overlayfs/feature.c
++++ b/fs/overlayfs/feature.c
+@@ -117,6 +117,10 @@ int ovl_set_upper_feature(struct ovl_fs *ofs,
+ 	if (!upper_layer)
+ 		return -EINVAL;
+ 
++	if (WARN_ON_ONCE((ofs->config.format != OVL_FS_V1) &&
++			 !(upper_layer->feature)))
++		return -ESTALE;
++
+ 	switch (type) {
+ 	case OVL_FEATURE_COMPAT:
+ 		features = &upper_layer->compat;
+@@ -148,7 +152,9 @@ int ovl_set_upper_feature(struct ovl_fs *ofs,
+ }
+ 
+ /*
+- * Get features from each underlying root dir.
++ * Get features from each underlying root dir. Feature set is not
++ * necessary for v1 underlying layers, but is necessary for v2
++ * underlying layers.
+  *
+  * @ofs: overlay filesystem information
+  * @oe: overlay lower stack
+@@ -175,6 +181,12 @@ int ovl_init_feature_set(struct ovl_fs *ofs, struct ovl_entry *oe)
+ 			upper_layer->feature = true;
+ 			kfree(odf);
+ 		} else {
++			/* Force upper on-disk format v2 */
++			if (ofs->config.format != OVL_FS_V1) {
++				pr_warn("overlayfs: upper layer feature set missing, "
++					"running fsck.overlay is recommended\n");
++				return -ESTALE;
++			}
+ 			upper_layer->feature = false;
+ 		}
+ 	}
+@@ -189,6 +201,12 @@ int ovl_init_feature_set(struct ovl_fs *ofs, struct ovl_entry *oe)
+ 			return PTR_ERR(odf);
+ 
+ 		if (!odf) {
++			/* Force lower on-disk format v2 */
++			if (ofs->config.format == OVL_FS_V2) {
++				pr_warn("overlayfs: lower layer %i feature set missing, "
++					"running fsck.overlay is recommended\n", i);
++				return -ESTALE;
++			}
+ 			lower_layer->feature = false;
+ 			continue;
+ 		}
+diff --git a/fs/overlayfs/ovl_entry.h b/fs/overlayfs/ovl_entry.h
+index 8a28e24dd149..19885be7705c 100644
+--- a/fs/overlayfs/ovl_entry.h
++++ b/fs/overlayfs/ovl_entry.h
+@@ -8,6 +8,12 @@
+  * the Free Software Foundation.
+  */
+ 
++enum ovl_format {
++	OVL_FS_V1,
++	OVL_FS_UPPER_V2,
++	OVL_FS_V2,
++};
++
+ struct ovl_config {
+ 	char *lowerdir;
+ 	char *upperdir;
+@@ -19,6 +25,7 @@ struct ovl_config {
+ 	bool index;
+ 	bool nfs_export;
+ 	int xino;
++	enum ovl_format format;
+ };
+ 
+ struct ovl_sb {
+diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+index 860a533ae5a9..1e81d2c6766a 100644
+--- a/fs/overlayfs/super.c
++++ b/fs/overlayfs/super.c
+@@ -56,6 +56,16 @@ module_param_named(xino_auto, ovl_xino_auto_def, bool, 0644);
+ MODULE_PARM_DESC(ovl_xino_auto_def,
+ 		 "Auto enable xino feature");
+ 
++static bool ovl_ovlfs_v2_def = IS_ENABLED(CONFIG_OVERLAY_FS_V2);
++module_param_named(ovl_ovlfs_v2, ovl_ovlfs_v2_def, bool, 0644);
++MODULE_PARM_DESC(ovl_ovlfs_v2_def,
++		 "Default to on or off to force mount overlay v2 layers");
++
++static bool ovl_ovlfs_upper_v2_def = IS_ENABLED(CONFIG_OVERLAY_FS_UPPER_V2);
++module_param_named(ovl_ovlfs_upper_v2, ovl_ovlfs_upper_v2_def, bool, 0644);
++MODULE_PARM_DESC(ovl_ovlfs_upper_v2_def,
++		 "Force mount overlay v2 upper layer only");
++
+ static void ovl_entry_stack_free(struct ovl_entry *oe)
+ {
+ 	unsigned int i;
+@@ -351,6 +361,18 @@ static inline int ovl_xino_def(void)
+ 	return ovl_xino_auto_def ? OVL_XINO_AUTO : OVL_XINO_OFF;
+ }
+ 
++static const char * const ovl_format_str[] = {
++	"off",		/* OVL_FS_V1 */
++	"upper",	/* OVL_FS_UPPER_V2 */
++	"on",		/* OVL_FS_V2 */
++};
++
++static inline int ovl_format_def(void)
++{
++	return !ovl_ovlfs_v2_def ? OVL_FS_V1 :
++		(ovl_ovlfs_upper_v2_def ? OVL_FS_UPPER_V2 : OVL_FS_V2);
++}
++
+ /**
+  * ovl_show_options
+  *
+@@ -378,6 +400,8 @@ static int ovl_show_options(struct seq_file *m, struct dentry *dentry)
+ 						"on" : "off");
+ 	if (ofs->config.xino != ovl_xino_def())
+ 		seq_printf(m, ",xino=%s", ovl_xino_str[ofs->config.xino]);
++	if (ofs->config.format != ovl_format_def())
++		seq_printf(m, ",overlayfs_v2=%s", ovl_format_str[ofs->config.format]);
+ 	return 0;
+ }
+ 
+@@ -416,6 +440,9 @@ enum {
+ 	OPT_XINO_ON,
+ 	OPT_XINO_OFF,
+ 	OPT_XINO_AUTO,
++	OPT_OVERLAYFS_V2_ON,
++	OPT_OVERLAYFS_V2_UPPER,
++	OPT_OVERLAYFS_V2_OFF,
+ 	OPT_ERR,
+ };
+ 
+@@ -432,6 +459,9 @@ static const match_table_t ovl_tokens = {
+ 	{OPT_XINO_ON,			"xino=on"},
+ 	{OPT_XINO_OFF,			"xino=off"},
+ 	{OPT_XINO_AUTO,			"xino=auto"},
++	{OPT_OVERLAYFS_V2_ON,		"overlayfs_v2=on"},
++	{OPT_OVERLAYFS_V2_UPPER,	"overlayfs_v2=upper"},
++	{OPT_OVERLAYFS_V2_OFF,		"overlayfs_v2=off"},
+ 	{OPT_ERR,			NULL}
+ };
+ 
+@@ -558,6 +588,18 @@ static int ovl_parse_opt(char *opt, struct ovl_config *config)
+ 			config->xino = OVL_XINO_AUTO;
+ 			break;
+ 
++		case OPT_OVERLAYFS_V2_ON:
++			config->format = OVL_FS_V2;
++			break;
++
++		case OPT_OVERLAYFS_V2_UPPER:
++			config->format = OVL_FS_UPPER_V2;
++			break;
++
++		case OPT_OVERLAYFS_V2_OFF:
++			config->format = OVL_FS_V1;
++			break;
++
+ 		default:
+ 			pr_err("overlayfs: unrecognized mount option \"%s\" or missing value\n", p);
+ 			return -EINVAL;
+@@ -1386,6 +1428,7 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
+ 	ofs->config.index = ovl_index_def;
+ 	ofs->config.nfs_export = ovl_nfs_export_def;
+ 	ofs->config.xino = ovl_xino_def();
++	ofs->config.format = ovl_format_def();
+ 	err = ovl_parse_opt((char *) data, &ofs->config);
+ 	if (err)
+ 		goto out_err;
 -- 
 2.13.6
-
