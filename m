@@ -1,75 +1,33 @@
-From: Jeff Layton <jlayton@poochiereds.net>
-Subject: Re: [PATCH 4/4] locks: map correct ino/dev pairs when exporting to
- userspace
-Date: Wed, 01 Aug 2018 07:03:54 -0400
-Message-ID: <b5b90ff75a222ce3ace37dbd625916ae9aaa9830.camel@poochiereds.net>
+From: Mark Fasheh <mfasheh@suse.de>
+Subject: Re: [PATCH 1/4] vfs: introduce function to map unique ino/dev pairs
+Date: Wed, 1 Aug 2018 15:59:31 +0000
+Message-ID: <20180801155931.GC20761@wotan.suse.de>
 References: <20180731211045.5671-1-mfasheh@suse.de>
-         <20180731211045.5671-5-mfasheh@suse.de>
+ <20180731211045.5671-2-mfasheh@suse.de>
+ <20180731232127.GB20761@wotan.suse.de>
+ <CAOQ4uxiXV=jobVxp_T2NNb7TdbDX+qNjfm4VCr5qAjgLX9BrgA@mail.gmail.com>
+Reply-To: Mark Fasheh <mfasheh@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-btrfs-owner@vger.kernel.org>
-In-Reply-To: <20180731211045.5671-5-mfasheh@suse.de>
+Content-Disposition: inline
+In-Reply-To: <CAOQ4uxiXV=jobVxp_T2NNb7TdbDX+qNjfm4VCr5qAjgLX9BrgA@mail.gmail.com>
 Sender: linux-btrfs-owner@vger.kernel.org
-To: Mark Fasheh <mfasheh@suse.de>, Al Viro <viro@ZenIV.linux.org.uk>, linux-fsdevel@vger.kernel.org
-Cc: linux-btrfs@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, Amir Goldstein <amir73il@gmail.com>, linux-unionfs@vger.kernel.org, Jeff Mahoney <jeffm@suse.com>, linux-nfs@vger.kernel.org
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Linux Btrfs <linux-btrfs@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, overlayfs <linux-unionfs@vger.kernel.org>, Jeff Mahoney <jeffm@suse.com>, Linux NFS Mailing List <linux-nfs@vger.kernel.org>
 List-Id: linux-unionfs@vger.kernel.org
 
-On Tue, 2018-07-31 at 14:10 -0700, Mark Fasheh wrote:
-> /proc/locks does not always print the correct inode number/device pair.
-> Update lock_get_status() to use vfs_map_unique_ino_dev() to get the real,
-> unique values for userspace.
+Hi Amir,
+
+On Wed, Aug 01, 2018 at 08:41:14AM +0300, Amir Goldstein wrote:
+> > +void vfs_map_unique_ino_dev(struct dentry *dentry, u64 *ino, dev_t *dev)
 > 
-> Signed-off-by: Mark Fasheh <mfasheh@suse.de>
-> ---
->  fs/locks.c | 12 +++++++++---
->  1 file changed, 9 insertions(+), 3 deletions(-)
-> 
-> diff --git a/fs/locks.c b/fs/locks.c
-> index db7b6917d9c5..3a012df87fd8 100644
-> --- a/fs/locks.c
-> +++ b/fs/locks.c
-> @@ -2621,6 +2621,7 @@ static void lock_get_status(struct seq_file *f, struct file_lock *fl,
->  			    loff_t id, char *pfx)
->  {
->  	struct inode *inode = NULL;
-> +	struct dentry *dentry;
->  	unsigned int fl_pid;
->  	struct pid_namespace *proc_pidns = file_inode(f->file)->i_sb->s_fs_info;
->  
-> @@ -2633,8 +2634,10 @@ static void lock_get_status(struct seq_file *f, struct file_lock *fl,
->  	if (fl_pid == 0)
->  		return;
->  
-> -	if (fl->fl_file != NULL)
-> +	if (fl->fl_file != NULL) {
->  		inode = locks_inode(fl->fl_file);
-> +		dentry = file_dentry(fl->fl_file);
-> +	}
->  
->  	seq_printf(f, "%lld:%s ", id, pfx);
->  	if (IS_POSIX(fl)) {
-> @@ -2681,10 +2684,13 @@ static void lock_get_status(struct seq_file *f, struct file_lock *fl,
->  			       : (fl->fl_type == F_WRLCK) ? "WRITE" : "READ ");
->  	}
->  	if (inode) {
-> +		__u64 ino;
-> +		dev_t dev;
-> +
-> +		vfs_map_unique_ino_dev(dentry, &ino, &dev);
+> I find this function name a bit more than function can guaranty.
+> It's just a fancy wrapper around ->getattr()
+> How about vfs_get_ino_dev() ?
 
-This code is under a spinlock (blocked_locks_lock or ctx->flc_lock). I
-don't think it'll be ok to call ->getattr while holding a spinlock.
+Yeah I agree with that. An early version actually had the name
+vfs_get_ino_dev(), I don't mind going back to it.
 
->  		/* userspace relies on this representation of dev_t */
->  		seq_printf(f, "%d %02x:%02x:%ld ", fl_pid,
-> -				MAJOR(inode->i_sb->s_dev),
-> -				MINOR(inode->i_sb->s_dev), inode->i_ino);
-> +				MAJOR(dev), MINOR(dev), inode->i_ino);
->  	} else {
->  		seq_printf(f, "%d <none>:0 ", fl_pid);
->  	}
-
--- 
-Jeff Layton <jlayton@poochiereds.net>
-
+Thanks for the review!
+	--Mark
