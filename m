@@ -1,73 +1,31 @@
-From: Mark Fasheh <mfasheh@suse.de>
-Subject: Re: [PATCH 4/4] locks: map correct ino/dev pairs when exporting to
- userspace
-Date: Wed, 1 Aug 2018 20:38:35 +0000
-Message-ID: <20180801203835.GE20761@wotan.suse.de>
+From: "J. R. Okajima" <hooanon05g@gmail.com>
+Subject: Re: [RFC PATCH 0/4] vfs: map unique ino/dev pairs for user space
+Date: Thu, 02 Aug 2018 09:24:27 +0900
+Message-ID: <30133.1533169467@jrobl>
 References: <20180731211045.5671-1-mfasheh@suse.de>
- <20180731211045.5671-5-mfasheh@suse.de>
- <b5b90ff75a222ce3ace37dbd625916ae9aaa9830.camel@poochiereds.net>
-Reply-To: Mark Fasheh <mfasheh@suse.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-btrfs-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <b5b90ff75a222ce3ace37dbd625916ae9aaa9830.camel@poochiereds.net>
+In-Reply-To: <20180731211045.5671-1-mfasheh@suse.de>
 Sender: linux-btrfs-owner@vger.kernel.org
-To: Jeff Layton <jlayton@poochiereds.net>
+To: Mark Fasheh <mfasheh@suse.de>
 Cc: Al Viro <viro@ZenIV.linux.org.uk>, linux-fsdevel@vger.kernel.org, linux-btrfs@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, Amir Goldstein <amir73il@gmail.com>, linux-unionfs@vger.kernel.org, Jeff Mahoney <jeffm@suse.com>, linux-nfs@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 
-Hi Jeff,
+Mark Fasheh:
+> The following patches fix these inconsistencies by introducing a VFS helper
+> function which calls the underlying filesystem ->getattr to get our real
+> inode number / device pair.  The returned values can then be used at those
+> places in the kernel where we are incorrectly reporting our ino/dev pair. 
+> We then update fs/proc/ and fs/locks.c to use this helper when writing to
+> /proc/PID/maps and /proc/locks respectively.
 
-On Wed, Aug 01, 2018 at 07:03:54AM -0400, Jeff Layton wrote:
-> On Tue, 2018-07-31 at 14:10 -0700, Mark Fasheh wrote:
-> > /proc/locks does not always print the correct inode number/device pair.
-> > Update lock_get_status() to use vfs_map_unique_ino_dev() to get the real,
-> > unique values for userspace.
-> > 
-> > Signed-off-by: Mark Fasheh <mfasheh@suse.de>
-> > ---
-> >  fs/locks.c | 12 +++++++++---
-> >  1 file changed, 9 insertions(+), 3 deletions(-)
-> > 
-> > diff --git a/fs/locks.c b/fs/locks.c
-> > index db7b6917d9c5..3a012df87fd8 100644
-> > --- a/fs/locks.c
-> > +++ b/fs/locks.c
-> > @@ -2621,6 +2621,7 @@ static void lock_get_status(struct seq_file *f, struct file_lock *fl,
-> >  			    loff_t id, char *pfx)
-> >  {
-> >  	struct inode *inode = NULL;
-> > +	struct dentry *dentry;
-> >  	unsigned int fl_pid;
-> >  	struct pid_namespace *proc_pidns = file_inode(f->file)->i_sb->s_fs_info;
-> >  
-> > @@ -2633,8 +2634,10 @@ static void lock_get_status(struct seq_file *f, struct file_lock *fl,
-> >  	if (fl_pid == 0)
-> >  		return;
-> >  
-> > -	if (fl->fl_file != NULL)
-> > +	if (fl->fl_file != NULL) {
-> >  		inode = locks_inode(fl->fl_file);
-> > +		dentry = file_dentry(fl->fl_file);
-> > +	}
-> >  
-> >  	seq_printf(f, "%lld:%s ", id, pfx);
-> >  	if (IS_POSIX(fl)) {
-> > @@ -2681,10 +2684,13 @@ static void lock_get_status(struct seq_file *f, struct file_lock *fl,
-> >  			       : (fl->fl_type == F_WRLCK) ? "WRITE" : "READ ");
-> >  	}
-> >  	if (inode) {
-> > +		__u64 ino;
-> > +		dev_t dev;
-> > +
-> > +		vfs_map_unique_ino_dev(dentry, &ino, &dev);
-> 
-> This code is under a spinlock (blocked_locks_lock or ctx->flc_lock). I
-> don't think it'll be ok to call ->getattr while holding a spinlock.
+I definitly agree that ino/dev pair should be a unique identity on the
+system.  But I don't know why you are tryng to solve the problem in
+generic VFS layer instead of the problematic FS.  Isn't it an
+unnecessary overhead for many FS?
+How about creating a new f_op member ->get_ino_dev(), ->show_identity()
+or something, and implement the new f_op in the problematic FS only?
+I hope it will be a lighter way to get the pair than generic getattr
+way.
 
-Hmm, indeed it does call under spinlock. I'll hve to rethink how to approach
-this in fs/locks.c
 
-Thanks,
-	--Mark
+J. R. Okajima
