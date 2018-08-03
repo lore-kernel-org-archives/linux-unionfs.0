@@ -1,99 +1,252 @@
-Return-Path: <amir73il@gmail.com>
-Return-Path: <amir73il@gmail.com>
-From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH v2 5/6] vfs: fix fadvise64 syscall on an overlayfs file
-Date: Sun, 26 Aug 2018 19:25:16 +0300
-Message-Id: <1535300717-26686-6-git-send-email-amir73il@gmail.com>
-In-Reply-To: <1535300717-26686-1-git-send-email-amir73il@gmail.com>
-References: <1535300717-26686-1-git-send-email-amir73il@gmail.com>
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: Al Viro <viro@zeniv.linux.org.uk>, Dave Chinner <david@fromorbit.com>, linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
+Return-Path: <linux-unionfs-owner@vger.kernel.org>
+Received: from szxga05-in.huawei.com ([45.249.212.191]:10223 "EHLO huawei.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1727387AbeHCOHs (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Fri, 3 Aug 2018 10:07:48 -0400
+Received: from DGGEMS408-HUB.china.huawei.com (unknown [172.30.72.59])
+        by Forcepoint Email with ESMTP id 723B2D8CAC302
+        for <linux-unionfs@vger.kernel.org>; Fri,  3 Aug 2018 20:11:42 +0800 (CST)
+Subject: Re: [RFC PATCH v2 2/9] ovl: read feature set from each layer's root
+ dir
+References: <20180731093727.26855-1-yi.zhang@huawei.com>
+ <20180731093727.26855-3-yi.zhang@huawei.com>
+ <CAOQ4uxhchdsSudHSnDOQ=yfUoAyUffgOj6-y5CgNc5idMkWuCw@mail.gmail.com>
+From: "zhangyi (F)" <yi.zhang@huawei.com>
+Message-ID: <efbcd164-4ab1-cc49-2944-3b441f05fa4c@huawei.com>
+Date: Fri, 3 Aug 2018 20:11:36 +0800
+MIME-Version: 1.0
+In-Reply-To: <CAOQ4uxhchdsSudHSnDOQ=yfUoAyUffgOj6-y5CgNc5idMkWuCw@mail.gmail.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Sender: linux-unionfs-owner@vger.kernel.org
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: overlayfs <linux-unionfs@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>, Miao Xie <miaoxie@huawei.com>, yangerkun <yangerkun@huawei.com>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-For an overlayfs file/inode, gage io is operating on the real underlying
-file, so the readahead hints set by fadvise64() should also be set on the
-real underlying file to take affect.
+On 2018/8/1 15:44, Amir Goldstein Wrote:
+> On Tue, Jul 31, 2018 at 12:37 PM, zhangyi (F) <yi.zhang@huawei.com> wrote:
+>> In order to distinguish the backward compatible and backward
+>> incompatible features in overlay filesystem, we introduce compatible,
+>> read-only compatible and incompatible these three kinds of features,
+>> store them as __be64 bit mask on each layer's root directory via
+>> "trusted.overlay.feature" xattr, which contains the features of this
+>> layer.
+>>
+>> This patch just read feature bitsets from each layer, doesn't add any
+>> already known features and doesn't yet use the feature bitsets.
+>>
+>> Signed-off-by: zhangyi (F) <yi.zhang@huawei.com>
+>> Suggested-by: Miklos Szeredi <miklos@szeredi.hu>
+>> Suggested-by: Amir Goldstein <amir73il@gmail.com>
+>> ---
+[..]
+>> +
+>> +/*
+>> + * Get overlay features from the layer's root dir.
+>> + *
+>> + * @realroot: real root dir dentry
+>> + *
+>> + * Return on-disk overlay feature struct if success, NULL if no feature
+>> + * and error ptr if error.
+>> + */
+>> +static struct ovl_d_feature *ovl_get_feature(struct dentry *realroot)
+> 
+> It may be more appropriate to use plural (features) for function, struct
+> and xattr name. Don't feel so strongly about it.
+> 
 
-Fixes: d1d04ef8572b ("ovl: stack file ops")
-Signed-off-by: Amir Goldstein <amir73il@gmail.com>
----
- mm/fadvise.c | 34 ++++++++++++++++++++--------------
- 1 file changed, 20 insertions(+), 14 deletions(-)
+Will do.
 
-diff --git a/mm/fadvise.c b/mm/fadvise.c
-index 2d8376e3c640..d5528343ce77 100644
---- a/mm/fadvise.c
-+++ b/mm/fadvise.c
-@@ -30,6 +30,7 @@
- int ksys_fadvise64_64(int fd, loff_t offset, loff_t len, int advice)
- {
- 	struct fd f = fdget(fd);
-+	struct file *file;
- 	struct inode *inode;
- 	struct address_space *mapping;
- 	struct backing_dev_info *bdi;
-@@ -42,13 +43,18 @@ int ksys_fadvise64_64(int fd, loff_t offset, loff_t len, int advice)
- 	if (!f.file)
- 		return -EBADF;
- 
--	inode = file_inode(f.file);
-+	/*
-+	 * XXX: We need to use file_real() for overlayfs stacked file because
-+	 * readahead will be operating on the real underlying file/inode.
-+	 */
-+	file = file_real(f.file);
-+	inode = file_inode(file);
- 	if (S_ISFIFO(inode->i_mode)) {
- 		ret = -ESPIPE;
- 		goto out;
- 	}
- 
--	mapping = f.file->f_mapping;
-+	mapping = file->f_mapping;
- 	if (!mapping || len < 0) {
- 		ret = -EINVAL;
- 		goto out;
-@@ -85,21 +91,21 @@ int ksys_fadvise64_64(int fd, loff_t offset, loff_t len, int advice)
- 
- 	switch (advice) {
- 	case POSIX_FADV_NORMAL:
--		f.file->f_ra.ra_pages = bdi->ra_pages;
--		spin_lock(&f.file->f_lock);
--		f.file->f_mode &= ~FMODE_RANDOM;
--		spin_unlock(&f.file->f_lock);
-+		file->f_ra.ra_pages = bdi->ra_pages;
-+		spin_lock(&file->f_lock);
-+		file->f_mode &= ~FMODE_RANDOM;
-+		spin_unlock(&file->f_lock);
- 		break;
- 	case POSIX_FADV_RANDOM:
--		spin_lock(&f.file->f_lock);
--		f.file->f_mode |= FMODE_RANDOM;
--		spin_unlock(&f.file->f_lock);
-+		spin_lock(&file->f_lock);
-+		file->f_mode |= FMODE_RANDOM;
-+		spin_unlock(&file->f_lock);
- 		break;
- 	case POSIX_FADV_SEQUENTIAL:
--		f.file->f_ra.ra_pages = bdi->ra_pages * 2;
--		spin_lock(&f.file->f_lock);
--		f.file->f_mode &= ~FMODE_RANDOM;
--		spin_unlock(&f.file->f_lock);
-+		file->f_ra.ra_pages = bdi->ra_pages * 2;
-+		spin_lock(&file->f_lock);
-+		file->f_mode &= ~FMODE_RANDOM;
-+		spin_unlock(&file->f_lock);
- 		break;
- 	case POSIX_FADV_WILLNEED:
- 		/* First and last PARTIAL page! */
-@@ -115,7 +121,7 @@ int ksys_fadvise64_64(int fd, loff_t offset, loff_t len, int advice)
- 		 * Ignore return value because fadvise() shall return
- 		 * success even if filesystem can't retrieve a hint,
- 		 */
--		force_page_cache_readahead(mapping, f.file, start_index,
-+		force_page_cache_readahead(mapping, file, start_index,
- 					   nrpages);
- 		break;
- 	case POSIX_FADV_NOREUSE:
--- 
-2.7.4
+>> +{
+>> +       struct ovl_d_feature *odf = NULL;
+>> +       int res;
+>> +
+>> +       res = vfs_getxattr(realroot, OVL_XATTR_FEATURE, NULL, 0);
+>> +       if (res <= 0) {
+>> +               if (res == -EOPNOTSUPP || res == -ENODATA)
+>> +                       return NULL;
+>> +               goto fail;
+>> +       }
+>> +
+>> +       odf = kzalloc(res, GFP_KERNEL);
+> 
+> Don't really see the point in allocating this struct. You can keep the
+> features buffer on the stack and check res != sizeof(struct ovl_d_feature)
+> before reading into the buffer.
+> 
+
+Will do.
+
+>> +       if (!odf)
+>> +               return ERR_PTR(-ENOMEM);
+>> +
+>> +       res = vfs_getxattr(realroot, OVL_XATTR_FEATURE, odf, res);
+>> +       if (res < 0)
+>> +               goto fail;
+>> +
+>> +       /* Check validity */
+>> +       if (res < sizeof(struct ovl_d_feature)) {
+>> +               res = -EINVAL;
+>> +               goto invalid;
+>> +       }
+>> +       if (odf->magic != OVL_FEATURE_MAGIC) {
+>> +               res = -EINVAL;
+>> +               goto invalid;
+>> +       }
+>> +
+>> +       return odf;
+>> +out:
+>> +       kfree(odf);
+>> +       return ERR_PTR(res);
+>> +fail:
+>> +       pr_err("overlayfs: failed to get features (%i)\n", res);
+>> +       goto out;
+>> +invalid:
+>> +       pr_err("overlayfs: invalid features (%*phN)\n", res, odf);
+>> +       goto out;
+>> +}
+>> +
+>> +/*
+>> + * Get features from each underlying root dir.
+>> + *
+>> + * @ofs: overlay filesystem information
+>> + * @oe: overlay lower stack
+>> + *
+>> + * Return 0 if success, errno otherwise.
+>> + */
+>> +int ovl_init_feature_set(struct ovl_fs *ofs, struct ovl_entry *oe)
+>> +{
+>> +       struct ovl_layer *upper_layer = ofs->upper_layer;
+>> +       struct dentry *upper = ofs->upperdir;
+>> +       struct ovl_d_feature *odf;
+>> +       int i;
+>> +
+>> +       /* Get features from the upper root dir */
+>> +       if (upper_layer) {
+>> +               odf = ovl_get_feature(upper);
+>> +               if (IS_ERR(odf))
+>> +                       return PTR_ERR(odf);
+>> +
+>> +               if (odf) {
+>> +                       upper_layer->compat = be64_to_cpu(odf->compat);
+>> +                       upper_layer->ro_compat = be64_to_cpu(odf->ro_compat);
+>> +                       upper_layer->incompat = be64_to_cpu(odf->incompat);
+>> +                       upper_layer->feature = true;
+>> +                       kfree(odf);
+>> +               } else {
+>> +                       upper_layer->feature = false;
+>> +               }
+> 
+> Please pass ovl_layer * into ovl_get_feature[s]() and do all this
+> inside the helper - it is repeated for lower layers.
+> 
+
+Will do.
+
+>> +       }
+>> +
+>> +       /* Get features from each lower's root dir */
+>> +       for (i = 0; i < oe->numlower; i++) {
+>> +               struct ovl_path *lowerpath = &oe->lowerstack[i];
+>> +               struct ovl_layer *lower_layer = &ofs->lower_layers[i];
+>> +
+>> +               odf = ovl_get_feature(lowerpath->dentry);
+>> +               if (IS_ERR(odf))
+>> +                       return PTR_ERR(odf);
+>> +
+>> +               if (!odf) {
+>> +                       lower_layer->feature = false;
+>> +                       continue;
+>> +               }
+>> +
+>> +               lower_layer->compat = be64_to_cpu(odf->compat);
+>> +               lower_layer->ro_compat = be64_to_cpu(odf->ro_compat);
+>> +               lower_layer->incompat = be64_to_cpu(odf->incompat);
+>> +               lower_layer->feature = true;
+>> +               kfree(odf);
+>> +       }
+>> +
+>> +       return 0;
+>> +}
+>> diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
+>> index 7538b9b56237..745f3b89a99e 100644
+>> --- a/fs/overlayfs/overlayfs.h
+>> +++ b/fs/overlayfs/overlayfs.h
+>> @@ -28,6 +28,7 @@ enum ovl_path_type {
+>>  #define OVL_XATTR_IMPURE OVL_XATTR_PREFIX "impure"
+>>  #define OVL_XATTR_NLINK OVL_XATTR_PREFIX "nlink"
+>>  #define OVL_XATTR_UPPER OVL_XATTR_PREFIX "upper"
+>> +#define OVL_XATTR_FEATURE OVL_XATTR_PREFIX "feature"
+>>
+>>  enum ovl_inode_flag {
+>>         /* Pure upper dir that may contain non pure upper entries */
+>> @@ -43,6 +44,17 @@ enum ovl_entry_flag {
+>>         OVL_E_CONNECTED,
+>>  };
+>>
+>> +/* Features */
+>> +#define OVL_FEATURE_MAGIC 0xfe
+>> +
+>> +/* On-disk format of overlay layer features */
+>> +struct ovl_d_feature {
+> u8 version; (it may be 2 if we want to relate to ovl format v2)
+> 
+
+IIUC, we refer the layer contains this feature set xattr is format v2,
+and the layer doesn't contains is format v1. So why we need this "version"
+parameter, always 2 when we set feature set xattr and prepare for the
+future when we want to change this sturcture ?
+
+>> +       u8 magic;               /* 0xfe */
+> 
+> u16 pad; (just for semantically defining the on-disk format zero padding)
+> 
+>> +       __be64 compat;          /* compatible features */
+>> +       __be64 ro_compat;       /* read-only compatible features */
+>> +       __be64 incompat;        /* incompatible features */
+>> +} __packed;
+>> +
+>>  /*
+>>   * The tuple (fh,uuid) is a universal unique identifier for a copy up origin,
+>>   * where:
+>> @@ -379,3 +391,6 @@ int ovl_set_origin(struct dentry *dentry, struct dentry *lower,
+>>
+>>  /* export.c */
+>>  extern const struct export_operations ovl_export_operations;
+>> +
+>> +/* feature.c */
+>> +int ovl_init_feature_set(struct ovl_fs *ofs, struct ovl_entry *oe);
+>> diff --git a/fs/overlayfs/ovl_entry.h b/fs/overlayfs/ovl_entry.h
+>> index 38ff6689a293..b1b6627f3350 100644
+>> --- a/fs/overlayfs/ovl_entry.h
+>> +++ b/fs/overlayfs/ovl_entry.h
+>> @@ -34,6 +34,11 @@ struct ovl_layer {
+>>         int idx;
+>>         /* One fsid per unique underlying sb (upper fsid == 0) */
+>>         int fsid;
+>> +       /* Features of this layer */
+>> +       u64 compat;
+>> +       u64 ro_compat;
+>> +       u64 incompat;
+>> +       bool feature;
+> 
+> Not that size of ovl_layer matters so much, but technically, the
+> boolean 'feature' can be represented with a single compat feature bit
+> if we define that the on-disk format is never initialized with all zeros,
+> so checking !layer->feature is equivalent to checking !layer->compat.
+> 
+> For example the feature OVL_FEATURE_COMPAT_V2
+> will always be set if features xattrs exists.
+> I write 'compat' only because old kernel *will* mount an overlay
+> with this feature set (not knowing to check it), but fsck.overlay
+> should not have any "official" version that does not check the
+> "V2" feature.
+> 
+> I did not yet look at all the patches to determine if the 'feature'
+> boolean is useful by itself, so not ruling it out completely.
+> 
+Sounds good, will do.
+
+Thanks,
+Yi.
+
