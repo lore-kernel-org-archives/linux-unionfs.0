@@ -1,139 +1,87 @@
-Return-Path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:6112 "EHLO mga14.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726235AbeH3V3W (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 30 Aug 2018 17:29:22 -0400
-Date: Fri, 31 Aug 2018 01:25:25 +0800
-From: kbuild test robot <lkp@intel.com>
-Subject: [miklos-vfs:overlayfs-next 5/6] undefined reference to `vfs_fadvise'
-Message-ID: <201808310123.ER3ZSV9g%fengguang.wu@intel.com>
+Return-Path: <david@fromorbit.com>
+Date: Thu, 23 Aug 2018 10:27:56 +1000
+From: Dave Chinner <david@fromorbit.com>
+Subject: Re: ovl: set I_CREATING on inode being created
+Message-ID: <20180823002756.GR31495@dastard>
+References: <CAOQ4uxhPbS5v5m3XAZ2MTbYcAmjBALXDoyhNf0wVW-SjA4Hjbg@mail.gmail.com>
+ <CAJfpegtx_-KhS8NK4OadSDbfU_05KyCHd9g8OVVYufWX-ThkRw@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: multipart/mixed; boundary="+HP7ph2BbKc20aGI"
-Content-Disposition: inline
-Sender: linux-unionfs-owner@vger.kernel.org
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: kbuild-all@01.org, linux-unionfs@vger.kernel.org, Miklos Szeredi <mszeredi@redhat.com>
-List-ID: <linux-unionfs@vger.kernel.org>
-
-
---+HP7ph2BbKc20aGI
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
+In-Reply-To: <CAJfpegtx_-KhS8NK4OadSDbfU_05KyCHd9g8OVVYufWX-ThkRw@mail.gmail.com>
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: Amir Goldstein <amir73il@gmail.com>, Al Viro <viro@zeniv.linux.org.uk>, overlayfs <linux-unionfs@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>
+List-ID: <linux-unionfs@vger.kernel.org>
 
-tree:   https://git.kernel.org/pub/scm/linux/kernel/git/mszeredi/vfs.git overlayfs-next
-head:   53e35e7602b1cb11751e1788a888c6d74463c6c0
-commit: 2c19a142435e6270ed194206deddfa056181f30a [5/6] vfs: implement readahead(2) using POSIX_FADV_WILLNEED
-config: parisc-allnoconfig (attached as .config)
-compiler: hppa-linux-gnu-gcc (Debian 7.2.0-11) 7.2.0
-reproduce:
-        wget https://raw.githubusercontent.com/intel/lkp-tests/master/sbin/make.cross -O ~/bin/make.cross
-        chmod +x ~/bin/make.cross
-        git checkout 2c19a142435e6270ed194206deddfa056181f30a
-        # save the attached .config to linux build tree
-        GCC_VERSION=7.2.0 make.cross ARCH=parisc 
+On Wed, Aug 22, 2018 at 10:41:21AM +0200, Miklos Szeredi wrote:
+> On Fri, Aug 17, 2018 at 1:16 PM, Amir Goldstein <amir73il@gmail.com> wrote:
+> > Miklos,
+> >
+> > I have 2 questions/comments w.r.t. commit 9475938ce8cf
+> > ("ovl: set I_CREATING on inode being created") in overlayfs-next.
+> >
+> > 1. insert_inode_locked4() sets I_CREATING not inside
+> > spinlock and your patch sets it inside spinlock.
+> > technically, I guess the spinlock taken inside inode_insert5()
+> > to set I_NEW and insert to hash probably provides the needed
+> > barriers.
+> 
+> I was thinking along the same lines.  However, the spinlock is already
+> in L1 cache (due to new_inode_pseudo() pulling it in) and is obviously
+> uncontended, so it's basically free (at least compared to the actual
+> creation of a new object, which follows).
+> 
+> The lock here is for documentation purposes.   Using the common
+> pattern also makes possible future changes to i_state rules simpler.
 
-All errors (new ones prefixed by >>):
+IIRC from scalability stuff I did years ago, the reason the I_NEW
+flag is set under the i_lock is to make the addition of the flag
+atomic w.r.t. the inode hash insertion. This guarantees that by the
+time anyone finds this inode in the inode hash and take the i_lock
+to check i_state, they will see the I_NEW flag.
 
-   mm/readahead.o: In function `ksys_readahead':
->> (.text+0xb14): undefined reference to `vfs_fadvise'
+All the other initialisations that are done under the spinlock are
+in places where we need to ensure that memory barriers are placed
+(unlock to lock is required for a memory barrier) before 3rd parties
+might have access to the inode (e.g. through new_inode()).
 
----
-0-DAY kernel test infrastructure                Open Source Technology Center
-https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
 
---+HP7ph2BbKc20aGI
-Content-Type: application/gzip
-Content-Disposition: attachment; filename=".config.gz"
-Content-Transfer-Encoding: base64
+> > Do you think we should choose one of the practices
+> > and stick with it??
+> 
+> The only lockless modification of i_state is insert_inode_locked4(),
+> AFAICS.  I think it should either be converted to being locked or a
+> comment added explaining why that is not done.
 
-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
+insert_inode_locked4() setting I_CREATING without locks on a newly
+allocated inode that isn't in the inode hash looks to be safe - if
+it gets inserted into the hash, then the i_lock is taken first, the
+I_NEW flag is OR'd in and then it's inserted into the hash. Hence it
+provides the same 3rd party visibility guarantees to I_CREATING as
+it provides I_NEW.
 
---+HP7ph2BbKc20aGI--
+> > 2. I find it nicer if ovl_new_inode() would return an I_CREATING
+> > inode, to conform with the users of inode_insert_locked4() (e.g.
+> > btrfs_new_inode()) this will conform with the pattern:
+> > inode = XXXfs_new_inode(...);
+> > d_instantiate_new(dentry, inode);
+> > The call site d_make_root(ovl_new_inode(sb, S_IFDIR, 0));
+> > could either use a variant of ovl_new_inode() or we could
+> > let ovl_inode_init() clear I_CREATING.
+> 
+> Normal filesystems already know the hash key when allocating the
+> in-core inode.  That's not the case for overlay, that's why we need
+> the unusual sequence of calls.  Basically before the inode is inserted
+> it just doesn't matter when I_CREATING is set, we could just as well
+> set it right before calling inode_insert5().
+
+Yes, that's my understanding of how it's supposed to work, too.
+I_CREATING just needs to be set on the inode before it is inserted
+into the hash under the i_lock.
+
+Cheers,
+
+Dave.
+-- 
+Dave Chinner
+david@fromorbit.com
