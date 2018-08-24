@@ -1,33 +1,45 @@
-From: Linus Torvalds <torvalds@linux-foundation.org>
-Subject: Re: [PATCH] ovl: set I_CREATING on inode being created
-Date: Wed, 22 Aug 2018 13:14:51 -0700
-Message-ID: <CA+55aFzMv5rkRJs2Xu4L3aAQM6UWSAFhHJhXECyquaW4+BXwBQ@mail.gmail.com>
-References: <20180822085522.GA14354@veci.piliscsaba.redhat.com>
- <CA+55aFzd53LwrBfvdtKx7e_bQPhzsKEvCME1rGbrrY4pG94d=Q@mail.gmail.com> <CAJfpegsZUxZXQSHZoy0=9iqB6jRL0ZOtFGnSqT4FrzT8K2mcbQ@mail.gmail.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Subject: Re: [PATCH 03/16] vfs: don't evict uninitialized inode
+Date: Fri, 24 Aug 2018 09:47:53 +0300
+Message-ID: <CAOQ4uxineYpxqZ11n_y_nWfZvuO1ttSqHFHtDVemkZGGc0tQYg@mail.gmail.com>
+References: <20180729220317.GB30522@ZenIV.linux.org.uk> <20180729220453.13431-1-viro@ZenIV.linux.org.uk>
+ <20180729220453.13431-3-viro@ZenIV.linux.org.uk> <CAOQ4uxgOLEpaZ=UwA_CG6CzYbsJBPV4unEV9D5mXrooLXO0+0w@mail.gmail.com>
+ <CAOssrKfmR0beT4dXjg1dn6DBsPbmGBpS5xHpG9QtAAEgMWo_Xg@mail.gmail.com> <CAOQ4uxjHdtjc-aXHb-kxghAxU1oRbhEHmBVX5+=w8CgcnGBSGg@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAJfpegsZUxZXQSHZoy0=9iqB6jRL0ZOtFGnSqT4FrzT8K2mcbQ@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, linux-unionfs@vger.kernel.org, Al Viro <viro@zeniv.linux.org.uk>
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <CAOQ4uxjHdtjc-aXHb-kxghAxU1oRbhEHmBVX5+=w8CgcnGBSGg@mail.gmail.com>
+Sender: stable-owner@vger.kernel.org
+To: Greg KH <gregkh@linuxfoundation.org>
+Cc: Al Viro <viro@zeniv.linux.org.uk>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, overlayfs <linux-unionfs@vger.kernel.org>, stable <stable@vger.kernel.org>, Miklos Szeredi <mszeredi@redhat.com>
 List-Id: linux-unionfs@vger.kernel.org
 
-On Wed, Aug 22, 2018 at 12:58 PM Miklos Szeredi <miklos@szeredi.hu> wrote:
+> Miklos,
 >
-> > So I'd like some clarification on this point before applying it. It's
-> > possible that the spinlock is required, I just want to understand why.
+> Seeing that it wasn't fixed in 4.18..
 >
-> I added the spinlock, because it's cheap (new_inode() already pulls it
-> into L1 cache) and because it's much harder to prove that lockless one
-> is correct than just adding that locking.
+> > I've nothing against applying "new primitive: discard_new_inode() now
+> > + this patch, but if it is deemed too risky at this point, we could
+> > just revert the buggy commit 80ea09a002bf ("vfs: factor out
+> > inode_insert5()") and its dependencies.
+> >
+>
+> Should we propose for stable the upstream commits:
+> e950564b97fd vfs: don't evict uninitialized inode
+> c2b6d621c4ff new primitive: discard_new_inode()
+>
+> Or should we go with the independent v1 patch:
+> https://patchwork.kernel.org/patch/10511969/
+>
 
-Ok, thanks, looks good to me. And looking around, I think it matches
-most of the other cases of us setting those I_NEW and I_CREATING
-flags, so I guess it's good from a consistency standpoint too.
+Greg,
 
-I just wanted that clarified, but I'll just apply the patch directly.
+To fix a 4.18 overlayfs regression please apply the following
+3 upstream commits (in apply order):
+
+c2b6d621c4ff new primitive: discard_new_inode()
+e950564b97fd vfs: don't evict uninitialized inode
+6faf05c2b2b4 ovl: set I_CREATING on inode being created
 
 Thanks,
-
-             Linus
+Amir.
