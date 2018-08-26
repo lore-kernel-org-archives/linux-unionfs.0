@@ -1,98 +1,34 @@
 Return-Path: <amir73il@gmail.com>
-Return-Path: <amir73il@gmail.com>
+MIME-Version: 1.0
+References: <1535300717-26686-1-git-send-email-amir73il@gmail.com>
+ <1535300717-26686-6-git-send-email-amir73il@gmail.com> <CAJfpegvwndyAPEbrB2aSRJWkUXLCATEU_4qSbG6C_MzzMo6ybw@mail.gmail.com>
+In-Reply-To: <CAJfpegvwndyAPEbrB2aSRJWkUXLCATEU_4qSbG6C_MzzMo6ybw@mail.gmail.com>
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH v3 3/6] Documentation/filesystems: update documentation of file_operations to kernel 4.18
-Date: Mon, 27 Aug 2018 15:56:01 +0300
-Message-Id: <1535374564-8257-4-git-send-email-amir73il@gmail.com>
-In-Reply-To: <1535374564-8257-1-git-send-email-amir73il@gmail.com>
-References: <1535374564-8257-1-git-send-email-amir73il@gmail.com>
+Date: Mon, 27 Aug 2018 00:23:17 +0300
+Message-ID: <CAOQ4uxhSz1fA_c8AjGXM5cYYqyfmdbADKdJgc4W1nQ_wjgi_nw@mail.gmail.com>
+Subject: Re: [PATCH v2 5/6] vfs: fix fadvise64 syscall on an overlayfs file
+Content-Type: text/plain; charset="UTF-8"
 To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: Al Viro <viro@zeniv.linux.org.uk>, Dave Chinner <david@fromorbit.com>, linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
+Cc: Al Viro <viro@zeniv.linux.org.uk>, Dave Chinner <david@fromorbit.com>, overlayfs <linux-unionfs@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-Signed-off-by: Amir Goldstein <amir73il@gmail.com>
----
- Documentation/filesystems/vfs.txt | 22 ++++++++++++++++++----
- 1 file changed, 18 insertions(+), 4 deletions(-)
+On Sun, Aug 26, 2018 at 10:30 PM Miklos Szeredi <miklos@szeredi.hu> wrote:
+>
+> On Sun, Aug 26, 2018 at 6:25 PM, Amir Goldstein <amir73il@gmail.com> wrote:
+> > For an overlayfs file/inode, gage io is operating on the real underlying
+> > file, so the readahead hints set by fadvise64() should also be set on the
+> > real underlying file to take affect.
+>
+> Hmm, how about making this be an f_op?
+>
+> Would also fix readahead(2), which can be translated to fadvise(...,
+> POSIX_FADV_WILLNEED).
+>
 
-diff --git a/Documentation/filesystems/vfs.txt b/Documentation/filesystems/vfs.txt
-index 4b2084d0f1fb..e0ace944a0e1 100644
---- a/Documentation/filesystems/vfs.txt
-+++ b/Documentation/filesystems/vfs.txt
-@@ -848,7 +848,7 @@ struct file_operations
- ----------------------
- 
- This describes how the VFS can manipulate an open file. As of kernel
--4.1, the following members are defined:
-+4.18, the following members are defined:
- 
- struct file_operations {
- 	struct module *owner;
-@@ -858,11 +858,11 @@ struct file_operations {
- 	ssize_t (*read_iter) (struct kiocb *, struct iov_iter *);
- 	ssize_t (*write_iter) (struct kiocb *, struct iov_iter *);
- 	int (*iterate) (struct file *, struct dir_context *);
-+	int (*iterate_shared) (struct file *, struct dir_context *);
- 	__poll_t (*poll) (struct file *, struct poll_table_struct *);
- 	long (*unlocked_ioctl) (struct file *, unsigned int, unsigned long);
- 	long (*compat_ioctl) (struct file *, unsigned int, unsigned long);
- 	int (*mmap) (struct file *, struct vm_area_struct *);
--	int (*mremap)(struct file *, struct vm_area_struct *);
- 	int (*open) (struct inode *, struct file *);
- 	int (*flush) (struct file *, fl_owner_t id);
- 	int (*release) (struct inode *, struct file *);
-@@ -882,6 +882,9 @@ struct file_operations {
- #ifndef CONFIG_MMU
- 	unsigned (*mmap_capabilities)(struct file *);
- #endif
-+	ssize_t (*copy_file_range)(struct file *, loff_t, struct file *, loff_t, size_t, unsigned int);
-+	int (*clone_file_range)(struct file *, loff_t, struct file *, loff_t, u64);
-+	int (*dedupe_file_range)(struct file *, loff_t, struct file *, loff_t, u64);
- };
- 
- Again, all methods are called without any locks being held, unless
-@@ -899,6 +902,9 @@ otherwise noted.
- 
-   iterate: called when the VFS needs to read the directory contents
- 
-+  iterate_shared: called when the VFS needs to read the directory contents
-+	when filesystem supports concurrent dir iterators
-+
-   poll: called by the VFS when a process wants to check if there is
- 	activity on this file and (optionally) go to sleep until there
- 	is activity. Called by the select(2) and poll(2) system calls
-@@ -906,7 +912,7 @@ otherwise noted.
-   unlocked_ioctl: called by the ioctl(2) system call.
- 
-   compat_ioctl: called by the ioctl(2) system call when 32 bit system calls
-- 	 are used on 64 bit kernels.
-+	 are used on 64 bit kernels.
- 
-   mmap: called by the mmap(2) system call
- 
-@@ -931,7 +937,7 @@ otherwise noted.
- 	(non-blocking) mode is enabled for a file
- 
-   lock: called by the fcntl(2) system call for F_GETLK, F_SETLK, and F_SETLKW
--  	commands
-+	commands
- 
-   get_unmapped_area: called by the mmap(2) system call
- 
-@@ -951,6 +957,14 @@ otherwise noted.
- 
-   fallocate: called by the VFS to preallocate blocks or punch a hole.
- 
-+  copy_file_range: called by the copy_file_range(2) system call.
-+
-+  clone_file_range: called by the ioctl(2) system call for FICLONERANGE and
-+	FICLONE commands.
-+
-+  dedupe_file_range: called by the ioctl(2) system call for FIDEDUPERANGE
-+	command.
-+
- Note that the file operations are implemented by the specific
- filesystem in which the inode resides. When opening a device node
- (character or block special) most filesystems will call special
--- 
-2.7.4
+Ok. I guess we could match readahead(2) semantics to an advise
+for fs that implements f_op->advise(). Semantics are not currently
+the same for the case of !mapping->a_ops->readpages, but they
+are already the same (i.e. both return 0) for dax_mapping(mapping).
+
+Thanks,
+Amir.
