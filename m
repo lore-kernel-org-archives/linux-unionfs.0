@@ -1,37 +1,49 @@
-Return-Path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mga07.intel.com ([134.134.136.100]:46291 "EHLO mga07.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727202AbeHaKAT (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 31 Aug 2018 06:00:19 -0400
-Date: Fri, 31 Aug 2018 13:51:12 +0800
-From: kbuild test robot <lkp@intel.com>
-Subject: [miklos-vfs:overlayfs-next 6/6] fs/overlayfs/file.c:334:5: sparse:
- symbol 'ovl_fadvise' was not declared. Should it be static?
-Message-ID: <201808311344.jRhJ1LUF%fengguang.wu@intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Sender: linux-unionfs-owner@vger.kernel.org
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: kbuild-all@01.org, linux-unionfs@vger.kernel.org, Miklos Szeredi <mszeredi@redhat.com>
+Return-Path: <linux-fsdevel-owner@vger.kernel.org>
+From: Amir Goldstein <amir73il@gmail.com>
+Subject: [PATCH v2 4/6] vfs: fix readahead syscall on an overlayfs file
+Date: Sun, 26 Aug 2018 19:25:15 +0300
+Message-Id: <1535300717-26686-5-git-send-email-amir73il@gmail.com>
+In-Reply-To: <1535300717-26686-1-git-send-email-amir73il@gmail.com>
+References: <1535300717-26686-1-git-send-email-amir73il@gmail.com>
+Sender: linux-fsdevel-owner@vger.kernel.org
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: Al Viro <viro@zeniv.linux.org.uk>, Dave Chinner <david@fromorbit.com>, linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
 List-ID: <linux-unionfs@vger.kernel.org>
 
-tree:   https://git.kernel.org/pub/scm/linux/kernel/git/mszeredi/vfs.git overlayfs-next
-head:   53e35e7602b1cb11751e1788a888c6d74463c6c0
-commit: 53e35e7602b1cb11751e1788a888c6d74463c6c0 [6/6] ovl: add ovl_fadvise()
-reproduce:
-        # apt-get install sparse
-        git checkout 53e35e7602b1cb11751e1788a888c6d74463c6c0
-        make ARCH=x86_64 allmodconfig
-        make C=1 CF=-D__CHECK_ENDIAN__
+Overlayfs implements stacked file operations, but does not implement
+stacked a_ops, so passing an overlayfs file to do_readahead() results
+in an error.
 
+Fix this by passing the real underlying file to do_readahead().
 
-sparse warnings: (new ones prefixed by >>)
-
->> fs/overlayfs/file.c:334:5: sparse: symbol 'ovl_fadvise' was not declared. Should it be static?
-
-Please review and possibly fold the followup patch.
-
+Fixes: d1d04ef8572b ("ovl: stack file ops")
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
-0-DAY kernel test infrastructure                Open Source Technology Center
-https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
+ mm/readahead.c | 9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
+
+diff --git a/mm/readahead.c b/mm/readahead.c
+index a59ea70527b9..dc9c64ce6094 100644
+--- a/mm/readahead.c
++++ b/mm/readahead.c
+@@ -602,11 +602,16 @@ ssize_t ksys_readahead(int fd, loff_t offset, size_t count)
+ 	f = fdget(fd);
+ 	if (f.file) {
+ 		if (f.file->f_mode & FMODE_READ) {
+-			struct address_space *mapping = f.file->f_mapping;
++			/*
++			 * XXX: We need to use file_real(), because overlayfs
++			 * stacked file/inode do not implement page io.
++			 */
++			struct file *file = file_real(f.file);
++			struct address_space *mapping = file->f_mapping;
+ 			pgoff_t start = offset >> PAGE_SHIFT;
+ 			pgoff_t end = (offset + count - 1) >> PAGE_SHIFT;
+ 			unsigned long len = end - start + 1;
+-			ret = do_readahead(mapping, f.file, start, len);
++			ret = do_readahead(mapping, file, start, len);
+ 		}
+ 		fdput(f);
+ 	}
+-- 
+2.7.4
