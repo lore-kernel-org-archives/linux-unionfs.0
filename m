@@ -1,83 +1,48 @@
-Return-Path: <david@fromorbit.com>
-Date: Mon, 27 Aug 2018 13:38:12 +1000
-From: Dave Chinner <david@fromorbit.com>
-Subject: Re: [PATCH v2 2/6] ovl: respect FIEMAP_FLAG_SYNC flag
-Message-ID: <20180827033812.GW31495@dastard>
-References: <1535300717-26686-1-git-send-email-amir73il@gmail.com>
- <1535300717-26686-3-git-send-email-amir73il@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
 In-Reply-To: <1535300717-26686-3-git-send-email-amir73il@gmail.com>
+References: <1535300717-26686-1-git-send-email-amir73il@gmail.com>
+	<1535300717-26686-3-git-send-email-amir73il@gmail.com>
+Date: Sun, 26 Aug 2018 21:26:31 +0200
+Message-ID: <CAJfpegszVTzNDkp=A839T8hxdeRSgBWV5bVr2x0dqYggk6fx-w@mail.gmail.com>
+Subject: Re: [PATCH v2 2/6] ovl: respect FIEMAP_FLAG_SYNC flag
+From: Miklos Szeredi <miklos@szeredi.hu>
+Content-Type: text/plain; charset="UTF-8"
 To: Amir Goldstein <amir73il@gmail.com>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, Al Viro <viro@zeniv.linux.org.uk>, linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
+Cc: Al Viro <viro@zeniv.linux.org.uk>, Dave Chinner <david@fromorbit.com>, overlayfs <linux-unionfs@vger.kernel.org>, linux-fsdevel@vger.kernel.org
 List-ID: <linux-unionfs@vger.kernel.org>
 
-On Sun, Aug 26, 2018 at 07:25:13PM +0300, Amir Goldstein wrote:
+On Sun, Aug 26, 2018 at 6:25 PM, Amir Goldstein <amir73il@gmail.com> wrote:
 > Stacked overlayfs fiemap operation broke xfstests that test delayed
 > allocation (with "_test_generic_punch -d"), because ovl_fiemap()
 > failed to write dirty pages when requested.
-> 
+
+Makes sense.
+
+Thanks,
+Miklos
+
+>
 > Fixes: 9e142c4102db ("ovl: add ovl_fiemap()")
 > Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 > ---
 >  fs/overlayfs/inode.c | 4 ++++
 >  1 file changed, 4 insertions(+)
-> 
+>
 > diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
 > index e0bb217c01e2..5014749fd4b4 100644
 > --- a/fs/overlayfs/inode.c
 > +++ b/fs/overlayfs/inode.c
 > @@ -467,6 +467,10 @@ static int ovl_fiemap(struct inode *inode, struct fiemap_extent_info *fieinfo,
->  		return -EOPNOTSUPP;
->  
->  	old_cred = ovl_override_creds(inode->i_sb);
+>                 return -EOPNOTSUPP;
+>
+>         old_cred = ovl_override_creds(inode->i_sb);
 > +
-> +	if (fieinfo->fi_flags & FIEMAP_FLAG_SYNC)
-> +		filemap_write_and_wait(realinode->i_mapping);
+> +       if (fieinfo->fi_flags & FIEMAP_FLAG_SYNC)
+> +               filemap_write_and_wait(realinode->i_mapping);
 > +
->  	err = realinode->i_op->fiemap(realinode, fieinfo, start, len);
-
-
-Where's the fiemap_check_flags() call in the overlay code to
-indicate to userspace what functionality ovl supports?
-
-And, further, you can't take action on FIEMAP_FLAG_SYNC for the
-lower filesystem file because the lower filesystem first has to
-validate the fiemap flags passed in.
-
-So if you need to process FIEMAP_FLAG_SYNC here for the lower
-filesystem, that implies that there is a bug in the filesystem
-implementations and/or the VFS fiemap behaviour.
-
-e.g. in XFS we call iomap_fiemap(), and it does:
-
-        ret = fiemap_check_flags(fi, FIEMAP_FLAG_SYNC);
-        if (ret)
-                return ret;
-
-        if (fi->fi_flags & FIEMAP_FLAG_SYNC) {
-                ret = filemap_write_and_wait(inode->i_mapping);
-                if (ret)
-                        return ret;
-        }
-
-That means you wouldn't have seen this bug on XFS. Ext4 does not do
-this, so it would appear not to observe the FIEMAP_FLAG_SYNC
-behaviour as it was asked to perform.
-
-Ah, I see - the problem is ioctl_fiemap() - it assumes that it can
-run the flush without first allowing the filesystem to check if that
-flag is supported.
-
-So, shouldn't the correct fix be to move the FIEMAP_FLAG_SYNC from
-the VFS down into the filesystem implementations after they have
-checked the flags field for supported functionality? That way ovl
-doesn't need special case hacks to replicate VFS behaviour...
-
-Cheers,
-
-Dave.
--- 
-Dave Chinner
-david@fromorbit.com
+>         err = realinode->i_op->fiemap(realinode, fieinfo, start, len);
+>         revert_creds(old_cred);
+>
+> --
+> 2.7.4
+>
