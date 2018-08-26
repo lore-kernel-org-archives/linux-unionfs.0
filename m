@@ -1,70 +1,55 @@
 Return-Path: <amir73il@gmail.com>
 Return-Path: <amir73il@gmail.com>
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH v2 6/6] vfs: fix sync_file_range syscall on an overlayfs file
-Date: Sun, 26 Aug 2018 19:25:17 +0300
-Message-Id: <1535300717-26686-7-git-send-email-amir73il@gmail.com>
-In-Reply-To: <1535300717-26686-1-git-send-email-amir73il@gmail.com>
-References: <1535300717-26686-1-git-send-email-amir73il@gmail.com>
+Subject: [PATCH v2 0/6] Overlayfs stacked f_op fixes
+Date: Sun, 26 Aug 2018 19:25:11 +0300
+Message-Id: <1535300717-26686-1-git-send-email-amir73il@gmail.com>
 To: Miklos Szeredi <miklos@szeredi.hu>
 Cc: Al Viro <viro@zeniv.linux.org.uk>, Dave Chinner <david@fromorbit.com>, linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
 List-ID: <linux-unionfs@vger.kernel.org>
 
-For an overlayfs file/inode, page io is operating on the real underlying
-file, so sync_file_range() should operate on the real underlying file
-mapping to take affect.
+Miklos,
 
-Fixes: d1d04ef8572b ("ovl: stack file ops")
-Signed-off-by: Amir Goldstein <amir73il@gmail.com>
----
- fs/sync.c | 14 ++++++++++----
- 1 file changed, 10 insertions(+), 4 deletions(-)
+Following are fixes to some stacked f_op regressions, also
+availabel on my ovl-fixes branch [1].
 
-diff --git a/fs/sync.c b/fs/sync.c
-index b54e0541ad89..28a26333844d 100644
---- a/fs/sync.c
-+++ b/fs/sync.c
-@@ -286,6 +286,7 @@ int ksys_sync_file_range(int fd, loff_t offset, loff_t nbytes,
- {
- 	int ret;
- 	struct fd f;
-+	struct file *file;
- 	struct address_space *mapping;
- 	loff_t endbyte;			/* inclusive */
- 	umode_t i_mode;
-@@ -330,16 +331,21 @@ int ksys_sync_file_range(int fd, loff_t offset, loff_t nbytes,
- 	if (!f.file)
- 		goto out;
- 
--	i_mode = file_inode(f.file)->i_mode;
-+	/*
-+	 * XXX: We need to use file_real() for overlayfs stacked file because
-+	 * page io is operating on the real underlying file/inode.
-+	 */
-+	file = file_real(f.file);
-+	i_mode = file_inode(file)->i_mode;
- 	ret = -ESPIPE;
- 	if (!S_ISREG(i_mode) && !S_ISBLK(i_mode) && !S_ISDIR(i_mode) &&
- 			!S_ISLNK(i_mode))
- 		goto out_put;
- 
--	mapping = f.file->f_mapping;
-+	mapping = file->f_mapping;
- 	ret = 0;
- 	if (flags & SYNC_FILE_RANGE_WAIT_BEFORE) {
--		ret = file_fdatawait_range(f.file, offset, endbyte);
-+		ret = file_fdatawait_range(file, offset, endbyte);
- 		if (ret < 0)
- 			goto out_put;
- 	}
-@@ -352,7 +358,7 @@ int ksys_sync_file_range(int fd, loff_t offset, loff_t nbytes,
- 	}
- 
- 	if (flags & SYNC_FILE_RANGE_WAIT_AFTER)
--		ret = file_fdatawait_range(f.file, offset, endbyte);
-+		ret = file_fdatawait_range(file, offset, endbyte);
- 
- out_put:
- 	fdput(f);
+Patches 2-3 fix fiemap() and swapon() regressions detected
+by xfstests.
+
+Per your suggestion, f_mapping now points to the overlay
+inode mapping and as a result, swapfile support is disabled on
+an overlayfs file.
+Also disabled is FIBMAP on an overlayfs file - not a big loss.
+
+Patch 1 adds the vfs helper file_real() to access overlayfs
+real file and patches 4-6 use this helper to untangle from
+the f_mapping change.
+
+Please note that patch 4 fixes a problem that was verified
+with an LTP test [2], but patches 5-6 fix theoretical problems
+that I have not yet demonstrated with a test.
+
+Thanks,
+Amir.
+
+[1] https://github.com/amir73il/linux/commits/ovl-fixes
+[2] https://github.com/amir73il/ltp/commits/overlayfs-devel
+
+Amir Goldstein (6):
+  vfs: add helper to get "real" overlayfs file
+  ovl: respect FIEMAP_FLAG_SYNC flag
+  ovl: fix GPF in swapfile_activate of file from overlayfs over xfs
+  vfs: fix readahead syscall on an overlayfs file
+  vfs: fix fadvise64 syscall on an overlayfs file
+  vfs: fix sync_file_range syscall on an overlayfs file
+
+ fs/overlayfs/file.c  |  4 +---
+ fs/overlayfs/inode.c | 10 ++++++++++
+ fs/sync.c            | 14 ++++++++++----
+ include/linux/fs.h   | 27 +++++++++++++++++++++++++++
+ mm/fadvise.c         | 34 ++++++++++++++++++++--------------
+ mm/readahead.c       |  9 +++++++--
+ 6 files changed, 75 insertions(+), 23 deletions(-)
+
 -- 
 2.7.4
