@@ -1,65 +1,84 @@
-Return-Path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wr1-f67.google.com ([209.85.221.67]:36366 "EHLO
-        mail-wr1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727294AbeH0Qkz (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 27 Aug 2018 12:40:55 -0400
+Return-Path: <amir73il@gmail.com>
+MIME-Version: 1.0
+References: <1535085644-23131-1-git-send-email-amir73il@gmail.com>
+ <CAOQ4uxjaUUMZyfsYs2A=O661XoEq68rktSjFTqLPVZ4V91CCNA@mail.gmail.com> <20180826123913.GA3651@desktop>
+In-Reply-To: <20180826123913.GA3651@desktop>
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH v3 6/6] ovl: add ovl_fadvise()
-Date: Mon, 27 Aug 2018 15:56:04 +0300
-Message-Id: <1535374564-8257-7-git-send-email-amir73il@gmail.com>
-In-Reply-To: <1535374564-8257-1-git-send-email-amir73il@gmail.com>
-References: <1535374564-8257-1-git-send-email-amir73il@gmail.com>
-Sender: linux-unionfs-owner@vger.kernel.org
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: Al Viro <viro@zeniv.linux.org.uk>, Dave Chinner <david@fromorbit.com>, linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
+Date: Sun, 26 Aug 2018 17:34:49 +0300
+Message-ID: <CAOQ4uxjz4GfiJ241tBp9QAwM7hV9BK-==GocX2_xU2mBO6QPog@mail.gmail.com>
+Subject: Re: [PATCH v3] overlay/016: split into two tests
+Content-Type: text/plain; charset="UTF-8"
+To: Eryu Guan <guaneryu@gmail.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, Vivek Goyal <vgoyal@redhat.com>, overlayfs <linux-unionfs@vger.kernel.org>, fstests <fstests@vger.kernel.org>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-Implement stacked fadvise to fix syscalls readahead(2) and fadvise64(2)
-on an overlayfs file.
+On Sun, Aug 26, 2018 at 3:39 PM Eryu Guan <guaneryu@gmail.com> wrote:
+>
+> On Fri, Aug 24, 2018 at 01:51:04PM +0300, Amir Goldstein wrote:
+> > On Fri, Aug 24, 2018 at 7:38 AM Amir Goldstein <amir73il@gmail.com> wrote:
+> > >
+> > > overlay/016 tests two cases of ro/rw fd data inconsistecies -
+> > > one using pread and one using mmap read (i.e. mread).
+> > >
+> > > The first case now passes with stacked overlay file operations
+> > > patch set merged. The second case will still fail.
+> > >
+> > > By splitting the two test cases we get one regression test for
+> > > the common case of ro/rw fd data inconsistecy with pread and
+> > > one test to track the remaining non-standard behavior of
+> > > overlayfs w.r.t mmap.
+> > >
+> > > Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+> > > ---
+> > >
+> > > Eryu,
+> > >
+> > > The overlayfs ro/rw fd data inconsistecies patches were
+> > > finally merged, so we can now merge this test change to
+> > > reflect new behavior.
+> > >
+> > > After this change on current master:
+> > > - overlay/16 is expected to pass
+> > > - overlay/61 is expected to fail
+> > >
+> > > FYI, overlay/60 (new metacopy feature test) is also expected to
+> > > run and pass on master.
+> > >
+> >
+> > Eryu,
+> >
+> > More FYI from testing overlayfs over ext4/xfs on master:
 
-Suggested-by: Miklos Szeredi <mszeredi@redhat.com>
-Fixes: d1d04ef8572b ("ovl: stack file ops")
-Signed-off-by: Amir Goldstein <amir73il@gmail.com>
----
- fs/overlayfs/file.c | 18 ++++++++++++++++++
- 1 file changed, 18 insertions(+)
+Some updates:
 
-diff --git a/fs/overlayfs/file.c b/fs/overlayfs/file.c
-index a4acd84591d4..42d2d034d85c 100644
---- a/fs/overlayfs/file.c
-+++ b/fs/overlayfs/file.c
-@@ -331,6 +331,23 @@ static long ovl_fallocate(struct file *file, int mode, loff_t offset, loff_t len
- 	return ret;
- }
- 
-+int ovl_fadvise(struct file *file, loff_t offset, loff_t len, int advice)
-+{
-+	struct fd real;
-+	int ret;
-+
-+	ret = ovl_real_fdget(file, &real);
-+	if (ret)
-+		return ret;
-+
-+	/* XXX: do we need mounter credentials? */
-+	ret = vfs_fadvise(real.file, offset, len, advice);
-+
-+	fdput(real);
-+
-+	return ret;
-+}
-+
- static long ovl_real_ioctl(struct file *file, unsigned int cmd,
- 			   unsigned long arg)
- {
-@@ -499,6 +516,7 @@ const struct file_operations ovl_file_operations = {
- 	.fsync		= ovl_fsync,
- 	.mmap		= ovl_mmap,
- 	.fallocate	= ovl_fallocate,
-+	.fadvise	= ovl_fadvise,
- 	.unlocked_ioctl	= ovl_ioctl,
- 	.compat_ioctl	= ovl_compat_ioctl,
- 
--- 
-2.7.4
+> > - With base fs xfs, swap group tests crash the kernel - sent out a fix
+
+v2 of ovl fixes will be posted shortly.
+v2 doesn't fix overlayfs swap file support - it disables it - so the swap
+group is due to not run if the fix is merged.
+
+> > - With base fs xfs, overlay/019 stress test hits lockdep "circular dependency"
+> >   and "downgrading a read lock" warnings - it seems like a 4.18-rc1 regression
+> >   I will need more time to investigate
+> > - With base fs ext4, the 6 tests that do "_test_generic_punch -d" fail -
+> >   all expect for generic/009 are regressions from this cycle
+
+Will post an ovl fix shortly.
+generic/009 was failing on overlay over ext4 because the test is
+not "overlay friendly" (it has "$FSTYP" = "ext4") - will send a fix.
+
+> >
+> > The above generic tests failures are the only failures I observed with
+> > "check -overlay -g quick" apart from test that also fail on base fs
+> > (e.g. generic/484).
+>
+
+FYI2, there are ~150 generic tests that are notrun when running
+overlay over xfs-reflink compared to xfs-reflink for various reasons
+(mostly _require_block_device), but found one test generic/474
+that is notrun on overlay over ext4 that is not expected and that
+test was written specifically to cover an overlayfs bug fix.
+Will follow up on that.
+
+Thanks,
+Amir.
