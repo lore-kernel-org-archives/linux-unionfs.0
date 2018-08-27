@@ -1,42 +1,47 @@
-Return-Path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-yb0-f193.google.com ([209.85.213.193]:42213 "EHLO
-        mail-yb0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726526AbeHZSee (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Sun, 26 Aug 2018 14:34:34 -0400
 MIME-Version: 1.0
-References: <1513324055-77618-1-git-send-email-cgxu519@icloud.com> <1513324055-77618-3-git-send-email-cgxu519@icloud.com>
-In-Reply-To: <1513324055-77618-3-git-send-email-cgxu519@icloud.com>
-From: Amir Goldstein <amir73il@gmail.com>
-Date: Sun, 26 Aug 2018 17:53:33 +0300
-Message-ID: <CAOQ4uxgf=btK-MKed7-8_nmpfO-UnPyVJ4RyTtK1hMQuU8Y=-g@mail.gmail.com>
-Subject: Re: [PATCH v5 3/3] generic/471: add syncfs test
+In-Reply-To: <CAOQ4uxgvNoJESGkDmRxGyjvRY7xZzHBwx0txvVOb1dd6Xyv3GA@mail.gmail.com>
+References: <1535300717-26686-1-git-send-email-amir73il@gmail.com>
+	<1535300717-26686-4-git-send-email-amir73il@gmail.com>
+	<20180827034309.GX31495@dastard>
+	<CAOQ4uxgvNoJESGkDmRxGyjvRY7xZzHBwx0txvVOb1dd6Xyv3GA@mail.gmail.com>
+Date: Mon, 27 Aug 2018 11:49:04 +0200
+Message-ID: <CAJfpegsspjbt2+oHVGgLH401hmJiq=HOx=X++rnBurnU52849w@mail.gmail.com>
+Subject: Re: [PATCH v2 3/6] ovl: fix GPF in swapfile_activate of file from
+ overlayfs over xfs
+From: Miklos Szeredi <miklos@szeredi.hu>
 Content-Type: text/plain; charset="UTF-8"
-Sender: linux-unionfs-owner@vger.kernel.org
-To: Chengguang Xu <cgxu519@icloud.com>
-Cc: Eryu Guan <eguan@redhat.com>, fstests <fstests@vger.kernel.org>, overlayfs <linux-unionfs@vger.kernel.org>
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: Dave Chinner <david@fromorbit.com>, Al Viro <viro@zeniv.linux.org.uk>, overlayfs <linux-unionfs@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-On Fri, Dec 15, 2017 at 9:48 AM Chengguang Xu <cgxu519@icloud.com> wrote:
->
-> Inspired by syncfs bug of overlayfs which does not sync dirtyinodes in
-> underlying filesystem.
-> Run syncfs and shutdown filesystem(or underlying filesystem of overlayfs)
-> to check syncfs result.
->
-> Signed-off-by: Chengguang Xu <cgxu519@icloud.com>
-> ---
+On Mon, Aug 27, 2018 at 8:34 AM, Amir Goldstein <amir73il@gmail.com> wrote:
 
-Hi Chengguang,
+> So the trick of this patch is to change the game from whack-an-oops
+> to whack-an-einval, which is better for everyone.
 
-I just noticed that this test (now generic/474) is skipped for overlay over ext4
-for a strange looking reason - it seems that in the overlay_mount() call from
-_scratch_cycle_mount() the function hits
-_notrun "upper fs needs to support d_type".
+In other words: this overlayfs update might cause regressions in dark
+and musty corners of overlayfs usage, but those will not be Oops
+inducing regressions.  And whenever someone reports a regression, that
+will be solved by making that corner of the kernel less musty and dark
+(i.e. properly stackable), so in the end this is a win-win game.
 
-This doesn't happen on my test system with overlay over xfs.
-Did you happen to test this with overlay over ext4 at the time?
-Will you have time to look into this?
+There's one corner case remaining, which is shared mmap consistency
+across copy-up.  I think the solution to this will be:
+
+ - private mappings of lower files will directly go to the lower
+file's mapping (just like now)
+ - anything else (shared mmap of lower files and all mmap of upper
+files) will go to the overlay mapping (just like a normal fs)
+
+The flip side is cache duplication between shared mmap and private
+mmap of the same lower file.  I hope this would be pretty rare.
+
+I don't see big complexities with the above, it should be solvable
+purely in overlayfs.
+
+Then there's getting rid of d_real() for good, for which Al has some
+ideas, and we are done.  So yes, I think the end of the tunnel is
+pretty well in sight.
 
 Thanks,
-Amir.
+Miklos
