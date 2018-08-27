@@ -1,43 +1,48 @@
 Return-Path: <linux-unionfs-owner@vger.kernel.org>
-Received: from fieldses.org ([173.255.197.46]:33566 "EHLO fieldses.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2387654AbeHANZm (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 1 Aug 2018 09:25:42 -0400
-Date: Wed, 1 Aug 2018 07:40:19 -0400
-From: "J . Bruce Fields" <bfields@fieldses.org>
-Subject: Re: [PATCH] nfsd: fix leaked file lock with nfs exported overlayfs
-Message-ID: <20180801114019.GA15798@fieldses.org>
-References: <1531491744-13277-1-git-send-email-amir73il@gmail.com>
- <8fc65417ebda26a198e01e8c82f41ae08ab3c803.camel@kernel.org>
- <CAOQ4uxhvLVLLh_DyXp4q27NNo-+55tbdHOCu3=p8pNin66vv-g@mail.gmail.com>
- <CAJfpegtyTnYdqYmwG5Jqn6rhDMhjdrkOO5Ziu91f5E+sEgyZoQ@mail.gmail.com>
- <CAOQ4uxg+kuAuZ=o7U+77mrYO5zkFAGCkNpiZSVDdYKcdm631_w@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAOQ4uxg+kuAuZ=o7U+77mrYO5zkFAGCkNpiZSVDdYKcdm631_w@mail.gmail.com>
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:40320 "EHLO
+        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726895AbeH0WPV (ORCPT
+        <rfc822;linux-unionfs@vger.kernel.org>);
+        Mon, 27 Aug 2018 18:15:21 -0400
+From: Amir Goldstein <amir73il@gmail.com>
+Subject: [PATCH 1/2] overlay: do not set OVL_BASE_FSTYP value to "overlay"
+Date: Mon, 27 Aug 2018 21:29:25 +0300
+Message-Id: <1535394566-18837-2-git-send-email-amir73il@gmail.com>
+In-Reply-To: <1535394566-18837-1-git-send-email-amir73il@gmail.com>
+References: <1535394566-18837-1-git-send-email-amir73il@gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, Jeff Layton <jlayton@kernel.org>, Eddie Horng <eddiehorng.tw@gmail.com>, overlayfs <linux-unionfs@vger.kernel.org>, Linux NFS Mailing List <linux-nfs@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>
+To: Eryu Guan <guaneryu@gmail.com>
+Cc: Theodore Ts'o <tytso@mit.edu>, fstests@vger.kernel.org, linux-ext4@vger.kernel.org, linux-unionfs@vger.kernel.org
 List-ID: <linux-unionfs@vger.kernel.org>
 
-On Wed, Aug 01, 2018 at 09:18:24AM +0300, Amir Goldstein wrote:
-> On Tue, Jul 17, 2018 at 5:24 PM, Miklos Szeredi <miklos@szeredi.hu> wrote:
-> > Needs a Cc: stable@... tag then.
-> >
-> > Should I take this patch (based on the fact that it only affects
-> > overlayfs exports)?
-> >
-> > Or will you take it, Bruce?
-> >
-> 
-> Bruce? Jeff?
-> 
-> It's probably a good time for someone to put this patch in -next.
-> 
-> Should Miklos do it?
+The purpose of OVL_BASE_FSTYP is to store the value of FSTYP that is
+found in a host config file section.
 
-I'm applying it, thanks for the reminder.  (Or I'd be OK with Miklos
-taking it.)
+When there is no host config file or if user sets FSTYP=overlay in config
+file, it makes no sense to store the value "overlay" in OVL_BASE_FSTYP
+and it is better to leave it empty or leave its current value in tact.
 
---b.
+This allows user to set OVL_BASE_FSTYP in config file or before running
+the test to support queries about base fs, such as
+_require_metadata_journaling, even when running an overlay test.
+
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+---
+ common/config | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/common/config b/common/config
+index 2f1f272..d85519a 100644
+--- a/common/config
++++ b/common/config
+@@ -530,7 +530,7 @@ _overlay_config_override()
+ 	[ -b "$TEST_DEV" ] || return 0
+ 
+ 	# Config file may specify base fs type, but we obay -overlay flag
+-	export OVL_BASE_FSTYP="$FSTYP"
++	[ "$FSTYP" == overlay ] || export OVL_BASE_FSTYP="$FSTYP"
+ 	export FSTYP=overlay
+ 
+ 	# Store original base fs vars
+-- 
+2.7.4
