@@ -1,131 +1,120 @@
 Return-Path: <amir73il@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <20180731093727.26855-5-yi.zhang@huawei.com>
-References: <20180731093727.26855-1-yi.zhang@huawei.com> <20180731093727.26855-5-yi.zhang@huawei.com>
+References: <1535101371-26461-1-git-send-email-amir73il@gmail.com>
+ <20180824233901.GA2234@dastard> <CAOQ4uxj=3N28eSX1papQU4n3bt-J7S=_NhtTFq0xV1k0WgH-Ug@mail.gmail.com>
+ <CAJfpegtCj=bgVQ5SOD-WfSfU9=auderyYnYboUJtnCr8OcPdMA@mail.gmail.com>
+ <CAOQ4uxiHFmiq98OUJqzALm8hHC9azkXVE_bDdKXZLcq+kaCC3Q@mail.gmail.com> <20180826225952.GC2234@dastard>
+In-Reply-To: <20180826225952.GC2234@dastard>
 From: Amir Goldstein <amir73il@gmail.com>
-Date: Wed, 1 Aug 2018 11:51:26 +0300
-Message-ID: <CAOQ4uxg38tQN1g9oTeu6ZZ8SncUoQCoeZgFAZQ0ZL5UGsXktkA@mail.gmail.com>
-Subject: Re: [RFC PATCH v2 4/9] ovl: add helper funcs to set upper layer
- feature set
+Date: Mon, 27 Aug 2018 10:17:51 +0300
+Message-ID: <CAOQ4uxi-cfGsJvwkUdfnTCKWCsz1+k8XzEhiwqa8Aqo+SVok2A@mail.gmail.com>
+Subject: Re: [PATCH] xfs: fix GPF in swapfile_activate of file from overlayfs
 Content-Type: text/plain; charset="UTF-8"
-To: "zhangyi (F)" <yi.zhang@huawei.com>
-Cc: overlayfs <linux-unionfs@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>, Miao Xie <miaoxie@huawei.com>, yangerkun <yangerkun@huawei.com>
+To: Dave Chinner <david@fromorbit.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, "Darrick J. Wong" <darrick.wong@oracle.com>, linux-xfs <linux-xfs@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, overlayfs <linux-unionfs@vger.kernel.org>, Al Viro <viro@zeniv.linux.org.uk>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-On Tue, Jul 31, 2018 at 12:37 PM, zhangyi (F) <yi.zhang@huawei.com> wrote:
-> overlayfs will want to add the upper layer's feature bitset if some
-> overlay file system features were set. For example: redirect dir feature
-> will be set when user rename a lower/merge dir if redirect dir feature
-> is enabled. So add helper functions to set feature sets to the upper
-> layer for future use.
+On Mon, Aug 27, 2018 at 1:59 AM Dave Chinner <david@fromorbit.com> wrote:
 >
-> This patch introduce helper functions only, does not set any feature
-> bits.
+> On Sun, Aug 26, 2018 at 02:32:33PM +0300, Amir Goldstein wrote:
+> > On Sat, Aug 25, 2018 at 11:04 PM Miklos Szeredi <miklos@szeredi.hu> wrote:
+> > >
+> > > On Sat, Aug 25, 2018 at 12:47 PM, Amir Goldstein <amir73il@gmail.com> wrote:
+> > >
+> > > > Actually, I believe the intention was that fs developers don't need to worry
+> > > > about using file_inode() at all, because before the change we had:
+> > > >
+> > > > - file passed in to xfs f_op's and a_ops is either overlay file OR xfs file
+> > > > - file_inode() of either overlay/xfs file in xfs context is always xfs inode
+> > > > - file->f_path in xfs context, BTW, was overlay path and therefore,
+> > > >   XFS_IOC_OPEN_BY_HANDLE was slightly broken in overlayfs over xfs,
+> > > >   as were several other fs specific ioctls
+> > > >
+> > > > After stacked file operations change we should have the rules:
+> > > >
+> > > > 1. file passed in to xfs f_op's is always xfs file (*)
+> > > > 2. file passed in to xfs a_ops is always xfs file (**)
+> > > > 3. file_inode() of overlay file is an overlay inode
+> > > >
+> > > > (*) as explicit file argument or on iocb->ki_filp
+> > > > (**) as explicit file argument or on ->vm_file
+> > > >
+> > > > I believe that swapfile leaking an overlay file into xfs was an oversight,
+> > > > that is breaking rule #2.
+> > >
+> > > Correct.
+> > >
+> > > I believe the root cause is this
+> > >
+> > >     /* For O_DIRECT dentry_open() checks f_mapping->a_ops->direct_IO */
+> > >     file->f_mapping = realfile->f_mapping;
+> > >
+> > > in ovl_open().  So lets start with removing that.  That should fix any
+> > > oopses related to this, but we'll have some other issues:
+> > >
+> > >  1) open(..., O_DIRECT) will return an error
+> > >
+> > > This is easy to fix:  add ovl_file_aops with a dummy ovl_direct_IO()
+> > > function that will never be called.
+> > >
+> >
+> > Nice. I pushed a patch to ovl-fixes branch [1].
+> >
+> > >  2) swapon() will return an error
+> > >
+> > > First question that comes to mind:  does anybody care?  I wouldn't
+> > > think swapfiles would be an important feature for overlayfs, but we
+> > > did support them up till now, so removing support might cause a
+> > > regression somewhere out there.   Unfortunate...
+> > >
+> >
+> > I think we better introduce this "regression" and see if there are any real
+> > world users out there. If there are, I have a WIP patch to make it work,
+> > but it involves cloning an accountable file from real file - not a pretty sight.
+> >
+> > 3) readahead() will return an error and fadvise() will ignore request
+> >
+> > I have patches [1] to fix those by familiarizing vfs with file_real().
 >
-> Signed-off-by: zhangyi (F) <yi.zhang@huawei.com>
-> ---
->  fs/overlayfs/feature.c   | 85 ++++++++++++++++++++++++++++++++++++++++++++++++
->  fs/overlayfs/overlayfs.h | 46 ++++++++++++++++++++++++++
->  fs/overlayfs/ovl_entry.h |  2 ++
->  fs/overlayfs/super.c     |  1 +
->  4 files changed, 134 insertions(+)
+> What's file_real()?
 >
-> diff --git a/fs/overlayfs/feature.c b/fs/overlayfs/feature.c
-> index fac4d7544475..7c66e71bdd98 100644
-> --- a/fs/overlayfs/feature.c
-> +++ b/fs/overlayfs/feature.c
-> @@ -10,6 +10,8 @@
+> I don't see it in 4.19-rc1 - is this a new vfs interface we're
+> expected to know about and use correctly without being told about it
+> and having no documentation explaining it's use to refer to?
 >
->  #include <linux/fs.h>
->  #include <linux/xattr.h>
-> +#include <linux/mount.h>
-> +#include <linux/ratelimit.h>
->  #include "overlayfs.h"
->
->  /*
-> @@ -63,6 +65,89 @@ static struct ovl_d_feature *ovl_get_feature(struct dentry *realroot)
->  }
->
->  /*
-> + * Set overlay features to the upper root dir.
-> + *
-> + * @upper_layer: overlay upper layer information,
-> + * @upper: upper root dentry.
-> + *
-> + * Return 0 if success, error number otherwise.
-> + */
-> +static int ovl_set_feature(struct ovl_layer *upper_layer,
-> +                          struct dentry *upper)
-> +{
-> +       struct vfsmount *upper_mnt = upper_layer->mnt;
-> +       struct ovl_d_feature odf = {};
-> +       int err;
-> +
-> +       odf.magic = OVL_FEATURE_MAGIC;
-> +       odf.compat = cpu_to_be64(upper_layer->compat);
-> +       odf.ro_compat = cpu_to_be64(upper_layer->ro_compat);
-> +       odf.incompat = cpu_to_be64(upper_layer->incompat);
-> +
-> +       err = mnt_want_write(upper_mnt);
-> +       if (err)
-> +               return err;
-> +
-> +       err = ovl_do_setxattr(upper, OVL_XATTR_FEATURE,
-> +                             &odf, sizeof(odf), 0);
-> +       if (err)
-> +               pr_err_ratelimited("overlayfs: failed to set features (%i)\n", err);
-> +
-> +       mnt_drop_write(upper_mnt);
-> +       return err;
-> +}
-> +
-> +/*
-> + * Add feature bit mask to the upper root dir.
-> + *
-> + * @ofs: overlay filesystem information
-> + * @type: feature set type, compat, ro compat or incompat
-> + * @mask: new features mask want to add
-> + *
-> + * Return 0 if success, error number otherwise.
-> + */
-> +int ovl_set_upper_feature(struct ovl_fs *ofs,
-> +                         enum ovl_feature_type type,
-> +                         u64 mask)
-> +{
-> +       struct ovl_layer *upper_layer = ofs->upper_layer;
-> +       u64 *features;
-> +       int err;
-> +
-> +       if (!upper_layer)
-> +               return -EINVAL;
-> +
-> +       switch (type) {
-> +       case OVL_FEATURE_COMPAT:
-> +               features = &upper_layer->compat;
-> +               break;
-> +       case OVL_FEATURE_RO_COMPAT:
-> +               features = &upper_layer->ro_compat;
-> +               break;
-> +       case OVL_FEATURE_INCOMPAT:
-> +               features = &upper_layer->incompat;
-> +               break;
-> +       default:
-> +               return -EINVAL;
-> +       }
-> +
-> +       spin_lock(&upper_layer->lock);
-> +       if ((*features) & mask) {
-> +               spin_unlock(&upper_layer->lock);
-> +               return 0;
-> +       }
-> +
-> +       (*features) |= mask;
-> +       spin_unlock(&upper_layer->lock);
-> +
 
-Seems like you can move the above test and set into
-ovl_set_feature() and you can also use upperdir->d_lock
-and don't need to introduce a new spinlock for this.
+At this point, file_real() is a proposal (from patch [1/5]) that has been
+rejected... If a similar patch does go through, I will add documentation.
+For the record, file_real() is the alter ego of d_real{,_inode}().
+v4.19-rc1 got rid of all d_real{,_inode}() calls in vfs code expect for
+one in probe_event_enable() a thorny one in file_dentry()!
+filesystem code is not *supposed* to be aware of those quirks, but
+if you ever try to access file->f_path directly from filesystem code
+and assume it's an xfs path/mnt/dentry, you are in for an unpleasant
+surprise.
 
-Thanks,
+Is d_real() documented? Yes, in vfs.txt.
+Is this sufficient for you to understand the implications for filesystem
+developers - probably not.
+
+> > 4) I am afraid we may end up with more vfs hacks -
+> >     right off the top of my grep f_mapping fs/*.c:
+> > - FIBMAP
+> > - sync_file_range()
+>
+> .... and this is how we found out that the light wasn't the end of
+> the tunnel, it was the oncoming train... :/
+>
+
+How can you frown about overlayfs breaking the two interfaces you
+hate the most? ;-)
+
+Kidding aside, the reason why v4.19-rc1 changes are good for
+filesystem developers is because they shift more responsibility to
+overlayfs code and fewer surrounding code needs to be aware of
+its quirks. For example, in v4.19-rc1 overlayfs does not let filesystem
+specific ioctls go through - whether or not users will be happy about
+this, only time will tell...
+
+Cheers,
 Amir.
