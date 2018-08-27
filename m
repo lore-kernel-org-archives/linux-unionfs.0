@@ -1,49 +1,50 @@
-Return-Path: <linux-fsdevel-owner@vger.kernel.org>
+Return-Path: <linux-unionfs-owner@vger.kernel.org>
+Received: from mail-wm0-f65.google.com ([74.125.82.65]:34676 "EHLO
+        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726826AbeH0WZA (ORCPT
+        <rfc822;linux-unionfs@vger.kernel.org>);
+        Mon, 27 Aug 2018 18:25:00 -0400
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH v2 4/6] vfs: fix readahead syscall on an overlayfs file
-Date: Sun, 26 Aug 2018 19:25:15 +0300
-Message-Id: <1535300717-26686-5-git-send-email-amir73il@gmail.com>
-In-Reply-To: <1535300717-26686-1-git-send-email-amir73il@gmail.com>
-References: <1535300717-26686-1-git-send-email-amir73il@gmail.com>
-Sender: linux-fsdevel-owner@vger.kernel.org
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: Al Viro <viro@zeniv.linux.org.uk>, Dave Chinner <david@fromorbit.com>, linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
+Subject: [PATCH] test-appliance: store the base fs type for overlay test run
+Date: Mon, 27 Aug 2018 21:39:05 +0300
+Message-Id: <1535395145-19166-1-git-send-email-amir73il@gmail.com>
+Sender: linux-unionfs-owner@vger.kernel.org
+To: Theodore Ts'o <tytso@mit.edu>
+Cc: Eryu Guan <eguan@redhat.com>, fstests@vger.kernel.org, linux-unionfs@vger.kernel.org
 List-ID: <linux-unionfs@vger.kernel.org>
 
-Overlayfs implements stacked file operations, but does not implement
-stacked a_ops, so passing an overlayfs file to do_readahead() results
-in an error.
+The base fs is used by xfstests in several places, for example, to
+check if need to disable extent zeroing for underlying ext4 base fs.
 
-Fix this by passing the real underlying file to do_readahead().
-
-Fixes: d1d04ef8572b ("ovl: stack file ops")
 Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- mm/readahead.c | 9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
 
-diff --git a/mm/readahead.c b/mm/readahead.c
-index a59ea70527b9..dc9c64ce6094 100644
---- a/mm/readahead.c
-+++ b/mm/readahead.c
-@@ -602,11 +602,16 @@ ssize_t ksys_readahead(int fd, loff_t offset, size_t count)
- 	f = fdget(fd);
- 	if (f.file) {
- 		if (f.file->f_mode & FMODE_READ) {
--			struct address_space *mapping = f.file->f_mapping;
-+			/*
-+			 * XXX: We need to use file_real(), because overlayfs
-+			 * stacked file/inode do not implement page io.
-+			 */
-+			struct file *file = file_real(f.file);
-+			struct address_space *mapping = file->f_mapping;
- 			pgoff_t start = offset >> PAGE_SHIFT;
- 			pgoff_t end = (offset + count - 1) >> PAGE_SHIFT;
- 			unsigned long len = end - start + 1;
--			ret = do_readahead(mapping, f.file, start, len);
-+			ret = do_readahead(mapping, file, start, len);
- 		}
- 		fdput(f);
- 	}
+Ted,
+
+This patch is complimentary to this change in fstests:
+https://marc.info/?l=fstests&m=153539445716875&w=2
+
+Thanks,
+Amir.
+
+ kvm-xfstests/test-appliance/files/root/runtests.sh | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/kvm-xfstests/test-appliance/files/root/runtests.sh b/kvm-xfstests/test-appliance/files/root/runtests.sh
+index 1905493..5430dd7 100755
+--- a/kvm-xfstests/test-appliance/files/root/runtests.sh
++++ b/kvm-xfstests/test-appliance/files/root/runtests.sh
+@@ -379,6 +379,11 @@ do
+ 	    echo TEST_SET_EXCLUDE: $TEST_SET_EXCLUDE
+ 	    echo TEST_SET_EXCLUDE: $XFS_IO_AVOID >> "$RESULT_BASE/config"
+ 	fi
++	if [ "$FS" = overlay ]; then
++		# with an overlay configuration preserve base FSTYP
++		# in OVL_BASE_FSTYP
++		export OVL_BASE_FSTYP="$FSTESTTYP"
++	fi
+ 	export FSTYP=$FS
+ 	AEX=""
+ 	if test -n "$DO_AEX" ; then
 -- 
 2.7.4
