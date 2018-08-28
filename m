@@ -1,45 +1,73 @@
-From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [PATCH 03/16] vfs: don't evict uninitialized inode
-Date: Fri, 24 Aug 2018 09:47:53 +0300
-Message-ID: <CAOQ4uxineYpxqZ11n_y_nWfZvuO1ttSqHFHtDVemkZGGc0tQYg@mail.gmail.com>
-References: <20180729220317.GB30522@ZenIV.linux.org.uk> <20180729220453.13431-1-viro@ZenIV.linux.org.uk>
- <20180729220453.13431-3-viro@ZenIV.linux.org.uk> <CAOQ4uxgOLEpaZ=UwA_CG6CzYbsJBPV4unEV9D5mXrooLXO0+0w@mail.gmail.com>
- <CAOssrKfmR0beT4dXjg1dn6DBsPbmGBpS5xHpG9QtAAEgMWo_Xg@mail.gmail.com> <CAOQ4uxjHdtjc-aXHb-kxghAxU1oRbhEHmBVX5+=w8CgcnGBSGg@mail.gmail.com>
+From: Mark Salyzyn <salyzyn@android.com>
+Subject: [PATCH v5 0/3]
+Date: Tue, 28 Aug 2018 09:52:12 -0700
+Message-ID: <20180828165228.211332-1-salyzyn@android.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <CAOQ4uxjHdtjc-aXHb-kxghAxU1oRbhEHmBVX5+=w8CgcnGBSGg@mail.gmail.com>
-Sender: stable-owner@vger.kernel.org
-To: Greg KH <gregkh@linuxfoundation.org>
-Cc: Al Viro <viro@zeniv.linux.org.uk>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, overlayfs <linux-unionfs@vger.kernel.org>, stable <stable@vger.kernel.org>, Miklos Szeredi <mszeredi@redhat.com>
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: Mark Salyzyn <salyzyn@android.com>, Miklos Szeredi <miklos@szeredi.hu>, Jonathan Corbet <corbet@lwn.net>, Vivek Goyal <vgoyal@redhat.com>, "Eric W . Biederman" <ebiederm@xmission.com>, Amir Goldstein <amir73il@gmail.com>, Randy Dunlap <rdunlap@infradead.org>, Stephen Smalley <sds@tycho.nsa.gov>, linux-unionfs@vger.kernel.org, linux-doc@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 
-> Miklos,
->
-> Seeing that it wasn't fixed in 4.18..
->
-> > I've nothing against applying "new primitive: discard_new_inode() now
-> > + this patch, but if it is deemed too risky at this point, we could
-> > just revert the buggy commit 80ea09a002bf ("vfs: factor out
-> > inode_insert5()") and its dependencies.
-> >
->
-> Should we propose for stable the upstream commits:
-> e950564b97fd vfs: don't evict uninitialized inode
-> c2b6d621c4ff new primitive: discard_new_inode()
->
-> Or should we go with the independent v1 patch:
-> https://patchwork.kernel.org/patch/10511969/
->
+overlayfs: check CAP_DAC_READ_SEARCH before issuing exportfs_decode_fh
+overlayfs: check CAP_MKNOD before issuing vfs_whiteout
 
-Greg,
+Assumption never checked, should fail if the mounter creds are not
+sufficient.
 
-To fix a 4.18 overlayfs regression please apply the following
-3 upstream commits (in apply order):
+overlayfs: override_creds=off option bypass creator_cred
 
-c2b6d621c4ff new primitive: discard_new_inode()
-e950564b97fd vfs: don't evict uninitialized inode
-6faf05c2b2b4 ovl: set I_CREATING on inode being created
+By default, all access to the upper, lower and work directories is the
+recorded mounter's MAC and DAC credentials.  The incoming accesses are
+checked against the caller's credentials.
 
-Thanks,
-Amir.
+If the principles of least privilege are applied, the mounter's
+credentials might not overlap the credentials of the caller's when
+accessing the overlayfs filesystem.  For example, a file that a lower
+DAC privileged caller can execute, is MAC denied to the generally
+higher DAC privileged mounter, to prevent an attack vector.
+
+We add the option to turn off override_creds in the mount options; all
+subsequent operations after mount on the filesystem will be only the
+caller's credentials.  This option default is set in the CONFIG
+OVERLAY_FS_OVERRIDE_CREDS or in the module option override_creds.
+
+The module boolean parameter and mount option override_creds is also
+added as a presence check for this "feature" by checking existence of
+/sys/module/overlay/parameters/overlay_creds.  This will allow user
+space to determine if the option can be supplied successfully to the
+mount(2) operation.
+
+Signed-off-by: Mark Salyzyn <salyzyn@android.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Vivek Goyal <vgoyal@redhat.com>
+Cc: Eric W. Biederman <ebiederm@xmission.com>
+Cc: Amir Goldstein <amir73il@gmail.com>
+Cc: Randy Dunlap <rdunlap@infradead.org>
+Cc: Stephen Smalley <sds@tycho.nsa.gov>
+Cc: linux-unionfs@vger.kernel.org
+Cc: linux-doc@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
+
+v2:
+- Forward port changed attr to stat, resulting in a build error.
+- altered commit message.
+
+v3:
+- Change name from caller_credentials / creator_credentials to the
+  boolean override_creds.
+- Changed from creator to mounter credentials.
+- Updated and fortified the documentation.
+- Added CONFIG_OVERLAY_FS_OVERRIDE_CREDS
+
+v4:
+- spelling and grammar errors in text
+
+v5:
+- beefed up the caveats in the Documentation
+- Is dependent on
+  "overlayfs: check CAP_DAC_READ_SEARCH before issuing exportfs_decode_fh"
+  "overlayfs: check CAP_MKNOD before issuing vfs_whiteout"
+- Added prwarn when override_creds=off
