@@ -1,75 +1,68 @@
-From: Mark Salyzyn <salyzyn@android.com>
-Subject: Re: [PATCH v5 1/3] overlayfs: check CAP_DAC_READ_SEARCH before
- issuing exportfs_decode_fh
-Date: Tue, 28 Aug 2018 10:44:11 -0700
-Message-ID: <7998ae36-662b-91f7-c42a-8a4d35d333c1@android.com>
-References: <20180828165259.211474-1-salyzyn@android.com>
- <CAOQ4uxgwKe7_QC7Rg=BTQ_WvnAm+-kSh0LXWGVOoHHAqJt3aXA@mail.gmail.com>
+From: Randy Dunlap <rdunlap@infradead.org>
+Subject: Re: [PATCH v5 3/3] overlayfs: override_creds=off option bypass
+ creator_cred
+Date: Tue, 28 Aug 2018 11:09:39 -0700
+Message-ID: <a8dc66c4-4761-4876-abd3-6dc135692404@infradead.org>
+References: <20180828165336.211643-1-salyzyn@android.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAOQ4uxgwKe7_QC7Rg=BTQ_WvnAm+-kSh0LXWGVOoHHAqJt3aXA@mail.gmail.com>
-Content-Language: en-GB
+In-Reply-To: <20180828165336.211643-1-salyzyn@android.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: linux-kernel <linux-kernel@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>, Jonathan Corbet <corbet@lwn.net>, Vivek Goyal <vgoyal@redhat.com>, "Eric W. Biederman" <ebiederm@xmission.com>, Randy Dunlap <rdunlap@infradead.org>, Stephen Smalley <sds@tycho.nsa.gov>, overlayfs <linux-unionfs@vger.kernel.org>, linux-doc@vger.kernel.org
+To: Mark Salyzyn <salyzyn@android.com>, linux-kernel@vger.kernel.org
+Cc: Miklos Szeredi <miklos@szeredi.hu>, Jonathan Corbet <corbet@lwn.net>, Vivek Goyal <vgoyal@redhat.com>, "Eric W . Biederman" <ebiederm@xmission.com>, Amir Goldstein <amir73il@gmail.com>, Stephen Smalley <sds@tycho.nsa.gov>, linux-unionfs@vger.kernel.org, linux-doc@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 
-On 08/28/2018 10:34 AM, Amir Goldstein wrote:
-> On Tue, Aug 28, 2018 at 7:53 PM Mark Salyzyn <salyzyn@android.com> wrote:
->> Assumption never checked, should fail if the mounter creds are not
->> sufficient.
->>
->> Signed-off-by: Mark Salyzyn <salyzyn@android.com>
->> Cc: Miklos Szeredi <miklos@szeredi.hu>
->> Cc: Jonathan Corbet <corbet@lwn.net>
->> Cc: Vivek Goyal <vgoyal@redhat.com>
->> Cc: Eric W. Biederman <ebiederm@xmission.com>
->> Cc: Amir Goldstein <amir73il@gmail.com>
->> Cc: Randy Dunlap <rdunlap@infradead.org>
->> Cc: Stephen Smalley <sds@tycho.nsa.gov>
->> Cc: linux-unionfs@vger.kernel.org
->> Cc: linux-doc@vger.kernel.org
->> Cc: linux-kernel@vger.kernel.org
->>
->> v5:
->> - dependency of "overlayfs: override_creds=off option bypass creator_cred"
->> ---
->>   fs/overlayfs/namei.c | 5 +++++
->>   1 file changed, 5 insertions(+)
->>
->> diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
->> index c993dd8db739..84982b6525fb 100644
->> --- a/fs/overlayfs/namei.c
->> +++ b/fs/overlayfs/namei.c
->> @@ -193,6 +193,11 @@ struct dentry *ovl_decode_real_fh(struct ovl_fh *fh, struct vfsmount *mnt,
->>          if (!uuid_equal(&fh->uuid, &mnt->mnt_sb->s_uuid))
->>                  return NULL;
->>
->> +       if (!capable(CAP_DAC_READ_SEARCH)) {
->> +               origin = ERR_PTR(-EPERM);
->> +               goto out;
-> Which branch is this works based on?
-> I don't see any out label in current code.
+On 08/28/2018 09:53 AM, Mark Salyzyn wrote:
+> diff --git a/Documentation/filesystems/overlayfs.txt b/Documentation/filesystems/overlayfs.txt
+> index 72615a2c0752..953e52971eb0 100644
+> --- a/Documentation/filesystems/overlayfs.txt
+> +++ b/Documentation/filesystems/overlayfs.txt
+> @@ -106,6 +106,35 @@ Only the lists of names from directories are merged.  Other content
+>  such as metadata and extended attributes are reported for the upper
+>  directory only.  These attributes of the lower directory are hidden.
+>  
+> +credentials
+> +-----------
+> +
+> +By default, all access to the upper, lower and work directories is the
+> +recorded mounter's MAC and DAC credentials.  The incoming accesses are
+> +checked against the caller's credentials.
+> +
+> +If the principles of least privilege are applied, the mounter's
+> +credentials might not overlap the credentials of the caller's when
+> +accessing the overlayfs filesystem.  For example, a file that a lower
+> +DAC privileged caller can execute, but is MAC denied to the
+> +generally higher DAC privileged mounter, to prevent an attack vector
+> +executing with the increased privileges of the mounter.  One option is
+> +to turn off override_creds in the mount options; all subsequent
+> +operations after mount on the filesystem will be only the caller's
+> +credentials.  This option default is set in the CONFIG
+> +OVERLAY_FS_OVERRIDE_CREDS or in the module option override_creds.
+> +Fundamentally The mounter has privileges, its ability to execute,
 
-<sigh> I can only truly test this on 4.14 (android's current top of 
-tree) and on Hikey with that. Lack of due diligence for Top of Linux.
->
->> +       }
->> +
->>          bytes = (fh->len - offsetof(struct ovl_fh, fid));
->>          real = exportfs_decode_fh(mnt, (struct fid *)fh->fid,
->>                                    bytes >> 2, (int)fh->type,
->> --
-> Please add same test in ovl_can_decode_fh().
+                 the
 
-Ahhhh
-> Problem: none of the ovl_export_operations functions override creds.
-> I guess things are working now because nfsd is privileged enough.
-> IOW, the capability check you added doesn't check mounter creds
-> when coming from nfs export ops - I guess that is not what you want
-> although you probably don'r enable nfs export.
-NFS export/import blocked on Android devices.
-> Thanks,
-> Amir.
+but this entire sentence is jumbled and awkward and could use some work.
+I tried to come up with something but I can't quite get what is intended here.
+
+
+> +for example, files and grant them these higher privileges is to be
+> +blocked except to lower privileged and appropriate callers.  This
+> +option turned off permits this kind of security policy.
+> +
+> +With override_creds turned off, several unintended side effects will
+> +occur.  The caller with a lower privilege will not be able to delete
+> +files or directories, create nodes, or search some directories.  The
+> +uneven security model where upperdir and workdir are opened at
+> +privilege, but accessed without, should only be used with strict
+> +understanding of the side effects and of the security policies.
+> +
+>  whiteouts and opaque directories
+>  --------------------------------
+
+
+-- 
+~Randy
