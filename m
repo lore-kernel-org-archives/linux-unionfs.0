@@ -1,59 +1,69 @@
-From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [PATCH v5 2/3] overlayfs: check CAP_MKNOD before issuing vfs_whiteout
-Date: Tue, 28 Aug 2018 21:42:09 +0300
-Message-ID: <CAOQ4uxg=maKZi=5Xet4mC1=uUXftyyKZagj0TBBm8emPDaLmtg@mail.gmail.com>
-References: <20180828165319.211563-1-salyzyn@android.com> <CAOQ4uxhRPOC_prhygrjndMMUrtU-S7FrLJ0tb4eJUV94GFj38w@mail.gmail.com>
+From: Mark Salyzyn <salyzyn@android.com>
+Subject: Re: [PATCH v5 2/3] overlayfs: check CAP_MKNOD before issuing
+ vfs_whiteout
+Date: Tue, 28 Aug 2018 11:51:55 -0700
+Message-ID: <004057f1-f0cd-5410-e4e3-a17287613f89@android.com>
+References: <20180828165319.211563-1-salyzyn@android.com>
+ <CAOQ4uxhRPOC_prhygrjndMMUrtU-S7FrLJ0tb4eJUV94GFj38w@mail.gmail.com>
+ <CAOQ4uxg=maKZi=5Xet4mC1=uUXftyyKZagj0TBBm8emPDaLmtg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAOQ4uxhRPOC_prhygrjndMMUrtU-S7FrLJ0tb4eJUV94GFj38w@mail.gmail.com>
+In-Reply-To: <CAOQ4uxg=maKZi=5Xet4mC1=uUXftyyKZagj0TBBm8emPDaLmtg@mail.gmail.com>
+Content-Language: en-GB
 Sender: linux-kernel-owner@vger.kernel.org
-To: Mark Salyzyn <salyzyn@android.com>
+To: Amir Goldstein <amir73il@gmail.com>
 Cc: linux-kernel <linux-kernel@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>, Jonathan Corbet <corbet@lwn.net>, Vivek Goyal <vgoyal@redhat.com>, "Eric W. Biederman" <ebiederm@xmission.com>, Randy Dunlap <rdunlap@infradead.org>, Stephen Smalley <sds@tycho.nsa.gov>, overlayfs <linux-unionfs@vger.kernel.org>, linux-doc@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 
-On Tue, Aug 28, 2018 at 8:43 PM Amir Goldstein <amir73il@gmail.com> wrote:
+On 08/28/2018 11:42 AM, Amir Goldstein wrote:
+> On Tue, Aug 28, 2018 at 8:43 PM Amir Goldstein <amir73il@gmail.com> wrote:
+>> On Tue, Aug 28, 2018 at 7:53 PM Mark Salyzyn <salyzyn@android.com> wrote:
+>>> Assumption never checked, should fail if the mounter creds are not
+>>> sufficient.
+>>>
+>>> Signed-off-by: Mark Salyzyn <salyzyn@android.com>
+>>> Cc: Miklos Szeredi <miklos@szeredi.hu>
+>>> Cc: Jonathan Corbet <corbet@lwn.net>
+>>> Cc: Vivek Goyal <vgoyal@redhat.com>
+>>> Cc: Eric W. Biederman <ebiederm@xmission.com>
+>>> Cc: Amir Goldstein <amir73il@gmail.com>
+>>> Cc: Randy Dunlap <rdunlap@infradead.org>
+>>> Cc: Stephen Smalley <sds@tycho.nsa.gov>
+>>> Cc: linux-unionfs@vger.kernel.org
+>>> Cc: linux-doc@vger.kernel.org
+>>> Cc: linux-kernel@vger.kernel.org
+>>>
+>>> v5
+>>> - dependency of "overlayfs: override_creds=off option bypass creator_cred"
+>>> ---
+>>>   fs/overlayfs/overlayfs.h | 2 +-
+>>>   1 file changed, 1 insertion(+), 1 deletion(-)
+>>>
+>>> diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
+>>> index 7538b9b56237..bf3a80157d42 100644
+>>> --- a/fs/overlayfs/overlayfs.h
+>>> +++ b/fs/overlayfs/overlayfs.h
+>>> @@ -176,7 +176,7 @@ static inline int ovl_do_rename(struct inode *olddir, struct dentry *olddentry,
+>>>
+>>>   static inline int ovl_do_whiteout(struct inode *dir, struct dentry *dentry)
+>>>   {
+>>> -       int err = vfs_whiteout(dir, dentry);
+>>> +       int err = capable(CAP_MKNOD) ? vfs_whiteout(dir, dentry) : -EPERM;
+>> Should that be ns_capable()? Should the test go into vfs_whiteout()?
+>> I feel there is no convention at all.
+>>
+> Nevermind, I don't think creating a whiteout poses any risk, so don't think
+> we need to worry about CAP_MKNOD.
 >
-> On Tue, Aug 28, 2018 at 7:53 PM Mark Salyzyn <salyzyn@android.com> wrote:
-> >
-> > Assumption never checked, should fail if the mounter creds are not
-> > sufficient.
-> >
-> > Signed-off-by: Mark Salyzyn <salyzyn@android.com>
-> > Cc: Miklos Szeredi <miklos@szeredi.hu>
-> > Cc: Jonathan Corbet <corbet@lwn.net>
-> > Cc: Vivek Goyal <vgoyal@redhat.com>
-> > Cc: Eric W. Biederman <ebiederm@xmission.com>
-> > Cc: Amir Goldstein <amir73il@gmail.com>
-> > Cc: Randy Dunlap <rdunlap@infradead.org>
-> > Cc: Stephen Smalley <sds@tycho.nsa.gov>
-> > Cc: linux-unionfs@vger.kernel.org
-> > Cc: linux-doc@vger.kernel.org
-> > Cc: linux-kernel@vger.kernel.org
-> >
-> > v5
-> > - dependency of "overlayfs: override_creds=off option bypass creator_cred"
-> > ---
-> >  fs/overlayfs/overlayfs.h | 2 +-
-> >  1 file changed, 1 insertion(+), 1 deletion(-)
-> >
-> > diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-> > index 7538b9b56237..bf3a80157d42 100644
-> > --- a/fs/overlayfs/overlayfs.h
-> > +++ b/fs/overlayfs/overlayfs.h
-> > @@ -176,7 +176,7 @@ static inline int ovl_do_rename(struct inode *olddir, struct dentry *olddentry,
-> >
-> >  static inline int ovl_do_whiteout(struct inode *dir, struct dentry *dentry)
-> >  {
-> > -       int err = vfs_whiteout(dir, dentry);
-> > +       int err = capable(CAP_MKNOD) ? vfs_whiteout(dir, dentry) : -EPERM;
->
-> Should that be ns_capable()? Should the test go into vfs_whiteout()?
-> I feel there is no convention at all.
->
+> Thanks,
+> Amir.
 
-Nevermind, I don't think creating a whiteout poses any risk, so don't think
-we need to worry about CAP_MKNOD.
+Ok, will discard from the set, we can address this later if it creates 
+concern (as in, not a dependency to my proposed feature flag). So we 
+feel that whiteout node in the writeable playground of workdir/upperdir 
+is not in itself a security concern. Other (more dangerous) mknod will 
+be checked against the caller's credentials coming in.
 
-Thanks,
-Amir.
+-- Mark
