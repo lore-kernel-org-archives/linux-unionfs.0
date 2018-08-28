@@ -1,7 +1,7 @@
 From: Mark Salyzyn <salyzyn@android.com>
-Subject: [PATCH v5 1/3] overlayfs: check CAP_DAC_READ_SEARCH before issuing exportfs_decode_fh
-Date: Tue, 28 Aug 2018 09:52:56 -0700
-Message-ID: <20180828165259.211474-1-salyzyn@android.com>
+Subject: [PATCH v5 2/3] overlayfs: check CAP_MKNOD before issuing vfs_whiteout
+Date: Tue, 28 Aug 2018 09:53:16 -0700
+Message-ID: <20180828165319.211563-1-salyzyn@android.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
@@ -25,27 +25,24 @@ Cc: linux-unionfs@vger.kernel.org
 Cc: linux-doc@vger.kernel.org
 Cc: linux-kernel@vger.kernel.org
 
-v5:
+v5
 - dependency of "overlayfs: override_creds=off option bypass creator_cred"
 ---
- fs/overlayfs/namei.c | 5 +++++
- 1 file changed, 5 insertions(+)
+ fs/overlayfs/overlayfs.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
-index c993dd8db739..84982b6525fb 100644
---- a/fs/overlayfs/namei.c
-+++ b/fs/overlayfs/namei.c
-@@ -193,6 +193,11 @@ struct dentry *ovl_decode_real_fh(struct ovl_fh *fh, struct vfsmount *mnt,
- 	if (!uuid_equal(&fh->uuid, &mnt->mnt_sb->s_uuid))
- 		return NULL;
+diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
+index 7538b9b56237..bf3a80157d42 100644
+--- a/fs/overlayfs/overlayfs.h
++++ b/fs/overlayfs/overlayfs.h
+@@ -176,7 +176,7 @@ static inline int ovl_do_rename(struct inode *olddir, struct dentry *olddentry,
  
-+	if (!capable(CAP_DAC_READ_SEARCH)) {
-+		origin = ERR_PTR(-EPERM);
-+		goto out;
-+	}
-+
- 	bytes = (fh->len - offsetof(struct ovl_fh, fid));
- 	real = exportfs_decode_fh(mnt, (struct fid *)fh->fid,
- 				  bytes >> 2, (int)fh->type,
+ static inline int ovl_do_whiteout(struct inode *dir, struct dentry *dentry)
+ {
+-	int err = vfs_whiteout(dir, dentry);
++	int err = capable(CAP_MKNOD) ? vfs_whiteout(dir, dentry) : -EPERM;
+ 	pr_debug("whiteout(%pd2) = %i\n", dentry, err);
+ 	return err;
+ }
 -- 
 2.19.0.rc0.228.g281dcd1b4d0-goog
