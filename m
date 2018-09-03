@@ -1,35 +1,44 @@
-Return-Path: <linux@rasmusvillemoes.dk>
-Return-Path: <linux@rasmusvillemoes.dk>
-From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: revealing file from lower fs ('reverting changes')
-Message-ID: <7da0ae14-8eda-1d53-ec45-38c457c35117@rasmusvillemoes.dk>
-Date: Thu, 20 Sep 2018 11:17:20 +0200
+Return-Path: <linux-unionfs-owner@vger.kernel.org>
+Received: from mail-oi0-f68.google.com ([209.85.218.68]:39033 "EHLO
+        mail-oi0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725899AbeICMLM (ORCPT
+        <rfc822;linux-unionfs@vger.kernel.org>);
+        Mon, 3 Sep 2018 08:11:12 -0400
+Received: by mail-oi0-f68.google.com with SMTP id c190-v6so32087034oig.6
+        for <linux-unionfs@vger.kernel.org>; Mon, 03 Sep 2018 00:52:15 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
-To: Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org
+In-Reply-To: <20180831055112.GA11179@lkp-sb04>
+References: <201808311344.jRhJ1LUF%fengguang.wu@intel.com> <20180831055112.GA11179@lkp-sb04>
+From: Miklos Szeredi <mszeredi@redhat.com>
+Date: Mon, 3 Sep 2018 09:52:14 +0200
+Message-ID: <CAOssrKekpbs4Aa0huh79vDvnxdefZzxxHZQw+thduvRW1+4hWw@mail.gmail.com>
+Subject: Re: [RFC PATCH miklos-vfs] ovl: ovl_fadvise() can be static
+Content-Type: text/plain; charset="UTF-8"
+Sender: linux-unionfs-owner@vger.kernel.org
+To: kbuild test robot <fengguang.wu@intel.com>
+Cc: Amir Goldstein <amir73il@gmail.com>, kbuild-all@01.org, overlayfs <linux-unionfs@vger.kernel.org>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-I'm wondering if there is a way to remove a file from the upper
-directory without leaving a whiteout behind, but instead let the file
-(if any, of course) in the lower file system become visible? Obviously
-this can be done by unmounting the overlay, removing the file (or
-whiteout) from the upper dir, then mounting again, but I'd like to be
-able to do this to a live system. Essentially, having a way to revert
-changes done to an existing file.
+On Fri, Aug 31, 2018 at 7:51 AM, kbuild test robot
+<fengguang.wu@intel.com> wrote:
+>
+> Fixes: 53e35e7602b1 ("ovl: add ovl_fadvise()")
+> Signed-off-by: kbuild test robot <fengguang.wu@intel.com>
+> ---
+>  file.c |    2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+>
+> diff --git a/fs/overlayfs/file.c b/fs/overlayfs/file.c
+> index 89f9e97..aeaefd2 100644
+> --- a/fs/overlayfs/file.c
+> +++ b/fs/overlayfs/file.c
+> @@ -331,7 +331,7 @@ static long ovl_fallocate(struct file *file, int mode, loff_t offset, loff_t len
+>         return ret;
+>  }
+>
+> -int ovl_fadvise(struct file *file, loff_t offset, loff_t len, int advice)
+> +static int ovl_fadvise(struct file *file, loff_t offset, loff_t len, int advice)
 
-I briefly looked into dir.c, and it seems that ovl_remove_upper would
-actually do the right thing, but there doesn't seem to be any way to get
-there via normal VFS operations. RENAME_WHITEOUT is the exact opposite,
-and even if there was a RENAME_NOWHITEOUT, that would have a lot of
-problems (probably wouldn't work if the file is a whiteout (src dentry
-lookup would fail), requires coming up with a tmp name to rename to and
-then unlink that as a second step, semantics if the file only exists in
-the lower layer). Maybe an AT_REMOVEUPPER flag for unlinkat could be
-implemented (which would fail with ENOENT unless the file is in the
-upper part of an overlay file system)? Or, as an overlayfs specific
-ioctl on the containing directory?
+Thanks, folded into overlayfs-next.
 
-Thanks,
-Rasmus
+Miklos
