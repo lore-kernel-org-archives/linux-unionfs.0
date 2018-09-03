@@ -1,150 +1,122 @@
 Return-Path: <amir73il@gmail.com>
 Return-Path: <amir73il@gmail.com>
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH 3/4] syscalls/readahead02: test readahead() on an overlayfs file
-Date: Fri, 28 Sep 2018 16:06:20 +0300
-Message-Id: <20180928130621.28932-4-amir73il@gmail.com>
-In-Reply-To: <20180928130621.28932-1-amir73il@gmail.com>
-References: <20180928130621.28932-1-amir73il@gmail.com>
-To: Cyril Hrubis <chrubis@suse.cz>
-Cc: ltp@lists.linux.it, Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org
+Subject: [PATCH 2/3] ovl: disable xino for some nested overlay cases
+Date: Mon,  3 Sep 2018 09:12:10 +0300
+Message-Id: <20180903061211.20830-3-amir73il@gmail.com>
+In-Reply-To: <20180903061211.20830-1-amir73il@gmail.com>
+References: <20180903061211.20830-1-amir73il@gmail.com>
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: linux-unionfs@vger.kernel.org
 List-ID: <linux-unionfs@vger.kernel.org>
 
-Repeat the test case on an overlayfs file.
+There are three possible cases when overlayfs is used as lower
+layer for a nested overlay mount:
 
-The new test case is a regression test for kernel commit b833a3660394
-("ovl: add ovl_fadvise()") which fixes a regression of readahead() on
-an overlay file that was introduced by kernel commit 5b910bd615ba
-("ovl: fix GPF in swapfile_activate of file from overlayfs over xfs").
+1. lower overlay is non-samefs with xino enabled
+2. lower overlay is non-samefs with xino disabled
+3. lower overlay is samefs
+
+In the first case, lower layer uses high inode number bits, so they are
+not available for the nested overlay and xino should be disabled.
+
+In the second case, inode numbers of lower layer are not in a single
+address space, so there is no use enabling xino in nested overlay.
+
+In the last case (samefs) the lower layer inode number address space
+is that of the underlying real fs, so we can assign fsid of the lower
+layer according the the real underlying fs.
+
+In the private case of all lower overlay layers on the same fs, which is
+also the upper fs of the nested overlay, the nested overlay itself is
+treated as "samefs", because inode numbers in all layers are from the
+same address space.
 
 Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- .../kernel/syscalls/readahead/readahead02.c   | 55 +++++++++++++++++--
- 1 file changed, 49 insertions(+), 6 deletions(-)
+ fs/overlayfs/overlayfs.h |  8 ++++++++
+ fs/overlayfs/super.c     | 25 +++++++++++++++++++++++--
+ 2 files changed, 31 insertions(+), 2 deletions(-)
 
-diff --git a/testcases/kernel/syscalls/readahead/readahead02.c b/testcases/kernel/syscalls/readahead/readahead02.c
-index 4132b4de1..191116f62 100644
---- a/testcases/kernel/syscalls/readahead/readahead02.c
-+++ b/testcases/kernel/syscalls/readahead/readahead02.c
-@@ -14,6 +14,7 @@
- #include <sys/types.h>
- #include <sys/syscall.h>
- #include <sys/mman.h>
-+#include <sys/mount.h>
- #include <sys/stat.h>
- #include <sys/types.h>
- #include <sys/time.h>
-@@ -34,9 +35,15 @@ static const char meminfo_fname[] = "/proc/meminfo";
- static size_t testfile_size = 64 * 1024 * 1024;
- static char *opt_fsizestr;
- static int pagesize;
-+static int ovl_mounted;
+diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
+index f61839e1054c..d32fe09a222f 100644
+--- a/fs/overlayfs/overlayfs.h
++++ b/fs/overlayfs/overlayfs.h
+@@ -418,3 +418,11 @@ int ovl_set_origin(struct dentry *dentry, struct dentry *lower,
  
- #define MNTPOINT        "mntpoint"
--static const char mntpoint[] = "mntpoint";
-+#define OVL_LOWER	MNTPOINT"/lower"
-+#define OVL_UPPER	MNTPOINT"/upper"
-+#define OVL_WORK	MNTPOINT"/work"
-+#define OVL_MNT		MNTPOINT"/ovl"
+ /* export.c */
+ extern const struct export_operations ovl_export_operations;
 +
-+static const char mntpoint[] = MNTPOINT;
- #define MIN_SANE_READAHEAD (4u * 1024u)
- 
- static struct tst_option options[] = {
-@@ -109,12 +116,39 @@ static unsigned long get_cached_size(void)
- 	return parse_entry(meminfo_fname, entry);
- }
- 
--static void create_testfile(void)
-+static int setup_overlay(void)
++/* super.c */
++extern struct file_system_type ovl_fs_type;
++
++static inline bool ovl_is_overlay_fs(struct super_block *sb)
 +{
-+	int ret;
-+
-+	/* Setup an overlay mount with lower dir and file */
-+	SAFE_MKDIR(OVL_LOWER, 0755);
-+	SAFE_MKDIR(OVL_UPPER, 0755);
-+	SAFE_MKDIR(OVL_WORK, 0755);
-+	SAFE_MKDIR(OVL_MNT, 0755);
-+	ret = mount("overlay", OVL_MNT, "overlay", 0, "lowerdir="OVL_LOWER
-+		    ",upperdir="OVL_UPPER",workdir="OVL_WORK);
-+	if (ret < 0) {
-+		if (errno == ENODEV) {
-+			tst_res(TCONF,
-+				"overlayfs is not configured in this kernel.");
-+			return ret;
++	return sb->s_type == &ovl_fs_type;
++}
+diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+index 069e441e24eb..b6a0211dc75c 100644
+--- a/fs/overlayfs/super.c
++++ b/fs/overlayfs/super.c
+@@ -755,6 +755,7 @@ static int ovl_check_namelen(struct path *path, struct ovl_fs *ofs,
+ static int ovl_lower_dir(const char *name, struct path *path,
+ 			 struct ovl_fs *ofs, int *stack_depth, bool *remote)
+ {
++	struct super_block *real_sb;
+ 	int fh_type;
+ 	int err;
+ 
+@@ -775,7 +776,8 @@ static int ovl_lower_dir(const char *name, struct path *path,
+ 	 * The inodes index feature and NFS export need to encode and decode
+ 	 * file handles, so they require that all layers support them.
+ 	 */
+-	fh_type = ovl_can_decode_fh(path->dentry->d_sb);
++	real_sb = path->dentry->d_sb;
++	fh_type = ovl_can_decode_fh(real_sb);
+ 	if ((ofs->config.nfs_export ||
+ 	     (ofs->config.index && ofs->config.upperdir)) && !fh_type) {
+ 		ofs->config.index = false;
+@@ -784,6 +786,17 @@ static int ovl_lower_dir(const char *name, struct path *path,
+ 			name);
+ 	}
+ 
++	/* Are all layers of nested overlay on same sb? */
++	if (ofs->config.xino != OVL_XINO_OFF && ovl_is_overlay_fs(real_sb)) {
++		real_sb = ovl_same_sb(real_sb);
++		if (real_sb) {
++			fh_type = ovl_can_decode_fh(real_sb);
++		} else {
++			pr_warn("overlayfs: nested xino not supported, falling back to xino=off.\n");
++			ofs->config.xino = OVL_XINO_OFF;
 +		}
-+		tst_brk(TBROK | TERRNO, "overlayfs mount failed");
 +	}
-+	ovl_mounted = 1;
-+	return 0;
-+}
 +
-+static int create_testfile(unsigned int use_overlay)
- {
- 	int fd;
- 	char *tmp;
- 	size_t i;
+ 	/* Check if lower fs has 32bit inode numbers */
+ 	if (fh_type != FILEID_INO32_GEN)
+ 		ofs->xino_bits = 0;
+@@ -1183,6 +1196,14 @@ static int ovl_get_fsid(struct ovl_fs *ofs, struct vfsmount *mnt)
+ 	bool need_uuid = ofs->config.nfs_export ||
+ 			 (ofs->config.index && ofs->upper_mnt);
  
-+	if (use_overlay && setup_overlay() != 0)
-+		return -1;
++	/* Are all layers of nested overlay on same sb? */
++	if (ovl_is_overlay_fs(sb)) {
++		struct super_block *real_sb = ovl_same_sb(sb);
 +
-+	sprintf(testfile, "%s/testfile", use_overlay ? OVL_MNT : MNTPOINT);
- 	tst_res(TINFO, "creating test file of size: %zu", testfile_size);
- 	tmp = SAFE_MALLOC(pagesize);
- 
-@@ -127,6 +161,7 @@ static void create_testfile(void)
- 	SAFE_FSYNC(fd);
- 	SAFE_CLOSE(fd);
- 	free(tmp);
-+	return 0;
++		if (real_sb)
++			sb = real_sb;
++	}
++
+ 	/* fsid 0 is reserved for upper fs even with non upper overlay */
+ 	if (ofs->upper_mnt && ofs->upper_mnt->mnt_sb == sb)
+ 		return 0;
+@@ -1535,7 +1556,7 @@ static struct dentry *ovl_mount(struct file_system_type *fs_type, int flags,
+ 	return mount_nodev(fs_type, flags, raw_data, ovl_fill_super);
  }
  
- 
-@@ -221,7 +256,7 @@ static void read_testfile(int do_readahead, const char *fname, size_t fsize,
- 	SAFE_CLOSE(fd);
- }
- 
--static void test_readahead(void)
-+static void test_readahead(unsigned int use_overlay)
- {
- 	unsigned long read_bytes, read_bytes_ra;
- 	long usec, usec_ra;
-@@ -229,6 +264,9 @@ static void test_readahead(void)
- 	char proc_io_fname[128];
- 	sprintf(proc_io_fname, "/proc/%u/io", getpid());
- 
-+	if (create_testfile(use_overlay) != 0)
-+		return;
-+
- 	/* find out how much can cache hold if we read whole file */
- 	read_testfile(0, testfile, testfile_size, &read_bytes, &usec, &cached);
- 	cached_max = get_cached_size();
-@@ -302,9 +340,12 @@ static void setup(void)
- 	tst_syscall(__NR_readahead, 0, 0, 0);
- 
- 	pagesize = getpagesize();
-+}
- 
--	sprintf(testfile, "%s/testfile", mntpoint);
--	create_testfile();
-+static void cleanup(void)
-+{
-+	if (ovl_mounted)
-+		SAFE_UMOUNT(OVL_MNT);
- }
- 
- static struct tst_test test = {
-@@ -313,8 +354,10 @@ static struct tst_test test = {
- 	.mount_device = 1,
- 	.mntpoint = mntpoint,
- 	.setup = setup,
-+	.cleanup = cleanup,
- 	.options = options,
--	.test_all = test_readahead,
-+	.test = test_readahead,
-+	.tcnt = 2, /* Repeat with overlayfs */
- };
- 
- #else /* __NR_readahead */
+-static struct file_system_type ovl_fs_type = {
++struct file_system_type ovl_fs_type = {
+ 	.owner		= THIS_MODULE,
+ 	.name		= "overlay",
+ 	.mount		= ovl_mount,
 -- 
 2.17.1
