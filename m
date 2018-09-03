@@ -1,442 +1,280 @@
 Return-Path: <amir73il@gmail.com>
 Return-Path: <amir73il@gmail.com>
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH 2/4] syscalls/readahead02: Convert to newlib and cleanup
-Date: Fri, 28 Sep 2018 16:06:19 +0300
-Message-Id: <20180928130621.28932-3-amir73il@gmail.com>
-In-Reply-To: <20180928130621.28932-1-amir73il@gmail.com>
-References: <20180928130621.28932-1-amir73il@gmail.com>
-To: Cyril Hrubis <chrubis@suse.cz>
-Cc: ltp@lists.linux.it, Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org
+Subject: [PATCH 3/3] ovl: compact nested ovl_fh
+Date: Mon,  3 Sep 2018 09:12:11 +0300
+Message-Id: <20180903061211.20830-4-amir73il@gmail.com>
+In-Reply-To: <20180903061211.20830-1-amir73il@gmail.com>
+References: <20180903061211.20830-1-amir73il@gmail.com>
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: linux-unionfs@vger.kernel.org
 List-ID: <linux-unionfs@vger.kernel.org>
 
-* Use SAFE macros
-
-* Use SPDX-License-Identifier
-
-* No need to cleanup test file from temp dir
+When encoding a file handle from lower nested overlayfs, prepending
+another ovl_fh header for nested overlay file handle adds no new
+information for decoding.  Instead, we just set a 'nested' flag in ovl_fh
+header for nested file handle, so we know to distinguish between real
+upper file handle that should be decoded from real upper layer and
+nested upper file handle that should be decoded from nested lower layer.
+For the maximum allowed overlay nesting depth of 1, one bit is enough.
 
 Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- .../kernel/syscalls/readahead/readahead02.c   | 246 +++++-------------
- 1 file changed, 70 insertions(+), 176 deletions(-)
+ fs/overlayfs/copy_up.c   | 20 +++++++++++++++++++-
+ fs/overlayfs/export.c    | 15 +++++++++++++--
+ fs/overlayfs/namei.c     | 34 +++++++++++++++++++++++++---------
+ fs/overlayfs/overlayfs.h |  8 +++++---
+ fs/overlayfs/super.c     |  6 +++---
+ fs/overlayfs/util.c      | 11 ++++++++++-
+ 6 files changed, 75 insertions(+), 19 deletions(-)
 
-diff --git a/testcases/kernel/syscalls/readahead/readahead02.c b/testcases/kernel/syscalls/readahead/readahead02.c
-index c9d92a6a4..4132b4de1 100644
---- a/testcases/kernel/syscalls/readahead/readahead02.c
-+++ b/testcases/kernel/syscalls/readahead/readahead02.c
-@@ -1,25 +1,6 @@
-+// SPDX-License-Identifier: GPL-2.0
- /*
-  * Copyright (C) 2012 Linux Test Project, Inc.
-- *
-- * This program is free software; you can redistribute it and/or
-- * modify it under the terms of version 2 of the GNU General Public
-- * License as published by the Free Software Foundation.
-- *
-- * This program is distributed in the hope that it would be useful,
-- * but WITHOUT ANY WARRANTY; without even the implied warranty of
-- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-- *
-- * Further, this software is distributed without any warranty that it
-- * is free of the rightful claim of any third person regarding
-- * infringement or the like.  Any license provided herein, whether
-- * implied or otherwise, applies only to this software file.  Patent
-- * licenses, if any, provided herein do not apply to combinations of
-- * this program with other software, or any other product whatsoever.
-- *
-- * You should have received a copy of the GNU General Public License
-- * along with this program; if not, write the Free Software
-- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-- * 02110-1301, USA.
-  */
+diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
+index 296037afecdb..8330a982b3ca 100644
+--- a/fs/overlayfs/copy_up.c
++++ b/fs/overlayfs/copy_up.c
+@@ -254,6 +254,24 @@ struct ovl_fh *ovl_encode_real_fh(struct dentry *real, bool is_upper)
+ 	    WARN_ON(fh_type == FILEID_INVALID))
+ 		goto out;
  
- /*
-@@ -43,86 +24,55 @@
- #include <unistd.h>
- #include <fcntl.h>
- #include "config.h"
--#include "test.h"
--#include "safe_macros.h"
-+#include "tst_test.h"
- #include "lapi/syscalls.h"
- 
--char *TCID = "readahead02";
--int TST_TOTAL = 1;
--
- #if defined(__NR_readahead)
- static char testfile[PATH_MAX] = "testfile";
- static const char drop_caches_fname[] = "/proc/sys/vm/drop_caches";
- static const char meminfo_fname[] = "/proc/meminfo";
- static size_t testfile_size = 64 * 1024 * 1024;
--static int opt_fsize;
- static char *opt_fsizestr;
- static int pagesize;
--static const char *fs_type;
--static const char *device;
--static int mount_flag;
- 
- #define MNTPOINT        "mntpoint"
-+static const char mntpoint[] = "mntpoint";
- #define MIN_SANE_READAHEAD (4u * 1024u)
- 
--option_t options[] = {
--	{"s:", &opt_fsize, &opt_fsizestr},
-+static struct tst_option options[] = {
-+	{"s:", &opt_fsizestr, "-s    testfile size (default 64MB)"},
- 	{NULL, NULL, NULL}
- };
- 
--static void setup(void);
--static void cleanup(void);
--
--static void help(void)
--{
--	printf("  -s x    testfile size (default 64MB)\n");
--}
--
- static int check_ret(long expected_ret)
- {
--	if (expected_ret == TEST_RETURN) {
--		tst_resm(TPASS, "expected ret success - "
--			 "returned value = %ld", TEST_RETURN);
-+	if (expected_ret == TST_RET) {
-+		tst_res(TPASS, "expected ret success - "
-+			"returned value = %ld", TST_RET);
- 		return 0;
- 	}
--	tst_resm(TFAIL | TTERRNO, "unexpected failure - "
--		 "returned value = %ld, expected: %ld",
--		 TEST_RETURN, expected_ret);
-+	tst_res(TFAIL | TTERRNO, "unexpected failure - "
-+		"returned value = %ld, expected: %ld",
-+		TST_RET, expected_ret);
- 	return 1;
- }
- 
- static int has_file(const char *fname, int required)
- {
--	int ret;
- 	struct stat buf;
--	ret = stat(fname, &buf);
--	if (ret == -1) {
--		if (errno == ENOENT)
--			if (required)
--				tst_brkm(TCONF, cleanup, "%s not available",
--					 fname);
--			else
--				return 0;
--		else
--			tst_brkm(TBROK | TERRNO, cleanup, "stat %s", fname);
++	/*
++	 * Prepending another ovl_fh header for nested overlay file handle adds
++	 * no new information for decoding. If we got a valid ovl_fh from lower
++	 * overlay, pass it up to nested overlay with the 'nested' flag.
++	 */
++	fh = ERR_PTR(-EINVAL);
++	if (ovl_is_overlay_fs(real->d_sb)) {
++		fh = buf;
++		if (WARN_ON(is_upper) ||
++		    WARN_ON(fh_type != OVL_FILEID) ||
++		    WARN_ON(fh->flags & OVL_FH_FLAG_PATH_NESTED) ||
++		    WARN_ON(ovl_check_fh_len(buf, buflen)))
++			goto out;
 +
-+	if (stat(fname, &buf) == -1) {
-+		if (errno != ENOENT)
-+			tst_brk(TBROK | TERRNO, "stat %s", fname);
-+		if (required)
-+			tst_brk(TCONF, "%s not available", fname);
- 	}
- 	return 1;
++		fh->flags |= OVL_FH_FLAG_PATH_NESTED;
++		return fh;
++	}
++
+ 	BUILD_BUG_ON(MAX_HANDLE_SZ + offsetof(struct ovl_fh, fid) > 255);
+ 	fh_len = offsetof(struct ovl_fh, fid) + buflen;
+ 	fh = kmalloc(fh_len, GFP_KERNEL);
+@@ -294,7 +312,7 @@ int ovl_set_origin(struct dentry *dentry, struct dentry *lower,
+ 	 * so we can use the overlay.origin xattr to distignuish between a copy
+ 	 * up and a pure upper inode.
+ 	 */
+-	if (ovl_can_decode_fh(lower->d_sb)) {
++	if (ovl_can_decode_real_fh(lower->d_sb)) {
+ 		fh = ovl_encode_real_fh(lower, false);
+ 		if (IS_ERR(fh))
+ 			return PTR_ERR(fh);
+diff --git a/fs/overlayfs/export.c b/fs/overlayfs/export.c
+index 8fa37cd7818a..90411c221519 100644
+--- a/fs/overlayfs/export.c
++++ b/fs/overlayfs/export.c
+@@ -691,7 +691,7 @@ static struct dentry *ovl_upper_fh_to_d(struct super_block *sb,
+ 	if (!ofs->upper_mnt)
+ 		return ERR_PTR(-EACCES);
+ 
+-	upper = ovl_decode_real_fh(fh, ofs->upper_mnt, true);
++	upper = ovl_decode_real_fh(fh, ofs->upper_mnt, true, false);
+ 	if (IS_ERR_OR_NULL(upper))
+ 		return upper;
+ 
+@@ -788,6 +788,7 @@ static struct dentry *ovl_fh_to_dentry(struct super_block *sb, struct fid *fid,
+ 	struct ovl_fh *fh = (struct ovl_fh *) fid;
+ 	int len = fh_len << 2;
+ 	unsigned int flags = 0;
++	bool nested;
+ 	int err;
+ 
+ 	err = -EINVAL;
+@@ -798,8 +799,18 @@ static struct dentry *ovl_fh_to_dentry(struct super_block *sb, struct fid *fid,
+ 	if (err)
+ 		goto out_err;
+ 
++	/*
++	 * Do not try to decode nested upper from upper_mnt. Decode nested file
++	 * handle only from lower overlayfs.
++	 */
+ 	flags = fh->flags;
+-	dentry = (flags & OVL_FH_FLAG_PATH_UPPER) ?
++	nested = flags & OVL_FH_FLAG_PATH_NESTED;
++
++	err = -ESTALE;
++	if (nested && !ovl_is_overlay_fs(ovl_dentry_lower(sb->s_root)->d_sb))
++		goto out_err;
++
++	dentry = ((flags & OVL_FH_FLAG_PATH_UPPER) && !nested) ?
+ 		 ovl_upper_fh_to_d(sb, fh) :
+ 		 ovl_lower_fh_to_d(sb, fh);
+ 	err = PTR_ERR(dentry);
+diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
+index f28711846dd6..8d605fc16557 100644
+--- a/fs/overlayfs/namei.c
++++ b/fs/overlayfs/namei.c
+@@ -151,21 +151,33 @@ static struct ovl_fh *ovl_get_fh(struct dentry *dentry, const char *name)
  }
  
- static void drop_caches(void)
+ struct dentry *ovl_decode_real_fh(struct ovl_fh *fh, struct vfsmount *mnt,
+-				  bool connected)
++				  bool connected, bool nested)
  {
--	int ret;
--	FILE *f;
--
--	f = fopen(drop_caches_fname, "w");
--	if (f) {
--		ret = fprintf(f, "1");
--		fclose(f);
--		if (ret < 1)
--			tst_brkm(TBROK, cleanup, "Failed to drop caches");
--	} else {
--		tst_brkm(TBROK, cleanup, "Failed to open drop_caches");
--	}
-+	SAFE_FILE_PRINTF(drop_caches_fname, "1");
- }
+ 	struct dentry *real;
+-	int bytes;
++	int bytes, type;
++	void *fid;
  
- static unsigned long parse_entry(const char *fname, const char *entry)
-@@ -161,32 +111,21 @@ static unsigned long get_cached_size(void)
+ 	/*
+ 	 * Make sure that the stored uuid matches the uuid of the lower
+-	 * layer where file handle will be decoded.
++	 * layer where file handle will be decoded. Pass nested ovl_fh to
++	 * lower overlay that will match uuid to its own layers.
+ 	 */
+-	if (!uuid_equal(&fh->uuid, &mnt->mnt_sb->s_uuid))
++	if (ovl_is_overlay_fs(mnt->mnt_sb)) {
++		if (!nested)
++			return NULL;
++		fid = fh;
++		type = OVL_FILEID;
++		bytes = fh->len;
++		fh->flags &= ~OVL_FH_FLAG_PATH_NESTED;
++	} else if (uuid_equal(&fh->uuid, &mnt->mnt_sb->s_uuid)) {
++		fid = fh->fid;
++		type = fh->type;
++		bytes = (fh->len - offsetof(struct ovl_fh, fid));
++	} else {
+ 		return NULL;
++	}
  
- static void create_testfile(void)
- {
--	FILE *f;
-+	int fd;
- 	char *tmp;
- 	size_t i;
- 
--	tst_resm(TINFO, "creating test file of size: %zu", testfile_size);
--	tmp = SAFE_MALLOC(cleanup, pagesize);
-+	tst_res(TINFO, "creating test file of size: %zu", testfile_size);
-+	tmp = SAFE_MALLOC(pagesize);
- 
- 	/* round to page size */
- 	testfile_size = testfile_size & ~((long)pagesize - 1);
- 
--	f = fopen(testfile, "w");
--	if (!f) {
--		free(tmp);
--		tst_brkm(TBROK | TERRNO, cleanup, "Failed to create %s",
--			 testfile);
--	}
--
-+	fd = SAFE_CREAT(testfile, 0644);
- 	for (i = 0; i < testfile_size; i += pagesize)
--		if (fwrite(tmp, pagesize, 1, f) < 1) {
--			free(tmp);
--			tst_brkm(TBROK, cleanup, "Failed to create %s",
--				 testfile);
--		}
--	fflush(f);
--	fsync(fileno(f));
--	fclose(f);
-+		SAFE_WRITE(1, fd, tmp, pagesize);
-+	SAFE_FSYNC(fd);
-+	SAFE_CLOSE(fd);
- 	free(tmp);
- }
- 
-@@ -215,13 +154,13 @@ static void read_testfile(int do_readahead, const char *fname, size_t fsize,
- 	off_t offset = 0;
- 	struct timeval now;
- 
--	fd = SAFE_OPEN(cleanup, fname, O_RDONLY);
-+	fd = SAFE_OPEN(fname, O_RDONLY);
- 
- 	if (do_readahead) {
- 		cached_start = get_cached_size();
- 		do {
- 			TEST(readahead(fd, offset, fsize - offset));
--			if (TEST_RETURN != 0) {
-+			if (TST_RET != 0) {
- 				check_ret(0);
- 				break;
- 			}
-@@ -232,7 +171,7 @@ static void read_testfile(int do_readahead, const char *fname, size_t fsize,
- 				if (*cached > cached_start) {
- 					max_ra_estimate = (1024 *
- 						(*cached - cached_start));
--					tst_resm(TINFO, "max ra estimate: %lu",
-+					tst_res(TINFO, "max ra estimate: %lu",
- 						max_ra_estimate);
- 				}
- 				max_ra_estimate = MAX(max_ra_estimate,
-@@ -242,27 +181,23 @@ static void read_testfile(int do_readahead, const char *fname, size_t fsize,
- 			i++;
- 			offset += max_ra_estimate;
- 		} while ((size_t)offset < fsize);
--		tst_resm(TINFO, "readahead calls made: %zu", i);
-+		tst_res(TINFO, "readahead calls made: %zu", i);
- 		*cached = get_cached_size();
- 
- 		/* offset of file shouldn't change after readahead */
--		offset = lseek(fd, 0, SEEK_CUR);
--		if (offset == (off_t) - 1)
--			tst_brkm(TBROK | TERRNO, cleanup, "lseek failed");
-+		offset = SAFE_LSEEK(fd, 0, SEEK_CUR);
- 		if (offset == 0)
--			tst_resm(TPASS, "offset is still at 0 as expected");
-+			tst_res(TPASS, "offset is still at 0 as expected");
- 		else
--			tst_resm(TFAIL, "offset has changed to: %lu", offset);
-+			tst_res(TFAIL, "offset has changed to: %lu", offset);
- 	}
- 
- 	if (gettimeofday(&now, NULL) == -1)
--		tst_brkm(TBROK | TERRNO, cleanup, "gettimeofday failed");
-+		tst_brk(TBROK | TERRNO, "gettimeofday failed");
- 	time_start_usec = now.tv_sec * 1000000 + now.tv_usec;
- 	read_bytes_start = get_bytes_read();
- 
--	p = mmap(NULL, fsize, PROT_READ, MAP_SHARED | MAP_POPULATE, fd, 0);
--	if (p == MAP_FAILED)
--		tst_brkm(TBROK | TERRNO, cleanup, "mmap failed");
-+	p = SAFE_MMAP(NULL, fsize, PROT_READ, MAP_SHARED | MAP_POPULATE, fd, 0);
- 
- 	/* for old kernels, where MAP_POPULATE doesn't work, touch each page */
- 	tmp = 0;
-@@ -270,20 +205,20 @@ static void read_testfile(int do_readahead, const char *fname, size_t fsize,
- 		tmp = tmp ^ p[i];
- 	/* prevent gcc from optimizing out loop above */
- 	if (tmp != 0)
--		tst_brkm(TBROK, NULL, "This line should not be reached");
-+		tst_brk(TBROK, "This line should not be reached");
- 
- 	if (!do_readahead)
- 		*cached = get_cached_size();
- 
--	SAFE_MUNMAP(cleanup, p, fsize);
-+	SAFE_MUNMAP(p, fsize);
- 
- 	*read_bytes = get_bytes_read() - read_bytes_start;
- 	if (gettimeofday(&now, NULL) == -1)
--		tst_brkm(TBROK | TERRNO, cleanup, "gettimeofday failed");
-+		tst_brk(TBROK | TERRNO, "gettimeofday failed");
- 	time_end_usec = now.tv_sec * 1000000 + now.tv_usec;
- 	*usec = time_end_usec - time_start_usec;
- 
--	SAFE_CLOSE(cleanup, fd);
-+	SAFE_CLOSE(fd);
- }
- 
- static void test_readahead(void)
-@@ -302,7 +237,7 @@ static void test_readahead(void)
- 	cached_low = get_cached_size();
- 	cached_max = cached_max - cached_low;
- 
--	tst_resm(TINFO, "read_testfile(0)");
-+	tst_res(TINFO, "read_testfile(0)");
- 	read_testfile(0, testfile, testfile_size, &read_bytes, &usec, &cached);
- 	if (cached > cached_low)
- 		cached = cached - cached_low;
-@@ -312,7 +247,7 @@ static void test_readahead(void)
- 	sync();
- 	drop_caches();
- 	cached_low = get_cached_size();
--	tst_resm(TINFO, "read_testfile(1)");
-+	tst_res(TINFO, "read_testfile(1)");
- 	read_testfile(1, testfile, testfile_size, &read_bytes_ra,
- 		      &usec_ra, &cached_ra);
- 	if (cached_ra > cached_low)
-@@ -320,25 +255,25 @@ static void test_readahead(void)
- 	else
- 		cached_ra = 0;
- 
--	tst_resm(TINFO, "read_testfile(0) took: %ld usec", usec);
--	tst_resm(TINFO, "read_testfile(1) took: %ld usec", usec_ra);
-+	tst_res(TINFO, "read_testfile(0) took: %ld usec", usec);
-+	tst_res(TINFO, "read_testfile(1) took: %ld usec", usec_ra);
- 	if (has_file(proc_io_fname, 0)) {
--		tst_resm(TINFO, "read_testfile(0) read: %ld bytes", read_bytes);
--		tst_resm(TINFO, "read_testfile(1) read: %ld bytes",
--			 read_bytes_ra);
-+		tst_res(TINFO, "read_testfile(0) read: %ld bytes", read_bytes);
-+		tst_res(TINFO, "read_testfile(1) read: %ld bytes",
-+			read_bytes_ra);
- 		/* actual number of read bytes depends on total RAM */
- 		if (read_bytes_ra < read_bytes)
--			tst_resm(TPASS, "readahead saved some I/O");
-+			tst_res(TPASS, "readahead saved some I/O");
- 		else
--			tst_resm(TFAIL, "readahead failed to save any I/O");
-+			tst_res(TFAIL, "readahead failed to save any I/O");
- 	} else {
--		tst_resm(TCONF, "Your system doesn't have /proc/pid/io,"
--			 " unable to determine read bytes during test");
-+		tst_res(TCONF, "Your system doesn't have /proc/pid/io,"
-+			" unable to determine read bytes during test");
- 	}
- 
--	tst_resm(TINFO, "cache can hold at least: %ld kB", cached_max);
--	tst_resm(TINFO, "read_testfile(0) used cache: %ld kB", cached);
--	tst_resm(TINFO, "read_testfile(1) used cache: %ld kB", cached_ra);
-+	tst_res(TINFO, "cache can hold at least: %ld kB", cached_max);
-+	tst_res(TINFO, "read_testfile(0) used cache: %ld kB", cached);
-+	tst_res(TINFO, "read_testfile(1) used cache: %ld kB", cached_ra);
- 
- 	if (cached_max * 1024 >= testfile_size) {
+-	bytes = (fh->len - offsetof(struct ovl_fh, fid));
+-	real = exportfs_decode_fh(mnt, (struct fid *)fh->fid,
+-				  bytes >> 2, (int)fh->type,
++	real = exportfs_decode_fh(mnt, fid, (bytes + 3) >> 2, type,
+ 				  connected ? ovl_acceptable : NULL, mnt);
+ 	if (IS_ERR(real)) {
  		/*
-@@ -346,83 +281,42 @@ static void test_readahead(void)
- 		 * for readahead should be at least testfile_size/2
- 		 */
- 		if (cached_ra * 1024 > testfile_size / 2)
--			tst_resm(TPASS, "using cache as expected");
-+			tst_res(TPASS, "using cache as expected");
- 		else
--			tst_resm(TWARN, "using less cache than expected");
-+			tst_res(TWARN, "using less cache than expected");
- 	} else {
--		tst_resm(TCONF, "Page cache on your system is too small "
--			 "to hold whole testfile.");
-+		tst_res(TCONF, "Page cache on your system is too small "
-+			"to hold whole testfile.");
- 	}
- }
- 
--int main(int argc, char *argv[])
--{
--	int lc;
--
--	tst_parse_opts(argc, argv, options, help);
--
--	if (opt_fsize)
--		testfile_size = atoi(opt_fsizestr);
--
--	setup();
--	for (lc = 0; TEST_LOOPING(lc); lc++) {
--		tst_count = 0;
--		test_readahead();
--	}
--	cleanup();
--	tst_exit();
--}
--
- static void setup(void)
+@@ -319,10 +331,11 @@ int ovl_check_origin_fh(struct ovl_fs *ofs, struct ovl_fh *fh, bool connected,
  {
--	tst_require_root();
--	tst_tmpdir();
--	TEST_PAUSE;
-+	if (opt_fsizestr)
-+		testfile_size = SAFE_STRTOL(opt_fsizestr, 1, INT_MAX);
+ 	struct dentry *origin = NULL;
+ 	int i;
++	u8 nested = fh->flags & OVL_FH_FLAG_PATH_NESTED;
  
- 	has_file(drop_caches_fname, 1);
- 	has_file(meminfo_fname, 1);
+ 	for (i = 0; i < ofs->numlower; i++) {
+ 		origin = ovl_decode_real_fh(fh, ofs->lower_layers[i].mnt,
+-					    connected);
++					    connected, nested);
+ 		if (origin)
+ 			break;
+ 	}
+@@ -347,6 +360,9 @@ int ovl_check_origin_fh(struct ovl_fs *ofs, struct ovl_fh *fh, bool connected,
+ 		.layer = &ofs->lower_layers[i]
+ 	};
  
- 	/* check if readahead is supported */
--	ltp_syscall(__NR_readahead, 0, 0, 0);
-+	tst_syscall(__NR_readahead, 0, 0, 0);
++	/* Restore nested flag - ovl_lower_fh_to_d() is not done with fh */
++	fh->flags |= nested;
++
+ 	return 0;
  
- 	pagesize = getpagesize();
+ invalid:
+@@ -456,7 +472,7 @@ struct dentry *ovl_index_upper(struct ovl_fs *ofs, struct dentry *index)
+ 	if (IS_ERR_OR_NULL(fh))
+ 		return ERR_CAST(fh);
  
--	if (tst_fs_type(cleanup, ".") == TST_TMPFS_MAGIC) {
--		tst_resm(TINFO, "TMPFS detected, creating loop device");
--
--		fs_type = tst_dev_fs_type();
--		device = tst_acquire_device(cleanup);
--		if (!device) {
--			tst_brkm(TCONF, cleanup,
--				"Failed to obtain block device");
--		}
--
--		tst_mkfs(cleanup, device, fs_type, NULL, NULL);
--
--		SAFE_MKDIR(cleanup, MNTPOINT, 0755);
--		SAFE_MOUNT(cleanup, device, MNTPOINT, fs_type, 0, NULL);
--		mount_flag = 1;
--
--		sprintf(testfile, MNTPOINT"/testfile");
--	}
-+	sprintf(testfile, "%s/testfile", mntpoint);
- 	create_testfile();
+-	upper = ovl_decode_real_fh(fh, ofs->upper_mnt, true);
++	upper = ovl_decode_real_fh(fh, ofs->upper_mnt, true, false);
+ 	kfree(fh);
+ 
+ 	if (IS_ERR_OR_NULL(upper))
+diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
+index d32fe09a222f..0664a0ca3423 100644
+--- a/fs/overlayfs/overlayfs.h
++++ b/fs/overlayfs/overlayfs.h
+@@ -62,9 +62,11 @@ enum ovl_entry_flag {
+ #define OVL_FH_FLAG_ANY_ENDIAN	(1 << 1)
+ /* Is the real inode encoded in fid an upper inode? */
+ #define OVL_FH_FLAG_PATH_UPPER	(1 << 2)
++/* File handle from nested (lower) overlayfs */
++#define OVL_FH_FLAG_PATH_NESTED	(1 << 3)
+ 
+ #define OVL_FH_FLAG_ALL (OVL_FH_FLAG_BIG_ENDIAN | OVL_FH_FLAG_ANY_ENDIAN | \
+-			 OVL_FH_FLAG_PATH_UPPER)
++			 OVL_FH_FLAG_PATH_UPPER | OVL_FH_FLAG_PATH_NESTED)
+ 
+ #if defined(__LITTLE_ENDIAN)
+ #define OVL_FH_FLAG_CPU_ENDIAN 0
+@@ -209,7 +211,7 @@ void ovl_drop_write(struct dentry *dentry);
+ struct dentry *ovl_workdir(struct dentry *dentry);
+ const struct cred *ovl_override_creds(struct super_block *sb);
+ struct super_block *ovl_same_sb(struct super_block *sb);
+-int ovl_can_decode_fh(struct super_block *sb);
++int ovl_can_decode_real_fh(struct super_block *sb);
+ struct dentry *ovl_indexdir(struct super_block *sb);
+ bool ovl_index_all(struct super_block *sb);
+ bool ovl_verify_lower(struct super_block *sb);
+@@ -294,7 +296,7 @@ static inline unsigned int ovl_xino_bits(struct super_block *sb)
+ /* namei.c */
+ int ovl_check_fh_len(struct ovl_fh *fh, int fh_len);
+ struct dentry *ovl_decode_real_fh(struct ovl_fh *fh, struct vfsmount *mnt,
+-				  bool connected);
++				  bool connected, bool nested);
+ int ovl_check_origin_fh(struct ovl_fs *ofs, struct ovl_fh *fh, bool connected,
+ 			struct dentry *upperdentry, struct ovl_path **stackp);
+ int ovl_verify_set_fh(struct dentry *dentry, const char *name,
+diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+index b6a0211dc75c..60f33705fe4e 100644
+--- a/fs/overlayfs/super.c
++++ b/fs/overlayfs/super.c
+@@ -777,7 +777,7 @@ static int ovl_lower_dir(const char *name, struct path *path,
+ 	 * file handles, so they require that all layers support them.
+ 	 */
+ 	real_sb = path->dentry->d_sb;
+-	fh_type = ovl_can_decode_fh(real_sb);
++	fh_type = ovl_can_decode_real_fh(real_sb);
+ 	if ((ofs->config.nfs_export ||
+ 	     (ofs->config.index && ofs->config.upperdir)) && !fh_type) {
+ 		ofs->config.index = false;
+@@ -790,7 +790,7 @@ static int ovl_lower_dir(const char *name, struct path *path,
+ 	if (ofs->config.xino != OVL_XINO_OFF && ovl_is_overlay_fs(real_sb)) {
+ 		real_sb = ovl_same_sb(real_sb);
+ 		if (real_sb) {
+-			fh_type = ovl_can_decode_fh(real_sb);
++			fh_type = ovl_can_decode_real_fh(real_sb);
+ 		} else {
+ 			pr_warn("overlayfs: nested xino not supported, falling back to xino=off.\n");
+ 			ofs->config.xino = OVL_XINO_OFF;
+@@ -1075,7 +1075,7 @@ static int ovl_make_workdir(struct ovl_fs *ofs, struct path *workpath)
+ 	}
+ 
+ 	/* Check if upper/work fs supports file handles */
+-	fh_type = ovl_can_decode_fh(ofs->workdir->d_sb);
++	fh_type = ovl_can_decode_real_fh(ofs->workdir->d_sb);
+ 	if (ofs->config.index && !fh_type) {
+ 		ofs->config.index = false;
+ 		pr_warn("overlayfs: upper fs does not support file handles, falling back to index=off.\n");
+diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
+index 6eabe7cf9652..7f81c771bc63 100644
+--- a/fs/overlayfs/util.c
++++ b/fs/overlayfs/util.c
+@@ -63,11 +63,20 @@ struct super_block *ovl_same_sb(struct super_block *sb)
+  * Return 1 (FILEID_INO32_GEN) if fs uses the default 32bit inode encoding.
+  * Return -1 if fs uses a non default encoding with unknown inode size.
+  */
+-int ovl_can_decode_fh(struct super_block *sb)
++int ovl_can_decode_real_fh(struct super_block *sb)
+ {
+ 	if (!sb->s_export_op || !sb->s_export_op->fh_to_dentry)
+ 		return 0;
+ 
++	/*
++	 * In case FILESYSTEM_MAX_STACK_DEPTH ever grows, we only support
++	 * one level of nesting in ovl_fh. This test should be optimized out
++	 * at build time.
++	 */
++	if (FILESYSTEM_MAX_STACK_DEPTH > 2 &&
++	    ovl_is_overlay_fs(sb) && sb->s_stack_depth > 1)
++		return 0;
++
+ 	return sb->s_export_op->encode_fh ? -1 : FILEID_INO32_GEN;
  }
  
--static void cleanup(void)
--{
--	unlink(testfile);
--	if (mount_flag && tst_umount(MNTPOINT) < 0)
--		tst_resm(TWARN | TERRNO, "umount device:%s failed", device);
--
--	if (device)
--		tst_release_device(device);
--
--	tst_rmdir();
--}
-+static struct tst_test test = {
-+	.needs_root = 1,
-+	.needs_tmpdir = 1,
-+	.mount_device = 1,
-+	.mntpoint = mntpoint,
-+	.setup = setup,
-+	.options = options,
-+	.test_all = test_readahead,
-+};
- 
- #else /* __NR_readahead */
--int main(void)
--{
--	tst_brkm(TCONF, NULL, "System doesn't support __NR_readahead");
--}
-+	TST_TEST_TCONF("System doesn't support __NR_readahead");
- #endif
 -- 
 2.17.1
