@@ -1,49 +1,105 @@
 Return-Path: <amir73il@gmail.com>
 Return-Path: <amir73il@gmail.com>
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH 2/4] ovl: fix freeze protection bypass in ovl_write_iter()
-Date: Tue, 18 Sep 2018 16:34:32 +0300
-Message-Id: <20180918133434.27437-3-amir73il@gmail.com>
-In-Reply-To: <20180918133434.27437-1-amir73il@gmail.com>
-References: <20180918133434.27437-1-amir73il@gmail.com>
+Subject: [PATCH 1/3] ovl: relax requirement for non null uuid of lower fs
+Date: Mon,  3 Sep 2018 09:12:09 +0300
+Message-Id: <20180903061211.20830-2-amir73il@gmail.com>
+In-Reply-To: <20180903061211.20830-1-amir73il@gmail.com>
+References: <20180903061211.20830-1-amir73il@gmail.com>
 To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: Al Viro <viro@zeniv.linux.org.uk>, linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
+Cc: linux-unionfs@vger.kernel.org
 List-ID: <linux-unionfs@vger.kernel.org>
 
-Tested by re-writing to an open overlayfs file while upper ext4 is frozen:
+We use uuid to associate an overlay lower file handle with a lower layer,
+so we can accept lower fs with null uuid as long as all lower layers with
+null uuid are on the same fs.
 
-  xfs_io -f /ovl/x
-  xfs_io> pwrite 0 4096
-                             fsfreeze -f /ext4
-  xfs_io> pwrite 0 4096
+This change allows enabling index and nfs_export features for the setup of
+single lower fs of type squashfs - squashfs supports file handles, but has
+a null uuid. This change also allows enabling index and nfs_export
+features for nested overlayfs, where the lower overlay has nfs_export
+enabled.
 
-  WARNING: CPU: 0 PID: 1492 at fs/ext4/ext4_jbd2.c:53 \
-           ext4_journal_check_start+0x48/0x82
+Enabling the index feature with single lower squashfs fixes the
+unionmount-testsuite test:
+  ./run --ov --squashfs --verify
 
-After the fix, the second write blocks in ovl_write_iter() and avoids
-hitting WARN_ON(sb->s_writers.frozen == SB_FREEZE_COMPLETE) in
-ext4_journal_check_start().
+As a by-product, if, like the lower squashfs, upper fs also uses the
+generic export_encode_fh() implementation to export 32bit inode file
+handles (e.g. ext4), then the xino_auto config/module/mount option will
+enable unique overlay inode numbers.
 
-Fixes: 2a92e07edc5e ("ovl: add ovl_write_iter()")
 Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- fs/overlayfs/file.c | 2 ++
- 1 file changed, 2 insertions(+)
+ fs/overlayfs/super.c | 23 +++++++++++++++++++++--
+ fs/overlayfs/util.c  |  3 +--
+ 2 files changed, 22 insertions(+), 4 deletions(-)
 
-diff --git a/fs/overlayfs/file.c b/fs/overlayfs/file.c
-index aeaefd2a551b..986313da0c88 100644
---- a/fs/overlayfs/file.c
-+++ b/fs/overlayfs/file.c
-@@ -240,8 +240,10 @@ static ssize_t ovl_write_iter(struct kiocb *iocb, struct iov_iter *iter)
- 		goto out_unlock;
+diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+index 2e0fc93c2c06..069e441e24eb 100644
+--- a/fs/overlayfs/super.c
++++ b/fs/overlayfs/super.c
+@@ -1174,11 +1174,14 @@ static int ovl_get_indexdir(struct ovl_fs *ofs, struct ovl_entry *oe,
+ }
  
- 	old_cred = ovl_override_creds(file_inode(file)->i_sb);
-+	file_start_write(real.file);
- 	ret = vfs_iter_write(real.file, iter, &iocb->ki_pos,
- 			     ovl_iocb_to_rwf(iocb));
-+	file_end_write(real.file);
- 	revert_creds(old_cred);
+ /* Get a unique fsid for the layer */
+-static int ovl_get_fsid(struct ovl_fs *ofs, struct super_block *sb)
++static int ovl_get_fsid(struct ovl_fs *ofs, struct vfsmount *mnt)
+ {
++	struct super_block *sb = mnt->mnt_sb;
+ 	unsigned int i;
+ 	dev_t dev;
+ 	int err;
++	bool need_uuid = ofs->config.nfs_export ||
++			 (ofs->config.index && ofs->upper_mnt);
  
- 	/* Update size */
+ 	/* fsid 0 is reserved for upper fs even with non upper overlay */
+ 	if (ofs->upper_mnt && ofs->upper_mnt->mnt_sb == sb)
+@@ -1187,6 +1190,22 @@ static int ovl_get_fsid(struct ovl_fs *ofs, struct super_block *sb)
+ 	for (i = 0; i < ofs->numlowerfs; i++) {
+ 		if (ofs->lower_fs[i].sb == sb)
+ 			return i + 1;
++
++		/*
++		 * We use uuid to associate an overlay lower file handle with a
++		 * lower layer, so we can accept lower fs with null uuid as long
++		 * as all lower layers with null uuid are on the same fs.
++		 */
++		if (need_uuid &&
++		    uuid_equal(&ofs->lower_fs[i].sb->s_uuid, &sb->s_uuid)) {
++			need_uuid = false;
++			ofs->config.index = false;
++			ofs->config.nfs_export = false;
++			pr_warn("overlayfs: %s uuid detected in lower fs '%pd2', falling back to index=off,nfs_export=off.\n",
++				uuid_is_null(&sb->s_uuid) ? "null" :
++							    "conflicting",
++				mnt->mnt_root);
++		}
+ 	}
+ 
+ 	err = get_anon_bdev(&dev);
+@@ -1223,7 +1242,7 @@ static int ovl_get_lower_layers(struct ovl_fs *ofs, struct path *stack,
+ 		struct vfsmount *mnt;
+ 		int fsid;
+ 
+-		err = fsid = ovl_get_fsid(ofs, stack[i].mnt->mnt_sb);
++		err = fsid = ovl_get_fsid(ofs, stack[i].mnt);
+ 		if (err < 0)
+ 			goto out;
+ 
+diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
+index 8cfb62cc8672..6eabe7cf9652 100644
+--- a/fs/overlayfs/util.c
++++ b/fs/overlayfs/util.c
+@@ -65,8 +65,7 @@ struct super_block *ovl_same_sb(struct super_block *sb)
+  */
+ int ovl_can_decode_fh(struct super_block *sb)
+ {
+-	if (!sb->s_export_op || !sb->s_export_op->fh_to_dentry ||
+-	    uuid_is_null(&sb->s_uuid))
++	if (!sb->s_export_op || !sb->s_export_op->fh_to_dentry)
+ 		return 0;
+ 
+ 	return sb->s_export_op->encode_fh ? -1 : FILEID_INO32_GEN;
 -- 
 2.17.1
