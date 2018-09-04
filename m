@@ -1,122 +1,121 @@
-Return-Path: <amir73il@gmail.com>
-Return-Path: <amir73il@gmail.com>
-From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH 2/3] ovl: disable xino for some nested overlay cases
-Date: Mon,  3 Sep 2018 09:12:10 +0300
-Message-Id: <20180903061211.20830-3-amir73il@gmail.com>
-In-Reply-To: <20180903061211.20830-1-amir73il@gmail.com>
-References: <20180903061211.20830-1-amir73il@gmail.com>
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: linux-unionfs@vger.kernel.org
+Return-Path: <vgoyal@redhat.com>
+Date: Tue, 4 Sep 2018 13:37:45 -0400
+From: Vivek Goyal <vgoyal@redhat.com>
+Subject: Re: What's the right/expected behavior with metacopy=off
+Message-ID: <20180904173745.GG1469@redhat.com>
+References: <20180904145453.GD1469@redhat.com>
+ <CAOQ4uxi+3Rh=yh9LWUnR6p8kk-ko2i_YmGFhVxzcMjqCC-qX1A@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAOQ4uxi+3Rh=yh9LWUnR6p8kk-ko2i_YmGFhVxzcMjqCC-qX1A@mail.gmail.com>
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, overlayfs <linux-unionfs@vger.kernel.org>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-There are three possible cases when overlayfs is used as lower
-layer for a nested overlay mount:
+On Tue, Sep 04, 2018 at 06:32:38PM +0300, Amir Goldstein wrote:
+> On Tue, Sep 4, 2018 at 5:54 PM Vivek Goyal <vgoyal@redhat.com> wrote:
+> >
+> > Hi Miklos/Amir,
+> >
+> > I have a query about metacopy behavior with metacopy=off.
+> >
+> > As of now, metacopy=off still continues to check for metacopy xattr,
+> > and if a metacopy file is found, data copy up takes place when file
+> > is opened for write. And there are other paths in getattr() for reporting
+> > number of blocks of lower file etc.
+> >
+> > IOW, metacopy=off does not turn off metacopy functionality completely.
+> > It only disables metacopy for new copy up operations. Anything which
+> > is already metadata copy up (due to previous mounts), that will continue
+> > to work as if metacopy=on was specified during mount.
+> >
+> > I am wondering is this the right way to do things. I did this because
+> > we don't have a functionality to detect and warn if current mount options
+> > are incompatible with existing state of file system. Ideally, I think
+> > we should warn/error out if an fs is mounted with metacopy=off and it was
+> > mounted with metacopy=on in the past. And metacopy=off should disable
+> > metacopy path completely (irrespective of the fact whether previously
+> > it was mounted with metacopy=on or not).
+> >
+> > Given we don't have such feature in overlayfs yet, I thought continuing
+> > to honor metacopy files even if metacopy=off, will be path of least
+> > surprise for a user.
+> >
+> > I want to revisit this question while we are still in -rc phase and
+> > before it becomes a completely supported mode.
+> >
+> > What do you folks think about it.
+> >
+> 
+> What is the threat model of attacker using metacopy?
+> TBH, I don't fully understand the threat model with redirect_dir
+> that required the addition of redirect_dir=nofollow.
+> Who auto mounts an upper layer from USB drive over sensitive
+> lower paths?
 
-1. lower overlay is non-samefs with xino enabled
-2. lower overlay is non-samefs with xino disabled
-3. lower overlay is samefs
+Hi Amir,
 
-In the first case, lower layer uses high inode number bits, so they are
-not available for the nested overlay and xino should be disabled.
+I don't have any examples. Miklos might have one.
 
-In the second case, inode numbers of lower layer are not in a single
-address space, so there is no use enabling xino in nested overlay.
+> 
+> Let's see, an attacker wants to access a file that is root owned 0600
+> so attacker crafts a metacopy with its own ownership above the
+> root owned file.
+> 
+> Now the same thing an attacker could do with a merge dir to get
+> read/lookup access to a root owned directory, so metacopy does
+> not introduce this alleged attack vector, but it enhances it with the
+> ability to access files that are read-only for root.
+> 
+> If that threat is considered series to some users, I would advise
+> against adding metacopy=follow/nofollow options and reusing
+> existing ofs->config.redirect_follow to determine if data should
+> be followed from a metacopy upper when metacopy=off.
 
-In the last case (samefs) the lower layer inode number address space
-is that of the underlying real fs, so we can assign fsid of the lower
-layer according the the real underlying fs.
+Let me correct myself. metacopy=off, is checking for metacopy xattr
+but in the end it is refusing to follow it because metacopy=off. I now
+remember that either you or miklos had pointed out that metacopy is
+like redirect and we should not follow it if metacopy=off.
 
-In the private case of all lower overlay layers on the same fs, which is
-also the upper fs of the nested overlay, the nested overlay itself is
-treated as "samefs", because inode numbers in all layers are from the
-same address space.
+                if (!ofs->config.metacopy) {
+                        pr_warn_ratelimited("overlay: refusing to follow metacopy origin for (%pd2)\n",
+                                            dentry);
+                        goto out_put;
+                }
 
-Signed-off-by: Amir Goldstein <amir73il@gmail.com>
----
- fs/overlayfs/overlayfs.h |  8 ++++++++
- fs/overlayfs/super.c     | 25 +++++++++++++++++++++++--
- 2 files changed, 31 insertions(+), 2 deletions(-)
+> 
+> The rational is that redirect_dir=follow/nofollow really only
+> means behavior=usability/paranoia.
 
-diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-index f61839e1054c..d32fe09a222f 100644
---- a/fs/overlayfs/overlayfs.h
-+++ b/fs/overlayfs/overlayfs.h
-@@ -418,3 +418,11 @@ int ovl_set_origin(struct dentry *dentry, struct dentry *lower,
- 
- /* export.c */
- extern const struct export_operations ovl_export_operations;
-+
-+/* super.c */
-+extern struct file_system_type ovl_fs_type;
-+
-+static inline bool ovl_is_overlay_fs(struct super_block *sb)
-+{
-+	return sb->s_type == &ovl_fs_type;
-+}
-diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-index 069e441e24eb..b6a0211dc75c 100644
---- a/fs/overlayfs/super.c
-+++ b/fs/overlayfs/super.c
-@@ -755,6 +755,7 @@ static int ovl_check_namelen(struct path *path, struct ovl_fs *ofs,
- static int ovl_lower_dir(const char *name, struct path *path,
- 			 struct ovl_fs *ofs, int *stack_depth, bool *remote)
- {
-+	struct super_block *real_sb;
- 	int fh_type;
- 	int err;
- 
-@@ -775,7 +776,8 @@ static int ovl_lower_dir(const char *name, struct path *path,
- 	 * The inodes index feature and NFS export need to encode and decode
- 	 * file handles, so they require that all layers support them.
- 	 */
--	fh_type = ovl_can_decode_fh(path->dentry->d_sb);
-+	real_sb = path->dentry->d_sb;
-+	fh_type = ovl_can_decode_fh(real_sb);
- 	if ((ofs->config.nfs_export ||
- 	     (ofs->config.index && ofs->config.upperdir)) && !fh_type) {
- 		ofs->config.index = false;
-@@ -784,6 +786,17 @@ static int ovl_lower_dir(const char *name, struct path *path,
- 			name);
- 	}
- 
-+	/* Are all layers of nested overlay on same sb? */
-+	if (ofs->config.xino != OVL_XINO_OFF && ovl_is_overlay_fs(real_sb)) {
-+		real_sb = ovl_same_sb(real_sb);
-+		if (real_sb) {
-+			fh_type = ovl_can_decode_fh(real_sb);
-+		} else {
-+			pr_warn("overlayfs: nested xino not supported, falling back to xino=off.\n");
-+			ofs->config.xino = OVL_XINO_OFF;
-+		}
-+	}
-+
- 	/* Check if lower fs has 32bit inode numbers */
- 	if (fh_type != FILEID_INO32_GEN)
- 		ofs->xino_bits = 0;
-@@ -1183,6 +1196,14 @@ static int ovl_get_fsid(struct ovl_fs *ofs, struct vfsmount *mnt)
- 	bool need_uuid = ofs->config.nfs_export ||
- 			 (ofs->config.index && ofs->upper_mnt);
- 
-+	/* Are all layers of nested overlay on same sb? */
-+	if (ovl_is_overlay_fs(sb)) {
-+		struct super_block *real_sb = ovl_same_sb(sb);
-+
-+		if (real_sb)
-+			sb = real_sb;
-+	}
-+
- 	/* fsid 0 is reserved for upper fs even with non upper overlay */
- 	if (ofs->upper_mnt && ofs->upper_mnt->mnt_sb == sb)
- 		return 0;
-@@ -1535,7 +1556,7 @@ static struct dentry *ovl_mount(struct file_system_type *fs_type, int flags,
- 	return mount_nodev(fs_type, flags, raw_data, ovl_fill_super);
- }
- 
--static struct file_system_type ovl_fs_type = {
-+struct file_system_type ovl_fs_type = {
- 	.owner		= THIS_MODULE,
- 	.name		= "overlay",
- 	.mount		= ovl_mount,
--- 
-2.17.1
+So what we probably need is metacopy=follow at some point of time. This
+will cater to the need of people who don't want to create new metacopy
+inodes but if one already exists, then they would like to follow it.
+
+IOW, current options of metacopy=on/off seems to be fine and
+metacopy=follow can be added when somebody asks for it.
+
+meatacopy=off will detect that filesystem has metacopy xattr and warn
+about it but not follow it.
+
+There seem to be one odd downside of looking for xattrs in in
+ovl_lookup(). From SELinux point of view, this requires "getattr"
+permission. Say an operation "unlink" which only requires write permission
+on the directory where file is, it might still fail if mounter does not
+have "getattr" permission on file.
+
+Current SELinux test suite seems to be running in this issue on 4.19-rc1.
+
+https://github.com/SELinuxProject/selinux-kernel/issues/41
+
+For now, I am making a case that give "getattr" permission to mounter
+in SELinux policy. Other option could be that don't even look for
+metacopy xattr if metacopy=off. But that means we lose the capability
+to warn user about a configuration where metacopy=off but filesystem
+has metacopy files.
+
+At this point of time, I feel being able to warn users about it is
+more practical approach.
+
+Thanks
+Vivek
