@@ -1,90 +1,104 @@
-Return-Path: <linux-fsdevel-owner@vger.kernel.org>
-From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH v3 5/6] vfs: implement readahead(2) using POSIX_FADV_WILLNEED
-Date: Mon, 27 Aug 2018 15:56:03 +0300
-Message-Id: <1535374564-8257-6-git-send-email-amir73il@gmail.com>
-In-Reply-To: <1535374564-8257-1-git-send-email-amir73il@gmail.com>
-References: <1535374564-8257-1-git-send-email-amir73il@gmail.com>
-Sender: linux-fsdevel-owner@vger.kernel.org
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: Al Viro <viro@zeniv.linux.org.uk>, Dave Chinner <david@fromorbit.com>, linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
-List-ID: <linux-unionfs@vger.kernel.org>
+From: syzbot <syzbot+c75f181dc8429d2eb887@syzkaller.appspotmail.com>
+Subject: general protection fault in ovl_free_fs
+Date: Fri, 07 Sep 2018 01:38:02 -0700
+Message-ID: <000000000000f9bd97057543ec30@google.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"; format=flowed; delsp=yes
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org, linux-unionfs@vger.kernel.org, miklos@szeredi.hu, syzkaller-bugs@googlegroups.com
+List-Id: linux-unionfs@vger.kernel.org
 
-The implementation of readahead(2) syscall is identical to that of
-fadvise64(POSIX_FADV_WILLNEED) with a few exceptions:
-1. readahead(2) returns -EINVAL for !mapping->a_ops and fadvise64()
-   ignores the request and returns 0.
-2. fadvise64() checks for integer overflow corner case
-3. fadvise64() calls the optional filesystem fadvice() file operation
+Hello,
 
-Unite the two implementations by calling vfs_fadvice() from readahead(2)
-syscall. Check the !mapping->a_ops in readahead(2) syscall to preserve
-legacy behavior.
+syzbot found the following crash on:
 
-Suggested-by: Miklos Szeredi <mszeredi@redhat.com>
-Fixes: d1d04ef8572b ("ovl: stack file ops")
-Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+HEAD commit:    b36fdc6853a3 Merge tag 'gpio-v4.19-2' of git://git.kernel...
+git tree:       upstream
+console output: https://syzkaller.appspot.com/x/log.txt?x=13579cd1400000
+kernel config:  https://syzkaller.appspot.com/x/.config?x=6c9564cd177daf0c
+dashboard link: https://syzkaller.appspot.com/bug?extid=c75f181dc8429d2eb887
+compiler:       gcc (GCC) 8.0.1 20180413 (experimental)
+
+Unfortunately, I don't have any reproducer for this crash yet.
+
+IMPORTANT: if you fix the bug, please add the following tag to the commit:
+Reported-by: syzbot+c75f181dc8429d2eb887@syzkaller.appspotmail.com
+
+kasan: CONFIG_KASAN_INLINE enabled
+kasan: GPF could be caused by NULL-ptr deref or user memory access
+general protection fault: 0000 [#1] SMP KASAN
+CPU: 0 PID: 12806 Comm: syz-executor3 Not tainted 4.19.0-rc2+ #224
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS  
+Google 01/01/2011
+RIP: 0010:ovl_free_fs+0x4d9/0x650 fs/overlayfs/super.c:226
+Code: 00 00 00 00 00 fc ff df 48 c1 ea 03 80 3c 02 00 0f 85 67 01 00 00 48  
+b8 00 00 00 00 00 fc ff df 4c 8b 23 4c 89 e2 48 c1 ea 03 <80> 3c 02 00 0f  
+85 56 01 00 00 49 8b 3c 24 e8 d4 0a 01 00 e9 37 fc
+RSP: 0018:ffff8800aec7f7b8 EFLAGS: 00010246
+RAX: dffffc0000000000 RBX: ffff880111d7ef00 RCX: ffffc90003487000
+RDX: 0000000000000000 RSI: ffffffff827c844a RDI: 0000000000000001
+RBP: ffff8800aec7f810 R08: ffff8801b9cae080 R09: ffffed003b6046de
+R10: 0000000000000003 R11: 0000000000000001 R12: 0000000000000000
+R13: ffff880111d7ef20 R14: fffffffffffffff4 R15: ffff880111d7ef00
+FS:  00007f715a1ab700(0000) GS:ffff8801db000000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 0000000002242e80 CR3: 000000018698d000 CR4: 00000000001426f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+TCP: request_sock_TCPv6: Possible SYN flooding on port 20002. Sending  
+cookies.  Check SNMP counters.
+Call Trace:
+  ovl_fill_super+0x4f1/0x3ffc fs/overlayfs/super.c:1508
+  mount_nodev+0x6b/0x110 fs/super.c:1204
+  ovl_mount+0x2c/0x40 fs/overlayfs/super.c:1516
+  mount_fs+0xae/0x328 fs/super.c:1261
+  vfs_kern_mount.part.35+0xdc/0x4f0 fs/namespace.c:961
+  vfs_kern_mount fs/namespace.c:951 [inline]
+  do_new_mount fs/namespace.c:2457 [inline]
+  do_mount+0x581/0x30e0 fs/namespace.c:2787
+  ksys_mount+0x12d/0x140 fs/namespace.c:3003
+  __do_sys_mount fs/namespace.c:3017 [inline]
+  __se_sys_mount fs/namespace.c:3014 [inline]
+  __x64_sys_mount+0xbe/0x150 fs/namespace.c:3014
+  do_syscall_64+0x1b9/0x820 arch/x86/entry/common.c:290
+  entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x457099
+Code: fd b4 fb ff c3 66 2e 0f 1f 84 00 00 00 00 00 66 90 48 89 f8 48 89 f7  
+48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff  
+ff 0f 83 cb b4 fb ff c3 66 2e 0f 1f 84 00 00 00 00
+RSP: 002b:00007f715a1aac78 EFLAGS: 00000246 ORIG_RAX: 00000000000000a5
+RAX: ffffffffffffffda RBX: 00007f715a1ab6d4 RCX: 0000000000457099
+RDX: 00000000200000c0 RSI: 0000000020000000 RDI: 0000000000000000
+RBP: 00000000009300a0 R08: 0000000020000100 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000000003
+R13: 00000000004d3300 R14: 00000000004c8241 R15: 000000000000002a
+Modules linked in:
+Dumping ftrace buffer:
+    (ftrace buffer empty)
+---[ end trace a35d50b1706abe7c ]---
+RIP: 0010:ovl_free_fs+0x4d9/0x650 fs/overlayfs/super.c:226
+Code: 00 00 00 00 00 fc ff df 48 c1 ea 03 80 3c 02 00 0f 85 67 01 00 00 48  
+b8 00 00 00 00 00 fc ff df 4c 8b 23 4c 89 e2 48 c1 ea 03 <80> 3c 02 00 0f  
+85 56 01 00 00 49 8b 3c 24 e8 d4 0a 01 00 e9 37 fc
+RSP: 0018:ffff8800aec7f7b8 EFLAGS: 00010246
+RAX: dffffc0000000000 RBX: ffff880111d7ef00 RCX: ffffc90003487000
+RDX: 0000000000000000 RSI: ffffffff827c844a RDI: 0000000000000001
+RBP: ffff8800aec7f810 R08: ffff8801b9cae080 R09: ffffed003b6046de
+R10: 0000000000000003 R11: 0000000000000001 R12: 0000000000000000
+R13: ffff880111d7ef20 R14: fffffffffffffff4 R15: ffff880111d7ef00
+FS:  00007f715a1ab700(0000) GS:ffff8801db000000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 0000000002242e80 CR3: 000000018698d000 CR4: 00000000001426f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+
+
 ---
- mm/readahead.c | 28 +++++++++++-----------------
- 1 file changed, 11 insertions(+), 17 deletions(-)
+This bug is generated by a bot. It may contain errors.
+See https://goo.gl/tpsmEJ for more information about syzbot.
+syzbot engineers can be reached at syzkaller@googlegroups.com.
 
-diff --git a/mm/readahead.c b/mm/readahead.c
-index a59ea70527b9..867a5cc3a62e 100644
---- a/mm/readahead.c
-+++ b/mm/readahead.c
-@@ -20,6 +20,7 @@
- #include <linux/file.h>
- #include <linux/mm_inline.h>
- #include <linux/blk-cgroup.h>
-+#include <linux/fadvise.h>
- 
- #include "internal.h"
- 
-@@ -576,21 +577,19 @@ page_cache_async_readahead(struct address_space *mapping,
- EXPORT_SYMBOL_GPL(page_cache_async_readahead);
- 
- static ssize_t
--do_readahead(struct address_space *mapping, struct file *filp,
--	     pgoff_t index, unsigned long nr)
-+do_readahead(struct file *file, loff_t offset, size_t count)
- {
--	if (!mapping || !mapping->a_ops)
--		return -EINVAL;
-+	struct address_space *mapping = file->f_mapping;
- 
- 	/*
--	 * Readahead doesn't make sense for DAX inodes, but we don't want it
--	 * to report a failure either.  Instead, we just return success and
--	 * don't do any work.
-+	 * fadvise() silently ignores an advice for a file with !a_ops and
-+	 * returns -EPIPE for a pipe. Keep this check here to comply with legacy
-+	 * -EINVAL behavior of readahead(2).
- 	 */
--	if (dax_mapping(mapping))
--		return 0;
-+	if (!mapping || !mapping->a_ops || !S_ISREG(file_inode(file)->i_mode))
-+		return -EINVAL;
- 
--	return force_page_cache_readahead(mapping, filp, index, nr);
-+	return vfs_fadvise(file, offset, count, POSIX_FADV_WILLNEED);
- }
- 
- ssize_t ksys_readahead(int fd, loff_t offset, size_t count)
-@@ -601,13 +600,8 @@ ssize_t ksys_readahead(int fd, loff_t offset, size_t count)
- 	ret = -EBADF;
- 	f = fdget(fd);
- 	if (f.file) {
--		if (f.file->f_mode & FMODE_READ) {
--			struct address_space *mapping = f.file->f_mapping;
--			pgoff_t start = offset >> PAGE_SHIFT;
--			pgoff_t end = (offset + count - 1) >> PAGE_SHIFT;
--			unsigned long len = end - start + 1;
--			ret = do_readahead(mapping, f.file, start, len);
--		}
-+		if (f.file->f_mode & FMODE_READ)
-+			ret = do_readahead(f.file, offset, count);
- 		fdput(f);
- 	}
- 	return ret;
--- 
-2.7.4
+syzbot will keep track of this bug report. See:
+https://goo.gl/tpsmEJ#bug-status-tracking for how to communicate with  
+syzbot.
