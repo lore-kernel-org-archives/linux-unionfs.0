@@ -1,104 +1,96 @@
-From: syzbot <syzbot+c75f181dc8429d2eb887@syzkaller.appspotmail.com>
-Subject: general protection fault in ovl_free_fs
-Date: Fri, 07 Sep 2018 01:38:02 -0700
-Message-ID: <000000000000f9bd97057543ec30@google.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Subject: Re: Containers and checkpoint/restart micro-conference at LPC2018
+Date: Sat, 8 Sep 2018 10:41:41 +0300
+Message-ID: <CAOQ4uxiQEpofdS97kxnii8LtVW2QiKAGvjjaH0Px-Bj3eHVCFA@mail.gmail.com>
+References: <20180813161015.GD18492@castiana> <20180908045935.GA9201@castiana>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed; delsp=yes
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org, linux-unionfs@vger.kernel.org, miklos@szeredi.hu, syzkaller-bugs@googlegroups.com
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20180908045935.GA9201@castiana>
+Sender: netdev-owner@vger.kernel.org
+To: Stephane Graber <stgraber@ubuntu.com>
+Cc: lxc-devel@lists.linuxcontainers.org, lxc-users@lists.linuxcontainers.org, containers@lists.linuxfoundation.org, LSM List <linux-security-module@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Netdev <netdev@vger.kernel.org>, overlayfs <linux-unionfs@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>, Vivek Goyal <vgoyal@redhat.com>
 List-Id: linux-unionfs@vger.kernel.org
 
-Hello,
+On Sat, Sep 8, 2018 at 8:00 AM St=C3=A9phane Graber <stgraber@ubuntu.com> w=
+rote:
+>
+> On Mon, Aug 13, 2018 at 12:10:15PM -0400, St=C3=A9phane Graber wrote:
+> > Hello,
+> >
+> > This year's edition of the Linux Plumbers Conference will once again
+> > have a containers micro-conference but this time around we'll have twic=
+e
+> > the usual amount of time and will include the content that would
+> > traditionally go into the checkpoint/restore micro-conference.
+> >
+> > LPC2018 will be held in Vancouver, Canada from the 13th to the 15th of
+> > November, co-located with the Linux Kernel Summit.
+> >
+> >
+> > We're looking for discussion topics around kernel work related to
+> > containers and namespacing, resource control, access control,
+> > checkpoint/restore of kernel structures, filesystem/mount handling for
+> > containers and any related userspace work.
+> >
+> >
+> > The format of the event will mostly be discussions where someone
+> > introduces a given topic/problem and it then gets discussed for 20-30mi=
+n
+> > before moving on to something else. There will also be limited room for
+> > short demos of recent work with shorter 15min slots.
+> >
+> >
+> > Details can be found here:
+> >
+> >   https://discuss.linuxcontainers.org/t/containers-micro-conference-at-=
+linux-plumbers-2018/2417
+> >
+> >
+> > Looking forward to seeing you in Vancouver!
+>
+> Hello,
+>
+> We've added an extra week to the CFP, new deadline is Friday 14th of Sept=
+ember.
+>
+> If you were thinking about sending something bug then forgot or just
+> missed the deadline, now is your chance to send it!
+>
 
-syzbot found the following crash on:
+[cc: overlayfs developers]
 
-HEAD commit:    b36fdc6853a3 Merge tag 'gpio-v4.19-2' of git://git.kernel...
-git tree:       upstream
-console output: https://syzkaller.appspot.com/x/log.txt?x=13579cd1400000
-kernel config:  https://syzkaller.appspot.com/x/.config?x=6c9564cd177daf0c
-dashboard link: https://syzkaller.appspot.com/bug?extid=c75f181dc8429d2eb887
-compiler:       gcc (GCC) 8.0.1 20180413 (experimental)
+Hi St=C3=A9phane!
 
-Unfortunately, I don't have any reproducer for this crash yet.
+I am not planing to travel to LPC this year, so this is more of an FYI than
+a CFP, but maybe another overlayfs developer can pick up this glove??
 
-IMPORTANT: if you fix the bug, please add the following tag to the commit:
-Reported-by: syzbot+c75f181dc8429d2eb887@syzkaller.appspotmail.com
+For the past two years I have participated in the effort to fix overlayfs
+"non-standard" behavior:
+https://github.com/amir73il/overlayfs/wiki/Overlayfs-non-standard-behavior
 
-kasan: CONFIG_KASAN_INLINE enabled
-kasan: GPF could be caused by NULL-ptr deref or user memory access
-general protection fault: 0000 [#1] SMP KASAN
-CPU: 0 PID: 12806 Comm: syz-executor3 Not tainted 4.19.0-rc2+ #224
-Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS  
-Google 01/01/2011
-RIP: 0010:ovl_free_fs+0x4d9/0x650 fs/overlayfs/super.c:226
-Code: 00 00 00 00 00 fc ff df 48 c1 ea 03 80 3c 02 00 0f 85 67 01 00 00 48  
-b8 00 00 00 00 00 fc ff df 4c 8b 23 4c 89 e2 48 c1 ea 03 <80> 3c 02 00 0f  
-85 56 01 00 00 49 8b 3c 24 e8 d4 0a 01 00 e9 37 fc
-RSP: 0018:ffff8800aec7f7b8 EFLAGS: 00010246
-RAX: dffffc0000000000 RBX: ffff880111d7ef00 RCX: ffffc90003487000
-RDX: 0000000000000000 RSI: ffffffff827c844a RDI: 0000000000000001
-RBP: ffff8800aec7f810 R08: ffff8801b9cae080 R09: ffffed003b6046de
-R10: 0000000000000003 R11: 0000000000000001 R12: 0000000000000000
-R13: ffff880111d7ef20 R14: fffffffffffffff4 R15: ffff880111d7ef00
-FS:  00007f715a1ab700(0000) GS:ffff8801db000000(0000) knlGS:0000000000000000
-CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-CR2: 0000000002242e80 CR3: 000000018698d000 CR4: 00000000001426f0
-DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
-TCP: request_sock_TCPv6: Possible SYN flooding on port 20002. Sending  
-cookies.  Check SNMP counters.
-Call Trace:
-  ovl_fill_super+0x4f1/0x3ffc fs/overlayfs/super.c:1508
-  mount_nodev+0x6b/0x110 fs/super.c:1204
-  ovl_mount+0x2c/0x40 fs/overlayfs/super.c:1516
-  mount_fs+0xae/0x328 fs/super.c:1261
-  vfs_kern_mount.part.35+0xdc/0x4f0 fs/namespace.c:961
-  vfs_kern_mount fs/namespace.c:951 [inline]
-  do_new_mount fs/namespace.c:2457 [inline]
-  do_mount+0x581/0x30e0 fs/namespace.c:2787
-  ksys_mount+0x12d/0x140 fs/namespace.c:3003
-  __do_sys_mount fs/namespace.c:3017 [inline]
-  __se_sys_mount fs/namespace.c:3014 [inline]
-  __x64_sys_mount+0xbe/0x150 fs/namespace.c:3014
-  do_syscall_64+0x1b9/0x820 arch/x86/entry/common.c:290
-  entry_SYSCALL_64_after_hwframe+0x49/0xbe
-RIP: 0033:0x457099
-Code: fd b4 fb ff c3 66 2e 0f 1f 84 00 00 00 00 00 66 90 48 89 f8 48 89 f7  
-48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff  
-ff 0f 83 cb b4 fb ff c3 66 2e 0f 1f 84 00 00 00 00
-RSP: 002b:00007f715a1aac78 EFLAGS: 00000246 ORIG_RAX: 00000000000000a5
-RAX: ffffffffffffffda RBX: 00007f715a1ab6d4 RCX: 0000000000457099
-RDX: 00000000200000c0 RSI: 0000000020000000 RDI: 0000000000000000
-RBP: 00000000009300a0 R08: 0000000020000100 R09: 0000000000000000
-R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000000003
-R13: 00000000004d3300 R14: 00000000004c8241 R15: 000000000000002a
-Modules linked in:
-Dumping ftrace buffer:
-    (ftrace buffer empty)
----[ end trace a35d50b1706abe7c ]---
-RIP: 0010:ovl_free_fs+0x4d9/0x650 fs/overlayfs/super.c:226
-Code: 00 00 00 00 00 fc ff df 48 c1 ea 03 80 3c 02 00 0f 85 67 01 00 00 48  
-b8 00 00 00 00 00 fc ff df 4c 8b 23 4c 89 e2 48 c1 ea 03 <80> 3c 02 00 0f  
-85 56 01 00 00 49 8b 3c 24 e8 d4 0a 01 00 e9 37 fc
-RSP: 0018:ffff8800aec7f7b8 EFLAGS: 00010246
-RAX: dffffc0000000000 RBX: ffff880111d7ef00 RCX: ffffc90003487000
-RDX: 0000000000000000 RSI: ffffffff827c844a RDI: 0000000000000001
-RBP: ffff8800aec7f810 R08: ffff8801b9cae080 R09: ffffed003b6046de
-R10: 0000000000000003 R11: 0000000000000001 R12: 0000000000000000
-R13: ffff880111d7ef20 R14: fffffffffffffff4 R15: ffff880111d7ef00
-FS:  00007f715a1ab700(0000) GS:ffff8801db000000(0000) knlGS:0000000000000000
-CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-CR2: 0000000002242e80 CR3: 000000018698d000 CR4: 00000000001426f0
-DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Allegedly, this effort went underway to improve the experience of overlayfs
+users, who are mostly applications running inside containers. For backward
+compatibility reasons, container runtimes will need to opt-in for fixing so=
+me
+of the legacy behavior.
 
+In reality, I have seen very little cross list interaction between linux-un=
+ionfs
+and containers mailing lists. The only interaction I recall in the
+past two years
+ended up in a fix in overlayfs to require opt-in for fixing yet another bac=
+kward
+compatible bad behavior, although docker did follow up shortly after to fix
+bad practice in container runtime:
+https://github.com/moby/moby/issues/34672
 
----
-This bug is generated by a bot. It may contain errors.
-See https://goo.gl/tpsmEJ for more information about syzbot.
-syzbot engineers can be reached at syzkaller@googlegroups.com.
+So the questions I would like to relay to the micro-conf participants w.r.t=
+ the
+new opt-in overlayfs behavior:
+1. Did you know?
+2. Do you care?
 
-syzbot will keep track of this bug report. See:
-https://goo.gl/tpsmEJ#bug-status-tracking for how to communicate with  
-syzbot.
+Cheers,
+Amir.
