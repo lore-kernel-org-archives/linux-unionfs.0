@@ -1,95 +1,122 @@
-From: syzbot <syzbot+c75f181dc8429d2eb887@syzkaller.appspotmail.com>
-Subject: Re: general protection fault in ovl_free_fs
-Date: Sat, 08 Sep 2018 18:43:02 -0700
-Message-ID: <0000000000007c7a640575665c3f@google.com>
-References: <000000000000f9bd97057543ec30@google.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Subject: Re: Overlayfs @ Containers and checkpoint/restart micro-conference at LPC2018
+Date: Sun, 9 Sep 2018 09:31:02 +0300
+Message-ID: <CAOQ4uxih7rPPLquJZFL9HtSbUFi-cCOR21qH4_-ORxxLKGsLXg@mail.gmail.com>
+References: <20180813161015.GD18492@castiana> <20180908045935.GA9201@castiana>
+ <CAOQ4uxiQEpofdS97kxnii8LtVW2QiKAGvjjaH0Px-Bj3eHVCFA@mail.gmail.com> <20180909013108.6wjlx75ztqjipepg@mailbox.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed; delsp=yes
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <000000000000f9bd97057543ec30@google.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org, linux-unionfs@vger.kernel.org, miklos@szeredi.hu, syzkaller-bugs@googlegroups.com
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20180909013108.6wjlx75ztqjipepg@mailbox.org>
+Sender: netdev-owner@vger.kernel.org
+To: christian@brauner.io
+Cc: Stephane Graber <stgraber@ubuntu.com>, containers@lists.linuxfoundation.org, Miklos Szeredi <miklos@szeredi.hu>, Netdev <netdev@vger.kernel.org>, overlayfs <linux-unionfs@vger.kernel.org>, lxc-users@lists.linuxcontainers.org, LSM List <linux-security-module@vger.kernel.org>, lxc-devel@lists.linuxcontainers.org, linux-fsdevel <linux-fsdevel@vger.kernel.org>, "zhangyi (F)" <yi.zhang@huawei.com>
 List-Id: linux-unionfs@vger.kernel.org
 
-syzbot has found a reproducer for the following crash on:
+On Sun, Sep 9, 2018 at 4:31 AM Christian Brauner <christian@brauner.io> wro=
+te:
+>
+...
+> > [cc: overlayfs developers]
+> >
+> > Hi St=C3=A9phane!
+>
+> Hey Amir,
+>
+> I'm one of the co-organizers of the microconf.
+>
+> >
+> > I am not planing to travel to LPC this year, so this is more of an FYI =
+than
+> > a CFP, but maybe another overlayfs developer can pick up this glove??
+>
+> Sure, that would be great.
+>
+> >
+> > For the past two years I have participated in the effort to fix overlay=
+fs
+> > "non-standard" behavior:
+> > https://github.com/amir73il/overlayfs/wiki/Overlayfs-non-standard-behav=
+ior
+>
+> Yes, this is an issue that we were aware of for a long time and it
+> something that has made overlayfs somewhat more difficult to use than it
+> should be.
+>
+> >
+> > Allegedly, this effort went underway to improve the experience of overl=
+ayfs
+> > users, who are mostly applications running inside containers. For backw=
+ard
+> > compatibility reasons, container runtimes will need to opt-in for fixin=
+g some
+> > of the legacy behavior.
+> >
+> > In reality, I have seen very little cross list interaction between linu=
+x-unionfs
+> > and containers mailing lists. The only interaction I recall in the
+> > past two years
+> > ended up in a fix in overlayfs to require opt-in for fixing yet another=
+ backward
+> > compatible bad behavior, although docker did follow up shortly after to=
+ fix
+> > bad practice in container runtime:
+> > https://github.com/moby/moby/issues/34672
+> >
+> > So the questions I would like to relay to the micro-conf participants w=
+.r.t the
+> > new opt-in overlayfs behavior:
+> > 1. Did you know?
+>
+> I personally did not know about the new opt-in behavior. More reason to
+> give a talk! :)
+>
+> > 2. Do you care?
+>
+> Yes, we do care. However - speaking as LXC upstream now - we have
+> recently focused on getting shiftfs to work rather than overlayfs.
+>
 
-HEAD commit:    d7b686ebf704 Merge branch 'i2c/for-current' of git://git.k..
-git tree:       upstream
-console output: https://syzkaller.appspot.com/x/log.txt?x=148ac149400000
-kernel config:  https://syzkaller.appspot.com/x/.config?x=8f59875069d721b6
-dashboard link: https://syzkaller.appspot.com/bug?extid=c75f181dc8429d2eb887
-compiler:       gcc (GCC) 8.0.1 20180413 (experimental)
-syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=11553b7a400000
-C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=14b16421400000
+IMO, as I expressed it in the past, the fact that shiftfs development is no=
+t
+collaborated with overlayfs developers is a pitty.
+Yes shiftfs has a different purpose than overlayfs, but they have common
+use cases and common problems as well.
 
-IMPORTANT: if you fix the bug, please add the following tag to the commit:
-Reported-by: syzbot+c75f181dc8429d2eb887@syzkaller.appspotmail.com
+> We are more than happy to have a overlayfs talk at the microconf. If
+> someone were to talk about:
+> - What non-standard behavior has already been fixed?
+> - How has it been fixed?
 
-R10: 0000000000000000 R11: 0000000000000246 R12: ffffffffffffffff
-R13: 0000000000000003 R14: 0000000000000000 R15: 0000000000000000
-overlayfs: failed to clone upperpath
-kasan: CONFIG_KASAN_INLINE enabled
-kasan: GPF could be caused by NULL-ptr deref or user memory access
-general protection fault: 0000 [#1] PREEMPT SMP KASAN
-CPU: 1 PID: 5473 Comm: syz-executor554 Not tainted 4.19.0-rc2+ #7
-Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS  
-Google 01/01/2011
-RIP: 0010:ovl_free_fs+0x504/0x690 fs/overlayfs/super.c:226
-Code: 00 00 00 00 00 fc ff df 48 c1 ea 03 80 3c 02 00 0f 85 78 01 00 00 48  
-b8 00 00 00 00 00 fc ff df 4c 8b 23 4c 89 e2 48 c1 ea 03 <80> 3c 02 00 0f  
-85 67 01 00 00 49 8b 3c 24 e8 c9 0a 01 00 e9 0c fc
-RSP: 0018:ffff8801b3de7798 EFLAGS: 00010246
-RAX: dffffc0000000000 RBX: ffff8801d87b7800 RCX: ffffffff828cacaf
-RDX: 0000000000000000 RSI: ffffffff828cb065 RDI: 0000000000000001
-RBP: ffff8801b3de77f0 R08: ffff8801c44ba680 R09: ffffed003b5e4732
-R10: ffffed003b5e4732 R11: ffff8801daf23993 R12: 0000000000000000
-R13: ffff8801d87b7820 R14: fffffffffffffff4 R15: ffff8801d87b7800
-FS:  000000000207a880(0000) GS:ffff8801daf00000(0000) knlGS:0000000000000000
-CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-CR2: 00007f14a574e169 CR3: 00000001c5068000 CR4: 00000000001406e0
-DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
-Call Trace:
-  ovl_fill_super+0x4f4/0x40a3 fs/overlayfs/super.c:1508
-  mount_nodev+0x6b/0x110 fs/super.c:1204
-  ovl_mount+0x2c/0x40 fs/overlayfs/super.c:1516
-  mount_fs+0xae/0x31d fs/super.c:1261
-  vfs_kern_mount.part.35+0xdc/0x4f0 fs/namespace.c:961
-  vfs_kern_mount fs/namespace.c:951 [inline]
-  do_new_mount fs/namespace.c:2457 [inline]
-  do_mount+0x581/0x31f0 fs/namespace.c:2787
-  ksys_mount+0x12d/0x140 fs/namespace.c:3003
-  __do_sys_mount fs/namespace.c:3017 [inline]
-  __se_sys_mount fs/namespace.c:3014 [inline]
-  __x64_sys_mount+0xbe/0x150 fs/namespace.c:3014
-  do_syscall_64+0x1b9/0x820 arch/x86/entry/common.c:290
-  entry_SYSCALL_64_after_hwframe+0x49/0xbe
-RIP: 0033:0x445119
-Code: ad ce fb ff c3 66 2e 0f 1f 84 00 00 00 00 00 66 90 48 89 f8 48 89 f7  
-48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff  
-ff 0f 83 7b ce fb ff c3 66 2e 0f 1f 84 00 00 00 00
-RSP: 002b:00007ffef77a0948 EFLAGS: 00000246 ORIG_RAX: 00000000000000a5
-RAX: ffffffffffffffda RBX: 0000000000000000 RCX: 0000000000445119
-RDX: 00000000200000c0 RSI: 0000000020000080 RDI: 0000000000000000
-RBP: 00007ffef77a0960 R08: 0000000020000100 R09: 00007ffef77f92f4
-R10: 0000000000000000 R11: 0000000000000246 R12: ffffffffffffffff
-R13: 0000000000000003 R14: 0000000000000000 R15: 0000000000000000
-Modules linked in:
-Dumping ftrace buffer:
-    (ftrace buffer empty)
----[ end trace 6b50ff34ce671ab8 ]---
-RIP: 0010:ovl_free_fs+0x504/0x690 fs/overlayfs/super.c:226
-Code: 00 00 00 00 00 fc ff df 48 c1 ea 03 80 3c 02 00 0f 85 78 01 00 00 48  
-b8 00 00 00 00 00 fc ff df 4c 8b 23 4c 89 e2 48 c1 ea 03 <80> 3c 02 00 0f  
-85 67 01 00 00 49 8b 3c 24 e8 c9 0a 01 00 e9 0c fc
-RSP: 0018:ffff8801b3de7798 EFLAGS: 00010246
-RAX: dffffc0000000000 RBX: ffff8801d87b7800 RCX: ffffffff828cacaf
-RDX: 0000000000000000 RSI: ffffffff828cb065 RDI: 0000000000000001
-RBP: ffff8801b3de77f0 R08: ffff8801c44ba680 R09: ffffed003b5e4732
-R10: ffffed003b5e4732 R11: ffff8801daf23993 R12: 0000000000000000
-R13: ffff8801d87b7820 R14: fffffffffffffff4 R15: ffff8801d87b7800
-FS:  000000000207a880(0000) GS:ffff8801daf00000(0000) knlGS:0000000000000000
-CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-CR2: 00007f14a574e169 CR3: 00000001c5068000 CR4: 00000000001406e0
-DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+IMO, those questions are covered quite well by the wiki and overlayfs.txt
+documentation in kernel tree.
+
+> - What non-standard behavior still needs to be fixed?
+
+There's the mmap MAP_SHARED case covered in the wiki
+and there may be other small stuff, but not sure if anyone cares
+about them, so the question should really be directed back to the audience.=
+..
+
+> - Outstanding problems that either still need a solution or
+>   are solved but one would like feedback on the implementation. This way
+>   we can have a good discussion.
+>
+
+I think one of the chsallange that distros and container runtime will need =
+to
+deal with is managing format versions of overlay "images".
+The reason the new features require user or distro to opt-in is because
+the new features create overlayfs images that are not fully compatible with=
+ old
+kernels and existing container image tools (i.e. export/migrate image).
+
+The new overlayfs-progs project by Zhangyi is going to help in that respect=
+:
+https://github.com/hisilicon/overlayfs-progs
+As well as Zhangyi's work on overlayfs feature set support:
+https://marc.info/?l=3Dlinux-unionfs&m=3D153302911328159&w=3D2
+
+Thanks,
+Amir.
