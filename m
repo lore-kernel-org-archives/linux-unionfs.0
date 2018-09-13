@@ -1,105 +1,118 @@
-Return-Path: <amir73il@gmail.com>
-Return-Path: <amir73il@gmail.com>
+Return-Path: <linux-unionfs-owner@vger.kernel.org>
+Received: from mail-yb1-f194.google.com ([209.85.219.194]:46624 "EHLO
+        mail-yb1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727628AbeINA3M (ORCPT
+        <rfc822;linux-unionfs@vger.kernel.org>);
+        Thu, 13 Sep 2018 20:29:12 -0400
+Received: by mail-yb1-f194.google.com with SMTP id y20-v6so3731763ybi.13
+        for <linux-unionfs@vger.kernel.org>; Thu, 13 Sep 2018 12:18:21 -0700 (PDT)
+MIME-Version: 1.0
+References: <5B9AA5EC.8050600@pobox.com> <5B9AB275.7010408@pobox.com>
+In-Reply-To: <5B9AB275.7010408@pobox.com>
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH 1/3] ovl: relax requirement for non null uuid of lower fs
-Date: Mon,  3 Sep 2018 09:12:09 +0300
-Message-Id: <20180903061211.20830-2-amir73il@gmail.com>
-In-Reply-To: <20180903061211.20830-1-amir73il@gmail.com>
-References: <20180903061211.20830-1-amir73il@gmail.com>
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: linux-unionfs@vger.kernel.org
+Date: Thu, 13 Sep 2018 22:18:08 +0300
+Message-ID: <CAOQ4uxhT0R=sisyfDcvH+2SFbYMKsLhv0Ei+RtGnQqVN4kBMGQ@mail.gmail.com>
+Subject: Re: Re: How to access "upper" directory of overlayfs programatically
+Content-Type: text/plain; charset="UTF-8"
+Sender: linux-unionfs-owner@vger.kernel.org
+To: Jonathan Busby <jdb2@pobox.com>
+Cc: overlayfs <linux-unionfs@vger.kernel.org>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-We use uuid to associate an overlay lower file handle with a lower layer,
-so we can accept lower fs with null uuid as long as all lower layers with
-null uuid are on the same fs.
+On Thu, Sep 13, 2018 at 10:03 PM Jonathan Busby <jdb2@pobox.com> wrote:
+>
+>
+>
+> -------- Forwarded Message --------
+> Subject: Re: How to access "upper" directory of overlayfs programatically
+> Date: Thu, 13 Sep 2018 13:01:16 -0500
+> From: Jonathan Busby <jdb2@pobox.com>
+> To: Amir Goldstein <amir73il@gmail.com>
+>
+>
+>
+> On 09/13/2018 12:33 PM, Jonathan Busby wrote:
+> >
+> >
+> > On 09/12/2018 02:48 PM, Amir Goldstein wrote:
+> >> [changing over to overlayfs list]
+> >
+> > Thanks for this! :D I had been searching for an overlayfs mailing list
+> > but it seems I overlooked unionfs.
+> >
+> >>
+> >> On Wed, Sep 12, 2018 at 8:52 PM Jonathan Busby <jdb2@pobox.com> wrote:
+> >>>
+> >>> Hello. I'm new to this list and I don't know if this is the right forum
+> >>> for my question, but, I've asked this same question on many forums and
+> >>> never received an answer -- please don't flame me.
+> >>>
+> >>> I have a Debian based Linux live system which is running out of RAM and
+> >>> was booted without the "persistent" boot option, so the capser-rw
+> >>> filesystem was never created.
+> >>>
+> >>> I wish to gain access to the "upper" directory of the overlayfs
+> >>> filesystem in the casper init scripts initramfs "/cow/upper" filesystem
+> >>> so that I may programatically save the filesystem, hopefully without
+> >>> having to re-implement cp.
+> >>>
+> >>> I know how to commit the changes of a Debian based live CD session to a
+> >>> storage device, but only if the live session in question was booted with
+> >>> the "persistent" option.
+> >>>
+> >>> I've looked at the overlayfs source code but I still can't figure out
+> >>> how to accomplish what I want.
+> >>>
+> >>> I'm sorry if this is  stupid question -- hopefully it's not.
+> >>>
+> >>
+> >> I don't think the programmable API you think of exists, but maybe
+> >> you can get access to upper dir as admin user.
+> >>
+> >> Please share the init scripts responsible for the mounts at live CD boot
+> >> and the content of /proc/self/mountinfo
+> >
+> > The contents of /proc/self/mountinfo are can be found here :
+> >
+> > https://pastebin.com/raw/9uQdJ66w
+> >
+> > The init scripts responsible for the live CD mounts can be found here :
+> >
+> > https://www.dropbox.com/s/j4zqsn8avxrv6zf/initrd-scripts.tar.gz?dl=0
+> >
+> > Thanks,
+> >
+> > Jonathan
+> >
+> >>
+> >> Thanks,
+> >> Amir.
+> >>
+>
+> I forgot to mention that the init scripts that handle mounting the
+> overlayfs chroot are located in the /scripts/casper directory, and the
+> main script is just called "casper".
+>
 
-This change allows enabling index and nfs_export features for the setup of
-single lower fs of type squashfs - squashfs supports file handles, but has
-a null uuid. This change also allows enabling index and nfs_export
-features for nested overlayfs, where the lower overlay has nfs_export
-enabled.
+Jonathan,
 
-Enabling the index feature with single lower squashfs fixes the
-unionmount-testsuite test:
-  ./run --ov --squashfs --verify
+Not sure this is what you were looking for, but one thing you could try is
+to iterate the directories of root fs (similar to find / -xdev) executing stat()
+on files inside directories.
 
-As a by-product, if, like the lower squashfs, upper fs also uses the
-generic export_encode_fh() implementation to export 32bit inode file
-handles (e.g. ext4), then the xino_auto config/module/mount option will
-enable unique overlay inode numbers.
+Depending on your kernel version, the findings might vary, but I would
+expect all values of st_dev to be identical (this is what makes find -xdev
+stop on fs boundary).
 
-Signed-off-by: Amir Goldstein <amir73il@gmail.com>
----
- fs/overlayfs/super.c | 23 +++++++++++++++++++++--
- fs/overlayfs/util.c  |  3 +--
- 2 files changed, 22 insertions(+), 4 deletions(-)
+For non directories, the value of st_dev is an indication to the layer (at
+least in your specific non-same-fs combination of upper/lower).
 
-diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-index 2e0fc93c2c06..069e441e24eb 100644
---- a/fs/overlayfs/super.c
-+++ b/fs/overlayfs/super.c
-@@ -1174,11 +1174,14 @@ static int ovl_get_indexdir(struct ovl_fs *ofs, struct ovl_entry *oe,
- }
- 
- /* Get a unique fsid for the layer */
--static int ovl_get_fsid(struct ovl_fs *ofs, struct super_block *sb)
-+static int ovl_get_fsid(struct ovl_fs *ofs, struct vfsmount *mnt)
- {
-+	struct super_block *sb = mnt->mnt_sb;
- 	unsigned int i;
- 	dev_t dev;
- 	int err;
-+	bool need_uuid = ofs->config.nfs_export ||
-+			 (ofs->config.index && ofs->upper_mnt);
- 
- 	/* fsid 0 is reserved for upper fs even with non upper overlay */
- 	if (ofs->upper_mnt && ofs->upper_mnt->mnt_sb == sb)
-@@ -1187,6 +1190,22 @@ static int ovl_get_fsid(struct ovl_fs *ofs, struct super_block *sb)
- 	for (i = 0; i < ofs->numlowerfs; i++) {
- 		if (ofs->lower_fs[i].sb == sb)
- 			return i + 1;
-+
-+		/*
-+		 * We use uuid to associate an overlay lower file handle with a
-+		 * lower layer, so we can accept lower fs with null uuid as long
-+		 * as all lower layers with null uuid are on the same fs.
-+		 */
-+		if (need_uuid &&
-+		    uuid_equal(&ofs->lower_fs[i].sb->s_uuid, &sb->s_uuid)) {
-+			need_uuid = false;
-+			ofs->config.index = false;
-+			ofs->config.nfs_export = false;
-+			pr_warn("overlayfs: %s uuid detected in lower fs '%pd2', falling back to index=off,nfs_export=off.\n",
-+				uuid_is_null(&sb->s_uuid) ? "null" :
-+							    "conflicting",
-+				mnt->mnt_root);
-+		}
- 	}
- 
- 	err = get_anon_bdev(&dev);
-@@ -1223,7 +1242,7 @@ static int ovl_get_lower_layers(struct ovl_fs *ofs, struct path *stack,
- 		struct vfsmount *mnt;
- 		int fsid;
- 
--		err = fsid = ovl_get_fsid(ofs, stack[i].mnt->mnt_sb);
-+		err = fsid = ovl_get_fsid(ofs, stack[i].mnt);
- 		if (err < 0)
- 			goto out;
- 
-diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
-index 8cfb62cc8672..6eabe7cf9652 100644
---- a/fs/overlayfs/util.c
-+++ b/fs/overlayfs/util.c
-@@ -65,8 +65,7 @@ struct super_block *ovl_same_sb(struct super_block *sb)
-  */
- int ovl_can_decode_fh(struct super_block *sb)
- {
--	if (!sb->s_export_op || !sb->s_export_op->fh_to_dentry ||
--	    uuid_is_null(&sb->s_uuid))
-+	if (!sb->s_export_op || !sb->s_export_op->fh_to_dentry)
- 		return 0;
- 
- 	return sb->s_export_op->encode_fh ? -1 : FILEID_INO32_GEN;
--- 
-2.17.1
+If you create a new file, it will be in upper, so you can use its st_dev as
+the identifier of the upper layer. All files with the same st_dev are either
+newly created files or modified files, so you can copy them to backup.
+
+Directories will not carry a similar indication if they are modified or new.
+This method will not give you the list of deleted files (whiteout in upper).
+
+Thanks,
+Amir.
