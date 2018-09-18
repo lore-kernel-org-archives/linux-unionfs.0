@@ -1,56 +1,49 @@
 Return-Path: <amir73il@gmail.com>
 Return-Path: <amir73il@gmail.com>
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH 5/5] syscalls/readahead02: fail test if readahead did not use any cache
-Date: Sat, 29 Sep 2018 12:44:32 +0300
-Message-Id: <20180929094432.30197-1-amir73il@gmail.com>
-To: Cyril Hrubis <chrubis@suse.cz>
-Cc: ltp@lists.linux.it, Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org
+Subject: [PATCH 2/4] ovl: fix freeze protection bypass in ovl_write_iter()
+Date: Tue, 18 Sep 2018 16:34:32 +0300
+Message-Id: <20180918133434.27437-3-amir73il@gmail.com>
+In-Reply-To: <20180918133434.27437-1-amir73il@gmail.com>
+References: <20180918133434.27437-1-amir73il@gmail.com>
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: Al Viro <viro@zeniv.linux.org.uk>, linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
 List-ID: <linux-unionfs@vger.kernel.org>
 
-The heuristic of failing the test only if not saving any io has false
-negatives with overlayfs readahead() bug, but readahead() with overlayfs
-always warns on "using less cache then expected", when actually, it is
-using no cache at all.
+Tested by re-writing to an open overlayfs file while upper ext4 is frozen:
 
-Add another condition to fail the test if readahead did not use any
-cache at all, which always detected the overlayfs bug.
+  xfs_io -f /ovl/x
+  xfs_io> pwrite 0 4096
+                             fsfreeze -f /ext4
+  xfs_io> pwrite 0 4096
 
+  WARNING: CPU: 0 PID: 1492 at fs/ext4/ext4_jbd2.c:53 \
+           ext4_journal_check_start+0x48/0x82
+
+After the fix, the second write blocks in ovl_write_iter() and avoids
+hitting WARN_ON(sb->s_writers.frozen == SB_FREEZE_COMPLETE) in
+ext4_journal_check_start().
+
+Fixes: 2a92e07edc5e ("ovl: add ovl_write_iter()")
 Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
-
-Cyril,
-
-This is a followup for the overlayfs readahead series.
-With the patches already posted, the test fails sometimes, but
-most of the times it just gets a warning.
-
-With this additional patch test fails reliably.
-Note that test only fails between these upstream commits:
-  good  b833a3660394 ("ovl: add ovl_fadvise()")
-  bad   5b910bd615ba ("ovl: fix GPF in swapfile_activate...")
-
-I have a few more minor fixes for the v2 series, but I will hold
-them back until v1 is reviewed.
-
-Thanks,
-Amir.
-
- testcases/kernel/syscalls/readahead/readahead02.c | 2 ++
+ fs/overlayfs/file.c | 2 ++
  1 file changed, 2 insertions(+)
 
-diff --git a/testcases/kernel/syscalls/readahead/readahead02.c b/testcases/kernel/syscalls/readahead/readahead02.c
-index b497fb5db..fbcae1df8 100644
---- a/testcases/kernel/syscalls/readahead/readahead02.c
-+++ b/testcases/kernel/syscalls/readahead/readahead02.c
-@@ -341,6 +341,8 @@ static void test_readahead(unsigned int n)
- 		 */
- 		if (cached_ra * 1024 > testfile_size / 2)
- 			tst_res(TPASS, "using cache as expected");
-+		else if (!cached_ra)
-+			tst_res(TFAIL, "readahead failed to use any cache");
- 		else
- 			tst_res(TWARN, "using less cache than expected");
- 	} else {
+diff --git a/fs/overlayfs/file.c b/fs/overlayfs/file.c
+index aeaefd2a551b..986313da0c88 100644
+--- a/fs/overlayfs/file.c
++++ b/fs/overlayfs/file.c
+@@ -240,8 +240,10 @@ static ssize_t ovl_write_iter(struct kiocb *iocb, struct iov_iter *iter)
+ 		goto out_unlock;
+ 
+ 	old_cred = ovl_override_creds(file_inode(file)->i_sb);
++	file_start_write(real.file);
+ 	ret = vfs_iter_write(real.file, iter, &iocb->ki_pos,
+ 			     ovl_iocb_to_rwf(iocb));
++	file_end_write(real.file);
+ 	revert_creds(old_cred);
+ 
+ 	/* Update size */
 -- 
 2.17.1
