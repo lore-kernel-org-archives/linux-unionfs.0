@@ -1,44 +1,150 @@
 Return-Path: <amir73il@gmail.com>
 Return-Path: <amir73il@gmail.com>
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH 0/4] Assorted overlayfs fixes for 4.19-rc5
-Date: Tue, 18 Sep 2018 16:34:30 +0300
-Message-Id: <20180918133434.27437-1-amir73il@gmail.com>
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: Al Viro <viro@zeniv.linux.org.uk>, linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
+Subject: [PATCH 3/4] syscalls/readahead02: test readahead() on an overlayfs file
+Date: Fri, 28 Sep 2018 16:06:20 +0300
+Message-Id: <20180928130621.28932-4-amir73il@gmail.com>
+In-Reply-To: <20180928130621.28932-1-amir73il@gmail.com>
+References: <20180928130621.28932-1-amir73il@gmail.com>
+To: Cyril Hrubis <chrubis@suse.cz>
+Cc: ltp@lists.linux.it, Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org
 List-ID: <linux-unionfs@vger.kernel.org>
 
-Miklos,
+Repeat the test case on an overlayfs file.
 
-Found one memory leak that needs a fix for stable and
-two missing freeze protections in stacked f_ops.
+The new test case is a regression test for kernel commit b833a3660394
+("ovl: add ovl_fadvise()") which fixes a regression of readahead() on
+an overlay file that was introduced by kernel commit 5b910bd615ba
+("ovl: fix GPF in swapfile_activate of file from overlayfs over xfs").
 
-Last patch is not a bugfix, but it fixes a trap that we set
-for developers back in v4.10 - and you happened to step into.
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+---
+ .../kernel/syscalls/readahead/readahead02.c   | 55 +++++++++++++++++--
+ 1 file changed, 49 insertions(+), 6 deletions(-)
 
-The series passed xfstests -g quick with overlayfs over
-xfs and ext4 and the usual unionmount testsuite torture.
-
-The memory leak was detected with tests overlay/051,053
-after I enabled kmemleak on my test setup.
-
-Thanks,
-Amir.
-
-Amir Goldstein (4):
-  ovl: fix memory leak on unlink of indexed file
-  ovl: fix freeze protection bypass in ovl_write_iter()
-  ovl: fix freeze protection bypass in ovl_clone_file_range()
-  vfs: swap names of {do,vfs}_clone_file_range()
-
- fs/ioctl.c             |  2 +-
- fs/nfsd/vfs.c          |  3 ++-
- fs/overlayfs/copy_up.c |  2 +-
- fs/overlayfs/file.c    |  2 ++
- fs/overlayfs/util.c    |  3 ++-
- fs/read_write.c        | 17 +++++++++++++++--
- include/linux/fs.h     | 17 +++--------------
- 7 files changed, 26 insertions(+), 20 deletions(-)
-
+diff --git a/testcases/kernel/syscalls/readahead/readahead02.c b/testcases/kernel/syscalls/readahead/readahead02.c
+index 4132b4de1..191116f62 100644
+--- a/testcases/kernel/syscalls/readahead/readahead02.c
++++ b/testcases/kernel/syscalls/readahead/readahead02.c
+@@ -14,6 +14,7 @@
+ #include <sys/types.h>
+ #include <sys/syscall.h>
+ #include <sys/mman.h>
++#include <sys/mount.h>
+ #include <sys/stat.h>
+ #include <sys/types.h>
+ #include <sys/time.h>
+@@ -34,9 +35,15 @@ static const char meminfo_fname[] = "/proc/meminfo";
+ static size_t testfile_size = 64 * 1024 * 1024;
+ static char *opt_fsizestr;
+ static int pagesize;
++static int ovl_mounted;
+ 
+ #define MNTPOINT        "mntpoint"
+-static const char mntpoint[] = "mntpoint";
++#define OVL_LOWER	MNTPOINT"/lower"
++#define OVL_UPPER	MNTPOINT"/upper"
++#define OVL_WORK	MNTPOINT"/work"
++#define OVL_MNT		MNTPOINT"/ovl"
++
++static const char mntpoint[] = MNTPOINT;
+ #define MIN_SANE_READAHEAD (4u * 1024u)
+ 
+ static struct tst_option options[] = {
+@@ -109,12 +116,39 @@ static unsigned long get_cached_size(void)
+ 	return parse_entry(meminfo_fname, entry);
+ }
+ 
+-static void create_testfile(void)
++static int setup_overlay(void)
++{
++	int ret;
++
++	/* Setup an overlay mount with lower dir and file */
++	SAFE_MKDIR(OVL_LOWER, 0755);
++	SAFE_MKDIR(OVL_UPPER, 0755);
++	SAFE_MKDIR(OVL_WORK, 0755);
++	SAFE_MKDIR(OVL_MNT, 0755);
++	ret = mount("overlay", OVL_MNT, "overlay", 0, "lowerdir="OVL_LOWER
++		    ",upperdir="OVL_UPPER",workdir="OVL_WORK);
++	if (ret < 0) {
++		if (errno == ENODEV) {
++			tst_res(TCONF,
++				"overlayfs is not configured in this kernel.");
++			return ret;
++		}
++		tst_brk(TBROK | TERRNO, "overlayfs mount failed");
++	}
++	ovl_mounted = 1;
++	return 0;
++}
++
++static int create_testfile(unsigned int use_overlay)
+ {
+ 	int fd;
+ 	char *tmp;
+ 	size_t i;
+ 
++	if (use_overlay && setup_overlay() != 0)
++		return -1;
++
++	sprintf(testfile, "%s/testfile", use_overlay ? OVL_MNT : MNTPOINT);
+ 	tst_res(TINFO, "creating test file of size: %zu", testfile_size);
+ 	tmp = SAFE_MALLOC(pagesize);
+ 
+@@ -127,6 +161,7 @@ static void create_testfile(void)
+ 	SAFE_FSYNC(fd);
+ 	SAFE_CLOSE(fd);
+ 	free(tmp);
++	return 0;
+ }
+ 
+ 
+@@ -221,7 +256,7 @@ static void read_testfile(int do_readahead, const char *fname, size_t fsize,
+ 	SAFE_CLOSE(fd);
+ }
+ 
+-static void test_readahead(void)
++static void test_readahead(unsigned int use_overlay)
+ {
+ 	unsigned long read_bytes, read_bytes_ra;
+ 	long usec, usec_ra;
+@@ -229,6 +264,9 @@ static void test_readahead(void)
+ 	char proc_io_fname[128];
+ 	sprintf(proc_io_fname, "/proc/%u/io", getpid());
+ 
++	if (create_testfile(use_overlay) != 0)
++		return;
++
+ 	/* find out how much can cache hold if we read whole file */
+ 	read_testfile(0, testfile, testfile_size, &read_bytes, &usec, &cached);
+ 	cached_max = get_cached_size();
+@@ -302,9 +340,12 @@ static void setup(void)
+ 	tst_syscall(__NR_readahead, 0, 0, 0);
+ 
+ 	pagesize = getpagesize();
++}
+ 
+-	sprintf(testfile, "%s/testfile", mntpoint);
+-	create_testfile();
++static void cleanup(void)
++{
++	if (ovl_mounted)
++		SAFE_UMOUNT(OVL_MNT);
+ }
+ 
+ static struct tst_test test = {
+@@ -313,8 +354,10 @@ static struct tst_test test = {
+ 	.mount_device = 1,
+ 	.mntpoint = mntpoint,
+ 	.setup = setup,
++	.cleanup = cleanup,
+ 	.options = options,
+-	.test_all = test_readahead,
++	.test = test_readahead,
++	.tcnt = 2, /* Repeat with overlayfs */
+ };
+ 
+ #else /* __NR_readahead */
 -- 
 2.17.1
