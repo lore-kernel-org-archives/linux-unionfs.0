@@ -1,22 +1,22 @@
-Return-Path: <fvogt@suse.de>
-From: Fabian Vogt <fvogt@suse.de>
+Return-Path: <zohar@linux.ibm.com>
 Subject: Re: PROBLEM: IMA xattrs not written on overlayfs
-Date: Fri, 28 Sep 2018 21:37:40 +0200
-Message-ID: <2170726.hUdX192fWn@linux-e202.suse.de>
+From: Mimi Zohar <zohar@linux.ibm.com>
+Date: Fri, 28 Sep 2018 15:06:00 -0400
 In-Reply-To: <0e1ba67f-3091-2d56-a464-07e1a8251e5e@suse.de>
-References: <81a0a75d-bd4e-25ef-b41b-adb65ac6dee8@suse.de> <1538153671.3713.4.camel@linux.ibm.com> <0e1ba67f-3091-2d56-a464-07e1a8251e5e@suse.de>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="ISO-8859-1"
-To: Ignaz Forster <iforster@suse.de>
-Cc: Mimi Zohar <zohar@linux.ibm.com>, miklos@szeredi.hu, linux-unionfs@vger.kernel.org, linux-integrity@vger.kernel.org
+References: <81a0a75d-bd4e-25ef-b41b-adb65ac6dee8@suse.de>
+	 <1536345954.3792.173.camel@linux.ibm.com>
+	 <e74f411a-d3fa-6f10-9ac6-d070f7d50220@suse.de>
+	 <1538153671.3713.4.camel@linux.ibm.com>
+	 <0e1ba67f-3091-2d56-a464-07e1a8251e5e@suse.de>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
+Message-Id: <1538161560.3702.12.camel@linux.ibm.com>
+To: Ignaz Forster <iforster@suse.de>, miklos@szeredi.hu, linux-unionfs@vger.kernel.org, linux-integrity@vger.kernel.org
+Cc: Fabian Vogt <fvogt@suse.de>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-Hi,
-
-I'm the other person Ignaz refers to when he wrote "we".
-
-Am Freitag, 28. September 2018, 20:24:47 CEST schrieb Ignaz Forster:
+On Fri, 2018-09-28 at 20:24 +0200, Ignaz Forster wrote:
 > Am 28.09.18 um 18:54 schrieb Mimi Zohar:
 > > On Mon, 2018-09-10 at 11:17 +0200, Ignaz Forster wrote:
 > >> Am 07.09.18 um 20:45 schrieb Mimi Zohar:
@@ -44,38 +44,11 @@ Am Freitag, 28. September 2018, 20:24:47 CEST schrieb Ignaz Forster:
 > ovl_open_realfile as seen in the attached patch the IMA attributes will 
 > be set correctly again. It seems IMA cannot read the file contents and 
 > thus cannot create the hash any more.
-
-In ima_crypto.c, ima_calc_file_hash_{atfm,tfm} we can find this hack (?),
-which allows to read even through a WRONLY file:
-
-        if (!(file->f_mode & FMODE_READ)) {
-                file->f_mode |= FMODE_READ;
-                read = 1;
-        }
-
-        integrity_kernel_read(file, ...);
-
-        if (read)
-                file->f_mode &= ~FMODE_READ;
-
-In overlayfs since 4.19, it has a private struct file* for the internal filp
-pointing to either lower or upper, which is not affected by this change to
-the overlayfs' file's f_mode. Thus we get -EBADF back from
-integrity_kernel_read -> ... -> ovl_read_iter -> vfs_iter_read.
-That was not visible in any logs as IMA ignores -EBADF returned from
-ima_calc_file_hash.
-
-Before 4.19, overlayfs used d_real so there was no layer between
-integrity_kernel_read and the real filp which means that the f_mode toggle in
-ima had the desired effect.
-
+> 
 > This is obviously not ready for production, but the best I currently have.
 
-A better alternative for this is to set FMODE_READ temporarily in the private
-filp during the call to vfs_iter_read in ovl_read_iter but IIRC we tried that
-once and it was not enough. Maybe the test was just incomplete though.
+Yeah, having file read access is definitely required to calculate a
+file hash.  If it helps, you could make this change in IMA and then
+revert it after calculating the file hash.
 
-Thanks,
-Fabian
-
-> Ignaz
+Mimi
