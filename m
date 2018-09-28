@@ -1,58 +1,169 @@
-From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: possible deadlock in path_openat
-Date: Thu, 27 Sep 2018 11:26:56 +0300
-Message-ID: <CAOQ4uxjfmE4Bd49kt7+kD7C=8g5ChN80LCOUDf9e3mqG=8Yrag@mail.gmail.com>
-References: <00000000000044cbf80576baaecd@google.com> <CAJfpegsxLtDZqOpK68kGZU+qeEpA5gmAw-uigUKZorexU5i8BA@mail.gmail.com>
- <CAOQ4uxi7LjOVssduYEfbNnYd7ZbwB+hikd+P03_qPFHZeF_Phg@mail.gmail.com> <CAJfpegvEA4L-3SgoyF-Unt4rNZq6rX86Q4AVQBWBiqaWEqDP8g@mail.gmail.com>
+From: Dmitry Vyukov <dvyukov@google.com>
+Subject: Re: KASAN: slab-out-of-bounds Read in string (2)
+Date: Fri, 28 Sep 2018 16:55:14 +0200
+Message-ID: <CACT4Y+bR+9vy5ZKDN31gmvKk5hcoNojaBuD9Dz1wswfObyt0uw@mail.gmail.com>
+References: <0000000000003852440576ef80b2@google.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAJfpegvEA4L-3SgoyF-Unt4rNZq6rX86Q4AVQBWBiqaWEqDP8g@mail.gmail.com>
+In-Reply-To: <0000000000003852440576ef80b2@google.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: syzbot+a55ccfc8a853d3cff213@syzkaller.appspotmail.com, linux-fsdevel <linux-fsdevel@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>, syzkaller-bugs@googlegroups.com, Al Viro <viro@zeniv.linux.org.uk>, overlayfs <linux-unionfs@vger.kernel.org>
+To: syzbot <syzbot+376cea2b0ef340db3dd4@syzkaller.appspotmail.com>, Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org
+Cc: LKML <linux-kernel@vger.kernel.org>, Petr Mladek <pmladek@suse.com>, Steven Rostedt <rostedt@goodmis.org>, Sergey Senozhatsky <sergey.senozhatsky@gmail.com>, syzkaller-bugs <syzkaller-bugs@googlegroups.com>
 List-Id: linux-unionfs@vger.kernel.org
 
-On Thu, Sep 27, 2018 at 9:36 AM Miklos Szeredi <miklos@szeredi.hu> wrote:
+On Fri, Sep 28, 2018 at 4:45 PM, syzbot
+<syzbot+376cea2b0ef340db3dd4@syzkaller.appspotmail.com> wrote:
+> Hello,
 >
-> On Thu, Sep 27, 2018 at 8:05 AM, Amir Goldstein <amir73il@gmail.com> wrote:
+> syzbot found the following crash on:
 >
-> > So this is interesting... if there is a file in overlayfs lower layer with
-> > the f_op read = seq_read then &p->lock in the chain above could be
-> > takes after ovl locks and that is in reveres order to the order of locks
-> > in execve on an overlayfs file.
-> >
-> > On the one hand, it is possible (not sure if desirable) to use filesystems
-> > with seq_file like debugfs as overlay lower fs, but on the other hand,
-> > it is not possible to copy up a debugfs file with its original content
-> > because (at least for most files I looked) the inode size is reported as 0.
-> >
-> > Also, from v4.19-rc1, with stacked f_op, ovl_read_iter() calls vfs_iter_read(),
-> > so overlayfs is no longer tolerant to underlying files that implement f_op read
-> > (and not read_iter), thus, it is no longer possible to read lower debugfs files.
-> >
-> > That said, if there are files in lower layer that user seq_read f_op and have
-> > non zero inode size, the deadlock reported above might be possible.
-> >
-> > Miklos,
-> >
-> > What do you recon we should do?
-> > Blacklist debugfs just like procfs was blacklisted from fs stacking?
-> > Improve the heuristics of ovl_dentry_weird() to cover debugfs and friends?
+> HEAD commit:    c127e59bee3e Merge tag 'for_v4.19-rc6' of git://git.kernel..
+> git tree:       upstream
+> console output: https://syzkaller.appspot.com/x/log.txt?x=13b2f32a400000
+> kernel config:  https://syzkaller.appspot.com/x/.config?x=dfb440e26f0a6f6f
+> dashboard link: https://syzkaller.appspot.com/bug?extid=376cea2b0ef340db3dd4
+> compiler:       gcc (GCC) 8.0.1 20180413 (experimental)
 >
-> I think that's the best plan.  There doesn't seem to be any sense in
-> supporting debugfs and similar weirdness as lower layer, so the best
-> course of action would be to deny at the earilest possible point in
-> time.
+> Unfortunately, I don't have any reproducer for this crash yet.
 >
+> IMPORTANT: if you fix the bug, please add the following tag to the commit:
+> Reported-by: syzbot+376cea2b0ef340db3dd4@syzkaller.appspotmail.com
 
-OK. I will leave to you to find the Weirdest Common Denominator
-of debugfs and friends.
-But there could also be a filesystem with sporadic special files
-with seq_read (or no read_iter f_op), or maybe our Weird heuristics didn't
-catch the filesystem.
-We might want to block those files from being copied up on the grounds that
-they cannot be read from overlay before copy up anyway.
+I guess this is overlayfs rather than printk. +overlayfs maintainers
+In future syzbot will avoid attributing crashes to printk, because I
+think it's not the first time crashes are mis-attributed to printk:
+https://github.com/google/syzkaller/commit/41e4b32952f4590341ae872db0abf819b4004713
 
-Thanks,
-Amir.
+
+> RDX: 0000000000000000 RSI: 0000000000000000 RDI: 0000000020000140
+> RBP: 000000000072bf00 R08: 0000000000000000 R09: 0000000000000000
+> R10: 0000000000000000 R11: 0000000000000246 R12: 00007f0e714a76d4
+> R13: 00000000004c32cb R14: 00000000004d4ef0 R15: 0000000000000004
+> ==================================================================
+> BUG: KASAN: slab-out-of-bounds in string+0x298/0x2d0 lib/vsprintf.c:604
+> Read of size 1 at addr ffff8801c36c66ba by task syz-executor2/27811
+>
+> CPU: 0 PID: 27811 Comm: syz-executor2 Not tainted 4.19.0-rc5+ #36
+> Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS
+> Google 01/01/2011
+> Call Trace:
+>  __dump_stack lib/dump_stack.c:77 [inline]
+>  dump_stack+0x1c4/0x2b4 lib/dump_stack.c:113
+>  print_address_description.cold.8+0x9/0x1ff mm/kasan/report.c:256
+>  kasan_report_error mm/kasan/report.c:354 [inline]
+>  kasan_report.cold.9+0x242/0x309 mm/kasan/report.c:412
+>  __asan_report_load1_noabort+0x14/0x20 mm/kasan/report.c:430
+>  string+0x298/0x2d0 lib/vsprintf.c:604
+>  vsnprintf+0x48e/0x1b60 lib/vsprintf.c:2293
+>  vscnprintf+0x2d/0x80 lib/vsprintf.c:2396
+>  vprintk_store+0x43/0x510 kernel/printk/printk.c:1847
+>  vprintk_emit+0x1c1/0x930 kernel/printk/printk.c:1905
+>  vprintk_default+0x28/0x30 kernel/printk/printk.c:1963
+>  vprintk_func+0x7e/0x181 kernel/printk/printk_safe.c:398
+>  printk+0xa7/0xcf kernel/printk/printk.c:1996
+>  ovl_lookup_index.cold.15+0xe8/0x1f8 fs/overlayfs/namei.c:689
+>  ovl_lookup+0x9f2/0x29c0 fs/overlayfs/namei.c:1022
+>  __lookup_hash+0x12e/0x190 fs/namei.c:1546
+>  do_rmdir+0x3b3/0x630 fs/namei.c:3930
+>  __do_sys_rmdir fs/namei.c:3959 [inline]
+>  __se_sys_rmdir fs/namei.c:3957 [inline]
+>  __x64_sys_rmdir+0x36/0x40 fs/namei.c:3957
+>  do_syscall_64+0x1b9/0x820 arch/x86/entry/common.c:290
+>  entry_SYSCALL_64_after_hwframe+0x49/0xbe
+> RIP: 0033:0x457579
+> Code: 1d b4 fb ff c3 66 2e 0f 1f 84 00 00 00 00 00 66 90 48 89 f8 48 89 f7
+> 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff
+> 0f 83 eb b3 fb ff c3 66 2e 0f 1f 84 00 00 00 00
+> RSP: 002b:00007f0e714a6c78 EFLAGS: 00000246 ORIG_RAX: 0000000000000054
+> RAX: ffffffffffffffda RBX: 00007f0e714a6c90 RCX: 0000000000457579
+> RDX: 0000000000000000 RSI: 0000000000000000 RDI: 0000000020000140
+> RBP: 000000000072bf00 R08: 0000000000000000 R09: 0000000000000000
+> R10: 0000000000000000 R11: 0000000000000246 R12: 00007f0e714a76d4
+> R13: 00000000004c32cb R14: 00000000004d4ef0 R15: 0000000000000004
+>
+> Allocated by task 27811:
+>  save_stack+0x43/0xd0 mm/kasan/kasan.c:448
+>  set_track mm/kasan/kasan.c:460 [inline]
+>  kasan_kmalloc+0xc7/0xe0 mm/kasan/kasan.c:553
+>  __do_kmalloc mm/slab.c:3718 [inline]
+>  __kmalloc+0x14e/0x760 mm/slab.c:3727
+>  kmalloc_array include/linux/slab.h:635 [inline]
+>  kcalloc include/linux/slab.h:646 [inline]
+>  ovl_get_index_name_fh+0x57/0x180 fs/overlayfs/namei.c:596
+>  ovl_get_index_name+0x5c/0x80 fs/overlayfs/namei.c:631
+>  ovl_lookup_index+0xe4/0x700 fs/overlayfs/namei.c:678
+>  ovl_lookup+0x9f2/0x29c0 fs/overlayfs/namei.c:1022
+>  __lookup_hash+0x12e/0x190 fs/namei.c:1546
+>  do_rmdir+0x3b3/0x630 fs/namei.c:3930
+>  __do_sys_rmdir fs/namei.c:3959 [inline]
+>  __se_sys_rmdir fs/namei.c:3957 [inline]
+>  __x64_sys_rmdir+0x36/0x40 fs/namei.c:3957
+>  do_syscall_64+0x1b9/0x820 arch/x86/entry/common.c:290
+>  entry_SYSCALL_64_after_hwframe+0x49/0xbe
+>
+> Freed by task 5441:
+>  save_stack+0x43/0xd0 mm/kasan/kasan.c:448
+>  set_track mm/kasan/kasan.c:460 [inline]
+>  __kasan_slab_free+0x102/0x150 mm/kasan/kasan.c:521
+>  kasan_slab_free+0xe/0x10 mm/kasan/kasan.c:528
+>  __cache_free mm/slab.c:3498 [inline]
+>  kfree+0xcf/0x230 mm/slab.c:3813
+>  __vunmap+0x335/0x460 mm/vmalloc.c:1532
+>  vfree+0x68/0x100 mm/vmalloc.c:1593
+>  copy_entries_to_user net/ipv4/netfilter/ip_tables.c:870 [inline]
+>  get_entries net/ipv4/netfilter/ip_tables.c:1027 [inline]
+>  do_ipt_get_ctl+0x9eb/0xbc0 net/ipv4/netfilter/ip_tables.c:1703
+>  nf_sockopt net/netfilter/nf_sockopt.c:104 [inline]
+>  nf_getsockopt+0x80/0xe0 net/netfilter/nf_sockopt.c:122
+>  ip_getsockopt+0x1af/0x240 net/ipv4/ip_sockglue.c:1577
+>  tcp_getsockopt+0x93/0xe0 net/ipv4/tcp.c:3583
+>  sock_common_getsockopt+0x9a/0xe0 net/core/sock.c:2997
+>  __sys_getsockopt+0x1ad/0x390 net/socket.c:1939
+>  __do_sys_getsockopt net/socket.c:1950 [inline]
+>  __se_sys_getsockopt net/socket.c:1947 [inline]
+>  __x64_sys_getsockopt+0xbe/0x150 net/socket.c:1947
+>  do_syscall_64+0x1b9/0x820 arch/x86/entry/common.c:290
+>  entry_SYSCALL_64_after_hwframe+0x49/0xbe
+>
+> The buggy address belongs to the object at ffff8801c36c6680
+>  which belongs to the cache kmalloc-64 of size 64
+> The buggy address is located 58 bytes inside of
+>  64-byte region [ffff8801c36c6680, ffff8801c36c66c0)
+> The buggy address belongs to the page:
+> page:ffffea00070db180 count:1 mapcount:0 mapping:ffff8801da800340
+> index:0xffff8801c36c6380
+> flags: 0x2fffc0000000100(slab)
+> raw: 02fffc0000000100 ffffea0006d16508 ffffea000638a588 ffff8801da800340
+> raw: ffff8801c36c6380 ffff8801c36c6000 000000010000001b 0000000000000000
+> page dumped because: kasan: bad access detected
+>
+> Memory state around the buggy address:
+>  ffff8801c36c6580: fb fb fb fb fb fb fb fb fc fc fc fc fc fc fc fc
+>  ffff8801c36c6600: fb fb fb fb fb fb fb fb fc fc fc fc fc fc fc fc
+>>
+>> ffff8801c36c6680: 00 00 00 00 00 00 00 02 fc fc fc fc fc fc fc fc
+>
+>                                         ^
+>  ffff8801c36c6700: fb fb fb fb fb fb fb fb fc fc fc fc fc fc fc fc
+>  ffff8801c36c6780: fb fb fb fb fb fb fb fb fc fc fc fc fc fc fc fc
+> ==================================================================
+>
+>
+> ---
+> This bug is generated by a bot. It may contain errors.
+> See https://goo.gl/tpsmEJ for more information about syzbot.
+> syzbot engineers can be reached at syzkaller@googlegroups.com.
+>
+> syzbot will keep track of this bug report. See:
+> https://goo.gl/tpsmEJ#bug-status-tracking for how to communicate with
+> syzbot.
+>
+> --
+> You received this message because you are subscribed to the Google Groups
+> "syzkaller-bugs" group.
+> To unsubscribe from this group and stop receiving emails from it, send an
+> email to syzkaller-bugs+unsubscribe@googlegroups.com.
+> To view this discussion on the web visit
+> https://groups.google.com/d/msgid/syzkaller-bugs/0000000000003852440576ef80b2%40google.com.
+> For more options, visit https://groups.google.com/d/optout.
