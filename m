@@ -1,23 +1,56 @@
-From: Jan Harkes <jaharkes@cs.cmu.edu>
-Subject: Re: [PATCH] fs: fix access beyond unterminated strings in prints
-Date: Fri, 28 Sep 2018 15:15:58 -0400
-Message-ID: <20180928191558.5xzf73soxogjm4ba@cs.cmu.edu>
-References: <20180928180048.14259-1-amir73il@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180928180048.14259-1-amir73il@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, Jeff Layton <jlayton@kernel.org>, Mark Fasheh <mark@fasheh.com>
-List-Id: linux-unionfs@vger.kernel.org
+Return-Path: <amir73il@gmail.com>
+Return-Path: <amir73il@gmail.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Subject: [PATCH 5/5] syscalls/readahead02: fail test if readahead did not use any cache
+Date: Sat, 29 Sep 2018 12:44:32 +0300
+Message-Id: <20180929094432.30197-1-amir73il@gmail.com>
+To: Cyril Hrubis <chrubis@suse.cz>
+Cc: ltp@lists.linux.it, Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org
+List-ID: <linux-unionfs@vger.kernel.org>
 
-On Fri, Sep 28, 2018 at 09:00:48PM +0300, Amir Goldstein wrote:
-> I chose not to split the patches per fs in the hope that maintainers
-> would quickly ack the patch and ask you to carry it for them.
+The heuristic of failing the test only if not saving any io has false
+negatives with overlayfs readahead() bug, but readahead() with overlayfs
+always warns on "using less cache then expected", when actually, it is
+using no cache at all.
 
-Ack for Coda. I actually have a patch queued somewhere that dropped
-printing the name and only prints the length, but this works too.
+Add another condition to fail the test if readahead did not use any
+cache at all, which always detected the overlayfs bug.
 
-Jan
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+---
+
+Cyril,
+
+This is a followup for the overlayfs readahead series.
+With the patches already posted, the test fails sometimes, but
+most of the times it just gets a warning.
+
+With this additional patch test fails reliably.
+Note that test only fails between these upstream commits:
+  good  b833a3660394 ("ovl: add ovl_fadvise()")
+  bad   5b910bd615ba ("ovl: fix GPF in swapfile_activate...")
+
+I have a few more minor fixes for the v2 series, but I will hold
+them back until v1 is reviewed.
+
+Thanks,
+Amir.
+
+ testcases/kernel/syscalls/readahead/readahead02.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/testcases/kernel/syscalls/readahead/readahead02.c b/testcases/kernel/syscalls/readahead/readahead02.c
+index b497fb5db..fbcae1df8 100644
+--- a/testcases/kernel/syscalls/readahead/readahead02.c
++++ b/testcases/kernel/syscalls/readahead/readahead02.c
+@@ -341,6 +341,8 @@ static void test_readahead(unsigned int n)
+ 		 */
+ 		if (cached_ra * 1024 > testfile_size / 2)
+ 			tst_res(TPASS, "using cache as expected");
++		else if (!cached_ra)
++			tst_res(TFAIL, "readahead failed to use any cache");
+ 		else
+ 			tst_res(TWARN, "using less cache than expected");
+ 	} else {
+-- 
+2.17.1
