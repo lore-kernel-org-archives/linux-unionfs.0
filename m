@@ -1,41 +1,92 @@
 Return-Path: <amir73il@gmail.com>
 Return-Path: <amir73il@gmail.com>
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH 0/4] Tests for readahead() and fadvise() on overlayfs
-Date: Fri, 28 Sep 2018 16:06:17 +0300
-Message-Id: <20180928130621.28932-1-amir73il@gmail.com>
-To: Cyril Hrubis <chrubis@suse.cz>
-Cc: ltp@lists.linux.it, Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org
+Subject: [PATCH]i[RESEND] kernel/acct.c: fix locking order when switching acct files
+Date: Sat, 29 Sep 2018 08:51:33 +0300
+Message-Id: <20180929055133.28955-1-amir73il@gmail.com>
+To: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
 List-ID: <linux-unionfs@vger.kernel.org>
 
-Cyril,
+This looks like an old bug, pre-dating the "Fixes" commit, but the
+"Fixes" commit did not handle it properly.
 
-The following series adds test covergae for readahead() syscall
-over overlayfs file and adds test coverage for a specific
-posix_fadvise() syscall advice (POSIX_FADV_WILLNEED).
+The bug recently surfaced as a lockdep possible deadlock warning
+with commit d1d04ef8572b ("ovl: stack file ops").
 
-So far, the posix_fadvise syscall tests in LTP only test for error
-conditions, but not functionality. The functionality of the advice
-POSIX_FADV_WILLNEED is indentical to readahead(), so I decided not
-to duplicate the readahead functional test and add test cases to
-readahead02 that use the POSIX_FADV_WILLNEED implementation.
+When acct_on() replaces one acct file with another, it takes sb_writers
+lock on new file sb and calls acct_pin_kill(old) before releasing the
+sb_writers lock.
 
-Before I decided not to write new posix_fadvise() tests I converted
-the existing tests to newlib. That is available for you as github PR:
-https://github.com/linux-test-project/ltp/pull/401
+If new file is on the same fs as old file, acct_pin_kill(old) fail to
+file_start_write_trylock() and skip writing the old file, because
+sb_writers (of new) is already taken by acct_on().
+
+If new file is not on same fs as old file, this ordering violation
+creates an unneeded dependency between new sb_writers and old sb_writers,
+which may later be reported as possible deadlock.
+
+This could result in an actual deadlock if acct file is replaced from
+an old file in overlayfs over "real fs" to a new file in "real fs".
+acct_on() takes freeze protection on "real fs" and tries to write to
+overlayfs file. overlayfs is not freeze protected so do_acct_process()
+can carry on with __kernel_write() to overlayfs file, which would
+try to take freeze protection on "real fs" and deadlock.
+
+Reproducer of lockdep possible deadlock warning:
+
+  ./run --ov -s # unionmount-testsuite
+  touch /mnt/x /upper/y
+  accton /mnt/x
+  accton /upper/y
+
+ ======================================================
+ WARNING: possible circular locking dependency detected
+ 4.19.0-rc1-xfstests #3424 Not tainted
+ ------------------------------------------------------
+ accton/1390 is trying to acquire lock:
+ 00000000e0585aa5 (&acct->lock#2){+.+.}, at: acct_pin_kill+0x1b/0x76
+
+ but task is already holding lock:
+ 000000003692505a (sb_writers#6){.+.+}, at: mnt_want_write+0x1d/0x42
+
+Reported-by: syzbot+695726bc473f9c36a4b6@syzkaller.appspotmail.com
+Fixes: 59eda0e07f43 ("new fs_pin killing logics")
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+---
+
+Al,
+
+Welcome back. It would be nice to get an ACK (or an Applied) on this
+patch. Fixes label claims to fix your commit, but I believe the bug was
+already there before your commit.
+
+As you can see, I have a reproducer to demonstrate the manifestation of
+the bug in the case of switching acct file from overlayfs to real fs.
+This started to manifest with overlayfs stacked f_op.
+I have made another claim which seems obvious from the code about
+changing acct file on same fs, but did not bother to write a reproducer
+for that case.
 
 Thanks,
 Amir.
 
-Amir Goldstein (4):
-  syscalls/readahead01: Convert to newlib
-  syscalls/readahead02: Convert to newlib and cleanup
-  syscalls/readahead02: test readahead() on an overlayfs file
-  syscalls/readahead02: test readahead using posix_fadvise()
+ kernel/acct.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
- .../kernel/syscalls/readahead/readahead01.c   | 119 ++-----
- .../kernel/syscalls/readahead/readahead02.c   | 332 +++++++++---------
- 2 files changed, 191 insertions(+), 260 deletions(-)
-
+diff --git a/kernel/acct.c b/kernel/acct.c
+index addf7732fb56..c09355a7ae46 100644
+--- a/kernel/acct.c
++++ b/kernel/acct.c
+@@ -251,8 +251,8 @@ static int acct_on(struct filename *pathname)
+ 	rcu_read_lock();
+ 	old = xchg(&ns->bacct, &acct->pin);
+ 	mutex_unlock(&acct->lock);
+-	pin_kill(old);
+ 	mnt_drop_write(mnt);
++	pin_kill(old);
+ 	mntput(mnt);
+ 	return 0;
+ }
 -- 
 2.17.1
