@@ -1,44 +1,65 @@
-Return-Path: <linux-fsdevel-owner@vger.kernel.org>
-From: Olga Kornievskaia <olga.kornievskaia@gmail.com>
-Subject: [PATCH v3 09/11] NFS for "inter" copy treat ESTALE as ENOTSUPP
-Date: Thu, 25 Oct 2018 17:51:45 -0400
-Message-Id: <20181025215147.36248-11-olga.kornievskaia@gmail.com>
-In-Reply-To: <20181025215147.36248-1-olga.kornievskaia@gmail.com>
-References: <20181025215147.36248-1-olga.kornievskaia@gmail.com>
-Sender: linux-fsdevel-owner@vger.kernel.org
-To: trond.myklebust@hammerspace.com, anna.schumaker@netapp.com, viro@zeniv.linux.org.uk, smfrench@gmail.com, miklos@szeredi.hu
-Cc: linux-nfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-cifs@vger.kernel.org, linux-unionfs@vger.kernel.org, linux-man@vger.kernel.org
+Return-Path: <amir73il@gmail.com>
+MIME-Version: 1.0
+References: <20180928130621.28932-1-amir73il@gmail.com> <20180928130621.28932-4-amir73il@gmail.com>
+ <71991096.55763280.1538570905233.JavaMail.zimbra@redhat.com>
+In-Reply-To: <71991096.55763280.1538570905233.JavaMail.zimbra@redhat.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Date: Wed, 3 Oct 2018 16:30:51 +0300
+Message-ID: <CAOQ4uxgNNeutyLpmQ9tWqJ3rt+E9OMSpcyf1aBZykim_10kpiw@mail.gmail.com>
+Subject: Re: [LTP] [PATCH 3/4] syscalls/readahead02: test readahead() on an
+ overlayfs file
+Content-Type: text/plain; charset="UTF-8"
+To: jstancek@redhat.com
+Cc: Cyril Hrubis <chrubis@suse.cz>, overlayfs <linux-unionfs@vger.kernel.org>, ltp@lists.linux.it, Miklos Szeredi <miklos@szeredi.hu>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-From: Olga Kornievskaia <kolga@netapp.com>
+On Wed, Oct 3, 2018 at 3:48 PM Jan Stancek <jstancek@redhat.com> wrote:
+>
+>
+>
+> ----- Original Message -----
+> > Repeat the test case on an overlayfs file.
+> >
+> > The new test case is a regression test for kernel commit b833a3660394
+> > ("ovl: add ovl_fadvise()") which fixes a regression of readahead() on
+> > an overlay file that was introduced by kernel commit 5b910bd615ba
+> > ("ovl: fix GPF in swapfile_activate of file from overlayfs over xfs").
+> >
+> > Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+> > ---
+[...]
+> This could use some TINFO message, what is being tested.
+> .. and I see you added it in 4/4.
+>
 
-If the client sends an "inter" copy to the destination server but
-it only supports "intra" copy, it can return ESTALE (since it
-doesn't know anything about the file handle from the other server
-and does not recognize the special case of "inter" copy). Translate
-this error as ENOTSUPP and also send OFFLOAD_CANCEL to the source
-server so that it can clean up state.
+Yap. I hope you don;t mind this temporary simplicity....
 
-Signed-off-by: Olga Kornievskaia <kolga@netapp.com>
----
- fs/nfs/nfs42proc.c | 5 +++++
- 1 file changed, 5 insertions(+)
+> >       /* find out how much can cache hold if we read whole file */
+> >       read_testfile(0, testfile, testfile_size, &read_bytes, &usec, &cached);
+> >       cached_max = get_cached_size();
+> > @@ -302,9 +340,12 @@ static void setup(void)
+> >       tst_syscall(__NR_readahead, 0, 0, 0);
+> >
+> >       pagesize = getpagesize();
+> > +}
+> >
+> > -     sprintf(testfile, "%s/testfile", mntpoint);
+> > -     create_testfile();
+> > +static void cleanup(void)
+> > +{
+> > +     if (ovl_mounted)
+> > +             SAFE_UMOUNT(OVL_MNT);
+> >  }
+>
+> This creates a small conflict, because setup and cleanup don't match.
+> If you run this with multiple iterations (parameter -i), it's going
+> to fail:
+>   safe_macros.c:169: BROK: readahead02.c:124: mkdir(mntpoint/lower,0755) failed: EEXIST
+>
 
-diff --git a/fs/nfs/nfs42proc.c b/fs/nfs/nfs42proc.c
-index 98fe00b..00809b3 100644
---- a/fs/nfs/nfs42proc.c
-+++ b/fs/nfs/nfs42proc.c
-@@ -395,6 +395,11 @@ ssize_t nfs42_proc_copy(struct file *src, loff_t pos_src,
- 			args.sync = true;
- 			dst_exception.retry = 1;
- 			continue;
-+		} else if (err == -ESTALE &&
-+				!nfs42_files_from_same_server(src, dst)) {
-+			nfs42_do_offload_cancel_async(src, &args.src_stateid);
-+			err = -EOPNOTSUPP;
-+			break;
- 		}
- 
- 		err2 = nfs4_handle_exception(server, err, &src_exception);
--- 
-1.8.3.1
+Right. I have noticed and fixes it in
+https://github.com/amir73il/ltp/commits/overlayfs-devel
+was waiting on more review before posting v2.
+
+Thanks,
+Amir.
