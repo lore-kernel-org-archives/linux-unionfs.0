@@ -1,80 +1,114 @@
-Return-Path: <olga.kornievskaia@gmail.com>
-Return-Path: <olga.kornievskaia@gmail.com>
-From: Olga Kornievskaia <olga.kornievskaia@gmail.com>
-Subject: [PATCH v4 00/11] client-side support for "inter" SSC copy
-Date: Fri, 26 Oct 2018 16:10:45 -0400
-Message-Id: <20181026201057.36899-1-olga.kornievskaia@gmail.com>
-To: trond.myklebust@hammerspace.com, anna.schumaker@netapp.com, viro@zeniv.linux.org.uk, smfrench@gmail.com, miklos@szeredi.hu
-Cc: linux-nfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-cifs@vger.kernel.org, linux-unionfs@vger.kernel.org, linux-man@vger.kernel.org
+Return-Path: <amir73il@gmail.com>
+MIME-Version: 1.0
+References: <490ed00a-7e41-71a5-4318-cc95b36a1b2e@gmx.com> <CAOQ4uximXwPiHySiRxKi4UYxdBt=Y8jj38h0ybrrPGCG0F60nQ@mail.gmail.com>
+ <CAJfpegvJU32_9_mVh7kem0s529-8Qs02fPSr4ChCC3ZJ2pRhLw@mail.gmail.com>
+In-Reply-To: <CAJfpegvJU32_9_mVh7kem0s529-8Qs02fPSr4ChCC3ZJ2pRhLw@mail.gmail.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Date: Mon, 8 Oct 2018 23:23:01 +0300
+Message-ID: <CAOQ4uxg4qOebcEgqz7XCqoQhF84UjJhLJpuwjmeX_UJ8eAw2+g@mail.gmail.com>
+Subject: Re: Postpone copy-up until first real write?
+Content-Type: text/plain; charset="UTF-8"
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: Chengguang Xu <cgxu519@gmx.com>, overlayfs <linux-unionfs@vger.kernel.org>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-From: Olga Kornievskaia <kolga@netapp.com>
+On Mon, Oct 8, 2018 at 5:41 PM Miklos Szeredi <miklos@szeredi.hu> wrote:
+>
+> On Fri, Jun 29, 2018 at 12:28 PM, Amir Goldstein <amir73il@gmail.com> wrote:
+> > On Fri, Jun 29, 2018 at 6:35 AM, cgxu519 <cgxu519@gmx.com> wrote:
+> >> Hi guys,
+> >>
+> >> I have a simple question about copy-up timing after implementing stacked
+> >> file operation.
+> >> Could we postpone copy-up until first real write happens?
+> >>
+> >> The background is consuming much time on open is unexpected for some of our
+> >> applications.
+> >>
+> >
+> > I need this behavior as well for snapshots.
+> > On first glance it looks feasible to me.
+> > Seems like we could relax copy up on open(O_RDWR) if there were no special
+> > open flags (O_TRUNC, O_CREATE, O_APPEND...), then mask out O_ACCMODE
+> > if opening a lower inode and defer copy up to ovl_real_fdget_meta() in case the
+> > O_ACCMODE flags of file and real->file don't match.
+> >
+> > Then we can introduce ovl_real_fdget_read() call to be used in ovl_read_iter()
+> > and ovl_copyfile() (in_file) in which cases the mismatch O_ACCMODE flags
+> > doesn't need to be corrected with copy up.
+> >
+> > Miklos? Does this sound reasonable to you?
+>
+> So now that the stacked file ops are merged we can take a look at
+> these somewhat related issues:
+>
+>  - shared r/o mmap of lower file
+>  - delayed copy up until first write
+>  - delayed copy up until first write fault on shared r/w mmap.
+>
+> My idea would be to have three (or four) states for each in core overlay inode:
+>
+>   LOWER:  opened only for read or not opened at all and mmaped with
+> MAP_PRIVATE  or not mapped at all
+>   LOWER_SHARED: opened for read/write or mmaped MAP_SHARED
+>   UPPER_SHARED: copied up
+>   (UPPER:  copied up and all open files referring to the inode were
+> opened in the UPPER state)
+>
+> The LOWER_SHARED state is basically in anticipation of copy-up,
+> without actually committing to the upper layer.
+>
+> The UPPER state could just be an optimization, that would be otherwise
+> equivalent to the UPPER_SHARED state.
+>
+> I/O paths for the different states would be:
+>
+> LOWER/UPPER: just like now: read/write are stacked, mmap goes directly
+> to "realfile"
+> *_SHARED: just like a normal filesystem: uses
+> generic_file_{read|write}_iter, generic_mmap, defines own a_ops,
+> vm_ops.
+>
+> So basically the _SHARED mode loses the cache sharing property of
+> LOWER, but gains the consistency offered by a unified page cache
+> regardless of which layer the file is stored in.
+>
+> Thoughts?
 
-This patch series adds client-side support for doing NFSv4.2 "inter"
-copy offload between different NFS servers.
+Sounds good and wishfully not too complicated?
+I am not familiar enough with mm to understand what we are up
+against.
 
-In case of the "inter" SSC copy files reside on different servers and
-thus under different superblocks and require that VFS removes the
-restriction that src and dst files must be on the same superblock.
+Does IO from upper fs backing inode goes directly to overlay inode
+page cache or first to upper fs inode page cache and then moving
+pages to overlay inode page cache?
+Am I over complicating this?
+I suppose sharing pages with LOWER left for another time?
 
-NFS's copy_file_range() determines if the copy is "intra" or "inter"
-and for "inter" it sends the COPY_NOTIFY to the source server. Then,
-it would send of an asynchronous COPY to the destination server. If
-an application cancels an in-flight COPY, OFFLOAD_CANCEL is sent to
-both of the servers.
+>
+> Does this make sense wrt. overlay-snapshots?
+>
 
-This patch series also include necessary client-side additions that
-are performed by the destination server. The server needs an NFS
-open that represents a source file without doing an actual open.
-Two function nfs42_ssc_open/nfs42_ssc_close() are introduced to
-accomplish it that make use of the VFS's alloc_file_pseudo() to
-represent an open.
+Snapshots needs the a_ops/vm_ops to COW on page faults
+and need delayed copy up on first write (after snapshot take),
+so all this will be very useful.
 
-Also this particular open is marked (NFS_SVC_SSC_COPY_STATE) so
-that if the destination server ever to receive stateid errors on
-this stateid, it knows not to initiate state recovery (in case
-when source server reboots). The recovery must be done by the
-client and a new copy must be initiated. Therefore, in this case
-the recovery needs to fail with EIO.
+> One detail is whether we should ever make the LOWER_SHARED -> LOWER
+> transition while the inode is cached.  My gut feeling is that we
+> probably needn't bother.
+>
+> Also I'm not sure we'd actually need the UPPER state at all, since (if
+> implemented right) UPPER_SHARED should offer a very similar cache
+> footprint and performance.
+>
 
-v4:
--- in the VFS patches: 1. removed the accidental text in vfs.txt,
-2. removed additions to vfs.txt, and 3. Anna provided help with 
-wording the commit message and 4. changed the offset check to
-include the boundry just like it was before.
--- removed dprintk from the nfs42_ssc_open
--- changed the cross filesystem check in NFS's copy_file_range
+If we don't have UPPER state then we won't need to call
+sync_filesystem(upper_sb) in ovl_sync_fs(), only
+sb->s_op->sync_fs(), right? so that is a win for simplicity.
 
-Olga Kornievskaia (11):
-  VFS move cross device copy_file_range() check into filesystems
-  VFS copy_file_range check validity of input source offset
-  NFS NFSD defining nl4_servers structure needed by both
-  NFS add COPY_NOTIFY operation
-  NFS add ca_source_server<> to COPY
-  NFS also send OFFLOAD_CANCEL to source server
-  NFS inter ssc open
-  NFS skip recovery of copy open on dest server
-  NFS for "inter" copy treat ESTALE as ENOTSUPP
-  NFS COPY handle ERR_OFFLOAD_DENIED
-  NFS replace cross device check in copy_file_range
+Same for implementing ovl_freeze(). It should mostly "just work".
+Snapshots need freeze, but snapshots can turn off the UPPER state
+optimization if it is at all implemented.
 
- Documentation/filesystems/porting |   7 ++
- fs/cifs/cifsfs.c                  |   3 +
- fs/nfs/nfs42.h                    |  15 ++-
- fs/nfs/nfs42proc.c                | 129 ++++++++++++++++++++++---
- fs/nfs/nfs42xdr.c                 | 193 +++++++++++++++++++++++++++++++++++++-
- fs/nfs/nfs4_fs.h                  |  10 ++
- fs/nfs/nfs4client.c               |   2 +-
- fs/nfs/nfs4file.c                 | 125 +++++++++++++++++++++++-
- fs/nfs/nfs4proc.c                 |   6 +-
- fs/nfs/nfs4state.c                |  14 +++
- fs/nfs/nfs4xdr.c                  |   1 +
- fs/overlayfs/file.c               |   3 +
- fs/read_write.c                   |  12 +--
- include/linux/nfs4.h              |  25 +++++
- include/linux/nfs_fs_sb.h         |   1 +
- include/linux/nfs_xdr.h           |  17 ++++
- 16 files changed, 538 insertions(+), 25 deletions(-)
-
--- 
-1.8.3.1
+Thanks,
+Amir.
