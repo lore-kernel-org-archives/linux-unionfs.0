@@ -1,40 +1,82 @@
-Return-Path: <olga.kornievskaia@gmail.com>
-Return-Path: <olga.kornievskaia@gmail.com>
-From: Olga Kornievskaia <olga.kornievskaia@gmail.com>
-Subject: [PATCH v2 03/13] OverlayFS: add cross-device check for copy_file_range
-Date: Wed, 24 Oct 2018 15:58:27 -0400
-Message-Id: <20181024195837.35532-5-olga.kornievskaia@gmail.com>
-In-Reply-To: <20181024195837.35532-1-olga.kornievskaia@gmail.com>
-References: <20181024195837.35532-1-olga.kornievskaia@gmail.com>
-To: trond.myklebust@hammerspace.com, anna.schumaker@netapp.com, viro@zeniv.linux.org.uk, smfrench@gmail.com, miklos@szeredi.hu
-Cc: linux-nfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-cifs@vger.kernel.org, linux-unionfs@vger.kernel.org, linux-man@vger.kernel.org
+Return-Path: <amir73il@gmail.com>
+MIME-Version: 1.0
+References: <20181004062624.27295-1-amir73il@gmail.com> <1498422724.56763494.1538982674701.JavaMail.zimbra@redhat.com>
+ <CAOQ4uxjBxzF+kyDOvzLG1hg+q-m=cV26GWEEnXUKHehKDxkQwg@mail.gmail.com>
+In-Reply-To: <CAOQ4uxjBxzF+kyDOvzLG1hg+q-m=cV26GWEEnXUKHehKDxkQwg@mail.gmail.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Date: Tue, 9 Oct 2018 23:10:45 +0300
+Message-ID: <CAOQ4uxhjeV1QXyibFcng+voTTTbuwkBWtPjVL5UgACxCUs9gQg@mail.gmail.com>
+Subject: Re: [PATCH v2 0/5] Tests for readahead() and fadvise() on overlayfs
+Content-Type: text/plain; charset="UTF-8"
+To: Jan Stancek <jstancek@redhat.com>
+Cc: Cyril Hrubis <chrubis@suse.cz>, ltp@lists.linux.it, Miklos Szeredi <miklos@szeredi.hu>, overlayfs <linux-unionfs@vger.kernel.org>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-From: Olga Kornievskaia <kolga@netapp.com>
+On Mon, Oct 8, 2018 at 2:26 PM Amir Goldstein <amir73il@gmail.com> wrote:
+>
+> On Mon, Oct 8, 2018 at 10:11 AM Jan Stancek <jstancek@redhat.com> wrote:
+> >
+> >
+> >
+> > ----- Original Message -----
+> > > Cyril,
+> > >
+> > > The following series adds test covergae for readahead() syscall
+> > > over overlayfs file and adds test coverage for a specific
+> > > posix_fadvise() syscall advice (POSIX_FADV_WILLNEED).
+> > >
+> > > So far, the posix_fadvise syscall tests in LTP only test for error
+> > > conditions, but not functionality.
+> > >
+> > > The functionality of the advice POSIX_FADV_WILLNEED is indentical
+> > > to readahead() and since kernel commit 3d8f7615319b ("vfs: implement
+> > > readahead(2) using POSIX_FADV_WILLNEED"), the implementations are
+> > > also bound together.
+> > >
+> > > To add test coverage of the advice POSIX_FADV_WILLNEED, I decided not
+> > > to duplicate the readahead() functional test and add test cases to
+> > > readahead02 that use the POSIX_FADV_WILLNEED implementation.
+> > >
+> > > Thanks,
+> > > Amir.
+> > >
+> > > Changes since v1:
+> > > - Fix bugs in loop invocation of test (i.e. -i 2)
+> > > - Address review comments from Jan Stancek
+> > > - Make cached_max a global maximum over all test cases
+> > > - Improve reliability of overlayfs readahead test case failure
+> >
+> > Looks good to me.
+> >
+> > When you say "This is the only system configuration supported by the posix_fadvise tests",
+> > are you talking about glibc?
+> >
+>
+> I was trying to mimic the check in posix_fadvise tests:
+>
+>         /* Check this system has fadvise64 system which is used
+>            in posix_fadvise. */
+>         if ((_FILE_OFFSET_BITS != 64) && (__NR_fadvise64 == 0)) {
+>                 tst_resm(TWARN,
+>                          "This test can only run on kernels that implements ");
+>                 tst_resm(TWARN, "fadvise64 which is used from posix_fadvise");
+>                 exit(0);
+>         }
+>
+> If my understanding of man posix_fadvise(2) is correct, this wants to make sure
+> that the glibc wrapper posix_fadvise calls the syscall fadvise64 and not some
+> architecture specific syscall (e.g. arm_fadvise64_64).
+>
+> I am not really sure why that matters to those tests at all.
+> and it's probably better just return TCONF if the call fails with ENOSYS?
+> If someone has ideas, let me know.
+>
 
-VFS copy_file_range was relaxed to allow for cross-device copy.
-Add a check for now, to disallow cross-device copy offload until
-appropriate support is added.
+FYI, I removed the build time checks from my test and added runtime checks
+for both readahead and posix_fadvise kernel support:
+https://github.com/amir73il/ltp/commits/overlayfs-devel
 
-Signed-off-by: Olga Kornievskaia <kolga@netapp.com>
-`
----
- fs/overlayfs/file.c | 3 +++
- 1 file changed, 3 insertions(+)
+I will post v3 tomorrow.
 
-diff --git a/fs/overlayfs/file.c b/fs/overlayfs/file.c
-index aeaefd2..5282853 100644
---- a/fs/overlayfs/file.c
-+++ b/fs/overlayfs/file.c
-@@ -483,6 +483,9 @@ static ssize_t ovl_copy_file_range(struct file *file_in, loff_t pos_in,
- 				   struct file *file_out, loff_t pos_out,
- 				   size_t len, unsigned int flags)
- {
-+	if (file_in->f_inode->i_sb != file_out->f_inode->i_sb)
-+		return -EXDEV;
-+
- 	return ovl_copyfile(file_in, pos_in, file_out, pos_out, len, flags,
- 			    OVL_COPY);
- }
--- 
-1.8.3.1
+Thanks,
+Amir.
