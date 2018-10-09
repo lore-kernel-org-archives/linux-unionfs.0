@@ -1,30 +1,149 @@
-Return-Path: <zohar@linux.ibm.com>
-Subject: Re: [PATCH v2] Open a new file instance if no read permissions
-From: Mimi Zohar <zohar@linux.ibm.com>
-Date: Wed, 10 Oct 2018 15:04:42 -0400
-In-Reply-To: <20181009151233.lxgm5c73epofi6r3@merlin>
-References: <20181009151233.lxgm5c73epofi6r3@merlin>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Message-Id: <1539198282.3585.6.camel@linux.ibm.com>
-To: Goldwyn Rodrigues <rgoldwyn@suse.de>, James Morris <jmorris@namei.org>
+Return-Path: <rgoldwyn@suse.de>
+Date: Tue, 9 Oct 2018 10:12:33 -0500
+From: Goldwyn Rodrigues <rgoldwyn@suse.de>
+Subject: [PATCH v2] Open a new file instance if no read permissions
+Message-ID: <20181009151233.lxgm5c73epofi6r3@merlin>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+To: zohar@linux.ibm.com
 Cc: linux-integrity@vger.kernel.org, linux-unionfs@vger.kernel.org, iforster@suse.de, fvogt@suse.de, miklos@szeredi.hu
 List-ID: <linux-unionfs@vger.kernel.org>
 
-Hi Goldwyn,
+Open a new file instance as opposed to changing file->f_mode when
+the file is not readable. This is done to accomodate
+overlayfs stacked file operations change. The real struct file is hidden
+behind the overlays struct file. So, any file->f_mode manipulations are
+not reflected on the real struct file. Open the file again in read mode
+if original file cannot be read, read and calculate the hash.
 
-On Tue, 2018-10-09 at 10:12 -0500, Goldwyn Rodrigues wrote:
-> Open a new file instance as opposed to changing file->f_mode when
-> the file is not readable. This is done to accomodate
-> overlayfs stacked file operations change. The real struct file is hidden
-> behind the overlays struct file. So, any file->f_mode manipulations are
-> not reflected on the real struct file. Open the file again in read mode
-> if original file cannot be read, read and calculate the hash.
-> 
-> Signed-off-by: Goldwyn Rodrigues <rgoldwyn@suse.com>
+Signed-off-by: Goldwyn Rodrigues <rgoldwyn@suse.com>
 
-Thanks!  I'm waiting for it to hit linux-next, before sending James
-the linux-integrity pull request.
+Changes since v1:
+ - Open new file only if read permission don't exist
+ - Warning message if dentry_open() fails
 
-Mimi
+
+diff --git a/security/integrity/ima/ima_crypto.c b/security/integrity/ima/ima_crypto.c
+index 7e7e7e7c250a..f6030cb470e6 100644
+--- a/security/integrity/ima/ima_crypto.c
++++ b/security/integrity/ima/ima_crypto.c
+@@ -210,7 +210,7 @@ static int ima_calc_file_hash_atfm(struct file *file,
+ {
+ 	loff_t i_size, offset;
+ 	char *rbuf[2] = { NULL, };
+-	int rc, read = 0, rbuf_len, active = 0, ahash_rc = 0;
++	int rc, rbuf_len, active = 0, ahash_rc = 0;
+ 	struct ahash_request *req;
+ 	struct scatterlist sg[1];
+ 	struct crypto_wait wait;
+@@ -257,11 +257,6 @@ static int ima_calc_file_hash_atfm(struct file *file,
+ 					  &rbuf_size[1], 0);
+ 	}
+ 
+-	if (!(file->f_mode & FMODE_READ)) {
+-		file->f_mode |= FMODE_READ;
+-		read = 1;
+-	}
+-
+ 	for (offset = 0; offset < i_size; offset += rbuf_len) {
+ 		if (!rbuf[1] && offset) {
+ 			/* Not using two buffers, and it is not the first
+@@ -300,8 +295,6 @@ static int ima_calc_file_hash_atfm(struct file *file,
+ 	/* wait for the last update request to complete */
+ 	rc = ahash_wait(ahash_rc, &wait);
+ out3:
+-	if (read)
+-		file->f_mode &= ~FMODE_READ;
+ 	ima_free_pages(rbuf[0], rbuf_size[0]);
+ 	ima_free_pages(rbuf[1], rbuf_size[1]);
+ out2:
+@@ -336,7 +329,7 @@ static int ima_calc_file_hash_tfm(struct file *file,
+ {
+ 	loff_t i_size, offset = 0;
+ 	char *rbuf;
+-	int rc, read = 0;
++	int rc;
+ 	SHASH_DESC_ON_STACK(shash, tfm);
+ 
+ 	shash->tfm = tfm;
+@@ -357,11 +350,6 @@ static int ima_calc_file_hash_tfm(struct file *file,
+ 	if (!rbuf)
+ 		return -ENOMEM;
+ 
+-	if (!(file->f_mode & FMODE_READ)) {
+-		file->f_mode |= FMODE_READ;
+-		read = 1;
+-	}
+-
+ 	while (offset < i_size) {
+ 		int rbuf_len;
+ 
+@@ -378,8 +366,6 @@ static int ima_calc_file_hash_tfm(struct file *file,
+ 		if (rc)
+ 			break;
+ 	}
+-	if (read)
+-		file->f_mode &= ~FMODE_READ;
+ 	kfree(rbuf);
+ out:
+ 	if (!rc)
+@@ -420,6 +406,8 @@ int ima_calc_file_hash(struct file *file, struct ima_digest_data *hash)
+ {
+ 	loff_t i_size;
+ 	int rc;
++	struct file *f = file;
++	bool new_file_instance = false, modified_flags = false;
+ 
+ 	/*
+ 	 * For consistency, fail file's opened with the O_DIRECT flag on
+@@ -431,15 +419,42 @@ int ima_calc_file_hash(struct file *file, struct ima_digest_data *hash)
+ 		return -EINVAL;
+ 	}
+ 
+-	i_size = i_size_read(file_inode(file));
++	/* Open a new file instance in O_RDONLY if we cannot read */
++	if (!(file->f_mode & FMODE_READ)) {
++		int flags = file->f_flags & ~(O_WRONLY | O_APPEND |
++				O_TRUNC | O_CREAT | O_NOCTTY | O_EXCL);
++		flags |= O_RDONLY;
++		f = dentry_open(&file->f_path, flags, file->f_cred);
++		if (IS_ERR(f)) {
++			/* 
++			 * Cannot open the file again, lets
++			 * modify f_flags of original and
++			 * continue
++			 */
++			pr_info_ratelimited("Unable to reopen file for reading.\n");
++			f = file;
++			f->f_flags |= FMODE_READ;
++			modified_flags = true;
++		} else {
++			new_file_instance = true;
++		}
++	}
++
++	i_size = i_size_read(file_inode(f));
+ 
+ 	if (ima_ahash_minsize && i_size >= ima_ahash_minsize) {
+-		rc = ima_calc_file_ahash(file, hash);
++		rc = ima_calc_file_ahash(f, hash);
+ 		if (!rc)
+-			return 0;
++			goto out;
+ 	}
+ 
+-	return ima_calc_file_shash(file, hash);
++	rc = ima_calc_file_shash(f, hash);
++out:
++	if (new_file_instance)
++		fput(f);
++	else if (modified_flags)
++		f->f_flags &= ~FMODE_READ;
++	return rc;
+ }
+ 
+ /*
+
+-- 
+Goldwyn
