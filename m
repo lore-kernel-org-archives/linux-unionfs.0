@@ -1,167 +1,215 @@
-MIME-Version: 1.0
-In-Reply-To: <20180903061211.20830-2-amir73il@gmail.com>
-References: <20180903061211.20830-1-amir73il@gmail.com>
-	<20180903061211.20830-2-amir73il@gmail.com>
-Date: Wed, 24 Oct 2018 16:16:19 +0200
-Message-ID: <CAJfpegs_MTifkPKX4g9Z-BOe4pGjYJFno9B3tp-96znLJ7hW1A@mail.gmail.com>
-Subject: Re: [PATCH 1/3] ovl: relax requirement for non null uuid of lower fs
-From: Miklos Szeredi <miklos@szeredi.hu>
-Content-Type: multipart/mixed; boundary="0000000000004a30a40578fa218d"
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: overlayfs <linux-unionfs@vger.kernel.org>
+Return-Path: <amir73il@gmail.com>
+Return-Path: <amir73il@gmail.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Subject: [PATCH v3 1/6] syscalls/readahead01: Convert to newlib
+Date: Thu, 11 Oct 2018 02:34:36 +0300
+Message-Id: <20181010233441.5337-2-amir73il@gmail.com>
+In-Reply-To: <20181010233441.5337-1-amir73il@gmail.com>
+References: <20181010233441.5337-1-amir73il@gmail.com>
+To: Cyril Hrubis <chrubis@suse.cz>
+Cc: ltp@lists.linux.it, Jan Stancek <jstancek@redhat.com>, Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org
 List-ID: <linux-unionfs@vger.kernel.org>
 
---0000000000004a30a40578fa218d
-Content-Type: text/plain; charset="UTF-8"
+* Use SPDX-License-Identifier
 
-On Mon, Sep 3, 2018 at 8:12 AM, Amir Goldstein <amir73il@gmail.com> wrote:
-> We use uuid to associate an overlay lower file handle with a lower layer,
-> so we can accept lower fs with null uuid as long as all lower layers with
-> null uuid are on the same fs.
->
-> This change allows enabling index and nfs_export features for the setup of
-> single lower fs of type squashfs - squashfs supports file handles, but has
-> a null uuid. This change also allows enabling index and nfs_export
-> features for nested overlayfs, where the lower overlay has nfs_export
-> enabled.
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+Acked-by: Jan Stancek <jstancek@redhat.com>
+---
+ .../kernel/syscalls/readahead/readahead01.c   | 119 +++++-------------
+ 1 file changed, 34 insertions(+), 85 deletions(-)
 
-Shouldn't overlayfs generate an uuid for the nested case?  Not quite
-sure what's the best way to do that, though...
-
->
-> Enabling the index feature with single lower squashfs fixes the
-> unionmount-testsuite test:
->   ./run --ov --squashfs --verify
->
-> As a by-product, if, like the lower squashfs, upper fs also uses the
-> generic export_encode_fh() implementation to export 32bit inode file
-> handles (e.g. ext4), then the xino_auto config/module/mount option will
-> enable unique overlay inode numbers.
->
-> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
-> ---
->  fs/overlayfs/super.c | 23 +++++++++++++++++++++--
->  fs/overlayfs/util.c  |  3 +--
->  2 files changed, 22 insertions(+), 4 deletions(-)
->
-> diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-> index 2e0fc93c2c06..069e441e24eb 100644
-> --- a/fs/overlayfs/super.c
-> +++ b/fs/overlayfs/super.c
-> @@ -1174,11 +1174,14 @@ static int ovl_get_indexdir(struct ovl_fs *ofs, struct ovl_entry *oe,
->  }
->
->  /* Get a unique fsid for the layer */
-> -static int ovl_get_fsid(struct ovl_fs *ofs, struct super_block *sb)
-> +static int ovl_get_fsid(struct ovl_fs *ofs, struct vfsmount *mnt)
->  {
-> +       struct super_block *sb = mnt->mnt_sb;
->         unsigned int i;
->         dev_t dev;
->         int err;
-> +       bool need_uuid = ofs->config.nfs_export ||
-> +                        (ofs->config.index && ofs->upper_mnt);
->
->         /* fsid 0 is reserved for upper fs even with non upper overlay */
->         if (ofs->upper_mnt && ofs->upper_mnt->mnt_sb == sb)
-> @@ -1187,6 +1190,22 @@ static int ovl_get_fsid(struct ovl_fs *ofs, struct super_block *sb)
->         for (i = 0; i < ofs->numlowerfs; i++) {
->                 if (ofs->lower_fs[i].sb == sb)
->                         return i + 1;
-> +
-> +               /*
-> +                * We use uuid to associate an overlay lower file handle with a
-> +                * lower layer, so we can accept lower fs with null uuid as long
-> +                * as all lower layers with null uuid are on the same fs.
-> +                */
-> +               if (need_uuid &&
-> +                   uuid_equal(&ofs->lower_fs[i].sb->s_uuid, &sb->s_uuid)) {
-> +                       need_uuid = false;
-> +                       ofs->config.index = false;
-> +                       ofs->config.nfs_export = false;
-> +                       pr_warn("overlayfs: %s uuid detected in lower fs '%pd2', falling back to index=off,nfs_export=off.\n",
-> +                               uuid_is_null(&sb->s_uuid) ? "null" :
-> +                                                           "conflicting",
-> +                               mnt->mnt_root);
-
-mnt->mnt_root is wrong here: this is path->mnt resolved from the
-lowerdir, not the one cloned from that path.
-
-Fixed so ovl_get_lower_layers() passes in the path, not just the mount.
-
-Also made this a separate loop from the one finding a matching fs, as
-it's logically a different step and not needed in the case when the fs
-is found.
-
-Updated but untested patch attached.
-
-Thanks,
-Miklos
-
---0000000000004a30a40578fa218d
-Content-Type: text/x-patch; charset="US-ASCII";
-	name="ovl-relax-requirement-for-non-null-uuid-of-lower-fs.patch"
-Content-Disposition: attachment;
-	filename="ovl-relax-requirement-for-non-null-uuid-of-lower-fs.patch"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_jnn8q5h20
-
-RnJvbTogQW1pciBHb2xkc3RlaW4gPGFtaXI3M2lsQGdtYWlsLmNvbT4KU3ViamVjdDogb3ZsOiBy
-ZWxheCByZXF1aXJlbWVudCBmb3Igbm9uIG51bGwgdXVpZCBvZiBsb3dlciBmcwpEYXRlOiBNb24s
-ICAzIFNlcCAyMDE4IDA5OjEyOjA5ICswMzAwCgpXZSB1c2UgdXVpZCB0byBhc3NvY2lhdGUgYW4g
-b3ZlcmxheSBsb3dlciBmaWxlIGhhbmRsZSB3aXRoIGEgbG93ZXIgbGF5ZXIsCnNvIHdlIGNhbiBh
-Y2NlcHQgbG93ZXIgZnMgd2l0aCBudWxsIHV1aWQgYXMgbG9uZyBhcyBhbGwgbG93ZXIgbGF5ZXJz
-IHdpdGgKbnVsbCB1dWlkIGFyZSBvbiB0aGUgc2FtZSBmcy4KClRoaXMgY2hhbmdlIGFsbG93cyBl
-bmFibGluZyBpbmRleCBhbmQgbmZzX2V4cG9ydCBmZWF0dXJlcyBmb3IgdGhlIHNldHVwIG9mCnNp
-bmdsZSBsb3dlciBmcyBvZiB0eXBlIHNxdWFzaGZzIC0gc3F1YXNoZnMgc3VwcG9ydHMgZmlsZSBo
-YW5kbGVzLCBidXQgaGFzCmEgbnVsbCB1dWlkLiBUaGlzIGNoYW5nZSBhbHNvIGFsbG93cyBlbmFi
-bGluZyBpbmRleCBhbmQgbmZzX2V4cG9ydApmZWF0dXJlcyBmb3IgbmVzdGVkIG92ZXJsYXlmcywg
-d2hlcmUgdGhlIGxvd2VyIG92ZXJsYXkgaGFzIG5mc19leHBvcnQKZW5hYmxlZC4KCkVuYWJsaW5n
-IHRoZSBpbmRleCBmZWF0dXJlIHdpdGggc2luZ2xlIGxvd2VyIHNxdWFzaGZzIGZpeGVzIHRoZQp1
-bmlvbm1vdW50LXRlc3RzdWl0ZSB0ZXN0OgogIC4vcnVuIC0tb3YgLS1zcXVhc2hmcyAtLXZlcmlm
-eQoKQXMgYSBieS1wcm9kdWN0LCBpZiwgbGlrZSB0aGUgbG93ZXIgc3F1YXNoZnMsIHVwcGVyIGZz
-IGFsc28gdXNlcyB0aGUKZ2VuZXJpYyBleHBvcnRfZW5jb2RlX2ZoKCkgaW1wbGVtZW50YXRpb24g
-dG8gZXhwb3J0IDMyYml0IGlub2RlIGZpbGUKaGFuZGxlcyAoZS5nLiBleHQ0KSwgdGhlbiB0aGUg
-eGlub19hdXRvIGNvbmZpZy9tb2R1bGUvbW91bnQgb3B0aW9uIHdpbGwKZW5hYmxlIHVuaXF1ZSBv
-dmVybGF5IGlub2RlIG51bWJlcnMuCgpTaWduZWQtb2ZmLWJ5OiBBbWlyIEdvbGRzdGVpbiA8YW1p
-cjczaWxAZ21haWwuY29tPgotLS0KIGZzL292ZXJsYXlmcy9zdXBlci5jIHwgICAzMiArKysrKysr
-KysrKysrKysrKysrKysrKysrKysrKystLQogZnMvb3ZlcmxheWZzL3V0aWwuYyAgfCAgICAzICst
-LQogMiBmaWxlcyBjaGFuZ2VkLCAzMSBpbnNlcnRpb25zKCspLCA0IGRlbGV0aW9ucygtKQoKLS0t
-IGEvZnMvb3ZlcmxheWZzL3N1cGVyLmMKKysrIGIvZnMvb3ZlcmxheWZzL3N1cGVyLmMKQEAgLTEx
-NzUsOSArMTE3NSwyOSBAQCBzdGF0aWMgaW50IG92bF9nZXRfaW5kZXhkaXIoc3RydWN0IG92bF9m
-CiAJcmV0dXJuIGVycjsKIH0KIAorc3RhdGljIGJvb2wgb3ZsX2xvd2VyX3V1aWRfb2soc3RydWN0
-IG92bF9mcyAqb2ZzLCBjb25zdCB1dWlkX3QgKnV1aWQpCit7CisJdW5zaWduZWQgaW50IGk7CisK
-KwlpZiAoIW9mcy0+Y29uZmlnLm5mc19leHBvcnQgJiYgIShvZnMtPmNvbmZpZy5pbmRleCAmJiBv
-ZnMtPnVwcGVyX21udCkpCisJCXJldHVybiB0cnVlOworCisJZm9yIChpID0gMDsgaSA8IG9mcy0+
-bnVtbG93ZXJmczsgaSsrKSB7CisJCS8qCisJCSAqIFdlIHVzZSB1dWlkIHRvIGFzc29jaWF0ZSBh
-biBvdmVybGF5IGxvd2VyIGZpbGUgaGFuZGxlIHdpdGggYQorCQkgKiBsb3dlciBsYXllciwgc28g
-d2UgY2FuIGFjY2VwdCBsb3dlciBmcyB3aXRoIG51bGwgdXVpZCBhcyBsb25nCisJCSAqIGFzIGFs
-bCBsb3dlciBsYXllcnMgd2l0aCBudWxsIHV1aWQgYXJlIG9uIHRoZSBzYW1lIGZzLgorCQkgKi8K
-KwkJaWYgKHV1aWRfZXF1YWwoJm9mcy0+bG93ZXJfZnNbaV0uc2ItPnNfdXVpZCwgdXVpZCkpCisJ
-CQlyZXR1cm4gZmFsc2U7CisJfQorCXJldHVybiB0cnVlOworfQorCiAvKiBHZXQgYSB1bmlxdWUg
-ZnNpZCBmb3IgdGhlIGxheWVyICovCi1zdGF0aWMgaW50IG92bF9nZXRfZnNpZChzdHJ1Y3Qgb3Zs
-X2ZzICpvZnMsIHN0cnVjdCBzdXBlcl9ibG9jayAqc2IpCitzdGF0aWMgaW50IG92bF9nZXRfZnNp
-ZChzdHJ1Y3Qgb3ZsX2ZzICpvZnMsIGNvbnN0IHN0cnVjdCBwYXRoICpwYXRoKQogeworCXN0cnVj
-dCBzdXBlcl9ibG9jayAqc2IgPSBwYXRoLT5tbnQtPm1udF9zYjsKIAl1bnNpZ25lZCBpbnQgaTsK
-IAlkZXZfdCBkZXY7CiAJaW50IGVycjsKQEAgLTExOTEsNiArMTIxMSwxNCBAQCBzdGF0aWMgaW50
-IG92bF9nZXRfZnNpZChzdHJ1Y3Qgb3ZsX2ZzICpvCiAJCQlyZXR1cm4gaSArIDE7CiAJfQogCisJ
-aWYgKCFvdmxfbG93ZXJfdXVpZF9vayhvZnMsICZzYi0+c191dWlkKSkgeworCQlvZnMtPmNvbmZp
-Zy5pbmRleCA9IGZhbHNlOworCQlvZnMtPmNvbmZpZy5uZnNfZXhwb3J0ID0gZmFsc2U7CisJCXBy
-X3dhcm4oIm92ZXJsYXlmczogJXMgdXVpZCBkZXRlY3RlZCBpbiBsb3dlciBmcyAnJXBkMicsIGZh
-bGxpbmcgYmFjayB0byBpbmRleD1vZmYsbmZzX2V4cG9ydD1vZmYuXG4iLAorCQkJdXVpZF9pc19u
-dWxsKCZzYi0+c191dWlkKSA/ICJudWxsIiA6ICJjb25mbGljdGluZyIsCisJCQlwYXRoLT5kZW50
-cnkpOworCX0KKwogCWVyciA9IGdldF9hbm9uX2JkZXYoJmRldik7CiAJaWYgKGVycikgewogCQlw
-cl9lcnIoIm92ZXJsYXlmczogZmFpbGVkIHRvIGdldCBhbm9ueW1vdXMgYmRldiBmb3IgbG93ZXJw
-YXRoXG4iKTsKQEAgLTEyMjUsNyArMTI1Myw3IEBAIHN0YXRpYyBpbnQgb3ZsX2dldF9sb3dlcl9s
-YXllcnMoc3RydWN0IG8KIAkJc3RydWN0IHZmc21vdW50ICptbnQ7CiAJCWludCBmc2lkOwogCi0J
-CWVyciA9IGZzaWQgPSBvdmxfZ2V0X2ZzaWQob2ZzLCBzdGFja1tpXS5tbnQtPm1udF9zYik7CisJ
-CWVyciA9IGZzaWQgPSBvdmxfZ2V0X2ZzaWQob2ZzLCAmc3RhY2tbaV0pOwogCQlpZiAoZXJyIDwg
-MCkKIAkJCWdvdG8gb3V0OwogCi0tLSBhL2ZzL292ZXJsYXlmcy91dGlsLmMKKysrIGIvZnMvb3Zl
-cmxheWZzL3V0aWwuYwpAQCAtNjUsOCArNjUsNyBAQCBzdHJ1Y3Qgc3VwZXJfYmxvY2sgKm92bF9z
-YW1lX3NiKHN0cnVjdCBzCiAgKi8KIGludCBvdmxfY2FuX2RlY29kZV9maChzdHJ1Y3Qgc3VwZXJf
-YmxvY2sgKnNiKQogewotCWlmICghc2ItPnNfZXhwb3J0X29wIHx8ICFzYi0+c19leHBvcnRfb3At
-PmZoX3RvX2RlbnRyeSB8fAotCSAgICB1dWlkX2lzX251bGwoJnNiLT5zX3V1aWQpKQorCWlmICgh
-c2ItPnNfZXhwb3J0X29wIHx8ICFzYi0+c19leHBvcnRfb3AtPmZoX3RvX2RlbnRyeSkKIAkJcmV0
-dXJuIDA7CiAKIAlyZXR1cm4gc2ItPnNfZXhwb3J0X29wLT5lbmNvZGVfZmggPyAtMSA6IEZJTEVJ
-RF9JTk8zMl9HRU47Cg==
---0000000000004a30a40578fa218d--
+diff --git a/testcases/kernel/syscalls/readahead/readahead01.c b/testcases/kernel/syscalls/readahead/readahead01.c
+index f35019488..682b524b3 100644
+--- a/testcases/kernel/syscalls/readahead/readahead01.c
++++ b/testcases/kernel/syscalls/readahead/readahead01.c
+@@ -1,25 +1,6 @@
++// SPDX-License-Identifier: GPL-2.0
+ /*
+  * Copyright (C) 2012 Linux Test Project, Inc.
+- *
+- * This program is free software; you can redistribute it and/or
+- * modify it under the terms of version 2 of the GNU General Public
+- * License as published by the Free Software Foundation.
+- *
+- * This program is distributed in the hope that it would be useful,
+- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+- *
+- * Further, this software is distributed without any warranty that it
+- * is free of the rightful claim of any third person regarding
+- * infringement or the like.  Any license provided herein, whether
+- * implied or otherwise, applies only to this software file.  Patent
+- * licenses, if any, provided herein do not apply to combinations of
+- * this program with other software, or any other product whatsoever.
+- *
+- * You should have received a copy of the GNU General Public License
+- * along with this program; if not, write the Free Software
+- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+- * 02110-1301, USA.
+  */
+ 
+ /*
+@@ -36,47 +17,36 @@
+ #include <sys/syscall.h>
+ #include <sys/types.h>
+ #include "config.h"
+-#include "test.h"
+-#include "safe_macros.h"
++#include "tst_test.h"
+ #include "lapi/syscalls.h"
+ 
+-char *TCID = "readahead01";
+-int TST_TOTAL = 1;
+-
+-option_t options[] = {
+-	{NULL, NULL, NULL}
+-};
+-
+ #if defined(__NR_readahead)
+-static void setup(void);
+-static void cleanup(void);
+-
+ static int check_ret(long expected_ret)
+ {
+-	if (expected_ret == TEST_RETURN) {
+-		tst_resm(TPASS, "expected ret success - "
+-			 "returned value = %ld", TEST_RETURN);
++	if (expected_ret == TST_RET) {
++		tst_res(TPASS, "expected ret success - "
++			"returned value = %ld", TST_RET);
+ 		return 0;
+ 	}
+-	tst_resm(TFAIL, "unexpected failure - "
+-		 "returned value = %ld, expected: %ld",
+-		 TEST_RETURN, expected_ret);
++	tst_res(TFAIL, "unexpected failure - "
++		"returned value = %ld, expected: %ld",
++		TST_RET, expected_ret);
+ 	return 1;
+ }
+ 
+ static int check_errno(long expected_errno)
+ {
+-	if (TEST_ERRNO == expected_errno) {
+-		tst_resm(TPASS | TTERRNO, "expected failure");
++	if (TST_ERR == expected_errno) {
++		tst_res(TPASS | TTERRNO, "expected failure");
+ 		return 0;
+ 	}
+ 
+-	if (TEST_ERRNO == 0)
+-		tst_resm(TFAIL, "call succeeded unexpectedly");
++	if (TST_ERR == 0)
++		tst_res(TFAIL, "call succeeded unexpectedly");
+ 	else
+-		tst_resm(TFAIL | TTERRNO, "unexpected failure - "
+-			 "expected = %ld : %s, actual",
+-			 expected_errno, strerror(expected_errno));
++		tst_res(TFAIL | TTERRNO, "unexpected failure - "
++			"expected = %ld : %s, actual",
++			expected_errno, strerror(expected_errno));
+ 	return 1;
+ }
+ 
+@@ -85,19 +55,17 @@ static void test_bad_fd(void)
+ 	char tempname[PATH_MAX] = "readahead01_XXXXXX";
+ 	int fd;
+ 
+-	tst_resm(TINFO, "test_bad_fd -1");
++	tst_res(TINFO, "test_bad_fd -1");
+ 	TEST(readahead(-1, 0, getpagesize()));
+ 	check_ret(-1);
+ 	check_errno(EBADF);
+ 
+-	tst_resm(TINFO, "test_bad_fd O_WRONLY");
++	tst_res(TINFO, "test_bad_fd O_WRONLY");
+ 	fd = mkstemp(tempname);
+ 	if (fd == -1)
+-		tst_resm(TBROK | TERRNO, "mkstemp failed");
++		tst_res(TBROK | TERRNO, "mkstemp failed");
+ 	close(fd);
+-	fd = open(tempname, O_WRONLY);
+-	if (fd == -1)
+-		tst_resm(TBROK | TERRNO, "Failed to open testfile");
++	fd = SAFE_OPEN(tempname, O_WRONLY);
+ 	TEST(readahead(fd, 0, getpagesize()));
+ 	check_ret(-1);
+ 	check_errno(EBADF);
+@@ -109,60 +77,41 @@ static void test_invalid_fd(void)
+ {
+ 	int fd[2];
+ 
+-	tst_resm(TINFO, "test_invalid_fd pipe");
+-	if (pipe(fd) < 0)
+-		tst_resm(TBROK | TERRNO, "Failed to create pipe");
++	tst_res(TINFO, "test_invalid_fd pipe");
++	SAFE_PIPE(fd);
+ 	TEST(readahead(fd[0], 0, getpagesize()));
+ 	check_ret(-1);
+ 	check_errno(EINVAL);
+ 	close(fd[0]);
+ 	close(fd[1]);
+ 
+-	tst_resm(TINFO, "test_invalid_fd socket");
+-	fd[0] = socket(AF_INET, SOCK_STREAM, 0);
+-	if (fd[0] < 0)
+-		tst_resm(TBROK | TERRNO, "Failed to create socket");
++	tst_res(TINFO, "test_invalid_fd socket");
++	fd[0] = SAFE_SOCKET(AF_INET, SOCK_STREAM, 0);
+ 	TEST(readahead(fd[0], 0, getpagesize()));
+ 	check_ret(-1);
+ 	check_errno(EINVAL);
+ 	close(fd[0]);
+ }
+ 
+-int main(int argc, char *argv[])
++void test_readahead(void)
+ {
+-	int lc;
+-
+-	tst_parse_opts(argc, argv, options, NULL);
+-
+-	setup();
+-	for (lc = 0; TEST_LOOPING(lc); lc++) {
+-		tst_count = 0;
+-		test_bad_fd();
+-		test_invalid_fd();
+-	}
+-	cleanup();
+-	tst_exit();
++	test_bad_fd();
++	test_invalid_fd();
+ }
+ 
+ static void setup(void)
+ {
+-	tst_require_root();
+-	tst_tmpdir();
+-
+ 	/* check if readahead syscall is supported */
+-	ltp_syscall(__NR_readahead, 0, 0, 0);
+-
+-	TEST_PAUSE;
++	tst_syscall(__NR_readahead, 0, 0, 0);
+ }
+ 
+-static void cleanup(void)
+-{
+-	tst_rmdir();
+-}
++static struct tst_test test = {
++	.needs_root = 1,
++	.needs_tmpdir = 1,
++	.setup = setup,
++	.test_all = test_readahead,
++};
+ 
+ #else /* __NR_readahead */
+-int main(void)
+-{
+-	tst_brkm(TCONF, NULL, "System doesn't support __NR_readahead");
+-}
++	TST_TEST_TCONF("System doesn't support __NR_readahead");
+ #endif
+-- 
+2.17.1
