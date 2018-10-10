@@ -1,13 +1,12 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [PATCH 14/25] vfs: make remap_file_range functions take and
- return bytes completed
-Date: Wed, 10 Oct 2018 09:47:00 +0300
-Message-ID: <CAOQ4uxg0=EJp1WJXmUeHT05yF1txRKKhPHVTWeG+rdtRD5FfHA@mail.gmail.com>
-References: <153913023835.32295.13962696655740190941.stgit@magnolia> <153913040858.32295.9474188640729118153.stgit@magnolia>
+Subject: Re: [PATCH 17/25] vfs: make remapping to source file eof more explicit
+Date: Wed, 10 Oct 2018 15:29:06 +0300
+Message-ID: <CAOQ4uxivwLR5assf0VwHdp5p06Er4w7urB637Z3wiQ1eZoT9tQ@mail.gmail.com>
+References: <153913023835.32295.13962696655740190941.stgit@magnolia> <153913043746.32295.17463515265798256890.stgit@magnolia>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-btrfs-owner@vger.kernel.org>
-In-Reply-To: <153913040858.32295.9474188640729118153.stgit@magnolia>
+In-Reply-To: <153913043746.32295.17463515265798256890.stgit@magnolia>
 Sender: linux-btrfs-owner@vger.kernel.org
 To: "Darrick J. Wong" <darrick.wong@oracle.com>
 Cc: Dave Chinner <david@fromorbit.com>, Eric Sandeen <sandeen@redhat.com>, Linux NFS Mailing List <linux-nfs@vger.kernel.org>, linux-cifs@vger.kernel.org, overlayfs <linux-unionfs@vger.kernel.org>, linux-xfs <linux-xfs@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, Linux Btrfs <linux-btrfs@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, ocfs2-devel@oss.oracle.com
@@ -17,99 +16,131 @@ On Wed, Oct 10, 2018 at 3:14 AM Darrick J. Wong <darrick.wong@oracle.com> wrote:
 >
 > From: Darrick J. Wong <darrick.wong@oracle.com>
 >
-> Change the remap_file_range functions to take a number of bytes to
-> operate upon and return the number of bytes they operated on.  This is a
-> requirement for allowing fs implementations to return short clone/dedupe
-> results to the user, which will enable us to obey resource limits in a
-> graceful manner.
->
-> A subsequent patch will enable copy_file_range to signal to the
-> ->clone_file_range implementation that it can handle a short length,
-> which will be returned in the function's return value.  Neither clone
-> ioctl can take advantage of this, alas.
+> Create a RFR_TO_SRC_EOF flag to explicitly declare that the caller wants
+> the remap implementation to remap to the end of the source file, once
+> the files are locked.
 >
 > Signed-off-by: Darrick J. Wong <darrick.wong@oracle.com>
 > ---
-[...]
-> @@ -141,8 +142,8 @@ static int ovl_copy_up_data(struct path *old, struct path *new, loff_t len)
->         }
+>  fs/ioctl.c         |    3 ++-
+>  fs/nfsd/vfs.c      |    3 ++-
+>  fs/read_write.c    |   13 +++++++------
+>  include/linux/fs.h |    2 ++
+>  4 files changed, 13 insertions(+), 8 deletions(-)
 >
->         /* Try to use clone_file_range to clone up within the same fs */
-> -       error = do_clone_file_range(old_file, 0, new_file, 0, len);
-> -       if (!error)
-> +       cloned = do_clone_file_range(old_file, 0, new_file, 0, len);
-> +       if (cloned == len)
->                 goto out;
->         /* Couldn't clone, so now we try to copy the data */
->         error = 0;
-
-This error = 0 not needed anymore, but not a big deal...
-
-> diff --git a/fs/overlayfs/file.c b/fs/overlayfs/file.c
-> index 693bd0620a81..c8c890c22898 100644
-> --- a/fs/overlayfs/file.c
-> +++ b/fs/overlayfs/file.c
-> @@ -434,14 +434,14 @@ enum ovl_copyop {
->         OVL_DEDUPE,
->  };
 >
-> -static ssize_t ovl_copyfile(struct file *file_in, loff_t pos_in,
-> +static loff_t ovl_copyfile(struct file *file_in, loff_t pos_in,
->                             struct file *file_out, loff_t pos_out,
-> -                           u64 len, unsigned int flags, enum ovl_copyop op)
-> +                           loff_t len, unsigned int flags, enum ovl_copyop op)
+> diff --git a/fs/ioctl.c b/fs/ioctl.c
+> index 505275ec5596..7fec997abd2f 100644
+> --- a/fs/ioctl.c
+> +++ b/fs/ioctl.c
+> @@ -224,6 +224,7 @@ static long ioctl_file_clone(struct file *dst_file, unsigned long srcfd,
 >  {
->         struct inode *inode_out = file_inode(file_out);
->         struct fd real_in, real_out;
->         const struct cred *old_cred;
-> -       ssize_t ret;
-> +       loff_t ret;
+>         struct fd src_file = fdget(srcfd);
+>         loff_t cloned;
+> +       unsigned int flags = olen == 0 ? RFR_TO_SRC_EOF : 0;
+>         int ret;
 >
->         ret = ovl_real_fdget(file_out, &real_out);
->         if (ret)
-> @@ -489,9 +489,9 @@ static ssize_t ovl_copy_file_range(struct file *file_in, loff_t pos_in,
->                             OVL_COPY);
->  }
->
-> -static int ovl_remap_file_range(struct file *file_in, loff_t pos_in,
-> -                               struct file *file_out, loff_t pos_out,
-> -                               u64 len, unsigned int flags)
-> +static loff_t ovl_remap_file_range(struct file *file_in, loff_t pos_in,
-> +                                  struct file *file_out, loff_t pos_out,
-> +                                  loff_t len, unsigned int flags)
+>         if (!src_file.file)
+> @@ -232,7 +233,7 @@ static long ioctl_file_clone(struct file *dst_file, unsigned long srcfd,
+>         if (src_file.file->f_path.mnt != dst_file->f_path.mnt)
+>                 goto fdput;
+>         cloned = vfs_clone_file_range(src_file.file, off, dst_file, destoff,
+> -                                     olen, 0);
+> +                                     olen, flags);
+>         if (cloned < 0)
+>                 ret = cloned;
+>         else if (olen && cloned != olen)
+> diff --git a/fs/nfsd/vfs.c b/fs/nfsd/vfs.c
+> index 726fc5b2b27a..d1f2ae08adf6 100644
+> --- a/fs/nfsd/vfs.c
+> +++ b/fs/nfsd/vfs.c
+> @@ -542,8 +542,9 @@ __be32 nfsd4_clone_file_range(struct file *src, u64 src_pos, struct file *dst,
+>                 u64 dst_pos, u64 count)
 >  {
->         enum ovl_copyop op;
+>         loff_t cloned;
+> +       unsigned int flags = count == 0 ? RFR_TO_SRC_EOF : 0;
 >
+> -       cloned = vfs_clone_file_range(src, src_pos, dst, dst_pos, count, 0);
+> +       cloned = vfs_clone_file_range(src, src_pos, dst, dst_pos, count, flags);
+>         if (count && cloned != count)
+>                 cloned = -EINVAL;
+>         return nfserrno(cloned < 0 ? cloned : 0);
 > diff --git a/fs/read_write.c b/fs/read_write.c
-> index 917934770b08..f43b0620afd4 100644
+> index 479eb810c8e6..a628fd9a47cf 100644
 > --- a/fs/read_write.c
 > +++ b/fs/read_write.c
-> @@ -1589,10 +1589,13 @@ ssize_t vfs_copy_file_range(struct file *file_in, loff_t pos_in,
->          * more efficient if both clone and copy are supported (e.g. NFS).
->          */
->         if (file_in->f_op->remap_file_range) {
-> -               ret = file_in->f_op->remap_file_range(file_in, pos_in,
-> -                               file_out, pos_out, len, 0);
-> -               if (ret == 0) {
-> -                       ret = len;
-> +               s64 cloned;
-
-loff_t?
-
-> +
-> +               cloned = file_in->f_op->remap_file_range(file_in, pos_in,
-> +                               file_out, pos_out,
-> +                               min_t(loff_t, MAX_RW_COUNT, len), 0);
-> +               if (cloned >= 0) {
-> +                       ret = cloned;
->                         goto done;
->                 }
+> @@ -1748,11 +1748,12 @@ int generic_remap_file_range_prep(struct file *file_in, loff_t pos_in,
+>
+>         isize = i_size_read(inode_in);
+>
+> -       /* Zero length dedupe exits immediately; reflink goes to EOF. */
+> -       if (*len == 0) {
+> -               if (is_dedupe || pos_in == isize)
+> -                       return 0;
+> -               if (pos_in > isize)
+> +       /*
+> +        * If the caller asked to go all the way to the end of the source file,
+> +        * set *len now that we have the file locked.
+> +        */
+> +       if (remap_flags & RFR_TO_SRC_EOF) {
+> +               if (pos_in >= isize)
+>                         return -EINVAL;
+>                 *len = isize - pos_in;
 >         }
+> @@ -1828,7 +1829,7 @@ loff_t do_clone_file_range(struct file *file_in, loff_t pos_in,
+>         struct inode *inode_out = file_inode(file_out);
+>         loff_t ret;
+>
+> -       WARN_ON_ONCE(remap_flags);
+> +       WARN_ON_ONCE(remap_flags & ~(RFR_TO_SRC_EOF));
+>
+>         if (S_ISDIR(inode_in->i_mode) || S_ISDIR(inode_out->i_mode))
+>                 return -EISDIR;
+> diff --git a/include/linux/fs.h b/include/linux/fs.h
+> index 5c1bf1c35bc6..9f90dcd4df3b 100644
+> --- a/include/linux/fs.h
+> +++ b/include/linux/fs.h
+> @@ -1725,8 +1725,10 @@ struct block_device_operations;
+>   * These flags control the behavior of the remap_file_range function pointer.
+>   *
+>   * RFR_IDENTICAL_DATA: only remap if contents identical (i.e. deduplicate)
 
-Commit message wasn't clear enough on the behavior of copy_file_range()
-before and after the patch IMO. Maybe it would be better to pospone this
-semantic change to the RFR_SHORTEN patch and keep if (cloned == len)
-in this patch?
+<bikeshedding> not that I care so much, but is there any reason you chose
+to use _IDENTICAL_ vs. _SAME_? The latter is shorter and already engraved
+in the dedup uapi. </bikeshedding>
+
+> + * RFR_TO_SRC_EOF: remap to the end of the source file
+>   */
+>  #define RFR_IDENTICAL_DATA     (1 << 0)
+> +#define RFR_TO_SRC_EOF         (1 << 1)
+>
+
+So what is the best way to make sure that all filesystems can
+properly handle this flag? and the RFR_CAN_SHORTEN flag?
+
+The way that your patches took is to not check for invalid flags
+at all in filesystems, but I don't think that is a viable option.
+
+Another way would be to individually add those flags to invalid
+flags check in all relevant filesystems.
+
+Another way would be to follow a pattern similar to
+fiemap_check_flags(), except in case filesystem does not declare
+to support the RFR_ "advisory" flags, it will not fail the operation.
+
+Comparing to FIEMAP_ flags, no filesystem would have needed to declare
+support for FIEMAP_FLAG_SYNC, because vfs dealt with it anyway
+before calling into the filesystem. So de-facto, any filesystem supports
+FIEMAP_FLAG_SYNC without doing anything, but it is still worth passing
+the flag into filesystem in case it matter (it does for overlayfs).
+
+I am not sure if giving fiemap_check_flags() as an example for sorting
+out VFS API flags is a good idea, because I completely don't understand
+what is going on in ext4_fiemap(). Why do FIEMAP_FLAG_CACHE and
+the case of  !EXT4_INODE_EXTENTS bypass fiemap_check_flags()?
+Is there a rational behind all this or just plain old API bit rot?
+If bit rot, then perhaps the fiemap_check_flags() wasn't a good enough
+coding pattern?
 
 Thanks,
 Amir.
