@@ -1,161 +1,197 @@
-From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: kernel BUG at arch/x86/mm/physaddr.c:LINE!
-Date: Wed, 10 Oct 2018 19:08:45 +0300
-Message-ID: <CAOQ4uxivKY8hjfKbr-MAg4WXP8f5Bb9_bhuOcMnvwdm=-V03QQ@mail.gmail.com>
-References: <0000000000000542c10577e14e22@google.com> <alpine.DEB.2.21.1810101721430.15060@nanos.tec.linutronix.de>
- <CACT4Y+YLWiZqctdUfGDJuFdHAPkpYcCo5efaWyZ=bmOsRG8LFw@mail.gmail.com>
+From: "Darrick J. Wong" <darrick.wong@oracle.com>
+Subject: Re: [PATCH 17/25] vfs: make remapping to source file eof more
+ explicit
+Date: Wed, 10 Oct 2018 09:29:48 -0700
+Message-ID: <20181010162948.GT28243@magnolia>
+References: <153913023835.32295.13962696655740190941.stgit@magnolia>
+ <153913043746.32295.17463515265798256890.stgit@magnolia>
+ <CAOQ4uxivwLR5assf0VwHdp5p06Er4w7urB637Z3wiQ1eZoT9tQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="0000000000004d95b40577e21249"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CACT4Y+YLWiZqctdUfGDJuFdHAPkpYcCo5efaWyZ=bmOsRG8LFw@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Dmitry Vyukov <dvyukov@google.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>, syzbot+ff03fe05c717b82502d0@syzkaller.appspotmail.com, bp@alien8.de, dave.hansen@linux.intel.com, hpa@zytor.com, linux-kernel <linux-kernel@vger.kernel.org>, Andy Lutomirski <luto@kernel.org>, Ingo Molnar <mingo@redhat.com>, Peter Zijlstra <peterz@infradead.org>, syzkaller-bugs@googlegroups.com, x86@kernel.org, Miklos Szeredi <miklos@szeredi.hu>, overlayfs <linux-unionfs@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-btrfs-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CAOQ4uxivwLR5assf0VwHdp5p06Er4w7urB637Z3wiQ1eZoT9tQ@mail.gmail.com>
+Sender: linux-btrfs-owner@vger.kernel.org
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: Dave Chinner <david@fromorbit.com>, Eric Sandeen <sandeen@redhat.com>, Linux NFS Mailing List <linux-nfs@vger.kernel.org>, linux-cifs@vger.kernel.org, overlayfs <linux-unionfs@vger.kernel.org>, linux-xfs <linux-xfs@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, Linux Btrfs <linux-btrfs@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, ocfs2-devel@oss.oracle.com
 List-Id: linux-unionfs@vger.kernel.org
 
---0000000000004d95b40577e21249
-Content-Type: text/plain; charset="UTF-8"
-
-On Wed, Oct 10, 2018 at 6:36 PM Dmitry Vyukov <dvyukov@google.com> wrote:
->
-> On Wed, Oct 10, 2018 at 5:22 PM, Thomas Gleixner <tglx@linutronix.de> wrote:
-> > On Wed, 10 Oct 2018, syzbot wrote:
+On Wed, Oct 10, 2018 at 03:29:06PM +0300, Amir Goldstein wrote:
+> On Wed, Oct 10, 2018 at 3:14 AM Darrick J. Wong <darrick.wong@oracle.com> wrote:
 > >
-> > Cc+: Miklos
->
-> It seems reasonable to ignore arch/.*/mm/physaddr.c as suspected
-> guilty file in future -- we already ignore everything related to
-> kmalloc/kfree and this is called from kfree.
-> I've made the corresponding change to syzkaller:
-> https://github.com/google/syzkaller/commit/ba8cd6d708b97d6be4f9164758b6a7c690d252b2
->
-> Thanks for re-routing this one, Thomas!
->
->
-> >> Hello,
-> >>
-> >> syzbot found the following crash on:
-> >>
-> >> HEAD commit:    0854ba5ff5c9 Merge git://git.kernel.org/pub/scm/linux/kern..
-> >> git tree:       upstream
-> >> console output: https://syzkaller.appspot.com/x/log.txt?x=15e64ea1400000
-> >> kernel config:  https://syzkaller.appspot.com/x/.config?x=88e9a8a39dc0be2d
-> >> dashboard link: https://syzkaller.appspot.com/bug?extid=ff03fe05c717b82502d0
-> >> compiler:       gcc (GCC) 8.0.1 20180413 (experimental)
-> >> syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=10e516a1400000
-> >> C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=11d6e93a400000
-> >>
-> >> IMPORTANT: if you fix the bug, please add the following tag to the commit:
-> >> Reported-by: syzbot+ff03fe05c717b82502d0@syzkaller.appspotmail.com
-> >>
-> >> RBP: 00007ffc881226c0 R08: 0000000020000100 R09: 0000000000000100
-> >> R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000000003
-> >> R13: ffffffffffffffff R14: 0000000000000000 R15: 0000000000000000
-> >> overlayfs: failed to verify origin (syzkaller.Ry8w8Y/file0, ino=16483,
-> >> err=-12)
-> >> ------------[ cut here ]------------
-> >> kernel BUG at arch/x86/mm/physaddr.c:22!
-> >> invalid opcode: 0000 [#1] PREEMPT SMP KASAN
-> >> CPU: 0 PID: 5918 Comm: syz-executor189 Not tainted 4.19.0-rc7+ #53
-> >> Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google
-> >> 01/01/2011
-> >> RIP: 0010:__phys_addr+0xff/0x120 arch/x86/mm/physaddr.c:22
-> >> Code: 3c 02 00 75 31 4c 8b 25 ff c3 ee 07 48 89 de bf ff ff ff 1f e8 a2 7a 46
-> >> 00 49 01 dc 48 81 fb ff ff ff 1f 76 a7 e8 61 79 46 00 <0f> 0b e8 6a e9 89 00
-> >> e9 7a ff ff ff e8 c0 e9 89 00 eb c8 0f 1f 40
-> >> RSP: 0018:ffff8801c3387770 EFLAGS: 00010093
-> >> RAX: ffff8801c323a080 RBX: 000000007ffffff4 RCX: ffffffff81385c1e
-> >> RDX: 0000000000000000 RSI: ffffffff81385c2f RDI: 0000000000000007
-> >> RBP: ffff8801c3387788 R08: ffff8801c323a080 R09: ffffed003b5c4fe8
-> >> R10: ffffed003b5c4fe8 R11: ffff8801dae27f47 R12: 000000007ffffff4
-> >> R13: 0000000000000001 R14: ffffffff882f8c80 R15: 0000000000004063
-> >> FS:  000000000148d880(0000) GS:ffff8801dae00000(0000) knlGS:0000000000000000
-> >> CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-> >> CR2: 0000000000619570 CR3: 00000001c4ab0000 CR4: 00000000001406f0
-> >> DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-> >> DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
-> >> Call Trace:
-> >> virt_to_head_page include/linux/mm.h:658 [inline]
-> >> virt_to_cache mm/slab.c:399 [inline]
-> >> kfree+0x7b/0x230 mm/slab.c:3809
-> >> ovl_verify_set_fh+0xba/0x180 fs/overlayfs/namei.c:435
-> >> ovl_verify_origin fs/overlayfs/overlayfs.h:316 [inline]
-> >> ovl_get_indexdir fs/overlayfs/super.c:1139 [inline]
-> >> ovl_fill_super+0x3026/0x3f7b fs/overlayfs/super.c:1441
-> >> mount_nodev+0x6b/0x110 fs/super.c:1204
-> >> ovl_mount+0x2c/0x40 fs/overlayfs/super.c:1518
-> >> mount_fs+0xae/0x31d fs/super.c:1261
-> >> vfs_kern_mount.part.35+0xdc/0x4f0 fs/namespace.c:961
-> >> vfs_kern_mount fs/namespace.c:951 [inline]
-> >> do_new_mount fs/namespace.c:2457 [inline]
-> >> do_mount+0x581/0x31f0 fs/namespace.c:2787
-> >> ksys_mount+0x12d/0x140 fs/namespace.c:3003
-> >> __do_sys_mount fs/namespace.c:3017 [inline]
-> >> __se_sys_mount fs/namespace.c:3014 [inline]
-> >> __x64_sys_mount+0xbe/0x150 fs/namespace.c:3014
-> >> do_syscall_64+0x1b9/0x820 arch/x86/entry/common.c:290
-> >> entry_SYSCALL_64_after_hwframe+0x49/0xbe
-> >> RIP: 0033:0x4418e9
-> >> Code: 26 02 00 85 c0 b8 00 00 00 00 48 0f 44 c3 5b c3 90 48 89 f8 48 89 f7 48
-> >> 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 0f
-> >> 83 cb 08 fc ff c3 66 2e 0f 1f 84 00 00 00 00
-> >> RSP: 002b:00007ffc88122678 EFLAGS: 00000246 ORIG_RAX: 00000000000000a5
-> >> RAX: ffffffffffffffda RBX: 0000000000000000 RCX: 00000000004418e9
-> >> RDX: 00000000200000c0 RSI: 0000000020000000 RDI: 0000000000400000
-> >> RBP: 00007ffc881226c0 R08: 0000000020000100 R09: 0000000000000100
-> >> R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000000003
-> >> R13: ffffffffffffffff R14: 0000000000000000 R15: 0000000000000000
-> >> Modules linked in:
-> >> ---[ end trace 25e838f694c8a24f ]---
-> >> RIP: 0010:__phys_addr+0xff/0x120 arch/x86/mm/physaddr.c:22
-> >> Code: 3c 02 00 75 31 4c 8b 25 ff c3 ee 07 48 89 de bf ff ff ff 1f e8 a2 7a 46
-> >> 00 49 01 dc 48 81 fb ff ff ff 1f 76 a7 e8 61 79 46 00 <0f> 0b e8 6a e9 89 00
-> >> e9 7a ff ff ff e8 c0 e9 89 00 eb c8 0f 1f 40
-> >> RSP: 0018:ffff8801c3387770 EFLAGS: 00010093
-> >> RAX: ffff8801c323a080 RBX: 000000007ffffff4 RCX: ffffffff81385c1e
-> >> RDX: 0000000000000000 RSI: ffffffff81385c2f RDI: 0000000000000007
-> >> RBP: ffff8801c3387788 R08: ffff8801c323a080 R09: ffffed003b5c4fe8
-> >> R10: ffffed003b5c4fe8 R11: ffff8801dae27f47 R12: 000000007ffffff4
-> >> R13: 0000000000000001 R14: ffffffff882f8c80 R15: 0000000000004063
-> >> FS:  000000000148d880(0000) GS:ffff8801dae00000(0000) knlGS:0000000000000000
-> >> CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-> >> CR2: 0000000000619570 CR3: 00000001c4ab0000 CR4: 00000000001406f0
-> >> DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-> >> DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
-> >>
-> >>
+> > From: Darrick J. Wong <darrick.wong@oracle.com>
+> >
+> > Create a RFR_TO_SRC_EOF flag to explicitly declare that the caller wants
+> > the remap implementation to remap to the end of the source file, once
+> > the files are locked.
+> >
+> > Signed-off-by: Darrick J. Wong <darrick.wong@oracle.com>
+> > ---
+> >  fs/ioctl.c         |    3 ++-
+> >  fs/nfsd/vfs.c      |    3 ++-
+> >  fs/read_write.c    |   13 +++++++------
+> >  include/linux/fs.h |    2 ++
+> >  4 files changed, 13 insertions(+), 8 deletions(-)
+> >
+> >
+> > diff --git a/fs/ioctl.c b/fs/ioctl.c
+> > index 505275ec5596..7fec997abd2f 100644
+> > --- a/fs/ioctl.c
+> > +++ b/fs/ioctl.c
+> > @@ -224,6 +224,7 @@ static long ioctl_file_clone(struct file *dst_file, unsigned long srcfd,
+> >  {
+> >         struct fd src_file = fdget(srcfd);
+> >         loff_t cloned;
+> > +       unsigned int flags = olen == 0 ? RFR_TO_SRC_EOF : 0;
+> >         int ret;
+> >
+> >         if (!src_file.file)
+> > @@ -232,7 +233,7 @@ static long ioctl_file_clone(struct file *dst_file, unsigned long srcfd,
+> >         if (src_file.file->f_path.mnt != dst_file->f_path.mnt)
+> >                 goto fdput;
+> >         cloned = vfs_clone_file_range(src_file.file, off, dst_file, destoff,
+> > -                                     olen, 0);
+> > +                                     olen, flags);
+> >         if (cloned < 0)
+> >                 ret = cloned;
+> >         else if (olen && cloned != olen)
+> > diff --git a/fs/nfsd/vfs.c b/fs/nfsd/vfs.c
+> > index 726fc5b2b27a..d1f2ae08adf6 100644
+> > --- a/fs/nfsd/vfs.c
+> > +++ b/fs/nfsd/vfs.c
+> > @@ -542,8 +542,9 @@ __be32 nfsd4_clone_file_range(struct file *src, u64 src_pos, struct file *dst,
+> >                 u64 dst_pos, u64 count)
+> >  {
+> >         loff_t cloned;
+> > +       unsigned int flags = count == 0 ? RFR_TO_SRC_EOF : 0;
+> >
+> > -       cloned = vfs_clone_file_range(src, src_pos, dst, dst_pos, count, 0);
+> > +       cloned = vfs_clone_file_range(src, src_pos, dst, dst_pos, count, flags);
+> >         if (count && cloned != count)
+> >                 cloned = -EINVAL;
+> >         return nfserrno(cloned < 0 ? cloned : 0);
+> > diff --git a/fs/read_write.c b/fs/read_write.c
+> > index 479eb810c8e6..a628fd9a47cf 100644
+> > --- a/fs/read_write.c
+> > +++ b/fs/read_write.c
+> > @@ -1748,11 +1748,12 @@ int generic_remap_file_range_prep(struct file *file_in, loff_t pos_in,
+> >
+> >         isize = i_size_read(inode_in);
+> >
+> > -       /* Zero length dedupe exits immediately; reflink goes to EOF. */
+> > -       if (*len == 0) {
+> > -               if (is_dedupe || pos_in == isize)
+> > -                       return 0;
+> > -               if (pos_in > isize)
+> > +       /*
+> > +        * If the caller asked to go all the way to the end of the source file,
+> > +        * set *len now that we have the file locked.
+> > +        */
+> > +       if (remap_flags & RFR_TO_SRC_EOF) {
+> > +               if (pos_in >= isize)
+> >                         return -EINVAL;
+> >                 *len = isize - pos_in;
+> >         }
+> > @@ -1828,7 +1829,7 @@ loff_t do_clone_file_range(struct file *file_in, loff_t pos_in,
+> >         struct inode *inode_out = file_inode(file_out);
+> >         loff_t ret;
+> >
+> > -       WARN_ON_ONCE(remap_flags);
+> > +       WARN_ON_ONCE(remap_flags & ~(RFR_TO_SRC_EOF));
+> >
+> >         if (S_ISDIR(inode_in->i_mode) || S_ISDIR(inode_out->i_mode))
+> >                 return -EISDIR;
+> > diff --git a/include/linux/fs.h b/include/linux/fs.h
+> > index 5c1bf1c35bc6..9f90dcd4df3b 100644
+> > --- a/include/linux/fs.h
+> > +++ b/include/linux/fs.h
+> > @@ -1725,8 +1725,10 @@ struct block_device_operations;
+> >   * These flags control the behavior of the remap_file_range function pointer.
+> >   *
+> >   * RFR_IDENTICAL_DATA: only remap if contents identical (i.e. deduplicate)
+> 
+> <bikeshedding> not that I care so much, but is there any reason you chose
+> to use _IDENTICAL_ vs. _SAME_? The latter is shorter and already engraved
+> in the dedup uapi. </bikeshedding>
 
-Not sure syzbot takes attachements, but here is the fix.
+I picked 'identical' because it seemed (to me anyway) to hint that yes
+we do memcmp the contents.  Some people I've met seem to use 'same' to
+describe the much looser statement that hash(a) == hash(b), e.g.
 
-Thanks,
-Amir.
+  "We use crc32c to find out if the blocks are the same and then we of
+   course do a byte by byte comparison to find out if they're really the
+   same."
 
---0000000000004d95b40577e21249
-Content-Type: text/x-patch; charset="US-ASCII";
-	name="0001-ovl-fix-error-handling-in-ovl_verify_set_fh.patch"
-Content-Disposition: attachment;
-	filename="0001-ovl-fix-error-handling-in-ovl_verify_set_fh.patch"
-Content-Transfer-Encoding: base64
-Content-ID: <f_jn3cmll90>
-X-Attachment-Id: f_jn3cmll90
+No, you're using crc32c to find block-match candidates and then memcmp
+to decide if they're really identical. :)
 
-RnJvbSA0OWM0YzIxYjM3Y2NiZGMzOTY4MGIwZGMwZjEwOTVjMTc1NWY1YjlhIE1vbiBTZXAgMTcg
-MDA6MDA6MDAgMjAwMQpGcm9tOiBBbWlyIEdvbGRzdGVpbiA8YW1pcjczaWxAZ21haWwuY29tPgpE
-YXRlOiBXZWQsIDEwIE9jdCAyMDE4IDE4OjU3OjUwICswMzAwClN1YmplY3Q6IFtQQVRDSF0gb3Zs
-OiBmaXggZXJyb3IgaGFuZGxpbmcgaW4gb3ZsX3ZlcmlmeV9zZXRfZmgoKQoKV2UgaGl0IGEgQlVH
-IG9uIGtmcmVlIG9mIGFuIEVSUl9QVFIoKS4uLgoKUmVwb3J0ZWQtYnk6IHN5emJvdCtmZjAzZmUw
-NWM3MTdiODI1MDJkMEBzeXprYWxsZXIuYXBwc3BvdG1haWwuY29tCkZpeGVzOiA4Yjg4YTJlNjQw
-MzYgKCJvdmw6IHZlcmlmeSB1cHBlciByb290IGRpciBtYXRjaGVzIGxvd2VyIHJvb3QgZGlyIikK
-Q2M6IDxzdGFibGVAdmdlci5rZXJuZWwub3JnPiAjIHY0LjEzClNpZ25lZC1vZmYtYnk6IEFtaXIg
-R29sZHN0ZWluIDxhbWlyNzNpbEBnbWFpbC5jb20+Ci0tLQogZnMvb3ZlcmxheWZzL25hbWVpLmMg
-fCA0ICsrKy0KIDEgZmlsZSBjaGFuZ2VkLCAzIGluc2VydGlvbnMoKyksIDEgZGVsZXRpb24oLSkK
-CmRpZmYgLS1naXQgYS9mcy9vdmVybGF5ZnMvbmFtZWkuYyBiL2ZzL292ZXJsYXlmcy9uYW1laS5j
-CmluZGV4IDljMGNhNmE3YmVjZi4uZWZkMzcyMzEyZWYxIDEwMDY0NAotLS0gYS9mcy9vdmVybGF5
-ZnMvbmFtZWkuYworKysgYi9mcy9vdmVybGF5ZnMvbmFtZWkuYwpAQCAtNDIyLDggKzQyMiwxMCBA
-QCBpbnQgb3ZsX3ZlcmlmeV9zZXRfZmgoc3RydWN0IGRlbnRyeSAqZGVudHJ5LCBjb25zdCBjaGFy
-ICpuYW1lLAogCiAJZmggPSBvdmxfZW5jb2RlX3JlYWxfZmgocmVhbCwgaXNfdXBwZXIpOwogCWVy
-ciA9IFBUUl9FUlIoZmgpOwotCWlmIChJU19FUlIoZmgpKQorCWlmIChJU19FUlIoZmgpKSB7CisJ
-CWZoID0gTlVMTDsKIAkJZ290byBmYWlsOworCX0KIAogCWVyciA9IG92bF92ZXJpZnlfZmgoZGVu
-dHJ5LCBuYW1lLCBmaCk7CiAJaWYgKHNldCAmJiBlcnIgPT0gLUVOT0RBVEEpCi0tIAoyLjE3LjEK
-Cg==
---0000000000004d95b40577e21249--
+Anyway, I suppose we already use 'same' elsewhere in the kernel to
+describe this, so I should reduce the cognitive dissonance and use that
+too.  Fixed.
+
+> > + * RFR_TO_SRC_EOF: remap to the end of the source file
+> >   */
+> >  #define RFR_IDENTICAL_DATA     (1 << 0)
+> > +#define RFR_TO_SRC_EOF         (1 << 1)
+> >
+> 
+> So what is the best way to make sure that all filesystems can
+> properly handle this flag? and the RFR_CAN_SHORTEN flag?
+> 
+> The way that your patches took is to not check for invalid flags
+> at all in filesystems, but I don't think that is a viable option.
+
+The RFR flags are internal APIs, so we don't need to be quite as strict
+as fiemap does...
+
+> Another way would be to individually add those flags to invalid
+> flags check in all relevant filesystems.
+> 
+> Another way would be to follow a pattern similar to
+> fiemap_check_flags(), except in case filesystem does not declare
+> to support the RFR_ "advisory" flags, it will not fail the operation
+> 
+> Comparing to FIEMAP_ flags, no filesystem would have needed to declare
+> support for FIEMAP_FLAG_SYNC, because vfs dealt with it anyway
+> before calling into the filesystem. So de-facto, any filesystem supports
+> FIEMAP_FLAG_SYNC without doing anything, but it is still worth passing
+> the flag into filesystem in case it matter (it does for overlayfs).
+
+...but I think you have a good point that we could help filesystem
+writers distinguish between advisory flags that are taken care of by the
+VFS but passed to the fs for full disclosure; and mandatory flags that
+the fs for which the fs must advertise support.
+
+IOWs,
+
+int remap_check_flags(unsigned int remap_flags, unsigned int supported_flags)
+{
+	/* VFS already took care of these */
+	remap_flags &= ~(RFR_TO_EOF | RFR_CAN_SHORTEN);
+
+	if (remap_flags & ~supported_flags) {
+		WARN_ONCE(1, "Internal API misuse at %pS", __return_address);
+		return -EINVAL;
+	}
+
+	return 0;
+}
+
+> I am not sure if giving fiemap_check_flags() as an example for sorting
+> out VFS API flags is a good idea, because I completely don't understand
+> what is going on in ext4_fiemap(). Why do FIEMAP_FLAG_CACHE and
+> the case of  !EXT4_INODE_EXTENTS bypass fiemap_check_flags()?
+
+generic_block_fiemap calls fiemap_check_flags.
+
+> Is there a rational behind all this or just plain old API bit rot?
+> If bit rot, then perhaps the fiemap_check_flags() wasn't a good enough
+> coding pattern?
+
+Hooooo... I don't even want to get into what FIEMAP_FLAG_CACHE does in
+ext4.
+
+--D
+
+> Thanks,
+> Amir.
