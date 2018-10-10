@@ -1,45 +1,30 @@
-Return-Path: <olga.kornievskaia@gmail.com>
-Return-Path: <olga.kornievskaia@gmail.com>
-From: Olga Kornievskaia <olga.kornievskaia@gmail.com>
-Subject: [PATCH v5 07/12] NFS: also send OFFLOAD_CANCEL to source server
-Date: Mon, 29 Oct 2018 13:40:54 -0400
-Message-Id: <20181029174059.38326-9-olga.kornievskaia@gmail.com>
-In-Reply-To: <20181029174059.38326-1-olga.kornievskaia@gmail.com>
-References: <20181029174059.38326-1-olga.kornievskaia@gmail.com>
-To: trond.myklebust@hammerspace.com, anna.schumaker@netapp.com, viro@zeniv.linux.org.uk, smfrench@gmail.com, miklos@szeredi.hu
-Cc: linux-nfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-cifs@vger.kernel.org, linux-unionfs@vger.kernel.org, linux-man@vger.kernel.org
+Return-Path: <zohar@linux.ibm.com>
+Subject: Re: [PATCH v2] Open a new file instance if no read permissions
+From: Mimi Zohar <zohar@linux.ibm.com>
+Date: Wed, 10 Oct 2018 15:04:42 -0400
+In-Reply-To: <20181009151233.lxgm5c73epofi6r3@merlin>
+References: <20181009151233.lxgm5c73epofi6r3@merlin>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
+Message-Id: <1539198282.3585.6.camel@linux.ibm.com>
+To: Goldwyn Rodrigues <rgoldwyn@suse.de>, James Morris <jmorris@namei.org>
+Cc: linux-integrity@vger.kernel.org, linux-unionfs@vger.kernel.org, iforster@suse.de, fvogt@suse.de, miklos@szeredi.hu
 List-ID: <linux-unionfs@vger.kernel.org>
 
-From: Olga Kornievskaia <kolga@netapp.com>
+Hi Goldwyn,
 
-In case of copy is cancelled, also send OFFLOAD_CANCEL to the source
-server.
+On Tue, 2018-10-09 at 10:12 -0500, Goldwyn Rodrigues wrote:
+> Open a new file instance as opposed to changing file->f_mode when
+> the file is not readable. This is done to accomodate
+> overlayfs stacked file operations change. The real struct file is hidden
+> behind the overlays struct file. So, any file->f_mode manipulations are
+> not reflected on the real struct file. Open the file again in read mode
+> if original file cannot be read, read and calculate the hash.
+> 
+> Signed-off-by: Goldwyn Rodrigues <rgoldwyn@suse.com>
 
-Signed-off-by: Olga Kornievskaia <kolga@netapp.com>
----
- fs/nfs/nfs42proc.c | 6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+Thanks!  I'm waiting for it to hit linux-next, before sending James
+the linux-integrity pull request.
 
-diff --git a/fs/nfs/nfs42proc.c b/fs/nfs/nfs42proc.c
-index bb9e799..98fe00b 100644
---- a/fs/nfs/nfs42proc.c
-+++ b/fs/nfs/nfs42proc.c
-@@ -205,12 +205,14 @@ static int handle_async_copy(struct nfs42_copy_res *res,
- 	memcpy(&res->write_res.verifier, &copy->verf, sizeof(copy->verf));
- 	status = -copy->error;
- 
-+out_free:
- 	kfree(copy);
- 	return status;
- out_cancel:
- 	nfs42_do_offload_cancel_async(dst, &copy->stateid);
--	kfree(copy);
--	return status;
-+	if (!nfs42_files_from_same_server(src, dst))
-+		nfs42_do_offload_cancel_async(src, src_stateid);
-+	goto out_free;
- }
- 
- static int process_copy_commit(struct file *dst, loff_t pos_dst,
--- 
-1.8.3.1
+Mimi
