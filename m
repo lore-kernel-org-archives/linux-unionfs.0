@@ -1,39 +1,204 @@
 Return-Path: <amir73il@gmail.com>
 Return-Path: <amir73il@gmail.com>
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH v2] vfs: fix FIGETBSZ ioctl on an overlayfs file
-Date: Thu, 11 Oct 2018 17:38:14 +0300
-Message-Id: <20181011143814.14296-1-amir73il@gmail.com>
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: Al Viro <viro@zeniv.linux.org.uk>, linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
+Subject: [PATCH v3 4/6] syscalls/readahead02: test readahead() on an overlayfs file
+Date: Thu, 11 Oct 2018 02:34:39 +0300
+Message-Id: <20181010233441.5337-5-amir73il@gmail.com>
+In-Reply-To: <20181010233441.5337-1-amir73il@gmail.com>
+References: <20181010233441.5337-1-amir73il@gmail.com>
+To: Cyril Hrubis <chrubis@suse.cz>
+Cc: ltp@lists.linux.it, Jan Stancek <jstancek@redhat.com>, Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org
 List-ID: <linux-unionfs@vger.kernel.org>
 
-Some anon_bdev filesystems (e.g. overlayfs, ceph) don't have s_blocksize
-set. Returning zero from FIGETBSZ ioctl results in a Floating point
-exception from the e2fsprogs utility filefrag, which divides the size of
-the file with the value returned by FIGETBSZ.
+Repeat the test case on an overlayfs file.
 
-Fix the interface by returning -EINVAL for these filesystems.
+The new test case is a regression test for kernel commit b833a3660394
+("ovl: add ovl_fadvise()") which fixes a regression of readahead() on
+an overlay file that was introduced by kernel commit 5b910bd615ba
+("ovl: fix GPF in swapfile_activate of file from overlayfs over xfs").
 
-Fixes: d1d04ef8572b ("ovl: stack file ops")
 Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- fs/ioctl.c | 3 +++
- 1 file changed, 3 insertions(+)
+ .../kernel/syscalls/readahead/readahead02.c   | 85 ++++++++++++++++---
+ 1 file changed, 73 insertions(+), 12 deletions(-)
 
-diff --git a/fs/ioctl.c b/fs/ioctl.c
-index 2005529af560..0400297c8d72 100644
---- a/fs/ioctl.c
-+++ b/fs/ioctl.c
-@@ -669,6 +669,9 @@ int do_vfs_ioctl(struct file *filp, unsigned int fd, unsigned int cmd,
- 		return ioctl_fiemap(filp, arg);
+diff --git a/testcases/kernel/syscalls/readahead/readahead02.c b/testcases/kernel/syscalls/readahead/readahead02.c
+index f77e7c66c..56a8496ff 100644
+--- a/testcases/kernel/syscalls/readahead/readahead02.c
++++ b/testcases/kernel/syscalls/readahead/readahead02.c
+@@ -14,6 +14,7 @@
+ #include <sys/types.h>
+ #include <sys/syscall.h>
+ #include <sys/mman.h>
++#include <sys/mount.h>
+ #include <sys/stat.h>
+ #include <sys/types.h>
+ #include <sys/time.h>
+@@ -34,8 +35,14 @@ static const char meminfo_fname[] = "/proc/meminfo";
+ static size_t testfile_size = 64 * 1024 * 1024;
+ static char *opt_fsizestr;
+ static int pagesize;
++static unsigned long cached_max;
++static int ovl_mounted;
  
- 	case FIGETBSZ:
-+		/* anon_bdev filesystems may not have a block size */
-+		if (!inode->i_sb->s_blocksize)
-+			return -EINVAL;
- 		return put_user(inode->i_sb->s_blocksize, argp);
+ #define MNTPOINT        "mntpoint"
++#define OVL_LOWER	MNTPOINT"/lower"
++#define OVL_UPPER	MNTPOINT"/upper"
++#define OVL_WORK	MNTPOINT"/work"
++#define OVL_MNT		MNTPOINT"/ovl"
+ #define MIN_SANE_READAHEAD (4u * 1024u)
  
- 	case FICLONE:
+ static const char mntpoint[] = MNTPOINT;
+@@ -45,16 +52,28 @@ static struct tst_option options[] = {
+ 	{NULL, NULL, NULL}
+ };
+ 
+-static int check_ret(void)
++static struct tcase {
++	const char *tname;
++	int use_overlay;
++} tcases[] = {
++	{ "readahead on file", 0 },
++	{ "readahead on overlayfs file", 1 },
++};
++
++static int readahead_supported = 1;
++
++static int check_ret(struct tcase *tc)
+ {
+ 	if (TST_RET == 0)
+ 		return 0;
+-	if (TST_ERR == EINVAL) {
++	if (TST_ERR == EINVAL &&
++	    (!tc->use_overlay || !readahead_supported)) {
++		readahead_supported = 0;
+ 		tst_res(TCONF, "readahead not supported on %s",
+ 			tst_device->fs_type);
+ 	} else {
+ 		tst_res(TFAIL | TTERRNO, "readahead failed on %s",
+-			tst_device->fs_type);
++			tc->use_overlay ? "overlayfs" : tst_device->fs_type);
+ 	}
+ 	return 1;
+ }
+@@ -112,12 +131,13 @@ static unsigned long get_cached_size(void)
+ 	return parse_entry(meminfo_fname, entry);
+ }
+ 
+-static void create_testfile(void)
++static void create_testfile(int use_overlay)
+ {
+ 	int fd;
+ 	char *tmp;
+ 	size_t i;
+ 
++	sprintf(testfile, "%s/testfile", use_overlay ? OVL_MNT : MNTPOINT);
+ 	tst_res(TINFO, "creating test file of size: %zu", testfile_size);
+ 	tmp = SAFE_MALLOC(pagesize);
+ 
+@@ -224,21 +244,33 @@ static void read_testfile(int do_readahead, const char *fname, size_t fsize,
+ 	SAFE_CLOSE(fd);
+ }
+ 
+-static void test_readahead(void)
++static void test_readahead(unsigned int n)
+ {
+ 	unsigned long read_bytes, read_bytes_ra;
+ 	long usec, usec_ra;
+-	unsigned long cached_max, cached_low, cached, cached_ra;
++	unsigned long cached_high, cached_low, cached, cached_ra;
+ 	char proc_io_fname[128];
++	struct tcase *tc = &tcases[n];
++
++	tst_res(TINFO, "Test #%d: %s", n, tc->tname);
++
+ 	sprintf(proc_io_fname, "/proc/%u/io", getpid());
+ 
++	if (tc->use_overlay && !ovl_mounted) {
++		tst_res(TCONF,
++			"overlayfs is not configured in this kernel.");
++		return;
++	}
++
++	create_testfile(tc->use_overlay);
++
+ 	/* find out how much can cache hold if we read whole file */
+ 	read_testfile(0, testfile, testfile_size, &read_bytes, &usec, &cached);
+-	cached_max = get_cached_size();
++	cached_high = get_cached_size();
+ 	sync();
+ 	drop_caches();
+ 	cached_low = get_cached_size();
+-	cached_max = cached_max - cached_low;
++	cached_max = MAX(cached_max, cached_high - cached_low);
+ 
+ 	tst_res(TINFO, "read_testfile(0)");
+ 	read_testfile(0, testfile, testfile_size, &read_bytes, &usec, &cached);
+@@ -253,7 +285,7 @@ static void test_readahead(void)
+ 	tst_res(TINFO, "read_testfile(1)");
+ 	read_testfile(1, testfile, testfile_size, &read_bytes_ra,
+ 		      &usec_ra, &cached_ra);
+-	if (check_ret())
++	if (check_ret(tc))
+ 		return;
+ 	if (cached_ra > cached_low)
+ 		cached_ra = cached_ra - cached_low;
+@@ -295,6 +327,28 @@ static void test_readahead(void)
+ 	}
+ }
+ 
++static void setup_overlay(void)
++{
++	int ret;
++
++	/* Setup an overlay mount with lower dir and file */
++	SAFE_MKDIR(OVL_LOWER, 0755);
++	SAFE_MKDIR(OVL_UPPER, 0755);
++	SAFE_MKDIR(OVL_WORK, 0755);
++	SAFE_MKDIR(OVL_MNT, 0755);
++	ret = mount("overlay", OVL_MNT, "overlay", 0, "lowerdir="OVL_LOWER
++		    ",upperdir="OVL_UPPER",workdir="OVL_WORK);
++	if (ret < 0) {
++		if (errno == ENODEV) {
++			tst_res(TINFO,
++				"overlayfs is not configured in this kernel.");
++			return;
++		}
++		tst_brk(TBROK | TERRNO, "overlayfs mount failed");
++	}
++	ovl_mounted = 1;
++}
++
+ static void setup(void)
+ {
+ 	if (opt_fsizestr)
+@@ -308,8 +362,13 @@ static void setup(void)
+ 
+ 	pagesize = getpagesize();
+ 
+-	sprintf(testfile, "%s/testfile", mntpoint);
+-	create_testfile();
++	setup_overlay();
++}
++
++static void cleanup(void)
++{
++	if (ovl_mounted)
++		SAFE_UMOUNT(OVL_MNT);
+ }
+ 
+ static struct tst_test test = {
+@@ -318,8 +377,10 @@ static struct tst_test test = {
+ 	.mount_device = 1,
+ 	.mntpoint = mntpoint,
+ 	.setup = setup,
++	.cleanup = cleanup,
+ 	.options = options,
+-	.test_all = test_readahead,
++	.test = test_readahead,
++	.tcnt = ARRAY_SIZE(tcases),
+ };
+ 
+ #else /* __NR_readahead */
 -- 
 2.17.1
