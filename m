@@ -1,209 +1,119 @@
-From: "Darrick J. Wong" <darrick.wong@oracle.com>
-Subject: Re: [PATCH 08/25] vfs: combine the clone and dedupe into a single
- remap_file_range
-Date: Wed, 10 Oct 2018 08:13:21 -0700
-Message-ID: <20181010151321.GR28243@magnolia>
-References: <153913023835.32295.13962696655740190941.stgit@magnolia>
- <153913029885.32295.7399525233513945673.stgit@magnolia>
- <CAOQ4uxj_wftoGvub9n_6X3Qc64LKxs+8TB-opUiq59sGQ=YoKw@mail.gmail.com>
+From: Thomas Gleixner <tglx@linutronix.de>
+Subject: Re: kernel BUG at arch/x86/mm/physaddr.c:LINE!
+Date: Wed, 10 Oct 2018 17:22:27 +0200 (CEST)
+Message-ID: <alpine.DEB.2.21.1810101721430.15060@nanos.tec.linutronix.de>
+References: <0000000000000542c10577e14e22@google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-btrfs-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAOQ4uxj_wftoGvub9n_6X3Qc64LKxs+8TB-opUiq59sGQ=YoKw@mail.gmail.com>
-Sender: linux-btrfs-owner@vger.kernel.org
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: Dave Chinner <david@fromorbit.com>, Eric Sandeen <sandeen@redhat.com>, Linux NFS Mailing List <linux-nfs@vger.kernel.org>, linux-cifs@vger.kernel.org, overlayfs <linux-unionfs@vger.kernel.org>, linux-xfs <linux-xfs@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, Linux Btrfs <linux-btrfs@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, ocfs2-devel@oss.oracle.com
+Content-Type: text/plain; charset=US-ASCII
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <0000000000000542c10577e14e22@google.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: syzbot <syzbot+ff03fe05c717b82502d0@syzkaller.appspotmail.com>
+Cc: Borislav Petkov <bp@alien8.de>, dave.hansen@linux.intel.com, "H. Peter Anvin" <hpa@zytor.com>, LKML <linux-kernel@vger.kernel.org>, Andy Lutomirski <luto@kernel.org>, mingo@redhat.com, Peter Zijlstra <peterz@infradead.org>, syzkaller-bugs@googlegroups.com, x86@kernel.org, Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 
-On Wed, Oct 10, 2018 at 08:54:44AM +0300, Amir Goldstein wrote:
-> On Wed, Oct 10, 2018 at 3:12 AM Darrick J. Wong <darrick.wong@oracle.com> wrote:
-> >
-> > From: Darrick J. Wong <darrick.wong@oracle.com>
-> >
-> > Combine the clone_file_range and dedupe_file_range operations into a
-> > single remap_file_range file operation dispatch since they're
-> > fundamentally the same operation.  The differences between the two can
-> > be made in the prep functions.
-> >
-> > Signed-off-by: Darrick J. Wong <darrick.wong@oracle.com>
-> > ---
+On Wed, 10 Oct 2018, syzbot wrote:
+
+Cc+: Miklos
+
+> Hello,
 > 
-> I like this. Nits below.
+> syzbot found the following crash on:
 > 
-> [...]
+> HEAD commit:    0854ba5ff5c9 Merge git://git.kernel.org/pub/scm/linux/kern..
+> git tree:       upstream
+> console output: https://syzkaller.appspot.com/x/log.txt?x=15e64ea1400000
+> kernel config:  https://syzkaller.appspot.com/x/.config?x=88e9a8a39dc0be2d
+> dashboard link: https://syzkaller.appspot.com/bug?extid=ff03fe05c717b82502d0
+> compiler:       gcc (GCC) 8.0.1 20180413 (experimental)
+> syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=10e516a1400000
+> C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=11d6e93a400000
 > 
-> > diff --git a/fs/btrfs/ioctl.c b/fs/btrfs/ioctl.c
-> > index d60b6caf09e8..e22b294fa25b 100644
-> > --- a/fs/btrfs/ioctl.c
-> > +++ b/fs/btrfs/ioctl.c
-> > @@ -3627,26 +3627,6 @@ static int btrfs_extent_same(struct inode *src, u64 loff, u64 olen,
-> >         return ret;
-> >  }
-> >
-> > -int btrfs_dedupe_file_range(struct file *src_file, loff_t src_loff,
-> > -                           struct file *dst_file, loff_t dst_loff,
-> > -                           u64 olen)
-> > -{
-> > -       struct inode *src = file_inode(src_file);
-> > -       struct inode *dst = file_inode(dst_file);
-> > -       u64 bs = BTRFS_I(src)->root->fs_info->sb->s_blocksize;
-> > -
-> > -       if (WARN_ON_ONCE(bs < PAGE_SIZE)) {
-> > -               /*
-> > -                * Btrfs does not support blocksize < page_size. As a
-> > -                * result, btrfs_cmp_data() won't correctly handle
-> > -                * this situation without an update.
-> > -                */
-> > -               return -EINVAL;
-> > -       }
-> > -
-> > -       return btrfs_extent_same(src, src_loff, olen, dst, dst_loff);
-> > -}
-> > -
-> >  static int clone_finish_inode_update(struct btrfs_trans_handle *trans,
-> >                                      struct inode *inode,
-> >                                      u64 endoff,
-> > @@ -4348,9 +4328,27 @@ static noinline int btrfs_clone_files(struct file *file, struct file *file_src,
-> >         return ret;
-> >  }
-> >
-> > -int btrfs_clone_file_range(struct file *src_file, loff_t off,
-> > -               struct file *dst_file, loff_t destoff, u64 len)
-> > +int btrfs_remap_file_range(struct file *src_file, loff_t off,
-> > +               struct file *dst_file, loff_t destoff, u64 len,
-> > +               unsigned int flags)
-> >  {
-> > +       if (flags & RFR_IDENTICAL_DATA) {
-> > +               struct inode *src = file_inode(src_file);
-> > +               struct inode *dst = file_inode(dst_file);
-> > +               u64 bs = BTRFS_I(src)->root->fs_info->sb->s_blocksize;
-> > +
-> > +               if (WARN_ON_ONCE(bs < PAGE_SIZE)) {
-> > +                       /*
-> > +                        * Btrfs does not support blocksize < page_size. As a
-> > +                        * result, btrfs_cmp_data() won't correctly handle
-> > +                        * this situation without an update.
-> > +                        */
-> > +                       return -EINVAL;
-> > +               }
-> > +
-> > +               return btrfs_extent_same(src, off, len, dst, destoff);
-> > +       }
-> > +
+> IMPORTANT: if you fix the bug, please add the following tag to the commit:
+> Reported-by: syzbot+ff03fe05c717b82502d0@syzkaller.appspotmail.com
 > 
-> Seems weird that you would do that instead of:
+> RBP: 00007ffc881226c0 R08: 0000000020000100 R09: 0000000000000100
+> R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000000003
+> R13: ffffffffffffffff R14: 0000000000000000 R15: 0000000000000000
+> overlayfs: failed to verify origin (syzkaller.Ry8w8Y/file0, ino=16483,
+> err=-12)
+> ------------[ cut here ]------------
+> kernel BUG at arch/x86/mm/physaddr.c:22!
+> invalid opcode: 0000 [#1] PREEMPT SMP KASAN
+> CPU: 0 PID: 5918 Comm: syz-executor189 Not tainted 4.19.0-rc7+ #53
+> Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google
+> 01/01/2011
+> RIP: 0010:__phys_addr+0xff/0x120 arch/x86/mm/physaddr.c:22
+> Code: 3c 02 00 75 31 4c 8b 25 ff c3 ee 07 48 89 de bf ff ff ff 1f e8 a2 7a 46
+> 00 49 01 dc 48 81 fb ff ff ff 1f 76 a7 e8 61 79 46 00 <0f> 0b e8 6a e9 89 00
+> e9 7a ff ff ff e8 c0 e9 89 00 eb c8 0f 1f 40
+> RSP: 0018:ffff8801c3387770 EFLAGS: 00010093
+> RAX: ffff8801c323a080 RBX: 000000007ffffff4 RCX: ffffffff81385c1e
+> RDX: 0000000000000000 RSI: ffffffff81385c2f RDI: 0000000000000007
+> RBP: ffff8801c3387788 R08: ffff8801c323a080 R09: ffffed003b5c4fe8
+> R10: ffffed003b5c4fe8 R11: ffff8801dae27f47 R12: 000000007ffffff4
+> R13: 0000000000000001 R14: ffffffff882f8c80 R15: 0000000000004063
+> FS:  000000000148d880(0000) GS:ffff8801dae00000(0000) knlGS:0000000000000000
+> CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+> CR2: 0000000000619570 CR3: 00000001c4ab0000 CR4: 00000000001406f0
+> DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+> DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+> Call Trace:
+> virt_to_head_page include/linux/mm.h:658 [inline]
+> virt_to_cache mm/slab.c:399 [inline]
+> kfree+0x7b/0x230 mm/slab.c:3809
+> ovl_verify_set_fh+0xba/0x180 fs/overlayfs/namei.c:435
+> ovl_verify_origin fs/overlayfs/overlayfs.h:316 [inline]
+> ovl_get_indexdir fs/overlayfs/super.c:1139 [inline]
+> ovl_fill_super+0x3026/0x3f7b fs/overlayfs/super.c:1441
+> mount_nodev+0x6b/0x110 fs/super.c:1204
+> ovl_mount+0x2c/0x40 fs/overlayfs/super.c:1518
+> mount_fs+0xae/0x31d fs/super.c:1261
+> vfs_kern_mount.part.35+0xdc/0x4f0 fs/namespace.c:961
+> vfs_kern_mount fs/namespace.c:951 [inline]
+> do_new_mount fs/namespace.c:2457 [inline]
+> do_mount+0x581/0x31f0 fs/namespace.c:2787
+> ksys_mount+0x12d/0x140 fs/namespace.c:3003
+> __do_sys_mount fs/namespace.c:3017 [inline]
+> __se_sys_mount fs/namespace.c:3014 [inline]
+> __x64_sys_mount+0xbe/0x150 fs/namespace.c:3014
+> do_syscall_64+0x1b9/0x820 arch/x86/entry/common.c:290
+> entry_SYSCALL_64_after_hwframe+0x49/0xbe
+> RIP: 0033:0x4418e9
+> Code: 26 02 00 85 c0 b8 00 00 00 00 48 0f 44 c3 5b c3 90 48 89 f8 48 89 f7 48
+> 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 0f
+> 83 cb 08 fc ff c3 66 2e 0f 1f 84 00 00 00 00
+> RSP: 002b:00007ffc88122678 EFLAGS: 00000246 ORIG_RAX: 00000000000000a5
+> RAX: ffffffffffffffda RBX: 0000000000000000 RCX: 00000000004418e9
+> RDX: 00000000200000c0 RSI: 0000000020000000 RDI: 0000000000400000
+> RBP: 00007ffc881226c0 R08: 0000000020000100 R09: 0000000000000100
+> R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000000003
+> R13: ffffffffffffffff R14: 0000000000000000 R15: 0000000000000000
+> Modules linked in:
+> ---[ end trace 25e838f694c8a24f ]---
+> RIP: 0010:__phys_addr+0xff/0x120 arch/x86/mm/physaddr.c:22
+> Code: 3c 02 00 75 31 4c 8b 25 ff c3 ee 07 48 89 de bf ff ff ff 1f e8 a2 7a 46
+> 00 49 01 dc 48 81 fb ff ff ff 1f 76 a7 e8 61 79 46 00 <0f> 0b e8 6a e9 89 00
+> e9 7a ff ff ff e8 c0 e9 89 00 eb c8 0f 1f 40
+> RSP: 0018:ffff8801c3387770 EFLAGS: 00010093
+> RAX: ffff8801c323a080 RBX: 000000007ffffff4 RCX: ffffffff81385c1e
+> RDX: 0000000000000000 RSI: ffffffff81385c2f RDI: 0000000000000007
+> RBP: ffff8801c3387788 R08: ffff8801c323a080 R09: ffffed003b5c4fe8
+> R10: ffffed003b5c4fe8 R11: ffff8801dae27f47 R12: 000000007ffffff4
+> R13: 0000000000000001 R14: ffffffff882f8c80 R15: 0000000000004063
+> FS:  000000000148d880(0000) GS:ffff8801dae00000(0000) knlGS:0000000000000000
+> CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+> CR2: 0000000000619570 CR3: 00000001c4ab0000 CR4: 00000000001406f0
+> DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+> DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
 > 
-> +    if (flags & ~RFR_IDENTICAL_DATA)
-> +        return -EINVAL;
-> +    if (flags & RFR_IDENTICAL_DATA)
-> +        return btrfs_dedupe_file_range(src, off, dst, destoff, len);
-
-Hmm.  The flags validation thing is kind of a mess here.  There should be a:
-
-#define RFR_VALID_FLAGS	(RFR_IDENTICAL_DATA | /* add other RFR flags */)
-
-And all these functions should also gate on:
-
-if (remap_flags & ~RFR_VALID_FLAGS) {
-	WARN_ON(...);
-	return -EINVAL;
-}
-
-Though FWIW the btrfs implementation actually will support all three
-flags, so the particular structure of these checks here are correct if
-you add in my self-criticism above.
-
 > 
-> >         return btrfs_clone_files(dst_file, src_file, off, len, destoff);
-> >  }
-> >
-> > diff --git a/fs/cifs/cifsfs.c b/fs/cifs/cifsfs.c
-> > index 7065426b3280..bf971fd7cab2 100644
-> > --- a/fs/cifs/cifsfs.c
-> > +++ b/fs/cifs/cifsfs.c
-> > @@ -975,8 +975,9 @@ const struct inode_operations cifs_symlink_inode_ops = {
-> >         .listxattr = cifs_listxattr,
-> >  };
-> >
-> > -static int cifs_clone_file_range(struct file *src_file, loff_t off,
-> > -               struct file *dst_file, loff_t destoff, u64 len)
-> > +static int cifs_remap_file_range(struct file *src_file, loff_t off,
-> > +               struct file *dst_file, loff_t destoff, u64 len,
-> > +               unsigned int flags)
-> >  {
-> >         struct inode *src_inode = file_inode(src_file);
-> >         struct inode *target_inode = file_inode(dst_file);
-> > @@ -986,6 +987,9 @@ static int cifs_clone_file_range(struct file *src_file, loff_t off,
-> >         unsigned int xid;
-> >         int rc;
-> >
-> > +       if (flags & RFR_IDENTICAL_DATA)
-> > +               return -EOPNOTSUPP;
-> > +
+> ---
+> This bug is generated by a bot. It may contain errors.
+> See https://goo.gl/tpsmEJ for more information about syzbot.
+> syzbot engineers can be reached at syzkaller@googlegroups.com.
 > 
-> I think everyone would be better off with:
-> +       if (flags)
-> +               return -EINVAL;
-> 
-> This way you won't need to change all filesystem implementations
-> every time that you add a new RFR flag.
-> Lucky for us, dedup already return -EINVAL if (!f_op->dedupe_file_range)
-> (and not -EOPNOTSUPP).
-
-Ugh, right, I forgot about that, um, quirk of the interface. :(
-
-> [...]
-> > diff --git a/fs/overlayfs/file.c b/fs/overlayfs/file.c
-> > index 986313da0c88..693bd0620a81 100644
-> > --- a/fs/overlayfs/file.c
-> > +++ b/fs/overlayfs/file.c
-> > @@ -489,26 +489,28 @@ static ssize_t ovl_copy_file_range(struct file *file_in, loff_t pos_in,
-> >                             OVL_COPY);
-> >  }
-> >
-> > -static int ovl_clone_file_range(struct file *file_in, loff_t pos_in,
-> > -                               struct file *file_out, loff_t pos_out, u64 len)
-> > +static int ovl_remap_file_range(struct file *file_in, loff_t pos_in,
-> > +                               struct file *file_out, loff_t pos_out,
-> > +                               u64 len, unsigned int flags)
-> >  {
-> > -       return ovl_copyfile(file_in, pos_in, file_out, pos_out, len, 0,
-> > -                           OVL_CLONE);
-> > -}
-> > +       enum ovl_copyop op;
-> > +
-> > +       if (flags & RFR_IDENTICAL_DATA)
-> > +               op = OVL_DEDUPE;
-> > +       else
-> > +               op = OVL_CLONE;
-> >
-> > -static int ovl_dedupe_file_range(struct file *file_in, loff_t pos_in,
-> > -                                struct file *file_out, loff_t pos_out, u64 len)
-> > -{
-> >         /*
-> >          * Don't copy up because of a dedupe request, this wouldn't make sense
-> >          * most of the time (data would be duplicated instead of deduplicated).
-> >          */
-> > -       if (!ovl_inode_upper(file_inode(file_in)) ||
-> > -           !ovl_inode_upper(file_inode(file_out)))
-> > +       if (op == OVL_DEDUPE &&
-> > +           (!ovl_inode_upper(file_inode(file_in)) ||
-> > +            !ovl_inode_upper(file_inode(file_out))))
-> >                 return -EPERM;
-> >
-> >         return ovl_copyfile(file_in, pos_in, file_out, pos_out, len, 0,
-> > -                           OVL_DEDUPE);
-> > +                           op);
-> >  }
-> >
-> 
-> Apart from the generic check invalid flags comment - ACK on ovl part.
-
-Thanks for the review!  Is that an official Acked-by to add to the
-commit message, or an informal ACK?
-
---D
-
-> Thanks,
-> Amir.
+> syzbot will keep track of this bug report. See:
+> https://goo.gl/tpsmEJ#bug-status-tracking for how to communicate with syzbot.
+> syzbot can test patches for this bug, for details see:
+> https://goo.gl/tpsmEJ#testing-patches
