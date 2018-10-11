@@ -1,91 +1,110 @@
-Return-Path: <olga.kornievskaia@gmail.com>
-Return-Path: <olga.kornievskaia@gmail.com>
-From: Olga Kornievskaia <olga.kornievskaia@gmail.com>
-Subject: [PATCH v5 09/12] NFS: skip recovery of copy open on dest server
-Date: Mon, 29 Oct 2018 13:40:56 -0400
-Message-Id: <20181029174059.38326-11-olga.kornievskaia@gmail.com>
-In-Reply-To: <20181029174059.38326-1-olga.kornievskaia@gmail.com>
-References: <20181029174059.38326-1-olga.kornievskaia@gmail.com>
-To: trond.myklebust@hammerspace.com, anna.schumaker@netapp.com, viro@zeniv.linux.org.uk, smfrench@gmail.com, miklos@szeredi.hu
-Cc: linux-nfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-cifs@vger.kernel.org, linux-unionfs@vger.kernel.org, linux-man@vger.kernel.org
+MIME-Version: 1.0
+In-Reply-To: <CAOQ4uxhcL=j2aOXKC3E3HPgF7=DViU-JgpzLh-Q7cQ8V+Jq+aQ@mail.gmail.com>
+References: <20181011112401.5790-1-amir73il@gmail.com>
+	<CAJfpegtaedajQg=A-sdthhu3yzfFHrj8dh8GHMw2mA+W9Cu9wQ@mail.gmail.com>
+	<CAOQ4uxhcL=j2aOXKC3E3HPgF7=DViU-JgpzLh-Q7cQ8V+Jq+aQ@mail.gmail.com>
+Date: Thu, 11 Oct 2018 15:16:53 +0200
+Message-ID: <CAJfpegter3jRedVqnufvXvNAEQuT-iZFD_1N7KiKxbjx76mzwA@mail.gmail.com>
+Subject: Re: [PATCH] vfs: fix FIGETBSZ ioctl on an overlayfs file
+From: Miklos Szeredi <miklos@szeredi.hu>
+Content-Type: text/plain; charset="UTF-8"
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>, Eryu Guan <guaneryu@gmail.com>, overlayfs <linux-unionfs@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-From: Olga Kornievskaia <kolga@netapp.com>
+On Thu, Oct 11, 2018 at 2:47 PM, Amir Goldstein <amir73il@gmail.com> wrote:
+> On Thu, Oct 11, 2018 at 3:25 PM Miklos Szeredi <miklos@szeredi.hu> wrote:
+>>
+>> On Thu, Oct 11, 2018 at 1:24 PM, Amir Goldstein <amir73il@gmail.com> wrote:
+>> > Implement the FIGETBSZ query with the statfs(2) filesystem
+>> > interface. Reading inode->i_sb->s_blocksize directly is incorrect
+>> > on stacked filesystems (i.e. overlayfs).
+>> >
+>> > This fixes a Floating point exception in e2fsprogs utility filefrag,
+>> > which divides the size of the file with the value returned by FIGETBSZ.
+>> >
+>> > Fixes: d1d04ef8572b ("ovl: stack file ops")
+>> > Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+>> > ---
+>> >
+>> > Miklos,
+>> >
+>> > Consider this for-rc8?
+>> > There is another trivial kfree(ERR_PTR()) fix I posted yesterday.
+>> >
+>> > xfstests actually has coverage for FIGETBSZ with fiemap-tester
+>> > program. However, the tests that use fiemap-tester (generic/094
+>> > generic/225) did not fail on v4.19-rc1, but rather thier runtime
+>> > dropped from > 10s to 0s, so I'll need to go fix those tests.
+>> >
+>> > Thanks,
+>> > Amir.
+>> >
+>> >  fs/ioctl.c | 15 ++++++++++++++-
+>> >  1 file changed, 14 insertions(+), 1 deletion(-)
+>> >
+>> > diff --git a/fs/ioctl.c b/fs/ioctl.c
+>> > index 2005529af560..a0e55a8e94fd 100644
+>> > --- a/fs/ioctl.c
+>> > +++ b/fs/ioctl.c
+>> > @@ -17,6 +17,7 @@
+>> >  #include <linux/buffer_head.h>
+>> >  #include <linux/falloc.h>
+>> >  #include <linux/sched/signal.h>
+>> > +#include <linux/statfs.h>
+>> >
+>> >  #include "internal.h"
+>> >
+>> > @@ -219,6 +220,18 @@ static int ioctl_fiemap(struct file *filp, unsigned long arg)
+>> >         return error;
+>> >  }
+>> >
+>> > +static int ioctl_getbsize(struct file *file, int __user *argp)
+>> > +{
+>> > +       struct kstatfs buf;
+>> > +       int err;
+>> > +
+>> > +       err = vfs_statfs(&file->f_path, &buf);
+>> > +       if (err)
+>> > +               return err;
+>> > +
+>> > +       return put_user(buf.f_bsize, argp);
+>>
+>> We must be careful not to change the interface for non-overlayfs while
+>> trying to fix overlayfs, and I don't see any guarantees, that for
+>> every other fs f_bsize would be the same as s_blocksize.   There are
+>> other, minor side effects, like possibly blocking and/or generating
+>> network traffic, unlike the previous version.
+>>
+>> But first let's understand what this interface is for.  Haven't found
+>> any other documentation than this:
+>>
+>> #define FIGETBSZ   _IO(0x00,2)    /* get the block size used for bmap */
+>>
+>> So it's for the deprecated bmap interface, and we no longer support
+>> that.  Hooray!  Then just let's just put some dummy value into
+>> overlayfs's s_blocksize and s_blocksize_bits (e.g.
+>> PAGE_SIZE/PAGE_SHIFT) and be done with that.
+>>
+>
+> OK. That's fine by me, but notice that filefrag will use the value
+> it gets from FIGETBSZ even in the FIEMAP implementation,
+> which is the default implementation.
+>
+> I think we can set s_blocksize to upper s_blocksize and cover some
+> common cases. If s_blocksize doesn't match lower s_blocksize we
+> can warn and set s_blocksize back to 0.
+>
+> Then, we can return -EINVAL from FIGETBSZ in case s_blocksize
+> is not set, which is the equivalent of what we do with FIBMAP.
+>
+> It that too much?
 
-Mark the open created for the source file on the destination
-server. Then if this open is going thru a recovery, then fail
-the recovery as we don't need to be recoving a "fake" open.
-We need to fail the ongoing READs and vfs_copy_file_range().
+Does any other filesystem leave s_blocksize unset?   Apparently ceph
+does, for example, so that's not without precedent.
 
-Signed-off-by: Olga Kornievskaia <kolga@netapp.com>
----
- fs/nfs/nfs4_fs.h   |  1 +
- fs/nfs/nfs4file.c  |  1 +
- fs/nfs/nfs4state.c | 14 ++++++++++++++
- 3 files changed, 16 insertions(+)
+Just returning -EINVAL from FIGETBSZ if s_blocksize is zero would fix
+filefrag, since it would gracefully fall back to f_bsize.
 
-diff --git a/fs/nfs/nfs4_fs.h b/fs/nfs/nfs4_fs.h
-index 9c566a4..482754d 100644
---- a/fs/nfs/nfs4_fs.h
-+++ b/fs/nfs/nfs4_fs.h
-@@ -165,6 +165,7 @@ enum {
- 	NFS_STATE_CHANGE_WAIT,		/* A state changing operation is outstanding */
- #ifdef CONFIG_NFS_V4_2
- 	NFS_CLNT_DST_SSC_COPY_STATE,    /* dst server open state on client*/
-+	NFS_SRV_SSC_COPY_STATE,		/* ssc state on the dst server */
- #endif /* CONFIG_NFS_V4_2 */
- };
- 
-diff --git a/fs/nfs/nfs4file.c b/fs/nfs/nfs4file.c
-index 0b1dcf9..989f174 100644
---- a/fs/nfs/nfs4file.c
-+++ b/fs/nfs/nfs4file.c
-@@ -333,6 +333,7 @@ struct file *
- 	if (ctx->state == NULL)
- 		goto out_stateowner;
- 
-+	set_bit(NFS_SRV_SSC_COPY_STATE, &ctx->state->flags);
- 	set_bit(NFS_OPEN_STATE, &ctx->state->flags);
- 	memcpy(&ctx->state->open_stateid.other, &stateid->other,
- 	       NFS4_STATEID_OTHER_SIZE);
-diff --git a/fs/nfs/nfs4state.c b/fs/nfs/nfs4state.c
-index 62ae0fd..b0b82c6 100644
---- a/fs/nfs/nfs4state.c
-+++ b/fs/nfs/nfs4state.c
-@@ -1606,6 +1606,9 @@ static int nfs4_reclaim_open_state(struct nfs4_state_owner *sp, const struct nfs
- {
- 	struct nfs4_state *state;
- 	int status = 0;
-+#ifdef CONFIG_NFS_V4_2
-+	bool found_ssc_copy_state = false;
-+#endif /* CONFIG_NFS_V4_2 */
- 
- 	/* Note: we rely on the sp->so_states list being ordered 
- 	 * so that we always reclaim open(O_RDWR) and/or open(O_WRITE)
-@@ -1625,6 +1628,13 @@ static int nfs4_reclaim_open_state(struct nfs4_state_owner *sp, const struct nfs
- 			continue;
- 		if (state->state == 0)
- 			continue;
-+#ifdef CONFIG_NFS_V4_2
-+		if (test_bit(NFS_SRV_SSC_COPY_STATE, &state->flags)) {
-+			nfs4_state_mark_recovery_failed(state, -EIO);
-+			found_ssc_copy_state = true;
-+			continue;
-+		}
-+#endif /* CONFIG_NFS_V4_2 */
- 		refcount_inc(&state->count);
- 		spin_unlock(&sp->so_lock);
- 		status = __nfs4_reclaim_open_state(sp, state, ops);
-@@ -1671,6 +1681,10 @@ static int nfs4_reclaim_open_state(struct nfs4_state_owner *sp, const struct nfs
- 	}
- 	raw_write_seqcount_end(&sp->so_reclaim_seqcount);
- 	spin_unlock(&sp->so_lock);
-+#ifdef CONFIG_NFS_V4_2
-+	if (found_ssc_copy_state)
-+		return -EIO;
-+#endif /* CONFIG_NFS_V4_2 */
- 	return 0;
- out_err:
- 	nfs4_put_open_state(state);
--- 
-1.8.3.1
+Thanks,
+Miklos
