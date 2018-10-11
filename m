@@ -1,7 +1,7 @@
 From: "Darrick J. Wong" <darrick.wong@oracle.com>
-Subject: [PATCH 21/25] ocfs2: fix pagecache truncation prior to reflink
-Date: Wed, 10 Oct 2018 21:14:59 -0700
-Message-ID: <153923129911.5546.12641183057086407273.stgit@magnolia>
+Subject: [PATCH 23/25] xfs: fix pagecache truncation prior to reflink
+Date: Wed, 10 Oct 2018 21:15:12 -0700
+Message-ID: <153923131273.5546.6811645962559576222.stgit@magnolia>
 References: <153923113649.5546.9840926895953408273.stgit@magnolia>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -20,27 +20,27 @@ destination file's page cache.  Unfortunately, the truncation is not
 aggressive enough -- if page size > block size, we'll end up zeroing
 subpage blocks instead of removing them.  So, round the start offset
 down and the end offset up to page boundaries.  We already wrote all
-the dirty data so the larger range should be fine.
+the dirty data so the larger range shouldn't be a problem.
 
 Signed-off-by: Darrick J. Wong <darrick.wong@oracle.com>
 ---
- fs/ocfs2/refcounttree.c |    5 +++--
+ fs/xfs/xfs_reflink.c |    5 +++--
  1 file changed, 3 insertions(+), 2 deletions(-)
 
 
-diff --git a/fs/ocfs2/refcounttree.c b/fs/ocfs2/refcounttree.c
-index 851ba3ae7ce8..b9e0418a1974 100644
---- a/fs/ocfs2/refcounttree.c
-+++ b/fs/ocfs2/refcounttree.c
-@@ -4870,8 +4870,9 @@ int ocfs2_reflink_remap_range(struct file *file_in,
- 				  SINGLE_DEPTH_NESTING);
+diff --git a/fs/xfs/xfs_reflink.c b/fs/xfs/xfs_reflink.c
+index b24a2a1c4db1..e1592e751cc2 100644
+--- a/fs/xfs/xfs_reflink.c
++++ b/fs/xfs/xfs_reflink.c
+@@ -1370,8 +1370,9 @@ xfs_reflink_remap_prep(
+ 		goto out_unlock;
  
  	/* Zap any page cache for the destination file's range. */
 -	truncate_inode_pages_range(&inode_out->i_data, pos_out,
--				   PAGE_ALIGN(pos_out + len) - 1);
+-				   PAGE_ALIGN(pos_out + *len) - 1);
 +	truncate_inode_pages_range(&inode_out->i_data,
-+				   round_down(pos_out, PAGE_SIZE),
-+				   round_up(pos_out + len, PAGE_SIZE) - 1);
++			round_down(pos_out, PAGE_SIZE),
++			round_up(pos_out + *len, PAGE_SIZE) - 1);
  
- 	ret = ocfs2_reflink_remap_blocks(inode_in, in_bh, pos_in, inode_out,
- 					 out_bh, pos_out, len);
+ 	/*
+ 	 * Update inode timestamps and remove security privileges before we
