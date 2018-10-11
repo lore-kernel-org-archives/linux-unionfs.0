@@ -1,37 +1,63 @@
-Return-Path: <olga.kornievskaia@gmail.com>
-Return-Path: <olga.kornievskaia@gmail.com>
-From: Olga Kornievskaia <olga.kornievskaia@gmail.com>
-Subject: [PATCH v5 03/12] NFS: validity check for source offset in copy_file_range
-Date: Mon, 29 Oct 2018 13:40:50 -0400
-Message-Id: <20181029174059.38326-5-olga.kornievskaia@gmail.com>
-In-Reply-To: <20181029174059.38326-1-olga.kornievskaia@gmail.com>
-References: <20181029174059.38326-1-olga.kornievskaia@gmail.com>
-To: trond.myklebust@hammerspace.com, anna.schumaker@netapp.com, viro@zeniv.linux.org.uk, smfrench@gmail.com, miklos@szeredi.hu
-Cc: linux-nfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-cifs@vger.kernel.org, linux-unionfs@vger.kernel.org, linux-man@vger.kernel.org
+Return-Path: <amir73il@gmail.com>
+Return-Path: <amir73il@gmail.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Subject: [PATCH v2] src/fiemap-tester: fix getting blocksize on overlayfs
+Date: Thu, 11 Oct 2018 17:41:06 +0300
+Message-Id: <20181011144106.14481-1-amir73il@gmail.com>
+To: Eryu Guan <guaneryu@gmail.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, fstests@vger.kernel.org
 List-ID: <linux-unionfs@vger.kernel.org>
 
-From: Olga Kornievskaia <kolga@netapp.com>
+There was a regression in v4.19-rc1 that caused FIGETBSZ ioctl
+to return 0 on an overlayfs file.
 
-Input source offset can not be beyond the end of the file.
+That regression went unnoticed because the xfstests that run
+fiemap-tester program terminated in success status after not doing
+much instead of failing.
 
-Signed-off-by: Olga Kornievskaia <kolga@netapp.com>
+Check for invalid value of block size returned by FIGETBSZ ioctl,
+so these tests can detect the regression.
+
+Fallback to statfs(2) for getting the filesystem blocksize if
+FIGETBSZ ioctl fails (i.e. on overlayfs).
+
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- fs/nfs/nfs4file.c | 3 +++
- 1 file changed, 3 insertions(+)
+ src/fiemap-tester.c | 15 ++++++++++++++-
+ 1 file changed, 14 insertions(+), 1 deletion(-)
 
-diff --git a/fs/nfs/nfs4file.c b/fs/nfs/nfs4file.c
-index 5a73c90..7838bdf 100644
---- a/fs/nfs/nfs4file.c
-+++ b/fs/nfs/nfs4file.c
-@@ -135,6 +135,9 @@ static ssize_t nfs4_copy_file_range(struct file *file_in, loff_t pos_in,
- {
- 	ssize_t ret;
+diff --git a/src/fiemap-tester.c b/src/fiemap-tester.c
+index 97ac5ad0..3db24daa 100644
+--- a/src/fiemap-tester.c
++++ b/src/fiemap-tester.c
+@@ -14,6 +14,7 @@
+ #include <sys/ioctl.h>
+ #include <sys/types.h>
+ #include <sys/stat.h>
++#include <sys/statfs.h>
+ #include <sys/vfs.h>
+ #include <linux/fs.h>
+ #include <linux/types.h>
+@@ -556,7 +557,19 @@ main(int argc, char **argv)
+ 	}
  
-+	if (pos_in >= i_size_read(file_inode(file_in)))
-+		return -EINVAL;
+ 	if (ioctl(fd, FIGETBSZ, &blocksize) < 0) {
+-		perror("Can't get filesystem block size");
++		struct statfs buf;
 +
- 	if (file_inode(file_in)->i_sb != file_inode(file_out)->i_sb)
- 		return -EXDEV;
- 
++		if (fstatfs(fd, &buf) == 0) {
++			blocksize = buf.f_bsize;
++		} else {
++			perror("Can't get filesystem block size");
++			close(fd);
++			exit(1);
++		}
++	}
++
++	if (blocksize <= 0) {
++		printf("Illegal filesystem block size\n");
+ 		close(fd);
+ 		exit(1);
+ 	}
 -- 
-1.8.3.1
+2.17.1
