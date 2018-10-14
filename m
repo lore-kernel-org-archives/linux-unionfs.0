@@ -1,44 +1,30 @@
 From: Christoph Hellwig <hch@infradead.org>
-Subject: Re: [PATCH 10/25] vfs: create generic_remap_file_range_touch to
- update inode metadata
-Date: Sun, 14 Oct 2018 10:21:31 -0700
-Message-ID: <20181014172131.GE30673@infradead.org>
+Subject: Re: [PATCH 11/25] vfs: pass remap flags to
+ generic_remap_file_range_prep
+Date: Sun, 14 Oct 2018 10:22:37 -0700
+Message-ID: <20181014172237.GF30673@infradead.org>
 References: <153938912912.8361.13446310416406388958.stgit@magnolia>
- <153938921180.8361.13556945128095535605.stgit@magnolia>
+ <153938921860.8361.1983470639945895613.stgit@magnolia>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-btrfs-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <153938921180.8361.13556945128095535605.stgit@magnolia>
+In-Reply-To: <153938921860.8361.1983470639945895613.stgit@magnolia>
 Sender: linux-btrfs-owner@vger.kernel.org
 To: "Darrick J. Wong" <darrick.wong@oracle.com>
 Cc: david@fromorbit.com, sandeen@redhat.com, linux-nfs@vger.kernel.org, linux-cifs@vger.kernel.org, Amir Goldstein <amir73il@gmail.com>, linux-unionfs@vger.kernel.org, linux-xfs@vger.kernel.org, linux-mm@kvack.org, linux-btrfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, ocfs2-devel@oss.oracle.com
 List-Id: linux-unionfs@vger.kernel.org
 
-> +/* Update inode timestamps and remove security privileges when remapping. */
-> +int generic_remap_file_range_touch(struct file *file, bool is_dedupe)
-> +{
-> +	int ret;
-> +
-> +	/* If can't alter the file contents, we're done. */
-> +	if (is_dedupe)
-> +		return 0;
-> +
-> +	/* Update the timestamps, since we can alter file contents. */
-> +	if (!(file->f_mode & FMODE_NOCMTIME)) {
-> +		ret = file_update_time(file);
-> +		if (ret)
-> +			return ret;
-> +	}
-> +
-> +	/*
-> +	 * Clear the security bits if the process is not being run by root.
-> +	 * This keeps people from modifying setuid and setgid binaries.
-> +	 */
-> +	return file_remove_privs(file);
-> +}
-> +EXPORT_SYMBOL(generic_remap_file_range_touch);
+On Fri, Oct 12, 2018 at 05:06:58PM -0700, Darrick J. Wong wrote:
+> From: Darrick J. Wong <darrick.wong@oracle.com>
+> 
+> Plumb the remap flags through the filesystem from the vfs function
+> dispatcher all the way to the prep function to prepare for behavior
+> changes in subsequent patches.
+> 
+> Signed-off-by: Darrick J. Wong <darrick.wong@oracle.com>
+> Reviewed-by: Amir Goldstein <amir73il@gmail.com>
 
-The name seems a little out of touch with what it actually does.
-Also why a bool argument instead of the more descriptive flags which
-introduced a few patches ago?
+It seems like we should have passed this down earlier before all
+the renaing and adding new helpers that could have easily started
+out with the flags.
