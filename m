@@ -1,65 +1,20 @@
-From: "Darrick J. Wong" <darrick.wong@oracle.com>
-Subject: [PATCH 25/25] xfs: remove redundant remap partial EOF block checks
-Date: Fri, 12 Oct 2018 17:08:39 -0700
-Message-ID: <153938931898.8361.12558032149746338745.stgit@magnolia>
+From: Christoph Hellwig <hch@infradead.org>
+Subject: Re: [PATCH 05/25] vfs: avoid problematic remapping requests into
+ partial EOF block
+Date: Sun, 14 Oct 2018 10:11:49 -0700
+Message-ID: <20181014171149.GC30673@infradead.org>
 References: <153938912912.8361.13446310416406388958.stgit@magnolia>
+ <153938917765.8361.15966712047859994604.stgit@magnolia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-btrfs-owner@vger.kernel.org>
-In-Reply-To: <153938912912.8361.13446310416406388958.stgit@magnolia>
+Content-Disposition: inline
+In-Reply-To: <153938917765.8361.15966712047859994604.stgit@magnolia>
 Sender: linux-btrfs-owner@vger.kernel.org
-To: david@fromorbit.com, darrick.wong@oracle.com
-Cc: sandeen@redhat.com, linux-nfs@vger.kernel.org, linux-cifs@vger.kernel.org, linux-unionfs@vger.kernel.org, linux-xfs@vger.kernel.org, linux-mm@kvack.org, linux-btrfs@vger.kernel.org, Dave Chinner <dchinner@redhat.com>, linux-fsdevel@vger.kernel.org, ocfs2-devel@oss.oracle.com
+To: "Darrick J. Wong" <darrick.wong@oracle.com>
+Cc: david@fromorbit.com, sandeen@redhat.com, linux-nfs@vger.kernel.org, linux-cifs@vger.kernel.org, linux-unionfs@vger.kernel.org, linux-xfs@vger.kernel.org, linux-mm@kvack.org, linux-btrfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, ocfs2-devel@oss.oracle.com
 List-Id: linux-unionfs@vger.kernel.org
 
-From: Darrick J. Wong <darrick.wong@oracle.com>
+Looks fine,
 
-Now that we've moved the partial EOF block checks to the VFS helpers, we
-can remove the redundantn functionality from XFS.
-
-Signed-off-by: Darrick J. Wong <darrick.wong@oracle.com>
-Reviewed-by: Dave Chinner <dchinner@redhat.com>
----
- fs/xfs/xfs_reflink.c |   20 --------------------
- 1 file changed, 20 deletions(-)
-
-
-diff --git a/fs/xfs/xfs_reflink.c b/fs/xfs/xfs_reflink.c
-index 66a8ddb9c058..709735880efb 100644
---- a/fs/xfs/xfs_reflink.c
-+++ b/fs/xfs/xfs_reflink.c
-@@ -1307,8 +1307,6 @@ xfs_reflink_remap_prep(
- 	struct inode		*inode_out = file_inode(file_out);
- 	struct xfs_inode	*dest = XFS_I(inode_out);
- 	bool			same_inode = (inode_in == inode_out);
--	bool			is_dedupe = (remap_flags & RFR_SAME_DATA);
--	u64			blkmask = i_blocksize(inode_in) - 1;
- 	ssize_t			ret;
- 
- 	/* Lock both files against IO */
-@@ -1336,24 +1334,6 @@ xfs_reflink_remap_prep(
- 	if (ret <= 0)
- 		goto out_unlock;
- 
--	/*
--	 * If the dedupe data matches, chop off the partial EOF block
--	 * from the source file so we don't try to dedupe the partial
--	 * EOF block.
--	 */
--	if (is_dedupe) {
--		*len &= ~blkmask;
--	} else if (*len & blkmask) {
--		/*
--		 * The user is attempting to share a partial EOF block,
--		 * if it's inside the destination EOF then reject it.
--		 */
--		if (pos_out + *len < i_size_read(inode_out)) {
--			ret = -EINVAL;
--			goto out_unlock;
--		}
--	}
--
- 	/* Attach dquots to dest inode before changing block map */
- 	ret = xfs_qm_dqattach(dest);
- 	if (ret)
+Reviewed-by: Christoph Hellwig <hch@lst.de>
