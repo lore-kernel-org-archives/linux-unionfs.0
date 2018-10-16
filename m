@@ -1,50 +1,45 @@
-From: Christoph Hellwig <hch@infradead.org>
-Subject: Re: [PATCH 07/25] vfs: combine the clone and dedupe into a single
- remap_file_range
-Date: Mon, 15 Oct 2018 11:32:04 -0700
-Message-ID: <20181015183204.GB20655@infradead.org>
-References: <153938912912.8361.13446310416406388958.stgit@magnolia>
- <153938919123.8361.13059492965161549195.stgit@magnolia>
- <20181014171927.GD30673@infradead.org>
- <CAOQ4uxiReFJRxKJbsoUgWWNP75_Qsoh1fWC_dLYV_zBU_jaGbA@mail.gmail.com>
- <20181015124719.GA15379@infradead.org>
- <20181015171317.GM28243@magnolia>
+From: "Darrick J. Wong" <darrick.wong@oracle.com>
+Subject: [PATCH v5 00/26] fs: fixes for serious clone/dedupe problems
+Date: Mon, 15 Oct 2018 20:09:55 -0700
+Message-ID: <153965939489.1256.7400115244528045860.stgit@magnolia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-btrfs-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20181015171317.GM28243@magnolia>
 Sender: linux-btrfs-owner@vger.kernel.org
-To: "Darrick J. Wong" <darrick.wong@oracle.com>
-Cc: Christoph Hellwig <hch@infradead.org>, Amir Goldstein <amir73il@gmail.com>, Dave Chinner <david@fromorbit.com>, Eric Sandeen <sandeen@redhat.com>, Linux NFS Mailing List <linux-nfs@vger.kernel.org>, linux-cifs@vger.kernel.org, overlayfs <linux-unionfs@vger.kernel.org>, linux-xfs <linux-xfs@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, Linux Btrfs <linux-btrfs@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, ocfs2-devel@oss.oracle.com
+To: david@fromorbit.com, darrick.wong@oracle.com
+Cc: sandeen@redhat.com, linux-nfs@vger.kernel.org, linux-cifs@vger.kernel.org, linux-unionfs@vger.kernel.org, linux-xfs@vger.kernel.org, linux-mm@kvack.org, linux-btrfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, ocfs2-devel@oss.oracle.com
 List-Id: linux-unionfs@vger.kernel.org
 
-On Mon, Oct 15, 2018 at 10:13:17AM -0700, Darrick J. Wong wrote:
-> > RFR_TO_SRC_EOF is checked in generic_remap_file_range_prep,
-> > so the file system should know about it  Also looking at it again now
-> > it seems entirely superflous - we can just pass down then len == we
-> > use in higher level code instead of having a flag and will side step
-> > the issue here.
-> 
-> I'm not a fan of hidden behaviors like that, particularly when we
-> already have a flags field where callers can explicitly ask for the
-> to-eof behavior.
+Hi all,
 
-This just means we have a flag to mean ken is 0 and needs to be filled,
-rather than encoding that in the field itself.  If you fell better we
-can replace 0 with 0xffffffff and still encode it in the field.
+Dave, Eric, and I have been chasing a stale data exposure bug in the XFS
+reflink implementation, and tracked it down to reflink forgetting to do
+some of the file-extending activities that must happen for regular
+writes.
 
-> > RFR_CAN_SHORTEN is advisory as no one has to shorten, but that can
-> > easily be solved by including it everywhere.
-> 
-> CAN_SHORTEN isn't included everywhere
+We then started auditing the clone, dedupe, and copyfile code and
+realized that from a file contents perspective, clonerange isn't any
+different from a regular file write.  Unfortunately, we also noticed
+that *unlike* a regular write, clonerange skips a ton of overflow
+checks, such as validating the ranges against s_maxbytes, MAX_NON_LFS,
+and RLIMIT_FSIZE.  We also observed that cloning into a file did not
+strip security privileges (suid, capabilities) like a regular write
+would.  I also noticed that xfs and ocfs2 need to dump the page cache
+before remapping blocks, not after.
 
-Include it everywhere as in allow it in ever ->remap_file instance.
+In fixing the range checking problems I also realized that both dedupe
+and copyfile tell userspace how much of the requested operation was
+acted upon.  Since the range validation can shorten a clone request (or
+we can ENOSPC midway through), we might as well plumb the short
+operation reporting back through the VFS indirection code to userspace.
 
-> I sort of thought about introducing a new copy_file_range flag that
-> would just do deduplication and allow for opportunistic "dedup as much
-> as you can" but ... meh.  Maybe I'll just drop the patch instead; we can
-> revisit that when anyone wants a better dedupe interface.
+So, here's the whole giant pile of patches[1] that fix all the problems.
+This branch is against current upstream (4.19-rc8).  The patch
+"generic: test reflink side effects" recently sent to fstests exercises
+the fixes in this series.  Tests are in [2].
 
-Sounds fine to me.  The btrfs ioctl is really ugly, but then again
-there is no pressing need for something better.
+--D
+
+[1] https://git.kernel.org/pub/scm/linux/kernel/git/djwong/xfs-linux.git/log/?h=djwong-devel
+[2] https://git.kernel.org/pub/scm/linux/kernel/git/djwong/xfstests-dev.git/log/?h=djwong-devel
