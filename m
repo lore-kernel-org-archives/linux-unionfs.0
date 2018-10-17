@@ -1,29 +1,62 @@
-From: Christoph Hellwig <hch@infradead.org>
-Subject: Re: [PATCH 26/26] xfs: remove redundant remap partial EOF block
- checks
-Date: Wed, 17 Oct 2018 01:40:20 -0700
-Message-ID: <20181017084020.GJ16896@infradead.org>
+From: "Darrick J. Wong" <darrick.wong@oracle.com>
+Subject: Re: [PATCH 17/26] vfs: enable remap callers that can handle short
+ operations
+Date: Wed, 17 Oct 2018 09:35:37 -0700
+Message-ID: <20181017163537.GO28243@magnolia>
 References: <153965939489.1256.7400115244528045860.stgit@magnolia>
- <153966006214.3607.15131077363912605792.stgit@magnolia>
+ <153965999426.3607.3221368918901209000.stgit@magnolia>
+ <20181017083652.GF16896@infradead.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-btrfs-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <153966006214.3607.15131077363912605792.stgit@magnolia>
+In-Reply-To: <20181017083652.GF16896@infradead.org>
 Sender: linux-btrfs-owner@vger.kernel.org
-To: "Darrick J. Wong" <darrick.wong@oracle.com>
-Cc: david@fromorbit.com, sandeen@redhat.com, linux-nfs@vger.kernel.org, linux-cifs@vger.kernel.org, linux-unionfs@vger.kernel.org, linux-xfs@vger.kernel.org, linux-mm@kvack.org, linux-btrfs@vger.kernel.org, Dave Chinner <dchinner@redhat.com>, linux-fsdevel@vger.kernel.org, ocfs2-devel@oss.oracle.com
+To: Christoph Hellwig <hch@infradead.org>
+Cc: david@fromorbit.com, sandeen@redhat.com, linux-nfs@vger.kernel.org, linux-cifs@vger.kernel.org, Amir Goldstein <amir73il@gmail.com>, linux-unionfs@vger.kernel.org, linux-xfs@vger.kernel.org, linux-mm@kvack.org, linux-btrfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, ocfs2-devel@oss.oracle.com
 List-Id: linux-unionfs@vger.kernel.org
 
-On Mon, Oct 15, 2018 at 08:21:02PM -0700, Darrick J. Wong wrote:
-> From: Darrick J. Wong <darrick.wong@oracle.com>
+On Wed, Oct 17, 2018 at 01:36:52AM -0700, Christoph Hellwig wrote:
+> >  /* Update inode timestamps and remove security privileges when remapping. */
+> > @@ -2023,7 +2034,8 @@ loff_t vfs_dedupe_file_range_one(struct file *src_file, loff_t src_pos,
+> >  {
+> >  	loff_t ret;
+> >  
+> > -	WARN_ON_ONCE(remap_flags & ~(REMAP_FILE_DEDUP));
+> > +	WARN_ON_ONCE(remap_flags & ~(REMAP_FILE_DEDUP |
+> > +				     REMAP_FILE_CAN_SHORTEN));
 > 
-> Now that we've moved the partial EOF block checks to the VFS helpers, we
-> can remove the redundant functionality from XFS.
+> I guess this is where you could actually use REMAP_FILE_VALID_FLAGS..
 > 
-> Signed-off-by: Darrick J. Wong <darrick.wong@oracle.com>
-> Reviewed-by: Dave Chinner <dchinner@redhat.com>
+> >  /* REMAP_FILE flags taken care of by the vfs. */
+> > -#define REMAP_FILE_ADVISORY		(0)
+> > +#define REMAP_FILE_ADVISORY		(REMAP_FILE_CAN_SHORTEN)
+> 
+> And btw, they are not 'taken care of by the VFS', they need to be
+> taken care of by the fs (possibly using helpers) to take affect,
+> but they can be safely ignored.
 
-Looks fine,
+Ok, I'll update the comment.
 
-Reviewed-by: Christoph Hellwig <hch@lst.de>
+> > +		if (!IS_ALIGNED(count, bs)) {
+> > +			if (remap_flags & REMAP_FILE_CAN_SHORTEN)
+> > +				count = ALIGN_DOWN(count, bs);
+> > +			else
+> > +				return -EINVAL;
+> 
+> 			if (!(remap_flags & REMAP_FILE_CAN_SHORTEN))
+> 				return -EINVAL;
+> 			count = ALIGN_DOWN(count, bs);
+
+Seeing as we return EINVAL on shortened count and !CAN_SHORTEN below
+this, I think this can be simplified further:
+
+	if (pos_in + count == size_in) {
+		bcount = ALIGN(size_in, bs) - pos_in;
+	} else {
+		if (!IS_ALIGNED(count, bs))
+			count = ALIGN_DOWN(count, bs);
+		bcount = count;
+	}
+
+--D
