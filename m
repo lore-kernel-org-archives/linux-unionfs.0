@@ -1,48 +1,46 @@
 From: "Darrick J. Wong" <darrick.wong@oracle.com>
-Subject: Re: [PATCH 25/26] xfs: support returning partial reflink results
-Date: Wed, 17 Oct 2018 09:40:39 -0700
-Message-ID: <20181017164039.GP28243@magnolia>
-References: <153965939489.1256.7400115244528045860.stgit@magnolia>
- <153966005536.3607.787445581785795364.stgit@magnolia>
- <20181017084002.GI16896@infradead.org>
+Subject: [PATCH v6 00/29] fs: fixes for serious clone/dedupe problems
+Date: Wed, 17 Oct 2018 15:44:15 -0700
+Message-ID: <153981625504.5568.2708520119290577378.stgit@magnolia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-btrfs-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20181017084002.GI16896@infradead.org>
 Sender: linux-btrfs-owner@vger.kernel.org
-To: Christoph Hellwig <hch@infradead.org>
-Cc: david@fromorbit.com, sandeen@redhat.com, linux-nfs@vger.kernel.org, linux-cifs@vger.kernel.org, linux-unionfs@vger.kernel.org, linux-xfs@vger.kernel.org, linux-mm@kvack.org, linux-btrfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, ocfs2-devel@oss.oracle.com
+To: david@fromorbit.com, darrick.wong@oracle.com
+Cc: sandeen@redhat.com, linux-nfs@vger.kernel.org, linux-cifs@vger.kernel.org, linux-unionfs@vger.kernel.org, linux-xfs@vger.kernel.org, linux-mm@kvack.org, linux-btrfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, ocfs2-devel@oss.oracle.com
 List-Id: linux-unionfs@vger.kernel.org
 
-On Wed, Oct 17, 2018 at 01:40:02AM -0700, Christoph Hellwig wrote:
-> > @@ -1415,11 +1419,17 @@ xfs_reflink_remap_range(
-> >  
-> >  	trace_xfs_reflink_remap_range(src, pos_in, len, dest, pos_out);
-> >  
-> > +	if (len == 0) {
-> > +		ret = 0;
-> > +		goto out_unlock;
-> > +	}
-> > +
-> 
-> As pointed out last time this check is superflous, right above we have
-> this check:
-> 
-> 	if (ret < 0 || len == 0)
-> 		return ret;
+Hi all,
 
-Oops, sorry I missed that, will fix now.
+Dave, Eric, and I have been chasing a stale data exposure bug in the XFS
+reflink implementation, and tracked it down to reflink forgetting to do
+some of the file-extending activities that must happen for regular
+writes.
 
-> >  	ret = xfs_reflink_remap_blocks(src, sfsbno, dest, dfsbno, fsblen,
-> > -			pos_out + len);
-> > +			&remappedfsb, pos_out + len);
-> > +	remapped_bytes = min_t(loff_t, len, XFS_FSB_TO_B(mp, remappedfsb));
-> 
-> I still think returning the bytes from the function would be saner,
-> but maybe that's just me.
+We then started auditing the clone, dedupe, and copyfile code and
+realized that from a file contents perspective, clonerange isn't any
+different from a regular file write.  Unfortunately, we also noticed
+that *unlike* a regular write, clonerange skips a ton of overflow
+checks, such as validating the ranges against s_maxbytes, MAX_NON_LFS,
+and RLIMIT_FSIZE.  We also observed that cloning into a file did not
+strip security privileges (suid, capabilities) like a regular write
+would.  I also noticed that xfs and ocfs2 need to dump the page cache
+before remapping blocks, not after.
 
-Hmmm, this call site is getting messy; I'll tack on another patch to
-clean that up too.
+In fixing the range checking problems I also realized that both dedupe
+and copyfile tell userspace how much of the requested operation was
+acted upon.  Since the range validation can shorten a clone request (or
+we can ENOSPC midway through), we might as well plumb the short
+operation reporting back through the VFS indirection code to userspace.
+I added a few more cleanups to the xfs code per reviewer suggestions.
+
+So, here's the whole giant pile of patches[1] that fix all the problems.
+This branch is against current upstream (4.19-rc8).  The patch
+"generic: test reflink side effects" recently sent to fstests exercises
+the fixes in this series.  Tests are in [2].
 
 --D
+
+[1] https://git.kernel.org/pub/scm/linux/kernel/git/djwong/xfs-linux.git/log/?h=djwong-devel
+[2] https://git.kernel.org/pub/scm/linux/kernel/git/djwong/xfstests-dev.git/log/?h=djwong-devel
