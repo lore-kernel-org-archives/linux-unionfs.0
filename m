@@ -1,45 +1,29 @@
 From: Christoph Hellwig <hch@infradead.org>
-Subject: Re: [PATCH 17/26] vfs: enable remap callers that can handle short
- operations
-Date: Wed, 17 Oct 2018 01:36:52 -0700
-Message-ID: <20181017083652.GF16896@infradead.org>
+Subject: Re: [PATCH 19/26] vfs: clean up generic_remap_file_range_prep return
+ value
+Date: Wed, 17 Oct 2018 01:37:21 -0700
+Message-ID: <20181017083721.GG16896@infradead.org>
 References: <153965939489.1256.7400115244528045860.stgit@magnolia>
- <153965999426.3607.3221368918901209000.stgit@magnolia>
+ <153966001458.3607.5940191707393894977.stgit@magnolia>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-btrfs-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <153965999426.3607.3221368918901209000.stgit@magnolia>
+In-Reply-To: <153966001458.3607.5940191707393894977.stgit@magnolia>
 Sender: linux-btrfs-owner@vger.kernel.org
 To: "Darrick J. Wong" <darrick.wong@oracle.com>
-Cc: david@fromorbit.com, sandeen@redhat.com, linux-nfs@vger.kernel.org, linux-cifs@vger.kernel.org, Amir Goldstein <amir73il@gmail.com>, linux-unionfs@vger.kernel.org, linux-xfs@vger.kernel.org, linux-mm@kvack.org, linux-btrfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, ocfs2-devel@oss.oracle.com
+Cc: david@fromorbit.com, sandeen@redhat.com, linux-nfs@vger.kernel.org, linux-cifs@vger.kernel.org, linux-unionfs@vger.kernel.org, linux-xfs@vger.kernel.org, linux-mm@kvack.org, linux-btrfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, ocfs2-devel@oss.oracle.com
 List-Id: linux-unionfs@vger.kernel.org
 
->  /* Update inode timestamps and remove security privileges when remapping. */
-> @@ -2023,7 +2034,8 @@ loff_t vfs_dedupe_file_range_one(struct file *src_file, loff_t src_pos,
->  {
->  	loff_t ret;
->  
-> -	WARN_ON_ONCE(remap_flags & ~(REMAP_FILE_DEDUP));
-> +	WARN_ON_ONCE(remap_flags & ~(REMAP_FILE_DEDUP |
-> +				     REMAP_FILE_CAN_SHORTEN));
+On Mon, Oct 15, 2018 at 08:20:14PM -0700, Darrick J. Wong wrote:
+> From: Darrick J. Wong <darrick.wong@oracle.com>
+> 
+> Since the remap prep function can update the length of the remap
+> request, we can change this function to return the usual return status
+> instead of the odd behavior it has now.
+> 
+> Signed-off-by: Darrick J. Wong <darrick.wong@oracle.com>
 
-I guess this is where you could actually use REMAP_FILE_VALID_FLAGS..
+Looks fine,
 
->  /* REMAP_FILE flags taken care of by the vfs. */
-> -#define REMAP_FILE_ADVISORY		(0)
-> +#define REMAP_FILE_ADVISORY		(REMAP_FILE_CAN_SHORTEN)
-
-And btw, they are not 'taken care of by the VFS', they need to be
-taken care of by the fs (possibly using helpers) to take affect,
-but they can be safely ignored.
-
-> +		if (!IS_ALIGNED(count, bs)) {
-> +			if (remap_flags & REMAP_FILE_CAN_SHORTEN)
-> +				count = ALIGN_DOWN(count, bs);
-> +			else
-> +				return -EINVAL;
-
-			if (!(remap_flags & REMAP_FILE_CAN_SHORTEN))
-				return -EINVAL;
-			count = ALIGN_DOWN(count, bs);
+Reviewed-by: Christoph Hellwig <hch@lst.de>
