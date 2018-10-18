@@ -1,51 +1,60 @@
-From: "Darrick J. Wong" <darrick.wong@oracle.com>
-Subject: [PATCH 29/29] xfs: remove [cm]time update from reflink calls
-Date: Wed, 17 Oct 2018 15:47:40 -0700
-Message-ID: <153981646034.5568.15367504587850383353.stgit@magnolia>
+From: Al Viro <viro@ZenIV.linux.org.uk>
+Subject: Re: [PATCH 04/29] vfs: strengthen checking of file range inputs to
+ generic_remap_checks
+Date: Thu, 18 Oct 2018 01:41:56 +0100
+Message-ID: <20181018004156.GA12386@ZenIV.linux.org.uk>
 References: <153981625504.5568.2708520119290577378.stgit@magnolia>
+ <153981628292.5568.2466587869276881561.stgit@magnolia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-btrfs-owner@vger.kernel.org>
-In-Reply-To: <153981625504.5568.2708520119290577378.stgit@magnolia>
+Content-Disposition: inline
+In-Reply-To: <153981628292.5568.2466587869276881561.stgit@magnolia>
 Sender: linux-btrfs-owner@vger.kernel.org
-To: david@fromorbit.com, darrick.wong@oracle.com
-Cc: sandeen@redhat.com, linux-nfs@vger.kernel.org, linux-cifs@vger.kernel.org, linux-unionfs@vger.kernel.org, linux-xfs@vger.kernel.org, linux-mm@kvack.org, linux-btrfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, ocfs2-devel@oss.oracle.com
+To: "Darrick J. Wong" <darrick.wong@oracle.com>
+Cc: david@fromorbit.com, sandeen@redhat.com, linux-nfs@vger.kernel.org, linux-cifs@vger.kernel.org, Amir Goldstein <amir73il@gmail.com>, linux-unionfs@vger.kernel.org, linux-xfs@vger.kernel.org, linux-mm@kvack.org, linux-btrfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, Christoph Hellwig <hch@lst.de>, ocfs2-devel@oss.oracle.com
 List-Id: linux-unionfs@vger.kernel.org
 
-From: Darrick J. Wong <darrick.wong@oracle.com>
+On Wed, Oct 17, 2018 at 03:44:43PM -0700, Darrick J. Wong wrote:
+> +static int generic_access_check_limits(struct file *file, loff_t pos,
+> +				       loff_t *count)
+> +{
+> +	struct inode *inode = file->f_mapping->host;
+> +
+> +	/* Don't exceed the LFS limits. */
+> +	if (unlikely(pos + *count > MAX_NON_LFS &&
+> +				!(file->f_flags & O_LARGEFILE))) {
+> +		if (pos >= MAX_NON_LFS)
+> +			return -EFBIG;
+> +		*count = min(*count, (loff_t)MAX_NON_LFS - pos);
 
-Now that the vfs remap helper dirties the inode [cm]time for us, xfs no
-longer needs to do that on its own.
+	Can that can be different from MAX_NON_LFS - pos?
 
-Signed-off-by: Darrick J. Wong <darrick.wong@oracle.com>
----
- fs/xfs/xfs_reflink.c |    7 +------
- 1 file changed, 1 insertion(+), 6 deletions(-)
+> +	}
+> +
+> +	/*
+> +	 * Don't operate on ranges the page cache doesn't support.
+> +	 *
+> +	 * If we have written data it becomes a short write.  If we have
+> +	 * exceeded without writing data we send a signal and return EFBIG.
+> +	 * Linus frestrict idea will clean these up nicely..
+> +	 */
+> +	if (unlikely(pos >= inode->i_sb->s_maxbytes))
+> +		return -EFBIG;
+> +
+> +	*count = min(*count, inode->i_sb->s_maxbytes - pos);
+> +	return 0;
+> +}
 
+Anyway, I would rather do this here:
 
-diff --git a/fs/xfs/xfs_reflink.c b/fs/xfs/xfs_reflink.c
-index 84f372f7ea04..e72218477bf2 100644
---- a/fs/xfs/xfs_reflink.c
-+++ b/fs/xfs/xfs_reflink.c
-@@ -927,8 +927,7 @@ xfs_reflink_update_dest(
- 	struct xfs_trans	*tp;
- 	int			error;
- 
--	if ((remap_flags & REMAP_FILE_DEDUP) &&
--	    newlen <= i_size_read(VFS_I(dest)) && cowextsize == 0)
-+	if (newlen <= i_size_read(VFS_I(dest)) && cowextsize == 0)
- 		return 0;
- 
- 	error = xfs_trans_alloc(mp, &M_RES(mp)->tr_ichange, 0, 0, 0, &tp);
-@@ -949,10 +948,6 @@ xfs_reflink_update_dest(
- 		dest->i_d.di_flags2 |= XFS_DIFLAG2_COWEXTSIZE;
- 	}
- 
--	if (!(remap_flags & REMAP_FILE_DEDUP)) {
--		xfs_trans_ichgtime(tp, dest,
--				   XFS_ICHGTIME_MOD | XFS_ICHGTIME_CHG);
--	}
- 	xfs_trans_log_inode(tp, dest, XFS_ILOG_CORE);
- 
- 	error = xfs_trans_commit(tp);
+	struct inode *inode = file->f_mapping->host;
+	loff_t max_size = inode->i_sb->s_maxbytes;
+
+	if (!(file->f_flags & O_LARGEFILE))
+		max_size = MAX_NON_LFS;
+
+	if (unlikely(pos >= max_size))
+		return -EFBIG;
+	*count = min(*count, max_size - pos);
+	return 0;
