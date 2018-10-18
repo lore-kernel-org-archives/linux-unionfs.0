@@ -1,44 +1,44 @@
-Return-Path: <olga.kornievskaia@gmail.com>
-Return-Path: <olga.kornievskaia@gmail.com>
-From: Olga Kornievskaia <olga.kornievskaia@gmail.com>
-Subject: [PATCH v4 11/11] NFS: replace cross device check in copy_file_range
-Date: Fri, 26 Oct 2018 16:10:57 -0400
-Message-Id: <20181026201057.36899-13-olga.kornievskaia@gmail.com>
-In-Reply-To: <20181026201057.36899-1-olga.kornievskaia@gmail.com>
-References: <20181026201057.36899-1-olga.kornievskaia@gmail.com>
-To: trond.myklebust@hammerspace.com, anna.schumaker@netapp.com, viro@zeniv.linux.org.uk, smfrench@gmail.com, miklos@szeredi.hu
-Cc: linux-nfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-cifs@vger.kernel.org, linux-unionfs@vger.kernel.org, linux-man@vger.kernel.org
+Return-Path: <amir73il@gmail.com>
+MIME-Version: 1.0
+References: <f6de5a77786759a7308ec8dc6cfe41c6@agner.ch> <CAJfpegvn9pXJ9EULD-+HXJJNkH58CSB5TEhpv3udHFo47BqeNQ@mail.gmail.com>
+ <CAOQ4uxgcsHXZ3ctE1NNMey_y_LNagtx_n+Tdq7SApT6EgLsd0Q@mail.gmail.com>
+ <CAJfpegsAvjfixdO9iRDsV2XwvGaQS9GpbBdkKnkxJS=3ghcZ-g@mail.gmail.com>
+ <CAOQ4uxjqmQJmE5xLfqJGCnZoMf6NPtcNso7Fotjy_hGAUObK+w@mail.gmail.com> <b9f68a97417b5d907e8e882b9e8d19a1@agner.ch>
+In-Reply-To: <b9f68a97417b5d907e8e882b9e8d19a1@agner.ch>
+From: Amir Goldstein <amir73il@gmail.com>
+Date: Thu, 18 Oct 2018 17:34:58 +0300
+Message-ID: <CAOQ4uxjAuEthHhDHMjZQ2BVbk0n3Xq-Sd-UfgkGGFfYKeRKWnQ@mail.gmail.com>
+Subject: Re: WARNING: possible recursive locking detected in mnt_want_write/mnt_want_write_file_path
+Content-Type: text/plain; charset="UTF-8"
+To: stefan@agner.ch
+Cc: Miklos Szeredi <miklos@szeredi.hu>, Sasha Levin <alexander.levin@microsoft.com>, overlayfs <linux-unionfs@vger.kernel.org>, Al Viro <viro@zeniv.linux.org.uk>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Greg KH <gregkh@linuxfoundation.org>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-From: Olga Kornievskaia <kolga@netapp.com>
+On Thu, Oct 18, 2018 at 4:25 PM Stefan Agner <stefan@agner.ch> wrote:
+>
+> On 18.10.2018 13:50, Amir Goldstein wrote:
+> > On Wed, Oct 17, 2018 at 9:37 PM Miklos Szeredi <miklos@szeredi.hu> wrote:
+> >>
+> >> On Wed, Oct 17, 2018 at 5:24 PM, Amir Goldstein <amir73il@gmail.com> wrote:
+> >
+> >> > Miklos,
+> >> >
+> >> > You must have confused "the algorithm" by including a "fix" commit in
+> >> > rc1 pull request
+> >> > without mentioning that it "Fixes" a commit in the same pull request.
+> >>
+> >> I didn't know there were heuristics other than "Cc: stable@.."
+> >>
+> >
+> > Yes. Given a Fixes: label, I bet Cc: stable is not needed to auto select
+> > for stable??
+>
+> Given a Fixes: probably would prevented it to be selected since the
+> commit it references is not part of 4.18...
+>
 
-Add a check to disallow cross file systems copy offload, both
-files are expected to be of NFS4.2+ type.
+Indeed. adding a Fixes label for non-stable patches as well would be
+good practice.
 
-Signed-off-by: Olga Kornievskaia <kolga@netapp.com>
----
- fs/nfs/nfs4file.c | 8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
-
-diff --git a/fs/nfs/nfs4file.c b/fs/nfs/nfs4file.c
-index 2f31f30..344e9dd 100644
---- a/fs/nfs/nfs4file.c
-+++ b/fs/nfs/nfs4file.c
-@@ -139,8 +139,14 @@ static ssize_t nfs4_copy_file_range(struct file *file_in, loff_t pos_in,
- 	nfs4_stateid *cnrs = NULL;
- 	ssize_t ret;
- 
--	if (file_in->f_inode->i_sb != file_out->f_inode->i_sb)
-+	if (file_in->f_op != &nfs4_file_operations)
- 		return -EXDEV;
-+	else {
-+		struct nfs_client *c_in =
-+			(NFS_SERVER(file_inode(file_in)))->nfs_client;
-+		if (c_in->cl_minorversion < 2)
-+			return -EXDEV;
-+	}
- 
- 	if (file_inode(file_in) == file_inode(file_out))
- 		return -EINVAL;
--- 
-1.8.3.1
+Thanks,
+Amir.
