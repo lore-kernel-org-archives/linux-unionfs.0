@@ -1,39 +1,52 @@
-Return-Path: <olga.kornievskaia@gmail.com>
-Return-Path: <olga.kornievskaia@gmail.com>
-From: Olga Kornievskaia <olga.kornievskaia@gmail.com>
-Subject: [PATCH v2 13/13] NFS COPY handle ERR_OFFLOAD_DENIED
-Date: Wed, 24 Oct 2018 15:58:37 -0400
-Message-Id: <20181024195837.35532-15-olga.kornievskaia@gmail.com>
-In-Reply-To: <20181024195837.35532-1-olga.kornievskaia@gmail.com>
-References: <20181024195837.35532-1-olga.kornievskaia@gmail.com>
-To: trond.myklebust@hammerspace.com, anna.schumaker@netapp.com, viro@zeniv.linux.org.uk, smfrench@gmail.com, miklos@szeredi.hu
-Cc: linux-nfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-cifs@vger.kernel.org, linux-unionfs@vger.kernel.org, linux-man@vger.kernel.org
+Return-Path: <amir73il@gmail.com>
+Return-Path: <amir73il@gmail.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Subject: [PATCH] ovl: fix recursive oi->lock in ovl_link()
+Date: Thu, 18 Oct 2018 09:45:49 +0300
+Message-Id: <20181018064549.4121-1-amir73il@gmail.com>
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: linux-unionfs@vger.kernel.org
 List-ID: <linux-unionfs@vger.kernel.org>
 
-From: Olga Kornievskaia <kolga@netapp.com>
+linking a non-copied-up file into a non-copied-up parent results in
+a nested call to mutex_lock_interruptible(&oi->lock). Fix this by
+copying up target parent before ovl_nlink_start(), same as done
+in ovl_rename().
 
-If server sends ERR_OFFLOAD_DENIED error, the client must fall
-back on doing copy the normal way. Return ENOTSUPP to the vfs and
-fallback to regular copy.
+~/unionmount-testsuite$ ./run --ov -s
+~/unionmount-testsuite$ ln /mnt/a/foo100 /mnt/a/dir100/
 
-Signed-off-by: Olga Kornievskaia <kolga@netapp.com>
+ WARNING: possible recursive locking detected
+ --------------------------------------------
+ ln/1545 is trying to acquire lock:
+ 00000000bcce7c4c (&ovl_i_lock_key[depth]){+.+.}, at:
+     ovl_copy_up_start+0x28/0x7d
+ but task is already holding lock:
+ 0000000026d73d5b (&ovl_i_lock_key[depth]){+.+.}, at:
+     ovl_nlink_start+0x3c/0xc1
+
+Reported-by: syzbot+3ef5c0d1a5cb0b21e6be@syzkaller.appspotmail.com
+Fixes: 5f8415d6b87e ("ovl: persistent overlay inode nlink for...")
+Cc: <stable@vger.kernel.org> # v4.13
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- fs/nfs/nfs42proc.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ fs/overlayfs/dir.c | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff --git a/fs/nfs/nfs42proc.c b/fs/nfs/nfs42proc.c
-index 00809b3..c7c2ffa 100644
---- a/fs/nfs/nfs42proc.c
-+++ b/fs/nfs/nfs42proc.c
-@@ -395,7 +395,8 @@ ssize_t nfs42_proc_copy(struct file *src, loff_t pos_src,
- 			args.sync = true;
- 			dst_exception.retry = 1;
- 			continue;
--		} else if (err == -ESTALE &&
-+		} else if ((err == -ESTALE ||
-+				err == -NFS4ERR_OFFLOAD_DENIED) &&
- 				!nfs42_files_from_same_server(src, dst)) {
- 			nfs42_do_offload_cancel_async(src, &args.src_stateid);
- 			err = -EOPNOTSUPP;
+diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
+index 276914ae3c60..e1a55ecb7aba 100644
+--- a/fs/overlayfs/dir.c
++++ b/fs/overlayfs/dir.c
+@@ -663,6 +663,10 @@ static int ovl_link(struct dentry *old, struct inode *newdir,
+ 	if (err)
+ 		goto out_drop_write;
+ 
++	err = ovl_copy_up(new->d_parent);
++	if (err)
++		goto out_drop_write;
++
+ 	if (ovl_is_metacopy_dentry(old)) {
+ 		err = ovl_set_redirect(old, false);
+ 		if (err)
 -- 
-1.8.3.1
+2.17.1
