@@ -1,53 +1,168 @@
-From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: possible deadlock in ovl_copy_up_start
-Date: Thu, 18 Oct 2018 13:40:14 +0300
-Message-ID: <CAOQ4uxhw5ewvH6_x3oSU67Z+zLB28BUWijq7kM_h1+Jt66T1LA@mail.gmail.com>
-References: <00000000000058404b0578797a9d@google.com> <CAOQ4uxjY1LpVKv1id6W-1nHaKC=RbG8HUkTvgGTdGo8MKwzSTw@mail.gmail.com>
- <CAJfpegsDfJMsT8OJVYuUFpNz94ex0fm5Z-e2Gp=cUgXsb_L-Jg@mail.gmail.com>
+From: "Darrick J. Wong" <darrick.wong@oracle.com>
+Subject: [PATCH v2 04/29] vfs: strengthen checking of file range inputs to
+ generic_remap_checks
+Date: Thu, 18 Oct 2018 11:56:07 -0700
+Message-ID: <20181018185607.GV28243@magnolia>
+References: <153981625504.5568.2708520119290577378.stgit@magnolia>
+ <153981628292.5568.2466587869276881561.stgit@magnolia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAJfpegsDfJMsT8OJVYuUFpNz94ex0fm5Z-e2Gp=cUgXsb_L-Jg@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: syzbot+3ef5c0d1a5cb0b21e6be@syzkaller.appspotmail.com, linux-kernel <linux-kernel@vger.kernel.org>, overlayfs <linux-unionfs@vger.kernel.org>, syzkaller-bugs@googlegroups.com
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-btrfs-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <153981628292.5568.2466587869276881561.stgit@magnolia>
+Sender: linux-btrfs-owner@vger.kernel.org
+To: david@fromorbit.com
+Cc: sandeen@redhat.com, linux-nfs@vger.kernel.org, linux-cifs@vger.kernel.org, Amir Goldstein <amir73il@gmail.com>, linux-unionfs@vger.kernel.org, linux-xfs@vger.kernel.org, linux-mm@kvack.org, linux-btrfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, Christoph Hellwig <hch@lst.de>, ocfs2-devel@oss.oracle.com
 List-Id: linux-unionfs@vger.kernel.org
 
-On Thu, Oct 18, 2018 at 11:41 AM Miklos Szeredi <miklos@szeredi.hu> wrote:
->
-> On Thu, Oct 18, 2018 at 8:26 AM, Amir Goldstein <amir73il@gmail.com> wrote:
->
-> > Can someone tell me what the expected behavior of a nested
-> > mutex_lock_interruptible(&lock); ?
-> >
-> > Why does the reproducer only warn and not really deadlock.
-> > It is because that is considered the lesser evil?
-> > and obviously, then inner unlock releases the outer lock?
->
-> No, it's not the same lock, just the same lock class (first one is
-> OVL_I(d_inode(old))->lock, the other is
-> OVL_I(d_inode(new->d_parent)))->lock).
+From: Darrick J. Wong <darrick.wong@oracle.com>
 
-Doh! of course.
+File range remapping, if allowed to run past the destination file's EOF,
+is an optimization on a regular file write.  Regular file writes that
+extend the file length are subject to various constraints which are not
+checked by range cloning.
 
->
-> So we could possibly get away with annotating with
-> mutex_lock_nested().  Is this the only place that ovl_i_lock is
-> nested?
->
+This is a correctness problem because we're never allowed to touch
+ranges that the page cache can't support (s_maxbytes); we're not
+supposed to deal with large offsets (MAX_NON_LFS) if O_LARGEFILE isn't
+set; and we must obey resource limits (RLIMIT_FSIZE).
 
-As far as I can see it is.
-But how would we annotate it for consistent and clear locking order?
-NLINK/COPYUP?
-if we want this annotation to maintain locking order we need to patch
-I posted (does copyup of new->parent prior to nlink_start), so then
-we don't need nested annotations anymore.
+Therefore, add these checks to the new generic_remap_checks function so
+that we curtail unexpected behavior.
 
-Nah, I don't think we need to add nested annotations.
+Signed-off-by: Darrick J. Wong <darrick.wong@oracle.com>
+Reviewed-by: Amir Goldstein <amir73il@gmail.com>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+---
+v2: restructurings as recommended by Al Viro
+---
+ mm/filemap.c |   84 ++++++++++++++++++++++++++++++++++++----------------------
+ 1 file changed, 52 insertions(+), 32 deletions(-)
 
-FYI, I am working on a small cleanup series for ovl_nlink_start/end
-and ovl_inode_lock/unlock, but it is independent of the fix patch I posted
-for this bug.
-
-Thanks,
-Amir.
+diff --git a/mm/filemap.c b/mm/filemap.c
+index 47e6bfd45a91..aab149fc1faa 100644
+--- a/mm/filemap.c
++++ b/mm/filemap.c
+@@ -2915,6 +2915,42 @@ struct page *read_cache_page_gfp(struct address_space *mapping,
+ }
+ EXPORT_SYMBOL(read_cache_page_gfp);
+ 
++/*
++ * Don't operate on ranges the page cache doesn't support, and don't exceed the
++ * LFS limits.  If pos is under the limit it becomes a short access.  If it
++ * exceeds the limit we return -EFBIG.
++ */
++static int generic_access_check_limits(struct file *file, loff_t pos,
++				       loff_t *count)
++{
++	struct inode *inode = file->f_mapping->host;
++	loff_t max_size = inode->i_sb->s_maxbytes;
++
++	if (!(file->f_flags & O_LARGEFILE))
++		max_size = MAX_NON_LFS;
++
++	if (unlikely(pos >= max_size))
++		return -EFBIG;
++	*count = min(*count, max_size - pos);
++	return 0;
++}
++
++static int generic_write_check_limits(struct file *file, loff_t pos,
++				      loff_t *count)
++{
++	loff_t limit = rlimit(RLIMIT_FSIZE);
++
++	if (limit != RLIM_INFINITY) {
++		if (pos >= limit) {
++			send_sig(SIGXFSZ, current, 0);
++			return -EFBIG;
++		}
++		*count = min(*count, limit - pos);
++	}
++
++	return generic_access_check_limits(file, pos, count);
++}
++
+ /*
+  * Performs necessary checks before doing a write
+  *
+@@ -2926,8 +2962,8 @@ inline ssize_t generic_write_checks(struct kiocb *iocb, struct iov_iter *from)
+ {
+ 	struct file *file = iocb->ki_filp;
+ 	struct inode *inode = file->f_mapping->host;
+-	unsigned long limit = rlimit(RLIMIT_FSIZE);
+-	loff_t pos;
++	loff_t count;
++	int ret;
+ 
+ 	if (!iov_iter_count(from))
+ 		return 0;
+@@ -2936,40 +2972,15 @@ inline ssize_t generic_write_checks(struct kiocb *iocb, struct iov_iter *from)
+ 	if (iocb->ki_flags & IOCB_APPEND)
+ 		iocb->ki_pos = i_size_read(inode);
+ 
+-	pos = iocb->ki_pos;
+-
+ 	if ((iocb->ki_flags & IOCB_NOWAIT) && !(iocb->ki_flags & IOCB_DIRECT))
+ 		return -EINVAL;
+ 
+-	if (limit != RLIM_INFINITY) {
+-		if (iocb->ki_pos >= limit) {
+-			send_sig(SIGXFSZ, current, 0);
+-			return -EFBIG;
+-		}
+-		iov_iter_truncate(from, limit - (unsigned long)pos);
+-	}
+-
+-	/*
+-	 * LFS rule
+-	 */
+-	if (unlikely(pos + iov_iter_count(from) > MAX_NON_LFS &&
+-				!(file->f_flags & O_LARGEFILE))) {
+-		if (pos >= MAX_NON_LFS)
+-			return -EFBIG;
+-		iov_iter_truncate(from, MAX_NON_LFS - (unsigned long)pos);
+-	}
+-
+-	/*
+-	 * Are we about to exceed the fs block limit ?
+-	 *
+-	 * If we have written data it becomes a short write.  If we have
+-	 * exceeded without writing data we send a signal and return EFBIG.
+-	 * Linus frestrict idea will clean these up nicely..
+-	 */
+-	if (unlikely(pos >= inode->i_sb->s_maxbytes))
+-		return -EFBIG;
++	count = iov_iter_count(from);
++	ret = generic_write_check_limits(file, iocb->ki_pos, &count);
++	if (ret)
++		return ret;
+ 
+-	iov_iter_truncate(from, inode->i_sb->s_maxbytes - pos);
++	iov_iter_truncate(from, count);
+ 	return iov_iter_count(from);
+ }
+ EXPORT_SYMBOL(generic_write_checks);
+@@ -2991,6 +3002,7 @@ int generic_remap_checks(struct file *file_in, loff_t pos_in,
+ 	uint64_t bcount;
+ 	loff_t size_in, size_out;
+ 	loff_t bs = inode_out->i_sb->s_blocksize;
++	int ret;
+ 
+ 	/* The start of both ranges must be aligned to an fs block. */
+ 	if (!IS_ALIGNED(pos_in, bs) || !IS_ALIGNED(pos_out, bs))
+@@ -3014,6 +3026,14 @@ int generic_remap_checks(struct file *file_in, loff_t pos_in,
+ 		return -EINVAL;
+ 	count = min(count, size_in - (uint64_t)pos_in);
+ 
++	ret = generic_access_check_limits(file_in, pos_in, &count);
++	if (ret)
++		return ret;
++
++	ret = generic_write_check_limits(file_out, pos_out, &count);
++	if (ret)
++		return ret;
++
+ 	/*
+ 	 * If the user wanted us to link to the infile's EOF, round up to the
+ 	 * next block boundary for this check.
