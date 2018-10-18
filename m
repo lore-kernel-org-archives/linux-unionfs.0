@@ -1,86 +1,130 @@
-Return-Path: <olga.kornievskaia@gmail.com>
-Return-Path: <olga.kornievskaia@gmail.com>
-From: Olga Kornievskaia <olga.kornievskaia@gmail.com>
-Subject: [PATCH v5 00/12] client-side support for "inter" SSC copy
-Date: Mon, 29 Oct 2018 13:40:46 -0400
-Message-Id: <20181029174059.38326-1-olga.kornievskaia@gmail.com>
-To: trond.myklebust@hammerspace.com, anna.schumaker@netapp.com, viro@zeniv.linux.org.uk, smfrench@gmail.com, miklos@szeredi.hu
-Cc: linux-nfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-cifs@vger.kernel.org, linux-unionfs@vger.kernel.org, linux-man@vger.kernel.org
+Return-Path: <amir73il@gmail.com>
+Return-Path: <amir73il@gmail.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Subject: [PATCH 2/2] ovl: abstract ovl_inode lock with a helper
+Date: Thu, 18 Oct 2018 18:37:14 +0300
+Message-Id: <20181018153714.3834-3-amir73il@gmail.com>
+In-Reply-To: <20181018153714.3834-1-amir73il@gmail.com>
+References: <20181018153714.3834-1-amir73il@gmail.com>
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: linux-unionfs@vger.kernel.org
 List-ID: <linux-unionfs@vger.kernel.org>
 
-From: Olga Kornievskaia <kolga@netapp.com>
+The abstraction improves code readabilty (to some).
 
-This patch series adds client-side support for doing NFSv4.2 "inter"
-copy offload between different NFS servers.
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+---
+ fs/overlayfs/overlayfs.h | 10 ++++++++++
+ fs/overlayfs/util.c      | 25 +++++++++++++------------
+ 2 files changed, 23 insertions(+), 12 deletions(-)
 
-In case of the "inter" SSC copy files reside on different servers and
-thus under different superblocks and require that VFS removes the
-restriction that src and dst files must be on the same superblock.
-
-NFS's copy_file_range() determines if the copy is "intra" or "inter"
-and for "inter" it sends the COPY_NOTIFY to the source server. Then,
-it would send of an asynchronous COPY to the destination server. If
-an application cancels an in-flight COPY, OFFLOAD_CANCEL is sent to
-both of the servers.
-
-This patch series also include necessary client-side additions that
-are performed by the destination server. The server needs an NFS
-open that represents a source file without doing an actual open.
-Two function nfs42_ssc_open/nfs42_ssc_close() are introduced to
-accomplish it that make use of the VFS's alloc_file_pseudo() to
-represent an open.
-
-Also this particular open is marked (NFS_SVC_SSC_COPY_STATE) so
-that if the destination server ever to receive stateid errors on
-this stateid, it knows not to initiate state recovery (in case
-when source server reboots). The recovery must be done by the
-client and a new copy must be initiated. Therefore, in this case
-the recovery needs to fail with EIO.
-
-v5:
--- in the VFS patches: 1. addressed use of file_inode, indentation,
-2. Separated the cross-device checking relocation and ability to
-fallback to do_splice_direct() into 2 patches. This NFS series has
-only a requirement on the 1st VFS patch. 2nd VFS I propose as an
-improvement but if it's deemed unnecessary, I'm OK with dropping
-(I would need to change the man-page patch accordingly).
--- moved source offset check into NFS
--- reformatted NFS cross filesystem check to look better
--- I have added "Reviewed-by" to the commits but if I missed something
-it was unintentional so please let me know.
-
-Olga Kornievskaia (12):
-  VFS: move cross device copy_file_range() check into filesystems
-  VFS: generic cross-device copy_file_range() support for all
-    filesystems
-  NFS: validity check for source offset in copy_file_range
-  NFS NFSD: defining nl4_servers structure needed by both
-  NFS: add COPY_NOTIFY operation
-  NFS: add ca_source_server<> to COPY
-  NFS: also send OFFLOAD_CANCEL to source server
-  NFS: inter ssc open
-  NFS: skip recovery of copy open on dest server
-  NFS: for "inter" copy treat ESTALE as ENOTSUPP
-  NFS: COPY handle ERR_OFFLOAD_DENIED
-  NFS: replace cross device check in copy_file_range
-
- Documentation/filesystems/porting |   7 ++
- fs/cifs/cifsfs.c                  |   3 +
- fs/nfs/nfs42.h                    |  15 ++-
- fs/nfs/nfs42proc.c                | 129 ++++++++++++++++++++++---
- fs/nfs/nfs42xdr.c                 | 193 +++++++++++++++++++++++++++++++++++++-
- fs/nfs/nfs4_fs.h                  |  10 ++
- fs/nfs/nfs4client.c               |   2 +-
- fs/nfs/nfs4file.c                 | 127 ++++++++++++++++++++++++-
- fs/nfs/nfs4proc.c                 |   6 +-
- fs/nfs/nfs4state.c                |  14 +++
- fs/nfs/nfs4xdr.c                  |   1 +
- fs/overlayfs/file.c               |   3 +
- fs/read_write.c                   |   9 +-
- include/linux/nfs4.h              |  25 +++++
- include/linux/nfs_fs_sb.h         |   1 +
- include/linux/nfs_xdr.h           |  17 ++++
- 16 files changed, 537 insertions(+), 25 deletions(-)
-
+diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
+index b48ef22ef96b..5e45cb3630a0 100644
+--- a/fs/overlayfs/overlayfs.h
++++ b/fs/overlayfs/overlayfs.h
+@@ -290,6 +290,16 @@ static inline unsigned int ovl_xino_bits(struct super_block *sb)
+ 	return ofs->xino_bits;
+ }
+ 
++static inline int ovl_inode_lock(struct inode *inode)
++{
++	return mutex_lock_interruptible(&OVL_I(inode)->lock);
++}
++
++static inline void ovl_inode_unlock(struct inode *inode)
++{
++	mutex_unlock(&OVL_I(inode)->lock);
++}
++
+ 
+ /* namei.c */
+ int ovl_check_fh_len(struct ovl_fh *fh, int fh_len);
+diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
+index d3a786006729..7c01327b1852 100644
+--- a/fs/overlayfs/util.c
++++ b/fs/overlayfs/util.c
+@@ -521,13 +521,13 @@ bool ovl_already_copied_up(struct dentry *dentry, int flags)
+ 
+ int ovl_copy_up_start(struct dentry *dentry, int flags)
+ {
+-	struct ovl_inode *oi = OVL_I(d_inode(dentry));
++	struct inode *inode = d_inode(dentry);
+ 	int err;
+ 
+-	err = mutex_lock_interruptible(&oi->lock);
++	err = ovl_inode_lock(inode);
+ 	if (!err && ovl_already_copied_up_locked(dentry, flags)) {
+ 		err = 1; /* Already copied up */
+-		mutex_unlock(&oi->lock);
++		ovl_inode_unlock(inode);
+ 	}
+ 
+ 	return err;
+@@ -535,7 +535,7 @@ int ovl_copy_up_start(struct dentry *dentry, int flags)
+ 
+ void ovl_copy_up_end(struct dentry *dentry)
+ {
+-	mutex_unlock(&OVL_I(d_inode(dentry))->lock);
++	ovl_inode_unlock(d_inode(dentry));
+ }
+ 
+ bool ovl_check_origin_xattr(struct dentry *dentry)
+@@ -740,11 +740,11 @@ static void ovl_cleanup_index(struct dentry *dentry)
+  */
+ int ovl_nlink_start(struct dentry *dentry)
+ {
+-	struct ovl_inode *oi = OVL_I(d_inode(dentry));
++	struct inode *inode = d_inode(dentry);
+ 	const struct cred *old_cred;
+ 	int err;
+ 
+-	if (WARN_ON(!d_inode(dentry)))
++	if (WARN_ON(!inode))
+ 		return -ENOENT;
+ 
+ 	/*
+@@ -767,11 +767,11 @@ int ovl_nlink_start(struct dentry *dentry)
+ 			return err;
+ 	}
+ 
+-	err = mutex_lock_interruptible(&oi->lock);
++	err = ovl_inode_lock(inode);
+ 	if (err)
+ 		return err;
+ 
+-	if (d_is_dir(dentry) || !ovl_test_flag(OVL_INDEX, d_inode(dentry)))
++	if (d_is_dir(dentry) || !ovl_test_flag(OVL_INDEX, inode))
+ 		goto out;
+ 
+ 	old_cred = ovl_override_creds(dentry->d_sb);
+@@ -786,15 +786,16 @@ int ovl_nlink_start(struct dentry *dentry)
+ 
+ out:
+ 	if (err)
+-		mutex_unlock(&oi->lock);
++		ovl_inode_unlock(inode);
+ 
+ 	return err;
+ }
+ 
+ void ovl_nlink_end(struct dentry *dentry)
+ {
+-	if (ovl_test_flag(OVL_INDEX, d_inode(dentry)) &&
+-	    d_inode(dentry)->i_nlink == 0) {
++	struct inode *inode = d_inode(dentry);
++
++	if (ovl_test_flag(OVL_INDEX, inode) && inode->i_nlink == 0) {
+ 		const struct cred *old_cred;
+ 
+ 		old_cred = ovl_override_creds(dentry->d_sb);
+@@ -802,7 +803,7 @@ void ovl_nlink_end(struct dentry *dentry)
+ 		revert_creds(old_cred);
+ 	}
+ 
+-	mutex_unlock(&OVL_I(d_inode(dentry))->lock);
++	ovl_inode_unlock(inode);
+ }
+ 
+ int ovl_lock_rename_workdir(struct dentry *workdir, struct dentry *upperdir)
 -- 
-1.8.3.1
+2.17.1
