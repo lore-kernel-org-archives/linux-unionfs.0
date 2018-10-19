@@ -1,14 +1,15 @@
-From: Amir Goldstein <amir73il@gmail.com>
+From: Richard Weinberger <richard@nod.at>
 Subject: Re: Regression in handling power cuts since 3a1e819b4e80 ("ovl: store
  file handle of lower inode on copy up")
-Date: Fri, 19 Oct 2018 17:56:24 +0300
-Message-ID: <CAOQ4uxjeVqfCgs0+2YNbugwD85VafadupDLG5xBf3=k4j=69Ng@mail.gmail.com>
+Date: Fri, 19 Oct 2018 16:59:47 +0200
+Message-ID: <11759557.52cTf2r1oB__45476.554943207$1539961126$gmane$org@blindfold>
 References: <CACna6rx3YBNYKGu7T-J2J-S_3yr-oafJf3pL5TbGDFRzU6dihg@mail.gmail.com>
+ <1457198086.5374.1539960353710.JavaMail.zimbra@nod.at>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
-In-Reply-To: <CACna6rx3YBNYKGu7T-J2J-S_3yr-oafJf3pL5TbGDFRzU6dihg@mail.gmail.com>
+In-Reply-To: <1457198086.5374.1539960353710.JavaMail.zimbra@nod.at>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
  <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
@@ -18,71 +19,27 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
  <mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-mtd" <linux-mtd-bounces@lists.infradead.org>
 Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
-To: =?UTF-8?B?UmFmYcWCIE1pxYJlY2tp?= <zajec5@gmail.com>
-Cc: Artem Bityutskiy <dedekind1@gmail.com>, Richard Weinberger <richard@nod.at>, Miklos Szeredi <miklos@szeredi.hu>, Adrian Hunter <adrian.hunter@intel.com>, overlayfs <linux-unionfs@vger.kernel.org>, linux-mtd@lists.infradead.org, russell@personaltelco.net, linux-fsdevel <linux-fsdevel@vger.kernel.org>, openwrt-devel@lists.openwrt.org
+To: =?utf-8?B?UmFmYcWCIE1pxYJlY2tp?= <zajec5@gmail.com>
+Cc: Artem Bityutskiy <dedekind1@gmail.com>, Amir Goldstein <amir73il@gmail.com>, Adrian Hunter <adrian.hunter@intel.com>, linux-unionfs@vger.kernel.org, Miklos Szeredi <miklos@szeredi.hu>, linux-mtd@lists.infradead.org, Russell Senior <russell@personaltelco.net>, linux-fsdevel@vger.kernel.org, OpenWrt Development List <openwrt-devel@lists.openwrt.org>
 List-Id: linux-unionfs@vger.kernel.org
 
-T24gRnJpLCBPY3QgMTksIDIwMTggYXQgMzozMSBQTSBSYWZhxYIgTWnFgmVja2kgPHphamVjNUBn
-bWFpbC5jb20+IHdyb3RlOgo+Cj4gSGksCj4KPiBTaW5jZSBPcGVuV3J0IHN3aXRjaCBmcm9tIGtl
-cm5lbCA0LjkgdG8gNC4xNCB1c2VycyBzdGFydGVkIHJhbmRvbWx5Cj4gcmVwb3J0aW5nIGZpbGUg
-c3lzdGVtIGNvcnJ1cHRpb25zLiBPcGVuV3J0IHVzZXMgb3ZlcmxheShmcykgd2l0aAo+IHNxdWFz
-aGZzIGFzIGxvd2VyZGlyIGFuZCB1YmlmcyBhcyB1cHBlcmRpci4gUnVzc2VsbCBtYW5hZ2VkIHRv
-IGlzb2xhdGUKPiAmIGRlc2NyaWJlIHRlc3QgY2FzZSBmb3IgcmVwcm9kdWNpbmcgY29ycnVwdGlv
-biB3aGVuIGRvaW5nIGEgcG93ZXIgY3V0Cj4gYWZ0ZXIgZmlyc3QgYm9vdC4KPgo+IEludGVyZXN0
-aW5nbHkgaXQgY2Fubm90IGJlIHJlcHJvZHVjZWQgb24gYWxsIGRldmljZXMgKE5BTkQgZGVwZW5k
-YW50Pwo+IGFyY2ggZGVwZW5kYW50PyEpLiBJIGNvdWxkbid0IHJlcHJvZHVjZSB0aGF0IHByb2Js
-ZW0gb24gbm9uZSBvZiBteQo+IEJyb2FkY29tIGRldmljZXMgKEFSTT15IEFSQ0hfQkNNXzUzMDFY
-PXkpIHNvIEkgaGFkIHRvIGJ1eSBVYmlxdWl0aQo+IEVkZ2VSb3V0ZXIgWCAoRVItWCkgKE1JUFM9
-eSBSQUxJTks9eSkuIEkgcmVwcm9kdWNlZCBpdCB0aGVuIGFuZAo+IGJpc2VjdGVkIGRvd24gdG8g
-dGhlIGNvbW1pdCAzYTFlODE5YjRlODAgKCJvdmw6IHN0b3JlIGZpbGUgaGFuZGxlIG9mCj4gbG93
-ZXIgaW5vZGUgb24gY29weSB1cCIpLgo+Cj4gRldJVyBJIHdhcyB0b2xkIGl0IGFsc28gYWZmZWN0
-czoKPiBBc3VzIFJULUFDNThVIChBUkNIX0lQUTQwWFg9eSkKPiBwb3dlcnBjCj4gUkI0OTNHLCBE
-SVItODYwTCAoQVRINzk9eSkKPgo+IFN0ZXBzIHRvIHJlcHJvZHVjZSB0aGUgcHJvYmxlbToKPiAx
-KSBGbGFzaCBmaXJtd2FyZQo+IDIpIEJvb3QgKGZvciB0aGUgZmlyc3QgdGltZSkKPiAzKSBMZXQg
-dGhlIGluaXQgc2NyaXB0IGNvcHkgY29uZmlnIGZpbGVzIGZyb20gbG93ZXJkaXIgdG8gdGhlIHVw
-cGVyZGlyCj4gNCkgV2FpdCBmb3IgYm9vdCB0byBmaW5pc2gKPiA1KSBWZXJpZnkgY29udGVudCBv
-ZiBzb21lIHVubW9kaWZpZWQgY29uZmlnIG9uIG92ZXJsYXksIHVzaW5nIGVpdGhlcjoKPiBoZXhk
-dW1wIC1DIC9ldGMvY29uZmlnL2Ryb3BiZWFyCj4gaGV4ZHVtcCAtQyAvb3ZlcmxheS91cHBlci9l
-dGMvY29uZmlnL2Ryb3BiZWFyCj4gNikgUG93ZXIgY3V0ICYgYm9vdCBhZ2Fpbgo+IDcpIENoZWNr
-IHRoZSBjb250ZW50IG9mIHRoZSBzYW1lIGZpbGUKPgo+IEFmdGVyIGFib3ZlIHJlZ3Jlc3Npbmcg
-Y29tbWl0IHRoZSBsYXRlciBjaGVjayBjb25maXJtcyB0aGUgZmlsZSBzaXplCj4gbG9va3MgY29y
-cmVjdCBidXQgaXQncyBmaWxsZWQgd2l0aCBhbGwgMDAtZXMgb25seS4KPgo+IENhbiBJIGFzayB5
-b3UgdG8gY2hlY2sgaWYgdGhlcmUgaXMgc29tZXRoaW5nIHBvc3NpYmx5IHdyb25nIHdpdGggdGhl
-Cj4gYWJvdmUgb3ZsIGNvbW1pdD8gT3IgZG9lcyBpdCBleHBvc2Ugc29tZSBwcm9ibGVtIHdpdGgg
-dGhlIHViaWZzPyBPcgo+IG1heWJlIHRoZSB3aG9sZSBVQkk/Cj4KPiBGV0lXIHRlc3RpbmcgYWJv
-dmUgY29tbWl0IChhbmQgb25lIGJlZm9yZSBpdCkgYWx3YXlzIHJlc3VsdHMgaW4gc2luZ2xlCj4g
-ZXJyb3IgaW4gdGhlIGtlcm5lbCBsb2c6Cj4gWyAgIDE0LjI1MDE4NF0gVUJJRlMgZXJyb3IgKHVi
-aTA6MSBwaWQgNjM3KTogdWJpZnNfYWRkX29ycGhhbjogb3JwaGFuZWQgdHdpY2UKPgoKVGhpcyBs
-b29rcyB2ZXJ5IHN1c3BpY2lvdXMgYW5kIHNob3VsZCBiZSB0YWtlbiB1cCB3aXRoIHViaWZzIGRl
-dmVsb3BlcnMuClRoZXJlIHNob3VsZG4ndCBiZSBhbnkgd2F5IGZvciBhbiBleHRlcm5hbCBtb2R1
-bGUgKG92ZXJsYXlmcykgdG8gZ2VuZXJhdGUKaW50ZXJuYWwgZXJyb3JzIGxpa2UgdGhpcyBpbiB1
-Ymlmcy4KCkxldCBtZSBkZXNjcmliZXMgd2hhdCB0aGUgIm9mZmVuZGluZyIgY29tbWl0IGNoYW5n
-ZXMgdG8gaGVscCB5b3UgbmFycm93CmRvd24gdGhlIHJlcHJvZHVjZXIuCgpCZWZvcmUgdGhlIGNo
-YW5nZSB3aGVuIGNvbmZpZyBmaWxlIGlzIGNvcGllZCB1cCBvdmVybGF5ZnMgZG9lczoKLSBvcGVu
-IE9fVE1QRklMRSBpbiB1cHBlciB1YmlmcwotIGNvcHkgbG93ZXIgZmlsZSBkYXRhIHRvIHRtcGZp
-bGUKLSBjb3B5IGxvd2VyIGZpbGUgbWV0YWRhdGEgdG8gdG1wZmlsZQotIGxpbmsgdG1wZmlsZSB0
-byB1cHBlciB1YmlmcyBwYXRoCgpBZnRlciB0aGUgY2hhbmdlLCB0aGUgKm9ubHkqIGV4dHJhIG9w
-ZXJhdGlvbiBpczoKdmZzX3NldHhhdHRyKHRtcGZpbGUsICJ0cnVzdGVkLm92ZXJsYXkub3JpZ2lu
-IiwgTlVMTCwgMCwgMCk7CmFmdGVyIG9wZW5pbmcgdG1wZmlsZQoKQWRkIHRvIHRoYXQgdGhlIGZh
-Y3QgdGhhdCBPX1RNUEZJTEUgc3VwcG9ydCBpbiB1YmlmcyBpcyByYXRoZXIgbmV3CmFuZCB5b3Ug
-Z2V0IGhpZ2ggbGlrZWxpaG9vZCB0aGF0IHRoZSBwcm9ibGVtIGlzIHN0ZW1tZWQgc29tZXdoZXJl
-CmFyb3VuZCBzZXR0aW5nIGV4dGVuZGVkIGF0dHJpYnV0ZXMgb24gT19UTVBGSUxFIGluIHViaWZz
-LgoKWW91IGNhbiB0cnkgdG8gd3JpdGUgYSBzbWFsbCByZXByb2R1Y2VyIHRoYXQgZG9lcyB0aGUg
-NSBzdGVwcyBhYm92ZQp3aXRob3V0IG92ZXJsYXlmcyBkaXJlY3RseSBvbiB1YmlmcyBhbmQgc2Vl
-IGlmIHlvdW8gZ2V0IHNpbWlsYXIgcmVzdWx0cwphZnRlciBwb3dlciBjdXQuCgpCVFcsIGNyZWF0
-aW5nIGFuIE9fVE1QRklMRSAib3JwaGFuZHMiIHRoZSBjcmVhdGVkIGlub2RlIChvbmNlKQpzb21l
-dGhpbmcgaW4gdGhpcyBwcm9jZWR1cmUsIGFsbGVnZWRseSBzZXR4YXR0cigpIGZvciBzb21lIHJl
-YXNvbgpjYXVzZXMgdGhlIGlub2RlIHRvIGJlIG9ycGhhbmVkIHR3aWNlIGlmIHdlIGJlbGlldmUg
-dGhlIGVycm9yIGZyb20KdWJpZnMuCgpCVFcsIG9mZiB0b3BpYywgSSBwb3N0ZWQgc29tZSBvdmVy
-bGF5ZnMgcGF0Y2hlcyB0aGF0IGVuYWJsZSBtb3JlIGZlYXR1cmVzCmZvciBsb3dlciBzcXVhc2hm
-czoKaHR0cHM6Ly93d3cuc3Bpbmljcy5uZXQvbGlzdHMvbGludXgtdW5pb25mcy9tc2cwNTU3MC5o
-dG1sCgpUaGUgbW9zdCBwcm9taW5lbnQgZmVhdHVyZSBpcyBORlMgZXhwb3J0LCBidXQgdGhlcmUg
-aXMgYWxzbyBwZXJzaXN0ZW50CnN0X2RldjtzdF9pbm8gdmFsdWVzIHRoYXQgZG9uJ3QgY2hhbmdl
-IGFmdGVyIGNvcHkgdXAgKyByZWJvb3QgYW5kIG5vdApicmVha2luZyBoYXJkbGlua3Mgb24gY29w
-eSB1cC4KCkNhbiBhbnlvbmUgZnJvbSBPcGVuV3J0IHNheSBpZiB0aGlzIGlzIGF0IGFsbCBpbnRl
-cmVzdGluZyBmb3IgeW91ciB1c2Vycz8KClRoYW5rcywKQW1pci4KCgoKPiBUaGF0IFVCSUZTIGVy
-cm9yIGRvZXNuJ3Qgb2NjdXIgd2l0aCA0LjEyLjE0LiBVbmZvcnR1bmF0ZWx5IGl0J3MKPiBpbXBv
-c3NpYmxlIHRvIGNsZWFubHkgcmV2ZXJ0IDNhMWU4MTliNGU4MCBmcm9tIHRoZSB0b3Agb2YgNC4x
-Mi4xNC4KPgo+IC0tCj4gUmFmYcWCCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX18KTGludXggTVREIGRpc2N1c3Npb24gbWFpbGluZyBsaXN0Cmh0
-dHA6Ly9saXN0cy5pbmZyYWRlYWQub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtbXRkLwo=
+Am Freitag, 19. Oktober 2018, 16:45:53 CEST schrieb Richard Weinberger:
+> Well, I fear it uncovers a problem in UBIFS. We had already problems with overlayfs.
+> Did you bisect the problem and you are sure that the said commit is the first bad commit?
+
+Another thing, UBIFS has no export operations, so overlayfs will fall back to xattrs,
+if I read the commit correctly.
+Maybe this is the root of the problem.
+
+I'm currently traveling, so I cannot test much. Please make sure whether
+3a1e819b4e80 is really the first bad commit.
+Then I can go for a bug hunt. :-)
+
+Thanks,
+//richard
+
+
+
+______________________________________________________
+Linux MTD discussion mailing list
+http://lists.infradead.org/mailman/listinfo/linux-mtd/
