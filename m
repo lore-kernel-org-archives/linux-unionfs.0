@@ -1,181 +1,55 @@
-From: "Darrick J. Wong" <darrick.wong@oracle.com>
-Subject: [PATCH v2 16/29] vfs: enable remap callers that can handle short
- operations
-Date: Thu, 18 Oct 2018 11:58:11 -0700
-Message-ID: <20181018185811.GY28243@magnolia>
-References: <153981625504.5568.2708520119290577378.stgit@magnolia>
- <153981637217.5568.7500888859511338974.stgit@magnolia>
+From: =?UTF-8?B?UmFmYcWCIE1pxYJlY2tp?= <zajec5@gmail.com>
+Subject: Regression in handling power cuts since 3a1e819b4e80 ("ovl: store
+ file handle of lower inode on copy up")
+Date: Fri, 19 Oct 2018 14:31:29 +0200
+Message-ID: <CACna6rx3YBNYKGu7T-J2J-S_3yr-oafJf3pL5TbGDFRzU6dihg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-btrfs-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <153981637217.5568.7500888859511338974.stgit@magnolia>
-Sender: linux-btrfs-owner@vger.kernel.org
-To: david@fromorbit.com
-Cc: sandeen@redhat.com, linux-nfs@vger.kernel.org, linux-cifs@vger.kernel.org, Amir Goldstein <amir73il@gmail.com>, linux-unionfs@vger.kernel.org, linux-xfs@vger.kernel.org, linux-mm@kvack.org, linux-btrfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, ocfs2-devel@oss.oracle.com
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
+ <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
+List-Post: <mailto:linux-mtd@lists.infradead.org>
+List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
+ <mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-mtd" <linux-mtd-bounces@lists.infradead.org>
+Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
+To: Amir Goldstein <amir73il@gmail.com>, Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, Richard Weinberger <richard@nod.at>, Artem Bityutskiy <dedekind1@gmail.com>, Adrian Hunter <adrian.hunter@intel.com>, linux-mtd@lists.infradead.org, Russell Senior <russell@personaltelco.net>, OpenWrt Development List <openwrt-devel@lists.openwrt.org>
 List-Id: linux-unionfs@vger.kernel.org
 
-From: Darrick J. Wong <darrick.wong@oracle.com>
-
-Plumb in a remap flag that enables the filesystem remap handler to
-shorten remapping requests for callers that can handle it.  Now
-copy_file_range can report partial success (in case we run up against
-alignment problems, resource limits, etc.).
-
-We also enable CAN_SHORTEN for fideduperange to maintain existing
-userspace-visible behavior where xfs/btrfs shorten the dedupe range to
-avoid stale post-eof data exposure.
-
-Signed-off-by: Darrick J. Wong <darrick.wong@oracle.com>
-Reviewed-by: Amir Goldstein <amir73il@gmail.com>
----
- Documentation/filesystems/vfs.txt |    4 +++-
- fs/read_write.c                   |   28 ++++++++++++++++++++--------
- include/linux/fs.h                |    5 +++--
- mm/filemap.c                      |   11 +++++++----
- 4 files changed, 33 insertions(+), 15 deletions(-)
-
-diff --git a/Documentation/filesystems/vfs.txt b/Documentation/filesystems/vfs.txt
-index 1bd2919deaca..5f71a252e2e0 100644
---- a/Documentation/filesystems/vfs.txt
-+++ b/Documentation/filesystems/vfs.txt
-@@ -970,7 +970,9 @@ otherwise noted.
- 	negative error code if errors occurred before any bytes were remapped.
- 	The remap_flags parameter accepts REMAP_FILE_* flags.  If
- 	REMAP_FILE_DEDUP is set then the implementation must only remap if the
--	requested file ranges have identical contents.
-+	requested file ranges have identical contents.  If REMAP_CAN_SHORTEN is
-+	set, the caller is ok with the implementation shortening the request
-+	length to satisfy alignment or EOF requirements (or any other reason).
- 
-   fadvise: possibly called by the fadvise64() system call.
- 
-diff --git a/fs/read_write.c b/fs/read_write.c
-index ea30666013b0..c0bcc1a20650 100644
---- a/fs/read_write.c
-+++ b/fs/read_write.c
-@@ -1593,7 +1593,8 @@ ssize_t vfs_copy_file_range(struct file *file_in, loff_t pos_in,
- 
- 		cloned = file_in->f_op->remap_file_range(file_in, pos_in,
- 				file_out, pos_out,
--				min_t(loff_t, MAX_RW_COUNT, len), 0);
-+				min_t(loff_t, MAX_RW_COUNT, len),
-+				REMAP_FILE_CAN_SHORTEN);
- 		if (cloned > 0) {
- 			ret = cloned;
- 			goto done;
-@@ -1721,6 +1722,8 @@ static int remap_verify_area(struct file *file, loff_t pos, loff_t len,
-  * can't meaningfully compare post-EOF contents.
-  *
-  * For clone we only link a partial EOF block above the destination file's EOF.
-+ *
-+ * Shorten the request if possible.
-  */
- static int generic_remap_check_len(struct inode *inode_in,
- 				   struct inode *inode_out,
-@@ -1729,16 +1732,24 @@ static int generic_remap_check_len(struct inode *inode_in,
- 				   unsigned int remap_flags)
- {
- 	u64 blkmask = i_blocksize(inode_in) - 1;
-+	loff_t new_len = *len;
- 
- 	if ((*len & blkmask) == 0)
- 		return 0;
- 
--	if (remap_flags & REMAP_FILE_DEDUP)
--		*len &= ~blkmask;
--	else if (pos_out + *len < i_size_read(inode_out))
--		return -EINVAL;
-+	if ((remap_flags & REMAP_FILE_DEDUP) ||
-+	    pos_out + *len < i_size_read(inode_out))
-+		new_len &= ~blkmask;
- 
--	return 0;
-+	if (new_len == *len)
-+		return 0;
-+
-+	if (remap_flags & REMAP_FILE_CAN_SHORTEN) {
-+		*len = new_len;
-+		return 0;
-+	}
-+
-+	return (remap_flags & REMAP_FILE_DEDUP) ? -EBADE : -EINVAL;
- }
- 
- /*
-@@ -2014,7 +2025,8 @@ loff_t vfs_dedupe_file_range_one(struct file *src_file, loff_t src_pos,
- {
- 	loff_t ret;
- 
--	WARN_ON_ONCE(remap_flags & ~(REMAP_FILE_DEDUP));
-+	WARN_ON_ONCE(remap_flags & ~(REMAP_FILE_DEDUP |
-+				     REMAP_FILE_CAN_SHORTEN));
- 
- 	ret = mnt_want_write_file(dst_file);
- 	if (ret)
-@@ -2115,7 +2127,7 @@ int vfs_dedupe_file_range(struct file *file, struct file_dedupe_range *same)
- 
- 		deduped = vfs_dedupe_file_range_one(file, off, dst_file,
- 						    info->dest_offset, len,
--						    0);
-+						    REMAP_FILE_CAN_SHORTEN);
- 		if (deduped == -EBADE)
- 			info->status = FILE_DEDUPE_RANGE_DIFFERS;
- 		else if (deduped < 0)
-diff --git a/include/linux/fs.h b/include/linux/fs.h
-index 544ab5083b48..34c22d695011 100644
---- a/include/linux/fs.h
-+++ b/include/linux/fs.h
-@@ -1727,8 +1727,10 @@ struct block_device_operations;
-  * See Documentation/filesystems/vfs.txt for more details about this call.
-  *
-  * REMAP_FILE_DEDUP: only remap if contents identical (i.e. deduplicate)
-+ * REMAP_FILE_CAN_SHORTEN: caller can handle a shortened request
-  */
- #define REMAP_FILE_DEDUP		(1 << 0)
-+#define REMAP_FILE_CAN_SHORTEN		(1 << 1)
- 
- /*
-  * These flags signal that the caller is ok with altering various aspects of
-@@ -1736,9 +1738,8 @@ struct block_device_operations;
-  * implementation; the vfs remap helper functions can take advantage of them.
-  * Flags in this category exist to preserve the quirky behavior of the hoisted
-  * btrfs clone/dedupe ioctls.
-- * There are no flags yet, but subsequent commits will add some.
-  */
--#define REMAP_FILE_ADVISORY		(0)
-+#define REMAP_FILE_ADVISORY		(REMAP_FILE_CAN_SHORTEN)
- 
- struct iov_iter;
- 
-diff --git a/mm/filemap.c b/mm/filemap.c
-index 2e4dcebe7253..4b69b6a5d0bf 100644
---- a/mm/filemap.c
-+++ b/mm/filemap.c
-@@ -3045,8 +3045,7 @@ int generic_remap_checks(struct file *file_in, loff_t pos_in,
- 		bcount = ALIGN(size_in, bs) - pos_in;
- 	} else {
- 		if (!IS_ALIGNED(count, bs))
--			return -EINVAL;
--
-+			count = ALIGN_DOWN(count, bs);
- 		bcount = count;
- 	}
- 
-@@ -3056,10 +3055,14 @@ int generic_remap_checks(struct file *file_in, loff_t pos_in,
- 	    pos_out < pos_in + bcount)
- 		return -EINVAL;
- 
--	/* For now we don't support changing the length. */
--	if (*req_count != count)
-+	/*
-+	 * We shortened the request but the caller can't deal with that, so
-+	 * bounce the request back to userspace.
-+	 */
-+	if (*req_count != count && !(remap_flags & REMAP_FILE_CAN_SHORTEN))
- 		return -EINVAL;
- 
-+	*req_count = count;
- 	return 0;
- }
- 
+SGksCgpTaW5jZSBPcGVuV3J0IHN3aXRjaCBmcm9tIGtlcm5lbCA0LjkgdG8gNC4xNCB1c2VycyBz
+dGFydGVkIHJhbmRvbWx5CnJlcG9ydGluZyBmaWxlIHN5c3RlbSBjb3JydXB0aW9ucy4gT3Blbldy
+dCB1c2VzIG92ZXJsYXkoZnMpIHdpdGgKc3F1YXNoZnMgYXMgbG93ZXJkaXIgYW5kIHViaWZzIGFz
+IHVwcGVyZGlyLiBSdXNzZWxsIG1hbmFnZWQgdG8gaXNvbGF0ZQomIGRlc2NyaWJlIHRlc3QgY2Fz
+ZSBmb3IgcmVwcm9kdWNpbmcgY29ycnVwdGlvbiB3aGVuIGRvaW5nIGEgcG93ZXIgY3V0CmFmdGVy
+IGZpcnN0IGJvb3QuCgpJbnRlcmVzdGluZ2x5IGl0IGNhbm5vdCBiZSByZXByb2R1Y2VkIG9uIGFs
+bCBkZXZpY2VzIChOQU5EIGRlcGVuZGFudD8KYXJjaCBkZXBlbmRhbnQ/ISkuIEkgY291bGRuJ3Qg
+cmVwcm9kdWNlIHRoYXQgcHJvYmxlbSBvbiBub25lIG9mIG15CkJyb2FkY29tIGRldmljZXMgKEFS
+TT15IEFSQ0hfQkNNXzUzMDFYPXkpIHNvIEkgaGFkIHRvIGJ1eSBVYmlxdWl0aQpFZGdlUm91dGVy
+IFggKEVSLVgpIChNSVBTPXkgUkFMSU5LPXkpLiBJIHJlcHJvZHVjZWQgaXQgdGhlbiBhbmQKYmlz
+ZWN0ZWQgZG93biB0byB0aGUgY29tbWl0IDNhMWU4MTliNGU4MCAoIm92bDogc3RvcmUgZmlsZSBo
+YW5kbGUgb2YKbG93ZXIgaW5vZGUgb24gY29weSB1cCIpLgoKRldJVyBJIHdhcyB0b2xkIGl0IGFs
+c28gYWZmZWN0czoKQXN1cyBSVC1BQzU4VSAoQVJDSF9JUFE0MFhYPXkpCnBvd2VycGMKUkI0OTNH
+LCBESVItODYwTCAoQVRINzk9eSkKClN0ZXBzIHRvIHJlcHJvZHVjZSB0aGUgcHJvYmxlbToKMSkg
+Rmxhc2ggZmlybXdhcmUKMikgQm9vdCAoZm9yIHRoZSBmaXJzdCB0aW1lKQozKSBMZXQgdGhlIGlu
+aXQgc2NyaXB0IGNvcHkgY29uZmlnIGZpbGVzIGZyb20gbG93ZXJkaXIgdG8gdGhlIHVwcGVyZGly
+CjQpIFdhaXQgZm9yIGJvb3QgdG8gZmluaXNoCjUpIFZlcmlmeSBjb250ZW50IG9mIHNvbWUgdW5t
+b2RpZmllZCBjb25maWcgb24gb3ZlcmxheSwgdXNpbmcgZWl0aGVyOgpoZXhkdW1wIC1DIC9ldGMv
+Y29uZmlnL2Ryb3BiZWFyCmhleGR1bXAgLUMgL292ZXJsYXkvdXBwZXIvZXRjL2NvbmZpZy9kcm9w
+YmVhcgo2KSBQb3dlciBjdXQgJiBib290IGFnYWluCjcpIENoZWNrIHRoZSBjb250ZW50IG9mIHRo
+ZSBzYW1lIGZpbGUKCkFmdGVyIGFib3ZlIHJlZ3Jlc3NpbmcgY29tbWl0IHRoZSBsYXRlciBjaGVj
+ayBjb25maXJtcyB0aGUgZmlsZSBzaXplCmxvb2tzIGNvcnJlY3QgYnV0IGl0J3MgZmlsbGVkIHdp
+dGggYWxsIDAwLWVzIG9ubHkuCgpDYW4gSSBhc2sgeW91IHRvIGNoZWNrIGlmIHRoZXJlIGlzIHNv
+bWV0aGluZyBwb3NzaWJseSB3cm9uZyB3aXRoIHRoZQphYm92ZSBvdmwgY29tbWl0PyBPciBkb2Vz
+IGl0IGV4cG9zZSBzb21lIHByb2JsZW0gd2l0aCB0aGUgdWJpZnM/IE9yCm1heWJlIHRoZSB3aG9s
+ZSBVQkk/CgpGV0lXIHRlc3RpbmcgYWJvdmUgY29tbWl0IChhbmQgb25lIGJlZm9yZSBpdCkgYWx3
+YXlzIHJlc3VsdHMgaW4gc2luZ2xlCmVycm9yIGluIHRoZSBrZXJuZWwgbG9nOgpbICAgMTQuMjUw
+MTg0XSBVQklGUyBlcnJvciAodWJpMDoxIHBpZCA2MzcpOiB1Ymlmc19hZGRfb3JwaGFuOiBvcnBo
+YW5lZCB0d2ljZQoKVGhhdCBVQklGUyBlcnJvciBkb2Vzbid0IG9jY3VyIHdpdGggNC4xMi4xNC4g
+VW5mb3J0dW5hdGVseSBpdCdzCmltcG9zc2libGUgdG8gY2xlYW5seSByZXZlcnQgM2ExZTgxOWI0
+ZTgwIGZyb20gdGhlIHRvcCBvZiA0LjEyLjE0LgoKLS0gClJhZmHFggoKX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkxpbnV4IE1URCBkaXNjdXNz
+aW9uIG1haWxpbmcgbGlzdApodHRwOi8vbGlzdHMuaW5mcmFkZWFkLm9yZy9tYWlsbWFuL2xpc3Rp
+bmZvL2xpbnV4LW10ZC8K
