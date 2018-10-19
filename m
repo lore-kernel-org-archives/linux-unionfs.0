@@ -1,16 +1,15 @@
-From: Amir Goldstein <amir73il@gmail.com>
+From: =?UTF-8?B?UmFmYcWCIE1pxYJlY2tp?= <zajec5@gmail.com>
 Subject: Re: Regression in handling power cuts since 3a1e819b4e80 ("ovl: store
  file handle of lower inode on copy up")
-Date: Fri, 19 Oct 2018 18:07:52 +0300
-Message-ID: <CAOQ4uxiLKcx6g8v873LzrWNuSRw-KaqUC59BOJvtskJEwhLvGw__40632.0054120899$1539961622$gmane$org@mail.gmail.com>
+Date: Fri, 19 Oct 2018 18:18:05 +0200
+Message-ID: <CACna6rw+dFq+V6QWakOs77P5_3f75M6x7n06hDCCXGBE=GKHxg__21397.3593585708$1539966206$gmane$org@mail.gmail.com>
 References: <CACna6rx3YBNYKGu7T-J2J-S_3yr-oafJf3pL5TbGDFRzU6dihg@mail.gmail.com>
  <1457198086.5374.1539960353710.JavaMail.zimbra@nod.at>
- <11759557.52cTf2r1oB@blindfold>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
-In-Reply-To: <11759557.52cTf2r1oB@blindfold>
+In-Reply-To: <1457198086.5374.1539960353710.JavaMail.zimbra@nod.at>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
  <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
@@ -21,37 +20,67 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
 Sender: "linux-mtd" <linux-mtd-bounces@lists.infradead.org>
 Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
 To: Richard Weinberger <richard@nod.at>
-Cc: Artem Bityutskiy <dedekind1@gmail.com>, =?UTF-8?B?UmFmYcWCIE1pxYJlY2tp?= <zajec5@gmail.com>, Adrian Hunter <adrian.hunter@intel.com>, overlayfs <linux-unionfs@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>, linux-mtd@lists.infradead.org, russell@personaltelco.net, linux-fsdevel <linux-fsdevel@vger.kernel.org>, openwrt-devel@lists.openwrt.org
+Cc: Artem Bityutskiy <dedekind1@gmail.com>, Amir Goldstein <amir73il@gmail.com>, Adrian Hunter <adrian.hunter@intel.com>, linux-unionfs@vger.kernel.org, Miklos Szeredi <miklos@szeredi.hu>, linux-mtd@lists.infradead.org, Russell Senior <russell@personaltelco.net>, linux-fsdevel@vger.kernel.org, OpenWrt Development List <openwrt-devel@lists.openwrt.org>
 List-Id: linux-unionfs@vger.kernel.org
 
-On Fri, Oct 19, 2018 at 5:59 PM Richard Weinberger <richard@nod.at> wrote:
->
-> Am Freitag, 19. Oktober 2018, 16:45:53 CEST schrieb Richard Weinberger:
-> > Well, I fear it uncovers a problem in UBIFS. We had already problems with overlayfs.
-> > Did you bisect the problem and you are sure that the said commit is the first bad commit?
->
-> Another thing, UBIFS has no export operations, so overlayfs will fall back to xattrs,
-> if I read the commit correctly.
-> Maybe this is the root of the problem.
->
-
-You are not reading the commit correctly.
-
-Commit says:
-    "If lower fs does not support NFS export ops store a zero sized xattr so we
-    can always use the overlay.origin xattr to distinguish between a copy up
-    and a pure upper inode."
-
-What it means is:
-- Doesn't matter if ubifs supports NFS export - it's not the lower fs
-- squashfs supports NFS export, but has zero s_uuid, so currently that
-  is treated the same as no NFS export support (I have patch to relax this)
-- The result of no lower NFS export support is that a zero size xattr is written
-  as opposed to non-zero size xattr in the case of lower support NFS export
-
-Thanks,
-Amir.
-
-______________________________________________________
-Linux MTD discussion mailing list
-http://lists.infradead.org/mailman/listinfo/linux-mtd/
+T24gRnJpLCAxOSBPY3QgMjAxOCBhdCAxNjo0NSwgUmljaGFyZCBXZWluYmVyZ2VyIDxyaWNoYXJk
+QG5vZC5hdD4gd3JvdGU6Cj4gLS0tLS0gVXJzcHLDvG5nbGljaGUgTWFpbCAtLS0tLQo+ID4gVm9u
+OiAiUmFmYcWCIE1pxYJlY2tpIiA8emFqZWM1QGdtYWlsLmNvbT4KPiA+IEFuOiAiQW1pciBHb2xk
+c3RlaW4iIDxhbWlyNzNpbEBnbWFpbC5jb20+LCAiTWlrbG9zIFN6ZXJlZGkiIDxtaWtsb3NAc3pl
+cmVkaS5odT4sIGxpbnV4LXVuaW9uZnNAdmdlci5rZXJuZWwub3JnLAo+ID4gbGludXgtZnNkZXZl
+bEB2Z2VyLmtlcm5lbC5vcmcsICJyaWNoYXJkIiA8cmljaGFyZEBub2QuYXQ+LCAiQXJ0ZW0gQml0
+eXV0c2tpeSIgPGRlZGVraW5kMUBnbWFpbC5jb20+LCAiQWRyaWFuIEh1bnRlciIKPiA+IDxhZHJp
+YW4uaHVudGVyQGludGVsLmNvbT4sIGxpbnV4LW10ZEBsaXN0cy5pbmZyYWRlYWQub3JnLCAiUnVz
+c2VsbCBTZW5pb3IiIDxydXNzZWxsQHBlcnNvbmFsdGVsY28ubmV0PiwgIk9wZW5XcnQKPiA+IERl
+dmVsb3BtZW50IExpc3QiIDxvcGVud3J0LWRldmVsQGxpc3RzLm9wZW53cnQub3JnPgo+ID4gR2Vz
+ZW5kZXQ6IEZyZWl0YWcsIDE5LiBPa3RvYmVyIDIwMTggMTQ6MzE6MjkKPiA+IEJldHJlZmY6IFJl
+Z3Jlc3Npb24gaW4gaGFuZGxpbmcgcG93ZXIgY3V0cyBzaW5jZSAzYTFlODE5YjRlODAgKCJvdmw6
+IHN0b3JlIGZpbGUgaGFuZGxlIG9mIGxvd2VyIGlub2RlIG9uIGNvcHkgdXAiKQo+Cj4gPiBIaSwK
+PiA+Cj4gPiBTaW5jZSBPcGVuV3J0IHN3aXRjaCBmcm9tIGtlcm5lbCA0LjkgdG8gNC4xNCB1c2Vy
+cyBzdGFydGVkIHJhbmRvbWx5Cj4gPiByZXBvcnRpbmcgZmlsZSBzeXN0ZW0gY29ycnVwdGlvbnMu
+IE9wZW5XcnQgdXNlcyBvdmVybGF5KGZzKSB3aXRoCj4gPiBzcXVhc2hmcyBhcyBsb3dlcmRpciBh
+bmQgdWJpZnMgYXMgdXBwZXJkaXIuIFJ1c3NlbGwgbWFuYWdlZCB0byBpc29sYXRlCj4gPiAmIGRl
+c2NyaWJlIHRlc3QgY2FzZSBmb3IgcmVwcm9kdWNpbmcgY29ycnVwdGlvbiB3aGVuIGRvaW5nIGEg
+cG93ZXIgY3V0Cj4gPiBhZnRlciBmaXJzdCBib290Lgo+ID4KPiA+IEludGVyZXN0aW5nbHkgaXQg
+Y2Fubm90IGJlIHJlcHJvZHVjZWQgb24gYWxsIGRldmljZXMgKE5BTkQgZGVwZW5kYW50Pwo+ID4g
+YXJjaCBkZXBlbmRhbnQ/ISkuIEkgY291bGRuJ3QgcmVwcm9kdWNlIHRoYXQgcHJvYmxlbSBvbiBu
+b25lIG9mIG15Cj4gPiBCcm9hZGNvbSBkZXZpY2VzIChBUk09eSBBUkNIX0JDTV81MzAxWD15KSBz
+byBJIGhhZCB0byBidXkgVWJpcXVpdGkKPiA+IEVkZ2VSb3V0ZXIgWCAoRVItWCkgKE1JUFM9eSBS
+QUxJTks9eSkuIEkgcmVwcm9kdWNlZCBpdCB0aGVuIGFuZAo+ID4gYmlzZWN0ZWQgZG93biB0byB0
+aGUgY29tbWl0IDNhMWU4MTliNGU4MCAoIm92bDogc3RvcmUgZmlsZSBoYW5kbGUgb2YKPiA+IGxv
+d2VyIGlub2RlIG9uIGNvcHkgdXAiKS4KPiA+Cj4gPiBGV0lXIEkgd2FzIHRvbGQgaXQgYWxzbyBh
+ZmZlY3RzOgo+ID4gQXN1cyBSVC1BQzU4VSAoQVJDSF9JUFE0MFhYPXkpCj4gPiBwb3dlcnBjCj4g
+PiBSQjQ5M0csIERJUi04NjBMIChBVEg3OT15KQo+ID4KPiA+IFN0ZXBzIHRvIHJlcHJvZHVjZSB0
+aGUgcHJvYmxlbToKPiA+IDEpIEZsYXNoIGZpcm13YXJlCj4gPiAyKSBCb290IChmb3IgdGhlIGZp
+cnN0IHRpbWUpCj4gPiAzKSBMZXQgdGhlIGluaXQgc2NyaXB0IGNvcHkgY29uZmlnIGZpbGVzIGZy
+b20gbG93ZXJkaXIgdG8gdGhlIHVwcGVyZGlyCj4gPiA0KSBXYWl0IGZvciBib290IHRvIGZpbmlz
+aAo+ID4gNSkgVmVyaWZ5IGNvbnRlbnQgb2Ygc29tZSB1bm1vZGlmaWVkIGNvbmZpZyBvbiBvdmVy
+bGF5LCB1c2luZyBlaXRoZXI6Cj4gPiBoZXhkdW1wIC1DIC9ldGMvY29uZmlnL2Ryb3BiZWFyCj4g
+PiBoZXhkdW1wIC1DIC9vdmVybGF5L3VwcGVyL2V0Yy9jb25maWcvZHJvcGJlYXIKPiA+IDYpIFBv
+d2VyIGN1dCAmIGJvb3QgYWdhaW4KPiA+IDcpIENoZWNrIHRoZSBjb250ZW50IG9mIHRoZSBzYW1l
+IGZpbGUKPgo+IERvIHlvdSBoYXZlIHNvbWV0aGluZyBhbHNvIEkgY2FuIHRlc3Q/Cj4gQSBDIHJl
+cHJvZHVjZXI/IEFuIHhmc3Rlc3QgY2FzZT8KCkkgZG9uJ3QuIEkgbWF5IHRyeSB3cml0aW5nIG9u
+ZSB3aXRoIGluZm8gcHJvdmlkZWQgbXkgQW1pciwgYnV0IEknbSBub3QKZXhwZXJpZW5jZWQgd2l0
+aCBzdWNoIHRoaW5ncywgd29uJ3QgYmUgdHJpdmlhbCBmb3IgbWUuCgoKPiA+IEFmdGVyIGFib3Zl
+IHJlZ3Jlc3NpbmcgY29tbWl0IHRoZSBsYXRlciBjaGVjayBjb25maXJtcyB0aGUgZmlsZSBzaXpl
+Cj4gPiBsb29rcyBjb3JyZWN0IGJ1dCBpdCdzIGZpbGxlZCB3aXRoIGFsbCAwMC1lcyBvbmx5Lgo+
+ID4KPiA+IENhbiBJIGFzayB5b3UgdG8gY2hlY2sgaWYgdGhlcmUgaXMgc29tZXRoaW5nIHBvc3Np
+Ymx5IHdyb25nIHdpdGggdGhlCj4gPiBhYm92ZSBvdmwgY29tbWl0PyBPciBkb2VzIGl0IGV4cG9z
+ZSBzb21lIHByb2JsZW0gd2l0aCB0aGUgdWJpZnM/IE9yCj4gPiBtYXliZSB0aGUgd2hvbGUgVUJJ
+Pwo+Cj4gV2VsbCwgSSBmZWFyIGl0IHVuY292ZXJzIGEgcHJvYmxlbSBpbiBVQklGUy4gV2UgaGFk
+IGFscmVhZHkgcHJvYmxlbXMgd2l0aCBvdmVybGF5ZnMuCj4gRGlkIHlvdSBiaXNlY3QgdGhlIHBy
+b2JsZW0gYW5kIHlvdSBhcmUgc3VyZSB0aGF0IHRoZSBzYWlkIGNvbW1pdCBpcyB0aGUgZmlyc3Qg
+YmFkIGNvbW1pdD8KClllcywgSSBkaWQgZ2l0IGJpc2VjdCBhbmQgdGhlbiBkb3VibGUgdmVyaWZp
+ZWQgdGhhdC4KCgo+ID4gRldJVyB0ZXN0aW5nIGFib3ZlIGNvbW1pdCAoYW5kIG9uZSBiZWZvcmUg
+aXQpIGFsd2F5cyByZXN1bHRzIGluIHNpbmdsZQo+ID4gZXJyb3IgaW4gdGhlIGtlcm5lbCBsb2c6
+Cj4gPiBbICAgMTQuMjUwMTg0XSBVQklGUyBlcnJvciAodWJpMDoxIHBpZCA2MzcpOiB1Ymlmc19h
+ZGRfb3JwaGFuOiBvcnBoYW5lZCB0d2ljZQo+Cj4gUGxlYXNlIHNob3cgdGhlIGZ1bGwgbG9nLgo+
+IFRoZSBvcnBoYW4gdGhpbmcgcmluZ3MgYSBiZWxsLCB3ZSBoYWQgc3VjaCBhIGJ1ZyBhbHJlYWR5
+LgoKSSB3aWxsIGdldCBhIGZ1bGwgbG9nIGxhdGVyLiBQbGVhc2Ugbm90ZSBJIHdyb3RlIHRoaXMg
+ZXJyb3IgYXBwZWFycwoqd2l0aCogb3ZsIGNvbW1pdCBhbmQgYWxzbyB3aXRoIG9uZSBjb21taXQg
+ZWFybGllci4gU28gaXQncyB2ZXJ5CnVubGlrZWx5IHRvIGJlIGNhdXNlZCBieSBvdmwgY2hhbmdl
+LiBNb3N0IGxpa2VseSBpdCB3YXMgc29tZSBlcnJvcgpwcmVzZW50IGluIDQuMTEuMC1yYzEgYW5k
+IGZpeGVkIGxhdGVyIChub3QgcmVsYXRlZCB0byBvdmwpLgoKLS0gClJhZmHFggoKX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkxpbnV4IE1URCBk
+aXNjdXNzaW9uIG1haWxpbmcgbGlzdApodHRwOi8vbGlzdHMuaW5mcmFkZWFkLm9yZy9tYWlsbWFu
+L2xpc3RpbmZvL2xpbnV4LW10ZC8K
