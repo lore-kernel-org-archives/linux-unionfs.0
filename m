@@ -1,7 +1,7 @@
 From: "Darrick J. Wong" <darrick.wong@oracle.com>
-Subject: [PATCH 06/28] vfs: skip zero-length dedupe requests
-Date: Sun, 21 Oct 2018 09:15:44 -0700
-Message-ID: <154013854491.29026.1645091969567859095.stgit@magnolia>
+Subject: [PATCH 08/28] vfs: rename clone_verify_area to remap_verify_area
+Date: Sun, 21 Oct 2018 09:15:58 -0700
+Message-ID: <154013855860.29026.18117400241937143769.stgit@magnolia>
 References: <154013850285.29026.16168387526580596209.stgit@magnolia>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -10,35 +10,63 @@ Return-path: <linux-btrfs-owner@vger.kernel.org>
 In-Reply-To: <154013850285.29026.16168387526580596209.stgit@magnolia>
 Sender: linux-btrfs-owner@vger.kernel.org
 To: david@fromorbit.com, darrick.wong@oracle.com
-Cc: sandeen@redhat.com, linux-nfs@vger.kernel.org, linux-cifs@vger.kernel.org, Amir Goldstein <amir73il@gmail.com>, linux-unionfs@vger.kernel.org, linux-xfs@vger.kernel.org, linux-mm@kvack.org, linux-btrfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, Christoph Hellwig <hch@lst.de>, ocfs2-devel@oss.oracle.com
+Cc: sandeen@redhat.com, linux-nfs@vger.kernel.org, linux-cifs@vger.kernel.org, Amir Goldstein <amir73il@gmail.com>, linux-unionfs@vger.kernel.org, linux-xfs@vger.kernel.org, linux-mm@kvack.org, linux-btrfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, ocfs2-devel@oss.oracle.com
 List-Id: linux-unionfs@vger.kernel.org
 
 From: Darrick J. Wong <darrick.wong@oracle.com>
 
-Don't bother calling the filesystem for a zero-length dedupe request;
-we can return zero and exit.
+Since we use clone_verify_area for both clone and dedupe range checks,
+rename the function to make it clear that it's for both.
 
 Signed-off-by: Darrick J. Wong <darrick.wong@oracle.com>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
 Reviewed-by: Amir Goldstein <amir73il@gmail.com>
 ---
- fs/read_write.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ fs/read_write.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
 
 diff --git a/fs/read_write.c b/fs/read_write.c
-index 0f0a6efdd502..f5395d8da741 100644
+index aca75a97a695..734c5661fb69 100644
 --- a/fs/read_write.c
 +++ b/fs/read_write.c
-@@ -2009,6 +2009,11 @@ int vfs_dedupe_file_range_one(struct file *src_file, loff_t src_pos,
- 	if (!dst_file->f_op->dedupe_file_range)
+@@ -1686,7 +1686,7 @@ SYSCALL_DEFINE6(copy_file_range, int, fd_in, loff_t __user *, off_in,
+ 	return ret;
+ }
+ 
+-static int clone_verify_area(struct file *file, loff_t pos, u64 len, bool write)
++static int remap_verify_area(struct file *file, loff_t pos, u64 len, bool write)
+ {
+ 	struct inode *inode = file_inode(file);
+ 
+@@ -1852,11 +1852,11 @@ int do_clone_file_range(struct file *file_in, loff_t pos_in,
+ 	if (!file_in->f_op->clone_file_range)
+ 		return -EOPNOTSUPP;
+ 
+-	ret = clone_verify_area(file_in, pos_in, len, false);
++	ret = remap_verify_area(file_in, pos_in, len, false);
+ 	if (ret)
+ 		return ret;
+ 
+-	ret = clone_verify_area(file_out, pos_out, len, true);
++	ret = remap_verify_area(file_out, pos_out, len, true);
+ 	if (ret)
+ 		return ret;
+ 
+@@ -1989,7 +1989,7 @@ int vfs_dedupe_file_range_one(struct file *src_file, loff_t src_pos,
+ 	if (ret)
+ 		return ret;
+ 
+-	ret = clone_verify_area(dst_file, dst_pos, len, true);
++	ret = remap_verify_area(dst_file, dst_pos, len, true);
+ 	if (ret < 0)
  		goto out_drop_write;
  
-+	if (len == 0) {
-+		ret = 0;
-+		goto out_drop_write;
-+	}
-+
- 	ret = dst_file->f_op->dedupe_file_range(src_file, src_pos,
- 						dst_file, dst_pos, len);
- out_drop_write:
+@@ -2051,7 +2051,7 @@ int vfs_dedupe_file_range(struct file *file, struct file_dedupe_range *same)
+ 	if (!S_ISREG(src->i_mode))
+ 		goto out;
+ 
+-	ret = clone_verify_area(file, off, len, false);
++	ret = remap_verify_area(file, off, len, false);
+ 	if (ret < 0)
+ 		goto out;
+ 	ret = 0;
