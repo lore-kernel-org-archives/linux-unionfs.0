@@ -1,95 +1,110 @@
 From: "Darrick J. Wong" <darrick.wong@oracle.com>
-Subject: [PATCH 12/28] vfs: remap helper should update destination inode
- metadata
-Date: Sun, 21 Oct 2018 09:16:26 -0700
-Message-ID: <154013858694.29026.18365355055791584652.stgit@magnolia>
+Subject: [PATCH 05/28] vfs: avoid problematic remapping
+ requests into partial EOF block
+Date: Sun, 21 Oct 2018 09:15:37 -0700
+Message-ID: <154013853780.29026.5441191187672186537.stgit@magnolia>
 References: <154013850285.29026.16168387526580596209.stgit@magnolia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-btrfs-owner@vger.kernel.org>
+Return-path: <ocfs2-devel-bounces@oss.oracle.com>
 In-Reply-To: <154013850285.29026.16168387526580596209.stgit@magnolia>
-Sender: linux-btrfs-owner@vger.kernel.org
+List-Unsubscribe: <https://oss.oracle.com/mailman/listinfo/ocfs2-devel>,
+	<mailto:ocfs2-devel-request@oss.oracle.com?subject=unsubscribe>
+List-Archive: <http://oss.oracle.com/pipermail/ocfs2-devel>
+List-Post: <mailto:ocfs2-devel@oss.oracle.com>
+List-Help: <mailto:ocfs2-devel-request@oss.oracle.com?subject=help>
+List-Subscribe: <https://oss.oracle.com/mailman/listinfo/ocfs2-devel>,
+	<mailto:ocfs2-devel-request@oss.oracle.com?subject=subscribe>
+Sender: ocfs2-devel-bounces@oss.oracle.com
+Errors-To: ocfs2-devel-bounces@oss.oracle.com
 To: david@fromorbit.com, darrick.wong@oracle.com
-Cc: sandeen@redhat.com, linux-nfs@vger.kernel.org, linux-cifs@vger.kernel.org, Amir Goldstein <amir73il@gmail.com>, linux-unionfs@vger.kernel.org, linux-xfs@vger.kernel.org, linux-mm@kvack.org, linux-btrfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, ocfs2-devel@oss.oracle.com
+Cc: sandeen@redhat.com, linux-nfs@vger.kernel.org, linux-cifs@vger.kernel.org, linux-unionfs@vger.kernel.org, linux-xfs@vger.kernel.org, linux-mm@kvack.org, ocfs2-devel@oss.oracle.com, linux-fsdevel@vger.kernel.org, linux-btrfs@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 
 From: Darrick J. Wong <darrick.wong@oracle.com>
 
-Extend generic_remap_file_range_prep to handle inode metadata updates
-when remapping into a file.  If the operation can possibly alter the
-file contents, we must update the ctime and mtime and remove security
-privileges, just like we do for regular file writes.
+A deduplication data corruption is exposed in XFS and btrfs. It is
+caused by extending the block match range to include the partial EOF
+block, but then allowing unknown data beyond EOF to be considered a
+"match" to data in the destination file because the comparison is only
+made to the end of the source file. This corrupts the destination file
+when the source extent is shared with it.
+
+The VFS remapping prep functions  only support whole block dedupe, but
+we still need to appear to support whole file dedupe correctly.  Hence
+if the dedupe request includes the last block of the souce file, don't
+include it in the actual dedupe operation. If the rest of the range
+dedupes successfully, then reject the entire request.  A subsequent
+patch will enable us to shorten dedupe requests correctly.
+
+When reflinking sub-file ranges, a data corruption can occur when the
+source file range includes a partial EOF block. This shares the unknown
+data beyond EOF into the second file at a position inside EOF, exposing
+stale data in the second file.
+
+If the reflink request includes the last block of the souce file, only
+proceed with the reflink operation if it lands at or past the
+destination file's current EOF. If it lands within the destination file
+EOF, reject the entire request with -EINVAL and make the caller go the
+hard way.  A subsequent patch will enable us to shorten reflink requests
+correctly.
 
 Signed-off-by: Darrick J. Wong <darrick.wong@oracle.com>
-Reviewed-by: Amir Goldstein <amir73il@gmail.com>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
 ---
- fs/read_write.c      |   19 +++++++++++++++++++
- fs/xfs/xfs_reflink.c |   23 -----------------------
- 2 files changed, 19 insertions(+), 23 deletions(-)
+ fs/read_write.c |   33 +++++++++++++++++++++++++++++++++
+ 1 file changed, 33 insertions(+)
 
 
 diff --git a/fs/read_write.c b/fs/read_write.c
-index ebcbfc4f2907..b61bd3fc7154 100644
+index 2456da3f8a41..0f0a6efdd502 100644
 --- a/fs/read_write.c
 +++ b/fs/read_write.c
-@@ -1820,6 +1820,25 @@ int generic_remap_file_range_prep(struct file *file_in, loff_t pos_in,
- 	if (ret)
- 		return ret;
+@@ -1708,6 +1708,34 @@ static int clone_verify_area(struct file *file, loff_t pos, u64 len, bool write)
  
-+	/* If can't alter the file contents, we're done. */
-+	if (!(remap_flags & REMAP_FILE_DEDUP)) {
-+		/* Update the timestamps, since we can alter file contents. */
-+		if (!(file_out->f_mode & FMODE_NOCMTIME)) {
-+			ret = file_update_time(file_out);
-+			if (ret)
-+				return ret;
-+		}
+ 	return security_file_permission(file, write ? MAY_WRITE : MAY_READ);
+ }
++/*
++ * Ensure that we don't remap a partial EOF block in the middle of something
++ * else.  Assume that the offsets have already been checked for block
++ * alignment.
++ *
++ * For deduplication we always scale down to the previous block because we
++ * can't meaningfully compare post-EOF contents.
++ *
++ * For clone we only link a partial EOF block above the destination file's EOF.
++ */
++static int generic_remap_check_len(struct inode *inode_in,
++				   struct inode *inode_out,
++				   loff_t pos_out,
++				   u64 *len,
++				   bool is_dedupe)
++{
++	u64 blkmask = i_blocksize(inode_in) - 1;
 +
-+		/*
-+		 * Clear the security bits if the process is not being run by
-+		 * root.  This keeps people from modifying setuid and setgid
-+		 * binaries.
-+		 */
-+		ret = file_remove_privs(file_out);
-+		if (ret)
-+			return ret;
-+	}
++	if ((*len & blkmask) == 0)
++		return 0;
++
++	if (is_dedupe)
++		*len &= ~blkmask;
++	else if (pos_out + *len < i_size_read(inode_out))
++		return -EINVAL;
++
++	return 0;
++}
+ 
+ /*
+  * Check that the two inodes are eligible for cloning, the ranges make
+@@ -1787,6 +1815,11 @@ int vfs_clone_file_prep(struct file *file_in, loff_t pos_in,
+ 			return -EBADE;
+ 	}
+ 
++	ret = generic_remap_check_len(inode_in, inode_out, pos_out, len,
++			is_dedupe);
++	if (ret)
++		return ret;
 +
  	return 1;
  }
- EXPORT_SYMBOL(generic_remap_file_range_prep);
-diff --git a/fs/xfs/xfs_reflink.c b/fs/xfs/xfs_reflink.c
-index 29aab196ce7e..2d7dd8b28d7c 100644
---- a/fs/xfs/xfs_reflink.c
-+++ b/fs/xfs/xfs_reflink.c
-@@ -1372,29 +1372,6 @@ xfs_reflink_remap_prep(
- 	truncate_inode_pages_range(&inode_out->i_data, pos_out,
- 				   PAGE_ALIGN(pos_out + *len) - 1);
- 
--	/* If we're altering the file contents... */
--	if (!(remap_flags & REMAP_FILE_DEDUP)) {
--		/*
--		 * ...update the timestamps (which will grab the ilock again
--		 * from xfs_fs_dirty_inode, so we have to call it before we
--		 * take the ilock).
--		 */
--		if (!(file_out->f_mode & FMODE_NOCMTIME)) {
--			ret = file_update_time(file_out);
--			if (ret)
--				goto out_unlock;
--		}
--
--		/*
--		 * ...clear the security bits if the process is not being run
--		 * by root.  This keeps people from modifying setuid and setgid
--		 * binaries.
--		 */
--		ret = file_remove_privs(file_out);
--		if (ret)
--			goto out_unlock;
--	}
--
- 	return 1;
- out_unlock:
- 	xfs_reflink_remap_unlock(file_in, file_out);
+ EXPORT_SYMBOL(vfs_clone_file_prep);
