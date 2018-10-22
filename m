@@ -1,113 +1,177 @@
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: Regression in handling power cuts since 3a1e819b4e80 ("ovl: store
- file handle of lower inode on copy up")
-Date: Mon, 22 Oct 2018 20:00:46 +0300
-Message-ID: <CAOQ4uxgySZfoh-6p9FG_pOQ7zt02bSQQLk9YeD1nj5a+_RyrYA__20701.6278327957$1540227585$gmane$org@mail.gmail.com>
-References: <CACna6rx3YBNYKGu7T-J2J-S_3yr-oafJf3pL5TbGDFRzU6dihg@mail.gmail.com>
- <CACna6rx_jSTEEt6TAzQcBpAHZA_CJGhkjJhWWJKG3cQmr9c9ug@mail.gmail.com>
- <3000620.g91H2S8sUk@blindfold>
- <CAOQ4uxii0rZv3SVXWNN7yug_WZ-TKLL3Wo-mti0y9K66Z+-EcQ@mail.gmail.com>
- <CACna6rzvzc-_X3VDeA-nwtTW7KHaQGtbvzjVNoOFEQuHKi3PJg@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
-In-Reply-To: <CACna6rzvzc-_X3VDeA-nwtTW7KHaQGtbvzjVNoOFEQuHKi3PJg@mail.gmail.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
-List-Post: <mailto:linux-mtd@lists.infradead.org>
-List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-mtd" <linux-mtd-bounces@lists.infradead.org>
-Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
-To: =?UTF-8?B?UmFmYcWCIE1pxYJlY2tp?= <zajec5@gmail.com>
-Cc: Artem Bityutskiy <dedekind1@gmail.com>, Richard Weinberger <richard@nod.at>, Miklos Szeredi <miklos@szeredi.hu>, Adrian Hunter <adrian.hunter@intel.com>, overlayfs <linux-unionfs@vger.kernel.org>, linux-mtd@lists.infradead.org, russell@personaltelco.net, linux-fsdevel <linux-fsdevel@vger.kernel.org>, openwrt-devel@lists.openwrt.org
+Subject: [PATCH] vfs: swap names of {do,vfs}_clone_file_range()
+Date: Mon, 22 Oct 2018 20:56:46 +0300
+Message-ID: <20181022175646.20146-1-amir73il@gmail.com>
+Return-path: <stable-owner@vger.kernel.org>
+Sender: stable-owner@vger.kernel.org
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, stable@vger.kernel.org, linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, Miklos Szeredi <mszeredi@redhat.com>
 List-Id: linux-unionfs@vger.kernel.org
 
-T24gTW9uLCBPY3QgMjIsIDIwMTggYXQgNjozNCBQTSBSYWZhxYIgTWnFgmVja2kgPHphamVjNUBn
-bWFpbC5jb20+IHdyb3RlOgo+Cj4gT24gTW9uLCAyMiBPY3QgMjAxOCBhdCAxMDo1NywgQW1pciBH
-b2xkc3RlaW4gPGFtaXI3M2lsQGdtYWlsLmNvbT4gd3JvdGU6Cj4gPiBPbiBNb24sIE9jdCAyMiwg
-MjAxOCBhdCAxMToyNiBBTSBSaWNoYXJkIFdlaW5iZXJnZXIgPHJpY2hhcmRAbm9kLmF0PiB3cm90
-ZToKPiA+ID4KPiA+ID4gQW0gTW9udGFnLCAyMi4gT2t0b2JlciAyMDE4LCAwOToxNDowOCBDRVNU
-IHNjaHJpZWIgUmFmYcWCIE1pxYJlY2tpOgo+ID4gPiA+IE9uIEZyaSwgMTkgT2N0IDIwMTggYXQg
-MTQ6MzEsIFJhZmHFgiBNacWCZWNraSA8emFqZWM1QGdtYWlsLmNvbT4gd3JvdGU6Cj4gPiA+ID4g
-PiBTaW5jZSBPcGVuV3J0IHN3aXRjaCBmcm9tIGtlcm5lbCA0LjkgdG8gNC4xNCB1c2VycyBzdGFy
-dGVkIHJhbmRvbWx5Cj4gPiA+ID4gPiByZXBvcnRpbmcgZmlsZSBzeXN0ZW0gY29ycnVwdGlvbnMu
-IE9wZW5XcnQgdXNlcyBvdmVybGF5KGZzKSB3aXRoCj4gPiA+ID4gPiBzcXVhc2hmcyBhcyBsb3dl
-cmRpciBhbmQgdWJpZnMgYXMgdXBwZXJkaXIuIFJ1c3NlbGwgbWFuYWdlZCB0byBpc29sYXRlCj4g
-PiA+ID4gPiAmIGRlc2NyaWJlIHRlc3QgY2FzZSBmb3IgcmVwcm9kdWNpbmcgY29ycnVwdGlvbiB3
-aGVuIGRvaW5nIGEgcG93ZXIgY3V0Cj4gPiA+ID4gPiBhZnRlciBmaXJzdCBib290Lgo+ID4gPiA+
-ID4KPiA+ID4gPiA+ICguLi4pCj4gPiA+ID4gPgo+ID4gPiA+ID4gQ2FuIEkgYXNrIHlvdSB0byBj
-aGVjayBpZiB0aGVyZSBpcyBzb21ldGhpbmcgcG9zc2libHkgd3Jvbmcgd2l0aCB0aGUKPiA+ID4g
-PiA+IGFib3ZlIG92bCBjb21taXQ/IE9yIGRvZXMgaXQgZXhwb3NlIHNvbWUgcHJvYmxlbSB3aXRo
-IHRoZSB1Ymlmcz8gT3IKPiA+ID4gPiA+IG1heWJlIHRoZSB3aG9sZSBVQkk/Cj4gPiA+ID4gPgo+
-ID4gPiA+ID4gRldJVyB0ZXN0aW5nIGFib3ZlIGNvbW1pdCAoYW5kIG9uZSBiZWZvcmUgaXQpIGFs
-d2F5cyByZXN1bHRzIGluIHNpbmdsZQo+ID4gPiA+ID4gZXJyb3IgaW4gdGhlIGtlcm5lbCBsb2c6
-Cj4gPiA+ID4gPiBbICAgMTQuMjUwMTg0XSBVQklGUyBlcnJvciAodWJpMDoxIHBpZCA2MzcpOiB1
-Ymlmc19hZGRfb3JwaGFuOiBvcnBoYW5lZCB0d2ljZQo+ID4gPiA+ID4KPiA+ID4gPiA+IFRoYXQg
-VUJJRlMgZXJyb3IgZG9lc24ndCBvY2N1ciB3aXRoIDQuMTIuMTQuIFVuZm9ydHVuYXRlbHkgaXQn
-cwo+ID4gPiA+ID4gaW1wb3NzaWJsZSB0byBjbGVhbmx5IHJldmVydCAzYTFlODE5YjRlODAgZnJv
-bSB0aGUgdG9wIG9mIDQuMTIuMTQuCj4gPiA+ID4KPiA+ID4gPiBMZXQgbWUgcHJvdmlkZSBhIHN1
-bW1hcnkgb2YgYWxsIHJlbGV2YW50IGNvbW1pdHMgJiB0ZXN0czoKPiA+ID4gPgo+ID4gPiA+IEJ5
-ICJDb3JydXB0aW9uIiBJIG1lYW4gZmlsZSBzeXN0ZW0gY29ycnVwdGlvbiBhZnRlciBwb3dlciBj
-dXQKPiA+ID4KPiA+ID4gV2VsbCwgaXMgdGhlIGZpbGVzeXN0ZW0gbm90IGNvbnNpc3RlbnQgYW55
-bW9yZT8KPiA+ID4gRnJvbSB3aGF0IFJ1c3NlbCBleHBsYWluZWQgdG8gbWUsIEkgdGhvdWdodCB0
-aGUgbWFpbiBwcm9ibGVtIGlzIHRoYXQgbm8gd3JpdGUgYmFjayBoYXBwZW5zLgo+ID4gPiBJT1cg
-dGhlIGlub2RlIGlzIHByZXNlbnQsIGhhcyBjb3JyZWN0IGxlbmd0aCwgYnV0IG5vIGNvbnRlbnQg
-aXMgdGhlcmUgKGFsbCB6ZXJvcykuCj4gPiA+Cj4gPiA+IEp1c3QgbGlrZSB0aGUgdHlwaWNhbCBj
-YXNlIHdoZXJlIHVzZXJzcGFjZSBkb2VzIG5vdCBmc3luYy4KPiA+ID4gQnV0IGluIHlvdXIgY2Fz
-ZSBzb29uZXIgb3IgbGF0ZXIgd3JpdGUgYmFjayBzaG91bGQgaGF2ZSBoYXBwZW5lZCBiZWNhdXNl
-IHRoZSB3cml0ZWJhY2sgdGltZXIKPiA+ID4gZmlyZXMgYXQgc29tZSBwb2ludC4KPiA+ID4KPiA+
-Cj4gPiBGb3IgdGhlIHJlY29yZHMgb3ZlcmxheWZzIGRvZXM6Cj4gPiAtIG9wZW4oT19UTVBGSUxF
-KQo+ID4gLSBzZXR4YXR0cigpIFt3aXRoIDNhMWU4MTliNGU4MF0KPiA+IC0gd3JpdGUgdG8gdG1w
-ZmlsZQo+ID4gLSBmc3luYyB0bXBmaWxlCj4gPiAtIGxpbmsgdG1wZmlsZQo+ID4KPiA+IEkgc3Vn
-Z2VzdCB0aGF0IHlvdSB0cnkgdGhlIHNhbWUgZnJvbSB1c2VyIHNwYWNlIG9uIHViaWZzLgo+Cj4g
-QXJlIHlvdSAxMDAlIHN1cmUgYWJvdXQgaXQ/IEkgdHJpZWQgd3JpdGluZyBDIGFwcCBiZWhhdmlu
-ZyBhcyB5b3UKPiBkZXNjcmliZWQgYWJvdmUgYW5kIEkgY291bGQgbm90IHJlcHJvZHVjZSB0aGUg
-cHJvYmxlbS4KPgoKSSBhbSBuZXZlciAxMDAlIHN1cmUgOy0pCkkgbG9va2VkIGF0IHVwc3RyZWFt
-IGNvZGUsIHdoaWNoIGRvZXMgb3ZsX3NldF9vcmlnaW4oKSBiZWZvcmUKY29weWluZyBkYXRhLgpj
-b21taXQgIDNhMWU4MTliNGU4MCBkb2VzIG92bF9zZXRfb3JpZ2luKCkgYWZ0ZXIgZnN5bmMgbGlr
-ZSB5b3Ugc2F5LgoKPiBUaGVuIEkgdG9vayBhIGNsb3NlIGxvb2sgYXQgb3ZsX2NvcHlfdXBfbG9j
-a2VkKCkgYW5kIGl0IHNlZW1zIGFib3ZlCj4gaW5mbyBpc24ndCBhY2N1cmF0ZS4gSXQgc2VlbXMg
-dG8gbWUgdGhhdCBzZXR4YXR0cigpIGhhcHBlbnMgYmV0d2Vlbgo+IGZzeW5jIGFuZCBsaW5rLiBJ
-IG1vZGlmaWVkIG15IEMgYXBwIHRvIGZvbGxvdyB0aGF0IG9yZGVyIChvcGVuLCB3cml0ZSwKPiBm
-c3luYywgc2V0eGF0dHIsIGxpbmspIGFuZCBJIGNhbiByZXByb2R1Y2UgdGhlIHByb2JsZW0gbm93
-IQo+Cj4gU3RlcHMgdG8gcmVwcm9kdWNlIHRoZSBwcm9ibGVtOgo+IDEpIGNvbXBpbGUgdG1wdGVz
-dC5jCj4gMikgdG1wdGVzdCAvb3ZlcmxheS91cHBlci9mb28udHh0IHVzZXIuYmFyIGJhego+IDMp
-IHdhaXQgNSBzZWNvbmRzIChzbyB1YmlmcyB3cml0ZXMgdG8gZmxhc2gpCj4gNCkgcG93ZXIgY3V0
-Cj4gNSkgYm9vdCBhZ2FpbiBhbmQgY2hlY2sgY29udGVudCBvZiAvb3ZlcmxheS91cHBlci9mb28u
-dHh0Cj4gNikgaW4gbXkgY2FzZSBjb250ZW50IGFwcGVhcnMgdG8gYmUgMDAgMDAgMDAgMDAKPgo+
-IElzIHRoaXMgY29ycmVjdCBmb3Igb3ZsIHRvIGNhbGwgdmZzX3NldHhhdHRyKCkgKmFmdGVyKiBj
-YWxsaW5nIHZmc19mc3luYygpPwo+CgpMZXQncyBqdXN0IGNsYXJpZnkgdGhhdCBmb3IgdGhlIG1h
-dHRlciBvZiBkYXRhIGNvcnJ1cHRpb24gaXQgZG9lc24ndCBtYXR0ZXIKaWYgYW5kIHdoZW4gb3Zl
-cmxheWZzIGRvZXMgdmZzX3NldHhhdHRyKCkuIE92ZXJhbHlmcyBkb2VzIHdyaXRlKCkrZnN5bmMo
-KQphbmQgdGhhdCBpcyBhbGwgdGhhdCBzaG91bGQgbWF0dGVyIGZvciBndWFyYW50eWluZyBkYXRh
-IGludGVncml0eS4KClJlZ2FyZGluZyAiSXMgaXQgY29ycmVjdCB0byBzZXR4YXR0ciBhZnRlciBm
-c3luYygpPyIsIHRoYXQgcXVlc3Rpb24gZGVwZW5kcwpvbiB3aGF0IG92ZXJsYXlmcyBuZWVkcyB0
-byBndWFyYW50eSB3LnIudCBjcmFzaCBjb25zaXN0ZW5jeSBvZiBpdHMgcHJpdmF0ZQp4YXR0cnMg
-YW5kIG9uIHRoZSB0eXBlIG9mIGNyYXNoIGNvbnNpc3RlbmN5IGd1YXJhbnRpZXMgb3ZlcmxheWZz
-IGV4cGVjdHMKZnJvbSB0aGUgdW5kZXJseWluZyBmaWxlc3lzdGVtLgoKT3ZlcmxheWZzIG5lZWRz
-IHRvIGd1YXJhbnR5IHRoYXQgaWYgY3Jhc2ggaGFwcGVucyBtaWQgY29weSB1cCwgYWZ0ZXIKcmVi
-b290LCBlaXRoZXIgdGhlIHVwcGVyIGZpbGUgaXMgbm90IHRoZXJlIG9yIHRoZSB1cHBlciBmaWxl
-IGlzIHRoZXJlIHdpdGgKYWxsIGNvcGllZCBkYXRhIGFuZCBhbGwgY29waWVkIG1ldGFkYXRhIGFu
-ZCB0aGUgb3ZlcmxheSB4YXR0cnMuCgpPdmVybGF5ZnMgY3VycmVudCBjb2RlIGV4cGVjdHMgdGhl
-IHVwcGVyIGZpbGVzeXN0ZW0gdG8gaGF2ZSAic3RyaWN0bHkKb3JkZXJlZCBtZXRhZGF0YSIgc2Vt
-YW50aWNzLCBtZWFuaW5nIHRoYXQgc2V0eGF0dHIoKTtsaW5rKCksIGNhbm5vdAphcHBlYXIgYWZ0
-ZXIgY3Jhc2ggYXMgYSBsaW5rZWQgZmlsZSB3aXRob3V0IHRoZSB4YXR0ci4gSnVzdCB0aGUgc2Ft
-ZSBhcwpta2RpcigpO2Nob3duKCk7cmVuYW1lKCkgY2Fubm90IGFwcGVhciBhZnRlciBjcmFzaCBh
-cyByZW5hbWVkIGRpcgp3aXRob3V0IHRoZSBjaHdvbigpOwoKVGhvc2Ugc2VtYW50aWNzIGFyZSBw
-cm92aWRlZCBieSB0aGUgam91cm5hbGluZyBmaWxlIHN5c3RlbXMgKHhmcywgZXh0NCkKYW5kIHRv
-IGJlIGhvbmVzdCBJIGFtIG5vdCBzdXJlIGlmIHRoZXkgYXJlIHByb3ZpZGVkIGJ5IGJ0cmZzIG9y
-IG5vdCAtCmV2ZXJ5IHRpbWUgdGhpcyBzdWJqZWN0IGNhbWUgdXAsIGJ0cmZzIGRldmVsb3BlciBh
-bnN3ZXJzIHdlcmUgYSBiaXQgdG9vCnZhZ3VlIGZvciBtZSB0byB1bmRlcnN0YW5kIHdoYXQgaXMg
-dGhlIGV4cGVjdGVkIGJlaGF2aW9yIGluIGJ0cmZzLgoKRG9lcyB1YmlmcyBoYXMgYSBwcm9ibGVt
-IHRvIHByb3ZpZGUgdGhpcyBndWFyYW50eT8KCkZpbmFsbHksIEknbGwgcmVwZWF0IHdpdGggd2hh
-dCBJIHN0YXJ0ZWQgLSB0aGlzIGhhcyBub3RoaW5nIHRvIGRvIHdpdGgKZGF0YSBjb25zaXN0ZW5j
-eS4gSW4gZmFjdCwgaW4gdGhlIHNwZWNpZmljIGNhc2Ugb2YgbG93ZXIgc3F1YXNoZnMsCm92ZXJs
-YXlmcyB3aWxsIGVuZCB1cCB3cml0aW5nIGEgemVybyBsZW5ndGggeGF0dHIsIHdoaWNoIG92ZXJs
-YXlmcwpvbmx5IGV2ZXIgY2FyZXMgYWJvdXQgb24gZGlyZWN0b3JpZXMgYW55d2F5LgoKVGhhbmtz
-LApBbWlyLgoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fCkxpbnV4IE1URCBkaXNjdXNzaW9uIG1haWxpbmcgbGlzdApodHRwOi8vbGlzdHMuaW5m
-cmFkZWFkLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LW10ZC8K
+commit a725356b6659469d182d662f22d770d83d3bc7b5 upstream.
+
+Commit 031a072a0b8a ("vfs: call vfs_clone_file_range() under freeze
+protection") created a wrapper do_clone_file_range() around
+vfs_clone_file_range() moving the freeze protection to former, so
+overlayfs could call the latter.
+
+The more common vfs practice is to call do_xxx helpers from vfs_xxx
+helpers, where freeze protecction is taken in the vfs_xxx helper, so
+this anomality could be a source of confusion.
+
+It seems that commit 8ede205541ff ("ovl: add reflink/copyfile/dedup
+support") may have fallen a victim to this confusion -
+ovl_clone_file_range() calls the vfs_clone_file_range() helper in the
+hope of getting freeze protection on upper fs, but in fact results in
+overlayfs allowing to bypass upper fs freeze protection.
+
+Swap the names of the two helpers to conform to common vfs practice
+and call the correct helpers from overlayfs and nfsd.
+
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
+Fixes: 031a072a0b8a ("vfs: call vfs_clone_file_range() under freeze...")
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+---
+
+Greg,
+
+The upstream commit (-rc8) is not a bug fix, it's a vfs API fix.
+If we do not apply it to stable kernels, we are going to have a
+backporting landmine, should a future fix use vfs_clone_file_range()
+it will not do the same thing upstream and in stable.
+
+I backported the change to linux-4.18.y and added the Fixes label.
+I verified that there are no pathces between the Fixes commit and
+current master that use {vfs,do}_clone_file_range() and could be
+considered for backporting to stable (all thoses that can be considered
+are already in stable).
+
+I verified that that with this backport applies to v4.18.16 there are no
+regression of quick clone tests in xfstests with overlayfs and with xfs.
+Backport patch also applies cleanly to v4.14.78.
+
+Thanks,
+Amir.
+
+
+ fs/ioctl.c             |  2 +-
+ fs/nfsd/vfs.c          |  3 ++-
+ fs/overlayfs/copy_up.c |  2 +-
+ fs/read_write.c        | 17 +++++++++++++++--
+ include/linux/fs.h     | 17 +++--------------
+ 5 files changed, 22 insertions(+), 19 deletions(-)
+
+diff --git a/fs/ioctl.c b/fs/ioctl.c
+index b445b13fc59b..5444fec607ce 100644
+--- a/fs/ioctl.c
++++ b/fs/ioctl.c
+@@ -229,7 +229,7 @@ static long ioctl_file_clone(struct file *dst_file, unsigned long srcfd,
+ 	ret = -EXDEV;
+ 	if (src_file.file->f_path.mnt != dst_file->f_path.mnt)
+ 		goto fdput;
+-	ret = do_clone_file_range(src_file.file, off, dst_file, destoff, olen);
++	ret = vfs_clone_file_range(src_file.file, off, dst_file, destoff, olen);
+ fdput:
+ 	fdput(src_file);
+ 	return ret;
+diff --git a/fs/nfsd/vfs.c b/fs/nfsd/vfs.c
+index b0555d7d8200..613d2fe2dddd 100644
+--- a/fs/nfsd/vfs.c
++++ b/fs/nfsd/vfs.c
+@@ -541,7 +541,8 @@ __be32 nfsd4_set_nfs4_label(struct svc_rqst *rqstp, struct svc_fh *fhp,
+ __be32 nfsd4_clone_file_range(struct file *src, u64 src_pos, struct file *dst,
+ 		u64 dst_pos, u64 count)
+ {
+-	return nfserrno(do_clone_file_range(src, src_pos, dst, dst_pos, count));
++	return nfserrno(vfs_clone_file_range(src, src_pos, dst, dst_pos,
++					     count));
+ }
+ 
+ ssize_t nfsd_copy_file_range(struct file *src, u64 src_pos, struct file *dst,
+diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
+index ddaddb4ce4c3..26b477f2538d 100644
+--- a/fs/overlayfs/copy_up.c
++++ b/fs/overlayfs/copy_up.c
+@@ -156,7 +156,7 @@ static int ovl_copy_up_data(struct path *old, struct path *new, loff_t len)
+ 	}
+ 
+ 	/* Try to use clone_file_range to clone up within the same fs */
+-	error = vfs_clone_file_range(old_file, 0, new_file, 0, len);
++	error = do_clone_file_range(old_file, 0, new_file, 0, len);
+ 	if (!error)
+ 		goto out;
+ 	/* Couldn't clone, so now we try to copy the data */
+diff --git a/fs/read_write.c b/fs/read_write.c
+index 153f8f690490..c9d489684335 100644
+--- a/fs/read_write.c
++++ b/fs/read_write.c
+@@ -1818,8 +1818,8 @@ int vfs_clone_file_prep_inodes(struct inode *inode_in, loff_t pos_in,
+ }
+ EXPORT_SYMBOL(vfs_clone_file_prep_inodes);
+ 
+-int vfs_clone_file_range(struct file *file_in, loff_t pos_in,
+-		struct file *file_out, loff_t pos_out, u64 len)
++int do_clone_file_range(struct file *file_in, loff_t pos_in,
++			struct file *file_out, loff_t pos_out, u64 len)
+ {
+ 	struct inode *inode_in = file_inode(file_in);
+ 	struct inode *inode_out = file_inode(file_out);
+@@ -1866,6 +1866,19 @@ int vfs_clone_file_range(struct file *file_in, loff_t pos_in,
+ 
+ 	return ret;
+ }
++EXPORT_SYMBOL(do_clone_file_range);
++
++int vfs_clone_file_range(struct file *file_in, loff_t pos_in,
++			 struct file *file_out, loff_t pos_out, u64 len)
++{
++	int ret;
++
++	file_start_write(file_out);
++	ret = do_clone_file_range(file_in, pos_in, file_out, pos_out, len);
++	file_end_write(file_out);
++
++	return ret;
++}
+ EXPORT_SYMBOL(vfs_clone_file_range);
+ 
+ /*
+diff --git a/include/linux/fs.h b/include/linux/fs.h
+index a3afa50bb79f..e73363bd8646 100644
+--- a/include/linux/fs.h
++++ b/include/linux/fs.h
+@@ -1813,8 +1813,10 @@ extern ssize_t vfs_copy_file_range(struct file *, loff_t , struct file *,
+ extern int vfs_clone_file_prep_inodes(struct inode *inode_in, loff_t pos_in,
+ 				      struct inode *inode_out, loff_t pos_out,
+ 				      u64 *len, bool is_dedupe);
++extern int do_clone_file_range(struct file *file_in, loff_t pos_in,
++			       struct file *file_out, loff_t pos_out, u64 len);
+ extern int vfs_clone_file_range(struct file *file_in, loff_t pos_in,
+-		struct file *file_out, loff_t pos_out, u64 len);
++				struct file *file_out, loff_t pos_out, u64 len);
+ extern int vfs_dedupe_file_range_compare(struct inode *src, loff_t srcoff,
+ 					 struct inode *dest, loff_t destoff,
+ 					 loff_t len, bool *is_same);
+@@ -2755,19 +2757,6 @@ static inline void file_end_write(struct file *file)
+ 	__sb_end_write(file_inode(file)->i_sb, SB_FREEZE_WRITE);
+ }
+ 
+-static inline int do_clone_file_range(struct file *file_in, loff_t pos_in,
+-				      struct file *file_out, loff_t pos_out,
+-				      u64 len)
+-{
+-	int ret;
+-
+-	file_start_write(file_out);
+-	ret = vfs_clone_file_range(file_in, pos_in, file_out, pos_out, len);
+-	file_end_write(file_out);
+-
+-	return ret;
+-}
+-
+ /*
+  * get_write_access() gets write permission for a file.
+  * put_write_access() releases this write permission.
+-- 
+2.7.4
