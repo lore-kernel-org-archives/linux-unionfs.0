@@ -1,16 +1,18 @@
-From: =?UTF-8?B?UmFmYcWCIE1pxYJlY2tp?= <zajec5@gmail.com>
+From: Amir Goldstein <amir73il@gmail.com>
 Subject: Re: Regression in handling power cuts since 3a1e819b4e80 ("ovl: store
  file handle of lower inode on copy up")
-Date: Mon, 22 Oct 2018 17:34:44 +0200
-Message-ID: <CACna6rzvzc-_X3VDeA-nwtTW7KHaQGtbvzjVNoOFEQuHKi3PJg@mail.gmail.com>
+Date: Mon, 22 Oct 2018 20:00:46 +0300
+Message-ID: <CAOQ4uxgySZfoh-6p9FG_pOQ7zt02bSQQLk9YeD1nj5a+_RyrYA__20701.6278327957$1540227585$gmane$org@mail.gmail.com>
 References: <CACna6rx3YBNYKGu7T-J2J-S_3yr-oafJf3pL5TbGDFRzU6dihg@mail.gmail.com>
  <CACna6rx_jSTEEt6TAzQcBpAHZA_CJGhkjJhWWJKG3cQmr9c9ug@mail.gmail.com>
  <3000620.g91H2S8sUk@blindfold>
  <CAOQ4uxii0rZv3SVXWNN7yug_WZ-TKLL3Wo-mti0y9K66Z+-EcQ@mail.gmail.com>
+ <CACna6rzvzc-_X3VDeA-nwtTW7KHaQGtbvzjVNoOFEQuHKi3PJg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="000000000000c694880578d2fe72"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
-In-Reply-To: <CAOQ4uxii0rZv3SVXWNN7yug_WZ-TKLL3Wo-mti0y9K66Z+-EcQ@mail.gmail.com>
+In-Reply-To: <CACna6rzvzc-_X3VDeA-nwtTW7KHaQGtbvzjVNoOFEQuHKi3PJg@mail.gmail.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
  <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
@@ -20,136 +22,92 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
  <mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-mtd" <linux-mtd-bounces@lists.infradead.org>
 Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: Artem Bityutskiy <dedekind1@gmail.com>, Richard Weinberger <richard@nod.at>, Miklos Szeredi <miklos@szeredi.hu>, Adrian Hunter <adrian.hunter@intel.com>, linux-unionfs@vger.kernel.org, linux-mtd@lists.infradead.org, Russell Senior <russell@personaltelco.net>, linux-fsdevel@vger.kernel.org, OpenWrt Development List <openwrt-devel@lists.openwrt.org>
+To: =?UTF-8?B?UmFmYcWCIE1pxYJlY2tp?= <zajec5@gmail.com>
+Cc: Artem Bityutskiy <dedekind1@gmail.com>, Richard Weinberger <richard@nod.at>, Miklos Szeredi <miklos@szeredi.hu>, Adrian Hunter <adrian.hunter@intel.com>, overlayfs <linux-unionfs@vger.kernel.org>, linux-mtd@lists.infradead.org, russell@personaltelco.net, linux-fsdevel <linux-fsdevel@vger.kernel.org>, openwrt-devel@lists.openwrt.org
 List-Id: linux-unionfs@vger.kernel.org
 
---000000000000c694880578d2fe72
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-
-On Mon, 22 Oct 2018 at 10:57, Amir Goldstein <amir73il@gmail.com> wrote:
-> On Mon, Oct 22, 2018 at 11:26 AM Richard Weinberger <richard@nod.at> wrot=
-e:
-> >
-> > Am Montag, 22. Oktober 2018, 09:14:08 CEST schrieb Rafa=C5=82 Mi=C5=82e=
-cki:
-> > > On Fri, 19 Oct 2018 at 14:31, Rafa=C5=82 Mi=C5=82ecki <zajec5@gmail.c=
-om> wrote:
-> > > > Since OpenWrt switch from kernel 4.9 to 4.14 users started randomly
-> > > > reporting file system corruptions. OpenWrt uses overlay(fs) with
-> > > > squashfs as lowerdir and ubifs as upperdir. Russell managed to isol=
-ate
-> > > > & describe test case for reproducing corruption when doing a power =
-cut
-> > > > after first boot.
-> > > >
-> > > > (...)
-> > > >
-> > > > Can I ask you to check if there is something possibly wrong with th=
-e
-> > > > above ovl commit? Or does it expose some problem with the ubifs? Or
-> > > > maybe the whole UBI?
-> > > >
-> > > > FWIW testing above commit (and one before it) always results in sin=
-gle
-> > > > error in the kernel log:
-> > > > [   14.250184] UBIFS error (ubi0:1 pid 637): ubifs_add_orphan: orph=
-aned twice
-> > > >
-> > > > That UBIFS error doesn't occur with 4.12.14. Unfortunately it's
-> > > > impossible to cleanly revert 3a1e819b4e80 from the top of 4.12.14.
-> > >
-> > > Let me provide a summary of all relevant commits & tests:
-> > >
-> > > By "Corruption" I mean file system corruption after power cut
-> >
-> > Well, is the filesystem not consistent anymore?
-> > From what Russel explained to me, I thought the main problem is that no=
- write back happens.
-> > IOW the inode is present, has correct length, but no content is there (=
-all zeros).
-> >
-> > Just like the typical case where userspace does not fsync.
-> > But in your case sooner or later write back should have happened becaus=
-e the writeback timer
-> > fires at some point.
-> >
->
-> For the records overlayfs does:
-> - open(O_TMPFILE)
-> - setxattr() [with 3a1e819b4e80]
-> - write to tmpfile
-> - fsync tmpfile
-> - link tmpfile
->
-> I suggest that you try the same from user space on ubifs.
-
-Are you 100% sure about it? I tried writing C app behaving as you
-described above and I could not reproduce the problem.
-
-Then I took a close look at ovl_copy_up_locked() and it seems above
-info isn't accurate. It seems to me that setxattr() happens between
-fsync and link. I modified my C app to follow that order (open, write,
-fsync, setxattr, link) and I can reproduce the problem now!
-
-Steps to reproduce the problem:
-1) compile tmptest.c
-2) tmptest /overlay/upper/foo.txt user.bar baz
-3) wait 5 seconds (so ubifs writes to flash)
-4) power cut
-5) boot again and check content of /overlay/upper/foo.txt
-6) in my case content appears to be 00 00 00 00
-
-Is this correct for ovl to call vfs_setxattr() *after* calling vfs_fsync()?
-
---=20
-Rafa=C5=82
-
---000000000000c694880578d2fe72
-Content-Type: text/x-csrc; charset="US-ASCII"; name="tmptest.c"
-Content-Disposition: attachment; filename="tmptest.c"
-Content-Transfer-Encoding: base64
-Content-ID: <f_jnkghgd90>
-X-Attachment-Id: f_jnkghgd90
-
-I2luY2x1ZGUgPGVycm5vLmg+CiNpbmNsdWRlIDxmY250bC5oPgojaW5jbHVkZSA8bGliZ2VuLmg+
-CiNpbmNsdWRlIDxsaW51eC9saW1pdHMuaD4KI2luY2x1ZGUgPHN0ZGlvLmg+CiNpbmNsdWRlIDxz
-dHJpbmcuaD4KI2luY2x1ZGUgPHN5cy94YXR0ci5oPgojaW5jbHVkZSA8dW5pc3RkLmg+CgpzdGF0
-aWMgY29uc3QgY2hhciBmb29bXSA9ICJmb29cbiI7CgppbnQgbWFpbihpbnQgYXJnYywgY2hhciAq
-KmFyZ3YpIHsKCWNoYXIgcGF0aFtQQVRIX01BWF07CgljaGFyICpkaXI7CglpbnQgZXJyOwoJaW50
-IGZkOwoKCWlmIChhcmdjIDwgMikgewoJCWZwcmludGYoc3RkZXJyLCAiWW91IGhhdmUgdG8gcGFz
-cyBmaWxlIGFzIGFyZ3VtZW50XG4iKTsKCQlyZXR1cm4gLUVOT0VOVDsKCX0KCglkaXIgPSBzdHJk
-dXAoYXJndlsxXSk7CglpZiAoIWRpcikgewoJCXJldHVybiAtRU5PTUVNOwoJfQoJZGlyID0gZGly
-bmFtZShkaXIpOwoJZmQgPSBvcGVuKGRpciwgT19UTVBGSUxFIHwgT19SRFdSKTsKCWlmIChmZCA8
-IDApIHsKCQllcnIgPSAtZXJybm87CgkJZnByaW50ZihzdGRlcnIsICJGYWlsZWQgdG8gb3BlbiBP
-X1RNUEZJTEU6ICVkXG4iLCBlcnIpOwoJCXJldHVybiBlcnI7Cgl9CgojaWYgMAoJaWYgKGFyZ2Mg
-Pj0gNCkgewoJCWlmIChmc2V0eGF0dHIoZmQsIGFyZ3ZbMl0sIGFyZ3ZbM10sIHN0cmxlbihhcmd2
-WzNdKSwgMCkgIT0gMCkgewoJCQllcnIgPSAtZXJybm87CgkJCWZwcmludGYoc3RkZXJyLCAiRmFp
-bGVkIHRvIGZzZXR4YXR0cigpOiAlZFxuIiwgZXJyKTsKCQkJcmV0dXJuIGVycjsKCQl9CgkJcHJp
-bnRmKCJXcm90ZSB4YXR0ciBcIiVzXCIgdmFsdWUgXCIlc1wiXG4iLCBhcmd2WzJdLCBhcmd2WzNd
-KTsKCX0KI2VuZGlmCgoJaWYgKHdyaXRlKGZkLCBmb28sIHNpemVvZihmb28pKSAhPSBzaXplb2Yo
-Zm9vKSkgewoJCWVyciA9IC1lcnJubzsKCQlmcHJpbnRmKHN0ZGVyciwgIkZhaWxlZCB0byB3cml0
-ZSgpOiAlZFxuIiwgZXJyKTsKCQlyZXR1cm4gZXJyOwoJfQoKCWlmIChmc3luYyhmZCkgPCAwKSB7
-CgkJZXJyID0gLWVycm5vOwoJCWZwcmludGYoc3RkZXJyLCAiRmFpbGVkIHRvIGZzeW5jKCk6ICVk
-XG4iLCBlcnIpOwoJCXJldHVybiBlcnI7Cgl9CgojaWYgMQoJaWYgKGFyZ2MgPj0gNCkgewoJCWlm
-IChmc2V0eGF0dHIoZmQsIGFyZ3ZbMl0sIGFyZ3ZbM10sIHN0cmxlbihhcmd2WzNdKSwgMCkgIT0g
-MCkgewoJCQllcnIgPSAtZXJybm87CgkJCWZwcmludGYoc3RkZXJyLCAiRmFpbGVkIHRvIGZzZXR4
-YXR0cigpOiAlZFxuIiwgZXJyKTsKCQkJcmV0dXJuIGVycjsKCQl9CgkJcHJpbnRmKCJXcm90ZSB4
-YXR0ciBcIiVzXCIgdmFsdWUgXCIlc1wiXG4iLCBhcmd2WzJdLCBhcmd2WzNdKTsKCX0KI2VuZGlm
-CgoJc25wcmludGYocGF0aCwgc2l6ZW9mKHBhdGgpLCAiL3Byb2Mvc2VsZi9mZC8lZCIsIGZkKTsK
-CWlmIChsaW5rYXQoLTEsIHBhdGgsIEFUX0ZEQ1dELCBhcmd2WzFdLCBBVF9TWU1MSU5LX0ZPTExP
-VykgIT0gMCkgewoJCWVyciA9IC1lcnJubzsKCQlmcHJpbnRmKHN0ZGVyciwgIkZhaWxlZCB0byBs
-aW5rYXQoKTogJWRcbiIsIGVycik7CgkJcmV0dXJuIGVycjsKCX0KCglwcmludGYoIlN1Y2Nlc3Mh
-XG4iKTsKCglyZXR1cm4gMDsKfQo=
---000000000000c694880578d2fe72
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-______________________________________________________
-Linux MTD discussion mailing list
-http://lists.infradead.org/mailman/listinfo/linux-mtd/
-
---000000000000c694880578d2fe72--
+T24gTW9uLCBPY3QgMjIsIDIwMTggYXQgNjozNCBQTSBSYWZhxYIgTWnFgmVja2kgPHphamVjNUBn
+bWFpbC5jb20+IHdyb3RlOgo+Cj4gT24gTW9uLCAyMiBPY3QgMjAxOCBhdCAxMDo1NywgQW1pciBH
+b2xkc3RlaW4gPGFtaXI3M2lsQGdtYWlsLmNvbT4gd3JvdGU6Cj4gPiBPbiBNb24sIE9jdCAyMiwg
+MjAxOCBhdCAxMToyNiBBTSBSaWNoYXJkIFdlaW5iZXJnZXIgPHJpY2hhcmRAbm9kLmF0PiB3cm90
+ZToKPiA+ID4KPiA+ID4gQW0gTW9udGFnLCAyMi4gT2t0b2JlciAyMDE4LCAwOToxNDowOCBDRVNU
+IHNjaHJpZWIgUmFmYcWCIE1pxYJlY2tpOgo+ID4gPiA+IE9uIEZyaSwgMTkgT2N0IDIwMTggYXQg
+MTQ6MzEsIFJhZmHFgiBNacWCZWNraSA8emFqZWM1QGdtYWlsLmNvbT4gd3JvdGU6Cj4gPiA+ID4g
+PiBTaW5jZSBPcGVuV3J0IHN3aXRjaCBmcm9tIGtlcm5lbCA0LjkgdG8gNC4xNCB1c2VycyBzdGFy
+dGVkIHJhbmRvbWx5Cj4gPiA+ID4gPiByZXBvcnRpbmcgZmlsZSBzeXN0ZW0gY29ycnVwdGlvbnMu
+IE9wZW5XcnQgdXNlcyBvdmVybGF5KGZzKSB3aXRoCj4gPiA+ID4gPiBzcXVhc2hmcyBhcyBsb3dl
+cmRpciBhbmQgdWJpZnMgYXMgdXBwZXJkaXIuIFJ1c3NlbGwgbWFuYWdlZCB0byBpc29sYXRlCj4g
+PiA+ID4gPiAmIGRlc2NyaWJlIHRlc3QgY2FzZSBmb3IgcmVwcm9kdWNpbmcgY29ycnVwdGlvbiB3
+aGVuIGRvaW5nIGEgcG93ZXIgY3V0Cj4gPiA+ID4gPiBhZnRlciBmaXJzdCBib290Lgo+ID4gPiA+
+ID4KPiA+ID4gPiA+ICguLi4pCj4gPiA+ID4gPgo+ID4gPiA+ID4gQ2FuIEkgYXNrIHlvdSB0byBj
+aGVjayBpZiB0aGVyZSBpcyBzb21ldGhpbmcgcG9zc2libHkgd3Jvbmcgd2l0aCB0aGUKPiA+ID4g
+PiA+IGFib3ZlIG92bCBjb21taXQ/IE9yIGRvZXMgaXQgZXhwb3NlIHNvbWUgcHJvYmxlbSB3aXRo
+IHRoZSB1Ymlmcz8gT3IKPiA+ID4gPiA+IG1heWJlIHRoZSB3aG9sZSBVQkk/Cj4gPiA+ID4gPgo+
+ID4gPiA+ID4gRldJVyB0ZXN0aW5nIGFib3ZlIGNvbW1pdCAoYW5kIG9uZSBiZWZvcmUgaXQpIGFs
+d2F5cyByZXN1bHRzIGluIHNpbmdsZQo+ID4gPiA+ID4gZXJyb3IgaW4gdGhlIGtlcm5lbCBsb2c6
+Cj4gPiA+ID4gPiBbICAgMTQuMjUwMTg0XSBVQklGUyBlcnJvciAodWJpMDoxIHBpZCA2MzcpOiB1
+Ymlmc19hZGRfb3JwaGFuOiBvcnBoYW5lZCB0d2ljZQo+ID4gPiA+ID4KPiA+ID4gPiA+IFRoYXQg
+VUJJRlMgZXJyb3IgZG9lc24ndCBvY2N1ciB3aXRoIDQuMTIuMTQuIFVuZm9ydHVuYXRlbHkgaXQn
+cwo+ID4gPiA+ID4gaW1wb3NzaWJsZSB0byBjbGVhbmx5IHJldmVydCAzYTFlODE5YjRlODAgZnJv
+bSB0aGUgdG9wIG9mIDQuMTIuMTQuCj4gPiA+ID4KPiA+ID4gPiBMZXQgbWUgcHJvdmlkZSBhIHN1
+bW1hcnkgb2YgYWxsIHJlbGV2YW50IGNvbW1pdHMgJiB0ZXN0czoKPiA+ID4gPgo+ID4gPiA+IEJ5
+ICJDb3JydXB0aW9uIiBJIG1lYW4gZmlsZSBzeXN0ZW0gY29ycnVwdGlvbiBhZnRlciBwb3dlciBj
+dXQKPiA+ID4KPiA+ID4gV2VsbCwgaXMgdGhlIGZpbGVzeXN0ZW0gbm90IGNvbnNpc3RlbnQgYW55
+bW9yZT8KPiA+ID4gRnJvbSB3aGF0IFJ1c3NlbCBleHBsYWluZWQgdG8gbWUsIEkgdGhvdWdodCB0
+aGUgbWFpbiBwcm9ibGVtIGlzIHRoYXQgbm8gd3JpdGUgYmFjayBoYXBwZW5zLgo+ID4gPiBJT1cg
+dGhlIGlub2RlIGlzIHByZXNlbnQsIGhhcyBjb3JyZWN0IGxlbmd0aCwgYnV0IG5vIGNvbnRlbnQg
+aXMgdGhlcmUgKGFsbCB6ZXJvcykuCj4gPiA+Cj4gPiA+IEp1c3QgbGlrZSB0aGUgdHlwaWNhbCBj
+YXNlIHdoZXJlIHVzZXJzcGFjZSBkb2VzIG5vdCBmc3luYy4KPiA+ID4gQnV0IGluIHlvdXIgY2Fz
+ZSBzb29uZXIgb3IgbGF0ZXIgd3JpdGUgYmFjayBzaG91bGQgaGF2ZSBoYXBwZW5lZCBiZWNhdXNl
+IHRoZSB3cml0ZWJhY2sgdGltZXIKPiA+ID4gZmlyZXMgYXQgc29tZSBwb2ludC4KPiA+ID4KPiA+
+Cj4gPiBGb3IgdGhlIHJlY29yZHMgb3ZlcmxheWZzIGRvZXM6Cj4gPiAtIG9wZW4oT19UTVBGSUxF
+KQo+ID4gLSBzZXR4YXR0cigpIFt3aXRoIDNhMWU4MTliNGU4MF0KPiA+IC0gd3JpdGUgdG8gdG1w
+ZmlsZQo+ID4gLSBmc3luYyB0bXBmaWxlCj4gPiAtIGxpbmsgdG1wZmlsZQo+ID4KPiA+IEkgc3Vn
+Z2VzdCB0aGF0IHlvdSB0cnkgdGhlIHNhbWUgZnJvbSB1c2VyIHNwYWNlIG9uIHViaWZzLgo+Cj4g
+QXJlIHlvdSAxMDAlIHN1cmUgYWJvdXQgaXQ/IEkgdHJpZWQgd3JpdGluZyBDIGFwcCBiZWhhdmlu
+ZyBhcyB5b3UKPiBkZXNjcmliZWQgYWJvdmUgYW5kIEkgY291bGQgbm90IHJlcHJvZHVjZSB0aGUg
+cHJvYmxlbS4KPgoKSSBhbSBuZXZlciAxMDAlIHN1cmUgOy0pCkkgbG9va2VkIGF0IHVwc3RyZWFt
+IGNvZGUsIHdoaWNoIGRvZXMgb3ZsX3NldF9vcmlnaW4oKSBiZWZvcmUKY29weWluZyBkYXRhLgpj
+b21taXQgIDNhMWU4MTliNGU4MCBkb2VzIG92bF9zZXRfb3JpZ2luKCkgYWZ0ZXIgZnN5bmMgbGlr
+ZSB5b3Ugc2F5LgoKPiBUaGVuIEkgdG9vayBhIGNsb3NlIGxvb2sgYXQgb3ZsX2NvcHlfdXBfbG9j
+a2VkKCkgYW5kIGl0IHNlZW1zIGFib3ZlCj4gaW5mbyBpc24ndCBhY2N1cmF0ZS4gSXQgc2VlbXMg
+dG8gbWUgdGhhdCBzZXR4YXR0cigpIGhhcHBlbnMgYmV0d2Vlbgo+IGZzeW5jIGFuZCBsaW5rLiBJ
+IG1vZGlmaWVkIG15IEMgYXBwIHRvIGZvbGxvdyB0aGF0IG9yZGVyIChvcGVuLCB3cml0ZSwKPiBm
+c3luYywgc2V0eGF0dHIsIGxpbmspIGFuZCBJIGNhbiByZXByb2R1Y2UgdGhlIHByb2JsZW0gbm93
+IQo+Cj4gU3RlcHMgdG8gcmVwcm9kdWNlIHRoZSBwcm9ibGVtOgo+IDEpIGNvbXBpbGUgdG1wdGVz
+dC5jCj4gMikgdG1wdGVzdCAvb3ZlcmxheS91cHBlci9mb28udHh0IHVzZXIuYmFyIGJhego+IDMp
+IHdhaXQgNSBzZWNvbmRzIChzbyB1YmlmcyB3cml0ZXMgdG8gZmxhc2gpCj4gNCkgcG93ZXIgY3V0
+Cj4gNSkgYm9vdCBhZ2FpbiBhbmQgY2hlY2sgY29udGVudCBvZiAvb3ZlcmxheS91cHBlci9mb28u
+dHh0Cj4gNikgaW4gbXkgY2FzZSBjb250ZW50IGFwcGVhcnMgdG8gYmUgMDAgMDAgMDAgMDAKPgo+
+IElzIHRoaXMgY29ycmVjdCBmb3Igb3ZsIHRvIGNhbGwgdmZzX3NldHhhdHRyKCkgKmFmdGVyKiBj
+YWxsaW5nIHZmc19mc3luYygpPwo+CgpMZXQncyBqdXN0IGNsYXJpZnkgdGhhdCBmb3IgdGhlIG1h
+dHRlciBvZiBkYXRhIGNvcnJ1cHRpb24gaXQgZG9lc24ndCBtYXR0ZXIKaWYgYW5kIHdoZW4gb3Zl
+cmxheWZzIGRvZXMgdmZzX3NldHhhdHRyKCkuIE92ZXJhbHlmcyBkb2VzIHdyaXRlKCkrZnN5bmMo
+KQphbmQgdGhhdCBpcyBhbGwgdGhhdCBzaG91bGQgbWF0dGVyIGZvciBndWFyYW50eWluZyBkYXRh
+IGludGVncml0eS4KClJlZ2FyZGluZyAiSXMgaXQgY29ycmVjdCB0byBzZXR4YXR0ciBhZnRlciBm
+c3luYygpPyIsIHRoYXQgcXVlc3Rpb24gZGVwZW5kcwpvbiB3aGF0IG92ZXJsYXlmcyBuZWVkcyB0
+byBndWFyYW50eSB3LnIudCBjcmFzaCBjb25zaXN0ZW5jeSBvZiBpdHMgcHJpdmF0ZQp4YXR0cnMg
+YW5kIG9uIHRoZSB0eXBlIG9mIGNyYXNoIGNvbnNpc3RlbmN5IGd1YXJhbnRpZXMgb3ZlcmxheWZz
+IGV4cGVjdHMKZnJvbSB0aGUgdW5kZXJseWluZyBmaWxlc3lzdGVtLgoKT3ZlcmxheWZzIG5lZWRz
+IHRvIGd1YXJhbnR5IHRoYXQgaWYgY3Jhc2ggaGFwcGVucyBtaWQgY29weSB1cCwgYWZ0ZXIKcmVi
+b290LCBlaXRoZXIgdGhlIHVwcGVyIGZpbGUgaXMgbm90IHRoZXJlIG9yIHRoZSB1cHBlciBmaWxl
+IGlzIHRoZXJlIHdpdGgKYWxsIGNvcGllZCBkYXRhIGFuZCBhbGwgY29waWVkIG1ldGFkYXRhIGFu
+ZCB0aGUgb3ZlcmxheSB4YXR0cnMuCgpPdmVybGF5ZnMgY3VycmVudCBjb2RlIGV4cGVjdHMgdGhl
+IHVwcGVyIGZpbGVzeXN0ZW0gdG8gaGF2ZSAic3RyaWN0bHkKb3JkZXJlZCBtZXRhZGF0YSIgc2Vt
+YW50aWNzLCBtZWFuaW5nIHRoYXQgc2V0eGF0dHIoKTtsaW5rKCksIGNhbm5vdAphcHBlYXIgYWZ0
+ZXIgY3Jhc2ggYXMgYSBsaW5rZWQgZmlsZSB3aXRob3V0IHRoZSB4YXR0ci4gSnVzdCB0aGUgc2Ft
+ZSBhcwpta2RpcigpO2Nob3duKCk7cmVuYW1lKCkgY2Fubm90IGFwcGVhciBhZnRlciBjcmFzaCBh
+cyByZW5hbWVkIGRpcgp3aXRob3V0IHRoZSBjaHdvbigpOwoKVGhvc2Ugc2VtYW50aWNzIGFyZSBw
+cm92aWRlZCBieSB0aGUgam91cm5hbGluZyBmaWxlIHN5c3RlbXMgKHhmcywgZXh0NCkKYW5kIHRv
+IGJlIGhvbmVzdCBJIGFtIG5vdCBzdXJlIGlmIHRoZXkgYXJlIHByb3ZpZGVkIGJ5IGJ0cmZzIG9y
+IG5vdCAtCmV2ZXJ5IHRpbWUgdGhpcyBzdWJqZWN0IGNhbWUgdXAsIGJ0cmZzIGRldmVsb3BlciBh
+bnN3ZXJzIHdlcmUgYSBiaXQgdG9vCnZhZ3VlIGZvciBtZSB0byB1bmRlcnN0YW5kIHdoYXQgaXMg
+dGhlIGV4cGVjdGVkIGJlaGF2aW9yIGluIGJ0cmZzLgoKRG9lcyB1YmlmcyBoYXMgYSBwcm9ibGVt
+IHRvIHByb3ZpZGUgdGhpcyBndWFyYW50eT8KCkZpbmFsbHksIEknbGwgcmVwZWF0IHdpdGggd2hh
+dCBJIHN0YXJ0ZWQgLSB0aGlzIGhhcyBub3RoaW5nIHRvIGRvIHdpdGgKZGF0YSBjb25zaXN0ZW5j
+eS4gSW4gZmFjdCwgaW4gdGhlIHNwZWNpZmljIGNhc2Ugb2YgbG93ZXIgc3F1YXNoZnMsCm92ZXJs
+YXlmcyB3aWxsIGVuZCB1cCB3cml0aW5nIGEgemVybyBsZW5ndGggeGF0dHIsIHdoaWNoIG92ZXJs
+YXlmcwpvbmx5IGV2ZXIgY2FyZXMgYWJvdXQgb24gZGlyZWN0b3JpZXMgYW55d2F5LgoKVGhhbmtz
+LApBbWlyLgoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fCkxpbnV4IE1URCBkaXNjdXNzaW9uIG1haWxpbmcgbGlzdApodHRwOi8vbGlzdHMuaW5m
+cmFkZWFkLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LW10ZC8K
