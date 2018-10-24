@@ -1,88 +1,45 @@
-Return-Path: <vgoyal@redhat.com>
-From: Vivek Goyal <vgoyal@redhat.com>
-Subject: [PATCH v2 2/2] overlayfs: Enable redirect_dir automatically if metacopy=on needs it
-Date: Tue, 30 Oct 2018 16:26:42 -0400
-Message-Id: <20181030202642.5025-3-vgoyal@redhat.com>
-In-Reply-To: <20181030202642.5025-1-vgoyal@redhat.com>
-References: <20181030202642.5025-1-vgoyal@redhat.com>
-To: linux-unionfs@vger.kernel.org
-Cc: miklos@szeredi.hu, amir73il@gmail.com, vgoyal@redhat.com
+Return-Path: <olga.kornievskaia@gmail.com>
+Return-Path: <olga.kornievskaia@gmail.com>
+From: Olga Kornievskaia <olga.kornievskaia@gmail.com>
+Subject: [PATCH v2 09/13] NFS also send OFFLOAD_CANCEL to source server
+Date: Wed, 24 Oct 2018 15:58:33 -0400
+Message-Id: <20181024195837.35532-11-olga.kornievskaia@gmail.com>
+In-Reply-To: <20181024195837.35532-1-olga.kornievskaia@gmail.com>
+References: <20181024195837.35532-1-olga.kornievskaia@gmail.com>
+To: trond.myklebust@hammerspace.com, anna.schumaker@netapp.com, viro@zeniv.linux.org.uk, smfrench@gmail.com, miklos@szeredi.hu
+Cc: linux-nfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-cifs@vger.kernel.org, linux-unionfs@vger.kernel.org, linux-man@vger.kernel.org
 List-ID: <linux-unionfs@vger.kernel.org>
 
-metacopy feature requires either redirect_dir=on or redirect_dir=follow
-depending on if upper directory is present or not. Enable this feature
-automatically, if needed. It can't be enabled automatically enabled if
-user has disabled this feature explicitly using redirect_dir mount option.
+From: Olga Kornievskaia <kolga@netapp.com>
 
-Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
+In case of copy is cancelled, also send OFFLOAD_CANCEL to the source
+server.
+
+Signed-off-by: Olga Kornievskaia <kolga@netapp.com>
 ---
- fs/overlayfs/ovl_entry.h |  1 +
- fs/overlayfs/super.c     | 21 +++++++++++++++++++++
- 2 files changed, 22 insertions(+)
+ fs/nfs/nfs42proc.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff --git a/fs/overlayfs/ovl_entry.h b/fs/overlayfs/ovl_entry.h
-index 23bd7507bf2c..8667ef60dfa9 100644
---- a/fs/overlayfs/ovl_entry.h
-+++ b/fs/overlayfs/ovl_entry.h
-@@ -15,6 +15,7 @@ struct ovl_config {
- 	bool default_permissions;
- 	bool redirect_dir;
- 	bool redirect_follow;
-+	bool redirect_enforce;
- 	const char *redirect_mode;
- 	bool index;
- 	bool nfs_export;
-diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-index 19f50783d92d..0d6d69c7012a 100644
---- a/fs/overlayfs/super.c
-+++ b/fs/overlayfs/super.c
-@@ -468,12 +468,29 @@ static int ovl_parse_redirect_mode(struct ovl_config *config, const char *mode)
- 	return 0;
+diff --git a/fs/nfs/nfs42proc.c b/fs/nfs/nfs42proc.c
+index bb9e799..98fe00b 100644
+--- a/fs/nfs/nfs42proc.c
++++ b/fs/nfs/nfs42proc.c
+@@ -205,12 +205,14 @@ static int handle_async_copy(struct nfs42_copy_res *res,
+ 	memcpy(&res->write_res.verifier, &copy->verf, sizeof(copy->verf));
+ 	status = -copy->error;
+ 
++out_free:
+ 	kfree(copy);
+ 	return status;
+ out_cancel:
+ 	nfs42_do_offload_cancel_async(dst, &copy->stateid);
+-	kfree(copy);
+-	return status;
++	if (!nfs42_files_from_same_server(src, dst))
++		nfs42_do_offload_cancel_async(src, src_stateid);
++	goto out_free;
  }
  
-+static bool ovl_enable_redirect(struct ovl_config *config, bool follow) {
-+	if (config->redirect_enforce)
-+		return false;
-+
-+	config->redirect_follow = true;
-+	if (!follow) {
-+		config->redirect_dir = true;
-+		pr_info("overlayfs: Enabling \"redirect_dir=on\".\n");
-+	} else {
-+		pr_info("overlayfs: Enabling \"redirect_dir=follow\".\n");
-+	}
-+	return true;
-+}
-+
- static int ovl_process_metacopy_dependency(struct ovl_config *config)
- {
- 	if (!config->metacopy)
- 		return 0;
- 
- 	if (config->upperdir && !config->redirect_dir) {
-+		if (ovl_enable_redirect(config, false))
-+			return 0;
-+
- 		/* metacopy feature with upper requires redirect_dir=on */
- 		if (!config->metacopy_enforce) {
- 			pr_warn("overlayfs: metadata only copy up requires"
-@@ -486,6 +503,9 @@ static int ovl_process_metacopy_dependency(struct ovl_config *config)
- 			" \"redirect_dir=on\".\n");
- 		return -EINVAL;
- 	} else if (!config->upperdir && !config->redirect_follow) {
-+		if (ovl_enable_redirect(config, true))
-+			return 0;
-+
- 		if (!config->metacopy_enforce) {
- 			pr_warn("overlayfs: metadata only copy up requires"
- 				" either \"redirect_dir=follow\" or"
-@@ -551,6 +571,7 @@ static int ovl_parse_opt(char *opt, struct ovl_config *config)
- 			config->redirect_mode = match_strdup(&args[0]);
- 			if (!config->redirect_mode)
- 				return -ENOMEM;
-+			config->redirect_enforce = true;
- 			break;
- 
- 		case OPT_INDEX_ON:
+ static int process_copy_commit(struct file *dst, loff_t pos_dst,
 -- 
-2.13.6
+1.8.3.1
