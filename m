@@ -1,45 +1,49 @@
-Return-Path: <olga.kornievskaia@gmail.com>
-Return-Path: <olga.kornievskaia@gmail.com>
-From: Olga Kornievskaia <olga.kornievskaia@gmail.com>
-Subject: [PATCH v3 06/11] NFS also send OFFLOAD_CANCEL to source server
-Date: Thu, 25 Oct 2018 17:51:42 -0400
-Message-Id: <20181025215147.36248-8-olga.kornievskaia@gmail.com>
-In-Reply-To: <20181025215147.36248-1-olga.kornievskaia@gmail.com>
-References: <20181025215147.36248-1-olga.kornievskaia@gmail.com>
-To: trond.myklebust@hammerspace.com, anna.schumaker@netapp.com, viro@zeniv.linux.org.uk, smfrench@gmail.com, miklos@szeredi.hu
-Cc: linux-nfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-cifs@vger.kernel.org, linux-unionfs@vger.kernel.org, linux-man@vger.kernel.org
+Return-Path: <amir73il@gmail.com>
+MIME-Version: 1.0
+References: <20180903061211.20830-1-amir73il@gmail.com> <20180903061211.20830-4-amir73il@gmail.com>
+ <CAJfpegu-MVikDXiD3o1Lx8ZyAitFpMnB5kVp9neJneM84L8=aA@mail.gmail.com>
+In-Reply-To: <CAJfpegu-MVikDXiD3o1Lx8ZyAitFpMnB5kVp9neJneM84L8=aA@mail.gmail.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Date: Wed, 24 Oct 2018 20:56:43 +0300
+Message-ID: <CAOQ4uxh43FidQ3c87QE0HFbXAkD8QSJGpLjm6BfTq4-dUSjzJw@mail.gmail.com>
+Subject: Re: [PATCH 3/3] ovl: compact nested ovl_fh
+Content-Type: text/plain; charset="UTF-8"
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: overlayfs <linux-unionfs@vger.kernel.org>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-From: Olga Kornievskaia <kolga@netapp.com>
+On Wed, Oct 24, 2018 at 5:34 PM Miklos Szeredi <miklos@szeredi.hu> wrote:
+>
+> On Mon, Sep 3, 2018 at 8:12 AM, Amir Goldstein <amir73il@gmail.com> wrote:
+> > When encoding a file handle from lower nested overlayfs, prepending
+> > another ovl_fh header for nested overlay file handle adds no new
+> > information for decoding.  Instead, we just set a 'nested' flag in ovl_fh
+> > header for nested file handle, so we know to distinguish between real
+> > upper file handle that should be decoded from real upper layer and
+> > nested upper file handle that should be decoded from nested lower layer.
+> > For the maximum allowed overlay nesting depth of 1, one bit is enough.
+>
+> This is an optimization, right?
+>
 
-In case of copy is cancelled, also send OFFLOAD_CANCEL to the source
-server.
+Optimization was not my motivation.
+It started off as a patch to enable NFS export for nested overlay,
+which I needed for snapshots, but then I relaxed uuid requirement
+and nested overlay NFS export just worked (I think - need to re-check)
+Then it felt a bit silly to double encode, so posted this patch with its
+current title, because it did not change functionality anymore, but...
 
-Signed-off-by: Olga Kornievskaia <kolga@netapp.com>
----
- fs/nfs/nfs42proc.c | 6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+> What are the user-visible advantages that would justify the added complexity?
+>
 
-diff --git a/fs/nfs/nfs42proc.c b/fs/nfs/nfs42proc.c
-index bb9e799..98fe00b 100644
---- a/fs/nfs/nfs42proc.c
-+++ b/fs/nfs/nfs42proc.c
-@@ -205,12 +205,14 @@ static int handle_async_copy(struct nfs42_copy_res *res,
- 	memcpy(&res->write_res.verifier, &copy->verf, sizeof(copy->verf));
- 	status = -copy->error;
- 
-+out_free:
- 	kfree(copy);
- 	return status;
- out_cancel:
- 	nfs42_do_offload_cancel_async(dst, &copy->stateid);
--	kfree(copy);
--	return status;
-+	if (!nfs42_files_from_same_server(src, dst))
-+		nfs42_do_offload_cancel_async(src, src_stateid);
-+	goto out_free;
- }
- 
- static int process_copy_commit(struct file *dst, loff_t pos_dst,
--- 
-1.8.3.1
+...When you put it this way, it's really hard to justify the patch on its own.
+One thing that comes to mind w.r.t. advantages of compact
+representation of ovl_fh
+is in-inode xattrs space, but that is quite a far fetched justification.
+If we wanted more compact xattrs we should have started with shorter names...
+
+So feel free to drop this patch.
+If I ever come with a better reason, I will re-post it.
+
+Thanks,
+Amir.
