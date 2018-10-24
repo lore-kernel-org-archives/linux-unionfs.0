@@ -1,75 +1,131 @@
-From: =?UTF-8?B?UmFmYcWCIE1pxYJlY2tp?= <zajec5@gmail.com>
-Subject: Re: Regression in handling power cuts since 3a1e819b4e80 ("ovl: store
- file handle of lower inode on copy up")
-Date: Mon, 22 Oct 2018 23:27:00 +0200
-Message-ID: <CACna6rzOuC8vf12qRPOCJwdMPH7-R=eUGaofNYjD7f0_1a23oA@mail.gmail.com>
-References: <CACna6rx3YBNYKGu7T-J2J-S_3yr-oafJf3pL5TbGDFRzU6dihg@mail.gmail.com>
- <CACna6rx_jSTEEt6TAzQcBpAHZA_CJGhkjJhWWJKG3cQmr9c9ug@mail.gmail.com>
- <3000620.g91H2S8sUk@blindfold>
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: Re: KASAN: slab-out-of-bounds Read in string (2)
+Date: Wed, 24 Oct 2018 12:09:59 +0300
+Message-ID: <20181024090959.s5y3azpsmtswjyn5@mwanda>
+References: <0000000000003852440576ef80b2@google.com>
+ <CACT4Y+bR+9vy5ZKDN31gmvKk5hcoNojaBuD9Dz1wswfObyt0uw@mail.gmail.com>
+ <CAOQ4uxhxON4EeWqVLN68YF4v=hr5wfQk9wZEZLZLZu7B_XGuUw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
-In-Reply-To: <3000620.g91H2S8sUk@blindfold>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
-List-Post: <mailto:linux-mtd@lists.infradead.org>
-List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-mtd" <linux-mtd-bounces@lists.infradead.org>
-Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
-To: Richard Weinberger <richard@nod.at>
-Cc: Artem Bityutskiy <dedekind1@gmail.com>, Amir Goldstein <amir73il@gmail.com>, Adrian Hunter <adrian.hunter@intel.com>, linux-unionfs@vger.kernel.org, Miklos Szeredi <miklos@szeredi.hu>, linux-mtd@lists.infradead.org, Russell Senior <russell@personaltelco.net>, linux-fsdevel@vger.kernel.org, OpenWrt Development List <openwrt-devel@lists.openwrt.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CAOQ4uxhxON4EeWqVLN68YF4v=hr5wfQk9wZEZLZLZu7B_XGuUw@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: dvyukov@google.com, syzbot+376cea2b0ef340db3dd4@syzkaller.appspotmail.com, Miklos Szeredi <miklos@szeredi.hu>, overlayfs <linux-unionfs@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>, pmladek@suse.com, "Steven Rostedt (VMware)" <rostedt@goodmis.org>, sergey.senozhatsky@gmail.com, syzkaller-bugs@googlegroups.com, Jan Harkes <jaharkes@cs.cmu.edu>, Jeff Layton <jlayton@kernel.org>, Mark Fasheh <mark@fasheh.com>
 List-Id: linux-unionfs@vger.kernel.org
 
-W3Jlc2VuZGluZyB3aXRob3V0IEhUTUwgYXR0YWNobWVudF0KW3NlZSBodHRwOi8vZmlsZXMuemFq
-ZWMubmV0L29wZW53cnQvdWJpZnMtZGJnLmh0bWwgaW5zdGVhZF0KCk9uIE1vbiwgMjIgT2N0IDIw
-MTggYXQgMTA6MjYsIFJpY2hhcmQgV2VpbmJlcmdlciA8cmljaGFyZEBub2QuYXQ+IHdyb3RlOgo+
-IEFtIE1vbnRhZywgMjIuIE9rdG9iZXIgMjAxOCwgMDk6MTQ6MDggQ0VTVCBzY2hyaWViIFJhZmHF
-giBNacWCZWNraToKPiA+IE9uIEZyaSwgMTkgT2N0IDIwMTggYXQgMTQ6MzEsIFJhZmHFgiBNacWC
-ZWNraSA8emFqZWM1QGdtYWlsLmNvbT4gd3JvdGU6Cj4gPiA+IFNpbmNlIE9wZW5XcnQgc3dpdGNo
-IGZyb20ga2VybmVsIDQuOSB0byA0LjE0IHVzZXJzIHN0YXJ0ZWQgcmFuZG9tbHkKPiA+ID4gcmVw
-b3J0aW5nIGZpbGUgc3lzdGVtIGNvcnJ1cHRpb25zLiBPcGVuV3J0IHVzZXMgb3ZlcmxheShmcykg
-d2l0aAo+ID4gPiBzcXVhc2hmcyBhcyBsb3dlcmRpciBhbmQgdWJpZnMgYXMgdXBwZXJkaXIuIFJ1
-c3NlbGwgbWFuYWdlZCB0byBpc29sYXRlCj4gPiA+ICYgZGVzY3JpYmUgdGVzdCBjYXNlIGZvciBy
-ZXByb2R1Y2luZyBjb3JydXB0aW9uIHdoZW4gZG9pbmcgYSBwb3dlciBjdXQKPiA+ID4gYWZ0ZXIg
-Zmlyc3QgYm9vdC4KPiA+ID4KPiA+ID4gKC4uLikKPiA+ID4KPiA+ID4gQ2FuIEkgYXNrIHlvdSB0
-byBjaGVjayBpZiB0aGVyZSBpcyBzb21ldGhpbmcgcG9zc2libHkgd3Jvbmcgd2l0aCB0aGUKPiA+
-ID4gYWJvdmUgb3ZsIGNvbW1pdD8gT3IgZG9lcyBpdCBleHBvc2Ugc29tZSBwcm9ibGVtIHdpdGgg
-dGhlIHViaWZzPyBPcgo+ID4gPiBtYXliZSB0aGUgd2hvbGUgVUJJPwo+ID4gPgo+ID4gPiBGV0lX
-IHRlc3RpbmcgYWJvdmUgY29tbWl0IChhbmQgb25lIGJlZm9yZSBpdCkgYWx3YXlzIHJlc3VsdHMg
-aW4gc2luZ2xlCj4gPiA+IGVycm9yIGluIHRoZSBrZXJuZWwgbG9nOgo+ID4gPiBbICAgMTQuMjUw
-MTg0XSBVQklGUyBlcnJvciAodWJpMDoxIHBpZCA2MzcpOiB1Ymlmc19hZGRfb3JwaGFuOiBvcnBo
-YW5lZCB0d2ljZQo+ID4gPgo+ID4gPiBUaGF0IFVCSUZTIGVycm9yIGRvZXNuJ3Qgb2NjdXIgd2l0
-aCA0LjEyLjE0LiBVbmZvcnR1bmF0ZWx5IGl0J3MKPiA+ID4gaW1wb3NzaWJsZSB0byBjbGVhbmx5
-IHJldmVydCAzYTFlODE5YjRlODAgZnJvbSB0aGUgdG9wIG9mIDQuMTIuMTQuCj4gPgo+ID4gTGV0
-IG1lIHByb3ZpZGUgYSBzdW1tYXJ5IG9mIGFsbCByZWxldmFudCBjb21taXRzICYgdGVzdHM6Cj4g
-Pgo+ID4gQnkgIkNvcnJ1cHRpb24iIEkgbWVhbiBmaWxlIHN5c3RlbSBjb3JydXB0aW9uIGFmdGVy
-IHBvd2VyIGN1dAo+Cj4gV2VsbCwgaXMgdGhlIGZpbGVzeXN0ZW0gbm90IGNvbnNpc3RlbnQgYW55
-bW9yZT8KPiBGcm9tIHdoYXQgUnVzc2VsIGV4cGxhaW5lZCB0byBtZSwgSSB0aG91Z2h0IHRoZSBt
-YWluIHByb2JsZW0gaXMgdGhhdCBubyB3cml0ZSBiYWNrIGhhcHBlbnMuCj4gSU9XIHRoZSBpbm9k
-ZSBpcyBwcmVzZW50LCBoYXMgY29ycmVjdCBsZW5ndGgsIGJ1dCBubyBjb250ZW50IGlzIHRoZXJl
-IChhbGwgemVyb3MpLgoKSSBwcm9iYWJseSBtaXN1c2VkICJjb3JydXB0aW9uIiB3b3JkLiBXaGF0
-IEkgbWVhbnQgYnkgImNvcnJ1cHRpb24iIHdhcwpmaWxlIGhhdmluZyBhbGwgIjAwImVzIGluc3Rl
-YWQgb2YgZXhwZWN0ZWQgZGF0YS4KCgo+IEp1c3QgbGlrZSB0aGUgdHlwaWNhbCBjYXNlIHdoZXJl
-IHVzZXJzcGFjZSBkb2VzIG5vdCBmc3luYy4KPiBCdXQgaW4geW91ciBjYXNlIHNvb25lciBvciBs
-YXRlciB3cml0ZSBiYWNrIHNob3VsZCBoYXZlIGhhcHBlbmVkIGJlY2F1c2UgdGhlIHdyaXRlYmFj
-ayB0aW1lcgo+IGZpcmVzIGF0IHNvbWUgcG9pbnQuCgpBcyB5b3UgcHJvYmFibHkgbm90aWNlZCBJ
-IHdyb3RlIHRtcHRlc3QuYyAtIGNvdWxkIHlvdSB0ZXN0IGl0LCBwbGVhc2U/ClNlZSBpZiB5b3Ug
-Y2FuIHJlcHJvZHVjZSB0aGUgcHJvYmxlbT8gUGxlYXNlIGNhbGwgaXQgd2l0aCAzIGFyZ3VtZW50
-czoKMSkgUGF0aCBvbiB1YmlmcyBtb3VudCBwb2ludAoyKSBTb21lIHhhdHRyIG5hbWUKMykgU29t
-ZSB4YXR0ciB2YWx1ZQoKUGxlYXNlIG5vdGUgSSB3YWl0IDUgc2Vjb25kcyAodGhpcyBtYXRjaGVz
-CnZtLmRpcnR5X3dyaXRlYmFja19jZW50aXNlY3MgYmVpbmcgNTAwKSBiZWZvcmUgZG9pbmcgYSBw
-b3dlciBjdXQuIFRoYXQKbGV0cyB1YmlmcyB3cml0ZSB0byBmbGFzaC4gRm9yIHNvbWUgcmVhc29u
-IGZpbGVzIHRoYXQgZ290IGZzZXR4YXR0cgpjYWxsZWQgZm9yIHRoZW0gc3RpbGwgYXJlIGFsbCAi
-MDAiZXMgYWZ0ZXIgYSBwb3dlciBjdXQuCgpJIGRpZCBzb21lIGV4dHJhIHRlc3RpbmcgYWZ0ZXIg
-ZW5hYmxpbmcgdWJpZnMgZGVidWdnaW5nIGZvciBpby5jLApmaWxlLmMgYW5kIGpvdXJuYWwuYy4g
-RGVidWdnaW5nIG91dHB1dCBsb29rcyBsaWtlIGV4cGVjdGVkLiBJIGNhbgpjbGVhcmx5IHNlZSB3
-YnVmX3RpbWVyX2NhbGxiYWNrX25vbG9jaygpIGJlaW5nIGNhbGxlZC4KSSBhdHRhY2hlZCBteSBk
-ZWJ1Z2dpbmcgc3VtbWFyeSBhcyB1Ymlmcy1kYmcuaHRtbCBwbGVhc2UgdGFrZSBhIGxvb2sKYXQg
-aXQgaW4gY2FzZSBJIG1pc3NlZCBzb21ldGhpbmcuCgotLSAKUmFmYcWCCgpfX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KTGludXggTVREIGRpc2N1
-c3Npb24gbWFpbGluZyBsaXN0Cmh0dHA6Ly9saXN0cy5pbmZyYWRlYWQub3JnL21haWxtYW4vbGlz
-dGluZm8vbGludXgtbXRkLwo=
+Hi Amir,
+
+Thanks so much for this idea.
+
+On Fri, Sep 28, 2018 at 08:39:15PM +0300, Amir Goldstein wrote:
+> On Fri, Sep 28, 2018 at 5:55 PM Dmitry Vyukov <dvyukov@google.com> wrote:
+> >
+> > On Fri, Sep 28, 2018 at 4:45 PM, syzbot
+> > <syzbot+376cea2b0ef340db3dd4@syzkaller.appspotmail.com> wrote:
+> > > Hello,
+> > >
+> > > syzbot found the following crash on:
+> > >
+> > > HEAD commit:    c127e59bee3e Merge tag 'for_v4.19-rc6' of git://git.kernel..
+> > > git tree:       upstream
+> > > console output: https://syzkaller.appspot.com/x/log.txt?x=13b2f32a400000
+> > > kernel config:  https://syzkaller.appspot.com/x/.config?x=dfb440e26f0a6f6f
+> > > dashboard link: https://syzkaller.appspot.com/bug?extid=376cea2b0ef340db3dd4
+> > > compiler:       gcc (GCC) 8.0.1 20180413 (experimental)
+> > >
+> > > Unfortunately, I don't have any reproducer for this crash yet.
+> > >
+> > > IMPORTANT: if you fix the bug, please add the following tag to the commit:
+> > > Reported-by: syzbot+376cea2b0ef340db3dd4@syzkaller.appspotmail.com
+> >
+> > I guess this is overlayfs rather than printk. +overlayfs maintainers
+> > In future syzbot will avoid attributing crashes to printk, because I
+> > think it's not the first time crashes are mis-attributed to printk:
+> > https://github.com/google/syzkaller/commit/41e4b32952f4590341ae872db0abf819b4004713
+> >
+> >
+> > > RDX: 0000000000000000 RSI: 0000000000000000 RDI: 0000000020000140
+> > > RBP: 000000000072bf00 R08: 0000000000000000 R09: 0000000000000000
+> > > R10: 0000000000000000 R11: 0000000000000246 R12: 00007f0e714a76d4
+> > > R13: 00000000004c32cb R14: 00000000004d4ef0 R15: 0000000000000004
+> > > ==================================================================
+> > > BUG: KASAN: slab-out-of-bounds in string+0x298/0x2d0 lib/vsprintf.c:604
+> > > Read of size 1 at addr ffff8801c36c66ba by task syz-executor2/27811
+> > >
+> > > CPU: 0 PID: 27811 Comm: syz-executor2 Not tainted 4.19.0-rc5+ #36
+> > > Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS
+> > > Google 01/01/2011
+> > > Call Trace:
+> > >  __dump_stack lib/dump_stack.c:77 [inline]
+> > >  dump_stack+0x1c4/0x2b4 lib/dump_stack.c:113
+> > >  print_address_description.cold.8+0x9/0x1ff mm/kasan/report.c:256
+> > >  kasan_report_error mm/kasan/report.c:354 [inline]
+> > >  kasan_report.cold.9+0x242/0x309 mm/kasan/report.c:412
+> > >  __asan_report_load1_noabort+0x14/0x20 mm/kasan/report.c:430
+> > >  string+0x298/0x2d0 lib/vsprintf.c:604
+> > >  vsnprintf+0x48e/0x1b60 lib/vsprintf.c:2293
+> > >  vscnprintf+0x2d/0x80 lib/vsprintf.c:2396
+> > >  vprintk_store+0x43/0x510 kernel/printk/printk.c:1847
+> > >  vprintk_emit+0x1c1/0x930 kernel/printk/printk.c:1905
+> > >  vprintk_default+0x28/0x30 kernel/printk/printk.c:1963
+> > >  vprintk_func+0x7e/0x181 kernel/printk/printk_safe.c:398
+> > >  printk+0xa7/0xcf kernel/printk/printk.c:1996
+> > >  ovl_lookup_index.cold.15+0xe8/0x1f8 fs/overlayfs/namei.c:689
+> 
+> Doh!
+> I used %*s instead of %.s
+> Look how common this mistake is! and I only checked under fs/
+> 
+> [CC: Dan Carpenter and other fs maintainers]
+> Idea for static code analyzers:
+> A variable named *len* is probably not what someone wants to describe
+> the width of %*s field and in most cases I found were %*s is used correctly
+> the string value is a compiler constant (often "").
+> 
+> Thanks,
+> Amir.
+> 
+> ---
+> diff --git a/fs/coda/dir.c b/fs/coda/dir.c
+> index 00876ddadb43..23ee5de8b4be 100644
+> --- a/fs/coda/dir.c
+> +++ b/fs/coda/dir.c
+> @@ -47,7 +47,7 @@ static struct dentry *coda_lookup(struct inode *dir,
+> struct dentry *entry, unsig
+>         int type = 0;
+> 
+>         if (length > CODA_MAXNAMLEN) {
+> -               pr_err("name too long: lookup, %s (%*s)\n",
+> +               pr_err("name too long: lookup, %s (%.*s)\n",
+
+This isn't the right fix because "length" is invalid.
+
+>                        coda_i2s(dir), (int)length, name);
+>                 return ERR_PTR(-ENAMETOOLONG);
+>         }
+> diff --git a/fs/lockd/host.c b/fs/lockd/host.c
+> index d35cd6be0675..93fb7cf0b92b 100644
+> --- a/fs/lockd/host.c
+> +++ b/fs/lockd/host.c
+> @@ -341,7 +341,7 @@ struct nlm_host *nlmsvc_lookup_host(const struct
+> svc_rqst *rqstp,
+>         };
+>         struct lockd_net *ln = net_generic(net, lockd_net_id);
+> 
+> -       dprintk("lockd: %s(host='%*s', vers=%u, proto=%s)\n", __func__,
+> +       dprintk("lockd: %s(host='%.*s', vers=%u, proto=%s)\n", __func__,
+>                         (int)hostname_len, hostname, rqstp->rq_vers,
+>                         (rqstp->rq_prot == IPPROTO_UDP ? "udp" : "tcp"));
+> 
+
+Why wasn't this one applied?  It looks correct to me.  The rest seem to
+have been fixed already.
+
+I did find one other bug in wireless and I CC'd you on that.  I'm going
+to do a little bit more testing on the check and then push it soon.
+Thanks again!
+
+regards,
+dan carpenter
