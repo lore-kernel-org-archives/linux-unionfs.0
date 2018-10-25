@@ -1,11 +1,11 @@
-Return-Path: <olga.kornievskaia@gmail.com>
-Return-Path: <olga.kornievskaia@gmail.com>
+Return-Path: <linux-fsdevel-owner@vger.kernel.org>
 From: Olga Kornievskaia <olga.kornievskaia@gmail.com>
-Subject: [PATCH v2 12/13] NFS for "inter" copy treat ESTALE as ENOTSUPP
-Date: Wed, 24 Oct 2018 15:58:36 -0400
-Message-Id: <20181024195837.35532-14-olga.kornievskaia@gmail.com>
-In-Reply-To: <20181024195837.35532-1-olga.kornievskaia@gmail.com>
-References: <20181024195837.35532-1-olga.kornievskaia@gmail.com>
+Subject: [PATCH v3 09/11] NFS for "inter" copy treat ESTALE as ENOTSUPP
+Date: Thu, 25 Oct 2018 17:51:45 -0400
+Message-Id: <20181025215147.36248-11-olga.kornievskaia@gmail.com>
+In-Reply-To: <20181025215147.36248-1-olga.kornievskaia@gmail.com>
+References: <20181025215147.36248-1-olga.kornievskaia@gmail.com>
+Sender: linux-fsdevel-owner@vger.kernel.org
 To: trond.myklebust@hammerspace.com, anna.schumaker@netapp.com, viro@zeniv.linux.org.uk, smfrench@gmail.com, miklos@szeredi.hu
 Cc: linux-nfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-cifs@vger.kernel.org, linux-unionfs@vger.kernel.org, linux-man@vger.kernel.org
 List-ID: <linux-unionfs@vger.kernel.org>
@@ -16,7 +16,7 @@ If the client sends an "inter" copy to the destination server but
 it only supports "intra" copy, it can return ESTALE (since it
 doesn't know anything about the file handle from the other server
 and does not recognize the special case of "inter" copy). Translate
-this error as ENOTSUPP and also send OFFLOAD_CANCEL to teh source
+this error as ENOTSUPP and also send OFFLOAD_CANCEL to the source
 server so that it can clean up state.
 
 Signed-off-by: Olga Kornievskaia <kolga@netapp.com>
