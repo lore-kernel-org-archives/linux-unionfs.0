@@ -1,28 +1,43 @@
+Return-Path: <linux-unionfs-owner@vger.kernel.org>
+Received: from szxga04-in.huawei.com ([45.249.212.190]:14116 "EHLO huawei.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1726317AbeJYKvJ (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Thu, 25 Oct 2018 06:51:09 -0400
+From: Yufen Yu <yuyufen@huawei.com>
+Subject: [PATCH] tmpfs: let lseek return ENXIO with a negative offset
+Date: Thu, 25 Oct 2018 10:22:56 +0800
+Message-ID: <1540434176-14349-1-git-send-email-yuyufen@huawei.com>
 MIME-Version: 1.0
-In-Reply-To: <20180903061211.20830-4-amir73il@gmail.com>
-References: <20180903061211.20830-1-amir73il@gmail.com>
-	<20180903061211.20830-4-amir73il@gmail.com>
-Date: Wed, 24 Oct 2018 16:34:56 +0200
-Message-ID: <CAJfpegu-MVikDXiD3o1Lx8ZyAitFpMnB5kVp9neJneM84L8=aA@mail.gmail.com>
-Subject: Re: [PATCH 3/3] ovl: compact nested ovl_fh
-From: Miklos Szeredi <miklos@szeredi.hu>
-Content-Type: text/plain; charset="UTF-8"
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: overlayfs <linux-unionfs@vger.kernel.org>
+Content-Type: text/plain
+Sender: linux-unionfs-owner@vger.kernel.org
+To: viro@zeniv.linux.org.uk, hughd@google.com
+Cc: linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org
 List-ID: <linux-unionfs@vger.kernel.org>
 
-On Mon, Sep 3, 2018 at 8:12 AM, Amir Goldstein <amir73il@gmail.com> wrote:
-> When encoding a file handle from lower nested overlayfs, prepending
-> another ovl_fh header for nested overlay file handle adds no new
-> information for decoding.  Instead, we just set a 'nested' flag in ovl_fh
-> header for nested file handle, so we know to distinguish between real
-> upper file handle that should be decoded from real upper layer and
-> nested upper file handle that should be decoded from nested lower layer.
-> For the maximum allowed overlay nesting depth of 1, one bit is enough.
+For now, the others filesystems, such as ext4, f2fs, ubifs,
+all of them return ENXIO when lseek with a negative offset.
+It is better to let tmpfs return ENXIO too. After that, tmpfs
+can also pass generic/448.
 
-This is an optimization, right?
+Signed-off-by: Yufen Yu <yuyufen@huawei.com>
+---
+ mm/shmem.c | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-What are the user-visible advantages that would justify the added complexity?
-
-Thanks,
-Miklos
+diff --git a/mm/shmem.c b/mm/shmem.c
+index 0376c124..f37bf06 100644
+--- a/mm/shmem.c
++++ b/mm/shmem.c
+@@ -2608,9 +2608,7 @@ static loff_t shmem_file_llseek(struct file *file, loff_t offset, int whence)
+ 	inode_lock(inode);
+ 	/* We're holding i_mutex so we can access i_size directly */
+ 
+-	if (offset < 0)
+-		offset = -EINVAL;
+-	else if (offset >= inode->i_size)
++	if (offset < 0 || offset >= inode->i_size)
+ 		offset = -ENXIO;
+ 	else {
+ 		start = offset >> PAGE_SHIFT;
+-- 
+2.7.4
