@@ -4,8 +4,8 @@ References: <20181024195837.35532-1-olga.kornievskaia@gmail.com>
  <20181024195837.35532-5-olga.kornievskaia@gmail.com> <CAOQ4uxiB5PLd9QjAp7pQerXOJdtkLbGAENhsGsAQehYWdK91PQ@mail.gmail.com>
 In-Reply-To: <CAOQ4uxiB5PLd9QjAp7pQerXOJdtkLbGAENhsGsAQehYWdK91PQ@mail.gmail.com>
 From: Olga Kornievskaia <olga.kornievskaia@gmail.com>
-Date: Fri, 26 Oct 2018 08:12:15 -0400
-Message-ID: <CAN-5tyFHiYufamwJEPf9TFG6eQMVCoTkMz8ini9RyKuAW+RuTQ@mail.gmail.com>
+Date: Thu, 25 Oct 2018 11:31:15 -0400
+Message-ID: <CAN-5tyHSz2UV=UNpQPLTeSVvxkYp85bT6ZPJGP2kS7D6aQWn4Q@mail.gmail.com>
 Subject: Re: [PATCH v2 03/13] OverlayFS: add cross-device check for copy_file_range
 Content-Type: text/plain; charset="UTF-8"
 To: Amir Goldstein <amir73il@gmail.com>
@@ -52,8 +52,10 @@ On Thu, Oct 25, 2018 at 1:54 AM Amir Goldstein <amir73il@gmail.com> wrote:
 > You may add:
 > Reviewed-by: Amir Goldstein <amir73il@gmail.com>
 
-Given that this patch was merged I didn't add "reviewed-by" line.
-Please let me know I need to add this line to the main VFS patch.
+Thank you. I will reorder the patches and yes I thought the individual
+FS maintainers/folks would relax the check according to their
+functionality. This patch just provides same semantics with respect to
+the cross device checking but at the driver level.
 
 >
 > Thanks,
