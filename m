@@ -1,74 +1,68 @@
-Return-Path: <olga.kornievskaia@gmail.com>
-MIME-Version: 1.0
+Return-Path: <willy@infradead.org>
+Date: Thu, 25 Oct 2018 10:24:26 -0700
+From: Matthew Wilcox <willy@infradead.org>
+Subject: Re: [PATCH 1/1] man-page: copy_file_range(2) allow for cross-device
+ copies
+Message-ID: <20181025172426.GI25444@bombadil.infradead.org>
 References: <20181024195837.35532-1-olga.kornievskaia@gmail.com>
- <20181024195837.35532-3-olga.kornievskaia@gmail.com> <CAOQ4uxhM=Uw3NMsJOhzWE7PPHAUktpy3z_gtaRCkpV5YnDf3Tw@mail.gmail.com>
- <20181025172426.GI25444@bombadil.infradead.org>
-In-Reply-To: <20181025172426.GI25444@bombadil.infradead.org>
-From: Olga Kornievskaia <olga.kornievskaia@gmail.com>
-Date: Thu, 25 Oct 2018 13:47:21 -0400
-Message-ID: <CAN-5tyHOk=h+5GdmrUrnTBhvOEeYkz34YXsaudHBiEhgt1o7gQ@mail.gmail.com>
-Subject: Re: [PATCH 1/1] man-page: copy_file_range(2) allow for cross-device copies
-Content-Type: text/plain; charset="UTF-8"
-To: willy@infradead.org
-Cc: Amir Goldstein <amir73il@gmail.com>, trond.myklebust@hammerspace.com, Anna Schumaker <anna.schumaker@netapp.com>, viro@zeniv.linux.org.uk, Steve French <smfrench@gmail.com>, Miklos Szeredi <miklos@szeredi.hu>, linux-nfs <linux-nfs@vger.kernel.org>, linux-fsdevel@vger.kernel.org, linux-cifs@vger.kernel.org, linux-unionfs@vger.kernel.org, linux-man@vger.kernel.org
+ <20181024195837.35532-3-olga.kornievskaia@gmail.com>
+ <CAOQ4uxhM=Uw3NMsJOhzWE7PPHAUktpy3z_gtaRCkpV5YnDf3Tw@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAOQ4uxhM=Uw3NMsJOhzWE7PPHAUktpy3z_gtaRCkpV5YnDf3Tw@mail.gmail.com>
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: Olga Kornievskaia <olga.kornievskaia@gmail.com>, trond.myklebust@hammerspace.com, Anna Schumaker <anna.schumaker@netapp.com>, Al Viro <viro@zeniv.linux.org.uk>, Steve French <smfrench@gmail.com>, Miklos Szeredi <miklos@szeredi.hu>, Linux NFS Mailing List <linux-nfs@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, linux-cifs@vger.kernel.org, overlayfs <linux-unionfs@vger.kernel.org>, linux-man@vger.kernel.org
 List-ID: <linux-unionfs@vger.kernel.org>
 
-On Thu, Oct 25, 2018 at 1:24 PM Matthew Wilcox <willy@infradead.org> wrote:
->
-> On Thu, Oct 25, 2018 at 07:28:10AM +0300, Amir Goldstein wrote:
-> > On Wed, Oct 24, 2018 at 10:59 PM Olga Kornievskaia
-> > <olga.kornievskaia@gmail.com> wrote:
-> > >
-> > > From: Olga Kornievskaia <kolga@netapp.com>
-> > >
-> > > A proposed VFS change removes the check for the files to reside
-> > > under the same file system. Instead, a file system driver implementation
-> > > is allowed to perform a cross-device copy_file_range() and if
-> > > the file system fails to support it instead fallback to doing
-> > > a do_splice copy. Therefore, EXDEV is no longer a possible error.
-> > >
-> > > Signed-off-by: Olga Kornievskaia <kolga@netapp.com>
-> > > ---
-> > >  man2/copy_file_range.2 | 7 ++-----
-> > >  1 file changed, 2 insertions(+), 5 deletions(-)
-> > >
-> > > diff --git a/man2/copy_file_range.2 b/man2/copy_file_range.2
-> > > index 20374ab..723b2d0 100644
-> > > --- a/man2/copy_file_range.2
-> > > +++ b/man2/copy_file_range.2
-> > > @@ -39,7 +39,8 @@ The
-> > >  .BR copy_file_range ()
-> > >  system call performs an in-kernel copy between two file descriptors
-> > >  without the additional cost of transferring data from the kernel to user space
-> > > -and then back into the kernel.
-> > > +and then back into the kernel. Since kernel version 4.21(???) passed in
-> > > +file descriptors are not required to be under the same mounted file system.
-> > >  It copies up to
-> > >  .I len
-> > >  bytes of data from file descriptor
-> > > @@ -128,10 +129,6 @@ Out of memory.
-> > >  .B ENOSPC
-> > >  There is not enough space on the target filesystem to complete the copy.
-> > >  .TP
-> > > -.B EXDEV
-> > > -The files referred to by
-> > > -.IR file_in " and " file_out
-> > > -are not on the same mounted filesystem.
+On Thu, Oct 25, 2018 at 07:28:10AM +0300, Amir Goldstein wrote:
+> On Wed, Oct 24, 2018 at 10:59 PM Olga Kornievskaia
+> <olga.kornievskaia@gmail.com> wrote:
 > >
-> > Man page serves users of old kernels as well. You should not delete this
-> > expected error, but you can add "... and kernel does not support cross
-> > filesystem copy".
->
-> I'd rather see this worded as:
->
->  .B EXDEV
->  The files referred to by
->  .IR file_in " and " file_out
-> -are not on the same mounted filesystem.
-> +cannot be copied due to being on incompatible filesystems
+> > From: Olga Kornievskaia <kolga@netapp.com>
+> >
+> > A proposed VFS change removes the check for the files to reside
+> > under the same file system. Instead, a file system driver implementation
+> > is allowed to perform a cross-device copy_file_range() and if
+> > the file system fails to support it instead fallback to doing
+> > a do_splice copy. Therefore, EXDEV is no longer a possible error.
+> >
+> > Signed-off-by: Olga Kornievskaia <kolga@netapp.com>
+> > ---
+> >  man2/copy_file_range.2 | 7 ++-----
+> >  1 file changed, 2 insertions(+), 5 deletions(-)
+> >
+> > diff --git a/man2/copy_file_range.2 b/man2/copy_file_range.2
+> > index 20374ab..723b2d0 100644
+> > --- a/man2/copy_file_range.2
+> > +++ b/man2/copy_file_range.2
+> > @@ -39,7 +39,8 @@ The
+> >  .BR copy_file_range ()
+> >  system call performs an in-kernel copy between two file descriptors
+> >  without the additional cost of transferring data from the kernel to user space
+> > -and then back into the kernel.
+> > +and then back into the kernel. Since kernel version 4.21(???) passed in
+> > +file descriptors are not required to be under the same mounted file system.
+> >  It copies up to
+> >  .I len
+> >  bytes of data from file descriptor
+> > @@ -128,10 +129,6 @@ Out of memory.
+> >  .B ENOSPC
+> >  There is not enough space on the target filesystem to complete the copy.
+> >  .TP
+> > -.B EXDEV
+> > -The files referred to by
+> > -.IR file_in " and " file_out
+> > -are not on the same mounted filesystem.
+> 
+> Man page serves users of old kernels as well. You should not delete this
+> expected error, but you can add "... and kernel does not support cross
+> filesystem copy".
 
-Why should this be changed to "incompatible filesystems". Existing
-code doesn't support not only incompatibly filesystem but also cross
-device of compatible file systems. And this error is only left for the
-old kernels. In the new kernel, the error EXDEV will never be
-returned.
+I'd rather see this worded as:
+
+ .B EXDEV
+ The files referred to by
+ .IR file_in " and " file_out
+-are not on the same mounted filesystem.
++cannot be copied due to being on incompatible filesystems
