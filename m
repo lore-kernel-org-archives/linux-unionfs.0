@@ -1,125 +1,170 @@
 Return-Path: <olga.kornievskaia@gmail.com>
 Return-Path: <olga.kornievskaia@gmail.com>
 From: Olga Kornievskaia <olga.kornievskaia@gmail.com>
-Subject: [PATCH v4 01/11] VFS: move cross device copy_file_range() check into filesystems
-Date: Fri, 26 Oct 2018 16:10:46 -0400
-Message-Id: <20181026201057.36899-2-olga.kornievskaia@gmail.com>
-In-Reply-To: <20181026201057.36899-1-olga.kornievskaia@gmail.com>
-References: <20181026201057.36899-1-olga.kornievskaia@gmail.com>
+Subject: [PATCH v3 05/11] NFS add ca_source_server<> to COPY
+Date: Thu, 25 Oct 2018 17:51:41 -0400
+Message-Id: <20181025215147.36248-7-olga.kornievskaia@gmail.com>
+In-Reply-To: <20181025215147.36248-1-olga.kornievskaia@gmail.com>
+References: <20181025215147.36248-1-olga.kornievskaia@gmail.com>
 To: trond.myklebust@hammerspace.com, anna.schumaker@netapp.com, viro@zeniv.linux.org.uk, smfrench@gmail.com, miklos@szeredi.hu
 Cc: linux-nfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-cifs@vger.kernel.org, linux-unionfs@vger.kernel.org, linux-man@vger.kernel.org
 List-ID: <linux-unionfs@vger.kernel.org>
 
 From: Olga Kornievskaia <kolga@netapp.com>
 
-This patch makes it the responsibility of individual filesystems to
-allow or deny cross device copies.  Both NFS and CIFS have operations
-for cross-server copies, and later patches will implement this feature.
+Support only one source server address: the same address that
+the client and source server use.
 
-Note that as of this patch, the copy_file_range() function might be passed
-superblocks from different filesystem types. -EXDEV should be returned
-if cross device copies aren't supported, causing the VFS to fall back
-on using do_splice_direct().
-
+Signed-off-by: Andy Adamson <andros@netapp.com>
 Signed-off-by: Olga Kornievskaia <kolga@netapp.com>
 ---
- Documentation/filesystems/porting | 7 +++++++
- fs/cifs/cifsfs.c                  | 3 +++
- fs/nfs/nfs4file.c                 | 3 +++
- fs/overlayfs/file.c               | 3 +++
- fs/read_write.c                   | 9 +++------
- 5 files changed, 19 insertions(+), 6 deletions(-)
+ fs/nfs/nfs42.h          |  3 ++-
+ fs/nfs/nfs42proc.c      | 26 +++++++++++++++++---------
+ fs/nfs/nfs42xdr.c       | 12 ++++++++++--
+ fs/nfs/nfs4file.c       |  7 ++++++-
+ include/linux/nfs_xdr.h |  1 +
+ 5 files changed, 36 insertions(+), 13 deletions(-)
 
-diff --git a/Documentation/filesystems/porting b/Documentation/filesystems/porting
-index 7b7b845..897e1e7 100644
---- a/Documentation/filesystems/porting
-+++ b/Documentation/filesystems/porting
-@@ -622,3 +622,10 @@ in your dentry operations instead.
- 	alloc_file_clone(file, flags, ops) does not affect any caller's references.
- 	On success you get a new struct file sharing the mount/dentry with the
- 	original, on failure - ERR_PTR().
-+--
-+[mandatory]
-+	->copy_file_range() may now be passed files which belong to two
-+	different superblocks of the same file system type or which belong
-+	to two different filesystems types all together. As before, the
-+	destination's copy_file_range() is the function which is called.
-+	If it cannot copy ranges from the source, it should return -EXDEV.
-diff --git a/fs/cifs/cifsfs.c b/fs/cifs/cifsfs.c
-index 7065426..f2d7f4f 100644
---- a/fs/cifs/cifsfs.c
-+++ b/fs/cifs/cifsfs.c
-@@ -1114,6 +1114,9 @@ static ssize_t cifs_copy_file_range(struct file *src_file, loff_t off,
- 	unsigned int xid = get_xid();
- 	ssize_t rc;
+diff --git a/fs/nfs/nfs42.h b/fs/nfs/nfs42.h
+index bbe49a3..28dcee5 100644
+--- a/fs/nfs/nfs42.h
++++ b/fs/nfs/nfs42.h
+@@ -15,7 +15,8 @@
+ /* nfs4.2proc.c */
+ #ifdef CONFIG_NFS_V4_2
+ int nfs42_proc_allocate(struct file *, loff_t, loff_t);
+-ssize_t nfs42_proc_copy(struct file *, loff_t, struct file *, loff_t, size_t);
++ssize_t nfs42_proc_copy(struct file *, loff_t, struct file *, loff_t, size_t,
++			struct nl4_server *, nfs4_stateid *);
+ int nfs42_proc_deallocate(struct file *, loff_t, loff_t);
+ loff_t nfs42_proc_llseek(struct file *, loff_t, int);
+ int nfs42_proc_layoutstats_generic(struct nfs_server *,
+diff --git a/fs/nfs/nfs42proc.c b/fs/nfs/nfs42proc.c
+index b1c57a4..bb9e799 100644
+--- a/fs/nfs/nfs42proc.c
++++ b/fs/nfs/nfs42proc.c
+@@ -242,7 +242,9 @@ static ssize_t _nfs42_proc_copy(struct file *src,
+ 				struct file *dst,
+ 				struct nfs_lock_context *dst_lock,
+ 				struct nfs42_copy_args *args,
+-				struct nfs42_copy_res *res)
++				struct nfs42_copy_res *res,
++				struct nl4_server *nss,
++				nfs4_stateid *cnr_stateid)
+ {
+ 	struct rpc_message msg = {
+ 		.rpc_proc = &nfs4_procedures[NFSPROC4_CLNT_COPY],
+@@ -256,11 +258,15 @@ static ssize_t _nfs42_proc_copy(struct file *src,
+ 	size_t count = args->count;
+ 	ssize_t status;
  
-+	if (src_file->f_inode->i_sb != dst_file->f_inode->i_sb)
-+		return -EXDEV;
-+
- 	rc = cifs_file_copychunk_range(xid, src_file, off, dst_file, destoff,
- 					len, flags);
- 	free_xid(xid);
+-	status = nfs4_set_rw_stateid(&args->src_stateid, src_lock->open_context,
+-				     src_lock, FMODE_READ);
+-	if (status)
+-		return status;
+-
++	if (nss) {
++		args->cp_src = nss;
++		nfs4_stateid_copy(&args->src_stateid, cnr_stateid);
++	} else {
++		status = nfs4_set_rw_stateid(&args->src_stateid,
++				src_lock->open_context, src_lock, FMODE_READ);
++		if (status)
++			return status;
++	}
+ 	status = nfs_filemap_write_and_wait_range(file_inode(src)->i_mapping,
+ 			pos_src, pos_src + (loff_t)count - 1);
+ 	if (status)
+@@ -324,8 +330,9 @@ static ssize_t _nfs42_proc_copy(struct file *src,
+ }
+ 
+ ssize_t nfs42_proc_copy(struct file *src, loff_t pos_src,
+-			struct file *dst, loff_t pos_dst,
+-			size_t count)
++			struct file *dst, loff_t pos_dst, size_t count,
++			struct nl4_server *nss,
++			nfs4_stateid *cnr_stateid)
+ {
+ 	struct nfs_server *server = NFS_SERVER(file_inode(dst));
+ 	struct nfs_lock_context *src_lock;
+@@ -370,7 +377,8 @@ ssize_t nfs42_proc_copy(struct file *src, loff_t pos_src,
+ 		inode_lock(file_inode(dst));
+ 		err = _nfs42_proc_copy(src, src_lock,
+ 				dst, dst_lock,
+-				&args, &res);
++				&args, &res,
++				nss, cnr_stateid);
+ 		inode_unlock(file_inode(dst));
+ 
+ 		if (err >= 0)
+diff --git a/fs/nfs/nfs42xdr.c b/fs/nfs/nfs42xdr.c
+index e6e7cbf..c96c3f8 100644
+--- a/fs/nfs/nfs42xdr.c
++++ b/fs/nfs/nfs42xdr.c
+@@ -21,7 +21,10 @@
+ #define encode_copy_maxsz		(op_encode_hdr_maxsz +          \
+ 					 XDR_QUADLEN(NFS4_STATEID_SIZE) + \
+ 					 XDR_QUADLEN(NFS4_STATEID_SIZE) + \
+-					 2 + 2 + 2 + 1 + 1 + 1)
++					 2 + 2 + 2 + 1 + 1 + 1 +\
++					 1 + /* One cnr_source_server */\
++					 1 + /* nl4_type */ \
++					 1 + XDR_QUADLEN(NFS4_OPAQUE_LIMIT))
+ #define decode_copy_maxsz		(op_decode_hdr_maxsz + \
+ 					 NFS42_WRITE_RES_SIZE + \
+ 					 1 /* cr_consecutive */ + \
+@@ -186,7 +189,12 @@ static void encode_copy(struct xdr_stream *xdr,
+ 
+ 	encode_uint32(xdr, 1); /* consecutive = true */
+ 	encode_uint32(xdr, args->sync);
+-	encode_uint32(xdr, 0); /* src server list */
++	if (args->cp_src == NULL) { /* intra-ssc */
++		encode_uint32(xdr, 0); /* no src server list */
++		return;
++	}
++	encode_uint32(xdr, 1); /* supporting 1 server */
++	encode_nl4_server(xdr, args->cp_src);
+ }
+ 
+ static void encode_offload_cancel(struct xdr_stream *xdr,
 diff --git a/fs/nfs/nfs4file.c b/fs/nfs/nfs4file.c
-index 4288a6e..09df688 100644
+index 6d53750..032996b 100644
 --- a/fs/nfs/nfs4file.c
 +++ b/fs/nfs/nfs4file.c
-@@ -135,6 +135,9 @@ static ssize_t nfs4_copy_file_range(struct file *file_in, loff_t pos_in,
+@@ -134,6 +134,8 @@ static ssize_t nfs4_copy_file_range(struct file *file_in, loff_t pos_in,
+ 				    size_t count, unsigned int flags)
  {
+ 	struct nfs42_copy_notify_res *cn_resp = NULL;
++	struct nl4_server *nss = NULL;
++	nfs4_stateid *cnrs = NULL;
  	ssize_t ret;
  
-+	if (file_in->f_inode->i_sb != file_out->f_inode->i_sb)
-+		return -EXDEV;
-+
- 	if (file_inode(file_in) == file_inode(file_out))
- 		return -EINVAL;
- retry:
-diff --git a/fs/overlayfs/file.c b/fs/overlayfs/file.c
-index aeaefd2..5282853 100644
---- a/fs/overlayfs/file.c
-+++ b/fs/overlayfs/file.c
-@@ -483,6 +483,9 @@ static ssize_t ovl_copy_file_range(struct file *file_in, loff_t pos_in,
- 				   struct file *file_out, loff_t pos_out,
- 				   size_t len, unsigned int flags)
- {
-+	if (file_in->f_inode->i_sb != file_out->f_inode->i_sb)
-+		return -EXDEV;
-+
- 	return ovl_copyfile(file_in, pos_in, file_out, pos_out, len, flags,
- 			    OVL_COPY);
- }
-diff --git a/fs/read_write.c b/fs/read_write.c
-index 39b4a21..fb4ffca 100644
---- a/fs/read_write.c
-+++ b/fs/read_write.c
-@@ -1575,10 +1575,6 @@ ssize_t vfs_copy_file_range(struct file *file_in, loff_t pos_in,
- 	    (file_out->f_flags & O_APPEND))
- 		return -EBADF;
- 
--	/* this could be relaxed once a method supports cross-fs copies */
--	if (inode_in->i_sb != inode_out->i_sb)
--		return -EXDEV;
--
- 	if (len == 0)
- 		return 0;
- 
-@@ -1588,7 +1584,8 @@ ssize_t vfs_copy_file_range(struct file *file_in, loff_t pos_in,
- 	 * Try cloning first, this is supported by more file systems, and
- 	 * more efficient if both clone and copy are supported (e.g. NFS).
- 	 */
--	if (file_in->f_op->clone_file_range) {
-+	if (inode_in->i_sb == inode_out->i_sb &&
-+			file_in->f_op->clone_file_range) {
- 		ret = file_in->f_op->clone_file_range(file_in, pos_in,
- 				file_out, pos_out, len);
- 		if (ret == 0) {
-@@ -1600,7 +1597,7 @@ ssize_t vfs_copy_file_range(struct file *file_in, loff_t pos_in,
- 	if (file_out->f_op->copy_file_range) {
- 		ret = file_out->f_op->copy_file_range(file_in, pos_in, file_out,
- 						      pos_out, len, flags);
--		if (ret != -EOPNOTSUPP)
-+		if (ret != -EOPNOTSUPP && ret != -EXDEV)
- 			goto done;
+ 	if (file_in->f_inode->i_sb != file_out->f_inode->i_sb)
+@@ -151,9 +153,12 @@ static ssize_t nfs4_copy_file_range(struct file *file_in, loff_t pos_in,
+ 		ret = nfs42_proc_copy_notify(file_in, file_out, cn_resp);
+ 		if (ret)
+ 			goto out;
++		nss = &cn_resp->cnr_src;
++		cnrs = &cn_resp->cnr_stateid;
  	}
  
+-	ret = nfs42_proc_copy(file_in, pos_in, file_out, pos_out, count);
++	ret = nfs42_proc_copy(file_in, pos_in, file_out, pos_out, count, nss,
++				cnrs);
+ out:
+ 	kfree(cn_resp);
+ 	if (ret == -EAGAIN)
+diff --git a/include/linux/nfs_xdr.h b/include/linux/nfs_xdr.h
+index dfc59bc..3a40b17 100644
+--- a/include/linux/nfs_xdr.h
++++ b/include/linux/nfs_xdr.h
+@@ -1400,6 +1400,7 @@ struct nfs42_copy_args {
+ 
+ 	u64				count;
+ 	bool				sync;
++	struct nl4_server		*cp_src;
+ };
+ 
+ struct nfs42_write_res {
 -- 
 1.8.3.1
