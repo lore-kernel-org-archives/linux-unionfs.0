@@ -1,15 +1,15 @@
 Return-Path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-qt1-f195.google.com ([209.85.160.195]:36812 "EHLO
-        mail-qt1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726264AbeJYE2W (ORCPT
+Received: from mail-qk1-f195.google.com ([209.85.222.195]:41579 "EHLO
+        mail-qk1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726511AbeJZG00 (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 25 Oct 2018 00:28:22 -0400
+        Fri, 26 Oct 2018 02:26:26 -0400
 From: Olga Kornievskaia <olga.kornievskaia@gmail.com>
-Subject: [PATCH v2 10/13] NFS inter ssc open
-Date: Wed, 24 Oct 2018 15:58:34 -0400
-Message-Id: <20181024195837.35532-12-olga.kornievskaia@gmail.com>
-In-Reply-To: <20181024195837.35532-1-olga.kornievskaia@gmail.com>
-References: <20181024195837.35532-1-olga.kornievskaia@gmail.com>
+Subject: [PATCH v3 07/11] NFS inter ssc open
+Date: Thu, 25 Oct 2018 17:51:43 -0400
+Message-Id: <20181025215147.36248-9-olga.kornievskaia@gmail.com>
+In-Reply-To: <20181025215147.36248-1-olga.kornievskaia@gmail.com>
+References: <20181025215147.36248-1-olga.kornievskaia@gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 To: trond.myklebust@hammerspace.com, anna.schumaker@netapp.com, viro@zeniv.linux.org.uk, smfrench@gmail.com, miklos@szeredi.hu
 Cc: linux-nfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-cifs@vger.kernel.org, linux-unionfs@vger.kernel.org, linux-man@vger.kernel.org
@@ -52,7 +52,7 @@ index 7d17b31..9c566a4 100644
  #if defined(CONFIG_NFS_V4_1)
  extern int nfs41_sequence_done(struct rpc_task *, struct nfs4_sequence_res *);
 diff --git a/fs/nfs/nfs4file.c b/fs/nfs/nfs4file.c
-index 703b56f..300880f 100644
+index 032996b..25ba405 100644
 --- a/fs/nfs/nfs4file.c
 +++ b/fs/nfs/nfs4file.c
 @@ -8,6 +8,7 @@
@@ -144,7 +144,7 @@ index 703b56f..300880f 100644
 +	res = filep;
 +out:
 +	dprintk("<-- %s error %ld filep %p r_ino %p\n",
-+		__func__, IS_ERR(res) ? PTR_ERR(res) : 0, res, r_ino);
++		__func__, PTR_ERR_OR_ZERO(res), res, r_ino);
 +
 +	return res;
 +out_stateowner:
