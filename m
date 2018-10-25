@@ -1,64 +1,45 @@
 Return-Path: <olga.kornievskaia@gmail.com>
 Return-Path: <olga.kornievskaia@gmail.com>
 From: Olga Kornievskaia <olga.kornievskaia@gmail.com>
-Subject: [PATCH v2 06/13] NFS NFSD defining nl4_servers structure needed by both
-Date: Wed, 24 Oct 2018 15:58:30 -0400
-Message-Id: <20181024195837.35532-8-olga.kornievskaia@gmail.com>
-In-Reply-To: <20181024195837.35532-1-olga.kornievskaia@gmail.com>
-References: <20181024195837.35532-1-olga.kornievskaia@gmail.com>
+Subject: [PATCH v3 06/11] NFS also send OFFLOAD_CANCEL to source server
+Date: Thu, 25 Oct 2018 17:51:42 -0400
+Message-Id: <20181025215147.36248-8-olga.kornievskaia@gmail.com>
+In-Reply-To: <20181025215147.36248-1-olga.kornievskaia@gmail.com>
+References: <20181025215147.36248-1-olga.kornievskaia@gmail.com>
 To: trond.myklebust@hammerspace.com, anna.schumaker@netapp.com, viro@zeniv.linux.org.uk, smfrench@gmail.com, miklos@szeredi.hu
 Cc: linux-nfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-cifs@vger.kernel.org, linux-unionfs@vger.kernel.org, linux-man@vger.kernel.org
 List-ID: <linux-unionfs@vger.kernel.org>
 
 From: Olga Kornievskaia <kolga@netapp.com>
 
-These structures are needed by COPY_NOTIFY on the client and needed
-by the nfsd as well
+In case of copy is cancelled, also send OFFLOAD_CANCEL to the source
+server.
 
 Signed-off-by: Olga Kornievskaia <kolga@netapp.com>
 ---
- include/linux/nfs4.h | 24 ++++++++++++++++++++++++
- 1 file changed, 24 insertions(+)
+ fs/nfs/nfs42proc.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff --git a/include/linux/nfs4.h b/include/linux/nfs4.h
-index 1b06f0b..4d76f87 100644
---- a/include/linux/nfs4.h
-+++ b/include/linux/nfs4.h
-@@ -16,6 +16,7 @@
- #include <linux/list.h>
- #include <linux/uidgid.h>
- #include <uapi/linux/nfs4.h>
-+#include <linux/sunrpc/msg_prot.h>
+diff --git a/fs/nfs/nfs42proc.c b/fs/nfs/nfs42proc.c
+index bb9e799..98fe00b 100644
+--- a/fs/nfs/nfs42proc.c
++++ b/fs/nfs/nfs42proc.c
+@@ -205,12 +205,14 @@ static int handle_async_copy(struct nfs42_copy_res *res,
+ 	memcpy(&res->write_res.verifier, &copy->verf, sizeof(copy->verf));
+ 	status = -copy->error;
  
- enum nfs4_acl_whotype {
- 	NFS4_ACL_WHO_NAMED = 0,
-@@ -672,4 +673,27 @@ struct nfs4_op_map {
- 	} u;
- };
++out_free:
+ 	kfree(copy);
+ 	return status;
+ out_cancel:
+ 	nfs42_do_offload_cancel_async(dst, &copy->stateid);
+-	kfree(copy);
+-	return status;
++	if (!nfs42_files_from_same_server(src, dst))
++		nfs42_do_offload_cancel_async(src, src_stateid);
++	goto out_free;
+ }
  
-+struct nfs42_netaddr {
-+	char		netid[RPCBIND_MAXNETIDLEN];
-+	char		addr[RPCBIND_MAXUADDRLEN + 1];
-+	u32		netid_len;
-+	u32 addr_len;
-+};
-+
-+enum netloc_type4 {
-+	NL4_NAME		= 1,
-+	NL4_URL			= 2,
-+	NL4_NETADDR		= 3,
-+};
-+
-+struct nl4_server {
-+	enum netloc_type4	nl4_type;
-+	union {
-+		struct { /* NL4_NAME, NL4_URL */
-+			int	nl4_str_sz;
-+			char	nl4_str[NFS4_OPAQUE_LIMIT + 1];
-+		};
-+		struct nfs42_netaddr	nl4_addr; /* NL4_NETADDR */
-+	} u;
-+};
- #endif
+ static int process_copy_commit(struct file *dst, loff_t pos_dst,
 -- 
 1.8.3.1
