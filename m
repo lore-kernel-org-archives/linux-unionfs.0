@@ -1,72 +1,57 @@
-Return-Path: <jstancek@redhat.com>
-Date: Wed, 3 Oct 2018 08:50:34 -0400 (EDT)
-From: Jan Stancek <jstancek@redhat.com>
-Message-ID: <1897735173.55763513.1538571034299.JavaMail.zimbra@redhat.com>
-In-Reply-To: <20180929094432.30197-1-amir73il@gmail.com>
-References: <20180929094432.30197-1-amir73il@gmail.com>
-Subject: Re: [LTP] [PATCH 5/5] syscalls/readahead02: fail test if readahead
- did	not use any cache
+Return-Path: <vgoyal@redhat.com>
+Date: Thu, 25 Oct 2018 09:38:40 -0400
+From: Vivek Goyal <vgoyal@redhat.com>
+Subject: Re: [PATCH v2] ovl: untangle copy up call chain
+Message-ID: <20181025133840.GD20565@redhat.com>
+References: <20181008042523.4134-1-amir73il@gmail.com>
+ <CAJfpegtGtYWbOvVZcobOO_d1OO6GhYEqE=u3OCEG2Cbsm34Eqw@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: Cyril Hrubis <chrubis@suse.cz>, linux-unionfs@vger.kernel.org, ltp@lists.linux.it, Miklos Szeredi <miklos@szeredi.hu>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAJfpegtGtYWbOvVZcobOO_d1OO6GhYEqE=u3OCEG2Cbsm34Eqw@mail.gmail.com>
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: Amir Goldstein <amir73il@gmail.com>, Al Viro <viro@zeniv.linux.org.uk>, overlayfs <linux-unionfs@vger.kernel.org>, linux-fsdevel@vger.kernel.org
 List-ID: <linux-unionfs@vger.kernel.org>
 
+On Thu, Oct 25, 2018 at 02:44:15PM +0200, Miklos Szeredi wrote:
 
------ Original Message -----
-> The heuristic of failing the test only if not saving any io has false
-> negatives with overlayfs readahead() bug, but readahead() with overlayfs
-> always warns on "using less cache then expected", when actually, it is
-> using no cache at all.
+[..]
+> > -static struct dentry *ovl_get_tmpfile(struct ovl_copy_up_ctx *c)
+> > +static struct dentry *ovl_get_workdir_temp(struct ovl_copy_up_ctx *c)
+> >  {
+> >         int err;
+> >         struct dentry *temp;
+> > @@ -484,10 +510,32 @@ static struct dentry *ovl_get_tmpfile(struct ovl_copy_up_ctx *c)
+> >         if (new_creds)
+> >                 old_creds = override_creds(new_creds);
+> >
+> > -       if (c->tmpfile)
+> > -               temp = ovl_do_tmpfile(c->workdir, c->stat.mode);
+> > -       else
+> > -               temp = ovl_create_temp(c->workdir, &cattr);
+> > +       temp = ovl_create_temp(c->workdir, &cattr);
+> > +out:
+> > +       if (new_creds) {
+> > +               revert_creds(old_creds);
 > 
-> Add another condition to fail the test if readahead did not use any
-> cache at all, which always detected the overlayfs bug.
+> Not new in this patch, but it looks like this will Oops if old_creds
+> is NULL, which happens if security_inode_copy_up() returns an error.
+> 
 
-ack, explicit FAIL here looks reasonable
+If security_inode_copy_up() fails, then new_creds will be null too. And
+in that case we will never call revert_creds(old_creds)?
 
-> 
-> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
-> ---
-> 
-> Cyril,
-> 
-> This is a followup for the overlayfs readahead series.
-> With the patches already posted, the test fails sometimes, but
-> most of the times it just gets a warning.
-> 
-> With this additional patch test fails reliably.
-> Note that test only fails between these upstream commits:
->   good  b833a3660394 ("ovl: add ovl_fadvise()")
->   bad   5b910bd615ba ("ovl: fix GPF in swapfile_activate...")
-> 
-> I have a few more minor fixes for the v2 series, but I will hold
-> them back until v1 is reviewed.
-> 
-> Thanks,
-> Amir.
-> 
->  testcases/kernel/syscalls/readahead/readahead02.c | 2 ++
->  1 file changed, 2 insertions(+)
-> 
-> diff --git a/testcases/kernel/syscalls/readahead/readahead02.c
-> b/testcases/kernel/syscalls/readahead/readahead02.c
-> index b497fb5db..fbcae1df8 100644
-> --- a/testcases/kernel/syscalls/readahead/readahead02.c
-> +++ b/testcases/kernel/syscalls/readahead/readahead02.c
-> @@ -341,6 +341,8 @@ static void test_readahead(unsigned int n)
->  		 */
->  		if (cached_ra * 1024 > testfile_size / 2)
->  			tst_res(TPASS, "using cache as expected");
-> +		else if (!cached_ra)
-> +			tst_res(TFAIL, "readahead failed to use any cache");
->  		else
->  			tst_res(TWARN, "using less cache than expected");
->  	} else {
-> --
-> 2.17.1
-> 
-> 
-> --
-> Mailing list info: https://lists.linux.it/listinfo/ltp
-> 
+IOW, new_creds should be returned by security_inode_copy_up() only if
+it succeeds. Otherwise new_creds should be left untouched by hook.
+
+> Trivial to fix, but I'm not sure we need the put_cred(new_creds) in
+> the failed security_inode_copy_up() case.  Vivek, do you remember the
+> reason for this error cleanup?
+
+Same, In case of failure, new_creds should be NULL and we will never
+call put_cred(new_creds).
+
+So I can't see the bug. What am I missing?
+
+Thanks
+Vivek
