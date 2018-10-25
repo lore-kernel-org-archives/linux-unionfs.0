@@ -1,102 +1,78 @@
-Return-Path: <amir73il@gmail.com>
+Return-Path: <olga.kornievskaia@gmail.com>
 MIME-Version: 1.0
-References: <20180929055133.28955-1-amir73il@gmail.com>
-In-Reply-To: <20180929055133.28955-1-amir73il@gmail.com>
-From: Amir Goldstein <amir73il@gmail.com>
-Date: Wed, 17 Oct 2018 22:39:17 +0300
-Message-ID: <CAOQ4uxiNNRBT+EfRu05n2egFt4v_MpnfEkKo1LSHWnxs4BxpaA@mail.gmail.com>
-Subject: Re: [PATCH][RESEND] kernel/acct.c: fix locking order when switching
- acct files
+References: <20181024195837.35532-1-olga.kornievskaia@gmail.com>
+ <20181024195837.35532-6-olga.kornievskaia@gmail.com> <CAOQ4uxg4_eF2_uur7-S=SCc5QzyVUfqRBjr9yYDGLsq5Ai4GXA@mail.gmail.com>
+ <CAN-5tyH2PiBUP0Si1pJsMbf8WARUG9rVoAr07oPbZ=CQuwg3Lw@mail.gmail.com> <CAOQ4uxiUpLgoBP1hQuQkKptJiOTATm_C9u7w1-kvqaNuqAT_2Q@mail.gmail.com>
+In-Reply-To: <CAOQ4uxiUpLgoBP1hQuQkKptJiOTATm_C9u7w1-kvqaNuqAT_2Q@mail.gmail.com>
+From: Olga Kornievskaia <olga.kornievskaia@gmail.com>
+Date: Thu, 25 Oct 2018 13:12:20 -0400
+Message-ID: <CAN-5tyHgfJLHW1zqpf4eU8OV1bn0wFuCn03rvzA=pe9giPJdUg@mail.gmail.com>
+Subject: Re: [PATCH v2 04/13] NFS: add cross file system check for copy_file_range
 Content-Type: text/plain; charset="UTF-8"
-To: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, overlayfs <linux-unionfs@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: trond.myklebust@hammerspace.com, Anna Schumaker <anna.schumaker@netapp.com>, viro@zeniv.linux.org.uk, Steve French <smfrench@gmail.com>, Miklos Szeredi <miklos@szeredi.hu>, linux-nfs <linux-nfs@vger.kernel.org>, linux-fsdevel@vger.kernel.org, linux-cifs@vger.kernel.org, linux-unionfs@vger.kernel.org, linux-man@vger.kernel.org
 List-ID: <linux-unionfs@vger.kernel.org>
 
-On Sat, Sep 29, 2018 at 8:51 AM Amir Goldstein <amir73il@gmail.com> wrote:
+On Thu, Oct 25, 2018 at 12:54 PM Amir Goldstein <amir73il@gmail.com> wrote:
 >
-> This looks like an old bug, pre-dating the "Fixes" commit, but the
-> "Fixes" commit did not handle it properly.
+> On Thu, Oct 25, 2018 at 6:28 PM Olga Kornievskaia
+> <olga.kornievskaia@gmail.com> wrote:
+> >
+> > On Thu, Oct 25, 2018 at 12:38 AM Amir Goldstein <amir73il@gmail.com> wrote:
+> > >
+> > > On Wed, Oct 24, 2018 at 10:59 PM Olga Kornievskaia
+> > > <olga.kornievskaia@gmail.com> wrote:
+> > > >
+> > > > From: Olga Kornievskaia <kolga@netapp.com>
+> > > >
+> > > > VFS copy_file_range was relaxed to allow for cross-device copy.
+> > > > Add a check to disallow cross file systems copy offload, both
+> > > > files are expected to be of NFS type.
+> > > >
+> > > > Signed-off-by: Olga Kornievskaia <kolga@netapp.com>
+> > > > ---
+> > > >  fs/nfs/nfs4file.c | 3 +++
+> > > >  1 file changed, 3 insertions(+)
+> > > >
+> > > > diff --git a/fs/nfs/nfs4file.c b/fs/nfs/nfs4file.c
+> > > > index 4288a6e..7137e7b 100644
+> > > > --- a/fs/nfs/nfs4file.c
+> > > > +++ b/fs/nfs/nfs4file.c
+> > > > @@ -135,6 +135,9 @@ static ssize_t nfs4_copy_file_range(struct file *file_in, loff_t pos_in,
+> > > >  {
+> > > >         ssize_t ret;
+> > > >
+> > > > +       if (file_in->f_inode->i_sb->s_type != file_out->f_inode->i_sb->s_type)
+> > > > +               return -EXDEV;
+> > > > +
+> > >
+> > > You would need to doo  the patches in following order:
+> > > 1. add same sb check in nfs
+> > > 2. relax same sb check in vfs
+> > > 3. implement cross fs copy in nfs
+> > > 4. relax same sb to same sb type in nfs
+> >
+> > Thank you, I will reorder the patches.
+> >
 >
-> The bug recently surfaced as a lockdep possible deadlock warning
-> with commit d1d04ef8572b ("ovl: stack file ops").
+> On second thought, It's probably best to do #1 (for nfs, cifs, ovl) + #2
+> in the same patch, to prevent someone from backporting just #2
+> without #1.
 >
-> When acct_on() replaces one acct file with another, it takes sb_writers
-> lock on new file sb and calls acct_pin_kill(old) before releasing the
-> sb_writers lock.
->
-> If new file is on the same fs as old file, acct_pin_kill(old) fail to
-> file_start_write_trylock() and skip writing the old file, because
-> sb_writers (of new) is already taken by acct_on().
->
-> If new file is not on same fs as old file, this ordering violation
-> creates an unneeded dependency between new sb_writers and old sb_writers,
-> which may later be reported as possible deadlock.
->
-> This could result in an actual deadlock if acct file is replaced from
-> an old file in overlayfs over "real fs" to a new file in "real fs".
-> acct_on() takes freeze protection on "real fs" and tries to write to
-> overlayfs file. overlayfs is not freeze protected so do_acct_process()
-> can carry on with __kernel_write() to overlayfs file, which would
-> try to take freeze protection on "real fs" and deadlock.
->
-> Reproducer of lockdep possible deadlock warning:
->
->   ./run --ov -s # unionmount-testsuite
->   touch /mnt/x /upper/y
->   accton /mnt/x
->   accton /upper/y
->
->  ======================================================
->  WARNING: possible circular locking dependency detected
->  4.19.0-rc1-xfstests #3424 Not tainted
->  ------------------------------------------------------
->  accton/1390 is trying to acquire lock:
->  00000000e0585aa5 (&acct->lock#2){+.+.}, at: acct_pin_kill+0x1b/0x76
->
->  but task is already holding lock:
->  000000003692505a (sb_writers#6){.+.+}, at: mnt_want_write+0x1d/0x42
->
-> Reported-by: syzbot+695726bc473f9c36a4b6@syzkaller.appspotmail.com
-> Fixes: 59eda0e07f43 ("new fs_pin killing logics")
-> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
-> ---
->
-> Al,
->
-> Welcome back. It would be nice to get an ACK (or an Applied) on this
-> patch. Fixes label claims to fix your commit, but I believe the bug was
-> already there before your commit.
->
-> As you can see, I have a reproducer to demonstrate the manifestation of
-> the bug in the case of switching acct file from overlayfs to real fs.
-> This started to manifest with overlayfs stacked f_op.
-> I have made another claim which seems obvious from the code about
-> changing acct file on same fs, but did not bother to write a reproducer
-> for that case.
+> Let me know if this was too cryptic.
+
+Thank you I think I understood.
+
+In an unsubmitted version I had a single VFS patch that made the VFS
+change and included the checks for the file systems. However, I
+thought maybe it wasn't appropriate to have FS changes and VFS changes
+in the same patch and thus I split them up. Since you say it's
+actually preferred I will do so. Do I need to change the title from
+just "VFS" to somehow indicate that it has NFS/CIFS/Overlayfs content?
+Or is the current title ok?
+
+
+
 >
 > Thanks,
 > Amir.
-
-PING
-
->
->  kernel/acct.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
->
-> diff --git a/kernel/acct.c b/kernel/acct.c
-> index addf7732fb56..c09355a7ae46 100644
-> --- a/kernel/acct.c
-> +++ b/kernel/acct.c
-> @@ -251,8 +251,8 @@ static int acct_on(struct filename *pathname)
->         rcu_read_lock();
->         old = xchg(&ns->bacct, &acct->pin);
->         mutex_unlock(&acct->lock);
-> -       pin_kill(old);
->         mnt_drop_write(mnt);
-> +       pin_kill(old);
->         mntput(mnt);
->         return 0;
->  }
-> --
-> 2.17.1
->
