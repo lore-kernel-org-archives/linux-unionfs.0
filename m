@@ -1,21 +1,19 @@
-Return-Path: <willy@infradead.org>
-Date: Thu, 25 Oct 2018 10:24:26 -0700
-From: Matthew Wilcox <willy@infradead.org>
-Subject: Re: [PATCH 1/1] man-page: copy_file_range(2) allow for cross-device
- copies
-Message-ID: <20181025172426.GI25444@bombadil.infradead.org>
-References: <20181024195837.35532-1-olga.kornievskaia@gmail.com>
- <20181024195837.35532-3-olga.kornievskaia@gmail.com>
- <CAOQ4uxhM=Uw3NMsJOhzWE7PPHAUktpy3z_gtaRCkpV5YnDf3Tw@mail.gmail.com>
+Return-Path: <olga.kornievskaia@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+References: <20181024195837.35532-1-olga.kornievskaia@gmail.com>
+ <20181024195837.35532-3-olga.kornievskaia@gmail.com> <CAOQ4uxhM=Uw3NMsJOhzWE7PPHAUktpy3z_gtaRCkpV5YnDf3Tw@mail.gmail.com>
 In-Reply-To: <CAOQ4uxhM=Uw3NMsJOhzWE7PPHAUktpy3z_gtaRCkpV5YnDf3Tw@mail.gmail.com>
+From: Olga Kornievskaia <olga.kornievskaia@gmail.com>
+Date: Thu, 25 Oct 2018 11:26:59 -0400
+Message-ID: <CAN-5tyE1PsKkxZEQwHpd3HvBvFPFUpcJ5=F7-DQKAHpQp3T3=A@mail.gmail.com>
+Subject: Re: [PATCH 1/1] man-page: copy_file_range(2) allow for cross-device copies
+Content-Type: text/plain; charset="UTF-8"
 To: Amir Goldstein <amir73il@gmail.com>
-Cc: Olga Kornievskaia <olga.kornievskaia@gmail.com>, trond.myklebust@hammerspace.com, Anna Schumaker <anna.schumaker@netapp.com>, Al Viro <viro@zeniv.linux.org.uk>, Steve French <smfrench@gmail.com>, Miklos Szeredi <miklos@szeredi.hu>, Linux NFS Mailing List <linux-nfs@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, linux-cifs@vger.kernel.org, overlayfs <linux-unionfs@vger.kernel.org>, linux-man@vger.kernel.org
+Cc: trond.myklebust@hammerspace.com, Anna Schumaker <anna.schumaker@netapp.com>, viro@zeniv.linux.org.uk, Steve French <smfrench@gmail.com>, Miklos Szeredi <miklos@szeredi.hu>, linux-nfs <linux-nfs@vger.kernel.org>, linux-fsdevel@vger.kernel.org, linux-cifs@vger.kernel.org, linux-unionfs@vger.kernel.org, linux-man@vger.kernel.org
 List-ID: <linux-unionfs@vger.kernel.org>
 
-On Thu, Oct 25, 2018 at 07:28:10AM +0300, Amir Goldstein wrote:
+On Thu, Oct 25, 2018 at 12:28 AM Amir Goldstein <amir73il@gmail.com> wrote:
+>
 > On Wed, Oct 24, 2018 at 10:59 PM Olga Kornievskaia
 > <olga.kornievskaia@gmail.com> wrote:
 > >
@@ -54,15 +52,12 @@ On Thu, Oct 25, 2018 at 07:28:10AM +0300, Amir Goldstein wrote:
 > > -The files referred to by
 > > -.IR file_in " and " file_out
 > > -are not on the same mounted filesystem.
-> 
+>
 > Man page serves users of old kernels as well. You should not delete this
 > expected error, but you can add "... and kernel does not support cross
 > filesystem copy".
 
-I'd rather see this worded as:
-
- .B EXDEV
- The files referred to by
- .IR file_in " and " file_out
--are not on the same mounted filesystem.
-+cannot be copied due to being on incompatible filesystems
+Thank you, will do.
+>
+> Thanks,
+> Amir.
