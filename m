@@ -1,284 +1,39 @@
-Return-Path: <amir73il@gmail.com>
-Return-Path: <amir73il@gmail.com>
-From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH] ovl: untangle copy up call chain
-Date: Sat,  6 Oct 2018 07:15:31 +0300
-Message-Id: <20181006041531.30246-1-amir73il@gmail.com>
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: Al Viro <viro@zeniv.linux.org.uk>, linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
+Return-Path: <olga.kornievskaia@gmail.com>
+Return-Path: <olga.kornievskaia@gmail.com>
+From: Olga Kornievskaia <olga.kornievskaia@gmail.com>
+Subject: [PATCH v3 10/11] NFS COPY handle ERR_OFFLOAD_DENIED
+Date: Thu, 25 Oct 2018 17:51:46 -0400
+Message-Id: <20181025215147.36248-12-olga.kornievskaia@gmail.com>
+In-Reply-To: <20181025215147.36248-1-olga.kornievskaia@gmail.com>
+References: <20181025215147.36248-1-olga.kornievskaia@gmail.com>
+To: trond.myklebust@hammerspace.com, anna.schumaker@netapp.com, viro@zeniv.linux.org.uk, smfrench@gmail.com, miklos@szeredi.hu
+Cc: linux-nfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-cifs@vger.kernel.org, linux-unionfs@vger.kernel.org, linux-man@vger.kernel.org
 List-ID: <linux-unionfs@vger.kernel.org>
 
-In an attempt to dedup ~100 LOC, we ended up creating a tangled call
-chain, whose branches merge and diverge in several points according to
-the immutable c->tmpfile copy up mode.
+From: Olga Kornievskaia <kolga@netapp.com>
 
-This call chain was hard to analyse for locking correctness because the
-locking requirements for the c->tmpfile flow were very different from
-the locking requirements for the !c->tmpfile flow (i.e. directory vs.
-regulare file copy up).
+If server sends ERR_OFFLOAD_DENIED error, the client must fall
+back on doing copy the normal way. Return ENOTSUPP to the vfs and
+fallback to regular copy.
 
-Split the copy up helpers of the c->tmpfile flow from those of the
-!c->tmpfile (i.e. workdir) flow and remove the c->tmpfile mode from
-copy up context.
-
-Suggested-by: Al Viro <viro@zeniv.linux.org.uk>
-Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+Signed-off-by: Olga Kornievskaia <kolga@netapp.com>
 ---
+ fs/nfs/nfs42proc.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-Miklos,
-
-This refactoring should not be changing logic.
-There is one semantic correctness change which I did not bother to split:
-<       temp = ovl_do_tmpfile(c->workdir, c->stat.mode);
->       temp = ovl_do_tmpfile(c->destdir, c->stat.mode);
-
-It passed the quick xfstests.
-
-I am a bit concerned about test coverage for upper fs with no O_TMPFILE
-support. I doubt anyone is testing that configuration??
-
-In retrospect, we should not have allowed enabling new features without
-both O_TMPFILE and d_type support in upper fs.
-
-Maybe it is not too later for that? If anybody is really running
-overlayfs on semi-supported upper fs, is it highly unlikely that they
-are using new features (does anyone?).
-
-I will post a proposal.
-
-Thanks,
-Amir.
-
-
- fs/overlayfs/copy_up.c | 148 ++++++++++++++++++++++++++++++-----------
- 1 file changed, 110 insertions(+), 38 deletions(-)
-
-diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
-index 1cc797a08a5b..b2299e0d046e 100644
---- a/fs/overlayfs/copy_up.c
-+++ b/fs/overlayfs/copy_up.c
-@@ -395,7 +395,6 @@ struct ovl_copy_up_ctx {
- 	struct dentry *destdir;
- 	struct qstr destname;
- 	struct dentry *workdir;
--	bool tmpfile;
- 	bool origin;
- 	bool indexed;
- 	bool metacopy;
-@@ -440,8 +439,14 @@ static int ovl_link_up(struct ovl_copy_up_ctx *c)
- 	return err;
- }
- 
--static int ovl_install_temp(struct ovl_copy_up_ctx *c, struct dentry *temp,
--			    struct dentry **newdentry)
-+/*
-+ * Move temp file from workdir into place on upper dir.
-+ * Used when copying up directories and when upper fs doesn't support O_TMPFILE.
-+ *
-+ * Caller must hold ovl_lock_rename_workdir().
-+ */
-+static int ovl_rename_temp(struct ovl_copy_up_ctx *c, struct dentry *temp,
-+			   struct dentry **newdentry)
- {
- 	int err;
- 	struct dentry *upper;
-@@ -451,19 +456,40 @@ static int ovl_install_temp(struct ovl_copy_up_ctx *c, struct dentry *temp,
- 	if (IS_ERR(upper))
- 		return PTR_ERR(upper);
- 
--	if (c->tmpfile)
--		err = ovl_do_link(temp, udir, upper);
--	else
--		err = ovl_do_rename(d_inode(c->workdir), temp, udir, upper, 0);
--
-+	err = ovl_do_rename(d_inode(c->workdir), temp, udir, upper, 0);
- 	if (!err)
--		*newdentry = dget(c->tmpfile ? upper : temp);
-+		*newdentry = dget(temp);
- 	dput(upper);
- 
- 	return err;
- }
- 
--static struct dentry *ovl_get_tmpfile(struct ovl_copy_up_ctx *c)
-+/* Link O_TMPFILE into place on upper dir */
-+static int ovl_link_tmpfile(struct ovl_copy_up_ctx *c, struct dentry *temp,
-+			    struct dentry **newdentry)
-+{
-+	int err;
-+	struct dentry *upper = NULL;
-+	struct inode *udir = d_inode(c->destdir);
-+
-+	inode_lock_nested(udir, I_MUTEX_PARENT);
-+	upper = lookup_one_len(c->destname.name, c->destdir, c->destname.len);
-+	err = PTR_ERR(upper);
-+	if (IS_ERR(upper))
-+		goto out;
-+
-+	err = ovl_do_link(temp, udir, upper);
-+	if (err)
-+		goto out;
-+	*newdentry = dget(upper);
-+out:
-+	dput(upper);
-+	inode_unlock(udir);
-+
-+	return err;
-+}
-+
-+static struct dentry *ovl_get_workdir_temp(struct ovl_copy_up_ctx *c)
- {
- 	int err;
- 	struct dentry *temp;
-@@ -484,10 +510,32 @@ static struct dentry *ovl_get_tmpfile(struct ovl_copy_up_ctx *c)
- 	if (new_creds)
- 		old_creds = override_creds(new_creds);
- 
--	if (c->tmpfile)
--		temp = ovl_do_tmpfile(c->workdir, c->stat.mode);
--	else
--		temp = ovl_create_temp(c->workdir, &cattr);
-+	temp = ovl_create_temp(c->workdir, &cattr);
-+out:
-+	if (new_creds) {
-+		revert_creds(old_creds);
-+		put_cred(new_creds);
-+	}
-+
-+	return temp;
-+}
-+
-+static struct dentry *ovl_get_tmpfile(struct ovl_copy_up_ctx *c)
-+{
-+	int err;
-+	struct dentry *temp;
-+	const struct cred *old_creds = NULL;
-+	struct cred *new_creds = NULL;
-+
-+	err = security_inode_copy_up(c->dentry, &new_creds);
-+	temp = ERR_PTR(err);
-+	if (err < 0)
-+		goto out;
-+
-+	if (new_creds)
-+		old_creds = override_creds(new_creds);
-+
-+	temp = ovl_do_tmpfile(c->destdir, c->stat.mode);
- out:
- 	if (new_creds) {
- 		revert_creds(old_creds);
-@@ -548,17 +596,25 @@ static int ovl_copy_up_inode(struct ovl_copy_up_ctx *c, struct dentry *temp)
- 	return err;
- }
- 
--static int ovl_copy_up_locked(struct ovl_copy_up_ctx *c)
-+/*
-+ * Copyup using workdir to prepare temp file.
-+ * Used when copying up directories and when upper fs doesn't support O_TMPFILE.
-+ */
-+static int ovl_copy_up_workdir(struct ovl_copy_up_ctx *c)
- {
--	struct inode *udir = c->destdir->d_inode;
- 	struct inode *inode;
- 	struct dentry *newdentry = NULL;
- 	struct dentry *temp;
- 	int err;
- 
--	temp = ovl_get_tmpfile(c);
-+	err = ovl_lock_rename_workdir(c->workdir, c->destdir);
-+	if (err)
-+		return err;
-+
-+	temp = ovl_get_workdir_temp(c);
-+	err = PTR_ERR(temp);
- 	if (IS_ERR(temp))
--		return PTR_ERR(temp);
-+		goto out;
- 
- 	err = ovl_copy_up_inode(c, temp);
- 	if (err)
-@@ -570,13 +626,7 @@ static int ovl_copy_up_locked(struct ovl_copy_up_ctx *c)
- 			goto out;
- 	}
- 
--	if (c->tmpfile) {
--		inode_lock_nested(udir, I_MUTEX_PARENT);
--		err = ovl_install_temp(c, temp, &newdentry);
--		inode_unlock(udir);
--	} else {
--		err = ovl_install_temp(c, temp, &newdentry);
--	}
-+	err = ovl_rename_temp(c, temp, &newdentry);
- 	if (err)
- 		goto out;
- 
-@@ -588,13 +638,43 @@ static int ovl_copy_up_locked(struct ovl_copy_up_ctx *c)
- 		ovl_set_flag(OVL_WHITEOUTS, inode);
- 
- out:
--	if (err && !c->tmpfile)
-+	unlock_rename(c->workdir, c->destdir);
-+	if (err)
- 		ovl_cleanup(d_inode(c->workdir), temp);
- 	dput(temp);
- 	return err;
- 
- }
- 
-+/* Copyup using O_TMPFILE which does not require cross dir locking */
-+static int ovl_copy_up_tmpfile(struct ovl_copy_up_ctx *c)
-+{
-+	struct dentry *newdentry = NULL;
-+	struct dentry *temp;
-+	int err;
-+
-+	temp = ovl_get_tmpfile(c);
-+	if (IS_ERR(temp))
-+		return PTR_ERR(temp);
-+
-+	err = ovl_copy_up_inode(c, temp);
-+	if (err)
-+		goto out;
-+
-+	err = ovl_link_tmpfile(c, temp, &newdentry);
-+	if (err)
-+		goto out;
-+
-+	if (!c->metacopy)
-+		ovl_set_upperdata(d_inode(c->dentry));
-+	ovl_inode_update(d_inode(c->dentry), newdentry);
-+
-+out:
-+	dput(temp);
-+	return err;
-+
-+}
-+
- /*
-  * Copy up a single dentry
-  *
-@@ -646,18 +726,10 @@ static int ovl_do_copy_up(struct ovl_copy_up_ctx *c)
- 	}
- 
- 	/* Should we copyup with O_TMPFILE or with workdir? */
--	if (S_ISREG(c->stat.mode) && ofs->tmpfile) {
--		c->tmpfile = true;
--		err = ovl_copy_up_locked(c);
--	} else {
--		err = ovl_lock_rename_workdir(c->workdir, c->destdir);
--		if (!err) {
--			err = ovl_copy_up_locked(c);
--			unlock_rename(c->workdir, c->destdir);
--		}
--	}
--
--
-+	if (S_ISREG(c->stat.mode) && ofs->tmpfile)
-+		err = ovl_copy_up_tmpfile(c);
-+	else
-+		err = ovl_copy_up_workdir(c);
- 	if (err)
- 		goto out;
- 
+diff --git a/fs/nfs/nfs42proc.c b/fs/nfs/nfs42proc.c
+index 00809b3..c7c2ffa 100644
+--- a/fs/nfs/nfs42proc.c
++++ b/fs/nfs/nfs42proc.c
+@@ -395,7 +395,8 @@ ssize_t nfs42_proc_copy(struct file *src, loff_t pos_src,
+ 			args.sync = true;
+ 			dst_exception.retry = 1;
+ 			continue;
+-		} else if (err == -ESTALE &&
++		} else if ((err == -ESTALE ||
++				err == -NFS4ERR_OFFLOAD_DENIED) &&
+ 				!nfs42_files_from_same_server(src, dst)) {
+ 			nfs42_do_offload_cancel_async(src, &args.src_stateid);
+ 			err = -EOPNOTSUPP;
 -- 
-2.17.1
+1.8.3.1
