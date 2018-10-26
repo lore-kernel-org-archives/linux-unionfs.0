@@ -1,79 +1,39 @@
-Return-Path: <amir73il@gmail.com>
-Return-Path: <amir73il@gmail.com>
-From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH] vfs: fix FIGETBSZ ioctl on an overlayfs file
-Date: Thu, 11 Oct 2018 14:24:01 +0300
-Message-Id: <20181011112401.5790-1-amir73il@gmail.com>
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: Al Viro <viro@zeniv.linux.org.uk>, Eryu Guan <guaneryu@gmail.com>, linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
+Return-Path: <olga.kornievskaia@gmail.com>
+Return-Path: <olga.kornievskaia@gmail.com>
+From: Olga Kornievskaia <olga.kornievskaia@gmail.com>
+Subject: [PATCH v4 10/11] NFS: COPY handle ERR_OFFLOAD_DENIED
+Date: Fri, 26 Oct 2018 16:10:56 -0400
+Message-Id: <20181026201057.36899-12-olga.kornievskaia@gmail.com>
+In-Reply-To: <20181026201057.36899-1-olga.kornievskaia@gmail.com>
+References: <20181026201057.36899-1-olga.kornievskaia@gmail.com>
+To: trond.myklebust@hammerspace.com, anna.schumaker@netapp.com, viro@zeniv.linux.org.uk, smfrench@gmail.com, miklos@szeredi.hu
+Cc: linux-nfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-cifs@vger.kernel.org, linux-unionfs@vger.kernel.org, linux-man@vger.kernel.org
 List-ID: <linux-unionfs@vger.kernel.org>
 
-Implement the FIGETBSZ query with the statfs(2) filesystem
-interface. Reading inode->i_sb->s_blocksize directly is incorrect
-on stacked filesystems (i.e. overlayfs).
+From: Olga Kornievskaia <kolga@netapp.com>
 
-This fixes a Floating point exception in e2fsprogs utility filefrag,
-which divides the size of the file with the value returned by FIGETBSZ.
+If server sends ERR_OFFLOAD_DENIED error, the client must fall
+back on doing copy the normal way. Return ENOTSUPP to the vfs and
+fallback to regular copy.
 
-Fixes: d1d04ef8572b ("ovl: stack file ops")
-Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+Signed-off-by: Olga Kornievskaia <kolga@netapp.com>
 ---
+ fs/nfs/nfs42proc.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-Miklos,
-
-Consider this for-rc8?
-There is another trivial kfree(ERR_PTR()) fix I posted yesterday.
-
-xfstests actually has coverage for FIGETBSZ with fiemap-tester
-program. However, the tests that use fiemap-tester (generic/094
-generic/225) did not fail on v4.19-rc1, but rather thier runtime
-dropped from > 10s to 0s, so I'll need to go fix those tests.
-
-Thanks,
-Amir.
-
- fs/ioctl.c | 15 ++++++++++++++-
- 1 file changed, 14 insertions(+), 1 deletion(-)
-
-diff --git a/fs/ioctl.c b/fs/ioctl.c
-index 2005529af560..a0e55a8e94fd 100644
---- a/fs/ioctl.c
-+++ b/fs/ioctl.c
-@@ -17,6 +17,7 @@
- #include <linux/buffer_head.h>
- #include <linux/falloc.h>
- #include <linux/sched/signal.h>
-+#include <linux/statfs.h>
- 
- #include "internal.h"
- 
-@@ -219,6 +220,18 @@ static int ioctl_fiemap(struct file *filp, unsigned long arg)
- 	return error;
- }
- 
-+static int ioctl_getbsize(struct file *file, int __user *argp)
-+{
-+	struct kstatfs buf;
-+	int err;
-+
-+	err = vfs_statfs(&file->f_path, &buf);
-+	if (err)
-+		return err;
-+
-+	return put_user(buf.f_bsize, argp);
-+}
-+
- static long ioctl_file_clone(struct file *dst_file, unsigned long srcfd,
- 			     u64 off, u64 olen, u64 destoff)
- {
-@@ -669,7 +682,7 @@ int do_vfs_ioctl(struct file *filp, unsigned int fd, unsigned int cmd,
- 		return ioctl_fiemap(filp, arg);
- 
- 	case FIGETBSZ:
--		return put_user(inode->i_sb->s_blocksize, argp);
-+		return ioctl_getbsize(filp, argp);
- 
- 	case FICLONE:
- 		return ioctl_file_clone(filp, arg, 0, 0, 0);
+diff --git a/fs/nfs/nfs42proc.c b/fs/nfs/nfs42proc.c
+index 00809b3..c7c2ffa 100644
+--- a/fs/nfs/nfs42proc.c
++++ b/fs/nfs/nfs42proc.c
+@@ -395,7 +395,8 @@ ssize_t nfs42_proc_copy(struct file *src, loff_t pos_src,
+ 			args.sync = true;
+ 			dst_exception.retry = 1;
+ 			continue;
+-		} else if (err == -ESTALE &&
++		} else if ((err == -ESTALE ||
++				err == -NFS4ERR_OFFLOAD_DENIED) &&
+ 				!nfs42_files_from_same_server(src, dst)) {
+ 			nfs42_do_offload_cancel_async(src, &args.src_stateid);
+ 			err = -EOPNOTSUPP;
 -- 
-2.17.1
+1.8.3.1
