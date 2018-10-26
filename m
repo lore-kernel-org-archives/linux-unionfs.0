@@ -1,39 +1,59 @@
-Return-Path: <olga.kornievskaia@gmail.com>
-Return-Path: <olga.kornievskaia@gmail.com>
-From: Olga Kornievskaia <olga.kornievskaia@gmail.com>
-Subject: [PATCH v7 10/11] NFS: COPY handle ERR_OFFLOAD_DENIED
-Date: Tue, 30 Oct 2018 16:56:13 -0400
-Message-Id: <20181030205614.40754-12-olga.kornievskaia@gmail.com>
-In-Reply-To: <20181030205614.40754-1-olga.kornievskaia@gmail.com>
-References: <20181030205614.40754-1-olga.kornievskaia@gmail.com>
-To: trond.myklebust@hammerspace.com, anna.schumaker@netapp.com, viro@zeniv.linux.org.uk, smfrench@gmail.com, miklos@szeredi.hu
-Cc: linux-nfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-cifs@vger.kernel.org, linux-unionfs@vger.kernel.org, linux-man@vger.kernel.org
+Return-Path: <linux-unionfs-owner@vger.kernel.org>
+Received: from mx0b-00000d04.pphosted.com ([148.163.153.235]:40208 "EHLO
+        mx0b-00000d04.pphosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1725965AbeJ0Ey4 (ORCPT
+        <rfc822;linux-unionfs@vger.kernel.org>);
+        Sat, 27 Oct 2018 00:54:56 -0400
+From: Stephane Thiell <sthiell@stanford.edu>
+Subject: overlayfs: distributed filesystems (eg. Lustre) as upper? 
+Date: Fri, 26 Oct 2018 19:21:30 +0000
+Message-ID: <F53FEDFB-B18B-47DE-ABED-9BA8B549E157@stanford.edu>
+Content-Language: en-US
+Content-Type: text/plain; charset="utf-8"
+Content-ID: <6B7D2CFE2E264140995E041A525E55B0@namprd02.prod.outlook.com>
+Content-Transfer-Encoding: base64
+MIME-Version: 1.0
+Sender: linux-unionfs-owner@vger.kernel.org
+To: "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>
+Cc: Miklos Szeredi <mszeredi@redhat.com>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-From: Olga Kornievskaia <kolga@netapp.com>
-
-If server sends ERR_OFFLOAD_DENIED error, the client must fall
-back on doing copy the normal way. Return ENOTSUPP to the vfs and
-fallback to regular copy.
-
-Signed-off-by: Olga Kornievskaia <kolga@netapp.com>
----
- fs/nfs/nfs42proc.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
-
-diff --git a/fs/nfs/nfs42proc.c b/fs/nfs/nfs42proc.c
-index 00809b3..c7c2ffa 100644
---- a/fs/nfs/nfs42proc.c
-+++ b/fs/nfs/nfs42proc.c
-@@ -395,7 +395,8 @@ ssize_t nfs42_proc_copy(struct file *src, loff_t pos_src,
- 			args.sync = true;
- 			dst_exception.retry = 1;
- 			continue;
--		} else if (err == -ESTALE &&
-+		} else if ((err == -ESTALE ||
-+				err == -NFS4ERR_OFFLOAD_DENIED) &&
- 				!nfs42_files_from_same_server(src, dst)) {
- 			nfs42_do_offload_cancel_async(src, &args.src_stateid);
- 			err = -EOPNOTSUPP;
--- 
-1.8.3.1
+SGVsbG8hDQoNCknigJltIHRyeWluZyB0byB1c2Ugb3ZlcmxheWZzIG92ZXIgTHVzdHJlIChhcyBs
+b3dlciBhbmQgdXBwZXIpLiBJIHNhdyB0aGUgZm9sbG93aW5nIHBhdGNoIGZyb20gTWlrbG9zIHRv
+IGFsbG93IGRpc3RyaWJ1dGVkIGZzIGFzIGxvd2VyIGxheWVyOg0KDQpGcm9tIDdjMDNiNWQ0NWI4
+ZWViZjAxMTExMjUwNTNkOGZlODg3Y2MyNjJiYTYgTW9uIFNlcCAxNyAwMDowMDowMCAyMDAxDQpG
+cm9tOiBNaWtsb3MgU3plcmVkaSA8bXN6ZXJlZGlAc3VzZS5jej4NCkRhdGU6IE1vbiwgMjIgSnVu
+IDIwMTUgMTM6NTM6NDggKzAyMDANClN1YmplY3Q6IFtQQVRDSCAyLzJdIG92bDogYWxsb3cgZGlz
+dHJpYnV0ZWQgZnMgYXMgbG93ZXIgbGF5ZXINCg0KSSBrbm93IHRoYXQgb2ZmaWNpYWxseSBkaXN0
+cmlidXRlZCBmcyBhcmUgbm90IHN1cHBvcnRlZCBhcyB1cHBlciwgYnV0IEkgdGVzdGVkIG15c2Vs
+ZiB3aXRoIEx1c3RyZSBhcyBsb3dlciBhbmQgdXBwZXIgYnkgcmVtb3ZpbmcgdGhlIGZpbGVzeXN0
+ZW0gY2hlY2tzIChpbiBzdXBlci5jL3V0aWwuYyksIGFuZCB3aGlsZSBpdCBzZWVtZWQgdG8gd29y
+ayBhdCBmaXJzdCAocGVyZm9ybWFuY2UgaXMgZ3JlYXQpLCB3cml0aW5nIGZyb20gbXVsdGlwbGUg
+bHVzdHJlIGNsaWVudHMgKGRpZmZlcmVudCBjbHVzdGVyIG5vZGVzKSB0byBhIHNpbmdsZSBzaGFy
+ZWQgZmlsZSBsZWQgdG8gdW5leHBlY3RlZCByZXN1bHRzLiBUaGlzIGlzIHVuZm9ydHVuYXRlbHkg
+YSBjYXNlIHRoYXQgd2UgaGF2ZSB0byBzdXBwb3J0Li4uDQoNCkV4YW1wbGUgd2l0aCB0d28gY2xp
+ZW50cyB3cml0aW5nIHRvIGEgc2hhcmVkIGZpbGUgdXNpbmcgdGhlIElPUiBiZW5jaG1hcmssIG9u
+bHkgb25lIGNsaWVudCBjYW4gc2VlIHRoZSByZXN1bHRpbmcgc2hhcmVkIGZpbGU6DQoNCm1vdW50
+cyBvbiBib3RoIG5vZGVzOg0KDQoxMC4yMTAuMzQuMjAxQG8yaWIxOjEwLjIxMC4zNC4yMDJAbzJp
+YjE6L3JlZ2FsIG9uIC9yZWdhbCB0eXBlIGx1c3RyZSAocncsZmxvY2ssdXNlcl94YXR0cixsYXp5
+c3RhdGZzKQ0KMTAuMC4xMC41MUBvMmliNzoxMC4wLjEwLjUyQG8yaWI3Oi9maXIgb24gL2ZpciB0
+eXBlIGx1c3RyZSAocncsZmxvY2ssdXNlcl94YXR0cixsYXp5c3RhdGZzKQ0Kb3ZlcmxheSBvbiAv
+c2NyYXRjaC91c2VycyB0eXBlIG92ZXJsYXkgKHJ3LHJlbGF0aW1lLGxvd2VyZGlyPS9yZWdhbC91
+c2Vycyx1cHBlcmRpcj0vZmlyL3VzZXJzLHdvcmtkaXI9L2Zpci8ud29yaykNCg0KbXVsdGlwbGUg
+d3JpdGVycyB0byAvc2NyYXRjaC91c2Vycy9zdGhpZWxsL2lvci9zaGFyZWQNCg0Kbm9kZSAjMQ0K
+DQpbc3RoaWVsbEBzaC0xMDEtNjAgL3NjcmF0Y2gvdXNlcnMvc3RoaWVsbC9pb3JdJCBscyAtbA0K
+dG90YWwgMzM1NTQ0NDANCi1ydy1yLS1yLS0gMSBzdGhpZWxsIHJ1dGhtIDY4NzE5NDc2NzM2IE9j
+dCAyNiAxMToxNyBzaGFyZWQNCg0Kbm9kZSAjMg0KDQpbc3RoaWVsbEBzaC0xMDEtNTkgL3NjcmF0
+Y2gvdXNlcnMvc3RoaWVsbC9pb3JdJCBscyAtbA0KbHM6IGNhbm5vdCBhY2Nlc3Mgc2hhcmVkOiBO
+byBzdWNoIGZpbGUgb3IgZGlyZWN0b3J5DQp0b3RhbCAwDQotPz8/Pz8/Pz8/ID8gPyA/ID8gICAg
+ICAgICAgICA/IHNoYXJlZA0KW3N0aGllbGxAc2gtMTAxLTU5IC9zY3JhdGNoL3VzZXJzL3N0aGll
+bGwvaW9yXSQgc3RhdCBzaGFyZWQNCnN0YXQ6IGNhbm5vdCBzdGF0IOKAmHNoYXJlZOKAmTogTm8g
+c3VjaCBmaWxlIG9yIGRpcmVjdG9yeQ0KDQoNCklzIGFueW9uZSBhd2FyZSBvZiBhbnkgd29yayB0
+aGF0IGhhcyBhbHJlYWR5IGJlZW4gZG9uZSBpbiBzdXBwb3J0aW5nIGEgZGlzdHJpYnV0ZWQgZmls
+ZXN5c3RlbSBsaWtlIEx1c3RyZSBhcyBhbiB1cHBlcj8gSWYgbm90LCBkbyB5b3UgdGhpbmsgaXTi
+gJlzIGVhc2lseSBkb2FibGU/IElzIGl0IGEgbWF0dGVyIG9mIGNoZWNraW5nIGZvciBkX3JldmFs
+aWRhdGUoKT8NCg0KSWYgeW91IHdvbmRlciB3aHkgSeKAmW0gdHJ5aW5nIHRvIGRvIHRoYXQsIHRo
+aXMgaXMgYmVjYXVzZSBpdCB3b3VsZCBiZSBhIGtpbGxlciBmZWF0dXJlIGZvciBzZWFtbGVzc2x5
+IG1pZ3JhdGluZyBjbHVzdGVyIHNjcmF0Y2ggZmlsZXN5c3RlbXMgKGVnLiB0byBuZXcgaGFyZHdh
+cmUpLg0KDQpUaGFua3MhDQotLSANClN0ZXBoYW5lIFRoaWVsbA0KU3RhbmZvcmQgUmVzZWFyY2gg
+Q29tcHV0aW5n
