@@ -1,74 +1,118 @@
-From: "J. Bruce Fields" <bfields@fieldses.org>
-Subject: Re: KASAN: slab-out-of-bounds Read in string (2)
-Date: Thu, 25 Oct 2018 12:19:27 -0400
-Message-ID: <20181025161927.GD5539@fieldses.org>
-References: <0000000000003852440576ef80b2@google.com>
- <CACT4Y+bR+9vy5ZKDN31gmvKk5hcoNojaBuD9Dz1wswfObyt0uw@mail.gmail.com>
- <CAOQ4uxhxON4EeWqVLN68YF4v=hr5wfQk9wZEZLZLZu7B_XGuUw@mail.gmail.com>
- <20181024090959.s5y3azpsmtswjyn5@mwanda>
- <CAOQ4uxi84ywY4BXJ1ZYDOQHZhbYr+GjJTrkGZvBbH4XUqR0nPw@mail.gmail.com>
- <09f6038b7642f425eba162ea2239552e12da2045.camel@kernel.org>
- <20181025150219.GA5539@fieldses.org>
- <CAOQ4uxh_WLVPnLt=r5j5wm7gET=C64RKGexGVdNyJK0d0aMr5g@mail.gmail.com>
+From: Richard Weinberger <richard@nod.at>
+Subject: Re: Regression in handling power cuts since 3a1e819b4e80 ("ovl: store
+ file handle of lower inode on copy up")
+Date: Sat, 27 Oct 2018 21:33:56 +0200
+Message-ID: <6556017.quyC1DpDMg@blindfold>
+References: <CACna6rx3YBNYKGu7T-J2J-S_3yr-oafJf3pL5TbGDFRzU6dihg@mail.gmail.com>
+ <CAOQ4uxii0rZv3SVXWNN7yug_WZ-TKLL3Wo-mti0y9K66Z+-EcQ@mail.gmail.com>
+ <CACna6rzvzc-_X3VDeA-nwtTW7KHaQGtbvzjVNoOFEQuHKi3PJg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAOQ4uxh_WLVPnLt=r5j5wm7gET=C64RKGexGVdNyJK0d0aMr5g@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: Jeff Layton <jlayton@kernel.org>, Dan Carpenter <dan.carpenter@oracle.com>, Dmitry Vyukov <dvyukov@google.com>, syzbot+376cea2b0ef340db3dd4@syzkaller.appspotmail.com, Miklos Szeredi <miklos@szeredi.hu>, overlayfs <linux-unionfs@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>, Petr Mladek <pmladek@suse.com>, "Steven Rostedt (VMware)" <rostedt@goodmis.org>, Sergey Senozhatsky <sergey.senozhatsky@gmail.com>, syzkaller-bugs@googlegroups.com, Jan Harkes <jaharkes@cs.cmu.edu>, Mark Fasheh <mark@fasheh.com>
+Content-Type: multipart/mixed; boundary="nextPart1960845.MarFMtrmzt"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
+In-Reply-To: <CACna6rzvzc-_X3VDeA-nwtTW7KHaQGtbvzjVNoOFEQuHKi3PJg@mail.gmail.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
+ <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
+List-Post: <mailto:linux-mtd@lists.infradead.org>
+List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
+ <mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-mtd" <linux-mtd-bounces@lists.infradead.org>
+Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
+To: =?utf-8?B?UmFmYcWCIE1pxYJlY2tp?= <zajec5@gmail.com>
+Cc: Artem Bityutskiy <dedekind1@gmail.com>, Amir Goldstein <amir73il@gmail.com>, Adrian Hunter <adrian.hunter@intel.com>, linux-unionfs@vger.kernel.org, Miklos Szeredi <miklos@szeredi.hu>, linux-mtd@lists.infradead.org, Russell Senior <russell@personaltelco.net>, linux-fsdevel@vger.kernel.org, OpenWrt Development List <openwrt-devel@lists.openwrt.org>
 List-Id: linux-unionfs@vger.kernel.org
 
-On Thu, Oct 25, 2018 at 06:17:25PM +0300, Amir Goldstein wrote:
-> On Thu, Oct 25, 2018 at 6:02 PM Bruce Fields <bfields@fieldses.org> wrote:
-> 
-> > > > So I guess it has fallen between the cracks.
-> > > > Feel free to send a patch to Jeff.
-> > > >
-> > > > Thanks,
-> > > > Amir.
-> > >
-> > > Actually, this should probably go to Bruce, as he mostly takes care of
-> > > lockd. Patch looks correct though.
-> >
-> > Yes, if you could resend I'd be happy to handle it.--b.
-> 
-> Attached.
+This is a multi-part message in MIME format.
 
-Thanks, queuing it up for 4.20 and stable.
+--nextPart1960845.MarFMtrmzt
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="UTF-8"
 
---b.
+Rafa=C5=82,
 
-> Thanks,
-> Amir.
+Am Montag, 22. Oktober 2018, 17:34:44 CEST schrieb Rafa=C5=82 Mi=C5=82ecki:
+> Then I took a close look at ovl_copy_up_locked() and it seems above
+> info isn't accurate. It seems to me that setxattr() happens between
+> fsync and link. I modified my C app to follow that order (open, write,
+> fsync, setxattr, link) and I can reproduce the problem now!
+>=20
+> Steps to reproduce the problem:
+> 1) compile tmptest.c
+> 2) tmptest /overlay/upper/foo.txt user.bar baz
+> 3) wait 5 seconds (so ubifs writes to flash)
+> 4) power cut
+> 5) boot again and check content of /overlay/upper/foo.txt
+> 6) in my case content appears to be 00 00 00 00
 
-> From 40000f4dcbd5dd18a80efb6aef010f1164985583 Mon Sep 17 00:00:00 2001
-> From: Amir Goldstein <amir73il@gmail.com>
-> Date: Fri, 28 Sep 2018 20:41:48 +0300
-> Subject: [PATCH] lockd: fix access beyond unterminated strings in prints
-> 
-> printk format used %*s instead of %.*s, so hostname_len does not limit
-> the number of bytes accessed from hostname.
-> 
-> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
-> ---
->  fs/lockd/host.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/fs/lockd/host.c b/fs/lockd/host.c
-> index d35cd6be0675..93fb7cf0b92b 100644
-> --- a/fs/lockd/host.c
-> +++ b/fs/lockd/host.c
-> @@ -341,7 +341,7 @@ struct nlm_host *nlmsvc_lookup_host(const struct svc_rqst *rqstp,
->  	};
->  	struct lockd_net *ln = net_generic(net, lockd_net_id);
->  
-> -	dprintk("lockd: %s(host='%*s', vers=%u, proto=%s)\n", __func__,
-> +	dprintk("lockd: %s(host='%.*s', vers=%u, proto=%s)\n", __func__,
->  			(int)hostname_len, hostname, rqstp->rq_vers,
->  			(rqstp->rq_prot == IPPROTO_UDP ? "udp" : "tcp"));
->  
-> -- 
-> 2.17.1
-> 
+Just returned from Edinburgh and had a chance to look at the problem.
+The problem is not that no write-back happens, in fact it happens just fine.
+But we have a problem upon journal replay if an unlinked file (O_TMPFILE)
+gets relinked in combination with xattrs.
+
+Can you please give the attached patch a try? It is not perfect but if I=20
+understand the problem correctly it should fix the issues you're facing.
+
+Thanks,
+//richard
+--nextPart1960845.MarFMtrmzt
+Content-Disposition: attachment; filename="replay_tmpfile_fix.diff"
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/x-patch; charset="UTF-8"; name="replay_tmpfile_fix.diff"
+
+diff --git a/fs/ubifs/replay.c b/fs/ubifs/replay.c
+index 4844538eb926..82b1244e4138 100644
+--- a/fs/ubifs/replay.c
++++ b/fs/ubifs/replay.c
+@@ -209,6 +209,19 @@ static int trun_remove_range(struct ubifs_info *c, struct replay_entry *r)
+ 	return ubifs_tnc_remove_range(c, &min_key, &max_key);
+ }
+ 
++static bool inode_comes_back(struct ubifs_info *c, struct replay_entry *rino)
++{
++	struct replay_entry *r;
++
++	list_for_each_entry(r, &c->replay_list, list) {
++		if (keys_cmp(c, &rino->key, &r->key) == 0 &&
++		    r->deletion == 0)
++			return true;
++	}
++
++	return false;
++}
++
+ /**
+  * apply_replay_entry - apply a replay entry to the TNC.
+  * @c: UBIFS file-system description object
+@@ -218,7 +231,7 @@ static int trun_remove_range(struct ubifs_info *c, struct replay_entry *r)
+  */
+ static int apply_replay_entry(struct ubifs_info *c, struct replay_entry *r)
+ {
+-	int err;
++	int err = 0;
+ 
+ 	dbg_mntk(&r->key, "LEB %d:%d len %d deletion %d sqnum %llu key ",
+ 		 r->lnum, r->offs, r->len, r->deletion, r->sqnum);
+@@ -236,6 +249,9 @@ static int apply_replay_entry(struct ubifs_info *c, struct replay_entry *r)
+ 			{
+ 				ino_t inum = key_inum(c, &r->key);
+ 
++				if (inode_comes_back(c, r))
++					break;
++
+ 				err = ubifs_tnc_remove_ino(c, inum);
+ 				break;
+ 			}
+
+--nextPart1960845.MarFMtrmzt
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+______________________________________________________
+Linux MTD discussion mailing list
+http://lists.infradead.org/mailman/listinfo/linux-mtd/
+
+--nextPart1960845.MarFMtrmzt--
