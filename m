@@ -1,20 +1,20 @@
-Return-Path: <jlayton@kernel.org>
-Message-ID: <0833b9e12068007de42c681166a60a9cbaf0cb6b.camel@kernel.org>
+Return-Path: <david@fromorbit.com>
+Date: Sat, 27 Oct 2018 20:09:23 +1100
+From: Dave Chinner <david@fromorbit.com>
 Subject: Re: [PATCH v4 01/11] VFS: move cross device copy_file_range() check
  into filesystems
-From: Jeff Layton <jlayton@kernel.org>
-Date: Sat, 27 Oct 2018 07:11:25 -0400
-In-Reply-To: <20181026201057.36899-2-olga.kornievskaia@gmail.com>
+Message-ID: <20181027090923.GJ6311@dastard>
 References: <20181026201057.36899-1-olga.kornievskaia@gmail.com>
-	 <20181026201057.36899-2-olga.kornievskaia@gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
-To: Olga Kornievskaia <olga.kornievskaia@gmail.com>, trond.myklebust@hammerspace.com, anna.schumaker@netapp.com, viro@zeniv.linux.org.uk, smfrench@gmail.com, miklos@szeredi.hu
-Cc: linux-nfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-cifs@vger.kernel.org, linux-unionfs@vger.kernel.org, linux-man@vger.kernel.org
+ <20181026201057.36899-2-olga.kornievskaia@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20181026201057.36899-2-olga.kornievskaia@gmail.com>
+To: Olga Kornievskaia <olga.kornievskaia@gmail.com>
+Cc: trond.myklebust@hammerspace.com, anna.schumaker@netapp.com, viro@zeniv.linux.org.uk, smfrench@gmail.com, miklos@szeredi.hu, linux-nfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-cifs@vger.kernel.org, linux-unionfs@vger.kernel.org, linux-man@vger.kernel.org
 List-ID: <linux-unionfs@vger.kernel.org>
 
-On Fri, 2018-10-26 at 16:10 -0400, Olga Kornievskaia wrote:
+On Fri, Oct 26, 2018 at 04:10:46PM -0400, Olga Kornievskaia wrote:
 > From: Olga Kornievskaia <kolga@netapp.com>
 > 
 > This patch makes it the responsibility of individual filesystems to
@@ -59,6 +59,9 @@ On Fri, 2018-10-26 at 16:10 -0400, Olga Kornievskaia wrote:
 >  	ssize_t rc;
 >  
 > +	if (src_file->f_inode->i_sb != dst_file->f_inode->i_sb)
+
+file_inode(file)->i_sb, please.
+
 > +		return -EXDEV;
 > +
 >  	rc = cifs_file_copychunk_range(xid, src_file, off, dst_file, destoff,
@@ -77,36 +80,10 @@ On Fri, 2018-10-26 at 16:10 -0400, Olga Kornievskaia wrote:
 > +
 >  	if (file_inode(file_in) == file_inode(file_out))
 >  		return -EINVAL;
->  retry:
-> diff --git a/fs/overlayfs/file.c b/fs/overlayfs/file.c
-> index aeaefd2..5282853 100644
-> --- a/fs/overlayfs/file.c
-> +++ b/fs/overlayfs/file.c
-> @@ -483,6 +483,9 @@ static ssize_t ovl_copy_file_range(struct file *file_in, loff_t pos_in,
->  				   struct file *file_out, loff_t pos_out,
->  				   size_t len, unsigned int flags)
->  {
-> +	if (file_in->f_inode->i_sb != file_out->f_inode->i_sb)
-> +		return -EXDEV;
-> +
->  	return ovl_copyfile(file_in, pos_in, file_out, pos_out, len, flags,
->  			    OVL_COPY);
->  }
-> diff --git a/fs/read_write.c b/fs/read_write.c
-> index 39b4a21..fb4ffca 100644
-> --- a/fs/read_write.c
-> +++ b/fs/read_write.c
-> @@ -1575,10 +1575,6 @@ ssize_t vfs_copy_file_range(struct file *file_in, loff_t pos_in,
->  	    (file_out->f_flags & O_APPEND))
->  		return -EBADF;
->  
-> -	/* this could be relaxed once a method supports cross-fs copies */
-> -	if (inode_in->i_sb != inode_out->i_sb)
-> -		return -EXDEV;
-> -
->  	if (len == 0)
->  		return 0;
->  
+
+Please look at the code around your modifications and make sure your
+additions are consistent with it.
+
 > @@ -1588,7 +1584,8 @@ ssize_t vfs_copy_file_range(struct file *file_in, loff_t pos_in,
 >  	 * Try cloning first, this is supported by more file systems, and
 >  	 * more efficient if both clone and copy are supported (e.g. NFS).
@@ -114,22 +91,13 @@ On Fri, 2018-10-26 at 16:10 -0400, Olga Kornievskaia wrote:
 > -	if (file_in->f_op->clone_file_range) {
 > +	if (inode_in->i_sb == inode_out->i_sb &&
 > +			file_in->f_op->clone_file_range) {
->  		ret = file_in->f_op->clone_file_range(file_in, pos_in,
->  				file_out, pos_out, len);
->  		if (ret == 0) {
-> @@ -1600,7 +1597,7 @@ ssize_t vfs_copy_file_range(struct file *file_in, loff_t pos_in,
->  	if (file_out->f_op->copy_file_range) {
->  		ret = file_out->f_op->copy_file_range(file_in, pos_in, file_out,
->  						      pos_out, len, flags);
-> -		if (ret != -EOPNOTSUPP)
-> +		if (ret != -EOPNOTSUPP && ret != -EXDEV)
->  			goto done;
->  	}
->  
 
-Yes, this is the right way to do this sort of change, IMO. Push the
-checks down into the fs' so they can be relaxed on a case-by-case basis.
+	if (inode_in->i_sb == inode_out->i_sb &&
+	    file_in->f_op->clone_file_range) {
 
-Modulo dchinner's comments, this looks fine.
+Cheers,
 
-Reviewed-by: Jeff Layton <jlayton@kernel.org>
+Dave.
+-- 
+Dave Chinner
+david@fromorbit.com
