@@ -1,48 +1,44 @@
 Return-Path: <olga.kornievskaia@gmail.com>
-Return-Path: <olga.kornievskaia@gmail.com>
+MIME-Version: 1.0
+References: <20181026201057.36899-1-olga.kornievskaia@gmail.com>
+ <20181026201057.36899-13-olga.kornievskaia@gmail.com> <7ef50e2c6b11ae80518db75efc35b2f96c9e4d32.camel@kernel.org>
+ <20181027132624.GA25444@bombadil.infradead.org>
+In-Reply-To: <20181027132624.GA25444@bombadil.infradead.org>
 From: Olga Kornievskaia <olga.kornievskaia@gmail.com>
-Subject: [PATCH v5 12/12] NFS: replace cross device check in copy_file_range
-Date: Mon, 29 Oct 2018 13:40:59 -0400
-Message-Id: <20181029174059.38326-14-olga.kornievskaia@gmail.com>
-In-Reply-To: <20181029174059.38326-1-olga.kornievskaia@gmail.com>
-References: <20181029174059.38326-1-olga.kornievskaia@gmail.com>
-To: trond.myklebust@hammerspace.com, anna.schumaker@netapp.com, viro@zeniv.linux.org.uk, smfrench@gmail.com, miklos@szeredi.hu
-Cc: linux-nfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-cifs@vger.kernel.org, linux-unionfs@vger.kernel.org, linux-man@vger.kernel.org
+Date: Mon, 29 Oct 2018 10:28:25 -0400
+Message-ID: <CAN-5tyGjwn_xsVQWNtfUi=ZNd5OWJGeXPt1MEurQ1aSVC=PWaw@mail.gmail.com>
+Subject: Re: [PATCH v4 11/11] NFS: replace cross device check in copy_file_range
+Content-Type: text/plain; charset="UTF-8"
+To: willy@infradead.org
+Cc: jlayton@kernel.org, trond.myklebust@hammerspace.com, Anna Schumaker <anna.schumaker@netapp.com>, viro@zeniv.linux.org.uk, Steve French <smfrench@gmail.com>, Miklos Szeredi <miklos@szeredi.hu>, linux-nfs <linux-nfs@vger.kernel.org>, linux-fsdevel@vger.kernel.org, linux-cifs@vger.kernel.org, linux-unionfs@vger.kernel.org, linux-man@vger.kernel.org
 List-ID: <linux-unionfs@vger.kernel.org>
 
-From: Olga Kornievskaia <kolga@netapp.com>
+On Sat, Oct 27, 2018 at 9:26 AM Matthew Wilcox <willy@infradead.org> wrote:
+>
+> On Sat, Oct 27, 2018 at 07:08:11AM -0400, Jeff Layton wrote:
+> > >
+> > > -   if (file_in->f_inode->i_sb != file_out->f_inode->i_sb)
+> > > +   if (file_in->f_op != &nfs4_file_operations)
+> > >             return -EXDEV;
+> > > +   else {
+> >
+> > nit: you don't really need the "else" here since the previous block
+> > returns
+> >
+> > > +           struct nfs_client *c_in =
+> > > +                   (NFS_SERVER(file_inode(file_in)))->nfs_client;
+> > > +           if (c_in->cl_minorversion < 2)
+> > > +                   return -EXDEV;
+> > > +   }
+>
+> Yeah, but if you don't have the else, then you need to declare the c_in
+> at the beginning of the function instead of in the new block.  Mind you,
+> if you do that then:
+>
+>         c_in = NFS_SERVER(file_inode(file_in))->nfs_client;
+>
+> fits on one line, so it does look a bit neater.
 
-Add a check to disallow cross file systems copy offload, both
-files are expected to be of NFS4.2+ type.
-
-Reviewed-by: Jeff Layton <jlayton@kernel.org>
-Reviewed-by: Matthew Wilcox <willy@infradead.org>
-Signed-off-by: Olga Kornievskaia <kolga@netapp.com>
----
- fs/nfs/nfs4file.c | 7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
-
-diff --git a/fs/nfs/nfs4file.c b/fs/nfs/nfs4file.c
-index 989f174..fde4465 100644
---- a/fs/nfs/nfs4file.c
-+++ b/fs/nfs/nfs4file.c
-@@ -138,11 +138,16 @@ static ssize_t nfs4_copy_file_range(struct file *file_in, loff_t pos_in,
- 	struct nl4_server *nss = NULL;
- 	nfs4_stateid *cnrs = NULL;
- 	ssize_t ret;
-+	struct nfs_client *c_in;
- 
- 	if (pos_in >= i_size_read(file_inode(file_in)))
- 		return -EINVAL;
- 
--	if (file_inode(file_in)->i_sb != file_inode(file_out)->i_sb)
-+	if (file_in->f_op != &nfs4_file_operations)
-+		return -EXDEV;
-+
-+	c_in = (NFS_SERVER(file_inode(file_in)))->nfs_client;
-+	if (c_in->cl_minorversion < 2)
- 		return -EXDEV;
- 
- 	if (file_inode(file_in) == file_inode(file_out))
--- 
-1.8.3.1
+My thoughts for the "else" was to be able to get the nfs_client but
+yes I could declare for the whole function and assign after the first
+"if". I'll change it.
