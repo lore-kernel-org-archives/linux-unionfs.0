@@ -1,59 +1,88 @@
-Return-Path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mx0b-00000d04.pphosted.com ([148.163.153.235]:40208 "EHLO
-        mx0b-00000d04.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1725965AbeJ0Ey4 (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Sat, 27 Oct 2018 00:54:56 -0400
-From: Stephane Thiell <sthiell@stanford.edu>
-Subject: overlayfs: distributed filesystems (eg. Lustre) as upper? 
-Date: Fri, 26 Oct 2018 19:21:30 +0000
-Message-ID: <F53FEDFB-B18B-47DE-ABED-9BA8B549E157@stanford.edu>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-ID: <6B7D2CFE2E264140995E041A525E55B0@namprd02.prod.outlook.com>
-Content-Transfer-Encoding: base64
+Return-Path: <amir73il@gmail.com>
 MIME-Version: 1.0
-Sender: linux-unionfs-owner@vger.kernel.org
-To: "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>
-Cc: Miklos Szeredi <mszeredi@redhat.com>
+References: <20181026201057.36899-1-olga.kornievskaia@gmail.com>
+ <20181026201057.36899-3-olga.kornievskaia@gmail.com> <20181027091240.GK6311@dastard>
+ <20181027132339.GZ25444@bombadil.infradead.org> <20181028013307.GM6311@dastard>
+ <CAN-5tyHPT4oYgWJTJg2pMbKoKCoqkf+dow1FXayD+r9gMZnh=Q@mail.gmail.com> <CAN-5tyEGoDma_mn3srk8pKR65Aq4EGWgmNU4oRML_aA9Enk72Q@mail.gmail.com>
+In-Reply-To: <CAN-5tyEGoDma_mn3srk8pKR65Aq4EGWgmNU4oRML_aA9Enk72Q@mail.gmail.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Date: Mon, 29 Oct 2018 19:49:43 +0200
+Message-ID: <CAOQ4uxiWWzAB1M5EVK6+a+ncPKMk2q-LZr-m3snPQyV+rfOwDg@mail.gmail.com>
+Subject: Re: [PATCH 1/1] man-page: copy_file_range(2) allow for cross-device copies
+Content-Type: text/plain; charset="UTF-8"
+To: Olga Kornievskaia <olga.kornievskaia@gmail.com>
+Cc: Dave Chinner <david@fromorbit.com>, Matthew Wilcox <willy@infradead.org>, trond.myklebust@hammerspace.com, Anna Schumaker <anna.schumaker@netapp.com>, Al Viro <viro@zeniv.linux.org.uk>, Steve French <smfrench@gmail.com>, Miklos Szeredi <miklos@szeredi.hu>, Linux NFS Mailing List <linux-nfs@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, linux-cifs@vger.kernel.org, overlayfs <linux-unionfs@vger.kernel.org>, linux-man@vger.kernel.org
 List-ID: <linux-unionfs@vger.kernel.org>
 
-SGVsbG8hDQoNCknigJltIHRyeWluZyB0byB1c2Ugb3ZlcmxheWZzIG92ZXIgTHVzdHJlIChhcyBs
-b3dlciBhbmQgdXBwZXIpLiBJIHNhdyB0aGUgZm9sbG93aW5nIHBhdGNoIGZyb20gTWlrbG9zIHRv
-IGFsbG93IGRpc3RyaWJ1dGVkIGZzIGFzIGxvd2VyIGxheWVyOg0KDQpGcm9tIDdjMDNiNWQ0NWI4
-ZWViZjAxMTExMjUwNTNkOGZlODg3Y2MyNjJiYTYgTW9uIFNlcCAxNyAwMDowMDowMCAyMDAxDQpG
-cm9tOiBNaWtsb3MgU3plcmVkaSA8bXN6ZXJlZGlAc3VzZS5jej4NCkRhdGU6IE1vbiwgMjIgSnVu
-IDIwMTUgMTM6NTM6NDggKzAyMDANClN1YmplY3Q6IFtQQVRDSCAyLzJdIG92bDogYWxsb3cgZGlz
-dHJpYnV0ZWQgZnMgYXMgbG93ZXIgbGF5ZXINCg0KSSBrbm93IHRoYXQgb2ZmaWNpYWxseSBkaXN0
-cmlidXRlZCBmcyBhcmUgbm90IHN1cHBvcnRlZCBhcyB1cHBlciwgYnV0IEkgdGVzdGVkIG15c2Vs
-ZiB3aXRoIEx1c3RyZSBhcyBsb3dlciBhbmQgdXBwZXIgYnkgcmVtb3ZpbmcgdGhlIGZpbGVzeXN0
-ZW0gY2hlY2tzIChpbiBzdXBlci5jL3V0aWwuYyksIGFuZCB3aGlsZSBpdCBzZWVtZWQgdG8gd29y
-ayBhdCBmaXJzdCAocGVyZm9ybWFuY2UgaXMgZ3JlYXQpLCB3cml0aW5nIGZyb20gbXVsdGlwbGUg
-bHVzdHJlIGNsaWVudHMgKGRpZmZlcmVudCBjbHVzdGVyIG5vZGVzKSB0byBhIHNpbmdsZSBzaGFy
-ZWQgZmlsZSBsZWQgdG8gdW5leHBlY3RlZCByZXN1bHRzLiBUaGlzIGlzIHVuZm9ydHVuYXRlbHkg
-YSBjYXNlIHRoYXQgd2UgaGF2ZSB0byBzdXBwb3J0Li4uDQoNCkV4YW1wbGUgd2l0aCB0d28gY2xp
-ZW50cyB3cml0aW5nIHRvIGEgc2hhcmVkIGZpbGUgdXNpbmcgdGhlIElPUiBiZW5jaG1hcmssIG9u
-bHkgb25lIGNsaWVudCBjYW4gc2VlIHRoZSByZXN1bHRpbmcgc2hhcmVkIGZpbGU6DQoNCm1vdW50
-cyBvbiBib3RoIG5vZGVzOg0KDQoxMC4yMTAuMzQuMjAxQG8yaWIxOjEwLjIxMC4zNC4yMDJAbzJp
-YjE6L3JlZ2FsIG9uIC9yZWdhbCB0eXBlIGx1c3RyZSAocncsZmxvY2ssdXNlcl94YXR0cixsYXp5
-c3RhdGZzKQ0KMTAuMC4xMC41MUBvMmliNzoxMC4wLjEwLjUyQG8yaWI3Oi9maXIgb24gL2ZpciB0
-eXBlIGx1c3RyZSAocncsZmxvY2ssdXNlcl94YXR0cixsYXp5c3RhdGZzKQ0Kb3ZlcmxheSBvbiAv
-c2NyYXRjaC91c2VycyB0eXBlIG92ZXJsYXkgKHJ3LHJlbGF0aW1lLGxvd2VyZGlyPS9yZWdhbC91
-c2Vycyx1cHBlcmRpcj0vZmlyL3VzZXJzLHdvcmtkaXI9L2Zpci8ud29yaykNCg0KbXVsdGlwbGUg
-d3JpdGVycyB0byAvc2NyYXRjaC91c2Vycy9zdGhpZWxsL2lvci9zaGFyZWQNCg0Kbm9kZSAjMQ0K
-DQpbc3RoaWVsbEBzaC0xMDEtNjAgL3NjcmF0Y2gvdXNlcnMvc3RoaWVsbC9pb3JdJCBscyAtbA0K
-dG90YWwgMzM1NTQ0NDANCi1ydy1yLS1yLS0gMSBzdGhpZWxsIHJ1dGhtIDY4NzE5NDc2NzM2IE9j
-dCAyNiAxMToxNyBzaGFyZWQNCg0Kbm9kZSAjMg0KDQpbc3RoaWVsbEBzaC0xMDEtNTkgL3NjcmF0
-Y2gvdXNlcnMvc3RoaWVsbC9pb3JdJCBscyAtbA0KbHM6IGNhbm5vdCBhY2Nlc3Mgc2hhcmVkOiBO
-byBzdWNoIGZpbGUgb3IgZGlyZWN0b3J5DQp0b3RhbCAwDQotPz8/Pz8/Pz8/ID8gPyA/ID8gICAg
-ICAgICAgICA/IHNoYXJlZA0KW3N0aGllbGxAc2gtMTAxLTU5IC9zY3JhdGNoL3VzZXJzL3N0aGll
-bGwvaW9yXSQgc3RhdCBzaGFyZWQNCnN0YXQ6IGNhbm5vdCBzdGF0IOKAmHNoYXJlZOKAmTogTm8g
-c3VjaCBmaWxlIG9yIGRpcmVjdG9yeQ0KDQoNCklzIGFueW9uZSBhd2FyZSBvZiBhbnkgd29yayB0
-aGF0IGhhcyBhbHJlYWR5IGJlZW4gZG9uZSBpbiBzdXBwb3J0aW5nIGEgZGlzdHJpYnV0ZWQgZmls
-ZXN5c3RlbSBsaWtlIEx1c3RyZSBhcyBhbiB1cHBlcj8gSWYgbm90LCBkbyB5b3UgdGhpbmsgaXTi
-gJlzIGVhc2lseSBkb2FibGU/IElzIGl0IGEgbWF0dGVyIG9mIGNoZWNraW5nIGZvciBkX3JldmFs
-aWRhdGUoKT8NCg0KSWYgeW91IHdvbmRlciB3aHkgSeKAmW0gdHJ5aW5nIHRvIGRvIHRoYXQsIHRo
-aXMgaXMgYmVjYXVzZSBpdCB3b3VsZCBiZSBhIGtpbGxlciBmZWF0dXJlIGZvciBzZWFtbGVzc2x5
-IG1pZ3JhdGluZyBjbHVzdGVyIHNjcmF0Y2ggZmlsZXN5c3RlbXMgKGVnLiB0byBuZXcgaGFyZHdh
-cmUpLg0KDQpUaGFua3MhDQotLSANClN0ZXBoYW5lIFRoaWVsbA0KU3RhbmZvcmQgUmVzZWFyY2gg
-Q29tcHV0aW5n
+On Mon, Oct 29, 2018 at 5:52 PM Olga Kornievskaia
+<olga.kornievskaia@gmail.com> wrote:
+>
+> On Mon, Oct 29, 2018 at 10:25 AM Olga Kornievskaia
+> <olga.kornievskaia@gmail.com> wrote:
+> >
+> > On Sat, Oct 27, 2018 at 9:33 PM Dave Chinner <david@fromorbit.com> wrote:
+> > >
+> > > On Sat, Oct 27, 2018 at 06:23:39AM -0700, Matthew Wilcox wrote:
+> > > > On Sat, Oct 27, 2018 at 08:12:40PM +1100, Dave Chinner wrote:
+> > > > > > @@ -131,7 +132,8 @@ There is not enough space on the target filesystem to complete the copy.
+> > > > > >  .B EXDEV
+> > > > > >  The files referred to by
+> > > > > >  .IR file_in " and " file_out
+> > > > > > -are not on the same mounted filesystem.
+> > > > > > +are not on the same mounted filesystem when the kernel does not support
+> > > > > > +cross device file copy.
+> > > > >
+> > > > > Kernel can support cross device file copy, the filesystem may not.
+> > > > >
+> > > > > EXDEV
+> > > > >     One of the files specified by file_in and file_out are on a
+> > > > >     filesystem that does not support cross device copies.
+> > > >
+> > > > I mentioned this in my last review, and Olga pointed out that one of
+> > > > the changes in this patch means the kernel will do the copy using
+> > > > do_splice_direct if the filesystem doesn't support cross-device copying.
+> > > > We should keep this error documented for those on old kernels, but the
+> > > > kernel will never return -EXDEV any more.
+> > >
+> > > Uh, wot? Where's the patch named "VFS: enable copy_file_range() for
+> > > all filesystems"? That shoul dnot be a detail hidden inside some
+> > > other patch that multiple people completely miss during review.
+> >
+> > The fact that cross-device check was moved is what allowed for all
+> > filesystems to use copy_file_range(). I think choosing the words of
+> > "moving cross device check" was also appropriate title for the VFS
+> > patch.
+>
+> I wasn't completely correct. It was the check removal and then also
+> allowing for -EXDEV error to keep going with the  do_splice_direct().
+> I could have left EXDEV being an error but thought it would be
+> beneficial to add such ability. One reason to keep all the changes in
+> one patch was said to be so that porting back all of this
+> functionality is included.
+>
+
+Olga,
+
+There are many details in this patch series and repeated miscommunications
+about the details. Accuracy is important - "the reason to keep all changes" -
+that was a commetn of mine referring *only* to the move of same sb check
+from VFS to different filesystems.
+
+The *extra* change of do_splice_direct cross fs was a very nice low
+hanging fruit, but completely unrelated to your original  motivation.
+I completely agree with Dave that it should be in a separate patch.
+I also side with Dave that it would make sense as the first patch of the series.
+
+> So one option would be keep EXDEV as an error if that's what folks
+> want then this side-effect would not be a problem and the focus would
+> be on what it was in the first place : removal (or relocation) of the
+> cross device check into the filesystems.
+>
+
+This is up to you. It's an extra change and not related to your NFS work
+and you may submit it or not. I think it will be nice if you did submit it.
+There was no objection to this change, only objection was to bundle it together
+with a different unrelated patch.
+
+Thanks,
+Amir.
