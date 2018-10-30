@@ -5,8 +5,8 @@ References: <20181026201057.36899-1-olga.kornievskaia@gmail.com>
  <CAN-5tyEeMrRVUyP61Vv-dwFUvm7q55Q3=NVJkeZN+XoCcAOCDQ@mail.gmail.com> <20181030090344.GN6311@dastard>
 In-Reply-To: <20181030090344.GN6311@dastard>
 From: Olga Kornievskaia <olga.kornievskaia@gmail.com>
-Date: Tue, 30 Oct 2018 17:10:58 -0400
-Message-ID: <CAN-5tyHhTQ8bZk+DUrU0o1ZK3k9uhipiLPeOA3dYuXUG542mNw@mail.gmail.com>
+Date: Tue, 30 Oct 2018 09:40:09 -0400
+Message-ID: <CAN-5tyEfYcSvgzhftM7r8YoB7KQDiJnJXQPTE9pcML6BRSbbYA@mail.gmail.com>
 Subject: Re: [PATCH v4 02/11] VFS: copy_file_range check validity of input
  source offset
 Content-Type: text/plain; charset="UTF-8"
@@ -66,49 +66,23 @@ On Tue, Oct 30, 2018 at 5:03 AM Dave Chinner <david@fromorbit.com> wrote:
 > allow it to do more and potentially expose more problems due to it's
 > wider capability.
 
-Before I totally give up on this feature, can you help me understand
-your concerns with allowing the generic copy_file_range via
-do_splice().
+Sounds like you are arguing that enabling generic copy_file_range()
+via do_splice() isn't a good thing without those checks. I'm totally
+OK with removing this functionality. As I mentioned earlier I added it
+as I thought it was beneficial and I assumed that do_splice() was a
+generic enough API to handle what was needed.
 
-I have mentioned I'm not a VFS expert thus I come from just looking at
-the available documentation and the code.
+What this patch series was intended for was removing/relocating the
+cross device check and it sounds like I should be keeping it just to
+that.
 
-I don't see any restrictions on the files being passed in the
-do_splice_direct(). There are no restrictions that they must be from
-the same filesystem or file system type. But perhaps this not the
-concern you had but more about checking validity of arguments?
-
-I have looked at Dave Wong's, if I'm not mistaken these 2 are the
-relevant patches:
-[PATCH 02/28] vfs: check file ranges before cloning files
- -- a couple but not all checks apply to copy_file_range() .
-specifically, the offsets don't wrap and offset isn't past eof (as my
-patch suggests). Other checks have to do with aligned memory which I
-don't believe is needed or other dedup requirement that don't apply.
-
-[PATCH 04/28] vfs: strengthen checking of file range inputs to
-generic_remap_checks
- -- these checks apply to the code once we fall back to the
-do_splice(). it looks to me that perhaps exporting
-generic_access_check_limits()/generic_write_check_limits so that they
-can be used by the copy_file_range when it get pulled in.
-
-Also, can you elaborate one what "security issues" are present in this
-API? Is it "stripping setuid bits" and so something like calling
-file_remove_priv() that should be done when the fallback to the
-do_splice_direct() happens?
-
-As for the atime, wouldn't the ->copy_file_range() be updating the
-file attributes? I guess for the fallback case, the attributes need to
-be updated.
-
-If those are checks/issues needed to be addressed and would then get
-the generic copy_file_range() in, I could give a go at a patch (or 2).
->
 > > I can not volunteer
 > > to provide this comprehensive check.
 >
 > Why not?
+
+I don't have the expertise in the VFS code.
+
 >
 > Cheers,
 >
