@@ -1,41 +1,65 @@
-Return-Path: <amir73il@gmail.com>
-Return-Path: <amir73il@gmail.com>
-From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH v2 5/5] syscalls/readahead02: fail test if readahead did not use any cache
-Date: Thu,  4 Oct 2018 09:26:24 +0300
-Message-Id: <20181004062624.27295-6-amir73il@gmail.com>
-In-Reply-To: <20181004062624.27295-1-amir73il@gmail.com>
-References: <20181004062624.27295-1-amir73il@gmail.com>
-To: Cyril Hrubis <chrubis@suse.cz>
-Cc: ltp@lists.linux.it, Jan Stancek <jstancek@redhat.com>, Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org
+Return-Path: <olga.kornievskaia@gmail.com>
+Return-Path: <olga.kornievskaia@gmail.com>
+From: Olga Kornievskaia <olga.kornievskaia@gmail.com>
+Subject: [PATCH v7 03/11] NFS NFSD: defining nl4_servers structure needed by both
+Date: Tue, 30 Oct 2018 16:56:06 -0400
+Message-Id: <20181030205614.40754-5-olga.kornievskaia@gmail.com>
+In-Reply-To: <20181030205614.40754-1-olga.kornievskaia@gmail.com>
+References: <20181030205614.40754-1-olga.kornievskaia@gmail.com>
+To: trond.myklebust@hammerspace.com, anna.schumaker@netapp.com, viro@zeniv.linux.org.uk, smfrench@gmail.com, miklos@szeredi.hu
+Cc: linux-nfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-cifs@vger.kernel.org, linux-unionfs@vger.kernel.org, linux-man@vger.kernel.org
 List-ID: <linux-unionfs@vger.kernel.org>
 
-The heuristic of failing the test only if not saving any io has false
-negatives with overlayfs readahead() bug, but readahead() with overlayfs
-always warns on "using less cache then expected", when actually, it is
-using no cache at all.
+From: Olga Kornievskaia <kolga@netapp.com>
 
-Add another condition to fail the test if readahead did not use any
-cache at all, which always detected the overlayfs bug.
+These structures are needed by COPY_NOTIFY on the client and needed
+by the nfsd as well
 
-Signed-off-by: Amir Goldstein <amir73il@gmail.com>
-Acked-by: Jan Stancek <jstancek@redhat.com>
+Reviewed-by: Jeff Layton <jlayton@redhat.com>
+Signed-off-by: Olga Kornievskaia <kolga@netapp.com>
 ---
- testcases/kernel/syscalls/readahead/readahead02.c | 2 ++
- 1 file changed, 2 insertions(+)
+ include/linux/nfs4.h | 24 ++++++++++++++++++++++++
+ 1 file changed, 24 insertions(+)
 
-diff --git a/testcases/kernel/syscalls/readahead/readahead02.c b/testcases/kernel/syscalls/readahead/readahead02.c
-index ea73f8566..918a694c1 100644
---- a/testcases/kernel/syscalls/readahead/readahead02.c
-+++ b/testcases/kernel/syscalls/readahead/readahead02.c
-@@ -346,6 +346,8 @@ static void test_readahead(unsigned int n)
- 		 */
- 		if (cached_ra * 1024 > testfile_size / 2)
- 			tst_res(TPASS, "using cache as expected");
-+		else if (!cached_ra)
-+			tst_res(TFAIL, "readahead failed to use any cache");
- 		else
- 			tst_res(TWARN, "using less cache than expected");
- 	} else {
+diff --git a/include/linux/nfs4.h b/include/linux/nfs4.h
+index 1b06f0b..4803507 100644
+--- a/include/linux/nfs4.h
++++ b/include/linux/nfs4.h
+@@ -16,6 +16,7 @@
+ #include <linux/list.h>
+ #include <linux/uidgid.h>
+ #include <uapi/linux/nfs4.h>
++#include <linux/sunrpc/msg_prot.h>
+ 
+ enum nfs4_acl_whotype {
+ 	NFS4_ACL_WHO_NAMED = 0,
+@@ -672,4 +673,27 @@ struct nfs4_op_map {
+ 	} u;
+ };
+ 
++struct nfs42_netaddr {
++	char		netid[RPCBIND_MAXNETIDLEN];
++	char		addr[RPCBIND_MAXUADDRLEN + 1];
++	u32		netid_len;
++	u32		addr_len;
++};
++
++enum netloc_type4 {
++	NL4_NAME		= 1,
++	NL4_URL			= 2,
++	NL4_NETADDR		= 3,
++};
++
++struct nl4_server {
++	enum netloc_type4	nl4_type;
++	union {
++		struct { /* NL4_NAME, NL4_URL */
++			int	nl4_str_sz;
++			char	nl4_str[NFS4_OPAQUE_LIMIT + 1];
++		};
++		struct nfs42_netaddr	nl4_addr; /* NL4_NETADDR */
++	} u;
++};
+ #endif
 -- 
-2.17.1
+1.8.3.1
