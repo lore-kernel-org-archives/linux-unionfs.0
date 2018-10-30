@@ -1,43 +1,71 @@
-Return-Path: <linux-unionfs-owner@vger.kernel.org>
-Received: from szxga04-in.huawei.com ([45.249.212.190]:14116 "EHLO huawei.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1726317AbeJYKvJ (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 25 Oct 2018 06:51:09 -0400
-From: Yufen Yu <yuyufen@huawei.com>
-Subject: [PATCH] tmpfs: let lseek return ENXIO with a negative offset
-Date: Thu, 25 Oct 2018 10:22:56 +0800
-Message-ID: <1540434176-14349-1-git-send-email-yuyufen@huawei.com>
-MIME-Version: 1.0
-Content-Type: text/plain
-Sender: linux-unionfs-owner@vger.kernel.org
-To: viro@zeniv.linux.org.uk, hughd@google.com
-Cc: linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org
+Return-Path: <olga.kornievskaia@gmail.com>
+Return-Path: <olga.kornievskaia@gmail.com>
+From: Olga Kornievskaia <olga.kornievskaia@gmail.com>
+Subject: [PATCH v7 00/11] client-side support for "inter" SSC copy
+Date: Tue, 30 Oct 2018 16:56:02 -0400
+Message-Id: <20181030205614.40754-1-olga.kornievskaia@gmail.com>
+To: trond.myklebust@hammerspace.com, anna.schumaker@netapp.com, viro@zeniv.linux.org.uk, smfrench@gmail.com, miklos@szeredi.hu
+Cc: linux-nfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-cifs@vger.kernel.org, linux-unionfs@vger.kernel.org, linux-man@vger.kernel.org
 List-ID: <linux-unionfs@vger.kernel.org>
 
-For now, the others filesystems, such as ext4, f2fs, ubifs,
-all of them return ENXIO when lseek with a negative offset.
-It is better to let tmpfs return ENXIO too. After that, tmpfs
-can also pass generic/448.
+From: Olga Kornievskaia <kolga@netapp.com>
 
-Signed-off-by: Yufen Yu <yuyufen@huawei.com>
----
- mm/shmem.c | 4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+This patch series adds client-side support for doing NFSv4.2 "inter"
+copy offload between different NFS servers.
 
-diff --git a/mm/shmem.c b/mm/shmem.c
-index 0376c124..f37bf06 100644
---- a/mm/shmem.c
-+++ b/mm/shmem.c
-@@ -2608,9 +2608,7 @@ static loff_t shmem_file_llseek(struct file *file, loff_t offset, int whence)
- 	inode_lock(inode);
- 	/* We're holding i_mutex so we can access i_size directly */
- 
--	if (offset < 0)
--		offset = -EINVAL;
--	else if (offset >= inode->i_size)
-+	if (offset < 0 || offset >= inode->i_size)
- 		offset = -ENXIO;
- 	else {
- 		start = offset >> PAGE_SHIFT;
+In case of the "inter" SSC copy files reside on different servers and
+thus under different superblocks and require that VFS removes the
+restriction that src and dst files must be on the same superblock.
+
+NFS's copy_file_range() determines if the copy is "intra" or "inter"
+and for "inter" it sends the COPY_NOTIFY to the source server. Then,
+it would send of an asynchronous COPY to the destination server. If
+an application cancels an in-flight COPY, OFFLOAD_CANCEL is sent to
+both of the servers.
+
+This patch series also include necessary client-side additions that
+are performed by the destination server. The server needs an NFS
+open that represents a source file without doing an actual open.
+Two function nfs42_ssc_open/nfs42_ssc_close() are introduced to
+accomplish it that make use of the VFS's alloc_file_pseudo() to
+
+v7:
+--- in VFS patch: remove the support for generic copy_file_range
+for all file systems, just allow for individual filesystems to
+support cross device copy_file_range. the check for the superblocks
+is moved just before the do_splice_direct()
+--- modified the man page
+
+Olga Kornievskaia (11):
+  VFS: move cross device copy_file_range() check into filesystems
+  NFS: validity check for source offset in copy_file_range
+  NFS NFSD: defining nl4_servers structure needed by both
+  NFS: add COPY_NOTIFY operation
+  NFS: add ca_source_server<> to COPY
+  NFS: also send OFFLOAD_CANCEL to source server
+  NFS: inter ssc open
+  NFS: skip recovery of copy open on dest server
+  NFS: for "inter" copy treat ESTALE as ENOTSUPP
+  NFS: COPY handle ERR_OFFLOAD_DENIED
+  NFS: replace cross device check in copy_file_range
+
+ Documentation/filesystems/porting |   7 ++
+ fs/cifs/cifsfs.c                  |   3 +
+ fs/nfs/nfs42.h                    |  15 ++-
+ fs/nfs/nfs42proc.c                | 129 ++++++++++++++++++++++---
+ fs/nfs/nfs42xdr.c                 | 193 +++++++++++++++++++++++++++++++++++++-
+ fs/nfs/nfs4_fs.h                  |  10 ++
+ fs/nfs/nfs4client.c               |   2 +-
+ fs/nfs/nfs4file.c                 | 125 +++++++++++++++++++++++-
+ fs/nfs/nfs4proc.c                 |   6 +-
+ fs/nfs/nfs4state.c                |  14 +++
+ fs/nfs/nfs4xdr.c                  |   1 +
+ fs/overlayfs/file.c               |   3 +
+ fs/read_write.c                   |  12 ++-
+ include/linux/nfs4.h              |  25 +++++
+ include/linux/nfs_fs_sb.h         |   1 +
+ include/linux/nfs_xdr.h           |  17 ++++
+ 16 files changed, 539 insertions(+), 24 deletions(-)
+
 -- 
-2.7.4
+1.8.3.1
