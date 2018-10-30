@@ -1,11 +1,11 @@
 Return-Path: <olga.kornievskaia@gmail.com>
 Return-Path: <olga.kornievskaia@gmail.com>
 From: Olga Kornievskaia <olga.kornievskaia@gmail.com>
-Subject: [PATCH v3 05/11] NFS add ca_source_server<> to COPY
-Date: Thu, 25 Oct 2018 17:51:41 -0400
-Message-Id: <20181025215147.36248-7-olga.kornievskaia@gmail.com>
-In-Reply-To: <20181025215147.36248-1-olga.kornievskaia@gmail.com>
-References: <20181025215147.36248-1-olga.kornievskaia@gmail.com>
+Subject: [PATCH v7 05/11] NFS: add ca_source_server<> to COPY
+Date: Tue, 30 Oct 2018 16:56:08 -0400
+Message-Id: <20181030205614.40754-7-olga.kornievskaia@gmail.com>
+In-Reply-To: <20181030205614.40754-1-olga.kornievskaia@gmail.com>
+References: <20181030205614.40754-1-olga.kornievskaia@gmail.com>
 To: trond.myklebust@hammerspace.com, anna.schumaker@netapp.com, viro@zeniv.linux.org.uk, smfrench@gmail.com, miklos@szeredi.hu
 Cc: linux-nfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-cifs@vger.kernel.org, linux-unionfs@vger.kernel.org, linux-man@vger.kernel.org
 List-ID: <linux-unionfs@vger.kernel.org>
@@ -128,7 +128,7 @@ index e6e7cbf..c96c3f8 100644
  
  static void encode_offload_cancel(struct xdr_stream *xdr,
 diff --git a/fs/nfs/nfs4file.c b/fs/nfs/nfs4file.c
-index 6d53750..032996b 100644
+index beda4b3..e5c1a68 100644
 --- a/fs/nfs/nfs4file.c
 +++ b/fs/nfs/nfs4file.c
 @@ -134,6 +134,8 @@ static ssize_t nfs4_copy_file_range(struct file *file_in, loff_t pos_in,
@@ -139,8 +139,8 @@ index 6d53750..032996b 100644
 +	nfs4_stateid *cnrs = NULL;
  	ssize_t ret;
  
- 	if (file_in->f_inode->i_sb != file_out->f_inode->i_sb)
-@@ -151,9 +153,12 @@ static ssize_t nfs4_copy_file_range(struct file *file_in, loff_t pos_in,
+ 	if (pos_in >= i_size_read(file_inode(file_in)))
+@@ -154,9 +156,12 @@ static ssize_t nfs4_copy_file_range(struct file *file_in, loff_t pos_in,
  		ret = nfs42_proc_copy_notify(file_in, file_out, cn_resp);
  		if (ret)
  			goto out;
