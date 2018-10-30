@@ -1,25 +1,42 @@
-MIME-Version: 1.0
-In-Reply-To: <1537887462-35160-1-git-send-email-weiyongjun1@huawei.com>
-References: <1537887462-35160-1-git-send-email-weiyongjun1@huawei.com>
-Date: Mon, 1 Oct 2018 11:26:50 +0200
-Message-ID: <CAJfpegtgQhu4Vdz81onOZ32XE_zgUwHvy73eeQ+bRV-5vJhdnQ@mail.gmail.com>
-Subject: Re: [PATCH -next] ovl: make symbol 'ovl_aops' static
-From: Miklos Szeredi <miklos@szeredi.hu>
-Content-Type: text/plain; charset="UTF-8"
-To: Wei Yongjun <weiyongjun1@huawei.com>
-Cc: Amir Goldstein <amir73il@gmail.com>, overlayfs <linux-unionfs@vger.kernel.org>, kernel-janitors@vger.kernel.org
+Return-Path: <olga.kornievskaia@gmail.com>
+Return-Path: <olga.kornievskaia@gmail.com>
+From: Olga Kornievskaia <olga.kornievskaia@gmail.com>
+Subject: [PATCH v7 11/11] NFS: replace cross device check in copy_file_range
+Date: Tue, 30 Oct 2018 16:56:14 -0400
+Message-Id: <20181030205614.40754-13-olga.kornievskaia@gmail.com>
+In-Reply-To: <20181030205614.40754-1-olga.kornievskaia@gmail.com>
+References: <20181030205614.40754-1-olga.kornievskaia@gmail.com>
+To: trond.myklebust@hammerspace.com, anna.schumaker@netapp.com, viro@zeniv.linux.org.uk, smfrench@gmail.com, miklos@szeredi.hu
+Cc: linux-nfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-cifs@vger.kernel.org, linux-unionfs@vger.kernel.org, linux-man@vger.kernel.org
 List-ID: <linux-unionfs@vger.kernel.org>
 
-On Tue, Sep 25, 2018 at 4:57 PM, Wei Yongjun <weiyongjun1@huawei.com> wrote:
-> Fixes the following sparse warning:
->
-> fs/overlayfs/inode.c:507:39: warning:
->  symbol 'ovl_aops' was not declared. Should it be static?
->
-> Fixes: 5b910bd615ba ("ovl: fix GPF in swapfile_activate of file from overlayfs over xfs")
-> Signed-off-by: Wei Yongjun <weiyongjun1@huawei.com>
+From: Olga Kornievskaia <kolga@netapp.com>
 
-Applied.
+Add a check to disallow cross file systems copy offload, both
+files are expected to be of NFS4.2+ type.
 
-Thanks,
-Miklos
+Reviewed-by: Jeff Layton <jlayton@kernel.org>
+Reviewed-by: Matthew Wilcox <willy@infradead.org>
+Signed-off-by: Olga Kornievskaia <kolga@netapp.com>
+---
+ fs/nfs/nfs4file.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/fs/nfs/nfs4file.c b/fs/nfs/nfs4file.c
+index 989f174..69e2705 100644
+--- a/fs/nfs/nfs4file.c
++++ b/fs/nfs/nfs4file.c
+@@ -142,7 +142,10 @@ static ssize_t nfs4_copy_file_range(struct file *file_in, loff_t pos_in,
+ 	if (pos_in >= i_size_read(file_inode(file_in)))
+ 		return -EINVAL;
+ 
+-	if (file_inode(file_in)->i_sb != file_inode(file_out)->i_sb)
++	if (file_in->f_op != &nfs4_file_operations)
++		return -EXDEV;
++
++	if ((NFS_SERVER(file_inode(file_in)))->nfs_client->cl_minorversion < 2)
+ 		return -EXDEV;
+ 
+ 	if (file_inode(file_in) == file_inode(file_out))
+-- 
+1.8.3.1
