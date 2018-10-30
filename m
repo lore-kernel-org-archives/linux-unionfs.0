@@ -1,65 +1,44 @@
-Return-Path: <olga.kornievskaia@gmail.com>
-Return-Path: <olga.kornievskaia@gmail.com>
+Return-Path: <linux-fsdevel-owner@vger.kernel.org>
 From: Olga Kornievskaia <olga.kornievskaia@gmail.com>
-Subject: [PATCH v5 04/12] NFS NFSD: defining nl4_servers structure needed by both
-Date: Mon, 29 Oct 2018 13:40:51 -0400
-Message-Id: <20181029174059.38326-6-olga.kornievskaia@gmail.com>
-In-Reply-To: <20181029174059.38326-1-olga.kornievskaia@gmail.com>
-References: <20181029174059.38326-1-olga.kornievskaia@gmail.com>
+Subject: [PATCH v7 09/11] NFS: for "inter" copy treat ESTALE as ENOTSUPP
+Date: Tue, 30 Oct 2018 16:56:12 -0400
+Message-Id: <20181030205614.40754-11-olga.kornievskaia@gmail.com>
+In-Reply-To: <20181030205614.40754-1-olga.kornievskaia@gmail.com>
+References: <20181030205614.40754-1-olga.kornievskaia@gmail.com>
+Sender: linux-fsdevel-owner@vger.kernel.org
 To: trond.myklebust@hammerspace.com, anna.schumaker@netapp.com, viro@zeniv.linux.org.uk, smfrench@gmail.com, miklos@szeredi.hu
 Cc: linux-nfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-cifs@vger.kernel.org, linux-unionfs@vger.kernel.org, linux-man@vger.kernel.org
 List-ID: <linux-unionfs@vger.kernel.org>
 
 From: Olga Kornievskaia <kolga@netapp.com>
 
-These structures are needed by COPY_NOTIFY on the client and needed
-by the nfsd as well
+If the client sends an "inter" copy to the destination server but
+it only supports "intra" copy, it can return ESTALE (since it
+doesn't know anything about the file handle from the other server
+and does not recognize the special case of "inter" copy). Translate
+this error as ENOTSUPP and also send OFFLOAD_CANCEL to the source
+server so that it can clean up state.
 
-Reviewed-by: Jeff Layton <jlayton@redhat.com>
 Signed-off-by: Olga Kornievskaia <kolga@netapp.com>
 ---
- include/linux/nfs4.h | 24 ++++++++++++++++++++++++
- 1 file changed, 24 insertions(+)
+ fs/nfs/nfs42proc.c | 5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff --git a/include/linux/nfs4.h b/include/linux/nfs4.h
-index 1b06f0b..4803507 100644
---- a/include/linux/nfs4.h
-+++ b/include/linux/nfs4.h
-@@ -16,6 +16,7 @@
- #include <linux/list.h>
- #include <linux/uidgid.h>
- #include <uapi/linux/nfs4.h>
-+#include <linux/sunrpc/msg_prot.h>
+diff --git a/fs/nfs/nfs42proc.c b/fs/nfs/nfs42proc.c
+index 98fe00b..00809b3 100644
+--- a/fs/nfs/nfs42proc.c
++++ b/fs/nfs/nfs42proc.c
+@@ -395,6 +395,11 @@ ssize_t nfs42_proc_copy(struct file *src, loff_t pos_src,
+ 			args.sync = true;
+ 			dst_exception.retry = 1;
+ 			continue;
++		} else if (err == -ESTALE &&
++				!nfs42_files_from_same_server(src, dst)) {
++			nfs42_do_offload_cancel_async(src, &args.src_stateid);
++			err = -EOPNOTSUPP;
++			break;
+ 		}
  
- enum nfs4_acl_whotype {
- 	NFS4_ACL_WHO_NAMED = 0,
-@@ -672,4 +673,27 @@ struct nfs4_op_map {
- 	} u;
- };
- 
-+struct nfs42_netaddr {
-+	char		netid[RPCBIND_MAXNETIDLEN];
-+	char		addr[RPCBIND_MAXUADDRLEN + 1];
-+	u32		netid_len;
-+	u32		addr_len;
-+};
-+
-+enum netloc_type4 {
-+	NL4_NAME		= 1,
-+	NL4_URL			= 2,
-+	NL4_NETADDR		= 3,
-+};
-+
-+struct nl4_server {
-+	enum netloc_type4	nl4_type;
-+	union {
-+		struct { /* NL4_NAME, NL4_URL */
-+			int	nl4_str_sz;
-+			char	nl4_str[NFS4_OPAQUE_LIMIT + 1];
-+		};
-+		struct nfs42_netaddr	nl4_addr; /* NL4_NETADDR */
-+	} u;
-+};
- #endif
+ 		err2 = nfs4_handle_exception(server, err, &src_exception);
 -- 
 1.8.3.1
