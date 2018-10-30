@@ -1,130 +1,55 @@
-Return-Path: <amir73il@gmail.com>
-Return-Path: <amir73il@gmail.com>
-From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH 2/2] ovl: abstract ovl_inode lock with a helper
-Date: Thu, 18 Oct 2018 18:37:14 +0300
-Message-Id: <20181018153714.3834-3-amir73il@gmail.com>
-In-Reply-To: <20181018153714.3834-1-amir73il@gmail.com>
-References: <20181018153714.3834-1-amir73il@gmail.com>
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: linux-unionfs@vger.kernel.org
+Return-Path: <olga.kornievskaia@gmail.com>
+Return-Path: <olga.kornievskaia@gmail.com>
+From: Olga Kornievskaia <olga.kornievskaia@gmail.com>
+Subject: [PATCH 1/1] man-page: copy_file_range(2) allow for cross-device copies
+Date: Tue, 30 Oct 2018 16:56:04 -0400
+Message-Id: <20181030205614.40754-3-olga.kornievskaia@gmail.com>
+In-Reply-To: <20181030205614.40754-1-olga.kornievskaia@gmail.com>
+References: <20181030205614.40754-1-olga.kornievskaia@gmail.com>
+To: trond.myklebust@hammerspace.com, anna.schumaker@netapp.com, viro@zeniv.linux.org.uk, smfrench@gmail.com, miklos@szeredi.hu
+Cc: linux-nfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-cifs@vger.kernel.org, linux-unionfs@vger.kernel.org, linux-man@vger.kernel.org
 List-ID: <linux-unionfs@vger.kernel.org>
 
-The abstraction improves code readabilty (to some).
+From: Olga Kornievskaia <kolga@netapp.com>
 
-Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+A proposed VFS change removes the check for the files to reside
+under the same file system prior to attempting a copy. Instead,
+a file system driver implementation of the destination file
+is allowed to perform a cross-device copy_file_range(). If
+that filesystem does not support cross device copy, it returns
+-EXDEV.
+
+Signed-off-by: Olga Kornievskaia <kolga@netapp.com>
 ---
- fs/overlayfs/overlayfs.h | 10 ++++++++++
- fs/overlayfs/util.c      | 25 +++++++++++++------------
- 2 files changed, 23 insertions(+), 12 deletions(-)
+ man2/copy_file_range.2 | 9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
-diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-index b48ef22ef96b..5e45cb3630a0 100644
---- a/fs/overlayfs/overlayfs.h
-+++ b/fs/overlayfs/overlayfs.h
-@@ -290,6 +290,16 @@ static inline unsigned int ovl_xino_bits(struct super_block *sb)
- 	return ofs->xino_bits;
- }
- 
-+static inline int ovl_inode_lock(struct inode *inode)
-+{
-+	return mutex_lock_interruptible(&OVL_I(inode)->lock);
-+}
-+
-+static inline void ovl_inode_unlock(struct inode *inode)
-+{
-+	mutex_unlock(&OVL_I(inode)->lock);
-+}
-+
- 
- /* namei.c */
- int ovl_check_fh_len(struct ovl_fh *fh, int fh_len);
-diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
-index d3a786006729..7c01327b1852 100644
---- a/fs/overlayfs/util.c
-+++ b/fs/overlayfs/util.c
-@@ -521,13 +521,13 @@ bool ovl_already_copied_up(struct dentry *dentry, int flags)
- 
- int ovl_copy_up_start(struct dentry *dentry, int flags)
- {
--	struct ovl_inode *oi = OVL_I(d_inode(dentry));
-+	struct inode *inode = d_inode(dentry);
- 	int err;
- 
--	err = mutex_lock_interruptible(&oi->lock);
-+	err = ovl_inode_lock(inode);
- 	if (!err && ovl_already_copied_up_locked(dentry, flags)) {
- 		err = 1; /* Already copied up */
--		mutex_unlock(&oi->lock);
-+		ovl_inode_unlock(inode);
- 	}
- 
- 	return err;
-@@ -535,7 +535,7 @@ int ovl_copy_up_start(struct dentry *dentry, int flags)
- 
- void ovl_copy_up_end(struct dentry *dentry)
- {
--	mutex_unlock(&OVL_I(d_inode(dentry))->lock);
-+	ovl_inode_unlock(d_inode(dentry));
- }
- 
- bool ovl_check_origin_xattr(struct dentry *dentry)
-@@ -740,11 +740,11 @@ static void ovl_cleanup_index(struct dentry *dentry)
-  */
- int ovl_nlink_start(struct dentry *dentry)
- {
--	struct ovl_inode *oi = OVL_I(d_inode(dentry));
-+	struct inode *inode = d_inode(dentry);
- 	const struct cred *old_cred;
- 	int err;
- 
--	if (WARN_ON(!d_inode(dentry)))
-+	if (WARN_ON(!inode))
- 		return -ENOENT;
- 
- 	/*
-@@ -767,11 +767,11 @@ int ovl_nlink_start(struct dentry *dentry)
- 			return err;
- 	}
- 
--	err = mutex_lock_interruptible(&oi->lock);
-+	err = ovl_inode_lock(inode);
- 	if (err)
- 		return err;
- 
--	if (d_is_dir(dentry) || !ovl_test_flag(OVL_INDEX, d_inode(dentry)))
-+	if (d_is_dir(dentry) || !ovl_test_flag(OVL_INDEX, inode))
- 		goto out;
- 
- 	old_cred = ovl_override_creds(dentry->d_sb);
-@@ -786,15 +786,16 @@ int ovl_nlink_start(struct dentry *dentry)
- 
- out:
- 	if (err)
--		mutex_unlock(&oi->lock);
-+		ovl_inode_unlock(inode);
- 
- 	return err;
- }
- 
- void ovl_nlink_end(struct dentry *dentry)
- {
--	if (ovl_test_flag(OVL_INDEX, d_inode(dentry)) &&
--	    d_inode(dentry)->i_nlink == 0) {
-+	struct inode *inode = d_inode(dentry);
-+
-+	if (ovl_test_flag(OVL_INDEX, inode) && inode->i_nlink == 0) {
- 		const struct cred *old_cred;
- 
- 		old_cred = ovl_override_creds(dentry->d_sb);
-@@ -802,7 +803,7 @@ void ovl_nlink_end(struct dentry *dentry)
- 		revert_creds(old_cred);
- 	}
- 
--	mutex_unlock(&OVL_I(d_inode(dentry))->lock);
-+	ovl_inode_unlock(inode);
- }
- 
- int ovl_lock_rename_workdir(struct dentry *workdir, struct dentry *upperdir)
+diff --git a/man2/copy_file_range.2 b/man2/copy_file_range.2
+index 20374ab..03750c5 100644
+--- a/man2/copy_file_range.2
++++ b/man2/copy_file_range.2
+@@ -39,7 +39,8 @@ The
+ .BR copy_file_range ()
+ system call performs an in-kernel copy between two file descriptors
+ without the additional cost of transferring data from the kernel to user space
+-and then back into the kernel.
++and then back into the kernel. Starting kernel version 4.21 passed in
++file descriptors are not required to be under the same mounted file system.
+ It copies up to
+ .I len
+ bytes of data from file descriptor
+@@ -129,9 +130,9 @@ Out of memory.
+ There is not enough space on the target filesystem to complete the copy.
+ .TP
+ .B EXDEV
+-The files referred to by
+-.IR file_in " and " file_out
+-are not on the same mounted filesystem.
++The file system of the 
++.I file_out
++does not support cross device file copy.
+ .SH VERSIONS
+ The
+ .BR copy_file_range ()
 -- 
-2.17.1
+1.8.3.1
