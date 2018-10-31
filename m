@@ -1,116 +1,198 @@
-Return-Path: <amir73il@gmail.com>
-Return-Path: <amir73il@gmail.com>
-From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH v3 5/6] syscalls/readahead02: test readahead using posix_fadvise()
-Date: Thu, 11 Oct 2018 02:34:40 +0300
-Message-Id: <20181010233441.5337-6-amir73il@gmail.com>
-In-Reply-To: <20181010233441.5337-1-amir73il@gmail.com>
-References: <20181010233441.5337-1-amir73il@gmail.com>
-To: Cyril Hrubis <chrubis@suse.cz>
-Cc: ltp@lists.linux.it, Jan Stancek <jstancek@redhat.com>, Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org
+Return-Path: <olga.kornievskaia@gmail.com>
+MIME-Version: 1.0
+References: <20181026201057.36899-1-olga.kornievskaia@gmail.com>
+ <20181026201057.36899-4-olga.kornievskaia@gmail.com> <20181027092750.GL6311@dastard>
+ <CAN-5tyEeMrRVUyP61Vv-dwFUvm7q55Q3=NVJkeZN+XoCcAOCDQ@mail.gmail.com>
+ <20181030090344.GN6311@dastard> <CAN-5tyHhTQ8bZk+DUrU0o1ZK3k9uhipiLPeOA3dYuXUG542mNw@mail.gmail.com>
+ <20181031001437.GQ6311@dastard>
+In-Reply-To: <20181031001437.GQ6311@dastard>
+From: Olga Kornievskaia <olga.kornievskaia@gmail.com>
+Date: Wed, 31 Oct 2018 10:51:48 -0400
+Message-ID: <CAN-5tyEHAUadnxuGmxC_KJzwUT7JO=-VSyioAQM0GTUR6+WY_Q@mail.gmail.com>
+Subject: Re: [PATCH v4 02/11] VFS: copy_file_range check validity of input
+ source offset
+Content-Type: text/plain; charset="UTF-8"
+To: david@fromorbit.com
+Cc: trond.myklebust@hammerspace.com, Anna Schumaker <anna.schumaker@netapp.com>, viro@zeniv.linux.org.uk, Steve French <smfrench@gmail.com>, Miklos Szeredi <miklos@szeredi.hu>, linux-nfs <linux-nfs@vger.kernel.org>, linux-fsdevel@vger.kernel.org, linux-cifs@vger.kernel.org, linux-unionfs@vger.kernel.org, linux-man@vger.kernel.org
 List-ID: <linux-unionfs@vger.kernel.org>
 
-The call to posix_fadvise(POSIX_FADV_WILLNEED) should have the same
-effect as the call to readahead() syscall.
+On Tue, Oct 30, 2018 at 8:15 PM Dave Chinner <david@fromorbit.com> wrote:
+>
+> On Tue, Oct 30, 2018 at 05:10:58PM -0400, Olga Kornievskaia wrote:
+> > On Tue, Oct 30, 2018 at 5:03 AM Dave Chinner <david@fromorbit.com> wrote:
+> > >
+> > > On Mon, Oct 29, 2018 at 10:41:22AM -0400, Olga Kornievskaia wrote:
+> > > > On Sat, Oct 27, 2018 at 5:27 AM Dave Chinner <david@fromorbit.com> wrote:
+> > > > >
+> > > > > On Fri, Oct 26, 2018 at 04:10:48PM -0400, Olga Kornievskaia wrote:
+> > > > > > From: Olga Kornievskaia <kolga@netapp.com>
+> > > > > >
+> > > > > > Input source offset can't be beyond the end of the file.
+> > > > > >
+> > > > > > Signed-off-by: Olga Kornievskaia <kolga@netapp.com>
+> > > > > > ---
+> > > > > >  fs/read_write.c | 3 +++
+> > > > > >  1 file changed, 3 insertions(+)
+> > > > > >
+> > > > > > diff --git a/fs/read_write.c b/fs/read_write.c
+> > > > > > index fb4ffca..b3b304e 100644
+> > > > > > --- a/fs/read_write.c
+> > > > > > +++ b/fs/read_write.c
+> > > > > > @@ -1594,6 +1594,9 @@ ssize_t vfs_copy_file_range(struct file *file_in, loff_t pos_in,
+> > > > > >               }
+> > > > > >       }
+> > > > > >
+> > > > > > +     if (pos_in >= i_size_read(inode_in))
+> > > > > > +             return -EINVAL;
+> > > > > > +
+> > > > >
+> > > > > vfs_copy_file_range seems ot be missing a wide range of checks.
+> > > > > rlimit, s_maxbytes, LFS file sizes, etc. This is a write, so all the
+> > > > > checks in generic_write_checks() apply, right? And the same security
+> > > > > issues like stripping setuid bits, etc? And we need to touch
+> > > > > atime on the source file, too?
+> > > >
+> > > > Yes sound like needed checks.
+> > > >
+> > > > > We've just merged 5 or so patches in 4.19-rc8 and we're ready to
+> > > > > merge another ~30 patch series to fix all the stuff missing from the
+> > > > > clone/dedupe file range operations that make them safe and robust.
+> > > > > It seems like copy_file_range is all the checks it needs, too?
+> > > >
+> > > > Are you proposing to not do this check now in favor of the proper work
+> > > > that will do all of those checks you listed above?
+> > >
+> > > No, I'm saying that if you're adding one check, there's a whole heap
+> > > of checks that still need to be added, *especially* if this is going
+> > > to fall back to page cache copy between superblocks that may have
+> > > different limits and constraints.
+> > >
+> > > There's security issues in this API. They need to be fixed before we
+> > > allow it to do more and potentially expose more problems due to it's
+> > > wider capability.
+> >
+> > Before I totally give up on this feature, can you help me understand
+> > your concerns with allowing the generic copy_file_range via
+> > do_splice().
+>
+> it's not do_splice_direct() i'm concerned about. It's /writing data
+> without adequate checks/ that I'm concerned about.
+> ->copy_file_range() also writes data, so it needs to undergo the
+> same safety checks as well.
 
-Repeat the test cases for local file and overlayfs file with
-posix_fadvise().
+Thank you Dave for clarifying and elaborating on the points. As you
+pointed out this concerns apply to the current code the same way as to
+the patch series. Those concerns should be address however I feel like
+they shouldn't be the responsibility of this particular patch series.
+Therefore, I ask for the community to either make any final comments
+for any changes that are needed to "version 7" patches and if no more
+comments arise I would like to ask for this to be added to the queue
+for the next kernel version.
 
-The new test case is a regression test for kernel commit b833a3660394
-("ovl: add ovl_fadvise()") which fixes a regression of fadvise() on
-an overlay file that was introduced by kernel commit 5b910bd615ba
-("ovl: fix GPF in swapfile_activate of file from overlayfs over xfs").
+Then the next patch series would be just VFS and would add appropriate
+checks and then allow for the generic copy_file_range() via do_splice.
 
-Signed-off-by: Amir Goldstein <amir73il@gmail.com>
----
- .../kernel/syscalls/readahead/readahead02.c   | 41 +++++++++++++++----
- 1 file changed, 34 insertions(+), 7 deletions(-)
+> > I have mentioned I'm not a VFS expert thus I come from just looking at
+> > the available documentation and the code.
+> >
+> > I don't see any restrictions on the files being passed in the
+> > do_splice_direct(). There are no restrictions that they must be from
+> > the same filesystem or file system type. But perhaps this not the
+> > concern you had but more about checking validity of arguments?
+> >
+> > I have looked at Dave Wong's, if I'm not mistaken these 2 are the
+> > relevant patches:
+> > [PATCH 02/28] vfs: check file ranges before cloning files
+> >  -- a couple but not all checks apply to copy_file_range() .
+>
+> Yes, of course - clone/dedupe have different constraints, but the
+> core checks are still needed for copy_file_range().
+>
+> For example, the man page says:
+>
+> EINVAL
+>         Requested range extends beyond the end of the source
+>         file; or the flags argument is not 0.
+>
+> Your patch above doesn't actually check that - it only checks if the
+> pos_in is beyond EOF. It needs to check if pos_in + len is beyond
+> EOF. After checking for wraps, of course.
 
-diff --git a/testcases/kernel/syscalls/readahead/readahead02.c b/testcases/kernel/syscalls/readahead/readahead02.c
-index 56a8496ff..d5cc7677b 100644
---- a/testcases/kernel/syscalls/readahead/readahead02.c
-+++ b/testcases/kernel/syscalls/readahead/readahead02.c
-@@ -55,24 +55,49 @@ static struct tst_option options[] = {
- static struct tcase {
- 	const char *tname;
- 	int use_overlay;
-+	int use_fadvise;
- } tcases[] = {
--	{ "readahead on file", 0 },
--	{ "readahead on overlayfs file", 1 },
-+	{ "readahead on file", 0, 0 },
-+	{ "readahead on overlayfs file", 1, 0 },
-+	{ "POSIX_FADV_WILLNEED on file", 0, 1 },
-+	{ "POSIX_FADV_WILLNEED on overlayfs file", 1, 1 },
- };
- 
-+static int fadvise_willneed(int fd, off_t offset, size_t len)
-+{
-+	/* Should have the same effect as readahead() syscall */
-+	return posix_fadvise(fd, offset, len, POSIX_FADV_WILLNEED);
-+}
-+
-+static int libc_readahead(int fd, off_t offset, size_t len)
-+{
-+	return readahead(fd, offset, len);
-+}
-+
-+typedef int (*readahead_func_t)(int, off_t, size_t);
-+static readahead_func_t readahead_func = libc_readahead;
-+
- static int readahead_supported = 1;
-+static int fadvise_supported = 1;
- 
- static int check_ret(struct tcase *tc)
- {
- 	if (TST_RET == 0)
- 		return 0;
--	if (TST_ERR == EINVAL &&
--	    (!tc->use_overlay || !readahead_supported)) {
-+	/* posix_fadvise returns error number (not in errno) */
-+	if (tc->use_fadvise && (TST_ERR = TST_RET) == EINVAL &&
-+	    (!tc->use_overlay || !fadvise_supported)) {
-+		fadvise_supported = 0;
-+		tst_res(TCONF, "fadvise not supported on %s",
-+			tst_device->fs_type);
-+	} else if (TST_ERR == EINVAL &&
-+		   (!tc->use_overlay || !readahead_supported)) {
- 		readahead_supported = 0;
- 		tst_res(TCONF, "readahead not supported on %s",
- 			tst_device->fs_type);
- 	} else {
--		tst_res(TFAIL | TTERRNO, "readahead failed on %s",
-+		tst_res(TFAIL | TTERRNO, "%s failed on %s",
-+			tc->use_fadvise ? "fadvise" : "readahead",
- 			tc->use_overlay ? "overlayfs" : tst_device->fs_type);
- 	}
- 	return 1;
-@@ -152,7 +177,6 @@ static void create_testfile(int use_overlay)
- 	free(tmp);
- }
- 
--
- /* read_testfile - mmap testfile and read every page.
-  * This functions measures how many I/O and time it takes to fully
-  * read contents of test file.
-@@ -182,7 +206,7 @@ static void read_testfile(int do_readahead, const char *fname, size_t fsize,
- 	if (do_readahead) {
- 		cached_start = get_cached_size();
- 		do {
--			TEST(readahead(fd, offset, fsize - offset));
-+			TEST(readahead_func(fd, offset, fsize - offset));
- 			if (TST_RET != 0) {
- 				SAFE_CLOSE(fd);
- 				return;
-@@ -264,6 +288,9 @@ static void test_readahead(unsigned int n)
- 
- 	create_testfile(tc->use_overlay);
- 
-+	/* Use either readahead() syscall or POSIX_FADV_WILLNEED */
-+	readahead_func = tc->use_fadvise ? fadvise_willneed : libc_readahead;
-+
- 	/* find out how much can cache hold if we read whole file */
- 	read_testfile(0, testfile, testfile_size, &read_bytes, &usec, &cached);
- 	cached_high = get_cached_size();
--- 
-2.17.1
+There was a reason why I didn't include the "pos_in + len" check. It
+sparked the conversation why should "pos_in + len" be an error, when a
+"read" system call would just return a "short" read and EOF. So I
+dropped the check for "pst_in + len" to be an error.
+
+https://www.spinics.net/lists/linux-nfs/msg62627.html  (probably not
+all the conversations but some of them)
+
+> > [PATCH 04/28] vfs: strengthen checking of file range inputs to
+> > generic_remap_checks
+> >  -- these checks apply to the code once we fall back to the
+> > do_splice().
+>
+> man page says:
+>
+> EFBIG
+>        An  attempt  was made to write a file that exceeds the
+>        implementation-defined maximum file size or the process's
+>        file size limit, or to write at a position past the maximum
+>        allowed offset.
+>
+> These conditions apply to the destination file regards of the method
+> used to copy the data. That's what the generic methods now check for
+> clone/dedupe, and need to be used here, too.
+
+Agreed and once Darrek patches are in, copy_file_range() can use them too.
+
+> e.g. In the case of NFS, if the user ion the NFS client is not
+> allowed to copy a file (e.g. say user RLIMIT restrictions) then that
+> should not be bypassed just because the NFS client can do a server
+> side copy. The restriction has been placed on the local user calling
+> copy_file_range(), not on the server side implementation.
+>
+> > Also, can you elaborate one what "security issues" are present in this
+> > API? Is it "stripping setuid bits" and so something like calling
+> > file_remove_priv() that should be done when the fallback to the
+> > do_splice_direct() happens?
+>
+> From 4.19-rc8:
+>
+> 7debbf015f58 xfs: update ctime and remove suid before cloning files
+>
+> Which then got moved into the generic remap_file_range code in
+> Darrick's "vfs: remap helper should update destination inode
+> metadata" patch:
+>
+> https://git.kernel.org/pub/scm/fs/xfs/xfs-linux.git/commit/?h=for-next&id=8dde90bca6fca3736ea20109654bcf6dcf2ecf1d
+>
+> We can't assume that a server side copy is going to strip setuid
+> bits or even update target files c/mtimes.
+
+I would like to discuss your concerns about updating attributes
+(c/m/atimes), why shouldn't it be a ->copy_file_range()
+responsibility. copy_file_rage is basically a read+write. As far as I
+can tell, vfs_read and vfs_write (in VFS) don't deal with updating
+attributes. I'm guessing it's assumed that underlying file systems are
+going to take care of it (unless of course I misread the code).
+
+> > As for the atime, wouldn't the ->copy_file_range() be updating the
+> > file attributes? I guess for the fallback case, the attributes need to
+> > be updated.
+>
+> Generic VFS code should take care of atime updates. Hence if the
+> source file needs an atime update, it should be in the generic code
+> and done for all copy methods.
+>
+> > If those are checks/issues needed to be addressed and would then get
+> > the generic copy_file_range() in, I could give a go at a patch (or 2).
+>
+> yes, those are the ones I'm aware of. BUt there may be more, I
+> haven't really looked that closely...
+>
+> Cheers,
+>
+> Dave.
+> --
+> Dave Chinner
+> david@fromorbit.com
