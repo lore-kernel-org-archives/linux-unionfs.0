@@ -1,166 +1,57 @@
 Return-Path: <amir73il@gmail.com>
-Return-Path: <amir73il@gmail.com>
+MIME-Version: 1.0
+References: <CAOQ4uxgKDi7U1-z_KMB++WqagshEtcd0W-Q2kCAG3cXjsJNKzw@mail.gmail.com>
+ <20181031141752.GB20169@redhat.com> <CAOQ4uxg9vFqM3G5aV456foRFSm9NpjkZoR6CddbTTdcWTN5Quw@mail.gmail.com>
+ <20181031153944.GC20169@redhat.com> <CAOQ4uxjGWx02goXcBjqQAUv34N2QcnFLbDVaKykhYNhV71RNBQ@mail.gmail.com>
+ <20181031163939.GD20169@redhat.com> <CAOQ4uxgLWHHK3RLE_zKXkM_S5Lfc7Hn2rpKvOvJda5RtE97C3Q@mail.gmail.com>
+ <20181031192341.GA3093@redhat.com> <20181031195643.GA3382@redhat.com>
+ <CAOQ4uxiCmmggC7_PTGS0Zw+GAL_xijSgTkAOOSSQGi-NAXEACw@mail.gmail.com> <20181031212419.GB3382@redhat.com>
+In-Reply-To: <20181031212419.GB3382@redhat.com>
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH v2 1/5] ovl: return error on mount if metacopy cannot be enabled
-Date: Thu,  1 Nov 2018 02:48:09 +0200
-Message-Id: <20181101004813.31349-2-amir73il@gmail.com>
-In-Reply-To: <20181101004813.31349-1-amir73il@gmail.com>
-References: <20181101004813.31349-1-amir73il@gmail.com>
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: Vivek Goyal <vgoyal@redhat.com>, linux-unionfs@vger.kernel.org
+Date: Thu, 1 Nov 2018 00:16:45 +0200
+Message-ID: <CAOQ4uxiufacOJ7xf6oRPnBNS2nDOn=cEfzTvCdhwkvvZyTWgdw@mail.gmail.com>
+Subject: Re: [PATCH v2] ovl: return error on mount if metacopy cannot be enabled
+Content-Type: text/plain; charset="UTF-8"
+To: Vivek Goyal <vgoyal@redhat.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, overlayfs <linux-unionfs@vger.kernel.org>, "zhangyi (F)" <yi.zhang@huawei.com>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-Consider a user who wants to enable metadata only copy-up with metacopy=on.
-If this feature can't be enabled, we disable metacopy=off and just leave
-a warning in logs. metacopy=on requires redirect_dir=on (for upper dir)
-or redirect_dir=follow (for non-upper mount) and requires that upper fs
-supports extended attributes.
+> I feel definition of "strict" has been expanding as we are discussing.
+>
+> - Initilaly, I thought that it only meant that any options specified
+>   as mount option can'e be disabled and if system configuration does
+>   not support it (for older mount options), we will fail mount.
+>
+> - Now it also means that Kconfig/module can lock down value of a
+>   varibale and it can't be disabled from mount option (until and unless
+>   user passes in strict=off).
+>
 
-As user does not see mount failure, he/she assumes metadata only copy-up
-has been enabled but that's not the case.
+I managed to confuse you. 'strict' doesn't mean that you cannot
+change defaults with mount options at all.
+It simply means that every instance of pr_warn("...falling back to")
+is going to error instead of disabling a feature whose requirements
+are not met.
 
-So instead of disabling metacopy, return an error to user and leave a
-message in logs. That may allow user to fix mount options and retry.
-This is done only if user specified metacopy=on in mount options. If
-metacopy is enabled as default either through module command line or
-kernel Kconfig, that's not enforced and it can be disabled automatically
-if system configuration does not permit it.
+Better wait for patches it will be clearer to read the code than my
+emails...
 
-Reported-by: Daniel Walsh <dwalsh@redhat.com>
-Suggested-by: Vivek Goyal <vgoyal@redhat.com>
-Fixes: d5791044d2e5 ("ovl: Provide a mount option metacopy=on/off...")
-Cc: <stable@vger.kernel.org> # v4.19
-Signed-off-by: Amir Goldstein <amir73il@gmail.com>
----
- fs/overlayfs/ovl_entry.h |  1 +
- fs/overlayfs/super.c     | 74 +++++++++++++++++++++++++++++++---------
- 2 files changed, 59 insertions(+), 16 deletions(-)
+> Have a quick question. Does backward compatibility applies even if
+> both upper/ and workdir/ are empty. IOW, can't we automatically enable
+> "strict" when we know that this is the first time overlayfs mount is
+> being created (otherwise both upper and workdir will not have been empty)
+> and we can enable strict policy without breaking backward compatibility.
+>
 
-diff --git a/fs/overlayfs/ovl_entry.h b/fs/overlayfs/ovl_entry.h
-index ec237035333a..fb819aec46c0 100644
---- a/fs/overlayfs/ovl_entry.h
-+++ b/fs/overlayfs/ovl_entry.h
-@@ -20,6 +20,7 @@ struct ovl_config {
- 	bool nfs_export;
- 	int xino;
- 	bool metacopy;
-+	bool strict;
- };
- 
- struct ovl_sb {
-diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-index 22ffb23ea44d..d91d2ba70d54 100644
---- a/fs/overlayfs/super.c
-+++ b/fs/overlayfs/super.c
-@@ -56,6 +56,50 @@ module_param_named(xino_auto, ovl_xino_auto_def, bool, 0644);
- MODULE_PARM_DESC(ovl_xino_auto_def,
- 		 "Auto enable xino feature");
- 
-+static bool ovl_metacopy_def = IS_ENABLED(CONFIG_OVERLAY_FS_METACOPY);
-+module_param_named(metacopy, ovl_metacopy_def, bool, 0644);
-+MODULE_PARM_DESC(ovl_metacopy_def,
-+		 "Default to on or off for the metadata only copy up feature");
-+
-+static int ovl_feature_requires(struct ovl_config *config, const char *feature,
-+				const char *requirement)
-+{
-+	if (config->strict) {
-+		pr_err("overlayfs: %s requires %s.\n", feature, requirement);
-+		return -EINVAL;
-+	}
-+
-+	pr_warn("overlayfs: %s requies %s, disabling %s feature.\n", feature,
-+		requirement, feature);
-+
-+	return 0;
-+}
-+
-+/*
-+ * Check dependencies between features.
-+ *
-+ * @enabled is a boolean variable that depends on the boolean @required
-+ * variable.
-+ *
-+ * If !@config->strict, the feature is disabled when requirement is not met.
-+ * If @config->strict, return error when requirement is not met.
-+ *
-+ * @feature is the name of the feature and @requirement is the description of
-+ * the requirement for the error/warning message.
-+ */
-+static int ovl_feature_check(struct ovl_config *config, bool *enabled,
-+			     bool required, const char *feature,
-+			     const char *requirement)
-+{
-+	/* If feature is enabled, required condition should be met */
-+	if (!*enabled || required)
-+		return 0;
-+
-+	*enabled = false;
-+
-+	return ovl_feature_requires(config, feature, requirement);
-+}
-+
- static void ovl_entry_stack_free(struct ovl_entry *oe)
- {
- 	unsigned int i;
-@@ -64,11 +108,6 @@ static void ovl_entry_stack_free(struct ovl_entry *oe)
- 		dput(oe->lowerstack[i].dentry);
- }
- 
--static bool ovl_metacopy_def = IS_ENABLED(CONFIG_OVERLAY_FS_METACOPY);
--module_param_named(metacopy, ovl_metacopy_def, bool, 0644);
--MODULE_PARM_DESC(ovl_metacopy_def,
--		 "Default to on or off for the metadata only copy up feature");
--
- static void ovl_dentry_release(struct dentry *dentry)
- {
- 	struct ovl_entry *oe = dentry->d_fsdata;
-@@ -548,6 +587,7 @@ static int ovl_parse_opt(char *opt, struct ovl_config *config)
- 
- 		case OPT_METACOPY_ON:
- 			config->metacopy = true;
-+			config->strict = true;
- 			break;
- 
- 		case OPT_METACOPY_OFF:
-@@ -573,15 +613,13 @@ static int ovl_parse_opt(char *opt, struct ovl_config *config)
- 		return err;
- 
- 	/* metacopy feature with upper requires redirect_dir=on */
--	if (config->upperdir && config->metacopy && !config->redirect_dir) {
--		pr_warn("overlayfs: metadata only copy up requires \"redirect_dir=on\", falling back to metacopy=off.\n");
--		config->metacopy = false;
--	} else if (config->metacopy && !config->redirect_follow) {
--		pr_warn("overlayfs: metadata only copy up requires \"redirect_dir=follow\" on non-upper mount, falling back to metacopy=off.\n");
--		config->metacopy = false;
--	}
-+	err = ovl_feature_check(config, &config->metacopy,
-+				config->upperdir ? config->redirect_dir :
-+						   config->redirect_follow,
-+				"metadata only copy up",
-+				"\"redirect_dir=on\" or \"redirect_dir=follow\" on non-upper mount");
- 
--	return 0;
-+	return err;
- }
- 
- #define OVL_WORKDIR_NAME "work"
-@@ -1055,9 +1093,13 @@ static int ovl_make_workdir(struct ovl_fs *ofs, struct path *workpath)
- 	if (err) {
- 		ofs->noxattr = true;
- 		ofs->config.index = false;
--		ofs->config.metacopy = false;
--		pr_warn("overlayfs: upper fs does not support xattr, falling back to index=off and metacopy=off.\n");
--		err = 0;
-+		pr_warn("overlayfs: upper fs does not support xattr, falling back to index=off.\n");
-+		err = ovl_feature_check(&ofs->config, &ofs->config.metacopy,
-+					!ofs->noxattr,
-+					"metadata only copy up",
-+					"upper fs xattr support");
-+		if (err)
-+			goto out;
- 	} else {
- 		vfs_removexattr(ofs->workdir, OVL_XATTR_OPAQUE);
- 	}
--- 
-2.17.1
+I have already discussed this with Zhangyi in the context of "overlay
+format v2".
+There is not backward compat issue if both upper/work dirs are empty.
+
+> /me is assuming that if a overlay mount has been successfuly mounted once,
+> workdir will atleast have a subdir named "work".
+
+The check for empty upper & work (including index) dirs should be done after
+the cleanup of 'work' dir on mount.
+
+Thanks,
+Amir.
