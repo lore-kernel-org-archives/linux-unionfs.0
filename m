@@ -1,44 +1,64 @@
-Return-Path: <linux-fsdevel-owner@vger.kernel.org>
-From: Olga Kornievskaia <olga.kornievskaia@gmail.com>
-Subject: [PATCH v7 09/11] NFS: for "inter" copy treat ESTALE as ENOTSUPP
-Date: Tue, 30 Oct 2018 16:56:12 -0400
-Message-Id: <20181030205614.40754-11-olga.kornievskaia@gmail.com>
-In-Reply-To: <20181030205614.40754-1-olga.kornievskaia@gmail.com>
-References: <20181030205614.40754-1-olga.kornievskaia@gmail.com>
-Sender: linux-fsdevel-owner@vger.kernel.org
-To: trond.myklebust@hammerspace.com, anna.schumaker@netapp.com, viro@zeniv.linux.org.uk, smfrench@gmail.com, miklos@szeredi.hu
-Cc: linux-nfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-cifs@vger.kernel.org, linux-unionfs@vger.kernel.org, linux-man@vger.kernel.org
+Return-Path: <amir73il@gmail.com>
+MIME-Version: 1.0
+References: <877bef77-3434-656f-a989-143179c2e1b7@gmail.com> <20181031083109.GE23439@veci.piliscsaba.redhat.com>
+In-Reply-To: <20181031083109.GE23439@veci.piliscsaba.redhat.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Date: Wed, 31 Oct 2018 10:50:37 +0200
+Message-ID: <CAOQ4uxjOy9HFU6GB8j=hr2XqzKCOaNG3qvCDqCdHSMZwDXRqdg@mail.gmail.com>
+Subject: Re: [PATCH] ovl: do not hash ovl dentry when inode is NULL in ovl_lookup
+Content-Type: text/plain; charset="UTF-8"
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: xiakaixu1987@gmail.com, overlayfs <linux-unionfs@vger.kernel.org>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-From: Olga Kornievskaia <kolga@netapp.com>
+On Wed, Oct 31, 2018 at 10:31 AM Miklos Szeredi <miklos@szeredi.hu> wrote:
+>
+> On Wed, Oct 31, 2018 at 03:12:03PM +0800, kaixuxia wrote:
+> > The dentry is hashed even if the inode is NULL in ovl_lookup and
+> > later we get this dentry in lookup_dcache. But this dentry may
+> > become stale when someone could (mistakenly or maliciously) manually
+> > unlink the whiteout file directly from upperdir. So the NUll pointer
+> > error occur when create the same name directory and system crash.
+> >
+> > Simple reproducer:
+> >   $ mkdir lower upper work merge
+> >   $ touch lower/file
+> >   $ mount -t overlay overlay -olowerdir=lower,upperdir=upper,workdir=work
+> > merge
+> >   $ rm merge/file
+> >   $ ls -al merge/file
+> > ls: cannot access merge/file: No such file or directory
+> >   $ rm upper/file
+> >   $ ls -al merge/
+> > ls: cannot access merge/file: No such file or directory
+> > total 0
+> > drwxr-xr-x 1 root root  6 Oct 30 09:16 .
+> > drwxr-xr-x 6 root root 57 Oct 30 09:15 ..
+> > -????????? ? ?    ?     ?            ? file
+> >   $ mkdir merge/file
+> > Killed
+> >
+> > [ 2313.705789] BUG: unable to handle kernel NULL pointer dereference at
+> > 0000000000000000
+>
+> Good catch!
+>
+> Not hashing a negative dentry is not a good solution, however, because in the
+> normal case cached negative dentries are quite useful and improve performance of
+> various workloads.
+>
+> Here's a tested patch that should fix the real issue: vfs_rename() with
+> RENAME_EXCHANGE must get two positive dentries.
+>
+> Amir, we need a test for this in one of the suites.  Which one is more
+> appropriate, unionmount-testsuite or xfstests?
 
-If the client sends an "inter" copy to the destination server but
-it only supports "intra" copy, it can return ESTALE (since it
-doesn't know anything about the file handle from the other server
-and does not recognize the special case of "inter" copy). Translate
-this error as ENOTSUPP and also send OFFLOAD_CANCEL to the source
-server so that it can clean up state.
+xfstests.
+Its a simple regression test for a bug fix that mangles with underlying
+files, much like overlay/010.
 
-Signed-off-by: Olga Kornievskaia <kolga@netapp.com>
----
- fs/nfs/nfs42proc.c | 5 +++++
- 1 file changed, 5 insertions(+)
+unionmount-testsuite never mangles with lower files - it is only testing
+the VFS interface (+ few verification checks on underlying layers).
 
-diff --git a/fs/nfs/nfs42proc.c b/fs/nfs/nfs42proc.c
-index 98fe00b..00809b3 100644
---- a/fs/nfs/nfs42proc.c
-+++ b/fs/nfs/nfs42proc.c
-@@ -395,6 +395,11 @@ ssize_t nfs42_proc_copy(struct file *src, loff_t pos_src,
- 			args.sync = true;
- 			dst_exception.retry = 1;
- 			continue;
-+		} else if (err == -ESTALE &&
-+				!nfs42_files_from_same_server(src, dst)) {
-+			nfs42_do_offload_cancel_async(src, &args.src_stateid);
-+			err = -EOPNOTSUPP;
-+			break;
- 		}
- 
- 		err2 = nfs4_handle_exception(server, err, &src_exception);
--- 
-1.8.3.1
+Thanks,
+Amir.
