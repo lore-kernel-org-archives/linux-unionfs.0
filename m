@@ -1,227 +1,148 @@
-Return-Path: <david@fromorbit.com>
-Date: Thu, 1 Nov 2018 10:33:08 +1100
-From: Dave Chinner <david@fromorbit.com>
-Subject: Re: [PATCH v4 02/11] VFS: copy_file_range check validity of input
- source offset
-Message-ID: <20181031233308.GR6311@dastard>
-References: <20181026201057.36899-1-olga.kornievskaia@gmail.com>
- <20181026201057.36899-4-olga.kornievskaia@gmail.com>
- <20181027092750.GL6311@dastard>
- <CAN-5tyEeMrRVUyP61Vv-dwFUvm7q55Q3=NVJkeZN+XoCcAOCDQ@mail.gmail.com>
- <20181030090344.GN6311@dastard>
- <CAN-5tyHhTQ8bZk+DUrU0o1ZK3k9uhipiLPeOA3dYuXUG542mNw@mail.gmail.com>
- <20181031001437.GQ6311@dastard>
- <CAN-5tyEHAUadnxuGmxC_KJzwUT7JO=-VSyioAQM0GTUR6+WY_Q@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAN-5tyEHAUadnxuGmxC_KJzwUT7JO=-VSyioAQM0GTUR6+WY_Q@mail.gmail.com>
-To: Olga Kornievskaia <olga.kornievskaia@gmail.com>
-Cc: trond.myklebust@hammerspace.com, Anna Schumaker <anna.schumaker@netapp.com>, viro@zeniv.linux.org.uk, Steve French <smfrench@gmail.com>, Miklos Szeredi <miklos@szeredi.hu>, linux-nfs <linux-nfs@vger.kernel.org>, linux-fsdevel@vger.kernel.org, linux-cifs@vger.kernel.org, linux-unionfs@vger.kernel.org, linux-man@vger.kernel.org
+Return-Path: <linux-unionfs-owner@vger.kernel.org>
+Received: from mail-wm1-f67.google.com ([209.85.128.67]:39761 "EHLO
+        mail-wm1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726095AbeKAJtH (ORCPT
+        <rfc822;linux-unionfs@vger.kernel.org>);
+        Thu, 1 Nov 2018 05:49:07 -0400
+Received: by mail-wm1-f67.google.com with SMTP id u13-v6so10991wmc.4
+        for <linux-unionfs@vger.kernel.org>; Wed, 31 Oct 2018 17:48:28 -0700 (PDT)
+From: Amir Goldstein <amir73il@gmail.com>
+Subject: [PATCH v2 5/5] ovl: enforce 'strict' upper fs and feature requirements with strict=on
+Date: Thu,  1 Nov 2018 02:48:13 +0200
+Message-Id: <20181101004813.31349-6-amir73il@gmail.com>
+In-Reply-To: <20181101004813.31349-1-amir73il@gmail.com>
+References: <20181101004813.31349-1-amir73il@gmail.com>
+Sender: linux-unionfs-owner@vger.kernel.org
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: Vivek Goyal <vgoyal@redhat.com>, linux-unionfs@vger.kernel.org
 List-ID: <linux-unionfs@vger.kernel.org>
 
-On Wed, Oct 31, 2018 at 10:51:48AM -0400, Olga Kornievskaia wrote:
-> On Tue, Oct 30, 2018 at 8:15 PM Dave Chinner <david@fromorbit.com> wrote:
-> >
-> > On Tue, Oct 30, 2018 at 05:10:58PM -0400, Olga Kornievskaia wrote:
-> > > On Tue, Oct 30, 2018 at 5:03 AM Dave Chinner <david@fromorbit.com> wrote:
-> > > >
-> > > > On Mon, Oct 29, 2018 at 10:41:22AM -0400, Olga Kornievskaia wrote:
-> > > > > On Sat, Oct 27, 2018 at 5:27 AM Dave Chinner <david@fromorbit.com> wrote:
-> > > > > >
-> > > > > > On Fri, Oct 26, 2018 at 04:10:48PM -0400, Olga Kornievskaia wrote:
-> > > > > > > From: Olga Kornievskaia <kolga@netapp.com>
-> > > > > > >
-> > > > > > > Input source offset can't be beyond the end of the file.
-> > > > > > >
-> > > > > > > Signed-off-by: Olga Kornievskaia <kolga@netapp.com>
-> > > > > > > ---
-> > > > > > >  fs/read_write.c | 3 +++
-> > > > > > >  1 file changed, 3 insertions(+)
-> > > > > > >
-> > > > > > > diff --git a/fs/read_write.c b/fs/read_write.c
-> > > > > > > index fb4ffca..b3b304e 100644
-> > > > > > > --- a/fs/read_write.c
-> > > > > > > +++ b/fs/read_write.c
-> > > > > > > @@ -1594,6 +1594,9 @@ ssize_t vfs_copy_file_range(struct file *file_in, loff_t pos_in,
-> > > > > > >               }
-> > > > > > >       }
-> > > > > > >
-> > > > > > > +     if (pos_in >= i_size_read(inode_in))
-> > > > > > > +             return -EINVAL;
-> > > > > > > +
-> > > > > >
-> > > > > > vfs_copy_file_range seems ot be missing a wide range of checks.
-> > > > > > rlimit, s_maxbytes, LFS file sizes, etc. This is a write, so all the
-> > > > > > checks in generic_write_checks() apply, right? And the same security
-> > > > > > issues like stripping setuid bits, etc? And we need to touch
-> > > > > > atime on the source file, too?
-> > > > >
-> > > > > Yes sound like needed checks.
-> > > > >
-> > > > > > We've just merged 5 or so patches in 4.19-rc8 and we're ready to
-> > > > > > merge another ~30 patch series to fix all the stuff missing from the
-> > > > > > clone/dedupe file range operations that make them safe and robust.
-> > > > > > It seems like copy_file_range is all the checks it needs, too?
-> > > > >
-> > > > > Are you proposing to not do this check now in favor of the proper work
-> > > > > that will do all of those checks you listed above?
-> > > >
-> > > > No, I'm saying that if you're adding one check, there's a whole heap
-> > > > of checks that still need to be added, *especially* if this is going
-> > > > to fall back to page cache copy between superblocks that may have
-> > > > different limits and constraints.
-> > > >
-> > > > There's security issues in this API. They need to be fixed before we
-> > > > allow it to do more and potentially expose more problems due to it's
-> > > > wider capability.
-> > >
-> > > Before I totally give up on this feature, can you help me understand
-> > > your concerns with allowing the generic copy_file_range via
-> > > do_splice().
-> >
-> > it's not do_splice_direct() i'm concerned about. It's /writing data
-> > without adequate checks/ that I'm concerned about.
-> > ->copy_file_range() also writes data, so it needs to undergo the
-> > same safety checks as well.
-> 
-> Thank you Dave for clarifying and elaborating on the points. As you
-> pointed out this concerns apply to the current code the same way as to
-> the patch series. Those concerns should be address however I feel like
-> they shouldn't be the responsibility of this particular patch series.
-> Therefore, I ask for the community to either make any final comments
-> for any changes that are needed to "version 7" patches and if no more
-> comments arise I would like to ask for this to be added to the queue
-> for the next kernel version.
-> 
-> Then the next patch series would be just VFS and would add appropriate
-> checks and then allow for the generic copy_file_range() via do_splice.
+Overlayfs works sub-optimally with upper fs that has no
+xattr/d_type/O_TMPFILE/RENAME_WHITEOUT support. We should basically
+deprecate support for those filesystems, but so far, we only issue a
+warning and don't fail the mount for the sake of backward compat.
+Some features are already being disabled with no xattr support in upper
+fs and with no file handle support in underlying fs.
 
-That's fine by me.
+when user asks explicitly via Kconfig/module/mount option to enable
+strict feature requirements, we do not need to worry about backward
+compatibility and we can fail the mount if upper fs is a sub-optimal
+filesystem or if any of the feature requirements are not met.
 
-> 
-> > > I have mentioned I'm not a VFS expert thus I come from just looking at
-> > > the available documentation and the code.
-> > >
-> > > I don't see any restrictions on the files being passed in the
-> > > do_splice_direct(). There are no restrictions that they must be from
-> > > the same filesystem or file system type. But perhaps this not the
-> > > concern you had but more about checking validity of arguments?
-> > >
-> > > I have looked at Dave Wong's, if I'm not mistaken these 2 are the
-> > > relevant patches:
-> > > [PATCH 02/28] vfs: check file ranges before cloning files
-> > >  -- a couple but not all checks apply to copy_file_range() .
-> >
-> > Yes, of course - clone/dedupe have different constraints, but the
-> > core checks are still needed for copy_file_range().
-> >
-> > For example, the man page says:
-> >
-> > EINVAL
-> >         Requested range extends beyond the end of the source
-> >         file; or the flags argument is not 0.
-> >
-> > Your patch above doesn't actually check that - it only checks if the
-> > pos_in is beyond EOF. It needs to check if pos_in + len is beyond
-> > EOF. After checking for wraps, of course.
-> 
-> There was a reason why I didn't include the "pos_in + len" check. It
-> sparked the conversation why should "pos_in + len" be an error, when a
-> "read" system call would just return a "short" read and EOF. So I
-> dropped the check for "pst_in + len" to be an error.
+So far, the 'strict' behavior was enabled implicitly for metacopy=on.
+With that change, the 'strcit' behavior can be enabled regardless of
+metacopy=on and can be relaxed even with metacopy, with mount options
+"metacopy=on,strict=off" (order is important).
 
-So man page patches will be required, too. :)
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+---
+ fs/overlayfs/Kconfig | 23 +++++++++++++++++++++++
+ fs/overlayfs/super.c | 20 ++++++++++++++++++++
+ 2 files changed, 43 insertions(+)
 
-Basically, we need to nail down the expected semantics, make sure
-they are correctly documented and /enforced consistently/ across all
-filesystems.
-
-
-> > >  -- these checks apply to the code once we fall back to the
-> > > do_splice().
-> >
-> > man page says:
-> >
-> > EFBIG
-> >        An  attempt  was made to write a file that exceeds the
-> >        implementation-defined maximum file size or the process's
-> >        file size limit, or to write at a position past the maximum
-> >        allowed offset.
-> >
-> > These conditions apply to the destination file regards of the method
-> > used to copy the data. That's what the generic methods now check for
-> > clone/dedupe, and need to be used here, too.
-> 
-> Agreed and once Darrek patches are in, copy_file_range() can use them too.
-
-Should be in the next couple of days.
-
-> > 7debbf015f58 xfs: update ctime and remove suid before cloning files
-> >
-> > Which then got moved into the generic remap_file_range code in
-> > Darrick's "vfs: remap helper should update destination inode
-> > metadata" patch:
-> >
-> > https://git.kernel.org/pub/scm/fs/xfs/xfs-linux.git/commit/?h=for-next&id=8dde90bca6fca3736ea20109654bcf6dcf2ecf1d
-> >
-> > We can't assume that a server side copy is going to strip setuid
-> > bits or even update target files c/mtimes.
-> 
-> I would like to discuss your concerns about updating attributes
-> (c/m/atimes), why shouldn't it be a ->copy_file_range()
-> responsibility. copy_file_rage is basically a read+write. As far as I
-> can tell, vfs_read and vfs_write (in VFS) don't deal with updating
-> attributes.
-
-You're looking at the wrong level. The VFS layer is the first
-multiplexing layer, allowing filesystems to select a method of
-handling functionality. They then make use of "generic helpers"
-to implement the required functionality, and they contain the
-required updates.
-
-ie.g. A list of generic helpers with atime update callers from my
-cscope index:
-
-f fs/pipe.c          pipe_read                   343 file_accessed(filp);
-h fs/readdir.c       iterate_dir                  56 file_accessed(file);
-i fs/splice.c        generic_file_splice_read    311 file_accessed(in);
-j fs/splice.c        splice_direct_to_actor      992 file_accessed(in);
-p mm/filemap.c       generic_file_buffered_read 2299 file_accessed(filp);
-q mm/filemap.c       generic_file_read_iter     2339 file_accessed(file);
-r mm/filemap.c       generic_file_mmap          2736 file_accessed(file);
-
-These are effectively reference implementations of the file reading
-infrastructure. Filesystems often have customised implementations
-but they all must contain the same functioanlity and behaviour as
-the reference implementation.
-
-> I'm guessing it's assumed that underlying file systems are
-> going to take care of it (unless of course I misread the code).
-
-Only the ones that don't specifically call the generic helper to do
-the work.
-
-IOWs, what I'd like to see is a generic_copy_file_range() as the
-reference implemenation using a page cache copy. This contains all
-the required checks, timestamp updates, etc. If the filesystem does
-not supply ->copy_file_range, then generic_copy_file_range() is
-called, not do_splice_direct(). Indeed, a filesystem should be able
-to do:
-
-	.copy_file_range = xfs_copy_file_range,
-
-xfs_copy_file_range(...)
-{
-	trace_xfs_copy_file_range(...)
-	return generic_copy_file_range(....);
-}
-
-and have everything work correctly.
-
-Cheers,
-
-Dave.
+diff --git a/fs/overlayfs/Kconfig b/fs/overlayfs/Kconfig
+index 2ef91be2a04e..620e379959c2 100644
+--- a/fs/overlayfs/Kconfig
++++ b/fs/overlayfs/Kconfig
+@@ -109,6 +109,7 @@ config OVERLAY_FS_METACOPY
+ 	bool "Overlayfs: turn on metadata only copy up feature by default"
+ 	depends on OVERLAY_FS
+ 	select OVERLAY_FS_REDIRECT_DIR
++	select OVERLAY_FS_STRICT
+ 	help
+ 	  If this config option is enabled then overlay filesystems will
+ 	  copy up only metadata where appropriate and data copy up will
+@@ -122,3 +123,25 @@ config OVERLAY_FS_METACOPY
+ 	  that doesn't support this feature will have unexpected results.
+ 
+ 	  If unsure, say N.
++
++config OVERLAY_FS_STRICT
++	bool "Overlayfs: turn on strict requirements by default"
++	depends on OVERLAY_FS
++	help
++	  The overlayfs filesystem is fully functional and optimal when the
++	  underlying filesystems support extended attributes, d_type values
++	  in readdir, O_TMPFILE and RENAME_WHITEOUT.  In addition, some
++	  overlay filesystem features require that underlying filesystems
++	  support exporting NFS file handles.
++
++	  If this config option is enabled, then overlay filesystem mount
++	  will fail if any of the requirements from underlying filesystems
++	  are not met.  When strict requirements are enabled, overlay filesystem
++	  mount will also fail if any of the mount options are conflicting,
++	  for example: "nfs_export=on,metacopy=on".
++
++	  If this config option is enabled, it is still possible to turn off
++	  strict requirements globally with the "strict=off" module option or
++	  on a filesystem instance basis with the "strict=off" mount option.
++
++	  If unsure, say N.
+diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+index d848112f4fc9..b6fd86b0a1c8 100644
+--- a/fs/overlayfs/super.c
++++ b/fs/overlayfs/super.c
+@@ -61,6 +61,11 @@ module_param_named(metacopy, ovl_metacopy_def, bool, 0644);
+ MODULE_PARM_DESC(ovl_metacopy_def,
+ 		 "Default to on or off for the metadata only copy up feature");
+ 
++static bool ovl_strict_def = IS_ENABLED(CONFIG_OVERLAY_FS_STRICT);
++module_param_named(strict, ovl_strict_def, bool, 0644);
++MODULE_PARM_DESC(ovl_strict_def,
++		 "Default to on or off for strict feature requirements");
++
+ static int ovl_feature_requires(struct ovl_config *config, const char *feature,
+ 				const char *requirement)
+ {
+@@ -401,6 +406,8 @@ static int ovl_show_options(struct seq_file *m, struct dentry *dentry)
+ 	if (ofs->config.metacopy != ovl_metacopy_def)
+ 		seq_printf(m, ",metacopy=%s",
+ 			   ofs->config.metacopy ? "on" : "off");
++	if (ofs->config.strict != ovl_strict_def)
++		seq_printf(m, ",strict=%s", ofs->config.strict ? "on" : "off");
+ 	return 0;
+ }
+ 
+@@ -440,6 +447,8 @@ enum {
+ 	OPT_XINO_AUTO,
+ 	OPT_METACOPY_ON,
+ 	OPT_METACOPY_OFF,
++	OPT_STRICT_ON,
++	OPT_STRICT_OFF,
+ 	OPT_ERR,
+ };
+ 
+@@ -458,6 +467,8 @@ static const match_table_t ovl_tokens = {
+ 	{OPT_XINO_AUTO,			"xino=auto"},
+ 	{OPT_METACOPY_ON,		"metacopy=on"},
+ 	{OPT_METACOPY_OFF,		"metacopy=off"},
++	{OPT_STRICT_ON,			"strict=on"},
++	{OPT_STRICT_OFF,		"strict=off"},
+ 	{OPT_ERR,			NULL}
+ };
+ 
+@@ -594,6 +605,14 @@ static int ovl_parse_opt(char *opt, struct ovl_config *config)
+ 			config->metacopy = false;
+ 			break;
+ 
++		case OPT_STRICT_ON:
++			config->strict = true;
++			break;
++
++		case OPT_STRICT_OFF:
++			config->strict = false;
++			break;
++
+ 		default:
+ 			pr_err("overlayfs: unrecognized mount option \"%s\" or missing value\n", p);
+ 			return -EINVAL;
+@@ -1533,6 +1552,7 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
+ 	ofs->config.nfs_export = ovl_nfs_export_def;
+ 	ofs->config.xino = ovl_xino_def();
+ 	ofs->config.metacopy = ovl_metacopy_def;
++	ofs->config.strict = ovl_strict_def;
+ 	err = ovl_parse_opt((char *) data, &ofs->config);
+ 	if (err)
+ 		goto out_err;
 -- 
-Dave Chinner
-david@fromorbit.com
+2.17.1
