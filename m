@@ -1,445 +1,570 @@
-Return-Path: <amir73il@gmail.com>
-Return-Path: <amir73il@gmail.com>
-From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH v4 1/6] syscalls/readahead02: Convert to newlib and cleanup
-Date: Wed, 28 Nov 2018 18:46:40 +0200
-Message-Id: <20181128164645.783-2-amir73il@gmail.com>
-In-Reply-To: <20181128164645.783-1-amir73il@gmail.com>
-References: <20181128164645.783-1-amir73il@gmail.com>
-To: Cyril Hrubis <chrubis@suse.cz>
-Cc: ltp@lists.linux.it, Jan Stancek <jstancek@redhat.com>, Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org
+Return-Path: <olga.kornievskaia@gmail.com>
+Return-Path: <olga.kornievskaia@gmail.com>
+From: Olga Kornievskaia <olga.kornievskaia@gmail.com>
+Subject: [PATCH v8 04/11] NFS: add COPY_NOTIFY operation
+Date: Thu,  1 Nov 2018 12:45:16 -0400
+Message-Id: <20181101164523.41812-5-olga.kornievskaia@gmail.com>
+In-Reply-To: <20181101164523.41812-1-olga.kornievskaia@gmail.com>
+References: <20181101164523.41812-1-olga.kornievskaia@gmail.com>
+To: trond.myklebust@hammerspace.com, anna.schumaker@netapp.com, viro@zeniv.linux.org.uk, smfrench@gmail.com, miklos@szeredi.hu
+Cc: linux-nfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-cifs@vger.kernel.org, linux-unionfs@vger.kernel.org
 List-ID: <linux-unionfs@vger.kernel.org>
 
-* Use SAFE macros
+From: Olga Kornievskaia <kolga@netapp.com>
 
-* Use SPDX-License-Identifier
+Try using the delegation stateid, then the open stateid.
 
-* No need to cleanup test file from temp dir
+Only NL4_NETATTR, No support for NL4_NAME and NL4_URL.
+Allow only one source server address to be returned for now.
 
-* No need to check if __NR_readahead is defined
+To distinguish between same server copy offload ("intra") and
+a copy between different server ("inter"), do a check of server
+owner identity and also make sure server is capable of doing
+a copy offload.
 
-Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+Reviewed-by: Jeff Layton <jlayton@redhat.com>
+Signed-off-by: Andy Adamson <andros@netapp.com>
+Signed-off-by: Olga Kornievskaia <kolga@netapp.com>
 ---
- .../kernel/syscalls/readahead/readahead02.c   | 251 +++++-------------
- 1 file changed, 71 insertions(+), 180 deletions(-)
+ fs/nfs/nfs42.h            |  12 +++
+ fs/nfs/nfs42proc.c        |  91 +++++++++++++++++++++++
+ fs/nfs/nfs42xdr.c         | 181 ++++++++++++++++++++++++++++++++++++++++++++++
+ fs/nfs/nfs4_fs.h          |   2 +
+ fs/nfs/nfs4client.c       |   2 +-
+ fs/nfs/nfs4file.c         |  17 +++++
+ fs/nfs/nfs4proc.c         |   1 +
+ fs/nfs/nfs4xdr.c          |   1 +
+ include/linux/nfs4.h      |   1 +
+ include/linux/nfs_fs_sb.h |   1 +
+ include/linux/nfs_xdr.h   |  16 ++++
+ 11 files changed, 324 insertions(+), 1 deletion(-)
 
-diff --git a/testcases/kernel/syscalls/readahead/readahead02.c b/testcases/kernel/syscalls/readahead/readahead02.c
-index c9d92a6a4..956a1d5e5 100644
---- a/testcases/kernel/syscalls/readahead/readahead02.c
-+++ b/testcases/kernel/syscalls/readahead/readahead02.c
-@@ -1,25 +1,6 @@
-+// SPDX-License-Identifier: GPL-2.0
- /*
-  * Copyright (C) 2012 Linux Test Project, Inc.
-- *
-- * This program is free software; you can redistribute it and/or
-- * modify it under the terms of version 2 of the GNU General Public
-- * License as published by the Free Software Foundation.
-- *
-- * This program is distributed in the hope that it would be useful,
-- * but WITHOUT ANY WARRANTY; without even the implied warranty of
-- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-- *
-- * Further, this software is distributed without any warranty that it
-- * is free of the rightful claim of any third person regarding
-- * infringement or the like.  Any license provided herein, whether
-- * implied or otherwise, applies only to this software file.  Patent
-- * licenses, if any, provided herein do not apply to combinations of
-- * this program with other software, or any other product whatsoever.
-- *
-- * You should have received a copy of the GNU General Public License
-- * along with this program; if not, write the Free Software
-- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-- * 02110-1301, USA.
+diff --git a/fs/nfs/nfs42.h b/fs/nfs/nfs42.h
+index 19ec38f8..bbe49a3 100644
+--- a/fs/nfs/nfs42.h
++++ b/fs/nfs/nfs42.h
+@@ -13,6 +13,7 @@
+ #define PNFS_LAYOUTSTATS_MAXDEV (4)
+ 
+ /* nfs4.2proc.c */
++#ifdef CONFIG_NFS_V4_2
+ int nfs42_proc_allocate(struct file *, loff_t, loff_t);
+ ssize_t nfs42_proc_copy(struct file *, loff_t, struct file *, loff_t, size_t);
+ int nfs42_proc_deallocate(struct file *, loff_t, loff_t);
+@@ -20,5 +21,16 @@
+ int nfs42_proc_layoutstats_generic(struct nfs_server *,
+ 				   struct nfs42_layoutstat_data *);
+ int nfs42_proc_clone(struct file *, struct file *, loff_t, loff_t, loff_t);
++int nfs42_proc_copy_notify(struct file *, struct file *,
++			   struct nfs42_copy_notify_res *);
++static inline bool nfs42_files_from_same_server(struct file *in,
++						struct file *out)
++{
++	struct nfs_client *c_in = (NFS_SERVER(file_inode(in)))->nfs_client;
++	struct nfs_client *c_out = (NFS_SERVER(file_inode(out)))->nfs_client;
+ 
++	return nfs4_check_serverowner_major_id(c_in->cl_serverowner,
++				c_out->cl_serverowner);
++}
++#endif /* CONFIG_NFS_V4_2 */
+ #endif /* __LINUX_FS_NFS_NFS4_2_H */
+diff --git a/fs/nfs/nfs42proc.c b/fs/nfs/nfs42proc.c
+index ac5b784..b1c57a4 100644
+--- a/fs/nfs/nfs42proc.c
++++ b/fs/nfs/nfs42proc.c
+@@ -3,6 +3,7 @@
+  * Copyright (c) 2014 Anna Schumaker <Anna.Schumaker@Netapp.com>
   */
+ #include <linux/fs.h>
++#include <linux/sunrpc/addr.h>
+ #include <linux/sunrpc/sched.h>
+ #include <linux/nfs.h>
+ #include <linux/nfs3.h>
+@@ -15,10 +16,30 @@
+ #include "pnfs.h"
+ #include "nfs4session.h"
+ #include "internal.h"
++#include "delegation.h"
+ 
+ #define NFSDBG_FACILITY NFSDBG_PROC
+ static int nfs42_do_offload_cancel_async(struct file *dst, nfs4_stateid *std);
+ 
++static void nfs42_set_netaddr(struct file *filep, struct nfs42_netaddr *naddr)
++{
++	struct nfs_client *clp = (NFS_SERVER(file_inode(filep)))->nfs_client;
++	unsigned short port = 2049;
++
++	rcu_read_lock();
++	naddr->netid_len = scnprintf(naddr->netid,
++					sizeof(naddr->netid), "%s",
++					rpc_peeraddr2str(clp->cl_rpcclient,
++					RPC_DISPLAY_NETID));
++	naddr->addr_len = scnprintf(naddr->addr,
++					sizeof(naddr->addr),
++					"%s.%u.%u",
++					rpc_peeraddr2str(clp->cl_rpcclient,
++					RPC_DISPLAY_ADDR),
++					port >> 8, port & 255);
++	rcu_read_unlock();
++}
++
+ static int _nfs42_proc_fallocate(struct rpc_message *msg, struct file *filep,
+ 		struct nfs_lock_context *lock, loff_t offset, loff_t len)
+ {
+@@ -461,6 +482,76 @@ static int nfs42_do_offload_cancel_async(struct file *dst,
+ 	return status;
+ }
+ 
++int _nfs42_proc_copy_notify(struct file *src, struct file *dst,
++			    struct nfs42_copy_notify_args *args,
++			    struct nfs42_copy_notify_res *res)
++{
++	struct nfs_server *src_server = NFS_SERVER(file_inode(src));
++	struct rpc_message msg = {
++		.rpc_proc = &nfs4_procedures[NFSPROC4_CLNT_COPY_NOTIFY],
++		.rpc_argp = args,
++		.rpc_resp = res,
++	};
++	int status;
++	struct nfs_open_context *ctx;
++	struct nfs_lock_context *l_ctx;
++
++	ctx = get_nfs_open_context(nfs_file_open_context(src));
++	l_ctx = nfs_get_lock_context(ctx);
++	if (IS_ERR(l_ctx))
++		return PTR_ERR(l_ctx);
++
++	status = nfs4_set_rw_stateid(&args->cna_src_stateid, ctx, l_ctx,
++				     FMODE_READ);
++	nfs_put_lock_context(l_ctx);
++	if (status)
++		return status;
++
++	status = nfs4_call_sync(src_server->client, src_server, &msg,
++				&args->cna_seq_args, &res->cnr_seq_res, 0);
++	if (status == -ENOTSUPP)
++		src_server->caps &= ~NFS_CAP_COPY_NOTIFY;
++
++	put_nfs_open_context(nfs_file_open_context(src));
++	return status;
++}
++
++int nfs42_proc_copy_notify(struct file *src, struct file *dst,
++				struct nfs42_copy_notify_res *res)
++{
++	struct nfs_server *src_server = NFS_SERVER(file_inode(src));
++	struct nfs42_copy_notify_args *args;
++	struct nfs4_exception exception = {
++		.inode = file_inode(src),
++	};
++	int status;
++
++	if (!(src_server->caps & NFS_CAP_COPY_NOTIFY))
++		return -EOPNOTSUPP;
++
++	args = kzalloc(sizeof(struct nfs42_copy_notify_args), GFP_NOFS);
++	if (args == NULL)
++		return -ENOMEM;
++
++	args->cna_src_fh  = NFS_FH(file_inode(src)),
++	args->cna_dst.nl4_type = NL4_NETADDR;
++	nfs42_set_netaddr(dst, &args->cna_dst.u.nl4_addr);
++	exception.stateid = &args->cna_src_stateid;
++
++	do {
++		status = _nfs42_proc_copy_notify(src, dst, args, res);
++		if (status == -ENOTSUPP) {
++			status = -EOPNOTSUPP;
++			goto out;
++		}
++		status = nfs4_handle_exception(src_server, status, &exception);
++	} while (exception.retry);
++
++out:
++	kfree(args);
++	return status;
++}
++
+ static loff_t _nfs42_proc_llseek(struct file *filep,
+ 		struct nfs_lock_context *lock, loff_t offset, int whence)
+ {
+diff --git a/fs/nfs/nfs42xdr.c b/fs/nfs/nfs42xdr.c
+index 69f72ed..e6e7cbf 100644
+--- a/fs/nfs/nfs42xdr.c
++++ b/fs/nfs/nfs42xdr.c
+@@ -29,6 +29,16 @@
+ #define encode_offload_cancel_maxsz	(op_encode_hdr_maxsz + \
+ 					 XDR_QUADLEN(NFS4_STATEID_SIZE))
+ #define decode_offload_cancel_maxsz	(op_decode_hdr_maxsz)
++#define encode_copy_notify_maxsz	(op_encode_hdr_maxsz + \
++					 XDR_QUADLEN(NFS4_STATEID_SIZE) + \
++					 1 + /* nl4_type */ \
++					 1 + XDR_QUADLEN(NFS4_OPAQUE_LIMIT))
++#define decode_copy_notify_maxsz	(op_decode_hdr_maxsz + \
++					 3 + /* cnr_lease_time */\
++					 XDR_QUADLEN(NFS4_STATEID_SIZE) + \
++					 1 + /* Support 1 cnr_source_server */\
++					 1 + /* nl4_type */ \
++					 1 + XDR_QUADLEN(NFS4_OPAQUE_LIMIT))
+ #define encode_deallocate_maxsz		(op_encode_hdr_maxsz + \
+ 					 encode_fallocate_maxsz)
+ #define decode_deallocate_maxsz		(op_decode_hdr_maxsz)
+@@ -84,6 +94,12 @@
+ #define NFS4_dec_offload_cancel_sz	(compound_decode_hdr_maxsz + \
+ 					 decode_putfh_maxsz + \
+ 					 decode_offload_cancel_maxsz)
++#define NFS4_enc_copy_notify_sz		(compound_encode_hdr_maxsz + \
++					 encode_putfh_maxsz + \
++					 encode_copy_notify_maxsz)
++#define NFS4_dec_copy_notify_sz		(compound_decode_hdr_maxsz + \
++					 decode_putfh_maxsz + \
++					 decode_copy_notify_maxsz)
+ #define NFS4_enc_deallocate_sz		(compound_encode_hdr_maxsz + \
+ 					 encode_putfh_maxsz + \
+ 					 encode_deallocate_maxsz + \
+@@ -137,6 +153,25 @@ static void encode_allocate(struct xdr_stream *xdr,
+ 	encode_fallocate(xdr, args);
+ }
+ 
++static void encode_nl4_server(struct xdr_stream *xdr, const struct nl4_server *ns)
++{
++	encode_uint32(xdr, ns->nl4_type);
++	switch (ns->nl4_type) {
++	case NL4_NAME:
++	case NL4_URL:
++		encode_string(xdr, ns->u.nl4_str_sz, ns->u.nl4_str);
++		break;
++	case NL4_NETADDR:
++		encode_string(xdr, ns->u.nl4_addr.netid_len,
++			      ns->u.nl4_addr.netid);
++		encode_string(xdr, ns->u.nl4_addr.addr_len,
++			      ns->u.nl4_addr.addr);
++		break;
++	default:
++		WARN_ON_ONCE(1);
++	}
++}
++
+ static void encode_copy(struct xdr_stream *xdr,
+ 			const struct nfs42_copy_args *args,
+ 			struct compound_hdr *hdr)
+@@ -162,6 +197,15 @@ static void encode_offload_cancel(struct xdr_stream *xdr,
+ 	encode_nfs4_stateid(xdr, &args->osa_stateid);
+ }
+ 
++static void encode_copy_notify(struct xdr_stream *xdr,
++			       const struct nfs42_copy_notify_args *args,
++			       struct compound_hdr *hdr)
++{
++	encode_op_hdr(xdr, OP_COPY_NOTIFY, decode_copy_notify_maxsz, hdr);
++	encode_nfs4_stateid(xdr, &args->cna_src_stateid);
++	encode_nl4_server(xdr, &args->cna_dst);
++}
++
+ static void encode_deallocate(struct xdr_stream *xdr,
+ 			      const struct nfs42_falloc_args *args,
+ 			      struct compound_hdr *hdr)
+@@ -298,6 +342,25 @@ static void nfs4_xdr_enc_offload_cancel(struct rpc_rqst *req,
+ }
  
  /*
-@@ -43,86 +24,56 @@
- #include <unistd.h>
- #include <fcntl.h>
- #include "config.h"
--#include "test.h"
--#include "safe_macros.h"
-+#include "tst_test.h"
- #include "lapi/syscalls.h"
- 
--char *TCID = "readahead02";
--int TST_TOTAL = 1;
--
--#if defined(__NR_readahead)
- static char testfile[PATH_MAX] = "testfile";
- static const char drop_caches_fname[] = "/proc/sys/vm/drop_caches";
- static const char meminfo_fname[] = "/proc/meminfo";
- static size_t testfile_size = 64 * 1024 * 1024;
--static int opt_fsize;
- static char *opt_fsizestr;
- static int pagesize;
--static const char *fs_type;
--static const char *device;
--static int mount_flag;
- 
- #define MNTPOINT        "mntpoint"
- #define MIN_SANE_READAHEAD (4u * 1024u)
- 
--option_t options[] = {
--	{"s:", &opt_fsize, &opt_fsizestr},
-+static const char mntpoint[] = MNTPOINT;
++ * Encode COPY_NOTIFY request
++ */
++static void nfs4_xdr_enc_copy_notify(struct rpc_rqst *req,
++				     struct xdr_stream *xdr,
++				     const void *data)
++{
++	const struct nfs42_copy_notify_args *args = data;
++	struct compound_hdr hdr = {
++		.minorversion = nfs4_xdr_minorversion(&args->cna_seq_args),
++	};
 +
-+static struct tst_option options[] = {
-+	{"s:", &opt_fsizestr, "-s    testfile size (default 64MB)"},
- 	{NULL, NULL, NULL}
++	encode_compound_hdr(xdr, req, &hdr);
++	encode_sequence(xdr, &args->cna_seq_args, &hdr);
++	encode_putfh(xdr, args->cna_src_fh, &hdr);
++	encode_copy_notify(xdr, args, &hdr);
++	encode_nops(&hdr);
++}
++
++/*
+  * Encode DEALLOCATE request
+  */
+ static void nfs4_xdr_enc_deallocate(struct rpc_rqst *req,
+@@ -416,6 +479,58 @@ static int decode_write_response(struct xdr_stream *xdr,
+ 	return -EIO;
+ }
+ 
++static int decode_nl4_server(struct xdr_stream *xdr, struct nl4_server *ns)
++{
++	struct nfs42_netaddr *naddr;
++	uint32_t dummy;
++	char *dummy_str;
++	__be32 *p;
++	int status;
++
++	/* nl_type */
++	p = xdr_inline_decode(xdr, 4);
++	if (unlikely(!p))
++		return -EIO;
++	ns->nl4_type = be32_to_cpup(p);
++	switch (ns->nl4_type) {
++	case NL4_NAME:
++	case NL4_URL:
++		status = decode_opaque_inline(xdr, &dummy, &dummy_str);
++		if (unlikely(status))
++			return status;
++		if (unlikely(dummy > NFS4_OPAQUE_LIMIT))
++			return -EIO;
++		memcpy(&ns->u.nl4_str, dummy_str, dummy);
++		ns->u.nl4_str_sz = dummy;
++		break;
++	case NL4_NETADDR:
++		naddr = &ns->u.nl4_addr;
++
++		/* netid string */
++		status = decode_opaque_inline(xdr, &dummy, &dummy_str);
++		if (unlikely(status))
++			return status;
++		if (unlikely(dummy > RPCBIND_MAXNETIDLEN))
++			return -EIO;
++		naddr->netid_len = dummy;
++		memcpy(naddr->netid, dummy_str, naddr->netid_len);
++
++		/* uaddr string */
++		status = decode_opaque_inline(xdr, &dummy, &dummy_str);
++		if (unlikely(status))
++			return status;
++		if (unlikely(dummy > RPCBIND_MAXUADDRLEN))
++			return -EIO;
++		naddr->addr_len = dummy;
++		memcpy(naddr->addr, dummy_str, naddr->addr_len);
++		break;
++	default:
++		WARN_ON_ONCE(1);
++		return -EIO;
++	}
++	return 0;
++}
++
+ static int decode_copy_requirements(struct xdr_stream *xdr,
+ 				    struct nfs42_copy_res *res) {
+ 	__be32 *p;
+@@ -458,6 +573,46 @@ static int decode_offload_cancel(struct xdr_stream *xdr,
+ 	return decode_op_hdr(xdr, OP_OFFLOAD_CANCEL);
+ }
+ 
++static int decode_copy_notify(struct xdr_stream *xdr,
++			      struct nfs42_copy_notify_res *res)
++{
++	__be32 *p;
++	int status, count;
++
++	status = decode_op_hdr(xdr, OP_COPY_NOTIFY);
++	if (status)
++		return status;
++	/* cnr_lease_time */
++	p = xdr_inline_decode(xdr, 12);
++	if (unlikely(!p))
++		goto out_overflow;
++	p = xdr_decode_hyper(p, &res->cnr_lease_time.seconds);
++	res->cnr_lease_time.nseconds = be32_to_cpup(p);
++
++	status = decode_opaque_fixed(xdr, &res->cnr_stateid, NFS4_STATEID_SIZE);
++	if (unlikely(status))
++		goto out_overflow;
++
++	/* number of source addresses */
++	p = xdr_inline_decode(xdr, 4);
++	if (unlikely(!p))
++		goto out_overflow;
++
++	count = be32_to_cpup(p);
++	if (count > 1)
++		pr_warn("NFS: %s: nsvr %d > Supported. Use first servers\n",
++			 __func__, count);
++
++	status = decode_nl4_server(xdr, &res->cnr_src);
++	if (unlikely(status))
++		goto out_overflow;
++	return 0;
++
++out_overflow:
++	print_overflow_msg(__func__, xdr);
++	return -EIO;
++}
++
+ static int decode_deallocate(struct xdr_stream *xdr, struct nfs42_falloc_res *res)
+ {
+ 	return decode_op_hdr(xdr, OP_DEALLOCATE);
+@@ -585,6 +740,32 @@ static int nfs4_xdr_dec_offload_cancel(struct rpc_rqst *rqstp,
+ }
+ 
+ /*
++ * Decode COPY_NOTIFY response
++ */
++static int nfs4_xdr_dec_copy_notify(struct rpc_rqst *rqstp,
++				    struct xdr_stream *xdr,
++				    void *data)
++{
++	struct nfs42_copy_notify_res *res = data;
++	struct compound_hdr hdr;
++	int status;
++
++	status = decode_compound_hdr(xdr, &hdr);
++	if (status)
++		goto out;
++	status = decode_sequence(xdr, &res->cnr_seq_res, rqstp);
++	if (status)
++		goto out;
++	status = decode_putfh(xdr);
++	if (status)
++		goto out;
++	status = decode_copy_notify(xdr, res);
++
++out:
++	return status;
++}
++
++/*
+  * Decode DEALLOCATE request
+  */
+ static int nfs4_xdr_dec_deallocate(struct rpc_rqst *rqstp,
+diff --git a/fs/nfs/nfs4_fs.h b/fs/nfs/nfs4_fs.h
+index 8d59c96..7d17b31 100644
+--- a/fs/nfs/nfs4_fs.h
++++ b/fs/nfs/nfs4_fs.h
+@@ -460,6 +460,8 @@ int nfs41_discover_server_trunking(struct nfs_client *clp,
+ 			struct nfs_client **, struct rpc_cred *);
+ extern void nfs4_schedule_session_recovery(struct nfs4_session *, int);
+ extern void nfs41_notify_server(struct nfs_client *);
++bool nfs4_check_serverowner_major_id(struct nfs41_server_owner *o1,
++			struct nfs41_server_owner *o2);
+ #else
+ static inline void nfs4_schedule_session_recovery(struct nfs4_session *session, int err)
+ {
+diff --git a/fs/nfs/nfs4client.c b/fs/nfs/nfs4client.c
+index 8f53455..ac00eb8 100644
+--- a/fs/nfs/nfs4client.c
++++ b/fs/nfs/nfs4client.c
+@@ -625,7 +625,7 @@ int nfs40_walk_client_list(struct nfs_client *new,
+ /*
+  * Returns true if the server major ids match
+  */
+-static bool
++bool
+ nfs4_check_serverowner_major_id(struct nfs41_server_owner *o1,
+ 				struct nfs41_server_owner *o2)
+ {
+diff --git a/fs/nfs/nfs4file.c b/fs/nfs/nfs4file.c
+index 7838bdf..42ce562 100644
+--- a/fs/nfs/nfs4file.c
++++ b/fs/nfs/nfs4file.c
+@@ -133,6 +133,7 @@ static ssize_t nfs4_copy_file_range(struct file *file_in, loff_t pos_in,
+ 				    struct file *file_out, loff_t pos_out,
+ 				    size_t count, unsigned int flags)
+ {
++	struct nfs42_copy_notify_res *cn_resp = NULL;
+ 	ssize_t ret;
+ 
+ 	if (pos_in >= i_size_read(file_inode(file_in)))
+@@ -143,8 +144,24 @@ static ssize_t nfs4_copy_file_range(struct file *file_in, loff_t pos_in,
+ 
+ 	if (file_inode(file_in) == file_inode(file_out))
+ 		return -EINVAL;
++
++	if (!nfs_server_capable(file_inode(file_out), NFS_CAP_COPY))
++		return -EOPNOTSUPP;
+ retry:
++	if (!nfs42_files_from_same_server(file_in, file_out)) {
++		cn_resp = kzalloc(sizeof(struct nfs42_copy_notify_res),
++				GFP_NOFS);
++		if (unlikely(cn_resp == NULL))
++			return -ENOMEM;
++
++		ret = nfs42_proc_copy_notify(file_in, file_out, cn_resp);
++		if (ret)
++			goto out;
++	}
++
+ 	ret = nfs42_proc_copy(file_in, pos_in, file_out, pos_out, count);
++out:
++	kfree(cn_resp);
+ 	if (ret == -EAGAIN)
+ 		goto retry;
+ 	return ret;
+diff --git a/fs/nfs/nfs4proc.c b/fs/nfs/nfs4proc.c
+index db84b4a..fec6e6b 100644
+--- a/fs/nfs/nfs4proc.c
++++ b/fs/nfs/nfs4proc.c
+@@ -9692,6 +9692,7 @@ static bool nfs4_match_stateid(const nfs4_stateid *s1,
+ 		| NFS_CAP_ALLOCATE
+ 		| NFS_CAP_COPY
+ 		| NFS_CAP_OFFLOAD_CANCEL
++		| NFS_CAP_COPY_NOTIFY
+ 		| NFS_CAP_DEALLOCATE
+ 		| NFS_CAP_SEEK
+ 		| NFS_CAP_LAYOUTSTATS
+diff --git a/fs/nfs/nfs4xdr.c b/fs/nfs/nfs4xdr.c
+index b7bde12..2163900 100644
+--- a/fs/nfs/nfs4xdr.c
++++ b/fs/nfs/nfs4xdr.c
+@@ -7790,6 +7790,7 @@ int nfs4_decode_dirent(struct xdr_stream *xdr, struct nfs_entry *entry,
+ 	PROC42(CLONE,		enc_clone,		dec_clone),
+ 	PROC42(COPY,		enc_copy,		dec_copy),
+ 	PROC42(OFFLOAD_CANCEL,	enc_offload_cancel,	dec_offload_cancel),
++	PROC42(COPY_NOTIFY,	enc_copy_notify,	dec_copy_notify),
+ 	PROC(LOOKUPP,		enc_lookupp,		dec_lookupp),
  };
  
--static void setup(void);
--static void cleanup(void);
--
--static void help(void)
--{
--	printf("  -s x    testfile size (default 64MB)\n");
--}
--
- static int check_ret(long expected_ret)
- {
--	if (expected_ret == TEST_RETURN) {
--		tst_resm(TPASS, "expected ret success - "
--			 "returned value = %ld", TEST_RETURN);
-+	if (expected_ret == TST_RET) {
-+		tst_res(TPASS, "expected ret success - "
-+			"returned value = %ld", TST_RET);
- 		return 0;
- 	}
--	tst_resm(TFAIL | TTERRNO, "unexpected failure - "
--		 "returned value = %ld, expected: %ld",
--		 TEST_RETURN, expected_ret);
-+	tst_res(TFAIL | TTERRNO, "unexpected failure - "
-+		"returned value = %ld, expected: %ld",
-+		TST_RET, expected_ret);
- 	return 1;
- }
+diff --git a/include/linux/nfs4.h b/include/linux/nfs4.h
+index 4803507..9e49a6c 100644
+--- a/include/linux/nfs4.h
++++ b/include/linux/nfs4.h
+@@ -537,6 +537,7 @@ enum {
+ 	NFSPROC4_CLNT_CLONE,
+ 	NFSPROC4_CLNT_COPY,
+ 	NFSPROC4_CLNT_OFFLOAD_CANCEL,
++	NFSPROC4_CLNT_COPY_NOTIFY,
  
- static int has_file(const char *fname, int required)
- {
--	int ret;
- 	struct stat buf;
--	ret = stat(fname, &buf);
--	if (ret == -1) {
--		if (errno == ENOENT)
--			if (required)
--				tst_brkm(TCONF, cleanup, "%s not available",
--					 fname);
--			else
--				return 0;
--		else
--			tst_brkm(TBROK | TERRNO, cleanup, "stat %s", fname);
+ 	NFSPROC4_CLNT_LOOKUPP,
+ };
+diff --git a/include/linux/nfs_fs_sb.h b/include/linux/nfs_fs_sb.h
+index 0fc0b91..e5d89ff 100644
+--- a/include/linux/nfs_fs_sb.h
++++ b/include/linux/nfs_fs_sb.h
+@@ -261,5 +261,6 @@ struct nfs_server {
+ #define NFS_CAP_CLONE		(1U << 23)
+ #define NFS_CAP_COPY		(1U << 24)
+ #define NFS_CAP_OFFLOAD_CANCEL	(1U << 25)
++#define NFS_CAP_COPY_NOTIFY	(1U << 26)
+ 
+ #endif
+diff --git a/include/linux/nfs_xdr.h b/include/linux/nfs_xdr.h
+index 0e01625..dfc59bc 100644
+--- a/include/linux/nfs_xdr.h
++++ b/include/linux/nfs_xdr.h
+@@ -1428,6 +1428,22 @@ struct nfs42_offload_status_res {
+ 	int				osr_status;
+ };
+ 
++struct nfs42_copy_notify_args {
++	struct nfs4_sequence_args	cna_seq_args;
 +
-+	if (stat(fname, &buf) == -1) {
-+		if (errno != ENOENT)
-+			tst_brk(TBROK | TERRNO, "stat %s", fname);
-+		if (required)
-+			tst_brk(TCONF, "%s not available", fname);
-+		return 0;
- 	}
- 	return 1;
- }
- 
- static void drop_caches(void)
- {
--	int ret;
--	FILE *f;
--
--	f = fopen(drop_caches_fname, "w");
--	if (f) {
--		ret = fprintf(f, "1");
--		fclose(f);
--		if (ret < 1)
--			tst_brkm(TBROK, cleanup, "Failed to drop caches");
--	} else {
--		tst_brkm(TBROK, cleanup, "Failed to open drop_caches");
--	}
-+	SAFE_FILE_PRINTF(drop_caches_fname, "1");
- }
- 
- static unsigned long parse_entry(const char *fname, const char *entry)
-@@ -161,32 +112,21 @@ static unsigned long get_cached_size(void)
- 
- static void create_testfile(void)
- {
--	FILE *f;
-+	int fd;
- 	char *tmp;
- 	size_t i;
- 
--	tst_resm(TINFO, "creating test file of size: %zu", testfile_size);
--	tmp = SAFE_MALLOC(cleanup, pagesize);
-+	tst_res(TINFO, "creating test file of size: %zu", testfile_size);
-+	tmp = SAFE_MALLOC(pagesize);
- 
- 	/* round to page size */
- 	testfile_size = testfile_size & ~((long)pagesize - 1);
- 
--	f = fopen(testfile, "w");
--	if (!f) {
--		free(tmp);
--		tst_brkm(TBROK | TERRNO, cleanup, "Failed to create %s",
--			 testfile);
--	}
--
-+	fd = SAFE_CREAT(testfile, 0644);
- 	for (i = 0; i < testfile_size; i += pagesize)
--		if (fwrite(tmp, pagesize, 1, f) < 1) {
--			free(tmp);
--			tst_brkm(TBROK, cleanup, "Failed to create %s",
--				 testfile);
--		}
--	fflush(f);
--	fsync(fileno(f));
--	fclose(f);
-+		SAFE_WRITE(1, fd, tmp, pagesize);
-+	SAFE_FSYNC(fd);
-+	SAFE_CLOSE(fd);
- 	free(tmp);
- }
- 
-@@ -215,13 +155,13 @@ static void read_testfile(int do_readahead, const char *fname, size_t fsize,
- 	off_t offset = 0;
- 	struct timeval now;
- 
--	fd = SAFE_OPEN(cleanup, fname, O_RDONLY);
-+	fd = SAFE_OPEN(fname, O_RDONLY);
- 
- 	if (do_readahead) {
- 		cached_start = get_cached_size();
- 		do {
- 			TEST(readahead(fd, offset, fsize - offset));
--			if (TEST_RETURN != 0) {
-+			if (TST_RET != 0) {
- 				check_ret(0);
- 				break;
- 			}
-@@ -232,7 +172,7 @@ static void read_testfile(int do_readahead, const char *fname, size_t fsize,
- 				if (*cached > cached_start) {
- 					max_ra_estimate = (1024 *
- 						(*cached - cached_start));
--					tst_resm(TINFO, "max ra estimate: %lu",
-+					tst_res(TINFO, "max ra estimate: %lu",
- 						max_ra_estimate);
- 				}
- 				max_ra_estimate = MAX(max_ra_estimate,
-@@ -242,27 +182,23 @@ static void read_testfile(int do_readahead, const char *fname, size_t fsize,
- 			i++;
- 			offset += max_ra_estimate;
- 		} while ((size_t)offset < fsize);
--		tst_resm(TINFO, "readahead calls made: %zu", i);
-+		tst_res(TINFO, "readahead calls made: %zu", i);
- 		*cached = get_cached_size();
- 
- 		/* offset of file shouldn't change after readahead */
--		offset = lseek(fd, 0, SEEK_CUR);
--		if (offset == (off_t) - 1)
--			tst_brkm(TBROK | TERRNO, cleanup, "lseek failed");
-+		offset = SAFE_LSEEK(fd, 0, SEEK_CUR);
- 		if (offset == 0)
--			tst_resm(TPASS, "offset is still at 0 as expected");
-+			tst_res(TPASS, "offset is still at 0 as expected");
- 		else
--			tst_resm(TFAIL, "offset has changed to: %lu", offset);
-+			tst_res(TFAIL, "offset has changed to: %lu", offset);
- 	}
- 
- 	if (gettimeofday(&now, NULL) == -1)
--		tst_brkm(TBROK | TERRNO, cleanup, "gettimeofday failed");
-+		tst_brk(TBROK | TERRNO, "gettimeofday failed");
- 	time_start_usec = now.tv_sec * 1000000 + now.tv_usec;
- 	read_bytes_start = get_bytes_read();
- 
--	p = mmap(NULL, fsize, PROT_READ, MAP_SHARED | MAP_POPULATE, fd, 0);
--	if (p == MAP_FAILED)
--		tst_brkm(TBROK | TERRNO, cleanup, "mmap failed");
-+	p = SAFE_MMAP(NULL, fsize, PROT_READ, MAP_SHARED | MAP_POPULATE, fd, 0);
- 
- 	/* for old kernels, where MAP_POPULATE doesn't work, touch each page */
- 	tmp = 0;
-@@ -270,20 +206,20 @@ static void read_testfile(int do_readahead, const char *fname, size_t fsize,
- 		tmp = tmp ^ p[i];
- 	/* prevent gcc from optimizing out loop above */
- 	if (tmp != 0)
--		tst_brkm(TBROK, NULL, "This line should not be reached");
-+		tst_brk(TBROK, "This line should not be reached");
- 
- 	if (!do_readahead)
- 		*cached = get_cached_size();
- 
--	SAFE_MUNMAP(cleanup, p, fsize);
-+	SAFE_MUNMAP(p, fsize);
- 
- 	*read_bytes = get_bytes_read() - read_bytes_start;
- 	if (gettimeofday(&now, NULL) == -1)
--		tst_brkm(TBROK | TERRNO, cleanup, "gettimeofday failed");
-+		tst_brk(TBROK | TERRNO, "gettimeofday failed");
- 	time_end_usec = now.tv_sec * 1000000 + now.tv_usec;
- 	*usec = time_end_usec - time_start_usec;
- 
--	SAFE_CLOSE(cleanup, fd);
-+	SAFE_CLOSE(fd);
- }
- 
- static void test_readahead(void)
-@@ -302,7 +238,7 @@ static void test_readahead(void)
- 	cached_low = get_cached_size();
- 	cached_max = cached_max - cached_low;
- 
--	tst_resm(TINFO, "read_testfile(0)");
-+	tst_res(TINFO, "read_testfile(0)");
- 	read_testfile(0, testfile, testfile_size, &read_bytes, &usec, &cached);
- 	if (cached > cached_low)
- 		cached = cached - cached_low;
-@@ -312,7 +248,7 @@ static void test_readahead(void)
- 	sync();
- 	drop_caches();
- 	cached_low = get_cached_size();
--	tst_resm(TINFO, "read_testfile(1)");
-+	tst_res(TINFO, "read_testfile(1)");
- 	read_testfile(1, testfile, testfile_size, &read_bytes_ra,
- 		      &usec_ra, &cached_ra);
- 	if (cached_ra > cached_low)
-@@ -320,25 +256,25 @@ static void test_readahead(void)
- 	else
- 		cached_ra = 0;
- 
--	tst_resm(TINFO, "read_testfile(0) took: %ld usec", usec);
--	tst_resm(TINFO, "read_testfile(1) took: %ld usec", usec_ra);
-+	tst_res(TINFO, "read_testfile(0) took: %ld usec", usec);
-+	tst_res(TINFO, "read_testfile(1) took: %ld usec", usec_ra);
- 	if (has_file(proc_io_fname, 0)) {
--		tst_resm(TINFO, "read_testfile(0) read: %ld bytes", read_bytes);
--		tst_resm(TINFO, "read_testfile(1) read: %ld bytes",
--			 read_bytes_ra);
-+		tst_res(TINFO, "read_testfile(0) read: %ld bytes", read_bytes);
-+		tst_res(TINFO, "read_testfile(1) read: %ld bytes",
-+			read_bytes_ra);
- 		/* actual number of read bytes depends on total RAM */
- 		if (read_bytes_ra < read_bytes)
--			tst_resm(TPASS, "readahead saved some I/O");
-+			tst_res(TPASS, "readahead saved some I/O");
- 		else
--			tst_resm(TFAIL, "readahead failed to save any I/O");
-+			tst_res(TFAIL, "readahead failed to save any I/O");
- 	} else {
--		tst_resm(TCONF, "Your system doesn't have /proc/pid/io,"
--			 " unable to determine read bytes during test");
-+		tst_res(TCONF, "Your system doesn't have /proc/pid/io,"
-+			" unable to determine read bytes during test");
- 	}
- 
--	tst_resm(TINFO, "cache can hold at least: %ld kB", cached_max);
--	tst_resm(TINFO, "read_testfile(0) used cache: %ld kB", cached);
--	tst_resm(TINFO, "read_testfile(1) used cache: %ld kB", cached_ra);
-+	tst_res(TINFO, "cache can hold at least: %ld kB", cached_max);
-+	tst_res(TINFO, "read_testfile(0) used cache: %ld kB", cached);
-+	tst_res(TINFO, "read_testfile(1) used cache: %ld kB", cached_ra);
- 
- 	if (cached_max * 1024 >= testfile_size) {
- 		/*
-@@ -346,83 +282,38 @@ static void test_readahead(void)
- 		 * for readahead should be at least testfile_size/2
- 		 */
- 		if (cached_ra * 1024 > testfile_size / 2)
--			tst_resm(TPASS, "using cache as expected");
-+			tst_res(TPASS, "using cache as expected");
- 		else
--			tst_resm(TWARN, "using less cache than expected");
-+			tst_res(TWARN, "using less cache than expected");
- 	} else {
--		tst_resm(TCONF, "Page cache on your system is too small "
--			 "to hold whole testfile.");
-+		tst_res(TCONF, "Page cache on your system is too small "
-+			"to hold whole testfile.");
- 	}
- }
- 
--int main(int argc, char *argv[])
--{
--	int lc;
--
--	tst_parse_opts(argc, argv, options, help);
--
--	if (opt_fsize)
--		testfile_size = atoi(opt_fsizestr);
--
--	setup();
--	for (lc = 0; TEST_LOOPING(lc); lc++) {
--		tst_count = 0;
--		test_readahead();
--	}
--	cleanup();
--	tst_exit();
--}
--
- static void setup(void)
- {
--	tst_require_root();
--	tst_tmpdir();
--	TEST_PAUSE;
-+	if (opt_fsizestr)
-+		testfile_size = SAFE_STRTOL(opt_fsizestr, 1, INT_MAX);
- 
- 	has_file(drop_caches_fname, 1);
- 	has_file(meminfo_fname, 1);
- 
- 	/* check if readahead is supported */
--	ltp_syscall(__NR_readahead, 0, 0, 0);
-+	tst_syscall(__NR_readahead, 0, 0, 0);
- 
- 	pagesize = getpagesize();
- 
--	if (tst_fs_type(cleanup, ".") == TST_TMPFS_MAGIC) {
--		tst_resm(TINFO, "TMPFS detected, creating loop device");
--
--		fs_type = tst_dev_fs_type();
--		device = tst_acquire_device(cleanup);
--		if (!device) {
--			tst_brkm(TCONF, cleanup,
--				"Failed to obtain block device");
--		}
--
--		tst_mkfs(cleanup, device, fs_type, NULL, NULL);
--
--		SAFE_MKDIR(cleanup, MNTPOINT, 0755);
--		SAFE_MOUNT(cleanup, device, MNTPOINT, fs_type, 0, NULL);
--		mount_flag = 1;
--
--		sprintf(testfile, MNTPOINT"/testfile");
--	}
-+	sprintf(testfile, "%s/testfile", mntpoint);
- 	create_testfile();
- }
- 
--static void cleanup(void)
--{
--	unlink(testfile);
--	if (mount_flag && tst_umount(MNTPOINT) < 0)
--		tst_resm(TWARN | TERRNO, "umount device:%s failed", device);
--
--	if (device)
--		tst_release_device(device);
--
--	tst_rmdir();
--}
--
--#else /* __NR_readahead */
--int main(void)
--{
--	tst_brkm(TCONF, NULL, "System doesn't support __NR_readahead");
--}
--#endif
-+static struct tst_test test = {
-+	.needs_root = 1,
-+	.needs_tmpdir = 1,
-+	.mount_device = 1,
-+	.mntpoint = mntpoint,
-+	.setup = setup,
-+	.options = options,
-+	.test_all = test_readahead,
++	struct nfs_fh		*cna_src_fh;
++	nfs4_stateid		cna_src_stateid;
++	struct nl4_server	cna_dst;
 +};
++
++struct nfs42_copy_notify_res {
++	struct nfs4_sequence_res	cnr_seq_res;
++
++	struct nfstime4		cnr_lease_time;
++	nfs4_stateid		cnr_stateid;
++	struct nl4_server	cnr_src;
++};
++
+ struct nfs42_seek_args {
+ 	struct nfs4_sequence_args	seq_args;
+ 
 -- 
-2.17.1
+1.8.3.1
