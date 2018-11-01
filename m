@@ -1,126 +1,170 @@
-Return-Path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:46216 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726387AbeK3QU6 (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 30 Nov 2018 11:20:58 -0500
-Date: Fri, 30 Nov 2018 00:12:53 -0500
-From: Murphy Zhou <jencce.kernel@gmail.com>
-Subject: [4.20-rc4 regression] generic/095 Concurrent mixed I/O hang on xfs based overlayfs
-Message-ID: <20181130051253.GB7100@sh-el5.eng.rdu2.redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Sender: linux-unionfs-owner@vger.kernel.org
-To: linux-xfs@vger.kernel.org
-Cc: linux-unionfs@vger.kernel.org, zlang@redhat.com
+Return-Path: <olga.kornievskaia@gmail.com>
+Return-Path: <olga.kornievskaia@gmail.com>
+From: Olga Kornievskaia <olga.kornievskaia@gmail.com>
+Subject: [PATCH v8 05/11] NFS: add ca_source_server<> to COPY
+Date: Thu,  1 Nov 2018 12:45:17 -0400
+Message-Id: <20181101164523.41812-6-olga.kornievskaia@gmail.com>
+In-Reply-To: <20181101164523.41812-1-olga.kornievskaia@gmail.com>
+References: <20181101164523.41812-1-olga.kornievskaia@gmail.com>
+To: trond.myklebust@hammerspace.com, anna.schumaker@netapp.com, viro@zeniv.linux.org.uk, smfrench@gmail.com, miklos@szeredi.hu
+Cc: linux-nfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-cifs@vger.kernel.org, linux-unionfs@vger.kernel.org
 List-ID: <linux-unionfs@vger.kernel.org>
 
-Hi,
+From: Olga Kornievskaia <kolga@netapp.com>
 
-Hit a xfs regression issue by generic/095 on overlayfs.
+Support only one source server address: the same address that
+the client and source server use.
 
-It's easy to reproduce. Tests processes hang there and never return.
-There are some warning in the dmesg.
+Signed-off-by: Andy Adamson <andros@netapp.com>
+Signed-off-by: Olga Kornievskaia <kolga@netapp.com>
+---
+ fs/nfs/nfs42.h          |  3 ++-
+ fs/nfs/nfs42proc.c      | 26 +++++++++++++++++---------
+ fs/nfs/nfs42xdr.c       | 12 ++++++++++--
+ fs/nfs/nfs4file.c       |  7 ++++++-
+ include/linux/nfs_xdr.h |  1 +
+ 5 files changed, 36 insertions(+), 13 deletions(-)
 
-SIGINT (Ctrl+C) can't kill the tests, neither does SIGTERM (kill).
-However, SIGKILL (kill -9) can clean them up.
-
-This happens when testing on v4 or v5 or reflink, with the same behaviour.
--m crc=0
--m crc=1,finobt=1,rmapbt=0,reflink=0 -i sparse=1
--m crc=1,finobt=1,rmapbt=1,reflink=1 -i sparse=1
-
-This does not happen if ext4 as base fs for overlayfs.
-
-Bisecting points to this commit:
-	4721a601 iomap: dio data corruption and spurious errors when pipes fill
-
-Test pass soon after this commit reverted.
-
-# ps axjf
- 1839  1862   S+    0:00  |  \_ /bin/bash ./bin/single -o -t generic/095
- 1862  2005   S+    0:00  |      \_ /bin/bash ./check -T -overlay generic/095
- 2005  2292   S+    0:00  |          \_ /bin/bash ./tests/generic/095
- 2292  2516   Sl+   0:01  |              \_ /usr/bin/fio /tmp/2292.fio
- 2516  2565   Rs    6:02  |                  \_ /usr/bin/fio /tmp/2292.fio
- 2516  2566   Rs    6:02  |                  \_ /usr/bin/fio /tmp/2292.fio
- 2516  2567   Rs    6:02  |                  \_ /usr/bin/fio /tmp/2292.fio
- 2516  2568   Rs    6:02  |                  \_ /usr/bin/fio /tmp/2292.fio
- 2516  2569   Rs    6:02  |                  \_ /usr/bin/fio /tmp/2292.fio
-
-# dmesg
-[   50.285345] run fstests generic/095 at 2018-11-29 23:25:24
-[   50.441180] XFS (loop1): Unmounting Filesystem
-[   51.126243] XFS (loop1): Mounting V5 Filesystem
-[   51.133348] XFS (loop1): Ending clean mount
-[   51.646769] Page cache invalidation failure on direct I/O.  Possible data corruption due to collision with buffered I/O!
-[   51.646878] Page cache invalidation failure on direct I/O.  Possible data corruption due to collision with buffered I/O!
-[   51.647776] Page cache invalidation failure on direct I/O.  Possible data corruption due to collision with buffered I/O!
-[   51.647779] File: /loopsch/ovl-mnt/file1 PID: 2568 Comm: fio
-[   51.648148] Page cache invalidation failure on direct I/O.  Possible data corruption due to collision with buffered I/O!
-[   51.648151] File: /loopsch/ovl-mnt/file1 PID: 2568 Comm: fio
-[   51.657721] File: /loopsch/ovl-mnt/file1 PID: 2551 Comm: fio
-[   51.707667] File: /loopsch/ovl-mnt/file2 PID: 2599 Comm: fio
-
-# local.config
-TEST_DEV=/dev/loop0
-TEST_DIR=/loopmnt
-SCRATCH_DEV=/dev/loop1
-SCRATCH_MNT=/loopsch
-FSTYP=xfs
-MOUNT_OPTIONS=""
-TEST_FS_MOUNT_OPTS=""
-MKFS_OPTIONS=""
-
-# cmd
-./check -T -overlay generic/095
-
-# xfstests version: git log --oneline -1
-15b13f7f (HEAD -> master, origin/master, origin/imaster, origin/HEAD) ext4/021: Work with 64k block size
-
-# xfsprogs version: git log --oneline -1
-caa91046 (HEAD -> for-next, tag: v4.19.0, origin/master, origin/for-next, origin/HEAD) xfsprogs: Release v4.19.0
-
-# xfs_io -V
-xfs_io version 4.19.0
-
-# xfs on loop device as base fs for overlayfs
-/dev/loop1 on /loopsch type xfs (rw,relatime,seclabel,attr2,inode64,noquota)
-meta-data=/dev/loop1             isize=512    agcount=4, agsize=983040 blks
-         =                       sectsz=512   attr=2, projid32bit=1
-         =                       crc=1        finobt=1, sparse=1, rmapbt=0
-         =                       reflink=0
-data     =                       bsize=4096   blocks=3932160, imaxpct=25
-         =                       sunit=0      swidth=0 blks
-naming   =version 2              bsize=4096   ascii-ci=0, ftype=1
-log      =internal log           bsize=4096   blocks=2560, version=2
-         =                       sectsz=512   sunit=0 blks, lazy-count=1
-realtime =none                   extsz=4096   blocks=0, rtextents=0
-
-# overlayfs mount info:
-/dev/loop0 on /loopmnt type xfs (rw,relatime,seclabel,attr2,inode64,noquota)
-/loopmnt on /loopmnt/ovl-mnt type overlay (rw,relatime,context=system_u:object_r:root_t:s0,lowerdir=/loopmnt/ovl-lower,upperdir=/loopmnt/ovl-upper,workdir=/loopmnt/ovl-work)
-
-# cat bs-log
-git bisect start
-# good: [edeca3a769ad28a9477798c3b1d8e0701db728e4] Merge tag 'sound-4.20-rc4' of git://git.kernel.org/pub/scm/linux/kernel/git/tiwai/sound
-git bisect good edeca3a769ad28a9477798c3b1d8e0701db728e4
-# bad: [d6d460b89378b1bc6715574cdafd748ba59d5a27] Merge tag 'dma-mapping-4.20-3' of git://git.infradead.org/users/hch/dma-mapping
-git bisect bad d6d460b89378b1bc6715574cdafd748ba59d5a27
-# good: [07093b76476903f820d83d56c3040e656fb4d9e3] net: gemini: Fix copy/paste error
-git bisect good 07093b76476903f820d83d56c3040e656fb4d9e3
-# good: [7c98a42618271210c60b79128b220107d35938d9] Merge tag 'ceph-for-4.20-rc4' of https://github.com/ceph/ceph-client
-git bisect good 7c98a42618271210c60b79128b220107d35938d9
-# bad: [e195ca6cb6f21633e56322d5aa11ed59cdb22fb2] Merge branch 'for-linus' of git://git.kernel.org/pub/scm/linux/kernel/git/hid/hid
-git bisect bad e195ca6cb6f21633e56322d5aa11ed59cdb22fb2
-# bad: [d146194f31c96f9b260c5a1cf1592d2e7f82a2e2] Merge tag 'arm64-fixes' of git://git.kernel.org/pub/scm/linux/kernel/git/arm64/linux
-git bisect bad d146194f31c96f9b260c5a1cf1592d2e7f82a2e2
-# good: [0929d8580071c6a1cec1a7916a8f674c243ceee1] iomap: FUA is wrong for DIO O_DSYNC writes into unwritten extents
-git bisect good 0929d8580071c6a1cec1a7916a8f674c243ceee1
-# bad: [8c110d43c6bca4b24dd13272a9d4e0ba6f2ec957] iomap: readpages doesn't zero page tail beyond EOF
-git bisect bad 8c110d43c6bca4b24dd13272a9d4e0ba6f2ec957
-# bad: [4721a6010990971440b4ffefbdf014976b8eda2f] iomap: dio data corruption and spurious errors when pipes fill
-git bisect bad 4721a6010990971440b4ffefbdf014976b8eda2f
-# good: [b450672fb66b4a991a5b55ee24209ac7ae7690ce] iomap: sub-block dio needs to zeroout beyond EOF
-git bisect good b450672fb66b4a991a5b55ee24209ac7ae7690ce
-# first bad commit: [4721a6010990971440b4ffefbdf014976b8eda2f] iomap: dio data corruption and spurious errors when pipes fill
+diff --git a/fs/nfs/nfs42.h b/fs/nfs/nfs42.h
+index bbe49a3..28dcee5 100644
+--- a/fs/nfs/nfs42.h
++++ b/fs/nfs/nfs42.h
+@@ -15,7 +15,8 @@
+ /* nfs4.2proc.c */
+ #ifdef CONFIG_NFS_V4_2
+ int nfs42_proc_allocate(struct file *, loff_t, loff_t);
+-ssize_t nfs42_proc_copy(struct file *, loff_t, struct file *, loff_t, size_t);
++ssize_t nfs42_proc_copy(struct file *, loff_t, struct file *, loff_t, size_t,
++			struct nl4_server *, nfs4_stateid *);
+ int nfs42_proc_deallocate(struct file *, loff_t, loff_t);
+ loff_t nfs42_proc_llseek(struct file *, loff_t, int);
+ int nfs42_proc_layoutstats_generic(struct nfs_server *,
+diff --git a/fs/nfs/nfs42proc.c b/fs/nfs/nfs42proc.c
+index b1c57a4..bb9e799 100644
+--- a/fs/nfs/nfs42proc.c
++++ b/fs/nfs/nfs42proc.c
+@@ -242,7 +242,9 @@ static ssize_t _nfs42_proc_copy(struct file *src,
+ 				struct file *dst,
+ 				struct nfs_lock_context *dst_lock,
+ 				struct nfs42_copy_args *args,
+-				struct nfs42_copy_res *res)
++				struct nfs42_copy_res *res,
++				struct nl4_server *nss,
++				nfs4_stateid *cnr_stateid)
+ {
+ 	struct rpc_message msg = {
+ 		.rpc_proc = &nfs4_procedures[NFSPROC4_CLNT_COPY],
+@@ -256,11 +258,15 @@ static ssize_t _nfs42_proc_copy(struct file *src,
+ 	size_t count = args->count;
+ 	ssize_t status;
+ 
+-	status = nfs4_set_rw_stateid(&args->src_stateid, src_lock->open_context,
+-				     src_lock, FMODE_READ);
+-	if (status)
+-		return status;
+-
++	if (nss) {
++		args->cp_src = nss;
++		nfs4_stateid_copy(&args->src_stateid, cnr_stateid);
++	} else {
++		status = nfs4_set_rw_stateid(&args->src_stateid,
++				src_lock->open_context, src_lock, FMODE_READ);
++		if (status)
++			return status;
++	}
+ 	status = nfs_filemap_write_and_wait_range(file_inode(src)->i_mapping,
+ 			pos_src, pos_src + (loff_t)count - 1);
+ 	if (status)
+@@ -324,8 +330,9 @@ static ssize_t _nfs42_proc_copy(struct file *src,
+ }
+ 
+ ssize_t nfs42_proc_copy(struct file *src, loff_t pos_src,
+-			struct file *dst, loff_t pos_dst,
+-			size_t count)
++			struct file *dst, loff_t pos_dst, size_t count,
++			struct nl4_server *nss,
++			nfs4_stateid *cnr_stateid)
+ {
+ 	struct nfs_server *server = NFS_SERVER(file_inode(dst));
+ 	struct nfs_lock_context *src_lock;
+@@ -370,7 +377,8 @@ ssize_t nfs42_proc_copy(struct file *src, loff_t pos_src,
+ 		inode_lock(file_inode(dst));
+ 		err = _nfs42_proc_copy(src, src_lock,
+ 				dst, dst_lock,
+-				&args, &res);
++				&args, &res,
++				nss, cnr_stateid);
+ 		inode_unlock(file_inode(dst));
+ 
+ 		if (err >= 0)
+diff --git a/fs/nfs/nfs42xdr.c b/fs/nfs/nfs42xdr.c
+index e6e7cbf..c96c3f8 100644
+--- a/fs/nfs/nfs42xdr.c
++++ b/fs/nfs/nfs42xdr.c
+@@ -21,7 +21,10 @@
+ #define encode_copy_maxsz		(op_encode_hdr_maxsz +          \
+ 					 XDR_QUADLEN(NFS4_STATEID_SIZE) + \
+ 					 XDR_QUADLEN(NFS4_STATEID_SIZE) + \
+-					 2 + 2 + 2 + 1 + 1 + 1)
++					 2 + 2 + 2 + 1 + 1 + 1 +\
++					 1 + /* One cnr_source_server */\
++					 1 + /* nl4_type */ \
++					 1 + XDR_QUADLEN(NFS4_OPAQUE_LIMIT))
+ #define decode_copy_maxsz		(op_decode_hdr_maxsz + \
+ 					 NFS42_WRITE_RES_SIZE + \
+ 					 1 /* cr_consecutive */ + \
+@@ -186,7 +189,12 @@ static void encode_copy(struct xdr_stream *xdr,
+ 
+ 	encode_uint32(xdr, 1); /* consecutive = true */
+ 	encode_uint32(xdr, args->sync);
+-	encode_uint32(xdr, 0); /* src server list */
++	if (args->cp_src == NULL) { /* intra-ssc */
++		encode_uint32(xdr, 0); /* no src server list */
++		return;
++	}
++	encode_uint32(xdr, 1); /* supporting 1 server */
++	encode_nl4_server(xdr, args->cp_src);
+ }
+ 
+ static void encode_offload_cancel(struct xdr_stream *xdr,
+diff --git a/fs/nfs/nfs4file.c b/fs/nfs/nfs4file.c
+index 42ce562..18f5421 100644
+--- a/fs/nfs/nfs4file.c
++++ b/fs/nfs/nfs4file.c
+@@ -134,6 +134,8 @@ static ssize_t nfs4_copy_file_range(struct file *file_in, loff_t pos_in,
+ 				    size_t count, unsigned int flags)
+ {
+ 	struct nfs42_copy_notify_res *cn_resp = NULL;
++	struct nl4_server *nss = NULL;
++	nfs4_stateid *cnrs = NULL;
+ 	ssize_t ret;
+ 
+ 	if (pos_in >= i_size_read(file_inode(file_in)))
+@@ -157,9 +159,12 @@ static ssize_t nfs4_copy_file_range(struct file *file_in, loff_t pos_in,
+ 		ret = nfs42_proc_copy_notify(file_in, file_out, cn_resp);
+ 		if (ret)
+ 			goto out;
++		nss = &cn_resp->cnr_src;
++		cnrs = &cn_resp->cnr_stateid;
+ 	}
+ 
+-	ret = nfs42_proc_copy(file_in, pos_in, file_out, pos_out, count);
++	ret = nfs42_proc_copy(file_in, pos_in, file_out, pos_out, count, nss,
++				cnrs);
+ out:
+ 	kfree(cn_resp);
+ 	if (ret == -EAGAIN)
+diff --git a/include/linux/nfs_xdr.h b/include/linux/nfs_xdr.h
+index dfc59bc..3a40b17 100644
+--- a/include/linux/nfs_xdr.h
++++ b/include/linux/nfs_xdr.h
+@@ -1400,6 +1400,7 @@ struct nfs42_copy_args {
+ 
+ 	u64				count;
+ 	bool				sync;
++	struct nl4_server		*cp_src;
+ };
+ 
+ struct nfs42_write_res {
+-- 
+1.8.3.1
