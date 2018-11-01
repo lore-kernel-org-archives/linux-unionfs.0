@@ -1,52 +1,100 @@
 Return-Path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49730 "EHLO
-        mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726191AbeKHIwf (ORCPT
+Received: from aserp2120.oracle.com ([141.146.126.78]:45874 "EHLO
+        aserp2120.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727573AbeKAQPW (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 8 Nov 2018 03:52:35 -0500
-Date: Wed, 7 Nov 2018 15:19:55 -0800
-From: Andrew Morton <akpm@linux-foundation.org>
+        Thu, 1 Nov 2018 12:15:22 -0400
+Content-Type: text/plain;
+        charset=us-ascii
+Mime-Version: 1.0 (Mac OS X Mail 12.1 \(3445.101.1\))
 Subject: Re: [PATCH] tmpfs: let lseek return ENXIO with a negative offset
-Message-Id: <20181107151955.777fcbcf9a5932677e245287@linux-foundation.org>
+From: William Kucharski <william.kucharski@oracle.com>
 In-Reply-To: <1540434176-14349-1-git-send-email-yuyufen@huawei.com>
+Date: Thu, 1 Nov 2018 01:13:25 -0600
+Content-Transfer-Encoding: quoted-printable
+Message-Id: <88ED1518-A829-4933-8E1B-0576C79491B3@oracle.com>
 References: <1540434176-14349-1-git-send-email-yuyufen@huawei.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
 Sender: linux-unionfs-owner@vger.kernel.org
 To: Yufen Yu <yuyufen@huawei.com>
 Cc: viro@zeniv.linux.org.uk, hughd@google.com, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org
 List-ID: <linux-unionfs@vger.kernel.org>
 
-On Thu, 25 Oct 2018 10:22:56 +0800 Yufen Yu <yuyufen@huawei.com> wrote:
 
+
+> On Oct 24, 2018, at 8:22 PM, Yufen Yu <yuyufen@huawei.com> wrote:
+>=20
 > For now, the others filesystems, such as ext4, f2fs, ubifs,
 > all of them return ENXIO when lseek with a negative offset.
-
-When using SEEK_DATA and/or SEEK_HOLE, yes?
-
 > It is better to let tmpfs return ENXIO too. After that, tmpfs
 > can also pass generic/448.
+>=20
+> Signed-off-by: Yufen Yu <yuyufen@huawei.com>
+> ---
+> mm/shmem.c | 4 +---
+> 1 file changed, 1 insertion(+), 3 deletions(-)
+>=20
+> diff --git a/mm/shmem.c b/mm/shmem.c
+> index 0376c124..f37bf06 100644
+> --- a/mm/shmem.c
+> +++ b/mm/shmem.c
+> @@ -2608,9 +2608,7 @@ static loff_t shmem_file_llseek(struct file =
+*file, loff_t offset, int whence)
+> 	inode_lock(inode);
+> 	/* We're holding i_mutex so we can access i_size directly */
+>=20
+> -	if (offset < 0)
+> -		offset =3D -EINVAL;
+> -	else if (offset >=3D inode->i_size)
+> +	if (offset < 0 || offset >=3D inode->i_size)
+> 		offset =3D -ENXIO;
+> 	else {
+> 		start =3D offset >> PAGE_SHIFT;
+> --
 
-generic/448 is, I assume, part of xfstests?
+It's not at all clear what the proper thing to do is if a negative =
+offset is passed.
 
-So I'll rewrite the changelog as follows.  Please review carefully.
+The man page for lseek(2) states:
 
+       SEEK_DATA
+              Adjust the file offset to the next location in the file
+              greater than or equal to offset containing data.  If =
+offset
+              points to data, then the file offset is set to offset.
+      =20
+       SEEK_HOLE
+              Adjust the file offset to the next hole in the file =
+greater
+              than or equal to offset.  If offset points into the middle =
+of
+              a hole, then the file offset is set to offset.  If there =
+is no
+              hole past offset, then the file offset is adjusted to the =
+end
+              of the file (i.e., there is an implicit hole at the end of =
+any
+              file).
 
+This seems to indicate that if passed a negative offset, a whence of =
+either SEEK_DATA
+or SEEK_HOLE should operate the same as if passed an offset of 0.
 
-Subject: tmpfs: make lseek(SEEK_DATA/SEK_HOLE) return ENXIO with a negative offset
+ENXIO just seems to be the wrong error code to return for a passed =
+negative offset in
+these cases (also from lseek(2)):
 
-Other filesystems such as ext4, f2fs and ubifs all return ENXIO when
-lseek (SEEK_DATA or SEEK_HOLE) requests a negative offset.
+       ENXIO  whence is SEEK_DATA or SEEK_HOLE, and the file offset is
+              beyond the end of the file.
 
-man 2 lseek says
+but EINVAL isn't technically appropriate either:
 
-:      EINVAL whence  is  not  valid.   Or: the resulting file offset would be
-:             negative, or beyond the end of a seekable device.
-:
-:      ENXIO  whence is SEEK_DATA or SEEK_HOLE, and the file offset is  beyond
-:             the end of the file.
+       EINVAL whence is not valid.  Or: the resulting file offset would =
+be
+              negative, or beyond the end of a seekable device.
 
+At the very least it seems the man page should be updated to reflect =
+that ENXIO may be
+returned if whence is SEEK_DATA or SEEK_HOLE and the passed offset is =
+negative.
 
-Make tmpfs return ENXIO under these circumstances as well.  After this,
-tmpfs also passes xfstests's generic/448.
+    William Kucharski
