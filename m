@@ -1,9 +1,9 @@
 Return-Path: <olga.kornievskaia@gmail.com>
 Return-Path: <olga.kornievskaia@gmail.com>
 From: Olga Kornievskaia <olga.kornievskaia@gmail.com>
-Subject: [PATCH v8 02/11] NFS: validity check for source offset in copy_file_range
-Date: Thu,  1 Nov 2018 12:45:14 -0400
-Message-Id: <20181101164523.41812-3-olga.kornievskaia@gmail.com>
+Subject: [PATCH v8 06/11] NFS: also send OFFLOAD_CANCEL to source server
+Date: Thu,  1 Nov 2018 12:45:18 -0400
+Message-Id: <20181101164523.41812-7-olga.kornievskaia@gmail.com>
 In-Reply-To: <20181101164523.41812-1-olga.kornievskaia@gmail.com>
 References: <20181101164523.41812-1-olga.kornievskaia@gmail.com>
 To: trond.myklebust@hammerspace.com, anna.schumaker@netapp.com, viro@zeniv.linux.org.uk, smfrench@gmail.com, miklos@szeredi.hu
@@ -12,43 +12,34 @@ List-ID: <linux-unionfs@vger.kernel.org>
 
 From: Olga Kornievskaia <kolga@netapp.com>
 
-copy_file_range() man page mandates that EINVAL is returned
-if the specified range is beyond the end of the file but
-currently does not enforce it.
-
-NFS RFC 7832 states that "if the source offset or the source
-offset plus count is greater than the size of the source file,
-the operation MUST fail with NFS4ERR_INVAL."
-
->From the NFS community discussion from earlier on
-https://www.spinics.net/lists/linux-nfs/msg62627.html
-in was thought that offset plus count should instead be a
-short read.
-
-In this patch only proposing to enforce the offset check:
-Input source offset can not be beyond the end of the file.
-
-Future work in VFS might perform the arguments checks and
-we can remove this check.
+In case of copy is cancelled, also send OFFLOAD_CANCEL to the source
+server.
 
 Signed-off-by: Olga Kornievskaia <kolga@netapp.com>
 ---
- fs/nfs/nfs4file.c | 3 +++
- 1 file changed, 3 insertions(+)
+ fs/nfs/nfs42proc.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff --git a/fs/nfs/nfs4file.c b/fs/nfs/nfs4file.c
-index 5a73c90..7838bdf 100644
---- a/fs/nfs/nfs4file.c
-+++ b/fs/nfs/nfs4file.c
-@@ -135,6 +135,9 @@ static ssize_t nfs4_copy_file_range(struct file *file_in, loff_t pos_in,
- {
- 	ssize_t ret;
+diff --git a/fs/nfs/nfs42proc.c b/fs/nfs/nfs42proc.c
+index bb9e799..98fe00b 100644
+--- a/fs/nfs/nfs42proc.c
++++ b/fs/nfs/nfs42proc.c
+@@ -205,12 +205,14 @@ static int handle_async_copy(struct nfs42_copy_res *res,
+ 	memcpy(&res->write_res.verifier, &copy->verf, sizeof(copy->verf));
+ 	status = -copy->error;
  
-+	if (pos_in >= i_size_read(file_inode(file_in)))
-+		return -EINVAL;
-+
- 	if (file_inode(file_in)->i_sb != file_inode(file_out)->i_sb)
- 		return -EXDEV;
++out_free:
+ 	kfree(copy);
+ 	return status;
+ out_cancel:
+ 	nfs42_do_offload_cancel_async(dst, &copy->stateid);
+-	kfree(copy);
+-	return status;
++	if (!nfs42_files_from_same_server(src, dst))
++		nfs42_do_offload_cancel_async(src, src_stateid);
++	goto out_free;
+ }
  
+ static int process_copy_commit(struct file *dst, loff_t pos_dst,
 -- 
 1.8.3.1
