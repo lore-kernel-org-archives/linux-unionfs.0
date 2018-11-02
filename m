@@ -1,43 +1,75 @@
-Return-Path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mx2.suse.de ([195.135.220.15]:57774 "EHLO mx1.suse.de"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1726203AbeK0Dd2 (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 26 Nov 2018 22:33:28 -0500
-Date: Mon, 26 Nov 2018 10:38:47 -0600
-From: Goldwyn Rodrigues <rgoldwyn@suse.de>
-Subject: [PATCH] IMA: Mask O_RDWR if FMODE_READ is set
-Message-ID: <20181126163847.xy3acvltyeb75nb4@merlin>
+Return-Path: <amir73il@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Sender: linux-unionfs-owner@vger.kernel.org
-To: syzbot+ae82084b07d0297e566b@syzkaller.appspotmail.com
-Cc: Mimi Zohar <zohar@linux.vnet.ibm.com>, syzkaller-bugs@googlegroups.com, linux-integrity@vger.kernel.org, linux-unionfs@vger.kernel.org, amir73il@gmail.com
+References: <20181010233441.5337-1-amir73il@gmail.com>
+In-Reply-To: <20181010233441.5337-1-amir73il@gmail.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Date: Fri, 2 Nov 2018 12:32:59 +0200
+Message-ID: <CAOQ4uxi5Gyq8yn8dgGxtbeymkhKQnhS-cS+5FmTcn40dgfd=5Q@mail.gmail.com>
+Subject: Re: [PATCH v3 0/6] Tests for readahead() and fadvise() on overlayfs
+Content-Type: text/plain; charset="UTF-8"
+To: Cyril Hrubis <chrubis@suse.cz>
+Cc: ltp@lists.linux.it, Jan Stancek <jstancek@redhat.com>, Miklos Szeredi <miklos@szeredi.hu>, overlayfs <linux-unionfs@vger.kernel.org>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-A file can be opened with open(O_WRONLY | O_RDWR), so a FMORE_READ
-will not be set, and overlayfs will consider another copy_up() on the same
-file leading to a deadlock on mnt_want_write(). Fix it by masking
-O_RDWR while opening the file in read-only mode.
+On Thu, Oct 11, 2018 at 2:34 AM Amir Goldstein <amir73il@gmail.com> wrote:
+>
+> Cyril,
+>
 
+Ping.
 
-Reported-by: syzbot+ae82084b07d0297e566b@syzkaller.appspotmail.com
-Fixes: a408e4a86b36 ("ima: open a new file instance if no read permissions")
-Signed-off-by: Goldwyn Rodrigues <rgoldwyn@suse.com>
+The affected kernel code as well as fix commits are now in v4.19.
+Pushed rebased branch to:
+https://github.com/amir73il/ltp/commits/overlayfs-devel
 
-diff --git a/security/integrity/ima/ima_crypto.c b/security/integrity/ima/ima_crypto.c
-index d9e7728027c6..2efa04e47ff0 100644
---- a/security/integrity/ima/ima_crypto.c
-+++ b/security/integrity/ima/ima_crypto.c
-@@ -422,7 +422,7 @@ int ima_calc_file_hash(struct file *file, struct ima_digest_data *hash)
- 	/* Open a new file instance in O_RDONLY if we cannot read */
- 	if (!(file->f_mode & FMODE_READ)) {
- 		int flags = file->f_flags & ~(O_WRONLY | O_APPEND |
--				O_TRUNC | O_CREAT | O_NOCTTY | O_EXCL);
-+				O_RDWR | O_TRUNC | O_CREAT | O_NOCTTY | O_EXCL);
- 		flags |= O_RDONLY;
- 		f = dentry_open(&file->f_path, flags, file->f_cred);
- 		if (IS_ERR(f)) {
+Also, there is an unrelated (besides the word "fadvise") cleanup branch
+https://github.com/amir73il/ltp/commits/fadvise_cleanup
+that converts the fadvise tests to newlib.
 
--- 
-Goldwyn
+Thanks,
+Amir.
+
+> The following series adds test covergae for readahead() syscall
+> over overlayfs file and adds test coverage for a specific
+> posix_fadvise() syscall advice (POSIX_FADV_WILLNEED).
+>
+> So far, the posix_fadvise syscall tests in LTP only test for error
+> conditions, but not functionality.
+>
+> The functionality of the advice POSIX_FADV_WILLNEED is identical
+> to readahead() and since kernel commit 3d8f7615319b ("vfs: implement
+> readahead(2) using POSIX_FADV_WILLNEED"), the implementations are
+> also bound together.
+>
+> To add test coverage of the advice POSIX_FADV_WILLNEED, I decided not
+> to duplicate the readahead() functional test and add test cases to
+> readahead02 that use the POSIX_FADV_WILLNEED implementation.
+>
+> Thanks,
+> Amir.
+>
+> Changes since v2:
+> - Runtime check for readahead/fadvise support
+> - Abort test case immediately if syscall fail
+>
+> Changes since v1:
+> - Fix bugs in loop invocation of test (i.e. -i 2)
+> - Address review comments from Jan Stancek
+> - Make cached_max a global maximum over all test cases
+> - Improve reliability of overlayfs readahead test case failure
+>
+> Amir Goldstein (6):
+>   syscalls/readahead01: Convert to newlib
+>   syscalls/readahead02: Convert to newlib and cleanup
+>   syscalls/readahead02: abort test if readahead syscall fails
+>   syscalls/readahead02: test readahead() on an overlayfs file
+>   syscalls/readahead02: test readahead using posix_fadvise()
+>   syscalls/readahead02: fail test if readahead did not use any cache
+>
+>  .../kernel/syscalls/readahead/readahead01.c   | 119 ++----
+>  .../kernel/syscalls/readahead/readahead02.c   | 339 +++++++++---------
+>  2 files changed, 198 insertions(+), 260 deletions(-)
+>
+> --
+> 2.17.1
+>
