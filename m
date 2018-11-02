@@ -1,68 +1,109 @@
-From: Filipe Manana <fdmanana@gmail.com>
-Subject: Re: [PATCH 05/25] vfs: avoid problematic remapping requests into
- partial EOF block
-Date: Fri, 2 Nov 2018 12:04:39 +0000
-Message-ID: <CAL3q7H5ofBmjh0DmbPH6Rmm523JV9byuBiYj=Jxpc44Kbh+Haw@mail.gmail.com>
-References: <153923113649.5546.9840926895953408273.stgit@magnolia>
- <153923117420.5546.13317703807467393934.stgit@magnolia> <CAL3q7H7mLvCGpyitJhQ=To-aDvG9k9rxSVi2jSpcALQVj3myzg@mail.gmail.com>
- <20181015003139.GZ6311@dastard>
-Reply-To: fdmanana@gmail.com
+From: Seth Forshee <seth.forshee@canonical.com>
+Subject: Re: [RFC PATCH 0/6] shiftfs fixes and enhancements
+Date: Fri, 2 Nov 2018 07:26:12 -0500
+Message-ID: <20181102122612.GA29262@ubuntu-xps13>
+References: <20181101214856.4563-1-seth.forshee@canonical.com>
+ <CAOQ4uxipSP_eKF-SZQ7ss1_yjnuTMyGniOZcgp7NXKBYB0E=8g@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-btrfs-owner@vger.kernel.org>
-In-Reply-To: <20181015003139.GZ6311@dastard>
-Sender: linux-btrfs-owner@vger.kernel.org
-To: Dave Chinner <david@fromorbit.com>
-Cc: "Darrick J. Wong" <darrick.wong@oracle.com>, Eric Sandeen <sandeen@redhat.com>, linux-nfs@vger.kernel.org, linux-cifs@vger.kernel.org, linux-unionfs@vger.kernel.org, linux-xfs@vger.kernel.org, linux-mm@kvack.org, linux-btrfs <linux-btrfs@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, ocfs2-devel@oss.oracle.com
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CAOQ4uxipSP_eKF-SZQ7ss1_yjnuTMyGniOZcgp7NXKBYB0E=8g@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: linux-fsdevel <linux-fsdevel@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>, Linux Containers <containers@lists.linux-foundation.org>, James Bottomley <James.Bottomley@hansenpartnership.com>, overlayfs <linux-unionfs@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>
 List-Id: linux-unionfs@vger.kernel.org
 
-On Mon, Oct 15, 2018 at 1:31 AM Dave Chinner <david@fromorbit.com> wrote:
->
-> On Fri, Oct 12, 2018 at 09:22:18PM +0100, Filipe Manana wrote:
-> > On Thu, Oct 11, 2018 at 5:13 AM Darrick J. Wong <darrick.wong@oracle.co=
-m> wrote:
-> > >
-> > > From: Darrick J. Wong <darrick.wong@oracle.com>
-> > >
-> > > A deduplication data corruption is exposed by fstests generic/505 on
-> > > XFS.
+On Fri, Nov 02, 2018 at 10:59:38AM +0200, Amir Goldstein wrote:
+> [cc: linux-unionfs
+> It should the mailing list for *all* "stacking fs".
+> We have a lot of common problems I think ;-) ]
+> 
+> On Thu, Nov 1, 2018 at 11:49 PM Seth Forshee <seth.forshee@canonical.com> wrote:
 > >
-> > (and btrfs)
+> > I've done some work to fix and enhance shiftfs for a number of use
+> > cases, so that we would have an idea what a more full-featured shiftfs
+> > would look like. I'm intending for these to serve as a point of
+> > reference for discussing id shifting mounts/filesystems at plumbers in a
+> > couple of weeks [1].
 > >
-> > Btw, the generic test I wrote was indeed numbered 505, however it was
-> > never committed and there's now a generic/505 which has nothing to do
-> > with deduplication.
-> > So you should update the changelog to avoid confusion.
->
-> What test is it now? And if it hasn't been committed, are you going
-> to update it and repost as it clearly had value....
+> > Note that these are based on 4.18, and I've added a small fix to James'
+> > most recent patch to fix a build issue there. To work with 4.19 they
+> > will need a number of updates due to changes in the vfs.
+> >
+> 
+> Seth,
+> 
+> I like the way you addressed my concerns about nesting and stacking depth.
+> Will provide specific nits on patch.
+> 
+> In preparation to the Plumbers talk (which I will not be attending), I wanted to
+> get your opinion on the matters I brought up last time:
+> https://marc.info/?l=linux-fsdevel&m=153013920904844&w=2
 
-Sorry, I lost track of this.
+I want the session at plumbers to not be a "talk" but more of a
+discussion of the sorts of things you raise below. But I'm also happy to
+talk about them here.
 
-So what was the conclusion of the thread where discussion about this
-problem started?
-It wasn't clear to me if a consensus was reached and got lost on that
-long user space dedupe tools discussion between you and Zygo.
+> 1) Having seen what it takes to catch up with overlayfs w.r.t inotify bugs
+> and having peeked into 4.19 to see what work you still have lined up for you
+> to bring shitfs up to speed with vfs, did you have time to look into my proposal
+> for sharing code with overlayfs in the manner that I have implemented the
+> snapshotfs POC?
+> https://github.com/amir73il/linux/commit/25416757f2ca47759f59b115e6461b11898c4f06
+> 
+> Even if you end up not saving a single line of code for shiftfs v1
+> meaning that all shiftfs_inode_ops are completely separate implementation
+> from overlayfs inode ops, this may still be beneficial to shitfs in
+> the long run.
+> For example, you may, in fact, won't need to change anything to work with v4.19.
+> shittfs (as an overlayfs alias) would use ovl_file_operations and
+> shiftfs_inode_ops.
 
-The test assumed a fix of rounding down the range and deduping less
-bytes then requested (which ended up included in 4.19 for btrfs).
+I don't recall seeing the shapshotfs patches before. If id shifting
+remains an overlay-style fs and not a feature of the vfs, then I
+absolutely think something like this will make life much easier.
 
->From this vfs patch it seems it was decided to return errno -EDADE instead.
-Is this the final decision?
+> Another example, from the top of my head, see what it took to add NFS export
+> support to snapshotfs, because of the code reuse with overlayfs:
+> https://github.com/amir73il/linux/commit/d082eb615133490ec26fa2efaa80ed4723860893
+> Its practically the exact same implementation shiftfs would need,
+> so in the far future, shitfs and snapshotfs can share the same
+> export_operations.
+> 
+> 2) Regarding this part:
+> +               /*
+> +                * this part is visible unshifted, so make sure no
+> +                * executables that could be used to give suid
+> +                * privileges
+> +                */
+> +               sb->s_iflags = SB_I_NOEXEC;
+> 
+> Why would you want to make the unshifted fs visible at all?
+> Is there a requirement for container users to access the unshifted fs
+> content? Is there a requirement for container admin to mount shitfted fs
+> NOT from the root of the marked mount?
+> 
+> If those are not required, then I propose NOOP inode operations for
+> the unshifted fs, specifically, empty readdir, just enough ops to be able
+> to use the mark mount point as the shitfed mount source - no more.
 
->
-> Cheers,
->
-> Dave.
-> --
-> Dave Chinner
-> david@fromorbit.com
+This is part of the original implementation that I didn't touch with
+these updates. Imo the mark mount is kind of kludgy, and I'd like to see
+it done a different way.
 
+A couple of alternatives have been suggested. One was to use xattrs for
+marking, or I did a PoC with an older version of the new mount API
+patches where an fsfd was passed to the less privileged context that it
+could attach to its mount tree:
 
+https://lkml.kernel.org/r/20180717133847.GB15620@ubuntu-xps13
 
---=20
-Filipe David Manana,
+Either of these can accomplish the same things as the mark mount with
+better control over who can create an id-shifted mount of the subtree.
 
-=E2=80=9CWhether you think you can, or you think you can't =E2=80=94 you're=
- right.=E2=80=9D
+However if the mark mount is kept then no-op inode operations seems
+reasonable to me.
+
+Thanks,
+Seth
