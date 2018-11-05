@@ -1,75 +1,56 @@
 Return-Path: <amir73il@gmail.com>
 MIME-Version: 1.0
-References: <20181010233441.5337-1-amir73il@gmail.com>
-In-Reply-To: <20181010233441.5337-1-amir73il@gmail.com>
+References: <CAOQ4uxiYg11XGjzNhD-2gOd-s-FgnzScgzDwwuWpp+518EHv6A@mail.gmail.com>
+In-Reply-To: <CAOQ4uxiYg11XGjzNhD-2gOd-s-FgnzScgzDwwuWpp+518EHv6A@mail.gmail.com>
 From: Amir Goldstein <amir73il@gmail.com>
-Date: Fri, 2 Nov 2018 12:32:59 +0200
-Message-ID: <CAOQ4uxi5Gyq8yn8dgGxtbeymkhKQnhS-cS+5FmTcn40dgfd=5Q@mail.gmail.com>
-Subject: Re: [PATCH v3 0/6] Tests for readahead() and fadvise() on overlayfs
+Date: Mon, 5 Nov 2018 08:57:33 +0200
+Message-ID: <CAOQ4uxhBjt4aBEjuNk2GvcFu2eR+ZFxogr2+zN7jR4UqtYsU3g@mail.gmail.com>
+Subject: Re: Overlayfs backport for kernel v4.9.y
 Content-Type: text/plain; charset="UTF-8"
-To: Cyril Hrubis <chrubis@suse.cz>
-Cc: ltp@lists.linux.it, Jan Stancek <jstancek@redhat.com>, Miklos Szeredi <miklos@szeredi.hu>, overlayfs <linux-unionfs@vger.kernel.org>
+To: overlayfs <linux-unionfs@vger.kernel.org>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, Vivek Goyal <vgoyal@redhat.com>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-On Thu, Oct 11, 2018 at 2:34 AM Amir Goldstein <amir73il@gmail.com> wrote:
+On Thu, Dec 7, 2017 at 7:14 PM Amir Goldstein <amir73il@gmail.com> wrote:
 >
-> Cyril,
+> Hi All,
+>
+> For whom it may concern, I have backported latest overlayfs
+> features to stable kernel v4.9.y. The patches are available on
+> overlayfs-4.9.y branch on my github [1]. I intend to update and
+> test this branch with patches applied to upstream.
+>
+> This work was verified with with xfstests master branch and
+> with unionmount-testsuite master branch on my github [2].
+>
+> DO NOT mistake this for code that can be compiled and loaded
+> as a kernel module to kernel v4.9.y!
+> The branch pulls in some minor infrastructure changes that
+> were required for ease of backporting (mostly uuid_t helpers).
+> Most of the remaining diff from v4.15-rc1 in overlayfs code
+> is due to STATX vfs API change.
+>
+> All backported patches have my S-O-B, but most of them
+> don't have the upstream commit id in the commit message
+> expect a few tree wide patches which I selectively picked
+> their changes only to overlayfs (e.g. add include <cred.h>).
+>
+> Please feel free to use this code, review my work and test it.
 >
 
-Ping.
+For whom it may concern, the linux-4.9.y-ovl-* backport branches have
+been updated to latest stable branch and latest upstream overlayfs [1].
+New linux-4.14.y-ovl-* branches are available on my github [2].
 
-The affected kernel code as well as fix commits are now in v4.19.
-Pushed rebased branch to:
-https://github.com/amir73il/ltp/commits/overlayfs-devel
+I was chancing was appeared to be a backport bug in linux-4.9.y-ovl-4.17
+that eventually turned out to be a real v4.17 overlay NFS export regression
+unveiled by different drop_caches behavior in kernel v4.9.
 
-Also, there is an unrelated (besides the word "fadvise") cleanup branch
-https://github.com/amir73il/ltp/commits/fadvise_cleanup
-that converts the fadvise tests to newlib.
+Please note that these branches WILL be rebased as overlayfs fix patches
+find their way into the stable tree.
 
 Thanks,
 Amir.
 
-> The following series adds test covergae for readahead() syscall
-> over overlayfs file and adds test coverage for a specific
-> posix_fadvise() syscall advice (POSIX_FADV_WILLNEED).
->
-> So far, the posix_fadvise syscall tests in LTP only test for error
-> conditions, but not functionality.
->
-> The functionality of the advice POSIX_FADV_WILLNEED is identical
-> to readahead() and since kernel commit 3d8f7615319b ("vfs: implement
-> readahead(2) using POSIX_FADV_WILLNEED"), the implementations are
-> also bound together.
->
-> To add test coverage of the advice POSIX_FADV_WILLNEED, I decided not
-> to duplicate the readahead() functional test and add test cases to
-> readahead02 that use the POSIX_FADV_WILLNEED implementation.
->
-> Thanks,
-> Amir.
->
-> Changes since v2:
-> - Runtime check for readahead/fadvise support
-> - Abort test case immediately if syscall fail
->
-> Changes since v1:
-> - Fix bugs in loop invocation of test (i.e. -i 2)
-> - Address review comments from Jan Stancek
-> - Make cached_max a global maximum over all test cases
-> - Improve reliability of overlayfs readahead test case failure
->
-> Amir Goldstein (6):
->   syscalls/readahead01: Convert to newlib
->   syscalls/readahead02: Convert to newlib and cleanup
->   syscalls/readahead02: abort test if readahead syscall fails
->   syscalls/readahead02: test readahead() on an overlayfs file
->   syscalls/readahead02: test readahead using posix_fadvise()
->   syscalls/readahead02: fail test if readahead did not use any cache
->
->  .../kernel/syscalls/readahead/readahead01.c   | 119 ++----
->  .../kernel/syscalls/readahead/readahead02.c   | 339 +++++++++---------
->  2 files changed, 198 insertions(+), 260 deletions(-)
->
-> --
-> 2.17.1
->
+[1] https://github.com/amir73il/linux/commits/linux-4.9.y-ovl-next
+[2] https://github.com/amir73il/linux/commits/linux-4.14.y-ovl-next
