@@ -1,80 +1,134 @@
-Return-Path: <vgoyal@redhat.com>
-Date: Thu, 1 Nov 2018 09:03:22 -0400
-From: Vivek Goyal <vgoyal@redhat.com>
-Subject: Re: [PATCH v2 1/5] ovl: return error on mount if metacopy cannot be
- enabled
-Message-ID: <20181101130322.GA15140@redhat.com>
-References: <20181101004813.31349-1-amir73il@gmail.com>
- <20181101004813.31349-2-amir73il@gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20181101004813.31349-2-amir73il@gmail.com>
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org
+Return-Path: <amir73il@gmail.com>
+Return-Path: <amir73il@gmail.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Subject: [PATCH] overlay: test file handle decode with multi lower layers on same fs
+Date: Mon,  5 Nov 2018 07:18:15 +0200
+Message-Id: <20181105051815.15074-1-amir73il@gmail.com>
+To: Eryu Guan <guaneryu@gmail.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, fstests@vger.kernel.org
 List-ID: <linux-unionfs@vger.kernel.org>
 
-On Thu, Nov 01, 2018 at 02:48:09AM +0200, Amir Goldstein wrote:
+This test is for a regression that was introduced in kernel v4.17 by
+commit 8b58924ad55c ("ovl: lookup in inode cache first when decoding
+lower file handle").
 
-[..]
-> + * Check dependencies between features.
-> + *
-> + * @enabled is a boolean variable that depends on the boolean @required
-> + * variable.
-> + *
-> + * If !@config->strict, the feature is disabled when requirement is not met.
-> + * If @config->strict, return error when requirement is not met.
-> + *
-> + * @feature is the name of the feature and @requirement is the description of
-> + * the requirement for the error/warning message.
-> + */
-> +static int ovl_feature_check(struct ovl_config *config, bool *enabled,
-> +			     bool required, const char *feature,
-> +			     const char *requirement)
-> +{
-> +	/* If feature is enabled, required condition should be met */
-> +	if (!*enabled || required)
-> +		return 0;
-> +
-> +	*enabled = false;
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+---
+ tests/overlay/062     | 86 +++++++++++++++++++++++++++++++++++++++++++
+ tests/overlay/062.out |  2 +
+ tests/overlay/group   |  1 +
+ 3 files changed, 89 insertions(+)
+ create mode 100755 tests/overlay/062
+ create mode 100644 tests/overlay/062.out
 
-So going forward, we will allow disabling a feature if strict is not
-set? Even for new knobs? IOW, say I introduce a feature foo, it will
-have two modes it will work in (strict=on, strict=off?)
-
-Do we really need this for newer options. I thought we needed this
-behavior only for older options due to backward compatibility issues.
-
-> +
-> +	return ovl_feature_requires(config, feature, requirement);
-> +}
-> +
->  static void ovl_entry_stack_free(struct ovl_entry *oe)
->  {
->  	unsigned int i;
-> @@ -64,11 +108,6 @@ static void ovl_entry_stack_free(struct ovl_entry *oe)
->  		dput(oe->lowerstack[i].dentry);
->  }
->  
-> -static bool ovl_metacopy_def = IS_ENABLED(CONFIG_OVERLAY_FS_METACOPY);
-> -module_param_named(metacopy, ovl_metacopy_def, bool, 0644);
-> -MODULE_PARM_DESC(ovl_metacopy_def,
-> -		 "Default to on or off for the metadata only copy up feature");
-> -
->  static void ovl_dentry_release(struct dentry *dentry)
->  {
->  	struct ovl_entry *oe = dentry->d_fsdata;
-
-[..]
-> @@ -548,6 +587,7 @@ static int ovl_parse_opt(char *opt, struct ovl_config *config)
->  
->  		case OPT_METACOPY_ON:
->  			config->metacopy = true;
-> +			config->strict = true;
-
-I think either ->strict should go in a separate patch or we should have
-a good description in commit message, explaining why ->strict is there
-and how it will impact behavior going forward.
-
-Thanks
-Vivek
+diff --git a/tests/overlay/062 b/tests/overlay/062
+new file mode 100755
+index 00000000..2c86a4b6
+--- /dev/null
++++ b/tests/overlay/062
+@@ -0,0 +1,86 @@
++#! /bin/bash
++# SPDX-License-Identifier: GPL-2.0
++# Copyright (C) 2018 CTERA Networks. All Rights Reserved.
++#
++# FS QA Test No. 062
++#
++# Test file handle decode with multi lower layers on same fs
++#
++# This test is for a regression that was introduced in kernel v4.17 by
++# commit 8b58924ad55c ("ovl: lookup in inode cache first when decoding
++# lower file handle").
++#
++seq=`basename $0`
++seqres=$RESULT_DIR/$seq
++echo "QA output created by $seq"
++
++here=`pwd`
++tmp=/tmp/$$
++status=1	# failure is the default!
++trap "_cleanup; exit \$status" 0 1 2 3 15
++
++_cleanup()
++{
++	cd /
++	rm -f $tmp.*
++	$UMOUNT_PROG $lowertestdir
++}
++
++# get standard environment, filters and checks
++. ./common/rc
++. ./common/filter
++
++# real QA test starts here
++
++_supported_fs overlay
++_supported_os Linux
++_require_scratch
++_require_test_program "open_by_handle"
++# We need to require all features together, because nfs_export cannot
++# be enabled when index is disabled
++_require_scratch_overlay_features index nfs_export
++
++NUMFILES=1
++
++# Create test dir and empty test files
++create_test_files()
++{
++	local dir=$1
++
++	mkdir -p $dir
++	$here/src/open_by_handle -cwp $dir $NUMFILES
++}
++
++# Test encode/decode file handles on overlay mount
++test_file_handles()
++{
++	local dir=$1
++
++	$here/src/open_by_handle -rp $dir $NUMFILES
++}
++
++_scratch_mkfs
++
++# All lower layers are on scratch partition
++lower=$OVL_BASE_SCRATCH_MNT/$OVL_LOWER
++lower2=$OVL_BASE_SCRATCH_MNT/$OVL_LOWER.2
++lowertestdir=$lower2/testdir
++
++create_test_files $lowertestdir
++
++# bind mount to pin lower test dir dentry to dcache
++$MOUNT_PROG --bind $lowertestdir $lowertestdir
++
++# For non-upper overlay mount, nfs_export requires disabling redirect_dir.
++$MOUNT_PROG -t overlay $OVL_BASE_SCRATCH_MNT $SCRATCH_MNT \
++	-o ro,redirect_dir=nofollow,nfs_export=on,lowerdir=$lower:$lower2
++
++# Decode an overlay directory file handle, whose underlying lower dir dentry
++# is in dcache and connected and does not belong to the upper most lower layer.
++# The test program drops caches, but $lowertestdir dcache in pinned, so only
++# the overlay dentry is dropped.
++test_file_handles $SCRATCH_MNT/testdir -rp
++
++echo "Silence is golden"
++status=0
++exit
+diff --git a/tests/overlay/062.out b/tests/overlay/062.out
+new file mode 100644
+index 00000000..a1578f48
+--- /dev/null
++++ b/tests/overlay/062.out
+@@ -0,0 +1,2 @@
++QA output created by 062
++Silence is golden
+diff --git a/tests/overlay/group b/tests/overlay/group
+index ccc71f3b..165f002d 100644
+--- a/tests/overlay/group
++++ b/tests/overlay/group
+@@ -64,3 +64,4 @@
+ 059 auto quick copyup
+ 060 auto quick metacopy
+ 061 auto quick copyup
++062 auto quick exportfs
+-- 
+2.17.1
