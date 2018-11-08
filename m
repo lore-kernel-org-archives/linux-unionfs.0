@@ -1,127 +1,211 @@
-Return-Path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-yb1-f196.google.com ([209.85.219.196]:41028 "EHLO
-        mail-yb1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728378AbeKLCei (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Sun, 11 Nov 2018 21:34:38 -0500
+Return-Path: <salyzyn@android.com>
+Return-Path: <salyzyn@android.com>
+Subject: Re: [PATCH v8 2/2] overlayfs: override_creds=off option bypass
+ creator_cred
+References: <20181106230117.127616-1-salyzyn@android.com>
+ <20181106230117.127616-2-salyzyn@android.com>
+ <20181108200106.GB3663@redhat.com>
+From: Mark Salyzyn <salyzyn@android.com>
+Message-ID: <b057da99-adc6-b355-fb57-b314a29f298f@android.com>
+Date: Thu, 8 Nov 2018 13:28:32 -0800
 MIME-Version: 1.0
-References: <20181031095502.12504-1-mszeredi@redhat.com> <CAOQ4uxi9YX23C7NLQ2yqsz1Ur4nwMZFbQta=nBU=6bvYPU2YGg@mail.gmail.com>
-In-Reply-To: <CAOQ4uxi9YX23C7NLQ2yqsz1Ur4nwMZFbQta=nBU=6bvYPU2YGg@mail.gmail.com>
-From: Amir Goldstein <amir73il@gmail.com>
-Date: Sun, 11 Nov 2018 18:45:25 +0200
-Message-ID: <CAOQ4uxikt5u-a4f+Z1bT38E5p2mcBq++8qP64OzVobe8Z1RhLQ@mail.gmail.com>
-Subject: Re: [PATCH] overlay: create directory over deleted whiteout
-Content-Type: text/plain; charset="UTF-8"
-Sender: linux-unionfs-owner@vger.kernel.org
-To: Miklos Szeredi <mszeredi@redhat.com>
-Cc: Eryu Guan <guaneryu@gmail.com>, fstests <fstests@vger.kernel.org>, overlayfs <linux-unionfs@vger.kernel.org>
+In-Reply-To: <20181108200106.GB3663@redhat.com>
+Content-Type: multipart/alternative;
+ boundary="------------DD46D0D5ED4C802C31A6253C"
+Content-Language: en-GB
+To: Vivek Goyal <vgoyal@redhat.com>
+Cc: linux-kernel@vger.kernel.org, Miklos Szeredi <miklos@szeredi.hu>, Jonathan Corbet <corbet@lwn.net>, "Eric W . Biederman" <ebiederm@xmission.com>, Amir Goldstein <amir73il@gmail.com>, Randy Dunlap <rdunlap@infradead.org>, Stephen Smalley <sds@tycho.nsa.gov>, linux-unionfs@vger.kernel.org, linux-doc@vger.kernel.org, kernel-team@android.com
 List-ID: <linux-unionfs@vger.kernel.org>
 
-On Wed, Oct 31, 2018 at 12:17 PM Amir Goldstein <amir73il@gmail.com> wrote:
->
-> On Wed, Oct 31, 2018 at 11:55 AM Miklos Szeredi <mszeredi@redhat.com> wrote:
-> >
-> > There's a bug in the overlayfs implementation starting from the very first
-> > merged version that may cause an Oops of various forms if a directory is created
-> > over a whiteout dentry, but the actual whiteout on the upper layer was removed
-> > to the directory creation.
-> >
-> > Reported by: kaixuxia <xiakaixu1987@gmail.com>
-> > Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
-> > ---
->
-> Looks good. A bit of commentary could be useful...
+This is a multi-part message in MIME format.
+--------------DD46D0D5ED4C802C31A6253C
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
-Eryu,
+On 11/08/2018 12:01 PM, Vivek Goyal wrote:
+> On Tue, Nov 06, 2018 at 03:01:15PM -0800, Mark Salyzyn wrote:
+>> By default, all access to the upper, lower and work directories is the
+>> recorded mounter's MAC and DAC credentials.  The incoming accesses are
+>> checked against the caller's credentials.
+> Ok, I am trying to think of scenarios where override_creds=off can
+> provide any privilege escalation. How about following.
+>
+> $ mkdir lower lower/foo upper upper/foo work merged
+> $ touch lower/foo/bar.txt
+> $ chmod 700 lower/foo/
+>
+> # Mount overlay with override_creds=off
+>
+> $ mount -t overlay -o
+> lowerdir=lower,upperdir=upper,workdir=work,override_creds=off none merged
+>
+> # Try to read lower/foo as unpriviliged user. Say "test"
+> # su test
+> # ls merged/foo/
+> ls: cannot access 'merged/foo/': Operation not permitted
+>
+> # Now first try to do same operation as root and retry as test user.
+> $ exit
+> $ ls merged/foo
+> bar.txt
+> $ su test
+> $ ls merged/foo
+> bar.txt
+>
+> lower/foo/ is not readable by user "test". So it fails in first try. Later
+> "root" accesses it and it populates cache in overlayfs. When test retries,
+> it gets these entries from cache.
+>
+> With override_creds=on this is not a problem because overlay provides
+> this as functionality as long as mounter as access to lower/foo/.
+>
+> But with override_creds=off, mounter is not providing any such
+> functionality and we are exposing an issue where cache will make
+> something available which is not normally available.
+>
+> I think it probably is a good idea to do something about it?
+>
+> Thanks
+> Vivek
+>
+Good stuff.
 
-I see you have not included this test in today's update.
-Maybe you though that this discussion did not conclude.
-On my part, besides adding the 2 comment lines, there
-are no further concerns.
+That sounds like a bug in cache (!) to not recheck caller's credentials. 
+Currently unsure how/where to force bypass of the cache (performance 
+hit) as it is wired in throughout the code without a clear off switch, 
+or rechecking of the credentials at access. This does need to be 
+addressed to make this 'feature' more useful/trusted for non-MAC 
+controlled, use cases.
 
-FYI, the fix for this bug is now in master:
-5e1275808630 ovl: check whiteout in ovl_create_over_whiteout()
+This is not a problem in the Android usage case since DAC is simple and 
+all can be read, execute bits might be controlled, the owners and perms 
+are otherwise unremarkable in the affected arenas that are utilizing 
+overlayfs. Not using it for a generic r/w backing except in rooted debug 
+scenarios by developers, otherwise everything is r/o, MAC on the other 
+hand is complex and heavily inspected. We do, however, want multi level 
+security in that both DAC and MAC can be trusted and can protect each 
+other from holes.
 
-Thanks,
-Amir.
+Sounds like the caveats in the documentation need to be expanded if _no_ 
+solution for this kind of access pattern becomes apparent.
 
->
-> >  tests/overlay/062     | 60 +++++++++++++++++++++++++++++++++++++++++++++++++++
-> >  tests/overlay/062.out |  2 ++
-> >  tests/overlay/group   |  1 +
-> >  3 files changed, 63 insertions(+)
-> >  create mode 100644 tests/overlay/062
-> >  create mode 100644 tests/overlay/062.out
-> >
-> > diff --git a/tests/overlay/062 b/tests/overlay/062
-> > new file mode 100644
-> > index 000000000000..b2cc350afefb
-> > --- /dev/null
-> > +++ b/tests/overlay/062
-> > @@ -0,0 +1,60 @@
-> > +#! /bin/bash
-> > +# SPDX-License-Identifier: GPL-2.0
-> > +# Copyright (c) 2018 Red Hat Inc.  All Rights Reserved.
-> > +#
-> > +# FS QA Test 062
-> > +#
-> > +# Create dir over cached negative dentry, but whiteout removed from upper
-> > +#
-> > +# The following kernel commit fixed the kernel crash: ???
-> > +#
-> > +seq=`basename $0`
-> > +seqres=$RESULT_DIR/$seq
-> > +echo "QA output created by $seq"
-> > +
-> > +here=`pwd`
-> > +tmp=/tmp/$$
-> > +status=1       # failure is the default!
-> > +trap "_cleanup; exit \$status" 0 1 2 3 15
-> > +
-> > +_cleanup()
-> > +{
-> > +       cd /
-> > +       rm -f $tmp.*
-> > +}
-> > +
-> > +# get standard environment, filters and checks
-> > +. ./common/rc
-> > +. ./common/filter
-> > +
-> > +# remove previous $seqres.full before test
-> > +rm -f $seqres.full
-> > +
-> > +# real QA test starts here
-> > +_supported_fs overlay
-> > +_supported_os Linux
-> > +_require_scratch
-> > +
-> > +# Remove all files from previous tests
-> > +_scratch_mkfs
-> > +
-> > +# Create test file
-> > +lowerdir=${OVL_BASE_SCRATCH_MNT}/${OVL_LOWER}
-> > +upperdir=${OVL_BASE_SCRATCH_MNT}/${OVL_UPPER}
-> > +mkdir -p $lowerdir
-> > +touch ${lowerdir}/file
-> > +
-> > +_scratch_mount
-> > +
->
-> # Create whiteout and populate dcache with negative dentry
->
-> > +rm ${SCRATCH_MNT}/file
-> > +ls -l ${SCRATCH_MNT}/file > /dev/null 2>&1
->
-> # Remove whiteout and try to create dir over negative dentry
->
-> > +rm ${upperdir}/file
-> > +mkdir ${SCRATCH_MNT}/file > /dev/null 2>&1
-> > +
-> > +# unmount overlayfs
-> > +$UMOUNT_PROG $SCRATCH_MNT
->
-> Umount of scratch is not needed at the end of the test.
->
-> Thanks,
-> Amir.
+-- Mark
+
+--------------DD46D0D5ED4C802C31A6253C
+Content-Type: text/html; charset=utf-8
+Content-Transfer-Encoding: 7bit
+
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  </head>
+  <body text="#000000" bgcolor="#FFFFFF">
+    <div class="moz-cite-prefix">On 11/08/2018 12:01 PM, Vivek Goyal
+      wrote:<br>
+    </div>
+    <blockquote type="cite" cite="mid:20181108200106.GB3663@redhat.com">
+      <pre wrap="">On Tue, Nov 06, 2018 at 03:01:15PM -0800, Mark Salyzyn wrote:
+</pre>
+      <blockquote type="cite">
+        <pre wrap="">By default, all access to the upper, lower and work directories is the
+recorded mounter's MAC and DAC credentials.  The incoming accesses are
+checked against the caller's credentials.
+</pre>
+      </blockquote>
+      <pre wrap="">
+Ok, I am trying to think of scenarios where override_creds=off can 
+provide any privilege escalation. How about following.
+
+$ mkdir lower lower/foo upper upper/foo work merged
+$ touch lower/foo/bar.txt
+$ chmod 700 lower/foo/
+
+# Mount overlay with override_creds=off
+
+$ mount -t overlay -o
+lowerdir=lower,upperdir=upper,workdir=work,override_creds=off none merged
+
+# Try to read lower/foo as unpriviliged user. Say "test"
+# su test
+# ls merged/foo/
+ls: cannot access 'merged/foo/': Operation not permitted
+
+# Now first try to do same operation as root and retry as test user.
+$ exit
+$ ls merged/foo
+bar.txt
+$ su test
+$ ls merged/foo
+bar.txt
+
+lower/foo/ is not readable by user "test". So it fails in first try. Later
+"root" accesses it and it populates cache in overlayfs. When test retries,
+it gets these entries from cache.
+
+With override_creds=on this is not a problem because overlay provides
+this as functionality as long as mounter as access to lower/foo/.
+
+But with override_creds=off, mounter is not providing any such
+functionality and we are exposing an issue where cache will make
+something available which is not normally available.
+
+I think it probably is a good idea to do something about it?
+
+Thanks
+Vivek
+
+</pre>
+    </blockquote>
+    Good stuff.<br>
+    <br>
+    <span style="color: rgb(34, 34, 34); font-family: Arial, Helvetica,
+      sans-serif; font-size: small; font-style: normal;
+      font-variant-ligatures: normal; font-variant-caps: normal;
+      font-weight: 400; letter-spacing: normal; orphans: 2; text-align:
+      start; text-indent: 0px; text-transform: none; white-space:
+      normal; widows: 2; word-spacing: 0px; -webkit-text-stroke-width:
+      0px; background-color: rgb(255, 255, 255); text-decoration-style:
+      initial; text-decoration-color: initial; display: inline
+      !important; float: none;">That sounds like a bug in cache (!) to
+      not recheck caller's credentials. Currently unsure how/where to
+      force bypass of the cache (performance hit) as it is wired in
+      throughout the code without a clear off switch, or rechecking of
+      the credentials at access. This does need to be addressed to make
+      this 'feature' more useful/trusted for non-MAC controlled, use
+      cases.<br>
+    </span>
+    <div style="color: rgb(34, 34, 34); font-family: Arial, Helvetica,
+      sans-serif; font-size: small; font-style: normal;
+      font-variant-ligatures: normal; font-variant-caps: normal;
+      font-weight: 400; letter-spacing: normal; orphans: 2; text-align:
+      start; text-indent: 0px; text-transform: none; white-space:
+      normal; widows: 2; word-spacing: 0px; -webkit-text-stroke-width:
+      0px; text-decoration-style: initial; text-decoration-color:
+      initial;"><br>
+    </div>
+    <div style="color: rgb(34, 34, 34); font-family: Arial, Helvetica,
+      sans-serif; font-size: small; font-style: normal;
+      font-variant-ligatures: normal; font-variant-caps: normal;
+      font-weight: 400; letter-spacing: normal; orphans: 2; text-align:
+      start; text-indent: 0px; text-transform: none; white-space:
+      normal; widows: 2; word-spacing: 0px; -webkit-text-stroke-width:
+      0px; text-decoration-style: initial; text-decoration-color:
+      initial;">This is not a problem in the Android usage case since
+      DAC is simple and all can be read, execute bits might be
+      controlled, the owners and perms are otherwise unremarkable in the
+      affected arenas that are utilizing overlayfs. Not using it for a
+      generic r/w backing except in rooted debug scenarios by
+      developers, otherwise everything is r/o, MAC on the other hand is
+      complex and heavily inspected. We do, however, want multi level
+      security in that both DAC and MAC can be trusted and can protect
+      each other from holes.<br>
+      <br>
+      Sounds like the caveats in the documentation need to be expanded
+      if _no_ solution for this kind of access pattern becomes apparent.<br>
+      <br>
+      -- Mark<br>
+    </div>
+  </body>
+</html>
+
+--------------DD46D0D5ED4C802C31A6253C--
