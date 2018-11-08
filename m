@@ -1,41 +1,54 @@
 Return-Path: <amir73il@gmail.com>
 Return-Path: <amir73il@gmail.com>
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH v4 3/6] syscalls/readahead02: fail test if readahead did not use any cache
-Date: Wed, 28 Nov 2018 18:46:42 +0200
-Message-Id: <20181128164645.783-4-amir73il@gmail.com>
-In-Reply-To: <20181128164645.783-1-amir73il@gmail.com>
-References: <20181128164645.783-1-amir73il@gmail.com>
-To: Cyril Hrubis <chrubis@suse.cz>
-Cc: ltp@lists.linux.it, Jan Stancek <jstancek@redhat.com>, Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org
+Subject: [PATCH v2 0/3] Enable new features for nested overlayfs setups
+Date: Thu,  8 Nov 2018 13:49:39 +0200
+Message-Id: <20181108114942.32531-1-amir73il@gmail.com>
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: linux-unionfs@vger.kernel.org
 List-ID: <linux-unionfs@vger.kernel.org>
 
-The heuristic of failing the test only if not saving any io has false
-negatives with overlayfs readahead() bug, but readahead() with overlayfs
-always warns on "using less cache then expected", when actually, it is
-using no cache at all.
+Miklos,
 
-Add another condition to fail the test if readahead did not use any
-cache at all, which always detected the overlayfs bug.
+Based on your feedback on v1 [1], following patches implement
+"nested xino", where "nested" doesn't have to be overlayfs over
+overlayfs. It can be overlayfs over another fs that publishes
+ino domain information, or another stacked fs aware of ino
+domains over overlayfs.
 
-Signed-off-by: Amir Goldstein <amir73il@gmail.com>
-Acked-by: Jan Stancek <jstancek@redhat.com>
----
- testcases/kernel/syscalls/readahead/readahead02.c | 2 ++
- 1 file changed, 2 insertions(+)
+Series is available on my ovl-nested branch [2].
+xfstests are also available on my github [3].
+Note that the tests in group "overlay/exportfs.nested" already pass
+on current master.
 
-diff --git a/testcases/kernel/syscalls/readahead/readahead02.c b/testcases/kernel/syscalls/readahead/readahead02.c
-index 88eb5fbff..0acdad482 100644
---- a/testcases/kernel/syscalls/readahead/readahead02.c
-+++ b/testcases/kernel/syscalls/readahead/readahead02.c
-@@ -280,6 +280,8 @@ static void test_readahead(void)
- 		 */
- 		if (cached_ra * 1024 > testfile_size / 2)
- 			tst_res(TPASS, "using cache as expected");
-+		else if (!cached_ra)
-+			tst_res(TFAIL, "readahead failed to use any cache");
- 		else
- 			tst_res(TWARN, "using less cache than expected");
- 	} else {
+The test group "overlay/union" uses the xfstests harness to run
+various unionmount-testsuite setups (e.g. samefs, non-samefs,
+non-samefs with some layers on same fs). This test group requires
+the symlink src/unionmount-testsuite to run the test suite.
+
+Thanks,
+Amir.
+
+Changes since v1:
+- "relax requirement for non null uuid" already merged
+- Teach vfs about inode number domains
+- Don't special case overlayfs as a lower fs
+
+[1] https://marc.info/?l=linux-unionfs&m=154039437114960&w=2
+[2] https://github.com/amir73il/linux/commits/ovl-nested
+[3] https://github.com/amir73il/xfstests/commits/ovl-nested
+
+Amir Goldstein (3):
+  vfs: introduce the concept of inode number domains
+  ovl: limit xino for some nested overlay cases
+  ovl: relax xino for some nested overlay cases
+
+ fs/overlayfs/ovl_entry.h |   7 +-
+ fs/overlayfs/super.c     | 200 ++++++++++++++++++++++++++++++---------
+ fs/overlayfs/util.c      |   2 +-
+ fs/super.c               |   2 +
+ include/linux/fs.h       |  18 +++-
+ 5 files changed, 179 insertions(+), 50 deletions(-)
+
 -- 
 2.17.1
