@@ -1,8 +1,8 @@
 From: Vivek Goyal <vgoyal@redhat.com>
 Subject: Re: [PATCH v8 2/2] overlayfs: override_creds=off option bypass
  creator_cred
-Date: Thu, 8 Nov 2018 10:56:20 -0500
-Message-ID: <20181108155620.GA3663@redhat.com>
+Date: Thu, 8 Nov 2018 15:01:06 -0500
+Message-ID: <20181108200106.GB3663@redhat.com>
 References: <20181106230117.127616-1-salyzyn@android.com>
  <20181106230117.127616-2-salyzyn@android.com>
 Mime-Version: 1.0
@@ -19,6 +19,49 @@ On Tue, Nov 06, 2018 at 03:01:15PM -0800, Mark Salyzyn wrote:
 > By default, all access to the upper, lower and work directories is the
 > recorded mounter's MAC and DAC credentials.  The incoming accesses are
 > checked against the caller's credentials.
+
+Ok, I am trying to think of scenarios where override_creds=off can 
+provide any privilege escalation. How about following.
+
+$ mkdir lower lower/foo upper upper/foo work merged
+$ touch lower/foo/bar.txt
+$ chmod 700 lower/foo/
+
+# Mount overlay with override_creds=off
+
+$ mount -t overlay -o
+lowerdir=lower,upperdir=upper,workdir=work,override_creds=off none merged
+
+# Try to read lower/foo as unpriviliged user. Say "test"
+# su test
+# ls merged/foo/
+ls: cannot access 'merged/foo/': Operation not permitted
+
+# Now first try to do same operation as root and retry as test user.
+$ exit
+$ ls merged/foo
+bar.txt
+$ su test
+$ ls merged/foo
+bar.txt
+
+lower/foo/ is not readable by user "test". So it fails in first try. Later
+"root" accesses it and it populates cache in overlayfs. When test retries,
+it gets these entries from cache.
+
+With override_creds=on this is not a problem because overlay provides
+this as functionality as long as mounter as access to lower/foo/.
+
+But with override_creds=off, mounter is not providing any such
+functionality and we are exposing an issue where cache will make
+something available which is not normally available.
+
+I think it probably is a good idea to do something about it?
+
+Thanks
+Vivek
+
+
 > 
 > If the principles of least privilege are applied, the mounter's
 > credentials might not overlap the credentials of the caller's when
@@ -37,38 +80,7 @@ On Tue, Nov 06, 2018 at 03:01:15PM -0800, Mark Salyzyn wrote:
 > were temporarily increased to perform the operations.  The MAC
 > (selinux) policies were caller's in all cases.  override_creds=off
 > partially returns us to this older access model minus the insecure
-> temporary credential increases.
-
-
-So what will have to bunch of overlay operations now which require
-priviliges or additional capabilities. To make all that succeed,
-you will have to give those capabilities to processes accessing
-overlayfs. If yes, I am wondering how is that more secure. IOW,
-having to give these capabilities to all processes accessing
-fs as opposed to giving those capabilities to only mounter.
-
-You also mentioned that you want init to be least priviliged as
-it could be attacked. But now all the processses are priviliged
-and these could be attacked as well.
-
-The way I am looking at it as follows.
-
-- With current model, only mounter needs to have capabilities to
-  do some operations such as whiteout creation etc.
-
-- With override_creds=off, all services accessing overlayfs needs
-  to have increased priviliges.
-
-Is that not increasing attack surface. Previously, you will have to
-attach init and now you can get away by breaking one of the services.
-
-/me is wondering how does that increase security.
-
-Thanks
-Vivek
-
-
-> This is to permit use in a system
+> temporary credential increases.  This is to permit use in a system
 > with non-overlapping security models for each executable including
 > the agent that mounts the overlayfs filesystem.  In Android
 > this is the case since init, which performs the mount operations,
