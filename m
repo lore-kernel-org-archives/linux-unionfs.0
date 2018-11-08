@@ -1,74 +1,96 @@
-Return-Path: <olga.kornievskaia@gmail.com>
-Return-Path: <olga.kornievskaia@gmail.com>
-From: Olga Kornievskaia <olga.kornievskaia@gmail.com>
-Subject: [PATCH v8 00/11] client-side support for "inter" SSC copy
-Date: Thu,  1 Nov 2018 12:45:12 -0400
-Message-Id: <20181101164523.41812-1-olga.kornievskaia@gmail.com>
-To: trond.myklebust@hammerspace.com, anna.schumaker@netapp.com, viro@zeniv.linux.org.uk, smfrench@gmail.com, miklos@szeredi.hu
-Cc: linux-nfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-cifs@vger.kernel.org, linux-unionfs@vger.kernel.org
+Return-Path: <amir73il@gmail.com>
+Return-Path: <amir73il@gmail.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Subject: [PATCH v2 1/3] vfs: introduce the concept of inode number domains
+Date: Thu,  8 Nov 2018 13:49:40 +0200
+Message-Id: <20181108114942.32531-2-amir73il@gmail.com>
+In-Reply-To: <20181108114942.32531-1-amir73il@gmail.com>
+References: <20181108114942.32531-1-amir73il@gmail.com>
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: linux-unionfs@vger.kernel.org
 List-ID: <linux-unionfs@vger.kernel.org>
 
-From: Olga Kornievskaia <kolga@netapp.com>
+Added super_block fields s_max_ino_bits and s_ino_domain that may be
+used by stacking filesystems that want to harness unique inode numbers
+of underlying filesystem.
 
-This patch series adds client-side support for doing NFSv4.2 "inter"
-copy offload between different NFS servers.
+s_ino_domain is a key that described a unique inode numbers domain.
+For non stacked filesystem, s_ino_domain defaults to s_dev.
 
-In case of the "inter" SSC copy files reside on different servers and
-thus under different superblocks and require that VFS removes the
-restriction that src and dst files must be on the same superblock.
+Stacking filesystem may "inherit" s_ino_domain from underlying
+filesystem when inode numbers of stacked inode are the same as the
+underlying inode numbers.
 
-NFS's copy_file_range() determines if the copy is "intra" or "inter"
-and for "inter" it sends the COPY_NOTIFY to the source server. Then,
-it would send of an asynchronous COPY to the destination server. If
-an application cancels an in-flight COPY, OFFLOAD_CANCEL is sent to
-both of the servers.
+A filesystem may advertise the maximum used inode number bits by
+setting s_max_ino_bits to non zero value.
+Stacking filesystems may use this information to multiplex several
+inode number domains into a new domain of unique inode numbers.
 
-This patch series also include necessary client-side additions that
-are performed by the destination server. The server needs an NFS
-open that represents a source file without doing an actual open.
-Two function nfs42_ssc_open/nfs42_ssc_close() are introduced to
-accomplish it that make use of the VFS's alloc_file_pseudo() to
+Change the type of s_stack_depth from int to unsigned short to pack
+the "stacked" context variables nicely. FILESYSTEM_MAX_STACK_DEPTH
+is not likely to grow far beyond the current value of 2.
 
-v8:
---- in VFS added a comment about the superblock check to be removed
-once the future VFS work in copy_file_range happens
---- Fixing copy_notify patch to check that server is capable of
-doing copy_offload, preventing an oops on an 4.0 mount trying to
-use copy offload. As the result, the last patch that replaces
-cross device check for NFS, only needs to check for the fs type.
---- modified the commit message for the NFS source offet validity check
-to document why we are doing the check as per Bruce's comments.
+Suggested-by: Miklos Szeredi <mszeredi@redhat.com>
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+---
+ fs/overlayfs/super.c |  3 ++-
+ fs/super.c           |  2 ++
+ include/linux/fs.h   | 16 +++++++++++++++-
+ 3 files changed, 19 insertions(+), 2 deletions(-)
 
-Olga Kornievskaia (11):
-  VFS: move cross device copy_file_range() check into filesystems
-  NFS: validity check for source offset in copy_file_range
-  NFS NFSD: defining nl4_servers structure needed by both
-  NFS: add COPY_NOTIFY operation
-  NFS: add ca_source_server<> to COPY
-  NFS: also send OFFLOAD_CANCEL to source server
-  NFS: inter ssc open
-  NFS: skip recovery of copy open on dest server
-  NFS: for "inter" copy treat ESTALE as ENOTSUPP
-  NFS: COPY handle ERR_OFFLOAD_DENIED
-  NFS: replace cross device check in copy_file_range
-
- Documentation/filesystems/porting |   7 ++
- fs/cifs/cifsfs.c                  |   3 +
- fs/nfs/nfs42.h                    |  15 ++-
- fs/nfs/nfs42proc.c                | 129 ++++++++++++++++++++++---
- fs/nfs/nfs42xdr.c                 | 193 +++++++++++++++++++++++++++++++++++++-
- fs/nfs/nfs4_fs.h                  |  10 ++
- fs/nfs/nfs4client.c               |   2 +-
- fs/nfs/nfs4file.c                 | 125 +++++++++++++++++++++++-
- fs/nfs/nfs4proc.c                 |   6 +-
- fs/nfs/nfs4state.c                |  14 +++
- fs/nfs/nfs4xdr.c                  |   1 +
- fs/overlayfs/file.c               |   3 +
- fs/read_write.c                   |  13 ++-
- include/linux/nfs4.h              |  25 +++++
- include/linux/nfs_fs_sb.h         |   1 +
- include/linux/nfs_xdr.h           |  17 ++++
- 16 files changed, 540 insertions(+), 24 deletions(-)
-
+diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+index 0116735cc321..1afe67c4599a 100644
+--- a/fs/overlayfs/super.c
++++ b/fs/overlayfs/super.c
+@@ -775,7 +775,8 @@ static int ovl_check_namelen(struct path *path, struct ovl_fs *ofs,
+ }
+ 
+ static int ovl_lower_dir(const char *name, struct path *path,
+-			 struct ovl_fs *ofs, int *stack_depth, bool *remote)
++			 struct ovl_fs *ofs, unsigned short *stack_depth,
++			 bool *remote)
+ {
+ 	int fh_type;
+ 	int err;
+diff --git a/fs/super.c b/fs/super.c
+index ca53a08497ed..860ca3311f05 100644
+--- a/fs/super.c
++++ b/fs/super.c
+@@ -529,6 +529,8 @@ struct super_block *sget_userns(struct file_system_type *type,
+ 		return ERR_PTR(err);
+ 	}
+ 	s->s_type = type;
++	/* May be overridden by stacked filesystem */
++	s->s_ino_domain = s->s_dev;
+ 	strlcpy(s->s_id, type->name, sizeof(s->s_id));
+ 	list_add_tail(&s->s_list, &super_blocks);
+ 	hlist_add_head(&s->s_instances, &type->fs_supers);
+diff --git a/include/linux/fs.h b/include/linux/fs.h
+index c95c0807471f..7d45b5158cd0 100644
+--- a/include/linux/fs.h
++++ b/include/linux/fs.h
+@@ -1487,7 +1487,21 @@ struct super_block {
+ 	/*
+ 	 * Indicates how deep in a filesystem stack this SB is
+ 	 */
+-	int s_stack_depth;
++	unsigned short		s_stack_depth;
++	/*
++	 * s_max_ino_bits and s_ino_domain may be used by stacking filesystems
++	 * that want to harness unique inode numbers of underlying filesystem.
++	 * For non stacked filesystem, s_ino_domain defaults to s_dev.
++	 * Stacking filesystem may "inherit" s_ino_domain from underlying
++	 * filesystem when inode numbers of stacked inode are the same as the
++	 * underlying inode numbers.
++	 * A filesystem may advertise the maximum used inode number bits by
++	 * setting s_max_ino_bits to non zero value.
++	 * Stacking filesystems may use this information to multiplex several
++	 * inode number domains into a new domain of unique inode numbers.
++	 */
++	unsigned short		s_max_ino_bits;
++	dev_t			s_ino_domain;
+ 
+ 	/* s_inode_list_lock protects s_inodes */
+ 	spinlock_t		s_inode_list_lock ____cacheline_aligned_in_smp;
 -- 
-1.8.3.1
+2.17.1
