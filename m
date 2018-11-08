@@ -1,194 +1,123 @@
 Return-Path: <amir73il@gmail.com>
 Return-Path: <amir73il@gmail.com>
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH v4 5/6] syscalls/readahead02: test readahead() on an overlayfs file
-Date: Wed, 28 Nov 2018 18:46:44 +0200
-Message-Id: <20181128164645.783-6-amir73il@gmail.com>
-In-Reply-To: <20181128164645.783-1-amir73il@gmail.com>
-References: <20181128164645.783-1-amir73il@gmail.com>
-To: Cyril Hrubis <chrubis@suse.cz>
-Cc: ltp@lists.linux.it, Jan Stancek <jstancek@redhat.com>, Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org
+Subject: [PATCH v2 3/3] ovl: relax xino for some nested overlay cases
+Date: Thu,  8 Nov 2018 13:49:42 +0200
+Message-Id: <20181108114942.32531-4-amir73il@gmail.com>
+In-Reply-To: <20181108114942.32531-1-amir73il@gmail.com>
+References: <20181108114942.32531-1-amir73il@gmail.com>
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: linux-unionfs@vger.kernel.org
 List-ID: <linux-unionfs@vger.kernel.org>
 
-Repeat the test case on an overlayfs file.
+When overlayfs is nested over a lower overlayfs and all lower overlayfs
+layers are on the same fs, the lower layer inode number domain is that of
+the underlying real fs, so we can assign the same fsid to the lower
+overlayfs and the real underlying fs.
 
-The new test case is a regression test for kernel commit b833a3660394
-("ovl: add ovl_fadvise()") which fixes a regression of readahead() on
-an overlay file that was introduced by kernel commit 5b910bd615ba
-("ovl: fix GPF in swapfile_activate of file from overlayfs over xfs").
+In the private case of all lower overlay layers on the same fs, which is
+also the upper fs of the nested overlay, the nested overlay itself is
+treated as "samefs", because inode numbers in all layers are from the same
+inode numbers domain. In that case, we do not need xino and can use the
+underlying inode numbers.
 
 Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- .../kernel/syscalls/readahead/readahead02.c   | 80 ++++++++++++++++---
- 1 file changed, 71 insertions(+), 9 deletions(-)
+ fs/overlayfs/ovl_entry.h |  7 ++++++-
+ fs/overlayfs/super.c     | 12 ++++++------
+ fs/overlayfs/util.c      |  2 +-
+ 3 files changed, 13 insertions(+), 8 deletions(-)
 
-diff --git a/testcases/kernel/syscalls/readahead/readahead02.c b/testcases/kernel/syscalls/readahead/readahead02.c
-index 24f045900..73c8a6ce6 100644
---- a/testcases/kernel/syscalls/readahead/readahead02.c
-+++ b/testcases/kernel/syscalls/readahead/readahead02.c
-@@ -14,6 +14,7 @@
- #include <sys/types.h>
- #include <sys/syscall.h>
- #include <sys/mman.h>
-+#include <sys/mount.h>
- #include <sys/stat.h>
- #include <sys/types.h>
- #include <errno.h>
-@@ -33,8 +34,14 @@ static const char meminfo_fname[] = "/proc/meminfo";
- static size_t testfile_size = 64 * 1024 * 1024;
- static char *opt_fsizestr;
- static int pagesize;
-+static unsigned long cached_max;
-+static int ovl_mounted;
- 
- #define MNTPOINT        "mntpoint"
-+#define OVL_LOWER	MNTPOINT"/lower"
-+#define OVL_UPPER	MNTPOINT"/upper"
-+#define OVL_WORK	MNTPOINT"/work"
-+#define OVL_MNT		MNTPOINT"/ovl"
- #define MIN_SANE_READAHEAD (4u * 1024u)
- 
- static const char mntpoint[] = MNTPOINT;
-@@ -44,6 +51,16 @@ static struct tst_option options[] = {
- 	{NULL, NULL, NULL}
+diff --git a/fs/overlayfs/ovl_entry.h b/fs/overlayfs/ovl_entry.h
+index ec237035333a..c23bdf41918f 100644
+--- a/fs/overlayfs/ovl_entry.h
++++ b/fs/overlayfs/ovl_entry.h
+@@ -23,10 +23,15 @@ struct ovl_config {
  };
  
-+static struct tcase {
-+	const char *tname;
-+	int use_overlay;
-+} tcases[] = {
-+	{ "readahead on file", 0 },
-+	{ "readahead on overlayfs file", 1 },
-+};
-+
-+static int readahead_supported = 1;
-+
- static int has_file(const char *fname, int required)
- {
- 	struct stat buf;
-@@ -97,12 +114,13 @@ static unsigned long get_cached_size(void)
- 	return parse_entry(meminfo_fname, entry);
- }
+ struct ovl_sb {
+-	struct super_block *sb;
++	dev_t key;
+ 	dev_t pseudo_dev;
+ };
  
--static void create_testfile(void)
-+static void create_testfile(int use_overlay)
- {
- 	int fd;
- 	char *tmp;
- 	size_t i;
- 
-+	sprintf(testfile, "%s/testfile", use_overlay ? OVL_MNT : MNTPOINT);
- 	tst_res(TINFO, "creating test file of size: %zu", testfile_size);
- 	tmp = SAFE_MALLOC(pagesize);
- 
-@@ -203,21 +221,33 @@ static void read_testfile(int do_readahead, const char *fname, size_t fsize,
- 	SAFE_CLOSE(fd);
- }
- 
--static void test_readahead(void)
-+static void test_readahead(unsigned int n)
- {
- 	unsigned long read_bytes, read_bytes_ra;
- 	long long usec, usec_ra;
--	unsigned long cached_max, cached_low, cached, cached_ra;
-+	unsigned long cached_high, cached_low, cached, cached_ra;
- 	char proc_io_fname[128];
-+	struct tcase *tc = &tcases[n];
++static inline dev_t ovl_sb_key(struct super_block *sb)
++{
++	return sb->s_ino_domain ?: sb->s_dev;
++}
 +
-+	tst_res(TINFO, "Test #%d: %s", n, tc->tname);
-+
- 	sprintf(proc_io_fname, "/proc/%u/io", getpid());
+ struct ovl_layer {
+ 	struct vfsmount *mnt;
+ 	struct ovl_sb *fs;
+diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+index c7acc3d39b5f..90dca7c935db 100644
+--- a/fs/overlayfs/super.c
++++ b/fs/overlayfs/super.c
+@@ -1260,13 +1260,13 @@ static bool ovl_lower_uuid_ok(struct ovl_fs *ofs, const uuid_t *uuid)
+ 	if (!ofs->config.nfs_export && !(ofs->config.index && ofs->upper_mnt))
+ 		return true;
  
-+	if (tc->use_overlay && !ovl_mounted) {
-+		tst_res(TCONF,
-+			"overlayfs is not configured in this kernel.");
-+		return;
-+	}
-+
-+	create_testfile(tc->use_overlay);
-+
- 	/* find out how much can cache hold if we read whole file */
- 	read_testfile(0, testfile, testfile_size, &read_bytes, &usec, &cached);
--	cached_max = get_cached_size();
-+	cached_high = get_cached_size();
- 	sync();
- 	drop_caches();
- 	cached_low = get_cached_size();
--	cached_max = cached_max - cached_low;
-+	cached_max = MAX(cached_max, cached_high - cached_low);
- 
- 	tst_res(TINFO, "read_testfile(0)");
- 	read_testfile(0, testfile, testfile_size, &read_bytes, &usec, &cached);
-@@ -233,11 +263,14 @@ static void test_readahead(void)
- 	read_testfile(1, testfile, testfile_size, &read_bytes_ra,
- 		      &usec_ra, &cached_ra);
- 	if (TST_RET != 0) {
--		if (TST_ERR == EINVAL) {
-+		if (TST_ERR == EINVAL &&
-+		    (!tc->use_overlay || !readahead_supported)) {
-+			readahead_supported = 0;
- 			tst_res(TCONF, "readahead not supported on %s",
- 				tst_device->fs_type);
- 		} else {
- 			tst_res(TFAIL | TTERRNO, "readahead failed on %s",
-+				tc->use_overlay ? "overlayfs" :
- 				tst_device->fs_type);
- 		}
- 		return;
-@@ -284,6 +317,28 @@ static void test_readahead(void)
+-	for (i = 0; i < ofs->numlowerfs; i++) {
++	for (i = 0; i < ofs->numlower; i++) {
+ 		/*
+ 		 * We use uuid to associate an overlay lower file handle with a
+ 		 * lower layer, so we can accept lower fs with null uuid as long
+ 		 * as all lower layers with null uuid are on the same fs.
+ 		 */
+-		if (uuid_equal(&ofs->lower_fs[i].sb->s_uuid, uuid))
++		if (uuid_equal(&ofs->lower_layers[i].mnt->mnt_sb->s_uuid, uuid))
+ 			return false;
  	}
- }
- 
-+static void setup_overlay(void)
-+{
-+	int ret;
-+
-+	/* Setup an overlay mount with lower dir and file */
-+	SAFE_MKDIR(OVL_LOWER, 0755);
-+	SAFE_MKDIR(OVL_UPPER, 0755);
-+	SAFE_MKDIR(OVL_WORK, 0755);
-+	SAFE_MKDIR(OVL_MNT, 0755);
-+	ret = mount("overlay", OVL_MNT, "overlay", 0, "lowerdir="OVL_LOWER
-+		    ",upperdir="OVL_UPPER",workdir="OVL_WORK);
-+	if (ret < 0) {
-+		if (errno == ENODEV) {
-+			tst_res(TINFO,
-+				"overlayfs is not configured in this kernel.");
-+			return;
-+		}
-+		tst_brk(TBROK | TERRNO, "overlayfs mount failed");
-+	}
-+	ovl_mounted = 1;
-+}
-+
- static void setup(void)
+ 	return true;
+@@ -1276,16 +1276,17 @@ static bool ovl_lower_uuid_ok(struct ovl_fs *ofs, const uuid_t *uuid)
+ static int ovl_get_fsid(struct ovl_fs *ofs, const struct path *path)
  {
- 	if (opt_fsizestr)
-@@ -297,8 +352,13 @@ static void setup(void)
+ 	struct super_block *sb = path->mnt->mnt_sb;
++	dev_t key = ovl_sb_key(sb);
+ 	unsigned int i;
+ 	dev_t dev;
+ 	int err;
  
- 	pagesize = getpagesize();
+ 	/* fsid 0 is reserved for upper fs even with non upper overlay */
+-	if (ofs->upper_mnt && ofs->upper_mnt->mnt_sb == sb)
++	if (ofs->upper_mnt && ovl_sb_key(ofs->upper_mnt->mnt_sb) == key)
+ 		return 0;
  
--	sprintf(testfile, "%s/testfile", mntpoint);
--	create_testfile();
-+	setup_overlay();
-+}
-+
-+static void cleanup(void)
-+{
-+	if (ovl_mounted)
-+		SAFE_UMOUNT(OVL_MNT);
+ 	for (i = 0; i < ofs->numlowerfs; i++) {
+-		if (ofs->lower_fs[i].sb == sb)
++		if (ofs->lower_fs[i].key == key)
+ 			return i + 1;
+ 	}
+ 
+@@ -1303,7 +1304,7 @@ static int ovl_get_fsid(struct ovl_fs *ofs, const struct path *path)
+ 		return err;
+ 	}
+ 
+-	ofs->lower_fs[ofs->numlowerfs].sb = sb;
++	ofs->lower_fs[ofs->numlowerfs].key = key;
+ 	ofs->lower_fs[ofs->numlowerfs].pseudo_dev = dev;
+ 	ofs->numlowerfs++;
+ 
+@@ -1582,7 +1583,6 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
+ 
+ 		ovl_update_sb_limits(sb, ofs->upper_mnt->mnt_sb);
+ 		sb->s_time_gran = ofs->upper_mnt->mnt_sb->s_time_gran;
+-
+ 	}
+ 	oe = ovl_get_lowerstack(sb, ofs);
+ 	err = PTR_ERR(oe);
+diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
+index 7c01327b1852..b73ec8c544ec 100644
+--- a/fs/overlayfs/util.c
++++ b/fs/overlayfs/util.c
+@@ -50,7 +50,7 @@ struct super_block *ovl_same_sb(struct super_block *sb)
+ 	if (!ofs->numlowerfs)
+ 		return ofs->upper_mnt->mnt_sb;
+ 	else if (ofs->numlowerfs == 1 && !ofs->upper_mnt)
+-		return ofs->lower_fs[0].sb;
++		return ofs->lower_layers[0].mnt->mnt_sb;
+ 	else
+ 		return NULL;
  }
- 
- static struct tst_test test = {
-@@ -307,6 +367,8 @@ static struct tst_test test = {
- 	.mount_device = 1,
- 	.mntpoint = mntpoint,
- 	.setup = setup,
-+	.cleanup = cleanup,
- 	.options = options,
--	.test_all = test_readahead,
-+	.test = test_readahead,
-+	.tcnt = ARRAY_SIZE(tcases),
- };
 -- 
 2.17.1
