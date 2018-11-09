@@ -1,134 +1,87 @@
-Return-Path: <amir73il@gmail.com>
-Return-Path: <amir73il@gmail.com>
-From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH] overlay: test file handle decode with multi lower layers on same fs
-Date: Mon,  5 Nov 2018 07:18:15 +0200
-Message-Id: <20181105051815.15074-1-amir73il@gmail.com>
-To: Eryu Guan <guaneryu@gmail.com>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, fstests@vger.kernel.org
+Return-Path: <linux-unionfs-owner@vger.kernel.org>
+Received: from userp2130.oracle.com ([156.151.31.86]:36090 "EHLO
+        userp2130.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727378AbeKINb5 (ORCPT
+        <rfc822;linux-unionfs@vger.kernel.org>);
+        Fri, 9 Nov 2018 08:31:57 -0500
+Content-Type: text/plain;
+        charset=us-ascii
+Mime-Version: 1.0 (Mac OS X Mail 12.2 \(3445.102.3\))
+Subject: Re: [PATCH] tmpfs: let lseek return ENXIO with a negative offset
+From: William Kucharski <william.kucharski@oracle.com>
+In-Reply-To: <20181108150700.f9c321f8853053877d3f3fe6@linux-foundation.org>
+Date: Thu, 8 Nov 2018 20:52:50 -0700
+Content-Transfer-Encoding: quoted-printable
+Message-Id: <E532662D-524A-4F9C-AA6F-0ECB9A39812C@oracle.com>
+References: <1540434176-14349-1-git-send-email-yuyufen@huawei.com>
+ <20181107151955.777fcbcf9a5932677e245287@linux-foundation.org>
+ <EDFDF8C6-F164-4C5A-A5D3-010802D02DC2@oracle.com>
+ <20181108150700.f9c321f8853053877d3f3fe6@linux-foundation.org>
+Sender: linux-unionfs-owner@vger.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Yufen Yu <yuyufen@huawei.com>, viro@zeniv.linux.org.uk, hughd@google.com, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org
 List-ID: <linux-unionfs@vger.kernel.org>
 
-This test is for a regression that was introduced in kernel v4.17 by
-commit 8b58924ad55c ("ovl: lookup in inode cache first when decoding
-lower file handle").
 
-Signed-off-by: Amir Goldstein <amir73il@gmail.com>
----
- tests/overlay/062     | 86 +++++++++++++++++++++++++++++++++++++++++++
- tests/overlay/062.out |  2 +
- tests/overlay/group   |  1 +
- 3 files changed, 89 insertions(+)
- create mode 100755 tests/overlay/062
- create mode 100644 tests/overlay/062.out
+> On Nov 8, 2018, at 4:07 PM, Andrew Morton <akpm@linux-foundation.org> =
+wrote:
+>=20
+> I think that at this stage we should make tmpfs behaviour match the
+> other filesystems.
+>=20
+> If the manpage doesn't match the kernel's behaviour for this
+> linux-specific feature(?) then we should fix the manpage.
+>=20
+> If we find that the behaviour should actually change (and there's a =
+way
+> of doing that in a reasonably back-compatible manner) then let's =
+change
+> all filesystems and the manpage.
+>=20
+> OK?
 
-diff --git a/tests/overlay/062 b/tests/overlay/062
-new file mode 100755
-index 00000000..2c86a4b6
---- /dev/null
-+++ b/tests/overlay/062
-@@ -0,0 +1,86 @@
-+#! /bin/bash
-+# SPDX-License-Identifier: GPL-2.0
-+# Copyright (C) 2018 CTERA Networks. All Rights Reserved.
-+#
-+# FS QA Test No. 062
-+#
-+# Test file handle decode with multi lower layers on same fs
-+#
-+# This test is for a regression that was introduced in kernel v4.17 by
-+# commit 8b58924ad55c ("ovl: lookup in inode cache first when decoding
-+# lower file handle").
-+#
-+seq=`basename $0`
-+seqres=$RESULT_DIR/$seq
-+echo "QA output created by $seq"
-+
-+here=`pwd`
-+tmp=/tmp/$$
-+status=1	# failure is the default!
-+trap "_cleanup; exit \$status" 0 1 2 3 15
-+
-+_cleanup()
-+{
-+	cd /
-+	rm -f $tmp.*
-+	$UMOUNT_PROG $lowertestdir
-+}
-+
-+# get standard environment, filters and checks
-+. ./common/rc
-+. ./common/filter
-+
-+# real QA test starts here
-+
-+_supported_fs overlay
-+_supported_os Linux
-+_require_scratch
-+_require_test_program "open_by_handle"
-+# We need to require all features together, because nfs_export cannot
-+# be enabled when index is disabled
-+_require_scratch_overlay_features index nfs_export
-+
-+NUMFILES=1
-+
-+# Create test dir and empty test files
-+create_test_files()
-+{
-+	local dir=$1
-+
-+	mkdir -p $dir
-+	$here/src/open_by_handle -cwp $dir $NUMFILES
-+}
-+
-+# Test encode/decode file handles on overlay mount
-+test_file_handles()
-+{
-+	local dir=$1
-+
-+	$here/src/open_by_handle -rp $dir $NUMFILES
-+}
-+
-+_scratch_mkfs
-+
-+# All lower layers are on scratch partition
-+lower=$OVL_BASE_SCRATCH_MNT/$OVL_LOWER
-+lower2=$OVL_BASE_SCRATCH_MNT/$OVL_LOWER.2
-+lowertestdir=$lower2/testdir
-+
-+create_test_files $lowertestdir
-+
-+# bind mount to pin lower test dir dentry to dcache
-+$MOUNT_PROG --bind $lowertestdir $lowertestdir
-+
-+# For non-upper overlay mount, nfs_export requires disabling redirect_dir.
-+$MOUNT_PROG -t overlay $OVL_BASE_SCRATCH_MNT $SCRATCH_MNT \
-+	-o ro,redirect_dir=nofollow,nfs_export=on,lowerdir=$lower:$lower2
-+
-+# Decode an overlay directory file handle, whose underlying lower dir dentry
-+# is in dcache and connected and does not belong to the upper most lower layer.
-+# The test program drops caches, but $lowertestdir dcache in pinned, so only
-+# the overlay dentry is dropped.
-+test_file_handles $SCRATCH_MNT/testdir -rp
-+
-+echo "Silence is golden"
-+status=0
-+exit
-diff --git a/tests/overlay/062.out b/tests/overlay/062.out
-new file mode 100644
-index 00000000..a1578f48
---- /dev/null
-+++ b/tests/overlay/062.out
-@@ -0,0 +1,2 @@
-+QA output created by 062
-+Silence is golden
-diff --git a/tests/overlay/group b/tests/overlay/group
-index ccc71f3b..165f002d 100644
---- a/tests/overlay/group
-+++ b/tests/overlay/group
-@@ -64,3 +64,4 @@
- 059 auto quick copyup
- 060 auto quick metacopy
- 061 auto quick copyup
-+062 auto quick exportfs
--- 
-2.17.1
+I did a little research, and according to lseek(2):
+
+       SEEK_DATA and SEEK_HOLE are nonstandard extensions also present =
+in
+       Solaris, FreeBSD, and DragonFly BSD; they are proposed for =
+inclusion
+       in the next POSIX revision (Issue 8).
+=20
+I wrote a brief test program that operated on a file of 1024 zeroes and =
+found
+that on an ext4 file system, lseek(2) matches Solaris' behavior on ZFS:
+
+Solaris/ZFS
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+lseek(3, -1, SEEK_HOLE) error, errno 6 (ENXIO)
+lseek(3, 0, SEEK_HOLE) returned 1024
+lseek(3, 1, SEEK_HOLE) returned 1024
+
+lseek(3, -1, SEEK_DATA) error, errno 6 (ENXIO)
+lseek(3, 0, SEEK_DATA) returned 0
+lseek(3, 1, SEEK_DATA) returned 1
+
+Linux/ext4
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+lseek(3, -1, SEEK_HOLE) error, errno 6 (ENXIO)
+lseek(3, 0, SEEK_HOLE) returned 1024
+lseek(3, 1, SEEK_HOLE) returned 1024
+
+lseek(3, -1, SEEK_DATA) error, errno 6 (ENXIO)
+lseek(3, 0, SEEK_DATA) returned 0
+lseek(3, 1, SEEK_DATA) returned 1
+
+That validates the xfstest expectations that a negative passed offset =
+should
+return ENXIO.
+
+I suggest the man page wording be changed to read:
+
+       ENXIO  whence is SEEK_DATA or SEEK_HOLE, and the file offset is =
+negative or
+              beyond the end of the file.
+
+unless you'd prefer an alternative statement.
+
+Thanks!!=
