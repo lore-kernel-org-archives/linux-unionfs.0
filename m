@@ -1,44 +1,55 @@
-Return-Path: <olga.kornievskaia@gmail.com>
-Return-Path: <olga.kornievskaia@gmail.com>
-From: Olga Kornievskaia <olga.kornievskaia@gmail.com>
-Subject: [PATCH v8 09/11] NFS: for "inter" copy treat ESTALE as ENOTSUPP
-Date: Thu,  1 Nov 2018 12:45:21 -0400
-Message-Id: <20181101164523.41812-10-olga.kornievskaia@gmail.com>
-In-Reply-To: <20181101164523.41812-1-olga.kornievskaia@gmail.com>
-References: <20181101164523.41812-1-olga.kornievskaia@gmail.com>
-To: trond.myklebust@hammerspace.com, anna.schumaker@netapp.com, viro@zeniv.linux.org.uk, smfrench@gmail.com, miklos@szeredi.hu
-Cc: linux-nfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-cifs@vger.kernel.org, linux-unionfs@vger.kernel.org
+Return-Path: <linux-unionfs-owner@vger.kernel.org>
+Received: from mail-pl1-f194.google.com ([209.85.214.194]:37424 "EHLO
+        mail-pl1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725928AbeKLMHX (ORCPT
+        <rfc822;linux-unionfs@vger.kernel.org>);
+        Mon, 12 Nov 2018 07:07:23 -0500
+Date: Mon, 12 Nov 2018 10:16:17 +0800
+From: Eryu Guan <guaneryu@gmail.com>
+Subject: Re: [PATCH] overlay: create directory over deleted whiteout
+Message-ID: <20181112021617.GB3889@desktop>
+References: <20181031095502.12504-1-mszeredi@redhat.com>
+ <CAOQ4uxi9YX23C7NLQ2yqsz1Ur4nwMZFbQta=nBU=6bvYPU2YGg@mail.gmail.com>
+ <CAOQ4uxikt5u-a4f+Z1bT38E5p2mcBq++8qP64OzVobe8Z1RhLQ@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAOQ4uxikt5u-a4f+Z1bT38E5p2mcBq++8qP64OzVobe8Z1RhLQ@mail.gmail.com>
+Sender: linux-unionfs-owner@vger.kernel.org
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: Miklos Szeredi <mszeredi@redhat.com>, fstests <fstests@vger.kernel.org>, overlayfs <linux-unionfs@vger.kernel.org>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-From: Olga Kornievskaia <kolga@netapp.com>
+On Sun, Nov 11, 2018 at 06:45:25PM +0200, Amir Goldstein wrote:
+> On Wed, Oct 31, 2018 at 12:17 PM Amir Goldstein <amir73il@gmail.com> wrote:
+> >
+> > On Wed, Oct 31, 2018 at 11:55 AM Miklos Szeredi <mszeredi@redhat.com> wrote:
+> > >
+> > > There's a bug in the overlayfs implementation starting from the very first
+> > > merged version that may cause an Oops of various forms if a directory is created
+> > > over a whiteout dentry, but the actual whiteout on the upper layer was removed
+> > > to the directory creation.
+> > >
+> > > Reported by: kaixuxia <xiakaixu1987@gmail.com>
+> > > Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
+> > > ---
+> >
+> > Looks good. A bit of commentary could be useful...
+> 
+> Eryu,
+> 
+> I see you have not included this test in today's update.
+> Maybe you though that this discussion did not conclude.
+> On my part, besides adding the 2 comment lines, there
+> are no further concerns.
 
-If the client sends an "inter" copy to the destination server but
-it only supports "intra" copy, it can return ESTALE (since it
-doesn't know anything about the file handle from the other server
-and does not recognize the special case of "inter" copy). Translate
-this error as ENOTSUPP and also send OFFLOAD_CANCEL to the source
-server so that it can clean up state.
+Yeah, I saw the discussion was on going so I didn't save the thread to
+my "to-review" queue and it fell out of my radar.. I'll queue it now.
 
-Signed-off-by: Olga Kornievskaia <kolga@netapp.com>
----
- fs/nfs/nfs42proc.c | 5 +++++
- 1 file changed, 5 insertions(+)
+> 
+> FYI, the fix for this bug is now in master:
+> 5e1275808630 ovl: check whiteout in ovl_create_over_whiteout()
 
-diff --git a/fs/nfs/nfs42proc.c b/fs/nfs/nfs42proc.c
-index 98fe00b..00809b3 100644
---- a/fs/nfs/nfs42proc.c
-+++ b/fs/nfs/nfs42proc.c
-@@ -395,6 +395,11 @@ ssize_t nfs42_proc_copy(struct file *src, loff_t pos_src,
- 			args.sync = true;
- 			dst_exception.retry = 1;
- 			continue;
-+		} else if (err == -ESTALE &&
-+				!nfs42_files_from_same_server(src, dst)) {
-+			nfs42_do_offload_cancel_async(src, &args.src_stateid);
-+			err = -EOPNOTSUPP;
-+			break;
- 		}
- 
- 		err2 = nfs4_handle_exception(server, err, &src_exception);
--- 
-1.8.3.1
+Thanks for the reminder!
+
+Eryu
