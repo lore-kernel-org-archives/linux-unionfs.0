@@ -1,87 +1,130 @@
-From: syzbot <syzbot+9c69c282adc4edd2b540@syzkaller.appspotmail.com>
-Subject: WARNING in ovl_instantiate
-Date: Sat, 10 Nov 2018 17:56:03 -0800
-Message-ID: <000000000000064bcf057a59e3b9@google.com>
+From: Mark Salyzyn <salyzyn@android.com>
+Subject: Re: [PATCH v8 2/2] overlayfs: override_creds=off option bypass
+ creator_cred
+Date: Mon, 12 Nov 2018 10:15:27 -0800
+Message-ID: <ad41a028-f0d4-296f-79fd-f00f73f25ce6@android.com>
+References: <20181106230117.127616-1-salyzyn@android.com>
+ <20181106230117.127616-2-salyzyn@android.com>
+ <20181108200106.GB3663@redhat.com>
+ <b057da99-adc6-b355-fb57-b314a29f298f@android.com>
+ <CAOQ4uxjVPKSaJ2oscvM7jtsDVabnq_qMPg7k4KQEyOLAVPojcg@mail.gmail.com>
+ <c6518e90-9429-85a1-fe19-83e058154e2a@android.com>
+ <CAOQ4uxgwQAf4NtaE+qhLUTVnvu0ixNZ6Gwotc4q4zR-y35NmZA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed; delsp=yes
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAOQ4uxgwQAf4NtaE+qhLUTVnvu0ixNZ6Gwotc4q4zR-y35NmZA@mail.gmail.com>
+Content-Language: en-GB
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org, linux-unionfs@vger.kernel.org, miklos@szeredi.hu, syzkaller-bugs@googlegroups.com
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: Vivek Goyal <vgoyal@redhat.com>, linux-kernel <linux-kernel@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>, Jonathan Corbet <corbet@lwn.net>, "Eric W. Biederman" <ebiederm@xmission.com>, Randy Dunlap <rdunlap@infradead.org>, Stephen Smalley <sds@tycho.nsa.gov>, overlayfs <linux-unionfs@vger.kernel.org>, linux-doc@vger.kernel.org, kernel-team@android.com, Paul Lawrence <paullawrence@google.com>, Theodore Tso <tytso@mit.edu>
 List-Id: linux-unionfs@vger.kernel.org
 
-Hello,
+On 11/09/2018 11:51 PM, Amir Goldstein wrote:
+> On Fri, Nov 9, 2018 at 7:32 PM Mark Salyzyn <salyzyn@android.com> wrote:
+>> On 11/08/2018 07:05 PM, Amir Goldstein wrote:
+>>> Mark,
+>>>
+>>> I have some Android internals background, so I have a general
+>>> understanding of the
+>>> use case, but I can understand why people have a hard time connecting to the
+>>> motivation, thinking "their security model must be flawed".
+>>>
+>>> I am not sure if you are avoiding laying out the details of the model
+>>> because you
+>>> are not allowed to expose details or because you feel details may confuse us.
+>> I am not a "great communicator"(tm), probably only 50K vocabulary,
+>> propensity towards quantum leaps, so yes, I was worried about confusion.
+>> non-overlapping security model is the key takeaway I feel.
+>>
+> I hope my comment below will serve as an example why explaining your use
+> case is preferred to presenting the abstract and generalized problem.
+> And still - no objections to your current patch, *because* it can solve your
+> use cases and *because* we don't need to deal with the  abstract and
+> generalized problem.
+Alas, I personally object to changes to the kernel that have a limited 
+(well, 1.8billion devices is not limited) use case. If they can benefit 
+others, they become more useful. This paradigm helps prevent spaghetti 
+and areas of the kernel that are not well understood and subject to bitrot.
+>> [TL;DR]
+>>
+>> In Android there are two use cases this covers:
+>>
+>> 1) On userdebug (rooted development) builds, adb remount feature
+>>      for readonly filesystems which include squashfs, ext4 dedupe,
+>>      and any right-sized (zero space left over) filesystems.  In these cases
+>>      the system will resort to utilizing overlayfs, and allow for
+>>      updated content to a scratch backing storage.
+>> 2) On operating system updates where new Hardware Abstraction
+>>      layers have been added and the vendor/oem supplied components
+>>      supplied to an older release.  In this corner case the operating
+>>      system update may carefully select overrides that are merged into
+>>      the vendor partition content directories as hosted by the
+>>      operating system partition.
+>>
+>> The sepolicy model can be browsed at
+>> https://android.googlesource.com/platform/system/sepolicy/.
+>>
+>> In the first use case above the possible insecurity is tempered by the
+>> debug nature
+>> of the system and the lurking big elephant in the room privilege
+>> escalation possibility
+>> (/system/bin/su existing),
+> Since you already have an elephant in the room, might as well use it
+> to mount overlay. I am guessing most of the work in developer mode is
+> with sepolicy disabled anyway?
+> Essentially, adb root/adb remount means gloves are off.
+> Although with overlayed adb remount gloves could be put back on
+> when you relinquish the overlay and get back to original /system mount.
+adb starts far too late to be useful for the original mount operation. 
+We have to mount at init first stage before sepolicy is loaded and init 
+is re-exec'd. adb root / adb remount / adb push is relegated to updating 
+the content before a reboot to activate _some_ of the possible things 
+that developers adjust.
 
-syzbot found the following crash on:
+Yes, I find the ability to relinquish the overlayfs and restore the 
+system to original an added-value, whereas if we could adjust the 
+system&root filesystems directly, a complete reflash is required to 
+restore back. We only activate/use the overlayfs for read-only 
+system&root filesystems.
+>
+>> in the other a r/o and precise MAC. sepolicy
+>> and credentials
+>> will rule over transitions from one security domain to another for
+>> execution, vendor components are managed by a separate vendor_init and
+>> the actual xattr content is constant.
+>>
+> For this use case, you don't need an upper layer at all and you probably
+> don't use lower layers redirect_dir. Right?
+> So all the concerns about get/set trusted overlay xattrs and detecting
+> opaque directories (do you need those?) are moot.
+> If you propose that override_creds=off can only be enabled
+> on lower-only overlayfs, the caveats section of your documentation
+> would shrink down considerably to the point that it may even be
+> comprehend-able to mortal users and I don't think you will see much
+> resistant from overlayfs developers to that "safe side" approach.
 
-HEAD commit:    442b8cea2477 Add linux-next specific files for 20181109
-git tree:       linux-next
-console output: https://syzkaller.appspot.com/x/log.txt?x=169a6fbd400000
-kernel config:  https://syzkaller.appspot.com/x/.config?x=2f72bdb11df9fbe8
-dashboard link: https://syzkaller.appspot.com/bug?extid=9c69c282adc4edd2b540
-compiler:       gcc (GCC) 8.0.1 20180413 (experimental)
+Yup, no upper layers. If this was the only uses case, but it isn't.
 
-Unfortunately, I don't have any reproducer for this crash yet.
+Besides, I submitted this patch _before_ this second use case presented 
+itself as required, it was a later development during the lifetime of 
+this patch, so admittedly still focused on the first use case.
 
-IMPORTANT: if you fix the bug, please add the following tag to the commit:
-Reported-by: syzbot+9c69c282adc4edd2b540@syzkaller.appspotmail.com
+I should regroup in the documentation and present the use cases 
+individually and specifically ... as you suggest :-) Off to consider a 
+v9 respin (KISS documentation has always been troublesome for me) ...
 
-WARNING: CPU: 0 PID: 9768 at fs/overlayfs/dir.c:263  
-ovl_instantiate+0x369/0x400 fs/overlayfs/dir.c:263
-Kernel panic - not syncing: panic_on_warn set ...
-CPU: 0 PID: 9768 Comm: syz-executor2 Not tainted 4.20.0-rc1-next-20181109+  
-#110
-Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS  
-Google 01/01/2011
-Call Trace:
-  __dump_stack lib/dump_stack.c:77 [inline]
-  dump_stack+0x244/0x39d lib/dump_stack.c:113
-  panic+0x2ad/0x55c kernel/panic.c:188
-  __warn.cold.8+0x20/0x45 kernel/panic.c:540
-  report_bug+0x254/0x2d0 lib/bug.c:186
-  fixup_bug arch/x86/kernel/traps.c:178 [inline]
-  do_error_trap+0x11b/0x200 arch/x86/kernel/traps.c:271
-  do_invalid_op+0x36/0x40 arch/x86/kernel/traps.c:290
-  invalid_op+0x14/0x20 arch/x86/entry/entry_64.S:969
-RIP: 0010:ovl_instantiate+0x369/0x400 fs/overlayfs/dir.c:263
-Code: c3 89 c6 e8 69 84 ee fe 85 db 0f 85 9e 00 00 00 e8 4c 83 ee fe 4c 89  
-e7 45 31 f6 e8 11 18 45 ff e9 ec fe ff ff e8 37 83 ee fe <0f> 0b e9 e0 fe  
-ff ff e8 2b 83 ee fe 0f 0b e9 63 ff ff ff e8 1f db
-RSP: 0018:ffff88018f31f990 EFLAGS: 00010212
-RAX: 0000000000040000 RBX: ffff88018f31fa28 RCX: ffffc90013c02000
-RDX: 000000000000a369 RSI: ffffffff82912579 RDI: 0000000000000007
-RBP: ffff88018f31fa50 R08: ffff8801bb18a000 R09: ffffed0031e63ee5
-R10: ffffed0031e63ee5 R11: 0000000000000003 R12: ffff8801cd1e8300
-R13: ffff88018f31f9c8 R14: ffffffffffffff8c R15: 0000000000000000
-  ovl_create_over_whiteout fs/overlayfs/dir.c:518 [inline]
-  ovl_create_or_link+0xad6/0x1560 fs/overlayfs/dir.c:582
-  ovl_create_object+0x2e9/0x3a0 fs/overlayfs/dir.c:616
-  ovl_create+0x2b/0x30 fs/overlayfs/dir.c:630
-  vfs_create+0x388/0x5b0 fs/namei.c:2912
-  do_mknodat+0x410/0x530 fs/namei.c:3766
-  __do_sys_mknod fs/namei.c:3795 [inline]
-  __se_sys_mknod fs/namei.c:3793 [inline]
-  __x64_sys_mknod+0x7b/0xb0 fs/namei.c:3793
-  do_syscall_64+0x1b9/0x820 arch/x86/entry/common.c:290
-  entry_SYSCALL_64_after_hwframe+0x49/0xbe
-RIP: 0033:0x457569
-Code: fd b3 fb ff c3 66 2e 0f 1f 84 00 00 00 00 00 66 90 48 89 f8 48 89 f7  
-48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff  
-ff 0f 83 cb b3 fb ff c3 66 2e 0f 1f 84 00 00 00 00
-RSP: 002b:00007f2126d09c78 EFLAGS: 00000246 ORIG_RAX: 0000000000000085
-RAX: ffffffffffffffda RBX: 0000000000000003 RCX: 0000000000457569
-RDX: 0000000000000000 RSI: 0000000000000000 RDI: 0000000020000340
-RBP: 000000000072bfa0 R08: 0000000000000000 R09: 0000000000000000
-R10: 0000000000000000 R11: 0000000000000246 R12: 00007f2126d0a6d4
-R13: 00000000004c2a6e R14: 00000000004d4110 R15: 00000000ffffffff
-Kernel Offset: disabled
-Rebooting in 86400 seconds..
+[TL;DR]
 
+The remain snapshot discussion is a distraction, I will have to defer to 
+Paul to answer to them (and yes, we have discussed eye-to-eye over this 
+and private emails). I agree with the details you have added to the 
+conversation.
 
----
-This bug is generated by a bot. It may contain errors.
-See https://goo.gl/tpsmEJ for more information about syzbot.
-syzbot engineers can be reached at syzkaller@googlegroups.com.
+Sadly the CL in question needs to solve the caveats before we could 
+consider overlayfs for userdata.
 
-syzbot will keep track of this bug report. See:
-https://goo.gl/tpsmEJ#bug-status-tracking for how to communicate with  
-syzbot.
+Thanks for these comments! We should consider when the dust settles.
+
+Sincerely -- Mark Salyzyn
