@@ -4,178 +4,182 @@ References: <20181027200450.GA5909@thunk.org> <CAJfpegtCYkXiSYtw4dWGc=Fj2U3GaWiO
  <20181029220404.GB15839@thunk.org> <CAOQ4uxiu6iS-VuEtPhequVp7Ukx7Kh0FUpECSXfkaZN==o7sJw@mail.gmail.com>
  <CAOQ4uxjsfgfo3rXtFKQk4A_fU2tvo38GFhzz7H9h1+R4trjd6Q@mail.gmail.com>
  <CAJfpeguV6Dwkm-CJieHKZWYK=uw3BYx9nW17KAs8uNJptmnchA@mail.gmail.com>
- <CACTyJpCx7y-5OOhk0P8ETQwp4_n-a1W1Dmc-1dHeE6j_cvdk7A@mail.gmail.com> <CAOQ4uxjRGpwGou3+BNUvMV6bCx8ysTyEESOR9RVY4Nc2QvkJjg@mail.gmail.com>
-In-Reply-To: <CAOQ4uxjRGpwGou3+BNUvMV6bCx8ysTyEESOR9RVY4Nc2QvkJjg@mail.gmail.com>
+ <CACTyJpCx7y-5OOhk0P8ETQwp4_n-a1W1Dmc-1dHeE6j_cvdk7A@mail.gmail.com>
+ <CAOQ4uxjRGpwGou3+BNUvMV6bCx8ysTyEESOR9RVY4Nc2QvkJjg@mail.gmail.com> <20181114142541.GB29804@redhat.com>
+In-Reply-To: <20181114142541.GB29804@redhat.com>
 From: =?UTF-8?Q?Maciej_Zi=C4=99ba?= <maciekz82@gmail.com>
-Date: Wed, 14 Nov 2018 22:33:50 +0100
-Message-ID: <CACTyJpBpmTz-ZiRG23rEh4tASmd2uPyzY8SQsbM1FE+5dAdJ_A@mail.gmail.com>
+Date: Wed, 14 Nov 2018 19:40:56 +0100
+Message-ID: <CACTyJpDcL0_PHWeta8LAcsRsBPOoDJyzjUTSO_hC_7nyfjEq-A@mail.gmail.com>
 Subject: Re: overlayfs 4.19: unable to make backup link: Invalid cross-device link
-Content-Type: multipart/alternative; boundary="0000000000009254b5057aa6b0b2"
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: miklos@szeredi.hu, vgoyal@redhat.com, linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, Theodore Ts'o <tytso@mit.edu>, salyzyn@android.com
+Content-Type: multipart/alternative; boundary="000000000000368ca9057aa4466e"
+To: vgoyal@redhat.com
+Cc: Amir Goldstein <amir73il@gmail.com>, miklos@szeredi.hu, linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, Theodore Ts'o <tytso@mit.edu>, salyzyn@android.com
 List-ID: <linux-unionfs@vger.kernel.org>
 
---0000000000009254b5057aa6b0b2
+--000000000000368ca9057aa4466e
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-Hi :)
+Hi,
 
-It took me a while to compile the kernel but I can confirm that this patch
-fixes the problem.
+I've run docker build command as my user (belongs to "docker" group), as
+root and using sudo but the error is always the same.
 
-Best regards,
+Regards,
 Maciej
 
-=C5=9Br., 14 lis 2018 o 13:09 Amir Goldstein <amir73il@gmail.com> napisa=C5=
-=82(a):
 
-> On Wed, Nov 14, 2018 at 12:28 PM Maciej Zi=C4=99ba <maciekz82@gmail.com> =
-wrote:
+=C5=9Br., 14 lis 2018 o 15:25 Vivek Goyal <vgoyal@redhat.com> napisa=C5=82(=
+a):
+
+> On Wed, Nov 14, 2018 at 02:09:01PM +0200, Amir Goldstein wrote:
+>
+> [..]
+> > Vivek, Mark,
 > >
-> > Hi :)
+> > Either of you care to implement dropping privileges for the duration
+> > of unionmount-testsuite test cases (in between mounts and unmounts)?
+>
+> Hi Amir,
+>
+> I think it will be good to drop priviliges while running
+> unionmount-testsuite.
+>
+> BTW, docker build used to run as root/priviliged user. Is that not the ca=
+se
+> anymore? Why did it fail to begin with.
+>
+> Thanks
+> Vivek
+>
 > >
-> > I'm not sure which part is relevant, so I'm sending the entire dmesg
-> output as well as the docker messages. I hope it will be useful.
+> > Thanks,
+> > Amir.
 > >
->
-> Thanks for the info!
->
-> Problem is ovl_set_redirect() inside ovl_link() is missing
-> ovl_override_creds().
->
-> Can you try the patch below?
->
-> Reason that unionmount-testsuite didn't catch this is because
-> it is run as root.
->
-> Vivek, Mark,
->
-> Either of you care to implement dropping privileges for the duration
-> of unionmount-testsuite test cases (in between mounts and unmounts)?
->
-> Thanks,
-> Amir.
->
-> ---
->
-> diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
-> index c6289147c787..82c129bfe58d 100644
-> --- a/fs/overlayfs/dir.c
-> +++ b/fs/overlayfs/dir.c
-> @@ -651,6 +651,18 @@ static int ovl_symlink(struct inode *dir, struct
-> dentry *dentry,
->         return ovl_create_object(dentry, S_IFLNK, 0, link);
->  }
->
-> +static int ovl_set_link_redirect(struct dentry *dentry)
-> +{
-> +       const struct cred *old_cred;
-> +       int err;
-> +
-> +       old_cred =3D ovl_override_creds(dentry->d_sb);
-> +       err =3D ovl_set_redirect(dentry, false);
-> +       revert_creds(old_cred);
-> +
-> +       return err;
-> +}
-> +
->  static int ovl_link(struct dentry *old, struct inode *newdir,
->                     struct dentry *new)
->  {
-> @@ -670,7 +682,7 @@ static int ovl_link(struct dentry *old, struct
-> inode *newdir,
->                 goto out_drop_write;
->
->         if (ovl_is_metacopy_dentry(old)) {
-> -               err =3D ovl_set_redirect(old, false);
-> +               err =3D ovl_set_link_redirect(old);
->                 if (err)
->                         goto out_drop_write;
->         }
+> > ---
+> >
+> > diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
+> > index c6289147c787..82c129bfe58d 100644
+> > --- a/fs/overlayfs/dir.c
+> > +++ b/fs/overlayfs/dir.c
+> > @@ -651,6 +651,18 @@ static int ovl_symlink(struct inode *dir, struct
+> > dentry *dentry,
+> >         return ovl_create_object(dentry, S_IFLNK, 0, link);
+> >  }
+> >
+> > +static int ovl_set_link_redirect(struct dentry *dentry)
+> > +{
+> > +       const struct cred *old_cred;
+> > +       int err;
+> > +
+> > +       old_cred =3D ovl_override_creds(dentry->d_sb);
+> > +       err =3D ovl_set_redirect(dentry, false);
+> > +       revert_creds(old_cred);
+> > +
+> > +       return err;
+> > +}
+> > +
+> >  static int ovl_link(struct dentry *old, struct inode *newdir,
+> >                     struct dentry *new)
+> >  {
+> > @@ -670,7 +682,7 @@ static int ovl_link(struct dentry *old, struct
+> > inode *newdir,
+> >                 goto out_drop_write;
+> >
+> >         if (ovl_is_metacopy_dentry(old)) {
+> > -               err =3D ovl_set_redirect(old, false);
+> > +               err =3D ovl_set_link_redirect(old);
+> >                 if (err)
+> >                         goto out_drop_write;
+> >         }
 >
 
---0000000000009254b5057aa6b0b2
+--000000000000368ca9057aa4466e
 Content-Type: text/html; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-<div dir=3D"ltr">Hi :)<div><br></div><div>It took me a while to compile the=
- kernel but I can confirm that this patch fixes the problem.</div><div><br>=
-</div><div>Best regards,</div><div>Maciej</div></div><br><div class=3D"gmai=
-l_quote"><div dir=3D"ltr">=C5=9Br., 14 lis 2018 o 13:09=C2=A0Amir Goldstein=
- &lt;<a href=3D"mailto:amir73il@gmail.com">amir73il@gmail.com</a>&gt; napis=
-a=C5=82(a):<br></div><blockquote class=3D"gmail_quote" style=3D"margin:0 0 =
-0 .8ex;border-left:1px #ccc solid;padding-left:1ex">On Wed, Nov 14, 2018 at=
- 12:28 PM Maciej Zi=C4=99ba &lt;<a href=3D"mailto:maciekz82@gmail.com" targ=
-et=3D"_blank">maciekz82@gmail.com</a>&gt; wrote:<br>
-&gt;<br>
-&gt; Hi :)<br>
-&gt;<br>
-&gt; I&#39;m not sure which part is relevant, so I&#39;m sending the entire=
- dmesg output as well as the docker messages. I hope it will be useful.<br>
-&gt;<br>
+<div dir=3D"ltr">Hi,<div><br></div><div>I&#39;ve run docker build command a=
+s my user (belongs to &quot;docker&quot; group), as root and using sudo but=
+ the error is always the same.</div><div><br></div><div>Regards,</div><div>=
+Maciej</div><div><br></div></div><br><div class=3D"gmail_quote"><div dir=3D=
+"ltr">=C5=9Br., 14 lis 2018 o 15:25=C2=A0Vivek Goyal &lt;<a href=3D"mailto:=
+vgoyal@redhat.com">vgoyal@redhat.com</a>&gt; napisa=C5=82(a):<br></div><blo=
+ckquote class=3D"gmail_quote" style=3D"margin:0 0 0 .8ex;border-left:1px #c=
+cc solid;padding-left:1ex">On Wed, Nov 14, 2018 at 02:09:01PM +0200, Amir G=
+oldstein wrote:<br>
 <br>
-Thanks for the info!<br>
+[..]<br>
+&gt; Vivek, Mark,<br>
+&gt; <br>
+&gt; Either of you care to implement dropping privileges for the duration<b=
+r>
+&gt; of unionmount-testsuite test cases (in between mounts and unmounts)?<b=
+r>
 <br>
-Problem is ovl_set_redirect() inside ovl_link() is missing<br>
-ovl_override_creds().<br>
+Hi Amir,<br>
 <br>
-Can you try the patch below?<br>
+I think it will be good to drop priviliges while running<br>
+unionmount-testsuite.<br>
 <br>
-Reason that unionmount-testsuite didn&#39;t catch this is because<br>
-it is run as root.<br>
+BTW, docker build used to run as root/priviliged user. Is that not the case=
 <br>
-Vivek, Mark,<br>
+anymore? Why did it fail to begin with.<br>
 <br>
-Either of you care to implement dropping privileges for the duration<br>
-of unionmount-testsuite test cases (in between mounts and unmounts)?<br>
+Thanks<br>
+Vivek<br>
 <br>
-Thanks,<br>
-Amir.<br>
-<br>
----<br>
-<br>
-diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c<br>
-index c6289147c787..82c129bfe58d 100644<br>
---- a/fs/overlayfs/dir.c<br>
-+++ b/fs/overlayfs/dir.c<br>
-@@ -651,6 +651,18 @@ static int ovl_symlink(struct inode *dir, struct<br>
-dentry *dentry,<br>
-=C2=A0 =C2=A0 =C2=A0 =C2=A0 return ovl_create_object(dentry, S_IFLNK, 0, li=
-nk);<br>
-=C2=A0}<br>
-<br>
-+static int ovl_set_link_redirect(struct dentry *dentry)<br>
-+{<br>
-+=C2=A0 =C2=A0 =C2=A0 =C2=A0const struct cred *old_cred;<br>
-+=C2=A0 =C2=A0 =C2=A0 =C2=A0int err;<br>
-+<br>
-+=C2=A0 =C2=A0 =C2=A0 =C2=A0old_cred =3D ovl_override_creds(dentry-&gt;d_sb=
-);<br>
-+=C2=A0 =C2=A0 =C2=A0 =C2=A0err =3D ovl_set_redirect(dentry, false);<br>
-+=C2=A0 =C2=A0 =C2=A0 =C2=A0revert_creds(old_cred);<br>
-+<br>
-+=C2=A0 =C2=A0 =C2=A0 =C2=A0return err;<br>
-+}<br>
-+<br>
-=C2=A0static int ovl_link(struct dentry *old, struct inode *newdir,<br>
-=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 struc=
-t dentry *new)<br>
-=C2=A0{<br>
-@@ -670,7 +682,7 @@ static int ovl_link(struct dentry *old, struct<br>
-inode *newdir,<br>
-=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 goto out_drop_write=
-;<br>
-<br>
-=C2=A0 =C2=A0 =C2=A0 =C2=A0 if (ovl_is_metacopy_dentry(old)) {<br>
--=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0err =3D ovl_set_red=
-irect(old, false);<br>
-+=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0err =3D ovl_set_lin=
-k_redirect(old);<br>
-=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 if (err)<br>
-=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 goto out_drop_write;<br>
-=C2=A0 =C2=A0 =C2=A0 =C2=A0 }<br>
+&gt; <br>
+&gt; Thanks,<br>
+&gt; Amir.<br>
+&gt; <br>
+&gt; ---<br>
+&gt; <br>
+&gt; diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c<br>
+&gt; index c6289147c787..82c129bfe58d 100644<br>
+&gt; --- a/fs/overlayfs/dir.c<br>
+&gt; +++ b/fs/overlayfs/dir.c<br>
+&gt; @@ -651,6 +651,18 @@ static int ovl_symlink(struct inode *dir, struct<=
+br>
+&gt; dentry *dentry,<br>
+&gt;=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0return ovl_create_object(dentry, S_IF=
+LNK, 0, link);<br>
+&gt;=C2=A0 }<br>
+&gt; <br>
+&gt; +static int ovl_set_link_redirect(struct dentry *dentry)<br>
+&gt; +{<br>
+&gt; +=C2=A0 =C2=A0 =C2=A0 =C2=A0const struct cred *old_cred;<br>
+&gt; +=C2=A0 =C2=A0 =C2=A0 =C2=A0int err;<br>
+&gt; +<br>
+&gt; +=C2=A0 =C2=A0 =C2=A0 =C2=A0old_cred =3D ovl_override_creds(dentry-&gt=
+;d_sb);<br>
+&gt; +=C2=A0 =C2=A0 =C2=A0 =C2=A0err =3D ovl_set_redirect(dentry, false);<b=
+r>
+&gt; +=C2=A0 =C2=A0 =C2=A0 =C2=A0revert_creds(old_cred);<br>
+&gt; +<br>
+&gt; +=C2=A0 =C2=A0 =C2=A0 =C2=A0return err;<br>
+&gt; +}<br>
+&gt; +<br>
+&gt;=C2=A0 static int ovl_link(struct dentry *old, struct inode *newdir,<br=
+>
+&gt;=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =
+=C2=A0struct dentry *new)<br>
+&gt;=C2=A0 {<br>
+&gt; @@ -670,7 +682,7 @@ static int ovl_link(struct dentry *old, struct<br>
+&gt; inode *newdir,<br>
+&gt;=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0goto out_=
+drop_write;<br>
+&gt; <br>
+&gt;=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0if (ovl_is_metacopy_dentry(old)) {<br=
+>
+&gt; -=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0err =3D ovl_se=
+t_redirect(old, false);<br>
+&gt; +=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0err =3D ovl_se=
+t_link_redirect(old);<br>
+&gt;=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0if (err)<=
+br>
+&gt;=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =
+=C2=A0 =C2=A0 =C2=A0goto out_drop_write;<br>
+&gt;=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0}<br>
 </blockquote></div>
 
---0000000000009254b5057aa6b0b2--
+--000000000000368ca9057aa4466e--
