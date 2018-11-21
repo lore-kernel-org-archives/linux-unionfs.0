@@ -1,7 +1,7 @@
 From: Eiichi Tsukata <devel@etsukata.com>
-Subject: [PATCH v1 3/4] f2fs: fix race between llseek SEEK_END and write
-Date: Wed, 21 Nov 2018 11:43:59 +0900
-Message-ID: <20181121024400.4346-4-devel@etsukata.com>
+Subject: [PATCH v1 4/4] overlayfs: fix race between llseek SEEK_END and write
+Date: Wed, 21 Nov 2018 11:44:00 +0900
+Message-ID: <20181121024400.4346-5-devel@etsukata.com>
 References: <20181121024400.4346-1-devel@etsukata.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -12,35 +12,48 @@ To: andi@firstfloor.org, Chris Mason <clm@fb.com>, Josef Bacik <josef@toxicpanda
 Cc: Eiichi Tsukata <devel@etsukata.com>
 List-Id: linux-unionfs@vger.kernel.org
 
-This patch itself seems to be just a cleanup but with the
-commit b25bd1d9fd87 ("vfs: fix race between llseek SEEK_END and write")
-it fixes race.
+Implement individual lock for SEEK_END for overlayfs which directly calls
+generic_file_llseek_size().
 
 Signed-off-by: Eiichi Tsukata <devel@etsukata.com>
 ---
- fs/f2fs/file.c | 6 +-----
- 1 file changed, 1 insertion(+), 5 deletions(-)
+ fs/overlayfs/file.c | 23 ++++++++++++++++++++---
+ 1 file changed, 20 insertions(+), 3 deletions(-)
 
-diff --git a/fs/f2fs/file.c b/fs/f2fs/file.c
-index 88b124677189..14a923607eff 100644
---- a/fs/f2fs/file.c
-+++ b/fs/f2fs/file.c
-@@ -447,15 +447,11 @@ static loff_t f2fs_seek_block(struct file *file, loff_t offset, int whence)
- 
- static loff_t f2fs_llseek(struct file *file, loff_t offset, int whence)
+diff --git a/fs/overlayfs/file.c b/fs/overlayfs/file.c
+index 84dd957efa24..57bc6538eea8 100644
+--- a/fs/overlayfs/file.c
++++ b/fs/overlayfs/file.c
+@@ -146,10 +146,27 @@ static int ovl_release(struct inode *inode, struct file *file)
+ static loff_t ovl_llseek(struct file *file, loff_t offset, int whence)
  {
--	struct inode *inode = file->f_mapping->host;
--	loff_t maxbytes = inode->i_sb->s_maxbytes;
--
- 	switch (whence) {
- 	case SEEK_SET:
- 	case SEEK_CUR:
- 	case SEEK_END:
--		return generic_file_llseek_size(file, offset, whence,
--						maxbytes, i_size_read(inode));
-+		return generic_file_llseek(file, offset, whence);
- 	case SEEK_DATA:
- 	case SEEK_HOLE:
- 		if (offset < 0)
+ 	struct inode *realinode = ovl_inode_real(file_inode(file));
++	loff_t ret;
+ 
+-	return generic_file_llseek_size(file, offset, whence,
+-					realinode->i_sb->s_maxbytes,
+-					i_size_read(realinode));
++	switch (whence) {
++	default:
++		return generic_file_llseek_size(file, offset, whence,
++						realinode->i_sb->s_maxbytes,
++						i_size_read(realinode));
++	case SEEK_END:
++	case SEEK_DATA:
++	case SEEK_HOLE:
++		/*
++		 * protects against inode size race with write so that llseek
++		 * doesn't see inode size being updated in individual fs write
++		 */
++		inode_lock(realinode);
++		ret = generic_file_llseek_size(file, offset, whence,
++					       realinode->i_sb->s_maxbytes,
++					       i_size_read(realinode));
++		inode_unlock(realinode);
++		return ret;
++	}
+ }
+ 
+ static void ovl_file_accessed(struct file *file)
 -- 
 2.19.1
