@@ -1,58 +1,54 @@
-Return-Path: <amir73il@gmail.com>
-Return-Path: <amir73il@gmail.com>
-From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH v4 0/6] Tests for readahead() and fadvise() on overlayfs
-Date: Wed, 28 Nov 2018 18:46:39 +0200
-Message-Id: <20181128164645.783-1-amir73il@gmail.com>
-To: Cyril Hrubis <chrubis@suse.cz>
-Cc: ltp@lists.linux.it, Jan Stancek <jstancek@redhat.com>, Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org
+MIME-Version: 1.0
+Date: Thu, 22 Nov 2018 16:32:52 +0100
+References: <20181105055010.19511-1-amir73il@gmail.com>
+	<CAJfpegvbThWobvfmvk=_=tJ=0Csk-t-nOWFbmY=6EfNwD9tw+Q@mail.gmail.com>
+	<CAOQ4uxiZFGQ-TFCTGCZRQSG6Z4e1qsmkyo5C5=RaPSMhKTm7QA@mail.gmail.com>
+In-Reply-To: <CAOQ4uxiZFGQ-TFCTGCZRQSG6Z4e1qsmkyo5C5=RaPSMhKTm7QA@mail.gmail.com>
+Message-ID: <CAJfpegtf0sv899Br7YsjgNw4qEoKA1VhUxk=UGVAyW4ksP4g=g@mail.gmail.com>
+Subject: Re: [PATCH] ovl: fix decode of dir file handle with multi lower layers
+From: Miklos Szeredi <miklos@szeredi.hu>
+Content-Type: text/plain; charset="UTF-8"
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: overlayfs <linux-unionfs@vger.kernel.org>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-Cyril,
+On Thu, Nov 22, 2018 at 3:50 PM Amir Goldstein <amir73il@gmail.com> wrote:
+>
+> On Thu, Nov 22, 2018 at 4:45 PM Miklos Szeredi <miklos@szeredi.hu> wrote:
+> >
+> > On Mon, Nov 5, 2018 at 6:50 AM Amir Goldstein <amir73il@gmail.com> wrote:
+> > >
+> > > When decoding a lower file handle, we first call ovl_check_origin_fh()
+> > > with connected=false to get any real lower dentry for overlay inode
+> > > cache lookup.
+> > >
+> > > If the real dentry is a disconnected dir dentry, ovl_check_origin_fh()
+> > > is called again with connected=true to get a connected real dentry
+> > > and find the lower layer the real dentry belongs to.
+> > >
+> > > If the first call returned a connected real dentry, we use it to
+> > > lookup an overlay connected dentry, but the first ovl_check_origin_fh()
+> > > call with connected=false did not check that the found dentry is under
+> > > the root of the layer (see ovl_acceptable()), it only checked that
+> > > the found dentry super block matches the uuid of the lower file handle.
+> > >
+> > > In case there are multiple lower layers on the same fs and the found
+> > > dentry is not from the top most lower layer, using the layer index
+> > > returned from the first ovl_check_origin_fh() is wrong and we end
+> > > up failing to decode the file handle.
+> > >
+> > > Fix this by always calling ovl_check_origin_fh() with connected=true
+> > > if we got a directory dentry in the first call.
+> >
+> > Hi Amir,
+> >
+> > Does this have a testcase?
+> >
+>
+> xfstest overlay/062
+> already upstream.
 
-The following series adds test covergae for readahead() syscall
-over overlayfs file and adds test coverage for a specific
-posix_fadvise() syscall advice (POSIX_FADV_WILLNEED).
-
-So far, the posix_fadvise syscall tests in LTP only test for error
-conditions, but not functionality.
-
-The functionality of the advice POSIX_FADV_WILLNEED is identical
-to readahead() and since kernel commit 3d8f7615319b ("vfs: implement
-readahead(2) using POSIX_FADV_WILLNEED"), the implementations are
-also bound together.
-
-To add test coverage of the advice POSIX_FADV_WILLNEED, I decided not
-to duplicate the readahead() functional test and add test cases to
-readahead02 that use the POSIX_FADV_WILLNEED implementation.
+Good.
 
 Thanks,
-Amir.
-
-Changed since v3:
-- Get rid of check_ret() helper
-- Use tst_timer helpers instead of gettimeofday
-
-Changes since v2:
-- Runtime check for readahead/fadvise support
-- Abort test case immediately if syscall fail
-
-Changes since v1:
-- Fix bugs in loop invocation of test (i.e. -i 2)
-- Address review comments from Jan Stancek
-- Make cached_max a global maximum over all test cases
-- Improve reliability of overlayfs readahead test case failure
-
-Amir Goldstein (6):
-  syscalls/readahead02: Convert to newlib and cleanup
-  syscalls/readahead02: abort test if readahead syscall fails
-  syscalls/readahead02: fail test if readahead did not use any cache
-  syscalls/readahead02: Convert to tst_timer helpers
-  syscalls/readahead02: test readahead() on an overlayfs file
-  syscalls/readahead02: test readahead using posix_fadvise()
-
- .../kernel/syscalls/readahead/readahead02.c   | 355 ++++++++----------
- 1 file changed, 164 insertions(+), 191 deletions(-)
-
--- 
-2.17.1
+Miklos
