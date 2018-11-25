@@ -1,86 +1,58 @@
 Return-Path: <amir73il@gmail.com>
-Return-Path: <amir73il@gmail.com>
-From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH] ovl: fix missing override creds in link of a metacopy upper
-Date: Wed, 14 Nov 2018 16:01:34 +0200
-Message-Id: <20181114140134.6996-1-amir73il@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: Vivek Goyal <vgoyal@redhat.com>, "Theodore Y . Ts'o" <tytso@mit.edu>, =?UTF-8?q?Maciej=20Zi=C4=99ba?= <maciekz82@gmail.com>, linux-unionfs@vger.kernel.org
+References: <ca0a6866-4f68-8066-2530-684c2ea36630@gmx.com>
+In-Reply-To: <ca0a6866-4f68-8066-2530-684c2ea36630@gmx.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Date: Sun, 25 Nov 2018 18:11:35 +0200
+Message-ID: <CAOQ4uxhinux4ZEVSxYnCS5rpiY9NQNGJtC7VQyvK4PX1vAu12A@mail.gmail.com>
+Subject: Re: fadvise in overlayfs
+Content-Type: text/plain; charset="UTF-8"
+To: Chengguang Xu <cgxu519@gmx.com>
+Cc: overlayfs <linux-unionfs@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-Theodore Ts'o reported a v4.19 regression with docker-dropbox:
-https://marc.info/?l=linux-fsdevel&m=154070089431116&w=2
+On Sun, Nov 25, 2018 at 4:03 PM cgxu519 <cgxu519@gmx.com> wrote:
+>
+> Hello,
+>
+>
+> I noticed overlayfs will possibly do fadvise operation on upper or lower
+> files.
+>
+> So I'm little curious when doing fadvise with flag 'POSIX_FADV_DONTNEED'
+>
+> to evict page cache on lower file which is shared with other overlayfs
+> instances,
+>
+> isn't there any unexpected side effect?
 
-"I was rebuilding my dropbox Docker container, and it failed in 4.19
- with the following error:
- ...
- dpkg: error: error creating new backup file \
-              '/var/lib/dpkg/status-old': Invalid cross-device link"
+Maybe, but user can also evict pages belonging to shared libraries?
+And user can also use madvise(2) to evict lower file pages event if
+we do drop fadvise() on lower file.
 
-The problem did not reproduce with metacopy feature disabled.
-The error was caused by insufficient credentials to set
-"trusted.overlay.redirect" xattr on link of a metacopy file.
+Other advice like POSIX_FADV_RANDOM, can also be counter
+productive if different applications access the same file with different
+access patterns.
 
-Reproducer:
+>
+> I have not done very detail test for exact result for it but when
+>
+> I run vmtouch(to evict page cache) and append write(to copy-up) in
+> different instances,
+>
+> sometimes, copy-up seems failed with EIO.
 
- echo Y > /sys/module/overlay/parameters/redirect_dir
- echo Y > /sys/module/overlay/parameters/metacopy
- cd /tmp
- mkdir l u w m
- chmod 777 l u
- touch l/foo
- ln l/foo l/link
- chmod 666 l/foo
- mount -t overlay none -olowerdir=l,upperdir=u,workdir=w m
- su fsgqa
- ln m/foo m/bar
- [   21.455823] overlayfs: failed to set redirect (-1)
- ln: failed to create hard link 'm/bar' => 'm/foo':\
-     Invalid cross-device link
+?? it will be interesting if you have a reproducer...
 
-Reported-by: Theodore Y. Ts'o <tytso@mit.edu>
-Reported-by: Maciej Zięba <maciekz82@gmail.com>
-Fixes: 4120fe64dce4 ("ovl: Set redirect on upper inode when it is linked")
-Cc: <stable@vger.kernel.org> # v4.19
-Signed-off-by: Amir Goldstein <amir73il@gmail.com>
----
- fs/overlayfs/dir.c | 14 +++++++++++++-
- 1 file changed, 13 insertions(+), 1 deletion(-)
+>
+> If above is correct, I would like to propose to do fadvise only for
+> upper layer.
+>
+> What do you think for this?
+>
 
-diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
-index c6289147c787..82c129bfe58d 100644
---- a/fs/overlayfs/dir.c
-+++ b/fs/overlayfs/dir.c
-@@ -651,6 +651,18 @@ static int ovl_symlink(struct inode *dir, struct dentry *dentry,
- 	return ovl_create_object(dentry, S_IFLNK, 0, link);
- }
- 
-+static int ovl_set_link_redirect(struct dentry *dentry)
-+{
-+	const struct cred *old_cred;
-+	int err;
-+
-+	old_cred = ovl_override_creds(dentry->d_sb);
-+	err = ovl_set_redirect(dentry, false);
-+	revert_creds(old_cred);
-+
-+	return err;
-+}
-+
- static int ovl_link(struct dentry *old, struct inode *newdir,
- 		    struct dentry *new)
- {
-@@ -670,7 +682,7 @@ static int ovl_link(struct dentry *old, struct inode *newdir,
- 		goto out_drop_write;
- 
- 	if (ovl_is_metacopy_dentry(old)) {
--		err = ovl_set_redirect(old, false);
-+		err = ovl_set_link_redirect(old);
- 		if (err)
- 			goto out_drop_write;
- 	}
--- 
-2.17.1
+Doesn't sound wrong, but not sure a real world use case
+really justifies this??
+
+Thanks,
+Amir.
