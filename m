@@ -1,14 +1,18 @@
 From: Miklos Szeredi <miklos@szeredi.hu>
-Subject: overlayfs access checks on underlying layers
-Date: Tue, 27 Nov 2018 20:55:00 +0100
-Message-ID: <CAJfpegs9JjkXguemL4qSiBvRP6Dnut-D+nJo-oLFXkfCL1Egvw@mail.gmail.com>
+Subject: Re: overlayfs access checks on underlying layers
+Date: Tue, 27 Nov 2018 20:58:06 +0100
+Message-ID: <CAJfpegvfqx+0D32n1h2X7oj5d1mZWiLTcSSGpBnD+ba7AKzPyA@mail.gmail.com>
+References: <CAJfpegs9JjkXguemL4qSiBvRP6Dnut-D+nJo-oLFXkfCL1Egvw@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAJfpegs9JjkXguemL4qSiBvRP6Dnut-D+nJo-oLFXkfCL1Egvw@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Stephen Smalley <sds@tycho.nsa.gov>, Vivek Goyal <vgoyal@redhat.com>, Ondrej Mosnacek <omosnace@redhat.com>, Paul Moore <pmoore@redhat.com>, "J. Bruce Fields" <bfields@fieldses.org>, Mark Salyzyn <salyzyn@android.com>
+To: Stephen Smalley <sds@tycho.nsa.gov>, Vivek Goyal <vgoyal@redhat.com>, Ondrej Mosnacek <omosnace@redhat.com>, "J. Bruce Fields" <bfields@fieldses.org>, Mark Salyzyn <salyzyn@android.com>, Paul Moore <paul@paul-moore.com>
 Cc: linux-kernel@vger.kernel.org, overlayfs <linux-unionfs@vger.kernel.org>, linux-fsdevel@vger.kernel.org, selinux@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
+
+[resending with fixed email address for Paul Moore]
 
 Moving discussion from github[1] to here.
 
