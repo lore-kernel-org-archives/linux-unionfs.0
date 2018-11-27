@@ -1,51 +1,178 @@
-From: Eiichi Tsukata <devel@etsukata.com>
-Subject: Re: [PATCH v1 0/4] fs: fix race between llseek
-	SEEK_END and write
-Date: Mon, 26 Nov 2018 11:54:06 +0900
-Message-ID: <CANhTXPSsh8mdedkm6wVAAQXk3wY7J2aSdgojZGxFR+ctArBsJw@mail.gmail.com>
-References: <20181121024400.4346-1-devel@etsukata.com>
-	<20181121045440.GM32577@ZenIV.linux.org.uk>
-	<CANhTXPQzKmsyPO9QrGz6eijjuMFzLN4BhUV=6ABDJysX0xyKfw@mail.gmail.com>
-	<20181122070650.GN32577@ZenIV.linux.org.uk>
+From: syzbot <syzbot+695726bc473f9c36a4b6@syzkaller.appspotmail.com>
+Subject: Re: possible deadlock in ovl_write_iter
+Date: Mon, 26 Nov 2018 23:06:02 -0800
+Message-ID: <0000000000001ec857057ba01589@google.com>
+References: <00000000000074e10d0576cc48f1@google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
-Return-path: <cluster-devel-bounces@redhat.com>
-In-Reply-To: <20181122070650.GN32577@ZenIV.linux.org.uk>
-List-Unsubscribe: <https://www.redhat.com/mailman/options/cluster-devel>,
-	<mailto:cluster-devel-request@redhat.com?subject=unsubscribe>
-List-Archive: <https://www.redhat.com/archives/cluster-devel>
-List-Post: <mailto:cluster-devel@redhat.com>
-List-Help: <mailto:cluster-devel-request@redhat.com?subject=help>
-List-Subscribe: <https://www.redhat.com/mailman/listinfo/cluster-devel>,
-	<mailto:cluster-devel-request@redhat.com?subject=subscribe>
-Sender: cluster-devel-bounces@redhat.com
-Errors-To: cluster-devel-bounces@redhat.com
-To: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Theodore Ts'o <tytso@mit.edu>, Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, Chao Yu <yuchao0@huawei.com>, Josef Bacik <josef@toxicpanda.com>, linux-f2fs-devel@lists.sourceforge.net, cluster-devel@redhat.com, Chris Mason <clm@fb.com>, andi@firstfloor.org, Andreas Dilger <adilger.kernel@dilger.ca>, David Sterba <dsterba@suse.com>, Jaegeuk Kim <jaegeuk@kernel.org>, linux-ext4@vger.kernel.org, linux-btrfs@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"; format=flowed; delsp=yes
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <00000000000074e10d0576cc48f1@google.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: amir73il@gmail.com, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, linux-unionfs@vger.kernel.org, miklos@szeredi.hu, syzkaller-bugs@googlegroups.com
 List-Id: linux-unionfs@vger.kernel.org
 
-2018年11月22日(木) 16:06 Al Viro <viro@zeniv.linux.org.uk>:
->
-> Can you show me where does POSIX/SuS/whatever it's called these days promise
-> that kind of atomicity?
+syzbot has found a reproducer for the following crash on:
 
-No. I couldn't found it.
-That's why I previously posted RFC Patch:
-https://marc.info/?t=154237277900001&r=1&w=2
-I wasn't sure this is a bug in the kernel or not.
+HEAD commit:    6f8b52ba442c Merge tag 'hwmon-for-v4.20-rc5' of git://git...
+git tree:       upstream
+console output: https://syzkaller.appspot.com/x/log.txt?x=120f3905400000
+kernel config:  https://syzkaller.appspot.com/x/.config?x=c94f9f0c0363db4b
+dashboard link: https://syzkaller.appspot.com/bug?extid=695726bc473f9c36a4b6
+compiler:       gcc (GCC) 8.0.1 20180413 (experimental)
+syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=10cad225400000
+C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=13813093400000
 
-> that kind of atomicity?  TBH, I would be very surprised if any Unix promised
-> to have file size updated no more than once per write(2).  Any userland code
-> that relies on such property is, as minimum, non-portable and I would argue
-> that it is outright broken.
+IMPORTANT: if you fix the bug, please add the following tag to the commit:
+Reported-by: syzbot+695726bc473f9c36a4b6@syzkaller.appspotmail.com
 
-Thanks. Now It's clear. It is not a bug in the kernel, but in
-userspace if `tail` assumes such
-atomicity.
+overlayfs: filesystem on './file0' not supported as upperdir
 
-> Note, BTW, that your example depends upon rather non-obvious details of echo
-> implementation, starting with the bufferization logics used by particular
-> shell.  And AFAICS ash(1) ends up with possibility of more than one write(2)
+======================================================
+WARNING: possible circular locking dependency detected
+4.20.0-rc4+ #351 Not tainted
+------------------------------------------------------
+syz-executor338/5996 is trying to acquire lock:
+00000000b59bb66d (&ovl_i_mutex_key[depth]){+.+.}, at: inode_lock  
+include/linux/fs.h:757 [inline]
+00000000b59bb66d (&ovl_i_mutex_key[depth]){+.+.}, at:  
+ovl_write_iter+0x151/0xd10 fs/overlayfs/file.c:231
 
-I've never imagined such a difference in echo implementation, thanks.
+but task is already holding lock:
+00000000e0274330 (&pipe->mutex/1){+.+.}, at: pipe_lock_nested fs/pipe.c:62  
+[inline]
+00000000e0274330 (&pipe->mutex/1){+.+.}, at: pipe_lock+0x6e/0x80  
+fs/pipe.c:70
+
+which lock already depends on the new lock.
+
+
+the existing dependency chain (in reverse order) is:
+
+-> #2 (&pipe->mutex/1){+.+.}:
+        __mutex_lock_common kernel/locking/mutex.c:925 [inline]
+        __mutex_lock+0x166/0x16f0 kernel/locking/mutex.c:1072
+        mutex_lock_nested+0x16/0x20 kernel/locking/mutex.c:1087
+        pipe_lock_nested fs/pipe.c:62 [inline]
+        pipe_lock+0x6e/0x80 fs/pipe.c:70
+        iter_file_splice_write+0x27d/0x1050 fs/splice.c:700
+        do_splice_from fs/splice.c:851 [inline]
+        do_splice+0x64a/0x1430 fs/splice.c:1147
+        __do_sys_splice fs/splice.c:1414 [inline]
+        __se_sys_splice fs/splice.c:1394 [inline]
+        __x64_sys_splice+0x2c1/0x330 fs/splice.c:1394
+        do_syscall_64+0x1b9/0x820 arch/x86/entry/common.c:290
+        entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+-> #1 (sb_writers#3){.+.+}:
+        percpu_down_read_preempt_disable include/linux/percpu-rwsem.h:36  
+[inline]
+        percpu_down_read include/linux/percpu-rwsem.h:59 [inline]
+        __sb_start_write+0x214/0x370 fs/super.c:1387
+        sb_start_write include/linux/fs.h:1597 [inline]
+        mnt_want_write+0x3f/0xc0 fs/namespace.c:360
+        ovl_want_write+0x76/0xa0 fs/overlayfs/util.c:24
+        ovl_setattr+0x10b/0xaf0 fs/overlayfs/inode.c:30
+        notify_change+0xbde/0x1110 fs/attr.c:334
+        do_truncate+0x1bd/0x2d0 fs/open.c:63
+        handle_truncate fs/namei.c:3008 [inline]
+        do_last fs/namei.c:3424 [inline]
+        path_openat+0x375f/0x5150 fs/namei.c:3534
+        do_filp_open+0x255/0x380 fs/namei.c:3564
+        do_sys_open+0x568/0x700 fs/open.c:1063
+        __do_sys_openat fs/open.c:1090 [inline]
+        __se_sys_openat fs/open.c:1084 [inline]
+        __x64_sys_openat+0x9d/0x100 fs/open.c:1084
+        do_syscall_64+0x1b9/0x820 arch/x86/entry/common.c:290
+        entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+-> #0 (&ovl_i_mutex_key[depth]){+.+.}:
+        lock_acquire+0x1ed/0x520 kernel/locking/lockdep.c:3844
+        down_write+0x8a/0x130 kernel/locking/rwsem.c:70
+        inode_lock include/linux/fs.h:757 [inline]
+        ovl_write_iter+0x151/0xd10 fs/overlayfs/file.c:231
+        call_write_iter include/linux/fs.h:1857 [inline]
+        new_sync_write fs/read_write.c:474 [inline]
+        __vfs_write+0x6b8/0x9f0 fs/read_write.c:487
+        __kernel_write+0x10c/0x370 fs/read_write.c:506
+        write_pipe_buf+0x180/0x240 fs/splice.c:797
+        splice_from_pipe_feed fs/splice.c:503 [inline]
+        __splice_from_pipe+0x38b/0x7c0 fs/splice.c:627
+        splice_from_pipe+0x1ec/0x340 fs/splice.c:662
+        default_file_splice_write+0x3c/0x90 fs/splice.c:809
+        do_splice_from fs/splice.c:851 [inline]
+        do_splice+0x64a/0x1430 fs/splice.c:1147
+        __do_sys_splice fs/splice.c:1414 [inline]
+        __se_sys_splice fs/splice.c:1394 [inline]
+        __x64_sys_splice+0x2c1/0x330 fs/splice.c:1394
+        do_syscall_64+0x1b9/0x820 arch/x86/entry/common.c:290
+        entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+other info that might help us debug this:
+
+Chain exists of:
+   &ovl_i_mutex_key[depth] --> sb_writers#3 --> &pipe->mutex/1
+
+  Possible unsafe locking scenario:
+
+        CPU0                    CPU1
+        ----                    ----
+   lock(&pipe->mutex/1);
+                                lock(sb_writers#3);
+                                lock(&pipe->mutex/1);
+   lock(&ovl_i_mutex_key[depth]);
+
+  *** DEADLOCK ***
+
+2 locks held by syz-executor338/5996:
+  #0: 00000000024e7b73 (sb_writers#8){.+.+}, at: file_start_write  
+include/linux/fs.h:2810 [inline]
+  #0: 00000000024e7b73 (sb_writers#8){.+.+}, at: do_splice+0xd2e/0x1430  
+fs/splice.c:1146
+  #1: 00000000e0274330 (&pipe->mutex/1){+.+.}, at: pipe_lock_nested  
+fs/pipe.c:62 [inline]
+  #1: 00000000e0274330 (&pipe->mutex/1){+.+.}, at: pipe_lock+0x6e/0x80  
+fs/pipe.c:70
+
+stack backtrace:
+CPU: 0 PID: 5996 Comm: syz-executor338 Not tainted 4.20.0-rc4+ #351
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS  
+Google 01/01/2011
+Call Trace:
+  __dump_stack lib/dump_stack.c:77 [inline]
+  dump_stack+0x244/0x39d lib/dump_stack.c:113
+  print_circular_bug.isra.35.cold.54+0x1bd/0x27d  
+kernel/locking/lockdep.c:1221
+  check_prev_add kernel/locking/lockdep.c:1863 [inline]
+  check_prevs_add kernel/locking/lockdep.c:1976 [inline]
+  validate_chain kernel/locking/lockdep.c:2347 [inline]
+  __lock_acquire+0x3399/0x4c20 kernel/locking/lockdep.c:3341
+  lock_acquire+0x1ed/0x520 kernel/locking/lockdep.c:3844
+  down_write+0x8a/0x130 kernel/locking/rwsem.c:70
+  inode_lock include/linux/fs.h:757 [inline]
+  ovl_write_iter+0x151/0xd10 fs/overlayfs/file.c:231
+  call_write_iter include/linux/fs.h:1857 [inline]
+  new_sync_write fs/read_write.c:474 [inline]
+  __vfs_write+0x6b8/0x9f0 fs/read_write.c:487
+  __kernel_write+0x10c/0x370 fs/read_write.c:506
+  write_pipe_buf+0x180/0x240 fs/splice.c:797
+  splice_from_pipe_feed fs/splice.c:503 [inline]
+  __splice_from_pipe+0x38b/0x7c0 fs/splice.c:627
+  splice_from_pipe+0x1ec/0x340 fs/splice.c:662
+  default_file_splice_write+0x3c/0x90 fs/splice.c:809
+  do_splice_from fs/splice.c:851 [inline]
+  do_splice+0x64a/0x1430 fs/splice.c:1147
+  __do_sys_splice fs/splice.c:1414 [inline]
+  __se_sys_splice fs/splice.c:1394 [inline]
+  __x64_sys_splice+0x2c1/0x330 fs/splice.c:1394
+  do_syscall_64+0x1b9/0x820 arch/x86/entry/common.c:290
+  entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x445ad9
+Code: e8 5c b7 02 00 48 83 c4 18 c3 0f 1f 80 00 00 00 00 48 89 f8 48 89 f7  
+48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff  
+ff 0f 83 2b 12 fc ff c3 66 2e 0f 1f 84 00 00 00 00
+RSP: 002b:00007f18e3f71cd8 EFLAGS: 00000216 ORIG_RAX: 0000000000000113
+RAX: ffffffffffffffda RBX: 00000000006dac78 RCX: 0000000000445ad9
+RDX: 000000000000000a RSI: 0000000000000000 RDI: 0000000000000007
+RBP: 00000000006dac70 R08: 000100000000000a R09: 0000000000000007
+R10: 0000000000000000 R11: 0000000000000216 R12: 00000000006dac7c
+R13: 00007ffde0706e9f R14: 00007f18e3f729c0 R15: 00000000006dad4c
