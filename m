@@ -1,34 +1,39 @@
-From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: possible deadlock in ovl_write_iter
-Date: Tue, 27 Nov 2018 18:13:03 +0200
-Message-ID: <CAOQ4uxhjFjeQ6m6c84Hv9V73brMKEOFNsg3Q1Kjb3resSdDjyA@mail.gmail.com>
-References: <00000000000074e10d0576cc48f1@google.com> <0000000000001ec857057ba01589@google.com>
- <CAOQ4uxgiERNAyX4PDHf1DQLBg56rBANWLe575TGkz_WpbxaoCg@mail.gmail.com> <CACT4Y+bkAcCcy3p-iKe4jAzA=ZOk-WmbZrD0yOG96sjA7o-cXA@mail.gmail.com>
+From: Miklos Szeredi <miklos@szeredi.hu>
+Subject: overlayfs access checks on underlying layers
+Date: Tue, 27 Nov 2018 20:55:00 +0100
+Message-ID: <CAJfpegs9JjkXguemL4qSiBvRP6Dnut-D+nJo-oLFXkfCL1Egvw@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CACT4Y+bkAcCcy3p-iKe4jAzA=ZOk-WmbZrD0yOG96sjA7o-cXA@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Dmitry Vyukov <dvyukov@google.com>
-Cc: syzbot+695726bc473f9c36a4b6@syzkaller.appspotmail.com, Miklos Szeredi <miklos@szeredi.hu>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>, overlayfs <linux-unionfs@vger.kernel.org>, syzkaller-bugs@googlegroups.com
+To: Stephen Smalley <sds@tycho.nsa.gov>, Vivek Goyal <vgoyal@redhat.com>, Ondrej Mosnacek <omosnace@redhat.com>, Paul Moore <pmoore@redhat.com>, "J. Bruce Fields" <bfields@fieldses.org>, Mark Salyzyn <salyzyn@android.com>
+Cc: linux-kernel@vger.kernel.org, overlayfs <linux-unionfs@vger.kernel.org>, linux-fsdevel@vger.kernel.org, selinux@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 
-> > This looks like a false positive because lockdep is not aware of
-> > s_stack_depth of the file (fs) associated with the pipe.
->
-> There must be some annotation to tell lockdep about this.
->
+Moving discussion from github[1] to here.
 
-It's a long story that can be summed up as "not simple":
-https://lkml.org/lkml/2017/9/21/63
+To summarize: commit 007ea44892e6 ("ovl: relax permission checking on
+underlying layers") was added in 4.20-rc1 to make overlayfs access
+checks on underlying "real" filesystems more consistent.  The
+discussion leading up to this commit can be found at [2].  The commit
+broke some selinux-testsuite cases, possibly indicating a security
+hole opened by this commit.
 
-Overlayfs annotates inode mutex in lockdep friendly manner.
-This is why you see:
- (&ovl_i_mutex_key[depth]){+.+.}, at: inode_lock
+The model this patch tries to follow is that if "cp --preserve=all"
+was allowed to the mounter from underlying layer to the overlay layer,
+then operation is allowed.  That means even if mounter's creds doesn't
+provide permission to for example execute underying file X, if
+mounter's creds provide sufficient permission to perform "cp
+--preserve=all X Y"  and original creds allow execute on Y, then the
+operation is allowed.  This provides consistency in the face of
+copy-ups.  Consistency is only provided in sane setups, where mounter
+has sufficient privileges to access both the lower and upper layers.
 
-But this does not extend to other locks that may be associated
-with filesystem or blockdev objects (e.g. pipe_lock()) and does
-not cover the case of stacked blockdev (e.g. loop).
+The model may not have been perfectly followed, or possibly the model
+itself is flawed.  I'd like to better understand the issues here.
 
 Thanks,
-Amir.
+Miklos
+
+[1]  https://github.com/SELinuxProject/selinux-kernel/issues/43#issuecomment-442148920
+[2] https://marc.info/?t=152762608800002&r=1
