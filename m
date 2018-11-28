@@ -1,65 +1,75 @@
 Return-Path: <amir73il@gmail.com>
 Return-Path: <amir73il@gmail.com>
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH] ovl: fix decode of dir file handle with multi lower layers
-Date: Mon,  5 Nov 2018 07:50:10 +0200
-Message-Id: <20181105055010.19511-1-amir73il@gmail.com>
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: linux-unionfs@vger.kernel.org
+Subject: [PATCH v4 2/6] syscalls/readahead02: abort test if readahead syscall fails
+Date: Wed, 28 Nov 2018 18:46:41 +0200
+Message-Id: <20181128164645.783-3-amir73il@gmail.com>
+In-Reply-To: <20181128164645.783-1-amir73il@gmail.com>
+References: <20181128164645.783-1-amir73il@gmail.com>
+To: Cyril Hrubis <chrubis@suse.cz>
+Cc: ltp@lists.linux.it, Jan Stancek <jstancek@redhat.com>, Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org
 List-ID: <linux-unionfs@vger.kernel.org>
 
-When decoding a lower file handle, we first call ovl_check_origin_fh()
-with connected=false to get any real lower dentry for overlay inode
-cache lookup.
+There is no reason to continue the test if readahead syscall fails
+and we can also check and report TCONF if filesystem does not support
+readahead.
 
-If the real dentry is a disconnected dir dentry, ovl_check_origin_fh()
-is called again with connected=true to get a connected real dentry
-and find the lower layer the real dentry belongs to.
-
-If the first call returned a connected real dentry, we use it to
-lookup an overlay connected dentry, but the first ovl_check_origin_fh()
-call with connected=false did not check that the found dentry is under
-the root of the layer (see ovl_acceptable()), it only checked that
-the found dentry super block matches the uuid of the lower file handle.
-
-In case there are multiple lower layers on the same fs and the found
-dentry is not from the top most lower layer, using the layer index
-returned from the first ovl_check_origin_fh() is wrong and we end
-up failing to decode the file handle.
-
-Fix this by always calling ovl_check_origin_fh() with connected=true
-if we got a directory dentry in the first call.
-
-Fixes: 8b58924ad55c ("ovl: lookup in inode cache first when decoding...")
-Cc: <stable@vger.kernel.org> # v4.17
 Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- fs/overlayfs/export.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ .../kernel/syscalls/readahead/readahead02.c   | 27 +++++++++----------
+ 1 file changed, 12 insertions(+), 15 deletions(-)
 
-diff --git a/fs/overlayfs/export.c b/fs/overlayfs/export.c
-index 8fa37cd7818a..54e5d17d7f3e 100644
---- a/fs/overlayfs/export.c
-+++ b/fs/overlayfs/export.c
-@@ -754,9 +754,8 @@ static struct dentry *ovl_lower_fh_to_d(struct super_block *sb,
- 		goto out;
- 	}
+diff --git a/testcases/kernel/syscalls/readahead/readahead02.c b/testcases/kernel/syscalls/readahead/readahead02.c
+index 956a1d5e5..88eb5fbff 100644
+--- a/testcases/kernel/syscalls/readahead/readahead02.c
++++ b/testcases/kernel/syscalls/readahead/readahead02.c
+@@ -44,19 +44,6 @@ static struct tst_option options[] = {
+ 	{NULL, NULL, NULL}
+ };
  
--	/* Otherwise, get a connected non-upper dir or disconnected non-dir */
--	if (d_is_dir(origin.dentry) &&
--	    (origin.dentry->d_flags & DCACHE_DISCONNECTED)) {
-+	/* Find origin.dentry again with ovl_acceptable() layer check */
-+	if (d_is_dir(origin.dentry)) {
- 		dput(origin.dentry);
- 		origin.dentry = NULL;
- 		err = ovl_check_origin_fh(ofs, fh, true, NULL, &stack);
-@@ -769,6 +768,7 @@ static struct dentry *ovl_lower_fh_to_d(struct super_block *sb,
- 			goto out_err;
- 	}
+-static int check_ret(long expected_ret)
+-{
+-	if (expected_ret == TST_RET) {
+-		tst_res(TPASS, "expected ret success - "
+-			"returned value = %ld", TST_RET);
+-		return 0;
+-	}
+-	tst_res(TFAIL | TTERRNO, "unexpected failure - "
+-		"returned value = %ld, expected: %ld",
+-		TST_RET, expected_ret);
+-	return 1;
+-}
+-
+ static int has_file(const char *fname, int required)
+ {
+ 	struct stat buf;
+@@ -162,8 +149,8 @@ static void read_testfile(int do_readahead, const char *fname, size_t fsize,
+ 		do {
+ 			TEST(readahead(fd, offset, fsize - offset));
+ 			if (TST_RET != 0) {
+-				check_ret(0);
+-				break;
++				SAFE_CLOSE(fd);
++				return;
+ 			}
  
-+	/* Get a connected non-upper dir or disconnected non-dir */
- 	dentry = ovl_get_dentry(sb, NULL, &origin, index);
- 
- out:
+ 			/* estimate max readahead size based on first call */
+@@ -251,6 +238,16 @@ static void test_readahead(void)
+ 	tst_res(TINFO, "read_testfile(1)");
+ 	read_testfile(1, testfile, testfile_size, &read_bytes_ra,
+ 		      &usec_ra, &cached_ra);
++	if (TST_RET != 0) {
++		if (TST_ERR == EINVAL) {
++			tst_res(TCONF, "readahead not supported on %s",
++				tst_device->fs_type);
++		} else {
++			tst_res(TFAIL | TTERRNO, "readahead failed on %s",
++				tst_device->fs_type);
++		}
++		return;
++	}
+ 	if (cached_ra > cached_low)
+ 		cached_ra = cached_ra - cached_low;
+ 	else
 -- 
 2.17.1
