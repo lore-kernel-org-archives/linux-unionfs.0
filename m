@@ -1,123 +1,118 @@
-Return-Path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wr1-f68.google.com ([209.85.221.68]:44322 "EHLO
-        mail-wr1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727033AbeKLTku (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 12 Nov 2018 14:40:50 -0500
-Received: by mail-wr1-f68.google.com with SMTP id j17-v6so8509321wrq.11
-        for <linux-unionfs@vger.kernel.org>; Mon, 12 Nov 2018 01:48:23 -0800 (PST)
-From: Miklos Szeredi <mszeredi@redhat.com>
-Subject: [PATCH v2] overlay: create directory over deleted whiteout
-Date: Mon, 12 Nov 2018 10:48:18 +0100
-Message-Id: <20181112094818.3742-1-mszeredi@redhat.com>
-Sender: linux-unionfs-owner@vger.kernel.org
-To: Eryu Guan <guaneryu@gmail.com>
-Cc: Amir Goldstein <amir73il@gmail.com>, fstests@vger.kernel.org, linux-unionfs@vger.kernel.org
+Return-Path: <amir73il@gmail.com>
+Return-Path: <amir73il@gmail.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Subject: [PATCH v4 6/6] syscalls/readahead02: test readahead using posix_fadvise()
+Date: Wed, 28 Nov 2018 18:46:45 +0200
+Message-Id: <20181128164645.783-7-amir73il@gmail.com>
+In-Reply-To: <20181128164645.783-1-amir73il@gmail.com>
+References: <20181128164645.783-1-amir73il@gmail.com>
+To: Cyril Hrubis <chrubis@suse.cz>
+Cc: ltp@lists.linux.it, Jan Stancek <jstancek@redhat.com>, Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org
 List-ID: <linux-unionfs@vger.kernel.org>
 
-There's a bug in the overlayfs implementation starting from the very first
-merged version that may cause an Oops of various forms if a directory is
-created over a whiteout dentry, but the actual whiteout on the upper layer
-was removed to the directory creation.
+The call to posix_fadvise(POSIX_FADV_WILLNEED) should have the same
+effect as the call to readahead() syscall.
 
-Reported by: kaixuxia <xiakaixu1987@gmail.com>
-Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
+Repeat the test cases for local file and overlayfs file with
+posix_fadvise().
+
+The new test case is a regression test for kernel commit b833a3660394
+("ovl: add ovl_fadvise()") which fixes a regression of fadvise() on
+an overlay file that was introduced by kernel commit 5b910bd615ba
+("ovl: fix GPF in swapfile_activate of file from overlayfs over xfs").
+
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- tests/overlay/063     | 66 +++++++++++++++++++++++++++++++++++++++++++++++++++
- tests/overlay/063.out |  2 ++
- tests/overlay/group   |  1 +
- 3 files changed, 69 insertions(+)
- create mode 100644 tests/overlay/063
- create mode 100644 tests/overlay/063.out
+ .../kernel/syscalls/readahead/readahead02.c   | 41 +++++++++++++++----
+ 1 file changed, 34 insertions(+), 7 deletions(-)
 
-diff --git a/tests/overlay/063 b/tests/overlay/063
-new file mode 100644
-index 000000000000..0b62c2ca9a9d
---- /dev/null
-+++ b/tests/overlay/063
-@@ -0,0 +1,66 @@
-+#! /bin/bash
-+# SPDX-License-Identifier: GPL-2.0
-+# Copyright (c) 2018 Red Hat Inc.  All Rights Reserved.
-+#
-+# FS QA Test 063
-+#
-+# Create dir over cached negative dentry, but whiteout removed from upper
-+#
-+# The following kernel commit fixed the kernel crash: 5e1275808630 ("ovl: check
-+# whiteout in ovl_create_over_whiteout()")
-+#
-+seq=`basename $0`
-+seqres=$RESULT_DIR/$seq
-+echo "QA output created by $seq"
-+
-+here=`pwd`
-+tmp=/tmp/$$
-+status=1	# failure is the default!
-+trap "_cleanup; exit \$status" 0 1 2 3 15
-+
-+_cleanup()
+diff --git a/testcases/kernel/syscalls/readahead/readahead02.c b/testcases/kernel/syscalls/readahead/readahead02.c
+index 73c8a6ce6..44475487e 100644
+--- a/testcases/kernel/syscalls/readahead/readahead02.c
++++ b/testcases/kernel/syscalls/readahead/readahead02.c
+@@ -54,12 +54,30 @@ static struct tst_option options[] = {
+ static struct tcase {
+ 	const char *tname;
+ 	int use_overlay;
++	int use_fadvise;
+ } tcases[] = {
+-	{ "readahead on file", 0 },
+-	{ "readahead on overlayfs file", 1 },
++	{ "readahead on file", 0, 0 },
++	{ "readahead on overlayfs file", 1, 0 },
++	{ "POSIX_FADV_WILLNEED on file", 0, 1 },
++	{ "POSIX_FADV_WILLNEED on overlayfs file", 1, 1 },
+ };
+ 
++static int fadvise_willneed(int fd, off_t offset, size_t len)
 +{
-+	cd /
-+	rm -f $tmp.*
++	/* Should have the same effect as readahead() syscall */
++	return posix_fadvise(fd, offset, len, POSIX_FADV_WILLNEED);
 +}
 +
-+# get standard environment, filters and checks
-+. ./common/rc
-+. ./common/filter
++static int libc_readahead(int fd, off_t offset, size_t len)
++{
++	return readahead(fd, offset, len);
++}
 +
-+# remove previous $seqres.full before test
-+rm -f $seqres.full
++typedef int (*readahead_func_t)(int, off_t, size_t);
++static readahead_func_t readahead_func = libc_readahead;
 +
-+# real QA test starts here
-+_supported_fs overlay
-+_supported_os Linux
-+_require_scratch
+ static int readahead_supported = 1;
++static int fadvise_supported = 1;
+ 
+ static int has_file(const char *fname, int required)
+ {
+@@ -135,7 +153,6 @@ static void create_testfile(int use_overlay)
+ 	free(tmp);
+ }
+ 
+-
+ /* read_testfile - mmap testfile and read every page.
+  * This functions measures how many I/O and time it takes to fully
+  * read contents of test file.
+@@ -163,7 +180,7 @@ static void read_testfile(int do_readahead, const char *fname, size_t fsize,
+ 	if (do_readahead) {
+ 		cached_start = get_cached_size();
+ 		do {
+-			TEST(readahead(fd, offset, fsize - offset));
++			TEST(readahead_func(fd, offset, fsize - offset));
+ 			if (TST_RET != 0) {
+ 				SAFE_CLOSE(fd);
+ 				return;
+@@ -241,6 +258,9 @@ static void test_readahead(unsigned int n)
+ 
+ 	create_testfile(tc->use_overlay);
+ 
++	/* Use either readahead() syscall or POSIX_FADV_WILLNEED */
++	readahead_func = tc->use_fadvise ? fadvise_willneed : libc_readahead;
 +
-+# Remove all files from previous tests
-+_scratch_mkfs
-+
-+# Create test file
-+lowerdir=${OVL_BASE_SCRATCH_MNT}/${OVL_LOWER}
-+upperdir=${OVL_BASE_SCRATCH_MNT}/${OVL_UPPER}
-+mkdir -p $lowerdir
-+touch ${lowerdir}/file
-+
-+_scratch_mount
-+
-+# Create whiteout and populate dcache with negative dentry
-+
-+rm ${SCRATCH_MNT}/file
-+ls -l ${SCRATCH_MNT}/file > /dev/null 2>&1
-+
-+# Remove whiteout and try to create dir over negative dentry
-+
-+rm ${upperdir}/file
-+mkdir ${SCRATCH_MNT}/file > /dev/null 2>&1
-+
-+# unmount overlayfs
-+$UMOUNT_PROG $SCRATCH_MNT
-+
-+echo "Silence is golden"
-+# success, all done
-+status=0
-+exit
-diff --git a/tests/overlay/063.out b/tests/overlay/063.out
-new file mode 100644
-index 000000000000..de35fc52cfc4
---- /dev/null
-+++ b/tests/overlay/063.out
-@@ -0,0 +1,2 @@
-+QA output created by 063
-+Silence is golden
-diff --git a/tests/overlay/group b/tests/overlay/group
-index 165f002d96ae..1c4acd640a30 100644
---- a/tests/overlay/group
-+++ b/tests/overlay/group
-@@ -65,3 +65,4 @@
- 060 auto quick metacopy
- 061 auto quick copyup
- 062 auto quick exportfs
-+063 auto quick whiteout
+ 	/* find out how much can cache hold if we read whole file */
+ 	read_testfile(0, testfile, testfile_size, &read_bytes, &usec, &cached);
+ 	cached_high = get_cached_size();
+@@ -263,13 +283,20 @@ static void test_readahead(unsigned int n)
+ 	read_testfile(1, testfile, testfile_size, &read_bytes_ra,
+ 		      &usec_ra, &cached_ra);
+ 	if (TST_RET != 0) {
+-		if (TST_ERR == EINVAL &&
+-		    (!tc->use_overlay || !readahead_supported)) {
++		/* posix_fadvise returns error number (not in errno) */
++		if (tc->use_fadvise && (TST_ERR = TST_RET) == EINVAL &&
++		    (!tc->use_overlay || !fadvise_supported)) {
++			fadvise_supported = 0;
++			tst_res(TCONF, "fadvise not supported on %s",
++				tst_device->fs_type);
++		} else if (TST_ERR == EINVAL &&
++			   (!tc->use_overlay || !readahead_supported)) {
+ 			readahead_supported = 0;
+ 			tst_res(TCONF, "readahead not supported on %s",
+ 				tst_device->fs_type);
+ 		} else {
+-			tst_res(TFAIL | TTERRNO, "readahead failed on %s",
++			tst_res(TFAIL | TTERRNO, "%s failed on %s",
++				tc->use_fadvise ? "fadvise" : "readahead",
+ 				tc->use_overlay ? "overlayfs" :
+ 				tst_device->fs_type);
+ 		}
 -- 
-2.14.3
+2.17.1
