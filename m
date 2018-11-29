@@ -1,171 +1,91 @@
-From: Stephen Smalley <sds@tycho.nsa.gov>
+From: Miklos Szeredi <miklos@szeredi.hu>
 Subject: Re: overlayfs access checks on underlying layers
-Date: Wed, 28 Nov 2018 16:46:10 -0500
-Message-ID: <26bce3be-49c2-cdd8-af03-1a78d0f268ae@tycho.nsa.gov>
+Date: Thu, 29 Nov 2018 12:04:20 +0100
+Message-ID: <CAJfpeguL9xOh9Eq8LOP=ddJ4YD6nbp2UY6e2AYDVoHeCLuVhZA@mail.gmail.com>
 References: <CAJfpegs9JjkXguemL4qSiBvRP6Dnut-D+nJo-oLFXkfCL1Egvw@mail.gmail.com>
  <CAJfpegvfqx+0D32n1h2X7oj5d1mZWiLTcSSGpBnD+ba7AKzPyA@mail.gmail.com>
- <20181127210542.GA2599@redhat.com>
- <CAJfpegtQGM2z9TOt3DWwd39fC60cQknsC4vNnj7YimVEubRzUg@mail.gmail.com>
- <20181128170302.GA12405@redhat.com>
- <377b7d4f-eb1d-c281-5c67-8ab6de77c881@tycho.nsa.gov>
- <CAJfpegtNhcWD0VWy6LPtoDtQBfPu4x5iFsB053UMCidj6oMsuw@mail.gmail.com>
+ <20181127210542.GA2599@redhat.com> <CAJfpegtQGM2z9TOt3DWwd39fC60cQknsC4vNnj7YimVEubRzUg@mail.gmail.com>
+ <20181128170302.GA12405@redhat.com> <377b7d4f-eb1d-c281-5c67-8ab6de77c881@tycho.nsa.gov>
+ <CAJfpegtNhcWD0VWy6LPtoDtQBfPu4x5iFsB053UMCidj6oMsuw@mail.gmail.com> <26bce3be-49c2-cdd8-af03-1a78d0f268ae@tycho.nsa.gov>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAJfpegtNhcWD0VWy6LPtoDtQBfPu4x5iFsB053UMCidj6oMsuw@mail.gmail.com>
-Content-Language: en-US
+In-Reply-To: <26bce3be-49c2-cdd8-af03-1a78d0f268ae@tycho.nsa.gov>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Miklos Szeredi <miklos@szeredi.hu>
+To: Stephen Smalley <sds@tycho.nsa.gov>
 Cc: Vivek Goyal <vgoyal@redhat.com>, Ondrej Mosnacek <omosnace@redhat.com>, "J. Bruce Fields" <bfields@fieldses.org>, Mark Salyzyn <salyzyn@android.com>, Paul Moore <paul@paul-moore.com>, linux-kernel@vger.kernel.org, overlayfs <linux-unionfs@vger.kernel.org>, linux-fsdevel@vger.kernel.org, selinux@vger.kernel.org, Daniel J Walsh <dwalsh@redhat.com>
 List-Id: linux-unionfs@vger.kernel.org
 
-On 11/28/18 3:24 PM, Miklos Szeredi wrote:
-> On Wed, Nov 28, 2018 at 8:32 PM Stephen Smalley <sds@tycho.nsa.gov> wrote:
->>
->> On 11/28/18 12:03 PM, Vivek Goyal wrote:
->>> On Wed, Nov 28, 2018 at 11:00:09AM +0100, Miklos Szeredi wrote:
->>>> On Tue, Nov 27, 2018 at 10:05 PM Vivek Goyal <vgoyal@redhat.com> wrote:
->>>>>
->>>>> On Tue, Nov 27, 2018 at 08:58:06PM +0100, Miklos Szeredi wrote:
->>>>>> [resending with fixed email address for Paul Moore]
->>>>>>
->>>>>> Moving discussion from github[1] to here.
->>>>>>
->>>>>> To summarize: commit 007ea44892e6 ("ovl: relax permission checking on
->>>>>> underlying layers") was added in 4.20-rc1 to make overlayfs access
->>>>>> checks on underlying "real" filesystems more consistent.  The
->>>>>> discussion leading up to this commit can be found at [2].  The commit
->>>>>> broke some selinux-testsuite cases, possibly indicating a security
->>>>>> hole opened by this commit.
->>>>>>
->>>>>> The model this patch tries to follow is that if "cp --preserve=all"
->>>>>> was allowed to the mounter from underlying layer to the overlay layer,
->>>>>> then operation is allowed.  That means even if mounter's creds doesn't
->>>>>> provide permission to for example execute underying file X, if
->>>>>> mounter's creds provide sufficient permission to perform "cp
->>>>>> --preserve=all X Y"  and original creds allow execute on Y, then the
->>>>>> operation is allowed.  This provides consistency in the face of
->>>>>> copy-ups.  Consistency is only provided in sane setups, where mounter
->>>>>> has sufficient privileges to access both the lower and upper layers.
->>>>>
->>>>> [cc daniel walsh]
->>>>>
->>>>> I think current selinux testsuite tests are written keeping these
->>>>> rules in mind.
->>>>>
->>>>> 1. Check overlay inode creds in the context of task and underlying
->>>>>      inode creds (lower/upper), in the context of mounter.
->>>>>
->>>>> 2. For a lower inode, if said file is being copied up, then only
->>>>>      check MAY_READ on lower. This is equivalent to mounter creating
->>>>>      a copy of file and providing caller access to it (context mount).
->>>>>
->>>>> For the case of special devices, we do not copy up these. So should
->>>>> we continue to do check on lower inode in the context of mounter
->>>>> (instead of not doing any check on lower at all).
->>>>
->>>> Hmm, I'm trying to understand the logic... If we follow the "cp
->>>> --preserve=all" thing, than mounter needs to have CREATE permission
->>>> for the special file, not READ or WRITE.  Does that make sense?  Would
->>>> that help with the context= mount use case?
->>>
->>> Ok. If we follow "cp --preserve=all" methodology, then checking for
->>> mounter CREATE permission on upper for special files makes sense. Or
->>> change logic to copy up this special file during open. I am assuming
->>> we don't copy up special file during open as it is not necessary
->>> for things to work but copying up will work as well?
->>>
->>> So rules will become.
->>>
->>> - Two levels of checks.
->>> - For lower level inode, check MAY_READ for regular files. (including
->>>     exec).
->>> - For special files, only make sure mounter can CREATE object in upper.
->>>
->>> - What about checks on files on upper/. As of now we seem to check
->>>     access in mounter's context if it is regular file. Skip the checks
->>>     completely for special files and for executables.
->>>
->>> While non-context mount should still be ok, but this means lot of
->>> privilige granting to unprivileged process using context mounts. So
->>> unprivileged process which could not open a device/socket/fifo for
->>> read/write on host fs, can open it for those operations for context
->>> mounts.
->>>
->>> IOW, for context mount case, an unprivileged user will gain lot of
->>> privileges. But that seems to be the point of context mount anyway
->>> on regular disks. If a disk is mounted using context mount option,
->>> then all real labels are ignored and all access checking happens
->>> using context label. We are doing similar thing. With one step extra
->>> and that is making sure if mounter itself can not do certain operation
->>> on host, that will still be denied.
->>>
->>> This probably means that context= mounts should be used very carefully.
->>> It will grant lot of priviliges to the process (and allow operations
->>> which process could not do on host without overlayfs mount).
->>>
->>> Case of device file still baffels me though. We don't do any mounter's
->>> checks on device files. So if a device file is on upper which mounter
->>> can't open for read but mounter is still granting priviliges to client
->>> to open that device file. That's unintutive to me and seems counter
->>> to the principle of that mounter can't give more priviliges than what
->>> it itself can't do on host.
->>>
->>> Dan, stephen, paul moore, does this sound ok to you folks from selinux
->>> point of view.
->>
->> It seems wrong to check CREATE when no file is being created, and doing
->> so could lead to over-privileging of the mounter context, requiring one
->> to allow a mounter context to create device nodes just to allow a client
->> task context to read/write via already existing device nodes through an
->> overlay.
-> 
-> Point taken.
-> 
->>
->> Checking READ but not EXECUTE upon an execute check could permit a
->> mounter to execute unauthorized code, if it can context mount from a
->> readable-but-not-executable context to an executable context.
->>
->> Note btw that cp --preserve=all doesn't quite operate as expected if
->> dealing with a context mount.  You can't preserve the original security
->> context if copying to a context mount unless the two contexts happen to
->> already match.  So I'm not sure how that model applies in the case of a
->> context mount.
->>
->> Does the breaking commit (007ea44892e6) fix a real bug affecting users?
->>    If not, I'd recommend just reverting it.
-> 
-> That is certainly an option, but...  this is all about context=
-> mounts, right?  Which allows mounter to override MAC checks under the
-> new mount?  On any mount, not just overlay, right?  So why is overlay
-> special?
+On Wed, Nov 28, 2018 at 10:43 PM Stephen Smalley <sds@tycho.nsa.gov> wrote:
+>
+> On 11/28/18 3:24 PM, Miklos Szeredi wrote:
+> > On Wed, Nov 28, 2018 at 8:32 PM Stephen Smalley <sds@tycho.nsa.gov> wrote:
 
-With other filesystems, the files are only accessible under the context 
-specified by the mounter (and you can't mount it twice with differing 
-context mount options). With overlay, the file is simultaneously 
-accessible under both the context specified by the mounter via the 
-overlay and under its lower/upper context via the lower/upper dir.
+[...]
 
-Generally we only use context mounts on other filesystems when they have 
-no label information at all (no security.selinux xattrs) or when they 
-are completely untrusted to provide that information; the context 
-specified by the mounter is the only basis for access control.  With 
-overlay, we are frequently dealing with labeled lower and upper 
-directories in a filesystem we trust.
+> >> Does the breaking commit (007ea44892e6) fix a real bug affecting users?
+> >>    If not, I'd recommend just reverting it.
+> >
+> > That is certainly an option, but...  this is all about context=
+> > mounts, right?  Which allows mounter to override MAC checks under the
+> > new mount?  On any mount, not just overlay, right?  So why is overlay
+> > special?
+>
+> With other filesystems, the files are only accessible under the context
+> specified by the mounter (and you can't mount it twice with differing
+> context mount options). With overlay, the file is simultaneously
+> accessible under both the context specified by the mounter via the
+> overlay and under its lower/upper context via the lower/upper dir.
+>
+> Generally we only use context mounts on other filesystems when they have
+> no label information at all (no security.selinux xattrs) or when they
+> are completely untrusted to provide that information; the context
+> specified by the mounter is the only basis for access control.  With
+> overlay, we are frequently dealing with labeled lower and upper
+> directories in a filesystem we trust.
+>
+> It seems like overlay has a goal of preventing the mounter from
+> escalating its access through an overlay mount.
 
-It seems like overlay has a goal of preventing the mounter from 
-escalating its access through an overlay mount.
+Overlayfs main purpose is to bypass limited access to a read-only
+filesystem by copying up on a write access.  So bypassing access is
+built into the system, but it's done in a way that in the end it
+doesn't permit mounter to do more than it could otherwise do.  Or at
+least that's the intent, as you say.
 
-> I'd just like to see proper justification for why we should be doing
-> those checks on underlying layer that simply don't belong there, IMO.
->   I'm sure you know better than I that it's not just about real bugs
-> affecting users, it's about having a clear, well defined model to base
-> the design on.   And by reverting the breaking commit, I don't see us
-> getting closer to that.
+To generalize that, we could say:  trigger a copy-up if access to
+lower layer object is denied.  That would extend the scope of the
+trigger from write access on file/dir to read/write on special files
+and execute on regular files, all of which could theoretically be
+denied on the lower object, yet allowed on the upper object without
+violating the above rule.
 
-It seems like the NFS folks raised a number of concerns with the overlay 
-approach beyond just these two checks, and Android has their 
-override_creds=off use case.  Maybe the overlay model needs a more 
-significant rethinking than just these two cases.
+> > I'd just like to see proper justification for why we should be doing
+> > those checks on underlying layer that simply don't belong there, IMO.
+> >   I'm sure you know better than I that it's not just about real bugs
+> > affecting users, it's about having a clear, well defined model to base
+> > the design on.   And by reverting the breaking commit, I don't see us
+> > getting closer to that.
+>
+> It seems like the NFS folks raised a number of concerns with the overlay
+> approach beyond just these two checks,
+
+The concerns that NFS folks had was that overlayfs does not enforce
+permission checks (with creds of task) on underlying objects,
+resulting in possibly elevated access compared to directly accessing
+the NFS mount.    But I think there's no way to reconcile server
+permission checks with overlayfs, so we are left with the current
+model of only verifying the permission on the server against the
+mounter's creds.
+
+> and Android has their
+> override_creds=off use case.  Maybe the overlay model needs a more
+> significant rethinking than just these two cases.
+
+Yes, it would be good if that override_creds=off use case was
+discussed.  AFAICS it trades less privilege in the mounter for more
+privilege in the task accessing the overlay.  If, or how, that is a
+good model for anything other than Android is not clear to me.
+
+Thanks,
+Miklos
