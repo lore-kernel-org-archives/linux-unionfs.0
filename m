@@ -1,237 +1,93 @@
-Return-Path: <salyzyn@android.com>
-Return-Path: <salyzyn@android.com>
-Subject: Re: [PATCH v8 2/2] overlayfs: override_creds=off option bypass
- creator_cred
-References: <20181106230117.127616-1-salyzyn@android.com>
- <20181106230117.127616-2-salyzyn@android.com>
- <20181108155620.GA3663@redhat.com>
-From: Mark Salyzyn <salyzyn@android.com>
-Message-ID: <a2796740-acd4-d39d-d78c-1957894fe278@android.com>
-Date: Thu, 8 Nov 2018 08:27:00 -0800
+Return-Path: <linux-unionfs-owner@vger.kernel.org>
+Received: from mail-yb1-f194.google.com ([209.85.219.194]:45571 "EHLO
+        mail-yb1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726084AbeLAAkY (ORCPT
+        <rfc822;linux-unionfs@vger.kernel.org>);
+        Fri, 30 Nov 2018 19:40:24 -0500
 MIME-Version: 1.0
-In-Reply-To: <20181108155620.GA3663@redhat.com>
-Content-Type: multipart/alternative;
- boundary="------------DE98F22DA3F44218B82F65DB"
-Content-Language: en-GB
-To: Vivek Goyal <vgoyal@redhat.com>
-Cc: linux-kernel@vger.kernel.org, Miklos Szeredi <miklos@szeredi.hu>, Jonathan Corbet <corbet@lwn.net>, "Eric W . Biederman" <ebiederm@xmission.com>, Amir Goldstein <amir73il@gmail.com>, Randy Dunlap <rdunlap@infradead.org>, Stephen Smalley <sds@tycho.nsa.gov>, linux-unionfs@vger.kernel.org, linux-doc@vger.kernel.org, kernel-team@android.com
+References: <20181130051253.GB7100@sh-el5.eng.rdu2.redhat.com> <20181130121506.GI2299@dhcp-12-149.nay.redhat.com>
+In-Reply-To: <20181130121506.GI2299@dhcp-12-149.nay.redhat.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Date: Fri, 30 Nov 2018 15:30:54 +0200
+Message-ID: <CAOQ4uxg9MdMbkM5+CuXK-VmmqxF8UmNkNqeKTHoxOtTnQ2=LnQ@mail.gmail.com>
+Subject: Re: [4.20-rc4 regression] generic/095 Concurrent mixed I/O hang on
+ xfs based overlayfs
+Content-Type: text/plain; charset="UTF-8"
+Sender: linux-unionfs-owner@vger.kernel.org
+To: "Darrick J. Wong" <darrick.wong@oracle.com>
+Cc: jencce.kernel@gmail.com, linux-xfs <linux-xfs@vger.kernel.org>, overlayfs <linux-unionfs@vger.kernel.org>, Zorro Lang <zlang@redhat.com>, fstests <fstests@vger.kernel.org>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------DE98F22DA3F44218B82F65DB
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-
-On 11/08/2018 07:56 AM, Vivek Goyal wrote:
-> On Tue, Nov 06, 2018 at 03:01:15PM -0800, Mark Salyzyn wrote:
->> By default, all access to the upper, lower and work directories is the
->> recorded mounter's MAC and DAC credentials.  The incoming accesses are
->> checked against the caller's credentials.
->>
->> If the principles of least privilege are applied, the mounter's
->> credentials might not overlap the credentials of the caller's when
->> accessing the overlayfs filesystem.  For example, a file that a lower
->> DAC privileged caller can execute, is MAC denied to the generally
->> higher DAC privileged mounter, to prevent an attack vector.
->>
->> We add the option to turn off override_creds in the mount options; all
->> subsequent operations after mount on the filesystem will be only the
->> caller's credentials.  The module boolean parameter and mount option
->> override_creds is also added as a presence check for this "feature",
->> existence of /sys/module/overlay/parameters/override_creds.
->>
->> It was not always this way.  Circa 4.4 there was no recorded mounter's
->> credentials, instead privileged access to upper or work directories
->> were temporarily increased to perform the operations.  The MAC
->> (selinux) policies were caller's in all cases.  override_creds=off
->> partially returns us to this older access model minus the insecure
->> temporary credential increases.
+On Fri, Nov 30, 2018 at 2:13 PM Zorro Lang <zlang@redhat.com> wrote:
 >
-> So what will have to bunch of overlay operations now which require
-> priviliges or additional capabilities. To make all that succeed,
-> you will have to give those capabilities to processes accessing
-> overlayfs. If yes, I am wondering how is that more secure. IOW,
-> having to give these capabilities to all processes accessing
-> fs as opposed to giving those capabilities to only mounter.
+> On Fri, Nov 30, 2018 at 12:12:53AM -0500, Murphy Zhou wrote:
+> > Hi,
+> >
+> > Hit a xfs regression issue by generic/095 on overlayfs.
+> >
+> > It's easy to reproduce. Tests processes hang there and never return.
+> > There are some warning in the dmesg.
+> >
+> > SIGINT (Ctrl+C) can't kill the tests, neither does SIGTERM (kill).
+> > However, SIGKILL (kill -9) can clean them up.
+> >
+> > This happens when testing on v4 or v5 or reflink, with the same behaviour.
+> > -m crc=0
+> > -m crc=1,finobt=1,rmapbt=0,reflink=0 -i sparse=1
+> > -m crc=1,finobt=1,rmapbt=1,reflink=1 -i sparse=1
+> >
+> > This does not happen if ext4 as base fs for overlayfs.
+> >
+> > Bisecting points to this commit:
+> >       4721a601 iomap: dio data corruption and spurious errors when pipes fill
+> >
+> > Test pass soon after this commit reverted.
+> >
+> > # ps axjf
+> >  1839  1862   S+    0:00  |  \_ /bin/bash ./bin/single -o -t generic/095
+> >  1862  2005   S+    0:00  |      \_ /bin/bash ./check -T -overlay generic/095
+> >  2005  2292   S+    0:00  |          \_ /bin/bash ./tests/generic/095
+> >  2292  2516   Sl+   0:01  |              \_ /usr/bin/fio /tmp/2292.fio
+> >  2516  2565   Rs    6:02  |                  \_ /usr/bin/fio /tmp/2292.fio
+> >  2516  2566   Rs    6:02  |                  \_ /usr/bin/fio /tmp/2292.fio
+> >  2516  2567   Rs    6:02  |                  \_ /usr/bin/fio /tmp/2292.fio
+> >  2516  2568   Rs    6:02  |                  \_ /usr/bin/fio /tmp/2292.fio
+> >  2516  2569   Rs    6:02  |                  \_ /usr/bin/fio /tmp/2292.fio
 >
-> You also mentioned that you want init to be least priviliged as
-> it could be attacked. But now all the processses are priviliged
-> and these could be attacked as well.
+> Nice catch! I didn't tried overlayfs on XFS regression test this time. I never hit
+> issue on XFS singly, even on glusterfs(XFS underlying).
 >
-> The way I am looking at it as follows.
+> I just gave it a try. This bug is reproducible on xfs-linux git tree
+> xfs-4.20-fixes-2 HEAD. And by strace all fio processes, they all
+> keep outputing [1]. More details as [2]. Only overlayfs on XFS can
+> reproduce this bug, overlayfs on Ext4 can't.
 >
-> - With current model, only mounter needs to have capabilities to
->    do some operations such as whiteout creation etc.
->
-> - With override_creds=off, all services accessing overlayfs needs
->    to have increased priviliges.
->
-> Is that not increasing attack surface. Previously, you will have to
-> attach init and now you can get away by breaking one of the services.
->
-> /me is wondering how does that increase security.
->
-> Thanks
-> Vivek
-In Android's case, the only processes that are writing the files are 
-themselves privileged, and "they" are actually only one process doing so 
-that is not init, and has a non-overlapping set, so well controlled, 
-different zones of privilege. The issue is that the privileges of the 
-mounter does not allow read, search or execute in a large swath of the 
-directories and files as it is not needed or desired, only the processes 
-that are granted sepolicy to do so will be allowed in a non-overlapping 
-fashion. In a vast majority of the daemons and applications, read only 
-and execute only accesses, and executing a file is a transition to a new 
-security domain with a completely different set of privileges.
 
-init and others are not allowed to talk to the gpu, keyboard events, 
-camera, audio or the keymaster security elements. Most processes are 
-not, yet libraries and Hardware Abstraction Layers, and executed daemons 
-are. None of this requires the _any_ of the mounter's credentials and 
-privileges; yet the files inside the filesystem are.
+Darrick,
 
-Think MAC (sepolicy) where every operation is individually labelled, not 
-DAC (capabilities or traditional rwxrwxrwx) where privileges are in 
-essence a hierarchy of security controls.
+This is my cue to insert a rant. You already know what I am going to rant about.
 
-Sincerely -- Mark Salyzyn
+I cannot force you to add a check -overlay xfstests run to your pull
+request validation
+routine. I can offer assistance in any questions you may have and I can offer
+support for check -overlay infrastructure if it breaks or if it needs
+improvements.
 
---------------DE98F22DA3F44218B82F65DB
-Content-Type: text/html; charset=utf-8
-Content-Transfer-Encoding: 7bit
+I have checked on several recent point releases that check -overlay does not
+regress any tests compared to xfs reflink configuration, and when I
+found a regression
+(mostly in overlayfs code, but also in xfs code sometimes) I reported
+and/or fixed it.
+But I do not have the resources to validate every xfs merge and
+certainly not xfs-next.
 
-<html>
-  <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-  </head>
-  <body text="#000000" bgcolor="#FFFFFF">
-    <div class="moz-cite-prefix">On 11/08/2018 07:56 AM, Vivek Goyal
-      wrote:<br>
-    </div>
-    <blockquote type="cite" cite="mid:20181108155620.GA3663@redhat.com">
-      <pre wrap="">On Tue, Nov 06, 2018 at 03:01:15PM -0800, Mark Salyzyn wrote:
-</pre>
-      <blockquote type="cite">
-        <pre wrap="">By default, all access to the upper, lower and work directories is the
-recorded mounter's MAC and DAC credentials.  The incoming accesses are
-checked against the caller's credentials.
+There is a large group of tests that is expected to notrun, which
+makes running the
+-overlay test a lot faster than any given xfs configuration and IMO
+running just a single
+xfs reflink config with -overlay would give a pretty good test coverage.
 
-If the principles of least privilege are applied, the mounter's
-credentials might not overlap the credentials of the caller's when
-accessing the overlayfs filesystem.  For example, a file that a lower
-DAC privileged caller can execute, is MAC denied to the generally
-higher DAC privileged mounter, to prevent an attack vector.
+So what do you say?...
 
-We add the option to turn off override_creds in the mount options; all
-subsequent operations after mount on the filesystem will be only the
-caller's credentials.  The module boolean parameter and mount option
-override_creds is also added as a presence check for this "feature",
-existence of /sys/module/overlay/parameters/override_creds.
-
-It was not always this way.  Circa 4.4 there was no recorded mounter's
-credentials, instead privileged access to upper or work directories
-were temporarily increased to perform the operations.  The MAC
-(selinux) policies were caller's in all cases.  override_creds=off
-partially returns us to this older access model minus the insecure
-temporary credential increases.
-</pre>
-      </blockquote>
-      <pre wrap="">
-
-So what will have to bunch of overlay operations now which require
-priviliges or additional capabilities. To make all that succeed,
-you will have to give those capabilities to processes accessing
-overlayfs. If yes, I am wondering how is that more secure. IOW,
-having to give these capabilities to all processes accessing
-fs as opposed to giving those capabilities to only mounter.
-
-You also mentioned that you want init to be least priviliged as
-it could be attacked. But now all the processses are priviliged
-and these could be attacked as well.
-
-The way I am looking at it as follows.
-
-- With current model, only mounter needs to have capabilities to
-  do some operations such as whiteout creation etc.
-
-- With override_creds=off, all services accessing overlayfs needs
-  to have increased priviliges.
-
-Is that not increasing attack surface. Previously, you will have to
-attach init and now you can get away by breaking one of the services.
-
-/me is wondering how does that increase security.
-
-Thanks
-Vivek
-</pre>
-    </blockquote>
-    <span style="color: rgb(34, 34, 34); font-family: Arial, Helvetica,
-      sans-serif; font-size: small; font-style: normal;
-      font-variant-ligatures: normal; font-variant-caps: normal;
-      font-weight: 400; letter-spacing: normal; orphans: 2; text-align:
-      start; text-indent: 0px; text-transform: none; white-space:
-      normal; widows: 2; word-spacing: 0px; -webkit-text-stroke-width:
-      0px; background-color: rgb(255, 255, 255); text-decoration-style:
-      initial; text-decoration-color: initial; display: inline
-      !important; float: none;">In Android's case, the only processes
-      that are writing the files are themselves privileged, and "they"
-      are actually only one process doing so that is not init, and has a
-      non-overlapping set, so well controlled, different zones of
-      privilege. The issue is that the privileges of the mounter does
-      not allow read, search or execute in a large swath of the
-      directories and files as it is not needed or desired, only the
-      processes that are granted sepolicy to do so will be allowed in a
-      non-overlapping fashion. In a vast majority of the daemons and
-      applications, read only and execute only accesses, and executing a
-      file is a transition to a new security domain with a completely
-      different set of privileges.<br>
-      <br>
-      init and others are not allowed to talk to the gpu, keyboard
-      events, camera, audio or the keymaster security elements. Most
-      processes are not, yet libraries and Hardware Abstraction Layers,
-      and executed daemons are. None of this requires the _any_ of the
-      mounter's credentials and privileges; yet the files inside the
-      filesystem are.<br>
-    </span>
-    <div style="color: rgb(34, 34, 34); font-family: Arial, Helvetica,
-      sans-serif; font-size: small; font-style: normal;
-      font-variant-ligatures: normal; font-variant-caps: normal;
-      font-weight: 400; letter-spacing: normal; orphans: 2; text-align:
-      start; text-indent: 0px; text-transform: none; white-space:
-      normal; widows: 2; word-spacing: 0px; -webkit-text-stroke-width:
-      0px; text-decoration-style: initial; text-decoration-color:
-      initial;"><br>
-    </div>
-    <div style="color: rgb(34, 34, 34); font-family: Arial, Helvetica,
-      sans-serif; font-size: small; font-style: normal;
-      font-variant-ligatures: normal; font-variant-caps: normal;
-      font-weight: 400; letter-spacing: normal; orphans: 2; text-align:
-      start; text-indent: 0px; text-transform: none; white-space:
-      normal; widows: 2; word-spacing: 0px; -webkit-text-stroke-width:
-      0px; text-decoration-style: initial; text-decoration-color:
-      initial;">Think MAC (sepolicy) where every operation is
-      individually labelled, not DAC (capabilities or traditional
-      rwxrwxrwx) where privileges are in essence a hierarchy of security
-      controls.</div>
-    <div style="color: rgb(34, 34, 34); font-family: Arial, Helvetica,
-      sans-serif; font-size: small; font-style: normal;
-      font-variant-ligatures: normal; font-variant-caps: normal;
-      font-weight: 400; letter-spacing: normal; orphans: 2; text-align:
-      start; text-indent: 0px; text-transform: none; white-space:
-      normal; widows: 2; word-spacing: 0px; -webkit-text-stroke-width:
-      0px; text-decoration-style: initial; text-decoration-color:
-      initial;"><br>
-    </div>
-    <div style="color: rgb(34, 34, 34); font-family: Arial, Helvetica,
-      sans-serif; font-size: small; font-style: normal;
-      font-variant-ligatures: normal; font-variant-caps: normal;
-      font-weight: 400; letter-spacing: normal; orphans: 2; text-align:
-      start; text-indent: 0px; text-transform: none; white-space:
-      normal; widows: 2; word-spacing: 0px; -webkit-text-stroke-width:
-      0px; text-decoration-style: initial; text-decoration-color:
-      initial;">Sincerely -- Mark Salyzyn</div>
-  </body>
-</html>
-
---------------DE98F22DA3F44218B82F65DB--
+Thanks,
+Amir.
