@@ -1,128 +1,68 @@
-Return-Path: <metan@suse.de>
-Date: Tue, 4 Dec 2018 15:10:12 +0100
-From: Cyril Hrubis <chrubis@suse.cz>
-Subject: Re: [PATCH v4 6/6] syscalls/readahead02: test readahead using
- posix_fadvise()
-Message-ID: <20181204141012.GB24114@rei.lan>
-References: <20181128164645.783-1-amir73il@gmail.com>
- <20181128164645.783-7-amir73il@gmail.com>
+Return-Path: <linux-unionfs-owner@vger.kernel.org>
+Received: from aserp2120.oracle.com ([141.146.126.78]:38876 "EHLO
+        aserp2120.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725554AbeLBSJI (ORCPT
+        <rfc822;linux-unionfs@vger.kernel.org>);
+        Sun, 2 Dec 2018 13:09:08 -0500
+Date: Sun, 2 Dec 2018 10:08:32 -0800
+From: "Darrick J. Wong" <darrick.wong@oracle.com>
+Subject: [PATCH v2 1/2] splice: don't read more than available pipe space
+Message-ID: <20181202180832.GR8125@magnolia>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20181128164645.783-7-amir73il@gmail.com>
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: ltp@lists.linux.it, Jan Stancek <jstancek@redhat.com>, Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org
+Sender: linux-unionfs-owner@vger.kernel.org
+To: Amir Goldstein <amir73il@gmail.com>, Dave Chinner <david@fromorbit.com>
+Cc: jencce.kernel@gmail.com, linux-xfs <linux-xfs@vger.kernel.org>, overlayfs <linux-unionfs@vger.kernel.org>, Zorro Lang <zlang@redhat.com>, fstests <fstests@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Christoph Hellwig <hch@infradead.org>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-Hi!
-> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
-> ---
->  .../kernel/syscalls/readahead/readahead02.c   | 41 +++++++++++++++----
->  1 file changed, 34 insertions(+), 7 deletions(-)
-> 
-> diff --git a/testcases/kernel/syscalls/readahead/readahead02.c b/testcases/kernel/syscalls/readahead/readahead02.c
-> index 73c8a6ce6..44475487e 100644
-> --- a/testcases/kernel/syscalls/readahead/readahead02.c
-> +++ b/testcases/kernel/syscalls/readahead/readahead02.c
-> @@ -54,12 +54,30 @@ static struct tst_option options[] = {
->  static struct tcase {
->  	const char *tname;
->  	int use_overlay;
-> +	int use_fadvise;
->  } tcases[] = {
-> -	{ "readahead on file", 0 },
-> -	{ "readahead on overlayfs file", 1 },
-> +	{ "readahead on file", 0, 0 },
-> +	{ "readahead on overlayfs file", 1, 0 },
-> +	{ "POSIX_FADV_WILLNEED on file", 0, 1 },
-> +	{ "POSIX_FADV_WILLNEED on overlayfs file", 1, 1 },
->  };
->  
-> +static int fadvise_willneed(int fd, off_t offset, size_t len)
-> +{
-> +	/* Should have the same effect as readahead() syscall */
-> +	return posix_fadvise(fd, offset, len, POSIX_FADV_WILLNEED);
-> +}
-> +
-> +static int libc_readahead(int fd, off_t offset, size_t len)
-> +{
-> +	return readahead(fd, offset, len);
-> +}
-> +
-> +typedef int (*readahead_func_t)(int, off_t, size_t);
-> +static readahead_func_t readahead_func = libc_readahead;
+From: Darrick J. Wong <darrick.wong@oracle.com>
 
-It's kind of useless to typedef a new type just to define one variable.
+In commit 4721a601099, we tried to fix a problem wherein directio reads
+into a splice pipe will bounce EFAULT/EAGAIN all the way out to
+userspace by simulating a zero-byte short read.  This happens because
+some directio read implementations (xfs) will call
+bio_iov_iter_get_pages to grab pipe buffer pages and issue asynchronous
+reads, but as soon as we run out of pipe buffers that _get_pages call
+returns EFAULT, which the splice code translates to EAGAIN and bounces
+out to userspace.
 
-Also as we are making wrappers around these functions we should really
-handle the differencies in error reporting inside of these wrappers,
-i.e. change the fadvise_willneed() so that the function sets errno on a
-failure to avoid details like that leaking into the test code.
+In that commit, the iomap code catches the EFAULT and simulates a
+zero-byte read, but that causes assertion errors on regular splice reads
+because xfs doesn't allow short directio reads.
 
-Also if we want to switch later on to the all_filesystems we have to
-avoid having preset values so it would make sense to have the readahead
-function pointer in the tcase structure.
+The brokenness is compounded by splice_direct_to_actor immediately
+bailing on do_splice_to returning <= 0 without ever calling ->actor
+(which empties out the pipe), so if userspace calls back we'll EFAULT
+again on the full pipe, and nothing ever gets copied.
 
->  static int readahead_supported = 1;
-> +static int fadvise_supported = 1;
->  
->  static int has_file(const char *fname, int required)
->  {
-> @@ -135,7 +153,6 @@ static void create_testfile(int use_overlay)
->  	free(tmp);
->  }
->  
-> -
->  /* read_testfile - mmap testfile and read every page.
->   * This functions measures how many I/O and time it takes to fully
->   * read contents of test file.
-> @@ -163,7 +180,7 @@ static void read_testfile(int do_readahead, const char *fname, size_t fsize,
->  	if (do_readahead) {
->  		cached_start = get_cached_size();
->  		do {
-> -			TEST(readahead(fd, offset, fsize - offset));
-> +			TEST(readahead_func(fd, offset, fsize - offset));
->  			if (TST_RET != 0) {
->  				SAFE_CLOSE(fd);
->  				return;
-> @@ -241,6 +258,9 @@ static void test_readahead(unsigned int n)
->  
->  	create_testfile(tc->use_overlay);
->  
-> +	/* Use either readahead() syscall or POSIX_FADV_WILLNEED */
-> +	readahead_func = tc->use_fadvise ? fadvise_willneed : libc_readahead;
-> +
->  	/* find out how much can cache hold if we read whole file */
->  	read_testfile(0, testfile, testfile_size, &read_bytes, &usec, &cached);
->  	cached_high = get_cached_size();
-> @@ -263,13 +283,20 @@ static void test_readahead(unsigned int n)
->  	read_testfile(1, testfile, testfile_size, &read_bytes_ra,
->  		      &usec_ra, &cached_ra);
->  	if (TST_RET != 0) {
-> -		if (TST_ERR == EINVAL &&
-> -		    (!tc->use_overlay || !readahead_supported)) {
-> +		/* posix_fadvise returns error number (not in errno) */
-> +		if (tc->use_fadvise && (TST_ERR = TST_RET) == EINVAL &&
-> +		    (!tc->use_overlay || !fadvise_supported)) {
-> +			fadvise_supported = 0;
-> +			tst_res(TCONF, "fadvise not supported on %s",
-> +				tst_device->fs_type);
-> +		} else if (TST_ERR == EINVAL &&
-> +			   (!tc->use_overlay || !readahead_supported)) {
->  			readahead_supported = 0;
->  			tst_res(TCONF, "readahead not supported on %s",
->  				tst_device->fs_type);
->  		} else {
-> -			tst_res(TFAIL | TTERRNO, "readahead failed on %s",
-> +			tst_res(TFAIL | TTERRNO, "%s failed on %s",
-> +				tc->use_fadvise ? "fadvise" : "readahead",
->  				tc->use_overlay ? "overlayfs" :
->  				tst_device->fs_type);
->  		}
-> -- 
-> 2.17.1
-> 
+Therefore, teach splice_direct_to_actor to clamp its requests to the
+amount of free space in the pipe and remove the simulated short read
+from the iomap directio code.
 
--- 
-Cyril Hrubis
-chrubis@suse.cz
+Fixes: 4721a601099 ("iomap: dio data corruption and spurious errors when pipes fill")
+Reported-by: Amir Goldstein <amir73il@gmail.com>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Signed-off-by: Darrick J. Wong <darrick.wong@oracle.com>
+---
+v2: split into two parts per hch request
+---
+ fs/splice.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/fs/splice.c b/fs/splice.c
+index 3553f1956508..4bd9d9590199 100644
+--- a/fs/splice.c
++++ b/fs/splice.c
+@@ -949,7 +949,10 @@ ssize_t splice_direct_to_actor(struct file *in, struct splice_desc *sd,
+ 		size_t read_len;
+ 		loff_t pos = sd->pos, prev_pos = pos;
+ 
+-		ret = do_splice_to(in, &pos, pipe, len, flags);
++		/* Don't try to read more the pipe has space for. */
++		read_len = min_t(size_t, len,
++				 (pipe->buffers - pipe->nrbufs) << PAGE_SHIFT);
++		ret = do_splice_to(in, &pos, pipe, read_len, flags);
+ 		if (unlikely(ret <= 0))
+ 			goto out_release;
+ 
