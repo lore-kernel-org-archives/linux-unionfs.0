@@ -1,38 +1,44 @@
-Return-Path: <metan@suse.de>
-Date: Tue, 4 Dec 2018 15:02:54 +0100
-From: Cyril Hrubis <chrubis@suse.cz>
-Subject: Re: [PATCH v4 5/6] syscalls/readahead02: test readahead() on an
- overlayfs file
-Message-ID: <20181204140253.GA24114@rei.lan>
-References: <20181128164645.783-1-amir73il@gmail.com>
- <20181128164645.783-6-amir73il@gmail.com>
+Return-Path: <linux-fsdevel-owner@vger.kernel.org>
+Date: Sat, 1 Dec 2018 17:07:49 -0800
+From: "Darrick J. Wong" <darrick.wong@oracle.com>
+Subject: [PATCH v2] vfs: allow some remap flags to be passed to
+ vfs_clone_file_range
+Message-ID: <20181202010749.GQ8125@magnolia>
+References: <20181130204238.GE8131@magnolia>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20181128164645.783-6-amir73il@gmail.com>
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: ltp@lists.linux.it, Jan Stancek <jstancek@redhat.com>, Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org
+In-Reply-To: <20181130204238.GE8131@magnolia>
+Sender: linux-fsdevel-owner@vger.kernel.org
+To: Dave Chinner <david@fromorbit.com>
+Cc: xfs <linux-xfs@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, amir73il@gmail.com, linux-unionfs@vger.kernel.org
 List-ID: <linux-unionfs@vger.kernel.org>
 
-Hi!
-> The new test case is a regression test for kernel commit b833a3660394
-> ("ovl: add ovl_fadvise()") which fixes a regression of readahead() on
-> an overlay file that was introduced by kernel commit 5b910bd615ba
-> ("ovl: fix GPF in swapfile_activate of file from overlayfs over xfs").
+From: Darrick J. Wong <darrick.wong@oracle.com>
 
-I've pushed the patches up to this patch with the change to the error
-propagation as we agreed and:
+In overlayfs, ovl_remap_file_range calls vfs_clone_file_range on the
+lower filesystem's inode, passing through whatever remap flags it got
+from its caller.  Since vfs_copy_file_range first tries a filesystem's
+remap function with REMAP_FILE_CAN_SHORTEN, this can get passed through
+to the second vfs_copy_file_range call, and this isn't an issue.
+Change the WARN_ON to look only for the DEDUP flag.
 
-* Added commit hashes of the two commits mentioned in this changelog
-  to the top level comment of this test, since this is the place where
-  testers look first for this kind of information.
+Signed-off-by: Darrick J. Wong <darrick.wong@oracle.com>
+Reviewed-by: Amir Goldstein <amir73il@gmail.com>
+---
+ fs/read_write.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-+ Added one simplification patch on the top of this
-
-I will look closer at the last one now.
-
-Thanks for your work on the test.
-
--- 
-Cyril Hrubis
-chrubis@suse.cz
+diff --git a/fs/read_write.c b/fs/read_write.c
+index 4dae0399c75a..58f30537c47a 100644
+--- a/fs/read_write.c
++++ b/fs/read_write.c
+@@ -1956,7 +1956,7 @@ loff_t do_clone_file_range(struct file *file_in, loff_t pos_in,
+ 	struct inode *inode_out = file_inode(file_out);
+ 	loff_t ret;
+ 
+-	WARN_ON_ONCE(remap_flags);
++	WARN_ON_ONCE(remap_flags & REMAP_FILE_DEDUP);
+ 
+ 	if (S_ISDIR(inode_in->i_mode) || S_ISDIR(inode_out->i_mode))
+ 		return -EISDIR;
