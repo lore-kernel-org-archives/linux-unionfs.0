@@ -1,8 +1,13 @@
-Return-Path: <linux-fsdevel-owner@vger.kernel.org>
-Date: Tue, 4 Dec 2018 10:34:02 +1100
-From: Dave Chinner <david@fromorbit.com>
+Return-Path: <linux-unionfs-owner@vger.kernel.org>
+Received: from userp2120.oracle.com ([156.151.31.85]:47130 "EHLO
+        userp2120.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725987AbeLCTLj (ORCPT
+        <rfc822;linux-unionfs@vger.kernel.org>);
+        Mon, 3 Dec 2018 14:11:39 -0500
+Date: Mon, 3 Dec 2018 11:11:30 -0800
+From: "Darrick J. Wong" <darrick.wong@oracle.com>
 Subject: Re: [PATCH 08/11] vfs: push EXDEV check down into ->remap_file_range
-Message-ID: <20181203233402.GK6311@dastard>
+Message-ID: <20181203191130.GD24487@magnolia>
 References: <20181203083416.28978-1-david@fromorbit.com>
  <20181203083416.28978-9-david@fromorbit.com>
  <CAOQ4uxgwZLsO1yV37_CHaZ-O+-+-OggSP9g6m9YE57kLPc5yDw@mail.gmail.com>
@@ -10,9 +15,9 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 In-Reply-To: <CAOQ4uxgwZLsO1yV37_CHaZ-O+-+-OggSP9g6m9YE57kLPc5yDw@mail.gmail.com>
-Sender: linux-fsdevel-owner@vger.kernel.org
+Sender: linux-unionfs-owner@vger.kernel.org
 To: Amir Goldstein <amir73il@gmail.com>
-Cc: linux-fsdevel <linux-fsdevel@vger.kernel.org>, linux-xfs <linux-xfs@vger.kernel.org>, Olga Kornievskaia <olga.kornievskaia@gmail.com>, Linux NFS Mailing List <linux-nfs@vger.kernel.org>, overlayfs <linux-unionfs@vger.kernel.org>, ceph-devel@vger.kernel.org, linux-cifs@vger.kernel.org
+Cc: Dave Chinner <david@fromorbit.com>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, linux-xfs <linux-xfs@vger.kernel.org>, Olga Kornievskaia <olga.kornievskaia@gmail.com>, Linux NFS Mailing List <linux-nfs@vger.kernel.org>, overlayfs <linux-unionfs@vger.kernel.org>, ceph-devel@vger.kernel.org, linux-cifs@vger.kernel.org
 List-ID: <linux-unionfs@vger.kernel.org>
 
 On Mon, Dec 03, 2018 at 01:04:07PM +0200, Amir Goldstein wrote:
@@ -72,25 +77,29 @@ On Mon, Dec 03, 2018 at 01:04:07PM +0200, Amir Goldstein wrote:
 > > -               return -EXDEV;
 > > -
 > 
+
+I think this is sort of backwards -- the checks should stay in
+do_clone_file_range, and vfs_copy_file_range should be calling that
+instead of directly calling ->remap_range():
+
+vfs_copy_file_range()
+{
+	file_start_write(...);
+	ret = do_clone_file_range(...);
+	if (ret > 0)
+		return ret;
+	ret = do_copy_file_range(...);
+	file_end_write(...);
+	return ret;
+}
+
 > That leaves {nfs42,cifs,btrfs}_remap_file_range() exposed to passing
 > files not of their own fs type let alone same sb when do_clone_file_range()
 > is called from ovl_copy_up_data().
 
-For some reason I thought everyone called
-generic_remap_file_range_prep() so they behaved the same way. My
-mistake.
+...and then I think this problem goes away.
 
-Really, though, I'm of the opinion that those filesystems should be
-changed to call the generic checks rather than open code their own
-incomplete/incompatible set of checks. This is exactly what I'm
-trying to avoid with copy_file_range() - checks are done in one
-place, all filesystems have the same checks done - so that future
-modification and maintenance is so much easier.
+--D
 
-We need to do the same thing to the remap_file_range()
-implementations.
-
--Dave.
--- 
-Dave Chinner
-david@fromorbit.com
+> Thanks,
+> Amir.
