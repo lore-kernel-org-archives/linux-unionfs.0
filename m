@@ -1,79 +1,132 @@
-Return-Path: <david@fromorbit.com>
-Date: Tue, 4 Dec 2018 10:00:07 +1100
-From: Dave Chinner <david@fromorbit.com>
-Subject: Re: [PATCH 02/11] vfs: introduce generic_copy_file_range()
-Message-ID: <20181203230007.GG6311@dastard>
-References: <20181203083416.28978-1-david@fromorbit.com>
- <20181203083416.28978-3-david@fromorbit.com>
- <CAOQ4uxiSjmmm5OBx+K5qff4mtL5jSih71izWGQKjA_WQSLe=AA@mail.gmail.com>
+Return-Path: <amir73il@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAOQ4uxiSjmmm5OBx+K5qff4mtL5jSih71izWGQKjA_WQSLe=AA@mail.gmail.com>
-To: Amir Goldstein <amir73il@gmail.com>
+References: <20181203083416.28978-1-david@fromorbit.com> <20181203083416.28978-3-david@fromorbit.com>
+In-Reply-To: <20181203083416.28978-3-david@fromorbit.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Date: Mon, 3 Dec 2018 12:03:41 +0200
+Message-ID: <CAOQ4uxiSjmmm5OBx+K5qff4mtL5jSih71izWGQKjA_WQSLe=AA@mail.gmail.com>
+Subject: Re: [PATCH 02/11] vfs: introduce generic_copy_file_range()
+Content-Type: text/plain; charset="UTF-8"
+To: Dave Chinner <david@fromorbit.com>
 Cc: linux-fsdevel <linux-fsdevel@vger.kernel.org>, linux-xfs <linux-xfs@vger.kernel.org>, Olga Kornievskaia <olga.kornievskaia@gmail.com>, Linux NFS Mailing List <linux-nfs@vger.kernel.org>, overlayfs <linux-unionfs@vger.kernel.org>, ceph-devel@vger.kernel.org, linux-cifs@vger.kernel.org, Miklos Szeredi <miklos@szeredi.hu>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-On Mon, Dec 03, 2018 at 12:03:41PM +0200, Amir Goldstein wrote:
-> On Mon, Dec 3, 2018 at 10:34 AM Dave Chinner <david@fromorbit.com> wrote:
-> >
-> > From: Dave Chinner <dchinner@redhat.com>
-> >
-> > Right now if vfs_copy_file_range() does not use any offload
-> > mechanism, it falls back to calling do_splice_direct(). This fails
-> > to do basic sanity checks on the files being copied. Before we
-> > start adding this necessarily functionality to the fallback path,
-> > separate it out into generic_copy_file_range().
-> >
-> > generic_copy_file_range() has the same prototype as
-> > ->copy_file_range() so that filesystems can use it in their custom
-> > ->copy_file_range() method if they so choose.
-> >
-> > Signed-off-by: Dave Chinner <dchinner@redhat.com>
-> > ---
-> 
-> Looks good.
-> 
-> Reviewed-by: Amir Goldstein <amir73il@gmail.com>
-> 
-> Question:
-> 2 years ago you suggested that I covert the overlayfs copy up
-> code that does a do_direct_splice() with a loop of vfs_copy_file_range():
-> https://marc.info/?l=linux-fsdevel&m=147369468521525&w=2
-> We ended up with a slightly different solution, but with your recent
-> changes, I can get back to your original proposal.
-> 
-> Back then, I wondered whether it makes sense to push the killable
-> loop of shorter do_direct_splice() calls into the vfs helper.
-> What do you think about adding this to generic_copy_file_range()
-> now? (I can do that after your changes are merged).
+On Mon, Dec 3, 2018 at 10:34 AM Dave Chinner <david@fromorbit.com> wrote:
+>
+> From: Dave Chinner <dchinner@redhat.com>
+>
+> Right now if vfs_copy_file_range() does not use any offload
+> mechanism, it falls back to calling do_splice_direct(). This fails
+> to do basic sanity checks on the files being copied. Before we
+> start adding this necessarily functionality to the fallback path,
+> separate it out into generic_copy_file_range().
+>
+> generic_copy_file_range() has the same prototype as
+> ->copy_file_range() so that filesystems can use it in their custom
+> ->copy_file_range() method if they so choose.
+>
+> Signed-off-by: Dave Chinner <dchinner@redhat.com>
+> ---
 
-No. Adding another loop on top of all the loops already in the
-do_direct_splice() is just crazy. The code is hard enough to follow
-to begin with. If we are going to make do_splice_direct() killable,
-then it needs to be done the splice_direct_to_actor loop that
-already splits large splice ranges up into smaller chunks.
+Looks good.
 
-As it is, addressing the flaws of do_splice_direct() is not
-something I'm about to do in this patchset. It has many issues, and
-it's yet another piece of work we need to undertake to make
-copy_file_range() somewhat user friendly.
+Reviewed-by: Amir Goldstein <amir73il@gmail.com>
 
-> The fact that userspace *can* enter a very long unkillable loop
-> with current copy_file_range() syscall doesn't mean that we
-> *should* persist this situation. After all, fixing the brokenness
-> of the existing interface is what you set out to do.
+Question:
+2 years ago you suggested that I covert the overlayfs copy up
+code that does a do_direct_splice() with a loop of vfs_copy_file_range():
+https://marc.info/?l=linux-fsdevel&m=147369468521525&w=2
+We ended up with a slightly different solution, but with your recent
+changes, I can get back to your original proposal.
 
-That's not an API issue - that's an implementation problem.
+Back then, I wondered whether it makes sense to push the killable
+loop of shorter do_direct_splice() calls into the vfs helper.
+What do you think about adding this to generic_copy_file_range()
+now? (I can do that after your changes are merged).
 
-Quite frankly, making copy offload implementations killable is going
-to "fun" for filesystems that offload the copy to remote servers, so
-whatever we do fo the fallback isn't going to prevent
-copy_file_range() from being unkillable.
+The fact that userspace *can* enter a very long unkillable loop
+with current copy_file_range() syscall doesn't mean that we
+*should* persist this situation. After all, fixing the brokenness
+of the existing interface is what you set out to do.
 
-Cheers,
+With that change in place, overlayfs could call only
+vfs_copy_file_range() as you suggested and not as a fallback to
+do_clone_file_range().
 
-Dave.
--- 
-Dave Chinner
-david@fromorbit.com
+Thanks,
+Amir.
+
+>  fs/read_write.c    | 35 ++++++++++++++++++++++++++++++++---
+>  include/linux/fs.h |  3 +++
+>  2 files changed, 35 insertions(+), 3 deletions(-)
+>
+> diff --git a/fs/read_write.c b/fs/read_write.c
+> index 09d1816cf3cf..50114694c98b 100644
+> --- a/fs/read_write.c
+> +++ b/fs/read_write.c
+> @@ -1540,6 +1540,36 @@ COMPAT_SYSCALL_DEFINE4(sendfile64, int, out_fd, int, in_fd,
+>  }
+>  #endif
+>
+> +/**
+> + * generic_copy_file_range - copy data between two files
+> + * @file_in:   file structure to read from
+> + * @pos_in:    file offset to read from
+> + * @file_out:  file structure to write data to
+> + * @pos_out:   file offset to write data to
+> + * @len:       amount of data to copy
+> + * @flags:     copy flags
+> + *
+> + * This is a generic filesystem helper to copy data from one file to another.
+> + * It has no constraints on the source or destination file owners - the files
+> + * can belong to different superblocks and different filesystem types. Short
+> + * copies are allowed.
+> + *
+> + * This should be called from the @file_out filesystem, as per the
+> + * ->copy_file_range() method.
+> + *
+> + * Returns the number of bytes copied or a negative error indicating the
+> + * failure.
+> + */
+> +
+> +ssize_t generic_copy_file_range(struct file *file_in, loff_t pos_in,
+> +                           struct file *file_out, loff_t pos_out,
+> +                           size_t len, unsigned int flags)
+> +{
+> +       return do_splice_direct(file_in, &pos_in, file_out, &pos_out,
+> +                       len > MAX_RW_COUNT ? MAX_RW_COUNT : len, 0);
+> +}
+> +EXPORT_SYMBOL(generic_copy_file_range);
+> +
+>  /*
+>   * copy_file_range() differs from regular file read and write in that it
+>   * specifically allows return partial success.  When it does so is up to
+> @@ -1611,9 +1641,8 @@ ssize_t vfs_copy_file_range(struct file *file_in, loff_t pos_in,
+>                         goto done;
+>         }
+>
+> -       ret = do_splice_direct(file_in, &pos_in, file_out, &pos_out,
+> -                       len > MAX_RW_COUNT ? MAX_RW_COUNT : len, 0);
+> -
+> +       ret = generic_copy_file_range(file_in, &pos_in, file_out, &pos_out,
+> +                                       len, flags);
+>  done:
+>         if (ret > 0) {
+>                 fsnotify_access(file_in);
+> diff --git a/include/linux/fs.h b/include/linux/fs.h
+> index c95c0807471f..a4478764cf63 100644
+> --- a/include/linux/fs.h
+> +++ b/include/linux/fs.h
+> @@ -1874,6 +1874,9 @@ extern ssize_t vfs_readv(struct file *, const struct iovec __user *,
+>                 unsigned long, loff_t *, rwf_t);
+>  extern ssize_t vfs_copy_file_range(struct file *, loff_t , struct file *,
+>                                    loff_t, size_t, unsigned int);
+> +extern ssize_t generic_copy_file_range(struct file *file_in, loff_t pos_in,
+> +                               struct file *file_out, loff_t pos_out,
+> +                               size_t len, unsigned int flags);
+>  extern int generic_remap_file_range_prep(struct file *file_in, loff_t pos_in,
+>                                          struct file *file_out, loff_t pos_out,
+>                                          loff_t *count,
+> --
+> 2.19.1
+>
