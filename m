@@ -1,35 +1,41 @@
-Return-Path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-yw1-f67.google.com ([209.85.161.67]:45861 "EHLO
-        mail-yw1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726369AbeLCMzj (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 3 Dec 2018 07:55:39 -0500
+Return-Path: <linux-fsdevel-owner@vger.kernel.org>
+From: Dave Chinner <david@fromorbit.com>
+Subject: [PATCH 10/11] vfs: allow generic_copy_file_range to copy across devices
+Date: Mon,  3 Dec 2018 19:34:15 +1100
+Message-Id: <20181203083416.28978-11-david@fromorbit.com>
+In-Reply-To: <20181203083416.28978-1-david@fromorbit.com>
+References: <20181203083416.28978-1-david@fromorbit.com>
 MIME-Version: 1.0
-References: <20181203083416.28978-1-david@fromorbit.com> <20181203083416.28978-11-david@fromorbit.com>
-In-Reply-To: <20181203083416.28978-11-david@fromorbit.com>
-From: Amir Goldstein <amir73il@gmail.com>
-Date: Mon, 3 Dec 2018 14:54:31 +0200
-Message-ID: <CAOQ4uxhsVfqGkYi1v1Gd6BnzGsCb5=sOcByB0Nwp_ZGaFTmOPw@mail.gmail.com>
-Subject: Re: [PATCH 10/11] vfs: allow generic_copy_file_range to copy across devices
-Content-Type: text/plain; charset="UTF-8"
-Sender: linux-unionfs-owner@vger.kernel.org
-To: Dave Chinner <david@fromorbit.com>
-Cc: linux-fsdevel <linux-fsdevel@vger.kernel.org>, linux-xfs <linux-xfs@vger.kernel.org>, Olga Kornievskaia <olga.kornievskaia@gmail.com>, Linux NFS Mailing List <linux-nfs@vger.kernel.org>, overlayfs <linux-unionfs@vger.kernel.org>, ceph-devel@vger.kernel.org, linux-cifs@vger.kernel.org
+Content-Transfer-Encoding: 8bit
+Sender: linux-fsdevel-owner@vger.kernel.org
+To: linux-fsdevel@vger.kernel.org, linux-xfs@vger.kernel.org
+Cc: olga.kornievskaia@gmail.com, linux-nfs@vger.kernel.org, linux-unionfs@vger.kernel.org, ceph-devel@vger.kernel.org, linux-cifs@vger.kernel.org
 List-ID: <linux-unionfs@vger.kernel.org>
 
-On Mon, Dec 3, 2018 at 10:34 AM Dave Chinner <david@fromorbit.com> wrote:
->
-> From: Dave Chinner <dchinner@redhat.com>
->
-> do_splice_direct() can copy across superblocks without problems.
-> Remove the same superblock restriction on this fallback code.
->
-> Signed-off-by: Dave Chinner <dchinner@redhat.com>
-> ---
+From: Dave Chinner <dchinner@redhat.com>
 
-Looks good.
+do_splice_direct() can copy across superblocks without problems.
+Remove the same superblock restriction on this fallback code.
 
-Reviewed-by: Amir Goldstein <amir73il@gmail.com>
+Signed-off-by: Dave Chinner <dchinner@redhat.com>
+---
+ fs/read_write.c | 4 ----
+ 1 file changed, 4 deletions(-)
 
-Thanks,
-Amir.
+diff --git a/fs/read_write.c b/fs/read_write.c
+index 4e0666de0d69..b0f231b10836 100644
+--- a/fs/read_write.c
++++ b/fs/read_write.c
+@@ -1565,10 +1565,6 @@ ssize_t generic_copy_file_range(struct file *file_in, loff_t pos_in,
+ 			    struct file *file_out, loff_t pos_out,
+ 			    size_t len, unsigned int flags)
+ {
+-	/* Temporary, do_splice_direct supports cross-sb copies */
+-	if (file_inode(file_in)->i_sb != file_inode(file_out)->i_sb)
+-		return -EXDEV;
+-
+ 	return do_splice_direct(file_in, &pos_in, file_out, &pos_out,
+ 			len > MAX_RW_COUNT ? MAX_RW_COUNT : len, 0);
+ }
+-- 
+2.19.1
