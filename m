@@ -1,142 +1,185 @@
 Return-Path: <linux-unionfs-owner@vger.kernel.org>
-Received: from ipmailnode02.adl6.internode.on.net ([150.101.137.148]:60959
-        "EHLO ipmailnode02.adl6.internode.on.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1725830AbeLCIe0 (ORCPT
+Received: from mail-yw1-f65.google.com ([209.85.161.65]:35532 "EHLO
+        mail-yw1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725830AbeLCNGu (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 3 Dec 2018 03:34:26 -0500
-From: Dave Chinner <david@fromorbit.com>
-Subject: [PATCH 0/11] fs: fixes for major copy_file_range() issues
-Date: Mon,  3 Dec 2018 19:34:05 +1100
-Message-Id: <20181203083416.28978-1-david@fromorbit.com>
+        Mon, 3 Dec 2018 08:06:50 -0500
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+References: <20181203083416.28978-1-david@fromorbit.com> <20181203083952.GC6311@dastard>
+In-Reply-To: <20181203083952.GC6311@dastard>
+From: Amir Goldstein <amir73il@gmail.com>
+Date: Mon, 3 Dec 2018 15:05:40 +0200
+Message-ID: <CAOQ4uxhDXF_XZNzaBBkoc0a76xMsipRWJ96inq+GSkvk0PQwzA@mail.gmail.com>
+Subject: Re: [PATCH 12/11] man-pages: copy_file_range updates
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-unionfs-owner@vger.kernel.org
-To: linux-fsdevel@vger.kernel.org, linux-xfs@vger.kernel.org
-Cc: olga.kornievskaia@gmail.com, linux-nfs@vger.kernel.org, linux-unionfs@vger.kernel.org, ceph-devel@vger.kernel.org, linux-cifs@vger.kernel.org
+To: Dave Chinner <david@fromorbit.com>
+Cc: linux-fsdevel <linux-fsdevel@vger.kernel.org>, linux-xfs <linux-xfs@vger.kernel.org>, Olga Kornievskaia <olga.kornievskaia@gmail.com>, Linux NFS Mailing List <linux-nfs@vger.kernel.org>, overlayfs <linux-unionfs@vger.kernel.org>, ceph-devel@vger.kernel.org, linux-cifs@vger.kernel.org, linux-api@vger.kernel.org
 List-ID: <linux-unionfs@vger.kernel.org>
 
-Hi folks,
+On Mon, Dec 3, 2018 at 10:40 AM Dave Chinner <david@fromorbit.com> wrote:
+>
+> From: Dave Chinner <dchinner@redhat.com>
+>
+> Update with all the missing errors the syscall can return, the
+> behaviour the syscall should have w.r.t. to copies within single
+> files, etc.
+>
+> Signed-off-by: Dave Chinner <dchinner@redhat.com>
+> ---
+>  man2/copy_file_range.2 | 94 +++++++++++++++++++++++++++++++++++++++++---------
+>  1 file changed, 77 insertions(+), 17 deletions(-)
+>
+> diff --git a/man2/copy_file_range.2 b/man2/copy_file_range.2
+> index 20374abb21f0..23b00c2f3fea 100644
+> --- a/man2/copy_file_range.2
+> +++ b/man2/copy_file_range.2
+> @@ -42,9 +42,9 @@ without the additional cost of transferring data from the kernel to user space
+>  and then back into the kernel.
+>  It copies up to
+>  .I len
+> -bytes of data from file descriptor
+> +bytes of data from the source file descriptor
+>  .I fd_in
+> -to file descriptor
+> +to target file descriptor
+>  .IR fd_out ,
+>  overwriting any data that exists within the requested range of the target file.
+>  .PP
+> @@ -74,6 +74,11 @@ is not changed, but
+>  .I off_in
+>  is adjusted appropriately.
+>  .PP
+> +.I fd_in
+> +and
+> +.I fd_out
+> +can refer to the same file. If they refer to the same file, then the source and
+> +target ranges are not allowed to overlap.
+>  .PP
+>  The
+>  .I flags
+> @@ -93,34 +98,73 @@ is set to indicate the error.
+>  .SH ERRORS
+>  .TP
+>  .B EBADF
+> -One or more file descriptors are not valid; or
+> +One or more file descriptors are not valid.
+> +.TP
+> +.B EBADF
+>  .I fd_in
+>  is not open for reading; or
+>  .I fd_out
+> -is not open for writing; or
+> -the
+> +is not open for writing.
+> +.TP
+> +.B EBADF
+> +The
+>  .B O_APPEND
+>  flag is set for the open file description referred to by
+>  .IR fd_out .
+>  .TP
+>  .B EFBIG
+> -An attempt was made to write a file that exceeds the implementation-defined
+> -maximum file size or the process's file size limit,
+> -or to write at a position past the maximum allowed offset.
+> +An attempt was made to write at a position past the maximum file offset the
+> +kernel supports.
+> +.TP
+> +.B EFBIG
+> +An attempt was made to write a range that exceeds the allowed maximum file size.
+> +The maximum file size differs between filesystem implemenations and can be
+> +different to the maximum allowed file offset.
+> +.TP
+> +.B EFBIG
+> +An attempt was made to write beyond the process's file size resource
+> +limit. This may also result in the process receiving a
+> +.I SIGXFSZ
+> +signal.
+>  .TP
+>  .B EINVAL
+> -Requested range extends beyond the end of the source file; or the
+> -.I flags
+> -argument is not 0.
+> +.I (off_in + len)
+> +spans the end of the source file.
+>  .TP
+> -.B EIO
+> -A low-level I/O error occurred while copying.
+> +.B EINVAL
+> +.I fd_in
+> +and
+> +.I fd_out
+> +refer to the same file and the source and target ranges overlap.
+> +.TP
+> +.B EINVAL
+> +.I fd_in
+> +or
+> +.I fd_out
+> +is not a regular file.
+>  .TP
+>  .B EISDIR
+>  .I fd_in
+>  or
+>  .I fd_out
+>  refers to a directory.
+> +.B EINVAL
+> +The
+> +.I flags
+> +argument is not 0.
+> +.TP
+> +.B EINVAL
+> +.I off_in
+> +or
+> +.I (off_in + len)
+> +is beyond the maximum valid file offset.
+> +.TP
+> +.B EOVERFLOW
+> +The requested source or destination range is too large to represent in the
+> +specified data types.
+> +.TP
+> +.B EIO
+> +A low-level I/O error occurred while copying.
+>  .TP
+>  .B ENOMEM
+>  Out of memory.
+> @@ -128,16 +172,32 @@ Out of memory.
+>  .B ENOSPC
+>  There is not enough space on the target filesystem to complete the copy.
+>  .TP
+> -.B EXDEV
+> -The files referred to by
+> -.IR file_in " and " file_out
+> -are not on the same mounted filesystem.
+> +.B TXTBSY
+> +.I fd_in
+> +or
+> +.I fd_out
+> +refers to an active swap file.
+> +.TP
+> +.B EPERM
+> +.I fd_out
+> +refers to an immutable file.
+> +.TP
+> +.B EACCES
+> +The user does not have write permissions for the destination file.
+>  .SH VERSIONS
+>  The
+>  .BR copy_file_range ()
+>  system call first appeared in Linux 4.5, but glibc 2.27 provides a user-space
+>  emulation when it is not available.
+>  .\" https://sourceware.org/git/?p=glibc.git;a=commit;f=posix/unistd.h;h=bad7a0c81f501fbbcc79af9eaa4b8254441c4a1f
+> +.PP
+> +A major rework of the kernel implementation occurred in 4.21. Areas of the API
+> +that weren't clearly defined were clarified and the API bounds are much more
+> +strictly checked than on earlier kernels. Applications should target the
+> +behaviour and requirements of 4.21 kernels.
+> +.PP
+> +First support for cross-filesystem copies was introduced in Linux 4.21. Older
+> +kernels will return -EXDEV when cross-filesystem copies are attempted.
 
-As most of you already know, we really suck at introducing new
-functionality. The recent problems we found with clone/dedupe file
-range interfaces also plague the copy_file_range() API and
-implementation. Not only doesn't it do exactly what the man page
-says, the man page doesn't document everything the syscal does
-either.
+IMO, you should leave the entry for expected error EXDEV in place and prefix
+it with "Prior to Linux 4.21..."
 
-There's a few problems:
-	- can overwrite setuid files
-	- can read from and overwrite active swap files
-	- can overwrite immutable files
-	- doesn't update timestamps
-	- doesn't obey resource limits
-	- doesn't catch overlapping copy ranges to the same file
-	- doesn't consistently implement fallback strategies
-	- does error out when the source range extends past EOF like
-	  the man page says it should
-	- isn't consistent with clone file range behaviour
-	- inconsistent behaviour between filesystems
-	- inconsistent fallback implementations
-
-And so on. There's so much wrong, and I haven't even got to the
-problems that the generic fallback code (i.e. do_splice_direct()
-has). That's for another day.
-
-So, what this series attempts to do is clean up the code, implement
-all the missing checks, provide an infrastructure layout that allows
-for consistent behaviour across filesystems and allows filesysetms
-to control fallback mechanisms and cross-device copies.
-
-I'll repeat that so it's clear: the series also enabled cross-device
-copies once all the problems are sorted out.
-
-To that end, the current fallback code is moved to
-generic_copy_file_range(), and that is called only if the filesystem
-does not provide a ->copy_file_range implementation. If the
-filesystem provides such a method, itmust implement the page cache
-copy fallback itself by calling generic_copy_file_range() when
-appropriate. I did this because different filesystems have different
-copy-offload capabilities and so need to fall back in different
-situations. It's easier to have them call generic_copy_file_range()
-to do that copy when necessary than it is to have them try to
-communicate back up to vfs_copy_file_range() that it should run a
-fallback copy.
-
-To make all the implementations perform the same validity checks, 
-I've created a generic_copy_file_checks() which is similar to the
-checks we do for clone/dedupe. It's not quite the same, but the core
-is very similar. This strips setuid, updates timestamps, checks and
-enforces filesystem and resource limits, bounds checks the copy
-ranges, etc.
-
-This needs to be run before we call ->remap_file_range() so that we
-end up with consistent behaviour across copy_file_range() calls.
-e.g. we want an XFS filesystem with reflink=1 (i.e. supports
-->remap_file_range()) to behave the same as an XFS filesystem with
-reflink=0. Hence we need to check all the parameters up front so we
-don't end up with calls to ->remap_file_range() resulting in
-different behaviour.
-
-It also means that ->copy_file_range implementations only need to
-bounds checking the input against fileystem internal constraints,
-not everything. This makes the filesystem implementations simpler,
-and means they can call the falloback generic_copy_file_range()
-implementation without having to care about further bounds checking.
-
-I have not changed the fallback behaviour of the CIFS, Ceph or NFS
-client implementations. The still reject copy_file_range() to the
-same file with EINVAL, even though it is supported by the fallback
-and filesystems that implement ->remap_file_range(). I'll leave it
-for the maintainers to decide if they want to implement the manual
-data copy fallback or not. My personal opinion is that they should
-implement the fallback where-ever they can, but userspace has to be
-prepared for copy_file_range() to fail and so implementing the
-fallback is an optional feature.
-
-In terms of testing, Darrick and I have been beating the hell out of
-copy_file_range with fsx on XFS to sort out all the data corruption
-problems it has exposed (we're still working on that). Patches have
-been posted to enhance fsx and fsstress in fstests to exercise
-clone/dedupe/copy_file_range. Thread here:
-
-https://www.spinics.net/lists/fstests/msg10920.html
-
-I've also written a bounds/behaviour exercising test:
-
-https://marc.info/?l=fstests&m=154381938829897&w=2
-https://marc.info/?l=fstests&m=154381939029898&w=2
-https://marc.info/?l=fstests&m=154381939229899&w=2
-https://marc.info/?l=fstests&m=154381939329900&w=2
-
-I don't know whether I've got all the permission tests right in this
-patchset. There's absolutely no documentation telling us when we
-should use file_permission, inode_permission, etc in the
-documentation or the code, so I just added the things that made the
-tests do the things i think are the right things to be doing.
-
-To run the tests, you'll also need modifications to xfs_io to allow
-it to modify state appropriately. This is something we have
-overlooked in the past, and so a lots of xfs_io based behaviour
-checking is not actually testing the syscall we thought it was
-testing but is instead testing the permission checking of the open()
-syscall. Those patches are here:
-
-https://marc.info/?l=linux-xfs&m=154378403323889&w=2
-https://marc.info/?l=linux-xfs&m=154378403523890&w=2
-https://marc.info/?l=linux-xfs&m=154378403323888&w=2
-https://marc.info/?l=linux-xfs&m=154379644526132&w=2
-
-These changes really need to go in before we merge any more
-copy_file_range() features - we need to get the basics right and get
-test coverage over it before we unleash things like NFS server-side
-copies on unsuspecting users with filesystems that have busted
-copy_file_range() implementations.
-
-I'll be appending a man page patch to this series that documents all
-the errors this syscall can throw, the expected behaviours, etc. The
-test and the man page were written together first, and the
-implementation changes were done second. So if you don't agree with
-the behaviour, discuss what the man page patch should say and define,
-then I'll change the test to reflect that and I'll go from there.
-
--Dave.
+Thanks,
+Amir.
