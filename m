@@ -1,63 +1,33 @@
 Return-Path: <linux-unionfs-owner@vger.kernel.org>
-Received: from ipmailnode02.adl6.internode.on.net ([150.101.137.148]:60959
-        "EHLO ipmailnode02.adl6.internode.on.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1725937AbeLCIee (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.133]:53300 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725910AbeLDPYh (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 3 Dec 2018 03:34:34 -0500
-From: Dave Chinner <david@fromorbit.com>
-Subject: [PATCH 11/11] ovl: allow cross-device copy_file_range calls
-Date: Mon,  3 Dec 2018 19:34:16 +1100
-Message-Id: <20181203083416.28978-12-david@fromorbit.com>
-In-Reply-To: <20181203083416.28978-1-david@fromorbit.com>
+        Tue, 4 Dec 2018 10:24:37 -0500
+Date: Tue, 4 Dec 2018 07:24:37 -0800
+From: Christoph Hellwig <hch@infradead.org>
+Subject: Re: [PATCH 07/11] vfs: copy_file_range should update file timestamps
+Message-ID: <20181204152437.GG32245@infradead.org>
 References: <20181203083416.28978-1-david@fromorbit.com>
+ <20181203083416.28978-8-david@fromorbit.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20181203083416.28978-8-david@fromorbit.com>
 Sender: linux-unionfs-owner@vger.kernel.org
-To: linux-fsdevel@vger.kernel.org, linux-xfs@vger.kernel.org
-Cc: olga.kornievskaia@gmail.com, linux-nfs@vger.kernel.org, linux-unionfs@vger.kernel.org, ceph-devel@vger.kernel.org, linux-cifs@vger.kernel.org
+To: Dave Chinner <david@fromorbit.com>
+Cc: linux-fsdevel@vger.kernel.org, linux-xfs@vger.kernel.org, olga.kornievskaia@gmail.com, linux-nfs@vger.kernel.org, linux-unionfs@vger.kernel.org, ceph-devel@vger.kernel.org, linux-cifs@vger.kernel.org
 List-ID: <linux-unionfs@vger.kernel.org>
 
-From: Dave Chinner <dchinner@redhat.com>
+On Mon, Dec 03, 2018 at 07:34:12PM +1100, Dave Chinner wrote:
+> From: Dave Chinner <dchinner@redhat.com>
+> 
+> Timestamps are not updated right now, so programs looking for
+> timestamp updates for file modifications (like rsync) will not
+> detect that files have changed. We are also accessing the source
+> data when doing a copy (but not when cloning) so we need to update
+> atime on the source file as well.
 
-Restrictions on cross-device copy_file_range() only affect the
-vfs_copy_file_range() call to the lower filesystems. They will
-handle the copy appropriately, so OVL will never see a EXDEV error
-from them. Hence we can remove the EXDEV checks and error handling
-from the ovl_copy_file_range() implementation.
-
-Signed-off-by: Dave Chinner <dchinner@redhat.com>
----
- fs/overlayfs/file.c | 11 ++---------
- 1 file changed, 2 insertions(+), 9 deletions(-)
-
-diff --git a/fs/overlayfs/file.c b/fs/overlayfs/file.c
-index 34fb0398d016..146901d204df 100644
---- a/fs/overlayfs/file.c
-+++ b/fs/overlayfs/file.c
-@@ -443,14 +443,6 @@ static loff_t ovl_copyfile(struct file *file_in, loff_t pos_in,
- 	const struct cred *old_cred;
- 	loff_t ret;
- 
--	/*
--	 * Temporary. Cross device copy checks should be left to the copy file
--	 * call on the real inodes, but existing behaviour checks the upper
--	 * files only.
--	 */
--	if (file_inode(file_in)->i_sb != file_inode(file_out)->i_sb)
--		return -EXDEV;
--
- 	ret = ovl_real_fdget(file_out, &real_out);
- 	if (ret)
- 		return ret;
-@@ -499,7 +491,8 @@ static ssize_t ovl_copy_file_range(struct file *file_in, loff_t pos_in,
- 	ret =  ovl_copyfile(file_in, pos_in, file_out, pos_out, len, flags,
- 			    OVL_COPY);
- 
--	if (ret == -EOPNOTSUPP || ret == -EXDEV)
-+	WARN_ON_ONCE(ret == -EXDEV);
-+	if (ret == -EOPNOTSUPP)
- 		ret = generic_copy_file_range(file_in, pos_in, file_out,
- 					pos_out, len, flags);
- 	return ret;
--- 
-2.19.1
+This needs to be done inside the method, as a few file systems
+do odd things about timestamps (yes, even now that XFS doesn't do that
+anymore :)).
