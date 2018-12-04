@@ -1,54 +1,54 @@
-From: Stephen Smalley <sds@tycho.nsa.gov>
+From: Vivek Goyal <vgoyal@redhat.com>
 Subject: Re: overlayfs access checks on underlying layers
-Date: Tue, 4 Dec 2018 11:05:46 -0500
-Message-ID: <665ec6f3-f16d-681f-30d5-eface14c9808@tycho.nsa.gov>
-References: <CAJfpeguL9xOh9Eq8LOP=ddJ4YD6nbp2UY6e2AYDVoHeCLuVhZA@mail.gmail.com>
+Date: Tue, 4 Dec 2018 11:15:06 -0500
+Message-ID: <20181204161506.GB16818@redhat.com>
+References: <26bce3be-49c2-cdd8-af03-1a78d0f268ae@tycho.nsa.gov>
+ <CAJfpeguL9xOh9Eq8LOP=ddJ4YD6nbp2UY6e2AYDVoHeCLuVhZA@mail.gmail.com>
  <6b125e8e-413f-f8e6-c7ae-50f7235c8960@tycho.nsa.gov>
  <CAJfpegv6y56k1-Tewu-Pu3x1W75LL6qYB6Hb6=n+2BJoNfEigA@mail.gmail.com>
  <c993dba4-5129-7f04-2724-a82a1f1cafa3@tycho.nsa.gov>
  <f84bbe0b-f4c1-50e0-8c84-a6589154b3ae@tycho.nsa.gov>
  <CAJfpegtBDTMbmKd6eDxRmtSJjGN6CnpGK_QPNSsxjkOoeu=1pQ@mail.gmail.com>
  <4c20a261-5ce1-f0a2-8d40-c6032a023216@tycho.nsa.gov>
- <20181204151549.GA21509@redhat.com> <20181204152248.GB21509@redhat.com>
- <CAJfpegtFVvq286HAorGLg6ywMsfs51KqaQwFkcuV7Dtu8TLaLg@mail.gmail.com>
- <20181204154243.GA16818@redhat.com>
+ <20181204151549.GA21509@redhat.com>
+ <311721a0-26d4-3cf6-1628-acb2c2b1478b@tycho.nsa.gov>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181204154243.GA16818@redhat.com>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <311721a0-26d4-3cf6-1628-acb2c2b1478b@tycho.nsa.gov>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Vivek Goyal <vgoyal@redhat.com>, Miklos Szeredi <miklos@szeredi.hu>
-Cc: Ondrej Mosnacek <omosnace@redhat.com>, "J. Bruce Fields" <bfields@fieldses.org>, Mark Salyzyn <salyzyn@android.com>, Paul Moore <paul@paul-moore.com>, linux-kernel@vger.kernel.org, overlayfs <linux-unionfs@vger.kernel.org>, linux-fsdevel@vger.kernel.org, selinux@vger.kernel.org, Daniel J Walsh <dwalsh@redhat.com>
+To: Stephen Smalley <sds@tycho.nsa.gov>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, Ondrej Mosnacek <omosnace@redhat.com>, "J. Bruce Fields" <bfields@fieldses.org>, Mark Salyzyn <salyzyn@android.com>, Paul Moore <paul@paul-moore.com>, linux-kernel@vger.kernel.org, overlayfs <linux-unionfs@vger.kernel.org>, linux-fsdevel@vger.kernel.org, selinux@vger.kernel.org, Daniel J Walsh <dwalsh@redhat.com>
 List-Id: linux-unionfs@vger.kernel.org
 
-On 12/4/18 10:42 AM, Vivek Goyal wrote:
-> On Tue, Dec 04, 2018 at 04:31:09PM +0100, Miklos Szeredi wrote:
->> On Tue, Dec 4, 2018 at 4:22 PM Vivek Goyal <vgoyal@redhat.com> wrote:
->>
->>> Having said that, this still create little anomaly when mknod to client
->>> is not allowed on context label. So a device file, which is on lower
->>> and client can not open it for read/write on host, it can now be opened
->>> for read/write because mounter will allow access. So why it is different
->>> that regular copy up. Well, in regular copy up, we created a copy of
->>> the original object and allowed writing to that object (cp --preserve=all)
->>> model. But in case of device file, writes will go to same original
->>> object. (And not a separate copy).
->>
->> That's true.
->>
->> In that sense copy up of special file should result in upper having
->> the same label as of lower, right?
-> 
-> I guess that might be reasonable (if this behavior is a concern). So even
-> after copy up, client will not be able to read/write a device if it was
-> not allowed on lower.
-> 
-> Stephen, what do you think about retaining label of lower for device
-> files during copy up. What about socket/fifo.
+On Tue, Dec 04, 2018 at 10:42:35AM -0500, Stephen Smalley wrote:
 
-We don't check client task access to the upper inode label, only to the 
-overlay, right?  So the client is still free to access the device 
-through the overlay even if we preserve the lower inode label on the 
-upper inode?  What do we gain?
+[..]
+> > > Yes, in that case there isn't an escalation of privilege for the mounter (I
+> > > acknowledged that above).  I'm still not sure copy-up of special files is a
+> > > good idea though:
+> > > 
+> > > - In the case of device files, there is the potential for mischief by the
+> > > client task in misusing the mounter's privileges to gain access to otherwise
+> > > unusable device node (nodev lower vs upper?),
+> > 
+> > I was thinking about it as well. But client can always bypass permissions
+> > of lower device inode by first removing device file and then by doing
+> > a mknod. And that will be equivalent of copy up. IOW, IIUC, we do not deny
+> > mknod to client and that always creates a way for it to write to device
+> > file (and it does not matter what are permissions on lower?)
+> 
+> I'm not sure what you mean by "we do not deny mknod to client".  Depends on
+> your policy and what context the client is running in.  Plenty of situations
+> where the client is not allowed to create device files directly, and the
+> mounter is.
+> 
+
+Oh, I meant for the cases where policy allows client to mknod with context
+label. In that case, it does not matter what's the label on lower. Client
+can always bypass it by first removing device node and creating a new
+device node.
+
+Thanks
+Vivek
