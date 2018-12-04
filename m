@@ -1,9 +1,8 @@
 From: Vivek Goyal <vgoyal@redhat.com>
 Subject: Re: overlayfs access checks on underlying layers
-Date: Tue, 4 Dec 2018 10:15:49 -0500
-Message-ID: <20181204151549.GA21509@redhat.com>
-References: <377b7d4f-eb1d-c281-5c67-8ab6de77c881@tycho.nsa.gov>
- <CAJfpegtNhcWD0VWy6LPtoDtQBfPu4x5iFsB053UMCidj6oMsuw@mail.gmail.com>
+Date: Tue, 4 Dec 2018 10:22:48 -0500
+Message-ID: <20181204152248.GB21509@redhat.com>
+References: <CAJfpegtNhcWD0VWy6LPtoDtQBfPu4x5iFsB053UMCidj6oMsuw@mail.gmail.com>
  <26bce3be-49c2-cdd8-af03-1a78d0f268ae@tycho.nsa.gov>
  <CAJfpeguL9xOh9Eq8LOP=ddJ4YD6nbp2UY6e2AYDVoHeCLuVhZA@mail.gmail.com>
  <6b125e8e-413f-f8e6-c7ae-50f7235c8960@tycho.nsa.gov>
@@ -12,126 +11,128 @@ References: <377b7d4f-eb1d-c281-5c67-8ab6de77c881@tycho.nsa.gov>
  <f84bbe0b-f4c1-50e0-8c84-a6589154b3ae@tycho.nsa.gov>
  <CAJfpegtBDTMbmKd6eDxRmtSJjGN6CnpGK_QPNSsxjkOoeu=1pQ@mail.gmail.com>
  <4c20a261-5ce1-f0a2-8d40-c6032a023216@tycho.nsa.gov>
+ <20181204151549.GA21509@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <4c20a261-5ce1-f0a2-8d40-c6032a023216@tycho.nsa.gov>
+In-Reply-To: <20181204151549.GA21509@redhat.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Stephen Smalley <sds@tycho.nsa.gov>
 Cc: Miklos Szeredi <miklos@szeredi.hu>, Ondrej Mosnacek <omosnace@redhat.com>, "J. Bruce Fields" <bfields@fieldses.org>, Mark Salyzyn <salyzyn@android.com>, Paul Moore <paul@paul-moore.com>, linux-kernel@vger.kernel.org, overlayfs <linux-unionfs@vger.kernel.org>, linux-fsdevel@vger.kernel.org, selinux@vger.kernel.org, Daniel J Walsh <dwalsh@redhat.com>
 List-Id: linux-unionfs@vger.kernel.org
 
-On Tue, Dec 04, 2018 at 09:30:53AM -0500, Stephen Smalley wrote:
-> On 12/4/18 8:32 AM, Miklos Szeredi wrote:
-> > On Thu, Nov 29, 2018 at 10:16 PM Stephen Smalley <sds@tycho.nsa.gov> wrote:
+On Tue, Dec 04, 2018 at 10:15:49AM -0500, Vivek Goyal wrote:
+> On Tue, Dec 04, 2018 at 09:30:53AM -0500, Stephen Smalley wrote:
+> > On 12/4/18 8:32 AM, Miklos Szeredi wrote:
+> > > On Thu, Nov 29, 2018 at 10:16 PM Stephen Smalley <sds@tycho.nsa.gov> wrote:
+> > > > 
+> > > > On 11/29/18 4:03 PM, Stephen Smalley wrote:
+> > > > > On 11/29/18 2:47 PM, Miklos Szeredi wrote:
+> > > > > > On Thu, Nov 29, 2018 at 5:14 PM Stephen Smalley <sds@tycho.nsa.gov>
+> > > > > > wrote:
+> > > > > > 
+> > > > > > > Possibly I misunderstood you, but I don't think we want to copy-up on
+> > > > > > > permission denial, as that would still allow the mounter to read/write
+> > > > > > > special files or execute regular files to which it would normally be
+> > > > > > > denied access, because the copy would inherit the context specified by
+> > > > > > > the mounter in the context mount case.  It still represents an
+> > > > > > > escalation of privilege for the mounter.  In contrast, the copy-up on
+> > > > > > > write behavior does not allow the mounter to do anything it could not do
+> > > > > > > already (i.e. read from the lower, write to the upper).
+> > > > > > 
+> > > > > > Let's get this straight:  when file is copied up, it inherits label
+> > > > > > from context=, not from label of lower file?
+> > > > > 
+> > > > > That's correct.  The overlay inodes are all assigned the label from the
+> > > > > context= mount option, and so are any upper inodes created through the
+> > > > > overlay.  At least that's my understanding of how it is supposed to
+> > > > > work.  The original use case was for containers with the lower dir
+> > > > > labeled with a context that is read-only to the container context and
+> > > > > using a context that is writable by the container context for the
+> > > > > context= mount.
+> > > > > 
+> > > > > > Next question: permission to change metadata is tied to permission to
+> > > > > > open?  Is it possible that open is denied, but metadata can be
+> > > > > > changed?
+> > > > > 
+> > > > > There is no metadata change occurring here. The overlay, upper, and
+> > > > > lower inodes all keep their labels intact for their lifetime (both
+> > > > > overlay and upper always have the context= label; upper has whatever its
+> > > >                                                     ^^lower^^
+> > > > 
+> > > > > original label was), unless explicitly relabeled by some process.  And
+> > > > > when viewed through the overlay, the file always has the label specified
+> > > > > via context=, even before the copy-up.
 > > > 
-> > > On 11/29/18 4:03 PM, Stephen Smalley wrote:
-> > > > On 11/29/18 2:47 PM, Miklos Szeredi wrote:
-> > > > > On Thu, Nov 29, 2018 at 5:14 PM Stephen Smalley <sds@tycho.nsa.gov>
-> > > > > wrote:
-> > > > > 
-> > > > > > Possibly I misunderstood you, but I don't think we want to copy-up on
-> > > > > > permission denial, as that would still allow the mounter to read/write
-> > > > > > special files or execute regular files to which it would normally be
-> > > > > > denied access, because the copy would inherit the context specified by
-> > > > > > the mounter in the context mount case.  It still represents an
-> > > > > > escalation of privilege for the mounter.  In contrast, the copy-up on
-> > > > > > write behavior does not allow the mounter to do anything it could not do
-> > > > > > already (i.e. read from the lower, write to the upper).
-> > > > > 
-> > > > > Let's get this straight:  when file is copied up, it inherits label
-> > > > > from context=, not from label of lower file?
-> > > > 
-> > > > That's correct.  The overlay inodes are all assigned the label from the
-> > > > context= mount option, and so are any upper inodes created through the
-> > > > overlay.  At least that's my understanding of how it is supposed to
-> > > > work.  The original use case was for containers with the lower dir
-> > > > labeled with a context that is read-only to the container context and
-> > > > using a context that is writable by the container context for the
-> > > > context= mount.
-> > > > 
-> > > > > Next question: permission to change metadata is tied to permission to
-> > > > > open?  Is it possible that open is denied, but metadata can be
-> > > > > changed?
-> > > > 
-> > > > There is no metadata change occurring here. The overlay, upper, and
-> > > > lower inodes all keep their labels intact for their lifetime (both
-> > > > overlay and upper always have the context= label; upper has whatever its
-> > >                                                     ^^lower^^
+> > > Okay.
 > > > 
-> > > > original label was), unless explicitly relabeled by some process.  And
-> > > > when viewed through the overlay, the file always has the label specified
-> > > > via context=, even before the copy-up.
-> > 
-> > Okay.
-> > 
-> > > > 
-> > > > > DAC model allows this: metadata change is tied to ownership, not mode
-> > > > > bits.   And different capability flag.
 > > > > > 
-> > > > > If the same is true for MAC, then the pre-v4.20-rc1 is already
-> > > > > susceptible to the privilege escalation you describe, right?
-> > > > 
-> > > > Actually, I guess there wouldn't be a privilege escalation if you
-> > > > checked the mounter's ability to create the new file upon copy-up, and
-> > > > checked the mounter's access to the upper inode label upon the
-> > > > subsequent read, write, or execute access.  Then we'd typically block
-> > > > the ability to create the device file and we'd block the ability to
-> > > > execute files with the label from context=.
-> > > > 
-> > > > But copy-up of special files seems undesirable for other reasons (e.g.
-> > > > requiring mounters to be allowed to create device nodes just to permit
-> > > > client's to read/write them, possible implications for nodev/noexec,
-> > > > implications for socket and fifo files).
+> > > > > > DAC model allows this: metadata change is tied to ownership, not mode
+> > > > > > bits.   And different capability flag.
+> > > > > > 
+> > > > > > If the same is true for MAC, then the pre-v4.20-rc1 is already
+> > > > > > susceptible to the privilege escalation you describe, right?
+> > > > > 
+> > > > > Actually, I guess there wouldn't be a privilege escalation if you
+> > > > > checked the mounter's ability to create the new file upon copy-up, and
+> > > > > checked the mounter's access to the upper inode label upon the
+> > > > > subsequent read, write, or execute access.  Then we'd typically block
+> > > > > the ability to create the device file and we'd block the ability to
+> > > > > execute files with the label from context=.
+> > > > > 
+> > > > > But copy-up of special files seems undesirable for other reasons (e.g.
+> > > > > requiring mounters to be allowed to create device nodes just to permit
+> > > > > client's to read/write them, possible implications for nodev/noexec,
+> > > > > implications for socket and fifo files).
+> > > 
+> > > I think you missed my point: opening a device file or executing an
+> > > executable wouldn't normally require copy-up.   If
+> > > 
+> > >   -  permission is granted on overlay to task, and
+> > >   -  permission is granted on lower layer to mounter,
+> > > 
+> > > then copy-up wouldn't be performed.
+> > > 
+> > > My proposed sequence would be
+> > > 
+> > > a) check task's creds against overlay inode, fail -> return fail, otherwise:
+> > > b) check mounter's creds against lower inode, success -> return
+> > > success, otherwise:
+> > > c) copy up inode, fail -> return fail, otherwise
+> > > d) check mounter's creds against upper inode, return result.
+> > > 
+> > > So, unlike write access to regular files, write access to special
+> > > files don't necessarily result in copy-up.
+> > > 
+> > > You say this is an escalation of privilege, but I don't get it how.
+> > > As DWalsh points out downthread, if mounter cannot create device
+> > > files, then the copy-up will simply fail.  If mounter can create
+> > > device files, then this is not an escalation of privilege for the
+> > > mounter.
 > > 
-> > I think you missed my point: opening a device file or executing an
-> > executable wouldn't normally require copy-up.   If
+> > Yes, in that case there isn't an escalation of privilege for the mounter (I
+> > acknowledged that above).  I'm still not sure copy-up of special files is a
+> > good idea though:
 > > 
-> >   -  permission is granted on overlay to task, and
-> >   -  permission is granted on lower layer to mounter,
-> > 
-> > then copy-up wouldn't be performed.
-> > 
-> > My proposed sequence would be
-> > 
-> > a) check task's creds against overlay inode, fail -> return fail, otherwise:
-> > b) check mounter's creds against lower inode, success -> return
-> > success, otherwise:
-> > c) copy up inode, fail -> return fail, otherwise
-> > d) check mounter's creds against upper inode, return result.
-> > 
-> > So, unlike write access to regular files, write access to special
-> > files don't necessarily result in copy-up.
-> > 
-> > You say this is an escalation of privilege, but I don't get it how.
-> > As DWalsh points out downthread, if mounter cannot create device
-> > files, then the copy-up will simply fail.  If mounter can create
-> > device files, then this is not an escalation of privilege for the
-> > mounter.
+> > - In the case of device files, there is the potential for mischief by the
+> > client task in misusing the mounter's privileges to gain access to otherwise
+> > unusable device node (nodev lower vs upper?),
 > 
-> Yes, in that case there isn't an escalation of privilege for the mounter (I
-> acknowledged that above).  I'm still not sure copy-up of special files is a
-> good idea though:
-> 
-> - In the case of device files, there is the potential for mischief by the
-> client task in misusing the mounter's privileges to gain access to otherwise
-> unusable device node (nodev lower vs upper?),
+> I was thinking about it as well. But client can always bypass permissions
+> of lower device inode by first removing device file and then by doing
+> a mknod. And that will be equivalent of copy up. IOW, IIUC, we do not deny
+> mknod to client and that always creates a way for it to write to device
+> file (and it does not matter what are permissions on lower?)
 
-I was thinking about it as well. But client can always bypass permissions
-of lower device inode by first removing device file and then by doing
-a mknod. And that will be equivalent of copy up. IOW, IIUC, we do not deny
-mknod to client and that always creates a way for it to write to device
-file (and it does not matter what are permissions on lower?)
-
-> - In the case of sockets or fifos, what useful result do you get from a
-> copy-up? Accessing the copy isn't going to yield the same result as
-> accessing the original.
-
-sockets and fifos use overlay inode number (and not lower/upper inode
-number). So even if we create a copy things continue to work. Copying
-up will make sense upon owner or permission change to determine who
-can open socket/fifo in future?
+Having said that, this still create little anomaly when mknod to client
+is not allowed on context label. So a device file, which is on lower
+and client can not open it for read/write on host, it can now be opened
+for read/write because mounter will allow access. So why it is different
+that regular copy up. Well, in regular copy up, we created a copy of
+the original object and allowed writing to that object (cp --preserve=all)
+model. But in case of device file, writes will go to same original
+object. (And not a separate copy).
 
 Thanks
 Vivek
