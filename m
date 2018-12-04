@@ -1,81 +1,128 @@
-Return-Path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-yb1-f193.google.com ([209.85.219.193]:43707 "EHLO
-        mail-yb1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726209AbeLAUg6 (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Sat, 1 Dec 2018 15:36:58 -0500
+Return-Path: <metan@suse.de>
+Date: Tue, 4 Dec 2018 15:10:12 +0100
+From: Cyril Hrubis <chrubis@suse.cz>
+Subject: Re: [PATCH v4 6/6] syscalls/readahead02: test readahead using
+ posix_fadvise()
+Message-ID: <20181204141012.GB24114@rei.lan>
+References: <20181128164645.783-1-amir73il@gmail.com>
+ <20181128164645.783-7-amir73il@gmail.com>
 MIME-Version: 1.0
-References: <20181130051253.GB7100@sh-el5.eng.rdu2.redhat.com>
- <20181130121506.GI2299@dhcp-12-149.nay.redhat.com> <CAOQ4uxg9MdMbkM5+CuXK-VmmqxF8UmNkNqeKTHoxOtTnQ2=LnQ@mail.gmail.com>
- <20181130182322.GM8125@magnolia>
-In-Reply-To: <20181130182322.GM8125@magnolia>
-From: Amir Goldstein <amir73il@gmail.com>
-Date: Sat, 1 Dec 2018 11:24:41 +0200
-Message-ID: <CAOQ4uxjxTXZ14pcvy5wkJrwP012BdStx8gSNL=dkkOW1BXKT-g@mail.gmail.com>
-Subject: Re: [4.20-rc4 regression] generic/095 Concurrent mixed I/O hang on
- xfs based overlayfs
-Content-Type: text/plain; charset="UTF-8"
-Sender: linux-unionfs-owner@vger.kernel.org
-To: "Darrick J. Wong" <darrick.wong@oracle.com>
-Cc: Dave Chinner <david@fromorbit.com>, jencce.kernel@gmail.com, linux-xfs <linux-xfs@vger.kernel.org>, overlayfs <linux-unionfs@vger.kernel.org>, Zorro Lang <zlang@redhat.com>, fstests <fstests@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20181128164645.783-7-amir73il@gmail.com>
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: ltp@lists.linux.it, Jan Stancek <jstancek@redhat.com>, Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org
 List-ID: <linux-unionfs@vger.kernel.org>
 
-> > Darrick,
-> >
-> > This is my cue to insert a rant. You already know what I am going to rant about.
-> >
-> > I cannot force you to add a check -overlay xfstests run to your pull
-> > request validation
-> > routine. I can offer assistance in any questions you may have and I can offer
-> > support for check -overlay infrastructure if it breaks or if it needs
-> > improvements.
-> >
-> > I have checked on several recent point releases that check -overlay does not
-> > regress any tests compared to xfs reflink configuration, and when I
-> > found a regression
-> > (mostly in overlayfs code, but also in xfs code sometimes) I reported
-> > and/or fixed it.
-> > But I do not have the resources to validate every xfs merge and
-> > certainly not xfs-next.
-> >
-> > There is a large group of tests that is expected to notrun, which
-> > makes running the
-> > -overlay test a lot faster than any given xfs configuration and IMO
-> > running just a single
-> > xfs reflink config with -overlay would give a pretty good test coverage.
-> >
-> > So what do you say?...
->
-> Frankly I'd rather push the kernelci/0day/lf/whoever folks to kick off
-> fstests across all the major filesystems after the daily for-next merge
-> so that we can all see if there are regressions over the previous day's
-> test.  IOWs, rather than loading ourselves down with more testing
-> burden, let's make it more public.
->
-> I've received occasional reports from the 0day robot, but I'm not sure
-> if it's testing consistently because it only ever seems to emit
-> complaints, not "I love your branch and even better nothing regressed!".
->
+Hi!
+> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+> ---
+>  .../kernel/syscalls/readahead/readahead02.c   | 41 +++++++++++++++----
+>  1 file changed, 34 insertions(+), 7 deletions(-)
+> 
+> diff --git a/testcases/kernel/syscalls/readahead/readahead02.c b/testcases/kernel/syscalls/readahead/readahead02.c
+> index 73c8a6ce6..44475487e 100644
+> --- a/testcases/kernel/syscalls/readahead/readahead02.c
+> +++ b/testcases/kernel/syscalls/readahead/readahead02.c
+> @@ -54,12 +54,30 @@ static struct tst_option options[] = {
+>  static struct tcase {
+>  	const char *tname;
+>  	int use_overlay;
+> +	int use_fadvise;
+>  } tcases[] = {
+> -	{ "readahead on file", 0 },
+> -	{ "readahead on overlayfs file", 1 },
+> +	{ "readahead on file", 0, 0 },
+> +	{ "readahead on overlayfs file", 1, 0 },
+> +	{ "POSIX_FADV_WILLNEED on file", 0, 1 },
+> +	{ "POSIX_FADV_WILLNEED on overlayfs file", 1, 1 },
+>  };
+>  
+> +static int fadvise_willneed(int fd, off_t offset, size_t len)
+> +{
+> +	/* Should have the same effect as readahead() syscall */
+> +	return posix_fadvise(fd, offset, len, POSIX_FADV_WILLNEED);
+> +}
+> +
+> +static int libc_readahead(int fd, off_t offset, size_t len)
+> +{
+> +	return readahead(fd, offset, len);
+> +}
+> +
+> +typedef int (*readahead_func_t)(int, off_t, size_t);
+> +static readahead_func_t readahead_func = libc_readahead;
 
-That would indeed be great if we had some more knowledge about
-what is being tested by 0day and friends.
+It's kind of useless to typedef a new type just to define one variable.
 
-Regardless, check -overlay had already found several bugs in XFS code
-(I can look it up, but you know what I mean), so I argue that it would be
-beneficial to you as XFS maintainer and not only to overlayfs users if
-you run check -overlay on pull request branches.
-Consider overlayfs as a unit test for some of the XFS VFS interfaces
-that are harder (or impossible) to hit from userspace.
-Besides, as I said, the cost of running check -overlay on a single reflink
-config is relatively cheap, so please consider running it occasionally to be
-a head of those type of bugs.
+Also as we are making wrappers around these functions we should really
+handle the differencies in error reporting inside of these wrappers,
+i.e. change the fadvise_willneed() so that the function sets errno on a
+failure to avoid details like that leaking into the test code.
 
-> That said, this *does* confirm Zorro's earlier point that I should give
-> him a week to test xfs for-next before pushing to Linus.
->
+Also if we want to switch later on to the all_filesystems we have to
+avoid having preset values so it would make sense to have the readahead
+function pointer in the tcase structure.
 
-It looks like between Zorro and yourself, overlayfs+xfs bugs should not
-be slipping in to master anymore, so I'm happy with the way things are :-)
+>  static int readahead_supported = 1;
+> +static int fadvise_supported = 1;
+>  
+>  static int has_file(const char *fname, int required)
+>  {
+> @@ -135,7 +153,6 @@ static void create_testfile(int use_overlay)
+>  	free(tmp);
+>  }
+>  
+> -
+>  /* read_testfile - mmap testfile and read every page.
+>   * This functions measures how many I/O and time it takes to fully
+>   * read contents of test file.
+> @@ -163,7 +180,7 @@ static void read_testfile(int do_readahead, const char *fname, size_t fsize,
+>  	if (do_readahead) {
+>  		cached_start = get_cached_size();
+>  		do {
+> -			TEST(readahead(fd, offset, fsize - offset));
+> +			TEST(readahead_func(fd, offset, fsize - offset));
+>  			if (TST_RET != 0) {
+>  				SAFE_CLOSE(fd);
+>  				return;
+> @@ -241,6 +258,9 @@ static void test_readahead(unsigned int n)
+>  
+>  	create_testfile(tc->use_overlay);
+>  
+> +	/* Use either readahead() syscall or POSIX_FADV_WILLNEED */
+> +	readahead_func = tc->use_fadvise ? fadvise_willneed : libc_readahead;
+> +
+>  	/* find out how much can cache hold if we read whole file */
+>  	read_testfile(0, testfile, testfile_size, &read_bytes, &usec, &cached);
+>  	cached_high = get_cached_size();
+> @@ -263,13 +283,20 @@ static void test_readahead(unsigned int n)
+>  	read_testfile(1, testfile, testfile_size, &read_bytes_ra,
+>  		      &usec_ra, &cached_ra);
+>  	if (TST_RET != 0) {
+> -		if (TST_ERR == EINVAL &&
+> -		    (!tc->use_overlay || !readahead_supported)) {
+> +		/* posix_fadvise returns error number (not in errno) */
+> +		if (tc->use_fadvise && (TST_ERR = TST_RET) == EINVAL &&
+> +		    (!tc->use_overlay || !fadvise_supported)) {
+> +			fadvise_supported = 0;
+> +			tst_res(TCONF, "fadvise not supported on %s",
+> +				tst_device->fs_type);
+> +		} else if (TST_ERR == EINVAL &&
+> +			   (!tc->use_overlay || !readahead_supported)) {
+>  			readahead_supported = 0;
+>  			tst_res(TCONF, "readahead not supported on %s",
+>  				tst_device->fs_type);
+>  		} else {
+> -			tst_res(TFAIL | TTERRNO, "readahead failed on %s",
+> +			tst_res(TFAIL | TTERRNO, "%s failed on %s",
+> +				tc->use_fadvise ? "fadvise" : "readahead",
+>  				tc->use_overlay ? "overlayfs" :
+>  				tst_device->fs_type);
+>  		}
+> -- 
+> 2.17.1
+> 
 
-Thanks,
-Amir.
+-- 
+Cyril Hrubis
+chrubis@suse.cz
