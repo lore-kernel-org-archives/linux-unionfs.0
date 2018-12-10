@@ -1,41 +1,55 @@
-Return-Path: <amir73il@gmail.com>
-MIME-Version: 1.0
+Return-Path: <VincentGuerard@eaton.com>
+From: "Guerard, Vincent" <VincentGuerard@eaton.com>
+Subject: RE: [EXTERNAL]  Re: Copy_up function fail with ubifs on upper layer
+Date: Mon, 10 Dec 2018 18:54:03 +0000
+Message-ID: <D10F1B1F86300941BC976D07C04B3AA0016E5E59@LOUTCSMB11.napa.ad.etn.com>
 References: <D10F1B1F86300941BC976D07C04B3AA0016E4CC7@LOUTCSMB11.napa.ad.etn.com>
- <CAJfpegsAxBZ0wHLMs-oBMqf8oAFaZr5f96jgYjb1TOQ_V5fcpw@mail.gmail.com> <D10F1B1F86300941BC976D07C04B3AA0016E5E59@LOUTCSMB11.napa.ad.etn.com>
-In-Reply-To: <D10F1B1F86300941BC976D07C04B3AA0016E5E59@LOUTCSMB11.napa.ad.etn.com>
-From: Amir Goldstein <amir73il@gmail.com>
-Date: Mon, 10 Dec 2018 22:37:46 +0200
-Message-ID: <CAOQ4uxip5zOUWwg4j3kWuQMPe83F=bwrtHQK0BfmQE=AGm8=5w@mail.gmail.com>
-Subject: Re: [EXTERNAL] Re: Copy_up function fail with ubifs on upper layer
-Content-Type: text/plain; charset="UTF-8"
-To: VincentGuerard@eaton.com
-Cc: Miklos Szeredi <miklos@szeredi.hu>, overlayfs <linux-unionfs@vger.kernel.org>, Richard Weinberger <richard@nod.at>
+ <CAJfpegsAxBZ0wHLMs-oBMqf8oAFaZr5f96jgYjb1TOQ_V5fcpw@mail.gmail.com>
+In-Reply-To: <CAJfpegsAxBZ0wHLMs-oBMqf8oAFaZr5f96jgYjb1TOQ_V5fcpw@mail.gmail.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+MIME-Version: 1.0
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-On Mon, Dec 10, 2018 at 10:02 PM Guerard, Vincent
-<VincentGuerard@eaton.com> wrote:
->
-> Here's the output when overlayfs try to do a copy up with the original function calls order and with debug enabled:
->
-> root@io2200:/etc# mv machine-id machine-id1
-> mv: cannot move 'machine-id' to 'machine-id1': No such file or directory
-> root@io2200:/etc# dmesg
-> [ 2999.275275] tmpfile(upper.work/work, 0100644) = 0
-> [ 2999.278789] setxattr(work/#232, "trusted.overlay.origin", "(null)", 0x0) = -2
->
-> And here's with inverted function calls:
-> root@io2200:/etc# mv securetty securetty1
-> root@io2200:/etc# dmesg
-> [  659.515200] tmpfile(upper.work/work, 0100400) = 0
-> [  659.515422] link(work/#164, etc/securetty) = 0
-> [  659.518577] setxattr(work/#164, "trusted.overlay.origin", "(null)", 0x0) = 0
-> [  659.522153] rename(etc/securetty, etc/securetty1, 0x4)
->
-
-Maybe this is the patch you need:
-https://marc.info/?l=linux-unionfs&m=154070087430992&w=2
-
-Not sure if it is upstream already.
-
-Thanks,
-Amir.
+SGVyZSdzIHRoZSBvdXRwdXQgd2hlbiBvdmVybGF5ZnMgdHJ5IHRvIGRvIGEgY29weSB1cCB3aXRo
+IHRoZSBvcmlnaW5hbCBmdW5jdGlvbiBjYWxscyBvcmRlciBhbmQgd2l0aCBkZWJ1ZyBlbmFibGVk
+Og0KDQpyb290QGlvMjIwMDovZXRjIyBtdiBtYWNoaW5lLWlkIG1hY2hpbmUtaWQxDQptdjogY2Fu
+bm90IG1vdmUgJ21hY2hpbmUtaWQnIHRvICdtYWNoaW5lLWlkMSc6IE5vIHN1Y2ggZmlsZSBvciBk
+aXJlY3RvcnkNCnJvb3RAaW8yMjAwOi9ldGMjIGRtZXNnDQpbIDI5OTkuMjc1Mjc1XSB0bXBmaWxl
+KHVwcGVyLndvcmsvd29yaywgMDEwMDY0NCkgPSAwDQpbIDI5OTkuMjc4Nzg5XSBzZXR4YXR0cih3
+b3JrLyMyMzIsICJ0cnVzdGVkLm92ZXJsYXkub3JpZ2luIiwgIihudWxsKSIsIDB4MCkgPSAtMg0K
+DQpBbmQgaGVyZSdzIHdpdGggaW52ZXJ0ZWQgZnVuY3Rpb24gY2FsbHM6DQpyb290QGlvMjIwMDov
+ZXRjIyBtdiBzZWN1cmV0dHkgc2VjdXJldHR5MQ0Kcm9vdEBpbzIyMDA6L2V0YyMgZG1lc2cNClsg
+IDY1OS41MTUyMDBdIHRtcGZpbGUodXBwZXIud29yay93b3JrLCAwMTAwNDAwKSA9IDANClsgIDY1
+OS41MTU0MjJdIGxpbmsod29yay8jMTY0LCBldGMvc2VjdXJldHR5KSA9IDANClsgIDY1OS41MTg1
+NzddIHNldHhhdHRyKHdvcmsvIzE2NCwgInRydXN0ZWQub3ZlcmxheS5vcmlnaW4iLCAiKG51bGwp
+IiwgMHgwKSA9IDANClsgIDY1OS41MjIxNTNdIHJlbmFtZShldGMvc2VjdXJldHR5LCBldGMvc2Vj
+dXJldHR5MSwgMHg0KQ0KDQpUaGFua3MsDQpWaW5jZW50IEd1w6lyYXJkDQoNCg0KLS0tLS1Pcmln
+aW5hbCBNZXNzYWdlLS0tLS0NCkZyb206IE1pa2xvcyBTemVyZWRpIFttYWlsdG86bWlrbG9zQHN6
+ZXJlZGkuaHVdIA0KU2VudDogRGVjZW1iZXIgMTAsIDIwMTggNDoyNyBBTQ0KVG86IEd1ZXJhcmQs
+IFZpbmNlbnQNClN1YmplY3Q6IFtFWFRFUk5BTF0gUmU6IENvcHlfdXAgZnVuY3Rpb24gZmFpbCB3
+aXRoIHViaWZzIG9uIHVwcGVyIGxheWVyDQoNCk9uIE1vbiwgRGVjIDMsIDIwMTggYXQgODo1MSBQ
+TSBHdWVyYXJkLCBWaW5jZW50IDxWaW5jZW50R3VlcmFyZEBlYXRvbi5jb20+IHdyb3RlOg0KPg0K
+PiBIZWxsbywNCj4NCj4NCj4NCj4gSeKAmW0gdXNpbmcgdGhlIExpbnV4IGtlcm5lbCA0LjE0IG9m
+IFRleGFzIEluc3RydW1lbnRzLCB3aGljaCBoYXZlIHRoaXMgDQo+IHBhdGNoIGluIHRoZSB1Ymlm
+cyBmaWxlIHN5c3RlbSBjb2RlOiANCj4gaHR0cHM6Ly9sb3JlLmtlcm5lbC5vcmcvcGF0Y2h3b3Jr
+L3BhdGNoLzk2MDUwMi8NCj4NCj4gSeKAmW0gdXNpbmcgYSB1YmlmcyBmaWxlIHN5c3RlbSBhcyB0
+aGUgdXBwZXIgbGF5ZXIgb2YgYW4gb3ZlcmxheSwgc28gd2hlbiBvdmVybGF5ZnMgdHJ5IHRvIGRv
+IGEgY29weSB1cCBvZiBhIGZpbGUsIGl0IGZhaWwgd2l0aCBFTk9FTlQuDQoNCkNvdWxkIHlvdSBw
+bGVhc2UgZW5hYmxlIGRlYnVnZ2luZyB3aXRoOg0KDQogIGVjaG8gImZpbGUgZnMvb3ZlcmxheWZz
+LyogK3AiID4gPGRlYnVnZnM+L2R5bmFtaWNfZGVidWcvY29udHJvbA0KDQo/DQoNCkFsc28gd291
+bGQgeW91IG1pbmQgYWRkaW5nIDxsaW51eC11bmlvbmZzQHZnZXIua2VybmVsLm9yZz4gdG8gdGhl
+IGRpc2N1c3Npb24/DQoNCj4NCj4gVGhlIHdvcmthcm91bmQgSSBmb3VuZCB3YXMgdG8gaW52ZXJ0
+IHRoZSBjYWxsICBvZiBjb3B5X3VwX2lub2RlIGFuZCBvdmxfaW5zdGFsbF90ZW1wIGluIHRoZSBm
+dW5jdGlvbiBvdmxfY29weV91cF9sb2NrZWQuDQo+DQo+DQo+DQo+IEnigJl2ZSBydW4gdGhlIGJh
+c2ljIG92ZXJsYXlmcyB0ZXN0cyB3aGljaCBJIGZvdW5kIGF0IDogaHR0cHM6Ly9naXRodWIuY29t
+L2FtaXI3M2lsL292ZXJsYXlmcy93aWtpL092ZXJsYXlmcy10ZXN0aW5nIGFuZCBhbGwgdGVzdHMg
+cGFzc2VkLg0KPg0KPg0KPg0KPiBTbyBteSBxdWVzdGlvbnMgYXJlIDoNCj4NCj4gSXMgaXQgb2th
+eSB0byBpbnZlcnQgdGhlc2UgY2FsbCBpbiB0aGlzIGNhc2U/DQoNCkludmVydGluZyB0aGUgY2Fs
+bHMgbWFrZSB0aGUgY29weS11cCBvcGVyYXRpb24gbm9uLWF0b21pYy4gICBUaGlzDQpzaG91bGRu
+J3Qgbm9ybWFsbHkgYmUgYW4gaXNzdWUsIG9ubHkgd2hlbiBlLmcuIHBvd2VyIGlzIGxvc3QgaW4g
+dGhlIG1pZGRsZSBvZiB0aGUgb3BlcmF0aW9uIGFuZCBhZnRlciByZWJvb3QgdGhlIG92ZXJsYXkg
+d2lsbCBiZSBjb3JydXB0ZWQuDQoNClRoYW5rcywNCk1pa2xvcw0K
