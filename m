@@ -1,48 +1,41 @@
 Return-Path: <linux-fsdevel-owner@vger.kernel.org>
-Date: Thu, 13 Dec 2018 08:05:21 -0600
-From: Goldwyn Rodrigues <rgoldwyn@suse.de>
+Date: Thu, 13 Dec 2018 12:34:44 +0000
+From: Al Viro <viro@zeniv.linux.org.uk>
 Subject: Re: [PATCH] fs: Evaluate O_WRONLY | O_RDWR to O_RDWR
-Message-ID: <20181213140521.f3wbfrnh3zwk24td@merlin>
+Message-ID: <20181213123444.GN2217@ZenIV.linux.org.uk>
 References: <20181213115717.p7ncktng2ihxw5md@merlin>
  <20181213121000.GM2217@ZenIV.linux.org.uk>
  <CACT4Y+Y3Kv6LacRYzZbuNqOAMC7=z-oYUn5aQbN7j-R_JJq6RA@mail.gmail.com>
- <20181213123444.GN2217@ZenIV.linux.org.uk>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20181213123444.GN2217@ZenIV.linux.org.uk>
+In-Reply-To: <CACT4Y+Y3Kv6LacRYzZbuNqOAMC7=z-oYUn5aQbN7j-R_JJq6RA@mail.gmail.com>
 Sender: linux-fsdevel-owner@vger.kernel.org
-To: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Dmitry Vyukov <dvyukov@google.com>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Amir Goldstein <amir73il@gmail.com>, Mimi Zohar <zohar@linux.ibm.com>, syzbot+ae82084b07d0297e566b@syzkaller.appspotmail.com, syzkaller-bugs <syzkaller-bugs@googlegroups.com>, linux-integrity@vger.kernel.org, overlayfs <linux-unionfs@vger.kernel.org>
+To: Dmitry Vyukov <dvyukov@google.com>
+Cc: Goldwyn Rodrigues <rgoldwyn@suse.de>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Amir Goldstein <amir73il@gmail.com>, Mimi Zohar <zohar@linux.ibm.com>, syzbot+ae82084b07d0297e566b@syzkaller.appspotmail.com, syzkaller-bugs <syzkaller-bugs@googlegroups.com>, linux-integrity@vger.kernel.org, overlayfs <linux-unionfs@vger.kernel.org>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-On 12:34 13/12, Al Viro wrote:
-> On Thu, Dec 13, 2018 at 01:16:45PM +0100, Dmitry Vyukov wrote:
-> > On Thu, Dec 13, 2018 at 1:10 PM Al Viro <viro@zeniv.linux.org.uk> wrote:
+On Thu, Dec 13, 2018 at 01:16:45PM +0100, Dmitry Vyukov wrote:
+> On Thu, Dec 13, 2018 at 1:10 PM Al Viro <viro@zeniv.linux.org.uk> wrote:
+> >
+> > On Thu, Dec 13, 2018 at 05:57:17AM -0600, Goldwyn Rodrigues wrote:
+> > > A user can open(O_WRONLY | O_RDWR) and the options are valid.
+> > > However, OPEN_FMODE() evaluates both FMODE_READ and FMODE_WRITE,
+> > > as negative. We also need to protect the lower layers from this
+> > > anomaly.
 > > >
-> > > On Thu, Dec 13, 2018 at 05:57:17AM -0600, Goldwyn Rodrigues wrote:
-> > > > A user can open(O_WRONLY | O_RDWR) and the options are valid.
-> > > > However, OPEN_FMODE() evaluates both FMODE_READ and FMODE_WRITE,
-> > > > as negative. We also need to protect the lower layers from this
-> > > > anomaly.
-> > > >
-> > > > Solve it by dropping O_WRONLY, so O_RDWR takes precedence.
-> > >
-> > > Congratulations, you've broken fdutils...  Passing 3 in lower bits
-> > > of open() flags is *not* the same as O_RDWR; behaiviour is
-> > > different and deliberately chosen by existing userland code.
-> > >
-> > > IOW, NAK.
-> > 
-> > I am eager to hear what it means then.
+> > > Solve it by dropping O_WRONLY, so O_RDWR takes precedence.
+> >
+> > Congratulations, you've broken fdutils...  Passing 3 in lower bits
+> > of open() flags is *not* the same as O_RDWR; behaiviour is
+> > different and deliberately chosen by existing userland code.
+> >
+> > IOW, NAK.
 > 
-> Open for ioctls, basically.  No read/write allowed, no checks for
-> media writability, etc. done at open() time, both read and write
-> *permissions* required from device node.
-> 
-> Think of the things like formatting a floppy, for example...
+> I am eager to hear what it means then.
 
-Sorry, I was not aware of the ioctl usage. Thanks.
+Open for ioctls, basically.  No read/write allowed, no checks for
+media writability, etc. done at open() time, both read and write
+*permissions* required from device node.
 
--- 
-Goldwyn
+Think of the things like formatting a floppy, for example...
