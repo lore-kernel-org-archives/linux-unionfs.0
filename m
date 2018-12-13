@@ -1,74 +1,48 @@
-Return-Path: <linux-unionfs-owner@vger.kernel.org>
-Received: from ipmailnode02.adl6.internode.on.net ([150.101.137.148]:39077
-        "EHLO ipmailnode02.adl6.internode.on.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1725930AbeLCIee (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 3 Dec 2018 03:34:34 -0500
-From: Dave Chinner <david@fromorbit.com>
-Subject: [PATCH 08/11] vfs: push EXDEV check down into ->remap_file_range
-Date: Mon,  3 Dec 2018 19:34:13 +1100
-Message-Id: <20181203083416.28978-9-david@fromorbit.com>
-In-Reply-To: <20181203083416.28978-1-david@fromorbit.com>
-References: <20181203083416.28978-1-david@fromorbit.com>
+Return-Path: <linux-fsdevel-owner@vger.kernel.org>
+Date: Thu, 13 Dec 2018 08:05:21 -0600
+From: Goldwyn Rodrigues <rgoldwyn@suse.de>
+Subject: Re: [PATCH] fs: Evaluate O_WRONLY | O_RDWR to O_RDWR
+Message-ID: <20181213140521.f3wbfrnh3zwk24td@merlin>
+References: <20181213115717.p7ncktng2ihxw5md@merlin>
+ <20181213121000.GM2217@ZenIV.linux.org.uk>
+ <CACT4Y+Y3Kv6LacRYzZbuNqOAMC7=z-oYUn5aQbN7j-R_JJq6RA@mail.gmail.com>
+ <20181213123444.GN2217@ZenIV.linux.org.uk>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Sender: linux-unionfs-owner@vger.kernel.org
-To: linux-fsdevel@vger.kernel.org, linux-xfs@vger.kernel.org
-Cc: olga.kornievskaia@gmail.com, linux-nfs@vger.kernel.org, linux-unionfs@vger.kernel.org, ceph-devel@vger.kernel.org, linux-cifs@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20181213123444.GN2217@ZenIV.linux.org.uk>
+Sender: linux-fsdevel-owner@vger.kernel.org
+To: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Dmitry Vyukov <dvyukov@google.com>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Amir Goldstein <amir73il@gmail.com>, Mimi Zohar <zohar@linux.ibm.com>, syzbot+ae82084b07d0297e566b@syzkaller.appspotmail.com, syzkaller-bugs <syzkaller-bugs@googlegroups.com>, linux-integrity@vger.kernel.org, overlayfs <linux-unionfs@vger.kernel.org>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-From: Dave Chinner <dchinner@redhat.com>
+On 12:34 13/12, Al Viro wrote:
+> On Thu, Dec 13, 2018 at 01:16:45PM +0100, Dmitry Vyukov wrote:
+> > On Thu, Dec 13, 2018 at 1:10 PM Al Viro <viro@zeniv.linux.org.uk> wrote:
+> > >
+> > > On Thu, Dec 13, 2018 at 05:57:17AM -0600, Goldwyn Rodrigues wrote:
+> > > > A user can open(O_WRONLY | O_RDWR) and the options are valid.
+> > > > However, OPEN_FMODE() evaluates both FMODE_READ and FMODE_WRITE,
+> > > > as negative. We also need to protect the lower layers from this
+> > > > anomaly.
+> > > >
+> > > > Solve it by dropping O_WRONLY, so O_RDWR takes precedence.
+> > >
+> > > Congratulations, you've broken fdutils...  Passing 3 in lower bits
+> > > of open() flags is *not* the same as O_RDWR; behaiviour is
+> > > different and deliberately chosen by existing userland code.
+> > >
+> > > IOW, NAK.
+> > 
+> > I am eager to hear what it means then.
+> 
+> Open for ioctls, basically.  No read/write allowed, no checks for
+> media writability, etc. done at open() time, both read and write
+> *permissions* required from device node.
+> 
+> Think of the things like formatting a floppy, for example...
 
-before we can enable cross-device copies into copy_file_range(),
-we have to ensure that ->remap_file_range() implemenations will
-correctly reject attempts to do cross filesystem clones. Currently
-these checks are done above calls to ->remap_file_range(), but
-we need to drive them inwards so that we get EXDEV protection for all
-callers of ->remap_file_range().
+Sorry, I was not aware of the ioctl usage. Thanks.
 
-Signed-off-by: Dave Chinner <dchinner@redhat.com>
----
- fs/read_write.c | 21 +++++++++++++--------
- 1 file changed, 13 insertions(+), 8 deletions(-)
-
-diff --git a/fs/read_write.c b/fs/read_write.c
-index 3288db1d5f21..174cf92eea1d 100644
---- a/fs/read_write.c
-+++ b/fs/read_write.c
-@@ -1909,6 +1909,19 @@ int generic_remap_file_range_prep(struct file *file_in, loff_t pos_in,
- 	bool same_inode = (inode_in == inode_out);
- 	int ret;
- 
-+	/*
-+	 * FICLONE/FICLONERANGE ioctls enforce that src and dest files are on
-+	 * the same mount. Practically, they only need to be on the same file
-+	 * system. We check this here rather than at the ioctl layers because
-+	 * this is effectively a limitation of the fielsystem implementations,
-+	 * not so much the API itself. Further, ->remap_file_range() can be
-+	 * called from syscalls that don't have cross device copy restrictions
-+	 * (such as copy_file_range()) and so we need to catch them before we
-+	 * do any damage.
-+	 */
-+	if (inode_in->i_sb != inode_out->i_sb)
-+		return -EXDEV;
-+
- 	/* Don't touch certain kinds of inodes */
- 	if (IS_IMMUTABLE(inode_out))
- 		return -EPERM;
-@@ -2013,14 +2026,6 @@ loff_t do_clone_file_range(struct file *file_in, loff_t pos_in,
- 	if (!S_ISREG(inode_in->i_mode) || !S_ISREG(inode_out->i_mode))
- 		return -EINVAL;
- 
--	/*
--	 * FICLONE/FICLONERANGE ioctls enforce that src and dest files are on
--	 * the same mount. Practically, they only need to be on the same file
--	 * system.
--	 */
--	if (inode_in->i_sb != inode_out->i_sb)
--		return -EXDEV;
--
- 	if (!(file_in->f_mode & FMODE_READ) ||
- 	    !(file_out->f_mode & FMODE_WRITE) ||
- 	    (file_out->f_flags & O_APPEND))
 -- 
-2.19.1
+Goldwyn
