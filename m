@@ -1,41 +1,53 @@
-Return-Path: <linux-fsdevel-owner@vger.kernel.org>
-From: Dave Chinner <david@fromorbit.com>
-Subject: [PATCH 10/11] vfs: allow generic_copy_file_range to copy across devices
-Date: Mon,  3 Dec 2018 19:34:15 +1100
-Message-Id: <20181203083416.28978-11-david@fromorbit.com>
-In-Reply-To: <20181203083416.28978-1-david@fromorbit.com>
-References: <20181203083416.28978-1-david@fromorbit.com>
+Return-Path: <linux-unionfs-owner@vger.kernel.org>
+Received: from mx2.suse.de ([195.135.220.15]:37840 "EHLO mx1.suse.de"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1726403AbeLRNDN (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Tue, 18 Dec 2018 08:03:13 -0500
+Date: Tue, 18 Dec 2018 14:01:07 +0100
+From: Cyril Hrubis <chrubis@suse.cz>
+Subject: Re: [PATCH v5] syscalls/readahead02: test readahead using
+ posix_fadvise()
+Message-ID: <20181218130107.GB18871@rei.lan>
+References: <20181204153528.26176-1-amir73il@gmail.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Sender: linux-fsdevel-owner@vger.kernel.org
-To: linux-fsdevel@vger.kernel.org, linux-xfs@vger.kernel.org
-Cc: olga.kornievskaia@gmail.com, linux-nfs@vger.kernel.org, linux-unionfs@vger.kernel.org, ceph-devel@vger.kernel.org, linux-cifs@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20181204153528.26176-1-amir73il@gmail.com>
+Sender: linux-unionfs-owner@vger.kernel.org
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: ltp@lists.linux.it, linux-unionfs@vger.kernel.org
 List-ID: <linux-unionfs@vger.kernel.org>
 
-From: Dave Chinner <dchinner@redhat.com>
+Hi!
+Sorry for the delay.
 
-do_splice_direct() can copy across superblocks without problems.
-Remove the same superblock restriction on this fallback code.
+...
 
-Signed-off-by: Dave Chinner <dchinner@redhat.com>
----
- fs/read_write.c | 4 ----
- 1 file changed, 4 deletions(-)
+> -	if (ret == EINVAL &&
+> -	    (!tc->use_overlay || !readahead_supported)) {
+> -		readahead_supported = 0;
+> -		tst_res(TCONF, "readahead not supported on %s",
+> -			tst_device->fs_type);
+> -		return;
+> +	if (ret == EINVAL) {
+> +		if (tc->use_fadvise &&
+> +		    (!tc->use_overlay || !fadvise_supported)) {
+> +			fadvise_supported = 0;
+> +			tst_res(TCONF, "CONFIG_ADVISE_SYSCALLS not configured "
+> +				"in kernel?");
+> +			return;
+> +		} else if (!tc->use_overlay || !readahead_supported) {
 
-diff --git a/fs/read_write.c b/fs/read_write.c
-index 4e0666de0d69..b0f231b10836 100644
---- a/fs/read_write.c
-+++ b/fs/read_write.c
-@@ -1565,10 +1565,6 @@ ssize_t generic_copy_file_range(struct file *file_in, loff_t pos_in,
- 			    struct file *file_out, loff_t pos_out,
- 			    size_t len, unsigned int flags)
- {
--	/* Temporary, do_splice_direct supports cross-sb copies */
--	if (file_inode(file_in)->i_sb != file_inode(file_out)->i_sb)
--		return -EXDEV;
--
- 	return do_splice_direct(file_in, &pos_in, file_out, &pos_out,
- 			len > MAX_RW_COUNT ? MAX_RW_COUNT : len, 0);
- }
+I got rid of the else block here, since we do return at the end of the
+if block before it anyways and pushed, thanks.
+
+> +			readahead_supported = 0;
+> +			tst_res(TCONF, "readahead not supported on %s",
+> +				tst_device->fs_type);
+> +			return;
+> +		}
+>  	}
+
 -- 
-2.19.1
+Cyril Hrubis
+chrubis@suse.cz
