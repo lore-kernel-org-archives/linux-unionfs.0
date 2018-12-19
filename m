@@ -1,29 +1,18 @@
 Return-Path: <amir73il@gmail.com>
 MIME-Version: 1.0
-References: <1545233975.3954.8.camel@linux.ibm.com> <1545234449.3954.14.camel@linux.ibm.com>
- <CAOQ4uxgG9yu-dOgOZyFnck+=ZjsoDe0SCJ6S-4+s0kB6mH2Maw@mail.gmail.com> <1545245504.3954.51.camel@linux.ibm.com>
-In-Reply-To: <1545245504.3954.51.camel@linux.ibm.com>
+References: <12c81a49-efca-d66c-2143-ae04ca248cce@suse.de> <1545174031.4178.8.camel@linux.ibm.com>
+ <1545233975.3954.8.camel@linux.ibm.com> <CAOQ4uxgoMntXsxnsxtBOOPLDo3HgcYPWayuCuDzxEx2GJSMZtg@mail.gmail.com>
+ <1545244479.3954.38.camel@linux.ibm.com>
+In-Reply-To: <1545244479.3954.38.camel@linux.ibm.com>
 From: Amir Goldstein <amir73il@gmail.com>
-Date: Wed, 19 Dec 2018 22:47:37 +0200
-Message-ID: <CAOQ4uxiv_Pcm1zOr3N+=ySqePvRkqoraH6Xkja3Z9WeywDpt3g@mail.gmail.com>
-Subject: Re: [Fwd: Re: EVM: Permission denied with overlayfs]
+Date: Wed, 19 Dec 2018 22:39:50 +0200
+Message-ID: <CAOQ4uxiGoOsON9E6b53DAtPo=JJHx6FT0NiksGdxkeU886JB3A@mail.gmail.com>
+Subject: Re: EVM: Permission denied with overlayfs
 Content-Type: text/plain; charset="UTF-8"
 To: zohar@linux.ibm.com
-Cc: iforster@suse.de, overlayfs <linux-unionfs@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>
+Cc: iforster@suse.de, Goldwyn Rodrigues <rgoldwyn@suse.com>, linux-integrity@vger.kernel.org, Miklos Szeredi <miklos@szeredi.hu>, overlayfs <linux-unionfs@vger.kernel.org>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-On Wed, Dec 19, 2018 at 8:51 PM Mimi Zohar <zohar@linux.ibm.com> wrote:
->
-> On Wed, 2018-12-19 at 18:35 +0200, Amir Goldstein wrote:
-> > On Wed, Dec 19, 2018 at 5:47 PM Mimi Zohar <zohar@linux.ibm.com> wrote:
-> > >
-> > > Hi Ignaz, Amir,
-> > >
-> > > CONFIG_OVERLAY_FS_METACOPY was introduce in linux-4.19.  Do either of
-> > > you by have time to bisect this and find the commit that introduced
-> > > the regression?
-> > >
-> >
 > > Hi Mimi,
 > >
 > > v4.19 has a big change that removes many VFS hacks in favor of
@@ -38,6 +27,13 @@ On Wed, Dec 19, 2018 at 8:51 PM Mimi Zohar <zohar@linux.ibm.com> wrote:
 > >
 > > Can you please try to describe in more details for someone who has no clue what
 > > EVM does how exactly the v4.19 change is manifested in the EVM use case.
+>
+> IMA calculates and stores a file hash/signature on the file data
+> (security.ima).  EVM calculates and stores an HMAC/signature on the
+> file metadata (security.evm).  Some data needs to be included in the
+> HMAC/signature that binds the file metadata with the file data.  That
+> data is the inode's ino, generation, uid, gid, mode and the uuid.
+>
 > >
 > > AFAIKT, evm_calc_hmac_or_hash() would get the overlayfs dentry both in
 > > v4.18 and v4.19 and therefore d_backing_inode(dentry) should be the
@@ -53,55 +49,37 @@ On Wed, Dec 19, 2018 at 8:51 PM Mimi Zohar <zohar@linux.ibm.com> wrote:
 > > please provide two sample stack traces that see different i_ino, so we can
 > > examine them.
 >
-> Attached is the output from the script below.  With the posted kernel
-> patch, these are the dmesg messages (d_backing_inode, d_real_inode,
-> dentry->d_name.name):
->
-> [ 8973.189712] evm: ino: 61217 1841346 61217 oo.text
-> [ 8973.202776] evm: ino: 60375 1836705 60375 ll.text
-> [ 8973.203683] evm: ino: 61217 1841346 61217 oo.text
-> [ 8973.204713] evm: ino: 60380 1839227 60380 uu.text
+> Assuming you've created and overlay mounted the lower, upper, work,
+> and merged directories, accessing files only in the merged directory
+> fails.
 >
 
-The patch I sent can iron these changes out, but it won't iron out
-the i_generation change.
+Mimi,
 
-> script:
-> -------
-> #!/bin/bash
-> # A small example for reproduction (on a system with IMA appraisal):
-> set -x
-> cd /home/mimi/tmp/
-> OVERLAYFS_TEST_DIR=overlay
-> mkdir $OVERLAYFS_TEST_DIR
-> mkdir "${OVERLAYFS_TEST_DIR}/lower"
-> mkdir "${OVERLAYFS_TEST_DIR}/upper"
-> mkdir "${OVERLAYFS_TEST_DIR}/work"
-> mkdir "${OVERLAYFS_TEST_DIR}/merged"
-> mount -t overlay overlay -o lowerdir="${OVERLAYFS_TEST_DIR}/lower",upperdir="${OVERLAYFS_TEST_DIR}/upper",workdir="${OVERLAYFS_TEST_DIR}/work" "${OVERLAYFS_TEST_DIR}/merged"
->
-> echo lower > overlay/lower/ll.text
-> echo upper > overlay/upper/uu.text
-> echo overlay > overlay/merged/oo.text
-> set +x
-> find overlay -type f -exec stat {} \;
-> echo =====
-> find overlay -type f -exec cat {} \;
->
-> =====
-> cat: overlay/merged/ll.text: Permission denied
-> cat: overlay/merged/oo.text: Permission denied
-> cat: overlay/merged/uu.text: Permission denied
-> overlay
-> upper
-> lower
+I think I understand the problem I just don't see how that use case could have
+ever worked with overlayfs.
+The following patch may make your test pass,
+but #1: I am not sure it is safe to do that without ovl_index_all() -
+need to think about implications
+but #2: For some overlayfs setups that won't be enough to
+guaranty consistent i_ino
+but #3: Not sure about the role of i_generation
 
-What I am still missing is:
-1. What does the call stack look like when calculating the hash on oo.text?
-2. What does the call stack look like when failing to verify the hash
-on oo.text?
-3. If the same tests does pass pre v4.19, please provide call stacks from that
-kernel as well.
+diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
+index 30ef69715a81..8d8cd6acd71e 100644
+--- a/fs/overlayfs/inode.c
++++ b/fs/overlayfs/inode.c
+@@ -560,8 +560,7 @@ static void ovl_fill_inode(struct inode *inode,
+umode_t mode, dev_t rdev,
+         * ovl_new_inode(), ino arg is 0, so i_ino will be updated to real
+         * upper inode i_ino on ovl_inode_init() or ovl_inode_update().
+         */
+-       if (inode->i_sb->s_export_op &&
+-           (ovl_same_sb(inode->i_sb) || xinobits)) {
++       if ((ovl_same_sb(inode->i_sb) || xinobits)) {
+                inode->i_ino = ino;
+                if (xinobits && fsid && !(ino >> (64 - xinobits)))
+                        inode->i_ino |= (unsigned long)fsid << (64 - xinobits);
 
 Thanks,
 Amir.
