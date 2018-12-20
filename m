@@ -1,207 +1,71 @@
-Return-Path: <linux-unionfs-owner@vger.kernel.org>
-Received: from ipmailnode02.adl6.internode.on.net ([150.101.137.148]:60959
-        "EHLO ipmailnode02.adl6.internode.on.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1725913AbeLCIe3 (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 3 Dec 2018 03:34:29 -0500
-From: Dave Chinner <david@fromorbit.com>
-Subject: [PATCH 03/11] vfs: no fallback for ->copy_file_range
-Date: Mon,  3 Dec 2018 19:34:08 +1100
-Message-Id: <20181203083416.28978-4-david@fromorbit.com>
-In-Reply-To: <20181203083416.28978-1-david@fromorbit.com>
-References: <20181203083416.28978-1-david@fromorbit.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Sender: linux-unionfs-owner@vger.kernel.org
-To: linux-fsdevel@vger.kernel.org, linux-xfs@vger.kernel.org
-Cc: olga.kornievskaia@gmail.com, linux-nfs@vger.kernel.org, linux-unionfs@vger.kernel.org, ceph-devel@vger.kernel.org, linux-cifs@vger.kernel.org
+Return-Path: <James.Bottomley@hansenpartnership.com>
+Message-ID: <1545333893.18986.3.camel@HansenPartnership.com>
+Subject: Re: EVM: Permission denied with overlayfs
+From: James Bottomley <James.Bottomley@HansenPartnership.com>
+Date: Thu, 20 Dec 2018 11:24:53 -0800
+In-Reply-To: <1545317716.4077.33.camel@linux.ibm.com>
+References: <12c81a49-efca-d66c-2143-ae04ca248cce@suse.de>
+	 <1545174031.4178.8.camel@linux.ibm.com>
+	 <1545233975.3954.8.camel@linux.ibm.com>
+	 <1545238601.2916.13.camel@HansenPartnership.com>
+	 <1545243311.3954.22.camel@linux.ibm.com>
+	 <1545248096.2916.26.camel@HansenPartnership.com>
+	 <CAOQ4uxhDh3okp1nYgZXxG+2siChfT8Oq3ncH1FFhQW_zBCstzw@mail.gmail.com>
+	 <1545253341.3954.83.camel@linux.ibm.com>
+	 <1545257296.2916.42.camel@HansenPartnership.com>
+	 <1545317716.4077.33.camel@linux.ibm.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
+To: Mimi Zohar <zohar@linux.ibm.com>, Amir Goldstein <amir73il@gmail.com>
+Cc: iforster@suse.de, Goldwyn Rodrigues <rgoldwyn@suse.com>, linux-integrity@vger.kernel.org, Miklos Szeredi <miklos@szeredi.hu>, overlayfs <linux-unionfs@vger.kernel.org>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-From: Dave Chinner <dchinner@redhat.com>
+On Thu, 2018-12-20 at 09:55 -0500, Mimi Zohar wrote:
+> On Wed, 2018-12-19 at 14:08 -0800, James Bottomley wrote:
+> 
+> > > For portable signatures, to bind the file metadata with the file 
+> > > data, we've replaced the inode number and generation, with the
+> > > "security.ima" xattr.  Do we want this requirement/limitation for
+> > > overlays?
+> > 
+> > Well, that's my question, yes.  I think there's a reasonable case
+> > for it, but I was wondering what value the inode number and
+> > generation brings.  Is there some reason to bind the EVM signature
+> > to a more mutable file container (which is what inum/generation
+> > provide) rather than a hard hash of file content (which is what the
+> > ima xattr provides)?
+> 
+> As only files in the IMA policy are labeled with security.ima, to
+> protect other files and directories, requires including the inode
+> number, generation and the UUID.
 
-Now that we have generic_copy_file_range(), remove it as a fallback
-case when offloads fail. This puts the responsibility for executing
-fallbacks on the filesystems that implement ->copy_file_range and
-allows us to add operational validity checks to
-generic_copy_file_range().
+OK, so you want to protect the container (essentially file name and
+place in the tree) not the contents?  In which case, as Amir said, you
+need to be using the filehandle got from something like
+exportfs_encode_inode_fh().  That's guaranteed to be an immutable and
+stable representative of the container not the contents.
 
-Rework vfs_copy_file_range() to call a new do_copy_file_range()
-helper to exceute the copying callout, and move calls to
-generic_file_copy_range() into filesystem methods where they
-currently return failures.
+> > > The existing EVM portable signature is an asymmetric algorithm
+> > > based signature.  Would we define a "portable" HMAC?
+> > 
+> > Well, a signature is just an encryption of a hash.  Whether you do
+> > HMAC with symmetric key or RSA/EC with an asymmetric one is more an
+> > operational question.  HMAC is certainly much faster but EVM only
+> > has a single hmac key which is problematic for the
+> > containers.  Without a use case I can't really say.  Instinct tells
+> > me asymmetric is more suitable to the container use case, but
+> > that's really just a guess.
+> 
+> One of the differences between the EVM portable signature type and
+> the original signature type is that the portable signatures aren't
+> replaced with an HMAC.  They're considered portable & immutable.
+> 
+> Adding kernel support for signing mutable files using an asymmetric
+> key is going to blur the lines between mutable/immutable files.
 
-Signed-off-by: Dave Chinner <dchinner@redhat.com>
----
- fs/ceph/file.c      | 17 ++++++++++++++++-
- fs/cifs/cifsfs.c    |  4 ++++
- fs/fuse/file.c      | 17 ++++++++++++++++-
- fs/nfs/nfs4file.c   |  4 ++++
- fs/overlayfs/file.c |  9 ++++++++-
- fs/read_write.c     | 24 +++++++++++++++---------
- 6 files changed, 63 insertions(+), 12 deletions(-)
+So don't do that ... have an additional type that simply doesn't
+include the inode/generation (or move to a v2 that uses the filehandle
+instead).
 
-diff --git a/fs/ceph/file.c b/fs/ceph/file.c
-index 189df668b6a0..cf29f0410dcb 100644
---- a/fs/ceph/file.c
-+++ b/fs/ceph/file.c
-@@ -1885,7 +1885,7 @@ static int is_file_size_ok(struct inode *src_inode, struct inode *dst_inode,
- 	return 0;
- }
- 
--static ssize_t ceph_copy_file_range(struct file *src_file, loff_t src_off,
-+static ssize_t __ceph_copy_file_range(struct file *src_file, loff_t src_off,
- 				    struct file *dst_file, loff_t dst_off,
- 				    size_t len, unsigned int flags)
- {
-@@ -2096,6 +2096,21 @@ static ssize_t ceph_copy_file_range(struct file *src_file, loff_t src_off,
- 	return ret;
- }
- 
-+static ssize_t ceph_copy_file_range(struct file *src_file, loff_t src_off,
-+				    struct file *dst_file, loff_t dst_off,
-+				    size_t len, unsigned int flags)
-+{
-+	ssize_t ret;
-+
-+	ret = __ceph_copy_file_range(src_file, src_off, dst_file, dst_off,
-+					len, flags);
-+
-+	if (ret == -EOPNOTSUPP)
-+		ret = generic_copy_file_range(src_file, src_off, dst_file,
-+					dst_off, len, flags);
-+	return ret;
-+}
-+
- const struct file_operations ceph_file_fops = {
- 	.open = ceph_open,
- 	.release = ceph_release,
-diff --git a/fs/cifs/cifsfs.c b/fs/cifs/cifsfs.c
-index 865706edb307..5ef4baec6234 100644
---- a/fs/cifs/cifsfs.c
-+++ b/fs/cifs/cifsfs.c
-@@ -1141,6 +1141,10 @@ static ssize_t cifs_copy_file_range(struct file *src_file, loff_t off,
- 	rc = cifs_file_copychunk_range(xid, src_file, off, dst_file, destoff,
- 					len, flags);
- 	free_xid(xid);
-+
-+	if (rc == -EOPNOTSUPP)
-+		rc = generic_copy_file_range(src_file, off, dst_file,
-+					destoff, len, flags);
- 	return rc;
- }
- 
-diff --git a/fs/fuse/file.c b/fs/fuse/file.c
-index b52f9baaa3e7..b86fb0298739 100644
---- a/fs/fuse/file.c
-+++ b/fs/fuse/file.c
-@@ -3024,7 +3024,7 @@ static long fuse_file_fallocate(struct file *file, int mode, loff_t offset,
- 	return err;
- }
- 
--static ssize_t fuse_copy_file_range(struct file *file_in, loff_t pos_in,
-+static ssize_t __fuse_copy_file_range(struct file *file_in, loff_t pos_in,
- 				    struct file *file_out, loff_t pos_out,
- 				    size_t len, unsigned int flags)
- {
-@@ -3100,6 +3100,21 @@ static ssize_t fuse_copy_file_range(struct file *file_in, loff_t pos_in,
- 	return err;
- }
- 
-+static ssize_t fuse_copy_file_range(struct file *src_file, loff_t src_off,
-+				    struct file *dst_file, loff_t dst_off,
-+				    size_t len, unsigned int flags)
-+{
-+	ssize_t ret;
-+
-+	ret = __fuse_copy_file_range(src_file, src_off, dst_file, dst_off,
-+					len, flags);
-+
-+	if (ret == -EOPNOTSUPP)
-+		ret = generic_copy_file_range(src_file, src_off, dst_file,
-+					dst_off, len, flags);
-+	return ret;
-+}
-+
- static const struct file_operations fuse_file_operations = {
- 	.llseek		= fuse_file_llseek,
- 	.read_iter	= fuse_file_read_iter,
-diff --git a/fs/nfs/nfs4file.c b/fs/nfs/nfs4file.c
-index 46d691ba04bc..d7766a6eb0f4 100644
---- a/fs/nfs/nfs4file.c
-+++ b/fs/nfs/nfs4file.c
-@@ -141,6 +141,10 @@ static ssize_t nfs4_copy_file_range(struct file *file_in, loff_t pos_in,
- 	ret = nfs42_proc_copy(file_in, pos_in, file_out, pos_out, count);
- 	if (ret == -EAGAIN)
- 		goto retry;
-+
-+	if (ret == -EOPNOTSUPP)
-+		ret = generic_copy_file_range(file_in, pos_in, file_out,
-+					pos_out, count, flags);
- 	return ret;
- }
- 
-diff --git a/fs/overlayfs/file.c b/fs/overlayfs/file.c
-index 84dd957efa24..68736e5d6a56 100644
---- a/fs/overlayfs/file.c
-+++ b/fs/overlayfs/file.c
-@@ -486,8 +486,15 @@ static ssize_t ovl_copy_file_range(struct file *file_in, loff_t pos_in,
- 				   struct file *file_out, loff_t pos_out,
- 				   size_t len, unsigned int flags)
- {
--	return ovl_copyfile(file_in, pos_in, file_out, pos_out, len, flags,
-+	ssize_t ret;
-+
-+	ret =  ovl_copyfile(file_in, pos_in, file_out, pos_out, len, flags,
- 			    OVL_COPY);
-+
-+	if (ret == -EOPNOTSUPP)
-+		ret = generic_copy_file_range(file_in, pos_in, file_out,
-+					pos_out, len, flags);
-+	return ret;
- }
- 
- static loff_t ovl_remap_file_range(struct file *file_in, loff_t pos_in,
-diff --git a/fs/read_write.c b/fs/read_write.c
-index 50114694c98b..44339b44accc 100644
---- a/fs/read_write.c
-+++ b/fs/read_write.c
-@@ -1570,6 +1570,18 @@ ssize_t generic_copy_file_range(struct file *file_in, loff_t pos_in,
- }
- EXPORT_SYMBOL(generic_copy_file_range);
- 
-+static ssize_t do_copy_file_range(struct file *file_in, loff_t pos_in,
-+			    struct file *file_out, loff_t pos_out,
-+			    size_t len, unsigned int flags)
-+{
-+	if (file_out->f_op->copy_file_range)
-+		return file_out->f_op->copy_file_range(file_in, pos_in, file_out,
-+						      pos_out, len, flags);
-+
-+	return generic_copy_file_range(file_in, &pos_in, file_out, &pos_out,
-+					len, flags);
-+}
-+
- /*
-  * copy_file_range() differs from regular file read and write in that it
-  * specifically allows return partial success.  When it does so is up to
-@@ -1634,15 +1646,9 @@ ssize_t vfs_copy_file_range(struct file *file_in, loff_t pos_in,
- 		}
- 	}
- 
--	if (file_out->f_op->copy_file_range) {
--		ret = file_out->f_op->copy_file_range(file_in, pos_in, file_out,
--						      pos_out, len, flags);
--		if (ret != -EOPNOTSUPP)
--			goto done;
--	}
--
--	ret = generic_copy_file_range(file_in, &pos_in, file_out, &pos_out,
--					len, flags);
-+	ret = do_copy_file_range(file_in, pos_in, file_out, pos_out, len,
-+				flags);
-+	WARN_ON_ONCE(ret == -EOPNOTSUPP);
- done:
- 	if (ret > 0) {
- 		fsnotify_access(file_in);
--- 
-2.19.1
+James
