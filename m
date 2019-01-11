@@ -1,47 +1,94 @@
-Return-Path: <linux-unionfs-owner@vger.kernel.org>
-Received: from ipmailnode02.adl6.internode.on.net ([150.101.137.148]:60959
-        "EHLO ipmailnode02.adl6.internode.on.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1725952AbeLCIeg (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 3 Dec 2018 03:34:36 -0500
-From: Dave Chinner <david@fromorbit.com>
-Subject: [PATCH 05/11] vfs: use inode_permission in copy_file_range()
-Date: Mon,  3 Dec 2018 19:34:10 +1100
-Message-Id: <20181203083416.28978-6-david@fromorbit.com>
-In-Reply-To: <20181203083416.28978-1-david@fromorbit.com>
-References: <20181203083416.28978-1-david@fromorbit.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Sender: linux-unionfs-owner@vger.kernel.org
-To: linux-fsdevel@vger.kernel.org, linux-xfs@vger.kernel.org
-Cc: olga.kornievskaia@gmail.com, linux-nfs@vger.kernel.org, linux-unionfs@vger.kernel.org, ceph-devel@vger.kernel.org, linux-cifs@vger.kernel.org
-List-ID: <linux-unionfs@vger.kernel.org>
+From: Vivek Goyal <vgoyal@redhat.com>
+Subject: [PATCH][V3] overlayfs: During copy up, first copy up data and then
+ xattrs
+Date: Fri, 11 Jan 2019 13:37:43 -0500
+Message-ID: <20190111183743.GC16012@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <stable-owner@vger.kernel.org>
+Content-Disposition: inline
+Sender: stable-owner@vger.kernel.org
+To: linux-unionfs@vger.kernel.org, miklos@szeredi.hu, amir73il@gmail.com
+Cc: stable@vger.kernel.org, dwalsh@redhat.com, gscrivan@redhat.com
+List-Id: linux-unionfs@vger.kernel.org
 
-From: Dave Chinner <dchinner@redhat.com>
+If a file with capability set (and hence security.capability xattr) is
+written kernel clears security.capability xattr. For overlay, during file
+copy up if xattrs are copied up first and then data is, copied up. This
+means data copy up will result in clearing of security.capability xattr
+file on lower has. And this can result into surprises. If
+a lower file has CAP_SETUID, then it should not be cleared over
+copy up (if nothing was actually written to file).
 
-Similar to FI_DEDUPERANGE, make copy_file_range() check that we have
-write permissions to the destination inode.
+This also creates problems with chown logic where it first copies up file
+and then tries to clear setuid bit. But by that time security.capability
+xattr is already gone (due to data copy up), and caller gets -ENODATA.
+This has been reported by Giuseppe here.
 
-Signed-off-by: Dave Chinner <dchinner@redhat.com>
+https://github.com/containers/libpod/issues/2015#issuecomment-447824842
+
+Fix this by copying up data first and then metadta. This is a regression
+which has been introduced by my commit as part of metadata only copy up
+patches.
+
+TODO: There will be some corner cases where a file is copied up metadata
+      only and later data copy up happens and that will clear
+      security.capability xattr. Something needs to be done about that too.
+
+Fixes: bd64e57586d3 ("ovl: During copy up, first copy up metadata and then data")
+Cc: <stable@vger.kernel.org> # v4.19+
+Reported-by: Giuseppe Scrivano <gscrivan@redhat.com>
+Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
 ---
- mm/filemap.c | 5 +++++
- 1 file changed, 5 insertions(+)
+ fs/overlayfs/copy_up.c |   31 ++++++++++++++++++-------------
+ 1 file changed, 18 insertions(+), 13 deletions(-)
 
-diff --git a/mm/filemap.c b/mm/filemap.c
-index 0a170425935b..876df5275514 100644
---- a/mm/filemap.c
-+++ b/mm/filemap.c
-@@ -3013,6 +3013,11 @@ int generic_copy_file_checks(struct file *file_in, loff_t pos_in,
- 	    (file_out->f_flags & O_APPEND))
- 		return -EBADF;
+Index: rhvgoyal-linux/fs/overlayfs/copy_up.c
+===================================================================
+--- rhvgoyal-linux.orig/fs/overlayfs/copy_up.c	2019-01-10 17:25:25.594461223 -0500
++++ rhvgoyal-linux/fs/overlayfs/copy_up.c	2019-01-11 10:47:33.657461223 -0500
+@@ -443,6 +443,24 @@ static int ovl_copy_up_inode(struct ovl_
+ {
+ 	int err;
  
-+	/* may sure we really are allowed to write to the destination inode */
-+	ret = inode_permission(inode_out, MAY_WRITE);
-+	if (ret < 0)
-+		return ret;
++	/*
++	 * Copy up data first and then xattrs. Writing data after
++	 * xattrs will remove security.capability xattr automatically.
++	 */
++	if (S_ISREG(c->stat.mode) && !c->metacopy) {
++		struct path upperpath, datapath;
 +
- 	/* Ensure offsets don't wrap. */
- 	if (pos_in + count < pos_in || pos_out + count < pos_out)
- 		return -EOVERFLOW;
--- 
-2.19.1
++		ovl_path_upper(c->dentry, &upperpath);
++		if(WARN_ON(upperpath.dentry != NULL))
++			return -EIO;
++		upperpath.dentry = temp;
++
++		ovl_path_lowerdata(c->dentry, &datapath);
++		err = ovl_copy_up_data(&datapath, &upperpath, c->stat.size);
++		if (err)
++			return err;
++	}
++
+ 	err = ovl_copy_xattr(c->lowerpath.dentry, temp);
+ 	if (err)
+ 		return err;
+@@ -459,19 +477,6 @@ static int ovl_copy_up_inode(struct ovl_
+ 		if (err)
+ 			return err;
+ 	}
+-
+-	if (S_ISREG(c->stat.mode) && !c->metacopy) {
+-		struct path upperpath, datapath;
+-
+-		ovl_path_upper(c->dentry, &upperpath);
+-		BUG_ON(upperpath.dentry != NULL);
+-		upperpath.dentry = temp;
+-
+-		ovl_path_lowerdata(c->dentry, &datapath);
+-		err = ovl_copy_up_data(&datapath, &upperpath, c->stat.size);
+-		if (err)
+-			return err;
+-	}
+ 
+ 	if (c->metacopy) {
+ 		err = ovl_check_setxattr(c->dentry, temp, OVL_XATTR_METACOPY,
