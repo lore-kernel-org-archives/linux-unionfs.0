@@ -1,8 +1,8 @@
 Return-Path: <vgoyal@redhat.com>
-Date: Fri, 18 Jan 2019 14:52:02 -0500
+Date: Fri, 18 Jan 2019 13:34:46 -0500
 From: Vivek Goyal <vgoyal@redhat.com>
 Subject: Re: [RFC][PATCH] ovl: lazy copy up of data on first write
-Message-ID: <20190118195202.GB2832@redhat.com>
+Message-ID: <20190118183446.GA2832@redhat.com>
 References: <20190118134519.3411-1-amir73il@gmail.com>
  <20190118144323.GA6420@redhat.com>
  <CAOQ4uxihLM_ztQ487SMiWr6w6646J0VfBpbNHyeybxX77COKsQ@mail.gmail.com>
@@ -48,12 +48,16 @@ On Fri, Jan 18, 2019 at 05:33:36PM +0200, Amir Goldstein wrote:
 > Or on a use case where latency on open is desired over latency on write.
 > Can you?
 
-IIUC, now if I open a file O_RDWR and only issue reads to file and never
-issue writes, then for every read, I will open a lower file, finish read
-and close fd. This is slower path. What's the performance penalty? If
-this is significant, then it might make sense to opt-in for lazy copy
-up behavior (instead of relying that application will open file O_RDONLY
-if they never issue writes to it).
+I can't. I am wondering why are we changing default. Why is it a better
+default to do copy up on first WRITE and not during open time. In his
+emails, Chengguang, just said their applications will benefit from it
+without giving further details. So if their application is not
+writing, they could easily solve this problem by opening file
+O_RDONLY as well?
+
+Or is it the case that they don't know in advance whether file will
+actually be written or not. So they open O_RDWR and after
+that it could be written or not written?
 
 Thanks
 Vivek
