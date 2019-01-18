@@ -1,50 +1,41 @@
 Return-Path: <amir73il@gmail.com>
-Return-Path: <amir73il@gmail.com>
+MIME-Version: 1.0
+References: <490ed00a-7e41-71a5-4318-cc95b36a1b2e@gmx.com> <CAOQ4uximXwPiHySiRxKi4UYxdBt=Y8jj38h0ybrrPGCG0F60nQ@mail.gmail.com>
+ <CAJfpegvJU32_9_mVh7kem0s529-8Qs02fPSr4ChCC3ZJ2pRhLw@mail.gmail.com>
+ <CAOQ4uxg=Qzau99ZWwNRoEHAKgpMTapDFxjQhCE+ntEbV2AFVOg@mail.gmail.com> <cc831a7a-c515-fdd2-6971-e79d389058a0@gmx.com>
+In-Reply-To: <cc831a7a-c515-fdd2-6971-e79d389058a0@gmx.com>
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [RFC][PATCH v2 1/5] ovl: reorder tests in ovl_open_need_copy_up()
-Date: Tue, 22 Jan 2019 14:34:53 +0200
-Message-Id: <20190122123457.10600-2-amir73il@gmail.com>
-In-Reply-To: <20190122123457.10600-1-amir73il@gmail.com>
-References: <20190122123457.10600-1-amir73il@gmail.com>
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: Vivek Goyal <vgoyal@redhat.com>, cgxu519 <cgxu519@gmx.com>, linux-unionfs@vger.kernel.org
+Date: Fri, 18 Jan 2019 15:52:08 +0200
+Message-ID: <CAOQ4uxjFUbniWr+b5_KYHJ9AJOyJdUo0-8G0S5f8jo4z6zJHrQ@mail.gmail.com>
+Subject: Re: Postpone copy-up until first real write?
+Content-Type: text/plain; charset="UTF-8"
+To: cgxu519 <cgxu519@gmx.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, overlayfs <linux-unionfs@vger.kernel.org>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-ovl_already_copied_up() has two memory barriers, which could be
-avoided for open for read, so move it after open flags test.
+On Mon, Jan 14, 2019 at 10:21 AM cgxu519 <cgxu519@gmx.com> wrote:
+[...]
+> > Do we gain anything (simplicity? relaxed locking order) if we always
+> > copy up metadata on open O_RDWR and only delay data copy up
+> > until first write/page fault?
+> >
+> > Chengguang,
+> >
+> > For your use case, is it acceptable if we copy up metadata
+> > (and parents) before first write?
+>
+> In our use case that will be fine if copy up metadata(and parents) is
+> quick enough.
+>
 
-special_file() is not expected from ovl_open(), so WARN_ON it,
-and remove stale comment about disconnected dentry.
+Chengguang,
 
-Signed-off-by: Amir Goldstein <amir73il@gmail.com>
----
- fs/overlayfs/copy_up.c | 9 +++------
- 1 file changed, 3 insertions(+), 6 deletions(-)
+I posted an RFC patch (sorry forgot to CC you).
+It seems to be working as expected short of the mmap case,
+but I only tested manually - have not written any tests yet.
 
-diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
-index 0c0e11d529d0..05f853c7db0d 100644
---- a/fs/overlayfs/copy_up.c
-+++ b/fs/overlayfs/copy_up.c
-@@ -872,17 +872,14 @@ int ovl_copy_up_flags(struct dentry *dentry, int flags)
- 
- static bool ovl_open_need_copy_up(struct dentry *dentry, int flags)
- {
--	/* Copy up of disconnected dentry does not set upper alias */
--	if (ovl_already_copied_up(dentry, flags))
--		return false;
--
--	if (special_file(d_inode(dentry)->i_mode))
-+	/* Not called from regular file ops? */
-+	if (WARN_ON(special_file(d_inode(dentry)->i_mode)))
- 		return false;
- 
- 	if (!ovl_open_flags_need_copy_up(flags))
- 		return false;
- 
--	return true;
-+	return !ovl_already_copied_up(dentry, flags);
- }
- 
- int ovl_maybe_copy_up(struct dentry *dentry, int flags)
--- 
-2.17.1
+You may test the RFC patch and let me know if it meets the requirements
+of your use case.
+
+Thanks,
+Amir.
