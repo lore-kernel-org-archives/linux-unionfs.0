@@ -1,48 +1,46 @@
-From: Miklos Szeredi <miklos@szeredi.hu>
-Subject: Re: [PATCH][V3] overlayfs: During copy up, first copy up data and
- then xattrs
-Date: Tue, 15 Jan 2019 10:26:12 +0100
-Message-ID: <CAJfpegvNQmG4=5i_Q7uMzFa_-UDMXr4JL-2rP=a3F+9sPvbs1g@mail.gmail.com>
-References: <20190111183743.GC16012@redhat.com>
-Mime-Version: 1.0
+Return-Path: <amir73il@gmail.com>
+MIME-Version: 1.0
+References: <20190118134519.3411-1-amir73il@gmail.com> <20190118144323.GA6420@redhat.com>
+ <CAOQ4uxihLM_ztQ487SMiWr6w6646J0VfBpbNHyeybxX77COKsQ@mail.gmail.com> <20190118195202.GB2832@redhat.com>
+In-Reply-To: <20190118195202.GB2832@redhat.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Date: Fri, 18 Jan 2019 22:12:42 +0200
+Message-ID: <CAOQ4uxhQbBgxfZTON6=ZpSR6_J30y1X5XY7gBCjBGFZ8xYLxcg@mail.gmail.com>
+Subject: Re: [RFC][PATCH] ovl: lazy copy up of data on first write
 Content-Type: text/plain; charset="UTF-8"
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <20190111183743.GC16012@redhat.com>
-Sender: stable-owner@vger.kernel.org
 To: Vivek Goyal <vgoyal@redhat.com>
-Cc: overlayfs <linux-unionfs@vger.kernel.org>, Amir Goldstein <amir73il@gmail.com>, stable <stable@vger.kernel.org>, Daniel J Walsh <dwalsh@redhat.com>, gscrivan@redhat.com
-List-Id: linux-unionfs@vger.kernel.org
+Cc: Miklos Szeredi <miklos@szeredi.hu>, overlayfs <linux-unionfs@vger.kernel.org>, Chengguang Xu <cgxu519@gmx.com>
+List-ID: <linux-unionfs@vger.kernel.org>
 
-On Fri, Jan 11, 2019 at 7:37 PM Vivek Goyal <vgoyal@redhat.com> wrote:
+> > >
+> > > Should this behavior be an opt in with another mount option (and not
+> > > be enabled automatically with metacopy=on).
+> > >
+> >
+> > I can't think of one good reason for user to opt-in for copy up data on open.
+> > Or on a use case where latency on open is desired over latency on write.
+> > Can you?
 >
-> If a file with capability set (and hence security.capability xattr) is
-> written kernel clears security.capability xattr. For overlay, during file
-> copy up if xattrs are copied up first and then data is, copied up. This
-> means data copy up will result in clearing of security.capability xattr
-> file on lower has. And this can result into surprises. If
-> a lower file has CAP_SETUID, then it should not be cleared over
-> copy up (if nothing was actually written to file).
->
-> This also creates problems with chown logic where it first copies up file
-> and then tries to clear setuid bit. But by that time security.capability
-> xattr is already gone (due to data copy up), and caller gets -ENODATA.
-> This has been reported by Giuseppe here.
->
-> https://github.com/containers/libpod/issues/2015#issuecomment-447824842
->
-> Fix this by copying up data first and then metadta. This is a regression
-> which has been introduced by my commit as part of metadata only copy up
-> patches.
->
-> TODO: There will be some corner cases where a file is copied up metadata
->       only and later data copy up happens and that will clear
->       security.capability xattr. Something needs to be done about that too.
->
-> Fixes: bd64e57586d3 ("ovl: During copy up, first copy up metadata and then data")
-> Cc: <stable@vger.kernel.org> # v4.19+
-> Reported-by: Giuseppe Scrivano <gscrivan@redhat.com>
-> Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
+> IIUC, now if I open a file O_RDWR and only issue reads to file and never
+> issue writes, then for every read, I will open a lower file, finish read
+> and close fd. This is slower path. What's the performance penalty? If
 
-Thanks, applied.
+That is correct, but as you rightfully noted, that is probably a corner case
+and not the common behavior.
+It is not something that we cannot fix if we find that it is important.
+We can choose to cache the lower file and we can also choose to cache
+both upper and lower real files.
 
-Miklos
+> this is significant, then it might make sense to opt-in for lazy copy
+> up behavior (instead of relying that application will open file O_RDONLY
+> if they never issue writes to it).
+>
+
+Maybe. My instinct is that this case where complication the user with
+more configurations is not worth it and we can find a good enough
+solution for all cases.
+
+Let's see what Miklos has to say.
+
+Thanks,
+Amir.
