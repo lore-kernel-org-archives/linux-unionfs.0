@@ -1,61 +1,58 @@
-Return-Path: <vgoyal@redhat.com>
-Date: Wed, 30 Jan 2019 11:32:47 -0500
+Return-Path: <linux-unionfs-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:57208 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726143AbfAVSrG (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Tue, 22 Jan 2019 13:47:06 -0500
+Date: Tue, 22 Jan 2019 13:47:05 -0500
 From: Vivek Goyal <vgoyal@redhat.com>
-Subject: [PATCH] xfstests: overlay: Do not lose security.capability xattr
- over metadata only file copy-up
-Message-ID: <20190130163247.GB2757@redhat.com>
+Subject: Re: [PATCH] ovl: fix missing upper fs freeze protection on copy up
+ for ioctl
+Message-ID: <20190122184705.GA4759@redhat.com>
+References: <20190122050139.19701-1-amir73il@gmail.com>
+ <20190122162852.GA25152@redhat.com>
+ <CAOQ4uxjgRfy8QoS61q-HTkFCNnsikgPFLY0CakLXhN3g9HKB-w@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-To: fstests <fstests@vger.kernel.org>, linux-unionfs@vger.kernel.org
-Cc: Amir Goldstein <amir73il@gmail.com>, Miklos Szeredi <miklos@szeredi.hu>
+In-Reply-To: <CAOQ4uxjgRfy8QoS61q-HTkFCNnsikgPFLY0CakLXhN3g9HKB-w@mail.gmail.com>
+Sender: linux-unionfs-owner@vger.kernel.org
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, overlayfs <linux-unionfs@vger.kernel.org>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-Extend test 064 to check security.capability xattr is not lost over copy-up
-of a metadata only file. This requires mounting overlay with option
-metacopy=on and first trigger metadata only copy-up and then trigger
-data copy-up.
+On Tue, Jan 22, 2019 at 07:49:42PM +0200, Amir Goldstein wrote:
+> On Tue, Jan 22, 2019 at 6:28 PM Vivek Goyal <vgoyal@redhat.com> wrote:
+> >
+> > On Tue, Jan 22, 2019 at 07:01:39AM +0200, Amir Goldstein wrote:
+> > > Generalize the helper ovl_open_maybe_copy_up() and use it to copy up
+> > > file with data before FS_IOC_SETFLAGS ioctl.
+> > >
+> > > Fixes: dab5ca8fd9dd ("ovl: add lsattr/chattr support")
+> > > Cc: <stable@vger.kernel.org> # v4.19
+> > > Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+> >
+> > What upper fs freeze protection you are referring to. I am unable to
+> > see it in this new path.
+> >
+> 
+> Changed from calling ovl_copy_up_with_data() to calling
+> ovl_maybe_copy_up().
+> The former doesn't have ovl_want_write()/ovl_drop_write().
+> 
+> The FS_IOC_SETFLAGS ioctl is a bit of an odd ball in vfs,
+> which probably caused the confusion.
+> File may be open O_RDONLY, but ioctl modifies the file.
+> VFS does not call mnt_want_write_file() nor lock inode mutex,
+> but fs-specific code for  FS_IOC_SETFLAGS does.
+> So ovl_ioctl() calls mnt_want_write_file() for the overlay file,
+> and fs-specific code calls mnt_want_write_file() for upper fs
+> file, but there was no call for ovl_want_write() for copy up
+> duration which prevents overlayfs from copying up on a
+> frozen upper fs.
 
-Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
----
- tests/overlay/064     |   18 ++++++++++++++++++
- tests/overlay/064.out |    1 +
- 2 files changed, 19 insertions(+)
+Ok, thanks for the explanaiton. I understand it better now.
 
-Index: xfstests-dev/tests/overlay/064
-===================================================================
---- xfstests-dev.orig/tests/overlay/064	2019-01-28 15:03:12.590434802 -0500
-+++ xfstests-dev/tests/overlay/064	2019-01-30 11:18:29.595591985 -0500
-@@ -55,6 +55,24 @@ $XFS_IO_PROG -c "stat" ${SCRATCH_MNT}/fi
- # Make sure cap_setuid is still there
- $GETCAP_PROG ${SCRATCH_MNT}/file | _filter_scratch
- 
-+# Test copy-up with metacopy on.
-+$UMOUNT_PROG $SCRATCH_MNT
-+_scratch_mkfs
-+echo "This is lower" >> ${lowerdir}/file
-+
-+# Set CAP_SETUID
-+$SETCAP_PROG cap_setuid+ep ${lowerdir}/file
-+_scratch_mount "-o metacopy=on"
-+
-+# Trigger metadata only copy-up
-+chmod 000 ${SCRATCH_MNT}/file
-+
-+# Trigger data copy-up
-+$XFS_IO_PROG -c "stat" ${SCRATCH_MNT}/file >>$seqres.full
-+
-+# Make sure cap_setuid is still there
-+$GETCAP_PROG ${SCRATCH_MNT}/file | _filter_scratch
-+
- # success, all done
- status=0
- exit
-Index: xfstests-dev/tests/overlay/064.out
-===================================================================
---- xfstests-dev.orig/tests/overlay/064.out	2019-01-28 15:03:12.590434802 -0500
-+++ xfstests-dev/tests/overlay/064.out	2019-01-30 11:21:11.745591985 -0500
-@@ -1,2 +1,3 @@
- QA output created by 064
- SCRATCH_MNT/file = cap_setuid+ep
-+SCRATCH_MNT/file = cap_setuid+ep
+Acked-by: Vivek Goyal <vgoyal@redhat.com>
+
+
+Vivek
