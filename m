@@ -1,112 +1,274 @@
-Return-Path: <vgoyal@redhat.com>
-Date: Wed, 16 Jan 2019 16:04:15 -0500
-From: Vivek Goyal <vgoyal@redhat.com>
-Subject: [PATCH][V3] xfstest: overlay: File capabilities should not be lost
- over copy-up
-Message-ID: <20190116210415.GB4945@redhat.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-To: fstests <fstests@vger.kernel.org>, linux-unionfs@vger.kernel.org
-Cc: Dave Chinner <dchinner@redhat.com>, Amir Goldstein <amir73il@gmail.com>, Miklos Szeredi <miklos@szeredi.hu>, guaneryu@gmail.com
+Return-Path: <amir73il@gmail.com>
+Return-Path: <amir73il@gmail.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Subject: [RFC][PATCH v2 2/5] ovl: prepare for generic filemap file operations
+Date: Tue, 22 Jan 2019 14:34:54 +0200
+Message-Id: <20190122123457.10600-3-amir73il@gmail.com>
+In-Reply-To: <20190122123457.10600-1-amir73il@gmail.com>
+References: <20190122123457.10600-1-amir73il@gmail.com>
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: Vivek Goyal <vgoyal@redhat.com>, cgxu519 <cgxu519@gmx.com>, linux-unionfs@vger.kernel.org
 List-ID: <linux-unionfs@vger.kernel.org>
 
-Make sure file capabilities are not lost over copy-up when file is
-opened for WRITE but nothing is actually written to it.
+Implement a variant of overlay file operations using generic
+filemap helpers.  This implementation will be enabled for copied up
+files after overlay address space operations are implemented.
 
-Following commit introduced regression where if a lower file with
-CAP_SETUID is opened for writing, and capability is cleared over copy up.
-
-bd64e57586d3 ("ovl: During copy up, first copy up metadata and then data")
-
-A later kernel patch will fix it. This test will help avoid introducing
-such regressions again.
-
-Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- tests/overlay/064     |   60 ++++++++++++++++++++++++++++++++++++++++++++++++++
- tests/overlay/064.out |    2 +
- tests/overlay/group   |    1 
- 3 files changed, 63 insertions(+)
+ fs/overlayfs/file.c      | 118 +++++++++++++++++++++++++++++++++++++--
+ fs/overlayfs/inode.c     |   5 --
+ fs/overlayfs/overlayfs.h |   1 +
+ mm/fadvise.c             |   4 +-
+ 4 files changed, 115 insertions(+), 13 deletions(-)
 
-Index: xfstests-dev/tests/overlay/064
-===================================================================
---- /dev/null	1970-01-01 00:00:00.000000000 +0000
-+++ xfstests-dev/tests/overlay/064	2019-01-16 15:31:58.268178038 -0500
-@@ -0,0 +1,60 @@
-+#! /bin/bash
-+# SPDX-License-Identifier: GPL-2.0
-+# Copyright (c) 2019 Red Hat Inc.  All Rights Reserved.
-+#
-+# FS QA Test 064
-+#
-+# Make sure CAP_SETUID is not cleared over file copy up.
-+#
-+seq=`basename $0`
-+seqres=$RESULT_DIR/$seq
-+echo "QA output created by $seq"
-+
-+here=`pwd`
-+tmp=/tmp/$$
-+status=1	# failure is the default!
-+trap "_cleanup; exit \$status" 0 1 2 3 15
-+
-+_cleanup()
+diff --git a/fs/overlayfs/file.c b/fs/overlayfs/file.c
+index 50e4407398d8..5f648979adbf 100644
+--- a/fs/overlayfs/file.c
++++ b/fs/overlayfs/file.c
+@@ -11,6 +11,11 @@
+ #include <linux/mount.h>
+ #include <linux/xattr.h>
+ #include <linux/uio.h>
++#include <linux/mm.h>
++#include <linux/iomap.h>
++#include <linux/pagemap.h>
++#include <linux/writeback.h>
++#include <linux/ratelimit.h>
+ #include "overlayfs.h"
+ 
+ static char ovl_whatisit(struct inode *inode, struct inode *realinode)
+@@ -114,6 +119,36 @@ static int ovl_real_fdget(const struct file *file, struct fd *real)
+ 	return ovl_real_fdget_meta(file, real, false);
+ }
+ 
++static bool ovl_filemap_support(struct file *file)
 +{
-+	cd /
-+	rm -f $tmp.*
++	struct ovl_fs *ofs = file_inode(file)->i_sb->s_fs_info;
++
++	/* TODO: implement aops to upper inode data */
++	return ofs->upper_mnt && ovl_aops.writepage;
 +}
 +
-+# get standard environment, filters and checks
-+. ./common/rc
-+. ./common/filter
++static bool ovl_should_use_filemap(struct file *file)
++{
++	if (!ovl_filemap_support(file))
++		return false;
 +
-+# remove previous $seqres.full before test
-+rm -f $seqres.full
++	/*
++	 * Use overlay inode page cache for all inodes that could be dirty,
++	 * including pure upper inodes, so ovl_sync_fs() can sync all dirty
++	 * overlay inodes without having to sync all upper fs dirty inodes.
++	 */
++	return ovl_has_upperdata(file_inode(file));
++}
 +
-+# real QA test starts here
-+_supported_fs overlay
-+_supported_os Linux
-+_require_scratch
-+_require_command "$SETCAP_PROG" setcap
-+_require_command "$GETCAP_PROG" getcap
++static int ovl_flush_filemap(struct file *file, loff_t offset, loff_t len)
++{
++	if (!ovl_should_use_filemap(file))
++		return 0;
 +
-+# Remove all files from previous tests
-+_scratch_mkfs
++	return filemap_write_and_wait_range(file_inode(file)->i_mapping,
++					    offset, len);
++}
 +
-+# Create test file
-+lowerdir=${OVL_BASE_SCRATCH_MNT}/${OVL_LOWER}
-+echo "This is lower" >> ${lowerdir}/file
+ static int ovl_open(struct inode *inode, struct file *file)
+ {
+ 	struct file *realfile;
+@@ -190,7 +225,7 @@ static rwf_t ovl_iocb_to_rwf(struct kiocb *iocb)
+ 	return flags;
+ }
+ 
+-static ssize_t ovl_read_iter(struct kiocb *iocb, struct iov_iter *iter)
++static ssize_t ovl_real_read_iter(struct kiocb *iocb, struct iov_iter *iter)
+ {
+ 	struct file *file = iocb->ki_filp;
+ 	struct fd real;
+@@ -216,7 +251,17 @@ static ssize_t ovl_read_iter(struct kiocb *iocb, struct iov_iter *iter)
+ 	return ret;
+ }
+ 
+-static ssize_t ovl_write_iter(struct kiocb *iocb, struct iov_iter *iter)
++static ssize_t ovl_read_iter(struct kiocb *iocb, struct iov_iter *iter)
++{
++	struct file *file = iocb->ki_filp;
 +
-+# set setuid bit
-+$SETCAP_PROG cap_setuid+ep ${lowerdir}/file
++	if (ovl_should_use_filemap(file))
++		return generic_file_read_iter(iocb, iter);
 +
-+_scratch_mount
++	return ovl_real_read_iter(iocb, iter);
++}
 +
-+# Trigger file copy up without actually writing anything to file. This
-+# requires opening file with WRITE and xfs_io opens file with
-+# O_RDWR by default.
-+$XFS_IO_PROG -c "stat" ${SCRATCH_MNT}/file >>$seqres.full
++static ssize_t ovl_real_write_iter(struct kiocb *iocb, struct iov_iter *iter)
+ {
+ 	struct file *file = iocb->ki_filp;
+ 	struct inode *inode = file_inode(file);
+@@ -256,7 +301,19 @@ static ssize_t ovl_write_iter(struct kiocb *iocb, struct iov_iter *iter)
+ 	return ret;
+ }
+ 
+-static int ovl_fsync(struct file *file, loff_t start, loff_t end, int datasync)
++static ssize_t ovl_write_iter(struct kiocb *iocb, struct iov_iter *iter)
++{
++	struct file *file = iocb->ki_filp;
 +
-+# Make sure cap_setuid is still there
-+$GETCAP_PROG ${SCRATCH_MNT}/file | _filter_scratch
++	if (ovl_should_use_filemap(file))
++		return generic_file_write_iter(iocb, iter);
 +
-+# success, all done
-+status=0
-+exit
-Index: xfstests-dev/tests/overlay/064.out
-===================================================================
---- /dev/null	1970-01-01 00:00:00.000000000 +0000
-+++ xfstests-dev/tests/overlay/064.out	2019-01-11 13:18:22.652461223 -0500
-@@ -0,0 +1,2 @@
-+QA output created by 064
-+SCRATCH_MNT/file = cap_setuid+ep
-Index: xfstests-dev/tests/overlay/group
-===================================================================
---- xfstests-dev.orig/tests/overlay/group	2018-12-19 11:47:04.443031019 -0500
-+++ xfstests-dev/tests/overlay/group	2019-01-10 15:43:28.053079686 -0500
-@@ -66,3 +66,4 @@
- 061 auto quick copyup
- 062 auto quick exportfs
- 063 auto quick whiteout
-+064 auto quick copyup
++	return ovl_real_write_iter(iocb, iter);
++}
++
++
++static int ovl_real_fsync(struct file *file, loff_t start, loff_t end,
++			  int datasync)
+ {
+ 	struct fd real;
+ 	const struct cred *old_cred;
+@@ -278,7 +335,20 @@ static int ovl_fsync(struct file *file, loff_t start, loff_t end, int datasync)
+ 	return ret;
+ }
+ 
+-static int ovl_mmap(struct file *file, struct vm_area_struct *vma)
++static int ovl_fsync(struct file *file, loff_t start, loff_t end, int datasync)
++{
++	if (ovl_should_use_filemap(file))
++		return __generic_file_fsync(file, start, end, datasync);
++
++	return ovl_real_fsync(file, start, end, datasync);
++}
++
++const struct address_space_operations ovl_aops = {
++	/* For O_DIRECT dentry_open() checks f_mapping->a_ops->direct_IO */
++	.direct_IO		= noop_direct_IO,
++};
++
++static int ovl_real_mmap(struct file *file, struct vm_area_struct *vma)
+ {
+ 	struct file *realfile = file->private_data;
+ 	const struct cred *old_cred;
+@@ -309,13 +379,27 @@ static int ovl_mmap(struct file *file, struct vm_area_struct *vma)
+ 	return ret;
+ }
+ 
+-static long ovl_fallocate(struct file *file, int mode, loff_t offset, loff_t len)
++static int ovl_mmap(struct file *file, struct vm_area_struct *vma)
++{
++	if (ovl_should_use_filemap(file))
++		generic_file_mmap(file, vma);
++
++	return ovl_real_mmap(file, vma);
++}
++
++static long ovl_fallocate(struct file *file, int mode, loff_t offset,
++			  loff_t len)
+ {
+ 	struct inode *inode = file_inode(file);
+ 	struct fd real;
+ 	const struct cred *old_cred;
+ 	int ret;
+ 
++	/* XXX: Different modes need to flush different ranges... */
++	ret = ovl_flush_filemap(file, 0, LLONG_MAX);
++	if (ret)
++		return ret;
++
+ 	ret = ovl_real_fdget(file, &real);
+ 	if (ret)
+ 		return ret;
+@@ -332,7 +416,8 @@ static long ovl_fallocate(struct file *file, int mode, loff_t offset, loff_t len
+ 	return ret;
+ }
+ 
+-static int ovl_fadvise(struct file *file, loff_t offset, loff_t len, int advice)
++static int ovl_real_fadvise(struct file *file, loff_t offset, loff_t len,
++			    int advice)
+ {
+ 	struct fd real;
+ 	const struct cred *old_cred;
+@@ -351,6 +436,18 @@ static int ovl_fadvise(struct file *file, loff_t offset, loff_t len, int advice)
+ 	return ret;
+ }
+ 
++extern int generic_fadvise(struct file *file, loff_t offset, loff_t len,
++			   int advice);
++
++static int ovl_fadvise(struct file *file, loff_t offset, loff_t len, int advice)
++{
++	if (ovl_should_use_filemap(file))
++		return generic_fadvise(file, offset, len, advice);
++
++	/* XXX: Should we allow messing with lower shared page cache? */
++	return ovl_real_fadvise(file, offset, len, advice);
++}
++
+ static long ovl_real_ioctl(struct file *file, unsigned int cmd,
+ 			   unsigned long arg)
+ {
+@@ -442,6 +539,15 @@ static loff_t ovl_copyfile(struct file *file_in, loff_t pos_in,
+ 	const struct cred *old_cred;
+ 	loff_t ret;
+ 
++	/* XXX: For some ops zero length means EOF... */
++	ret = ovl_flush_filemap(file_out, pos_out, len ?: LLONG_MAX);
++	if (ret)
++		return ret;
++
++	ret = ovl_flush_filemap(file_in, pos_in, len ?: LLONG_MAX);
++	if (ret)
++		return ret;
++
+ 	ret = ovl_real_fdget(file_out, &real_out);
+ 	if (ret)
+ 		return ret;
+diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
+index 3b7ed5d2279c..526ff8d503b0 100644
+--- a/fs/overlayfs/inode.c
++++ b/fs/overlayfs/inode.c
+@@ -504,11 +504,6 @@ static const struct inode_operations ovl_special_inode_operations = {
+ 	.update_time	= ovl_update_time,
+ };
+ 
+-static const struct address_space_operations ovl_aops = {
+-	/* For O_DIRECT dentry_open() checks f_mapping->a_ops->direct_IO */
+-	.direct_IO		= noop_direct_IO,
+-};
+-
+ /*
+  * It is possible to stack overlayfs instance on top of another
+  * overlayfs instance as lower layer. We need to annonate the
+diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
+index 767eeaf73bf1..ab61c07e8583 100644
+--- a/fs/overlayfs/overlayfs.h
++++ b/fs/overlayfs/overlayfs.h
+@@ -414,6 +414,7 @@ struct dentry *ovl_create_temp(struct dentry *workdir, struct ovl_cattr *attr);
+ 
+ /* file.c */
+ extern const struct file_operations ovl_file_operations;
++extern const struct address_space_operations ovl_aops;
+ 
+ /* copy_up.c */
+ int ovl_copy_up(struct dentry *dentry);
+diff --git a/mm/fadvise.c b/mm/fadvise.c
+index 467bcd032037..4f17c83db575 100644
+--- a/mm/fadvise.c
++++ b/mm/fadvise.c
+@@ -27,8 +27,7 @@
+  * deactivate the pages and clear PG_Referenced.
+  */
+ 
+-static int generic_fadvise(struct file *file, loff_t offset, loff_t len,
+-			   int advice)
++int generic_fadvise(struct file *file, loff_t offset, loff_t len, int advice)
+ {
+ 	struct inode *inode;
+ 	struct address_space *mapping;
+@@ -178,6 +177,7 @@ static int generic_fadvise(struct file *file, loff_t offset, loff_t len,
+ 	}
+ 	return 0;
+ }
++EXPORT_SYMBOL(generic_fadvise);
+ 
+ int vfs_fadvise(struct file *file, loff_t offset, loff_t len, int advice)
+ {
+-- 
+2.17.1
