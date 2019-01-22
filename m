@@ -1,117 +1,107 @@
-Return-Path: <vgoyal@redhat.com>
-Date: Thu, 10 Jan 2019 17:32:51 -0500
-From: Vivek Goyal <vgoyal@redhat.com>
-Subject: [PATCH] xfstest: overlay: File capabilities should not be lost over
- copy-up
-Message-ID: <20190110223251.GA15463@redhat.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-To: fstests@vger.kernel.org, linux-unionfs@vger.kernel.org
-Cc: guaneryu@gmail.com, Miklos Szeredi <miklos@szeredi.hu>, Amir Goldstein <amir73il@gmail.com>
+Return-Path: <amir73il@gmail.com>
+Return-Path: <amir73il@gmail.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Subject: [RFC][PATCH v2 4/5] ovl: lazy copy up data on page fault
+Date: Tue, 22 Jan 2019 14:34:56 +0200
+Message-Id: <20190122123457.10600-5-amir73il@gmail.com>
+In-Reply-To: <20190122123457.10600-1-amir73il@gmail.com>
+References: <20190122123457.10600-1-amir73il@gmail.com>
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: Vivek Goyal <vgoyal@redhat.com>, cgxu519 <cgxu519@gmx.com>, linux-unionfs@vger.kernel.org
 List-ID: <linux-unionfs@vger.kernel.org>
 
-Make sure file capabilities are not lost over copy-up when file is
-opened for WRITE but nothing is actually written to it.
+When overlay filemap operations are supported, all maps, including
+private and non writable maps that are created from file that was
+opened after copy up, map overlay inode pages. If the file was opened
+O_RDWR with lazy copy up of data, the first page fault, read or write,
+will trigger data copy up.
 
-Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
+NOTE: SHARED maps that are created from file opened O_RDONLY before
+data copy up will stay mapped to lower real file also after copy up.
+This long standing inconsistency will need to be resolved by future
+patches.
+
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- tests/overlay/064     |   72 ++++++++++++++++++++++++++++++++++++++++++++++++++
- tests/overlay/064.out |    3 ++
- tests/overlay/group   |    1 
- 3 files changed, 76 insertions(+)
+ fs/overlayfs/file.c | 59 +++++++++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 57 insertions(+), 2 deletions(-)
 
-Index: xfstests-dev/tests/overlay/064
-===================================================================
---- /dev/null	1970-01-01 00:00:00.000000000 +0000
-+++ xfstests-dev/tests/overlay/064	2019-01-10 17:06:28.806079686 -0500
-@@ -0,0 +1,72 @@
-+#! /bin/bash
-+# SPDX-License-Identifier: GPL-2.0
-+# Copyright (c) 2018 Red Hat Inc.  All Rights Reserved.
-+#
-+# FS QA Test 064
-+#
-+# Make sure CAP_SETUID is not cleared over file copy up.
-+#
-+# Following commit introduced regression where if a lower file with
-+# CAP_SETUID is opened for writing, and capability is cleared over copy up.
-+#
-+# bd64e57586d3 ("ovl: During copy up, first copy up metadata and then data")
-+#
-+# A later kernel patch will fix it. This test will help avoid introducing
-+# such regressions again.
-+#
-+seq=`basename $0`
-+seqres=$RESULT_DIR/$seq
-+echo "QA output created by $seq"
-+
-+here=`pwd`
-+tmp=/tmp/$$
-+status=1	# failure is the default!
-+trap "_cleanup; exit \$status" 0 1 2 3 15
-+
-+_cleanup()
+diff --git a/fs/overlayfs/file.c b/fs/overlayfs/file.c
+index e02b61af9488..35c75e9d8111 100644
+--- a/fs/overlayfs/file.c
++++ b/fs/overlayfs/file.c
+@@ -397,6 +397,49 @@ const struct address_space_operations ovl_aops = {
+ 	.direct_IO		= noop_direct_IO,
+ };
+ 
++static vm_fault_t ovl_fault(struct vm_fault *vmf)
 +{
-+	cd /
-+	rm -f $tmp.*
++	struct file *file = vmf->vma->vm_file;
++	struct inode *inode = file_inode(file);
++	bool blocking = (vmf->flags & FAULT_FLAG_KILLABLE) ||
++			((vmf->flags & FAULT_FLAG_ALLOW_RETRY) &&
++			 !(vmf->flags & FAULT_FLAG_RETRY_NOWAIT));
++	int err = 0;
++
++	/*
++	 * Handle fault of pages in maps that were created from file that was
++	 * opened O_RDWR and before data copy up.
++	 */
++	if (!ovl_has_upperdata(inode)) {
++		/* TODO: async copy up data? */
++		if (!blocking)
++			goto out_err;
++
++		up_read(&vmf->vma->vm_mm->mmap_sem);
++		err = ovl_maybe_copy_up(file_dentry(file), O_WRONLY);
++		if (err)
++			goto out_err;
++
++		return VM_FAULT_RETRY;
++	}
++
++	return filemap_fault(vmf);
++
++out_err:
++	pr_warn_ratelimited("overlayfs: %s copy up data on page fault (%pd2, err=%i)\n",
++			    blocking ? "failed to" : "no wait for",
++			    file_dentry(file), err);
++
++	/* We must return VM_FAULT_RETRY if we released mmap_sem */
++	return blocking ? VM_FAULT_NOPAGE : VM_FAULT_RETRY;
 +}
 +
-+# get standard environment, filters and checks
-+. ./common/rc
-+. ./common/filter
++static const struct vm_operations_struct ovl_file_vm_ops = {
++	.fault		= ovl_fault,
++	.map_pages	= filemap_map_pages,
++	.page_mkwrite   = filemap_page_mkwrite,
++};
 +
-+# remove previous $seqres.full before test
-+rm -f $seqres.full
-+
-+# real QA test starts here
-+_supported_fs overlay
-+_supported_os Linux
-+_require_scratch
-+_require_command "$SETCAP_PROG" setcap
-+_require_command "$GETCAP_PROG" getcap
-+
-+# Remove all files from previous tests
-+_scratch_mkfs
-+
-+# Create test file
-+lowerdir=${OVL_BASE_SCRATCH_MNT}/${OVL_LOWER}
-+upperdir=${OVL_BASE_SCRATCH_MNT}/${OVL_UPPER}
-+mkdir -p $lowerdir
-+touch ${lowerdir}/file
-+echo "This is lower" >> ${lowerdir}/file
-+# set setuid bit
-+$SETCAP_PROG cap_setuid+ep ${lowerdir}/file
-+
-+_scratch_mount
-+
-+# Trigger file copy up without actually writing anything to file.
-+$XFS_IO_PROG -c "open -a" ${SCRATCH_MNT}/file >>$seqres.full
-+
-+# Make sure cap_setuid is still there
-+$GETCAP_PROG ${SCRATCH_MNT}/file | _filter_scratch
-+
-+# unmount overlayfs
-+$UMOUNT_PROG $SCRATCH_MNT
-+
-+echo "Silence is golden"
-+# success, all done
-+status=0
-+exit
-Index: xfstests-dev/tests/overlay/064.out
-===================================================================
---- /dev/null	1970-01-01 00:00:00.000000000 +0000
-+++ xfstests-dev/tests/overlay/064.out	2019-01-10 17:18:14.731461223 -0500
-@@ -0,0 +1,3 @@
-+QA output created by 064
-+SCRATCH_MNT/file = cap_setuid+ep
-+Silence is golden
-Index: xfstests-dev/tests/overlay/group
-===================================================================
---- xfstests-dev.orig/tests/overlay/group	2018-12-19 11:47:04.443031019 -0500
-+++ xfstests-dev/tests/overlay/group	2019-01-10 15:43:28.053079686 -0500
-@@ -66,3 +66,4 @@
- 061 auto quick copyup
- 062 auto quick exportfs
- 063 auto quick whiteout
-+064 auto quick copyup
+ static int ovl_real_mmap(struct file *file, struct vm_area_struct *vma)
+ {
+ 	struct file *realfile = file->private_data;
+@@ -430,8 +473,20 @@ static int ovl_real_mmap(struct file *file, struct vm_area_struct *vma)
+ 
+ static int ovl_mmap(struct file *file, struct vm_area_struct *vma)
+ {
+-	if (ovl_should_use_filemap_meta(file, true))
+-		generic_file_mmap(file, vma);
++	/*
++	 * All maps (also private and non writable) that are created from file
++	 * that was opened after copy up, map overlay inode pages. If the file
++	 * was opened O_RDWR with lazy copy up of data, the first page fault
++	 * will trigger data copy up.
++	 *
++	 * FIXME: SHARED maps that are created from file opened O_RDONLY before
++	 * data copy up will stay mapped to lower real file also after copy up.
++	 */
++	if (ovl_should_use_filemap_meta(file, true)) {
++		vma->vm_ops = &ovl_file_vm_ops;
++		file_accessed(file);
++		return 0;
++	}
+ 
+ 	return ovl_real_mmap(file, vma);
+ }
+-- 
+2.17.1
