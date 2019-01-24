@@ -1,181 +1,70 @@
+Return-Path: <amir73il@gmail.com>
 MIME-Version: 1.0
-Date: Fri, 25 Jan 2019 10:54:04 +0100
-References: <20190122123457.10600-1-amir73il@gmail.com>
-	<CAOQ4uxhj4X03c43fy2WuOgG7q3ztC=wdw5pBod778d-B5dKmAA@mail.gmail.com>
-	<CAOQ4uxj=c9F5NNBNm+ek3NOPPpj4bh86V6WQyN1N88e76QZWdg@mail.gmail.com>
-In-Reply-To: <CAOQ4uxj=c9F5NNBNm+ek3NOPPpj4bh86V6WQyN1N88e76QZWdg@mail.gmail.com>
-Message-ID: <CAJfpegusiOjWo-dR3eM0yBWeSE0QTaDwM0-kAoo=fSyuVJgZFQ@mail.gmail.com>
+References: <20190122123457.10600-1-amir73il@gmail.com> <CAOQ4uxhj4X03c43fy2WuOgG7q3ztC=wdw5pBod778d-B5dKmAA@mail.gmail.com>
+In-Reply-To: <CAOQ4uxhj4X03c43fy2WuOgG7q3ztC=wdw5pBod778d-B5dKmAA@mail.gmail.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Date: Fri, 25 Jan 2019 00:35:02 +0200
+Message-ID: <CAOQ4uxj=c9F5NNBNm+ek3NOPPpj4bh86V6WQyN1N88e76QZWdg@mail.gmail.com>
 Subject: Re: [RFC][PATCH v2 0/5] Experiments with overlayfs filemap
-From: Miklos Szeredi <miklos@szeredi.hu>
-Content-Type: multipart/mixed; boundary="000000000000ba6ae70580454ea3"
-To: Amir Goldstein <amir73il@gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+To: Miklos Szeredi <miklos@szeredi.hu>
 Cc: Vivek Goyal <vgoyal@redhat.com>, cgxu519 <cgxu519@gmx.com>, overlayfs <linux-unionfs@vger.kernel.org>
 List-ID: <linux-unionfs@vger.kernel.org>
 
---000000000000ba6ae70580454ea3
-Content-Type: text/plain; charset="UTF-8"
+On Thu, Jan 24, 2019 at 7:18 PM Amir Goldstein <amir73il@gmail.com> wrote:
+>
+> >
+> > Can you please point me in the direction of how to implement proper
+> > aops? Or better yet, send me a demo patch?
+> > I figure we need to call vfs_iter_read/vfs_iter_write of real file
+> > with IOCB_DIRECT for page io? But I am very uncertain about locking
+> > order requirements and whether there is already some infrastructure
+> > that we can use (some splice variant)?
+> >
+> > Any other thoughts?
+> >
+>
+> Miklos,
+>
+> I've made a small progress.
+>
+> Pushed two more commits to ovl-lazy-copyup-wip:
+> ea9a0083d1ed - ovl: readahead upper inode page cache on overlay page fault
+> d1ff6e6366d5 - ovl: implement overlay stacked readpage
 
-On Thu, Jan 24, 2019 at 11:35 PM Amir Goldstein <amir73il@gmail.com> wrote:
->
-> On Thu, Jan 24, 2019 at 7:18 PM Amir Goldstein <amir73il@gmail.com> wrote:
-> >
-> > >
-> > > Can you please point me in the direction of how to implement proper
-> > > aops? Or better yet, send me a demo patch?
-> > > I figure we need to call vfs_iter_read/vfs_iter_write of real file
-> > > with IOCB_DIRECT for page io? But I am very uncertain about locking
-> > > order requirements and whether there is already some infrastructure
-> > > that we can use (some splice variant)?
-> > >
-> > > Any other thoughts?
-> > >
-> >
-> > Miklos,
-> >
-> > I've made a small progress.
-> >
-> > Pushed two more commits to ovl-lazy-copyup-wip:
-> > ea9a0083d1ed - ovl: readahead upper inode page cache on overlay page fault
-> > d1ff6e6366d5 - ovl: implement overlay stacked readpage
->
-> Pushed two more:
-> 838c119934a2 - ovl: implement write_begin/write_end aops
-> 44b9e89154ba - ovl: return overlay inode i_size for stat()
->
-> >
-> > That implements readpage by reading and copying from upper page cache.
-> >
-> > With that change, the basic unionmount test on tmpfs passes.
->
-> That is not surprising. overlay filemap ops are disabled for upper
-> tmpfs in current
-> implementation, because tmpfs has no readpage().
->
-> > With unionmount over xfs, tests fail because partial page write
-> > is not working correctly, although mmap partial write works well.
-> >
->
-> But that is fixed now, so ./run --ov --samefs also passes over xfs.
-> Which says something bad about our test coverage...
->
-> > I will try to follow similar pattern to implement writepage by copy to
-> > upper page cache.
-> >
->
-> ...Luckily, I have implemented ./run --ov --recycle way back, otherwise we
-> would have had very poor test coverage for persistency of overlayfs writes.
->
-> So we currently have 6 xfstests failing on write persistency:
-> overlay/018 overlay/032 overlay/044 overlay/047 overlay/050 overlay/051
->
-> and 2 unionmount tests (over /base xfs):
-> ./run --ov --samefs --recycle rename-new-pop-dir
-> ./run --ov --samefs --recycle rename-mass-dir
+Pushed two more:
+838c119934a2 - ovl: implement write_begin/write_end aops
+44b9e89154ba - ovl: return overlay inode i_size for stat()
 
-Great progress.  Thanks!
+>
+> That implements readpage by reading and copying from upper page cache.
+>
+> With that change, the basic unionmount test on tmpfs passes.
 
-I don't think you need to mess with dcache flushing, since this is all
-kernel (page cache) pages without any possible dcache aliasing issues
-that plague user pages.  So a simple copy_page() should do.
+That is not surprising. overlay filemap ops are disabled for upper
+tmpfs in current
+implementation, because tmpfs has no readpage().
 
-It would be even better to do it with O_DIRECT to remove cache
-duplication.  Something like the attached...
+> With unionmount over xfs, tests fail because partial page write
+> is not working correctly, although mmap partial write works well.
+>
+
+But that is fixed now, so ./run --ov --samefs also passes over xfs.
+Which says something bad about our test coverage...
+
+> I will try to follow similar pattern to implement writepage by copy to
+> upper page cache.
+>
+
+...Luckily, I have implemented ./run --ov --recycle way back, otherwise we
+would have had very poor test coverage for persistency of overlayfs writes.
+
+So we currently have 6 xfstests failing on write persistency:
+overlay/018 overlay/032 overlay/044 overlay/047 overlay/050 overlay/051
+
+and 2 unionmount tests (over /base xfs):
+./run --ov --samefs --recycle rename-new-pop-dir
+./run --ov --samefs --recycle rename-mass-dir
 
 Thanks,
-Miklos
-
---000000000000ba6ae70580454ea3
-Content-Type: text/x-patch; charset="US-ASCII"; name="ovl-readpage-with-DIO.patch"
-Content-Disposition: attachment; filename="ovl-readpage-with-DIO.patch"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_jrbvcmxg0
-Content-ID: <f_jrbvcmxg0>
-
-ZGlmZiAtLWdpdCBhL2ZzL292ZXJsYXlmcy9maWxlLmMgYi9mcy9vdmVybGF5ZnMvZmlsZS5jCmlu
-ZGV4IDhlNDA1NmIyNjJkYi4uNmYxZTUwMjAyNzc5IDEwMDY0NAotLS0gYS9mcy9vdmVybGF5ZnMv
-ZmlsZS5jCisrKyBiL2ZzL292ZXJsYXlmcy9maWxlLmMKQEAgLTM1LDkgKzM1LDE5IEBAIHN0YXRp
-YyBzdHJ1Y3QgZmlsZSAqb3ZsX29wZW5fcmVhbGZpbGUoY29uc3Qgc3RydWN0IGZpbGUgKmZpbGUs
-CiAJc3RydWN0IGlub2RlICppbm9kZSA9IGZpbGVfaW5vZGUoZmlsZSk7CiAJc3RydWN0IGZpbGUg
-KnJlYWxmaWxlOwogCWNvbnN0IHN0cnVjdCBjcmVkICpvbGRfY3JlZDsKKwlpbnQgZmxhZ3MgPSBm
-aWxlLT5mX2ZsYWdzIHwgT19OT0FUSU1FOworCisJaWYgKHJlYWxpbm9kZSA9PSBvdmxfaW5vZGVf
-dXBwZXIoaW5vZGUpKSB7CisJCWlmIChmbGFncyAmIE9fV1JPTkxZKQorCQkJZmxhZ3MgPSAoZmxh
-Z3MgJiB+T19BQ0NNT0RFKSB8IE9fUkRXUjsKKworCQlpZiAocmVhbGlub2RlLT5pX21hcHBpbmct
-PmFfb3BzICYmCisJCSAgICByZWFsaW5vZGUtPmlfbWFwcGluZy0+YV9vcHMtPmRpcmVjdF9JTykK
-KwkJCWZsYWdzIHw9IE9fRElSRUNUOworCX0KIAogCW9sZF9jcmVkID0gb3ZsX292ZXJyaWRlX2Ny
-ZWRzKGlub2RlLT5pX3NiKTsKLQlyZWFsZmlsZSA9IG9wZW5fd2l0aF9mYWtlX3BhdGgoJmZpbGUt
-PmZfcGF0aCwgZmlsZS0+Zl9mbGFncyB8IE9fTk9BVElNRSwKKwlyZWFsZmlsZSA9IG9wZW5fd2l0
-aF9mYWtlX3BhdGgoJmZpbGUtPmZfcGF0aCwgZmxhZ3MsCiAJCQkJICAgICAgIHJlYWxpbm9kZSwg
-Y3VycmVudF9jcmVkKCkpOwogCXJldmVydF9jcmVkcyhvbGRfY3JlZCk7CiAKQEAgLTEyMiw2ICsx
-MzIsOSBAQCBzdGF0aWMgaW50IG92bF9yZWFsX2ZkZ2V0X21ldGEoY29uc3Qgc3RydWN0IGZpbGUg
-KmZpbGUsIHN0cnVjdCBmZCAqcmVhbCwKIAkJcmV0dXJuIFBUUl9FUlJfT1JfWkVSTyhyZWFsLT5m
-aWxlKTsKIAl9CiAKKwlpZiAocmVhbGlub2RlID09IG92bF9pbm9kZV91cHBlcihpbm9kZSkpCisJ
-CXJldHVybiAwOworCiAJLyogRGlkIHRoZSBmbGFncyBjaGFuZ2Ugc2luY2Ugb3Blbj8gKi8KIAlp
-ZiAodW5saWtlbHkoKGZpbGUtPmZfZmxhZ3MgXiByZWFsLT5maWxlLT5mX2ZsYWdzKSAmIH5PX05P
-QVRJTUUpKQogCQlyZXR1cm4gb3ZsX2NoYW5nZV9mbGFncyhyZWFsLT5maWxlLCBmaWxlLT5mX2Zs
-YWdzKTsKQEAgLTE0NSw3ICsxNTgsNiBAQCBzdGF0aWMgYm9vbCBvdmxfZmlsZW1hcF9zdXBwb3J0
-KHN0cnVjdCBmaWxlICpmaWxlKQogc3RhdGljIGJvb2wgb3ZsX3Nob3VsZF91c2VfZmlsZW1hcF9t
-ZXRhKHN0cnVjdCBmaWxlICpmaWxlLCBib29sIG1ldGFfb25seSkKIHsKIAlzdHJ1Y3QgaW5vZGUg
-Kmlub2RlID0gZmlsZV9pbm9kZShmaWxlKTsKLQlzdHJ1Y3QgaW5vZGUgKnVwcGVyOwogCWludCBl
-cnI7CiAKIAlpZiAoIW92bF9maWxlbWFwX3N1cHBvcnQoZmlsZSkpCkBAIC0xNjgsMTIgKzE4MCw2
-IEBAIHN0YXRpYyBib29sIG92bF9zaG91bGRfdXNlX2ZpbGVtYXBfbWV0YShzdHJ1Y3QgZmlsZSAq
-ZmlsZSwgYm9vbCBtZXRhX29ubHkpCiAJCX0KIAl9CiAKLQkvKiBEb2VzIHVwcGVyIGlub2RlIHN1
-cHBvcnQgcGFnZSBjYWNoZSBvcGVyYXRpb25zPyAqLwotCXVwcGVyID0gb3ZsX2lub2RlX3VwcGVy
-KGlub2RlKTsKLQlpZiAoIXVwcGVyIHx8IHVubGlrZWx5KCF1cHBlci0+aV9tYXBwaW5nIHx8Ci0J
-CQkgICAgICAgIXVwcGVyLT5pX21hcHBpbmctPmFfb3BzLT5yZWFkcGFnZSkpCi0JCXJldHVybiBm
-YWxzZTsKLQogCS8qCiAJICogSWYgZmlsZSB3YXMgb3BlbmVkIE9fUkRXUiBhbmQgQG1ldGFfb25s
-eSBpcyB0cnVlLCB3ZSB1c2Ugb3ZlcmxheQogCSAqIGlub2RlIGZpbGVtYXAgb3BlcmF0aW9ucywg
-YnV0IGRlZmVyIGRhdGEgY29weSB1cCBmdXJ0aGVyLgpAQCAtMTg2LDcgKzE5Miw3IEBAIHN0YXRp
-YyBib29sIG92bF9zaG91bGRfdXNlX2ZpbGVtYXBfbWV0YShzdHJ1Y3QgZmlsZSAqZmlsZSwgYm9v
-bCBtZXRhX29ubHkpCiAJICogaW5jbHVkaW5nIHB1cmUgdXBwZXIgaW5vZGVzLCBzbyBvdmxfc3lu
-Y19mcygpIGNhbiBzeW5jIGFsbCBkaXJ0eQogCSAqIG92ZXJsYXkgaW5vZGVzIHdpdGhvdXQgaGF2
-aW5nIHRvIHN5bmMgYWxsIHVwcGVyIGZzIGRpcnR5IGlub2Rlcy4KIAkgKi8KLQlyZXR1cm4gdXBw
-ZXIgJiYgb3ZsX2hhc191cHBlcmRhdGEoaW5vZGUpOworCXJldHVybiBvdmxfaW5vZGVfdXBwZXIo
-aW5vZGUpICYmIG92bF9oYXNfdXBwZXJkYXRhKGlub2RlKTsKIH0KIAogc3RhdGljIGJvb2wgb3Zs
-X3Nob3VsZF91c2VfZmlsZW1hcChzdHJ1Y3QgZmlsZSAqZmlsZSkKQEAgLTQwNCw1MiArNDEwLDQz
-IEBAIHN0YXRpYyBpbnQgb3ZsX2ZzeW5jKHN0cnVjdCBmaWxlICpmaWxlLCBsb2ZmX3Qgc3RhcnQs
-IGxvZmZfdCBlbmQsIGludCBkYXRhc3luYykKIAlyZXR1cm4gb3ZsX3JlYWxfZnN5bmMoZmlsZSwg
-c3RhcnQsIGVuZCwgZGF0YXN5bmMpOwogfQogCi1zdGF0aWMgc3RydWN0IHBhZ2UgKm92bF9yZWFs
-X2dldF9wYWdlKHN0cnVjdCBmaWxlICpmaWxlLCBwZ29mZl90IGluZGV4KQotewotCXN0cnVjdCBm
-aWxlICpyZWFsZmlsZSA9IGZpbGUtPnByaXZhdGVfZGF0YTsKLQlzdHJ1Y3QgcGFnZSAqcGFnZTsK
-IAotCXBhZ2UgPSByZWFkX21hcHBpbmdfcGFnZShmaWxlX2lub2RlKHJlYWxmaWxlKS0+aV9tYXBw
-aW5nLCBpbmRleCwgTlVMTCk7Ci0JaWYgKElTX0VSUihwYWdlKSkKLQkJcmV0dXJuIHBhZ2U7Ci0J
-aWYgKCFQYWdlVXB0b2RhdGUocGFnZSkpIHsKLQkJcHV0X3BhZ2UocGFnZSk7Ci0JCXJldHVybiBF
-UlJfUFRSKC1FSU8pOwotCX0KLQlsb2NrX3BhZ2UocGFnZSk7Ci0KLQlyZXR1cm4gcGFnZTsKLX0K
-LQotc3RhdGljIHZvaWQgb3ZsX2NvcHlfcGFnZShzdHJ1Y3QgcGFnZSAqZHN0X3BhZ2UsIHN0cnVj
-dCBwYWdlICpzcmNfcGFnZSkKK3N0YXRpYyBpbnQgb3ZsX3JlYWxfcmVhZHBhZ2Uoc3RydWN0IGZp
-bGUgKnJlYWxmaWxlLCBzdHJ1Y3QgcGFnZSAqcGFnZSkKIHsKLQl2b2lkICpzcmNfYWRkciA9IGtt
-YXBfYXRvbWljKHNyY19wYWdlKTsKLQl2b2lkICpkc3RfYWRkciA9IGttYXBfYXRvbWljKGRzdF9w
-YWdlKTsKKwlzdHJ1Y3QgYmlvX3ZlYyBidmVjID0geworCQkuYnZfcGFnZSA9IHBhZ2UsCisJCS5i
-dl9sZW4gPSBQQUdFX1NJWkUsCisJCS5idl9vZmZzZXQgPSAwLAorCX07CisJbG9mZl90IHBvcyA9
-IHBhZ2UtPmluZGV4IDw8IFBBR0VfU0hJRlQ7CisJc3RydWN0IGlvdl9pdGVyIGl0ZXI7CisJc3Np
-emVfdCByZXQ7CiAKLQlmbHVzaF9kY2FjaGVfcGFnZShzcmNfcGFnZSk7Ci0JbWVtY3B5KGRzdF9h
-ZGRyLCBzcmNfYWRkciwgUEFHRV9TSVpFKTsKKwlpb3ZfaXRlcl9idmVjKCZpdGVyLCBSRUFELCAm
-YnZlYywgMSwgUEFHRV9TSVpFKTsKIAotCWt1bm1hcF9hdG9taWMoZHN0X2FkZHIpOwotCWt1bm1h
-cF9hdG9taWMoc3JjX2FkZHIpOworCXJldCA9IHZmc19pdGVyX3JlYWQocmVhbGZpbGUsICZpdGVy
-LCAmcG9zLCAwKTsKKworCXJldHVybiByZXQgPCAwID8gcmV0IDogMDsKIH0KIAogc3RhdGljIGlu
-dCBvdmxfZG9fcmVhZHBhZ2Uoc3RydWN0IGZpbGUgKmZpbGUsIHN0cnVjdCBwYWdlICpwYWdlKQog
-ewotCXN0cnVjdCBwYWdlICpyZWFscGFnZTsKLQlpbnQgcmV0ID0gMDsKKwlpbnQgcmV0OworCXN0
-cnVjdCBmZCByZWFsOworCWNvbnN0IHN0cnVjdCBjcmVkICpvbGRfY3JlZDsKIAotCXJlYWxwYWdl
-ID0gb3ZsX3JlYWxfZ2V0X3BhZ2UoZmlsZSwgcGFnZS0+aW5kZXgpOwotCWlmICghSVNfRVJSKHJl
-YWxwYWdlKSkgewotCQlvdmxfY29weV9wYWdlKHBhZ2UsIHJlYWxwYWdlKTsKLQkJdW5sb2NrX3Bh
-Z2UocmVhbHBhZ2UpOwotCQlwdXRfcGFnZShyZWFscGFnZSk7Ci0JfSBlbHNlIHsKLQkJcmV0ID0g
-UFRSX0VSUihyZWFscGFnZSk7Ci0JCWNsZWFyX2hpZ2hwYWdlKHBhZ2UpOwotCX0KKwlyZXQgPSBv
-dmxfcmVhbF9mZGdldChmaWxlLCAmcmVhbCk7CisJaWYgKHJldCkKKwkJcmV0dXJuIHJldDsKKwor
-CW9sZF9jcmVkID0gb3ZsX292ZXJyaWRlX2NyZWRzKGZpbGVfaW5vZGUoZmlsZSktPmlfc2IpOwor
-CXJldCA9IG92bF9yZWFsX3JlYWRwYWdlKHJlYWwuZmlsZSwgcGFnZSk7CisJcmV2ZXJ0X2NyZWRz
-KG9sZF9jcmVkKTsKKworCWZkcHV0KHJlYWwpOwogCi0JZmx1c2hfZGNhY2hlX3BhZ2UocGFnZSk7
-Ci0JU2V0UGFnZVVwdG9kYXRlKHBhZ2UpOworCWlmICghcmV0KQorCQlTZXRQYWdlVXB0b2RhdGUo
-cGFnZSk7CiAKIAlyZXR1cm4gcmV0OwogfQpAQCAtNDcwLDYgKzQ2Nyw3IEBAIHN0YXRpYyBpbnQg
-b3ZsX3dyaXRlX2JlZ2luKHN0cnVjdCBmaWxlICpmaWxlLCBzdHJ1Y3QgYWRkcmVzc19zcGFjZSAq
-bWFwcGluZywKIHsKIAlzdHJ1Y3QgcGFnZSAqcGFnZTsKIAlwZ29mZl90IGluZGV4OworCWludCBl
-cnI7CiAKIAlpbmRleCA9IHBvcyA+PiBQQUdFX1NISUZUOwogCkBAIC00NzcsMTEgKzQ3NSwyMCBA
-QCBzdGF0aWMgaW50IG92bF93cml0ZV9iZWdpbihzdHJ1Y3QgZmlsZSAqZmlsZSwgc3RydWN0IGFk
-ZHJlc3Nfc3BhY2UgKm1hcHBpbmcsCiAJaWYgKCFwYWdlKQogCQlyZXR1cm4gLUVOT01FTTsKIAot
-CSpwYWdlcCA9IHBhZ2U7CiAKLQlpZiAoIVBhZ2VVcHRvZGF0ZShwYWdlKSAmJiAobGVuICE9IFBB
-R0VfU0laRSkpCi0JCXJldHVybiBvdmxfZG9fcmVhZHBhZ2UoZmlsZSwgcGFnZSk7CisJaWYgKCFQ
-YWdlVXB0b2RhdGUocGFnZSkgJiYgbGVuICE9IFBBR0VfU0laRSkgeworCQllcnIgPSBvdmxfZG9f
-cmVhZHBhZ2UoZmlsZSwgcGFnZSk7CisJCWlmIChlcnIpIHsKKwkJCXByX3dhcm4oIm92bF9kb19y
-ZWFkcGFnZTogJWkiLCBlcnIpOworCisJCQl1bmxvY2tfcGFnZShwYWdlKTsKKwkJCXB1dF9wYWdl
-KHBhZ2UpOwogCisJCQlyZXR1cm4gLUVJTzsKKwkJfQorCX0KKworCSpwYWdlcCA9IHBhZ2U7CiAJ
-cmV0dXJuIDA7CiB9CiAK
---000000000000ba6ae70580454ea3--
+Amir.
