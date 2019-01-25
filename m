@@ -1,99 +1,249 @@
+Return-Path: <amir73il@gmail.com>
 MIME-Version: 1.0
-Date: Fri, 25 Jan 2019 13:21:52 +0100
-References: <20190122123457.10600-1-amir73il@gmail.com>
-	<CAOQ4uxhj4X03c43fy2WuOgG7q3ztC=wdw5pBod778d-B5dKmAA@mail.gmail.com>
-	<CAOQ4uxj=c9F5NNBNm+ek3NOPPpj4bh86V6WQyN1N88e76QZWdg@mail.gmail.com>
-	<CAJfpegusiOjWo-dR3eM0yBWeSE0QTaDwM0-kAoo=fSyuVJgZFQ@mail.gmail.com>
-	<CAOQ4uxhgK0tanvqZn9a9=q80Sc4L3GO1Nou7amU51Q66uUXhOg@mail.gmail.com>
-In-Reply-To: <CAOQ4uxhgK0tanvqZn9a9=q80Sc4L3GO1Nou7amU51Q66uUXhOg@mail.gmail.com>
-Message-ID: <CAJfpegv48DRJ4Cd40gFX+ssmNmQTtej+8SNAtzCoPtjgBnws9Q@mail.gmail.com>
+References: <20190122123457.10600-1-amir73il@gmail.com> <CAOQ4uxhj4X03c43fy2WuOgG7q3ztC=wdw5pBod778d-B5dKmAA@mail.gmail.com>
+ <CAOQ4uxj=c9F5NNBNm+ek3NOPPpj4bh86V6WQyN1N88e76QZWdg@mail.gmail.com> <CAJfpegusiOjWo-dR3eM0yBWeSE0QTaDwM0-kAoo=fSyuVJgZFQ@mail.gmail.com>
+In-Reply-To: <CAJfpegusiOjWo-dR3eM0yBWeSE0QTaDwM0-kAoo=fSyuVJgZFQ@mail.gmail.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Date: Fri, 25 Jan 2019 13:24:28 +0200
+Message-ID: <CAOQ4uxhgK0tanvqZn9a9=q80Sc4L3GO1Nou7amU51Q66uUXhOg@mail.gmail.com>
 Subject: Re: [RFC][PATCH v2 0/5] Experiments with overlayfs filemap
-From: Miklos Szeredi <miklos@szeredi.hu>
-Content-Type: text/plain; charset="UTF-8"
-To: Amir Goldstein <amir73il@gmail.com>
+Content-Type: multipart/mixed; boundary="000000000000965a3a05804692c2"
+To: Miklos Szeredi <miklos@szeredi.hu>
 Cc: Vivek Goyal <vgoyal@redhat.com>, cgxu519 <cgxu519@gmx.com>, overlayfs <linux-unionfs@vger.kernel.org>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-On Fri, Jan 25, 2019 at 12:24 PM Amir Goldstein <amir73il@gmail.com> wrote:
->
-> > > ...Luckily, I have implemented ./run --ov --recycle way back, otherwise we
-> > > would have had very poor test coverage for persistency of overlayfs writes.
-> > >
-> > > So we currently have 6 xfstests failing on write persistency:
-> > > overlay/018 overlay/032 overlay/044 overlay/047 overlay/050 overlay/051
-> > >
-> > > and 2 unionmount tests (over /base xfs):
-> > > ./run --ov --samefs --recycle rename-new-pop-dir
-> > > ./run --ov --samefs --recycle rename-mass-dir
+--000000000000965a3a05804692c2
+Content-Type: text/plain; charset="UTF-8"
+
+> > ...Luckily, I have implemented ./run --ov --recycle way back, otherwise we
+> > would have had very poor test coverage for persistency of overlayfs writes.
 > >
-> > Great progress.  Thanks!
+> > So we currently have 6 xfstests failing on write persistency:
+> > overlay/018 overlay/032 overlay/044 overlay/047 overlay/050 overlay/051
 > >
-> > I don't think you need to mess with dcache flushing, since this is all
-> > kernel (page cache) pages without any possible dcache aliasing issues
-> > that plague user pages.  So a simple copy_page() should do.
-> >
+> > and 2 unionmount tests (over /base xfs):
+> > ./run --ov --samefs --recycle rename-new-pop-dir
+> > ./run --ov --samefs --recycle rename-mass-dir
 >
-> Pardon my ignorance, but couldn't pages be mapped to user?
-
-Well, yes, but we don't really care about coherency with upper shared
-mappings (upper is *our* backing store)
-
-> Anyway, it seems that generic_file_buffered_read() does
-> flush_dcache_page() if needed, so we need not worry about it.
+> Great progress.  Thanks!
 >
-> > It would be even better to do it with O_DIRECT to remove cache
-> > duplication.  Something like the attached...
-> >
+> I don't think you need to mess with dcache flushing, since this is all
+> kernel (page cache) pages without any possible dcache aliasing issues
+> that plague user pages.  So a simple copy_page() should do.
 >
-> Yes, definitely better. Thanks for the patch!
+
+Pardon my ignorance, but couldn't pages be mapped to user?
+Anyway, it seems that generic_file_buffered_read() does
+flush_dcache_page() if needed, so we need not worry about it.
+
+> It would be even better to do it with O_DIRECT to remove cache
+> duplication.  Something like the attached...
 >
-> You'll be happy to know that the two unionmount tests fails on tmpfs
-> as expected (or maybe you already checked that).
->
-> I do get one new lockdep splat from xfstest, something we need to
-> look into (attached 013.dmesg).
 
-Yeah, I suspected we were going to hit mmap sem lock ordering issue in
-readpage.  The easy way out is to submit reads through a workqueue.
-Doing the actual read in an async manner is the right way anyway,
-otherwise we'd be holding up mmap sem way too long.
+Yes, definitely better. Thanks for the patch!
 
-> One questions about your patch:
-> Skipping the ovl_change_flags() for upper realfile, that's just a
-> quick hack, right?
-> I'll need to fix this up properly.
+You'll be happy to know that the two unionmount tests fails on tmpfs
+as expected (or maybe you already checked that).
 
-Yes.
+I do get one new lockdep splat from xfstest, something we need to
+look into (attached 013.dmesg).
 
-Speaking of hacks: I don't really like the O_RDWR | O_WRONLY thing.  I
-understand why it works, but I think handling it explicitly would be
-much cleaner.
+One questions about your patch:
+Skipping the ovl_change_flags() for upper realfile, that's just a
+quick hack, right?
+I'll need to fix this up properly.
 
-> About the way forward, implementing writepage() should be quite straight forward
-> from this, so I will add write support re-work the series and re-post.
+About the way forward, implementing writepage() should be quite straight forward
+from this, so I will add write support re-work the series and re-post.
 
-The one issue is, we don't have the open file available from
-writepage(s) like we do in readpage(s).   In fact leaving the
-writeback till after close is an important optimization (e.g.
-compilers write temporary files, that are then immediately deleted, so
-no need to actually do any writeback).
+I think I can now see how to implement the LOWER -> LOWER_SHARED ->
+UPPER_SHARED transitions, but that will require some more juggling of
+realfile flags etc.
 
-That opens some interesting questions about how to do the writeback...
+With the current implementation of UPPER_SHARED only we can gain:
+- No copy up latency on open() with metacopy=on
+- Very improved ovl_sync_fs() (no longer sync all containers on syncfs(2))
 
->
-> I think I can now see how to implement the LOWER -> LOWER_SHARED ->
-> UPPER_SHARED transitions, but that will require some more juggling of
-> realfile flags etc.
->
-> With the current implementation of UPPER_SHARED only we can gain:
-> - No copy up latency on open() with metacopy=on
-> - Very improved ovl_sync_fs() (no longer sync all containers on syncfs(2))
->
-> Do you think we should aim for merging just UPPER_SHARED in dev
-> cycle to hash out the bugs of overlay page cache or aim for merging
-> LOWER_SHARED+UPPER_SHARED when it is ready?
-
-Good plan.
+Do you think we should aim for merging just UPPER_SHARED in dev
+cycle to hash out the bugs of overlay page cache or aim for merging
+LOWER_SHARED+UPPER_SHARED when it is ready?
 
 Thanks,
-Miklos
+Amir.
+
+--000000000000965a3a05804692c2
+Content-Type: application/octet-stream; name="013.dmesg"
+Content-Disposition: attachment; filename="013.dmesg"
+Content-Transfer-Encoding: base64
+Content-ID: <f_jrbxodzi0>
+X-Attachment-Id: f_jrbxodzi0
+
+WyAgMTE5LjQ0ODI2OF0gcnVuIGZzdGVzdHMgb3ZlcmxheS8wMTMgYXQgMjAxOS0wMS0yNSAxMDo1
+NToxNApbICAxMTkuNzU1MTc0XSBYRlMgKHZkZSk6IE1vdW50aW5nIFY1IEZpbGVzeXN0ZW0KWyAg
+MTE5Ljc3NDQwMF0gWEZTICh2ZGUpOiBFbmRpbmcgY2xlYW4gbW91bnQKWyAgMTE5LjkyNTk0NF0g
+WEZTICh2ZGYpOiBVbm1vdW50aW5nIEZpbGVzeXN0ZW0KWyAgMTE5Ljk4MTczNF0gWEZTICh2ZGYp
+OiBNb3VudGluZyBWNSBGaWxlc3lzdGVtClsgIDEyMC4wMDg1NDZdIFhGUyAodmRmKTogRW5kaW5n
+IGNsZWFuIG1vdW50CgpbICAxMjAuMTMzOTcwXSA9PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT0KWyAgMTIwLjEzNTIyOV0gV0FSTklORzogcG9zc2li
+bGUgY2lyY3VsYXIgbG9ja2luZyBkZXBlbmRlbmN5IGRldGVjdGVkClsgIDEyMC4xMzY1MjBdIDUu
+MC4wLXJjMS14ZnN0ZXN0cy0wMDAxMS1nOGMxNTIwNDJiYThlLWRpcnR5ICM0MDQ3IE5vdCB0YWlu
+dGVkClsgIDEyMC4xMzc5MTddIC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLQpbICAxMjAuMTM5MTgyXSB0ZXN0X3VwcGVyLzkyODkgaXMgdHJ5aW5n
+IHRvIGFjcXVpcmUgbG9jazoKWyAgMTIwLjE0MDI1MF0gMDAwMDAwMDBjMDNjNmFmZCAoJmlub2Rl
+LT5pX3J3c2VtKXsrKysrfSwgYXQ6IHhmc19pbG9jaysweDE4Yi8weDIwOApbICAxMjAuMTQxNzQ1
+XSAKICAgICAgICAgICAgICAgYnV0IHRhc2sgaXMgYWxyZWFkeSBob2xkaW5nIGxvY2s6ClsgIDEy
+MC4xNDI5MjldIDAwMDAwMDAwMmU0NGUxZmYgKCZtbS0+bW1hcF9zZW0peysrKyt9LCBhdDogX19k
+b19wYWdlX2ZhdWx0KzB4MWI0LzB4M2ZmClsgIDEyMC4xNDQzODhdIAogICAgICAgICAgICAgICB3
+aGljaCBsb2NrIGFscmVhZHkgZGVwZW5kcyBvbiB0aGUgbmV3IGxvY2suCgpbICAxMjAuMTQ2MDcy
+XSAKICAgICAgICAgICAgICAgdGhlIGV4aXN0aW5nIGRlcGVuZGVuY3kgY2hhaW4gKGluIHJldmVy
+c2Ugb3JkZXIpIGlzOgpbICAxMjAuMTQ3NjUyXSAKICAgICAgICAgICAgICAgLT4gIzEgKCZtbS0+
+bW1hcF9zZW0peysrKyt9OgpbICAxMjAuMTQ4ODQ3XSAgICAgICAgX19taWdodF9mYXVsdCsweDYx
+LzB4ODkKWyAgMTIwLjE0OTcyN10gICAgICAgIGNvcHlfcGFnZV90b19pdGVyKzB4MTFmLzB4MmMx
+ClsgIDEyMC4xNTA0NzRdICAgICAgICBnZW5lcmljX2ZpbGVfYnVmZmVyZWRfcmVhZCsweDI3OS8w
+eDY2MApbICAxMjAuMTUxNTQ0XSAgICAgICAgeGZzX2ZpbGVfYnVmZmVyZWRfYWlvX3JlYWQrMHgx
+MTcvMHgxMzUKWyAgMTIwLjE1MjU1N10gICAgICAgIHhmc19maWxlX3JlYWRfaXRlcisweDgxLzB4
+YzgKWyAgMTIwLjE1MzUzOF0gICAgICAgIF9fdmZzX3JlYWQrMHgxMzYvMHgxNmUKWyAgMTIwLjE1
+NDM1OV0gICAgICAgIHZmc19yZWFkKzB4YjUvMHgxNDEKWyAgMTIwLjE1NTEzN10gICAgICAgIGtz
+eXNfcmVhZCsweDYwLzB4YjEKWyAgMTIwLjE1NTkyMF0gICAgICAgIGRvX3N5c2NhbGxfNjQrMHg1
+Ny8weDE0ZQpbICAxMjAuMTU2NzgzXSAgICAgICAgZW50cnlfU1lTQ0FMTF82NF9hZnRlcl9od2Zy
+YW1lKzB4NDkvMHhiZQpbICAxMjAuMTU3OTIwXSAKICAgICAgICAgICAgICAgLT4gIzAgKCZpbm9k
+ZS0+aV9yd3NlbSl7KysrK306ClsgIDEyMC4xNTkwNTVdICAgICAgICBsb2NrX2FjcXVpcmUrMHgx
+NDEvMHgxNmMKWyAgMTIwLjE1OTkyMV0gICAgICAgIGRvd25fcmVhZF9uZXN0ZWQrMHg0NS8weDlj
+ClsgIDEyMC4xNjA4MThdICAgICAgICB4ZnNfaWxvY2srMHgxOGIvMHgyMDgKWyAgMTIwLjE2MTUy
+Ml0gICAgICAgIHhmc19maWxlX2Rpb19haW9fcmVhZCsweDExMC8weDE0NQpbICAxMjAuMTYyNDg5
+XSAgICAgICAgeGZzX2ZpbGVfcmVhZF9pdGVyKzB4N2EvMHhjOApbICAxMjAuMTYzMzgwXSAgICAg
+ICAgZG9faXRlcl9yZWFkdl93cml0ZXYrMHgxNGIvMHgxODIKWyAgMTIwLjE2NDIwM10gICAgICAg
+IGRvX2l0ZXJfcmVhZCsweDg3LzB4ZmIKWyAgMTIwLjE2NDc2M10gICAgICAgIG92bF9kb19yZWFk
+cGFnZSsweDllLzB4ZWQKWyAgMTIwLjE2NTM0MV0gICAgICAgIG92bF9yZWFkcGFnZSsweGYvMHgy
+MgpbICAxMjAuMTY1OTE1XSAgICAgICAgZmlsZW1hcF9mYXVsdCsweDMxMS8weDQyNQpbICAxMjAu
+MTY2NjIwXSAgICAgICAgX19kb19mYXVsdCsweDFkLzB4NjcKWyAgMTIwLjE2NzM0M10gICAgICAg
+IF9faGFuZGxlX21tX2ZhdWx0KzB4ODIzLzB4YWU1ClsgIDEyMC4xNjgzMDBdICAgICAgICBfX2Rv
+X3BhZ2VfZmF1bHQrMHgyZmIvMHgzZmYKWyAgMTIwLjE2OTM2Nl0gICAgICAgIGFzeW5jX3BhZ2Vf
+ZmF1bHQrMHgxZS8weDMwClsgIDEyMC4xNzAzNjFdICAgICAgICBfX2NsZWFyX3VzZXIrMHgzNi8w
+eDVmClsgIDEyMC4xNzEzMDVdICAgICAgICBwYWR6ZXJvKzB4MWMvMHgyYgpbICAxMjAuMTcyMDM0
+XSAgICAgICAgbG9hZF9lbGZfYmluYXJ5KzB4Nzk1LzB4ZGZlClsgIDEyMC4xNzI4NzBdICAgICAg
+ICBzZWFyY2hfYmluYXJ5X2hhbmRsZXIrMHg3Mi8weGRiClsgIDEyMC4xNzM4MTJdICAgICAgICBf
+X2RvX2V4ZWN2ZV9maWxlLmlzcmEuMTErMHg3MDgvMHg5YjIKWyAgMTIwLjE3NDgzN10gICAgICAg
+IGRvX2V4ZWN2ZSsweDIxLzB4MjQKWyAgMTIwLjE3NTU4OF0gICAgICAgIF9feDY0X3N5c19leGVj
+dmUrMHgyNi8weDJiClsgIDEyMC4xNzY0NTFdICAgICAgICBkb19zeXNjYWxsXzY0KzB4NTcvMHgx
+NGUKWyAgMTIwLjE3NzI3NF0gICAgICAgIGVudHJ5X1NZU0NBTExfNjRfYWZ0ZXJfaHdmcmFtZSsw
+eDQ5LzB4YmUKWyAgMTIwLjE3ODM2NF0gCiAgICAgICAgICAgICAgIG90aGVyIGluZm8gdGhhdCBt
+aWdodCBoZWxwIHVzIGRlYnVnIHRoaXM6CgpbICAxMjAuMTc5OTI5XSAgUG9zc2libGUgdW5zYWZl
+IGxvY2tpbmcgc2NlbmFyaW86CgpbICAxMjAuMTgxMDg2XSAgICAgICAgQ1BVMCAgICAgICAgICAg
+ICAgICAgICAgQ1BVMQpbICAxMjAuMTgxOTc0XSAgICAgICAgLS0tLSAgICAgICAgICAgICAgICAg
+ICAgLS0tLQpbICAxMjAuMTgyODY2XSAgIGxvY2soJm1tLT5tbWFwX3NlbSk7ClsgIDEyMC4xODM1
+NDldICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBsb2NrKCZpbm9kZS0+aV9yd3NlbSk7
+ClsgIDEyMC4xODQ3MzVdICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBsb2NrKCZtbS0+
+bW1hcF9zZW0pOwpbICAxMjAuMTg1NzQ2XSAgIGxvY2soJmlub2RlLT5pX3J3c2VtKTsKWyAgMTIw
+LjE4NjIzNV0gCiAgICAgICAgICAgICAgICAqKiogREVBRExPQ0sgKioqCgpbICAxMjAuMTg3MDE5
+XSAxIGxvY2sgaGVsZCBieSB0ZXN0X3VwcGVyLzkyODk6ClsgIDEyMC4xODc3MjhdICAjMDogMDAw
+MDAwMDAyZTQ0ZTFmZiAoJm1tLT5tbWFwX3NlbSl7KysrK30sIGF0OiBfX2RvX3BhZ2VfZmF1bHQr
+MHgxYjQvMHgzZmYKWyAgMTIwLjE4OTM3Ml0gCiAgICAgICAgICAgICAgIHN0YWNrIGJhY2t0cmFj
+ZToKWyAgMTIwLjE5MDI2OF0gQ1BVOiAwIFBJRDogOTI4OSBDb21tOiB0ZXN0X3VwcGVyIE5vdCB0
+YWludGVkIDUuMC4wLXJjMS14ZnN0ZXN0cy0wMDAxMS1nOGMxNTIwNDJiYThlLWRpcnR5ICM0MDQ3
+ClsgIDEyMC4xOTIyNzddIEhhcmR3YXJlIG5hbWU6IFFFTVUgU3RhbmRhcmQgUEMgKGk0NDBGWCAr
+IFBJSVgsIDE5OTYpLCBCSU9TIDEuMTAuMi0xdWJ1bnR1MSAwNC8wMS8yMDE0ClsgIDEyMC4xOTQx
+MzldIENhbGwgVHJhY2U6ClsgIDEyMC4xOTQ2NjldICBkdW1wX3N0YWNrKzB4NjcvMHg4ZQpbICAx
+MjAuMTk1NTM5XSAgcHJpbnRfY2lyY3VsYXJfYnVnLmlzcmEuMTgrMHgyNmUvMHgyN2IKWyAgMTIw
+LjE5NjU4NV0gIGNoZWNrX3ByZXZfYWRkLmNvbnN0cHJvcC4yNisweDEyYy8weDVmNwpbICAxMjAu
+MTk3NDk5XSAgPyBfX2xvY2tfYWNxdWlyZSsweGQ4MC8weGVlNwpbICAxMjAuMTk4MjU5XSAgX19s
+b2NrX2FjcXVpcmUrMHhkODAvMHhlZTcKWyAgMTIwLjE5OTA2Ml0gIGxvY2tfYWNxdWlyZSsweDE0
+MS8weDE2YwpbICAxMjAuMTk5NzIzXSAgPyB4ZnNfaWxvY2srMHgxOGIvMHgyMDgKWyAgMTIwLjIw
+MDM1Ml0gID8geGZzX2ZpbGVfZGlvX2Fpb19yZWFkKzB4MTEwLzB4MTQ1ClsgIDEyMC4yMDExNThd
+ICBkb3duX3JlYWRfbmVzdGVkKzB4NDUvMHg5YwpbICAxMjAuMjAxODI5XSAgPyB4ZnNfaWxvY2sr
+MHgxOGIvMHgyMDgKWyAgMTIwLjIwMjQ1Nl0gIHhmc19pbG9jaysweDE4Yi8weDIwOApbICAxMjAu
+MjAzMDU3XSAgeGZzX2ZpbGVfZGlvX2Fpb19yZWFkKzB4MTEwLzB4MTQ1ClsgIDEyMC4yMDM5MzNd
+ICB4ZnNfZmlsZV9yZWFkX2l0ZXIrMHg3YS8weGM4ClsgIDEyMC4yMDQ3MjldICBkb19pdGVyX3Jl
+YWR2X3dyaXRldisweDE0Yi8weDE4MgpbICAxMjAuMjA1NTE0XSAgZG9faXRlcl9yZWFkKzB4ODcv
+MHhmYgpbICAxMjAuMjA2MDE4XSAgb3ZsX2RvX3JlYWRwYWdlKzB4OWUvMHhlZApbICAxMjAuMjA2
+Njc2XSAgb3ZsX3JlYWRwYWdlKzB4Zi8weDIyClsgIDEyMC4yMDcxNzddICA/IG92bF93cml0ZV9i
+ZWdpbisweGFiLzB4YWIKWyAgMTIwLjIwODAyOF0gIGZpbGVtYXBfZmF1bHQrMHgzMTEvMHg0MjUK
+WyAgMTIwLjIwODgwMl0gID8gb3ZsX2ZhdWx0KzB4YzkvMHgxNmQKWyAgMTIwLjIwOTQ5NF0gIF9f
+ZG9fZmF1bHQrMHgxZC8weDY3ClsgIDEyMC4yMTAxNTJdICBfX2hhbmRsZV9tbV9mYXVsdCsweDgy
+My8weGFlNQpbICAxMjAuMjEwOTYyXSAgX19kb19wYWdlX2ZhdWx0KzB4MmZiLzB4M2ZmClsgIDEy
+MC4yMTE3NDddICBhc3luY19wYWdlX2ZhdWx0KzB4MWUvMHgzMApbICAxMjAuMjEyNTA3XSBSSVA6
+IDAwMTA6X19jbGVhcl91c2VyKzB4MzYvMHg1ZgpbICAxMjAuMjEzMjAyXSBDb2RlOiA3MSAyMCAz
+NyA4MiA1MyA0OCA4OSBmMyBiZSAxMyAwMCAwMCAwMCBlOCBhMiA1OCA3NyBmZiAwZiAwMSBjYiA0
+OCA4OSBkOCA0OCBjMSBlYiAwMyA0OCA4OSBlZiA4MyBlMCAwNyA0OCA4OSBkOSA0OCA4NSBjOSA3
+NCAwZiA8NDg+IGM3IDA3IDAwIDAwIDAwIDAwIDQ4IDgzIGM3IDA4IGZmIGM5IDc1IGYxIDQ4IDg5
+IGMxIDg1IGM5IDc0IDBhClsgIDEyMC4yMTcwNTVdIFJTUDogMDAxODpmZmZmYzkwMDAyZjM3ZDg4
+IEVGTEFHUzogMDAwNTAyMDYKWyAgMTIwLjIxODExOV0gUkFYOiAwMDAwMDAwMDAwMDAwMDAwIFJC
+WDogMDAwMDAwMDAwMDAwMDFmNSBSQ1g6IDAwMDAwMDAwMDAwMDAxZjUKWyAgMTIwLjIxOTIxN10g
+UkRYOiAwMDAwMDAwMDAwMDAwMDAwIFJTSTogMDAwMDAwMDAwMDAwMDA4MCBSREk6IDAwMDA1NjMz
+MDJiOGIwNTgKWyAgMTIwLjIyMDU3OF0gUkJQOiAwMDAwNTYzMzAyYjhiMDU4IFIwODogMDAwMDAw
+MDBkZjFmYzVkMyBSMDk6IDAwMDAwMDAwMDAwMDAwMDYKWyAgMTIwLjIyMTk1M10gUjEwOiAwMDAw
+MDAwMDAwMDAwMDAwIFIxMTogMDAwMDAwMDAwMDAwMDAwMSBSMTI6IGZmZmY4ODgwNzk3OTQ5MDAK
+WyAgMTIwLjIyMzMzMV0gUjEzOiAwMDAwMDAwMDAwMDAwMDAwIFIxNDogMDAwMDU2MzMwMmI4YjA3
+MCBSMTU6IDAwMDA1NjMzMDJiOGIwNTgKWyAgMTIwLjIyNDY3NV0gID8gX19jbGVhcl91c2VyKzB4
+MWUvMHg1ZgpbICAxMjAuMjI1MTkyXSAgcGFkemVybysweDFjLzB4MmIKWyAgMTIwLjIyNTYxNF0g
+IGxvYWRfZWxmX2JpbmFyeSsweDc5NS8weGRmZQpbICAxMjAuMjI2MTcyXSAgc2VhcmNoX2JpbmFy
+eV9oYW5kbGVyKzB4NzIvMHhkYgpbICAxMjAuMjI2ODI4XSAgX19kb19leGVjdmVfZmlsZS5pc3Jh
+LjExKzB4NzA4LzB4OWIyClsgIDEyMC4yMjc2ODVdICBkb19leGVjdmUrMHgyMS8weDI0ClsgIDEy
+MC4yMjg0NTJdICBfX3g2NF9zeXNfZXhlY3ZlKzB4MjYvMHgyYgpbICAxMjAuMjI5NDQ3XSAgZG9f
+c3lzY2FsbF82NCsweDU3LzB4MTRlClsgIDEyMC4yMzAxNjFdICBlbnRyeV9TWVNDQUxMXzY0X2Fm
+dGVyX2h3ZnJhbWUrMHg0OS8weGJlClsgIDEyMC4yMzExMzddIFJJUDogMDAzMzoweDdmYzE0MzQ4
+YTY0NwpbICAxMjAuMjMxODQ2XSBDb2RlOiBCYWQgUklQIHZhbHVlLgpbICAxMjAuMjMyNDc2XSBS
+U1A6IDAwMmI6MDAwMDdmZmMyOGY0YjYzOCBFRkxBR1M6IDAwMDAwMjAyIE9SSUdfUkFYOiAwMDAw
+MDAwMDAwMDAwMDNiClsgIDEyMC4yMzM1MjldIFJBWDogZmZmZmZmZmZmZmZmZmZkYSBSQlg6IDAw
+MDAwMDAwMDEzY2Y1NjggUkNYOiAwMDAwN2ZjMTQzNDhhNjQ3ClsgIDEyMC4yMzQ0NTBdIFJEWDog
+MDAwMDAwMDAwMTYyZjAwOCBSU0k6IDAwMDAwMDAwMDEzZDRmNjggUkRJOiAwMDAwMDAwMDAxM2Nm
+NTY4ClsgIDEyMC4yMzUzODJdIFJCUDogMDAwMDAwMDAwMDAwMDAwMCBSMDg6IDAwMDAwMDAwMDA3
+MTA3MTAgUjA5OiAwMDAwMDAwMDAwMDAwMDAwClsgIDEyMC4yMzY4NDBdIFIxMDogMDAwMDAwMDAw
+MDAwMDU5YSBSMTE6IDAwMDAwMDAwMDAwMDAyMDIgUjEyOiAwMDAwMDAwMDAwMDAwMDAwClsgIDEy
+MC4yMzgyNzFdIFIxMzogMDAwMDAwMDAwMTNkNGY2OCBSMTQ6IDAwMDAwMDAwMDE2MmYwMDggUjE1
+OiAwMDAwMDAwMDAwMDAwMDAwClsgIDEyMC4yNDY1NzBdIC0tLS0tLS0tLS0tLVsgY3V0IGhlcmUg
+XS0tLS0tLS0tLS0tLQpbICAxMjAuMjQ3NjA0XSBkb3duZ3JhZGluZyBhIHJlYWQgbG9jawpbICAx
+MjAuMjQ3NjE4XSBXQVJOSU5HOiBDUFU6IDEgUElEOiA5Mjg5IGF0IC9ob21lL2FtaXIvYnVpbGQv
+c3JjL2xpbnV4L2tlcm5lbC9sb2NraW5nL2xvY2tkZXAuYzozNTUzIGxvY2tfZG93bmdyYWRlKzB4
+ZTMvMHgxN2IKWyAgMTIwLjI1MDU5Ml0gQ1BVOiAxIFBJRDogOTI4OSBDb21tOiB0ZXN0X3VwcGVy
+IE5vdCB0YWludGVkIDUuMC4wLXJjMS14ZnN0ZXN0cy0wMDAxMS1nOGMxNTIwNDJiYThlLWRpcnR5
+ICM0MDQ3ClsgIDEyMC4yNTI3MThdIEhhcmR3YXJlIG5hbWU6IFFFTVUgU3RhbmRhcmQgUEMgKGk0
+NDBGWCArIFBJSVgsIDE5OTYpLCBCSU9TIDEuMTAuMi0xdWJ1bnR1MSAwNC8wMS8yMDE0ClsgIDEy
+MC4yNTQ1MzddIFJJUDogMDAxMDpsb2NrX2Rvd25ncmFkZSsweGUzLzB4MTdiClsgIDEyMC4yNTU1
+MzddIENvZGU6IDAwIDAwIDAwIDhiIDQ0IDI0IDA0IDg5IDgzIDYwIDA4IDAwIDAwIDQ4IDhiIDQ1
+IDAwIDQ4IDg5IDgzIDU4IDA4IDAwIDAwIGY2IDQ1IDMyIDAzIDc0IDBlIDQ4IGM3IGM3IDc5IDdh
+IDI4IDgyIGU4IDc3IGQ4IGZhIGZmIDwwZj4gMGIgOGEgNDUgMzIgNGMgODkgNmQgMDggNDQgODkg
+ZTYgNDggODkgZGYgODMgZTAgZmMgODMgYzggMDEgODgKWyAgMTIwLjI1OTkwM10gUlNQOiAwMDE4
+OmZmZmZjOTAwMDJmMzdlMjggRUZMQUdTOiAwMDAxMDA4MgpbICAxMjAuMjYxMDQ3XSBSQVg6IDAw
+MDAwMDAwMDAwMDAwMDAgUkJYOiBmZmZmODg4MDdhM2UwMmMwIFJDWDogMDAwMDAwMDAwMDAwMDAw
+MApbICAxMjAuMjYyNTA5XSBSRFg6IGZmZmZmZmZmODEwZmIyNGYgUlNJOiAwMDAwMDAwMDAwMDAw
+MDAxIFJESTogZmZmZmZmZmY4MTBmYjI2MQpbICAxMjAuMjYzODg3XSBSQlA6IGZmZmY4ODgwN2Ez
+ZTBiMjggUjA4OiAwMDAwMDAwMDAwMDAwMDE3IFIwOTogMDAwMDAwMDAwMDAwMDAwNApbICAxMjAu
+MjY1MzM4XSBSMTA6IDAwMDAwMDAwMDAwMDAwMDAgUjExOiBmZmZmYzkwMDAyZjM3YzQ3IFIxMjog
+MDAwMDAwMDAwMDAwMDAwMQpbICAxMjAuMjY2NjY2XSBSMTM6IGZmZmZmZmZmODExZTRiYjMgUjE0
+OiAwMDAwMDAwMDAwMDAwMjQ2IFIxNTogZmZmZjg4ODA1Y2EzODE2OApbICAxMjAuMjY4MTIyXSBG
+UzogIDAwMDA3ZjM3MTIxNWViYzAoMDAwMCkgR1M6ZmZmZjg4ODA3ZGMwMDAwMCgwMDAwKSBrbmxH
+UzowMDAwMDAwMDAwMDAwMDAwClsgIDEyMC4yNjk1OTddIENTOiAgMDAxMCBEUzogMDAwMCBFUzog
+MDAwMCBDUjA6IDAwMDAwMDAwODAwNTAwMzMKWyAgMTIwLjI3MDM2MV0gQ1IyOiAwMDAwN2YzNzEx
+NWZkMWIwIENSMzogMDAwMDAwMDA3YzQ3MDAwNiBDUjQ6IDAwMDAwMDAwMDAzNjA2ZTAKWyAgMTIw
+LjI3MTI5OV0gRFIwOiAwMDAwMDAwMDAwMDAwMDAwIERSMTogMDAwMDAwMDAwMDAwMDAwMCBEUjI6
+IDAwMDAwMDAwMDAwMDAwMDAKWyAgMTIwLjI3Mjc3Nl0gRFIzOiAwMDAwMDAwMDAwMDAwMDAwIERS
+NjogMDAwMDAwMDBmZmZlMGZmMCBEUjc6IDAwMDAwMDAwMDAwMDA0MDAKWyAgMTIwLjI3NDMyM10g
+Q2FsbCBUcmFjZToKWyAgMTIwLjI3NDg2M10gIGRvd25ncmFkZV93cml0ZSsweDE3LzB4ODEKWyAg
+MTIwLjI3NTY5OF0gIF9fZG9fbXVubWFwKzB4MjZmLzB4MmZlClsgIDEyMC4yNzY0MzddICBfX3Zt
+X211bm1hcCsweDc0LzB4YmYKWyAgMTIwLjI3NzEzOF0gIF9feDY0X3N5c19tdW5tYXArMHgyNy8w
+eDJjClsgIDEyMC4yNzc5MzFdICBkb19zeXNjYWxsXzY0KzB4NTcvMHgxNGUKWyAgMTIwLjI3ODY5
+N10gIGVudHJ5X1NZU0NBTExfNjRfYWZ0ZXJfaHdmcmFtZSsweDQ5LzB4YmUKWyAgMTIwLjI3OTcz
+OF0gUklQOiAwMDMzOjB4N2YzNzExZjVjNDQ3ClsgIDEyMC4yODA0NzVdIENvZGU6IGI0IGViIDkx
+IGY3IGQ4IDg5IDA1IGY4IGJjIDIwIDAwIDQ4IGM3IGMwIGZmIGZmIGZmIGZmIGViIGExIGY3IGQ4
+IDg5IDA1IGU3IGJjIDIwIDAwIGU5IDczIGZmIGZmIGZmIDY2IDkwIGI4IDBiIDAwIDAwIDAwIDBm
+IDA1IDw0OD4gM2QgMDEgZjAgZmYgZmYgNzMgMDEgYzMgNDggOGQgMGQgYzkgYmMgMjAgMDAgZjcg
+ZDggODkgMDEgNDggODMKWyAgMTIwLjI4NDI3N10gUlNQOiAwMDJiOjAwMDA3ZmZlMzViYjM3Yzgg
+RUZMQUdTOiAwMDAwMDIwMiBPUklHX1JBWDogMDAwMDAwMDAwMDAwMDAwYgpbICAxMjAuMjg1NjAz
+XSBSQVg6IGZmZmZmZmZmZmZmZmZmZGEgUkJYOiAwMDAwMDA0MDYwZWVmNjdkIFJDWDogMDAwMDdm
+MzcxMWY1YzQ0NwpbICAxMjAuMjg2NTQyXSBSRFg6IDAwMDAwMDQwMDAwMDAwMDAgUlNJOiAwMDAw
+MDAwMDAwMDAyNzM5IFJESTogMDAwMDdmMzcxMjE2MDAwMApbICAxMjAuMjg3NTkyXSBSQlA6IDAw
+MDA3ZmZlMzViYjM5ZTAgUjA4OiAwMDAwMDAwMDAwMDAwMDAwIFIwOTogMDAwMDdmMzcxMTU4M2I5
+OApbICAxMjAuMjg4OTM2XSBSMTA6IDAwMDA3ZjM3MTIxNjcwMzAgUjExOiAwMDAwMDAwMDAwMDAw
+MjAyIFIxMjogMDAwMDAwMDAwMDAwMDAwMApbICAxMjAuMjg5ODg3XSBSMTM6IDAwMDA3ZjM3MTIx
+NjgxNzAgUjE0OiAwMDAwN2YzNzEyMTVlYmMwIFIxNTogMDAwMDdmMzcxMjE2ODE3MApbICAxMjAu
+MjkwODgxXSBpcnEgZXZlbnQgc3RhbXA6IDE1NDcKWyAgMTIwLjI5MTM3NF0gaGFyZGlycXMgbGFz
+dCAgZW5hYmxlZCBhdCAoMTU0Nyk6IFs8ZmZmZmZmZmY4MWE3M2EzNj5dIF9yYXdfc3Bpbl91bmxv
+Y2tfaXJxKzB4MjkvMHgzMwpbICAxMjAuMjkzNDEyXSBoYXJkaXJxcyBsYXN0IGRpc2FibGVkIGF0
+ICgxNTQ2KTogWzxmZmZmZmZmZjgxYTczN2JhPl0gX3Jhd19zcGluX2xvY2tfaXJxKzB4MTAvMHg2
+NwpbICAxMjAuMjk1MTQzXSBzb2Z0aXJxcyBsYXN0ICBlbmFibGVkIGF0ICgxMTgyKTogWzxmZmZm
+ZmZmZjgxZTAwMzVlPl0gX19kb19zb2Z0aXJxKzB4MzVlLzB4MzlhClsgIDEyMC4yOTY3NzldIHNv
+ZnRpcnFzIGxhc3QgZGlzYWJsZWQgYXQgKDg3Myk6IFs8ZmZmZmZmZmY4MTBhNzkwMj5dIGlycV9l
+eGl0KzB4NjIvMHhiMQpbICAxMjAuMjk4MjkxXSAtLS1bIGVuZCB0cmFjZSBjMWFhODdjOTNmMDI4
+ZWRmIF0tLS0KWyAgMTIwLjMyMDQwNV0gWEZTICh2ZGUpOiBVbm1vdW50aW5nIEZpbGVzeXN0ZW0K
+--000000000000965a3a05804692c2--
