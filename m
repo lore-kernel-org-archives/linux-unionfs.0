@@ -6,86 +6,61 @@ References: <20190122123457.10600-1-amir73il@gmail.com> <CAOQ4uxhj4X03c43fy2WuOg
  <CAOQ4uxhgK0tanvqZn9a9=q80Sc4L3GO1Nou7amU51Q66uUXhOg@mail.gmail.com>
  <CAJfpegv48DRJ4Cd40gFX+ssmNmQTtej+8SNAtzCoPtjgBnws9Q@mail.gmail.com>
  <CAOQ4uxjStG-KYaTHcaheZYcPDq7it2c_82RePFnmSzfFND_--A@mail.gmail.com>
- <CAJfpeguv8gebY_7dhOtb7LrhYPW6x3=upqakMTa3f4VuRkEgpA@mail.gmail.com>
- <CAJfpegsVy=tep29H=zWhRYCVHBd4mYO=e_181DinZUQOaetoJA@mail.gmail.com> <CAOQ4uxha2VNZ-Da-w6U5yxrqA3PkixXPevk9_5NvMzg4-KkWSg@mail.gmail.com>
-In-Reply-To: <CAOQ4uxha2VNZ-Da-w6U5yxrqA3PkixXPevk9_5NvMzg4-KkWSg@mail.gmail.com>
+ <CAJfpeguv8gebY_7dhOtb7LrhYPW6x3=upqakMTa3f4VuRkEgpA@mail.gmail.com> <CAJfpegsVy=tep29H=zWhRYCVHBd4mYO=e_181DinZUQOaetoJA@mail.gmail.com>
+In-Reply-To: <CAJfpegsVy=tep29H=zWhRYCVHBd4mYO=e_181DinZUQOaetoJA@mail.gmail.com>
 From: Amir Goldstein <amir73il@gmail.com>
-Date: Sun, 27 Jan 2019 20:22:50 +0200
-Message-ID: <CAOQ4uxiKss89-J+Wv1q9QtvMMsypKFy-ktBom_Ss9kPr7_te6w@mail.gmail.com>
+Date: Fri, 25 Jan 2019 23:18:47 +0200
+Message-ID: <CAOQ4uxha2VNZ-Da-w6U5yxrqA3PkixXPevk9_5NvMzg4-KkWSg@mail.gmail.com>
 Subject: Re: [RFC][PATCH v2 0/5] Experiments with overlayfs filemap
 Content-Type: text/plain; charset="UTF-8"
 To: Miklos Szeredi <miklos@szeredi.hu>
 Cc: Vivek Goyal <vgoyal@redhat.com>, cgxu519 <cgxu519@gmx.com>, overlayfs <linux-unionfs@vger.kernel.org>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-On Fri, Jan 25, 2019 at 11:18 PM Amir Goldstein <amir73il@gmail.com> wrote:
+On Fri, Jan 25, 2019 at 5:57 PM Miklos Szeredi <miklos@szeredi.hu> wrote:
 >
-> On Fri, Jan 25, 2019 at 5:57 PM Miklos Szeredi <miklos@szeredi.hu> wrote:
+> On Fri, Jan 25, 2019 at 2:31 PM Miklos Szeredi <miklos@szeredi.hu> wrote:
 > >
-> > On Fri, Jan 25, 2019 at 2:31 PM Miklos Szeredi <miklos@szeredi.hu> wrote:
-> > >
-> > > On Fri, Jan 25, 2019 at 2:04 PM Amir Goldstein <amir73il@gmail.com> wrote:
+> > On Fri, Jan 25, 2019 at 2:04 PM Amir Goldstein <amir73il@gmail.com> wrote:
+>
+> > > Mmm.... so now using upper page cache for write does sound so bad.
+> > > If only we had shared cache pages ;-)
+> > > We can treat upper page cache as a vessel for writeback and invalidate
+> > > it upon completion, since it is *ours*.
+> > > I'll see what I can come up with.
 > >
-> > > > Mmm.... so now using upper page cache for write does sound so bad.
-> > > > If only we had shared cache pages ;-)
-> > > > We can treat upper page cache as a vessel for writeback and invalidate
-> > > > it upon completion, since it is *ours*.
-> > > > I'll see what I can come up with.
-> > >
-> > > Just calling ->writepage() of upper fs won't work, filesystems do
-> > > preparatory work in ->prepare_write(), etc, and those need the struct
-> > > file...  I don't think we are better off, than calling
-> > > vfs_write_iter().
-> >
-> > With the cache on the overlay, I think we need to anchor the real file
-> > in the overlay inode instead of the overlay file.  That applies to
-> > reads as well as writes.  Not sure about lifetimes, obviously it's not
-> > good to keep the real file open if there's no I/O being done.  Some
-> > heuristics will be needed, but first version could just keep the file
-> > open until the inode is evicted.
-> >
+> > Just calling ->writepage() of upper fs won't work, filesystems do
+> > preparatory work in ->prepare_write(), etc, and those need the struct
+> > file...  I don't think we are better off, than calling
+> > vfs_write_iter().
 >
-> I may be way off, but could you be over complicating this?
-> We can call vfs_write_iter() from ovl_write_end() after data has been
-> copied to overlay pages and while we still have a reference to realfile.
-> Then we copy over the dirt from overlay page cache to upper page cache.
-> When writeback comes along to overlay inode (maybe after close) we
-> only need to writeback the already dirty pages of upper.
-> Once not dirty, we can invalidate upper pages to reduce page cache
-> usage.
->
-> And what about readpage? why do you say that this applies to reads
-> as well? Do we not have the file during readpage()? Besides, AFAIKT
-> readahead() necessitates that ->readpage() can be called on an inode
-> so we don't need more than the upper inode to for ovl_readpage().
-> The direct IO read is just an optimization, isn't it?
->
-> I'll stick with the simple copy_page() implementation (back and forth)
-> unless you come up with a better suggestion. We will probably want
-> something more efficient later on, but I rather start with something
-> simple and working.
+> With the cache on the overlay, I think we need to anchor the real file
+> in the overlay inode instead of the overlay file.  That applies to
+> reads as well as writes.  Not sure about lifetimes, obviously it's not
+> good to keep the real file open if there's no I/O being done.  Some
+> heuristics will be needed, but first version could just keep the file
+> open until the inode is evicted.
 >
 
-Like this:
-https://github.com/amir73il/linux/commits/ovl-aops-wip
+I may be way off, but could you be over complicating this?
+We can call vfs_write_iter() from ovl_write_end() after data has been
+copied to overlay pages and while we still have a reference to realfile.
+Then we copy over the dirt from overlay page cache to upper page cache.
+When writeback comes along to overlay inode (maybe after close) we
+only need to writeback the already dirty pages of upper.
+Once not dirty, we can invalidate upper pages to reduce page cache
+usage.
 
-For the moment, I used part of your patch just for tmpfs readpage(),
-so I dropped the O_DIRECT part.
-I used vfs_write_iter() to write data to upper page cache on ovl_write_end().
-It works in the sense that unionmount --recycle tests pass and so do all
-xfstests overlay/quick tests, besides ro/rw mmap read/write (overlay/061).
+And what about readpage? why do you say that this applies to reads
+as well? Do we not have the file during readpage()? Besides, AFAIKT
+readahead() necessitates that ->readpage() can be called on an inode
+so we don't need more than the upper inode to for ovl_readpage().
+The direct IO read is just an optimization, isn't it?
 
-Alas, writepage() is not being called, so my implementation is missing
-something. I am hoping that you can tell me what it is, or what is wrong
-with the design, correctness-wise.
-Naturally, we can do things better with writepages(), reducing double page
-cache usage, etc.
-
-In fact, I enhanced test overlay/061 to cover the fact that mmap write is
-NOT being persisted with current patches.
-
-No need to worry about lack of test coverage for overlay writeback though,
-there are many generic/quick tests failing with these patches.
+I'll stick with the simple copy_page() implementation (back and forth)
+unless you come up with a better suggestion. We will probably want
+something more efficient later on, but I rather start with something
+simple and working.
 
 Thanks,
 Amir.
