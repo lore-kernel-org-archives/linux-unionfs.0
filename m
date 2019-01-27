@@ -1,91 +1,112 @@
-Return-Path: <vgoyal@redhat.com>
-Date: Thu, 10 Jan 2019 17:29:47 -0500
-From: Vivek Goyal <vgoyal@redhat.com>
-Subject: [PATCH][V2] overlayfs: During copy up, first copy up data and then
- xattrs
-Message-ID: <20190110222947.GA32672@redhat.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-To: linux-unionfs@vger.kernel.org, miklos@szeredi.hu, amir73il@gmail.com
-Cc: dwalsh@redhat.com, gscrivan@redhat.com
+Return-Path: <amir73il@gmail.com>
+Return-Path: <amir73il@gmail.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Subject: [PATCH] overlay/061: enhance mmap ro/rw inconsistencies test
+Date: Sun, 27 Jan 2019 10:38:50 +0200
+Message-Id: <20190127083850.28834-1-amir73il@gmail.com>
+To: Eryu Guan <guaneryu@gmail.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, fstests@vger.kernel.org
 List-ID: <linux-unionfs@vger.kernel.org>
 
-If a file with capability set (and hence security.capability xattr) is
-written kernel clears security.capability xattr. For overlay, during file
-copy up if xattrs are copied up first and then data is, copied up. This
-means data copy up will result in clearing of security.capability xattr
-file on lower has. And this can result into surprises. If
-a lower file has CAP_SETUID, then it should not be cleared over
-copy up (if nothing was actually written to file).
+overlay/061 is currently the only overlay test that is expected to fail
+on upstream kernel.
 
-This also creates problems with chown logic where it first copies up file
-and then tries to clear setuid bit. But by that time security.capability
-xattr is already gone (due to data copy up), and caller gets -ENODATA.
-This has been reported by Giuseppe here.
+It is a flavor of test overlay/016 with mread in stead of pread.
+The ro/rw inconsistencies related to file read()/write() API were fixed
+with stacked file operations in v4.19, but the ro/rw inconsistencies
+related to shared mmap read/write remain to be fixed.
 
-https://github.com/containers/libpod/issues/2015#issuecomment-447824842
+The test currently checks cache coherency between mmap read and file
+write(), but this sort of cache coherency is a Linux implementation
+detail not a requirement of the API.
+Instead of mread vs. pwrite, check consistency of mread vs. mwrite
+to shared mmap, which is required by the MMAP_SHARED API.
 
-Fix this by copying up data first and then metadta. This is a regression
-which has been introduced by my commit as part of metadata only copy up
-patches.
+Because we can, perform the test on shared memory that maps files
+that are already close and check also that mwrite after file is closed
+is persistent.
+This adds test coverage for future overlayfs writeback code.
 
-TODO: There will be some corner cases where a file is copied up metadata
-      only and later data copy up happens and that will clear
-      security.capability xattr. Something needs to be done about that too.
-
-Fixes: bd64e57586d3 ("ovl: During copy up, first copy up metadata and then data")
-Reported-by: Giuseppe Scrivano <gscrivan@redhat.com>
-Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- fs/overlayfs/copy_up.c |   30 +++++++++++++++++-------------
- 1 file changed, 17 insertions(+), 13 deletions(-)
+ tests/overlay/061     | 36 +++++++++++++++++++++++++++++-------
+ tests/overlay/061.out |  4 ++--
+ 2 files changed, 31 insertions(+), 9 deletions(-)
 
-Index: rhvgoyal-linux/fs/overlayfs/copy_up.c
-===================================================================
---- rhvgoyal-linux.orig/fs/overlayfs/copy_up.c	2018-11-28 08:45:58.122478207 -0500
-+++ rhvgoyal-linux/fs/overlayfs/copy_up.c	2019-01-10 13:29:05.997079686 -0500
-@@ -443,6 +443,23 @@ static int ovl_copy_up_inode(struct ovl_
- {
- 	int err;
+diff --git a/tests/overlay/061 b/tests/overlay/061
+index aea72eb9..47be2cc3 100755
+--- a/tests/overlay/061
++++ b/tests/overlay/061
+@@ -4,14 +4,15 @@
+ #
+ # FSQA Test No. 061
+ #
+-# Test ro/rw fd data inconsistecies
++# Test memory mapped data inconsistencies
+ #
+ # This is a variant of test overlay/016 with mread instead of pread.
+ #
+ # This simple test demonstrates a known issue with overlayfs:
+-# - process A opens file F for read + mmap
+-# - process B writes new data to file F
+-# - process A reads old data from mapped memory
++# - process A created shared ro mmap on file F
++# - process B created shared rw mmap on file F
++# - process B writes new data to shared mmap
++# - process A reads old data from shared mmap
+ #
+ seq=`basename $0`
+ seqres=$RESULT_DIR/$seq
+@@ -49,15 +50,36 @@ echo "This is old news" > $lowerdir/foo
+ _scratch_mount
  
-+	/*
-+	 * Copy up data first and then xattrs. Writing data after
-+	 * xattrs will remove security.capability xattr automatically.
-+	 */
-+	if (S_ISREG(c->stat.mode) && !c->metacopy) {
-+		struct path upperpath, datapath;
-+
-+		ovl_path_upper(c->dentry, &upperpath);
-+		BUG_ON(upperpath.dentry != NULL);
-+		upperpath.dentry = temp;
-+
-+		ovl_path_lowerdata(c->dentry, &datapath);
-+		err = ovl_copy_up_data(&datapath, &upperpath, c->stat.size);
-+		if (err)
-+			return err;
-+	}
-+
- 	err = ovl_copy_xattr(c->lowerpath.dentry, temp);
- 	if (err)
- 		return err;
-@@ -459,19 +476,6 @@ static int ovl_copy_up_inode(struct ovl_
- 		if (err)
- 			return err;
- 	}
--
--	if (S_ISREG(c->stat.mode) && !c->metacopy) {
--		struct path upperpath, datapath;
--
--		ovl_path_upper(c->dentry, &upperpath);
--		BUG_ON(upperpath.dentry != NULL);
--		upperpath.dentry = temp;
--
--		ovl_path_lowerdata(c->dentry, &datapath);
--		err = ovl_copy_up_data(&datapath, &upperpath, c->stat.size);
--		if (err)
--			return err;
--	}
  
- 	if (c->metacopy) {
- 		err = ovl_check_setxattr(c->dentry, temp, OVL_XATTR_METACOPY,
++filter_xfs_io_mmap()
++{
++	# filter out these lines:
++	# [000] 0x7f3d9aece000 - 0x7f3d9aece010 r--  SCRATCH_MNT/foo (0 : 16)
++	grep -Fv '[00'
++}
++
+ #
+ # mmap MAP_SHARED|PROT_READ of rofd
+-# write to rwfd
+-# read from mapped memory
++# mmap MAP_SHARED|PROT_WRITE of rwfd
++# write to rw mmap
++# read from ro mmap
+ #
+ $XFS_IO_PROG -r $SCRATCH_MNT/foo \
+ 	-C "mmap -r 0 16" \
++	-C "close" \
+ 	-C "open $SCRATCH_MNT/foo" \
+-	-C "pwrite -S 0x61 0 16" \
++	-C "mmap -w 0 16" \
++	-C "close" \
++	-C "mwrite -S 0x61 0 16" \
++	-C "munmap" \
++	-C "mread -v 0 16" \
++| _filter_xfs_io | _filter_scratch | filter_xfs_io_mmap
++
++_scratch_cycle_mount
++
++# Verify mmap write after close has persisted through mount cycle
++echo "After mount cycle:"
++$XFS_IO_PROG -r $SCRATCH_MNT/foo \
++	-C "mmap -r 0 16" \
+ 	-C "mread -v 0 16" \
+ | _filter_xfs_io | _filter_scratch
+ 
+diff --git a/tests/overlay/061.out b/tests/overlay/061.out
+index 0662721c..d0e8b86e 100644
+--- a/tests/overlay/061.out
++++ b/tests/overlay/061.out
+@@ -1,4 +1,4 @@
+ QA output created by 061
+-wrote 16/16 bytes at offset 0
+-XXX Bytes, X ops; XX:XX:XX.X (XXX YYY/sec and XXX ops/sec)
++00000000:  61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61  aaaaaaaaaaaaaaaa
++After mount cycle:
+ 00000000:  61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61  aaaaaaaaaaaaaaaa
+-- 
+2.17.1
