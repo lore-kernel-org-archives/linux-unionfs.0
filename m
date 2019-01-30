@@ -1,71 +1,114 @@
 Return-Path: <amir73il@gmail.com>
-Return-Path: <amir73il@gmail.com>
+MIME-Version: 1.0
+References: <20190130155304.GA12407@redhat.com>
+In-Reply-To: <20190130155304.GA12407@redhat.com>
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [RFC][PATCH v2 0/5] Experiments with overlayfs filemap
-Date: Tue, 22 Jan 2019 14:34:52 +0200
-Message-Id: <20190122123457.10600-1-amir73il@gmail.com>
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: Vivek Goyal <vgoyal@redhat.com>, cgxu519 <cgxu519@gmx.com>, linux-unionfs@vger.kernel.org
+Date: Wed, 30 Jan 2019 20:08:45 +0200
+Message-ID: <CAOQ4uxirTQErU0qqKPGZ43aGPuEb1bWpB2ZEBRmC=vXHpSHU2g@mail.gmail.com>
+Subject: Re: [PATCH][V2] overlayfs: Do not lose security.capability xattr over
+ metadata file copy-up
+Content-Type: text/plain; charset="UTF-8"
+To: Vivek Goyal <vgoyal@redhat.com>
+Cc: overlayfs <linux-unionfs@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-Miklos,
+On Wed, Jan 30, 2019 at 5:53 PM Vivek Goyal <vgoyal@redhat.com> wrote:
+>
+> If a file has been copied up metadata only, and later data is copied up,
+> upper loses any security.capability xattr it has (underlying filesystem
+> clears it as upon file write).
+>
+> From a user's point of view, this is just a file copy-up and that should
+> not result in losing security.capability xattr. Hence, before data copy
+> up, save security.capability xattr (if any) and restore it on upper after
+> data copy up is complete.
+>
+> Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
+> ---
+>  fs/overlayfs/copy_up.c   |   24 ++++++++++++++++++
+>  fs/overlayfs/overlayfs.h |    1
+>  fs/overlayfs/util.c      |   60 +++++++++++++++++++++++++++++++++--------------
+>  3 files changed, 67 insertions(+), 18 deletions(-)
+>
+> Index: rhvgoyal-linux/fs/overlayfs/util.c
+> ===================================================================
+> --- rhvgoyal-linux.orig/fs/overlayfs/util.c     2019-01-30 09:38:40.343380525 -0500
+> +++ rhvgoyal-linux/fs/overlayfs/util.c  2019-01-30 10:16:58.774380525 -0500
+> @@ -863,31 +863,63 @@ bool ovl_is_metacopy_dentry(struct dentr
+>         return (oe->numlower > 1);
+>  }
+>
+> -char *ovl_get_redirect_xattr(struct dentry *dentry, int padding)
+> +size_t ovl_getxattr(struct dentry *dentry, char *name, void **value,
+> +                               size_t *size, int padding)
+>  {
+>         int res;
+> -       char *s, *next, *buf = NULL;
+> +       void *buf = NULL;
+>
+> -       res = vfs_getxattr(dentry, OVL_XATTR_REDIRECT, NULL, 0);
+> +       res = vfs_getxattr(dentry, name, NULL, 0);
+>         if (res < 0) {
+>                 if (res == -ENODATA || res == -EOPNOTSUPP)
+> -                       return NULL;
+> +                       return 0;
+>                 goto fail;
+>         }
+>
+> -       buf = kzalloc(res + padding + 1, GFP_KERNEL);
+> -       if (!buf)
+> -               return ERR_PTR(-ENOMEM);
+> -
+>         if (res == 0)
+>                 goto invalid;
+>
+> -       res = vfs_getxattr(dentry, OVL_XATTR_REDIRECT, buf, res);
+> +       buf = kzalloc(res + padding, GFP_KERNEL);
+> +       if (!buf)
+> +               return -ENOMEM;
+> +
+> +       res = vfs_getxattr(dentry, name, buf, res);
+>         if (res < 0)
+>                 goto fail;
+> +
+>         if (res == 0)
+>                 goto invalid;
+>
+> +       *value = buf;
+> +       if (size)
+> +               *size = res;
+> +
+> +       return res;
+> +
+> +err_free:
+> +       kfree(buf);
+> +       return res;
+> +fail:
+> +       pr_warn_ratelimited("overlayfs: failed to get xattr %s: err=%i)\n", name, res);
+> +       goto err_free;
+> +invalid:
+> +       pr_warn_ratelimited("overlayfs: invalid xattr %s \n", name);
+> +       res = -EINVAL;
+> +       goto err_free;
+> +}
+> +
+> +char *ovl_get_redirect_xattr(struct dentry *dentry, int padding)
+> +{
+> +       int res;
+> +       char *s, *next, *buf = NULL;
+> +
+> +       res = ovl_getxattr(dentry, OVL_XATTR_REDIRECT, (void **)&buf, NULL,
+> +               padding + 1);
+> +       if (!res)
+> +               return NULL;
+> +       if (res < 0)
+> +               return ERR_PTR(res);
+> +
 
-This experiment uses very naiive noop aops on overlay inode
-for upper data files (i.e. SHARED_UPPER and UPPER).
+ERR_PTR(0) is NULL
+two cases above can be squashed together.
 
-The patches are available on my github [1] and are based on a bug fix
-I posted earlier today ("ovl: fix missing upper fs freeze protection on
-copy up for ioctl").
-
-Despite the noop aops, the experiment can demonstrates expected behavior
-w.r.t the transition from LOWER -> SHARED_UPPER.
-
-With metacopy=on, file is meta copied up on open O_RDWR and data is
-copied up on first data access (not on first write).
-This solves the open() latency issue reported by Chengguang, but also
-serves as a way to test copy up on page fault.
-I havn't written any tests for lazy copy up on mwrite/mread, but I did
-test these cases manually.
-
-~50/60 of the overlay xfstests actually pass (those test don't care
-about data or about committing writes to storage) and the rest fail on
-expected data inconsistencies with no observed crashes nor warnings.
-
-The issue discussed with Vivek on v1 patch of this experiment
-(inefficient ovl_iter_read()) becomes moot in v2, because unlike v1,
-data is copied up on first read or write of writable file and not on
-first write. So there is no LOWER_SHARED state in these patches, but
-the generic filemap operations and lazy copy up hooks bring us closer
-to an implemention of the LOWER_SHARED -> UPPER_SHARED transition.
-
-Can you please point me in the direction of how to implement proper
-aops? Or better yet, send me a demo patch?
-I figure we need to call vfs_iter_read/vfs_iter_write of real file
-with IOCB_DIRECT for page io? But I am very uncertain about locking
-order requirements and whether there is already some infrastructure
-that we can use (some splice variant)?
-
-Any other thoughts?
+otherwise looks ok.
 
 Thanks,
 Amir.
-
-[1] https://github.com/amir73il/linux/commits/ovl-lazy-copyup-wip
-
-Amir Goldstein (5):
-  ovl: reorder tests in ovl_open_need_copy_up()
-  ovl: prepare for generic filemap file operations
-  ovl: lazy copy up of data on first data access
-  ovl: lazy copy up data on page fault
-  ovl: noop aops to test filemap operations and lazy copy up
-
- fs/overlayfs/copy_up.c   |  14 +--
- fs/overlayfs/file.c      | 238 +++++++++++++++++++++++++++++++++++++--
- fs/overlayfs/inode.c     |   5 -
- fs/overlayfs/overlayfs.h |  11 +-
- fs/overlayfs/util.c      |   4 +-
- mm/fadvise.c             |   4 +-
- 6 files changed, 248 insertions(+), 28 deletions(-)
-
--- 
-2.17.1
