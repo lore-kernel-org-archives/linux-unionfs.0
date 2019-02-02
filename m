@@ -23,43 +23,44 @@ References: <CAOQ4uxhj4X03c43fy2WuOgG7q3ztC=wdw5pBod778d-B5dKmAA@mail.gmail.com>
  <CAJfpegv1J4TvmhUvogGUP5pOZNT+gnRr1ygjWnyt7M56dirP0A@mail.gmail.com>
  <CAOQ4uxjh4yieJaacbP+5JbRY+=LV4oJU+1JCGV4S+eLE7FEcAw@mail.gmail.com>
  <CAJfpegu98HhOpajUOEm3OXXXTR4kePK-X3_hZurfDd=u0eHC0g@mail.gmail.com>
- <CAOQ4uxg4vNVKbNQMVKoT9_+95ft42TVCMqRYAED=AAvUHZQ1Hg@mail.gmail.com>
- <CAJfpegvuHcWX6BW+4rkD9tw5Cuf4OQ7QYZd-7yu9EA8r7o=_vA@mail.gmail.com> <CAOQ4uxgft67=tysHZ+zUYk9Pcd7m=Sco0UnXg0J+mX72cJVonA@mail.gmail.com>
-In-Reply-To: <CAOQ4uxgft67=tysHZ+zUYk9Pcd7m=Sco0UnXg0J+mX72cJVonA@mail.gmail.com>
+ <CAOQ4uxg4vNVKbNQMVKoT9_+95ft42TVCMqRYAED=AAvUHZQ1Hg@mail.gmail.com> <CAJfpegvuHcWX6BW+4rkD9tw5Cuf4OQ7QYZd-7yu9EA8r7o=_vA@mail.gmail.com>
+In-Reply-To: <CAJfpegvuHcWX6BW+4rkD9tw5Cuf4OQ7QYZd-7yu9EA8r7o=_vA@mail.gmail.com>
 From: Amir Goldstein <amir73il@gmail.com>
-Date: Tue, 5 Feb 2019 09:42:02 +0200
-Message-ID: <CAOQ4uxhfc3_npKQYOJDG9TVv-NKEYH-T-zgZWS8Vjixr59r14Q@mail.gmail.com>
+Date: Sat, 2 Feb 2019 18:51:35 +0200
+Message-ID: <CAOQ4uxgft67=tysHZ+zUYk9Pcd7m=Sco0UnXg0J+mX72cJVonA@mail.gmail.com>
 Subject: Re: [RFC][PATCH v2 0/5] Experiments with overlayfs filemap
 Content-Type: text/plain; charset="UTF-8"
 To: Miklos Szeredi <miklos@szeredi.hu>
 Cc: Vivek Goyal <vgoyal@redhat.com>, cgxu519 <cgxu519@gmx.com>, overlayfs <linux-unionfs@vger.kernel.org>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-> > >
-> > > EIO on clone/dedupe:
-> > > generic/303 generic/304
-> > >
-> > > Wrong st_blocks/fiemap:
-> > > generic/353 generic/392 generic/422
-> >
-> > Hmm, generic/353 passes for me...
-> >
+On Fri, Feb 1, 2019 at 6:24 PM Miklos Szeredi <miklos@szeredi.hu> wrote:
 >
-> So for me:
-> running generic/353 after generic/303 it fails
-> and running it again it passes.
+> On Fri, Feb 1, 2019 at 2:25 PM Amir Goldstein <amir73il@gmail.com> wrote:
+>
+> > Wrong st_mtime/st_ctime:
+> > generic/003 generic/080 generic/215
+>
+> Fixed.  Albeit, I feel it's pretty hackish with various forms of
+> ovl_copyattr sprinkled all over the place.  Need to think about proper
+> management of attributes between upper and overlay inode.
 >
 
-The failed line in 303,304 is:
+Pushed this one to the test branch as well.
 
-xfs_io  -c "pread -v -q 9223372036854775806 1" /mnt/test/foo
-pread: Input/output error
+> >
+> > EIO on clone/dedupe:
+> > generic/303 generic/304
+> >
+> > Wrong st_blocks/fiemap:
+> > generic/353 generic/392 generic/422
+>
+> Hmm, generic/353 passes for me...
+>
 
-And failure seems not related to clone/dedupe at all.
-Easily reproduced on any file (i.e. touch /mnt/test/foo),
-so its probably just an arithmetic len/offset bug.
-
-I may have more time to look into this later today.
+So for me:
+running generic/353 after generic/303 it fails
+and running it again it passes.
 
 Thanks,
 Amir.
