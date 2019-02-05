@@ -1,86 +1,124 @@
-Return-Path: <iforster@suse.com>
-From: Ignaz Forster <iforster@suse.com>
-Subject: [PATCH 4/5] Ignore IMA / EVM xattrs during copy_up
-Date: Mon, 11 Feb 2019 17:53:22 +0100
-Message-Id: <20190211165323.9369-5-iforster@suse.com>
-In-Reply-To: <20190211165323.9369-1-iforster@suse.com>
-References: <20190211165323.9369-1-iforster@suse.com>
-To: Mimi Zohar <zohar@linux.ibm.com>, linux-integrity@vger.kernel.org, Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org
-Cc: Fabian Vogt <fvogt@suse.com>, Ignaz Forster <iforster@suse.de>, Fabian Vogt <fvogt@suse.de>
+Return-Path: <amir73il@gmail.com>
+Return-Path: <amir73il@gmail.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Subject: [PATCH] fstests: Check that high-offset reads and writes work on non-blockdev fs
+Date: Tue,  5 Feb 2019 21:42:02 +0200
+Message-Id: <20190205194202.31745-1-amir73il@gmail.com>
+To: Eryu Guan <guaneryu@gmail.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, "Darrick J . Wong" <darrick.wong@oracle.com>, linux-unionfs@vger.kernel.org, fstests@vger.kernel.org
 List-ID: <linux-unionfs@vger.kernel.org>
 
-From: Ignaz Forster <iforster@suse.de>
+This is a variant of test generic/466 for filesystems that
+do not support mkfs_sized
 
-EVM tries to protect these attributes during copy_up, resulting in
-the failure of the copy_up operation.
+It is needed for testing high-offset reads and writes with overlayfs
+over a basefs that supports huge files.
 
-This patch will skip the attributes (similar to selinux) to allow
-for later recalculation. This, however, introduces another problem:
-As overlayfs does not check the file integrity on copy_up, files with
-an invalid hash will suddenly become valid again after the copy_up
-operation.
-
-Co-developed-by: Fabian Vogt <fvogt@suse.de>
-Signed-off-by: Fabian Vogt <fvogt@suse.de>
-Signed-off-by: Ignaz Forster <iforster@suse.de>
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- security/integrity/evm/evm_main.c | 23 +++++++++++++++++++++++
- 1 file changed, 23 insertions(+)
 
-diff --git a/security/integrity/evm/evm_main.c b/security/integrity/evm/evm_main.c
-index 5ecaa3d6fe0b..e7667f1159c9 100644
---- a/security/integrity/evm/evm_main.c
-+++ b/security/integrity/evm/evm_main.c
-@@ -23,6 +23,7 @@
- #include <linux/integrity.h>
- #include <linux/evm.h>
- #include <linux/magic.h>
-+#include <linux/lsm_hooks.h>
- 
- #include <crypto/hash.h>
- #include <crypto/hash_info.h>
-@@ -548,6 +549,22 @@ int evm_inode_init_security(struct inode *inode,
- }
- EXPORT_SYMBOL_GPL(evm_inode_init_security);
- 
-+static int evm_inode_copy_up_xattr(const char *name)
+Eryu,
+
+This test found some issues with WIP implementation of overlayfs
+page cache. I though of extending generic/466 to test also with
+"default" block size, but turned out to be simpler and cleaner
+to fork the test.
+
+Thanks,
+Amir.
+
+ tests/generic/999     | 63 +++++++++++++++++++++++++++++++++++++++++++
+ tests/generic/999.out |  2 ++
+ tests/generic/group   |  1 +
+ 3 files changed, 66 insertions(+)
+ create mode 100755 tests/generic/999
+ create mode 100644 tests/generic/999.out
+
+diff --git a/tests/generic/999 b/tests/generic/999
+new file mode 100755
+index 00000000..18788c30
+--- /dev/null
++++ b/tests/generic/999
+@@ -0,0 +1,63 @@
++#! /bin/bash
++# SPDX-License-Identifier: GPL-2.0
++# Copyright (c) 2017, Oracle and/or its affiliates.
++# Copyright (C) 2019, CTERA Networks.
++# All Rights Reserved.
++#
++# FS QA Test No. 999
++#
++# Check that high-offset reads and writes work.
++#
++# This is a variant of test generic/466 for filesystems that
++# do not support mkfs_sized.
++#
++seq=`basename $0`
++seqres=$RESULT_DIR/$seq
++echo "QA output created by $seq"
++
++here=`pwd`
++tmp=/tmp/$$
++status=1    # failure is the default!
++trap "_cleanup; exit \$status" 0 1 2 3 15
++
++_cleanup()
 +{
-+	/* The copy_up hook above sets the initial context on an inode, but we
-+	 * don't then want to overwrite it by blindly copying all the lower
-+	 * xattrs up.  Instead, we have to filter out SELinux-related xattrs.
-+	 */
-+	if (strcmp(name, XATTR_NAME_EVM) == 0 ||
-+			strcmp(name, XATTR_NAME_IMA) == 0)
-+		return 1; /* Discard */
-+	/*
-+	 * Any other attribute apart from SELINUX is not claimed, supported
-+	 * by selinux.
-+	 */
-+	return -EOPNOTSUPP;
++	cd /
++	rm -f $tmp.*
 +}
 +
- #ifdef CONFIG_EVM_LOAD_X509
- void __init evm_load_x509(void)
- {
-@@ -559,6 +576,10 @@ void __init evm_load_x509(void)
- }
- #endif
- 
-+static struct security_hook_list evm_hooks[] __lsm_ro_after_init = {
-+	LSM_HOOK_INIT(inode_copy_up_xattr, evm_inode_copy_up_xattr)
-+};
++# get standard environment, filters and checks
++. ./common/rc
++. ./common/filter
 +
- static int __init init_evm(void)
- {
- 	int error;
-@@ -567,6 +588,8 @@ static int __init init_evm(void)
- 
- 	evm_init_config();
- 
-+	security_add_hooks(evm_hooks, ARRAY_SIZE(evm_hooks), "evm");
++# real QA test starts here
++_supported_os Linux
++_supported_fs generic
++_require_scratch
 +
- 	error = integrity_init_keyring(INTEGRITY_KEYRING_EVM);
- 	if (error)
- 		goto error;
++rm -f $seqres.full
++
++_scratch_mkfs >>$seqres.full 2>&1
++_scratch_mount
++
++testdir=$SCRATCH_MNT
++
++echo "++ Create the original files" >> $seqres.full
++bigoff=$(echo "2^63 - 2" | $BC_PROG)
++len=$(echo "2^63 - 1" | $BC_PROG)
++$XFS_IO_PROG -f -c "truncate $len" $testdir/file0 >> $seqres.full 2>&1
++if [ ! -s $testdir/file0 ]; then
++	# If we can't set a large file size then don't bother
++	# with read/write tests, because fs doesn't support it.
++	_notrun "filesystem does not support huge file size"
++fi
++_pwrite_byte 0x61 $bigoff 1 $testdir/file1 >> $seqres.full
++
++echo "++ Check file creation" >> $seqres.full
++_scratch_cycle_mount
++
++$XFS_IO_PROG -c "pread -v -q $bigoff 1" $testdir/file1
++
++# success, all done
++status=0
++exit
+diff --git a/tests/generic/999.out b/tests/generic/999.out
+new file mode 100644
+index 00000000..72b91e5d
+--- /dev/null
++++ b/tests/generic/999.out
+@@ -0,0 +1,2 @@
++QA output created by 999
++7ffffffffffffffe:  61  a
+diff --git a/tests/generic/group b/tests/generic/group
+index 6f5f28d8..7fe44c2c 100644
+--- a/tests/generic/group
++++ b/tests/generic/group
+@@ -527,3 +527,4 @@
+ 522 soak long_rw
+ 523 auto quick attr
+ 524 auto quick
++999 auto quick rw
 -- 
-2.20.1
+2.17.1
