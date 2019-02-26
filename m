@@ -1,84 +1,69 @@
-Return-Path: <iforster@suse.com>
-From: Ignaz Forster <iforster@suse.com>
-Subject: [PATCH 2/5] Rename ima_post_create_tmpfile
-Date: Mon, 11 Feb 2019 17:53:20 +0100
-Message-Id: <20190211165323.9369-3-iforster@suse.com>
-In-Reply-To: <20190211165323.9369-1-iforster@suse.com>
-References: <20190211165323.9369-1-iforster@suse.com>
-To: Mimi Zohar <zohar@linux.ibm.com>, linux-integrity@vger.kernel.org, Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org
-Cc: Fabian Vogt <fvogt@suse.com>, Ignaz Forster <iforster@suse.de>
+Return-Path: <amir73il@gmail.com>
+MIME-Version: 1.0
+References: <CALLuPvpzHUHH3R8DkQS35NSn76fd_An_7EPkY919m3a0oaLTrg@mail.gmail.com>
+In-Reply-To: <CALLuPvpzHUHH3R8DkQS35NSn76fd_An_7EPkY919m3a0oaLTrg@mail.gmail.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Date: Tue, 26 Feb 2019 12:01:08 +0200
+Message-ID: <CAOQ4uxiD4=jn8fUwm1ACdhvM8JjtVCwLhmMQ5deOrACcW4M_KQ@mail.gmail.com>
+Subject: Re: real_inode->i_fop->llseek is not called by ovl_llseek
+Content-Type: text/plain; charset="UTF-8"
+To: Eddie Horng <eddiehorng.tw@gmail.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, overlayfs <linux-unionfs@vger.kernel.org>, fstests <fstests@vger.kernel.org>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-From: Ignaz Forster <iforster@suse.de>
+On Tue, Feb 26, 2019 at 8:31 AM Eddie Horng <eddiehorng.tw@gmail.com> wrote:
+>
+> Hello,
+> Seems real_inode->i_fop->llseek is not called by ovl_llseek?
+> It happens the lower fs implements llseek similar with ovl_llseek or lower fs
+> is overlayfs, the "real inode"  s_maxbytes is not passed to
+> generic_file_llseek_size. Generally it is not a problem, but is it
+> better to check if realinode has llseek and invoke it?
 
-This function is not specific to tmpfiles, but can be used for
-marking any file to be in policy. Change the name accordingly.
+Yes, it is a problem!
 
-Signed-off-by: Ignaz Forster <iforster@suse.de>
----
- fs/namei.c                        |  2 +-
- include/linux/ima.h               |  4 ++--
- security/integrity/ima/ima_main.c | 10 +++++-----
- 3 files changed, 8 insertions(+), 8 deletions(-)
+We have a silent regression in v4.19.
+Overlayfs used to do SEEK_HOLE/SEEK_DATA correctly
+and does not anymore.
 
-diff --git a/fs/namei.c b/fs/namei.c
-index 373a7ec4b09d..744e89474cda 100644
---- a/fs/namei.c
-+++ b/fs/namei.c
-@@ -3462,7 +3462,7 @@ struct dentry *vfs_tmpfile(struct dentry *dentry, umode_t mode, int open_flag)
- 		inode->i_state |= I_LINKABLE;
- 		spin_unlock(&inode->i_lock);
- 	}
--	ima_post_create_tmpfile(inode);
-+	ima_post_create_file(inode);
- 	return child;
- 
- out_err:
-diff --git a/include/linux/ima.h b/include/linux/ima.h
-index dc12fbcf484c..d47fe0a54efd 100644
---- a/include/linux/ima.h
-+++ b/include/linux/ima.h
-@@ -18,7 +18,7 @@ struct linux_binprm;
- #ifdef CONFIG_IMA
- extern int ima_bprm_check(struct linux_binprm *bprm);
- extern int ima_file_check(struct file *file, int mask);
--extern void ima_post_create_tmpfile(struct inode *inode);
-+extern void ima_post_create_file(struct inode *inode);
- extern void ima_file_free(struct file *file);
- extern int ima_file_mmap(struct file *file, unsigned long prot);
- extern int ima_load_data(enum kernel_load_data_id id);
-@@ -57,7 +57,7 @@ static inline int ima_file_check(struct file *file, int mask)
- 	return 0;
- }
- 
--static inline void ima_post_create_tmpfile(struct inode *inode)
-+static inline void ima_post_create_file(struct inode *inode)
- {
- }
- 
-diff --git a/security/integrity/ima/ima_main.c b/security/integrity/ima/ima_main.c
-index 357edd140c09..629a2c538a7f 100644
---- a/security/integrity/ima/ima_main.c
-+++ b/security/integrity/ima/ima_main.c
-@@ -397,14 +397,14 @@ int ima_file_check(struct file *file, int mask)
- EXPORT_SYMBOL_GPL(ima_file_check);
- 
- /**
-- * ima_post_create_tmpfile - mark newly created tmpfile as new
-- * @file : newly created tmpfile
-+ * ima_post_create_file - mark newly created file as new
-+ * @file : newly created file
-  *
-- * No measuring, appraising or auditing of newly created tmpfiles is needed.
-+ * No measuring, appraising or auditing of newly created files is needed.
-  * Skip calling process_measurement(), but indicate which newly, created
-- * tmpfiles are in policy.
-+ * files are in policy.
-  */
--void ima_post_create_tmpfile(struct inode *inode)
-+void ima_post_create_file(struct inode *inode)
- {
- 	struct integrity_iint_cache *iint;
- 	int must_appraise;
--- 
-2.20.1
+Here is head of full output of xfstests seek hole sanity test:
+
+XFS
+===
+root@kvm-xfstests:~# head -3 /results/xfs/results-reflink/generic/285.full
+File system magic#: 0x58465342
+Allocation size: 4096
+
+Overlayfs (v4.18)
+=============
+root@kvm-xfstests:~# head -3 /results/overlay/results-large/generic/285.full
+File system magic#: 0x794c7630
+Allocation size: 4096
+
+Overlayfs (master)
+==============
+root@kvm-xfstests:~# head -3 /results/overlay/results-large/generic/285.full
+File system supports the default behavior.
+File system does not support unwritten extents.
+File system magic#: 0x794c7630
+
+The reason that regression went unnoticed is that xfstests seek hole
+sanity tests does not require SEEK_HOLE to find a punched hole.
+
+AFAICT, there are 11 filesystems in tree that support PUNCH_HOLE:
+btrfs ceph cifs ext4 f2fs fuse gfs2 hugetlbfs nfs ocfs2 xfs
+
+Out of which only hugetlbfs does not implement SEEK_HOLE,
+and this could probably be considered a bug if anyone cared enough.
+so I propose that src/seek_sanity_test.c:test_basic_support()
+should check for PUNCH_HOLE support and fail if filesystem is
+found to "support the default behavior".
+
+Besides that, there is no actual sanity test in xfstests (or I couldn't
+find one) that verifies PUNCH_HOLE=>SEEK_HOLE.
+There is an LTP test fallocate04 that checks that, but there is
+no coverage to overlayfs with .all_filesystems = 1 test.
+So I will add a test case to xfstest seek_sanity_test to cover this HOLE.
+
+Thanks,
+Amir.
