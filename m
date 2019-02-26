@@ -1,124 +1,107 @@
 Return-Path: <amir73il@gmail.com>
-Return-Path: <amir73il@gmail.com>
+MIME-Version: 1.0
+References: <20180929055133.28955-1-amir73il@gmail.com> <CAOQ4uxiNNRBT+EfRu05n2egFt4v_MpnfEkKo1LSHWnxs4BxpaA@mail.gmail.com>
+In-Reply-To: <CAOQ4uxiNNRBT+EfRu05n2egFt4v_MpnfEkKo1LSHWnxs4BxpaA@mail.gmail.com>
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH] fstests: Check that high-offset reads and writes work on non-blockdev fs
-Date: Tue,  5 Feb 2019 21:42:02 +0200
-Message-Id: <20190205194202.31745-1-amir73il@gmail.com>
-To: Eryu Guan <guaneryu@gmail.com>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, "Darrick J . Wong" <darrick.wong@oracle.com>, linux-unionfs@vger.kernel.org, fstests@vger.kernel.org
+Date: Tue, 26 Feb 2019 16:22:34 +0200
+Message-ID: <CAOQ4uxiZJfdRfyKwD1q8RbrT1KTRdLoErpWg0tFnD1fsxg9+Wg@mail.gmail.com>
+Subject: Re: [PATCH][RESEND] kernel/acct.c: fix locking order when switching
+ acct files
+Content-Type: text/plain; charset="UTF-8"
+To: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, overlayfs <linux-unionfs@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-This is a variant of test generic/466 for filesystems that
-do not support mkfs_sized
+On Wed, Oct 17, 2018 at 10:39 PM Amir Goldstein <amir73il@gmail.com> wrote:
+>
+> On Sat, Sep 29, 2018 at 8:51 AM Amir Goldstein <amir73il@gmail.com> wrote:
+> >
+> > This looks like an old bug, pre-dating the "Fixes" commit, but the
+> > "Fixes" commit did not handle it properly.
+> >
+> > The bug recently surfaced as a lockdep possible deadlock warning
+> > with commit d1d04ef8572b ("ovl: stack file ops").
+> >
+> > When acct_on() replaces one acct file with another, it takes sb_writers
+> > lock on new file sb and calls acct_pin_kill(old) before releasing the
+> > sb_writers lock.
+> >
+> > If new file is on the same fs as old file, acct_pin_kill(old) fail to
+> > file_start_write_trylock() and skip writing the old file, because
+> > sb_writers (of new) is already taken by acct_on().
+> >
+> > If new file is not on same fs as old file, this ordering violation
+> > creates an unneeded dependency between new sb_writers and old sb_writers,
+> > which may later be reported as possible deadlock.
+> >
+> > This could result in an actual deadlock if acct file is replaced from
+> > an old file in overlayfs over "real fs" to a new file in "real fs".
+> > acct_on() takes freeze protection on "real fs" and tries to write to
+> > overlayfs file. overlayfs is not freeze protected so do_acct_process()
+> > can carry on with __kernel_write() to overlayfs file, which would
+> > try to take freeze protection on "real fs" and deadlock.
+> >
+> > Reproducer of lockdep possible deadlock warning:
+> >
+> >   ./run --ov -s # unionmount-testsuite
+> >   touch /mnt/x /upper/y
+> >   accton /mnt/x
+> >   accton /upper/y
+> >
+> >  ======================================================
+> >  WARNING: possible circular locking dependency detected
+> >  4.19.0-rc1-xfstests #3424 Not tainted
+> >  ------------------------------------------------------
+> >  accton/1390 is trying to acquire lock:
+> >  00000000e0585aa5 (&acct->lock#2){+.+.}, at: acct_pin_kill+0x1b/0x76
+> >
+> >  but task is already holding lock:
+> >  000000003692505a (sb_writers#6){.+.+}, at: mnt_want_write+0x1d/0x42
+> >
+> > Reported-by: syzbot+695726bc473f9c36a4b6@syzkaller.appspotmail.com
+> > Fixes: 59eda0e07f43 ("new fs_pin killing logics")
+> > Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+> > ---
+> >
+> > Al,
+> >
+> > Welcome back. It would be nice to get an ACK (or an Applied) on this
+> > patch. Fixes label claims to fix your commit, but I believe the bug was
+> > already there before your commit.
+> >
+> > As you can see, I have a reproducer to demonstrate the manifestation of
+> > the bug in the case of switching acct file from overlayfs to real fs.
+> > This started to manifest with overlayfs stacked f_op.
+> > I have made another claim which seems obvious from the code about
+> > changing acct file on same fs, but did not bother to write a reproducer
+> > for that case.
+> >
+> > Thanks,
+> > Amir.
+>
+> PING
 
-It is needed for testing high-offset reads and writes with overlayfs
-over a basefs that supports huge files.
+PING^2
 
-Signed-off-by: Amir Goldstein <amir73il@gmail.com>
----
-
-Eryu,
-
-This test found some issues with WIP implementation of overlayfs
-page cache. I though of extending generic/466 to test also with
-"default" block size, but turned out to be simpler and cleaner
-to fork the test.
-
-Thanks,
-Amir.
-
- tests/generic/999     | 63 +++++++++++++++++++++++++++++++++++++++++++
- tests/generic/999.out |  2 ++
- tests/generic/group   |  1 +
- 3 files changed, 66 insertions(+)
- create mode 100755 tests/generic/999
- create mode 100644 tests/generic/999.out
-
-diff --git a/tests/generic/999 b/tests/generic/999
-new file mode 100755
-index 00000000..18788c30
---- /dev/null
-+++ b/tests/generic/999
-@@ -0,0 +1,63 @@
-+#! /bin/bash
-+# SPDX-License-Identifier: GPL-2.0
-+# Copyright (c) 2017, Oracle and/or its affiliates.
-+# Copyright (C) 2019, CTERA Networks.
-+# All Rights Reserved.
-+#
-+# FS QA Test No. 999
-+#
-+# Check that high-offset reads and writes work.
-+#
-+# This is a variant of test generic/466 for filesystems that
-+# do not support mkfs_sized.
-+#
-+seq=`basename $0`
-+seqres=$RESULT_DIR/$seq
-+echo "QA output created by $seq"
-+
-+here=`pwd`
-+tmp=/tmp/$$
-+status=1    # failure is the default!
-+trap "_cleanup; exit \$status" 0 1 2 3 15
-+
-+_cleanup()
-+{
-+	cd /
-+	rm -f $tmp.*
-+}
-+
-+# get standard environment, filters and checks
-+. ./common/rc
-+. ./common/filter
-+
-+# real QA test starts here
-+_supported_os Linux
-+_supported_fs generic
-+_require_scratch
-+
-+rm -f $seqres.full
-+
-+_scratch_mkfs >>$seqres.full 2>&1
-+_scratch_mount
-+
-+testdir=$SCRATCH_MNT
-+
-+echo "++ Create the original files" >> $seqres.full
-+bigoff=$(echo "2^63 - 2" | $BC_PROG)
-+len=$(echo "2^63 - 1" | $BC_PROG)
-+$XFS_IO_PROG -f -c "truncate $len" $testdir/file0 >> $seqres.full 2>&1
-+if [ ! -s $testdir/file0 ]; then
-+	# If we can't set a large file size then don't bother
-+	# with read/write tests, because fs doesn't support it.
-+	_notrun "filesystem does not support huge file size"
-+fi
-+_pwrite_byte 0x61 $bigoff 1 $testdir/file1 >> $seqres.full
-+
-+echo "++ Check file creation" >> $seqres.full
-+_scratch_cycle_mount
-+
-+$XFS_IO_PROG -c "pread -v -q $bigoff 1" $testdir/file1
-+
-+# success, all done
-+status=0
-+exit
-diff --git a/tests/generic/999.out b/tests/generic/999.out
-new file mode 100644
-index 00000000..72b91e5d
---- /dev/null
-+++ b/tests/generic/999.out
-@@ -0,0 +1,2 @@
-+QA output created by 999
-+7ffffffffffffffe:  61  a
-diff --git a/tests/generic/group b/tests/generic/group
-index 6f5f28d8..7fe44c2c 100644
---- a/tests/generic/group
-+++ b/tests/generic/group
-@@ -527,3 +527,4 @@
- 522 soak long_rw
- 523 auto quick attr
- 524 auto quick
-+999 auto quick rw
--- 
-2.17.1
+>
+> >
+> >  kernel/acct.c | 2 +-
+> >  1 file changed, 1 insertion(+), 1 deletion(-)
+> >
+> > diff --git a/kernel/acct.c b/kernel/acct.c
+> > index addf7732fb56..c09355a7ae46 100644
+> > --- a/kernel/acct.c
+> > +++ b/kernel/acct.c
+> > @@ -251,8 +251,8 @@ static int acct_on(struct filename *pathname)
+> >         rcu_read_lock();
+> >         old = xchg(&ns->bacct, &acct->pin);
+> >         mutex_unlock(&acct->lock);
+> > -       pin_kill(old);
+> >         mnt_drop_write(mnt);
+> > +       pin_kill(old);
+> >         mntput(mnt);
+> >         return 0;
+> >  }
+> > --
+> > 2.17.1
+> >
