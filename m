@@ -1,89 +1,70 @@
-Return-Path: <amir73il@gmail.com>
-Return-Path: <amir73il@gmail.com>
-From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH v2] ovl: support stacked SEEK_HOLE/SEEK_DATA
-Date: Wed, 27 Feb 2019 13:32:11 +0200
-Message-Id: <20190227113211.28006-1-amir73il@gmail.com>
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: Eddie Horng <eddiehorng.tw@gmail.com>, linux-unionfs@vger.kernel.org
-List-ID: <linux-unionfs@vger.kernel.org>
+From: Mark Salyzyn <salyzyn@android.com>
+Subject: Re: overlayfs access checks on underlying layers
+Date: Mon, 4 Mar 2019 09:01:08 -0800
+Message-ID: <fe78aaed-5fb1-3c51-1330-39de46ae39c5@android.com>
+References: <CAJfpegs9JjkXguemL4qSiBvRP6Dnut-D+nJo-oLFXkfCL1Egvw@mail.gmail.com>
+ <CAJfpegvfqx+0D32n1h2X7oj5d1mZWiLTcSSGpBnD+ba7AKzPyA@mail.gmail.com>
+ <20181127210542.GA2599@redhat.com>
+ <CAJfpegtQGM2z9TOt3DWwd39fC60cQknsC4vNnj7YimVEubRzUg@mail.gmail.com>
+ <20181128170302.GA12405@redhat.com>
+ <377b7d4f-eb1d-c281-5c67-8ab6de77c881@tycho.nsa.gov>
+ <CAJfpegtNhcWD0VWy6LPtoDtQBfPu4x5iFsB053UMCidj6oMsuw@mail.gmail.com>
+ <26bce3be-49c2-cdd8-af03-1a78d0f268ae@tycho.nsa.gov>
+ <CAJfpeguL9xOh9Eq8LOP=ddJ4YD6nbp2UY6e2AYDVoHeCLuVhZA@mail.gmail.com>
+ <20181129134943.GA16762@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20181129134943.GA16762@redhat.com>
+Content-Language: en-GB
+Sender: linux-kernel-owner@vger.kernel.org
+To: Vivek Goyal <vgoyal@redhat.com>, Miklos Szeredi <miklos@szeredi.hu>
+Cc: Stephen Smalley <sds@tycho.nsa.gov>, Ondrej Mosnacek <omosnace@redhat.com>, "J. Bruce Fields" <bfields@fieldses.org>, Paul Moore <paul@paul-moore.com>, linux-kernel@vger.kernel.org, overlayfs <linux-unionfs@vger.kernel.org>, linux-fsdevel@vger.kernel.org, selinux@vger.kernel.org, Daniel J Walsh <dwalsh@redhat.com>
+List-Id: linux-unionfs@vger.kernel.org
 
-Overlay file f_pos is the master copy that is preserved
-through copy up and modified on read/write, but only real
-fs knows how to SEEK_HOLE/SEEK_DATA and real fs may impose
-limitations that are more strict than ->s_maxbytes for specific
-files, so we use the real file to perform seeks.
+On 11/29/2018 05:49 AM, Vivek Goyal wrote:
+> So will override_creds=off solve the NFS issue also where all access will
+> happen with the creds of task now? Though it will stil require more
+> priviliges in task for other operations in overlay to succeed.
 
-We do not call real fs for SEEK_CUR:0 query and for SEEK_SET:0
-requests.
+NFS problems seems to have ended the discussion, too many stakeholders? 
+too many outstanding questions?
 
-Fixes: d1d04ef8572b ("ovl: stack file ops")
-Reported-by: Eddie Horng <eddiehorng.tw@gmail.com>
-Signed-off-by: Amir Goldstein <amir73il@gmail.com>
----
+Do we accept the limitations of the override_creds patch as is, and then 
+have the folks more familiar with the NFS scenario(s) build on it?
 
-Changes since v1:
-- Take ovl inode lock
-- Optimize SEEK_CUR:0 and SEEK_SET:0 cases
+[TL;DR]
 
- fs/overlayfs/file.c | 44 ++++++++++++++++++++++++++++++++++++++++----
- 1 file changed, 40 insertions(+), 4 deletions(-)
+After looking at all this discussion, it feels like a larger audited 
+rewrite of the security model is in order and override_creds=off may be 
+a disservice (although expediently deals with Android's needs) to a 
+correct general solution. I admit I have little idea where to go from 
+here for a general solution.
 
-diff --git a/fs/overlayfs/file.c b/fs/overlayfs/file.c
-index 84dd957efa24..db7bd3319b35 100644
---- a/fs/overlayfs/file.c
-+++ b/fs/overlayfs/file.c
-@@ -145,11 +145,47 @@ static int ovl_release(struct inode *inode, struct file *file)
- 
- static loff_t ovl_llseek(struct file *file, loff_t offset, int whence)
- {
--	struct inode *realinode = ovl_inode_real(file_inode(file));
-+	struct inode *inode = file_inode(file);
-+	struct fd real;
-+	const struct cred *old_cred;
-+	ssize_t ret;
-+
-+	/*
-+	 * The two special cases below do not need to involve real fs,
-+	 * so we can optimizing concurrent callers.
-+	 */
-+	if (offset == 0) {
-+		if (whence == SEEK_CUR)
-+			return file->f_pos;
-+
-+		if (whence == SEEK_SET)
-+			return vfs_setpos(file, 0, 0);
-+	}
-+
-+	ret = ovl_real_fdget(file, &real);
-+	if (ret)
-+		return ret;
- 
--	return generic_file_llseek_size(file, offset, whence,
--					realinode->i_sb->s_maxbytes,
--					i_size_read(realinode));
-+	/*
-+	 * Overlay file f_pos is the master copy that is preserved
-+	 * through copy up and modified on read/write, but only real
-+	 * fs knows how to SEEK_HOLE/SEEK_DATA and real fs may impose
-+	 * limitations that are more strict than ->s_maxbytes for specific
-+	 * files, so we use the real file to perform seeks.
-+	 */
-+	inode_lock(inode);
-+	real.file->f_pos = file->f_pos;
-+
-+	old_cred = ovl_override_creds(inode->i_sb);
-+	ret = vfs_llseek(real.file, offset, whence);
-+	revert_creds(old_cred);
-+
-+	file->f_pos = real.file->f_pos;
-+	inode_unlock(inode);
-+
-+	fdput(real);
-+
-+	return ret;
- }
- 
- static void ovl_file_accessed(struct file *file)
--- 
-2.17.1
+As far as I see it, the model of creator && caller credentials is a 
+problem for any non-overlapping (MAC) privilege models. This patch 
+allows one to drop any creator privilege escalation, re-introducing the 
+"caller" to the lower layers.
+
+As such I would expect a better model is to _always_ check the caller 
+credentials again in the lower layers, and only check the creator 
+credentials, some without caller credentials, for some special cases? 
+Change an && to an || for some of the checks? What are those special 
+cases? I must admit _none_ of those special cases need attention in the 
+Android usage models though making it difficult for me to do the fight 
+thing for the associated stakeholders.
+
+The lower privileged application access to the directory cache inherited 
+by other callers troubles me (not for Android, but in general) and feels 
+troublesome (flush out the directory cache? how to tag the privileges 
+associated with the current instance of the directory cache?). Some 
+operations (eg: delete a file for incoming, create mknod in upperdir) 
+are special cases requiring the checking of caller credentaisl to 
+function (not a problem for Android as the caller that deletes a file 
+just so happens to have the necessary privileges).
+
+Also, mount namespaces (in upper, lower, etc), how will they affect this 
+all, is there a need for more attention to this as well?
+
+-- Mark
