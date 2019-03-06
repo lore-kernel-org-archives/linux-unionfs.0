@@ -1,104 +1,221 @@
-Return-Path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-pg1-f194.google.com ([209.85.215.194]:35557 "EHLO
-        mail-pg1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727452AbfC0CoV (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 26 Mar 2019 22:44:21 -0400
-Received: by mail-pg1-f194.google.com with SMTP id g8so9217809pgf.2
-        for <linux-unionfs@vger.kernel.org>; Tue, 26 Mar 2019 19:44:21 -0700 (PDT)
+Return-Path: <guaneryu@gmail.com>
+Return-Path: <guaneryu@gmail.com>
+Date: Wed, 6 Mar 2019 20:30:31 +0800
+From: Eryu Guan <guaneryu@gmail.com>
+Subject: Re: [PATCH v2 2/2] generic: Test that SEEK_HOLE can find a punched
+ hole
+Message-ID: <20190306123031.GI2824@desktop>
+References: <20190303150940.12734-1-amir73il@gmail.com>
+ <20190303150940.12734-2-amir73il@gmail.com>
 MIME-Version: 1.0
-From: koishi komeiji <maykagura@gmail.com>
-Date: Wed, 27 Mar 2019 10:44:08 +0800
-Message-ID: <CALsfCbd2UKVsC4k=da5x+joaBQk-phCizkyF0vXeMNOYDojWwQ@mail.gmail.com>
-Subject: [Help]Cannot read symbolic link(Invalid argument) in overlayfs
-Content-Type: text/plain; charset="UTF-8"
-Sender: linux-unionfs-owner@vger.kernel.org
-To: linux-unionfs@vger.kernel.org, Amir Goldstein <amir73il@gmail.com>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20190303150940.12734-2-amir73il@gmail.com>
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, Eddie Horng <eddiehorng.tw@gmail.com>, linux-unionfs@vger.kernel.org, fstests@vger.kernel.org
 List-ID: <linux-unionfs@vger.kernel.org>
 
-Hello.I met a bug about overlayfs again. I run a container by docker .
-In the container, a symbolic link has been broken.I switch to host,
-and find the broken file in /var/lib/docker.   I find 2 file that one
-is in /var/lib/docker/overlay2/e3.../merged and another one is in
-/var/lib/docker/overlay2/e3.../diff.
-The directory of /var/lib/docker/overlay2/e3.../merged is mounted on
-overlay fs. The 2 file have same inode. I think this means they are
-the same file. The file in /var/lib/docker/overlay2/e3.../diff is ok.
-But the file in /var/lib/docker/overlay2/e3.../merged is broken.
-I doubt this is a bug of overlayfs.
+On Sun, Mar 03, 2019 at 05:09:40PM +0200, Amir Goldstein wrote:
+> Added a test case to seek_sanity_test and a test to run it.
+> 
+> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+> ---
+> 
+> Changes since v1:
+> - Punch hole requirement independent of SEEK_HOLE behavior.
+> 
+>  src/seek_sanity_test.c | 58 +++++++++++++++++++++++++++++++++++++++---
+>  tests/generic/999      | 44 ++++++++++++++++++++++++++++++++
+>  tests/generic/999.out  |  1 +
+>  tests/generic/group    |  1 +
+>  4 files changed, 100 insertions(+), 4 deletions(-)
+>  create mode 100755 tests/generic/999
+>  create mode 100644 tests/generic/999.out
+> 
+> diff --git a/src/seek_sanity_test.c b/src/seek_sanity_test.c
+> index 1eefc74d..7da4448f 100644
+> --- a/src/seek_sanity_test.c
+> +++ b/src/seek_sanity_test.c
+> @@ -16,6 +16,7 @@
+>  #include <unistd.h>
+>  #include <stdlib.h>
+>  #include <assert.h>
+> +#include "global.h"
+>  
+>  #ifndef SEEK_DATA
+>  #define SEEK_DATA      3
+> @@ -26,6 +27,7 @@ static blksize_t alloc_size;
+>  int allow_default_behavior = 1;
+>  int default_behavior = 0;
+>  int unwritten_extents = 0;
+> +int punch_hole = 0;
+>  char *base_file_path;
+>  
+>  static void get_file_system(int fd)
+> @@ -118,8 +120,9 @@ static int do_fallocate(int fd, off_t offset, off_t length, int mode)
+>  
+>  	ret = fallocate(fd, mode, offset, length);
+>  	if (ret)
+> -		fprintf(stderr, "  ERROR %d: Failed to preallocate "
+> -			"space to %ld bytes\n", errno, (long) length);
+> +		fprintf(stderr, "  ERROR %d: Failed to %s of %ld bytes\n",
+> +			errno, (mode & FALLOC_FL_PUNCH_HOLE) ? "punch hole" :
+> +			"preallocate space", (long) length);
+>  
+>  	return ret;
+>  }
+> @@ -262,6 +265,47 @@ out:
+>  	return ret;
+>  }
+>  
+> +/*
+> + * Make sure hole size is properly reported when punched in the middle of a file
+> + */
+> +static int test21(int fd, int testnum)
+> +{
+> +	char *buf = NULL;
+> +	int bufsz, filsz;
+> +	int ret = 0;
+> +
+> +	if (!punch_hole) {
+> +		fprintf(stdout, "Test skipped as fs doesn't support punch hole.\n");
+> +		goto out;
+> +	}
 
-root:/var/lib/docker# df -h
-Filesystem      Size  Used Avail Use% Mounted on
-/dev/sda1        83G   29G   50G  38% /
-overlay          83G   29G   50G  38% /var/lib/docker/overlay2/e3ed8.../merged
-...
+Skip test if default_behavior is true? It's not necessary, but I think
+it makes the test more clear about testing non-default behavior.
 
+Thanks,
+Eryu
 
-root:/var/lib/docker# find . -name "libdrv_ip6proen.so"
-./overlay2/e3ed8.../diff/usr/lib/libdrv_ip6proen.so
-./overlay2/e3ed8.../merged/usr/lib/libdrv_ip6proen.so
-
-
-root:/var/lib/docker# cat overlay2/e3ed8.../merged/usr/lib/libdrv_ip6proen.so
-cat: overlay2/e3ed8.../merged/usr/lib/libdrv_ip6proen.so: Too many
-levels of symbolic links
-
-root:/var/lib/docker# ls -li overlay2/e3ed8.../merged/usr/lib/libdrv_ip6proen.so
-ls: cannot read symbolic link
-'overlay2/e3ed8.../merged/usr/lib/libdrv_ip6proen.so': Invalid
-argument
-3038490 lrwxrwxrwx 1 root root 26 3 25 16:24
-overlay2/e3ed8.../merged/usr/lib/libdrv_ip6proen.so
-
-root:/var/lib/docker# ls -li overlay2/e3ed8.../diff/usr/lib/libdrv_ip6proen.so
-3038490 lrwxrwxrwx 1 root root 26 3 25 16:24
-overlay2/e3ed8.../diff/usr/lib/libdrv_ip6proen.so ->
-libdrv_ip6proen.so.0.0.0.4
-
-
-
-
-root:/var/lib/docker# stat overlay2/e3ed8.../diff/usr/lib/libdrv_ip6proen.so
-  File: 'overlay2/e3ed8.../diff/usr/lib/libdrv_ip6proen.so' ->
-'libdrv_ip6proen.so.0.0.0.4'
-  Size: 26              Blocks: 0          IO Block: 4096   symbolic link
-Device: 801h/2049d      Inode: 3038490     Links: 1
-Access: (0777/lrwxrwxrwx)  Uid: (    0/    root)   Gid: (    0/    root)
-Access: 2019-03-26 16:38:47.588388845 +0800
-Modify: 2019-03-25 16:24:05.536041935 +0800
-Change: 2019-03-25 16:24:05.536041935 +0800
- Birth: -
-
-
-root:/var/lib/docker# stat overlay2/e3ed8.../merged/usr/lib/libdrv_ip6proen.so
-  File: 'overlay2/e3ed8.../merged/usr/lib/libdrv_ip6proen.so'stat:
-cannot read symbolic link
-'overlay2/e3ed8.../merged/usr/lib/libdrv_ip6proen.so': Invalid
-argument
-
-  Size: 26              Blocks: 0          IO Block: 4096   symbolic link
-Device: 801h/2049d      Inode: 3038490     Links: 1
-Access: (0777/lrwxrwxrwx)  Uid: (    0/    root)   Gid: (    0/    root)
-Access: 2019-03-26 16:38:47.588388845 +0800
-Modify: 2019-03-25 16:24:05.536041935 +0800
-Change: 2019-03-25 16:24:05.536041935 +0800
- Birth: -
-
-
-
-root:/var/lib/docker# uname -a
-Linux z15572-virtual-machine 4.9.29 #1 SMP Tue Oct 16 22:13:48 CST
-2018 x86_64 x86_64 x86_64 GNU/Linux
-
-root:/var/lib/docker# cat /etc/os-release
-NAME="Ubuntu"
-VERSION="16.04.5 LTS (Xenial Xerus)"
-ID=ubuntu
-ID_LIKE=debian
-PRETTY_NAME="Ubuntu 16.04.5 LTS"
-VERSION_ID="16.04"
-HOME_URL="http://www.ubuntu.com/"
-SUPPORT_URL="http://help.ubuntu.com/"
-BUG_REPORT_URL="http://bugs.launchpad.net/ubuntu/"
-VERSION_CODENAME=xenial
-UBUNTU_CODENAME=xenial
+> +
+> +	bufsz = alloc_size * 3;
+> +	buf = do_malloc(bufsz);
+> +	if (!buf) {
+> +		ret = -1;
+> +		goto out;
+> +	}
+> +	memset(buf, 'a', bufsz);
+> +
+> +	ret = do_pwrite(fd, buf, bufsz, 0);
+> +	if (ret)
+> +		goto out;
+> +
+> +	filsz = bufsz;
+> +	ret = do_fallocate(fd, alloc_size, alloc_size,
+> +			   FALLOC_FL_PUNCH_HOLE | FALLOC_FL_KEEP_SIZE);
+> +	if (ret < 0)
+> +		goto out;
+> +
+> +	ret += do_lseek(testnum, 1, fd, filsz, SEEK_DATA, 0, 0);
+> +	ret += do_lseek(testnum, 2, fd, filsz, SEEK_HOLE, 0, alloc_size);
+> +	ret += do_lseek(testnum, 3, fd, filsz, SEEK_DATA, alloc_size, alloc_size * 2);
+> +out:
+> +	if (buf)
+> +		free(buf);
+> +	return ret;
+> +}
+> +
+>  /*
+>   * Make sure hole size is properly reported when starting in the middle of a
+>   * hole in ext? doubly indirect tree
+> @@ -1050,6 +1094,7 @@ struct testrec seek_tests[] = {
+>         { 18, test18, "Test file with negative SEEK_{HOLE,DATA} offsets" },
+>         { 19, test19, "Test file SEEK_DATA from middle of a large hole" },
+>         { 20, test20, "Test file SEEK_DATA from middle of a huge hole" },
+> +       { 21, test21, "Test file SEEK_HOLE that was created by PUNCH_HOLE" },
+>  };
+>  
+>  static int run_test(struct testrec *tr)
+> @@ -1127,15 +1172,20 @@ static int test_basic_support(void)
+>  	}
+>  
+>  	ftruncate(fd, 0);
+> -	if (fallocate(fd, 0, 0, alloc_size) == -1) {
+> +	if (fallocate(fd, 0, 0, alloc_size * 2) == -1) {
+>  		if (errno == EOPNOTSUPP)
+> -			fprintf(stderr, "File system does not support fallocate.");
+> +			fprintf(stderr, "File system does not support fallocate.\n");
+>  		else {
+>  			fprintf(stderr, "ERROR %d: Failed to preallocate "
+>  				"space to %ld bytes. Aborting.\n", errno, (long) alloc_size);
+>  			ret = -1;
+>  		}
+>  		goto out;
+> +	} else if (fallocate(fd, FALLOC_FL_PUNCH_HOLE | FALLOC_FL_KEEP_SIZE,
+> +			     0, alloc_size) == -1) {
+> +		fprintf(stderr, "File system does not support punch hole.\n");
+> +	} else {
+> +		punch_hole = 1;
+>  	}
+>  
+>  	pos = lseek(fd, 0, SEEK_DATA);
+> diff --git a/tests/generic/999 b/tests/generic/999
+> new file mode 100755
+> index 00000000..d8565041
+> --- /dev/null
+> +++ b/tests/generic/999
+> @@ -0,0 +1,44 @@
+> +#! /bin/bash
+> +# SPDX-License-Identifier: GPL-2.0
+> +# Copyright (C) 2019, CTERA Networks.  All Rights Reserved.
+> +#
+> +# FS QA Test No. 999
+> +#
+> +# Check that SEEK_HOLE can find a punched hole.
+> +#
+> +seq=`basename $0`
+> +seqres=$RESULT_DIR/$seq
+> +echo "QA output created by $seq"
+> +
+> +here=`pwd`
+> +tmp=/tmp/$$
+> +status=1	# failure is the default!
+> +trap "_cleanup; exit \$status" 0 1 2 3 15
+> +
+> +# get standard environment, filters and checks
+> +. ./common/rc
+> +
+> +_supported_fs generic
+> +_supported_os Linux
+> +
+> +_require_test
+> +_require_seek_data_hole
+> +_require_xfs_io_command "fpunch"
+> +
+> +base_test_file=$TEST_DIR/seek_sanity_testfile.$seq
+> +
+> +_require_test_program "seek_sanity_test"
+> +
+> +_cleanup()
+> +{
+> +	cd /
+> +	rm -f $tmp.*
+> +	rm -f $base_test_file*
+> +}
+> +
+> +_run_seek_sanity_test -s 21 -e 21 $base_test_file > $seqres.full 2>&1 ||
+> +	_fail "seek sanity check failed!"
+> +
+> +# success, all done
+> +status=0
+> +exit
+> diff --git a/tests/generic/999.out b/tests/generic/999.out
+> new file mode 100644
+> index 00000000..7fbc6768
+> --- /dev/null
+> +++ b/tests/generic/999.out
+> @@ -0,0 +1 @@
+> +QA output created by 999
+> diff --git a/tests/generic/group b/tests/generic/group
+> index 15227b67..14ac9b2c 100644
+> --- a/tests/generic/group
+> +++ b/tests/generic/group
+> @@ -534,3 +534,4 @@
+>  529 auto quick attr
+>  530 auto quick unlink
+>  531 auto quick unlink
+> +999 auto quick punch seek
+> -- 
+> 2.17.1
+> 
