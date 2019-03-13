@@ -1,136 +1,64 @@
-From: Eric Biggers <ebiggers@kernel.org>
+From: "Theodore Ts'o" <tytso@mit.edu>
 Subject: Re: overlayfs vs. fscrypt
-Date: Wed, 13 Mar 2019 08:01:27 -0700
-Message-ID: <20190313150126.GA703@sol.localdomain>
+Date: Wed, 13 Mar 2019 11:16:33 -0400
+Message-ID: <20190313151633.GA672@mit.edu>
 References: <4603533.ZIfxmiEf7K@blindfold>
- <1852545.qrIQg0rEWx@blindfold>
- <CAJfpegvrG4LfnuC62JNtdXpCf4vb+aEiDre5YCxe7xUSQP8yjw@mail.gmail.com>
  <1854703.ve7plDhYWt@blindfold>
  <CAJfpegtgfuAkgv26QH6Ht25OeMiev-QvEf7ror4KAbud7FADgg@mail.gmail.com>
+ <4066872.KGdO14EQMx@blindfold>
+ <CAOQ4uxhqQKzriL0An4Tvzc1E_LffL-z9q1otOW_RdD1ZdKWP3Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <CAJfpegtgfuAkgv26QH6Ht25OeMiev-QvEf7ror4KAbud7FADgg@mail.gmail.com>
+In-Reply-To: <CAOQ4uxhqQKzriL0An4Tvzc1E_LffL-z9q1otOW_RdD1ZdKWP3Q@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: Richard Weinberger <richard@nod.at>, linux-fsdevel@vger.kernel.org, linux-fscrypt@vger.kernel.org, overlayfs <linux-unionfs@vger.kernel.org>, linux-kernel@vger.kernel.org
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: Richard Weinberger <richard@nod.at>, Miklos Szeredi <miklos@szeredi.hu>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, linux-fscrypt@vger.kernel.org, overlayfs <linux-unionfs@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>, Paul Lawrence <paullawrence@google.com>
 List-Id: linux-unionfs@vger.kernel.org
 
-Hi Miklos,
+On Wed, Mar 13, 2019 at 04:26:54PM +0200, Amir Goldstein wrote:
+> AFAIK, this feature was born to tailor Android's file based encryption.
+> https://source.android.com/security/encryption#file-based
+> It is meant to protect data at rest and what happens when user enters
+> the screen lock password IIRC, is that some service will get restarted.
+> IOW, there should NOT be any processes in Android accessing the
+> encrypted user data folders with and without the key simultaneously.
+> Also, like OpenWRT, in Android the key does not get removed
+> (until boot) AFAIK(?).
 
-On Wed, Mar 13, 2019 at 02:24:47PM +0100, Miklos Szeredi wrote:
-> On Wed, Mar 13, 2019 at 2:00 PM Richard Weinberger <richard@nod.at> wrote:
-> >
-> > Am Mittwoch, 13. März 2019, 13:58:11 CET schrieb Miklos Szeredi:
-> > > On Wed, Mar 13, 2019 at 1:47 PM Richard Weinberger <richard@nod.at> wrote:
-> > > >
-> > > > Am Mittwoch, 13. März 2019, 13:36:02 CET schrieb Miklos Szeredi:
-> > > > > I don't get it.  Does fscrypt try to check permissions via
-> > > > > ->d_revalidate?  Why is it not doing that via ->permission()?
-> > > >
-> > > > Please let me explain. Suppose we have a fscrypto directory /mnt and
-> > > > I *don't* have the key.
-> > > >
-> > > > When reading the directory contents of /mnt will return an encrypted filename.
-> > > > e.g.
-> > > > # ls /mnt
-> > > > +mcQ46ne5Y8U6JMV9Wdq2C
-> > >
-> > > Why does showing the encrypted contents make any sense?  It could just
-> > > return -EPERM on all operations?
-> >
-> > The use case is that you can delete these files if the DAC/MAC permissions allow it.
-> > Just like on NTFS. If a user encrypts files, the admin cannot read them but can
-> > remove them if the user is gone or loses the key.
-> 
-> There's the underlying filesystem view where admin can delete files,
-> etc.   And there's the fscrypt layer stacked on top of the underlying
-> fs, which en/decrypts files *in case the user has the key*.  What if
-> one user has a key, but the other one doesn't?  Will d_revalidate
-> constantly switch the set of dentries between the encrypted filenames
-> and the decrypted ones?  Sounds crazy.  And the fact that NTFS does
-> this doesn't make it any less crazy...
-> 
+Actually, the original use was for ChromeOS, but the primary
+assumption is that keying is per user (or profile), and that users are
+mutually distrustful.  So when Alice logs out of the system, her keys
+will be invalidated and removed from the kernel.  We can (and do) try
+to flush cache entries via "echo 3 > /proc/sys/vm/drop_caches" on
+logout.  However, this does not guarantee that all dcache entries will
+be removed --- a dcache entry can be pinned due to an open file, a
+process's current working directory, a bind mount, etc.
 
-fscrypt (aka ext4/f2fs/ubifs encryption) isn't a stacked filesystem.  I think
-you're confusing it with eCryptfs.  There's only one "view" of the filesystem.
+The other issue is negative dentries; if you try open a file in an
+encrypted file, the file system won't even *know* whether or not a
+file exists, since the directory entries are encrypted; hence, there
+may be some negative dentries that need to be invalidated.
 
-It's true that different processes can put different keys in their
-process-subscribed keyrings, e.g. their session keyrings.  But that doesn't
-change the fact that each cached inode either has the key or it doesn't, and all
-users share those same cached inodes.  The mistake here is not making the keys
-be provided at the filesystem level too, and I've proposed to fix that:
-https://patchwork.kernel.org/cover/10821413/
+So a fundamental assumption with fscrypt is that keys will be added
+and removed, and that when this happens, dentries will need to be
+invalidated.  This is going to surprise overlayfs, so if overlayfs is
+going to support fscrypt it *has* to be aware of the fact that this
+can happen.  It's not even clear what the proper security semantics
+should be; *especially* if the upper and lower directories aren't
+similarly protected using the same fscrypt encryption key.  Suppose
+the lower directory is encrypted, and the upper is not.  Now on a copy
+up operation, the previously encrypted file, which might contain
+credit card numbers, medical records, or other things that would cause
+a GDPR regulator to have a freak out attack, would *poof* become
+decrypted.
 
-Note that the the key (->i_crypt_info) is never removed from a cached inode
-without evicting it.  It used to be done, but it was broken and removed.  Now a
-cached inode can only have the key added.  For this reason and others, I think
-fscrypt_d_revalidate() contains unneeded checks and can be simplified to this:
+So before we talk about how to make things work from a technical
+perspective, we should consider what the use case happens to be, and
+what are the security requirements.  *Why* are we trying to use the
+combination of overlayfs and fscrypt, and what are the security
+properties we are trying to provide to someone who is relying on this
+combination?
 
-	static int fscrypt_d_revalidate(struct dentry *dentry, unsigned int flags)
-	{
-		struct dentry *dir;
-		bool valid;
-
-		if (flags & LOOKUP_RCU)
-			return -ECHILD;
-
-		if (dentry->d_flags & DCACHE_ENCRYPTED_WITH_KEY)
-			return 1;
-
-		dir = dget_parent(dentry);
-		valid = (d_inode(dir)->i_crypt_info == NULL);
-		dput(dir);
-		return valid;
-	}
-
-I think we can even support RCU mode too.
-
-Then, one possibility is to move fscrypt_d_revalidate() to the VFS.  If we
-replace DCACHE_ENCRYPTED_WITH_KEY with the opposite meaning, say
-DCACHE_CIPHERTEXT_NAME, then the VFS will have everything it needs to just do
-the equivalent of fscrypt_d_revalidate() directly in d_revalidate() in
-fs/namei.c.  So fscrypt_d_ops won't be needed at all.  Something like this:
-
-#ifdef CONFIG_FS_ENCRYPTION
-static inline int fscrypt_d_revalidate(struct dentry *dentry,
-                                       unsigned int flags)
-{
-	struct dentry *dir;
-	struct inode *dir_inode;
-
-	if (!(READ_ONCE(dentry->d_flags) & DCACHE_CIPHERTEXT_NAME))
-		return 1;
-
-	dir = READ_ONCE(dentry->d_parent);
-	dir_inode = READ_ONCE(dir->d_inode);
-	return READ_ONCE(dir_inode->i_crypt_info) == NULL;
-}
-#else
-static inline int fscrypt_d_revalidate(struct dentry *dentry,
-                                       unsigned int flags)
-{
-        return 1;
-}
-#endif
-
-static inline int d_revalidate(struct dentry *dentry, unsigned int flags)
-{
-        int status;
-
-        if (unlikely(dentry->d_flags & DCACHE_OP_REVALIDATE))
-                status = dentry->d_op->d_revalidate(dentry, flags);
-        else
-                status = 1;
-
-        if (status > 0)
-                status = fscrypt_d_revalidate(dentry, flags);
-        return status;
-}
-
-
-What do you think about this?
-
-- Eric
+						- Ted
