@@ -1,46 +1,36 @@
-From: Richard Weinberger <richard@nod.at>
+From: Miklos Szeredi <miklos@szeredi.hu>
 Subject: Re: overlayfs vs. fscrypt
-Date: Wed, 13 Mar 2019 13:47:40 +0100
-Message-ID: <1852545.qrIQg0rEWx@blindfold>
+Date: Wed, 13 Mar 2019 13:58:11 +0100
+Message-ID: <CAJfpegvrG4LfnuC62JNtdXpCf4vb+aEiDre5YCxe7xUSQP8yjw@mail.gmail.com>
 References: <4603533.ZIfxmiEf7K@blindfold> <CAJfpegsy31D+=VJ+By2a9TLCvZJwvAUpb+_bJ5JVTsmsbZJTKQ@mail.gmail.com>
+ <1852545.qrIQg0rEWx@blindfold>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAJfpegsy31D+=VJ+By2a9TLCvZJwvAUpb+_bJ5JVTsmsbZJTKQ@mail.gmail.com>
+In-Reply-To: <1852545.qrIQg0rEWx@blindfold>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Miklos Szeredi <miklos@szeredi.hu>
+To: Richard Weinberger <richard@nod.at>
 Cc: linux-fsdevel@vger.kernel.org, linux-fscrypt@vger.kernel.org, overlayfs <linux-unionfs@vger.kernel.org>, linux-kernel@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 
-Am Mittwoch, 13. März 2019, 13:36:02 CET schrieb Miklos Szeredi: 
-> I don't get it.  Does fscrypt try to check permissions via
-> ->d_revalidate?  Why is it not doing that via ->permission()?
+On Wed, Mar 13, 2019 at 1:47 PM Richard Weinberger <richard@nod.at> wrote:
+>
+> Am Mittwoch, 13. M=C3=A4rz 2019, 13:36:02 CET schrieb Miklos Szeredi:
+> > I don't get it.  Does fscrypt try to check permissions via
+> > ->d_revalidate?  Why is it not doing that via ->permission()?
+>
+> Please let me explain. Suppose we have a fscrypto directory /mnt and
+> I *don't* have the key.
+>
+> When reading the directory contents of /mnt will return an encrypted file=
+name.
+> e.g.
+> # ls /mnt
+> +mcQ46ne5Y8U6JMV9Wdq2C
 
-Please let me explain. Suppose we have a fscrypto directory /mnt and
-I *don't* have the key.
-
-When reading the directory contents of /mnt will return an encrypted filename.
-e.g.
-# ls /mnt
-+mcQ46ne5Y8U6JMV9Wdq2C
-
-As soon I load my key the real name is shown and I can read the file contents too.
-That's why fscrypt has ->d_revalidate(). It checks for the key, if the key is
-still not here -> stay with the old encrypted name. If the key is present
--> reveal the real name.
-
-Same happens on the other direction if I unlink my key from the keyring.
-
-> >
-> > 2. Teach overlayfs to deal with a upper that has ->d_revalidate().
-> > Given the complexity of overlayfs I'm not sure how feasible this is.
-> > But I'm no overlayfs expert, maybe I miss something.
-> 
-> I don't think it would be too complex.  But first I'd like to
-> understand exactly why fscrypt is (ab) using d_revalidate().
-
-I hope my answer makes things more clear.
+Why does showing the encrypted contents make any sense?  It could just
+return -EPERM on all operations?
 
 Thanks,
-//richard
+Miklos
