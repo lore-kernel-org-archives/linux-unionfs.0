@@ -1,95 +1,53 @@
 From: Eric Biggers <ebiggers@kernel.org>
 Subject: Re: overlayfs vs. fscrypt
-Date: Wed, 13 Mar 2019 15:13:26 -0700
-Message-ID: <20190313221325.GE10169@gmail.com>
-References: <20190313151633.GA672@mit.edu>
- <1552491394.3022.8.camel@HansenPartnership.com>
- <20190313164439.GF672@mit.edu>
- <1552499104.3022.44.camel@HansenPartnership.com>
- <20190313185826.GA4685@mit.edu>
- <1552504672.3022.59.camel@HansenPartnership.com>
- <20190313195713.GC10169@gmail.com>
- <1552507566.3022.65.camel@HansenPartnership.com>
- <20190313202519.GD10169@gmail.com>
- <1552511069.3022.77.camel@HansenPartnership.com>
+Date: Wed, 13 Mar 2019 15:26:11 -0700
+Message-ID: <20190313222610.GF10169@gmail.com>
+References: <4603533.ZIfxmiEf7K@blindfold>
+ <4066872.KGdO14EQMx@blindfold>
+ <CAOQ4uxhqQKzriL0An4Tvzc1E_LffL-z9q1otOW_RdD1ZdKWP3Q@mail.gmail.com>
+ <15244624.W7e5yEypHC@blindfold>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1552511069.3022.77.camel@HansenPartnership.com>
+In-Reply-To: <15244624.W7e5yEypHC@blindfold>
 Sender: linux-kernel-owner@vger.kernel.org
-To: James Bottomley <James.Bottomley@HansenPartnership.com>
-Cc: Theodore Ts'o <tytso@mit.edu>, Amir Goldstein <amir73il@gmail.com>, Richard Weinberger <richard@nod.at>, Miklos Szeredi <miklos@szeredi.hu>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, linux-fscrypt@vger.kernel.org, overlayfs <linux-unionfs@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>, Paul Lawrence <paullawrence@google.com>
+To: Richard Weinberger <richard@nod.at>
+Cc: Amir Goldstein <amir73il@gmail.com>, Miklos Szeredi <miklos@szeredi.hu>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, linux-fscrypt@vger.kernel.org, overlayfs <linux-unionfs@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>, Paul Lawrence <paullawrence@google.com>
 List-Id: linux-unionfs@vger.kernel.org
 
-On Wed, Mar 13, 2019 at 02:04:29PM -0700, James Bottomley wrote:
-> On Wed, 2019-03-13 at 13:25 -0700, Eric Biggers wrote:
-> > On Wed, Mar 13, 2019 at 01:06:06PM -0700, James Bottomley wrote:
-> > > On Wed, 2019-03-13 at 12:57 -0700, Eric Biggers wrote:
-> [...]
-> > > > fscrypt would allow the data to be stored encrypted on the local
-> > > > disk, so it's protected against offline compromise of the disk.
-> > > 
-> > > Container images are essentially tars of the overlays.  They only
-> > > become actual filesystems when instantiated at runtime.  The
-> > > current encrypted container image is an overlay or set of overlays
-> > > which is tarred then encrypted.  So to instantiate it is decrypted
-> > > then untarred.
-> > > 
-> > > The thing I was wondering about was whether instead of a tar
-> > > encrypt we could instead produce an encrypted image from a fscrypt
-> > > filesystem.
-> > > 
-> > 
-> > Why do you care whether the container image is encrypted on the local
-> > disk, when you're extracting it in plaintext onto the local disk
-> > anyway each time it runs? Even after the runtime files are "deleted",
-> > they may still be recoverable from the disk.  Are you using shred and
-> > BLKSECDISCARD, and a non-COW filesystem?
-> > 
-> > Now, if you wanted to avoid writing the plaintext to disk entirely
-> > (and thereby use encryption to actually achieve a useful security
-> > property that can't be achieved through file permissions), fscrypt is
-> > a good solution for that.
+On Wed, Mar 13, 2019 at 09:33:10PM +0100, Richard Weinberger wrote:
+> Am Mittwoch, 13. März 2019, 15:26:54 CET schrieb Amir Goldstein:
+> > IMO, the best thing for UBIFS to do would be to modify fscrypt to support
+> > opting out of the revalidate behavior, IWO, sanitize your hack to an API.
 > 
-> OK let's start with a cloud and container 101: A container is an
-> exactly transportable IaaS environment containing an application.  The
-> format for the exact transport is the "container image" I've been
-> describing (layered tar file set deployed with overlays).  These images
-> are usually stored in cloud based registries which may or may not have
-> useful access controls.  I take it the reason for image encryption to
-> protect confidentiality within the registry is obvious.
+> Given the WTF/s rate this thread has, this might me a good option.
+> Actually people already asked me how to disable this feature because
+> they saw no use of it.
+> Being able to delete encrypted files looks good on the feature list but in
+> reality it has very few users but causes confusion, IMHO.
 > 
-> Because of the exact transport, the deployment may be on my laptop, on
-> my test system or in some type of public or private cloud.  In all
-> cases bar the laptop, I won't actually own the physical system which
-> ends up deploying the container.  So in exchange for security
-> guarantees from the physical system owner, I agree to turn over my
-> decryption key and possibly a cash payment.  One of these guarantees is
-> usually that they shred the key after use and that they deploy a useful
-> key escrow system like vault or keyprotect to guard it even while the
-> decryption is being done.
+> I propose a new fscrypt_operations flag, FS_CFLG_NO_CRYPT_FNAMES.
+> If this flag is set, a) fscrypt_setup_filename() will return -EPERM if
+> no key is found.
+> And b) __fscrypt_prepare_lookup() will not attach fscrypt_d_ops to the dentry.
+> 
+> Eric, what do you think?
+> 
+> Thanks,
+> //richard
+> 
 
+What specifically is wrong with supporting the ciphertext "view" of encrypted
+directories, and why do you want to opt UBIFS out of it specifically but not
+ext4 and f2fs?  (The fscrypt_operations are per-filesystem type, not
+per-filesystem instance, so I assume that's what you had in mind.)  Note that we
+can't unconditionally remove it because people need it to delete files without
+the key.  We could add a mount option to disable it, but why exactly?
 
-> Another is that all traces of the container be shredded after the execution is
-> finished.
-
-Well, sounds like that's not the case currently even with an encrypted container
-image, because the actual runtime files are not encrypted on disk.  Encrypting
-the runtime files using fscrypt with an ephemeral key would be useful here.
-IOW, randomly generate an encryption key when the container starts, never store
-it anywhere, and wipe it when the container stops.
-
-Note that this is separate from the container *image* encryption.
-
-> considering is could I be protected against either cloud provider
-> cockups that might leak the image (the misconfigured backup scenario I
-> suggested) or malicious actions of other tenants.
-
-If the container image is encrypted with a key not on the system, then its
-confidentiality is protected from anything that may happen on that system.
-
-But if the container image encryption key *is* on the system, your container
-image may be leaked either accidentally or maliciously.
+By the way, I suggest that people read Documentation/filesystems/fscrypt.rst for
+more information about what fscrypt is supposed to do, as there seems to be a
+lot of misconceptions.
 
 - Eric
