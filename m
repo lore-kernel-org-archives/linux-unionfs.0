@@ -1,46 +1,58 @@
 From: Eric Biggers <ebiggers@kernel.org>
 Subject: Re: overlayfs vs. fscrypt
-Date: Wed, 13 Mar 2019 09:33:49 -0700
-Message-ID: <20190313163348.GD703@sol.localdomain>
+Date: Wed, 13 Mar 2019 09:44:33 -0700
+Message-ID: <20190313164432.GE703@sol.localdomain>
 References: <4603533.ZIfxmiEf7K@blindfold>
- <1852545.qrIQg0rEWx@blindfold>
- <CAJfpegvrG4LfnuC62JNtdXpCf4vb+aEiDre5YCxe7xUSQP8yjw@mail.gmail.com>
  <1854703.ve7plDhYWt@blindfold>
  <CAJfpegtgfuAkgv26QH6Ht25OeMiev-QvEf7ror4KAbud7FADgg@mail.gmail.com>
- <20190313150126.GA703@sol.localdomain>
- <20190313161147.GS2217@ZenIV.linux.org.uk>
+ <4066872.KGdO14EQMx@blindfold>
+ <CAOQ4uxhqQKzriL0An4Tvzc1E_LffL-z9q1otOW_RdD1ZdKWP3Q@mail.gmail.com>
+ <20190313151633.GA672@mit.edu>
+ <20190313160616.GR2217@ZenIV.linux.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20190313161147.GS2217@ZenIV.linux.org.uk>
+In-Reply-To: <20190313160616.GR2217@ZenIV.linux.org.uk>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, Richard Weinberger <richard@nod.at>, linux-fsdevel@vger.kernel.org, linux-fscrypt@vger.kernel.org, overlayfs <linux-unionfs@vger.kernel.org>, linux-kernel@vger.kernel.org
+Cc: Theodore Ts'o <tytso@mit.edu>, Amir Goldstein <amir73il@gmail.com>, Richard Weinberger <richard@nod.at>, Miklos Szeredi <miklos@szeredi.hu>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, linux-fscrypt@vger.kernel.org, overlayfs <linux-unionfs@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>, Paul Lawrence <paullawrence@google.com>
 List-Id: linux-unionfs@vger.kernel.org
 
-On Wed, Mar 13, 2019 at 04:11:48PM +0000, Al Viro wrote:
-> On Wed, Mar 13, 2019 at 08:01:27AM -0700, Eric Biggers wrote:
+On Wed, Mar 13, 2019 at 04:06:16PM +0000, Al Viro wrote:
+> On Wed, Mar 13, 2019 at 11:16:33AM -0400, Theodore Ts'o wrote:
+> > Actually, the original use was for ChromeOS, but the primary
+> > assumption is that keying is per user (or profile), and that users are
+> > mutually distrustful.  So when Alice logs out of the system, her keys
+> > will be invalidated and removed from the kernel.  We can (and do) try
+> > to flush cache entries via "echo 3 > /proc/sys/vm/drop_caches" on
+> > logout.  However, this does not guarantee that all dcache entries will
+> > be removed --- a dcache entry can be pinned due to an open file, a
+> > process's current working directory, a bind mount, etc.
+> > 
+> > The other issue is negative dentries; if you try open a file in an
+> > encrypted file, the file system won't even *know* whether or not a
+> > file exists, since the directory entries are encrypted; hence, there
+> > may be some negative dentries that need to be invalidated.
+> > 
+> > So a fundamental assumption with fscrypt is that keys will be added
+> > and removed, and that when this happens, dentries will need to be
+> > invalidated.  This is going to surprise overlayfs, so if overlayfs is
+> > going to support fscrypt it *has* to be aware of the fact that this
+> > can happen.  It's not even clear what the proper security semantics
+> > should be; *especially* if the upper and lower directories aren't
+> > similarly protected using the same fscrypt encryption key.  Suppose
+> > the lower directory is encrypted, and the upper is not.  Now on a copy
+> > up operation, the previously encrypted file, which might contain
+> > credit card numbers, medical records, or other things that would cause
+> > a GDPR regulator to have a freak out attack, would *poof* become
+> > decrypted.
 > 
-> > What do you think about this?
-> 
-> That fscrypt might have some very deep flaws.  I'll need to RTFS and
-> review its model, but what I've seen in this thread so far is not
-> promising anything good.
-> 
-> It's not just overlayfs - there are all kinds of interesting trouble
-> possible just with fscrypt, unless I'm misparsing what had been said
-> so far.
+> Just to make sure - you do realize that ban on multiple dentries refering
+> to the same directory inode is *NOT* conditional upon those dentries being
+> hashed, right?
 
-FYI, there *is* a known bug I was very recently made aware of and am planning to
-fix.  When ->lookup() finds the plaintext name for a directory and the
-ciphertext name is already in the dcache, d_splice_alias() will __d_move() the
-existing dentry to the plaintext name.  But it doesn't set
-DCACHE_ENCRYPTED_WITH_KEY, so the dentry incorrectly is still marked as a
-ciphertext name and will be invalidated on the next lookup.  That's especially
-problematic if the lookup that caused the __d_move() came from sys_mount().
-
-I'm thinking the best fix is to have __d_move() propagate
-DCACHE_ENCRYPTED_WITH_KEY from 'target' to 'dentry'.
+Isn't this handled by d_splice_alias() already, by moving the old dentry to the
+new name?
 
 - Eric
