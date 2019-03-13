@@ -1,31 +1,69 @@
-From: Al Viro <viro@zeniv.linux.org.uk>
+From: James Bottomley <James.Bottomley@HansenPartnership.com>
 Subject: Re: overlayfs vs. fscrypt
-Date: Wed, 13 Mar 2019 16:11:48 +0000
-Message-ID: <20190313161147.GS2217@ZenIV.linux.org.uk>
-References: <4603533.ZIfxmiEf7K@blindfold>
- <1852545.qrIQg0rEWx@blindfold>
- <CAJfpegvrG4LfnuC62JNtdXpCf4vb+aEiDre5YCxe7xUSQP8yjw@mail.gmail.com>
- <1854703.ve7plDhYWt@blindfold>
- <CAJfpegtgfuAkgv26QH6Ht25OeMiev-QvEf7ror4KAbud7FADgg@mail.gmail.com>
- <20190313150126.GA703@sol.localdomain>
+Date: Wed, 13 Mar 2019 09:13:52 -0700
+Message-ID: <1552493632.3022.17.camel@HansenPartnership.com>
+References: <4603533.ZIfxmiEf7K@blindfold> <1854703.ve7plDhYWt@blindfold>
+         <CAJfpegtgfuAkgv26QH6Ht25OeMiev-QvEf7ror4KAbud7FADgg@mail.gmail.com>
+         <4066872.KGdO14EQMx@blindfold>
+         <CAOQ4uxhqQKzriL0An4Tvzc1E_LffL-z9q1otOW_RdD1ZdKWP3Q@mail.gmail.com>
+         <20190313151633.GA672@mit.edu>
+         <1552491394.3022.8.camel@HansenPartnership.com>
+         <20190313155144.GC703@sol.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20190313150126.GA703@sol.localdomain>
+In-Reply-To: <20190313155144.GC703@sol.localdomain>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Eric Biggers <ebiggers@kernel.org>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, Richard Weinberger <richard@nod.at>, linux-fsdevel@vger.kernel.org, linux-fscrypt@vger.kernel.org, overlayfs <linux-unionfs@vger.kernel.org>, linux-kernel@vger.kernel.org
+Cc: Theodore Ts'o <tytso@mit.edu>, Amir Goldstein <amir73il@gmail.com>, Richard Weinberger <richard@nod.at>, Miklos Szeredi <miklos@szeredi.hu>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, linux-fscrypt@vger.kernel.org, overlayfs <linux-unionfs@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>, Paul Lawrence <paullawrence@google.com>
 List-Id: linux-unionfs@vger.kernel.org
 
-On Wed, Mar 13, 2019 at 08:01:27AM -0700, Eric Biggers wrote:
+On Wed, 2019-03-13 at 08:51 -0700, Eric Biggers wrote:
+> Hi James,
+> 
+> On Wed, Mar 13, 2019 at 08:36:34AM -0700, James Bottomley wrote:
+> > On Wed, 2019-03-13 at 11:16 -0400, Theodore Ts'o wrote:
+> > > So before we talk about how to make things work from a technical
+> > > perspective, we should consider what the use case happens to be,
+> > > and what are the security requirements.  *Why* are we trying to
+> > > use the combination of overlayfs and fscrypt, and what are the
+> > > security properties we are trying to provide to someone who is
+> > > relying on this combination?
+> > 
+> > I can give one: encrypted containers:
+> > 
+> > https://github.com/opencontainers/image-spec/issues/747
+> > 
+> > The current proposal imagines that the key would be delivered to
+> > the physical node and the physical node containerd would decrypt
+> > all the layers before handing them off to to the kubelet.  However,
+> > one could imagine a slightly more secure use case where the layers
+> > were constructed as an encrypted filesystem tar and so the key
+> > would go into the kernel and the layers would be constructed with
+> > encryption in place using fscrypt.
+> > 
+> > Most of the desired security properties are in image at rest but
+> > one can imagine that the running image wants some protection
+> > against containment breaches by other tenants and using fscrypt
+> > could provide that.
+> > 
+> 
+> What do you mean by "containment breaches by other tenants"?  Note
+> that while the key is added, fscrypt doesn't prevent access to the
+> encrypted files.
 
-> What do you think about this?
+You mean it's not multiuser safe?  Even if user a owns the key they add
+user b can still see the decrypted contents?
 
-That fscrypt might have some very deep flaws.  I'll need to RTFS and
-review its model, but what I've seen in this thread so far is not
-promising anything good.
+>   fscrypt is orthogonal to OS-level access control (UNIX mode bits,
+> ACLs, SELinux, etc.), which can and should be used alongside
+> fscrypt.  fscrypt is a storage encryption mechanism, not an OS-level
+> access control mechanism.
 
-It's not just overlayfs - there are all kinds of interesting trouble
-possible just with fscrypt, unless I'm misparsing what had been said
-so far.
+I was assuming in the multi-user case that if you don't own the keyring
+you can't see the files. I suppose absent that it boils down to a
+possible way to do the layering then as an fscrypt image rather than
+tar then encrypt.
+
+James
