@@ -1,35 +1,70 @@
-From: Al Viro <viro@zeniv.linux.org.uk>
+From: James Bottomley <James.Bottomley@HansenPartnership.com>
 Subject: Re: overlayfs vs. fscrypt
-Date: Wed, 13 Mar 2019 19:19:46 +0000
-Message-ID: <20190313191945.GT2217@ZenIV.linux.org.uk>
-References: <4603533.ZIfxmiEf7K@blindfold>
- <1854703.ve7plDhYWt@blindfold>
- <CAJfpegtgfuAkgv26QH6Ht25OeMiev-QvEf7ror4KAbud7FADgg@mail.gmail.com>
- <4066872.KGdO14EQMx@blindfold>
- <CAOQ4uxhqQKzriL0An4Tvzc1E_LffL-z9q1otOW_RdD1ZdKWP3Q@mail.gmail.com>
- <20190313151633.GA672@mit.edu>
- <20190313160616.GR2217@ZenIV.linux.org.uk>
- <20190313164432.GE703@sol.localdomain>
+Date: Wed, 13 Mar 2019 12:17:52 -0700
+Message-ID: <1552504672.3022.59.camel@HansenPartnership.com>
+References: <4603533.ZIfxmiEf7K@blindfold> <1854703.ve7plDhYWt@blindfold>
+         <CAJfpegtgfuAkgv26QH6Ht25OeMiev-QvEf7ror4KAbud7FADgg@mail.gmail.com>
+         <4066872.KGdO14EQMx@blindfold>
+         <CAOQ4uxhqQKzriL0An4Tvzc1E_LffL-z9q1otOW_RdD1ZdKWP3Q@mail.gmail.com>
+         <20190313151633.GA672@mit.edu>
+         <1552491394.3022.8.camel@HansenPartnership.com>
+         <20190313164439.GF672@mit.edu>
+         <1552499104.3022.44.camel@HansenPartnership.com>
+         <20190313185826.GA4685@mit.edu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20190313164432.GE703@sol.localdomain>
+In-Reply-To: <20190313185826.GA4685@mit.edu>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Eric Biggers <ebiggers@kernel.org>
-Cc: Theodore Ts'o <tytso@mit.edu>, Amir Goldstein <amir73il@gmail.com>, Richard Weinberger <richard@nod.at>, Miklos Szeredi <miklos@szeredi.hu>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, linux-fscrypt@vger.kernel.org, overlayfs <linux-unionfs@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>, Paul Lawrence <paullawrence@google.com>
+To: Theodore Ts'o <tytso@mit.edu>
+Cc: Amir Goldstein <amir73il@gmail.com>, Richard Weinberger <richard@nod.at>, Miklos Szeredi <miklos@szeredi.hu>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, linux-fscrypt@vger.kernel.org, overlayfs <linux-unionfs@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>, Paul Lawrence <paullawrence@google.com>
 List-Id: linux-unionfs@vger.kernel.org
 
-On Wed, Mar 13, 2019 at 09:44:33AM -0700, Eric Biggers wrote:
-
-> > Just to make sure - you do realize that ban on multiple dentries refering
-> > to the same directory inode is *NOT* conditional upon those dentries being
-> > hashed, right?
+On Wed, 2019-03-13 at 14:58 -0400, Theodore Ts'o wrote:
+> On Wed, Mar 13, 2019 at 10:45:04AM -0700, James Bottomley wrote:
+> > >   If they can't break root, then the OS's user-id based access
+> > > control checks (or SELinux checks if you are using SELinux) will
+> > > still protect you.
+> > 
+> > Well, that's what one would think about the recent runc exploit as
+> > well.  The thing I was looking to do was reduce the chances that
+> > unencrypted data would be lying around to be discovered.  I suppose
+> > the potentially biggest problem is leaking the image after it's
+> > decrypted by admin means like a badly configured backup, but
+> > unencryped data is potentially discoverable by breakouts as well.
 > 
-> Isn't this handled by d_splice_alias() already, by moving the old dentry to the
-> new name?
+> But while the container is running, the key is available and
+> instantiated in the kernel, and the kernel is free to decrypt any
+> encrypted file/block.
 
-... which means that if somebody without the key chdirs into subdirectory
-they only see by encrypted name and waits for proper owner to look it up,
-they suddenly see it by _un_encrypted name.  Or does O_PATH open, for
-that matter, so exec permissions on that thing are not required.
+In the current encrypted tar file implementation, while the container
+is running the decrypted tar file is extracted into the container root
+and available for all to see.
+
+The main security benefit of this implementation, as I said, is
+security of at rest images and the runtime security is guaranteed by
+other systems.
+
+>   The reason why the kernel won't do this is because of its access
+> control checks.
+> 
+> And we're talking about this within the context of the overlayfs.
+> When in the container world will we have persistent data that lasts
+> beyond the lifetime of the running container that will be using
+> overlayfs?  I didn't think that existed; if you are using, say, a
+> Docker storage volume, does overlayfs ever get into the act?  And if
+> so, how, and what are the desired security properties?
+
+Are you asking about persistent volumes?  I can answer, but that's not
+the current use case.  The current use case is encrypted images, which
+are overlays.  If you mean the misconfigured backup comment then I was
+thinking a backup that wrongly sweeps container root while the
+container is running.
+
+Lets go back to basics: can fscrypt provide equivalent or better
+protection than the current encrypted tarfile approach?  If the answer
+is no because it's too tightly tied to the android use case then
+perhaps there's not much point discussing it further.
+
+James
