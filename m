@@ -1,8 +1,7 @@
 From: Richard Weinberger <richard@nod.at>
-Subject: [PATCH 3/4] ubifs: Simplify fscrypt_get_encryption_info() error
- handling
-Date: Thu, 14 Mar 2019 18:15:58 +0100
-Message-ID: <20190314171559.27584-4-richard@nod.at>
+Subject: [PATCH 1/4] fscrypt: Implement FS_CFLG_OWN_D_OPS
+Date: Thu, 14 Mar 2019 18:15:56 +0100
+Message-ID: <20190314171559.27584-2-richard@nod.at>
 References: <CAJfpegvX4ANfso-Jn1zaB+m4Q_0eK9i-+MCJ+sTH5QzD3PZFMQ@mail.gmail.com>
  <20190314171559.27584-1-richard@nod.at>
 Mime-Version: 1.0
@@ -23,45 +22,42 @@ To: linux-mtd@lists.infradead.org
 Cc: tytso@mit.edu, miklos@szeredi.hu, Richard Weinberger <richard@nod.at>, amir73il@gmail.com, linux-unionfs@vger.kernel.org, linux-kernel@vger.kernel.org, paullawrence@google.com, linux-fscrypt@vger.kernel.org, linux-fsdevel@vger.kernel.org, jaegeuk@kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 
-fscrypt_get_encryption_info() does not return -ENOKEY,
-there is no need to handle this case.
+If a filesystem sets FS_CFLG_OWN_D_OPS it manages dentry operations
+itself and fscrypt is not allowed to set them.
 
 Signed-off-by: Richard Weinberger <richard@nod.at>
 ---
- fs/ubifs/dir.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ fs/crypto/hooks.c       | 4 +++-
+ include/linux/fscrypt.h | 1 +
+ 2 files changed, 4 insertions(+), 1 deletion(-)
 
-diff --git a/fs/ubifs/dir.c b/fs/ubifs/dir.c
-index 5767b373a8ff..b0cb913697c5 100644
---- a/fs/ubifs/dir.c
-+++ b/fs/ubifs/dir.c
-@@ -526,7 +526,7 @@ static int ubifs_readdir(struct file *file, struct dir_context *ctx)
- 
- 	if (encrypted) {
- 		err = fscrypt_get_encryption_info(dir);
--		if (err && err != -ENOKEY)
-+		if (err)
- 			return err;
- 
- 		err = fscrypt_fname_alloc_buffer(dir, UBIFS_MAX_NLEN, &fstr);
-@@ -794,7 +794,7 @@ static int ubifs_unlink(struct inode *dir, struct dentry *dentry)
- 
- 	if (ubifs_crypt_is_encrypted(dir)) {
- 		err = fscrypt_get_encryption_info(dir);
--		if (err && err != -ENOKEY)
-+		if (err)
- 			return err;
+diff --git a/fs/crypto/hooks.c b/fs/crypto/hooks.c
+index 56debb1fcf5e..3ec925405fbe 100644
+--- a/fs/crypto/hooks.c
++++ b/fs/crypto/hooks.c
+@@ -107,7 +107,9 @@ int __fscrypt_prepare_lookup(struct inode *dir, struct dentry *dentry)
+ 		spin_unlock(&dentry->d_lock);
  	}
  
-@@ -904,7 +904,7 @@ static int ubifs_rmdir(struct inode *dir, struct dentry *dentry)
+-	d_set_d_op(dentry, &fscrypt_d_ops);
++	if ((dir->i_sb->s_cop->flags & FS_CFLG_OWN_D_OPS) == 0)
++		d_set_d_op(dentry, &fscrypt_d_ops);
++
+ 	return 0;
+ }
+ EXPORT_SYMBOL_GPL(__fscrypt_prepare_lookup);
+diff --git a/include/linux/fscrypt.h b/include/linux/fscrypt.h
+index e5194fc3983e..7139a110ac4f 100644
+--- a/include/linux/fscrypt.h
++++ b/include/linux/fscrypt.h
+@@ -48,6 +48,7 @@ struct fscrypt_name {
+  * fscrypt superblock flags
+  */
+ #define FS_CFLG_OWN_PAGES (1U << 1)
++#define FS_CFLG_OWN_D_OPS (1U << 2)
  
- 	if (ubifs_crypt_is_encrypted(dir)) {
- 		err = fscrypt_get_encryption_info(dir);
--		if (err && err != -ENOKEY)
-+		if (err)
- 			return err;
- 	}
- 
+ /*
+  * crypto operations for filesystems
 -- 
 2.21.0
 
