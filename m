@@ -1,35 +1,61 @@
-From: syzbot <syzbot+9c69c282adc4edd2b540@syzkaller.appspotmail.com>
-Subject: Re: WARNING in ovl_instantiate
-Date: Tue, 26 Mar 2019 05:10:00 -0700
-Message-ID: <0000000000004f7f7c0584fe33c0@google.com>
-References: <000000000000064bcf057a59e3b9@google.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed; delsp=yes
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <000000000000064bcf057a59e3b9@google.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: amir73il@gmail.com, dvyukov@google.com, linux-kernel@vger.kernel.org, linux-unionfs@vger.kernel.org, miklos@szeredi.hu, mszeredi@redhat.com, syzkaller-bugs@googlegroups.com
-List-Id: linux-unionfs@vger.kernel.org
+Return-Path: <aszlig@nix.build>
+Date: Thu, 14 Mar 2019 20:45:07 +0100
+From: aszlig <aszlig@nix.build>
+Subject: Re: Failure to execute file on overlayfs during switch_root/chroot
+Message-ID: <20190314194507.GA27112@dnyarri>
+References: <20181207121027.GA5996@dnyarri>
+ <CAJfpegsu6DUHVVac2PSyGoFW4pAKm3UH0XLg5+SMvN5XZmNzFw@mail.gmail.com>
+ <20190202172914.GA17406@dnyarri>
+ <CAOQ4uxh0L_u-UzJAcQ=QO+D-9VkoSy2HHofXig4=AqDo0vWTmg@mail.gmail.com>
+ <20190203101340.GA6934@dnyarri>
+ <CAOQ4uxhBbAX5QizTAaBaSeUUmtOewzFcqb+RpxDxaz_5P5d7fQ@mail.gmail.com>
+ <20190314010928.GA748@dnyarri>
+ <CAOQ4uxg_zS8XBTaDqdUKxRvzntF-_Pq=vqk1sYJGfhaPKsJRLA@mail.gmail.com>
+ <20190314103757.GA4654@dnyarri>
+ <CAOQ4uxipOHT+OzPtFE1ZoSFEJSrEr-MErwp5KX+tBwXq39sx8g@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="7AUc2qLy4jB3hD7Z"
+Content-Disposition: inline
+In-Reply-To: <CAOQ4uxipOHT+OzPtFE1ZoSFEJSrEr-MErwp5KX+tBwXq39sx8g@mail.gmail.com>
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, overlayfs <linux-unionfs@vger.kernel.org>, Graham Christensen <graham@grahamc.com>, Samuel Dionne-Riel <samuel@dionne-riel.com>, michael bishop <cleverca22@gmail.com>
+List-ID: <linux-unionfs@vger.kernel.org>
 
-syzbot has bisected this bug to:
 
-commit 01b39dcc95680b04c7af5de7f39f577e9c4865e3
-Author: Amir Goldstein <amir73il@gmail.com>
-Date:   Fri May 11 08:15:15 2018 +0000
+--7AUc2qLy4jB3hD7Z
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-     ovl: use inode_insert5() to hash a newly created inode
+On Thu, Mar 14, 2019 at 09:38:05PM +0200, Amir Goldstein wrote:
+> OTOH, ovl_path_open() from ovl_copy_up_data() does open lower
+> file with O_NOATIME, so I am a bit surprised you did not see the
+> same issue there.
 
-bisection log:  https://syzkaller.appspot.com/x/bisect.txt?x=176da0cd200000
-start commit:   de6629eb Merge tag 'pci-v5.0-fixes-1' of git://git.kernel...
-git tree:       upstream
-final crash:    https://syzkaller.appspot.com/x/report.txt?x=14eda0cd200000
-console output: https://syzkaller.appspot.com/x/log.txt?x=10eda0cd200000
-kernel config:  https://syzkaller.appspot.com/x/.config?x=edf1c3031097c304
-dashboard link: https://syzkaller.appspot.com/bug?extid=9c69c282adc4edd2b540
-syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=12c7a94f400000
+Good point actually, I did forget about that. The reason we did not run into
+this issue is because Nix store paths are *never* changed (only new ones are
+added) and the store is mounted read-only (new paths are crated using a mou=
+nt
+namespace where the store path is writable).
 
-Reported-by: syzbot+9c69c282adc4edd2b540@syzkaller.appspotmail.com
-Fixes: 01b39dcc9568 ("ovl: use inode_insert5() to hash a newly created  
-inode")
+So yes, actually the O_NOATIME should also be removed from ovl_copy_up_data=
+().
 
-For information about bisection process see: https://goo.gl/tpsmEJ#bisection
+a!
+--=20
+aszlig
+Universal dilettante
+
+--7AUc2qLy4jB3hD7Z
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iHUEABYIAB0WIQTdUmvHdn26KBbAleVoQInOZ+u2kQUCXIqvQQAKCRBoQInOZ+u2
+kZzSAP4sH05kJZEOmBFTTWtXeo9l5ytgjH5Ko7WTofkT8omsHwEAt/9q93kNCH/O
+cVjq8S8WaE7bbQArjXMUoKinuTm07A4=
+=QD4F
+-----END PGP SIGNATURE-----
+
+--7AUc2qLy4jB3hD7Z--
