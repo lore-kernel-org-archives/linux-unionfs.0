@@ -1,86 +1,47 @@
-From: James Bottomley <James.Bottomley@HansenPartnership.com>
-Subject: Re: [PATCH 4/4] ubifs: Implement new mount option,
- fscrypt_key_required
-Date: Thu, 14 Mar 2019 16:55:40 -0700
-Message-ID: <1552607740.2571.15.camel@HansenPartnership.com>
-References: <CAJfpegvX4ANfso-Jn1zaB+m4Q_0eK9i-+MCJ+sTH5QzD3PZFMQ@mail.gmail.com>
-         <20190314171559.27584-1-richard@nod.at>
-         <20190314171559.27584-5-richard@nod.at>
-         <1552605311.2571.6.camel@HansenPartnership.com>
-         <20190314234230.GG6482@mit.edu>
+From: Richard Weinberger <richard@nod.at>
+Subject: Re: [PATCH 4/4] ubifs: Implement new mount option, fscrypt_key_required
+Date: Fri, 15 Mar 2019 08:48:10 +0100
+Message-ID: <3651600.xvQHXhhOD0@blindfold>
+References: <CAJfpegvX4ANfso-Jn1zaB+m4Q_0eK9i-+MCJ+sTH5QzD3PZFMQ@mail.gmail.com> <1957441.Hty6t2mpXG@blindfold> <20190314230702.GE6482@mit.edu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190314234230.GG6482@mit.edu>
+In-Reply-To: <20190314230702.GE6482@mit.edu>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Theodore Ts'o <tytso@mit.edu>
-Cc: Richard Weinberger <richard@nod.at>, linux-mtd@lists.infradead.org, linux-fscrypt@vger.kernel.org, jaegeuk@kernel.org, linux-unionfs@vger.kernel.org, miklos@szeredi.hu, amir73il@gmail.com, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, paullawrence@google.com
+Cc: Eric Biggers <ebiggers@kernel.org>, linux-mtd@lists.infradead.org, linux-fscrypt@vger.kernel.org, jaegeuk@kernel.org, linux-unionfs@vger.kernel.org, miklos@szeredi.hu, amir73il@gmail.com, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, paullawrence@google.com
 List-Id: linux-unionfs@vger.kernel.org
 
-On Thu, 2019-03-14 at 19:42 -0400, Theodore Ts'o wrote:
-> On Thu, Mar 14, 2019 at 04:15:11PM -0700, James Bottomley wrote:
-> > On Thu, 2019-03-14 at 18:15 +0100, Richard Weinberger wrote:
-> > > Usually fscrypt allows limited access to encrypted files even
-> > > if no key is available.
-> > > Encrypted filenames are shown and based on this names users
-> > > can unlink and move files.
-> > 
-> > Shouldn't they be able to read/write and create as well (all with
-> > the ciphertext name and contents, of course) ... otherwise how does
-> > backup of encrypted files by admin without the key ever work?
-> 
-> That's not currently supported.  Michael Halcrow and I worked out
-> some designs on how to do this, and I even had some prototype
-> patches, but it's really, really, messy, and requires a lot of
-> complex machinations in userspace on the save *and* restore, since
-> there's a lot of crypto metadata that has to be saved, and you have
-> to handle backing up the directory per-file keys, and restoring them
-> when you recreate the directory on a restore, etc.
-> 
-> The simpler approach would have allowed backup of encrypted files
-> without the key, but would require the user's key to do the restore,
-> and if we ever actually tried to get this feature supported, that's
-> the approach I'd suggest.
+Ted,
 
-Well, as I said above encrypted file backup by an admin who doesn't
-have the key was what I was thinking of.
+Am Freitag, 15. März 2019, 00:07:02 CET schrieb Theodore Ts'o:
+> Richard --- stepping back for a moment, in your use case, are you
+> assuming that the encryption key is always going to be present while
+> the system is running?
 
-> The fundamental reason why we never went did anything with this was
-> that the original use case of fscrypt was for Chrome OS, where the
-> original design premise was that you don't need to do backups, since
-> everything is in the cloud.  A video from 2010:
+it is not a hard requirement, it is something what is common on embedded
+systems that utilize UBIFS and fscrypt.
+
+> Ubifs can't use dm-crypt, since it doesn't have a block device, but if
+> you could, is much more like dm-crypt, in that you have the key
+> *before* the file system is mounted, and you don't really expect the
+> key to ever be expunged from the system while it is mounted?
 > 
-> 	https://www.youtube.com/watch?v=lm-Vnx58UYo
-> 
-> And with Android, backups happen automatically while you have the
-> encryption key.
+> If that's true, maybe the real mismatch is in using fscrypt in the
+> first place --- and in fact, something where you encrypt everything,
+> including the file system metadata (ala dm-crypt), would actually give
+> you much better security properties.
 
-Heh, colour me paranoid, but if I backup my sensitive data to any
-medium (including the cloud) I *want* the backup to be encrypted so
-that if someone is careless with my backup data at least they don't get
-the contents.
+Well, fscrypt was chosen as UBIFS encryption backend because per-file encryption
+with derived keys makes a lot of sense.
+Also the implementation was not super hard, David and I weren't keen to reinvent
+dm-crypt für UBI/MTD.
 
-> There was talk about using fscrypt for Ubuntu desktops as an ecryptfs
-> replacement, and in that case, we would have use case that would have
-> required backups of a shared desktop where you don't have all of the
-> encryption keys for all of the users.  Maybe someday as a Google
-> Summer of Code project or maybe if some potential corporate user of
-> fscrypt would be willing to fund the necessary engineering work?
-> 
-> But again, I'll repeat this because it's so important: In the vast
-> majority of cases, including single-user laptops, desktops, etc., the
-> real right answer is dm-crypt and *not* fscrypt.  Especially since
-> time-sharing systems are *so* 1980's.  :-)
-> 
-> So I don't use fscrypt on my upstream development laptop (except for
-> testing purposes) because it's simply not the right tool for the job.
+That said, I'm happy with fscrypt, it works well in production.
+But being not able to use UBIFS as lower dir on overlayfs hurts.
+On embedded systems where the key is always present the proposed hack works
+fine. If we can get overlayfs work without that I'll be more than happy.
 
-I was thinking of the container use case again.  It's not really backup
-per se but it is serialization: if you can't do a backup ... i.e. save
-and restore an encrypted tar image, you can't use the filesystem for
-container image protection.  But it also strikes me that inability to
-do backup and restore without the key really restricts the use cases
-for the entire filesystem.
-
-James
+Thanks,
+//richard
