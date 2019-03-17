@@ -1,14 +1,11 @@
 From: Eric Biggers <ebiggers@kernel.org>
-Subject: [PATCH 2/5] fscrypt: fix race allowing rename() and
- link() of ciphertext dentries
-Date: Sun, 17 Mar 2019 13:04:41 -0700
-Message-ID: <20190317200444.5967-3-ebiggers@kernel.org>
-References: <20190317200444.5967-1-ebiggers@kernel.org>
+Subject: [PATCH 0/5] fscrypt: d_revalidate fixes and cleanups
+Date: Sun, 17 Mar 2019 13:04:39 -0700
+Message-ID: <20190317200444.5967-1-ebiggers@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-f2fs-devel-bounces@lists.sourceforge.net>
-In-Reply-To: <20190317200444.5967-1-ebiggers@kernel.org>
 List-Unsubscribe: <https://lists.sourceforge.net/lists/options/linux-f2fs-devel>,
  <mailto:linux-f2fs-devel-request@lists.sourceforge.net?subject=unsubscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=linux-f2fs-devel>
@@ -21,94 +18,63 @@ To: linux-fscrypt@vger.kernel.org
 Cc: linux-unionfs@vger.kernel.org, linux-f2fs-devel@lists.sourceforge.net, linux-mtd@lists.infradead.org, Sarthak Kukreti <sarthakkukreti@chromium.org>, linux-fsdevel@vger.kernel.org, linux-ext4@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 
-From: Eric Biggers <ebiggers@google.com>
+This patch series improves dentry revalidation in fscrypt.
 
-Close some race conditions where fscrypt allowed rename() and link() on
-ciphertext dentries that had been looked up just prior to the key being
-concurrently added.  It's better to return -ENOKEY in this case.
+To recap, fscrypt (aka ext4/f2fs/ubifs encryption) encrypts both file
+contents and file names in individual directory trees.  A single
+filesystem can contain many encrypted directory trees using many
+different encryption keys.  Major users of fscrypt require the ability
+to delete encrypted files when their encryption key is unavailable, e.g.
+when the system needs to delete a removed user's home directory or free
+up space from a logged-out user's cache directory.
 
-This avoids doing the nonsensical thing of encrypting the names a second
-time when searching for the actual on-disk dir entries.  It also
-guarantees that DCACHE_ENCRYPTED_NAME dentries are never rename()d, so
-the dcache won't have support all possible combinations of moving
-DCACHE_ENCRYPTED_NAME around during __d_move().
+Therefore fscrypt allows listing, looking up, and deleting files in
+encrypted directories via encoded ciphertext names, but only before the
+key is added.  After the key is added, the ciphertext names are
+invalidated via ->d_revalidate() and plaintext names are shown instead.
 
-Signed-off-by: Eric Biggers <ebiggers@google.com>
----
- fs/crypto/hooks.c       | 12 +++++++++++-
- include/linux/fscrypt.h |  9 +++++----
- 2 files changed, 16 insertions(+), 5 deletions(-)
+fscrypt isn't a stacked filesystem, and it's explicitly for storage
+encryption, not OS-level access control.  Thus, whether each directory
+inode has its key or not is a global state, not per-process.  Also, the
+inode keeps its key until it's evicted from the inode cache.  So,
+plaintext names shouldn't ever get invalidated by ->d_revalidate().
 
-diff --git a/fs/crypto/hooks.c b/fs/crypto/hooks.c
-index a9492f75bbe1..2e7498a821a4 100644
---- a/fs/crypto/hooks.c
-+++ b/fs/crypto/hooks.c
-@@ -49,7 +49,8 @@ int fscrypt_file_open(struct inode *inode, struct file *filp)
- }
- EXPORT_SYMBOL_GPL(fscrypt_file_open);
- 
--int __fscrypt_prepare_link(struct inode *inode, struct inode *dir)
-+int __fscrypt_prepare_link(struct inode *inode, struct inode *dir,
-+			   struct dentry *dentry)
- {
- 	int err;
- 
-@@ -57,6 +58,10 @@ int __fscrypt_prepare_link(struct inode *inode, struct inode *dir)
- 	if (err)
- 		return err;
- 
-+	/* ... in case we looked up ciphertext name before key was added */
-+	if (dentry->d_flags & DCACHE_ENCRYPTED_NAME)
-+		return -ENOKEY;
-+
- 	if (!fscrypt_has_permitted_context(dir, inode))
- 		return -EXDEV;
- 
-@@ -78,6 +83,11 @@ int __fscrypt_prepare_rename(struct inode *old_dir, struct dentry *old_dentry,
- 	if (err)
- 		return err;
- 
-+	/* ... in case we looked up ciphertext name(s) before key was added */
-+	if ((old_dentry->d_flags | new_dentry->d_flags) &
-+	    DCACHE_ENCRYPTED_NAME)
-+		return -ENOKEY;
-+
- 	if (old_dir != new_dir) {
- 		if (IS_ENCRYPTED(new_dir) &&
- 		    !fscrypt_has_permitted_context(new_dir,
-diff --git a/include/linux/fscrypt.h b/include/linux/fscrypt.h
-index 5a0c3fee1ea2..4ad7a856e0f1 100644
---- a/include/linux/fscrypt.h
-+++ b/include/linux/fscrypt.h
-@@ -214,7 +214,8 @@ extern int fscrypt_zeroout_range(const struct inode *, pgoff_t, sector_t,
- 
- /* hooks.c */
- extern int fscrypt_file_open(struct inode *inode, struct file *filp);
--extern int __fscrypt_prepare_link(struct inode *inode, struct inode *dir);
-+extern int __fscrypt_prepare_link(struct inode *inode, struct inode *dir,
-+				  struct dentry *dentry);
- extern int __fscrypt_prepare_rename(struct inode *old_dir,
- 				    struct dentry *old_dentry,
- 				    struct inode *new_dir,
-@@ -401,8 +402,8 @@ static inline int fscrypt_file_open(struct inode *inode, struct file *filp)
- 	return 0;
- }
- 
--static inline int __fscrypt_prepare_link(struct inode *inode,
--					 struct inode *dir)
-+static inline int __fscrypt_prepare_link(struct inode *inode, struct inode *dir,
-+					 struct dentry *dentry)
- {
- 	return -EOPNOTSUPP;
- }
-@@ -497,7 +498,7 @@ static inline int fscrypt_prepare_link(struct dentry *old_dentry,
- 				       struct dentry *dentry)
- {
- 	if (IS_ENCRYPTED(dir))
--		return __fscrypt_prepare_link(d_inode(old_dentry), dir);
-+		return __fscrypt_prepare_link(d_inode(old_dentry), dir, dentry);
- 	return 0;
- }
- 
+This patch series makes the following improvements:
+
+- Only assign ->d_revalidate() to ciphertext filenames, thus allowing
+  overlayfs to use an fscrypt-encrypted upperdir in some cases.
+  (Previous discussion: https://lkml.org/lkml/2019/3/13/255)
+
+- Fix cases where plaintext filenames would wrongly be invalidated,
+  including a real-world bug recently reported on Chromium OS.
+
+- Fix cases where ciphertext filenames would wrongly not be invalidated.
+
+- Allow rcu-walk lookups in encrypted directories with the key, which
+  improves performance.
+  (Previous attempt: https://patchwork.kernel.org/patch/10594133/)
+
+- Fix cases where rename() and link() could succeed on ciphertext names.
+
+Eric Biggers (5):
+  fscrypt: clean up and improve dentry revalidation
+  fscrypt: fix race allowing rename() and link() of ciphertext dentries
+  fs, fscrypt: clear DCACHE_ENCRYPTED_NAME when unaliasing directory
+  fscrypt: only set dentry_operations on ciphertext dentries
+  fscrypt: fix race where ->lookup() marks plaintext dentry as
+    ciphertext
+
+ fs/crypto/crypto.c      | 54 ++++++++++++++---------------
+ fs/crypto/fname.c       |  1 +
+ fs/crypto/hooks.c       | 28 ++++++++++-----
+ fs/dcache.c             | 15 ++++++++
+ fs/ext4/ext4.h          | 62 +++++++++++++++++++++++++--------
+ fs/ext4/namei.c         | 76 ++++++++++++++++++++++++++++-------------
+ fs/f2fs/namei.c         | 17 +++++----
+ fs/ubifs/dir.c          |  8 ++---
+ include/linux/dcache.h  |  2 +-
+ include/linux/fscrypt.h | 46 ++++++++++++++-----------
+ 10 files changed, 200 insertions(+), 109 deletions(-)
+
 -- 
 2.21.0
