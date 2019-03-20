@@ -1,8 +1,8 @@
 From: Eric Biggers <ebiggers@kernel.org>
-Subject: [PATCH v2 3/5] fs,
- fscrypt: clear DCACHE_ENCRYPTED_NAME when unaliasing directory
-Date: Wed, 20 Mar 2019 11:39:11 -0700
-Message-ID: <20190320183913.12686-4-ebiggers@kernel.org>
+Subject: [PATCH v2 4/5] fscrypt: only set dentry_operations on
+ ciphertext dentries
+Date: Wed, 20 Mar 2019 11:39:12 -0700
+Message-ID: <20190320183913.12686-5-ebiggers@kernel.org>
 References: <20190320183913.12686-1-ebiggers@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -23,79 +23,44 @@ List-Id: linux-unionfs@vger.kernel.org
 
 From: Eric Biggers <ebiggers@google.com>
 
-Make __d_move() clear DCACHE_ENCRYPTED_NAME on the source dentry.  This
-is needed for when d_splice_alias() moves a directory's encrypted alias
-to its decrypted alias as a result of the encryption key being added.
+Plaintext dentries are always valid, so only set fscrypt_d_ops on
+ciphertext dentries.
 
-Otherwise, the decrypted alias will incorrectly be invalidated on the
-next lookup, causing problems such as unmounting a mount the user just
-mount()ed there.
+Besides marginally improved performance, this allows overlayfs to use an
+fscrypt-encrypted upperdir, provided that all the following are true:
 
-Note that we don't have to support arbitrary moves of this flag because
-fscrypt doesn't allow dentries with DCACHE_ENCRYPTED_NAME to be the
-source or target of a rename().
+    (1) The fscrypt encryption key is placed in the keyring before
+	mounting overlayfs, and remains while the overlayfs is mounted.
 
-Fixes: 28b4c263961c ("ext4 crypto: revalidate dentry after adding or removing the key")
-Reported-by: Sarthak Kukreti <sarthakkukreti@chromium.org>
+    (2) The overlayfs workdir uses the same encryption policy.
+
+    (3) No dentries for the ciphertext names of subdirectories have been
+	created in the upperdir or workdir yet.  (Since otherwise
+	d_splice_alias() will reuse the old dentry with ->d_op set.)
+
+One potential use case is using an ephemeral encryption key to encrypt
+all files created or changed by a container, so that they can be
+securely erased ("crypto-shredded") after the container stops.
+
 Signed-off-by: Eric Biggers <ebiggers@google.com>
 ---
- fs/dcache.c             |  2 ++
- include/linux/fscrypt.h | 16 ++++++++++++++++
- 2 files changed, 18 insertions(+)
+ fs/crypto/hooks.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff --git a/fs/dcache.c b/fs/dcache.c
-index aac41adf47433..647e6ed426e20 100644
---- a/fs/dcache.c
-+++ b/fs/dcache.c
-@@ -18,6 +18,7 @@
- #include <linux/string.h>
- #include <linux/mm.h>
- #include <linux/fs.h>
-+#include <linux/fscrypt.h>
- #include <linux/fsnotify.h>
- #include <linux/slab.h>
- #include <linux/init.h>
-@@ -2795,6 +2796,7 @@ static void __d_move(struct dentry *dentry, struct dentry *target,
- 	list_move(&dentry->d_child, &dentry->d_parent->d_subdirs);
- 	__d_rehash(dentry);
- 	fsnotify_update_flags(dentry);
-+	fscrypt_handle_d_move(dentry);
- 
- 	write_seqcount_end(&target->d_seq);
- 	write_seqcount_end(&dentry->d_seq);
-diff --git a/include/linux/fscrypt.h b/include/linux/fscrypt.h
-index 4ad7a856e0f1c..39bd2619a3424 100644
---- a/include/linux/fscrypt.h
-+++ b/include/linux/fscrypt.h
-@@ -88,6 +88,18 @@ static inline bool fscrypt_dummy_context_enabled(struct inode *inode)
- 		inode->i_sb->s_cop->dummy_context(inode);
+diff --git a/fs/crypto/hooks.c b/fs/crypto/hooks.c
+index 2e7498a821a48..9d8910e86ee5d 100644
+--- a/fs/crypto/hooks.c
++++ b/fs/crypto/hooks.c
+@@ -115,9 +115,8 @@ int __fscrypt_prepare_lookup(struct inode *dir, struct dentry *dentry)
+ 		spin_lock(&dentry->d_lock);
+ 		dentry->d_flags |= DCACHE_ENCRYPTED_NAME;
+ 		spin_unlock(&dentry->d_lock);
++		d_set_d_op(dentry, &fscrypt_d_ops);
+ 	}
+-
+-	d_set_d_op(dentry, &fscrypt_d_ops);
+ 	return 0;
  }
- 
-+/*
-+ * When d_splice_alias() moves a directory's encrypted alias to its decrypted
-+ * alias as a result of the encryption key being added, DCACHE_ENCRYPTED_NAME
-+ * must be cleared.  Note that we don't have to support arbitrary moves of this
-+ * flag because fscrypt doesn't allow encrypted aliases to be the source or
-+ * target of a rename().
-+ */
-+static inline void fscrypt_handle_d_move(struct dentry *dentry)
-+{
-+	dentry->d_flags &= ~DCACHE_ENCRYPTED_NAME;
-+}
-+
- /* crypto.c */
- extern void fscrypt_enqueue_decrypt_work(struct work_struct *);
- extern struct fscrypt_ctx *fscrypt_get_ctx(const struct inode *, gfp_t);
-@@ -243,6 +255,10 @@ static inline bool fscrypt_dummy_context_enabled(struct inode *inode)
- 	return false;
- }
- 
-+static inline void fscrypt_handle_d_move(struct dentry *dentry)
-+{
-+}
-+
- /* crypto.c */
- static inline void fscrypt_enqueue_decrypt_work(struct work_struct *work)
- {
+ EXPORT_SYMBOL_GPL(__fscrypt_prepare_lookup);
 -- 
 2.21.0.225.g810b269d1ac-goog
