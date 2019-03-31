@@ -1,100 +1,57 @@
 Return-Path: <amir73il@gmail.com>
 MIME-Version: 1.0
-References: <20190122050139.19701-1-amir73il@gmail.com>
-In-Reply-To: <20190122050139.19701-1-amir73il@gmail.com>
+References: <20190328153829.729-1-amir73il@gmail.com> <CAJfpegt08nTeDs4+3svOjGAF+mQEP+Dm-amLz9nDWOACqtAUMQ@mail.gmail.com>
+In-Reply-To: <CAJfpegt08nTeDs4+3svOjGAF+mQEP+Dm-amLz9nDWOACqtAUMQ@mail.gmail.com>
 From: Amir Goldstein <amir73il@gmail.com>
-Date: Fri, 1 Mar 2019 11:29:10 +0200
-Message-ID: <CAOQ4uxhdgxtL3-tMDSegruCnNdvfLNDJ2p0OcnZrvXtPqiDf8A@mail.gmail.com>
-Subject: Re: [PATCH] ovl: fix missing upper fs freeze protection on copy up
- for ioctl
+Date: Sun, 31 Mar 2019 08:41:22 +0300
+Message-ID: <CAOQ4uxhdFA1twP4AJ9yN_aD07AnOFYKwNqPSjiLHHMv9a==MWA@mail.gmail.com>
+Subject: Re: [PATCH] ovl: relax WARN_ON() for overlapping layers use case
 Content-Type: text/plain; charset="UTF-8"
 To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: Vivek Goyal <vgoyal@redhat.com>, overlayfs <linux-unionfs@vger.kernel.org>
+Cc: overlayfs <linux-unionfs@vger.kernel.org>, syzkaller-bugs <syzkaller-bugs@googlegroups.com>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-On Tue, Jan 22, 2019 at 7:01 AM Amir Goldstein <amir73il@gmail.com> wrote:
+On Sat, Mar 30, 2019 at 10:45 PM Miklos Szeredi <miklos@szeredi.hu> wrote:
 >
-> Generalize the helper ovl_open_maybe_copy_up() and use it to copy up
-> file with data before FS_IOC_SETFLAGS ioctl.
+> On Thu, Mar 28, 2019 at 4:38 PM Amir Goldstein <amir73il@gmail.com> wrote:
+> >
+> > This nasty little syzbot repro:
+> > https://syzkaller.appspot.com/x/repro.syz?x=12c7a94f400000
+> >
+> > Creates overlay mounts where the same directory is both in upper
+> > and lower layers. Simplified example:
+> >
+> >   mkdir foo work
+> >   mount -t overlay none foo -o"lowerdir=.,upperdir=foo,workdir=work"
 >
-> Fixes: dab5ca8fd9dd ("ovl: add lsattr/chattr support")
-> Cc: <stable@vger.kernel.org> # v4.19
-> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
-> ---
+> Shouldn't the mount fail in this case?
+>
 
-Miklos,
+Sure, but that is independent of this patch, because renaming
+between lower layers after mount can get you to the same
+situation and that is harder to prevent.
 
-Ping for this bug fix.
+> Does it make any sense to allow overlapping layers?
+>
+> If doing the check the dumb way, the number of d_ancestor() calls
+> would increase quadratically with the number of layers, but I think
+> it's possible to do it in linear time if necessary.
+
+As I wrote to Vivek, we can do that, but it's only going to
+benefit users that make an innocent mistake (what's the odds of that?).
+An adversary could easily work around the mount check by moving
+lower dirs after mount.
+
+As I wrote in LSF proposal, it would be quite simple to mark
+the dentry of layer's root with a flag (i.e. RENAME_FENCE) that would
+prevent taking rename_lock when such dentry is in the ancestry of
+either src or target.
+
+The challenge is how to make that API generic enough and which
+privileges are to be required for setting up such a fence, because
+it could be easily used to create DoS in the wrong hands.
+Also, if anyone has ever considered making overlayfs mountable
+by usrens root, that is going to be another thing to worry about.
 
 Thanks,
 Amir.
-
->  fs/overlayfs/copy_up.c   | 6 +++---
->  fs/overlayfs/file.c      | 5 ++---
->  fs/overlayfs/overlayfs.h | 2 +-
->  3 files changed, 6 insertions(+), 7 deletions(-)
->
-> diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
-> index 48119b23375b..0c0e11d529d0 100644
-> --- a/fs/overlayfs/copy_up.c
-> +++ b/fs/overlayfs/copy_up.c
-> @@ -885,14 +885,14 @@ static bool ovl_open_need_copy_up(struct dentry *dentry, int flags)
->         return true;
->  }
->
-> -int ovl_open_maybe_copy_up(struct dentry *dentry, unsigned int file_flags)
-> +int ovl_maybe_copy_up(struct dentry *dentry, int flags)
->  {
->         int err = 0;
->
-> -       if (ovl_open_need_copy_up(dentry, file_flags)) {
-> +       if (ovl_open_need_copy_up(dentry, flags)) {
->                 err = ovl_want_write(dentry);
->                 if (!err) {
-> -                       err = ovl_copy_up_flags(dentry, file_flags);
-> +                       err = ovl_copy_up_flags(dentry, flags);
->                         ovl_drop_write(dentry);
->                 }
->         }
-> diff --git a/fs/overlayfs/file.c b/fs/overlayfs/file.c
-> index 84dd957efa24..50e4407398d8 100644
-> --- a/fs/overlayfs/file.c
-> +++ b/fs/overlayfs/file.c
-> @@ -116,11 +116,10 @@ static int ovl_real_fdget(const struct file *file, struct fd *real)
->
->  static int ovl_open(struct inode *inode, struct file *file)
->  {
-> -       struct dentry *dentry = file_dentry(file);
->         struct file *realfile;
->         int err;
->
-> -       err = ovl_open_maybe_copy_up(dentry, file->f_flags);
-> +       err = ovl_maybe_copy_up(file_dentry(file), file->f_flags);
->         if (err)
->                 return err;
->
-> @@ -390,7 +389,7 @@ static long ovl_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
->                 if (ret)
->                         return ret;
->
-> -               ret = ovl_copy_up_with_data(file_dentry(file));
-> +               ret = ovl_maybe_copy_up(file_dentry(file), O_WRONLY);
->                 if (!ret) {
->                         ret = ovl_real_ioctl(file, cmd, arg);
->
-> diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-> index 5e45cb3630a0..767eeaf73bf1 100644
-> --- a/fs/overlayfs/overlayfs.h
-> +++ b/fs/overlayfs/overlayfs.h
-> @@ -419,7 +419,7 @@ extern const struct file_operations ovl_file_operations;
->  int ovl_copy_up(struct dentry *dentry);
->  int ovl_copy_up_with_data(struct dentry *dentry);
->  int ovl_copy_up_flags(struct dentry *dentry, int flags);
-> -int ovl_open_maybe_copy_up(struct dentry *dentry, unsigned int file_flags);
-> +int ovl_maybe_copy_up(struct dentry *dentry, int flags);
->  int ovl_copy_xattr(struct dentry *old, struct dentry *new);
->  int ovl_set_attr(struct dentry *upper, struct kstat *stat);
->  struct ovl_fh *ovl_encode_real_fh(struct dentry *real, bool is_upper);
-> --
-> 2.17.1
->
