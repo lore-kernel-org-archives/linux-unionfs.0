@@ -1,179 +1,208 @@
-From: Mina Almasry <almasrymina@google.com>
-Subject: Re: [PATCH v2] fs: Fix ovl_i_mutex_dir_key/p->lock/cred
- cred_guard_mutex deadlock
-Date: Tue, 23 Apr 2019 14:32:59 -0700
-Message-ID: <CAHS8izOXnzkfUoAdd3LcR7eEpjtUUAcFYE+EtnyAN6Y7RNT3Mw@mail.gmail.com>
-References: <20190412231102.183557-1-almasrymina@google.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190412231102.183557-1-almasrymina@google.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mina Almasry <almasrymina@google.com>, Greg Thelen <gthelen@google.com>, Shakeel B <shakeelb@google.com>, overlayfs <linux-unionfs@vger.kernel.org>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>, "open list:FILESYSTEMS (VFS and infrastructure)" <linux-fsdevel@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>
-List-Id: linux-unionfs@vger.kernel.org
+Return-Path: <amir73il@gmail.com>
+Return-Path: <amir73il@gmail.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Subject: [PATCH v3 2/2] generic: Test that SEEK_HOLE can find a punched hole
+Date: Wed,  3 Apr 2019 08:59:26 +0300
+Message-Id: <20190403055926.23253-2-amir73il@gmail.com>
+In-Reply-To: <20190403055926.23253-1-amir73il@gmail.com>
+References: <20190403055926.23253-1-amir73il@gmail.com>
+To: Eryu Guan <guaneryu@gmail.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, Eddie Horng <eddiehorng.tw@gmail.com>, linux-unionfs@vger.kernel.org, fstests@vger.kernel.org
+List-ID: <linux-unionfs@vger.kernel.org>
 
-On Fri, Apr 12, 2019 at 4:11 PM Mina Almasry <almasrymina@google.com> wrote:
->
-> These 3 locks are acquired simultaneously in different order causing
-> deadlock:
->
-> https://syzkaller.appspot.com/bug?id=00f119b8bb35a3acbcfafb9d36a2752b364e8d66
->
-> ======================================================
-> WARNING: possible circular locking dependency detected
-> 4.19.0-rc5+ #253 Not tainted
-> ------------------------------------------------------
-> syz-executor1/545 is trying to acquire lock:
-> 00000000b04209e4 (&ovl_i_mutex_dir_key[depth]){++++}, at: inode_lock_shared include/linux/fs.h:748 [inline]
-> 00000000b04209e4 (&ovl_i_mutex_dir_key[depth]){++++}, at: do_last fs/namei.c:3323 [inline]
-> 00000000b04209e4 (&ovl_i_mutex_dir_key[depth]){++++}, at: path_openat+0x250d/0x5160 fs/namei.c:3534
->
-> but task is already holding lock:
-> 0000000044500cca (&sig->cred_guard_mutex){+.+.}, at: prepare_bprm_creds+0x53/0x120 fs/exec.c:1404
->
-> which lock already depends on the new lock.
->
-> the existing dependency chain (in reverse order) is:
->
-> -> #3 (&sig->cred_guard_mutex){+.+.}:
->        __mutex_lock_common kernel/locking/mutex.c:925 [inline]
->        __mutex_lock+0x166/0x1700 kernel/locking/mutex.c:1072
->        mutex_lock_killable_nested+0x16/0x20 kernel/locking/mutex.c:1102
->        lock_trace+0x4c/0xe0 fs/proc/base.c:384
->        proc_pid_stack+0x196/0x3b0 fs/proc/base.c:420
->        proc_single_show+0x101/0x190 fs/proc/base.c:723
->        seq_read+0x4af/0x1150 fs/seq_file.c:229
->        do_loop_readv_writev fs/read_write.c:700 [inline]
->        do_iter_read+0x4a3/0x650 fs/read_write.c:924
->        vfs_readv+0x175/0x1c0 fs/read_write.c:986
->        do_preadv+0x1cc/0x280 fs/read_write.c:1070
->        __do_sys_preadv fs/read_write.c:1120 [inline]
->        __se_sys_preadv fs/read_write.c:1115 [inline]
->        __x64_sys_preadv+0x9a/0xf0 fs/read_write.c:1115
->        do_syscall_64+0x1b9/0x820 arch/x86/entry/common.c:290
->        entry_SYSCALL_64_after_hwframe+0x49/0xbe
->
-> -> #2 (&p->lock){+.+.}:
->        __mutex_lock_common kernel/locking/mutex.c:925 [inline]
->        __mutex_lock+0x166/0x1700 kernel/locking/mutex.c:1072
->        mutex_lock_nested+0x16/0x20 kernel/locking/mutex.c:1087
->        seq_read+0x71/0x1150 fs/seq_file.c:161
->        do_loop_readv_writev fs/read_write.c:700 [inline]
->        do_iter_read+0x4a3/0x650 fs/read_write.c:924
->        vfs_readv+0x175/0x1c0 fs/read_write.c:986
->        kernel_readv fs/splice.c:362 [inline]
->        default_file_splice_read+0x53c/0xb20 fs/splice.c:417
->        do_splice_to+0x12e/0x190 fs/splice.c:881
->        splice_direct_to_actor+0x270/0x8f0 fs/splice.c:953
->        do_splice_direct+0x2d4/0x420 fs/splice.c:1062
->        do_sendfile+0x62a/0xe20 fs/read_write.c:1440
->        __do_sys_sendfile64 fs/read_write.c:1495 [inline]
->        __se_sys_sendfile64 fs/read_write.c:1487 [inline]
->        __x64_sys_sendfile64+0x15d/0x250 fs/read_write.c:1487
->        do_syscall_64+0x1b9/0x820 arch/x86/entry/common.c:290
->        entry_SYSCALL_64_after_hwframe+0x49/0xbe
->
-> -> #1 (sb_writers#5){.+.+}:
->        percpu_down_read_preempt_disable include/linux/percpu-rwsem.h:36 [inline]
->        percpu_down_read include/linux/percpu-rwsem.h:59 [inline]
->        __sb_start_write+0x214/0x370 fs/super.c:1387
->        sb_start_write include/linux/fs.h:1566 [inline]
->        mnt_want_write+0x3f/0xc0 fs/namespace.c:360
->        ovl_want_write+0x76/0xa0 fs/overlayfs/util.c:24
->        ovl_create_object+0x142/0x3a0 fs/overlayfs/dir.c:596
->        ovl_create+0x2b/0x30 fs/overlayfs/dir.c:627
->        lookup_open+0x1319/0x1b90 fs/namei.c:3234
->        do_last fs/namei.c:3324 [inline]
->        path_openat+0x15e7/0x5160 fs/namei.c:3534
->        do_filp_open+0x255/0x380 fs/namei.c:3564
->        do_sys_open+0x568/0x700 fs/open.c:1063
->        ksys_open include/linux/syscalls.h:1276 [inline]
->        __do_sys_creat fs/open.c:1121 [inline]
->        __se_sys_creat fs/open.c:1119 [inline]
->        __x64_sys_creat+0x61/0x80 fs/open.c:1119
->        do_syscall_64+0x1b9/0x820 arch/x86/entry/common.c:290
->        entry_SYSCALL_64_after_hwframe+0x49/0xbe
->
-> -> #0 (&ovl_i_mutex_dir_key[depth]){++++}:
->        lock_acquire+0x1ed/0x520 kernel/locking/lockdep.c:3900
->        down_read+0xb0/0x1d0 kernel/locking/rwsem.c:24
->        inode_lock_shared include/linux/fs.h:748 [inline]
->        do_last fs/namei.c:3323 [inline]
->        path_openat+0x250d/0x5160 fs/namei.c:3534
->        do_filp_open+0x255/0x380 fs/namei.c:3564
->        do_open_execat+0x221/0x8e0 fs/exec.c:853
->        __do_execve_file.isra.33+0x173f/0x2540 fs/exec.c:1755
->        do_execveat_common fs/exec.c:1866 [inline]
->        do_execve fs/exec.c:1883 [inline]
->        __do_sys_execve fs/exec.c:1964 [inline]
->        __se_sys_execve fs/exec.c:1959 [inline]
->        __x64_sys_execve+0x8f/0xc0 fs/exec.c:1959
->        do_syscall_64+0x1b9/0x820 arch/x86/entry/common.c:290
->        entry_SYSCALL_64_after_hwframe+0x49/0xbe
->
-> other info that might help us debug this:
->
-> Chain exists of:
->   &ovl_i_mutex_dir_key[depth] --> &p->lock --> &sig->cred_guard_mutex
->
->  Possible unsafe locking scenario:
->
->        CPU0                    CPU1
->        ----                    ----
->   lock(&sig->cred_guard_mutex);
->                                lock(&p->lock);
->                                lock(&sig->cred_guard_mutex);
->   lock(&ovl_i_mutex_dir_key[depth]);
->
->  *** DEADLOCK ***
->
-> Solution: I establish this locking order for these locks:
->
-> 1. ovl_i_mutex_dir_key
-> 2. p->lock
-> 3. sig->cred_guard_mutex
->
-> In this change i fix the locking order of exec.c, which is the only
-> instance that voilates this order.
->
-> Signed-off-by: Mina Almasry <almasrymina@google.com>
-> ---
->
->  v2: Fix wrong jump to wrong label on failure.
->
->  fs/exec.c | 12 ++++++------
->  1 file changed, 6 insertions(+), 6 deletions(-)
->
-> diff --git a/fs/exec.c b/fs/exec.c
-> index 2e0033348d8e1..a23f2a7603eee 100644
-> --- a/fs/exec.c
-> +++ b/fs/exec.c
-> @@ -1742,6 +1742,12 @@ static int __do_execve_file(int fd, struct filename *filename,
->         if (retval)
->                 goto out_ret;
->
-> +       if (!file)
-> +               file = do_open_execat(fd, filename, flags);
-> +       retval = PTR_ERR(file);
-> +       if (IS_ERR(file))
-> +               goto out_files;
-> +
->         retval = -ENOMEM;
->         bprm = kzalloc(sizeof(*bprm), GFP_KERNEL);
->         if (!bprm)
-> @@ -1754,12 +1760,6 @@ static int __do_execve_file(int fd, struct filename *filename,
->         check_unsafe_exec(bprm);
->         current->in_execve = 1;
->
-> -       if (!file)
-> -               file = do_open_execat(fd, filename, flags);
-> -       retval = PTR_ERR(file);
-> -       if (IS_ERR(file))
-> -               goto out_unmark;
-> -
->         sched_exec();
->
->         bprm->file = file;
-> --
-> 2.21.0.392.gf8f6787159e-goog
+Added a test case to seek_sanity_test and a test to run it.
+
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+---
+ src/seek_sanity_test.c | 63 +++++++++++++++++++++++++++++++++++++++---
+ tests/generic/999      | 44 +++++++++++++++++++++++++++++
+ tests/generic/999.out  |  1 +
+ tests/generic/group    |  1 +
+ 4 files changed, 105 insertions(+), 4 deletions(-)
+ create mode 100755 tests/generic/999
+ create mode 100644 tests/generic/999.out
+
+diff --git a/src/seek_sanity_test.c b/src/seek_sanity_test.c
+index a6bda0b1..30e996e2 100644
+--- a/src/seek_sanity_test.c
++++ b/src/seek_sanity_test.c
+@@ -16,6 +16,7 @@
+ #include <unistd.h>
+ #include <stdlib.h>
+ #include <assert.h>
++#include "global.h"
+ 
+ #ifndef SEEK_DATA
+ #define SEEK_DATA      3
+@@ -26,6 +27,7 @@ static blksize_t alloc_size;
+ int allow_default_behavior = 1;
+ int default_behavior = 0;
+ int unwritten_extents = 0;
++int punch_hole = 0;
+ char *base_file_path;
+ 
+ static void get_file_system(int fd)
+@@ -118,8 +120,9 @@ static int do_fallocate(int fd, off_t offset, off_t length, int mode)
+ 
+ 	ret = fallocate(fd, mode, offset, length);
+ 	if (ret)
+-		fprintf(stderr, "  ERROR %d: Failed to preallocate "
+-			"space to %ld bytes\n", errno, (long) length);
++		fprintf(stderr, "  ERROR %d: Failed to %s of %ld bytes\n",
++			errno, (mode & FALLOC_FL_PUNCH_HOLE) ? "punch hole" :
++			"preallocate space", (long) length);
+ 
+ 	return ret;
+ }
+@@ -262,6 +265,52 @@ out:
+ 	return ret;
+ }
+ 
++/*
++ * Make sure hole size is properly reported when punched in the middle of a file
++ */
++static int test21(int fd, int testnum)
++{
++	char *buf = NULL;
++	int bufsz, filsz;
++	int ret = 0;
++
++	if (!punch_hole) {
++		fprintf(stdout, "Test skipped as fs doesn't support punch hole.\n");
++		goto out;
++	}
++
++	if (default_behavior) {
++		fprintf(stdout, "Test skipped as fs doesn't support seeking a punched hole.\n");
++		goto out;
++	}
++
++	bufsz = alloc_size * 3;
++	buf = do_malloc(bufsz);
++	if (!buf) {
++		ret = -1;
++		goto out;
++	}
++	memset(buf, 'a', bufsz);
++
++	ret = do_pwrite(fd, buf, bufsz, 0);
++	if (ret)
++		goto out;
++
++	filsz = bufsz;
++	ret = do_fallocate(fd, alloc_size, alloc_size,
++			   FALLOC_FL_PUNCH_HOLE | FALLOC_FL_KEEP_SIZE);
++	if (ret < 0)
++		goto out;
++
++	ret += do_lseek(testnum, 1, fd, filsz, SEEK_DATA, 0, 0);
++	ret += do_lseek(testnum, 2, fd, filsz, SEEK_HOLE, 0, alloc_size);
++	ret += do_lseek(testnum, 3, fd, filsz, SEEK_DATA, alloc_size, alloc_size * 2);
++out:
++	if (buf)
++		free(buf);
++	return ret;
++}
++
+ /*
+  * Make sure hole size is properly reported when starting in the middle of a
+  * hole in ext? doubly indirect tree
+@@ -1050,6 +1099,7 @@ struct testrec seek_tests[] = {
+        { 18, test18, "Test file with negative SEEK_{HOLE,DATA} offsets" },
+        { 19, test19, "Test file SEEK_DATA from middle of a large hole" },
+        { 20, test20, "Test file SEEK_DATA from middle of a huge hole" },
++       { 21, test21, "Test file SEEK_HOLE that was created by PUNCH_HOLE" },
+ };
+ 
+ static int run_test(struct testrec *tr)
+@@ -1127,15 +1177,20 @@ static int test_basic_support(void)
+ 	}
+ 
+ 	ftruncate(fd, 0);
+-	if (fallocate(fd, 0, 0, alloc_size) == -1) {
++	if (fallocate(fd, 0, 0, alloc_size * 2) == -1) {
+ 		if (errno == EOPNOTSUPP)
+-			fprintf(stderr, "File system does not support fallocate.");
++			fprintf(stderr, "File system does not support fallocate.\n");
+ 		else {
+ 			fprintf(stderr, "ERROR %d: Failed to preallocate "
+ 				"space to %ld bytes. Aborting.\n", errno, (long) alloc_size);
+ 			ret = -1;
+ 		}
+ 		goto out;
++	} else if (fallocate(fd, FALLOC_FL_PUNCH_HOLE | FALLOC_FL_KEEP_SIZE,
++			     0, alloc_size) == -1) {
++		fprintf(stderr, "File system does not support punch hole.\n");
++	} else {
++		punch_hole = 1;
+ 	}
+ 
+ 	pos = lseek(fd, 0, SEEK_DATA);
+diff --git a/tests/generic/999 b/tests/generic/999
+new file mode 100755
+index 00000000..d8565041
+--- /dev/null
++++ b/tests/generic/999
+@@ -0,0 +1,44 @@
++#! /bin/bash
++# SPDX-License-Identifier: GPL-2.0
++# Copyright (C) 2019, CTERA Networks.  All Rights Reserved.
++#
++# FS QA Test No. 999
++#
++# Check that SEEK_HOLE can find a punched hole.
++#
++seq=`basename $0`
++seqres=$RESULT_DIR/$seq
++echo "QA output created by $seq"
++
++here=`pwd`
++tmp=/tmp/$$
++status=1	# failure is the default!
++trap "_cleanup; exit \$status" 0 1 2 3 15
++
++# get standard environment, filters and checks
++. ./common/rc
++
++_supported_fs generic
++_supported_os Linux
++
++_require_test
++_require_seek_data_hole
++_require_xfs_io_command "fpunch"
++
++base_test_file=$TEST_DIR/seek_sanity_testfile.$seq
++
++_require_test_program "seek_sanity_test"
++
++_cleanup()
++{
++	cd /
++	rm -f $tmp.*
++	rm -f $base_test_file*
++}
++
++_run_seek_sanity_test -s 21 -e 21 $base_test_file > $seqres.full 2>&1 ||
++	_fail "seek sanity check failed!"
++
++# success, all done
++status=0
++exit
+diff --git a/tests/generic/999.out b/tests/generic/999.out
+new file mode 100644
+index 00000000..7fbc6768
+--- /dev/null
++++ b/tests/generic/999.out
+@@ -0,0 +1 @@
++QA output created by 999
+diff --git a/tests/generic/group b/tests/generic/group
+index c63035ce..f85e416c 100644
+--- a/tests/generic/group
++++ b/tests/generic/group
+@@ -540,3 +540,4 @@
+ 535 auto quick log
+ 536 auto quick rw shutdown
+ 537 auto quick trim
++999 auto quick punch seek
+-- 
+2.17.1
