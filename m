@@ -1,62 +1,210 @@
-From: "Theodore Ts'o" <tytso@mit.edu>
-Subject: Re: [PATCH v2 5/5] fscrypt: fix race where ->lookup()
- marks plaintext dentry as ciphertext
-Date: Wed, 17 Apr 2019 10:24:35 -0400
-Message-ID: <20190417142435.GE4686@mit.edu>
-References: <20190320183913.12686-1-ebiggers@kernel.org>
- <20190320183913.12686-6-ebiggers@kernel.org>
+From: syzbot <syzbot+a55ccfc8a853d3cff213@syzkaller.appspotmail.com>
+Subject: Re: possible deadlock in path_openat
+Date: Thu, 18 Apr 2019 22:31:04 -0700
+Message-ID: <000000000000cb1d0d0586db6c4c@google.com>
+References: <00000000000044cbf80576baaecd@google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-f2fs-devel-bounces@lists.sourceforge.net>
-Content-Disposition: inline
-In-Reply-To: <20190320183913.12686-6-ebiggers@kernel.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/options/linux-f2fs-devel>,
- <mailto:linux-f2fs-devel-request@lists.sourceforge.net?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=linux-f2fs-devel>
-List-Post: <mailto:linux-f2fs-devel@lists.sourceforge.net>
-List-Help: <mailto:linux-f2fs-devel-request@lists.sourceforge.net?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/linux-f2fs-devel>,
- <mailto:linux-f2fs-devel-request@lists.sourceforge.net?subject=subscribe>
-Errors-To: linux-f2fs-devel-bounces@lists.sourceforge.net
-To: Eric Biggers <ebiggers@kernel.org>
-Cc: linux-unionfs@vger.kernel.org, linux-f2fs-devel@lists.sourceforge.net, linux-fscrypt@vger.kernel.org, linux-mtd@lists.infradead.org, Sarthak Kukreti <sarthakkukreti@chromium.org>, linux-fsdevel@vger.kernel.org, linux-ext4@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"; format=flowed; delsp=yes
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <00000000000044cbf80576baaecd@google.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: amir73il@gmail.com, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, linux-unionfs@vger.kernel.org, miklos@szeredi.hu, syzkaller-bugs@googlegroups.com, viro@zeniv.linux.org.uk
 List-Id: linux-unionfs@vger.kernel.org
 
-On Wed, Mar 20, 2019 at 11:39:13AM -0700, Eric Biggers wrote:
-> From: Eric Biggers <ebiggers@google.com>
-> 
-> ->lookup() in an encrypted directory begins as follows:
-> 
-> 1. fscrypt_prepare_lookup():
->     a. Try to load the directory's encryption key.
->     b. If the key is unavailable, mark the dentry as a ciphertext name
->        via d_flags.
-> 2. fscrypt_setup_filename():
->     a. Try to load the directory's encryption key.
->     b. If the key is available, encrypt the name (treated as a plaintext
->        name) to get the on-disk name.  Otherwise decode the name
->        (treated as a ciphertext name) to get the on-disk name.
-> 
-> But if the key is concurrently added, it may be found at (2a) but not at
-> (1a).  In this case, the dentry will be wrongly marked as a ciphertext
-> name even though it was actually treated as plaintext.
-> 
-> This will cause the dentry to be wrongly invalidated on the next lookup,
-> potentially causing problems.  For example, if the racy ->lookup() was
-> part of sys_mount(), then the new mount will be detached when anything
-> tries to access it.  This is despite the mountpoint having a plaintext
-> path, which should remain valid now that the key was added.
-> 
-> Of course, this is only possible if there's a userspace race.  Still,
-> the additional kernel-side race is confusing and unexpected.
-> 
-> Close the kernel-side race by changing fscrypt_prepare_lookup() to also
-> set the on-disk filename (step 2b), consistent with the d_flags update.
-> 
-> Fixes: 28b4c263961c ("ext4 crypto: revalidate dentry after adding or removing the key")
-> Signed-off-by: Eric Biggers <ebiggers@google.com>
+syzbot has found a reproducer for the following crash on:
 
-Looks good, applied.
+HEAD commit:    6d906f99 Merge tag 'arm64-fixes' of git://git.kernel.org/p..
+git tree:       upstream
+console output: https://syzkaller.appspot.com/x/log.txt?x=10917b8f200000
+kernel config:  https://syzkaller.appspot.com/x/.config?x=856fc6d0fbbeede9
+dashboard link: https://syzkaller.appspot.com/bug?extid=a55ccfc8a853d3cff213
+compiler:       gcc (GCC) 9.0.0 20181231 (experimental)
+syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=101767b7200000
+C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=13c15013200000
 
-					- Ted
+IMPORTANT: if you fix the bug, please add the following tag to the commit:
+Reported-by: syzbot+a55ccfc8a853d3cff213@syzkaller.appspotmail.com
+
+overlayfs: workdir and upperdir must reside under the same mount
+======================================================
+WARNING: possible circular locking dependency detected
+5.1.0-rc5+ #74 Not tainted
+------------------------------------------------------
+syz-executor949/9348 is trying to acquire lock:
+000000005d993096 (&ovl_i_mutex_dir_key[depth]#2){++++}, at:  
+inode_lock_shared include/linux/fs.h:782 [inline]
+000000005d993096 (&ovl_i_mutex_dir_key[depth]#2){++++}, at: do_last  
+fs/namei.c:3321 [inline]
+000000005d993096 (&ovl_i_mutex_dir_key[depth]#2){++++}, at:  
+path_openat+0x1e98/0x46e0 fs/namei.c:3533
+
+but task is already holding lock:
+00000000ef248b1d (&sig->cred_guard_mutex){+.+.}, at: prepare_bprm_creds  
+fs/exec.c:1407 [inline]
+00000000ef248b1d (&sig->cred_guard_mutex){+.+.}, at:  
+__do_execve_file.isra.0+0x376/0x23f0 fs/exec.c:1750
+
+which lock already depends on the new lock.
+
+
+the existing dependency chain (in reverse order) is:
+
+-> #4 (&sig->cred_guard_mutex){+.+.}:
+        lock_acquire+0x16f/0x3f0 kernel/locking/lockdep.c:4211
+        __mutex_lock_common kernel/locking/mutex.c:925 [inline]
+        __mutex_lock+0xf7/0x1310 kernel/locking/mutex.c:1072
+        mutex_lock_killable_nested+0x16/0x20 kernel/locking/mutex.c:1102
+        do_io_accounting+0x1f4/0x830 fs/proc/base.c:2740
+        proc_tgid_io_accounting+0x23/0x30 fs/proc/base.c:2789
+        proc_single_show+0xf6/0x170 fs/proc/base.c:744
+        seq_read+0x4db/0x1130 fs/seq_file.c:229
+        do_loop_readv_writev fs/read_write.c:701 [inline]
+        do_loop_readv_writev fs/read_write.c:688 [inline]
+        do_iter_read+0x4a9/0x660 fs/read_write.c:922
+        vfs_readv+0xf0/0x160 fs/read_write.c:984
+        kernel_readv fs/splice.c:358 [inline]
+        default_file_splice_read+0x475/0x890 fs/splice.c:413
+        do_splice_to+0x12a/0x190 fs/splice.c:876
+        splice_direct_to_actor+0x2d2/0x970 fs/splice.c:953
+        do_splice_direct+0x1da/0x2a0 fs/splice.c:1062
+        do_sendfile+0x597/0xd00 fs/read_write.c:1443
+        __do_sys_sendfile64 fs/read_write.c:1504 [inline]
+        __se_sys_sendfile64 fs/read_write.c:1490 [inline]
+        __x64_sys_sendfile64+0x1dd/0x220 fs/read_write.c:1490
+        do_syscall_64+0x103/0x610 arch/x86/entry/common.c:290
+        entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+-> #3 (&p->lock){+.+.}:
+        lock_acquire+0x16f/0x3f0 kernel/locking/lockdep.c:4211
+        __mutex_lock_common kernel/locking/mutex.c:925 [inline]
+        __mutex_lock+0xf7/0x1310 kernel/locking/mutex.c:1072
+        mutex_lock_nested+0x16/0x20 kernel/locking/mutex.c:1087
+        seq_read+0x71/0x1130 fs/seq_file.c:161
+        proc_reg_read+0x1fe/0x2c0 fs/proc/inode.c:227
+        do_loop_readv_writev fs/read_write.c:701 [inline]
+        do_loop_readv_writev fs/read_write.c:688 [inline]
+        do_iter_read+0x4a9/0x660 fs/read_write.c:922
+        vfs_readv+0xf0/0x160 fs/read_write.c:984
+        kernel_readv fs/splice.c:358 [inline]
+        default_file_splice_read+0x475/0x890 fs/splice.c:413
+        do_splice_to+0x12a/0x190 fs/splice.c:876
+        do_splice+0x110b/0x1420 fs/splice.c:1183
+        __do_sys_splice fs/splice.c:1424 [inline]
+        __se_sys_splice fs/splice.c:1404 [inline]
+        __x64_sys_splice+0x2c6/0x330 fs/splice.c:1404
+        do_syscall_64+0x103/0x610 arch/x86/entry/common.c:290
+        entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+-> #2 (&pipe->mutex/1){+.+.}:
+        lock_acquire+0x16f/0x3f0 kernel/locking/lockdep.c:4211
+        __mutex_lock_common kernel/locking/mutex.c:925 [inline]
+        __mutex_lock+0xf7/0x1310 kernel/locking/mutex.c:1072
+        mutex_lock_nested+0x16/0x20 kernel/locking/mutex.c:1087
+        pipe_lock_nested fs/pipe.c:62 [inline]
+        pipe_lock+0x6e/0x80 fs/pipe.c:70
+        iter_file_splice_write+0x18b/0xbe0 fs/splice.c:696
+        do_splice_from fs/splice.c:847 [inline]
+        do_splice+0x70a/0x1420 fs/splice.c:1154
+        __do_sys_splice fs/splice.c:1424 [inline]
+        __se_sys_splice fs/splice.c:1404 [inline]
+        __x64_sys_splice+0x2c6/0x330 fs/splice.c:1404
+        do_syscall_64+0x103/0x610 arch/x86/entry/common.c:290
+        entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+-> #1 (sb_writers#6){.+.+}:
+        lock_acquire+0x16f/0x3f0 kernel/locking/lockdep.c:4211
+        percpu_down_read include/linux/percpu-rwsem.h:36 [inline]
+        __sb_start_write+0x20b/0x360 fs/super.c:1613
+        sb_start_write include/linux/fs.h:1621 [inline]
+        mnt_want_write+0x3f/0xc0 fs/namespace.c:358
+        ovl_want_write+0x76/0xa0 fs/overlayfs/util.c:24
+        ovl_do_remove+0xe9/0xd70 fs/overlayfs/dir.c:840
+        ovl_rmdir+0x1b/0x20 fs/overlayfs/dir.c:890
+        vfs_rmdir fs/namei.c:3878 [inline]
+        vfs_rmdir+0x19c/0x470 fs/namei.c:3857
+        do_rmdir+0x39e/0x420 fs/namei.c:3939
+        __do_sys_rmdir fs/namei.c:3957 [inline]
+        __se_sys_rmdir fs/namei.c:3955 [inline]
+        __x64_sys_rmdir+0x36/0x40 fs/namei.c:3955
+        do_syscall_64+0x103/0x610 arch/x86/entry/common.c:290
+        entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+-> #0 (&ovl_i_mutex_dir_key[depth]#2){++++}:
+        check_prevs_add kernel/locking/lockdep.c:2333 [inline]
+        validate_chain kernel/locking/lockdep.c:2714 [inline]
+        __lock_acquire+0x239c/0x3fb0 kernel/locking/lockdep.c:3701
+        lock_acquire+0x16f/0x3f0 kernel/locking/lockdep.c:4211
+        down_read+0x3b/0x90 kernel/locking/rwsem.c:24
+        inode_lock_shared include/linux/fs.h:782 [inline]
+        do_last fs/namei.c:3321 [inline]
+        path_openat+0x1e98/0x46e0 fs/namei.c:3533
+        do_filp_open+0x1a1/0x280 fs/namei.c:3563
+        do_open_execat+0x137/0x690 fs/exec.c:856
+        __do_execve_file.isra.0+0x178d/0x23f0 fs/exec.c:1758
+        do_execveat_common fs/exec.c:1865 [inline]
+        do_execve fs/exec.c:1882 [inline]
+        __do_sys_execve fs/exec.c:1958 [inline]
+        __se_sys_execve fs/exec.c:1953 [inline]
+        __x64_sys_execve+0x8f/0xc0 fs/exec.c:1953
+        do_syscall_64+0x103/0x610 arch/x86/entry/common.c:290
+        entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+other info that might help us debug this:
+
+Chain exists of:
+   &ovl_i_mutex_dir_key[depth]#2 --> &p->lock --> &sig->cred_guard_mutex
+
+  Possible unsafe locking scenario:
+
+        CPU0                    CPU1
+        ----                    ----
+   lock(&sig->cred_guard_mutex);
+                                lock(&p->lock);
+                                lock(&sig->cred_guard_mutex);
+   lock(&ovl_i_mutex_dir_key[depth]#2);
+
+  *** DEADLOCK ***
+
+1 lock held by syz-executor949/9348:
+  #0: 00000000ef248b1d (&sig->cred_guard_mutex){+.+.}, at:  
+prepare_bprm_creds fs/exec.c:1407 [inline]
+  #0: 00000000ef248b1d (&sig->cred_guard_mutex){+.+.}, at:  
+__do_execve_file.isra.0+0x376/0x23f0 fs/exec.c:1750
+
+stack backtrace:
+CPU: 1 PID: 9348 Comm: syz-executor949 Not tainted 5.1.0-rc5+ #74
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS  
+Google 01/01/2011
+Call Trace:
+  __dump_stack lib/dump_stack.c:77 [inline]
+  dump_stack+0x172/0x1f0 lib/dump_stack.c:113
+  print_circular_bug.isra.0.cold+0x1cc/0x28f kernel/locking/lockdep.c:1571
+  check_prev_add.constprop.0+0xf11/0x23c0 kernel/locking/lockdep.c:2220
+  check_prevs_add kernel/locking/lockdep.c:2333 [inline]
+  validate_chain kernel/locking/lockdep.c:2714 [inline]
+  __lock_acquire+0x239c/0x3fb0 kernel/locking/lockdep.c:3701
+  lock_acquire+0x16f/0x3f0 kernel/locking/lockdep.c:4211
+  down_read+0x3b/0x90 kernel/locking/rwsem.c:24
+  inode_lock_shared include/linux/fs.h:782 [inline]
+  do_last fs/namei.c:3321 [inline]
+  path_openat+0x1e98/0x46e0 fs/namei.c:3533
+  do_filp_open+0x1a1/0x280 fs/namei.c:3563
+  do_open_execat+0x137/0x690 fs/exec.c:856
+  __do_execve_file.isra.0+0x178d/0x23f0 fs/exec.c:1758
+  do_execveat_common fs/exec.c:1865 [inline]
+  do_execve fs/exec.c:1882 [inline]
+  __do_sys_execve fs/exec.c:1958 [inline]
+  __se_sys_execve fs/exec.c:1953 [inline]
+  __x64_sys_execve+0x8f/0xc0 fs/exec.c:1953
+  do_syscall_64+0x103/0x610 arch/x86/entry/common.c:290
+  entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x447169
+Code: e8 4c bb 02 00 48 83 c4 18 c3 0f 1f 80 00 00 00 00 48 89 f8 48 89 f7  
+48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff  
+ff 0f 83 bb 07 fc ff c3 66 2e 0f 1f 84 00 00 00 00
+RSP: 002b:00007fe4c6a6bdb8 EFLAGS: 00000246 ORIG_RAX: 000000000000003b
+RAX: ffffffffffffffda RBX: 00000000006dcc68 RCX: 0000000000447169
+RDX: 0000000000000000 RSI: 0000000000000000 RDI: 0000000020000000
+RBP: 00000000006dcc60 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 00000000006dcc6c
+R13: 00007ffd5a5cb62f R14: 00007fe4c6a6c9c0 R15: 0000000000000000
