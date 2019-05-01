@@ -1,177 +1,99 @@
-Return-Path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-yb1-f196.google.com ([209.85.219.196]:42211 "EHLO
-        mail-yb1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726470AbfDXI4E (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 24 Apr 2019 04:56:04 -0400
-Received: by mail-yb1-f196.google.com with SMTP id 68so317724ybn.9
-        for <linux-unionfs@vger.kernel.org>; Wed, 24 Apr 2019 01:56:03 -0700 (PDT)
-MIME-Version: 1.0
-References: <20190424085317.409-1-amir73il@gmail.com>
-In-Reply-To: <20190424085317.409-1-amir73il@gmail.com>
-From: Amir Goldstein <amir73il@gmail.com>
-Date: Wed, 24 Apr 2019 11:55:51 +0300
-Message-ID: <CAOQ4uxgSrpfo=uz29PQOO0LjZFdX+dY4PNQdb7rCWbP3T8MgAA@mail.gmail.com>
-Subject: Re: [PATCH] fanotify06: add a test case for overlayfs
-Content-Type: text/plain; charset="UTF-8"
-Sender: linux-unionfs-owner@vger.kernel.org
-To: Cyril Hrubis <chrubis@suse.cz>
-Cc: Murphy Zhou <jencce.kernel@gmail.com>, ltp@lists.linux.it, Jan Kara <jack@suse.cz>, overlayfs <linux-unionfs@vger.kernel.org>
-List-ID: <linux-unionfs@vger.kernel.org>
+From: syzbot <syzbot+bb1836a212e69f8e201a@syzkaller.appspotmail.com>
+Subject: WARNING in ovl_rename
+Date: Wed, 01 May 2019 08:56:06 -0700
+Message-ID: <0000000000002492cc0587d58ed8@google.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"; format=flowed; delsp=yes
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: amir73il@gmail.com, linux-kernel@vger.kernel.org, linux-unionfs@vger.kernel.org, miklos@szeredi.hu, mszeredi@redhat.com, syzkaller-bugs@googlegroups.com
+List-Id: linux-unionfs@vger.kernel.org
 
-CC: <linux-unionfs@vger.kernel.org>
+Hello,
 
-On Wed, Apr 24, 2019 at 11:53 AM Amir Goldstein <amir73il@gmail.com> wrote:
->
-> This test fails on overlayfs since kernel v4.19.
-> Added a test case for overlayfs mount.
->
-> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
-> ---
->
-> Hi Cyril,
->
-> The new test case covers a bug reported by Murphy Zhou:
-> https://lore.kernel.org/linux-fsdevel/20190423065024.12695-1-jencce.kernel@gmail.com/
->
-> Once again, I tried looking at making overlayfs test variant generic.
-> Once again, I gave it up.
->
-> Thanks,
-> Amir.
->
->  .../kernel/syscalls/fanotify/fanotify06.c     | 74 +++++++++++++++----
->  1 file changed, 61 insertions(+), 13 deletions(-)
->
-> diff --git a/testcases/kernel/syscalls/fanotify/fanotify06.c b/testcases/kernel/syscalls/fanotify/fanotify06.c
-> index 6a2e2494f..62defb23c 100644
-> --- a/testcases/kernel/syscalls/fanotify/fanotify06.c
-> +++ b/testcases/kernel/syscalls/fanotify/fanotify06.c
-> @@ -54,8 +54,23 @@ static int fd_notify[FANOTIFY_PRIORITIES][GROUPS_PER_PRIO];
->
->  static char event_buf[EVENT_BUF_LEN];
->
-> -#define MOUNT_NAME "mntpoint"
-> +#define MNTPOINT "mntpoint"
-> +#define OVL_LOWER "ovl-lower"
-> +#define OVL_UPPER "ovl-upper"
-> +#define OVL_WORK "ovl-work"
-> +#define OVL_MNT "ovl-mnt"
-> +
->  static int mount_created;
-> +static int ovl_mounted;
-> +
-> +static struct tcase {
-> +       const char *tname;
-> +       const char *mnt;
-> +       int use_overlay;
-> +} tcases[] = {
-> +       { "Fanotify merge mount mark", MNTPOINT, 0 },
-> +       { "Fanotify merge overlayfs mount mark", OVL_MNT, 1 },
-> +};
->
->  static void create_fanotify_groups(void)
->  {
-> @@ -72,12 +87,12 @@ static void create_fanotify_groups(void)
->                         ret = fanotify_mark(fd_notify[p][i],
->                                             FAN_MARK_ADD | FAN_MARK_MOUNT,
->                                             FAN_MODIFY,
-> -                                           AT_FDCWD, ".");
-> +                                           AT_FDCWD, fname);
->                         if (ret < 0) {
->                                 tst_brk(TBROK | TERRNO,
->                                         "fanotify_mark(%d, FAN_MARK_ADD | "
->                                         "FAN_MARK_MOUNT, FAN_MODIFY, AT_FDCWD,"
-> -                                       " '.') failed", fd_notify[p][i]);
-> +                                       " %s) failed", fd_notify[p][i], fname);
->                         }
->                         /* Add ignore mark for groups with higher priority */
->                         if (p == 0)
-> @@ -130,11 +145,23 @@ static void verify_event(int group, struct fanotify_event_metadata *event)
->         }
->  }
->
-> -void test01(void)
-> +void test_fanotify(unsigned int n)
->  {
->         int ret;
->         unsigned int p, i;
->         struct fanotify_event_metadata *event;
-> +       struct tcase *tc = &tcases[n];
-> +
-> +       tst_res(TINFO, "Test #%d: %s", n, tc->tname);
-> +
-> +       if (tc->use_overlay && !ovl_mounted) {
-> +               tst_res(TCONF,
-> +                       "overlayfs is not configured in this kernel.");
-> +               return;
-> +       }
-> +
-> +       sprintf(fname, "%s/tfile_%d", tc->mnt, getpid());
-> +       SAFE_TOUCH(fname, 0644, NULL);
->
->         create_fanotify_groups();
->
-> @@ -194,29 +221,50 @@ void test01(void)
->         cleanup_fanotify_groups();
->  }
->
-> +static void setup_overlay(void)
-> +{
-> +       int ret;
-> +
-> +       SAFE_MKDIR(OVL_LOWER, 0755);
-> +       SAFE_MKDIR(OVL_UPPER, 0755);
-> +       SAFE_MKDIR(OVL_WORK, 0755);
-> +       SAFE_MKDIR(OVL_MNT, 0755);
-> +       ret = mount("overlay", OVL_MNT, "overlay", 0, "lowerdir="OVL_LOWER
-> +                   ",upperdir="OVL_UPPER",workdir="OVL_WORK);
-> +       if (ret < 0) {
-> +               if (errno == ENODEV) {
-> +                       tst_res(TINFO,
-> +                               "overlayfs is not configured in this kernel.");
-> +                       return;
-> +               }
-> +               tst_brk(TBROK | TERRNO, "overlayfs mount failed");
-> +       }
-> +       ovl_mounted = 1;
-> +}
-> +
->  static void setup(void)
->  {
-> -       SAFE_MKDIR(MOUNT_NAME, 0755);
-> -       SAFE_MOUNT(MOUNT_NAME, MOUNT_NAME, "none", MS_BIND, NULL);
-> +       SAFE_MKDIR(MNTPOINT, 0755);
-> +       SAFE_MOUNT(MNTPOINT, MNTPOINT, "none", MS_BIND, NULL);
->         mount_created = 1;
-> -       SAFE_CHDIR(MOUNT_NAME);
->
-> -       sprintf(fname, "tfile_%d", getpid());
-> -       SAFE_FILE_PRINTF(fname, "1");
-> +       setup_overlay();
->  }
->
->  static void cleanup(void)
->  {
->         cleanup_fanotify_groups();
->
-> -       SAFE_CHDIR("../");
-> +       if (ovl_mounted)
-> +               SAFE_UMOUNT(OVL_MNT);
->
-> -       if (mount_created && tst_umount(MOUNT_NAME) < 0)
-> -               tst_brk(TBROK | TERRNO, "umount failed");
-> +       if (mount_created)
-> +               SAFE_UMOUNT(MNTPOINT);
->  }
->
->  static struct tst_test test = {
-> -       .test_all = test01,
-> +       .test = test_fanotify,
-> +       .tcnt = ARRAY_SIZE(tcases),
->         .setup = setup,
->         .cleanup = cleanup,
->         .needs_tmpdir = 1,
-> --
-> 2.17.1
->
+syzbot found the following crash on:
+
+HEAD commit:    037904a2 Merge branch 'x86-urgent-for-linus' of git://git...
+git tree:       upstream
+console output: https://syzkaller.appspot.com/x/log.txt?x=11f58ecca00000
+kernel config:  https://syzkaller.appspot.com/x/.config?x=a42d110b47dd6b36
+dashboard link: https://syzkaller.appspot.com/bug?extid=bb1836a212e69f8e201a
+compiler:       gcc (GCC) 9.0.0 20181231 (experimental)
+syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=15ba097ca00000
+C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=10be1ceca00000
+
+The bug was bisected to:
+
+commit 6eaf011144af10cad34c0d46f82e50d382c8e926
+Author: Amir Goldstein <amir73il@gmail.com>
+Date:   Thu Oct 12 16:03:04 2017 +0000
+
+     ovl: fix EIO from lookup of non-indexed upper
+
+bisection log:  https://syzkaller.appspot.com/x/bisect.txt?x=1430a262a00000
+final crash:    https://syzkaller.appspot.com/x/report.txt?x=1630a262a00000
+console output: https://syzkaller.appspot.com/x/log.txt?x=1230a262a00000
+
+IMPORTANT: if you fix the bug, please add the following tag to the commit:
+Reported-by: syzbot+bb1836a212e69f8e201a@syzkaller.appspotmail.com
+Fixes: 6eaf011144af ("ovl: fix EIO from lookup of non-indexed upper")
+
+overlayfs: workdir and upperdir must reside under the same mount
+WARNING: CPU: 0 PID: 8323 at fs/overlayfs/dir.c:1176  
+ovl_rename+0x159c/0x1940 fs/overlayfs/dir.c:1176
+Kernel panic - not syncing: panic_on_warn set ...
+CPU: 0 PID: 8323 Comm: syz-executor156 Not tainted 5.1.0-rc6+ #89
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS  
+Google 01/01/2011
+Call Trace:
+  __dump_stack lib/dump_stack.c:77 [inline]
+  dump_stack+0x172/0x1f0 lib/dump_stack.c:113
+  panic+0x2cb/0x65c kernel/panic.c:214
+  __warn.cold+0x20/0x45 kernel/panic.c:571
+  report_bug+0x263/0x2b0 lib/bug.c:186
+  fixup_bug arch/x86/kernel/traps.c:179 [inline]
+  fixup_bug arch/x86/kernel/traps.c:174 [inline]
+  do_error_trap+0x11b/0x200 arch/x86/kernel/traps.c:272
+  do_invalid_op+0x37/0x50 arch/x86/kernel/traps.c:291
+  invalid_op+0x14/0x20 arch/x86/entry/entry_64.S:973
+RIP: 0010:ovl_rename+0x159c/0x1940 fs/overlayfs/dir.c:1176
+Code: 80 00 00 00 e8 45 f7 19 ff 8b b4 24 80 00 00 00 85 f6 0f 85 cd f6 ff  
+ff e8 b1 f5 19 ff 4c 89 f7 e9 a5 f6 ff ff e8 a4 f5 19 ff <0f> 0b e9 a4 f3  
+ff ff e8 98 f5 19 ff 48 8b 54 24 70 b8 ff ff 37 00
+RSP: 0018:ffff88809366fad8 EFLAGS: 00010293
+RAX: ffff88808bb781c0 RBX: 0000000000000000 RCX: ffff888095efc6e0
+RDX: 0000000000000000 RSI: ffffffff8256970c RDI: ffff888095efc738
+RBP: ffff88809366fbf8 R08: ffff88808bb781c0 R09: 0000000000000008
+R10: ffffed1015d05bc7 R11: ffff8880ae82de3b R12: ffff88808b22f160
+R13: 0000000000000000 R14: ffff888095efc580 R15: ffff88809366fb90
+  vfs_rename+0x803/0x1ac0 fs/namei.c:4475
+  do_renameat2+0xb0f/0xc40 fs/namei.c:4625
+  __do_sys_rename fs/namei.c:4671 [inline]
+  __se_sys_rename fs/namei.c:4669 [inline]
+  __x64_sys_rename+0x61/0x80 fs/namei.c:4669
+  do_syscall_64+0x103/0x610 arch/x86/entry/common.c:290
+  entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x446d89
+Code: e8 ec b9 02 00 48 83 c4 18 c3 0f 1f 80 00 00 00 00 48 89 f8 48 89 f7  
+48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff  
+ff 0f 83 db 06 fc ff c3 66 2e 0f 1f 84 00 00 00 00
+RSP: 002b:00007f8603ed4d98 EFLAGS: 00000246 ORIG_RAX: 0000000000000052
+RAX: ffffffffffffffda RBX: 00000000006dcc28 RCX: 0000000000446d89
+RDX: 0000000000446d89 RSI: 0000000020000140 RDI: 00000000200000c0
+RBP: 00000000006dcc20 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 00000000006dcc2c
+R13: 69647265776f6c2c R14: 30656c69662f2e3d R15: 7269647265707075
+Kernel Offset: disabled
+Rebooting in 86400 seconds..
+
+
+---
+This bug is generated by a bot. It may contain errors.
+See https://goo.gl/tpsmEJ for more information about syzbot.
+syzbot engineers can be reached at syzkaller@googlegroups.com.
+
+syzbot will keep track of this bug report. See:
+https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
+For information about bisection process see: https://goo.gl/tpsmEJ#bisection
+syzbot can test patches for this bug, for details see:
+https://goo.gl/tpsmEJ#testing-patches
