@@ -1,195 +1,44 @@
-From: =?UTF-8?Q?Andreas_Gr=C3=BCnbacher?= <andreas.gruenbacher@gmail.com>
+From: "J. Bruce Fields" <bfields@fieldses.org>
 Subject: Re: [PATCH] overlayfs: ignore empty NFSv4 ACLs in ext4 upperdir
-Date: Thu, 2 May 2019 17:08:14 +0200
-Message-ID: <CAHpGcML0KuoGSyXyyDnXHkSp3nDnSjJPeZeWEmt8CXxQeojxwg@mail.gmail.com>
-References: <CAJfpeguwUtRWRGmNmimNp-FXzWqMCCQMb24iWPu0w_J0_rOnnw@mail.gmail.com>
- <20161205151933.GA17517@fieldses.org> <CAJfpegtpkavseTFLspaC7svbvHRq-0-7jvyh63+DK5iWHTGnaQ@mail.gmail.com>
- <20161205162559.GB17517@fieldses.org> <CAHpGcMKHjic6L+J0qvMYNG9hVCcDO1hEpx4BiEk0ZCKDV39BmA@mail.gmail.com>
- <266c571f-e4e2-7c61-5ee2-8ece0c2d06e9@web.de> <CAHpGcMKmtppfn7PVrGKEEtVphuLV=YQ2GDYKOqje4ZANhzSgDw@mail.gmail.com>
- <CAHpGcMKjscfhmrAhwGes0ag2xTkbpFvCO6eiLL_rHz87XE-ZmA@mail.gmail.com>
+Date: Thu, 2 May 2019 13:16:03 -0400
+Message-ID: <20190502171603.GA1778@fieldses.org>
+References: <CAHpGcMKjscfhmrAhwGes0ag2xTkbpFvCO6eiLL_rHz87XE-ZmA@mail.gmail.com>
  <CAJfpegvRFGOc31gVuYzanzWJ=mYSgRgtAaPhYNxZwHin3Wc0Gw@mail.gmail.com>
  <CAHc6FU4JQ28BFZE9_8A06gtkMvvKDzFmw9=ceNPYvnMXEimDMw@mail.gmail.com>
- <20161206185806.GC31197@fieldses.org> <87bm0l4nra.fsf@notabene.neil.brown.name>
+ <20161206185806.GC31197@fieldses.org>
+ <87bm0l4nra.fsf@notabene.neil.brown.name>
  <CAOQ4uxjYEjqbLcVYoUaPzp-jqY_3tpPBhO7cE7kbq63XrPRQLQ@mail.gmail.com>
- <875zqt4igg.fsf@notabene.neil.brown.name> <CAHc6FU52OCCGUnHXOCFTv1diP_5i4yZvF6fAth9=aynwS+twQg@mail.gmail.com>
+ <875zqt4igg.fsf@notabene.neil.brown.name>
+ <CAHc6FU52OCCGUnHXOCFTv1diP_5i4yZvF6fAth9=aynwS+twQg@mail.gmail.com>
  <CAJfpegsthQn_=3AQJf7ojxoQBpHMA3dz1fCBjNZXsCA1E0oqnw@mail.gmail.com>
+ <CAHpGcML0KuoGSyXyyDnXHkSp3nDnSjJPeZeWEmt8CXxQeojxwg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAJfpegsthQn_=3AQJf7ojxoQBpHMA3dz1fCBjNZXsCA1E0oqnw@mail.gmail.com>
+Content-Disposition: inline
+In-Reply-To: <CAHpGcML0KuoGSyXyyDnXHkSp3nDnSjJPeZeWEmt8CXxQeojxwg@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: Andreas Gruenbacher <agruenba@redhat.com>, NeilBrown <neilb@suse.com>, Amir Goldstein <amir73il@gmail.com>, "J. Bruce Fields" <bfields@fieldses.org>, Patrick Plagwitz <Patrick_Plagwitz@web.de>, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>, Linux NFS list <linux-nfs@vger.kernel.org>, Linux FS-devel Mailing List <linux-fsdevel@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: Andreas =?utf-8?Q?Gr=C3=BCnbacher?= <andreas.gruenbacher@gmail.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, Andreas Gruenbacher <agruenba@redhat.com>, NeilBrown <neilb@suse.com>, Amir Goldstein <amir73il@gmail.com>, Patrick Plagwitz <Patrick_Plagwitz@web.de>, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>, Linux NFS list <linux-nfs@vger.kernel.org>, Linux FS-devel Mailing List <linux-fsdevel@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-unionfs@vger.kernel.org
 
-Am Do., 2. Mai 2019 um 16:28 Uhr schrieb Miklos Szeredi <miklos@szeredi.hu>=
-:
-> On Thu, May 2, 2019 at 10:05 AM Andreas Gruenbacher <agruenba@redhat.com>=
- wrote:
-> > On Thu, 2 May 2019 at 05:57, NeilBrown <neilb@suse.com> wrote:
-> > > On Wed, May 01 2019, Amir Goldstein wrote:
-> > > > On Wed, May 1, 2019 at 10:03 PM NeilBrown <neilb@suse.com> wrote:
-> > > >> On Tue, Dec 06 2016, J. Bruce Fields wrote:
-> > > >> > On Tue, Dec 06, 2016 at 02:18:31PM +0100, Andreas Gruenbacher wr=
-ote:
-> > > >> >> On Tue, Dec 6, 2016 at 11:08 AM, Miklos Szeredi <miklos@szeredi=
-.hu> wrote:
-> > > >> >> > On Tue, Dec 6, 2016 at 12:24 AM, Andreas Gr=C3=BCnbacher
-> > > >> >> > <andreas.gruenbacher@gmail.com> wrote:
-> > > >> >> >> 2016-12-06 0:19 GMT+01:00 Andreas Gr=C3=BCnbacher <andreas.g=
-ruenbacher@gmail.com>:
-> > > >> >> >
-> > > >> >> >>> It's not hard to come up with a heuristic that determines i=
-f a
-> > > >> >> >>> system.nfs4_acl value is equivalent to a file mode, and to =
-ignore the
-> > > >> >> >>> attribute in that case. (The file mode is transmitted in it=
-s own
-> > > >> >> >>> attribute already, so actually converting .) That way, over=
-layfs could
-> > > >> >> >>> still fail copying up files that have an actual ACL. It's s=
-till an
-> > > >> >> >>> ugly hack ...
-> > > >> >> >>
-> > > >> >> >> Actually, that kind of heuristic would make sense in the NFS=
- client
-> > > >> >> >> which could then hide the "system.nfs4_acl" attribute.
-> >
-> > I still think the nfs client could make this problem mostly go away by
-> > not exposing "system.nfs4_acl" xattrs when the acl is equivalent to
-> > the file mode. The richacl patches contain a workable abgorithm for
-> > that. The problem would remain for files that have an actual NFS4 ACL,
-> > which just cannot be mapped to a file mode or to POSIX ACLs in the
-> > general case, as well as for files that have a POSIX ACL. Mapping NFS4
-> > ACL that used to be a POSIX ACL back to POSIX ACLs could be achieved
-> > in many cases as well, but the code would be quite messy. A better way
-> > seems to be to using a filesystem that doesn't support POSIX ACLs in
-> > the first place. Unfortunately, xfs doesn't allow turning off POSIX
-> > ACLs, for example.
->
-> How about mounting NFSv4 with noacl?  That should fix this issue, right?
+On Thu, May 02, 2019 at 05:08:14PM +0200, Andreas Grünbacher wrote:
+> You'll still see permissions that differ from what the filesystem
+> enforces, and copy-up would change that behavior.
 
-You'll still see permissions that differ from what the filesystem
-enforces, and copy-up would change that behavior.
+That's always true, and this issue isn't really specific to NFSv4 ACLs
+(or ACLs at all), it already exists with just mode bits.  The client
+doesn't know how principals may be mapped on the server, doesn't know
+group membership, etc.
 
-Andreas
+That's the usual model, anyway.  Permissions are almost entirely the
+server's responsibility, and we just provide a few attributes to set/get
+those server-side permissions.
 
-> Thanks,
-> Miklos
->
->
->
-> >
-> > Andreas
-> >
-> > > >> >> > Even simpler would be if knfsd didn't send the attribute if n=
-ot
-> > > >> >> > necessary.  Looks like there's code actively creating the nfs=
-4_acl on
-> > > >> >> > the wire even if the filesystem had none:
-> > > >> >> >
-> > > >> >> >     pacl =3D get_acl(inode, ACL_TYPE_ACCESS);
-> > > >> >> >     if (!pacl)
-> > > >> >> >         pacl =3D posix_acl_from_mode(inode->i_mode, GFP_KERNE=
-L);
-> > > >> >> >
-> > > >> >> > What's the point?
-> > > >> >>
-> > > >> >> That's how the protocol is specified.
-> > > >> >
-> > > >> > Yep, even if we could make that change to nfsd it wouldn't help =
-the
-> > > >> > client with the large number of other servers that are out there
-> > > >> > (including older knfsd's).
-> > > >> >
-> > > >> > --b.
-> > > >> >
-> > > >> >> (I'm not saying that that's very helpful.)
-> > > >> >>
-> > > >> >> Andreas
-> > > >>
-> > > >> Hi everyone.....
-> > > >>  I have a customer facing this problem, and so stumbled onto the e=
-mail
-> > > >>  thread.
-> > > >>  Unfortunately it didn't resolve anything.  Maybe I can help kick =
-things
-> > > >>  along???
-> > > >>
-> > > >>  The core problem here is that NFSv4 and ext4 use different and la=
-rgely
-> > > >>  incompatible ACL implementations.  There is no way to accurately
-> > > >>  translate from one to the other in general (common specific examp=
-les
-> > > >>  can be converted).
-> > > >>
-> > > >>  This means that either:
-> > > >>    1/ overlayfs cannot use ext4 for upper and NFS for lower (or vi=
-ce
-> > > >>       versa) or
-> > > >>    2/ overlayfs need to accept that sometimes it cannot copy ACLs,=
- and
-> > > >>       that is OK.
-> > > >>
-> > > >>  Silently not copying the ACLs is probably not a good idea as it m=
-ight
-> > > >>  result in inappropriate permissions being given away.
-> > > >
-> > > > For example? permissions given away to do what?
-> > > > Note that ovl_permission() only check permissions of *mounter*
-> > > > to read the lower NFS file and ovl_open()/ovl_read_iter() access
-> > > > the lower file with *mounter* credentials.
-> > > >
-> > > > I might be wrong, but seems to me that once admin mounted
-> > > > overlayfs with lower NFS, NFS ACLs are not being enforced at all
-> > > > even before copy up.
-> > >
-> > > I guess it is just as well that copy-up fails then - if the lower-lev=
-el
-> > > permission check is being ignored.
-> > >
-> > > >
-> > > >> So if the
-> > > >>  sysadmin wants this (and some clearly do), they need a way to
-> > > >>  explicitly say "I accept the risk".  If only standard Unix permis=
-sions
-> > > >>  are used, there is no risk, so this seems reasonable.
-> > > >>
-> > > >>  So I would like to propose a new option for overlayfs
-> > > >>     nocopyupacl:   when overlayfs is copying a file (or directory =
-etc)
-> > > >>         from the lower filesystem to the upper filesystem, it does=
- not
-> > > >>         copy extended attributes with the "system." prefix.  These=
- are
-> > > >>         used for storing ACL information and this is sometimes not
-> > > >>         compatible between different filesystem types (e.g. ext4 a=
-nd
-> > > >>         NFSv4).  Standard Unix ownership permission flags (rwx) *a=
-re*
-> > > >>         copied so this option does not risk giving away inappropri=
-ate
-> > > >>         permissions unless the lowerfs uses unusual ACLs.
-> > > >>
-> > > >>
-> > > >
-> > > > I am wondering if it would make more sense for nfs to register a
-> > > > security_inode_copy_up_xattr() hook.
-> > > > That is the mechanism that prevents copying up other security.*
-> > > > xattrs?
-> > >
-> > > No, I don't think that would make sense.
-> > > Support some day support for nfs4 acls were added to ext4 (not a tota=
-lly
-> > > ridiculous suggestion).  We would then want NFS to allow it's ACLs to=
- be
-> > > copied up.
-> > >
-> > > Thanks,
-> > > NeilBrown
-> > >
-> > >
-> > > >
-> > > > Thanks,
-> > > > Amir.
+The overlayfs/NFS case is different, I think: the nfs filesystem may be
+just a static read-only template for a filesystem that's only ever used
+by clients, and for all I know maybe permissions should only be
+interpreted on the client side in that case.
+
+--b.
