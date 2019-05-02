@@ -1,98 +1,62 @@
-From: Amir Goldstein <amir73il@gmail.com>
+From: "J. R. Okajima" <hooanon05g@gmail.com>
 Subject: Re: [PATCH] OVL: add honoracl=off mount option.
-Date: Thu, 2 May 2019 07:46:24 -0400
-Message-ID: <CAOQ4uxgREaBznnr-jNy-g1oX2gH6dXx9zj8wrs5JBJuVMv_9Pw@mail.gmail.com>
-References: <CAJfpeguwUtRWRGmNmimNp-FXzWqMCCQMb24iWPu0w_J0_rOnnw@mail.gmail.com>
- <20161205151933.GA17517@fieldses.org> <CAJfpegtpkavseTFLspaC7svbvHRq-0-7jvyh63+DK5iWHTGnaQ@mail.gmail.com>
- <20161205162559.GB17517@fieldses.org> <CAHpGcMKHjic6L+J0qvMYNG9hVCcDO1hEpx4BiEk0ZCKDV39BmA@mail.gmail.com>
- <266c571f-e4e2-7c61-5ee2-8ece0c2d06e9@web.de> <CAHpGcMKmtppfn7PVrGKEEtVphuLV=YQ2GDYKOqje4ZANhzSgDw@mail.gmail.com>
- <CAHpGcMKjscfhmrAhwGes0ag2xTkbpFvCO6eiLL_rHz87XE-ZmA@mail.gmail.com>
- <CAJfpegvRFGOc31gVuYzanzWJ=mYSgRgtAaPhYNxZwHin3Wc0Gw@mail.gmail.com>
- <CAHc6FU4JQ28BFZE9_8A06gtkMvvKDzFmw9=ceNPYvnMXEimDMw@mail.gmail.com>
- <20161206185806.GC31197@fieldses.org> <87bm0l4nra.fsf@notabene.neil.brown.name>
- <8736lx4goa.fsf@notabene.neil.brown.name>
+Date: Thu, 02 May 2019 22:47:08 +0900
+Message-ID: <2200.1556804828@jrobl>
+References: <CAJfpeguwUtRWRGmNmimNp-FXzWqMCCQMb24iWPu0w_J0_rOnnw@mail.gmail.com> <20161205151933.GA17517@fieldses.org> <CAJfpegtpkavseTFLspaC7svbvHRq-0-7jvyh63+DK5iWHTGnaQ@mail.gmail.com> <20161205162559.GB17517@fieldses.org> <CAHpGcMKHjic6L+J0qvMYNG9hVCcDO1hEpx4BiEk0ZCKDV39BmA@mail.gmail.com> <266c571f-e4e2-7c61-5ee2-8ece0c2d06e9@web.de> <CAHpGcMKmtppfn7PVrGKEEtVphuLV=YQ2GDYKOqje4ZANhzSgDw@mail.gmail.com> <CAHpGcMKjscfhmrAhwGes0ag2xTkbpFvCO6eiLL_rHz87XE-ZmA@mail.gmail.com> <CAJfpegvRFGOc31gVuYzanzWJ=mYSgRgtAaPhYNxZwHin3Wc0Gw@mail.gmail.com> <CAHc6FU4JQ28BFZE9_8A06gtkMvvKDzFmw9=ceNPYvnMXEimDMw@mail.gmail.com> <20161206185806.GC31197@fieldses.org> <87bm0l4nra.fsf@notabene.neil.brown.name> <8736lx4goa.fsf@notabene.neil.brown.name>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="us-ascii"
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <8736lx4goa.fsf@notabene.neil.brown.name>
+Content-ID: <2199.1556804828.1@jrobl>
 Sender: linux-kernel-owner@vger.kernel.org
 To: NeilBrown <neilb@suse.com>
-Cc: "J. Bruce Fields" <bfields@fieldses.org>, Andreas Gruenbacher <agruenba@redhat.com>, Miklos Szeredi <miklos@szeredi.hu>, =?UTF-8?Q?Andreas_Gr=C3=BCnbacher?= <andreas.gruenbacher@gmail.com>, Patrick Plagwitz <Patrick_Plagwitz@web.de>, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>, Linux NFS list <linux-nfs@vger.kernel.org>, Linux FS-devel Mailing List <linux-fsdevel@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Cc: "J. Bruce Fields" <bfields@fieldses.org>, Andreas Gruenbacher <agruenba@redhat.com>, Miklos Szeredi <miklos@szeredi.hu>, Andreas =?utf-8?Q?Gr=C3=BCnbacher?= <andreas.gruenbacher@gmail.com>, Patrick Plagwitz <Patrick_Plagwitz@web.de>, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>, Linux NFS list <linux-nfs@vger.kernel.org>, Linux FS-devel Mailing List <linux-fsdevel@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-unionfs@vger.kernel.org
 
-On Thu, May 2, 2019 at 12:35 AM NeilBrown <neilb@suse.com> wrote:
->
->
+NeilBrown:
 > If the upper and lower layers use incompatible ACL formats, it is not
 > possible to copy the ACL xttr from one to the other, so overlayfs
 > cannot work with them.
 > This happens particularly with NFSv4 which uses system.nfs4_acl, and
 > ext4 which uses system.posix_acl_access.
->
-> If all ACLs actually make to Unix permissions, then there is no need
-> to copy up the ACLs, but overlayfs cannot determine this.
->
-> So allow the sysadmin it assert that ACLs are not needed with a mount
-> option
->   honoracl=off
-> This causes the ACLs to not be copied, so filesystems with different
-> ACL formats can be overlaid together.
->
-> Signed-off-by: NeilBrown <neilb@suse.com>
-> ---
->  Documentation/filesystems/overlayfs.txt | 24 ++++++++++++++++++++++++
->  fs/overlayfs/copy_up.c                  |  9 +++++++--
->  fs/overlayfs/dir.c                      |  2 +-
->  fs/overlayfs/overlayfs.h                |  2 +-
->  fs/overlayfs/ovl_entry.h                |  1 +
->  fs/overlayfs/super.c                    | 15 +++++++++++++++
->  6 files changed, 49 insertions(+), 4 deletions(-)
->
-> diff --git a/Documentation/filesystems/overlayfs.txt b/Documentation/filesystems/overlayfs.txt
-> index eef7d9d259e8..7ad675940c93 100644
-> --- a/Documentation/filesystems/overlayfs.txt
-> +++ b/Documentation/filesystems/overlayfs.txt
-> @@ -245,6 +245,30 @@ filesystem - future operations on the file are barely noticed by the
->  overlay filesystem (though an operation on the name of the file such as
->  rename or unlink will of course be noticed and handled).
->
-> +ACL copy-up
-> +-----------
-> +
-> +When a file that only exists on the lower layer is modified it needs
-> +to be copied up to the upper layer.  This means copying the metadata
-> +and (usually) the data (though see "Metadata only copy up" below).
-> +One part of the metadata can be problematic: the ACLs.
-> +
-> +Now all filesystems support ACLs, and when they do they don't all use
-> +the same format.  A significant conflict appears between POSIX acls
-> +used on many local filesystems, and NFSv4 ACLs used with NFSv4.  There
-> +two formats are, in general, not inter-convertible.
-> +
-> +If a site only uses regular Unix permissions (Read, Write, eXecute by
-> +User, Group and Other), then as these permissions are compatible with
-> +all ACLs, there is no need to copy ACLs.  overlayfs cannot determine
-> +if this is the case itself.
-> +
-> +For this reason, overlayfs supports a mount option "honoracl=off"
-> +which causes ACLs, any "system." extended attribute, on the lower
-> +layer to be ignored and, particularly, not copied to the upper later.
-> +This allows NFSv4 to be overlaid with a local filesystem, but should
-> +only be used if the only access controls used on the filesystem are
-> +Unix permission bits.
->
 
-I don't know. On the one hand "system." is not only ACLs.
-On the other hand, "honoracl=off" is not the same as -o noacl,
-but it sure sounds the same.
+FYI,
+Aufs had met the same problem many years ago, and I introduced some
+options called ICEX (Ignore Copyup Error on Xattr).
 
-I'd be a lot more comfortable with "ignore_xattrs=system.nfs4_acl"
-argument takes a comma separated list of xattr prefixes to ignore.
+(from the design doc in aufs)
+----------------------------------------
+For example, the src branch supports ACL but the dst branch doesn't
+because the dst branch may natively un-support it or temporary
+un-support it due to "noacl" mount option. Of course, the dst branch fs
+may NOT return an error even if the XATTR is not supported. It is
+totally up to the branch fs.
 
-ovl_is_private_xattr() can be generalized to ovl_is_ignored_xattr(),
-going over a blacklist of N>=1 which will also be called from
-ovl_can_list(), because there is no point in listing the ACLs that
-are ignored. right?
+Anyway when the aufs internal copy-up gets an error from the dst branch
+fs, then aufs tries removing the just copied entry and returns the error
+to the userspace. The worst case of this situation will be all copy-up
+will fail.
 
-Thanks,
-Amir.
+For the copy-up operation, there two basic approaches.
+- copy the specified XATTR only (by category above), and return the
+  error unconditionally if it happens.
+- copy all XATTR, and ignore the error on the specified category only.
+
+In order to support XATTR and to implement the correct behaviour, aufs
+chooses the latter approach and introduces some new branch attributes,
+"icexsec", "icexsys", "icextr", "icexusr", and "icexoth".
+They correspond to the XATTR namespaces (see above). Additionally, to be
+convenient, "icex" is also provided which means all "icex*" attributes
+are set (here the word "icex" stands for "ignore copy-error on XATTR").
+
+The meaning of these attributes is to ignore the error from setting
+XATTR on that branch.
+Note that aufs tries copying all XATTR unconditionally, and ignores the
+error from the dst branch according to the specified attributes.
+----------------------------------------
+
+But recent nfs4 got changed its behaviour around ACL, and it didn't pass
+my local tests.  I had posted about that, but got no reply.
+
+
+J. R. Okajima
