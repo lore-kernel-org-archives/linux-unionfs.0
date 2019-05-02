@@ -1,62 +1,146 @@
-From: "J. R. Okajima" <hooanon05g@gmail.com>
-Subject: Re: [PATCH] OVL: add honoracl=off mount option.
-Date: Thu, 02 May 2019 22:47:08 +0900
-Message-ID: <2200.1556804828@jrobl>
-References: <CAJfpeguwUtRWRGmNmimNp-FXzWqMCCQMb24iWPu0w_J0_rOnnw@mail.gmail.com> <20161205151933.GA17517@fieldses.org> <CAJfpegtpkavseTFLspaC7svbvHRq-0-7jvyh63+DK5iWHTGnaQ@mail.gmail.com> <20161205162559.GB17517@fieldses.org> <CAHpGcMKHjic6L+J0qvMYNG9hVCcDO1hEpx4BiEk0ZCKDV39BmA@mail.gmail.com> <266c571f-e4e2-7c61-5ee2-8ece0c2d06e9@web.de> <CAHpGcMKmtppfn7PVrGKEEtVphuLV=YQ2GDYKOqje4ZANhzSgDw@mail.gmail.com> <CAHpGcMKjscfhmrAhwGes0ag2xTkbpFvCO6eiLL_rHz87XE-ZmA@mail.gmail.com> <CAJfpegvRFGOc31gVuYzanzWJ=mYSgRgtAaPhYNxZwHin3Wc0Gw@mail.gmail.com> <CAHc6FU4JQ28BFZE9_8A06gtkMvvKDzFmw9=ceNPYvnMXEimDMw@mail.gmail.com> <20161206185806.GC31197@fieldses.org> <87bm0l4nra.fsf@notabene.neil.brown.name> <8736lx4goa.fsf@notabene.neil.brown.name>
+From: Andreas Gruenbacher <agruenba@redhat.com>
+Subject: Re: [PATCH] overlayfs: ignore empty NFSv4 ACLs in ext4 upperdir
+Date: Thu, 2 May 2019 16:04:50 +0200
+Message-ID: <CAHc6FU52OCCGUnHXOCFTv1diP_5i4yZvF6fAth9=aynwS+twQg@mail.gmail.com>
+References: <CAJfpeguwUtRWRGmNmimNp-FXzWqMCCQMb24iWPu0w_J0_rOnnw@mail.gmail.com>
+ <20161205151933.GA17517@fieldses.org> <CAJfpegtpkavseTFLspaC7svbvHRq-0-7jvyh63+DK5iWHTGnaQ@mail.gmail.com>
+ <20161205162559.GB17517@fieldses.org> <CAHpGcMKHjic6L+J0qvMYNG9hVCcDO1hEpx4BiEk0ZCKDV39BmA@mail.gmail.com>
+ <266c571f-e4e2-7c61-5ee2-8ece0c2d06e9@web.de> <CAHpGcMKmtppfn7PVrGKEEtVphuLV=YQ2GDYKOqje4ZANhzSgDw@mail.gmail.com>
+ <CAHpGcMKjscfhmrAhwGes0ag2xTkbpFvCO6eiLL_rHz87XE-ZmA@mail.gmail.com>
+ <CAJfpegvRFGOc31gVuYzanzWJ=mYSgRgtAaPhYNxZwHin3Wc0Gw@mail.gmail.com>
+ <CAHc6FU4JQ28BFZE9_8A06gtkMvvKDzFmw9=ceNPYvnMXEimDMw@mail.gmail.com>
+ <20161206185806.GC31197@fieldses.org> <87bm0l4nra.fsf@notabene.neil.brown.name>
+ <CAOQ4uxjYEjqbLcVYoUaPzp-jqY_3tpPBhO7cE7kbq63XrPRQLQ@mail.gmail.com> <875zqt4igg.fsf@notabene.neil.brown.name>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <8736lx4goa.fsf@notabene.neil.brown.name>
-Content-ID: <2199.1556804828.1@jrobl>
+In-Reply-To: <875zqt4igg.fsf@notabene.neil.brown.name>
 Sender: linux-kernel-owner@vger.kernel.org
 To: NeilBrown <neilb@suse.com>
-Cc: "J. Bruce Fields" <bfields@fieldses.org>, Andreas Gruenbacher <agruenba@redhat.com>, Miklos Szeredi <miklos@szeredi.hu>, Andreas =?utf-8?Q?Gr=C3=BCnbacher?= <andreas.gruenbacher@gmail.com>, Patrick Plagwitz <Patrick_Plagwitz@web.de>, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>, Linux NFS list <linux-nfs@vger.kernel.org>, Linux FS-devel Mailing List <linux-fsdevel@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Cc: Amir Goldstein <amir73il@gmail.com>, "J. Bruce Fields" <bfields@fieldses.org>, Miklos Szeredi <miklos@szeredi.hu>, =?UTF-8?Q?Andreas_Gr=C3=BCnbacher?= <andreas.gruenbacher@gmail.com>, Patrick Plagwitz <Patrick_Plagwitz@web.de>, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>, Linux NFS list <linux-nfs@vger.kernel.org>, Linux FS-devel Mailing List <linux-fsdevel@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-unionfs@vger.kernel.org
 
-NeilBrown:
-> If the upper and lower layers use incompatible ACL formats, it is not
-> possible to copy the ACL xttr from one to the other, so overlayfs
-> cannot work with them.
-> This happens particularly with NFSv4 which uses system.nfs4_acl, and
-> ext4 which uses system.posix_acl_access.
+On Thu, 2 May 2019 at 05:57, NeilBrown <neilb@suse.com> wrote:
+> On Wed, May 01 2019, Amir Goldstein wrote:
+> > On Wed, May 1, 2019 at 10:03 PM NeilBrown <neilb@suse.com> wrote:
+> >> On Tue, Dec 06 2016, J. Bruce Fields wrote:
+> >> > On Tue, Dec 06, 2016 at 02:18:31PM +0100, Andreas Gruenbacher wrote:
+> >> >> On Tue, Dec 6, 2016 at 11:08 AM, Miklos Szeredi <miklos@szeredi.hu> wrote:
+> >> >> > On Tue, Dec 6, 2016 at 12:24 AM, Andreas Grünbacher
+> >> >> > <andreas.gruenbacher@gmail.com> wrote:
+> >> >> >> 2016-12-06 0:19 GMT+01:00 Andreas Grünbacher <andreas.gruenbacher@gmail.com>:
+> >> >> >
+> >> >> >>> It's not hard to come up with a heuristic that determines if a
+> >> >> >>> system.nfs4_acl value is equivalent to a file mode, and to ignore the
+> >> >> >>> attribute in that case. (The file mode is transmitted in its own
+> >> >> >>> attribute already, so actually converting .) That way, overlayfs could
+> >> >> >>> still fail copying up files that have an actual ACL. It's still an
+> >> >> >>> ugly hack ...
+> >> >> >>
+> >> >> >> Actually, that kind of heuristic would make sense in the NFS client
+> >> >> >> which could then hide the "system.nfs4_acl" attribute.
 
-FYI,
-Aufs had met the same problem many years ago, and I introduced some
-options called ICEX (Ignore Copyup Error on Xattr).
+I still think the nfs client could make this problem mostly go away by
+not exposing "system.nfs4_acl" xattrs when the acl is equivalent to
+the file mode. The richacl patches contain a workable abgorithm for
+that. The problem would remain for files that have an actual NFS4 ACL,
+which just cannot be mapped to a file mode or to POSIX ACLs in the
+general case, as well as for files that have a POSIX ACL. Mapping NFS4
+ACL that used to be a POSIX ACL back to POSIX ACLs could be achieved
+in many cases as well, but the code would be quite messy. A better way
+seems to be to using a filesystem that doesn't support POSIX ACLs in
+the first place. Unfortunately, xfs doesn't allow turning off POSIX
+ACLs, for example.
 
-(from the design doc in aufs)
-----------------------------------------
-For example, the src branch supports ACL but the dst branch doesn't
-because the dst branch may natively un-support it or temporary
-un-support it due to "noacl" mount option. Of course, the dst branch fs
-may NOT return an error even if the XATTR is not supported. It is
-totally up to the branch fs.
+Andreas
 
-Anyway when the aufs internal copy-up gets an error from the dst branch
-fs, then aufs tries removing the just copied entry and returns the error
-to the userspace. The worst case of this situation will be all copy-up
-will fail.
-
-For the copy-up operation, there two basic approaches.
-- copy the specified XATTR only (by category above), and return the
-  error unconditionally if it happens.
-- copy all XATTR, and ignore the error on the specified category only.
-
-In order to support XATTR and to implement the correct behaviour, aufs
-chooses the latter approach and introduces some new branch attributes,
-"icexsec", "icexsys", "icextr", "icexusr", and "icexoth".
-They correspond to the XATTR namespaces (see above). Additionally, to be
-convenient, "icex" is also provided which means all "icex*" attributes
-are set (here the word "icex" stands for "ignore copy-error on XATTR").
-
-The meaning of these attributes is to ignore the error from setting
-XATTR on that branch.
-Note that aufs tries copying all XATTR unconditionally, and ignores the
-error from the dst branch according to the specified attributes.
-----------------------------------------
-
-But recent nfs4 got changed its behaviour around ACL, and it didn't pass
-my local tests.  I had posted about that, but got no reply.
-
-
-J. R. Okajima
+> >> >> > Even simpler would be if knfsd didn't send the attribute if not
+> >> >> > necessary.  Looks like there's code actively creating the nfs4_acl on
+> >> >> > the wire even if the filesystem had none:
+> >> >> >
+> >> >> >     pacl = get_acl(inode, ACL_TYPE_ACCESS);
+> >> >> >     if (!pacl)
+> >> >> >         pacl = posix_acl_from_mode(inode->i_mode, GFP_KERNEL);
+> >> >> >
+> >> >> > What's the point?
+> >> >>
+> >> >> That's how the protocol is specified.
+> >> >
+> >> > Yep, even if we could make that change to nfsd it wouldn't help the
+> >> > client with the large number of other servers that are out there
+> >> > (including older knfsd's).
+> >> >
+> >> > --b.
+> >> >
+> >> >> (I'm not saying that that's very helpful.)
+> >> >>
+> >> >> Andreas
+> >>
+> >> Hi everyone.....
+> >>  I have a customer facing this problem, and so stumbled onto the email
+> >>  thread.
+> >>  Unfortunately it didn't resolve anything.  Maybe I can help kick things
+> >>  along???
+> >>
+> >>  The core problem here is that NFSv4 and ext4 use different and largely
+> >>  incompatible ACL implementations.  There is no way to accurately
+> >>  translate from one to the other in general (common specific examples
+> >>  can be converted).
+> >>
+> >>  This means that either:
+> >>    1/ overlayfs cannot use ext4 for upper and NFS for lower (or vice
+> >>       versa) or
+> >>    2/ overlayfs need to accept that sometimes it cannot copy ACLs, and
+> >>       that is OK.
+> >>
+> >>  Silently not copying the ACLs is probably not a good idea as it might
+> >>  result in inappropriate permissions being given away.
+> >
+> > For example? permissions given away to do what?
+> > Note that ovl_permission() only check permissions of *mounter*
+> > to read the lower NFS file and ovl_open()/ovl_read_iter() access
+> > the lower file with *mounter* credentials.
+> >
+> > I might be wrong, but seems to me that once admin mounted
+> > overlayfs with lower NFS, NFS ACLs are not being enforced at all
+> > even before copy up.
+>
+> I guess it is just as well that copy-up fails then - if the lower-level
+> permission check is being ignored.
+>
+> >
+> >> So if the
+> >>  sysadmin wants this (and some clearly do), they need a way to
+> >>  explicitly say "I accept the risk".  If only standard Unix permissions
+> >>  are used, there is no risk, so this seems reasonable.
+> >>
+> >>  So I would like to propose a new option for overlayfs
+> >>     nocopyupacl:   when overlayfs is copying a file (or directory etc)
+> >>         from the lower filesystem to the upper filesystem, it does not
+> >>         copy extended attributes with the "system." prefix.  These are
+> >>         used for storing ACL information and this is sometimes not
+> >>         compatible between different filesystem types (e.g. ext4 and
+> >>         NFSv4).  Standard Unix ownership permission flags (rwx) *are*
+> >>         copied so this option does not risk giving away inappropriate
+> >>         permissions unless the lowerfs uses unusual ACLs.
+> >>
+> >>
+> >
+> > I am wondering if it would make more sense for nfs to register a
+> > security_inode_copy_up_xattr() hook.
+> > That is the mechanism that prevents copying up other security.*
+> > xattrs?
+>
+> No, I don't think that would make sense.
+> Support some day support for nfs4 acls were added to ext4 (not a totally
+> ridiculous suggestion).  We would then want NFS to allow it's ACLs to be
+> copied up.
+>
+> Thanks,
+> NeilBrown
+>
+>
+> >
+> > Thanks,
+> > Amir.
