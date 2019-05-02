@@ -1,99 +1,123 @@
-From: syzbot <syzbot+bb1836a212e69f8e201a@syzkaller.appspotmail.com>
-Subject: WARNING in ovl_rename
-Date: Wed, 01 May 2019 08:56:06 -0700
-Message-ID: <0000000000002492cc0587d58ed8@google.com>
+From: NeilBrown <neilb@suse.com>
+Subject: Re: [PATCH] overlayfs: ignore empty NFSv4 ACLs in ext4 upperdir
+Date: Thu, 02 May 2019 12:02:33 +1000
+Message-ID: <87bm0l4nra.fsf@notabene.neil.brown.name>
+References: <CAJfpeguwUtRWRGmNmimNp-FXzWqMCCQMb24iWPu0w_J0_rOnnw@mail.gmail.com> <20161205151933.GA17517@fieldses.org> <CAJfpegtpkavseTFLspaC7svbvHRq-0-7jvyh63+DK5iWHTGnaQ@mail.gmail.com> <20161205162559.GB17517@fieldses.org> <CAHpGcMKHjic6L+J0qvMYNG9hVCcDO1hEpx4BiEk0ZCKDV39BmA@mail.gmail.com> <266c571f-e4e2-7c61-5ee2-8ece0c2d06e9@web.de> <CAHpGcMKmtppfn7PVrGKEEtVphuLV=YQ2GDYKOqje4ZANhzSgDw@mail.gmail.com> <CAHpGcMKjscfhmrAhwGes0ag2xTkbpFvCO6eiLL_rHz87XE-ZmA@mail.gmail.com> <CAJfpegvRFGOc31gVuYzanzWJ=mYSgRgtAaPhYNxZwHin3Wc0Gw@mail.gmail.com> <CAHc6FU4JQ28BFZE9_8A06gtkMvvKDzFmw9=ceNPYvnMXEimDMw@mail.gmail.com> <20161206185806.GC31197@fieldses.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed; delsp=yes
+Content-Type: multipart/signed; boundary="=-=-=";
+        micalg=pgp-sha256; protocol="application/pgp-signature"
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20161206185806.GC31197@fieldses.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: amir73il@gmail.com, linux-kernel@vger.kernel.org, linux-unionfs@vger.kernel.org, miklos@szeredi.hu, mszeredi@redhat.com, syzkaller-bugs@googlegroups.com
+To: "J. Bruce Fields" <bfields@fieldses.org>, Andreas Gruenbacher <agruenba@redhat.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, Andreas =?utf-8?Q?Gr=C3=BCnbacher?= <andreas.gruenbacher@gmail.com>, Patrick Plagwitz <Patrick_Plagwitz@web.de>, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>, Linux NFS list <linux-nfs@vger.kernel.org>, Linux FS-devel Mailing List <linux-fsdevel@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-unionfs@vger.kernel.org
 
-Hello,
+--=-=-=
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 
-syzbot found the following crash on:
+On Tue, Dec 06 2016, J. Bruce Fields wrote:
 
-HEAD commit:    037904a2 Merge branch 'x86-urgent-for-linus' of git://git...
-git tree:       upstream
-console output: https://syzkaller.appspot.com/x/log.txt?x=11f58ecca00000
-kernel config:  https://syzkaller.appspot.com/x/.config?x=a42d110b47dd6b36
-dashboard link: https://syzkaller.appspot.com/bug?extid=bb1836a212e69f8e201a
-compiler:       gcc (GCC) 9.0.0 20181231 (experimental)
-syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=15ba097ca00000
-C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=10be1ceca00000
+> On Tue, Dec 06, 2016 at 02:18:31PM +0100, Andreas Gruenbacher wrote:
+>> On Tue, Dec 6, 2016 at 11:08 AM, Miklos Szeredi <miklos@szeredi.hu> wrot=
+e:
+>> > On Tue, Dec 6, 2016 at 12:24 AM, Andreas Gr=C3=BCnbacher
+>> > <andreas.gruenbacher@gmail.com> wrote:
+>> >> 2016-12-06 0:19 GMT+01:00 Andreas Gr=C3=BCnbacher <andreas.gruenbache=
+r@gmail.com>:
+>> >
+>> >>> It's not hard to come up with a heuristic that determines if a
+>> >>> system.nfs4_acl value is equivalent to a file mode, and to ignore the
+>> >>> attribute in that case. (The file mode is transmitted in its own
+>> >>> attribute already, so actually converting .) That way, overlayfs cou=
+ld
+>> >>> still fail copying up files that have an actual ACL. It's still an
+>> >>> ugly hack ...
+>> >>
+>> >> Actually, that kind of heuristic would make sense in the NFS client
+>> >> which could then hide the "system.nfs4_acl" attribute.
+>> >
+>> > Even simpler would be if knfsd didn't send the attribute if not
+>> > necessary.  Looks like there's code actively creating the nfs4_acl on
+>> > the wire even if the filesystem had none:
+>> >
+>> >     pacl =3D get_acl(inode, ACL_TYPE_ACCESS);
+>> >     if (!pacl)
+>> >         pacl =3D posix_acl_from_mode(inode->i_mode, GFP_KERNEL);
+>> >
+>> > What's the point?
+>>=20
+>> That's how the protocol is specified.
+>
+> Yep, even if we could make that change to nfsd it wouldn't help the
+> client with the large number of other servers that are out there
+> (including older knfsd's).
+>
+> --b.
+>
+>> (I'm not saying that that's very helpful.)
+>>=20
+>> Andreas
 
-The bug was bisected to:
+Hi everyone.....
+ I have a customer facing this problem, and so stumbled onto the email
+ thread.
+ Unfortunately it didn't resolve anything.  Maybe I can help kick things
+ along???
 
-commit 6eaf011144af10cad34c0d46f82e50d382c8e926
-Author: Amir Goldstein <amir73il@gmail.com>
-Date:   Thu Oct 12 16:03:04 2017 +0000
+ The core problem here is that NFSv4 and ext4 use different and largely
+ incompatible ACL implementations.  There is no way to accurately
+ translate from one to the other in general (common specific examples
+ can be converted).
 
-     ovl: fix EIO from lookup of non-indexed upper
+ This means that either:
+   1/ overlayfs cannot use ext4 for upper and NFS for lower (or vice
+      versa) or
+   2/ overlayfs need to accept that sometimes it cannot copy ACLs, and
+      that is OK.
 
-bisection log:  https://syzkaller.appspot.com/x/bisect.txt?x=1430a262a00000
-final crash:    https://syzkaller.appspot.com/x/report.txt?x=1630a262a00000
-console output: https://syzkaller.appspot.com/x/log.txt?x=1230a262a00000
+ Silently not copying the ACLs is probably not a good idea as it might
+ result in inappropriate permissions being given away.  So if the
+ sysadmin wants this (and some clearly do), they need a way to
+ explicitly say "I accept the risk".  If only standard Unix permissions
+ are used, there is no risk, so this seems reasonable.
 
-IMPORTANT: if you fix the bug, please add the following tag to the commit:
-Reported-by: syzbot+bb1836a212e69f8e201a@syzkaller.appspotmail.com
-Fixes: 6eaf011144af ("ovl: fix EIO from lookup of non-indexed upper")
-
-overlayfs: workdir and upperdir must reside under the same mount
-WARNING: CPU: 0 PID: 8323 at fs/overlayfs/dir.c:1176  
-ovl_rename+0x159c/0x1940 fs/overlayfs/dir.c:1176
-Kernel panic - not syncing: panic_on_warn set ...
-CPU: 0 PID: 8323 Comm: syz-executor156 Not tainted 5.1.0-rc6+ #89
-Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS  
-Google 01/01/2011
-Call Trace:
-  __dump_stack lib/dump_stack.c:77 [inline]
-  dump_stack+0x172/0x1f0 lib/dump_stack.c:113
-  panic+0x2cb/0x65c kernel/panic.c:214
-  __warn.cold+0x20/0x45 kernel/panic.c:571
-  report_bug+0x263/0x2b0 lib/bug.c:186
-  fixup_bug arch/x86/kernel/traps.c:179 [inline]
-  fixup_bug arch/x86/kernel/traps.c:174 [inline]
-  do_error_trap+0x11b/0x200 arch/x86/kernel/traps.c:272
-  do_invalid_op+0x37/0x50 arch/x86/kernel/traps.c:291
-  invalid_op+0x14/0x20 arch/x86/entry/entry_64.S:973
-RIP: 0010:ovl_rename+0x159c/0x1940 fs/overlayfs/dir.c:1176
-Code: 80 00 00 00 e8 45 f7 19 ff 8b b4 24 80 00 00 00 85 f6 0f 85 cd f6 ff  
-ff e8 b1 f5 19 ff 4c 89 f7 e9 a5 f6 ff ff e8 a4 f5 19 ff <0f> 0b e9 a4 f3  
-ff ff e8 98 f5 19 ff 48 8b 54 24 70 b8 ff ff 37 00
-RSP: 0018:ffff88809366fad8 EFLAGS: 00010293
-RAX: ffff88808bb781c0 RBX: 0000000000000000 RCX: ffff888095efc6e0
-RDX: 0000000000000000 RSI: ffffffff8256970c RDI: ffff888095efc738
-RBP: ffff88809366fbf8 R08: ffff88808bb781c0 R09: 0000000000000008
-R10: ffffed1015d05bc7 R11: ffff8880ae82de3b R12: ffff88808b22f160
-R13: 0000000000000000 R14: ffff888095efc580 R15: ffff88809366fb90
-  vfs_rename+0x803/0x1ac0 fs/namei.c:4475
-  do_renameat2+0xb0f/0xc40 fs/namei.c:4625
-  __do_sys_rename fs/namei.c:4671 [inline]
-  __se_sys_rename fs/namei.c:4669 [inline]
-  __x64_sys_rename+0x61/0x80 fs/namei.c:4669
-  do_syscall_64+0x103/0x610 arch/x86/entry/common.c:290
-  entry_SYSCALL_64_after_hwframe+0x49/0xbe
-RIP: 0033:0x446d89
-Code: e8 ec b9 02 00 48 83 c4 18 c3 0f 1f 80 00 00 00 00 48 89 f8 48 89 f7  
-48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff  
-ff 0f 83 db 06 fc ff c3 66 2e 0f 1f 84 00 00 00 00
-RSP: 002b:00007f8603ed4d98 EFLAGS: 00000246 ORIG_RAX: 0000000000000052
-RAX: ffffffffffffffda RBX: 00000000006dcc28 RCX: 0000000000446d89
-RDX: 0000000000446d89 RSI: 0000000020000140 RDI: 00000000200000c0
-RBP: 00000000006dcc20 R08: 0000000000000000 R09: 0000000000000000
-R10: 0000000000000000 R11: 0000000000000246 R12: 00000000006dcc2c
-R13: 69647265776f6c2c R14: 30656c69662f2e3d R15: 7269647265707075
-Kernel Offset: disabled
-Rebooting in 86400 seconds..
+ So I would like to propose a new option for overlayfs
+    nocopyupacl:   when overlayfs is copying a file (or directory etc)
+        from the lower filesystem to the upper filesystem, it does not
+        copy extended attributes with the "system." prefix.  These are
+        used for storing ACL information and this is sometimes not
+        compatible between different filesystem types (e.g. ext4 and
+        NFSv4).  Standard Unix ownership permission flags (rwx) *are*
+        copied so this option does not risk giving away inappropriate
+        permissions unless the lowerfs uses unusual ACLs.
 
 
----
-This bug is generated by a bot. It may contain errors.
-See https://goo.gl/tpsmEJ for more information about syzbot.
-syzbot engineers can be reached at syzkaller@googlegroups.com.
+ Miklos: would you find that acceptable?
 
-syzbot will keep track of this bug report. See:
-https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
-For information about bisection process see: https://goo.gl/tpsmEJ#bisection
-syzbot can test patches for this bug, for details see:
-https://goo.gl/tpsmEJ#testing-patches
+Thanks,
+NeilBrown
+
+=20=20=20
+
+--=-=-=
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEG8Yp69OQ2HB7X0l6Oeye3VZigbkFAlzKT7oACgkQOeye3VZi
+gblpcxAAhkgtWxI/Ufbcn5G3QjgOMkoI4zADgCE+YIUasdaU4RlHK6bUBg4JjuFO
+HzT4v1gazEc6KAgosxUfGqpmVxqAe5vuopibRv3mlGOfOOE7LzETrmICivK03D7P
+JQ4jINpExBf6I+5ZetGM6geV1XCcsrm1YayDRDbT0VlMgSJPUKIv5lE6OVMFIhrh
+T4USmDiuTelW6Ihe2ikHHpQVBDZ1x8TUKX0BuypLGMi0+KmBaoRhjHde/aT4X1jE
+g4xWZqaejNIrYwMKM/VK5D8QZICZQEq/oJwfXmMwSU3qbqH2I4yKfQR/mVJyffqg
+ylOoB7/8Q1SmPFhjn/xxLOxBts89LPMoLZFvZ41pCArGKvcury55j4caXXey8OUo
+Ly2mCByvpu38FLP5XqhuCrHXcQyWWTB57C4LYa3GNyEWQiJAGWMPuC3Jr33e91im
+KLd4LxEpN0iwJQucN9spcCVffZZciJ+YLfphHDXY7gISoTjny8TaxhtmT5VApMwt
+ZVAhm79MVQ4k4jAyVWCae0LwUGtHDGq6tbYiyCXwpsv6ItL0iYEYrYSNsu4rSIDm
+QAVzmMYfi/N8fcWoq/Q5MSi0SPDsxvgmtHEB+k8G+YYKyJx577mTio6AWEO5cO9y
+Nlh/kw0MBzTRpED8NzLMxQR6H1sncXzl17BOxNvLXxnrUzq9/gk=
+=/YHz
+-----END PGP SIGNATURE-----
+--=-=-=--
