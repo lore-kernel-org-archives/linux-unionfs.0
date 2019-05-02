@@ -1,56 +1,43 @@
-From: Randy Dunlap <rdunlap@infradead.org>
+From: Amir Goldstein <amir73il@gmail.com>
 Subject: Re: [PATCH] OVL: add honoracl=off mount option.
-Date: Wed, 1 May 2019 22:08:19 -0700
-Message-ID: <9ada42cb-8783-49bb-fd0d-31e7fb7dacf4@infradead.org>
+Date: Thu, 2 May 2019 07:46:24 -0400
+Message-ID: <CAOQ4uxgREaBznnr-jNy-g1oX2gH6dXx9zj8wrs5JBJuVMv_9Pw@mail.gmail.com>
 References: <CAJfpeguwUtRWRGmNmimNp-FXzWqMCCQMb24iWPu0w_J0_rOnnw@mail.gmail.com>
- <20161205151933.GA17517@fieldses.org>
- <CAJfpegtpkavseTFLspaC7svbvHRq-0-7jvyh63+DK5iWHTGnaQ@mail.gmail.com>
- <20161205162559.GB17517@fieldses.org>
- <CAHpGcMKHjic6L+J0qvMYNG9hVCcDO1hEpx4BiEk0ZCKDV39BmA@mail.gmail.com>
- <266c571f-e4e2-7c61-5ee2-8ece0c2d06e9@web.de>
- <CAHpGcMKmtppfn7PVrGKEEtVphuLV=YQ2GDYKOqje4ZANhzSgDw@mail.gmail.com>
+ <20161205151933.GA17517@fieldses.org> <CAJfpegtpkavseTFLspaC7svbvHRq-0-7jvyh63+DK5iWHTGnaQ@mail.gmail.com>
+ <20161205162559.GB17517@fieldses.org> <CAHpGcMKHjic6L+J0qvMYNG9hVCcDO1hEpx4BiEk0ZCKDV39BmA@mail.gmail.com>
+ <266c571f-e4e2-7c61-5ee2-8ece0c2d06e9@web.de> <CAHpGcMKmtppfn7PVrGKEEtVphuLV=YQ2GDYKOqje4ZANhzSgDw@mail.gmail.com>
  <CAHpGcMKjscfhmrAhwGes0ag2xTkbpFvCO6eiLL_rHz87XE-ZmA@mail.gmail.com>
  <CAJfpegvRFGOc31gVuYzanzWJ=mYSgRgtAaPhYNxZwHin3Wc0Gw@mail.gmail.com>
  <CAHc6FU4JQ28BFZE9_8A06gtkMvvKDzFmw9=ceNPYvnMXEimDMw@mail.gmail.com>
- <20161206185806.GC31197@fieldses.org>
- <87bm0l4nra.fsf@notabene.neil.brown.name>
+ <20161206185806.GC31197@fieldses.org> <87bm0l4nra.fsf@notabene.neil.brown.name>
  <8736lx4goa.fsf@notabene.neil.brown.name>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <8736lx4goa.fsf@notabene.neil.brown.name>
-Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: NeilBrown <neilb@suse.com>, "J. Bruce Fields" <bfields@fieldses.org>, Andreas Gruenbacher <agruenba@redhat.com>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, =?UTF-8?Q?Andreas_Gr=c3=bcnbacher?= <andreas.gruenbacher@gmail.com>, Patrick Plagwitz <Patrick_Plagwitz@web.de>, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>, Linux NFS list <linux-nfs@vger.kernel.org>, Linux FS-devel Mailing List <linux-fsdevel@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: NeilBrown <neilb@suse.com>
+Cc: "J. Bruce Fields" <bfields@fieldses.org>, Andreas Gruenbacher <agruenba@redhat.com>, Miklos Szeredi <miklos@szeredi.hu>, =?UTF-8?Q?Andreas_Gr=C3=BCnbacher?= <andreas.gruenbacher@gmail.com>, Patrick Plagwitz <Patrick_Plagwitz@web.de>, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>, Linux NFS list <linux-nfs@vger.kernel.org>, Linux FS-devel Mailing List <linux-fsdevel@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-unionfs@vger.kernel.org
 
-Hi Neil,
-
-On 5/1/19 9:35 PM, NeilBrown wrote:
-> 
+On Thu, May 2, 2019 at 12:35 AM NeilBrown <neilb@suse.com> wrote:
+>
+>
 > If the upper and lower layers use incompatible ACL formats, it is not
 > possible to copy the ACL xttr from one to the other, so overlayfs
-
-                           attr (?)
-
 > cannot work with them.
 > This happens particularly with NFSv4 which uses system.nfs4_acl, and
 > ext4 which uses system.posix_acl_access.
-> 
+>
 > If all ACLs actually make to Unix permissions, then there is no need
-
-                       map (?)
-
 > to copy up the ACLs, but overlayfs cannot determine this.
-> 
+>
 > So allow the sysadmin it assert that ACLs are not needed with a mount
 > option
 >   honoracl=off
 > This causes the ACLs to not be copied, so filesystems with different
 > ACL formats can be overlaid together.
-> 
+>
 > Signed-off-by: NeilBrown <neilb@suse.com>
 > ---
 >  Documentation/filesystems/overlayfs.txt | 24 ++++++++++++++++++++++++
@@ -60,7 +47,7 @@ On 5/1/19 9:35 PM, NeilBrown wrote:
 >  fs/overlayfs/ovl_entry.h                |  1 +
 >  fs/overlayfs/super.c                    | 15 +++++++++++++++
 >  6 files changed, 49 insertions(+), 4 deletions(-)
-> 
+>
 > diff --git a/Documentation/filesystems/overlayfs.txt b/Documentation/filesystems/overlayfs.txt
 > index eef7d9d259e8..7ad675940c93 100644
 > --- a/Documentation/filesystems/overlayfs.txt
@@ -68,7 +55,7 @@ On 5/1/19 9:35 PM, NeilBrown wrote:
 > @@ -245,6 +245,30 @@ filesystem - future operations on the file are barely noticed by the
 >  overlay filesystem (though an operation on the name of the file such as
 >  rename or unlink will of course be noticed and handled).
->  
+>
 > +ACL copy-up
 > +-----------
 > +
@@ -78,17 +65,8 @@ On 5/1/19 9:35 PM, NeilBrown wrote:
 > +One part of the metadata can be problematic: the ACLs.
 > +
 > +Now all filesystems support ACLs, and when they do they don't all use
-
-   Not
-
 > +the same format.  A significant conflict appears between POSIX acls
-
-                                                                  ACLs
-
 > +used on many local filesystems, and NFSv4 ACLs used with NFSv4.  There
-
-                                                                    These (or the)
-
 > +two formats are, in general, not inter-convertible.
 > +
 > +If a site only uses regular Unix permissions (Read, Write, eXecute by
@@ -102,11 +80,19 @@ On 5/1/19 9:35 PM, NeilBrown wrote:
 > +This allows NFSv4 to be overlaid with a local filesystem, but should
 > +only be used if the only access controls used on the filesystem are
 > +Unix permission bits.
->  
->  Multiple lower layers
->  ---------------------
+>
 
+I don't know. On the one hand "system." is not only ACLs.
+On the other hand, "honoracl=off" is not the same as -o noacl,
+but it sure sounds the same.
 
+I'd be a lot more comfortable with "ignore_xattrs=system.nfs4_acl"
+argument takes a comma separated list of xattr prefixes to ignore.
 
--- 
-~Randy
+ovl_is_private_xattr() can be generalized to ovl_is_ignored_xattr(),
+going over a blacklist of N>=1 which will also be called from
+ovl_can_list(), because there is no point in listing the ACLs that
+are ignored. right?
+
+Thanks,
+Amir.
