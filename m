@@ -1,29 +1,46 @@
 MIME-Version: 1.0
-Date: Mon, 6 May 2019 07:57:08 -0400
-References: <20190227113211.28006-1-amir73il@gmail.com>
-In-Reply-To: <20190227113211.28006-1-amir73il@gmail.com>
-Message-ID: <CAJfpegsD8DWW4d8yFxbL57cUHehE8AoiDU-OyB-FCMZ6+3nONA@mail.gmail.com>
-Subject: Re: [PATCH v2] ovl: support stacked SEEK_HOLE/SEEK_DATA
+Date: Mon, 6 May 2019 07:58:42 -0400
+References: <20190424163950.14123-1-amir73il@gmail.com>
+	<CADJHv_tDBdHNBqrO_uARQhMZYEeadPcoshtXFVnvpcVpOFGdhQ@mail.gmail.com>
+In-Reply-To: <CADJHv_tDBdHNBqrO_uARQhMZYEeadPcoshtXFVnvpcVpOFGdhQ@mail.gmail.com>
+Message-ID: <CAJfpegvCtm1rEZ2FyGM1xxJ8Ee-5Q_dr6PCt_WBNvMdJLiTcaw@mail.gmail.com>
+Subject: Re: [PATCH v2] ovl: do not generate duplicate fsnotify events for
+ "fake" path
 From: Miklos Szeredi <miklos@szeredi.hu>
 Content-Type: text/plain; charset="UTF-8"
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: Eddie Horng <eddiehorng.tw@gmail.com>, overlayfs <linux-unionfs@vger.kernel.org>
+To: Murphy Zhou <jencce.kernel@gmail.com>
+Cc: Amir Goldstein <amir73il@gmail.com>, Jan Kara <jack@suse.cz>, Linux-Fsdevel <linux-fsdevel@vger.kernel.org>, overlayfs <linux-unionfs@vger.kernel.org>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-On Wed, Feb 27, 2019 at 7:32 AM Amir Goldstein <amir73il@gmail.com> wrote:
+On Sat, Apr 27, 2019 at 11:09 PM Murphy Zhou <jencce.kernel@gmail.com> wrote:
 >
-> Overlay file f_pos is the master copy that is preserved
-> through copy up and modified on read/write, but only real
-> fs knows how to SEEK_HOLE/SEEK_DATA and real fs may impose
-> limitations that are more strict than ->s_maxbytes for specific
-> files, so we use the real file to perform seeks.
+> On Thu, Apr 25, 2019 at 12:39 AM Amir Goldstein <amir73il@gmail.com> wrote:
+> >
+> > Overlayfs "fake" path is used for stacked file operations on
+> > underlying files.  Operations on files with "fake" path must not
+> > generate fsnotify events with path data, because those events have
+> > already been generated at overlayfs layer and because the reported
+> > event->fd for fanotify marks on underlying inode/filesystem will
+> > have the wrong path (the overlayfs path).
+> >
+> > Link: https://lore.kernel.org/linux-fsdevel/20190423065024.12695-1-jencce.kernel@gmail.com/
+> > Reported-by: Murphy Zhou <jencce.kernel@gmail.com>
+> > Fixes: d1d04ef8572b ("ovl: stack file ops")
+> > Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+> > ---
+> >
+> > Miklos,
+> >
+> > V1 was addressed to Jan and was trying to teach fsnotify about fake path.
+> > V2 leaves fsnotify subsystem alone and just sets the FMODE_NONOTIFY
+> > flag on realfile. All the rest of the complications with mark mounts
+> > are irrelevant.
+> >
+> > Same extended fanotify06 that was used to verify V1 also verified V2.
 >
-> We do not call real fs for SEEK_CUR:0 query and for SEEK_SET:0
-> requests.
+> Thanks for fixing this!
 >
-> Fixes: d1d04ef8572b ("ovl: stack file ops")
-> Reported-by: Eddie Horng <eddiehorng.tw@gmail.com>
-> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+> My overlayfs tests on this patch looks good.
 
 Thanks, applied.
 
