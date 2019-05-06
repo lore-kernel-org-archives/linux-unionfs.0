@@ -1,44 +1,30 @@
-Return-Path: <linux-unionfs-owner@vger.kernel.org>
-Received: from out30-133.freemail.mail.aliyun.com ([115.124.30.133]:36127 "EHLO
-        out30-133.freemail.mail.aliyun.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726636AbfEEJ0u (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Sun, 5 May 2019 05:26:50 -0400
-From: Jiufei Xue <jiufei.xue@linux.alibaba.com>
-Subject: =?UTF-8?Q?=5bbug_report=5d_chattr_+i_succeed_in_docker_which_don?=
- =?UTF-8?Q?=e2=80=98t_have_the_capability_CAP=5fLINUX=5fIMMUTABLE?=
-Message-ID: <3393f96c-e9a7-2882-f210-81a9c332a138@linux.alibaba.com>
-Date: Sun, 5 May 2019 17:26:44 +0800
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
-Sender: linux-unionfs-owner@vger.kernel.org
-To: miklos@szeredi.hu, linux-unionfs@vger.kernel.org
+Date: Mon, 6 May 2019 07:57:08 -0400
+References: <20190227113211.28006-1-amir73il@gmail.com>
+In-Reply-To: <20190227113211.28006-1-amir73il@gmail.com>
+Message-ID: <CAJfpegsD8DWW4d8yFxbL57cUHehE8AoiDU-OyB-FCMZ6+3nONA@mail.gmail.com>
+Subject: Re: [PATCH v2] ovl: support stacked SEEK_HOLE/SEEK_DATA
+From: Miklos Szeredi <miklos@szeredi.hu>
+Content-Type: text/plain; charset="UTF-8"
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: Eddie Horng <eddiehorng.tw@gmail.com>, overlayfs <linux-unionfs@vger.kernel.org>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-Hi,
+On Wed, Feb 27, 2019 at 7:32 AM Amir Goldstein <amir73il@gmail.com> wrote:
+>
+> Overlay file f_pos is the master copy that is preserved
+> through copy up and modified on read/write, but only real
+> fs knows how to SEEK_HOLE/SEEK_DATA and real fs may impose
+> limitations that are more strict than ->s_maxbytes for specific
+> files, so we use the real file to perform seeks.
+>
+> We do not call real fs for SEEK_CUR:0 query and for SEEK_SET:0
+> requests.
+>
+> Fixes: d1d04ef8572b ("ovl: stack file ops")
+> Reported-by: Eddie Horng <eddiehorng.tw@gmail.com>
+> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 
-We are using kernel v4.19.24 and have found that it can be successful
-when we set IMMUTABLE_FL flag to a file in docker while the docker
-didn't have the capability CAP_LINUX_IMMUTABLE.
+Thanks, applied.
 
-# touch tmp
-# chattr +i tmp
-# lsattr tmp
-----i--------e-- tmp
-
-We have tested this case in older version such as 4.9 and it returned
--EPERM as expected.
-
-We found that the commit d1d04ef8572b ("ovl: stack file ops") and
-dab5ca8fd9dd ("ovl: add lsattr/chattr support") implemented chattr
-operations on a regular overlay file. ovl_real_ioctl() overridden the
-current process's subjective credentials with ofs->creator_cred which
-have the capability CAP_LINUX_IMMUTABLE so that it will return success
-in vfs_ioctl()->cap_capable().
-
-I wondered is this kind of mechanism of overlayfs or a bug?
-
-Thanks,
-Jiufei
+Miklos
