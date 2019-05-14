@@ -1,41 +1,24 @@
-From: Miklos Szeredi <miklos@szeredi.hu>
-Subject: [GIT PULL] overlayfs update for 5.2
-Date: Tue, 14 May 2019 09:55:55 +0200
-Message-ID: <20190514075555.GB7850@veci.piliscsaba.redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: pr-tracker-bot@kernel.org
+Subject: Re: [GIT PULL] overlayfs update for 5.2
+Date: Tue, 14 May 2019 17:05:04 +0000
+Message-ID: <155785350425.31213.11521686199689755194.pr-tracker-bot@kernel.org>
+References: <20190514075555.GB7850@veci.piliscsaba.redhat.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
+In-Reply-To: <20190514075555.GB7850@veci.piliscsaba.redhat.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 
-Hi Linus,
+The pull request you sent on Tue, 14 May 2019 09:55:55 +0200:
 
-Please pull from:
+> git://git.kernel.org/pub/scm/linux/kernel/git/mszeredi/vfs.git tags/ovl-update-5.2
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/mszeredi/vfs.git tags/ovl-update-5.2
+has been merged into torvalds/linux.git:
+https://git.kernel.org/torvalds/c/7e9890a3500d95c01511a4c45b7e7192dfa47ae2
 
-Just bug fixes in this small update.
+Thank you!
 
-Thanks,
-Miklos
-
----
-Amir Goldstein (4):
-      ovl: fix missing upper fs freeze protection on copy up for ioctl
-      ovl: support stacked SEEK_HOLE/SEEK_DATA
-      ovl: do not generate duplicate fsnotify events for "fake" path
-      ovl: relax WARN_ON() for overlapping layers use case
-
-Jiufei Xue (1):
-      ovl: check the capability before cred overridden
-
----
- fs/overlayfs/copy_up.c   |   6 +--
- fs/overlayfs/dir.c       |   2 +-
- fs/overlayfs/file.c      | 133 +++++++++++++++++++++++++++++++++++++----------
- fs/overlayfs/inode.c     |   3 +-
- fs/overlayfs/overlayfs.h |   2 +-
- 5 files changed, 113 insertions(+), 33 deletions(-)
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.wiki.kernel.org/userdoc/prtracker
