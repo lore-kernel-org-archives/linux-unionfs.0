@@ -1,9 +1,10 @@
-Return-Path: <metan@suse.de>
-Date: Fri, 24 May 2019 10:59:47 +0200
-From: Cyril Hrubis <chrubis@suse.cz>
+Return-Path: <pvorel@suse.cz>
+Date: Thu, 23 May 2019 22:01:26 +0200
+From: Petr Vorel <pvorel@suse.cz>
 Subject: Re: [LTP] [PATCH] [COMMITTED] syscalls/fcntl33: Fix typo overlapfs
  -> overlayfs
-Message-ID: <20190524085947.GA11508@rei.lan>
+Message-ID: <20190523200125.GA20104@dell5510>
+Reply-To: Petr Vorel <pvorel@suse.cz>
 References: <20190523134549.23103-1-chrubis@suse.cz>
  <CAOQ4uxhHVG9f1njmPgei8-QO4UEivXbxoHkqKi4f50XN6Gup9A@mail.gmail.com>
 MIME-Version: 1.0
@@ -11,13 +12,18 @@ Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 In-Reply-To: <CAOQ4uxhHVG9f1njmPgei8-QO4UEivXbxoHkqKi4f50XN6Gup9A@mail.gmail.com>
 To: Amir Goldstein <amir73il@gmail.com>
-Cc: ltp@lists.linux.it, overlayfs <linux-unionfs@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>, Petr Vorel <pvorel@suse.cz>, "J. Bruce Fields" <bfields@fieldses.org>
+Cc: Cyril Hrubis <chrubis@suse.cz>, ltp@lists.linux.it, overlayfs <linux-unionfs@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>, "J. Bruce Fields" <bfields@fieldses.org>, Li Wang <liwang@redhat.com>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-Hi!
+Hi,
+
+> On Thu, May 23, 2019 at 4:45 PM Cyril Hrubis <chrubis@suse.cz> wrote:
+
+> > Signed-off-by: Cyril Hrubis <chrubis@suse.cz>
+> > ---
 > >  testcases/kernel/syscalls/fcntl/fcntl33.c | 2 +-
 > >  1 file changed, 1 insertion(+), 1 deletion(-)
-> >
+
 > > diff --git a/testcases/kernel/syscalls/fcntl/fcntl33.c b/testcases/kernel/syscalls/fcntl/fcntl33.c
 > > index 43dc5a2af..627823c5c 100644
 > > --- a/testcases/kernel/syscalls/fcntl/fcntl33.c
@@ -28,37 +34,29 @@ Hi!
 > >                         tst_res(TINFO | TTERRNO,
 > > -                               "fcntl(F_SETLEASE, F_WRLCK) failed on overlapfs as expected");
 > > +                               "fcntl(F_SETLEASE, F_WRLCK) failed on overlayfs as expected");
-> 
-> You have 3 more of this typo in fcntl tests.
 
-Ah, right, I should have done git grep before commiting this. I will fix
-that right away.
+> You have 3 more of this typo in fcntl tests.
+Thanks for report, Amir. Cyril will fix it tomorrow I guess.
 
 > If you ask me, silencing this error seems wrong.
 > While the error is *expected* it is still a broken interface.
 > It may be just a matter of terminology, but I am reading this message as:
-> 
+
 > TEST PASSED: Overlayfs failed as expected
-> 
+
 > While it really should be more along the lines of:
-> 
+
 > TEST SKIPPED: Overlayfs doesn't support write leased
-
-Agreed, I'm always against working around kernel bugs/deficiencies in
-tests, unfortunately that usually conflicts with QA deparenments that
-wants to skip known problems and have everything green. So we usually
-end up somewhere in a middle ground.
-
-Also as usuall, do you care enough to send a patch? :-)
++1, so besides changed phrasing use TCONF instead of TINFO in the error message.
 
 > Besides, this problem looks quite easy to fix.
 > I think Bruce was already looking at changing the implementation of
 > check_conflicting_open(), so if the test is not failing, nobody is going to
 > nudge for a fix...
 
-Once it's fixed we can change that to a failure for new enough kernels,
-old ones should probably stay with SKIPPED/TCONF.
+> Thanks,
+> Amir.
 
--- 
-Cyril Hrubis
-chrubis@suse.cz
+
+Kind regards,
+Petr
