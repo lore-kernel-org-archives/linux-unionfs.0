@@ -1,28 +1,64 @@
-MIME-Version: 1.0
-Date: Mon, 27 May 2019 10:04:11 +0200
-References: <20190526062825.23059-1-amir73il@gmail.com>
-In-Reply-To: <20190526062825.23059-1-amir73il@gmail.com>
-Message-ID: <CAJfpegvsN4qUXOpRGwv-0PkE8tjy6dGNCtekfbFaJviiDQd8Xg@mail.gmail.com>
-Subject: Re: [PATCH] ovl: support the FS_IOC_FS[SG]ETXATTR ioctls
-From: Miklos Szeredi <miklos@szeredi.hu>
-Content-Type: text/plain; charset="UTF-8"
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: Dave Chinner <david@fromorbit.com>, overlayfs <linux-unionfs@vger.kernel.org>, linux-xfs <linux-xfs@vger.kernel.org>
+Return-Path: <amir73il@gmail.com>
+Return-Path: <amir73il@gmail.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Subject: [PATCH] ovl: support the FS_IOC_FS[SG]ETXATTR ioctls
+Date: Sun, 26 May 2019 09:28:25 +0300
+Message-Id: <20190526062825.23059-1-amir73il@gmail.com>
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: Dave Chinner <david@fromorbit.com>, linux-unionfs@vger.kernel.org, linux-xfs@vger.kernel.org
 List-ID: <linux-unionfs@vger.kernel.org>
 
-On Sun, May 26, 2019 at 8:28 AM Amir Goldstein <amir73il@gmail.com> wrote:
->
-> They are the extended version of FS_IOC_FS[SG]ETFLAGS ioctls.
-> xfs_io -c "chattr <flags>" uses the new ioctls for setting flags.
->
-> This used to work in kernel pre v4.19, before stacked file ops
-> introduced the ovl_ioctl whitelist.
->
-> Reported-by: Dave Chinner <david@fromorbit.com>
-> Fixes: d1d04ef8572b ("ovl: stack file ops")
-> Cc: <stable@vger.kernel.org> # v4.19
-> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+They are the extended version of FS_IOC_FS[SG]ETFLAGS ioctls.
+xfs_io -c "chattr <flags>" uses the new ioctls for setting flags.
 
-Thanks,  applied.
+This used to work in kernel pre v4.19, before stacked file ops
+introduced the ovl_ioctl whitelist.
 
-Miklos
+Reported-by: Dave Chinner <david@fromorbit.com>
+Fixes: d1d04ef8572b ("ovl: stack file ops")
+Cc: <stable@vger.kernel.org> # v4.19
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+---
+ fs/overlayfs/file.c | 9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
+
+diff --git a/fs/overlayfs/file.c b/fs/overlayfs/file.c
+index 540a8b845145..340a6ad45914 100644
+--- a/fs/overlayfs/file.c
++++ b/fs/overlayfs/file.c
+@@ -426,7 +426,8 @@ static unsigned int ovl_get_inode_flags(struct inode *inode)
+ 	return ovl_iflags;
+ }
+ 
+-static long ovl_ioctl_set_flags(struct file *file, unsigned long arg)
++static long ovl_ioctl_set_flags(struct file *file, unsigned int cmd,
++				unsigned long arg)
+ {
+ 	long ret;
+ 	struct inode *inode = file_inode(file);
+@@ -456,7 +457,7 @@ static long ovl_ioctl_set_flags(struct file *file, unsigned long arg)
+ 	if (ret)
+ 		goto unlock;
+ 
+-	ret = ovl_real_ioctl(file, FS_IOC_SETFLAGS, arg);
++	ret = ovl_real_ioctl(file, cmd, arg);
+ 
+ 	ovl_copyflags(ovl_inode_real(inode), inode);
+ unlock:
+@@ -474,11 +475,13 @@ static long ovl_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
+ 
+ 	switch (cmd) {
+ 	case FS_IOC_GETFLAGS:
++	case FS_IOC_FSGETXATTR:
+ 		ret = ovl_real_ioctl(file, cmd, arg);
+ 		break;
+ 
+ 	case FS_IOC_SETFLAGS:
+-		ret = ovl_ioctl_set_flags(file, arg);
++	case FS_IOC_FSSETXATTR:
++		ret = ovl_ioctl_set_flags(file, cmd, arg);
+ 		break;
+ 
+ 	default:
+-- 
+2.17.1
