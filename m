@@ -1,50 +1,84 @@
-Return-Path: <amir73il@gmail.com>
 MIME-Version: 1.0
-References: <20190328153829.729-1-amir73il@gmail.com> <CAJfpegt08nTeDs4+3svOjGAF+mQEP+Dm-amLz9nDWOACqtAUMQ@mail.gmail.com>
-In-Reply-To: <CAJfpegt08nTeDs4+3svOjGAF+mQEP+Dm-amLz9nDWOACqtAUMQ@mail.gmail.com>
-From: Amir Goldstein <amir73il@gmail.com>
-Date: Wed, 8 May 2019 14:03:18 +0300
-Message-ID: <CAOQ4uxgfuENW7gqsr_Q=Ne8u=PR-oyJ5N6Te9C+L2-14UDK4Cg@mail.gmail.com>
-Subject: Re: [PATCH] ovl: relax WARN_ON() for overlapping layers use case
+Date: Mon, 27 May 2019 17:00:44 +0200
+References: <20190418144208.21832-1-amir73il@gmail.com>
+In-Reply-To: <20190418144208.21832-1-amir73il@gmail.com>
+Message-ID: <CAJfpegvCcShc9DNJtrOxmtAtChMgvYT-yDbiZS5wBQgusnMhHg@mail.gmail.com>
+Subject: Re: [PATCH v2] ovl: detect overlapping layers
+From: Miklos Szeredi <miklos@szeredi.hu>
 Content-Type: text/plain; charset="UTF-8"
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: overlayfs <linux-unionfs@vger.kernel.org>, syzkaller-bugs <syzkaller-bugs@googlegroups.com>
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: Vivek Goyal <vgoyal@redhat.com>, overlayfs <linux-unionfs@vger.kernel.org>, syzkaller-bugs <syzkaller-bugs@googlegroups.com>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-On Sat, Mar 30, 2019 at 10:45 PM Miklos Szeredi <miklos@szeredi.hu> wrote:
+On Thu, Apr 18, 2019 at 4:42 PM Amir Goldstein <amir73il@gmail.com> wrote:
 >
-> On Thu, Mar 28, 2019 at 4:38 PM Amir Goldstein <amir73il@gmail.com> wrote:
-> >
-> > This nasty little syzbot repro:
-> > https://syzkaller.appspot.com/x/repro.syz?x=12c7a94f400000
-> >
-> > Creates overlay mounts where the same directory is both in upper
-> > and lower layers. Simplified example:
-> >
-> >   mkdir foo work
-> >   mount -t overlay none foo -o"lowerdir=.,upperdir=foo,workdir=work"
+> Overlapping overlay layers are not supported and can cause unexpected
+> behavior, but overlayfs does not currently check or warn about these
+> configurations.
 >
-> Shouldn't the mount fail in this case?
+> User is not supposed to specify the same directory for upper and
+> lower dirs or for different lower layers and user is not supposed to
+> specify directories that are descendants of each other for overlay
+> layers, but that is exactly what this zysbot repro did:
 >
-> Does it make any sense to allow overlapping layers?
+>     https://syzkaller.appspot.com/x/repro.syz?x=12c7a94f400000
 >
-> If doing the check the dumb way, the number of d_ancestor() calls
-> would increase quadratically with the number of layers, but I think
-> it's possible to do it in linear time if necessary.
+> Moving layer root directories into other layers while overlayfs
+> is mounted could also result in unexpected behavior.
 >
+> This commit places "traps" in the overlay inode hash table.
+> Those traps are dummy overlay inodes that are hashed by the layers
+> root inodes.
+>
+> On mount, the hash table trap entries are used to verify that overlay
+> layers are not overlapping.  While at it, we also verify that overlay
+> layers are not overlapping with directories "in-use" by other overlay
+> instances as upperdir/workdir.
+>
+> On lookup, the trap entries are used to verify that overlay layers
+> root inodes have not been moved into other layers after mount.
+>
+> Some examples:
+>
+> $ ./run --ov --samefs -s
+> ...
+> ( mkdir -p base/upper/0/u base/upper/0/w base/lower lower upper mnt
+>   mount -o bind base/lower lower
+>   mount -o bind base/upper upper
+>   mount -t overlay none mnt ...
+>         -o lowerdir=lower,upperdir=upper/0/u,workdir=upper/0/w)
+>
+> $ umount mnt
+> $ mount -t overlay none mnt ...
+>         -o lowerdir=base,upperdir=upper/0/u,workdir=upper/0/w
+>
+>   [   94.434900] overlayfs: overlapping upperdir path
+>   mount: mount overlay on mnt failed: Too many levels of symbolic links
+>
+> $ mount -t overlay none mnt ...
+>         -o lowerdir=upper/0/u,upperdir=upper/0/u,workdir=upper/0/w
+>
+>   [  151.350132] overlayfs: conflicting lowerdir path
+>   mount: none is already mounted or mnt busy
+>
+> $ mount -t overlay none mnt ...
+>         -o lowerdir=lower:lower/a,upperdir=upper/0/u,workdir=upper/0/w
+>
+>   [  201.205045] overlayfs: overlapping lowerdir path
+>   mount: mount overlay on mnt failed: Too many levels of symbolic links
+>
+> $ mount -t overlay none mnt ...
+>         -o lowerdir=lower,upperdir=upper/0/u,workdir=upper/0/w
+> $ mv base/upper/0/ base/lower/
+> $ find mnt/0
+>   mnt/0
+>   mnt/0/w
+>   find: 'mnt/0/w/work': Too many levels of symbolic links
+>   find: 'mnt/0/u': Too many levels of symbolic links
+>
+> Reported-by: syzbot+9c69c282adc4edd2b540@syzkaller.appspotmail.com
+> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 
-Miklos,
+Applied, thanks.
 
-I saw you did not pick this one for next.
-IMO, regardless of preventing mount with overlapping layers,
-the WARN_ON() is inappropriate and this patch that replaces it with
-pr_warn_reatelimited() has merit on its own.
-
-WARN_ON() should reflect a case that we don't think is possible
-in current code and as API constrain assertion.
-Neither is the case here.
-We know that it *is* possible to hit this case, even with checking overlapping
-layers on mount and user does get an error when we hit the case.
-
-Thanks,
-Amir.
+Miklos
