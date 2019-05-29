@@ -1,79 +1,69 @@
 Return-Path: <amir73il@gmail.com>
-Return-Path: <amir73il@gmail.com>
+MIME-Version: 1.0
+References: <20190529103120.GA15021@mwanda>
+In-Reply-To: <20190529103120.GA15021@mwanda>
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH v3 2/4] overlay: fix _repair_scratch_fs
-Date: Tue, 28 May 2019 18:17:21 +0300
-Message-Id: <20190528151723.12525-3-amir73il@gmail.com>
-In-Reply-To: <20190528151723.12525-1-amir73il@gmail.com>
-References: <20190528151723.12525-1-amir73il@gmail.com>
-To: Eryu Guan <guaneryu@gmail.com>
-Cc: zhangyi <yi.zhang@huawei.com>, Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, fstests@vger.kernel.org
+Date: Wed, 29 May 2019 13:42:54 +0300
+Message-ID: <CAOQ4uxjZi-XF17+GT1iQYEHmr18AiZpTjL1M_HhGPaLhtSvBxQ@mail.gmail.com>
+Subject: Re: [bug report] ovl: detect overlapping layers
+Content-Type: text/plain; charset="UTF-8"
+To: Dan Carpenter <dan.carpenter@oracle.com>, Miklos Szeredi <miklos@szeredi.hu>
+Cc: overlayfs <linux-unionfs@vger.kernel.org>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-_repair_scratch_fs did not do the right thing for overlay.
-Implement and call _repair_overlay_scratch_fs to repair
-overlay filesystem and then fall through to repair base filesystem.
+On Wed, May 29, 2019 at 1:31 PM Dan Carpenter <dan.carpenter@oracle.com> wrote:
+>
+> Hello Amir Goldstein,
+>
+> The patch 0e7f2cccb42a: "ovl: detect overlapping layers" from Apr 18,
+> 2019, leads to the following static checker warning:
+>
+>         fs/overlayfs/super.c:998 ovl_setup_trap()
+>         warn: passing a valid pointer to 'PTR_ERR'
+>
+> fs/overlayfs/super.c
+>    991  static int ovl_setup_trap(struct super_block *sb, struct dentry *dir,
+>    992                            struct inode **ptrap, const char *name)
+>    993  {
+>    994          struct inode *trap;
+>    995          int err;
+>    996
+>    997          trap = ovl_get_trap_inode(sb, dir);
+>    998          err = PTR_ERR(trap);
+>    999          if (IS_ERR(trap) && err == -ELOOP) {
+>   1000                  pr_err("overlayfs: conflicting %s path\n", name);
+>   1001                  return err;
+>   1002          }
+>   1003
+>   1004          *ptrap = trap;
+>   1005          return 0;
+>   1006  }
+>
+> The warning message is wrong but the code is also wrong.  The
+> ovl_get_trap_inode() can return ERR_PTR(-ENOMEM) and that would lead to
+> and Oops when we try to call iput() on it.
+>
 
-The only tests currentrly calling _repair_scratch_fs on a
-./check -overlay run are generic/330 generic/332 in case the
-base fs supports reflink. The rest of the tests calling
-_repair_scratch_fs require that $SCRATCH_DEV is a block device.
+Right, thank you for spotting this!
 
-Suggested-by: zhangyi (F) <yi.zhang@huawei.com>
-Signed-off-by: Amir Goldstein <amir73il@gmail.com>
----
- common/overlay | 17 +++++++++++++++++
- common/rc      | 13 +++++++++++--
- 2 files changed, 28 insertions(+), 2 deletions(-)
+Miklos,
 
-diff --git a/common/overlay b/common/overlay
-index b526f24d..a71c2035 100644
---- a/common/overlay
-+++ b/common/overlay
-@@ -320,3 +320,20 @@ _check_overlay_scratch_fs()
- 		"$OVL_BASE_SCRATCH_DEV" "$OVL_BASE_SCRATCH_MNT" \
- 		$OVL_BASE_MOUNT_OPTIONS $SELINUX_MOUNT_OPTIONS
- }
-+
-+_repair_overlay_scratch_fs()
-+{
-+	_overlay_fsck_dirs $OVL_BASE_SCRATCH_MNT/$OVL_LOWER \
-+		$OVL_BASE_SCRATCH_MNT/$OVL_UPPER \
-+		$OVL_BASE_SCRATCH_MNT/$OVL_WORK -y
-+	local res=$?
-+	case $res in
-+	$FSCK_OK|$FSCK_NONDESTRUCT)
-+		res=0
-+		;;
-+	*)
-+		_dump_err2 "fsck.overlay failed, err=$res"
-+		;;
-+	esac
-+	return $res
-+}
-diff --git a/common/rc b/common/rc
-index cedc1cfa..d0aa36a0 100644
---- a/common/rc
-+++ b/common/rc
-@@ -1112,8 +1112,17 @@ _repair_scratch_fs()
- 	return $res
-         ;;
-     *)
--        # Let's hope fsck -y suffices...
--        fsck -t $FSTYP -y $SCRATCH_DEV 2>&1
-+	local dev=$SCRATCH_DEV
-+	local fstyp=$FSTYP
-+	if [ $FSTYP = "overlay" -a -n "$OVL_BASE_SCRATCH_DEV" ]; then
-+		_repair_overlay_scratch_fs
-+		# Fall through to repair base fs
-+		dev=$OVL_BASE_SCRATCH_DEV
-+		fstyp=$OVL_BASE_FSTYP
-+		$UMOUNT_PROG $OVL_BASE_SCRATCH_MNT
-+	fi
-+	# Let's hope fsck -y suffices...
-+	fsck -t $fstyp -y $dev 2>&1
- 	local res=$?
- 	case $res in
- 	$FSCK_OK|$FSCK_NONDESTRUCT|$FSCK_REBOOT)
--- 
-2.17.1
+Can you fold in this fix:
+
+Thanks,
+Amir.
+
+--- a/fs/overlayfs/super.c
++++ b/fs/overlayfs/super.c
+@@ -996,8 +996,9 @@ static int ovl_setup_trap(struct super_block *sb,
+struct dentry *dir,
+
+        trap = ovl_get_trap_inode(sb, dir);
+        err = PTR_ERR(trap);
+-       if (IS_ERR(trap) && err == -ELOOP) {
+-               pr_err("overlayfs: conflicting %s path\n", name);
++       if (IS_ERR(trap)) {
++               if (err == -ELOOP)
++                       pr_err("overlayfs: conflicting %s path\n", name);
+                return err;
+        }
