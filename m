@@ -1,140 +1,63 @@
-Return-Path: <linux-unionfs-owner@vger.kernel.org>
-Received: from out30-57.freemail.mail.aliyun.com ([115.124.30.57]:36672 "EHLO
-        out30-57.freemail.mail.aliyun.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1725843AbfEGL3S (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 7 May 2019 07:29:18 -0400
-From: Jiufei Xue <jiufei.xue@linux.alibaba.com>
-Subject: [PATCH] generic: add a testcase to check the capability CAP_LINUX_IMMUTABLE
-Date: Tue,  7 May 2019 19:29:14 +0800
-Message-Id: <20190507112914.20856-1-jiufei.xue@linux.alibaba.com>
-MIME-Version: 1.0
+From: Sasha Levin <sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.19 049/141] ovl: do not generate duplicate fsnotify events for "fake" path
+Date: Sat,  1 Jun 2019 09:20:25 -0400
+Message-ID: <20190601132158.25821-49-sashal@kernel.org>
+References: <20190601132158.25821-1-sashal@kernel.org>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Sender: linux-unionfs-owner@vger.kernel.org
-To: fstests@vger.kernel.org
-Cc: guaneryu@gmail.com, linux-unionfs@vger.kernel.org, amir73il@gmail.com, joseph.qi@linux.alibaba.com
-List-ID: <linux-unionfs@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20190601132158.25821-1-sashal@kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc: Amir Goldstein <amir73il@gmail.com>, Murphy Zhou <jencce.kernel@gmail.com>, Miklos Szeredi <mszeredi@redhat.com>, Sasha Levin <sashal@kernel.org>, linux-unionfs@vger.kernel.org
+List-Id: linux-unionfs@vger.kernel.org
 
-It should return error while changing IMMUTABLE_FL flag if the process
-has no capability CAP_LINUX_IMMUTABLE.
+From: Amir Goldstein <amir73il@gmail.com>
 
-However, it's not true on overlayfs after kernel version v4.19 since
-the process's subjective cred is overridden with ofs->creator_cred
-before calling real vfs_ioctl.
+[ Upstream commit d989903058a83e8536cc7aadf9256a47d5c173fe ]
 
-The following patch for ovl fix the problem:
-  "ovl: check the capability before cred overridden"
+Overlayfs "fake" path is used for stacked file operations on underlying
+files.  Operations on files with "fake" path must not generate fsnotify
+events with path data, because those events have already been generated at
+overlayfs layer and because the reported event->fd for fanotify marks on
+underlying inode/filesystem will have the wrong path (the overlayfs path).
 
-Add this testcase to cover this bug.
-
-Signed-off-by: Jiufei Xue <jiufei.xue@linux.alibaba.com>
+Link: https://lore.kernel.org/linux-fsdevel/20190423065024.12695-1-jencce.kernel@gmail.com/
+Reported-by: Murphy Zhou <jencce.kernel@gmail.com>
+Fixes: d1d04ef8572b ("ovl: stack file ops")
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- common/config         |  1 +
- tests/generic/545     | 61 +++++++++++++++++++++++++++++++++++++++++++
- tests/generic/545.out |  5 ++++
- tests/generic/group   |  1 +
- 4 files changed, 68 insertions(+)
- create mode 100755 tests/generic/545
- create mode 100755 tests/generic/545.out
+ fs/overlayfs/file.c | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff --git a/common/config b/common/config
-index 64f87057..364432bb 100644
---- a/common/config
-+++ b/common/config
-@@ -196,6 +196,7 @@ export SQLITE3_PROG="$(type -P sqlite3)"
- export TIMEOUT_PROG="$(type -P timeout)"
- export SETCAP_PROG="$(type -P setcap)"
- export GETCAP_PROG="$(type -P getcap)"
-+export CAPSH_PROG="$(type -P capsh)"
- export CHECKBASHISMS_PROG="$(type -P checkbashisms)"
- export XFS_INFO_PROG="$(type -P xfs_info)"
- export DUPEREMOVE_PROG="$(type -P duperemove)"
-diff --git a/tests/generic/545 b/tests/generic/545
-new file mode 100755
-index 00000000..89bdf885
---- /dev/null
-+++ b/tests/generic/545
-@@ -0,0 +1,61 @@
-+#! /bin/bash
-+# SPDX-License-Identifier: GPL-2.0
-+# Copyright (c) 2015, Oracle and/or its affiliates.  All Rights Reserved.
-+#
-+# FS QA Test No. 545
-+#
-+# Check that we can't add IMMUTABLE_FL flag to file when the process has
-+# no capbility CAP_LINUX_IMMUTABLE
-+#
-+seq=`basename $0`
-+seqres=$RESULT_DIR/$seq
-+echo "QA output created by $seq"
-+
-+here=`pwd`
-+tmp=/tmp/$$
-+status=1    # failure is the default!
-+trap "_cleanup; exit \$status" 0 1 2 3 15
-+
-+_cleanup()
-+{
-+    $CHATTR_PROG -i $testdir/file 2>&1
-+    cd /
-+    rm -rf $tmp.* $testdir
-+}
-+
-+# get standard environment, filters and checks
-+. ./common/rc
-+. ./common/filter
-+. ./common/attr
-+
-+# real QA test starts here
-+_supported_os Linux
-+_require_chattr i
-+_require_command "$CAPSH_PROG" "capsh"
-+
-+rm -f $seqres.full
-+
-+echo "Format and mount"
-+testdir="$TEST_DIR/test-$seq"
-+rm -rf $testdir
-+mkdir $testdir
-+
-+echo "Create the original files"
-+blksz="$(_get_block_size $testdir)"
-+blks=1000
-+sz=$((blksz * blks))
-+_pwrite_byte 0x61 0 $sz $testdir/file >> $seqres.full
-+sync
-+
-+do_filter_output()
-+{
-+    err_str=`_filter_test_dir | grep "Operation not permitted"`
-+    test -n "$err_str" && echo "Operation not permitted"
-+}
-+
-+echo "Try to add IMMUTABLE_FL flag"
-+$CAPSH_PROG --drop=cap_linux_immutable -- -c "$CHATTR_PROG +i $testdir/file" 2>&1 | do_filter_output
-+
-+# success, all done
-+status=0
-+exit
-diff --git a/tests/generic/545.out b/tests/generic/545.out
-new file mode 100755
-index 00000000..740bb980
---- /dev/null
-+++ b/tests/generic/545.out
-@@ -0,0 +1,5 @@
-+QA output created by 545
-+Format and mount
-+Create the original files
-+Try to add IMMUTABLE_FL flag
-+Operation not permitted
-diff --git a/tests/generic/group b/tests/generic/group
-index 40deb4d0..2f60b4af 100644
---- a/tests/generic/group
-+++ b/tests/generic/group
-@@ -547,3 +547,4 @@
- 542 auto quick clone
- 543 auto quick clone
- 544 auto quick clone
-+545 auto quick clone
+diff --git a/fs/overlayfs/file.c b/fs/overlayfs/file.c
+index 986313da0c889..dbf39e715e6aa 100644
+--- a/fs/overlayfs/file.c
++++ b/fs/overlayfs/file.c
+@@ -29,10 +29,11 @@ static struct file *ovl_open_realfile(const struct file *file,
+ 	struct inode *inode = file_inode(file);
+ 	struct file *realfile;
+ 	const struct cred *old_cred;
++	int flags = file->f_flags | O_NOATIME | FMODE_NONOTIFY;
+ 
+ 	old_cred = ovl_override_creds(inode->i_sb);
+-	realfile = open_with_fake_path(&file->f_path, file->f_flags | O_NOATIME,
+-				       realinode, current_cred());
++	realfile = open_with_fake_path(&file->f_path, flags, realinode,
++				       current_cred());
+ 	revert_creds(old_cred);
+ 
+ 	pr_debug("open(%p[%pD2/%c], 0%o) -> (%p, 0%o)\n",
+@@ -50,7 +51,7 @@ static int ovl_change_flags(struct file *file, unsigned int flags)
+ 	int err;
+ 
+ 	/* No atime modificaton on underlying */
+-	flags |= O_NOATIME;
++	flags |= O_NOATIME | FMODE_NONOTIFY;
+ 
+ 	/* If some flag changed that cannot be changed then something's amiss */
+ 	if (WARN_ON((file->f_flags ^ flags) & ~OVL_SETFL_MASK))
 -- 
-2.19.1.856.g8858448bb
+2.20.1
