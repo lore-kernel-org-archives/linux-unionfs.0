@@ -1,95 +1,90 @@
 Return-Path: <linux-unionfs-owner@vger.kernel.org>
-Received: from outgoing-auth-1.mit.edu ([18.9.28.11]:43234 "EHLO
-        outgoing.mit.edu" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1726170AbfFBSBM (ORCPT
+Received: from mail-yw1-f42.google.com ([209.85.161.42]:37425 "EHLO
+        mail-yw1-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725977AbfFBHIy (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Sun, 2 Jun 2019 14:01:12 -0400
-Date: Sun, 2 Jun 2019 14:00:58 -0400
-From: "Theodore Ts'o" <tytso@mit.edu>
-Subject: Re: which lower filesystems are actually supported?
-Message-ID: <20190602180057.GA4865@mit.edu>
-References: <CAH2+hP4Q3i4LdKL2Cz=1uWq0+JSD1RnzcdmicDtCeqEUqLo+hg@mail.gmail.com>
- <CAOQ4uxgPXBazE-g2v=T_vOvnr_f0ZHyKYZ4wvn7A3ePatZrhnQ@mail.gmail.com>
+        Sun, 2 Jun 2019 03:08:54 -0400
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAOQ4uxgPXBazE-g2v=T_vOvnr_f0ZHyKYZ4wvn7A3ePatZrhnQ@mail.gmail.com>
+References: <CAH2+hP4Q3i4LdKL2Cz=1uWq0+JSD1RnzcdmicDtCeqEUqLo+hg@mail.gmail.com>
+In-Reply-To: <CAH2+hP4Q3i4LdKL2Cz=1uWq0+JSD1RnzcdmicDtCeqEUqLo+hg@mail.gmail.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Date: Sun, 2 Jun 2019 09:42:54 +0300
+Message-ID: <CAOQ4uxgPXBazE-g2v=T_vOvnr_f0ZHyKYZ4wvn7A3ePatZrhnQ@mail.gmail.com>
+Subject: Re: which lower filesystems are actually supported?
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-unionfs-owner@vger.kernel.org
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: Marco Nelissen <marco.nelissen@gmail.com>, overlayfs <linux-unionfs@vger.kernel.org>, Ext4 <linux-ext4@vger.kernel.org>, Gabriel Krisman Bertazi <krisman@collabora.com>, "Darrick J. Wong" <darrick.wong@oracle.com>
+To: Marco Nelissen <marco.nelissen@gmail.com>
+Cc: overlayfs <linux-unionfs@vger.kernel.org>, Ext4 <linux-ext4@vger.kernel.org>, Theodore Tso <tytso@mit.edu>, Gabriel Krisman Bertazi <krisman@collabora.com>, "Darrick J. Wong" <darrick.wong@oracle.com>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-On Sun, Jun 02, 2019 at 09:42:54AM +0300, Amir Goldstein wrote:
-> [+cc ext4] Heads up on bug reports "Overlayfs fails to mount with ext4"
-> 
-> On Sat, Jun 1, 2019 at 11:02 PM Marco Nelissen <marco.nelissen@gmail.com> wrote:
-> >
-> > According to the documentation, "The lower filesystem can be any filesystem
-> > supported by Linux", however this appears to not actually be the case, since
-> > using a vfat filesystem results in the mount command printing "mount:
-> > wrong fs type, bad option, bad superblock on overlay, missing codepage or
-> > helper program, or other error", with dmesg saying "overlayfs: filesystem on
-> > '/boot' not supported".
-> > (that's from ovl_mount_dir_noesc(), when ovl_dentry_weird() returns nonzero)
-> 
-> Specifically for vfat it is weird because of
-> dentry->d_flags & (DCACHE_OP_HASH | DCACHE_OP_COMPARE)
-> because it is case insensitive.
+[+cc ext4] Heads up on bug reports "Overlayfs fails to mount with ext4"
 
-Marco, did you actually *need* to use the case insensitive feature?
-It is not turned on by default by e2fsprogs, and the assumption was
-that it only be turned in cases where it was needed --- e.g., VM's
-running Steam games that need Microsoft file system semantics,
-including case insensitivity, Samba (and eventually NFSv4) file
-servers for the same reason, and Android (so people won't have to try
-to get the abomination known as sdcardfs upstream :-).
+On Sat, Jun 1, 2019 at 11:02 PM Marco Nelissen <marco.nelissen@gmail.com> wrote:
+>
+> According to the documentation, "The lower filesystem can be any filesystem
+> supported by Linux", however this appears to not actually be the case, since
+> using a vfat filesystem results in the mount command printing "mount:
+> wrong fs type, bad option, bad superblock on overlay, missing codepage or
+> helper program, or other error", with dmesg saying "overlayfs: filesystem on
+> '/boot' not supported".
+> (that's from ovl_mount_dir_noesc(), when ovl_dentry_weird() returns nonzero)
 
-> 
-> I am guessing when people start using case insensitive enabled ext4,
-> this problem
-> is going to surface, because the same ext4 (e.g. root fs) could be
-> used for samba
-> export (case insensitive) and docker storage (overlayfs).
+Specifically for vfat it is weird because of
+dentry->d_flags & (DCACHE_OP_HASH | DCACHE_OP_COMPARE)
+because it is case insensitive.
 
-So I didn't think this would be that common, since you can certainly
-run Sambda without this new file system feature --- Samba has lived
-without it for over a decade.  However, if you are running a high
-performance file server, it matters --- but if you're running a high
-performance file server, you're certainly not going to be trying to do
-it on the same server as one running Docker.
+>
+> Should vfat be supported, or is the documentation wrong? If the documentation
 
-Now, if you're trying to use overlayfs for some kind of snapshot
-application, then we'll need to figure out how to make overlayfs and
-ext4 work together --- but I view this as much more over an overlay
-compatibility issue than an ext4 bug.
+Documentation is wrong.
 
-We *might* be able to only set the dentry functions on directory
-entries belonging to directories which have the casefold flag set,
-instead of simply setting it on all ext4 dentry entries.  But still
-won't change the fact that overlayfs is going to have case
-insensitivity support if we want the combination of overlayfs &&
-casefold to be supported.
+> is wrong, what other filesystems are (not) supported?
 
-> I didn't see that xfstests-bld was updated with case folding configs for ext4,
-> nor that xfstests has any new case folding tests (saw some posted), so I guess
-> that is still in the works (?).
+There are some special cases like /proc/sys and auto mount points,
+but the most common reason for unsupported lower is case insensitive filesystems
+and filesystems that support unicode character folding.
+Those filesystems MAY be case insensitive/unicode, depending on
+mkfs/mount options:
+ adfs affs cifs efivarfs fat hfs hfsplus hpfs isofs isofs jfs xfs(*) ext4(**)
 
-That's correct, it's still on the todo list.
+(*) xfs case insensitive-ness feature is hidden from dcache (dcache is
+disabled), so
+overlayfs mount won't fail, but it may have unexpected behaviors.
 
-> Did you happen to try out overlayfs/docker over a case insensitive enabled fs?
+(**) ext4 supports per directory case insensitive and unicode folding
+since v5.2-rc1,
+if the filesystem was configured that way with mkfs/tune2fs. In this
+case, regardless of
+whether the lower dir is case insensitive or not, overlayfs mount will fail.
 
-Nope.  I didn't think that was going to be a common use case.  Docker
-is typically used on servers, where as case insensitivity is important
-for clients and file servers --- at least on the general case.
+I am guessing when people start using case insensitive enabled ext4,
+this problem
+is going to surface, because the same ext4 (e.g. root fs) could be
+used for samba
+export (case insensitive) and docker storage (overlayfs).
 
-> I wonder if you could spare a few extra GCE instances per pre-release tests
-> to run an overlay over ext4 config?
-> I was nagging Darrick about this for a while and now I think the
-> overlay/xfs config
-> is being tested regularly.
+I can think of some solutions for the private case of same case
+insensitive fs used
+for upper and lower, but let's see that the problem is real before
+discussing a solution.
 
-It wouldn't be that hard to test overlayfs with ext4 for my
-pre-release testing.  But it would only be in the default ext4
-configuration --- and that doesn't include the case fold feature.
+Ted, Gabriel,
 
-	      	      	   	   	   - Ted
+I didn't see that xfstests-bld was updated with case folding configs for ext4,
+nor that xfstests has any new case folding tests (saw some posted), so I guess
+that is still in the works (?).
+
+Did you happen to try out overlayfs/docker over a case insensitive enabled fs?
+
+I wonder if you could spare a few extra GCE instances per pre-release tests
+to run an overlay over ext4 config?
+I was nagging Darrick about this for a while and now I think the
+overlay/xfs config
+is being tested regularly.
+
+Beyond the fact that there are vast number of users using docker with overlay
+over ext4, overlayfs tends to find rare filesystem bugs because of its special
+use patterns (e.g. acd1d71598f7 "xfs: preserve i_rdev when recycling...").
+
+Thanks,
+Amir.
