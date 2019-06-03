@@ -1,53 +1,91 @@
-Return-Path: <amir73il@gmail.com>
-Return-Path: <amir73il@gmail.com>
-From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH 0/3] Improved FS_IOC_FSSETXATTR tests
-Date: Tue, 11 Jun 2019 19:08:36 +0300
-Message-Id: <20190611160839.14777-1-amir73il@gmail.com>
-To: Eryu Guan <guaneryu@gmail.com>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, "Darrick J . Wong" <darrick.wong@oracle.com>, linux-unionfs@vger.kernel.org, fstests@vger.kernel.org
+Return-Path: <linux-unionfs-owner@vger.kernel.org>
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:57912 "EHLO
+        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726409AbfFCFli (ORCPT
+        <rfc822;linux-unionfs@vger.kernel.org>);
+        Mon, 3 Jun 2019 01:41:38 -0400
+From: Gabriel Krisman Bertazi <krisman@collabora.com>
+Subject: Re: which lower filesystems are actually supported?
+References: <CAH2+hP4Q3i4LdKL2Cz=1uWq0+JSD1RnzcdmicDtCeqEUqLo+hg@mail.gmail.com>
+        <CAOQ4uxgPXBazE-g2v=T_vOvnr_f0ZHyKYZ4wvn7A3ePatZrhnQ@mail.gmail.com>
+        <20190602180057.GA4865@mit.edu>
+        <CAOQ4uxhbSc0nZ69ffJVfNgVnr=ahg+HetiXcZKMXA2nXKCabqA@mail.gmail.com>
+Date: Mon, 03 Jun 2019 01:41:33 -0400
+In-Reply-To: <CAOQ4uxhbSc0nZ69ffJVfNgVnr=ahg+HetiXcZKMXA2nXKCabqA@mail.gmail.com>
+        (Amir Goldstein's message of "Mon, 3 Jun 2019 02:18:25 +0300")
+Message-ID: <85k1e39qeq.fsf@collabora.com>
+MIME-Version: 1.0
+Content-Type: text/plain
+Sender: linux-unionfs-owner@vger.kernel.org
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: Theodore Ts'o <tytso@mit.edu>, Marco Nelissen <marco.nelissen@gmail.com>, overlayfs <linux-unionfs@vger.kernel.org>, Ext4 <linux-ext4@vger.kernel.org>, Eric Biggers <ebiggers@google.com>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-Eryu,
+Amir Goldstein <amir73il@gmail.com> writes:
 
-Overlayfs gained support for FS_IOC_FSSETXATTR ioctl in v5.2-rc4
-with buggy capability check. The fix is trivial so it should land
-upstream soon.
+> On Sun, Jun 2, 2019 at 9:01 PM Theodore Ts'o <tytso@mit.edu> wrote:
+>>
+>> On Sun, Jun 02, 2019 at 09:42:54AM +0300, Amir Goldstein wrote:
+>> > [+cc ext4] Heads up on bug reports "Overlayfs fails to mount with ext4"
+>> >
+>> > On Sat, Jun 1, 2019 at 11:02 PM Marco Nelissen <marco.nelissen@gmail.com> wrote:
+>> > >
+>> > > According to the documentation, "The lower filesystem can be any filesystem
+>> > > supported by Linux", however this appears to not actually be the case, since
+>> > > using a vfat filesystem results in the mount command printing "mount:
+>> > > wrong fs type, bad option, bad superblock on overlay, missing codepage or
+>> > > helper program, or other error", with dmesg saying "overlayfs: filesystem on
+>> > > '/boot' not supported".
+>> > > (that's from ovl_mount_dir_noesc(), when ovl_dentry_weird() returns nonzero)
+>> >
+>> > Specifically for vfat it is weird because of
+>> > dentry->d_flags & (DCACHE_OP_HASH | DCACHE_OP_COMPARE)
+>> > because it is case insensitive.
+>>
+> [...]
+>> >
+>> > I am guessing when people start using case insensitive enabled ext4,
+>> > this problem
+>> > is going to surface, because the same ext4 (e.g. root fs) could be
+>> > used for samba
+>> > export (case insensitive) and docker storage (overlayfs).
+>>
+> [...]
+>>
+>> We *might* be able to only set the dentry functions on directory
+>> entries belonging to directories which have the casefold flag set,
+>> instead of simply setting it on all ext4 dentry entries.  But still
+>> won't change the fact that overlayfs is going to have case
+>> insensitivity support if we want the combination of overlayfs &&
+>> casefold to be supported.
+>>
+>
+> My intention was not that overlayfs should support casefold, just that
+> an isolated casefold subdir in an ext4 fs shouldn't make the entire fs
+> not usable with overlayfs.
 
-This series adds a generic test to cover the bug in overlayfs v5.2-rc4.
-It also adds a proper _require directive to test filesystem support
-for FS_IOC_FSSETXATTR and let the tests that use this ioctl require
-filesystem support for it.
+That is a reasonable request.  I discussed a bit with Ted about how to
+not set dentry functions filesystem wide,  because that gets in the way
+of fscrypt.  I don't have a definite answer on how to do it, but it is
+something that I will try to fix to enable fscrypt+casefold support.
 
-The only existing generic test that needed this requirement is the
-recently added generic/553 copy_range immutable file test. When run on
-overlayfs over xfs/ext4/btrfs, generic/553 would fail instead of _notrun
-with kernel v5.2-rc3.
+> Incidentally, we already ran into a similar issue with ext4 encryption.
+> Issue was reported by OpenWRT developers and fixed by:
+> d456a33f041a fscrypt: only set dentry_operations on ciphertext dentries
+>
+> I recon casefold is taking a similar direction to the fs/crypto library, so
+> solution should be similar as well.
+>
+> BTW, is casefold feature mutually exclusive with encryption feature?
+> Because if it isn't, d_set_d_op() in __fscrypt_prepare_lookup() is
+> going to WARN_ON dentry already has ext4_dentry_ops.
 
-But the requirement fix is not only for overlayfs, other filesystems
-that support FS_IOC_SETFLAGS but not FS_IOC_FSSETXATTR (e.g. ext2),
-need those fixes to _notrun generic/553.
+Not yet, and that is part of the reason. Right now, these two features
+cannot be enable simultaneously, but it is on my todo list to support
+that case.
 
-Thanks,
-Amir.
-
-
-Amir Goldstein (3):
-  fstests: print out xfs_io parameter when command fails
-  fstests: check for filesystem FS_IOC_FSSETXATTR support
-  generic: check CAP_LINUX_IMMUTABLE capability with FS_IOC_FSSETXATTR
-
- common/rc                    | 30 ++++++++++-----
- doc/requirement-checking.txt |  2 +-
- tests/generic/553            |  3 +-
- tests/generic/555            | 74 ++++++++++++++++++++++++++++++++++++
- tests/generic/555.out        |  9 +++++
- tests/generic/group          |  1 +
- tests/xfs/260                |  2 +-
- tests/xfs/431                |  2 +-
- 8 files changed, 108 insertions(+), 15 deletions(-)
- create mode 100755 tests/generic/555
- create mode 100644 tests/generic/555.out
+> Thanks,
+> Amir.
 
 -- 
-2.17.1
+Gabriel Krisman Bertazi
