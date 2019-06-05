@@ -1,38 +1,28 @@
-Return-Path: <amir73il@gmail.com>
-Return-Path: <amir73il@gmail.com>
-From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH 0/2] Fix write leases on overlayfs
-Date: Sat,  8 Jun 2019 16:57:15 +0300
-Message-Id: <20190608135717.8472-1-amir73il@gmail.com>
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: "J . Bruce Fields" <bfields@fieldses.org>, Jeff Layton <jlayton@poochiereds.net>, Mimi Zohar <zohar@linux.ibm.com>, Al Viro <viro@zeniv.linux.org.uk>, linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org, linux-integrity@vger.kernel.org
+Return-Path: <linux-unionfs-owner@vger.kernel.org>
+Received: from mx2.suse.de ([195.135.220.15]:53942 "EHLO mx1.suse.de"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1725268AbfFEFbO (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Wed, 5 Jun 2019 01:31:14 -0400
+Date: Wed, 5 Jun 2019 07:31:14 +0200
+From: Petr Vorel <pvorel@suse.cz>
+Subject: Re: [PATCH v2 2/2] fanotify06: Close all file descriptors of read
+ events
+Message-ID: <20190605053114.GA31796@dell5510>
+Reply-To: Petr Vorel <pvorel@suse.cz>
+References: <20190604151035.6123-1-amir73il@gmail.com>
+ <20190604151035.6123-2-amir73il@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20190604151035.6123-2-amir73il@gmail.com>
+Sender: linux-unionfs-owner@vger.kernel.org
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: Cyril Hrubis <chrubis@suse.cz>, Murphy Zhou <xzhou@redhat.com>, Jan Kara <jack@suse.cz>, Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, ltp@lists.linux.it
 List-ID: <linux-unionfs@vger.kernel.org>
 
-Miklos,
+Hi Amir,
 
-This series fixes a v4.19 regression.
+thanks for your patchset, merged.
 
-It also provides correct semantics w.r.t RDONLY open counter
-that Bruce also needed for nfsd.
-
-I marked both patches for stable v4.19.
-
-I verified the changes using modified LTP fcntl tests [1],
-which I ran over xfs and overlayfs.
-
-Thanks,
-Amir.
-
-[1] https://github.com/amir73il/ltp/commits/overlayfs-devel
-
-Amir Goldstein (2):
-  vfs: replace i_readcount with a biased i_count
-  locks: eliminate false positive conflicts for write lease
-
- fs/locks.c                        | 26 ++++++++++++++----------
- include/linux/fs.h                | 33 +++++++++++++++++++------------
- security/integrity/ima/ima_main.c |  2 +-
- 3 files changed, 37 insertions(+), 24 deletions(-)
-
--- 
-2.17.1
+Kind regards,
+Petr
