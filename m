@@ -1,105 +1,158 @@
-Return-Path: <amir73il@gmail.com>
+Return-Path: <mcoffin13@gmail.com>
+Return-Path: <mcoffin13@gmail.com>
+From: Matt Coffin <mcoffin13@gmail.com>
+Subject: [PATCH v2] overlay: allow config override of metacopy/redirect defaults
+Date: Fri,  7 Jun 2019 14:51:05 -0600
+Message-Id: <20190607205105.21858-1-mcoffin13@gmail.com>
+In-Reply-To: <20190607010431.11868-1-mcoffin13@gmail.com>
+References: <20190607010431.11868-1-mcoffin13@gmail.com>
 MIME-Version: 1.0
-References: <20190607010431.11868-1-mcoffin13@gmail.com> <20190607205105.21858-1-mcoffin13@gmail.com>
-In-Reply-To: <20190607205105.21858-1-mcoffin13@gmail.com>
-From: Amir Goldstein <amir73il@gmail.com>
-Date: Sat, 8 Jun 2019 12:04:54 +0300
-Message-ID: <CAOQ4uximPqsNivkqD36LdNfT4g41v2rtDm+OB6t2z40dpWs_og@mail.gmail.com>
-Subject: Re: [PATCH v2] overlay: allow config override of metacopy/redirect defaults
-Content-Type: text/plain; charset="UTF-8"
-To: Matt Coffin <mcoffin13@gmail.com>
-Cc: overlayfs <linux-unionfs@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>, Vivek Goyal <vgoyal@redhat.com>
+Content-Transfer-Encoding: 8bit
+To: linux-unionfs@vger.kernel.org
+Cc: Miklos Szeredi <miklos@szeredi.hu>, Matt Coffin <mcoffin13@gmail.com>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-Hi Matt,
+[Why]
+Currently, if the redirect_dir option is set as a kernel or module
+parameter, then even if metacopy is only enabled config, then both
+metacopy and redirect_dir will be enabled when one creates a mount
+point. This is not desirable because /sys/module/overlay/parameters will
+still report that redirect_dir is not enabled, and there will be no
+redirect_dir=on line in the mount options in /proc/mounts. The behavior
+of setting redirect_dir globally for overlay is likely a common pattern
+on docker workstations, as redirect_dir makes for slower building of
+docker images.
 
-Thank you for trying to address this, but I see problems both in Why and
-How you did it.
+[How]
+This patch adds similar logic to that already in place for parsing mount
+parameters. If the user explicitly sets redirect_dir via a kernel or
+module parameter, then metacopy will become disabled, unless it was also
+specified that way. Obviously, mount options still take precedence over
+this process, so this logic only kicks in when neither redirect_dir or
+metacopy were specified in the mount options.
 
-On Fri, Jun 7, 2019 at 11:51 PM Matt Coffin <mcoffin13@gmail.com> wrote:
->
-> [Why]
-> Currently, if the redirect_dir option is set as a kernel or module
-> parameter, then even if metacopy is only enabled config, then both
-> metacopy and redirect_dir will be enabled when one creates a mount
-> point. This is not desirable because /sys/module/overlay/parameters will
-> still report that redirect_dir is not enabled
+[Related]
+This undesirable logic was introduced by the commit that introduced the
+mount option handling logic: d47748e5ae5af6572e520cc9767bbe70c22ea498
 
-/sys/module/overlay/parameters reports that redirect_dir is not enabled
-*by default* not per mount.
+[v2]
+Clean up some formatting on lines that were too long
+---
+ fs/overlayfs/super.c | 49 ++++++++++++++++++++++++++++++++++++--------
+ 1 file changed, 40 insertions(+), 9 deletions(-)
 
-> and there will be no redirect_dir=on line in the mount options in /proc/mounts.
-
-That is a bug. This code:
-/* Automatically enable redirect otherwise. */
-config->redirect_follow = config->redirect_dir = true;
-
-Needs to update of config->redirect_mode.
-
-You are very welcome to send a fix patch.
-
-> The behavior
-> of setting redirect_dir globally for overlay is likely a common pattern
-> on docker workstations, as redirect_dir makes for slower building of
-> docker images.
-
-I haven't been following the progress in docker w.r.t redirect_dir,
-but IMO the right way for docker is to always mandate overlayfs
-mount option parameters based on user meaningful storage driver
-config options, see:
-https://github.com/moby/moby/pull/34342#issuecomment-320669900
-
-Instead of depending on admin to set /sys/module/overlay/parameters
-globally, docker should always pass explicit redirect_dir,metacopy
-values in mount options.
-Docker should check for existence of /sys/module/overlay/parameters
-feature file to know if kernel supports the mount option.
-
-BTW, docker should be treating metacopy exactly the same way as
-redirect_dir because the native diff driver does not know about metacopy,
-so docket should (IMO) disable metacopy in mount option unless user
-explicitly opted-in for in per image and fallback to naiive diff driver if
-user opted-in to enable metacopy.
-
-IMO, docker overlay2 storage driver should have a well documented
-user meaningful per container option such as:
-"optimize for efficient runtime" (redirect_dir=on,metacopy=on)
-vs.
-"optimize for efficient image export" (redirect_dir=off,metacopy=off)
-
-Or even simpler:
-"Exportable = true/false"
-Because users know if they run a container that they don't intend
-to export. In that case, it makes no sense to deny user of the benefits
-of redirect_dir=on,metacopy=on.
-
->
-> [How]
-> This patch adds similar logic to that already in place for parsing mount
-> parameters. If the user explicitly sets redirect_dir via a kernel or
-> module parameter, then metacopy will become disabled, unless it was also
-> specified that way. Obviously, mount options still take precedence over
-> this process, so this logic only kicks in when neither redirect_dir or
-> metacopy were specified in the mount options.
->
-
-If even we did pass the "Why", the "How" is unacceptable IMO.
-It extends something that is already a local special case hack
-with redirect_opt/metacopy_opt.
-
-If we ever try to improve parameter/config/option parsing
-and dependency checks we need to do it in a much more generic
-way and there are much more things to consider.
-I am sorry that I cannot provide you guidelines for how to
-do this. I took a stab at this once, then Miklos said he will try to
-redo it and came back with:
-"...this is more complicated than I thought."
-https://marc.info/?l=linux-unionfs&m=154110487305120&w=2
-
-If you do insist to try and follow this path, my only suggestion
-is - start with a patch to Documentation/filesystems/overlayfs.txt.
-If you cannot shortly and properly describe the behavior of
-your change in documentation it is a no go.
-
-Thanks,
-Amir.
+diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+index 5ec4fc2f5d7e..bd1a1329aa70 100644
+--- a/fs/overlayfs/super.c
++++ b/fs/overlayfs/super.c
+@@ -30,10 +30,16 @@ struct ovl_dir_cache;
+ #define OVL_MAX_STACK 500
+ 
+ static bool ovl_redirect_dir_def = IS_ENABLED(CONFIG_OVERLAY_FS_REDIRECT_DIR);
+-module_param_named(redirect_dir, ovl_redirect_dir_def, bool, 0644);
+-MODULE_PARM_DESC(ovl_redirect_dir_def,
++static bool ovl_redirect_dir_param = IS_ENABLED(CONFIG_OVERLAY_FS_REDIRECT_DIR);
++module_param_named(redirect_dir, ovl_redirect_dir_param, bool, 0644);
++MODULE_PARM_DESC(ovl_redirect_dir_param,
+ 		 "Default to on or off for the redirect_dir feature");
+ 
++static inline bool ovl_redirect_dir_module_overrides_kernel(void)
++{
++	return (ovl_redirect_dir_def != ovl_redirect_dir_param);
++}
++
+ static bool ovl_redirect_always_follow =
+ 	IS_ENABLED(CONFIG_OVERLAY_FS_REDIRECT_ALWAYS_FOLLOW);
+ module_param_named(redirect_always_follow, ovl_redirect_always_follow,
+@@ -65,10 +71,16 @@ static void ovl_entry_stack_free(struct ovl_entry *oe)
+ }
+ 
+ static bool ovl_metacopy_def = IS_ENABLED(CONFIG_OVERLAY_FS_METACOPY);
+-module_param_named(metacopy, ovl_metacopy_def, bool, 0644);
+-MODULE_PARM_DESC(ovl_metacopy_def,
++static bool ovl_metacopy_param = IS_ENABLED(CONFIG_OVERLAY_FS_METACOPY);
++module_param_named(metacopy, ovl_metacopy_param, bool, 0644);
++MODULE_PARM_DESC(ovl_metacopy_param,
+ 		 "Default to on or off for the metadata only copy up feature");
+ 
++static inline bool ovl_metacopy_module_overrides_kernel(void)
++{
++	return (ovl_metacopy_def != ovl_metacopy_param);
++}
++
+ static void ovl_dentry_release(struct dentry *dentry)
+ {
+ 	struct ovl_entry *oe = dentry->d_fsdata;
+@@ -310,7 +322,7 @@ static bool ovl_force_readonly(struct ovl_fs *ofs)
+ 
+ static const char *ovl_redirect_mode_def(void)
+ {
+-	return ovl_redirect_dir_def ? "on" : "off";
++	return ovl_redirect_dir_param ? "on" : "off";
+ }
+ 
+ enum {
+@@ -357,7 +369,7 @@ static int ovl_show_options(struct seq_file *m, struct dentry *dentry)
+ 						"on" : "off");
+ 	if (ofs->config.xino != ovl_xino_def())
+ 		seq_printf(m, ",xino=%s", ovl_xino_str[ofs->config.xino]);
+-	if (ofs->config.metacopy != ovl_metacopy_def)
++	if (ofs->config.metacopy != ovl_metacopy_param)
+ 		seq_printf(m, ",metacopy=%s",
+ 			   ofs->config.metacopy ? "on" : "off");
+ 	return 0;
+@@ -456,6 +468,7 @@ static int ovl_parse_redirect_mode(struct ovl_config *config, const char *mode)
+ 	} else if (strcmp(mode, "follow") == 0) {
+ 		config->redirect_follow = true;
+ 	} else if (strcmp(mode, "off") == 0) {
++		config->redirect_dir = false;
+ 		if (ovl_redirect_always_follow)
+ 			config->redirect_follow = true;
+ 	} else if (strcmp(mode, "nofollow") != 0) {
+@@ -472,6 +485,8 @@ static int ovl_parse_opt(char *opt, struct ovl_config *config)
+ 	char *p;
+ 	int err;
+ 	bool metacopy_opt = false, redirect_opt = false;
++	bool metacopy_override = ovl_metacopy_module_overrides_kernel();
++	bool redirect_override = ovl_redirect_dir_module_overrides_kernel();
+ 
+ 	config->redirect_mode = kstrdup(ovl_redirect_mode_def(), GFP_KERNEL);
+ 	if (!config->redirect_mode)
+@@ -597,8 +612,24 @@ static int ovl_parse_opt(char *opt, struct ovl_config *config)
+ 				config->redirect_mode);
+ 			config->metacopy = false;
+ 		} else {
+-			/* Automatically enable redirect otherwise. */
+-			config->redirect_follow = config->redirect_dir = true;
++			if (metacopy_override && redirect_override) {
++				pr_err("overlayfs: conflicting module params: metacopy=on,redirect_dir=%s\n",
++					config->redirect_mode);
++				return -EINVAL;
++			}
++			if (redirect_override) {
++				/*
++				 * There was an explicit redirect_dir=...
++				 * that resulted in this conflict (module param)
++				 */
++				pr_info("overlayfs: disabling metacopy due to module param redirect_dir=%s\n",
++					config->redirect_mode);
++				config->metacopy = false;
++			} else {
++				/* Automatically enable redirect otherwise. */
++				config->redirect_follow =
++					config->redirect_dir = true;
++			}
+ 		}
+ 	}
+ 
+@@ -1438,7 +1469,7 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
+ 	ofs->config.index = ovl_index_def;
+ 	ofs->config.nfs_export = ovl_nfs_export_def;
+ 	ofs->config.xino = ovl_xino_def();
+-	ofs->config.metacopy = ovl_metacopy_def;
++	ofs->config.metacopy = ovl_metacopy_param;
+ 	err = ovl_parse_opt((char *) data, &ofs->config);
+ 	if (err)
+ 		goto out_err;
+-- 
+2.21.0
