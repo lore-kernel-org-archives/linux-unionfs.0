@@ -1,145 +1,67 @@
 Return-Path: <amir73il@gmail.com>
-Return-Path: <amir73il@gmail.com>
+MIME-Version: 1.0
+References: <20190608183534.2963-1-mcoffin13@gmail.com>
+In-Reply-To: <20190608183534.2963-1-mcoffin13@gmail.com>
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH v2 1/2] fanotify06: add a test case for overlayfs
-Date: Tue,  4 Jun 2019 18:10:34 +0300
-Message-Id: <20190604151035.6123-1-amir73il@gmail.com>
-To: Petr Vorel <pvorel@suse.cz>
-Cc: Cyril Hrubis <chrubis@suse.cz>, Murphy Zhou <xzhou@redhat.com>, Jan Kara <jack@suse.cz>, Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, ltp@lists.linux.it
+Date: Sat, 8 Jun 2019 22:10:42 +0300
+Message-ID: <CAOQ4uxiX7Rh+46ydXYakKiZ+jP4=uyak8NjWOJK5WTcvuRcHSA@mail.gmail.com>
+Subject: Re: [PATCH] overlay: Display redirect_dir mount option when it is set automatically
+Content-Type: text/plain; charset="UTF-8"
+To: Matt Coffin <mcoffin13@gmail.com>
+Cc: overlayfs <linux-unionfs@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-This test fails on overlayfs since kernel v4.19.
-Added a test case for overlayfs mount.
+On Sat, Jun 8, 2019 at 9:35 PM Matt Coffin <mcoffin13@gmail.com> wrote:
+>
+> [Why]
 
-Signed-off-by: Amir Goldstein <amir73il@gmail.com>
----
+The why and how are very important, but please loose the annotations.
 
-Changes since v1:
-- Use new overlayfs mount helpers
-- Add patch to fix EBUSY error on overlayfs umount
+> Currently, if metacopy is enabled via a module param/kernel config, then
+> the setting for redirect_dir is overriden, unless passed as a mount
+> option specifically. Despite this overriding, the redirect_dir option is
+> not printed when displaying the mount options (see /proc/mounts), so it
+> is hard for a user to know that it has happened.
+>
+> [How]
+> A bit of code that does the overriding based on the mount options was
+> setting redirect_dir, but not updating the redirect_mode string. By
+> adding that update, the information is now printed (and the config
+> struct has the correct information in all places).
 
- .../kernel/syscalls/fanotify/fanotify06.c     | 61 +++++++++++++------
- 1 file changed, 43 insertions(+), 18 deletions(-)
+You need to Sign-off your patch.
+Please run ./scripts/checkpatch.pl before posting
+It will tell you that and so will:
+https://github.com/torvalds/linux/blob/master/Documentation/process/submitting-patches.rst
 
-diff --git a/testcases/kernel/syscalls/fanotify/fanotify06.c b/testcases/kernel/syscalls/fanotify/fanotify06.c
-index 6a2e2494f..e053da0e5 100644
---- a/testcases/kernel/syscalls/fanotify/fanotify06.c
-+++ b/testcases/kernel/syscalls/fanotify/fanotify06.c
-@@ -15,6 +15,14 @@
-  *  Date:   Thu Nov 13 15:19:33 2014 -0800
-  *
-  *      fanotify: fix notification of groups with inode & mount marks
-+ *
-+ * The overlayfs test case is a regression test for:
-+ *
-+ *  commit d989903058a83e8536cc7aadf9256a47d5c173fe
-+ *  Author: Amir Goldstein <amir73il@gmail.com>
-+ *  Date:   Wed Apr 24 19:39:50 2019 +0300
-+ *
-+ *      ovl: do not generate duplicate fsnotify events for "fake" path
-  */
- #define _GNU_SOURCE
- #include "config.h"
-@@ -54,8 +62,18 @@ static int fd_notify[FANOTIFY_PRIORITIES][GROUPS_PER_PRIO];
- 
- static char event_buf[EVENT_BUF_LEN];
- 
--#define MOUNT_NAME "mntpoint"
--static int mount_created;
-+static const char mntpoint[] = OVL_BASE_MNTPOINT;
-+
-+static int ovl_mounted;
-+
-+static struct tcase {
-+	const char *tname;
-+	const char *mnt;
-+	int use_overlay;
-+} tcases[] = {
-+	{ "Fanotify merge mount mark", mntpoint, 0 },
-+	{ "Fanotify merge overlayfs mount mark", OVL_MNT, 1 },
-+};
- 
- static void create_fanotify_groups(void)
- {
-@@ -72,12 +90,12 @@ static void create_fanotify_groups(void)
- 			ret = fanotify_mark(fd_notify[p][i],
- 					    FAN_MARK_ADD | FAN_MARK_MOUNT,
- 					    FAN_MODIFY,
--					    AT_FDCWD, ".");
-+					    AT_FDCWD, fname);
- 			if (ret < 0) {
- 				tst_brk(TBROK | TERRNO,
- 					"fanotify_mark(%d, FAN_MARK_ADD | "
- 					"FAN_MARK_MOUNT, FAN_MODIFY, AT_FDCWD,"
--					" '.') failed", fd_notify[p][i]);
-+					" %s) failed", fd_notify[p][i], fname);
- 			}
- 			/* Add ignore mark for groups with higher priority */
- 			if (p == 0)
-@@ -130,11 +148,23 @@ static void verify_event(int group, struct fanotify_event_metadata *event)
- 	}
- }
- 
--void test01(void)
-+void test_fanotify(unsigned int n)
- {
- 	int ret;
- 	unsigned int p, i;
- 	struct fanotify_event_metadata *event;
-+	struct tcase *tc = &tcases[n];
-+
-+	tst_res(TINFO, "Test #%d: %s", n, tc->tname);
-+
-+	if (tc->use_overlay && !ovl_mounted) {
-+		tst_res(TCONF,
-+		        "overlayfs is not configured in this kernel.");
-+		return;
-+	}
-+
-+	sprintf(fname, "%s/tfile_%d", tc->mnt, getpid());
-+	SAFE_TOUCH(fname, 0644, NULL);
- 
- 	create_fanotify_groups();
- 
-@@ -196,31 +226,26 @@ void test01(void)
- 
- static void setup(void)
- {
--	SAFE_MKDIR(MOUNT_NAME, 0755);
--	SAFE_MOUNT(MOUNT_NAME, MOUNT_NAME, "none", MS_BIND, NULL);
--	mount_created = 1;
--	SAFE_CHDIR(MOUNT_NAME);
--
--	sprintf(fname, "tfile_%d", getpid());
--	SAFE_FILE_PRINTF(fname, "1");
-+	ovl_mounted = TST_MOUNT_OVERLAY();
- }
- 
- static void cleanup(void)
- {
- 	cleanup_fanotify_groups();
- 
--	SAFE_CHDIR("../");
--
--	if (mount_created && tst_umount(MOUNT_NAME) < 0)
--		tst_brk(TBROK | TERRNO, "umount failed");
-+	if (ovl_mounted)
-+		SAFE_UMOUNT(OVL_MNT);
- }
- 
- static struct tst_test test = {
--	.test_all = test01,
-+	.test = test_fanotify,
-+	.tcnt = ARRAY_SIZE(tcases),
- 	.setup = setup,
- 	.cleanup = cleanup,
- 	.needs_tmpdir = 1,
--	.needs_root = 1
-+	.needs_root = 1,
-+	.mount_device = 1,
-+	.mntpoint = mntpoint,
- };
- 
- #else
--- 
-2.17.1
+> ---
+>  fs/overlayfs/super.c | 3 +++
+>  1 file changed, 3 insertions(+)
+>
+> diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+> index 5ec4fc2f5d7e..46fab4660bfe 100644
+> --- a/fs/overlayfs/super.c
+> +++ b/fs/overlayfs/super.c
+> @@ -598,6 +598,9 @@ static int ovl_parse_opt(char *opt, struct ovl_config *config)
+>                         config->metacopy = false;
+>                 } else {
+>                         /* Automatically enable redirect otherwise. */
+> +                       pr_info("overlayfs: enabling redirect_dir due to implicit metacopy=%d\n",
+...metacopy=on\n"
+
+We know the value and better display to user in mount option format.
+
+> +                               config->metacopy);
+> +                       config->redirect_mode = "on";
+
+I'm afraid that string is allocated:
+
+                        kfree(config->redirect_mode);
+                        config->redirect_mode = kstrdup("on", GFP_KERNEL);
+                        if (!config->redirect_mode)
+                                return -ENOMEM;
+
+Better wrap that up in a helper ovl_set_redirect_mode("on").
+
+Thanks,
+Amir.
