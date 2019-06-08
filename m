@@ -1,70 +1,111 @@
-Return-Path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-wm1-f68.google.com ([209.85.128.68]:53413 "EHLO
-        mail-wm1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725906AbfFQN6v (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 17 Jun 2019 09:58:51 -0400
+Return-Path: <amir73il@gmail.com>
+Return-Path: <amir73il@gmail.com>
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH] overlay: fix _scratch_remount with xfs_info 5.0.0
-Date: Mon, 17 Jun 2019 16:58:43 +0300
-Message-Id: <20190617135843.12659-1-amir73il@gmail.com>
-Sender: linux-unionfs-owner@vger.kernel.org
-To: Eryu Guan <guaneryu@gmail.com>
-Cc: "Darrick J . Wong" <darrick.wong@oracle.com>, linux-unionfs@vger.kernel.org, fstests@vger.kernel.org
+Subject: [PATCH 2/2] locks: eliminate false positive conflicts for write lease
+Date: Sat,  8 Jun 2019 16:57:17 +0300
+Message-Id: <20190608135717.8472-3-amir73il@gmail.com>
+In-Reply-To: <20190608135717.8472-1-amir73il@gmail.com>
+References: <20190608135717.8472-1-amir73il@gmail.com>
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: "J . Bruce Fields" <bfields@fieldses.org>, Jeff Layton <jlayton@poochiereds.net>, Mimi Zohar <zohar@linux.ibm.com>, Al Viro <viro@zeniv.linux.org.uk>, linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org, linux-integrity@vger.kernel.org
 List-ID: <linux-unionfs@vger.kernel.org>
 
-xfs_info version 5.0.0 started using findmnt to find the
-filesystem to query. This change resulted in a regression
-of _scratch_remount when testing overlay over xfs.
-For example, test overlay/035, started to report:
-[not run] overlay/035 -- upper fs needs to support d_type
+check_conflicting_open() is checking for existing fd's open for read or
+for write before allowing to take a write lease.  The check that was
+implemented using i_count and d_count is an approximation that has
+several false positives.  For example, overlayfs since v4.19, takes an
+extra reference on the dentry; An open with O_PATH takes a reference on
+the inode and dentry although the file cannot be read nor written.
 
-Internally, '_overlay_scratch_mount -o remount' calls
-'_supports_filetype $OVL_BASE_SCRATCH_MNT -o remount'
-and with the following example mounts:
+Change the implementation to use inode_is_open_rdonly() and i_writecount
+to eliminate the false positive conflicts and allow a write lease to be
+taken on an overlayfs file.
 
-/dev/vdf /vdf xfs rw,relatime,attr2,inode64,noquota 0 0
-/vdf /vdf/ovl-mnt overlay rw,lowerdir=/vdf/lower,upperdir=/vdf/upper...
+The change of behavior with existing fd's open with O_PATH is symmetric
+w.r.t. current behavior of lease breakers - an open with O_PATH currently
+does not break a write lease.
 
-'_supports_filetype /vdf' returns false and reports:
-"/vdf/ovl-mnt: Not on a mounted XFS filesystem".
-
-Regardless of the change in xfs_info, which I proposed a fix
-for, there is no reason to test d_type support on remount.
-Therefore, fix the regression by skipping unneeded overlayfs
-mount logic on remount.
-
+Cc: <stable@vger.kernel.org> # v4.19
 Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
+ fs/locks.c | 26 ++++++++++++++++----------
+ 1 file changed, 16 insertions(+), 10 deletions(-)
 
-Eryu,
-
-I think this fix is desired regardless of the proposed
-xfs_info fix [1].
-
-Thanks,
-Amir.
-
-[1] https://marc.info/?l=linux-xfs&m=156077152313826&w=2
-
- common/overlay | 5 +++++
- 1 file changed, 5 insertions(+)
-
-diff --git a/common/overlay b/common/overlay
-index 00946a94..65c639e9 100644
---- a/common/overlay
-+++ b/common/overlay
-@@ -105,6 +105,11 @@ _overlay_base_scratch_mount()
- 
- _overlay_scratch_mount()
- {
-+	if echo "$*" | grep -q remount; then
-+		$MOUNT_PROG $SCRATCH_MNT $*
-+		return
-+	fi
-+
- 	_overlay_base_scratch_mount && \
- 		_overlay_mount $OVL_BASE_SCRATCH_MNT $SCRATCH_MNT $*
+diff --git a/fs/locks.c b/fs/locks.c
+index ec1e4a5df629..4937cfdf611a 100644
+--- a/fs/locks.c
++++ b/fs/locks.c
+@@ -1753,10 +1753,10 @@ int fcntl_getlease(struct file *filp)
  }
+ 
+ /**
+- * check_conflicting_open - see if the given dentry points to a file that has
++ * check_conflicting_open - see if the given file points to an inode that has
+  *			    an existing open that would conflict with the
+  *			    desired lease.
+- * @dentry:	dentry to check
++ * @filp:	file to check
+  * @arg:	type of lease that we're trying to acquire
+  * @flags:	current lock flags
+  *
+@@ -1764,10 +1764,11 @@ int fcntl_getlease(struct file *filp)
+  * conflict with the lease we're trying to set.
+  */
+ static int
+-check_conflicting_open(const struct dentry *dentry, const long arg, int flags)
++check_conflicting_open(struct file *filp, const long arg, int flags)
+ {
+ 	int ret = 0;
+-	struct inode *inode = dentry->d_inode;
++	struct inode *inode = locks_inode(filp);
++	int self_wcount = 0, self_rcount = 0;
+ 
+ 	if (flags & FL_LAYOUT)
+ 		return 0;
+@@ -1775,8 +1776,14 @@ check_conflicting_open(const struct dentry *dentry, const long arg, int flags)
+ 	if ((arg == F_RDLCK) && inode_is_open_for_write(inode))
+ 		return -EAGAIN;
+ 
+-	if ((arg == F_WRLCK) && ((d_count(dentry) > 1) ||
+-	    (atomic_read(&inode->i_count) > 1)))
++	/* Make sure that only read/write count is from lease requestor */
++	if (filp->f_mode & FMODE_WRITE)
++		self_wcount = 1;
++	else if ((filp->f_mode & (FMODE_READ | FMODE_WRITE)) == FMODE_READ)
++		self_rcount = 1;
++
++	if ((arg == F_WRLCK) && (i_readcount_read(inode) != self_rcount ||
++	     (atomic_read(&inode->i_writecount) != self_wcount)))
+ 		ret = -EAGAIN;
+ 
+ 	return ret;
+@@ -1786,8 +1793,7 @@ static int
+ generic_add_lease(struct file *filp, long arg, struct file_lock **flp, void **priv)
+ {
+ 	struct file_lock *fl, *my_fl = NULL, *lease;
+-	struct dentry *dentry = filp->f_path.dentry;
+-	struct inode *inode = dentry->d_inode;
++	struct inode *inode = locks_inode(filp);
+ 	struct file_lock_context *ctx;
+ 	bool is_deleg = (*flp)->fl_flags & FL_DELEG;
+ 	int error;
+@@ -1822,7 +1828,7 @@ generic_add_lease(struct file *filp, long arg, struct file_lock **flp, void **pr
+ 	percpu_down_read(&file_rwsem);
+ 	spin_lock(&ctx->flc_lock);
+ 	time_out_leases(inode, &dispose);
+-	error = check_conflicting_open(dentry, arg, lease->fl_flags);
++	error = check_conflicting_open(filp, arg, lease->fl_flags);
+ 	if (error)
+ 		goto out;
+ 
+@@ -1879,7 +1885,7 @@ generic_add_lease(struct file *filp, long arg, struct file_lock **flp, void **pr
+ 	 * precedes these checks.
+ 	 */
+ 	smp_mb();
+-	error = check_conflicting_open(dentry, arg, lease->fl_flags);
++	error = check_conflicting_open(filp, arg, lease->fl_flags);
+ 	if (error) {
+ 		locks_unlink_lock_ctx(lease);
+ 		goto out;
 -- 
 2.17.1
