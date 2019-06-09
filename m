@@ -1,62 +1,55 @@
-Return-Path: <zohar@linux.ibm.com>
-Subject: Re: [PATCH 1/2] vfs: replace i_readcount with a biased i_count
-From: Mimi Zohar <zohar@linux.ibm.com>
-Date: Wed, 12 Jun 2019 08:51:39 -0400
-In-Reply-To: <20190608135717.8472-2-amir73il@gmail.com>
+MIME-Version: 1.0
+Date: Sun, 9 Jun 2019 21:36:28 +0200
 References: <20190608135717.8472-1-amir73il@gmail.com>
-	 <20190608135717.8472-2-amir73il@gmail.com>
+	<20190608135717.8472-2-amir73il@gmail.com>
+In-Reply-To: <20190608135717.8472-2-amir73il@gmail.com>
+Message-ID: <CAJfpegs9=W7BwqqBpTPgoXj5xaR=YMkDHLFM3pBaj8YLK-CwyQ@mail.gmail.com>
+Subject: Re: [PATCH 1/2] vfs: replace i_readcount with a biased i_count
+From: Miklos Szeredi <miklos@szeredi.hu>
 Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Message-Id: <1560343899.4578.9.camel@linux.ibm.com>
-To: Amir Goldstein <amir73il@gmail.com>, Miklos Szeredi <miklos@szeredi.hu>
-Cc: "J . Bruce Fields" <bfields@fieldses.org>, Jeff Layton <jlayton@poochiereds.net>, Al Viro <viro@zeniv.linux.org.uk>, linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org, linux-integrity@vger.kernel.org
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: "J . Bruce Fields" <bfields@fieldses.org>, Jeff Layton <jlayton@poochiereds.net>, Mimi Zohar <zohar@linux.ibm.com>, Al Viro <viro@zeniv.linux.org.uk>, linux-fsdevel@vger.kernel.org, overlayfs <linux-unionfs@vger.kernel.org>, linux-integrity <linux-integrity@vger.kernel.org>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-On Sat, 2019-06-08 at 16:57 +0300, Amir Goldstein wrote:
+On Sat, Jun 8, 2019 at 3:57 PM Amir Goldstein <amir73il@gmail.com> wrote:
+>
 > Count struct files open RO together with inode reference count instead
 > of using a dedicated i_readcount field.  This will allow us to use the
 > RO count also when CONFIG_IMA is not defined and will reduce the size of
 > struct inode for 32bit archs when CONFIG_IMA is defined.
-> 
+>
 > We need this RO count for posix leases code, which currently naively
 > checks i_count and d_count in an inaccurate manner.
-> 
+>
 > Should regular i_count overflow into RO count bias by struct files
 > opened for write, it's not a big deal, as we mostly need the RO count
 > to be reliable when the first writer comes along.
-
-"i_count" has been defined forever.  Has its meaning changed?  This
-patch implies that "i_readcount" was never really needed.
-
-Mimi
-
-> 
+>
 > Cc: <stable@vger.kernel.org> # v4.19
 > Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 > ---
 >  include/linux/fs.h                | 33 +++++++++++++++++++------------
 >  security/integrity/ima/ima_main.c |  2 +-
 >  2 files changed, 21 insertions(+), 14 deletions(-)
-> 
+>
 > diff --git a/include/linux/fs.h b/include/linux/fs.h
 > index f7fdfe93e25d..504bf17967dd 100644
 > --- a/include/linux/fs.h
 > +++ b/include/linux/fs.h
 > @@ -694,9 +694,6 @@ struct inode {
->  	atomic_t		i_count;
->  	atomic_t		i_dio_count;
->  	atomic_t		i_writecount;
+>         atomic_t                i_count;
+>         atomic_t                i_dio_count;
+>         atomic_t                i_writecount;
 > -#ifdef CONFIG_IMA
-> -	atomic_t		i_readcount; /* struct files open RO */
+> -       atomic_t                i_readcount; /* struct files open RO */
 > -#endif
->  	union {
->  		const struct file_operations	*i_fop;	/* former ->i_op->default_file_ops */
->  		void (*free_inode)(struct inode *);
+>         union {
+>                 const struct file_operations    *i_fop; /* former ->i_op->default_file_ops */
+>                 void (*free_inode)(struct inode *);
 > @@ -2890,26 +2887,36 @@ static inline bool inode_is_open_for_write(const struct inode *inode)
->  	return atomic_read(&inode->i_writecount) > 0;
+>         return atomic_read(&inode->i_writecount) > 0;
 >  }
->  
+>
 > -#ifdef CONFIG_IMA
 > +/*
 > + * Count struct files open RO together with inode rerefernce count.
@@ -66,50 +59,15 @@ Mimi
 > + * Should regular i_count overflow into I_RO_COUNT_BIAS by struct files
 > + * opened for write, it's not a big deal, as we mostly need
 > + * inode_is_open_rdonly() to be reliable when the first writer comes along.
-> + */
-> +#define I_RO_COUNT_SHIFT 10
-> +#define I_RO_COUNT_BIAS	(1UL << I_RO_COUNT_SHIFT)
-> +
->  static inline void i_readcount_dec(struct inode *inode)
->  {
-> -	BUG_ON(!atomic_read(&inode->i_readcount));
-> -	atomic_dec(&inode->i_readcount);
-> +	WARN_ON(atomic_read(&inode->i_count) < I_RO_COUNT_BIAS);
-> +	atomic_sub(I_RO_COUNT_BIAS, &inode->i_count);
->  }
->  static inline void i_readcount_inc(struct inode *inode)
->  {
-> -	atomic_inc(&inode->i_readcount);
-> +	atomic_add(I_RO_COUNT_BIAS, &inode->i_count);
->  }
-> -#else
-> -static inline void i_readcount_dec(struct inode *inode)
-> +static inline int i_readcount_read(const struct inode *inode)
->  {
-> -	return;
-> +	return atomic_read(&inode->i_count) >> I_RO_COUNT_SHIFT;
->  }
-> -static inline void i_readcount_inc(struct inode *inode)
-> +static inline bool inode_is_open_rdonly(const struct inode *inode)
->  {
-> -	return;
-> +	return atomic_read(&inode->i_count) > I_RO_COUNT_BIAS;
->  }
-> -#endif
-> +
->  extern int do_pipe_flags(int *, int);
->  
->  #define __kernel_read_file_id(id) \
-> diff --git a/security/integrity/ima/ima_main.c b/security/integrity/ima/ima_main.c
-> index 357edd140c09..766bac778d11 100644
-> --- a/security/integrity/ima/ima_main.c
-> +++ b/security/integrity/ima/ima_main.c
-> @@ -94,7 +94,7 @@ static void ima_rdwr_violation_check(struct file *file,
->  	bool send_tomtou = false, send_writers = false;
->  
->  	if (mode & FMODE_WRITE) {
-> -		if (atomic_read(&inode->i_readcount) && IS_IMA(inode)) {
-> +		if (inode_is_open_rdonly(inode) && IS_IMA(inode)) {
->  			if (!iint)
->  				iint = integrity_iint_find(inode);
->  			/* IMA_MEASURE is set from reader side */
+
+The bigger issue is allowing i_count to wrap around: all you need is a
+file with 1025 hard links and 4194304 opens of said file.  Doable
+without privileges?  Not sure, but it does seem pretty fragile.
+
+BTW the current 32 bit i_readcount that IMA uses also has wraparound
+issues, though that's not nearly as bad.
+
+Going to a 64 bit i_count would fix these, I guess.
+
+Thanks,
+Miklos
