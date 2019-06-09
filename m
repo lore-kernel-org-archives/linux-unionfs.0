@@ -1,42 +1,63 @@
-MIME-Version: 1.0
-Date: Tue, 11 Jun 2019 15:58:37 +0200
-References: <20190609160344.24979-1-amir73il@gmail.com>
-In-Reply-To: <20190609160344.24979-1-amir73il@gmail.com>
-Message-ID: <CAJfpegt4QXGC0-y_sug7kuFo2q28c6DFJQnQ-UHe1bmCGC0jag@mail.gmail.com>
-Subject: Re: [PATCH] ovl: make i_ino consistent with st_ino in more cases
-From: Miklos Szeredi <miklos@szeredi.hu>
-Content-Type: text/plain; charset="UTF-8"
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: overlayfs <linux-unionfs@vger.kernel.org>
+Return-Path: <amir73il@gmail.com>
+Return-Path: <amir73il@gmail.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Subject: [PATCH] ovl: make i_ino consistent with st_ino in more cases
+Date: Sun,  9 Jun 2019 19:03:44 +0300
+Message-Id: <20190609160344.24979-1-amir73il@gmail.com>
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: linux-unionfs@vger.kernel.org
 List-ID: <linux-unionfs@vger.kernel.org>
 
-On Sun, Jun 9, 2019 at 6:03 PM Amir Goldstein <amir73il@gmail.com> wrote:
->
-> Relax the condition that overlayfs supports nfs export, to require
-> that i_ino is consistent with st_ino/d_ino.
->
-> It is enough to require that st_ino and d_ino are consistent.
+Relax the condition that overlayfs supports nfs export, to require
+that i_ino is consistent with st_ino/d_ino.
 
-Yes.
+It is enough to require that st_ino and d_ino are consistent.
 
->
-> This fixes the failure of xfstest generic/504, due to mismatch of
-> st_ino to inode number in the output of /proc/locks.
->
-> Fixes: 12574a9f4c9c ("ovl: consistent i_ino for non-samefs with xino")
-> Cc: <stable@vger.kernel.org> # v4.19
-> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
-> ---
->
-> Miklos,
->
-> TBH, I can't remember why I put the s_export_op condition in the
-> first place (can you?), expect for the fact the original bug fix
-> was reported on nfsd readdirplus.
+This fixes the failure of xfstest generic/504, due to mismatch of
+st_ino to inode number in the output of /proc/locks.
 
-I have no recollection of any issue that would require nfs export.
+Fixes: 12574a9f4c9c ("ovl: consistent i_ino for non-samefs with xino")
+Cc: <stable@vger.kernel.org> # v4.19
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+---
 
-I've applied the patch.
+Miklos,
+
+TBH, I can't remember why I put the s_export_op condition in the
+first place (can you?), expect for the fact the original bug fix
+was reported on nfsd readdirplus.
 
 Thanks,
-Miklos
+Amir.
+
+ fs/overlayfs/inode.c | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
+
+diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
+index f7eba21effa5..f0389849fd80 100644
+--- a/fs/overlayfs/inode.c
++++ b/fs/overlayfs/inode.c
+@@ -553,15 +553,15 @@ static void ovl_fill_inode(struct inode *inode, umode_t mode, dev_t rdev,
+ 	int xinobits = ovl_xino_bits(inode->i_sb);
+ 
+ 	/*
+-	 * When NFS export is enabled and d_ino is consistent with st_ino
+-	 * (samefs or i_ino has enough bits to encode layer), set the same
+-	 * value used for d_ino to i_ino, because nfsd readdirplus compares
+-	 * d_ino values to i_ino values of child entries. When called from
++	 * When d_ino is consistent with st_ino (samefs or i_ino has enough
++	 * bits to encode layer), set the same value used for st_ino to i_ino,
++	 * so inode number exposed via /proc/locks and a like will be
++	 * consistent with d_ino and st_ino values. An i_ino value inconsistent
++	 * with d_ino also causes nfsd readdirplus to fail.  When called from
+ 	 * ovl_new_inode(), ino arg is 0, so i_ino will be updated to real
+ 	 * upper inode i_ino on ovl_inode_init() or ovl_inode_update().
+ 	 */
+-	if (inode->i_sb->s_export_op &&
+-	    (ovl_same_sb(inode->i_sb) || xinobits)) {
++	if (ovl_same_sb(inode->i_sb) || xinobits) {
+ 		inode->i_ino = ino;
+ 		if (xinobits && fsid && !(ino >> (64 - xinobits)))
+ 			inode->i_ino |= (unsigned long)fsid << (64 - xinobits);
+-- 
+2.17.1
