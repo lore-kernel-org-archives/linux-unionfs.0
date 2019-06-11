@@ -1,165 +1,89 @@
 Return-Path: <amir73il@gmail.com>
 Return-Path: <amir73il@gmail.com>
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH v2] locks: eliminate false positive conflicts for write lease
-Date: Wed, 12 Jun 2019 20:24:08 +0300
-Message-Id: <20190612172408.22671-1-amir73il@gmail.com>
-To: Miklos Szeredi <miklos@szeredi.hu>, Jeff Layton <jlayton@poochiereds.net>, "J . Bruce Fields" <bfields@fieldses.org>
-Cc: linux-fsdevel@vger.kernel.org, linux-nfs@vger.kernel.org, linux-unionfs@vger.kernel.org
+Subject: [PATCH 1/3] fstests: print out xfs_io parameter when command fails
+Date: Tue, 11 Jun 2019 19:08:37 +0300
+Message-Id: <20190611160839.14777-2-amir73il@gmail.com>
+In-Reply-To: <20190611160839.14777-1-amir73il@gmail.com>
+References: <20190611160839.14777-1-amir73il@gmail.com>
+To: Eryu Guan <guaneryu@gmail.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, "Darrick J . Wong" <darrick.wong@oracle.com>, linux-unionfs@vger.kernel.org, fstests@vger.kernel.org
 List-ID: <linux-unionfs@vger.kernel.org>
 
-check_conflicting_open() is checking for existing fd's open for read or
-for write before allowing to take a write lease.  The check that was
-implemented using i_count and d_count is an approximation that has
-several false positives.  For example, overlayfs since v4.19, takes an
-extra reference on the dentry; An open with O_PATH takes a reference on
-the dentry although the file cannot be read nor written.
+In _require_xfs_io_command, when command fails for one of the
+generic reasons, if command was tested with params, print out
+the params of the failed command.
 
-Change the implementation to use i_readcount and i_writecount to
-eliminate the false positive conflicts and allow a write lease to be
-taken on an overlayfs file.
-
-The change of behavior with existing fd's open with O_PATH is symmetric
-w.r.t. current behavior of lease breakers - an open with O_PATH currently
-does not break a write lease.
-
-This increases the size of struct inode by 4 bytes on 32bit archs when
-CONFIG_FILE_LOCKING is defined and CONFIG_IMA was not already
-defined.
-
-Cc: <stable@vger.kernel.org> # v4.19
 Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
+ common/rc | 20 ++++++++++----------
+ 1 file changed, 10 insertions(+), 10 deletions(-)
 
-Miklos, Jeff and Bruce,
-
-This patch fixes a v4.19 overlayfs regression with taking write
-leases. It also provides correct semantics w.r.t RDONLY open counter
-that Bruce also needed for nfsd.
-
-Since this is locks code that fixes an overlayfs regression which
-is also needed for nfsd, it could go via either of your trees.
-I didn't want to pick sides, so first one to grab the patch wins ;-)
-
-I verified the changes using modified LTP F_SETLEASE tests [1],
-which I ran over xfs and overlayfs.
-
-Thanks,
-Amir.
-
-[1] https://github.com/amir73il/ltp/commits/overlayfs-devel
-
-Changes since v1:
-- Drop patch to fold i_readcount into i_count
-- Make i_readcount depend on CONFIG_FILE_LOCKING
-
- fs/locks.c         | 33 ++++++++++++++++++++++-----------
- include/linux/fs.h |  4 ++--
- 2 files changed, 24 insertions(+), 13 deletions(-)
-
-diff --git a/fs/locks.c b/fs/locks.c
-index ec1e4a5df629..28528b4fc53b 100644
---- a/fs/locks.c
-+++ b/fs/locks.c
-@@ -1753,10 +1753,10 @@ int fcntl_getlease(struct file *filp)
- }
+diff --git a/common/rc b/common/rc
+index d0aa36a0..85330de2 100644
+--- a/common/rc
++++ b/common/rc
+@@ -2084,7 +2084,7 @@ _require_xfs_io_command()
+ 	local command=$1
+ 	shift
+ 	local param="$*"
+-	local param_checked=0
++	local param_checked=""
+ 	local opts=""
  
- /**
-- * check_conflicting_open - see if the given dentry points to a file that has
-+ * check_conflicting_open - see if the given file points to an inode that has
-  *			    an existing open that would conflict with the
-  *			    desired lease.
-- * @dentry:	dentry to check
-+ * @filp:	file to check
-  * @arg:	type of lease that we're trying to acquire
-  * @flags:	current lock flags
-  *
-@@ -1764,19 +1764,31 @@ int fcntl_getlease(struct file *filp)
-  * conflict with the lease we're trying to set.
-  */
- static int
--check_conflicting_open(const struct dentry *dentry, const long arg, int flags)
-+check_conflicting_open(struct file *filp, const long arg, int flags)
- {
- 	int ret = 0;
--	struct inode *inode = dentry->d_inode;
-+	struct inode *inode = locks_inode(filp);
-+	int wcount = atomic_read(&inode->i_writecount);
-+	int self_wcount = 0, self_rcount = 0;
+ 	local testfile=$TEST_DIR/$$.xfs_io
+@@ -2101,7 +2101,7 @@ _require_xfs_io_command()
+ 		;;
+ 	"falloc" )
+ 		testio=`$XFS_IO_PROG -F -f -c "falloc $param 0 1m" $testfile 2>&1`
+-		param_checked=1
++		param_checked="$param"
+ 		;;
+ 	"fpunch" | "fcollapse" | "zero" | "fzero" | "finsert" | "funshare")
+ 		local blocksize=$(_get_block_size $TEST_DIR)
+@@ -2119,7 +2119,7 @@ _require_xfs_io_command()
+ 		fi
+ 		testio=`$XFS_IO_PROG -F -f -c "pwrite 0 20k" -c "fsync" \
+ 			-c "fiemap -v $param" $testfile 2>&1`
+-		param_checked=1
++		param_checked="$param"
+ 		;;
+ 	"flink")
+ 		local testlink=$TEST_DIR/$$.link.xfs_io
+@@ -2159,7 +2159,7 @@ _require_xfs_io_command()
+ 		fi
+ 		testio=`$XFS_IO_PROG -f $opts -c \
+ 		        "pwrite $pwrite_opts $param 0 4k" $testfile 2>&1`
+-		param_checked=1
++		param_checked="$pwrite_opts $param"
+ 		;;
+ 	"scrub"|"repair")
+ 		testio=`$XFS_IO_PROG -x -c "$command probe" $TEST_DIR 2>&1`
+@@ -2179,19 +2179,19 @@ _require_xfs_io_command()
  
- 	if (flags & FL_LAYOUT)
- 		return 0;
+ 	rm -f $testfile 2>&1 > /dev/null
+ 	echo $testio | grep -q "not found" && \
+-		_notrun "xfs_io $command support is missing"
++		_notrun "xfs_io $command $param_checked support is missing"
+ 	echo $testio | grep -q "Operation not supported\|Inappropriate ioctl" && \
+-		_notrun "xfs_io $command failed (old kernel/wrong fs?)"
++		_notrun "xfs_io $command $param_checked failed (old kernel/wrong fs?)"
+ 	echo $testio | grep -q "Invalid" && \
+-		_notrun "xfs_io $command failed (old kernel/wrong fs/bad args?)"
++		_notrun "xfs_io $command $param_checked failed (old kernel/wrong fs/bad args?)"
+ 	echo $testio | grep -q "foreign file active" && \
+-		_notrun "xfs_io $command not supported on $FSTYP"
++		_notrun "xfs_io $command $param_checked not supported on $FSTYP"
+ 	echo $testio | grep -q "Function not implemented" && \
+-		_notrun "xfs_io $command support is missing (missing syscall?)"
++		_notrun "xfs_io $command $param_checked support is missing (missing syscall?)"
  
--	if ((arg == F_RDLCK) && inode_is_open_for_write(inode))
-+	if (arg == F_RDLCK && wcount > 0)
- 		return -EAGAIN;
+ 	[ -n "$param" ] || return
  
--	if ((arg == F_WRLCK) && ((d_count(dentry) > 1) ||
--	    (atomic_read(&inode->i_count) > 1)))
-+	/* Eliminate deny writes from actual writers count */
-+	if (wcount < 0)
-+		wcount = 0;
-+
-+	/* Make sure that only read/write count is from lease requestor */
-+	if (filp->f_mode & FMODE_WRITE)
-+		self_wcount = 1;
-+	else if ((filp->f_mode & (FMODE_READ | FMODE_WRITE)) == FMODE_READ)
-+		self_rcount = 1;
-+
-+	if (arg == F_WRLCK && (wcount != self_wcount ||
-+	    atomic_read(&inode->i_readcount) != self_rcount))
- 		ret = -EAGAIN;
- 
- 	return ret;
-@@ -1786,8 +1798,7 @@ static int
- generic_add_lease(struct file *filp, long arg, struct file_lock **flp, void **priv)
- {
- 	struct file_lock *fl, *my_fl = NULL, *lease;
--	struct dentry *dentry = filp->f_path.dentry;
--	struct inode *inode = dentry->d_inode;
-+	struct inode *inode = locks_inode(filp);
- 	struct file_lock_context *ctx;
- 	bool is_deleg = (*flp)->fl_flags & FL_DELEG;
- 	int error;
-@@ -1822,7 +1833,7 @@ generic_add_lease(struct file *filp, long arg, struct file_lock **flp, void **pr
- 	percpu_down_read(&file_rwsem);
- 	spin_lock(&ctx->flc_lock);
- 	time_out_leases(inode, &dispose);
--	error = check_conflicting_open(dentry, arg, lease->fl_flags);
-+	error = check_conflicting_open(filp, arg, lease->fl_flags);
- 	if (error)
- 		goto out;
- 
-@@ -1879,7 +1890,7 @@ generic_add_lease(struct file *filp, long arg, struct file_lock **flp, void **pr
- 	 * precedes these checks.
- 	 */
- 	smp_mb();
--	error = check_conflicting_open(dentry, arg, lease->fl_flags);
-+	error = check_conflicting_open(filp, arg, lease->fl_flags);
- 	if (error) {
- 		locks_unlink_lock_ctx(lease);
- 		goto out;
-diff --git a/include/linux/fs.h b/include/linux/fs.h
-index 79ffa2958bd8..2d55f1b64014 100644
---- a/include/linux/fs.h
-+++ b/include/linux/fs.h
-@@ -694,7 +694,7 @@ struct inode {
- 	atomic_t		i_count;
- 	atomic_t		i_dio_count;
- 	atomic_t		i_writecount;
--#ifdef CONFIG_IMA
-+#if defined(CONFIG_IMA) || defined(CONFIG_FILE_LOCKING)
- 	atomic_t		i_readcount; /* struct files open RO */
- #endif
- 	union {
-@@ -2895,7 +2895,7 @@ static inline bool inode_is_open_for_write(const struct inode *inode)
- 	return atomic_read(&inode->i_writecount) > 0;
- }
- 
--#ifdef CONFIG_IMA
-+#if defined(CONFIG_IMA) || defined(CONFIG_FILE_LOCKING)
- static inline void i_readcount_dec(struct inode *inode)
- {
- 	BUG_ON(!atomic_read(&inode->i_readcount));
+-	if [ $param_checked -eq 0 ]; then
++	if [ -z "$param_checked" ]; then
+ 		$XFS_IO_PROG -c "help $command" | grep -q "^ $param --" || \
+ 			_notrun "xfs_io $command doesn't support $param"
+ 	else
 -- 
 2.17.1
