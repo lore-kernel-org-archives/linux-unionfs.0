@@ -1,67 +1,53 @@
 Return-Path: <amir73il@gmail.com>
 Return-Path: <amir73il@gmail.com>
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH v2 2/2] fanotify06: Close all file descriptors of read events
-Date: Tue,  4 Jun 2019 18:10:35 +0300
-Message-Id: <20190604151035.6123-2-amir73il@gmail.com>
-In-Reply-To: <20190604151035.6123-1-amir73il@gmail.com>
-References: <20190604151035.6123-1-amir73il@gmail.com>
-To: Petr Vorel <pvorel@suse.cz>
-Cc: Cyril Hrubis <chrubis@suse.cz>, Murphy Zhou <xzhou@redhat.com>, Jan Kara <jack@suse.cz>, Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, ltp@lists.linux.it
+Subject: [PATCH 0/3] Improved FS_IOC_FSSETXATTR tests
+Date: Tue, 11 Jun 2019 19:08:36 +0300
+Message-Id: <20190611160839.14777-1-amir73il@gmail.com>
+To: Eryu Guan <guaneryu@gmail.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, "Darrick J . Wong" <darrick.wong@oracle.com>, linux-unionfs@vger.kernel.org, fstests@vger.kernel.org
 List-ID: <linux-unionfs@vger.kernel.org>
 
-With overlayfs test case on kernel v4.19, we get extra events.
-If we do not close the event->fd file descriptros of all the events
-that we read, overlayfs will fail to unmount at the end of the test
-and test will retry un-mounting for a while.
+Eryu,
 
-Signed-off-by: Amir Goldstein <amir73il@gmail.com>
----
- .../kernel/syscalls/fanotify/fanotify06.c      | 18 ++++++++++++++----
- 1 file changed, 14 insertions(+), 4 deletions(-)
+Overlayfs gained support for FS_IOC_FSSETXATTR ioctl in v5.2-rc4
+with buggy capability check. The fix is trivial so it should land
+upstream soon.
 
-diff --git a/testcases/kernel/syscalls/fanotify/fanotify06.c b/testcases/kernel/syscalls/fanotify/fanotify06.c
-index e053da0e5..273c1f0c4 100644
---- a/testcases/kernel/syscalls/fanotify/fanotify06.c
-+++ b/testcases/kernel/syscalls/fanotify/fanotify06.c
-@@ -148,6 +148,17 @@ static void verify_event(int group, struct fanotify_event_metadata *event)
- 	}
- }
- 
-+/* Close all file descriptors of read events */
-+static void close_events_fd(struct fanotify_event_metadata *event, int buflen)
-+{
-+	while (buflen >= (int)FAN_EVENT_METADATA_LEN) {
-+		if (event->fd != FAN_NOFD)
-+			SAFE_CLOSE(event->fd);
-+		buflen -= (int)FAN_EVENT_METADATA_LEN;
-+		event++;
-+	}
-+}
-+
- void test_fanotify(unsigned int n)
- {
- 	int ret;
-@@ -198,17 +209,16 @@ void test_fanotify(unsigned int n)
- 		} else {
- 			verify_event(i, event);
- 		}
--		if (event->fd != FAN_NOFD)
--			SAFE_CLOSE(event->fd);
-+		close_events_fd(event, ret);
- 	}
-+
- 	for (p = 1; p < FANOTIFY_PRIORITIES; p++) {
- 		for (i = 0; i < GROUPS_PER_PRIO; i++) {
- 			ret = read(fd_notify[p][i], event_buf, EVENT_BUF_LEN);
- 			if (ret > 0) {
- 				tst_res(TFAIL, "group %d got event",
- 					p*GROUPS_PER_PRIO + i);
--				if (event->fd != FAN_NOFD)
--					SAFE_CLOSE(event->fd);
-+				close_events_fd((void *)event_buf, ret);
- 			} else if (ret == 0) {
- 				tst_brk(TBROK, "zero length "
- 					"read from fanotify fd");
+This series adds a generic test to cover the bug in overlayfs v5.2-rc4.
+It also adds a proper _require directive to test filesystem support
+for FS_IOC_FSSETXATTR and let the tests that use this ioctl require
+filesystem support for it.
+
+The only existing generic test that needed this requirement is the
+recently added generic/553 copy_range immutable file test. When run on
+overlayfs over xfs/ext4/btrfs, generic/553 would fail instead of _notrun
+with kernel v5.2-rc3.
+
+But the requirement fix is not only for overlayfs, other filesystems
+that support FS_IOC_SETFLAGS but not FS_IOC_FSSETXATTR (e.g. ext2),
+need those fixes to _notrun generic/553.
+
+Thanks,
+Amir.
+
+
+Amir Goldstein (3):
+  fstests: print out xfs_io parameter when command fails
+  fstests: check for filesystem FS_IOC_FSSETXATTR support
+  generic: check CAP_LINUX_IMMUTABLE capability with FS_IOC_FSSETXATTR
+
+ common/rc                    | 30 ++++++++++-----
+ doc/requirement-checking.txt |  2 +-
+ tests/generic/553            |  3 +-
+ tests/generic/555            | 74 ++++++++++++++++++++++++++++++++++++
+ tests/generic/555.out        |  9 +++++
+ tests/generic/group          |  1 +
+ tests/xfs/260                |  2 +-
+ tests/xfs/431                |  2 +-
+ 8 files changed, 108 insertions(+), 15 deletions(-)
+ create mode 100755 tests/generic/555
+ create mode 100644 tests/generic/555.out
+
 -- 
 2.17.1
