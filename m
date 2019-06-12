@@ -1,105 +1,78 @@
-From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: FAILED: patch "[PATCH] ovl: support the FS_IOC_FS[SG]ETXATTR
- ioctls" failed to apply to 5.1-stable tree
-Date: Mon, 24 Jun 2019 07:52:11 +0300
-Message-ID: <CAOQ4uxiz5CkGojr5yquUd__TS_eae+ZapqyGaojiOUGniFPMsg@mail.gmail.com>
-References: <1560073529193139@kroah.com> <CAOQ4uxiTrsOs3KWOxedZicXNMJJharmWo=TDXDnxSC1XMNVKBg@mail.gmail.com>
- <CAOQ4uxiTTuOESvZ2Y5cSebqKs+qeU3q6ZMReBDro0Qv7aRBhpw@mail.gmail.com>
- <20190623010345.GJ2226@sasha-vm> <20190623202916.GA10957@kroah.com> <20190624003409.GO2226@sasha-vm>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <20190624003409.GO2226@sasha-vm>
-Sender: stable-owner@vger.kernel.org
-To: Sasha Levin <sashal@kernel.org>
-Cc: Greg KH <gregkh@linuxfoundation.org>, Miklos Szeredi <mszeredi@redhat.com>, stable <stable@vger.kernel.org>, overlayfs <linux-unionfs@vger.kernel.org>
-List-Id: linux-unionfs@vger.kernel.org
+Return-Path: <linux-unionfs-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:38688 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S2438907AbfFLMcQ (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Wed, 12 Jun 2019 08:32:16 -0400
+Date: Wed, 12 Jun 2019 08:32:15 -0400
+From: Vivek Goyal <vgoyal@redhat.com>
+Subject: Re: [PATCH v2] overlay: allow config override of metacopy/redirect
+ defaults
+Message-ID: <20190612123215.GA27088@redhat.com>
+References: <f5b0bddd-678b-bdd9-6fc7-cc9e5b3211e5@gmail.com>
+ <CAOQ4uxjQQcrcpxhtu3kAJvGaK+xd5TfNB=7_UnNciGj990DN6Q@mail.gmail.com>
+ <CAJfpegvy-Vfc6AEP7+=VfUtfL4izY8AzgoUdvqP4PHnLDEQhNg@mail.gmail.com>
+ <20190610184043.GD25290@redhat.com>
+ <20190610184553.GE25290@redhat.com>
+ <CAJfpegvrOy3yBpu1AVBFyjdXBNM44k4gSqQ0F2npBG8wH8cUeg@mail.gmail.com>
+ <20190611130932.GA28835@redhat.com>
+ <cb363beb-9b2e-1d20-ca46-cba7724ec648@redhat.com>
+ <20190611214951.GC28835@redhat.com>
+ <be9bfd25-ff48-bd9e-25ff-aa2a5f5873ed@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <be9bfd25-ff48-bd9e-25ff-aa2a5f5873ed@gmail.com>
+Sender: linux-unionfs-owner@vger.kernel.org
+To: Matt Coffin <mcoffin13@gmail.com>
+Cc: Daniel Walsh <dwalsh@redhat.com>, Miklos Szeredi <miklos@szeredi.hu>, Amir Goldstein <amir73il@gmail.com>, overlayfs <linux-unionfs@vger.kernel.org>, Nalin Dahyabhai <nalin@redhat.com>
+List-ID: <linux-unionfs@vger.kernel.org>
 
-On Mon, Jun 24, 2019 at 3:34 AM Sasha Levin <sashal@kernel.org> wrote:
->
-> On Sun, Jun 23, 2019 at 10:29:16PM +0200, Greg KH wrote:
-> >On Sat, Jun 22, 2019 at 09:03:45PM -0400, Sasha Levin wrote:
-> >> On Fri, Jun 21, 2019 at 11:15:47AM +0300, Amir Goldstein wrote:
-> >> > On Thu, Jun 13, 2019 at 11:49 AM Amir Goldstein <amir73il@gmail.com> wrote:
-> >> > >
-> >> > > On Sun, Jun 9, 2019 at 12:45 PM <gregkh@linuxfoundation.org> wrote:
-> >> > > >
-> >> > > >
-> >> > > > The patch below does not apply to the 5.1-stable tree.
-> >> > > > If someone wants it applied there, or to any other stable or longterm
-> >> > > > tree, then please email the backport, including the original git commit
-> >> > > > id to <stable@vger.kernel.org>.
-> >> > > >
-> >> > > > thanks,
-> >> > > >
-> >> > > > greg k-h
-> >> > > >
-> >> > >
-> >> > > FYI, the failure to apply this patch would be resolved after you
-> >> > > picked up "ovl: check the capability before cred overridden" for
-> >> > > stable, please hold off from taking this patch just yet, because
-> >> > > it has a bug, whose fix wasn't picked upstream yet.
-> >> > >
-> >> >
-> >> > Greg,
-> >> >
-> >> > Please apply these patches to stable 4.19.
-> >> > They fix a docker regression (project quotas feature).
-> >> >
-> >> > b21d9c435f93 ovl: support the FS_IOC_FS[SG]ETXATTR ioctls
-> >> > 941d935ac763 ovl: fix wrong flags check in FS_IOC_FS[SG]ETXATTR ioctls
-> >> >
-> >> > They apply cleanly and tested on v4.19.53.
-> >>
-> >> I've queued these for 4.19.
-> >>
-> >> > While at it, I also tested that the following patches apply cleanly and solve
-> >> > relevant issues on v4.19.53, but they are not clear stable candidates.
-> >> >
-> >> > 1) /proc/locks shows incorrect ino. Only reported by xfstests (so far):
-> >> > 6dde1e42f497 ovl: make i_ino consistent with st_ino in more cases
-> >>
-> >> And this.
-> >>
-> >> > 2) Fix output of `modinfo overlay`:
-> >> > 253e74833911 ovl: fix typo in MODULE_PARM_DESC
-> >>
-> >> But not this one. Maybe we should be including these in stable trees
-> >> since the risk factor is low and it fixes something user-visible, but
-> >> our current rules object this this kind of patches so I've left it out.
-> >>
-> >> > 3) Disallow bogus layer combinations.
-> >> > syzbot has started to produce repros that create bogus layer combinations.
-> >> > So far it has only been able to reproduce a WARN_ON, which has already
-> >> > been fixed in stable, by  acf3062a7e1c ("ovl: relax WARN_ON()..."), but
-> >> > other real bugs could be lurking if those setups are allowed.
-> >> > We decided to detect and error on these setups on mount, to stop syzbot
-> >> > (and attackers) from trying to attack overlayfs this way.
-> >> > To stop syzbot from mutating this class of repros on stable kernel you
-> >> > MAY apply these 3 patches, but in any case, I would wait a while to see
-> >> > if more bugs are reported on master.
-> >> > Although this solves a problem dating before 4.19, I have no plans
-> >> > of backporting these patches further back.
-> >> >
-> >> > 146d62e5a586 ovl: detect overlapping layers
-> >> > 9179c21dc6ed ovl: don't fail with disconnected lower NFS
-> >> > 1dac6f5b0ed2 ovl: fix bogus -Wmaybe-unitialized warning
-> >>
-> >> I've queued these 3 for 4.19.
-> >
-> >What about the ones that are needed for 5.1?
->
-> Ah yes, I haven't realized that the syzkaller ones are needed for 5.1.
-> I'll queue them up.
->
+On Tue, Jun 11, 2019 at 03:57:03PM -0600, Matt Coffin wrote:
+> This could just be because I don't understand the implications here, but
+> wouldn't it be easier, at least for now, to just mount with
+> 
+> redirect_dir=0,metacopy=0
+> 
+> in the mount parameters when building images, but allow the user's
+> default settings to still take over when just executing a container?
 
-I don't think syzkaller ones are more relevant to 5.1 then the rest of
-the patches applied to 4.19. If anything, its the other way around.
-According to syzbot dashboard, it is being run on LTS kernels, not on
-latest stable.
+I think that's what docker does by default, isn't it? That is redirect_dir
+and metacopy features are disabled by default (until and unless user
+decides to enable it).
 
-Please forgive me if my language caused confusion, when I said
-"please apply to 4.19" I meant 4.19+.
+Dan walsh recently changed podman to enable metacopy feature by default
+(which in-turn will enable redirect as well). He wants to make use of
+user namespaces with containers and chown the images with metacopy
+enabled. We don't have shiftfs upstream yet.
 
-Thanks,
-Amir.
+BTW, how slow is image building with naivediff interface.
+
+Vivek
+
+> 
+> On 6/11/19 3:49 PM, Vivek Goyal wrote:
+> > On Tue, Jun 11, 2019 at 05:44:33PM -0400, Daniel Walsh wrote:
+> >> On 6/11/19 9:09 AM, Vivek Goyal wrote:
+> >>> On Tue, Jun 11, 2019 at 02:37:34PM +0200, Miklos Szeredi wrote:
+> >>>> On Mon, Jun 10, 2019 at 8:45 PM Vivek Goyal <vgoyal@redhat.com> wrote:
+> >>>> AFAICS what happens when generating a layer is to start with a clean
+> >>>> upper layer, do some operations, then save the contents of the upper
+> >>>> layer.  If redirect or metacopy is enabled, then the contents of the
+> >>>> upper layer won't be portable.  So need to do something like this:
+> >>>>
+> >>>> traverse(overlay_dir, upper_dir, target_dir)
+> >>>> {
+> >>>>     iterate name for entries in $upper_dir {
+> >>>>         if ($name is non-directory) {
+> >>>>             copy($overlay_dir/$name, $target_dir/$name)
+> >>>>         } else if ($name is redirect) {
+> >>>>             copy-recursive($overlay_dir/$name, $target_dir/$name)
+> >>>>         } else {
+> >>>>             copy($overlay_dir/$name, $target_dir/$name)
+> >>>>             traverse($overlay_dir/$name, $upper_dir/$name, $target_dir/$name)
+> >>>>         }
+> >>>>     }
+> >>>> }
+> >>>>
+> >>>> Basically: traverse the *upper layer* but copy files and directories
+> >>>> from the *overlay*.  Does that make sense?
