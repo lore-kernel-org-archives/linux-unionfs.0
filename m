@@ -1,19 +1,27 @@
-Return-Path: <jlayton@kernel.org>
-Message-ID: <2851a6b983ed8b5b858b3b336e70296204349762.camel@kernel.org>
+Return-Path: <bfields@fieldses.org>
+Date: Wed, 12 Jun 2019 14:31:56 -0400
+From: "J . Bruce Fields" <bfields@fieldses.org>
 Subject: Re: [PATCH v2] locks: eliminate false positive conflicts for write
  lease
-From: Jeff Layton <jlayton@kernel.org>
-Date: Thu, 13 Jun 2019 09:22:41 -0400
-In-Reply-To: <20190612172408.22671-1-amir73il@gmail.com>
+Message-ID: <20190612183156.GA27576@fieldses.org>
 References: <20190612172408.22671-1-amir73il@gmail.com>
-Content-Type: text/plain; charset="UTF-8"
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-To: Amir Goldstein <amir73il@gmail.com>, Miklos Szeredi <miklos@szeredi.hu>, "J . Bruce Fields" <bfields@fieldses.org>
-Cc: linux-fsdevel@vger.kernel.org, linux-nfs@vger.kernel.org, linux-unionfs@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20190612172408.22671-1-amir73il@gmail.com>
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, Jeff Layton <jlayton@poochiereds.net>, linux-fsdevel@vger.kernel.org, linux-nfs@vger.kernel.org, linux-unionfs@vger.kernel.org
 List-ID: <linux-unionfs@vger.kernel.org>
 
-On Wed, 2019-06-12 at 20:24 +0300, Amir Goldstein wrote:
+How do opens for execute work?  I guess they create a struct file with
+FMODE_EXEC and FMODE_RDONLY set and they decrement i_writecount.  Do
+they also increment i_readcount?  Reading do_open_execat and alloc_file,
+looks like it does, so, good, they should conflict with write leases,
+which sounds right.
+
+Looks good to me.--b.
+
+On Wed, Jun 12, 2019 at 08:24:08PM +0300, Amir Goldstein wrote:
 > check_conflicting_open() is checking for existing fd's open for read or
 > for write before allowing to take a write lease.  The check that was
 > implemented using i_count and d_count is an approximation that has
@@ -110,12 +118,6 @@ On Wed, 2019-06-12 at 20:24 +0300, Amir Goldstein wrote:
 > +	if (filp->f_mode & FMODE_WRITE)
 > +		self_wcount = 1;
 > +	else if ((filp->f_mode & (FMODE_READ | FMODE_WRITE)) == FMODE_READ)
-
-nit: you already checked for FMODE_WRITE and you know that it's not set
-here, so this is equivalent to:
-
-    else if (filp->f_mode & FMODE_READ)
-
 > +		self_rcount = 1;
 > +
 > +	if (arg == F_WRLCK && (wcount != self_wcount ||
@@ -173,15 +175,5 @@ here, so this is equivalent to:
 >  static inline void i_readcount_dec(struct inode *inode)
 >  {
 >  	BUG_ON(!atomic_read(&inode->i_readcount));
-
-
-Looks good to me. Aside from the minor nit above:
-
-    Reviewed-by: Jeff Layton <jlayton@kernel.org>
-
-I have one file locking patch queued up for v5.3 so far, but nothing for
-v5.2. Miklos or Bruce, if either of you have anything to send to Linus
-for v5.2 would you mind taking this one too?
-
-If not I can queue it up and get it to him after letting it soak in
-linux-next for a bit.
+> -- 
+> 2.17.1
