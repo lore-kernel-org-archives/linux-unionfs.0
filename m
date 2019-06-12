@@ -1,63 +1,62 @@
-Return-Path: <amir73il@gmail.com>
-Return-Path: <amir73il@gmail.com>
-From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH] ovl: make i_ino consistent with st_ino in more cases
-Date: Sun,  9 Jun 2019 19:03:44 +0300
-Message-Id: <20190609160344.24979-1-amir73il@gmail.com>
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: linux-unionfs@vger.kernel.org
+Return-Path: <zohar@linux.ibm.com>
+Subject: Re: [PATCH 1/2] vfs: replace i_readcount with a biased i_count
+From: Mimi Zohar <zohar@linux.ibm.com>
+Date: Wed, 12 Jun 2019 11:59:06 -0400
+In-Reply-To: <CAOQ4uxhooVwtHcDCr4hu+ovzKGUdWfQ+3F3nbgK3HXgV+fUK9w@mail.gmail.com>
+References: <20190608135717.8472-1-amir73il@gmail.com>
+	 <20190608135717.8472-2-amir73il@gmail.com>
+	 <1560343899.4578.9.camel@linux.ibm.com>
+	 <CAOQ4uxhooVwtHcDCr4hu+ovzKGUdWfQ+3F3nbgK3HXgV+fUK9w@mail.gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
+Message-Id: <1560355146.4578.61.camel@linux.ibm.com>
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, "J . Bruce Fields" <bfields@fieldses.org>, Jeff Layton <jlayton@poochiereds.net>, Al Viro <viro@zeniv.linux.org.uk>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, overlayfs <linux-unionfs@vger.kernel.org>, linux-integrity <linux-integrity@vger.kernel.org>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-Relax the condition that overlayfs supports nfs export, to require
-that i_ino is consistent with st_ino/d_ino.
+On Wed, 2019-06-12 at 18:09 +0300, Amir Goldstein wrote:
+> On Wed, Jun 12, 2019 at 3:52 PM Mimi Zohar <zohar@linux.ibm.com> wrote:
+> >
+> > On Sat, 2019-06-08 at 16:57 +0300, Amir Goldstein wrote:
+> > > Count struct files open RO together with inode reference count instead
+> > > of using a dedicated i_readcount field.  This will allow us to use the
+> > > RO count also when CONFIG_IMA is not defined and will reduce the size of
+> > > struct inode for 32bit archs when CONFIG_IMA is defined.
+> > >
+> > > We need this RO count for posix leases code, which currently naively
+> > > checks i_count and d_count in an inaccurate manner.
+> > >
+> > > Should regular i_count overflow into RO count bias by struct files
+> > > opened for write, it's not a big deal, as we mostly need the RO count
+> > > to be reliable when the first writer comes along.
+> >
+> > "i_count" has been defined forever.  Has its meaning changed?  This
+> > patch implies that "i_readcount" was never really needed.
+> >
+> 
+> Not really.
+> i_count is only used to know if object is referenced.
+> It does not matter if user takes 1 or more references on i_count
+> as long as user puts back all the references it took.
+> 
+> If user took i_readcount, i_count cannot be zero, so short of overflow,
+> we can describe i_readcount as a biased i_count.
 
-It is enough to require that st_ino and d_ino are consistent.
+Having a count was originally to make sure we weren't missing
+anything.  As long as we can detect if a file is opened for read, the
+less IMA specific code there is, the better.
 
-This fixes the failure of xfstest generic/504, due to mismatch of
-st_ino to inode number in the output of /proc/locks.
+> 
+> But if I am following Miklos' suggestion to make i_count 64bit, inode
+> struct size is going to grow for 32bit arch when  CONFIG_IMA is not
+> defined, so to reduce impact, I will keep i_readcount as a separate
+> member and let it be defined also when BITS_PER_LONG == 64
+> and implement inode_is_open_rdonly() using d_count and i_count
+> when i_readcount is not defined.
+> 
+> Let's see what people will have to say about that...
 
-Fixes: 12574a9f4c9c ("ovl: consistent i_ino for non-samefs with xino")
-Cc: <stable@vger.kernel.org> # v4.19
-Signed-off-by: Amir Goldstein <amir73il@gmail.com>
----
+Ok
 
-Miklos,
-
-TBH, I can't remember why I put the s_export_op condition in the
-first place (can you?), expect for the fact the original bug fix
-was reported on nfsd readdirplus.
-
-Thanks,
-Amir.
-
- fs/overlayfs/inode.c | 12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
-
-diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
-index f7eba21effa5..f0389849fd80 100644
---- a/fs/overlayfs/inode.c
-+++ b/fs/overlayfs/inode.c
-@@ -553,15 +553,15 @@ static void ovl_fill_inode(struct inode *inode, umode_t mode, dev_t rdev,
- 	int xinobits = ovl_xino_bits(inode->i_sb);
- 
- 	/*
--	 * When NFS export is enabled and d_ino is consistent with st_ino
--	 * (samefs or i_ino has enough bits to encode layer), set the same
--	 * value used for d_ino to i_ino, because nfsd readdirplus compares
--	 * d_ino values to i_ino values of child entries. When called from
-+	 * When d_ino is consistent with st_ino (samefs or i_ino has enough
-+	 * bits to encode layer), set the same value used for st_ino to i_ino,
-+	 * so inode number exposed via /proc/locks and a like will be
-+	 * consistent with d_ino and st_ino values. An i_ino value inconsistent
-+	 * with d_ino also causes nfsd readdirplus to fail.  When called from
- 	 * ovl_new_inode(), ino arg is 0, so i_ino will be updated to real
- 	 * upper inode i_ino on ovl_inode_init() or ovl_inode_update().
- 	 */
--	if (inode->i_sb->s_export_op &&
--	    (ovl_same_sb(inode->i_sb) || xinobits)) {
-+	if (ovl_same_sb(inode->i_sb) || xinobits) {
- 		inode->i_ino = ino;
- 		if (xinobits && fsid && !(ino >> (64 - xinobits)))
- 			inode->i_ino |= (unsigned long)fsid << (64 - xinobits);
--- 
-2.17.1
+Mimi
