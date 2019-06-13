@@ -1,24 +1,35 @@
-From: pr-tracker-bot@kernel.org
-Subject: Re: [GIT PULL] overlayfs fixes for 5.2-rc4
-Date: Thu, 06 Jun 2019 19:45:02 +0000
-Message-ID: <155985030229.29170.4073257838224103158.pr-tracker-bot@kernel.org>
-References: <20190606134418.GB26408@miu.piliscsaba.redhat.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190606134418.GB26408@miu.piliscsaba.redhat.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org
+From: Amir Goldstein <amir73il@gmail.com>
+Subject: Re: FAILED: patch "[PATCH] ovl: support the FS_IOC_FS[SG]ETXATTR
+ ioctls" failed to apply to 5.1-stable tree
+Date: Thu, 13 Jun 2019 11:49:03 +0300
+Message-ID: <CAOQ4uxiTrsOs3KWOxedZicXNMJJharmWo=TDXDnxSC1XMNVKBg@mail.gmail.com>
+References: <1560073529193139@kroah.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <1560073529193139@kroah.com>
+Sender: stable-owner@vger.kernel.org
+To: Greg KH <gregkh@linuxfoundation.org>, Sasha Levin <sashal@kernel.org>
+Cc: Miklos Szeredi <mszeredi@redhat.com>, stable <stable@vger.kernel.org>, overlayfs <linux-unionfs@vger.kernel.org>
 List-Id: linux-unionfs@vger.kernel.org
 
-The pull request you sent on Thu, 6 Jun 2019 15:44:18 +0200:
+On Sun, Jun 9, 2019 at 12:45 PM <gregkh@linuxfoundation.org> wrote:
+>
+>
+> The patch below does not apply to the 5.1-stable tree.
+> If someone wants it applied there, or to any other stable or longterm
+> tree, then please email the backport, including the original git commit
+> id to <stable@vger.kernel.org>.
+>
+> thanks,
+>
+> greg k-h
+>
 
-> git://git.kernel.org/pub/scm/linux/kernel/git/mszeredi/vfs.git tags/ovl-fixes-5.2-rc4
+FYI, the failure to apply this patch would be resolved after you
+picked up "ovl: check the capability before cred overridden" for
+stable, please hold off from taking this patch just yet, because
+it has a bug, whose fix wasn't picked upstream yet.
 
-has been merged into torvalds/linux.git:
-https://git.kernel.org/torvalds/c/5d6b501fe5421c5df662e2935f55f5e3d2b5e012
-
-Thank you!
-
--- 
-Deet-doot-dot, I am a bot.
-https://korg.wiki.kernel.org/userdoc/prtracker
+Thanks,
+Amir.
