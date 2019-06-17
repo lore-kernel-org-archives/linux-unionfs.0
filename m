@@ -1,152 +1,70 @@
-Return-Path: <mcoffin13@gmail.com>
-Return-Path: <mcoffin13@gmail.com>
-From: Matt Coffin <mcoffin13@gmail.com>
-Subject: [PATCH] overlay: allow config override of metacopy/redirect defaults
-Date: Thu,  6 Jun 2019 19:04:31 -0600
-Message-Id: <20190607010431.11868-1-mcoffin13@gmail.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-To: linux-unionfs@vger.kernel.org
-Cc: Miklos Szeredi <miklos@szeredi.hu>, Matt Coffin <mcoffin13@gmail.com>
+Return-Path: <linux-unionfs-owner@vger.kernel.org>
+Received: from mail-wm1-f68.google.com ([209.85.128.68]:53413 "EHLO
+        mail-wm1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725906AbfFQN6v (ORCPT
+        <rfc822;linux-unionfs@vger.kernel.org>);
+        Mon, 17 Jun 2019 09:58:51 -0400
+From: Amir Goldstein <amir73il@gmail.com>
+Subject: [PATCH] overlay: fix _scratch_remount with xfs_info 5.0.0
+Date: Mon, 17 Jun 2019 16:58:43 +0300
+Message-Id: <20190617135843.12659-1-amir73il@gmail.com>
+Sender: linux-unionfs-owner@vger.kernel.org
+To: Eryu Guan <guaneryu@gmail.com>
+Cc: "Darrick J . Wong" <darrick.wong@oracle.com>, linux-unionfs@vger.kernel.org, fstests@vger.kernel.org
 List-ID: <linux-unionfs@vger.kernel.org>
 
-[Why]
-Currently, if the redirect_dir option is set as a kernel or module
-parameter, then even if metacopy is only enabled config, then both
-metacopy and redirect_dir will be enabled when one creates a mount
-point. This is not desirable because /sys/module/overlay/parameters will
-still report that redirect_dir is not enabled, and there will be no
-redirect_dir=on line in the mount options in /proc/mounts. The behavior
-of setting redirect_dir globally for overlay is likely a common pattern
-on docker workstations, as redirect_dir makes for slower building of
-docker images.
+xfs_info version 5.0.0 started using findmnt to find the
+filesystem to query. This change resulted in a regression
+of _scratch_remount when testing overlay over xfs.
+For example, test overlay/035, started to report:
+[not run] overlay/035 -- upper fs needs to support d_type
 
-[How]
-This patch adds similar logic to that already in place for parsing mount
-parameters. If the user explicitly sets redirect_dir via a kernel or
-module parameter, then metacopy will become disabled, unless it was also
-specified that way. Obviously, mount options still take precedence over
-this process, so this logic only kicks in when neither redirect_dir or
-metacopy were specified in the mount options.
+Internally, '_overlay_scratch_mount -o remount' calls
+'_supports_filetype $OVL_BASE_SCRATCH_MNT -o remount'
+and with the following example mounts:
 
-[Related]
-This undesirable logic was introduced by the commit that introduced the
-mount option handling logic: d47748e5ae5af6572e520cc9767bbe70c22ea498
+/dev/vdf /vdf xfs rw,relatime,attr2,inode64,noquota 0 0
+/vdf /vdf/ovl-mnt overlay rw,lowerdir=/vdf/lower,upperdir=/vdf/upper...
+
+'_supports_filetype /vdf' returns false and reports:
+"/vdf/ovl-mnt: Not on a mounted XFS filesystem".
+
+Regardless of the change in xfs_info, which I proposed a fix
+for, there is no reason to test d_type support on remount.
+Therefore, fix the regression by skipping unneeded overlayfs
+mount logic on remount.
+
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- fs/overlayfs/super.c | 48 +++++++++++++++++++++++++++++++++++---------
- 1 file changed, 39 insertions(+), 9 deletions(-)
 
-diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-index 0116735cc321..456d48f57700 100644
---- a/fs/overlayfs/super.c
-+++ b/fs/overlayfs/super.c
-@@ -30,10 +30,16 @@ struct ovl_dir_cache;
- #define OVL_MAX_STACK 500
+Eryu,
+
+I think this fix is desired regardless of the proposed
+xfs_info fix [1].
+
+Thanks,
+Amir.
+
+[1] https://marc.info/?l=linux-xfs&m=156077152313826&w=2
+
+ common/overlay | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/common/overlay b/common/overlay
+index 00946a94..65c639e9 100644
+--- a/common/overlay
++++ b/common/overlay
+@@ -105,6 +105,11 @@ _overlay_base_scratch_mount()
  
- static bool ovl_redirect_dir_def = IS_ENABLED(CONFIG_OVERLAY_FS_REDIRECT_DIR);
--module_param_named(redirect_dir, ovl_redirect_dir_def, bool, 0644);
--MODULE_PARM_DESC(ovl_redirect_dir_def,
-+static bool ovl_redirect_dir_param = IS_ENABLED(CONFIG_OVERLAY_FS_REDIRECT_DIR);
-+module_param_named(redirect_dir, ovl_redirect_dir_param, bool, 0644);
-+MODULE_PARM_DESC(ovl_redirect_dir_param,
- 		 "Default to on or off for the redirect_dir feature");
- 
-+static inline bool ovl_redirect_dir_module_overrides_kernel(void)
-+{
-+	return (ovl_redirect_dir_def != ovl_redirect_dir_param);
-+}
-+
- static bool ovl_redirect_always_follow =
- 	IS_ENABLED(CONFIG_OVERLAY_FS_REDIRECT_ALWAYS_FOLLOW);
- module_param_named(redirect_always_follow, ovl_redirect_always_follow,
-@@ -65,10 +71,16 @@ static void ovl_entry_stack_free(struct ovl_entry *oe)
- }
- 
- static bool ovl_metacopy_def = IS_ENABLED(CONFIG_OVERLAY_FS_METACOPY);
--module_param_named(metacopy, ovl_metacopy_def, bool, 0644);
--MODULE_PARM_DESC(ovl_metacopy_def,
-+static bool ovl_metacopy_param = IS_ENABLED(CONFIG_OVERLAY_FS_METACOPY);
-+module_param_named(metacopy, ovl_metacopy_param, bool, 0644);
-+MODULE_PARM_DESC(ovl_metacopy_param,
- 		 "Default to on or off for the metadata only copy up feature");
- 
-+static inline bool ovl_metacopy_module_overrides_kernel(void)
-+{
-+	return (ovl_metacopy_def != ovl_metacopy_param);
-+}
-+
- static void ovl_dentry_release(struct dentry *dentry)
+ _overlay_scratch_mount()
  {
- 	struct ovl_entry *oe = dentry->d_fsdata;
-@@ -312,7 +324,7 @@ static bool ovl_force_readonly(struct ovl_fs *ofs)
- 
- static const char *ovl_redirect_mode_def(void)
- {
--	return ovl_redirect_dir_def ? "on" : "off";
-+	return ovl_redirect_dir_param ? "on" : "off";
++	if echo "$*" | grep -q remount; then
++		$MOUNT_PROG $SCRATCH_MNT $*
++		return
++	fi
++
+ 	_overlay_base_scratch_mount && \
+ 		_overlay_mount $OVL_BASE_SCRATCH_MNT $SCRATCH_MNT $*
  }
- 
- enum {
-@@ -359,7 +371,7 @@ static int ovl_show_options(struct seq_file *m, struct dentry *dentry)
- 						"on" : "off");
- 	if (ofs->config.xino != ovl_xino_def())
- 		seq_printf(m, ",xino=%s", ovl_xino_str[ofs->config.xino]);
--	if (ofs->config.metacopy != ovl_metacopy_def)
-+	if (ofs->config.metacopy != ovl_metacopy_param)
- 		seq_printf(m, ",metacopy=%s",
- 			   ofs->config.metacopy ? "on" : "off");
- 	return 0;
-@@ -457,6 +469,7 @@ static int ovl_parse_redirect_mode(struct ovl_config *config, const char *mode)
- 	} else if (strcmp(mode, "follow") == 0) {
- 		config->redirect_follow = true;
- 	} else if (strcmp(mode, "off") == 0) {
-+		config->redirect_dir = false;
- 		if (ovl_redirect_always_follow)
- 			config->redirect_follow = true;
- 	} else if (strcmp(mode, "nofollow") != 0) {
-@@ -473,6 +486,8 @@ static int ovl_parse_opt(char *opt, struct ovl_config *config)
- 	char *p;
- 	int err;
- 	bool metacopy_opt = false, redirect_opt = false;
-+	bool metacopy_override = ovl_metacopy_module_overrides_kernel();
-+	bool redirect_override = ovl_redirect_dir_module_overrides_kernel();
- 
- 	config->redirect_mode = kstrdup(ovl_redirect_mode_def(), GFP_KERNEL);
- 	if (!config->redirect_mode)
-@@ -598,8 +613,23 @@ static int ovl_parse_opt(char *opt, struct ovl_config *config)
- 				config->redirect_mode);
- 			config->metacopy = false;
- 		} else {
--			/* Automatically enable redirect otherwise. */
--			config->redirect_follow = config->redirect_dir = true;
-+			if (metacopy_override && redirect_override) {
-+				pr_err("overlayfs: conflicting module params: metacopy=on,redirect_dir=%s\n",
-+					config->redirect_mode);
-+				return -EINVAL;
-+			}
-+			if (redirect_override) {
-+				/*
-+				 * There was an explicit redirect_dir=... that resulted
-+				 * in this conflict (module param)
-+				 */
-+				pr_info("overlayfs: disabling metacopy due to module param redirect_dir=%s\n",
-+					config->redirect_mode);
-+				config->metacopy = false;
-+			} else {
-+				/* Automatically enable redirect otherwise. */
-+				config->redirect_follow = config->redirect_dir = true;
-+			}
- 		}
- 	}
- 
-@@ -1439,7 +1469,7 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
- 	ofs->config.index = ovl_index_def;
- 	ofs->config.nfs_export = ovl_nfs_export_def;
- 	ofs->config.xino = ovl_xino_def();
--	ofs->config.metacopy = ovl_metacopy_def;
-+	ofs->config.metacopy = ovl_metacopy_param;
- 	err = ovl_parse_opt((char *) data, &ofs->config);
- 	if (err)
- 		goto out_err;
 -- 
-2.21.0
+2.17.1
