@@ -1,38 +1,72 @@
 Return-Path: <amir73il@gmail.com>
-MIME-Version: 1.0
-References: <20190618064355.29398-1-amir73il@gmail.com>
-In-Reply-To: <20190618064355.29398-1-amir73il@gmail.com>
+Return-Path: <amir73il@gmail.com>
 From: Amir Goldstein <amir73il@gmail.com>
-Date: Wed, 19 Jun 2019 13:47:01 +0300
-Message-ID: <CAOQ4uxiDZjr2+EyjWtimjLxFHrMN13K4N5Aw+9BACPmx+2W6Kg@mail.gmail.com>
-Subject: Re: [PATCH] overlay/061: remove from auto and quick groups
-Content-Type: text/plain; charset="UTF-8"
+Subject: [PATCH] overlay/061: remove from auto and quick groups
+Date: Tue, 18 Jun 2019 09:43:55 +0300
+Message-Id: <20190618064355.29398-1-amir73il@gmail.com>
 To: Eryu Guan <guaneryu@gmail.com>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, "Darrick J . Wong" <darrick.wong@oracle.com>, overlayfs <linux-unionfs@vger.kernel.org>, fstests <fstests@vger.kernel.org>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, "Darrick J . Wong" <darrick.wong@oracle.com>, linux-unionfs@vger.kernel.org, fstests@vger.kernel.org
 List-ID: <linux-unionfs@vger.kernel.org>
 
->
-> I did not observe any regressing with check -overlay -g generic/quick
-> compared to check -g generic/quick on xfs with recent kernel.
-> I did not test all filesystems and -g generic/auto with recent kernel,
-> but I am not aware of any expected failures specific for -overlay run
-> on generic tests.
->
+In late 2016, tests overlay/01[6-8] where merged to track the
+state of several ilong standing posix compliance issues on overlayfs.
 
-Oh! I was lying. I *did* notice two regressions with
-check -overlay -g generic/quick (compared to xfs),
-so I posted fixes for them:
+This practice was somewhat of an exception for xfstests project,
+which more often merges tests for issues that are expected to be
+resolved in the short term.
 
-1) generic/504 is failing with -overlay on master.
+Over the years, some test cases have been fixed and more tests
+where created to cover the remaining issues (e.g. overlay/04[34]).
 
-This kernel fix commit is on linux-next:
-6ef048fd5955 locks: eliminate false positive conflicts for write lease
+Currently, the only failing test from this category is overlay/061
+which covers item b) in the "Non-standard behavior" section of
+Documentation/filesystems/overlayfs.txt.
 
-2) generic/555 (was just merged this week) is failing with
--overlay on master.
+Since there is no clear design, roadmap nor allocated resources
+to resolve this remaining issue, the test is removed from the
+"auto" and "quick" groups, following a suggestion that Darrick
+has made for a similarly long failing generic test.
 
-This kernel fix commit is on Miklos' overlayfs-next:
-941d935ac763 ovl: fix wrong flags check in FS_IOC_FS[SG]ETXATTR ioctls
+The test was added to the new "posix" group, to allow testing
+for posix compliance.
+
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+---
+
+Eryu,
+
+With this change, check -overlay -g overlay/quick run is expdected
+to be all green.
+
+I did not observe any regressing with check -overlay -g generic/quick
+compared to check -g generic/quick on xfs with recent kernel.
+I did not test all filesystems and -g generic/auto with recent kernel,
+but I am not aware of any expected failures specific for -overlay run
+on generic tests.
+
+check -overlay -g overlay/auto has one non-quick stress test
+(overlay/019) which is failing on lockdep circular locking dependency
+warning (if you have lockdep enabled).
+This is a known issue that has also been reported by syzbot.
 
 Thanks,
 Amir.
+
+ tests/overlay/group | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/tests/overlay/group b/tests/overlay/group
+index 8bde6ea1..ef8517a1 100644
+--- a/tests/overlay/group
++++ b/tests/overlay/group
+@@ -63,7 +63,7 @@
+ 058 auto quick exportfs
+ 059 auto quick copyup
+ 060 auto quick metacopy
+-061 auto quick copyup
++061 posix copyup
+ 062 auto quick exportfs
+ 063 auto quick whiteout
+ 064 auto quick copyup
+-- 
+2.17.1
