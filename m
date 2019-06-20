@@ -1,45 +1,24 @@
-From: Miklos Szeredi <miklos@szeredi.hu>
-Subject: [GIT PULL] overlayfs fixes for 5.2-rc6
-Date: Thu, 20 Jun 2019 22:12:18 +0200
-Message-ID: <20190620201218.GB10138@miu.piliscsaba.redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: pr-tracker-bot@kernel.org
+Subject: Re: [GIT PULL] overlayfs fixes for 5.2-rc6
+Date: Thu, 20 Jun 2019 21:25:02 +0000
+Message-ID: <156106590277.13749.11184384328640933661.pr-tracker-bot@kernel.org>
+References: <20190620201218.GB10138@miu.piliscsaba.redhat.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
+In-Reply-To: <20190620201218.GB10138@miu.piliscsaba.redhat.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 
-Hi Linus,
+The pull request you sent on Thu, 20 Jun 2019 22:12:18 +0200:
 
-Please pull from:
+> git://git.kernel.org/pub/scm/linux/kernel/git/mszeredi/vfs.git tags/ovl-fixes-5.2-rc6
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/mszeredi/vfs.git tags/ovl-fixes-5.2-rc6
+has been merged into torvalds/linux.git:
+https://git.kernel.org/torvalds/c/4ae004a9bca8bef118c2b4e76ee31c7df4514f18
 
-Fix two regressions in this cycle, and a couple of older bugs.
+Thank you!
 
-Thanks,
-Miklos
-
-----------------------------------------------------------------
-Amir Goldstein (2):
-      ovl: fix wrong flags check in FS_IOC_FS[SG]ETXATTR ioctls
-      ovl: make i_ino consistent with st_ino in more cases
-
-Arnd Bergmann (1):
-      ovl: fix bogus -Wmaybe-unitialized warning
-
-Miklos Szeredi (1):
-      ovl: don't fail with disconnected lower NFS
-
-Nicolas Schier (1):
-      ovl: fix typo in MODULE_PARM_DESC
-
----
- fs/overlayfs/copy_up.c |  2 +-
- fs/overlayfs/dir.c     |  2 +-
- fs/overlayfs/file.c    | 91 +++++++++++++++++++++++++++++++++++---------------
- fs/overlayfs/inode.c   | 12 +++----
- fs/overlayfs/super.c   | 42 ++++++++++-------------
- 5 files changed, 90 insertions(+), 59 deletions(-)
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.wiki.kernel.org/userdoc/prtracker
