@@ -1,72 +1,51 @@
-Return-Path: <amir73il@gmail.com>
-Return-Path: <amir73il@gmail.com>
-From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH] overlay/061: remove from auto and quick groups
-Date: Tue, 18 Jun 2019 09:43:55 +0300
-Message-Id: <20190618064355.29398-1-amir73il@gmail.com>
-To: Eryu Guan <guaneryu@gmail.com>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, "Darrick J . Wong" <darrick.wong@oracle.com>, linux-unionfs@vger.kernel.org, fstests@vger.kernel.org
+Return-Path: <darrick.wong@oracle.com>
+Date: Thu, 27 Jun 2019 08:25:36 -0700
+From: "Darrick J. Wong" <darrick.wong@oracle.com>
+Subject: Re: [PATCH] generic/486: filter out irrelevant attrs
+Message-ID: <20190627152536.GA5167@magnolia>
+References: <20190627090100.18542-1-jencce.kernel@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20190627090100.18542-1-jencce.kernel@gmail.com>
+To: Murphy Zhou <jencce.kernel@gmail.com>
+Cc: fstests@vger.kernel.org, linux-unionfs@vger.kernel.org, miklos@szeredi.hu
 List-ID: <linux-unionfs@vger.kernel.org>
 
-In late 2016, tests overlay/01[6-8] where merged to track the
-state of several ilong standing posix compliance issues on overlayfs.
+On Thu, Jun 27, 2019 at 05:00:59PM +0800, Murphy Zhou wrote:
+> In some setup, there could be extra attrs printed, like selinux.
+> They are breaking golden output and irrelevant for this test.
+> So focus on the attr we are testing on to avoid false alarm.
+> Print the output to .full for debug.
+> 
+> Signed-off-by: Murphy Zhou <jencce.kernel@gmail.com>
 
-This practice was somewhat of an exception for xfstests project,
-which more often merges tests for issues that are expected to be
-resolved in the short term.
+Reviewed-by: Darrick J. Wong <darrick.wong@oracle.com>
 
-Over the years, some test cases have been fixed and more tests
-where created to cover the remaining issues (e.g. overlay/04[34]).
+--D
 
-Currently, the only failing test from this category is overlay/061
-which covers item b) in the "Non-standard behavior" section of
-Documentation/filesystems/overlayfs.txt.
-
-Since there is no clear design, roadmap nor allocated resources
-to resolve this remaining issue, the test is removed from the
-"auto" and "quick" groups, following a suggestion that Darrick
-has made for a similarly long failing generic test.
-
-The test was added to the new "posix" group, to allow testing
-for posix compliance.
-
-Signed-off-by: Amir Goldstein <amir73il@gmail.com>
----
-
-Eryu,
-
-With this change, check -overlay -g overlay/quick run is expdected
-to be all green.
-
-I did not observe any regressing with check -overlay -g generic/quick
-compared to check -g generic/quick on xfs with recent kernel.
-I did not test all filesystems and -g generic/auto with recent kernel,
-but I am not aware of any expected failures specific for -overlay run
-on generic tests.
-
-check -overlay -g overlay/auto has one non-quick stress test
-(overlay/019) which is failing on lockdep circular locking dependency
-warning (if you have lockdep enabled).
-This is a known issue that has also been reported by syzbot.
-
-Thanks,
-Amir.
-
- tests/overlay/group | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/tests/overlay/group b/tests/overlay/group
-index 8bde6ea1..ef8517a1 100644
---- a/tests/overlay/group
-+++ b/tests/overlay/group
-@@ -63,7 +63,7 @@
- 058 auto quick exportfs
- 059 auto quick copyup
- 060 auto quick metacopy
--061 auto quick copyup
-+061 posix copyup
- 062 auto quick exportfs
- 063 auto quick whiteout
- 064 auto quick copyup
--- 
-2.17.1
+> ---
+>  tests/generic/486 | 4 +++-
+>  1 file changed, 3 insertions(+), 1 deletion(-)
+> 
+> diff --git a/tests/generic/486 b/tests/generic/486
+> index ff115a07..ea571efe 100755
+> --- a/tests/generic/486
+> +++ b/tests/generic/486
+> @@ -46,10 +46,12 @@ _scratch_mkfs >>$seqres.full 2>&1
+>  _scratch_mount >>$seqres.full 2>&1
+>  
+>  filter_attr_output() {
+> -	_filter_scratch | sed -e 's/has a [0-9]* byte value/has a NNNN byte value/g'
+> +	_filter_scratch | grep world | \
+> +		sed -e 's/has a [0-9]* byte value/has a NNNN byte value/g'
+>  }
+>  
+>  ./src/attr_replace_test $SCRATCH_MNT/hello
+> +$ATTR_PROG -l $SCRATCH_MNT/hello >>$seqres.full 2>&1
+>  $ATTR_PROG -l $SCRATCH_MNT/hello | filter_attr_output
+>  
+>  status=0
+> -- 
+> 2.21.0
+> 
