@@ -1,100 +1,74 @@
-Return-Path: <amir73il@gmail.com>
-Return-Path: <amir73il@gmail.com>
-From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH 1/4] ovl: support [S|G]ETFLAGS ioctl for directories
-Date: Mon, 15 Jul 2019 16:38:36 +0300
-Message-Id: <20190715133839.9878-2-amir73il@gmail.com>
-In-Reply-To: <20190715133839.9878-1-amir73il@gmail.com>
-References: <20190715133839.9878-1-amir73il@gmail.com>
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: Vivek Goyal <vgoyal@redhat.com>, linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org
+Return-Path: <vgoyal@redhat.com>
+Date: Tue, 9 Jul 2019 10:13:02 -0400
+From: Vivek Goyal <vgoyal@redhat.com>
+Subject: Re: [RFC] unionmount metacopy tests
+Message-ID: <20190709141302.GA19084@redhat.com>
+References: <CAOQ4uxhi63LPKdmkEJjnTEgy0VaX0qXML2Uz_258_B2iZcqd3w@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAOQ4uxhi63LPKdmkEJjnTEgy0VaX0qXML2Uz_258_B2iZcqd3w@mail.gmail.com>
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, overlayfs <linux-unionfs@vger.kernel.org>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-[S|G]ETFLAGS and FS[S|G]ETXATTR ioctls are applicable to both files and
-directories, so add ioctl operations to dir as well.
+On Thu, Jul 04, 2019 at 06:11:25PM +0300, Amir Goldstein wrote:
+> Hi Vivek,
+> 
+> I was working on extending snapshot validation tests and got
+> this as a by-product:
+> 
+> https://github.com/amir73il/unionmount-testsuite/commits/metacopy
+> 
+> ca566c3 Check that data was not copied up with metacopy=on
+> 140d99c Reset dentry copy_up state on upper layer rotate
+> 960a5ce Check that files were copied up as expected
+> 1bfcc7d Record meta copy_up vs. data copy_up
+> c3db453 Fix instantiation of hardlinked dentry
+> 2104e51 Simplify initialization of __upper
+> 1fc2eec Fix ./run --ov --verify --recycle
+> 
+> Would you be interested to review these changes,
+> so I would merge them to master?
 
-ifdef away compat ioctl implementation to conform to standard practice.
+Hi Amir,
 
-With this change, xfstest generic/079 which tests these ioctls on files
-and directories passes.
+Glad to see more tests for metacopy feature. I will have a look at
+these.
 
-Signed-off-by: Amir Goldstein <amir73il@gmail.com>
----
- fs/overlayfs/file.c      | 10 ++++++----
- fs/overlayfs/overlayfs.h |  2 ++
- fs/overlayfs/readdir.c   |  4 ++++
- 3 files changed, 12 insertions(+), 4 deletions(-)
+> 
+> Would you or someone else be interested in running those tests
+> regularly on pre release kernel?
 
-diff --git a/fs/overlayfs/file.c b/fs/overlayfs/file.c
-index e235a635d9ec..c6426e4d3f1f 100644
---- a/fs/overlayfs/file.c
-+++ b/fs/overlayfs/file.c
-@@ -502,7 +502,7 @@ static long ovl_ioctl_set_fsxflags(struct file *file, unsigned int cmd,
- 				   ovl_fsxflags_to_iflags(fa.fsx_xflags));
- }
- 
--static long ovl_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
-+long ovl_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
- {
- 	long ret;
- 
-@@ -527,8 +527,8 @@ static long ovl_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
- 	return ret;
- }
- 
--static long ovl_compat_ioctl(struct file *file, unsigned int cmd,
--			     unsigned long arg)
-+#ifdef CONFIG_COMPAT
-+long ovl_compat_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
- {
- 	switch (cmd) {
- 	case FS_IOC32_GETFLAGS:
-@@ -545,6 +545,7 @@ static long ovl_compat_ioctl(struct file *file, unsigned int cmd,
- 
- 	return ovl_ioctl(file, cmd, arg);
- }
-+#endif
- 
- enum ovl_copyop {
- 	OVL_COPY,
-@@ -646,8 +647,9 @@ const struct file_operations ovl_file_operations = {
- 	.fallocate	= ovl_fallocate,
- 	.fadvise	= ovl_fadvise,
- 	.unlocked_ioctl	= ovl_ioctl,
-+#ifdef CONFIG_COMPAT
- 	.compat_ioctl	= ovl_compat_ioctl,
--
-+#endif
- 	.copy_file_range	= ovl_copy_file_range,
- 	.remap_file_range	= ovl_remap_file_range,
- };
-diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-index 6934bcf030f0..7c94cc3521cb 100644
---- a/fs/overlayfs/overlayfs.h
-+++ b/fs/overlayfs/overlayfs.h
-@@ -416,6 +416,8 @@ struct dentry *ovl_create_temp(struct dentry *workdir, struct ovl_cattr *attr);
- 
- /* file.c */
- extern const struct file_operations ovl_file_operations;
-+long ovl_ioctl(struct file *file, unsigned int cmd, unsigned long arg);
-+long ovl_compat_ioctl(struct file *file, unsigned int cmd, unsigned long arg);
- 
- /* copy_up.c */
- int ovl_copy_up(struct dentry *dentry);
-diff --git a/fs/overlayfs/readdir.c b/fs/overlayfs/readdir.c
-index 47a91c9733a5..eff8fbfccc7c 100644
---- a/fs/overlayfs/readdir.c
-+++ b/fs/overlayfs/readdir.c
-@@ -907,6 +907,10 @@ const struct file_operations ovl_dir_operations = {
- 	.llseek		= ovl_dir_llseek,
- 	.fsync		= ovl_dir_fsync,
- 	.release	= ovl_dir_release,
-+	.unlocked_ioctl	= ovl_ioctl,
-+#ifdef CONFIG_COMPAT
-+	.compat_ioctl	= ovl_compat_ioctl,
-+#endif
- };
- 
- int ovl_check_empty_dir(struct dentry *dentry, struct list_head *list)
--- 
-2.17.1
+I generally don't run tests regularly on latest kernel. Whenever I 
+am fixing something, I run tests to make sure I have not broken
+anything.
+
+So I can't say I will run the tests regularly, but once in a while
+I should be able to run it.
+
+
+> 
+> If anyone is running unionmount-testsuite on regular basis
+> I would be happy to know which configurations are being tested,
+> because the test matrix grew considerably since I took over the project -
+> both Overlayfs config options and the testsuite config options.
+
+For me, I think I am most interested in configuration used by
+container runtimes (docker/podman). Docker seems to turn off
+redirects as of now. podman is turning on metacopy (hence redirect)
+by default now to see how do things go.
+
+So for me (redirect=on/off and metacopy=on/off) are important
+configurations as of now. Havind said that, I think I should talk
+to container folks and encourage them to use "index" and "xino"
+as well to be more posix like fs.
+
+I think container folks still have not modified their code to
+be able to generate an image layer properly if redirect is
+enabled. Last time Miklos had some good ideas. I will poke them
+again. It will be nice if they can use redirect (instead of
+disabling it) and be able to generate image layer efficiently. 
+
+Thanks
+Vivek
