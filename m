@@ -1,244 +1,725 @@
 Return-Path: <amir73il@gmail.com>
 Return-Path: <amir73il@gmail.com>
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH] ovl: fix regression caused by overlapping layers detection
-Date: Fri, 12 Jul 2019 15:24:34 +0300
-Message-Id: <20190712122434.14809-1-amir73il@gmail.com>
+Subject: [PATCH 3/4] ovl: add pre/post access hooks to underlying layers
+Date: Mon, 15 Jul 2019 16:38:38 +0300
+Message-Id: <20190715133839.9878-4-amir73il@gmail.com>
+In-Reply-To: <20190715133839.9878-1-amir73il@gmail.com>
+References: <20190715133839.9878-1-amir73il@gmail.com>
 To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: Vivek Goyal <vgoyal@redhat.com>, linux-unionfs@vger.kernel.org
+Cc: Vivek Goyal <vgoyal@redhat.com>, linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org
 List-ID: <linux-unionfs@vger.kernel.org>
 
-Once upon a time, commit 2cac0c00a6cd ("ovl: get exclusive ownership on
-upper/work dirs") in v4.13 added some sanity checks on overlayfs layers.
-This change caused a docker regression. The root cause was mount leaks
-by docker, which as far as I know, still exist.
+write access to underlying layers is surrounded with ovl_want_write()/
+ovl_drop_write() pair and error may be returned when write access
+is denied.
 
-To mitigate the regression, commit 85fdee1eef1a ("ovl: fix regression
-caused by exclusive upper/work dir protection") in v4.14 turned the
-mount errors into warnings for the default index=off configuration.
+read/lookup access to underlying layers is also surrounded with
+ovl_override_creds()/revert_creds(), but access cannot be denied.
 
-Recently, commit 146d62e5a586 ("ovl: detect overlapping layers") in
-v5.2, re-introduced exclusive upper/work dir checks regardless of
-index=off configuration.
+Change all call sites to use ovl_override_creds()/ovl_revert_creds()
+pair and allow error to be returned when access to underlying layers
+is denied.
 
-This changes the status quo and mount leak related bug reports have
-started to re-surface. Restore the status quo to fix the regressions.
-To clarify, index=off does NOT relax overlapping layers check for this
-ovelayfs mount. index=off only relaxes exclusive upper/work dir checks
-with another overlayfs mount.
+This is a prep patch for adding SHUTDOWN ioctl support.
 
-To cover the part of overlapping layers detection that used the
-exclusive upper/work dir checks to detect overlap with self upper/work
-dir, add a trap also on the work base dir.
-
-Link: https://github.com/moby/moby/issues/34672
-Link: https://lore.kernel.org/linux-fsdevel/20171006121405.GA32700@veci.piliscsaba.szeredi.hu/
-Link: https://github.com/containers/libpod/issues/3540
-Fixes: 146d62e5a586 ("ovl: detect overlapping layers")
-Cc: <stable@vger.kernel.org> # v4.19+
 Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
+ fs/overlayfs/copy_up.c   | 10 +++--
+ fs/overlayfs/dir.c       | 26 +++++++----
+ fs/overlayfs/file.c      | 94 +++++++++++++++++++++++++++-------------
+ fs/overlayfs/inode.c     | 64 +++++++++++++++++++--------
+ fs/overlayfs/namei.c     | 15 ++++---
+ fs/overlayfs/overlayfs.h |  3 +-
+ fs/overlayfs/readdir.c   | 13 ++++--
+ fs/overlayfs/util.c      | 26 ++++++++---
+ 8 files changed, 174 insertions(+), 77 deletions(-)
 
-Miklos,
-
-This showed up initially on libpod github and since then also surfaced
-in coreos who have merged some band aid fix for their kernel.
-I bet docker users will start noticing this soon as well.
-
-I have modified xfstest overlay/065 to accomodate these changes and will
-post the patch later.
-
-Thanks,
-Amir.
-
- Documentation/filesystems/overlayfs.txt |  2 +-
- fs/overlayfs/ovl_entry.h                |  1 +
- fs/overlayfs/super.c                    | 73 ++++++++++++++++---------
- 3 files changed, 49 insertions(+), 27 deletions(-)
-
-diff --git a/Documentation/filesystems/overlayfs.txt b/Documentation/filesystems/overlayfs.txt
-index 1da2f1668f08..845d689e0fd7 100644
---- a/Documentation/filesystems/overlayfs.txt
-+++ b/Documentation/filesystems/overlayfs.txt
-@@ -302,7 +302,7 @@ beneath or above the path of another overlay lower layer path.
+diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
+index b801c6353100..47a924973b32 100644
+--- a/fs/overlayfs/copy_up.c
++++ b/fs/overlayfs/copy_up.c
+@@ -850,10 +850,14 @@ static int ovl_copy_up_one(struct dentry *parent, struct dentry *dentry,
  
- Using an upper layer path and/or a workdir path that are already used by
- another overlay mount is not allowed and may fail with EBUSY.  Using
--partially overlapping paths is not allowed but will not fail with EBUSY.
-+partially overlapping paths is not allowed and may fail with EBUSY.
- If files are accessed from two overlayfs mounts which share or overlap the
- upper layer and/or workdir path the behavior of the overlay is undefined,
- though it will not result in a crash or deadlock.
-diff --git a/fs/overlayfs/ovl_entry.h b/fs/overlayfs/ovl_entry.h
-index 28a2d12a1029..a8279280e88d 100644
---- a/fs/overlayfs/ovl_entry.h
-+++ b/fs/overlayfs/ovl_entry.h
-@@ -66,6 +66,7 @@ struct ovl_fs {
- 	bool workdir_locked;
- 	/* Traps in ovl inode cache */
- 	struct inode *upperdir_trap;
-+	struct inode *workbasedir_trap;
- 	struct inode *workdir_trap;
- 	struct inode *indexdir_trap;
- 	/* Inode numbers in all layers do not use the high xino_bits */
-diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-index b368e2e102fa..afbcb116a7f1 100644
---- a/fs/overlayfs/super.c
-+++ b/fs/overlayfs/super.c
-@@ -212,6 +212,7 @@ static void ovl_free_fs(struct ovl_fs *ofs)
+ int ovl_copy_up_flags(struct dentry *dentry, int flags)
  {
- 	unsigned i;
+-	int err = 0;
+-	const struct cred *old_cred = ovl_override_creds(dentry->d_sb);
++	int err;
++	const struct cred *old_cred;
+ 	bool disconnected = (dentry->d_flags & DCACHE_DISCONNECTED);
  
-+	iput(ofs->workbasedir_trap);
- 	iput(ofs->indexdir_trap);
- 	iput(ofs->workdir_trap);
- 	iput(ofs->upperdir_trap);
-@@ -1003,6 +1004,25 @@ static int ovl_setup_trap(struct super_block *sb, struct dentry *dir,
- 	return 0;
++	err = ovl_override_creds(dentry->d_sb, &old_cred);
++	if (err)
++		return err;
++
+ 	/*
+ 	 * With NFS export, copy up can get called for a disconnected non-dir.
+ 	 * In this case, we will copy up lower inode to index dir without
+@@ -886,7 +890,7 @@ int ovl_copy_up_flags(struct dentry *dentry, int flags)
+ 		dput(parent);
+ 		dput(next);
+ 	}
+-	revert_creds(old_cred);
++	ovl_revert_creds(dentry->d_sb, old_cred);
+ 
+ 	return err;
+ }
+diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
+index 702aa63f6774..cb43064a6b4e 100644
+--- a/fs/overlayfs/dir.c
++++ b/fs/overlayfs/dir.c
+@@ -544,7 +544,9 @@ static int ovl_create_or_link(struct dentry *dentry, struct inode *inode,
+ 	if (err)
+ 		return err;
+ 
+-	old_cred = ovl_override_creds(dentry->d_sb);
++	err = ovl_override_creds(dentry->d_sb, &old_cred);
++	if (err)
++		return err;
+ 
+ 	/*
+ 	 * When linking a file with copy up origin into a new parent, mark the
+@@ -579,7 +581,7 @@ static int ovl_create_or_link(struct dentry *dentry, struct inode *inode,
+ 			err = ovl_create_over_whiteout(dentry, inode, attr);
+ 	}
+ out_revert_creds:
+-	revert_creds(old_cred);
++	ovl_revert_creds(dentry->d_sb, old_cred);
+ 	return err;
  }
  
-+/*
-+ * Determine how we treat concurrent use of upperdir/workdir based on the
-+ * index feature. This is papering over mount leaks of container runtimes,
-+ * for example, an old overlay mount is leaked and now its upperdir is
-+ * attempted to be used as a lower layer in a new overlay mount.
-+ */
-+static int ovl_report_in_use(struct ovl_fs *ofs, const char *name)
-+{
-+	if (ofs->config.index) {
-+		pr_err("overlayfs: %s is in-use as upperdir/workdir of another mount, mount with '-o index=off' to override exclusive upperdir protection.\n",
-+		       name);
-+		return -EBUSY;
-+	} else {
-+		pr_warn("overlayfs: %s is in-use as upperdir/workdir of another mount, accessing files from both mounts will result in undefined behavior.\n",
-+			name);
-+		return 0;
+@@ -653,9 +655,12 @@ static int ovl_set_link_redirect(struct dentry *dentry)
+ 	const struct cred *old_cred;
+ 	int err;
+ 
+-	old_cred = ovl_override_creds(dentry->d_sb);
++	err = ovl_override_creds(dentry->d_sb, &old_cred);
++	if (err)
++		return err;
++
+ 	err = ovl_set_redirect(dentry, false);
+-	revert_creds(old_cred);
++	ovl_revert_creds(dentry->d_sb, old_cred);
+ 
+ 	return err;
+ }
+@@ -846,12 +851,15 @@ static int ovl_do_remove(struct dentry *dentry, bool is_dir)
+ 	if (err)
+ 		goto out_drop_write;
+ 
+-	old_cred = ovl_override_creds(dentry->d_sb);
++	err = ovl_override_creds(dentry->d_sb, &old_cred);
++	if (err)
++		goto out_drop_write;
++
+ 	if (!lower_positive)
+ 		err = ovl_remove_upper(dentry, is_dir, &list);
+ 	else
+ 		err = ovl_remove_and_whiteout(dentry, &list);
+-	revert_creds(old_cred);
++	ovl_revert_creds(dentry->d_sb, old_cred);
+ 	if (!err) {
+ 		if (is_dir)
+ 			clear_nlink(dentry->d_inode);
+@@ -1096,7 +1104,9 @@ static int ovl_rename(struct inode *olddir, struct dentry *old,
+ 		update_nlink = true;
+ 	}
+ 
+-	old_cred = ovl_override_creds(old->d_sb);
++	err = ovl_override_creds(old->d_sb, &old_cred);
++	if (err)
++		goto out_drop_write;
+ 
+ 	if (!list_empty(&list)) {
+ 		opaquedir = ovl_clear_empty(new, &list);
+@@ -1221,7 +1231,7 @@ static int ovl_rename(struct inode *olddir, struct dentry *old,
+ out_unlock:
+ 	unlock_rename(new_upperdir, old_upperdir);
+ out_revert_creds:
+-	revert_creds(old_cred);
++	ovl_revert_creds(old->d_sb, old_cred);
+ 	if (update_nlink)
+ 		ovl_nlink_end(new);
+ out_drop_write:
+diff --git a/fs/overlayfs/file.c b/fs/overlayfs/file.c
+index 1ba40845fba0..dbcf7549068d 100644
+--- a/fs/overlayfs/file.c
++++ b/fs/overlayfs/file.c
+@@ -28,11 +28,15 @@ static struct file *ovl_open_realfile(const struct file *file,
+ 	struct file *realfile;
+ 	const struct cred *old_cred;
+ 	int flags = file->f_flags | O_NOATIME | FMODE_NONOTIFY;
++	int err;
++
++	err = ovl_override_creds(inode->i_sb, &old_cred);
++	if (err)
++		return ERR_PTR(err);
+ 
+-	old_cred = ovl_override_creds(inode->i_sb);
+ 	realfile = open_with_fake_path(&file->f_path, flags, realinode,
+ 				       current_cred());
+-	revert_creds(old_cred);
++	ovl_revert_creds(inode->i_sb, old_cred);
+ 
+ 	pr_debug("open(%p[%pD2/%c], 0%o) -> (%p, 0%o)\n",
+ 		 file, file, ovl_whatisit(inode, realinode), file->f_flags,
+@@ -174,9 +178,11 @@ static loff_t ovl_llseek(struct file *file, loff_t offset, int whence)
+ 	inode_lock(inode);
+ 	real.file->f_pos = file->f_pos;
+ 
+-	old_cred = ovl_override_creds(inode->i_sb);
+-	ret = vfs_llseek(real.file, offset, whence);
+-	revert_creds(old_cred);
++	ret = ovl_override_creds(inode->i_sb, &old_cred);
++	if (!ret) {
++		ret = vfs_llseek(real.file, offset, whence);
++		ovl_revert_creds(inode->i_sb, old_cred);
 +	}
+ 
+ 	file->f_pos = real.file->f_pos;
+ 	inode_unlock(inode);
+@@ -228,6 +234,7 @@ static rwf_t ovl_iocb_to_rwf(struct kiocb *iocb)
+ static ssize_t ovl_read_iter(struct kiocb *iocb, struct iov_iter *iter)
+ {
+ 	struct file *file = iocb->ki_filp;
++	struct inode *inode = file_inode(file);
+ 	struct fd real;
+ 	const struct cred *old_cred;
+ 	ssize_t ret;
+@@ -239,13 +246,17 @@ static ssize_t ovl_read_iter(struct kiocb *iocb, struct iov_iter *iter)
+ 	if (ret)
+ 		return ret;
+ 
+-	old_cred = ovl_override_creds(file_inode(file)->i_sb);
++	ret = ovl_override_creds(inode->i_sb, &old_cred);
++	if (ret)
++		goto out_fdput;
++
+ 	ret = vfs_iter_read(real.file, iter, &iocb->ki_pos,
+ 			    ovl_iocb_to_rwf(iocb));
+-	revert_creds(old_cred);
++	ovl_revert_creds(inode->i_sb, old_cred);
+ 
+ 	ovl_file_accessed(file);
+ 
++out_fdput:
+ 	fdput(real);
+ 
+ 	return ret;
+@@ -273,16 +284,20 @@ static ssize_t ovl_write_iter(struct kiocb *iocb, struct iov_iter *iter)
+ 	if (ret)
+ 		goto out_unlock;
+ 
+-	old_cred = ovl_override_creds(file_inode(file)->i_sb);
++	ret = ovl_override_creds(inode->i_sb, &old_cred);
++	if (ret)
++		goto out_fdput;
++
+ 	file_start_write(real.file);
+ 	ret = vfs_iter_write(real.file, iter, &iocb->ki_pos,
+ 			     ovl_iocb_to_rwf(iocb));
+ 	file_end_write(real.file);
+-	revert_creds(old_cred);
++	ovl_revert_creds(inode->i_sb, old_cred);
+ 
+ 	/* Update size */
+ 	ovl_copyattr(ovl_inode_real(inode), inode);
+ 
++out_fdput:
+ 	fdput(real);
+ 
+ out_unlock:
+@@ -293,6 +308,7 @@ static ssize_t ovl_write_iter(struct kiocb *iocb, struct iov_iter *iter)
+ 
+ static int ovl_fsync(struct file *file, loff_t start, loff_t end, int datasync)
+ {
++	struct inode *inode = file_inode(file);
+ 	struct fd real;
+ 	const struct cred *old_cred;
+ 	int ret;
+@@ -302,10 +318,12 @@ static int ovl_fsync(struct file *file, loff_t start, loff_t end, int datasync)
+ 		return ret;
+ 
+ 	/* Don't sync lower file for fear of receiving EROFS error */
+-	if (file_inode(real.file) == ovl_inode_upper(file_inode(file))) {
+-		old_cred = ovl_override_creds(file_inode(file)->i_sb);
+-		ret = vfs_fsync_range(real.file, start, end, datasync);
+-		revert_creds(old_cred);
++	if (file_inode(real.file) == ovl_inode_upper(inode)) {
++		ret = ovl_override_creds(inode->i_sb, &old_cred);
++		if (!ret) {
++			ret = vfs_fsync_range(real.file, start, end, datasync);
++			ovl_revert_creds(inode->i_sb, old_cred);
++		}
+ 	}
+ 
+ 	fdput(real);
+@@ -316,6 +334,7 @@ static int ovl_fsync(struct file *file, loff_t start, loff_t end, int datasync)
+ static int ovl_mmap(struct file *file, struct vm_area_struct *vma)
+ {
+ 	struct file *realfile = file->private_data;
++	struct inode *inode = file_inode(file);
+ 	const struct cred *old_cred;
+ 	int ret;
+ 
+@@ -327,24 +346,25 @@ static int ovl_mmap(struct file *file, struct vm_area_struct *vma)
+ 
+ 	vma->vm_file = get_file(realfile);
+ 
+-	old_cred = ovl_override_creds(file_inode(file)->i_sb);
+-	ret = call_mmap(vma->vm_file, vma);
+-	revert_creds(old_cred);
+-
++	ret = ovl_override_creds(inode->i_sb, &old_cred);
++	if (!ret) {
++		ret = call_mmap(vma->vm_file, vma);
++		ovl_revert_creds(inode->i_sb, old_cred);
++	}
+ 	if (ret) {
+ 		/* Drop reference count from new vm_file value */
+ 		fput(realfile);
+ 	} else {
+ 		/* Drop reference count from previous vm_file value */
+ 		fput(file);
++		ovl_file_accessed(file);
+ 	}
+ 
+-	ovl_file_accessed(file);
+-
+ 	return ret;
+ }
+ 
+-static long ovl_fallocate(struct file *file, int mode, loff_t offset, loff_t len)
++static long ovl_fallocate(struct file *file, int mode, loff_t offset,
++			  loff_t len)
+ {
+ 	struct inode *inode = file_inode(file);
+ 	struct fd real;
+@@ -355,13 +375,17 @@ static long ovl_fallocate(struct file *file, int mode, loff_t offset, loff_t len
+ 	if (ret)
+ 		return ret;
+ 
+-	old_cred = ovl_override_creds(file_inode(file)->i_sb);
++	ret = ovl_override_creds(inode->i_sb, &old_cred);
++	if (ret)
++		goto out_fdput;
++
+ 	ret = vfs_fallocate(real.file, mode, offset, len);
+-	revert_creds(old_cred);
++	ovl_revert_creds(inode->i_sb, old_cred);
+ 
+ 	/* Update size */
+ 	ovl_copyattr(ovl_inode_real(inode), inode);
+ 
++out_fdput:
+ 	fdput(real);
+ 
+ 	return ret;
+@@ -369,6 +393,7 @@ static long ovl_fallocate(struct file *file, int mode, loff_t offset, loff_t len
+ 
+ static int ovl_fadvise(struct file *file, loff_t offset, loff_t len, int advice)
+ {
++	struct inode *inode = file_inode(file);
+ 	struct fd real;
+ 	const struct cred *old_cred;
+ 	int ret;
+@@ -377,9 +402,11 @@ static int ovl_fadvise(struct file *file, loff_t offset, loff_t len, int advice)
+ 	if (ret)
+ 		return ret;
+ 
+-	old_cred = ovl_override_creds(file_inode(file)->i_sb);
+-	ret = vfs_fadvise(real.file, offset, len, advice);
+-	revert_creds(old_cred);
++	ret = ovl_override_creds(inode->i_sb, &old_cred);
++	if (!ret) {
++		ret = vfs_fadvise(real.file, offset, len, advice);
++		ovl_revert_creds(inode->i_sb, old_cred);
++	}
+ 
+ 	fdput(real);
+ 
+@@ -389,6 +416,7 @@ static int ovl_fadvise(struct file *file, loff_t offset, loff_t len, int advice)
+ static long ovl_real_ioctl(struct file *file, unsigned int cmd,
+ 			   unsigned long arg)
+ {
++	struct inode *inode = file_inode(file);
+ 	struct fd real;
+ 	const struct cred *old_cred;
+ 	long ret;
+@@ -397,9 +425,11 @@ static long ovl_real_ioctl(struct file *file, unsigned int cmd,
+ 	if (ret)
+ 		return ret;
+ 
+-	old_cred = ovl_override_creds(file_inode(file)->i_sb);
+-	ret = vfs_ioctl(real.file, cmd, arg);
+-	revert_creds(old_cred);
++	ret = ovl_override_creds(inode->i_sb, &old_cred);
++	if (!ret) {
++		ret = vfs_ioctl(real.file, cmd, arg);
++		ovl_revert_creds(inode->i_sb, old_cred);
++	}
+ 
+ 	fdput(real);
+ 
+@@ -570,7 +600,10 @@ static loff_t ovl_copyfile(struct file *file_in, loff_t pos_in,
+ 		return ret;
+ 	}
+ 
+-	old_cred = ovl_override_creds(file_inode(file_out)->i_sb);
++	ret = ovl_override_creds(inode_out->i_sb, &old_cred);
++	if (ret)
++		goto out_fdput;
++
+ 	switch (op) {
+ 	case OVL_COPY:
+ 		ret = vfs_copy_file_range(real_in.file, pos_in,
+@@ -588,11 +621,12 @@ static loff_t ovl_copyfile(struct file *file_in, loff_t pos_in,
+ 						flags);
+ 		break;
+ 	}
+-	revert_creds(old_cred);
++	ovl_revert_creds(inode_out->i_sb, old_cred);
+ 
+ 	/* Update size */
+ 	ovl_copyattr(ovl_inode_real(inode_out), inode_out);
+ 
++out_fdput:
+ 	fdput(real_in);
+ 	fdput(real_out);
+ 
+diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
+index 7663aeb85fa3..f99833161e2b 100644
+--- a/fs/overlayfs/inode.c
++++ b/fs/overlayfs/inode.c
+@@ -59,9 +59,11 @@ int ovl_setattr(struct dentry *dentry, struct iattr *attr)
+ 			attr->ia_valid &= ~ATTR_MODE;
+ 
+ 		inode_lock(upperdentry->d_inode);
+-		old_cred = ovl_override_creds(dentry->d_sb);
+-		err = notify_change(upperdentry, attr, NULL);
+-		revert_creds(old_cred);
++		err = ovl_override_creds(dentry->d_sb, &old_cred);
++		if (!err) {
++			err = notify_change(upperdentry, attr, NULL);
++			ovl_revert_creds(dentry->d_sb, old_cred);
++		}
+ 		if (!err)
+ 			ovl_copyattr(upperdentry->d_inode, dentry->d_inode);
+ 		inode_unlock(upperdentry->d_inode);
+@@ -154,7 +156,10 @@ int ovl_getattr(const struct path *path, struct kstat *stat,
+ 	metacopy_blocks = ovl_is_metacopy_dentry(dentry);
+ 
+ 	type = ovl_path_real(dentry, &realpath);
+-	old_cred = ovl_override_creds(dentry->d_sb);
++	err = ovl_override_creds(dentry->d_sb, &old_cred);
++	if (err)
++		return err;
++
+ 	err = vfs_getattr(&realpath, stat, request_mask, flags);
+ 	if (err)
+ 		goto out;
+@@ -257,7 +262,7 @@ int ovl_getattr(const struct path *path, struct kstat *stat,
+ 		stat->nlink = dentry->d_inode->i_nlink;
+ 
+ out:
+-	revert_creds(old_cred);
++	ovl_revert_creds(dentry->d_sb, old_cred);
+ 
+ 	return err;
+ }
+@@ -283,7 +288,10 @@ int ovl_permission(struct inode *inode, int mask)
+ 	if (err)
+ 		return err;
+ 
+-	old_cred = ovl_override_creds(inode->i_sb);
++	err = ovl_override_creds(inode->i_sb, &old_cred);
++	if (err)
++		return err;
++
+ 	if (!upperinode &&
+ 	    !special_file(realinode->i_mode) && mask & MAY_WRITE) {
+ 		mask &= ~(MAY_WRITE | MAY_APPEND);
+@@ -291,7 +299,7 @@ int ovl_permission(struct inode *inode, int mask)
+ 		mask |= MAY_READ;
+ 	}
+ 	err = inode_permission(realinode, mask);
+-	revert_creds(old_cred);
++	ovl_revert_creds(inode->i_sb, old_cred);
+ 
+ 	return err;
+ }
+@@ -302,13 +310,17 @@ static const char *ovl_get_link(struct dentry *dentry,
+ {
+ 	const struct cred *old_cred;
+ 	const char *p;
++	int err;
+ 
+ 	if (!dentry)
+ 		return ERR_PTR(-ECHILD);
+ 
+-	old_cred = ovl_override_creds(dentry->d_sb);
++	err = ovl_override_creds(dentry->d_sb, &old_cred);
++	if (err)
++		return ERR_PTR(err);
++
+ 	p = vfs_get_link(ovl_dentry_real(dentry), done);
+-	revert_creds(old_cred);
++	ovl_revert_creds(dentry->d_sb, old_cred);
+ 	return p;
+ }
+ 
+@@ -344,14 +356,17 @@ int ovl_xattr_set(struct dentry *dentry, struct inode *inode, const char *name,
+ 		realdentry = ovl_dentry_upper(dentry);
+ 	}
+ 
+-	old_cred = ovl_override_creds(dentry->d_sb);
++	err = ovl_override_creds(dentry->d_sb, &old_cred);
++	if (err)
++		goto out_drop_write;
++
+ 	if (value)
+ 		err = vfs_setxattr(realdentry, name, value, size, flags);
+ 	else {
+ 		WARN_ON(flags != XATTR_REPLACE);
+ 		err = vfs_removexattr(realdentry, name);
+ 	}
+-	revert_creds(old_cred);
++	ovl_revert_creds(dentry->d_sb, old_cred);
+ 
+ 	/* copy c/mtime */
+ 	ovl_copyattr(d_inode(realdentry), inode);
+@@ -370,9 +385,12 @@ int ovl_xattr_get(struct dentry *dentry, struct inode *inode, const char *name,
+ 	struct dentry *realdentry =
+ 		ovl_i_dentry_upper(inode) ?: ovl_dentry_lower(dentry);
+ 
+-	old_cred = ovl_override_creds(dentry->d_sb);
++	res = ovl_override_creds(dentry->d_sb, &old_cred);
++	if (res)
++		return res;
++
+ 	res = vfs_getxattr(realdentry, name, value, size);
+-	revert_creds(old_cred);
++	ovl_revert_creds(dentry->d_sb, old_cred);
+ 	return res;
+ }
+ 
+@@ -394,9 +412,13 @@ ssize_t ovl_listxattr(struct dentry *dentry, char *list, size_t size)
+ 	char *s;
+ 	const struct cred *old_cred;
+ 
+-	old_cred = ovl_override_creds(dentry->d_sb);
++	res = ovl_override_creds(dentry->d_sb, &old_cred);
++	if (res)
++		return res;
++
+ 	res = vfs_listxattr(realdentry, list, size);
+-	revert_creds(old_cred);
++	ovl_revert_creds(dentry->d_sb, old_cred);
++
+ 	if (res <= 0 || size == 0)
+ 		return res;
+ 
+@@ -429,9 +451,11 @@ struct posix_acl *ovl_get_acl(struct inode *inode, int type)
+ 	if (!IS_ENABLED(CONFIG_FS_POSIX_ACL) || !IS_POSIXACL(realinode))
+ 		return NULL;
+ 
+-	old_cred = ovl_override_creds(inode->i_sb);
++	if (ovl_override_creds(inode->i_sb, &old_cred))
++		return NULL;
++
+ 	acl = get_acl(realinode, type);
+-	revert_creds(old_cred);
++	ovl_revert_creds(inode->i_sb, old_cred);
+ 
+ 	return acl;
+ }
+@@ -463,13 +487,15 @@ static int ovl_fiemap(struct inode *inode, struct fiemap_extent_info *fieinfo,
+ 	if (!realinode->i_op->fiemap)
+ 		return -EOPNOTSUPP;
+ 
+-	old_cred = ovl_override_creds(inode->i_sb);
++	err = ovl_override_creds(inode->i_sb, &old_cred);
++	if (err)
++		return err;
+ 
+ 	if (fieinfo->fi_flags & FIEMAP_FLAG_SYNC)
+ 		filemap_write_and_wait(realinode->i_mapping);
+ 
+ 	err = realinode->i_op->fiemap(realinode, fieinfo, start, len);
+-	revert_creds(old_cred);
++	ovl_revert_creds(inode->i_sb, old_cred);
+ 
+ 	return err;
+ }
+diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
+index e9717c2f7d45..5aa448ca0bb5 100644
+--- a/fs/overlayfs/namei.c
++++ b/fs/overlayfs/namei.c
+@@ -836,7 +836,10 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
+ 	if (dentry->d_name.len > ofs->namelen)
+ 		return ERR_PTR(-ENAMETOOLONG);
+ 
+-	old_cred = ovl_override_creds(dentry->d_sb);
++	err = ovl_override_creds(dentry->d_sb, &old_cred);
++	if (err)
++		return ERR_PTR(err);
++
+ 	upperdir = ovl_dentry_upper(dentry->d_parent);
+ 	if (upperdir) {
+ 		err = ovl_lookup_layer(upperdir, &d, &upperdentry);
+@@ -1074,7 +1077,7 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
+ 			goto out_free_oe;
+ 	}
+ 
+-	revert_creds(old_cred);
++	ovl_revert_creds(dentry->d_sb, old_cred);
+ 	if (origin_path) {
+ 		dput(origin_path->dentry);
+ 		kfree(origin_path);
+@@ -1101,7 +1104,7 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
+ 	kfree(upperredirect);
+ out:
+ 	kfree(d.redirect);
+-	revert_creds(old_cred);
++	ovl_revert_creds(dentry->d_sb, old_cred);
+ 	return ERR_PTR(err);
+ }
+ 
+@@ -1125,7 +1128,9 @@ bool ovl_lower_positive(struct dentry *dentry)
+ 	if (!ovl_dentry_upper(dentry))
+ 		return true;
+ 
+-	old_cred = ovl_override_creds(dentry->d_sb);
++	if (ovl_override_creds(dentry->d_sb, &old_cred))
++		return false;
++
+ 	/* Positive upper -> have to look up lower to see whether it exists */
+ 	for (i = 0; !done && !positive && i < poe->numlower; i++) {
+ 		struct dentry *this;
+@@ -1155,7 +1160,7 @@ bool ovl_lower_positive(struct dentry *dentry)
+ 			dput(this);
+ 		}
+ 	}
+-	revert_creds(old_cred);
++	ovl_revert_creds(dentry->d_sb, old_cred);
+ 
+ 	return positive;
+ }
+diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
+index 7c94cc3521cb..72f0d84d2d4b 100644
+--- a/fs/overlayfs/overlayfs.h
++++ b/fs/overlayfs/overlayfs.h
+@@ -204,7 +204,8 @@ static inline bool ovl_open_flags_need_copy_up(int flags)
+ int ovl_want_write(struct dentry *dentry);
+ void ovl_drop_write(struct dentry *dentry);
+ struct dentry *ovl_workdir(struct dentry *dentry);
+-const struct cred *ovl_override_creds(struct super_block *sb);
++int ovl_override_creds(struct super_block *sb, const struct cred **old_cred);
++void ovl_revert_creds(struct super_block *sb, const struct cred *old_cred);
+ struct super_block *ovl_same_sb(struct super_block *sb);
+ int ovl_can_decode_fh(struct super_block *sb);
+ struct dentry *ovl_indexdir(struct super_block *sb);
+diff --git a/fs/overlayfs/readdir.c b/fs/overlayfs/readdir.c
+index eff8fbfccc7c..b13f4e983784 100644
+--- a/fs/overlayfs/readdir.c
++++ b/fs/overlayfs/readdir.c
+@@ -271,7 +271,9 @@ static int ovl_check_whiteouts(struct dentry *dir, struct ovl_readdir_data *rdd)
+ 	struct dentry *dentry;
+ 	const struct cred *old_cred;
+ 
+-	old_cred = ovl_override_creds(rdd->dentry->d_sb);
++	err = ovl_override_creds(rdd->dentry->d_sb, &old_cred);
++	if (err)
++		return err;
+ 
+ 	err = down_write_killable(&dir->d_inode->i_rwsem);
+ 	if (!err) {
+@@ -286,7 +288,7 @@ static int ovl_check_whiteouts(struct dentry *dir, struct ovl_readdir_data *rdd)
+ 		}
+ 		inode_unlock(dir->d_inode);
+ 	}
+-	revert_creds(old_cred);
++	ovl_revert_creds(rdd->dentry->d_sb, old_cred);
+ 
+ 	return err;
+ }
+@@ -920,9 +922,12 @@ int ovl_check_empty_dir(struct dentry *dentry, struct list_head *list)
+ 	struct rb_root root = RB_ROOT;
+ 	const struct cred *old_cred;
+ 
+-	old_cred = ovl_override_creds(dentry->d_sb);
++	err = ovl_override_creds(dentry->d_sb, &old_cred);
++	if (err)
++		return err;
++
+ 	err = ovl_dir_read_merged(dentry, list, &root);
+-	revert_creds(old_cred);
++	ovl_revert_creds(dentry->d_sb, old_cred);
+ 	if (err)
+ 		return err;
+ 
+diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
+index f5678a3f8350..146b351a0d84 100644
+--- a/fs/overlayfs/util.c
++++ b/fs/overlayfs/util.c
+@@ -33,11 +33,17 @@ struct dentry *ovl_workdir(struct dentry *dentry)
+ 	return ofs->workdir;
+ }
+ 
+-const struct cred *ovl_override_creds(struct super_block *sb)
++int ovl_override_creds(struct super_block *sb, const struct cred **old_cred)
+ {
+ 	struct ovl_fs *ofs = sb->s_fs_info;
+ 
+-	return override_creds(ofs->creator_cred);
++	*old_cred = override_creds(ofs->creator_cred);
++	return 0;
 +}
 +
- static int ovl_get_upper(struct super_block *sb, struct ovl_fs *ofs,
- 			 struct path *upperpath)
- {
-@@ -1040,14 +1060,12 @@ static int ovl_get_upper(struct super_block *sb, struct ovl_fs *ofs,
- 	upper_mnt->mnt_flags &= ~(MNT_NOATIME | MNT_NODIRATIME | MNT_RELATIME);
- 	ofs->upper_mnt = upper_mnt;
++void ovl_revert_creds(struct super_block *sb, const struct cred *old_cred)
++{
++	revert_creds(old_cred);
+ }
  
--	err = -EBUSY;
- 	if (ovl_inuse_trylock(ofs->upper_mnt->mnt_root)) {
- 		ofs->upperdir_locked = true;
--	} else if (ofs->config.index) {
--		pr_err("overlayfs: upperdir is in-use by another mount, mount with '-o index=off' to override exclusive upperdir protection.\n");
--		goto out;
- 	} else {
--		pr_warn("overlayfs: upperdir is in-use by another mount, accessing files from both mounts will result in undefined behavior.\n");
-+		err = ovl_report_in_use(ofs, "upperdir");
-+		if (err)
-+			goto out;
- 	}
+ struct super_block *ovl_same_sb(struct super_block *sb)
+@@ -783,7 +789,10 @@ int ovl_nlink_start(struct dentry *dentry)
+ 	if (d_is_dir(dentry) || !ovl_test_flag(OVL_INDEX, inode))
+ 		goto out;
  
- 	err = 0;
-@@ -1157,16 +1175,19 @@ static int ovl_get_workdir(struct super_block *sb, struct ovl_fs *ofs,
- 
- 	ofs->workbasedir = dget(workpath.dentry);
- 
--	err = -EBUSY;
- 	if (ovl_inuse_trylock(ofs->workbasedir)) {
- 		ofs->workdir_locked = true;
--	} else if (ofs->config.index) {
--		pr_err("overlayfs: workdir is in-use by another mount, mount with '-o index=off' to override exclusive workdir protection.\n");
--		goto out;
- 	} else {
--		pr_warn("overlayfs: workdir is in-use by another mount, accessing files from both mounts will result in undefined behavior.\n");
-+		err = ovl_report_in_use(ofs, "workdir");
-+		if (err)
-+			goto out;
- 	}
- 
-+	err = ovl_setup_trap(sb, ofs->workbasedir, &ofs->workbasedir_trap,
-+			     "workdir");
+-	old_cred = ovl_override_creds(dentry->d_sb);
++	err = ovl_override_creds(dentry->d_sb, &old_cred);
 +	if (err)
 +		goto out;
 +
- 	err = ovl_make_workdir(sb, ofs, &workpath);
+ 	/*
+ 	 * The overlay inode nlink should be incremented/decremented IFF the
+ 	 * upper operation succeeds, along with nlink change of upper inode.
+@@ -791,7 +800,7 @@ int ovl_nlink_start(struct dentry *dentry)
+ 	 * value relative to the upper inode nlink in an upper inode xattr.
+ 	 */
+ 	err = ovl_set_nlink_upper(dentry);
+-	revert_creds(old_cred);
++	ovl_revert_creds(dentry->d_sb, old_cred);
  
  out:
-@@ -1313,16 +1334,16 @@ static int ovl_get_lower_layers(struct super_block *sb, struct ovl_fs *ofs,
- 		if (err < 0)
- 			goto out;
+ 	if (err)
+@@ -806,10 +815,13 @@ void ovl_nlink_end(struct dentry *dentry)
  
--		err = -EBUSY;
--		if (ovl_is_inuse(stack[i].dentry)) {
--			pr_err("overlayfs: lowerdir is in-use as upperdir/workdir\n");
--			goto out;
--		}
--
- 		err = ovl_setup_trap(sb, stack[i].dentry, &trap, "lowerdir");
- 		if (err)
- 			goto out;
+ 	if (ovl_test_flag(OVL_INDEX, inode) && inode->i_nlink == 0) {
+ 		const struct cred *old_cred;
++		int err;
  
-+		if (ovl_is_inuse(stack[i].dentry)) {
-+			err = ovl_report_in_use(ofs, "lowerdir");
-+			if (err)
-+				goto out;
+-		old_cred = ovl_override_creds(dentry->d_sb);
+-		ovl_cleanup_index(dentry);
+-		revert_creds(old_cred);
++		err = ovl_override_creds(dentry->d_sb, &old_cred);
++		if (!err) {
++			ovl_cleanup_index(dentry);
++			ovl_revert_creds(dentry->d_sb, old_cred);
 +		}
-+
- 		mnt = clone_private_mount(&stack[i]);
- 		err = PTR_ERR(mnt);
- 		if (IS_ERR(mnt)) {
-@@ -1469,8 +1490,8 @@ static struct ovl_entry *ovl_get_lowerstack(struct super_block *sb,
-  * - another layer of this overlayfs instance
-  * - upper/work dir of any overlayfs instance
-  */
--static int ovl_check_layer(struct super_block *sb, struct dentry *dentry,
--			   const char *name)
-+static int ovl_check_layer(struct super_block *sb, struct ovl_fs *ofs,
-+			   struct dentry *dentry, const char *name)
- {
- 	struct dentry *next = dentry, *parent;
- 	int err = 0;
-@@ -1482,13 +1503,11 @@ static int ovl_check_layer(struct super_block *sb, struct dentry *dentry,
- 
- 	/* Walk back ancestors to root (inclusive) looking for traps */
- 	while (!err && parent != next) {
--		if (ovl_is_inuse(parent)) {
--			err = -EBUSY;
--			pr_err("overlayfs: %s path overlapping in-use upperdir/workdir\n",
--			       name);
--		} else if (ovl_lookup_trap_inode(sb, parent)) {
-+		if (ovl_lookup_trap_inode(sb, parent)) {
- 			err = -ELOOP;
- 			pr_err("overlayfs: overlapping %s path\n", name);
-+		} else if (ovl_is_inuse(parent)) {
-+			err = ovl_report_in_use(ofs, name);
- 		}
- 		next = parent;
- 		parent = dget_parent(next);
-@@ -1509,7 +1528,8 @@ static int ovl_check_overlapping_layers(struct super_block *sb,
- 	int i, err;
- 
- 	if (ofs->upper_mnt) {
--		err = ovl_check_layer(sb, ofs->upper_mnt->mnt_root, "upperdir");
-+		err = ovl_check_layer(sb, ofs, ofs->upper_mnt->mnt_root,
-+				      "upperdir");
- 		if (err)
- 			return err;
- 
-@@ -1520,13 +1540,14 @@ static int ovl_check_overlapping_layers(struct super_block *sb,
- 		 * workbasedir.  In that case, we already have their traps in
- 		 * inode cache and we will catch that case on lookup.
- 		 */
--		err = ovl_check_layer(sb, ofs->workbasedir, "workdir");
-+		err = ovl_check_layer(sb, ofs, ofs->workbasedir, "workdir");
- 		if (err)
- 			return err;
  	}
  
- 	for (i = 0; i < ofs->numlower; i++) {
--		err = ovl_check_layer(sb, ofs->lower_layers[i].mnt->mnt_root,
-+		err = ovl_check_layer(sb, ofs,
-+				      ofs->lower_layers[i].mnt->mnt_root,
- 				      "lowerdir");
- 		if (err)
- 			return err;
+ 	ovl_inode_unlock(inode);
 -- 
 2.17.1
