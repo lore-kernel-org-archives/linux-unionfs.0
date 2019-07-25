@@ -1,66 +1,36 @@
-From: Mark Salyzyn <salyzyn@android.com>
-Subject: [PATCH v10 1/5] overlayfs: check CAP_DAC_READ_SEARCH before issuing exportfs_decode_fh
-Date: Wed, 24 Jul 2019 12:57:12 -0700
-Message-ID: <20190724195719.218307-2-salyzyn@android.com>
-References: <20190724195719.218307-1-salyzyn@android.com>
+From: syzbot <syzbot+032bc63605089a199d30@syzkaller.appspotmail.com>
+Subject: Re: WARNING in ovl_real_fdget_meta
+Date: Wed, 24 Jul 2019 21:24:00 -0700
+Message-ID: <00000000000086c732058e79cb59@google.com>
+References: <0000000000004a3a63058e722b94@google.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="UTF-8"; format=flowed; delsp=yes
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190724195719.218307-1-salyzyn@android.com>
+In-Reply-To: <0000000000004a3a63058e722b94@google.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: kernel-team@android.com, Mark Salyzyn <salyzyn@android.com>, Miklos Szeredi <miklos@szeredi.hu>, Jonathan Corbet <corbet@lwn.net>, Vivek Goyal <vgoyal@redhat.com>, "Eric W . Biederman" <ebiederm@xmission.com>, Amir Goldstein <amir73il@gmail.com>, Randy Dunlap <rdunlap@infradead.org>, Stephen Smalley <sds@tycho.nsa.gov>, linux-unionfs@vger.kernel.org, linux-doc@vger.kernel.org
+To: amir73il@gmail.com, bfields@fieldses.org, jlayton@kernel.org, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, linux-unionfs@vger.kernel.org, miklos@szeredi.hu, syzkaller-bugs@googlegroups.com, viro@zeniv.linux.org.uk
 List-Id: linux-unionfs@vger.kernel.org
 
-Assumption never checked, should fail if the mounter creds are not
-sufficient.
+syzbot has bisected this bug to:
 
-Signed-off-by: Mark Salyzyn <salyzyn@android.com>
-Cc: Miklos Szeredi <miklos@szeredi.hu>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Vivek Goyal <vgoyal@redhat.com>
-Cc: Eric W. Biederman <ebiederm@xmission.com>
-Cc: Amir Goldstein <amir73il@gmail.com>
-Cc: Randy Dunlap <rdunlap@infradead.org>
-Cc: Stephen Smalley <sds@tycho.nsa.gov>
-Cc: linux-unionfs@vger.kernel.org
-Cc: linux-doc@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org
-Cc: kernel-team@android.com
----
-v10:
-- return NULL rather than ERR_PTR(-EPERM)
-- did _not_ add it ovl_can_decode_fh() because of changes since last
-  review, suspect needs to be added to ovl_lower_uuid_ok()?
+commit 387e3746d01c34457d6a73688acd90428725070b
+Author: Amir Goldstein <amir73il@gmail.com>
+Date:   Fri Jun 7 14:24:38 2019 +0000
 
-v8 + v9:
-- rebase
+     locks: eliminate false positive conflicts for write lease
 
-v7:
-- This time for realz
+bisection log:  https://syzkaller.appspot.com/x/bisect.txt?x=15a79594600000
+start commit:   c6dd78fc Merge branch 'x86-urgent-for-linus' of git://git...
+git tree:       upstream
+final crash:    https://syzkaller.appspot.com/x/report.txt?x=17a79594600000
+console output: https://syzkaller.appspot.com/x/log.txt?x=13a79594600000
+kernel config:  https://syzkaller.appspot.com/x/.config?x=3c8985c08e1f9727
+dashboard link: https://syzkaller.appspot.com/bug?extid=032bc63605089a199d30
+syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=15855334600000
+C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=17fcc4c8600000
 
-v6:
-- rebase
+Reported-by: syzbot+032bc63605089a199d30@syzkaller.appspotmail.com
+Fixes: 387e3746d01c ("locks: eliminate false positive conflicts for write  
+lease")
 
-v5:
-- dependency of "overlayfs: override_creds=off option bypass creator_cred"
----
- fs/overlayfs/namei.c | 3 +++
- 1 file changed, 3 insertions(+)
-
-diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
-index e9717c2f7d45..9702f0d5309d 100644
---- a/fs/overlayfs/namei.c
-+++ b/fs/overlayfs/namei.c
-@@ -161,6 +161,9 @@ struct dentry *ovl_decode_real_fh(struct ovl_fh *fh, struct vfsmount *mnt,
- 	if (!uuid_equal(&fh->uuid, &mnt->mnt_sb->s_uuid))
- 		return NULL;
- 
-+	if (!capable(CAP_DAC_READ_SEARCH))
-+		return NULL;
-+
- 	bytes = (fh->len - offsetof(struct ovl_fh, fid));
- 	real = exportfs_decode_fh(mnt, (struct fid *)fh->fid,
- 				  bytes >> 2, (int)fh->type,
--- 
-2.22.0.657.g960e92d24f-goog
+For information about bisection process see: https://goo.gl/tpsmEJ#bisection
