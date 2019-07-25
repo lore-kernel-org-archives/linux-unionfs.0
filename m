@@ -1,66 +1,59 @@
-From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [PATCH] fs: overlayfs: Fix a possible null-pointer dereference in ovl_free_fs()
-Date: Thu, 25 Jul 2019 16:03:54 +0300
-Message-ID: <CAOQ4uxg1f3rgnc4sitF82FMftROHkubk+3s9=v1Bf47m-zVYBw@mail.gmail.com>
-References: <20190725085732.15674-1-baijiaju1990@gmail.com>
+From: Mark Salyzyn <salyzyn@android.com>
+Subject: Re: [PATCH v10 4/5] overlayfs: internal getxattr operations without
+ sepolicy checking
+Date: Thu, 25 Jul 2019 07:37:07 -0700
+Message-ID: <20df8497-17ea-27db-43c8-fcd73633e7f3@android.com>
+References: <20190724195719.218307-1-salyzyn@android.com>
+ <20190724195719.218307-5-salyzyn@android.com>
+ <CAOQ4uxhtASSymEOdh4XByXbxWO2_ZivzqjBrgK7jB3fWXLqr_w@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190725085732.15674-1-baijiaju1990@gmail.com>
+In-Reply-To: <CAOQ4uxhtASSymEOdh4XByXbxWO2_ZivzqjBrgK7jB3fWXLqr_w@mail.gmail.com>
+Content-Language: en-GB
 Sender: linux-kernel-owner@vger.kernel.org
-To: Jia-Ju Bai <baijiaju1990@gmail.com>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, overlayfs <linux-unionfs@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: linux-kernel <linux-kernel@vger.kernel.org>, kernel-team@android.com, Miklos Szeredi <miklos@szeredi.hu>, Jonathan Corbet <corbet@lwn.net>, Vivek Goyal <vgoyal@redhat.com>, "Eric W . Biederman" <ebiederm@xmission.com>, Randy Dunlap <rdunlap@infradead.org>, Stephen Smalley <sds@tycho.nsa.gov>, overlayfs <linux-unionfs@vger.kernel.org>, linux-doc@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 
-On Thu, Jul 25, 2019 at 3:48 PM Jia-Ju Bai <baijiaju1990@gmail.com> wrote:
->
-> In ovl_fill_super(), there is an if statement on line 1607 to check
-> whether ofs->upper_mnt is NULL:
->     if (!ofs->upper_mnt)
->
-> When ofs->upper_mnt is NULL and d_make_root() on line 1654 fails,
-> ovl_free_fs() on line 1683 is executed.
-> In ovl_free_fs(), ofs->upper_mnt is used on line 224:
->     ovl_inuse_unlock(ofs->upper_mnt->mnt_root);
->
-> Thus, a possible null-pointer dereference may occur.
->
-> To fix this bug, ofs->upper_mnt is checked before being used in
-> ovl_free_fs().
->
-> This bug is found by a static analysis tool STCheck written by us.
->
-> Signed-off-by: Jia-Ju Bai <baijiaju1990@gmail.com>
-> ---
->  fs/overlayfs/super.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
->
-> diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-> index b368e2e102fa..1d7c3d280834 100644
-> --- a/fs/overlayfs/super.c
-> +++ b/fs/overlayfs/super.c
-> @@ -220,7 +220,7 @@ static void ovl_free_fs(struct ovl_fs *ofs)
->         if (ofs->workdir_locked)
->                 ovl_inuse_unlock(ofs->workbasedir);
->         dput(ofs->workbasedir);
-> -       if (ofs->upperdir_locked)
-> +       if (ofs->upperdir_locked && ofs->upper_mnt)
->                 ovl_inuse_unlock(ofs->upper_mnt->mnt_root);
->         mntput(ofs->upper_mnt);
->         for (i = 0; i < ofs->numlower; i++) {
-> --
+Thanks for the review.
 
-Can you teach STCheck to know that if upperdir_locked is only set this way:
-        ofs->upper_mnt = upper_mnt;
+On 7/25/19 4:00 AM, Amir Goldstein wrote:
+> On Wed, Jul 24, 2019 at 10:57 PM Mark Salyzyn <salyzyn@android.com> wrote:
+>> Check impure, opaque, origin & meta xattr with no sepolicy audit
+>> (using __vfs_getxattr) since these operations are internal to
+>> overlayfs operations and do not disclose any data.  This became
+>> an issue for credential override off since sys_admin would have
+>> been required by the caller; whereas would have been inherently
+>> present for the creator since it performed the mount.
+>>
+>> This is a change in operations since we do not check in the new
+>> ovl_vfs_getxattr function if the credential override is off or
+>> not.  Reasoning is that the sepolicy check is unnecessary overhead,
+>> especially since the check can be expensive.
+> I don't know that this reasoning suffice to skip the sepolicy checks
+> for overlayfs private xattrs.
+> Can't sepolicy be defined to allow get access to trusted.overlay.*?
 
-        err = -EBUSY;
-        if (ovl_inuse_trylock(ofs->upper_mnt->mnt_root)) {
-                ofs->upperdir_locked = true;
+Because for override credentials off, _everyone_ would need it (at least 
+on Android, the sole user AFAIK, and only on userdebug builds, not user 
+builds), and if everyone is special, and possibly including the random 
+applications we add from the play store, then no one is ...
 
-Then upperdir_locked implies ofs->upper_mnt != NULL?
+For the override credentials on, the sepolicy would be required to add 
+to init or other mounters so that callers can actually use overlayfs. 
+Without the sepolicy for init, overlayfs will not function. the xattr 
+are in the backing storage and the details are not exported outside of 
+the driver. This would represent an imbalance since none of the callers 
+would require the sepolicy adjustment for the ;normal' case, but for 
+override credentials off as stated above, _everyone_ would require it.
 
-Whether or not this patch should be applied is not my call,
-but the title "possible null-pointer dereference" is certainly not true.
+Not against adding the sepolicy in Android, it is how we roll with only 
+opening up credentials on an as-need basis. We could deny it on user 
+(customer) builds and that closes a door that gains security. However 
+our people are starting to resist userdebug being different from user so 
+it may be a door I can not shut. Again felt like an imbalance for a 
+trusted driver read only operation.
 
-Thanks,
-Amir.
+Sincerely -- Mark Salyzyn
