@@ -1,56 +1,48 @@
 From: Mark Salyzyn <salyzyn@android.com>
-Subject: [PATCH v12 2/5] Add flags option to get xattr method paired to
- __vfs_getxattr
-Date: Tue, 30 Jul 2019 10:28:59 -0700
-Message-ID: <20190730172904.79146-3-salyzyn@android.com>
+Subject: [PATCH v12 5/5] overlayfs: override_creds=off option bypass creator_cred
+Date: Tue, 30 Jul 2019 10:29:02 -0700
+Message-ID: <20190730172904.79146-6-salyzyn@android.com>
 References: <20190730172904.79146-1-salyzyn@android.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20190730172904.79146-1-salyzyn@android.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
-List-Post: <mailto:linux-mtd@lists.infradead.org>
-List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-mtd" <linux-mtd-bounces@lists.infradead.org>
-Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org
-Cc: Latchesar Ionkov <lucho@ionkov.net>, Dave Kleikamp <shaggy@kernel.org>, jfs-discussion@lists.sourceforge.net, Randy Dunlap <rdunlap@infradead.org>, linux-doc@vger.kernel.org, Martin Brandenburg <martin@omnibond.com>, samba-technical@lists.samba.org, Dominique Martinet <asmadeus@codewreck.org>, Amir Goldstein <amir73il@gmail.com>, David Howells <dhowells@redhat.com>, Chris Mason <clm@fb.com>, "David S. Miller" <davem@davemloft.net>, Andreas Dilger <adilger.kernel@dilger.ca>, ocfs2-devel@oss.oracle.com, netdev@vger.kernel.org, Tyler Hicks <tyhicks@canonical.com>, linux-afs@lists.infradead.org, Mike Marshall <hubcap@omnibond.com>, linux-xfs@vger.kernel.org, Andreas Gruenbacher <agruenba@redhat.com>, Sage Weil <sage@redhat.com>, Jonathan Corbet <corbet@lwn.net>, Richard Weinberger <richard@nod.at>, Mark Fasheh <mark@fasheh.com>, devel@lists.orangefs.org, Hugh Dickins <hughd@g>
+Cc: kernel-team@android.com, Mark Salyzyn <salyzyn@android.com>, Miklos Szeredi <miklos@szeredi.hu>, Jonathan Corbet <corbet@lwn.net>, Vivek Goyal <vgoyal@redhat.com>, "Eric W . Biederman" <ebiederm@xmission.com>, Amir Goldstein <amir73il@gmail.com>, Randy Dunlap <rdunlap@infradead.org>, Stephen Smalley <sds@tycho.nsa.gov>, linux-unionfs@vger.kernel.org, linux-doc@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 
-Add a flag option to get xattr method that could have a bit flag of
-XATTR_NOSECURITY passed to it.  XATTR_NOSECURITY is set in the
-__vfs_getxattr path.
+By default, all access to the upper, lower and work directories is the
+recorded mounter's MAC and DAC credentials.  The incoming accesses are
+checked against the caller's credentials.
 
-This handles the case of a union filesystem driver that is being
-requested by the security layer to report back the data that is the
-target label or context embedded into wrapped filesystem's xattr.
+If the principles of least privilege are applied, the mounter's
+credentials might not overlap the credentials of the caller's when
+accessing the overlayfs filesystem.  For example, a file that a lower
+DAC privileged caller can execute, is MAC denied to the generally
+higher DAC privileged mounter, to prevent an attack vector.
 
-For the use case where access is to be blocked by the security layer.
+We add the option to turn off override_creds in the mount options; all
+subsequent operations after mount on the filesystem will be only the
+caller's credentials.  The module boolean parameter and mount option
+override_creds is also added as a presence check for this "feature",
+existence of /sys/module/overlay/parameters/override_creds.
 
-The path then could be security(dentry) -> __vfs_getxattr(dentry) ->
-handler->get(dentry...XATTR_NOSECURITY) ->
-__vfs_getxattr(lower_dentry) -> lower_handler->get(lower_dentry)
-which would report back through the chain data and success as
-expected, but the logging security layer at the top would have the
-data to determine the access permissions and report back the target
-context that was blocked.
-
-Without the get handler flag, the path on a union filesystem would be
-the errant security(dentry) -> __vfs_getxattr(dentry) ->
-handler->get(dentry) -> vfs_getxattr(lower_dentry) -> nested ->
-security(lower_dentry, log off) -> lower_handler->get(lower_dentry)
-which would report back through the chain no data, and -EACCES.
-
-For selinux for both cases, this would translate to a correctly
-determined blocked access. In the first corrected case a correct avc
-log would be reported, in the second legacy case an incorrect avc log
-would be reported against an uninitialized u:object_r:unlabeled:s0
-context making the logs cosmetically useless for audit2allow.
+It was not always this way.  Circa 4.6 there was no recorded mounter's
+credentials, instead privileged access to upper or work directories
+were temporarily increased to perform the operations.  The MAC
+(selinux) policies were caller's in all cases.  override_creds=off
+partially returns us to this older access model minus the insecure
+temporary credential increases.  This is to permit use in a system
+with non-overlapping security models for each executable including
+the agent that mounts the overlayfs filesystem.  In Android
+this is the case since init, which performs the mount operations,
+has a minimal MAC set of privileges to reduce any attack surface,
+and services that use the content have a different set of MAC
+privileges (eg: read, for vendor labelled configuration, execute for
+vendor libraries and modules).  The caveats are not a problem in
+the Android usage model, however they should be fixed for
+completeness and for general use in time.
 
 Signed-off-by: Mark Salyzyn <salyzyn@android.com>
 Cc: Miklos Szeredi <miklos@szeredi.hu>
@@ -65,731 +57,534 @@ Cc: linux-doc@vger.kernel.org
 Cc: linux-kernel@vger.kernel.org
 Cc: kernel-team@android.com
 ---
-v12 - Added back to patch series as get xattr with flag option.
+v12:
+- Rebase
 
-v11 - Squashed out of patch series and replaced with per-thread flag
-      solution.
+v11:
+- add sb argument to ovl_revert_creds to match future work
 
-v10 - Added to patch series as __get xattr method.
+v10:
+- Rebase (and expand because of increased revert_cred usage)
+
+v9:
+- Add to the caveats
+
+v8:
+- drop pr_warn message after straw poll to remove it.
+- added a use case in the commit message
+
+v7:
+- change name of internal parameter to ovl_override_creds_def
+- report override_creds only if different than default
+
+v6:
+- Drop CONFIG_OVERLAY_FS_OVERRIDE_CREDS.
+- Do better with the documentation.
+- pr_warn message adjusted to report consequences.
+
+v5:
+- beefed up the caveats in the Documentation
+- Is dependent on
+  "overlayfs: check CAP_DAC_READ_SEARCH before issuing exportfs_decode_fh"
+  "overlayfs: check CAP_MKNOD before issuing vfs_whiteout"
+- Added prwarn when override_creds=off
+
+v4:
+- spelling and grammar errors in text
+
+v3:
+- Change name from caller_credentials / creator_credentials to the
+  boolean override_creds.
+- Changed from creator to mounter credentials.
+- Updated and fortified the documentation.
+- Added CONFIG_OVERLAY_FS_OVERRIDE_CREDS
+
+v2:
+- Forward port changed attr to stat, resulting in a build error.
+- altered commit message.
+
+a
 ---
- fs/9p/acl.c                  |  3 ++-
- fs/9p/xattr.c                |  3 ++-
- fs/afs/xattr.c               |  6 +++---
- fs/btrfs/xattr.c             |  3 ++-
- fs/ceph/xattr.c              |  3 ++-
- fs/cifs/xattr.c              |  2 +-
- fs/ecryptfs/inode.c          |  3 ++-
- fs/ext2/xattr_trusted.c      |  2 +-
- fs/ext2/xattr_user.c         |  2 +-
- fs/ext4/xattr_security.c     |  2 +-
- fs/ext4/xattr_trusted.c      |  2 +-
- fs/ext4/xattr_user.c         |  2 +-
- fs/f2fs/xattr.c              |  4 ++--
- fs/fuse/xattr.c              |  4 ++--
- fs/gfs2/xattr.c              |  3 ++-
- fs/hfs/attr.c                |  2 +-
- fs/hfsplus/xattr.c           |  3 ++-
- fs/hfsplus/xattr_trusted.c   |  3 ++-
- fs/hfsplus/xattr_user.c      |  3 ++-
- fs/jffs2/security.c          |  3 ++-
- fs/jffs2/xattr_trusted.c     |  3 ++-
- fs/jffs2/xattr_user.c        |  3 ++-
- fs/jfs/xattr.c               |  5 +++--
- fs/kernfs/inode.c            |  1 +
- fs/nfs/nfs4proc.c            |  6 ++++--
- fs/ocfs2/xattr.c             |  9 ++++++---
- fs/orangefs/xattr.c          |  3 ++-
- fs/overlayfs/super.c         |  5 +++--
- fs/posix_acl.c               |  2 +-
- fs/reiserfs/xattr_security.c |  3 ++-
- fs/reiserfs/xattr_trusted.c  |  3 ++-
- fs/reiserfs/xattr_user.c     |  3 ++-
- fs/squashfs/xattr.c          |  2 +-
- fs/xattr.c                   | 19 ++++++++++++++-----
- fs/xfs/xfs_xattr.c           |  3 ++-
- include/linux/xattr.h        |  6 +++---
- include/uapi/linux/xattr.h   |  5 +++--
- mm/shmem.c                   |  3 ++-
- net/socket.c                 |  3 ++-
- 39 files changed, 91 insertions(+), 54 deletions(-)
+ Documentation/filesystems/overlayfs.txt | 23 +++++++++++++++++++++++
+ fs/overlayfs/copy_up.c                  |  2 +-
+ fs/overlayfs/dir.c                      | 11 ++++++-----
+ fs/overlayfs/file.c                     | 20 ++++++++++----------
+ fs/overlayfs/inode.c                    | 18 +++++++++---------
+ fs/overlayfs/namei.c                    |  6 +++---
+ fs/overlayfs/overlayfs.h                |  1 +
+ fs/overlayfs/ovl_entry.h                |  1 +
+ fs/overlayfs/readdir.c                  |  4 ++--
+ fs/overlayfs/super.c                    | 22 +++++++++++++++++++++-
+ fs/overlayfs/util.c                     | 12 ++++++++++--
+ 11 files changed, 87 insertions(+), 33 deletions(-)
 
-diff --git a/fs/9p/acl.c b/fs/9p/acl.c
-index 6261719f6f2a..cb14e8b312bc 100644
---- a/fs/9p/acl.c
-+++ b/fs/9p/acl.c
-@@ -214,7 +214,8 @@ int v9fs_acl_mode(struct inode *dir, umode_t *modep,
+diff --git a/Documentation/filesystems/overlayfs.txt b/Documentation/filesystems/overlayfs.txt
+index 1da2f1668f08..d48125076602 100644
+--- a/Documentation/filesystems/overlayfs.txt
++++ b/Documentation/filesystems/overlayfs.txt
+@@ -102,6 +102,29 @@ Only the lists of names from directories are merged.  Other content
+ such as metadata and extended attributes are reported for the upper
+ directory only.  These attributes of the lower directory are hidden.
  
- static int v9fs_xattr_get_acl(const struct xattr_handler *handler,
- 			      struct dentry *dentry, struct inode *inode,
--			      const char *name, void *buffer, size_t size)
-+			      const char *name, void *buffer, size_t size,
-+			      int flags)
- {
- 	struct v9fs_session_info *v9ses;
- 	struct posix_acl *acl;
-diff --git a/fs/9p/xattr.c b/fs/9p/xattr.c
-index ac8ff8ca4c11..5cfa772452fd 100644
---- a/fs/9p/xattr.c
-+++ b/fs/9p/xattr.c
-@@ -139,7 +139,8 @@ ssize_t v9fs_listxattr(struct dentry *dentry, char *buffer, size_t buffer_size)
++credentials
++-----------
++
++By default, all access to the upper, lower and work directories is the
++recorded mounter's MAC and DAC credentials.  The incoming accesses are
++checked against the caller's credentials.
++
++In the case where caller MAC or DAC credentials do not overlap, a
++use case available in older versions of the driver, the
++override_creds mount flag can be turned off and help when the use
++pattern has caller with legitimate credentials where the mounter
++does not.  Several unintended side effects will occur though.  The
++caller without certain key capabilities or lower privilege will not
++always be able to delete files or directories, create nodes, or
++search some restricted directories.  The ability to search and read
++a directory entry is spotty as a result of the cache mechanism not
++retesting the credentials because of the assumption, a privileged
++caller can fill cache, then a lower privilege can read the directory
++cache.  The uneven security model where cache, upperdir and workdir
++are opened at privilege, but accessed without creating a form of
++privilege escalation, should only be used with strict understanding
++of the side effects and of the security policies.
++
+ whiteouts and opaque directories
+ --------------------------------
  
- static int v9fs_xattr_handler_get(const struct xattr_handler *handler,
- 				  struct dentry *dentry, struct inode *inode,
--				  const char *name, void *buffer, size_t size)
-+				  const char *name, void *buffer, size_t size,
-+				  int flags)
- {
- 	const char *full_name = xattr_full_name(handler, name);
+diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
+index b801c6353100..1c1b9415e533 100644
+--- a/fs/overlayfs/copy_up.c
++++ b/fs/overlayfs/copy_up.c
+@@ -886,7 +886,7 @@ int ovl_copy_up_flags(struct dentry *dentry, int flags)
+ 		dput(parent);
+ 		dput(next);
+ 	}
+-	revert_creds(old_cred);
++	ovl_revert_creds(dentry->d_sb, old_cred);
  
-diff --git a/fs/afs/xattr.c b/fs/afs/xattr.c
-index 5552d034090a..e6509c21f08a 100644
---- a/fs/afs/xattr.c
-+++ b/fs/afs/xattr.c
-@@ -334,7 +334,7 @@ static const struct xattr_handler afs_xattr_yfs_handler = {
- static int afs_xattr_get_cell(const struct xattr_handler *handler,
- 			      struct dentry *dentry,
- 			      struct inode *inode, const char *name,
--			      void *buffer, size_t size)
-+			      void *buffer, size_t size, int flags)
- {
- 	struct afs_vnode *vnode = AFS_FS_I(inode);
- 	struct afs_cell *cell = vnode->volume->cell;
-@@ -361,7 +361,7 @@ static const struct xattr_handler afs_xattr_afs_cell_handler = {
- static int afs_xattr_get_fid(const struct xattr_handler *handler,
- 			     struct dentry *dentry,
- 			     struct inode *inode, const char *name,
--			     void *buffer, size_t size)
-+			     void *buffer, size_t size, int flags)
- {
- 	struct afs_vnode *vnode = AFS_FS_I(inode);
- 	char text[16 + 1 + 24 + 1 + 8 + 1];
-@@ -397,7 +397,7 @@ static const struct xattr_handler afs_xattr_afs_fid_handler = {
- static int afs_xattr_get_volume(const struct xattr_handler *handler,
- 			      struct dentry *dentry,
- 			      struct inode *inode, const char *name,
--			      void *buffer, size_t size)
-+			      void *buffer, size_t size, int flags)
- {
- 	struct afs_vnode *vnode = AFS_FS_I(inode);
- 	const char *volname = vnode->volume->name;
-diff --git a/fs/btrfs/xattr.c b/fs/btrfs/xattr.c
-index 95d9aebff2c4..1e522e145344 100644
---- a/fs/btrfs/xattr.c
-+++ b/fs/btrfs/xattr.c
-@@ -353,7 +353,8 @@ ssize_t btrfs_listxattr(struct dentry *dentry, char *buffer, size_t size)
- 
- static int btrfs_xattr_handler_get(const struct xattr_handler *handler,
- 				   struct dentry *unused, struct inode *inode,
--				   const char *name, void *buffer, size_t size)
-+				   const char *name, void *buffer, size_t size,
-+				   int flags)
- {
- 	name = xattr_full_name(handler, name);
- 	return btrfs_getxattr(inode, name, buffer, size);
-diff --git a/fs/ceph/xattr.c b/fs/ceph/xattr.c
-index 37b458a9af3a..edb7eb9ae83e 100644
---- a/fs/ceph/xattr.c
-+++ b/fs/ceph/xattr.c
-@@ -1171,7 +1171,8 @@ int __ceph_setxattr(struct inode *inode, const char *name,
- 
- static int ceph_get_xattr_handler(const struct xattr_handler *handler,
- 				  struct dentry *dentry, struct inode *inode,
--				  const char *name, void *value, size_t size)
-+				  const char *name, void *value, size_t size,
-+				  int flags)
- {
- 	if (!ceph_is_valid_xattr(name))
- 		return -EOPNOTSUPP;
-diff --git a/fs/cifs/xattr.c b/fs/cifs/xattr.c
-index 9076150758d8..7f71c06ce631 100644
---- a/fs/cifs/xattr.c
-+++ b/fs/cifs/xattr.c
-@@ -199,7 +199,7 @@ static int cifs_creation_time_get(struct dentry *dentry, struct inode *inode,
- 
- static int cifs_xattr_get(const struct xattr_handler *handler,
- 			  struct dentry *dentry, struct inode *inode,
--			  const char *name, void *value, size_t size)
-+			  const char *name, void *value, size_t size, int flags)
- {
- 	ssize_t rc = -EOPNOTSUPP;
- 	unsigned int xid;
-diff --git a/fs/ecryptfs/inode.c b/fs/ecryptfs/inode.c
-index 18426f4855f1..9306e1c53cdb 100644
---- a/fs/ecryptfs/inode.c
-+++ b/fs/ecryptfs/inode.c
-@@ -1103,7 +1103,8 @@ const struct inode_operations ecryptfs_main_iops = {
- 
- static int ecryptfs_xattr_get(const struct xattr_handler *handler,
- 			      struct dentry *dentry, struct inode *inode,
--			      const char *name, void *buffer, size_t size)
-+			      const char *name, void *buffer, size_t size,
-+			      int flags)
- {
- 	return ecryptfs_getxattr(dentry, inode, name, buffer, size);
+ 	return err;
  }
-diff --git a/fs/ext2/xattr_trusted.c b/fs/ext2/xattr_trusted.c
-index 49add1107850..8d313664f0fa 100644
---- a/fs/ext2/xattr_trusted.c
-+++ b/fs/ext2/xattr_trusted.c
-@@ -18,7 +18,7 @@ ext2_xattr_trusted_list(struct dentry *dentry)
- static int
- ext2_xattr_trusted_get(const struct xattr_handler *handler,
- 		       struct dentry *unused, struct inode *inode,
--		       const char *name, void *buffer, size_t size)
-+		       const char *name, void *buffer, size_t size, int flags)
- {
- 	return ext2_xattr_get(inode, EXT2_XATTR_INDEX_TRUSTED, name,
- 			      buffer, size);
-diff --git a/fs/ext2/xattr_user.c b/fs/ext2/xattr_user.c
-index c243a3b4d69d..712b7c95cc64 100644
---- a/fs/ext2/xattr_user.c
-+++ b/fs/ext2/xattr_user.c
-@@ -20,7 +20,7 @@ ext2_xattr_user_list(struct dentry *dentry)
- static int
- ext2_xattr_user_get(const struct xattr_handler *handler,
- 		    struct dentry *unused, struct inode *inode,
--		    const char *name, void *buffer, size_t size)
-+		    const char *name, void *buffer, size_t size, int flags)
- {
- 	if (!test_opt(inode->i_sb, XATTR_USER))
- 		return -EOPNOTSUPP;
-diff --git a/fs/ext4/xattr_security.c b/fs/ext4/xattr_security.c
-index 197a9d8a15ef..50fb71393fb6 100644
---- a/fs/ext4/xattr_security.c
-+++ b/fs/ext4/xattr_security.c
-@@ -15,7 +15,7 @@
- static int
- ext4_xattr_security_get(const struct xattr_handler *handler,
- 			struct dentry *unused, struct inode *inode,
--			const char *name, void *buffer, size_t size)
-+			const char *name, void *buffer, size_t size, int flags)
- {
- 	return ext4_xattr_get(inode, EXT4_XATTR_INDEX_SECURITY,
- 			      name, buffer, size);
-diff --git a/fs/ext4/xattr_trusted.c b/fs/ext4/xattr_trusted.c
-index e9389e5d75c3..64bd8f86c1f1 100644
---- a/fs/ext4/xattr_trusted.c
-+++ b/fs/ext4/xattr_trusted.c
-@@ -22,7 +22,7 @@ ext4_xattr_trusted_list(struct dentry *dentry)
- static int
- ext4_xattr_trusted_get(const struct xattr_handler *handler,
- 		       struct dentry *unused, struct inode *inode,
--		       const char *name, void *buffer, size_t size)
-+		       const char *name, void *buffer, size_t size, int flags)
- {
- 	return ext4_xattr_get(inode, EXT4_XATTR_INDEX_TRUSTED,
- 			      name, buffer, size);
-diff --git a/fs/ext4/xattr_user.c b/fs/ext4/xattr_user.c
-index d4546184b34b..b7301373820e 100644
---- a/fs/ext4/xattr_user.c
-+++ b/fs/ext4/xattr_user.c
-@@ -21,7 +21,7 @@ ext4_xattr_user_list(struct dentry *dentry)
- static int
- ext4_xattr_user_get(const struct xattr_handler *handler,
- 		    struct dentry *unused, struct inode *inode,
--		    const char *name, void *buffer, size_t size)
-+		    const char *name, void *buffer, size_t size, int flags)
- {
- 	if (!test_opt(inode->i_sb, XATTR_USER))
- 		return -EOPNOTSUPP;
-diff --git a/fs/f2fs/xattr.c b/fs/f2fs/xattr.c
-index b32c45621679..76559da8dfba 100644
---- a/fs/f2fs/xattr.c
-+++ b/fs/f2fs/xattr.c
-@@ -24,7 +24,7 @@
- 
- static int f2fs_xattr_generic_get(const struct xattr_handler *handler,
- 		struct dentry *unused, struct inode *inode,
--		const char *name, void *buffer, size_t size)
-+		const char *name, void *buffer, size_t size, int flags)
- {
- 	struct f2fs_sb_info *sbi = F2FS_SB(inode->i_sb);
- 
-@@ -79,7 +79,7 @@ static bool f2fs_xattr_trusted_list(struct dentry *dentry)
- 
- static int f2fs_xattr_advise_get(const struct xattr_handler *handler,
- 		struct dentry *unused, struct inode *inode,
--		const char *name, void *buffer, size_t size)
-+		const char *name, void *buffer, size_t size, int flags)
- {
- 	if (buffer)
- 		*((char *)buffer) = F2FS_I(inode)->i_advise;
-diff --git a/fs/fuse/xattr.c b/fs/fuse/xattr.c
-index 433717640f78..d1ef7808304e 100644
---- a/fs/fuse/xattr.c
-+++ b/fs/fuse/xattr.c
-@@ -176,7 +176,7 @@ int fuse_removexattr(struct inode *inode, const char *name)
- 
- static int fuse_xattr_get(const struct xattr_handler *handler,
- 			 struct dentry *dentry, struct inode *inode,
--			 const char *name, void *value, size_t size)
-+			 const char *name, void *value, size_t size, int flags)
- {
- 	return fuse_getxattr(inode, name, value, size);
+diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
+index 702aa63f6774..49b8ffc1294f 100644
+--- a/fs/overlayfs/dir.c
++++ b/fs/overlayfs/dir.c
+@@ -563,7 +563,8 @@ static int ovl_create_or_link(struct dentry *dentry, struct inode *inode,
+ 		override_cred->fsgid = inode->i_gid;
+ 		if (!attr->hardlink) {
+ 			err = security_dentry_create_files_as(dentry,
+-					attr->mode, &dentry->d_name, old_cred,
++					attr->mode, &dentry->d_name,
++					old_cred ? old_cred : current_cred(),
+ 					override_cred);
+ 			if (err) {
+ 				put_cred(override_cred);
+@@ -579,7 +580,7 @@ static int ovl_create_or_link(struct dentry *dentry, struct inode *inode,
+ 			err = ovl_create_over_whiteout(dentry, inode, attr);
+ 	}
+ out_revert_creds:
+-	revert_creds(old_cred);
++	ovl_revert_creds(dentry->d_sb, old_cred);
+ 	return err;
  }
-@@ -199,7 +199,7 @@ static bool no_xattr_list(struct dentry *dentry)
  
- static int no_xattr_get(const struct xattr_handler *handler,
- 			struct dentry *dentry, struct inode *inode,
--			const char *name, void *value, size_t size)
-+			const char *name, void *value, size_t size, int flags)
- {
- 	return -EOPNOTSUPP;
+@@ -655,7 +656,7 @@ static int ovl_set_link_redirect(struct dentry *dentry)
+ 
+ 	old_cred = ovl_override_creds(dentry->d_sb);
+ 	err = ovl_set_redirect(dentry, false);
+-	revert_creds(old_cred);
++	ovl_revert_creds(dentry->d_sb, old_cred);
+ 
+ 	return err;
  }
-diff --git a/fs/gfs2/xattr.c b/fs/gfs2/xattr.c
-index bbe593d16bea..a9db067a99c1 100644
---- a/fs/gfs2/xattr.c
-+++ b/fs/gfs2/xattr.c
-@@ -588,7 +588,8 @@ static int __gfs2_xattr_get(struct inode *inode, const char *name,
+@@ -851,7 +852,7 @@ static int ovl_do_remove(struct dentry *dentry, bool is_dir)
+ 		err = ovl_remove_upper(dentry, is_dir, &list);
+ 	else
+ 		err = ovl_remove_and_whiteout(dentry, &list);
+-	revert_creds(old_cred);
++	ovl_revert_creds(dentry->d_sb, old_cred);
+ 	if (!err) {
+ 		if (is_dir)
+ 			clear_nlink(dentry->d_inode);
+@@ -1221,7 +1222,7 @@ static int ovl_rename(struct inode *olddir, struct dentry *old,
+ out_unlock:
+ 	unlock_rename(new_upperdir, old_upperdir);
+ out_revert_creds:
+-	revert_creds(old_cred);
++	ovl_revert_creds(old->d_sb, old_cred);
+ 	if (update_nlink)
+ 		ovl_nlink_end(new);
+ out_drop_write:
+diff --git a/fs/overlayfs/file.c b/fs/overlayfs/file.c
+index e235a635d9ec..627a303c95da 100644
+--- a/fs/overlayfs/file.c
++++ b/fs/overlayfs/file.c
+@@ -32,7 +32,7 @@ static struct file *ovl_open_realfile(const struct file *file,
+ 	old_cred = ovl_override_creds(inode->i_sb);
+ 	realfile = open_with_fake_path(&file->f_path, flags, realinode,
+ 				       current_cred());
+-	revert_creds(old_cred);
++	ovl_revert_creds(inode->i_sb, old_cred);
  
- static int gfs2_xattr_get(const struct xattr_handler *handler,
- 			  struct dentry *unused, struct inode *inode,
--			  const char *name, void *buffer, size_t size)
-+			  const char *name, void *buffer, size_t size,
-+			  int flags)
- {
- 	struct gfs2_inode *ip = GFS2_I(inode);
- 	struct gfs2_holder gh;
-diff --git a/fs/hfs/attr.c b/fs/hfs/attr.c
-index 74fa62643136..08222a9c5d31 100644
---- a/fs/hfs/attr.c
-+++ b/fs/hfs/attr.c
-@@ -115,7 +115,7 @@ static ssize_t __hfs_getxattr(struct inode *inode, enum hfs_xattr_type type,
+ 	pr_debug("open(%p[%pD2/%c], 0%o) -> (%p, 0%o)\n",
+ 		 file, file, ovl_whatisit(inode, realinode), file->f_flags,
+@@ -176,7 +176,7 @@ static loff_t ovl_llseek(struct file *file, loff_t offset, int whence)
  
- static int hfs_xattr_get(const struct xattr_handler *handler,
- 			 struct dentry *unused, struct inode *inode,
--			 const char *name, void *value, size_t size)
-+			 const char *name, void *value, size_t size, int flags)
- {
- 	return __hfs_getxattr(inode, handler->flags, value, size);
+ 	old_cred = ovl_override_creds(inode->i_sb);
+ 	ret = vfs_llseek(real.file, offset, whence);
+-	revert_creds(old_cred);
++	ovl_revert_creds(inode->i_sb, old_cred);
+ 
+ 	file->f_pos = real.file->f_pos;
+ 	inode_unlock(inode);
+@@ -242,7 +242,7 @@ static ssize_t ovl_read_iter(struct kiocb *iocb, struct iov_iter *iter)
+ 	old_cred = ovl_override_creds(file_inode(file)->i_sb);
+ 	ret = vfs_iter_read(real.file, iter, &iocb->ki_pos,
+ 			    ovl_iocb_to_rwf(iocb));
+-	revert_creds(old_cred);
++	ovl_revert_creds(file_inode(file)->i_sb, old_cred);
+ 
+ 	ovl_file_accessed(file);
+ 
+@@ -278,7 +278,7 @@ static ssize_t ovl_write_iter(struct kiocb *iocb, struct iov_iter *iter)
+ 	ret = vfs_iter_write(real.file, iter, &iocb->ki_pos,
+ 			     ovl_iocb_to_rwf(iocb));
+ 	file_end_write(real.file);
+-	revert_creds(old_cred);
++	ovl_revert_creds(file_inode(file)->i_sb, old_cred);
+ 
+ 	/* Update size */
+ 	ovl_copyattr(ovl_inode_real(inode), inode);
+@@ -305,7 +305,7 @@ static int ovl_fsync(struct file *file, loff_t start, loff_t end, int datasync)
+ 	if (file_inode(real.file) == ovl_inode_upper(file_inode(file))) {
+ 		old_cred = ovl_override_creds(file_inode(file)->i_sb);
+ 		ret = vfs_fsync_range(real.file, start, end, datasync);
+-		revert_creds(old_cred);
++		ovl_revert_creds(file_inode(file)->i_sb, old_cred);
+ 	}
+ 
+ 	fdput(real);
+@@ -329,7 +329,7 @@ static int ovl_mmap(struct file *file, struct vm_area_struct *vma)
+ 
+ 	old_cred = ovl_override_creds(file_inode(file)->i_sb);
+ 	ret = call_mmap(vma->vm_file, vma);
+-	revert_creds(old_cred);
++	ovl_revert_creds(file_inode(file)->i_sb, old_cred);
+ 
+ 	if (ret) {
+ 		/* Drop reference count from new vm_file value */
+@@ -357,7 +357,7 @@ static long ovl_fallocate(struct file *file, int mode, loff_t offset, loff_t len
+ 
+ 	old_cred = ovl_override_creds(file_inode(file)->i_sb);
+ 	ret = vfs_fallocate(real.file, mode, offset, len);
+-	revert_creds(old_cred);
++	ovl_revert_creds(file_inode(file)->i_sb, old_cred);
+ 
+ 	/* Update size */
+ 	ovl_copyattr(ovl_inode_real(inode), inode);
+@@ -379,7 +379,7 @@ static int ovl_fadvise(struct file *file, loff_t offset, loff_t len, int advice)
+ 
+ 	old_cred = ovl_override_creds(file_inode(file)->i_sb);
+ 	ret = vfs_fadvise(real.file, offset, len, advice);
+-	revert_creds(old_cred);
++	ovl_revert_creds(file_inode(file)->i_sb, old_cred);
+ 
+ 	fdput(real);
+ 
+@@ -399,7 +399,7 @@ static long ovl_real_ioctl(struct file *file, unsigned int cmd,
+ 
+ 	old_cred = ovl_override_creds(file_inode(file)->i_sb);
+ 	ret = vfs_ioctl(real.file, cmd, arg);
+-	revert_creds(old_cred);
++	ovl_revert_creds(file_inode(file)->i_sb, old_cred);
+ 
+ 	fdput(real);
+ 
+@@ -589,7 +589,7 @@ static loff_t ovl_copyfile(struct file *file_in, loff_t pos_in,
+ 						flags);
+ 		break;
+ 	}
+-	revert_creds(old_cred);
++	ovl_revert_creds(file_inode(file)->i_sb, old_cred);
+ 
+ 	/* Update size */
+ 	ovl_copyattr(ovl_inode_real(inode_out), inode_out);
+diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
+index ce66f4050557..bc46f45f65ba 100644
+--- a/fs/overlayfs/inode.c
++++ b/fs/overlayfs/inode.c
+@@ -61,7 +61,7 @@ int ovl_setattr(struct dentry *dentry, struct iattr *attr)
+ 		inode_lock(upperdentry->d_inode);
+ 		old_cred = ovl_override_creds(dentry->d_sb);
+ 		err = notify_change(upperdentry, attr, NULL);
+-		revert_creds(old_cred);
++		ovl_revert_creds(dentry->d_sb, old_cred);
+ 		if (!err)
+ 			ovl_copyattr(upperdentry->d_inode, dentry->d_inode);
+ 		inode_unlock(upperdentry->d_inode);
+@@ -257,7 +257,7 @@ int ovl_getattr(const struct path *path, struct kstat *stat,
+ 		stat->nlink = dentry->d_inode->i_nlink;
+ 
+ out:
+-	revert_creds(old_cred);
++	ovl_revert_creds(dentry->d_sb, old_cred);
+ 
+ 	return err;
  }
-diff --git a/fs/hfsplus/xattr.c b/fs/hfsplus/xattr.c
-index bb0b27d88e50..381c2aaedbc8 100644
---- a/fs/hfsplus/xattr.c
-+++ b/fs/hfsplus/xattr.c
-@@ -839,7 +839,8 @@ static int hfsplus_removexattr(struct inode *inode, const char *name)
+@@ -291,7 +291,7 @@ int ovl_permission(struct inode *inode, int mask)
+ 		mask |= MAY_READ;
+ 	}
+ 	err = inode_permission(realinode, mask);
+-	revert_creds(old_cred);
++	ovl_revert_creds(inode->i_sb, old_cred);
  
- static int hfsplus_osx_getxattr(const struct xattr_handler *handler,
- 				struct dentry *unused, struct inode *inode,
--				const char *name, void *buffer, size_t size)
-+				const char *name, void *buffer, size_t size,
-+				int flags)
- {
- 	/*
- 	 * Don't allow retrieving properly prefixed attributes
-diff --git a/fs/hfsplus/xattr_trusted.c b/fs/hfsplus/xattr_trusted.c
-index fbad91e1dada..54d926314f8c 100644
---- a/fs/hfsplus/xattr_trusted.c
-+++ b/fs/hfsplus/xattr_trusted.c
-@@ -14,7 +14,8 @@
- 
- static int hfsplus_trusted_getxattr(const struct xattr_handler *handler,
- 				    struct dentry *unused, struct inode *inode,
--				    const char *name, void *buffer, size_t size)
-+				    const char *name, void *buffer,
-+				    size_t size, int flags)
- {
- 	return hfsplus_getxattr(inode, name, buffer, size,
- 				XATTR_TRUSTED_PREFIX,
-diff --git a/fs/hfsplus/xattr_user.c b/fs/hfsplus/xattr_user.c
-index 74d19faf255e..4d2b1ffff887 100644
---- a/fs/hfsplus/xattr_user.c
-+++ b/fs/hfsplus/xattr_user.c
-@@ -14,7 +14,8 @@
- 
- static int hfsplus_user_getxattr(const struct xattr_handler *handler,
- 				 struct dentry *unused, struct inode *inode,
--				 const char *name, void *buffer, size_t size)
-+				 const char *name, void *buffer, size_t size,
-+				 int flags)
- {
- 
- 	return hfsplus_getxattr(inode, name, buffer, size,
-diff --git a/fs/jffs2/security.c b/fs/jffs2/security.c
-index c2332e30f218..e6f42fe435af 100644
---- a/fs/jffs2/security.c
-+++ b/fs/jffs2/security.c
-@@ -50,7 +50,8 @@ int jffs2_init_security(struct inode *inode, struct inode *dir,
- /* ---- XATTR Handler for "security.*" ----------------- */
- static int jffs2_security_getxattr(const struct xattr_handler *handler,
- 				   struct dentry *unused, struct inode *inode,
--				   const char *name, void *buffer, size_t size)
-+				   const char *name, void *buffer, size_t size,
-+				   int flags)
- {
- 	return do_jffs2_getxattr(inode, JFFS2_XPREFIX_SECURITY,
- 				 name, buffer, size);
-diff --git a/fs/jffs2/xattr_trusted.c b/fs/jffs2/xattr_trusted.c
-index 5d6030826c52..9dccaae549f5 100644
---- a/fs/jffs2/xattr_trusted.c
-+++ b/fs/jffs2/xattr_trusted.c
-@@ -18,7 +18,8 @@
- 
- static int jffs2_trusted_getxattr(const struct xattr_handler *handler,
- 				  struct dentry *unused, struct inode *inode,
--				  const char *name, void *buffer, size_t size)
-+				  const char *name, void *buffer, size_t size,
-+				  int flags)
- {
- 	return do_jffs2_getxattr(inode, JFFS2_XPREFIX_TRUSTED,
- 				 name, buffer, size);
-diff --git a/fs/jffs2/xattr_user.c b/fs/jffs2/xattr_user.c
-index 9d027b4abcf9..c0983a3e810b 100644
---- a/fs/jffs2/xattr_user.c
-+++ b/fs/jffs2/xattr_user.c
-@@ -18,7 +18,8 @@
- 
- static int jffs2_user_getxattr(const struct xattr_handler *handler,
- 			       struct dentry *unused, struct inode *inode,
--			       const char *name, void *buffer, size_t size)
-+			       const char *name, void *buffer, size_t size,
-+			       int flags)
- {
- 	return do_jffs2_getxattr(inode, JFFS2_XPREFIX_USER,
- 				 name, buffer, size);
-diff --git a/fs/jfs/xattr.c b/fs/jfs/xattr.c
-index db41e7803163..5c79a35bf62f 100644
---- a/fs/jfs/xattr.c
-+++ b/fs/jfs/xattr.c
-@@ -925,7 +925,7 @@ static int __jfs_xattr_set(struct inode *inode, const char *name,
- 
- static int jfs_xattr_get(const struct xattr_handler *handler,
- 			 struct dentry *unused, struct inode *inode,
--			 const char *name, void *value, size_t size)
-+			 const char *name, void *value, size_t size, int flags)
- {
- 	name = xattr_full_name(handler, name);
- 	return __jfs_getxattr(inode, name, value, size);
-@@ -942,7 +942,8 @@ static int jfs_xattr_set(const struct xattr_handler *handler,
- 
- static int jfs_xattr_get_os2(const struct xattr_handler *handler,
- 			     struct dentry *unused, struct inode *inode,
--			     const char *name, void *value, size_t size)
-+			     const char *name, void *value, size_t size,
-+			     int flags)
- {
- 	if (is_known_namespace(name))
- 		return -EOPNOTSUPP;
-diff --git a/fs/kernfs/inode.c b/fs/kernfs/inode.c
-index f3f3984cce80..ebd47d549a52 100644
---- a/fs/kernfs/inode.c
-+++ b/fs/kernfs/inode.c
-@@ -310,6 +310,7 @@ int kernfs_xattr_set(struct kernfs_node *kn, const char *name,
- static int kernfs_vfs_xattr_get(const struct xattr_handler *handler,
- 				struct dentry *unused, struct inode *inode,
- 				const char *suffix, void *value, size_t size)
-+				int flags)
- {
- 	const char *name = xattr_full_name(handler, suffix);
- 	struct kernfs_node *kn = inode->i_private;
-diff --git a/fs/nfs/nfs4proc.c b/fs/nfs/nfs4proc.c
-index 39896afc6edf..5e6a58685cd0 100644
---- a/fs/nfs/nfs4proc.c
-+++ b/fs/nfs/nfs4proc.c
-@@ -7203,7 +7203,8 @@ static int nfs4_xattr_set_nfs4_acl(const struct xattr_handler *handler,
- 
- static int nfs4_xattr_get_nfs4_acl(const struct xattr_handler *handler,
- 				   struct dentry *unused, struct inode *inode,
--				   const char *key, void *buf, size_t buflen)
-+				   const char *key, void *buf, size_t buflen,
-+				   int flags)
- {
- 	return nfs4_proc_get_acl(inode, buf, buflen);
+ 	return err;
  }
-@@ -7228,7 +7229,8 @@ static int nfs4_xattr_set_nfs4_label(const struct xattr_handler *handler,
+@@ -308,7 +308,7 @@ static const char *ovl_get_link(struct dentry *dentry,
  
- static int nfs4_xattr_get_nfs4_label(const struct xattr_handler *handler,
- 				     struct dentry *unused, struct inode *inode,
--				     const char *key, void *buf, size_t buflen)
-+				     const char *key, void *buf, size_t buflen,
-+				     int flags)
- {
- 	if (security_ismaclabel(key))
- 		return nfs4_get_security_label(inode, buf, buflen);
-diff --git a/fs/ocfs2/xattr.c b/fs/ocfs2/xattr.c
-index 385f3aaa2448..06e615642422 100644
---- a/fs/ocfs2/xattr.c
-+++ b/fs/ocfs2/xattr.c
-@@ -7245,7 +7245,8 @@ int ocfs2_init_security_and_acl(struct inode *dir,
-  */
- static int ocfs2_xattr_security_get(const struct xattr_handler *handler,
- 				    struct dentry *unused, struct inode *inode,
--				    const char *name, void *buffer, size_t size)
-+				    const char *name, void *buffer, size_t size,
-+				    int flags)
- {
- 	return ocfs2_xattr_get(inode, OCFS2_XATTR_INDEX_SECURITY,
- 			       name, buffer, size);
-@@ -7317,7 +7318,8 @@ const struct xattr_handler ocfs2_xattr_security_handler = {
-  */
- static int ocfs2_xattr_trusted_get(const struct xattr_handler *handler,
- 				   struct dentry *unused, struct inode *inode,
--				   const char *name, void *buffer, size_t size)
-+				   const char *name, void *buffer, size_t size,
-+				   int flags)
- {
- 	return ocfs2_xattr_get(inode, OCFS2_XATTR_INDEX_TRUSTED,
- 			       name, buffer, size);
-@@ -7343,7 +7345,8 @@ const struct xattr_handler ocfs2_xattr_trusted_handler = {
-  */
- static int ocfs2_xattr_user_get(const struct xattr_handler *handler,
- 				struct dentry *unused, struct inode *inode,
--				const char *name, void *buffer, size_t size)
-+				const char *name, void *buffer, size_t size,
-+				int flags)
- {
- 	struct ocfs2_super *osb = OCFS2_SB(inode->i_sb);
+ 	old_cred = ovl_override_creds(dentry->d_sb);
+ 	p = vfs_get_link(ovl_dentry_real(dentry), done);
+-	revert_creds(old_cred);
++	ovl_revert_creds(dentry->d_sb, old_cred);
+ 	return p;
+ }
  
-diff --git a/fs/orangefs/xattr.c b/fs/orangefs/xattr.c
-index bdc285aea360..ef4180bff7bb 100644
---- a/fs/orangefs/xattr.c
-+++ b/fs/orangefs/xattr.c
-@@ -541,7 +541,8 @@ static int orangefs_xattr_get_default(const struct xattr_handler *handler,
- 				      struct inode *inode,
- 				      const char *name,
- 				      void *buffer,
--				      size_t size)
-+				      size_t size,
-+				      int flags)
- {
- 	return orangefs_inode_getxattr(inode, name, buffer, size);
+@@ -351,7 +351,7 @@ int ovl_xattr_set(struct dentry *dentry, struct inode *inode, const char *name,
+ 		WARN_ON(flags != XATTR_REPLACE);
+ 		err = vfs_removexattr(realdentry, name);
+ 	}
+-	revert_creds(old_cred);
++	ovl_revert_creds(dentry->d_sb, old_cred);
+ 
+ 	/* copy c/mtime */
+ 	ovl_copyattr(d_inode(realdentry), inode);
+@@ -376,7 +376,7 @@ int ovl_xattr_get(struct dentry *dentry, struct inode *inode, const char *name,
+ 				     value, size);
+ 	else
+ 		res = vfs_getxattr(realdentry, name, value, size);
+-	revert_creds(old_cred);
++	ovl_revert_creds(dentry->d_sb, old_cred);
+ 	return res;
+ }
+ 
+@@ -400,7 +400,7 @@ ssize_t ovl_listxattr(struct dentry *dentry, char *list, size_t size)
+ 
+ 	old_cred = ovl_override_creds(dentry->d_sb);
+ 	res = vfs_listxattr(realdentry, list, size);
+-	revert_creds(old_cred);
++	ovl_revert_creds(dentry->d_sb, old_cred);
+ 	if (res <= 0 || size == 0)
+ 		return res;
+ 
+@@ -435,7 +435,7 @@ struct posix_acl *ovl_get_acl(struct inode *inode, int type)
+ 
+ 	old_cred = ovl_override_creds(inode->i_sb);
+ 	acl = get_acl(realinode, type);
+-	revert_creds(old_cred);
++	ovl_revert_creds(inode->i_sb, old_cred);
+ 
+ 	return acl;
+ }
+@@ -473,7 +473,7 @@ static int ovl_fiemap(struct inode *inode, struct fiemap_extent_info *fieinfo,
+ 		filemap_write_and_wait(realinode->i_mapping);
+ 
+ 	err = realinode->i_op->fiemap(realinode, fieinfo, start, len);
+-	revert_creds(old_cred);
++	ovl_revert_creds(inode->i_sb, old_cred);
+ 
+ 	return err;
+ }
+diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
+index a4a452c489fa..bab1f97dc201 100644
+--- a/fs/overlayfs/namei.c
++++ b/fs/overlayfs/namei.c
+@@ -1079,7 +1079,7 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
+ 			goto out_free_oe;
+ 	}
+ 
+-	revert_creds(old_cred);
++	ovl_revert_creds(dentry->d_sb, old_cred);
+ 	if (origin_path) {
+ 		dput(origin_path->dentry);
+ 		kfree(origin_path);
+@@ -1106,7 +1106,7 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
+ 	kfree(upperredirect);
+ out:
+ 	kfree(d.redirect);
+-	revert_creds(old_cred);
++	ovl_revert_creds(dentry->d_sb, old_cred);
+ 	return ERR_PTR(err);
+ }
+ 
+@@ -1160,7 +1160,7 @@ bool ovl_lower_positive(struct dentry *dentry)
+ 			dput(this);
+ 		}
+ 	}
+-	revert_creds(old_cred);
++	ovl_revert_creds(dentry->d_sb, old_cred);
+ 
+ 	return positive;
+ }
+diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
+index 9d26d8758513..ad1a11e7ecbd 100644
+--- a/fs/overlayfs/overlayfs.h
++++ b/fs/overlayfs/overlayfs.h
+@@ -205,6 +205,7 @@ int ovl_want_write(struct dentry *dentry);
+ void ovl_drop_write(struct dentry *dentry);
+ struct dentry *ovl_workdir(struct dentry *dentry);
+ const struct cred *ovl_override_creds(struct super_block *sb);
++void ovl_revert_creds(struct super_block *sb, const struct cred *oldcred);
+ ssize_t ovl_do_vfs_getxattr(struct dentry *dentry, const char *name, void *buf,
+ 			    size_t size);
+ struct super_block *ovl_same_sb(struct super_block *sb);
+diff --git a/fs/overlayfs/ovl_entry.h b/fs/overlayfs/ovl_entry.h
+index 28a2d12a1029..2637c5aadf7f 100644
+--- a/fs/overlayfs/ovl_entry.h
++++ b/fs/overlayfs/ovl_entry.h
+@@ -17,6 +17,7 @@ struct ovl_config {
+ 	bool nfs_export;
+ 	int xino;
+ 	bool metacopy;
++	bool override_creds;
+ };
+ 
+ struct ovl_sb {
+diff --git a/fs/overlayfs/readdir.c b/fs/overlayfs/readdir.c
+index 47a91c9733a5..874a1b3ff99a 100644
+--- a/fs/overlayfs/readdir.c
++++ b/fs/overlayfs/readdir.c
+@@ -286,7 +286,7 @@ static int ovl_check_whiteouts(struct dentry *dir, struct ovl_readdir_data *rdd)
+ 		}
+ 		inode_unlock(dir->d_inode);
+ 	}
+-	revert_creds(old_cred);
++	ovl_revert_creds(rdd->dentry->d_sb, old_cred);
+ 
+ 	return err;
+ }
+@@ -918,7 +918,7 @@ int ovl_check_empty_dir(struct dentry *dentry, struct list_head *list)
+ 
+ 	old_cred = ovl_override_creds(dentry->d_sb);
+ 	err = ovl_dir_read_merged(dentry, list, &root);
+-	revert_creds(old_cred);
++	ovl_revert_creds(dentry->d_sb, old_cred);
+ 	if (err)
+ 		return err;
  
 diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-index b368e2e102fa..57df03f3259f 100644
+index 6f041e1fceda..2c1278451f38 100644
 --- a/fs/overlayfs/super.c
 +++ b/fs/overlayfs/super.c
-@@ -854,7 +854,7 @@ static unsigned int ovl_split_lowerdirs(char *str)
- static int __maybe_unused
- ovl_posix_acl_xattr_get(const struct xattr_handler *handler,
- 			struct dentry *dentry, struct inode *inode,
--			const char *name, void *buffer, size_t size)
-+			const char *name, void *buffer, size_t size, int flags)
+@@ -53,6 +53,11 @@ module_param_named(xino_auto, ovl_xino_auto_def, bool, 0644);
+ MODULE_PARM_DESC(xino_auto,
+ 		 "Auto enable xino feature");
+ 
++static bool __read_mostly ovl_override_creds_def = true;
++module_param_named(override_creds, ovl_override_creds_def, bool, 0644);
++MODULE_PARM_DESC(ovl_override_creds_def,
++		 "Use mounter's credentials for accesses");
++
+ static void ovl_entry_stack_free(struct ovl_entry *oe)
  {
- 	return ovl_xattr_get(dentry, inode, handler->name, buffer, size);
+ 	unsigned int i;
+@@ -362,6 +367,9 @@ static int ovl_show_options(struct seq_file *m, struct dentry *dentry)
+ 	if (ofs->config.metacopy != ovl_metacopy_def)
+ 		seq_printf(m, ",metacopy=%s",
+ 			   ofs->config.metacopy ? "on" : "off");
++	if (ofs->config.override_creds != ovl_override_creds_def)
++		seq_show_option(m, "override_creds",
++				ofs->config.override_creds ? "on" : "off");
+ 	return 0;
  }
-@@ -934,7 +934,8 @@ static int ovl_own_xattr_set(const struct xattr_handler *handler,
  
- static int ovl_other_xattr_get(const struct xattr_handler *handler,
- 			       struct dentry *dentry, struct inode *inode,
--			       const char *name, void *buffer, size_t size)
-+			       const char *name, void *buffer, size_t size,
-+			       int flags)
- {
- 	return ovl_xattr_get(dentry, inode, name, buffer, size);
- }
-diff --git a/fs/posix_acl.c b/fs/posix_acl.c
-index 84ad1c90d535..cd55621e570b 100644
---- a/fs/posix_acl.c
-+++ b/fs/posix_acl.c
-@@ -832,7 +832,7 @@ EXPORT_SYMBOL (posix_acl_to_xattr);
- static int
- posix_acl_xattr_get(const struct xattr_handler *handler,
- 		    struct dentry *unused, struct inode *inode,
--		    const char *name, void *value, size_t size)
-+		    const char *name, void *value, size_t size, int flags)
- {
- 	struct posix_acl *acl;
- 	int error;
-diff --git a/fs/reiserfs/xattr_security.c b/fs/reiserfs/xattr_security.c
-index 20be9a0e5870..eedfa07a4fd0 100644
---- a/fs/reiserfs/xattr_security.c
-+++ b/fs/reiserfs/xattr_security.c
-@@ -11,7 +11,8 @@
- 
- static int
- security_get(const struct xattr_handler *handler, struct dentry *unused,
--	     struct inode *inode, const char *name, void *buffer, size_t size)
-+	     struct inode *inode, const char *name, void *buffer, size_t size,
-+	     int flags)
- {
- 	if (IS_PRIVATE(inode))
- 		return -EPERM;
-diff --git a/fs/reiserfs/xattr_trusted.c b/fs/reiserfs/xattr_trusted.c
-index 5ed48da3d02b..2d11d98605dd 100644
---- a/fs/reiserfs/xattr_trusted.c
-+++ b/fs/reiserfs/xattr_trusted.c
-@@ -10,7 +10,8 @@
- 
- static int
- trusted_get(const struct xattr_handler *handler, struct dentry *unused,
--	    struct inode *inode, const char *name, void *buffer, size_t size)
-+	    struct inode *inode, const char *name, void *buffer, size_t size,
-+	    int flags)
- {
- 	if (!capable(CAP_SYS_ADMIN) || IS_PRIVATE(inode))
- 		return -EPERM;
-diff --git a/fs/reiserfs/xattr_user.c b/fs/reiserfs/xattr_user.c
-index a573ca45bacc..2a59d85c69c9 100644
---- a/fs/reiserfs/xattr_user.c
-+++ b/fs/reiserfs/xattr_user.c
-@@ -9,7 +9,8 @@
- 
- static int
- user_get(const struct xattr_handler *handler, struct dentry *unused,
--	 struct inode *inode, const char *name, void *buffer, size_t size)
-+	 struct inode *inode, const char *name, void *buffer, size_t size,
-+	 int flags)
- {
- 	if (!reiserfs_xattrs_user(inode->i_sb))
- 		return -EOPNOTSUPP;
-diff --git a/fs/squashfs/xattr.c b/fs/squashfs/xattr.c
-index e1e3f3dd5a06..d8d58c990652 100644
---- a/fs/squashfs/xattr.c
-+++ b/fs/squashfs/xattr.c
-@@ -204,7 +204,7 @@ static int squashfs_xattr_handler_get(const struct xattr_handler *handler,
- 				      struct dentry *unused,
- 				      struct inode *inode,
- 				      const char *name,
--				      void *buffer, size_t size)
-+				      void *buffer, size_t size, int flags)
- {
- 	return squashfs_xattr_get(inode, handler->flags, name,
- 		buffer, size);
-diff --git a/fs/xattr.c b/fs/xattr.c
-index 90dd78f0eb27..2b94930ede59 100644
---- a/fs/xattr.c
-+++ b/fs/xattr.c
-@@ -270,7 +270,7 @@ vfs_getxattr_alloc(struct dentry *dentry, const char *name, char **xattr_value,
- 	const struct xattr_handler *handler;
- 	struct inode *inode = dentry->d_inode;
- 	char *value = *xattr_value;
--	int error;
-+	int error, xflags;
- 
- 	error = xattr_permission(inode, name, MAY_READ);
- 	if (error)
-@@ -281,7 +281,8 @@ vfs_getxattr_alloc(struct dentry *dentry, const char *name, char **xattr_value,
- 		return PTR_ERR(handler);
- 	if (!handler->get)
- 		return -EOPNOTSUPP;
--	error = handler->get(handler, dentry, inode, name, NULL, 0);
-+	xflags = flags & GFP_NOFS ? XATTR_NOSECURITY : 0;
-+	error = handler->get(handler, dentry, inode, name, NULL, 0, xflags);
- 	if (error < 0)
- 		return error;
- 
-@@ -292,7 +293,8 @@ vfs_getxattr_alloc(struct dentry *dentry, const char *name, char **xattr_value,
- 		memset(value, 0, error + 1);
- 	}
- 
--	error = handler->get(handler, dentry, inode, name, value, error);
-+	error = handler->get(handler, dentry, inode, name, value, error,
-+			     xflags);
- 	*xattr_value = value;
- 	return error;
- }
-@@ -308,7 +310,8 @@ __vfs_getxattr(struct dentry *dentry, struct inode *inode, const char *name,
- 		return PTR_ERR(handler);
- 	if (!handler->get)
- 		return -EOPNOTSUPP;
--	return handler->get(handler, dentry, inode, name, value, size);
-+	return handler->get(handler, dentry, inode, name, value, size,
-+			    XATTR_NOSECURITY);
- }
- EXPORT_SYMBOL(__vfs_getxattr);
- 
-@@ -317,6 +320,7 @@ vfs_getxattr(struct dentry *dentry, const char *name, void *value, size_t size)
- {
- 	struct inode *inode = dentry->d_inode;
- 	int error;
-+	const struct xattr_handler *handler;
- 
- 	error = xattr_permission(inode, name, MAY_READ);
- 	if (error)
-@@ -339,7 +343,12 @@ vfs_getxattr(struct dentry *dentry, const char *name, void *value, size_t size)
- 		return ret;
- 	}
- nolsm:
--	return __vfs_getxattr(dentry, inode, name, value, size);
-+	handler = xattr_resolve_name(inode, &name);
-+	if (IS_ERR(handler))
-+		return PTR_ERR(handler);
-+	if (!handler->get)
-+		return -EOPNOTSUPP;
-+	return handler->get(handler, dentry, inode, name, value, size, 0);
- }
- EXPORT_SYMBOL_GPL(vfs_getxattr);
- 
-diff --git a/fs/xfs/xfs_xattr.c b/fs/xfs/xfs_xattr.c
-index 3123b5aaad2a..cafc99c48e20 100644
---- a/fs/xfs/xfs_xattr.c
-+++ b/fs/xfs/xfs_xattr.c
-@@ -18,7 +18,8 @@
- 
- static int
- xfs_xattr_get(const struct xattr_handler *handler, struct dentry *unused,
--		struct inode *inode, const char *name, void *value, size_t size)
-+		struct inode *inode, const char *name, void *value, size_t size,
-+		int flags)
- {
- 	int xflags = handler->flags;
- 	struct xfs_inode *ip = XFS_I(inode);
-diff --git a/include/linux/xattr.h b/include/linux/xattr.h
-index 6dad031be3c2..b272b6841faa 100644
---- a/include/linux/xattr.h
-+++ b/include/linux/xattr.h
-@@ -30,10 +30,10 @@ struct xattr_handler {
- 	const char *prefix;
- 	int flags;      /* fs private flags */
- 	bool (*list)(struct dentry *dentry);
--	int (*get)(const struct xattr_handler *, struct dentry *dentry,
-+	int (*get)(const struct xattr_handler *handler, struct dentry *dentry,
- 		   struct inode *inode, const char *name, void *buffer,
--		   size_t size);
--	int (*set)(const struct xattr_handler *, struct dentry *dentry,
-+		   size_t size, int flags);
-+	int (*set)(const struct xattr_handler *handler, struct dentry *dentry,
- 		   struct inode *inode, const char *name, const void *buffer,
- 		   size_t size, int flags);
+@@ -402,6 +410,8 @@ enum {
+ 	OPT_XINO_AUTO,
+ 	OPT_METACOPY_ON,
+ 	OPT_METACOPY_OFF,
++	OPT_OVERRIDE_CREDS_ON,
++	OPT_OVERRIDE_CREDS_OFF,
+ 	OPT_ERR,
  };
-diff --git a/include/uapi/linux/xattr.h b/include/uapi/linux/xattr.h
-index c1395b5bd432..1216d777d210 100644
---- a/include/uapi/linux/xattr.h
-+++ b/include/uapi/linux/xattr.h
-@@ -17,8 +17,9 @@
- #if __UAPI_DEF_XATTR
- #define __USE_KERNEL_XATTR_DEFS
  
--#define XATTR_CREATE	0x1	/* set value, fail if attr already exists */
--#define XATTR_REPLACE	0x2	/* set value, fail if attr does not exist */
-+#define XATTR_CREATE	 0x1	/* set value, fail if attr already exists */
-+#define XATTR_REPLACE	 0x2	/* set value, fail if attr does not exist */
-+#define XATTR_NOSECURITY 0x4	/* get value, do not involve security check */
- #endif
+@@ -420,6 +430,8 @@ static const match_table_t ovl_tokens = {
+ 	{OPT_XINO_AUTO,			"xino=auto"},
+ 	{OPT_METACOPY_ON,		"metacopy=on"},
+ 	{OPT_METACOPY_OFF,		"metacopy=off"},
++	{OPT_OVERRIDE_CREDS_ON,		"override_creds=on"},
++	{OPT_OVERRIDE_CREDS_OFF,	"override_creds=off"},
+ 	{OPT_ERR,			NULL}
+ };
  
- /* Namespaces */
-diff --git a/mm/shmem.c b/mm/shmem.c
-index 626d8c74b973..34d3818b4424 100644
---- a/mm/shmem.c
-+++ b/mm/shmem.c
-@@ -3206,7 +3206,8 @@ static int shmem_initxattrs(struct inode *inode,
+@@ -478,6 +490,7 @@ static int ovl_parse_opt(char *opt, struct ovl_config *config)
+ 	config->redirect_mode = kstrdup(ovl_redirect_mode_def(), GFP_KERNEL);
+ 	if (!config->redirect_mode)
+ 		return -ENOMEM;
++	config->override_creds = ovl_override_creds_def;
  
- static int shmem_xattr_handler_get(const struct xattr_handler *handler,
- 				   struct dentry *unused, struct inode *inode,
--				   const char *name, void *buffer, size_t size)
-+				   const char *name, void *buffer, size_t size,
-+				   int flags)
+ 	while ((p = ovl_next_opt(&opt)) != NULL) {
+ 		int token;
+@@ -558,6 +571,14 @@ static int ovl_parse_opt(char *opt, struct ovl_config *config)
+ 			config->metacopy = false;
+ 			break;
+ 
++		case OPT_OVERRIDE_CREDS_ON:
++			config->override_creds = true;
++			break;
++
++		case OPT_OVERRIDE_CREDS_OFF:
++			config->override_creds = false;
++			break;
++
+ 		default:
+ 			pr_err("overlayfs: unrecognized mount option \"%s\" or missing value\n", p);
+ 			return -EINVAL;
+@@ -1674,7 +1695,6 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
+ 		       ovl_dentry_lower(root_dentry), NULL);
+ 
+ 	sb->s_root = root_dentry;
+-
+ 	return 0;
+ 
+ out_free_oe:
+diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
+index f80b95423043..4720a7a6fea3 100644
+--- a/fs/overlayfs/util.c
++++ b/fs/overlayfs/util.c
+@@ -37,9 +37,17 @@ const struct cred *ovl_override_creds(struct super_block *sb)
  {
- 	struct shmem_inode_info *info = SHMEM_I(inode);
+ 	struct ovl_fs *ofs = sb->s_fs_info;
  
-diff --git a/net/socket.c b/net/socket.c
-index 6a9ab7a8b1d2..6b0fea92dd02 100644
---- a/net/socket.c
-+++ b/net/socket.c
-@@ -300,7 +300,8 @@ static const struct dentry_operations sockfs_dentry_operations = {
++	if (!ofs->config.override_creds)
++		return NULL;
+ 	return override_creds(ofs->creator_cred);
+ }
  
- static int sockfs_xattr_get(const struct xattr_handler *handler,
- 			    struct dentry *dentry, struct inode *inode,
--			    const char *suffix, void *value, size_t size)
-+			    const char *suffix, void *value, size_t size,
-+			    int flags)
++void ovl_revert_creds(struct super_block *sb, const struct cred *old_cred)
++{
++	if (old_cred)
++		revert_creds(old_cred);
++}
++
+ ssize_t ovl_do_vfs_getxattr(struct dentry *dentry, const char *name, void *buf,
+ 			    size_t size)
  {
- 	if (value) {
- 		if (dentry->d_name.len + 1 > size)
+@@ -797,7 +805,7 @@ int ovl_nlink_start(struct dentry *dentry)
+ 	 * value relative to the upper inode nlink in an upper inode xattr.
+ 	 */
+ 	err = ovl_set_nlink_upper(dentry);
+-	revert_creds(old_cred);
++	ovl_revert_creds(dentry->d_sb, old_cred);
+ 
+ out:
+ 	if (err)
+@@ -815,7 +823,7 @@ void ovl_nlink_end(struct dentry *dentry)
+ 
+ 		old_cred = ovl_override_creds(dentry->d_sb);
+ 		ovl_cleanup_index(dentry);
+-		revert_creds(old_cred);
++		ovl_revert_creds(dentry->d_sb, old_cred);
+ 	}
+ 
+ 	ovl_inode_unlock(inode);
 -- 
 2.22.0.770.g0f2c4a37fd-goog
-
-
-______________________________________________________
-Linux MTD discussion mailing list
-http://lists.infradead.org/mailman/listinfo/linux-mtd/
