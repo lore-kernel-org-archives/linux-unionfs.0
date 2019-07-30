@@ -1,153 +1,97 @@
 From: Mark Salyzyn <salyzyn@android.com>
-Subject: Re: [PATCH v10 3/5] overlayfs: add __get xattr method
-Date: Tue, 30 Jul 2019 09:54:09 -0700
-Message-ID: <05f7689d-ce00-cae1-4433-140eb6c12749@android.com>
-References: <20190724195719.218307-1-salyzyn@android.com>
- <20190724195719.218307-4-salyzyn@android.com>
- <CAOQ4uxjizC1RhmLe3qmfASk2M-Y+QEiyLL1yJXa4zXAEby7Tig@mail.gmail.com>
- <af254162-10bf-1fc5-2286-8d002a287400@android.com>
- <CAOQ4uxi5S9HTx+wR1U_8vQ-6nyCozykWBZbZwiHhnXBGhXRz8Q@mail.gmail.com>
- <35b70147-25ad-4c29-3972-418ebee5e7b8@android.com>
- <CAOQ4uxg8k=4D5_VEBy61PwBo+2pCCakUPw3uCar2oQpi3yaLmA@mail.gmail.com>
- <f56cd45d-2926-094e-7f02-e2ca972214ba@android.com>
- <e83ceef6-70ae-fd9e-2087-50baf2fbd402@tycho.nsa.gov>
+Subject: [PATCH v12 0/5] overlayfs override_creds=off
+Date: Tue, 30 Jul 2019 10:28:57 -0700
+Message-ID: <20190730172904.79146-1-salyzyn@android.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <e83ceef6-70ae-fd9e-2087-50baf2fbd402@tycho.nsa.gov>
-Content-Language: en-GB
 Sender: linux-kernel-owner@vger.kernel.org
-To: Stephen Smalley <sds@tycho.nsa.gov>, Amir Goldstein <amir73il@gmail.com>
-Cc: linux-kernel <linux-kernel@vger.kernel.org>, kernel-team@android.com, Miklos Szeredi <miklos@szeredi.hu>, Jonathan Corbet <corbet@lwn.net>, Vivek Goyal <vgoyal@redhat.com>, "Eric W . Biederman" <ebiederm@xmission.com>, Randy Dunlap <rdunlap@infradead.org>, overlayfs <linux-unionfs@vger.kernel.org>, linux-doc@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: kernel-team@android.com, Mark Salyzyn <salyzyn@android.com>, Miklos Szeredi <miklos@szeredi.hu>, Jonathan Corbet <corbet@lwn.net>, Vivek Goyal <vgoyal@redhat.com>, "Eric W . Biederman" <ebiederm@xmission.com>, Amir Goldstein <amir73il@gmail.com>, Randy Dunlap <rdunlap@infradead.org>, Stephen Smalley <sds@tycho.nsa.gov>, linux-unionfs@vger.kernel.org, linux-doc@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 
-On 7/30/19 8:55 AM, Stephen Smalley wrote:
-> On 7/26/19 2:30 PM, Mark Salyzyn wrote:
->> On 7/25/19 10:04 PM, Amir Goldstein wrote:
->>> On Thu, Jul 25, 2019 at 7:22 PM Mark Salyzyn <salyzyn@android.com> 
->>> wrote:
->>>> On 7/25/19 8:43 AM, Amir Goldstein wrote:
->>>>> On Thu, Jul 25, 2019 at 6:03 PM Mark Salyzyn <salyzyn@android.com> 
->>>>> wrote:
->>>>>> On 7/24/19 10:48 PM, Amir Goldstein wrote:
->>>>>>> On Wed, Jul 24, 2019 at 10:57 PM Mark Salyzyn 
->>>>>>> <salyzyn@android.com> wrote:
->>>>>>>> Because of the overlayfs getxattr recursion, the incoming inode 
->>>>>>>> fails
->>>>>>>> to update the selinux sid resulting in avc denials being reported
->>>>>>>> against a target context of u:object_r:unlabeled:s0.
->>>>>>> This description is too brief for me to understand the root 
->>>>>>> problem.
->>>>>>> What's wring with the overlayfs getxattr recursion w.r.t the 
->>>>>>> selinux
->>>>>>> security model?
->>>>>> __vfs_getxattr (the way the security layer acquires the target sid
->>>>>> without recursing back to security to check the access permissions)
->>>>>> calls get xattr method, which in overlayfs calls vfs_getxattr on the
->>>>>> lower layer (which then recurses back to security to check 
->>>>>> permissions)
->>>>>> and reports back -EACCES if there was a denial (which is OK) and 
->>>>>> _no_
->>>>>> sid copied to caller's inode security data, bubbles back to the 
->>>>>> security
->>>>>> layer caller, which reports an invalid avc: message for
->>>>>> u:object_r:unlabeled:s0 (the uninitialized sid instead of the sid 
->>>>>> for
->>>>>> the lower filesystem target). The blocked access is 100% valid, 
->>>>>> it is
->>>>>> supposed to be blocked. This does however result in a cosmetic issue
->>>>>> that makes it impossible to use audit2allow to construct a rule that
->>>>>> would be usable to fix the access problem.
->>>>>>
->>>>> Ahhh you are talking about getting the security.selinux.* xattrs?
->>>>> I was under the impression (Vivek please correct me if I wrong)
->>>>> that overlayfs objects cannot have individual security labels and
->>>> They can, and we _need_ them for Android's use cases, upper and lower
->>>> filesystems.
->>>>
->>>> Some (most?) union filesystems (like Android's sdcardfs) set sepolicy
->>>> from the mount options, we did not need this adjustment there of 
->>>> course.
->>>>
->>>>> the only way to label overlayfs objects is by mount options on the
->>>>> entire mount? Or is this just for lower layer objects?
->>>>>
->>>>> Anyway, the API I would go for is adding a @flags argument to
->>>>> get() which can take XATTR_NOSECURITY akin to
->>>>> FMODE_NONOTIFY, GFP_NOFS, meant to avoid recursions.
->>>> I do like it better (with the following 7 stages of grief below), best
->>>> for the future.
->>>>
->>>> The change in this handler's API will affect all filesystem drivers
->>>> (well, my change affects the ABI, so it is not as-if I saved the world
->>>> from a module recompile) touching all filesystem sources with an even
->>>> larger audience of stakeholders. Larger audience of stakeholders, the
->>>> harder to get the change in ;-/. This is also concerning since I would
->>>> like this change to go to stable 4.4, 4.9, 4.14 and 4.19 where this
->>>> regression got introduced. I can either craft specific stable 
->>>> patches or
->>>> just let it go and deal with them in the android-common distributions
->>>> rather than seeking stable merged down. ABI/API breaks are a 
->>>> problem for
->>>> stable anyway ...
->>>>
->>> Use the memalloc_nofs_save/restore design pattern will avoid all that
->>> grief.
->>> As a matter of fact, this issue could and should be handled inside 
->>> security
->>> subsystem without bothering any other subsystem.
->>> LSM have per task context right? That context could carry the recursion
->>> flags to know that the getxattr call is made by the security 
->>> subsystem itself.
->>> The problem is not limited to union filesystems.
->>> In general its a stacking issue. ecryptfs is also a stacking fs, 
->>> out-of-tree
->>> shiftfs as well. But it doesn't end there.
->>> A filesystem on top of a loop device inside another filesystem could
->>> also maybe result in security hook recursion (not sure if in practice).
->>>
->>> Thanks,
->>> Amir.
->>
->> Good point, back to Stephen Smalley?
->>
->> There are four __vfs_getxattr calls inside security, not sure I see 
->> any natural way to determine the recursion in security/selinux I can 
->> beg/borrow/steal from; but I get the strange feeling that it is 
->> better to detect recursion in __vfs_getxattr in this manner, and 
->> switch out checking in vfs_getxattr since it is localized to just 
->> fs/xattr.c. selinux might not be the only user of __vfs_getxattr 
->> nature ...
->>
->> I have implemented and tested the solution where we add a flag to the 
->> .get method, it works. I would be tempted to submit that instead in 
->> case someone in the future can imagine using that flag argument to 
->> solve other problem(s) (if you build it, they will come).
->>
->> <flips coin>
->>
->> Will add a new per-process flag that __vfs_getxattr and vfs_getxattr 
->> plays with and see how it works and what it looks like.
->
-> As you say, SELinux is not the only user of __vfs_getxattr; in 
-> addition to the other security modules, there is the integrity/evm 
-> subsystem and ecryptfs.  Further, __vfs_getxattr does not merely skip 
-> LSM/SELinux-related processing; it also skips xattr_permission().  As 
-> such, I don't believe this is something that can be solved entirely 
-> within the security subsystem.
->
-> Not excited about a process flag to implicitly disable LSM/SELinux and 
-> other security-related processing on a code path; potential for abuse 
-> is high.
+Patch series:
 
-So you will not like my solution in "[PATCH v11 2/5] fs: __vfs_getxattr 
-nesting paradigm"sent out this morning; so adding the flag option and 
-widespread touching of _all_ the filesystem xattr.c/acl.c/inode.c/etc 
-files to the calls is probably the easiest to stomach with the lowest 
-attack surface.
+overlayfs: check CAP_DAC_READ_SEARCH before issuing exportfs_decode_fh
+Add flags option to get xattr method paired to __vfs_getxattr
+overlayfs: handle XATTR_NOSECURITY flag for get xattr method
+overlayfs: internal getxattr operations without sepolicy checking
+overlayfs: override_creds=off option bypass creator_cred
 
-Any other ideas (with less impact to tons of API/ABI/filesystems) that 
-we have not thought about before I spin a v12 patch set?
+The first four patches address fundamental security issues that should
+be solved regardless of the override_creds=off feature.
+on them).
 
--- Mark
+The fifth adds the feature depends on these other fixes.
+
+By default, all access to the upper, lower and work directories is the
+recorded mounter's MAC and DAC credentials.  The incoming accesses are
+checked against the caller's credentials.
+
+If the principles of least privilege are applied for sepolicy, the
+mounter's credentials might not overlap the credentials of the caller's
+when accessing the overlayfs filesystem.  For example, a file that a
+lower DAC privileged caller can execute, is MAC denied to the
+generally higher DAC privileged mounter, to prevent an attack vector.
+
+We add the option to turn off override_creds in the mount options; all
+subsequent operations after mount on the filesystem will be only the
+caller's credentials.  The module boolean parameter and mount option
+override_creds is also added as a presence check for this "feature",
+existence of /sys/module/overlay/parameters/overlay_creds
+
+Signed-off-by: Mark Salyzyn <salyzyn@android.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Vivek Goyal <vgoyal@redhat.com>
+Cc: Eric W. Biederman <ebiederm@xmission.com>
+Cc: Amir Goldstein <amir73il@gmail.com>
+Cc: Randy Dunlap <rdunlap@infradead.org>
+Cc: Stephen Smalley <sds@tycho.nsa.gov>
+Cc: linux-unionfs@vger.kernel.org
+Cc: linux-doc@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
+
+---
+v12:
+- Restore squished out patch 2 and 3 in the series,
+  then change algorithm to add flags argument.
+  Per-thread flag is a large security surface.
+
+v11:
+- Squish out v10 introduced patch 2 and 3 in the series,
+  then and use per-thread flag instead for nesting.
+- Switch name to ovl_do_vds_getxattr for __vds_getxattr wrapper.
+- Add sb argument to ovl_revert_creds to match future work.
+
+v10:
+- Return NULL on CAP_DAC_READ_SEARCH
+- Add __get xattr method to solve sepolicy logging issue
+- Drop unnecessary sys_admin sepolicy checking for administrative
+  driver internal xattr functions.
+
+v6:
+- Drop CONFIG_OVERLAY_FS_OVERRIDE_CREDS.
+- Do better with the documentation, drop rationalizations.
+- pr_warn message adjusted to report consequences.
+
+v5:
+- beefed up the caveats in the Documentation
+- Is dependent on
+  "overlayfs: check CAP_DAC_READ_SEARCH before issuing exportfs_decode_fh"
+  "overlayfs: check CAP_MKNOD before issuing vfs_whiteout"
+- Added prwarn when override_creds=off
+
+v4:
+- spelling and grammar errors in text
+
+v3:
+- Change name from caller_credentials / creator_credentials to the
+  boolean override_creds.
+- Changed from creator to mounter credentials.
+- Updated and fortified the documentation.
+- Added CONFIG_OVERLAY_FS_OVERRIDE_CREDS
+
+v2:
+- Forward port changed attr to stat, resulting in a build error.
+- altered commit message.
