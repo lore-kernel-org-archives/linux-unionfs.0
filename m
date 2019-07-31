@@ -1,97 +1,198 @@
-From: Mark Salyzyn via Linux-f2fs-devel
- <linux-f2fs-devel@lists.sourceforge.net>
-Subject: [PATCH v13 1/5] overlayfs: check CAP_DAC_READ_SEARCH
- before issuing exportfs_decode_fh
-Date: Wed, 31 Jul 2019 09:57:56 -0700
-Message-ID: <20190731165803.4755-2-salyzyn@android.com>
+From: Mark Salyzyn <salyzyn@android.com>
+Subject: [PATCH v13 3/5] overlayfs: handle XATTR_NOSECURITY
+	flag for get xattr method
+Date: Wed, 31 Jul 2019 09:57:58 -0700
+Message-ID: <20190731165803.4755-4-salyzyn@android.com>
 References: <20190731165803.4755-1-salyzyn@android.com>
-Reply-To: Mark Salyzyn <salyzyn@android.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-f2fs-devel-bounces@lists.sourceforge.net>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Return-path: <cluster-devel-bounces@redhat.com>
 In-Reply-To: <20190731165803.4755-1-salyzyn@android.com>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/options/linux-f2fs-devel>,
- <mailto:linux-f2fs-devel-request@lists.sourceforge.net?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=linux-f2fs-devel>
-List-Post: <mailto:linux-f2fs-devel@lists.sourceforge.net>
-List-Help: <mailto:linux-f2fs-devel-request@lists.sourceforge.net?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/linux-f2fs-devel>,
- <mailto:linux-f2fs-devel-request@lists.sourceforge.net?subject=subscribe>
-Errors-To: linux-f2fs-devel-bounces@lists.sourceforge.net
+List-Unsubscribe: <https://www.redhat.com/mailman/options/cluster-devel>,
+	<mailto:cluster-devel-request@redhat.com?subject=unsubscribe>
+List-Archive: <https://www.redhat.com/archives/cluster-devel>
+List-Post: <mailto:cluster-devel@redhat.com>
+List-Help: <mailto:cluster-devel-request@redhat.com?subject=help>
+List-Subscribe: <https://www.redhat.com/mailman/listinfo/cluster-devel>,
+	<mailto:cluster-devel-request@redhat.com?subject=subscribe>
+Sender: cluster-devel-bounces@redhat.com
+Errors-To: cluster-devel-bounces@redhat.com
 To: linux-kernel@vger.kernel.org
-Cc: Latchesar Ionkov <lucho@ionkov.net>, Dave Kleikamp <shaggy@kernel.org>, jfs-discussion@lists.sourceforge.net, Randy Dunlap <rdunlap@infradead.org>, linux-doc@vger.kernel.org, Martin Brandenburg <martin@omnibond.com>, samba-technical@lists.samba.org, Dominique Martinet <asmadeus@codewreck.org>, Amir Goldstein <amir73il@gmail.com>, David Howells <dhowells@redhat.com>, Chris Mason <clm@fb.com>, "David S . Miller" <davem@davemloft.net>, Andreas Dilger <adilger.kernel@dilger.ca>, ocfs2-devel@oss.oracle.com, netdev@vger.kernel.org, Tyler Hicks <tyhicks@canonical.com>, linux-afs@lists.infradead.org, Mike Marshall <hubcap@omnibond.com>, linux-xfs@vger.kernel.org, Andreas Gruenbacher <agruenba@redhat.com>, Sage Weil <sage@redhat.com>, Jonathan Corbet <corbet@lwn.net>, Richard Weinberger <richard@nod.at>, Mark Fasheh <mark@fasheh.com>, devel@lists.orangefs.org, Hugh Dickins <hughd@>
+Cc: Latchesar Ionkov <lucho@ionkov.net>, Dave Kleikamp <shaggy@kernel.org>, jfs-discussion@lists.sourceforge.net, Randy Dunlap <rdunlap@infradead.org>, linux-doc@vger.kernel.org, Martin Brandenburg <martin@omnibond.com>, samba-technical@lists.samba.org, Dominique Martinet <asmadeus@codewreck.org>, Amir Goldstein <amir73il@gmail.com>, David Howells <dhowells@redhat.com>, Chris Mason <clm@fb.com>, "David S . Miller" <davem@davemloft.net>, Andreas Dilger <adilger.kernel@dilger.ca>, ocfs2-devel@oss.oracle.com, netdev@vger.kernel.org, Tyler Hicks <tyhicks@canonical.com>, linux-afs@lists.infradead.org, Mike Marshall <hubcap@omnibond.com>, linux-xfs@vger.kernel.org, Sage Weil <sage@redhat.com>, Jonathan Corbet <corbet@lwn.net>, Richard Weinberger <richard@nod.at>, Mark Fasheh <mark@fasheh.com>, devel@lists.orangefs.org, Hugh Dickins <hughd@google.com>, linux-security-module@vger
 List-Id: linux-unionfs@vger.kernel.org
 
-QXNzdW1wdGlvbiBuZXZlciBjaGVja2VkLCBzaG91bGQgZmFpbCBpZiB0aGUgbW91bnRlciBjcmVk
-cyBhcmUgbm90CnN1ZmZpY2llbnQuCgpTaWduZWQtb2ZmLWJ5OiBNYXJrIFNhbHl6eW4gPHNhbHl6
-eW5AYW5kcm9pZC5jb20+CkNjOiBNaWtsb3MgU3plcmVkaSA8bWlrbG9zQHN6ZXJlZGkuaHU+CkNj
-OiBKb25hdGhhbiBDb3JiZXQgPGNvcmJldEBsd24ubmV0PgpDYzogVml2ZWsgR295YWwgPHZnb3lh
-bEByZWRoYXQuY29tPgpDYzogRXJpYyBXLiBCaWVkZXJtYW4gPGViaWVkZXJtQHhtaXNzaW9uLmNv
-bT4KQ2M6IEFtaXIgR29sZHN0ZWluIDxhbWlyNzNpbEBnbWFpbC5jb20+CkNjOiBSYW5keSBEdW5s
-YXAgPHJkdW5sYXBAaW5mcmFkZWFkLm9yZz4KQ2M6IFN0ZXBoZW4gU21hbGxleSA8c2RzQHR5Y2hv
-Lm5zYS5nb3Y+CkNjOiBsaW51eC11bmlvbmZzQHZnZXIua2VybmVsLm9yZwpDYzogbGludXgtZG9j
-QHZnZXIua2VybmVsLm9yZwpDYzogbGludXgta2VybmVsQHZnZXIua2VybmVsLm9yZwpDYzoga2Vy
-bmVsLXRlYW1AYW5kcm9pZC5jb20KQ2M6IEVyaWMgVmFuIEhlbnNiZXJnZW4gPGVyaWN2aEBnbWFp
-bC5jb20+CkNjOiBMYXRjaGVzYXIgSW9ua292IDxsdWNob0Bpb25rb3YubmV0PgpDYzogRG9taW5p
-cXVlIE1hcnRpbmV0IDxhc21hZGV1c0Bjb2Rld3JlY2sub3JnPgpDYzogRGF2aWQgSG93ZWxscyA8
-ZGhvd2VsbHNAcmVkaGF0LmNvbT4KQ2M6IENocmlzIE1hc29uIDxjbG1AZmIuY29tPgpDYzogSm9z
-ZWYgQmFjaWsgPGpvc2VmQHRveGljcGFuZGEuY29tPgpDYzogRGF2aWQgU3RlcmJhIDxkc3RlcmJh
-QHN1c2UuY29tPgpDYzogSmVmZiBMYXl0b24gPGpsYXl0b25Aa2VybmVsLm9yZz4KQ2M6IFNhZ2Ug
-V2VpbCA8c2FnZUByZWRoYXQuY29tPgpDYzogSWx5YSBEcnlvbW92IDxpZHJ5b21vdkBnbWFpbC5j
-b20+CkNjOiBTdGV2ZSBGcmVuY2ggPHNmcmVuY2hAc2FtYmEub3JnPgpDYzogVHlsZXIgSGlja3Mg
-PHR5aGlja3NAY2Fub25pY2FsLmNvbT4KQ2M6IEphbiBLYXJhIDxqYWNrQHN1c2UuY29tPgpDYzog
-VGhlb2RvcmUgVHMnbyA8dHl0c29AbWl0LmVkdT4KQ2M6IEFuZHJlYXMgRGlsZ2VyIDxhZGlsZ2Vy
-Lmtlcm5lbEBkaWxnZXIuY2E+CkNjOiBKYWVnZXVrIEtpbSA8amFlZ2V1a0BrZXJuZWwub3JnPgpD
-YzogQ2hhbyBZdSA8eXVjaGFvMEBodWF3ZWkuY29tPgpDYzogQm9iIFBldGVyc29uIDxycGV0ZXJz
-b0ByZWRoYXQuY29tPgpDYzogQW5kcmVhcyBHcnVlbmJhY2hlciA8YWdydWVuYmFAcmVkaGF0LmNv
-bT4KQ2M6IERhdmlkIFdvb2Rob3VzZSA8ZHdtdzJAaW5mcmFkZWFkLm9yZz4KQ2M6IFJpY2hhcmQg
-V2VpbmJlcmdlciA8cmljaGFyZEBub2QuYXQ+CkNjOiBEYXZlIEtsZWlrYW1wIDxzaGFnZ3lAa2Vy
-bmVsLm9yZz4KQ2M6IEdyZWcgS3JvYWgtSGFydG1hbiA8Z3JlZ2toQGxpbnV4Zm91bmRhdGlvbi5v
-cmc+CkNjOiBUZWp1biBIZW8gPHRqQGtlcm5lbC5vcmc+CkNjOiBUcm9uZCBNeWtsZWJ1c3QgPHRy
-b25kLm15a2xlYnVzdEBoYW1tZXJzcGFjZS5jb20+CkNjOiBBbm5hIFNjaHVtYWtlciA8YW5uYS5z
-Y2h1bWFrZXJAbmV0YXBwLmNvbT4KQ2M6IE1hcmsgRmFzaGVoIDxtYXJrQGZhc2hlaC5jb20+CkNj
-OiBKb2VsIEJlY2tlciA8amxiZWNAZXZpbHBsYW4ub3JnPgpDYzogSm9zZXBoIFFpIDxqb3NlcGgu
-cWlAbGludXguYWxpYmFiYS5jb20+CkNjOiBNaWtlIE1hcnNoYWxsIDxodWJjYXBAb21uaWJvbmQu
-Y29tPgpDYzogTWFydGluIEJyYW5kZW5idXJnIDxtYXJ0aW5Ab21uaWJvbmQuY29tPgpDYzogQWxl
-eGFuZGVyIFZpcm8gPHZpcm9AemVuaXYubGludXgub3JnLnVrPgpDYzogUGhpbGxpcCBMb3VnaGVy
-IDxwaGlsbGlwQHNxdWFzaGZzLm9yZy51az4KQ2M6IERhcnJpY2sgSi4gV29uZyA8ZGFycmljay53
-b25nQG9yYWNsZS5jb20+CkNjOiBsaW51eC14ZnNAdmdlci5rZXJuZWwub3JnCkNjOiBIdWdoIERp
-Y2tpbnMgPGh1Z2hkQGdvb2dsZS5jb20+CkNjOiBEYXZpZCBTLiBNaWxsZXIgPGRhdmVtQGRhdmVt
-bG9mdC5uZXQ+CkNjOiBBbmRyZXcgTW9ydG9uIDxha3BtQGxpbnV4LWZvdW5kYXRpb24ub3JnPgpD
-YzogTWF0aGlldSBNYWxhdGVycmUgPG1hbGF0QGRlYmlhbi5vcmc+CkNjOiBFcm5lc3RvIEEuIEZl
-cm7DoW5kZXogPGVybmVzdG8ubW5kLmZlcm5hbmRlekBnbWFpbC5jb20+CkNjOiBWeWFjaGVzbGF2
-IER1YmV5a28gPHNsYXZhQGR1YmV5a28uY29tPgpDYzogdjlmcy1kZXZlbG9wZXJAbGlzdHMuc291
-cmNlZm9yZ2UubmV0CkNjOiBsaW51eC1hZnNAbGlzdHMuaW5mcmFkZWFkLm9yZwpDYzogbGludXgt
-YnRyZnNAdmdlci5rZXJuZWwub3JnCkNjOiBjZXBoLWRldmVsQHZnZXIua2VybmVsLm9yZwpDYzog
-bGludXgtY2lmc0B2Z2VyLmtlcm5lbC5vcmcKQ2M6IHNhbWJhLXRlY2huaWNhbEBsaXN0cy5zYW1i
-YS5vcmcKQ2M6IGVjcnlwdGZzQHZnZXIua2VybmVsLm9yZwpDYzogbGludXgtZXh0NEB2Z2VyLmtl
-cm5lbC5vcmcKQ2M6IGxpbnV4LWYyZnMtZGV2ZWxAbGlzdHMuc291cmNlZm9yZ2UubmV0CkNjOiBs
-aW51eC1mc2RldmVsQHZnZXIua2VybmVsLm9yZwpDYzogY2x1c3Rlci1kZXZlbEByZWRoYXQuY29t
-CkNjOiBsaW51eC1tdGRAbGlzdHMuaW5mcmFkZWFkLm9yZwpDYzogamZzLWRpc2N1c3Npb25AbGlz
-dHMuc291cmNlZm9yZ2UubmV0CkNjOiBsaW51eC1uZnNAdmdlci5rZXJuZWwub3JnCkNjOiBvY2Zz
-Mi1kZXZlbEBvc3Mub3JhY2xlLmNvbQpDYzogZGV2ZWxAbGlzdHMub3JhbmdlZnMub3JnCkNjOiBy
-ZWlzZXJmcy1kZXZlbEB2Z2VyLmtlcm5lbC5vcmcKQ2M6IGxpbnV4LW1tQGt2YWNrLm9yZwpDYzog
-bmV0ZGV2QHZnZXIua2VybmVsLm9yZwpDYzogbGludXgtc2VjdXJpdHktbW9kdWxlQHZnZXIua2Vy
-bmVsLm9yZwpDYzogc3RhYmxlQHZnZXIua2VybmVsLm9yZyAjIDQuNCwgNC45LCA0LjE0ICYgNC4x
-OQotLS0KdjExICsgdjEyICsgdjEzIC0gcmViYXNlCgp2MTA6Ci0gcmV0dXJuIE5VTEwgcmF0aGVy
-IHRoYW4gRVJSX1BUUigtRVBFUk0pCi0gZGlkIF9ub3RfIGFkZCBpdCBvdmxfY2FuX2RlY29kZV9m
-aCgpIGJlY2F1c2Ugb2YgY2hhbmdlcyBzaW5jZSBsYXN0CiAgcmV2aWV3LCBzdXNwZWN0IG5lZWRz
-IHRvIGJlIGFkZGVkIHRvIG92bF9sb3dlcl91dWlkX29rKCk/Cgp2OCArIHY5OgotIHJlYmFzZQoK
-djc6Ci0gVGhpcyB0aW1lIGZvciByZWFsegoKdjY6Ci0gcmViYXNlCgp2NToKLSBkZXBlbmRlbmN5
-IG9mICJvdmVybGF5ZnM6IG92ZXJyaWRlX2NyZWRzPW9mZiBvcHRpb24gYnlwYXNzIGNyZWF0b3Jf
-Y3JlZCIKLS0tCiBmcy9vdmVybGF5ZnMvbmFtZWkuYyB8IDMgKysrCiAxIGZpbGUgY2hhbmdlZCwg
-MyBpbnNlcnRpb25zKCspCgpkaWZmIC0tZ2l0IGEvZnMvb3ZlcmxheWZzL25hbWVpLmMgYi9mcy9v
-dmVybGF5ZnMvbmFtZWkuYwppbmRleCBlOTcxN2MyZjdkNDUuLjk3MDJmMGQ1MzA5ZCAxMDA2NDQK
-LS0tIGEvZnMvb3ZlcmxheWZzL25hbWVpLmMKKysrIGIvZnMvb3ZlcmxheWZzL25hbWVpLmMKQEAg
-LTE2MSw2ICsxNjEsOSBAQCBzdHJ1Y3QgZGVudHJ5ICpvdmxfZGVjb2RlX3JlYWxfZmgoc3RydWN0
-IG92bF9maCAqZmgsIHN0cnVjdCB2ZnNtb3VudCAqbW50LAogCWlmICghdXVpZF9lcXVhbCgmZmgt
-PnV1aWQsICZtbnQtPm1udF9zYi0+c191dWlkKSkKIAkJcmV0dXJuIE5VTEw7CiAKKwlpZiAoIWNh
-cGFibGUoQ0FQX0RBQ19SRUFEX1NFQVJDSCkpCisJCXJldHVybiBOVUxMOworCiAJYnl0ZXMgPSAo
-ZmgtPmxlbiAtIG9mZnNldG9mKHN0cnVjdCBvdmxfZmgsIGZpZCkpOwogCXJlYWwgPSBleHBvcnRm
-c19kZWNvZGVfZmgobW50LCAoc3RydWN0IGZpZCAqKWZoLT5maWQsCiAJCQkJICBieXRlcyA+PiAy
-LCAoaW50KWZoLT50eXBlLAotLSAKMi4yMi4wLjc3MC5nMGYyYzRhMzdmZC1nb29nCgoKCl9fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkxpbnV4LWYyZnMtZGV2
-ZWwgbWFpbGluZyBsaXN0CkxpbnV4LWYyZnMtZGV2ZWxAbGlzdHMuc291cmNlZm9yZ2UubmV0Cmh0
-dHBzOi8vbGlzdHMuc291cmNlZm9yZ2UubmV0L2xpc3RzL2xpc3RpbmZvL2xpbnV4LWYyZnMtZGV2
-ZWwK
+Because of the overlayfs getxattr recursion, the incoming inode fails
+to update the selinux sid resulting in avc denials being reported
+against a target context of u:object_r:unlabeled:s0.
+
+Solution is to respond to the XATTR_NOSECURITY flag in get xattr
+method that calls the __vfs_getxattr handler instead so that the
+context can be read in, rather than being denied with an -EACCES
+when vfs_getxattr handler is called.
+
+For the use case where access is to be blocked by the security layer.
+
+The path then would be security(dentry) ->
+__vfs_getxattr(dentry...XATTR_NOSECURITY) ->
+handler->get(dentry...XATTR_NOSECURITY) ->
+__vfs_getxattr(realdentry...XATTR_NOSECURITY) ->
+lower_handler->get(realdentry...XATTR_NOSECURITY) which
+would report back through the chain data and success as expected,
+the logging security layer at the top would have the data to
+determine the access permissions and report back to the logs and
+the caller that the target context was blocked.
+
+For selinux this would solve the cosmetic issue of the selinux log
+and allow audit2allow to correctly report the rule needed to address
+the access problem.
+
+Signed-off-by: Mark Salyzyn <salyzyn@android.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Vivek Goyal <vgoyal@redhat.com>
+Cc: Eric W. Biederman <ebiederm@xmission.com>
+Cc: Amir Goldstein <amir73il@gmail.com>
+Cc: Randy Dunlap <rdunlap@infradead.org>
+Cc: Stephen Smalley <sds@tycho.nsa.gov>
+Cc: linux-unionfs@vger.kernel.org
+Cc: linux-doc@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
+Cc: kernel-team@android.com
+Cc: Eric Van Hensbergen <ericvh@gmail.com>
+Cc: Latchesar Ionkov <lucho@ionkov.net>
+Cc: Dominique Martinet <asmadeus@codewreck.org>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Chris Mason <clm@fb.com>
+Cc: Josef Bacik <josef@toxicpanda.com>
+Cc: David Sterba <dsterba@suse.com>
+Cc: Jeff Layton <jlayton@kernel.org>
+Cc: Sage Weil <sage@redhat.com>
+Cc: Ilya Dryomov <idryomov@gmail.com>
+Cc: Steve French <sfrench@samba.org>
+Cc: Tyler Hicks <tyhicks@canonical.com>
+Cc: Jan Kara <jack@suse.com>
+Cc: Theodore Ts'o <tytso@mit.edu>
+Cc: Andreas Dilger <adilger.kernel@dilger.ca>
+Cc: Jaegeuk Kim <jaegeuk@kernel.org>
+Cc: Chao Yu <yuchao0@huawei.com>
+Cc: Bob Peterson <rpeterso@redhat.com>
+Cc: Andreas Gruenbacher <agruenba@redhat.com>
+Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: Richard Weinberger <richard@nod.at>
+Cc: Dave Kleikamp <shaggy@kernel.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Trond Myklebust <trond.myklebust@hammerspace.com>
+Cc: Anna Schumaker <anna.schumaker@netapp.com>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Joseph Qi <joseph.qi@linux.alibaba.com>
+Cc: Mike Marshall <hubcap@omnibond.com>
+Cc: Martin Brandenburg <martin@omnibond.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Phillip Lougher <phillip@squashfs.org.uk>
+Cc: Darrick J. Wong <darrick.wong@oracle.com>
+Cc: linux-xfs@vger.kernel.org
+Cc: Hugh Dickins <hughd@google.com>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Mathieu Malaterre <malat@debian.org>
+Cc: Ernesto A. Fernández <ernesto.mnd.fernandez@gmail.com>
+Cc: Vyacheslav Dubeyko <slava@dubeyko.com>
+Cc: v9fs-developer@lists.sourceforge.net
+Cc: linux-afs@lists.infradead.org
+Cc: linux-btrfs@vger.kernel.org
+Cc: ceph-devel@vger.kernel.org
+Cc: linux-cifs@vger.kernel.org
+Cc: samba-technical@lists.samba.org
+Cc: ecryptfs@vger.kernel.org
+Cc: linux-ext4@vger.kernel.org
+Cc: linux-f2fs-devel@lists.sourceforge.net
+Cc: linux-fsdevel@vger.kernel.org
+Cc: cluster-devel@redhat.com
+Cc: linux-mtd@lists.infradead.org
+Cc: jfs-discussion@lists.sourceforge.net
+Cc: linux-nfs@vger.kernel.org
+Cc: ocfs2-devel@oss.oracle.com
+Cc: devel@lists.orangefs.org
+Cc: reiserfs-devel@vger.kernel.org
+Cc: linux-mm@kvack.org
+Cc: netdev@vger.kernel.org
+Cc: linux-security-module@vger.kernel.org
+Cc: stable@vger.kernel.org # 4.4, 4.9, 4.14 & 4.19
+---
+v13 - rebase to use __vfs_getxattr flags option.
+
+v12 - Added back to patch series as get xattr with flag option.
+
+v11 - Squashed out of patch series and replaced with per-thread flag
+      solution.
+
+v10 - Added to patch series as __get xattr method.
+---
+ fs/overlayfs/inode.c     | 5 +++--
+ fs/overlayfs/overlayfs.h | 2 +-
+ fs/overlayfs/super.c     | 4 ++--
+ 3 files changed, 6 insertions(+), 5 deletions(-)
+
+diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
+index 7663aeb85fa3..1bf11ae44313 100644
+--- a/fs/overlayfs/inode.c
++++ b/fs/overlayfs/inode.c
+@@ -363,7 +363,7 @@ int ovl_xattr_set(struct dentry *dentry, struct inode *inode, const char *name,
+ }
+ 
+ int ovl_xattr_get(struct dentry *dentry, struct inode *inode, const char *name,
+-		  void *value, size_t size)
++		  void *value, size_t size, int flags)
+ {
+ 	ssize_t res;
+ 	const struct cred *old_cred;
+@@ -371,7 +371,8 @@ int ovl_xattr_get(struct dentry *dentry, struct inode *inode, const char *name,
+ 		ovl_i_dentry_upper(inode) ?: ovl_dentry_lower(dentry);
+ 
+ 	old_cred = ovl_override_creds(dentry->d_sb);
+-	res = vfs_getxattr(realdentry, name, value, size);
++	res = __vfs_getxattr(realdentry, d_inode(realdentry), name,
++			     value, size, flags);
+ 	revert_creds(old_cred);
+ 	return res;
+ }
+diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
+index 6934bcf030f0..ab3d031c422b 100644
+--- a/fs/overlayfs/overlayfs.h
++++ b/fs/overlayfs/overlayfs.h
+@@ -356,7 +356,7 @@ int ovl_permission(struct inode *inode, int mask);
+ int ovl_xattr_set(struct dentry *dentry, struct inode *inode, const char *name,
+ 		  const void *value, size_t size, int flags);
+ int ovl_xattr_get(struct dentry *dentry, struct inode *inode, const char *name,
+-		  void *value, size_t size);
++		  void *value, size_t size, int flags);
+ ssize_t ovl_listxattr(struct dentry *dentry, char *list, size_t size);
+ struct posix_acl *ovl_get_acl(struct inode *inode, int type);
+ int ovl_update_time(struct inode *inode, struct timespec64 *ts, int flags);
+diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+index a7b21f2ea2dd..6f041e1fceda 100644
+--- a/fs/overlayfs/super.c
++++ b/fs/overlayfs/super.c
+@@ -856,7 +856,7 @@ ovl_posix_acl_xattr_get(const struct xattr_handler *handler,
+ 			struct dentry *dentry, struct inode *inode,
+ 			const char *name, void *buffer, size_t size, int flags)
+ {
+-	return ovl_xattr_get(dentry, inode, handler->name, buffer, size);
++	return ovl_xattr_get(dentry, inode, handler->name, buffer, size, flags);
+ }
+ 
+ static int __maybe_unused
+@@ -938,7 +938,7 @@ static int ovl_other_xattr_get(const struct xattr_handler *handler,
+ 			       const char *name, void *buffer, size_t size,
+ 			       int flags)
+ {
+-	return ovl_xattr_get(dentry, inode, name, buffer, size);
++	return ovl_xattr_get(dentry, inode, name, buffer, size, flags);
+ }
+ 
+ static int ovl_other_xattr_set(const struct xattr_handler *handler,
+-- 
+2.22.0.770.g0f2c4a37fd-goog
