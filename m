@@ -1,28 +1,30 @@
-From: Jeff Layton <jlayton@kernel.org>
-Subject: Re: [PATCH v8] Add flags option to get xattr method
- paired to __vfs_getxattr
-Date: Tue, 27 Aug 2019 11:49:41 -0400
-Message-ID: <dfc0fea49dfc77cb7631abb76e1e64ed745d25dd.camel@kernel.org>
+From: David Sterba <dsterba@suse.cz>
+Subject: Re: [PATCH v8] Add flags option to get xattr method paired to
+ __vfs_getxattr
+Date: Tue, 27 Aug 2019 19:07:00 +0200
+Message-ID: <20190827170700.GW2752@suse.cz>
 References: <20190827150544.151031-1-salyzyn@android.com>
+Reply-To: dsterba@suse.cz
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <cluster-devel-bounces@redhat.com>
+Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
+Content-Disposition: inline
 In-Reply-To: <20190827150544.151031-1-salyzyn@android.com>
-List-Unsubscribe: <https://www.redhat.com/mailman/options/cluster-devel>,
-	<mailto:cluster-devel-request@redhat.com?subject=unsubscribe>
-List-Archive: <https://www.redhat.com/archives/cluster-devel>
-List-Post: <mailto:cluster-devel@redhat.com>
-List-Help: <mailto:cluster-devel-request@redhat.com?subject=help>
-List-Subscribe: <https://www.redhat.com/mailman/listinfo/cluster-devel>,
-	<mailto:cluster-devel-request@redhat.com?subject=subscribe>
-Sender: cluster-devel-bounces@redhat.com
-Errors-To: cluster-devel-bounces@redhat.com
-To: Mark Salyzyn <salyzyn@android.com>, linux-kernel@vger.kernel.org
-Cc: Latchesar Ionkov <lucho@ionkov.net>, Hugh Dickins <hughd@google.com>, Marshall <hubcap@omnibond.com>, James Morris <jmorris@namei.org>, devel@lists.orangefs.org, Eric Van Hensbergen <ericvh@gmail.com>, Anna Schumaker <anna.schumaker@netapp.com>, Trond Myklebust <trond.myklebust@hammerspace.com>, Mathieu Malaterre <malat@debian.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jan Kara <jack@suse.com>, Casey Schaufler <casey@schaufler-ca.com>, Andrew Morton <akpm@linux-foundation.org>, Kleikamp <shaggy@kernel.org>, linux-doc@vger.kernel.org, Chao Yu <yuchao0@huawei.com>, Mimi Zohar <zohar@linux.ibm.com>, linux-cifs@vger.kernel.org, Paul Moore <paul@paul-moore.com>, "Darrick J. Wong" <darrick.wong@oracle.com>, Eric Sandeen <sandeen@sandeen.net>, kernel-team@android.com, selinux@vger.kernel.org, Brian Foster <bfoster@redhat.com>, reiserfs-devel@vger.kernel.org, Tejun
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
+ <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
+List-Post: <mailto:linux-mtd@lists.infradead.org>
+List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
+ <mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-mtd" <linux-mtd-bounces@lists.infradead.org>
+Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
+To: Mark Salyzyn <salyzyn@android.com>
+Cc: Latchesar Ionkov <lucho@ionkov.net>, Eric Sandeen <sandeen@sandeen.net>, Mike Marshall <hubcap@omnibond.com>, James Morris <jmorris@namei.org>, devel@lists.orangefs.org, Eric Van Hensbergen <ericvh@gmail.com>, Joel Becker <jlbec@evilplan.org>, Trond Myklebust <trond.myklebust@hammerspace.com>, Mathieu Malaterre <malat@debian.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, Jan Kara <jack@suse.com>, Casey Schaufler <casey@schaufler-ca.com>, Andrew Morton <akpm@linux-foundation.org>, Dave Kleikamp <shaggy@kernel.org>, linux-doc@vger.kernel.org, Jeff Layton <jlayton@kernel.org>, Chao Yu <yuchao0@huawei.com>, Mimi Zohar <zohar@linux.ibm.com>, "David S. Miller" <davem@davemloft.net>, linux-cifs@vger.kernel.org, Paul Moore <paul@paul-moore.com>, "Darrick J. Wong" <darrick.wong@oracle.com>, Hugh Dickins <hughd@google.com>, kernel-team@android
 List-Id: linux-unionfs@vger.kernel.org
 
-On Tue, 2019-08-27 at 08:05 -0700, Mark Salyzyn wrote:
+On Tue, Aug 27, 2019 at 08:05:15AM -0700, Mark Salyzyn wrote:
 > Replace arguments for get and set xattr methods, and __vfs_getxattr
 > and __vfs_setaxtr functions with a reference to the following now
 > common argument structure:
@@ -89,171 +91,13 @@ On Tue, 2019-08-27 at 08:05 -0700, Mark Salyzyn wrote:
 > v8:
 > - Documentation reported 'struct xattr_gs_flags' rather than
 >   'struct xattr_gs_flags *args' as argument to get and set methods.
-> 
-> v7:
-> - missed spots in fs/9p/acl.c, fs/afs/xattr.c, fs/ecryptfs/crypto.c,
->   fs/ubifs/xattr.c, fs/xfs/libxfs/xfs_attr.c,
->   security/integrity/evm/evm_main.c and security/smack/smack_lsm.c.
-> 
-> v6:
-> - kernfs missed a spot
-> 
-> v5:
-> - introduce struct xattr_gs_args for get and set methods,
->   __vfs_getxattr and __vfs_setxattr functions.
-> - cover a missing spot in ext2.
-> - switch from snprintf to scnprintf for correctness.
-> 
-> v4:
-> - ifdef __KERNEL__ around XATTR_NOSECURITY to
->   keep it colocated in uapi headers.
-> 
-> v3:
-> - poor aim on ubifs not ubifs_xattr_get, but static xattr_get
-> 
-> v2:
-> - Missed a spot: ubifs, erofs and afs.
-> 
-> v1:
-> - Removed from an overlayfs patch set, and made independent.
->   Expect this to be the basis of some security improvements.
-> ---
->  Documentation/filesystems/Locking |  10 ++-
->  drivers/staging/erofs/xattr.c     |   8 +--
->  fs/9p/acl.c                       |  51 +++++++-------
->  fs/9p/xattr.c                     |  19 +++--
->  fs/afs/xattr.c                    | 112 +++++++++++++-----------------
+
+For btrfs
+
 >  fs/btrfs/xattr.c                  |  36 +++++-----
->  fs/ceph/xattr.c                   |  40 +++++------
->  fs/cifs/xattr.c                   |  72 +++++++++----------
->  fs/ecryptfs/crypto.c              |  20 +++---
->  fs/ecryptfs/inode.c               |  36 ++++++----
->  fs/ecryptfs/mmap.c                |  39 ++++++-----
->  fs/ext2/xattr_security.c          |  16 ++---
->  fs/ext2/xattr_trusted.c           |  15 ++--
->  fs/ext2/xattr_user.c              |  19 +++--
->  fs/ext4/xattr_security.c          |  15 ++--
->  fs/ext4/xattr_trusted.c           |  15 ++--
->  fs/ext4/xattr_user.c              |  19 +++--
->  fs/f2fs/xattr.c                   |  42 +++++------
->  fs/fuse/xattr.c                   |  23 +++---
->  fs/gfs2/xattr.c                   |  18 ++---
->  fs/hfs/attr.c                     |  15 ++--
->  fs/hfsplus/xattr.c                |  17 +++--
->  fs/hfsplus/xattr_security.c       |  13 ++--
->  fs/hfsplus/xattr_trusted.c        |  13 ++--
->  fs/hfsplus/xattr_user.c           |  13 ++--
->  fs/jffs2/security.c               |  16 ++---
->  fs/jffs2/xattr_trusted.c          |  16 ++---
->  fs/jffs2/xattr_user.c             |  16 ++---
->  fs/jfs/xattr.c                    |  33 ++++-----
->  fs/kernfs/inode.c                 |  23 +++---
->  fs/nfs/nfs4proc.c                 |  28 ++++----
->  fs/ocfs2/xattr.c                  |  52 ++++++--------
->  fs/orangefs/xattr.c               |  19 ++---
->  fs/overlayfs/inode.c              |  43 ++++++------
->  fs/overlayfs/overlayfs.h          |   6 +-
->  fs/overlayfs/super.c              |  53 ++++++--------
->  fs/posix_acl.c                    |  23 +++---
->  fs/reiserfs/xattr.c               |   2 +-
->  fs/reiserfs/xattr_security.c      |  22 +++---
->  fs/reiserfs/xattr_trusted.c       |  22 +++---
->  fs/reiserfs/xattr_user.c          |  22 +++---
->  fs/squashfs/xattr.c               |  10 +--
->  fs/ubifs/xattr.c                  |  33 +++++----
->  fs/xattr.c                        | 112 ++++++++++++++++++------------
->  fs/xfs/libxfs/xfs_attr.c          |   4 +-
->  fs/xfs/libxfs/xfs_attr.h          |   2 +-
->  fs/xfs/xfs_xattr.c                |  35 +++++-----
->  include/linux/xattr.h             |  26 ++++---
->  include/uapi/linux/xattr.h        |   7 +-
->  mm/shmem.c                        |  21 +++---
->  net/socket.c                      |  16 ++---
->  security/commoncap.c              |  29 +++++---
->  security/integrity/evm/evm_main.c |  13 +++-
->  security/selinux/hooks.c          |  28 ++++++--
->  security/smack/smack_lsm.c        |  38 ++++++----
->  55 files changed, 732 insertions(+), 734 deletions(-)
-> 
-> 
 
-[...]
+Acked-by: David Sterba <dsterba@suse.com>
 
->  
-> diff --git a/fs/ceph/xattr.c b/fs/ceph/xattr.c
-> index 939eab7aa219..c4fee624291b 100644
-> --- a/fs/ceph/xattr.c
-> +++ b/fs/ceph/xattr.c
-> @@ -1179,22 +1179,21 @@ int __ceph_setxattr(struct inode *inode, const char *name,
->  }
->  
->  static int ceph_get_xattr_handler(const struct xattr_handler *handler,
-> -				  struct dentry *dentry, struct inode *inode,
-> -				  const char *name, void *value, size_t size)
-> +				  struct xattr_gs_args *args)
->  {
-> -	if (!ceph_is_valid_xattr(name))
-> +	if (!ceph_is_valid_xattr(args->name))
->  		return -EOPNOTSUPP;
-> -	return __ceph_getxattr(inode, name, value, size);
-> +	return __ceph_getxattr(args->inode, args->name,
-> +			       args->buffer, args->size);
->  }
->  
->  static int ceph_set_xattr_handler(const struct xattr_handler *handler,
-> -				  struct dentry *unused, struct inode *inode,
-> -				  const char *name, const void *value,
-> -				  size_t size, int flags)
-> +				  struct xattr_gs_args *args)
->  {
-> -	if (!ceph_is_valid_xattr(name))
-> +	if (!ceph_is_valid_xattr(args->name))
->  		return -EOPNOTSUPP;
-> -	return __ceph_setxattr(inode, name, value, size, flags);
-> +	return __ceph_setxattr(args->inode, args->name,
-> +			       args->value, args->size, args->flags);
->  }
->  
->  static const struct xattr_handler ceph_other_xattr_handler = {
-> @@ -1300,25 +1299,22 @@ void ceph_security_invalidate_secctx(struct inode *inode)
->  }
->  
->  static int ceph_xattr_set_security_label(const struct xattr_handler *handler,
-> -				    struct dentry *unused, struct inode *inode,
-> -				    const char *key, const void *buf,
-> -				    size_t buflen, int flags)
-> +					 struct xattr_gs_args *args)
->  {
-> -	if (security_ismaclabel(key)) {
-> -		const char *name = xattr_full_name(handler, key);
-> -		return __ceph_setxattr(inode, name, buf, buflen, flags);
-> -	}
-> +	if (security_ismaclabel(args->name))
-> +		return __ceph_setxattr(args->inode,
-> +				       xattr_full_name(handler, args->name),
-> +				       args->value, args->size, args->flags);
->  	return  -EOPNOTSUPP;
->  }
->  
->  static int ceph_xattr_get_security_label(const struct xattr_handler *handler,
-> -				    struct dentry *unused, struct inode *inode,
-> -				    const char *key, void *buf, size_t buflen)
-> +					 struct xattr_gs_args *args)
->  {
-> -	if (security_ismaclabel(key)) {
-> -		const char *name = xattr_full_name(handler, key);
-> -		return __ceph_getxattr(inode, name, buf, buflen);
-> -	}
-> +	if (security_ismaclabel(args->name))
-> +		return __ceph_getxattr(args->inode,
-> +				       xattr_full_name(handler, args->name),
-> +				       args->buffer, args->size);
->  	return  -EOPNOTSUPP;
->  }
->  
-
-The ceph bits look fine to me. Note that we do have some patches queued
-up for v5.4 that might have some merge conflicts here. Shouldn't be too
-hard to fix it up though.
-
-Acked-by: Jeff Layton <jlayton@kernel.org>
+______________________________________________________
+Linux MTD discussion mailing list
+http://lists.infradead.org/mailman/listinfo/linux-mtd/
