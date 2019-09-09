@@ -1,34 +1,45 @@
-From: Ding Xiang <dingxiang@cmss.chinamobile.com>
-Subject: [PATCH] ovl: Fix dereferencing possible ERR_PTR()
-Date: Mon,  9 Sep 2019 16:29:56 +0800
-Message-ID: <1568017796-27513-1-git-send-email-dingxiang@cmss.chinamobile.com>
+From: rishabhb@codeaurora.org
+Subject: Bug at kernel/cred.c +432
+Date: Mon, 09 Sep 2019 15:47:17 -0700
+Message-ID: <083b3f61efeca1d73839ac96e396748e@codeaurora.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII;
+ format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: miklos@szeredi.hu, linux-unionfs@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org
+To: miklos@szeredi.hu, linux-unionfs@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: tsoni@codeaurora.org, psodagud@codeaurora.org, jshriram@codeaurora.org
 List-Id: linux-unionfs@vger.kernel.org
 
-if ovl_encode_real_fh() fails, no memory was allocated
-and the error in the error-valued pointer should be returned.
+Hi Miklos
 
-Fixes: 9b6faee0747 ("ovl: check ERR_PTR() return value from ovl_encode_fh()")
-Signed-off-by: Ding Xiang <dingxiang@cmss.chinamobile.com>
----
- fs/overlayfs/export.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+In 4.19 kernel when we write to a file that doesn't exist we see the
+following stack:
+[  377.382745]  ovl_create_or_link+0xac/0x710
+[  377.382745]  ovl_create_object+0xb8/0x110
+[  377.382745]  ovl_create+0x34/0x40
+[  377.382745]  path_openat+0xd44/0x15a8
+[  377.382745]  do_filp_open+0x80/0x128
+[  377.382745]  do_sys_open+0x140/0x250
+[  377.382745]  __arm64_sys_openat+0x2c/0x38
 
-diff --git a/fs/overlayfs/export.c b/fs/overlayfs/export.c
-index cb8ec1f..50ade19 100644
---- a/fs/overlayfs/export.c
-+++ b/fs/overlayfs/export.c
-@@ -229,7 +229,7 @@ static int ovl_d_to_fh(struct dentry *dentry, char *buf, int buflen)
- 				ovl_dentry_upper(dentry), !enc_lower);
- 	err = PTR_ERR(fh);
- 	if (IS_ERR(fh))
--		goto fail;
-+		return err;
- 
- 	err = -EOVERFLOW;
- 	if (fh->len > buflen)
--- 
-1.9.1
+If the override_cred flag = off, the ovl_override_cred and 
+ovl_revert_cred just returns NULL.
+But there is another override_cred in between these two functions;
+		put_cred(override_creds(override_cred));
+		put_cred(override_cred);
+
+This will override the credentials permanently as there is no 
+corresponding revert_cred associated.
+So whenever we do commit_creds for this task, we see a BUG_ON at 
+kernel/cred.c +443.
+https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/tree/kernel/cred.c#n443
+
+Should this override_cred be changed to ovl_override_cred to maintain 
+consistency and avoid this
+BUG_ON?
+
+
+Thanks,
+Rishabh
