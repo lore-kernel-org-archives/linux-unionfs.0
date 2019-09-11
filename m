@@ -1,51 +1,53 @@
-From: Greg KH <gregkh@linuxfoundation.org>
-Subject: Re: FAILED: patch "[PATCH] ovl: support the FS_IOC_FS[SG]ETXATTR
- ioctls" failed to apply to 5.1-stable tree
-Date: Thu, 19 Sep 2019 21:04:20 +0200
-Message-ID: <20190919190420.GA4183040@kroah.com>
-References: <1560073529193139@kroah.com>
- <CAOQ4uxiTrsOs3KWOxedZicXNMJJharmWo=TDXDnxSC1XMNVKBg@mail.gmail.com>
- <CAOQ4uxiTTuOESvZ2Y5cSebqKs+qeU3q6ZMReBDro0Qv7aRBhpw@mail.gmail.com>
- <20190623010345.GJ2226@sasha-vm>
- <20190623202916.GA10957@kroah.com>
- <20190624003409.GO2226@sasha-vm>
- <CAOQ4uxiz5CkGojr5yquUd__TS_eae+ZapqyGaojiOUGniFPMsg@mail.gmail.com>
- <20190724115714.GA3244@kroah.com>
- <CAOQ4uxiEVsBp6qojO9K1TqzpETtdqDPzqTaFQGjr8woJ2WQP=g@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <stable-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAOQ4uxiEVsBp6qojO9K1TqzpETtdqDPzqTaFQGjr8woJ2WQP=g@mail.gmail.com>
-Sender: stable-owner@vger.kernel.org
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: Sasha Levin <sashal@kernel.org>, Miklos Szeredi <mszeredi@redhat.com>, stable <stable@vger.kernel.org>, overlayfs <linux-unionfs@vger.kernel.org>
-List-Id: linux-unionfs@vger.kernel.org
+Return-Path: <amir73il@gmail.com>
+MIME-Version: 1.0
+References: <20190712122434.14809-1-amir73il@gmail.com> <CAOQ4uxg+equ2vt3xqsC_v=m=YMFSAj2ywk2pga=BGZWgOQcVoA@mail.gmail.com>
+ <CAOQ4uxhC_=oPcjwpzgq7YvZuFL=HWJ=9hXwcY=EupcAnLobcsA@mail.gmail.com> <CAJfpegvQzAmDHhoXh-aSPjmkqLSpP_KWOf08YED4H7uwqa-oVg@mail.gmail.com>
+In-Reply-To: <CAJfpegvQzAmDHhoXh-aSPjmkqLSpP_KWOf08YED4H7uwqa-oVg@mail.gmail.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Date: Wed, 11 Sep 2019 16:04:37 +0300
+Message-ID: <CAOQ4uxjwwxosfzkjjxUhBjizHGOx1wJ9zzFPmxVzLJx-ZFud+w@mail.gmail.com>
+Subject: Re: [PATCH] ovl: fix regression caused by overlapping layers detection
+Content-Type: text/plain; charset="UTF-8"
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: Vivek Goyal <vgoyal@redhat.com>, overlayfs <linux-unionfs@vger.kernel.org>, Colin Walters <walters@verbum.org>
+List-ID: <linux-unionfs@vger.kernel.org>
 
-On Wed, Jul 24, 2019 at 04:46:36PM +0300, Amir Goldstein wrote:
-> > > I don't think syzkaller ones are more relevant to 5.1 then the rest of
-> > > the patches applied to 4.19. If anything, its the other way around.
-> > > According to syzbot dashboard, it is being run on LTS kernels, not on
-> > > latest stable.
-> > >
-> > > Please forgive me if my language caused confusion, when I said
-> > > "please apply to 4.19" I meant 4.19+.
-> >
-> > So is anything else needed to be done here, or are we all caught up and
-> > everything merged properly?
-> >
-> 
-> All the needed patches have been merged, but
-> Upstream commit 146d62e5a5867fbf84490d82455718bfb10fe824
-> ("ovl: detect overlapping layers") did introduce a regression to
-> docker and friends into stable kernels :-/
-> 
-> The fix commit is already tested and waiting in linux-next:
-> 0be0bfd2de9d ("ovl: fix regression caused by overlapping layers detection")
-> but did not hit upstream yet. When it does, will need to apply it to v4.19+
+On Wed, Sep 11, 2019 at 2:50 PM Miklos Szeredi <miklos@szeredi.hu> wrote:
+>
+> On Tue, Sep 10, 2019 at 3:53 PM Amir Goldstein <amir73il@gmail.com> wrote:
+>
+> > This patch got stuck in overlayfs-next.
+> > Could you push it to Linus please?
+>
+> Just tested applied on top of -linus, and it fails overlayfs/065 with this:
+>
+> --- /root/xfstests-dev/tests/overlay/065.out    2019-06-18
+> 15:12:19.147000000 +0200
+> +++ /root/xfstests-dev/results//overlay/065.out.bad    2019-09-11
+> 13:22:34.612000000 +0200
+> @@ -1,8 +1,8 @@
+>  QA output created by 065
+>  Conflicting upperdir/lowerdir
+> -mount: device already mounted or mount point busy
+> +mount: /scratch/ovl-mnt: mount(2) system call failed: Too many levels
+> of symbolic links
+>  Conflicting workdir/lowerdir
+> -mount: device already mounted or mount point busy
+> +mount: /scratch/ovl-mnt: mount(2) system call failed: Too many levels
+> of symbolic links
+>  Overlapping upperdir/lowerdir
+>  mount: Too many levels of symbolic links
+>  Conflicting lower layers
+>
+> So the mount seems to fail, but with a different than expected error
+> value.  Do you know what might be happening?
+>
 
-That is now in Linus's tree and I've queued it up now.
+Yes, intentional. I have an update for  the test.
+Was waiting with it until patch is merged upstream.
 
-thanks,
+I also have a test for the regression, see:
+https://github.com/amir73il/xfstests/commits/overlayfs-devel
 
-greg k-h
+Thanks,
+Amir.
