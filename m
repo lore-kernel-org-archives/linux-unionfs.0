@@ -1,74 +1,52 @@
-Return-Path: <lange@informatik.uni-koeln.de>
-From: Thomas Lange <lange@informatik.uni-koeln.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Message-ID: <23936.43370.127198.222503@informatik.uni-koeln.de>
-Date: Tue, 17 Sep 2019 11:37:46 +0200
-Subject: Re: can overlayfs work wit NFS v4 as lower fs?
-In-Reply-To: <CAJfpegsk30wCJY1WaQWJOibfw35TGYxUuPBYx8v7xObJBSgTAw@mail.gmail.com>
+Date: Tue, 17 Sep 2019 10:10:11 +0200
 References: <23935.36189.612024.342204@informatik.uni-koeln.de>
-	<CAJfpegsk30wCJY1WaQWJOibfw35TGYxUuPBYx8v7xObJBSgTAw@mail.gmail.com>
-To: Miklos Szeredi <miklos@szeredi.hu>
+In-Reply-To: <23935.36189.612024.342204@informatik.uni-koeln.de>
+Message-ID: <CAJfpegsk30wCJY1WaQWJOibfw35TGYxUuPBYx8v7xObJBSgTAw@mail.gmail.com>
+Subject: Re: can overlayfs work wit NFS v4 as lower fs?
+From: Miklos Szeredi <miklos@szeredi.hu>
+Content-Type: text/plain; charset="UTF-8"
+To: lange@debian.org
 Cc: overlayfs <linux-unionfs@vger.kernel.org>
 List-ID: <linux-unionfs@vger.kernel.org>
 
->>>>> On Tue, 17 Sep 2019 10:10:11 +0200, Miklos Szeredi <miklos@szeredi.hu> said:
+On Mon, Sep 16, 2019 at 3:25 PM <lange@debian.org> wrote:
+>
+> Hi,
+>
+> I'm using overlayfs with NFS v3 as a lower (mounted read-only) and a
+> tmpfs as an upper filesystem. This works nicely since several years.
+> So I get a writeable directory tree on an nfs client even the nfs was
+> mounted ro.
+>
+> But then I mount the lower filesystem as NFS v4 (4.2) it does not
+> work. Is this combination supposed to work?
+> I tested this with kernels up to 5.2 yet but still no success.
+>
+>
+> Here's my current test setup:
+>
+> NFS server kernel 5.2.0-0.bpo.2-amd64 (Debian 10 with newer kernel)
+> NFS client kernel 5.2.0-0.bpo.2-amd64 (Debian 10 with newer kernel)
+>
+> On the NFS server I did once
+> # mkdir /files/scratch/t/etc; echo test-buster > /files/scratch/t/etc/test1
+>
+> /etc/exports: /files/scratch  11.22.33.128/25(async,ro,no_subtree_check,no_root_squash)
+>
+> I can do more tests if you tell me what I can change.
+> Here are the two tests result, one using nfs v3 the other using NFS v4.
+>
+> P.S.: After more research I think this may be a problem of a
+>       filesystem missing xattr support. Do you have any experiences
+>       using overlayfs using NFS v4 as lower fs?
 
-    > This is most probably about nfs4 acl support.   Does "noacl" export
-    > option fix it?
-Unfortunately it's not possible to disable acl support for NFS v4 (only in Debian?).
-That's what I read in some articles.
+This is most probably about nfs4 acl support.   Does "noacl" export
+option fix it?
 
-I've added no_acl to the exports line:
-# exportfs -v
-/files/scratch  134.95.9.128/25(ro,async,wdelay,no_root_squash,no_subtree_check,no_acl,sec=sys,ro,secure,no_root_squash,no_all_squash)
-
-But this command does not show the no_acl option:
-
-# cat /proc/fs/nfs/exports
-# Version 1.1
-# Path Client(Flags) # IPs
-/files  134.95.9.128/25(ro,no_root_squash,sync,no_wdelay,no_subtree_check,v4root,uuid=9d4520b3:676a426f:92251f2f:b0e40f3b,sec=390003:390004:390005:1)
-/       134.95.9.128/25(ro,no_root_squash,sync,no_wdelay,no_subtree_check,v4root,fsid=0,uuid=9d4520b3:676a426f:92251f2f:b0e40f3b,sec=390003:390004:390005:1)
-/files/scratch  134.95.9.128/25(ro,no_root_squash,async,wdelay,no_subtree_check,uuid=9d4520b3:676a426f:92251f2f:b0e40f3b,sec=1)
-
-
-I've also added -onoacl the the mount command on client side. Still the
-same results, when I want to write to a file in overlayfs
-
-13415 openat(AT_FDCWD, "/b/merged/etc/test1", O_WRONLY|O_CREAT|O_TRUNC, 0666) = -1 EOPNOTSUPP (Operation not supported)
-
-
-I've checked the access to the  "original" file in the lower (NFS v4
-mounted) directory, by checking the results of getfacl and nfs4_getfacl.
-
-
-NFS v3, exportfs with no_acl
-============================
-+ strace -etrace=getxattr getfacl /b/lower/etc/test1
-getxattr("/b/lower/etc/test1", "system.posix_acl_access", 0x7ffcb6b56160, 132) = -1 EOPNOTSUPP (Operation not supported)
-getfacl: Removing leading '/' from absolute path names
-
-suenner[~]# strace -etrace=getxattr nfs4_getfacl /b/lower/etc/test1
-getxattr("/b/lower/etc/test1", "system.nfs4_acl", NULL, 0) = -1 EOPNOTSUPP (Operation not supported)
+Thanks,
+Miklos
 
 
 
-NFS v4 using mount -onoacl, exportfs with no_acl
-================================================
-
-+ strace -etrace=getxattr getfacl /b/lower/etc/test1
-getxattr("/b/lower/etc/test1", "system.posix_acl_access", 0x7fff39fd9cd0, 132) = -1 EOPNOTSUPP (Operation not supported)
-
-
-+ strace -etrace=getxattr nfs4_getfacl /b/lower/etc/test1
-getxattr("/b/lower/etc/test1", "system.nfs4_acl", NULL, 0) = 80
-getxattr("/b/lower/etc/test1", "system.nfs4_acl", "\0\0\0\3\0\0\0\0\0\0\0\0\0\26\1\207\0\0\0\6OWNER@\0\0\0\0\0", 80) = 80
-
-
-This shows that disabling ACL in NFS v4 does not work.
-Does this disturb the behaviour of overlayfs?
-
--- 
-regards Thomas
+>
