@@ -1,23 +1,42 @@
 From: Miklos Szeredi <miklos@szeredi.hu>
-Subject: Re: [PATCH] ovl: Fix dereferencing possible ERR_PTR()
-Date: Tue, 17 Sep 2019 10:06:23 +0200
-Message-ID: <CAJfpeguMAzej0OroDXLJsntx5R_XQWOcgSCZLFe=M8e4=A8CAA@mail.gmail.com>
-References: <1568017796-27513-1-git-send-email-dingxiang@cmss.chinamobile.com>
+Subject: [GIT PULL] overlayfs fixes for 5.3
+Date: Tue, 17 Sep 2019 10:31:35 +0200
+Message-ID: <20190917083135.GA19549@miu.piliscsaba.redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1568017796-27513-1-git-send-email-dingxiang@cmss.chinamobile.com>
+Content-Disposition: inline
 Sender: linux-kernel-owner@vger.kernel.org
-To: Ding Xiang <dingxiang@cmss.chinamobile.com>
-Cc: overlayfs <linux-unionfs@vger.kernel.org>, linux-kernel@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 
-On Mon, Sep 9, 2019 at 10:30 AM Ding Xiang
-<dingxiang@cmss.chinamobile.com> wrote:
->
-> if ovl_encode_real_fh() fails, no memory was allocated
-> and the error in the error-valued pointer should be returned.
+Hi Linus,
 
-Applied, thanks.
+Please pull from:
 
+  git://git.kernel.org/pub/scm/linux/kernel/git/mszeredi/vfs.git tags/ovl-fixes-5.3
+
+Fix a regression in docker introduced by overlayfs changes in 4.19.  Also
+fix a couple of miscellaneous bugs.
+
+Thanks,
 Miklos
+
+----------------------------------------------------------------
+Amir Goldstein (1):
+      ovl: fix regression caused by overlapping layers detection
+
+Ding Xiang (1):
+      ovl: Fix dereferencing possible ERR_PTR()
+
+Mark Salyzyn (1):
+      ovl: filter of trusted xattr results in audit
+
+---
+ Documentation/filesystems/overlayfs.txt |  2 +-
+ fs/overlayfs/export.c                   |  3 +-
+ fs/overlayfs/inode.c                    |  3 +-
+ fs/overlayfs/ovl_entry.h                |  1 +
+ fs/overlayfs/super.c                    | 73 +++++++++++++++++++++------------
+ 5 files changed, 52 insertions(+), 30 deletions(-)
