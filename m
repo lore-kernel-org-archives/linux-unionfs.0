@@ -1,42 +1,106 @@
 From: Miklos Szeredi <miklos@szeredi.hu>
-Subject: [GIT PULL] overlayfs fixes for 5.3
-Date: Tue, 17 Sep 2019 10:31:35 +0200
-Message-ID: <20190917083135.GA19549@miu.piliscsaba.redhat.com>
+Subject: Re: [PATCH] overlayfs: ignore empty NFSv4 ACLs in ext4 upperdir
+Date: Wed, 18 Sep 2019 11:07:31 +0200
+Message-ID: <20190918090731.GB19549@miu.piliscsaba.redhat.com>
+References: <266c571f-e4e2-7c61-5ee2-8ece0c2d06e9@web.de>
+ <CAHpGcMKmtppfn7PVrGKEEtVphuLV=YQ2GDYKOqje4ZANhzSgDw@mail.gmail.com>
+ <CAHpGcMKjscfhmrAhwGes0ag2xTkbpFvCO6eiLL_rHz87XE-ZmA@mail.gmail.com>
+ <CAJfpegvRFGOc31gVuYzanzWJ=mYSgRgtAaPhYNxZwHin3Wc0Gw@mail.gmail.com>
+ <CAHc6FU4JQ28BFZE9_8A06gtkMvvKDzFmw9=ceNPYvnMXEimDMw@mail.gmail.com>
+ <20161206185806.GC31197@fieldses.org>
+ <87bm0l4nra.fsf@notabene.neil.brown.name>
+ <20190503153531.GJ12608@fieldses.org>
+ <87woj3157p.fsf@notabene.neil.brown.name>
+ <20190510200941.GB5349@fieldses.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
+In-Reply-To: <20190510200941.GB5349@fieldses.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org
+To: "J. Bruce Fields" <bfields@fieldses.org>
+Cc: NeilBrown <neilb@suse.com>, Andreas Gruenbacher <agruenba@redhat.com>, Andreas =?utf-8?Q?Gr=C3=BCnbacher?= <andreas.gruenbacher@gmail.com>, Patrick Plagwitz <Patrick_Plagwitz@web.de>, "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>, Linux NFS list <linux-nfs@vger.kernel.org>, Linux FS-devel Mailing List <linux-fsdevel@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Thomas Lange <lange@informatik.uni-koeln.de>
 List-Id: linux-unionfs@vger.kernel.org
 
-Hi Linus,
+On Fri, May 10, 2019 at 04:09:41PM -0400, J. Bruce Fields wrote:
+> On Tue, May 07, 2019 at 10:24:58AM +1000, NeilBrown wrote:
+> > Interesting perspective .... though doesn't NFSv4 explicitly allow
+> > client-side ACL enforcement in the case of delegations?
+> 
+> Not really.  What you're probably thinking of is the single ACE that the
+> server can return on granting a delegation, that tells the client it can
+> skip the ACCESS check for users matching that ACE.  It's unclear how
+> useful that is.  It's currently unused by the Linux client and server.
+> 
+> > Not sure how relevant that is....
+> > 
+> > It seems to me we have two options:
+> >  1/ declare the NFSv4 doesn't work as a lower layer for overlayfs and
+> >     recommend people use NFSv3, or
+> >  2/ Modify overlayfs to work with NFSv4 by ignoring nfsv4 ACLs either
+> >  2a/ always - and ignore all other acls and probably all system. xattrs,
+> >  or
+> >  2b/ based on a mount option that might be
+> >       2bi/ general "noacl" or might be
+> >       2bii/ explicit "noxattr=system.nfs4acl"
+> >  
+> > I think that continuing to discuss the miniature of the options isn't
+> > going to help.  No solution is perfect - we just need to clearly
+> > document the implications of whatever we come up with.
+> > 
+> > I lean towards 2a, but I be happy with with any '2' and '1' won't kill
+> > me.
+> 
+> I guess I'd also lean towards 2a.
+> 
+> I don't think it applies to posix acls, as overlayfs is capable of
+> copying those up and evaluating them on its own.
 
-Please pull from:
+POSIX acls are evaluated and copied up.
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/mszeredi/vfs.git tags/ovl-fixes-5.3
+I guess same goes for "security.*" attributes, that are evaluated on MAC checks.
 
-Fix a regression in docker introduced by overlayfs changes in 4.19.  Also
-fix a couple of miscellaneous bugs.
+I think it would be safe to ignore failure to copy up anything else.  That seems
+a bit saner than just blacklisting nfs4_acl...
+
+Something like the following untested patch.
 
 Thanks,
 Miklos
 
-----------------------------------------------------------------
-Amir Goldstein (1):
-      ovl: fix regression caused by overlapping layers detection
-
-Ding Xiang (1):
-      ovl: Fix dereferencing possible ERR_PTR()
-
-Mark Salyzyn (1):
-      ovl: filter of trusted xattr results in audit
-
 ---
- Documentation/filesystems/overlayfs.txt |  2 +-
- fs/overlayfs/export.c                   |  3 +-
- fs/overlayfs/inode.c                    |  3 +-
- fs/overlayfs/ovl_entry.h                |  1 +
- fs/overlayfs/super.c                    | 73 +++++++++++++++++++++------------
- 5 files changed, 52 insertions(+), 30 deletions(-)
+ fs/overlayfs/copy_up.c |   16 ++++++++++++++--
+ 1 file changed, 14 insertions(+), 2 deletions(-)
+
+--- a/fs/overlayfs/copy_up.c
++++ b/fs/overlayfs/copy_up.c
+@@ -36,6 +36,13 @@ static int ovl_ccup_get(char *buf, const
+ module_param_call(check_copy_up, ovl_ccup_set, ovl_ccup_get, NULL, 0644);
+ MODULE_PARM_DESC(check_copy_up, "Obsolete; does nothing");
+ 
++static bool ovl_must_copy_xattr(const char *name)
++{
++	return !strcmp(name, XATTR_POSIX_ACL_ACCESS) ||
++	       !strcmp(name, XATTR_POSIX_ACL_DEFAULT) ||
++	       !strncmp(name, XATTR_SECURITY_PREFIX, XATTR_SECURITY_PREFIX_LEN);
++}
++
+ int ovl_copy_xattr(struct dentry *old, struct dentry *new)
+ {
+ 	ssize_t list_size, size, value_size = 0;
+@@ -107,8 +114,13 @@ int ovl_copy_xattr(struct dentry *old, s
+ 			continue; /* Discard */
+ 		}
+ 		error = vfs_setxattr(new, name, value, size, 0);
+-		if (error)
+-			break;
++		if (error) {
++			if (ovl_must_copy_xattr(name))
++				break;
++
++			/* Ignore failure to copy unknown xattrs */
++			error = 0;
++		}
+ 	}
+ 	kfree(value);
+ out:
