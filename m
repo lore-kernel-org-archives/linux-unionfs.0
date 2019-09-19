@@ -1,24 +1,51 @@
-From: pr-tracker-bot@kernel.org
-Subject: Re: [GIT PULL] overlayfs fixes for 5.3
-Date: Thu, 19 Sep 2019 01:55:03 +0000
-Message-ID: <156885810360.31089.4574667261875615828.pr-tracker-bot@kernel.org>
-References: <20190917083135.GA19549@miu.piliscsaba.redhat.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190917083135.GA19549@miu.piliscsaba.redhat.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org
+From: Greg KH <gregkh@linuxfoundation.org>
+Subject: Re: FAILED: patch "[PATCH] ovl: support the FS_IOC_FS[SG]ETXATTR
+ ioctls" failed to apply to 5.1-stable tree
+Date: Thu, 19 Sep 2019 21:04:20 +0200
+Message-ID: <20190919190420.GA4183040@kroah.com>
+References: <1560073529193139@kroah.com>
+ <CAOQ4uxiTrsOs3KWOxedZicXNMJJharmWo=TDXDnxSC1XMNVKBg@mail.gmail.com>
+ <CAOQ4uxiTTuOESvZ2Y5cSebqKs+qeU3q6ZMReBDro0Qv7aRBhpw@mail.gmail.com>
+ <20190623010345.GJ2226@sasha-vm>
+ <20190623202916.GA10957@kroah.com>
+ <20190624003409.GO2226@sasha-vm>
+ <CAOQ4uxiz5CkGojr5yquUd__TS_eae+ZapqyGaojiOUGniFPMsg@mail.gmail.com>
+ <20190724115714.GA3244@kroah.com>
+ <CAOQ4uxiEVsBp6qojO9K1TqzpETtdqDPzqTaFQGjr8woJ2WQP=g@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <stable-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CAOQ4uxiEVsBp6qojO9K1TqzpETtdqDPzqTaFQGjr8woJ2WQP=g@mail.gmail.com>
+Sender: stable-owner@vger.kernel.org
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: Sasha Levin <sashal@kernel.org>, Miklos Szeredi <mszeredi@redhat.com>, stable <stable@vger.kernel.org>, overlayfs <linux-unionfs@vger.kernel.org>
 List-Id: linux-unionfs@vger.kernel.org
 
-The pull request you sent on Tue, 17 Sep 2019 10:31:35 +0200:
+On Wed, Jul 24, 2019 at 04:46:36PM +0300, Amir Goldstein wrote:
+> > > I don't think syzkaller ones are more relevant to 5.1 then the rest of
+> > > the patches applied to 4.19. If anything, its the other way around.
+> > > According to syzbot dashboard, it is being run on LTS kernels, not on
+> > > latest stable.
+> > >
+> > > Please forgive me if my language caused confusion, when I said
+> > > "please apply to 4.19" I meant 4.19+.
+> >
+> > So is anything else needed to be done here, or are we all caught up and
+> > everything merged properly?
+> >
+> 
+> All the needed patches have been merged, but
+> Upstream commit 146d62e5a5867fbf84490d82455718bfb10fe824
+> ("ovl: detect overlapping layers") did introduce a regression to
+> docker and friends into stable kernels :-/
+> 
+> The fix commit is already tested and waiting in linux-next:
+> 0be0bfd2de9d ("ovl: fix regression caused by overlapping layers detection")
+> but did not hit upstream yet. When it does, will need to apply it to v4.19+
 
-> git://git.kernel.org/pub/scm/linux/kernel/git/mszeredi/vfs.git tags/ovl-fixes-5.3
+That is now in Linus's tree and I've queued it up now.
 
-has been merged into torvalds/linux.git:
-https://git.kernel.org/torvalds/c/b6c0d35772468173b5d3a7f6162079611e68a1e8
+thanks,
 
-Thank you!
-
--- 
-Deet-doot-dot, I am a bot.
-https://korg.wiki.kernel.org/userdoc/prtracker
+greg k-h
