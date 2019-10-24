@@ -1,73 +1,63 @@
-Return-Path: <cgxu519@mykernel.net>
-From: Chengguang Xu <cgxu519@mykernel.net>
-Message-ID: <20191004132030.28353-1-cgxu519@mykernel.net>
-Subject: [PATCH] ovl: improving copy-up efficiency for sparse file
-Date: Fri,  4 Oct 2019 21:20:30 +0800
+Return-Path: <amir73il@gmail.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset=utf8
-To: miklos@szeredi.hu
-Cc: linux-unionfs@vger.kernel.org, Chengguang Xu <cgxu519@mykernel.net>
+References: <20191022204453.97058-1-salyzyn@android.com> <CAOQ4uxjFqq0zA7V3A9s0h2om7AWY5AT-2sQ4z2G0Vk2gtf1M=w@mail.gmail.com>
+ <c0eb1b6e-65f6-9d38-64b9-333f3e82905a@android.com>
+In-Reply-To: <c0eb1b6e-65f6-9d38-64b9-333f3e82905a@android.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Date: Thu, 24 Oct 2019 08:28:23 +0300
+Message-ID: <CAOQ4uxj4Hy9E-rGyM9bihyoFhi9h2DunFWFBAyYMDef=XyrrEQ@mail.gmail.com>
+Subject: Re: [PATCH v14 0/5] overlayfs override_creds=off & nested get xattr fix
+Content-Type: text/plain; charset="UTF-8"
+To: Mark Salyzyn <salyzyn@android.com>
+Cc: overlayfs <linux-unionfs@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-Current copy-up is not efficient for sparse file,
-It's not only slow but also wasting more disk space
-when the target lower file has huge hole inside.
-This patch tries to recognize file hole and skip it
-during copy-up.
+> > I remember asking - don't remember the answer -
+> > do you have any testing for this feature?
+> Yes, on an unnamed 4.19-based and mainline-based Android and virtual
+> cuttlefish product ... which was critically unworkable without this
+> patch series.
 
-In detail, this optimization checks the hole according
-to copy-up chunk size so it may not recognize all kind
-of holes in the file. However, it is easy to implement
-and will be enough for most of the time.
+Of course you *tested* it - I meant did you write any automated tests
+that other developers can run to verify that feature won't break with future
+changes.
+Many people run xfstests with overlayfs, where most of the tests run
+as root.
+Few people run unionmount testsuite with overlayfs where most of
+the tests run as root.
+So none of those tests have coverage for override_creds=off.
 
-Additionally, this optimization relies on lseek(2)
-SEEK_DATA implementation, so for some specific
-filesystems which do not support this feature
-will behave as before on copy-up.
+> > I have a WIP branch to run unionmount-testsuite not as root,
+> > which is a start, but I didn't get to finish the work.
+> > Let me know if you want to take up this work.
+> Please refer it in private email to me, no guarantees, my cycles are so
+> sparse right now that it took a month to respin this patch series to
+> upstream. If I can make it test on Android with overlayfs activated, big
+> gain.
 
-Signed-off-by: Chengguang Xu <cgxu519@mykernel.net>
----
- fs/overlayfs/copy_up.c | 15 ++++++++++++++-
- 1 file changed, 14 insertions(+), 1 deletion(-)
+It's here:
+https://github.com/amir73il/unionmount-testsuite/commits/run_as_bin
 
-diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
-index b801c6353100..028033c9f021 100644
---- a/fs/overlayfs/copy_up.c
-+++ b/fs/overlayfs/copy_up.c
-@@ -144,10 +144,11 @@ static int ovl_copy_up_data(struct path *old, struct =
-path *new, loff_t len)
- =09=09goto out;
- =09/* Couldn't clone, so now we try to copy the data */
-=20
--=09/* FIXME: copy up sparse files efficiently */
- =09while (len) {
- =09=09size_t this_len =3D OVL_COPY_UP_CHUNK_SIZE;
- =09=09long bytes;
-+=09=09loff_t old_next_data_pos;
-+=09=09loff_t hole_len;
-=20
- =09=09if (len < this_len)
- =09=09=09this_len =3D len;
-@@ -157,6 +158,18 @@ static int ovl_copy_up_data(struct path *old, struct p=
-ath *new, loff_t len)
- =09=09=09break;
- =09=09}
-=20
-+=09=09old_next_data_pos =3D vfs_llseek(old_file, old_pos, SEEK_DATA);
-+=09=09if (old_next_data_pos >=3D old_pos + OVL_COPY_UP_CHUNK_SIZE) {
-+=09=09=09hole_len =3D (old_next_data_pos - old_pos) /
-+=09=09=09=09OVL_COPY_UP_CHUNK_SIZE * OVL_COPY_UP_CHUNK_SIZE;
-+=09=09=09old_pos +=3D hole_len;
-+=09=09=09new_pos +=3D hole_len;
-+=09=09=09len -=3D hole_len;
-+=09=09=09continue;
-+=09=09} else if (old_next_data_pos =3D=3D -ENXIO) {
-+=09=09=09break;
-+=09=09}
-+
- =09=09bytes =3D do_splice_direct(old_file, &old_pos,
- =09=09=09=09=09 new_file, &new_pos,
- =09=09=09=09=09 this_len, SPLICE_F_MOVE);
---=20
-2.21.0
+As far as I can tell, the test code in the branch is working, but it fails
+on permissions in one of the early create file test cases and I did not
+have time to look into it.
+
+What it does is to drop capabilities to uid 1 before executing the test
+cases. In between test cases, for the test setup it reverts back to uid 0.
+
+For your Android use case, you may want to have uid's 0/1
+configurable to different uid's? the first (setup) uid obviously needs to
+be capable of mounting overlayfs.
+
+Not sure how you would go about changing security context?
+Probably, you would need to have the test setup code execute
+"./run --ov --set-up" via init service command.
+
+Cheat sheet for running the test:
+
+pre requisite python3
+sudo mkdir -p /lower /upper /mnt
+sudo ./run --ov
+
+Thanks,
+Amir.
