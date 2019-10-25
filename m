@@ -1,7 +1,7 @@
 From: Miklos Szeredi <mszeredi@redhat.com>
-Subject: [RFC PATCH 2/5] ovl: ignore failure to copy up unknown xattrs
-Date: Fri, 25 Oct 2019 13:29:14 +0200
-Message-ID: <20191025112917.22518-3-mszeredi@redhat.com>
+Subject: [RFC PATCH 1/5] ovl: document permission model
+Date: Fri, 25 Oct 2019 13:29:13 +0200
+Message-ID: <20191025112917.22518-2-mszeredi@redhat.com>
 References: <20191025112917.22518-1-mszeredi@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=WINDOWS-1252
@@ -13,65 +13,73 @@ To: "Eric W . Biederman" <ebiederm@xmission.com>
 Cc: linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 
-This issue came up with NFSv4 as the lower layer, which generates
-"system.nfs4_acl" xattrs (even for plain old unix permissions).  Prior to
-this patch this prevented copy-up from succeeding.
-
-The overlayfs permission model mandates that permissions are checked
-locally for the task and remotely for the mounter(*).  NFS4 ACLs are not
-supported by the Linux kernel currently, hence they cannot be enforced
-locally.  Which means it is indifferent whether this attribute is copied or
-not.
-
-Generalize this to any xattr that is not used in access checking (i.e. it's
-not a POSIX ACL and not in the "security." namespace).
-
-Incidentally, best effort copying of xattrs seems to also be the behavior
-of "cp -a", which is what overlayfs tries to mimic.
-
-(*) Documentation/filesystems/overlayfs.txt#Permission model
+Add missing piece of documentation regarding how permissions are checked in
+overlayfs.
 
 Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
 ---
- fs/overlayfs/copy_up.c | 16 ++++++++++++++--
- 1 file changed, 14 insertions(+), 2 deletions(-)
+ Documentation/filesystems/overlayfs.txt | 44 +++++++++++++++++++++++++
+ 1 file changed, 44 insertions(+)
 
-diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
-index b801c6353100..ed6e2d6cf7a1 100644
---- a/fs/overlayfs/copy_up.c
-+++ b/fs/overlayfs/copy_up.c
-@@ -36,6 +36,13 @@ static int ovl_ccup_get(char *buf, const struct kernel_p=
-aram *param)
- module_param_call(check_copy_up, ovl_ccup_set, ovl_ccup_get, NULL, 0644);
- MODULE_PARM_DESC(check_copy_up, "Obsolete; does nothing");
+diff --git a/Documentation/filesystems/overlayfs.txt b/Documentation/filesy=
+stems/overlayfs.txt
+index 845d689e0fd7..674fc8b1e420 100644
+--- a/Documentation/filesystems/overlayfs.txt
++++ b/Documentation/filesystems/overlayfs.txt
+@@ -246,6 +246,50 @@ overlay filesystem (though an operation on the name of=
+ the file such as
+ rename or unlink will of course be noticed and handled).
 =20
-+static bool ovl_must_copy_xattr(const char *name)
-+{
-+=09return !strcmp(name, XATTR_POSIX_ACL_ACCESS) ||
-+=09       !strcmp(name, XATTR_POSIX_ACL_DEFAULT) ||
-+=09       !strncmp(name, XATTR_SECURITY_PREFIX, XATTR_SECURITY_PREFIX_LEN)=
-;
-+}
+=20
++Permission model
++----------------
 +
- int ovl_copy_xattr(struct dentry *old, struct dentry *new)
- {
- =09ssize_t list_size, size, value_size =3D 0;
-@@ -107,8 +114,13 @@ int ovl_copy_xattr(struct dentry *old, struct dentry *=
-new)
- =09=09=09continue; /* Discard */
- =09=09}
- =09=09error =3D vfs_setxattr(new, name, value, size, 0);
--=09=09if (error)
--=09=09=09break;
-+=09=09if (error) {
-+=09=09=09if (error !=3D -EOPNOTSUPP || ovl_must_copy_xattr(name))
-+=09=09=09=09break;
++Permission checking in the overlay filesystem follows these principles:
 +
-+=09=09=09/* Ignore failure to copy unknown xattrs */
-+=09=09=09error =3D 0;
-+=09=09}
- =09}
- =09kfree(value);
- out:
++ 1) permission check SHOULD return the same result before and after copy u=
+p
++
++ 2) task creating the overlay mount MUST NOT gain additional privileges
++
++ 3) non-mounting task MAY gain additional privileges through the overlay,
++ compared to direct access on underlying lower or upper filesystems
++
++This is achieved by performing two permission checks on each access
++
++ a) check if current task is allowed access based on local DAC (owner,
++    group, mode and posix acl), as well as MAC checks
++
++ b) check if mounting task would be allowed real operation on lower or
++    upper layer based on underlying filesystem permissions, again includin=
+g
++    MAC checks
++
++Check (a) ensures consistency (1) since owner, group, mode and posix acls
++are copied up.  On the other hand it can result in server enforced
++permissions (used by NFS, for example) being ignored (3).
++
++Check (b) ensures that no task gains permissions to underlying layers that
++the mounting task does not have (2).  This also means that it is possible
++to create setups where the consistency rule (1) does not hold; normally,
++however, the mounting task will have sufficient privileges to perform all
++operations.
++
++Another way to demonstrate this model is drawing parallels between
++
++  mount -t overlay overlay -olowerdir=3D/lower,upperdir=3D/upper,... /merg=
+ed
++
++and
++
++  cp -a /lower /upper
++  mount --bind /upper /merged
++
++The resulting access permissions should be the same.  The difference is in
++the time of copy (on-demand vs. up-front).
++
++
+ Multiple lower layers
+ ---------------------
+=20
 --=20
 2.21.0
