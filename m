@@ -1,61 +1,32 @@
-From: ebiederm@xmission.com (Eric W. Biederman)
-Subject: Re: [RFC PATCH 0/5] allow unprivileged overlay mounts
-Date: Fri, 25 Oct 2019 08:42:24 -0500
-Message-ID: <87r231rlfj.fsf@x220.int.ebiederm.org>
-References: <20191025112917.22518-1-mszeredi@redhat.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Subject: Re: [RFC PATCH 4/5] ovl: user xattr
+Date: Sat, 26 Oct 2019 16:50:34 +0300
+Message-ID: <CAOQ4uxhRfDq49s-NCP5JK5VSYCZ+LXv2oMeyOReoLqq8LePkuQ@mail.gmail.com>
+References: <20191025112917.22518-1-mszeredi@redhat.com> <20191025112917.22518-5-mszeredi@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20191025112917.22518-1-mszeredi@redhat.com> (Miklos Szeredi's
-        message of "Fri, 25 Oct 2019 13:29:12 +0200")
+In-Reply-To: <20191025112917.22518-5-mszeredi@redhat.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Miklos Szeredi <mszeredi@redhat.com>
-Cc: linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: "Eric W . Biederman" <ebiederm@xmission.com>, overlayfs <linux-unionfs@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>
 List-Id: linux-unionfs@vger.kernel.org
 
-Miklos Szeredi <mszeredi@redhat.com> writes:
-
-> Hi Eric,
+On Fri, Oct 25, 2019 at 10:54 PM Miklos Szeredi <mszeredi@redhat.com> wrote:
 >
-> Can you please have a look at this patchset?
+> Optionally allow using "user.overlay" namespace instead
+> of"trusted.overlay".
 >
-> The most interesting one is the last oneliner adding FS_USERNS_MOUNT;
-> whether I'm correct in stating that this isn't going to introduce any
-> holes, or not...
-
-I will take some time and dig through this.
-
->From a robustness standpoint I worry about the stackable filesystem
-side.  As that is uniquely an attack vector with overlayfs.
-
-There is definitely demand for this.
-
-
-> Thanks,
-> Miklos
+> This is necessary for overlayfs to be able to be mounted in an unprivileged
+> namepsace.
 >
-> ---
-> Miklos Szeredi (5):
->   ovl: document permission model
->   ovl: ignore failure to copy up unknown xattrs
->   vfs: allow unprivileged whiteout creation
->   ovl: user xattr
->   ovl: unprivieged mounts
+> Make the option explicit, since it makes the filesystem format be
+> incompatible.
 >
->  Documentation/filesystems/overlayfs.txt | 44 +++++++++++++
->  fs/char_dev.c                           |  3 +
->  fs/namei.c                              | 17 ++---
->  fs/overlayfs/copy_up.c                  | 34 +++++++---
->  fs/overlayfs/dir.c                      |  2 +-
->  fs/overlayfs/export.c                   |  2 +-
->  fs/overlayfs/inode.c                    | 39 ++++++------
->  fs/overlayfs/namei.c                    | 56 +++++++++--------
->  fs/overlayfs/overlayfs.h                | 81 +++++++++++++++---------
->  fs/overlayfs/ovl_entry.h                |  1 +
->  fs/overlayfs/readdir.c                  |  5 +-
->  fs/overlayfs/super.c                    | 53 +++++++++++-----
->  fs/overlayfs/util.c                     | 82 +++++++++++++++++++++----
->  include/linux/device_cgroup.h           |  3 +
->  14 files changed, 298 insertions(+), 124 deletions(-)
 
-Eric
+Ach! this was tiring..
+If you get to resubmit, please consider separating the plumbing
+from the userxattr implementation.
+
+Thanks,
+Amir.
