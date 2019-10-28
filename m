@@ -1,128 +1,88 @@
-Return-Path: <cgxu519@mykernel.net>
-From: Chengguang Xu <cgxu519@mykernel.net>
-Message-ID: <20191031104649.7177-1-cgxu519@mykernel.net>
-Subject: [PATCH v3] ovl: improving copy-up efficiency for big sparse file
-Date: Thu, 31 Oct 2019 18:46:49 +0800
+Return-Path: <jefflexu@linux.alibaba.com>
+From: JeffleXu <jefflexu@linux.alibaba.com>
+Subject: Performance regression caused by stack operation of regular file
+Message-ID: <ae928bd7-001a-061e-01f0-43b53a0adcd1@linux.alibaba.com>
+Date: Mon, 28 Oct 2019 14:21:22 +0800
 MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset=utf8
-To: miklos@szeredi.hu, amir73il@gmail.com
-Cc: linux-unionfs@vger.kernel.org, Chengguang Xu <cgxu519@mykernel.net>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
+To: miklos@szeredi.hu
+Cc: linux-unionfs@vger.kernel.org
 List-ID: <linux-unionfs@vger.kernel.org>
 
-Current copy-up is not efficient for big sparse file,
-It's not only slow but also wasting more disk space
-when the target lower file has huge hole inside.
-This patch tries to recognize file hole and skip it
-during copy-up.
+Hi, Miklos,
 
-Detail logic of hole detection as below:
-When we detect next data position is larger than current
-position we will skip that hole, otherwise we copy
-data in the size of OVL_COPY_UP_CHUNK_SIZE. Actually,
-it may not recognize all kind of holes and sometimes
-only skips partial of hole area. However, it will be
-enough for most of the use cases.
+I noticed a performance regression of reading/writing files in mergeddir 
+caused by commit a6518f73e60e5044656d1ba587e7463479a9381a (vfs: don't 
+open real), using unixbench fstime.
 
-Additionally, this optimization relies on lseek(2)
-SEEK_DATA implementation, so for some specific
-filesystems which do not support this feature
-will behave as before on copy-up.
 
-Signed-off-by: Chengguang Xu <cgxu519@mykernel.net>
----
-v1->v2:
-- Set file size when the hole is in the end of the file.
-- Add a code comment for hole copy-up improvement.
-- Check SEEK_DATA support before doing hole skip.
-- Back to original copy-up when seek data fails(in error case).
+Reproduce Steps:
 
-v2->v3:
-- Detect big continuous holes in an effective way.
-- Modify changelog and code comment.
-- Set file size in the end of ovl_copy_up_inode().
+1. cd /mnt/lower/ && git clone 
+https://github.com/kdlucas/byte-unixbench.git
 
- fs/overlayfs/copy_up.c | 43 ++++++++++++++++++++++++++++++++++++++++--
- 1 file changed, 41 insertions(+), 2 deletions(-)
+2. mount -t overlay overlay 
+-olowerdir=/mnt/lower,upperdir=/mnt/upper,workdir=/mnt/work /mnt/merge
 
-diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
-index b801c6353100..10a2ae452393 100644
---- a/fs/overlayfs/copy_up.c
-+++ b/fs/overlayfs/copy_up.c
-@@ -123,6 +123,9 @@ static int ovl_copy_up_data(struct path *old, struct pa=
-th *new, loff_t len)
- =09loff_t old_pos =3D 0;
- =09loff_t new_pos =3D 0;
- =09loff_t cloned;
-+=09loff_t old_next_data_pos;
-+=09loff_t hole_len;
-+=09bool skip_hole =3D false;
- =09int error =3D 0;
-=20
- =09if (len =3D=3D 0)
-@@ -144,7 +147,11 @@ static int ovl_copy_up_data(struct path *old, struct p=
-ath *new, loff_t len)
- =09=09goto out;
- =09/* Couldn't clone, so now we try to copy the data */
-=20
--=09/* FIXME: copy up sparse files efficiently */
-+=09/* Check if lower fs supports seek operation */
-+=09if (old_file->f_mode & FMODE_LSEEK &&
-+=09    old_file->f_op->llseek)
-+=09=09skip_hole =3D true;
-+
- =09while (len) {
- =09=09size_t this_len =3D OVL_COPY_UP_CHUNK_SIZE;
- =09=09long bytes;
-@@ -157,6 +164,38 @@ static int ovl_copy_up_data(struct path *old, struct p=
-ath *new, loff_t len)
- =09=09=09break;
- =09=09}
-=20
-+=09=09/*
-+=09=09 * Fill zero for hole will cost unnecessary disk space
-+=09=09 * and meanwhile slow down the copy-up speed, so we do
-+=09=09 * an optimization for hole during copy-up, it relies
-+=09=09 * on SEEK_DATA implementation in lower fs so if lower
-+=09=09 * fs does not support it, copy-up will behave as before.
-+=09=09 *
-+=09=09 * Detail logic of hole detection as below:
-+=09=09 * When we detect next data position is larger than current
-+=09=09 * position we will skip that hole, otherwise we copy
-+=09=09 * data in the size of OVL_COPY_UP_CHUNK_SIZE. Actually,
-+=09=09 * it may not recognize all kind of holes and sometimes
-+=09=09 * only skips partial of hole area. However, it will be
-+=09=09 * enough for most of the use cases.
-+=09=09 */
-+
-+=09=09if (skip_hole) {
-+=09=09=09old_next_data_pos =3D vfs_llseek(old_file,
-+=09=09=09=09=09=09old_pos, SEEK_DATA);
-+=09=09=09if (old_next_data_pos > old_pos) {
-+=09=09=09=09hole_len =3D old_next_data_pos - old_pos;
-+=09=09=09=09old_pos +=3D hole_len;
-+=09=09=09=09new_pos +=3D hole_len;
-+=09=09=09=09len -=3D hole_len;
-+=09=09=09=09continue;
-+=09=09=09} else if (old_next_data_pos =3D=3D -ENXIO) {
-+=09=09=09=09break;
-+=09=09=09} else if (old_next_data_pos < 0) {
-+=09=09=09=09skip_hole =3D false;
-+=09=09=09}
-+=09=09}
-+
- =09=09bytes =3D do_splice_direct(old_file, &old_pos,
- =09=09=09=09=09 new_file, &new_pos,
- =09=09=09=09=09 this_len, SPLICE_F_MOVE);
-@@ -483,7 +522,7 @@ static int ovl_copy_up_inode(struct ovl_copy_up_ctx *c,=
- struct dentry *temp)
- =09}
-=20
- =09inode_lock(temp->d_inode);
--=09if (c->metacopy)
-+=09if (S_ISREG(c->stat.mode))
- =09=09err =3D ovl_set_size(temp, &c->stat);
- =09if (!err)
- =09=09err =3D ovl_set_attr(temp, &c->stat);
---=20
-2.20.1
+3. cd /mnt/merge/byte-unixbench/UnixBench && ./Run -c 1 -i 1 fstime
+
+
+The score is 2870 before applying the patch, while it is 1780 after 
+applying the patch, causing a 40% performance regression.
+
+The testcase repeatedly reads 1024 bytes from one file and writes the 
+readed data into another file, while both these two files
+
+are created under /mnt/merge/tmp.  I have testsed the latest kernel 
+5.4.0-rc4+, same results.
+
+
+The perf shows that there's extra one call of file_remove_privs(), 
+override_creds() and revert_creds() every write() syscall,
+
+among which file_remove_privs() is pretty expensive.
+
+
+- perf data before applying the patch.
+
+```
+
+-   53.00%     0.93%  fstime    [kernel.kallsyms]   [k] __vfs_write
+    - 52.08% __vfs_write
+       - 51.94% ext4_file_write_iter
+          + 48.89% __generic_file_write_iter
+            0.83% down_write_trylock
+            0.79% up_write
+
+```
+
+
+- perf data after applying the patch.
+
+```
+
++   94.88%     0.00%  fstime    [kernel.kallsyms]   [k] 
+entry_SYSCALL_64_after_hwframe
++   94.88%     4.67%  fstime    [kernel.kallsyms]   [k] do_syscall_64
++   66.08%     1.60%  fstime    libc-2.17.so        [.] __GI___libc_write
++   62.37%     0.23%  fstime    [kernel.kallsyms]   [k] ksys_write
++   61.74%     0.62%  fstime    [kernel.kallsyms]   [k] vfs_write
+-   60.10%     0.49%  fstime    [kernel.kallsyms]   [k] __vfs_write
+    - 59.61% __vfs_write
+       - 59.56% ovl_write_iter
+          - 33.81% do_iter_write
+             - 32.50% do_iter_readv_writev
+                + ext4_file_write_iter
+          + 19.15% file_remove_privs
+            2.15% revert_creds
+            2.02% override_creds
+            0.64% down_write
+            0.63% up_write
+
+```
+
+
+Regards.
+
+Jeffle
