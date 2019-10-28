@@ -1,88 +1,48 @@
-Return-Path: <jefflexu@linux.alibaba.com>
-From: JeffleXu <jefflexu@linux.alibaba.com>
-Subject: Performance regression caused by stack operation of regular file
-Message-ID: <ae928bd7-001a-061e-01f0-43b53a0adcd1@linux.alibaba.com>
-Date: Mon, 28 Oct 2019 14:21:22 +0800
+Return-Path: <amir73il@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
-To: miklos@szeredi.hu
-Cc: linux-unionfs@vger.kernel.org
+References: <20191024122923.24689-1-cgxu519@mykernel.net> <CAOQ4uxidZ=g29hGmKxinRA4Gp6CiWbOB9RqLWPPFXwtCB4DWog@mail.gmail.com>
+ <16e007f78f9.12a9e815231850.7849365151361114799@mykernel.net>
+ <CAOQ4uxgZDKnMGB3pbCJpyH_RxWzbEHLQMB2Mpc10PK=7=xYLOg@mail.gmail.com>
+ <16e1244e1c9.ccaa038637864.8395134351025208019@mykernel.net>
+ <CAOQ4uxjFvTTbKRW1BChnzfNSqg1yeyM3gjwjZ77i161D_XLFRg@mail.gmail.com> <16e12b4c2d4.107038d9f36138.3957762737837230842@mykernel.net>
+In-Reply-To: <16e12b4c2d4.107038d9f36138.3957762737837230842@mykernel.net>
+From: Amir Goldstein <amir73il@gmail.com>
+Date: Mon, 28 Oct 2019 16:34:11 +0200
+Message-ID: <CAOQ4uxiw2EoeEW4bDCAYypaVZM9Ecqz1w=HHrM4KLaXfZNBNgw@mail.gmail.com>
+Subject: Re: [PATCH v3] overlay/066: copy-up test for variant sparse files
+Content-Type: text/plain; charset="UTF-8"
+To: Chengguang Xu <cgxu519@mykernel.net>
+Cc: fstests <fstests@vger.kernel.org>, overlayfs <linux-unionfs@vger.kernel.org>, Eryu Guan <guaneryu@gmail.com>, Miklos Szeredi <miklos@szeredi.hu>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-Hi, Miklos,
+>  >
+>  > Not sure. I don't think we should target the test by what we know your
+>  > patch does, but by maximizing test coverage in a cost effective way.
+>  >
+>  > Creating a 10M file with so many small holes doesn't add much to test
+>  > coverage IMO. If you feel those are needed, you should use a C helper
+>  > to create those files more efficiently.
+>  >
+>  > BTW I think what is missing from test coverage is small holes
+>  > that are not aligned to 1M boundary.
+>  >
+>
+> Agreed.
+>
+> So how about change test pattern to below, it will cover  most of the
+> cases that we want. I haven't done test for the performance(test time)
+> but I think it will be fast enough.
+>
+>
+> One 4K empty file.
+> One 4M empty file.
+> One 10M file with random small holes (4K~512K)
+> One 100M file with random big holes (1M~5M)
+>
+>
 
-I noticed a performance regression of reading/writing files in mergeddir 
-caused by commit a6518f73e60e5044656d1ba587e7463479a9381a (vfs: don't 
-open real), using unixbench fstime.
+It sounds like a good addition, but maybe lets keep
+the files with aligned holes iosize*10 in size?
 
-
-Reproduce Steps:
-
-1. cd /mnt/lower/ && git clone 
-https://github.com/kdlucas/byte-unixbench.git
-
-2. mount -t overlay overlay 
--olowerdir=/mnt/lower,upperdir=/mnt/upper,workdir=/mnt/work /mnt/merge
-
-3. cd /mnt/merge/byte-unixbench/UnixBench && ./Run -c 1 -i 1 fstime
-
-
-The score is 2870 before applying the patch, while it is 1780 after 
-applying the patch, causing a 40% performance regression.
-
-The testcase repeatedly reads 1024 bytes from one file and writes the 
-readed data into another file, while both these two files
-
-are created under /mnt/merge/tmp.  I have testsed the latest kernel 
-5.4.0-rc4+, same results.
-
-
-The perf shows that there's extra one call of file_remove_privs(), 
-override_creds() and revert_creds() every write() syscall,
-
-among which file_remove_privs() is pretty expensive.
-
-
-- perf data before applying the patch.
-
-```
-
--   53.00%     0.93%  fstime    [kernel.kallsyms]   [k] __vfs_write
-    - 52.08% __vfs_write
-       - 51.94% ext4_file_write_iter
-          + 48.89% __generic_file_write_iter
-            0.83% down_write_trylock
-            0.79% up_write
-
-```
-
-
-- perf data after applying the patch.
-
-```
-
-+   94.88%     0.00%  fstime    [kernel.kallsyms]   [k] 
-entry_SYSCALL_64_after_hwframe
-+   94.88%     4.67%  fstime    [kernel.kallsyms]   [k] do_syscall_64
-+   66.08%     1.60%  fstime    libc-2.17.so        [.] __GI___libc_write
-+   62.37%     0.23%  fstime    [kernel.kallsyms]   [k] ksys_write
-+   61.74%     0.62%  fstime    [kernel.kallsyms]   [k] vfs_write
--   60.10%     0.49%  fstime    [kernel.kallsyms]   [k] __vfs_write
-    - 59.61% __vfs_write
-       - 59.56% ovl_write_iter
-          - 33.81% do_iter_write
-             - 32.50% do_iter_readv_writev
-                + ext4_file_write_iter
-          + 19.15% file_remove_privs
-            2.15% revert_creds
-            2.02% override_creds
-            0.64% down_write
-            0.63% up_write
-
-```
-
-
-Regards.
-
-Jeffle
+Thanks,
+Amir.
