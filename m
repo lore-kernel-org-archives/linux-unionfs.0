@@ -1,49 +1,37 @@
-From: "J. Bruce Fields" <bfields@fieldses.org>
-Subject: Re: [PATCH v14 2/5] overlayfs: check CAP_DAC_READ_SEARCH before
- issuing exportfs_decode_fh
-Date: Mon, 28 Oct 2019 12:27:17 -0400
-Message-ID: <20191028162717.GB5339@fieldses.org>
-References: <20191022204453.97058-1-salyzyn@android.com>
- <20191022204453.97058-3-salyzyn@android.com>
- <CAJfpegsCzwXF5fD1oA+XMrPQ7u8URsXRGOOHkB=ON7fLnd_gFQ@mail.gmail.com>
- <CAOQ4uxh_K=p7z+qbkjSf_+hhVsw9xBuNc61dYnpkHFVUfxJaCw@mail.gmail.com>
+From: "Serge E. Hallyn" <serge@hallyn.com>
+Subject: Re: [RFC PATCH 0/5] allow unprivileged overlay mounts
+Date: Tue, 29 Oct 2019 12:01:37 -0500
+Message-ID: <20191029170137.GA21633@mail.hallyn.com>
+References: <20191025112917.22518-1-mszeredi@redhat.com>
+ <CAJfpegv1SA7b45_2g-GFYrc7ZsOmcQ2qv602n=85L4RknkOvKQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <CAOQ4uxh_K=p7z+qbkjSf_+hhVsw9xBuNc61dYnpkHFVUfxJaCw@mail.gmail.com>
+In-Reply-To: <CAJfpegv1SA7b45_2g-GFYrc7ZsOmcQ2qv602n=85L4RknkOvKQ@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, Mark Salyzyn <salyzyn@android.com>, linux-kernel <linux-kernel@vger.kernel.org>, kernel-team@android.com, Jonathan Corbet <corbet@lwn.net>, Vivek Goyal <vgoyal@redhat.com>, "Eric W . Biederman" <ebiederm@xmission.com>, Randy Dunlap <rdunlap@infradead.org>, Stephen Smalley <sds@tycho.nsa.gov>, overlayfs <linux-unionfs@vger.kernel.org>, linux-doc@vger.kernel.org, Linux NFS Mailing List <linux-nfs@vger.kernel.org>, Jeff Layton <jlayton@kernel.org>
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: "Eric W . Biederman" <ebiederm@xmission.com>, overlayfs <linux-unionfs@vger.kernel.org>, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 
-On Sun, Oct 27, 2019 at 09:24:52AM +0200, Amir Goldstein wrote:
-> Well, it's not that simple (TM).
-> If you are considering unprivileged overlay mounts, then this should be
-> ns_capable() check, even though open_by_handle_at(2) does not
-> currently allow userspace nfsd to decode file handles.
+On Fri, Oct 25, 2019 at 01:35:20PM +0200, Miklos Szeredi wrote:
+> On Fri, Oct 25, 2019 at 1:30 PM Miklos Szeredi <mszeredi@redhat.com> wrote:
+> >
+> > Hi Eric,
+> >
+> > Can you please have a look at this patchset?
+> >
+> > The most interesting one is the last oneliner adding FS_USERNS_MOUNT;
+> > whether I'm correct in stating that this isn't going to introduce any
+> > holes, or not...
 > 
-> Unlike open_by_handle_at(2), overlayfs (currently) never exposes file
-> data via decoded origin fh. AFAIK, it only exposes the origin st_ino
-> st_dev and some nlink related accounting.
+> Forgot the git tree:
 > 
-> I have been trying to understand from code if nfsd exports are allowed
-> from non privileged containers and couldn't figure it out (?).
-> If non privileged container is allowed to export nosubtreecheck export
-> then non privileged container root can already decode file handles...
+> git://git.kernel.org/pub/scm/linux/kernel/git/mszeredi/vfs.git#ovl-unpriv
+> 
+> Thanks,
+> Miklos
 
-I don't see any special checks in nfsctl_transaction_write() or
-write_threads().  I guess it's just depending on the (0600) file
-permissions.  I'm vague on how file permissions work in containers.
+I've looked through it, seemed sensible to me.
 
-The issue with filehandles is that they allow you to bypass directory
-lookup permissions.  Keeping a file private by denying permission to
-look it up doesn't sound like a good idea to me, honestly, but it does
-work on local posix filesystems, so we don't want to break that.
-
-Filehandles are generally pretty easy to guess, and can't be revoked, so
-we're more worried about using them (with open_by_handle_at()) than
-reading them (with name_to_handle_at()), but we try to prevent the
-latter as well.
-
---b.
+-serge
