@@ -1,305 +1,131 @@
-Return-Path: <amir73il@gmail.com>
-Return-Path: <amir73il@gmail.com>
-From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH 2/6] ovl: generalize the lower_layers[] array
-Date: Sun, 17 Nov 2019 17:43:45 +0200
-Message-Id: <20191117154349.28695-3-amir73il@gmail.com>
-In-Reply-To: <20191117154349.28695-1-amir73il@gmail.com>
-References: <20191117154349.28695-1-amir73il@gmail.com>
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: Colin Ian King <colin.king@canonical.com>, linux-unionfs@vger.kernel.org
+Return-Path: <cgxu519@mykernel.net>
+From: Chengguang Xu <cgxu519@mykernel.net>
+Message-ID: <20191101123551.8849-1-cgxu519@mykernel.net>
+Subject: [PATCH v4] ovl: improving copy-up efficiency for big sparse file
+Date: Fri,  1 Nov 2019 20:35:51 +0800
+MIME-Version: 1.0
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=utf8
+To: miklos@szeredi.hu, amir73il@gmail.com
+Cc: linux-unionfs@vger.kernel.org, Chengguang Xu <cgxu519@mykernel.net>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-Rename lower_layers[] array to layers[], extend its size by one
-and initialize layers[0] with upper layer values.
-Lower layers are now addressed with index 1..numlower.
-layers[0] is reserved even with lower only overlay.
+Current copy-up is not efficient for big sparse file,
+It's not only slow but also wasting more disk space
+when the target lower file has huge hole inside.
+This patch tries to recognize file hole and skip it
+during copy-up.
 
-This gets rid of special casing upper layer in ovl_iterate_real().
+Detail logic of hole detection as below:
+When we detect next data position is larger than current
+position we will skip that hole, otherwise we copy
+data in the size of OVL_COPY_UP_CHUNK_SIZE. Actually,
+it may not recognize all kind of holes and sometimes
+only skips partial of hole area. However, it will be
+enough for most of the use cases.
 
-Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+Additionally, this optimization relies on lseek(2)
+SEEK_DATA implementation, so for some specific
+filesystems which do not support this feature
+will behave as before on copy-up.
+
+Reviewed-by: Amir Goldstein <amir73il@gmail.com>
+Signed-off-by: Chengguang Xu <cgxu519@mykernel.net>
 ---
- fs/overlayfs/export.c    |  6 ++----
- fs/overlayfs/inode.c     |  4 ++--
- fs/overlayfs/namei.c     | 10 +++++-----
- fs/overlayfs/overlayfs.h |  2 +-
- fs/overlayfs/ovl_entry.h |  2 +-
- fs/overlayfs/readdir.c   |  7 +++----
- fs/overlayfs/super.c     | 43 ++++++++++++++++++++++------------------
- fs/overlayfs/util.c      |  6 ++++--
- 8 files changed, 42 insertions(+), 38 deletions(-)
+v1->v2:
+- Set file size when the hole is in the end of the file.
+- Add a code comment for hole copy-up improvement.
+- Check SEEK_DATA support before doing hole skip.
+- Back to original copy-up when seek data fails(in error case).
 
-diff --git a/fs/overlayfs/export.c b/fs/overlayfs/export.c
-index 70e55588aedc..9128cbb3b198 100644
---- a/fs/overlayfs/export.c
-+++ b/fs/overlayfs/export.c
-@@ -424,7 +424,6 @@ static struct dentry *ovl_lookup_real_inode(struct super_block *sb,
- 					    struct ovl_layer *layer)
- {
- 	struct ovl_fs *ofs = sb->s_fs_info;
--	struct ovl_layer upper_layer = { .mnt = ofs->upper_mnt };
- 	struct dentry *index = NULL;
- 	struct dentry *this = NULL;
- 	struct inode *inode;
-@@ -466,7 +465,7 @@ static struct dentry *ovl_lookup_real_inode(struct super_block *sb,
- 		 * recursive call walks back from indexed upper to the topmost
- 		 * connected/hashed upper parent (or up to root).
- 		 */
--		this = ovl_lookup_real(sb, upper, &upper_layer);
-+		this = ovl_lookup_real(sb, upper, &ofs->layers[0]);
- 		dput(upper);
- 	}
- 
-@@ -646,8 +645,7 @@ static struct dentry *ovl_get_dentry(struct super_block *sb,
- 				     struct dentry *index)
- {
- 	struct ovl_fs *ofs = sb->s_fs_info;
--	struct ovl_layer upper_layer = { .mnt = ofs->upper_mnt };
--	struct ovl_layer *layer = upper ? &upper_layer : lowerpath->layer;
-+	struct ovl_layer *layer = upper ? &ofs->layers[0] : lowerpath->layer;
- 	struct dentry *real = upper ?: (index ?: lowerpath->dentry);
- 
- 	/*
-diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
-index b045cf1826fc..dab39933bbd4 100644
---- a/fs/overlayfs/inode.c
-+++ b/fs/overlayfs/inode.c
-@@ -170,7 +170,7 @@ int ovl_getattr(const struct path *path, struct kstat *stat,
- 	 */
- 	if (!is_dir || samefs || ovl_xino_bits(dentry->d_sb)) {
- 		if (!OVL_TYPE_UPPER(type)) {
--			lower_layer = ovl_layer_lower(dentry);
-+			lower_layer = ovl_dentry_layer(dentry);
- 		} else if (OVL_TYPE_ORIGIN(type)) {
- 			struct kstat lowerstat;
- 			u32 lowermask = STATX_INO | STATX_BLOCKS |
-@@ -200,7 +200,7 @@ int ovl_getattr(const struct path *path, struct kstat *stat,
- 			if (ovl_test_flag(OVL_INDEX, d_inode(dentry)) ||
- 			    (!ovl_verify_lower(dentry->d_sb) &&
- 			     (is_dir || lowerstat.nlink == 1))) {
--				lower_layer = ovl_layer_lower(dentry);
-+				lower_layer = ovl_dentry_layer(dentry);
- 				/*
- 				 * Cannot use origin st_dev;st_ino because
- 				 * origin inode content may differ from overlay
-diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
-index 80fbca5219d4..f16bf608eed7 100644
---- a/fs/overlayfs/namei.c
-+++ b/fs/overlayfs/namei.c
-@@ -324,16 +324,16 @@ int ovl_check_origin_fh(struct ovl_fs *ofs, struct ovl_fh *fh, bool connected,
- 	struct dentry *origin = NULL;
- 	int i;
- 
--	for (i = 0; i < ofs->numlower; i++) {
-+	for (i = 1; i <= ofs->numlower; i++) {
- 		/*
- 		 * If lower fs uuid is not unique among lower fs we cannot match
- 		 * fh->uuid to layer.
- 		 */
--		if (ofs->lower_layers[i].fsid &&
--		    ofs->lower_layers[i].fs->bad_uuid)
-+		if (ofs->layers[i].fsid &&
-+		    ofs->layers[i].fs->bad_uuid)
- 			continue;
- 
--		origin = ovl_decode_real_fh(fh, ofs->lower_layers[i].mnt,
-+		origin = ovl_decode_real_fh(fh, ofs->layers[i].mnt,
- 					    connected);
- 		if (origin)
- 			break;
-@@ -356,7 +356,7 @@ int ovl_check_origin_fh(struct ovl_fs *ofs, struct ovl_fh *fh, bool connected,
- 	}
- 	**stackp = (struct ovl_path){
- 		.dentry = origin,
--		.layer = &ofs->lower_layers[i]
-+		.layer = &ofs->layers[i]
- 	};
- 
- 	return 0;
-diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-index f283b1d69a9e..50d41a314308 100644
---- a/fs/overlayfs/overlayfs.h
-+++ b/fs/overlayfs/overlayfs.h
-@@ -237,7 +237,7 @@ enum ovl_path_type ovl_path_real(struct dentry *dentry, struct path *path);
- struct dentry *ovl_dentry_upper(struct dentry *dentry);
- struct dentry *ovl_dentry_lower(struct dentry *dentry);
- struct dentry *ovl_dentry_lowerdata(struct dentry *dentry);
--struct ovl_layer *ovl_layer_lower(struct dentry *dentry);
-+struct ovl_layer *ovl_dentry_layer(struct dentry *dentry);
- struct dentry *ovl_dentry_real(struct dentry *dentry);
- struct dentry *ovl_i_dentry_upper(struct inode *inode);
- struct inode *ovl_inode_upper(struct inode *inode);
-diff --git a/fs/overlayfs/ovl_entry.h b/fs/overlayfs/ovl_entry.h
-index 28348c44ea5b..ffaf7376f4ab 100644
---- a/fs/overlayfs/ovl_entry.h
-+++ b/fs/overlayfs/ovl_entry.h
-@@ -48,7 +48,7 @@ struct ovl_fs {
- 	unsigned int numlower;
- 	/* Number of unique lower sb that differ from upper sb */
- 	unsigned int numlowerfs;
--	struct ovl_layer *lower_layers;
-+	struct ovl_layer *layers;
- 	struct ovl_sb *lower_fs;
- 	/* workbasedir is the path at workdir= mount option */
- 	struct dentry *workbasedir;
-diff --git a/fs/overlayfs/readdir.c b/fs/overlayfs/readdir.c
-index 47a91c9733a5..32a7f8a38091 100644
---- a/fs/overlayfs/readdir.c
-+++ b/fs/overlayfs/readdir.c
-@@ -508,7 +508,7 @@ static int ovl_cache_update_ino(struct path *path, struct ovl_cache_entry *p)
- 		ino = stat.ino;
- 	} else if (xinobits && !OVL_TYPE_UPPER(type)) {
- 		ino = ovl_remap_lower_ino(ino, xinobits,
--					  ovl_layer_lower(this)->fsid,
-+					  ovl_dentry_layer(this)->fsid,
- 					  p->name, p->len);
- 	}
- 
-@@ -685,15 +685,14 @@ static int ovl_iterate_real(struct file *file, struct dir_context *ctx)
- 	int err;
- 	struct ovl_dir_file *od = file->private_data;
- 	struct dentry *dir = file->f_path.dentry;
--	struct ovl_layer *lower_layer = ovl_layer_lower(dir);
- 	struct ovl_readdir_translate rdt = {
- 		.ctx.actor = ovl_fill_real,
- 		.orig_ctx = ctx,
- 		.xinobits = ovl_xino_bits(dir->d_sb),
- 	};
- 
--	if (rdt.xinobits && lower_layer)
--		rdt.fsid = lower_layer->fsid;
-+	if (rdt.xinobits)
-+		rdt.fsid = ovl_dentry_layer(dir)->fsid;
- 
- 	if (OVL_TYPE_MERGE(ovl_path_type(dir->d_parent))) {
- 		struct kstat stat;
-diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-index cfb236e37fd9..4ff6eede5f90 100644
---- a/fs/overlayfs/super.c
-+++ b/fs/overlayfs/super.c
-@@ -224,13 +224,13 @@ static void ovl_free_fs(struct ovl_fs *ofs)
- 	if (ofs->upperdir_locked)
- 		ovl_inuse_unlock(ofs->upper_mnt->mnt_root);
- 	mntput(ofs->upper_mnt);
--	for (i = 0; i < ofs->numlower; i++) {
--		iput(ofs->lower_layers[i].trap);
--		mntput(ofs->lower_layers[i].mnt);
-+	for (i = 1; i <= ofs->numlower; i++) {
-+		iput(ofs->layers[i].trap);
-+		mntput(ofs->layers[i].mnt);
- 	}
- 	for (i = 0; i < ofs->numlowerfs; i++)
- 		free_anon_bdev(ofs->lower_fs[i].pseudo_dev);
--	kfree(ofs->lower_layers);
-+	kfree(ofs->layers);
- 	kfree(ofs->lower_fs);
- 
- 	kfree(ofs->config.lowerdir);
-@@ -1318,16 +1318,16 @@ static int ovl_get_fsid(struct ovl_fs *ofs, const struct path *path)
- 	return ofs->numlowerfs;
- }
- 
--static int ovl_get_lower_layers(struct super_block *sb, struct ovl_fs *ofs,
--				struct path *stack, unsigned int numlower)
-+static int ovl_get_layers(struct super_block *sb, struct ovl_fs *ofs,
-+			  struct path *stack, unsigned int numlower)
- {
- 	int err;
- 	unsigned int i;
- 
- 	err = -ENOMEM;
--	ofs->lower_layers = kcalloc(numlower, sizeof(struct ovl_layer),
--				    GFP_KERNEL);
--	if (ofs->lower_layers == NULL)
-+	ofs->layers = kcalloc(numlower + 1, sizeof(struct ovl_layer),
-+			      GFP_KERNEL);
-+	if (ofs->layers == NULL)
- 		goto out;
- 
- 	ofs->lower_fs = kcalloc(numlower, sizeof(struct ovl_sb),
-@@ -1335,6 +1335,11 @@ static int ovl_get_lower_layers(struct super_block *sb, struct ovl_fs *ofs,
- 	if (ofs->lower_fs == NULL)
- 		goto out;
- 
-+	/* idx 0 is reserved for upper fs even with lower only overlay */
-+	ofs->layers[0].mnt = ofs->upper_mnt;
-+	ofs->layers[0].idx = 0;
-+	ofs->layers[0].fsid = 0;
+v2->v3:
+- Detect big continuous holes in an effective way.
+- Modify changelog and code comment.
+- Set file size in the end of ovl_copy_up_inode().
+
+v3->v4:
+- Truncate var name of old_next_data_pos to data_pos.
+- Check hole only when data_pos < old_pos.
+
+ fs/overlayfs/copy_up.c | 41 +++++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 39 insertions(+), 2 deletions(-)
+
+diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
+index b801c6353100..55f1e81507ca 100644
+--- a/fs/overlayfs/copy_up.c
++++ b/fs/overlayfs/copy_up.c
+@@ -123,6 +123,9 @@ static int ovl_copy_up_data(struct path *old, struct pa=
+th *new, loff_t len)
+ =09loff_t old_pos =3D 0;
+ =09loff_t new_pos =3D 0;
+ =09loff_t cloned;
++=09loff_t data_pos =3D -1;
++=09loff_t hole_len;
++=09bool skip_hole =3D false;
+ =09int error =3D 0;
+=20
+ =09if (len =3D=3D 0)
+@@ -144,7 +147,11 @@ static int ovl_copy_up_data(struct path *old, struct p=
+ath *new, loff_t len)
+ =09=09goto out;
+ =09/* Couldn't clone, so now we try to copy the data */
+=20
+-=09/* FIXME: copy up sparse files efficiently */
++=09/* Check if lower fs supports seek operation */
++=09if (old_file->f_mode & FMODE_LSEEK &&
++=09    old_file->f_op->llseek)
++=09=09skip_hole =3D true;
 +
- 	for (i = 0; i < numlower; i++) {
- 		struct vfsmount *mnt;
- 		struct inode *trap;
-@@ -1368,15 +1373,15 @@ static int ovl_get_lower_layers(struct super_block *sb, struct ovl_fs *ofs,
- 		 */
- 		mnt->mnt_flags |= MNT_READONLY | MNT_NOATIME;
- 
--		ofs->lower_layers[ofs->numlower].trap = trap;
--		ofs->lower_layers[ofs->numlower].mnt = mnt;
--		ofs->lower_layers[ofs->numlower].idx = i + 1;
--		ofs->lower_layers[ofs->numlower].fsid = fsid;
-+		ofs->numlower++;
-+		ofs->layers[ofs->numlower].trap = trap;
-+		ofs->layers[ofs->numlower].mnt = mnt;
-+		ofs->layers[ofs->numlower].idx = ofs->numlower;
-+		ofs->layers[ofs->numlower].fsid = fsid;
- 		if (fsid) {
--			ofs->lower_layers[ofs->numlower].fs =
-+			ofs->layers[ofs->numlower].fs =
- 				&ofs->lower_fs[fsid - 1];
- 		}
--		ofs->numlower++;
- 	}
- 
- 	/*
-@@ -1463,7 +1468,7 @@ static struct ovl_entry *ovl_get_lowerstack(struct super_block *sb,
- 		goto out_err;
- 	}
- 
--	err = ovl_get_lower_layers(sb, ofs, stack, numlower);
-+	err = ovl_get_layers(sb, ofs, stack, numlower);
- 	if (err)
- 		goto out_err;
- 
-@@ -1474,7 +1479,7 @@ static struct ovl_entry *ovl_get_lowerstack(struct super_block *sb,
- 
- 	for (i = 0; i < numlower; i++) {
- 		oe->lowerstack[i].dentry = dget(stack[i].dentry);
--		oe->lowerstack[i].layer = &ofs->lower_layers[i];
-+		oe->lowerstack[i].layer = &ofs->layers[i+1];
- 	}
- 
- 	if (remote)
-@@ -1555,9 +1560,9 @@ static int ovl_check_overlapping_layers(struct super_block *sb,
- 			return err;
- 	}
- 
--	for (i = 0; i < ofs->numlower; i++) {
-+	for (i = 1; i <= ofs->numlower; i++) {
- 		err = ovl_check_layer(sb, ofs,
--				      ofs->lower_layers[i].mnt->mnt_root,
-+				      ofs->layers[i].mnt->mnt_root,
- 				      "lowerdir");
- 		if (err)
- 			return err;
-diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
-index f5678a3f8350..3fa1ca8ddd48 100644
---- a/fs/overlayfs/util.c
-+++ b/fs/overlayfs/util.c
-@@ -198,11 +198,13 @@ struct dentry *ovl_dentry_lower(struct dentry *dentry)
- 	return oe->numlower ? oe->lowerstack[0].dentry : NULL;
- }
- 
--struct ovl_layer *ovl_layer_lower(struct dentry *dentry)
-+/* Either top most lower layer or upper layer for pure upper */
-+struct ovl_layer *ovl_dentry_layer(struct dentry *dentry)
- {
-+	struct ovl_fs *ofs = dentry->d_sb->s_fs_info;
- 	struct ovl_entry *oe = dentry->d_fsdata;
- 
--	return oe->numlower ? oe->lowerstack[0].layer : NULL;
-+	return oe->numlower ? oe->lowerstack[0].layer : &ofs->layers[0];
- }
- 
- /*
--- 
-2.17.1
+ =09while (len) {
+ =09=09size_t this_len =3D OVL_COPY_UP_CHUNK_SIZE;
+ =09=09long bytes;
+@@ -157,6 +164,36 @@ static int ovl_copy_up_data(struct path *old, struct p=
+ath *new, loff_t len)
+ =09=09=09break;
+ =09=09}
+=20
++=09=09/*
++=09=09 * Fill zero for hole will cost unnecessary disk space
++=09=09 * and meanwhile slow down the copy-up speed, so we do
++=09=09 * an optimization for hole during copy-up, it relies
++=09=09 * on SEEK_DATA implementation in lower fs so if lower
++=09=09 * fs does not support it, copy-up will behave as before.
++=09=09 *
++=09=09 * Detail logic of hole detection as below:
++=09=09 * When we detect next data position is larger than current
++=09=09 * position we will skip that hole, otherwise we copy
++=09=09 * data in the size of OVL_COPY_UP_CHUNK_SIZE. Actually,
++=09=09 * it may not recognize all kind of holes and sometimes
++=09=09 * only skips partial of hole area. However, it will be
++=09=09 * enough for most of the use cases.
++=09=09 */
++
++=09=09if (skip_hole && data_pos < old_pos) {
++=09=09=09data_pos =3D vfs_llseek(old_file, old_pos, SEEK_DATA);
++=09=09=09if (data_pos > old_pos) {
++=09=09=09=09hole_len =3D data_pos - old_pos;
++=09=09=09=09len -=3D hole_len;
++=09=09=09=09old_pos =3D new_pos =3D data_pos;
++=09=09=09=09continue;
++=09=09=09} else if (data_pos =3D=3D -ENXIO) {
++=09=09=09=09break;
++=09=09=09} else if (data_pos < 0) {
++=09=09=09=09skip_hole =3D false;
++=09=09=09}
++=09=09}
++
+ =09=09bytes =3D do_splice_direct(old_file, &old_pos,
+ =09=09=09=09=09 new_file, &new_pos,
+ =09=09=09=09=09 this_len, SPLICE_F_MOVE);
+@@ -483,7 +520,7 @@ static int ovl_copy_up_inode(struct ovl_copy_up_ctx *c,=
+ struct dentry *temp)
+ =09}
+=20
+ =09inode_lock(temp->d_inode);
+-=09if (c->metacopy)
++=09if (S_ISREG(c->stat.mode))
+ =09=09err =3D ovl_set_size(temp, &c->stat);
+ =09if (!err)
+ =09=09err =3D ovl_set_attr(temp, &c->stat);
+--=20
+2.20.1
