@@ -1,29 +1,43 @@
-Return-Path: <jiufei.xue@linux.alibaba.com>
-From: Jiufei Xue <jiufei.xue@linux.alibaba.com>
-Subject: [Regression] performance regression since v4.19
-Message-ID: <1086cadc-53c3-effd-5ba3-797a015944b5@linux.alibaba.com>
-Date: Tue, 12 Nov 2019 15:53:43 +0800
+Return-Path: <amir73il@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 8bit
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: overlayfs <linux-unionfs@vger.kernel.org>, Joseph Qi <joseph.qi@linux.alibaba.com>
+References: <20191030124431.11242-1-cgxu519@mykernel.net> <CAOQ4uxh670WFhwpQyPFTB2nUCSc9n1VmuyPOfdqiBSsq6GxLpQ@mail.gmail.com>
+ <16e204de70e.cefd69461771.2205150443916624303@mykernel.net>
+ <CAOQ4uxhdSXAvFQfhzZpBC=Xmmo9y+3AOU1o-tOWsLtr2ntU6Ag@mail.gmail.com> <16e314ad3bc.f4c363d96385.3761437052169638038@mykernel.net>
+In-Reply-To: <16e314ad3bc.f4c363d96385.3761437052169638038@mykernel.net>
+From: Amir Goldstein <amir73il@gmail.com>
+Date: Sun, 3 Nov 2019 16:46:05 +0200
+Message-ID: <CAOQ4uxj-hOu+TjGhUqgSbPocnZy=JDO62d6-FJC=raU6WkRvfA@mail.gmail.com>
+Subject: Re: [PATCH v2] ovl: improving copy-up efficiency for big sparse file
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+To: Chengguang Xu <cgxu519@mykernel.net>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, overlayfs <linux-unionfs@vger.kernel.org>, Vivek Goyal <vgoyal@redhat.com>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-Hi Miklos,
+On Sun, Nov 3, 2019 at 2:43 PM Chengguang Xu <cgxu519@mykernel.net> wrote:
+>
+>  ---- =E5=9C=A8 =E6=98=9F=E6=9C=9F=E5=9B=9B, 2019-10-31 14:53:15 Amir Gol=
+dstein <amir73il@gmail.com> =E6=92=B0=E5=86=99 ----
+>  > >  > Yes, overlayfs does not comply with this "posix"' test.
+>  > >  > This is why it was removed from the auto and quick groups.
+>  > >
+>  > > So I'm curious what is the purpose for the test?
+>  > >
+>  >
+>  > This is a POSIX compliance test.
+>  > It is meant to "remind" us that this behavior is not POSIX compliant
+>  > and that we should fix it one day...
+>  > A bit controversial to have a test like this without a roadmap
+>  > when it is going to be fixed in xfstests, but it's there.
+>
+> I haven't checked carefully for the detail but It seems  feasible if we c=
+opy-up lower file  during mmap regardless of ro/rw mode.
+> Is it acceptable  by slightly changing copy-up assumption to fulfill POSI=
+X compliance? Or we just wait for a better solution?
+>
 
-A performance regression is observed since linux v4.19 when we do aio
-test using fio with iodepth 128 on overlayfs. And we found that queue
-depth of the device is always 1 which is unexpected. 
+That was attempted in the past.
+It's complicated ;-)
 
-After investigation, it is found that commit 16914e6fc7
-(“ovl: add ovl_read_iter()”) and commit 2a92e07edc
-(“ovl: add ovl_write_iter()”) use do_iter_readv_writev() to submit
-requests to real filesystem. Async IOs are converted to sync IOs here
-and cause performance regression.
-
-I wondered that is this a design flaw or supposed to be.
-
-Thanks a lot,
-Jiufei
+Cheers,
+Amir.
