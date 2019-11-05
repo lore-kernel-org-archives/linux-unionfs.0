@@ -1,59 +1,54 @@
-From: Mark Salyzyn <salyzyn@android.com>
-Subject: Re: [PATCH v15 0/4] overlayfs override_creds=off & nested get xattr
- fix
-Date: Tue, 5 Nov 2019 07:20:10 -0800
-Message-ID: <97c4108f-3a9b-e58b-56e0-dfe2642cc1f5@android.com>
+From: Mark Salyzyn via Linux-f2fs-devel
+ <linux-f2fs-devel@lists.sourceforge.net>
+Subject: Re: [PATCH v15 1/4] Add flags option to get xattr method
+ paired to __vfs_getxattr
+Date: Tue, 5 Nov 2019 07:37:04 -0800
+Message-ID: <1de43656-e751-53a2-c0da-ff44ecbabbc4@android.com>
 References: <20191104215253.141818-1-salyzyn@android.com>
- <CAOQ4uxhoozGgxYmucFpFx8N=b4x9H3sfp60TNzf0dmU9eQi2UQ@mail.gmail.com>
+ <20191104215253.141818-2-salyzyn@android.com>
+ <20191105094830.GL22379@quack2.suse.cz>
+Reply-To: Mark Salyzyn <salyzyn@android.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAOQ4uxhoozGgxYmucFpFx8N=b4x9H3sfp60TNzf0dmU9eQi2UQ@mail.gmail.com>
+Return-path: <linux-f2fs-devel-bounces@lists.sourceforge.net>
+In-Reply-To: <20191105094830.GL22379@quack2.suse.cz>
 Content-Language: en-GB
-Sender: linux-kernel-owner@vger.kernel.org
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: linux-kernel <linux-kernel@vger.kernel.org>, kernel-team@android.com, Miklos Szeredi <miklos@szeredi.hu>, Jonathan Corbet <corbet@lwn.net>, Vivek Goyal <vgoyal@redhat.com>, "Eric W . Biederman" <ebiederm@xmission.com>, Randy Dunlap <rdunlap@infradead.org>, Stephen Smalley <sds@tycho.nsa.gov>, overlayfs <linux-unionfs@vger.kernel.org>, linux-doc@vger.kernel.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/options/linux-f2fs-devel>,
+ <mailto:linux-f2fs-devel-request@lists.sourceforge.net?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=linux-f2fs-devel>
+List-Post: <mailto:linux-f2fs-devel@lists.sourceforge.net>
+List-Help: <mailto:linux-f2fs-devel-request@lists.sourceforge.net?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/linux-f2fs-devel>,
+ <mailto:linux-f2fs-devel-request@lists.sourceforge.net?subject=subscribe>
+Errors-To: linux-f2fs-devel-bounces@lists.sourceforge.net
+To: Jan Kara <jack@suse.cz>
+Cc: Latchesar Ionkov <lucho@ionkov.net>, Dave Kleikamp <shaggy@kernel.org>, jfs-discussion@lists.sourceforge.net, linux-doc@vger.kernel.org, linux-integrity@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Martin Brandenburg <martin@omnibond.com>, samba-technical@lists.samba.org, Dominique Martinet <asmadeus@codewreck.org>, Artem Bityutskiy <dedekind1@gmail.com>, Adrian Hunter <adrian.hunter@intel.com>, David Howells <dhowells@redhat.com>, Chris Mason <clm@fb.com>, "David S. Miller" <davem@davemloft.net>, Andreas Dilger <adilger.kernel@dilger.ca>, Eric Paris <eparis@parisplace.org>, Mauro Carvalho Chehab <mchehab+samsung@kernel.org>, netdev@vger.kernel.org, linux-f2fs-devel@lists.sourceforge.net, linux-afs@lists.infradead.org, Mike Marshall <hubcap@omnibond.com>, linux-xfs@vger.kernel.org, linux-unionfs@vger.kernel.org, Andreas Gruenbacher <agruenba@redhat.c>
 List-Id: linux-unionfs@vger.kernel.org
 
-On 11/4/19 11:56 PM, Amir Goldstein wrote:
-> On Mon, Nov 4, 2019 at 11:53 PM Mark Salyzyn <salyzyn@android.com> wrote:
->> Patch series:
->>
->> Mark Salyzyn (4):
->>    Add flags option to get xattr method paired to __vfs_getxattr
-> Sigh.. did not get to fsdevel (again...) I already told you several times
-> that you need to use a shorter CC list.
-
-This is a direct result of the _required_ scripts/get_maintainer.pl 
-logic, I am not going to override it for first send. I was going to 
-forward to fsdevel after the messages settled, I am still waiting for 
-1/4 to land on lore before continuing.
-
-The first patch in the series needs to get in before the others. I was 
-told to send the first one individually because the series has so many 
-recipients and stakeholders, and <crickets> because no on could see the 
-reason for the patch once it was all by itself. So I rejoined the set so 
-they could see the reason for the first patch.
-
-If only the first patch in the series that added the flag argument got 
-in (somewhere), then the overlayfs portion would be much easier to handle.
-
->>    overlayfs: handle XATTR_NOSECURITY flag for get xattr method
->>    overlayfs: internal getxattr operations without sepolicy checking
->>    overlayfs: override_creds=off option bypass creator_cred
-> It would be better for review IMO if you rebase your series on top of
-> git://git.kernel.org/pub/scm/linux/kernel/git/mszeredi/vfs.git ovl-unpriv
-Will do, send it only to fsdevel, other recipients? What do I do with 
-get_maintainer.pl? The first patch in the series is noisy, I am getting 
-more and more uncomfortable sending it to the list as it looks more and 
-more like spam.
-> 1. internal getxattr patch would be a one liner change to ovl_own_getxattr()
-> 2. The documentation of override_creds would be much more
-> meaningful if it used the overlay permission model terminology
-> that Miklos added in his patch set and extend it
+On 11/5/19 1:48 AM, Jan Kara wrote:
+>> @@ -228,11 +228,11 @@ static int afs_xattr_get_yfs(const struct xattr_handler *handler,
+>>   		break;
+>>   	case 1:
+>>   		data = buf;
+>> -		dsize = snprintf(buf, sizeof(buf), "%u", yacl->inherit_flag);
+>> +		dsize = scnprintf(buf, sizeof(buf), "%u", yacl->inherit_flag);
+>>   		break;
+>>   	case 2:
+>>   		data = buf;
+>> -		dsize = snprintf(buf, sizeof(buf), "%u", yacl->num_cleaned);
+>> +		dsize = scnprintf(buf, sizeof(buf), "%u", yacl->num_cleaned);
+>>   		break;
+>>   	case 3:
+> These scnprintf() changes (and there are more in the patch) probably
+> shouldn't be here... Otherwise the patch still looks good to me :).
 >
-> Thanks,
-> Amir.
+> 								Honza
+>
+Good catch, they were done in locality, I forgot about them, this patch 
+series has been living for almost a year now and time has become its 
+enemy ... will spin this as a separate patch. They strike as a security 
+issue with the possibility of fragile UAF when the code is maintained by 
+future selves.
 
 -- Mark
