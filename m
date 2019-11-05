@@ -1,101 +1,38 @@
-From: Mark Salyzyn <salyzyn@android.com>
-Subject: Re: [PATCH v14 1/5] Add flags option to get xattr method paired to
- __vfs_getxattr
-Date: Mon, 4 Nov 2019 13:51:20 -0800
-Message-ID: <7b5f2964-10ce-021b-01f7-6b662bf0c09a@android.com>
-References: <20191022204453.97058-1-salyzyn@android.com>
- <20191022204453.97058-2-salyzyn@android.com>
- <8CE5B6E8-DCB7-4F0B-91C1-48030947F585@dilger.ca>
- <CAOQ4uxis-oQSjKrtBDi-8BQ2M3ve3w8o-YVGRwWLnq+5JLUttA@mail.gmail.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Subject: Re: [PATCH v15 0/4] overlayfs override_creds=off & nested get xattr fix
+Date: Tue, 5 Nov 2019 09:56:04 +0200
+Message-ID: <CAOQ4uxhoozGgxYmucFpFx8N=b4x9H3sfp60TNzf0dmU9eQi2UQ@mail.gmail.com>
+References: <20191104215253.141818-1-salyzyn@android.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAOQ4uxis-oQSjKrtBDi-8BQ2M3ve3w8o-YVGRwWLnq+5JLUttA@mail.gmail.com>
-Content-Language: en-GB
+In-Reply-To: <20191104215253.141818-1-salyzyn@android.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Amir Goldstein <amir73il@gmail.com>, Andreas Dilger <adilger@dilger.ca>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-doc@vger.kernel.org, CIFS <linux-cifs@vger.kernel.org>, kernel-team@android.com, selinux@vger.kernel.org, Linux FS-devel Mailing List <linux-fsdevel@vger.kernel.org>, Jonathan Corbet <corbet@lwn.net>, Ext4 Developers List <linux-ext4@vger.kernel.org>, Stephen Smalley <sds@tycho.nsa.gov>, overlayfs <linux-unionfs@vger.kernel.org>, Andreas Gruenbacher <agruenba@redhat.com>, ecryptfs@vger.kernel.org, LSM List <linux-security-module@vger.kernel.org>, Alexander Viro <viro@zeniv.linux.org.uk>, Christoph Hellwig <hch@infradead.org>
+To: Mark Salyzyn <salyzyn@android.com>
+Cc: linux-kernel <linux-kernel@vger.kernel.org>, kernel-team@android.com, Miklos Szeredi <miklos@szeredi.hu>, Jonathan Corbet <corbet@lwn.net>, Vivek Goyal <vgoyal@redhat.com>, "Eric W . Biederman" <ebiederm@xmission.com>, Randy Dunlap <rdunlap@infradead.org>, Stephen Smalley <sds@tycho.nsa.gov>, overlayfs <linux-unionfs@vger.kernel.org>, linux-doc@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 
-On 10/23/19 9:57 PM, Amir Goldstein wrote:
-> [excessive CC list reduced]
+On Mon, Nov 4, 2019 at 11:53 PM Mark Salyzyn <salyzyn@android.com> wrote:
 >
-> On Wed, Oct 23, 2019 at 11:07 AM Andreas Dilger via samba-technical
-> <samba-technical@lists.samba.org> wrote:
->>
->> On Oct 22, 2019, at 2:44 PM, Mark Salyzyn <salyzyn@android.com> wrote:
->>> Replace arguments for get and set xattr methods, and __vfs_getxattr
->>> and __vfs_setaxtr functions with a reference to the following now
->>> common argument structure:
->>>
->>> struct xattr_gs_args {
->>>        struct dentry *dentry;
->>>        struct inode *inode;
->>>        const char *name;
->>>        union {
->>>                void *buffer;
->>>                const void *value;
->>>        };
->>>        size_t size;
->>>        int flags;
->>> };
->>> Mark,
->>>
->>> I do not see the first patch on fsdevel
->>> and I am confused from all the suggested APIs
->>> I recall Christoph's comment on v8 for not using xattr_gs_args
->>> and just adding flags to existing get() method.
->>> I agree to that comment.
->> As already responded, third (?) patch version was like that,
-> The problem is that because of the waaay too long CC list, most revisions
-> of the patch and discussion were bounced from fsdevel, most emails
-> I did not get and cannot find in archives, so the discussion around
-> them is not productive.
+> Patch series:
 >
-> Please resend patch to fsdevel discarding the auto added CC list
-> of all fs maintainers.
+> Mark Salyzyn (4):
+>   Add flags option to get xattr method paired to __vfs_getxattr
 
-git send-email is not my friend :-(
+Sigh.. did not get to fsdevel (again...) I already told you several times
+that you need to use a shorter CC list.
 
->> gregkh@
->> said it passed the limit for number of arguments, is looking a bit silly
-> Well, you just matched get() to set() args list, so this is not a strong
-> argument IMO.
->
->> (my paraphrase), and that it should be passed as a structure. Two others
->> agreed. We gained because both set and get use the same structure after
->> this change (this allows a simplified read-modify-write cycle).
-> That sounds like a nice benefit if this was user API, but are there any
-> kernel users that intend to make use of that read-modify-write cycle?
-> I don't think so.
-(one user)
->
->> We will need a quorum on this, 3 (structure) to 2 (flag) now (but really
->> basically between Greg and Christoph?). Coding style issue: Add a flag,
->> or switch to a common xattr argument  structure?
->>
-> IIRC, Christoph was asking why the silly struct and not simply add flags
-> (as did I). He probably did not see Greg's comments due to the list bounce
-> issue. If I read your second hand description of Greg's reaction correctly,
-> it doesn't sound so strong opinionated as well.
-> Me, I can live with flags or struct - I don't care, but...
->
-> Be prepared that if you are going ahead with struct you are going to
-> suffer from bike shedding, which has already started and you will be
-> instructed (just now) to also fix all the relevant and missing Documentation.
-> If, on the other hand, you can get Greg and the rest to concede to adding
-> flags arg and match get() arg list to set() arg list, you will have a much
-> easier job and the patch line count, especially in fs code will be *much*
-> smaller - just saying.
+>   overlayfs: handle XATTR_NOSECURITY flag for get xattr method
+>   overlayfs: internal getxattr operations without sepolicy checking
+>   overlayfs: override_creds=off option bypass creator_cred
 
-Respining back to the v4 version of the series incorporating some of the 
-fixes on the way.
+It would be better for review IMO if you rebase your series on top of
+git://git.kernel.org/pub/scm/linux/kernel/git/mszeredi/vfs.git ovl-unpriv
 
-Automated testing in kernel not yet handled and will be noted in the 
-respin.
+1. internal getxattr patch would be a one liner change to ovl_own_getxattr()
+2. The documentation of override_creds would be much more
+meaningful if it used the overlay permission model terminology
+that Miklos added in his patch set and extend it
 
-> Thanks,
-> Amir.
-
-Mark
+Thanks,
+Amir.
