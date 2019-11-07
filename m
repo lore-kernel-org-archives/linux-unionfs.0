@@ -1,78 +1,136 @@
-From: Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [PATCH] ovl: create UUIDs for file systems that do not set the
- superblock UUID
-Date: Thu, 7 Nov 2019 11:56:33 +0200
-Message-ID: <CAOQ4uxgj8FO-yqtHsjh2OaTGvcF3HA5OekqiUuZEFE+LGGaTCg@mail.gmail.com>
-References: <20191106234301.283006-1-colin.king@canonical.com>
- <CAOQ4uxhT4pFzHjjKyoMOc3xVXXqyqc37zd=-pCx2+keA4e6NAg@mail.gmail.com>
- <02adb5f3-10be-1827-f48b-b621bd61783a@canonical.com> <f88a4ef7-3e2a-9e17-1573-3594288091cd@canonical.com>
- <bba96a64-a9f7-cd03-e00b-8ee369520ae7@canonical.com>
+From: Colin King <colin.king@canonical.com>
+Subject: [PATCH][V2] ovl: fix lookup failure on multi lower squashfs
+Date: Thu,  7 Nov 2019 10:49:57 +0000
+Message-ID: <20191107104957.306383-1-colin.king@canonical.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <bba96a64-a9f7-cd03-e00b-8ee369520ae7@canonical.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Colin Ian King <colin.king@canonical.com>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, overlayfs <linux-unionfs@vger.kernel.org>, kernel-janitors@vger.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>, Dan Carpenter <dan.carpenter@oracle.com>
+To: Miklos Szeredi <mszeredi@redhat.com>, Amir Goldstein <amir73il@gmail.com>, linux-unionfs@vger.kernel.org, stable@vger.kernel.org
+Cc: kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 
-On Thu, Nov 7, 2019 at 11:44 AM Colin Ian King <colin.king@canonical.com> wrote:
->
-> On 07/11/2019 09:12, Colin Ian King wrote:
-> > On 07/11/2019 08:45, Colin Ian King wrote:
-> >> On 07/11/2019 07:08, Amir Goldstein wrote:
-> >>> On Thu, Nov 7, 2019 at 1:43 AM Colin King <colin.king@canonical.com> wrote:
-> >>>>
-> >>>> From: Colin Ian King <colin.king@canonical.com>
-> >>>>
-> >>>> Some file systems such as squashfs do not set the UUID in the
-> >>>> superblock resulting in a zero'd UUID.  In cases were two or more
-> >>>> of these file systems are overlayed on the lower layer we can hit
-> >>>> overlay corruption issues because identical zero'd overlayfs UUIDs
-> >>>> are impossible to differentiate between.  This can be fixed by
-> >>>> creating an overlayfs UUID based on the file system from the
-> >>>> superblock s_magic and s_dev fields.  (This currently seems like
-> >>>> enough information to be able create a UUID, but the could be
-> >>>> scope to use other super block fields such as the pointer s_fs_info
-> >>>> but may need some obfuscation).
-> >>>>
-> >>>
-> >>> The fix is incorrent. uuid stored in xattr needs to have persistent properties.
-> >>> In the use case that you describe, the origin file handle should simply be
-> >>> ignored.
-> >>>
-> >>> Please test attached patch.
-> >>
-> >> Thanks for the patch. Tested, and the error still occurs:
-> >>
-> >> [  163.959633] overlayfs: invalid origin (etc/.pwd.lock, ftype=8000,
-> >> origin ftype=4000).
-> >
-> > Added debug, seems like nouuid is not being set to true, nouuid is false
-> > on the layers 0 and 1.
->
-> So nouuid is not being set in ovl_lower_uuid_ok() because the code is
-> returning early because of the following statement:
->
-> if (!ofs->config.nfs_export && !(ofs->config.index && ofs->upper_mnt))
->         return true;
->
-> ..and not getting to the following for-loop.
->
+From: Colin Ian King <colin.king@canonical.com>
 
-Indeed. I had this bit of information in my mind for a brief moment
-and forgot about it..
+In the past, overlayfs required that lower fs have non null uuid in
+order to support nfs export and decode copy up origin file handles.
 
-Please remove this optimization and change the call to:
+Commit 9df085f3c9a2 ("ovl: relax requirement for non null uuid of
+lower fs") relaxed this requirement for nfs export support, as long
+as uuid (even if null) is unique among all lower fs.
 
-       if (ofs->upper_mnt && !ovl_lower_uuid_ok(ofs, &sb->s_uuid)) {
-...
+However, said commit unintentionally also relaxed the non null uuid
+requirement for decoding copy up origin file handles, regardless of
+the unique uuid requirement.
 
-Maybe change the language of "falling back to index=off..." to
-"enforcing index=off..."
+Amend this mistake by disabling decoding of copy up origin file handle
+from lower fs with a conflicting uuid.
 
-You may then submit the patch with my Signed-off and yours.
-Please also change the name nouuid to bad_uuid per Dan's review comment.
+We still encode copy up origin file handles from those fs, because
+file handles like those already exist in the wild and because they
+might provide useful information in the future.
 
-Thanks,
-Amir.
+Reported-by: Colin Ian King <colin.king@canonical.com>
+Link: https://lore.kernel.org/lkml/20191106234301.283006-1-colin.king@canonical.com/
+Fixes: 9df085f3c9a2 ("ovl: relax requirement for non null uuid ...")
+Cc: stable@vger.kernel.org # v4.20+
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+Signed-off-by: Colin Ian King <colin.king@canonical.com>
+---
+ fs/overlayfs/namei.c     |  8 ++++++++
+ fs/overlayfs/ovl_entry.h |  2 ++
+ fs/overlayfs/super.c     | 16 ++++++++++------
+ 3 files changed, 20 insertions(+), 6 deletions(-)
+
+diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
+index e9717c2f7d45..f47c591402d7 100644
+--- a/fs/overlayfs/namei.c
++++ b/fs/overlayfs/namei.c
+@@ -325,6 +325,14 @@ int ovl_check_origin_fh(struct ovl_fs *ofs, struct ovl_fh *fh, bool connected,
+ 	int i;
+ 
+ 	for (i = 0; i < ofs->numlower; i++) {
++		/*
++		 * If lower fs uuid is not unique among lower fs we cannot match
++		 * fh->uuid to layer.
++		 */
++		if (ofs->lower_layers[i].fsid &&
++		    ofs->lower_layers[i].fs->bad_uuid)
++			continue;
++
+ 		origin = ovl_decode_real_fh(fh, ofs->lower_layers[i].mnt,
+ 					    connected);
+ 		if (origin)
+diff --git a/fs/overlayfs/ovl_entry.h b/fs/overlayfs/ovl_entry.h
+index a8279280e88d..28348c44ea5b 100644
+--- a/fs/overlayfs/ovl_entry.h
++++ b/fs/overlayfs/ovl_entry.h
+@@ -22,6 +22,8 @@ struct ovl_config {
+ struct ovl_sb {
+ 	struct super_block *sb;
+ 	dev_t pseudo_dev;
++	/* Unusable (conflicting) uuid */
++	bool bad_uuid;
+ };
+ 
+ struct ovl_layer {
+diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+index afbcb116a7f1..5d4faab57ba0 100644
+--- a/fs/overlayfs/super.c
++++ b/fs/overlayfs/super.c
+@@ -1255,17 +1255,18 @@ static bool ovl_lower_uuid_ok(struct ovl_fs *ofs, const uuid_t *uuid)
+ {
+ 	unsigned int i;
+ 
+-	if (!ofs->config.nfs_export && !(ofs->config.index && ofs->upper_mnt))
+-		return true;
+-
+ 	for (i = 0; i < ofs->numlowerfs; i++) {
+ 		/*
+ 		 * We use uuid to associate an overlay lower file handle with a
+ 		 * lower layer, so we can accept lower fs with null uuid as long
+ 		 * as all lower layers with null uuid are on the same fs.
++		 * if we detect multiple lower fs with the same uuid, we
++		 * disable lower file handle decoding on all of them.
+ 		 */
+-		if (uuid_equal(&ofs->lower_fs[i].sb->s_uuid, uuid))
++		if (uuid_equal(&ofs->lower_fs[i].sb->s_uuid, uuid)) {
++			ofs->lower_fs[i].bad_uuid = true;
+ 			return false;
++		}
+ 	}
+ 	return true;
+ }
+@@ -1277,6 +1278,7 @@ static int ovl_get_fsid(struct ovl_fs *ofs, const struct path *path)
+ 	unsigned int i;
+ 	dev_t dev;
+ 	int err;
++	bool bad_uuid = false;
+ 
+ 	/* fsid 0 is reserved for upper fs even with non upper overlay */
+ 	if (ofs->upper_mnt && ofs->upper_mnt->mnt_sb == sb)
+@@ -1287,10 +1289,11 @@ static int ovl_get_fsid(struct ovl_fs *ofs, const struct path *path)
+ 			return i + 1;
+ 	}
+ 
+-	if (!ovl_lower_uuid_ok(ofs, &sb->s_uuid)) {
++	if (ofs->upper_mnt && !ovl_lower_uuid_ok(ofs, &sb->s_uuid)) {
++		bad_uuid = true;
+ 		ofs->config.index = false;
+ 		ofs->config.nfs_export = false;
+-		pr_warn("overlayfs: %s uuid detected in lower fs '%pd2', falling back to index=off,nfs_export=off.\n",
++		pr_warn("overlayfs: %s uuid detected in lower fs '%pd2', enforcing index=off,nfs_export=off.\n",
+ 			uuid_is_null(&sb->s_uuid) ? "null" : "conflicting",
+ 			path->dentry);
+ 	}
+@@ -1303,6 +1306,7 @@ static int ovl_get_fsid(struct ovl_fs *ofs, const struct path *path)
+ 
+ 	ofs->lower_fs[ofs->numlowerfs].sb = sb;
+ 	ofs->lower_fs[ofs->numlowerfs].pseudo_dev = dev;
++	ofs->lower_fs[ofs->numlowerfs].bad_uuid = bad_uuid;
+ 	ofs->numlowerfs++;
+ 
+ 	return ofs->numlowerfs;
+-- 
+2.20.1
