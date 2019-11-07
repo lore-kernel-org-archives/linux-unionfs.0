@@ -1,104 +1,125 @@
-From: Colin King <colin.king@canonical.com>
-Subject: [PATCH] ovl: create UUIDs for file systems that do not set the superblock UUID
-Date: Wed,  6 Nov 2019 23:43:01 +0000
-Message-ID: <20191106234301.283006-1-colin.king@canonical.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Subject: Re: [PATCH] ovl: create UUIDs for file systems that do not set the
+ superblock UUID
+Date: Thu, 7 Nov 2019 09:08:44 +0200
+Message-ID: <CAOQ4uxhT4pFzHjjKyoMOc3xVXXqyqc37zd=-pCx2+keA4e6NAg@mail.gmail.com>
+References: <20191106234301.283006-1-colin.king@canonical.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/mixed; boundary="000000000000a607060596bc5612"
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20191106234301.283006-1-colin.king@canonical.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org
-Cc: kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Colin King <colin.king@canonical.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, overlayfs <linux-unionfs@vger.kernel.org>, kernel-janitors@vger.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>
 List-Id: linux-unionfs@vger.kernel.org
 
-From: Colin Ian King <colin.king@canonical.com>
+--000000000000a607060596bc5612
+Content-Type: text/plain; charset="UTF-8"
 
-Some file systems such as squashfs do not set the UUID in the
-superblock resulting in a zero'd UUID.  In cases were two or more
-of these file systems are overlayed on the lower layer we can hit
-overlay corruption issues because identical zero'd overlayfs UUIDs
-are impossible to differentiate between.  This can be fixed by
-creating an overlayfs UUID based on the file system from the
-superblock s_magic and s_dev fields.  (This currently seems like
-enough information to be able create a UUID, but the could be
-scope to use other super block fields such as the pointer s_fs_info
-but may need some obfuscation).
+On Thu, Nov 7, 2019 at 1:43 AM Colin King <colin.king@canonical.com> wrote:
+>
+> From: Colin Ian King <colin.king@canonical.com>
+>
+> Some file systems such as squashfs do not set the UUID in the
+> superblock resulting in a zero'd UUID.  In cases were two or more
+> of these file systems are overlayed on the lower layer we can hit
+> overlay corruption issues because identical zero'd overlayfs UUIDs
+> are impossible to differentiate between.  This can be fixed by
+> creating an overlayfs UUID based on the file system from the
+> superblock s_magic and s_dev fields.  (This currently seems like
+> enough information to be able create a UUID, but the could be
+> scope to use other super block fields such as the pointer s_fs_info
+> but may need some obfuscation).
+>
 
-This issue can be reproduced with the following commands:
+The fix is incorrent. uuid stored in xattr needs to have persistent properties.
+In the use case that you describe, the origin file handle should simply be
+ignored.
 
-mkdir -p /cdrom
-mount -t iso9660 -o ro,noatime /dev/sr0 /cdrom
-sleep 1
-mkdir -p /cow
-mount -t tmpfs -o 'rw,noatime,mode=755' tmpfs /cow
-mkdir -p /cow/upper
-mkdir -p /cow/work
-modprobe -q -b overlay
-modprobe -q -b loop
-dev=$(losetup -f)
-mkdir -p /filesystem.squashfs
-losetup $dev /cdrom/casper/filesystem.squashfs
-mount -t squashfs -o ro,noatime $dev /filesystem.squashfs
-dev=$(losetup -f)
-mkdir -p /installer.squashfs
-losetup $dev /cdrom/casper/installer.squashfs
-mount -t squashfs -o ro,noatime $dev /installer.squashfs
-mkdir -p /root-tmp
-mount -t overlay -o 'upperdir=/cow/upper,lowerdir=/installer.squashfs:/filesystem.squashfs,workdir=/cow/work' /cow /root-tmp
+Please test attached patch.
 
-FILE=/root-tmp/etc/.pwd.lock
+Thanks,
+Amir.
 
-echo foo > $FILE
-cat $FILE
-sync
-echo 3 > /proc/sys/vm/drop_caches
-cat $FILE
+--000000000000a607060596bc5612
+Content-Type: text/x-patch; charset="US-ASCII";
+	name="0001-ovl-fix-lookup-failure-on-multi-lower-squashfs.patch"
+Content-Disposition: attachment;
+	filename="0001-ovl-fix-lookup-failure-on-multi-lower-squashfs.patch"
+Content-Transfer-Encoding: base64
+Content-ID: <f_k2oddo2z0>
+X-Attachment-Id: f_k2oddo2z0
 
-The output from cat $FILE:
-cat: /root-tmp/etc/.pwd.lock: Input/output error
-
-dmesg reports:
-[ 42.415432] overlayfs: invalid origin (etc/.pwd.lock, ftype=8000, origin ftype=4000).
-
-BugLink: https://bugs.launchpad.net/bugs/1824407
-Signed-off-by: Colin Ian King <colin.king@canonical.com>
----
- fs/overlayfs/copy_up.c | 16 +++++++++++++++-
- 1 file changed, 15 insertions(+), 1 deletion(-)
-
-diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
-index b801c6353100..a578db87936b 100644
---- a/fs/overlayfs/copy_up.c
-+++ b/fs/overlayfs/copy_up.c
-@@ -231,6 +231,7 @@ struct ovl_fh *ovl_encode_real_fh(struct dentry *real, bool is_upper)
- 	void *buf;
- 	int buflen = MAX_HANDLE_SZ;
- 	uuid_t *uuid = &real->d_sb->s_uuid;
-+	static const uuid_t z_uuid;
- 
- 	buf = kmalloc(buflen, GFP_KERNEL);
- 	if (!buf)
-@@ -272,7 +273,20 @@ struct ovl_fh *ovl_encode_real_fh(struct dentry *real, bool is_upper)
- 	if (is_upper)
- 		fh->flags |= OVL_FH_FLAG_PATH_UPPER;
- 	fh->len = fh_len;
--	fh->uuid = *uuid;
-+
-+	if (uuid_equal(uuid, &z_uuid)) {
-+		/*
-+		 * An zero'd uuid indicates the uuid in the super block was
-+		 * not set by the file system, so fake one instead
-+		 */
-+		struct super_block *sb = real->d_sb;
-+
-+		memcpy(&fh->uuid.b[0], &sb->s_magic, 8);
-+		memcpy(&fh->uuid.b[8], &sb->s_dev, 8);
-+	} else {
-+		fh->uuid = *uuid;
-+	}
-+
- 	memcpy(fh->fid, buf, buflen);
- 
- out:
--- 
-2.20.1
+RnJvbSBlMDQ3YjA3ODE1NzY5MWJhOGFiZDU5ODg2NWQ3YzZmMDhhYWI1MzEwIE1vbiBTZXAgMTcg
+MDA6MDA6MDAgMjAwMQpGcm9tOiBBbWlyIEdvbGRzdGVpbiA8YW1pcjczaWxAZ21haWwuY29tPgpE
+YXRlOiBUaHUsIDcgTm92IDIwMTkgMDc6MTk6NTUgKzAyMDAKU3ViamVjdDogW1BBVENIXSBvdmw6
+IGZpeCBsb29rdXAgZmFpbHVyZSBvbiBtdWx0aSBsb3dlciBzcXVhc2hmcwoKSW4gdGhlIHBhc3Qs
+IG92ZXJsYXlmcyByZXF1aXJlZCB0aGF0IGxvd2VyIGZzIGhhdmUgbm9uIG51bGwgdXVpZCBpbgpv
+cmRlciB0byBzdXBwb3J0IG5mcyBleHBvcnQgYW5kIGRlY29kZSBjb3B5IHVwIG9yaWdpbiBmaWxl
+IGhhbmRsZXMuCgpDb21taXQgOWRmMDg1ZjNjOWEyICgib3ZsOiByZWxheCByZXF1aXJlbWVudCBm
+b3Igbm9uIG51bGwgdXVpZCBvZgpsb3dlciBmcyIpIHJlbGF4ZWQgdGhpcyByZXF1aXJlbWVudCBm
+b3IgbmZzIGV4cG9ydCBzdXBwb3J0LCBhcyBsb25nCmFzIHV1aWQgKGV2ZW4gaWYgbnVsbCkgaXMg
+dW5pcXVlIGFtb25nIGFsbCBsb3dlciBmcy4KCkhvd2V2ZXIsIHNhaWQgY29tbWl0IHVuaW50ZW50
+aW9uYWxseSBhbHNvIHJlbGF4ZWQgdGhlIG5vbiBudWxsIHV1aWQKcmVxdWlyZW1lbnQgZm9yIGRl
+Y29kaW5nIGNvcHkgdXAgb3JpZ2luIGZpbGUgaGFuZGxlcywgcmVnYXJkbGVzcyBvZgp0aGUgdW5p
+cXVlIHV1aWQgcmVxdWlyZW1lbnQuCgpBbWVuZCB0aGlzIG1pc3Rha2UgYnkgZGlzYWJsaW5nIGRl
+Y29kaW5nIG9mIGNvcHkgdXAgb3JpZ2luIGZpbGUgaGFuZGxlCmZyb20gbG93ZXIgZnMgd2l0aCBh
+IGNvbmZsaWN0aW5nIHV1aWQuCgpXZSBzdGlsbCBlbmNvZGUgY29weSB1cCBvcmlnaW4gZmlsZSBo
+YW5kbGVzIGZyb20gdGhvc2UgZnMsIGJlY2F1c2UKZmlsZSBoYW5kbGVzIGxpa2UgdGhvc2UgYWxy
+ZWFkeSBleGlzdCBpbiB0aGUgd2lsZCBhbmQgYmVjYXVzZSB0aGV5Cm1pZ2h0IHByb3ZpZGUgdXNl
+ZnVsIGluZm9ybWF0aW9uIGluIHRoZSBmdXR1cmUuCgpSZXBvcnRlZC1ieTogQ29saW4gSWFuIEtp
+bmcgPGNvbGluLmtpbmdAY2Fub25pY2FsLmNvbT4KTGluazogaHR0cHM6Ly9sb3JlLmtlcm5lbC5v
+cmcvbGttbC8yMDE5MTEwNjIzNDMwMS4yODMwMDYtMS1jb2xpbi5raW5nQGNhbm9uaWNhbC5jb20v
+CkZpeGVzOiA5ZGYwODVmM2M5YTIgKCJvdmw6IHJlbGF4IHJlcXVpcmVtZW50IGZvciBub24gbnVs
+bCB1dWlkIC4uLiIpCkNjOiBzdGFibGVAdmdlci5rZXJuZWwub3JnICMgdjQuMjArClNpZ25lZC1v
+ZmYtYnk6IEFtaXIgR29sZHN0ZWluIDxhbWlyNzNpbEBnbWFpbC5jb20+Ci0tLQogZnMvb3Zlcmxh
+eWZzL25hbWVpLmMgICAgIHwgOCArKysrKysrKwogZnMvb3ZlcmxheWZzL292bF9lbnRyeS5oIHwg
+MiArKwogZnMvb3ZlcmxheWZzL3N1cGVyLmMgICAgIHwgOSArKysrKysrKy0KIDMgZmlsZXMgY2hh
+bmdlZCwgMTggaW5zZXJ0aW9ucygrKSwgMSBkZWxldGlvbigtKQoKZGlmZiAtLWdpdCBhL2ZzL292
+ZXJsYXlmcy9uYW1laS5jIGIvZnMvb3ZlcmxheWZzL25hbWVpLmMKaW5kZXggZTk3MTdjMmY3ZDQ1
+Li5kZGM1NTE0ZDhjM2IgMTAwNjQ0Ci0tLSBhL2ZzL292ZXJsYXlmcy9uYW1laS5jCisrKyBiL2Zz
+L292ZXJsYXlmcy9uYW1laS5jCkBAIC0zMjUsNiArMzI1LDE0IEBAIGludCBvdmxfY2hlY2tfb3Jp
+Z2luX2ZoKHN0cnVjdCBvdmxfZnMgKm9mcywgc3RydWN0IG92bF9maCAqZmgsIGJvb2wgY29ubmVj
+dGVkLAogCWludCBpOwogCiAJZm9yIChpID0gMDsgaSA8IG9mcy0+bnVtbG93ZXI7IGkrKykgewor
+CQkvKgorCQkgKiBJZiBsb3dlciBmcyB1dWlkIGlzIG5vdCB1bmlxdWUgYW1vbmcgbG93ZXIgZnMg
+d2UgY2Fubm90IG1hdGNoCisJCSAqIGZoLT51dWlkIHRvIGxheWVyLgorCQkgKi8KKwkJaWYgKG9m
+cy0+bG93ZXJfbGF5ZXJzW2ldLmZzaWQgJiYKKwkJICAgIG9mcy0+bG93ZXJfbGF5ZXJzW2ldLmZz
+LT5ub3V1aWQpCisJCQljb250aW51ZTsKKwogCQlvcmlnaW4gPSBvdmxfZGVjb2RlX3JlYWxfZmgo
+ZmgsIG9mcy0+bG93ZXJfbGF5ZXJzW2ldLm1udCwKIAkJCQkJICAgIGNvbm5lY3RlZCk7CiAJCWlm
+IChvcmlnaW4pCmRpZmYgLS1naXQgYS9mcy9vdmVybGF5ZnMvb3ZsX2VudHJ5LmggYi9mcy9vdmVy
+bGF5ZnMvb3ZsX2VudHJ5LmgKaW5kZXggYTgyNzkyODBlODhkLi5hMDIyN2MzMWZlMTcgMTAwNjQ0
+Ci0tLSBhL2ZzL292ZXJsYXlmcy9vdmxfZW50cnkuaAorKysgYi9mcy9vdmVybGF5ZnMvb3ZsX2Vu
+dHJ5LmgKQEAgLTIyLDYgKzIyLDggQEAgc3RydWN0IG92bF9jb25maWcgewogc3RydWN0IG92bF9z
+YiB7CiAJc3RydWN0IHN1cGVyX2Jsb2NrICpzYjsKIAlkZXZfdCBwc2V1ZG9fZGV2OworCS8qIFVu
+dXNhYmxlIChjb25mbGljdGluZykgdXVpZCAqLworCWJvb2wgbm91dWlkOwogfTsKIAogc3RydWN0
+IG92bF9sYXllciB7CmRpZmYgLS1naXQgYS9mcy9vdmVybGF5ZnMvc3VwZXIuYyBiL2ZzL292ZXJs
+YXlmcy9zdXBlci5jCmluZGV4IGFmYmNiMTE2YTdmMS4uNTQ3ZjhjZGJjOThmIDEwMDY0NAotLS0g
+YS9mcy9vdmVybGF5ZnMvc3VwZXIuYworKysgYi9mcy9vdmVybGF5ZnMvc3VwZXIuYwpAQCAtMTI2
+Myw5ICsxMjYzLDEzIEBAIHN0YXRpYyBib29sIG92bF9sb3dlcl91dWlkX29rKHN0cnVjdCBvdmxf
+ZnMgKm9mcywgY29uc3QgdXVpZF90ICp1dWlkKQogCQkgKiBXZSB1c2UgdXVpZCB0byBhc3NvY2lh
+dGUgYW4gb3ZlcmxheSBsb3dlciBmaWxlIGhhbmRsZSB3aXRoIGEKIAkJICogbG93ZXIgbGF5ZXIs
+IHNvIHdlIGNhbiBhY2NlcHQgbG93ZXIgZnMgd2l0aCBudWxsIHV1aWQgYXMgbG9uZwogCQkgKiBh
+cyBhbGwgbG93ZXIgbGF5ZXJzIHdpdGggbnVsbCB1dWlkIGFyZSBvbiB0aGUgc2FtZSBmcy4KKwkJ
+ICogaWYgd2UgZGV0ZWN0IG11bHRpcGxlIGxvd2VyIGZzIHdpdGggdGhlIHNhbWUgdXVpZCwgd2UK
+KwkJICogZGlzYWJsZSBsb3dlciBmaWxlIGhhbmRsZSBkZWNvZGluZyBvbiBhbGwgb2YgdGhlbS4K
+IAkJICovCi0JCWlmICh1dWlkX2VxdWFsKCZvZnMtPmxvd2VyX2ZzW2ldLnNiLT5zX3V1aWQsIHV1
+aWQpKQorCQlpZiAodXVpZF9lcXVhbCgmb2ZzLT5sb3dlcl9mc1tpXS5zYi0+c191dWlkLCB1dWlk
+KSkgeworCQkJb2ZzLT5sb3dlcl9mc1tpXS5ub3V1aWQgPSB0cnVlOwogCQkJcmV0dXJuIGZhbHNl
+OworCQl9CiAJfQogCXJldHVybiB0cnVlOwogfQpAQCAtMTI3Nyw2ICsxMjgxLDcgQEAgc3RhdGlj
+IGludCBvdmxfZ2V0X2ZzaWQoc3RydWN0IG92bF9mcyAqb2ZzLCBjb25zdCBzdHJ1Y3QgcGF0aCAq
+cGF0aCkKIAl1bnNpZ25lZCBpbnQgaTsKIAlkZXZfdCBkZXY7CiAJaW50IGVycjsKKwlib29sIG5v
+dXVpZCA9IGZhbHNlOwogCiAJLyogZnNpZCAwIGlzIHJlc2VydmVkIGZvciB1cHBlciBmcyBldmVu
+IHdpdGggbm9uIHVwcGVyIG92ZXJsYXkgKi8KIAlpZiAob2ZzLT51cHBlcl9tbnQgJiYgb2ZzLT51
+cHBlcl9tbnQtPm1udF9zYiA9PSBzYikKQEAgLTEyODgsNiArMTI5Myw3IEBAIHN0YXRpYyBpbnQg
+b3ZsX2dldF9mc2lkKHN0cnVjdCBvdmxfZnMgKm9mcywgY29uc3Qgc3RydWN0IHBhdGggKnBhdGgp
+CiAJfQogCiAJaWYgKCFvdmxfbG93ZXJfdXVpZF9vayhvZnMsICZzYi0+c191dWlkKSkgeworCQlu
+b3V1aWQgPSB0cnVlOwogCQlvZnMtPmNvbmZpZy5pbmRleCA9IGZhbHNlOwogCQlvZnMtPmNvbmZp
+Zy5uZnNfZXhwb3J0ID0gZmFsc2U7CiAJCXByX3dhcm4oIm92ZXJsYXlmczogJXMgdXVpZCBkZXRl
+Y3RlZCBpbiBsb3dlciBmcyAnJXBkMicsIGZhbGxpbmcgYmFjayB0byBpbmRleD1vZmYsbmZzX2V4
+cG9ydD1vZmYuXG4iLApAQCAtMTMwMyw2ICsxMzA5LDcgQEAgc3RhdGljIGludCBvdmxfZ2V0X2Zz
+aWQoc3RydWN0IG92bF9mcyAqb2ZzLCBjb25zdCBzdHJ1Y3QgcGF0aCAqcGF0aCkKIAogCW9mcy0+
+bG93ZXJfZnNbb2ZzLT5udW1sb3dlcmZzXS5zYiA9IHNiOwogCW9mcy0+bG93ZXJfZnNbb2ZzLT5u
+dW1sb3dlcmZzXS5wc2V1ZG9fZGV2ID0gZGV2OworCW9mcy0+bG93ZXJfZnNbb2ZzLT5udW1sb3dl
+cmZzXS5ub3V1aWQgPSBub3V1aWQ7CiAJb2ZzLT5udW1sb3dlcmZzKys7CiAKIAlyZXR1cm4gb2Zz
+LT5udW1sb3dlcmZzOwotLSAKMi4xNy4xCgo=
+--000000000000a607060596bc5612--
