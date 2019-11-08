@@ -1,40 +1,34 @@
-Return-Path: <amir73il@gmail.com>
-Return-Path: <amir73il@gmail.com>
-From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH] docs: filesystems: overlayfs: Rename overlayfs.txt to .rst
-Date: Mon, 25 Nov 2019 12:16:26 +0200
-Message-Id: <20191125101626.32722-1-amir73il@gmail.com>
-To: Jonathan Corbet <corbet@lwn.net>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, linux-doc@vger.kernel.org, linux-unionfs@vger.kernel.org
+MIME-Version: 1.0
+Date: Fri, 8 Nov 2019 10:02:26 +0100
+References: <1573202522019.97305@axis.com>
+In-Reply-To: <1573202522019.97305@axis.com>
+Message-ID: <CAJfpegs2Hj9rqUiF+jmi5VK2XT_BV1+nNzKv140kLPPMaQgv2g@mail.gmail.com>
+Subject: Re: [Help] Problem when using overlayfs with LoadPin
+From: Miklos Szeredi <miklos@szeredi.hu>
+Content-Type: text/plain; charset="UTF-8"
+To: Anders Dellien <anders.dellien@axis.com>
+Cc: "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-It is already formatted as RST.
+On Fri, Nov 8, 2019 at 9:42 AM Anders Dellien <anders.dellien@axis.com> wrote:
+>
+> Hi all,
+>
+> I have previously successfully used LoadPin [https://www.kernel.org/doc/html/latest/admin-guide/LSM/LoadPin.html]
+> together with overlayfs, however commit a6518f "vfs: don't open real" introduces a regression.
+>
+> (from loadpin.c):
+>
+>         /* file_dentry sees through overlays */
+>         load_root = file_dentry(file)->d_sb;  (here, load_root->s_bdev is NULL and not the actual block device from the lower layer)
 
-Signed-off-by: Amir Goldstein <amir73il@gmail.com>
----
+Umm, where does the above line come from?
 
-Hi John,
+Mainline looks like this:
 
-Not sure if this doc is up to standards, but it is already displayed
-fairly well on github as .rst.
+    load_root = file->f_path.mnt->mnt_sb;
 
-If you want me to make more changes to bring it into compliance, before
-the rename please let me know what needs to be done.
-Is there a script to check doc compliance?
+What is the expected behavior?   Should loadpin see through overlayfs or not?
 
-Otherwise, you can just take this rename patch and leave it to other
-devlopers to clean it up.
-
-Thanks,
-Amir.
-
- Documentation/filesystems/{overlayfs.txt => overlayfs.rst} | 0
- 1 file changed, 0 insertions(+), 0 deletions(-)
- rename Documentation/filesystems/{overlayfs.txt => overlayfs.rst} (100%)
-
-diff --git a/Documentation/filesystems/overlayfs.txt b/Documentation/filesystems/overlayfs.rst
-similarity index 100%
-rename from Documentation/filesystems/overlayfs.txt
-rename to Documentation/filesystems/overlayfs.rst
--- 
-2.17.1
+Thanks.
+Miklos
