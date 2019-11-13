@@ -1,162 +1,83 @@
-Return-Path: <amir73il@gmail.com>
-Return-Path: <amir73il@gmail.com>
-From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH] overlay: Test unique st_dev;st_ino on non-samefs setup
-Date: Sun, 24 Nov 2019 16:29:57 +0200
-Message-Id: <20191124142957.20873-1-amir73il@gmail.com>
-To: Eryu Guan <guaneryu@gmail.com>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, fstests@vger.kernel.org
+Return-Path: <jiufei.xue@linux.alibaba.com>
+Subject: Re: [Regression] performance regression since v4.19
+References: <1086cadc-53c3-effd-5ba3-797a015944b5@linux.alibaba.com>
+ <CAJfpegu0CkBUTnkgv+C-cXopoj7oPjqsbFwN49EMhTw7=Pv+Tw@mail.gmail.com>
+ <CAOQ4uxhKSjubpEnRCDLEYjS77DzT9g6KsXjWv9Sirq-mbQMvHA@mail.gmail.com>
+From: Jiufei Xue <jiufei.xue@linux.alibaba.com>
+Message-ID: <4b0f6b6e-3f72-defa-a064-2cf4c8f0dd30@linux.alibaba.com>
+Date: Wed, 13 Nov 2019 14:33:15 +0800
+MIME-Version: 1.0
+In-Reply-To: <CAOQ4uxhKSjubpEnRCDLEYjS77DzT9g6KsXjWv9Sirq-mbQMvHA@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 8bit
+To: Amir Goldstein <amir73il@gmail.com>, Miklos Szeredi <miklos@szeredi.hu>
+Cc: overlayfs <linux-unionfs@vger.kernel.org>, Joseph Qi <joseph.qi@linux.alibaba.com>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-Check that files from middle layer on same fs as upper layer
-are not allowed to export the real inode st_dev;st_ino.
 
-This is a regression test for kernel commit:
-  ovl: fix corner case of non-unique st_dev;st_ino
+Hi,
+On 2019/11/12 下午6:48, Amir Goldstein wrote:
+> On Tue, Nov 12, 2019 at 11:15 AM Miklos Szeredi <miklos@szeredi.hu> wrote:
+>>
+>> On Tue, Nov 12, 2019 at 8:53 AM Jiufei Xue <jiufei.xue@linux.alibaba.com> wrote:
+>>>
+>>> Hi Miklos,
+>>>
+>>> A performance regression is observed since linux v4.19 when we do aio
+>>> test using fio with iodepth 128 on overlayfs. And we found that queue
+>>> depth of the device is always 1 which is unexpected.
+>>>
+>>> After investigation, it is found that commit 16914e6fc7
+>>> (“ovl: add ovl_read_iter()”) and commit 2a92e07edc
+>>> (“ovl: add ovl_write_iter()”) use do_iter_readv_writev() to submit
+>>> requests to real filesystem. Async IOs are converted to sync IOs here
+>>> and cause performance regression.
+>>>
+>>> I wondered that is this a design flaw or supposed to be.
+>>
+>> It's not theoretically difficult to fix.   The challenge is to do it
+>> without too much complexity or code duplication.
+>>
+>> Maybe best would be to introduce VFS helpers specially for stacked
+>> operation such as:
+>>
+>>   ssize_t vfs_read_iter_on_file(struct file *file, struct kiocb
+>> *orig_iocb, struct iov_iter *iter);
+>>   ssize_t vfs_write_iter_on_file(struct file *file, struct kiocb
+>> *orig_iocb, struct iov_iter *iter);
+>>
+>> Implementation-wise I'm quite sure we need to allocate a new kiocb and
+>> initialize it from the old one, adding our own completion callback.
+>>
+> 
+> Isn't it "just" a matter of implementing ovl-aops and
+> generic_file_read/write_iter() will have done the aio properly?
+> 
+> I don't remember at what state we left the ovl-aops experiment [1]
+> IIRC, it passed most xfstests, but had some more corner cases to
+> cover.
+> 
+> Jiufei,
+> 
+> If you are interested, you can try out the experimental code [2] to
+> see how it plays with aio, although since readpages/writepages
+> are not implemented, overall performance may not be better
+> (or even worse).
+>
 
-Signed-off-by: Amir Goldstein <amir73il@gmail.com>
----
+Thanks for your reply.
 
-Eryu,
-
-This is a test for kernel v4.17 regression I noticed during discussion
-on an unrelated change.
-
-The fix for this regression has been posted [1] last week, but did not
-get any feedback yet. So maybe wait with merging the test until Miklos
-ackloledges the bug, or until the fix commit has a final description.
-
-As the test demonstrates in a simple user scenario, the problem is real,
-although I have no idea how common this setup is in the wild.
+I have checked the experimental code [2] and found that ovl_direct_IO()
+also converted async IOs to sync. So I don't think it can solve the
+regression.
 
 Thanks,
-Amir.
+Jiufei.
 
-[1] https://marc.info/?l=linux-unionfs&m=157400544201252&w=2
-
- tests/overlay/067     | 94 +++++++++++++++++++++++++++++++++++++++++++
- tests/overlay/067.out |  2 +
- tests/overlay/group   |  1 +
- 3 files changed, 97 insertions(+)
- create mode 100755 tests/overlay/067
- create mode 100644 tests/overlay/067.out
-
-diff --git a/tests/overlay/067 b/tests/overlay/067
-new file mode 100755
-index 00000000..88bcd399
---- /dev/null
-+++ b/tests/overlay/067
-@@ -0,0 +1,94 @@
-+#! /bin/bash
-+# SPDX-License-Identifier: GPL-2.0
-+# Copyright (C) 2019 CTERA Networks. All Rights Reserved.
-+#
-+# FSQA Test No. 067
-+#
-+# Test unique st_dev;st_ino on non-samefs setup.
-+#
-+# Check that files from middle layer on same fs as upper layer
-+# are not allowed to export the real inode st_dev;st_ino.
-+#
-+# This is a regression test for kernel commit:
-+#   ovl: fix corner case of non-unique st_dev;st_ino
-+#
-+seq=`basename $0`
-+seqres=$RESULT_DIR/$seq
-+echo "QA output created by $seq"
-+
-+here=`pwd`
-+tmp=/tmp/$$
-+status=1	# failure is the default!
-+trap "_cleanup; exit \$status" 0 1 2 3 15
-+
-+_cleanup()
-+{
-+	cd /
-+	rm -f $tmp.*
-+}
-+
-+# get standard environment, filters and checks
-+. ./common/rc
-+. ./common/filter
-+
-+rm -f $seqres.full
-+
-+# real QA test starts here
-+_supported_fs overlay
-+_supported_os Linux
-+# Use non-default scratch underlying overlay dirs, we need to check
-+# them explicity after test.
-+_require_scratch_nocheck
-+_require_test
-+
-+# Lower is on test partition
-+lower=$OVL_BASE_TEST_DIR/$OVL_LOWER-$seq
-+# Upper/work are on scratch partition
-+middle=$OVL_BASE_SCRATCH_MNT/$OVL_LOWER
-+upper=$OVL_BASE_SCRATCH_MNT/$OVL_UPPER
-+work=$OVL_BASE_SCRATCH_MNT/$OVL_WORK
-+
-+rm -rf $lower
-+mkdir $lower
-+
-+_scratch_mkfs >>$seqres.full 2>&1
-+
-+realfile=$middle/file
-+testfile=$SCRATCH_MNT/file
-+
-+# Create a file on middle layer on same fs as upper layer
-+echo wrong > $realfile
-+
-+# Mount an overlay on $SCRATCH_MNT with lower layer on test partition
-+# and middle and upper layer on scratch partition.
-+# Disable xino, so not all overlay inodes are on the same st_dev.
-+_overlay_scratch_mount_dirs $middle:$lower $upper $work -o xino=off || \
-+	_notrun "cannot mount overlay with xino=off option"
-+
-+stat $realfile >>$seqres.full
-+stat $testfile >>$seqres.full
-+
-+# Diverge the content of the overlay file from its origin
-+echo right > $testfile
-+
-+stat $testfile >>$seqres.full
-+
-+# Expect the overlay file to differ from the original lower file
-+diff -q $realfile $testfile >>$seqres.full &&
-+	echo "diff with middle layer file doesn't know right from wrong! (warm cache)"
-+
-+echo 3 > /proc/sys/vm/drop_caches
-+
-+stat $testfile >>$seqres.full
-+
-+# Expect the overlay file to differ from the original lower file
-+diff -q $realfile $testfile >>$seqres.full &&
-+	echo "diff with middle layer file doesn't know right from wrong! (cold cache)"
-+
-+$UMOUNT_PROG $SCRATCH_MNT
-+# check overlayfs
-+_overlay_check_scratch_dirs $middle:$lower $upper $work -o xino=off
-+
-+echo "Silence is golden"
-+status=0
-+exit
-diff --git a/tests/overlay/067.out b/tests/overlay/067.out
-new file mode 100644
-index 00000000..daa15453
---- /dev/null
-+++ b/tests/overlay/067.out
-@@ -0,0 +1,2 @@
-+QA output created by 067
-+Silence is golden
-diff --git a/tests/overlay/group b/tests/overlay/group
-index 1dec7db9..b7cd7774 100644
---- a/tests/overlay/group
-+++ b/tests/overlay/group
-@@ -69,3 +69,4 @@
- 064 auto quick copyup
- 065 auto quick mount
- 066 auto quick copyup
-+067 auto quick copyup nonsamefs
--- 
-2.17.1
+> Thanks,
+> Amir.
+> 
+> [1] https://marc.info/?l=linux-unionfs&m=154995908004146&w=2
+> [2] https://github.com/amir73il/linux/commits/ovl-aops-wip
+> 
