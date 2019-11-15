@@ -1,29 +1,95 @@
-Return-Path: <James.Bottomley@hansenpartnership.com>
-Message-ID: <1575148763.5563.28.camel@HansenPartnership.com>
-Subject: [PATCH 0/1] preparatory patch for a uid/gid shifting bind mount
-From: James Bottomley <James.Bottomley@HansenPartnership.com>
-Date: Sat, 30 Nov 2019 13:19:23 -0800
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
-To: linux-fsdevel@vger.kernel.org
-Cc: dhowells@redhat.com, Al Viro <viro@ZenIV.linux.org.uk>, Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, Seth Forshee <seth.forshee@canonical.com>
+Return-Path: <amir73il@gmail.com>
+Return-Path: <amir73il@gmail.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Subject: [PATCH v2 2/2] ovl: don't use a temp buf for encoding real fh
+Date: Fri, 15 Nov 2019 13:33:04 +0200
+Message-Id: <20191115113304.16209-3-amir73il@gmail.com>
+In-Reply-To: <20191115113304.16209-1-amir73il@gmail.com>
+References: <20191115113304.16209-1-amir73il@gmail.com>
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: Al Viro <viro@zeniv.linux.org.uk>, linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
 List-ID: <linux-unionfs@vger.kernel.org>
 
-I had another look at what it would take to reimplement shiftfs as a
-true bind mount.  It turns out we do have struct path threaded in
-almost enough places to make it work.  There really is only one API
-that needs updating and that's notify_change(), so the following patch
-fixes that and pulls do_truncate() along as well.  The updates are
-mostly smooth and pretty obvious because the path was actually already
-present, except for in overlayfs where trying to sort out what the path
-should be is somewhat of a nightmare.  If the overlayfs people could
-take a look and make sure I got it right, I'd be grateful.
+We can allocate maximum fh size and encode into it directly.
 
-I think this is the only needed change, but I've only just got a
-functional implementation of a uid/gid shifting bind mount, so there
-might be other places that need rethreading as I find deficiencies in
-the current implementation.  I'll send them along as additional patches
-if I find them
+Suggested-by: Al Viro <viro@zeniv.linux.org.uk>
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+---
+ fs/overlayfs/copy_up.c | 37 ++++++++++++++++---------------------
+ 1 file changed, 16 insertions(+), 21 deletions(-)
 
-James
+diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
+index 7f744a9541e5..6220642fe113 100644
+--- a/fs/overlayfs/copy_up.c
++++ b/fs/overlayfs/copy_up.c
+@@ -227,13 +227,17 @@ int ovl_set_attr(struct dentry *upperdentry, struct kstat *stat)
+ struct ovl_fh *ovl_encode_real_fh(struct dentry *real, bool is_upper)
+ {
+ 	struct ovl_fh *fh;
+-	int fh_type, fh_len, dwords;
+-	void *buf;
++	int fh_type, dwords;
+ 	int buflen = MAX_HANDLE_SZ;
+ 	uuid_t *uuid = &real->d_sb->s_uuid;
++	int err;
+ 
+-	buf = kmalloc(buflen, GFP_KERNEL);
+-	if (!buf)
++	/* Make sure the real fid stays 32bit aligned */
++	BUILD_BUG_ON(OVL_FH_FID_OFFSET % 4);
++	BUILD_BUG_ON(MAX_HANDLE_SZ + OVL_FH_FID_OFFSET > 255);
++
++	fh = kzalloc(buflen + OVL_FH_FID_OFFSET, GFP_KERNEL);
++	if (!fh)
+ 		return ERR_PTR(-ENOMEM);
+ 
+ 	/*
+@@ -242,24 +246,14 @@ struct ovl_fh *ovl_encode_real_fh(struct dentry *real, bool is_upper)
+ 	 * the price or reconnecting the dentry.
+ 	 */
+ 	dwords = buflen >> 2;
+-	fh_type = exportfs_encode_fh(real, buf, &dwords, 0);
++	fh_type = exportfs_encode_fh(real, (void *)fh->fb.fid, &dwords, 0);
+ 	buflen = (dwords << 2);
+ 
+-	fh = ERR_PTR(-EIO);
++	err = -EIO;
+ 	if (WARN_ON(fh_type < 0) ||
+ 	    WARN_ON(buflen > MAX_HANDLE_SZ) ||
+ 	    WARN_ON(fh_type == FILEID_INVALID))
+-		goto out;
+-
+-	/* Make sure the real fid stays 32bit aligned */
+-	BUILD_BUG_ON(OVL_FH_FID_OFFSET % 4);
+-	BUILD_BUG_ON(MAX_HANDLE_SZ + OVL_FH_FID_OFFSET > 255);
+-	fh_len = OVL_FH_FID_OFFSET + buflen;
+-	fh = kzalloc(fh_len, GFP_KERNEL);
+-	if (!fh) {
+-		fh = ERR_PTR(-ENOMEM);
+-		goto out;
+-	}
++		goto out_err;
+ 
+ 	fh->fb.version = OVL_FH_VERSION;
+ 	fh->fb.magic = OVL_FH_MAGIC;
+@@ -273,13 +267,14 @@ struct ovl_fh *ovl_encode_real_fh(struct dentry *real, bool is_upper)
+ 	 */
+ 	if (is_upper)
+ 		fh->fb.flags |= OVL_FH_FLAG_PATH_UPPER;
+-	fh->fb.len = fh_len - OVL_FH_WIRE_OFFSET;
++	fh->fb.len = sizeof(fh->fb) + buflen;
+ 	fh->fb.uuid = *uuid;
+-	memcpy(fh->fb.fid, buf, buflen);
+ 
+-out:
+-	kfree(buf);
+ 	return fh;
++
++out_err:
++	kfree(fh);
++	return ERR_PTR(err);
+ }
+ 
+ int ovl_set_origin(struct dentry *dentry, struct dentry *lower,
+-- 
+2.17.1
