@@ -1,128 +1,162 @@
-Return-Path: <cgxu519@mykernel.net>
-Date: Tue, 05 Nov 2019 14:00:21 +0800
-From: Chengguang Xu <cgxu519@mykernel.net>
-Reply-To: cgxu519@mykernel.net
-Message-ID: <16e3a265656.134a9f8341853.6895214917865048335@mykernel.net>
-In-Reply-To: <CAOQ4uxjqMTFc-Fmpg3oGChy01X2JzQoG_jqxk5iEz+bR4yoQjg@mail.gmail.com>
-References: <20191029055713.28191-1-cgxu519@mykernel.net> <CAOQ4uxgzZHXOv7K++BArYmaTEHbYr5oCkgXw8WVUsQgh0uyqhg@mail.gmail.com>
- <16e173c434a.11f8ced8d40796.3954073574203284331@mykernel.net>
- <CAOQ4uxjddbot29=cYqLMLyqT=w=pWmLOPqVzvi-5mcXQ3AB3EQ@mail.gmail.com>
- <CAOQ4uxiZgmA6Z8Lq=ac7O9f1+CMnSmyLoAA7TDu6Hyt=-pUctw@mail.gmail.com> <16e1afc4097.118c98c8b43000.1263688409904269456@mykernel.net> <CAOQ4uxjqMTFc-Fmpg3oGChy01X2JzQoG_jqxk5iEz+bR4yoQjg@mail.gmail.com>
-Subject: Re: [PATCH] overlay/066: adjust test file size && add more test
- patterns
+Return-Path: <colin.king@canonical.com>
+Subject: Re: [PATCH v5] ovl: fix lookup failure on multi lower squashfs
+References: <20191114202841.6502-1-amir73il@gmail.com>
+From: Colin Ian King <colin.king@canonical.com>
+Message-ID: <be439b46-709b-11c0-c672-58ef37009f1b@canonical.com>
+Date: Sat, 16 Nov 2019 12:16:19 +0000
 MIME-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: fstests <fstests@vger.kernel.org>, overlayfs <linux-unionfs@vger.kernel.org>, Eryu Guan <guaneryu@gmail.com>, Miklos Szeredi <miklos@szeredi.hu>
+In-Reply-To: <20191114202841.6502-1-amir73il@gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+To: Amir Goldstein <amir73il@gmail.com>, Miklos Szeredi <miklos@szeredi.hu>
+Cc: linux-unionfs@vger.kernel.org
 List-ID: <linux-unionfs@vger.kernel.org>
 
- ---- =E5=9C=A8 =E6=98=9F=E6=9C=9F=E4=B8=89, 2019-10-30 13:33:59 Amir Golds=
-tein <amir73il@gmail.com> =E6=92=B0=E5=86=99 ----
- > On Wed, Oct 30, 2019 at 6:46 AM Chengguang Xu <cgxu519@mykernel.net> wro=
-te:
- > >
- > >  ---- =E5=9C=A8 =E6=98=9F=E6=9C=9F=E4=BA=8C, 2019-10-29 20:32:43 Amir =
-Goldstein <amir73il@gmail.com> =E6=92=B0=E5=86=99 ----
- > >  > On Tue, Oct 29, 2019 at 1:58 PM Amir Goldstein <amir73il@gmail.com>=
- wrote:
- > >  > >
- > >  > > On Tue, Oct 29, 2019 at 1:17 PM Chengguang Xu <cgxu519@mykernel.n=
-et> wrote:
- > >  > > >
- > >  > > >  ---- =E5=9C=A8 =E6=98=9F=E6=9C=9F=E4=BA=8C, 2019-10-29 16:32:3=
-2 Amir Goldstein <amir73il@gmail.com> =E6=92=B0=E5=86=99 ----
- > >  > > >  > On Tue, Oct 29, 2019 at 7:57 AM Chengguang Xu <cgxu519@myker=
-nel.net> wrote:
- > >  > > >  > >
- > >  > > >  >
- > >  > > >  > Can you please send the patch as plain/text.
- > >  > > >  > Your mailer has sent it with quoted printable encoding and g=
-it am
- > >  > > >  > fails to apply the patch:
- > >  > > >  > https://lore.kernel.org/fstests/20191029055713.28191-1-cgxu5=
-19@mykernel.net/raw
- > >  > > >  >
- > >  > > >
- > >  > > > Sorry for that,  I'm not clear for the reason, so I send you th=
-e patch in attachment first.
- > >  > > >
- > >  > >
- > >  >
- > >  > OK, I can verify that test runs quick (5s) on my VM.
- > >  >
- > >  > But there is one more issue that I think needs to be addressed, eit=
-her
- > >  > in this fix patch or in a follow up patch.
- > >  >
- > >  > If the test ever fails on some run with a specific random holes seq=
-uence,
- > >  > it is going to be quite hard for reporter to report this sequence o=
-r for
- > >  > developers to reproduce the same random sequence.
- > >
- > > IMO, it's not so hard as you thought,  I prefer to use filefrag to che=
-ck it.
- > >
- > > I think below tidy info is very clear and easy to understand what had =
-happened.
- > >
- > > [root@hades ovl-lower]# filefrag -k -e copyup_sparse_test_random_small=
-_holefile
- > > Filesystem type is: 58465342
- > > File size of copyup_sparse_test_random_small_holefile is 10485760 (102=
-40 blocks of 1024 bytes)
- > >  ext:     logical_offset:        physical_offset: length:   expected: =
-flags:
- > >    0:        4..     411:    2625148..   2625555:    408:          4:
- > >    1:      816..    1259:    2626172..   2626615:    444:    2625960:
- > >    2:     1696..    1783:    2627196..   2627283:     88:    2627052:
- > >    3:     1872..    2207:    2627372..   2627707:    336:
- > >    4:     2544..    3019:    2629244..   2629719:    476:    2628044:
- > >    5:     3496..    3599:    2629720..   2629823:    104:
- > >    6:     3704..    3819:    2629928..   2630043:    116:
- > >    7:     3936..    3959:    2630044..   2630067:     24:
- > >    8:     3980..    4487:    2631292..   2631799:    508:    2630088:
- > >    9:     4992..    5235:    2631800..   2632043:    244:
- > >   10:     5472..    5715:    2632044..   2632287:    244:
- > >   11:     5956..    6355:    2633340..   2633739:    400:    2632528:
- > >   12:     6752..    6787:    2633740..   2633775:     36:
- > >   13:     6820..    6907:    2633808..   2633895:     88:
- > >   14:     6996..    7447:    2633896..   2634347:    452:
- > >   15:     7900..    8211:    2637436..   2637747:    312:    2634800:
- > >   16:     8516..    8867:    2638052..   2638403:    352:
- > >   17:     9216..    9703:    2638752..   2639239:    488:             =
-last
- > > copyup_sparse_test_random_small_holefile: 7 extents found
- > >
- >=20
- > There is a difference between understanding what happened and
- > reproducing, but there is no reason to choose one method over
- > the other.
- >=20
- > As a developer, when I get a bug report I would rather have both
- > an easy reproducer and all the postmortem  information available.
- > Therefore, please echo xfs_io commands, at least for creation of
- > random files to full log AND filefrag info, at least for the random
- > files to full log.
- >=20
-=20
-Actually, xfs_io itself will leave detail information for write operation (=
-pos+write size)
-See below, IMO, it is almost no difference compare to echo xfs_io command.
-So I just added title for those write scenarios in v2.
-
----
-iosize=3D2048K hole test write scenarios --- (This is what I added in v2)
-
-wrote 2097152/2097152 bytes at offset 2097152
-2 MiB, 512 ops; 0.0007 sec (2.732 GiB/sec and 716083.9161 ops/sec)
-wrote 2097152/2097152 bytes at offset 6291456
-2 MiB, 512 ops; 0.0006 sec (2.889 GiB/sec and 757396.4497 ops/sec)
-wrote 2097152/2097152 bytes at offset 10485760
-2 MiB, 512 ops; 0.0007 sec (2.728 GiB/sec and 715083.7989 ops/sec)
-wrote 2097152/2097152 bytes at offset 14680064
-2 MiB, 512 ops; 0.0007 sec (2.778 GiB/sec and 728307.2546 ops/sec)
-
-Thanks,
-Chengguang
+On 14/11/2019 20:28, Amir Goldstein wrote:
+> In the past, overlayfs required that lower fs have non null uuid in
+> order to support nfs export and decode copy up origin file handles.
+> 
+> Commit 9df085f3c9a2 ("ovl: relax requirement for non null uuid of
+> lower fs") relaxed this requirement for nfs export support, as long
+> as uuid (even if null) is unique among all lower fs.
+> 
+> However, said commit unintentionally also relaxed the non null uuid
+> requirement for decoding copy up origin file handles, regardless of
+> the unique uuid requirement.
+> 
+> Amend this mistake by disabling decoding of copy up origin file handle
+> from lower fs with a conflicting uuid.
+> 
+> We still encode copy up origin file handles from those fs, because
+> file handles like those already exist in the wild and because they
+> might provide useful information in the future.
+> 
+> There is an unhandled corner case described by Miklos this way:
+> - two filesystems, A and B, both have null uuid
+> - upper layer is on A
+> - lower layer 1 is also on A
+> - lower layer 2 is on B
+> 
+> In this case bad_uuid won't be set for B, because the check only
+> involves the list of lower fs.  Hence we'll try to decode a layer 2
+> origin on layer 1 and fail.
+> 
+> We will deal with this corner case later.
+> 
+> Reported-by: Colin Ian King <colin.king@canonical.com>
+> Tested-by: Colin Ian King <colin.king@canonical.com>
+> Link: https://lore.kernel.org/lkml/20191106234301.283006-1-colin.king@canonical.com/
+> Fixes: 9df085f3c9a2 ("ovl: relax requirement for non null uuid ...")
+> Cc: stable@vger.kernel.org # v4.20+
+> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+> ---
+> 
+> Changes since v4:
+> - Go back to "falling back to index=off,nfs_export=off" warning
+> - Mention remaining corner case in commit message
+> 
+>  fs/overlayfs/namei.c     |  8 ++++++++
+>  fs/overlayfs/ovl_entry.h |  2 ++
+>  fs/overlayfs/super.c     | 24 +++++++++++++++++-------
+>  3 files changed, 27 insertions(+), 7 deletions(-)
+> 
+> diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
+> index e9717c2f7d45..f47c591402d7 100644
+> --- a/fs/overlayfs/namei.c
+> +++ b/fs/overlayfs/namei.c
+> @@ -325,6 +325,14 @@ int ovl_check_origin_fh(struct ovl_fs *ofs, struct ovl_fh *fh, bool connected,
+>  	int i;
+>  
+>  	for (i = 0; i < ofs->numlower; i++) {
+> +		/*
+> +		 * If lower fs uuid is not unique among lower fs we cannot match
+> +		 * fh->uuid to layer.
+> +		 */
+> +		if (ofs->lower_layers[i].fsid &&
+> +		    ofs->lower_layers[i].fs->bad_uuid)
+> +			continue;
+> +
+>  		origin = ovl_decode_real_fh(fh, ofs->lower_layers[i].mnt,
+>  					    connected);
+>  		if (origin)
+> diff --git a/fs/overlayfs/ovl_entry.h b/fs/overlayfs/ovl_entry.h
+> index a8279280e88d..28348c44ea5b 100644
+> --- a/fs/overlayfs/ovl_entry.h
+> +++ b/fs/overlayfs/ovl_entry.h
+> @@ -22,6 +22,8 @@ struct ovl_config {
+>  struct ovl_sb {
+>  	struct super_block *sb;
+>  	dev_t pseudo_dev;
+> +	/* Unusable (conflicting) uuid */
+> +	bool bad_uuid;
+>  };
+>  
+>  struct ovl_layer {
+> diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+> index 4a6b7870ba8e..cfb236e37fd9 100644
+> --- a/fs/overlayfs/super.c
+> +++ b/fs/overlayfs/super.c
+> @@ -1255,7 +1255,7 @@ static bool ovl_lower_uuid_ok(struct ovl_fs *ofs, const uuid_t *uuid)
+>  {
+>  	unsigned int i;
+>  
+> -	if (!ofs->config.nfs_export && !(ofs->config.index && ofs->upper_mnt))
+> +	if (!ofs->config.nfs_export && !ofs->upper_mnt)
+>  		return true;
+>  
+>  	for (i = 0; i < ofs->numlowerfs; i++) {
+> @@ -1263,9 +1263,13 @@ static bool ovl_lower_uuid_ok(struct ovl_fs *ofs, const uuid_t *uuid)
+>  		 * We use uuid to associate an overlay lower file handle with a
+>  		 * lower layer, so we can accept lower fs with null uuid as long
+>  		 * as all lower layers with null uuid are on the same fs.
+> +		 * if we detect multiple lower fs with the same uuid, we
+> +		 * disable lower file handle decoding on all of them.
+>  		 */
+> -		if (uuid_equal(&ofs->lower_fs[i].sb->s_uuid, uuid))
+> +		if (uuid_equal(&ofs->lower_fs[i].sb->s_uuid, uuid)) {
+> +			ofs->lower_fs[i].bad_uuid = true;
+>  			return false;
+> +		}
+>  	}
+>  	return true;
+>  }
+> @@ -1277,6 +1281,7 @@ static int ovl_get_fsid(struct ovl_fs *ofs, const struct path *path)
+>  	unsigned int i;
+>  	dev_t dev;
+>  	int err;
+> +	bool bad_uuid = false;
+>  
+>  	/* fsid 0 is reserved for upper fs even with non upper overlay */
+>  	if (ofs->upper_mnt && ofs->upper_mnt->mnt_sb == sb)
+> @@ -1288,11 +1293,15 @@ static int ovl_get_fsid(struct ovl_fs *ofs, const struct path *path)
+>  	}
+>  
+>  	if (!ovl_lower_uuid_ok(ofs, &sb->s_uuid)) {
+> -		ofs->config.index = false;
+> -		ofs->config.nfs_export = false;
+> -		pr_warn("overlayfs: %s uuid detected in lower fs '%pd2', falling back to index=off,nfs_export=off.\n",
+> -			uuid_is_null(&sb->s_uuid) ? "null" : "conflicting",
+> -			path->dentry);
+> +		bad_uuid = true;
+> +		if (ofs->config.index || ofs->config.nfs_export) {
+> +			ofs->config.index = false;
+> +			ofs->config.nfs_export = false;
+> +			pr_warn("overlayfs: %s uuid detected in lower fs '%pd2', falling back to index=off,nfs_export=off.\n",
+> +				uuid_is_null(&sb->s_uuid) ? "null" :
+> +							    "conflicting",
+> +				path->dentry);
+> +		}
+>  	}
+>  
+>  	err = get_anon_bdev(&dev);
+> @@ -1303,6 +1312,7 @@ static int ovl_get_fsid(struct ovl_fs *ofs, const struct path *path)
+>  
+>  	ofs->lower_fs[ofs->numlowerfs].sb = sb;
+>  	ofs->lower_fs[ofs->numlowerfs].pseudo_dev = dev;
+> +	ofs->lower_fs[ofs->numlowerfs].bad_uuid = bad_uuid;
+>  	ofs->numlowerfs++;
+>  
+>  	return ofs->numlowerfs;
+> 
+Looks good to me. Thanks Amir.
