@@ -1,229 +1,91 @@
-Return-Path: <cgxu519@mykernel.net>
-From: Chengguang Xu <cgxu519@mykernel.net>
-Message-ID: <20191107025941.24605-1-cgxu519@mykernel.net>
-Subject: [PATCH v4] overlay/066: adjust test file size && add more test patterns
-Date: Thu,  7 Nov 2019 10:59:41 +0800
-MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset=utf8
-To: fstests@vger.kernel.org, linux-unionfs@vger.kernel.org
-Cc: guaneryu@gmail.com, amir73il@gmail.com, miklos@szeredi.hu, Chengguang Xu <cgxu519@mykernel.net>
+Return-Path: <amir73il@gmail.com>
+Return-Path: <amir73il@gmail.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Subject: [PATCH 5/6] ovl: fix corner case of conflicting lower layer uuid
+Date: Sun, 17 Nov 2019 17:43:48 +0200
+Message-Id: <20191117154349.28695-6-amir73il@gmail.com>
+In-Reply-To: <20191117154349.28695-1-amir73il@gmail.com>
+References: <20191117154349.28695-1-amir73il@gmail.com>
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: Colin Ian King <colin.king@canonical.com>, linux-unionfs@vger.kernel.org
 List-ID: <linux-unionfs@vger.kernel.org>
 
-Making many small holes in 10M test file seems not very
-helpful for test coverage and it takes too much time on
-creating test files. In order to improve test speed we
-adjust test file size to (10 * iosize) for iosize aligned
-hole files and meanwhile add more test patterns for small
-random holes and small empty file.
+This fixes ovl_lower_uuid_ok() to correctly detect the corner case:
+- two filesystems, A and B, both have null uuid
+- upper layer is on A
+- lower layer 1 is also on A
+- lower layer 2 is on B
 
-Reviewed-by: Amir Goldstein <amir73il@gmail.com>
-Signed-off-by: Chengguang Xu <cgxu519@mykernel.net>
+In this case, bad_uuid would not have been set for B, because the check
+only involved the list of lower fs.  Hence we'll try to decode a layer 2
+origin on layer 1 and fail.
+
+We check for conflicting (and null) uuid among all lower layers,
+including those layers that are on the same fs as the upper layer.
+
+Reported-by: Miklos Szeredi <mszeredi@redhat.com>
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
-v1->v2:
-- Check result in one diff command.
-- Print more information(file layout) to full log when test failed.
-- Truncate test file name.
+ fs/overlayfs/ovl_entry.h | 2 ++
+ fs/overlayfs/super.c     | 8 ++++++--
+ 2 files changed, 8 insertions(+), 2 deletions(-)
 
-v2->v3:
-- Print diff result to golden output.
-- Record xfs_io command to full log.
-- Set initial pos and max_pos using calculation for random hole file.
-
-v3->v4:
-- Fix var name typo(max_hole -> max_pos).
-
- tests/overlay/066 | 120 ++++++++++++++++++++++++++++++++--------------
- 1 file changed, 83 insertions(+), 37 deletions(-)
-
-diff --git a/tests/overlay/066 b/tests/overlay/066
-index 285a5aff..deeec74f 100755
---- a/tests/overlay/066
-+++ b/tests/overlay/066
-@@ -40,90 +40,136 @@ _require_scratch
- # Remove all files from previous tests
- _scratch_mkfs
-=20
--# We have totally 14 test files in this test.
-+# We have totally 16 test files in this test.
- # The detail as below:
--# 1 empty file(10M) + 2^0(K)..2^11(K) hole size files(each 10M) + 1 random=
- hole size file(100M).
-+# 1 small empty file 4K
-+# 1 big empty file 4M
-+# 1 small random hole file 10M
-+# 1 big random hole file 100M
-+#
-+# 12 files with variant iosize aligned holes.
-+# 2^0(K)..2^11(K) hole size files(file size =3D 10 * iosize)
- #
- # Considering both upper and lower fs will fill zero when copy-up
- # hole area in the file, this test at least requires double disk
- # space of the sum of above test files' size.
-=20
--_require_fs_space $OVL_BASE_SCRATCH_MNT $(((10*1024*13 + 100*1024*1) * 2))
-+_require_fs_space $OVL_BASE_SCRATCH_MNT $((((4) + (4096) + (10 * 1024) \
-+=09=09 + (100 * 1024) + (10 * (1 + 2048) * 12 / 2)) * 2))
-+
-+do_cmd()
-+{
-+=09echo $@ >>$seqres.full
-+=09eval $@ >>$seqres.full
-+}
-=20
- lowerdir=3D$OVL_BASE_SCRATCH_MNT/$OVL_LOWER
- upperdir=3D$OVL_BASE_SCRATCH_MNT/$OVL_UPPER
- testfile=3D"copyup_sparse_test"
-=20
--# Create a completely empty hole file(10M).
--file_size=3D10240
--$XFS_IO_PROG -fc "truncate ${file_size}K" "${lowerdir}/${testfile}_empty_h=
-olefile" \
--=09=09 >>$seqres.full
-+# Create a small completely empty hole file(4K).
-+file_size=3D4
-+do_cmd $XFS_IO_PROG -fc "\"truncate ${file_size}K\"" \
-+=09=09=09"${lowerdir}/${testfile}_empty_small"
-=20
--# Create 2^0(K)..2^11(K) hole size test files(each 10M).
-+# Create a big completely empty hole file(4M).
-+file_size=3D4096
-+do_cmd $XFS_IO_PROG -fc "\"truncate ${file_size}K\"" \
-+=09=09=09"${lowerdir}/${testfile}_empty_big"
-+
-+# Create 2^0(K)..2^11(K) hole size test files(file size =3D 10 * iosize).
- #
- # The pattern is like below, both hole and data are equal to
- # iosize except last hole.
- #
- # |-- hole --|-- data --| ... |-- data --|-- hole --|
-=20
--iosize=3D1
-+min_iosize=3D1
- max_iosize=3D2048
--file_size=3D10240
--max_pos=3D`expr $file_size - $max_iosize`
-+iosize=3D$min_iosize
-=20
- while [ $iosize -le $max_iosize ]; do
-+=09file_size=3D$(($iosize * 10))
-+=09max_pos=3D$(($file_size - $iosize))
- =09pos=3D$iosize
--=09$XFS_IO_PROG -fc "truncate ${file_size}K" \
--=09=09"${lowerdir}/${testfile}_iosize${iosize}K_holefile" >>$seqres.full
-+=09do_cmd $XFS_IO_PROG -fc "\"truncate ${file_size}K\"" \
-+=09=09=09=09"${lowerdir}/${testfile}_iosize${iosize}K"
-+=09echo -e "\niosize=3D${iosize}K hole test write scenarios ---\n" >>$seqr=
-es.full
- =09while [ $pos -lt $max_pos ]; do
--=09=09$XFS_IO_PROG -fc "pwrite ${pos}K ${iosize}K" \
--=09=09"${lowerdir}/${testfile}_iosize${iosize}K_holefile" >>$seqres.full
--=09=09pos=3D`expr $pos + $iosize + $iosize`
-+=09=09do_cmd $XFS_IO_PROG -fc "\"pwrite ${pos}K ${iosize}K\"" \
-+=09=09=09=09=09"${lowerdir}/${testfile}_iosize${iosize}K"
-+=09=09pos=3D$(($pos + $iosize * 2))
- =09done
--=09iosize=3D`expr $iosize + $iosize`
-+=09iosize=3D$(($iosize * 2))
-+done
-+echo >>$seqres.full
-+
-+# Create test file with many random small holes(hole size is between 4K an=
-d 512K),
-+# total file size is 10M.
-+
-+file_size=3D10240
-+min_hole=3D4
-+max_hole=3D512
-+pos=3D$min_hole
-+max_pos=3D$(($file_size - 2*$max_hole))
-+
-+do_cmd $XFS_IO_PROG -fc "\"truncate ${file_size}K\"" \
-+=09=09=09"${lowerdir}/${testfile}_random_small"
-+
-+echo -e "\nSmall random hole test write scenarios ---\n" >>$seqres.full
-+while [ $pos -le $max_pos ]; do
-+=09iosize=3D$(($RANDOM % ($max_hole - $min_hole) + $min_hole))
-+=09do_cmd $XFS_IO_PROG -fc "\"pwrite ${pos}K ${iosize}K\"" \
-+=09=09"${lowerdir}/${testfile}_random_small"
-+=09pos=3D$(($pos + $iosize * 2))
- done
-+echo >>$seqres.full
-+
-=20
- # Create test file with many random holes(hole size is between 1M and 5M),
- # total file size is 100M.
-=20
--pos=3D2048
--max_pos=3D81920
- file_size=3D102400
- min_hole=3D1024
- max_hole=3D5120
-+pos=3D$min_hole
-+max_pos=3D$(($file_size - 2*$max_hole))
-=20
--$XFS_IO_PROG -fc "truncate ${file_size}K" "${lowerdir}/${testfile}_random_=
-holefile" \
--=09=09>>$seqres.full
-+do_cmd $XFS_IO_PROG -fc "\"truncate ${file_size}K\"" \
-+=09=09=09"${lowerdir}/${testfile}_random_big"
-=20
-+echo -e "\nBig random hole test write scenarios ---\n" >>$seqres.full
- while [ $pos -le $max_pos ]; do
- =09iosize=3D$(($RANDOM % ($max_hole - $min_hole) + $min_hole))
--=09$XFS_IO_PROG -fc "pwrite ${pos}K ${iosize}K" \
--=09=09"${lowerdir}/${testfile}_random_holefile" >>$seqres.full
--=09pos=3D`expr $pos + $iosize + $iosize`
-+=09do_cmd $XFS_IO_PROG -fc "\"pwrite ${pos}K ${iosize}K\"" \
-+=09=09=09=09"${lowerdir}/${testfile}_random_big"
-+=09pos=3D$(($pos + $iosize * 2))
- done
-+echo >>$seqres.full
-=20
- _scratch_mount
-=20
- # Open the test files, no errors are expected.
-+echo -e "\nDoing copy-up...\n" >>$seqres.full
- for f in $SCRATCH_MNT/*; do
--=09$XFS_IO_PROG -c "open" $f >>$seqres.full
-+=09do_cmd $XFS_IO_PROG -c "open" $f
- done
-=20
- echo "Silence is golden"
-=20
- # Check all copy-up files in upper layer.
--iosize=3D1
--while [ $iosize -le 2048 ]; do
--=09diff "${lowerdir}/${testfile}_iosize${iosize}K_holefile" \
--=09=09"${upperdir}/${testfile}_iosize${iosize}K_holefile" >>$seqres.full |=
-|\
--=09=09echo "${upperdir}/${testfile}_iosize${iosize}K_holefile" copy up fai=
-led!
--=09iosize=3D`expr $iosize + $iosize`
--done
--
--diff "${lowerdir}/${testfile}_empty_holefile"  "${upperdir}/${testfile}_em=
-pty_holefile"  \
--=09>>$seqres.full || echo "${upperdir}/${testfile}_empty_holefile" copy up=
- failed!
--diff "${lowerdir}/${testfile}_random_holefile" "${upperdir}/${testfile}_ra=
-ndom_holefile" \
--=09>>$seqres.full || echo "${upperdir}/${testfile}_random_holefile" copy u=
-p failed!
-+diff -qr ${upperdir} ${lowerdir} | tee -a $seqres.full
-+if [ $? -ne 0 ]; then
-+=09echo "Copy-up failed!!!"
-+
-+=09echo "\n----------------------------------------" >>$seqres.full
-+=09echo -e "The layout of files in lowerdir\n" >>$seqres.full
-+=09do_cmd $FILEFRAG_PROG -k -e $lowerdir/*
-+=09echo "\n----------------------------------------" >>$seqres.full
-+=09echo -e "The layer of files in upperdir\n" >>$seqres.full
-+=09do_cmd $FILEFRAG_PROG -k -e $upperdir/*
-+
-+fi
-=20
- # success, all done
- status=3D0
---=20
-2.20.1
+diff --git a/fs/overlayfs/ovl_entry.h b/fs/overlayfs/ovl_entry.h
+index 93e9fd5fba9d..6c04b6a4e6bf 100644
+--- a/fs/overlayfs/ovl_entry.h
++++ b/fs/overlayfs/ovl_entry.h
+@@ -24,6 +24,8 @@ struct ovl_sb {
+ 	dev_t pseudo_dev;
+ 	/* Unusable (conflicting) uuid */
+ 	bool bad_uuid;
++	/* Used as a lower layer (but maybe also as upper) */
++	bool is_lower;
+ };
+ 
+ struct ovl_layer {
+diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+index 09e53780d9bc..e80f79bb8a4e 100644
+--- a/fs/overlayfs/super.c
++++ b/fs/overlayfs/super.c
+@@ -1256,7 +1256,7 @@ static bool ovl_lower_uuid_ok(struct ovl_fs *ofs, const uuid_t *uuid)
+ 	if (!ofs->config.nfs_export && !ofs->upper_mnt)
+ 		return true;
+ 
+-	for (i = 1; i <= ofs->maxfsid; i++) {
++	for (i = 0; i <= ofs->maxfsid; i++) {
+ 		/*
+ 		 * We use uuid to associate an overlay lower file handle with a
+ 		 * lower layer, so we can accept lower fs with null uuid as long
+@@ -1264,7 +1264,8 @@ static bool ovl_lower_uuid_ok(struct ovl_fs *ofs, const uuid_t *uuid)
+ 		 * if we detect multiple lower fs with the same uuid, we
+ 		 * disable lower file handle decoding on all of them.
+ 		 */
+-		if (uuid_equal(&ofs->fs[i].sb->s_uuid, uuid)) {
++		if (ofs->fs[i].is_lower &&
++		    uuid_equal(&ofs->fs[i].sb->s_uuid, uuid)) {
+ 			ofs->fs[i].bad_uuid = true;
+ 			return false;
+ 		}
+@@ -1336,10 +1337,12 @@ static int ovl_get_layers(struct super_block *sb, struct ovl_fs *ofs,
+ 	/*
+ 	 * All lower layers that share the same fs as upper layer, use the real
+ 	 * upper st_dev.
++	 * is_lower will be set if upper fs is shared with a lower layer.
+ 	 */
+ 	if (ofs->upper_mnt) {
+ 		ofs->fs[0].sb = ofs->upper_mnt->mnt_sb;
+ 		ofs->fs[0].pseudo_dev = ofs->upper_mnt->mnt_sb->s_dev;
++		ofs->fs[0].is_lower = false;
+ 	}
+ 
+ 	for (i = 0; i < numlower; i++) {
+@@ -1381,6 +1384,7 @@ static int ovl_get_layers(struct super_block *sb, struct ovl_fs *ofs,
+ 		ofs->layers[ofs->numlower].idx = ofs->numlower;
+ 		ofs->layers[ofs->numlower].fsid = fsid;
+ 		ofs->layers[ofs->numlower].fs = &ofs->fs[fsid];
++		ofs->fs[fsid].is_lower = true;
+ 	}
+ 
+ 	/*
+-- 
+2.17.1
