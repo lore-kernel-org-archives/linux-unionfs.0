@@ -1,25 +1,64 @@
-Return-Path: <jiufei.xue@linux.alibaba.com>
-From: Jiufei Xue <jiufei.xue@linux.alibaba.com>
-Subject: [PATCH 0/2] ovl: implement async IO routines 
-Date: Tue, 19 Nov 2019 10:14:01 +0800
-Message-Id: <1574129643-14664-1-git-send-email-jiufei.xue@linux.alibaba.com>
-To: miklos@szeredi.hu, amir73il@gmail.com
-Cc: linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
+Return-Path: <amir73il@gmail.com>
+Return-Path: <amir73il@gmail.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Subject: [PATCH 1/6] ovl: fix corner case of non-unique st_dev;st_ino
+Date: Sun, 17 Nov 2019 17:43:44 +0200
+Message-Id: <20191117154349.28695-2-amir73il@gmail.com>
+In-Reply-To: <20191117154349.28695-1-amir73il@gmail.com>
+References: <20191117154349.28695-1-amir73il@gmail.com>
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: Colin Ian King <colin.king@canonical.com>, linux-unionfs@vger.kernel.org
 List-ID: <linux-unionfs@vger.kernel.org>
 
-ovl stacks regular file operations now. However it doesn't implement
-async IO routines and will convert async IOs to sync IOs which is not
-expected.
+On non-samefs overlay without xino, non pure upper inodes should use a
+pseudo_dev assigned to each unique lower fs and pure upper inodes use
+the real upper st_dev.
 
-This patchset implements overlayfs async IO routines.
+It is fine for an overlay pure upper inode to use the same st_dev;st_ino
+values as the real upper inode, because the content of those two
+different filesystem objects is always the same.
 
-Jiufei Xue (2)
-vfs: add vfs_iocb_iter_[read|write] helper functions
-ovl: implement async IO routines
+In this case, however:
+- two filesystems, A and B
+- upper layer is on A
+- lower layer 1 is also on A
+- lower layer 2 is on B
 
- fs/overlayfs/file.c      |   97 ++++++-----------------------------------------
- fs/overlayfs/overlayfs.h |    2
- fs/overlayfs/super.c     |   12 -----
- fs/read_write.c          |   58 ----------------------------
- include/linux/fs.h       |   16 -------
- 5 files changed, 16 insertions(+), 169 deletions(-)
+Non pure upper overlay inode, whose origin is in layer 1 will have the
+same st_dev;st_ino values as the real lower inode. This may result with
+a false positive results of 'diff' between the real lower and copied up
+overlay inode.
+
+Fix this by using the upper st_dev;st_ino values in this case.
+This breaks the property of constant st_dev;st_ino across copy up
+of this case. This breakage will be fixed by a later patch.
+
+Fixes: 5148626b806a ("ovl: allocate anon bdev per unique lower fs")
+Cc: stable@vger.kernel.org # v4.17+
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+---
+ fs/overlayfs/inode.c | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
+
+diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
+index bc14781886bf..b045cf1826fc 100644
+--- a/fs/overlayfs/inode.c
++++ b/fs/overlayfs/inode.c
+@@ -200,8 +200,14 @@ int ovl_getattr(const struct path *path, struct kstat *stat,
+ 			if (ovl_test_flag(OVL_INDEX, d_inode(dentry)) ||
+ 			    (!ovl_verify_lower(dentry->d_sb) &&
+ 			     (is_dir || lowerstat.nlink == 1))) {
+-				stat->ino = lowerstat.ino;
+ 				lower_layer = ovl_layer_lower(dentry);
++				/*
++				 * Cannot use origin st_dev;st_ino because
++				 * origin inode content may differ from overlay
++				 * inode content.
++				 */
++				if (samefs || lower_layer->fsid)
++					stat->ino = lowerstat.ino;
+ 			}
+ 
+ 			/*
+-- 
+2.17.1
