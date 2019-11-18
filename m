@@ -1,59 +1,35 @@
-From: Miklos Szeredi <miklos@szeredi.hu>
-Subject: Re: [PATCH][V4] ovl: fix lookup failure on multi lower squashfs
-Date: Thu, 14 Nov 2019 16:37:17 +0100
-Message-ID: <CAJfpegufS=OGcvFbWEVumNSCPO_JXyEuJNAbmO5ubscSarVtRQ@mail.gmail.com>
-References: <20191113200651.114606-1-colin.king@canonical.com>
- <CAJfpegug-saOEigqDNKfwMR5qdzrbLnRBD=0eN5juGioFH_L_Q@mail.gmail.com> <CAOQ4uxgf5KAq7VoHVNVUD9QtA7Y++-_TdwOe6=icHLgJvyrg1A@mail.gmail.com>
+From: syzbot <syzbot+a55ccfc8a853d3cff213@syzkaller.appspotmail.com>
+Subject: Re: possible deadlock in path_openat
+Date: Sun, 17 Nov 2019 18:14:01 -0800
+Message-ID: <00000000000042f41905979580cc@google.com>
+References: <00000000000044cbf80576baaecd@google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="UTF-8"; format=flowed; delsp=yes
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAOQ4uxgf5KAq7VoHVNVUD9QtA7Y++-_TdwOe6=icHLgJvyrg1A@mail.gmail.com>
+In-Reply-To: <00000000000044cbf80576baaecd@google.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: Colin King <colin.king@canonical.com>, Miklos Szeredi <mszeredi@redhat.com>, overlayfs <linux-unionfs@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>
+To: amir73il@gmail.com, ast@kernel.org, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, linux-unionfs@vger.kernel.org, miklos@szeredi.hu, syzkaller-bugs@googlegroups.com, viro@zeniv.linux.org.uk
 List-Id: linux-unionfs@vger.kernel.org
 
-On Thu, Nov 14, 2019 at 3:43 PM Amir Goldstein <amir73il@gmail.com> wrote:
->
-> On Thu, Nov 14, 2019 at 12:30 PM Miklos Szeredi <miklos@szeredi.hu> wrote:
-> >
-> > On Wed, Nov 13, 2019 at 9:06 PM Colin King <colin.king@canonical.com> wrote:
-> > >
-> > > From: Amir Goldstein <amir73il@gmail.com>
-> > >
-> > > In the past, overlayfs required that lower fs have non null
-> > > uuid in order to support nfs export and decode copy up origin file handles.
-> > >
-> > > Commit 9df085f3c9a2 ("ovl: relax requirement for non null uuid of
-> > > lower fs") relaxed this requirement for nfs export support, as long
-> > > as uuid (even if null) is unique among all lower fs.
-> >
-> > I see another corner case:
-> >
-> > n- two filesystems, A and B, both have null uuid
-> >  - upper layer is on A
-> >  - lower layer 1 is also on A
-> >  - lower layer 2 is on B
-> >
-> > In this case bad_uuid won't be set for B, because the check only
-> > involves the list of lower fs.  Hence we'll try to decode a layer 2
-> > origin on layer 1 and fail.
->
-> Right.
->
-> >
-> > Can we fix this without special casing lower layer fsid == 0 in
-> > various places?  I guess that involves using lower_fs[0] for the
-> > fsid=0 case (i.e. index lower_fs by fsid, rather than (fsid -1)).
-> > Probably warrants a separate patch.
-> >
->
-> I guess we should.
-> I do hate that special casing.
-> I can work of that, but would you like to hold back this patch now?
-> Or just fix that corner case later?
+syzbot has bisected this bug to:
 
-Okay, let's fix the main case first, then the corner case...
+commit 8e54cadab447dae779f80f79c87cbeaea9594f60
+Author: Al Viro <viro@zeniv.linux.org.uk>
+Date:   Sun Nov 27 01:05:42 2016 +0000
 
-Thanks,
-Miklos
+     fix default_file_splice_read()
+
+bisection log:  https://syzkaller.appspot.com/x/bisect.txt?x=108f4416e00000
+start commit:   6d906f99 Merge tag 'arm64-fixes' of git://git.kernel.org/p..
+git tree:       upstream
+final crash:    https://syzkaller.appspot.com/x/report.txt?x=128f4416e00000
+console output: https://syzkaller.appspot.com/x/log.txt?x=148f4416e00000
+kernel config:  https://syzkaller.appspot.com/x/.config?x=856fc6d0fbbeede9
+dashboard link: https://syzkaller.appspot.com/bug?extid=a55ccfc8a853d3cff213
+syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=101767b7200000
+C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=13c15013200000
+
+Reported-by: syzbot+a55ccfc8a853d3cff213@syzkaller.appspotmail.com
+Fixes: 8e54cadab447 ("fix default_file_splice_read()")
+
+For information about bisection process see: https://goo.gl/tpsmEJ#bisection
