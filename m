@@ -1,38 +1,115 @@
-Return-Path: <cgxu519@mykernel.net>
-Date: Sun, 03 Nov 2019 20:43:37 +0800
-From: Chengguang Xu <cgxu519@mykernel.net>
-Reply-To: cgxu519@mykernel.net
-Message-ID: <16e314ad3bc.f4c363d96385.3761437052169638038@mykernel.net>
-In-Reply-To: <CAOQ4uxhdSXAvFQfhzZpBC=Xmmo9y+3AOU1o-tOWsLtr2ntU6Ag@mail.gmail.com>
-References: <20191030124431.11242-1-cgxu519@mykernel.net> <CAOQ4uxh670WFhwpQyPFTB2nUCSc9n1VmuyPOfdqiBSsq6GxLpQ@mail.gmail.com>
- <16e204de70e.cefd69461771.2205150443916624303@mykernel.net> <CAOQ4uxhdSXAvFQfhzZpBC=Xmmo9y+3AOU1o-tOWsLtr2ntU6Ag@mail.gmail.com>
-Subject: Re: [PATCH v2] ovl: improving copy-up efficiency for big sparse
- file
+Return-Path: <jiufei.xue@linux.alibaba.com>
+Subject: Re: [PATCH 1/2] vfs: add vfs_iocb_iter_[read|write] helper functions
+References: <1574129643-14664-1-git-send-email-jiufei.xue@linux.alibaba.com>
+ <1574129643-14664-2-git-send-email-jiufei.xue@linux.alibaba.com>
+ <CAOQ4uxgZZ=noynAZWmiuJupdqsfPw1AkG3TJc+JBk6fAv7ofOA@mail.gmail.com>
+From: Jiufei Xue <jiufei.xue@linux.alibaba.com>
+Message-ID: <f22addae-7fb5-4f3d-28eb-c738597053cb@linux.alibaba.com>
+Date: Tue, 19 Nov 2019 16:40:35 +0800
 MIME-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+In-Reply-To: <CAOQ4uxgZZ=noynAZWmiuJupdqsfPw1AkG3TJc+JBk6fAv7ofOA@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 8bit
 To: Amir Goldstein <amir73il@gmail.com>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, overlayfs <linux-unionfs@vger.kernel.org>, Vivek Goyal <vgoyal@redhat.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, overlayfs <linux-unionfs@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>
 List-ID: <linux-unionfs@vger.kernel.org>
 
- ---- =E5=9C=A8 =E6=98=9F=E6=9C=9F=E5=9B=9B, 2019-10-31 14:53:15 Amir Golds=
-tein <amir73il@gmail.com> =E6=92=B0=E5=86=99 ----
- > >  > Yes, overlayfs does not comply with this "posix"' test.
- > >  > This is why it was removed from the auto and quick groups.
- > >
- > > So I'm curious what is the purpose for the test?
- > >
- >=20
- > This is a POSIX compliance test.
- > It is meant to "remind" us that this behavior is not POSIX compliant
- > and that we should fix it one day...
- > A bit controversial to have a test like this without a roadmap
- > when it is going to be fixed in xfstests, but it's there.
 
-I haven't checked carefully for the detail but It seems  feasible if we cop=
-y-up lower file  during mmap regardless of ro/rw mode.
-Is it acceptable  by slightly changing copy-up assumption to fulfill POSIX =
-compliance? Or we just wait for a better solution?
+Hi Amir,
+On 2019/11/19 上午11:14, Amir Goldstein wrote:
+> On Tue, Nov 19, 2019 at 4:14 AM Jiufei Xue <jiufei.xue@linux.alibaba.com> wrote:
+>>
+>> This isn't cause any behavior changes and will be used by overlay
+>> async IO implementation.
+>>
+>> Signed-off-by: Jiufei Xue <jiufei.xue@linux.alibaba.com>
+>> ---
+>>  fs/read_write.c    | 58 ++++++++++++++++++++++++++++++++++++++++++++++++++++++
+>>  include/linux/fs.h | 16 +++++++++++++++
+>>  2 files changed, 74 insertions(+)
+>>
+>> diff --git a/fs/read_write.c b/fs/read_write.c
+>> index 5bbf587..3dfbcec 100644
+>> --- a/fs/read_write.c
+>> +++ b/fs/read_write.c
+>> @@ -984,6 +984,64 @@ ssize_t vfs_iter_write(struct file *file, struct iov_iter *iter, loff_t *ppos,
+>>  }
+>>  EXPORT_SYMBOL(vfs_iter_write);
+>>
+>> +ssize_t vfs_iocb_iter_read(struct file *file, struct kiocb *iocb,
+>> +                          struct iov_iter *iter)
+>> +{
+>> +       ssize_t ret = 0;
+>> +       ssize_t tot_len;
+>> +
+>> +       if (!file->f_op->read_iter)
+>> +               return -EINVAL;
+>> +       if (!(file->f_mode & FMODE_READ))
+>> +               return -EBADF;
+>> +       if (!(file->f_mode & FMODE_CAN_READ))
+>> +               return -EINVAL;
+>> +
+>> +       tot_len = iov_iter_count(iter);
+>> +       if (!tot_len)
+>> +               return 0;
+>> +
+>> +       ret = rw_verify_area(READ, file, &iocb->ki_pos, tot_len);
+>> +       if (ret < 0)
+>> +               return ret;
+>> +
+>> +       ret = call_read_iter(file, iocb, iter);
+>> +       if (ret >= 0)
+>> +               fsnotify_access(file);
+>> +
+>> +       return ret;
+>> +}
+>> +EXPORT_SYMBOL(vfs_iocb_iter_read);
+>> +
+>> +ssize_t vfs_iocb_iter_write(struct file *file, struct kiocb *iocb,
+>> +                           struct iov_iter *iter)
+>> +{
+>> +       ssize_t ret = 0;
+>> +       ssize_t tot_len;
+>> +
+>> +       if (!file->f_op->write_iter)
+>> +               return -EINVAL;
+>> +       if (!(file->f_mode & FMODE_WRITE))
+>> +               return -EBADF;
+>> +       if (!(file->f_mode & FMODE_CAN_WRITE))
+>> +               return -EINVAL;
+>> +
+>> +       tot_len = iov_iter_count(iter);
+>> +       if (!tot_len)
+>> +               return 0;
+>> +
+>> +       ret = rw_verify_area(WRITE, file, &iocb->ki_pos, tot_len);
+>> +       if (ret < 0)
+>> +               return ret;
+>> +
+>> +       ret = call_write_iter(file, iocb, iter);
+>> +       if (ret >= 0)
+>> +               fsnotify_modify(file);
+>> +
+>> +       return ret;
+>> +}
+>> +EXPORT_SYMBOL(vfs_iocb_iter_write);
+>> +
+> 
+> If it was up to me, I would pass down an optional iocb pointer
+> to the do_iter_XXX static helpers, instead of duplicating the code.
+> Others may find your approach cleaner, so let's see what other
+> people think.
+>
+
+Thanks for your review. I have considered your suggestion and
+still think that adding new helpers are more clearly.
+
+Let's wait for other people's opinions.
 
 Thanks,
-Chengguang
+Jiufei
+
+> Thanks,
+> Amir.
+> 
