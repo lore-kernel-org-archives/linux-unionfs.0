@@ -1,125 +1,54 @@
-Return-Path: <jiufei.xue@linux.alibaba.com>
-From: Jiufei Xue <jiufei.xue@linux.alibaba.com>
-Subject: [PATCH 1/2] vfs: add vfs_iocb_iter_[read|write] helper functions
-Date: Wed, 20 Nov 2019 17:45:25 +0800
-Message-Id: <1574243126-59283-2-git-send-email-jiufei.xue@linux.alibaba.com>
-In-Reply-To: <1574243126-59283-1-git-send-email-jiufei.xue@linux.alibaba.com>
-References: <1574243126-59283-1-git-send-email-jiufei.xue@linux.alibaba.com>
-To: miklos@szeredi.hu, amir73il@gmail.com
-Cc: linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
+Return-Path: <amir73il@gmail.com>
+MIME-Version: 1.0
+References: <1574129643-14664-1-git-send-email-jiufei.xue@linux.alibaba.com>
+ <1574129643-14664-3-git-send-email-jiufei.xue@linux.alibaba.com>
+ <CAOQ4uxhU0NGqX-P4XTJ+kf6sXNCnUCBxgp1u2-aDV5p15Jh+tg@mail.gmail.com>
+ <142a7524-2587-7b1c-c5e0-3eb2d42b2762@linux.alibaba.com> <CAOQ4uxgR3KO9kXGdqif0A-QBrVLn9id2eFANMDprCz62jSAmaQ@mail.gmail.com>
+ <e88b8262-c475-f969-ef65-d888aee20e20@linux.alibaba.com>
+In-Reply-To: <e88b8262-c475-f969-ef65-d888aee20e20@linux.alibaba.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Date: Tue, 19 Nov 2019 14:50:31 +0200
+Message-ID: <CAOQ4uxiNxgVkAH_uG7tABFP7_X9EWQxcC2A00dkXTPJzToXhvA@mail.gmail.com>
+Subject: Re: [PATCH 2/2] ovl: implement async IO routines
+Content-Type: text/plain; charset="UTF-8"
+To: Jiufei Xue <jiufei.xue@linux.alibaba.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, overlayfs <linux-unionfs@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-This isn't cause any behavior changes and will be used by overlay
-async IO implementation.
+> >>
+> >> Refer to function generic_file_read_iter(), in direct IO path,
+> >> file_accessed() is done before IO submission, so I think ovl_file_accessed()
+> >> should be done here no matter completion/error or IO is queued.
+> >
+> > Mmm, it doesn't matter much if atime is updated before or after,
+> > but ovl_file_accessed() does not only update atime, it also copies
+> > ctime which could have been modified as a result of the io, so
+> > I think it is safer to put it in the cleanup hook.
+> >
+>
+> Can you give a more detailed description that a read op will modify
+> ctime as a result of the io?
+>
+> I found that it will trigger BUG_ON(irqs_disabled()) while
+> calling ovl_file_accessed() on async IO return path. The calltrace
+> is pasted below:
+>
+> ovl_file_accessed
+>   -> touch_atime
+>     -> ovl_update_time
+>       -> generic_update_time
+>         -> __mark_inode_dirty
+>           -> ext4_dirty_inode
+>             -> __ext4_get_inode_loc
+>               -> __find_get_block
+>                 -> lookup_bh_lru
+>                    -> check_irqs_on
+>
+> So I need more detail to find how to fix this issue.
+>
 
-Signed-off-by: Jiufei Xue <jiufei.xue@linux.alibaba.com>
----
- fs/read_write.c    | 58 ++++++++++++++++++++++++++++++++++++++++++++++++++++++
- include/linux/fs.h | 16 +++++++++++++++
- 2 files changed, 74 insertions(+)
+It's not important. Please ignore. I din't know there was an issue
+with placing touch_atime() in completion context.
 
-diff --git a/fs/read_write.c b/fs/read_write.c
-index 5bbf587..3dfbcec 100644
---- a/fs/read_write.c
-+++ b/fs/read_write.c
-@@ -984,6 +984,64 @@ ssize_t vfs_iter_write(struct file *file, struct iov_iter *iter, loff_t *ppos,
- }
- EXPORT_SYMBOL(vfs_iter_write);
- 
-+ssize_t vfs_iocb_iter_read(struct file *file, struct kiocb *iocb,
-+			   struct iov_iter *iter)
-+{
-+	ssize_t ret = 0;
-+	ssize_t tot_len;
-+
-+	if (!file->f_op->read_iter)
-+		return -EINVAL;
-+	if (!(file->f_mode & FMODE_READ))
-+		return -EBADF;
-+	if (!(file->f_mode & FMODE_CAN_READ))
-+		return -EINVAL;
-+
-+	tot_len = iov_iter_count(iter);
-+	if (!tot_len)
-+		return 0;
-+
-+	ret = rw_verify_area(READ, file, &iocb->ki_pos, tot_len);
-+	if (ret < 0)
-+		return ret;
-+
-+	ret = call_read_iter(file, iocb, iter);
-+	if (ret >= 0)
-+		fsnotify_access(file);
-+
-+	return ret;
-+}
-+EXPORT_SYMBOL(vfs_iocb_iter_read);
-+
-+ssize_t vfs_iocb_iter_write(struct file *file, struct kiocb *iocb,
-+			    struct iov_iter *iter)
-+{
-+	ssize_t ret = 0;
-+	ssize_t tot_len;
-+
-+	if (!file->f_op->write_iter)
-+		return -EINVAL;
-+	if (!(file->f_mode & FMODE_WRITE))
-+		return -EBADF;
-+	if (!(file->f_mode & FMODE_CAN_WRITE))
-+		return -EINVAL;
-+
-+	tot_len = iov_iter_count(iter);
-+	if (!tot_len)
-+		return 0;
-+
-+	ret = rw_verify_area(WRITE, file, &iocb->ki_pos, tot_len);
-+	if (ret < 0)
-+		return ret;
-+
-+	ret = call_write_iter(file, iocb, iter);
-+	if (ret >= 0)
-+		fsnotify_modify(file);
-+
-+	return ret;
-+}
-+EXPORT_SYMBOL(vfs_iocb_iter_write);
-+
- ssize_t vfs_readv(struct file *file, const struct iovec __user *vec,
- 		  unsigned long vlen, loff_t *pos, rwf_t flags)
- {
-diff --git a/include/linux/fs.h b/include/linux/fs.h
-index e0d909d..c885279 100644
---- a/include/linux/fs.h
-+++ b/include/linux/fs.h
-@@ -2071,6 +2071,18 @@ static inline void init_sync_kiocb(struct kiocb *kiocb, struct file *filp)
- 	};
- }
- 
-+static inline void kiocb_clone(struct kiocb *kiocb, struct kiocb *kiocb_src,
-+			       struct file *filp)
-+{
-+        *kiocb = (struct kiocb) {
-+                .ki_filp = filp,
-+                .ki_flags = kiocb_src->ki_flags,
-+                .ki_hint = ki_hint_validate(file_write_hint(filp)),
-+                .ki_ioprio = kiocb_src->ki_ioprio,
-+                .ki_pos = kiocb_src->ki_pos,
-+        };
-+}
-+
- /*
-  * Inode state bits.  Protected by inode->i_lock
-  *
-@@ -3105,6 +3117,10 @@ ssize_t vfs_iter_read(struct file *file, struct iov_iter *iter, loff_t *ppos,
- 		rwf_t flags);
- ssize_t vfs_iter_write(struct file *file, struct iov_iter *iter, loff_t *ppos,
- 		rwf_t flags);
-+ssize_t vfs_iocb_iter_read(struct file *file, struct kiocb *iocb,
-+			   struct iov_iter *iter);
-+ssize_t vfs_iocb_iter_write(struct file *file, struct kiocb *iocb,
-+			    struct iov_iter *iter);
- 
- /* fs/block_dev.c */
- extern ssize_t blkdev_read_iter(struct kiocb *iocb, struct iov_iter *to);
--- 
-1.8.3.1
+Thanks,
+Amir.
