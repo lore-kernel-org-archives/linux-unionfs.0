@@ -1,37 +1,53 @@
-Return-Path: <anders.dellien@axis.com>
-From: Anders Dellien <anders.dellien@axis.com>
-Subject: [Help] Problem when using overlayfs with LoadPin
-Date: Fri, 8 Nov 2019 08:42:02 +0000
-Message-ID: <1573202522019.97305@axis.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Return-Path: <amir73il@gmail.com>
 MIME-Version: 1.0
-To: "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>, "miklos@szeredi.hu" <miklos@szeredi.hu>
+References: <CAOQ4uxjryJep94sLgVxV7sGab8K3yeeDUZwOYOfLtOOguW1pcA@mail.gmail.com>
+ <CAOQ4uxiHKjNba8HD5JUWFxxJqyJxPMk3fFfA3fi-nO6uJngTAg@mail.gmail.com>
+In-Reply-To: <CAOQ4uxiHKjNba8HD5JUWFxxJqyJxPMk3fFfA3fi-nO6uJngTAg@mail.gmail.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Date: Fri, 22 Nov 2019 11:37:17 +0200
+Message-ID: <CAOQ4uxhBBnr5zFOn1Dr-XtDSo=p3BovyhK6xZh22GA=dv1L8Bw@mail.gmail.com>
+Subject: [ANNOUNCE] unionmount-testsuite: master branch updated to 1724ef2
+Content-Type: text/plain; charset="UTF-8"
+To: overlayfs <linux-unionfs@vger.kernel.org>
+Cc: Vivek Goyal <vgoyal@redhat.com>, Miklos Szeredi <miklos@szeredi.hu>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-Hi all,=0A=
-=0A=
-I have previously successfully used LoadPin [https://www.kernel.org/doc/htm=
-l/latest/admin-guide/LSM/LoadPin.html]=0A=
-together with overlayfs, however commit a6518f "vfs: don't open real" intro=
-duces a regression.=0A=
-=0A=
-(from loadpin.c):=0A=
-=0A=
-        /* file_dentry sees through overlays */=0A=
-        load_root =3D file_dentry(file)->d_sb;  (here, load_root->s_bdev is=
- NULL and not the actual block device from the lower layer)=0A=
-=0A=
-Questions:=0A=
-* Maybe this is expected behavior and I am doing something wrong? Maybe the=
-re is some build- or mount option that=0A=
-could fix the problem?=0A=
-* If this really is a bug in overlayfs then I would be happy to try to fix =
-it - however as I am not familiar with the code=0A=
-I would very much appreciate if someone more knowledgeable could point me i=
-n the right direction.=0A=
-=0A=
-Thanks,=0A=
-Anders=0A=
-=0A=
+Hi All,
+
+The master branch on the unionmount-testsuite tree [1] has been updated.
+
+Changes in this update:
+- Enhance --verify with copy up state checks
+- Verify metadata only copy up with --verify --meta
+- Verify unified ino domain with xino requires --verify --xino
+
+Note that this release changes xino from a test configuration that is
+implied from --verify to requiring an explicit opt-in with --xino option.
+
+This change allows more strict checking of the xino=off configuration
+and exposes a kernel v4.17 regression:
+
+ ./run --ov=1 --verify hard-link
+ ...
+ /mnt/a/no_foo110: File unexpectedly on upper layer
+
+Thanks,
+Amir.
+
+[1] https://github.com/amir73il/unionmount-testsuite
+
+The head of the master branch is commit:
+
+1724ef2 Decouple xino configuration from --verify
+
+New commits:
+
+Amir Goldstein (8):
+  Fix ./run --ov --verify --recycle
+  Simplify initialization of __upper
+  Fix instantiation of hardlinked dentry
+  Record meta copy_up vs. data copy_up
+  Check that files were copied up as expected
+  Reset dentry copy_up state on upper layer rotate
+  Check that data was not copied up with metacopy=on
+  Decouple xino configuration from --verify
