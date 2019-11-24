@@ -1,35 +1,68 @@
-From: syzbot <syzbot+ae82084b07d0297e566b@syzkaller.appspotmail.com>
-Subject: Re: possible deadlock in mnt_want_write
-Date: Fri, 22 Nov 2019 18:27:00 -0800
-Message-ID: <000000000000ebac4d0597fa4340@google.com>
-References: <000000000000d03eea0571adfe83@google.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Subject: [PATCH] utimes: Clamp the timestamps in notify_change()
+Date: Sun, 24 Nov 2019 21:31:45 +0200
+Message-ID: <20191124193145.22945-1-amir73il@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed; delsp=yes
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <000000000000d03eea0571adfe83@google.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: amir73il@gmail.com, ast@kernel.org, dvyukov@google.com, linux-fsdevel@vger.kernel.org, linux-integrity@vger.kernel.org, linux-kernel@vger.kernel.org, linux-unionfs@vger.kernel.org, mszeredi@redhat.com, rgoldwyn@suse.de, syzkaller-bugs@googlegroups.com, viro@zeniv.linux.org.uk, zohar@linux.ibm.com, zohar@linux.vnet.ibm.com
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <y2038-bounces@lists.linaro.org>
+List-Unsubscribe: <https://lists.linaro.org/mailman/options/y2038>,
+ <mailto:y2038-request@lists.linaro.org?subject=unsubscribe>
+List-Archive: <http://lists.linaro.org/pipermail/y2038/>
+List-Post: <mailto:y2038@lists.linaro.org>
+List-Help: <mailto:y2038-request@lists.linaro.org?subject=help>
+List-Subscribe: <https://lists.linaro.org/mailman/listinfo/y2038>,
+ <mailto:y2038-request@lists.linaro.org?subject=subscribe>
+Errors-To: y2038-bounces@lists.linaro.org
+Sender: "Y2038" <y2038-bounces@lists.linaro.org>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: linux-nfs@vger.kernel.org, Miklos Szeredi <miklos@szeredi.hu>, y2038@lists.linaro.org, Jeff Layton <jlayton@kernel.org>, linux-unionfs@vger.kernel.org, "J . Bruce Fields" <bfields@fieldses.org>, Deepa Dinamani <deepa.kernel@gmail.com>, linux-fsdevel@vger.kernel.org, Al Viro <viro@zeniv.linux.org.uk>
 List-Id: linux-unionfs@vger.kernel.org
 
-syzbot has bisected this bug to:
-
-commit 8e54cadab447dae779f80f79c87cbeaea9594f60
-Author: Al Viro <viro@zeniv.linux.org.uk>
-Date:   Sun Nov 27 01:05:42 2016 +0000
-
-     fix default_file_splice_read()
-
-bisection log:  https://syzkaller.appspot.com/x/bisect.txt?x=15147a36e00000
-start commit:   6d906f99 Merge tag 'arm64-fixes' of git://git.kernel.org/p..
-git tree:       upstream
-final crash:    https://syzkaller.appspot.com/x/report.txt?x=17147a36e00000
-console output: https://syzkaller.appspot.com/x/log.txt?x=13147a36e00000
-kernel config:  https://syzkaller.appspot.com/x/.config?x=856fc6d0fbbeede9
-dashboard link: https://syzkaller.appspot.com/bug?extid=ae82084b07d0297e566b
-syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=111767b7200000
-C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=1611ab2d200000
-
-Reported-by: syzbot+ae82084b07d0297e566b@syzkaller.appspotmail.com
-Fixes: 8e54cadab447 ("fix default_file_splice_read()")
-
-For information about bisection process see: https://goo.gl/tpsmEJ#bisection
+UHVzaCBjbGFtcGluZyB0aW1lc3RhbXBzIGRvd24gdGhlIGNhbGwgc3RhY2sgaW50byBub3RpZnlf
+Y2hhbmdlKCksIHNvCmluLWtlcm5lbCBjYWxsZXJzIGxpa2UgbmZzZCBhbmQgb3ZlcmxheWZzIHdp
+bGwgZ2V0IHNpbWlsYXIgdGltZXN0YW1wCnNldCBiZWhhdmlvciBhcyB1dGltZXMuCgpTdWdnZXN0
+ZWQtYnk6IE1pa2xvcyBTemVyZWRpIDxtc3plcmVkaUByZWRoYXQuY29tPgpGaXhlczogNDJlNzI5
+YjlkZGJiICgidXRpbWVzOiBDbGFtcCB0aGUgdGltZXN0YW1wcyBiZWZvcmUgdXBkYXRlIikKQ2M6
+IHN0YWJsZUB2Z2VyLmtlcm5lbC5vcmcgIyB2NS40CkNjOiBEZWVwYSBEaW5hbWFuaSA8ZGVlcGEu
+a2VybmVsQGdtYWlsLmNvbT4KQ2M6IEplZmYgTGF5dG9uIDxqbGF5dG9uQGtlcm5lbC5vcmc+ClNp
+Z25lZC1vZmYtYnk6IEFtaXIgR29sZHN0ZWluIDxhbWlyNzNpbEBnbWFpbC5jb20+Ci0tLQoKQXJu
+ZCwKClRoaXMgZml4ZXMgeGZzdGVzdCBnZW5lcmljLzQwMiB3aGVuIHJ1biB3aXRoIC1vdmVybGF5
+IHNldHVwLgpOb3RlIHRoYXQgcnVubmluZyB0aGUgdGVzdCByZXF1aXJlcyBsYXRlc3QgeGZzdGVz
+dHMgd2l0aDoKIGFjYjJiYTc4IC0gb3ZlcmxheTogc3VwcG9ydCB0aW1lc3RhbXAgcmFuZ2UgY2hl
+Y2sKCkkgaGFkIHByZXZpb3VzbHkgcG9zdGVkIGEgZml4IHNwZWNpZmljIGZvciBvdmVybGF5ZnMg
+WzFdLApidXQgTWlrbG9zIHN1Z2dlc3RlZCB0aGlzIG1vcmUgZ2VuZXJpYyBmaXgsIHdoaWNoIHNo
+b3VsZCBhbHNvCnNlcnZlIG5mc2QgYW5kIG90aGVyIGluLWtlcm5lbCB1c2Vycy4KCkkgdGVzdGVk
+IHRoaXMgY2hhbmdlIHdpdGggdGVzdCBnZW5lcmljLzQwMiBvbiBleHQ0L3hmcy9idHJmcwphbmQg
+b3ZlcmxheWZzLCBidXQgbm90IHdpdGggbmZzZC4KCkplZmYsIGNvdWxkIHlvdSBhY2sgdGhpcyBj
+aGFuZ2UgaXMgZ29vZCBmb3IgbmZzZCBhcyB3ZWxsPwoKVGhhbmtzLApBbWlyLgoKWzFdIGh0dHBz
+Oi8vbG9yZS5rZXJuZWwub3JnL2xpbnV4LWZzZGV2ZWwvMjAxOTExMTEwNzMwMDAuMjk1Ny0xLWFt
+aXI3M2lsQGdtYWlsLmNvbS8KCiBmcy9hdHRyLmMgICB8IDUgKysrKysKIGZzL3V0aW1lcy5jIHwg
+NCArKy0tCiAyIGZpbGVzIGNoYW5nZWQsIDcgaW5zZXJ0aW9ucygrKSwgMiBkZWxldGlvbnMoLSkK
+CmRpZmYgLS1naXQgYS9mcy9hdHRyLmMgYi9mcy9hdHRyLmMKaW5kZXggZGYyODAzNWFhMjNlLi5l
+OGRlNWU2MzZlNjYgMTAwNjQ0Ci0tLSBhL2ZzL2F0dHIuYworKysgYi9mcy9hdHRyLmMKQEAgLTI2
+OCw4ICsyNjgsMTMgQEAgaW50IG5vdGlmeV9jaGFuZ2Uoc3RydWN0IGRlbnRyeSAqIGRlbnRyeSwg
+c3RydWN0IGlhdHRyICogYXR0ciwgc3RydWN0IGlub2RlICoqZGUKIAlhdHRyLT5pYV9jdGltZSA9
+IG5vdzsKIAlpZiAoIShpYV92YWxpZCAmIEFUVFJfQVRJTUVfU0VUKSkKIAkJYXR0ci0+aWFfYXRp
+bWUgPSBub3c7CisJZWxzZQorCQlhdHRyLT5pYV9hdGltZSA9IHRpbWVzdGFtcF90cnVuY2F0ZShh
+dHRyLT5pYV9hdGltZSwgaW5vZGUpOwogCWlmICghKGlhX3ZhbGlkICYgQVRUUl9NVElNRV9TRVQp
+KQogCQlhdHRyLT5pYV9tdGltZSA9IG5vdzsKKwllbHNlCisJCWF0dHItPmlhX210aW1lID0gdGlt
+ZXN0YW1wX3RydW5jYXRlKGF0dHItPmlhX210aW1lLCBpbm9kZSk7CisKIAlpZiAoaWFfdmFsaWQg
+JiBBVFRSX0tJTExfUFJJVikgewogCQllcnJvciA9IHNlY3VyaXR5X2lub2RlX25lZWRfa2lsbHBy
+aXYoZGVudHJ5KTsKIAkJaWYgKGVycm9yIDwgMCkKZGlmZiAtLWdpdCBhL2ZzL3V0aW1lcy5jIGIv
+ZnMvdXRpbWVzLmMKaW5kZXggMWJhM2Y3ODgzODcwLi4wOTA3MzkzMjI0NjMgMTAwNjQ0Ci0tLSBh
+L2ZzL3V0aW1lcy5jCisrKyBiL2ZzL3V0aW1lcy5jCkBAIC0zNiwxNCArMzYsMTQgQEAgc3RhdGlj
+IGludCB1dGltZXNfY29tbW9uKGNvbnN0IHN0cnVjdCBwYXRoICpwYXRoLCBzdHJ1Y3QgdGltZXNw
+ZWM2NCAqdGltZXMpCiAJCWlmICh0aW1lc1swXS50dl9uc2VjID09IFVUSU1FX09NSVQpCiAJCQlu
+ZXdhdHRycy5pYV92YWxpZCAmPSB+QVRUUl9BVElNRTsKIAkJZWxzZSBpZiAodGltZXNbMF0udHZf
+bnNlYyAhPSBVVElNRV9OT1cpIHsKLQkJCW5ld2F0dHJzLmlhX2F0aW1lID0gdGltZXN0YW1wX3Ry
+dW5jYXRlKHRpbWVzWzBdLCBpbm9kZSk7CisJCQluZXdhdHRycy5pYV9hdGltZSA9IHRpbWVzWzBd
+OwogCQkJbmV3YXR0cnMuaWFfdmFsaWQgfD0gQVRUUl9BVElNRV9TRVQ7CiAJCX0KIAogCQlpZiAo
+dGltZXNbMV0udHZfbnNlYyA9PSBVVElNRV9PTUlUKQogCQkJbmV3YXR0cnMuaWFfdmFsaWQgJj0g
+fkFUVFJfTVRJTUU7CiAJCWVsc2UgaWYgKHRpbWVzWzFdLnR2X25zZWMgIT0gVVRJTUVfTk9XKSB7
+Ci0JCQluZXdhdHRycy5pYV9tdGltZSA9IHRpbWVzdGFtcF90cnVuY2F0ZSh0aW1lc1sxXSwgaW5v
+ZGUpOworCQkJbmV3YXR0cnMuaWFfbXRpbWUgPSB0aW1lc1sxXTsKIAkJCW5ld2F0dHJzLmlhX3Zh
+bGlkIHw9IEFUVFJfTVRJTUVfU0VUOwogCQl9CiAJCS8qCi0tIAoyLjE3LjEKCl9fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fClkyMDM4IG1haWxpbmcgbGlzdApZ
+MjAzOEBsaXN0cy5saW5hcm8ub3JnCmh0dHBzOi8vbGlzdHMubGluYXJvLm9yZy9tYWlsbWFuL2xp
+c3RpbmZvL3kyMDM4Cg==
