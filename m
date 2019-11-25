@@ -1,25 +1,83 @@
-Return-Path: <jiufei.xue@linux.alibaba.com>
-From: Jiufei Xue <jiufei.xue@linux.alibaba.com>
-Subject: [PATCH V2 0/2] ovl: implement async IO routines 
-Date: Wed, 20 Nov 2019 17:45:24 +0800
-Message-Id: <1574243126-59283-1-git-send-email-jiufei.xue@linux.alibaba.com>
-To: miklos@szeredi.hu, amir73il@gmail.com
-Cc: linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
+Return-Path: <amir73il@gmail.com>
+MIME-Version: 1.0
+References: <20191125101626.32722-1-amir73il@gmail.com>
+In-Reply-To: <20191125101626.32722-1-amir73il@gmail.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Date: Mon, 25 Nov 2019 16:34:32 +0200
+Message-ID: <CAOQ4uxiBs==-RV4mCdFyPaFZtWix1xQKkQ9oDPy7EbPW7Byb3Q@mail.gmail.com>
+Subject: Re: [PATCH] docs: filesystems: overlayfs: Rename overlayfs.txt to .rst
+Content-Type: multipart/mixed; boundary="00000000000016134905982caa47"
+To: Jonathan Corbet <corbet@lwn.net>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, linux-doc@vger.kernel.org, overlayfs <linux-unionfs@vger.kernel.org>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-ovl stacks regular file operations now. However it doesn't implement
-async IO routines and will convert async IOs to sync IOs which is not
-expected.
+--00000000000016134905982caa47
+Content-Type: text/plain; charset="UTF-8"
 
-This patchset implements overlayfs async IO routines.
+On Mon, Nov 25, 2019 at 12:16 PM Amir Goldstein <amir73il@gmail.com> wrote:
+>
+> It is already formatted as RST.
+>
+> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+> ---
+>
+> Hi John,
+>
+> Not sure if this doc is up to standards, but it is already displayed
+> fairly well on github as .rst.
+>
 
-Jiufei Xue (2)
-vfs: add vfs_iocb_iter_[read|write] helper functions
-ovl: implement async IO routines
+You'd probably want to apply the attached patch as well.
 
- fs/overlayfs/file.c      |  116 +++++++++++++++++++++++++++++++++++++++++------
- fs/overlayfs/overlayfs.h |    2
- fs/overlayfs/super.c     |   12 ++++
- fs/read_write.c          |   58 +++++++++++++++++++++++
- include/linux/fs.h       |   16 ++++++
- 5 files changed, 188 insertions(+), 16 deletions(-)
+I wasn't sure if those should go through documentation tree or overlayfs tree.
+Miklos, if you have any objections or would like to carry this though your tree
+please speak up.
+
+Thanks,
+Amir.
+
+--00000000000016134905982caa47
+Content-Type: text/plain; charset="US-ASCII";
+	name="0002-docs-filesystems-overlayfs-Fix-restview-warnings.patch.txt"
+Content-Disposition: attachment;
+	filename="0002-docs-filesystems-overlayfs-Fix-restview-warnings.patch.txt"
+Content-Transfer-Encoding: base64
+Content-ID: <f_k3ej5x4t0>
+X-Attachment-Id: f_k3ej5x4t0
+
+RnJvbSA3NTcwMTY5Y2JmYjk2YmI0ZjJjZTJiNjJjYWEwMjFjNjcxZDM0NWNkIE1vbiBTZXAgMTcg
+MDA6MDA6MDAgMjAwMQpGcm9tOiBBbWlyIEdvbGRzdGVpbiA8YW1pcjczaWxAZ21haWwuY29tPgpE
+YXRlOiBNb24sIDI1IE5vdiAyMDE5IDExOjUxOjI1ICswMjAwClN1YmplY3Q6IFtQQVRDSF0gZG9j
+czogZmlsZXN5c3RlbXM6IG92ZXJsYXlmczogRml4IHJlc3R2aWV3IHdhcm5pbmdzCgpGaXggb25s
+eSB0aGUgb2J2aW91cyBwcm9ibGVtcwoKU2lnbmVkLW9mZi1ieTogQW1pciBHb2xkc3RlaW4gPGFt
+aXI3M2lsQGdtYWlsLmNvbT4KLS0tCiBEb2N1bWVudGF0aW9uL2ZpbGVzeXN0ZW1zL292ZXJsYXlm
+cy5yc3QgfCA4ICsrKystLS0tCiAxIGZpbGUgY2hhbmdlZCwgNCBpbnNlcnRpb25zKCspLCA0IGRl
+bGV0aW9ucygtKQoKZGlmZiAtLWdpdCBhL0RvY3VtZW50YXRpb24vZmlsZXN5c3RlbXMvb3Zlcmxh
+eWZzLnJzdCBiL0RvY3VtZW50YXRpb24vZmlsZXN5c3RlbXMvb3ZlcmxheWZzLnJzdAppbmRleCA4
+NDVkNjg5ZTBmZDcuLjExMzM5ZTJhMDRjZCAxMDA2NDQKLS0tIGEvRG9jdW1lbnRhdGlvbi9maWxl
+c3lzdGVtcy9vdmVybGF5ZnMucnN0CisrKyBiL0RvY3VtZW50YXRpb24vZmlsZXN5c3RlbXMvb3Zl
+cmxheWZzLnJzdApAQCAtMTgxLDcgKzE4MSw3IEBAIEtlcm5lbCBjb25maWcgb3B0aW9uczoKICAg
+ICB3b3JyaWVkIGFib3V0IGJhY2t3YXJkIGNvbXBhdGliaWxpdHkgd2l0aCBrZXJuZWxzIHRoYXQg
+aGF2ZSB0aGUgcmVkaXJlY3RfZGlyCiAgICAgZmVhdHVyZSBhbmQgZm9sbG93IHJlZGlyZWN0cyBl
+dmVuIGlmIHR1cm5lZCBvZmYuCiAKLU1vZHVsZSBvcHRpb25zIChjYW4gYWxzbyBiZSBjaGFuZ2Vk
+IHRocm91Z2ggL3N5cy9tb2R1bGUvb3ZlcmxheS9wYXJhbWV0ZXJzLyopOgorTW9kdWxlIG9wdGlv
+bnMgKGNhbiBhbHNvIGJlIGNoYW5nZWQgdGhyb3VnaCAvc3lzL21vZHVsZS9vdmVybGF5L3BhcmFt
+ZXRlcnMvKToKIAogLSAicmVkaXJlY3RfZGlyPUJPT0wiOgogICAgIFNlZSBPVkVSTEFZX0ZTX1JF
+RElSRUNUX0RJUiBrZXJuZWwgY29uZmlnIG9wdGlvbiBhYm92ZS4KQEAgLTI2Myw3ICsyNjMsNyBA
+QCB0b3AsIGxvd2VyMiB0aGUgbWlkZGxlIGFuZCBsb3dlcjMgdGhlIGJvdHRvbSBsYXllci4KIAog
+CiBNZXRhZGF0YSBvbmx5IGNvcHkgdXAKLS0tLS0tLS0tLS0tLS0tLS0tLS0tCistLS0tLS0tLS0t
+LS0tLS0tLS0tLS0KIAogV2hlbiBtZXRhZGF0YSBvbmx5IGNvcHkgdXAgZmVhdHVyZSBpcyBlbmFi
+bGVkLCBvdmVybGF5ZnMgd2lsbCBvbmx5IGNvcHkKIHVwIG1ldGFkYXRhIChhcyBvcHBvc2VkIHRv
+IHdob2xlIGZpbGUpLCB3aGVuIGEgbWV0YWRhdGEgc3BlY2lmaWMgb3BlcmF0aW9uCkBAIC0yODYs
+MTAgKzI4NiwxMCBAQCBwb2ludGVkIGJ5IFJFRElSRUNULiBUaGlzIHNob3VsZCBub3QgYmUgcG9z
+c2libGUgb24gbG9jYWwgc3lzdGVtIGFzIHNldHRpbmcKICJ0cnVzdGVkLiIgeGF0dHJzIHdpbGwg
+cmVxdWlyZSBDQVBfU1lTX0FETUlOLiBCdXQgaXQgc2hvdWxkIGJlIHBvc3NpYmxlCiBmb3IgdW50
+cnVzdGVkIGxheWVycyBsaWtlIGZyb20gYSBwZW4gZHJpdmUuCiAKLU5vdGU6IHJlZGlyZWN0X2Rp
+cj17b2ZmfG5vZm9sbG93fGZvbGxvdygqKX0gY29uZmxpY3RzIHdpdGggbWV0YWNvcHk9b24sIGFu
+ZAorTm90ZTogcmVkaXJlY3RfZGlyPXtvZmZ8bm9mb2xsb3d8Zm9sbG93WypdfSBjb25mbGljdHMg
+d2l0aCBtZXRhY29weT1vbiwgYW5kCiByZXN1bHRzIGluIGFuIGVycm9yLgogCi0oKikgcmVkaXJl
+Y3RfZGlyPWZvbGxvdyBvbmx5IGNvbmZsaWN0cyB3aXRoIG1ldGFjb3B5PW9uIGlmIHVwcGVyZGly
+PS4uLiBpcworWypdIHJlZGlyZWN0X2Rpcj1mb2xsb3cgb25seSBjb25mbGljdHMgd2l0aCBtZXRh
+Y29weT1vbiBpZiB1cHBlcmRpcj0uLi4gaXMKIGdpdmVuLgogCiBTaGFyaW5nIGFuZCBjb3B5aW5n
+IGxheWVycwotLSAKMi4xNy4xCgo=
+--00000000000016134905982caa47--
