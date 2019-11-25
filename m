@@ -1,39 +1,80 @@
-From: Miklos Szeredi <miklos@szeredi.hu>
-Subject: Re: [RFC PATCH 0/5] allow unprivileged overlay mounts
-Date: Mon, 25 Nov 2019 16:14:01 +0100
-Message-ID: <CAJfpegt_haMDwd6jo3mQzX2vchk_LLMH+V+h4yDs7geLmo4NhA@mail.gmail.com>
-References: <20191025112917.22518-1-mszeredi@redhat.com> <87r231rlfj.fsf@x220.int.ebiederm.org>
+From: "J . Bruce Fields" <bfields@fieldses.org>
+Subject: Re: [PATCH] utimes: Clamp the timestamps in notify_change()
+Date: Mon, 25 Nov 2019 11:46:25 -0500
+Message-ID: <20191125164625.GB28608@fieldses.org>
+References: <20191124193145.22945-1-amir73il@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <87r231rlfj.fsf@x220.int.ebiederm.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Miklos Szeredi <mszeredi@redhat.com>, overlayfs <linux-unionfs@vger.kernel.org>, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <y2038-bounces@lists.linaro.org>
+Content-Disposition: inline
+In-Reply-To: <20191124193145.22945-1-amir73il@gmail.com>
+List-Unsubscribe: <https://lists.linaro.org/mailman/options/y2038>,
+ <mailto:y2038-request@lists.linaro.org?subject=unsubscribe>
+List-Archive: <http://lists.linaro.org/pipermail/y2038/>
+List-Post: <mailto:y2038@lists.linaro.org>
+List-Help: <mailto:y2038-request@lists.linaro.org?subject=help>
+List-Subscribe: <https://lists.linaro.org/mailman/listinfo/y2038>,
+ <mailto:y2038-request@lists.linaro.org?subject=subscribe>
+Errors-To: y2038-bounces@lists.linaro.org
+Sender: "Y2038" <y2038-bounces@lists.linaro.org>
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: linux-nfs@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Miklos Szeredi <miklos@szeredi.hu>, y2038@lists.linaro.org, Jeff Layton <jlayton@kernel.org>, linux-unionfs@vger.kernel.org, Al Viro <viro@zeniv.linux.org.uk>, linux-fsdevel@vger.kernel.org, Deepa Dinamani <deepa.kernel@gmail.com>
 List-Id: linux-unionfs@vger.kernel.org
 
-On Fri, Oct 25, 2019 at 3:43 PM Eric W. Biederman <ebiederm@xmission.com> wrote:
->
-> Miklos Szeredi <mszeredi@redhat.com> writes:
->
-> > Hi Eric,
-> >
-> > Can you please have a look at this patchset?
-> >
-> > The most interesting one is the last oneliner adding FS_USERNS_MOUNT;
-> > whether I'm correct in stating that this isn't going to introduce any
-> > holes, or not...
->
-> I will take some time and dig through this.
->
-> From a robustness standpoint I worry about the stackable filesystem
-> side.  As that is uniquely an attack vector with overlayfs.
->
-> There is definitely demand for this.
-
-Hi Eric,
-
-Have you had time to look into this yet?
-
-Thanks,
-Miklos
+T24gU3VuLCBOb3YgMjQsIDIwMTkgYXQgMDk6MzE6NDVQTSArMDIwMCwgQW1pciBHb2xkc3RlaW4g
+d3JvdGU6Cj4gUHVzaCBjbGFtcGluZyB0aW1lc3RhbXBzIGRvd24gdGhlIGNhbGwgc3RhY2sgaW50
+byBub3RpZnlfY2hhbmdlKCksIHNvCj4gaW4ta2VybmVsIGNhbGxlcnMgbGlrZSBuZnNkIGFuZCBv
+dmVybGF5ZnMgd2lsbCBnZXQgc2ltaWxhciB0aW1lc3RhbXAKPiBzZXQgYmVoYXZpb3IgYXMgdXRp
+bWVzLgoKU28sIG5mc2QgaGFzIGFsd2F5cyBieXBhc3NlZCB0aW1lc3RhbXBfdHJ1bmNhdGUoKSBh
+bmQgd2UndmUgbmV2ZXIKbm90aWNlZCB0aWxsIG5vdz8gIFdoYXQgYXJlIHRoZSBzeW1wdG9tcz8g
+IChEbyB0aW1lc3RhbXBzIGdvIGJhY2t3YXJkcwphZnRlciBjYWNoZSBldmljdGlvbiBvbiBmaWxl
+c3lzdGVtcyB3aXRoIGxhcmdlIHRpbWUgZ3JhbnVsYXJpdHk/KQoKTG9va3MgbGlrZSBnZW5lcmlj
+LzQwMiBoYXMgbmV2ZXIgcnVuIGluIG15IHRlc3RzOgoKCWdlbmVyaWMvNDAyICAgICBbbm90IHJ1
+bl0gbm8ga2VybmVsIHN1cHBvcnQgZm9yIHkyMDM4IHN5c2ZzIHN3aXRjaAoKLS1iLgoKPiAKPiBT
+dWdnZXN0ZWQtYnk6IE1pa2xvcyBTemVyZWRpIDxtc3plcmVkaUByZWRoYXQuY29tPgo+IEZpeGVz
+OiA0MmU3MjliOWRkYmIgKCJ1dGltZXM6IENsYW1wIHRoZSB0aW1lc3RhbXBzIGJlZm9yZSB1cGRh
+dGUiKQo+IENjOiBzdGFibGVAdmdlci5rZXJuZWwub3JnICMgdjUuNAo+IENjOiBEZWVwYSBEaW5h
+bWFuaSA8ZGVlcGEua2VybmVsQGdtYWlsLmNvbT4KPiBDYzogSmVmZiBMYXl0b24gPGpsYXl0b25A
+a2VybmVsLm9yZz4KPiBTaWduZWQtb2ZmLWJ5OiBBbWlyIEdvbGRzdGVpbiA8YW1pcjczaWxAZ21h
+aWwuY29tPgo+IC0tLQo+IAo+IEFybmQsCj4gCj4gVGhpcyBmaXhlcyB4ZnN0ZXN0IGdlbmVyaWMv
+NDAyIHdoZW4gcnVuIHdpdGggLW92ZXJsYXkgc2V0dXAuCj4gTm90ZSB0aGF0IHJ1bm5pbmcgdGhl
+IHRlc3QgcmVxdWlyZXMgbGF0ZXN0IHhmc3Rlc3RzIHdpdGg6Cj4gIGFjYjJiYTc4IC0gb3Zlcmxh
+eTogc3VwcG9ydCB0aW1lc3RhbXAgcmFuZ2UgY2hlY2sKPiAKPiBJIGhhZCBwcmV2aW91c2x5IHBv
+c3RlZCBhIGZpeCBzcGVjaWZpYyBmb3Igb3ZlcmxheWZzIFsxXSwKPiBidXQgTWlrbG9zIHN1Z2dl
+c3RlZCB0aGlzIG1vcmUgZ2VuZXJpYyBmaXgsIHdoaWNoIHNob3VsZCBhbHNvCj4gc2VydmUgbmZz
+ZCBhbmQgb3RoZXIgaW4ta2VybmVsIHVzZXJzLgo+IAo+IEkgdGVzdGVkIHRoaXMgY2hhbmdlIHdp
+dGggdGVzdCBnZW5lcmljLzQwMiBvbiBleHQ0L3hmcy9idHJmcwo+IGFuZCBvdmVybGF5ZnMsIGJ1
+dCBub3Qgd2l0aCBuZnNkLgo+IAo+IEplZmYsIGNvdWxkIHlvdSBhY2sgdGhpcyBjaGFuZ2UgaXMg
+Z29vZCBmb3IgbmZzZCBhcyB3ZWxsPwo+IAo+IFRoYW5rcywKPiBBbWlyLgo+IAo+IFsxXSBodHRw
+czovL2xvcmUua2VybmVsLm9yZy9saW51eC1mc2RldmVsLzIwMTkxMTExMDczMDAwLjI5NTctMS1h
+bWlyNzNpbEBnbWFpbC5jb20vCj4gCj4gIGZzL2F0dHIuYyAgIHwgNSArKysrKwo+ICBmcy91dGlt
+ZXMuYyB8IDQgKystLQo+ICAyIGZpbGVzIGNoYW5nZWQsIDcgaW5zZXJ0aW9ucygrKSwgMiBkZWxl
+dGlvbnMoLSkKPiAKPiBkaWZmIC0tZ2l0IGEvZnMvYXR0ci5jIGIvZnMvYXR0ci5jCj4gaW5kZXgg
+ZGYyODAzNWFhMjNlLi5lOGRlNWU2MzZlNjYgMTAwNjQ0Cj4gLS0tIGEvZnMvYXR0ci5jCj4gKysr
+IGIvZnMvYXR0ci5jCj4gQEAgLTI2OCw4ICsyNjgsMTMgQEAgaW50IG5vdGlmeV9jaGFuZ2Uoc3Ry
+dWN0IGRlbnRyeSAqIGRlbnRyeSwgc3RydWN0IGlhdHRyICogYXR0ciwgc3RydWN0IGlub2RlICoq
+ZGUKPiAgCWF0dHItPmlhX2N0aW1lID0gbm93Owo+ICAJaWYgKCEoaWFfdmFsaWQgJiBBVFRSX0FU
+SU1FX1NFVCkpCj4gIAkJYXR0ci0+aWFfYXRpbWUgPSBub3c7Cj4gKwllbHNlCj4gKwkJYXR0ci0+
+aWFfYXRpbWUgPSB0aW1lc3RhbXBfdHJ1bmNhdGUoYXR0ci0+aWFfYXRpbWUsIGlub2RlKTsKPiAg
+CWlmICghKGlhX3ZhbGlkICYgQVRUUl9NVElNRV9TRVQpKQo+ICAJCWF0dHItPmlhX210aW1lID0g
+bm93Owo+ICsJZWxzZQo+ICsJCWF0dHItPmlhX210aW1lID0gdGltZXN0YW1wX3RydW5jYXRlKGF0
+dHItPmlhX210aW1lLCBpbm9kZSk7Cj4gKwo+ICAJaWYgKGlhX3ZhbGlkICYgQVRUUl9LSUxMX1BS
+SVYpIHsKPiAgCQllcnJvciA9IHNlY3VyaXR5X2lub2RlX25lZWRfa2lsbHByaXYoZGVudHJ5KTsK
+PiAgCQlpZiAoZXJyb3IgPCAwKQo+IGRpZmYgLS1naXQgYS9mcy91dGltZXMuYyBiL2ZzL3V0aW1l
+cy5jCj4gaW5kZXggMWJhM2Y3ODgzODcwLi4wOTA3MzkzMjI0NjMgMTAwNjQ0Cj4gLS0tIGEvZnMv
+dXRpbWVzLmMKPiArKysgYi9mcy91dGltZXMuYwo+IEBAIC0zNiwxNCArMzYsMTQgQEAgc3RhdGlj
+IGludCB1dGltZXNfY29tbW9uKGNvbnN0IHN0cnVjdCBwYXRoICpwYXRoLCBzdHJ1Y3QgdGltZXNw
+ZWM2NCAqdGltZXMpCj4gIAkJaWYgKHRpbWVzWzBdLnR2X25zZWMgPT0gVVRJTUVfT01JVCkKPiAg
+CQkJbmV3YXR0cnMuaWFfdmFsaWQgJj0gfkFUVFJfQVRJTUU7Cj4gIAkJZWxzZSBpZiAodGltZXNb
+MF0udHZfbnNlYyAhPSBVVElNRV9OT1cpIHsKPiAtCQkJbmV3YXR0cnMuaWFfYXRpbWUgPSB0aW1l
+c3RhbXBfdHJ1bmNhdGUodGltZXNbMF0sIGlub2RlKTsKPiArCQkJbmV3YXR0cnMuaWFfYXRpbWUg
+PSB0aW1lc1swXTsKPiAgCQkJbmV3YXR0cnMuaWFfdmFsaWQgfD0gQVRUUl9BVElNRV9TRVQ7Cj4g
+IAkJfQo+ICAKPiAgCQlpZiAodGltZXNbMV0udHZfbnNlYyA9PSBVVElNRV9PTUlUKQo+ICAJCQlu
+ZXdhdHRycy5pYV92YWxpZCAmPSB+QVRUUl9NVElNRTsKPiAgCQllbHNlIGlmICh0aW1lc1sxXS50
+dl9uc2VjICE9IFVUSU1FX05PVykgewo+IC0JCQluZXdhdHRycy5pYV9tdGltZSA9IHRpbWVzdGFt
+cF90cnVuY2F0ZSh0aW1lc1sxXSwgaW5vZGUpOwo+ICsJCQluZXdhdHRycy5pYV9tdGltZSA9IHRp
+bWVzWzFdOwo+ICAJCQluZXdhdHRycy5pYV92YWxpZCB8PSBBVFRSX01USU1FX1NFVDsKPiAgCQl9
+Cj4gIAkJLyoKPiAtLSAKPiAyLjE3LjEKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX18KWTIwMzggbWFpbGluZyBsaXN0ClkyMDM4QGxpc3RzLmxpbmFyby5vcmcK
+aHR0cHM6Ly9saXN0cy5saW5hcm8ub3JnL21haWxtYW4vbGlzdGluZm8veTIwMzgK
