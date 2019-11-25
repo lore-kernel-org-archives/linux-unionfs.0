@@ -1,83 +1,40 @@
 Return-Path: <amir73il@gmail.com>
-MIME-Version: 1.0
-References: <20191125101626.32722-1-amir73il@gmail.com>
-In-Reply-To: <20191125101626.32722-1-amir73il@gmail.com>
+Return-Path: <amir73il@gmail.com>
 From: Amir Goldstein <amir73il@gmail.com>
-Date: Mon, 25 Nov 2019 16:34:32 +0200
-Message-ID: <CAOQ4uxiBs==-RV4mCdFyPaFZtWix1xQKkQ9oDPy7EbPW7Byb3Q@mail.gmail.com>
-Subject: Re: [PATCH] docs: filesystems: overlayfs: Rename overlayfs.txt to .rst
-Content-Type: multipart/mixed; boundary="00000000000016134905982caa47"
+Subject: [PATCH] docs: filesystems: overlayfs: Rename overlayfs.txt to .rst
+Date: Mon, 25 Nov 2019 12:16:26 +0200
+Message-Id: <20191125101626.32722-1-amir73il@gmail.com>
 To: Jonathan Corbet <corbet@lwn.net>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, linux-doc@vger.kernel.org, overlayfs <linux-unionfs@vger.kernel.org>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, linux-doc@vger.kernel.org, linux-unionfs@vger.kernel.org
 List-ID: <linux-unionfs@vger.kernel.org>
 
---00000000000016134905982caa47
-Content-Type: text/plain; charset="UTF-8"
+It is already formatted as RST.
 
-On Mon, Nov 25, 2019 at 12:16 PM Amir Goldstein <amir73il@gmail.com> wrote:
->
-> It is already formatted as RST.
->
-> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
-> ---
->
-> Hi John,
->
-> Not sure if this doc is up to standards, but it is already displayed
-> fairly well on github as .rst.
->
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+---
 
-You'd probably want to apply the attached patch as well.
+Hi John,
 
-I wasn't sure if those should go through documentation tree or overlayfs tree.
-Miklos, if you have any objections or would like to carry this though your tree
-please speak up.
+Not sure if this doc is up to standards, but it is already displayed
+fairly well on github as .rst.
+
+If you want me to make more changes to bring it into compliance, before
+the rename please let me know what needs to be done.
+Is there a script to check doc compliance?
+
+Otherwise, you can just take this rename patch and leave it to other
+devlopers to clean it up.
 
 Thanks,
 Amir.
 
---00000000000016134905982caa47
-Content-Type: text/plain; charset="US-ASCII";
-	name="0002-docs-filesystems-overlayfs-Fix-restview-warnings.patch.txt"
-Content-Disposition: attachment;
-	filename="0002-docs-filesystems-overlayfs-Fix-restview-warnings.patch.txt"
-Content-Transfer-Encoding: base64
-Content-ID: <f_k3ej5x4t0>
-X-Attachment-Id: f_k3ej5x4t0
+ Documentation/filesystems/{overlayfs.txt => overlayfs.rst} | 0
+ 1 file changed, 0 insertions(+), 0 deletions(-)
+ rename Documentation/filesystems/{overlayfs.txt => overlayfs.rst} (100%)
 
-RnJvbSA3NTcwMTY5Y2JmYjk2YmI0ZjJjZTJiNjJjYWEwMjFjNjcxZDM0NWNkIE1vbiBTZXAgMTcg
-MDA6MDA6MDAgMjAwMQpGcm9tOiBBbWlyIEdvbGRzdGVpbiA8YW1pcjczaWxAZ21haWwuY29tPgpE
-YXRlOiBNb24sIDI1IE5vdiAyMDE5IDExOjUxOjI1ICswMjAwClN1YmplY3Q6IFtQQVRDSF0gZG9j
-czogZmlsZXN5c3RlbXM6IG92ZXJsYXlmczogRml4IHJlc3R2aWV3IHdhcm5pbmdzCgpGaXggb25s
-eSB0aGUgb2J2aW91cyBwcm9ibGVtcwoKU2lnbmVkLW9mZi1ieTogQW1pciBHb2xkc3RlaW4gPGFt
-aXI3M2lsQGdtYWlsLmNvbT4KLS0tCiBEb2N1bWVudGF0aW9uL2ZpbGVzeXN0ZW1zL292ZXJsYXlm
-cy5yc3QgfCA4ICsrKystLS0tCiAxIGZpbGUgY2hhbmdlZCwgNCBpbnNlcnRpb25zKCspLCA0IGRl
-bGV0aW9ucygtKQoKZGlmZiAtLWdpdCBhL0RvY3VtZW50YXRpb24vZmlsZXN5c3RlbXMvb3Zlcmxh
-eWZzLnJzdCBiL0RvY3VtZW50YXRpb24vZmlsZXN5c3RlbXMvb3ZlcmxheWZzLnJzdAppbmRleCA4
-NDVkNjg5ZTBmZDcuLjExMzM5ZTJhMDRjZCAxMDA2NDQKLS0tIGEvRG9jdW1lbnRhdGlvbi9maWxl
-c3lzdGVtcy9vdmVybGF5ZnMucnN0CisrKyBiL0RvY3VtZW50YXRpb24vZmlsZXN5c3RlbXMvb3Zl
-cmxheWZzLnJzdApAQCAtMTgxLDcgKzE4MSw3IEBAIEtlcm5lbCBjb25maWcgb3B0aW9uczoKICAg
-ICB3b3JyaWVkIGFib3V0IGJhY2t3YXJkIGNvbXBhdGliaWxpdHkgd2l0aCBrZXJuZWxzIHRoYXQg
-aGF2ZSB0aGUgcmVkaXJlY3RfZGlyCiAgICAgZmVhdHVyZSBhbmQgZm9sbG93IHJlZGlyZWN0cyBl
-dmVuIGlmIHR1cm5lZCBvZmYuCiAKLU1vZHVsZSBvcHRpb25zIChjYW4gYWxzbyBiZSBjaGFuZ2Vk
-IHRocm91Z2ggL3N5cy9tb2R1bGUvb3ZlcmxheS9wYXJhbWV0ZXJzLyopOgorTW9kdWxlIG9wdGlv
-bnMgKGNhbiBhbHNvIGJlIGNoYW5nZWQgdGhyb3VnaCAvc3lzL21vZHVsZS9vdmVybGF5L3BhcmFt
-ZXRlcnMvKToKIAogLSAicmVkaXJlY3RfZGlyPUJPT0wiOgogICAgIFNlZSBPVkVSTEFZX0ZTX1JF
-RElSRUNUX0RJUiBrZXJuZWwgY29uZmlnIG9wdGlvbiBhYm92ZS4KQEAgLTI2Myw3ICsyNjMsNyBA
-QCB0b3AsIGxvd2VyMiB0aGUgbWlkZGxlIGFuZCBsb3dlcjMgdGhlIGJvdHRvbSBsYXllci4KIAog
-CiBNZXRhZGF0YSBvbmx5IGNvcHkgdXAKLS0tLS0tLS0tLS0tLS0tLS0tLS0tCistLS0tLS0tLS0t
-LS0tLS0tLS0tLS0KIAogV2hlbiBtZXRhZGF0YSBvbmx5IGNvcHkgdXAgZmVhdHVyZSBpcyBlbmFi
-bGVkLCBvdmVybGF5ZnMgd2lsbCBvbmx5IGNvcHkKIHVwIG1ldGFkYXRhIChhcyBvcHBvc2VkIHRv
-IHdob2xlIGZpbGUpLCB3aGVuIGEgbWV0YWRhdGEgc3BlY2lmaWMgb3BlcmF0aW9uCkBAIC0yODYs
-MTAgKzI4NiwxMCBAQCBwb2ludGVkIGJ5IFJFRElSRUNULiBUaGlzIHNob3VsZCBub3QgYmUgcG9z
-c2libGUgb24gbG9jYWwgc3lzdGVtIGFzIHNldHRpbmcKICJ0cnVzdGVkLiIgeGF0dHJzIHdpbGwg
-cmVxdWlyZSBDQVBfU1lTX0FETUlOLiBCdXQgaXQgc2hvdWxkIGJlIHBvc3NpYmxlCiBmb3IgdW50
-cnVzdGVkIGxheWVycyBsaWtlIGZyb20gYSBwZW4gZHJpdmUuCiAKLU5vdGU6IHJlZGlyZWN0X2Rp
-cj17b2ZmfG5vZm9sbG93fGZvbGxvdygqKX0gY29uZmxpY3RzIHdpdGggbWV0YWNvcHk9b24sIGFu
-ZAorTm90ZTogcmVkaXJlY3RfZGlyPXtvZmZ8bm9mb2xsb3d8Zm9sbG93WypdfSBjb25mbGljdHMg
-d2l0aCBtZXRhY29weT1vbiwgYW5kCiByZXN1bHRzIGluIGFuIGVycm9yLgogCi0oKikgcmVkaXJl
-Y3RfZGlyPWZvbGxvdyBvbmx5IGNvbmZsaWN0cyB3aXRoIG1ldGFjb3B5PW9uIGlmIHVwcGVyZGly
-PS4uLiBpcworWypdIHJlZGlyZWN0X2Rpcj1mb2xsb3cgb25seSBjb25mbGljdHMgd2l0aCBtZXRh
-Y29weT1vbiBpZiB1cHBlcmRpcj0uLi4gaXMKIGdpdmVuLgogCiBTaGFyaW5nIGFuZCBjb3B5aW5n
-IGxheWVycwotLSAKMi4xNy4xCgo=
---00000000000016134905982caa47--
+diff --git a/Documentation/filesystems/overlayfs.txt b/Documentation/filesystems/overlayfs.rst
+similarity index 100%
+rename from Documentation/filesystems/overlayfs.txt
+rename to Documentation/filesystems/overlayfs.rst
+-- 
+2.17.1
