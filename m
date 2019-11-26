@@ -1,64 +1,46 @@
-Return-Path: <amir73il@gmail.com>
-Return-Path: <amir73il@gmail.com>
-From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH 1/6] ovl: fix corner case of non-unique st_dev;st_ino
-Date: Sun, 17 Nov 2019 17:43:44 +0200
-Message-Id: <20191117154349.28695-2-amir73il@gmail.com>
-In-Reply-To: <20191117154349.28695-1-amir73il@gmail.com>
-References: <20191117154349.28695-1-amir73il@gmail.com>
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: Colin Ian King <colin.king@canonical.com>, linux-unionfs@vger.kernel.org
+Return-Path: <linux-unionfs-owner@vger.kernel.org>
+Received: from out30-44.freemail.mail.aliyun.com ([115.124.30.44]:33649 "EHLO
+        out30-44.freemail.mail.aliyun.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726970AbfKZCCD (ORCPT
+        <rfc822;linux-unionfs@vger.kernel.org>);
+        Mon, 25 Nov 2019 21:02:03 -0500
+Subject: Re: [PATCH V2 0/2] ovl: implement async IO routines
+References: <1574243126-59283-1-git-send-email-jiufei.xue@linux.alibaba.com>
+From: Jiufei Xue <jiufei.xue@linux.alibaba.com>
+Message-ID: <052a9b10-1cca-35d0-622a-d597421b3ecf@linux.alibaba.com>
+Date: Tue, 26 Nov 2019 10:00:29 +0800
+MIME-Version: 1.0
+In-Reply-To: <1574243126-59283-1-git-send-email-jiufei.xue@linux.alibaba.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 8bit
+Sender: linux-unionfs-owner@vger.kernel.org
+To: miklos@szeredi.hu, amir73il@gmail.com
+Cc: linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
 List-ID: <linux-unionfs@vger.kernel.org>
 
-On non-samefs overlay without xino, non pure upper inodes should use a
-pseudo_dev assigned to each unique lower fs and pure upper inodes use
-the real upper st_dev.
+Hi miklos,
 
-It is fine for an overlay pure upper inode to use the same st_dev;st_ino
-values as the real upper inode, because the content of those two
-different filesystem objects is always the same.
+Could you please kindly review this patch and give some advice?
 
-In this case, however:
-- two filesystems, A and B
-- upper layer is on A
-- lower layer 1 is also on A
-- lower layer 2 is on B
+Thanks,
+Jiufei
 
-Non pure upper overlay inode, whose origin is in layer 1 will have the
-same st_dev;st_ino values as the real lower inode. This may result with
-a false positive results of 'diff' between the real lower and copied up
-overlay inode.
-
-Fix this by using the upper st_dev;st_ino values in this case.
-This breaks the property of constant st_dev;st_ino across copy up
-of this case. This breakage will be fixed by a later patch.
-
-Fixes: 5148626b806a ("ovl: allocate anon bdev per unique lower fs")
-Cc: stable@vger.kernel.org # v4.17+
-Signed-off-by: Amir Goldstein <amir73il@gmail.com>
----
- fs/overlayfs/inode.c | 8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
-
-diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
-index bc14781886bf..b045cf1826fc 100644
---- a/fs/overlayfs/inode.c
-+++ b/fs/overlayfs/inode.c
-@@ -200,8 +200,14 @@ int ovl_getattr(const struct path *path, struct kstat *stat,
- 			if (ovl_test_flag(OVL_INDEX, d_inode(dentry)) ||
- 			    (!ovl_verify_lower(dentry->d_sb) &&
- 			     (is_dir || lowerstat.nlink == 1))) {
--				stat->ino = lowerstat.ino;
- 				lower_layer = ovl_layer_lower(dentry);
-+				/*
-+				 * Cannot use origin st_dev;st_ino because
-+				 * origin inode content may differ from overlay
-+				 * inode content.
-+				 */
-+				if (samefs || lower_layer->fsid)
-+					stat->ino = lowerstat.ino;
- 			}
- 
- 			/*
--- 
-2.17.1
+On 2019/11/20 下午5:45, Jiufei Xue wrote:
+> ovl stacks regular file operations now. However it doesn't implement
+> async IO routines and will convert async IOs to sync IOs which is not
+> expected.
+> 
+> This patchset implements overlayfs async IO routines.
+> 
+> Jiufei Xue (2)
+> vfs: add vfs_iocb_iter_[read|write] helper functions
+> ovl: implement async IO routines
+> 
+>  fs/overlayfs/file.c      |  116 +++++++++++++++++++++++++++++++++++++++++------
+>  fs/overlayfs/overlayfs.h |    2
+>  fs/overlayfs/super.c     |   12 ++++
+>  fs/read_write.c          |   58 +++++++++++++++++++++++
+>  include/linux/fs.h       |   16 ++++++
+>  5 files changed, 188 insertions(+), 16 deletions(-)
+> 
