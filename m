@@ -1,14 +1,16 @@
 From: Deepa Dinamani <deepa.kernel@gmail.com>
 Subject: Re: [PATCH] utimes: Clamp the timestamps in notify_change()
-Date: Mon, 25 Nov 2019 10:16:57 -0800
-Message-ID: <CABeXuvo3pToaexO26JarHHkQBWO9355YEyO=NeZh-36KciJu6Q@mail.gmail.com>
+Date: Fri, 29 Nov 2019 21:34:35 -0800
+Message-ID: <CABeXuvouvniNnxPwZbejPgZPUVgShvmPnRiGFPF8-0Z6AmmvQA@mail.gmail.com>
 References: <20191124193145.22945-1-amir73il@gmail.com>
- <20191125164625.GB28608@fieldses.org>
+ <20191124194934.GB4203@ZenIV.linux.org.uk>
+ <CABeXuvqZUK4UMLA=hU5i9r0k6G7E+RCi58Om-KVeZuA3OjL4fA@mail.gmail.com>
+ <20191124213415.GD4203@ZenIV.linux.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: base64
 Return-path: <y2038-bounces@lists.linaro.org>
-In-Reply-To: <20191125164625.GB28608@fieldses.org>
+In-Reply-To: <20191124213415.GD4203@ZenIV.linux.org.uk>
 List-Unsubscribe: <https://lists.linaro.org/mailman/options/y2038>,
  <mailto:y2038-request@lists.linaro.org?subject=unsubscribe>
 List-Archive: <http://lists.linaro.org/pipermail/y2038/>
@@ -18,25 +20,43 @@ List-Subscribe: <https://lists.linaro.org/mailman/listinfo/y2038>,
  <mailto:y2038-request@lists.linaro.org?subject=subscribe>
 Errors-To: y2038-bounces@lists.linaro.org
 Sender: "Y2038" <y2038-bounces@lists.linaro.org>
-To: "J . Bruce Fields" <bfields@fieldses.org>
-Cc: Linux NFS Mailing List <linux-nfs@vger.kernel.org>, Arnd Bergmann <arnd@arndb.de>, Miklos Szeredi <miklos@szeredi.hu>, y2038 Mailman List <y2038@lists.linaro.org>, Amir Goldstein <amir73il@gmail.com>, Jeff Layton <jlayton@kernel.org>, overlayfs <linux-unionfs@vger.kernel.org>, Al Viro <viro@zeniv.linux.org.uk>, Linux FS-devel Mailing List <linux-fsdevel@vger.kernel.org>
+To: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Linux NFS Mailing List <linux-nfs@vger.kernel.org>, Arnd Bergmann <arnd@arndb.de>, Miklos Szeredi <miklos@szeredi.hu>, y2038 Mailman List <y2038@lists.linaro.org>, Amir Goldstein <amir73il@gmail.com>, Jeff Layton <jlayton@kernel.org>, overlayfs <linux-unionfs@vger.kernel.org>, "J . Bruce Fields" <bfields@fieldses.org>, Linux FS-devel Mailing List <linux-fsdevel@vger.kernel.org>
 List-Id: linux-unionfs@vger.kernel.org
 
-T24gTW9uLCBOb3YgMjUsIDIwMTkgYXQgODo0NiBBTSBKIC4gQnJ1Y2UgRmllbGRzIDxiZmllbGRz
-QGZpZWxkc2VzLm9yZz4gd3JvdGU6Cj4KPiBPbiBTdW4sIE5vdiAyNCwgMjAxOSBhdCAwOTozMTo0
-NVBNICswMjAwLCBBbWlyIEdvbGRzdGVpbiB3cm90ZToKPiA+IFB1c2ggY2xhbXBpbmcgdGltZXN0
-YW1wcyBkb3duIHRoZSBjYWxsIHN0YWNrIGludG8gbm90aWZ5X2NoYW5nZSgpLCBzbwo+ID4gaW4t
-a2VybmVsIGNhbGxlcnMgbGlrZSBuZnNkIGFuZCBvdmVybGF5ZnMgd2lsbCBnZXQgc2ltaWxhciB0
-aW1lc3RhbXAKPiA+IHNldCBiZWhhdmlvciBhcyB1dGltZXMuCj4KPiBTbywgbmZzZCBoYXMgYWx3
-YXlzIGJ5cGFzc2VkIHRpbWVzdGFtcF90cnVuY2F0ZSgpIGFuZCB3ZSd2ZSBuZXZlcgo+IG5vdGlj
-ZWQgdGlsbCBub3c/ICBXaGF0IGFyZSB0aGUgc3ltcHRvbXM/ICAoRG8gdGltZXN0YW1wcyBnbyBi
-YWNrd2FyZHMKPiBhZnRlciBjYWNoZSBldmljdGlvbiBvbiBmaWxlc3lzdGVtcyB3aXRoIGxhcmdl
-IHRpbWUgZ3JhbnVsYXJpdHk/KQo+Cj4gTG9va3MgbGlrZSBnZW5lcmljLzQwMiBoYXMgbmV2ZXIg
-cnVuIGluIG15IHRlc3RzOgo+Cj4gICAgICAgICBnZW5lcmljLzQwMiAgICAgW25vdCBydW5dIG5v
-IGtlcm5lbCBzdXBwb3J0IGZvciB5MjAzOCBzeXNmcyBzd2l0Y2gKCllvdSBuZWVkIHRoaXMgaW4g
-eW91ciB4ZnN0ZXN0OgpodHRwczovL3BhdGNod29yay5rZXJuZWwub3JnL3BhdGNoLzExMDQ5NzQ1
-LyAuIFRoZSB0ZXN0IGhhcyBiZWVuCnVwZGF0ZWQgcmVjZW50bHkuCgpBbmQsIHlvdSBuZWVkIGEg
-Y2hhbmdlIGxpa2UgZm9yIG92ZXJsYXlmcyBhcyBBbWlyIHBvaW50ZWQgb3V0LgoKLURlZXBhCl9f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fClkyMDM4IG1haWxp
-bmcgbGlzdApZMjAzOEBsaXN0cy5saW5hcm8ub3JnCmh0dHBzOi8vbGlzdHMubGluYXJvLm9yZy9t
-YWlsbWFuL2xpc3RpbmZvL3kyMDM4Cg==
+T24gU3VuLCBOb3YgMjQsIDIwMTkgYXQgMTozNCBQTSBBbCBWaXJvIDx2aXJvQHplbml2LmxpbnV4
+Lm9yZy51az4gd3JvdGU6Cj4KPiBPbiBTdW4sIE5vdiAyNCwgMjAxOSBhdCAwMToxMzo1MFBNIC0w
+ODAwLCBEZWVwYSBEaW5hbWFuaSB3cm90ZToKPgo+ID4gV2UgYWxzbyB3YW50IHRvIHJlcGxhY2Ug
+YWxsIHVzZXMgb2YgdGltZXNwZWM2NF90cnVuYygpIHdpdGgKPiA+IHRpbWVzdGFtcF90cnVuY2F0
+ZSgpIGZvciBhbGwgZnMgY2FzZXMuCj4gPgo+ID4gSW4gdGhhdCBjYXNlIHdlIGhhdmUgYSBmZXcg
+bW9yZToKPiA+Cj4gPiBmcy9jZXBoL21kc19jbGllbnQuYzogICByZXEtPnJfc3RhbXAgPSB0aW1l
+c3BlYzY0X3RydW5jKHRzLAo+ID4gbWRzYy0+ZnNjLT5zYi0+c190aW1lX2dyYW4pOwo+Cj4gVW1t
+Li4uIFRoYXQgY29tZXMgZnJvbSBrdGltZV9nZXRfY29hcnNlX3JlYWxfdHM2NCgmdHMpOwo+Cj4g
+PiBmcy9jaWZzL2lub2RlLmM6ICAgICAgICBmYXR0ci0+Y2ZfbXRpbWUgPQo+ID4gdGltZXNwZWM2
+NF90cnVuYyhmYXR0ci0+Y2ZfbXRpbWUsIHNiLT5zX3RpbWVfZ3Jhbik7Cj4ga3RpbWVfZ2V0X3Jl
+YWxfdHM2NCgmZmF0dHItPmNmX210aW1lKSBoZXJlCj4KPiA+IGZzL2NpZnMvaW5vZGUuYzogICAg
+ICAgICAgICAgICAgZmF0dHItPmNmX2F0aW1lID0KPiA+IHRpbWVzcGVjNjRfdHJ1bmMoZmF0dHIt
+PmNmX2F0aW1lLCBzYi0+c190aW1lX2dyYW4pOwo+IGRpdHRvCj4KPiA+IGZzL2ZhdC9taXNjLmM6
+ICAgICAgICAgICAgICAgICAgaW5vZGUtPmlfY3RpbWUgPQo+ID4gdGltZXNwZWM2NF90cnVuYygq
+bm93LCAxMDAwMDAwMCk7Cj4KPiBJIHdvbmRlci4uLiBzb21lIGFyZSBmcm9tIHNldGF0dHIsIHNv
+bWUgKHdpdGggTlVMTCBwYXNzZWQgdG8gZmF0X3RydW5jYXRlX3RpbWUoKSkKPiBmcm9tIGN1cnJl
+bnRfdGltZSgpLi4uICBXb3VsZG4ndCBpdCBtYWtlIG1vcmUgc2Vuc2UgdG8gbW92ZSB0aGUgdHJ1
+bmNhdGlvbiBpbnRvCj4gdGhlIGZldyBjYWxsZXJzIHRoYXQgcmVhbGx5IG5lZWQgaXQgKGlmIGFu
+eSk/ICBRdWl0ZSBhIGZldyBvZiB0aG9zZSBhcmUgKmFsc28qCj4gZ2V0dGluZyB0aGUgdmFsdWUg
+ZnJvbSBjdXJyZW50X3RpbWUoKSwgYWZ0ZXIgYWxsLiAgZmF0X2ZpbGxfaW5vZGUoKSBsb29rcyBs
+aWtlCj4gdGhlIG9ubHkgY2FzZSB0aGF0IGRvZXNuJ3QgZmFsbCBpbnRvIHRoZXNlIGNsYXNzZXM7
+IGRvZXMgaXQgbmVlZCB0cnVuY2F0aW9uPwoKSSd2ZSBwb3N0ZWQgYSBzZXJpZXMgYXQKaHR0cHM6
+Ly9sb3JlLmtlcm5lbC5vcmcvbGttbC8yMDE5MTEzMDA1MzAzMC43ODY4LTEtZGVlcGEua2VybmVs
+QGdtYWlsLmNvbS8KSSB3YXMgYWJsZSB0byBnZXQgcmlkIG9mIGFsbCBpbnN0YW5jZXMgYnV0IGl0
+IHNlZW1lZCBsaWtlIGl0IHdvdWxkIGJlCmVhc2llciBmb3IgY2lmcyB0byB1c2UgdGltZXN0YW1w
+X3RydW5jYXRlKCkgZGlyZWN0bHkuCklmIHlvdSByZWFsbHkgZG9uJ3Qgd2FudCBpdCBleHBvcnRl
+ZCwgSSBjb3VsZCBmaW5kIHNvbWUgb3RoZXIgd2F5IG9mIGRvaW5nIGl0LgoKPiBCVFcsIGNvdWxk
+IHdlICpwbGVhc2UqIGRvIHNvbWV0aGluZyBhYm91dCBmcy9pbm9kZS5jOnVwZGF0ZV90aW1lKCk/
+ICBJIG1lYW4sCj4gc3VyZSwgbG9jYWwgdmFyaWFibGUgc2hhZG93cyBmaWxlLXNjb3BlIGZ1bmN0
+aW9uLCBzbyBpdCdzIGxlZ2l0aW1hdGUgQywgYnV0Cj4gdGhpcyBpcyBub3QgSU9DQ0MgYW5kIGhh
+dmluZyBhIGZ1bmN0aW9uIGNhbGxlZCAndXBkYXRlX3RpbWUnIGVuZCB3aXRoCj4gICAgICAgICBy
+ZXR1cm4gdXBkYXRlX3RpbWUoaW5vZGUsIHRpbWUsIGZsYWdzKTsKPiBpcyBhY3RpdmVseSBob3N0
+aWxlIHRvd2FyZHMgY2FzdWFsIHJlYWRlcnMuLi4KCkFkZGVkIHRoaXMgdG8gdGhlIHNlcmllcyBh
+cyB3ZWxsLgoKLURlZXBhCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fClkyMDM4IG1haWxpbmcgbGlzdApZMjAzOEBsaXN0cy5saW5hcm8ub3JnCmh0dHBzOi8v
+bGlzdHMubGluYXJvLm9yZy9tYWlsbWFuL2xpc3RpbmZvL3kyMDM4Cg==
