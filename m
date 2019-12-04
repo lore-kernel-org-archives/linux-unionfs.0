@@ -1,155 +1,57 @@
-Return-Path: <amir73il@gmail.com>
-Return-Path: <amir73il@gmail.com>
-From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH v2] overlay: Test unique st_dev;st_ino on non-samefs setup
-Date: Sat, 21 Dec 2019 19:04:47 +0200
-Message-Id: <20191221170447.13586-1-amir73il@gmail.com>
-To: Eryu Guan <guaneryu@gmail.com>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, fstests@vger.kernel.org
+MIME-Version: 1.0
+Date: Wed, 4 Dec 2019 21:36:55 +0100
+References: <7817498.QaoxCVBQX0@linux-e202.suse.de>
+	<CAJfpeguBxP7QPSr9UO6yzPpWHJ+fAckozQ823u5hPY76kqYjSQ@mail.gmail.com>
+	<9499302.rauRU9GSnF@linux-e202.suse.de>
+In-Reply-To: <9499302.rauRU9GSnF@linux-e202.suse.de>
+Message-ID: <CAJfpeguo9qYMLwsj3yfNfGdJsfA9RDYj1gvyDKhQzUe86=AfxQ@mail.gmail.com>
+Subject: Re: overlayfs does not pin underlying layers
+From: Miklos Szeredi <miklos@szeredi.hu>
+Content-Type: text/plain; charset="UTF-8"
+To: Fabian Vogt <fvogt@suse.de>
+Cc: linux-unionfs <linux-unionfs@vger.kernel.org>, Ignaz Forster <iforster@suse.de>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-Check that files from middle layer on same fs as upper layer
-are not allowed to export the real inode st_dev;st_ino.
+On Wed, Dec 4, 2019 at 6:05 PM Fabian Vogt <fvogt@suse.de> wrote:
+>
+> Hi,
+>
+> Am Dienstag, 3. Dezember 2019, 15:19:28 CET schrieb Miklos Szeredi:
+> > On Tue, Dec 3, 2019 at 2:49 PM Fabian Vogt <fvogt@suse.de> wrote:
+> > >
+> > > Hi,
+> > >
+> > > I noticed that you can still unmount the lower/upper/work layers, even if
+> > > they're currently part of an active overlay mount. This is the case even when
+> > > files in the overlay mount are currently open. After unmounting, the usual
+> > > effects of a lazy umount can be observed, like still active loop devices.
+> > >
+> > > Is this intentional?
+> >
+> > It's a known feature.  Not sure how much thought was given to this,
+> > but nobody took notice up till now.
+> >
+> > Do you have a good reason for wanting the underlying mounts pinned, or
+> > you are just surprised by this behavior?  In the latter case we can
+> > just add a paragraph to the documentation and be done with it.
+>
+> Both. It's obviously very inconsistent that it's possible to unmount something
+> which you still have unrestricted access to.
+>
+> The specific issue we're facing here is system shutdown - if there's an active
+> overlayfs mount, it's not guaranteed that the unmounts happen in the right
+> order. Currently we work around that by adding the systemd specific
+> "x-systemd.requires-mounts-for=foo-lower.mount" option in /etc/fstab.
+> If for some reason the order is wrong, this behaviour of overlayfs might lead
+> to the system shutting down without the actual unmount happening properly,
+> as it's equivalent to "umount -l" on lower/upper FSs.
+> I'm not sure whether there's a scenario in which this could even lead to data
+> loss if something relies on umount succeeding to mean that the attached device
+> is unused.
 
-This is a regression test for kernel commit:
-  9c6d8f13e9da ("ovl: fix corner case of non-unique st_dev;st_ino")
-
-Signed-off-by: Amir Goldstein <amir73il@gmail.com>
----
-
-Eryu,
-
-The kernel fix commit is now upstream.
+IDGI: what is the right order?  Why would it lead to corruption if the
+shutdown of the underlying fs is delayed until the shutdown of
+overlayfs?
 
 Thanks,
-Amir.
-
-Changes since v1:
-- Document upstream commit id
-
- tests/overlay/067     | 94 +++++++++++++++++++++++++++++++++++++++++++
- tests/overlay/067.out |  2 +
- tests/overlay/group   |  1 +
- 3 files changed, 97 insertions(+)
- create mode 100755 tests/overlay/067
- create mode 100644 tests/overlay/067.out
-
-diff --git a/tests/overlay/067 b/tests/overlay/067
-new file mode 100755
-index 00000000..d0a59a0b
---- /dev/null
-+++ b/tests/overlay/067
-@@ -0,0 +1,94 @@
-+#! /bin/bash
-+# SPDX-License-Identifier: GPL-2.0
-+# Copyright (C) 2019 CTERA Networks. All Rights Reserved.
-+#
-+# FSQA Test No. 067
-+#
-+# Test unique st_dev;st_ino on non-samefs setup.
-+#
-+# Check that files from middle layer on same fs as upper layer
-+# are not allowed to export the real inode st_dev;st_ino.
-+#
-+# This is a regression test for kernel commit:
-+#   9c6d8f13e9da ovl: fix corner case of non-unique st_dev;st_ino
-+#
-+seq=`basename $0`
-+seqres=$RESULT_DIR/$seq
-+echo "QA output created by $seq"
-+
-+here=`pwd`
-+tmp=/tmp/$$
-+status=1	# failure is the default!
-+trap "_cleanup; exit \$status" 0 1 2 3 15
-+
-+_cleanup()
-+{
-+	cd /
-+	rm -f $tmp.*
-+}
-+
-+# get standard environment, filters and checks
-+. ./common/rc
-+. ./common/filter
-+
-+rm -f $seqres.full
-+
-+# real QA test starts here
-+_supported_fs overlay
-+_supported_os Linux
-+# Use non-default scratch underlying overlay dirs, we need to check
-+# them explicity after test.
-+_require_scratch_nocheck
-+_require_test
-+
-+# Lower is on test partition
-+lower=$OVL_BASE_TEST_DIR/$OVL_LOWER-$seq
-+# Upper/work are on scratch partition
-+middle=$OVL_BASE_SCRATCH_MNT/$OVL_LOWER
-+upper=$OVL_BASE_SCRATCH_MNT/$OVL_UPPER
-+work=$OVL_BASE_SCRATCH_MNT/$OVL_WORK
-+
-+rm -rf $lower
-+mkdir $lower
-+
-+_scratch_mkfs >>$seqres.full 2>&1
-+
-+realfile=$middle/file
-+testfile=$SCRATCH_MNT/file
-+
-+# Create a file on middle layer on same fs as upper layer
-+echo wrong > $realfile
-+
-+# Mount an overlay on $SCRATCH_MNT with lower layer on test partition
-+# and middle and upper layer on scratch partition.
-+# Disable xino, so not all overlay inodes are on the same st_dev.
-+_overlay_scratch_mount_dirs $middle:$lower $upper $work -o xino=off || \
-+	_notrun "cannot mount overlay with xino=off option"
-+
-+stat $realfile >>$seqres.full
-+stat $testfile >>$seqres.full
-+
-+# Diverge the content of the overlay file from its origin
-+echo right > $testfile
-+
-+stat $testfile >>$seqres.full
-+
-+# Expect the overlay file to differ from the original lower file
-+diff -q $realfile $testfile >>$seqres.full &&
-+	echo "diff with middle layer file doesn't know right from wrong! (warm cache)"
-+
-+echo 3 > /proc/sys/vm/drop_caches
-+
-+stat $testfile >>$seqres.full
-+
-+# Expect the overlay file to differ from the original lower file
-+diff -q $realfile $testfile >>$seqres.full &&
-+	echo "diff with middle layer file doesn't know right from wrong! (cold cache)"
-+
-+$UMOUNT_PROG $SCRATCH_MNT
-+# check overlayfs
-+_overlay_check_scratch_dirs $middle:$lower $upper $work -o xino=off
-+
-+echo "Silence is golden"
-+status=0
-+exit
-diff --git a/tests/overlay/067.out b/tests/overlay/067.out
-new file mode 100644
-index 00000000..daa15453
---- /dev/null
-+++ b/tests/overlay/067.out
-@@ -0,0 +1,2 @@
-+QA output created by 067
-+Silence is golden
-diff --git a/tests/overlay/group b/tests/overlay/group
-index 1dec7db9..b7cd7774 100644
---- a/tests/overlay/group
-+++ b/tests/overlay/group
-@@ -69,3 +69,4 @@
- 064 auto quick copyup
- 065 auto quick mount
- 066 auto quick copyup
-+067 auto quick copyup nonsamefs
--- 
-2.17.1
+Miklos
