@@ -1,31 +1,25 @@
-From: Cyril Hrubis <chrubis@suse.cz>
-Subject: Re: [LTP] [f*xattr]  ab91fe640f: ltp.open13.fail
-Date: Thu, 5 Dec 2019 13:36:34 +0100
-Message-ID: <20191205123633.GC5693@rei.lan>
-References: <20191205112439.GE32275@shao2-debian>
+From: Matthew Wilcox <willy@infradead.org>
+Subject: Re: [PATCH 1/1] fs: Use inode_lock/unlock class of provided APIs in
+ filesystems
+Date: Thu, 5 Dec 2019 05:38:30 -0800
+Message-ID: <20191205133830.GB29612@bombadil.infradead.org>
+References: <20191205103902.23618-1-riteshh@linux.ibm.com>
+ <20191205103902.23618-2-riteshh@linux.ibm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-btrfs-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20191205112439.GE32275@shao2-debian>
-Sender: linux-kernel-owner@vger.kernel.org
-To: kernel test robot <rong.a.chen@intel.com>
-Cc: Miklos Szeredi <mszeredi@redhat.com>, lkp@lists.01.org, Miklos Szeredi <mszeredi@suse.cz>, LKML <linux-kernel@vger.kernel.org>, ltp@lists.linux.it, linux-unionfs@vger.kernel.org
+In-Reply-To: <20191205103902.23618-2-riteshh@linux.ibm.com>
+Sender: linux-btrfs-owner@vger.kernel.org
+To: Ritesh Harjani <riteshh@linux.ibm.com>
+Cc: linux-fsdevel@vger.kernel.org, jlayton@kernel.org, viro@zeniv.linux.org.uk, ceph-devel@vger.kernel.org, linux-btrfs@vger.kernel.org, linux-nfs@vger.kernel.org, devel@lists.orangefs.org, linux-unionfs@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
 
-Hi!
-> commit: ab91fe640fca6de988a888b2de89d58014d120d4 ("f*xattr: allow O_PATH descriptors")
-> https://git.kernel.org/cgit/linux/kernel/git/mszeredi/vfs.git for-viro
+On Thu, Dec 05, 2019 at 04:09:02PM +0530, Ritesh Harjani wrote:
+> This defines 4 more APIs which some of the filesystem needs
+> and reduces the direct use of i_rwsem in filesystem drivers.
+> Instead those are replaced with inode_lock/unlock_** APIs.
+> 
+> Signed-off-by: Ritesh Harjani <riteshh@linux.ibm.com>
 
-Looks like fgetxattr() on fd that has been opened with O_PATH returns
-wrong errno after this patch, which I guess is OK because that seems to
-be the point of this patch.
-
-We will fix the test if/once this patch gets upstreamed.
-
-Also btw man 2 open needs changes in the O_PATH paragraph after this as
-well.
-
--- 
-Cyril Hrubis
-chrubis@suse.cz
+Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
