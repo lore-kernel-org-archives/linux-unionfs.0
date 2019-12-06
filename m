@@ -1,53 +1,41 @@
-Return-Path: <linux-unionfs-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:55955 "EHLO
-        youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725895AbfLNL46 (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Sat, 14 Dec 2019 06:56:58 -0500
-Date: Sat, 14 Dec 2019 12:56:54 +0100
-From: Christian Brauner <christian.brauner@ubuntu.com>
-Subject: Re: [PATCH 0/1] preparatory patch for a uid/gid shifting bind mount
-Message-ID: <20191214115653.sciufxtj7ynwa7vy@wittgenstein>
-References: <1575148763.5563.28.camel@HansenPartnership.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <1575148763.5563.28.camel@HansenPartnership.com>
-Sender: linux-unionfs-owner@vger.kernel.org
-To: James Bottomley <James.Bottomley@HansenPartnership.com>
-Cc: linux-fsdevel@vger.kernel.org, dhowells@redhat.com, Al Viro <viro@ZenIV.linux.org.uk>, Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, Seth Forshee <seth.forshee@canonical.com>, =?utf-8?B?U3TDqXBoYW5l?= Graber <stgraber@ubuntu.com>, Eric Biederman <ebiederm@xmission.com>, Aleksa Sarai <cyphar@cyphar.com>, Christian Brauner <christian.brauner@ubuntu.com>
+Return-Path: <amir73il@gmail.com>
+Return-Path: <amir73il@gmail.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Subject: [PATCH] ovl: relax WARN_ON() on rename to self
+Date: Fri,  6 Dec 2019 08:33:36 +0200
+Message-Id: <20191206063336.9722-1-amir73il@gmail.com>
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: linux-unionfs@vger.kernel.org, syzkaller-bugs@googlegroups.com
 List-ID: <linux-unionfs@vger.kernel.org>
 
-On Sat, Nov 30, 2019 at 01:19:23PM -0800, James Bottomley wrote:
-> I had another look at what it would take to reimplement shiftfs as a
-> true bind mount.  It turns out we do have struct path threaded in
-> almost enough places to make it work.  There really is only one API
-> that needs updating and that's notify_change(), so the following patch
-> fixes that and pulls do_truncate() along as well.  The updates are
-> mostly smooth and pretty obvious because the path was actually already
-> present, except for in overlayfs where trying to sort out what the path
-> should be is somewhat of a nightmare.  If the overlayfs people could
-> take a look and make sure I got it right, I'd be grateful.
-> 
-> I think this is the only needed change, but I've only just got a
-> functional implementation of a uid/gid shifting bind mount, so there
-> might be other places that need rethreading as I find deficiencies in
-> the current implementation.  I'll send them along as additional patches
-> if I find them
+In ovl_rename(), if new upper is hardlinked to old upper underneath
+overlayfs before upper dirs are locked, user will get an ESTALE error
+and a WARN_ON will be printed.
 
-Thanks for the patch. Can you please make sure to Cc the following
-people who attended the dedicated shiftfs session together with you at
-LPC in Lisbon for v2? They're all major stackholders in this:
+Changes to underlying layers while overlayfs is mounted may result in
+unexpected behavior, but it shouldn't crash the kernel and it shouldn't
+trigger WARN_ON() either, so relax this WARN_ON().
 
-Stéphane Graber <stgraber@ubuntu.com>
-Eric Biederman <ebiederm@xmission.com>
-David Howells <dhowells@redhat.com>
-Aleksa Sarai <cyphar@cyphar.com>
-Christian Brauner <christian.brauner@ubuntu.com>
+Reported-by: syzbot+bb1836a212e69f8e201a@syzkaller.appspotmail.com
+Fixes: 804032fabb3b ("ovl: don't check rename to self")
+Cc: <stable@vger.kernel.org> # v4.9+
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+---
+ fs/overlayfs/dir.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-(I haven't gotten around to looking at the initial bind mount patchset
-you sent out about two weeks ago. Pre-holidays it's always tricky to
-find time for proper reviews...)
-
-Christian
+diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
+index 702aa63f6774..29abdb1d3b5c 100644
+--- a/fs/overlayfs/dir.c
++++ b/fs/overlayfs/dir.c
+@@ -1170,7 +1170,7 @@ static int ovl_rename(struct inode *olddir, struct dentry *old,
+ 	if (newdentry == trap)
+ 		goto out_dput;
+ 
+-	if (WARN_ON(olddentry->d_inode == newdentry->d_inode))
++	if (olddentry->d_inode == newdentry->d_inode)
+ 		goto out_dput;
+ 
+ 	err = 0;
+-- 
+2.17.1
