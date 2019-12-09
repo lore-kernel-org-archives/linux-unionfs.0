@@ -1,65 +1,41 @@
 Return-Path: <amir73il@gmail.com>
-Return-Path: <amir73il@gmail.com>
+MIME-Version: 1.0
+References: <CAOQ4uxh7fszXGXV0U5K4yz4o3WwDk40LmOi+dH2Nwi+yq_5+Pw@mail.gmail.com>
+ <CAJfpegv8sN=XB5ePnEiz3KfVhHhyNmYWW8C-bckaxeYiQ0Ee-g@mail.gmail.com>
+In-Reply-To: <CAJfpegv8sN=XB5ePnEiz3KfVhHhyNmYWW8C-bckaxeYiQ0Ee-g@mail.gmail.com>
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH v2 0/5] Sort out overlay layers and fs arrays
-Date: Sun, 22 Dec 2019 10:07:54 +0200
-Message-Id: <20191222080759.32035-1-amir73il@gmail.com>
+Date: Mon, 9 Dec 2019 18:47:12 +0200
+Message-ID: <CAOQ4uxir4WC_atq6r-zpRr+m7+c3t7HcVBsaMYM+5xWbKzUXrw@mail.gmail.com>
+Subject: Re: Overlayfs fixes queue
+Content-Type: text/plain; charset="UTF-8"
 To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: linux-unionfs@vger.kernel.org
+Cc: overlayfs <linux-unionfs@vger.kernel.org>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-Miklos,
+On Mon, Dec 9, 2019 at 4:57 PM Miklos Szeredi <miklos@szeredi.hu> wrote:
+>
+> On Mon, Dec 2, 2019 at 7:32 AM Amir Goldstein <amir73il@gmail.com> wrote:
+> >
+> > Hi Miklos,
+> >
+> > Will you have time to queue some of the queued fixed [1] and docs .rst
+> > conversion [2] for 5.5, maybe rc2?
+> >
+> > The timestamp limits issue is also being addressed by Deepa in vfs as
+> > you suggested, so not critical but nice to have.
+> >
+> > I posted an xfstest [3] that demonstrates the corner case of
+> > non-unique st_dev;st_ino (v4.17 regression).
+>
+> Hi Amir,
+>
+> I'm going though your queue, hoping to finish it for -rc2.
+>
 
-This is the promised follow up to "fix corner case of non-unique
-st_dev;st_ino" that was merged to v5.5-rc2.
-The full details are available in the 1st posting of this patch set [1].
+OK. for the record, following patch was added to branch
+since I posted the summary:
 
-These patches have been tested with many different layer configurations
-using the tests in [2][3] among them also configurations of multi lower
-layer, where some lower fs are on safe fs as upper.
-
-Note that this patchset introduces a change of behavior for overlayfs.
-stat(2) on pure upper objects no longer report the real st_dev.
-Upper fs is now also assigned a pseudo dev number, like all lower fs
-and it is used when reporting stat(2) for pure upper objects as well as
-for objects on lower layer which uses the same fs as upper fs.
-
-These patches are also available on my github ovl-layers branch [4].
-As mentioned before, I have a follow up series on branch ovl-ino [5]
-that fixes another rare case of st_dev;st_ino collision and some more
-improvements and fixes to xino. I still did not complete the tests for
-that follow up series.
+* 4d85701cda95 - ovl: relax WARN_ON() on rename to self
 
 Thanks,
 Amir.
-
-Changes since v1:
-- "fix corner case of non-unique st_dev;st_ino" already merged
-- Replaced maxfsid notation with numfsid
-
-
-[1] https://marc.info/?l=linux-unionfs&m=157400544101251&w=2
-[2] https://github.com/amir73il/xfstests/commits/ovl-nested
-[3] https://github.com/amir73il/unionmount-testsuite/commits/ovl-nested
-[4] https://github.com/amir73il/linux/commits/ovl-layers
-[5] https://github.com/amir73il/linux/commits/ovl-ino
-
-Amir Goldstein (5):
-  ovl: generalize the lower_layers[] array
-  ovl: simplify ovl_same_sb() helper
-  ovl: generalize the lower_fs[] array
-  ovl: fix corner case of conflicting lower layer uuid
-  ovl: fix corner case of non-constant st_dev;st_ino
-
- fs/overlayfs/export.c    |   6 +-
- fs/overlayfs/inode.c     |  43 +++++---------
- fs/overlayfs/namei.c     |  10 ++--
- fs/overlayfs/overlayfs.h |  23 ++++++-
- fs/overlayfs/ovl_entry.h |  15 +++--
- fs/overlayfs/readdir.c   |  11 ++--
- fs/overlayfs/super.c     | 125 ++++++++++++++++++++++-----------------
- fs/overlayfs/util.c      |  18 ++----
- 8 files changed, 134 insertions(+), 117 deletions(-)
-
--- 
-2.17.1
