@@ -1,32 +1,54 @@
-Return-Path: <willy@infradead.org>
-Date: Sun, 1 Dec 2019 03:47:06 -0800
-From: Matthew Wilcox <willy@infradead.org>
-Subject: Re: [PATCH 1/1] fs: rethread notify_change to take a path instead of
- a dentry
-Message-ID: <20191201114706.GL20752@bombadil.infradead.org>
-References: <1575148763.5563.28.camel@HansenPartnership.com>
- <1575148868.5563.30.camel@HansenPartnership.com>
+Return-Path: <dan.carpenter@oracle.com>
+Date: Fri, 13 Dec 2019 15:58:28 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: Re: [bug report] ovl: make sure that real fid is 32bit aligned in
+ memory
+Message-ID: <20191213125828.GE2407@kadam>
+References: <20191213103705.iurz35cawvp6w46w@kili.mountain>
+ <CAJfpegv1d=XRcqD0yJpobP2j3F+gBbKhmJ2mUzwq33s=4gD4Bw@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <1575148868.5563.30.camel@HansenPartnership.com>
-To: James Bottomley <James.Bottomley@hansenpartnership.com>
-Cc: linux-fsdevel@vger.kernel.org, dhowells@redhat.com, Al Viro <viro@zeniv.linux.org.uk>, Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, Seth Forshee <seth.forshee@canonical.com>
+In-Reply-To: <CAJfpegv1d=XRcqD0yJpobP2j3F+gBbKhmJ2mUzwq33s=4gD4Bw@mail.gmail.com>
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: Amir Goldstein <amir73il@gmail.com>, overlayfs <linux-unionfs@vger.kernel.org>
 List-ID: <linux-unionfs@vger.kernel.org>
 
-On Sat, Nov 30, 2019 at 01:21:08PM -0800, James Bottomley wrote:
-> @@ -402,6 +403,10 @@ nfsd_setattr(struct svc_rqst *rqstp, struct svc_fh *fhp, struct iattr *iap,
->  
->  	dentry = fhp->fh_dentry;
->  	inode = d_inode(dentry);
-> +	path = &(struct path){
-> +		.mnt = fhp->fh_export->ex_path.mnt,
-> +		.dentry = dentry,
-> +	};
+On Fri, Dec 13, 2019 at 01:22:10PM +0100, Miklos Szeredi wrote:
+> On Fri, Dec 13, 2019 at 11:38 AM Dan Carpenter <dan.carpenter@oracle.com> wrote:
+> >
+> > Hello Amir Goldstein,
+> >
+> > This is a semi-automatic email about new static checker warnings.
+> >
+> > The patch cbe7fba8edfc: "ovl: make sure that real fid is 32bit
+> > aligned in memory" from Nov 15, 2019, leads to the following Smatch
+> > complaint:
+> >
+> >     fs/overlayfs/copy_up.c:338 ovl_set_origin()
+> >      warn: variable dereferenced before check 'fh' (see line 337)
+> >
+> > fs/overlayfs/copy_up.c
+> >    336           */
+> >    337          err = ovl_check_setxattr(dentry, upper, OVL_XATTR_ORIGIN, fh->buf,
+> >                                                                           ^^^^^^^
+> > The patch adds an unconditional dereference
+> 
+> But in fact fh->buf is not a dereference:
+> 
+> struct ovl_fh {
+>     u8 padding[3];    /* make sure fb.fid is 32bit aligned */
+>     union {
+>         struct ovl_fb fb;
+>         u8 buf[0];
+>     };
+> } __packed;
+> 
+> Subsequent code will also not dereference fh->buf, because the
+> supplied size is zero.
 
-Is this really clearer than writing:
+Ah yes.  Thanks.  Smatch got confused because the array is inside a
+union.  Sorry.
 
-	path.mnt = fhp->fh_export->ex_path.mnt;
-	path.dentry = dentry;
-
-(there are a few other occurrences I'd change)
+regards,
+dan carpenter
