@@ -1,38 +1,59 @@
 Return-Path: <amir73il@gmail.com>
-MIME-Version: 1.0
-References: <20191221185149.17509-1-amir73il@gmail.com>
-In-Reply-To: <20191221185149.17509-1-amir73il@gmail.com>
+Return-Path: <amir73il@gmail.com>
 From: Amir Goldstein <amir73il@gmail.com>
-Date: Sun, 22 Dec 2019 23:19:21 +0200
-Message-ID: <CAOQ4uxj2+ma4LEm14WdyXSkrHMrdWkwVzQd4r-WTqGdGJ8g2Rg@mail.gmail.com>
-Subject: Re: [PATCH 0/3] Nested overlay exportfs tests
-Content-Type: text/plain; charset="UTF-8"
+Subject: [PATCH 0/3] Nested overlay exportfs tests
+Date: Sat, 21 Dec 2019 20:51:46 +0200
+Message-Id: <20191221185149.17509-1-amir73il@gmail.com>
 To: Eryu Guan <guaneryu@gmail.com>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, overlayfs <linux-unionfs@vger.kernel.org>, fstests <fstests@vger.kernel.org>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, fstests@vger.kernel.org
 List-ID: <linux-unionfs@vger.kernel.org>
-
-On Sat, Dec 21, 2019 at 8:51 PM Amir Goldstein <amir73il@gmail.com> wrote:
->
-> Eryu,
->
 
 Eryu,
 
-Actually, I needed to make a change to overlay/069, so please hold on
-with these.
+There is a somewhat convoluted story behind those tests...
 
-For test coverage, the interesting cases for nested overlay are:
-- lower overlay is samefs
-- lower overlay is non-samefs
+At the time when overlay NFS export support was merged (v4.16),
+nested overlay NFS export was not supported, because of the requirement
+that all layers must have non null s_uuid. I had private patches to add
+support for nested overlay NFS export, which I tested with these tests.
 
-That last case is especially interesting to exercise xino bit overflow,
-because lower overlay uses the high ino bits.
+In kernel v4.20, commit 9df085f3c9a2 ("ovl: relax requirement for non
+null uuid ...") was merged to enable NFS export of overlayfs with lower
+squashfs. As a by-product from this change, nested overlay NFS export
+is since supported.
 
-This is not how I implemented overlay/069, so I made this change and
-it caught another bug in upstream.
+v5.5-rc2 includes a fix to the v4.20 commit above ("ovl: fix lookup
+failure on multi lower squashfs"). I used these tests to verify that
+the change did not break the single lower layer with no uuid case.
 
-I have more nested tests coming soon, so I will post those along
-with v2 of these tests.
+v5.5-rc2 also includes a fix to how overlayfs encodes file handles in
+memory ("ovl: make sure that real fid is 32bit aligned in memory").
+I also use those test to verify this change and they flushed out several
+bugs in my initial implementation that the existing overlay/exportfs
+test did not catch.
 
-Thanks and sorry for the noise,
+Since those test have proven to be useful in catching bugs not directly
+related to the less interesting case of nested overlay NFS export, I
+decided it is now prime time for me to post them.
+
+Thanks,
 Amir.
+
+Amir Goldstein (3):
+  overlay: create the overlay/nested test group
+  overlay: test file handles with nested overlay on the same fs
+  overlay: test file handles with nested overlay on another fs
+
+ tests/overlay/068     | 304 +++++++++++++++++++++++++++++++++++++++++
+ tests/overlay/068.out |  50 +++++++
+ tests/overlay/069     | 306 ++++++++++++++++++++++++++++++++++++++++++
+ tests/overlay/069.out |  50 +++++++
+ tests/overlay/group   |   6 +-
+ 5 files changed, 714 insertions(+), 2 deletions(-)
+ create mode 100755 tests/overlay/068
+ create mode 100644 tests/overlay/068.out
+ create mode 100755 tests/overlay/069
+ create mode 100644 tests/overlay/069.out
+
+-- 
+2.17.1
