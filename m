@@ -1,107 +1,65 @@
-Return-Path: <adilger@dilger.ca>
-Return-Path: <adilger@dilger.ca>
-From: Andreas Dilger <adilger@dilger.ca>
-Message-Id: <BC68C02C-E6E5-4414-A1D2-D36D335738E2@dilger.ca>
-Content-Type: multipart/signed;
- boundary="Apple-Mail=_421161AC-7AEB-4F46-B74F-685F54147CC1";
- protocol="application/pgp-signature"; micalg=pgp-sha256
-Mime-Version: 1.0 (Mac OS X Mail 10.3 \(3273\))
-Subject: Re: [PATCH v3 6/6] ovl: add ovl_fadvise()
-Date: Fri, 27 Dec 2019 22:49:22 -0700
-In-Reply-To: <1535374564-8257-7-git-send-email-amir73il@gmail.com>
-References: <1535374564-8257-1-git-send-email-amir73il@gmail.com>
- <1535374564-8257-7-git-send-email-amir73il@gmail.com>
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, Al Viro <viro@zeniv.linux.org.uk>, Dave Chinner <david@fromorbit.com>, linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
+Return-Path: <amir73il@gmail.com>
+Return-Path: <amir73il@gmail.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Subject: [PATCH v2 0/5] Sort out overlay layers and fs arrays
+Date: Sun, 22 Dec 2019 10:07:54 +0200
+Message-Id: <20191222080759.32035-1-amir73il@gmail.com>
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: linux-unionfs@vger.kernel.org
 List-ID: <linux-unionfs@vger.kernel.org>
 
+Miklos,
 
---Apple-Mail=_421161AC-7AEB-4F46-B74F-685F54147CC1
-Content-Transfer-Encoding: 7bit
-Content-Type: text/plain;
-	charset=us-ascii
+This is the promised follow up to "fix corner case of non-unique
+st_dev;st_ino" that was merged to v5.5-rc2.
+The full details are available in the 1st posting of this patch set [1].
 
-On Aug 27, 2018, at 6:56 AM, Amir Goldstein <amir73il@gmail.com> wrote:
-> 
-> Implement stacked fadvise to fix syscalls readahead(2) and fadvise64(2)
-> on an overlayfs file.
+These patches have been tested with many different layer configurations
+using the tests in [2][3] among them also configurations of multi lower
+layer, where some lower fs are on safe fs as upper.
 
-I was just looking into the existence of the "new" fadvise() method in
-the VFS being able to communicate application hints directly to the
-filesystem to see if it could be used to address the word size issue in
-https://bugzilla.kernel.org/show_bug.cgi?id=205957 without adding a new
-syscall, and came across this patch and the 4/6 patch that adds the
-vfs_fadvise() function itself (copied below for clarity).
+Note that this patchset introduces a change of behavior for overlayfs.
+stat(2) on pure upper objects no longer report the real st_dev.
+Upper fs is now also assigned a pseudo dev number, like all lower fs
+and it is used when reporting stat(2) for pure upper objects as well as
+for objects on lower layer which uses the same fs as upper fs.
 
-It seems to me that this implementation is broken?  Only vfs_fadvise()
-is called from the fadvise64() syscall, and it will call f_op->fadvise()
-if the filesystem provides this method.  Only overlayfs provides the
-.fadvise method today.  However, it looks that ovl_fadvise() calls back
-into vfs_fadvise() again, in a seemingly endless loop?
+These patches are also available on my github ovl-layers branch [4].
+As mentioned before, I have a follow up series on branch ovl-ino [5]
+that fixes another rare case of st_dev;st_ino collision and some more
+improvements and fixes to xino. I still did not complete the tests for
+that follow up series.
 
-It seems like generic_fadvise() should be EXPORT_SYMBOL() so that any
-filesystem that implements its own .fadvise method can do its own thing,
-and then call generic_fadvise() to handle the remaining MM-specific work.
+Thanks,
+Amir.
 
-Thoughts?
-
-> +int vfs_fadvise(struct file *file, loff_t offset, loff_t len, int advice)
-> +{
-> +	if (file->f_op->fadvise)
-> +		return file->f_op->fadvise(file, offset, len, advice);
-> +
-> +	return generic_fadvise(file, offset, len, advice);
-> +}
-> +EXPORT_SYMBOL(vfs_fadvise);
-> 
-> +int ovl_fadvise(struct file *file, loff_t offset, loff_t len, int advice)
-> +{
-> +	struct fd real;
-> +	int ret;
-> +
-> +	ret = ovl_real_fdget(file, &real);
-> +	if (ret)
-> +		return ret;
-> +
-> +	/* XXX: do we need mounter credentials? */
-> +	ret = vfs_fadvise(real.file, offset, len, advice);
-> +
-> +	fdput(real);
-> +
-> +	return ret;
-> +}
-
-Cheers, Andreas
+Changes since v1:
+- "fix corner case of non-unique st_dev;st_ino" already merged
+- Replaced maxfsid notation with numfsid
 
 
+[1] https://marc.info/?l=linux-unionfs&m=157400544101251&w=2
+[2] https://github.com/amir73il/xfstests/commits/ovl-nested
+[3] https://github.com/amir73il/unionmount-testsuite/commits/ovl-nested
+[4] https://github.com/amir73il/linux/commits/ovl-layers
+[5] https://github.com/amir73il/linux/commits/ovl-ino
 
+Amir Goldstein (5):
+  ovl: generalize the lower_layers[] array
+  ovl: simplify ovl_same_sb() helper
+  ovl: generalize the lower_fs[] array
+  ovl: fix corner case of conflicting lower layer uuid
+  ovl: fix corner case of non-constant st_dev;st_ino
 
+ fs/overlayfs/export.c    |   6 +-
+ fs/overlayfs/inode.c     |  43 +++++---------
+ fs/overlayfs/namei.c     |  10 ++--
+ fs/overlayfs/overlayfs.h |  23 ++++++-
+ fs/overlayfs/ovl_entry.h |  15 +++--
+ fs/overlayfs/readdir.c   |  11 ++--
+ fs/overlayfs/super.c     | 125 ++++++++++++++++++++++-----------------
+ fs/overlayfs/util.c      |  18 ++----
+ 8 files changed, 134 insertions(+), 117 deletions(-)
 
-
---Apple-Mail=_421161AC-7AEB-4F46-B74F-685F54147CC1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
-	filename=signature.asc
-Content-Type: application/pgp-signature;
-	name=signature.asc
-Content-Description: Message signed with OpenPGP
-
------BEGIN PGP SIGNATURE-----
-Comment: GPGTools - http://gpgtools.org
-
-iQIzBAEBCAAdFiEEDb73u6ZejP5ZMprvcqXauRfMH+AFAl4G7OIACgkQcqXauRfM
-H+CjVxAAhKXjX5m11b4E2eMFMuEYZ5wxLrAnFTwzy3gJBvWmL6OhiqlEPuL/TlDp
-9LAofpHJGYG1NV1cD7z+RsXoL6o7Qmek2WcebDreuW4SqWflXUa+WyVaQ2JO6Zed
-V4aq09Q9Sa3EDFF0BZDzUUvgbLbSnxQ/hrds0P8jeX3yE4d/+KArxFbzYY2sDFHb
-eo60Qj5gQGgW2K+brp9p+p+Ryt7SEUbEKnkwqcNZ3ulqy+pE9YJuKt7KSs+s/BJg
-IJysWpg3KY3ZV6g/Uewn0rtJDedHn1C55zHHyTC9wN6FDgC8fiCvsIAs48Srfp/p
-xHJJDUIVhlZj3fk9f9yE76X9m5H6jLMEOwH5x7m+mmlxuibc8oT+0GfgHrjF2CkW
-ES5/9E7zXLyxIacHEy68Jfa2nnNxxW5ExX7R37rJmvvT1khAfuEsurld209WU4ZU
-Jk7WHrryeCRVo+HUjWQvLDYDSAiCMmzHhWpmw7A9yOqGw6gzNeecI0lchZuQCFnD
-O79AeQRSJoxw5RvJ2zQY9P58tZwTrbhvYuaePX4vCKii2NycDKQaUOtrljGfZAT0
-hGyJQVo0cDupp5Wxcojl9Q3+9qcJHfEc5S5Ww5ipg9D0LmlknRaSBLMl8ezA0bq0
-G9uihpfQj2igPXtN/EjbVy6GJpOYeDBh/JMh36zC2SfoZi9Xm+k=
-=MTn5
------END PGP SIGNATURE-----
-
---Apple-Mail=_421161AC-7AEB-4F46-B74F-685F54147CC1--
+-- 
+2.17.1
