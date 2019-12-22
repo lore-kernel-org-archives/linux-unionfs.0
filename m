@@ -1,221 +1,283 @@
 Return-Path: <amir73il@gmail.com>
 Return-Path: <amir73il@gmail.com>
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH v2 2/5] ovl: simplify ovl_same_sb() helper
-Date: Sun, 22 Dec 2019 10:07:56 +0200
-Message-Id: <20191222080759.32035-3-amir73il@gmail.com>
+Subject: [PATCH v2 3/5] ovl: generalize the lower_fs[] array
+Date: Sun, 22 Dec 2019 10:07:57 +0200
+Message-Id: <20191222080759.32035-4-amir73il@gmail.com>
 In-Reply-To: <20191222080759.32035-1-amir73il@gmail.com>
 References: <20191222080759.32035-1-amir73il@gmail.com>
 To: Miklos Szeredi <miklos@szeredi.hu>
 Cc: linux-unionfs@vger.kernel.org
 List-ID: <linux-unionfs@vger.kernel.org>
 
-No code uses the sb returned from this helper, so make it retrun
-a boolean and rename it to ovl_same_fs().
+Rename lower_fs[] array to fs[], extend its size by one and use
+index fsid (instead of fsid-1) to access the fs[] array.
 
-The xino mode is irrelevant when all layers are on same fs, so
-instead of describing samefs with mode OVL_XINO_OFF, use a new mode
-OVL_XINO_SAME_FS, which is different than the case of non-samefs
-with xino=off.
+Initialize fs[0] with upper fs values. fsid 0 is reserved even with
+lower only overlay, so fs[0] remains null in this case.
 
-Create a new helper ovl_same_dev(), to use instead of the common check
-for (ovl_same_fs() || xinobits).
+This gets rid of special casing upper layer in ovl_map_dev_ino().
 
 Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- fs/overlayfs/inode.c     |  8 ++++----
- fs/overlayfs/overlayfs.h | 21 ++++++++++++++++++++-
- fs/overlayfs/ovl_entry.h |  5 +++++
- fs/overlayfs/readdir.c   |  4 ++--
- fs/overlayfs/super.c     | 13 +++++--------
- fs/overlayfs/util.c      | 12 ------------
- 6 files changed, 36 insertions(+), 27 deletions(-)
+ fs/overlayfs/inode.c     | 31 +++++++++----------
+ fs/overlayfs/ovl_entry.h |  6 ++--
+ fs/overlayfs/super.c     | 66 +++++++++++++++++++++-------------------
+ 3 files changed, 52 insertions(+), 51 deletions(-)
 
 diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
-index 35712f54fdf9..b510e8408be3 100644
+index b510e8408be3..09153dbe8090 100644
 --- a/fs/overlayfs/inode.c
 +++ b/fs/overlayfs/inode.c
-@@ -78,7 +78,7 @@ int ovl_setattr(struct dentry *dentry, struct iattr *attr)
- static int ovl_map_dev_ino(struct dentry *dentry, struct kstat *stat,
- 			   struct ovl_layer *lower_layer)
- {
--	bool samefs = ovl_same_sb(dentry->d_sb);
-+	bool samefs = ovl_same_fs(dentry->d_sb);
- 	unsigned int xinobits = ovl_xino_bits(dentry->d_sb);
+@@ -75,8 +75,7 @@ int ovl_setattr(struct dentry *dentry, struct iattr *attr)
+ 	return err;
+ }
  
- 	if (samefs) {
-@@ -146,7 +146,7 @@ int ovl_getattr(const struct path *path, struct kstat *stat,
- 	struct path realpath;
+-static int ovl_map_dev_ino(struct dentry *dentry, struct kstat *stat,
+-			   struct ovl_layer *lower_layer)
++static int ovl_map_dev_ino(struct dentry *dentry, struct kstat *stat, int fsid)
+ {
+ 	bool samefs = ovl_same_fs(dentry->d_sb);
+ 	unsigned int xinobits = ovl_xino_bits(dentry->d_sb);
+@@ -103,9 +102,7 @@ static int ovl_map_dev_ino(struct dentry *dentry, struct kstat *stat,
+ 			pr_warn_ratelimited("overlayfs: inode number too big (%pd2, ino=%llu, xinobits=%d)\n",
+ 					    dentry, stat->ino, xinobits);
+ 		} else {
+-			if (lower_layer)
+-				stat->ino |= ((u64)lower_layer->fsid) << shift;
+-
++			stat->ino |= ((u64)fsid) << shift;
+ 			stat->dev = dentry->d_sb->s_dev;
+ 			return 0;
+ 		}
+@@ -124,15 +121,15 @@ static int ovl_map_dev_ino(struct dentry *dentry, struct kstat *stat,
+ 		 */
+ 		stat->dev = dentry->d_sb->s_dev;
+ 		stat->ino = dentry->d_inode->i_ino;
+-	} else if (lower_layer && lower_layer->fsid) {
++	} else {
+ 		/*
+ 		 * For non-samefs setup, if we cannot map all layers st_ino
+ 		 * to a unified address space, we need to make sure that st_dev
+-		 * is unique per lower fs. Upper layer uses real st_dev and
+-		 * lower layers use the unique anonymous bdev assigned to the
+-		 * lower fs.
++		 * is unique per lower fs. Layers that are on the same fs as
++		 * upper layer use real upper st_dev and other lower layers use
++		 * the unique anonymous bdev assigned to the lower fs.
+ 		 */
+-		stat->dev = lower_layer->fs->pseudo_dev;
++		stat->dev = OVL_FS(dentry->d_sb)->fs[fsid].pseudo_dev;
+ 	}
+ 
+ 	return 0;
+@@ -147,7 +144,7 @@ int ovl_getattr(const struct path *path, struct kstat *stat,
  	const struct cred *old_cred;
  	bool is_dir = S_ISDIR(dentry->d_inode->i_mode);
--	bool samefs = ovl_same_sb(dentry->d_sb);
-+	bool samefs = ovl_same_fs(dentry->d_sb);
- 	struct ovl_layer *lower_layer = NULL;
+ 	bool samefs = ovl_same_fs(dentry->d_sb);
+-	struct ovl_layer *lower_layer = NULL;
++	int fsid;
  	int err;
  	bool metacopy_blocks = false;
-@@ -168,7 +168,7 @@ int ovl_getattr(const struct path *path, struct kstat *stat,
- 	 * If lower filesystem supports NFS file handles, this also guaranties
+ 
+@@ -169,9 +166,8 @@ int ovl_getattr(const struct path *path, struct kstat *stat,
  	 * persistent st_ino across mount cycle.
  	 */
--	if (!is_dir || samefs || ovl_xino_bits(dentry->d_sb)) {
-+	if (!is_dir || ovl_same_dev(dentry->d_sb)) {
- 		if (!OVL_TYPE_UPPER(type)) {
- 			lower_layer = ovl_dentry_layer(dentry);
- 		} else if (OVL_TYPE_ORIGIN(type)) {
-@@ -586,7 +586,7 @@ static void ovl_fill_inode(struct inode *inode, umode_t mode, dev_t rdev,
- 	 * ovl_new_inode(), ino arg is 0, so i_ino will be updated to real
- 	 * upper inode i_ino on ovl_inode_init() or ovl_inode_update().
- 	 */
--	if (ovl_same_sb(inode->i_sb) || xinobits) {
-+	if (ovl_same_dev(inode->i_sb)) {
- 		inode->i_ino = ino;
- 		if (xinobits && fsid && !(ino >> (64 - xinobits)))
- 			inode->i_ino |= (unsigned long)fsid << (64 - xinobits);
-diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-index 50d41a314308..f7d01c06cdaf 100644
---- a/fs/overlayfs/overlayfs.h
-+++ b/fs/overlayfs/overlayfs.h
-@@ -45,6 +45,14 @@ enum ovl_entry_flag {
- 	OVL_E_CONNECTED,
- };
+ 	if (!is_dir || ovl_same_dev(dentry->d_sb)) {
+-		if (!OVL_TYPE_UPPER(type)) {
+-			lower_layer = ovl_dentry_layer(dentry);
+-		} else if (OVL_TYPE_ORIGIN(type)) {
++		fsid = ovl_dentry_layer(dentry)->fsid;
++		if (OVL_TYPE_ORIGIN(type)) {
+ 			struct kstat lowerstat;
+ 			u32 lowermask = STATX_INO | STATX_BLOCKS |
+ 					(!is_dir ? STATX_NLINK : 0);
+@@ -200,14 +196,15 @@ int ovl_getattr(const struct path *path, struct kstat *stat,
+ 			if (ovl_test_flag(OVL_INDEX, d_inode(dentry)) ||
+ 			    (!ovl_verify_lower(dentry->d_sb) &&
+ 			     (is_dir || lowerstat.nlink == 1))) {
+-				lower_layer = ovl_dentry_layer(dentry);
+ 				/*
+ 				 * Cannot use origin st_dev;st_ino because
+ 				 * origin inode content may differ from overlay
+ 				 * inode content.
+ 				 */
+-				if (samefs || lower_layer->fsid)
++				if (samefs || fsid)
+ 					stat->ino = lowerstat.ino;
++			} else {
++				fsid = 0;
+ 			}
  
-+enum {
-+	OVL_XINO_OFF,
-+	OVL_XINO_AUTO,
-+	OVL_XINO_ON,
-+	/* With samefs, xino is irrelevant */
-+	OVL_XINO_SAME_FS,
-+};
-+
- /*
-  * The tuple (fh,uuid) is a universal unique identifier for a copy up origin,
-  * where:
-@@ -221,7 +229,6 @@ int ovl_want_write(struct dentry *dentry);
- void ovl_drop_write(struct dentry *dentry);
- struct dentry *ovl_workdir(struct dentry *dentry);
- const struct cred *ovl_override_creds(struct super_block *sb);
--struct super_block *ovl_same_sb(struct super_block *sb);
- int ovl_can_decode_fh(struct super_block *sb);
- struct dentry *ovl_indexdir(struct super_block *sb);
- bool ovl_index_all(struct super_block *sb);
-@@ -306,6 +313,18 @@ static inline unsigned int ovl_xino_bits(struct super_block *sb)
- 	return ofs->xino_bits;
- }
+ 			/*
+@@ -241,7 +238,7 @@ int ovl_getattr(const struct path *path, struct kstat *stat,
+ 		}
+ 	}
  
-+/* All layers on same fs? */
-+static inline bool ovl_same_fs(struct super_block *sb)
-+{
-+	return OVL_FS(sb)->config.xino == OVL_XINO_SAME_FS;
-+}
-+
-+/* All overlay inodes have same st_dev? */
-+static inline bool ovl_same_dev(struct super_block *sb)
-+{
-+	return OVL_FS(sb)->config.xino != OVL_XINO_OFF;
-+}
-+
- static inline int ovl_inode_lock(struct inode *inode)
- {
- 	return mutex_lock_interruptible(&OVL_I(inode)->lock);
-diff --git a/fs/overlayfs/ovl_entry.h b/fs/overlayfs/ovl_entry.h
-index ffaf7376f4ab..ef05817d8d89 100644
---- a/fs/overlayfs/ovl_entry.h
-+++ b/fs/overlayfs/ovl_entry.h
-@@ -75,6 +75,11 @@ struct ovl_fs {
- 	unsigned int xino_bits;
- };
- 
-+static inline struct ovl_fs *OVL_FS(struct super_block *sb)
-+{
-+	return (struct ovl_fs *)sb->s_fs_info;
-+}
-+
- /* private information held for every overlayfs dentry */
- struct ovl_entry {
- 	union {
-diff --git a/fs/overlayfs/readdir.c b/fs/overlayfs/readdir.c
-index 32a7f8a38091..56f13e9ccbe6 100644
---- a/fs/overlayfs/readdir.c
-+++ b/fs/overlayfs/readdir.c
-@@ -469,7 +469,7 @@ static int ovl_cache_update_ino(struct path *path, struct ovl_cache_entry *p)
- 	int xinobits = ovl_xino_bits(dir->d_sb);
- 	int err = 0;
- 
--	if (!ovl_same_sb(dir->d_sb) && !xinobits)
-+	if (!ovl_same_dev(dir->d_sb))
+-	err = ovl_map_dev_ino(dentry, stat, lower_layer);
++	err = ovl_map_dev_ino(dentry, stat, fsid);
+ 	if (err)
  		goto out;
  
- 	if (p->name[0] == '.') {
-@@ -737,7 +737,7 @@ static int ovl_iterate(struct file *file, struct dir_context *ctx)
- 		 * entries.
- 		 */
- 		if (ovl_xino_bits(dentry->d_sb) ||
--		    (ovl_same_sb(dentry->d_sb) &&
-+		    (ovl_same_fs(dentry->d_sb) &&
- 		     (ovl_is_impure_dir(file) ||
- 		      OVL_TYPE_MERGE(ovl_path_type(dentry->d_parent))))) {
- 			return ovl_iterate_real(file, ctx);
+diff --git a/fs/overlayfs/ovl_entry.h b/fs/overlayfs/ovl_entry.h
+index ef05817d8d89..4c1d3b20a4e8 100644
+--- a/fs/overlayfs/ovl_entry.h
++++ b/fs/overlayfs/ovl_entry.h
+@@ -46,10 +46,10 @@ struct ovl_path {
+ struct ovl_fs {
+ 	struct vfsmount *upper_mnt;
+ 	unsigned int numlower;
+-	/* Number of unique lower sb that differ from upper sb */
+-	unsigned int numlowerfs;
++	/* Number of unique fs among layers including upper fs */
++	unsigned int numfs;
+ 	struct ovl_layer *layers;
+-	struct ovl_sb *lower_fs;
++	struct ovl_sb *fs;
+ 	/* workbasedir is the path at workdir= mount option */
+ 	struct dentry *workbasedir;
+ 	/* workdir is the 'work' directory under workbasedir */
 diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-index 84f96f64bbb8..2d03ab26e202 100644
+index 2d03ab26e202..8522c66134b5 100644
 --- a/fs/overlayfs/super.c
 +++ b/fs/overlayfs/super.c
-@@ -316,12 +316,6 @@ static const char *ovl_redirect_mode_def(void)
- 	return ovl_redirect_dir_def ? "on" : "off";
+@@ -228,10 +228,13 @@ static void ovl_free_fs(struct ovl_fs *ofs)
+ 		iput(ofs->layers[i].trap);
+ 		mntput(ofs->layers[i].mnt);
+ 	}
+-	for (i = 0; i < ofs->numlowerfs; i++)
+-		free_anon_bdev(ofs->lower_fs[i].pseudo_dev);
+ 	kfree(ofs->layers);
+-	kfree(ofs->lower_fs);
++	if (ofs->fs) {
++		/* fs[0].pseudo_dev is either null or real upper st_dev */
++		for (i = 1; i < ofs->numfs; i++)
++			free_anon_bdev(ofs->fs[i].pseudo_dev);
++		kfree(ofs->fs);
++	}
+ 
+ 	kfree(ofs->config.lowerdir);
+ 	kfree(ofs->config.upperdir);
+@@ -1253,7 +1256,7 @@ static bool ovl_lower_uuid_ok(struct ovl_fs *ofs, const uuid_t *uuid)
+ 	if (!ofs->config.nfs_export && !ofs->upper_mnt)
+ 		return true;
+ 
+-	for (i = 0; i < ofs->numlowerfs; i++) {
++	for (i = 1; i < ofs->numfs; i++) {
+ 		/*
+ 		 * We use uuid to associate an overlay lower file handle with a
+ 		 * lower layer, so we can accept lower fs with null uuid as long
+@@ -1261,8 +1264,8 @@ static bool ovl_lower_uuid_ok(struct ovl_fs *ofs, const uuid_t *uuid)
+ 		 * if we detect multiple lower fs with the same uuid, we
+ 		 * disable lower file handle decoding on all of them.
+ 		 */
+-		if (uuid_equal(&ofs->lower_fs[i].sb->s_uuid, uuid)) {
+-			ofs->lower_fs[i].bad_uuid = true;
++		if (uuid_equal(&ofs->fs[i].sb->s_uuid, uuid)) {
++			ofs->fs[i].bad_uuid = true;
+ 			return false;
+ 		}
+ 	}
+@@ -1278,13 +1281,9 @@ static int ovl_get_fsid(struct ovl_fs *ofs, const struct path *path)
+ 	int err;
+ 	bool bad_uuid = false;
+ 
+-	/* fsid 0 is reserved for upper fs even with non upper overlay */
+-	if (ofs->upper_mnt && ofs->upper_mnt->mnt_sb == sb)
+-		return 0;
+-
+-	for (i = 0; i < ofs->numlowerfs; i++) {
+-		if (ofs->lower_fs[i].sb == sb)
+-			return i + 1;
++	for (i = 0; i < ofs->numfs; i++) {
++		if (ofs->fs[i].sb == sb)
++			return i;
+ 	}
+ 
+ 	if (!ovl_lower_uuid_ok(ofs, &sb->s_uuid)) {
+@@ -1305,12 +1304,11 @@ static int ovl_get_fsid(struct ovl_fs *ofs, const struct path *path)
+ 		return err;
+ 	}
+ 
+-	ofs->lower_fs[ofs->numlowerfs].sb = sb;
+-	ofs->lower_fs[ofs->numlowerfs].pseudo_dev = dev;
+-	ofs->lower_fs[ofs->numlowerfs].bad_uuid = bad_uuid;
+-	ofs->numlowerfs++;
++	ofs->fs[ofs->numfs].sb = sb;
++	ofs->fs[ofs->numfs].pseudo_dev = dev;
++	ofs->fs[ofs->numfs].bad_uuid = bad_uuid;
+ 
+-	return ofs->numlowerfs;
++	return ofs->numfs++;
  }
  
--enum {
--	OVL_XINO_OFF,
--	OVL_XINO_AUTO,
--	OVL_XINO_ON,
--};
--
- static const char * const ovl_xino_str[] = {
- 	"off",
- 	"auto",
-@@ -358,7 +352,8 @@ static int ovl_show_options(struct seq_file *m, struct dentry *dentry)
- 	if (ofs->config.nfs_export != ovl_nfs_export_def)
- 		seq_printf(m, ",nfs_export=%s", ofs->config.nfs_export ?
- 						"on" : "off");
--	if (ofs->config.xino != ovl_xino_def())
-+	if (ofs->config.xino != ovl_xino_def() &&
-+	    ofs->config.xino != OVL_XINO_SAME_FS)
- 		seq_printf(m, ",xino=%s", ovl_xino_str[ofs->config.xino]);
- 	if (ofs->config.metacopy != ovl_metacopy_def)
- 		seq_printf(m, ",metacopy=%s",
-@@ -1393,8 +1388,10 @@ static int ovl_get_layers(struct super_block *sb, struct ovl_fs *ofs,
+ static int ovl_get_layers(struct super_block *sb, struct ovl_fs *ofs,
+@@ -1325,16 +1323,25 @@ static int ovl_get_layers(struct super_block *sb, struct ovl_fs *ofs,
+ 	if (ofs->layers == NULL)
+ 		goto out;
+ 
+-	ofs->lower_fs = kcalloc(numlower, sizeof(struct ovl_sb),
+-				GFP_KERNEL);
+-	if (ofs->lower_fs == NULL)
++	ofs->fs = kcalloc(numlower + 1, sizeof(struct ovl_sb), GFP_KERNEL);
++	if (ofs->fs == NULL)
+ 		goto out;
+ 
+-	/* idx 0 is reserved for upper fs even with lower only overlay */
++	/* idx/fsid 0 are reserved for upper fs even with lower only overlay */
++	ofs->numfs++;
+ 	ofs->layers[0].mnt = ofs->upper_mnt;
+ 	ofs->layers[0].idx = 0;
+ 	ofs->layers[0].fsid = 0;
+ 
++	/*
++	 * All lower layers that share the same fs as upper layer, use the real
++	 * upper st_dev.
++	 */
++	if (ofs->upper_mnt) {
++		ofs->fs[0].sb = ofs->upper_mnt->mnt_sb;
++		ofs->fs[0].pseudo_dev = ofs->upper_mnt->mnt_sb->s_dev;
++	}
++
+ 	for (i = 0; i < numlower; i++) {
+ 		struct vfsmount *mnt;
+ 		struct inode *trap;
+@@ -1373,10 +1380,7 @@ static int ovl_get_layers(struct super_block *sb, struct ovl_fs *ofs,
+ 		ofs->layers[ofs->numlower].mnt = mnt;
+ 		ofs->layers[ofs->numlower].idx = ofs->numlower;
+ 		ofs->layers[ofs->numlower].fsid = fsid;
+-		if (fsid) {
+-			ofs->layers[ofs->numlower].fs =
+-				&ofs->lower_fs[fsid - 1];
+-		}
++		ofs->layers[ofs->numlower].fs = &ofs->fs[fsid];
+ 	}
+ 
+ 	/*
+@@ -1387,19 +1391,19 @@ static int ovl_get_layers(struct super_block *sb, struct ovl_fs *ofs,
+ 	 * bits reserved for fsid, it emits a warning and uses the original
  	 * inode number.
  	 */
- 	if (!ofs->numlowerfs || (ofs->numlowerfs == 1 && !ofs->upper_mnt)) {
-+		if (ofs->config.xino == OVL_XINO_ON)
-+			pr_info("overlayfs: \"xino=on\" is useless with all layers on same fs, ignore.\n");
+-	if (!ofs->numlowerfs || (ofs->numlowerfs == 1 && !ofs->upper_mnt)) {
++	if (ofs->numfs == 1 || (ofs->numfs == 2 && !ofs->upper_mnt)) {
+ 		if (ofs->config.xino == OVL_XINO_ON)
+ 			pr_info("overlayfs: \"xino=on\" is useless with all layers on same fs, ignore.\n");
  		ofs->xino_bits = 0;
--		ofs->config.xino = OVL_XINO_OFF;
-+		ofs->config.xino = OVL_XINO_SAME_FS;
+ 		ofs->config.xino = OVL_XINO_SAME_FS;
  	} else if (ofs->config.xino == OVL_XINO_ON && !ofs->xino_bits) {
  		/*
- 		 * This is a roundup of number of bits needed for numlowerfs+1
-diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
-index 3fa1ca8ddd48..256f166b4a17 100644
---- a/fs/overlayfs/util.c
-+++ b/fs/overlayfs/util.c
-@@ -40,18 +40,6 @@ const struct cred *ovl_override_creds(struct super_block *sb)
- 	return override_creds(ofs->creator_cred);
- }
+-		 * This is a roundup of number of bits needed for numlowerfs+1
+-		 * (i.e. ilog2(numlowerfs+1 - 1) + 1). fsid 0 is reserved for
+-		 * upper fs even with non upper overlay.
++		 * This is a roundup of number of bits needed for encoding
++		 * fsid, where fsid 0 is reserved for upper fs even with
++		 * lower only overlay.
+ 		 */
+ 		BUILD_BUG_ON(ilog2(OVL_MAX_STACK) > 31);
+-		ofs->xino_bits = ilog2(ofs->numlowerfs) + 1;
++		ofs->xino_bits = ilog2(ofs->numfs - 1) + 1;
+ 	}
  
--struct super_block *ovl_same_sb(struct super_block *sb)
--{
--	struct ovl_fs *ofs = sb->s_fs_info;
--
--	if (!ofs->numlowerfs)
--		return ofs->upper_mnt->mnt_sb;
--	else if (ofs->numlowerfs == 1 && !ofs->upper_mnt)
--		return ofs->lower_fs[0].sb;
--	else
--		return NULL;
--}
--
- /*
-  * Check if underlying fs supports file handles and try to determine encoding
-  * type, in order to deduce maximum inode number used by fs.
+ 	if (ofs->xino_bits) {
 -- 
 2.17.1
