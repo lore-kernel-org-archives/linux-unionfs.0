@@ -1,39 +1,53 @@
 Return-Path: <amir73il@gmail.com>
-MIME-Version: 1.0
+Return-Path: <amir73il@gmail.com>
 From: Amir Goldstein <amir73il@gmail.com>
-Date: Mon, 2 Dec 2019 08:31:49 +0200
-Message-ID: <CAOQ4uxh7fszXGXV0U5K4yz4o3WwDk40LmOi+dH2Nwi+yq_5+Pw@mail.gmail.com>
-Subject: Overlayfs fixes queue
-Content-Type: text/plain; charset="UTF-8"
+Subject: [PATCH] ovl: fix wrong WARN_ON() in ovl_cache_update_ino()
+Date: Mon, 23 Dec 2019 08:40:25 +0200
+Message-Id: <20191223064025.23801-1-amir73il@gmail.com>
 To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: overlayfs <linux-unionfs@vger.kernel.org>
+Cc: linux-unionfs@vger.kernel.org
 List-ID: <linux-unionfs@vger.kernel.org>
+
+The WARN_ON() that child entry is always on overlay st_dev became wrong
+when we allowed this function to update d_ino in non-samefs setup with
+xino enabled.
+
+It is not true in case of xino bits overflow on a non-dir inode.
+Leave the WARN_ON() only for directories, where assertion is still true.
+
+Fixes: adbf4f7ea834 ("ovl: consistent d_ino for non-samefs with xino")
+Cc: <stable@vger.kernel.org> # v4.17+
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+---
 
 Hi Miklos,
 
-Will you have time to queue some of the queued fixed [1] and docs .rst
-conversion [2] for 5.5, maybe rc2?
-
-The timestamp limits issue is also being addressed by Deepa in vfs as
-you suggested, so not critical but nice to have.
-
-I posted an xfstest [3] that demonstrates the corner case of
-non-unique st_dev;st_ino (v4.17 regression).
+Another fall out from testing nested xino setup.
 
 Thanks,
 Amir.
 
-[1] https://github.com/amir73il/linux/commits/ovl-fixes
+ fs/overlayfs/readdir.c | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
-* f25e33779931 - ovl: fix corner case of non-unique st_dev;st_ino
-* c0eb8296e077 - ovl: don't use a temp buf for encoding real fh
-* 84d7f2d7d93d - ovl: make sure that real fid is 32bit aligned in memory
-* b2d4f0ea5af4 - ovl: fix lookup failure on multi lower squashfs
-* e930bd4d5e9d - ovl: fix timestamp limits
-
-[2] https://github.com/amir73il/linux/commits/ovl-docs
-
-* 80efb1bb664f - docs: filesystems: overlayfs: Fix restview warnings
-* 28329d8b3cb2 - docs: filesystems: overlayfs: Rename overlayfs.txt to .rst
-
-[3] https://lore.kernel.org/fstests/20191124142957.20873-1-amir73il@gmail.com/
+diff --git a/fs/overlayfs/readdir.c b/fs/overlayfs/readdir.c
+index 47a91c9733a5..7255e6a5838f 100644
+--- a/fs/overlayfs/readdir.c
++++ b/fs/overlayfs/readdir.c
+@@ -504,7 +504,13 @@ static int ovl_cache_update_ino(struct path *path, struct ovl_cache_entry *p)
+ 		if (err)
+ 			goto fail;
+ 
+-		WARN_ON_ONCE(dir->d_sb->s_dev != stat.dev);
++		/*
++		 * Directory inode is always on overlay st_dev.
++		 * Non-dir with ovl_same_dev() could be on pseudo st_dev in case
++		 * of xino bits overflow.
++		 */
++		WARN_ON_ONCE(S_ISDIR(stat.mode) &&
++			     dir->d_sb->s_dev != stat.dev);
+ 		ino = stat.ino;
+ 	} else if (xinobits && !OVL_TYPE_UPPER(type)) {
+ 		ino = ovl_remap_lower_ino(ino, xinobits,
+-- 
+2.17.1
