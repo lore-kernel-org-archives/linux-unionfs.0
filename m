@@ -1,106 +1,63 @@
 Return-Path: <amir73il@gmail.com>
 Return-Path: <amir73il@gmail.com>
 From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH] ovl: use ovl_inode_lock in ovl_llseek()
-Date: Sat, 21 Dec 2019 18:52:43 +0200
-Message-Id: <20191221165243.13026-1-amir73il@gmail.com>
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: Chengguang Xu <cgxu519@mykernel.net>, linux-unionfs@vger.kernel.org
+Subject: [PATCH v2 0/5] Nested overlay tests
+Date: Mon, 30 Dec 2019 16:14:18 +0200
+Message-Id: <20191230141423.31695-1-amir73il@gmail.com>
+To: Eryu Guan <guaneryu@gmail.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, Jeff Layton <jlayton@poochiereds.net>, linux-unionfs@vger.kernel.org, fstests@vger.kernel.org
 List-ID: <linux-unionfs@vger.kernel.org>
 
-In ovl_llseek() we use the overlay inode rwsem to protect against
-concurrent modifications to real file f_pos, because we copy the overlay
-file f_pos to/from the real file f_pos.
+Hi Eryu,
 
-This caused a lockdep warning of locking order violation when the
-ovl_llseek() operation was called on a lower nested overlay layer while
-the upper layer fs sb_writers is held (with patch improving copy-up
-efficiency for big sparse file).
+This v2 post includes two more nested overlay tests.
 
-Use the internal ovl_inode_lock() instead of the overlay inode rwsem
-in those cases. It is meant to be used for protecting against concurrent
-changes to overlay inode internal state changes.
+As described in previous post [1] the purpose of these tests
+is not so much to validate the setup of nested overlayfs, which
+is a less common setup, but to provide test coverage for some
+overlayfs fixes that were merge in v5.5-rc2 as well as some fixes
+that have been posted since.
 
-The locking order rules are documented to explain this case.
+Specifically, test overlay/071 exercises a "nested xino setup".
+This setup results in "xino bit overlflow", a corner case that did
+not have test coverage until now. This test fails on current upstream
+because of an overlayfs bug [2].
 
-Signed-off-by: Amir Goldstein <amir73il@gmail.com>
----
-
-Miklos,
-
->From all the potential cases to replace inode_lock with ovl_inode_lock,
-this is the only one left with justification.
-
-ovl_write_iter() and ovl_ioctl_set_flags() will require more changes and
-they cannot be called on a lower overlay.
-
-ovl_dir_llseek() needs to use the same lock used by ovl_iterate() when
-modifying realfile->f_pos (i_rwsem).
-
-ovl_dir_fsync() could use ovl_inode_lock insead of i_rwsem for
-od->upperfile test&set, but there is no strong justification to make
-that change now.
+On top of that, both overlay/070 and overlay/071 fail on current
+upstream, because of a /proc/locks format bug [3].
 
 Thanks,
 Amir.
 
- fs/overlayfs/file.c  |  4 ++--
- fs/overlayfs/inode.c | 21 +++++++++++++++++++++
- 2 files changed, 23 insertions(+), 2 deletions(-)
+[1] https://lore.kernel.org/fstests/20191221185149.17509-1-amir73il@gmail.com/
+[2] https://marc.info/?l=linux-unionfs&m=157708323410613&w=2
+[3] https://lore.kernel.org/linux-fsdevel/e5d1c0a5e5e92083d8ce0bc1e48194a6d70fb918.camel@kernel.org/
 
-diff --git a/fs/overlayfs/file.c b/fs/overlayfs/file.c
-index e235a635d9ec..859efeaaefab 100644
---- a/fs/overlayfs/file.c
-+++ b/fs/overlayfs/file.c
-@@ -171,7 +171,7 @@ static loff_t ovl_llseek(struct file *file, loff_t offset, int whence)
- 	 * limitations that are more strict than ->s_maxbytes for specific
- 	 * files, so we use the real file to perform seeks.
- 	 */
--	inode_lock(inode);
-+	ovl_inode_lock(inode);
- 	real.file->f_pos = file->f_pos;
- 
- 	old_cred = ovl_override_creds(inode->i_sb);
-@@ -179,7 +179,7 @@ static loff_t ovl_llseek(struct file *file, loff_t offset, int whence)
- 	revert_creds(old_cred);
- 
- 	file->f_pos = real.file->f_pos;
--	inode_unlock(inode);
-+	ovl_inode_unlock(inode);
- 
- 	fdput(real);
- 
-diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
-index b045cf1826fc..481a19965dd1 100644
---- a/fs/overlayfs/inode.c
-+++ b/fs/overlayfs/inode.c
-@@ -527,6 +527,27 @@ static const struct address_space_operations ovl_aops = {
-  * [...] &ovl_i_mutex_dir_key[depth]   (stack_depth=2)
-  * [...] &ovl_i_mutex_dir_key[depth]#2 (stack_depth=1)
-  * [...] &type->i_mutex_dir_key        (stack_depth=0)
-+ *
-+ * Locking order w.r.t ovl_want_write() is important for nested overlayfs.
-+ *
-+ * This chain is valid:
-+ * - inode->i_rwsem			(inode_lock[2])
-+ * - upper_mnt->mnt_sb->s_writers	(ovl_want_write[0])
-+ * - OVL_I(inode)->lock			(ovl_inode_lock[2])
-+ * - OVL_I(lowerinode)->lock		(ovl_inode_lock[1])
-+ *
-+ * And this chain is valid:
-+ * - inode->i_rwsem			(inode_lock[2])
-+ * - OVL_I(inode)->lock			(ovl_inode_lock[2])
-+ * - lowerinode->i_rwsem		(inode_lock[1])
-+ * - OVL_I(lowerinode)->lock		(ovl_inode_lock[1])
-+ *
-+ * But lowerinode->i_rwsem SHOULD NOT be acquired while ovl_want_write() is
-+ * held, because it is in reverse order of the non-nested case using the same
-+ * upper fs:
-+ * - inode->i_rwsem			(inode_lock[1])
-+ * - upper_mnt->mnt_sb->s_writers	(ovl_want_write[0])
-+ * - OVL_I(inode)->lock			(ovl_inode_lock[1])
-  */
- #define OVL_MAX_NESTING FILESYSTEM_MAX_STACK_DEPTH
- 
+Amir Goldstein (5):
+  overlay: create the overlay/nested test group
+  overlay: test file handles with nested overlay over samefs lower
+  overlay: test file handles with nested overlay over non-samefs lower
+  overlay: test constant ino with nested overlay over samefs lower
+  overlay: test constant ino with nested overlay over non-samefs lower
+
+ tests/overlay/068     | 304 ++++++++++++++++++++++++++++++++++++++++
+ tests/overlay/068.out |  50 +++++++
+ tests/overlay/069     | 313 ++++++++++++++++++++++++++++++++++++++++++
+ tests/overlay/069.out |  50 +++++++
+ tests/overlay/070     | 222 ++++++++++++++++++++++++++++++
+ tests/overlay/070.out |   2 +
+ tests/overlay/071     | 236 +++++++++++++++++++++++++++++++
+ tests/overlay/071.out |   2 +
+ tests/overlay/group   |   8 +-
+ 9 files changed, 1185 insertions(+), 2 deletions(-)
+ create mode 100755 tests/overlay/068
+ create mode 100644 tests/overlay/068.out
+ create mode 100755 tests/overlay/069
+ create mode 100644 tests/overlay/069.out
+ create mode 100755 tests/overlay/070
+ create mode 100644 tests/overlay/070.out
+ create mode 100755 tests/overlay/071
+ create mode 100644 tests/overlay/071.out
+
 -- 
 2.17.1
