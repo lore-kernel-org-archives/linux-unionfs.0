@@ -1,44 +1,45 @@
-Return-Path: <linux-unionfs-owner@vger.kernel.org>
-Received: from aserp2120.oracle.com ([141.146.126.78]:37342 "EHLO
-        aserp2120.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725928AbfLMKiF (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 13 Dec 2019 05:38:05 -0500
-Date: Fri, 13 Dec 2019 13:37:53 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: [bug report] ovl: make sure that real fid is 32bit aligned in memory
-Message-ID: <20191213103705.iurz35cawvp6w46w@kili.mountain>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Sender: linux-unionfs-owner@vger.kernel.org
-To: amir73il@gmail.com
-Cc: linux-unionfs@vger.kernel.org
-List-ID: <linux-unionfs@vger.kernel.org>
+From: Ritesh Harjani <riteshh@linux.ibm.com>
+Subject: [RESEND PATCH 0/1] Use inode_lock/unlock class of provided APIs in filesystems
+Date: Wed,  1 Jan 2020 16:22:47 +0530
+Message-ID: <20200101105248.25304-1-riteshh@linux.ibm.com>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-btrfs-owner@vger.kernel.org>
+Sender: linux-btrfs-owner@vger.kernel.org
+To: linux-fsdevel@vger.kernel.org, viro@zeniv.linux.org.uk
+Cc: willy@infradead.org, jlayton@kernel.org, ceph-devel@vger.kernel.org, linux-btrfs@vger.kernel.org, linux-nfs@vger.kernel.org, devel@lists.orangefs.org, linux-unionfs@vger.kernel.org, dsterba@suse.cz, Ritesh Harjani <riteshh@linux.ibm.com>
+List-Id: linux-unionfs@vger.kernel.org
 
-Hello Amir Goldstein,
+Al, any comments?
+Resending this after adding Reviewed-by/Acked-by tags.
 
-This is a semi-automatic email about new static checker warnings.
 
-The patch cbe7fba8edfc: "ovl: make sure that real fid is 32bit 
-aligned in memory" from Nov 15, 2019, leads to the following Smatch 
-complaint:
+>From previous version:-
+Matthew Wilcox in [1] suggested that it will be a good idea
+to define some missing API instead of directly using i_rwsem in
+filesystems drivers for lock/unlock/downgrade purposes.
 
-    fs/overlayfs/copy_up.c:338 ovl_set_origin()
-     warn: variable dereferenced before check 'fh' (see line 337)
+This patch does that work. No functionality change in this patch.
 
-fs/overlayfs/copy_up.c
-   336		 */
-   337		err = ovl_check_setxattr(dentry, upper, OVL_XATTR_ORIGIN, fh->buf,
-                                                                          ^^^^^^^
-The patch adds an unconditional dereference
+After this there are only lockdep class of APIs at certain places
+in filesystems which are directly using i_rwsem and second is XFS,
+but it seems to be anyway defining it's own xfs_ilock/iunlock set
+of APIs and 'iolock' naming convention for this lock.
 
-   338					 fh ? fh->fb.len : 0, 0);
-                                         ^^
-but "fh" can be NULL.
+[1]: https://www.spinics.net/lists/linux-ext4/msg68689.html
 
-   339		kfree(fh);
-   340	
+Ritesh Harjani (1):
+  fs: Use inode_lock/unlock class of provided APIs in filesystems
 
-regards,
-dan carpenter
+ fs/btrfs/delayed-inode.c |  2 +-
+ fs/btrfs/ioctl.c         |  4 ++--
+ fs/ceph/io.c             | 24 ++++++++++++------------
+ fs/nfs/io.c              | 24 ++++++++++++------------
+ fs/orangefs/file.c       |  4 ++--
+ fs/overlayfs/readdir.c   |  2 +-
+ fs/readdir.c             |  4 ++--
+ include/linux/fs.h       | 21 +++++++++++++++++++++
+ 8 files changed, 53 insertions(+), 32 deletions(-)
+
+-- 
+2.21.0
