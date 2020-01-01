@@ -1,68 +1,160 @@
-Return-Path: <James.Bottomley@hansenpartnership.com>
-From: James Bottomley <James.Bottomley@HansenPartnership.com>
-Subject: [PATCH v2 0/3] introduce a uid/gid shifting bind mount
-Date: Sat,  4 Jan 2020 12:39:43 -0800
-Message-Id: <20200104203946.27914-1-James.Bottomley@HansenPartnership.com>
-To: linux-fsdevel@vger.kernel.org
-Cc: David Howells <dhowells@redhat.com>, Christian Brauner <christian@brauner.io>, Al Viro <viro@ZenIV.linux.org.uk>, Miklos Szeredi <miklos@szeredi.hu>, Seth Forshee <seth.forshee@canonical.com>, linux-unionfs@vger.kernel.org, Amir Goldstein <amir73il@gmail.com>, =?UTF-8?q?St=C3=A9phane=20Graber?= <stgraber@ubuntu.com>, Eric Biederman <ebiederm@xmission.com>, Aleksa Sarai <cyphar@cyphar.com>, containers@lists.linux-foundation.org
+Return-Path: <amir73il@gmail.com>
+Return-Path: <amir73il@gmail.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Subject: [PATCH 6/7] ovl: enable xino automatically in more cases
+Date: Wed,  1 Jan 2020 19:58:13 +0200
+Message-Id: <20200101175814.14144-7-amir73il@gmail.com>
+In-Reply-To: <20200101175814.14144-1-amir73il@gmail.com>
+References: <20200101175814.14144-1-amir73il@gmail.com>
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: linux-unionfs@vger.kernel.org
 List-ID: <linux-unionfs@vger.kernel.org>
 
-The object of this series is to replace shiftfs with a proper uid/gid
-shifting bind mount instead of the shiftfs hack of introducing
-something that looks similar to an overlay filesystem to do it.
+So far, with xino=auto, we only enable xino if we know that all
+underlying filesystem use 32bit inode numbers.
 
-The VFS still has the problem that in order to tell what vfsmount a
-dentry belongs to, struct path would have to be threaded everywhere
-struct dentry currently is.  However, this patch is structured only to
-require a rethreading of notify_change.  The rest of the knowledge
-that a shift is in operation is carried in the task structure by
-caching the unshifted credentials.
+When users configure overlay with xino=auto, they already declare that
+they are ready to handle 64bit inode number from overlay.
 
-The only real change from v1 is that the notify_change patch is
-updated to fix the issues pointed out by Amir Goldstein.  And I've
-combined the precursor patch to rethread notify_changes into the
-series.
+It is a very common case, that underlying filesystem uses 64bit ino,
+but rarely or never uses the high inode number bits (e.g. tmpfs, xfs).
+Leaving it for the users to declare high ino bits are unused with
+xino=on is not a recipe for many users to enjoy the benefits of xino.
 
-James
+There appears to be very little reason not to enable xino when users
+declare xino=auto even if we do not know how many bits underlying
+filesystem uses for inode numbers.
 
+In the worst case of xino bits overflow by real inode number, we
+already fall back to the non-xino behavior - real inode number with
+unique pseudo dev or to non persistent inode number and overlay st_dev
+(for directories).
+
+The only annoyance from auto enabling xino is that xino bits overflow
+emits a warning to kmsg. Suppress those warnings unless users explicitly
+asked for xino=on, suggesting that they expected high ino bits to be
+unused by underlying filesystem.
+
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
+ fs/overlayfs/inode.c     |  8 ++++----
+ fs/overlayfs/overlayfs.h | 10 ++++++++++
+ fs/overlayfs/readdir.c   | 17 +++++++++++------
+ fs/overlayfs/super.c     |  2 +-
+ 4 files changed, 26 insertions(+), 11 deletions(-)
 
-James Bottomley (3):
-  fs: rethread notify_change to take a path instead of a dentry
-  fs: introduce uid/gid shifting bind mount
-  fs: expose shifting bind mount to userspace
-
- drivers/base/devtmpfs.c   |   8 +++-
- fs/attr.c                 |  91 ++++++++++++++++++++++++++++----------
- fs/bind.c                 |  35 +++++++++++++++
- fs/cachefiles/interface.c |   6 ++-
- fs/coredump.c             |   4 +-
- fs/ecryptfs/inode.c       |   9 ++--
- fs/exec.c                 |   7 ++-
- fs/inode.c                |  16 ++++---
- fs/internal.h             |   2 +
- fs/mount.h                |   2 +
- fs/namei.c                | 110 ++++++++++++++++++++++++++++++++++++++--------
- fs/namespace.c            |   1 +
- fs/nfsd/vfs.c             |  13 +++---
- fs/open.c                 |  44 ++++++++++++++-----
- fs/overlayfs/copy_up.c    |  40 ++++++++++-------
- fs/overlayfs/dir.c        |  10 ++++-
- fs/overlayfs/inode.c      |   6 ++-
- fs/overlayfs/overlayfs.h  |   2 +-
- fs/overlayfs/super.c      |   3 +-
- fs/posix_acl.c            |   4 +-
- fs/proc_namespace.c       |   4 ++
- fs/stat.c                 |  31 +++++++++++--
- fs/utimes.c               |   2 +-
- include/linux/cred.h      |  10 +++++
- include/linux/fs.h        |   6 +--
- include/linux/mount.h     |   4 +-
- include/linux/sched.h     |   5 +++
- kernel/capability.c       |  14 +++++-
- kernel/cred.c             |  20 +++++++++
- kernel/groups.c           |   7 +++
- 30 files changed, 408 insertions(+), 108 deletions(-)
-
+diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
+index 415d9efa4799..7b94f0338536 100644
+--- a/fs/overlayfs/inode.c
++++ b/fs/overlayfs/inode.c
+@@ -98,13 +98,13 @@ static int ovl_map_dev_ino(struct dentry *dentry, struct kstat *stat, int fsid)
+ 		 * and all inodes use overlay st_dev. Inode numbers are also
+ 		 * persistent for a given layer configuration.
+ 		 */
+-		if (stat->ino >> shift) {
+-			pr_warn_ratelimited("overlayfs: inode number too big (%pd2, ino=%llu, xinobits=%d)\n",
+-					    dentry, stat->ino, xinobits);
+-		} else {
++		if (likely(!(stat->ino >> shift))) {
+ 			stat->ino |= ((u64)fsid) << shift;
+ 			stat->dev = dentry->d_sb->s_dev;
+ 			return 0;
++		} else if (ovl_xino_warn(dentry->d_sb)) {
++			pr_warn_ratelimited("overlayfs: inode number too big (%pd2, ino=%llu, xinobits=%d)\n",
++					    dentry, stat->ino, xinobits);
+ 		}
+ 	}
+ 
+diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
+index c0b15fd2b395..667e8096f56c 100644
+--- a/fs/overlayfs/overlayfs.h
++++ b/fs/overlayfs/overlayfs.h
+@@ -318,6 +318,16 @@ static inline struct ovl_sb *ovl_dentry_fs(struct dentry *dentry, int fsid)
+ 	return &OVL_FS(dentry->d_sb)->fs[fsid >> 1];
+ }
+ 
++/*
++ * With xino=auto, we do best effort to keep all inodes on same st_dev and
++ * d_ino consistent with st_ino.
++ * With xino=on, we do the same effort but we warn if we failed.
++ */
++static inline bool ovl_xino_warn(struct super_block *sb)
++{
++	return OVL_FS(sb)->config.xino == OVL_XINO_ON;
++}
++
+ /* All layers on same fs? */
+ static inline bool ovl_same_fs(struct super_block *sb)
+ {
+diff --git a/fs/overlayfs/readdir.c b/fs/overlayfs/readdir.c
+index 0f5ab53b4184..7dbf3df99150 100644
+--- a/fs/overlayfs/readdir.c
++++ b/fs/overlayfs/readdir.c
+@@ -438,11 +438,13 @@ static struct ovl_dir_cache *ovl_cache_get(struct dentry *dentry)
+ 
+ /* Map inode number to lower fs unique range */
+ static u64 ovl_remap_lower_ino(u64 ino, int xinobits, int fsid,
+-			       const char *name, int namelen)
++			       const char *name, int namelen, bool warn)
+ {
+-	if (ino >> (64 - xinobits)) {
+-		pr_warn_ratelimited("overlayfs: d_ino too big (%.*s, ino=%llu, xinobits=%d)\n",
+-				    namelen, name, ino, xinobits);
++	if (unlikely(ino >> (64 - xinobits))) {
++		if (warn) {
++			pr_warn_ratelimited("overlayfs: d_ino too big (%.*s, ino=%llu, xinobits=%d)\n",
++					    namelen, name, ino, xinobits);
++		}
+ 		return ino;
+ 	}
+ 
+@@ -515,7 +517,8 @@ static int ovl_cache_update_ino(struct path *path, struct ovl_cache_entry *p)
+ 	} else if (xinobits && !OVL_TYPE_UPPER(type)) {
+ 		ino = ovl_remap_lower_ino(ino, xinobits,
+ 					  ovl_dentry_layer(this)->fsid,
+-					  p->name, p->len);
++					  p->name, p->len,
++					  ovl_xino_warn(dir->d_sb));
+ 	}
+ 
+ out:
+@@ -645,6 +648,7 @@ struct ovl_readdir_translate {
+ 	u64 parent_ino;
+ 	int fsid;
+ 	int xinobits;
++	bool xinowarn;
+ };
+ 
+ static int ovl_fill_real(struct dir_context *ctx, const char *name,
+@@ -665,7 +669,7 @@ static int ovl_fill_real(struct dir_context *ctx, const char *name,
+ 			ino = p->ino;
+ 	} else if (rdt->xinobits) {
+ 		ino = ovl_remap_lower_ino(ino, rdt->xinobits, rdt->fsid,
+-					  name, namelen);
++					  name, namelen, rdt->xinowarn);
+ 	}
+ 
+ 	return orig_ctx->actor(orig_ctx, name, namelen, offset, ino, d_type);
+@@ -695,6 +699,7 @@ static int ovl_iterate_real(struct file *file, struct dir_context *ctx)
+ 		.ctx.actor = ovl_fill_real,
+ 		.orig_ctx = ctx,
+ 		.xinobits = ovl_xino_bits(dir->d_sb),
++		.xinowarn = ovl_xino_warn(dir->d_sb),
+ 	};
+ 
+ 	if (rdt.xinobits)
+diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+index d636a23df541..ca3204fe87bc 100644
+--- a/fs/overlayfs/super.c
++++ b/fs/overlayfs/super.c
+@@ -1407,7 +1407,7 @@ static int ovl_get_layers(struct super_block *sb, struct ovl_fs *ofs,
+ 			pr_info("overlayfs: \"xino=on\" is useless with all layers on same fs, ignore.\n");
+ 		ofs->xino_bits = 0;
+ 		ofs->config.xino = OVL_XINO_SAME_FS;
+-	} else if (ofs->config.xino == OVL_XINO_ON && !ofs->xino_bits) {
++	} else if (ofs->config.xino != OVL_XINO_OFF && !ofs->xino_bits) {
+ 		/*
+ 		 * This is a roundup of number of bits needed for encoding
+ 		 * fsid, where fsid 0 is reserved for upper fs (even with
 -- 
-2.16.4
+2.17.1
