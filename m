@@ -1,179 +1,83 @@
-Return-Path: <James.Bottomley@hansenpartnership.com>
-From: James Bottomley <James.Bottomley@HansenPartnership.com>
-Subject: [PATCH v2 3/3] fs: expose shifting bind mount to userspace
-Date: Sat,  4 Jan 2020 12:39:46 -0800
-Message-Id: <20200104203946.27914-4-James.Bottomley@HansenPartnership.com>
-In-Reply-To: <20200104203946.27914-1-James.Bottomley@HansenPartnership.com>
-References: <20200104203946.27914-1-James.Bottomley@HansenPartnership.com>
-To: linux-fsdevel@vger.kernel.org
-Cc: David Howells <dhowells@redhat.com>, Christian Brauner <christian@brauner.io>, Al Viro <viro@ZenIV.linux.org.uk>, Miklos Szeredi <miklos@szeredi.hu>, Seth Forshee <seth.forshee@canonical.com>, linux-unionfs@vger.kernel.org, Amir Goldstein <amir73il@gmail.com>, =?UTF-8?q?St=C3=A9phane=20Graber?= <stgraber@ubuntu.com>, Eric Biederman <ebiederm@xmission.com>, Aleksa Sarai <cyphar@cyphar.com>, containers@lists.linux-foundation.org
+Return-Path: <amir73il@gmail.com>
+Return-Path: <amir73il@gmail.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Subject: [PATCH 7/7] ovl: document xino expected behavior
+Date: Wed,  1 Jan 2020 19:58:14 +0200
+Message-Id: <20200101175814.14144-8-amir73il@gmail.com>
+In-Reply-To: <20200101175814.14144-1-amir73il@gmail.com>
+References: <20200101175814.14144-1-amir73il@gmail.com>
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: linux-unionfs@vger.kernel.org
 List-ID: <linux-unionfs@vger.kernel.org>
 
-This capability is exposed currently through the proposed new bind
-API. To mark a mount for shifting, you add the allow-shift flag to the
-properties, either by a reconfigure or a rebind.  Only real root on
-the system can do this.  Once this is done, admin in a user namespace
-(i.e. an unprivileged user) can take that mount point and bind it with
-a shift in effect.
+Summarize the inode properties of different configurations in a table.
 
-The way an admin marks a mount is:
-
-pathfd = open("/path/to/shift", O_PATH);
-fd = configfd_open("bind", O_CLOEXEC);
-configfd_action(fd, CONFIGFD_SET_FD, "pathfd", NULL, pathfd);
-configfd_action(fd, CONFIGFD_SET_FLAG, "allow-shift", NULL, 0);
-configfd_action(fd, CONFIGFD_SET_FLAG, "detached", NULL, 0);
-configfd_action(fd, CONFIGFD_CMD_CREATE, NULL, NULL, 0);
-configfd_action(fd, CONFIGFD_GET_FD, "bindfd", &bindfd, O_CLOEXEC);
-
-move_mount(bindfd, "", AT_FDCWD, "/path/to/allow", MOVE_MOUNT_F_EMPTY_PATH);
-
-Technically /path/to/shift and /path/to/allow can be the same, which
-basically installs a mnt at the path that allows onward traversal.
-
-Then any mount namespace in a user namespace can do:
-
-pathfd = open("/path/to/allow", O_PATH);
-fd = configfd_open("bind", O_CLOEXEC);
-configfd_action(fd, CONFIGFD_SET_FD, "pathfd", NULL, pathfd);
-configfd_action(fd, CONFIGFD_SET_FLAG, "shift", NULL, 0);
-configfd_action(fd, CONFIGFD_SET_FLAG, "detached", NULL, 0);
-configfd_action(fd, CONFIGFD_CMD_CREATE, NULL, NULL, 0);
-configfd_action(fd, CONFIGFD_GET_FD, "bindfd", &bindfd, O_CLOEXEC);
-
-move_mount(bindfd, "", AT_FDCWD, "/path/to/mount", MOVE_MOUNT_F_EMPTY_PATH);
-
-And /path/to/mount will have the uid/gid shifting bind mount installed.
-
-Signed-off-by: James Bottomley <James.Bottomley@HansenPartnership.com>
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- fs/bind.c           | 35 +++++++++++++++++++++++++++++++++++
- fs/mount.h          |  2 ++
- fs/namespace.c      |  1 +
- fs/proc_namespace.c |  4 ++++
- 4 files changed, 42 insertions(+)
+ Documentation/filesystems/overlayfs.rst | 38 +++++++++++++++++++++++--
+ 1 file changed, 36 insertions(+), 2 deletions(-)
 
-diff --git a/fs/bind.c b/fs/bind.c
-index eea4e6cd5108..6b4668041248 100644
---- a/fs/bind.c
-+++ b/fs/bind.c
-@@ -21,6 +21,8 @@ struct bind_data {
- 	bool		nodev:1;
- 	bool		detached:1;
- 	bool		recursive:1;
-+	bool		shift:1;
-+	bool		allow_shift:1;
- 	struct file	*file;
- 	struct file	*retfile;
- };
-@@ -66,6 +68,25 @@ static int bind_set_flag(const struct configfd_context *cfc,
- 		bd->nodev = true;
- 	} else if (strcmp(p->key, "noexec") == 0) {
- 		bd->noexec = true;
-+	} else if (strcmp(p->key, "shift") == 0) {
-+		struct mount *m;
+diff --git a/Documentation/filesystems/overlayfs.rst b/Documentation/filesystems/overlayfs.rst
+index e443be7928db..fcd8537b8402 100644
+--- a/Documentation/filesystems/overlayfs.rst
++++ b/Documentation/filesystems/overlayfs.rst
+@@ -40,13 +40,46 @@ On 64bit systems, even if all overlay layers are not on the same
+ underlying filesystem, the same compliant behavior could be achieved
+ with the "xino" feature.  The "xino" feature composes a unique object
+ identifier from the real object st_ino and an underlying fsid index.
 +
-+		if (!bd->file) {
-+			logger_err(cfc->log, "can't shift without setting pathfd");
-+			return -EINVAL;
-+		}
-+		m = real_mount(bd->file->f_path.mnt);
-+		if (!m->allow_shift) {
-+			logger_err(cfc->log, "pathfd doesn't allow shifting");
-+			return -EINVAL;
-+		}
-+		bd->shift = true;
-+	} else if (strcmp(p->key, "allow-shift") == 0) {
-+		if (!capable(CAP_SYS_ADMIN)) {
-+			logger_err(cfc->log, "must be root to set allow-shift");
-+			return -EPERM;
-+		}
-+		bd->allow_shift = true;
- 	} else if (strcmp(p->key, "recursive") == 0 &&
- 		   cfc->op == CONFIGFD_CMD_CREATE) {
- 		bd->recursive = true;
-@@ -126,6 +147,8 @@ static int bind_get_mnt_flags(struct bind_data *bd, int mnt_flags)
- 		mnt_flags |= MNT_NODEV;
- 	if (bd->noexec)
- 		mnt_flags |= MNT_NOEXEC;
-+	if (bd->shift)
-+		mnt_flags |= MNT_SHIFT;
- 
- 	return mnt_flags;
- }
-@@ -143,6 +166,13 @@ static int bind_reconfigure(const struct configfd_context *cfc)
- 	mnt_flags = bd->file->f_path.mnt->mnt_flags & MNT_ATIME_MASK;
- 	mnt_flags = bind_get_mnt_flags(bd, mnt_flags);
- 
-+	if (bd->allow_shift) {
-+		struct mount *m = real_mount(bd->file->f_path.mnt);
+ If all underlying filesystems support NFS file handles and export file
+ handles with 32bit inode number encoding (e.g. ext4), overlay filesystem
+ will use the high inode number bits for fsid.  Even when the underlying
+ filesystem uses 64bit inode numbers, users can still enable the "xino"
+ feature with the "-o xino=on" overlay mount option.  That is useful for the
+ case of underlying filesystems like xfs and tmpfs, which use 64bit inode
+-numbers, but are very unlikely to use the high inode number bit.
++numbers, but are very unlikely to use the high inode number bits.  In case
++the underlying inode number does overflow into the high xino bits, overlay
++filesystem will fall back to the non xino behavior for that inode.
 +
-+		/* FIXME: this should be set with the reconfigure locking */
-+		m->allow_shift = true;
-+	}
++The following table summarizes what can be expected in different overlay
++configurations.
 +
- 	return do_reconfigure_mnt(&bd->file->f_path, mnt_flags);
- }
- 
-@@ -183,6 +213,11 @@ static int bind_create(const struct configfd_context *cfc)
- 
- 		/* since this is a detached copy, we can do without locking */
- 		f->f_path.mnt->mnt_flags |= mnt_flags;
-+		if (bd->allow_shift) {
-+			struct mount *m = real_mount(f->f_path.mnt);
++Inode properties
++````````````````
 +
-+			m->allow_shift = true;
-+		}
- 	}
+++--------------+------------+------------+-----------------+----------------+
++|Configuration | Persistent | Uniform    | st_ino == d_ino | d_ino == i_ino |
++|              | st_ino     | st_dev     |                 | [*]            |
+++==============+=====+======+=====+======+========+========+========+=======+
++|              | dir | !dir | dir | !dir |  dir   +  !dir  |  dir   | !dir  |
+++--------------+-----+------+-----+------+--------+--------+--------+-------+
++| All layers   |  Y  |  Y   |  Y  |  Y   |  Y     |   Y    |  Y     |  Y    |
++| on same fs   |     |      |     |      |        |        |        |       |
+++--------------+-----+------+-----+------+--------+--------+--------+-------+
++| Layers not   |  N  |  Y   |  Y  |  N   |  N     |   Y    |  N     |  Y    |
++| on same fs,  |     |      |     |      |        |        |        |       |
++| xino=off     |     |      |     |      |        |        |        |       |
+++--------------+-----+------+-----+------+--------+--------+--------+-------+
++| xino=on/auto |  Y  |  Y   |  Y  |  Y   |  Y     |   Y    |  Y     |  Y    |
++|              |     |      |     |      |        |        |        |       |
+++--------------+-----+------+-----+------+--------+--------+--------+-------+
++| xino=on/auto,|  N  |  Y   |  Y  |  N   |  N     |   Y    |  N     |  Y    |
++| ino overflow |     |      |     |      |        |        |        |       |
+++--------------+-----+------+-----+------+--------+--------+--------+-------+
++
++[*] nfsd v3 readdirplus verifies d_ino == i_ino. i_ino is exposed via several
++/proc files, such as /proc/locks and /proc/self/fdinfo/<fd> of an inotify
++file descriptor.
  
- 	bd->retfile = f;
-diff --git a/fs/mount.h b/fs/mount.h
-index 711a4093e475..1da13decf93b 100644
---- a/fs/mount.h
-+++ b/fs/mount.h
-@@ -72,6 +72,8 @@ struct mount {
- 	int mnt_expiry_mark;		/* true if marked for expiry */
- 	struct hlist_head mnt_pins;
- 	struct hlist_head mnt_stuck_children;
-+	/* shifting bind mount parameters */
-+	bool allow_shift:1;
- } __randomize_layout;
  
- #define MNT_NS_INTERNAL ERR_PTR(-EINVAL) /* distinct from any mnt_namespace */
-diff --git a/fs/namespace.c b/fs/namespace.c
-index 3ae0124e9783..8266e9540595 100644
---- a/fs/namespace.c
-+++ b/fs/namespace.c
-@@ -1038,6 +1038,7 @@ static struct mount *clone_mnt(struct mount *old, struct dentry *root,
+ Upper and Lower
+@@ -383,7 +416,8 @@ guarantee that the values of st_ino and st_dev returned by stat(2) and the
+ value of d_ino returned by readdir(3) will act like on a normal filesystem.
+ E.g. the value of st_dev may be different for two objects in the same
+ overlay filesystem and the value of st_ino for directory objects may not be
+-persistent and could change even while the overlay filesystem is mounted.
++persistent and could change even while the overlay filesystem is mounted, as
++summarized in the `Inode properties`_ table above.
  
- 	mnt->mnt.mnt_flags = old->mnt.mnt_flags;
- 	mnt->mnt.mnt_flags &= ~(MNT_WRITE_HOLD|MNT_MARKED|MNT_INTERNAL);
-+	mnt->allow_shift = old->allow_shift;
  
- 	atomic_inc(&sb->s_active);
- 	mnt->mnt.mnt_sb = sb;
-diff --git a/fs/proc_namespace.c b/fs/proc_namespace.c
-index 273ee82d8aa9..bdf8d23cf42e 100644
---- a/fs/proc_namespace.c
-+++ b/fs/proc_namespace.c
-@@ -70,14 +70,18 @@ static void show_mnt_opts(struct seq_file *m, struct vfsmount *mnt)
- 		{ MNT_NOATIME, ",noatime" },
- 		{ MNT_NODIRATIME, ",nodiratime" },
- 		{ MNT_RELATIME, ",relatime" },
-+		{ MNT_SHIFT, ",shift" },
- 		{ 0, NULL }
- 	};
- 	const struct proc_fs_info *fs_infop;
-+	struct mount *rm = real_mount(mnt);
- 
- 	for (fs_infop = mnt_info; fs_infop->flag; fs_infop++) {
- 		if (mnt->mnt_flags & fs_infop->flag)
- 			seq_puts(m, fs_infop->str);
- 	}
-+	if (rm->allow_shift)
-+		seq_puts(m, ",allow-shift");
- }
- 
- static inline void mangle(struct seq_file *m, const char *s)
+ Changes to underlying filesystems
 -- 
-2.16.4
+2.17.1
