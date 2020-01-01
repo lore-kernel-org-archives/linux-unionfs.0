@@ -1,66 +1,87 @@
 Return-Path: <amir73il@gmail.com>
-MIME-Version: 1.0
+Return-Path: <amir73il@gmail.com>
 From: Amir Goldstein <amir73il@gmail.com>
-Date: Wed, 8 Jan 2020 09:27:12 +0200
-Message-ID: <CAOQ4uxjFC81hikgg0WaF0Z3Mxkk3iDakKx2Ttuhp_L_2Tnc6xQ@mail.gmail.com>
-Subject: Re: OverlaysFS offline tools
-Content-Type: text/plain; charset="UTF-8"
-To: Vivek Goyal <vgoyal@redhat.com>
-Cc: overlayfs <linux-unionfs@vger.kernel.org>, StuartIanNaylor <rolyantrauts@gmail.com>, Linux Containers <containers@lists.linux-foundation.org>, kmxz <kxzkxz7139@gmail.com>, "zhangyi (F)" <yi.zhang@huawei.com>, Miklos Szeredi <miklos@szeredi.hu>
+Subject: [PATCH 3/7] ovl: factor out helper ovl_get_root()
+Date: Wed,  1 Jan 2020 19:58:10 +0200
+Message-Id: <20200101175814.14144-4-amir73il@gmail.com>
+In-Reply-To: <20200101175814.14144-1-amir73il@gmail.com>
+References: <20200101175814.14144-1-amir73il@gmail.com>
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: linux-unionfs@vger.kernel.org
 List-ID: <linux-unionfs@vger.kernel.org>
 
-[-fsdevel,+containers]
+Allocates and initializes the root dentry and inode.
 
-> On Thu, Apr 18, 2019 at 1:58 PM StuartIanNaylor <rolyantrauts@gmail.com> wrote:
-> >
-> > Apols to ask here but are there any tools for overlayFS?
-> >
-> > https://github.com/kmxz/overlayfs-tools is just about the only thing I
-> > can find.
->
-> There is also https://github.com/hisilicon/overlayfs-progs which
-> can check and fix overlay layers, but it hasn't been updated in a while.
->
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+---
+ fs/overlayfs/super.c | 44 +++++++++++++++++++++++++++++---------------
+ 1 file changed, 29 insertions(+), 15 deletions(-)
 
-Hi Vivek (and containers folks),
-
-Stuart has pinged me on https://github.com/StuartIanNaylor/zram-config/issues/4
-to ask about the status of overlayfs offline tools.
-
-Quoting my answer here for visibility to more container developers:
-
-I have been involved with implementing many overlayfs features in the
-kernel in the
-past couple of years (redirect_dir,index,nfs_export,xino,metacopy).
-All of these features bring benefits to end users, but AFAIK, they are
-all still disabled
-by default in containers runtimes (?) because lack of tools support
-(e.g. migration
-/import/export). I cannot force anyone to use the new overlayfs
-features nor to write
-offline tools support for them.
-
-So how can we improve this situation?
-
-If the problem is development resources then I've had great experience
-in the past
-with OSS internship programs like Google summer of code (GSoC):
-Organizations, such as Redhat or mobyproject.org, can participate in the program
-by posting proposals for open source projects.
-Developers, such as myself, volunteer to mentors projects and students apply
-to work on them.
-
-IIRC, the timeline for GSoC for project proposals in around April. Applying as
-an organization could be before that.
-
-Vivek, since you are the only developer I know involved in containers runtime
-projects I am asking you, but really its a question for all container developers
-out there.
-
-Are you aware of missing features in containers that could be met by filling the
-gaps with overlayfs offline tools?
-Are you a part of an organization that could consider posting this sort of
-project proposals to GSoC or other internship programs?
-
-Thanks,
-Amir.
+diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+index 2afa60ab9133..18db065d73b3 100644
+--- a/fs/overlayfs/super.c
++++ b/fs/overlayfs/super.c
+@@ -1581,6 +1581,34 @@ static int ovl_check_overlapping_layers(struct super_block *sb,
+ 	return 0;
+ }
+ 
++static struct dentry *ovl_get_root(struct super_block *sb,
++				   struct dentry *upperdentry,
++				   struct ovl_entry *oe)
++{
++	struct dentry *root;
++
++	root = d_make_root(ovl_new_inode(sb, S_IFDIR, 0));
++	if (!root)
++		return NULL;
++
++	root->d_fsdata = oe;
++
++	if (upperdentry) {
++		ovl_dentry_set_upper_alias(root);
++		if (ovl_is_impuredir(upperdentry))
++			ovl_set_flag(OVL_IMPURE, d_inode(root));
++	}
++
++	/* Root is always merge -> can have whiteouts */
++	ovl_set_flag(OVL_WHITEOUTS, d_inode(root));
++	ovl_dentry_set_flag(OVL_E_CONNECTED, root);
++	ovl_set_upperdata(d_inode(root));
++	ovl_inode_init(d_inode(root), upperdentry, ovl_dentry_lower(root),
++		       NULL);
++
++	return root;
++}
++
+ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
+ {
+ 	struct path upperpath = { };
+@@ -1697,25 +1725,11 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
+ 	sb->s_flags |= SB_POSIXACL;
+ 
+ 	err = -ENOMEM;
+-	root_dentry = d_make_root(ovl_new_inode(sb, S_IFDIR, 0));
++	root_dentry = ovl_get_root(sb, upperpath.dentry, oe);
+ 	if (!root_dentry)
+ 		goto out_free_oe;
+ 
+-	root_dentry->d_fsdata = oe;
+-
+ 	mntput(upperpath.mnt);
+-	if (upperpath.dentry) {
+-		ovl_dentry_set_upper_alias(root_dentry);
+-		if (ovl_is_impuredir(upperpath.dentry))
+-			ovl_set_flag(OVL_IMPURE, d_inode(root_dentry));
+-	}
+-
+-	/* Root is always merge -> can have whiteouts */
+-	ovl_set_flag(OVL_WHITEOUTS, d_inode(root_dentry));
+-	ovl_dentry_set_flag(OVL_E_CONNECTED, root_dentry);
+-	ovl_set_upperdata(d_inode(root_dentry));
+-	ovl_inode_init(d_inode(root_dentry), upperpath.dentry,
+-		       ovl_dentry_lower(root_dentry), NULL);
+ 
+ 	sb->s_root = root_dentry;
+ 
+-- 
+2.17.1
