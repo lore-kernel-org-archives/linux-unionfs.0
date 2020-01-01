@@ -1,65 +1,55 @@
 Return-Path: <amir73il@gmail.com>
-MIME-Version: 1.0
-References: <20191223064025.23801-1-amir73il@gmail.com>
-In-Reply-To: <20191223064025.23801-1-amir73il@gmail.com>
+Return-Path: <amir73il@gmail.com>
 From: Amir Goldstein <amir73il@gmail.com>
-Date: Mon, 6 Jan 2020 08:35:25 +0200
-Message-ID: <CAOQ4uxh4NygFUFvUp3xs8rZRUkc3SDxO1DL6YrNhx3j0SBgAJg@mail.gmail.com>
-Subject: Re: [PATCH] ovl: fix wrong WARN_ON() in ovl_cache_update_ino()
-Content-Type: text/plain; charset="UTF-8"
+Subject: [PATCH 2/7] ovl: fix out of date comment and unreachable code
+Date: Wed,  1 Jan 2020 19:58:09 +0200
+Message-Id: <20200101175814.14144-3-amir73il@gmail.com>
+In-Reply-To: <20200101175814.14144-1-amir73il@gmail.com>
+References: <20200101175814.14144-1-amir73il@gmail.com>
 To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: overlayfs <linux-unionfs@vger.kernel.org>
+Cc: linux-unionfs@vger.kernel.org
 List-ID: <linux-unionfs@vger.kernel.org>
 
-On Mon, Dec 23, 2019 at 8:40 AM Amir Goldstein <amir73il@gmail.com> wrote:
->
-> The WARN_ON() that child entry is always on overlay st_dev became wrong
-> when we allowed this function to update d_ino in non-samefs setup with
-> xino enabled.
->
-> It is not true in case of xino bits overflow on a non-dir inode.
-> Leave the WARN_ON() only for directories, where assertion is still true.
->
-> Fixes: adbf4f7ea834 ("ovl: consistent d_ino for non-samefs with xino")
-> Cc: <stable@vger.kernel.org> # v4.17+
-> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
-> ---
->
+ovl_inode_update() is no longer called from create object code path.
 
-Miklos,
+Fixes: 01b39dcc9568 ("ovl: use inode_insert5() to hash a newly...")
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+---
+ fs/overlayfs/inode.c | 8 +++++---
+ fs/overlayfs/util.c  | 2 --
+ 2 files changed, 5 insertions(+), 5 deletions(-)
 
-If you have time, please send this one to Linus for v5.5.
-It is a simple fix and the only one causing failure in the new xfstests [1]
-that I posted.
-
-Thanks,
-Amir.
-
-[1] https://lore.kernel.org/fstests/20191230141423.31695-1-amir73il@gmail.com/
-
->
->  fs/overlayfs/readdir.c | 8 +++++++-
->  1 file changed, 7 insertions(+), 1 deletion(-)
->
-> diff --git a/fs/overlayfs/readdir.c b/fs/overlayfs/readdir.c
-> index 47a91c9733a5..7255e6a5838f 100644
-> --- a/fs/overlayfs/readdir.c
-> +++ b/fs/overlayfs/readdir.c
-> @@ -504,7 +504,13 @@ static int ovl_cache_update_ino(struct path *path, struct ovl_cache_entry *p)
->                 if (err)
->                         goto fail;
->
-> -               WARN_ON_ONCE(dir->d_sb->s_dev != stat.dev);
-> +               /*
-> +                * Directory inode is always on overlay st_dev.
-> +                * Non-dir with ovl_same_dev() could be on pseudo st_dev in case
-> +                * of xino bits overflow.
-> +                */
-> +               WARN_ON_ONCE(S_ISDIR(stat.mode) &&
-> +                            dir->d_sb->s_dev != stat.dev);
->                 ino = stat.ino;
->         } else if (xinobits && !OVL_TYPE_UPPER(type)) {
->                 ino = ovl_remap_lower_ino(ino, xinobits,
-> --
-> 2.17.1
->
+diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
+index 9d2fff7d747d..9ed94c70e3cb 100644
+--- a/fs/overlayfs/inode.c
++++ b/fs/overlayfs/inode.c
+@@ -571,9 +571,11 @@ static void ovl_fill_inode(struct inode *inode, umode_t mode, dev_t rdev,
+ 	 * bits to encode layer), set the same value used for st_ino to i_ino,
+ 	 * so inode number exposed via /proc/locks and a like will be
+ 	 * consistent with d_ino and st_ino values. An i_ino value inconsistent
+-	 * with d_ino also causes nfsd readdirplus to fail.  When called from
+-	 * ovl_new_inode(), ino arg is 0, so i_ino will be updated to real
+-	 * upper inode i_ino on ovl_inode_init() or ovl_inode_update().
++	 * with d_ino also causes nfsd readdirplus to fail.
++	 *
++	 * When called from ovl_create_object() => ovl_new_inode(), with
++	 * ino = 0, i_ino will be updated to consistent value later on in
++	 * ovl_get_inode() => ovl_fill_inode().
+ 	 */
+ 	if (ovl_same_dev(inode->i_sb)) {
+ 		inode->i_ino = ino;
+diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
+index 256f166b4a17..b28ccede1da9 100644
+--- a/fs/overlayfs/util.c
++++ b/fs/overlayfs/util.c
+@@ -418,8 +418,6 @@ void ovl_inode_update(struct inode *inode, struct dentry *upperdentry)
+ 	smp_wmb();
+ 	OVL_I(inode)->__upperdentry = upperdentry;
+ 	if (inode_unhashed(inode)) {
+-		if (!inode->i_ino)
+-			inode->i_ino = upperinode->i_ino;
+ 		inode->i_private = upperinode;
+ 		__insert_inode_hash(inode, (unsigned long) upperinode);
+ 	}
+-- 
+2.17.1
