@@ -1,305 +1,199 @@
-From: Ritesh Harjani <riteshh@linux.ibm.com>
-Subject: [RESEND PATCH 1/1] fs: Use inode_lock/unlock class of provided APIs in filesystems
-Date: Wed,  1 Jan 2020 16:22:48 +0530
-Message-ID: <20200101105248.25304-2-riteshh@linux.ibm.com>
-References: <20200101105248.25304-1-riteshh@linux.ibm.com>
+From: syzbot <syzbot+5378878b09e052edef7f@syzkaller.appspotmail.com>
+Subject: Re: possible deadlock in seq_read (2)
+Date: Thu, 02 Jan 2020 11:21:09 -0800
+Message-ID: <0000000000006d62f4059b2d1893@google.com>
+References: <000000000000a0f82805867fb67e@google.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-btrfs-owner@vger.kernel.org>
-In-Reply-To: <20200101105248.25304-1-riteshh@linux.ibm.com>
-Sender: linux-btrfs-owner@vger.kernel.org
-To: linux-fsdevel@vger.kernel.org, viro@zeniv.linux.org.uk
-Cc: willy@infradead.org, jlayton@kernel.org, ceph-devel@vger.kernel.org, linux-btrfs@vger.kernel.org, linux-nfs@vger.kernel.org, devel@lists.orangefs.org, linux-unionfs@vger.kernel.org, dsterba@suse.cz, Ritesh Harjani <riteshh@linux.ibm.com>, David Sterba <dsterba@suse.com>
+Content-Type: text/plain; charset="UTF-8"; format=flowed; delsp=yes
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <000000000000a0f82805867fb67e@google.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, linux-unionfs@vger.kernel.org, miklos@szeredi.hu, syzkaller-bugs@googlegroups.com, viro@zeniv.linux.org.uk
 List-Id: linux-unionfs@vger.kernel.org
 
-This defines 4 more APIs which some of the filesystem needs
-and reduces the direct use of i_rwsem in filesystem drivers.
-Instead those are replaced with inode_lock/unlock_** APIs.
+syzbot has found a reproducer for the following crash on:
 
-Signed-off-by: Ritesh Harjani <riteshh@linux.ibm.com>
-Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Reviewed-by: Jeff Layton <jlayton@kernel.org>
-Acked-by: David Sterba <dsterba@suse.com>
+HEAD commit:    7ddd09fc Add linux-next specific files for 20191220
+git tree:       linux-next
+console output: https://syzkaller.appspot.com/x/log.txt?x=1648763ee00000
+kernel config:  https://syzkaller.appspot.com/x/.config?x=f183b01c3088afc6
+dashboard link: https://syzkaller.appspot.com/bug?extid=5378878b09e052edef7f
+compiler:       gcc (GCC) 9.0.0 20181231 (experimental)
+syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=17e706e1e00000
+C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=14478885e00000
 
----
- fs/btrfs/delayed-inode.c |  2 +-
- fs/btrfs/ioctl.c         |  4 ++--
- fs/ceph/io.c             | 24 ++++++++++++------------
- fs/nfs/io.c              | 24 ++++++++++++------------
- fs/orangefs/file.c       |  4 ++--
- fs/overlayfs/readdir.c   |  2 +-
- fs/readdir.c             |  4 ++--
- include/linux/fs.h       | 21 +++++++++++++++++++++
- 8 files changed, 53 insertions(+), 32 deletions(-)
+IMPORTANT: if you fix the bug, please add the following tag to the commit:
+Reported-by: syzbot+5378878b09e052edef7f@syzkaller.appspotmail.com
 
-diff --git a/fs/btrfs/delayed-inode.c b/fs/btrfs/delayed-inode.c
-index d3e15e1d4a91..c3e92f2fd915 100644
---- a/fs/btrfs/delayed-inode.c
-+++ b/fs/btrfs/delayed-inode.c
-@@ -1644,7 +1644,7 @@ void btrfs_readdir_put_delayed_items(struct inode *inode,
- 	 * The VFS is going to do up_read(), so we need to downgrade back to a
- 	 * read lock.
- 	 */
--	downgrade_write(&inode->i_rwsem);
-+	inode_lock_downgrade(inode);
- }
- 
- int btrfs_should_delete_dir_index(struct list_head *del_list,
-diff --git a/fs/btrfs/ioctl.c b/fs/btrfs/ioctl.c
-index 18e328ce4b54..caa80372992d 100644
---- a/fs/btrfs/ioctl.c
-+++ b/fs/btrfs/ioctl.c
-@@ -961,7 +961,7 @@ static noinline int btrfs_mksubvol(const struct path *parent,
- 	struct dentry *dentry;
- 	int error;
- 
--	error = down_write_killable_nested(&dir->i_rwsem, I_MUTEX_PARENT);
-+	error = inode_lock_killable_nested(dir, I_MUTEX_PARENT);
- 	if (error == -EINTR)
- 		return error;
- 
-@@ -2869,7 +2869,7 @@ static noinline int btrfs_ioctl_snap_destroy(struct file *file,
- 		goto out;
- 
- 
--	err = down_write_killable_nested(&dir->i_rwsem, I_MUTEX_PARENT);
-+	err = inode_lock_killable_nested(dir, I_MUTEX_PARENT);
- 	if (err == -EINTR)
- 		goto out_drop_write;
- 	dentry = lookup_one_len(vol_args->name, parent, namelen);
-diff --git a/fs/ceph/io.c b/fs/ceph/io.c
-index 97602ea92ff4..e94186259c2e 100644
---- a/fs/ceph/io.c
-+++ b/fs/ceph/io.c
-@@ -53,14 +53,14 @@ ceph_start_io_read(struct inode *inode)
- 	struct ceph_inode_info *ci = ceph_inode(inode);
- 
- 	/* Be an optimist! */
--	down_read(&inode->i_rwsem);
-+	inode_lock_shared(inode);
- 	if (!(READ_ONCE(ci->i_ceph_flags) & CEPH_I_ODIRECT))
- 		return;
--	up_read(&inode->i_rwsem);
-+	inode_unlock_shared(inode);
- 	/* Slow path.... */
--	down_write(&inode->i_rwsem);
-+	inode_lock(inode);
- 	ceph_block_o_direct(ci, inode);
--	downgrade_write(&inode->i_rwsem);
-+	inode_lock_downgrade(inode);
- }
- 
- /**
-@@ -73,7 +73,7 @@ ceph_start_io_read(struct inode *inode)
- void
- ceph_end_io_read(struct inode *inode)
- {
--	up_read(&inode->i_rwsem);
-+	inode_unlock_shared(inode);
- }
- 
- /**
-@@ -86,7 +86,7 @@ ceph_end_io_read(struct inode *inode)
- void
- ceph_start_io_write(struct inode *inode)
- {
--	down_write(&inode->i_rwsem);
-+	inode_lock(inode);
- 	ceph_block_o_direct(ceph_inode(inode), inode);
- }
- 
-@@ -100,7 +100,7 @@ ceph_start_io_write(struct inode *inode)
- void
- ceph_end_io_write(struct inode *inode)
- {
--	up_write(&inode->i_rwsem);
-+	inode_unlock(inode);
- }
- 
- /* Call with exclusively locked inode->i_rwsem */
-@@ -139,14 +139,14 @@ ceph_start_io_direct(struct inode *inode)
- 	struct ceph_inode_info *ci = ceph_inode(inode);
- 
- 	/* Be an optimist! */
--	down_read(&inode->i_rwsem);
-+	inode_lock_shared(inode);
- 	if (READ_ONCE(ci->i_ceph_flags) & CEPH_I_ODIRECT)
- 		return;
--	up_read(&inode->i_rwsem);
-+	inode_unlock_shared(inode);
- 	/* Slow path.... */
--	down_write(&inode->i_rwsem);
-+	inode_lock(inode);
- 	ceph_block_buffered(ci, inode);
--	downgrade_write(&inode->i_rwsem);
-+	inode_lock_downgrade(inode);
- }
- 
- /**
-@@ -159,5 +159,5 @@ ceph_start_io_direct(struct inode *inode)
- void
- ceph_end_io_direct(struct inode *inode)
- {
--	up_read(&inode->i_rwsem);
-+	inode_unlock_shared(inode);
- }
-diff --git a/fs/nfs/io.c b/fs/nfs/io.c
-index 5088fda9b453..bf5ed7bea59d 100644
---- a/fs/nfs/io.c
-+++ b/fs/nfs/io.c
-@@ -44,14 +44,14 @@ nfs_start_io_read(struct inode *inode)
- {
- 	struct nfs_inode *nfsi = NFS_I(inode);
- 	/* Be an optimist! */
--	down_read(&inode->i_rwsem);
-+	inode_lock_shared(inode);
- 	if (test_bit(NFS_INO_ODIRECT, &nfsi->flags) == 0)
- 		return;
--	up_read(&inode->i_rwsem);
-+	inode_unlock_shared(inode);
- 	/* Slow path.... */
--	down_write(&inode->i_rwsem);
-+	inode_lock(inode);
- 	nfs_block_o_direct(nfsi, inode);
--	downgrade_write(&inode->i_rwsem);
-+	inode_lock_downgrade(inode);
- }
- 
- /**
-@@ -64,7 +64,7 @@ nfs_start_io_read(struct inode *inode)
- void
- nfs_end_io_read(struct inode *inode)
- {
--	up_read(&inode->i_rwsem);
-+	inode_unlock_shared(inode);
- }
- 
- /**
-@@ -77,7 +77,7 @@ nfs_end_io_read(struct inode *inode)
- void
- nfs_start_io_write(struct inode *inode)
- {
--	down_write(&inode->i_rwsem);
-+	inode_lock(inode);
- 	nfs_block_o_direct(NFS_I(inode), inode);
- }
- 
-@@ -91,7 +91,7 @@ nfs_start_io_write(struct inode *inode)
- void
- nfs_end_io_write(struct inode *inode)
- {
--	up_write(&inode->i_rwsem);
-+	inode_unlock(inode);
- }
- 
- /* Call with exclusively locked inode->i_rwsem */
-@@ -124,14 +124,14 @@ nfs_start_io_direct(struct inode *inode)
- {
- 	struct nfs_inode *nfsi = NFS_I(inode);
- 	/* Be an optimist! */
--	down_read(&inode->i_rwsem);
-+	inode_lock_shared(inode);
- 	if (test_bit(NFS_INO_ODIRECT, &nfsi->flags) != 0)
- 		return;
--	up_read(&inode->i_rwsem);
-+	inode_unlock_shared(inode);
- 	/* Slow path.... */
--	down_write(&inode->i_rwsem);
-+	inode_lock(inode);
- 	nfs_block_buffered(nfsi, inode);
--	downgrade_write(&inode->i_rwsem);
-+	inode_lock_downgrade(inode);
- }
- 
- /**
-@@ -144,5 +144,5 @@ nfs_start_io_direct(struct inode *inode)
- void
- nfs_end_io_direct(struct inode *inode)
- {
--	up_read(&inode->i_rwsem);
-+	inode_unlock_shared(inode);
- }
-diff --git a/fs/orangefs/file.c b/fs/orangefs/file.c
-index c740159d9ad1..369ace12249d 100644
---- a/fs/orangefs/file.c
-+++ b/fs/orangefs/file.c
-@@ -363,14 +363,14 @@ static ssize_t orangefs_file_read_iter(struct kiocb *iocb,
- 		ro->blksiz = iter->count;
- 	}
- 
--	down_read(&file_inode(iocb->ki_filp)->i_rwsem);
-+	inode_lock_shared(file_inode(iocb->ki_filp));
- 	ret = orangefs_revalidate_mapping(file_inode(iocb->ki_filp));
- 	if (ret)
- 		goto out;
- 
- 	ret = generic_file_read_iter(iocb, iter);
- out:
--	up_read(&file_inode(iocb->ki_filp)->i_rwsem);
-+	inode_unlock_shared(file_inode(iocb->ki_filp));
- 	return ret;
- }
- 
-diff --git a/fs/overlayfs/readdir.c b/fs/overlayfs/readdir.c
-index 47a91c9733a5..c203e73160b0 100644
---- a/fs/overlayfs/readdir.c
-+++ b/fs/overlayfs/readdir.c
-@@ -273,7 +273,7 @@ static int ovl_check_whiteouts(struct dentry *dir, struct ovl_readdir_data *rdd)
- 
- 	old_cred = ovl_override_creds(rdd->dentry->d_sb);
- 
--	err = down_write_killable(&dir->d_inode->i_rwsem);
-+	err = inode_lock_killable(dir->d_inode);
- 	if (!err) {
- 		while (rdd->first_maybe_whiteout) {
- 			p = rdd->first_maybe_whiteout;
-diff --git a/fs/readdir.c b/fs/readdir.c
-index d26d5ea4de7b..10a34efa0af0 100644
---- a/fs/readdir.c
-+++ b/fs/readdir.c
-@@ -52,9 +52,9 @@ int iterate_dir(struct file *file, struct dir_context *ctx)
- 		goto out;
- 
- 	if (shared)
--		res = down_read_killable(&inode->i_rwsem);
-+		res = inode_lock_shared_killable(inode);
- 	else
--		res = down_write_killable(&inode->i_rwsem);
-+		res = inode_lock_killable(inode);
- 	if (res)
- 		goto out;
- 
-diff --git a/include/linux/fs.h b/include/linux/fs.h
-index 98e0349adb52..2b407464fac1 100644
---- a/include/linux/fs.h
-+++ b/include/linux/fs.h
-@@ -831,6 +831,27 @@ static inline void inode_lock_shared_nested(struct inode *inode, unsigned subcla
- 	down_read_nested(&inode->i_rwsem, subclass);
- }
- 
-+static inline void inode_lock_downgrade(struct inode *inode)
-+{
-+	downgrade_write(&inode->i_rwsem);
-+}
-+
-+static inline int inode_lock_killable(struct inode *inode)
-+{
-+	return down_write_killable(&inode->i_rwsem);
-+}
-+
-+static inline int inode_lock_shared_killable(struct inode *inode)
-+{
-+	return down_read_killable(&inode->i_rwsem);
-+}
-+
-+static inline int inode_lock_killable_nested(struct inode *inode,
-+					     unsigned subclass)
-+{
-+	return down_write_killable_nested(&inode->i_rwsem, subclass);
-+}
-+
- void lock_two_nondirectories(struct inode *, struct inode*);
- void unlock_two_nondirectories(struct inode *, struct inode*);
- 
--- 
-2.21.0
+======================================================
+WARNING: possible circular locking dependency detected
+5.5.0-rc2-next-20191220-syzkaller #0 Not tainted
+------------------------------------------------------
+syz-executor877/11363 is trying to acquire lock:
+ffff8880920b8520 (&p->lock){+.+.}, at: seq_read+0x71/0x1170  
+fs/seq_file.c:161
+
+but task is already holding lock:
+ffff8880998ac428 (sb_writers#3){.+.+}, at: file_start_write  
+include/linux/fs.h:2880 [inline]
+ffff8880998ac428 (sb_writers#3){.+.+}, at: do_sendfile+0x9b9/0xd00  
+fs/read_write.c:1463
+
+which lock already depends on the new lock.
+
+
+the existing dependency chain (in reverse order) is:
+
+-> #3 (sb_writers#3){.+.+}:
+        percpu_down_read include/linux/percpu-rwsem.h:40 [inline]
+        __sb_start_write+0x241/0x460 fs/super.c:1674
+        sb_start_write include/linux/fs.h:1649 [inline]
+        mnt_want_write+0x3f/0xc0 fs/namespace.c:354
+        ovl_want_write+0x76/0xa0 fs/overlayfs/util.c:21
+        ovl_create_object+0xb3/0x2c0 fs/overlayfs/dir.c:596
+        ovl_create+0x28/0x30 fs/overlayfs/dir.c:627
+        lookup_open+0x12d5/0x1a90 fs/namei.c:3374
+        do_last fs/namei.c:3464 [inline]
+        path_openat+0xf2a/0x34d0 fs/namei.c:3670
+        do_filp_open+0x192/0x260 fs/namei.c:3700
+        do_sys_openat2+0x633/0x840 fs/open.c:1152
+        do_sys_open+0xfc/0x190 fs/open.c:1168
+        ksys_open include/linux/syscalls.h:1385 [inline]
+        __do_sys_open fs/open.c:1174 [inline]
+        __se_sys_open fs/open.c:1172 [inline]
+        __x64_sys_open+0x7e/0xc0 fs/open.c:1172
+        do_syscall_64+0xfa/0x790 arch/x86/entry/common.c:294
+        entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+-> #2 (&ovl_i_mutex_dir_key[depth]){++++}:
+        down_read+0x95/0x440 kernel/locking/rwsem.c:1495
+        inode_lock_shared include/linux/fs.h:801 [inline]
+        do_last fs/namei.c:3463 [inline]
+        path_openat+0x1c60/0x34d0 fs/namei.c:3670
+        do_filp_open+0x192/0x260 fs/namei.c:3700
+        do_open_execat+0x13b/0x6d0 fs/exec.c:861
+        __do_execve_file.isra.0+0x1702/0x22b0 fs/exec.c:1766
+        do_execveat_common fs/exec.c:1872 [inline]
+        do_execve fs/exec.c:1889 [inline]
+        __do_sys_execve fs/exec.c:1965 [inline]
+        __se_sys_execve fs/exec.c:1960 [inline]
+        __x64_sys_execve+0x8f/0xc0 fs/exec.c:1960
+        do_syscall_64+0xfa/0x790 arch/x86/entry/common.c:294
+        entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+-> #1 (&sig->cred_guard_mutex){+.+.}:
+        __mutex_lock_common kernel/locking/mutex.c:956 [inline]
+        __mutex_lock+0x156/0x13c0 kernel/locking/mutex.c:1103
+        mutex_lock_killable_nested+0x16/0x20 kernel/locking/mutex.c:1133
+        do_io_accounting+0x1f4/0x820 fs/proc/base.c:2772
+        proc_tgid_io_accounting+0x23/0x30 fs/proc/base.c:2821
+        proc_single_show+0xfd/0x1c0 fs/proc/base.c:756
+        seq_read+0x4ca/0x1170 fs/seq_file.c:229
+        do_loop_readv_writev fs/read_write.c:714 [inline]
+        do_loop_readv_writev fs/read_write.c:701 [inline]
+        do_iter_read+0x4a4/0x660 fs/read_write.c:935
+        vfs_readv+0xf0/0x160 fs/read_write.c:997
+        kernel_readv fs/splice.c:365 [inline]
+        default_file_splice_read+0x4fb/0xa20 fs/splice.c:422
+        do_splice_to+0x127/0x180 fs/splice.c:892
+        splice_direct_to_actor+0x320/0xa30 fs/splice.c:971
+        do_splice_direct+0x1da/0x2a0 fs/splice.c:1080
+        do_sendfile+0x597/0xd00 fs/read_write.c:1464
+        __do_sys_sendfile64 fs/read_write.c:1525 [inline]
+        __se_sys_sendfile64 fs/read_write.c:1511 [inline]
+        __x64_sys_sendfile64+0x1dd/0x220 fs/read_write.c:1511
+        do_syscall_64+0xfa/0x790 arch/x86/entry/common.c:294
+        entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+-> #0 (&p->lock){+.+.}:
+        check_prev_add kernel/locking/lockdep.c:2476 [inline]
+        check_prevs_add kernel/locking/lockdep.c:2581 [inline]
+        validate_chain kernel/locking/lockdep.c:2971 [inline]
+        __lock_acquire+0x2596/0x4a00 kernel/locking/lockdep.c:3955
+        lock_acquire+0x190/0x410 kernel/locking/lockdep.c:4485
+        __mutex_lock_common kernel/locking/mutex.c:956 [inline]
+        __mutex_lock+0x156/0x13c0 kernel/locking/mutex.c:1103
+        mutex_lock_nested+0x16/0x20 kernel/locking/mutex.c:1118
+        seq_read+0x71/0x1170 fs/seq_file.c:161
+        do_loop_readv_writev fs/read_write.c:714 [inline]
+        do_loop_readv_writev fs/read_write.c:701 [inline]
+        do_iter_read+0x4a4/0x660 fs/read_write.c:935
+        vfs_readv+0xf0/0x160 fs/read_write.c:997
+        kernel_readv fs/splice.c:365 [inline]
+        default_file_splice_read+0x4fb/0xa20 fs/splice.c:422
+        do_splice_to+0x127/0x180 fs/splice.c:892
+        splice_direct_to_actor+0x320/0xa30 fs/splice.c:971
+        do_splice_direct+0x1da/0x2a0 fs/splice.c:1080
+        do_sendfile+0x597/0xd00 fs/read_write.c:1464
+        __do_sys_sendfile64 fs/read_write.c:1525 [inline]
+        __se_sys_sendfile64 fs/read_write.c:1511 [inline]
+        __x64_sys_sendfile64+0x1dd/0x220 fs/read_write.c:1511
+        do_syscall_64+0xfa/0x790 arch/x86/entry/common.c:294
+        entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+other info that might help us debug this:
+
+Chain exists of:
+   &p->lock --> &ovl_i_mutex_dir_key[depth] --> sb_writers#3
+
+  Possible unsafe locking scenario:
+
+        CPU0                    CPU1
+        ----                    ----
+   lock(sb_writers#3);
+                                lock(&ovl_i_mutex_dir_key[depth]);
+                                lock(sb_writers#3);
+   lock(&p->lock);
+
+  *** DEADLOCK ***
+
+1 lock held by syz-executor877/11363:
+  #0: ffff8880998ac428 (sb_writers#3){.+.+}, at: file_start_write  
+include/linux/fs.h:2880 [inline]
+  #0: ffff8880998ac428 (sb_writers#3){.+.+}, at: do_sendfile+0x9b9/0xd00  
+fs/read_write.c:1463
+
+stack backtrace:
+CPU: 0 PID: 11363 Comm: syz-executor877 Not tainted  
+5.5.0-rc2-next-20191220-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS  
+Google 01/01/2011
+Call Trace:
+  __dump_stack lib/dump_stack.c:77 [inline]
+  dump_stack+0x197/0x210 lib/dump_stack.c:118
+  print_circular_bug.isra.0.cold+0x163/0x172 kernel/locking/lockdep.c:1685
+  check_noncircular+0x32e/0x3e0 kernel/locking/lockdep.c:1809
+  check_prev_add kernel/locking/lockdep.c:2476 [inline]
+  check_prevs_add kernel/locking/lockdep.c:2581 [inline]
+  validate_chain kernel/locking/lockdep.c:2971 [inline]
+  __lock_acquire+0x2596/0x4a00 kernel/locking/lockdep.c:3955
+  lock_acquire+0x190/0x410 kernel/locking/lockdep.c:4485
+  __mutex_lock_common kernel/locking/mutex.c:956 [inline]
+  __mutex_lock+0x156/0x13c0 kernel/locking/mutex.c:1103
+  mutex_lock_nested+0x16/0x20 kernel/locking/mutex.c:1118
+  seq_read+0x71/0x1170 fs/seq_file.c:161
+  do_loop_readv_writev fs/read_write.c:714 [inline]
+  do_loop_readv_writev fs/read_write.c:701 [inline]
+  do_iter_read+0x4a4/0x660 fs/read_write.c:935
+  vfs_readv+0xf0/0x160 fs/read_write.c:997
+  kernel_readv fs/splice.c:365 [inline]
+  default_file_splice_read+0x4fb/0xa20 fs/splice.c:422
+  do_splice_to+0x127/0x180 fs/splice.c:892
+  splice_direct_to_actor+0x320/0xa30 fs/splice.c:971
+  do_splice_direct+0x1da/0x2a0 fs/splice.c:1080
+  do_sendfile+0x597/0xd00 fs/read_write.c:1464
+  __do_sys_sendfile64 fs/read_write.c:1525 [inline]
+  __se_sys_sendfile64 fs/read_write.c:1511 [inline]
+  __x64_sys_sendfile64+0x1dd/0x220 fs/read_write.c:1511
+  do_syscall_64+0xfa/0x790 arch/x86/entry/common.c:294
+  entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x448dd9
+Code: e8 9c e6 ff ff 48 83 c4 18 c3 0f 1f 80 00 00 00 00 48 89 f8 48 89 f7  
+48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff  
+ff 0f 83 3b 05 fc ff c3 66 2e 0f 1f 84 00 00 00 00
+RSP: 002b:00007fc37ed06ce8 EFLAGS: 00000246 ORIG_RAX: 0000000000000028
+RAX: ffffffffffffffda RBX: 00000000006e4a08 RCX: 0000000000448dd9
+RDX: 0000000000000000 RSI: 0000000000000004 RDI: 0000000000000005
+RBP: 00000000006e4a00 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000209 R11: 0000000000000246 R12: 00000000006e4a0c
+R13: 00007ffecbcb224f R14: 00007fc37ed079c0 R15: 20c49ba5e353f7cf
