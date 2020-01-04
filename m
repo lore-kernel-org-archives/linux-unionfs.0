@@ -1,55 +1,68 @@
-Return-Path: <amir73il@gmail.com>
-Return-Path: <amir73il@gmail.com>
-From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH 2/7] ovl: fix out of date comment and unreachable code
-Date: Wed,  1 Jan 2020 19:58:09 +0200
-Message-Id: <20200101175814.14144-3-amir73il@gmail.com>
-In-Reply-To: <20200101175814.14144-1-amir73il@gmail.com>
-References: <20200101175814.14144-1-amir73il@gmail.com>
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: linux-unionfs@vger.kernel.org
+Return-Path: <James.Bottomley@hansenpartnership.com>
+From: James Bottomley <James.Bottomley@HansenPartnership.com>
+Subject: [PATCH v2 0/3] introduce a uid/gid shifting bind mount
+Date: Sat,  4 Jan 2020 12:39:43 -0800
+Message-Id: <20200104203946.27914-1-James.Bottomley@HansenPartnership.com>
+To: linux-fsdevel@vger.kernel.org
+Cc: David Howells <dhowells@redhat.com>, Christian Brauner <christian@brauner.io>, Al Viro <viro@ZenIV.linux.org.uk>, Miklos Szeredi <miklos@szeredi.hu>, Seth Forshee <seth.forshee@canonical.com>, linux-unionfs@vger.kernel.org, Amir Goldstein <amir73il@gmail.com>, =?UTF-8?q?St=C3=A9phane=20Graber?= <stgraber@ubuntu.com>, Eric Biederman <ebiederm@xmission.com>, Aleksa Sarai <cyphar@cyphar.com>, containers@lists.linux-foundation.org
 List-ID: <linux-unionfs@vger.kernel.org>
 
-ovl_inode_update() is no longer called from create object code path.
+The object of this series is to replace shiftfs with a proper uid/gid
+shifting bind mount instead of the shiftfs hack of introducing
+something that looks similar to an overlay filesystem to do it.
 
-Fixes: 01b39dcc9568 ("ovl: use inode_insert5() to hash a newly...")
-Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+The VFS still has the problem that in order to tell what vfsmount a
+dentry belongs to, struct path would have to be threaded everywhere
+struct dentry currently is.  However, this patch is structured only to
+require a rethreading of notify_change.  The rest of the knowledge
+that a shift is in operation is carried in the task structure by
+caching the unshifted credentials.
+
+The only real change from v1 is that the notify_change patch is
+updated to fix the issues pointed out by Amir Goldstein.  And I've
+combined the precursor patch to rethread notify_changes into the
+series.
+
+James
+
 ---
- fs/overlayfs/inode.c | 8 +++++---
- fs/overlayfs/util.c  | 2 --
- 2 files changed, 5 insertions(+), 5 deletions(-)
 
-diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
-index 9d2fff7d747d..9ed94c70e3cb 100644
---- a/fs/overlayfs/inode.c
-+++ b/fs/overlayfs/inode.c
-@@ -571,9 +571,11 @@ static void ovl_fill_inode(struct inode *inode, umode_t mode, dev_t rdev,
- 	 * bits to encode layer), set the same value used for st_ino to i_ino,
- 	 * so inode number exposed via /proc/locks and a like will be
- 	 * consistent with d_ino and st_ino values. An i_ino value inconsistent
--	 * with d_ino also causes nfsd readdirplus to fail.  When called from
--	 * ovl_new_inode(), ino arg is 0, so i_ino will be updated to real
--	 * upper inode i_ino on ovl_inode_init() or ovl_inode_update().
-+	 * with d_ino also causes nfsd readdirplus to fail.
-+	 *
-+	 * When called from ovl_create_object() => ovl_new_inode(), with
-+	 * ino = 0, i_ino will be updated to consistent value later on in
-+	 * ovl_get_inode() => ovl_fill_inode().
- 	 */
- 	if (ovl_same_dev(inode->i_sb)) {
- 		inode->i_ino = ino;
-diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
-index 256f166b4a17..b28ccede1da9 100644
---- a/fs/overlayfs/util.c
-+++ b/fs/overlayfs/util.c
-@@ -418,8 +418,6 @@ void ovl_inode_update(struct inode *inode, struct dentry *upperdentry)
- 	smp_wmb();
- 	OVL_I(inode)->__upperdentry = upperdentry;
- 	if (inode_unhashed(inode)) {
--		if (!inode->i_ino)
--			inode->i_ino = upperinode->i_ino;
- 		inode->i_private = upperinode;
- 		__insert_inode_hash(inode, (unsigned long) upperinode);
- 	}
+James Bottomley (3):
+  fs: rethread notify_change to take a path instead of a dentry
+  fs: introduce uid/gid shifting bind mount
+  fs: expose shifting bind mount to userspace
+
+ drivers/base/devtmpfs.c   |   8 +++-
+ fs/attr.c                 |  91 ++++++++++++++++++++++++++++----------
+ fs/bind.c                 |  35 +++++++++++++++
+ fs/cachefiles/interface.c |   6 ++-
+ fs/coredump.c             |   4 +-
+ fs/ecryptfs/inode.c       |   9 ++--
+ fs/exec.c                 |   7 ++-
+ fs/inode.c                |  16 ++++---
+ fs/internal.h             |   2 +
+ fs/mount.h                |   2 +
+ fs/namei.c                | 110 ++++++++++++++++++++++++++++++++++++++--------
+ fs/namespace.c            |   1 +
+ fs/nfsd/vfs.c             |  13 +++---
+ fs/open.c                 |  44 ++++++++++++++-----
+ fs/overlayfs/copy_up.c    |  40 ++++++++++-------
+ fs/overlayfs/dir.c        |  10 ++++-
+ fs/overlayfs/inode.c      |   6 ++-
+ fs/overlayfs/overlayfs.h  |   2 +-
+ fs/overlayfs/super.c      |   3 +-
+ fs/posix_acl.c            |   4 +-
+ fs/proc_namespace.c       |   4 ++
+ fs/stat.c                 |  31 +++++++++++--
+ fs/utimes.c               |   2 +-
+ include/linux/cred.h      |  10 +++++
+ include/linux/fs.h        |   6 +--
+ include/linux/mount.h     |   4 +-
+ include/linux/sched.h     |   5 +++
+ kernel/capability.c       |  14 +++++-
+ kernel/cred.c             |  20 +++++++++
+ kernel/groups.c           |   7 +++
+ 30 files changed, 408 insertions(+), 108 deletions(-)
+
 -- 
-2.17.1
+2.16.4
