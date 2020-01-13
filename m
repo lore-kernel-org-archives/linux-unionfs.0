@@ -1,64 +1,35 @@
-From: "Serge E. Hallyn" <serge@hallyn.com>
-Subject: Re: [PATCH v2 2/3] fs: introduce uid/gid shifting bind mount
-Date: Sun, 12 Jan 2020 21:41:49 -0600
-Message-ID: <20200113034149.GA27228@mail.hallyn.com>
-References: <20200104203946.27914-1-James.Bottomley@HansenPartnership.com>
- <20200104203946.27914-3-James.Bottomley@HansenPartnership.com>
+From: Rick Schaech <cathben72@gmail.com>
+Subject: I wait for your swift response,
+Date: Mon, 13 Jan 2020 01:52:37 -0400
+Message-ID: <CAEcBxO=DoZZeZuHjVOxQpB8CM4fADYg6sCQVLkjP+qQwsNEH9A__41551.9832795084$1578894848$gmane$org@mail.gmail.com>
+Reply-To: rickschaech@gmail.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail.hallyn.com ([178.63.66.53]:45798 "EHLO mail.hallyn.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2387400AbgAMDlv (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Sun, 12 Jan 2020 22:41:51 -0500
-Content-Disposition: inline
-In-Reply-To: <20200104203946.27914-3-James.Bottomley@HansenPartnership.com>
+Received: from mail-oi1-f195.google.com ([209.85.167.195]:45651 "EHLO
+        mail-oi1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2387604AbgAMFwj (ORCPT
+        <rfc822;linux-unionfs@vger.kernel.org>);
+        Mon, 13 Jan 2020 00:52:39 -0500
+Received: by mail-oi1-f195.google.com with SMTP id n16so7171712oie.12
+        for <linux-unionfs@vger.kernel.org>; Sun, 12 Jan 2020 21:52:38 -0800 (PST)
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: James Bottomley <James.Bottomley@HansenPartnership.com>
-Cc: linux-fsdevel@vger.kernel.org, Miklos Szeredi <miklos@szeredi.hu>, containers@lists.linux-foundation.org, linux-unionfs@vger.kernel.org, David Howells <dhowells@redhat.com>, Seth Forshee <seth.forshee@canonical.com>, Al Viro <viro@ZenIV.linux.org.uk>, Eric Biederman <ebiederm@xmission.com>, serge@hallyn.com
 
-On Sat, Jan 04, 2020 at 12:39:45PM -0800, James Bottomley wrote:
-> This implementation reverse shifts according to the user_ns belonging
-> to the mnt_ns.  So if the vfsmount has the newly introduced flag
-> MNT_SHIFT and the current user_ns is the same as the mount_ns->user_ns
-> then we shift back using the user_ns before committing to the
-> underlying filesystem.
-> 
-> For example, if a user_ns is created where interior (fake root, uid 0)
-> is mapped to kernel uid 100000 then writes from interior root normally
-> go to the filesystem at the kernel uid.  However, if MNT_SHIFT is set,
-> they will be shifted back to write at uid 0, meaning we can bind mount
-> real image filesystems to user_ns protected faker root.
+Dear, I'm Mr Rick Schaech, I am the General Account Auditor, Though i
+know we have not meet each other before but sometimes in life God have
+a reason of bringing two people from two different countries together
+as business partners or life partners.
 
-Thanks, James, I definately would like to see shifting in the VFS
-api.
+My dear friend, I have the sum of 15.7 Million USD i wish to put in
+your name due to the death of my late client who died several years
+ago as his next of kin column still remain blank. Though the internet
+medium is highly abuse these days but am assuring you that this
+transaction is legitimate and I am contacting you that we may have a
+deal, note for your cooperation and collaboration 40% of the sum will
+be for you while the other 60% will be for me as well. I wait for your
+swift response for more details. please forward your response to my
+personal E-mail: rickschaech@gmail.com
 
-I have a few practical concerns about this implementation, but my biggest
-concern is more fundemental:  this again by design leaves littered about
-the filesystem uid-0 owned files which were written by an untrusted user.
-
-I would feel much better if you institutionalized having the origin
-shifted.  For instance, take a squashfs for a container fs, shift it
-so that fsuid 0 == hostuid 100000.  Mount that, with a marker saying
-how it is shifted, then set 'shiftable'.  Now use that as a base for
-allowing an unpriv user to shift.  If that user has subuid 200000 as
-container uid 0, then its root will write files as uid 100000 in the
-fs.  This isn't perfect, but I think something along these lines would
-be far safer.
-
-Two namespaces with different uid maps can share the filesystem as though
-they both had the same uidmap.  (This currently is to me the most
-interesting use case for shifing bind mounts)
-
-If the user wants to tar up the result, they can do do in their own
-namespace, resulting in uid 0 shown as uid 0.  If host root wants to
-do so, they can umount it everywhere and use something like fuidshift.
-Or, they can also create a namespace to do the shifting to uid 0 in tar.
-
-My more practical concerns include: (1) once a userns has set a shiftable
-bind mount to shift, if it then creates a new child userns, that ns
-will not see (iiuc) see the fs as shifted.  (2) there seems to be no
-good reason to stick to caching the cred for only one mnt, versus
-having a per-userns hashtable of creds for shifted mnts.  Was that just
-a temporary shortcut or did you intend it to stay that way?
+Yours sincerely,
+Rick Schaech.
