@@ -1,55 +1,114 @@
-Return-Path: <amir73il@gmail.com>
-Return-Path: <amir73il@gmail.com>
-From: Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH 1/7] ovl: fix value of i_ino for lower hardlink corner case
-Date: Wed,  1 Jan 2020 19:58:08 +0200
-Message-Id: <20200101175814.14144-2-amir73il@gmail.com>
-In-Reply-To: <20200101175814.14144-1-amir73il@gmail.com>
-References: <20200101175814.14144-1-amir73il@gmail.com>
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: linux-unionfs@vger.kernel.org
+Return-Path: <cpuguy83@gmail.com>
+Return-Path: <cpuguy83@gmail.com>
+Date: Fri, 17 Jan 2020 13:33:00 -0800
+From: Brian Goff <cpuguy83@gmail.com>
+Message-ID: <dejalu-217-910ea575-f51c-42ae-b89d-44387784c12f@gmail.com>
+In-Reply-To: <20200117211940.GA22062@cisco>
+References: <20200104203946.27914-1-James.Bottomley@HansenPartnership.com>
+ <20200104203946.27914-3-James.Bottomley@HansenPartnership.com>
+ <20200113034149.GA27228@mail.hallyn.com>
+ <1579112360.3249.17.camel@HansenPartnership.com>
+ <20200116064430.GA32763@mail.hallyn.com>
+ <1579192173.3551.38.camel@HansenPartnership.com>
+ <20200117154402.GA16882@mail.hallyn.com>
+ <1579278342.3227.36.camel@HansenPartnership.com>
+ <20200117211940.GA22062@cisco>
+Subject: Re: [PATCH v2 2/3] fs: introduce uid/gid shifting bind mount
+MIME-Version: 1.0
+Content-Type: multipart/alternative; boundary="5e22280c_59adea3d_1013a"
+To: Tycho Andersen <tycho@tycho.ws>, James Bottomley <James.Bottomley@hansenpartnership.com>, Miklos Szeredi <miklos@szeredi.hu>, containers@lists.linux-foundation.org, linux-unionfs@vger.kernel.org, Al Viro <viro@zeniv.linux.org.uk>, David Howells <dhowells@redhat.com>, Seth Forshee <seth.forshee@canonical.com>, Eric Biederman <ebiederm@xmission.com>, linux-fsdevel@vger.kernel.org
 List-ID: <linux-unionfs@vger.kernel.org>
 
-Commit 6dde1e42f497 ("ovl: make i_ino consistent with st_ino in more
-cases"), relaxed the condition nfs_export=on in order to set the value
-of i_ino to xino map of real ino.
+--5e22280c_59adea3d_1013a
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
 
-Specifically, it also relaxed the pre-condition that index=on for
-consistent i_ino. This opened the corner case of lower hardlink in
-ovl_get_inode(), which calls ovl_fill_inode() with ino=0 and then
-ovl_init_inode() is called to set i_ino to lower real ino without
-the xino mapping.
+There are also cases where you=E2=80=99d want to bind-mount a host dir in=
+to a shifted container and have that be writeable, not just to an overlay=
+.
 
-Pass the correct values of ino;fsid in this case to ovl_fill_inode(),
-so it can initialize i_ino correctly.
+=E2=80=94
 
-Fixes: 6dde1e42f497 ("ovl: make i_ino consistent with st_ino in more ...")
-Signed-off-by: Amir Goldstein <amir73il@gmail.com>
----
- fs/overlayfs/inode.c | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+On January 17, 2020 at 1:19 PM, Tycho Andersen wrote:
+> Please, no. mount() failures are already hard to reason about, I would
+> rather not add another temporary (or worse, permanent) non-obvious
+> failure mode.
+>
+> What if we make shifted bind mounts always readonly=3F That will force
+> people to use an overlay (or something else) on top, but they probably
+> want to do that anyway so they can avoid tainting the original
+> container image with writes.
+>
+> It's not just the cool factor: if you're doing this, it's presumably
+> because you want to use it with a container in a user namespace.
+> Specifying the same parameters twice leaves room for error, causing
+> CVEs and more work.
+>
+> Tycho
+> =5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=
+=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F
+> Containers mailing list
+> Containers=40lists.linux-foundation.org (mailto:Containers=40lists.linu=
+x-foundation.org)
+> lists.linuxfoundation.org/mailman/listinfo/containers (https://lists.li=
+nuxfoundation.org/mailman/listinfo/containers)
+>
+>
+>
+>
 
-diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
-index 3afae2e2d0ea..9d2fff7d747d 100644
---- a/fs/overlayfs/inode.c
-+++ b/fs/overlayfs/inode.c
-@@ -891,7 +891,7 @@ struct inode *ovl_get_inode(struct super_block *sb,
- 	struct dentry *lowerdentry = lowerpath ? lowerpath->dentry : NULL;
- 	bool bylower = ovl_hash_bylower(sb, upperdentry, lowerdentry,
- 					oip->index);
--	int fsid = bylower ? oip->lowerpath->layer->fsid : 0;
-+	int fsid = bylower ? lowerpath->layer->fsid : 0;
- 	bool is_dir, metacopy = false;
- 	unsigned long ino = 0;
- 	int err = oip->newinode ? -EEXIST : -ENOMEM;
-@@ -941,6 +941,8 @@ struct inode *ovl_get_inode(struct super_block *sb,
- 			err = -ENOMEM;
- 			goto out_err;
- 		}
-+		ino = realinode->i_ino;
-+		fsid = lowerpath->layer->fsid;
- 	}
- 	ovl_fill_inode(inode, realinode->i_mode, realinode->i_rdev, ino, fsid);
- 	ovl_inode_init(inode, upperdentry, lowerdentry, oip->lowerdata);
--- 
-2.17.1
+
+--5e22280c_59adea3d_1013a
+Content-Type: text/html; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
+
+
+            <div>
+                <div>There are also cases where you=E2=80=99d want to bin=
+d-mount a host dir into a shifted container and have that be writeable, n=
+ot just to an overlay.</div><div><br></div><div><div><div>=E2=80=94</div>=
+<div><br></div><div></div></div></div>
+            </div>
+            <div><br></div>
+            <div style=3D=22color: =23aaa;=22>On January 17, 2020 at 1:19=
+ PM, Tycho Andersen wrote:</div>
+            <blockquote type=3D=22cite=22 style=3D=22border-left-color:=23=
+ccc;border-left-style:solid;border-width:1px;margin-left:0px;padding-left=
+:10px;=22>
+                =20
+                <div>
+                <div><div><div><div>Please, no. mount() failures are alre=
+ady hard to reason about, I would
+</div><div>rather not add another temporary (or worse, permanent) non-obv=
+ious
+</div><div>failure mode.
+</div><div><br></div><div>What if we make shifted bind mounts always read=
+only=3F That will force
+</div><div>people to use an overlay (or something else) on top, but they =
+probably
+</div><div>want to do that anyway so they can avoid tainting the original=
+
+</div><div>container image with writes.
+</div><div><br></div><div>It's not just the cool factor: if you're doing =
+this, it's presumably
+</div><div>because you want to use it with a container in a user namespac=
+e.
+</div><div>Specifying the same parameters twice leaves room for error, ca=
+using
+</div><div>CVEs and more work.
+</div><div><br></div><div>Tycho
+</div><div>=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=
+=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=
+=5F
+</div><div>Containers mailing list
+</div><div><a href=3D=22mailto:Containers=40lists.linux-foundation.org=22=
+>Containers=40lists.linux-foundation.org</a>
+</div><div><a href=3D=22https://lists.linuxfoundation.org/mailman/listinf=
+o/containers=22>lists.linuxfoundation.org/mailman/listinfo/containers</a>=
+
+</div></div></div></div></div>
+            </blockquote>
+        
+--5e22280c_59adea3d_1013a--
