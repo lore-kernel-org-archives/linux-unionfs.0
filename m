@@ -1,57 +1,49 @@
-From: "Prof, William Roberts" <eco.bank1204@gmail.com>
-Subject: Contact Diplomatic Agent, Mr. Mcclaine John to receive your ATM CARD
- valued the sum of $12.8Million United States Dollars
-Date: Mon, 20 Jan 2020 20:32:40 +0100
-Message-ID: <CAOE+jABpcHQWZWhtskhDFbtTqfBe7h065WE2kC1G+jQD+tQiTA@mail.gmail.com>
-Reply-To: mcclainejohn.13@gmail.com
+From: Amir Goldstein <amir73il@gmail.com>
+Subject: Re: [PATCH] ovl: fix wrong WARN_ON() in ovl_cache_update_ino()
+Date: Tue, 21 Jan 2020 12:04:17 +0200
+Message-ID: <CAOQ4uxjsiQ5PKYSPLmgk5b5O_e5255+QK8Obgs9K--cTi3z=7w@mail.gmail.com>
+References: <20191223064025.23801-1-amir73il@gmail.com> <CAOQ4uxh4NygFUFvUp3xs8rZRUkc3SDxO1DL6YrNhx3j0SBgAJg@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-lf1-f65.google.com ([209.85.167.65]:33139 "EHLO
-        mail-lf1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728682AbgATTcn (ORCPT
+Received: from mail-il1-f195.google.com ([209.85.166.195]:45187 "EHLO
+        mail-il1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1729429AbgAUKE3 (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 20 Jan 2020 14:32:43 -0500
-Received: by mail-lf1-f65.google.com with SMTP id n25so207171lfl.0
-        for <linux-unionfs@vger.kernel.org>; Mon, 20 Jan 2020 11:32:42 -0800 (PST)
+        Tue, 21 Jan 2020 05:04:29 -0500
+Received: by mail-il1-f195.google.com with SMTP id p8so1879361iln.12
+        for <linux-unionfs@vger.kernel.org>; Tue, 21 Jan 2020 02:04:28 -0800 (PST)
+In-Reply-To: <CAOQ4uxh4NygFUFvUp3xs8rZRUkc3SDxO1DL6YrNhx3j0SBgAJg@mail.gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: overlayfs <linux-unionfs@vger.kernel.org>
 
-Attn: Dear Beneficiary,
+On Mon, Jan 6, 2020 at 8:35 AM Amir Goldstein <amir73il@gmail.com> wrote:
+>
+> On Mon, Dec 23, 2019 at 8:40 AM Amir Goldstein <amir73il@gmail.com> wrote:
+> >
+> > The WARN_ON() that child entry is always on overlay st_dev became wrong
+> > when we allowed this function to update d_ino in non-samefs setup with
+> > xino enabled.
+> >
+> > It is not true in case of xino bits overflow on a non-dir inode.
+> > Leave the WARN_ON() only for directories, where assertion is still true.
+> >
+> > Fixes: adbf4f7ea834 ("ovl: consistent d_ino for non-samefs with xino")
+> > Cc: <stable@vger.kernel.org> # v4.17+
+> > Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+> > ---
+> >
+>
+> Miklos,
+>
+> If you have time, please send this one to Linus for v5.5.
+> It is a simple fix and the only one causing failure in the new xfstests [1]
+> that I posted.
+>
 
-I wish to inform you that the diplomatic agent conveying your ATM CARD
-valued the sum of $12.8Million United States Dollars has misplaced
-your address and he is currently stranded at (George Bush
-International Airport) Houston Texas USA now
-We required you to reconfirm the following information's below to him
-so that he can deliver your Payment CARD to you today or tomorrow
-morning as information provided with open communications via email and
-telephone for security reasons.
-HERE IS THE DETAILS  HE NEED FROM YOU URGENT
-YOUR FULL NAME:========
-ADDRESS:========
-MOBILE NO:========
-NAME OF YOUR NEAREST AIRPORT:========
-A COPY OF YOUR IDENTIFICATION :========
-
-Note; do contact the diplomatic agent immediately through the
-information's listed below
-Contact Person: Diplomatic Agent, Mr. Mcclaine John
-EMAIL: mcclainejohn.13@gmail.com
-Tel:(223) 777-7518
-
-Contact the diplomatic agent immediately
-because he is waiting to hear from you today with the needed information's.
-
-NOTE: The Diplomatic agent does not know that the content of the
-consignment box is $12.800,000,00 Million United States Dollars and on
-no circumstances should you let him know the content. The consignment
-was moved from here as family treasures, so never allow him to open
-the box. Please I have paid delivery fees for you but the only money
-you must send to Mcclaine John is your ATM CARD delivery fee $25.00
-only. text Him as you contact Him Immediately
+Gentle nudge..
 
 Thanks,
-with Regards.
-Prof, William Roberts
-Director DHL COURIER SERVICES-Benin
+Amir.
