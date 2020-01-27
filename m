@@ -1,37 +1,32 @@
 From: Miklos Szeredi <miklos@szeredi.hu>
-Subject: Re: syncfs improvement for overlayfs
-Date: Fri, 24 Jan 2020 15:21:38 +0100
-Message-ID: <CAJfpegv949oJAZQNjTsq5MQHz6LLkfihp4S_mWRuYsLRuPCgFg@mail.gmail.com>
-References: <16d7200e45c.1398c37e020790.5506577327176178828@zoho.com.cn>
+Subject: Re: [PATCH] fs/overlayfs: add splice file read write helper
+Date: Mon, 27 Jan 2020 12:04:52 +0100
+Message-ID: <CAJfpegvn+eOQVoAKiv1mSuZcFacdDVKPHo4gtkt-=d5+9_mDJA@mail.gmail.com>
+References: <20200117124929.6nhgpd7mgcbwae5z@xzhoux.usersys.redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-unionfs-owner@vger.kernel.org>
-Received: from mail-io1-f53.google.com ([209.85.166.53]:35410 "EHLO
-        mail-io1-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2392237AbgAXOVu (ORCPT
+Received: from mail-qk1-f194.google.com ([209.85.222.194]:38767 "EHLO
+        mail-qk1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1729764AbgA0Lcw (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 24 Jan 2020 09:21:50 -0500
-Received: by mail-io1-f53.google.com with SMTP id h8so2111509iob.2
-        for <linux-unionfs@vger.kernel.org>; Fri, 24 Jan 2020 06:21:50 -0800 (PST)
-In-Reply-To: <16d7200e45c.1398c37e020790.5506577327176178828@zoho.com.cn>
+        Mon, 27 Jan 2020 06:32:52 -0500
+Received: by mail-qk1-f194.google.com with SMTP id k6so9214276qki.5
+        for <linux-unionfs@vger.kernel.org>; Mon, 27 Jan 2020 03:32:51 -0800 (PST)
+In-Reply-To: <20200117124929.6nhgpd7mgcbwae5z@xzhoux.usersys.redhat.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 List-Id: linux-unionfs@vger.kernel.org
-To: cgxu519@zoho.com.cn
-Cc: linux-unionfs <linux-unionfs@vger.kernel.org>
+To: Murphy Zhou <jencce.kernel@gmail.com>
+Cc: overlayfs <linux-unionfs@vger.kernel.org>
 
-On Fri, Sep 27, 2019 at 11:15 AM admin <cgxu519@zoho.com.cn> wrote:
+On Fri, Jan 17, 2020 at 1:49 PM Murphy Zhou <jencce.kernel@gmail.com> wrote:
 >
-> Hi Miklos,
+> Now overlayfs falls back to use default file splice read
+> and write, which is not compatiple with overlayfs, returning
+> EFAULT. xfstests generic/591 can reproduce part of this.
 >
-> It's been a while since I posted my last version of syncfs improvement patch[1]
-> and I noticed it isn't get merged yet. If you think this patch is still valuable then
-> I would like to do rebase on latest overlayfs tree and resend for review.
-> What do you think?
+> Tested this patch with xfstests auto group tests.
 
+Thanks, applied.
 
-Hi,
-
-Sorry, this has fallen off my radar.  Can you please rebase and resend?
-
-Thanks,
 Miklos
