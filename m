@@ -2,64 +2,61 @@ Return-Path: <SRS0=T6lg=3U=vger.kernel.org=linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4BF5EC2D0DB
-	for <linux-unionfs@archiver.kernel.org>; Fri, 31 Jan 2020 14:53:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 64942C35246
+	for <linux-unionfs@archiver.kernel.org>; Fri, 31 Jan 2020 15:15:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id EF51E20707
-	for <linux-unionfs@archiver.kernel.org>; Fri, 31 Jan 2020 14:53:44 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DC9E220661
+	for <linux-unionfs@archiver.kernel.org>; Fri, 31 Jan 2020 15:15:40 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="PZycrQaU"
+	dkim=fail reason="key not found in DNS" (0-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b="nTUFJOyW"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728827AbgAaOxo (ORCPT
+        id S1728884AbgAaPPk (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Fri, 31 Jan 2020 09:53:44 -0500
-Received: from mail-il1-f196.google.com ([209.85.166.196]:36024 "EHLO
-        mail-il1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728825AbgAaOxo (ORCPT
+        Fri, 31 Jan 2020 10:15:40 -0500
+Received: from mail-io1-f68.google.com ([209.85.166.68]:35800 "EHLO
+        mail-io1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1729171AbgAaPPf (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 31 Jan 2020 09:53:44 -0500
-Received: by mail-il1-f196.google.com with SMTP id b15so6386994iln.3;
-        Fri, 31 Jan 2020 06:53:42 -0800 (PST)
+        Fri, 31 Jan 2020 10:15:35 -0500
+Received: by mail-io1-f68.google.com with SMTP id h8so8553033iob.2
+        for <linux-unionfs@vger.kernel.org>; Fri, 31 Jan 2020 07:15:34 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
+        d=szeredi.hu; s=google;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=fqQcjBrZh3VTK71cXXBXjuHv3p2/IvJ38yPD/lY1ysQ=;
-        b=PZycrQaU/gRr7IH3HZN2O4KvOSs6Fgx3kl5uoFBFRLVTK8mQcfBwxsH7vZk9vso/Og
-         v+NrCUNu+5Az/ChDCRebwebNA8NiIKGQ4ud2rCMdM1jMEw0cDbTTs2382njQILTIwggX
-         1mTdBHVhFaBz3rV2ahhcK0Sv2Io9Rrfk6/HG5yt1+eTSgGJ944cM7R63CqYJ3bcLxQF1
-         3Fa+YrNJaD8La2oe0tZtVbCS+4NetIzYv6ZGg2YKMUr6EViN8pIZ5YLrjasY/RgJEKmo
-         1Uqlm+/96Z6YHODnhABsqHNw5y+kjQCXT+dNMxybJilqXud4NEupVs9y0jdF+/nGbOx1
-         sH0w==
+        bh=qNOGVIc+75M2s1F0an171FX0kOJfthBjK3mNSx0gzqs=;
+        b=nTUFJOyW7qYZNnkYpIbPOkVP7TA/Wzpc9oqvr6kwxfh5EE3sc79xfb0jn/s31Xr1wB
+         ZMFqdCwtRt/j8pszVtXHN/TdA6T3WJdIXua66BIHfnBQXVyDpxDUEDgvS3Tt29r0MJtQ
+         97vNyAFx1wGq4eeWocyS70tdeaUtXT8jRVkk8=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=fqQcjBrZh3VTK71cXXBXjuHv3p2/IvJ38yPD/lY1ysQ=;
-        b=rZ1/LERk9a9U1zjI2TIuCSJO1BaH268NW30w7sKToPi7wf+80Wiz31Y7/eRv1q1T4N
-         PdWpIjqkR1wMpurzAGmQK7T68Tl15/i/pbJipPt6ejbb5HQc+2J9l71zJ/eykhPuLHit
-         /2UDWOphx2IhTOj7Y3nkTo3ZYwpeAsvjjX0TcQn66VAF+41vGyvuTb0Gy46aNu7hK1Lr
-         VbBJ+o7/zqurYi5zmiyNi5XnKmud+Y+DnIxk98hU0u+gxXJfl1ExKnrAH1X7a4H97Uc+
-         sORZQjEZHV4rIUUI0cT48XFM52nV3JxGutHFtruaNBM8S9YHe4Yh7UxaWXJPYFnXy7ZD
-         yWkw==
-X-Gm-Message-State: APjAAAWdGlU8c3+uAf5/KJs0lNP1snuIKjcfh6/AOzm6SM0Vs4pKcWVN
-        QjxEvO9WIvJLBNgnvnYfSXhcNWrFpc4dUR4d0Y8=
-X-Google-Smtp-Source: APXvYqxJeD9xFMFUPkeb7vh0CuwkdGxKEPwYnMjgzVx2xaqeRB0RvlSwRqFiaywfp/QryywsP1mFtvSvA7Gjs6vEkog=
-X-Received: by 2002:a92:9c8c:: with SMTP id x12mr3031854ill.275.1580482422175;
- Fri, 31 Jan 2020 06:53:42 -0800 (PST)
+        bh=qNOGVIc+75M2s1F0an171FX0kOJfthBjK3mNSx0gzqs=;
+        b=BF6KdochtrIIzXveeE30PQI+viuC0/M8bCWhcgX+Z1EiGjkP0bxCHojhziqEZ5gTWg
+         4RvheK6ZfeUezQYCZdoNlQimzNaUCA7B20PYYgQFC5sMS5P+GUM+SGtS3TSm/giPk0Zk
+         qYlhcaFVPsAN/cAKasJZchfTcfL7xYDC1Ccb/Fo0SDScldErhgHKa8aCeqYCvJvWBcdD
+         k9hZf3HukIFH2kBSN6RSPQXgUHeQN06GhVi6VCORgGP3lkrnNNPLIiR/wVdOZ63gUJjT
+         Y9oOsfGsxxVc64TSr0/jt3EjAjDCuLaAWrfwrGN/cUGQEBdLzNVww1Nrd7OECmTwugXl
+         Nm+w==
+X-Gm-Message-State: APjAAAUwJHc5JbSLEqR5U/LzezyOas0GnxWkcjmPwhXx94EgmP/NS0ir
+        QYDhHmX39Nd5tWUr2GNo7kCqEljiYjGiKbrDV42ZWw==
+X-Google-Smtp-Source: APXvYqw6nhm24Myv1X36IeuA9xaHU4a25zpyNDyg+RpiU0BrKWDJUY9DMs7AjvpIPABAKLghFPkSuU3rflo28vHTLVc=
+X-Received: by 2002:a5d:9a05:: with SMTP id s5mr8776299iol.252.1580483734425;
+ Fri, 31 Jan 2020 07:15:34 -0800 (PST)
 MIME-Version: 1.0
 References: <20200131115004.17410-1-mszeredi@redhat.com> <20200131115004.17410-4-mszeredi@redhat.com>
-In-Reply-To: <20200131115004.17410-4-mszeredi@redhat.com>
-From:   Amir Goldstein <amir73il@gmail.com>
-Date:   Fri, 31 Jan 2020 16:53:31 +0200
-Message-ID: <CAOQ4uxjR+6wqWMKf18qOEKk-VndVaHPtttPf6c06yK=9OphB8Q@mail.gmail.com>
+ <CAOQ4uxjR+6wqWMKf18qOEKk-VndVaHPtttPf6c06yK=9OphB8Q@mail.gmail.com>
+In-Reply-To: <CAOQ4uxjR+6wqWMKf18qOEKk-VndVaHPtttPf6c06yK=9OphB8Q@mail.gmail.com>
+From:   Miklos Szeredi <miklos@szeredi.hu>
+Date:   Fri, 31 Jan 2020 16:15:23 +0100
+Message-ID: <CAJfpegsek1OM+XGA5mHMTuZ_r37hp_e_YkQkgaXjWJu=dvpONA@mail.gmail.com>
 Subject: Re: [PATCH 3/4] ovl: decide if revalidate needed on a per-dentry bases
-To:     Miklos Szeredi <mszeredi@redhat.com>
+To:     Amir Goldstein <amir73il@gmail.com>
 Cc:     overlayfs <linux-unionfs@vger.kernel.org>,
         linux-fsdevel <linux-fsdevel@vger.kernel.org>,
         Vivek Goyal <vgoyal@redhat.com>
@@ -69,183 +66,20 @@ Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Fri, Jan 31, 2020 at 1:51 PM Miklos Szeredi <mszeredi@redhat.com> wrote:
+> > diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
+> > index 67cd2866aaa2..3ad8fb291f7d 100644
+> > --- a/fs/overlayfs/util.c
+> > +++ b/fs/overlayfs/util.c
+> > @@ -90,10 +90,19 @@ struct ovl_entry *ovl_alloc_entry(unsigned int numlower)
+> >         return oe;
+> >  }
+> >
+> > -bool ovl_dentry_remote(struct dentry *dentry)
 >
-> Allow completely skipping ->revalidate() on a per-dentry bases, in case the
-> underlying layers used for a dentry do not themselves have ->revalidate().
->
-> E.g. negative overlay dentry has no underlying layers, hence revalidate is
-> unnecessary.  Or if lower layer is remote but overlay dentry is pure-upper,
-> then can skip revalidate.
->
-> The following places need to update whether the dentry needs revalidate or
-> not:
->
->  - fill-super (root dentry)
->  - lookup
->  - create
->  - fh_to_dentry
->
-> Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
-> ---
->  fs/overlayfs/dir.c       |  3 +++
->  fs/overlayfs/export.c    |  2 ++
->  fs/overlayfs/namei.c     |  3 +++
->  fs/overlayfs/overlayfs.h |  3 ++-
->  fs/overlayfs/super.c     | 23 +++++++----------------
->  fs/overlayfs/util.c      | 15 ++++++++++++---
->  6 files changed, 29 insertions(+), 20 deletions(-)
->
-> diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
-> index 8e57d5372b8f..b3471ef51440 100644
-> --- a/fs/overlayfs/dir.c
-> +++ b/fs/overlayfs/dir.c
-> @@ -243,6 +243,9 @@ static int ovl_instantiate(struct dentry *dentry, struct inode *inode,
->
->         ovl_dir_modified(dentry->d_parent, false);
->         ovl_dentry_set_upper_alias(dentry);
-> +       ovl_dentry_update_reval(dentry, newdentry,
-> +                       DCACHE_OP_REVALIDATE | DCACHE_OP_WEAK_REVALIDATE);
-> +
->         if (!hardlink) {
->                 /*
->                  * ovl_obtain_alias() can be called after ovl_create_real()
-> diff --git a/fs/overlayfs/export.c b/fs/overlayfs/export.c
-> index 6f54d70cef27..a58b3d9b06b9 100644
-> --- a/fs/overlayfs/export.c
-> +++ b/fs/overlayfs/export.c
-> @@ -324,6 +324,8 @@ static struct dentry *ovl_obtain_alias(struct super_block *sb,
->                 if (upper_alias)
->                         ovl_dentry_set_upper_alias(dentry);
->         }
-> +       ovl_dentry_update_reval(dentry, upper,
-> +                       DCACHE_OP_REVALIDATE | DCACHE_OP_WEAK_REVALIDATE);
->
->         return d_instantiate_anon(dentry, inode);
->
-> diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
-> index a5b998a93a24..76e61cc27822 100644
-> --- a/fs/overlayfs/namei.c
-> +++ b/fs/overlayfs/namei.c
-> @@ -1077,6 +1077,9 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
->                         goto out_free_oe;
->         }
->
-> +       ovl_dentry_update_reval(dentry, upperdentry,
-> +                       DCACHE_OP_REVALIDATE | DCACHE_OP_WEAK_REVALIDATE);
-> +
->         revert_creds(old_cred);
->         if (origin_path) {
->                 dput(origin_path->dentry);
-> diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-> index 3623d28aa4fa..68124a4f8f9b 100644
-> --- a/fs/overlayfs/overlayfs.h
-> +++ b/fs/overlayfs/overlayfs.h
-> @@ -229,7 +229,8 @@ struct dentry *ovl_indexdir(struct super_block *sb);
->  bool ovl_index_all(struct super_block *sb);
->  bool ovl_verify_lower(struct super_block *sb);
->  struct ovl_entry *ovl_alloc_entry(unsigned int numlower);
-> -bool ovl_dentry_remote(struct dentry *dentry);
-> +void ovl_dentry_update_reval(struct dentry *dentry, struct dentry *upperdentry,
-> +                            unsigned int mask);
->  bool ovl_dentry_weird(struct dentry *dentry);
->  enum ovl_path_type ovl_path_type(struct dentry *dentry);
->  void ovl_path_upper(struct dentry *dentry, struct path *path);
-> diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-> index 7e294bf719ff..26d4153240a8 100644
-> --- a/fs/overlayfs/super.c
-> +++ b/fs/overlayfs/super.c
-> @@ -158,11 +158,6 @@ static int ovl_dentry_weak_revalidate(struct dentry *dentry, unsigned int flags)
->  static const struct dentry_operations ovl_dentry_operations = {
->         .d_release = ovl_dentry_release,
->         .d_real = ovl_d_real,
-> -};
-> -
-> -static const struct dentry_operations ovl_reval_dentry_operations = {
-> -       .d_release = ovl_dentry_release,
-> -       .d_real = ovl_d_real,
->         .d_revalidate = ovl_dentry_revalidate,
->         .d_weak_revalidate = ovl_dentry_weak_revalidate,
->  };
-> @@ -779,7 +774,7 @@ static int ovl_check_namelen(struct path *path, struct ovl_fs *ofs,
->  }
->
->  static int ovl_lower_dir(const char *name, struct path *path,
-> -                        struct ovl_fs *ofs, int *stack_depth, bool *remote)
-> +                        struct ovl_fs *ofs, int *stack_depth)
->  {
->         int fh_type;
->         int err;
-> @@ -794,9 +789,6 @@ static int ovl_lower_dir(const char *name, struct path *path,
->
->         *stack_depth = max(*stack_depth, path->mnt->mnt_sb->s_stack_depth);
->
-> -       if (ovl_dentry_remote(path->dentry))
-> -               *remote = true;
-> -
->         /*
->          * The inodes index feature and NFS export need to encode and decode
->          * file handles, so they require that all layers support them.
-> @@ -1439,7 +1431,6 @@ static struct ovl_entry *ovl_get_lowerstack(struct super_block *sb,
->         char *lowertmp, *lower;
->         struct path *stack = NULL;
->         unsigned int stacklen, numlower = 0, i;
-> -       bool remote = false;
->         struct ovl_entry *oe;
->
->         err = -ENOMEM;
-> @@ -1471,7 +1462,7 @@ static struct ovl_entry *ovl_get_lowerstack(struct super_block *sb,
->         lower = lowertmp;
->         for (numlower = 0; numlower < stacklen; numlower++) {
->                 err = ovl_lower_dir(lower, &stack[numlower], ofs,
-> -                                   &sb->s_stack_depth, &remote);
-> +                                   &sb->s_stack_depth);
->                 if (err)
->                         goto out_err;
->
-> @@ -1499,11 +1490,6 @@ static struct ovl_entry *ovl_get_lowerstack(struct super_block *sb,
->                 oe->lowerstack[i].layer = &ofs->layers[i+1];
->         }
->
-> -       if (remote)
-> -               sb->s_d_op = &ovl_reval_dentry_operations;
-> -       else
-> -               sb->s_d_op = &ovl_dentry_operations;
-> -
->  out:
->         for (i = 0; i < numlower; i++)
->                 path_put(&stack[i]);
-> @@ -1597,6 +1583,8 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
->         struct cred *cred;
->         int err;
->
-> +       sb->s_d_op = &ovl_dentry_operations;
-> +
->         err = -ENOMEM;
->         ofs = kzalloc(sizeof(struct ovl_fs), GFP_KERNEL);
->         if (!ofs)
-> @@ -1724,6 +1712,9 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
->         ovl_inode_init(d_inode(root_dentry), upperpath.dentry,
->                        ovl_dentry_lower(root_dentry), NULL);
->
-> +       ovl_dentry_update_reval(root_dentry, upperpath.dentry,
-> +                               DCACHE_OP_WEAK_REVALIDATE);
-> +
->         sb->s_root = root_dentry;
->
->         return 0;
-> diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
-> index 67cd2866aaa2..3ad8fb291f7d 100644
-> --- a/fs/overlayfs/util.c
-> +++ b/fs/overlayfs/util.c
-> @@ -90,10 +90,19 @@ struct ovl_entry *ovl_alloc_entry(unsigned int numlower)
->         return oe;
->  }
->
-> -bool ovl_dentry_remote(struct dentry *dentry)
+> Removed too early. It still has users.
+> Otherwise looks ok.
 
-Removed too early. It still has users.
-Otherwise looks ok.
+Thanks, fixed ones pushed to @ovl-remote-upper-v2.
 
 Thanks,
-Amir.
+Miklos
