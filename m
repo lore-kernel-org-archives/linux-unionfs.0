@@ -2,157 +2,151 @@ Return-Path: <SRS0=9nie=3Y=vger.kernel.org=linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-14.8 required=3.0
-	tests=HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5F1E8C35247
-	for <linux-unionfs@archiver.kernel.org>; Tue,  4 Feb 2020 18:50:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1C5EEC35247
+	for <linux-unionfs@archiver.kernel.org>; Tue,  4 Feb 2020 19:11:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 3CEE82084E
-	for <linux-unionfs@archiver.kernel.org>; Tue,  4 Feb 2020 18:50:07 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DFB8820674
+	for <linux-unionfs@archiver.kernel.org>; Tue,  4 Feb 2020 19:11:53 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="uZInOuNa"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727381AbgBDSuE (ORCPT
+        id S1727389AbgBDTLx (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Tue, 4 Feb 2020 13:50:04 -0500
-Received: from youngberry.canonical.com ([91.189.89.112]:32788 "EHLO
-        youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727389AbgBDSuD (ORCPT
+        Tue, 4 Feb 2020 14:11:53 -0500
+Received: from mail-io1-f66.google.com ([209.85.166.66]:38182 "EHLO
+        mail-io1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727308AbgBDTLx (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 4 Feb 2020 13:50:03 -0500
-Received: from mail-wm1-f72.google.com ([209.85.128.72])
-        by youngberry.canonical.com with esmtps (TLS1.2:ECDHE_RSA_AES_128_GCM_SHA256:128)
-        (Exim 4.86_2)
-        (envelope-from <ioanna-maria.alifieraki@canonical.com>)
-        id 1iz3Gr-00051W-Qt
-        for linux-unionfs@vger.kernel.org; Tue, 04 Feb 2020 18:50:01 +0000
-Received: by mail-wm1-f72.google.com with SMTP id s25so1859617wmj.3
-        for <linux-unionfs@vger.kernel.org>; Tue, 04 Feb 2020 10:50:01 -0800 (PST)
+        Tue, 4 Feb 2020 14:11:53 -0500
+Received: by mail-io1-f66.google.com with SMTP id s24so22211103iog.5;
+        Tue, 04 Feb 2020 11:11:53 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=PgG8Aq1eztnn8MeKd1kOrjhva+lvRx+uFNlRHL5Qu5I=;
+        b=uZInOuNauUYF1jvM/tnRGgkRGL0wfuh8xNLYFI8v3njC90tE3jdcOonalGltGzeQ2n
+         Gdc0dS8IpDhm4wyBUtVUZghCp/AGi+F4bOG4h7If6sPAZaip1IvRl/8mG3LRB4P49zIi
+         uCVYqkbgM/+JGcV/VBosz1zxU7He1HMaAJ7g7ERVlWBzW44TF79aZZZ4T9DLSPwaGfLZ
+         atkfP/ET5xWHjbYTV3cSFONdxu2pa46Vraqu04ZU2w4oa+6qNAdBIhe9cTiR8alStb5W
+         cl4kzkfbeg4rYfUO1eqgOqTpwZGNTUP9u5LX+n7oc+pFfasZG2e0u6rAGUizSOzr8Xvv
+         nveA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:subject:date:message-id;
-        bh=wqNJjW0961V0F/Hsv7qunFjB3mjgTIfFca5lKHl9ZDc=;
-        b=YXPRZP2QEVL7uE4lnwoP7LyU0UWf0Dw9MoZGEceI9eFlqNJqXBNVslpvXnt78MmRr0
-         0rVl1AFGafD1tVMtZ4tb4kYamqrSY3rK9fOvX5R20eMVdhmRsRxLuu4GImYMUdSw6l9A
-         1gzjDokfhVgNo23E/BOKptXWfJGBtOlNBWKm3mekg/ZvPjlm8ujhkSFrU4vSWaHkaY9T
-         3qfTRBGOwG+ahKuVO9emc362clnH0vPHaDT+YaclPXm2k1ngP3aLqAKlYln1pX0SGQQi
-         3uTm/CoiPNwM0g8CUNA6fuOV0C6gJx7ngfRBUU+Q1daQa2Wnvx6yBHfL5JA8cPQMMZsX
-         q3LA==
-X-Gm-Message-State: APjAAAXwsww6bfMfTrow196day7gln2H/9ze8yufBTNSgDh0VeAiZ7KC
-        DiCh/Q1VtRzckL+RS65fj2IYcEdi1/P0LPXAS7NoqyukCrKU2K102TSB+nkKOZzSOfMrSffJ2tj
-        kurpgyQf4I3PEKKoSaZfKQNZCd6DT00hltVT5XfXHO5k=
-X-Received: by 2002:a1c:4144:: with SMTP id o65mr366351wma.81.1580842201477;
-        Tue, 04 Feb 2020 10:50:01 -0800 (PST)
-X-Google-Smtp-Source: APXvYqzRFe+hJeL5rST0hSaPR4ib64GGHXk5+nrGpO0tQaud4j5+He+r93rqdEj/r9gqdbdAPTBb0A==
-X-Received: by 2002:a1c:4144:: with SMTP id o65mr366332wma.81.1580842201208;
-        Tue, 04 Feb 2020 10:50:01 -0800 (PST)
-Received: from localhost ([2a02:587:2808:4200:3c88:b258:f61b:eab3])
-        by smtp.gmail.com with ESMTPSA id z11sm30520937wrv.96.2020.02.04.10.50.00
-        (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
-        Tue, 04 Feb 2020 10:50:00 -0800 (PST)
-From:   Ioanna Alifieraki <ioanna-maria.alifieraki@canonical.com>
-To:     ioanna.alifieraki@gmail.com, jay.vosburgh@canonical.com,
-        miklos@szeredi.hu, linux-unionfs@vger.kernel.org,
-        linux-kernel@vger.kernel.org, stable@vger.kernel.org,
-        gregkh@linuxfoundation.org, srivatsa@csail.mit.edu
-Subject: [4.4.y PATCH] Revert "ovl: modify ovl_permission() to do checks on two inodes"
-Date:   Tue,  4 Feb 2020 18:49:58 +0000
-Message-Id: <20200204184958.6586-1-ioanna-maria.alifieraki@canonical.com>
-X-Mailer: git-send-email 2.17.1
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=PgG8Aq1eztnn8MeKd1kOrjhva+lvRx+uFNlRHL5Qu5I=;
+        b=kdRW6Pcfv3idHr/HUvGexwD0OzCyCAsvZUo+s1WGBNqyGIGiGfEbxJu6/5+z2UKvSi
+         xtTRcWrLXO80P98GpraXQHGKefA2gsqeDEts09EmyRsokVvEp1oVQ7kYSugyqFgAZ7Rh
+         p8F7z/n7SLXlRrU1/S7QgPa+1G7MEt8l/2UjAuvV6zgn8Se9AJe95V9cpNYdoGO5vXc0
+         Bc/t9Ba8mYejHF6iam/HgqVEE3OfJwbcjDVf9J0asTry7L+DDLabsmjfgE/eQRXrs1Yt
+         Js7SH2s4EYn78Zk/DkrMSXw3+afRauMZHAzUdemGD1Q46xtonLwNKbrbYzXQdMw8qWh5
+         kosA==
+X-Gm-Message-State: APjAAAV1TjK5/P/KvYPyqTJTke7IByIXaBieiwpa0oRB1SBBnPH17v0b
+        FJ+Rzs6U3bZsDFTxa+EMy3E29uzWObHiJMvwBS8=
+X-Google-Smtp-Source: APXvYqx2o6LrUei5DNhzbK+xbt8F9aQdjZPLZXRv4TpQJjenwJlWW5kuprX/zqiFsKW5XAmo4f1j68K/B7tEYyurnSA=
+X-Received: by 2002:a5d:9c8c:: with SMTP id p12mr25031745iop.72.1580843512760;
+ Tue, 04 Feb 2020 11:11:52 -0800 (PST)
+MIME-Version: 1.0
+References: <20200131115004.17410-1-mszeredi@redhat.com> <20200131115004.17410-5-mszeredi@redhat.com>
+ <20200204145951.GC11631@redhat.com> <CAJfpegtq4A-m9vOPwUftiotC_Xv6w-dnhCi9=E0t-b1ZPJXPGw@mail.gmail.com>
+ <CAOQ4uxj_pVp9-EN2Gmq9j6G3xozzpK_zQiRO-brx6PZ9VpgD0Q@mail.gmail.com> <20200204184221.GA24566@redhat.com>
+In-Reply-To: <20200204184221.GA24566@redhat.com>
+From:   Amir Goldstein <amir73il@gmail.com>
+Date:   Tue, 4 Feb 2020 21:11:41 +0200
+Message-ID: <CAOQ4uxhfV++XvO17ywftnhLoryYsynF=Y-pHCwmPdymc6naOFg@mail.gmail.com>
+Subject: Re: [PATCH 4/4] ovl: alllow remote upper
+To:     Vivek Goyal <vgoyal@redhat.com>
+Cc:     Miklos Szeredi <miklos@szeredi.hu>,
+        Miklos Szeredi <mszeredi@redhat.com>,
+        overlayfs <linux-unionfs@vger.kernel.org>,
+        linux-fsdevel <linux-fsdevel@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-unionfs-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-This reverts commit b24be4acd17a8963a29b2a92e1d80b9ddf759c95.
+On Tue, Feb 4, 2020 at 8:42 PM Vivek Goyal <vgoyal@redhat.com> wrote:
+>
+> On Tue, Feb 04, 2020 at 07:02:05PM +0200, Amir Goldstein wrote:
+> > On Tue, Feb 4, 2020 at 6:17 PM Miklos Szeredi <miklos@szeredi.hu> wrote:
+> > >
+> > > On Tue, Feb 4, 2020 at 3:59 PM Vivek Goyal <vgoyal@redhat.com> wrote:
+> > > >
+> > > > On Fri, Jan 31, 2020 at 12:50:04PM +0100, Miklos Szeredi wrote:
+> > > > > No reason to prevent upper layer being a remote filesystem.  Do the
+> > > > > revalidation in that case, just as we already do for lower layers.
+> > > > >
+> > > > > This lets virtiofs be used as upper layer, which appears to be a real use
+> > > > > case.
+> > > >
+> > > > Hi Miklos,
+> > > >
+> > > > I have couple of very basic questions.
+> > > >
+> > > > - So with this change, we will allow NFS to be upper layer also?
+> > >
+> > > I haven't tested, but I think it will fail on the d_type test.
+> >
+> > But we do not fail mount on no d_type support...
+> > Besides, I though you were going to add the RENAME_WHITEOUT
+> > test to avert untested network fs as upper.
+> >
+> > >
+> > > > - What does revalidation on lower/upper mean? Does that mean that
+> > > >   lower/upper can now change underneath overlayfs and overlayfs will
+> > > >   cope with it.
+> > >
+> > > No, that's a more complicated thing.  Especially with redirected
+> > > layers (i.e. revalidating a redirect actually means revalidating all
+> > > the path components of that redirect).
+> > >
+> > > > If we still expect underlying layers not to change, then
+> > > >   what's the point of calling ->revalidate().
+> > >
+> > > That's a good question; I guess because that's what the filesystem
+> > > expects.  OTOH, it's probably unnecessary in most cases, since the
+> > > path could come from an open file descriptor, in which case the vfs
+> > > will not do any revalidation on that path.
+> > >
+> >
+> > Note that ovl_dentry_revalidate() never returns 0 and therefore, vfs
+> > will never actually redo the lookup, but instead return -ESTALE
+> > to userspace. Right? This makes some sense considering that underlying
+> > layers are not expected to change.
+> >
+> > The question is, with virtiofs, can we know that the server/host will not
+> > invalidate entries?
+>
+> I don't think virtiofs will ensure that server/host will not invalidate
+> entries. It will be more of a configuration thing where we will expect
+> users to configure things in such a way that shared directory does not
+> change.
+>
+> So that means, if user does not configure it properly and things change
+> unexpectedly, then overlayfs should be able to detect it and flag error
+> to user space?
+>
+> > And if it does, should it cause a permanent error
+> > in overlayfs or a transient error? If we do not want a permanent error,
+> > then ->revalidate() needs to be called to invalidate the overlay dentry. No?
+>
+> So as of now user space will get -ESTALE and that will get cleared when
+> user space retries after corresponding ovl dentry has been dropped from
+> cache (either dentry is evicted, cache is cleared forcibly or overlayfs
+> is remounted)? If yes, that kind of makes sense. Overlay does not expect
+> underlying layers to change and if a change it detected it is flagged
+> to user space (and overlayfs does not try to fix it)?
+>
 
-Commit b24be4acd17a ("ovl: modify ovl_permission() to do checks on two
-inodes") (stable kernel  id) breaks r/w access in overlayfs when setting
-ACL to files, in 4.4 stable kernel. There is an available reproducer in
-[1].
+I looks like it. I don't really understand why overlayfs shouldn't drop
+the dentry on failure to revalidate. Maybe I am missing something.
 
-To reproduce the issue :
-$./make-overlay.sh
-$./test.sh
-st_mode is 100644
-open failed: -1
-cat: /tmp/overlay/animal: Permission denied <---- Breaks access
--rw-r--r-- 1 jo jo 0 Oct 11 09:57 /tmp/overlay/animal
-
-There are two options to fix this; (a) backport commit ce31513a9114
-("ovl: copyattr after setting POSIX ACL") to 4.4 or (b) revert offending
-commit b24be4acd17a ("ovl: modify ovl_permission() to do checks on two
-inodes"). Following option (a) entails high risk of regression since
-commit ce31513a9114 ("ovl: copyattr after setting POSIX ACL") has many
-dependencies on other commits that need to be backported too (~18
-commits).
-
-This patch proceeds with reverting commit b24be4acd17a ("ovl: modify
-ovl_permission() to do checks on two inodes").  The reverted commit is
-associated with CVE-2018-16597, however the test-script provided in [3]
-shows that 4.4 kernel is  NOT affected by this cve and therefore it's
-safe to revert it.
-
-The offending commit was introduced upstream in v4.8-rc1. At this point
-had nothing to do with any CVE.  It was related with CVE-2018-16597 as
-it was the fix for bug [2]. Later on it was backported to stable 4.4.
-
-The test-script [3] tests whether 4.4 kernel is affected by
-CVE-2018-16597. It tests the reproducer found in [2] plus a few more
-cases. The correct output of the script is failure with "Permission
-denied" when a normal user tries to overwrite root owned files.  For
-more details please refer to [4].
-
-[1] https://gist.github.com/thomas-holmes/711bcdb28e2b8e6d1c39c1d99d292af7
-[2] https://bugzilla.suse.com/show_bug.cgi?id=1106512#c0
-[3] https://launchpadlibrarian.net/459694705/test_overlay_permission.sh
-[4] https://bugs.launchpad.net/ubuntu/+source/linux/+bug/1851243
-
-Signed-off-by: Ioanna Alifieraki <ioanna-maria.alifieraki@canonical.com>
----
- fs/overlayfs/inode.c | 13 -------------
- 1 file changed, 13 deletions(-)
-
-diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
-index 060482e349ef..013d27dc6f58 100644
---- a/fs/overlayfs/inode.c
-+++ b/fs/overlayfs/inode.c
-@@ -9,7 +9,6 @@
- 
- #include <linux/fs.h>
- #include <linux/slab.h>
--#include <linux/cred.h>
- #include <linux/xattr.h>
- #include "overlayfs.h"
- 
-@@ -92,7 +91,6 @@ int ovl_permission(struct inode *inode, int mask)
- 	struct ovl_entry *oe;
- 	struct dentry *alias = NULL;
- 	struct inode *realinode;
--	const struct cred *old_cred;
- 	struct dentry *realdentry;
- 	bool is_upper;
- 	int err;
-@@ -145,18 +143,7 @@ int ovl_permission(struct inode *inode, int mask)
- 			goto out_dput;
- 	}
- 
--	/*
--	 * Check overlay inode with the creds of task and underlying inode
--	 * with creds of mounter
--	 */
--	err = generic_permission(inode, mask);
--	if (err)
--		goto out_dput;
--
--	old_cred = ovl_override_creds(inode->i_sb);
- 	err = __inode_permission(realinode, mask);
--	revert_creds(old_cred);
--
- out_dput:
- 	dput(alias);
- 	return err;
--- 
-2.17.1
-
+Thanks,
+Amir.
