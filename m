@@ -2,65 +2,69 @@ Return-Path: <SRS0=9nie=3Y=vger.kernel.org=linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
+	SPF_HELO_NONE,SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6963DC3524D
-	for <linux-unionfs@archiver.kernel.org>; Tue,  4 Feb 2020 10:20:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1882CC2D0B1
+	for <linux-unionfs@archiver.kernel.org>; Tue,  4 Feb 2020 13:25:09 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 3C2F820674
-	for <linux-unionfs@archiver.kernel.org>; Tue,  4 Feb 2020 10:20:09 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=fail reason="key not found in DNS" (0-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b="n+phWuRi"
+	by mail.kernel.org (Postfix) with ESMTP id E527D2166E
+	for <linux-unionfs@archiver.kernel.org>; Tue,  4 Feb 2020 13:25:08 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1580822709;
+	bh=Rc6NqeXWz9S3r4LWSxPFOJ2ycNr1OekbG9nhhgvWA9c=;
+	h=Subject:From:In-Reply-To:References:Date:To:Cc:List-ID:From;
+	b=n7OWsdEnVenN1Azg6317wuS6+QYw4twR0kP30rat3lv3lFTbDDQbBL3dlLj10bGMM
+	 z37xPkGx+AMStrFxQB1H7dusEYyztmNHY0nCzvPN1dy1gzGynR+X/kFJuhJy1K0H2/
+	 uR16dcJMCDrNrruqr3pjgv4TNXXboTz/XV6APenM=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726574AbgBDKUJ (ORCPT
+        id S1727451AbgBDNZE (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Tue, 4 Feb 2020 05:20:09 -0500
-Received: from mail-io1-f54.google.com ([209.85.166.54]:45940 "EHLO
-        mail-io1-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726506AbgBDKUI (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 4 Feb 2020 05:20:08 -0500
-Received: by mail-io1-f54.google.com with SMTP id i11so20215235ioi.12
-        for <linux-unionfs@vger.kernel.org>; Tue, 04 Feb 2020 02:20:08 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=szeredi.hu; s=google;
-        h=mime-version:from:date:message-id:subject:to;
-        bh=rtWvxbFxRmS2DJppP4nF4FGfXrKAjyId7vxeppC6P00=;
-        b=n+phWuRiPMFcdMUqgy2X2H155f0xKcVlEzpPdGmnl35HXWmdWEHDxmk1sJOTcQ8mT4
-         bj1rAvjl/ZRBzVh70ZClZLFTkG1JGNXnaWZH8b/LIO4582FXPGOemXJGoyrsLIN4Dr8j
-         tmj5eR9WdNDacmASOgPpMLQxnS94qr7jYG56c=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:from:date:message-id:subject:to;
-        bh=rtWvxbFxRmS2DJppP4nF4FGfXrKAjyId7vxeppC6P00=;
-        b=k/s3Co28POfDNYWc+JBhmprtm6JvUxLwQ0sBnu4CplcXIrlQimjW6RAyVjGE5bWjkG
-         H0jBUX3Ercz430ggnZXNtcoo0/Yk69CL0o7bpTWztEPpXpI9U+5zq+4NJF0G/+MwNdM4
-         KotKPoMy00KLKXoc82XpSavbi3Jw3MFUNHMgdOr2nDN09McFkxAiqqbyPK3WPYW1ZdbG
-         L9Y6TMoyPJf2Uq68gaPYmmjpN69MOpVbCZAisN0Y5dytPd/fppkTtX3jAfQMZR7xksJa
-         FmtnLnIaykjkwRfrqkc8iHBRQ/sF1kc0j67fO8o+N0a+gE9n8XKkzU+g9Y/udYmI6kZd
-         YW/w==
-X-Gm-Message-State: APjAAAVMAS3eAB3o3L/cxovnyvkg6TBNfBFf7BchN+jMwddGfS676Ymn
-        EcOZ1CLkbnMhO10x2WOeUnM1jm3hTRbXhMf+7LWkqQJHz7k=
-X-Google-Smtp-Source: APXvYqzGseW8cI2ucUlZfKIiFirVTw3NDYWGWIhoYXrCRK9xAkjqp5Py/6g0GLOfRELyc8n03X7ONNrYYN6R0YjheR0=
-X-Received: by 2002:a05:6638:3b6:: with SMTP id z22mr23073821jap.35.1580811608069;
- Tue, 04 Feb 2020 02:20:08 -0800 (PST)
-MIME-Version: 1.0
-From:   Miklos Szeredi <miklos@szeredi.hu>
-Date:   Tue, 4 Feb 2020 11:19:57 +0100
-Message-ID: <CAJfpegtz4fRPL9pRBW_-3KbLwW5t+1Er3VR=tt5r7_eU9KtxFA@mail.gmail.com>
-Subject: lore archive
-To:     overlayfs <linux-unionfs@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+        Tue, 4 Feb 2020 08:25:04 -0500
+Received: from mail.kernel.org ([198.145.29.99]:35310 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727439AbgBDNZE (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Tue, 4 Feb 2020 08:25:04 -0500
+Subject: Re: [GIT PULL] overlayfs update for 5.6
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1580822703;
+        bh=Rc6NqeXWz9S3r4LWSxPFOJ2ycNr1OekbG9nhhgvWA9c=;
+        h=From:In-Reply-To:References:Date:To:Cc:From;
+        b=vG5IZN1vJ5ZIqJPAhvKYdjh8/GlnSTQojD1RzAybg0MIron8Xopc8DQ/DhqjyxrnB
+         dVPlKVQa1NZ16nasaw+jf+MuNhfUDDlykeH9GON6+Pwa1Cro3iF5nRvexUsyEibbu3
+         PFABCSVK/Bu08Edz0Yoc4CIrcpU2Vn0aSpjVdMKU=
+From:   pr-tracker-bot@kernel.org
+In-Reply-To: <20200204093758.GA7822@miu.piliscsaba.redhat.com>
+References: <20200204093758.GA7822@miu.piliscsaba.redhat.com>
+X-PR-Tracked-List-Id: <linux-fsdevel.vger.kernel.org>
+X-PR-Tracked-Message-Id: <20200204093758.GA7822@miu.piliscsaba.redhat.com>
+X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/mszeredi/vfs.git
+ tags/ovl-update-5.6
+X-PR-Tracked-Commit-Id: a4ac9d45c0cd14a2adc872186431c79804b77dbf
+X-PR-Merge-Tree: torvalds/linux.git
+X-PR-Merge-Refname: refs/heads/master
+X-PR-Merge-Commit-Id: 7f879e1a94ac99586abf0659c03f35c1e48279c4
+Message-Id: <158082270392.19118.7086093890010037735.pr-tracker-bot@kernel.org>
+Date:   Tue, 04 Feb 2020 13:25:03 +0000
+To:     Miklos Szeredi <miklos@szeredi.hu>
+Cc:     Linus Torvalds <torvalds@linux-foundation.org>,
+        linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org,
+        linux-unionfs@vger.kernel.org
 Sender: linux-unionfs-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-This list (linux-unionfs@vger.kernel.org) is now archived on lore:
+The pull request you sent on Tue, 4 Feb 2020 10:37:58 +0100:
 
-   https://lore.kernel.org/linux-unionfs/
+> git://git.kernel.org/pub/scm/linux/kernel/git/mszeredi/vfs.git tags/ovl-update-5.6
 
-Thanks,
-Miklos
+has been merged into torvalds/linux.git:
+https://git.kernel.org/torvalds/c/7f879e1a94ac99586abf0659c03f35c1e48279c4
+
+Thank you!
+
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.wiki.kernel.org/userdoc/prtracker
