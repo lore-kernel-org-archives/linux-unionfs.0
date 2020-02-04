@@ -2,176 +2,125 @@ Return-Path: <SRS0=9nie=3Y=vger.kernel.org=linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E8778C35247
-	for <linux-unionfs@archiver.kernel.org>; Tue,  4 Feb 2020 16:17:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 61102C35247
+	for <linux-unionfs@archiver.kernel.org>; Tue,  4 Feb 2020 17:02:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 4F7862087E
-	for <linux-unionfs@archiver.kernel.org>; Tue,  4 Feb 2020 16:17:02 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3316E20674
+	for <linux-unionfs@archiver.kernel.org>; Tue,  4 Feb 2020 17:02:19 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="key not found in DNS" (0-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b="eWrdZfPA"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="CLSeYeek"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727347AbgBDQRC (ORCPT
+        id S1727321AbgBDRCS (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Tue, 4 Feb 2020 11:17:02 -0500
-Received: from mail-il1-f193.google.com ([209.85.166.193]:35850 "EHLO
-        mail-il1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727310AbgBDQRB (ORCPT
+        Tue, 4 Feb 2020 12:02:18 -0500
+Received: from mail-io1-f65.google.com ([209.85.166.65]:35345 "EHLO
+        mail-io1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727296AbgBDRCS (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 4 Feb 2020 11:17:01 -0500
-Received: by mail-il1-f193.google.com with SMTP id b15so16365174iln.3
-        for <linux-unionfs@vger.kernel.org>; Tue, 04 Feb 2020 08:17:01 -0800 (PST)
+        Tue, 4 Feb 2020 12:02:18 -0500
+Received: by mail-io1-f65.google.com with SMTP id h8so21764102iob.2;
+        Tue, 04 Feb 2020 09:02:18 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=szeredi.hu; s=google;
+        d=gmail.com; s=20161025;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=wQIybpWInC8dEcn8TOu2S7Vc2bFJuw35GnXDoWrVrY4=;
-        b=eWrdZfPA0Db+MUje3N/HuEmwZOyaeosBDx/f0G6IvvIE+WI0ke3Nvq0WGuPCXC2jDM
-         qT1Wii7UrAukJ0hyQDpwpEYXBJyGhXGrp6aIam2xPXDego5v+DZE0xVC9N0BVCDZOBax
-         jdDYTJ1ccytb+uFgyrQw6kC0am3SaqWLi1EtI=
+        bh=9hgrgZa0/qPIZBM7xd/+cQT5nbAgAJPDrB+di6igVMM=;
+        b=CLSeYeek5KGnACnmxd9hBeeW3NWeHluT/MTzWH7gzDZFIWrtTUFnfUmZedmR736lM3
+         jXVANRsSJ5nEeEmOcGa5PqseOrPcDFnSmWKcR9WWKKWiFfTTW+SY8HLO/b6p+k4aNYep
+         Log19NYHXAhaAn0UFGRPrcL3kul6emclRLoDviNvR9a9bwfuZdj8TEZMjHVldTHxHn2B
+         N1RsgRCSya2WLd91pet2/oSTKEkBRylMeeucI52Ic7dKC52KwPJt0t/KWZkTP1WAw3zt
+         /+2TLt30vik9Km97CE9IUn7VQ3H+afAgpmli9fVG7YoW9pWu2YRCGINdL+/Y1KVfj676
+         X7zQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=wQIybpWInC8dEcn8TOu2S7Vc2bFJuw35GnXDoWrVrY4=;
-        b=PqgS4USK+Cn0PPRnlaa7NFL4xlhTb+RZu99nU8rhDnmaR7Z+E2K8WQ9VpEtG4gNyJe
-         L/lZj5kltjPmjGTKMa7BqLWJ+qxLLwVhje4ZMd/3Fz90lxIvXXWr4Tp4r3O9vqzRzGuO
-         Mqe8Fwwp1FZGiYVme3ErxPvwMAlfCcQWy06bXjAjFmGRy3kj1D9tvoJw+QynbRokPlSW
-         Nv8yzYWi0Db+6ol1AUDgqk1zoYxSn8JEdf4g+y1E0c28XEp5WiExaMkEMDkVlRh4kMBe
-         iVGde3Sqc7k2E+XxNKyKsHUL4m/7ZA4D6xeCWduyOjPP3vu7pi/HTcP0lA6rBtfK9fN1
-         ekmA==
-X-Gm-Message-State: APjAAAWsohHa+RPYTU6QMsxuPtNnzFAXxhdqFsZw8LatGQJEeoZQLjQS
-        mG9kfxD54vi5DWDAW9EAZHcMOPoLC/0ACfm+un91WQ==
-X-Google-Smtp-Source: APXvYqznXnYS/019OrdL+SBRAMPJmsEF4vFpFj57JhVELxARgBS1YjfanJc9rODx0aru+fp0+hinOoX8Y9ebV7mvVJY=
-X-Received: by 2002:a92:3c93:: with SMTP id j19mr19936750ilf.63.1580833020864;
- Tue, 04 Feb 2020 08:17:00 -0800 (PST)
+        bh=9hgrgZa0/qPIZBM7xd/+cQT5nbAgAJPDrB+di6igVMM=;
+        b=TcOAL5aVgQ0tG5GKJ5pTLXFFf+3nxlv/XfS0aOsaAx4YciCvj0EuHStFxSc6aEUENj
+         jAVZEBkZXYx1ip4dPka2BQHgMR+7O7WBrj1C3L317/ymFX1dXpq5LIqyf2UlZtuoaCMi
+         z+kQwVra82sZhRbsSQSXeJ+sXY0dNqCsMi4WWUgG9DGAKPs4LDOpNulydIgJdzRPhP6t
+         4mWhAc/Jwdd9Zq3wDyTbklYqGi2fN8fIvmNldvpFicbAGfKNF/fcyUne73bx1aG9jEPS
+         VojI2IdjBRqUN4tqndeIFvKWxfaPHnpb0cDIu7C1SJsIpsb5+d2g8rg8iTNTm/jMKkL/
+         jVVg==
+X-Gm-Message-State: APjAAAWxsSzFbdq7HD/NCPt5HwZ5Rakl5vEPkpxXCb4GurPQ0H9/isz8
+        8BNZI7nd4+8n+IzipAFsEzbVT3wIspQCpTs4OPSL43dM
+X-Google-Smtp-Source: APXvYqxgCpIN+gtthDP/i0jdMkcmrP34/2jH4H9TEOMr9I/YIyCpa9Sf7hP9rj9A+3T318kIwEHUBM+yZKZhMO4V1DU=
+X-Received: by 2002:a02:c558:: with SMTP id g24mr25003659jaj.81.1580835737864;
+ Tue, 04 Feb 2020 09:02:17 -0800 (PST)
 MIME-Version: 1.0
 References: <20200131115004.17410-1-mszeredi@redhat.com> <20200131115004.17410-5-mszeredi@redhat.com>
- <20200204145951.GC11631@redhat.com>
-In-Reply-To: <20200204145951.GC11631@redhat.com>
-From:   Miklos Szeredi <miklos@szeredi.hu>
-Date:   Tue, 4 Feb 2020 17:16:49 +0100
-Message-ID: <CAJfpegtq4A-m9vOPwUftiotC_Xv6w-dnhCi9=E0t-b1ZPJXPGw@mail.gmail.com>
+ <20200204145951.GC11631@redhat.com> <CAJfpegtq4A-m9vOPwUftiotC_Xv6w-dnhCi9=E0t-b1ZPJXPGw@mail.gmail.com>
+In-Reply-To: <CAJfpegtq4A-m9vOPwUftiotC_Xv6w-dnhCi9=E0t-b1ZPJXPGw@mail.gmail.com>
+From:   Amir Goldstein <amir73il@gmail.com>
+Date:   Tue, 4 Feb 2020 19:02:05 +0200
+Message-ID: <CAOQ4uxj_pVp9-EN2Gmq9j6G3xozzpK_zQiRO-brx6PZ9VpgD0Q@mail.gmail.com>
 Subject: Re: [PATCH 4/4] ovl: alllow remote upper
-To:     Vivek Goyal <vgoyal@redhat.com>
-Cc:     Miklos Szeredi <mszeredi@redhat.com>,
+To:     Miklos Szeredi <miklos@szeredi.hu>
+Cc:     Vivek Goyal <vgoyal@redhat.com>,
+        Miklos Szeredi <mszeredi@redhat.com>,
         overlayfs <linux-unionfs@vger.kernel.org>,
-        linux-fsdevel@vger.kernel.org
+        linux-fsdevel <linux-fsdevel@vger.kernel.org>
 Content-Type: text/plain; charset="UTF-8"
 Sender: linux-unionfs-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Tue, Feb 4, 2020 at 3:59 PM Vivek Goyal <vgoyal@redhat.com> wrote:
+On Tue, Feb 4, 2020 at 6:17 PM Miklos Szeredi <miklos@szeredi.hu> wrote:
 >
-> On Fri, Jan 31, 2020 at 12:50:04PM +0100, Miklos Szeredi wrote:
-> > No reason to prevent upper layer being a remote filesystem.  Do the
-> > revalidation in that case, just as we already do for lower layers.
+> On Tue, Feb 4, 2020 at 3:59 PM Vivek Goyal <vgoyal@redhat.com> wrote:
 > >
-> > This lets virtiofs be used as upper layer, which appears to be a real use
-> > case.
+> > On Fri, Jan 31, 2020 at 12:50:04PM +0100, Miklos Szeredi wrote:
+> > > No reason to prevent upper layer being a remote filesystem.  Do the
+> > > revalidation in that case, just as we already do for lower layers.
+> > >
+> > > This lets virtiofs be used as upper layer, which appears to be a real use
+> > > case.
+> >
+> > Hi Miklos,
+> >
+> > I have couple of very basic questions.
+> >
+> > - So with this change, we will allow NFS to be upper layer also?
 >
-> Hi Miklos,
+> I haven't tested, but I think it will fail on the d_type test.
+
+But we do not fail mount on no d_type support...
+Besides, I though you were going to add the RENAME_WHITEOUT
+test to avert untested network fs as upper.
+
 >
-> I have couple of very basic questions.
+> > - What does revalidation on lower/upper mean? Does that mean that
+> >   lower/upper can now change underneath overlayfs and overlayfs will
+> >   cope with it.
 >
-> - So with this change, we will allow NFS to be upper layer also?
+> No, that's a more complicated thing.  Especially with redirected
+> layers (i.e. revalidating a redirect actually means revalidating all
+> the path components of that redirect).
+>
+> > If we still expect underlying layers not to change, then
+> >   what's the point of calling ->revalidate().
+>
+> That's a good question; I guess because that's what the filesystem
+> expects.  OTOH, it's probably unnecessary in most cases, since the
+> path could come from an open file descriptor, in which case the vfs
+> will not do any revalidation on that path.
+>
 
-I haven't tested, but I think it will fail on the d_type test.
+Note that ovl_dentry_revalidate() never returns 0 and therefore, vfs
+will never actually redo the lookup, but instead return -ESTALE
+to userspace. Right? This makes some sense considering that underlying
+layers are not expected to change.
 
-> - What does revalidation on lower/upper mean? Does that mean that
->   lower/upper can now change underneath overlayfs and overlayfs will
->   cope with it.
-
-No, that's a more complicated thing.  Especially with redirected
-layers (i.e. revalidating a redirect actually means revalidating all
-the path components of that redirect).
-
-> If we still expect underlying layers not to change, then
->   what's the point of calling ->revalidate().
-
-That's a good question; I guess because that's what the filesystem
-expects.  OTOH, it's probably unnecessary in most cases, since the
-path could come from an open file descriptor, in which case the vfs
-will not do any revalidation on that path.
-
-So this is basically done to be on the safe side, but it might not be necessary.
+The question is, with virtiofs, can we know that the server/host will not
+invalidate entries? And if it does, should it cause a permanent error
+in overlayfs or a transient error? If we do not want a permanent error,
+then ->revalidate() needs to be called to invalidate the overlay dentry. No?
 
 Thanks,
-Miklos
-
-> Thanks
-> Vivek
->
-> >
-> > Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
-> > ---
-> >  fs/overlayfs/namei.c | 3 +--
-> >  fs/overlayfs/super.c | 8 ++++++--
-> >  fs/overlayfs/util.c  | 2 ++
-> >  3 files changed, 9 insertions(+), 4 deletions(-)
-> >
-> > diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
-> > index 76e61cc27822..0db23baf98e7 100644
-> > --- a/fs/overlayfs/namei.c
-> > +++ b/fs/overlayfs/namei.c
-> > @@ -845,8 +845,7 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
-> >               if (err)
-> >                       goto out;
-> >
-> > -             if (upperdentry && (upperdentry->d_flags & DCACHE_OP_REAL ||
-> > -                                 unlikely(ovl_dentry_remote(upperdentry)))) {
-> > +             if (upperdentry && upperdentry->d_flags & DCACHE_OP_REAL) {
-> >                       dput(upperdentry);
-> >                       err = -EREMOTE;
-> >                       goto out;
-> > diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-> > index 26d4153240a8..ed3a11db9039 100644
-> > --- a/fs/overlayfs/super.c
-> > +++ b/fs/overlayfs/super.c
-> > @@ -135,9 +135,14 @@ static int ovl_dentry_revalidate_common(struct dentry *dentry,
-> >                                       unsigned int flags, bool weak)
-> >  {
-> >       struct ovl_entry *oe = dentry->d_fsdata;
-> > +     struct dentry *upper;
-> >       unsigned int i;
-> >       int ret = 1;
-> >
-> > +     upper = ovl_dentry_upper(dentry);
-> > +     if (upper)
-> > +             ret = ovl_revalidate_real(upper, flags, weak);
-> > +
-> >       for (i = 0; ret > 0 && i < oe->numlower; i++) {
-> >               ret = ovl_revalidate_real(oe->lowerstack[i].dentry, flags,
-> >                                         weak);
-> > @@ -747,8 +752,7 @@ static int ovl_mount_dir(const char *name, struct path *path)
-> >               ovl_unescape(tmp);
-> >               err = ovl_mount_dir_noesc(tmp, path);
-> >
-> > -             if (!err && (ovl_dentry_remote(path->dentry) ||
-> > -                          path->dentry->d_flags & DCACHE_OP_REAL)) {
-> > +             if (!err && path->dentry->d_flags & DCACHE_OP_REAL) {
-> >                       pr_err("filesystem on '%s' not supported as upperdir\n",
-> >                              tmp);
-> >                       path_put_init(path);
-> > diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
-> > index 3ad8fb291f7d..c793722739e1 100644
-> > --- a/fs/overlayfs/util.c
-> > +++ b/fs/overlayfs/util.c
-> > @@ -96,6 +96,8 @@ void ovl_dentry_update_reval(struct dentry *dentry, struct dentry *upperdentry,
-> >       struct ovl_entry *oe = OVL_E(dentry);
-> >       unsigned int i, flags = 0;
-> >
-> > +     if (upperdentry)
-> > +             flags |= upperdentry->d_flags;
-> >       for (i = 0; i < oe->numlower; i++)
-> >               flags |= oe->lowerstack[i].dentry->d_flags;
-> >
-> > --
-> > 2.21.1
-> >
->
+Amir.
