@@ -1,97 +1,71 @@
-Return-Path: <SRS0=9nie=3Y=vger.kernel.org=linux-unionfs-owner@kernel.org>
+Return-Path: <SRS0=SPNM=33=vger.kernel.org=linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EE5F4C3524D
-	for <linux-unionfs@archiver.kernel.org>; Tue,  4 Feb 2020 19:16:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E4200C352A2
+	for <linux-unionfs@archiver.kernel.org>; Fri,  7 Feb 2020 10:13:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id C202F2087E
-	for <linux-unionfs@archiver.kernel.org>; Tue,  4 Feb 2020 19:16:52 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=fail reason="key not found in DNS" (0-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b="a+K+LZWc"
+	by mail.kernel.org (Postfix) with ESMTP id BA4CB214AF
+	for <linux-unionfs@archiver.kernel.org>; Fri,  7 Feb 2020 10:13:16 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1581070396;
+	bh=aymen6h+oW13mB51w2muor2ByjcdV9gYJhBBx+DOBsk=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
+	b=2TOaPSV3maKj22VG01Nz/HYLLv7B7+El4vFQpGaPYu8mO0ih6MHDEMIARyJ7GU8LR
+	 qmdQPtKoEsT+PnmazqGc8NF82jLX2es2qpwvgk0SETx0tZO4RmHapnW6HMPvhmcV1G
+	 HNnoFFzQUDc5sVGdN2EX97CYLzSi76XcFhjR3PX8=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727314AbgBDTQw (ORCPT
+        id S1726867AbgBGKNM (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Tue, 4 Feb 2020 14:16:52 -0500
-Received: from mail-il1-f194.google.com ([209.85.166.194]:44359 "EHLO
-        mail-il1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727415AbgBDTQw (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 4 Feb 2020 14:16:52 -0500
-Received: by mail-il1-f194.google.com with SMTP id s85so13444243ill.11
-        for <linux-unionfs@vger.kernel.org>; Tue, 04 Feb 2020 11:16:50 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=szeredi.hu; s=google;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=N9/6XU2LpZWsBgzTzP/hhFG+SEvjhrm1Akh+4LB2jFQ=;
-        b=a+K+LZWcvBn/Qen+mTbm7223lprh5qcBn4n03M+j1wt01jaRqnWZdiVfg8OXtoJRuv
-         jsFJk1c/r2LP7mJnsYPJCuY09T0w7SMu45sZvs8mlUdxbkANMu9bUNkqywhtzLwrWCUH
-         Y5I3ZpOtvK5+VQCI2CCizK69Gkl6kx/0lPYyY=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=N9/6XU2LpZWsBgzTzP/hhFG+SEvjhrm1Akh+4LB2jFQ=;
-        b=bf4SEqaTNEdobs8WFyNrvpsdnSnnlmnkDt4DezC3FL8KAQkXHHmCpch7zDXjXCdLhK
-         3DN6oWWbDeiHXCbZWZmP/69t50e967OiFUATTGitJF6/Nw6gOZqgdG0k2HE8OxIhBY6o
-         CEJkRRH9TyjXlEu78Kwq5K/BS+I4SBHg7r+7/GZ1lt8bOsj8+2xwbDcwVv1ecbpZIPKq
-         M2Q0VKrdmz7ufxey6a+a56sztuvbUZIXqmtT14XEpmyIMmUYR1xXCLZV1TOLfVTSd2p/
-         YwLgzLE7KA1lPNifmRzgzLKI5r3aTHGjLbjodrXAcQnWaYTAC8w2dU8qoVoOhtMJYuZ3
-         shDQ==
-X-Gm-Message-State: APjAAAWgODThqq20VVtK1anl6/ZmAd9S5KMmalhjlAJI/3zw8Qrk6UTK
-        AvpD6vmdunVxMESVpIzUlVcnyGLj4lxzxSakrbxK7g==
-X-Google-Smtp-Source: APXvYqwBCrb0c3k8/h5XEMaUEVvPRrRnwM6U/8qzM3bVAInIClMbhx20heV2frId/eht16ldh1qeEDwL4qHGTjKjEIg=
-X-Received: by 2002:a92:3c93:: with SMTP id j19mr20659572ilf.63.1580843809908;
- Tue, 04 Feb 2020 11:16:49 -0800 (PST)
+        Fri, 7 Feb 2020 05:13:12 -0500
+Received: from mail.kernel.org ([198.145.29.99]:33796 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726816AbgBGKNM (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Fri, 7 Feb 2020 05:13:12 -0500
+Received: from localhost (83-86-89-107.cable.dynamic.v4.ziggo.nl [83.86.89.107])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id E0BA820838;
+        Fri,  7 Feb 2020 10:13:10 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1581070391;
+        bh=aymen6h+oW13mB51w2muor2ByjcdV9gYJhBBx+DOBsk=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=UOwkWt+YrSgBCQyFZwlGofhya/RiacLWlKRO2/7tFAP3I+8pCiedF53Sx3ma8hTVa
+         oDYMWDzgRjD5aH9mll6LLHHhGvH8T7oH7CkTEpbEXKHB8BKz6xlvnZwnUm8Dt4dGB5
+         71eSi7mUAgsMezpCwGqVZc3b2JWpRhc/J1D4/PUY=
+Date:   Fri, 7 Feb 2020 11:13:08 +0100
+From:   Greg KH <gregkh@linuxfoundation.org>
+To:     Ioanna Alifieraki <ioanna-maria.alifieraki@canonical.com>
+Cc:     ioanna.alifieraki@gmail.com, jay.vosburgh@canonical.com,
+        miklos@szeredi.hu, linux-unionfs@vger.kernel.org,
+        linux-kernel@vger.kernel.org, stable@vger.kernel.org,
+        srivatsa@csail.mit.edu
+Subject: Re: [4.4.y PATCH] Revert "ovl: modify ovl_permission() to do checks
+ on two inodes"
+Message-ID: <20200207101308.GA629374@kroah.com>
+References: <20200204184958.6586-1-ioanna-maria.alifieraki@canonical.com>
 MIME-Version: 1.0
-References: <20200131115004.17410-1-mszeredi@redhat.com> <20200131115004.17410-5-mszeredi@redhat.com>
- <20200204145951.GC11631@redhat.com> <CAJfpegtq4A-m9vOPwUftiotC_Xv6w-dnhCi9=E0t-b1ZPJXPGw@mail.gmail.com>
- <CAOQ4uxj_pVp9-EN2Gmq9j6G3xozzpK_zQiRO-brx6PZ9VpgD0Q@mail.gmail.com>
- <20200204184221.GA24566@redhat.com> <CAOQ4uxhfV++XvO17ywftnhLoryYsynF=Y-pHCwmPdymc6naOFg@mail.gmail.com>
-In-Reply-To: <CAOQ4uxhfV++XvO17ywftnhLoryYsynF=Y-pHCwmPdymc6naOFg@mail.gmail.com>
-From:   Miklos Szeredi <miklos@szeredi.hu>
-Date:   Tue, 4 Feb 2020 20:16:39 +0100
-Message-ID: <CAJfpeguHjd2PMPxgbzFbdGM_7F6L4v+UGorjp2sMFtykR71QaA@mail.gmail.com>
-Subject: Re: [PATCH 4/4] ovl: alllow remote upper
-To:     Amir Goldstein <amir73il@gmail.com>
-Cc:     Vivek Goyal <vgoyal@redhat.com>,
-        Miklos Szeredi <mszeredi@redhat.com>,
-        overlayfs <linux-unionfs@vger.kernel.org>,
-        linux-fsdevel <linux-fsdevel@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20200204184958.6586-1-ioanna-maria.alifieraki@canonical.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Tue, Feb 4, 2020 at 8:11 PM Amir Goldstein <amir73il@gmail.com> wrote:
->
-> On Tue, Feb 4, 2020 at 8:42 PM Vivek Goyal <vgoyal@redhat.com> wrote:
+On Tue, Feb 04, 2020 at 06:49:58PM +0000, Ioanna Alifieraki wrote:
+> This reverts commit b24be4acd17a8963a29b2a92e1d80b9ddf759c95.
+> 
+> Commit b24be4acd17a ("ovl: modify ovl_permission() to do checks on two
+> inodes") (stable kernel  id) breaks r/w access in overlayfs when setting
+> ACL to files, in 4.4 stable kernel. There is an available reproducer in
+> [1].
 
-> > So as of now user space will get -ESTALE and that will get cleared when
-> > user space retries after corresponding ovl dentry has been dropped from
-> > cache (either dentry is evicted, cache is cleared forcibly or overlayfs
-> > is remounted)? If yes, that kind of makes sense. Overlay does not expect
-> > underlying layers to change and if a change it detected it is flagged
-> > to user space (and overlayfs does not try to fix it)?
-> >
->
-> I looks like it. I don't really understand why overlayfs shouldn't drop
-> the dentry on failure to revalidate. Maybe I am missing something.
+Thanks, now reverted.
 
-I don't remember the exact reason.   Maybe it's just that it makes
-little sense to redo the lookup on remote change, but not on local
-change...
-
-Note:  I'm not against detection of changing underlying layers and
-redoing the lookup in that case.  Maybe we can do it optionally
-(because it could be expensive), but first there needs to be a use
-case and we seem to lack that.
-
-Thanks,
-Miklos
+greg k-h
