@@ -2,146 +2,128 @@ Return-Path: <SRS0=3MWK=4C=vger.kernel.org=linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-0.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6ECEAC3B198
-	for <linux-unionfs@archiver.kernel.org>; Fri, 14 Feb 2020 13:50:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E7FA7C2BA83
+	for <linux-unionfs@archiver.kernel.org>; Fri, 14 Feb 2020 18:45:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id B82872168B
-	for <linux-unionfs@archiver.kernel.org>; Fri, 14 Feb 2020 13:50:58 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B74D9222C2
+	for <linux-unionfs@archiver.kernel.org>; Fri, 14 Feb 2020 18:45:25 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=mykernel.net header.i=cgxu519@mykernel.net header.b="gStEa7DN"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="WexSahva"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728216AbgBNNu6 (ORCPT
+        id S2389746AbgBNSpZ (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Fri, 14 Feb 2020 08:50:58 -0500
-Received: from sender2-pp-o92.zoho.com.cn ([163.53.93.251]:25394 "EHLO
-        sender2-pp-o92.zoho.com.cn" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1728437AbgBNNu6 (ORCPT
+        Fri, 14 Feb 2020 13:45:25 -0500
+Received: from mail-il1-f195.google.com ([209.85.166.195]:34756 "EHLO
+        mail-il1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2389723AbgBNSpZ (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 14 Feb 2020 08:50:58 -0500
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1581688231;
-        s=zohomail; d=mykernel.net; i=cgxu519@mykernel.net;
-        h=Date:From:Reply-To:To:Cc:Message-ID:In-Reply-To:References:Subject:MIME-Version:Content-Type:Content-Transfer-Encoding;
-        bh=G4LBvVkSIjc25A6OYEI6MzR04VkKq5cOPvDjOxLlDY8=;
-        b=gStEa7DNysPHAVIfxpGPpMGyrrzar4hien7RzftJJefkY3uwewkTw8IuNJP5BiO9
-        Z5ZDS91qZeNutaFqfs9z8QoZzJTjyNccOzuR+I/n9yq7l7vplfSDkw5tpm7wfKDiEiJ
-        dmCiVyPFjvXOnjhyE9snwYkawTHIPbxFgQN9YY1I=
-Received: from mail.baihui.com by mx.zoho.com.cn
-        with SMTP id 15816882287971005.8057685716208; Fri, 14 Feb 2020 21:50:28 +0800 (CST)
-Date:   Fri, 14 Feb 2020 21:50:28 +0800
-From:   Chengguang Xu <cgxu519@mykernel.net>
-Reply-To: cgxu519@mykernel.net
-To:     "Amir Goldstein" <amir73il@gmail.com>
-Cc:     "Miklos Szeredi" <miklos@szeredi.hu>,
-        "overlayfs" <linux-unionfs@vger.kernel.org>
-Message-ID: <17043f70bb8.e83ccaf915072.7610146448137667825@mykernel.net>
-In-Reply-To: <CAOQ4uxi0MLwer8-+jprx6Tn2==TZUzqS5qptQyy5ZYa+d+4uBQ@mail.gmail.com>
-References: <20200210031047.61211-1-cgxu519@mykernel.net> <CAJfpegvut0xPswJfy_s5EnHR9n6db+7GK9vFs+ZO8e1H6WziHg@mail.gmail.com> <CAOQ4uxi0MLwer8-+jprx6Tn2==TZUzqS5qptQyy5ZYa+d+4uBQ@mail.gmail.com>
-Subject: Re: [RFC PATCH] ovl: copy-up on MAP_SHARED
+        Fri, 14 Feb 2020 13:45:25 -0500
+Received: by mail-il1-f195.google.com with SMTP id l4so8914422ilj.1;
+        Fri, 14 Feb 2020 10:45:24 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=ujLZ//Mw6vtAjFLcWjyIUHYK6uJak5XPcS0/tv4WkGY=;
+        b=WexSahva98CfswF0q/JWX+SFIgttENQENTSOqxMFmfVdqh6Zc+mz9Yl9GcC40Z4ywq
+         G9WeUKklsFeFVdbvEJ/XpZWLzrU499V+gVQSyywCigzypa78O2yjRX+cPOzf295sGt2D
+         n1CpfBBLUXrteki1icteEtctyoIFYm53ADmye4pC0wD6vXVs2VWemyxq7XN9BMmxHx0s
+         cjgZB4VFF/lFx66L/33idNyDiIwcg19mQcax9f2VEw8O50uUft/68T3lmfzL7i3zwmln
+         rU+gNWRP+wA3i92E7rhRkBUv3DTxaPRcR6szJaMUFuingUfzFpUNMX4+zK8IOimqmyYB
+         772A==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=ujLZ//Mw6vtAjFLcWjyIUHYK6uJak5XPcS0/tv4WkGY=;
+        b=PJCrRSCQu9l7Utpyzc4lLpD0qtp4/sGGsrFNvZnYJRPpZ1H+QUmmhIxcZ6tlqMtbSx
+         pAWATua5wS7BPei2K+oZ735CnMFilCCKpqaV/FWlgH3iXCC2PJLrKJj4OC0ru1xxiA4F
+         UIsXFbmdJBuCvO1XRdjOlabA/i4qj65GL5Vxv5488pFtt+lvrR8UWFEKkpf1GreuCD2g
+         hbqgxV2+HXZOiRiaOvSc5S0p/xQQs4uJb28LyrNWAH5q5i80R6iecg9Iuqgd1Hzgz2tp
+         h2JE0p9fCRi5pZTq7Zw79U4UWKmcr8714mGSS0jueZ6ROg4Ywq61ScOyqCi40b7xLUxn
+         0RaQ==
+X-Gm-Message-State: APjAAAUTZO8t/fhsKd4g8+82QknpBPaTpDRO5zZusa4a/+EuliFk5E+l
+        +BmReypRyzPRbseVy6cHwU0n0rba+/REJRScIKpvWs8h9nE=
+X-Google-Smtp-Source: APXvYqwZOoj7uz+HGZX4MVZbuAVWhm0csKWg0ZAO7KM5cKu3MpIfR0KEBYBMCocltnOsaXxCP21GNbjY99w+/D97RjQ=
+X-Received: by 2002:a92:5c8a:: with SMTP id d10mr4496735ilg.137.1581705924496;
+ Fri, 14 Feb 2020 10:45:24 -0800 (PST)
 MIME-Version: 1.0
+References: <20200214151848.8328-1-mfo@canonical.com>
+In-Reply-To: <20200214151848.8328-1-mfo@canonical.com>
+From:   Amir Goldstein <amir73il@gmail.com>
+Date:   Fri, 14 Feb 2020 20:45:13 +0200
+Message-ID: <CAOQ4uxjGdBtzmd=anCbuKo23wMWTu8Ja36-qgGomGy7RSMJ0sg@mail.gmail.com>
+Subject: Re: [PATCH v2 0/5] fstests: overlay: initial support for aufs and
+To:     Mauricio Faria de Oliveira <mfo@canonical.com>
+Cc:     fstests <fstests@vger.kernel.org>,
+        overlayfs <linux-unionfs@vger.kernel.org>
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-X-Priority: Medium
-User-Agent: ZohoCN Mail
-X-Mailer: ZohoCN Mail
 Sender: linux-unionfs-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
- ---- =E5=9C=A8 =E6=98=9F=E6=9C=9F=E4=BA=94, 2020-02-14 05:28:10 Amir Golds=
-tein <amir73il@gmail.com> =E6=92=B0=E5=86=99 ----
- > On Thu, Feb 13, 2020 at 9:12 PM Miklos Szeredi <miklos@szeredi.hu> wrote=
-:
- > >
- > > On Mon, Feb 10, 2020 at 4:11 AM Chengguang Xu <cgxu519@mykernel.net> w=
-rote:
- > >
- > > >  static int ovl_mmap(struct file *file, struct vm_area_struct *vma)
- > > >  {
- > > >         struct file *realfile =3D file->private_data;
- > > >         const struct cred *old_cred;
- > > > +       struct inode *inode =3D file->f_inode;
- > > > +       struct ovl_copy_up_work ovl_cuw;
- > > > +       DEFINE_WAIT_BIT(wait, &ovl_cuw.flags, OVL_COPY_UP_PENDING);
- > > > +       wait_queue_head_t *wqh;
- > > >         int ret;
- > > >
- > > > +       if (vma->vm_flags & MAP_SHARED &&
- > > > +                       ovl_copy_up_shared(file_inode(file)->i_sb)) =
-{
- > > > +               ovl_cuw.err =3D 0;
- > > > +               ovl_cuw.flags =3D 0;
- > > > +               ovl_cuw.dentry =3D file_dentry(file);
- > > > +               set_bit(OVL_COPY_UP_PENDING, &ovl_cuw.flags);
- > > > +
- > > > +               wqh =3D bit_waitqueue(&ovl_cuw.flags, OVL_COPY_UP_PE=
-NDING);
- > > > +               prepare_to_wait(wqh, &wait.wq_entry, TASK_UNINTERRUP=
-TIBLE);
- > > > +
- > > > +               INIT_WORK(&ovl_cuw.work, ovl_copy_up_work_fn);
- > > > +               schedule_work(&ovl_cuw.work);
- > > > +
- > > > +               schedule();
- > > > +               finish_wait(wqh, &wait.wq_entry);
- > >
- > > This just hides the bad lock dependency, it does not remove it.
- > >
- > > The solution we've come up with is arguably more complex, but it does
- > > fix this properly:  make overlay use its own address space operations
- > > in case of a shared map.
- > >
- > > Amir, I lost track, do you remember what's the status of this work?
- > >
- >=20
- > I'm afraid it is still standing at the side of the road where we left it=
-...
- > I haven't had any time to work on it since.
- >=20
- > The latest WIP branch is at:
- > https://github.com/amir73il/linux/commits/ovl-aops-wip
- >=20
- > And summary of what it contains is at:
- > https://lore.kernel.org/linux-unionfs/CAJfpegsyA4SjmtAEpkMoKsvgmW0CiEwWE=
-AbU7v3yJztLKmC0Eg@mail.gmail.com/
- >=20
- > Problem is, this WIP doesn't even solve the MAP_SHARED case yet,
- > but it is a big step in the direction of the design you laid out here:
- > https://lore.kernel.org/linux-unionfs/CAJfpegvJU32_9_mVh7kem0s529-8Qs02f=
-PSr4ChCC3ZJ2pRhLw@mail.gmail.com/
- >=20
- > Chengguang,
- >=20
- > If you are up for the task, feel free to pick up the WIP branch
- > and bring it into shape for merging.
- > Then we can also discuss the next steps for fixing MAP_SHARED.
++CC: <linux-unionfs@vger.kernel.org>
 
-Thanks for the detailed information, I'll check your branch carefully later=
-.
+On Fri, Feb 14, 2020 at 5:18 PM Mauricio Faria de Oliveira
+<mfo@canonical.com> wrote:
+>
+> This patchset allows the existing support for overlay to be used with
+> aufs and fuse-overlayfs, so the increase the coverage/test tools that
+> are available for these filesystems.
+>
+> Initial numbers on v5.4-based Ubuntu kernel on Ubuntu Eoan/19.10
+> (fuse-overlay installed from distro package), few tests excluded:
+>
+>  OVL_FSTYP=aufs
+>  - Ran: 645 tests
+>  - Not run: 483 tests
+>  - Failures: 22 tests
+>
+>  OVL_FSTYP=fuse.fuse-overlayfs
+>  - Ran: 530
+>  - Not run: 395
+>  - Failures: 29
+>
 
-=20
- >=20
- > BTW, you did not mention why MAP_SHARED case is important
- > in your workload. I'm just curious how important is it to solve it.
-
-I haven't received any complaint about MAP_SHARED problem yet, =20
-so it seems not important as performance/space saving in our workload.
-However, if we implement overlayfs' own address space, I think we can
-do further improvement for copy-up based on it. (like delay/partial copy-up=
-)
-
+It'd be interesting to know the baseline - what are those numbers for
+OVL_FSTYP=overlay with same kernel?
 
 Thanks,
-Chengguang
+Amir.
 
-
-
-
-
-
-
+> Thanks to Amir Goldstein for review/improvements/suggestions.
+>
+> Changes:
+>  - v2:
+>    - fix tests/overlay that hardcode the overlay fs type
+>    - add support to fuse-overlayfs with +3 other patches
+>  - v1:
+>    - [PATCH] common/overlay,rc: introduce OVL_ALT_FSTYP for testing aufs
+>
+> Mauricio Faria de Oliveira (5):
+>   common/overlay,rc,config: introduce OVL_FSTYP variable and aufs
+>   tests/overlay: mount: replace overlay hardcode with OVL_FSTYP variable
+>   common/rc: introduce new helper function _fs_type_dev_dir()
+>   common/rc: add quirks for fuse-overlayfs device/mount point
+>   common/overlay: silence some mount messages for fuse-overlayfs
+>
+>  README.overlay    |  5 ++++
+>  common/config     |  2 ++
+>  common/overlay    | 29 +++++++++++++++++++---
+>  common/rc         | 61 ++++++++++++++++++++++++++++++++++++++++-------
+>  tests/overlay/011 |  2 +-
+>  tests/overlay/035 |  2 +-
+>  tests/overlay/052 |  4 ++--
+>  tests/overlay/053 |  4 ++--
+>  tests/overlay/062 |  2 +-
+>  9 files changed, 92 insertions(+), 19 deletions(-)
+>
+> --
+> 2.20.1
+>
