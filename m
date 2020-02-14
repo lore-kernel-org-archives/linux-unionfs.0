@@ -7,59 +7,58 @@ X-Spam-Status: No, score=-6.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
 	SPF_HELO_NONE,SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E811CC35242
-	for <linux-unionfs@archiver.kernel.org>; Fri, 14 Feb 2020 22:06:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7869BC47409
+	for <linux-unionfs@archiver.kernel.org>; Fri, 14 Feb 2020 22:20:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id ADA122081E
-	for <linux-unionfs@archiver.kernel.org>; Fri, 14 Feb 2020 22:06:32 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4BCCA2082F
+	for <linux-unionfs@archiver.kernel.org>; Fri, 14 Feb 2020 22:20:47 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="i7mpvqjy"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="iwhVy+1d"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727458AbgBNWGc (ORCPT
+        id S1727761AbgBNWUr (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Fri, 14 Feb 2020 17:06:32 -0500
-Received: from mail-il1-f195.google.com ([209.85.166.195]:41772 "EHLO
-        mail-il1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726101AbgBNWGc (ORCPT
+        Fri, 14 Feb 2020 17:20:47 -0500
+Received: from mail-il1-f193.google.com ([209.85.166.193]:34830 "EHLO
+        mail-il1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727747AbgBNWUq (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 14 Feb 2020 17:06:32 -0500
-Received: by mail-il1-f195.google.com with SMTP id f10so9306658ils.8;
-        Fri, 14 Feb 2020 14:06:30 -0800 (PST)
+        Fri, 14 Feb 2020 17:20:46 -0500
+Received: by mail-il1-f193.google.com with SMTP id g12so9366645ild.2;
+        Fri, 14 Feb 2020 14:20:46 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=lcbJe5atNgncClgN4FOXbcTmuKj4xD8tXw3N8zYwid4=;
-        b=i7mpvqjyvtG+UssI6t/3ZplCCNyX3pxethQEI/nPV7UFtKGHtgaiBAjUg0ek2MXpU0
-         llIQPhjK+sJVRMXC7W2FyyHF/UbGD4hR2oHh7gwwAfifcI1hZ1GapwGDiOsa5oMNkZiW
-         04cGCTRNSRwfTM/oxEn/nuX7ZbI598lEpVFsfVn2Jh2TSPLmJNKGFEqVM8ssep9MY0Qe
-         XqFs0wLoOfjnaG4Off/Uyc3gS9KKhFnN6ZJI3s3zEfSBn58NLe0UD7VwM/m9VnUwrepQ
-         1eBe+EjMjx3lXj4+Q8Q4kDaVHYoiNnIHGJKqjG2GDPOW24mFdPCnozrvSYYSyB0Pvi6U
-         at4w==
+        bh=LvRcQYOHsaX/BEpyH5XMNZEwVcgL69BEbewjjoaQpa0=;
+        b=iwhVy+1duZ8+1XtUzBwprI8OKMUGZFkJ3TYccKGuAdOJVyszvgWj2iph11npdabvq5
+         EVp4h3eypRmHzbmzTfKqPjyWrHykuu245RZLmh/maKqHwCWyoOFTttvEZucgsUZv4cBj
+         x5n0Jul7nI9ri/nzruxrqHIheDXioBKyWvmxkV3tbbTTUFZgv2E+JK+jIDwPiiCUIEXW
+         Bq0a4F23SWR3q2E7AQFQmWaDOGFg9vP986eWHdBo2jeJCABk4+3Zit6jyasTvtK4glrJ
+         mH3QjsvaTvRXpzGPdRrgujQkYNs8LvQf1w0N3Cuyl8JoDuQzi9oHdG3tGcQm9/iSw3FE
+         OO6A==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=lcbJe5atNgncClgN4FOXbcTmuKj4xD8tXw3N8zYwid4=;
-        b=lJxQfT5f9mmWwMu0kPNe4312Z7/HXcETiYHkOIZuiSQKgHEAR6NMxx2b5J1S8WMAB1
-         OmPSiLXOH8HYa3M8u1Ju76xqMnB+yqpPTr38vTNghEgvmh331Xg/nXAlRv2h3aggXVuS
-         XwoFrNgoeDhEMKmbrdP/tu5TYvpE5c1sTCwF6sc7tMG5g9Mqprv3gkOLhGZXSTFThQHg
-         SZgvYlUnMTEbN/fowKn9VAwgCH7VM5hOB5+NJHgMVNnuqO1QUZr1vDJsOC7m7VWhkmW0
-         SF1XX1gAsspW+RjU9Yq6CgDqORV+m7njDcbM0GwNLpjWmXwOWJNIFavezupyRR+nGTlI
-         IGPg==
-X-Gm-Message-State: APjAAAW3wZbz5km02px3mBUfAS9tx+NzeRXrBl6G5iqg1LI8C056cXL+
-        iGbEfRf1XreGSTUcg7PTok7Dsg4BJabBzT468i4=
-X-Google-Smtp-Source: APXvYqwzWV4eFQ9Qwp4OZ6xwfdcUYdcTklgFaXx8XKeUDKXkOpbUrSz8YmWR/u4B2UUwme2ti1qEfeNkOoiz0I9l1IE=
-X-Received: by 2002:a92:5c8a:: with SMTP id d10mr5237068ilg.137.1581717990449;
- Fri, 14 Feb 2020 14:06:30 -0800 (PST)
+        bh=LvRcQYOHsaX/BEpyH5XMNZEwVcgL69BEbewjjoaQpa0=;
+        b=P6s9LJF7S4IBsID/gKtUIrcl79L5FzFa7UK3SjuDHXGgGrSftr8naO0BXoVCnJQcuM
+         ZwGfjKu4fBormOjmEvPtBA7e3nwhMDrS6rOTr+RzbA3KF5lJNX3cdIwolqllOaDegg4Y
+         mGsLgXPcGSfPj6T3WlLaPZCPye0AwyCJS+lBEJXE8+mIVc+Nlc8xRTXhKnvBPc7MRfEM
+         Av+Z5HphBiunXjmcZ74r1jskgLVaucXG5SWBHUINI8142z1yl4PERF6pESR27edeeZ5T
+         5Hy7u0Xnpu0l+oNbJXOXk/R0BSfOGdU0dhMVcZSTmCgiVvq56zXQ6TsvT0cVDzoaRE94
+         CnqQ==
+X-Gm-Message-State: APjAAAWyVrkhZpizxKVjYA/rq/+re7GNt0yZFE8NHpZT0d/hdmKap1SZ
+        6Q0Gq/8na1qIvka5WILWAFfsLTOGL0Vz36RX59o=
+X-Google-Smtp-Source: APXvYqy/wuEH+2Bt+dbdcn1dygK0bG2eoPKjLFOrQnQq3wVGrbMhlo+plXWjLEjIeVgdVwetYwu9/bQEXiGXcc5QtDQ=
+X-Received: by 2002:a92:5c8a:: with SMTP id d10mr5292516ilg.137.1581718845638;
+ Fri, 14 Feb 2020 14:20:45 -0800 (PST)
 MIME-Version: 1.0
-References: <20200214151848.8328-1-mfo@canonical.com> <20200214151848.8328-2-mfo@canonical.com>
-In-Reply-To: <20200214151848.8328-2-mfo@canonical.com>
+References: <20200214151848.8328-1-mfo@canonical.com> <20200214151848.8328-4-mfo@canonical.com>
+In-Reply-To: <20200214151848.8328-4-mfo@canonical.com>
 From:   Amir Goldstein <amir73il@gmail.com>
-Date:   Sat, 15 Feb 2020 00:06:19 +0200
-Message-ID: <CAOQ4uxj9d6G-RF4i7JQ3EfV6q=YFWLhBCWOK+zf5Xy08KqTGOA@mail.gmail.com>
-Subject: Re: [PATCH v2 1/5] common/overlay,rc,config: introduce OVL_FSTYP
- variable and aufs
+Date:   Sat, 15 Feb 2020 00:20:34 +0200
+Message-ID: <CAOQ4uxgyh2-Msmhbj0zs7nQ-feJN=AGX6gcx48HBRjHrJHDGQQ@mail.gmail.com>
+Subject: Re: [PATCH v2 3/5] common/rc: introduce new helper function _fs_type_dev_dir()
 To:     Mauricio Faria de Oliveira <mfo@canonical.com>
 Cc:     fstests <fstests@vger.kernel.org>,
         overlayfs <linux-unionfs@vger.kernel.org>
@@ -72,170 +71,86 @@ X-Mailing-List: linux-unionfs@vger.kernel.org
 On Fri, Feb 14, 2020 at 5:18 PM Mauricio Faria de Oliveira
 <mfo@canonical.com> wrote:
 >
-> Recently I was looking for an aufs test suite, and reached out to
-> Okajima, but 'There is no public test suite specific to aufs.' [1],
-> and it looks like 'xfstests/tests/generic' should be enough [1, 2].
+> In order to determine the fs type on fuse-overlayfs (coming)
+> we need to search for the mount point/directory; the device
+> is not enough. (details in the next patch.)
 >
-> Thus, building on top existing xfstests support for overlay just
-> introduce the OVL_FSTYP variable, and the default value "overlay"
-> can be changed to "aufs" (uses overlay's upperdir as a rw-branch
-> and lowerdir as a ro-branch; workdir is not used.)
+> Thus the _fs_type() function is insufficient to determine
+> the filesystem type, as it only searches for mount device.
 >
-> This is indeed a workaround^W simple change that does the job vs.
-> creating a new FSTYP "aufs" and mechanically changing the number
-> of places that check for "overlay" to just handle "aufs" as well.
-> (so the effort is still small as aufs has no specific tests now.)
+> So, introduce the _fs_type_dev_dir() function, which also
+> searches for the mountpoint/dir in addition to the device.
 >
-> This also allows testing fuse-overlayfs with the next patches.
+> The fs type fix-up sed script goes into a common function.
 >
-> The changes are minimal -- just translate overlay mount options
-> and use $OVL_FSTYP as filesystem type for checking/mount/umount;
-> then report it in log headers and document it in README.overlay.
->
-> Currently, running './check -overlay' tests (excluding a few [3]
-> which either hang or keep looping) the numbers for aufs on loop
-> devices on v5.4-based Ubuntu kernel are:
->
->   - Ran: 645 tests
->   - Not run: 483 tests
->   - Failures: 22 tests
->
-> So, hopefully this may help with a starting point for an public
-> test suite for aufs.
->
-> Thanks to Amir Goldstein for feedback/improvements and pointers
-> to support fuse-overlayfs as well [v2].
->
-> [1] https://sourceforge.net/p/aufs/mailman/message/36918721/
-> [2] https://sourceforge.net/p/aufs/mailman/message/36918932/
-> [3] Steps:
->
->   $ export OVL_FSTYP=aufs
->   $ export FSTYP=ext4
->   $ export TEST_DEV=/dev/loop0
->   $ export TEST_DIR=/mnt/test
->   $ export SCRATCH_DEV=/dev/loop1
->   $ export SCRATCH_MNT=/mnt/scratch
->
->   $ sudo mkfs.$FSTYP -F $TEST_DEV
->   $ sudo mkfs.$FSTYP -F $SCRATCH_DEV
->   $ sudo mkdir $TEST_DIR $SCRATCH_MNT
->
->   $ cat <<EOF >/tmp/exclude-tests
->   generic/013
->   generic/070
->   generic/075
->   generic/112
->   generic/127
->   generic/461
->   generic/476
->   generic/522
->   generic/530
->   overlay/019
->   EOF
->
->   $ sudo -E ./check -overlay -E /tmp/exclude-tests
+> P.S.: there might be other sites that need similar changes,
+> since the mount device is also checked elsewhere, but just
+> with this bit tests can run, so it is good enough for now.)
 >
 > Signed-off-by: Mauricio Faria de Oliveira <mfo@canonical.com>
+
+Looks ok.
+You may add:
+Reviewed-by: Amir Goldstein <amir73il@gmail.com>
+
 > ---
->  README.overlay |  4 ++++
->  common/config  |  2 ++
->  common/overlay | 11 ++++++++---
->  common/rc      |  6 ++++++
->  4 files changed, 20 insertions(+), 3 deletions(-)
->
-> diff --git a/README.overlay b/README.overlay
-> index 30b5ddb2d1c3..08a39b8830c9 100644
-> --- a/README.overlay
-> +++ b/README.overlay
-> @@ -50,3 +50,7 @@ In the example above, MOUNT_OPTIONS will be used to mount the base scratch fs,
->  TEST_FS_MOUNT_OPTS will be used to mount the base test fs,
->  OVERLAY_MOUNT_OPTIONS will be used to mount both test and scratch overlay and
->  OVERLAY_FSCK_OPTIONS will be used to check both test and scratch overlay.
-> +
-> +To test other filesystem types (experimental) configure the OVL_FSTYP variable:
-> +
-> + OVL_FSTYP=aufs
-> diff --git a/common/config b/common/config
-> index 9a9c77602b54..d92a78003295 100644
-> --- a/common/config
-> +++ b/common/config
-> @@ -71,6 +71,8 @@ export OVL_LOWER="ovl-lower"
->  export OVL_WORK="ovl-work"
->  # overlay mount point parent must be the base fs root
->  export OVL_MNT="ovl-mnt"
-> +# overlay mount filesystem type (for testing other fs)
-> +export OVL_FSTYP=${OVL_FSTYP:-overlay}
->
->  # From e2fsprogs/e2fsck/e2fsck.h:
->  # Exit code used by fsck-type programs
-> diff --git a/common/overlay b/common/overlay
-> index 65c639e9c6d8..a1076926c23f 100644
-> --- a/common/overlay
-> +++ b/common/overlay
-> @@ -18,10 +18,15 @@ _overlay_mount_dirs()
->         local lowerdir=$1
->         local upperdir=$2
->         local workdir=$3
-> +       local options
->         shift 3
->
-> -       $MOUNT_PROG -t overlay -o lowerdir=$lowerdir -o upperdir=$upperdir \
-> -                   -o workdir=$workdir `_common_dev_mount_options $*`
-> +       options="-o lowerdir=$lowerdir -o upperdir=$upperdir -o workdir=$workdir"
-> +       if [ "$OVL_FSTYP" = "aufs" ]; then
-> +               options="-o br=$upperdir=rw -o br=$lowerdir=ro"
-> +       fi
-> +
-> +       $MOUNT_PROG -t $OVL_FSTYP $options `_common_dev_mount_options $*`
->  }
->
->  # Mount with same options/mnt/dev of scratch mount, but optionally
-> @@ -302,7 +307,7 @@ _overlay_check_fs()
->                 _overlay_base_mount $*
->         else
->                 # Check and umount overlay for dir check
-> -               ovl_mounted=`_is_dir_mountpoint $ovl_mnt`
-> +               ovl_mounted=`_is_dir_mountpoint $ovl_mnt $OVL_FSTYP`
->                 [ -z "$ovl_mounted" ] || $UMOUNT_PROG $ovl_mnt
->         fi
+>  common/rc | 36 ++++++++++++++++++++++++++++--------
+>  1 file changed, 28 insertions(+), 8 deletions(-)
 >
 > diff --git a/common/rc b/common/rc
-> index b4a77a2187f4..1feae1a94f9e 100644
+> index 1feae1a94f9e..5711eca2a1d2 100644
 > --- a/common/rc
 > +++ b/common/rc
-> @@ -1471,6 +1471,10 @@ _check_mounted_on()
->                 return 2 # 2 = mounted on wrong mnt
->         fi
->
-> +       if [ -n "$type" -a "$type" = "overlay" ]; then
-> +               type="$OVL_FSTYP"
-> +       fi
-> +
-
-Hmm. I found 2 other instances of _fs_type in common/rc.
-I think it would be safer to let _fs_type return "overlay" in
-case the mounted fs is of type $OVL_FSTYP.
-This will be simple to do by extending the sed expression -
-no need for special cases and conditions.
-
-Other than that, patch looks good.
-
-Thanks,
-Amir.
-
->         if [ -n "$type" -a "`_fs_type $dev`" != "$type" ]; then
->                 echo "$devname=$dev is mounted but not a type $type filesystem"
->                 # raw $DF_PROG cannot handle NFS/CIFS/overlay correctly
-> @@ -2841,6 +2845,8 @@ _full_fstyp_details()
->                 FSTYP="$FSTYP (non-debug)"
->             fi
->         fi
-> +     elif [ $FSTYP = "overlay" -a "$OVL_FSTYP" != "overlay" ]; then
-> +       FSTYP="$FSTYP ($OVL_FSTYP)"
->       fi
->       echo $FSTYP
+> @@ -1262,6 +1262,19 @@ _used()
+>      _df_device $1 | $AWK_PROG '{ sub("%", "") ; print $6 }'
 >  }
+>
+> +# fix filesystem type up
+> +#
+> +_fix_fs_type()
+> +{
+> +    #
+> +    # The Linux kernel shows NFSv4 filesystems in df output as
+> +    # filesystem type nfs4, although we mounted it as nfs earlier.
+> +    # Fix the filesystem type up here so that the callers don't
+> +    # have to bother with this quirk.
+> +    #
+> +    sed -e 's/nfs4/nfs/' -e 's/fuse.glusterfs/glusterfs/'
+> +}
+> +
+>  # return the FS type of a mounted device
+>  #
+>  _fs_type()
+> @@ -1272,14 +1285,21 @@ _fs_type()
+>         exit 1
+>      fi
+>
+> -    #
+> -    # The Linux kernel shows NFSv4 filesystems in df output as
+> -    # filesystem type nfs4, although we mounted it as nfs earlier.
+> -    # Fix the filesystem type up here so that the callers don't
+> -    # have to bother with this quirk.
+> -    #
+> -    _df_device $1 | $AWK_PROG '{ print $2 }' | \
+> -        sed -e 's/nfs4/nfs/' -e 's/fuse.glusterfs/glusterfs/'
+> +    _df_device $1 | $AWK_PROG '{ print $2 }' | _fix_fs_type
+> +}
+> +
+> +# return the FS type of a mounted device
+> +# on a mount point directory (check both)
+> +#
+> +_fs_type_dev_dir()
+> +{
+> +    if [ $# -ne 2 ]
+> +    then
+> +       echo "Usage: _fs_type_dev_dir device directory" 1>&2
+> +       exit 1
+> +    fi
+> +
+> +    _df_dir $2 | $AWK_PROG -v what=$1 '($1==what) { print $2 }' | _fix_fs_type
+>  }
+>
+>  # return the FS mount options of a mounted device
 > --
 > 2.20.1
 >
