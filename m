@@ -5,149 +5,166 @@ X-Spam-Level:
 X-Spam-Status: No, score=-6.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
+	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E8B48C35242
-	for <linux-unionfs@archiver.kernel.org>; Fri, 14 Feb 2020 22:37:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B94C7C35242
+	for <linux-unionfs@archiver.kernel.org>; Fri, 14 Feb 2020 22:51:36 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id ABAED2082F
-	for <linux-unionfs@archiver.kernel.org>; Fri, 14 Feb 2020 22:37:59 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 86C5A206D7
+	for <linux-unionfs@archiver.kernel.org>; Fri, 14 Feb 2020 22:51:36 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="MarzV/1k"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="TMeaNoh0"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725879AbgBNWh7 (ORCPT
+        id S1727566AbgBNWvg (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Fri, 14 Feb 2020 17:37:59 -0500
-Received: from mail-il1-f196.google.com ([209.85.166.196]:33267 "EHLO
-        mail-il1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725838AbgBNWh7 (ORCPT
+        Fri, 14 Feb 2020 17:51:36 -0500
+Received: from mail-io1-f65.google.com ([209.85.166.65]:32792 "EHLO
+        mail-io1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727528AbgBNWvg (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 14 Feb 2020 17:37:59 -0500
-Received: by mail-il1-f196.google.com with SMTP id s18so9389327iln.0;
-        Fri, 14 Feb 2020 14:37:58 -0800 (PST)
+        Fri, 14 Feb 2020 17:51:36 -0500
+Received: by mail-io1-f65.google.com with SMTP id z8so755679ioh.0;
+        Fri, 14 Feb 2020 14:51:35 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=Yh5AohT+JBGMlZIkgzxcyeLi/0+gL4C8IdKBB5Ex4EI=;
-        b=MarzV/1k02WmgfLVevkQweZtVCBCVfRb5Bgq0lgV5J1xv7W5bMUxaLLbStUWJFFdYp
-         YRT6wbE+n++6wBmWucPBKvZg4JONc4ahGUAcuct34AIPcKLEusrMXmrnM19LQ/UB3JiM
-         KaQEHflFFV1NgmnDcZMttCOhve16S24ElccjwoeVoIeHTgoqNqFZQEAUnBAf6IP9/jeN
-         yAh+5kYLDhayQvPG4GGMr6YJpIq411CgjkE1icgR6MKPMiMcFJ9MuISKeH6LX+Yc5Evm
-         soQ1sIGSQpm5ZwTvOPEMJLHmZXkMJhO5klc+OQCPPEgW8rftEDR0PvC6hix/JiI6a4ju
-         IZ2g==
+        bh=x1blGNXEvaN9sSEFaGvs0PQlrjhIn7iC/664ptnmuQY=;
+        b=TMeaNoh07lsis7eG0P+4c081sEzgcjQF1rXcQ5wW8Zl/ClpP9OfiXt4+NWQoxUkSiF
+         FLIX3tMGvsclaltB/BVeCT74Dl3joKUFvJJu8vpIlpu+kGLpdUuaDG8VMYz/dTn2VWAm
+         UIn/BSJxFztiQsMHxOgRUduBaSzmNEGhcOvGFqqEBECpmheZLYJho2/UB0NNs0h1hP94
+         GKKCbA7tRvhRxFZFcupIdG25CPAcO77GRJI0zJV4Fpl+AhpfQqc2uD0frNL4Lc0sJuoe
+         gPxyCtxR2N819B1uNbIV7rX9dKP0burUzDby4/F85lkyEvcSawGVXAZJXrJzlpUKOY8a
+         j/PQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=Yh5AohT+JBGMlZIkgzxcyeLi/0+gL4C8IdKBB5Ex4EI=;
-        b=ribiNh0NnrDc/BGl4b0ew7sASjYCIx+3mEPGxWHzF1wMpbgwwEezuEYTeHmtoTv5pn
-         IYal18i2eh4mLjQUwMyGvC9YhootK+8ifRywJJsWjQ7BMCM6mW7YCEF/wkqgRjbkOmQm
-         J09K9N9pEhbUEWZWLoWvxZsktfo6PKqEm6mmxfdC+gdEAeKxl/ngZN2CPNJ0/szuxyQn
-         JEbABpPEIpHMGD3QL5ntzrITe3DLDJOL0NxzfCMoP2lonEn4LrHgQthPShoqYi0vKYkE
-         k4zCXvDnQbUiRMSDZlMFrpC081+IWMKeTmLKLbuHL74f5xlL61MVF+cOLCjR3I0qw036
-         lkeg==
-X-Gm-Message-State: APjAAAULrWzNaDck+gOrEKxuYT1bvdPEoaY+bTa06xoJWcGhZy0nb6dJ
-        TwCe2SOAPLrOqRnM+Fevuy4al4ZFxsCSGM+A+kg=
-X-Google-Smtp-Source: APXvYqx28TUcTRJwStak2Sn/bx3dWB+YDPBDNrjmfYaVJkwmGQSQDCYEVWa6fbKwOQj+RTVuGd3BhsLqlbV/DX47j9E=
-X-Received: by 2002:a92:9f1a:: with SMTP id u26mr5199317ili.72.1581719878556;
- Fri, 14 Feb 2020 14:37:58 -0800 (PST)
+        bh=x1blGNXEvaN9sSEFaGvs0PQlrjhIn7iC/664ptnmuQY=;
+        b=mhQU8g57WawL5Jy/yfFQPMtPZX4RfTRmZuU3r+tH5Bk/EuVLXZBR6EcDJdxC7+RB9a
+         GiMeqcXhqKqkb/RYAHhLa52ZoJ/C5L0aRk3sELpwfQz/eC7O3dG+JoZpJG0EH1tfr60h
+         j3wdWbXdCfFVkQqnJepSUxotH4dGZgkC/EGO+jEAps0FtrtaEVx2LepzB+cvnLjbjiH2
+         2QViU3yddJlSXowfOavAIS8jOgLmL+Jge9ZDYHxBs/nG3vo0Xm52hSi7qL5+qihd+kV6
+         54IlkzQzdRAghXUu3kfWjl2gvcK9vVu8HACSMsHowEOsKtbTGXqNw+etbytjXtlvjunf
+         4meg==
+X-Gm-Message-State: APjAAAWom/b6pTra1kcaFbnm/qXdO3cZZNtIkmW+vUTdy8Ekjo+yHvK1
+        ZMPvaUr8a9xfRoV4FqLQB6CDJYwXSTadpTyLPyY=
+X-Google-Smtp-Source: APXvYqxSihw0+bkCs9dIbjghUv0izqg7PJQNz2DQreIa5sF4/+ksKxPc1hNIc8Os9CH9vlWTvhgACsJt5lwVlhtnbR8=
+X-Received: by 2002:a6b:f214:: with SMTP id q20mr4357054ioh.137.1581720695504;
+ Fri, 14 Feb 2020 14:51:35 -0800 (PST)
 MIME-Version: 1.0
-References: <20200214151848.8328-1-mfo@canonical.com> <20200214151848.8328-5-mfo@canonical.com>
-In-Reply-To: <20200214151848.8328-5-mfo@canonical.com>
+References: <20200214151848.8328-1-mfo@canonical.com> <20200214151848.8328-6-mfo@canonical.com>
+In-Reply-To: <20200214151848.8328-6-mfo@canonical.com>
 From:   Amir Goldstein <amir73il@gmail.com>
-Date:   Sat, 15 Feb 2020 00:37:47 +0200
-Message-ID: <CAOQ4uxj9+BDv5DCcioUCTXhv9_32t5L+spBn8_2n+QKkjQ6nGA@mail.gmail.com>
-Subject: Re: [PATCH v2 4/5] common/rc: add quirks for fuse-overlayfs
- device/mount point
+Date:   Sat, 15 Feb 2020 00:51:24 +0200
+Message-ID: <CAOQ4uxgpLtJeUcn2Uu38hkNt0xpZn-MKdn4dwYm60H15dmrgmA@mail.gmail.com>
+Subject: Re: [PATCH v2 5/5] common/overlay: silence some mount messages for fuse-overlayfs
 To:     Mauricio Faria de Oliveira <mfo@canonical.com>
 Cc:     fstests <fstests@vger.kernel.org>,
-        overlayfs <linux-unionfs@vger.kernel.org>,
-        Miklos Szeredi <miklos@szeredi.hu>,
-        Vivek Goyal <vgoyal@redhat.com>
+        overlayfs <linux-unionfs@vger.kernel.org>
 Content-Type: text/plain; charset="UTF-8"
 Sender: linux-unionfs-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Fri, Feb 14, 2020 at 5:18 PM Mauricio Faria de Oliveira
+On Fri, Feb 14, 2020 at 5:19 PM Mauricio Faria de Oliveira
 <mfo@canonical.com> wrote:
 >
-> On fuse-overlayfs the mount device is always reported as
-> a "fuse-overlayfs" string, instead of the parent directory
-> of the mount point (the string expected by overlay/scripts).
+> When mouting fuse-overlayfs there are some messages that make
+> the tests report failures due to output mismatch; ignore them:
 >
-> Unfortunately, it seems that the fuse mount option 'fsname'
-> doesn't set the filesystem source/device on fuse-overlayfs,
-> so the easy fix of just adding it to mount options is gone.
+>   uid=unchanged
+>   uid=unchanged
+>   upperdir=/mnt/test/ovl-upper
+>   workdir=/mnt/test/ovl-work
+>   lowerdir=/mnt/test/ovl-lower
+>   mountpoint=/mnt/test/ovl-mnt
 >
-> So two quirks are used to check for a fuse-overlayfs mount,
-> that checks the mount point/directory in _check_mounted_on()
-> and init_rc(); latter with the new helper _fs_type_dev_dir().
+> For other filesystem types (e.g., overlay and aufs) make sure to
+> only print non-null output, to avoid blank lines output mismatch.
 >
-> With this, fuse-overlayfs can now keep going through tests!
+> And return the status of the mount command, not other commands.
+>
+> Currently, running './check -overlay' tests (excluding generic/062)
+> the numbers for fuse-overlayfs on loop devices on v5.4-based Ubuntu
+> kernel with the fuse-overlayfs package from Ubuntu Eoan/19.10 are:
+>
+>  - Ran: 530
+>  - Not run: 395
+>  - Failures: 29
+>
+> And hopefully this helps with testing for fuse-overlayfs too.
+>
+> Steps:
+>
+>   $ export OVL_FSTYP=fuse.fuse-overlayfs
+>   $ export FSTYP=ext4
+>   $ export TEST_DEV=/dev/loop0
+>   $ export TEST_DIR=/mnt/test
+>   $ export SCRATCH_DEV=/dev/loop1
+>   $ export SCRATCH_MNT=/mnt/scratch
+>
+>   $ sudo mkfs.$FSTYP -F $TEST_DEV
+>   $ sudo mkfs.$FSTYP -F $SCRATCH_DEV
+>   $ sudo mkdir $TEST_DIR $SCRATCH_MNT
+>
+>   $ cat <<EOF >/tmp/exclude-tests
+>   generic/062
+>   EOF
+>
+>   $ sudo -E ./check -overlay -E /tmp/exclude-tests
 >
 > Signed-off-by: Mauricio Faria de Oliveira <mfo@canonical.com>
 > ---
->  README.overlay |  1 +
->  common/rc      | 19 ++++++++++++++++++-
->  2 files changed, 19 insertions(+), 1 deletion(-)
+>  common/overlay | 20 +++++++++++++++++++-
+>  1 file changed, 19 insertions(+), 1 deletion(-)
 >
-> diff --git a/README.overlay b/README.overlay
-> index 08a39b8830c9..7ef07ae6bbab 100644
-> --- a/README.overlay
-> +++ b/README.overlay
-> @@ -53,4 +53,5 @@ OVERLAY_FSCK_OPTIONS will be used to check both test and scratch overlay.
+> diff --git a/common/overlay b/common/overlay
+> index a1076926c23f..27f3c08252ee 100644
+> --- a/common/overlay
+> +++ b/common/overlay
+> @@ -19,6 +19,8 @@ _overlay_mount_dirs()
+>         local upperdir=$2
+>         local workdir=$3
+>         local options
+> +       local output
+> +       local rc
+>         shift 3
 >
->  To test other filesystem types (experimental) configure the OVL_FSTYP variable:
->
-> + OVL_FSTYP=fuse.fuse-overlayfs
->   OVL_FSTYP=aufs
-> diff --git a/common/rc b/common/rc
-> index 5711eca2a1d2..6a4cb9b6d604 100644
-> --- a/common/rc
-> +++ b/common/rc
-> @@ -1481,6 +1481,14 @@ _check_mounted_on()
->
->         # find $dev as the source, and print result in "$dev $mnt" format
->         local mount_rec=`findmnt -rncv -S $dev -o SOURCE,TARGET`
-> +
-> +       # fuse-overlayfs dev is not $dev, check via $mnt.
-> +       if [ -z "$mount_rec" -a "$FSTYP" = "overlay" -a \
-> +               "$OVL_FSTYP" = "fuse.fuse-overlayfs" ]; then
-> +               dev="fuse-overlayfs"
-> +               mount_rec=`findmnt -rncv -S $dev -T $mnt -o SOURCE,TARGET`
-> +       fi
-> +
-
-I guess if we have to do the quirk then we better do it before the
-first findmnt.
-I don't see the point of trying the first time.
-
-But I wonder, how come this is not also problem for virtiofs?
-Maybe there is a way to make fuse fsname mount option work
-instead of these quirks?
-
->         [ -n "$mount_rec" ] || return 1 # 1 = not mounted
->
->         # if it's mounted, make sure its on $mnt
-> @@ -3788,8 +3796,17 @@ init_rc()
+>         options="-o lowerdir=$lowerdir -o upperdir=$upperdir -o workdir=$workdir"
+> @@ -26,7 +28,23 @@ _overlay_mount_dirs()
+>                 options="-o br=$upperdir=rw -o br=$lowerdir=ro"
 >         fi
 >
->         # if $TEST_DEV is not mounted, mount it now as XFS
-> -       if [ -z "`_fs_type $TEST_DEV`" ]
-> +       if [ -n "`_fs_type $TEST_DEV`" ]
->         then
-> +               # $TEST_DEV is mounted
-> +               true
-> +       elif [ "$FSTYP" = "overlay" -a "$OVL_FSTYP" = "fuse.fuse-overlayfs" -a \
-> +               -n "`_fs_type_dev_dir fuse-overlayfs $TEST_DEV/$OVL_MNT`" ]
+> -       $MOUNT_PROG -t $OVL_FSTYP $options `_common_dev_mount_options $*`
+> +       options="$options `_common_dev_mount_options $*`"
+> +       output="`$MOUNT_PROG -t $OVL_FSTYP $options 2>&1`"
+> +       rc=$?
+> +
+> +       if [ "$OVL_FSTYP" = "fuse.fuse-overlayfs" ]; then
+> +               # Less verbosity to avoid output mismatch.
+> +               echo "$output" | grep -v \
+> +                       -e "^uid=" \
+> +                       -e "^upperdir=" \
+> +                       -e "^lowerdir=" \
+> +                       -e "^workdir=" \
+> +                       -e "^mountpoint="
+> +       elif [ -n "$output" ]; then
+> +               echo "$output"
+> +       fi
+> +
+> +       return $rc
 
-Somewhat simplified:
-       elif [ "$OVL_FSTYP" = "fuse.fuse-overlayfs" -a \
-               -n "`_fs_type_dev_dir fuse-overlayfs $TEST_DIR`" ]
+rc will always be 0 because it holds the return code of the assignment
+expression 'output=...', not the return code of mount.
 
+Does fuse mount verbose output go to stdout or to stderr?
+I don't think we ever care about stdout of this mount command
+on golden output - it is always assumed to be silent and
+only a silent or noisy stderr is verified in golden output.
+So if I am not mistaken and if fuse verbose output it to stdout,
+then maybe would be enough to redirect stdout to /dev/null?
 
 Thanks,
 Amir.
