@@ -2,158 +2,135 @@ Return-Path: <SRS0=U5BQ=4F=vger.kernel.org=linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ECAB9C34022
-	for <linux-unionfs@archiver.kernel.org>; Mon, 17 Feb 2020 15:44:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 376E7C3402A
+	for <linux-unionfs@archiver.kernel.org>; Mon, 17 Feb 2020 20:56:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id D099224649
-	for <linux-unionfs@archiver.kernel.org>; Mon, 17 Feb 2020 15:44:30 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 077D32070B
+	for <linux-unionfs@archiver.kernel.org>; Mon, 17 Feb 2020 20:56:39 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=fail reason="signature verification failed" (1024-bit key) header.d=hansenpartnership.com header.i=@hansenpartnership.com header.b="iJRSRmka"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728972AbgBQPoa (ORCPT
+        id S1729822AbgBQU4i (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Mon, 17 Feb 2020 10:44:30 -0500
-Received: from youngberry.canonical.com ([91.189.89.112]:47729 "EHLO
-        youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727553AbgBQPoa (ORCPT
+        Mon, 17 Feb 2020 15:56:38 -0500
+Received: from bedivere.hansenpartnership.com ([66.63.167.143]:37720 "EHLO
+        bedivere.hansenpartnership.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1727332AbgBQU4i (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 17 Feb 2020 10:44:30 -0500
-Received: from mail-ua1-f70.google.com ([209.85.222.70])
-        by youngberry.canonical.com with esmtps (TLS1.2:ECDHE_RSA_AES_128_GCM_SHA256:128)
-        (Exim 4.86_2)
-        (envelope-from <mauricio.oliveira@canonical.com>)
-        id 1j3iZQ-0000cy-HF
-        for linux-unionfs@vger.kernel.org; Mon, 17 Feb 2020 15:44:28 +0000
-Received: by mail-ua1-f70.google.com with SMTP id k24so3465968uag.18
-        for <linux-unionfs@vger.kernel.org>; Mon, 17 Feb 2020 07:44:28 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=mvNlQZqpY5uOm9Np4VEcXvFnLc3xFEPudEInjapFAlY=;
-        b=GMvUhiphRsNs8opNUt6WYgfjMN34azqdAnCHXmg0cjwIwdqfaCUygaqe9YiUejYgNz
-         BCNJ5h4LBzHh8AOynbEh1wXhwEZujSTiVXOgXXNm/0fIrDv1R8zkDuGkheMqHC/d5XXm
-         ZMjd9bla3WoW3o0vJJ19mZznD2r6afqXlHSWnCcis10s3dslrcfASx8QfNv8chYbix08
-         dwfE5zfP8A8y6wZYs8IsfqzkXGra5iAY5lRFpIkits80EmzJDKV8tHynUukS+NU9iSM+
-         kkEI9YyztATqbM8koZ/opZW2Rs0bDzGhZgJYqLwwfT5SQqDKAmRs4EA+QpEuMF3L4XRs
-         S7iw==
-X-Gm-Message-State: APjAAAV8DVxIdPXmgL0HgyOOXCd2kraEsIMLgVM2TtaJ4WAWZ7o782Gi
-        fXI2r1hpIYNCpoeFeSmyoL93qrbieFcUtzcuUUmZ3e203HkmpHsSmEDShrRwATwQCiq4mWt+6q5
-        ytvwf0Hs3w5sp5pDL73kRjzDDXxPISMRi3zHj0cPJhYttXozuaCxVq/ku3ZI=
-X-Received: by 2002:a05:6102:219:: with SMTP id z25mr8289146vsp.79.1581954267658;
-        Mon, 17 Feb 2020 07:44:27 -0800 (PST)
-X-Google-Smtp-Source: APXvYqz50UZb7AH+OvTNarT/0hI6TofLWcbHshMMfurFolNpZY+QzHbapX0j1xDy8dvwXcSutVLkUeLFPNoDMchbuIg=
-X-Received: by 2002:a05:6102:219:: with SMTP id z25mr8289128vsp.79.1581954267404;
- Mon, 17 Feb 2020 07:44:27 -0800 (PST)
-MIME-Version: 1.0
-References: <20200214151848.8328-1-mfo@canonical.com> <CAOQ4uxjGdBtzmd=anCbuKo23wMWTu8Ja36-qgGomGy7RSMJ0sg@mail.gmail.com>
-In-Reply-To: <CAOQ4uxjGdBtzmd=anCbuKo23wMWTu8Ja36-qgGomGy7RSMJ0sg@mail.gmail.com>
-From:   Mauricio Faria de Oliveira <mfo@canonical.com>
-Date:   Mon, 17 Feb 2020 12:44:15 -0300
-Message-ID: <CAO9xwp2Z6eF8xnkyh9rsTzCjGJNgZ2ogrLxqzosgjq3YRWeb2w@mail.gmail.com>
-Subject: Re: [PATCH v2 0/5] fstests: overlay: initial support for aufs and
-To:     Amir Goldstein <amir73il@gmail.com>
-Cc:     fstests <fstests@vger.kernel.org>,
-        overlayfs <linux-unionfs@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+        Mon, 17 Feb 2020 15:56:38 -0500
+Received: from localhost (localhost [127.0.0.1])
+        by bedivere.hansenpartnership.com (Postfix) with ESMTP id 380FF8EE34A;
+        Mon, 17 Feb 2020 12:56:37 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=hansenpartnership.com;
+        s=20151216; t=1581972997;
+        bh=gbw1NsmQki3RTMqYz4DXbtFgXdTnldljtyqEXrpO7YY=;
+        h=From:To:Cc:Subject:Date:From;
+        b=iJRSRmkaUKgpgcW8k84qMh8fRhhKO27eZ6p1mbC/x7QUNPmwtEkuJLG52uEkaPTdt
+         dUjGGsgCvX8wj3SZCIXCLXNxLNd5ikqZN6dEDO8k94+43IMFAgF7gF+v9bTsUr4dZ/
+         YZbHg+ZPznKlw6Ttn3MWhezmHOAYXj4JXiKnIFK4=
+Received: from bedivere.hansenpartnership.com ([127.0.0.1])
+        by localhost (bedivere.hansenpartnership.com [127.0.0.1]) (amavisd-new, port 10024)
+        with ESMTP id 66YD1Rp0BFZj; Mon, 17 Feb 2020 12:56:37 -0800 (PST)
+Received: from jarvis.lan (jarvis.ext.hansenpartnership.com [153.66.160.226])
+        by bedivere.hansenpartnership.com (Postfix) with ESMTP id 633CE8EE0F5;
+        Mon, 17 Feb 2020 12:56:36 -0800 (PST)
+From:   James Bottomley <James.Bottomley@HansenPartnership.com>
+To:     linux-fsdevel@vger.kernel.org
+Cc:     David Howells <dhowells@redhat.com>,
+        Christian Brauner <christian@brauner.io>,
+        Al Viro <viro@ZenIV.linux.org.uk>,
+        Miklos Szeredi <miklos@szeredi.hu>,
+        Seth Forshee <seth.forshee@canonical.com>,
+        linux-unionfs@vger.kernel.org, Amir Goldstein <amir73il@gmail.com>,
+        =?UTF-8?q?St=C3=A9phane=20Graber?= <stgraber@ubuntu.com>,
+        Eric Biederman <ebiederm@xmission.com>,
+        Aleksa Sarai <cyphar@cyphar.com>,
+        "Serge E . Hallyn" <serge@hallyn.com>,
+        Tycho Andersen <tycho@tycho.ws>,
+        containers@lists.linux-foundation.org
+Subject: [PATCH v3 0/3] introduce a uid/gid shifting bind mount
+Date:   Mon, 17 Feb 2020 12:53:04 -0800
+Message-Id: <20200217205307.32256-1-James.Bottomley@HansenPartnership.com>
+X-Mailer: git-send-email 2.16.4
 Sender: linux-unionfs-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Fri, Feb 14, 2020 at 3:45 PM Amir Goldstein <amir73il@gmail.com> wrote:
->
-> +CC: <linux-unionfs@vger.kernel.org>
->
-> On Fri, Feb 14, 2020 at 5:18 PM Mauricio Faria de Oliveira
-> <mfo@canonical.com> wrote:
-> >
-> > This patchset allows the existing support for overlay to be used with
-> > aufs and fuse-overlayfs, so the increase the coverage/test tools that
-> > are available for these filesystems.
-> >
-> > Initial numbers on v5.4-based Ubuntu kernel on Ubuntu Eoan/19.10
-> > (fuse-overlay installed from distro package), few tests excluded:
-> >
-> >  OVL_FSTYP=aufs
-> >  - Ran: 645 tests
-> >  - Not run: 483 tests
-> >  - Failures: 22 tests
-> >
-> >  OVL_FSTYP=fuse.fuse-overlayfs
-> >  - Ran: 530
-> >  - Not run: 395
-> >  - Failures: 29
-> >
->
-> It'd be interesting to know the baseline - what are those numbers for
-> OVL_FSTYP=overlay with same kernel?
->
+The object of this series is to replace shiftfs with a proper uid/gid
+shifting bind mount instead of the shiftfs hack of introducing
+something that looks similar to an overlay filesystem to do it.
 
-Oh, indeed.
-Here's the numbers for the 3 filesystems again (re-runs as I noticed
-some tests skipped in fuse-overlayfs previously.)
+The VFS still has the problem that in order to tell what vfsmount a
+dentry belongs to, struct path would have to be threaded everywhere
+struct dentry currently is.  However, this patch is structured only to
+require a rethreading of notify_change.  The rest of the knowledge
+that a shift is in operation is carried in the task structure by
+caching the unshifted credentials.
 
-OVL_FSTYP=overlay (unset/default)
-- Ran: 654
-- Not run: 391
-- Failures: 5
+Note that although it is currently dependent on the new configfd
+interface for bind mounts, only patch 3/3 relies on this, and the
+whole thing could be redone as a syscall or any other mechanism
+(depending on how people eventually want to fix the problem with the
+new fsconfig mechanism being unable to reconfigure bind mounts).
 
-OVL_FSTYP=fuse.fuse-overlayfs
-- Ran: 653
-- Not run: 472
-- Failures: 54
+The changes from v2 are I've added Amir's reviewed-by for the
+notify_change rethreading and I've implemented Serge's request for a
+base offset shift for the image.  It turned out to be much harder to
+implement a simple linear shift than simply to do it through a
+different userns, so that's how I've done it.  The userns you need to
+set up for the offset shifted image is one where the interior uid
+would see the shifted image as fake root.  I've introduced an
+additional "ns" config parameter, which must be specified when
+building the allow shift mount point (so it's done by the admin, not
+by the unprivileged user).  I've also taken care that the image
+shifted to zero (real root) is never visible in the filesystem.  Patch
+3/3 explains how to use the additional "ns" parameter.
 
-OVL_FSTYP=aufs
-- Ran: 645
-- Not run: 483
-- Failures: 22
+James
 
-BTW, thanks for reviewing/commenting on the individual patches.
+---
 
-I'll review them in more detail, and think I can send out a v3 next week.
+James Bottomley (3):
+  fs: rethread notify_change to take a path instead of a dentry
+  fs: introduce uid/gid shifting bind mount
+  fs: expose shifting bind mount to userspace
 
-cheers,
-Mauricio
+ drivers/base/devtmpfs.c   |   8 ++-
+ fs/attr.c                 | 131 ++++++++++++++++++++++++++++++++++++++--------
+ fs/bind.c                 | 105 +++++++++++++++++++++++++++++++++----
+ fs/cachefiles/interface.c |   6 ++-
+ fs/coredump.c             |   4 +-
+ fs/ecryptfs/inode.c       |   9 ++--
+ fs/exec.c                 |   3 +-
+ fs/inode.c                |  17 +++---
+ fs/internal.h             |   2 +
+ fs/mount.h                |   3 ++
+ fs/namei.c                | 114 +++++++++++++++++++++++++++++++++-------
+ fs/namespace.c            |   6 +++
+ fs/nfsd/vfs.c             |  13 +++--
+ fs/open.c                 |  44 ++++++++++++----
+ fs/overlayfs/copy_up.c    |  40 ++++++++------
+ fs/overlayfs/dir.c        |  10 +++-
+ fs/overlayfs/inode.c      |   6 ++-
+ fs/overlayfs/overlayfs.h  |   2 +-
+ fs/overlayfs/super.c      |   3 +-
+ fs/posix_acl.c            |   4 +-
+ fs/proc_namespace.c       |   4 ++
+ fs/stat.c                 |  32 +++++++++--
+ fs/utimes.c               |   2 +-
+ include/linux/cred.h      |  12 +++++
+ include/linux/fs.h        |   7 ++-
+ include/linux/mount.h     |   4 +-
+ include/linux/sched.h     |   5 ++
+ kernel/capability.c       |   9 +++-
+ kernel/cred.c             |  20 +++++++
+ 29 files changed, 507 insertions(+), 118 deletions(-)
 
+-- 
+2.16.4
 
-> Thanks,
-> Amir.
->
-> > Thanks to Amir Goldstein for review/improvements/suggestions.
-> >
-> > Changes:
-> >  - v2:
-> >    - fix tests/overlay that hardcode the overlay fs type
-> >    - add support to fuse-overlayfs with +3 other patches
-> >  - v1:
-> >    - [PATCH] common/overlay,rc: introduce OVL_ALT_FSTYP for testing aufs
-> >
-> > Mauricio Faria de Oliveira (5):
-> >   common/overlay,rc,config: introduce OVL_FSTYP variable and aufs
-> >   tests/overlay: mount: replace overlay hardcode with OVL_FSTYP variable
-> >   common/rc: introduce new helper function _fs_type_dev_dir()
-> >   common/rc: add quirks for fuse-overlayfs device/mount point
-> >   common/overlay: silence some mount messages for fuse-overlayfs
-> >
-> >  README.overlay    |  5 ++++
-> >  common/config     |  2 ++
-> >  common/overlay    | 29 +++++++++++++++++++---
-> >  common/rc         | 61 ++++++++++++++++++++++++++++++++++++++++-------
-> >  tests/overlay/011 |  2 +-
-> >  tests/overlay/035 |  2 +-
-> >  tests/overlay/052 |  4 ++--
-> >  tests/overlay/053 |  4 ++--
-> >  tests/overlay/062 |  2 +-
-> >  9 files changed, 92 insertions(+), 19 deletions(-)
-> >
-> > --
-> > 2.20.1
-> >
-
-
-
---
-Mauricio Faria de Oliveira
