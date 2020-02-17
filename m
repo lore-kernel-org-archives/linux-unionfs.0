@@ -1,65 +1,60 @@
-Return-Path: <SRS0=3MWK=4C=vger.kernel.org=linux-unionfs-owner@kernel.org>
+Return-Path: <SRS0=U5BQ=4F=vger.kernel.org=linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B94C7C35242
-	for <linux-unionfs@archiver.kernel.org>; Fri, 14 Feb 2020 22:51:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ECAB9C34022
+	for <linux-unionfs@archiver.kernel.org>; Mon, 17 Feb 2020 15:44:30 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 86C5A206D7
-	for <linux-unionfs@archiver.kernel.org>; Fri, 14 Feb 2020 22:51:36 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="TMeaNoh0"
+	by mail.kernel.org (Postfix) with ESMTP id D099224649
+	for <linux-unionfs@archiver.kernel.org>; Mon, 17 Feb 2020 15:44:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727566AbgBNWvg (ORCPT
+        id S1728972AbgBQPoa (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Fri, 14 Feb 2020 17:51:36 -0500
-Received: from mail-io1-f65.google.com ([209.85.166.65]:32792 "EHLO
-        mail-io1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727528AbgBNWvg (ORCPT
+        Mon, 17 Feb 2020 10:44:30 -0500
+Received: from youngberry.canonical.com ([91.189.89.112]:47729 "EHLO
+        youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727553AbgBQPoa (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 14 Feb 2020 17:51:36 -0500
-Received: by mail-io1-f65.google.com with SMTP id z8so755679ioh.0;
-        Fri, 14 Feb 2020 14:51:35 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=x1blGNXEvaN9sSEFaGvs0PQlrjhIn7iC/664ptnmuQY=;
-        b=TMeaNoh07lsis7eG0P+4c081sEzgcjQF1rXcQ5wW8Zl/ClpP9OfiXt4+NWQoxUkSiF
-         FLIX3tMGvsclaltB/BVeCT74Dl3joKUFvJJu8vpIlpu+kGLpdUuaDG8VMYz/dTn2VWAm
-         UIn/BSJxFztiQsMHxOgRUduBaSzmNEGhcOvGFqqEBECpmheZLYJho2/UB0NNs0h1hP94
-         GKKCbA7tRvhRxFZFcupIdG25CPAcO77GRJI0zJV4Fpl+AhpfQqc2uD0frNL4Lc0sJuoe
-         gPxyCtxR2N819B1uNbIV7rX9dKP0burUzDby4/F85lkyEvcSawGVXAZJXrJzlpUKOY8a
-         j/PQ==
+        Mon, 17 Feb 2020 10:44:30 -0500
+Received: from mail-ua1-f70.google.com ([209.85.222.70])
+        by youngberry.canonical.com with esmtps (TLS1.2:ECDHE_RSA_AES_128_GCM_SHA256:128)
+        (Exim 4.86_2)
+        (envelope-from <mauricio.oliveira@canonical.com>)
+        id 1j3iZQ-0000cy-HF
+        for linux-unionfs@vger.kernel.org; Mon, 17 Feb 2020 15:44:28 +0000
+Received: by mail-ua1-f70.google.com with SMTP id k24so3465968uag.18
+        for <linux-unionfs@vger.kernel.org>; Mon, 17 Feb 2020 07:44:28 -0800 (PST)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=x1blGNXEvaN9sSEFaGvs0PQlrjhIn7iC/664ptnmuQY=;
-        b=mhQU8g57WawL5Jy/yfFQPMtPZX4RfTRmZuU3r+tH5Bk/EuVLXZBR6EcDJdxC7+RB9a
-         GiMeqcXhqKqkb/RYAHhLa52ZoJ/C5L0aRk3sELpwfQz/eC7O3dG+JoZpJG0EH1tfr60h
-         j3wdWbXdCfFVkQqnJepSUxotH4dGZgkC/EGO+jEAps0FtrtaEVx2LepzB+cvnLjbjiH2
-         2QViU3yddJlSXowfOavAIS8jOgLmL+Jge9ZDYHxBs/nG3vo0Xm52hSi7qL5+qihd+kV6
-         54IlkzQzdRAghXUu3kfWjl2gvcK9vVu8HACSMsHowEOsKtbTGXqNw+etbytjXtlvjunf
-         4meg==
-X-Gm-Message-State: APjAAAWom/b6pTra1kcaFbnm/qXdO3cZZNtIkmW+vUTdy8Ekjo+yHvK1
-        ZMPvaUr8a9xfRoV4FqLQB6CDJYwXSTadpTyLPyY=
-X-Google-Smtp-Source: APXvYqxSihw0+bkCs9dIbjghUv0izqg7PJQNz2DQreIa5sF4/+ksKxPc1hNIc8Os9CH9vlWTvhgACsJt5lwVlhtnbR8=
-X-Received: by 2002:a6b:f214:: with SMTP id q20mr4357054ioh.137.1581720695504;
- Fri, 14 Feb 2020 14:51:35 -0800 (PST)
+        bh=mvNlQZqpY5uOm9Np4VEcXvFnLc3xFEPudEInjapFAlY=;
+        b=GMvUhiphRsNs8opNUt6WYgfjMN34azqdAnCHXmg0cjwIwdqfaCUygaqe9YiUejYgNz
+         BCNJ5h4LBzHh8AOynbEh1wXhwEZujSTiVXOgXXNm/0fIrDv1R8zkDuGkheMqHC/d5XXm
+         ZMjd9bla3WoW3o0vJJ19mZznD2r6afqXlHSWnCcis10s3dslrcfASx8QfNv8chYbix08
+         dwfE5zfP8A8y6wZYs8IsfqzkXGra5iAY5lRFpIkits80EmzJDKV8tHynUukS+NU9iSM+
+         kkEI9YyztATqbM8koZ/opZW2Rs0bDzGhZgJYqLwwfT5SQqDKAmRs4EA+QpEuMF3L4XRs
+         S7iw==
+X-Gm-Message-State: APjAAAV8DVxIdPXmgL0HgyOOXCd2kraEsIMLgVM2TtaJ4WAWZ7o782Gi
+        fXI2r1hpIYNCpoeFeSmyoL93qrbieFcUtzcuUUmZ3e203HkmpHsSmEDShrRwATwQCiq4mWt+6q5
+        ytvwf0Hs3w5sp5pDL73kRjzDDXxPISMRi3zHj0cPJhYttXozuaCxVq/ku3ZI=
+X-Received: by 2002:a05:6102:219:: with SMTP id z25mr8289146vsp.79.1581954267658;
+        Mon, 17 Feb 2020 07:44:27 -0800 (PST)
+X-Google-Smtp-Source: APXvYqz50UZb7AH+OvTNarT/0hI6TofLWcbHshMMfurFolNpZY+QzHbapX0j1xDy8dvwXcSutVLkUeLFPNoDMchbuIg=
+X-Received: by 2002:a05:6102:219:: with SMTP id z25mr8289128vsp.79.1581954267404;
+ Mon, 17 Feb 2020 07:44:27 -0800 (PST)
 MIME-Version: 1.0
-References: <20200214151848.8328-1-mfo@canonical.com> <20200214151848.8328-6-mfo@canonical.com>
-In-Reply-To: <20200214151848.8328-6-mfo@canonical.com>
-From:   Amir Goldstein <amir73il@gmail.com>
-Date:   Sat, 15 Feb 2020 00:51:24 +0200
-Message-ID: <CAOQ4uxgpLtJeUcn2Uu38hkNt0xpZn-MKdn4dwYm60H15dmrgmA@mail.gmail.com>
-Subject: Re: [PATCH v2 5/5] common/overlay: silence some mount messages for fuse-overlayfs
-To:     Mauricio Faria de Oliveira <mfo@canonical.com>
+References: <20200214151848.8328-1-mfo@canonical.com> <CAOQ4uxjGdBtzmd=anCbuKo23wMWTu8Ja36-qgGomGy7RSMJ0sg@mail.gmail.com>
+In-Reply-To: <CAOQ4uxjGdBtzmd=anCbuKo23wMWTu8Ja36-qgGomGy7RSMJ0sg@mail.gmail.com>
+From:   Mauricio Faria de Oliveira <mfo@canonical.com>
+Date:   Mon, 17 Feb 2020 12:44:15 -0300
+Message-ID: <CAO9xwp2Z6eF8xnkyh9rsTzCjGJNgZ2ogrLxqzosgjq3YRWeb2w@mail.gmail.com>
+Subject: Re: [PATCH v2 0/5] fstests: overlay: initial support for aufs and
+To:     Amir Goldstein <amir73il@gmail.com>
 Cc:     fstests <fstests@vger.kernel.org>,
         overlayfs <linux-unionfs@vger.kernel.org>
 Content-Type: text/plain; charset="UTF-8"
@@ -68,103 +63,97 @@ Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Fri, Feb 14, 2020 at 5:19 PM Mauricio Faria de Oliveira
-<mfo@canonical.com> wrote:
+On Fri, Feb 14, 2020 at 3:45 PM Amir Goldstein <amir73il@gmail.com> wrote:
 >
-> When mouting fuse-overlayfs there are some messages that make
-> the tests report failures due to output mismatch; ignore them:
+> +CC: <linux-unionfs@vger.kernel.org>
 >
->   uid=unchanged
->   uid=unchanged
->   upperdir=/mnt/test/ovl-upper
->   workdir=/mnt/test/ovl-work
->   lowerdir=/mnt/test/ovl-lower
->   mountpoint=/mnt/test/ovl-mnt
+> On Fri, Feb 14, 2020 at 5:18 PM Mauricio Faria de Oliveira
+> <mfo@canonical.com> wrote:
+> >
+> > This patchset allows the existing support for overlay to be used with
+> > aufs and fuse-overlayfs, so the increase the coverage/test tools that
+> > are available for these filesystems.
+> >
+> > Initial numbers on v5.4-based Ubuntu kernel on Ubuntu Eoan/19.10
+> > (fuse-overlay installed from distro package), few tests excluded:
+> >
+> >  OVL_FSTYP=aufs
+> >  - Ran: 645 tests
+> >  - Not run: 483 tests
+> >  - Failures: 22 tests
+> >
+> >  OVL_FSTYP=fuse.fuse-overlayfs
+> >  - Ran: 530
+> >  - Not run: 395
+> >  - Failures: 29
+> >
 >
-> For other filesystem types (e.g., overlay and aufs) make sure to
-> only print non-null output, to avoid blank lines output mismatch.
+> It'd be interesting to know the baseline - what are those numbers for
+> OVL_FSTYP=overlay with same kernel?
 >
-> And return the status of the mount command, not other commands.
->
-> Currently, running './check -overlay' tests (excluding generic/062)
-> the numbers for fuse-overlayfs on loop devices on v5.4-based Ubuntu
-> kernel with the fuse-overlayfs package from Ubuntu Eoan/19.10 are:
->
->  - Ran: 530
->  - Not run: 395
->  - Failures: 29
->
-> And hopefully this helps with testing for fuse-overlayfs too.
->
-> Steps:
->
->   $ export OVL_FSTYP=fuse.fuse-overlayfs
->   $ export FSTYP=ext4
->   $ export TEST_DEV=/dev/loop0
->   $ export TEST_DIR=/mnt/test
->   $ export SCRATCH_DEV=/dev/loop1
->   $ export SCRATCH_MNT=/mnt/scratch
->
->   $ sudo mkfs.$FSTYP -F $TEST_DEV
->   $ sudo mkfs.$FSTYP -F $SCRATCH_DEV
->   $ sudo mkdir $TEST_DIR $SCRATCH_MNT
->
->   $ cat <<EOF >/tmp/exclude-tests
->   generic/062
->   EOF
->
->   $ sudo -E ./check -overlay -E /tmp/exclude-tests
->
-> Signed-off-by: Mauricio Faria de Oliveira <mfo@canonical.com>
-> ---
->  common/overlay | 20 +++++++++++++++++++-
->  1 file changed, 19 insertions(+), 1 deletion(-)
->
-> diff --git a/common/overlay b/common/overlay
-> index a1076926c23f..27f3c08252ee 100644
-> --- a/common/overlay
-> +++ b/common/overlay
-> @@ -19,6 +19,8 @@ _overlay_mount_dirs()
->         local upperdir=$2
->         local workdir=$3
->         local options
-> +       local output
-> +       local rc
->         shift 3
->
->         options="-o lowerdir=$lowerdir -o upperdir=$upperdir -o workdir=$workdir"
-> @@ -26,7 +28,23 @@ _overlay_mount_dirs()
->                 options="-o br=$upperdir=rw -o br=$lowerdir=ro"
->         fi
->
-> -       $MOUNT_PROG -t $OVL_FSTYP $options `_common_dev_mount_options $*`
-> +       options="$options `_common_dev_mount_options $*`"
-> +       output="`$MOUNT_PROG -t $OVL_FSTYP $options 2>&1`"
-> +       rc=$?
-> +
-> +       if [ "$OVL_FSTYP" = "fuse.fuse-overlayfs" ]; then
-> +               # Less verbosity to avoid output mismatch.
-> +               echo "$output" | grep -v \
-> +                       -e "^uid=" \
-> +                       -e "^upperdir=" \
-> +                       -e "^lowerdir=" \
-> +                       -e "^workdir=" \
-> +                       -e "^mountpoint="
-> +       elif [ -n "$output" ]; then
-> +               echo "$output"
-> +       fi
-> +
-> +       return $rc
 
-rc will always be 0 because it holds the return code of the assignment
-expression 'output=...', not the return code of mount.
+Oh, indeed.
+Here's the numbers for the 3 filesystems again (re-runs as I noticed
+some tests skipped in fuse-overlayfs previously.)
 
-Does fuse mount verbose output go to stdout or to stderr?
-I don't think we ever care about stdout of this mount command
-on golden output - it is always assumed to be silent and
-only a silent or noisy stderr is verified in golden output.
-So if I am not mistaken and if fuse verbose output it to stdout,
-then maybe would be enough to redirect stdout to /dev/null?
+OVL_FSTYP=overlay (unset/default)
+- Ran: 654
+- Not run: 391
+- Failures: 5
 
-Thanks,
-Amir.
+OVL_FSTYP=fuse.fuse-overlayfs
+- Ran: 653
+- Not run: 472
+- Failures: 54
+
+OVL_FSTYP=aufs
+- Ran: 645
+- Not run: 483
+- Failures: 22
+
+BTW, thanks for reviewing/commenting on the individual patches.
+
+I'll review them in more detail, and think I can send out a v3 next week.
+
+cheers,
+Mauricio
+
+
+> Thanks,
+> Amir.
+>
+> > Thanks to Amir Goldstein for review/improvements/suggestions.
+> >
+> > Changes:
+> >  - v2:
+> >    - fix tests/overlay that hardcode the overlay fs type
+> >    - add support to fuse-overlayfs with +3 other patches
+> >  - v1:
+> >    - [PATCH] common/overlay,rc: introduce OVL_ALT_FSTYP for testing aufs
+> >
+> > Mauricio Faria de Oliveira (5):
+> >   common/overlay,rc,config: introduce OVL_FSTYP variable and aufs
+> >   tests/overlay: mount: replace overlay hardcode with OVL_FSTYP variable
+> >   common/rc: introduce new helper function _fs_type_dev_dir()
+> >   common/rc: add quirks for fuse-overlayfs device/mount point
+> >   common/overlay: silence some mount messages for fuse-overlayfs
+> >
+> >  README.overlay    |  5 ++++
+> >  common/config     |  2 ++
+> >  common/overlay    | 29 +++++++++++++++++++---
+> >  common/rc         | 61 ++++++++++++++++++++++++++++++++++++++++-------
+> >  tests/overlay/011 |  2 +-
+> >  tests/overlay/035 |  2 +-
+> >  tests/overlay/052 |  4 ++--
+> >  tests/overlay/053 |  4 ++--
+> >  tests/overlay/062 |  2 +-
+> >  9 files changed, 92 insertions(+), 19 deletions(-)
+> >
+> > --
+> > 2.20.1
+> >
+
+
+
+--
+Mauricio Faria de Oliveira
