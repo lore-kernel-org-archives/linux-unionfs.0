@@ -7,59 +7,59 @@ X-Spam-Status: No, score=-5.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
 	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7C3CDC11D02
-	for <linux-unionfs@archiver.kernel.org>; Thu, 20 Feb 2020 07:52:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E2DE3C11D0C
+	for <linux-unionfs@archiver.kernel.org>; Thu, 20 Feb 2020 20:00:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 4D1FB24656
-	for <linux-unionfs@archiver.kernel.org>; Thu, 20 Feb 2020 07:52:58 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B76FD206F4
+	for <linux-unionfs@archiver.kernel.org>; Thu, 20 Feb 2020 20:00:17 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="TkbVniFy"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="KAtcqCNZ"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727088AbgBTHw6 (ORCPT
+        id S1728964AbgBTUAR (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Thu, 20 Feb 2020 02:52:58 -0500
-Received: from mail-il1-f196.google.com ([209.85.166.196]:38176 "EHLO
-        mail-il1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726248AbgBTHw5 (ORCPT
+        Thu, 20 Feb 2020 15:00:17 -0500
+Received: from mail-il1-f193.google.com ([209.85.166.193]:36275 "EHLO
+        mail-il1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728927AbgBTUAR (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 20 Feb 2020 02:52:57 -0500
-Received: by mail-il1-f196.google.com with SMTP id f5so22949792ilq.5;
-        Wed, 19 Feb 2020 23:52:57 -0800 (PST)
+        Thu, 20 Feb 2020 15:00:17 -0500
+Received: by mail-il1-f193.google.com with SMTP id b15so24722515iln.3;
+        Thu, 20 Feb 2020 12:00:16 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=m1oB3Q6IOsGJuHSkpjxVpkQ8YE2VHk/UEGZOTbpLfio=;
-        b=TkbVniFyW6q+bRvCNwF6Mt/IOqV2WWLn8V7VNK+KeuRqOgpD52VFlflBwWuKHWfBlR
-         DWS/F0GghTl8OpYUhtBbLTsAZF3VUmVJu/mwTA3F2PTkHzfk3TpWtJ1bRcGkBO3LZww6
-         etZsp+T1IqhnOP622ZEdGC9WqmZOa8Pltkli8s6RLnxXrQOyeoMD3uGaNlG7HRT8qBDl
-         zXHWUGXAiC/B/iyT4yLmizV16fnt/jdmkKgIcwEE63OfBcvSuNpbhTFXSWagxR0QUYrT
-         e9DLkqGGhQtDL+sLlIy9ltuGILbC+uF4T/Ovz/B6QhBUA8R4DyfjDp8G17BmrHcBNdQB
-         cW8Q==
+        bh=Hz+DKsj82X4tdj83FZa6Kg4xxF0FGCDR16OLCe3Lc5k=;
+        b=KAtcqCNZ4K4H9jRXFSYY2AI5xegS847mVyu/+kOkKrZM/w/U935ZNLfsSbu0e9AKhC
+         /T9DWXwyt9RvfoBkw2Oj+kHIEuxd/nryNGJeR6kDDYArgFAl4mFyp6JVmREm3LpaiqSR
+         SMbUbWYUtTJ9w1MrVmaYWoKTDd9p4OKTAkwe0OxaeufxKW0Ed6P3vFzdoo5uTmJcPZWr
+         6GAgwXlP2mS+/iLtXIJxGr9Z1jNAejfyYwUyTA/o0uHI3ShEybWovcPphY66DZZAqhjl
+         yWjWSp0tYciy9ehjqFP14vJ2DQH3NSwhR8htVH5WQ9s6mZY7Vo4FL90zi3NIkrGIrpxf
+         qIjg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=m1oB3Q6IOsGJuHSkpjxVpkQ8YE2VHk/UEGZOTbpLfio=;
-        b=M4p+zA+zWI8AKa06E8KbAwpo+8uLGUf5Pb0DArk1dqEIwcMRxPWFa6bQ5fmjGhD4KN
-         SEfsvh4uEg3iaxYC7/PVA9lEz8Q6Xudgfy1JpIIibXGwrXbxEkKS/x31928HUHaVW7j1
-         gZ2Gp/hZbRGC2v6SszXJkgF6BCM35QKJ3ixB9v0bAT25uqfwxMQGZgDvYXgJbCvS3pRC
-         ke998Q7D9lUsfjCsibAbOemZ18Jpw1MDK8V1cmmuil1lMfHszMzomY/Q4zR8tqrw4NBe
-         lhTkZQ5jCs1Jzy8A0CbOv9a8t2bjh0dfzLkYZXl7D50Z4SownnUI38YjLRHutTKxqBYq
-         rTMw==
-X-Gm-Message-State: APjAAAXCXj2TQjp0PwpS02Vu0lcWynMeWNNrBjm/lJmt1y3DAZkvTIRr
-        2VsrYXZ1EvRllJO/rTgdJo/6uPN7ySCpd39fPO0=
-X-Google-Smtp-Source: APXvYqx6OY5EmxBMVHe2XA4Dyn9uCB3yodVd7TZVKcVVil5nlz5MMARXh5CfRRcI4Bi7mwLw1PEIcICfYsQo0A04JRg=
-X-Received: by 2002:a92:8656:: with SMTP id g83mr29006690ild.9.1582185177120;
- Wed, 19 Feb 2020 23:52:57 -0800 (PST)
+        bh=Hz+DKsj82X4tdj83FZa6Kg4xxF0FGCDR16OLCe3Lc5k=;
+        b=Sf86vikzVPbTLMltn1c/AAURZlJG8WMEFz/Q+wAre4Hbmddh4+LNEhLZMV3Cv9gCWW
+         7mN0ugSG9CJgQvEls67AAamwOQjQswW0yNCuF1AJJ/DLF5x2U45Stfs9nV8gzB49CwAa
+         p1Wio/Vz+XSAU2z82sXPsuvK10sMFc9qElAE16Qoyb3c0o/KfQ7IrYoRazqOfYaVCaif
+         VX7QwYotZb9i5qTGmjsealDp5r5seVeL9YCef3dHtiGTrMNXSXATHID3G6Z0berfzDqb
+         oTE6eteVPcAdtpg4Fq9p94FIz3ix6whJXCnH5BWiGw2Jryg6f7sF8YXefKE5+HsEih12
+         vsgQ==
+X-Gm-Message-State: APjAAAWtvc8SIZ7m9LarHPwmDkwIPS959L+MogTrUNOC88YtRdwbvX/2
+        TWWe5WWhrm8b0/9BXXu3zPZi3+taaySYpX4Lb/Q=
+X-Google-Smtp-Source: APXvYqwXs3IjemdzTD0tPMYGcRBe1+KGJFOflXyX/3N7UcQRkTWgVSGHNqCOaf0cK3nw/kLawCcKZoEUD4Xv4LR2MVY=
+X-Received: by 2002:a92:9c8c:: with SMTP id x12mr31320588ill.275.1582228816324;
+ Thu, 20 Feb 2020 12:00:16 -0800 (PST)
 MIME-Version: 1.0
 References: <20200131115004.17410-1-mszeredi@redhat.com> <20200131115004.17410-5-mszeredi@redhat.com>
  <20200204145951.GC11631@redhat.com> <CAJfpegtq4A-m9vOPwUftiotC_Xv6w-dnhCi9=E0t-b1ZPJXPGw@mail.gmail.com>
- <CAOQ4uxj_pVp9-EN2Gmq9j6G3xozzpK_zQiRO-brx6PZ9VpgD0Q@mail.gmail.com>
-In-Reply-To: <CAOQ4uxj_pVp9-EN2Gmq9j6G3xozzpK_zQiRO-brx6PZ9VpgD0Q@mail.gmail.com>
+ <CAOQ4uxj_pVp9-EN2Gmq9j6G3xozzpK_zQiRO-brx6PZ9VpgD0Q@mail.gmail.com> <CAOQ4uxjFYO28r+0pY+pKxK-dDJcQF2nf2EivnOUBgrgkYTFjPQ@mail.gmail.com>
+In-Reply-To: <CAOQ4uxjFYO28r+0pY+pKxK-dDJcQF2nf2EivnOUBgrgkYTFjPQ@mail.gmail.com>
 From:   Amir Goldstein <amir73il@gmail.com>
-Date:   Thu, 20 Feb 2020 09:52:46 +0200
-Message-ID: <CAOQ4uxjFYO28r+0pY+pKxK-dDJcQF2nf2EivnOUBgrgkYTFjPQ@mail.gmail.com>
+Date:   Thu, 20 Feb 2020 22:00:05 +0200
+Message-ID: <CAOQ4uxhZ8a2ObfB9sUtrc=95mM70qurLtXkaNyHOXYxGEKvxFw@mail.gmail.com>
 Subject: Re: [PATCH 4/4] ovl: alllow remote upper
 To:     Miklos Szeredi <miklos@szeredi.hu>
 Cc:     Vivek Goyal <vgoyal@redhat.com>,
@@ -72,40 +72,44 @@ Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Tue, Feb 4, 2020 at 7:02 PM Amir Goldstein <amir73il@gmail.com> wrote:
+On Thu, Feb 20, 2020 at 9:52 AM Amir Goldstein <amir73il@gmail.com> wrote:
 >
-> On Tue, Feb 4, 2020 at 6:17 PM Miklos Szeredi <miklos@szeredi.hu> wrote:
+> On Tue, Feb 4, 2020 at 7:02 PM Amir Goldstein <amir73il@gmail.com> wrote:
 > >
-> > On Tue, Feb 4, 2020 at 3:59 PM Vivek Goyal <vgoyal@redhat.com> wrote:
+> > On Tue, Feb 4, 2020 at 6:17 PM Miklos Szeredi <miklos@szeredi.hu> wrote:
 > > >
-> > > On Fri, Jan 31, 2020 at 12:50:04PM +0100, Miklos Szeredi wrote:
-> > > > No reason to prevent upper layer being a remote filesystem.  Do the
-> > > > revalidation in that case, just as we already do for lower layers.
+> > > On Tue, Feb 4, 2020 at 3:59 PM Vivek Goyal <vgoyal@redhat.com> wrote:
 > > > >
-> > > > This lets virtiofs be used as upper layer, which appears to be a real use
-> > > > case.
+> > > > On Fri, Jan 31, 2020 at 12:50:04PM +0100, Miklos Szeredi wrote:
+> > > > > No reason to prevent upper layer being a remote filesystem.  Do the
+> > > > > revalidation in that case, just as we already do for lower layers.
+> > > > >
+> > > > > This lets virtiofs be used as upper layer, which appears to be a real use
+> > > > > case.
+> > > >
+> > > > Hi Miklos,
+> > > >
+> > > > I have couple of very basic questions.
+> > > >
+> > > > - So with this change, we will allow NFS to be upper layer also?
 > > >
-> > > Hi Miklos,
-> > >
-> > > I have couple of very basic questions.
-> > >
-> > > - So with this change, we will allow NFS to be upper layer also?
+> > > I haven't tested, but I think it will fail on the d_type test.
 > >
-> > I haven't tested, but I think it will fail on the d_type test.
+> > But we do not fail mount on no d_type support...
+> > Besides, I though you were going to add the RENAME_WHITEOUT
+> > test to avert untested network fs as upper.
+> >
 >
-> But we do not fail mount on no d_type support...
-> Besides, I though you were going to add the RENAME_WHITEOUT
-> test to avert untested network fs as upper.
+> Pushed strict remote upper check to:
+> https://github.com/amir73il/linux/commits/ovl-strict-upper
 >
+> FWIW, overlayfs-next+ovl-strict-upper passes the quick xfstests,
+> except for overlay/031 - it fails because the RENAME_WHITEOUT check
+> leaves behind a whiteout in workdir.
+> I think it it is not worth to cleanup that whiteout leftover and
+> easier to fix the test.
 
-Pushed strict remote upper check to:
-https://github.com/amir73il/linux/commits/ovl-strict-upper
-
-FWIW, overlayfs-next+ovl-strict-upper passes the quick xfstests,
-except for overlay/031 - it fails because the RENAME_WHITEOUT check
-leaves behind a whiteout in workdir.
-I think it it is not worth to cleanup that whiteout leftover and
-easier to fix the test.
+Nevermind. Fixed the whiteout cleanup and re-pushed.
 
 Thanks,
 Amir.
