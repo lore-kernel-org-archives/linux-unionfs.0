@@ -1,192 +1,111 @@
-Return-Path: <SRS0=YYYA=4H=vger.kernel.org=linux-unionfs-owner@kernel.org>
+Return-Path: <SRS0=Bxzg=4I=vger.kernel.org=linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.0 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_SANE_2 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
+	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C0EE2C5ACC4
-	for <linux-unionfs@archiver.kernel.org>; Wed, 19 Feb 2020 22:26:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7C3CDC11D02
+	for <linux-unionfs@archiver.kernel.org>; Thu, 20 Feb 2020 07:52:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 609F22469B
-	for <linux-unionfs@archiver.kernel.org>; Wed, 19 Feb 2020 22:26:49 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4D1FB24656
+	for <linux-unionfs@archiver.kernel.org>; Thu, 20 Feb 2020 07:52:58 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (1024-bit key) header.d=hansenpartnership.com header.i=@hansenpartnership.com header.b="VlCn7xrs";
-	dkim=fail reason="signature verification failed" (1024-bit key) header.d=hansenpartnership.com header.i=@hansenpartnership.com header.b="VlCn7xrs"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="TkbVniFy"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727778AbgBSW0t (ORCPT
+        id S1727088AbgBTHw6 (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Wed, 19 Feb 2020 17:26:49 -0500
-Received: from bedivere.hansenpartnership.com ([66.63.167.143]:59444 "EHLO
-        bedivere.hansenpartnership.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1727775AbgBSW0s (ORCPT
+        Thu, 20 Feb 2020 02:52:58 -0500
+Received: from mail-il1-f196.google.com ([209.85.166.196]:38176 "EHLO
+        mail-il1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726248AbgBTHw5 (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 19 Feb 2020 17:26:48 -0500
-Received: from localhost (localhost [127.0.0.1])
-        by bedivere.hansenpartnership.com (Postfix) with ESMTP id C0BE18EE3CD;
-        Wed, 19 Feb 2020 14:26:47 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=hansenpartnership.com;
-        s=20151216; t=1582151207;
-        bh=HfjBNpD2Qt+GaWlMj21Bvlc2JIc3+sF9K8fSWDmjU3M=;
-        h=Subject:From:To:Cc:Date:In-Reply-To:References:From;
-        b=VlCn7xrsfg8oSw8PolLgzjv9NYhVLFlu3SwPcDfRI/uBgkrT/PuArbELzgAl8IeJZ
-         /O/+WU/kEkcD21+xu1idY+w8gtAFQBt4DIFWK86SN5luHD8yK2I3VWLp+/CywLD76v
-         IgWfF6+RN7QkEsdb5Dwf+FJ23znFC5DuwNJNiACs=
-Received: from bedivere.hansenpartnership.com ([127.0.0.1])
-        by localhost (bedivere.hansenpartnership.com [127.0.0.1]) (amavisd-new, port 10024)
-        with ESMTP id T7FVyGeyyMJP; Wed, 19 Feb 2020 14:26:47 -0800 (PST)
-Received: from jarvis.ext.hansenpartnership.com (jarvis.ext.hansenpartnership.com [153.66.160.226])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by bedivere.hansenpartnership.com (Postfix) with ESMTPSA id DBC208EE144;
-        Wed, 19 Feb 2020 14:26:46 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=hansenpartnership.com;
-        s=20151216; t=1582151207;
-        bh=HfjBNpD2Qt+GaWlMj21Bvlc2JIc3+sF9K8fSWDmjU3M=;
-        h=Subject:From:To:Cc:Date:In-Reply-To:References:From;
-        b=VlCn7xrsfg8oSw8PolLgzjv9NYhVLFlu3SwPcDfRI/uBgkrT/PuArbELzgAl8IeJZ
-         /O/+WU/kEkcD21+xu1idY+w8gtAFQBt4DIFWK86SN5luHD8yK2I3VWLp+/CywLD76v
-         IgWfF6+RN7QkEsdb5Dwf+FJ23znFC5DuwNJNiACs=
-Message-ID: <1582151205.3301.27.camel@HansenPartnership.com>
-Subject: Re: [PATCH v3 0/3] introduce a uid/gid shifting bind mount
-From:   James Bottomley <James.Bottomley@HansenPartnership.com>
-To:     Christian Brauner <christian.brauner@ubuntu.com>
-Cc:     Amir Goldstein <amir73il@gmail.com>,
-        Miklos Szeredi <miklos@szeredi.hu>,
-        Linux Containers <containers@lists.linux-foundation.org>,
+        Thu, 20 Feb 2020 02:52:57 -0500
+Received: by mail-il1-f196.google.com with SMTP id f5so22949792ilq.5;
+        Wed, 19 Feb 2020 23:52:57 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=m1oB3Q6IOsGJuHSkpjxVpkQ8YE2VHk/UEGZOTbpLfio=;
+        b=TkbVniFyW6q+bRvCNwF6Mt/IOqV2WWLn8V7VNK+KeuRqOgpD52VFlflBwWuKHWfBlR
+         DWS/F0GghTl8OpYUhtBbLTsAZF3VUmVJu/mwTA3F2PTkHzfk3TpWtJ1bRcGkBO3LZww6
+         etZsp+T1IqhnOP622ZEdGC9WqmZOa8Pltkli8s6RLnxXrQOyeoMD3uGaNlG7HRT8qBDl
+         zXHWUGXAiC/B/iyT4yLmizV16fnt/jdmkKgIcwEE63OfBcvSuNpbhTFXSWagxR0QUYrT
+         e9DLkqGGhQtDL+sLlIy9ltuGILbC+uF4T/Ovz/B6QhBUA8R4DyfjDp8G17BmrHcBNdQB
+         cW8Q==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=m1oB3Q6IOsGJuHSkpjxVpkQ8YE2VHk/UEGZOTbpLfio=;
+        b=M4p+zA+zWI8AKa06E8KbAwpo+8uLGUf5Pb0DArk1dqEIwcMRxPWFa6bQ5fmjGhD4KN
+         SEfsvh4uEg3iaxYC7/PVA9lEz8Q6Xudgfy1JpIIibXGwrXbxEkKS/x31928HUHaVW7j1
+         gZ2Gp/hZbRGC2v6SszXJkgF6BCM35QKJ3ixB9v0bAT25uqfwxMQGZgDvYXgJbCvS3pRC
+         ke998Q7D9lUsfjCsibAbOemZ18Jpw1MDK8V1cmmuil1lMfHszMzomY/Q4zR8tqrw4NBe
+         lhTkZQ5jCs1Jzy8A0CbOv9a8t2bjh0dfzLkYZXl7D50Z4SownnUI38YjLRHutTKxqBYq
+         rTMw==
+X-Gm-Message-State: APjAAAXCXj2TQjp0PwpS02Vu0lcWynMeWNNrBjm/lJmt1y3DAZkvTIRr
+        2VsrYXZ1EvRllJO/rTgdJo/6uPN7ySCpd39fPO0=
+X-Google-Smtp-Source: APXvYqx6OY5EmxBMVHe2XA4Dyn9uCB3yodVd7TZVKcVVil5nlz5MMARXh5CfRRcI4Bi7mwLw1PEIcICfYsQo0A04JRg=
+X-Received: by 2002:a92:8656:: with SMTP id g83mr29006690ild.9.1582185177120;
+ Wed, 19 Feb 2020 23:52:57 -0800 (PST)
+MIME-Version: 1.0
+References: <20200131115004.17410-1-mszeredi@redhat.com> <20200131115004.17410-5-mszeredi@redhat.com>
+ <20200204145951.GC11631@redhat.com> <CAJfpegtq4A-m9vOPwUftiotC_Xv6w-dnhCi9=E0t-b1ZPJXPGw@mail.gmail.com>
+ <CAOQ4uxj_pVp9-EN2Gmq9j6G3xozzpK_zQiRO-brx6PZ9VpgD0Q@mail.gmail.com>
+In-Reply-To: <CAOQ4uxj_pVp9-EN2Gmq9j6G3xozzpK_zQiRO-brx6PZ9VpgD0Q@mail.gmail.com>
+From:   Amir Goldstein <amir73il@gmail.com>
+Date:   Thu, 20 Feb 2020 09:52:46 +0200
+Message-ID: <CAOQ4uxjFYO28r+0pY+pKxK-dDJcQF2nf2EivnOUBgrgkYTFjPQ@mail.gmail.com>
+Subject: Re: [PATCH 4/4] ovl: alllow remote upper
+To:     Miklos Szeredi <miklos@szeredi.hu>
+Cc:     Vivek Goyal <vgoyal@redhat.com>,
+        Miklos Szeredi <mszeredi@redhat.com>,
         overlayfs <linux-unionfs@vger.kernel.org>,
-        David Howells <dhowells@redhat.com>,
-        Seth Forshee <seth.forshee@canonical.com>,
-        Al Viro <viro@zeniv.linux.org.uk>,
-        linux-fsdevel <linux-fsdevel@vger.kernel.org>,
-        Eric Biederman <ebiederm@xmission.com>, stgraber@ubuntu.com
-Date:   Wed, 19 Feb 2020 14:26:45 -0800
-In-Reply-To: <20200219132603.ivuttlgzixis2y2f@wittgenstein>
-References: <20200217205307.32256-1-James.Bottomley@HansenPartnership.com>
-         <CAOQ4uxjtp7d_xL20pGwvbFKqgAbyQhE=Pbw+e9Kj24wqF2hPfQ@mail.gmail.com>
-         <1582042260.3416.19.camel@HansenPartnership.com>
-         <20200218172606.ohlj6prhpmhodzqu@wittgenstein>
-         <1582052748.16681.34.camel@HansenPartnership.com>
-         <20200218200341.tzrehiapskznovx5@wittgenstein>
-         <1582069398.16681.53.camel@HansenPartnership.com>
-         <20200219132603.ivuttlgzixis2y2f@wittgenstein>
+        linux-fsdevel <linux-fsdevel@vger.kernel.org>
 Content-Type: text/plain; charset="UTF-8"
-X-Mailer: Evolution 3.26.6 
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
 Sender: linux-unionfs-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Wed, 2020-02-19 at 14:26 +0100, Christian Brauner wrote:
-> On Tue, Feb 18, 2020 at 03:43:18PM -0800, James Bottomley wrote:
-> > On Tue, 2020-02-18 at 21:03 +0100, Christian Brauner wrote:
-> > > On Tue, Feb 18, 2020 at 11:05:48AM -0800, James Bottomley wrote:
-> > > > On Tue, 2020-02-18 at 18:26 +0100, Christian Brauner wrote:
-> > 
-> > [...]
-> > > > > But way more important: what Amir got right is that your
-> > > > > approach and fsid mappings don't stand in each others way at
-> > > > > all. Shiftfed bind-mounts can be implemented completely
-> > > > > independent of fsid mappings after the fact on top of it.
-> > > > > 
-> > > > > Your example, does this:
-> > > > > 
-> > > > > nsfd = open("/proc/567/ns/user", O_RDONLY);  /* note: not
-> > > > > O_PATH
-> > > > > */
-> > > > > configfd_action(fd, CONFIGFD_SET_FD, "ns", NULL, nsfd);
-> > > > > 
-> > > > > as the ultimate step. Essentially marking a mountpoint as
-> > > > > shifted relative to that user namespace. Once fsid mappings
-> > > > > are in all that you need to do is replace your
-> > > > > make_kuid()/from_kuid()/from_kuid_munged() calls and so on in
-> > > > > your patchset with
-> > > > > make_kfsuid()/from_kfsuid()/from_kfsuid_munged() and you're
-> > > > > done. So I honestly don't currently see any need to block the
-> > > > > patchsets on each other. 
-> > > > 
-> > > > Can I repeat: there's no rush to get upstream on this.  Let's
-> > > > pause to get the kernel implementation (the thing we have to
-> > > > maintain) right.  I realise we could each work around the other
-> > > > and get our implementations bent around each other so they all
-> > > > work independently thus making our disjoint user cabals happy
-> > > > but I don't think that would lead to the best outcome for
-> > > > kernel maintainability.
-> > > 
-> > > We have had the discussion with all major stakeholders in a
-> > > single room on what we need at LPC 2019.
-> > 
-> > Well, you didn't invite me, so I think "stakeholders" means people
-> > we
-> 
-> I'm confused as you were in the room with everyone. It's even on the
-> schedule under your name:
-> https://linuxplumbersconf.org/event/4/contributions/474/
-> 
-> > selected because we like their use case.  More importantly:
-> > "stakeholders" traditionally means not only people who want to
-> > consume the feature but also people who have to maintain it ... how
-> > many VFS stakeholders were present?
-> 
-> Again, I'm confused you were in the room with at least David and
-> Eric.
+On Tue, Feb 4, 2020 at 7:02 PM Amir Goldstein <amir73il@gmail.com> wrote:
+>
+> On Tue, Feb 4, 2020 at 6:17 PM Miklos Szeredi <miklos@szeredi.hu> wrote:
+> >
+> > On Tue, Feb 4, 2020 at 3:59 PM Vivek Goyal <vgoyal@redhat.com> wrote:
+> > >
+> > > On Fri, Jan 31, 2020 at 12:50:04PM +0100, Miklos Szeredi wrote:
+> > > > No reason to prevent upper layer being a remote filesystem.  Do the
+> > > > revalidation in that case, just as we already do for lower layers.
+> > > >
+> > > > This lets virtiofs be used as upper layer, which appears to be a real use
+> > > > case.
+> > >
+> > > Hi Miklos,
+> > >
+> > > I have couple of very basic questions.
+> > >
+> > > - So with this change, we will allow NFS to be upper layer also?
+> >
+> > I haven't tested, but I think it will fail on the d_type test.
+>
+> But we do not fail mount on no d_type support...
+> Besides, I though you were going to add the RENAME_WHITEOUT
+> test to avert untested network fs as upper.
+>
 
-OK, I think we both got different things out of this, but I've now put
-the videos for this on the LPC site so others can judge for themselves.
- The one for this session is here:
+Pushed strict remote upper check to:
+https://github.com/amir73il/linux/commits/ovl-strict-upper
 
-https://www.youtube.com/watch?v=LN2CUgp8deo&list=PLVsQ_xZBEyN30ZA3Pc9MZMFzdjwyz26dO&index=9&t=2h12m52s
+FWIW, overlayfs-next+ovl-strict-upper passes the quick xfstests,
+except for overlay/031 - it fails because the RENAME_WHITEOUT check
+leaves behind a whiteout in workdir.
+I think it it is not worth to cleanup that whiteout leftover and
+easier to fix the test.
 
-Although it does make more sense if you watch the Dave Howells session
-on the new mount API first:
-
-https://www.youtube.com/watch?v=LN2CUgp8deo&list=PLVsQ_xZBEyN30ZA3Pc9MZMFzdjwyz26dO&index=9&t=1h45m54s
-
-There is lots of discussion of the shared image use case, but nowhere
-is there any discussion of separating uid from fsuid in the user
-namespace, unless I missed it again in my second viewing?
-
-> In any case, the patches are on the relevant lists. They are actively
-> being discussed and visible to everyone and we'll have time for
-> proper review which is already happening.
-
-The big issue, though, is that while you've produced a patch set that
-covers your use case (shared unprivileged images) it doesn't cover mine
-(privileged images).  However, the patch set I produced does cover both
-use cases.  Safely handling privileged images is a much bigger security
-problem than unprivileged ones, which is why I have more VFS code than
-you do.  While I could, in theory, remove your use case from my patch,
-doing so would really only reduce it by 38 lines (this is the diffstat
-going from v2 to v3).  However, I still need all the code in the v2
-patch to handle the backshifts needed for safe privileged images and I
-pretty much don't use any of the fsid code you add because I need an
-unprivileged fsid and uid, so the shifts are always identical for both
-... which is the default before your patch.
-
-This is what I mean about us getting the VFS implementation correct:  I
-think I can sweep up s_user_ns into my patch (unproven because I've yet
-to write the patch), effectively making it use the mnt_userns I
-introduced and eliminating the superblock additions and, for 38
-additional VFS lines, I also pick up your use case ... although there
-may be subtleties I've missed.
-
-I also think the way I coded it is much easier to use for an
-orchestration system.  Basically you create a user_ns for the unpacker,
-rendering it unprivileged, and it unpacks your images into the
-filesystem so they also become unprivileged and globally shifted.  Then
-whenever you use these images for a container with a separate uid
-shift, you pass the unpacker userns with the "ns" argument and bind
-mount the root into the container's userns: the container gets fake
-root and any writes by fake root are shifted correctly into the
-unprivileged image.  Everything just works and there's no need to
-bother with fsid's.
-
-However, what's still not completely done by any of us is convincing
-the VFS community that we've got the correct and maintainable way of
-adding all this to their VFS layer.
-
-James
-
+Thanks,
+Amir.
