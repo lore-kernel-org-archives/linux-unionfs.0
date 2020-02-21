@@ -2,148 +2,114 @@ Return-Path: <SRS0=Fd6Y=4J=vger.kernel.org=linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+X-Spam-Status: No, score=-3.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
-	version=3.4.0
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EA69CC35657
-	for <linux-unionfs@archiver.kernel.org>; Fri, 21 Feb 2020 14:12:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A7B79C35656
+	for <linux-unionfs@archiver.kernel.org>; Fri, 21 Feb 2020 14:34:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id C1A7F2073A
-	for <linux-unionfs@archiver.kernel.org>; Fri, 21 Feb 2020 14:12:58 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 79BF4222C4
+	for <linux-unionfs@archiver.kernel.org>; Fri, 21 Feb 2020 14:34:56 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Po7wUZME"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="YxY0KUE3"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728344AbgBUOM6 (ORCPT
+        id S1728068AbgBUOe4 (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Fri, 21 Feb 2020 09:12:58 -0500
-Received: from mail-wr1-f65.google.com ([209.85.221.65]:38810 "EHLO
-        mail-wr1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728468AbgBUOM6 (ORCPT
+        Fri, 21 Feb 2020 09:34:56 -0500
+Received: from mail-wm1-f68.google.com ([209.85.128.68]:35296 "EHLO
+        mail-wm1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727096AbgBUOe4 (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 21 Feb 2020 09:12:58 -0500
-Received: by mail-wr1-f65.google.com with SMTP id e8so2243189wrm.5
-        for <linux-unionfs@vger.kernel.org>; Fri, 21 Feb 2020 06:12:55 -0800 (PST)
+        Fri, 21 Feb 2020 09:34:56 -0500
+Received: by mail-wm1-f68.google.com with SMTP id b17so2141710wmb.0
+        for <linux-unionfs@vger.kernel.org>; Fri, 21 Feb 2020 06:34:54 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
-        h=from:to:cc:subject:date:message-id:in-reply-to:references;
-        bh=CoxbS9nexN/sPqpjsq+SscLPabBtnQmxBubB4PBBipQ=;
-        b=Po7wUZMEnQExGEkU0WJQqqpwzxlGh2ILpdart2jY3ct97YdlwMt/kf2m34uBC5+8yX
-         g7KlgPy7aiAgPrBzmuE7DLIY+yuei/8Si0+j6EH0ulT3PUebPIIoNWZTXzU6IvAK2VQc
-         pSGQvWzG86CTVMER5Hro1THmg9Vdo14eYdlZN23m9RUPI6qrU3FoRfvNH3b8ubMieGsq
-         37aEonf3xH3Uoi0qTFt4TgNxreQBMWx4ZRYyY3cuA/EPMHW9bI/txvAw5VJFTCM6QvBQ
-         WCXAjEvQbI6pSMTK1NiDiH0TAKd9wW2gFJVh8eh6pKE58Yu2/wMETXyd/KLjdI93Djvz
-         RWpg==
+        h=from:to:cc:subject:date:message-id;
+        bh=fUcbFrPQZRCJvjd/tM9PNxvqr/Sk2jicB9eKVju7TZQ=;
+        b=YxY0KUE3kYBBKD9TI4oa2/LAHVwGZf4aNzdig/Md0Dxxi/3cTHy/YjNFVK13uSHGSb
+         N9nQJbJBOzr0YXE9hZy+DOrve6/y6iz44m1HQO48rATFd28qLXKvv0lQpf3C11Uv88lw
+         KPIiYeEpdkkvF/+/Sc9DwKID0+n8RPtl89Nk+ifWj/JvjhELDqnIYuCMhVkuJhs0E8St
+         Ud0RNot4ioTmq5NZqMch5I+zpMKT1w6I40KvNlZmWardnDsLTPkG1jSvEJPt9H+u4aeg
+         2s7nvEoDkZ8wRT5CSORrdd3goP+hvRxd7mr7fgoSvxFlm104sZZK6k0xP17gMrYrLpWu
+         eboA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
-         :references;
-        bh=CoxbS9nexN/sPqpjsq+SscLPabBtnQmxBubB4PBBipQ=;
-        b=j1Jz7fyDnHQyCFQZWfe9/vyUchFPUDat/7r/k5m1P+RjzSrOClq3QKtB1fbkTaX8Xq
-         vW/06fT14Jz/N2lsXp0cY4R+yQLtSDvnLAHMmh6Ukleqgec7LSMonjLWrHyQ9ImTBl7Y
-         LtWegoSYw958Jt68dX/+oRfE6iNKJ+akN+6q5zExXUASmi2qlTyPY8g00szZyf4KeKgI
-         B/42aexUdPMYFoUvV5N85vr78NuwHmRpHl2GNJb6PljSyvZP7U5qashdUCT7bYeL9Az2
-         HQTmF0dq6Ml9JqJ/AsKALL083Pbt+p6xFFjIPNIJ8ZQyoFE35Fxa+TijPW+PXwryHAKC
-         QF8A==
-X-Gm-Message-State: APjAAAX10CHipsEeP2yipp0Qj0I4i6qqJGbjjmsmFm5camdJ1H9IiUis
-        Tm8VE8jrKaSNh6s7VpD75jE=
-X-Google-Smtp-Source: APXvYqyBIIrD6/nfCHv+7U+birXrU06Uah55T8YXxo1hhxsrJgE2SSQgMa0bjP7JpiLmccQ/QJ/pTQ==
-X-Received: by 2002:adf:d4c7:: with SMTP id w7mr50488489wrk.101.1582294375261;
-        Fri, 21 Feb 2020 06:12:55 -0800 (PST)
+        h=x-gm-message-state:from:to:cc:subject:date:message-id;
+        bh=fUcbFrPQZRCJvjd/tM9PNxvqr/Sk2jicB9eKVju7TZQ=;
+        b=h68SIeCqkk8GA3c5yem8JWwZN03WF/iwpBj5G+SYF+YUtFk2uza80D1EiNKBx1pRSa
+         fz4l0OW71/FvOFaJ7qvatOWAqmc7clwSmN6fhRYrSfjLUF9nen1nEwLSVJBriMrgEx2x
+         myP+bIugE20fmayOocShdJr79IBPVnNDfoMyWwQt2tEo5+vkUaOlAgk1wUiOIto+H0TV
+         2a3bEU7IpB+O/175NSIhjf00NI94D/wQ2F/+xpYX4rBy2H2Qn7/+9kGHIyAJgEw67FHL
+         ZYo8FbeLoakY5KCuHr6rlMWzPoekqEQye9gCHLLuaESABi9+xB9VNkUvOPXrH/m/75Kg
+         FccA==
+X-Gm-Message-State: APjAAAV2Q4yFb+q9S6e7TyledTVbVCiUpTOdLfsLqBSjADj8CzbrrtaT
+        3/JxBDnKCM9MY4sThzXWBA0=
+X-Google-Smtp-Source: APXvYqyfmUiSO8FgYOZx1iprZxCUShZHM8Y2kjBnUzX98uumVZuiCysQiMorpb2JPXrp1HdkCGu44g==
+X-Received: by 2002:a7b:c759:: with SMTP id w25mr4183036wmk.15.1582295693895;
+        Fri, 21 Feb 2020 06:34:53 -0800 (PST)
 Received: from localhost.localdomain ([141.226.9.174])
-        by smtp.gmail.com with ESMTPSA id y12sm4104916wrw.88.2020.02.21.06.12.53
+        by smtp.gmail.com with ESMTPSA id a184sm4109014wmf.29.2020.02.21.06.34.52
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 21 Feb 2020 06:12:54 -0800 (PST)
+        Fri, 21 Feb 2020 06:34:53 -0800 (PST)
 From:   Amir Goldstein <amir73il@gmail.com>
 To:     Miklos Szeredi <miklos@szeredi.hu>
-Cc:     Vivek Goyal <vgoyal@redhat.com>, linux-unionfs@vger.kernel.org
-Subject: [PATCH 3/3] ovl: strict upper fs requirements for remote upper fs
-Date:   Fri, 21 Feb 2020 16:12:45 +0200
-Message-Id: <20200221141245.6773-3-amir73il@gmail.com>
+Cc:     linux-unionfs@vger.kernel.org
+Subject: [PATCH v2 0/5] Misc overlay ino issues
+Date:   Fri, 21 Feb 2020 16:34:41 +0200
+Message-Id: <20200221143446.9099-1-amir73il@gmail.com>
 X-Mailer: git-send-email 2.17.1
-In-Reply-To: <20200221141245.6773-1-amir73il@gmail.com>
-References: <20200221141245.6773-1-amir73il@gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-Overlayfs works sub-optimally with upper fs that has no
-xattr/d_type/O_TMPFILE/RENAME_WHITEOUT support. We should basically
-deprecate support for those filesystems, but so far, we only issue a
-warning and don't fail the mount for the sake of backward compat.
-Some features are already being disabled with no xattr support.
+Miklos,
 
-For newly supported remote upper fs, we do not need to worry about
-backward compatibility, so we can fail the mount if upper fs is a
-sub-optimal filesystem.
+This is v2 of the ino patches.
+v1 is here [1]. I reabsed to overlayfs-next and addressed
+your comments on the ino collision patch.
 
-This reduces the in-tree remote filesystems supported as upper to
-just FUSE, for which the remote upper fs support was added.
+The branch passes overlay xfstests including the new tests 07[01]
+that I wrote to test this series.
 
-Signed-off-by: Amir Goldstein <amir73il@gmail.com>
----
- fs/overlayfs/super.c | 24 ++++++++++++++++++------
- 1 file changed, 18 insertions(+), 6 deletions(-)
+Note that i_ino uses the private atomic counter not only for xino
+overflow case, but also for non-samefs with xino disabled, but it is
+only used for directory inodes. I don't think that should cause any
+performance regressions and the kernel gets rid of a potentially
+massive abuser of the global get_next_ino() pool.
 
-diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-index 7322cf8faea4..6dc45bc7d664 100644
---- a/fs/overlayfs/super.c
-+++ b/fs/overlayfs/super.c
-@@ -1136,6 +1136,8 @@ static int ovl_make_workdir(struct super_block *sb, struct ovl_fs *ofs,
- {
- 	struct vfsmount *mnt = ofs->upper_mnt;
- 	struct dentry *temp;
-+	bool rename_whiteout;
-+	bool d_type;
- 	int fh_type;
- 	int err;
- 
-@@ -1161,11 +1163,8 @@ static int ovl_make_workdir(struct super_block *sb, struct ovl_fs *ofs,
- 	if (err < 0)
- 		goto out;
- 
--	/*
--	 * We allowed this configuration and don't want to break users over
--	 * kernel upgrade. So warn instead of erroring out.
--	 */
--	if (!err)
-+	d_type = err;
-+	if (!d_type)
- 		pr_warn("upper fs needs to support d_type.\n");
- 
- 	/* Check if upper/work fs supports O_TMPFILE */
-@@ -1182,7 +1181,8 @@ static int ovl_make_workdir(struct super_block *sb, struct ovl_fs *ofs,
- 	if (err < 0)
- 		goto out;
- 
--	if (!err)
-+	rename_whiteout = err;
-+	if (!rename_whiteout)
- 		pr_warn("upper fs does not support RENAME_WHITEOUT.\n");
- 
- 	/*
-@@ -1199,6 +1199,18 @@ static int ovl_make_workdir(struct super_block *sb, struct ovl_fs *ofs,
- 		vfs_removexattr(ofs->workdir, OVL_XATTR_OPAQUE);
- 	}
- 
-+	/*
-+	 * We allowed sub-optimal upper fs configuration and don't want to break
-+	 * users over kernel upgrade, but we never allowed remote upper fs, so
-+	 * we can enforce strict requirements for remote upper fs.
-+	 */
-+	if (ovl_dentry_remote(ofs->workdir) &&
-+	    (!d_type || !ofs->tmpfile || !rename_whiteout || ofs->noxattr)) {
-+		pr_err("upper fs missing required features.\n");
-+		err = -EINVAL;
-+		goto out;
-+	}
-+
- 	/* Check if upper/work fs supports file handles */
- 	fh_type = ovl_can_decode_fh(ofs->workdir->d_sb);
- 	if (ofs->config.index && !fh_type) {
+Thanks,
+Amir.
+
+Changes since v1:
+- Cleanup patches merged
+- Use private atomic counter for non-persistent ino
+- Don't abuse i_generation
+- Keep fsid an index to fs array (fewer magic shifts)
+- Added xino_mode fix patch (for v5.6), which includes disabling xino
+  on 32bit kernel
+
+[1] https://lore.kernel.org/linux-unionfs/20200101175814.14144-1-amir73il@gmail.com/
+
+Amir Goldstein (5):
+  ovl: fix some xino configurations
+  ovl: use a private non-persistent ino pool
+  ovl: avoid possible inode number collisions with xino=on
+  ovl: enable xino automatically in more cases
+  ovl: document xino expected behavior
+
+ Documentation/filesystems/overlayfs.rst | 38 +++++++++++++++-
+ fs/overlayfs/Kconfig                    |  1 +
+ fs/overlayfs/inode.c                    | 58 ++++++++++++++++++-------
+ fs/overlayfs/overlayfs.h                | 16 +++++++
+ fs/overlayfs/ovl_entry.h                |  2 +
+ fs/overlayfs/readdir.c                  | 25 ++++++++---
+ fs/overlayfs/super.c                    | 35 ++++++++-------
+ 7 files changed, 136 insertions(+), 39 deletions(-)
+
 -- 
 2.17.1
 
