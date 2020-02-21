@@ -8,60 +8,60 @@ X-Spam-Status: No, score=-9.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1F89AC35646
-	for <linux-unionfs@archiver.kernel.org>; Fri, 21 Feb 2020 14:34:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 87D5BC35646
+	for <linux-unionfs@archiver.kernel.org>; Fri, 21 Feb 2020 14:34:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id EAE25222C4
-	for <linux-unionfs@archiver.kernel.org>; Fri, 21 Feb 2020 14:34:57 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5EADD222C4
+	for <linux-unionfs@archiver.kernel.org>; Fri, 21 Feb 2020 14:34:59 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="SF1fl4J6"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="mhLNeBft"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728177AbgBUOe5 (ORCPT
+        id S1728455AbgBUOe7 (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Fri, 21 Feb 2020 09:34:57 -0500
-Received: from mail-wr1-f66.google.com ([209.85.221.66]:44748 "EHLO
-        mail-wr1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727836AbgBUOe5 (ORCPT
+        Fri, 21 Feb 2020 09:34:59 -0500
+Received: from mail-wm1-f65.google.com ([209.85.128.65]:55478 "EHLO
+        mail-wm1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727096AbgBUOe7 (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 21 Feb 2020 09:34:57 -0500
-Received: by mail-wr1-f66.google.com with SMTP id m16so2302976wrx.11
-        for <linux-unionfs@vger.kernel.org>; Fri, 21 Feb 2020 06:34:55 -0800 (PST)
+        Fri, 21 Feb 2020 09:34:59 -0500
+Received: by mail-wm1-f65.google.com with SMTP id q9so2016178wmj.5
+        for <linux-unionfs@vger.kernel.org>; Fri, 21 Feb 2020 06:34:57 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=from:to:cc:subject:date:message-id:in-reply-to:references;
-        bh=qcKEvMeyAI9yPNDEeAaHX5ks9dRQj/xajWJ5mQh0A3Q=;
-        b=SF1fl4J6GJOxCYyuiGRoMiIH4+xhEXk1gWkBtPUiOOF6SYIEY8tAUOIH5XDKUe6F2l
-         ivOfktmTatW7Mt8YWbgnIOoSsMegm0BEDoMbVM01JdRnlusD7JMo0T4/qPcOaoSahShu
-         I0iaEF0YnaFJ8j9e1QtrN5Zulw7s+k+iRLdQV50SJhkx8+arkwIDum9yiDhxzN9ItBD7
-         emIV0328j4EPDbggVn+CKCtrZlcjQvKAycSLlCVSPkod1XmR07pXDu2tPPT+6NTGhF38
-         seD5B5sj4RUtWFvfmTZxPFqw6flf8bpnZE+ExjzZUl83cUZsYGi6p3GMQuT4ruEWkfXg
-         pD5A==
+        bh=Te8DPg4MJrBvsFAqbuBPY526gkZKgWcy8+MNpYkeURw=;
+        b=mhLNeBftJZS5I+Lfkq39OObgRogMQ7i2YcgdbNwrYFZimVnfU6r/32kxbW59VDhKj/
+         2QmXBvZAwZzI/kDr5kYfxDRzx8Xh9q5LimKCi6TPtoOnc4G/O4QymBcE3Fb27cUCTVk/
+         RVNG5fNmYaTQ7PaPDHBwCmsL1lvHWKh2v9wu7CQ4NrYwCRN/oAzki3mQNQFAlDmujjt2
+         +LHLmsSoAhlQc2pJ4Dn5dSFc5IULJIv6+ICOwODp5fLS72B+p0E7AJ8+g0hsP5mLnxOS
+         sem8A3oiONqq4m26H518Fn9g70J/QD9FJ6LpDh5rQ40mdBg/mU777GWzyoxx8+tGDgMP
+         l2GA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references;
-        bh=qcKEvMeyAI9yPNDEeAaHX5ks9dRQj/xajWJ5mQh0A3Q=;
-        b=FyrlwccnmUMvhbCni0o/em2kfHXw/C0OpAWWiIv8Usa97JAxIw59AQjYcCKR/CfoHK
-         5lz6xZeu5CyDiFcgSfSay+/e9HmjXvKN/dBj6ZbcoXwkSWM4kbuqXqbZh6YAHF4Zhqmf
-         xAj/4/wxevmje3E4GJxgFC1RI5TxBHt+iKrdePG5C8SRoOX9oEA7JRk8nPrIWq3OeWtL
-         LN7XonFkdRfZtlmsrfs5F3LcY1i+55x43FZA0KKS5ElVkTMWFhF4EWmlw6kQv5qcM/Ps
-         ZhY6F7onUegW054V5Nhfjqgs2LSNBP2ZCm3pkr3JCOW0UfGLLBpAfLdSIY/rbQBrcv6G
-         osvQ==
-X-Gm-Message-State: APjAAAWOYO4wnkbUXb9A5oAZs0xIAp7pR+bAhMWy4wPDctG+Olra7Zc6
-        lbfybLsrkfOTUPsL+aa2k3vG9SMv
-X-Google-Smtp-Source: APXvYqyZ2bUcEMm+UWWtIWDGmEWFQgK1ZFIZ+DWB5PSH+y67UYWOHXzbjzLryMSjFfJErSBmJGMfuA==
-X-Received: by 2002:adf:df8f:: with SMTP id z15mr47585873wrl.282.1582295695226;
-        Fri, 21 Feb 2020 06:34:55 -0800 (PST)
+        bh=Te8DPg4MJrBvsFAqbuBPY526gkZKgWcy8+MNpYkeURw=;
+        b=RCrtLsJ7BQ3OYH31JeFNhL8GroCOHUj0Zfv9KInpmG8fatLtNs/df31gsExgeKk8yJ
+         43trcw01sCCfS03Tbck9+maOZQIxEuqzdHootcBbkwH+r9ng+eEptZRi9MD9r6XJ4Rjf
+         il4Zg2/VLsU/obzpuxGAM8WyUjn+/+5qidyh148wIZYhBskKxZIA06IDydqx4yJd04V0
+         D5Uo/5tyM7NsOeKmYS5umRbRvcnAfSstDVYpwzu+W41zoh0VYNq+vvTZPexHwM3MfJFT
+         B+dxlv5mKRX5mCkTwFUVjKNnWw/puvZ6LZIdBj32AyWtO54l7MScy0m6Qw37AlSijpbA
+         4eGg==
+X-Gm-Message-State: APjAAAVZkjuEAb/AHnF3F/KKDHWUYNbiEGED3RAygI/GwHn3tS6fobxM
+        /LnSW1Wjgvj4vhYaORAgm6Q=
+X-Google-Smtp-Source: APXvYqzB6/KR5skuYGoZw58iEWZaWbKdo5ZrECbAODiFpgGk8ykKxcH5aqkWNuqr+iO9A94IBo/GhQ==
+X-Received: by 2002:a7b:c753:: with SMTP id w19mr4391708wmk.34.1582295696762;
+        Fri, 21 Feb 2020 06:34:56 -0800 (PST)
 Received: from localhost.localdomain ([141.226.9.174])
-        by smtp.gmail.com with ESMTPSA id a184sm4109014wmf.29.2020.02.21.06.34.54
+        by smtp.gmail.com with ESMTPSA id a184sm4109014wmf.29.2020.02.21.06.34.55
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 21 Feb 2020 06:34:54 -0800 (PST)
+        Fri, 21 Feb 2020 06:34:56 -0800 (PST)
 From:   Amir Goldstein <amir73il@gmail.com>
 To:     Miklos Szeredi <miklos@szeredi.hu>
 Cc:     linux-unionfs@vger.kernel.org
-Subject: [PATCH v2 1/5] ovl: fix some xino configurations
-Date:   Fri, 21 Feb 2020 16:34:42 +0200
-Message-Id: <20200221143446.9099-2-amir73il@gmail.com>
+Subject: [PATCH v2 2/5] ovl: use a private non-persistent ino pool
+Date:   Fri, 21 Feb 2020 16:34:43 +0200
+Message-Id: <20200221143446.9099-3-amir73il@gmail.com>
 X-Mailer: git-send-email 2.17.1
 In-Reply-To: <20200221143446.9099-1-amir73il@gmail.com>
 References: <20200221143446.9099-1-amir73il@gmail.com>
@@ -70,65 +70,81 @@ Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-Fix up two bugs in the coversion to xino_mode:
-1. xino=off does not alway end up in disabled mode
-2. xino=auto on 32bit arch should end up in disabled mode
+There is no reason to deplete the system's global get_next_ino() pool
+for overlay non-persistent inode numbers and there is no reason at all
+to allocate non-persistent inode numbers for non-directories.
 
-Take a proactive approach to disabling xino on 32bit kernel:
-1. Disable XINO_AUTO config during build time
-2. Disable xino with a warning on mount time
+For non-directories, it is much better to leave i_ino the same as
+real i_ino, to be consistent with st_ino/d_ino.
 
-As a by product, xino=on on 32bit arch also ends up in disabled mode.
-We never intended to enable xino on 32bit arch and this will make the
-rest of the logic simpler.
-
-Fixes: 0f831ec85eda ("ovl: simplify ovl_same_sb() helper")
 Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- fs/overlayfs/Kconfig | 1 +
- fs/overlayfs/super.c | 9 ++++++++-
- 2 files changed, 9 insertions(+), 1 deletion(-)
+ fs/overlayfs/inode.c     | 15 ++++++++++++---
+ fs/overlayfs/ovl_entry.h |  2 ++
+ fs/overlayfs/super.c     |  1 +
+ 3 files changed, 15 insertions(+), 3 deletions(-)
 
-diff --git a/fs/overlayfs/Kconfig b/fs/overlayfs/Kconfig
-index 444e2da4f60e..714c14c47ca5 100644
---- a/fs/overlayfs/Kconfig
-+++ b/fs/overlayfs/Kconfig
-@@ -93,6 +93,7 @@ config OVERLAY_FS_XINO_AUTO
- 	bool "Overlayfs: auto enable inode number mapping"
- 	default n
- 	depends on OVERLAY_FS
-+	depends on 64BIT
- 	help
- 	  If this config option is enabled then overlay filesystems will use
- 	  unused high bits in undelying filesystem inode numbers to map all
+diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
+index 13219a5864c4..1d555cb1a5cd 100644
+--- a/fs/overlayfs/inode.c
++++ b/fs/overlayfs/inode.c
+@@ -561,6 +561,15 @@ static inline void ovl_lockdep_annotate_inode_mutex_key(struct inode *inode)
+ #endif
+ }
+ 
++static void ovl_next_ino(struct inode *inode)
++{
++	struct ovl_fs *ofs = inode->i_sb->s_fs_info;
++
++	inode->i_ino = atomic_long_inc_return(&ofs->last_ino);
++	if (unlikely(!inode->i_ino))
++		inode->i_ino = atomic_long_inc_return(&ofs->last_ino);
++}
++
+ static void ovl_map_ino(struct inode *inode, unsigned long ino, int fsid)
+ {
+ 	int xinobits = ovl_xino_bits(inode->i_sb);
+@@ -572,12 +581,12 @@ static void ovl_map_ino(struct inode *inode, unsigned long ino, int fsid)
+ 	 * consistent with d_ino and st_ino values. An i_ino value inconsistent
+ 	 * with d_ino also causes nfsd readdirplus to fail.
+ 	 */
++	inode->i_ino = ino;
+ 	if (ovl_same_dev(inode->i_sb)) {
+-		inode->i_ino = ino;
+ 		if (xinobits && fsid && !(ino >> (64 - xinobits)))
+ 			inode->i_ino |= (unsigned long)fsid << (64 - xinobits);
+-	} else {
+-		inode->i_ino = get_next_ino();
++	} else if (S_ISDIR(inode->i_mode)) {
++		ovl_next_ino(inode);
+ 	}
+ }
+ 
+diff --git a/fs/overlayfs/ovl_entry.h b/fs/overlayfs/ovl_entry.h
+index 89015ea822e7..5762d802fe01 100644
+--- a/fs/overlayfs/ovl_entry.h
++++ b/fs/overlayfs/ovl_entry.h
+@@ -75,6 +75,8 @@ struct ovl_fs {
+ 	struct inode *indexdir_trap;
+ 	/* -1: disabled, 0: same fs, 1..32: number of unused ino bits */
+ 	int xino_mode;
++	/* For allocation of non-persistent inode numbers */
++	atomic_long_t last_ino;
+ };
+ 
+ static inline struct ovl_fs *OVL_FS(struct super_block *sb)
 diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-index 6dc45bc7d664..f4c0ad69f9a6 100644
+index f4c0ad69f9a6..18b710344dd2 100644
 --- a/fs/overlayfs/super.c
 +++ b/fs/overlayfs/super.c
-@@ -1489,6 +1489,8 @@ static int ovl_get_layers(struct super_block *sb, struct ovl_fs *ofs,
- 		if (ofs->config.xino == OVL_XINO_ON)
- 			pr_info("\"xino=on\" is useless with all layers on same fs, ignore.\n");
- 		ofs->xino_mode = 0;
-+	} else if (ofs->config.xino == OVL_XINO_OFF) {
-+		ofs->xino_mode = -1;
- 	} else if (ofs->config.xino == OVL_XINO_ON && ofs->xino_mode < 0) {
- 		/*
- 		 * This is a roundup of number of bits needed for encoding
-@@ -1735,8 +1737,13 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
+@@ -1736,6 +1736,7 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
+ 
  	sb->s_stack_depth = 0;
  	sb->s_maxbytes = MAX_LFS_FILESIZE;
++	atomic_long_set(&ofs->last_ino, 1);
  	/* Assume underlaying fs uses 32bit inodes unless proven otherwise */
--	if (ofs->config.xino != OVL_XINO_OFF)
-+	if (ofs->config.xino != OVL_XINO_OFF) {
+ 	if (ofs->config.xino != OVL_XINO_OFF) {
  		ofs->xino_mode = BITS_PER_LONG - 32;
-+		if (!ofs->config.xino) {
-+			pr_warn("xino not supported on 32bit kernel, falling back to xino=off.\n");
-+			ofs->config.xino = OVL_XINO_OFF;
-+		}
-+	}
- 
- 	/* alloc/destroy_inode needed for setting up traps in inode cache */
- 	sb->s_op = &ovl_super_operations;
 -- 
 2.17.1
 
