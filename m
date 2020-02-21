@@ -8,60 +8,60 @@ X-Spam-Status: No, score=-9.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B685BC35646
-	for <linux-unionfs@archiver.kernel.org>; Fri, 21 Feb 2020 14:35:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7BB36C35657
+	for <linux-unionfs@archiver.kernel.org>; Fri, 21 Feb 2020 14:35:03 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 8067724650
-	for <linux-unionfs@archiver.kernel.org>; Fri, 21 Feb 2020 14:35:02 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5238824650
+	for <linux-unionfs@archiver.kernel.org>; Fri, 21 Feb 2020 14:35:03 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="CSbCILhB"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="fZ/xePkc"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728690AbgBUOfC (ORCPT
+        id S1728730AbgBUOfD (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Fri, 21 Feb 2020 09:35:02 -0500
-Received: from mail-wm1-f68.google.com ([209.85.128.68]:50243 "EHLO
-        mail-wm1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727096AbgBUOfC (ORCPT
+        Fri, 21 Feb 2020 09:35:03 -0500
+Received: from mail-wr1-f65.google.com ([209.85.221.65]:42964 "EHLO
+        mail-wr1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727836AbgBUOfD (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 21 Feb 2020 09:35:02 -0500
-Received: by mail-wm1-f68.google.com with SMTP id a5so2030615wmb.0
-        for <linux-unionfs@vger.kernel.org>; Fri, 21 Feb 2020 06:35:00 -0800 (PST)
+        Fri, 21 Feb 2020 09:35:03 -0500
+Received: by mail-wr1-f65.google.com with SMTP id k11so2310684wrd.9
+        for <linux-unionfs@vger.kernel.org>; Fri, 21 Feb 2020 06:35:01 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=from:to:cc:subject:date:message-id:in-reply-to:references;
-        bh=f08LbabUI4MvY9CXB/rjbsppdJ6qjMetNnxvke4MlDo=;
-        b=CSbCILhBS6inWJNpHS+P6on2BG4o0xpB0sDkYjpWv28164gE71GQlcZvq7UkePbDoH
-         eJCGQqFbBDednHsPIMHBvFbR/dPGG7VarG35irBmrMFOZa5DFoaHqtL/MTN6m4lPtxAG
-         P8eEu4JSAkGb8qUq6wNrzRvwOuG7wDAsT7g196SFHDxYOUecVUWza7QqKHiJA66cLKML
-         Eo5Qg7aUJB8WKDgE8caXOj/FsdWRNfEkeRVW74yQ71/2DxgwpfFGHdO5RKca7+VOJ9y7
-         Q33X+lAJC500MylCLcQ4XyZEAOw5pzWgSCH2k+7IiIf0+G0PCy2UXioYyJOBo5zhMfwP
-         +mVg==
+        bh=ix94ljPSP1gKMM/0Amlxq25P59WPQDQRLFYqw5AELe8=;
+        b=fZ/xePkcRTG+qnXpc4W9fxQqjAml/6Ph+NLQBKSCWDK9siv6xzUrEEi5lenMZCVnws
+         TwjdLJzj44AVQaE0nFg8mLZvZqEXb2tLv3ddKGctevDB4v0GpzVJI2K9EBvq//h94RCC
+         q0xjGl8VY4DReeSrrcZDgiQ/IqF9e2a7or0EX4/fR4DNNakMaV3UvcTdlS2bj4XBl0N9
+         mHPpaOps4Uogmy9enCMjvV7qC0ikNiC/LBz3iP/HFODv44B8n2uyR20/hFnJVdWGdtQQ
+         11zFohOKsX+HwFnchxiF541ZlefA+Zcu/JKRrbuHyQXNMSTZy0NDA5u64UCysH9zJ7c2
+         orNA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references;
-        bh=f08LbabUI4MvY9CXB/rjbsppdJ6qjMetNnxvke4MlDo=;
-        b=ecFmzfJQIvLt+ruwEdjsp2JqhMKcd4xWjpyFgz49ol1rgrcnA4F7VoPmFV3Wn15OXV
-         EbF2V21CLrfUk6k9wy+K4ndJiXfg2l/lYUWh40C5xQdJu6iMMiPdziYIRw81k0NPMzlV
-         B5rMvdVsfnNvvyOSOQixaoxcrer6xI276q8R2t8gY9iT0Xp5S8CWMWCuNavaSUm4Mn85
-         44R4Edip8AblSZR9u00etcLR0eb27hwRPKyWBB0vSYQ7r09AZ1YBqM4M/L4+kbjnWUnh
-         +SbCkg9dSNxwsBYALamnguBhg+V6UcEbHyhL/lPYvWuOwHKkr9POljgvfRWeiFyn9YpB
-         5FnA==
-X-Gm-Message-State: APjAAAWZECOsXkk7DyECV+JI+GmZVmJvjlVO1t97JipeGlTMpkQAFm8S
-        apr2f5fES2Cwyn6bmKgD7co=
-X-Google-Smtp-Source: APXvYqxK2wbupHRMwNrrvIM/YDPmY9euiP3KqghZ2ioTFGOJ+JP+Fc3WnhDovFH3IoGapot1b1CGUg==
-X-Received: by 2002:a1c:a382:: with SMTP id m124mr4259475wme.90.1582295699470;
-        Fri, 21 Feb 2020 06:34:59 -0800 (PST)
+        bh=ix94ljPSP1gKMM/0Amlxq25P59WPQDQRLFYqw5AELe8=;
+        b=T7vlNUvfZnksC0bB0sF4U0ykw5xBMdAoLXyxuGM9QmLQkQ7fwXuPjlj9keozB7nJpa
+         occCXXGs4CF7b1UabLyIiz86YMXbjRb+UItNECXCunTTRRg4fdqXDw6dtmpigyMWtdWW
+         xiNLT9vdVEdhYvAOyzZpvbWBArMO8u/Ow0D7YmGCrTKSUnNKAgNjJK1GwiyERoujlYWx
+         lL/ujo2EA3pp71LrfK//cqldZiIF8jZpQxDiBOlkYjKZvxvhIg2SOAg6ctqD2YhcYHS8
+         htnQ5pXg3dCCv76n+D6JeOuwO28FFeTaoSjYcReZlU5hiiUmtRyXhyqwcDMBWmoWDiUD
+         V4HQ==
+X-Gm-Message-State: APjAAAXHJsg/uNpiotC4+N1AzlosWlRJHGqA8Ll8CRqbAj5jhTmH2AHn
+        mAynbrSloz08mrqXHSF3MIw9mLJY
+X-Google-Smtp-Source: APXvYqzXPDk4G7cXt245FXjFHmhOX5xh7Sgrb3iDq4rEYIk4khzy4VTwImYxxZ7Awj1pvm4UDBhf6w==
+X-Received: by 2002:adf:e5c4:: with SMTP id a4mr51985164wrn.292.1582295700613;
+        Fri, 21 Feb 2020 06:35:00 -0800 (PST)
 Received: from localhost.localdomain ([141.226.9.174])
-        by smtp.gmail.com with ESMTPSA id a184sm4109014wmf.29.2020.02.21.06.34.58
+        by smtp.gmail.com with ESMTPSA id a184sm4109014wmf.29.2020.02.21.06.34.59
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 21 Feb 2020 06:34:59 -0800 (PST)
+        Fri, 21 Feb 2020 06:35:00 -0800 (PST)
 From:   Amir Goldstein <amir73il@gmail.com>
 To:     Miklos Szeredi <miklos@szeredi.hu>
 Cc:     linux-unionfs@vger.kernel.org
-Subject: [PATCH v2 4/5] ovl: enable xino automatically in more cases
-Date:   Fri, 21 Feb 2020 16:34:45 +0200
-Message-Id: <20200221143446.9099-5-amir73il@gmail.com>
+Subject: [PATCH v2 5/5] ovl: document xino expected behavior
+Date:   Fri, 21 Feb 2020 16:34:46 +0200
+Message-Id: <20200221143446.9099-6-amir73il@gmail.com>
 X-Mailer: git-send-email 2.17.1
 In-Reply-To: <20200221143446.9099-1-amir73il@gmail.com>
 References: <20200221143446.9099-1-amir73il@gmail.com>
@@ -70,190 +70,75 @@ Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-So far, with xino=auto, we only enable xino if we know that all
-underlying filesystem use 32bit inode numbers.
-
-When users configure overlay with xino=auto, they already declare that
-they are ready to handle 64bit inode number from overlay.
-
-It is a very common case, that underlying filesystem uses 64bit ino,
-but rarely or never uses the high inode number bits (e.g. tmpfs, xfs).
-Leaving it for the users to declare high ino bits are unused with
-xino=on is not a recipe for many users to enjoy the benefits of xino.
-
-There appears to be very little reason not to enable xino when users
-declare xino=auto even if we do not know how many bits underlying
-filesystem uses for inode numbers.
-
-In the worst case of xino bits overflow by real inode number, we
-already fall back to the non-xino behavior - real inode number with
-unique pseudo dev or to non persistent inode number and overlay st_dev
-(for directories).
-
-The only annoyance from auto enabling xino is that xino bits overflow
-emits a warning to kmsg. Suppress those warnings unless users explicitly
-asked for xino=on, suggesting that they expected high ino bits to be
-unused by underlying filesystem.
+Summarize the inode properties of different configurations in a table.
 
 Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- fs/overlayfs/inode.c     |  8 ++++----
- fs/overlayfs/overlayfs.h | 16 ++++++++++++++++
- fs/overlayfs/readdir.c   | 15 ++++++++++-----
- fs/overlayfs/super.c     | 12 +++---------
- 4 files changed, 33 insertions(+), 18 deletions(-)
+ Documentation/filesystems/overlayfs.rst | 38 +++++++++++++++++++++++--
+ 1 file changed, 36 insertions(+), 2 deletions(-)
 
-diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
-index d19e4cba4f61..ff917d376bdd 100644
---- a/fs/overlayfs/inode.c
-+++ b/fs/overlayfs/inode.c
-@@ -99,13 +99,13 @@ static int ovl_map_dev_ino(struct dentry *dentry, struct kstat *stat, int fsid)
- 		 * This way all overlay inode numbers are unique and use the
- 		 * overlay st_dev.
- 		 */
--		if (unlikely(stat->ino >> xinoshift)) {
--			pr_warn_ratelimited("inode number too big (%pd2, ino=%llu, xinobits=%d)\n",
--					    dentry, stat->ino, xinobits);
--		} else {
-+		if (likely(!(stat->ino >> xinoshift))) {
- 			stat->ino |= ((u64)fsid) << (xinoshift + 1);
- 			stat->dev = dentry->d_sb->s_dev;
- 			return 0;
-+		} else if (ovl_xino_warn(dentry->d_sb)) {
-+			pr_warn_ratelimited("inode number too big (%pd2, ino=%llu, xinobits=%d)\n",
-+					    dentry, stat->ino, xinobits);
- 		}
- 	}
- 
-diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-index 68df20512dca..3ccf1725e3d2 100644
---- a/fs/overlayfs/overlayfs.h
-+++ b/fs/overlayfs/overlayfs.h
-@@ -48,6 +48,12 @@ enum ovl_entry_flag {
- 	OVL_E_CONNECTED,
- };
- 
-+enum {
-+	OVL_XINO_OFF,
-+	OVL_XINO_AUTO,
-+	OVL_XINO_ON,
-+};
+diff --git a/Documentation/filesystems/overlayfs.rst b/Documentation/filesystems/overlayfs.rst
+index e398fdf7353e..c9d2bf96b02d 100644
+--- a/Documentation/filesystems/overlayfs.rst
++++ b/Documentation/filesystems/overlayfs.rst
+@@ -40,13 +40,46 @@ On 64bit systems, even if all overlay layers are not on the same
+ underlying filesystem, the same compliant behavior could be achieved
+ with the "xino" feature.  The "xino" feature composes a unique object
+ identifier from the real object st_ino and an underlying fsid index.
 +
- /*
-  * The tuple (fh,uuid) is a universal unique identifier for a copy up origin,
-  * where:
-@@ -301,6 +307,16 @@ static inline bool ovl_is_impuredir(struct dentry *dentry)
- 	return ovl_check_dir_xattr(dentry, OVL_XATTR_IMPURE);
- }
- 
-+/*
-+ * With xino=auto, we do best effort to keep all inodes on same st_dev and
-+ * d_ino consistent with st_ino.
-+ * With xino=on, we do the same effort but we warn if we failed.
-+ */
-+static inline bool ovl_xino_warn(struct super_block *sb)
-+{
-+	return OVL_FS(sb)->config.xino == OVL_XINO_ON;
-+}
+ If all underlying filesystems support NFS file handles and export file
+ handles with 32bit inode number encoding (e.g. ext4), overlay filesystem
+ will use the high inode number bits for fsid.  Even when the underlying
+ filesystem uses 64bit inode numbers, users can still enable the "xino"
+ feature with the "-o xino=on" overlay mount option.  That is useful for the
+ case of underlying filesystems like xfs and tmpfs, which use 64bit inode
+-numbers, but are very unlikely to use the high inode number bit.
++numbers, but are very unlikely to use the high inode number bits.  In case
++the underlying inode number does overflow into the high xino bits, overlay
++filesystem will fall back to the non xino behavior for that inode.
 +
- /* All layers on same fs? */
- static inline bool ovl_same_fs(struct super_block *sb)
- {
-diff --git a/fs/overlayfs/readdir.c b/fs/overlayfs/readdir.c
-index 6325dcc4c48b..e452ff7d583d 100644
---- a/fs/overlayfs/readdir.c
-+++ b/fs/overlayfs/readdir.c
-@@ -438,13 +438,15 @@ static struct ovl_dir_cache *ovl_cache_get(struct dentry *dentry)
++The following table summarizes what can be expected in different overlay
++configurations.
++
++Inode properties
++````````````````
++
+++--------------+------------+------------+-----------------+----------------+
++|Configuration | Persistent | Uniform    | st_ino == d_ino | d_ino == i_ino |
++|              | st_ino     | st_dev     |                 | [*]            |
+++==============+=====+======+=====+======+========+========+========+=======+
++|              | dir | !dir | dir | !dir |  dir   +  !dir  |  dir   | !dir  |
+++--------------+-----+------+-----+------+--------+--------+--------+-------+
++| All layers   |  Y  |  Y   |  Y  |  Y   |  Y     |   Y    |  Y     |  Y    |
++| on same fs   |     |      |     |      |        |        |        |       |
+++--------------+-----+------+-----+------+--------+--------+--------+-------+
++| Layers not   |  N  |  Y   |  Y  |  N   |  N     |   Y    |  N     |  Y    |
++| on same fs,  |     |      |     |      |        |        |        |       |
++| xino=off     |     |      |     |      |        |        |        |       |
+++--------------+-----+------+-----+------+--------+--------+--------+-------+
++| xino=on/auto |  Y  |  Y   |  Y  |  Y   |  Y     |   Y    |  Y     |  Y    |
++|              |     |      |     |      |        |        |        |       |
+++--------------+-----+------+-----+------+--------+--------+--------+-------+
++| xino=on/auto,|  N  |  Y   |  Y  |  N   |  N     |   Y    |  N     |  Y    |
++| ino overflow |     |      |     |      |        |        |        |       |
+++--------------+-----+------+-----+------+--------+--------+--------+-------+
++
++[*] nfsd v3 readdirplus verifies d_ino == i_ino. i_ino is exposed via several
++/proc files, such as /proc/locks and /proc/self/fdinfo/<fd> of an inotify
++file descriptor.
  
- /* Map inode number to lower fs unique range */
- static u64 ovl_remap_lower_ino(u64 ino, int xinobits, int fsid,
--			       const char *name, int namelen)
-+			       const char *name, int namelen, bool warn)
- {
- 	unsigned int xinoshift = 64 - xinobits;
  
- 	if (unlikely(ino >> xinoshift)) {
--		pr_warn_ratelimited("d_ino too big (%.*s, ino=%llu, xinobits=%d)\n",
--				    namelen, name, ino, xinobits);
-+		if (warn) {
-+			pr_warn_ratelimited("d_ino too big (%.*s, ino=%llu, xinobits=%d)\n",
-+					    namelen, name, ino, xinobits);
-+		}
- 		return ino;
- 	}
+ Upper and Lower
+@@ -427,7 +460,8 @@ guarantee that the values of st_ino and st_dev returned by stat(2) and the
+ value of d_ino returned by readdir(3) will act like on a normal filesystem.
+ E.g. the value of st_dev may be different for two objects in the same
+ overlay filesystem and the value of st_ino for directory objects may not be
+-persistent and could change even while the overlay filesystem is mounted.
++persistent and could change even while the overlay filesystem is mounted, as
++summarized in the `Inode properties`_ table above.
  
-@@ -521,7 +523,8 @@ static int ovl_cache_update_ino(struct path *path, struct ovl_cache_entry *p)
- 	} else if (xinobits && !OVL_TYPE_UPPER(type)) {
- 		ino = ovl_remap_lower_ino(ino, xinobits,
- 					  ovl_layer_lower(this)->fsid,
--					  p->name, p->len);
-+					  p->name, p->len,
-+					  ovl_xino_warn(dir->d_sb));
- 	}
  
- out:
-@@ -651,6 +654,7 @@ struct ovl_readdir_translate {
- 	u64 parent_ino;
- 	int fsid;
- 	int xinobits;
-+	bool xinowarn;
- };
- 
- static int ovl_fill_real(struct dir_context *ctx, const char *name,
-@@ -671,7 +675,7 @@ static int ovl_fill_real(struct dir_context *ctx, const char *name,
- 			ino = p->ino;
- 	} else if (rdt->xinobits) {
- 		ino = ovl_remap_lower_ino(ino, rdt->xinobits, rdt->fsid,
--					  name, namelen);
-+					  name, namelen, rdt->xinowarn);
- 	}
- 
- 	return orig_ctx->actor(orig_ctx, name, namelen, offset, ino, d_type);
-@@ -702,6 +706,7 @@ static int ovl_iterate_real(struct file *file, struct dir_context *ctx)
- 		.ctx.actor = ovl_fill_real,
- 		.orig_ctx = ctx,
- 		.xinobits = ovl_xino_bits(dir->d_sb),
-+		.xinowarn = ovl_xino_warn(dir->d_sb),
- 	};
- 
- 	if (rdt.xinobits && lower_layer)
-diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-index 67cd9e59d467..01938c93e5c8 100644
---- a/fs/overlayfs/super.c
-+++ b/fs/overlayfs/super.c
-@@ -317,12 +317,6 @@ static const char *ovl_redirect_mode_def(void)
- 	return ovl_redirect_dir_def ? "on" : "off";
- }
- 
--enum {
--	OVL_XINO_OFF,
--	OVL_XINO_AUTO,
--	OVL_XINO_ON,
--};
--
- static const char * const ovl_xino_str[] = {
- 	"off",
- 	"auto",
-@@ -1479,8 +1473,8 @@ static int ovl_get_layers(struct super_block *sb, struct ovl_fs *ofs,
- 
- 	/*
- 	 * When all layers on same fs, overlay can use real inode numbers.
--	 * With mount option "xino=on", mounter declares that there are enough
--	 * free high bits in underlying fs to hold the unique fsid.
-+	 * With mount option "xino=<on|auto>", mounter declares that there are
-+	 * enough free high bits in underlying fs to hold the unique fsid.
- 	 * If overlayfs does encounter underlying inodes using the high xino
- 	 * bits reserved for fsid, it emits a warning and uses the original
- 	 * inode number or a non persistent inode number allocated from a
-@@ -1492,7 +1486,7 @@ static int ovl_get_layers(struct super_block *sb, struct ovl_fs *ofs,
- 		ofs->xino_mode = 0;
- 	} else if (ofs->config.xino == OVL_XINO_OFF) {
- 		ofs->xino_mode = -1;
--	} else if (ofs->config.xino == OVL_XINO_ON && ofs->xino_mode < 0) {
-+	} else if (ofs->xino_mode < 0) {
- 		/*
- 		 * This is a roundup of number of bits needed for encoding
- 		 * fsid, where fsid 0 is reserved for upper fs (even with
+ Changes to underlying filesystems
 -- 
 2.17.1
 
