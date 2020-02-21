@@ -1,115 +1,104 @@
-Return-Path: <SRS0=Bxzg=4I=vger.kernel.org=linux-unionfs-owner@kernel.org>
+Return-Path: <SRS0=Fd6Y=4J=vger.kernel.org=linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+X-Spam-Status: No, score=-0.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
-	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E2DE3C11D0C
-	for <linux-unionfs@archiver.kernel.org>; Thu, 20 Feb 2020 20:00:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DEDCEC11D00
+	for <linux-unionfs@archiver.kernel.org>; Fri, 21 Feb 2020 01:11:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id B76FD206F4
-	for <linux-unionfs@archiver.kernel.org>; Thu, 20 Feb 2020 20:00:17 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A78FE2067D
+	for <linux-unionfs@archiver.kernel.org>; Fri, 21 Feb 2020 01:11:04 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="KAtcqCNZ"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="KLIem2mM"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728964AbgBTUAR (ORCPT
+        id S1729473AbgBUBLE (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Thu, 20 Feb 2020 15:00:17 -0500
-Received: from mail-il1-f193.google.com ([209.85.166.193]:36275 "EHLO
-        mail-il1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728927AbgBTUAR (ORCPT
+        Thu, 20 Feb 2020 20:11:04 -0500
+Received: from mail-io1-f68.google.com ([209.85.166.68]:40354 "EHLO
+        mail-io1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1729419AbgBUBLE (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 20 Feb 2020 15:00:17 -0500
-Received: by mail-il1-f193.google.com with SMTP id b15so24722515iln.3;
-        Thu, 20 Feb 2020 12:00:16 -0800 (PST)
+        Thu, 20 Feb 2020 20:11:04 -0500
+Received: by mail-io1-f68.google.com with SMTP id x1so584250iop.7
+        for <linux-unionfs@vger.kernel.org>; Thu, 20 Feb 2020 17:11:02 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=Hz+DKsj82X4tdj83FZa6Kg4xxF0FGCDR16OLCe3Lc5k=;
-        b=KAtcqCNZ4K4H9jRXFSYY2AI5xegS847mVyu/+kOkKrZM/w/U935ZNLfsSbu0e9AKhC
-         /T9DWXwyt9RvfoBkw2Oj+kHIEuxd/nryNGJeR6kDDYArgFAl4mFyp6JVmREm3LpaiqSR
-         SMbUbWYUtTJ9w1MrVmaYWoKTDd9p4OKTAkwe0OxaeufxKW0Ed6P3vFzdoo5uTmJcPZWr
-         6GAgwXlP2mS+/iLtXIJxGr9Z1jNAejfyYwUyTA/o0uHI3ShEybWovcPphY66DZZAqhjl
-         yWjWSp0tYciy9ehjqFP14vJ2DQH3NSwhR8htVH5WQ9s6mZY7Vo4FL90zi3NIkrGIrpxf
-         qIjg==
+        bh=q6MO28aKAPdXkEbSrSD7stYJ4xXqHQCdnqZOSHYTnHc=;
+        b=KLIem2mMTr3BqVyxkEir9GlgyvtnYkKBzwUSSNx8Uu6prUVxx/nizkoL3q5XJhBoma
+         yZ5zfwG/88wM62/KBOx7DPy8AebvEeISnYhY5jTQu80v4dY62TuEncmc+GfNw4ovxfJS
+         27Wi8670hXDreqKQ3ddiaFWyF5gz/RsAWkm7I2HCHdUKMbE6Jftvk7pD28FUNiOmcOb7
+         0xN6KwFeKYzu7epeHfEqVoE+kk0xzKSlVztkku3MBk+34PLWb478VIXS4ahtSDuU3HiI
+         HVfUf9wSxeFZfKIwobQhjYrAFwUQT4wm3r7RAIu+ukCPP0dRwk5QJ9WHuUR6csGnL5IY
+         YLCA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=Hz+DKsj82X4tdj83FZa6Kg4xxF0FGCDR16OLCe3Lc5k=;
-        b=Sf86vikzVPbTLMltn1c/AAURZlJG8WMEFz/Q+wAre4Hbmddh4+LNEhLZMV3Cv9gCWW
-         7mN0ugSG9CJgQvEls67AAamwOQjQswW0yNCuF1AJJ/DLF5x2U45Stfs9nV8gzB49CwAa
-         p1Wio/Vz+XSAU2z82sXPsuvK10sMFc9qElAE16Qoyb3c0o/KfQ7IrYoRazqOfYaVCaif
-         VX7QwYotZb9i5qTGmjsealDp5r5seVeL9YCef3dHtiGTrMNXSXATHID3G6Z0berfzDqb
-         oTE6eteVPcAdtpg4Fq9p94FIz3ix6whJXCnH5BWiGw2Jryg6f7sF8YXefKE5+HsEih12
-         vsgQ==
-X-Gm-Message-State: APjAAAWtvc8SIZ7m9LarHPwmDkwIPS959L+MogTrUNOC88YtRdwbvX/2
-        TWWe5WWhrm8b0/9BXXu3zPZi3+taaySYpX4Lb/Q=
-X-Google-Smtp-Source: APXvYqwXs3IjemdzTD0tPMYGcRBe1+KGJFOflXyX/3N7UcQRkTWgVSGHNqCOaf0cK3nw/kLawCcKZoEUD4Xv4LR2MVY=
-X-Received: by 2002:a92:9c8c:: with SMTP id x12mr31320588ill.275.1582228816324;
- Thu, 20 Feb 2020 12:00:16 -0800 (PST)
+        bh=q6MO28aKAPdXkEbSrSD7stYJ4xXqHQCdnqZOSHYTnHc=;
+        b=cCDVzzfw6eyOBM6xTmqIqg9j4Tz8sbMSU44dYJZQGnlfbFARITKou2h7Z9FNmCMxf9
+         YVtDVkoUo6JAI41mdfAOfwrA48KA/ijhKYsUvlsu1i0aNBSTjQdSWr6WW9/JBzKqw9aW
+         lloKVKqABstQIDZ1jsK8m/KERPOSh96AU9VAd3Txu/WgomzPzftDTTO5nX7/6ZkXQoCe
+         Id+Bxq+aslHXOc5Tb+QYSapbDLDJqjIsq/h7QvBq0Q2pWd19WlDW9X3OLLkW3ck0Ax/5
+         i/rISs/zMEOOM7yuQXa8vxumMQt/WayDpkKy9mWPMXJRcMkCunjL0WvXWPn+vYo+u2r7
+         RpuA==
+X-Gm-Message-State: APjAAAXWLwDMC8KhF79u0vMzcRzP/JokHeIE0yojRkdESZ9Tsrt1/3yO
+        Hu0kYtcx86bAQoU73jSFxKm2x4uHK/BuqBU7HHJQkw==
+X-Google-Smtp-Source: APXvYqzPGGHXjR5ybi/HBirFVM1/DrKoQ2TFM9/jQoJd9Z50yQn/+RTB+Umb0LxhAT5NMMUT7loGsMDTxEz/odk0Qj8=
+X-Received: by 2002:a02:c558:: with SMTP id g24mr28218296jaj.81.1582247462100;
+ Thu, 20 Feb 2020 17:11:02 -0800 (PST)
 MIME-Version: 1.0
-References: <20200131115004.17410-1-mszeredi@redhat.com> <20200131115004.17410-5-mszeredi@redhat.com>
- <20200204145951.GC11631@redhat.com> <CAJfpegtq4A-m9vOPwUftiotC_Xv6w-dnhCi9=E0t-b1ZPJXPGw@mail.gmail.com>
- <CAOQ4uxj_pVp9-EN2Gmq9j6G3xozzpK_zQiRO-brx6PZ9VpgD0Q@mail.gmail.com> <CAOQ4uxjFYO28r+0pY+pKxK-dDJcQF2nf2EivnOUBgrgkYTFjPQ@mail.gmail.com>
-In-Reply-To: <CAOQ4uxjFYO28r+0pY+pKxK-dDJcQF2nf2EivnOUBgrgkYTFjPQ@mail.gmail.com>
+References: <20200101175814.14144-1-amir73il@gmail.com> <20200101175814.14144-6-amir73il@gmail.com>
+ <CAJfpegvPBwBpmcY60CcypYRAGgQr44ONz8TSzdBUq2tPmOXBbA@mail.gmail.com>
+ <CAOQ4uxgpR5O-dFKYueHKd_j8bA_k3F06pFQ+qjVfe9htTmyWOA@mail.gmail.com> <CAJfpegvSU8w19XPtMPP7PXac455JWos9O6UrmzgNOQBKcaqkCg@mail.gmail.com>
+In-Reply-To: <CAJfpegvSU8w19XPtMPP7PXac455JWos9O6UrmzgNOQBKcaqkCg@mail.gmail.com>
 From:   Amir Goldstein <amir73il@gmail.com>
-Date:   Thu, 20 Feb 2020 22:00:05 +0200
-Message-ID: <CAOQ4uxhZ8a2ObfB9sUtrc=95mM70qurLtXkaNyHOXYxGEKvxFw@mail.gmail.com>
-Subject: Re: [PATCH 4/4] ovl: alllow remote upper
+Date:   Fri, 21 Feb 2020 03:10:51 +0200
+Message-ID: <CAOQ4uxgY18Qo-QT=FXg=A95RPqLDXe8e=wiUENSSs_yr5C=mAw@mail.gmail.com>
+Subject: Re: [PATCH 5/7] ovl: avoid possible inode number collisions with xino=on
 To:     Miklos Szeredi <miklos@szeredi.hu>
-Cc:     Vivek Goyal <vgoyal@redhat.com>,
-        Miklos Szeredi <mszeredi@redhat.com>,
-        overlayfs <linux-unionfs@vger.kernel.org>,
-        linux-fsdevel <linux-fsdevel@vger.kernel.org>
+Cc:     overlayfs <linux-unionfs@vger.kernel.org>
 Content-Type: text/plain; charset="UTF-8"
 Sender: linux-unionfs-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Thu, Feb 20, 2020 at 9:52 AM Amir Goldstein <amir73il@gmail.com> wrote:
+On Wed, Feb 19, 2020 at 5:36 PM Miklos Szeredi <miklos@szeredi.hu> wrote:
 >
-> On Tue, Feb 4, 2020 at 7:02 PM Amir Goldstein <amir73il@gmail.com> wrote:
+> On Wed, Feb 19, 2020 at 4:28 PM Amir Goldstein <amir73il@gmail.com> wrote:
 > >
-> > On Tue, Feb 4, 2020 at 6:17 PM Miklos Szeredi <miklos@szeredi.hu> wrote:
-> > >
-> > > On Tue, Feb 4, 2020 at 3:59 PM Vivek Goyal <vgoyal@redhat.com> wrote:
-> > > >
-> > > > On Fri, Jan 31, 2020 at 12:50:04PM +0100, Miklos Szeredi wrote:
-> > > > > No reason to prevent upper layer being a remote filesystem.  Do the
-> > > > > revalidation in that case, just as we already do for lower layers.
-> > > > >
-> > > > > This lets virtiofs be used as upper layer, which appears to be a real use
-> > > > > case.
-> > > >
-> > > > Hi Miklos,
-> > > >
-> > > > I have couple of very basic questions.
-> > > >
-> > > > - So with this change, we will allow NFS to be upper layer also?
-> > >
-> > > I haven't tested, but I think it will fail on the d_type test.
-> >
-> > But we do not fail mount on no d_type support...
-> > Besides, I though you were going to add the RENAME_WHITEOUT
-> > test to avert untested network fs as upper.
-> >
+> > On Wed, Feb 19, 2020 at 4:25 PM Miklos Szeredi <miklos@szeredi.hu> wrote:
 >
-> Pushed strict remote upper check to:
-> https://github.com/amir73il/linux/commits/ovl-strict-upper
+> > > While this makes sense on 64bit arch, it's going to overflow on 32bit
+> > > (due to i_ino being "unsigned long").
+> >
+> > It's not clear here, but on 32bit, xinobits is 0:
+> >
+> >                 ofs->xino_mode = BITS_PER_LONG - 32;
+> >
+> > To the expression doesn't change i_ino.
+> > Correct?
+> > Want me to clarify that by comment or by code?
 >
-> FWIW, overlayfs-next+ovl-strict-upper passes the quick xfstests,
-> except for overlay/031 - it fails because the RENAME_WHITEOUT check
-> leaves behind a whiteout in workdir.
-> I think it it is not worth to cleanup that whiteout leftover and
-> easier to fix the test.
+> Ah, missed that.  I think no need to clarify further.
+>
 
-Nevermind. Fixed the whiteout cleanup and re-pushed.
+Mmm.. only it doesn't seem to be true.
+Seems like with xino=on xino_mode won't be 0 on 32bit.
+I think we do want to force disable xino on 32bit and send fix to stable -
+if only to keep the code in ovl_map_ino() simpler.
+
+What's more, I think there is a bug with xino_mode -
+it is not initialized to -1 on the default xino=off mode,
+so ovl_same_fs() could be wrong.
+
+I will try to look at this tomorrow.
 
 Thanks,
 Amir.
