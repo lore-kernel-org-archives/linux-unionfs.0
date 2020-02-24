@@ -2,128 +2,146 @@ Return-Path: <SRS0=h7tn=4M=vger.kernel.org=linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-6.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 02D95C35673
-	for <linux-unionfs@archiver.kernel.org>; Mon, 24 Feb 2020 02:45:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D2BAFC11D2B
+	for <linux-unionfs@archiver.kernel.org>; Mon, 24 Feb 2020 09:26:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id B3B9B20658
-	for <linux-unionfs@archiver.kernel.org>; Mon, 24 Feb 2020 02:45:56 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9F70320714
+	for <linux-unionfs@archiver.kernel.org>; Mon, 24 Feb 2020 09:26:49 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=themaw.net header.i=@themaw.net header.b="FNwTAdHt";
-	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="MTEQ0/si"
+	dkim=pass (1024-bit key) header.d=cern.onmicrosoft.com header.i=@cern.onmicrosoft.com header.b="treHLM/w"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727180AbgBXCp4 (ORCPT
+        id S1727378AbgBXJ0r (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Sun, 23 Feb 2020 21:45:56 -0500
-Received: from wout4-smtp.messagingengine.com ([64.147.123.20]:34177 "EHLO
-        wout4-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1727168AbgBXCp4 (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Sun, 23 Feb 2020 21:45:56 -0500
-Received: from compute1.internal (compute1.nyi.internal [10.202.2.41])
-        by mailout.west.internal (Postfix) with ESMTP id 15C784B8;
-        Sun, 23 Feb 2020 21:45:55 -0500 (EST)
-Received: from mailfrontend2 ([10.202.2.163])
-  by compute1.internal (MEProxy); Sun, 23 Feb 2020 21:45:55 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=themaw.net; h=
-        message-id:subject:from:to:cc:date:in-reply-to:references
-        :content-type:mime-version:content-transfer-encoding; s=fm2; bh=
-        s5Zfoadpx+pNCBSJRW69C71D/q3G2eT1Z4AraQAtWIw=; b=FNwTAdHtEQf4lV6n
-        fxF98PL7t1lBbbDmSXSIATpo+aC1Tj/H4W8JKmhNpwAJtYdrt9JvaDLaZA96Ghmt
-        52HHMC4DTGl0FjI6zpEvbNSKd1mlpVOqNUvjkOl7i/yD1G5mnRdI7fN2lVBN0nzt
-        IN5/HHJH/Ktx6xvGI+cJ3M1IFVTOMQMxK5jTfxu8LHQPg4CTgpp9K/RVAvhWrMjV
-        7EbZaBYzSUDSIfzKUR/dwEz4loj7i5Zjfx0U0u6B2HpJPktgcxooZF7olQQneZgl
-        JXMraNRDFCncurqMaPn58o9Wrr61udHd+Eq5yzAwWF+c5JLAiT7K+Fn8Ff8GJVgB
-        c9rpfA==
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-        messagingengine.com; h=cc:content-transfer-encoding:content-type
-        :date:from:in-reply-to:message-id:mime-version:references
-        :subject:to:x-me-proxy:x-me-proxy:x-me-sender:x-me-sender
-        :x-sasl-enc; s=fm2; bh=s5Zfoadpx+pNCBSJRW69C71D/q3G2eT1Z4AraQAtW
-        Iw=; b=MTEQ0/siZ9FKsjN5bauguWL3cmn+fICsfaL7V4Kairj4IMLvMkJQmJ6Wt
-        oIGPgAsXMjmlIpEsJ7lBYmcd97WciBAqFfD1KkQClbAOWyGf9GlVYuLa0uudnUte
-        upkgX9/2l6q6sxMvDcoGAouyhcV8ilXu3Vi0VugcOGgU/9AfwkhEh+Gtyur6/QWa
-        nQOK/ZHNtaEVtZiW78J8VG4Qvo7VQGChLYqvS+2dm/4asuOEAmoPAC+BxnSmQPSh
-        FgghBbPrYCcK1EE3A/P0kbJmupbrV/Bi97Z8foJGkQzwoYnKZmbNpBux6ET0s9KN
-        1/n4Io1xbvmMk39LbDMhxYRqoi5bg==
-X-ME-Sender: <xms:4ThTXs9vzzta2WJFV_QhQatatbrv6-lPMBHTxhazrDZivsBL17YTpA>
-X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgedugedrkeelgdehtdcutefuodetggdotefrodftvf
-    curfhrohhfihhlvgemucfhrghsthforghilhdpqfgfvfdpuffrtefokffrpgfnqfghnecu
-    uegrihhlohhuthemuceftddtnecusecvtfgvtghiphhivghnthhsucdlqddutddtmdenuc
-    fjughrpefkuffhvfffjghftggfggfgsehtjeertddtreejnecuhfhrohhmpefkrghnucfm
-    vghnthcuoehrrghvvghnsehthhgvmhgrfidrnhgvtheqnecuffhomhgrihhnpehkvghrnh
-    gvlhdrohhrghenucfkphepuddukedrvddtledrudektddrvddvleenucevlhhushhtvghr
-    ufhiiigvpedtnecurfgrrhgrmhepmhgrihhlfhhrohhmpehrrghvvghnsehthhgvmhgrfi
-    drnhgvth
-X-ME-Proxy: <xmx:4ThTXo-Kvws7hJYhR04bViPCu-zS-2st7Ql0Q970kpmEKiupwOWuiQ>
-    <xmx:4ThTXtBliZa2C7jGSIJ8DT_Jqsi6zi9TV9KzlxGu-RzPK_FPjdusjQ>
-    <xmx:4ThTXgxDuNQSU6SNa-BMYFmG75bPNIFF_pWDAQckYny1Eqbbwblu6w>
-    <xmx:4jhTXosSnl9yH1EJszSlI5AUQrvzVxtqQ6EQhQuxndK8Jzj8zqsqTg>
-Received: from mickey.themaw.net (unknown [118.209.180.229])
-        by mail.messagingengine.com (Postfix) with ESMTPA id 52B0C3060BD1;
-        Sun, 23 Feb 2020 21:45:51 -0500 (EST)
-Message-ID: <0f24065ec6aaf654602f03e241747efa4fbe73fd.camel@themaw.net>
-Subject: Re: [RFC PATCH 0/5] allow unprivileged overlay mounts
-From:   Ian Kent <raven@themaw.net>
-To:     "Serge E. Hallyn" <serge@hallyn.com>,
-        Miklos Szeredi <miklos@szeredi.hu>
-Cc:     "Eric W . Biederman" <ebiederm@xmission.com>,
-        overlayfs <linux-unionfs@vger.kernel.org>,
-        linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org
-Date:   Mon, 24 Feb 2020 10:45:47 +0800
-In-Reply-To: <20191029170137.GA21633@mail.hallyn.com>
-References: <20191025112917.22518-1-mszeredi@redhat.com>
-         <CAJfpegv1SA7b45_2g-GFYrc7ZsOmcQ2qv602n=85L4RknkOvKQ@mail.gmail.com>
-         <20191029170137.GA21633@mail.hallyn.com>
-Content-Type: text/plain; charset="UTF-8"
-User-Agent: Evolution 3.32.5 (3.32.5-1.fc30) 
+        Mon, 24 Feb 2020 04:26:47 -0500
+Received: from mail-vi1eur05on2073.outbound.protection.outlook.com ([40.107.21.73]:16580
+        "EHLO EUR05-VI1-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1727240AbgBXJ0r (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Mon, 24 Feb 2020 04:26:47 -0500
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=eLhB7iH5YDJQd/UPqkLrfmxKIxhuOEeRo6o8Gcea5ND0iEi6k7xi2hbTiBGcZD6y9L8ZIeZ7GxgbKqzuCARa7/dxorkh2FV0tXrKJ8Ra3ueH2QOrhQR2BVB9ND61nTS6hiqe52Hw857jN0gmuASJvbtl52mlJGUcpB2VhpnKZ3Dqw7UEFFnx46aiueqYaDFc9MbpOdSY7X8GibnhUFK14SWvLTiaNrgW0TRlPxoyU6EH2PvLqam6QUHSR+kw1fqJbcKG+OWGwxp35cemaWPZDxuu4U7JyGfSybZXsBGdp7BbXCLhaHHQ+/HKYILfLsUnsj5/tYpZ96zDQo9S5zqmXw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=tmGwAKElI2u+A0z/EETBIou5ic5kIe13D9NL0wb7U2M=;
+ b=CGZrT9/zeWLslICwnV47CvnyCi4tEwQUvjqq4frvluTbtOh5IsXbUWZuRHjfuSArjnFQ7V8qGqVtI2g+xSErDkkqpOSMvLUpueUfM/Y9a9cvMUxhhRbsXuIIRghZMWr0aoiTyBh0F+ZkCM8+Y3hBx6wkGKIKjlk/4z7TKSRnyf7C+/w9hY+f31izRZKM57PBovCQDJhle01mAgeJWMacphqeZc477gRYs6vLNoJsWtMM5xovPP/PM0OZc9LqnyZrXo8PTjlcKfMmfh2jHrdSdSA+MTMjrhYqLuJajloIZjDMLL7d3s9hytgzdiyLTjnyRxL1AizGgpggJZlBlsKWag==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
+ 188.184.36.50) smtp.rcpttodomain=kernel.org smtp.mailfrom=cern.ch;
+ dmarc=bestguesspass action=none header.from=cern.ch; dkim=none (message not
+ signed); arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=cern.onmicrosoft.com;
+ s=selector2-cern-onmicrosoft-com;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=tmGwAKElI2u+A0z/EETBIou5ic5kIe13D9NL0wb7U2M=;
+ b=treHLM/wuTE3F8KbK3ygj/ORGGmbE9HBEQqYgWyAmRwvSPW5jnP+JZ60wkplYx3/8FOYO8MRW3svCyvPlLsPYQKPlKNIaLUHO55uV6xCD9MQs9BFPL7WD+jRjhSKWoD25d/Kj3n/1EbzSGqtTHjsNsdj0qDL4wKrkQGEOj305CA=
+Received: from AM0PR06CA0026.eurprd06.prod.outlook.com (2603:10a6:208:ab::39)
+ by HE1PR0601MB2617.eurprd06.prod.outlook.com (2603:10a6:3:4c::8) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.2750.22; Mon, 24 Feb
+ 2020 09:26:42 +0000
+Received: from VE1EUR02FT030.eop-EUR02.prod.protection.outlook.com
+ (2a01:111:f400:7e06::205) by AM0PR06CA0026.outlook.office365.com
+ (2603:10a6:208:ab::39) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.2750.18 via Frontend
+ Transport; Mon, 24 Feb 2020 09:26:42 +0000
+Authentication-Results: spf=pass (sender IP is 188.184.36.50)
+ smtp.mailfrom=cern.ch; kernel.org; dkim=none (message not signed)
+ header.d=none;kernel.org; dmarc=bestguesspass action=none
+ header.from=cern.ch;
+Received-SPF: Pass (protection.outlook.com: domain of cern.ch designates
+ 188.184.36.50 as permitted sender) receiver=protection.outlook.com;
+ client-ip=188.184.36.50; helo=cernmxgwlb4.cern.ch;
+Received: from cernmxgwlb4.cern.ch (188.184.36.50) by
+ VE1EUR02FT030.mail.protection.outlook.com (10.152.12.127) with Microsoft SMTP
+ Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384) id
+ 15.20.2750.18 via Frontend Transport; Mon, 24 Feb 2020 09:26:41 +0000
+Received: from cernfe04.cern.ch (188.184.36.41) by cernmxgwlb4.cern.ch
+ (188.184.36.50) with Microsoft SMTP Server (TLS) id 14.3.487.0; Mon, 24 Feb
+ 2020 10:26:40 +0100
+Received: from pcbe13614.localnet (2001:1458:202:121::100:40) by smtp.cern.ch
+ (2001:1458:201:66::100:14) with Microsoft SMTP Server (TLS) id 14.3.487.0;
+ Mon, 24 Feb 2020 10:26:38 +0100
+From:   Federico Vaga <federico.vaga@cern.ch>
+To:     Mauro Carvalho Chehab <mchehab+huawei@kernel.org>
+Reply-To: <federico.vaga@cern.ch>
+CC:     Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Jonathan Corbet <corbet@lwn.net>, <linux-arch@vger.kernel.org>,
+        <kvm@vger.kernel.org>, <kvm-ppc@vger.kernel.org>,
+        <linuxppc-dev@lists.ozlabs.org>, <dri-devel@lists.freedesktop.org>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <linux-fsdevel@vger.kernel.org>, <linux-nfs@vger.kernel.org>,
+        <linux-unionfs@vger.kernel.org>, <linux-mm@kvack.org>,
+        <linux-rdma@vger.kernel.org>, <netdev@vger.kernel.org>,
+        <kvmarm@lists.cs.columbia.edu>
+Subject: Re: [PATCH 3/7] docs: fix broken references to text files
+Date:   Mon, 24 Feb 2020 10:26:39 +0100
+Message-ID: <3929512.qvrp2sLpzG@pcbe13614>
+In-Reply-To: <5cfeed6df208b74913312a1c97235ee615180f91.1582361737.git.mchehab+huawei@kernel.org>
+References: <cover.1582361737.git.mchehab+huawei@kernel.org> <5cfeed6df208b74913312a1c97235ee615180f91.1582361737.git.mchehab+huawei@kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="iso-8859-1"
+X-Originating-IP: [2001:1458:202:121::100:40]
+X-EOPAttributedMessage: 0
+X-Forefront-Antispam-Report: CIP:188.184.36.50;IPV:;CTRY:CH;EFV:NLI;SFV:NSPM;SFS:(10009020)(376002)(39860400002)(136003)(346002)(396003)(199004)(189003)(186003)(9686003)(16526019)(33716001)(26005)(2906002)(478600001)(9576002)(426003)(8676002)(44832011)(3450700001)(336012)(246002)(53546011)(8936002)(7416002)(4326008)(86362001)(7636002)(356004)(70206006)(316002)(54906003)(70586007)(5660300002)(39026012);DIR:OUT;SFP:1101;SCL:1;SRVR:HE1PR0601MB2617;H:cernmxgwlb4.cern.ch;FPR:;SPF:Pass;LANG:en;PTR:cernmx11.cern.ch;A:1;MX:1;
+X-MS-PublicTrafficType: Email
+X-MS-Office365-Filtering-Correlation-Id: 07a24c03-738e-4624-7506-08d7b90ba88c
+X-MS-TrafficTypeDiagnostic: HE1PR0601MB2617:
+X-Microsoft-Antispam-PRVS: <HE1PR0601MB2617DD6A6BADE420AB7F4408EFEC0@HE1PR0601MB2617.eurprd06.prod.outlook.com>
+X-MS-Oob-TLC-OOBClassifiers: OLM:2803;
+X-Forefront-PRVS: 032334F434
+X-MS-Exchange-SenderADCheck: 1
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: 0qIX6XFVupoujn6tnMIXACZrhD5q3UXodzvYwqyh0hsK1Lsu+/pJ+LkIjl/NeexA/acueRAQl6tWpe3CFd900UWE/3Dp2zl9mkWVMfYl1qYpVkPmqLAGWnMEDEKi64JQPs3cOzEfTL3WjHbAxZ5gqNC3mLax0dvKusUdgcmqXKLya466pUHPmvk05PkmAw4VpLa35W1pVnc1avg4zQD+W+XccjzAi6cB/jeg95xVwyZEdY7wigcHbjHbZjeUw5bGbym667i307aOvjm5Vli7k+a11ZX1tZ2pjiiBWvLEYzJaJJQ2pSEH9ApQf6ZUYQ5f7TlyJmnEtMyipzP+fXgRIINxHtYghfwKLsQ7Fb2NPkqtE2mY/QN0LGNAE519BJMKJ2V6htEDDIZVXfSjSq9NkQg4un3jbv63EjF6kc6RkQ3fn2TRPhmkbiqtoHaEDIQdUEz7oStS5w1dmTB8Bw7vHuPaRBQq1lv0uJabtpvDjKCWQdNtDjiBIr3Z5wRpVLzv
+X-OriginatorOrg: cern.ch
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 24 Feb 2020 09:26:41.7248
+ (UTC)
+X-MS-Exchange-CrossTenant-Network-Message-Id: 07a24c03-738e-4624-7506-08d7b90ba88c
+X-MS-Exchange-CrossTenant-Id: c80d3499-4a40-4a8c-986e-abce017d6b19
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=c80d3499-4a40-4a8c-986e-abce017d6b19;Ip=[188.184.36.50];Helo=[cernmxgwlb4.cern.ch]
+X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: HE1PR0601MB2617
 Sender: linux-unionfs-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Tue, 2019-10-29 at 12:01 -0500, Serge E. Hallyn wrote:
-> On Fri, Oct 25, 2019 at 01:35:20PM +0200, Miklos Szeredi wrote:
-> > On Fri, Oct 25, 2019 at 1:30 PM Miklos Szeredi <mszeredi@redhat.com
-> > > wrote:
-> > > Hi Eric,
-> > > 
-> > > Can you please have a look at this patchset?
-> > > 
-> > > The most interesting one is the last oneliner adding
-> > > FS_USERNS_MOUNT;
-> > > whether I'm correct in stating that this isn't going to introduce
-> > > any
-> > > holes, or not...
-> > 
-> > Forgot the git tree:
-> > 
-> > git://git.kernel.org/pub/scm/linux/kernel/git/mszeredi/vfs.git#ovl-
-> > unpriv
-> > 
-> > Thanks,
-> > Miklos
-> 
-> I've looked through it, seemed sensible to me.
+On Saturday, February 22, 2020 10:00:03 AM CET Mauro Carvalho Chehab wrote:
+> Several references got broken due to txt to ReST conversion.
+>=20
+> Several of them can be automatically fixed with:
+>=20
+> 	scripts/documentation-file-ref-check --fix
+>=20
+> Signed-off-by: Mauro Carvalho Chehab <mchehab+huawei@kernel.org>
+> ---
 
-Seems sensible to me too but I'm not sure what I'm looking for.
 
-Perhaps a bit more on how this is secure to give an idea what's been
-checked and where to focus so the the survey can be broadened from
-there... I'm not sure.
+>  26) If any ioctl's are added by the patch, then also update
+> -    ``Documentation/ioctl/ioctl-number.rst``.
+> +    ``Documentation/userspace-api/ioctl/ioctl-number.rst``.
+>=20
+>  27) If your modified source code depends on or uses any of the kernel
+>      APIs or features that are related to the following ``Kconfig`` symbo=
+ls,
+> diff --git a/Documentation/translations/it_IT/process/submit-checklist.rst
+> b/Documentation/translations/it_IT/process/submit-checklist.rst index
+> 995ee69fab11..3e575502690f 100644
+> --- a/Documentation/translations/it_IT/process/submit-checklist.rst
+> +++ b/Documentation/translations/it_IT/process/submit-checklist.rst
+> @@ -117,7 +117,7 @@ sottomissione delle patch, in particolare
+>      sorgenti che ne spieghi la logica: cosa fanno e perch=E9.
+>=20
+>  25) Se la patch aggiunge nuove chiamate ioctl, allora aggiornate
+> -    ``Documentation/ioctl/ioctl-number.rst``.
+> +    ``Documentation/userspace-api/ioctl/ioctl-number.rst``.
 
-For example, from my simple minded view I wonder about the posix acl
-code.
 
-In ovl_posix_acl_xattr_set() there is a call to posix_acl_from_xattr()
-that uses init_user_ns. I wonder if that should be the current user ns
-in this case but I'm not sure?
+Acked-By: Federico Vaga <federico.vaga@vaga.pv.it>
 
-Ian
+
 
