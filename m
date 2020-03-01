@@ -2,49 +2,49 @@ Return-Path: <SRS0=o1el=4S=vger.kernel.org=linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.4 required=3.0 tests=FROM_LOCAL_HEX,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.4 required=3.0 tests=FROM_LOCAL_HEX,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
+	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A7C2DC3F2D1
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B7CA5C3F2CD
 	for <linux-unionfs@archiver.kernel.org>; Sun,  1 Mar 2020 19:13:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 7B09D246BF
+	by mail.kernel.org (Postfix) with ESMTP id 9A5A1246B9
 	for <linux-unionfs@archiver.kernel.org>; Sun,  1 Mar 2020 19:13:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726527AbgCATNP (ORCPT
+        id S1726536AbgCATNQ (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Sun, 1 Mar 2020 14:13:15 -0500
-Received: from mail-il1-f197.google.com ([209.85.166.197]:53615 "EHLO
-        mail-il1-f197.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726146AbgCATNP (ORCPT
+        Sun, 1 Mar 2020 14:13:16 -0500
+Received: from mail-il1-f200.google.com ([209.85.166.200]:41487 "EHLO
+        mail-il1-f200.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726490AbgCATNQ (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Sun, 1 Mar 2020 14:13:15 -0500
-Received: by mail-il1-f197.google.com with SMTP id t11so9032399ill.20
+        Sun, 1 Mar 2020 14:13:16 -0500
+Received: by mail-il1-f200.google.com with SMTP id k9so9081874ili.8
         for <linux-unionfs@vger.kernel.org>; Sun, 01 Mar 2020 11:13:15 -0800 (PST)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:date:message-id:subject:from:to;
-        bh=zNC2T0hLt60hxZU2ALw1d5rG9t+MrQbgwlE91pkiSjU=;
-        b=YkgHQZeHg+od3XJfb/E3TOdq0U1UUVi22ZCdRON1dT6+lepKhVju4poOf+tOBwDM3O
-         +pM5NDMZlzjMmyxTBNa8JHF7Oncy5GkVhOMC2MepQmtBuUHjMJycj0qF/D/mJcCnEF0R
-         gRub/xqsv1BnESa03NFqgHV7Ju3QPKIVaAfqc4eeW+ZLsuCSVVm1gPVv+wdMvvZ6BSYq
-         20wTz8QJGFg9ug6f5GNaTivuZ8YMurk0Uqb56IQVCEdu6Uxcx3ghTzOtO+1vYPAkCE1V
-         Sn+ceM75sPGzQbUQP6C/KqRKC1YFJ5v3P/Tgb0eeGJ2mxICtn+F3LaQY9BUsV1PlZykp
-         2rLg==
-X-Gm-Message-State: ANhLgQ3f7W+AkkRtQ9pZngzWKknddVCLge4dTS+mim50TfnPETmLlIWi
-        I+cotkhNV9XmC7lxpzFSXjyBKz0s7L8t5RllIj5Lc5qb07gE
-X-Google-Smtp-Source: ADFU+vse8hZ5nHKk+5NIY4vMDQDsZ0Lq8jS5ZnqMnsqwtm4/dM31Wy8of6l33EJBnFkg7GHxebhGGIwcsxqDS/iuGInFR6acwxA9
+        bh=4/VA9BmvqbsM5rNUMslEh9Krn9FOhK79mHkgoz8CgtQ=;
+        b=gBF5pWGeFJ1TlRVdW40PLgUfK85dbkEFGrDeewikKrFgiPSxD04Ifn1pIHXUIYyDZh
+         G/75BRbF9kZITe58N4oOu6R7s83G0lpnMg4YV6B1FzbZog20yRjIvRCc+LlqYSfIDSaU
+         lrBHsS7tYWg/eNNwbUNHliVr5nXyy/ADZtTkz/LDQgWiLkiGllNDIldfGLNeomYD/CPn
+         e7OY8O0j/HuFy1zODoEw/T2qgHk3II8QY329COFm6XOvoQ9CRp/kojxtWv4DXSlhCVuz
+         orlaYuuWlifiLG2ia7+biT5mFnKCkkfntpIb4VQYL1ypHhePNkL5xwCWYifcMxc4ZP8o
+         plVw==
+X-Gm-Message-State: APjAAAXfrit9fSQz3lpjuWLkB7xd0LqxgGn+atFODf4bt3NJPF7lS+OM
+        XZWwzN1wgdiL8NfIffXqfqn+c4oldgg5kRfaD+vZdHsLA8uR
+X-Google-Smtp-Source: APXvYqzB1BketvTg0rahQq0fxwHpeTUel4QC/DT09Cw7tuGz2C101wjAnqMSYMcXmWgQimMlSVx69hHFmRFRaPCrAKAiDcj5Xflj
 MIME-Version: 1.0
-X-Received: by 2002:a5d:88c9:: with SMTP id i9mr1713101iol.210.1583089994963;
- Sun, 01 Mar 2020 11:13:14 -0800 (PST)
-Date:   Sun, 01 Mar 2020 11:13:14 -0800
+X-Received: by 2002:a92:8547:: with SMTP id f68mr13809858ilh.26.1583089995471;
+ Sun, 01 Mar 2020 11:13:15 -0800 (PST)
+Date:   Sun, 01 Mar 2020 11:13:15 -0800
 X-Google-Appengine-App-Id: s~syzkaller
 X-Google-Appengine-App-Id-Alias: syzkaller
-Message-ID: <000000000000cc1faf059fcfdc73@google.com>
-Subject: WARNING: lock held when returning to user space in ovl_write_iter
-From:   syzbot <syzbot+9331a354f4f624a52a55@syzkaller.appspotmail.com>
-To:     jiufei.xue@linux.alibaba.com, linux-kernel@vger.kernel.org,
+Message-ID: <000000000000d3e319059fcfdc98@google.com>
+Subject: WARNING: bad unlock balance in ovl_llseek
+From:   syzbot <syzbot+66a9752fa927f745385e@syzkaller.appspotmail.com>
+To:     amir73il@gmail.com, linux-kernel@vger.kernel.org,
         linux-unionfs@vger.kernel.org, miklos@szeredi.hu,
         mszeredi@redhat.com, syzkaller-bugs@googlegroups.com
 Content-Type: text/plain; charset="UTF-8"
@@ -57,39 +57,68 @@ Hello,
 
 syzbot found the following crash on:
 
-HEAD commit:    bdc5461b Add linux-next specific files for 20200224
-git tree:       linux-next
-console output: https://syzkaller.appspot.com/x/log.txt?x=10deee65e00000
-kernel config:  https://syzkaller.appspot.com/x/.config?x=8402e437f1eeea92
-dashboard link: https://syzkaller.appspot.com/bug?extid=9331a354f4f624a52a55
-compiler:       gcc (GCC) 9.0.0 20181231 (experimental)
-syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=1571d22de00000
-C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=175192c3e00000
+HEAD commit:    f8788d86 Linux 5.6-rc3
+git tree:       upstream
+console output: https://syzkaller.appspot.com/x/log.txt?x=13c5f8f9e00000
+kernel config:  https://syzkaller.appspot.com/x/.config?x=5d2e033af114153f
+dashboard link: https://syzkaller.appspot.com/bug?extid=66a9752fa927f745385e
+compiler:       clang version 10.0.0 (https://github.com/llvm/llvm-project/ c2443155a0fb245c8f17f2c1c72b6ea391e86e81)
+syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=131d9a81e00000
+C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=14117a81e00000
 
 The bug was bisected to:
 
-commit 2406a307ac7ddfd7effeeaff6947149ec6a95b4e
-Author: Jiufei Xue <jiufei.xue@linux.alibaba.com>
-Date:   Wed Nov 20 09:45:26 2019 +0000
+commit b1f9d3858f724ed45b279b689fb5b400d91352e3
+Author: Amir Goldstein <amir73il@gmail.com>
+Date:   Sat Dec 21 09:42:29 2019 +0000
 
-    ovl: implement async IO routines
+    ovl: use ovl_inode_lock in ovl_llseek()
 
-bisection log:  https://syzkaller.appspot.com/x/bisect.txt?x=113c6d29e00000
-final crash:    https://syzkaller.appspot.com/x/report.txt?x=133c6d29e00000
-console output: https://syzkaller.appspot.com/x/log.txt?x=153c6d29e00000
+bisection log:  https://syzkaller.appspot.com/x/bisect.txt?x=16ff3bede00000
+final crash:    https://syzkaller.appspot.com/x/report.txt?x=15ff3bede00000
+console output: https://syzkaller.appspot.com/x/log.txt?x=11ff3bede00000
 
 IMPORTANT: if you fix the bug, please add the following tag to the commit:
-Reported-by: syzbot+9331a354f4f624a52a55@syzkaller.appspotmail.com
-Fixes: 2406a307ac7d ("ovl: implement async IO routines")
+Reported-by: syzbot+66a9752fa927f745385e@syzkaller.appspotmail.com
+Fixes: b1f9d3858f72 ("ovl: use ovl_inode_lock in ovl_llseek()")
 
-================================================
-WARNING: lock held when returning to user space!
-5.6.0-rc2-next-20200224-syzkaller #0 Not tainted
-------------------------------------------------
-syz-executor184/10029 is leaving the kernel with locks still held!
-1 lock held by syz-executor184/10029:
- #0: ffff88809987c418 (sb_writers#3){.+.+}, at: file_start_write include/linux/fs.h:2903 [inline]
- #0: ffff88809987c418 (sb_writers#3){.+.+}, at: ovl_write_iter+0xcc1/0x1090 fs/overlayfs/file.c:348
+=====================================
+WARNING: bad unlock balance detected!
+5.6.0-rc3-syzkaller #0 Not tainted
+-------------------------------------
+syz-executor194/8947 is trying to release lock (&ovl_i_lock_key[depth]) at:
+[<ffffffff828b7835>] ovl_inode_unlock fs/overlayfs/overlayfs.h:328 [inline]
+[<ffffffff828b7835>] ovl_llseek+0x215/0x2c0 fs/overlayfs/file.c:193
+but there are no more locks to release!
+
+other info that might help us debug this:
+1 lock held by syz-executor194/8947:
+ #0: ffff88809742ade0 (&f->f_pos_lock){+.+.}, at: __fdget_pos+0x279/0x310 fs/file.c:821
+
+stack backtrace:
+CPU: 0 PID: 8947 Comm: syz-executor194 Not tainted 5.6.0-rc3-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1fb/0x318 lib/dump_stack.c:118
+ print_unlock_imbalance_bug+0x20b/0x240 kernel/locking/lockdep.c:4007
+ __lock_release kernel/locking/lockdep.c:4241 [inline]
+ lock_release+0x469/0x710 kernel/locking/lockdep.c:4502
+ __mutex_unlock_slowpath+0x80/0x5b0 kernel/locking/mutex.c:1228
+ mutex_unlock+0xd/0x10 kernel/locking/mutex.c:740
+ ovl_inode_unlock fs/overlayfs/overlayfs.h:328 [inline]
+ ovl_llseek+0x215/0x2c0 fs/overlayfs/file.c:193
+ vfs_llseek fs/read_write.c:300 [inline]
+ ksys_lseek fs/read_write.c:313 [inline]
+ __do_sys_lseek fs/read_write.c:324 [inline]
+ __se_sys_lseek fs/read_write.c:322 [inline]
+ __x64_sys_lseek+0x15f/0x1f0 fs/read_write.c:322
+ do_syscall_64+0xf7/0x1c0 arch/x86/entry/common.c:294
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x445df9
+Code: e8 ac b8 02 00 48 83 c4 18 c3 0f 1f 80 00 00 00 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 0f 83 2b 12 fc ff c3 66 2e 0f 1f 84 00 00 00 00
+RSP: 002b:00007ff735aecce8 EFLAGS: 00000246 ORIG_RAX: 0000000000000008
+RAX: ffffffffffffffda RBX: 00000000006dac38 RCX: 0000000000445df
 
 
 ---
