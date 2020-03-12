@@ -2,109 +2,90 @@ Return-Path: <SRS0=FkJP=45=vger.kernel.org=linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
-	SPF_HELO_NONE,SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6FC35C2BB1D
-	for <linux-unionfs@archiver.kernel.org>; Thu, 12 Mar 2020 15:30:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CA266C10DCE
+	for <linux-unionfs@archiver.kernel.org>; Thu, 12 Mar 2020 18:04:03 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 438B9206BE
-	for <linux-unionfs@archiver.kernel.org>; Thu, 12 Mar 2020 15:30:40 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9F9ED20663
+	for <linux-unionfs@archiver.kernel.org>; Thu, 12 Mar 2020 18:04:03 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="key not found in DNS" (0-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b="OFMPUsea"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="L6pD8NYr"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727520AbgCLPai (ORCPT
+        id S1726469AbgCLSED (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Thu, 12 Mar 2020 11:30:38 -0400
-Received: from mail-io1-f67.google.com ([209.85.166.67]:43723 "EHLO
-        mail-io1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727661AbgCLPai (ORCPT
+        Thu, 12 Mar 2020 14:04:03 -0400
+Received: from mail-il1-f193.google.com ([209.85.166.193]:43251 "EHLO
+        mail-il1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726395AbgCLSED (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 12 Mar 2020 11:30:38 -0400
-Received: by mail-io1-f67.google.com with SMTP id n21so6055292ioo.10
-        for <linux-unionfs@vger.kernel.org>; Thu, 12 Mar 2020 08:30:37 -0700 (PDT)
+        Thu, 12 Mar 2020 14:04:03 -0400
+Received: by mail-il1-f193.google.com with SMTP id d14so5825952ilq.10
+        for <linux-unionfs@vger.kernel.org>; Thu, 12 Mar 2020 11:04:02 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=szeredi.hu; s=google;
+        d=gmail.com; s=20161025;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=Lmo32ASE9ohivqUkY5OitA/bM2z15DhGLPCtAAPSDmg=;
-        b=OFMPUseas5MCk34LoqOZYwhHYGva+OATtTcImlf8vYOWzbNltQVHDSjMrx38KwHLMf
-         6r71sTJakgoCy+XMhS/LZJtVh1zbsx6IKRItq6PjkbP+P3aOTdqWWEhUqnYfnNG8zWWd
-         FxLbHdHZo82jtPIuFZvRPVJiUzstiSfcuGAQQ=
+        bh=tUs3z/TIvAH7tE8ggypqfQM9Wz0fAhrGs4MCsU6kUWw=;
+        b=L6pD8NYrzqPxr6fFWg2qwHn7u2HCv6KWpD+Fz38hBPEzYlVcAnZlYiM8Zx0K//og0c
+         69njQqidPe4zwyf/fq+G32g++9J6jVgir0j6CnbDxCK6F6JhHEfBCodKvRKQSat4BlmL
+         OsZ2u/0VtSQe6qokiMN0GujEcrmfAxEWagKzv65COhse9h8Vii74n+afhZ0wMhleaZMw
+         2OMjWFfbYpldEYDwCWxlY4Ztu5L8z/LFpgsL/0vmLTN0Zxnn+NOK0Ue7TdLGP1XZ81aa
+         dMEZ1MgWZCujsFVeyWzQCerlzu7gIJVxxiTqIV+2KdWrXcQd795ghb3rOWKYOBwLgPKN
+         nDbw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=Lmo32ASE9ohivqUkY5OitA/bM2z15DhGLPCtAAPSDmg=;
-        b=B3IkPIigtKrscWUUFEgDbcN2+ZCyn6zpgFh/0IzLuYBM4cst4bbRHuo/X4ThrQWVUE
-         ZKt1xairEyCZ6kchUH5jjx067fkiWX1AZ2dQIqU/ZcOlkOjMPC69TgeH4PxqXEFsZ3lV
-         jonKuVJz1eijhe8uAYdMFpvbIJhFuulpWS8oiLEjka9mnBNTsDpPzMjZcLjflN2TW7Ch
-         /G1qcXu6jQHnYFrSont0XriYUtM8o3ooP/XT/Gr9baU2Ke5FMxyCyi/z2IcybDjcMgw+
-         mQEUcUGfWrDYD9dwdGC9pBuBJR1wt5UcWsw/LuNgPN3DFT/M4MGB7qsi3ue1vhUMGe5B
-         4TTw==
-X-Gm-Message-State: ANhLgQ1DhWxudmbTzcpPoVnf4z8bEVfsoTiOHO6IOrpnKgiXQ6PU8UdQ
-        h2gQCjvMlrBeOeKSNY3K6bpYb3SQCKpywEiLkFirsw==
-X-Google-Smtp-Source: ADFU+vugMg/7D3b5rbHoClNr5PvThruRQpVS5TFiBTg2Z3cEg5iMLa1vant0/+u9mdqtGEAElwAmk50tV+ezvtHj2jQ=
-X-Received: by 2002:a02:a813:: with SMTP id f19mr8103601jaj.35.1584027037003;
- Thu, 12 Mar 2020 08:30:37 -0700 (PDT)
+        bh=tUs3z/TIvAH7tE8ggypqfQM9Wz0fAhrGs4MCsU6kUWw=;
+        b=sdd5aoJTx6ez37J/pPaRtoJFldlTZG350mlMHjfa4WobA2Z1zZHKxqDzpnAHP45Uvl
+         Zbg6UK5zSi1i+V+FQ6Ze7txJQF0Hdmob2fNuvuNczeGfq4asqueOSf4P5nqccrFWnKLZ
+         t+nf5e4u53DZKy9i3CVtXmL7jLu7LfaNqOfWL/EPzstjcoMWWkx07kkWx87vWqO+gCLr
+         xs8XhW9/947Ej1F2eI2cqrta+vNHBCcNoUHfglKDeyi0us3l9N6GgbT4SomvBmL9LyZv
+         KwYf7dE4otdx3apRHaIwytzmiua4Biqpztz+yHjjwxhpaDvluO/dv5M5JvrtvluLTRnQ
+         YhPg==
+X-Gm-Message-State: ANhLgQ0XVtuaytQuAloY+UBllFCQvLevJhml4+H+Y336TbCxti8yGaJF
+        XmTvQYX7qg/63VQglv5DmrXLcC6MEAx1U6rAvbOOjRyY
+X-Google-Smtp-Source: ADFU+vs4xu/Z2g8c07DP2siqxbwIcU1EJTskkXLinBLQd33koPEotrpc/qmMQcuQHODLSrcqKgy7Kds3j10uMmi7gQY=
+X-Received: by 2002:a92:5b51:: with SMTP id p78mr9193919ilb.250.1584036241977;
+ Thu, 12 Mar 2020 11:04:01 -0700 (PDT)
 MIME-Version: 1.0
-References: <000000000000cc1faf059fcfdc73@google.com>
-In-Reply-To: <000000000000cc1faf059fcfdc73@google.com>
-From:   Miklos Szeredi <miklos@szeredi.hu>
-Date:   Thu, 12 Mar 2020 16:30:25 +0100
-Message-ID: <CAJfpegswE6pLBbBmbkPMjmLPjgvn5z=gDEB6cTpe7o84hOuroA@mail.gmail.com>
-Subject: Re: WARNING: lock held when returning to user space in ovl_write_iter
-To:     syzbot <syzbot+9331a354f4f624a52a55@syzkaller.appspotmail.com>
-Cc:     Jiufei Xue <jiufei.xue@linux.alibaba.com>,
-        linux-kernel@vger.kernel.org,
-        overlayfs <linux-unionfs@vger.kernel.org>,
-        Miklos Szeredi <mszeredi@redhat.com>,
-        syzkaller-bugs <syzkaller-bugs@googlegroups.com>
-Content-Type: multipart/mixed; boundary="000000000000dc3e0c05a0aa08d2"
+References: <20200221143446.9099-1-amir73il@gmail.com> <20200221143446.9099-2-amir73il@gmail.com>
+ <CAJfpegu6OUgwt1+m9ByoDzdZ-ye6sygbY5kR0SQsvVUroymk8Q@mail.gmail.com> <CAOQ4uxg+SC6UZAX+z_D9D9Y0-jvDvk44v74NT7tGGDrTmOyjKQ@mail.gmail.com>
+In-Reply-To: <CAOQ4uxg+SC6UZAX+z_D9D9Y0-jvDvk44v74NT7tGGDrTmOyjKQ@mail.gmail.com>
+From:   Amir Goldstein <amir73il@gmail.com>
+Date:   Thu, 12 Mar 2020 20:03:49 +0200
+Message-ID: <CAOQ4uxi21v09GBq_XURYO9cOkoM6sUBC_Y9yVd1m2Oc=7K1uKw@mail.gmail.com>
+Subject: Re: [PATCH v2 1/5] ovl: fix some xino configurations
+To:     Miklos Szeredi <miklos@szeredi.hu>
+Cc:     overlayfs <linux-unionfs@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-unionfs-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
---000000000000dc3e0c05a0aa08d2
-Content-Type: text/plain; charset="UTF-8"
+On Mon, Feb 24, 2020 at 3:27 PM Amir Goldstein <amir73il@gmail.com> wrote:
+>
+> On Mon, Feb 24, 2020 at 1:41 PM Miklos Szeredi <miklos@szeredi.hu> wrote:
+> >
+> > On Fri, Feb 21, 2020 at 3:34 PM Amir Goldstein <amir73il@gmail.com> wrote:
+> > >
+> > > Fix up two bugs in the coversion to xino_mode:
+> > > 1. xino=off does not alway end up in disabled mode
+> >
+> > s/alway/always/
 
-#syz test: git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git
-63623fd4
+Just noticed I did not fix this typo, so pushed now to ovl-fixes,
+along with the llseek lock fix:
 
---000000000000dc3e0c05a0aa08d2
-Content-Type: text/x-patch; charset="US-ASCII"; 
-	name="ovl-fix-lockdep-warning-for-async-write.patch"
-Content-Disposition: attachment; 
-	filename="ovl-fix-lockdep-warning-for-async-write.patch"
-Content-Transfer-Encoding: base64
-Content-ID: <f_k7owsgf50>
-X-Attachment-Id: f_k7owsgf50
+5e0801c4406b ovl: fix lock in ovl_llseek()
+9a69ba7f8d14 ovl: fix some xino configurations
 
-LS0tCiBmcy9vdmVybGF5ZnMvZmlsZS5jIHwgICAxMCArKysrKysrKystCiAxIGZpbGUgY2hhbmdl
-ZCwgOSBpbnNlcnRpb25zKCspLCAxIGRlbGV0aW9uKC0pCgotLS0gYS9mcy9vdmVybGF5ZnMvZmls
-ZS5jCisrKyBiL2ZzL292ZXJsYXlmcy9maWxlLmMKQEAgLTI0Myw3ICsyNDMsMTEgQEAgc3RhdGlj
-IHZvaWQgb3ZsX2Fpb19jbGVhbnVwX2hhbmRsZXIoc3RydQogCiAJaWYgKGlvY2ItPmtpX2ZsYWdz
-ICYgSU9DQl9XUklURSkgewogCQlzdHJ1Y3QgaW5vZGUgKmlub2RlID0gZmlsZV9pbm9kZShvcmln
-X2lvY2ItPmtpX2ZpbHApOworCQlzdHJ1Y3QgaW5vZGUgKnJlYWxfaW5vZGUgPSBvdmxfaW5vZGVf
-cmVhbChpbm9kZSk7CiAKKwkJV0FSTl9PTihyZWFsX2lub2RlICE9IGZpbGVfaW5vZGUoaW9jYi0+
-a2lfZmlscCkpOworCQkvKiBTZWUgYWlvX2NvbXBsZXRlX3J3KCkgKi8KKwkJX19zYl93cml0ZXJz
-X2FjcXVpcmVkKHJlYWxfaW5vZGUtPmlfc2IsIFNCX0ZSRUVaRV9XUklURSk7CiAJCWZpbGVfZW5k
-X3dyaXRlKGlvY2ItPmtpX2ZpbHApOwogCQlvdmxfY29weWF0dHIob3ZsX2lub2RlX3JlYWwoaW5v
-ZGUpLCBpbm9kZSk7CiAJfQpAQCAtMzExLDYgKzMxNSw3IEBAIHN0YXRpYyBzc2l6ZV90IG92bF93
-cml0ZV9pdGVyKHN0cnVjdCBraW8KIHsKIAlzdHJ1Y3QgZmlsZSAqZmlsZSA9IGlvY2ItPmtpX2Zp
-bHA7CiAJc3RydWN0IGlub2RlICppbm9kZSA9IGZpbGVfaW5vZGUoZmlsZSk7CisJc3RydWN0IGlu
-b2RlICpyZWFsX2lub2RlID0gb3ZsX2lub2RlX3JlYWwoaW5vZGUpOwogCXN0cnVjdCBmZCByZWFs
-OwogCWNvbnN0IHN0cnVjdCBjcmVkICpvbGRfY3JlZDsKIAlzc2l6ZV90IHJldDsKQEAgLTMyMCw3
-ICszMjUsNyBAQCBzdGF0aWMgc3NpemVfdCBvdmxfd3JpdGVfaXRlcihzdHJ1Y3Qga2lvCiAKIAlp
-bm9kZV9sb2NrKGlub2RlKTsKIAkvKiBVcGRhdGUgbW9kZSAqLwotCW92bF9jb3B5YXR0cihvdmxf
-aW5vZGVfcmVhbChpbm9kZSksIGlub2RlKTsKKwlvdmxfY29weWF0dHIocmVhbF9pbm9kZSwgaW5v
-ZGUpOwogCXJldCA9IGZpbGVfcmVtb3ZlX3ByaXZzKGZpbGUpOwogCWlmIChyZXQpCiAJCWdvdG8g
-b3V0X3VubG9jazsKQEAgLTM0Niw2ICszNTEsOSBAQCBzdGF0aWMgc3NpemVfdCBvdmxfd3JpdGVf
-aXRlcihzdHJ1Y3Qga2lvCiAJCQlnb3RvIG91dDsKIAogCQlmaWxlX3N0YXJ0X3dyaXRlKHJlYWwu
-ZmlsZSk7CisJCVdBUk5fT04ocmVhbF9pbm9kZSAhPSBmaWxlX2lub2RlKHJlYWwuZmlsZSkpOwor
-CQkvKiBTZWUgYWlvX3dyaXRlKCkgKi8KKwkJX19zYl93cml0ZXJzX3JlbGVhc2UocmVhbF9pbm9k
-ZS0+aV9zYiwgU0JfRlJFRVpFX1dSSVRFKTsKIAkJYWlvX3JlcS0+ZmQgPSByZWFsOwogCQlyZWFs
-LmZsYWdzID0gMDsKIAkJYWlvX3JlcS0+b3JpZ19pb2NiID0gaW9jYjsK
---000000000000dc3e0c05a0aa08d2--
+I suppose you are getting to that.
+
+Thanks,
+Amir.
