@@ -1,71 +1,120 @@
-Return-Path: <SRS0=HZ4d=46=vger.kernel.org=linux-unionfs-owner@kernel.org>
+Return-Path: <SRS0=AhPS=5A=vger.kernel.org=linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.3 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
-	SPF_HELO_NONE,SPF_PASS,UNWANTED_LANGUAGE_BODY autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.0 required=3.0 tests=DATE_IN_PAST_12_24,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3024CC5ACBF
-	for <linux-unionfs@archiver.kernel.org>; Fri, 13 Mar 2020 22:30:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 74D60C4CECE
+	for <linux-unionfs@archiver.kernel.org>; Sun, 15 Mar 2020 02:37:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 080882074F
-	for <linux-unionfs@archiver.kernel.org>; Fri, 13 Mar 2020 22:30:10 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1584138610;
-	bh=I1/Uo5r8zJxfH2QrS8CQuphlInGnHcRlU6B617jbaxU=;
-	h=Subject:From:In-Reply-To:References:Date:To:Cc:List-ID:From;
-	b=FapfFKfATelNbooqw1/aVD8MrxbsrytypUwYttDqut7fGnuoQKagO/a+trjXM1YXt
-	 PrbUQjoCWVYDnKYeMTHw88qk9AiNtu6uCQZQTzpErHwxQabF/onpqeckG+SMbxufr0
-	 KLl47JoPWy2AWAQrEI8cPNu6KexQX8vYpnl0O9OA=
+	by mail.kernel.org (Postfix) with ESMTP id 4E7C7205F4
+	for <linux-unionfs@archiver.kernel.org>; Sun, 15 Mar 2020 02:37:48 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="ad/1OwGQ"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727510AbgCMWaF (ORCPT
+        id S1726712AbgCOChr (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Fri, 13 Mar 2020 18:30:05 -0400
-Received: from mail.kernel.org ([198.145.29.99]:46378 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726534AbgCMWaE (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 13 Mar 2020 18:30:04 -0400
-Subject: Re: [GIT PULL] overlayfs fixes for 5.6-rc6
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1584138604;
-        bh=I1/Uo5r8zJxfH2QrS8CQuphlInGnHcRlU6B617jbaxU=;
-        h=From:In-Reply-To:References:Date:To:Cc:From;
-        b=jXLA023gfw9b/ng5JOdpAAICEt3HgOdIjmtVjeblqfOJ7Y2w9JebSiZWbMFxxI321
-         358rKeebDqr3AvebgdwyBhVYJUgBdTCpmcr5rNPxyBy5B6+W/clEL0cdoAzrdniSGL
-         frKOzWk7UN5l2jPx4dW5UDdg6+P6AUw65l1hb6uc=
-From:   pr-tracker-bot@kernel.org
-In-Reply-To: <20200313211624.GC28467@miu.piliscsaba.redhat.com>
-References: <20200313211624.GC28467@miu.piliscsaba.redhat.com>
-X-PR-Tracked-List-Id: <linux-fsdevel.vger.kernel.org>
-X-PR-Tracked-Message-Id: <20200313211624.GC28467@miu.piliscsaba.redhat.com>
-X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/mszeredi/vfs.git
- tags/ovl-fixes-5.6-rc6
-X-PR-Tracked-Commit-Id: c853680453ac235e9010987a8bdaaba0e116d3c8
-X-PR-Merge-Tree: torvalds/linux.git
-X-PR-Merge-Refname: refs/heads/master
-X-PR-Merge-Commit-Id: 2af82177af47a3bff0cd0113dfde14d6e44a6243
-Message-Id: <158413860421.20505.13797238837339472073.pr-tracker-bot@kernel.org>
-Date:   Fri, 13 Mar 2020 22:30:04 +0000
-To:     Miklos Szeredi <miklos@szeredi.hu>
-Cc:     Linus Torvalds <torvalds@linux-foundation.org>,
-        linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org,
-        linux-unionfs@vger.kernel.org
+        Sat, 14 Mar 2020 22:37:47 -0400
+Received: from mail-il1-f193.google.com ([209.85.166.193]:45067 "EHLO
+        mail-il1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727498AbgCOChq (ORCPT
+        <rfc822;linux-unionfs@vger.kernel.org>);
+        Sat, 14 Mar 2020 22:37:46 -0400
+Received: by mail-il1-f193.google.com with SMTP id p1so13057536ils.12;
+        Sat, 14 Mar 2020 19:37:46 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=YrB0STOPBrcFa3wDj/x4Xpjhzh2ZYfbsAXQY/bQ52f0=;
+        b=ad/1OwGQWpBm4hz6EIAfng1zuvHYg1K8+x6Q0a0yo2xXI1jHAH1Av8iwDGup0S1rtg
+         9ZYjlwr6f+uqFecAXWkrLmOMGRHUHEehIKCY2kcfXk1ZWxD2zKMCFU8IxHdh8bhgwpyT
+         8xxeM6mFFmMalNelh7Tawad/gtQn821ip+Mq7NfGSMnnXpeU5dd8iGOnnMFDbdwr9WK6
+         2n/f5vPoqnQDwqoHXDY3TwjIdroEjBZ2gtKHqn8M5SWtajAK8dX/rkPrUPrvqGpSnpZe
+         lKW/fxaQRC3tQ/qpC6vLlF4qlgqL1oV1SebJxm5JqHiPU184+jfy0BT0cCu2HNAmmIpw
+         p7Jg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=YrB0STOPBrcFa3wDj/x4Xpjhzh2ZYfbsAXQY/bQ52f0=;
+        b=KIM43ccZh73fjv+Ro2cWlWRt3w3PkeuXSil33IWBgN9ydJdK12dRPnFSYs1WL+2Qoe
+         Ko1v0q6jeScaSD1BRjsw/rXvh8vt56TeBOyOca+Oe2i9LMZtdwe0I4VKb9EHfnCdOIrb
+         KeGd0gcFKOgZtpoQ6RsG7KBHs3CrZAV2Fh00mQ9A1OK49tCY92Wlctimy9LaoQaYrYPb
+         Nzo1bxn9WOvrwTemc6o9Mvk6Jpqfju7UKAQmllGBNRZwZqpsdI86KlB5vxp7qt4FyhBv
+         VsoWq0IArxUvCAGFx5GaSGrHKtW4MnTVFYJPFMjiuN0uWjqWBksB5+0T2pYwmnLpjz4P
+         9Tug==
+X-Gm-Message-State: ANhLgQ018KQYdUkKX1cj2tpU8p+p/DvgzV8yCArStq8PK6W+q0N31A4x
+        HeDHiF1FXzB0s51ejClU5XOV/gl5YFab2O+40aixBlqD
+X-Google-Smtp-Source: ADFU+vsEesvJLb2lU/vLuSWqyeu7wildcRCEvPxjHZ78c854A68RRSUYrFNbs1+keKmx8A0IMdcE+foiGw3LwONJneE=
+X-Received: by 2002:a05:6602:448:: with SMTP id e8mr1583290iov.64.1584191799611;
+ Sat, 14 Mar 2020 06:16:39 -0700 (PDT)
+MIME-Version: 1.0
+References: <20200131115004.17410-1-mszeredi@redhat.com> <20200131115004.17410-5-mszeredi@redhat.com>
+ <20200204145951.GC11631@redhat.com> <CAJfpegtq4A-m9vOPwUftiotC_Xv6w-dnhCi9=E0t-b1ZPJXPGw@mail.gmail.com>
+ <CAOQ4uxj_pVp9-EN2Gmq9j6G3xozzpK_zQiRO-brx6PZ9VpgD0Q@mail.gmail.com>
+ <CAOQ4uxjFYO28r+0pY+pKxK-dDJcQF2nf2EivnOUBgrgkYTFjPQ@mail.gmail.com> <CAOQ4uxhZ8a2ObfB9sUtrc=95mM70qurLtXkaNyHOXYxGEKvxFw@mail.gmail.com>
+In-Reply-To: <CAOQ4uxhZ8a2ObfB9sUtrc=95mM70qurLtXkaNyHOXYxGEKvxFw@mail.gmail.com>
+From:   Amir Goldstein <amir73il@gmail.com>
+Date:   Sat, 14 Mar 2020 15:16:28 +0200
+Message-ID: <CAOQ4uxhkd5FkN5ynpQxQ0m1MR9MgzTBbvzjkoHfSRA2umb-JTA@mail.gmail.com>
+Subject: Re: [PATCH 4/4] ovl: alllow remote upper
+To:     Miklos Szeredi <miklos@szeredi.hu>, Vivek Goyal <vgoyal@redhat.com>
+Cc:     Miklos Szeredi <mszeredi@redhat.com>,
+        overlayfs <linux-unionfs@vger.kernel.org>,
+        linux-fsdevel <linux-fsdevel@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-unionfs-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-The pull request you sent on Fri, 13 Mar 2020 22:16:24 +0100:
+On Thu, Feb 20, 2020 at 10:00 PM Amir Goldstein <amir73il@gmail.com> wrote:
+>
+> On Thu, Feb 20, 2020 at 9:52 AM Amir Goldstein <amir73il@gmail.com> wrote:
+> >
+> > On Tue, Feb 4, 2020 at 7:02 PM Amir Goldstein <amir73il@gmail.com> wrote:
+> > >
+> > > On Tue, Feb 4, 2020 at 6:17 PM Miklos Szeredi <miklos@szeredi.hu> wrote:
+> > > >
+> > > > On Tue, Feb 4, 2020 at 3:59 PM Vivek Goyal <vgoyal@redhat.com> wrote:
+> > > > >
+> > > > > On Fri, Jan 31, 2020 at 12:50:04PM +0100, Miklos Szeredi wrote:
+> > > > > > No reason to prevent upper layer being a remote filesystem.  Do the
+> > > > > > revalidation in that case, just as we already do for lower layers.
+> > > > > >
+> > > > > > This lets virtiofs be used as upper layer, which appears to be a real use
+> > > > > > case.
+> > > > >
+> > > > > Hi Miklos,
+> > > > >
+> > > > > I have couple of very basic questions.
+> > > > >
+> > > > > - So with this change, we will allow NFS to be upper layer also?
+> > > >
+> > > > I haven't tested, but I think it will fail on the d_type test.
+> > >
+> > > But we do not fail mount on no d_type support...
+> > > Besides, I though you were going to add the RENAME_WHITEOUT
+> > > test to avert untested network fs as upper.
+> > >
+> >
+> > Pushed strict remote upper check to:
+> > https://github.com/amir73il/linux/commits/ovl-strict-upper
+> >
 
-> git://git.kernel.org/pub/scm/linux/kernel/git/mszeredi/vfs.git tags/ovl-fixes-5.6-rc6
+Vivek,
 
-has been merged into torvalds/linux.git:
-https://git.kernel.org/torvalds/c/2af82177af47a3bff0cd0113dfde14d6e44a6243
+Could you please make sure that the code in ovl-strict-upper branch
+works as expected for virtio as upper fs?
+I have rebased it on latest overlayfs-next merge into current master.
 
-Thank you!
+I would very much prefer that the code merged to v5.7-rc1 will be more
+restrictive than the current overlayfs-next.
 
--- 
-Deet-doot-dot, I am a bot.
-https://korg.wiki.kernel.org/userdoc/prtracker
+Thanks,
+Amir.
