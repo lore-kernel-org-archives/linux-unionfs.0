@@ -2,119 +2,78 @@ Return-Path: <SRS0=AhPS=5A=vger.kernel.org=linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.0 required=3.0 tests=DATE_IN_PAST_12_24,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-0.4 required=3.0 tests=FROM_LOCAL_HEX,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 74D60C4CECE
-	for <linux-unionfs@archiver.kernel.org>; Sun, 15 Mar 2020 02:37:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1894FC10DCE
+	for <linux-unionfs@archiver.kernel.org>; Sun, 15 Mar 2020 16:19:05 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 4E7C7205F4
-	for <linux-unionfs@archiver.kernel.org>; Sun, 15 Mar 2020 02:37:48 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="ad/1OwGQ"
+	by mail.kernel.org (Postfix) with ESMTP id E9D9420637
+	for <linux-unionfs@archiver.kernel.org>; Sun, 15 Mar 2020 16:19:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726712AbgCOChr (ORCPT
+        id S1728900AbgCOQTE (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Sat, 14 Mar 2020 22:37:47 -0400
-Received: from mail-il1-f193.google.com ([209.85.166.193]:45067 "EHLO
-        mail-il1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727498AbgCOChq (ORCPT
+        Sun, 15 Mar 2020 12:19:04 -0400
+Received: from mail-io1-f70.google.com ([209.85.166.70]:44448 "EHLO
+        mail-io1-f70.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728898AbgCOQTE (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Sat, 14 Mar 2020 22:37:46 -0400
-Received: by mail-il1-f193.google.com with SMTP id p1so13057536ils.12;
-        Sat, 14 Mar 2020 19:37:46 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=YrB0STOPBrcFa3wDj/x4Xpjhzh2ZYfbsAXQY/bQ52f0=;
-        b=ad/1OwGQWpBm4hz6EIAfng1zuvHYg1K8+x6Q0a0yo2xXI1jHAH1Av8iwDGup0S1rtg
-         9ZYjlwr6f+uqFecAXWkrLmOMGRHUHEehIKCY2kcfXk1ZWxD2zKMCFU8IxHdh8bhgwpyT
-         8xxeM6mFFmMalNelh7Tawad/gtQn821ip+Mq7NfGSMnnXpeU5dd8iGOnnMFDbdwr9WK6
-         2n/f5vPoqnQDwqoHXDY3TwjIdroEjBZ2gtKHqn8M5SWtajAK8dX/rkPrUPrvqGpSnpZe
-         lKW/fxaQRC3tQ/qpC6vLlF4qlgqL1oV1SebJxm5JqHiPU184+jfy0BT0cCu2HNAmmIpw
-         p7Jg==
+        Sun, 15 Mar 2020 12:19:04 -0400
+Received: by mail-io1-f70.google.com with SMTP id q13so10087125iob.11
+        for <linux-unionfs@vger.kernel.org>; Sun, 15 Mar 2020 09:19:03 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=YrB0STOPBrcFa3wDj/x4Xpjhzh2ZYfbsAXQY/bQ52f0=;
-        b=KIM43ccZh73fjv+Ro2cWlWRt3w3PkeuXSil33IWBgN9ydJdK12dRPnFSYs1WL+2Qoe
-         Ko1v0q6jeScaSD1BRjsw/rXvh8vt56TeBOyOca+Oe2i9LMZtdwe0I4VKb9EHfnCdOIrb
-         KeGd0gcFKOgZtpoQ6RsG7KBHs3CrZAV2Fh00mQ9A1OK49tCY92Wlctimy9LaoQaYrYPb
-         Nzo1bxn9WOvrwTemc6o9Mvk6Jpqfju7UKAQmllGBNRZwZqpsdI86KlB5vxp7qt4FyhBv
-         VsoWq0IArxUvCAGFx5GaSGrHKtW4MnTVFYJPFMjiuN0uWjqWBksB5+0T2pYwmnLpjz4P
-         9Tug==
-X-Gm-Message-State: ANhLgQ018KQYdUkKX1cj2tpU8p+p/DvgzV8yCArStq8PK6W+q0N31A4x
-        HeDHiF1FXzB0s51ejClU5XOV/gl5YFab2O+40aixBlqD
-X-Google-Smtp-Source: ADFU+vsEesvJLb2lU/vLuSWqyeu7wildcRCEvPxjHZ78c854A68RRSUYrFNbs1+keKmx8A0IMdcE+foiGw3LwONJneE=
-X-Received: by 2002:a05:6602:448:: with SMTP id e8mr1583290iov.64.1584191799611;
- Sat, 14 Mar 2020 06:16:39 -0700 (PDT)
+        h=x-gm-message-state:mime-version:date:in-reply-to:message-id:subject
+         :from:to;
+        bh=aBVpr2lszHHXRhoIRtyr/UgZ7zigQ1Re4Bzqf5rEmB8=;
+        b=ZNlJwprYDhNiPWWTx7Y39kZ5L8tgroOQlNn4ueATSlKLjO/lZjc+5gREr1ikP3PDbe
+         nPye9dqW15AmhaTSCnoxZmiqRci43Fk1jHDz3D66Vd2qq3hknhVEQKalVXdPb8sStTMM
+         CvpFrd1LvNdfOKgkn9Oc6JJSaR87kISFeW0POd92Fvb6A93i7JTRXns32uQLMabRK+mO
+         EYmxE537K0I7t4ONpmumczS1l72KSFsD2GvorKmD8eRyNL1DdTnWOj/EECJab9hS5qtn
+         KtB8vNghPC4QKwIslnaqM519fBFyQTeneTsOk3e1fy7j7okZl/e6Q+dix95V18LoLjxl
+         vNIA==
+X-Gm-Message-State: ANhLgQ2c/8ty8yzEZgX1s86UBI3bufpPgTh0bJaPXzVRxJfCWb1wp7/f
+        m4bilvw2JhjBxu9Ax9Ams18ZGtlEXLbmyrEi6iBfxplvKpwN
+X-Google-Smtp-Source: ADFU+vvEpKjTJKXQNX4cXiEk/M0vqZw0uACkxtFRoJsmPwDzy61qIqim7f8/xuwV9rHXdGAII/j6tBy3274dpYif2g5SMTDAgQSk
 MIME-Version: 1.0
-References: <20200131115004.17410-1-mszeredi@redhat.com> <20200131115004.17410-5-mszeredi@redhat.com>
- <20200204145951.GC11631@redhat.com> <CAJfpegtq4A-m9vOPwUftiotC_Xv6w-dnhCi9=E0t-b1ZPJXPGw@mail.gmail.com>
- <CAOQ4uxj_pVp9-EN2Gmq9j6G3xozzpK_zQiRO-brx6PZ9VpgD0Q@mail.gmail.com>
- <CAOQ4uxjFYO28r+0pY+pKxK-dDJcQF2nf2EivnOUBgrgkYTFjPQ@mail.gmail.com> <CAOQ4uxhZ8a2ObfB9sUtrc=95mM70qurLtXkaNyHOXYxGEKvxFw@mail.gmail.com>
-In-Reply-To: <CAOQ4uxhZ8a2ObfB9sUtrc=95mM70qurLtXkaNyHOXYxGEKvxFw@mail.gmail.com>
-From:   Amir Goldstein <amir73il@gmail.com>
-Date:   Sat, 14 Mar 2020 15:16:28 +0200
-Message-ID: <CAOQ4uxhkd5FkN5ynpQxQ0m1MR9MgzTBbvzjkoHfSRA2umb-JTA@mail.gmail.com>
-Subject: Re: [PATCH 4/4] ovl: alllow remote upper
-To:     Miklos Szeredi <miklos@szeredi.hu>, Vivek Goyal <vgoyal@redhat.com>
-Cc:     Miklos Szeredi <mszeredi@redhat.com>,
-        overlayfs <linux-unionfs@vger.kernel.org>,
-        linux-fsdevel <linux-fsdevel@vger.kernel.org>
+X-Received: by 2002:a92:3b11:: with SMTP id i17mr18499810ila.161.1584289143334;
+ Sun, 15 Mar 2020 09:19:03 -0700 (PDT)
+Date:   Sun, 15 Mar 2020 09:19:03 -0700
+In-Reply-To: <000000000000fb27f1059aa202ea@google.com>
+X-Google-Appengine-App-Id: s~syzkaller
+X-Google-Appengine-App-Id-Alias: syzkaller
+Message-ID: <0000000000009c33d905a0e70f63@google.com>
+Subject: Re: possible deadlock in pipe_lock (3)
+From:   syzbot <syzbot+217d60b447573313b211@syzkaller.appspotmail.com>
+To:     jencce.kernel@gmail.com, linux-fsdevel@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-unionfs@vger.kernel.org,
+        miklos@szeredi.hu, mszeredi@redhat.com,
+        syzkaller-bugs@googlegroups.com, viro@zeniv.linux.org.uk
 Content-Type: text/plain; charset="UTF-8"
 Sender: linux-unionfs-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Thu, Feb 20, 2020 at 10:00 PM Amir Goldstein <amir73il@gmail.com> wrote:
->
-> On Thu, Feb 20, 2020 at 9:52 AM Amir Goldstein <amir73il@gmail.com> wrote:
-> >
-> > On Tue, Feb 4, 2020 at 7:02 PM Amir Goldstein <amir73il@gmail.com> wrote:
-> > >
-> > > On Tue, Feb 4, 2020 at 6:17 PM Miklos Szeredi <miklos@szeredi.hu> wrote:
-> > > >
-> > > > On Tue, Feb 4, 2020 at 3:59 PM Vivek Goyal <vgoyal@redhat.com> wrote:
-> > > > >
-> > > > > On Fri, Jan 31, 2020 at 12:50:04PM +0100, Miklos Szeredi wrote:
-> > > > > > No reason to prevent upper layer being a remote filesystem.  Do the
-> > > > > > revalidation in that case, just as we already do for lower layers.
-> > > > > >
-> > > > > > This lets virtiofs be used as upper layer, which appears to be a real use
-> > > > > > case.
-> > > > >
-> > > > > Hi Miklos,
-> > > > >
-> > > > > I have couple of very basic questions.
-> > > > >
-> > > > > - So with this change, we will allow NFS to be upper layer also?
-> > > >
-> > > > I haven't tested, but I think it will fail on the d_type test.
-> > >
-> > > But we do not fail mount on no d_type support...
-> > > Besides, I though you were going to add the RENAME_WHITEOUT
-> > > test to avert untested network fs as upper.
-> > >
-> >
-> > Pushed strict remote upper check to:
-> > https://github.com/amir73il/linux/commits/ovl-strict-upper
-> >
+syzbot suspects this bug was fixed by commit:
 
-Vivek,
+commit 1a980b8cbf0059a5308eea61522f232fd03002e2
+Author: Murphy Zhou <jencce.kernel@gmail.com>
+Date:   Fri Jan 17 12:49:29 2020 +0000
 
-Could you please make sure that the code in ovl-strict-upper branch
-works as expected for virtio as upper fs?
-I have rebased it on latest overlayfs-next merge into current master.
+    ovl: add splice file read write helper
 
-I would very much prefer that the code merged to v5.7-rc1 will be more
-restrictive than the current overlayfs-next.
+bisection log:  https://syzkaller.appspot.com/x/bisect.txt?x=12dd7dc3e00000
+start commit:   46cf053e Linux 5.5-rc3
+git tree:       upstream
+kernel config:  https://syzkaller.appspot.com/x/.config?x=ed9d672709340e35
+dashboard link: https://syzkaller.appspot.com/bug?extid=217d60b447573313b211
+syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=116496c1e00000
+C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=10104649e00000
 
-Thanks,
-Amir.
+If the result looks correct, please mark the bug fixed by replying with:
+
+#syz fix: ovl: add splice file read write helper
+
+For information about bisection process see: https://goo.gl/tpsmEJ#bisection
