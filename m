@@ -7,104 +7,119 @@ X-Spam-Status: No, score=-5.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
 	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8FA5CC5ACD6
-	for <linux-unionfs@archiver.kernel.org>; Wed, 18 Mar 2020 12:33:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6F187C10DCE
+	for <linux-unionfs@archiver.kernel.org>; Wed, 18 Mar 2020 13:36:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 5E2A720767
-	for <linux-unionfs@archiver.kernel.org>; Wed, 18 Mar 2020 12:33:44 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 40C9B20774
+	for <linux-unionfs@archiver.kernel.org>; Wed, 18 Mar 2020 13:36:58 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="GnAQFVxS"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Jww7hBgQ"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726663AbgCRMdo (ORCPT
+        id S1726777AbgCRNg5 (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Wed, 18 Mar 2020 08:33:44 -0400
-Received: from mail-il1-f169.google.com ([209.85.166.169]:34113 "EHLO
-        mail-il1-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726546AbgCRMdn (ORCPT
+        Wed, 18 Mar 2020 09:36:57 -0400
+Received: from mail-il1-f177.google.com ([209.85.166.177]:35565 "EHLO
+        mail-il1-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726774AbgCRNg5 (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 18 Mar 2020 08:33:43 -0400
-Received: by mail-il1-f169.google.com with SMTP id c8so23509261ilm.1
-        for <linux-unionfs@vger.kernel.org>; Wed, 18 Mar 2020 05:33:41 -0700 (PDT)
+        Wed, 18 Mar 2020 09:36:57 -0400
+Received: by mail-il1-f177.google.com with SMTP id v6so12454945ilq.2;
+        Wed, 18 Mar 2020 06:36:56 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=mGFF3i+WLQMQgRGTonNVpusjmRqhPUEEKKQyxV5O0u0=;
-        b=GnAQFVxSQzK7I7LMV/Hh5IsRcUF5qAMC40EA6t6mXSOwQV7Zke4mmdTvZ2rMa0zeZu
-         uw3CZV0tY/qxt3K7TR+TEmb4UcuVrM1Lxnp20QFpQYE/9j7tDF336VAVlt84yd1aefyp
-         n0H5WzAfiNpYvB07g9f13SKU5lctKpOmZHhK4KLR1v1pHIFwqHjt3sYuk6QeY5lDEVW/
-         yh8N0QD2hKuC+kAQACyo8XREXUfdK+fNmg/wy8vDS5QH0Zg2QRqnrabmfgCINyh1710G
-         je9aDXmBdruNbsNfO9RkOZ+VCWzGAYueaQ1e1FYmqOaqaaTCHRVNgTLbDsErasYJedGr
-         8upA==
+        bh=QOa1wjQr90ahh8o3G0Q0d26hwJPvvcel6LlNVGh6TME=;
+        b=Jww7hBgQbvYQdK3vSQORjjpmOQ4mf8FX6Y1Gucj+mc36olb3q5cGyrWrC79lHFWbG4
+         Qhsl0jFhdcoNjE7GyR5R9fJZtsytDDQW5PDVPQWSp4k/Dmvcnv3HYEffjw+rrdEemUnt
+         pt45SyPfi8aAnn9lJjxUWFNXHDsC6dWpLu+5dDDsbaNu9p7fBTglZujuuVpSihDT8ncp
+         /5T7tADvIzqVhG9tfHxocta8JTvKp9tNrCWR+BuTXE6DI4jW3LqQQos4wNKHnLHDQMOk
+         9uiAo6LOOyMctKoyX+iqCLggzBFbaDQgUzRTblzDHXFHfBRWbPRfhavGZS0z7eIAqseK
+         MkJQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=mGFF3i+WLQMQgRGTonNVpusjmRqhPUEEKKQyxV5O0u0=;
-        b=rpxRNCJZy17bIezs/lGz+IWyazw0P35AKbQlWw8qT9Gu7Nd3odhGyHyZvSQfXaoe2k
-         yxQPYeZ3r/t7hUdhh36/D+AecNLwpCZ3Q5C/HnqjSbA96hseb8vbFaJOmvoQDBLhLX0i
-         SfmAgKIa4xzD4IaShuLfFgxTtKLeu7bPERMY+c+36sZ+ncVaEU/FzsSLPIzW2Q1wC4Hf
-         Q1SK3wYicg3yUTKPfE8oaxYdLGKdXnJgdeDY0XLWIObVy1VDcOwnh7/c3siU/SdNP4D6
-         gEdAUTSisHGQ67mm3zVcCffMTBWLXcjU+pk+1KbDZUlswe2arzZQC7u1rSBFTMocBYbD
-         5s4g==
-X-Gm-Message-State: ANhLgQ3Vw0Jm8cCBn2l/eFxlDoEiSYFOGU28qa44EW6OTvO5sU2K6tD/
-        b/P4zAbqbxik+27Mo3hteGalLu2v1BxGNMv8VOuQA7Zd
-X-Google-Smtp-Source: ADFU+vuVc+sFpkg/lqbCc2CDX8wpZZjZvfHhYL1GNol9BpzNVA5K96SOGyntthpQDd1aeVDE2tYUyqTGRcJZ4VvaDk0=
-X-Received: by 2002:a92:9f1a:: with SMTP id u26mr3802676ili.72.1584534821019;
- Wed, 18 Mar 2020 05:33:41 -0700 (PDT)
+        bh=QOa1wjQr90ahh8o3G0Q0d26hwJPvvcel6LlNVGh6TME=;
+        b=KZUZHE3SkCutA3lvxyxbe5KkpvLpJeQdhnxB6Z0PG2vJqhGYr3yIDd4AysLVRYe3Fd
+         Cb6SrGzHtaH4FkWI8E+Gs8/pSRNrrxDJVUhZcJGqz04m3fX85jnjzCk8s4DMEGMG6Beu
+         xN1pYxjdhNONWpfh0EY23yjZmn7rA0zS86IT5Nka2bl9bcPn8pD0mrNqCIrWTC+t8cM7
+         E7Wyjblkn5lQeL/hwj4PT+n6XaHL3RTCTPTvWljtH1GiK2EQyYLk5ADIa0e9LhCsJlNe
+         TyERkm2W8St5+CnlXZKiaWxi1mPpPqCtcUh0pd9IRa3YgonvgSWPyZjHQ1F9mPSAZJxH
+         MdRg==
+X-Gm-Message-State: ANhLgQ2/Jy7iU54avfET+NsgeqPr4M3DyzuvV8joWSnbq/DRRylNao+x
+        WtcoprnMjO9MNnGcPjY6Zgr8t0tTYmXImwB0Ex8=
+X-Google-Smtp-Source: ADFU+vuSm/R9YPj8QRZNx1Vx4lqoj5FR3PJp2aZFIxvLESq6TfsNiHARXSiUvP29xgOIjdBwfwMB5bRWCbD133ZsBq0=
+X-Received: by 2002:a92:5b51:: with SMTP id p78mr3955852ilb.250.1584538616142;
+ Wed, 18 Mar 2020 06:36:56 -0700 (PDT)
 MIME-Version: 1.0
-References: <CAOQ4uxjryJep94sLgVxV7sGab8K3yeeDUZwOYOfLtOOguW1pcA@mail.gmail.com>
- <CAOQ4uxiHKjNba8HD5JUWFxxJqyJxPMk3fFfA3fi-nO6uJngTAg@mail.gmail.com> <CAOQ4uxhBBnr5zFOn1Dr-XtDSo=p3BovyhK6xZh22GA=dv1L8Bw@mail.gmail.com>
-In-Reply-To: <CAOQ4uxhBBnr5zFOn1Dr-XtDSo=p3BovyhK6xZh22GA=dv1L8Bw@mail.gmail.com>
+References: <20200131115004.17410-1-mszeredi@redhat.com> <20200131115004.17410-5-mszeredi@redhat.com>
+ <20200204145951.GC11631@redhat.com> <CAJfpegtq4A-m9vOPwUftiotC_Xv6w-dnhCi9=E0t-b1ZPJXPGw@mail.gmail.com>
+ <CAOQ4uxj_pVp9-EN2Gmq9j6G3xozzpK_zQiRO-brx6PZ9VpgD0Q@mail.gmail.com>
+ <CAOQ4uxjFYO28r+0pY+pKxK-dDJcQF2nf2EivnOUBgrgkYTFjPQ@mail.gmail.com>
+ <CAOQ4uxhZ8a2ObfB9sUtrc=95mM70qurLtXkaNyHOXYxGEKvxFw@mail.gmail.com>
+ <CAOQ4uxhkd5FkN5ynpQxQ0m1MR9MgzTBbvzjkoHfSRA2umb-JTA@mail.gmail.com>
+ <20200316175453.GB4013@redhat.com> <CAOQ4uxgfTJwE2O1GGt-TY+6ijjKE13+ATTarijFGLiM69jk8HA@mail.gmail.com>
+In-Reply-To: <CAOQ4uxgfTJwE2O1GGt-TY+6ijjKE13+ATTarijFGLiM69jk8HA@mail.gmail.com>
 From:   Amir Goldstein <amir73il@gmail.com>
-Date:   Wed, 18 Mar 2020 14:33:30 +0200
-Message-ID: <CAOQ4uxiKdxujdKNWBRNxtvCrq5TDJuhoW5Oede0Hu1myoKfeEQ@mail.gmail.com>
-Subject: [ANNOUNCE] unionmount-testsuite: master branch updated to dc24a45
-To:     overlayfs <linux-unionfs@vger.kernel.org>
-Cc:     Miklos Szeredi <miklos@szeredi.hu>, Vivek Goyal <vgoyal@redhat.com>
+Date:   Wed, 18 Mar 2020 15:36:44 +0200
+Message-ID: <CAOQ4uxhWLjsxy21MMKUOvMsWmWTWhKP0hwLQoD99xVcWbbmFmA@mail.gmail.com>
+Subject: Re: unionmount testsuite with upper virtiofs
+To:     Vivek Goyal <vgoyal@redhat.com>
+Cc:     Miklos Szeredi <miklos@szeredi.hu>,
+        Miklos Szeredi <mszeredi@redhat.com>,
+        overlayfs <linux-unionfs@vger.kernel.org>,
+        linux-fsdevel <linux-fsdevel@vger.kernel.org>
 Content-Type: text/plain; charset="UTF-8"
 Sender: linux-unionfs-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-Hi All,
+> > I also wanted to run either overlay xfstests or unionmount-testsuite. But
+> > none of these seem to give me enough flexibility where I can specify
+> > that overlayfs needs to be mounted on top of virtiofs.
+> >
+> > I feel that atleast for unionmount-testsuite, there should be an
+> > option where we can simply give a target directory and tests run
+> > on that directory and user mounts that directory as needed.
+> >
+>
+> Need to see how patches look.
+> Don't want too much configuration complexity, but I agree that some
+> flexibly is needed.
+> Maybe the provided target directory should be the upper/work basedir?
+>
 
-The master branch on the unionmount-testsuite tree [1] has been updated.
+Vivek,
 
-Changes in this update:
-- Align with v5.6-rc1 overlayfs code
+I was going to see what's the best way to add the needed flexibility,
+but then I realized I had already implemented this undocumented
+feature.
 
-The previous release of unionmount-testsuite (1724ef2) exposed a kernel
-v4.17 regression:
+I have been using this to test overlay over XFS as documented here:
+https://github.com/amir73il/overlayfs/wiki/Overlayfs-testing#Setup_overlayfs_mount_over_XFS_with_reflink_support
 
- ./run --ov=1 --verify hard-link
- ...
- /mnt/a/no_foo110: File unexpectedly on upper layer
+That's an example of how to configure a custom /base mount for
+--samefs to be xfs.
+Similar hidden feature exists for configuring a custom /lower and
+/upper mounts via fstab, but I don't think I ever tested those, so not
+sure if they work as expected. unionmount testsuite will first try to
+mount the entry from fstab and fallback to mounting tmpfs.
 
-This kernel regression was fixed in v5.6-rc1 by commit  b7bf9908e17c
-("ovl: fix corner case of non-constant st_dev;st_ino").
-This release of unionmount-testsuite adapts the layer checks to the fixed
-logic of v5.6-rc1.
+I admit this a lousy configuration method, but we could make it
+official using env vars or something. I also never liked the fact
+that unionmount testsuite hard codes the /lower /upper /mnt paths.
 
-The regression test above still fails on kernel v5.5, but with a
-different error:
- ./run --ov=1 --verify hard-link
- ...
- /mnt/a/no_foo110: inode number/layer changed on copy up (got
-34:434190, was 34:430077)
+The reason we 'need' the instructions how to mount the fs as opposed
+to an already mounted dir is that unmounting the underlying fs exposes
+dentry/inode reference leaks by overlayfs.
+But it is nice to have and xfstests has support for configuring an already
+mounted overlayfs for the generic tests.
 
+So if you think that you cannot use the existing hack and that pointing
+to an already mounted /upper or mounted overlay is needed, I suggest
+that you experiment with patches to make that change.
 
 Thanks,
 Amir.
-
-[1] https://github.com/amir73il/unionmount-testsuite
-
-The head of the master branch is commit:
-
-dc24a45 Update layer check with pseudo st_dev for upper layer
-
-New commits:
-
-Amir Goldstein (1):
-  Update layer check with pseudo st_dev for upper layer
