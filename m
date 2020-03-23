@@ -2,156 +2,121 @@ Return-Path: <SRS0=0eJY=5I=vger.kernel.org=linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
-	version=3.4.0
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E54C8C4332E
-	for <linux-unionfs@archiver.kernel.org>; Mon, 23 Mar 2020 19:09:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0260FC4332E
+	for <linux-unionfs@archiver.kernel.org>; Mon, 23 Mar 2020 19:15:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id B77D72051A
-	for <linux-unionfs@archiver.kernel.org>; Mon, 23 Mar 2020 19:09:01 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C5D53206C3
+	for <linux-unionfs@archiver.kernel.org>; Mon, 23 Mar 2020 19:15:30 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="NZUCg5wj"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="icqF0/uC"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727624AbgCWTJB (ORCPT
+        id S1727646AbgCWTPa (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Mon, 23 Mar 2020 15:09:01 -0400
-Received: from mail-wm1-f65.google.com ([209.85.128.65]:32949 "EHLO
-        mail-wm1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727600AbgCWTJB (ORCPT
+        Mon, 23 Mar 2020 15:15:30 -0400
+Received: from mail-io1-f67.google.com ([209.85.166.67]:42682 "EHLO
+        mail-io1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727218AbgCWTPa (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 23 Mar 2020 15:09:01 -0400
-Received: by mail-wm1-f65.google.com with SMTP id r7so767605wmg.0
-        for <linux-unionfs@vger.kernel.org>; Mon, 23 Mar 2020 12:09:00 -0700 (PDT)
+        Mon, 23 Mar 2020 15:15:30 -0400
+Received: by mail-io1-f67.google.com with SMTP id q128so15512461iof.9
+        for <linux-unionfs@vger.kernel.org>; Mon, 23 Mar 2020 12:15:29 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
-        h=from:to:cc:subject:date:message-id;
-        bh=8Tgigb4uCARLyAFc90cRmjh9Wu2sjVgvF4ampomjYAU=;
-        b=NZUCg5wj8ViHEH0D5w6er0wCFDKtXWF85zFY1/FZvF0xyjxTr16dX4H1GqsbqAde47
-         AmGNsJ6GhvSZZyntmwmrzERszcN5vshQwaC8cQMQBTWvm1SUpX9SdPZPvC86X1teSw4A
-         yQTXD0R8Z78hCAHoL95eR6NSQvsxZSs1v2aycymcVGG3WpftyGMbjlwO+mCVbqy6EjCh
-         ATckIObmf4bMkIMPyxpEccZLancLRPXUcKxQAYH5xmB5mVMBhT1B9ghKONi80s9tX+J2
-         RfQ2TjZLuRMhwHnO2+tBrNP5Q33GPDla6VSJKS5RCMBgk/zV7PFmkzu7ehatHHesThA0
-         Zcmw==
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=6qjt3tOTpTkCadoLmRyd0WlPaO2sndLsTPYlubINSJs=;
+        b=icqF0/uCvcIASg7KwMtOmgkH+gWdJ2L15TICEkaS2pYA67eqRFf+PhKBT7yFpbf4ml
+         zRRnop32ZDGPmyCNZp8Dh3Qlnu3Svm1KQ+9yPdiyMfyC7Oy6JTwr9SCnShbBKy4rXaaN
+         NXaHMmLqd+mt/aey7e1wJUEqLutnsTYIhrMDGePopo1PWIVCy7Bsx0dVU/JEt23w7AG/
+         rh3XtvqGci1itB9y+gr8ELMrvkWSZ6fbHE3Ids2NoS5L+gyGEu1izgyGBMQwwl5Tq98m
+         BLwGV+bbActsVpXf5zkcWJ/lv/ybRv/JMylw6gzRCrTBSKau4vrKXF/zk6iy/vjchtCy
+         U64g==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id;
-        bh=8Tgigb4uCARLyAFc90cRmjh9Wu2sjVgvF4ampomjYAU=;
-        b=YcLaiudoT90l8Xi49R701CZT65SwN4lNxnuTonwXk05xI81DZZXhF00KeHCvX6D4zU
-         IHRpNK+NaMpuqEYTsbEqUhpImNMg0+CI4/jrqzRoYCrdn+GsVNhUJYkpPmfp9ehfQGwH
-         cjNarxu0cBv3S5YE/YTPXtav8oSbX28DJxYJws04+FUnbVvMrHwPmooKXdWud1emTL0b
-         cUybpGnXXHXpx5aZoNYzeWrcA0DGv9zjCMbCWQh8ruAyh8JPTV07SizdvdZUVV2RmZTA
-         xGgaY9a+W4VjcSeX7AOmYqqYb31Sx4OGT5WaORjfNqVCRD4C5dQvyxgStYF29q5j8m8+
-         eYdg==
-X-Gm-Message-State: ANhLgQ3XuiVDsS41zRFV8B98zxw/hS2OgSDb3s4nlTw+/nS8V3cTIA3z
-        NGayn542SmM4eZ1Jhk96rZ2jIp1z
-X-Google-Smtp-Source: ADFU+vt6LwzdLTMl8Vg+nCbfwvySW169xwVPG/HuYSQVlZ7T+HfzNVkMBd7RECuopiWJ8D2gL7nN+g==
-X-Received: by 2002:a05:600c:581:: with SMTP id o1mr889436wmd.111.1584990539283;
-        Mon, 23 Mar 2020 12:08:59 -0700 (PDT)
-Received: from localhost.localdomain ([141.226.9.174])
-        by smtp.gmail.com with ESMTPSA id f14sm740275wmb.3.2020.03.23.12.08.56
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 23 Mar 2020 12:08:58 -0700 (PDT)
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=6qjt3tOTpTkCadoLmRyd0WlPaO2sndLsTPYlubINSJs=;
+        b=p25d9FiKQ95n8lQ3tz+GamnGpZwZKaKio+OMjgkp7WHAawTH5wn6nYnv4kQR3rRXoy
+         /vn2yH8YYaSLPGWRJ79VwkhiRIituntK/NqldSRllbznfI+wRt/gfL1YlKHbOlYfy/8r
+         3CQxsc97MgNRCnOtpxKbu4iodcWEftGXB21bZEO/HQyuIAUPTCXDasSG+VRVk72pXSw5
+         sIvCZrkrUrxZPn/KdbqOW6G0+zh4WxiINAGkbK50PRnUraUX7X+F+9DBTC1+Imgyh12c
+         wOIKL8Hd9C0A6matscBWJ8m1IQOVf1bha2Oqs+x2xz06DQX3Qqx3zNc+Pv+FIQJlWag4
+         9N9A==
+X-Gm-Message-State: ANhLgQ2cFT7wD64PWVKHGocc8oDEqJZMxgPq0u2fc7jYLelKuJe6pwl2
+        IYkoWQyeYwVRQBjHcQPB14kHCkB0/NfU8AerE2s=
+X-Google-Smtp-Source: ADFU+vsTPxnHJYF9N4DWvN6jIBPabldaHoeKoGkckvsOz/5ZJhq8xCXnol1gD6/Kw2sCZtrOeXFqRQegtxK26Mg34kM=
+X-Received: by 2002:a02:304a:: with SMTP id q71mr21306789jaq.123.1584990929308;
+ Mon, 23 Mar 2020 12:15:29 -0700 (PDT)
+MIME-Version: 1.0
+References: <CAFkON1U3cXdXFQYdkoQ3OQU+14GX7C88U6qre58vyfhrrFgKXw@mail.gmail.com>
+ <CAJfpegsv+GayCtWtsfJZYWqH8DHw76U_cGOuqofgt895FBj0cg@mail.gmail.com>
+ <CAOQ4uxiW2-Hh_sfuYXeuQy=a6FYBm7DyWkysgEe1GnC-qWWivg@mail.gmail.com>
+ <CAJfpegtCn-HLhuDB98G4dO8L-t2PMcqcwDw+0TiknU5LGvBacQ@mail.gmail.com>
+ <CAJfpeguKujUqW-z75F+6mCh0uwHF6rz2cK4OWUCFe83QNmaSrQ@mail.gmail.com> <CAOQ4uxha8XSB62cq=+X-tCdMUnOTrYpJT1YbjxuLhmrFsRM-Pw@mail.gmail.com>
+In-Reply-To: <CAOQ4uxha8XSB62cq=+X-tCdMUnOTrYpJT1YbjxuLhmrFsRM-Pw@mail.gmail.com>
 From:   Amir Goldstein <amir73il@gmail.com>
+Date:   Mon, 23 Mar 2020 21:15:17 +0200
+Message-ID: <CAOQ4uxhEU=y=m49Vii=iRigXJ_ofhQ+me9QdF4kTFTMfMu_fpQ@mail.gmail.com>
+Subject: Re: Kernel warnings in fs/inode.c:302 drop_nlink+0x28/0x40
 To:     Miklos Szeredi <miklos@szeredi.hu>
-Cc:     linux-unionfs@vger.kernel.org
-Subject: [PATCH] ovl: fix WARN_ON nlink drop to zero
-Date:   Mon, 23 Mar 2020 21:08:50 +0200
-Message-Id: <20200323190850.3091-1-amir73il@gmail.com>
-X-Mailer: git-send-email 2.17.1
+Cc:     Phasip <phasip@gmail.com>,
+        overlayfs <linux-unionfs@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-unionfs-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-Changes to underlying layers should not cause WARN_ON(), but this repro
-does:
+On Mon, Mar 23, 2020 at 7:27 PM Amir Goldstein <amir73il@gmail.com> wrote:
+>
+> On Mon, Mar 23, 2020 at 4:53 PM Miklos Szeredi <miklos@szeredi.hu> wrote:
+> >
+> > On Mon, Mar 23, 2020 at 3:21 PM Miklos Szeredi <miklos@szeredi.hu> wrote:
+> > >
+> > > On Mon, Mar 23, 2020 at 2:24 PM Amir Goldstein <amir73il@gmail.com> wrote:
+> >
+> > > > IDGI. coming from vfs_unlink() and vfs_rename() it doesn't look like
+> > > > it is possible for victim inode not to have a hashed alias, so the
+> > > > alias test seems futile.
+> > >
+> > > Yeah, needs a comment: both ovl_remove_upper() and
+> > > ovl_remove_and_whiteout() unhash the dentry before returning, so
+> > > d_find_alias() will find another hashed dentry or none.
+> >
+> > Except that doesn't seem to be true for the overwriting rename case...
+> >
+> > Attached patch should work for both.
+> >
+>
+> It still looks quite hacky.
+> Why do we not look at upper->i_nlink in order to fix the situation?
+>
+> For index=on, there is already code to handle lower hardlink skew case,
+> including pr_warn and several xfstests (overlay/034 for example).
+> The check is buried in ovl_nlink_end() => ovl_cleanup_index().
+> It's keeping overlay i_nlink above upper i_nlink.
+>
+> In fact, if you change one line in overlay/034 it triggers the reported
+> bug, so we can just fork this test.
+>
+> -lowerdir=$OVL_BASE_SCRATCH_MNT/$OVL_LOWER
+> +lowerdir=$OVL_BASE_SCRATCH_MNT/$OVL_UPPER
+>  workdir=$OVL_BASE_SCRATCH_MNT/$OVL_WORK
+>
+> How about adding a check in ovl_nlink_start() to fix overlay i_nlink
+> below upper i_link?
+> It would be a valid check for both index=off and on.
+> I will try to write it up later.
+>
 
- mkdir w l u mnt
- sudo mount -t overlay -o workdir=w,lowerdir=l,upperdir=u overlay mnt
- touch mnt/h
- ln u/h u/k
- rm -rf mnt/k
- rm -rf mnt/h
- dmesg
+https://lore.kernel.org/linux-unionfs/20200323190850.3091-1-amir73il@gmail.com/T/#u
 
- ------------[ cut here ]------------
- WARNING: CPU: 1 PID: 116244 at fs/inode.c:302 drop_nlink+0x28/0x40
-
-After upper hardlinks were added while overlay is mounted, unlinking all
-overlay hardlinks drops overlay nlink to zero before all upper inodes
-are unlinked.
-
-Detect too low i_nlink before unlink/rename and set the overlay nlink
-to the upper inode nlink (minus one for an index entry).
-
-Reported-by: Phasip <phasip@gmail.com>
-Signed-off-by: Amir Goldstein <amir73il@gmail.com>
----
- fs/overlayfs/util.c | 23 ++++++++++++++++++++++-
- 1 file changed, 22 insertions(+), 1 deletion(-)
-
-Miklos,
-
-This fix passed the reported reproducers (with index=off),
-overlay/034 with (index=on) and overlay/034 with s/LOWER/UPPER:
-
- -lowerdir=$OVL_BASE_SCRATCH_MNT/$OVL_LOWER
- +lowerdir=$OVL_BASE_SCRATCH_MNT/$OVL_UPPER
-  workdir=$OVL_BASE_SCRATCH_MNT/$OVL_WORK
-
-As well as the rest of overlay/quick group.
-
-I will post the overlay/034 fork as a separate test later.
+Sorry, Phasip, forgot to CC you.
 
 Thanks,
 Amir.
-
-diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
-index 36b60788ee47..e894a14857c7 100644
---- a/fs/overlayfs/util.c
-+++ b/fs/overlayfs/util.c
-@@ -734,7 +734,9 @@ static void ovl_cleanup_index(struct dentry *dentry)
- int ovl_nlink_start(struct dentry *dentry)
- {
- 	struct inode *inode = d_inode(dentry);
-+	struct inode *iupper = ovl_inode_upper(inode);
- 	const struct cred *old_cred;
-+	int index_nlink;
- 	int err;
- 
- 	if (WARN_ON(!inode))
-@@ -764,7 +766,26 @@ int ovl_nlink_start(struct dentry *dentry)
- 	if (err)
- 		return err;
- 
--	if (d_is_dir(dentry) || !ovl_test_flag(OVL_INDEX, inode))
-+	if (d_is_dir(dentry))
-+		goto out;
-+
-+	/* index adds +1 to upper nlink */
-+	index_nlink = !!ovl_test_flag(OVL_INDEX, inode);
-+	if (iupper && (iupper->i_nlink - index_nlink) > inode->i_nlink) {
-+		pr_warn_ratelimited("inode nlink too low (%pd2, ino=%lu, nlink=%u, upper_nlink=%u)\n",
-+				    dentry, inode->i_ino, inode->i_nlink,
-+				    iupper->i_nlink - index_nlink);
-+		/*
-+		 * Upper hardlinks were added while overlay is mounted.
-+		 * Unlinking all overlay hardlinks would drop overlay nlink to
-+		 * zero before all upper inodes are unlinked.  As a safety
-+		 * measure, when that situation is detected, set the overlay
-+		 * nlink to the upper inode nlink minus one for the index entry.
-+		 */
-+		set_nlink(d_inode(dentry), iupper->i_nlink - index_nlink);
-+	}
-+
-+	if (!index_nlink)
- 		goto out;
- 
- 	old_cred = ovl_override_creds(dentry->d_sb);
--- 
-2.17.1
-
