@@ -2,130 +2,301 @@ Return-Path: <SRS0=4+cZ=5Y=vger.kernel.org=linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
-	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-4.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 85CD1C2D0EA
-	for <linux-unionfs@archiver.kernel.org>; Wed,  8 Apr 2020 08:54:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9894CC2BA2B
+	for <linux-unionfs@archiver.kernel.org>; Wed,  8 Apr 2020 15:48:20 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 304F62074F
-	for <linux-unionfs@archiver.kernel.org>; Wed,  8 Apr 2020 08:54:37 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=fail reason="key not found in DNS" (0-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b="OcUCgo/u"
+	by mail.kernel.org (Postfix) with ESMTP id 584D420769
+	for <linux-unionfs@archiver.kernel.org>; Wed,  8 Apr 2020 15:48:20 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1586360900;
+	bh=NGLDDtyN8RZKYu/2cTSKBLZPkCz8Mr0c9YVBRHz1zys=;
+	h=From:To:Cc:Subject:Date:List-ID:From;
+	b=C7jTmmrTPvec0lJOq81Isk4phf5CFFEq0vftZweotbEo5NDLCTiPPvn34D0mdoAKx
+	 eGRN5Ko/eGA+GCK5bMYtVk/CoRXjgLu3GEmVDHq1bwnVM5o1ElPDY8a4NYNmsTkR9g
+	 g5qgS1SMKGNMnaD3LIBvBzh4mLfpohU/BfBzaALA=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726716AbgDHIyh (ORCPT
+        id S1729957AbgDHPr7 (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Wed, 8 Apr 2020 04:54:37 -0400
-Received: from mail-wr1-f68.google.com ([209.85.221.68]:32864 "EHLO
-        mail-wr1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725763AbgDHIyg (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 8 Apr 2020 04:54:36 -0400
-Received: by mail-wr1-f68.google.com with SMTP id a25so6902791wrd.0
-        for <linux-unionfs@vger.kernel.org>; Wed, 08 Apr 2020 01:54:36 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=szeredi.hu; s=google;
-        h=date:from:to:cc:subject:message-id:mime-version:content-disposition;
-        bh=1FwpYHoynE2gyCrz/nbvDvoG7yiJ9Y2XWNV93B0aQPs=;
-        b=OcUCgo/uv/hUR/MlTD0/uA2O4PYZqP4bcPG6RsJzv2RbVwDcz6Gk81wkvWTL85Obs4
-         k2+lD/L8+mnKDB0+NSM3m6NxdWG+vTcnppV+K8jcocyj6hoxdaYwuva3//hg5Bzk+ohF
-         WXdgn8wCIyxgZ/gJqwcqUeQ5tlc6CnmrGm+4M=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:mime-version
-         :content-disposition;
-        bh=1FwpYHoynE2gyCrz/nbvDvoG7yiJ9Y2XWNV93B0aQPs=;
-        b=E1N8YDqENQJ9CvkqyL/6BzsLk+KmgiCRm/gDy21hbScclI3U3knpKIAM+e2aZ8c+iD
-         cNoT2qXVLLC7HuAq6+l1IVdEyPBP5Gkczt0JU4VFu1VVR4sHJHZ/c1XZ/BsUH34wUX3a
-         L/rgujszbWui+WMcEPaKhJS4+zzSK4W7FtKsbTUaWNo9sFXTjuJcQ7KM5P2URHhafxwh
-         Yy5aVIghtJnwcwRUfboipzNTfb9gcBfJ0CWoHlFZYMb+bzPhzT/u2aNsZoim8VwTxGaM
-         z2qPM2YChV2lCDJ0Oj114Bbnc/D3AGWAcVJX12Y8RHGg10yI9yXU/aZ3Km8Y7tW/b8oU
-         LVzg==
-X-Gm-Message-State: AGi0PubGR1jmj+URa+p5ZmCLyA13QiVaA+Zca8ko0Msgi+0sFdRFOMnD
-        1LT4LOowiYl6x13GQYwnEq2OyQ==
-X-Google-Smtp-Source: APiQypKMEZAToOUgXRdGrbEdio34X4BVF/X7L8iZVOwA5tv1WXLZRx/RAgoMcrrez/kzQKOMAjgLQQ==
-X-Received: by 2002:adf:ee06:: with SMTP id y6mr7566767wrn.187.1586336075386;
-        Wed, 08 Apr 2020 01:54:35 -0700 (PDT)
-Received: from miu.piliscsaba.redhat.com (catv-212-96-48-140.catv.broadband.hu. [212.96.48.140])
-        by smtp.gmail.com with ESMTPSA id j11sm34797250wrt.14.2020.04.08.01.54.33
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 08 Apr 2020 01:54:34 -0700 (PDT)
-Date:   Wed, 8 Apr 2020 10:54:23 +0200
-From:   Miklos Szeredi <miklos@szeredi.hu>
-To:     Linus Torvalds <torvalds@linux-foundation.org>
-Cc:     linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org,
-        linux-unionfs@vger.kernel.org
-Subject: [GIT PULL] overlayfs update for 5.7
-Message-ID: <20200408085423.GA21974@miu.piliscsaba.redhat.com>
+        Wed, 8 Apr 2020 11:47:59 -0400
+Received: from mail.kernel.org ([198.145.29.99]:48894 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1729567AbgDHPqd (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Wed, 8 Apr 2020 11:46:33 -0400
+Received: from mail.kernel.org (ip5f5ad4d8.dynamic.kabel-deutschland.de [95.90.212.216])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id E436F20769;
+        Wed,  8 Apr 2020 15:46:30 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1586360791;
+        bh=NGLDDtyN8RZKYu/2cTSKBLZPkCz8Mr0c9YVBRHz1zys=;
+        h=From:To:Cc:Subject:Date:From;
+        b=I3LVCc26/VdF24AsOrt+PHJ6A8shQrFjca47izBLXO8vl1fetOmpTsay+HfFnjRDn
+         ELpq2el4OVbLL0QQpHim4bJ4r72BlEiJ9tHPbEFlZ/E6g9CVUSW9fzJZn0GNpSqQLs
+         eoPTB+ArHDBqNWFtK9BnG7DerSf9cD29j4b39qq4=
+Received: from mchehab by mail.kernel.org with local (Exim 4.92.3)
+        (envelope-from <mchehab@kernel.org>)
+        id 1jMCuK-000cAH-Vl; Wed, 08 Apr 2020 17:46:28 +0200
+From:   Mauro Carvalho Chehab <mchehab+huawei@kernel.org>
+To:     Linux Doc Mailing List <linux-doc@vger.kernel.org>
+Cc:     Mauro Carvalho Chehab <mchehab+huawei@kernel.org>,
+        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>,
+        Rob Herring <robh@kernel.org>,
+        Maxime Ripard <maxime@cerno.tech>,
+        Yuti Amonkar <yamonkar@cadence.com>,
+        Kishon Vijay Abraham I <kishon@ti.com>,
+        devicetree@vger.kernel.org, linux-arch@vger.kernel.org,
+        kvm@vger.kernel.org, kvm-ppc@vger.kernel.org,
+        linuxppc-dev@lists.ozlabs.org, dri-devel@lists.freedesktop.org,
+        linux-arm-kernel@lists.infradead.org,
+        linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org,
+        linux-mm@kvack.org, linux-rdma@vger.kernel.org,
+        kvmarm@lists.cs.columbia.edu, linux-crypto@vger.kernel.org,
+        linux-media@vger.kernel.org, linux-arm-msm@vger.kernel.org,
+        freedreno@lists.freedesktop.org, linux-afs@lists.infradead.org,
+        ecryptfs@vger.kernel.org, linux-ntfs-dev@lists.sourceforge.net,
+        ocfs2-devel@oss.oracle.com, linux-pci@vger.kernel.org,
+        linux1394-devel@lists.sourceforge.net, linux-ide@vger.kernel.org,
+        linux-edac@vger.kernel.org, linux-spi@vger.kernel.org,
+        MPT-FusionLinux.pdl@broadcom.com, linux-scsi@vger.kernel.org,
+        Stephen Boyd <swboyd@chromium.org>,
+        Sandeep Maheswaram <sanm@codeaurora.org>,
+        Matthias Kaehlcke <mka@chromium.org>,
+        linux-usb@vger.kernel.org,
+        Linus Walleij <linus.walleij@linaro.org>,
+        Sudeep Holla <sudeep.holla@arm.com>,
+        Geert Uytterhoeven <geert+renesas@glider.be>,
+        Matthias Brugger <mbrugger@suse.com>, netdev@vger.kernel.org,
+        linux-i2c@vger.kernel.org
+Subject: [PATCH 00/35] Documentation fixes for Kernel 5.8
+Date:   Wed,  8 Apr 2020 17:45:52 +0200
+Message-Id: <cover.1586359676.git.mchehab+huawei@kernel.org>
+X-Mailer: git-send-email 2.25.2
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
 Sender: linux-unionfs-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-Hi Linus,
+Hi Jon,
 
-Please pull from:
+I have a large list of patches this time for the Documentation/. So, I'm
+starting sending them a little earier. Yet, those are meant to be applied
+after the end of the merge window. They're based on today's linux-next,
+with has only 49 patches pending to be applied upstream touching
+Documentation/, so I don't expect much conflicts if applied early at
+-rc cycle.
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/mszeredi/vfs.git tags/ovl-update-5.7
+Most of the patches here were already submitted, but weren't
+merged yet at next. So, it seems that nobody picked them yet.
 
- - Fix failure to copy-up files from certain NFSv4 mounts.
+In any case, most of those patches here are independent from 
+the others.
 
- - Sort out inconsistencies between st_ino and i_ino (used in /proc/locks).
+The number of doc build warnings have been rising with time.
+The main goal with this series is to get rid of most Sphinx warnings
+and other errors.
 
- - Allow consistent (POSIX-y) inode numbering in more cases.
+Patches 1 to 5: fix broken references detected by this tool:
 
- - Allow virtiofs to be used as upper layer.
+        ./scripts/documentation-file-ref-check
 
- - Miscellaneous cleanups and fixes.
+The other patches fix other random errors due to tags being
+mis-interpreted or mis-used.
 
-Thanks,
-Miklos
+You should notice that several patches touch kernel-doc scripts.
+IMHO, some of the warnings are actually due to kernel-doc being
+too pedantic. So, I ended by improving some things at the toolset,
+in order to make it smarter. That's the case of those patches:
 
----
-Al Viro (1):
-      ovl: ovl_obtain_alias(): don't call d_instantiate_anon() for old
+	docs: scripts/kernel-doc: accept blank lines on parameter description
+	scripts: kernel-doc: accept negation like !@var
+	scripts: kernel-doc: proper handle @foo->bar()
 
-Amir Goldstein (10):
-      ovl: fix value of i_ino for lower hardlink corner case
-      ovl: fix out of date comment and unreachable code
-      ovl: factor out helper ovl_get_root()
-      ovl: simplify i_ino initialization
-      ovl: check if upper fs supports RENAME_WHITEOUT
-      ovl: strict upper fs requirements for remote upper fs
-      ovl: use a private non-persistent ino pool
-      ovl: avoid possible inode number collisions with xino=on
-      ovl: enable xino automatically in more cases
-      ovl: document xino expected behavior
+The last 4 patches address problems with PDF building.
 
-Chengguang Xu (1):
-      ovl: fix a typo in comment
+The first one address a conflict that will rise during the merge
+window: Documentation/media will be removed. Instead of
+just drop it from the list of PDF documents, I opted to drop the
+entire list, as conf.py will auto-generate from the sources:
 
-Gustavo A. R. Silva (1):
-      ovl: replace zero-length array with flexible-array member
+	docs: LaTeX/PDF: drop list of documents
 
-Miklos Szeredi (7):
-      ovl: document permission model
-      ovl: ignore failure to copy up unknown xattrs
-      ovl: restructure dentry revalidation
-      ovl: separate detection of remote upper layer from stacked overlay
-      ovl: decide if revalidate needed on a per-dentry basis
-      ovl: allow remote upper
-      ovl: fix WARN_ON nlink drop to zero
+Also, right now, PDF output is broken due to a namespace conflict 
+at I2c (two pdf outputs there will have the same name).
 
----
- Documentation/filesystems/overlayfs.rst |  82 +++++++++-
- fs/overlayfs/copy_up.c                  |  16 +-
- fs/overlayfs/dir.c                      |  31 +++-
- fs/overlayfs/export.c                   |  40 ++---
- fs/overlayfs/inode.c                    |  99 ++++++++----
- fs/overlayfs/namei.c                    |   5 +-
- fs/overlayfs/overlayfs.h                |  25 +++-
- fs/overlayfs/ovl_entry.h                |   2 +
- fs/overlayfs/readdir.c                  |  25 +++-
- fs/overlayfs/super.c                    | 258 ++++++++++++++++++++++----------
- fs/overlayfs/util.c                     |  40 +++--
- 11 files changed, 460 insertions(+), 163 deletions(-)
+	docs: i2c: rename i2c.svg to i2c_bus.svg
+
+The third PDF patch is not really a fix, but it helps a lot to identify
+if the build succeeded or not, by placing the final PDF output on
+a separate dir:
+
+	docs: Makefile: place final pdf docs on a separate dir
+
+Finally, the last one solves a bug since the first supported Sphinx
+version, with also impacts PDF output: basically while nested tables
+are valid with ReST notation, the toolset only started supporting
+it on PDF output since version 2.4:
+
+	docs: update recommended Sphinx version to 2.4.4
+
+PS.: Due to the large number of C/C, I opted to keep a smaller
+set of C/C at this first e-mail (only e-mails with "L:" tag from
+MAINTAINERS file).
+
+Mauro Carvalho Chehab (35):
+  MAINTAINERS: dt: update display/allwinner file entry
+  docs: dt: fix broken reference to phy-cadence-torrent.yaml
+  docs: fix broken references to text files
+  docs: fix broken references for ReST files that moved around
+  docs: filesystems: fix renamed references
+  docs: amu: supress some Sphinx warnings
+  docs: arm64: booting.rst: get rid of some warnings
+  docs: pci: boot-interrupts.rst: improve html output
+  futex: get rid of a kernel-docs build warning
+  firewire: firewire-cdev.hL get rid of a docs warning
+  scripts: kernel-doc: proper handle @foo->bar()
+  lib: bitmap.c: get rid of some doc warnings
+  ata: libata-core: fix a doc warning
+  fs: inode.c: get rid of docs warnings
+  docs: ras: get rid of some warnings
+  docs: ras: don't need to repeat twice the same thing
+  docs: watch_queue.rst: supress some Sphinx warnings
+  scripts: kernel-doc: accept negation like !@var
+  docs: infiniband: verbs.c: fix some documentation warnings
+  docs: scripts/kernel-doc: accept blank lines on parameter description
+  docs: spi: spi.h: fix a doc building warning
+  docs: drivers: fix some warnings at base/platform.c when building docs
+  docs: fusion: mptbase.c: get rid of a doc build warning
+  docs: mm: slab.h: fix a broken cross-reference
+  docs mm: userfaultfd.rst: use ``foo`` for literals
+  docs: mm: userfaultfd.rst: use a cross-reference for a section
+  docs: vm: index.rst: add an orphan doc to the building system
+  docs: dt: qcom,dwc3.txt: fix cross-reference for a converted file
+  MAINTAINERS: dt: fix pointers for ARM Integrator, Versatile and
+    RealView
+  docs: dt: fix a broken reference for a file converted to json
+  powerpc: docs: cxl.rst: mark two section titles as such
+  docs: LaTeX/PDF: drop list of documents
+  docs: i2c: rename i2c.svg to i2c_bus.svg
+  docs: Makefile: place final pdf docs on a separate dir
+  docs: update recommended Sphinx version to 2.4.4
+
+ Documentation/ABI/stable/sysfs-devices-node   |   2 +-
+ Documentation/ABI/testing/procfs-smaps_rollup |   2 +-
+ Documentation/Makefile                        |   6 +-
+ Documentation/PCI/boot-interrupts.rst         |  34 +--
+ Documentation/admin-guide/cpu-load.rst        |   2 +-
+ Documentation/admin-guide/mm/userfaultfd.rst  | 209 +++++++++---------
+ Documentation/admin-guide/nfs/nfsroot.rst     |   2 +-
+ Documentation/admin-guide/ras.rst             |  18 +-
+ Documentation/arm64/amu.rst                   |   5 +
+ Documentation/arm64/booting.rst               |  36 +--
+ Documentation/conf.py                         |  38 ----
+ .../bindings/net/qualcomm-bluetooth.txt       |   2 +-
+ .../bindings/phy/ti,phy-j721e-wiz.yaml        |   2 +-
+ .../devicetree/bindings/usb/qcom,dwc3.txt     |   4 +-
+ .../doc-guide/maintainer-profile.rst          |   2 +-
+ .../driver-api/driver-model/device.rst        |   4 +-
+ .../driver-api/driver-model/overview.rst      |   2 +-
+ Documentation/filesystems/dax.txt             |   2 +-
+ Documentation/filesystems/dnotify.txt         |   2 +-
+ .../filesystems/ramfs-rootfs-initramfs.rst    |   2 +-
+ Documentation/filesystems/sysfs.rst           |   2 +-
+ Documentation/i2c/{i2c.svg => i2c_bus.svg}    |   2 +-
+ Documentation/i2c/summary.rst                 |   2 +-
+ Documentation/memory-barriers.txt             |   2 +-
+ Documentation/powerpc/cxl.rst                 |   2 +
+ .../powerpc/firmware-assisted-dump.rst        |   2 +-
+ Documentation/process/adding-syscalls.rst     |   2 +-
+ Documentation/process/submit-checklist.rst    |   2 +-
+ Documentation/sphinx/requirements.txt         |   2 +-
+ .../it_IT/process/adding-syscalls.rst         |   2 +-
+ .../it_IT/process/submit-checklist.rst        |   2 +-
+ .../translations/ko_KR/memory-barriers.txt    |   2 +-
+ .../translations/zh_CN/filesystems/sysfs.txt  |   8 +-
+ .../zh_CN/process/submit-checklist.rst        |   2 +-
+ Documentation/virt/kvm/arm/pvtime.rst         |   2 +-
+ Documentation/virt/kvm/devices/vcpu.rst       |   2 +-
+ Documentation/virt/kvm/hypercalls.rst         |   4 +-
+ Documentation/virt/kvm/mmu.rst                |   2 +-
+ Documentation/virt/kvm/review-checklist.rst   |   2 +-
+ Documentation/vm/index.rst                    |   1 +
+ Documentation/watch_queue.rst                 |  34 ++-
+ MAINTAINERS                                   |   7 +-
+ arch/powerpc/include/uapi/asm/kvm_para.h      |   2 +-
+ arch/x86/kvm/mmu/mmu.c                        |   2 +-
+ drivers/ata/libata-core.c                     |   2 +-
+ drivers/base/core.c                           |   2 +-
+ drivers/base/platform.c                       |   6 +-
+ .../allwinner/sun8i-ce/sun8i-ce-cipher.c      |   2 +-
+ .../crypto/allwinner/sun8i-ce/sun8i-ce-core.c |   2 +-
+ .../allwinner/sun8i-ss/sun8i-ss-cipher.c      |   2 +-
+ .../crypto/allwinner/sun8i-ss/sun8i-ss-core.c |   2 +-
+ drivers/gpu/drm/Kconfig                       |   2 +-
+ drivers/gpu/drm/drm_ioctl.c                   |   2 +-
+ drivers/gpu/drm/msm/disp/dpu1/dpu_kms.h       |   2 +-
+ drivers/hwtracing/coresight/Kconfig           |   2 +-
+ drivers/infiniband/core/verbs.c               |   7 +-
+ drivers/media/v4l2-core/v4l2-fwnode.c         |   2 +-
+ drivers/message/fusion/mptbase.c              |   8 +-
+ fs/Kconfig                                    |   2 +-
+ fs/Kconfig.binfmt                             |   2 +-
+ fs/adfs/Kconfig                               |   2 +-
+ fs/affs/Kconfig                               |   2 +-
+ fs/afs/Kconfig                                |   6 +-
+ fs/bfs/Kconfig                                |   2 +-
+ fs/cramfs/Kconfig                             |   2 +-
+ fs/ecryptfs/Kconfig                           |   2 +-
+ fs/fat/Kconfig                                |   8 +-
+ fs/fuse/Kconfig                               |   2 +-
+ fs/fuse/dev.c                                 |   2 +-
+ fs/hfs/Kconfig                                |   2 +-
+ fs/hpfs/Kconfig                               |   2 +-
+ fs/inode.c                                    |   6 +-
+ fs/isofs/Kconfig                              |   2 +-
+ fs/namespace.c                                |   2 +-
+ fs/notify/inotify/Kconfig                     |   2 +-
+ fs/ntfs/Kconfig                               |   2 +-
+ fs/ocfs2/Kconfig                              |   2 +-
+ fs/overlayfs/Kconfig                          |   6 +-
+ fs/proc/Kconfig                               |   4 +-
+ fs/romfs/Kconfig                              |   2 +-
+ fs/sysfs/dir.c                                |   2 +-
+ fs/sysfs/file.c                               |   2 +-
+ fs/sysfs/mount.c                              |   2 +-
+ fs/sysfs/symlink.c                            |   2 +-
+ fs/sysv/Kconfig                               |   2 +-
+ fs/udf/Kconfig                                |   2 +-
+ include/linux/kobject.h                       |   2 +-
+ include/linux/kobject_ns.h                    |   2 +-
+ include/linux/mm.h                            |   4 +-
+ include/linux/relay.h                         |   2 +-
+ include/linux/slab.h                          |   2 +-
+ include/linux/spi/spi.h                       |   1 +
+ include/linux/sysfs.h                         |   2 +-
+ include/uapi/linux/ethtool_netlink.h          |   2 +-
+ include/uapi/linux/firewire-cdev.h            |   2 +-
+ include/uapi/linux/kvm.h                      |   4 +-
+ include/uapi/rdma/rdma_user_ioctl_cmds.h      |   2 +-
+ kernel/futex.c                                |   3 +
+ kernel/relay.c                                |   2 +-
+ lib/bitmap.c                                  |  27 +--
+ lib/kobject.c                                 |   4 +-
+ mm/gup.c                                      |  12 +-
+ scripts/kernel-doc                            |  41 ++--
+ tools/include/uapi/linux/kvm.h                |   4 +-
+ virt/kvm/arm/vgic/vgic-mmio-v3.c              |   2 +-
+ virt/kvm/arm/vgic/vgic.h                      |   4 +-
+ 106 files changed, 373 insertions(+), 338 deletions(-)
+ rename Documentation/i2c/{i2c.svg => i2c_bus.svg} (99%)
+
+-- 
+2.25.2
+
+
