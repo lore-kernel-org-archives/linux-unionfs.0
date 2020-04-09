@@ -2,156 +2,90 @@ Return-Path: <SRS0=VDYA=5Z=vger.kernel.org=linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-7.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CA13FC2BB55
-	for <linux-unionfs@archiver.kernel.org>; Thu,  9 Apr 2020 13:22:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0DFBFC2BA2B
+	for <linux-unionfs@archiver.kernel.org>; Thu,  9 Apr 2020 13:26:09 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id A246E20A8B
-	for <linux-unionfs@archiver.kernel.org>; Thu,  9 Apr 2020 13:22:54 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="eMVZ2RTf"
+	by mail.kernel.org (Postfix) with ESMTP id E08612072F
+	for <linux-unionfs@archiver.kernel.org>; Thu,  9 Apr 2020 13:26:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726681AbgDINWu (ORCPT
+        id S1726650AbgDIN0H (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Thu, 9 Apr 2020 09:22:50 -0400
-Received: from mail-il1-f194.google.com ([209.85.166.194]:36823 "EHLO
-        mail-il1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726589AbgDINWt (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 9 Apr 2020 09:22:49 -0400
-Received: by mail-il1-f194.google.com with SMTP id p13so10163610ilp.3;
-        Thu, 09 Apr 2020 06:22:49 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=UI/hdw9L/EtadFnpRAH+lSsEEcGuj9UA8ITbxu7mZq8=;
-        b=eMVZ2RTfhkxdL1Oca25VgLMEnU6ttfOQjhA8YSWKKsCsAP0X3ghVEhrWTOyiL5lDNf
-         TmuVGr5zl2HgjX+VqThJfwADC3jT3Qp6PVmw52pRE+iPlO95bjfY5pPWjwc0DZo2GPJD
-         i5zRqdxYRJzFxuZ5jQ3xfcbef7NXeVQLe5bqOVwLObwnmEep5wiPX1+aKATv7QrG1W++
-         5gOZvRWJiHI+WxF3ntXHS1wt7XgpvpUkV+KR0bK+0N0Vr7RdHXiNThFlYp2mqFNAwoKF
-         ecP0TJDqtYE03Tlvwa7eqwsQd+kPmga1YCvUIuwaJ9cLgrZmSOkRMP41+eqw7/YjgImq
-         1LRw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=UI/hdw9L/EtadFnpRAH+lSsEEcGuj9UA8ITbxu7mZq8=;
-        b=rwJkpt9FlbLQpzzvD5CbInsExK89FJx+XPB72/NdVJogwh0+50FV9+h1Xh+ZhteyD4
-         3Tzo1S8b6GkYlED0VjIn+AZhY5tf9+aR3nu4Sy+aL3rP2WPw17JHWEQhsyG5o6EWVwI6
-         TwHeydlBbK7tqAORSgMCnRr2uWIWjMRFdFWgxChOjTrji+HekCA+Wjtyh/An4iP4WRZb
-         yAK8Q8wwQ3CTy3ZzefMnzlx03MapXaWxZnbcd/UQwJ5Tcez+tUAUWtkpbB0jY+S7C2oQ
-         rOBiYlqFle/jhNc57vetEItC6qi/aIODGZB0X+6nYunxTeN76zVSteKGF9gnOIqK7piX
-         6odw==
-X-Gm-Message-State: AGi0PuZLIqNp1l0oBpEdl1ttn4MwOznJ8netSGFfq7QpSv4L7qlsCOzW
-        /9kKHL3gJKDTpoP2wD6YxvmSynm2La0vYH8U94U=
-X-Google-Smtp-Source: APiQypKI2Ole0cnTO37YLRWq4xrZa3vPlVGaSws9tGvaibcgtxxUJjE0UJqBQyCcqv+/Jq8zlnMwSJ16XEzSxnaqtLA=
-X-Received: by 2002:a92:7303:: with SMTP id o3mr13156038ilc.275.1586438569209;
- Thu, 09 Apr 2020 06:22:49 -0700 (PDT)
-MIME-Version: 1.0
-References: <158642098777.5635.10501704178160375549.stgit@buzz>
- <CAOQ4uxgTtbb-vDQNnY1_7EzQ=p5p2MqkfyZo2zkFQ1Wv29uqCA@mail.gmail.com>
- <67bdead3-a29f-a8af-5e7b-193a72cd4b86@yandex-team.ru> <CAOQ4uxgeCc=_b1FG3vfMWF50qCousXxEWa63Wn3iCHmLXDNCNA@mail.gmail.com>
- <6af394f4-7cfd-5303-0042-9e37e43cf346@yandex-team.ru>
-In-Reply-To: <6af394f4-7cfd-5303-0042-9e37e43cf346@yandex-team.ru>
-From:   Amir Goldstein <amir73il@gmail.com>
-Date:   Thu, 9 Apr 2020 16:22:38 +0300
-Message-ID: <CAOQ4uxiqSuvxyW-C8L9A4AV-cTrEgdpspwWkpq1RWuoZq0FM+Q@mail.gmail.com>
-Subject: Re: [PATCH] ovl: skip overlayfs superblocks at global sync
-To:     Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
-Cc:     linux-fsdevel <linux-fsdevel@vger.kernel.org>,
-        Miklos Szeredi <miklos@szeredi.hu>,
-        linux-kernel <linux-kernel@vger.kernel.org>,
-        Alexander Viro <viro@zeniv.linux.org.uk>,
+        Thu, 9 Apr 2020 09:26:07 -0400
+Received: from szxga05-in.huawei.com ([45.249.212.191]:12708 "EHLO huawei.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1726632AbgDIN0H (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Thu, 9 Apr 2020 09:26:07 -0400
+Received: from DGGEMS406-HUB.china.huawei.com (unknown [172.30.72.59])
+        by Forcepoint Email with ESMTP id 9B7509C9A900279B3AB8;
+        Thu,  9 Apr 2020 21:25:33 +0800 (CST)
+Received: from [127.0.0.1] (10.173.220.179) by DGGEMS406-HUB.china.huawei.com
+ (10.3.19.206) with Microsoft SMTP Server id 14.3.487.0; Thu, 9 Apr 2020
+ 21:25:25 +0800
+Subject: Re: [PATCH v2] ovl: sharing inode with different whiteout files
+To:     Amir Goldstein <amir73il@gmail.com>,
+        Chengguang Xu <cgxu519@mykernel.net>
+CC:     Miklos Szeredi <miklos@szeredi.hu>,
         overlayfs <linux-unionfs@vger.kernel.org>,
-        Dmitry Monakhov <dmtrmonakhov@yandex-team.ru>,
-        Linux Containers <containers@lists.linux-foundation.org>,
-        Theodore Tso <tytso@mit.edu>
-Content-Type: text/plain; charset="UTF-8"
+        Hou Tao <houtao1@huawei.com>
+References: <20200403064444.31062-1-cgxu519@mykernel.net>
+ <CAOQ4uxi8eMWRc6uuNt_R9nS9UjrOsqupcCEST4ub-kCwEpx=_Q@mail.gmail.com>
+ <17153e5b537.c827c90942921.7568518513045332175@mykernel.net>
+ <CAOQ4uxiHwQ4_rGLZeKS8VwP84YoUDZcju76KeYugt+SOAKVGKQ@mail.gmail.com>
+ <17153f590e5.13f80af2342991.2831629093514707476@mykernel.net>
+ <CAOQ4uxjhfOXaHMaXY+J67winJzFMDVfiHfF4m=yed7XNcPvFUw@mail.gmail.com>
+ <171578e6477.12630feab161.147743050045149370@mykernel.net>
+ <CAOQ4uxhU-KC2Yiewso_rDa3HhafzBaVWk9i8Sra4W0Y_EEiShA@mail.gmail.com>
+ <1715deb04cf.11a7e625f2245.4913788754434070520@mykernel.net>
+ <CAOQ4uxgQZf+RYsHAKY2=298nmRpBv5-YQDzuOqcXXOFumK058g@mail.gmail.com>
+From:   "zhangyi (F)" <yi.zhang@huawei.com>
+Message-ID: <54ff2e61-422a-224a-7474-972bd154d844@huawei.com>
+Date:   Thu, 9 Apr 2020 21:25:24 +0800
+User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:68.0) Gecko/20100101
+ Thunderbird/68.3.0
+MIME-Version: 1.0
+In-Reply-To: <CAOQ4uxgQZf+RYsHAKY2=298nmRpBv5-YQDzuOqcXXOFumK058g@mail.gmail.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+X-Originating-IP: [10.173.220.179]
+X-CFilter-Loop: Reflected
 Sender: linux-unionfs-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Thu, Apr 9, 2020 at 3:04 PM Konstantin Khlebnikov
-<khlebnikov@yandex-team.ru> wrote:
->
->
->
-> On 09/04/2020 14.48, Amir Goldstein wrote:
-> > On Thu, Apr 9, 2020 at 2:28 PM Konstantin Khlebnikov
-> > <khlebnikov@yandex-team.ru> wrote:
-> >>
-> >> On 09/04/2020 13.23, Amir Goldstein wrote:
-> >>> On Thu, Apr 9, 2020 at 11:30 AM Konstantin Khlebnikov
-> >>> <khlebnikov@yandex-team.ru> wrote:
-> >>>>
-> >>>> Stacked filesystems like overlayfs has no own writeback, but they have to
-> >>>> forward syncfs() requests to backend for keeping data integrity.
-> >>>>
-> >>>> During global sync() each overlayfs instance calls method ->sync_fs()
-> >>>> for backend although it itself is in global list of superblocks too.
-> >>>> As a result one syscall sync() could write one superblock several times
-> >>>> and send multiple disk barriers.
-> >>>>
-> >>>> This patch adds flag SB_I_SKIP_SYNC into sb->sb_iflags to avoid that.
-> >>>>
-> >>>> Reported-by: Dmitry Monakhov <dmtrmonakhov@yandex-team.ru>
-> >>>> Signed-off-by: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
-> >>>> ---
-> >>>
-> >>> Seems reasonable.
-> >>> You may add:
-> >>> Reviewed-by: Amir Goldstein <amir73il@gmail.com>
-> >>>
-> >>> +CC: containers list
-> >>
-> >> Thanks
-> >>
-> >>>
-> >>> This bring up old memories.
-> >>> I posted this way back to fix handling of emergency_remount() in the
-> >>> presence of loop mounted fs:
-> >>> https://lore.kernel.org/linux-ext4/CAA2m6vfatWKS1CQFpaRbii2AXiZFvQUjVvYhGxWTSpz+2rxDyg@mail.gmail.com/
-> >>>
-> >>> But seems to me that emergency_sync() and sync(2) are equally broken
-> >>> for this use case.
-> >>>
-> >>> I wonder if anyone cares enough about resilience of loop mounted fs to try
-> >>> and change the iterate_* functions to iterate supers/bdevs in reverse order...
-> >>
-> >> Now I see reason behind "sync; sync; sync; reboot" =)
-> >>
-> >> Order old -> new allows to not miss new items if list modifies.
-> >> Might be important for some users.
-> >>
-> >
-> > That's not the reason I suggested reverse order.
-> > The reason is that with loop mounted fs, the correct order of flushing is:
-> > 1. sync loop mounted fs inodes => writes to loop image file
-> > 2. sync loop mounted fs sb => fsyncs the loop image file
-> > 3. sync the loop image host fs sb
-> >
-> > With forward sb iteration order, #3 happens before #1, so the
-> > loop mounted fs changes are not really being made durable by
-> > a single sync(2) call.
->
-> If fs in loop mounted with barriers then sync_fs will issue
-> REQ_OP_FLUSH to loop device and trigger fsync() for image file.
-> Sync() might write something twice but data should be safe.
-> Without barriers this scenario is broken for sure.
->
-> Emergency remount R/O is other thing. It really needs reverse order.
->
+Hi, Amir
 
-Correct. There is no problem with durability.
-Although for some filesystems it would be more efficient to first
-write and fsync the loop images and then sync_fs().
-I can potentially result in less overall disk barriers.
+On 2020/4/9 19:21, Amir Goldstein wrote:
+[...]
+> 
+> Thanks for taking the time to report all those failures.
+> You must be one of few developers to actually use fsck.overlayfs...
+> 
+> You need this fix for fsck.overlayfs:
+> https://github.com/hisilicon/overlayfs-progs/pull/1
+> 
+> Sorry, I forgot I was carrying this patch on my setup.
+> 
+> Zhangyi,
+> 
+> Any chance of merging my fix?
+> 
+
+Thanks for the patch, I think we'd better to remove the FS_LAYER_XATTR flag
+for a nested overlayfs layer, so we could skip checking OVL_XATTR_PREFIX
+xattrs when scanning the layer. Something like this,
+
++	/* A nested overlayfs does not support OVL_XATTR_PREFIX xattr */
++	if (statfs.f_type == OVERLAYFS_SUPER_MAGIC)
++		return 0;
+
+I will modify this and merge your patch.
 
 Thanks,
-Amir.
+Yi.
+
