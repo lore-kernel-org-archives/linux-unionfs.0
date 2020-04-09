@@ -2,189 +2,205 @@ Return-Path: <SRS0=VDYA=5Z=vger.kernel.org=linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+X-Spam-Status: No, score=-9.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
-	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 46D57C2BB86
-	for <linux-unionfs@archiver.kernel.org>; Thu,  9 Apr 2020 11:21:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 30242C2BB86
+	for <linux-unionfs@archiver.kernel.org>; Thu,  9 Apr 2020 11:22:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 1429720B1F
-	for <linux-unionfs@archiver.kernel.org>; Thu,  9 Apr 2020 11:21:19 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0258620B1F
+	for <linux-unionfs@archiver.kernel.org>; Thu,  9 Apr 2020 11:22:34 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="N5x+dcwi"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="fTuuFuDy"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726595AbgDILVS (ORCPT
+        id S1726582AbgDILWc (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Thu, 9 Apr 2020 07:21:18 -0400
-Received: from mail-io1-f65.google.com ([209.85.166.65]:34370 "EHLO
-        mail-io1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725972AbgDILVS (ORCPT
+        Thu, 9 Apr 2020 07:22:32 -0400
+Received: from mail-wm1-f65.google.com ([209.85.128.65]:53809 "EHLO
+        mail-wm1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725987AbgDILWb (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 9 Apr 2020 07:21:18 -0400
-Received: by mail-io1-f65.google.com with SMTP id f3so3471916ioj.1
-        for <linux-unionfs@vger.kernel.org>; Thu, 09 Apr 2020 04:21:18 -0700 (PDT)
+        Thu, 9 Apr 2020 07:22:31 -0400
+Received: by mail-wm1-f65.google.com with SMTP id d77so3522200wmd.3;
+        Thu, 09 Apr 2020 04:22:29 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=2rhTU9sZJ4y+cAYnctjzp+lD5Cdih8TjDQcIKUJalgg=;
-        b=N5x+dcwi2IIFFypDlS7CH48p6Get0AfSibTNLmthZmmfIAd4+I8AThEBRpdoY5K1JU
-         gxQZwzW3ucRGzj25mgpiYiA2+rnQ5dTDZFzM2YmS+wrf3liw4zOD1W3mXza5PPHXZ/TV
-         LO8XCj/MhzT//716j+XFSbMPRAEdFTNK+s5EqFfKACSelZnm9jnHDbqNtvWk9qWjZSH/
-         d+M7ApHNzDQeZyNF+nf968HryIihfvQj4pZUuBUIsZx9gKhH2Dj9lczKO4VO+KLnlkR1
-         6oUJpEv6rETi7HM61S/MrGkzXeal9kO+kIkCnGRBI3hJcE8Mf6op8P2v5mEApQZuAO5A
-         S4aw==
+        h=from:to:cc:subject:date:message-id;
+        bh=v6LixSSBcxhrlu4cXoEjUaKeTbMukJaZS/lNy0y20bk=;
+        b=fTuuFuDysArGXloKeMc8coE7+83B1SZTLNHE5XzLPWWQffRVwcpTJikhw+rwms/r5Y
+         OOswoVzrUiV/lGp1h+zi285xIL+tM1s4+En7ue07R3p5QB7hxnS3HMaQn94xt2PLCk3B
+         ESDoGh5ckl4HvOGIIsFBQuYHD8++V2NA0n/3XXMlqQj1GFVN1FDqLgFysfh1ZsFvOK/Z
+         EWudl1SYZKupN2Gf2vqsQTAkk5s583YN4/mapPeivLnX9Mk1FtNXjfG5FoZvOn0GMoHg
+         quAHwhleb8qb05xIz0Z5+nLC5+H+Q4LQ0tx4tcfRF5+XizvvxkUQlSoerxS0NPd8xG0f
+         MpcQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=2rhTU9sZJ4y+cAYnctjzp+lD5Cdih8TjDQcIKUJalgg=;
-        b=imT31vui635MttuJ4kfPFgg59wmYGnsZ40Zs/6nz4GO83YN/nuNNXItmCuYNG1s5l7
-         ea0CLQ2gEBsQkBe9nCWXGzs6qNCBnNSt3JhVd/iOtus/e3cEHscthg9xsHWgblTH2c1M
-         ztXlwpT/f8soiOOO+toRW4fRXzD9X7LNCSHMQH0pg+VwYSX8gK8IdaaRWQwBJq6Pa6j4
-         40/bnihNk+rf06rBtQUJ4lprn7QhpVO41+sikFrOjhUJ+yxthEe+8m2QFB1ykI8dzEZe
-         l1WR5JFRwr+wy1r0GnufTA7sFrv4Zz8VyKb5YRcwAKLqO3JcO5hl//d1T8hpeDdYe1If
-         xKYA==
-X-Gm-Message-State: AGi0PuY/pmYq9uITILck6MvB8AvO5TW03mw8EsQQMVStPRBfpWIKI30a
-        QmFheyhV1awnYvRqR0G7DUC+b+3JFCIlICfgARmc7Ql9
-X-Google-Smtp-Source: APiQypLx4+cA6UyG3ObCqglDAua0vvDAHk0NFye2QbqleweHcJcsYFPf6xjxspRTJO7x3m1LCHphQSFWSphEDSH7O3o=
-X-Received: by 2002:a02:4b03:: with SMTP id q3mr2113914jaa.30.1586431277799;
- Thu, 09 Apr 2020 04:21:17 -0700 (PDT)
-MIME-Version: 1.0
-References: <20200403064444.31062-1-cgxu519@mykernel.net> <CAOQ4uxi8eMWRc6uuNt_R9nS9UjrOsqupcCEST4ub-kCwEpx=_Q@mail.gmail.com>
- <17153e5b537.c827c90942921.7568518513045332175@mykernel.net>
- <CAOQ4uxiHwQ4_rGLZeKS8VwP84YoUDZcju76KeYugt+SOAKVGKQ@mail.gmail.com>
- <17153f590e5.13f80af2342991.2831629093514707476@mykernel.net>
- <CAOQ4uxjhfOXaHMaXY+J67winJzFMDVfiHfF4m=yed7XNcPvFUw@mail.gmail.com>
- <171578e6477.12630feab161.147743050045149370@mykernel.net>
- <CAOQ4uxhU-KC2Yiewso_rDa3HhafzBaVWk9i8Sra4W0Y_EEiShA@mail.gmail.com> <1715deb04cf.11a7e625f2245.4913788754434070520@mykernel.net>
-In-Reply-To: <1715deb04cf.11a7e625f2245.4913788754434070520@mykernel.net>
+        h=x-gm-message-state:from:to:cc:subject:date:message-id;
+        bh=v6LixSSBcxhrlu4cXoEjUaKeTbMukJaZS/lNy0y20bk=;
+        b=bIkGStFA2Qwz38haVK+AkR0WghpeeMDSy8eDPsrSqkm/SD340pe505oOj09t981EqG
+         as/aEwXggPT/iudreJqTXONjlyUm5vzg6qn57xceNkjhBlqOJbSgY8RbB4WZt0I1y8hf
+         10+8j/pg96JzLY1UrhIvjeG0BhDMSPQQNba2LGEdcsThpgAXxh8uk7DPqKg5290hj+5X
+         9J2oUAVYq6Q3d5OF/WksCuAjpCBTUZllcuXs8gZ2LTLzvX1fu9Hdk/FLDmeJ7c0pYwlb
+         kCLhFG2l4Ny/i+TkLR7D+gFLbctdIeMAlYCfbpWBvRHu/niDtR2t6RDsvRUBMaG1SUtQ
+         d+og==
+X-Gm-Message-State: AGi0Pub3E9GGKWsBCDcw0jSYBHVmC1MQtATbs6YGpABwtERngZeR80OK
+        nnvOk2EbxCFzKtcRgKM3Usk=
+X-Google-Smtp-Source: APiQypLUAN2Vk6DwQZu6thDefu/xiNJ9pJNHkDw25odDNeRYh5sbQVcC9PDMgPT7YVwYbNjiYD0jEQ==
+X-Received: by 2002:a1c:ac8a:: with SMTP id v132mr9179570wme.62.1586431349157;
+        Thu, 09 Apr 2020 04:22:29 -0700 (PDT)
+Received: from localhost.localdomain ([141.226.12.123])
+        by smtp.gmail.com with ESMTPSA id y15sm15890193wro.68.2020.04.09.04.22.27
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 09 Apr 2020 04:22:28 -0700 (PDT)
 From:   Amir Goldstein <amir73il@gmail.com>
-Date:   Thu, 9 Apr 2020 14:21:06 +0300
-Message-ID: <CAOQ4uxgQZf+RYsHAKY2=298nmRpBv5-YQDzuOqcXXOFumK058g@mail.gmail.com>
-Subject: Re: [PATCH v2] ovl: sharing inode with different whiteout files
-To:     Chengguang Xu <cgxu519@mykernel.net>
-Cc:     Miklos Szeredi <miklos@szeredi.hu>,
-        overlayfs <linux-unionfs@vger.kernel.org>,
-        Hou Tao <houtao1@huawei.com>,
-        "zhangyi (F)" <yi.zhang@huawei.com>
-Content-Type: text/plain; charset="UTF-8"
+To:     Eryu Guan <guaneryu@gmail.com>
+Cc:     Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org,
+        fstests@vger.kernel.org
+Subject: [PATCH] overlay: another test for dropping nlink below zero
+Date:   Thu,  9 Apr 2020 14:22:23 +0300
+Message-Id: <20200409112223.14496-1-amir73il@gmail.com>
+X-Mailer: git-send-email 2.17.1
 Sender: linux-unionfs-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
->  > > nfs_export and metacopy are incompatible.
->  > > I tested "workdir" branch(latest commit is commit c1fe7dcb3db8ed8e84986eec07e0b302ee3b83de)
->  > > in your git tree and found three more fails.
->  >
->  > I figured that might me it.
->  > Please share more configuration details of your setup.
->  > How is metacopy enabled on your system?
->
-> In order to test nfs_export, I disabled metacopy and enabled nfs_export in kernel config.
+This is a variant on test overlay/034.
 
-Ah right. There is this logic in ovl_parse_opt() where an explicit
-metacopy or redirect_dir mount options win a conflict against the kernel config
-default, but there is no such logic fir metacopy and index, because it
-was harder to implement.
+This variant is mangling upper hardlinks instead of lower hardlinks
+and does not require the inodes index feature.
 
-For the purpose of these tests, they just need to explicitly disable
-metacopy in mount options. I will send a fix.
+This is a regression test for kernel commit 83552eacdfc0
+("ovl: fix WARN_ON nlink drop to zero")
 
->
->  > How are you running xfstests? Can you share the config file?
->
-> in xfstests-dev directory, run ./check -overlay overlay/*
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+---
 
-FYI, -g overlay/auto will skip the "known issues" (i.e. mmap test)
-and -g overlay/quick will skip the long stress test (overlay/019)
+Eryu,
 
-I also recommend running https://github.com/amir73il/unionmount-testsuite
-if you want better test coverage.
-
-...
->  >
->  > >
->  > > ----------------------------------
->  > >
->  > > overlay/029 1s ... - output mismatch (see /home/cgxu/git/xfstests-dev/results//overlay/029.out.bad)
->  > >     --- tests/overlay/029.out   2019-11-07 09:05:18.876796433 +0800
->  > >     +++ /home/cgxu/git/xfstests-dev/results//overlay/029.out.bad        2020-04-08 09:55:07.462699895 +0800
->  > >     @@ -1,5 +1,9 @@
->  > >      QA output created by 029
->  > >      foo
->  > >     -bar
->  > >     -foo
->  > >     -bar
->  > >     +mount: /tmp/8751/mnt: mount(2) system call failed: Stale file handle.
->  >
->  > The reason for this error should be in dmesg.
->
-> I checked test log/case and the logic in the source code,
-> I think the test failed at ovl_get_indexdir() -> ovl_verify_origin() during mount and this behaviour is just by design.
-> so we should skip this test case when nfs_export is enabled.
->
-
-OK. I was able to reproduce, but no need to skip the test
-it is easy to fix it. I will post a fix.
-
->
->  >
->  > >     +cat: /tmp/8751/mnt/bar: No such file or directory
->  > >     ...
->  > >     (Run 'diff -u /home/cgxu/git/xfstests-dev/tests/overlay/029.out /home/cgxu/git/xfstests-dev/results//overlay/029.out.bad'  to see the entire diff)
->  > >
->  > > overlay/070     [failed, exit status 1]- output mismatch (see /home/cgxu/git/xfstests-dev/results//overlay/070.out.bad)
->  > >     --- tests/overlay/070.out   2020-04-07 09:16:59.102568756 +0800
->  > >     +++ /home/cgxu/git/xfstests-dev/results//overlay/070.out.bad        2020-04-08 09:55:38.580311600 +0800
->  > >     @@ -1,2 +1,26 @@
->  > >      QA output created by 070
->  > >     -Silence is golden
->  > >     +umount: /mnt/scratch: target is busy.
->  >
->  > This failure has do to with somthing that happened before the test.
->  > Its trails should be in dmesg.
->  >
->  > >     +rm: cannot remove '/mnt/scratch/ovl-mnt': Device or resource busy
->  > >     +losetup: /mnt/scratch/ovl-lower/img: failed to set up loop device: No such file or directory
->  > >     +cp: target '/mnt/scratch/ovl-lower/lowertestdir/blkdev' is not a directory
->  > >     +cp: target '/mnt/scratch/ovl-upper/uppertestdir/blkdev' is not a directory
->  > >     ...
->  > >     (Run 'diff -u /home/cgxu/git/xfstests-dev/tests/overlay/070.out /home/cgxu/git/xfstests-dev/results//overlay/070.out.bad'  to see the entire diff)
->  > >
->  > > overlay/071     - output mismatch (see /home/cgxu/git/xfstests-dev/results//overlay/071.out.bad)
->  > >     --- tests/overlay/071.out   2020-04-07 09:16:59.102568756 +0800
->  > >     +++ /home/cgxu/git/xfstests-dev/results//overlay/071.out.bad        2020-04-08 09:55:39.899295141 +0800
->  > >     @@ -1,2 +1,6 @@
->  > >      QA output created by 071
->  > >     +_overlay_check_fs: overlayfs on /mnt/scratch/ovl-mnt,/ovl-upper.2,/ovl-work.2 is inconsistent
->  > >     +(see /home/cgxu/git/xfstests-dev/results//overlay/071.full for details)
->  > >     +_overlay_check_fs: overlayfs on /mnt/scratch/ovl-mnt,/ovl-upper.2,/ovl-work.2 is inconsistent
->  > >     +(see /home/cgxu/git/xfstests-dev/results//overlay/071.full for details)
->  > >      Silence is golden
->  > >
->  >
->  > What do the full log details say?
->  > again, its probably a result of some previous failure.
->
-> It sill failed when I just ran one test case.
-> I haven't got enough time to analyse test logic and full log, so I put all logs in attachment.
-> Please let me know if other logs are needed.
-
-Thanks for taking the time to report all those failures.
-You must be one of few developers to actually use fsck.overlayfs...
-
-You need this fix for fsck.overlayfs:
-https://github.com/hisilicon/overlayfs-progs/pull/1
-
-Sorry, I forgot I was carrying this patch on my setup.
-
-Zhangyi,
-
-Any chance of merging my fix?
+The kernel fix commit just got merged.
 
 Thanks,
 Amir.
+
+ tests/overlay/072     | 85 +++++++++++++++++++++++++++++++++++++++++++
+ tests/overlay/072.out |  2 +
+ tests/overlay/group   |  1 +
+ 3 files changed, 88 insertions(+)
+ create mode 100755 tests/overlay/072
+ create mode 100644 tests/overlay/072.out
+
+diff --git a/tests/overlay/072 b/tests/overlay/072
+new file mode 100755
+index 00000000..e9084e5c
+--- /dev/null
++++ b/tests/overlay/072
+@@ -0,0 +1,85 @@
++#! /bin/bash
++# SPDX-License-Identifier: GPL-2.0
++# Copyright (C) 2020 CTERA Networks. All Rights Reserved.
++#
++# FS QA Test 072
++#
++# Test overlay nlink when adding upper hardlinks.
++#
++# nlink of overlay inode could be dropped indefinitely by adding
++# unaccounted upper hardlinks underneath a mounted overlay and
++# trying to remove them.
++#
++# This is a variant of test overlay/034 with mangling of upper instead
++# of lower hardlinks. Unlike overlay/034, this test does not require the
++# inode index feature and will pass whether is it enabled or disabled
++# by default.
++#
++# This is a regression test for kernel commit 83552eacdfc0
++# ("ovl: fix WARN_ON nlink drop to zero").
++# Without the fix, the test triggers
++# WARN_ON(inode->i_nlink == 0) in drop_link().
++#
++seq=`basename $0`
++seqres=$RESULT_DIR/$seq
++echo "QA output created by $seq"
++
++tmp=/tmp/$$
++status=1	# failure is the default!
++trap "_cleanup; exit \$status" 0 1 2 3 15
++
++_cleanup()
++{
++	cd /
++	rm -f $tmp.*
++}
++
++# get standard environment, filters and checks
++. ./common/rc
++. ./common/filter
++
++# remove previous $seqres.full before test
++rm -f $seqres.full
++
++# real QA test starts here
++_supported_fs overlay
++_supported_os Linux
++_require_scratch
++
++upperdir=$OVL_BASE_SCRATCH_MNT/$OVL_UPPER
++
++# Remove all files from previous tests
++_scratch_mkfs
++
++# Create lower hardlink
++mkdir -p $upperdir
++touch $upperdir/0
++ln $upperdir/0 $upperdir/1
++
++_scratch_mount
++
++# Copy up lower hardlink - overlay inode nlink 2 is copied from lower
++touch $SCRATCH_MNT/0
++
++# Add lower hardlinks while overlay is mounted - overlay inode nlink
++# is not being updated
++ln $upperdir/0 $upperdir/2
++ln $upperdir/0 $upperdir/3
++
++# Unlink the 2 un-accounted lower hardlinks - overlay inode nlinks
++# drops 2 and may reach 0 if the situation is not detected
++rm $SCRATCH_MNT/2
++rm $SCRATCH_MNT/3
++
++# Check if getting ENOENT when trying to link !I_LINKABLE with nlink 0
++ln $SCRATCH_MNT/0 $SCRATCH_MNT/4
++
++# Unlink all hardlinks - if overlay inode nlink is 0, this will trigger
++# WARN_ON() in drop_nlink()
++rm $SCRATCH_MNT/0
++rm $SCRATCH_MNT/1
++rm $SCRATCH_MNT/4
++
++echo "Silence is golden"
++status=0
++exit
+diff --git a/tests/overlay/072.out b/tests/overlay/072.out
+new file mode 100644
+index 00000000..590bbc6c
+--- /dev/null
++++ b/tests/overlay/072.out
+@@ -0,0 +1,2 @@
++QA output created by 072
++Silence is golden
+diff --git a/tests/overlay/group b/tests/overlay/group
+index 43ad8a52..82876d09 100644
+--- a/tests/overlay/group
++++ b/tests/overlay/group
+@@ -74,3 +74,4 @@
+ 069 auto quick copyup hardlink exportfs nested nonsamefs
+ 070 auto quick copyup redirect nested
+ 071 auto quick copyup redirect nested nonsamefs
++072 auto quick copyup hardlink
+-- 
+2.17.1
+
