@@ -2,111 +2,189 @@ Return-Path: <SRS0=VDYA=5Z=vger.kernel.org=linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+X-Spam-Status: No, score=-5.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
+	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 422BCC2BBC7
-	for <linux-unionfs@archiver.kernel.org>; Thu,  9 Apr 2020 10:23:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 46D57C2BB86
+	for <linux-unionfs@archiver.kernel.org>; Thu,  9 Apr 2020 11:21:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 1A27420A8B
-	for <linux-unionfs@archiver.kernel.org>; Thu,  9 Apr 2020 10:23:46 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1429720B1F
+	for <linux-unionfs@archiver.kernel.org>; Thu,  9 Apr 2020 11:21:19 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="HCcFEF8l"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="N5x+dcwi"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725987AbgDIKXm (ORCPT
+        id S1726595AbgDILVS (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Thu, 9 Apr 2020 06:23:42 -0400
-Received: from mail-io1-f68.google.com ([209.85.166.68]:32904 "EHLO
-        mail-io1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725828AbgDIKXm (ORCPT
+        Thu, 9 Apr 2020 07:21:18 -0400
+Received: from mail-io1-f65.google.com ([209.85.166.65]:34370 "EHLO
+        mail-io1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725972AbgDILVS (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 9 Apr 2020 06:23:42 -0400
-Received: by mail-io1-f68.google.com with SMTP id o127so3342199iof.0;
-        Thu, 09 Apr 2020 03:23:40 -0700 (PDT)
+        Thu, 9 Apr 2020 07:21:18 -0400
+Received: by mail-io1-f65.google.com with SMTP id f3so3471916ioj.1
+        for <linux-unionfs@vger.kernel.org>; Thu, 09 Apr 2020 04:21:18 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=gJLiW5mwEGPTi6pkYRQAy9hXrnGoQ2ECL0bAS7nqimg=;
-        b=HCcFEF8lXmUB+44m25FTNHj4XumqyGxi9RD4xE9z7T6cmSBJ6KImKTT1QGXuk8jXtD
-         DQXl60cL66/38QbYGNkBXn+l/cXbX68u3mhG1vmlrxnRGxWjwRf6502Jwwq5rhHfBvWN
-         t90A3jYX9x576eardv46lpzdJu8spssZNNzMAM9EaIL/m2iLjBmjDOWenUgwJOKvGXPZ
-         j2Iv/gzXlwtaTiM+F6ik2cwUNHlZent0PSqr0Po+JTTnITx+77onE6byNNcCYNldxp1C
-         /unQtnCViuHDR+3ef7QIyTocxZQGV8z4r93j84e/zhTFcON89x4L85KR5IU61FSgw+ER
-         nH3g==
+        bh=2rhTU9sZJ4y+cAYnctjzp+lD5Cdih8TjDQcIKUJalgg=;
+        b=N5x+dcwi2IIFFypDlS7CH48p6Get0AfSibTNLmthZmmfIAd4+I8AThEBRpdoY5K1JU
+         gxQZwzW3ucRGzj25mgpiYiA2+rnQ5dTDZFzM2YmS+wrf3liw4zOD1W3mXza5PPHXZ/TV
+         LO8XCj/MhzT//716j+XFSbMPRAEdFTNK+s5EqFfKACSelZnm9jnHDbqNtvWk9qWjZSH/
+         d+M7ApHNzDQeZyNF+nf968HryIihfvQj4pZUuBUIsZx9gKhH2Dj9lczKO4VO+KLnlkR1
+         6oUJpEv6rETi7HM61S/MrGkzXeal9kO+kIkCnGRBI3hJcE8Mf6op8P2v5mEApQZuAO5A
+         S4aw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=gJLiW5mwEGPTi6pkYRQAy9hXrnGoQ2ECL0bAS7nqimg=;
-        b=e2SX2IHTx1JzTT5COwXNjU1938MDxqGN2YT/zwxUSoBKRtk9pio4Y/IlP8qw11QFx2
-         UnE/kUqlH26k7v33lm03A1a5y8IUjYJsjhrk51uzmYiYwTGYdyek51xWBLubhWjRaeeb
-         59qUYMKU0i8qA4+9N/B4wVdKYG1/5zmmhqs7W5EOJfNWzRF0MAAAQS/hvFwtqiufjgwT
-         n0NaseuIi7ALxsUJ+ZdJFxbypX33JPn0cDGuhRmo2F0Z8OFxjuNXi/n+y/CqhS4N+Zgo
-         c1yftQ+si4mo/1v7dPeBBx8eXCw1hGUraOpCoI81Mg+Bqvcysh/uIKz8ec6HfJJ76NHp
-         apHw==
-X-Gm-Message-State: AGi0Puait+LzFISYNuhNx7ocm3TFYqLDzIgEjM8NOb0Q8HC33445beVv
-        7nfs+WIt5vE3tNlRVKuoUCTtqtWj1l3subUWwSnVRWOX
-X-Google-Smtp-Source: APiQypI9tmoPp7LoCfi62I9O7Y8PoJuwZLhTt08z2L6jr6HL6Yd5OUdQxwZIAfY5glQcofqecq5VZJUfLw6rGitc6vs=
-X-Received: by 2002:a6b:8b4b:: with SMTP id n72mr11404095iod.72.1586427819995;
- Thu, 09 Apr 2020 03:23:39 -0700 (PDT)
+        bh=2rhTU9sZJ4y+cAYnctjzp+lD5Cdih8TjDQcIKUJalgg=;
+        b=imT31vui635MttuJ4kfPFgg59wmYGnsZ40Zs/6nz4GO83YN/nuNNXItmCuYNG1s5l7
+         ea0CLQ2gEBsQkBe9nCWXGzs6qNCBnNSt3JhVd/iOtus/e3cEHscthg9xsHWgblTH2c1M
+         ztXlwpT/f8soiOOO+toRW4fRXzD9X7LNCSHMQH0pg+VwYSX8gK8IdaaRWQwBJq6Pa6j4
+         40/bnihNk+rf06rBtQUJ4lprn7QhpVO41+sikFrOjhUJ+yxthEe+8m2QFB1ykI8dzEZe
+         l1WR5JFRwr+wy1r0GnufTA7sFrv4Zz8VyKb5YRcwAKLqO3JcO5hl//d1T8hpeDdYe1If
+         xKYA==
+X-Gm-Message-State: AGi0PuY/pmYq9uITILck6MvB8AvO5TW03mw8EsQQMVStPRBfpWIKI30a
+        QmFheyhV1awnYvRqR0G7DUC+b+3JFCIlICfgARmc7Ql9
+X-Google-Smtp-Source: APiQypLx4+cA6UyG3ObCqglDAua0vvDAHk0NFye2QbqleweHcJcsYFPf6xjxspRTJO7x3m1LCHphQSFWSphEDSH7O3o=
+X-Received: by 2002:a02:4b03:: with SMTP id q3mr2113914jaa.30.1586431277799;
+ Thu, 09 Apr 2020 04:21:17 -0700 (PDT)
 MIME-Version: 1.0
-References: <158642098777.5635.10501704178160375549.stgit@buzz>
-In-Reply-To: <158642098777.5635.10501704178160375549.stgit@buzz>
+References: <20200403064444.31062-1-cgxu519@mykernel.net> <CAOQ4uxi8eMWRc6uuNt_R9nS9UjrOsqupcCEST4ub-kCwEpx=_Q@mail.gmail.com>
+ <17153e5b537.c827c90942921.7568518513045332175@mykernel.net>
+ <CAOQ4uxiHwQ4_rGLZeKS8VwP84YoUDZcju76KeYugt+SOAKVGKQ@mail.gmail.com>
+ <17153f590e5.13f80af2342991.2831629093514707476@mykernel.net>
+ <CAOQ4uxjhfOXaHMaXY+J67winJzFMDVfiHfF4m=yed7XNcPvFUw@mail.gmail.com>
+ <171578e6477.12630feab161.147743050045149370@mykernel.net>
+ <CAOQ4uxhU-KC2Yiewso_rDa3HhafzBaVWk9i8Sra4W0Y_EEiShA@mail.gmail.com> <1715deb04cf.11a7e625f2245.4913788754434070520@mykernel.net>
+In-Reply-To: <1715deb04cf.11a7e625f2245.4913788754434070520@mykernel.net>
 From:   Amir Goldstein <amir73il@gmail.com>
-Date:   Thu, 9 Apr 2020 13:23:29 +0300
-Message-ID: <CAOQ4uxgTtbb-vDQNnY1_7EzQ=p5p2MqkfyZo2zkFQ1Wv29uqCA@mail.gmail.com>
-Subject: Re: [PATCH] ovl: skip overlayfs superblocks at global sync
-To:     Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
-Cc:     linux-fsdevel <linux-fsdevel@vger.kernel.org>,
-        Miklos Szeredi <miklos@szeredi.hu>,
-        linux-kernel <linux-kernel@vger.kernel.org>,
-        Alexander Viro <viro@zeniv.linux.org.uk>,
+Date:   Thu, 9 Apr 2020 14:21:06 +0300
+Message-ID: <CAOQ4uxgQZf+RYsHAKY2=298nmRpBv5-YQDzuOqcXXOFumK058g@mail.gmail.com>
+Subject: Re: [PATCH v2] ovl: sharing inode with different whiteout files
+To:     Chengguang Xu <cgxu519@mykernel.net>
+Cc:     Miklos Szeredi <miklos@szeredi.hu>,
         overlayfs <linux-unionfs@vger.kernel.org>,
-        Dmitry Monakhov <dmtrmonakhov@yandex-team.ru>,
-        Linux Containers <containers@lists.linux-foundation.org>,
-        Theodore Tso <tytso@mit.edu>
+        Hou Tao <houtao1@huawei.com>,
+        "zhangyi (F)" <yi.zhang@huawei.com>
 Content-Type: text/plain; charset="UTF-8"
 Sender: linux-unionfs-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Thu, Apr 9, 2020 at 11:30 AM Konstantin Khlebnikov
-<khlebnikov@yandex-team.ru> wrote:
+>  > > nfs_export and metacopy are incompatible.
+>  > > I tested "workdir" branch(latest commit is commit c1fe7dcb3db8ed8e84986eec07e0b302ee3b83de)
+>  > > in your git tree and found three more fails.
+>  >
+>  > I figured that might me it.
+>  > Please share more configuration details of your setup.
+>  > How is metacopy enabled on your system?
 >
-> Stacked filesystems like overlayfs has no own writeback, but they have to
-> forward syncfs() requests to backend for keeping data integrity.
+> In order to test nfs_export, I disabled metacopy and enabled nfs_export in kernel config.
+
+Ah right. There is this logic in ovl_parse_opt() where an explicit
+metacopy or redirect_dir mount options win a conflict against the kernel config
+default, but there is no such logic fir metacopy and index, because it
+was harder to implement.
+
+For the purpose of these tests, they just need to explicitly disable
+metacopy in mount options. I will send a fix.
+
 >
-> During global sync() each overlayfs instance calls method ->sync_fs()
-> for backend although it itself is in global list of superblocks too.
-> As a result one syscall sync() could write one superblock several times
-> and send multiple disk barriers.
+>  > How are you running xfstests? Can you share the config file?
 >
-> This patch adds flag SB_I_SKIP_SYNC into sb->sb_iflags to avoid that.
+> in xfstests-dev directory, run ./check -overlay overlay/*
+
+FYI, -g overlay/auto will skip the "known issues" (i.e. mmap test)
+and -g overlay/quick will skip the long stress test (overlay/019)
+
+I also recommend running https://github.com/amir73il/unionmount-testsuite
+if you want better test coverage.
+
+...
+>  >
+>  > >
+>  > > ----------------------------------
+>  > >
+>  > > overlay/029 1s ... - output mismatch (see /home/cgxu/git/xfstests-dev/results//overlay/029.out.bad)
+>  > >     --- tests/overlay/029.out   2019-11-07 09:05:18.876796433 +0800
+>  > >     +++ /home/cgxu/git/xfstests-dev/results//overlay/029.out.bad        2020-04-08 09:55:07.462699895 +0800
+>  > >     @@ -1,5 +1,9 @@
+>  > >      QA output created by 029
+>  > >      foo
+>  > >     -bar
+>  > >     -foo
+>  > >     -bar
+>  > >     +mount: /tmp/8751/mnt: mount(2) system call failed: Stale file handle.
+>  >
+>  > The reason for this error should be in dmesg.
 >
-> Reported-by: Dmitry Monakhov <dmtrmonakhov@yandex-team.ru>
-> Signed-off-by: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
-> ---
+> I checked test log/case and the logic in the source code,
+> I think the test failed at ovl_get_indexdir() -> ovl_verify_origin() during mount and this behaviour is just by design.
+> so we should skip this test case when nfs_export is enabled.
+>
 
-Seems reasonable.
-You may add:
-Reviewed-by: Amir Goldstein <amir73il@gmail.com>
+OK. I was able to reproduce, but no need to skip the test
+it is easy to fix it. I will post a fix.
 
-+CC: containers list
+>
+>  >
+>  > >     +cat: /tmp/8751/mnt/bar: No such file or directory
+>  > >     ...
+>  > >     (Run 'diff -u /home/cgxu/git/xfstests-dev/tests/overlay/029.out /home/cgxu/git/xfstests-dev/results//overlay/029.out.bad'  to see the entire diff)
+>  > >
+>  > > overlay/070     [failed, exit status 1]- output mismatch (see /home/cgxu/git/xfstests-dev/results//overlay/070.out.bad)
+>  > >     --- tests/overlay/070.out   2020-04-07 09:16:59.102568756 +0800
+>  > >     +++ /home/cgxu/git/xfstests-dev/results//overlay/070.out.bad        2020-04-08 09:55:38.580311600 +0800
+>  > >     @@ -1,2 +1,26 @@
+>  > >      QA output created by 070
+>  > >     -Silence is golden
+>  > >     +umount: /mnt/scratch: target is busy.
+>  >
+>  > This failure has do to with somthing that happened before the test.
+>  > Its trails should be in dmesg.
+>  >
+>  > >     +rm: cannot remove '/mnt/scratch/ovl-mnt': Device or resource busy
+>  > >     +losetup: /mnt/scratch/ovl-lower/img: failed to set up loop device: No such file or directory
+>  > >     +cp: target '/mnt/scratch/ovl-lower/lowertestdir/blkdev' is not a directory
+>  > >     +cp: target '/mnt/scratch/ovl-upper/uppertestdir/blkdev' is not a directory
+>  > >     ...
+>  > >     (Run 'diff -u /home/cgxu/git/xfstests-dev/tests/overlay/070.out /home/cgxu/git/xfstests-dev/results//overlay/070.out.bad'  to see the entire diff)
+>  > >
+>  > > overlay/071     - output mismatch (see /home/cgxu/git/xfstests-dev/results//overlay/071.out.bad)
+>  > >     --- tests/overlay/071.out   2020-04-07 09:16:59.102568756 +0800
+>  > >     +++ /home/cgxu/git/xfstests-dev/results//overlay/071.out.bad        2020-04-08 09:55:39.899295141 +0800
+>  > >     @@ -1,2 +1,6 @@
+>  > >      QA output created by 071
+>  > >     +_overlay_check_fs: overlayfs on /mnt/scratch/ovl-mnt,/ovl-upper.2,/ovl-work.2 is inconsistent
+>  > >     +(see /home/cgxu/git/xfstests-dev/results//overlay/071.full for details)
+>  > >     +_overlay_check_fs: overlayfs on /mnt/scratch/ovl-mnt,/ovl-upper.2,/ovl-work.2 is inconsistent
+>  > >     +(see /home/cgxu/git/xfstests-dev/results//overlay/071.full for details)
+>  > >      Silence is golden
+>  > >
+>  >
+>  > What do the full log details say?
+>  > again, its probably a result of some previous failure.
+>
+> It sill failed when I just ran one test case.
+> I haven't got enough time to analyse test logic and full log, so I put all logs in attachment.
+> Please let me know if other logs are needed.
 
-This bring up old memories.
-I posted this way back to fix handling of emergency_remount() in the
-presence of loop mounted fs:
-https://lore.kernel.org/linux-ext4/CAA2m6vfatWKS1CQFpaRbii2AXiZFvQUjVvYhGxWTSpz+2rxDyg@mail.gmail.com/
+Thanks for taking the time to report all those failures.
+You must be one of few developers to actually use fsck.overlayfs...
 
-But seems to me that emergency_sync() and sync(2) are equally broken
-for this use case.
+You need this fix for fsck.overlayfs:
+https://github.com/hisilicon/overlayfs-progs/pull/1
 
-I wonder if anyone cares enough about resilience of loop mounted fs to try
-and change the iterate_* functions to iterate supers/bdevs in reverse order...
+Sorry, I forgot I was carrying this patch on my setup.
+
+Zhangyi,
+
+Any chance of merging my fix?
 
 Thanks,
 Amir.
