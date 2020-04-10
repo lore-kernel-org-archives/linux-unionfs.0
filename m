@@ -2,259 +2,171 @@ Return-Path: <SRS0=xMZa=52=vger.kernel.org=linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C8BDFC2BA19
-	for <linux-unionfs@archiver.kernel.org>; Fri, 10 Apr 2020 01:22:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0A8F1C2BA2B
+	for <linux-unionfs@archiver.kernel.org>; Fri, 10 Apr 2020 06:52:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 6C33720730
-	for <linux-unionfs@archiver.kernel.org>; Fri, 10 Apr 2020 01:22:05 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C76052084D
+	for <linux-unionfs@archiver.kernel.org>; Fri, 10 Apr 2020 06:52:43 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=mykernel.net header.i=cgxu519@mykernel.net header.b="axZyRF1y"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="o8lBXqDH"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726082AbgDJBWE (ORCPT
+        id S1726007AbgDJGwm (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Thu, 9 Apr 2020 21:22:04 -0400
-Received: from sender2-of-o52.zoho.com.cn ([163.53.93.247]:21182 "EHLO
-        sender2-of-o52.zoho.com.cn" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1725970AbgDJBWE (ORCPT
+        Fri, 10 Apr 2020 02:52:42 -0400
+Received: from mail-io1-f68.google.com ([209.85.166.68]:36960 "EHLO
+        mail-io1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725844AbgDJGwm (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 9 Apr 2020 21:22:04 -0400
-ARC-Seal: i=1; a=rsa-sha256; t=1586481708; cv=none; 
-        d=zoho.com.cn; s=zohoarc; 
-        b=dGAfQxIlFykBXH2oL4JzxDbym4JQTvUQycqeNJaKGO3g7x5GejR+tr1L59OINct+WwoqeqLe10UXEZ3Y4Lk84VNwpjvNoyVap2JqpByPVMQ0Ry8uoF8RQZHAVSbmCkDU+gaJ1s5Ljc/uS++cPyI5mLXSgzYqXZBbpEwS8L3D8Aw=
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=zoho.com.cn; s=zohoarc; 
-        t=1586481708; h=Content-Type:Content-Transfer-Encoding:Cc:Date:From:In-Reply-To:MIME-Version:Message-ID:References:Subject:To; 
-        bh=JTACoukFeV8GJSGPxB3UNCum4AgaukuTvb8ICxNxzGw=; 
-        b=CgF/7DM2kgCaRGa57N7LtRLIvpN/J7YzeRcGJrKIEHFsM34zWSBDwyRrnscZNpHPfOtI9r8Hx0Re/wd/YbGO3MAgNpwNO2y3O/vfXS05EIUDc9jhUS93G55mIl+bFri69cA5SUZVQWd8bHuTfDWi2LanfG0NY0wkT806o0byNeI=
-ARC-Authentication-Results: i=1; mx.zoho.com.cn;
-        dkim=pass  header.i=mykernel.net;
-        spf=pass  smtp.mailfrom=cgxu519@mykernel.net;
-        dmarc=pass header.from=<cgxu519@mykernel.net> header.from=<cgxu519@mykernel.net>
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1586481708;
-        s=zohomail; d=mykernel.net; i=cgxu519@mykernel.net;
-        h=From:To:Cc:Message-ID:Subject:Date:In-Reply-To:References:MIME-Version:Content-Transfer-Encoding:Content-Type;
-        bh=JTACoukFeV8GJSGPxB3UNCum4AgaukuTvb8ICxNxzGw=;
-        b=axZyRF1yJCFmif3Q089m7WiXcNaRDzOPe0a5p7J3XBNiO9NY0pI/FVjtXrZJjavZ
-        kbLNbaMn41+iVkap8HB0/fMpUMRNV8twNxZymp3Uy0Xk8fsXyGtGlEKdTMC8Ytx6O5j
-        OH58P567y/Rexa16JR2GWYjg2UY+WaGFPoMbRZos=
-Received: from localhost.localdomain (218.18.229.179 [218.18.229.179]) by mx.zoho.com.cn
-        with SMTPS id 1586481706402339.1360331165083; Fri, 10 Apr 2020 09:21:46 +0800 (CST)
-From:   Chengguang Xu <cgxu519@mykernel.net>
-To:     guaneryu@gmail.com
-Cc:     fstests@vger.kernel.org, linux-unionfs@vger.kernel.org,
-        miklos@szeredi.hu, amir73il@gmail.com,
-        Chengguang Xu <cgxu519@mykernel.net>
-Message-ID: <20200410012059.27210-2-cgxu519@mykernel.net>
-Subject: [PATCH 2/2] overlay/072: test for sharing inode with whiteout files
-Date:   Fri, 10 Apr 2020 09:20:59 +0800
-X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20200410012059.27210-1-cgxu519@mykernel.net>
-References: <20200410012059.27210-1-cgxu519@mykernel.net>
+        Fri, 10 Apr 2020 02:52:42 -0400
+Received: by mail-io1-f68.google.com with SMTP id n20so891932ioa.4
+        for <linux-unionfs@vger.kernel.org>; Thu, 09 Apr 2020 23:52:42 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=55sH5QivxiECEwi5EwfGRCCL/pnd97NBgFTV0Jfzoq8=;
+        b=o8lBXqDHtn3cqiwXApeclcYQmDVzDQmD8raO3IYKm9uG9+Hzd4Zz3dW0o1DDi13xhU
+         PQLobN3AfmP9ouuFiWm7uV/69pkAuJY4ah+yr+0fHVOsKV+z8oGBeUKx25AgNvp34lLC
+         g2xgEx2bxdcAGECRwCLd92dCitvbPNtbrbWbFlrX4yls06DYtruhydKjhnD/K+gPhukM
+         6vdX2dOk/G+WIw5z4TTYgzL89GfQixIV+3Vx91GAIwt7Z1W3ucKfhTw3pWpZG36j2Nyb
+         f25qoqFe4ssMrNfTRQjooj2k3lSc4LLuQxvP9C/91q9sTwDkv57lhTM7Oq/hskCME1/d
+         QGcA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=55sH5QivxiECEwi5EwfGRCCL/pnd97NBgFTV0Jfzoq8=;
+        b=Sfven7B5JGs9UbfKnWkYCofKbbPgCuCnu/aMOrICM9GSWoZ7o4A9vXE3t8bEBqiL35
+         hmxIGnx5buH5LfbtJ+5f7/b4DXOHNv44ZQCsbiUCkxG+UKj/OTXal+whHheSWHseXCCg
+         55oVROdEe7eMsPkzcXxGwc8jBjPZNnh3RaX3cj9Bpjd8NfBjsP5rxgP+djjHvjQrQ4pY
+         2XgpAwcdKPE587t8ReDtntFJSuHwS4/XufKu16FKDmMKAXv1/5WqYYeqBhjVHIMKwbxS
+         Al96L95A08seLDjLS1B9PE6tun3YaIXpm411YxWWiEh09HuYj1JZXlysI82aJmYh/n0v
+         5cbg==
+X-Gm-Message-State: AGi0PuZUglK5vAyVGYZT5cKYiXHStpnI8DctdVqoIfX6BGsdoTbB9lFV
+        WBlTxAfmwgbVfXsJ802I3Air92y8ZFI3F1qqGyHylg==
+X-Google-Smtp-Source: APiQypIR0KQ8quQS4/jRZSZpSTjdTRcwiRxPw8jW7iv0IeHqvJVPe+9I6TG8lzQH0PySkeFyH+wXQdSJ0q1a1WFRAbI=
+X-Received: by 2002:a02:b897:: with SMTP id p23mr3365223jam.120.1586501562537;
+ Thu, 09 Apr 2020 23:52:42 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-X-ZohoCNMailClient: External
-Content-Type: text/plain; charset=utf8
+References: <20200409163902.11404-1-amir73il@gmail.com> <20200409214926.GA144134@redhat.com>
+In-Reply-To: <20200409214926.GA144134@redhat.com>
+From:   Amir Goldstein <amir73il@gmail.com>
+Date:   Fri, 10 Apr 2020 09:52:31 +0300
+Message-ID: <CAOQ4uxh-MK2iVbS-uhZUm3enJxVhdO6Ch9sMDBZpKDW7zAHLuw@mail.gmail.com>
+Subject: Re: [PATCH] ovl: resolve more conflicting mount options
+To:     Vivek Goyal <vgoyal@redhat.com>
+Cc:     Miklos Szeredi <miklos@szeredi.hu>,
+        Chengguang Xu <cgxu519@mykernel.net>,
+        overlayfs <linux-unionfs@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-unionfs-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-This is a test for whiteout inode sharing feature.
+On Fri, Apr 10, 2020 at 12:49 AM Vivek Goyal <vgoyal@redhat.com> wrote:
+>
+> On Thu, Apr 09, 2020 at 07:39:02PM +0300, Amir Goldstein wrote:
+> > Similar to the way that a conflict between metacopy=on,redirect_dir=off
+> > is resolved, also resolve conflicts between nfs_export=on,index=off and
+> > nfs_export=on,metacopy=on.
+> >
+> > An explicit mount option wins over a default config value.
+> > Both explicit mount options result in an error.
+> >
+> > Without this change the xfstests group overlay/exportfs are skipped if
+> > metacopy is enabled by default.
+> >
+> > Reported-by: Chengguang Xu <cgxu519@mykernel.net>
+> > Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+> > ---
+> >  Documentation/filesystems/overlayfs.rst |  7 ++--
+> >  fs/overlayfs/super.c                    | 48 +++++++++++++++++++++++++
+> >  2 files changed, 53 insertions(+), 2 deletions(-)
+> >
+> > diff --git a/Documentation/filesystems/overlayfs.rst b/Documentation/filesystems/overlayfs.rst
+> > index c9d2bf96b02d..660dbaf0b9b8 100644
+> > --- a/Documentation/filesystems/overlayfs.rst
+> > +++ b/Documentation/filesystems/overlayfs.rst
+> > @@ -365,8 +365,8 @@ pointed by REDIRECT. This should not be possible on local system as setting
+> >  "trusted." xattrs will require CAP_SYS_ADMIN. But it should be possible
+> >  for untrusted layers like from a pen drive.
+> >
+> > -Note: redirect_dir={off|nofollow|follow[*]} conflicts with metacopy=on, and
+> > -results in an error.
+> > +Note: redirect_dir={off|nofollow|follow[*]} and nfs_export=on mount options
+> > +conflict with metacopy=on, and will result in an error.
+> >
+> >  [*] redirect_dir=follow only conflicts with metacopy=on if upperdir=... is
+> >  given.
+> > @@ -560,6 +560,9 @@ When the NFS export feature is enabled, all directory index entries are
+> >  verified on mount time to check that upper file handles are not stale.
+> >  This verification may cause significant overhead in some cases.
+> >
+> > +Note: the mount options index=off,nfs_export=on are conflicting and will
+> > +result in an error.
+> > +
+> >
+> >  Testsuite
+> >  ---------
+> > diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+> > index 732ad5495c92..fbd6207acdbf 100644
+> > --- a/fs/overlayfs/super.c
+> > +++ b/fs/overlayfs/super.c
+> > @@ -470,6 +470,7 @@ static int ovl_parse_opt(char *opt, struct ovl_config *config)
+> >       char *p;
+> >       int err;
+> >       bool metacopy_opt = false, redirect_opt = false;
+> > +     bool nfs_export_opt = false, index_opt = false;
+> >
+> >       config->redirect_mode = kstrdup(ovl_redirect_mode_def(), GFP_KERNEL);
+> >       if (!config->redirect_mode)
+> > @@ -519,18 +520,22 @@ static int ovl_parse_opt(char *opt, struct ovl_config *config)
+> >
+> >               case OPT_INDEX_ON:
+> >                       config->index = true;
+> > +                     index_opt = true;
+> >                       break;
+> >
+> >               case OPT_INDEX_OFF:
+> >                       config->index = false;
+> > +                     index_opt = true;
+> >                       break;
+> >
+> >               case OPT_NFS_EXPORT_ON:
+> >                       config->nfs_export = true;
+> > +                     nfs_export_opt = true;
+> >                       break;
+> >
+> >               case OPT_NFS_EXPORT_OFF:
+> >                       config->nfs_export = false;
+> > +                     nfs_export_opt = true;
+> >                       break;
+> >
+> >               case OPT_XINO_ON:
+> > @@ -552,6 +557,7 @@ static int ovl_parse_opt(char *opt, struct ovl_config *config)
+> >
+> >               case OPT_METACOPY_OFF:
+> >                       config->metacopy = false;
+> > +                     metacopy_opt = true;
+>
+> Hi Amir,
+>
+> I am wondering why metacopy_opt needs to be set for OPT_METACOPY_OFF case.
+> In this case config->metacopy=false and it does not conflict with
+> config->nfs_export at all. So there is no need to know if metacopy=off
+> was specified as mount option or not.
+>
 
-Signed-off-by: Chengguang Xu <cgxu519@mykernel.net>
----
-Hi Eryu,
+It's true. We can drop that one.
+I just liked it better that the meaning of the _opt vars are
+"was this value set explicitly", even before we get to using it.
 
-Kernel patch of this feature is still in review but I hope to merge
-test case first, so that we can check the correctness in a convenient
-way. The test case will carefully check new module param and skip the
-test if the param does not exist.
-
-
- tests/overlay/072     | 148 ++++++++++++++++++++++++++++++++++++++++++
- tests/overlay/072.out |   2 +
- tests/overlay/group   |   1 +
- 3 files changed, 151 insertions(+)
- create mode 100755 tests/overlay/072
- create mode 100644 tests/overlay/072.out
-
-diff --git a/tests/overlay/072 b/tests/overlay/072
-new file mode 100755
-index 00000000..1cff386d
---- /dev/null
-+++ b/tests/overlay/072
-@@ -0,0 +1,148 @@
-+#! /bin/bash
-+# SPDX-License-Identifier: GPL-2.0
-+# Copyright (c) 2020 Chengguang Xu <cgxu519@mykernel.net>.
-+# All Rights Reserved.
-+#
-+# FS QA Test 072
-+#
-+# This is a test for inode sharing with whiteout files.
-+#
-+seq=3D`basename $0`
-+seqres=3D$RESULT_DIR/$seq
-+echo "QA output created by $seq"
-+
-+here=3D`pwd`
-+tmp=3D/tmp/$$
-+status=3D1=09# failure is the default!
-+trap "_cleanup; exit \$status" 0 1 2 3 15
-+
-+_cleanup()
-+{
-+=09cd /
-+=09rm -f $tmp.*
-+}
-+
-+# get standard environment, filters and checks
-+. ./common/rc
-+. ./common/filter
-+
-+# remove previous $seqres.full before test
-+rm -f $seqres.full
-+
-+# real QA test starts here
-+_supported_fs overlay
-+_supported_os Linux
-+_require_test
-+_require_scratch
-+
-+param_name=3D"whiteout_link_max"
-+check_whiteout_link_max()
-+{
-+=09local param_value=3D`_get_fs_module_param ${param_name}`
-+=09if [ -z ${param_value} ]; then
-+=09=09_notrun "${FSTYP} module param ${param_name} does not exist"
-+=09fi
-+}
-+
-+lowerdir=3D$OVL_BASE_SCRATCH_MNT/$OVL_LOWER
-+upperdir=3D$OVL_BASE_SCRATCH_MNT/$OVL_UPPER
-+merged=3D$OVL_BASE_SCRATCH_MNT/$OVL_MNT
-+
-+#Make some files in lowerdir.
-+make_lower_files()
-+{
-+=09seq 1 $file_count | while read line; do
-+=09=09`touch $lowerdir/test${line} 1>&2 2>/dev/null`
-+=09done
-+}
-+
-+#Delete all copy-uped files in upperdir.
-+make_whiteout_files()
-+{
-+=09rm -f $merged/* 1>&2 2>/dev/null
-+}
-+
-+#Check link count of whiteout files.
-+check_whiteout_files()
-+{
-+=09seq 1 $file_count | while read line; do
-+=09=09local real_count=3D`stat -c %h $upperdir/test${line} 2>/dev/null`
-+=09=09if [[ $link_count !=3D $real_count ]]; then
-+=09=09=09echo "Expected whiteout link count is $link_count but real count =
-is $real_count"
-+=09=09fi
-+=09done
-+}
-+
-+check_whiteout_link_max
-+
-+# Case1:
-+# Setting whiteout_link_max=3D0 will not share inode
-+# with whiteout files, it means each whiteout file
-+# will has it's own inode.
-+
-+file_count=3D10
-+link_max=3D0
-+link_count=3D1
-+_scratch_mkfs
-+_set_fs_module_param $param_name $link_max
-+make_lower_files
-+_scratch_mount
-+make_whiteout_files
-+check_whiteout_files
-+$UMOUNT_PROG $OVL_BASE_SCRATCH_MNT/$OVL_MNT
-+
-+# Case2:
-+# Setting whiteout_link_max=3D1 will not share inode
-+# with whiteout files, it means each whiteout file
-+# will has it's own inode.
-+
-+file_count=3D10
-+link_max=3D1
-+link_count=3D1
-+_scratch_mkfs
-+_set_fs_module_param $param_name $link_max
-+make_lower_files
-+_scratch_mount
-+make_whiteout_files
-+check_whiteout_files $link_count
-+$UMOUNT_PROG $OVL_BASE_SCRATCH_MNT/$OVL_MNT
-+
-+# Case3:
-+# Setting whiteout_link_max=3D2 will not share inode
-+# with whiteout files, it means each whiteout file
-+# will has it's own inode. However, the inode will
-+# be shared with tmpfile(in workdir) which is used
-+# for creating whiteout file.
-+
-+file_count=3D10
-+link_max=3D2
-+link_count=3D2
-+_scratch_mkfs
-+_set_fs_module_param $param_name $link_max
-+make_lower_files
-+_scratch_mount
-+make_whiteout_files
-+check_whiteout_files
-+$UMOUNT_PROG $OVL_BASE_SCRATCH_MNT/$OVL_MNT
-+
-+# Case4:
-+# Setting whiteout_link_max=3D10 will share inode
-+# with 9 whiteout files and meanwhile the inode
-+# will also share with tmpfile(in workdir) which
-+# is used for creating whiteout file.
-+
-+file_count=3D18
-+link_max=3D10
-+link_count=3D10
-+_scratch_mkfs
-+_set_fs_module_param $param_name $link_max
-+make_lower_files
-+_scratch_mount
-+make_whiteout_files
-+check_whiteout_files
-+$UMOUNT_PROG $OVL_BASE_SCRATCH_MNT/$OVL_MNT
-+
-+# success, all done
-+echo "Silence is golden"
-+status=3D0
-+exit
-diff --git a/tests/overlay/072.out b/tests/overlay/072.out
-new file mode 100644
-index 00000000..590bbc6c
---- /dev/null
-+++ b/tests/overlay/072.out
-@@ -0,0 +1,2 @@
-+QA output created by 072
-+Silence is golden
-diff --git a/tests/overlay/group b/tests/overlay/group
-index 43ad8a52..8b2276f1 100644
---- a/tests/overlay/group
-+++ b/tests/overlay/group
-@@ -74,3 +74,4 @@
- 069 auto quick copyup hardlink exportfs nested nonsamefs
- 070 auto quick copyup redirect nested
- 071 auto quick copyup redirect nested nonsamefs
-+072 auto quick whiteout
---=20
-2.20.1
-
-
+Thanks,
+Amir.
