@@ -1,216 +1,92 @@
-Return-Path: <SRS0=VDYA=5Z=vger.kernel.org=linux-unionfs-owner@kernel.org>
+Return-Path: <SRS0=xMZa=52=vger.kernel.org=linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 66375C2BA19
-	for <linux-unionfs@archiver.kernel.org>; Thu,  9 Apr 2020 21:49:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F2AF8C2BB85
+	for <linux-unionfs@archiver.kernel.org>; Fri, 10 Apr 2020 01:22:05 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 2DF6E2072F
-	for <linux-unionfs@archiver.kernel.org>; Thu,  9 Apr 2020 21:49:33 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C01CA20769
+	for <linux-unionfs@archiver.kernel.org>; Fri, 10 Apr 2020 01:22:05 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="Ft0wUZgn"
+	dkim=pass (1024-bit key) header.d=mykernel.net header.i=cgxu519@mykernel.net header.b="AF6mj61D"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726689AbgDIVtc (ORCPT
+        id S1725970AbgDJBWE (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Thu, 9 Apr 2020 17:49:32 -0400
-Received: from us-smtp-delivery-1.mimecast.com ([207.211.31.120]:25723 "EHLO
-        us-smtp-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1726666AbgDIVtc (ORCPT
+        Thu, 9 Apr 2020 21:22:04 -0400
+Received: from sender2-of-o52.zoho.com.cn ([163.53.93.247]:21181 "EHLO
+        sender2-of-o52.zoho.com.cn" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1725987AbgDJBWE (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 9 Apr 2020 17:49:32 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1586468970;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         in-reply-to:in-reply-to:references:references;
-        bh=EBdu4RILO5C4gOvAVs4zNXrstIlJgaELpoZ81tyGkLE=;
-        b=Ft0wUZgnpsups/l03F/5zN9PCGZvx0fBkYCefOQTs4kwWvkZR7rwo1eQgXcoWe6iLvHe2l
-        EgZW91U34sL2NUXJrLSIllBrpmF4oz/Xat0W+2b9uqT+7y0ZLiI1Z8OTKGnAuFPY7/gIZ0
-        YAtJ1mx65FsgHnfEFmNm+Ly9O6VnxIU=
-Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
- [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-7-1v13eE59NhC37YVbmIl1-g-1; Thu, 09 Apr 2020 17:49:28 -0400
-X-MC-Unique: 1v13eE59NhC37YVbmIl1-g-1
-Received: from smtp.corp.redhat.com (int-mx07.intmail.prod.int.phx2.redhat.com [10.5.11.22])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id BD49F1402;
-        Thu,  9 Apr 2020 21:49:27 +0000 (UTC)
-Received: from horse.redhat.com (ovpn-114-247.rdu2.redhat.com [10.10.114.247])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id A667610013A1;
-        Thu,  9 Apr 2020 21:49:26 +0000 (UTC)
-Received: by horse.redhat.com (Postfix, from userid 10451)
-        id 2A7942202B8; Thu,  9 Apr 2020 17:49:26 -0400 (EDT)
-Date:   Thu, 9 Apr 2020 17:49:26 -0400
-From:   Vivek Goyal <vgoyal@redhat.com>
-To:     Amir Goldstein <amir73il@gmail.com>
-Cc:     Miklos Szeredi <miklos@szeredi.hu>,
-        Chengguang Xu <cgxu519@mykernel.net>,
-        linux-unionfs@vger.kernel.org
-Subject: Re: [PATCH] ovl: resolve more conflicting mount options
-Message-ID: <20200409214926.GA144134@redhat.com>
-References: <20200409163902.11404-1-amir73il@gmail.com>
+        Thu, 9 Apr 2020 21:22:04 -0400
+ARC-Seal: i=1; a=rsa-sha256; t=1586481706; cv=none; 
+        d=zoho.com.cn; s=zohoarc; 
+        b=SWScZIf+LcgdLcv7ztzpOW03QJ9B1yzunaGGbxLeiVPggKP2IDH030S4ueED8bznhV8DfJcbsvw8RiwX6SETnEA8atL0FcNuKRGY9hwpqY5c48pItrCa+AG3UQG29DmyfxiHgWVHyGIUPjIGhqO90tyF7Eng1rxqsu9c03t5KSQ=
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=zoho.com.cn; s=zohoarc; 
+        t=1586481706; h=Content-Type:Content-Transfer-Encoding:Cc:Date:From:MIME-Version:Message-ID:Subject:To; 
+        bh=3gbSDram2It9esFZojr88su4Yo8IZ0oB3171/SH9HUA=; 
+        b=IpMSpQNxHuXi7nOjEcVN9g3suKNVGo+h5a6VwBlNmUECMbJVihXE/PVpW5h1BFi/BdW8/Sww6iUXhdyHzNckU7FxS5ScPTvyM5pJ1P6ifh62h7Oewz45XBghc7nR5ZeWJ8IQwUyFO6YUX6LmTuniyc1G2Nq3huWrLduQTWeWSHw=
+ARC-Authentication-Results: i=1; mx.zoho.com.cn;
+        dkim=pass  header.i=mykernel.net;
+        spf=pass  smtp.mailfrom=cgxu519@mykernel.net;
+        dmarc=pass header.from=<cgxu519@mykernel.net> header.from=<cgxu519@mykernel.net>
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1586481706;
+        s=zohomail; d=mykernel.net; i=cgxu519@mykernel.net;
+        h=From:To:Cc:Message-ID:Subject:Date:MIME-Version:Content-Transfer-Encoding:Content-Type;
+        bh=3gbSDram2It9esFZojr88su4Yo8IZ0oB3171/SH9HUA=;
+        b=AF6mj61D+uYHQxkixTTIyGV/tAMbZN+AoPnWCvfpRks7X1nRw5Yl0APiHy5zqWUb
+        Q22khV+xNIax7HLmXqEnpH/exg5f8XjbMO05n+v+mRciHqK2nZ7DcAGelsua67MFrX0
+        3dIXxGZtutWKmDVSv/9wHc3V5cYlOqt2MVdCn+gA=
+Received: from localhost.localdomain (218.18.229.179 [218.18.229.179]) by mx.zoho.com.cn
+        with SMTPS id 1586481704304521.0089517140502; Fri, 10 Apr 2020 09:21:44 +0800 (CST)
+From:   Chengguang Xu <cgxu519@mykernel.net>
+To:     guaneryu@gmail.com
+Cc:     fstests@vger.kernel.org, linux-unionfs@vger.kernel.org,
+        miklos@szeredi.hu, amir73il@gmail.com,
+        Chengguang Xu <cgxu519@mykernel.net>
+Message-ID: <20200410012059.27210-1-cgxu519@mykernel.net>
+Subject: [PATCH 1/2] common: add a helper for setting module param
+Date:   Fri, 10 Apr 2020 09:20:58 +0800
+X-Mailer: git-send-email 2.20.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20200409163902.11404-1-amir73il@gmail.com>
-X-Scanned-By: MIMEDefang 2.84 on 10.5.11.22
+Content-Transfer-Encoding: quoted-printable
+X-ZohoCNMailClient: External
+Content-Type: text/plain; charset=utf8
 Sender: linux-unionfs-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Thu, Apr 09, 2020 at 07:39:02PM +0300, Amir Goldstein wrote:
-> Similar to the way that a conflict between metacopy=on,redirect_dir=off
-> is resolved, also resolve conflicts between nfs_export=on,index=off and
-> nfs_export=on,metacopy=on.
-> 
-> An explicit mount option wins over a default config value.
-> Both explicit mount options result in an error.
-> 
-> Without this change the xfstests group overlay/exportfs are skipped if
-> metacopy is enabled by default.
-> 
-> Reported-by: Chengguang Xu <cgxu519@mykernel.net>
-> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
-> ---
->  Documentation/filesystems/overlayfs.rst |  7 ++--
->  fs/overlayfs/super.c                    | 48 +++++++++++++++++++++++++
->  2 files changed, 53 insertions(+), 2 deletions(-)
-> 
-> diff --git a/Documentation/filesystems/overlayfs.rst b/Documentation/filesystems/overlayfs.rst
-> index c9d2bf96b02d..660dbaf0b9b8 100644
-> --- a/Documentation/filesystems/overlayfs.rst
-> +++ b/Documentation/filesystems/overlayfs.rst
-> @@ -365,8 +365,8 @@ pointed by REDIRECT. This should not be possible on local system as setting
->  "trusted." xattrs will require CAP_SYS_ADMIN. But it should be possible
->  for untrusted layers like from a pen drive.
->  
-> -Note: redirect_dir={off|nofollow|follow[*]} conflicts with metacopy=on, and
-> -results in an error.
-> +Note: redirect_dir={off|nofollow|follow[*]} and nfs_export=on mount options
-> +conflict with metacopy=on, and will result in an error.
->  
->  [*] redirect_dir=follow only conflicts with metacopy=on if upperdir=... is
->  given.
-> @@ -560,6 +560,9 @@ When the NFS export feature is enabled, all directory index entries are
->  verified on mount time to check that upper file handles are not stale.
->  This verification may cause significant overhead in some cases.
->  
-> +Note: the mount options index=off,nfs_export=on are conflicting and will
-> +result in an error.
-> +
->  
->  Testsuite
->  ---------
-> diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-> index 732ad5495c92..fbd6207acdbf 100644
-> --- a/fs/overlayfs/super.c
-> +++ b/fs/overlayfs/super.c
-> @@ -470,6 +470,7 @@ static int ovl_parse_opt(char *opt, struct ovl_config *config)
->  	char *p;
->  	int err;
->  	bool metacopy_opt = false, redirect_opt = false;
-> +	bool nfs_export_opt = false, index_opt = false;
->  
->  	config->redirect_mode = kstrdup(ovl_redirect_mode_def(), GFP_KERNEL);
->  	if (!config->redirect_mode)
-> @@ -519,18 +520,22 @@ static int ovl_parse_opt(char *opt, struct ovl_config *config)
->  
->  		case OPT_INDEX_ON:
->  			config->index = true;
-> +			index_opt = true;
->  			break;
->  
->  		case OPT_INDEX_OFF:
->  			config->index = false;
-> +			index_opt = true;
->  			break;
->  
->  		case OPT_NFS_EXPORT_ON:
->  			config->nfs_export = true;
-> +			nfs_export_opt = true;
->  			break;
->  
->  		case OPT_NFS_EXPORT_OFF:
->  			config->nfs_export = false;
-> +			nfs_export_opt = true;
->  			break;
->  
->  		case OPT_XINO_ON:
-> @@ -552,6 +557,7 @@ static int ovl_parse_opt(char *opt, struct ovl_config *config)
->  
->  		case OPT_METACOPY_OFF:
->  			config->metacopy = false;
-> +			metacopy_opt = true;
+Add a new helper _set_fs_module_param for setting
+module param.
 
-Hi Amir,
+Signed-off-by: Chengguang Xu <cgxu519@mykernel.net>
+---
+ common/module | 9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-I am wondering why metacopy_opt needs to be set for OPT_METACOPY_OFF case.
-In this case config->metacopy=false and it does not conflict with
-config->nfs_export at all. So there is no need to know if metacopy=off
-was specified as mount option or not.
+diff --git a/common/module b/common/module
+index 39e4e793..148e8c8f 100644
+--- a/common/module
++++ b/common/module
+@@ -81,3 +81,12 @@ _get_fs_module_param()
+ {
+ =09cat /sys/module/${FSTYP}/parameters/${1} 2>/dev/null
+ }
++ # Set the value of a filesystem module parameter
++ # at /sys/module/$FSTYP/parameters/$PARAM
++ #
++ # Usage example:
++ #   _set_fs_module_param param value
++ _set_fs_module_param()
++{
++=09echo ${2} > /sys/module/${FSTYP}/parameters/${1} 2>/dev/null
++}
+--=20
+2.20.1
 
-Vivek
-
->  			break;
->  
->  		default:
-> @@ -601,6 +607,48 @@ static int ovl_parse_opt(char *opt, struct ovl_config *config)
->  		}
->  	}
->  
-> +	/* Resolve nfs_export -> index dependency */
-> +	if (config->nfs_export && !config->index) {
-> +		if (nfs_export_opt && index_opt) {
-> +			pr_err("conflicting options: nfs_export=on,index=off\n");
-> +			return -EINVAL;
-> +		}
-> +		if (index_opt) {
-> +			/*
-> +			 * There was an explicit index=off that resulted
-> +			 * in this conflict.
-> +			 */
-> +			pr_info("disabling nfs_export due to index=off\n");
-> +			config->nfs_export = false;
-> +		} else {
-> +			/* Automatically enable index otherwise. */
-> +			config->index = true;
-> +		}
-> +	}
-> +
-> +	/* Resolve nfs_export -> !metacopy dependency */
-> +	if (config->nfs_export && config->metacopy) {
-> +		if (nfs_export_opt && metacopy_opt) {
-> +			pr_err("conflicting options: nfs_export=on,metacopy=on\n");
-> +			return -EINVAL;
-> +		}
-> +		if (metacopy_opt) {
-> +			/*
-> +			 * There was an explicit metacopy=on that resulted
-> +			 * in this conflict.
-> +			 */
-> +			pr_info("disabling nfs_export due to metacopy=on\n");
-> +			config->nfs_export = false;
-> +		} else {
-> +			/*
-> +			 * There was an explicit nfs_export=on that resulted
-> +			 * in this conflict.
-> +			 */
-> +			pr_info("disabling metacopy due to nfs_export=on\n");
-> +			config->metacopy = false;
-> +		}
-> +	}
-> +
->  	return 0;
->  }
->  
-> -- 
-> 2.17.1
-> 
 
