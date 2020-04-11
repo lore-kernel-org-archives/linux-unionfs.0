@@ -1,144 +1,76 @@
-Return-Path: <SRS0=xMZa=52=vger.kernel.org=linux-unionfs-owner@kernel.org>
+Return-Path: <SRS0=bDi4=53=vger.kernel.org=linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D1F73C2BBFD
-	for <linux-unionfs@archiver.kernel.org>; Fri, 10 Apr 2020 08:34:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8548AC2BB86
+	for <linux-unionfs@archiver.kernel.org>; Sat, 11 Apr 2020 22:28:37 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 32E97218AC
-	for <linux-unionfs@archiver.kernel.org>; Fri, 10 Apr 2020 08:25:49 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="P53BQzQY"
+	by mail.kernel.org (Postfix) with ESMTP id 5C6512084D
+	for <linux-unionfs@archiver.kernel.org>; Sat, 11 Apr 2020 22:28:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725912AbgDJIZs (ORCPT
+        id S1726565AbgDKW2e (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Fri, 10 Apr 2020 04:25:48 -0400
-Received: from mail-wr1-f67.google.com ([209.85.221.67]:36360 "EHLO
-        mail-wr1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725858AbgDJIZr (ORCPT
+        Sat, 11 Apr 2020 18:28:34 -0400
+Received: from mail104.syd.optusnet.com.au ([211.29.132.246]:39485 "EHLO
+        mail104.syd.optusnet.com.au" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726167AbgDKW2e (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 10 Apr 2020 04:25:47 -0400
-Received: by mail-wr1-f67.google.com with SMTP id u13so998455wrp.3
-        for <linux-unionfs@vger.kernel.org>; Fri, 10 Apr 2020 01:25:47 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=from:to:cc:subject:date:message-id:in-reply-to:references;
-        bh=1XGmJomvW9JjPrEsV8CRBwFKgJMNq2h+55QpbqT6KHM=;
-        b=P53BQzQYd6g0Vpb0I/zgOZD9SRrr4konLA7ZQ8NE/v3CIiICCwVgrZmxRKqBMrAW2P
-         wU9EcjsKSjQjtNHbX5tnStHYXbHbaWIeCChmMuk/xpVIa9PAe7aR5Q8eoNquhtGyfR8I
-         x8gWii+YFcUPNIEFvmfmy35foyL/wVX/kID4/6kRECupSTy6DYOqJz+LuBMb3ZKePeXk
-         NxxnLBlLMWMKmt4DDuvbzz0WV1pBRahc0fh7JWuBdqsCrAhzrHY36OFABpNY6Wvdas33
-         22GZncj2MNwSrjtvl251ApacvYSfOvVh0whH/ZcvpXrWWl1wVwf8XCxr9V8S47e0IOxL
-         2zhA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
-         :references;
-        bh=1XGmJomvW9JjPrEsV8CRBwFKgJMNq2h+55QpbqT6KHM=;
-        b=cFl8emLPpIr0pMl7g1Ok0/SRjGEyqEAnoBmBe8SPdbPXuSL//eDztqA5dBvHg9OIwF
-         Pwi7cVa8u7SCY8X0NApmCRJOe3XuNt/gT+uV9z31Eofd/oZs6f6KAo7HHuBWV8Gch1cm
-         idob7grvtSMj7K1ErjnGIV4JzNsxeZrf9JgSerAsriXt9SYeHAkKQ4CLygbE5B5y91bI
-         R0EnXtAXROAe2Y8kIaxwilDdgGJrZJuqNaaLQh/aIqhto6x7o5vu2he7YPtStupcbRbo
-         G6w7RJ+wt+7AGnWVBROywqYoZ0Z7wb8k92vs24nnhXrz09CIJ2X+RaR++oy+xGo6upO2
-         Mv9w==
-X-Gm-Message-State: AGi0PuZaUMqIAcXU/ZyA2ElkQ5rfXUeiBuIzsyHcCNNENuuKE84y6b8q
-        sqFGJRoxic45jn4dcyc8pjsHeXcM
-X-Google-Smtp-Source: APiQypKmQIM+G4v8uz4fDzIFS7mKprLBv4NdkOnM81uSUOUbn3EValXLxNieCWX3FKxi4K/aurbUMg==
-X-Received: by 2002:a5d:694a:: with SMTP id r10mr3455247wrw.228.1586507147327;
-        Fri, 10 Apr 2020 01:25:47 -0700 (PDT)
-Received: from localhost.localdomain ([141.226.12.123])
-        by smtp.gmail.com with ESMTPSA id b7sm1710327wrn.67.2020.04.10.01.25.46
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 10 Apr 2020 01:25:46 -0700 (PDT)
-From:   Amir Goldstein <amir73il@gmail.com>
-To:     Miklos Szeredi <miklos@szeredi.hu>
-Cc:     Chengguang Xu <cgxu519@mykernel.net>, linux-unionfs@vger.kernel.org
-Subject: [PATCH 1/3] ovl: cleanup non-empty directories in ovl_indexdir_cleanup()
-Date:   Fri, 10 Apr 2020 11:25:37 +0300
-Message-Id: <20200410082539.23627-2-amir73il@gmail.com>
-X-Mailer: git-send-email 2.17.1
-In-Reply-To: <20200410082539.23627-1-amir73il@gmail.com>
-References: <20200410082539.23627-1-amir73il@gmail.com>
+        Sat, 11 Apr 2020 18:28:34 -0400
+Received: from dread.disaster.area (pa49-180-167-53.pa.nsw.optusnet.com.au [49.180.167.53])
+        by mail104.syd.optusnet.com.au (Postfix) with ESMTPS id B113558B984;
+        Sun, 12 Apr 2020 08:28:30 +1000 (AEST)
+Received: from dave by dread.disaster.area with local (Exim 4.92.3)
+        (envelope-from <david@fromorbit.com>)
+        id 1jNOc1-0005AG-Az; Sun, 12 Apr 2020 08:28:29 +1000
+Date:   Sun, 12 Apr 2020 08:28:29 +1000
+From:   Dave Chinner <david@fromorbit.com>
+To:     Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
+Cc:     linux-fsdevel@vger.kernel.org, Miklos Szeredi <miklos@szeredi.hu>,
+        linux-kernel@vger.kernel.org,
+        Alexander Viro <viro@zeniv.linux.org.uk>,
+        linux-unionfs@vger.kernel.org,
+        Dmitry Monakhov <dmtrmonakhov@yandex-team.ru>
+Subject: Re: [PATCH] ovl: skip overlayfs superblocks at global sync
+Message-ID: <20200411222829.GO10737@dread.disaster.area>
+References: <158642098777.5635.10501704178160375549.stgit@buzz>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <158642098777.5635.10501704178160375549.stgit@buzz>
+User-Agent: Mutt/1.10.1 (2018-07-13)
+X-Optus-CM-Score: 0
+X-Optus-CM-Analysis: v=2.3 cv=W5xGqiek c=1 sm=1 tr=0
+        a=2xmR08VVv0jSFCMMkhec0Q==:117 a=2xmR08VVv0jSFCMMkhec0Q==:17
+        a=jpOVt7BSZ2e4Z31A5e1TngXxSK0=:19 a=kj9zAlcOel0A:10 a=cl8xLZFz6L8A:10
+        a=7-415B0cAAAA:8 a=haEqjSr0uQTM00mUMRMA:9 a=CjuIK1q_8ugA:10
+        a=biEYGPWJfzWAr4FL6Ov7:22
 Sender: linux-unionfs-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-Teach ovl_indexdir_cleanup() to remove temp directories containing
-whiteouts to prepare for using index dir instead of work dir for
-removing merge directories.
+On Thu, Apr 09, 2020 at 11:29:47AM +0300, Konstantin Khlebnikov wrote:
+> Stacked filesystems like overlayfs has no own writeback, but they have to
+> forward syncfs() requests to backend for keeping data integrity.
+> 
+> During global sync() each overlayfs instance calls method ->sync_fs()
+> for backend although it itself is in global list of superblocks too.
+> As a result one syscall sync() could write one superblock several times
+> and send multiple disk barriers.
+> 
+> This patch adds flag SB_I_SKIP_SYNC into sb->sb_iflags to avoid that.
 
-Signed-off-by: Amir Goldstein <amir73il@gmail.com>
----
- fs/overlayfs/overlayfs.h |  4 ++--
- fs/overlayfs/readdir.c   | 13 +++++++------
- 2 files changed, 9 insertions(+), 8 deletions(-)
+Why wouldn't you just remove the ->sync_fs method from overlay?
 
-diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-index e6f3670146ed..e00b1ff6dea9 100644
---- a/fs/overlayfs/overlayfs.h
-+++ b/fs/overlayfs/overlayfs.h
-@@ -394,8 +394,8 @@ void ovl_cleanup_whiteouts(struct dentry *upper, struct list_head *list);
- void ovl_cache_free(struct list_head *list);
- void ovl_dir_cache_free(struct inode *inode);
- int ovl_check_d_type_supported(struct path *realpath);
--void ovl_workdir_cleanup(struct inode *dir, struct vfsmount *mnt,
--			 struct dentry *dentry, int level);
-+int ovl_workdir_cleanup(struct inode *dir, struct vfsmount *mnt,
-+			struct dentry *dentry, int level);
- int ovl_indexdir_cleanup(struct ovl_fs *ofs);
- 
- /* inode.c */
-diff --git a/fs/overlayfs/readdir.c b/fs/overlayfs/readdir.c
-index e452ff7d583d..d6b601caf122 100644
---- a/fs/overlayfs/readdir.c
-+++ b/fs/overlayfs/readdir.c
-@@ -1071,14 +1071,13 @@ static void ovl_workdir_cleanup_recurse(struct path *path, int level)
- 	ovl_cache_free(&list);
- }
- 
--void ovl_workdir_cleanup(struct inode *dir, struct vfsmount *mnt,
-+int ovl_workdir_cleanup(struct inode *dir, struct vfsmount *mnt,
- 			 struct dentry *dentry, int level)
- {
- 	int err;
- 
- 	if (!d_is_dir(dentry) || level > 1) {
--		ovl_cleanup(dir, dentry);
--		return;
-+		return ovl_cleanup(dir, dentry);
- 	}
- 
- 	err = ovl_do_rmdir(dir, dentry);
-@@ -1088,8 +1087,10 @@ void ovl_workdir_cleanup(struct inode *dir, struct vfsmount *mnt,
- 		inode_unlock(dir);
- 		ovl_workdir_cleanup_recurse(&path, level + 1);
- 		inode_lock_nested(dir, I_MUTEX_PARENT);
--		ovl_cleanup(dir, dentry);
-+		err = ovl_cleanup(dir, dentry);
- 	}
-+
-+	return err;
- }
- 
- int ovl_indexdir_cleanup(struct ovl_fs *ofs)
-@@ -1132,8 +1133,8 @@ int ovl_indexdir_cleanup(struct ovl_fs *ofs)
- 		if (!err) {
- 			goto next;
- 		} else if (err == -ESTALE) {
--			/* Cleanup stale index entries */
--			err = ovl_cleanup(dir, index);
-+			/* Cleanup stale index entries and leftover whiteouts */
-+			err = ovl_workdir_cleanup(dir, path.mnt, index, 1);
- 		} else if (err != -ENOENT) {
- 			/*
- 			 * Abort mount to avoid corrupting the index if
+I mean, if you don't need the filesystem to do anything special for
+one specific data integrity sync_fs call, you don't need it for any
+of them, yes?
+
+-Dave.
 -- 
-2.17.1
-
+Dave Chinner
+david@fromorbit.com
