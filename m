@@ -2,131 +2,81 @@ Return-Path: <SRS0=WHUq=54=vger.kernel.org=linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	UNPARSEABLE_RELAY autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 95B4FC2BB85
-	for <linux-unionfs@archiver.kernel.org>; Sun, 12 Apr 2020 09:40:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8BA7EC2BA2B
+	for <linux-unionfs@archiver.kernel.org>; Sun, 12 Apr 2020 11:20:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 6FBD120708
-	for <linux-unionfs@archiver.kernel.org>; Sun, 12 Apr 2020 09:40:19 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="oLMyKEkC"
+	by mail.kernel.org (Postfix) with ESMTP id 6AC87206E9
+	for <linux-unionfs@archiver.kernel.org>; Sun, 12 Apr 2020 11:20:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726983AbgDLJkQ (ORCPT
+        id S1726955AbgDLLU1 (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Sun, 12 Apr 2020 05:40:16 -0400
-Received: from mail-io1-f66.google.com ([209.85.166.66]:44265 "EHLO
-        mail-io1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726043AbgDLJkQ (ORCPT
+        Sun, 12 Apr 2020 07:20:27 -0400
+Received: from out20-62.mail.aliyun.com ([115.124.20.62]:33617 "EHLO
+        out20-62.mail.aliyun.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726943AbgDLLU1 (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Sun, 12 Apr 2020 05:40:16 -0400
-Received: by mail-io1-f66.google.com with SMTP id h6so6427256iok.11;
-        Sun, 12 Apr 2020 02:40:15 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=DudAws+5XXDrWI0GuFKZK0uggxlFAK8zrjJOHTOzHvQ=;
-        b=oLMyKEkCm7I/W/A1JgYH0WtXqiBHsTY1omrWGoWeTSLEN3CRY+SOrCzgj+j8dXbT3R
-         3V4g+VDYJ18ht3BvE76CVfsI9aLy76I2/saDHYI7TAhDY+aCf1QXeuoQj1ierGjq6yUs
-         6NQE12G79t/FQbSZxu5L7qhGKRdBhiaUilKHwcCkeiySozNDg8lYnZjgQrtJvlDnddT6
-         5lN9bG180nss/feExrMPMJyu1Zky5KVreWqzrGRNCg/KpPYRpunMIP2rzSN7Zwd+vEEv
-         jVTerEys3qTK+pzUep1SHCOz4GFY/BEi4vIKQGIetWtTLJpJKPeSuOg2/3EmE7j1Em/i
-         Z6Kw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=DudAws+5XXDrWI0GuFKZK0uggxlFAK8zrjJOHTOzHvQ=;
-        b=CMCm94W+N1aTYLnPG2SsdfB+cYDdO1hrAU/UGJiIGIT+u8BV5EP7RvfqOdcJEXL/N7
-         tdJXZEkpIW/B1RytV4gKqBc/2BCYRfCGni9XrhgfaW3jj1863uUiQXAAvfFp+XuQ+gXC
-         EXAI/1kUVxZheQmPhQtJzF80lXHT8+HiswyAN9g80NNxlvVdbcf0+Rg54N+rkEkBRhyT
-         vJXHK7Ia8Od/O3zAEME0anGGSXgvMRH+tTNC+KgWobPCz7vMkwj6dxyjLAfQxVOHb6TC
-         1pfr2mZjpmvyPluExs8hccdvsJdYniKrXcmDL7F7L+dRL4xDuGuHKfdb4RaLjSZNY9xu
-         nzhg==
-X-Gm-Message-State: AGi0PuayF7XyUEYYFp1oD8ReCUidUjmJVD0Kbuas6kPdKhswlwjz8z2S
-        HlV/dqQfqbCUWF+cWDObkwUBcN5L00bk3bvlFCc=
-X-Google-Smtp-Source: APiQypKgib8dZi5NZWvrgJ3IJzahp49Bg5kAH7kyRnQiEqTUnZAvY9sH5N9xMqe9W2wkw6a4Vie0NTHrFFJZfCswvCI=
-X-Received: by 2002:a6b:cd4a:: with SMTP id d71mr11597681iog.5.1586684415253;
- Sun, 12 Apr 2020 02:40:15 -0700 (PDT)
+        Sun, 12 Apr 2020 07:20:27 -0400
+X-Alimail-AntiSpam: AC=CONTINUE;BC=0.1061301|-1;CH=green;DM=|CONTINUE|false|;DS=CONTINUE|ham_regular_dialog|0.0162954-0.00282821-0.980876;FP=0|0|0|0|0|-1|-1|-1;HT=e02c03309;MF=guan@eryu.me;NM=1;PH=DS;RN=6;RT=6;SR=0;TI=SMTPD_---.HFDh.ST_1586690424;
+Received: from localhost(mailfrom:guan@eryu.me fp:SMTPD_---.HFDh.ST_1586690424)
+          by smtp.aliyun-inc.com(10.147.41.138);
+          Sun, 12 Apr 2020 19:20:24 +0800
+Date:   Sun, 12 Apr 2020 19:21:21 +0800
+From:   Eryu Guan <guan@eryu.me>
+To:     Chengguang Xu <cgxu519@mykernel.net>
+Cc:     guaneryu@gmail.com, fstests@vger.kernel.org,
+        linux-unionfs@vger.kernel.org, miklos@szeredi.hu,
+        amir73il@gmail.com
+Subject: Re: [PATCH 1/2] common: add a helper for setting module param
+Message-ID: <20200412112121.GB3923113@desktop>
+References: <20200410012059.27210-1-cgxu519@mykernel.net>
 MIME-Version: 1.0
-References: <00000000000048518b05a2fef23a@google.com> <20200411161439.GE21484@bombadil.infradead.org>
- <20200412091713.B7282A404D@d06av23.portsmouth.uk.ibm.com>
-In-Reply-To: <20200412091713.B7282A404D@d06av23.portsmouth.uk.ibm.com>
-From:   Amir Goldstein <amir73il@gmail.com>
-Date:   Sun, 12 Apr 2020 12:40:04 +0300
-Message-ID: <CAOQ4uxg0Fmh58bvTKFyHDhAsmCtgbxpHr+mHYY=O9Wcuo_1JZQ@mail.gmail.com>
-Subject: Re: WARNING in iomap_apply
-To:     Ritesh Harjani <riteshh@linux.ibm.com>
-Cc:     syzbot <syzbot+77fa5bdb65cc39711820@syzkaller.appspotmail.com>,
-        Ext4 Developers List <linux-ext4@vger.kernel.org>,
-        overlayfs <linux-unionfs@vger.kernel.org>,
-        Matthew Wilcox <willy@infradead.org>,
-        "Darrick J. Wong" <darrick.wong@oracle.com>,
-        Christoph Hellwig <hch@infradead.org>, Jan Kara <jack@suse.cz>,
-        linux-fsdevel <linux-fsdevel@vger.kernel.org>,
-        linux-kernel <linux-kernel@vger.kernel.org>,
-        linux-xfs <linux-xfs@vger.kernel.org>,
-        syzkaller-bugs <syzkaller-bugs@googlegroups.com>,
-        Theodore Tso <tytso@mit.edu>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20200410012059.27210-1-cgxu519@mykernel.net>
 Sender: linux-unionfs-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Sun, Apr 12, 2020 at 12:17 PM Ritesh Harjani <riteshh@linux.ibm.com> wrote:
->
->
->
-> On 4/11/20 9:44 PM, Matthew Wilcox wrote:
-> > On Sat, Apr 11, 2020 at 12:39:13AM -0700, syzbot wrote:
-> >> The bug was bisected to:
-> >>
-> >> commit d3b6f23f71670007817a5d59f3fbafab2b794e8c
-> >> Author: Ritesh Harjani <riteshh@linux.ibm.com>
-> >> Date:   Fri Feb 28 09:26:58 2020 +0000
-> >>
-> >>      ext4: move ext4_fiemap to use iomap framework
-> >>
-> >> bisection log:  https://syzkaller.appspot.com/x/bisect.txt?x=16c62a57e00000
-> >> final crash:    https://syzkaller.appspot.com/x/report.txt?x=15c62a57e00000
-> >> console output: https://syzkaller.appspot.com/x/log.txt?x=11c62a57e00000
-> >>
-> >> IMPORTANT: if you fix the bug, please add the following tag to the commit:
-> >> Reported-by: syzbot+77fa5bdb65cc39711820@syzkaller.appspotmail.com
-> >> Fixes: d3b6f23f7167 ("ext4: move ext4_fiemap to use iomap framework")
-> >>
-> >> ------------[ cut here ]------------
-> >> WARNING: CPU: 0 PID: 7023 at fs/iomap/apply.c:51 iomap_apply+0xa0c/0xcb0 fs/iomap/apply.c:51
-> >
-> > This is:
-> >
-> >          if (WARN_ON(iomap.length == 0))
-> >                  return -EIO;
-> >
-> > and the call trace contains ext4_fiemap() so the syzbot bisection looks
-> > correct.
->
-> I think I know what could be going wrong here.
->
-> So the problem happens when we have overlayfs mounted on top of ext4.
-> Now overlayfs might be supporting max logical filesize which is more
-> than what ext4 could support (i.e. sb->s_maxbytes for overlayfs must
-> be greater than compared to ext4). So that's why the check in func
-> ioctl_fiemap -> fiemap_check_ranges() couldn't truncate to logical
-> filesize which the actual underlying filesystem supports.
->
-> @All,
-> Do you think we should make overlayfs also check for
-> fiemap_check_ranges()? Not as part of this fix, but as a later
-> addition to overlayfs? Please let me know, I could also make that patch.
->
+On Fri, Apr 10, 2020 at 09:20:58AM +0800, Chengguang Xu wrote:
+> Add a new helper _set_fs_module_param for setting
+> module param.
+> 
+> Signed-off-by: Chengguang Xu <cgxu519@mykernel.net>
 
-Yes, I think that would be correct.
+I think this could go with the test, so a single patch introduces both
+test case and the needed helper functions, and usually that's easier to
+review, as we could know how the helper be used from the context.
 
 Thanks,
-Amir.
+Eryu
+
+> ---
+>  common/module | 9 +++++++++
+>  1 file changed, 9 insertions(+)
+> 
+> diff --git a/common/module b/common/module
+> index 39e4e793..148e8c8f 100644
+> --- a/common/module
+> +++ b/common/module
+> @@ -81,3 +81,12 @@ _get_fs_module_param()
+>  {
+>  	cat /sys/module/${FSTYP}/parameters/${1} 2>/dev/null
+>  }
+> + # Set the value of a filesystem module parameter
+> + # at /sys/module/$FSTYP/parameters/$PARAM
+> + #
+> + # Usage example:
+> + #   _set_fs_module_param param value
+> + _set_fs_module_param()
+> +{
+> +	echo ${2} > /sys/module/${FSTYP}/parameters/${1} 2>/dev/null
+> +}
+> -- 
+> 2.20.1
+> 
+> 
