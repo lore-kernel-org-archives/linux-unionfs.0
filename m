@@ -6,60 +6,62 @@ X-Spam-Status: No, score=-3.9 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,
 	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A9317C2BB55
-	for <linux-unionfs@archiver.kernel.org>; Mon, 13 Apr 2020 01:52:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 153DFC2BB55
+	for <linux-unionfs@archiver.kernel.org>; Mon, 13 Apr 2020 01:57:58 +0000 (UTC)
 Received: from vger.kernel.org (unknown [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 096C52064A
-	for <linux-unionfs@archiver.kernel.org>; Mon, 13 Apr 2020 01:52:18 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9F0F720709
+	for <linux-unionfs@archiver.kernel.org>; Mon, 13 Apr 2020 01:57:57 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=mykernel.net header.i=cgxu519@mykernel.net header.b="VgKEtzjc"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 096C52064A
+	dkim=pass (1024-bit key) header.d=mykernel.net header.i=cgxu519@mykernel.net header.b="ampbARAo"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 9F0F720709
 Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=mykernel.net
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-unionfs-owner@vger.kernel.org
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727073AbgDMBwR (ORCPT
+        id S1727074AbgDMB54 (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Sun, 12 Apr 2020 21:52:17 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.18]:34540 "EHLO
+        Sun, 12 Apr 2020 21:57:56 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.18]:35476 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726989AbgDMBwQ (ORCPT
+        with ESMTP id S1726989AbgDMB54 (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Sun, 12 Apr 2020 21:52:16 -0400
+        Sun, 12 Apr 2020 21:57:56 -0400
 Received: from sender2-pp-o92.zoho.com.cn (sender2-pp-o92.zoho.com.cn [163.53.93.251])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 31A55C0A3BE0;
-        Sun, 12 Apr 2020 18:52:12 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1586742712; cv=none; 
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 316E0C0A3BE0;
+        Sun, 12 Apr 2020 18:57:56 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1586743058; cv=none; 
         d=zoho.com.cn; s=zohoarc; 
-        b=WzsZXY11RjrPgTVbLMvH1NQ+HGu0EZfRT1FjBrnZWaNOxi7vTTx3Isd3kCzIXV9i+nkHTYPYwVKbxRXOJV65GONWoUNankydu559OBmB6lUcGXxRttank5SgaWMdyPeJRDdCLy6VRnqBc+FgwK3bZniYbNKe7hUmJ0I/TeneAMs=
+        b=aIlliW9W0fKr5EnqbsKTKi50aQNXGi7u8sm34u4HB/Vj7ol1jfKtL3govKD9BERPKZlymdngYsg8piCvv68kHT0MJ51Wx/+qJHLrBBjNqvNnQbjCWjKjq7VG1xIWGCbfNCrISNr6L3y1GGCJjV1doRjYiG0Bzyng5sKE24rSasU=
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=zoho.com.cn; s=zohoarc; 
-        t=1586742712; h=Content-Type:Content-Transfer-Encoding:Cc:Date:From:In-Reply-To:MIME-Version:Message-ID:Reply-To:References:Subject:To; 
-        bh=/wA5Spn5Id2B1+lvV6ANe4za/RAtTZQWWXSmmtoGsYo=; 
-        b=jZ1kHqbKqQWHi5wZB1x7s+ZwUjRqQxGp6o8+dYvZ5cluZ2/57IUZNHf6t2yQGsMLVeoIwElJ6Aobsa2P587PSAHu5BcfrT/7vcXFqVqdJUCWZau0xzbY7mhRG2/N8VhF9bJ5H9bzw6fJAPQSh4kOlAP7ylaMaXUAFqGWLQqiAtE=
+        t=1586743058; h=Content-Type:Content-Transfer-Encoding:Cc:Date:From:In-Reply-To:MIME-Version:Message-ID:Reply-To:References:Subject:To; 
+        bh=rwLMhlu7mTyq35ivgUhYINy1wAAph3yfIFSBpqytdxY=; 
+        b=WL37xa3ZpdO7o8tc4uIzD/z36jDysum0qMUth3Aoa0byDWnFVMkXeTpCist6JOwzZNMJ+oXc1IYhegRzxkmyXwfmKnASq1DjLbp5wZBjFX2rwU7mz3U10hhkhKxAQIbLKOds8RjXNhj6gRy7V/ql5bcP+9ZoBGkD3OWqH8kZFYU=
 ARC-Authentication-Results: i=1; mx.zoho.com.cn;
         dkim=pass  header.i=mykernel.net;
         spf=pass  smtp.mailfrom=cgxu519@mykernel.net;
         dmarc=pass header.from=<cgxu519@mykernel.net> header.from=<cgxu519@mykernel.net>
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1586742712;
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1586743058;
         s=zohomail; d=mykernel.net; i=cgxu519@mykernel.net;
         h=Date:From:Reply-To:To:Cc:Message-ID:In-Reply-To:References:Subject:MIME-Version:Content-Type:Content-Transfer-Encoding;
-        bh=/wA5Spn5Id2B1+lvV6ANe4za/RAtTZQWWXSmmtoGsYo=;
-        b=VgKEtzjc1bteZBU6A8TrsoFaGTi5aT+I1T2pU2L/O882VjbtfVlVGcPudqkS5fYG
-        zn1eVI/hJW4xi6b5x09jOBpgCdftmQDn9qQTK2LTEqlPHqirIXEWL4TGvWqHCXGedFb
-        giuUHnJpcGaiiYccYJp+exSXJz6Nv6tMLPnX+lPU=
+        bh=rwLMhlu7mTyq35ivgUhYINy1wAAph3yfIFSBpqytdxY=;
+        b=ampbARAoq8mZ+d04SdKWq1rFJ9CshWr6yyfheQp0vrBhDBAYtbamaJFDD9RlQ9CK
+        1Ag99QTZj8lIEIS12bsSEb24zh5B5yhVVTzlR0eia9ArDrRJ7apECtQ2+JS00QGsZji
+        i9oAKafQBoFezaOgI82L2pK0jFh+XYPmJe6DqJJU=
 Received: from mail.baihui.com by mx.zoho.com.cn
-        with SMTP id 1586742711527496.54214749612606; Mon, 13 Apr 2020 09:51:51 +0800 (CST)
-Date:   Mon, 13 Apr 2020 09:51:51 +0800
+        with SMTP id 1586743056885524.5832889150215; Mon, 13 Apr 2020 09:57:36 +0800 (CST)
+Date:   Mon, 13 Apr 2020 09:57:36 +0800
 From:   Chengguang Xu <cgxu519@mykernel.net>
 Reply-To: cgxu519@mykernel.net
-To:     "Eryu Guan" <guan@eryu.me>
-Cc:     "guaneryu" <guaneryu@gmail.com>,
+To:     "Amir Goldstein" <amir73il@gmail.com>, "Eryu Guan" <guan@eryu.me>
+Cc:     "Eryu Guan" <guaneryu@gmail.com>,
         "fstests" <fstests@vger.kernel.org>,
-        "linux-unionfs" <linux-unionfs@vger.kernel.org>,
-        "miklos" <miklos@szeredi.hu>, "amir73il" <amir73il@gmail.com>
-Message-ID: <171713c54e3.12c6e9d8e4849.2466630459143840888@mykernel.net>
-In-Reply-To: <20200412112121.GB3923113@desktop>
-References: <20200410012059.27210-1-cgxu519@mykernel.net> <20200412112121.GB3923113@desktop>
-Subject: Re: [PATCH 1/2] common: add a helper for setting module param
+        "overlayfs" <linux-unionfs@vger.kernel.org>,
+        "Miklos Szeredi" <miklos@szeredi.hu>
+Message-ID: <171714199f2.e3584df34868.1553757472263093422@mykernel.net>
+In-Reply-To: <CAOQ4uxgcogXOjT9VGTttkrrbHk3tWm88Qa-MeZ88-kt8uwRmYA@mail.gmail.com>
+References: <20200410012059.27210-1-cgxu519@mykernel.net> <20200410012059.27210-2-cgxu519@mykernel.net>
+ <20200412112734.GC3923113@desktop> <CAOQ4uxgcogXOjT9VGTttkrrbHk3tWm88Qa-MeZ88-kt8uwRmYA@mail.gmail.com>
+Subject: Re: [PATCH 2/2] overlay/072: test for sharing inode with whiteout
+ files
 MIME-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
@@ -71,22 +73,53 @@ Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
- ---- =E5=9C=A8 =E6=98=9F=E6=9C=9F=E6=97=A5, 2020-04-12 19:20:34 Eryu Guan =
-<guan@eryu.me> =E6=92=B0=E5=86=99 ----
- > On Fri, Apr 10, 2020 at 09:20:58AM +0800, Chengguang Xu wrote:
- > > Add a new helper _set_fs_module_param for setting
- > > module param.
- > >=20
- > > Signed-off-by: Chengguang Xu <cgxu519@mykernel.net>
+ ---- =E5=9C=A8 =E6=98=9F=E6=9C=9F=E6=97=A5, 2020-04-12 19:34:41 Amir Golds=
+tein <amir73il@gmail.com> =E6=92=B0=E5=86=99 ----
+ > On Sun, Apr 12, 2020 at 2:26 PM Eryu Guan <guan@eryu.me> wrote:
+ > >
+ > > On Fri, Apr 10, 2020 at 09:20:59AM +0800, Chengguang Xu wrote:
+ > > > This is a test for whiteout inode sharing feature.
+ > > >
+ > > > Signed-off-by: Chengguang Xu <cgxu519@mykernel.net>
+ > > > ---
+ > > > Hi Eryu,
+ > > >
+ > > > Kernel patch of this feature is still in review but I hope to merge
+ > >
+ > > If this case tests a new & unmerged feature, I'd wait for the kernel
+ > > patch land in first, or at least the maintainer of the subsystem of th=
+e
+ > > kernel acks that the feature will be in kernel, just that the patch
+ > > itself needs some improvements at the moment.
+ > >
+ > > As there were cases that I merged a case that aimed to test a new
+ > > feature or a new behavior, but the kernel patch was dropped eventually=
+,
+ > > and the case became broken.
+ > >
+ > > > test case first, so that we can check the correctness in a convenien=
+t
+ > > > way. The test case will carefully check new module param and skip th=
+e
+ > > > test if the param does not exist.
+ > >
+ > > Or you could provide a personal repo that contains the case, so kernel
+ > > maintainers & reviewers could verify the feature with that repo?
+ > >
  >=20
- > I think this could go with the test, so a single patch introduces both
- > test case and the needed helper functions, and usually that's easier to
- > review, as we could know how the helper be used from the context.
+ > FWIW, I am glad the test was posted early for review as a proof of
+ > what was tested, but no reason to merge it before the kernel patch.
+ > A personal repo link and/or the test in a single patch with the helper
+ > should be good enough for reviewers.
  >=20
 
-Hi Eryu,
+Hi Eryu, Amir
 
-OK, I'll put it into test patch in V2.
+I got it, I will post V2 with all fixes in a single patch.
+
 
 Thanks,
 cgxu
+
+
+
