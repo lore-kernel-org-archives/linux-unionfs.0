@@ -1,173 +1,272 @@
-Return-Path: <SRS0=sf8C=55=vger.kernel.org=linux-unionfs-owner@kernel.org>
+Return-Path: <SRS0=sqyI=56=vger.kernel.org=linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.9 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4DB9FC2BA19
-	for <linux-unionfs@archiver.kernel.org>; Mon, 13 Apr 2020 12:27:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 73C76C2BA2B
+	for <linux-unionfs@archiver.kernel.org>; Tue, 14 Apr 2020 02:32:01 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 250C5206DA
-	for <linux-unionfs@archiver.kernel.org>; Mon, 13 Apr 2020 12:27:24 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1C8502072A
+	for <linux-unionfs@archiver.kernel.org>; Tue, 14 Apr 2020 02:32:01 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="flsy3bWG"
+	dkim=pass (1024-bit key) header.d=mykernel.net header.i=cgxu519@mykernel.net header.b="dZM81xq4"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729458AbgDMMTo (ORCPT
+        id S2404126AbgDNCcA (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Mon, 13 Apr 2020 08:19:44 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52868 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-FAIL-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1729455AbgDMMTn (ORCPT
+        Mon, 13 Apr 2020 22:32:00 -0400
+Received: from sender2-of-o52.zoho.com.cn ([163.53.93.247]:21111 "EHLO
+        sender2-of-o52.zoho.com.cn" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1728787AbgDNCb7 (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 13 Apr 2020 08:19:43 -0400
-Received: from mail-io1-xd42.google.com (mail-io1-xd42.google.com [IPv6:2607:f8b0:4864:20::d42])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 68CFEC03BC87;
-        Mon, 13 Apr 2020 05:14:30 -0700 (PDT)
-Received: by mail-io1-xd42.google.com with SMTP id f3so9109015ioj.1;
-        Mon, 13 Apr 2020 05:14:30 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=pX60CIZDxTJDVxtmLuIDhxnCYtVvlBGG1nwF3uPB17c=;
-        b=flsy3bWGzRZU6MzfPzBxzboSCDFWdZzz7s9N6LL1RFoporjfmV0Vf0H27fRKAhpSo1
-         UlK0KMkD/oq8v2KA0pK2kTBDhlJqVCnQPVsKe36mvAeemEEZo2dMnugq3WW7wMoviM+B
-         iv2E/OBJO6dLeT4cgtXeYtCoiAdS38GYMPUObJy/kmfbJG7Th3WLSRM6CmMJOcZ3Mqxj
-         FA0fEDm2hSL1kYOrDI57okpoSsE2TjOC6LtVUHQKp0tHda8kv9bhbuaYeI0Kqshi6bnh
-         Fc0G13+TutQzKwxKcNRwNnAa15bt4RuVZV3onnFdSDv3YKV4Dmw/ZP6A47rmnHAQIDzD
-         7x2Q==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=pX60CIZDxTJDVxtmLuIDhxnCYtVvlBGG1nwF3uPB17c=;
-        b=MEMktLtgX+o//n8i2w8Z7VURHAuu6ja0llJwzXm/LttVGdi/wTDinkeAR0TcrH4qk6
-         IA/GWiDl7N2/wIrA4kCKiiPoUN2EXHAh8BrascD1lg3Zio/+r8eyvXJhpmW6gshedfx4
-         c8mR2A0d8wF87WdeyY6qB8Fde6G1OhwCw85UaANKLbiv1sE0cL38SHl6I2YeOoLV1SoG
-         GI9dF1wL2M1mqpsOarDYHTBUZfZEhPugYABI0iHZNO+h88rG1ITEM4a9nzir/RraJ4as
-         LHv9FBjHSFNYP1MQkJD2Pb4i3ttszZnRhcEYGxSHmNcoUPWBXHh8mFk12j2bQ8TuhnJs
-         3rlg==
-X-Gm-Message-State: AGi0PuYj83gBYbfgbwXx/7kmaRkkT7oMuzSk+ZgyYX6JNBfLGr68XG25
-        zJXNDCns1vgoRLkX27Ib4xl+Bbc3bo8LlFi3Ops=
-X-Google-Smtp-Source: APiQypK8ejY4GNjcEZTFDQ9m9vbH3DKpjUqNwtMHYKQb3L3Eut8B0R5eVefQiOvQK6Pf3dMviUxYTpjTw2Hug14rJfk=
-X-Received: by 2002:a02:4b03:: with SMTP id q3mr15321203jaa.30.1586780069759;
- Mon, 13 Apr 2020 05:14:29 -0700 (PDT)
+        Mon, 13 Apr 2020 22:31:59 -0400
+ARC-Seal: i=1; a=rsa-sha256; t=1586831494; cv=none; 
+        d=zoho.com.cn; s=zohoarc; 
+        b=mGx8ZWJFLudppO+rLehFTuK9/bOek4n0erhz1z9vTPmxe2rO+F22pvojq/KBeRSmG4CfFsJTzRRaYGxw95V9xxCsWRqbT24sAxOxOMrYubZIguuedSK5GT/G7bWQsjhBUA3IKcfQ9xqzdKAqF52vDnRTzRusZYQPKsaZNhXmPZk=
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=zoho.com.cn; s=zohoarc; 
+        t=1586831494; h=Content-Type:Content-Transfer-Encoding:Cc:Date:From:MIME-Version:Message-ID:Subject:To; 
+        bh=jmJ3DZa3AzQqDsTyJxHEVcDXa7r2+k89362b/f+DFgU=; 
+        b=U/SXurY7w9iGRP3WydMEMJmKmLmSwIb9NpaO+mQVHJZwnVXR8e26Nubal7IEAPw6vojJE3dbN92vWoh8FHXEC7mCEe+i8dBkmscPGVtGbgm5da3c1c1aOGG5aeT27yqaNNlY7pemsp/nXucsU27RRmLU1BccgpZ++qOGdwxyzY0=
+ARC-Authentication-Results: i=1; mx.zoho.com.cn;
+        dkim=pass  header.i=mykernel.net;
+        spf=pass  smtp.mailfrom=cgxu519@mykernel.net;
+        dmarc=pass header.from=<cgxu519@mykernel.net> header.from=<cgxu519@mykernel.net>
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1586831494;
+        s=zohomail; d=mykernel.net; i=cgxu519@mykernel.net;
+        h=From:To:Cc:Message-ID:Subject:Date:MIME-Version:Content-Transfer-Encoding:Content-Type;
+        bh=jmJ3DZa3AzQqDsTyJxHEVcDXa7r2+k89362b/f+DFgU=;
+        b=dZM81xq4Z9hWs+/snzO5whajekWyQc84MkPhV0s9C8Vg8xwupcTgbXJd7jhpjdmo
+        DKeDZRv3XOlrMcWPosW/iRCn5H5YIuI+3sVha+NI+neYS2MdcOnB7TdxfN0oOwaybnw
+        A0FZVOHF8xmK21aZQ4YEL9RovYC8GjvevvkzVlJs=
+Received: from localhost.localdomain (218.18.229.179 [218.18.229.179]) by mx.zoho.com.cn
+        with SMTPS id 1586831491350315.98897441673193; Tue, 14 Apr 2020 10:31:31 +0800 (CST)
+From:   Chengguang Xu <cgxu519@mykernel.net>
+To:     guaneryu@gmail.com
+Cc:     fstests@vger.kernel.org, linux-unionfs@vger.kernel.org,
+        miklos@szeredi.hu, amir73il@gmail.com,
+        Chengguang Xu <cgxu519@mykernel.net>
+Message-ID: <20200414023105.28261-1-cgxu519@mykernel.net>
+Subject: [PATCH v2] overlay/072: test for whiteout inode sharing
+Date:   Tue, 14 Apr 2020 10:31:05 +0800
+X-Mailer: git-send-email 2.20.1
 MIME-Version: 1.0
-References: <20200410012059.27210-1-cgxu519@mykernel.net> <20200410012059.27210-2-cgxu519@mykernel.net>
- <CAOQ4uxghdvj9QVJ3DQ3g1p0hbvz5mfMoxgoEAKyQAf4v78p2YA@mail.gmail.com> <17173093df3.f6003c6d6224.1796766948671904062@mykernel.net>
-In-Reply-To: <17173093df3.f6003c6d6224.1796766948671904062@mykernel.net>
-From:   Amir Goldstein <amir73il@gmail.com>
-Date:   Mon, 13 Apr 2020 15:14:18 +0300
-Message-ID: <CAOQ4uxhKU8bgBEXXKZ91dzM4JFFKaM+DzxJ=+D6o9FDeDy4syQ@mail.gmail.com>
-Subject: Re: [PATCH 2/2] overlay/072: test for sharing inode with whiteout files
-To:     Chengguang Xu <cgxu519@mykernel.net>
-Cc:     Eryu Guan <guaneryu@gmail.com>, fstests <fstests@vger.kernel.org>,
-        overlayfs <linux-unionfs@vger.kernel.org>,
-        Miklos Szeredi <miklos@szeredi.hu>
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+X-ZohoCNMailClient: External
+Content-Type: text/plain; charset=utf8
 Sender: linux-unionfs-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
->  > > +
->  > > +# Case1:
->  > > +# Setting whiteout_link_max=0 will not share inode
->  > > +# with whiteout files, it means each whiteout file
->  > > +# will has it's own inode.
->  > > +
->  > > +file_count=10
->  > > +link_max=0
->  > > +link_count=1
->  >
->  > Would be nicer to put all the below in a run_test_case() function
->  > with above as arguments.
->  >
->
-> Something like below?
-> ---------
-> # Arguments:
-> # $1: Maximum link count
-> # $2: Testing file number
-> # $3: Expected link count
-> run_test_case()
-> {
->         _scratch_mkfs
->         _set_fs_module_param $param_name ${1}
->         make_lower_files ${2}
->         _scratch_mount
->         make_whiteout_files
->         check_whiteout_files ${2} ${3}
->         $UMOUNT_PROG $SCRATCH_MNT
-> }
->
-> link_max=1
-> file_count=10
-> link_count=1
-> run_test_case $link_max $file_count $link_count
-> ---------
->
+This is a test for whiteout inode sharing feature.
 
-Yes. That's better.
+Signed-off-by: Chengguang Xu <cgxu519@mykernel.net>
+---
+v1->v2:
+- Address Amir's comments in v1.
 
->  > > +_scratch_mkfs
->  > > +_set_fs_module_param $param_name $link_max
->  > > +make_lower_files
->  > > +_scratch_mount
->  > > +make_whiteout_files
->  > > +check_whiteout_files
->  > > +$UMOUNT_PROG $OVL_BASE_SCRATCH_MNT/$OVL_MNT
->  >
->  > Better:
->  > $UMOUNT_PROG $SCRATCH_MNT
->  >
->  > Even better:
->  > _scratch_umount
->
-> I haven't found the definition of _scratch_umount,
-> have we implemented it?
+ common/module         |   9 +++
+ tests/overlay/072     | 148 ++++++++++++++++++++++++++++++++++++++++++
+ tests/overlay/072.out |   2 +
+ tests/overlay/group   |   1 +
+ 4 files changed, 160 insertions(+)
+ create mode 100755 tests/overlay/072
+ create mode 100644 tests/overlay/072.out
 
-typo. I meant _scratch_unmount
+diff --git a/common/module b/common/module
+index 39e4e793..148e8c8f 100644
+--- a/common/module
++++ b/common/module
+@@ -81,3 +81,12 @@ _get_fs_module_param()
+ {
+ =09cat /sys/module/${FSTYP}/parameters/${1} 2>/dev/null
+ }
++ # Set the value of a filesystem module parameter
++ # at /sys/module/$FSTYP/parameters/$PARAM
++ #
++ # Usage example:
++ #   _set_fs_module_param param value
++ _set_fs_module_param()
++{
++=09echo ${2} > /sys/module/${FSTYP}/parameters/${1} 2>/dev/null
++}
+diff --git a/tests/overlay/072 b/tests/overlay/072
+new file mode 100755
+index 00000000..e1244394
+--- /dev/null
++++ b/tests/overlay/072
+@@ -0,0 +1,148 @@
++#! /bin/bash
++# SPDX-License-Identifier: GPL-2.0
++# Copyright (c) 2020 Chengguang Xu <cgxu519@mykernel.net>.
++# All Rights Reserved.
++#
++# FS QA Test 072
++#
++# This is a test for whiteout inode sharing feature.
++#
++seq=3D`basename $0`
++seqres=3D$RESULT_DIR/$seq
++echo "QA output created by $seq"
++
++here=3D`pwd`
++tmp=3D/tmp/$$
++status=3D1=09# failure is the default!
++trap "_cleanup; exit \$status" 0 1 2 3 15
++
++_cleanup()
++{
++=09cd /
++=09rm -f $tmp.*
++=09_set_fs_module_param $param_name $orig_param_value
++}
++
++# get standard environment, filters and checks
++. ./common/rc
++. ./common/filter
++
++# remove previous $seqres.full before test
++rm -f $seqres.full
++
++# real QA test starts here
++_supported_fs overlay
++_supported_os Linux
++_require_test
++_require_scratch
++
++param_name=3D"whiteout_link_max"
++
++# Check overlayfs module param(whiteout_link_max)
++check_whiteout_link_max()
++{
++=09orig_param_value=3D`_get_fs_module_param ${param_name}`
++=09if [ -z ${orig_param_value} ]; then
++=09=09_notrun "${FSTYP} does not support whiteout inode sharing"
++=09fi
++}
++
++lowerdir=3D$OVL_BASE_SCRATCH_MNT/$OVL_LOWER
++upperdir=3D$OVL_BASE_SCRATCH_MNT/$OVL_UPPER
++workdir=3D$OVL_BASE_SCRATCH_MNT/$OVL_WORK
++
++# Make some testing files in lowerdir.
++# Argument:
++# $1: Testing file number
++make_lower_files()
++{
++=09for name in `seq -s' ' ${1}`
++=09do
++=09=09touch $lowerdir/file${name} 1>&2 2>/dev/null
++=09done
++}
++
++# Delete all copy-uped files in upperdir.
++make_whiteout_files()
++{
++=09rm -f $SCRATCH_MNT/* 1>&2 2>/dev/null
++}
++
++# Check link count of whiteout files.
++# Arguments:
++# $1: Testing file number
++# $2: Expected link count
++check_whiteout_files()
++{
++=09for name in `seq -s' ' ${1}`
++=09do
++=09=09local real_count=3D`stat -c %h $upperdir/file${name} 2>/dev/null`
++=09=09if [[ ${2} !=3D $real_count ]]; then
++=09=09=09echo "Expected link count is ${2} but real count is $real_count, =
+file name is file${name}"
++=09=09fi
++=09done
++=09local tmpfile_count=3D`ls $workdir/work/\#* $workdir/index/\#* 2>/dev/n=
+ull |wc -l 2>/dev/null`
++=09if [[ -n $tmpfile_count && $tmpfile_count > 1 ]]; then
++=09=09echo "There are more than one whiteout tmpfile in work/index dir!"
++=09=09ls -l $workdir/work/\#* $workdir/index/\#* 2>/dev/null
++=09fi
++}
++
++# Run test case with specific arguments.
++# Arguments:
++# $1: Maximum link count
++# $2: Testing file number
++# $3: Expected link count
++run_test_case()
++{
++=09_scratch_mkfs
++=09_set_fs_module_param $param_name ${1}
++=09make_lower_files ${2}
++=09_scratch_mount
++=09make_whiteout_files
++=09check_whiteout_files ${2} ${3}
++=09_scratch_unmount
++}
++
++check_whiteout_link_max
++
++# Case1:
++# Setting whiteout_link_max=3D0 means whiteout files will not
++# share inode, each whiteout file will have it's own inode.
++
++link_max=3D0
++file_count=3D10
++link_count=3D1
++run_test_case $link_max $file_count $link_count
++
++# Case2:
++# Setting whiteout_link_max=3D0 means whiteout files will not
++# share inode, each whiteout file will have it's own inode.
++
++link_max=3D1
++file_count=3D10
++link_count=3D1
++run_test_case $link_max $file_count $link_count
++
++# Case3:
++# Setting whiteout_link_max>2 means whiteout files will share
++# inode and link count could up to whiteout_link_max.
++
++link_max=3D2
++file_count=3D10
++link_count=3D2
++run_test_case $link_max $file_count $link_count
++
++# Case4:
++# Setting whiteout_link_max>2 means whiteout files will share
++# inode and link count could up to whiteout_link_max.
++
++link_max=3D10
++file_count=3D20
++link_count=3D10
++run_test_case $link_max $file_count $link_count
++
++# success, all done
++echo "Silence is golden"
++status=3D0
++exit
+diff --git a/tests/overlay/072.out b/tests/overlay/072.out
+new file mode 100644
+index 00000000..590bbc6c
+--- /dev/null
++++ b/tests/overlay/072.out
+@@ -0,0 +1,2 @@
++QA output created by 072
++Silence is golden
+diff --git a/tests/overlay/group b/tests/overlay/group
+index 43ad8a52..8b2276f1 100644
+--- a/tests/overlay/group
++++ b/tests/overlay/group
+@@ -74,3 +74,4 @@
+ 069 auto quick copyup hardlink exportfs nested nonsamefs
+ 070 auto quick copyup redirect nested
+ 071 auto quick copyup redirect nested nonsamefs
++072 auto quick whiteout
+--=20
+2.20.1
 
-On top of $UMOUNT_PROG $SCRATCH_MNT
-_scratch_unmount also unmount the base fs.
 
-...
-
->  > First, that is  strange outcome of whiteout_link_max=2
->  > I would not expect it.
->  > Second, how can every whiteout be shared with tmpfile?
->  > There should be at most one tmpfile at all times, so the
->  > whiteouts that already reached whiteout_link_max should
->  > not be linked to any tmpfile.
->
-> I think I misunderstood your comment in my kernel patch, so I changed
-> the logic to keep all tmpfiles in workdir and cleanup them during next mount.
-> I'll fix it in V3 kernel patch.
->
-
-Ah, so its good you posted the test ;-)
-
->  >
->  > Please add to test_case() verification that work dir contains
->  > at most one tmpfile.
->  > But please make sure that the test is clever enough to check
->  > both work and index dirs for tmpfiles (names beginning with #).
->  >
->
-> So should I check module params of index and nfs_export for checking
-> tmpfile in index dir?
->
-
-No need for that.
-
-Verifying that both index and work dir contain no more than a single tmpfile
-together is good enough and should be pretty simple too:
-
-ls $workdir/work/#* $workdir/index/#*|wc -l
-
-Thanks,
-Amir.
