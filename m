@@ -2,71 +2,71 @@ Return-Path: <SRS0=N6pz=6A=vger.kernel.org=linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+X-Spam-Status: No, score=-0.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
 	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
 	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 048D8C2BA2B
-	for <linux-unionfs@archiver.kernel.org>; Thu, 16 Apr 2020 07:10:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 32185C2BA2B
+	for <linux-unionfs@archiver.kernel.org>; Thu, 16 Apr 2020 07:10:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 88E3420771
-	for <linux-unionfs@archiver.kernel.org>; Thu, 16 Apr 2020 07:10:24 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0F52020771
+	for <linux-unionfs@archiver.kernel.org>; Thu, 16 Apr 2020 07:10:49 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="key not found in DNS" (0-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b="W6Rmxt5Z"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="bonf9lxW"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2438365AbgDPHKX (ORCPT
+        id S2437819AbgDPHKt (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Thu, 16 Apr 2020 03:10:23 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53050 "EHLO
+        Thu, 16 Apr 2020 03:10:49 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53118 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-FAIL-OK-FAIL)
-        by vger.kernel.org with ESMTP id S2438160AbgDPHKU (ORCPT
+        by vger.kernel.org with ESMTP id S2437404AbgDPHKr (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 16 Apr 2020 03:10:20 -0400
-Received: from mail-ej1-x643.google.com (mail-ej1-x643.google.com [IPv6:2a00:1450:4864:20::643])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 92AB4C061A0C
-        for <linux-unionfs@vger.kernel.org>; Thu, 16 Apr 2020 00:10:19 -0700 (PDT)
-Received: by mail-ej1-x643.google.com with SMTP id q8so544731eja.2
-        for <linux-unionfs@vger.kernel.org>; Thu, 16 Apr 2020 00:10:19 -0700 (PDT)
+        Thu, 16 Apr 2020 03:10:47 -0400
+Received: from mail-il1-x141.google.com (mail-il1-x141.google.com [IPv6:2607:f8b0:4864:20::141])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3448EC061A10
+        for <linux-unionfs@vger.kernel.org>; Thu, 16 Apr 2020 00:10:47 -0700 (PDT)
+Received: by mail-il1-x141.google.com with SMTP id t8so5961622ilj.3
+        for <linux-unionfs@vger.kernel.org>; Thu, 16 Apr 2020 00:10:47 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=szeredi.hu; s=google;
+        d=gmail.com; s=20161025;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=/ju1UwF5e25efrZxszg1rmqYpVN8uKxy6Ab6WjYzv7M=;
-        b=W6Rmxt5ZhRlMqSwThLZJ4dcx34KlXpJ4D5+CUSs6A1Kp2gvEDAE9cgTrbn4AjF7pRy
-         zUUle3SojRKqHRc7VJv1nL0EkBWudCcxF5QfULJLX/Y4xNPNBBZ+MN0Iw4cymIlx0s9S
-         /3pRsvTYlwGcrzrXcndpQYgD6sf5Z1c2eza2g=
+        bh=YOBifo5u7kcaRPmGEkqWCdmf5tJ1NPLP2cpCgmmqStM=;
+        b=bonf9lxWYBWSVIf/90VBc0lEN3U76EVlCO2sHPUy4j0AoJxj5Ok77De+IH+DZPV4fx
+         OZvVnZmWU7OdiCWOpbbP/FECyi65EoYJsupLI7ba6txW/S5/qmSLbBXM5pl6DQxiRZqj
+         +cIwJhnGijKbtgJlFykHM8BQmgml1cukqT8Vez7u090x4wjZAJCza6F/5HVcKk8A0SI+
+         CdabgH6H4DlDmPwGQQyUNG98aieeQPpJlsa9H4S3yfNosVTZtu3XNbxdUbYN4n81N33U
+         Jsim0+qPulNFGsnTAMdFc3ICwKygNAWIb05riDM/zBi7BioVnI4D8ogYpYBjEDg7KLL6
+         uHMA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=/ju1UwF5e25efrZxszg1rmqYpVN8uKxy6Ab6WjYzv7M=;
-        b=OHIbXmbtlmuKOtXhbaFS78F7EvJruNBwToGhsvmPUxt7RSdwBXD1QBcn/kZi6zCoX4
-         gNzpXL/c33kv8dFSiJYdJeQCn6GfcgQZrzlznZe4Z+ZPnveZS4jZH21HwLvWmv6QrRWw
-         9RgrTQSRhom1IVyFBykccNfGFQT6cCDxK3tiAhxSpcSUo5H0nLy+8xr7bP5bWtSAK0zd
-         DdyF7/2BaIQ0rZPeXXD9OtAVZyKJ0AYcuoCmZbqL0GYWh4zNoi05j+LCqcw1UZx2cRgP
-         uvNHlxL28HG3fqJ8HpX5G4NOpkdZyDJPFe32V//E6NHGJQwsCOUVYeIUw6MjKZi+Rfjl
-         n2MA==
-X-Gm-Message-State: AGi0PuYp6whglwgXb4bQ7NemoDvRHVnxrSyTQZ+ERVKRnx8hxLiwMJOX
-        uFVQXHV5Kl3atCbuPsG/8GOgQBJyuBxE6kZjkWs/Lw==
-X-Google-Smtp-Source: APiQypLnYs2JWwsjQcs3GK2b9JfhSbJNPGdrRPDrA/K/VNoeUqxbO+QGl78eM/lHh+yFQFBdZrzp9Okvl63gldGNZHk=
-X-Received: by 2002:a17:906:8549:: with SMTP id h9mr8101322ejy.145.1587021018270;
- Thu, 16 Apr 2020 00:10:18 -0700 (PDT)
+        bh=YOBifo5u7kcaRPmGEkqWCdmf5tJ1NPLP2cpCgmmqStM=;
+        b=OD9j9dQGUSU4PdUU8CceLYEN7cTgQmjBQa+MV38Cft0NEsVtYV16HThAp41wcBIgi7
+         ZXAuA1XTTvZX4zdYELnKIjgHa8OWuVRtl08aMftHIuZwlRLY3RVt+6BBHJhUkJq2JLvr
+         QF2z1k/q9rnUpfJEuZ5LORAVeJAmVvZliyRUgN6taqoKQfz3IusXubsxKplY2TTTjxp7
+         PETKxR2XKcHvG9P91Qsh8HuccxiLmTdl0OUvWSumnjm4ZrwHYafQPcCO3MEjg5IKaTza
+         yUX4SK2s/8Y5kuvSMPjOOtaWd/j/fUQMUUraIQOTcJJwWffb9hlfS5K+HcO18V/pIEY6
+         ZGFw==
+X-Gm-Message-State: AGi0PuZmQiTXFoWLfi7VFP/t6+/1XxBtMkwycJt9fvaNVxNHbd2MZUII
+        FEAU8y8Ps1TgO2w1YXv8zqx+vC51YpITP0ulQUI=
+X-Google-Smtp-Source: APiQypK21HFUzLMVcrT2NIu7ZWzqZm6afWb1UONuQGA0OLT3+/6b9NsvZ6SJ7+w2zbFym/ooNPlXmDhrQGxmHRUb5WU=
+X-Received: by 2002:a05:6e02:68a:: with SMTP id o10mr9578188ils.72.1587021046596;
+ Thu, 16 Apr 2020 00:10:46 -0700 (PDT)
 MIME-Version: 1.0
-References: <20200414095310.31491-1-cgxu519@mykernel.net> <CAOQ4uxja_CV5SE57GpS5KyBDudBNn8S9VfT=f_O_qNrwKi8RTg@mail.gmail.com>
- <1717b5c51ab.f6b667969599.7086962587723946588@mykernel.net>
- <CAOQ4uxg+ds5O9gHZs3+sgo08Ut84LPn5MeC=duRqPBtuAOtezw@mail.gmail.com>
- <1717cdb4bcf.11544259d10401.8883493846177492528@mykernel.net>
- <CAOQ4uxg0CYuQ-EfOphk-v-o5hvyVr0UbD5nngse9Zi4M5ZxNgw@mail.gmail.com>
- <1717cf65ddb.d406587710513.3094673612298718285@mykernel.net>
- <CAOQ4uxgXtjsZXkm60J2omXmnj-2cHwQZ=jmf3+GYN_KdW8JovA@mail.gmail.com>
- <17181ae4719.11b6a2eaa836.5332868079279852281@mykernel.net> <CAOQ4uxgt=znEgw_V-a+8wJrN_gptoCk8ifZAAOz40wppBtJ2Nw@mail.gmail.com>
-In-Reply-To: <CAOQ4uxgt=znEgw_V-a+8wJrN_gptoCk8ifZAAOz40wppBtJ2Nw@mail.gmail.com>
-From:   Miklos Szeredi <miklos@szeredi.hu>
-Date:   Thu, 16 Apr 2020 09:10:07 +0200
-Message-ID: <CAJfpegtaA6jEc2p1QeQdpUxMJtzYEqWFSYNAW3-K=X0J7pSC8w@mail.gmail.com>
-Subject: Re: [PATCH v3] ovl: whiteout inode sharing
-To:     Amir Goldstein <amir73il@gmail.com>
-Cc:     Chengguang Xu <cgxu519@mykernel.net>,
+References: <20200415120134.28154-1-amir73il@gmail.com> <20200415120134.28154-3-amir73il@gmail.com>
+ <20200415153032.GC239514@redhat.com> <CAOQ4uxhmxxjGGB3bBoK1OmcAWDsoNi3WdORtH7WDLOcp8=sYSQ@mail.gmail.com>
+ <20200415194243.GE239514@redhat.com>
+In-Reply-To: <20200415194243.GE239514@redhat.com>
+From:   Amir Goldstein <amir73il@gmail.com>
+Date:   Thu, 16 Apr 2020 10:10:35 +0300
+Message-ID: <CAOQ4uxjZ4Yd3ZWi+Fe64fVkrD=XMDjF1=C=XN_PNdywbGx_gzQ@mail.gmail.com>
+Subject: Re: [PATCH 2/2] Configure custom layers via environment variables
+To:     Vivek Goyal <vgoyal@redhat.com>
+Cc:     Giuseppe Scrivano <gscrivan@redhat.com>,
+        Miklos Szeredi <miklos@szeredi.hu>,
         overlayfs <linux-unionfs@vger.kernel.org>
 Content-Type: text/plain; charset="UTF-8"
 Sender: linux-unionfs-owner@vger.kernel.org
@@ -74,53 +74,75 @@ Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Thu, Apr 16, 2020 at 8:47 AM Amir Goldstein <amir73il@gmail.com> wrote:
+On Wed, Apr 15, 2020 at 10:42 PM Vivek Goyal <vgoyal@redhat.com> wrote:
 >
-> >  > > In case of any unexpected errors, we could set a error limit(for example, 10),
-> >  > > if link error count exceeds the limit then we disable the feature.
-> >  > >
-> >  >
-> >  > As far as I am concerned, you may post the patch without auto disable,
-> >  > but I object to using an arbitrary number of errors (10) as trigger for auto
-> >  > disable.
-> >  >
-> >  > I do think that it is important to communicate to admin that the whiteout
-> >  > sharing is not working as expected and it is not acceptable to flood
-> >  > log with warning on each and every whiteout creation, not even with
-> >  > pr_warn_ratelimited.
-> >  >
-> >  > There are several ways you can go about this, but here is a suggestion:
-> >  >
-> >  > +        if (err) {
-> >  > +               ofs->whiteout_link_max >>= 1;
-> >  > +               pr_warn("failed to link whiteout (nlink=%u, err = %i)
-> >  > - lowering whiteout_link_max to %u\n",
-> >  > +                             ofs->whiteout->d_inode->i_nlink, err,
-> >  > ofs->whiteout_link_max);
-> >  > +               should_link = false;
-> >  > +               ovl_cleanup(wdir, ofs->whiteout);
-> >  > +       }
-> >  >
+> On Wed, Apr 15, 2020 at 07:27:43PM +0300, Amir Goldstein wrote:
+> > On Wed, Apr 15, 2020 at 6:30 PM Vivek Goyal <vgoyal@redhat.com> wrote:
+> > >
+> > > On Wed, Apr 15, 2020 at 03:01:34PM +0300, Amir Goldstein wrote:
+> > > > The following environment variables are supported:
+> > > >
+> > > >  UNIONMOUNT_BASEDIR  - base dir for --samefs (default: /base)
+> > > >  UNIONMOUNT_UPPERDIR - upper layer root path (default: /upper)
+> > > >  UNIONMOUNT_LOWERDIR - lower layer root path (default: /lower)
+> > > >  UNIONMOUNT_MNTPOINT - mount point for tests (default: /mnt)
+> > > >
+> > > > User provided paths for base/lower/upper should point at a pre-mounted
+> > > > filesystem, whereas tmpfs instances will be created on default paths.
+> > > >
+> > > > This is going to be used for running unionmount tests from xfstests.
+> > >
+> > > Hi Amir,
+> > >
+> > > I don't understand this testsuite code. So I will ask.
+> > >
+> > > What's base dir?
 > >
-> > Frankly speaking, I don't like heuristic method to automatically enable/disable feature,
-> > so I perfer to disable the feature immediately after hitting any error just like your previous suggestion,
+> > Before these changes, with option --samefs, tmpfs is mounted
+> > at /base, overlay lowerdir is /base/lower and upperdir is /base/upper.
+> > After these changes, /base can be substituted with any pre mounted
+> > filesystem path.
 >
-> Fine by me.
+> If I can specify lower and upper root, then why do I need to specify
+> base directory. User can put lower, upper either on samefs or different
+> fs as need be.
 >
-> > and I also hope to add a mount option for this feature to mitigate global effect to different overlayfs instances.
-> >
+> IOW, either I need to specify base dir, so that lower and upper can
+> be setup by testsuite automatically. Or I need to specify lower and
+> upper and then base should not matter.
 >
-> I think that would make sense.
+> What am I missing.
 >
-> Off topic: from system perspective, the fact that whiteouts take up inodes
-> to begin with is a shame. If one had control over the underlying filesystem,
-> whiteout should have been implemented as a constant and immutable special
-> inode with no nlink count at all and getdents would return DT_WHITEOUT for
-> those entries.
 
-Yes, and filesystems are free to implement such a beast.  The
-operations are given:  mknod(S_IFCHR, 0) and RENAME_WHITEOUT.  Adding
-DT_WHITEOUT handling to overlayfs would be trivial, I guess.
+Not much, as it stands, with option --samefs, UNIONMOUNT_BASEDIR
+is used and without --samefs UNIONMOUNT_LOWERDIR and
+UNIONMOUNT_UPPERDIR used instead.
 
-Thanks,
-Miklos
+I agree that this a bit lame and non intuitive way to configure.
+The reason for explicit --samefs option (vs. providing upper and lower
+root from same fs) is, again, for the test sanity checks which differ
+for is_samefs() case.
+
+I think what I will do is I will get rid of UNIONMOUNT_UPPERDIR
+because this name is a bit confusing. It is not the overlay upperdir,
+it is the grandfather of upperdir/workdir. So I might as well call
+this config UNIONMOUNT_BASEDIR and use it also as the parent
+of lowerdir in --samefs tests.
+
+The config UNIONMOUNT_LOWERDIR will remain, but it will only
+be relevant to tests without --samefs.
+
+IOW, you won't need the fstab bind mount trick and you won't need
+to use the magic suffix "lower_layer" anymore. You could set:
+  UNIONMOUNT_BASEDIR=/mnt/virtiofs
+
+to run --ov --samefs --verify tests.
+
+If you want to run test with virtio fs as upper (single or multi layers)
+and lower as another fs, you could additionally set:
+  UNIONMOUNT_LOWERDIR=/mnt/anotherfs
+
+and run --ov --verify tests.
+
+Thanks for the feedback!
+Amir.
