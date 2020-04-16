@@ -2,119 +2,164 @@ Return-Path: <SRS0=N6pz=6A=vger.kernel.org=linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.5 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.7 required=3.0 tests=FORGED_MUA_MOZILLA,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C03ECC2BA2B
-	for <linux-unionfs@archiver.kernel.org>; Thu, 16 Apr 2020 07:22:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 97620C2BA2B
+	for <linux-unionfs@archiver.kernel.org>; Thu, 16 Apr 2020 07:39:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9AF2D206D5
-	for <linux-unionfs@archiver.kernel.org>; Thu, 16 Apr 2020 07:22:01 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=fail reason="key not found in DNS" (0-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b="SllIuTul"
+	by mail.kernel.org (Postfix) with ESMTP id 78F9E20732
+	for <linux-unionfs@archiver.kernel.org>; Thu, 16 Apr 2020 07:39:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2439184AbgDPHV7 (ORCPT
+        id S2439480AbgDPHjS (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Thu, 16 Apr 2020 03:21:59 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54924 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-FAIL-OK-FAIL)
-        by vger.kernel.org with ESMTP id S2439151AbgDPHVz (ORCPT
+        Thu, 16 Apr 2020 03:39:18 -0400
+Received: from mx0a-001b2d01.pphosted.com ([148.163.156.1]:64356 "EHLO
+        mx0a-001b2d01.pphosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S2439417AbgDPHjS (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 16 Apr 2020 03:21:55 -0400
-Received: from mail-ej1-x641.google.com (mail-ej1-x641.google.com [IPv6:2a00:1450:4864:20::641])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5FD56C061A0C
-        for <linux-unionfs@vger.kernel.org>; Thu, 16 Apr 2020 00:21:55 -0700 (PDT)
-Received: by mail-ej1-x641.google.com with SMTP id nv1so564926ejb.0
-        for <linux-unionfs@vger.kernel.org>; Thu, 16 Apr 2020 00:21:55 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=szeredi.hu; s=google;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc:content-transfer-encoding;
-        bh=31P3/nvqtY+bZYUKDPJ/ot46X8GBW/92AEEC0Y/sGT0=;
-        b=SllIuTul79vw+qbSBn0fNmJv0u+qw3nxpXa4v9bHMaix26jUxwzjO1/bwFH29k6WGZ
-         cppQS47Ic1A4YFUNShh+RBBeF05KQOgWrSDcxsGaUatyQ9zRuQUPW1fd0vQNzK6iWcH1
-         UA9gUlyXshNIpwsErl5ThWTpSBuqMIFLWNrqw=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc:content-transfer-encoding;
-        bh=31P3/nvqtY+bZYUKDPJ/ot46X8GBW/92AEEC0Y/sGT0=;
-        b=XEG+8pb9MBr6TYYjMwUBT9ubRXKvILwlmh5V+cdswpWcMtJPikvXsj0jSjC3IR4Q01
-         lYVjMVb/XMy3i2PCOIcq2k43seX8OIY+M/zbLhtO/bC5vXDhT+HM1/SRX/Vu8Kb31DIs
-         xOSzHsOxPbA/sDujR+QQu6fUmOzkPS65lfTx9uM7ecJTso0+MtbPliyLWNdm41E/TH0g
-         kD5iJquNUYAJb8ET08YJguWAXlsYz3PKnlPmN8R6+s5yL4FxAt4Y10H2HBM4NBOpqOyF
-         lD9PAQuZyExGeuTTHcV9bpnu05KqFH/+VkoovlxTVrsD+WnwXQ78tlzyenltFooJk4i+
-         lCDA==
-X-Gm-Message-State: AGi0Pubw7K58onIBnacxVc8SXVYbEOmGvmFL8zQknITOpkAiDu0NLqzM
-        XIjNIl0HIWqM7tdGgwB+O7DhtRzzNzkT2siliKyKtyh9
-X-Google-Smtp-Source: APiQypLGI0PuwuVTlmWaAvaNQxkoXFVHZBju+vrlO9aEpjOuQ2Ga/WPXSkEAXfZ+IbkjEnl8ZuFFPqKDz8UKewC3wdo=
-X-Received: by 2002:a17:906:340a:: with SMTP id c10mr8586389ejb.218.1587021714111;
- Thu, 16 Apr 2020 00:21:54 -0700 (PDT)
+        Thu, 16 Apr 2020 03:39:18 -0400
+Received: from pps.filterd (m0098399.ppops.net [127.0.0.1])
+        by mx0a-001b2d01.pphosted.com (8.16.0.42/8.16.0.42) with SMTP id 03G7YNYp062545
+        for <linux-unionfs@vger.kernel.org>; Thu, 16 Apr 2020 03:39:13 -0400
+Received: from e06smtp04.uk.ibm.com (e06smtp04.uk.ibm.com [195.75.94.100])
+        by mx0a-001b2d01.pphosted.com with ESMTP id 30ebg3kupx-1
+        (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=NOT)
+        for <linux-unionfs@vger.kernel.org>; Thu, 16 Apr 2020 03:39:12 -0400
+Received: from localhost
+        by e06smtp04.uk.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
+        for <linux-unionfs@vger.kernel.org> from <riteshh@linux.ibm.com>;
+        Thu, 16 Apr 2020 08:38:32 +0100
+Received: from b06avi18626390.portsmouth.uk.ibm.com (9.149.26.192)
+        by e06smtp04.uk.ibm.com (192.168.101.134) with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted;
+        (version=TLSv1/SSLv3 cipher=AES256-GCM-SHA384 bits=256/256)
+        Thu, 16 Apr 2020 08:38:28 +0100
+Received: from b06wcsmtp001.portsmouth.uk.ibm.com (b06wcsmtp001.portsmouth.uk.ibm.com [9.149.105.160])
+        by b06avi18626390.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 03G7bwF544499322
+        (version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Thu, 16 Apr 2020 07:37:58 GMT
+Received: from b06wcsmtp001.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+        by IMSVA (Postfix) with ESMTP id 8670DA405C;
+        Thu, 16 Apr 2020 07:39:04 +0000 (GMT)
+Received: from b06wcsmtp001.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+        by IMSVA (Postfix) with ESMTP id 8A1E3A405F;
+        Thu, 16 Apr 2020 07:39:01 +0000 (GMT)
+Received: from localhost.localdomain (unknown [9.85.90.179])
+        by b06wcsmtp001.portsmouth.uk.ibm.com (Postfix) with ESMTP;
+        Thu, 16 Apr 2020 07:38:59 +0000 (GMT)
+Subject: Re: [RFC 1/1] ext4: Fix overflow case for map.m_len in
+ ext4_iomap_begin_*
+To:     Jan Kara <jack@suse.cz>
+Cc:     tytso@mit.edu, linux-ext4@vger.kernel.org, adilger@dilger.ca,
+        darrick.wong@oracle.com, hch@infradead.org,
+        linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-xfs@vger.kernel.org, willy@infradead.org,
+        linux-unionfs@vger.kernel.org,
+        syzbot+77fa5bdb65cc39711820@syzkaller.appspotmail.com
+References: <00000000000048518b05a2fef23a@google.com>
+ <dea98f0b07e16de219d8741c1fefc7cb476cb482.1586681010.git.riteshh@linux.ibm.com>
+ <20200414155013.GF28226@quack2.suse.cz>
+From:   Ritesh Harjani <riteshh@linux.ibm.com>
+Date:   Thu, 16 Apr 2020 13:08:55 +0530
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
+ Thunderbird/60.7.2
 MIME-Version: 1.0
-References: <20200210031009.61086-1-cgxu519@mykernel.net> <CAJfpegtRXwOTCtEdrg7Yie0rJ=kokYTcL+7epXsDo-JNy5fNDA@mail.gmail.com>
- <171819ad12b.c2829cd3806.7048451563188038355@mykernel.net>
-In-Reply-To: <171819ad12b.c2829cd3806.7048451563188038355@mykernel.net>
-From:   Miklos Szeredi <miklos@szeredi.hu>
-Date:   Thu, 16 Apr 2020 09:21:42 +0200
-Message-ID: <CAJfpegstttRvDNYjs9+LaAxFjN21rYn1EWYnZDrXGAKygOj_Hg@mail.gmail.com>
-Subject: Re: [PATCH v11] ovl: Improving syncfs efficiency
-To:     Chengguang Xu <cgxu519@mykernel.net>
-Cc:     Amir Goldstein <amir73il@gmail.com>, Jan Kara <jack@suse.cz>,
-        overlayfs <linux-unionfs@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+In-Reply-To: <20200414155013.GF28226@quack2.suse.cz>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+X-TM-AS-GCONF: 00
+x-cbid: 20041607-0016-0000-0000-00000305759E
+X-IBM-AV-DETECTION: SAVI=unused REMOTE=unused XFE=unused
+x-cbparentid: 20041607-0017-0000-0000-000033697825
+Message-Id: <20200416073901.8A1E3A405F@b06wcsmtp001.portsmouth.uk.ibm.com>
+X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.138,18.0.676
+ definitions=2020-04-16_02:2020-04-14,2020-04-16 signatures=0
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 adultscore=0 mlxscore=0
+ bulkscore=0 lowpriorityscore=0 suspectscore=0 phishscore=0
+ priorityscore=1501 malwarescore=0 impostorscore=0 mlxlogscore=889
+ clxscore=1015 spamscore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.12.0-2003020000 definitions=main-2004160045
 Sender: linux-unionfs-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Thu, Apr 16, 2020 at 8:09 AM Chengguang Xu <cgxu519@mykernel.net> wrote:
->
->  ---- =E5=9C=A8 =E6=98=9F=E6=9C=9F=E5=9B=9B, 2020-04-16 03:19:50 Miklos S=
-zeredi <miklos@szeredi.hu> =E6=92=B0=E5=86=99 ----
->  > On Mon, Feb 10, 2020 at 4:10 AM Chengguang Xu <cgxu519@mykernel.net> w=
-rote:
 
->  > > +               if (current->flags & PF_MEMALLOC) {
->  > > +                       spin_lock(&inode->i_lock);
->  > > +                       ovl_set_flag(OVL_WRITE_INODE_PENDING, inode)=
-;
->  > > +                       wqh =3D bit_waitqueue(&oi->flags,
->  > > +                                       OVL_WRITE_INODE_PENDING);
->  > > +                       prepare_to_wait(wqh, &wait.wq_entry,
->  > > +                                       TASK_UNINTERRUPTIBLE);
->  > > +                       spin_unlock(&inode->i_lock);
->  > > +
->  > > +                       ovl_wiw.inode =3D inode;
->  > > +                       INIT_WORK(&ovl_wiw.work, ovl_write_inode_wor=
-k_fn);
->  > > +                       schedule_work(&ovl_wiw.work);
->  > > +
->  > > +                       schedule();
->  > > +                       finish_wait(wqh, &wait.wq_entry);
->  >
->  > What is the reason to do this in another thread if this is a PF_MEMALL=
-OC task?
->
-> Some underlying filesystems(for example ext4) check the flag in ->write_i=
-node()
-> and treate it as an abnormal case.(warn and return)
->
-> ext4_write_inode():
->         if (WARN_ON_ONCE(current->flags & PF_MEMALLOC) ||
->                 sb_rdonly(inode->i_sb))
->                         return 0;
->
-> overlayfs inodes are always keeping clean even after wring/modifying  upp=
-erfile ,
-> so they are right target of kswapd  but in the point of lower layer, ext4=
- just thinks
-> kswapd is choosing a wrong dirty inode to reclam memory.
+Sorry Jan and others. Please ignore this patch.
+I will resend a proper one after making sure it is tested via syzbot.
 
-I don't get it.  Why can't overlayfs just skip the writeback of upper
-inode in the reclaim case?  It will be written back through the normal
-relcaim channels.
+On 4/14/20 9:20 PM, Jan Kara wrote:
+> On Sun 12-04-20 14:54:35, Ritesh Harjani wrote:
+>> EXT4_MAX_LOGICAL_BLOCK - map.m_lblk + 1 in case when
+>> map.m_lblk (offset) is 0 could overflow an unsigned int
+>> and become 0.
+>>
+>> Fix this.
+>>
+>> Signed-off-by: Ritesh Harjani <riteshh@linux.ibm.com>
+>> Reported-by: syzbot+77fa5bdb65cc39711820@syzkaller.appspotmail.com
+>> Fixes: d3b6f23f7167 ("ext4: move ext4_fiemap to use iomap framework")
+> 
+> The patch looks good to me. You can add:
+> 
+> Reviewed-by: Jan Kara <jack@suse.cz>
+> 
+> 								Honza
+> 
+>> ---
+>>   fs/ext4/inode.c | 12 ++++++++++--
+>>   1 file changed, 10 insertions(+), 2 deletions(-)
+>>
+>> diff --git a/fs/ext4/inode.c b/fs/ext4/inode.c
+>> index e416096fc081..d630ec7a9c8e 100644
+>> --- a/fs/ext4/inode.c
+>> +++ b/fs/ext4/inode.c
+>> @@ -3424,6 +3424,7 @@ static int ext4_iomap_begin(struct inode *inode, loff_t offset, loff_t length,
+>>   	int ret;
+>>   	struct ext4_map_blocks map;
+>>   	u8 blkbits = inode->i_blkbits;
+>> +	loff_t len;
+>>   
+>>   	if ((offset >> blkbits) > EXT4_MAX_LOGICAL_BLOCK)
+>>   		return -EINVAL;
+>> @@ -3435,8 +3436,11 @@ static int ext4_iomap_begin(struct inode *inode, loff_t offset, loff_t length,
+>>   	 * Calculate the first and last logical blocks respectively.
+>>   	 */
+>>   	map.m_lblk = offset >> blkbits;
+>> -	map.m_len = min_t(loff_t, (offset + length - 1) >> blkbits,
+>> +	len = min_t(loff_t, (offset + length - 1) >> blkbits,
+>>   			  EXT4_MAX_LOGICAL_BLOCK) - map.m_lblk + 1;
+>> +	if (len > EXT4_MAX_LOGICAL_BLOCK)
+>> +		len = EXT4_MAX_LOGICAL_BLOCK;
+>> +	map.m_len = len;
+>>   
+>>   	if (flags & IOMAP_WRITE)
+>>   		ret = ext4_iomap_alloc(inode, &map, flags);
+>> @@ -3524,6 +3528,7 @@ static int ext4_iomap_begin_report(struct inode *inode, loff_t offset,
+>>   	bool delalloc = false;
+>>   	struct ext4_map_blocks map;
+>>   	u8 blkbits = inode->i_blkbits;
+>> +	loff_t len
+>>   
+>>   	if ((offset >> blkbits) > EXT4_MAX_LOGICAL_BLOCK)
+>>   		return -EINVAL;
+>> @@ -3541,8 +3546,11 @@ static int ext4_iomap_begin_report(struct inode *inode, loff_t offset,
+>>   	 * Calculate the first and last logical block respectively.
+>>   	 */
+>>   	map.m_lblk = offset >> blkbits;
+>> -	map.m_len = min_t(loff_t, (offset + length - 1) >> blkbits,
+>> +	len = min_t(loff_t, (offset + length - 1) >> blkbits,
+>>   			  EXT4_MAX_LOGICAL_BLOCK) - map.m_lblk + 1;
+>> +	if (len > EXT4_MAX_LOGICAL_BLOCK)
+>> +		len = EXT4_MAX_LOGICAL_BLOCK;
+>> +	map.m_len = len;
+>>   
+>>   	/*
+>>   	 * Fiemap callers may call for offset beyond s_bitmap_maxbytes.
+>> -- 
+>> 2.21.0
+>>
 
-Thanks,
-Miklos
