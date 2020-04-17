@@ -6,58 +6,58 @@ X-Spam-Status: No, score=-6.5 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
 	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4A208C2D0EF
-	for <linux-unionfs@archiver.kernel.org>; Fri, 17 Apr 2020 14:08:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8526AC2D0EF
+	for <linux-unionfs@archiver.kernel.org>; Fri, 17 Apr 2020 14:16:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CD13B206E9
-	for <linux-unionfs@archiver.kernel.org>; Fri, 17 Apr 2020 14:08:51 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5F6C520857
+	for <linux-unionfs@archiver.kernel.org>; Fri, 17 Apr 2020 14:16:33 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="key not found in DNS" (0-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b="G45dB7X4"
+	dkim=fail reason="key not found in DNS" (0-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b="VU4OQKAL"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730835AbgDQOIv (ORCPT
+        id S1725796AbgDQOQd (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Fri, 17 Apr 2020 10:08:51 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60306 "EHLO
+        Fri, 17 Apr 2020 10:16:33 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33270 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1730830AbgDQOIu (ORCPT
+        with ESMTP id S1725272AbgDQOQc (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 17 Apr 2020 10:08:50 -0400
-Received: from mail-ed1-x541.google.com (mail-ed1-x541.google.com [IPv6:2a00:1450:4864:20::541])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 41975C061A0C
-        for <linux-unionfs@vger.kernel.org>; Fri, 17 Apr 2020 07:08:50 -0700 (PDT)
-Received: by mail-ed1-x541.google.com with SMTP id f12so1544575edn.12
-        for <linux-unionfs@vger.kernel.org>; Fri, 17 Apr 2020 07:08:50 -0700 (PDT)
+        Fri, 17 Apr 2020 10:16:32 -0400
+Received: from mail-ej1-x641.google.com (mail-ej1-x641.google.com [IPv6:2a00:1450:4864:20::641])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 82CD3C061A0C
+        for <linux-unionfs@vger.kernel.org>; Fri, 17 Apr 2020 07:16:32 -0700 (PDT)
+Received: by mail-ej1-x641.google.com with SMTP id re23so1675207ejb.4
+        for <linux-unionfs@vger.kernel.org>; Fri, 17 Apr 2020 07:16:32 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=szeredi.hu; s=google;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=DTDMuPtFWakIdBxp0EP7YlSwXnO+Bfg+mvqmoL/RAO4=;
-        b=G45dB7X4UgoQNXp5ZcnR23rkW7Bx1zH27/akKnmdydvi3FHZtYRWrNBdJmA3ufFqTU
-         zY4RvG+IIBkmF56l+/OHVkIDuM5n7fTmPia9m9tg/QIEA5i3SJT/C0MTIur2RoM9deJ8
-         OXHKdLjQTmwW5M+cfr8uUXtP4Tdz695VyULyQ=
+        bh=aD+8TOXoVUkDi3G/rF2dioa2hxOqsO03cukIlE1lsEo=;
+        b=VU4OQKALRqbA+zrpmPPhMoSXUfeWEbrb0uOrAlchlnfDKmYAZ4b9aInf7AvwW/9XwT
+         +CGpEUupFgnJLUQYsnuJaZIm418YMAzlf7vek0kGgjdiwS6PDGB5XrFG0C7sTt6DgqD0
+         RTZ2JApgGcbo/WwM4yrlQKCxXLTTAcLW310zU=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=DTDMuPtFWakIdBxp0EP7YlSwXnO+Bfg+mvqmoL/RAO4=;
-        b=i+0EhvzLvPsqpVHG3ETRy69nOzUvOXDNZF3ufxMSUynKOotvg4Nw3fEP/DRSJfOOTj
-         sKtlkyW5meRbRzhTvKF0EjZUyppEarq8j5cHBuuIPrpPS+8GvBIFRB3p+HISwLqHn6NO
-         F2SKcr5PYMXfBvjb3o9Mfc59i1eSq/K4wFAUyaW+b0lhhvDHUPHYnB6hFvDvil4CConQ
-         DnTUyEc+qjww8euRcrnI0EgH+MIR3S9YtMvvwKb8SoDXnkGzerR8kBy6cEQtJJd5u+3V
-         EVixdJPaNrTDFjDRHDYJZlBCIIMrO7sDa18N8ygTO9wJG9b7dfbzHgklCgDe99Y2rAAZ
-         lGCA==
-X-Gm-Message-State: AGi0PubNKpGUHErOj5/SAJ7CJe7kbKGIzL4QWMHBbFRJm0m/bcX7HYR3
-        pHfrrUx+v0d7Wj/Y9MAmPTUCF26VPy+ojVYco+3Zaw==
-X-Google-Smtp-Source: APiQypJaAkISnmRiMymCT1+t+C1dKQY0NX/GR0G9dh9cFu9N6wJIQsie9kxF24PN7T6m/hFGY5nQMyGkIJUt3FXZQq0=
-X-Received: by 2002:a05:6402:1802:: with SMTP id g2mr3071670edy.364.1587132528891;
- Fri, 17 Apr 2020 07:08:48 -0700 (PDT)
+        bh=aD+8TOXoVUkDi3G/rF2dioa2hxOqsO03cukIlE1lsEo=;
+        b=K0spM4nvhJXKGsEEYkKjcp3uhHlfgO38ZrIHTGqD844jApV8XdRFWL86IyNeZdZQ8D
+         ceL1RtPBCwZL4ivuUYzFtqQLu4RUfhYQggQxi/H2HjGmwBWiqc78DP8Zp3CVwHCpQ2C+
+         FlKMfSYnKq8lluaB2fuLhyOqb3FBeZyROcJMTsJ+T8yhkPRjo+P0j08lPsO6tb2gZBWM
+         /Ti1Fz7Fb1vQ4gRSl/isVTxsf0agCP3g8eSe+1STJkJKzhavZ22nj+qHtLU9yxMfCcA0
+         GuxfcYjrjmGf6GG2uZPC1CpYQd+fWFzPWMN4yPVH4q2zSuRRBJmhM3rLI8Pul2QKu1sM
+         I3jg==
+X-Gm-Message-State: AGi0Pubuh/u4jMSUfDoy5S4VtyHBT43on+JxCd62NZ7nBa1/VC+I8/pa
+        fRr873rqCe2EW8/8DuPwwrCYWZ31i8KFzoupzVSfYJhR
+X-Google-Smtp-Source: APiQypL1ix7SYNVPL5ze0R6YxzqIoGAcEeWO6OZicI+TFUg5cXIsZhTbAjWbkKsu+gXbD1+xdjVROg3NDJlmi4cNFZs=
+X-Received: by 2002:a17:906:1a06:: with SMTP id i6mr3180086ejf.90.1587132991237;
+ Fri, 17 Apr 2020 07:16:31 -0700 (PDT)
 MIME-Version: 1.0
-References: <20200410082539.23627-1-amir73il@gmail.com> <20200410082539.23627-2-amir73il@gmail.com>
-In-Reply-To: <20200410082539.23627-2-amir73il@gmail.com>
+References: <20200410082539.23627-1-amir73il@gmail.com> <20200410082539.23627-3-amir73il@gmail.com>
+In-Reply-To: <20200410082539.23627-3-amir73il@gmail.com>
 From:   Miklos Szeredi <miklos@szeredi.hu>
-Date:   Fri, 17 Apr 2020 16:08:37 +0200
-Message-ID: <CAJfpegtGDcsBWdXXXgiP2UxU2iz02YSO1vOCkaBq_SvJbFJhFw@mail.gmail.com>
-Subject: Re: [PATCH 1/3] ovl: cleanup non-empty directories in ovl_indexdir_cleanup()
+Date:   Fri, 17 Apr 2020 16:16:20 +0200
+Message-ID: <CAJfpegs046fyxCcQtYxdBYT8_dR5B_6aYugtwbnSS6zL7kYiJw@mail.gmail.com>
+Subject: Re: [PATCH 2/3] ovl: prepare to copy up without workdir
 To:     Amir Goldstein <amir73il@gmail.com>
 Cc:     Chengguang Xu <cgxu519@mykernel.net>,
         overlayfs <linux-unionfs@vger.kernel.org>
@@ -69,81 +69,45 @@ X-Mailing-List: linux-unionfs@vger.kernel.org
 
 On Fri, Apr 10, 2020 at 10:25 AM Amir Goldstein <amir73il@gmail.com> wrote:
 >
-> Teach ovl_indexdir_cleanup() to remove temp directories containing
-> whiteouts to prepare for using index dir instead of work dir for
-> removing merge directories.
+> With index=on, we copy up lower hardlinks to work dir and move them
+> into index dir. Fix locking to allow work dir and index dir to be the
+> same directory.
 >
 > Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 > ---
->  fs/overlayfs/overlayfs.h |  4 ++--
->  fs/overlayfs/readdir.c   | 13 +++++++------
->  2 files changed, 9 insertions(+), 8 deletions(-)
+>  fs/overlayfs/copy_up.c | 8 ++++++--
+>  1 file changed, 6 insertions(+), 2 deletions(-)
 >
-> diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-> index e6f3670146ed..e00b1ff6dea9 100644
-> --- a/fs/overlayfs/overlayfs.h
-> +++ b/fs/overlayfs/overlayfs.h
-> @@ -394,8 +394,8 @@ void ovl_cleanup_whiteouts(struct dentry *upper, struct list_head *list);
->  void ovl_cache_free(struct list_head *list);
->  void ovl_dir_cache_free(struct inode *inode);
->  int ovl_check_d_type_supported(struct path *realpath);
-> -void ovl_workdir_cleanup(struct inode *dir, struct vfsmount *mnt,
-> -                        struct dentry *dentry, int level);
-> +int ovl_workdir_cleanup(struct inode *dir, struct vfsmount *mnt,
-> +                       struct dentry *dentry, int level);
->  int ovl_indexdir_cleanup(struct ovl_fs *ofs);
+> diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
+> index 9709cf22cab3..e523e63f604f 100644
+> --- a/fs/overlayfs/copy_up.c
+> +++ b/fs/overlayfs/copy_up.c
+> @@ -576,7 +576,7 @@ static int ovl_copy_up_workdir(struct ovl_copy_up_ctx *c)
+>         struct inode *udir = d_inode(c->destdir), *wdir = d_inode(c->workdir);
+>         struct dentry *temp, *upper;
+>         struct ovl_cu_creds cc;
+> -       int err;
+> +       int err = 0;
+>         struct ovl_cattr cattr = {
+>                 /* Can't properly set mode on creation because of the umask */
+>                 .mode = c->stat.mode & S_IFMT,
+> @@ -584,7 +584,11 @@ static int ovl_copy_up_workdir(struct ovl_copy_up_ctx *c)
+>                 .link = c->link
+>         };
 >
->  /* inode.c */
-> diff --git a/fs/overlayfs/readdir.c b/fs/overlayfs/readdir.c
-> index e452ff7d583d..d6b601caf122 100644
-> --- a/fs/overlayfs/readdir.c
-> +++ b/fs/overlayfs/readdir.c
-> @@ -1071,14 +1071,13 @@ static void ovl_workdir_cleanup_recurse(struct path *path, int level)
->         ovl_cache_free(&list);
->  }
->
-> -void ovl_workdir_cleanup(struct inode *dir, struct vfsmount *mnt,
-> +int ovl_workdir_cleanup(struct inode *dir, struct vfsmount *mnt,
->                          struct dentry *dentry, int level)
->  {
->         int err;
->
->         if (!d_is_dir(dentry) || level > 1) {
-> -               ovl_cleanup(dir, dentry);
-> -               return;
-> +               return ovl_cleanup(dir, dentry);
->         }
->
->         err = ovl_do_rmdir(dir, dentry);
-> @@ -1088,8 +1087,10 @@ void ovl_workdir_cleanup(struct inode *dir, struct vfsmount *mnt,
->                 inode_unlock(dir);
->                 ovl_workdir_cleanup_recurse(&path, level + 1);
->                 inode_lock_nested(dir, I_MUTEX_PARENT);
-> -               ovl_cleanup(dir, dentry);
-> +               err = ovl_cleanup(dir, dentry);
->         }
-> +
-> +       return err;
->  }
->
->  int ovl_indexdir_cleanup(struct ovl_fs *ofs)
-> @@ -1132,8 +1133,8 @@ int ovl_indexdir_cleanup(struct ovl_fs *ofs)
->                 if (!err) {
->                         goto next;
->                 } else if (err == -ESTALE) {
-> -                       /* Cleanup stale index entries */
-> -                       err = ovl_cleanup(dir, index);
-> +                       /* Cleanup stale index entries and leftover whiteouts */
-> +                       err = ovl_workdir_cleanup(dir, path.mnt, index, 1);
+> -       err = ovl_lock_rename_workdir(c->workdir, c->destdir);
+> +       /* Are we copying up to indexdir which is also workdir? */
+> +       if (c->indexed && c->workdir == c->destdir)
+> +               inode_lock_nested(wdir, I_MUTEX_PARENT);
+> +       else
+> +               err = ovl_lock_rename_workdir(c->workdir, c->destdir);
 
-I'd much prefer if cleanup of temp files were handled separately from
-stale index entries.  I.e. only call ovl_verify_index() on things that
-might actually be index files.
+This is confusing.  What about just
 
+if (!lock_rename(c->workdir, c->destdir))
+    return -EIO;
 
->                 } else if (err != -ENOENT) {
->                         /*
->                          * Abort mount to avoid corrupting the index if
-> --
-> 2.17.1
->
+?
+
+Thanks,
+Miklos
