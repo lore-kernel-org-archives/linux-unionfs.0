@@ -4,52 +4,52 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
-	version=3.4.0
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 23A2EC3A5A0
-	for <linux-unionfs@archiver.kernel.org>; Sat, 18 Apr 2020 13:48:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D31F7C54F70
+	for <linux-unionfs@archiver.kernel.org>; Sat, 18 Apr 2020 14:14:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 04FFC22202
-	for <linux-unionfs@archiver.kernel.org>; Sat, 18 Apr 2020 13:48:22 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A940E21BE5
+	for <linux-unionfs@archiver.kernel.org>; Sat, 18 Apr 2020 14:14:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1587217702;
-	bh=eOjHPZ2hM8yY0lMQEmFgXJ6RCmnDAUY8hOw/b5roVIc=;
+	s=default; t=1587219275;
+	bh=sJRlZ3mJya5wdFuThA+patbUhvI8Xqv0PFU2vE8Muh8=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=rpMLs89flr6yElLxXsbd7g0rzinkgOMfwiSKZi4ntXUPt6vZZMuJV6hIKpzOAsJPs
-	 e5UGOtC47LRHmdGGcBjA1ISn/N+oOY5mCITTPc2OYXmy/Q1J9HHjy6FSPcAhq1dEnA
-	 P+7JzhJ7mnShelRLSv9AX+Vv9y0Oid+5H0bPiEn4=
+	b=BZYro/B0WiHU08ZkG4im0kAAjY/U1IE0XokkLK1MBOzYps0Tk2hi+Yqa/WeM8DvzB
+	 wU5DPe8b+4pAE8H4D8T6ltX7oxHrjnvxYj7auuaMzC4jIXmg63AYI1mXLbXmyppryc
+	 JaaIo2T2h4hFva12GppfkSrm1/0J9UawnXnAhE+E=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726036AbgDRNsV (ORCPT
+        id S1726144AbgDROJQ (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Sat, 18 Apr 2020 09:48:21 -0400
-Received: from mail.kernel.org ([198.145.29.99]:54416 "EHLO mail.kernel.org"
+        Sat, 18 Apr 2020 10:09:16 -0400
+Received: from mail.kernel.org ([198.145.29.99]:36564 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726009AbgDRNsV (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Sat, 18 Apr 2020 09:48:21 -0400
+        id S1726086AbgDROJQ (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Sat, 18 Apr 2020 10:09:16 -0400
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 04DFC21D7E;
-        Sat, 18 Apr 2020 13:48:19 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id E479321D82;
+        Sat, 18 Apr 2020 14:09:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1587217700;
-        bh=eOjHPZ2hM8yY0lMQEmFgXJ6RCmnDAUY8hOw/b5roVIc=;
+        s=default; t=1587218955;
+        bh=sJRlZ3mJya5wdFuThA+patbUhvI8Xqv0PFU2vE8Muh8=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=qyDOlvYfPtw3ACOvj+qlsg/Fz/hWfkd1wV/omRNMekd1S7/VvWvMrM9zzUM8wAIZp
-         risKtbn1/oW3Goc8YPcLZEzrOA7mGemh/MKt5eJAzgda/QaPqlmdAfI4hazal7cYQV
-         yt+zYe2uZuvC7623tOr8RWk146mI+tkURqw3C/V8=
+        b=lbeIGqBcxtrgNWafZlBuYO+yPoqrKJEJIfEgOPG2S2N9znpsy67V1pB8+jKf/NWub
+         lE22W0/B8BV0ctCzkfrmhD/bj47MDO7ZtB0IDBHEmjr+19UUJLgZOJF+523q0x9iIl
+         bW5bdE+1omMsuftG2Wo/HgVx3sh8uZWoYP1+sqPo=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Amir Goldstein <amir73il@gmail.com>,
         Miklos Szeredi <mszeredi@redhat.com>,
         Sasha Levin <sashal@kernel.org>, linux-unionfs@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.6 04/73] ovl: fix value of i_ino for lower hardlink corner case
-Date:   Sat, 18 Apr 2020 09:47:06 -0400
-Message-Id: <20200418134815.6519-4-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.5 04/75] ovl: fix value of i_ino for lower hardlink corner case
+Date:   Sat, 18 Apr 2020 10:07:59 -0400
+Message-Id: <20200418140910.8280-4-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20200418134815.6519-1-sashal@kernel.org>
-References: <20200418134815.6519-1-sashal@kernel.org>
+In-Reply-To: <20200418140910.8280-1-sashal@kernel.org>
+References: <20200418140910.8280-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -85,10 +85,10 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 3 insertions(+), 1 deletion(-)
 
 diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
-index 79e8994e3bc1a..3f993c114829e 100644
+index b045cf1826fc4..bb980721502dd 100644
 --- a/fs/overlayfs/inode.c
 +++ b/fs/overlayfs/inode.c
-@@ -891,7 +891,7 @@ struct inode *ovl_get_inode(struct super_block *sb,
+@@ -881,7 +881,7 @@ struct inode *ovl_get_inode(struct super_block *sb,
  	struct dentry *lowerdentry = lowerpath ? lowerpath->dentry : NULL;
  	bool bylower = ovl_hash_bylower(sb, upperdentry, lowerdentry,
  					oip->index);
@@ -97,7 +97,7 @@ index 79e8994e3bc1a..3f993c114829e 100644
  	bool is_dir, metacopy = false;
  	unsigned long ino = 0;
  	int err = oip->newinode ? -EEXIST : -ENOMEM;
-@@ -941,6 +941,8 @@ struct inode *ovl_get_inode(struct super_block *sb,
+@@ -931,6 +931,8 @@ struct inode *ovl_get_inode(struct super_block *sb,
  			err = -ENOMEM;
  			goto out_err;
  		}
