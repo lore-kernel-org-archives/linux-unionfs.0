@@ -2,127 +2,110 @@ Return-Path: <SRS0=Ny/S=6C=vger.kernel.org=linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no
+X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 61590C2D0EF
-	for <linux-unionfs@archiver.kernel.org>; Sat, 18 Apr 2020 09:57:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 23A2EC3A5A0
+	for <linux-unionfs@archiver.kernel.org>; Sat, 18 Apr 2020 13:48:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3BA81214D8
-	for <linux-unionfs@archiver.kernel.org>; Sat, 18 Apr 2020 09:57:42 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="JTWaO8kQ"
+	by mail.kernel.org (Postfix) with ESMTP id 04FFC22202
+	for <linux-unionfs@archiver.kernel.org>; Sat, 18 Apr 2020 13:48:22 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1587217702;
+	bh=eOjHPZ2hM8yY0lMQEmFgXJ6RCmnDAUY8hOw/b5roVIc=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
+	b=rpMLs89flr6yElLxXsbd7g0rzinkgOMfwiSKZi4ntXUPt6vZZMuJV6hIKpzOAsJPs
+	 e5UGOtC47LRHmdGGcBjA1ISn/N+oOY5mCITTPc2OYXmy/Q1J9HHjy6FSPcAhq1dEnA
+	 P+7JzhJ7mnShelRLSv9AX+Vv9y0Oid+5H0bPiEn4=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725887AbgDRJ5l (ORCPT
+        id S1726036AbgDRNsV (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Sat, 18 Apr 2020 05:57:41 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45876 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-FAIL-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1725856AbgDRJ5l (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Sat, 18 Apr 2020 05:57:41 -0400
-Received: from mail-wm1-x342.google.com (mail-wm1-x342.google.com [IPv6:2a00:1450:4864:20::342])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AEB03C061A0C
-        for <linux-unionfs@vger.kernel.org>; Sat, 18 Apr 2020 02:57:40 -0700 (PDT)
-Received: by mail-wm1-x342.google.com with SMTP id h2so5281280wmb.4
-        for <linux-unionfs@vger.kernel.org>; Sat, 18 Apr 2020 02:57:40 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=TfrUS5rwb1Lm1+fUNVoGgv8zsS/ehzKTgMHCq+Rkvu4=;
-        b=JTWaO8kQ3QzInCc9DRMihu9tOOI9EHgdJoVTD0934wYeAJlT4+yl6MICBzxNx7nApj
-         TMZ/BaubQ1L0fw/FqBmrjWArY9TSIBRTVZY+DqUJTPFLiXUwrTnWuD5/YwCTNiJpZAPx
-         WMIq8ABHexizB7V9X+R7YduHbRfe0H/3GicgAX3sDFobog8OZWSCw+ewb/h/ijoP/tSj
-         KasilG2fooVcJzxpR+c8N92iqkvSPk3XB+E05ndfEuNSlFH7uwjV8n5j/ffuji+d/PbL
-         lnIGZRea06jMogWWMXSVJ4Njh6sdIHIrEDzRzwpVNr9JdP3B1F/1OWZPIjnh0z7PouyD
-         66ZA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=TfrUS5rwb1Lm1+fUNVoGgv8zsS/ehzKTgMHCq+Rkvu4=;
-        b=QdZVyLR6PW0jIQYhB95n6bCiQLM5Gfrx870PA9avl9fFF32tP/lvfZVSK6RHHBdbCM
-         LtldDxp80ChR4YYDkIbvr3fYwih2ajdvTfkYGfqbILw0RH3boZtO6Mnti+FDnWG0KMp+
-         bXHcAJ2aHgBNMvnUSS3vLHPYT4IOyGShbqVEoIDvFHrUGM1jj3fIlrFsGX4T5SJH09AT
-         8Pa30ImINMkDUeMF7dq8Q7sXlp29KZOJ5AdazEiqEqVN+DRnEOdAkDf9vz/W+SQbTj1M
-         14i1wcmkhlJ2caIImxIjQUmuAG/oAwwG6nw7nHFQgQhwQn0Jp0F3HFuv7G0kyGHGkrp6
-         s4Mw==
-X-Gm-Message-State: AGi0PuYnNtjjuJ9yBalDRkJdYxCih6BdDcXHqOt8ys3sIWysdjx/y8mD
-        6xObXilmRIkBklkDbAlCitLvdAxdwQjHv4SWbCs=
-X-Google-Smtp-Source: APiQypLi2DeqJJ4yK6qxuto9hjB7lZGWsOx0Ga6g6aYn8MIVNbMLIAFUUNvnwHU+1vfSoZVW+xFYX8JqzXtXAxCoyEw=
-X-Received: by 2002:a1c:5fc4:: with SMTP id t187mr7881419wmb.181.1587203859433;
- Sat, 18 Apr 2020 02:57:39 -0700 (PDT)
+        Sat, 18 Apr 2020 09:48:21 -0400
+Received: from mail.kernel.org ([198.145.29.99]:54416 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726009AbgDRNsV (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Sat, 18 Apr 2020 09:48:21 -0400
+Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id 04DFC21D7E;
+        Sat, 18 Apr 2020 13:48:19 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1587217700;
+        bh=eOjHPZ2hM8yY0lMQEmFgXJ6RCmnDAUY8hOw/b5roVIc=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=qyDOlvYfPtw3ACOvj+qlsg/Fz/hWfkd1wV/omRNMekd1S7/VvWvMrM9zzUM8wAIZp
+         risKtbn1/oW3Goc8YPcLZEzrOA7mGemh/MKt5eJAzgda/QaPqlmdAfI4hazal7cYQV
+         yt+zYe2uZuvC7623tOr8RWk146mI+tkURqw3C/V8=
+From:   Sasha Levin <sashal@kernel.org>
+To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc:     Amir Goldstein <amir73il@gmail.com>,
+        Miklos Szeredi <mszeredi@redhat.com>,
+        Sasha Levin <sashal@kernel.org>, linux-unionfs@vger.kernel.org
+Subject: [PATCH AUTOSEL 5.6 04/73] ovl: fix value of i_ino for lower hardlink corner case
+Date:   Sat, 18 Apr 2020 09:47:06 -0400
+Message-Id: <20200418134815.6519-4-sashal@kernel.org>
+X-Mailer: git-send-email 2.20.1
+In-Reply-To: <20200418134815.6519-1-sashal@kernel.org>
+References: <20200418134815.6519-1-sashal@kernel.org>
 MIME-Version: 1.0
-References: <20200415120134.28154-1-amir73il@gmail.com> <20200415120134.28154-3-amir73il@gmail.com>
- <20200415153032.GC239514@redhat.com> <CAOQ4uxhmxxjGGB3bBoK1OmcAWDsoNi3WdORtH7WDLOcp8=sYSQ@mail.gmail.com>
- <20200415194243.GE239514@redhat.com> <CAOQ4uxjZ4Yd3ZWi+Fe64fVkrD=XMDjF1=C=XN_PNdywbGx_gzQ@mail.gmail.com>
- <20200416125807.GB276932@redhat.com> <CAOQ4uxi=mT2JYGSXro5YW8gTE5256cxauBddYe2HXM=ZfZ=+ZA@mail.gmail.com>
-In-Reply-To: <CAOQ4uxi=mT2JYGSXro5YW8gTE5256cxauBddYe2HXM=ZfZ=+ZA@mail.gmail.com>
-From:   Amir Goldstein <amir73il@gmail.com>
-Date:   Sat, 18 Apr 2020 12:57:27 +0300
-Message-ID: <CAOQ4uxjvtGLn=SvLXy3KU6uKbonBUznL==OjdVVjjB6sM=-mgg@mail.gmail.com>
-Subject: Re: [PATCH 2/2] Configure custom layers via environment variables
-To:     Vivek Goyal <vgoyal@redhat.com>
-Cc:     Giuseppe Scrivano <gscrivan@redhat.com>,
-        Miklos Szeredi <miklos@szeredi.hu>,
-        overlayfs <linux-unionfs@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+X-stable: review
+X-Patchwork-Hint: Ignore
+Content-Transfer-Encoding: 8bit
 Sender: linux-unionfs-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-> > If I specify UNIONMOUNT_BASEDIR, then --samefs should be implied?
-> >
->
-> This might have made sense with the meaning of UNIONMOUNT_BASEDIR
-> as it is in current posting, but with intended change, I suppose an empty
-> UNIONMOUNT_LOWERDIR could mean --samefs.
-> When both --samefs and UNIONMOUNT_LOWERDIR are specified, I'll
-> throw a warning that UNIONMOUNT_LOWERDIR is ignored.
->
+From: Amir Goldstein <amir73il@gmail.com>
 
-Vivek,
+[ Upstream commit 300b124fcf6ad2cd99a7b721e0f096785e0a3134 ]
 
-I updated the logic per some of your suggestions and push to:
-  https://github.com/amir73il/unionmount-testsuite/commits/overlayfs-devel
-The example of how xfstests uses it is at:
-  https://github.com/amir73il/xfstests/commits/unionmount
+Commit 6dde1e42f497 ("ovl: make i_ino consistent with st_ino in more
+cases"), relaxed the condition nfs_export=on in order to set the value of
+i_ino to xino map of real ino.
 
-Since I am mostly interested in feedback on config interface, I'll just
-paste the commit message here (same text is also in README).
+Specifically, it also relaxed the pre-condition that index=on for
+consistent i_ino. This opened the corner case of lower hardlink in
+ovl_get_inode(), which calls ovl_fill_inode() with ino=0 and then
+ovl_init_inode() is called to set i_ino to lower real ino without the xino
+mapping.
 
-In short: if you set UNIONMOUNT_BASEDIR to virtiofs path and
-execute run --ov, all layers will be created under that virtiofs path.
+Pass the correct values of ino;fsid in this case to ovl_fill_inode(), so it
+can initialize i_ino correctly.
 
-Let me know if this works for you.
-Thanks,
-Amir.
+Fixes: 6dde1e42f497 ("ovl: make i_ino consistent with st_ino in more ...")
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ fs/overlayfs/inode.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-commit 8c2ac6e0cd9d4b01e421375e0b9c3703e774cd9f
-Author: Amir Goldstein <amir73il@gmail.com>
-Date:   Sun Apr 12 19:22:19 2020 +0300
+diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
+index 79e8994e3bc1a..3f993c114829e 100644
+--- a/fs/overlayfs/inode.c
++++ b/fs/overlayfs/inode.c
+@@ -891,7 +891,7 @@ struct inode *ovl_get_inode(struct super_block *sb,
+ 	struct dentry *lowerdentry = lowerpath ? lowerpath->dentry : NULL;
+ 	bool bylower = ovl_hash_bylower(sb, upperdentry, lowerdentry,
+ 					oip->index);
+-	int fsid = bylower ? oip->lowerpath->layer->fsid : 0;
++	int fsid = bylower ? lowerpath->layer->fsid : 0;
+ 	bool is_dir, metacopy = false;
+ 	unsigned long ino = 0;
+ 	int err = oip->newinode ? -EEXIST : -ENOMEM;
+@@ -941,6 +941,8 @@ struct inode *ovl_get_inode(struct super_block *sb,
+ 			err = -ENOMEM;
+ 			goto out_err;
+ 		}
++		ino = realinode->i_ino;
++		fsid = lowerpath->layer->fsid;
+ 	}
+ 	ovl_fill_inode(inode, realinode->i_mode, realinode->i_rdev, ino, fsid);
+ 	ovl_inode_init(inode, upperdentry, lowerdentry, oip->lowerdata);
+-- 
+2.20.1
 
-    Configure custom layers via environment variables
-
-    The following environment variables are supported:
-
-     UNIONMOUNT_BASEDIR  - parent dir of all samefs layers (default: /base)
-     UNIONMOUNT_LOWERDIR - lower layer path for non samefs (default: /lower)
-     UNIONMOUNT_MNTPOINT - mount point for executing tests (default: /mnt)
-
-    When user provides paths for base/lower dir, they should point at
-    existing directories and their content will be deleted.
-    When the default base/lower paths are used, tmpfs instances are created.
-
-    UNIONMOUNT_LOWERDIR is meaningless and will be ignored with --samefs.
-    Empty UNIONMOUNT_LOWERDIR with non-empty UNIONMOUNT_BASEDIR imply --samefs,
-    unless user explicitly requested non samefs setup with maxfs=<M>.
-
-    This is going to be used for running unionmount tests from xfstests.
-
-    Signed-off-by: Amir Goldstein <amir73il@gmail.com>
