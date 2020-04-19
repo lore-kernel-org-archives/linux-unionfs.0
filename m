@@ -2,187 +2,280 @@ Return-Path: <SRS0=BYJY=6D=vger.kernel.org=linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	UNPARSEABLE_RELAY autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E18DCC38A30
-	for <linux-unionfs@archiver.kernel.org>; Sun, 19 Apr 2020 15:42:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1E77EC38A30
+	for <linux-unionfs@archiver.kernel.org>; Sun, 19 Apr 2020 16:00:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id ACDB621973
-	for <linux-unionfs@archiver.kernel.org>; Sun, 19 Apr 2020 15:42:57 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Idlx7yJX"
+	by mail.kernel.org (Postfix) with ESMTP id 02A4621974
+	for <linux-unionfs@archiver.kernel.org>; Sun, 19 Apr 2020 15:59:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725969AbgDSPm5 (ORCPT
+        id S1726160AbgDSP76 (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Sun, 19 Apr 2020 11:42:57 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36808 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725927AbgDSPm4 (ORCPT
+        Sun, 19 Apr 2020 11:59:58 -0400
+Received: from out20-74.mail.aliyun.com ([115.124.20.74]:36578 "EHLO
+        out20-74.mail.aliyun.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725939AbgDSP76 (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Sun, 19 Apr 2020 11:42:56 -0400
-Received: from mail-il1-x143.google.com (mail-il1-x143.google.com [IPv6:2607:f8b0:4864:20::143])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BE088C061A0C;
-        Sun, 19 Apr 2020 08:42:54 -0700 (PDT)
-Received: by mail-il1-x143.google.com with SMTP id u189so2558532ilc.4;
-        Sun, 19 Apr 2020 08:42:54 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=LRM5S6uTpg1Vl8+gbOvW4L9SH5Gg3OLbDNgWN4DaPMk=;
-        b=Idlx7yJX3OY2wt1TgTXUZaymC3olvZF7XYBv++FNxfyFMXcXu5qro2X0ICLLXEuBC/
-         7yosMiK4tpeuIByxeW5yBF7iFUwmHlp4GLBaMBqd5WAvjESKlGBQv7zTpi44vOQdOcvW
-         75OgYK/UyhRJlOIufRtiieWv+eAb97DCQ44N3mHXrnd+C+mZKxFe1Idby8/m+XaGrMMd
-         XEnilTMfWdSlpEOyryO83x/9fvErIhpUoPYixIs23etW80/l6cASg5DRIjr8vkHrp6TY
-         kcVTzeKGNvcyVVr1GIn6jFY1XOhHwqqksEmyZ58wBHNmFiG9KCTxvMgfBp3lP8P+rOLY
-         9lHg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=LRM5S6uTpg1Vl8+gbOvW4L9SH5Gg3OLbDNgWN4DaPMk=;
-        b=W5kKiTJE0x8+ZL534h0TShwy5+pVexSJZBXWxadnnj+N2rm8pzZDg6l1Avp6m8HFui
-         lIs+kU+QcceC8LUJ9VYayreFyHCteIS8NqrlIZNzMMlOgq6Y22Om4ef+mQDjtKTMWWFD
-         n4n5U3i96m1xaGzleg1JJDIgUsfZtkfstbS6dM8DUkdawtgYMaxM6lypEZPWBV0w2hz4
-         LXcGdlTfVNbLs8EB59jRpNNp2EPxE3knyR3tzE7jEx6maikIRXUZ05me2J03Z1/Mpw1P
-         3MfcOzNAt1zkHLT6bygy5Cal5+BgfF9liPsi1JAkUBhRCmSrZMPibM6fwA8lda7UpzBb
-         qt3A==
-X-Gm-Message-State: AGi0PubArivGAx0aIouYw5SJbXjPflem82yn400azFWu2EERS5+Ri753
-        kJ45pPdSiBBlNyYnuD3EiIndkcOH9/XQ3/aFyQRJpg==
-X-Google-Smtp-Source: APiQypIIVWtdW0bZEyVrQ0Bn1TrTiTOBOFk3kzzD9tzHzo+rqxuxrYHtrE9UuAm8P6xJlHWOS4NZQFWwhEhb3LMcR3Y=
-X-Received: by 2002:a92:9e11:: with SMTP id q17mr70693ili.137.1587310973923;
- Sun, 19 Apr 2020 08:42:53 -0700 (PDT)
+        Sun, 19 Apr 2020 11:59:58 -0400
+X-Alimail-AntiSpam: AC=CONTINUE;BC=0.07437351|-1;CH=green;DM=|CONTINUE|false|;DS=CONTINUE|ham_system_inform|0.0323515-0.00129263-0.966356;FP=0|0|0|0|0|-1|-1|-1;HT=e01a16378;MF=guan@eryu.me;NM=1;PH=DS;RN=6;RT=6;SR=0;TI=SMTPD_---.HJstBlT_1587311990;
+Received: from localhost(mailfrom:guan@eryu.me fp:SMTPD_---.HJstBlT_1587311990)
+          by smtp.aliyun-inc.com(10.147.40.26);
+          Sun, 19 Apr 2020 23:59:50 +0800
+Date:   Mon, 20 Apr 2020 00:00:57 +0800
+From:   Eryu Guan <guan@eryu.me>
+To:     Chengguang Xu <cgxu519@mykernel.net>
+Cc:     guaneryu@gmail.com, fstests@vger.kernel.org,
+        linux-unionfs@vger.kernel.org, miklos@szeredi.hu,
+        amir73il@gmail.com
+Subject: Re: [PATCH v3] overlay/072: test for whiteout inode sharing
+Message-ID: <20200419160057.GH388005@desktop>
+References: <20200414093401.9792-1-cgxu519@mykernel.net>
 MIME-Version: 1.0
-References: <20200409112223.14496-1-amir73il@gmail.com> <20200419150147.GF388005@desktop>
-In-Reply-To: <20200419150147.GF388005@desktop>
-From:   Amir Goldstein <amir73il@gmail.com>
-Date:   Sun, 19 Apr 2020 18:42:42 +0300
-Message-ID: <CAOQ4uxijb_VBT_HTdTcbgLmZqDp62QEBwQZ9sq8sYjgVJobbkw@mail.gmail.com>
-Subject: Re: [PATCH] overlay: another test for dropping nlink below zero
-To:     Eryu Guan <guan@eryu.me>
-Cc:     Eryu Guan <guaneryu@gmail.com>, Miklos Szeredi <miklos@szeredi.hu>,
-        overlayfs <linux-unionfs@vger.kernel.org>,
-        fstests <fstests@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20200414093401.9792-1-cgxu519@mykernel.net>
 Sender: linux-unionfs-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Sun, Apr 19, 2020 at 6:00 PM Eryu Guan <guan@eryu.me> wrote:
->
-> On Thu, Apr 09, 2020 at 02:22:23PM +0300, Amir Goldstein wrote:
-> > This is a variant on test overlay/034.
-> >
-> > This variant is mangling upper hardlinks instead of lower hardlinks
-> > and does not require the inodes index feature.
-> >
-> > This is a regression test for kernel commit 83552eacdfc0
-> > ("ovl: fix WARN_ON nlink drop to zero")
-> >
-> > Signed-off-by: Amir Goldstein <amir73il@gmail.com>
-> > ---
-> >
-> > Eryu,
-> >
-> > The kernel fix commit just got merged.
-> >
-> > Thanks,
-> > Amir.
-> >
-> >  tests/overlay/072     | 85 +++++++++++++++++++++++++++++++++++++++++++
-> >  tests/overlay/072.out |  2 +
-> >  tests/overlay/group   |  1 +
-> >  3 files changed, 88 insertions(+)
-> >  create mode 100755 tests/overlay/072
-> >  create mode 100644 tests/overlay/072.out
-> >
-> > diff --git a/tests/overlay/072 b/tests/overlay/072
-> > new file mode 100755
-> > index 00000000..e9084e5c
-> > --- /dev/null
-> > +++ b/tests/overlay/072
-> > @@ -0,0 +1,85 @@
-> > +#! /bin/bash
-> > +# SPDX-License-Identifier: GPL-2.0
-> > +# Copyright (C) 2020 CTERA Networks. All Rights Reserved.
-> > +#
-> > +# FS QA Test 072
-> > +#
-> > +# Test overlay nlink when adding upper hardlinks.
-> > +#
-> > +# nlink of overlay inode could be dropped indefinitely by adding
-> > +# unaccounted upper hardlinks underneath a mounted overlay and
-> > +# trying to remove them.
-> > +#
-> > +# This is a variant of test overlay/034 with mangling of upper instead
-> > +# of lower hardlinks. Unlike overlay/034, this test does not require the
-> > +# inode index feature and will pass whether is it enabled or disabled
-> > +# by default.
-> > +#
-> > +# This is a regression test for kernel commit 83552eacdfc0
-> > +# ("ovl: fix WARN_ON nlink drop to zero").
-> > +# Without the fix, the test triggers
-> > +# WARN_ON(inode->i_nlink == 0) in drop_link().
-> > +#
-> > +seq=`basename $0`
-> > +seqres=$RESULT_DIR/$seq
-> > +echo "QA output created by $seq"
-> > +
-> > +tmp=/tmp/$$
-> > +status=1     # failure is the default!
-> > +trap "_cleanup; exit \$status" 0 1 2 3 15
-> > +
-> > +_cleanup()
-> > +{
-> > +     cd /
-> > +     rm -f $tmp.*
-> > +}
-> > +
-> > +# get standard environment, filters and checks
-> > +. ./common/rc
-> > +. ./common/filter
-> > +
-> > +# remove previous $seqres.full before test
-> > +rm -f $seqres.full
-> > +
-> > +# real QA test starts here
-> > +_supported_fs overlay
-> > +_supported_os Linux
-> > +_require_scratch
-> > +
-> > +upperdir=$OVL_BASE_SCRATCH_MNT/$OVL_UPPER
-> > +
-> > +# Remove all files from previous tests
-> > +_scratch_mkfs
-> > +
-> > +# Create lower hardlink
->
-> It seems there're some stale comments that are copied from overlay/034,
-> above is one of them, should be "Create upper hardlink"
->
+On Tue, Apr 14, 2020 at 05:34:01PM +0800, Chengguang Xu wrote:
+> This is a test for whiteout inode sharing feature.
+> 
+> Signed-off-by: Chengguang Xu <cgxu519@mykernel.net>
+> Reviewed-by: Amir Goldstein <amir73il@gmail.com>
 
-Yep. I'll fix those up.
+Looks fine to me overall, but still, I'd like to see the kernel patch
+lands first.
 
-> > +mkdir -p $upperdir
-> > +touch $upperdir/0
-> > +ln $upperdir/0 $upperdir/1
-> > +
-> > +_scratch_mount
-> > +
-> > +# Copy up lower hardlink - overlay inode nlink 2 is copied from lower
-> > +touch $SCRATCH_MNT/0
->
-> There's no copyup, then do we need this touch at all?
+And some minor comments inline.
 
-We do not need touch, but we do need something to do the
-lookup and read upper nlink before modifying it underneath.
+It'd be great if you could provide more info about the new feature, so
+people understand the feature and could review the tests with such info
+in mind, "whiteout inode sharing feature" doesn't explain what it is
+very well.
 
-Good points.
-I'll send fixed v2.
+> ---
+> v1->v2:
+> - Address Amir's comments in v1
+> 
+> v2->v3:
+> - Address Amir's comments in v2
+> 
+>  common/module         |   9 +++
+>  tests/overlay/072     | 149 ++++++++++++++++++++++++++++++++++++++++++
+>  tests/overlay/072.out |   2 +
+>  tests/overlay/group   |   1 +
+>  4 files changed, 161 insertions(+)
+>  create mode 100755 tests/overlay/072
+>  create mode 100644 tests/overlay/072.out
+> 
+> diff --git a/common/module b/common/module
+> index 39e4e793..148e8c8f 100644
+> --- a/common/module
+> +++ b/common/module
+> @@ -81,3 +81,12 @@ _get_fs_module_param()
+>  {
+>  	cat /sys/module/${FSTYP}/parameters/${1} 2>/dev/null
+>  }
+> + # Set the value of a filesystem module parameter
+> + # at /sys/module/$FSTYP/parameters/$PARAM
+> + #
+> + # Usage example:
+> + #   _set_fs_module_param param value
+> + _set_fs_module_param()
+> +{
+> +	echo ${2} > /sys/module/${FSTYP}/parameters/${1} 2>/dev/null
+> +}
+> diff --git a/tests/overlay/072 b/tests/overlay/072
+> new file mode 100755
+> index 00000000..81e39a79
+> --- /dev/null
+> +++ b/tests/overlay/072
+> @@ -0,0 +1,149 @@
+> +#! /bin/bash
+> +# SPDX-License-Identifier: GPL-2.0
+> +# Copyright (c) 2020 Chengguang Xu <cgxu519@mykernel.net>.
+> +# All Rights Reserved.
+> +#
+> +# FS QA Test 072
+> +#
+> +# This is a test for whiteout inode sharing feature.
+> +#
+> +seq=`basename $0`
+> +seqres=$RESULT_DIR/$seq
+> +echo "QA output created by $seq"
+> +
+> +here=`pwd`
+> +tmp=/tmp/$$
+> +status=1	# failure is the default!
+> +trap "_cleanup; exit \$status" 0 1 2 3 15
+> +
+> +_cleanup()
+> +{
+> +	cd /
+> +	rm -f $tmp.*
+> +	if [[ -n "${orig_param_value}" ]]; then
+> +		_set_fs_module_param $param_name $orig_param_value
+> +	fi
+> +}
+> +
+> +# get standard environment, filters and checks
+> +. ./common/rc
+> +. ./common/filter
+> +
+> +# remove previous $seqres.full before test
+> +rm -f $seqres.full
+> +
+> +# real QA test starts here
+> +_supported_fs overlay
+> +_supported_os Linux
+> +_require_scratch
+> +
+> +param_name="whiteout_link_max"
+> +
+> +# Check overlayfs module param(whiteout_link_max)
+> +check_whiteout_link_max()
+> +{
+> +	orig_param_value=`_get_fs_module_param ${param_name}`
+> +	if [ -z ${orig_param_value} ]; then
+> +		_notrun "${FSTYP} does not support whiteout inode sharing"
+> +	fi
+> +}
+> +
+> +lowerdir=$OVL_BASE_SCRATCH_MNT/$OVL_LOWER
+> +upperdir=$OVL_BASE_SCRATCH_MNT/$OVL_UPPER
+> +workdir=$OVL_BASE_SCRATCH_MNT/$OVL_WORK
+> +
+> +# Make some testing files in lowerdir.
+> +# Argument:
+> +# $1: Testing file number
+> +make_lower_files()
+> +{
+> +	for name in `seq ${1}`
+> +	do
+
+Perfer the following style for "for loop":
+
+	for name in `seq ${`}`; do
+		...
+	done
+
+> +		touch $lowerdir/file${name} &>/dev/null
+> +	done
+> +}
+> +
+> +# Delete all copy-uped files in upperdir.
+> +make_whiteout_files()
+> +{
+> +	rm -f $SCRATCH_MNT/* &>/dev/null
+> +}
+> +
+> +# Check link count of whiteout files.
+> +# Arguments:
+> +# $1: Testing file number
+> +# $2: Expected link count
+> +check_whiteout_files()
+> +{
+> +	for name in `seq ${1}`
+> +	do
+
+Same here.
 
 Thanks,
-Amir.
+Eryu
+
+> +		local real_count=`stat -c %h $upperdir/file${name} 2>/dev/null`
+> +		if [[ ${2} != $real_count ]]; then
+> +			echo "Expected link count is ${2} but real count is $real_count, file name is file${name}"
+> +		fi
+> +	done
+> +	local tmpfile_count=`ls $workdir/work/\#* $workdir/index/\#* 2>/dev/null |wc -l 2>/dev/null`
+> +	if [[ -n "$tmpfile_count" && $tmpfile_count > 1 ]]; then
+> +		echo "There are more than one whiteout tmpfile in work/index dir!"
+> +		ls -l $workdir/work/\#* $workdir/index/\#* 2>/dev/null
+> +	fi
+> +}
+> +
+> +# Run test case with specific arguments.
+> +# Arguments:
+> +# $1: Maximum link count
+> +# $2: Testing file number
+> +# $3: Expected link count
+> +run_test_case()
+> +{
+> +	_scratch_mkfs
+> +	_set_fs_module_param $param_name ${1}
+> +	make_lower_files ${2}
+> +	_scratch_mount
+> +	make_whiteout_files
+> +	check_whiteout_files ${2} ${3}
+> +	_scratch_unmount
+> +}
+> +
+> +check_whiteout_link_max
+> +
+> +# Case1:
+> +# Setting whiteout_link_max=0 means whiteout files will not
+> +# share inode, each whiteout file will have it's own inode.
+> +
+> +link_max=0
+> +file_count=10
+> +link_count=1
+> +run_test_case $link_max $file_count $link_count
+> +
+> +# Case2:
+> +# Setting whiteout_link_max=1 means whiteout files will not
+> +# share inode, each whiteout file will have it's own inode.
+> +
+> +link_max=1
+> +file_count=10
+> +link_count=1
+> +run_test_case $link_max $file_count $link_count
+> +
+> +# Case3:
+> +# Setting whiteout_link_max>1 means whiteout files will share
+> +# inode and link count could up to whiteout_link_max.
+> +
+> +link_max=2
+> +file_count=10
+> +link_count=2
+> +run_test_case $link_max $file_count $link_count
+> +
+> +# Case4:
+> +# Setting whiteout_link_max>1 means whiteout files will share
+> +# inode and link count could up to whiteout_link_max.
+> +
+> +link_max=10
+> +file_count=20
+> +link_count=10
+> +run_test_case $link_max $file_count $link_count
+> +
+> +# success, all done
+> +echo "Silence is golden"
+> +status=0
+> +exit
+> diff --git a/tests/overlay/072.out b/tests/overlay/072.out
+> new file mode 100644
+> index 00000000..590bbc6c
+> --- /dev/null
+> +++ b/tests/overlay/072.out
+> @@ -0,0 +1,2 @@
+> +QA output created by 072
+> +Silence is golden
+> diff --git a/tests/overlay/group b/tests/overlay/group
+> index 43ad8a52..8b2276f1 100644
+> --- a/tests/overlay/group
+> +++ b/tests/overlay/group
+> @@ -74,3 +74,4 @@
+>  069 auto quick copyup hardlink exportfs nested nonsamefs
+>  070 auto quick copyup redirect nested
+>  071 auto quick copyup redirect nested nonsamefs
+> +072 auto quick whiteout
+> -- 
+> 2.20.1
+> 
+> 
