@@ -4,50 +4,50 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 46FB0C2BA19
-	for <linux-unionfs@archiver.kernel.org>; Thu, 23 Apr 2020 10:48:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6706DC2BA19
+	for <linux-unionfs@archiver.kernel.org>; Thu, 23 Apr 2020 10:48:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2B2C220857
-	for <linux-unionfs@archiver.kernel.org>; Thu, 23 Apr 2020 10:48:33 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4D8E02084D
+	for <linux-unionfs@archiver.kernel.org>; Thu, 23 Apr 2020 10:48:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727857AbgDWKsc (ORCPT
+        id S1727119AbgDWKsn (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Thu, 23 Apr 2020 06:48:32 -0400
-Received: from mx0a-001b2d01.pphosted.com ([148.163.156.1]:55918 "EHLO
-        mx0a-001b2d01.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1727853AbgDWKsb (ORCPT
+        Thu, 23 Apr 2020 06:48:43 -0400
+Received: from mx0b-001b2d01.pphosted.com ([148.163.158.5]:50608 "EHLO
+        mx0a-001b2d01.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1727014AbgDWKsm (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 23 Apr 2020 06:48:31 -0400
-Received: from pps.filterd (m0098409.ppops.net [127.0.0.1])
-        by mx0a-001b2d01.pphosted.com (8.16.0.42/8.16.0.42) with SMTP id 03NAVr5I098855
-        for <linux-unionfs@vger.kernel.org>; Thu, 23 Apr 2020 06:48:30 -0400
+        Thu, 23 Apr 2020 06:48:42 -0400
+Received: from pps.filterd (m0098417.ppops.net [127.0.0.1])
+        by mx0a-001b2d01.pphosted.com (8.16.0.42/8.16.0.42) with SMTP id 03NAXHKT048935
+        for <linux-unionfs@vger.kernel.org>; Thu, 23 Apr 2020 06:48:42 -0400
 Received: from e06smtp05.uk.ibm.com (e06smtp05.uk.ibm.com [195.75.94.101])
-        by mx0a-001b2d01.pphosted.com with ESMTP id 30gmvk5euw-1
+        by mx0a-001b2d01.pphosted.com with ESMTP id 30jspusxvs-1
         (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=NOT)
-        for <linux-unionfs@vger.kernel.org>; Thu, 23 Apr 2020 06:48:30 -0400
+        for <linux-unionfs@vger.kernel.org>; Thu, 23 Apr 2020 06:48:41 -0400
 Received: from localhost
         by e06smtp05.uk.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
         for <linux-unionfs@vger.kernel.org> from <riteshh@linux.ibm.com>;
-        Thu, 23 Apr 2020 11:47:32 +0100
-Received: from b06avi18626390.portsmouth.uk.ibm.com (9.149.26.192)
+        Thu, 23 Apr 2020 11:47:44 +0100
+Received: from b06cxnps4075.portsmouth.uk.ibm.com (9.149.109.197)
         by e06smtp05.uk.ibm.com (192.168.101.135) with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted;
         (version=TLSv1/SSLv3 cipher=AES256-GCM-SHA384 bits=256/256)
-        Thu, 23 Apr 2020 11:47:28 +0100
+        Thu, 23 Apr 2020 11:47:40 +0100
 Received: from d06av25.portsmouth.uk.ibm.com (d06av25.portsmouth.uk.ibm.com [9.149.105.61])
-        by b06avi18626390.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 03NAlFAG63635902
+        by b06cxnps4075.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 03NAmXSV63635682
         (version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Thu, 23 Apr 2020 10:47:15 GMT
+        Thu, 23 Apr 2020 10:48:33 GMT
 Received: from d06av25.portsmouth.uk.ibm.com (unknown [127.0.0.1])
-        by IMSVA (Postfix) with ESMTP id 5DD9011C04C;
-        Thu, 23 Apr 2020 10:48:22 +0000 (GMT)
+        by IMSVA (Postfix) with ESMTP id A65B311C050;
+        Thu, 23 Apr 2020 10:48:33 +0000 (GMT)
 Received: from d06av25.portsmouth.uk.ibm.com (unknown [127.0.0.1])
-        by IMSVA (Postfix) with ESMTP id 6809C11C052;
-        Thu, 23 Apr 2020 10:48:18 +0000 (GMT)
+        by IMSVA (Postfix) with ESMTP id 990FE11C04A;
+        Thu, 23 Apr 2020 10:48:30 +0000 (GMT)
 Received: from localhost.localdomain.com (unknown [9.199.60.18])
         by d06av25.portsmouth.uk.ibm.com (Postfix) with ESMTP;
-        Thu, 23 Apr 2020 10:48:18 +0000 (GMT)
+        Thu, 23 Apr 2020 10:48:30 +0000 (GMT)
 From:   Ritesh Harjani <riteshh@linux.ibm.com>
 To:     linux-ext4@vger.kernel.org
 Cc:     jack@suse.cz, tytso@mit.edu, adilger@dilger.ca,
@@ -59,64 +59,66 @@ Cc:     jack@suse.cz, tytso@mit.edu, adilger@dilger.ca,
         Murphy Zhou <jencce.kernel@gmail.com>,
         Miklos Szeredi <miklos@szeredi.hu>,
         Amir Goldstein <amir73il@gmail.com>,
-        linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org,
-        syzbot+77fa5bdb65cc39711820@syzkaller.appspotmail.com
-Subject: [PATCH 1/5] ext4: Fix EXT4_MAX_LOGICAL_BLOCK macro
-Date:   Thu, 23 Apr 2020 16:17:53 +0530
+        linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org
+Subject: [PATCH 2/5] ext4: Rename fiemap_check_ranges() to make it ext4 specific
+Date:   Thu, 23 Apr 2020 16:17:54 +0530
 X-Mailer: git-send-email 2.21.0
 In-Reply-To: <cover.1587555962.git.riteshh@linux.ibm.com>
 References: <cover.1587555962.git.riteshh@linux.ibm.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 X-TM-AS-GCONF: 00
-x-cbid: 20042310-0020-0000-0000-000003CD1B83
+x-cbid: 20042310-0020-0000-0000-000003CD1B86
 X-IBM-AV-DETECTION: SAVI=unused REMOTE=unused XFE=unused
-x-cbparentid: 20042310-0021-0000-0000-000022261BDB
-Message-Id: <e31dbabc453d1f227371bed6e0cc2f3493b4955f.1587555962.git.riteshh@linux.ibm.com>
+x-cbparentid: 20042310-0021-0000-0000-000022261BDF
+Message-Id: <64ab9d5449f6fb96bb8633f1a40cff14ddb5614e.1587555962.git.riteshh@linux.ibm.com>
 X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.138,18.0.676
  definitions=2020-04-23_07:2020-04-22,2020-04-23 signatures=0
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 priorityscore=1501
- bulkscore=0 malwarescore=0 impostorscore=0 suspectscore=1 phishscore=0
- adultscore=0 mlxlogscore=999 clxscore=1015 mlxscore=0 spamscore=0
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 phishscore=0 adultscore=0
+ mlxlogscore=999 clxscore=1015 priorityscore=1501 impostorscore=0
+ spamscore=0 bulkscore=0 malwarescore=0 mlxscore=0 suspectscore=1
  lowpriorityscore=0 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.12.0-2003020000 definitions=main-2004230078
+ engine=8.12.0-2003020000 definitions=main-2004230082
 Sender: linux-unionfs-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-ext4 supports max number of logical blocks in a file to be 0xffffffff.
-(This is since ext4_extent's ee_block is __le32).
-This means that EXT4_MAX_LOGICAL_BLOCK should be 0xfffffffe (starting
-from 0 logical offset). This patch fixes this.
+This renames the fiemap_check_ranges() copy of function
+within ext4/ioctl.c to become ext4_fiemap_check_ranges().
+This is required so that we can finally get rid of this
+duplicate version.
+Since overlayfs anyways need to use this in it's
+ovl_fiemap() function, so later patches make it
+available for use by others via EXPORT_SYMBOL.
 
-The issue was seen when ext4 moved to iomap_fiemap API and when
-overlayfs was mounted on top of ext4. Since overlayfs was missing
-filemap_check_ranges(), so it could pass a arbitrary huge length which
-lead to overflow of map.m_len logic.
-
-This patch fixes that.
-
-Fixes: d3b6f23f7167 ("ext4: move ext4_fiemap to use iomap framework")
-Reported-by: syzbot+77fa5bdb65cc39711820@syzkaller.appspotmail.com
 Signed-off-by: Ritesh Harjani <riteshh@linux.ibm.com>
 ---
- fs/ext4/ext4.h | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/ext4/ioctl.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/fs/ext4/ext4.h b/fs/ext4/ext4.h
-index 91eb4381cae5..ad2dbf6e4924 100644
---- a/fs/ext4/ext4.h
-+++ b/fs/ext4/ext4.h
-@@ -722,7 +722,7 @@ enum {
- #define EXT4_MAX_BLOCK_FILE_PHYS	0xFFFFFFFF
+diff --git a/fs/ext4/ioctl.c b/fs/ext4/ioctl.c
+index bfc1281fc4cb..76a2b5200ba3 100644
+--- a/fs/ext4/ioctl.c
++++ b/fs/ext4/ioctl.c
+@@ -734,7 +734,7 @@ static void ext4_fill_fsxattr(struct inode *inode, struct fsxattr *fa)
+ }
  
- /* Max logical block we can support */
--#define EXT4_MAX_LOGICAL_BLOCK		0xFFFFFFFF
-+#define EXT4_MAX_LOGICAL_BLOCK		0xFFFFFFFE
+ /* copied from fs/ioctl.c */
+-static int fiemap_check_ranges(struct super_block *sb,
++static int ext4_fiemap_check_ranges(struct super_block *sb,
+ 			       u64 start, u64 len, u64 *new_len)
+ {
+ 	u64 maxbytes = (u64) sb->s_maxbytes;
+@@ -775,7 +775,7 @@ static int ext4_ioctl_get_es_cache(struct file *filp, unsigned long arg)
+ 	if (fiemap.fm_extent_count > FIEMAP_MAX_EXTENTS)
+ 		return -EINVAL;
  
- /*
-  * Structure of an inode on the disk
+-	error = fiemap_check_ranges(sb, fiemap.fm_start, fiemap.fm_length,
++	error = ext4_fiemap_check_ranges(sb, fiemap.fm_start, fiemap.fm_length,
+ 				    &len);
+ 	if (error)
+ 		return error;
 -- 
 2.21.0
 
