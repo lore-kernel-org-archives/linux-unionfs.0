@@ -2,139 +2,78 @@ Return-Path: <SRS0=+0RS=6H=vger.kernel.org=linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+	UNPARSEABLE_RELAY,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 24CA6C55193
-	for <linux-unionfs@archiver.kernel.org>; Thu, 23 Apr 2020 10:49:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2AF98C55186
+	for <linux-unionfs@archiver.kernel.org>; Thu, 23 Apr 2020 11:06:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0FD632084D
-	for <linux-unionfs@archiver.kernel.org>; Thu, 23 Apr 2020 10:49:06 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CF62E2076C
+	for <linux-unionfs@archiver.kernel.org>; Thu, 23 Apr 2020 11:06:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727877AbgDWKtF (ORCPT
+        id S1727877AbgDWLG6 (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Thu, 23 Apr 2020 06:49:05 -0400
-Received: from mx0b-001b2d01.pphosted.com ([148.163.158.5]:16158 "EHLO
-        mx0a-001b2d01.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1727121AbgDWKtE (ORCPT
+        Thu, 23 Apr 2020 07:06:58 -0400
+Received: from out30-132.freemail.mail.aliyun.com ([115.124.30.132]:46940 "EHLO
+        out30-132.freemail.mail.aliyun.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726805AbgDWLG6 (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 23 Apr 2020 06:49:04 -0400
-Received: from pps.filterd (m0098419.ppops.net [127.0.0.1])
-        by mx0b-001b2d01.pphosted.com (8.16.0.42/8.16.0.42) with SMTP id 03NAVYIb128489
-        for <linux-unionfs@vger.kernel.org>; Thu, 23 Apr 2020 06:49:03 -0400
-Received: from e06smtp03.uk.ibm.com (e06smtp03.uk.ibm.com [195.75.94.99])
-        by mx0b-001b2d01.pphosted.com with ESMTP id 30k3xua1m0-1
-        (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=NOT)
-        for <linux-unionfs@vger.kernel.org>; Thu, 23 Apr 2020 06:49:03 -0400
-Received: from localhost
-        by e06smtp03.uk.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
-        for <linux-unionfs@vger.kernel.org> from <riteshh@linux.ibm.com>;
-        Thu, 23 Apr 2020 11:48:36 +0100
-Received: from b06cxnps4075.portsmouth.uk.ibm.com (9.149.109.197)
-        by e06smtp03.uk.ibm.com (192.168.101.133) with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted;
-        (version=TLSv1/SSLv3 cipher=AES256-GCM-SHA384 bits=256/256)
-        Thu, 23 Apr 2020 11:48:31 +0100
-Received: from d06av25.portsmouth.uk.ibm.com (d06av25.portsmouth.uk.ibm.com [9.149.105.61])
-        by b06cxnps4075.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 03NAms6t59900112
-        (version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Thu, 23 Apr 2020 10:48:54 GMT
-Received: from d06av25.portsmouth.uk.ibm.com (unknown [127.0.0.1])
-        by IMSVA (Postfix) with ESMTP id A711611C052;
-        Thu, 23 Apr 2020 10:48:54 +0000 (GMT)
-Received: from d06av25.portsmouth.uk.ibm.com (unknown [127.0.0.1])
-        by IMSVA (Postfix) with ESMTP id 9370311C050;
-        Thu, 23 Apr 2020 10:48:51 +0000 (GMT)
-Received: from localhost.localdomain.com (unknown [9.199.60.18])
-        by d06av25.portsmouth.uk.ibm.com (Postfix) with ESMTP;
-        Thu, 23 Apr 2020 10:48:51 +0000 (GMT)
-From:   Ritesh Harjani <riteshh@linux.ibm.com>
-To:     linux-ext4@vger.kernel.org
-Cc:     jack@suse.cz, tytso@mit.edu, adilger@dilger.ca,
-        darrick.wong@oracle.com, hch@infradead.org,
-        Alexander Viro <viro@zeniv.linux.org.uk>,
-        Dan Carpenter <dan.carpenter@oracle.com>,
-        "Aneesh Kumar K . V" <aneesh.kumar@linux.ibm.com>,
-        Ritesh Harjani <riteshh@linux.ibm.com>,
-        Murphy Zhou <jencce.kernel@gmail.com>,
-        Miklos Szeredi <miklos@szeredi.hu>,
-        Amir Goldstein <amir73il@gmail.com>,
-        linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org
-Subject: [PATCH 5/5] ext4: Get rid of ext4_fiemap_check_ranges
-Date:   Thu, 23 Apr 2020 16:17:57 +0530
-X-Mailer: git-send-email 2.21.0
-In-Reply-To: <cover.1587555962.git.riteshh@linux.ibm.com>
-References: <cover.1587555962.git.riteshh@linux.ibm.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-TM-AS-GCONF: 00
-x-cbid: 20042310-0012-0000-0000-000003A9CB98
-X-IBM-AV-DETECTION: SAVI=unused REMOTE=unused XFE=unused
-x-cbparentid: 20042310-0013-0000-0000-000021E71F88
-Message-Id: <b2edd7710f07d94101a6055e398a5e4ed01f09bf.1587555962.git.riteshh@linux.ibm.com>
-X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.138,18.0.676
- definitions=2020-04-23_07:2020-04-22,2020-04-23 signatures=0
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 spamscore=0 mlxscore=0
- impostorscore=0 adultscore=0 priorityscore=1501 bulkscore=0 clxscore=1015
- malwarescore=0 mlxlogscore=999 lowpriorityscore=0 suspectscore=1
- phishscore=0 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.12.0-2003020000 definitions=main-2004230078
+        Thu, 23 Apr 2020 07:06:58 -0400
+X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R121e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=e01e04357;MF=jefflexu@linux.alibaba.com;NM=1;PH=DS;RN=4;SR=0;TI=SMTPD_---0TwQawG0_1587640016;
+Received: from localhost(mailfrom:jefflexu@linux.alibaba.com fp:SMTPD_---0TwQawG0_1587640016)
+          by smtp.aliyun-inc.com(127.0.0.1);
+          Thu, 23 Apr 2020 19:06:56 +0800
+From:   Jeffle Xu <jefflexu@linux.alibaba.com>
+To:     linux-unionfs@vger.kernel.org, miklos@szeredi.hu,
+        amir73il@gmail.com
+Cc:     joseph.qi@linux.alibaba.com
+Subject: [PATCH v2] overlayfs: inherit SB_NOSEC flag from upperdir
+Date:   Thu, 23 Apr 2020 19:06:55 +0800
+Message-Id: <1587640015-117044-1-git-send-email-jefflexu@linux.alibaba.com>
+X-Mailer: git-send-email 1.8.3.1
 Sender: linux-unionfs-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-Now that fiemap_check_ranges() is available for other filesystems
-to use, so get rid of ext4's private version.
+Since the stacking of regular file operations [1], the overlayfs
+edition of write_iter() is called when writing regular files.
 
-Signed-off-by: Ritesh Harjani <riteshh@linux.ibm.com>
+Since then, xattr lookup is needed on every write since file_remove_privs()
+is called from ovl_write_iter(), which would become the performance
+bottleneck when writing small chunks of data. In my test case,
+file_remove_privs() would consume ~15% CPU when running fstime of
+unixbench (the workload is repeadly writing 1 KB to the same file) [2].
+
+Inherit the SB_NOSEC flag from upperdir. Since then xattr lookup would be
+done only once on the first write. Unixbench fstime gets a ~20% performance
+gain with this patch.
+
+[1] https://lore.kernel.org/lkml/20180606150905.GC9426@magnolia/T/
+[2] https://www.spinics.net/lists/linux-unionfs/msg07153.html
+
+Signed-off-by: Jeffle Xu <jefflexu@linux.alibaba.com>
 ---
- fs/ext4/ioctl.c | 25 +------------------------
- 1 file changed, 1 insertion(+), 24 deletions(-)
+ fs/overlayfs/super.c | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff --git a/fs/ext4/ioctl.c b/fs/ext4/ioctl.c
-index 76a2b5200ba3..6a7d7e9027cd 100644
---- a/fs/ext4/ioctl.c
-+++ b/fs/ext4/ioctl.c
-@@ -733,29 +733,6 @@ static void ext4_fill_fsxattr(struct inode *inode, struct fsxattr *fa)
- 		fa->fsx_projid = from_kprojid(&init_user_ns, ei->i_projid);
- }
+diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+index 732ad54..1934f71 100644
+--- a/fs/overlayfs/super.c
++++ b/fs/overlayfs/super.c
+@@ -1052,6 +1052,10 @@ static int ovl_get_upper(struct super_block *sb, struct ovl_fs *ofs,
+ 	upper_mnt->mnt_flags &= ~(MNT_NOATIME | MNT_NODIRATIME | MNT_RELATIME);
+ 	ofs->upper_mnt = upper_mnt;
  
--/* copied from fs/ioctl.c */
--static int ext4_fiemap_check_ranges(struct super_block *sb,
--			       u64 start, u64 len, u64 *new_len)
--{
--	u64 maxbytes = (u64) sb->s_maxbytes;
--
--	*new_len = len;
--
--	if (len == 0)
--		return -EINVAL;
--
--	if (start > maxbytes)
--		return -EFBIG;
--
--	/*
--	 * Shrink request scope to what the fs can actually handle.
--	 */
--	if (len > maxbytes || (maxbytes - len) < start)
--		*new_len = maxbytes - start;
--
--	return 0;
--}
--
- /* So that the fiemap access checks can't overflow on 32 bit machines. */
- #define FIEMAP_MAX_EXTENTS	(UINT_MAX / sizeof(struct fiemap_extent))
- 
-@@ -775,7 +752,7 @@ static int ext4_ioctl_get_es_cache(struct file *filp, unsigned long arg)
- 	if (fiemap.fm_extent_count > FIEMAP_MAX_EXTENTS)
- 		return -EINVAL;
- 
--	error = ext4_fiemap_check_ranges(sb, fiemap.fm_start, fiemap.fm_length,
-+	error = fiemap_check_ranges(sb, fiemap.fm_start, fiemap.fm_length,
- 				    &len);
- 	if (error)
- 		return error;
++	/* inherit SB_NOSEC flag from upperdir */
++	if (upper_mnt->mnt_sb->s_flags & SB_NOSEC)
++		sb->s_flags |= SB_NOSEC;
++
+ 	if (ovl_inuse_trylock(ofs->upper_mnt->mnt_root)) {
+ 		ofs->upperdir_locked = true;
+ 	} else {
 -- 
-2.21.0
+1.8.3.1
 
