@@ -2,105 +2,145 @@ Return-Path: <SRS0=+0RS=6H=vger.kernel.org=linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+X-Spam-Status: No, score=-3.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0E0A9C2BA19
-	for <linux-unionfs@archiver.kernel.org>; Thu, 23 Apr 2020 10:25:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 12B84C55193
+	for <linux-unionfs@archiver.kernel.org>; Thu, 23 Apr 2020 10:48:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DD7B420704
-	for <linux-unionfs@archiver.kernel.org>; Thu, 23 Apr 2020 10:25:55 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="fwMA476j"
+	by mail.kernel.org (Postfix) with ESMTP id F0348208E4
+	for <linux-unionfs@archiver.kernel.org>; Thu, 23 Apr 2020 10:48:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726916AbgDWKZz (ORCPT
+        id S1727824AbgDWKsV (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Thu, 23 Apr 2020 06:25:55 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34082 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-FAIL-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1726420AbgDWKZz (ORCPT
+        Thu, 23 Apr 2020 06:48:21 -0400
+Received: from mx0a-001b2d01.pphosted.com ([148.163.156.1]:13604 "EHLO
+        mx0a-001b2d01.pphosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1727069AbgDWKsV (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 23 Apr 2020 06:25:55 -0400
-Received: from mail-il1-x141.google.com (mail-il1-x141.google.com [IPv6:2607:f8b0:4864:20::141])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 91A81C035493
-        for <linux-unionfs@vger.kernel.org>; Thu, 23 Apr 2020 03:25:54 -0700 (PDT)
-Received: by mail-il1-x141.google.com with SMTP id e8so5019412ilm.7
-        for <linux-unionfs@vger.kernel.org>; Thu, 23 Apr 2020 03:25:54 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=wVuNcuVJJRP7KgAHqCm3G/Gbvri3x3QJIWhj3W/hwCA=;
-        b=fwMA476jZoNkXR/H6x2e8UzNXU3e8a6bHclPEMLyOyQq/v9LR4Z11zj8rgktodOna2
-         YVjkhb1+nuoQzMjX9yfMRDHeTvk3T7QJ4mBvyb4uZXf5XQ7msJs3L2icgriWJNd4Twjo
-         pXR+J8zY7unj9nZkMkVGCqWUDyGe2615+zgVE089TmRl66387+MwjQyGG9nI18g+pkOU
-         pLybr37kIktWBFWP63pTlOSsK2E6MENAmUqfEEROv+uYeHk4/jQuOiP7LS8+BrKU6YKT
-         9b2UKpROA8eO8G4e1KiZJyRBohs4KBMVyVXEM6ggX0hU9o1GoDixfAP4BsGyQ5i5dzQd
-         bgfg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=wVuNcuVJJRP7KgAHqCm3G/Gbvri3x3QJIWhj3W/hwCA=;
-        b=cZ6zVwEdnAE6jFyjMgKbP7L1a0PFNUyuuh7EowfCm/magsLfB5gycSrVPkp3HWAnfu
-         c4thyis7BtXlUQhVrumsvVd+vrWr77aUdFAYH4CPFsyDnWEy9VsC5PoM/qaCGP3VQaQw
-         Z/prR+jBEXq/ldAetsV1AxDRjIxSDR6+9an7k8R9e1yIzZ2j+n+jQIMtM8gLJJMnT8Jj
-         UGzvcYmi1Z/QJI/GkqP7Trb4zDsqszKNo3ewKljMrd74j4HkhG/BAvCzH7tHHsWqRzsL
-         AbZ4r+L19YumZrMZU4DxgaPS63OwA8hZfDwrRjdD7Rm4SC7kFQEFbfH8zqElvYqhtKZy
-         Cv1Q==
-X-Gm-Message-State: AGi0PubGP8eZZc+ujE+nhMnZmq+t8izS90l1GOTqn0qsfYrnhs9XfiUK
-        UvLmTAvIqTnujiRDkB3gdf/nnHYarRYCL/Biah5qK87M
-X-Google-Smtp-Source: APiQypLB+LztB9DLi6Su+/ekXSHUyuON+iM9jeIcysZKsO0rH9Rbbta5nKvRXCKh7FTcjewfxiVElEothRyEh1KPgeE=
-X-Received: by 2002:a92:7e86:: with SMTP id q6mr2733275ill.9.1587637553629;
- Thu, 23 Apr 2020 03:25:53 -0700 (PDT)
-MIME-Version: 1.0
-References: <1587625038-55484-1-git-send-email-jefflexu@linux.alibaba.com>
- <4898364f-e6e9-72e2-9b28-9a3a8f297ad4@linux.alibaba.com> <CAOQ4uxjzOmg03mgOG9cyAygK-XhfiMVh3M3k25yN1ZmvO39ckA@mail.gmail.com>
- <7297fa44-de3b-52ba-0b42-d136f672a301@linux.alibaba.com>
-In-Reply-To: <7297fa44-de3b-52ba-0b42-d136f672a301@linux.alibaba.com>
-From:   Amir Goldstein <amir73il@gmail.com>
-Date:   Thu, 23 Apr 2020 13:25:42 +0300
-Message-ID: <CAOQ4uxhyHQXDkWoiE-LwZ9dM5JV9vXupfi8RTivAd6Jx59g9Fw@mail.gmail.com>
-Subject: Re: [PATCH] overlayfs: set MS_NOSEC flag for overlayfs
-To:     JeffleXu <jefflexu@linux.alibaba.com>
-Cc:     overlayfs <linux-unionfs@vger.kernel.org>,
+        Thu, 23 Apr 2020 06:48:21 -0400
+Received: from pps.filterd (m0098394.ppops.net [127.0.0.1])
+        by mx0a-001b2d01.pphosted.com (8.16.0.42/8.16.0.42) with SMTP id 03NAW66A099543
+        for <linux-unionfs@vger.kernel.org>; Thu, 23 Apr 2020 06:48:20 -0400
+Received: from e06smtp04.uk.ibm.com (e06smtp04.uk.ibm.com [195.75.94.100])
+        by mx0a-001b2d01.pphosted.com with ESMTP id 30k7rbug3k-1
+        (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=NOT)
+        for <linux-unionfs@vger.kernel.org>; Thu, 23 Apr 2020 06:48:20 -0400
+Received: from localhost
+        by e06smtp04.uk.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
+        for <linux-unionfs@vger.kernel.org> from <riteshh@linux.ibm.com>;
+        Thu, 23 Apr 2020 11:47:29 +0100
+Received: from b06cxnps4076.portsmouth.uk.ibm.com (9.149.109.198)
+        by e06smtp04.uk.ibm.com (192.168.101.134) with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted;
+        (version=TLSv1/SSLv3 cipher=AES256-GCM-SHA384 bits=256/256)
+        Thu, 23 Apr 2020 11:47:26 +0100
+Received: from d06av25.portsmouth.uk.ibm.com (d06av25.portsmouth.uk.ibm.com [9.149.105.61])
+        by b06cxnps4076.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 03NAmDUC17498296
+        (version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Thu, 23 Apr 2020 10:48:13 GMT
+Received: from d06av25.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+        by IMSVA (Postfix) with ESMTP id 40BC711C066;
+        Thu, 23 Apr 2020 10:48:13 +0000 (GMT)
+Received: from d06av25.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+        by IMSVA (Postfix) with ESMTP id E1FE211C054;
+        Thu, 23 Apr 2020 10:48:09 +0000 (GMT)
+Received: from localhost.localdomain.com (unknown [9.199.60.18])
+        by d06av25.portsmouth.uk.ibm.com (Postfix) with ESMTP;
+        Thu, 23 Apr 2020 10:48:09 +0000 (GMT)
+From:   Ritesh Harjani <riteshh@linux.ibm.com>
+To:     linux-ext4@vger.kernel.org
+Cc:     jack@suse.cz, tytso@mit.edu, adilger@dilger.ca,
+        darrick.wong@oracle.com, hch@infradead.org,
+        Alexander Viro <viro@zeniv.linux.org.uk>,
+        Dan Carpenter <dan.carpenter@oracle.com>,
+        "Aneesh Kumar K . V" <aneesh.kumar@linux.ibm.com>,
+        Ritesh Harjani <riteshh@linux.ibm.com>,
+        Murphy Zhou <jencce.kernel@gmail.com>,
         Miklos Szeredi <miklos@szeredi.hu>,
-        "joseph.qi" <joseph.qi@linux.alibaba.com>
-Content-Type: text/plain; charset="UTF-8"
+        Amir Goldstein <amir73il@gmail.com>,
+        linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org
+Subject: [PATCH 0/5] ext4/overlayfs: fiemap related fixes
+Date:   Thu, 23 Apr 2020 16:17:52 +0530
+X-Mailer: git-send-email 2.21.0
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
+X-TM-AS-GCONF: 00
+x-cbid: 20042310-0016-0000-0000-00000309D122
+X-IBM-AV-DETECTION: SAVI=unused REMOTE=unused XFE=unused
+x-cbparentid: 20042310-0017-0000-0000-0000336DF229
+Message-Id: <cover.1587555962.git.riteshh@linux.ibm.com>
+X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.138,18.0.676
+ definitions=2020-04-23_07:2020-04-22,2020-04-23 signatures=0
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 malwarescore=0 spamscore=0
+ clxscore=1015 priorityscore=1501 mlxlogscore=999 impostorscore=0
+ mlxscore=0 phishscore=0 lowpriorityscore=0 adultscore=0 suspectscore=0
+ bulkscore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.12.0-2003020000 definitions=main-2004230078
 Sender: linux-unionfs-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Thu, Apr 23, 2020 at 1:17 PM JeffleXu <jefflexu@linux.alibaba.com> wrote:
->
->
-> On 4/23/20 4:27 PM, Amir Goldstein wrote:
-> > On Thu, Apr 23, 2020 at 10:06 AM JeffleXu <jefflexu@linux.alibaba.com> wrote:
-> >> It seems that MS_NOSEC flag would be problematic for network filesystems.
-> >>
-> >>
-> >> @Amir, would you please give some suggestions on if this would break the
-> >>
-> >> permission control down when 'NFS export' feature enabled ?
-> >>
-> > I cannot think of anything specific to NFS export.
-> > I think you are confusing NFS server with NFS client permissions.
-> > I think network filesystems do not set SB_NOSEC, because client
-> > may not have an coherent state of the xattr on server and other clients.
-> >
-> > To reflect on overlayfs, I think overlayfs should inherit the SB_NOSEC
-> > flag from upper fs, which is most likelihood will be set.
->
-> Makes sense. So maybe the following patch would be more appropriate. If
-> it is OK I will send a v2 patch then.
->
+Hello All,
 
-Yes, it looks better.
-But I could be missing other aspects.
-Better post v2 and wait for more comments from Miklos.
+Here are some changes, which as I understand, takes the right approach in fixing
+the offset/length bounds check problem reported in threads [1]-[2].
+These warnings in iomap_apply/ext4 path are reported after ext4_fiemap()
+was moved to use iomap framework and when overlayfs is mounted on top of ext4.
+Though the issues were identified after ext4 moved to iomap framework, but
+these changes tries to fix the problem which are anyways present in current code
+irrespective of ext4 using iomap framework for fiemap or not.
 
-Thanks,
-Amir.
+Patch 1 & 4 commit msg may give more details of the problem.
+
+Tests done
+==========
+1. Tested xfstest-suite with "-g quick" & "-overlay -g quick" configuration
+on a 4k blocksize on x86 & Power. There were no new failures reported
+due to these changes.
+2. Tested syzcaller reported problem with this change. [1]
+3. Tested below change which was reported by Murphy. [2]
+	The minimal reproducer is:
+	-------------------------------------
+	fallocate -l 256M test.img
+	mkfs.ext4 -Fq -b 4096 -I 256 test.img
+	mkdir -p test
+	mount -o loop test.img test || exit
+	pushd test
+	rm -rf l u w m
+	mkdir -p l u w m
+	mount -t overlay -o lowerdir=l,upperdir=u,workdir=w overlay m || exit
+	xfs_io -f -c "pwrite 0 4096" -c "fiemap"  m/tf
+	umount m
+	rm -rf l u w m
+	popd
+	umount -d test
+	rm -rf test test.img
+	-------------------------------------
+
+Comments/feedback are much welcome!!
+
+References
+==========
+[1]: https://lkml.org/lkml/2020/4/11/46
+[2]: https://patchwork.ozlabs.org/project/linux-ext4/patch/20200418233231.z767yvfiupy7hwgp@xzhoux.usersys.redhat.com/ 
+
+
+Ritesh Harjani (5):
+  ext4: Fix EXT4_MAX_LOGICAL_BLOCK macro
+  ext4: Rename fiemap_check_ranges() to make it ext4 specific
+  vfs: EXPORT_SYMBOL for fiemap_check_ranges()
+  overlayfs: Check for range bounds before calling i_op->fiemap()
+  ext4: Get rid of ext4_fiemap_check_ranges
+
+ fs/ext4/ext4.h       |  2 +-
+ fs/ext4/ioctl.c      | 23 -----------------------
+ fs/ioctl.c           |  5 +++--
+ fs/overlayfs/inode.c |  7 ++++++-
+ include/linux/fs.h   |  2 ++
+ 5 files changed, 12 insertions(+), 27 deletions(-)
+
+-- 
+2.21.0
+
