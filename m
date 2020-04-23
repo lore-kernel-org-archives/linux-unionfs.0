@@ -2,78 +2,100 @@ Return-Path: <SRS0=+0RS=6H=vger.kernel.org=linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+X-Spam-Status: No, score=-8.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	UNPARSEABLE_RELAY,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2AF98C55186
-	for <linux-unionfs@archiver.kernel.org>; Thu, 23 Apr 2020 11:06:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D08A5C54FCB
+	for <linux-unionfs@archiver.kernel.org>; Thu, 23 Apr 2020 11:16:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CF62E2076C
-	for <linux-unionfs@archiver.kernel.org>; Thu, 23 Apr 2020 11:06:58 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B6DED2077D
+	for <linux-unionfs@archiver.kernel.org>; Thu, 23 Apr 2020 11:16:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727877AbgDWLG6 (ORCPT
+        id S1727858AbgDWLQj (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Thu, 23 Apr 2020 07:06:58 -0400
-Received: from out30-132.freemail.mail.aliyun.com ([115.124.30.132]:46940 "EHLO
-        out30-132.freemail.mail.aliyun.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726805AbgDWLG6 (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 23 Apr 2020 07:06:58 -0400
-X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R121e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=e01e04357;MF=jefflexu@linux.alibaba.com;NM=1;PH=DS;RN=4;SR=0;TI=SMTPD_---0TwQawG0_1587640016;
-Received: from localhost(mailfrom:jefflexu@linux.alibaba.com fp:SMTPD_---0TwQawG0_1587640016)
-          by smtp.aliyun-inc.com(127.0.0.1);
-          Thu, 23 Apr 2020 19:06:56 +0800
-From:   Jeffle Xu <jefflexu@linux.alibaba.com>
-To:     linux-unionfs@vger.kernel.org, miklos@szeredi.hu,
-        amir73il@gmail.com
-Cc:     joseph.qi@linux.alibaba.com
-Subject: [PATCH v2] overlayfs: inherit SB_NOSEC flag from upperdir
-Date:   Thu, 23 Apr 2020 19:06:55 +0800
-Message-Id: <1587640015-117044-1-git-send-email-jefflexu@linux.alibaba.com>
-X-Mailer: git-send-email 1.8.3.1
+        Thu, 23 Apr 2020 07:16:39 -0400
+Received: from mx2.suse.de ([195.135.220.15]:53384 "EHLO mx2.suse.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727077AbgDWLQj (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Thu, 23 Apr 2020 07:16:39 -0400
+X-Virus-Scanned: by amavisd-new at test-mx.suse.de
+Received: from relay2.suse.de (unknown [195.135.220.254])
+        by mx2.suse.de (Postfix) with ESMTP id D5D67B080;
+        Thu, 23 Apr 2020 11:16:36 +0000 (UTC)
+Received: by quack2.suse.cz (Postfix, from userid 1000)
+        id C274F1E1293; Thu, 23 Apr 2020 13:16:36 +0200 (CEST)
+Date:   Thu, 23 Apr 2020 13:16:36 +0200
+From:   Jan Kara <jack@suse.cz>
+To:     Ritesh Harjani <riteshh@linux.ibm.com>
+Cc:     linux-ext4@vger.kernel.org, jack@suse.cz, tytso@mit.edu,
+        adilger@dilger.ca, darrick.wong@oracle.com, hch@infradead.org,
+        Alexander Viro <viro@zeniv.linux.org.uk>,
+        Dan Carpenter <dan.carpenter@oracle.com>,
+        "Aneesh Kumar K . V" <aneesh.kumar@linux.ibm.com>,
+        Murphy Zhou <jencce.kernel@gmail.com>,
+        Miklos Szeredi <miklos@szeredi.hu>,
+        Amir Goldstein <amir73il@gmail.com>,
+        linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org,
+        syzbot+77fa5bdb65cc39711820@syzkaller.appspotmail.com
+Subject: Re: [PATCH 1/5] ext4: Fix EXT4_MAX_LOGICAL_BLOCK macro
+Message-ID: <20200423111636.GH3737@quack2.suse.cz>
+References: <cover.1587555962.git.riteshh@linux.ibm.com>
+ <e31dbabc453d1f227371bed6e0cc2f3493b4955f.1587555962.git.riteshh@linux.ibm.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <e31dbabc453d1f227371bed6e0cc2f3493b4955f.1587555962.git.riteshh@linux.ibm.com>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: linux-unionfs-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-Since the stacking of regular file operations [1], the overlayfs
-edition of write_iter() is called when writing regular files.
+On Thu 23-04-20 16:17:53, Ritesh Harjani wrote:
+> ext4 supports max number of logical blocks in a file to be 0xffffffff.
+> (This is since ext4_extent's ee_block is __le32).
+> This means that EXT4_MAX_LOGICAL_BLOCK should be 0xfffffffe (starting
+> from 0 logical offset). This patch fixes this.
+> 
+> The issue was seen when ext4 moved to iomap_fiemap API and when
+> overlayfs was mounted on top of ext4. Since overlayfs was missing
+> filemap_check_ranges(), so it could pass a arbitrary huge length which
+> lead to overflow of map.m_len logic.
+> 
+> This patch fixes that.
+> 
+> Fixes: d3b6f23f7167 ("ext4: move ext4_fiemap to use iomap framework")
+> Reported-by: syzbot+77fa5bdb65cc39711820@syzkaller.appspotmail.com
+> Signed-off-by: Ritesh Harjani <riteshh@linux.ibm.com>
 
-Since then, xattr lookup is needed on every write since file_remove_privs()
-is called from ovl_write_iter(), which would become the performance
-bottleneck when writing small chunks of data. In my test case,
-file_remove_privs() would consume ~15% CPU when running fstime of
-unixbench (the workload is repeadly writing 1 KB to the same file) [2].
+The patch looks good to me. You can add:
 
-Inherit the SB_NOSEC flag from upperdir. Since then xattr lookup would be
-done only once on the first write. Unixbench fstime gets a ~20% performance
-gain with this patch.
+Reviewed-by: Jan Kara <jack@suse.cz>
 
-[1] https://lore.kernel.org/lkml/20180606150905.GC9426@magnolia/T/
-[2] https://www.spinics.net/lists/linux-unionfs/msg07153.html
+								Honza
 
-Signed-off-by: Jeffle Xu <jefflexu@linux.alibaba.com>
----
- fs/overlayfs/super.c | 4 ++++
- 1 file changed, 4 insertions(+)
 
-diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-index 732ad54..1934f71 100644
---- a/fs/overlayfs/super.c
-+++ b/fs/overlayfs/super.c
-@@ -1052,6 +1052,10 @@ static int ovl_get_upper(struct super_block *sb, struct ovl_fs *ofs,
- 	upper_mnt->mnt_flags &= ~(MNT_NOATIME | MNT_NODIRATIME | MNT_RELATIME);
- 	ofs->upper_mnt = upper_mnt;
- 
-+	/* inherit SB_NOSEC flag from upperdir */
-+	if (upper_mnt->mnt_sb->s_flags & SB_NOSEC)
-+		sb->s_flags |= SB_NOSEC;
-+
- 	if (ovl_inuse_trylock(ofs->upper_mnt->mnt_root)) {
- 		ofs->upperdir_locked = true;
- 	} else {
+> ---
+>  fs/ext4/ext4.h | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/fs/ext4/ext4.h b/fs/ext4/ext4.h
+> index 91eb4381cae5..ad2dbf6e4924 100644
+> --- a/fs/ext4/ext4.h
+> +++ b/fs/ext4/ext4.h
+> @@ -722,7 +722,7 @@ enum {
+>  #define EXT4_MAX_BLOCK_FILE_PHYS	0xFFFFFFFF
+>  
+>  /* Max logical block we can support */
+> -#define EXT4_MAX_LOGICAL_BLOCK		0xFFFFFFFF
+> +#define EXT4_MAX_LOGICAL_BLOCK		0xFFFFFFFE
+>  
+>  /*
+>   * Structure of an inode on the disk
+> -- 
+> 2.21.0
+> 
 -- 
-1.8.3.1
-
+Jan Kara <jack@suse.com>
+SUSE Labs, CR
