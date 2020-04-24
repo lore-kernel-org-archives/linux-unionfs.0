@@ -1,96 +1,386 @@
-Return-Path: <SRS0=+0RS=6H=vger.kernel.org=linux-unionfs-owner@kernel.org>
+Return-Path: <SRS0=0l2z=6I=vger.kernel.org=linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.9 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 72E4AC54FD0
-	for <linux-unionfs@archiver.kernel.org>; Thu, 23 Apr 2020 14:36:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 946B0C2BA19
+	for <linux-unionfs@archiver.kernel.org>; Fri, 24 Apr 2020 02:56:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 069C120728
-	for <linux-unionfs@archiver.kernel.org>; Thu, 23 Apr 2020 14:36:36 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 31F1E20715
+	for <linux-unionfs@archiver.kernel.org>; Fri, 24 Apr 2020 02:56:38 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="key not found in DNS" (0-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b="lUsgHBjr"
+	dkim=pass (1024-bit key) header.d=mykernel.net header.i=cgxu519@mykernel.net header.b="LIgNt7eg"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726285AbgDWOgf (ORCPT
+        id S1726060AbgDXC4i (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Thu, 23 Apr 2020 10:36:35 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44812 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-FAIL-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1726060AbgDWOgf (ORCPT
+        Thu, 23 Apr 2020 22:56:38 -0400
+Received: from [163.53.93.247] ([163.53.93.247]:21114 "EHLO
+        sender2-of-o52.zoho.com.cn" rhost-flags-FAIL-FAIL-OK-OK)
+        by vger.kernel.org with ESMTP id S1725884AbgDXC4h (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 23 Apr 2020 10:36:35 -0400
-Received: from mail-ed1-x543.google.com (mail-ed1-x543.google.com [IPv6:2a00:1450:4864:20::543])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 48BF9C08E934
-        for <linux-unionfs@vger.kernel.org>; Thu, 23 Apr 2020 07:36:35 -0700 (PDT)
-Received: by mail-ed1-x543.google.com with SMTP id j20so4510672edj.0
-        for <linux-unionfs@vger.kernel.org>; Thu, 23 Apr 2020 07:36:35 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=szeredi.hu; s=google;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=q0Xt3e1XCVb+//36sqK4sr8mPAyvt9DXXNQwpqA1RbM=;
-        b=lUsgHBjrnDsHOzmUNXeqQEixD0/z/JN5MMqUPd4uWwKbZECxnKYhoypiKg+OI1AC8+
-         nsZR6jR9pEXBkmsLkAWbqgzVLrVxsbGUGm650NyC5Pm5eIhEpeMXdqVXWOrhgN4EyvPZ
-         zF/hVjSHk8LvU6Vgqu8Fqy0jA6BBnMMy2fbNE=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=q0Xt3e1XCVb+//36sqK4sr8mPAyvt9DXXNQwpqA1RbM=;
-        b=m4vAf0HzQ522VcRVyUTyF6vKKFsPF9Vkn4CnutXShgdzbD4wjekGqVhHnvUWsNQaZ8
-         Pt8IGCKsdtVdUOOVD98CbWSMOIbm2qS/HscovdyDelxXk4zjk4jfXlGjJtYLwdrCtmt7
-         o1auWe4BAmCn/sUfl2yFAtNAkqzclKKzNR5vdBjlIJwmDPclCPpPzBlx5+RpjT4b2RBB
-         Dqz2zOidaUjnVy8QP+bSSIRZLSwh/8LRjA8btCDwBTuLXPtwsaHvgZNGYdMkz6rHNStp
-         MfGsQzKLPuKfn/TYBHMDp0O+9Fbl/Dudk2ItkesyHfsT2WX8NTrRDYg5hhLvGhGx+snV
-         fSug==
-X-Gm-Message-State: AGi0PuYiLpO2/tex1yMOCgTDOQfVpYftIj+skSH5Qenn/hrYhY63mFhi
-        +n3HzTbYgdqraeAKFXMXMthDoGMLm2q9/IGuKj2R8Zf2EMo=
-X-Google-Smtp-Source: APiQypKSfJl2hJ3neY85gE5dONUpKOWjT8PUeVK//Xs9fVYW5IOfh4ZCaMnZMV+on42HHSRq3CIwB2VP0VhPXcxBw0Q=
-X-Received: by 2002:a50:bb07:: with SMTP id y7mr2898757ede.358.1587652594034;
- Thu, 23 Apr 2020 07:36:34 -0700 (PDT)
+        Thu, 23 Apr 2020 22:56:37 -0400
+ARC-Seal: i=1; a=rsa-sha256; t=1587696933; cv=none; 
+        d=zoho.com.cn; s=zohoarc; 
+        b=lTSoI7O2c6u6gBPgQscixik/6O2YZ1ZSjqoTWVdmIJL5beZKMXLDQzcTwtcCVxif2BV8XZykLENiXRK4PzqH+fwPlywE3C93pIirKGvSzDzMzd9mPvUs9+nfGPD9a3wtyrFHtvmrVK2UkojXObrzQmAjPgnlR/2DAJjm7SjpGmM=
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=zoho.com.cn; s=zohoarc; 
+        t=1587696933; h=Content-Type:Content-Transfer-Encoding:Cc:Date:From:MIME-Version:Message-ID:Subject:To; 
+        bh=I+26EirBMY7YRtWbCfOy0/QryTT9s3E6mdic3wMXwS8=; 
+        b=Dw0DhM17N/Z9A0LhlGf6b3+GHY3vVytyoQ70S8HAorCOQHXKrnuOtV+h91J5Ofu3k0HciIuKWE0HtgnWeOo/T4JHNix7AyRv8o5RITEqgxPWNwJFzlUhHXlIXd/nL8kcHzq6jqO81On3r2nNXPsqwb67ei8SxRHLGkFDzLne/rE=
+ARC-Authentication-Results: i=1; mx.zoho.com.cn;
+        dkim=pass  header.i=mykernel.net;
+        spf=pass  smtp.mailfrom=cgxu519@mykernel.net;
+        dmarc=pass header.from=<cgxu519@mykernel.net> header.from=<cgxu519@mykernel.net>
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1587696933;
+        s=zohomail; d=mykernel.net; i=cgxu519@mykernel.net;
+        h=From:To:Cc:Message-ID:Subject:Date:MIME-Version:Content-Transfer-Encoding:Content-Type;
+        bh=I+26EirBMY7YRtWbCfOy0/QryTT9s3E6mdic3wMXwS8=;
+        b=LIgNt7egqJBLxr2lWBZETlHQpqUxK6VNSgghKaWGv6WB9XcInDRmu8CrOsGhkjdF
+        LT4JFJPRLdN7oEIR00FU8X1E6LR29V8bUZpgisXDY8/NII9ttFYyrSagd0cUP6VcK2t
+        rAzw+tclITx7KgHEMQ5IRMH9cwGunvBpzETxRCL4=
+Received: from localhost.localdomain (218.18.229.179 [218.18.229.179]) by mx.zoho.com.cn
+        with SMTPS id 1587696930179666.0819825988585; Fri, 24 Apr 2020 10:55:30 +0800 (CST)
+From:   Chengguang Xu <cgxu519@mykernel.net>
+To:     miklos@szeredi.hu, amir73il@gmail.com
+Cc:     linux-unionfs@vger.kernel.org, Chengguang Xu <cgxu519@mykernel.net>
+Message-ID: <20200424025517.27568-1-cgxu519@mykernel.net>
+Subject: [PATCH v5] ovl: whiteout inode sharing
+Date:   Fri, 24 Apr 2020 10:55:17 +0800
+X-Mailer: git-send-email 2.20.1
 MIME-Version: 1.0
-References: <1587640015-117044-1-git-send-email-jefflexu@linux.alibaba.com>
-In-Reply-To: <1587640015-117044-1-git-send-email-jefflexu@linux.alibaba.com>
-From:   Miklos Szeredi <miklos@szeredi.hu>
-Date:   Thu, 23 Apr 2020 16:36:22 +0200
-Message-ID: <CAJfpegshdwRuivjp=in=XN2AwWCHPk5HJZyCffQSrpW3SNsECQ@mail.gmail.com>
-Subject: Re: [PATCH v2] overlayfs: inherit SB_NOSEC flag from upperdir
-To:     Jeffle Xu <jefflexu@linux.alibaba.com>
-Cc:     overlayfs <linux-unionfs@vger.kernel.org>,
-        Amir Goldstein <amir73il@gmail.com>,
-        Joseph Qi <joseph.qi@linux.alibaba.com>
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+X-ZohoCNMailClient: External
+Content-Type: text/plain; charset=utf8
 Sender: linux-unionfs-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Thu, Apr 23, 2020 at 1:06 PM Jeffle Xu <jefflexu@linux.alibaba.com> wrote:
->
-> Since the stacking of regular file operations [1], the overlayfs
-> edition of write_iter() is called when writing regular files.
->
-> Since then, xattr lookup is needed on every write since file_remove_privs()
-> is called from ovl_write_iter(), which would become the performance
-> bottleneck when writing small chunks of data. In my test case,
-> file_remove_privs() would consume ~15% CPU when running fstime of
-> unixbench (the workload is repeadly writing 1 KB to the same file) [2].
->
-> Inherit the SB_NOSEC flag from upperdir.
+Sharing inode with different whiteout files for saving
+inode and speeding up deleting operation.
 
-Yes, I think this is safe if we assume no changes to the upper while
-it is part of overlay; which is a documented assumption.   Once we
-relax that no-change rule things become tricky, since it's difficult
-to propagate the removal of S_NOSEC on upper to the overlay...
+Signed-off-by: Chengguang Xu <cgxu519@mykernel.net>
+Reviewed-by: Amir Goldstein <amir73il@gmail.com>
+---
+v1->v2:
+- Address Amir's comments in v1.
 
-> Since then xattr lookup would be
-> done only once on the first write. Unixbench fstime gets a ~20% performance
-> gain with this patch.
+v2->v3:
+- Address Amir's comments in v2.
+- Rebase on Amir's "Overlayfs use index dir as work dir" patch set.
+- Keep at most one whiteout tmpfile in work dir.
 
-I'll apply this, with an additional comment on the effect of changes to upper.
+v3->v4:
+- Disable the feature after link failure.
+- Add mount option(whiteout link max) for overlayfs instance.=20
 
-Thanks,
-Miklos
+v4->v5:
+- Add a warning when mount option exceeds module parameter.
+
+ fs/overlayfs/dir.c       | 47 ++++++++++++++++++++++++++++++++++------
+ fs/overlayfs/overlayfs.h | 10 +++++++--
+ fs/overlayfs/ovl_entry.h |  5 +++++
+ fs/overlayfs/readdir.c   |  3 ++-
+ fs/overlayfs/super.c     | 27 +++++++++++++++++++++++
+ fs/overlayfs/util.c      |  3 ++-
+ 6 files changed, 84 insertions(+), 11 deletions(-)
+
+diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
+index 279009dee366..8b7d8854f31f 100644
+--- a/fs/overlayfs/dir.c
++++ b/fs/overlayfs/dir.c
+@@ -62,35 +62,67 @@ struct dentry *ovl_lookup_temp(struct dentry *workdir)
+ }
+=20
+ /* caller holds i_mutex on workdir */
+-static struct dentry *ovl_whiteout(struct dentry *workdir)
++static struct dentry *ovl_whiteout(struct ovl_fs *ofs, struct dentry *work=
+dir)
+ {
+ =09int err;
++=09bool retried =3D false;
++=09bool should_link =3D (ofs->whiteout_link_max > 1);
+ =09struct dentry *whiteout;
+ =09struct inode *wdir =3D workdir->d_inode;
+=20
++retry:
+ =09whiteout =3D ovl_lookup_temp(workdir);
+ =09if (IS_ERR(whiteout))
+ =09=09return whiteout;
+=20
++=09err =3D 0;
++=09if (should_link) {
++=09=09if (ovl_whiteout_linkable(ofs)) {
++=09=09=09err =3D ovl_do_link(ofs->whiteout, wdir, whiteout);
++=09=09=09if (!err)
++=09=09=09=09return whiteout;
++=09=09} else if (ofs->whiteout) {
++=09=09=09dput(whiteout);
++=09=09=09whiteout =3D ofs->whiteout;
++=09=09=09ofs->whiteout =3D NULL;
++=09=09=09return whiteout;
++=09=09}
++
++=09=09if (err) {
++=09=09=09pr_warn("Failed to link whiteout - disabling whiteout inode shari=
+ng(nlink=3D%u, err=3D%i)\n",
++=09=09=09=09ofs->whiteout->d_inode->i_nlink, err);
++=09=09=09ofs->whiteout_link_max =3D 0;
++=09=09=09should_link =3D false;
++=09=09=09ovl_cleanup(wdir, ofs->whiteout);
++=09=09=09dput(ofs->whiteout);
++=09=09=09ofs->whiteout =3D NULL;
++=09=09}
++=09}
++
+ =09err =3D ovl_do_whiteout(wdir, whiteout);
+ =09if (err) {
+ =09=09dput(whiteout);
+-=09=09whiteout =3D ERR_PTR(err);
++=09=09return ERR_PTR(err);
+ =09}
+=20
+-=09return whiteout;
++=09if (!should_link || retried)
++=09=09return whiteout;
++
++=09ofs->whiteout =3D whiteout;
++=09retried =3D true;
++=09goto retry;
+ }
+=20
+ /* Caller must hold i_mutex on both workdir and dir */
+-int ovl_cleanup_and_whiteout(struct dentry *workdir, struct inode *dir,
+-=09=09=09     struct dentry *dentry)
++int ovl_cleanup_and_whiteout(struct ovl_fs *ofs, struct dentry *workdir,
++=09=09=09     struct inode *dir, struct dentry *dentry)
+ {
+ =09struct inode *wdir =3D workdir->d_inode;
+ =09struct dentry *whiteout;
+ =09int err;
+ =09int flags =3D 0;
+=20
+-=09whiteout =3D ovl_whiteout(workdir);
++=09whiteout =3D ovl_whiteout(ofs, workdir);
+ =09err =3D PTR_ERR(whiteout);
+ =09if (IS_ERR(whiteout))
+ =09=09return err;
+@@ -715,6 +747,7 @@ static bool ovl_matches_upper(struct dentry *dentry, st=
+ruct dentry *upper)
+ static int ovl_remove_and_whiteout(struct dentry *dentry,
+ =09=09=09=09   struct list_head *list)
+ {
++=09struct ovl_fs *ofs =3D dentry->d_sb->s_fs_info;
+ =09struct dentry *workdir =3D ovl_workdir(dentry);
+ =09struct dentry *upperdir =3D ovl_dentry_upper(dentry->d_parent);
+ =09struct dentry *upper;
+@@ -748,7 +781,7 @@ static int ovl_remove_and_whiteout(struct dentry *dentr=
+y,
+ =09=09goto out_dput_upper;
+ =09}
+=20
+-=09err =3D ovl_cleanup_and_whiteout(workdir, d_inode(upperdir), upper);
++=09err =3D ovl_cleanup_and_whiteout(ofs, workdir, d_inode(upperdir), upper=
+);
+ =09if (err)
+ =09=09goto out_d_drop;
+=20
+diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
+index e00b1ff6dea9..3b127c997a6d 100644
+--- a/fs/overlayfs/overlayfs.h
++++ b/fs/overlayfs/overlayfs.h
+@@ -225,6 +225,12 @@ static inline bool ovl_open_flags_need_copy_up(int fla=
+gs)
+ =09return ((OPEN_FMODE(flags) & FMODE_WRITE) || (flags & O_TRUNC));
+ }
+=20
++static inline bool ovl_whiteout_linkable(struct ovl_fs *ofs)
++{
++=09return (ofs->whiteout &&
++=09=09ofs->whiteout->d_inode->i_nlink < ofs->whiteout_link_max);
++}
++
+ /* util.c */
+ int ovl_want_write(struct dentry *dentry);
+ void ovl_drop_write(struct dentry *dentry);
+@@ -455,8 +461,8 @@ static inline void ovl_copyflags(struct inode *from, st=
+ruct inode *to)
+=20
+ /* dir.c */
+ extern const struct inode_operations ovl_dir_inode_operations;
+-int ovl_cleanup_and_whiteout(struct dentry *workdir, struct inode *dir,
+-=09=09=09     struct dentry *dentry);
++int ovl_cleanup_and_whiteout(struct ovl_fs *ofs, struct dentry *workdir,
++=09=09=09     struct inode *dir, struct dentry *dentry);
+ struct ovl_cattr {
+ =09dev_t rdev;
+ =09umode_t mode;
+diff --git a/fs/overlayfs/ovl_entry.h b/fs/overlayfs/ovl_entry.h
+index 5762d802fe01..c805c35e0594 100644
+--- a/fs/overlayfs/ovl_entry.h
++++ b/fs/overlayfs/ovl_entry.h
+@@ -17,6 +17,7 @@ struct ovl_config {
+ =09bool nfs_export;
+ =09int xino;
+ =09bool metacopy;
++=09unsigned int whiteout_link_max;
+ };
+=20
+ struct ovl_sb {
+@@ -77,6 +78,10 @@ struct ovl_fs {
+ =09int xino_mode;
+ =09/* For allocation of non-persistent inode numbers */
+ =09atomic_long_t last_ino;
++=09/* Whiteout dentry cache */
++=09struct dentry *whiteout;
++=09/* Whiteout max link count */
++=09unsigned int whiteout_link_max;
+ };
+=20
+ static inline struct ovl_fs *OVL_FS(struct super_block *sb)
+diff --git a/fs/overlayfs/readdir.c b/fs/overlayfs/readdir.c
+index 20f5310d3ee4..bf22fb7792c1 100644
+--- a/fs/overlayfs/readdir.c
++++ b/fs/overlayfs/readdir.c
+@@ -1154,7 +1154,8 @@ int ovl_indexdir_cleanup(struct ovl_fs *ofs)
+ =09=09=09 * Whiteout orphan index to block future open by
+ =09=09=09 * handle after overlay nlink dropped to zero.
+ =09=09=09 */
+-=09=09=09err =3D ovl_cleanup_and_whiteout(indexdir, dir, index);
++=09=09=09err =3D ovl_cleanup_and_whiteout(ofs, indexdir, dir,
++=09=09=09=09=09=09       index);
+ =09=09} else {
+ =09=09=09/* Cleanup orphan index entries */
+ =09=09=09err =3D ovl_cleanup(dir, index);
+diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+index f57aa348dcd6..af837e2910aa 100644
+--- a/fs/overlayfs/super.c
++++ b/fs/overlayfs/super.c
+@@ -26,6 +26,10 @@ struct ovl_dir_cache;
+=20
+ #define OVL_MAX_STACK 500
+=20
++static unsigned int ovl_whiteout_link_max_def =3D 60000;
++module_param_named(whiteout_link_max, ovl_whiteout_link_max_def, uint, 064=
+4);
++MODULE_PARM_DESC(whiteout_link_max, "Maximum count of whiteout file link")=
+;
++
+ static bool ovl_redirect_dir_def =3D IS_ENABLED(CONFIG_OVERLAY_FS_REDIRECT=
+_DIR);
+ module_param_named(redirect_dir, ovl_redirect_dir_def, bool, 0644);
+ MODULE_PARM_DESC(redirect_dir,
+@@ -219,6 +223,7 @@ static void ovl_free_fs(struct ovl_fs *ofs)
+ =09iput(ofs->upperdir_trap);
+ =09dput(ofs->indexdir);
+ =09dput(ofs->workdir);
++=09dput(ofs->whiteout);
+ =09if (ofs->workdir_locked)
+ =09=09ovl_inuse_unlock(ofs->workbasedir);
+ =09dput(ofs->workbasedir);
+@@ -358,6 +363,10 @@ static int ovl_show_options(struct seq_file *m, struct=
+ dentry *dentry)
+ =09if (ofs->config.metacopy !=3D ovl_metacopy_def)
+ =09=09seq_printf(m, ",metacopy=3D%s",
+ =09=09=09   ofs->config.metacopy ? "on" : "off");
++=09if (ofs->config.whiteout_link_max !=3D ovl_whiteout_link_max_def)
++=09=09seq_printf(m, ",whiteout_link_max=3D%u",
++=09=09=09   ofs->config.whiteout_link_max);
++
+ =09return 0;
+ }
+=20
+@@ -398,6 +407,7 @@ enum {
+ =09OPT_XINO_AUTO,
+ =09OPT_METACOPY_ON,
+ =09OPT_METACOPY_OFF,
++=09OPT_WHITEOUT_LINK_MAX,
+ =09OPT_ERR,
+ };
+=20
+@@ -416,6 +426,7 @@ static const match_table_t ovl_tokens =3D {
+ =09{OPT_XINO_AUTO,=09=09=09"xino=3Dauto"},
+ =09{OPT_METACOPY_ON,=09=09"metacopy=3Don"},
+ =09{OPT_METACOPY_OFF,=09=09"metacopy=3Doff"},
++=09{OPT_WHITEOUT_LINK_MAX,=09=09"whiteout_link_max=3D%u"},
+ =09{OPT_ERR,=09=09=09NULL}
+ };
+=20
+@@ -469,6 +480,7 @@ static int ovl_parse_opt(char *opt, struct ovl_config *=
+config)
+ {
+ =09char *p;
+ =09int err;
++=09int link_max;
+ =09bool metacopy_opt =3D false, redirect_opt =3D false;
+ =09bool nfs_export_opt =3D false, index_opt =3D false;
+=20
+@@ -560,6 +572,16 @@ static int ovl_parse_opt(char *opt, struct ovl_config =
+*config)
+ =09=09=09metacopy_opt =3D true;
+ =09=09=09break;
+=20
++=09=09case OPT_WHITEOUT_LINK_MAX:
++=09=09=09if (match_int(&args[0], &link_max))
++=09=09=09=09return -EINVAL;
++=09=09=09if (link_max < ovl_whiteout_link_max_def) {
++=09=09=09=09config->whiteout_link_max =3D link_max;
++=09=09=09=09pr_warn("mount option whiteout_link_max=3D%u exceeds module pa=
+rameter, set it equal to module parameter %u",
++=09=09=09=09=09link_max, ovl_whiteout_link_max_def);
++=09=09=09}
++=09=09=09break;
++
+ =09=09default:
+ =09=09=09pr_err("unrecognized mount option \"%s\" or missing value\n",
+ =09=09=09=09=09p);
+@@ -1269,6 +1291,10 @@ static int ovl_make_workdir(struct super_block *sb, =
+struct ovl_fs *ofs,
+ =09=09pr_warn("NFS export requires \"index=3Don\", falling back to nfs_exp=
+ort=3Doff.\n");
+ =09=09ofs->config.nfs_export =3D false;
+ =09}
++
++=09ofs->whiteout_link_max =3D min_not_zero(
++=09=09ofs->workdir->d_sb->s_max_links,
++=09=09ofs->config.whiteout_link_max ?: 1);
+ out:
+ =09mnt_drop_write(mnt);
+ =09return err;
+@@ -1768,6 +1794,7 @@ static int ovl_fill_super(struct super_block *sb, voi=
+d *data, int silent)
+ =09ofs->config.nfs_export =3D ovl_nfs_export_def;
+ =09ofs->config.xino =3D ovl_xino_def();
+ =09ofs->config.metacopy =3D ovl_metacopy_def;
++=09ofs->config.whiteout_link_max =3D ovl_whiteout_link_max_def;
+ =09err =3D ovl_parse_opt((char *) data, &ofs->config);
+ =09if (err)
+ =09=09goto out_err;
+diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
+index 36b60788ee47..18df65ee81a8 100644
+--- a/fs/overlayfs/util.c
++++ b/fs/overlayfs/util.c
+@@ -669,6 +669,7 @@ bool ovl_need_index(struct dentry *dentry)
+ /* Caller must hold OVL_I(inode)->lock */
+ static void ovl_cleanup_index(struct dentry *dentry)
+ {
++=09struct ovl_fs *ofs =3D dentry->d_sb->s_fs_info;
+ =09struct dentry *indexdir =3D ovl_indexdir(dentry->d_sb);
+ =09struct inode *dir =3D indexdir->d_inode;
+ =09struct dentry *lowerdentry =3D ovl_dentry_lower(dentry);
+@@ -707,7 +708,7 @@ static void ovl_cleanup_index(struct dentry *dentry)
+ =09=09index =3D NULL;
+ =09} else if (ovl_index_all(dentry->d_sb)) {
+ =09=09/* Whiteout orphan index to block future open by handle */
+-=09=09err =3D ovl_cleanup_and_whiteout(indexdir, dir, index);
++=09=09err =3D ovl_cleanup_and_whiteout(ofs, indexdir, dir, index);
+ =09} else {
+ =09=09/* Cleanup orphan index entries */
+ =09=09err =3D ovl_cleanup(dir, index);
+--=20
+2.20.1
+
+
