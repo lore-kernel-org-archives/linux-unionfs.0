@@ -2,110 +2,71 @@ Return-Path: <SRS0=0l2z=6I=vger.kernel.org=linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 456AAC2BA1A
-	for <linux-unionfs@archiver.kernel.org>; Fri, 24 Apr 2020 06:27:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C554DC2BA1A
+	for <linux-unionfs@archiver.kernel.org>; Fri, 24 Apr 2020 10:11:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D0F8720700
-	for <linux-unionfs@archiver.kernel.org>; Fri, 24 Apr 2020 06:27:17 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 96BD02071E
+	for <linux-unionfs@archiver.kernel.org>; Fri, 24 Apr 2020 10:11:54 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=mykernel.net header.i=cgxu519@mykernel.net header.b="Top9xbzQ"
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="jVQVA2Uy"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725889AbgDXG1R (ORCPT
+        id S1726860AbgDXKLy (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Fri, 24 Apr 2020 02:27:17 -0400
-Received: from [163.53.93.251] ([163.53.93.251]:25394 "EHLO
-        sender2-pp-o92.zoho.com.cn" rhost-flags-FAIL-FAIL-OK-OK)
-        by vger.kernel.org with ESMTP id S1725868AbgDXG1R (ORCPT
+        Fri, 24 Apr 2020 06:11:54 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58642 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-FAIL-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1726867AbgDXKLy (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 24 Apr 2020 02:27:17 -0400
-ARC-Seal: i=1; a=rsa-sha256; t=1587709582; cv=none; 
-        d=zoho.com.cn; s=zohoarc; 
-        b=TJfmqQAbmd7Djng5iHmgMA9GqKM/UQ9HekBXSEcg+Eq1cdhdD8ADj6tb/FrUUtTfFjKsEj/lazGGLSPOQgcOe7ukKkAgrGVpuJeoaC38fjg5tlJNOwSu/a1Vo7dOmnfW2Ajoh/G4hfcWHU9RlrCQ/R6a0A5TusyjGI+c0nvMDDk=
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=zoho.com.cn; s=zohoarc; 
-        t=1587709582; h=Content-Type:Content-Transfer-Encoding:Cc:Date:From:In-Reply-To:MIME-Version:Message-ID:Reply-To:References:Subject:To; 
-        bh=3Z5O+Am+u2Jz1Ec5kryUBgE8BiXmAIgUzWZ5TJdzOfM=; 
-        b=qf0t8VUmt0CuC6urpclq4ndZ2gB8lgF+nimMYQh5PBeHRVqSlSdCQiDaLELPvQUp8FTmL5V6r7d1c6zazopI7UU8SMbQLb+yQejhCIGVOW0ePSBT1DtR09j0l9aS9108jvXipbFa9OrTJFb3Iw7SkFMewvKg+HBNl02zGUYrhck=
-ARC-Authentication-Results: i=1; mx.zoho.com.cn;
-        dkim=pass  header.i=mykernel.net;
-        spf=pass  smtp.mailfrom=cgxu519@mykernel.net;
-        dmarc=pass header.from=<cgxu519@mykernel.net> header.from=<cgxu519@mykernel.net>
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1587709582;
-        s=zohomail; d=mykernel.net; i=cgxu519@mykernel.net;
-        h=Date:From:Reply-To:To:Cc:Message-ID:In-Reply-To:References:Subject:MIME-Version:Content-Type:Content-Transfer-Encoding;
-        bh=3Z5O+Am+u2Jz1Ec5kryUBgE8BiXmAIgUzWZ5TJdzOfM=;
-        b=Top9xbzQTWqNPxI8/Ur+csu4cEDuF/ntwvhE0HLKg5wb0hsT0+CLaGpvOQ/MxJqr
-        I7X/tJUMjdNB4W9Es+DUfN39qQHbbhX4U+xwifaxdJV0woY43NfpK63FJa3vtkaBZdw
-        5FRsw2TH/kMCLPCIiHodMz/7TvtE0qpxOU0o76lk=
-Received: from mail.baihui.com by mx.zoho.com.cn
-        with SMTP id 1587709581673374.8847369102866; Fri, 24 Apr 2020 14:26:21 +0800 (CST)
-Date:   Fri, 24 Apr 2020 14:26:21 +0800
-From:   Chengguang Xu <cgxu519@mykernel.net>
-Reply-To: cgxu519@mykernel.net
-To:     "Amir Goldstein" <amir73il@gmail.com>
-Cc:     "Miklos Szeredi" <miklos@szeredi.hu>,
-        "overlayfs" <linux-unionfs@vger.kernel.org>
-Message-ID: <171aadd9966.100e576ad1248.8616898883060201949@mykernel.net>
-In-Reply-To: <CAOQ4uxhowSRqD9kSoUHg+D8-RdxF8vBbTauTchgnpG5MoSNSEA@mail.gmail.com>
-References: <20200422102740.6670-1-cgxu519@mykernel.net> <CAOQ4uxj5JsWOgQ8vHqTkAXx16Y9URTgNpALY5XO=VNUAMTkOMw@mail.gmail.com>
- <171a49cb02a.e6962d897896.4484083556616944063@mykernel.net> <CAOQ4uxhowSRqD9kSoUHg+D8-RdxF8vBbTauTchgnpG5MoSNSEA@mail.gmail.com>
-Subject: Re: [PATCH v4] ovl: whiteout inode sharing
+        Fri, 24 Apr 2020 06:11:54 -0400
+Received: from bombadil.infradead.org (bombadil.infradead.org [IPv6:2607:7c80:54:e::133])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 37205C09B045;
+        Fri, 24 Apr 2020 03:11:54 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=infradead.org; s=bombadil.20170209; h=In-Reply-To:Content-Type:MIME-Version
+        :References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
+        Content-Transfer-Encoding:Content-ID:Content-Description;
+        bh=63eqvaxZAp7OS4S7rYpQU2Q5xJodUR5sgvC2fkZKUPw=; b=jVQVA2UyJk8C0S+mxfYgnhUGoI
+        l5oJ0Eir3oGqzub+/rqK5r5BmgcZSlZnO3YFL1KAJIqFbBb8eNzU+skwZ1v1aIDwrLCLlAjyc7tgE
+        DEepLbdKtdxJVJL1ayv4aJd5Vwfqx9H+ca4DkZUKwQwtD0BuPvMqKtPdDP60GaqRFbSSFktpuqHSu
+        kQ4YdC/+6nJU/pzP6GSbWv77l9zcy9JBBYRB6tC5E+YwGAYw/7PIk8zQyJ07dzC2aMQMEQYJfnt9S
+        JTktIxKD+Z6LatnwXG7FOCUMWRmGbzm6REB1MHlgew3Woa9m3fKxTiYhMoZEQf+5XmIv+8GlmAtAV
+        YIhZwZ8A==;
+Received: from hch by bombadil.infradead.org with local (Exim 4.92.3 #3 (Red Hat Linux))
+        id 1jRvJJ-0004JM-BE; Fri, 24 Apr 2020 10:11:53 +0000
+Date:   Fri, 24 Apr 2020 03:11:53 -0700
+From:   Christoph Hellwig <hch@infradead.org>
+To:     Ritesh Harjani <riteshh@linux.ibm.com>
+Cc:     linux-ext4@vger.kernel.org, jack@suse.cz, tytso@mit.edu,
+        adilger@dilger.ca, darrick.wong@oracle.com, hch@infradead.org,
+        Alexander Viro <viro@zeniv.linux.org.uk>,
+        Dan Carpenter <dan.carpenter@oracle.com>,
+        "Aneesh Kumar K . V" <aneesh.kumar@linux.ibm.com>,
+        Murphy Zhou <jencce.kernel@gmail.com>,
+        Miklos Szeredi <miklos@szeredi.hu>,
+        Amir Goldstein <amir73il@gmail.com>,
+        linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org
+Subject: Re: [PATCH 0/5] ext4/overlayfs: fiemap related fixes
+Message-ID: <20200424101153.GC456@infradead.org>
+References: <cover.1587555962.git.riteshh@linux.ibm.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-Importance: Medium
-User-Agent: ZohoCN Mail
-X-Mailer: ZohoCN Mail
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <cover.1587555962.git.riteshh@linux.ibm.com>
+X-SRS-Rewrite: SMTP reverse-path rewritten from <hch@infradead.org> by bombadil.infradead.org. See http://www.infradead.org/rpr.html
 Sender: linux-unionfs-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
- ---- =E5=9C=A8 =E6=98=9F=E6=9C=9F=E4=BA=94, 2020-04-24 14:02:00 Amir Golds=
-tein <amir73il@gmail.com> =E6=92=B0=E5=86=99 ----
- > >  > > +               case OPT_WHITEOUT_LINK_MAX:
- > >  > > +                       if (match_int(&args[0], &link_max))
- > >  > > +                               return -EINVAL;
- > >  > > +                       if (link_max < ovl_whiteout_link_max_def)
- > >  > > +                               config->whiteout_link_max =3D lin=
-k_max;
- > >  >
- > >  > Why not allow link_max > ovl_whiteout_link_max_def?
- > >  > admin may want to disable ovl_whiteout_link_max_def by default
- > >  > in module parameter, but allow it for specific overlay instances.
- > >  >
- > >
- > > In this use case, seems we don't need module param any more, we just n=
-eed to set  default value for option.
- > >
- > > I would like to treate module param as a total switch, so that it coul=
-d disable the feathre for all instances at the same time.
- > > I think sometimes it's helpful for lazy admin(like me).
- > >
- >=20
- > I am not convinced.
- >=20
- > lazy admin could very well want to disable whiteout_link_max by default,
- > but allow user to specify whiteout_link_max for a specific mount.
- >=20
- > In fact, in order to preserve existing behavior and not cause regression=
- with
- > some special filesystems, distros could decide that default disabled is
- > a reasonable choice.
- >=20
- > I don't understand at all what the purpose of this limitation is.
- >=20
+I think the right fix is to move fiemap_check_ranges into all the ->fiemap
+instances (we only have a few actual implementation minus the wrappers
+around iomap/generic).  Then add a version if iomap_fiemap that can pass
+in maxbytes explicitly for ext4, similar to what we've done with various
+other generic helpers.
 
-If user sets a ridiculous  link_max which is larger than valid range of upp=
-er fs, I think it is hard to verify in the stage of option parsing.
-So I hope to fix the upper limit using module parameter, we can set default=
- mount option to  0/1 for the use case you mentioned above.
-
-
-Thanks,
-cgxu
-
-
+The idea of validating input against file systems specific paramaters
+before we call into the fs is just bound to cause problems.
