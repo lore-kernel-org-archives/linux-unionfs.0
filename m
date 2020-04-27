@@ -2,51 +2,54 @@ Return-Path: <SRS0=/7Q0=6L=vger.kernel.org=linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 58412C54FCB
-	for <linux-unionfs@archiver.kernel.org>; Mon, 27 Apr 2020 18:20:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C17B5C81A01
+	for <linux-unionfs@archiver.kernel.org>; Mon, 27 Apr 2020 18:20:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2C39620775
-	for <linux-unionfs@archiver.kernel.org>; Mon, 27 Apr 2020 18:20:05 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 955B520775
+	for <linux-unionfs@archiver.kernel.org>; Mon, 27 Apr 2020 18:20:06 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="lkxwbRGp"
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="NuOYCajU"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726461AbgD0SUD (ORCPT
+        id S1726475AbgD0SUF (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Mon, 27 Apr 2020 14:20:03 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42144 "EHLO
+        Mon, 27 Apr 2020 14:20:05 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42150 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-FAIL-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1726426AbgD0SUD (ORCPT
+        by vger.kernel.org with ESMTP id S1726426AbgD0SUE (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 27 Apr 2020 14:20:03 -0400
+        Mon, 27 Apr 2020 14:20:04 -0400
 Received: from bombadil.infradead.org (bombadil.infradead.org [IPv6:2607:7c80:54:e::133])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3BA43C03C1A7;
-        Mon, 27 Apr 2020 11:20:03 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9CFC6C0610D5;
+        Mon, 27 Apr 2020 11:20:04 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
         d=infradead.org; s=bombadil.20170209; h=Content-Transfer-Encoding:
-        MIME-Version:Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:
-        Content-ID:Content-Description:In-Reply-To:References;
-        bh=NNJuTRmE6ZELTE88A2jaK/hIThaWq/UwG4YZi48dQqQ=; b=lkxwbRGpEnW2Cv8IHKwyIrTdzC
-        mSpj6MhQZn67Q23rMCw7lzs7Vuop1jswbJnm41NijXqbHLCbWATF/oDmV5rtUghGRCRak3nicUQ1P
-        vk5UO3zz/awtw+7o4lIwcRZnpHSaxJjy2M8m1PDZ0gMwEBbjD4DYsYfjw7sGbgY/u8gz7PYqSwpAk
-        eRggWnunkz2wnZamMZPKzfVz+iBP438h4YuMImhKN2rIP2LApsF00GhC7NOgkxzhTRDyusw/yJSsJ
-        tgYyoAcuJrj5MWlQxH3K4oplXKSxITPUS5m0D7ybUyjttObUo+YOwQy0T2X7X8QzbAyks5lksDIA8
-        0m9xqIwA==;
+        MIME-Version:References:In-Reply-To:Message-Id:Date:Subject:Cc:To:From:Sender
+        :Reply-To:Content-Type:Content-ID:Content-Description;
+        bh=14Ywug4UU4xAaFTeHUAnnbpAB8PBwYfeGeoa3aNof3g=; b=NuOYCajUFNapjRPTLSPOV7z4q1
+        yZWrBtUzlh/NZR37EJFL9JweJ8IhWb3xQGiExUXCxs4/tNJBf/0X37b8O3TNFraV6EctLlXQJ99CT
+        VQgRQp5KNnPC8ijCOGwuiBBintRfoJl1saxpT+L3D3Kfacyg6Rsczk7jhzQUPPeoIl7ReqYwns8Rc
+        HoBnz5ltjIHoh0OIKqlSNo91m6mXH7/+rdPeUM6Zk1sNlxFMBtxj+lKdaC6gUltXyXzj0Pta+Eob7
+        zgs2kLeLvpt6gbHf0YluYP4vY6kHJbZ1FGq2G7egSkGMRAmMxLklCu0Y5XhLsVgyisI6X+uYWTQVy
+        H7rIMfNA==;
 Received: from [2001:4bb8:193:f203:c70:4a89:bc61:2] (helo=localhost)
         by bombadil.infradead.org with esmtpsa (Exim 4.92.3 #3 (Red Hat Linux))
-        id 1jT8MJ-00025C-6Q; Mon, 27 Apr 2020 18:19:59 +0000
+        id 1jT8MO-0002A7-0z; Mon, 27 Apr 2020 18:20:04 +0000
 From:   Christoph Hellwig <hch@lst.de>
 To:     linux-ext4@vger.kernel.org, viro@zeniv.linux.org.uk
 Cc:     jack@suse.cz, tytso@mit.edu, adilger@dilger.ca,
         riteshh@linux.ibm.com, amir73il@gmail.com,
         linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org
-Subject: fix fiemap for ext4 bitmap files (+ cleanups) v2
-Date:   Mon, 27 Apr 2020 20:19:46 +0200
-Message-Id: <20200427181957.1606257-1-hch@lst.de>
+Subject: [PATCH 02/11] ext4: fix fiemap size checks for bitmap files
+Date:   Mon, 27 Apr 2020 20:19:48 +0200
+Message-Id: <20200427181957.1606257-3-hch@lst.de>
 X-Mailer: git-send-email 2.26.1
+In-Reply-To: <20200427181957.1606257-1-hch@lst.de>
+References: <20200427181957.1606257-1-hch@lst.de>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 X-SRS-Rewrite: SMTP reverse-path rewritten from <hch@infradead.org> by bombadil.infradead.org. See http://www.infradead.org/rpr.html
@@ -55,16 +58,131 @@ Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-Hi all,
+Add an extra validation of the len parameter, as for ext4 some files
+might have smaller file size limits than others.  This also means the
+redundant size check in ext4_ioctl_get_es_cache can go away, as all
+size checking is done in the shared fiemap handler.
 
-the first two patches should fix the issue where ext4 doesn't
-properly check the max file size for bitmap files in fiemap.
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+---
+ fs/ext4/extents.c | 31 +++++++++++++++++++++++++++++++
+ fs/ext4/ioctl.c   | 33 ++-------------------------------
+ 2 files changed, 33 insertions(+), 31 deletions(-)
 
-The rest cleans up the fiemap support in ext4 and in general.
+diff --git a/fs/ext4/extents.c b/fs/ext4/extents.c
+index f2b577b315a09..2b4b94542e34d 100644
+--- a/fs/ext4/extents.c
++++ b/fs/ext4/extents.c
+@@ -4832,6 +4832,28 @@ static const struct iomap_ops ext4_iomap_xattr_ops = {
+ 	.iomap_begin		= ext4_iomap_xattr_begin,
+ };
+ 
++static int ext4_fiemap_check_ranges(struct inode *inode, u64 start, u64 *len)
++{
++	u64 maxbytes;
++
++	if (ext4_test_inode_flag(inode, EXT4_INODE_EXTENTS))
++		maxbytes = inode->i_sb->s_maxbytes;
++	else
++		maxbytes = EXT4_SB(inode->i_sb)->s_bitmap_maxbytes;
++
++	if (*len == 0)
++		return -EINVAL;
++	if (start > maxbytes)
++		return -EFBIG;
++
++	/*
++	 * Shrink request scope to what the fs can actually handle.
++	 */
++	if (*len > maxbytes || (maxbytes - *len) < start)
++		*len = maxbytes - start;
++	return 0;
++}
++
+ static int _ext4_fiemap(struct inode *inode, struct fiemap_extent_info *fieinfo,
+ 			__u64 start, __u64 len, bool from_es_cache)
+ {
+@@ -4852,6 +4874,15 @@ static int _ext4_fiemap(struct inode *inode, struct fiemap_extent_info *fieinfo,
+ 	if (fiemap_check_flags(fieinfo, ext4_fiemap_flags))
+ 		return -EBADR;
+ 
++	/*
++	 * For bitmap files the maximum size limit could be smaller than
++	 * s_maxbytes, so check len here manually instead of just relying on the
++	 * generic check.
++	 */
++	error = ext4_fiemap_check_ranges(inode, start, &len);
++	if (error)
++		return error;
++
+ 	if (fieinfo->fi_flags & FIEMAP_FLAG_XATTR) {
+ 		fieinfo->fi_flags &= ~FIEMAP_FLAG_XATTR;
+ 		error = iomap_fiemap(inode, fieinfo, start, len,
+diff --git a/fs/ext4/ioctl.c b/fs/ext4/ioctl.c
+index bfc1281fc4cbc..0746532ba463d 100644
+--- a/fs/ext4/ioctl.c
++++ b/fs/ext4/ioctl.c
+@@ -733,29 +733,6 @@ static void ext4_fill_fsxattr(struct inode *inode, struct fsxattr *fa)
+ 		fa->fsx_projid = from_kprojid(&init_user_ns, ei->i_projid);
+ }
+ 
+-/* copied from fs/ioctl.c */
+-static int fiemap_check_ranges(struct super_block *sb,
+-			       u64 start, u64 len, u64 *new_len)
+-{
+-	u64 maxbytes = (u64) sb->s_maxbytes;
+-
+-	*new_len = len;
+-
+-	if (len == 0)
+-		return -EINVAL;
+-
+-	if (start > maxbytes)
+-		return -EFBIG;
+-
+-	/*
+-	 * Shrink request scope to what the fs can actually handle.
+-	 */
+-	if (len > maxbytes || (maxbytes - len) < start)
+-		*new_len = maxbytes - start;
+-
+-	return 0;
+-}
+-
+ /* So that the fiemap access checks can't overflow on 32 bit machines. */
+ #define FIEMAP_MAX_EXTENTS	(UINT_MAX / sizeof(struct fiemap_extent))
+ 
+@@ -765,8 +742,6 @@ static int ext4_ioctl_get_es_cache(struct file *filp, unsigned long arg)
+ 	struct fiemap __user *ufiemap = (struct fiemap __user *) arg;
+ 	struct fiemap_extent_info fieinfo = { 0, };
+ 	struct inode *inode = file_inode(filp);
+-	struct super_block *sb = inode->i_sb;
+-	u64 len;
+ 	int error;
+ 
+ 	if (copy_from_user(&fiemap, ufiemap, sizeof(fiemap)))
+@@ -775,11 +750,6 @@ static int ext4_ioctl_get_es_cache(struct file *filp, unsigned long arg)
+ 	if (fiemap.fm_extent_count > FIEMAP_MAX_EXTENTS)
+ 		return -EINVAL;
+ 
+-	error = fiemap_check_ranges(sb, fiemap.fm_start, fiemap.fm_length,
+-				    &len);
+-	if (error)
+-		return error;
+-
+ 	fieinfo.fi_flags = fiemap.fm_flags;
+ 	fieinfo.fi_extents_max = fiemap.fm_extent_count;
+ 	fieinfo.fi_extents_start = ufiemap->fm_extents;
+@@ -792,7 +762,8 @@ static int ext4_ioctl_get_es_cache(struct file *filp, unsigned long arg)
+ 	if (fieinfo.fi_flags & FIEMAP_FLAG_SYNC)
+ 		filemap_write_and_wait(inode->i_mapping);
+ 
+-	error = ext4_get_es_cache(inode, &fieinfo, fiemap.fm_start, len);
++	error = ext4_get_es_cache(inode, &fieinfo, fiemap.fm_start,
++			fiemap.fm_length);
+ 	fiemap.fm_flags = fieinfo.fi_flags;
+ 	fiemap.fm_mapped_extents = fieinfo.fi_extents_mapped;
+ 	if (copy_to_user(ufiemap, &fiemap, sizeof(fiemap)))
+-- 
+2.26.1
 
-Changes since v1:
- - rename fiemap_validate to fiemap_prep
- - lift FIEMAP_FLAG_SYNC handling to common code
- - add a new linux/fiemap.h header
- - remove __generic_block_fiemap
- - remove access_ok calls from fiemap and ext4
