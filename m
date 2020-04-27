@@ -4,50 +4,49 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-9.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EB165C7C884
-	for <linux-unionfs@archiver.kernel.org>; Mon, 27 Apr 2020 09:59:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9D486C7C882
+	for <linux-unionfs@archiver.kernel.org>; Mon, 27 Apr 2020 09:59:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C0BFE206D4
-	for <linux-unionfs@archiver.kernel.org>; Mon, 27 Apr 2020 09:59:11 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7960E20656
+	for <linux-unionfs@archiver.kernel.org>; Mon, 27 Apr 2020 09:59:14 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="npmptoCU"
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="gYDzouml"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726243AbgD0J7H (ORCPT
+        id S1726918AbgD0J7O (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Mon, 27 Apr 2020 05:59:07 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48390 "EHLO
+        Mon, 27 Apr 2020 05:59:14 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48418 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-FAIL-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1726349AbgD0J7G (ORCPT
+        by vger.kernel.org with ESMTP id S1726826AbgD0J7N (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 27 Apr 2020 05:59:06 -0400
+        Mon, 27 Apr 2020 05:59:13 -0400
 Received: from bombadil.infradead.org (bombadil.infradead.org [IPv6:2607:7c80:54:e::133])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6ACCEC0610D6;
-        Mon, 27 Apr 2020 02:59:06 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8057CC0610D6;
+        Mon, 27 Apr 2020 02:59:13 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
         d=infradead.org; s=bombadil.20170209; h=Content-Transfer-Encoding:
         MIME-Version:References:In-Reply-To:Message-Id:Date:Subject:Cc:To:From:Sender
         :Reply-To:Content-Type:Content-ID:Content-Description;
-        bh=RgQiwfsSPXHYeN94dR0SYoXUiw/kCpJ0Bv9UO/BsFqU=; b=npmptoCUw0CXC7qt7dy2UTvU7+
-        bDTtfVAEokmo55lXkCVpK3qaFc0r68Ucpw4o406KsjXZS7JkcaNSi6W3cwMJ3B5f1tGR5wPCQaj0A
-        cFhTS1c4ogwHS4BH3tc6gIwjYUibc7Zf2BWsL8mJlsaSeI1j9CB2JSC1KL+ND7bW8HWZXDd9gtG5v
-        f9TBB3ojjFyGG7sGe8sDqNadhRY+3FFni4yXQOxQscWY4hk212iFqfl5HP5+UfUwJLY7jCad4PtYO
-        upf6AlQUjxciojA12N6L+joHftCd5ulO5Sw8t/ERds6dOhzUhMSHjadt7YMZ+V526fc63JJCP4lIx
-        MJx05qCw==;
+        bh=fiuWFSiyWrxr5pZxiwa99BOM3ARppZRkANpBIsZuVbs=; b=gYDzoumlq0F5c4vAjNogRUuTgf
+        RMLnBxdYg5G9ZJJTPfvpXFk0ldSTHnjPpwWRVjtCBKYYjcWG832oLknPhSlVrPv3A0GaAtdDL2l1/
+        U8FcjO+EN6juTY5DG7jqAKqoCurovCwbSE+OV5DNmoEH2fPIm+R5NW0jo+BKLY/frncByS2odBfmM
+        Ycug6TDO0Q4UZco0vn6uAiShJfb75lL6wGe/P/sMT5CsW0tJ951BNjZi1C8vmqJcuVO0UfUyK3rBc
+        I84/MZXzSMOZyb7iT/QsYUsBhjnWuLT4ripfHdnr0+UqRR/f6QAWI4e01pDtfSIIg60DpNxkSnH0b
+        Ccf7BA9A==;
 Received: from [2001:4bb8:193:f203:c70:4a89:bc61:2] (helo=localhost)
         by bombadil.infradead.org with esmtpsa (Exim 4.92.3 #3 (Red Hat Linux))
-        id 1jT0XX-0003f5-8J; Mon, 27 Apr 2020 09:59:03 +0000
+        id 1jT0Xg-0003iN-VL; Mon, 27 Apr 2020 09:59:13 +0000
 From:   Christoph Hellwig <hch@lst.de>
 To:     linux-ext4@vger.kernel.org, viro@zeniv.linux.org.uk
 Cc:     jack@suse.cz, tytso@mit.edu, adilger@dilger.ca,
         riteshh@linux.ibm.com, amir73il@gmail.com,
-        linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org,
-        syzbot+77fa5bdb65cc39711820@syzkaller.appspotmail.com
-Subject: [PATCH 1/8] ext4: fix EXT4_MAX_LOGICAL_BLOCK macro
-Date:   Mon, 27 Apr 2020 11:58:51 +0200
-Message-Id: <20200427095858.1440608-2-hch@lst.de>
+        linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org
+Subject: [PATCH 5/8] fs: mark __generic_block_fiemap static
+Date:   Mon, 27 Apr 2020 11:58:55 +0200
+Message-Id: <20200427095858.1440608-6-hch@lst.de>
 X-Mailer: git-send-email 2.26.1
 In-Reply-To: <20200427095858.1440608-1-hch@lst.de>
 References: <20200427095858.1440608-1-hch@lst.de>
@@ -59,42 +58,51 @@ Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-From: Ritesh Harjani <riteshh@linux.ibm.com>
+There is no caller left outside of ioctl.c.
 
-ext4 supports max number of logical blocks in a file to be 0xffffffff.
-(This is since ext4_extent's ee_block is __le32).
-This means that EXT4_MAX_LOGICAL_BLOCK should be 0xfffffffe (starting
-from 0 logical offset). This patch fixes this.
-
-The issue was seen when ext4 moved to iomap_fiemap API and when
-overlayfs was mounted on top of ext4. Since overlayfs was missing
-filemap_check_ranges(), so it could pass a arbitrary huge length which
-lead to overflow of map.m_len logic.
-
-This patch fixes that.
-
-Fixes: d3b6f23f7167 ("ext4: move ext4_fiemap to use iomap framework")
-Reported-by: syzbot+77fa5bdb65cc39711820@syzkaller.appspotmail.com
-Signed-off-by: Ritesh Harjani <riteshh@linux.ibm.com>
-Reviewed-by: Jan Kara <jack@suse.cz>
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 ---
- fs/ext4/ext4.h | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/ioctl.c         | 4 +---
+ include/linux/fs.h | 4 ----
+ 2 files changed, 1 insertion(+), 7 deletions(-)
 
-diff --git a/fs/ext4/ext4.h b/fs/ext4/ext4.h
-index 91eb4381cae5b..ad2dbf6e49245 100644
---- a/fs/ext4/ext4.h
-+++ b/fs/ext4/ext4.h
-@@ -722,7 +722,7 @@ enum {
- #define EXT4_MAX_BLOCK_FILE_PHYS	0xFFFFFFFF
+diff --git a/fs/ioctl.c b/fs/ioctl.c
+index 282d45be6f453..f55f53c7824bb 100644
+--- a/fs/ioctl.c
++++ b/fs/ioctl.c
+@@ -299,8 +299,7 @@ static inline loff_t blk_to_logical(struct inode *inode, sector_t blk)
+  * If you use this function directly, you need to do your own locking. Use
+  * generic_block_fiemap if you want the locking done for you.
+  */
+-
+-int __generic_block_fiemap(struct inode *inode,
++static int __generic_block_fiemap(struct inode *inode,
+ 			   struct fiemap_extent_info *fieinfo, loff_t start,
+ 			   loff_t len, get_block_t *get_block)
+ {
+@@ -445,7 +444,6 @@ int __generic_block_fiemap(struct inode *inode,
  
- /* Max logical block we can support */
--#define EXT4_MAX_LOGICAL_BLOCK		0xFFFFFFFF
-+#define EXT4_MAX_LOGICAL_BLOCK		0xFFFFFFFE
+ 	return ret;
+ }
+-EXPORT_SYMBOL(__generic_block_fiemap);
  
- /*
-  * Structure of an inode on the disk
+ /**
+  * generic_block_fiemap - FIEMAP for block based inodes
+diff --git a/include/linux/fs.h b/include/linux/fs.h
+index 4f6f59b4f22a8..3104c6f7527b5 100644
+--- a/include/linux/fs.h
++++ b/include/linux/fs.h
+@@ -3299,10 +3299,6 @@ static inline int vfs_fstat(int fd, struct kstat *stat)
+ extern const char *vfs_get_link(struct dentry *, struct delayed_call *);
+ extern int vfs_readlink(struct dentry *, char __user *, int);
+ 
+-extern int __generic_block_fiemap(struct inode *inode,
+-				  struct fiemap_extent_info *fieinfo,
+-				  loff_t start, loff_t len,
+-				  get_block_t *get_block);
+ extern int generic_block_fiemap(struct inode *inode,
+ 				struct fiemap_extent_info *fieinfo, u64 start,
+ 				u64 len, get_block_t *get_block);
 -- 
 2.26.1
 
