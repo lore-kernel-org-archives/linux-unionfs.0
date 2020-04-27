@@ -1,75 +1,50 @@
-Return-Path: <SRS0=xQay=6J=vger.kernel.org=linux-unionfs-owner@kernel.org>
+Return-Path: <SRS0=/7Q0=6L=vger.kernel.org=linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
-	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9F7BEC54FCB
-	for <linux-unionfs@archiver.kernel.org>; Sat, 25 Apr 2020 17:32:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9E063C54FD0
+	for <linux-unionfs@archiver.kernel.org>; Mon, 27 Apr 2020 06:28:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6F78520700
-	for <linux-unionfs@archiver.kernel.org>; Sat, 25 Apr 2020 17:32:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7D7B6206B6
+	for <linux-unionfs@archiver.kernel.org>; Mon, 27 Apr 2020 06:28:13 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=dilger-ca.20150623.gappssmtp.com header.i=@dilger-ca.20150623.gappssmtp.com header.b="F6M4rQMI"
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="FAiKdO7K"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726169AbgDYRcr (ORCPT
+        id S1726429AbgD0G2N (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Sat, 25 Apr 2020 13:32:47 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40906 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-FAIL-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1726145AbgDYRcq (ORCPT
+        Mon, 27 Apr 2020 02:28:13 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43688 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726246AbgD0G2N (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Sat, 25 Apr 2020 13:32:46 -0400
-Received: from mail-pg1-x543.google.com (mail-pg1-x543.google.com [IPv6:2607:f8b0:4864:20::543])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BE87BC09B04D
-        for <linux-unionfs@vger.kernel.org>; Sat, 25 Apr 2020 10:32:46 -0700 (PDT)
-Received: by mail-pg1-x543.google.com with SMTP id d17so6272150pgo.0
-        for <linux-unionfs@vger.kernel.org>; Sat, 25 Apr 2020 10:32:46 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=dilger-ca.20150623.gappssmtp.com; s=20150623;
-        h=content-transfer-encoding:from:mime-version:subject:date:message-id
-         :references:cc:in-reply-to:to;
-        bh=w41+bZlNoROIAm9e5f0pSCKyQF/SBw7z23NMeLYGmzk=;
-        b=F6M4rQMIwupDNp8mlRN0m5JZlY7sYOsc/V5TEBpvrzmXH2zAajRBMadPdV6U/mLyU1
-         IWpOgEx+ckUo51ovq2gw252+2NSBkD4B3Mba/5vLnCybEEo4xysQuw2TYmkZxqVNuVha
-         M1ycfwvY5bXLI7tt2U8gsryb+So1AXn4/IJzlF3ZHZU0sNF//7M6GzfmQQ3ot3mw4zzj
-         tPwF/Dn973hix6+ggAVE+qE+VMKxb3oIkbdsh7B2QGLUjqRJdIio7B7R3VT9laa+dufy
-         Q105fL53erN2kiKFR7ngGRZv1KV3C0mXIkj6lwpNWT07IvYuxF22d1EGsGQkb/5Jfpfe
-         auDw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:content-transfer-encoding:from:mime-version
-         :subject:date:message-id:references:cc:in-reply-to:to;
-        bh=w41+bZlNoROIAm9e5f0pSCKyQF/SBw7z23NMeLYGmzk=;
-        b=scHKvLwrWVTfvKVgp9nxqCDi737FwcGEUyqIaNoM8AxEFmPCv4UErofeKVN2/a6/GN
-         B8C9GrkTvcWNLGHOqqSthTRJCWcqsbrOU83pMPuWYM3v6YVqmMbPbLs1BAwVKNCU2nx5
-         XqRf6ZMn6LK+eDceE5H79URwe6NSbw45QVX05cvOg3y0FuH+36NbxYpURajt/b6o2WjU
-         nZOsP+qiwTQ318LINbSKef9A/BAc+XnZ+RYwS1WaPwmkQwmLba/bR0rQVCdbEQmM43n3
-         9pHGfc6LHuMh+Ab3WKf7Sjof+wD4XtEKVOTjUzmG+IyjQq+gvDDZ4AIsu5sWPKWBou/+
-         d2FA==
-X-Gm-Message-State: AGi0PuazODL28b8jH/WtFvoxpTjv5X6XvQ/lDStp2Bl4FHx8Qs+wHk5E
-        bwMk40204xvbKZSskZP5THmc/Q==
-X-Google-Smtp-Source: APiQypIqUtzrqajXu/yR5vzclJO9bBfOiZFCTI/VTUYxq8Ohlu2jF4IVKHoWNu4x2cCMkyu+cKiOvw==
-X-Received: by 2002:aa7:943c:: with SMTP id y28mr15703323pfo.171.1587835966178;
-        Sat, 25 Apr 2020 10:32:46 -0700 (PDT)
-Received: from [192.168.10.175] (S0106a84e3fe4b223.cg.shawcable.net. [70.77.216.213])
-        by smtp.gmail.com with ESMTPSA id o1sm7415521pjs.39.2020.04.25.10.32.45
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Sat, 25 Apr 2020 10:32:45 -0700 (PDT)
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-From:   Andreas Dilger <adilger@dilger.ca>
-Mime-Version: 1.0 (1.0)
-Subject: Re: [PATCH 0/5] ext4/overlayfs: fiemap related fixes
-Date:   Sat, 25 Apr 2020 10:32:44 -0700
-Message-Id: <ECEA80AE-C2E9-4D5C-8A14-E2A92C720163@dilger.ca>
-References: <20200425094350.GA11881@infradead.org>
-Cc:     Amir Goldstein <amir73il@gmail.com>,
+        Mon, 27 Apr 2020 02:28:13 -0400
+Received: from bombadil.infradead.org (bombadil.infradead.org [IPv6:2607:7c80:54:e::133])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E6FBFC061A0F;
+        Sun, 26 Apr 2020 23:28:12 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=infradead.org; s=bombadil.20170209; h=In-Reply-To:Content-Type:MIME-Version
+        :References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
+        Content-Transfer-Encoding:Content-ID:Content-Description;
+        bh=vJpMkjG5DX5/M9LM8IYv/octmqJf4nqFAaGXSYoBAyA=; b=FAiKdO7KxOvy52OFUxVf9h5LdX
+        02z9fddnhmmnCI1wuBUQNZChoTN44UpCMRw3U3uX6KdOewnCEaf0rwlwXad7Eq51cZT82r2VsV3hH
+        JyYk5zxK0U0lxr+9kYTci5PyBNhk1ca4LHPoiQIBa4v7eaXCV8EHzIDlE8iZhmlJxat7R/nw5c6Bh
+        VXs7nDmnQq3WSK1ut2L7k7xHkHNFvdL5HoSwDGoYyflTSUK2iwO+/E5/ItkvvtIIyB077rYKvxTVP
+        breU9IKaBMcAfgRzLQKZib3d75Uarh4ixv51EGcZeHpd9fUSD6J1ftW0jRQbe3BW8lJlq1To8jqBw
+        gpsP8V4g==;
+Received: from hch by bombadil.infradead.org with local (Exim 4.92.3 #3 (Red Hat Linux))
+        id 1jSxFS-0004Rw-7w; Mon, 27 Apr 2020 06:28:10 +0000
+Date:   Sun, 26 Apr 2020 23:28:10 -0700
+From:   Christoph Hellwig <hch@infradead.org>
+To:     Amir Goldstein <amir73il@gmail.com>
+Cc:     Christoph Hellwig <hch@infradead.org>,
         Ritesh Harjani <riteshh@linux.ibm.com>,
         Ext4 <linux-ext4@vger.kernel.org>, Jan Kara <jack@suse.cz>,
         Theodore Tso <tytso@mit.edu>,
+        Andreas Dilger <adilger@dilger.ca>,
         "Darrick J. Wong" <darrick.wong@oracle.com>,
         Alexander Viro <viro@zeniv.linux.org.uk>,
         Dan Carpenter <dan.carpenter@oracle.com>,
@@ -78,30 +53,27 @@ Cc:     Amir Goldstein <amir73il@gmail.com>,
         Miklos Szeredi <miklos@szeredi.hu>,
         linux-fsdevel <linux-fsdevel@vger.kernel.org>,
         overlayfs <linux-unionfs@vger.kernel.org>
-In-Reply-To: <20200425094350.GA11881@infradead.org>
-To:     Christoph Hellwig <hch@infradead.org>
-X-Mailer: iPhone Mail (17E262)
+Subject: Re: [PATCH 0/5] ext4/overlayfs: fiemap related fixes
+Message-ID: <20200427062810.GA12930@infradead.org>
+References: <cover.1587555962.git.riteshh@linux.ibm.com>
+ <20200424101153.GC456@infradead.org>
+ <20200424232024.A39974C046@d06av22.portsmouth.uk.ibm.com>
+ <CAOQ4uxgiome-BnHDvDC=vHfidf4Ru3jqzOki0Z_YUkinEeYCRQ@mail.gmail.com>
+ <20200425094350.GA11881@infradead.org>
+ <CAOQ4uxg2KOVBxqF400KW3VaQEaX4JGqfb_vCW=esTMkJqZWwvA@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAOQ4uxg2KOVBxqF400KW3VaQEaX4JGqfb_vCW=esTMkJqZWwvA@mail.gmail.com>
+X-SRS-Rewrite: SMTP reverse-path rewritten from <hch@infradead.org> by bombadil.infradead.org. See http://www.infradead.org/rpr.html
 Sender: linux-unionfs-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Apr 25, 2020, at 02:43, Christoph Hellwig <hch@infradead.org> wrote:
->=20
-> =EF=BB=BFOn Sat, Apr 25, 2020 at 12:11:59PM +0300, Amir Goldstein wrote:
->> FWIW, I agree with you.
->> And seems like Jan does as well, since he ACKed all your patches.
->> Current patches would be easier to backport to stable kernels.
->=20
-> Honestly, the proper fix is pretty much trivial.  I wrote it up this
-> morning over coffee:
->=20
->    http://git.infradead.org/users/hch/misc.git/shortlog/refs/heads/fiemap-=
-fix
->=20
-> Still needs more testing, though.
+On Sat, Apr 25, 2020 at 01:49:43PM +0300, Amir Goldstein wrote:
+> I would use as generic helper name generic_fiemap_checks()
+> akin to generic_write_checks() and generic_remap_file_range_prep() =>
+> generic_remap_checks().
 
-The "maxbytes" value should be passed in from the caller, since this
-may be different per inode (for ext4 at least).
-
-Cheers, Andreas=
+None of the other fiemap helpers use the redundant generic_ prefix.
