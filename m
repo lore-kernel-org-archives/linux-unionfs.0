@@ -2,105 +2,141 @@ Return-Path: <SRS0=REe/=6M=vger.kernel.org=linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.3 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,UNPARSEABLE_RELAY,
+	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6F331C83000
-	for <linux-unionfs@archiver.kernel.org>; Tue, 28 Apr 2020 13:32:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BDF15C83008
+	for <linux-unionfs@archiver.kernel.org>; Tue, 28 Apr 2020 15:07:20 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4A047206D6
-	for <linux-unionfs@archiver.kernel.org>; Tue, 28 Apr 2020 13:32:30 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9D175206D8
+	for <linux-unionfs@archiver.kernel.org>; Tue, 28 Apr 2020 15:07:20 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="key not found in DNS" (0-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b="NZbIXl6o"
+	dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="IGQLThE2"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726900AbgD1Nca (ORCPT
+        id S1727967AbgD1PHT (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Tue, 28 Apr 2020 09:32:30 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53380 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726898AbgD1Nc3 (ORCPT
+        Tue, 28 Apr 2020 11:07:19 -0400
+Received: from aserp2120.oracle.com ([141.146.126.78]:34480 "EHLO
+        aserp2120.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727108AbgD1PHT (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 28 Apr 2020 09:32:29 -0400
-Received: from mail-ej1-x642.google.com (mail-ej1-x642.google.com [IPv6:2a00:1450:4864:20::642])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2869EC03C1A9
-        for <linux-unionfs@vger.kernel.org>; Tue, 28 Apr 2020 06:32:28 -0700 (PDT)
-Received: by mail-ej1-x642.google.com with SMTP id x1so17231200ejd.8
-        for <linux-unionfs@vger.kernel.org>; Tue, 28 Apr 2020 06:32:28 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=szeredi.hu; s=google;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=QsImM8E8Sx5T2dV/WsDhWlM1WOzIgncwreRpcnmmPvY=;
-        b=NZbIXl6oBElcuhvlH3LYSBdiZtZr/16U1fsWBOiGevapez7ylIChAbr9rnV8lrDJ9z
-         qHYEMaTzZwXZLXf/lcPCooKQYijxGJ8csxDeHQihbWioIzNloa1/p5xNjL9y0A8MFYCO
-         8WQpT7AZ3UwmZ4vaEKk9Cy5J+RJxrYWIx3pWI=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=QsImM8E8Sx5T2dV/WsDhWlM1WOzIgncwreRpcnmmPvY=;
-        b=uGVPwo8yA4vCZUALIlb5P3VkcN/DWCS129Mu/z9ErKilZYihiWKZr2tX3z8fjGzwRE
-         75l+T7ug7xA0lnk5nO9GxyW2BfO57mxzDZPkd66RYnKkBgR0RhsaR2V0cpLCX4sGvCf8
-         LbjnNl/7GXKj0bK8Gprqj/iib90GNiGso9lnEjjrdBInCW6W53DymhVe8FzIZOa4Av0S
-         As/Ych1pW4yOKMSqzRBgsV41ql1Lh4yiyWILcXgOtI3v7jBtS1cpPKgjnSRKGvduExEY
-         3h7a27U5iqt6fO/I2biN2ERALfUOszyWKLLAn4QLhxBuvjaPJ2DjjQ7psBAW1epTHnvj
-         Ny+w==
-X-Gm-Message-State: AGi0PuaXHoPZC2Qtv9m3fmnBTY6qdB3Y/2TrrRBBgHKA/Tt8jSrnAPFg
-        vJJz2Ey3umWHi+EFpDJI4c9KFxYZXGQO/RxCsN1drg==
-X-Google-Smtp-Source: APiQypJZMAfAQ7clut+um20VSusBRFIkyrCeom+rTEVHmpiz+2n125IszLNfI8RQokwMmA/ZUV+aEc/ItvVb7zlwauQ=
-X-Received: by 2002:a17:906:841a:: with SMTP id n26mr25302784ejx.43.1588080746732;
- Tue, 28 Apr 2020 06:32:26 -0700 (PDT)
+        Tue, 28 Apr 2020 11:07:19 -0400
+Received: from pps.filterd (aserp2120.oracle.com [127.0.0.1])
+        by aserp2120.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 03SF2oQg186150;
+        Tue, 28 Apr 2020 15:07:02 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=date : from : to : cc
+ : subject : message-id : references : mime-version : content-type :
+ in-reply-to; s=corp-2020-01-29;
+ bh=iipreQ5GV+rvEB10J9TRs1WYlt4LV7NmGOo51IIe1z8=;
+ b=IGQLThE2J+8uo+T8p65/hBXvV8tQDVe3kizQSdpP5eOHhh2MPK44njSSJP3nCRqrgmgN
+ JP1fu+1aMW3xJhqu7o5lbsFmpvPbb9eFgyYwAzTe5eqJCwyaenpV6jeXl1T6dppEuQe9
+ Rr3pIaEDZPAaaaBT6SLiQxMUwsmugd6PylYdSyfgcr+dJQy5HmRtl1/I2yMC/jRO4bV1
+ fXbeJIzo26je9oLe62J8mUJtxMAeslkgIMujyIcjnSvbJW+HJHRT1BxWooU7xqyFHNuC
+ MObcpCE3eGZJQd3eySoOxW9kJUqcHeu06v4Q3/8leq1iOcvzBzbQkWbLKs8Yaa0usaeK bQ== 
+Received: from userp3020.oracle.com (userp3020.oracle.com [156.151.31.79])
+        by aserp2120.oracle.com with ESMTP id 30nucg0htr-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Tue, 28 Apr 2020 15:07:02 +0000
+Received: from pps.filterd (userp3020.oracle.com [127.0.0.1])
+        by userp3020.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 03SF3tfn153636;
+        Tue, 28 Apr 2020 15:07:02 GMT
+Received: from aserv0121.oracle.com (aserv0121.oracle.com [141.146.126.235])
+        by userp3020.oracle.com with ESMTP id 30mxx006f5-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Tue, 28 Apr 2020 15:07:01 +0000
+Received: from abhmp0003.oracle.com (abhmp0003.oracle.com [141.146.116.9])
+        by aserv0121.oracle.com (8.14.4/8.13.8) with ESMTP id 03SF6vM3028406;
+        Tue, 28 Apr 2020 15:06:57 GMT
+Received: from localhost (/67.169.218.210)
+        by default (Oracle Beehive Gateway v4.0)
+        with ESMTP ; Tue, 28 Apr 2020 08:06:57 -0700
+Date:   Tue, 28 Apr 2020 08:06:55 -0700
+From:   "Darrick J. Wong" <darrick.wong@oracle.com>
+To:     Christoph Hellwig <hch@lst.de>
+Cc:     linux-ext4@vger.kernel.org, viro@zeniv.linux.org.uk, jack@suse.cz,
+        tytso@mit.edu, adilger@dilger.ca, riteshh@linux.ibm.com,
+        amir73il@gmail.com, linux-fsdevel@vger.kernel.org,
+        linux-unionfs@vger.kernel.org
+Subject: Re: [PATCH 05/11] fs: mark __generic_block_fiemap static
+Message-ID: <20200428150655.GG6741@magnolia>
+References: <20200427181957.1606257-1-hch@lst.de>
+ <20200427181957.1606257-6-hch@lst.de>
 MIME-Version: 1.0
-References: <20200422102740.6670-1-cgxu519@mykernel.net> <CAOQ4uxj5JsWOgQ8vHqTkAXx16Y9URTgNpALY5XO=VNUAMTkOMw@mail.gmail.com>
- <171a49cb02a.e6962d897896.4484083556616944063@mykernel.net>
- <CAOQ4uxhowSRqD9kSoUHg+D8-RdxF8vBbTauTchgnpG5MoSNSEA@mail.gmail.com>
- <171aadd9966.100e576ad1248.8616898883060201949@mykernel.net>
- <CAOQ4uxi_zp45KrjnR4FJx56gsDPsoim4U0H7hj1ta4+gXAwQtQ@mail.gmail.com>
- <20200428122104.GA13131@miu.piliscsaba.redhat.com> <CAOQ4uxh4ZVqOHtiytk4fHB5otNd8VRM-Z_8ZYpW1qMjzAsmkZw@mail.gmail.com>
-In-Reply-To: <CAOQ4uxh4ZVqOHtiytk4fHB5otNd8VRM-Z_8ZYpW1qMjzAsmkZw@mail.gmail.com>
-From:   Miklos Szeredi <miklos@szeredi.hu>
-Date:   Tue, 28 Apr 2020 15:32:15 +0200
-Message-ID: <CAJfpegvCyr_JJr8_n+qXOHVeCxgHGmizCqZ3b2mKAA9M_qbQQw@mail.gmail.com>
-Subject: Re: [PATCH v4] ovl: whiteout inode sharing
-To:     Amir Goldstein <amir73il@gmail.com>
-Cc:     Chengguang Xu <cgxu519@mykernel.net>,
-        overlayfs <linux-unionfs@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20200427181957.1606257-6-hch@lst.de>
+User-Agent: Mutt/1.9.4 (2018-02-28)
+X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9605 signatures=668686
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 adultscore=0 spamscore=0 bulkscore=0
+ suspectscore=0 mlxlogscore=999 phishscore=0 malwarescore=0 mlxscore=0
+ classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2003020000
+ definitions=main-2004280118
+X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9605 signatures=668686
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 clxscore=1011 priorityscore=1501
+ mlxlogscore=999 impostorscore=0 suspectscore=0 malwarescore=0
+ lowpriorityscore=0 mlxscore=0 spamscore=0 adultscore=0 phishscore=0
+ bulkscore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.12.0-2003020000 definitions=main-2004280118
 Sender: linux-unionfs-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Tue, Apr 28, 2020 at 3:16 PM Amir Goldstein <amir73il@gmail.com> wrote:
->
-> On Tue, Apr 28, 2020 at 3:21 PM Miklos Szeredi <miklos@szeredi.hu> wrote:
+On Mon, Apr 27, 2020 at 08:19:51PM +0200, Christoph Hellwig wrote:
+> There is no caller left outside of ioctl.c.
+> 
+> Signed-off-by: Christoph Hellwig <hch@lst.de>
 
-> > And I don't really see a reason to disable whiteout hard links.  What scenario
-> > would that be useful in?
->
-> I have a vague memory of e2fsck excessive memory consumption
-> in face of many hardlinks created by rsync backups.
-> Now I suppose it was a function of number of files with nlink > 1 and not
-> a function of nlink itself and could be a non issue for a long time, but I am
-> just being careful about introducing non-standard setups which may end up
-> exposing filesystem corner case bugs (near the edge of s_max_links).
-> Yeh that is very defensive, so I don't mind ignoring that concern and addressing
-> it in case somebody shouts.
+Looks good to me,
+Reviewed-by: Darrick J. Wong <darrick.wong@oracle.com>
 
-Right, and even if such a corner case bug exists, it's still primarily
-a bug in the underlying filesystem and should be fixed there. A
-workaround in overlay would only make sense if for some reason the
-primary fix is difficult or impossible.
+--D
 
-> > +fallback:
-> > +       whiteout = ofs->whiteout;
-> > +       ofs->whiteout = NULL;
-> > +success:
->
-> This label is a bit strange, but fine.
-
-Agreed, changed to "out:"
-
-Thanks,
-Miklos
+> ---
+>  fs/ioctl.c         | 4 +---
+>  include/linux/fs.h | 4 ----
+>  2 files changed, 1 insertion(+), 7 deletions(-)
+> 
+> diff --git a/fs/ioctl.c b/fs/ioctl.c
+> index 282d45be6f453..f55f53c7824bb 100644
+> --- a/fs/ioctl.c
+> +++ b/fs/ioctl.c
+> @@ -299,8 +299,7 @@ static inline loff_t blk_to_logical(struct inode *inode, sector_t blk)
+>   * If you use this function directly, you need to do your own locking. Use
+>   * generic_block_fiemap if you want the locking done for you.
+>   */
+> -
+> -int __generic_block_fiemap(struct inode *inode,
+> +static int __generic_block_fiemap(struct inode *inode,
+>  			   struct fiemap_extent_info *fieinfo, loff_t start,
+>  			   loff_t len, get_block_t *get_block)
+>  {
+> @@ -445,7 +444,6 @@ int __generic_block_fiemap(struct inode *inode,
+>  
+>  	return ret;
+>  }
+> -EXPORT_SYMBOL(__generic_block_fiemap);
+>  
+>  /**
+>   * generic_block_fiemap - FIEMAP for block based inodes
+> diff --git a/include/linux/fs.h b/include/linux/fs.h
+> index 4f6f59b4f22a8..3104c6f7527b5 100644
+> --- a/include/linux/fs.h
+> +++ b/include/linux/fs.h
+> @@ -3299,10 +3299,6 @@ static inline int vfs_fstat(int fd, struct kstat *stat)
+>  extern const char *vfs_get_link(struct dentry *, struct delayed_call *);
+>  extern int vfs_readlink(struct dentry *, char __user *, int);
+>  
+> -extern int __generic_block_fiemap(struct inode *inode,
+> -				  struct fiemap_extent_info *fieinfo,
+> -				  loff_t start, loff_t len,
+> -				  get_block_t *get_block);
+>  extern int generic_block_fiemap(struct inode *inode,
+>  				struct fiemap_extent_info *fieinfo, u64 start,
+>  				u64 len, get_block_t *get_block);
+> -- 
+> 2.26.1
+> 
