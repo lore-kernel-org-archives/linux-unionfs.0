@@ -2,53 +2,96 @@ Return-Path: <SRS0=nAyo=6P=vger.kernel.org=linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-0.7 required=3.0 tests=FORGED_MUA_MOZILLA,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8D178C47256
-	for <linux-unionfs@archiver.kernel.org>; Fri,  1 May 2020 04:37:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 919FAC47256
+	for <linux-unionfs@archiver.kernel.org>; Fri,  1 May 2020 06:38:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7706620857
-	for <linux-unionfs@archiver.kernel.org>; Fri,  1 May 2020 04:37:48 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 71BB5208DB
+	for <linux-unionfs@archiver.kernel.org>; Fri,  1 May 2020 06:38:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728200AbgEAEhr (ORCPT
+        id S1728281AbgEAGir (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Fri, 1 May 2020 00:37:47 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52464 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-FAIL-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1726153AbgEAEhr (ORCPT
+        Fri, 1 May 2020 02:38:47 -0400
+Received: from mx0b-001b2d01.pphosted.com ([148.163.158.5]:45872 "EHLO
+        mx0b-001b2d01.pphosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726452AbgEAGiq (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 1 May 2020 00:37:47 -0400
-Received: from ZenIV.linux.org.uk (zeniv.linux.org.uk [IPv6:2002:c35c:fd02::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 37521C035494;
-        Thu, 30 Apr 2020 21:37:47 -0700 (PDT)
-Received: from viro by ZenIV.linux.org.uk with local (Exim 4.92.3 #3 (Red Hat Linux))
-        id 1jUNQj-00Fc0H-H0; Fri, 01 May 2020 04:37:41 +0000
-Date:   Fri, 1 May 2020 05:37:41 +0100
-From:   Al Viro <viro@zeniv.linux.org.uk>
-To:     Ritesh Harjani <riteshh@linux.ibm.com>
+        Fri, 1 May 2020 02:38:46 -0400
+Received: from pps.filterd (m0127361.ppops.net [127.0.0.1])
+        by mx0a-001b2d01.pphosted.com (8.16.0.42/8.16.0.42) with SMTP id 0416XqW9160045;
+        Fri, 1 May 2020 02:37:54 -0400
+Received: from ppma02fra.de.ibm.com (47.49.7a9f.ip4.static.sl-reverse.com [159.122.73.71])
+        by mx0a-001b2d01.pphosted.com with ESMTP id 30r821rte6-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+        Fri, 01 May 2020 02:37:54 -0400
+Received: from pps.filterd (ppma02fra.de.ibm.com [127.0.0.1])
+        by ppma02fra.de.ibm.com (8.16.0.27/8.16.0.27) with SMTP id 0416WEqt015322;
+        Fri, 1 May 2020 06:37:52 GMT
+Received: from b06avi18626390.portsmouth.uk.ibm.com (b06avi18626390.portsmouth.uk.ibm.com [9.149.26.192])
+        by ppma02fra.de.ibm.com with ESMTP id 30mcu7y8ur-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+        Fri, 01 May 2020 06:37:51 +0000
+Received: from d06av26.portsmouth.uk.ibm.com (d06av26.portsmouth.uk.ibm.com [9.149.105.62])
+        by b06avi18626390.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 0416afcx65929600
+        (version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Fri, 1 May 2020 06:36:41 GMT
+Received: from d06av26.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+        by IMSVA (Postfix) with ESMTP id BACEFAE045;
+        Fri,  1 May 2020 06:37:49 +0000 (GMT)
+Received: from d06av26.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+        by IMSVA (Postfix) with ESMTP id D8FD8AE04D;
+        Fri,  1 May 2020 06:37:47 +0000 (GMT)
+Received: from localhost.localdomain (unknown [9.85.81.13])
+        by d06av26.portsmouth.uk.ibm.com (Postfix) with ESMTP;
+        Fri,  1 May 2020 06:37:47 +0000 (GMT)
+Subject: Re: [RESEND PATCH 0/1] Use inode_lock/unlock class of provided APIs
+ in filesystems
+To:     Al Viro <viro@zeniv.linux.org.uk>
 Cc:     linux-fsdevel@vger.kernel.org, willy@infradead.org,
         jlayton@kernel.org, ceph-devel@vger.kernel.org,
         linux-btrfs@vger.kernel.org, linux-nfs@vger.kernel.org,
         devel@lists.orangefs.org, linux-unionfs@vger.kernel.org,
         dsterba@suse.cz
-Subject: Re: [RESEND PATCH 0/1] Use inode_lock/unlock class of provided APIs
- in filesystems
-Message-ID: <20200501043741.GK23230@ZenIV.linux.org.uk>
 References: <20200101105248.25304-1-riteshh@linux.ibm.com>
+ <20200501043741.GK23230@ZenIV.linux.org.uk>
+From:   Ritesh Harjani <riteshh@linux.ibm.com>
+Date:   Fri, 1 May 2020 12:07:46 +0530
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
+ Thunderbird/60.7.2
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20200101105248.25304-1-riteshh@linux.ibm.com>
+In-Reply-To: <20200501043741.GK23230@ZenIV.linux.org.uk>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+Message-Id: <20200501063747.D8FD8AE04D@d06av26.portsmouth.uk.ibm.com>
+X-TM-AS-GCONF: 00
+X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.138,18.0.676
+ definitions=2020-05-01_01:2020-04-30,2020-05-01 signatures=0
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 phishscore=0 clxscore=1011
+ mlxscore=0 malwarescore=0 suspectscore=0 bulkscore=0 adultscore=0
+ priorityscore=1501 mlxlogscore=748 spamscore=0 lowpriorityscore=0
+ impostorscore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.12.0-2003020000 definitions=main-2005010044
 Sender: linux-unionfs-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Wed, Jan 01, 2020 at 04:22:47PM +0530, Ritesh Harjani wrote:
-> Al, any comments?
-> Resending this after adding Reviewed-by/Acked-by tags.
 
-.... argh.  My apologies - that got fallen through the cracks.
-Could you rebase and resend it?
+
+On 5/1/20 10:07 AM, Al Viro wrote:
+> On Wed, Jan 01, 2020 at 04:22:47PM +0530, Ritesh Harjani wrote:
+>> Al, any comments?
+>> Resending this after adding Reviewed-by/Acked-by tags.
+> 
+> .... argh.  My apologies - that got fallen through the cracks.
+> Could you rebase and resend it?
+> 
+Np.
+Sure, will rebase and resend.
+
+-ritesh
+
