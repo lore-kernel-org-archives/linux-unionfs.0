@@ -2,123 +2,124 @@ Return-Path: <SRS0=h8cR=6T=vger.kernel.org=linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.4 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,UNPARSEABLE_RELAY,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 88D73C47247
-	for <linux-unionfs@archiver.kernel.org>; Tue,  5 May 2020 18:08:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BAC6DC47247
+	for <linux-unionfs@archiver.kernel.org>; Tue,  5 May 2020 18:15:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5FD3F206B8
-	for <linux-unionfs@archiver.kernel.org>; Tue,  5 May 2020 18:08:36 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 97B5D20663
+	for <linux-unionfs@archiver.kernel.org>; Tue,  5 May 2020 18:15:14 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="VP+ewoYN"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="XhITRT+H"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730475AbgEESIf (ORCPT
+        id S1730615AbgEESPO (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Tue, 5 May 2020 14:08:35 -0400
-Received: from aserp2120.oracle.com ([141.146.126.78]:39214 "EHLO
-        aserp2120.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729315AbgEESIf (ORCPT
+        Tue, 5 May 2020 14:15:14 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58498 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1729315AbgEESPO (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 5 May 2020 14:08:35 -0400
-Received: from pps.filterd (aserp2120.oracle.com [127.0.0.1])
-        by aserp2120.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 045I8Y4m196596;
-        Tue, 5 May 2020 18:08:34 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=date : from : to : cc
- : subject : message-id : references : mime-version : content-type :
- in-reply-to; s=corp-2020-01-29;
- bh=RFNw+wufclTm6os8yCUezLhGfCKDQHduwkHk21poH3c=;
- b=VP+ewoYNJbJM9Zi6ernCdBkYHWJnkKcWn5KaPR3/+SjkNcl/sUrWrCJ87sfd0F2/STQQ
- VZWNM97XuC8+HDXHmIKSQCTF8D2nxpI1KRYa+5kN7Msd/ASabmkPuqXUHD0vy9TYeZiX
- TxuT2AoqlaD81aOSF2Vz6pRiPfhvhVtSrMXRn3bUghOmRj6+/TWjlwlO3pl6Ujlq2MMP
- OD2lSCX0e48MA6Ha2CNUXdxmG1LfXG5wZv2MeSs5iUi2ZeT7U+Xqn1Ig69TLloMz4SNe
- NWrZcoB3oHZp+VBPcIPi9H6LpJ4idjspn0p0v76S7U4d3GljQ5YNOHlMaVIWtDx0Z0e9 4g== 
-Received: from userp3020.oracle.com (userp3020.oracle.com [156.151.31.79])
-        by aserp2120.oracle.com with ESMTP id 30s0tmeb3m-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Tue, 05 May 2020 18:08:34 +0000
-Received: from pps.filterd (userp3020.oracle.com [127.0.0.1])
-        by userp3020.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 045I6hQB144144;
-        Tue, 5 May 2020 18:08:33 GMT
-Received: from userv0122.oracle.com (userv0122.oracle.com [156.151.31.75])
-        by userp3020.oracle.com with ESMTP id 30sjk0889y-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Tue, 05 May 2020 18:08:33 +0000
-Received: from abhmp0008.oracle.com (abhmp0008.oracle.com [141.146.116.14])
-        by userv0122.oracle.com (8.14.4/8.14.4) with ESMTP id 045I8Wu6008707;
-        Tue, 5 May 2020 18:08:32 GMT
-Received: from kadam (/41.57.98.10)
-        by default (Oracle Beehive Gateway v4.0)
-        with ESMTP ; Tue, 05 May 2020 11:08:32 -0700
-Date:   Tue, 5 May 2020 21:08:25 +0300
-From:   Dan Carpenter <dan.carpenter@oracle.com>
-To:     Amir Goldstein <amir73il@gmail.com>
-Cc:     overlayfs <linux-unionfs@vger.kernel.org>
-Subject: Re: [bug report] ovl: make sure that real fid is 32bit aligned in
- memory
-Message-ID: <20200505180825.GG1992@kadam>
-References: <20200505135026.GA38935@mwanda>
- <CAOQ4uxj0F9V=FOUANKSATR2E==BoLr6OJMqsJe5QCbOLNR0k0A@mail.gmail.com>
+        Tue, 5 May 2020 14:15:14 -0400
+Received: from mail-il1-x144.google.com (mail-il1-x144.google.com [IPv6:2607:f8b0:4864:20::144])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DAA7DC061A0F;
+        Tue,  5 May 2020 11:15:13 -0700 (PDT)
+Received: by mail-il1-x144.google.com with SMTP id i16so3159232ils.12;
+        Tue, 05 May 2020 11:15:13 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=pjrvYcwwdk2nMIbGySYgWuQEXMvDJQT1UN96vH/RnKw=;
+        b=XhITRT+Hh4vUEeTCYO09LVIHNdx2OF1TzvxNtbUYtZxFC1P+CcRVvH+xGXtpqvdF1E
+         uSuWsj5WBTaAlJs9N7chEZxS4F8RnrKAfo81s/kPfgMq1OW7lmw6EsAETmUfy8gEfI49
+         Nn2zqAoG7gQtbaplWhnClA7orkbu5su+NGmk9O8/Ishpwwv5raCXx/qTrV5LgF7sLLK2
+         qXIGfSYPyV2rf+buoknRuxT6cvyrXO8JBQCBFn6UHavDOm438b0ElryMUILkJZnvVGzy
+         bPlmth+5lE3exw3ytvUT3bHtRIaGA5HUn5x1T+V31KOn0UX0fzballBnB8DqbXh85/lX
+         Fe7Q==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=pjrvYcwwdk2nMIbGySYgWuQEXMvDJQT1UN96vH/RnKw=;
+        b=dhw2p8/Nej5FFC8YAjgATUyjBBQJACTk5SsTKKxlyVsOYz7irIXKyu05ZI04ERx+Wp
+         /OW2Wv6ZDxZpCbKh44kjppsGT+XjK7tP3v5+17BjthYkU5zN81iJJVA+TNUDv7Bwv+w0
+         h06LYWA2CJu3Pk70g6lp1YJwJxQSTU7dEcHnYKCNbJeV4mUWqyp0cr50R631jis8dWmQ
+         +PXfq0lL+eHlUaQLBGrnKp/UW2Px77T61mTymb+yoglaDRVkiHY0fI02dGMu3lpf59Nk
+         fLlHLOECd8coTP06XjvKlyl4qXzqjW1+r2BiR2M3t5bOzlRc7A6HnhG653bFKeVisKRo
+         sSpw==
+X-Gm-Message-State: AGi0PuZ2UhCCPFBixKjjtR3OP51vmySMGUefFR75ExY3PVNxlb3PufYX
+        mvDv0lHlB2ngpJ89uku3yHC03pLKHyBHH7JIJn4=
+X-Google-Smtp-Source: APiQypKpA8DL01sxi2j5auTLr+H5DquoW52m9k2HY/ykqs6biJdSifAMjKX+BDWcmz6gkdBLczbBEpQ2b+VThuZ5gF0=
+X-Received: by 2002:a92:9e11:: with SMTP id q17mr5106885ili.137.1588702513314;
+ Tue, 05 May 2020 11:15:13 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAOQ4uxj0F9V=FOUANKSATR2E==BoLr6OJMqsJe5QCbOLNR0k0A@mail.gmail.com>
-User-Agent: Mutt/1.9.4 (2018-02-28)
-X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9612 signatures=668687
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 suspectscore=0 mlxscore=0 phishscore=0
- bulkscore=0 malwarescore=0 spamscore=0 mlxlogscore=858 adultscore=0
- classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2003020000
- definitions=main-2005050138
-X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9612 signatures=668687
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 malwarescore=0 mlxscore=0
- priorityscore=1501 lowpriorityscore=0 spamscore=0 suspectscore=0
- phishscore=0 clxscore=1015 bulkscore=0 mlxlogscore=910 adultscore=0
- impostorscore=0 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.12.0-2003020000 definitions=main-2005050138
+References: <CAOQ4uxj0F9V=FOUANKSATR2E==BoLr6OJMqsJe5QCbOLNR0k0A@mail.gmail.com>
+ <20200505180734.GA47680@mwanda>
+In-Reply-To: <20200505180734.GA47680@mwanda>
+From:   Amir Goldstein <amir73il@gmail.com>
+Date:   Tue, 5 May 2020 21:15:02 +0300
+Message-ID: <CAOQ4uxhOi0H4ecJOc6emFc+bUhepscHF8qHywJQUzr-46H3+yw@mail.gmail.com>
+Subject: Re: [PATCH] ovl: potential crash in ovl_fid_to_fh()
+To:     Dan Carpenter <dan.carpenter@oracle.com>
+Cc:     Miklos Szeredi <miklos@szeredi.hu>,
+        overlayfs <linux-unionfs@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-unionfs-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Tue, May 05, 2020 at 07:13:20PM +0300, Amir Goldstein wrote:
-> > The patch cbe7fba8edfc: "ovl: make sure that real fid is 32bit
-> > aligned in memory" from Nov 15, 2019, leads to the following static
-> > checker warning:
-> >
-> >         fs/overlayfs/export.c:791 ovl_fid_to_fh()
-> >         warn: check that subtract can't underflow
-> >
-> > fs/overlayfs/export.c
-> >    775  static struct ovl_fh *ovl_fid_to_fh(struct fid *fid, int buflen, int fh_type)
-> >    776  {
-> >    777          struct ovl_fh *fh;
-> >    778
-> >    779          /* If on-wire inner fid is aligned - nothing to do */
-> >    780          if (fh_type == OVL_FILEID_V1)
-> >    781                  return (struct ovl_fh *)fid;
-> >    782
-> >    783          if (fh_type != OVL_FILEID_V0)
-> >    784                  return ERR_PTR(-EINVAL);
-> >    785
-> >    786          fh = kzalloc(buflen, GFP_KERNEL);
-> 
-> Doesn't Smatch warn on possible kmalloc(0)?
-> That can't be good. Right?
+On Tue, May 5, 2020 at 9:07 PM Dan Carpenter <dan.carpenter@oracle.com> wrote:
+>
+> The "buflen" value comes from the user and there is a potential that it
+> could be zero.  In do_handle_to_path() we know that "handle->handle_bytes"
+> is non-zero and we do:
+>
+>         handle_dwords = handle->handle_bytes >> 2;
+>
+> So values 1-3 become zero.  Then in ovl_fh_to_dentry() we do:
+>
+>         int len = fh_len << 2;
+>
+> So now len is in the "0,4-128" range and a multiple of 4.  But if
+> "buflen" is zero it will try to copy negative bytes when we do the
+> memcpy in ovl_fid_to_fh().
+>
+>         memcpy(&fh->fb, fid, buflen - OVL_FH_WIRE_OFFSET);
+>
+> And that will lead to a crash.  Thanks to Amir Goldstein for his help
+> with this patch.
+>
+> Fixes: cbe7fba8edfc: ("ovl: make sure that real fid is 32bit aligned in memory")
+> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+> ---
+>  fs/overlayfs/export.c | 3 +++
+>  1 file changed, 3 insertions(+)
+>
+> diff --git a/fs/overlayfs/export.c b/fs/overlayfs/export.c
+> index 475c61f53f0fe..0e58213ace6d7 100644
+> --- a/fs/overlayfs/export.c
+> +++ b/fs/overlayfs/export.c
+> @@ -776,6 +776,9 @@ static struct ovl_fh *ovl_fid_to_fh(struct fid *fid, int buflen, int fh_type)
+>  {
+>         struct ovl_fh *fh;
+>
+> +       if (buflen <= OVL_FH_WIRE_OFFSET)
+> +               return ERR_PTR(-EINVAL);
+> +
 
-No, no.  Allocating zero bytes is a useful feature.
+Sorry, I should have been more specific.
+This check belongs after fh_type != OVL_FILEID_V0
+because it is only relevant for OVL_FILEID_V0.
+For OVL_FILEID_V1 len properly checked by ovl_check_fh_len().
 
-	size = 0;
-	buf = kzalloc(size, GFP_KERNEL);
+Otherwise feel free to add:
+Reviewed-by: Amir Goldstein <amir73il@gmail.com>
 
-	for (i = 0; i < size; i++)
-		buf[i] = 42;
-	memcpy(dest, buf, size);
-	copy_to_user(p, dest, size);
 
-That all works.  Neat, huh?
-
-regards,
-dan carpenter
-
+Thanks,
+Amir.
