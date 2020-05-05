@@ -2,383 +2,159 @@ Return-Path: <SRS0=h8cR=6T=vger.kernel.org=linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.8 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,UNPARSEABLE_RELAY,
-	URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 49A58C47257
-	for <linux-unionfs@archiver.kernel.org>; Tue,  5 May 2020 16:01:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 47EA1C47257
+	for <linux-unionfs@archiver.kernel.org>; Tue,  5 May 2020 16:13:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 27C5A2078D
-	for <linux-unionfs@archiver.kernel.org>; Tue,  5 May 2020 16:01:49 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1970F206A4
+	for <linux-unionfs@archiver.kernel.org>; Tue,  5 May 2020 16:13:35 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="lOvtfB/P"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Dl5hTdM1"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729690AbgEEQBs (ORCPT
+        id S1730503AbgEEQNd (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Tue, 5 May 2020 12:01:48 -0400
-Received: from userp2130.oracle.com ([156.151.31.86]:36034 "EHLO
-        userp2130.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729665AbgEEQBr (ORCPT
+        Tue, 5 May 2020 12:13:33 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39482 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1730452AbgEEQNc (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 5 May 2020 12:01:47 -0400
-Received: from pps.filterd (userp2130.oracle.com [127.0.0.1])
-        by userp2130.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 045FlpuP008293;
-        Tue, 5 May 2020 16:01:34 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=date : from : to : cc
- : subject : message-id : references : mime-version : content-type :
- in-reply-to; s=corp-2020-01-29;
- bh=0tlpm3IBUrU5ZsArKoHsDuWFIGa9B3dvuiVDWjCrY+Y=;
- b=lOvtfB/PWnyxd4y/wMBUFUPCx6fFTD5KLU7FSespdQsCRyJVz8wy7iWKTHH/fwGDDr9g
- NlqKO+/kKONGdqf0ph+/OSys8hxoBLKo7N92E+zYinR9ibykpYaY2jFNMeiPeyLLyFvF
- Y7obsPJWIuUZMaH6Wk29QVzUIi5DMIprwqsNy6JqUnYZTwQxCWloVVjYjY4VHWPb+2t+
- 7ZPel0Lt3E6NRDUPeNgg0vgYgAMtFlAcrwGeF+4AhSP+3+HLu00t5VvCscy4iE0pIq+T
- q8fBz+N5wy5RjM2c5BhCKjQSxUE0XR7umPcTH0yVIlv/PMUcf4/ud4Vqvjx4iM55NlJ9 /w== 
-Received: from aserp3020.oracle.com (aserp3020.oracle.com [141.146.126.70])
-        by userp2130.oracle.com with ESMTP id 30s09r5pga-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Tue, 05 May 2020 16:01:32 +0000
-Received: from pps.filterd (aserp3020.oracle.com [127.0.0.1])
-        by aserp3020.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 045G1PUu018800;
-        Tue, 5 May 2020 16:01:32 GMT
-Received: from aserv0121.oracle.com (aserv0121.oracle.com [141.146.126.235])
-        by aserp3020.oracle.com with ESMTP id 30sjnexp4g-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Tue, 05 May 2020 16:01:32 +0000
-Received: from abhmp0013.oracle.com (abhmp0013.oracle.com [141.146.116.19])
-        by aserv0121.oracle.com (8.14.4/8.13.8) with ESMTP id 045G1JHZ011819;
-        Tue, 5 May 2020 16:01:19 GMT
-Received: from localhost (/67.169.218.210)
-        by default (Oracle Beehive Gateway v4.0)
-        with ESMTP ; Tue, 05 May 2020 09:01:18 -0700
-Date:   Tue, 5 May 2020 09:01:17 -0700
-From:   "Darrick J. Wong" <darrick.wong@oracle.com>
-To:     Christoph Hellwig <hch@lst.de>
-Cc:     linux-ext4@vger.kernel.org, viro@zeniv.linux.org.uk, jack@suse.cz,
-        tytso@mit.edu, adilger@dilger.ca, riteshh@linux.ibm.com,
-        amir73il@gmail.com, linux-fsdevel@vger.kernel.org,
-        linux-unionfs@vger.kernel.org
-Subject: Re: [PATCH 08/11] fs: move fiemap range validation into the file
- systems instances
-Message-ID: <20200505160117.GA5694@magnolia>
-References: <20200505154324.3226743-1-hch@lst.de>
- <20200505154324.3226743-9-hch@lst.de>
+        Tue, 5 May 2020 12:13:32 -0400
+Received: from mail-il1-x142.google.com (mail-il1-x142.google.com [IPv6:2607:f8b0:4864:20::142])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C1803C061A10
+        for <linux-unionfs@vger.kernel.org>; Tue,  5 May 2020 09:13:32 -0700 (PDT)
+Received: by mail-il1-x142.google.com with SMTP id w6so1022706ilg.1
+        for <linux-unionfs@vger.kernel.org>; Tue, 05 May 2020 09:13:32 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=vn7jLwEt6eVi+HCG+zYGkHWm4bgZCNnQhRFA7NhbgCY=;
+        b=Dl5hTdM1qUikT2a9UnHGb3rKsAFNbHPV3krRpWC5bYH0oujyj8kq8zjbACS6gf0KyY
+         +8w8r/iKD2/xS0hENqtgOHRDjhnYvkKMsvfdankM/fpJIEnG9QC3zNNiGBFv8cl18Tat
+         oCbfRsTBXsqtQ5axBRMiYxk9+L8YX3lQTllPR8KFB1g3TogfkoXJsg+yBXKCMYA/oT8y
+         W2LDFYZaJwTYVAVt7cFjJ373wiMPhWSQGnKQBhukDy38Ag1GAxvlsRQ2OSLWJN/8kuzi
+         uqPeH5U+1tD5EXsANnz4igM8fssjHaNldt1No4C+rpEXtU/i1xZMmYEG48bJTJHRe/sn
+         /7WQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=vn7jLwEt6eVi+HCG+zYGkHWm4bgZCNnQhRFA7NhbgCY=;
+        b=jiVRZWP3BAfV/y1yYf3NBdMHwjh2mELDBuaLOZM+tgz3Toa1kQCrOlNb8h6/Vjfl7u
+         xGpjELgcQNi49CWqjtTe2YpnIjEgKwBD7+fPgUeLP3OMxkTIUFJR1WlET6UWbwHa0BdP
+         TNgu+qlMtuF4SHmQJcYGCT3Xd+Pler204jouqRth7OFp9kgg0TTupcjlqhM/n37Aie3j
+         6Ho1CxeLlcPzD93APcnv2FU1YQEsnmivFZsz8vZLbc2FwcfHZ/nw3eaOP6aWepHnH4Hl
+         tbO1ZPwPmuBnNTQGDUzH1CGfVSqvSzgjdMGqUZRCx58XBziyepEmVt8OTo3W5zUKL1AG
+         uSNA==
+X-Gm-Message-State: AGi0PuaAb0hT0hJl5p+pYBDctEqNgfJ1wM2aRrlBUnR1tbTy59B7ac0+
+        ihzu1HHCxxy5vtFWwrO+lHAiN98D7O+owjYpCD4=
+X-Google-Smtp-Source: APiQypIH201NOWb4iZswKbF64zdx+iKI1y79IiXp65JtEHzLb2dSF3/3LvCB0SI4Nt/nn0OgqnXtSPbzZCzd5S4PbHU=
+X-Received: by 2002:a92:9e11:: with SMTP id q17mr4535609ili.137.1588695211842;
+ Tue, 05 May 2020 09:13:31 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20200505154324.3226743-9-hch@lst.de>
-X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9612 signatures=668687
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 mlxscore=0 adultscore=0 phishscore=0
- mlxlogscore=999 bulkscore=0 malwarescore=0 spamscore=0 suspectscore=2
- classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2003020000
- definitions=main-2005050126
-X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9612 signatures=668687
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 bulkscore=0 mlxscore=0
- lowpriorityscore=0 spamscore=0 adultscore=0 clxscore=1015 suspectscore=2
- priorityscore=1501 malwarescore=0 mlxlogscore=999 phishscore=0
- impostorscore=0 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.12.0-2003020000 definitions=main-2005050125
+References: <20200505135026.GA38935@mwanda>
+In-Reply-To: <20200505135026.GA38935@mwanda>
+From:   Amir Goldstein <amir73il@gmail.com>
+Date:   Tue, 5 May 2020 19:13:20 +0300
+Message-ID: <CAOQ4uxj0F9V=FOUANKSATR2E==BoLr6OJMqsJe5QCbOLNR0k0A@mail.gmail.com>
+Subject: Re: [bug report] ovl: make sure that real fid is 32bit aligned in memory
+To:     Dan Carpenter <dan.carpenter@oracle.com>
+Cc:     overlayfs <linux-unionfs@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-unionfs-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Tue, May 05, 2020 at 05:43:21PM +0200, Christoph Hellwig wrote:
-> Replace fiemap_check_flags with a fiemap_prep helper that also takes the
-> inode and mapped range, and performs the sanity check and truncation
-> previously done in fiemap_check_range.  This way the validation is inside
-> the file system itself and thus properly works for the stacked overlayfs
-> case as well.
-> 
-> Signed-off-by: Christoph Hellwig <hch@lst.de>
-> Reviewed-by: Amir Goldstein <amir73il@gmail.com>
-> ---
->  Documentation/filesystems/fiemap.txt | 12 +++---
->  fs/btrfs/inode.c                     |  2 +-
->  fs/cifs/smb2ops.c                    |  6 ++-
->  fs/ext4/extents.c                    |  5 ++-
->  fs/f2fs/data.c                       |  3 +-
->  fs/ioctl.c                           | 63 +++++++++++-----------------
->  fs/iomap/fiemap.c                    |  2 +-
->  fs/nilfs2/inode.c                    |  2 +-
->  fs/ocfs2/extent_map.c                |  3 +-
->  include/linux/fiemap.h               |  3 +-
->  10 files changed, 47 insertions(+), 54 deletions(-)
-> 
-> diff --git a/Documentation/filesystems/fiemap.txt b/Documentation/filesystems/fiemap.txt
-> index ac87e6fda842b..35c8571eccb6e 100644
-> --- a/Documentation/filesystems/fiemap.txt
-> +++ b/Documentation/filesystems/fiemap.txt
-> @@ -203,16 +203,18 @@ EINTR once fatal signal received.
->  
->  
->  Flag checking should be done at the beginning of the ->fiemap callback via the
-> -fiemap_check_flags() helper:
-> +fiemap_prep() helper:
->  
-> -int fiemap_check_flags(struct fiemap_extent_info *fieinfo, u32 fs_flags);
-> +int fiemap_prep(struct inode *inode, struct fiemap_extent_info *fieinfo,
-> +		u64 start, u64 *len, u32 supported_flags);
->  
->  The struct fieinfo should be passed in as received from ioctl_fiemap(). The
->  set of fiemap flags which the fs understands should be passed via fs_flags. If
-> -fiemap_check_flags finds invalid user flags, it will place the bad values in
-> +fiemap_prep finds invalid user flags, it will place the bad values in
->  fieinfo->fi_flags and return -EBADR. If the file system gets -EBADR, from
-> -fiemap_check_flags(), it should immediately exit, returning that error back to
-> -ioctl_fiemap().
-> +fiemap_prep(), it should immediately exit, returning that error back to
-> +ioctl_fiemap().  Additionally the range is validate against the supported
-> +maximum file size.
->  
->  
->  For each extent in the request range, the file system should call
+On Tue, May 5, 2020 at 4:50 PM Dan Carpenter <dan.carpenter@oracle.com> wrote:
+>
+> Hello Amir Goldstein,
 
-/me wonders why all this stuff doesn't get moved to the fiemap.h files,
-but maybe my inability to remember to check Documentation/ for code
-declarations is unique. :P
+Hi Dan,
 
-Anyway, that's a matter for some other patch, so:
+>
+> The patch cbe7fba8edfc: "ovl: make sure that real fid is 32bit
+> aligned in memory" from Nov 15, 2019, leads to the following static
+> checker warning:
+>
+>         fs/overlayfs/export.c:791 ovl_fid_to_fh()
+>         warn: check that subtract can't underflow
+>
+> fs/overlayfs/export.c
+>    775  static struct ovl_fh *ovl_fid_to_fh(struct fid *fid, int buflen, int fh_type)
+>    776  {
+>    777          struct ovl_fh *fh;
+>    778
+>    779          /* If on-wire inner fid is aligned - nothing to do */
+>    780          if (fh_type == OVL_FILEID_V1)
+>    781                  return (struct ovl_fh *)fid;
+>    782
+>    783          if (fh_type != OVL_FILEID_V0)
+>    784                  return ERR_PTR(-EINVAL);
+>    785
+>    786          fh = kzalloc(buflen, GFP_KERNEL);
 
-Reviewed-by: Darrick J. Wong <darrick.wong@oracle.com>
+Doesn't Smatch warn on possible kmalloc(0)?
+That can't be good. Right?
 
---D
+>    787          if (!fh)
+>    788                  return ERR_PTR(-ENOMEM);
+>    789
+>    790          /* Copy unaligned inner fh into aligned buffer */
+>    791          memcpy(&fh->fb, fid, buflen - OVL_FH_WIRE_OFFSET);
+>                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+>
+>    792          return fh;
+>    793  }
+>
+> Samtch thinks buflen can be "0,4-128".  OVL_FH_WIRE_OFFSET is 3. The
+> problem is that 0 - 3 is a negative and the memcpy() will crash.
+>
+> In do_handle_to_path() we do:
+>
+>         handle_dwords = handle->handle_bytes >> 2;
+>
+> Handle ->handle_bytes is non-zero but when it's >> 2 then it can become
+> zero.  It's a round down.  In ovl_fh_to_dentry() we do:
+>
+>         int len = fh_len << 2;
+>
+> If we rounded down to zero then "len" is still zero.
 
-> diff --git a/fs/btrfs/inode.c b/fs/btrfs/inode.c
-> index 320d1062068d3..1f1ec361089b3 100644
-> --- a/fs/btrfs/inode.c
-> +++ b/fs/btrfs/inode.c
-> @@ -8250,7 +8250,7 @@ static int btrfs_fiemap(struct inode *inode, struct fiemap_extent_info *fieinfo,
->  {
->  	int	ret;
->  
-> -	ret = fiemap_check_flags(fieinfo, BTRFS_FIEMAP_FLAGS);
-> +	ret = fiemap_prep(inode, fieinfo, start, &len, BTRFS_FIEMAP_FLAGS);
->  	if (ret)
->  		return ret;
->  
-> diff --git a/fs/cifs/smb2ops.c b/fs/cifs/smb2ops.c
-> index 09047f1ddfb66..828e53e795c6d 100644
-> --- a/fs/cifs/smb2ops.c
-> +++ b/fs/cifs/smb2ops.c
-> @@ -3408,8 +3408,10 @@ static int smb3_fiemap(struct cifs_tcon *tcon,
->  	int i, num, rc, flags, last_blob;
->  	u64 next;
->  
-> -	if (fiemap_check_flags(fei, FIEMAP_FLAG_SYNC))
-> -		return -EBADR;
-> +	rc = fiemap_prep(d_inode(cfile->dentry), fei, start, &len,
-> +			FIEMAP_FLAG_SYNC);
-> +	if (rc)
-> +		return rc;
->  
->  	xid = get_xid();
->   again:
-> diff --git a/fs/ext4/extents.c b/fs/ext4/extents.c
-> index a41ae7c510170..41f73dea92cac 100644
-> --- a/fs/ext4/extents.c
-> +++ b/fs/ext4/extents.c
-> @@ -4908,8 +4908,9 @@ int ext4_get_es_cache(struct inode *inode, struct fiemap_extent_info *fieinfo,
->  		fieinfo->fi_flags &= ~FIEMAP_FLAG_CACHE;
->  	}
->  
-> -	if (fiemap_check_flags(fieinfo, FIEMAP_FLAG_SYNC))
-> -		return -EBADR;
-> +	error = fiemap_prep(inode, fieinfo, start, &len, FIEMAP_FLAG_SYNC);
-> +	if (error)
-> +		return error;
->  
->  	error = ext4_fiemap_check_ranges(inode, start, &len);
->  	if (error)
-> diff --git a/fs/f2fs/data.c b/fs/f2fs/data.c
-> index 25abbbb65ba09..03faafc591b17 100644
-> --- a/fs/f2fs/data.c
-> +++ b/fs/f2fs/data.c
-> @@ -1825,7 +1825,8 @@ int f2fs_fiemap(struct inode *inode, struct fiemap_extent_info *fieinfo,
->  			return ret;
->  	}
->  
-> -	ret = fiemap_check_flags(fieinfo, FIEMAP_FLAG_SYNC | FIEMAP_FLAG_XATTR);
-> +	ret = fiemap_prep(inode, fieinfo, start, &len,
-> +			FIEMAP_FLAG_SYNC | FIEMAP_FLAG_XATTR);
->  	if (ret)
->  		return ret;
->  
-> diff --git a/fs/ioctl.c b/fs/ioctl.c
-> index 3f300cc07dee4..56bbf02209aef 100644
-> --- a/fs/ioctl.c
-> +++ b/fs/ioctl.c
-> @@ -149,61 +149,50 @@ int fiemap_fill_next_extent(struct fiemap_extent_info *fieinfo, u64 logical,
->  EXPORT_SYMBOL(fiemap_fill_next_extent);
->  
->  /**
-> - * fiemap_check_flags - check validity of requested flags for fiemap
-> + * fiemap_prep - check validity of requested flags for fiemap
-> + * @inode:	Inode to operate on
->   * @fieinfo:	Fiemap context passed into ->fiemap
-> - * @fs_flags:	Set of fiemap flags that the file system understands
-> + * @start:	Start of the mapped range
-> + * @len:	Length of the mapped range, can be truncated by this function.
-> + * @supported_flags:	Set of fiemap flags that the file system understands
->   *
-> - * Called from file system ->fiemap callback. This will compute the
-> - * intersection of valid fiemap flags and those that the fs supports. That
-> - * value is then compared against the user supplied flags. In case of bad user
-> - * flags, the invalid values will be written into the fieinfo structure, and
-> - * -EBADR is returned, which tells ioctl_fiemap() to return those values to
-> - * userspace. For this reason, a return code of -EBADR should be preserved.
-> + * This function must be called from each ->fiemap instance to validate the
-> + * fiemap request against the file system parameters.
->   *
-> - * Returns 0 on success, -EBADR on bad flags.
-> + * Returns 0 on success, or a negative error on failure.
->   */
-> -int fiemap_check_flags(struct fiemap_extent_info *fieinfo, u32 fs_flags)
-> +int fiemap_prep(struct inode *inode, struct fiemap_extent_info *fieinfo,
-> +		u64 start, u64 *len, u32 supported_flags)
->  {
-> +	u64 maxbytes = inode->i_sb->s_maxbytes;
->  	u32 incompat_flags;
->  
-> -	incompat_flags = fieinfo->fi_flags & ~(FIEMAP_FLAGS_COMPAT & fs_flags);
-> -	if (incompat_flags) {
-> -		fieinfo->fi_flags = incompat_flags;
-> -		return -EBADR;
-> -	}
-> -	return 0;
-> -}
-> -EXPORT_SYMBOL(fiemap_check_flags);
-> -
-> -static int fiemap_check_ranges(struct super_block *sb,
-> -			       u64 start, u64 len, u64 *new_len)
-> -{
-> -	u64 maxbytes = (u64) sb->s_maxbytes;
-> -
-> -	*new_len = len;
-> -
-> -	if (len == 0)
-> +	if (*len == 0)
->  		return -EINVAL;
-> -
->  	if (start > maxbytes)
->  		return -EFBIG;
->  
->  	/*
->  	 * Shrink request scope to what the fs can actually handle.
->  	 */
-> -	if (len > maxbytes || (maxbytes - len) < start)
-> -		*new_len = maxbytes - start;
-> +	if (*len > maxbytes || (maxbytes - *len) < start)
-> +		*len = maxbytes - start;
->  
-> +	supported_flags &= FIEMAP_FLAGS_COMPAT;
-> +	incompat_flags = fieinfo->fi_flags & ~supported_flags;
-> +	if (incompat_flags) {
-> +		fieinfo->fi_flags = incompat_flags;
-> +		return -EBADR;
-> +	}
->  	return 0;
->  }
-> +EXPORT_SYMBOL(fiemap_prep);
->  
->  static int ioctl_fiemap(struct file *filp, struct fiemap __user *ufiemap)
->  {
->  	struct fiemap fiemap;
->  	struct fiemap_extent_info fieinfo = { 0, };
->  	struct inode *inode = file_inode(filp);
-> -	struct super_block *sb = inode->i_sb;
-> -	u64 len;
->  	int error;
->  
->  	if (!inode->i_op->fiemap)
-> @@ -215,11 +204,6 @@ static int ioctl_fiemap(struct file *filp, struct fiemap __user *ufiemap)
->  	if (fiemap.fm_extent_count > FIEMAP_MAX_EXTENTS)
->  		return -EINVAL;
->  
-> -	error = fiemap_check_ranges(sb, fiemap.fm_start, fiemap.fm_length,
-> -				    &len);
-> -	if (error)
-> -		return error;
-> -
->  	fieinfo.fi_flags = fiemap.fm_flags;
->  	fieinfo.fi_extents_max = fiemap.fm_extent_count;
->  	fieinfo.fi_extents_start = ufiemap->fm_extents;
-> @@ -232,7 +216,8 @@ static int ioctl_fiemap(struct file *filp, struct fiemap __user *ufiemap)
->  	if (fieinfo.fi_flags & FIEMAP_FLAG_SYNC)
->  		filemap_write_and_wait(inode->i_mapping);
->  
-> -	error = inode->i_op->fiemap(inode, &fieinfo, fiemap.fm_start, len);
-> +	error = inode->i_op->fiemap(inode, &fieinfo, fiemap.fm_start,
-> +			fiemap.fm_length);
->  	fiemap.fm_flags = fieinfo.fi_flags;
->  	fiemap.fm_mapped_extents = fieinfo.fi_extents_mapped;
->  	if (copy_to_user(ufiemap, &fiemap, sizeof(fiemap)))
-> @@ -320,7 +305,7 @@ static int __generic_block_fiemap(struct inode *inode,
->  	bool past_eof = false, whole_file = false;
->  	int ret = 0;
->  
-> -	ret = fiemap_check_flags(fieinfo, FIEMAP_FLAG_SYNC);
-> +	ret = fiemap_prep(inode, fieinfo, start, &len, FIEMAP_FLAG_SYNC);
->  	if (ret)
->  		return ret;
->  
-> diff --git a/fs/iomap/fiemap.c b/fs/iomap/fiemap.c
-> index 449705575acf9..89dca4a97e4a2 100644
-> --- a/fs/iomap/fiemap.c
-> +++ b/fs/iomap/fiemap.c
-> @@ -75,7 +75,7 @@ int iomap_fiemap(struct inode *inode, struct fiemap_extent_info *fi,
->  	ctx.fi = fi;
->  	ctx.prev.type = IOMAP_HOLE;
->  
-> -	ret = fiemap_check_flags(fi, FIEMAP_FLAG_SYNC);
-> +	ret = fiemap_prep(inode, fi, start, &len, FIEMAP_FLAG_SYNC);
->  	if (ret)
->  		return ret;
->  
-> diff --git a/fs/nilfs2/inode.c b/fs/nilfs2/inode.c
-> index 6e1aca38931f3..052c2da11e4d7 100644
-> --- a/fs/nilfs2/inode.c
-> +++ b/fs/nilfs2/inode.c
-> @@ -1006,7 +1006,7 @@ int nilfs_fiemap(struct inode *inode, struct fiemap_extent_info *fieinfo,
->  	unsigned int blkbits = inode->i_blkbits;
->  	int ret, n;
->  
-> -	ret = fiemap_check_flags(fieinfo, FIEMAP_FLAG_SYNC);
-> +	ret = fiemap_prep(inode, fieinfo, start, &len, FIEMAP_FLAG_SYNC);
->  	if (ret)
->  		return ret;
->  
-> diff --git a/fs/ocfs2/extent_map.c b/fs/ocfs2/extent_map.c
-> index e3e2d1b2af51a..3744179b73fa1 100644
-> --- a/fs/ocfs2/extent_map.c
-> +++ b/fs/ocfs2/extent_map.c
-> @@ -746,7 +746,8 @@ int ocfs2_fiemap(struct inode *inode, struct fiemap_extent_info *fieinfo,
->  	struct buffer_head *di_bh = NULL;
->  	struct ocfs2_extent_rec rec;
->  
-> -	ret = fiemap_check_flags(fieinfo, OCFS2_FIEMAP_FLAGS);
-> +	ret = fiemap_prep(inode, fieinfo, map_start, &map_len,
-> +			OCFS2_FIEMAP_FLAGS);
->  	if (ret)
->  		return ret;
->  
-> diff --git a/include/linux/fiemap.h b/include/linux/fiemap.h
-> index 240d4f7d9116a..4e624c4665837 100644
-> --- a/include/linux/fiemap.h
-> +++ b/include/linux/fiemap.h
-> @@ -13,9 +13,10 @@ struct fiemap_extent_info {
->  							fiemap_extent array */
->  };
->  
-> +int fiemap_prep(struct inode *inode, struct fiemap_extent_info *fieinfo,
-> +		u64 start, u64 *len, u32 supported_flags);
->  int fiemap_fill_next_extent(struct fiemap_extent_info *info, u64 logical,
->  			    u64 phys, u64 len, u32 flags);
-> -int fiemap_check_flags(struct fiemap_extent_info *fieinfo, u32 fs_flags);
->  
->  int generic_block_fiemap(struct inode *inode,
->  		struct fiemap_extent_info *fieinfo, u64 start, u64 len,
-> -- 
-> 2.26.2
-> 
+I agree with your analysis.
+The reproducer should be trivial because there are no sanotify
+checks prior to buggy code except for fh_type != OVL_FILEID_V0.
+
+> Obviously one fix
+> would be to add a check in ovl_fid_to_fh().
+>
+>         if (buflen < sizeof(*fh))
+>                 return ERR_PTR(-EINVAL);
+
+Correct fix IMO in the context of ovl_fid_to_fh() should be:
+
+if (buflen <= OVL_FH_WIRE_OFFSET)
+                 return ERR_PTR(-EINVAL);
+
+Just to avoid the crash.
+
+>
+> But that feels like papering over the bug.
+>
+
+It won't be papering over, because of the check:
+        err = ovl_check_fh_len(fh, len);
+
+This was the check before the offending commit that was responsible
+for sanity checking the value of len, but the commit slipped in this
+code before the sanity check.
+
+I assume you will be sending the patch.
+I will put writing a test on my TODO.
+
+Thanks,
+Amir.
