@@ -1,124 +1,206 @@
-Return-Path: <SRS0=CIw7=6W=vger.kernel.org=linux-unionfs-owner@kernel.org>
+Return-Path: <SRS0=/s4Q=6Y=vger.kernel.org=linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-11.8 required=3.0
+	tests=HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,UNPARSEABLE_RELAY
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5045AC38A2A
-	for <linux-unionfs@archiver.kernel.org>; Fri,  8 May 2020 18:39:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1510FC38A2A
+	for <linux-unionfs@archiver.kernel.org>; Sun, 10 May 2020 15:50:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2D03B2173E
-	for <linux-unionfs@archiver.kernel.org>; Fri,  8 May 2020 18:39:33 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="HL4hamnf"
+	by mail.kernel.org (Postfix) with ESMTP id EE3F820735
+	for <linux-unionfs@archiver.kernel.org>; Sun, 10 May 2020 15:50:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726863AbgEHSjc (ORCPT
+        id S1728146AbgEJPuq (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Fri, 8 May 2020 14:39:32 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58958 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-FAIL-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1726817AbgEHSjc (ORCPT
+        Sun, 10 May 2020 11:50:46 -0400
+Received: from out20-110.mail.aliyun.com ([115.124.20.110]:55865 "EHLO
+        out20-110.mail.aliyun.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726104AbgEJPuq (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 8 May 2020 14:39:32 -0400
-Received: from mail-io1-xd43.google.com (mail-io1-xd43.google.com [IPv6:2607:f8b0:4864:20::d43])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5B2A6C061A0C
-        for <linux-unionfs@vger.kernel.org>; Fri,  8 May 2020 11:39:32 -0700 (PDT)
-Received: by mail-io1-xd43.google.com with SMTP id e9so2775296iok.9
-        for <linux-unionfs@vger.kernel.org>; Fri, 08 May 2020 11:39:32 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=3dVCshaUoREnw1jac6/ER986Y6yLBZQ44xY5IPATBbI=;
-        b=HL4hamnfJ0qA+8WgonWFf2CsfLbLBn26AwbpVwbW/YSlsX3VdKVqgfMOQ+kOuOhWiJ
-         3qnBpjWJkX0OoT510PxV6XmXDL0dHYoGv5wE0kTWpmE0PzqkGXVvMisSAuNjLgEDYcp3
-         M7t84sC0lEkSFykv/ogbkINcF4F43zMbgFPiJF/aPznkWX/rAIZlvQDrCMO5Wpma0AAL
-         EX8xmEa/9X33fpmmQgWisH5wRC/2jDvgFEDbflR6WB6nViVycM668/88w5UrVOG1nD7L
-         8njsZYaOT3voqep+hBUUyV0ZDEsHOfRQ5VITniy5gwY8usgmHUaZ8OsbIcgctLtfEErx
-         b6yw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=3dVCshaUoREnw1jac6/ER986Y6yLBZQ44xY5IPATBbI=;
-        b=ZectJsIFiN6DGAXsI5OG0QyXy41fLf1neTbVq0JRaMHSkBQPP4gtTarkIJ/HC/9e/1
-         YXTJAbQ7KOqg105bRaTNHtIXRgMa9IXZ7ENWRtRMCMbTSFaS449QGgJ1gdvJtmI257z4
-         Zhi1FsMXDf/TMt2RyLd7LRFX3T5B7eUV4JNo/a4UDSpuENeUVl6xw36kULqlt6BpP/t6
-         jcTkyBrAAcAhiThvaOYWd5tbQXl6CU70uwxYEEMsl/wawCmXU5kLguKTDrOpLI7n/Yv9
-         ikZch6PaB3EXsWxSUJoav6zHUmsKNXL7xrsrcC0JzUPzr6DnqYNvD2P/6Wkcn38PJqKq
-         6cPA==
-X-Gm-Message-State: AGi0Pua+TX5xVX++jiEMlLVl4/HLqB63zJI6bfzK5m8lBQAefbJsKv09
-        LTYUwqZTbGS1So91KnCpxBi76RIkfxJ2hEbQFSDJcq77
-X-Google-Smtp-Source: APiQypL3RruJLjzRQr8t+4OSjpU5zjOW+E/ItGSrpH25dpAraspRTV9YLMSk9yMi3JQv39TJRcb68msgYqkMbaX2V4A=
-X-Received: by 2002:a02:4b03:: with SMTP id q3mr3943504jaa.30.1588963171699;
- Fri, 08 May 2020 11:39:31 -0700 (PDT)
-MIME-Version: 1.0
-References: <20200507011900.23523-1-cgxu519@mykernel.net>
-In-Reply-To: <20200507011900.23523-1-cgxu519@mykernel.net>
-From:   Amir Goldstein <amir73il@gmail.com>
-Date:   Fri, 8 May 2020 21:39:20 +0300
-Message-ID: <CAOQ4uxjuh6uiAsqTDqGyqAOQ7pRjeDShbdpV44M2cT4kL=rCDw@mail.gmail.com>
-Subject: Re: [RFC PATCH] ovl: suppress negative dentry in lookup
+        Sun, 10 May 2020 11:50:46 -0400
+X-Alimail-AntiSpam: AC=CONTINUE;BC=0.07439546|-1;CH=green;DM=|CONTINUE|false|;DS=CONTINUE|ham_system_inform|0.0153519-0.000446275-0.984202;FP=0|0|0|0|0|-1|-1|-1;HT=e02c03293;MF=guan@eryu.me;NM=1;PH=DS;RN=5;RT=5;SR=0;TI=SMTPD_---.HWNOXHt_1589125838;
+Received: from localhost(mailfrom:guan@eryu.me fp:SMTPD_---.HWNOXHt_1589125838)
+          by smtp.aliyun-inc.com(10.147.42.135);
+          Sun, 10 May 2020 23:50:38 +0800
+Date:   Sun, 10 May 2020 23:50:37 +0800
+From:   Eryu Guan <guan@eryu.me>
 To:     Chengguang Xu <cgxu519@mykernel.net>
-Cc:     Miklos Szeredi <miklos@szeredi.hu>,
-        overlayfs <linux-unionfs@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Cc:     miklos@szeredi.hu, amir73il@gmail.com, fstests@vger.kernel.org,
+        linux-unionfs@vger.kernel.org
+Subject: Re: [PATCH v4] overlay: test for whiteout inode sharing
+Message-ID: <20200510155037.GB9345@desktop>
+References: <20200506101528.27359-1-cgxu519@mykernel.net>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20200506101528.27359-1-cgxu519@mykernel.net>
 Sender: linux-unionfs-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Thu, May 7, 2020 at 4:21 AM Chengguang Xu <cgxu519@mykernel.net> wrote:
->
-> When a file is only in a lower layer, after lookup a negative
-
-Or in no layer at all...
-
-> dentry will be generated in the upper layer or even worse many
-> negetive dentries will be generated in upper/lower layers. These
-> negative dentries will be useless after construction of overlayfs'
-> own dentry and may keep in the memory long time even after unmount
-> of overlayfs instance. This patch tries to kill unnecessary negative
-> dentry during lookup.
->
+On Wed, May 06, 2020 at 06:15:28PM +0800, Chengguang Xu wrote:
+> This is a test for whiteout inode sharing feature.
+> 
 > Signed-off-by: Chengguang Xu <cgxu519@mykernel.net>
 > ---
->  fs/overlayfs/namei.c | 11 ++++++++++-
->  1 file changed, 10 insertions(+), 1 deletion(-)
->
-> diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
-> index 723d17744758..cf0ec4d7bcec 100644
-> --- a/fs/overlayfs/namei.c
-> +++ b/fs/overlayfs/namei.c
-> @@ -200,7 +200,7 @@ static int ovl_lookup_single(struct dentry *base, struct ovl_lookup_data *d,
->         int err;
->         bool last_element = !post[0];
->
-> -       this = lookup_positive_unlocked(name, base, namelen);
-> +       this = lookup_one_len_unlocked(name, base, namelen);
->         if (IS_ERR(this)) {
->                 err = PTR_ERR(this);
->                 this = NULL;
-> @@ -209,6 +209,15 @@ static int ovl_lookup_single(struct dentry *base, struct ovl_lookup_data *d,
->                 goto out_err;
->         }
->
-> +       /* Borrow the check from lookup_positive_unlocked */
-> +       if (d_flags_negative(smp_load_acquire(&this->d_flags))) {
-> +               d_drop(this);
-> +               dput(this);
-> +               this = NULL;
-> +               err = -ENOENT;
-> +               goto out;
-> +       }
+> v1->v2:
+> - Address Amir's comments in v1
+> 
+> v2->v3:
+> - Address Amir's comments in v2 
+> 
+> v3->v4:
+> - Fix test case based on latest kernel patch(removed module param)
+> https://git.kernel.org/pub/scm/linux/kernel/git/mszeredi/vfs.git/commit/?h=overlayfs-next&id=4e49695244661568130bfefcb6143dd1eaa3d8e7
+> 
+>  tests/overlay/073     | 106 ++++++++++++++++++++++++++++++++++++++++++
+>  tests/overlay/073.out |   2 +
+>  tests/overlay/group   |   1 +
+>  3 files changed, 109 insertions(+)
+>  create mode 100755 tests/overlay/073
+>  create mode 100644 tests/overlay/073.out
+> 
+> diff --git a/tests/overlay/073 b/tests/overlay/073
+> new file mode 100755
+> index 00000000..fc847092
+> --- /dev/null
+> +++ b/tests/overlay/073
+> @@ -0,0 +1,106 @@
+> +#! /bin/bash
+> +# SPDX-License-Identifier: GPL-2.0
+> +# Copyright (c) 2020 Chengguang Xu <cgxu519@mykernel.net>.
+> +# All Rights Reserved.
+> +#
+> +# FS QA Test 073
+> +#
+> +# Test whiteout inode sharing functionality.
+> +#
+> +# A "whiteout" is an object that has special meaning in overlayfs.
+> +# A whiteout on an upper layer will effectively hide a matching file
+> +# in the lower layer, making it appear as if the file didn't exist.
+> +#
+> +# Whiteout inode sharing means multiple whiteout objects will share
+> +# one inode in upper layer, without this feature every whiteout object
+> +# will consume one inode in upper layer.
 > +
+> +seq=`basename $0`
+> +seqres=$RESULT_DIR/$seq
+> +echo "QA output created by $seq"
+> +
+> +here=`pwd`
+> +tmp=/tmp/$$
+> +status=1	# failure is the default!
+> +trap "_cleanup; exit \$status" 0 1 2 3 15
+> +
+> +_cleanup()
+> +{
+> +	cd /
+> +	rm -f $tmp.*
+> +}
+> +
+> +# get standard environment, filters and checks
+> +. ./common/rc
+> +. ./common/filter
+> +
+> +# remove previous $seqres.full before test
+> +rm -f $seqres.full
+> +
+> +# real QA test starts here
+> +_supported_fs overlay
+> +_supported_os Linux
+> +_require_scratch
 
-This is a nice improvement, but my feeling is that this low level code
-belongs in a vfs helper with well documented semantics.
+I see no feature detection logic, so test just fails on old kernels
+without this feature? I tried with v5.7-r4 kernel, test fails because
+each whiteout file has only one hardlink.
 
 Thanks,
-Amir.
+Eryu
+
+> +
+> +lowerdir=$OVL_BASE_SCRATCH_MNT/$OVL_LOWER
+> +upperdir=$OVL_BASE_SCRATCH_MNT/$OVL_UPPER
+> +workdir=$OVL_BASE_SCRATCH_MNT/$OVL_WORK
+> +
+> +# Make some testing files in lowerdir.
+> +# Argument:
+> +# $1: Testing file number
+> +make_lower_files()
+> +{
+> +	for name in `seq ${1}`; do
+> +		touch $lowerdir/file${name} &>/dev/null
+> +	done
+> +}
+> +
+> +# Delete all copy-uped files in upperdir.
+> +make_whiteout_files()
+> +{
+> +	rm -f $SCRATCH_MNT/* &>/dev/null
+> +}
+> +
+> +# Check link count of whiteout files.
+> +# Arguments:
+> +# $1: Testing file number
+> +# $2: Expected link count
+> +check_whiteout_files()
+> +{
+> +	for name in `seq ${1}`; do
+> +		local real_count=`stat -c %h $upperdir/file${name} 2>/dev/null`
+> +		if [[ ${2} != $real_count ]]; then
+> +			echo "Expected link count is ${2} but real count is $real_count, file name is file${name}"
+> +		fi
+> +	done
+> +	local tmpfile_count=`ls $workdir/work/\#* $workdir/index/\#* 2>/dev/null |wc -l 2>/dev/null`
+> +	if [[ -n "$tmpfile_count" && $tmpfile_count > 1 ]]; then
+> +		echo "There are more than one whiteout tmpfile in work/index dir!"
+> +		ls -l $workdir/work/\#* $workdir/index/\#* 2>/dev/null
+> +	fi
+> +}
+> +
+> +# Run test case with specific arguments.
+> +# Arguments:
+> +# $1: Testing file number
+> +# $2: Expected link count
+> +run_test_case()
+> +{
+> +	_scratch_mkfs
+> +	make_lower_files ${1}
+> +	_scratch_mount
+> +	make_whiteout_files
+> +	check_whiteout_files ${1} ${2}
+> +	_scratch_unmount
+> +}
+> +
+> +#Test case
+> +file_count=10
+> +link_count=11
+> +run_test_case $file_count $link_count
+> +
+> +# success, all done
+> +echo "Silence is golden"
+> +status=0
+> +exit
+> diff --git a/tests/overlay/073.out b/tests/overlay/073.out
+> new file mode 100644
+> index 00000000..590bbc6c
+> --- /dev/null
+> +++ b/tests/overlay/073.out
+> @@ -0,0 +1,2 @@
+> +QA output created by 073
+> +Silence is golden
+> diff --git a/tests/overlay/group b/tests/overlay/group
+> index 43ad8a52..8b2276f1 100644
+> --- a/tests/overlay/group
+> +++ b/tests/overlay/group
+> @@ -74,3 +74,4 @@
+>  070 auto quick copyup redirect nested
+>  071 auto quick copyup redirect nested nonsamefs
+>  072 auto quick copyup hardlink
+> +073 auto quick whiteout
+> -- 
+> 2.20.1
+> 
