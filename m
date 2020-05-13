@@ -2,107 +2,128 @@ Return-Path: <SRS0=GnLN=63=vger.kernel.org=linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.5 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,UNPARSEABLE_RELAY,
+	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DC894C47076
-	for <linux-unionfs@archiver.kernel.org>; Wed, 13 May 2020 10:54:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 11425C433E0
+	for <linux-unionfs@archiver.kernel.org>; Wed, 13 May 2020 15:11:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BC15F23127
-	for <linux-unionfs@archiver.kernel.org>; Wed, 13 May 2020 10:54:46 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0F7C620690
+	for <linux-unionfs@archiver.kernel.org>; Wed, 13 May 2020 15:11:21 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="acK46gYz"
+	dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="EvBKpFq8"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728306AbgEMKyq (ORCPT
+        id S1729286AbgEMPLU (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Wed, 13 May 2020 06:54:46 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59374 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727794AbgEMKyq (ORCPT
+        Wed, 13 May 2020 11:11:20 -0400
+Received: from aserp2120.oracle.com ([141.146.126.78]:43318 "EHLO
+        aserp2120.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727778AbgEMPLU (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 13 May 2020 06:54:46 -0400
-Received: from mail-io1-xd42.google.com (mail-io1-xd42.google.com [IPv6:2607:f8b0:4864:20::d42])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E2C39C061A0C;
-        Wed, 13 May 2020 03:54:45 -0700 (PDT)
-Received: by mail-io1-xd42.google.com with SMTP id h10so3402449iob.10;
-        Wed, 13 May 2020 03:54:45 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=9s3Hd4XCIF1GOezZT5Pm+AuR5fgaynrw5CpM1mHHtaE=;
-        b=acK46gYzIVXCzeB72Tyo6PQlhTjvO2Cf7BMw8qZNE3dJMT9ZlnzQb+pZRCuFDjwfNw
-         kmxy/q+7O0yMWxLvjAI0Sn4DqQbjEQlBMlAXA29jF4bwehPt1yKIdPe2SV867fvtLAX2
-         uTt+j04ws8mQAYq8/C59XfvysYxuPFbg2ccpA92ZsbkGadG9/IF9ECDodp9h17usgBo5
-         SLsf17tlK+FJE0w2OKEWCmdOaobtR6U37QpdEI5/W7t6mbvnUlpKy3K4+8L8EOqtY3vc
-         +KRQu56f0QhK+/tSfUTthk/dJBuGOtjtSP/hp+f/BE3q/xRcI3QDifHWkaIEg2EgKerS
-         u3hg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=9s3Hd4XCIF1GOezZT5Pm+AuR5fgaynrw5CpM1mHHtaE=;
-        b=LJJmWjpqHUGrmMmUTPVW6m8jrQhkOIPMcKMNlR4KboMVK5QMhRq0iyQubE8ZMdBKC3
-         IZufb/q2h+QEkGEY6lp4cNgc0ZeCpQoGYqRk8yCjbAs9nXL9wrHsgoy+Pg2nAvwpNEzi
-         WzG8TYfgO+BU4Yn35xXTHhQMDC7NnKC3XmNNUR2DJer3qy1Cju3ngB19PGg5vT6DUJNP
-         zVAppYZyNhgMxE56acZLcsrj+LFyqyF5Xg3rSYIX7bDRmKe45Byqt1DU+yiIEBkbTc9s
-         obaavcVCwvehgwNL7wo8mCb3X31sWRFRgtizYkaUigbZzG7OLtsitl+Sug6TnfNSeKMQ
-         JhIQ==
-X-Gm-Message-State: AGi0PuZh+2JXb5ZsbpCgcZV12JWPEl9LoVDoP039bBvag3vWNHiSDwYZ
-        Q4JFR98BcirgV7aelwihk6jX/kl+A/F3wJzL+9ERs01F
-X-Google-Smtp-Source: APiQypIgllGn31Ud1VOPru2NcZTTVadvfB3uHRXpxFNXM8F6vZZFVdYztd8H4kr/6vbKz8NuD1brtZ2d2BEbWj/e3dc=
-X-Received: by 2002:a02:58c3:: with SMTP id f186mr22494593jab.120.1589367285285;
- Wed, 13 May 2020 03:54:45 -0700 (PDT)
+        Wed, 13 May 2020 11:11:20 -0400
+Received: from pps.filterd (aserp2120.oracle.com [127.0.0.1])
+        by aserp2120.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 04DF7DEC014596;
+        Wed, 13 May 2020 15:11:07 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=date : from : to : cc
+ : subject : message-id : mime-version : content-type : in-reply-to;
+ s=corp-2020-01-29; bh=M7tgw7hQmZDZ9d1ChBVFlk09jVIDx3jqCjHhRB1m9TI=;
+ b=EvBKpFq8qD5mFfdo2m2ZU2l0N/Odm/zYRYiOXvH4Mi68c0/r77mgxYyfigdqTaqrnOK2
+ 5kcFD6WBlr2MAeP9KYE1U+DFV/FftUk2yCGAM8StyV2iuaXaSMgfkdQERhXDPsRFU+rc
+ O4Pwssz8GVW507lJDxLJvb95eyBlvPMGSXfIvtyzC15CqWX4Eg5FTohF0NC6CbUwkkO4
+ 82LCIhMJFmOwKh0TFzRn56LqPyg9BdEcUgclS/k5ueFuUGgpb3vhoH2qhla9000xEWab
+ XXqFw40B2sy6aqc1CGLP7iBdyQmZrpxarfPsZHDeiR0OMK99BSRQC7qIPrqq3Pkcc9yl nA== 
+Received: from userp3020.oracle.com (userp3020.oracle.com [156.151.31.79])
+        by aserp2120.oracle.com with ESMTP id 3100xwct6b-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=FAIL);
+        Wed, 13 May 2020 15:11:07 +0000
+Received: from pps.filterd (userp3020.oracle.com [127.0.0.1])
+        by userp3020.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 04DF8afw009989;
+        Wed, 13 May 2020 15:09:06 GMT
+Received: from userv0122.oracle.com (userv0122.oracle.com [156.151.31.75])
+        by userp3020.oracle.com with ESMTP id 3100ym8m3h-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Wed, 13 May 2020 15:09:06 +0000
+Received: from abhmp0003.oracle.com (abhmp0003.oracle.com [141.146.116.9])
+        by userv0122.oracle.com (8.14.4/8.14.4) with ESMTP id 04DF938P005780;
+        Wed, 13 May 2020 15:09:04 GMT
+Received: from kadam (/41.57.98.10)
+        by default (Oracle Beehive Gateway v4.0)
+        with ESMTP ; Wed, 13 May 2020 08:09:03 -0700
+Date:   Wed, 13 May 2020 18:08:55 +0300
+From:   Dan Carpenter <dan.carpenter@oracle.com>
+To:     Miklos Szeredi <miklos@szeredi.hu>,
+        Amir Goldstein <amir73il@gmail.com>
+Cc:     linux-unionfs@vger.kernel.org, kernel-janitors@vger.kernel.org,
+        Linux Next Mailing List <linux-next@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: [PATCH v3] ovl: potential crash in ovl_fid_to_fh()
+Message-ID: <20200513150855.GD3041@kadam>
 MIME-Version: 1.0
-References: <20200506101528.27359-1-cgxu519@mykernel.net> <20200510155037.GB9345@desktop>
- <172015c8691.108177c8110122.924760245390345571@mykernel.net>
- <20200512162532.GD9345@desktop> <CAOQ4uxiFPrMWrhqjPo3PcgKFiKwSKfh7p+f5hM5fZYKr51HEWA@mail.gmail.com>
- <20200513011019.GY47669@e18g06458.et15sqa> <1720c092a68.c8052b8d3001.6829163626760635444@mykernel.net>
- <CAOQ4uxhV4ubSLmwTh9dHg-FWXYHo8uMh8QVNXhmtN=ahBFRoHg@mail.gmail.com> <CAJfpegttGkTBFgiaUVE549DUwEedb9T9c_dZD32ZJDxdyYpKaQ@mail.gmail.com>
-In-Reply-To: <CAJfpegttGkTBFgiaUVE549DUwEedb9T9c_dZD32ZJDxdyYpKaQ@mail.gmail.com>
-From:   Amir Goldstein <amir73il@gmail.com>
-Date:   Wed, 13 May 2020 13:54:34 +0300
-Message-ID: <CAOQ4uxiQHag64S5Fd18ZYOMsou=EhffN-f3LSK5cTC9cU2ObKA@mail.gmail.com>
-Subject: Re: [PATCH v4] overlay: test for whiteout inode sharing
-To:     Miklos Szeredi <miklos@szeredi.hu>
-Cc:     Chengguang Xu <cgxu519@mykernel.net>,
-        Eryu Guan <eguan@linux.alibaba.com>, Eryu Guan <guan@eryu.me>,
-        fstests <fstests@vger.kernel.org>,
-        linux-unionfs <linux-unionfs@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20200513102346.6c04d912@canb.auug.org.au>
+User-Agent: Mutt/1.9.4 (2018-02-28)
+X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9620 signatures=668687
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 mlxlogscore=999 adultscore=0
+ phishscore=0 bulkscore=0 spamscore=0 mlxscore=0 suspectscore=0
+ malwarescore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.12.0-2004280000 definitions=main-2005130136
+X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9620 signatures=668687
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 spamscore=0 lowpriorityscore=0
+ suspectscore=0 mlxlogscore=999 clxscore=1011 cotscore=-2147483648
+ mlxscore=0 phishscore=0 adultscore=0 impostorscore=0 bulkscore=0
+ malwarescore=0 priorityscore=1501 classifier=spam adjust=0 reason=mlx
+ scancount=1 engine=8.12.0-2004280000 definitions=main-2005130136
 Sender: linux-unionfs-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-> > I suppose it is more suitable, but since at the moment there is only one(?)
-> > such feature and there is an open question whether it should or should not
-> > be configurable, I myself would have taken the easy path, but Miklos
-> > often has a different perspective on these sort of things...
->
-> What exactly are we testing?
->
+The "buflen" value comes from the user and there is a potential that it
+could be zero.  In do_handle_to_path() we know that "handle->handle_bytes"
+is non-zero and we do:
 
-What are testing against silent regressions.
-If some change breaks whiteout share we won't know about it
-without a test.
+	handle_dwords = handle->handle_bytes >> 2;
 
-> Hard linked whiteouts are an optimization, not something to be relied
-> on in any case.  The test should succeed even if overlayfs decides for
-> some reason not to share the inode.
->
+So values 1-3 become zero.  Then in ovl_fh_to_dentry() we do:
 
-The best practice would be to ask overlay if feature is supported
-in the kernel AND make sure that overlay mount did not disable it
-on a specific instance (because of upper fs capabilities).
-That is what  _check_overlay_feature does for "features" that have
-both module param AND a mount option.
+	int len = fh_len << 2;
 
-If overlay says that the feature is expected to be enabled on the
-instance, we check correctness of the feature. Otherwise, we
-report that "feature" is not supported on this instance.
+So now len is in the "0,4-128" range and a multiple of 4.  But if
+"buflen" is zero it will try to copy negative bytes when we do the
+memcpy in ovl_fid_to_fh().
 
-Thanks,
-Amir.
+	memcpy(&fh->fb, fid, buflen - OVL_FH_WIRE_OFFSET);
+
+And that will lead to a crash.  Thanks to Amir Goldstein for his help
+with this patch.
+
+Fixes: cbe7fba8edfc ("ovl: make sure that real fid is 32bit aligned in memory")
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+Reviewed-by: Amir Goldstein <amir73il@gmail.com>
+---
+v2: Move the check after the other checks
+v3: Fix Fixes tag
+
+ fs/overlayfs/export.c | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/fs/overlayfs/export.c b/fs/overlayfs/export.c
+index 475c61f53f0fe..ed5c1078919cc 100644
+--- a/fs/overlayfs/export.c
++++ b/fs/overlayfs/export.c
+@@ -783,6 +783,9 @@ static struct ovl_fh *ovl_fid_to_fh(struct fid *fid, int buflen, int fh_type)
+ 	if (fh_type != OVL_FILEID_V0)
+ 		return ERR_PTR(-EINVAL);
+ 
++	if (buflen <= OVL_FH_WIRE_OFFSET)
++		return ERR_PTR(-EINVAL);
++
+ 	fh = kzalloc(buflen, GFP_KERNEL);
+ 	if (!fh)
+ 		return ERR_PTR(-ENOMEM);
+-- 
+2.26.2
