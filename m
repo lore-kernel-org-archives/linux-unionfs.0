@@ -7,49 +7,49 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2738EC433DF
-	for <linux-unionfs@archiver.kernel.org>; Fri, 15 May 2020 07:22:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9DB2BC433E0
+	for <linux-unionfs@archiver.kernel.org>; Fri, 15 May 2020 07:22:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 058702065F
-	for <linux-unionfs@archiver.kernel.org>; Fri, 15 May 2020 07:22:32 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7C7B72065F
+	for <linux-unionfs@archiver.kernel.org>; Fri, 15 May 2020 07:22:33 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=mykernel.net header.i=cgxu519@mykernel.net header.b="f1Qk7bXE"
+	dkim=pass (1024-bit key) header.d=mykernel.net header.i=cgxu519@mykernel.net header.b="YWELHkij"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726694AbgEOHWb (ORCPT
+        id S1726613AbgEOHWd (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Fri, 15 May 2020 03:22:31 -0400
-Received: from sender2-of-o52.zoho.com.cn ([163.53.93.247]:21137 "EHLO
+        Fri, 15 May 2020 03:22:33 -0400
+Received: from sender2-of-o52.zoho.com.cn ([163.53.93.247]:21139 "EHLO
         sender2-of-o52.zoho.com.cn" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726670AbgEOHWb (ORCPT
+        by vger.kernel.org with ESMTP id S1726674AbgEOHWd (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 15 May 2020 03:22:31 -0400
-ARC-Seal: i=1; a=rsa-sha256; t=1589527309; cv=none; 
+        Fri, 15 May 2020 03:22:33 -0400
+ARC-Seal: i=1; a=rsa-sha256; t=1589527299; cv=none; 
         d=zoho.com.cn; s=zohoarc; 
-        b=M5K+BuRevkxWk+9xVFPjbZNn3Lw9uhohWcsjcsYR1VAMx6xfeQha9dwKT+v9AkN0MCKTW0dwoBq+/L8lLL+n99TvMtcv83fByijkPJpTFKg+F2u8JBk8DaXm8HRbvLQsoLQeqx3JYerH5miX+2qigIxvYrXXPUaIIS9s6gjnCfA=
+        b=n1eBuVrwjc4BmFjdQ8ip9YJlxNNX8Mn8AwfRxi0ehJeOIRar5kM3BR5GKUIhyHwWcvN/GAungBOHZp9jGRFRplo3nApykVV/TJYs6EiWEWJDbxKtjtNRu1dG2B1xT7N7Dny5KeqcEFW890RXCSdzZc1SIwPj55NZE0hLfTOGHv8=
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=zoho.com.cn; s=zohoarc; 
-        t=1589527309; h=Content-Type:Content-Transfer-Encoding:Cc:Date:From:In-Reply-To:MIME-Version:Message-ID:References:Subject:To; 
-        bh=uQ0EXwR2Al/tb5JmEvZvWIhJKgUaG+C2+JJVMkI3umI=; 
-        b=g5AM3ZYhObqYjc1RxZaiveSHWm6hIN2cUz0EqtHxiyljG2keJMFldR+LtzFz9atAKAIYyc2jspayvSIPwxXoFXBCdoPSbzCd6YaQdLcOKUNVDN7XUyOYs0vDaQwbK7o7zrnicv6/P6/RWb3NarJemO2o7NT5wPCQTtIRZ7WNnYs=
+        t=1589527299; h=Content-Type:Content-Transfer-Encoding:Cc:Date:From:In-Reply-To:MIME-Version:Message-ID:References:Subject:To; 
+        bh=sq2MLgVY639o58c+VGRyEL7rhnnN3J1QbY59fuoMlZA=; 
+        b=YrYdQfaoTcUw0fyiY6zdB1nlCY+gjwiRacmfBbzQOxovEqS6VC10ID5PhRohYRVPzGnEhsdNomu3DAfY7keX1t5+SowOkGSmP/Q1B+gNL8WTlylSkdBdv1ZNmDrXDsH4BXkBOejZs4gP6uejCDzEMbKCQ5RlYZI+7Cn5qAeNfPQ=
 ARC-Authentication-Results: i=1; mx.zoho.com.cn;
         dkim=pass  header.i=mykernel.net;
         spf=pass  smtp.mailfrom=cgxu519@mykernel.net;
         dmarc=pass header.from=<cgxu519@mykernel.net> header.from=<cgxu519@mykernel.net>
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1589527309;
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1589527299;
         s=zohomail; d=mykernel.net; i=cgxu519@mykernel.net;
         h=From:To:Cc:Message-ID:Subject:Date:In-Reply-To:References:MIME-Version:Content-Transfer-Encoding:Content-Type;
-        bh=uQ0EXwR2Al/tb5JmEvZvWIhJKgUaG+C2+JJVMkI3umI=;
-        b=f1Qk7bXE2uKwlimVK0HWv2UdBO0dknUjm4MGlYca2EC4CUjkU34M49U1No6Yzg6F
-        Kt3oZcLuLMfTeM3KXu1B5wK3vAJgHQpJNNTzUkFrA3fjw3bSqiqOmSydYzp4FRgdalJ
-        Y8J4Mwqla1TeRLN0GHtkWgK0wDvjpMexuGQVY37o=
+        bh=sq2MLgVY639o58c+VGRyEL7rhnnN3J1QbY59fuoMlZA=;
+        b=YWELHkijjMX4BMfx7qcLpquP2FvS+U+AT/iKrDMDZIJWLHvOS33/smHI+c1pH4/q
+        EHUphyn0uR5TD3FZV7Ez7WA0IpH44zTnTkDTTYrSoJI5XbnkG6KrKGWa4EIxfrDvdBC
+        Wj54stgAPxvPjVdgHfFuNWhiZ8TUtt8VdAS0S3gc=
 Received: from localhost.localdomain (218.18.229.179 [218.18.229.179]) by mx.zoho.com.cn
-        with SMTPS id 1589527308239833.498669537171; Fri, 15 May 2020 15:21:48 +0800 (CST)
+        with SMTPS id 1589527297143225.7718494253087; Fri, 15 May 2020 15:21:37 +0800 (CST)
 From:   Chengguang Xu <cgxu519@mykernel.net>
 To:     miklos@szeredi.hu, viro@zeniv.linux.org.uk, amir73il@gmail.com
 Cc:     linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org,
         Chengguang Xu <cgxu519@mykernel.net>
-Message-ID: <20200515072047.31454-9-cgxu519@mykernel.net>
-Subject: [RFC PATCH v3 8/9] nfsd: Adjust argument for lookup_positive_unlocked()
-Date:   Fri, 15 May 2020 15:20:46 +0800
+Message-ID: <20200515072047.31454-2-cgxu519@mykernel.net>
+Subject: [RFC PATCH v3 1/9] fs/dcache: Introduce a new lookup flag LOOKUP_DONTCACHE_NEGATIVE
+Date:   Fri, 15 May 2020 15:20:39 +0800
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20200515072047.31454-1-cgxu519@mykernel.net>
 References: <20200515072047.31454-1-cgxu519@mykernel.net>
@@ -62,45 +62,105 @@ Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-Set 0 as lookup flag argument when calling lookup_positive_unlocked(),
-because we don't hope to drop negative dentry in lookup.
+Introduce a new lookup flag LOOKUP_DONTCACHE_NEGATIVE to skip
+caching negative dentry in lookup.
 
 Signed-off-by: Chengguang Xu <cgxu519@mykernel.net>
 ---
- fs/nfsd/nfs3xdr.c | 2 +-
- fs/nfsd/nfs4xdr.c | 3 ++-
- 2 files changed, 3 insertions(+), 2 deletions(-)
+ fs/namei.c            | 14 ++++++++++----
+ include/linux/namei.h |  9 +++++++--
+ 2 files changed, 17 insertions(+), 6 deletions(-)
 
-diff --git a/fs/nfsd/nfs3xdr.c b/fs/nfsd/nfs3xdr.c
-index aae514d40b64..19628922969c 100644
---- a/fs/nfsd/nfs3xdr.c
-+++ b/fs/nfsd/nfs3xdr.c
-@@ -855,7 +855,7 @@ compose_entry_fh(struct nfsd3_readdirres *cd, struct sv=
-c_fh *fhp,
- =09=09} else
- =09=09=09dchild =3D dget(dparent);
- =09} else
--=09=09dchild =3D lookup_positive_unlocked(name, dparent, namlen);
-+=09=09dchild =3D lookup_positive_unlocked(name, dparent, namlen, 0);
- =09if (IS_ERR(dchild))
- =09=09return rv;
- =09if (d_mountpoint(dchild))
-diff --git a/fs/nfsd/nfs4xdr.c b/fs/nfsd/nfs4xdr.c
-index 996ac01ee977..1a69e60b8d59 100644
---- a/fs/nfsd/nfs4xdr.c
-+++ b/fs/nfsd/nfs4xdr.c
-@@ -3066,7 +3066,8 @@ nfsd4_encode_dirent_fattr(struct xdr_stream *xdr, str=
-uct nfsd4_readdir *cd,
- =09__be32 nfserr;
- =09int ignore_crossmnt =3D 0;
+diff --git a/fs/namei.c b/fs/namei.c
+index a320371899cf..a258f0a1d5d6 100644
+--- a/fs/namei.c
++++ b/fs/namei.c
+@@ -1532,6 +1532,9 @@ static struct dentry *__lookup_slow(const struct qstr=
+ *name,
+ =09=09if (unlikely(old)) {
+ =09=09=09dput(dentry);
+ =09=09=09dentry =3D old;
++=09=09} else if ((flags & LOOKUP_DONTCACHE_NEGATIVE) &&
++=09=09=09   d_is_negative(dentry)) {
++=09=09=09d_drop(dentry);
+ =09=09}
+ =09}
+ =09return dentry;
+@@ -2554,6 +2557,7 @@ EXPORT_SYMBOL(lookup_one_len);
+  * @name:=09pathname component to lookup
+  * @base:=09base directory to lookup from
+  * @len:=09maximum length @len should be interpreted to
++ * @flags:=09lookup flags
+  *
+  * Note that this routine is purely a helper for filesystem usage and shou=
+ld
+  * not be called by generic code.
+@@ -2562,7 +2566,8 @@ EXPORT_SYMBOL(lookup_one_len);
+  * i_mutex held, and will take the i_mutex itself if necessary.
+  */
+ struct dentry *lookup_one_len_unlocked(const char *name,
+-=09=09=09=09       struct dentry *base, int len)
++=09=09=09=09       struct dentry *base, int len,
++=09=09=09=09       unsigned int flags)
+ {
+ =09struct qstr this;
+ =09int err;
+@@ -2574,7 +2579,7 @@ struct dentry *lookup_one_len_unlocked(const char *na=
+me,
 =20
--=09dentry =3D lookup_positive_unlocked(name, cd->rd_fhp->fh_dentry, namlen=
-);
-+=09dentry =3D lookup_positive_unlocked(name, cd->rd_fhp->fh_dentry,
-+=09=09=09=09=09  namlen, 0);
- =09if (IS_ERR(dentry))
- =09=09return nfserrno(PTR_ERR(dentry));
+ =09ret =3D lookup_dcache(&this, base, 0);
+ =09if (!ret)
+-=09=09ret =3D lookup_slow(&this, base, 0);
++=09=09ret =3D lookup_slow(&this, base, flags);
+ =09return ret;
+ }
+ EXPORT_SYMBOL(lookup_one_len_unlocked);
+@@ -2588,9 +2593,10 @@ EXPORT_SYMBOL(lookup_one_len_unlocked);
+  * this one avoids such problems.
+  */
+ struct dentry *lookup_positive_unlocked(const char *name,
+-=09=09=09=09       struct dentry *base, int len)
++=09=09=09=09       struct dentry *base, int len,
++=09=09=09=09       unsigned int flags)
+ {
+-=09struct dentry *ret =3D lookup_one_len_unlocked(name, base, len);
++=09struct dentry *ret =3D lookup_one_len_unlocked(name, base, len, flags);
+ =09if (!IS_ERR(ret) && d_flags_negative(smp_load_acquire(&ret->d_flags))) =
+{
+ =09=09dput(ret);
+ =09=09ret =3D ERR_PTR(-ENOENT);
+diff --git a/include/linux/namei.h b/include/linux/namei.h
+index a4bb992623c4..1d43fc481e47 100644
+--- a/include/linux/namei.h
++++ b/include/linux/namei.h
+@@ -49,6 +49,9 @@ enum {LAST_NORM, LAST_ROOT, LAST_DOT, LAST_DOTDOT};
+ /* LOOKUP_* flags which do scope-related checks based on the dirfd. */
+ #define LOOKUP_IS_SCOPED (LOOKUP_BENEATH | LOOKUP_IN_ROOT)
 =20
++/* Hint: don't cache negative. */
++#define LOOKUP_DONTCACHE_NEGATIVE=090x200000
++
+ extern int path_pts(struct path *path);
+=20
+ extern int user_path_at_empty(int, const char __user *, unsigned, struct p=
+ath *, int *empty);
+@@ -68,8 +71,10 @@ extern struct dentry *kern_path_locked(const char *, str=
+uct path *);
+=20
+ extern struct dentry *try_lookup_one_len(const char *, struct dentry *, in=
+t);
+ extern struct dentry *lookup_one_len(const char *, struct dentry *, int);
+-extern struct dentry *lookup_one_len_unlocked(const char *, struct dentry =
+*, int);
+-extern struct dentry *lookup_positive_unlocked(const char *, struct dentry=
+ *, int);
++extern struct dentry *lookup_one_len_unlocked(const char *name,
++=09=09=09struct dentry *base, int len, unsigned int flags);
++extern struct dentry *lookup_positive_unlocked(const char *name,
++=09=09=09struct dentry *base, int len, unsigned int flags);
+=20
+ extern int follow_down_one(struct path *);
+ extern int follow_down(struct path *);
 --=20
 2.20.1
 
