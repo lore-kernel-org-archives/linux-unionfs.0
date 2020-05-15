@@ -2,99 +2,106 @@ Return-Path: <SRS0=KPW4=65=vger.kernel.org=linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.9 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 68227C433DF
-	for <linux-unionfs@archiver.kernel.org>; Fri, 15 May 2020 07:30:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B97EAC433E0
+	for <linux-unionfs@archiver.kernel.org>; Fri, 15 May 2020 08:26:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3D0D720657
-	for <linux-unionfs@archiver.kernel.org>; Fri, 15 May 2020 07:30:40 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5C5CB206F1
+	for <linux-unionfs@archiver.kernel.org>; Fri, 15 May 2020 08:26:40 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="dWNFDS7D"
+	dkim=pass (1024-bit key) header.d=mykernel.net header.i=cgxu519@mykernel.net header.b="TI33a0FF"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726729AbgEOHaj (ORCPT
+        id S1726725AbgEOI0k (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Fri, 15 May 2020 03:30:39 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53712 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-FAIL-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1726728AbgEOHaj (ORCPT
+        Fri, 15 May 2020 04:26:40 -0400
+Received: from sender2-of-o52.zoho.com.cn ([163.53.93.247]:21152 "EHLO
+        sender2-of-o52.zoho.com.cn" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726727AbgEOI0k (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 15 May 2020 03:30:39 -0400
-Received: from mail-io1-xd44.google.com (mail-io1-xd44.google.com [IPv6:2607:f8b0:4864:20::d44])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 60E74C061A0C;
-        Fri, 15 May 2020 00:30:39 -0700 (PDT)
-Received: by mail-io1-xd44.google.com with SMTP id f3so1640417ioj.1;
-        Fri, 15 May 2020 00:30:39 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=GSOGA9oY6PhSkFDJgxOPuxZvr89fNX8TEDhZGCvMbyw=;
-        b=dWNFDS7DtYo+kufBRvDeEG+f/mwi+gVKaEGQWhHTkKETRZxEmSmuj/NrUxBqrZF2CI
-         RV3HP7HubGgL/aV7J1BC7u1I7e0w5KIGgk77K84EV19yVzfjvSnneigR3wtvZh95IiT/
-         jMqafFetHnyaI1xUF4AgtZRmSONxqKbPPdf4kwhveazBm5+QnKGsY4UNC5OfzxIDkray
-         IwZazhGt3GRt0yeF12IETnYVov0Hh7k1pnB5yn17/8oS7u1eMsIgHGyOfpkonwWSt1y6
-         +6P/bf77BVGaBuY2V02geBvd6ZbTN0LhHz4Sa6VWN4F7ESWMOZN4Gy/gfsYJYbemB0tu
-         KUxw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=GSOGA9oY6PhSkFDJgxOPuxZvr89fNX8TEDhZGCvMbyw=;
-        b=ko/LLa21/Eh2/IJyEC3X8wwzNr0umN2dINcnHbcjo867JzJwzkqwUgTtIfQUELPkIf
-         YyM4Q+a+GNlZD2uY1TQmHtfu53S1WVB7MArAdYZqSNwJnTaoTLUuSRf8btM/OoRpXlOE
-         f94XUaMSIU6YFNe8PXFnT4QnRciNJeScOhsm+BpnOuZN1yepTdH9WTZrLI8dhQS8dnbd
-         0vfqvmb2khITpeHLsKMO/yKW2qAA4HQLdS7Vaiu7LTQtLWNBOftm7Ej4zOps0WKfJETk
-         gMpprOwEeikzruyC6aIXHfu30KlUVE+idE2Ok5IVfGQlZpDSI5hi67hL+2Z1mCCu5YUY
-         JC9A==
-X-Gm-Message-State: AOAM533FRH/MAGDwFk2rUJ7t9N8Od6x/hRTOmha9vAX2FV1DrTdr0i/q
-        BQpVwi2sgPsrcOiVC/DQ6oB2/OpRfw8JEnSPvkY=
-X-Google-Smtp-Source: ABdhPJxOn0vNBfq4hMwCoOCVJ7Je9QWR0qH2VcdDZ8S3v1RGB6PQHf33ZMyqlnSr6aDh2uSrI8BeKEqQSOrYy84caZs=
-X-Received: by 2002:a5d:8417:: with SMTP id i23mr600573ion.186.1589527838729;
- Fri, 15 May 2020 00:30:38 -0700 (PDT)
-MIME-Version: 1.0
-References: <20200515072047.31454-1-cgxu519@mykernel.net>
-In-Reply-To: <20200515072047.31454-1-cgxu519@mykernel.net>
-From:   Amir Goldstein <amir73il@gmail.com>
-Date:   Fri, 15 May 2020 10:30:27 +0300
-Message-ID: <CAOQ4uxhytw8YPY5WR+txeeHhuO+Hvr0eDFuKOahrN_htXtH_rA@mail.gmail.com>
+        Fri, 15 May 2020 04:26:40 -0400
+ARC-Seal: i=1; a=rsa-sha256; t=1589531144; cv=none; 
+        d=zoho.com.cn; s=zohoarc; 
+        b=ixFbuSBPPVCG6ruwRqaLDPMMYnO3GDMoccu9a2/5uxO0Iawht3Aa7XEGc8qvWutIF5YD4Yf1dv7GBXgS+OUWyFVtvzM1YWdCSzSZrRNCHv/qcbYSpQSarmwqWQUemHuIOukWfzBz69xS3a4mZ3uJf2oKmm7YYw0VG4rkTGid1wg=
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=zoho.com.cn; s=zohoarc; 
+        t=1589531144; h=Content-Type:Content-Transfer-Encoding:Cc:Date:From:In-Reply-To:MIME-Version:Message-ID:Reply-To:References:Subject:To; 
+        bh=v1j7yEUJl56Wd+AibdnWdMvB5tgV4YAFK3rS7smIP0g=; 
+        b=Yo6KoS5jfWndY1sPxgn2P3MS8BjC2kPHNglNzvW/Kr8IJNWUoBdHvq3PybPKe1cJMnm6wN8RN5zr9njVeNzqUYmT4bCZAjk+CvkEifo6mHPBVZcsMJpjGb8ENbo697GmyZC19NbtwPFhuG/cw/gFJzaV/cX96MKUJKDuzvKqbWM=
+ARC-Authentication-Results: i=1; mx.zoho.com.cn;
+        dkim=pass  header.i=mykernel.net;
+        spf=pass  smtp.mailfrom=cgxu519@mykernel.net;
+        dmarc=pass header.from=<cgxu519@mykernel.net> header.from=<cgxu519@mykernel.net>
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1589531144;
+        s=zohomail; d=mykernel.net; i=cgxu519@mykernel.net;
+        h=Date:From:Reply-To:To:Cc:Message-ID:In-Reply-To:References:Subject:MIME-Version:Content-Type:Content-Transfer-Encoding;
+        bh=v1j7yEUJl56Wd+AibdnWdMvB5tgV4YAFK3rS7smIP0g=;
+        b=TI33a0FFY0CCfXG7PMfm8QQgL08VL1d+0dpF0IHSw32OU0zUnsPh9vFScdP3Nap2
+        rJnvF5SH2ItAkWXgCfArrFYw474F0CYXOG5Cwc0+F+DuCeYgw4r+9WNCGDLocNNLfhs
+        7KJcdt1ZMYxwDPYacblo57I3BxF3U1afYnqnZ9go=
+Received: from mail.baihui.com by mx.zoho.com.cn
+        with SMTP id 1589531142535211.24543515194716; Fri, 15 May 2020 16:25:42 +0800 (CST)
+Date:   Fri, 15 May 2020 16:25:42 +0800
+From:   Chengguang Xu <cgxu519@mykernel.net>
+Reply-To: cgxu519@mykernel.net
+To:     "Amir Goldstein" <amir73il@gmail.com>
+Cc:     "Miklos Szeredi" <miklos@szeredi.hu>,
+        "Al Viro" <viro@zeniv.linux.org.uk>,
+        "linux-fsdevel" <linux-fsdevel@vger.kernel.org>,
+        "overlayfs" <linux-unionfs@vger.kernel.org>
+Message-ID: <17217706984.f5e20fe88512.8363313618084688988@mykernel.net>
+In-Reply-To: <CAOQ4uxhytw8YPY5WR+txeeHhuO+Hvr0eDFuKOahrN_htXtH_rA@mail.gmail.com>
+References: <20200515072047.31454-1-cgxu519@mykernel.net> <CAOQ4uxhytw8YPY5WR+txeeHhuO+Hvr0eDFuKOahrN_htXtH_rA@mail.gmail.com>
 Subject: Re: [RFC PATCH v3 0/9] Suppress negative dentry
-To:     Chengguang Xu <cgxu519@mykernel.net>
-Cc:     Miklos Szeredi <miklos@szeredi.hu>,
-        Al Viro <viro@zeniv.linux.org.uk>,
-        linux-fsdevel <linux-fsdevel@vger.kernel.org>,
-        overlayfs <linux-unionfs@vger.kernel.org>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+Importance: Medium
+User-Agent: ZohoCN Mail
+X-Mailer: ZohoCN Mail
 Sender: linux-unionfs-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Fri, May 15, 2020 at 10:21 AM Chengguang Xu <cgxu519@mykernel.net> wrote:
->
-> This series adds a new lookup flag LOOKUP_DONTCACHE_NEGATIVE
-> to indicate to drop negative dentry in slow path of lookup.
->
-> In overlayfs, negative dentries in upper/lower layers are useless
-> after construction of overlayfs' own dentry, so in order to
-> effectively reclaim those dentries, specify LOOKUP_DONTCACHE_NEGATIVE
-> flag when doing lookup in upper/lower layers.
->
-> Patch 1 adds flag LOOKUP_DONTCACHE_NEGATIVE and related logic in vfs layer.
-> Patch 2 does lookup optimazation for overlayfs.
-> Patch 3-9 just adjusts function argument when calling
-> lookup_positive_unlocked() and lookup_one_len_unlocked().
+ ---- =E5=9C=A8 =E6=98=9F=E6=9C=9F=E4=BA=94, 2020-05-15 15:30:27 Amir Golds=
+tein <amir73il@gmail.com> =E6=92=B0=E5=86=99 ----
+ > On Fri, May 15, 2020 at 10:21 AM Chengguang Xu <cgxu519@mykernel.net> wr=
+ote:
+ > >
+ > > This series adds a new lookup flag LOOKUP_DONTCACHE_NEGATIVE
+ > > to indicate to drop negative dentry in slow path of lookup.
+ > >
+ > > In overlayfs, negative dentries in upper/lower layers are useless
+ > > after construction of overlayfs' own dentry, so in order to
+ > > effectively reclaim those dentries, specify LOOKUP_DONTCACHE_NEGATIVE
+ > > flag when doing lookup in upper/lower layers.
+ > >
+ > > Patch 1 adds flag LOOKUP_DONTCACHE_NEGATIVE and related logic in vfs l=
+ayer.
+ > > Patch 2 does lookup optimazation for overlayfs.
+ > > Patch 3-9 just adjusts function argument when calling
+ > > lookup_positive_unlocked() and lookup_one_len_unlocked().
+ >=20
+ > Hmm you cannot do that, build must not be broken mid series.
+ > When Miklos said split he meant to patch 1 and 2.
+ > Patch 1 must convert all callers to the new argument list,
+ > at which point all overlayfs calls are with 0 flags.
+ >=20
+ > Once that's done, you may add:
+ > Reviewed-by: Amir Goldstein <amir73il@gmail.com>
+ >=20
 
-Hmm you cannot do that, build must not be broken mid series.
-When Miklos said split he meant to patch 1 and 2.
-Patch 1 must convert all callers to the new argument list,
-at which point all overlayfs calls are with 0 flags.
+OK, I got it, I'll still wait for a while in case of other feedbacks.
 
-Once that's done, you may add:
-Reviewed-by: Amir Goldstein <amir73il@gmail.com>
+Miklos, AI
+
+I'm not sure this series will go into whose tree in the end,=20
+so I just rebased on current linus-tree, any suggestion for the code base?
 
 Thanks,
-Amir.
+cgxu
+
+
+
