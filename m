@@ -1,119 +1,136 @@
-Return-Path: <SRS0=KPW4=65=vger.kernel.org=linux-unionfs-owner@kernel.org>
+Return-Path: <SRS0=O/kl=67=vger.kernel.org=linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
+	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1C4BDC433DF
-	for <linux-unionfs@archiver.kernel.org>; Fri, 15 May 2020 08:42:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C3D52C433DF
+	for <linux-unionfs@archiver.kernel.org>; Sun, 17 May 2020 08:46:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C8D782054F
-	for <linux-unionfs@archiver.kernel.org>; Fri, 15 May 2020 08:42:42 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 89DEC206D5
+	for <linux-unionfs@archiver.kernel.org>; Sun, 17 May 2020 08:46:13 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="key not found in DNS" (0-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b="Lwj7yc3C"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="c5D80Rkf"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727998AbgEOImm (ORCPT
+        id S1727021AbgEQIqN (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Fri, 15 May 2020 04:42:42 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36722 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-FAIL-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1727927AbgEOIml (ORCPT
+        Sun, 17 May 2020 04:46:13 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35072 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727015AbgEQIqM (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 15 May 2020 04:42:41 -0400
-Received: from mail-ed1-x544.google.com (mail-ed1-x544.google.com [IPv6:2a00:1450:4864:20::544])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 750C4C061A0C
-        for <linux-unionfs@vger.kernel.org>; Fri, 15 May 2020 01:42:41 -0700 (PDT)
-Received: by mail-ed1-x544.google.com with SMTP id h15so1562398edv.2
-        for <linux-unionfs@vger.kernel.org>; Fri, 15 May 2020 01:42:41 -0700 (PDT)
+        Sun, 17 May 2020 04:46:12 -0400
+Received: from mail-io1-xd32.google.com (mail-io1-xd32.google.com [IPv6:2607:f8b0:4864:20::d32])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B1B53C061A0C
+        for <linux-unionfs@vger.kernel.org>; Sun, 17 May 2020 01:46:12 -0700 (PDT)
+Received: by mail-io1-xd32.google.com with SMTP id k18so7369038ion.0
+        for <linux-unionfs@vger.kernel.org>; Sun, 17 May 2020 01:46:12 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=szeredi.hu; s=google;
+        d=gmail.com; s=20161025;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc:content-transfer-encoding;
-        bh=B20IIqgVPN5EsJCsjMuXMwagsi+l/qnqtyAK/Hxxl78=;
-        b=Lwj7yc3CLPjGQmlYTvBQB5aNkHaZ/QIaZTuSWArFVmjaAykhy83SZgUHcPxSsLLk2Q
-         ieSqvIv2N/mZpP+rvFAtJUe0KDbDqG2xR1bME0yH49vVchjGnGollMSgvNbmMlKvU7Sp
-         qd1lchhwW27PJjC2vBT9tJSt7ZTUGg1JO/9nQ=
+         :cc;
+        bh=VXfWDMoOGstCJTpCZ/k8c2Zvj3bI6hPYO3aN/o7xNAM=;
+        b=c5D80RkfjMYEhLkU8Nmwf7x3UQC6LpZLfmfDqFCY8jbDLsvTPl763YQDQAHmD8AhiQ
+         +mVrBn10qsm/VJCPPp2Lt77cTfah+fkYQmA4TZf/9gPTOxm8zhiYU/qMX/lMkDX/QNFr
+         idovOEK/eO1N62fGFEKlmCY+3afpkI6860s9qYCJfB2RzrlY8E1XXz8B50ozGAjNs1H4
+         VSkAAZA8FP1aIzr4IPOZvKCaQ3aMj0WNLPV7rJdd8cTtsVZdycc3YLNxc2Sb4fCv0gZV
+         +IMeJyiafR+bmpxZkTie74fta6ROR1IxagBOOBkJdVCHiAo+jcVIIvj4DlA8U2SvXTq7
+         dtZg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc:content-transfer-encoding;
-        bh=B20IIqgVPN5EsJCsjMuXMwagsi+l/qnqtyAK/Hxxl78=;
-        b=LFXAG+Nqx7FXfDyXNiK9ztB/npQtSe63w0HJ1OS3sHN9jbkFOrHwT/tYcSUBFcd7R+
-         TFUihW40ROmGLhK2vQvVWruuRo++0G9ppCZ3PPSLeWUmzcjMN/+Bg3Xu6LWDJM1KFzzr
-         EKajZV0g7rfTEMgolbkFBMEh6E7KnZr+5VXb0/3uNJlDoU3fCuEraIn/JnDovNRChZU0
-         gfHWUnHJt9AMqU3CPL1KSWwcqtS+RAkTPwAgpbtg4LGGG5LhSvjGAXPzzrZgQBT1xNIF
-         4MOlygDoImtbRbXfa8VjZFPsCVNJJjzZaSJ4zKCi/E755/GyxMzn5KrfcEB1J/44nUz9
-         6Tbw==
-X-Gm-Message-State: AOAM531WaKm4Qj8hMaTFJHpVaGsDGl4OToYMGAqXcG1J0djs/DsvmeSn
-        U4NJlsqv+DG0DkiMVbrafAYjcd3WNv5vsZGdpWeKdw==
-X-Google-Smtp-Source: ABdhPJwdcrWF3G7Rq+qfYkIVbIazzm/I9qPrWKhfieUqOBMC9ltDEavfEhg2N/npBshJ4yLUirzpyxuS5OLN9w7sghw=
-X-Received: by 2002:a50:d785:: with SMTP id w5mr1709907edi.212.1589532160099;
- Fri, 15 May 2020 01:42:40 -0700 (PDT)
+         :message-id:subject:to:cc;
+        bh=VXfWDMoOGstCJTpCZ/k8c2Zvj3bI6hPYO3aN/o7xNAM=;
+        b=VcYColB8ehtIJIFgMRU6I4Do74dLrvmV08GY+IO9Qs6qsW4rFiPyU4U0X9jcOSyw0C
+         nZ5O2xCAbbA0Y1b0WV4Nl6rAtTfoHMi/GS+UEeiQs6HiW6ZSQ0lwnV8U14TiQv/kVUtT
+         iuj/8zQQWZrU3PHAXLQkG8fD6O1tn63CplvVq8tpQMCikFmN9NFqyv+0qD9PkIzBgHuk
+         kPC/SzrAwtg+OD7neIvxgAzPgnWnC4yd++Ft+SbmW6vRiqzWB2O7S8YEdMmgBMxIfEYW
+         WdPDLunIw3eNAe37dOAd/oiF386xWSLZJ7L89OIQSll5UBz1hHRUm77QNV3mqx1MngqT
+         pShw==
+X-Gm-Message-State: AOAM532vTtksjABimN/hS9QGOtQM64uVmj/a2lhS18DB4gCvjhtf2aRW
+        MOeCBYWu7Cx3q7IyxSM8W3SDUYjiAhm1BkJ3DZ6HupGK
+X-Google-Smtp-Source: ABdhPJzdsgfY/dxB95HjyRWyno/GM62MF86Hq7S/AvIxTV8TI8NizbUma4gzK0IVy5cijRaVniVhD1pK7Lag1N7x/oE=
+X-Received: by 2002:a02:b141:: with SMTP id s1mr10400581jah.123.1589705170532;
+ Sun, 17 May 2020 01:46:10 -0700 (PDT)
 MIME-Version: 1.0
-References: <20200515072047.31454-1-cgxu519@mykernel.net> <CAOQ4uxhytw8YPY5WR+txeeHhuO+Hvr0eDFuKOahrN_htXtH_rA@mail.gmail.com>
- <17217706984.f5e20fe88512.8363313618084688988@mykernel.net>
-In-Reply-To: <17217706984.f5e20fe88512.8363313618084688988@mykernel.net>
-From:   Miklos Szeredi <miklos@szeredi.hu>
-Date:   Fri, 15 May 2020 10:42:29 +0200
-Message-ID: <CAJfpegvfEeDkBbgL0SXgZORkd2+eLaosNDG+_o=+qksyHcfurQ@mail.gmail.com>
-Subject: Re: [RFC PATCH v3 0/9] Suppress negative dentry
-To:     Chengguang Xu <cgxu519@mykernel.net>
-Cc:     Amir Goldstein <amir73il@gmail.com>,
-        Al Viro <viro@zeniv.linux.org.uk>,
-        linux-fsdevel <linux-fsdevel@vger.kernel.org>,
+References: <20200415120134.28154-1-amir73il@gmail.com> <20200415120134.28154-3-amir73il@gmail.com>
+ <20200415153032.GC239514@redhat.com> <CAOQ4uxhmxxjGGB3bBoK1OmcAWDsoNi3WdORtH7WDLOcp8=sYSQ@mail.gmail.com>
+ <20200415194243.GE239514@redhat.com> <CAOQ4uxjZ4Yd3ZWi+Fe64fVkrD=XMDjF1=C=XN_PNdywbGx_gzQ@mail.gmail.com>
+ <20200416125807.GB276932@redhat.com> <CAOQ4uxi=mT2JYGSXro5YW8gTE5256cxauBddYe2HXM=ZfZ=+ZA@mail.gmail.com>
+ <CAOQ4uxjvtGLn=SvLXy3KU6uKbonBUznL==OjdVVjjB6sM=-mgg@mail.gmail.com>
+ <20200420191453.GA21057@redhat.com> <CAOQ4uxjVU6gcQMmyMiBsVV73gik931-7QjAO9TCu+N2ik6109w@mail.gmail.com>
+In-Reply-To: <CAOQ4uxjVU6gcQMmyMiBsVV73gik931-7QjAO9TCu+N2ik6109w@mail.gmail.com>
+From:   Amir Goldstein <amir73il@gmail.com>
+Date:   Sun, 17 May 2020 11:45:59 +0300
+Message-ID: <CAOQ4uxgVnT3ZXZZa4-YktZaRDpU1hHujPoEtZ2vdFmsGxj=66A@mail.gmail.com>
+Subject: Re: [PATCH 2/2] Configure custom layers via environment variables
+To:     Vivek Goyal <vgoyal@redhat.com>
+Cc:     Giuseppe Scrivano <gscrivan@redhat.com>,
+        Miklos Szeredi <miklos@szeredi.hu>,
         overlayfs <linux-unionfs@vger.kernel.org>
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
 Sender: linux-unionfs-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Fri, May 15, 2020 at 10:26 AM Chengguang Xu <cgxu519@mykernel.net> wrote=
-:
+> >
+> > What's most intuitive to me is this.
+> >
+> > - If user only specifies UNIONMOUNT_BASEDIR, all layers (lower, upper,
+> >   work and even mount point) comes from that directory.
 >
->  ---- =E5=9C=A8 =E6=98=9F=E6=9C=9F=E4=BA=94, 2020-05-15 15:30:27 Amir Gol=
-dstein <amir73il@gmail.com> =E6=92=B0=E5=86=99 ----
->  > On Fri, May 15, 2020 at 10:21 AM Chengguang Xu <cgxu519@mykernel.net> =
-wrote:
->  > >
->  > > This series adds a new lookup flag LOOKUP_DONTCACHE_NEGATIVE
->  > > to indicate to drop negative dentry in slow path of lookup.
->  > >
->  > > In overlayfs, negative dentries in upper/lower layers are useless
->  > > after construction of overlayfs' own dentry, so in order to
->  > > effectively reclaim those dentries, specify LOOKUP_DONTCACHE_NEGATIV=
-E
->  > > flag when doing lookup in upper/lower layers.
->  > >
->  > > Patch 1 adds flag LOOKUP_DONTCACHE_NEGATIVE and related logic in vfs=
- layer.
->  > > Patch 2 does lookup optimazation for overlayfs.
->  > > Patch 3-9 just adjusts function argument when calling
->  > > lookup_positive_unlocked() and lookup_one_len_unlocked().
->  >
->  > Hmm you cannot do that, build must not be broken mid series.
->  > When Miklos said split he meant to patch 1 and 2.
->  > Patch 1 must convert all callers to the new argument list,
->  > at which point all overlayfs calls are with 0 flags.
->  >
->  > Once that's done, you may add:
->  > Reviewed-by: Amir Goldstein <amir73il@gmail.com>
->  >
+> OK.
 >
-> OK, I got it, I'll still wait for a while in case of other feedbacks.
+> >
+> > - If user specifies both UNIONMOUNT_LOWERDIR and UNIONMOUNT_BASEDIR, then
+> >   lower layer path comes from UNIONMOUNT_LOWERDIR and rest of the layers
+> >   come from UNIONMOUNT_BASEDIR.
 >
-> Miklos, AI
+> DONE.
 >
-> I'm not sure this series will go into whose tree in the end,
-> so I just rebased on current linus-tree, any suggestion for the code base=
-?
+> >
+> > - If user specifies UNIONMOUNT_MNTPOINT, it is used as overlay mount
+> >   point. Otherwise one is selected from UNIONMOUNT_BASEDIR if user
+> >   specified one. Otherwise "/mnt" is the default.
+> >
+>
+> OK.
+>
 
-Linus' tree is a good base in this case.  I'm happier if VFS changes
-go through Al's tree, but simple stuff can go through overlayfs tree
-as well.
+Vivek,
+
+I finally got around to implementing your suggestion (see [1]).
+
+Quoting from README:
+
+     When user provides UNIONMOUNT_LOWERDIR:
+
+     1) Path should be an existing directory whose content will be deleted.
+     2) Path is assumed to be on a different filesystem than base dir, so
+        --samefs setup is not supported.
+
+     When user provides UNIONMOUNT_BASEDIR:
+
+     1) Path should be an existing directory whose content will be deleted.
+     2) If UNIONMOUNT_MNTPOINT is not provided, the overlay mount point will
+        be created under base dir.
+     3) If UNIONMOUNT_LOWERDIR is not provided, the lower layer dir will be
+        created under base dir.
+     4) If UNIONMOUNT_LOWERDIR is not provided, the test setup defaults to
+        --samefs (i.e. lower and upper are on the same base fs).  However,
+        if --maxfs=<M> is specified, a tmpfs instance will be created for
+        the lower layer dir.
+----
+
+I realize this last item (4) is a bit tricky.
+Let me know if you think it needs further clarification.
 
 Thanks,
-Miklos
+Amir.
+
+
+[1] https://github.com/amir73il/unionmount-testsuite/commits/envvars
