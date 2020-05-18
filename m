@@ -2,145 +2,182 @@ Return-Path: <SRS0=JhEn=7A=vger.kernel.org=linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.9 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-11.9 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 95436C433E0
-	for <linux-unionfs@archiver.kernel.org>; Mon, 18 May 2020 00:53:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0FB0DC433DF
+	for <linux-unionfs@archiver.kernel.org>; Mon, 18 May 2020 02:37:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6BA1720758
-	for <linux-unionfs@archiver.kernel.org>; Mon, 18 May 2020 00:53:40 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 99EB32070A
+	for <linux-unionfs@archiver.kernel.org>; Mon, 18 May 2020 02:36:59 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=themaw.net header.i=@themaw.net header.b="l7b/UVbr";
-	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="CNyz+ORv"
+	dkim=pass (1024-bit key) header.d=mykernel.net header.i=cgxu519@mykernel.net header.b="ATYgK529"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726700AbgERAxk (ORCPT
+        id S1726696AbgERCg7 (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Sun, 17 May 2020 20:53:40 -0400
-Received: from out5-smtp.messagingengine.com ([66.111.4.29]:54457 "EHLO
-        out5-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726675AbgERAxj (ORCPT
+        Sun, 17 May 2020 22:36:59 -0400
+Received: from sender2-of-o52.zoho.com.cn ([163.53.93.247]:21149 "EHLO
+        sender2-of-o52.zoho.com.cn" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726639AbgERCg6 (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Sun, 17 May 2020 20:53:39 -0400
-Received: from compute2.internal (compute2.nyi.internal [10.202.2.42])
-        by mailout.nyi.internal (Postfix) with ESMTP id BBC075C003D;
-        Sun, 17 May 2020 20:53:38 -0400 (EDT)
-Received: from mailfrontend1 ([10.202.2.162])
-  by compute2.internal (MEProxy); Sun, 17 May 2020 20:53:38 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=themaw.net; h=
-        message-id:subject:from:to:cc:date:in-reply-to:references
-        :content-type:mime-version:content-transfer-encoding; s=fm3; bh=
-        x8+wYDtaURVodIiWZG1wMgfzVKUJnR2YLZKOn2qHRVo=; b=l7b/UVbrCIzRfBLH
-        jU6YTC5Oy99qgxihuT3ZgDgc1V3pg7m1YCLDOpmlMbihk9LpG0Ib+Oamrt/75eGR
-        KrcCjmNUe4EFl+q3+a76DFLM7LZkCfCaJnhDoLukDkSzR2LCmDpBmAYgWZEZmPfA
-        JJ80AaqJr0U9Z5fma8py+bMFcwr5k/7i3epPJ4dZCB5hL3SdnN9n0cPwTVCQEsdv
-        nQTaFU29iF6Xk4kdhMZMELuiMV5s+M26ebPO51jp/fhdKb+0uuYINbZbgSnxR5j6
-        Wxp6Z2vdfUeEOY71iZExdjU0qfljD0vlRhFDXcyFavdYn4vCaRLDoPYAjMyFlkxE
-        vER5Bg==
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-        messagingengine.com; h=cc:content-transfer-encoding:content-type
-        :date:from:in-reply-to:message-id:mime-version:references
-        :subject:to:x-me-proxy:x-me-proxy:x-me-sender:x-me-sender
-        :x-sasl-enc; s=fm2; bh=x8+wYDtaURVodIiWZG1wMgfzVKUJnR2YLZKOn2qHR
-        Vo=; b=CNyz+ORvE+N2eDrGyfebvU/zZkX4n2iBAnyWjwsJ2KDKWtOv/ftO0eYNr
-        4OfKbz2ZV+iNCLQmG9N7hJ78Mvw/hQUgnoxwH0gwQX3kk8q0uCX5h6yQwvP85qiv
-        7RUsYpsgHb/I4hf4DORToEjvF31NyCrl3AKB8RLdwbygPN0RVUO2G5ApFa92I7WB
-        d4/k1h06Z19J6pnBYTX0PRetdk0w21eS+iV0SDoJh2IhPntnzvFq930hqtol/rOs
-        UnhddLVGNSXOUu2gsE/yM8gBXHU/CM736rjU3rSeV0VYsOgwt+TLWnx8kkg3wjmA
-        l44n2CxeJ9ZbrdwGJJlKthLakeyFw==
-X-ME-Sender: <xms:kdzBXufrjYoBq14cjGP9MgtcFAIUCEIN_V8UhAByyykTAtrZjy6-8w>
-X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgeduhedruddtgedgfeekucetufdoteggodetrfdotf
-    fvucfrrhhofhhilhgvmecuhfgrshhtofgrihhlpdfqfgfvpdfurfetoffkrfgpnffqhgen
-    uceurghilhhouhhtmecufedttdenucenucfjughrpefkuffhvfffjghftggfggfgsehtje
-    ertddtreejnecuhfhrohhmpefkrghnucfmvghnthcuoehrrghvvghnsehthhgvmhgrfidr
-    nhgvtheqnecuggftrfgrthhtvghrnhepfeefteetvdeguddvveefveeftedtffduudehue
-    eihfeuvefgveehffeludeggfejnecukfhppeduudekrddvtdekrdduiedurddufedtnecu
-    vehluhhsthgvrhfuihiivgeptdenucfrrghrrghmpehmrghilhhfrhhomheprhgrvhgvnh
-    esthhhvghmrgifrdhnvght
-X-ME-Proxy: <xmx:kdzBXoMXSZOWMt-HR8tjin1ksPHMlzI3qNo54RqoWCZwWLSDJSPqqA>
-    <xmx:kdzBXvgMY5_n0FpvHsofpreycr0jEtqVeKzYkPGhVLZa-Ys3zarLow>
-    <xmx:kdzBXr_BViR-59odoAltTFSKR6vlE0S5OWc_2XSyWkh6tLszbROb7Q>
-    <xmx:ktzBXvWldk709pLNw4l0LnII8fLrihAxk-Z1w5AMlrcFyWL5B8qkIg>
-Received: from mickey.themaw.net (unknown [118.208.161.130])
-        by mail.messagingengine.com (Postfix) with ESMTPA id 1E6DC3280059;
-        Sun, 17 May 2020 20:53:34 -0400 (EDT)
-Message-ID: <e994d56ff1357013a85bde7be2e901476f743b83.camel@themaw.net>
-Subject: Re: [RFC PATCH v3 0/9] Suppress negative dentry
-From:   Ian Kent <raven@themaw.net>
-To:     Chengguang Xu <cgxu519@mykernel.net>, miklos@szeredi.hu,
-        viro@zeniv.linux.org.uk, amir73il@gmail.com
-Cc:     linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org
-Date:   Mon, 18 May 2020 08:53:31 +0800
-In-Reply-To: <20200515072047.31454-1-cgxu519@mykernel.net>
-References: <20200515072047.31454-1-cgxu519@mykernel.net>
-Content-Type: text/plain; charset="UTF-8"
-User-Agent: Evolution 3.34.4 (3.34.4-1.fc31) 
+        Sun, 17 May 2020 22:36:58 -0400
+ARC-Seal: i=1; a=rsa-sha256; t=1589769409; cv=none; 
+        d=zoho.com.cn; s=zohoarc; 
+        b=hC8QOvYQVizMZnnEyV3rksjfjsq/wqnebRn7dArXSqxuhJWceVysYwQ14nR7WFarB289e02Gf3MZC2w3tb0oTl+BYMVa5U2zZvGe4MrPUxwX9Y/wvW41DJQ6GVZf1TJD6TlBCaplmiaHpgb8VmJIdCNDYYUsGPtO3d6fFWK4cIk=
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=zoho.com.cn; s=zohoarc; 
+        t=1589769409; h=Content-Type:Content-Transfer-Encoding:Cc:Date:From:In-Reply-To:MIME-Version:Message-ID:Reply-To:References:Subject:To; 
+        bh=HUW5Y4ugn2/incZJJH/85iYjyOY8Wk2WhKwoPsTQdcI=; 
+        b=DA6TzlKnXlg0iFk5Y28aJs+LxNYor1CGkbvPgy1K5ttU8BBcA/TD6LDR+y2e5fjd/Z6oVT1XP0lTysskvH9iMDCbLLe/AAjox/qmGSt6FqHjVVQPCFGseKp5GmF5mDKMMX8DWIMZSmGO5XfVQ1JmZ6q3h6GqKt+O/ZBZv8S6JGI=
+ARC-Authentication-Results: i=1; mx.zoho.com.cn;
+        dkim=pass  header.i=mykernel.net;
+        spf=pass  smtp.mailfrom=cgxu519@mykernel.net;
+        dmarc=pass header.from=<cgxu519@mykernel.net> header.from=<cgxu519@mykernel.net>
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1589769409;
+        s=zohomail; d=mykernel.net; i=cgxu519@mykernel.net;
+        h=Date:From:Reply-To:To:Cc:Message-ID:In-Reply-To:References:Subject:MIME-Version:Content-Type:Content-Transfer-Encoding;
+        bh=HUW5Y4ugn2/incZJJH/85iYjyOY8Wk2WhKwoPsTQdcI=;
+        b=ATYgK529YNfjsA2SU7dy4diLvQC0aiEOlxYts0ewA0MmNXYzWR8m7/YxhC6UJoTg
+        9X9cTXjVutBz31QdLQ3fEuxLVpQLbbWFnmDWxKpmFnpH+aDFieAgPjXiAMoW2zeA5k5
+        RccVxuOBHDgBbr33h+6n0QPsDYdG1hFzJuHnmcIo=
+Received: from mail.baihui.com by mx.zoho.com.cn
+        with SMTP id 158976940492991.06137589965692; Mon, 18 May 2020 10:36:44 +0800 (CST)
+Date:   Mon, 18 May 2020 10:36:44 +0800
+From:   Chengguang Xu <cgxu519@mykernel.net>
+Reply-To: cgxu519@mykernel.net
+To:     "Eryu Guan" <guan@eryu.me>
+Cc:     "guaneryu" <guaneryu@gmail.com>,
+        "fstests" <fstests@vger.kernel.org>,
+        "linux-unionfs" <linux-unionfs@vger.kernel.org>
+Message-ID: <17225a401fd.f5f9e76e17914.3773901501971634787@mykernel.net>
+In-Reply-To: <20200517142922.GA2704@desktop>
+References: <20200422045210.11017-1-cgxu519@mykernel.net> <20200517142922.GA2704@desktop>
+Subject: Re: [PATCH] generic/484: test data integrity for rdonly remount
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+Importance: Medium
+User-Agent: ZohoCN Mail
+X-Mailer: ZohoCN Mail
 Sender: linux-unionfs-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Fri, 2020-05-15 at 15:20 +0800, Chengguang Xu wrote:
-> This series adds a new lookup flag LOOKUP_DONTCACHE_NEGATIVE
-> to indicate to drop negative dentry in slow path of lookup.
-> 
-> In overlayfs, negative dentries in upper/lower layers are useless
-> after construction of overlayfs' own dentry, so in order to
-> effectively reclaim those dentries, specify LOOKUP_DONTCACHE_NEGATIVE
-> flag when doing lookup in upper/lower layers.
+ ---- =E5=9C=A8 =E6=98=9F=E6=9C=9F=E6=97=A5, 2020-05-17 22:29:22 Eryu Guan =
+<guan@eryu.me> =E6=92=B0=E5=86=99 ----
+ > On Wed, Apr 22, 2020 at 12:52:10PM +0800, Chengguang Xu wrote:
+ > > This test checks data integrity when remounting from
+ > > rw to ro mode.
+ > >=20
+ > > Signed-off-by: Chengguang Xu <cgxu519@mykernel.net>
+ >=20
+ > The test itself looks fine. I'm just wondering that is there a real bug
+ > which is exposed by this test? And what's the purpose of the shutdown?
+ > More background info would be great if there's any.
+ >=20
 
-I've looked at this a couple of times now.
+The case is  for testing below fix patch in overlayfs but I think maybe it =
+is also suitable for other file systems.
+https://git.kernel.org/pub/scm/linux/kernel/git/mszeredi/vfs.git/commit/?h=
+=3Doverlayfs-next&id=3D399c109d357a7e217cf7ef551e7e234439c68c15
 
-I'm not at all sure of the wisdom of adding a flag to a VFS function
-that allows circumventing what a file system chooses to do.
+shutdown will avoid effect of async dirty data flushing.=20
 
-I also do really see the need for it because only hashed negative
-dentrys will be retained by the VFS so, if you see a hashed negative
-dentry then you can cause it to be discarded on release of the last
-reference by dropping it.
 
-So what's different here, why is adding an argument to do that drop
-in the VFS itself needed instead of just doing it in overlayfs?
+ > > ---
+ > >  tests/generic/484     | 54 ++++++++++++++++++++++++++++++++++++++++++=
++
+ > >  tests/generic/484.out |  2 ++
+ > >  tests/generic/group   |  1 +
+ > >  3 files changed, 57 insertions(+)
+ > >  create mode 100755 tests/generic/484
+ > >  create mode 100644 tests/generic/484.out
+ > >=20
+ > > diff --git a/tests/generic/484 b/tests/generic/484
+ > > new file mode 100755
+ > > index 00000000..bc640214
+ > > --- /dev/null
+ > > +++ b/tests/generic/484
+ > > @@ -0,0 +1,54 @@
+ > > +#! /bin/bash
+ > > +# SPDX-License-Identifier: GPL-2.0
+ > > +# Copyright (c) 2020 Chengguang Xu <cgxu519@mykernel.net>.
+ > > +# All Rights Reserved.
+ > > +#
+ > > +# FS QA Test 484
+ > > +#
+ > > +# Test data integrity for ro remount.
+ > > +#
+ > > +seq=3D`basename $0`
+ > > +seqres=3D$RESULT_DIR/$seq
+ > > +echo "QA output created by $seq"
+ > > +
+ > > +here=3D`pwd`
+ > > +tmp=3D/tmp/$
+ > > +status=3D0
+ > > +trap "_cleanup; exit \$status" 0 1 2 3 15
+ > > +
+ > > +_cleanup()
+ > > +{
+ > > +    cd /
+ > > +    rm -f $tmp.*
+ > > +}
+ > > +
+ > > +# get standard environment, filters and checks
+ > > +. ./common/rc
+ > > +. ./common/filter
+ > > +
+ > > +# remove previous $seqres.full before test
+ > > +rm -f $seqres.full
+ > > +
+ > > +# real QA test starts here
+ > > +_supported_fs generic
+ > > +_supported_os Linux
+ > > +_require_fssum
+ > > +_require_scratch
+ > > +_require_scratch_shutdown
+ > > +
+ > > +_scratch_mkfs &>/dev/null
+ > > +_scratch_mount
+ > > +
+ > > +localdir=3D$SCRATCH_MNT/dir
+ > > +mkdir $localdir
+ > > +sync
+ > > +
+ > > +# fssum used for comparing checksum of test file(data & metedata),
+ > > +# exclude checking about atime, block structure, open error.
+ > > +$FSSUM_PROG -ugomAcdES -f -w $tmp.fssum $localdir
+ > > +_scratch_remount ro
+ > > +_scratch_shutdown
+ > > +_scratch_cycle_mount
+ > > +$FSSUM_PROG -r $tmp.fssum $localdir
+ > > +
+ > > +exit
+ > > diff --git a/tests/generic/484.out b/tests/generic/484.out
+ > > new file mode 100644
+ > > index 00000000..e33c7815
+ > > --- /dev/null
+ > > +++ b/tests/generic/484.out
+ > > @@ -0,0 +1,2 @@
+ > > +QA output created by 484
+ > > +OK
+ > > diff --git a/tests/generic/group b/tests/generic/group
+ > > index 718575ba..cc58ff0d 100644
+ > > --- a/tests/generic/group
+ > > +++ b/tests/generic/group
+ > > @@ -486,6 +486,7 @@
+ > >  481 auto quick log metadata
+ > >  482 auto metadata replay thin
+ > >  483 auto quick log metadata
+ > > +484 auto quick remount
+ >=20
+ > Also in shutdown group.
+ >=20
 
-> 
-> Patch 1 adds flag LOOKUP_DONTCACHE_NEGATIVE and related logic in vfs
-> layer.
-> Patch 2 does lookup optimazation for overlayfs.
-> Patch 3-9 just adjusts function argument when calling
-> lookup_positive_unlocked() and lookup_one_len_unlocked().
-> 
-> v1->v2:
-> - Only drop negative dentry in slow path of lookup.
-> 
-> v2->v3:
-> - Drop negative dentry in vfs layer.
-> - Rebase on latest linus-tree(5.7.0-rc5).
-> 
-> Chengguang Xu (9):
->   fs/dcache: Introduce a new lookup flag LOOKUP_DONTCACHE_NEGATIVE
->   ovl: Suppress negative dentry in lookup
->   cifs: Adjust argument for lookup_positive_unlocked()
->   debugfs: Adjust argument for lookup_positive_unlocked()
->   ecryptfs: Adjust argument for lookup_one_len_unlocked()
->   exportfs: Adjust argument for lookup_one_len_unlocked()
->   kernfs: Adjust argument for lookup_positive_unlocked()
->   nfsd: Adjust argument for lookup_positive_unlocked()
->   quota: Adjust argument for lookup_positive_unlocked()
-> 
->  fs/cifs/cifsfs.c      |  2 +-
->  fs/debugfs/inode.c    |  2 +-
->  fs/ecryptfs/inode.c   |  2 +-
->  fs/exportfs/expfs.c   |  2 +-
->  fs/kernfs/mount.c     |  2 +-
->  fs/namei.c            | 14 ++++++++++----
->  fs/nfsd/nfs3xdr.c     |  2 +-
->  fs/nfsd/nfs4xdr.c     |  3 ++-
->  fs/overlayfs/namei.c  |  9 +++++----
->  fs/quota/dquot.c      |  3 ++-
->  include/linux/namei.h |  9 +++++++--
->  11 files changed, 32 insertions(+), 18 deletions(-)
-> 
+I'll add this in next version.
 
+
+Thanks,
+cgxu
