@@ -1,82 +1,146 @@
-Return-Path: <SRS0=O/kl=67=vger.kernel.org=linux-unionfs-owner@kernel.org>
+Return-Path: <SRS0=JhEn=7A=vger.kernel.org=linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,UNPARSEABLE_RELAY
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.9 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4B770C433DF
-	for <linux-unionfs@archiver.kernel.org>; Sun, 17 May 2020 16:47:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 95436C433E0
+	for <linux-unionfs@archiver.kernel.org>; Mon, 18 May 2020 00:53:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 21DC320657
-	for <linux-unionfs@archiver.kernel.org>; Sun, 17 May 2020 16:47:48 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6BA1720758
+	for <linux-unionfs@archiver.kernel.org>; Mon, 18 May 2020 00:53:40 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=themaw.net header.i=@themaw.net header.b="l7b/UVbr";
+	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="CNyz+ORv"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728041AbgEQQrr (ORCPT
+        id S1726700AbgERAxk (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Sun, 17 May 2020 12:47:47 -0400
-Received: from out20-110.mail.aliyun.com ([115.124.20.110]:42471 "EHLO
-        out20-110.mail.aliyun.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728028AbgEQQrr (ORCPT
+        Sun, 17 May 2020 20:53:40 -0400
+Received: from out5-smtp.messagingengine.com ([66.111.4.29]:54457 "EHLO
+        out5-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726675AbgERAxj (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Sun, 17 May 2020 12:47:47 -0400
-X-Alimail-AntiSpam: AC=CONTINUE;BC=0.08392455|-1;CH=green;DM=|CONTINUE|false|;DS=CONTINUE|ham_social|0.037933-0.00118985-0.960877;FP=0|0|0|0|0|-1|-1|-1;HT=e02c03299;MF=guan@eryu.me;NM=1;PH=DS;RN=6;RT=6;SR=0;TI=SMTPD_---.HZtRwnV_1589734064;
-Received: from localhost(mailfrom:guan@eryu.me fp:SMTPD_---.HZtRwnV_1589734064)
-          by smtp.aliyun-inc.com(10.147.41.231);
-          Mon, 18 May 2020 00:47:44 +0800
-Date:   Mon, 18 May 2020 00:47:44 +0800
-From:   Eryu Guan <guan@eryu.me>
-To:     Amir Goldstein <amir73il@gmail.com>
-Cc:     Eryu Guan <guaneryu@gmail.com>,
-        Chengguang Xu <cgxu519@mykernel.net>,
-        Miklos Szeredi <miklos@szeredi.hu>,
-        overlayfs <linux-unionfs@vger.kernel.org>,
-        fstests <fstests@vger.kernel.org>
-Subject: Re: [PATCH v5] overlay: test for whiteout inode sharing
-Message-ID: <20200517164744.GH2704@desktop>
-References: <20200513192338.13584-1-amir73il@gmail.com>
- <20200517162418.GG2704@desktop>
- <CAOQ4uxhtOSsi41z_kCA2ihCKVEg3FTxg892OHgCB22j60LQHoA@mail.gmail.com>
+        Sun, 17 May 2020 20:53:39 -0400
+Received: from compute2.internal (compute2.nyi.internal [10.202.2.42])
+        by mailout.nyi.internal (Postfix) with ESMTP id BBC075C003D;
+        Sun, 17 May 2020 20:53:38 -0400 (EDT)
+Received: from mailfrontend1 ([10.202.2.162])
+  by compute2.internal (MEProxy); Sun, 17 May 2020 20:53:38 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=themaw.net; h=
+        message-id:subject:from:to:cc:date:in-reply-to:references
+        :content-type:mime-version:content-transfer-encoding; s=fm3; bh=
+        x8+wYDtaURVodIiWZG1wMgfzVKUJnR2YLZKOn2qHRVo=; b=l7b/UVbrCIzRfBLH
+        jU6YTC5Oy99qgxihuT3ZgDgc1V3pg7m1YCLDOpmlMbihk9LpG0Ib+Oamrt/75eGR
+        KrcCjmNUe4EFl+q3+a76DFLM7LZkCfCaJnhDoLukDkSzR2LCmDpBmAYgWZEZmPfA
+        JJ80AaqJr0U9Z5fma8py+bMFcwr5k/7i3epPJ4dZCB5hL3SdnN9n0cPwTVCQEsdv
+        nQTaFU29iF6Xk4kdhMZMELuiMV5s+M26ebPO51jp/fhdKb+0uuYINbZbgSnxR5j6
+        Wxp6Z2vdfUeEOY71iZExdjU0qfljD0vlRhFDXcyFavdYn4vCaRLDoPYAjMyFlkxE
+        vER5Bg==
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+        messagingengine.com; h=cc:content-transfer-encoding:content-type
+        :date:from:in-reply-to:message-id:mime-version:references
+        :subject:to:x-me-proxy:x-me-proxy:x-me-sender:x-me-sender
+        :x-sasl-enc; s=fm2; bh=x8+wYDtaURVodIiWZG1wMgfzVKUJnR2YLZKOn2qHR
+        Vo=; b=CNyz+ORvE+N2eDrGyfebvU/zZkX4n2iBAnyWjwsJ2KDKWtOv/ftO0eYNr
+        4OfKbz2ZV+iNCLQmG9N7hJ78Mvw/hQUgnoxwH0gwQX3kk8q0uCX5h6yQwvP85qiv
+        7RUsYpsgHb/I4hf4DORToEjvF31NyCrl3AKB8RLdwbygPN0RVUO2G5ApFa92I7WB
+        d4/k1h06Z19J6pnBYTX0PRetdk0w21eS+iV0SDoJh2IhPntnzvFq930hqtol/rOs
+        UnhddLVGNSXOUu2gsE/yM8gBXHU/CM736rjU3rSeV0VYsOgwt+TLWnx8kkg3wjmA
+        l44n2CxeJ9ZbrdwGJJlKthLakeyFw==
+X-ME-Sender: <xms:kdzBXufrjYoBq14cjGP9MgtcFAIUCEIN_V8UhAByyykTAtrZjy6-8w>
+X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgeduhedruddtgedgfeekucetufdoteggodetrfdotf
+    fvucfrrhhofhhilhgvmecuhfgrshhtofgrihhlpdfqfgfvpdfurfetoffkrfgpnffqhgen
+    uceurghilhhouhhtmecufedttdenucenucfjughrpefkuffhvfffjghftggfggfgsehtje
+    ertddtreejnecuhfhrohhmpefkrghnucfmvghnthcuoehrrghvvghnsehthhgvmhgrfidr
+    nhgvtheqnecuggftrfgrthhtvghrnhepfeefteetvdeguddvveefveeftedtffduudehue
+    eihfeuvefgveehffeludeggfejnecukfhppeduudekrddvtdekrdduiedurddufedtnecu
+    vehluhhsthgvrhfuihiivgeptdenucfrrghrrghmpehmrghilhhfrhhomheprhgrvhgvnh
+    esthhhvghmrgifrdhnvght
+X-ME-Proxy: <xmx:kdzBXoMXSZOWMt-HR8tjin1ksPHMlzI3qNo54RqoWCZwWLSDJSPqqA>
+    <xmx:kdzBXvgMY5_n0FpvHsofpreycr0jEtqVeKzYkPGhVLZa-Ys3zarLow>
+    <xmx:kdzBXr_BViR-59odoAltTFSKR6vlE0S5OWc_2XSyWkh6tLszbROb7Q>
+    <xmx:ktzBXvWldk709pLNw4l0LnII8fLrihAxk-Z1w5AMlrcFyWL5B8qkIg>
+Received: from mickey.themaw.net (unknown [118.208.161.130])
+        by mail.messagingengine.com (Postfix) with ESMTPA id 1E6DC3280059;
+        Sun, 17 May 2020 20:53:34 -0400 (EDT)
+Message-ID: <e994d56ff1357013a85bde7be2e901476f743b83.camel@themaw.net>
+Subject: Re: [RFC PATCH v3 0/9] Suppress negative dentry
+From:   Ian Kent <raven@themaw.net>
+To:     Chengguang Xu <cgxu519@mykernel.net>, miklos@szeredi.hu,
+        viro@zeniv.linux.org.uk, amir73il@gmail.com
+Cc:     linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org
+Date:   Mon, 18 May 2020 08:53:31 +0800
+In-Reply-To: <20200515072047.31454-1-cgxu519@mykernel.net>
+References: <20200515072047.31454-1-cgxu519@mykernel.net>
+Content-Type: text/plain; charset="UTF-8"
+User-Agent: Evolution 3.34.4 (3.34.4-1.fc31) 
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAOQ4uxhtOSsi41z_kCA2ihCKVEg3FTxg892OHgCB22j60LQHoA@mail.gmail.com>
+Content-Transfer-Encoding: 7bit
 Sender: linux-unionfs-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Sun, May 17, 2020 at 07:42:32PM +0300, Amir Goldstein wrote:
-> On Sun, May 17, 2020 at 7:24 PM Eryu Guan <guan@eryu.me> wrote:
-> >
-> > On Wed, May 13, 2020 at 10:23:38PM +0300, Amir Goldstein wrote:
-> > > From: Chengguang Xu <cgxu519@mykernel.net>
-> > >
-> > > This is a test for whiteout inode sharing feature.
-> > >
-> > > [Amir] added check for whiteout sharing support
-> > >        and whiteout of lower dir.
-> > >
-> > > Signed-off-by: Chengguang Xu <cgxu519@mykernel.net>
-> > > Signed-off-by: Amir Goldstein <amir73il@gmail.com>
-> > > ---
-> > >
-> > > Chengguang,
-> > >
-> > > I decided to take a stab at Eryu's challenge ;-)
-> >
-> > Great! Thanks for the update!
-> >
+On Fri, 2020-05-15 at 15:20 +0800, Chengguang Xu wrote:
+> This series adds a new lookup flag LOOKUP_DONTCACHE_NEGATIVE
+> to indicate to drop negative dentry in slow path of lookup.
 > 
-> FYI, not sure if and when that was mentioned.
-> inode sharing feature is now on overlayfs-next.
+> In overlayfs, negative dentries in upper/lower layers are useless
+> after construction of overlayfs' own dentry, so in order to
+> effectively reclaim those dentries, specify LOOKUP_DONTCACHE_NEGATIVE
+> flag when doing lookup in upper/lower layers.
+
+I've looked at this a couple of times now.
+
+I'm not at all sure of the wisdom of adding a flag to a VFS function
+that allows circumventing what a file system chooses to do.
+
+I also do really see the need for it because only hashed negative
+dentrys will be retained by the VFS so, if you see a hashed negative
+dentry then you can cause it to be discarded on release of the last
+reference by dropping it.
+
+So what's different here, why is adding an argument to do that drop
+in the VFS itself needed instead of just doing it in overlayfs?
+
 > 
-> So are the two file handle fixes for which I posted the test:
-> "overlay: regression test for two file handle bugs"
-> (will re-post when I have the final kernel commits)
+> Patch 1 adds flag LOOKUP_DONTCACHE_NEGATIVE and related logic in vfs
+> layer.
+> Patch 2 does lookup optimazation for overlayfs.
+> Patch 3-9 just adjusts function argument when calling
+> lookup_positive_unlocked() and lookup_one_len_unlocked().
+> 
+> v1->v2:
+> - Only drop negative dentry in slow path of lookup.
+> 
+> v2->v3:
+> - Drop negative dentry in vfs layer.
+> - Rebase on latest linus-tree(5.7.0-rc5).
+> 
+> Chengguang Xu (9):
+>   fs/dcache: Introduce a new lookup flag LOOKUP_DONTCACHE_NEGATIVE
+>   ovl: Suppress negative dentry in lookup
+>   cifs: Adjust argument for lookup_positive_unlocked()
+>   debugfs: Adjust argument for lookup_positive_unlocked()
+>   ecryptfs: Adjust argument for lookup_one_len_unlocked()
+>   exportfs: Adjust argument for lookup_one_len_unlocked()
+>   kernfs: Adjust argument for lookup_positive_unlocked()
+>   nfsd: Adjust argument for lookup_positive_unlocked()
+>   quota: Adjust argument for lookup_positive_unlocked()
+> 
+>  fs/cifs/cifsfs.c      |  2 +-
+>  fs/debugfs/inode.c    |  2 +-
+>  fs/ecryptfs/inode.c   |  2 +-
+>  fs/exportfs/expfs.c   |  2 +-
+>  fs/kernfs/mount.c     |  2 +-
+>  fs/namei.c            | 14 ++++++++++----
+>  fs/nfsd/nfs3xdr.c     |  2 +-
+>  fs/nfsd/nfs4xdr.c     |  3 ++-
+>  fs/overlayfs/namei.c  |  9 +++++----
+>  fs/quota/dquot.c      |  3 ++-
+>  include/linux/namei.h |  9 +++++++--
+>  11 files changed, 32 insertions(+), 18 deletions(-)
+> 
 
-Thanks! I noticed this test would oops kernel, so I didn't take it this
-time and will wait until the fix goes to mainline kernel.
-
-Thanks,
-Eryu
