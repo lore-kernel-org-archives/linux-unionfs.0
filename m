@@ -1,103 +1,154 @@
-Return-Path: <SRS0=JhEn=7A=vger.kernel.org=linux-unionfs-owner@kernel.org>
+Return-Path: <SRS0=3eGR=7B=vger.kernel.org=linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.9 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A0004C433E1
-	for <linux-unionfs@archiver.kernel.org>; Mon, 18 May 2020 10:39:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5FFBFC433E0
+	for <linux-unionfs@archiver.kernel.org>; Tue, 19 May 2020 02:43:21 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 800F120825
-	for <linux-unionfs@archiver.kernel.org>; Mon, 18 May 2020 10:39:40 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 33AE5206D4
+	for <linux-unionfs@archiver.kernel.org>; Tue, 19 May 2020 02:43:21 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=themaw.net header.i=@themaw.net header.b="2YM8ZP+h";
-	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="SppxqMLq"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Y/bDmEUL"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726274AbgERKjk (ORCPT
+        id S1726359AbgESCnU (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Mon, 18 May 2020 06:39:40 -0400
-Received: from wout3-smtp.messagingengine.com ([64.147.123.19]:33151 "EHLO
-        wout3-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726127AbgERKjj (ORCPT
+        Mon, 18 May 2020 22:43:20 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59658 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726302AbgESCnU (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 18 May 2020 06:39:39 -0400
-Received: from compute2.internal (compute2.nyi.internal [10.202.2.42])
-        by mailout.west.internal (Postfix) with ESMTP id CE936A0E;
-        Mon, 18 May 2020 06:39:38 -0400 (EDT)
-Received: from mailfrontend2 ([10.202.2.163])
-  by compute2.internal (MEProxy); Mon, 18 May 2020 06:39:39 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=themaw.net; h=
-        message-id:subject:from:to:cc:date:in-reply-to:references
-        :content-type:mime-version:content-transfer-encoding; s=fm3; bh=
-        a8qFxPgNXDbutBfdJc1ON1dfUT2X5u0TBiN9wBESi40=; b=2YM8ZP+h1aGr4UcI
-        2I1q4GLRacLJsxwjPYfMBGUwNsyVQ1b3mzHFkVed6z2DkgdPFy8qUOTAe5ZlK6TD
-        Uc4gmxz80NMt0puVliNpTzmrJWBcaAKa6U5NUBoLKBGf/U2DU1k+RodfBn1Hcxr3
-        +pKUaZCB+LqBRhTLui343Tl8lI0thG8PpRQUSzSVX5WgYxvH+JF0HwLZw4Ajimp0
-        6AN9uQol+Ah/hr7RGNV0NEl6QTr6Q54KbUPQqHGF1KEU1YHxSk+0y2NUo42+v0Ja
-        oc9krOnCsS5bzX6k9U1thfUajk7DANRcN2RHBkPYY5JrR2QNm7dOqiDfnKxXd7ng
-        gLfQSQ==
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-        messagingengine.com; h=cc:content-transfer-encoding:content-type
-        :date:from:in-reply-to:message-id:mime-version:references
-        :subject:to:x-me-proxy:x-me-proxy:x-me-sender:x-me-sender
-        :x-sasl-enc; s=fm2; bh=a8qFxPgNXDbutBfdJc1ON1dfUT2X5u0TBiN9wBESi
-        40=; b=SppxqMLqw/wTD/Ug/Vw8ALf5EYHj+Wg4vxNbD04++zeI5Cu7+F2CSAX3+
-        t9XW6WmFK4RMeNAMPBTsazz4KbcNRvU2bEf56i3EMlKnqHvld+Y4LYP17kQGrQHy
-        G/gaw1A22Xf8F33DOIc1fetR8ieIXk0cXSAMw7KB80TL8aZSJPeUeQR8F0AX3ne9
-        uBclTcf2PP60rkxfwG0Yzp8SzvOE3sYXijJkku0X1kAsJI/81q6d8PinFbJT2xP6
-        Tw0THWWKWs7aWtwjh395zbSzFjjHxlFe+6O2Dl6Scl6GmgJzYiXuujItGm8CDSbi
-        I7jhEhke+cUB3IcLwo7x6G1JysRQg==
-X-ME-Sender: <xms:6WXCXqCxhONOyjc44TadG1xWjY6qX6AWr_UC7YgEtsz3EvZ2Cqgmag>
-X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgeduhedruddthedgfedtucetufdoteggodetrfdotf
-    fvucfrrhhofhhilhgvmecuhfgrshhtofgrihhlpdfqfgfvpdfurfetoffkrfgpnffqhgen
-    uceurghilhhouhhtmecufedttdenucesvcftvggtihhpihgvnhhtshculddquddttddmne
-    cujfgurhepkffuhffvffgjfhgtfggggfesthejredttderjeenucfhrhhomhepkfgrnhcu
-    mfgvnhhtuceorhgrvhgvnhesthhhvghmrgifrdhnvghtqeenucggtffrrghtthgvrhhnpe
-    effeettedvgeduvdevfeevfeettdffudduheeuiefhueevgfevheffledugefgjeenucfk
-    phepuddukedrvddtkedrudekiedrudenucevlhhushhtvghrufhiiigvpedtnecurfgrrh
-    grmhepmhgrihhlfhhrohhmpehrrghvvghnsehthhgvmhgrfidrnhgvth
-X-ME-Proxy: <xmx:6WXCXkh9i97kfvRtkpDF_9rH06DzPJGSx7SIM4dkPTanG02EzsCpcQ>
-    <xmx:6WXCXtlfs_ki9QX2lkkhWVzaPzmJgbXxrNete6jIu3bZxKJlre_D8w>
-    <xmx:6WXCXowxbEgamdJINV1NFjTGzeEDUEEa7J9w-UCR6pCEBXlb0kqz3A>
-    <xmx:6mXCXmJiS8GSM2MTPsmesspSQ__-0ebk7ZutOYoOTv63vuhe-WvrqQ>
-Received: from mickey.themaw.net (unknown [118.208.186.1])
-        by mail.messagingengine.com (Postfix) with ESMTPA id 06A4030663F6;
-        Mon, 18 May 2020 06:39:34 -0400 (EDT)
-Message-ID: <cd4f03a3820195cddeb489e66892c3d5e13b8b48.camel@themaw.net>
-Subject: Re: [RFC PATCH v3 0/9] Suppress negative dentry
-From:   Ian Kent <raven@themaw.net>
-To:     Amir Goldstein <amir73il@gmail.com>
-Cc:     Chengguang Xu <cgxu519@mykernel.net>,
+        Mon, 18 May 2020 22:43:20 -0400
+Received: from mail-pj1-x1044.google.com (mail-pj1-x1044.google.com [IPv6:2607:f8b0:4864:20::1044])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7D70FC061A0C;
+        Mon, 18 May 2020 19:43:20 -0700 (PDT)
+Received: by mail-pj1-x1044.google.com with SMTP id z15so638821pjb.0;
+        Mon, 18 May 2020 19:43:20 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to;
+        bh=cFdKWhemCr8tqvr3h+vuaX6m9GdwfIHQ43GFK/Jf/pI=;
+        b=Y/bDmEULPyPvMeyR/Vt/m7qXOIFlc53jGiI1lzonVc1dCAUvMOdnCAswQHMgdriesL
+         1BlDn0J48UxSX8XRve1lKIZSz0gOIo1cppxRAyWm48W4e9ndjVhxnau/Y0LTBC8kWuU4
+         CZs4d6t4v1RC2xw2QqHsq3dw6nPlbuCCLGt/Encf/UQdSK6pyMLcMULqfNSZHtK3Ma98
+         foyfQpDSeQHHDrbeByiN17jblCXLcZxcOco8Bio8nJ5ccU/AIK1r/z1g0zYCUcZsh8xp
+         NbjKn7FckTQPzoaGOSK6h7N6FOlkc2zbq/6W+m/WdLeQIfclUuA6gr2mMWU1e1Byt1E4
+         XLAQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to;
+        bh=cFdKWhemCr8tqvr3h+vuaX6m9GdwfIHQ43GFK/Jf/pI=;
+        b=Uxzqj4ITDXw4/sS5nh+pBnzwfb3W4je/sB6g62iD2uDWBgSOsWQpTo/JzENYeW2UaP
+         q4rsFWC8el7k+XuAD0dY8g8KZDNxLzsPtwiytQ/zXYjWr5r1DbShuy8IHvMtwCUD8yPq
+         40iifJUxYubK+SHrRCH3ta3cowCXipLb+seMAPZGT9AyIoTUNDSxQv/FUmtN4Z7hqveu
+         MZQvAFaDcKkKfO1qRPRw4dnhS2sOzwjiTzb0iUjeKJVg+DmEtKoEpLVvub/a14PEtiLq
+         LcNHi6/zNZS1SjFtHaqR70cmfkZvvsHQIZxR+e55u+ySM8r9VSR2ONGs/P+WKi9blqfV
+         6bzw==
+X-Gm-Message-State: AOAM533BmVqIzQJVZcPx6g+AhhqxKu9OrCMO/QUni8SmlCZMHoEqw597
+        6RA4Lgx4xiKm8tKSW37XGZjuM6S0
+X-Google-Smtp-Source: ABdhPJzHKm8Iv95u53qNRmM8TJYZElKqpCnOzCWpdYNTq6J0gexIshdTEmOipMnHMhB+FGMH6A30aQ==
+X-Received: by 2002:a17:90a:d78e:: with SMTP id z14mr2583854pju.155.1589856199982;
+        Mon, 18 May 2020 19:43:19 -0700 (PDT)
+Received: from localhost ([209.132.188.80])
+        by smtp.gmail.com with ESMTPSA id z20sm5555472pgv.52.2020.05.18.19.43.18
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 18 May 2020 19:43:19 -0700 (PDT)
+Date:   Tue, 19 May 2020 10:43:11 +0800
+From:   Murphy Zhou <jencce.kernel@gmail.com>
+To:     Ritesh Harjani <riteshh@linux.ibm.com>
+Cc:     linux-ext4@vger.kernel.org, jack@suse.cz, tytso@mit.edu,
+        adilger@dilger.ca, darrick.wong@oracle.com, hch@infradead.org,
+        Alexander Viro <viro@zeniv.linux.org.uk>,
+        Dan Carpenter <dan.carpenter@oracle.com>,
+        "Aneesh Kumar K . V" <aneesh.kumar@linux.ibm.com>,
+        Murphy Zhou <jencce.kernel@gmail.com>,
         Miklos Szeredi <miklos@szeredi.hu>,
-        Al Viro <viro@zeniv.linux.org.uk>,
-        linux-fsdevel <linux-fsdevel@vger.kernel.org>,
-        overlayfs <linux-unionfs@vger.kernel.org>
-Date:   Mon, 18 May 2020 18:39:31 +0800
-In-Reply-To: <cfc4e94f6667eabee664b63cc23051e9d816456c.camel@themaw.net>
-References: <20200515072047.31454-1-cgxu519@mykernel.net>
-         <e994d56ff1357013a85bde7be2e901476f743b83.camel@themaw.net>
-         <CAOQ4uxjT8DouPmf1mk1x24X8FcN5peYAqwdr362P4gcW+x15dw@mail.gmail.com>
-         <cfc4e94f6667eabee664b63cc23051e9d816456c.camel@themaw.net>
-Content-Type: text/plain; charset="UTF-8"
-User-Agent: Evolution 3.34.4 (3.34.4-1.fc31) 
+        Amir Goldstein <amir73il@gmail.com>,
+        linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org
+Subject: Re: [PATCH 0/5] ext4/overlayfs: fiemap related fixes
+Message-ID: <20200519024311.7bkxi2fkxboon2ig@xzhoux.usersys.redhat.com>
+References: <cover.1587555962.git.riteshh@linux.ibm.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <cover.1587555962.git.riteshh@linux.ibm.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Mon, 2020-05-18 at 18:26 +0800, Ian Kent wrote:
+On Thu, Apr 23, 2020 at 04:17:52PM +0530, Ritesh Harjani wrote:
+> Hello All,
 > 
-> Now d_splice_alias() is pretty complicated but, if passed a NULL
-> dentry it amounts to calling __d_add(dentry, NULL) which produces
-> a negative hashed dentry, a decision made by ext4 ->lookup() (and
-> I must say typical of the very few ways such dentries get into
-> the dcache).
+> Here are some changes, which as I understand, takes the right approach in fixing
+> the offset/length bounds check problem reported in threads [1]-[2].
+> These warnings in iomap_apply/ext4 path are reported after ext4_fiemap()
+> was moved to use iomap framework and when overlayfs is mounted on top of ext4.
+> Though the issues were identified after ext4 moved to iomap framework, but
+> these changes tries to fix the problem which are anyways present in current code
+> irrespective of ext4 using iomap framework for fiemap or not.
 
-Oh, rather that's a NULL inode not dentry.
+Ping?
 
-Ian
+> 
+> Patch 1 & 4 commit msg may give more details of the problem.
+> 
+> Tests done
+> ==========
+> 1. Tested xfstest-suite with "-g quick" & "-overlay -g quick" configuration
+> on a 4k blocksize on x86 & Power. There were no new failures reported
+> due to these changes.
+> 2. Tested syzcaller reported problem with this change. [1]
+> 3. Tested below change which was reported by Murphy. [2]
+> 	The minimal reproducer is:
+> 	-------------------------------------
+> 	fallocate -l 256M test.img
+> 	mkfs.ext4 -Fq -b 4096 -I 256 test.img
+> 	mkdir -p test
+> 	mount -o loop test.img test || exit
+> 	pushd test
+> 	rm -rf l u w m
+> 	mkdir -p l u w m
+> 	mount -t overlay -o lowerdir=l,upperdir=u,workdir=w overlay m || exit
+> 	xfs_io -f -c "pwrite 0 4096" -c "fiemap"  m/tf
+> 	umount m
+> 	rm -rf l u w m
+> 	popd
+> 	umount -d test
+> 	rm -rf test test.img
+> 	-------------------------------------
+> 
+> Comments/feedback are much welcome!!
+> 
+> References
+> ==========
+> [1]: https://lkml.org/lkml/2020/4/11/46
+> [2]: https://patchwork.ozlabs.org/project/linux-ext4/patch/20200418233231.z767yvfiupy7hwgp@xzhoux.usersys.redhat.com/ 
+> 
+> 
+> Ritesh Harjani (5):
+>   ext4: Fix EXT4_MAX_LOGICAL_BLOCK macro
+>   ext4: Rename fiemap_check_ranges() to make it ext4 specific
+>   vfs: EXPORT_SYMBOL for fiemap_check_ranges()
+>   overlayfs: Check for range bounds before calling i_op->fiemap()
+>   ext4: Get rid of ext4_fiemap_check_ranges
+> 
+>  fs/ext4/ext4.h       |  2 +-
+>  fs/ext4/ioctl.c      | 23 -----------------------
+>  fs/ioctl.c           |  5 +++--
+>  fs/overlayfs/inode.c |  7 ++++++-
+>  include/linux/fs.h   |  2 ++
+>  5 files changed, 12 insertions(+), 27 deletions(-)
+> 
+> -- 
+> 2.21.0
+> 
 
+-- 
+Murphy
