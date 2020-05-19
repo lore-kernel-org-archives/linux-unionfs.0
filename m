@@ -2,153 +2,182 @@ Return-Path: <SRS0=3eGR=7B=vger.kernel.org=linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.4 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5FFBFC433E0
-	for <linux-unionfs@archiver.kernel.org>; Tue, 19 May 2020 02:43:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5FA4CC433E0
+	for <linux-unionfs@archiver.kernel.org>; Tue, 19 May 2020 05:03:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 33AE5206D4
-	for <linux-unionfs@archiver.kernel.org>; Tue, 19 May 2020 02:43:21 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 075E8206D4
+	for <linux-unionfs@archiver.kernel.org>; Tue, 19 May 2020 05:02:59 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Y/bDmEUL"
+	dkim=pass (1024-bit key) header.d=mykernel.net header.i=cgxu519@mykernel.net header.b="TYPsw1dc"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726359AbgESCnU (ORCPT
+        id S1726323AbgESFC7 (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Mon, 18 May 2020 22:43:20 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59658 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726302AbgESCnU (ORCPT
+        Tue, 19 May 2020 01:02:59 -0400
+Received: from sender2-of-o52.zoho.com.cn ([163.53.93.247]:21110 "EHLO
+        sender2-of-o52.zoho.com.cn" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726307AbgESFC7 (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 18 May 2020 22:43:20 -0400
-Received: from mail-pj1-x1044.google.com (mail-pj1-x1044.google.com [IPv6:2607:f8b0:4864:20::1044])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7D70FC061A0C;
-        Mon, 18 May 2020 19:43:20 -0700 (PDT)
-Received: by mail-pj1-x1044.google.com with SMTP id z15so638821pjb.0;
-        Mon, 18 May 2020 19:43:20 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:in-reply-to;
-        bh=cFdKWhemCr8tqvr3h+vuaX6m9GdwfIHQ43GFK/Jf/pI=;
-        b=Y/bDmEULPyPvMeyR/Vt/m7qXOIFlc53jGiI1lzonVc1dCAUvMOdnCAswQHMgdriesL
-         1BlDn0J48UxSX8XRve1lKIZSz0gOIo1cppxRAyWm48W4e9ndjVhxnau/Y0LTBC8kWuU4
-         CZs4d6t4v1RC2xw2QqHsq3dw6nPlbuCCLGt/Encf/UQdSK6pyMLcMULqfNSZHtK3Ma98
-         foyfQpDSeQHHDrbeByiN17jblCXLcZxcOco8Bio8nJ5ccU/AIK1r/z1g0zYCUcZsh8xp
-         NbjKn7FckTQPzoaGOSK6h7N6FOlkc2zbq/6W+m/WdLeQIfclUuA6gr2mMWU1e1Byt1E4
-         XLAQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to;
-        bh=cFdKWhemCr8tqvr3h+vuaX6m9GdwfIHQ43GFK/Jf/pI=;
-        b=Uxzqj4ITDXw4/sS5nh+pBnzwfb3W4je/sB6g62iD2uDWBgSOsWQpTo/JzENYeW2UaP
-         q4rsFWC8el7k+XuAD0dY8g8KZDNxLzsPtwiytQ/zXYjWr5r1DbShuy8IHvMtwCUD8yPq
-         40iifJUxYubK+SHrRCH3ta3cowCXipLb+seMAPZGT9AyIoTUNDSxQv/FUmtN4Z7hqveu
-         MZQvAFaDcKkKfO1qRPRw4dnhS2sOzwjiTzb0iUjeKJVg+DmEtKoEpLVvub/a14PEtiLq
-         LcNHi6/zNZS1SjFtHaqR70cmfkZvvsHQIZxR+e55u+ySM8r9VSR2ONGs/P+WKi9blqfV
-         6bzw==
-X-Gm-Message-State: AOAM533BmVqIzQJVZcPx6g+AhhqxKu9OrCMO/QUni8SmlCZMHoEqw597
-        6RA4Lgx4xiKm8tKSW37XGZjuM6S0
-X-Google-Smtp-Source: ABdhPJzHKm8Iv95u53qNRmM8TJYZElKqpCnOzCWpdYNTq6J0gexIshdTEmOipMnHMhB+FGMH6A30aQ==
-X-Received: by 2002:a17:90a:d78e:: with SMTP id z14mr2583854pju.155.1589856199982;
-        Mon, 18 May 2020 19:43:19 -0700 (PDT)
-Received: from localhost ([209.132.188.80])
-        by smtp.gmail.com with ESMTPSA id z20sm5555472pgv.52.2020.05.18.19.43.18
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 18 May 2020 19:43:19 -0700 (PDT)
-Date:   Tue, 19 May 2020 10:43:11 +0800
-From:   Murphy Zhou <jencce.kernel@gmail.com>
-To:     Ritesh Harjani <riteshh@linux.ibm.com>
-Cc:     linux-ext4@vger.kernel.org, jack@suse.cz, tytso@mit.edu,
-        adilger@dilger.ca, darrick.wong@oracle.com, hch@infradead.org,
-        Alexander Viro <viro@zeniv.linux.org.uk>,
-        Dan Carpenter <dan.carpenter@oracle.com>,
-        "Aneesh Kumar K . V" <aneesh.kumar@linux.ibm.com>,
-        Murphy Zhou <jencce.kernel@gmail.com>,
-        Miklos Szeredi <miklos@szeredi.hu>,
-        Amir Goldstein <amir73il@gmail.com>,
-        linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org
-Subject: Re: [PATCH 0/5] ext4/overlayfs: fiemap related fixes
-Message-ID: <20200519024311.7bkxi2fkxboon2ig@xzhoux.usersys.redhat.com>
-References: <cover.1587555962.git.riteshh@linux.ibm.com>
+        Tue, 19 May 2020 01:02:59 -0400
+ARC-Seal: i=1; a=rsa-sha256; t=1589864507; cv=none; 
+        d=zoho.com.cn; s=zohoarc; 
+        b=T6L4PqDS956lH8PPR2wGO02Sa8L7usWLMOOgttl8udLpWx12dMsCXZEOCbCEXeXoII+g1hKfHQQWbGbRicyDnMcRmMXrtyRP+yipYScsKs+nkZgkOlaOKNgZxgWlOf2FM5PLA0/zVEK59DseIuTrLRCtTVjk8rEcOeMitxkkQZc=
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=zoho.com.cn; s=zohoarc; 
+        t=1589864507; h=Content-Type:Content-Transfer-Encoding:Cc:Date:From:In-Reply-To:MIME-Version:Message-ID:Reply-To:References:Subject:To; 
+        bh=IAzPyDiMR9Sl5chc9WQJO5sJSmqh1L0xNzsgAR18fG8=; 
+        b=LmePfGXi5byzYFZWbeZy2V/ChKNDZR4D/38FkRSYq+wfW6zR2ff6gm497PuQ/KknIAe20639495LsxNtHaH0MOo844LOKT9AduyTMbdRzyGONiAMX5s+QzdTed88IsqM47irqy0MWwMsS1371BziGLju8QK6Kbw8VJSQqJeG878=
+ARC-Authentication-Results: i=1; mx.zoho.com.cn;
+        dkim=pass  header.i=mykernel.net;
+        spf=pass  smtp.mailfrom=cgxu519@mykernel.net;
+        dmarc=pass header.from=<cgxu519@mykernel.net> header.from=<cgxu519@mykernel.net>
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1589864507;
+        s=zohomail; d=mykernel.net; i=cgxu519@mykernel.net;
+        h=From:Subject:Reply-To:To:Cc:Message-ID:References:Date:MIME-Version:In-Reply-To:Content-Type:Content-Transfer-Encoding;
+        bh=IAzPyDiMR9Sl5chc9WQJO5sJSmqh1L0xNzsgAR18fG8=;
+        b=TYPsw1dcFGXOmSKRcczj3iVUdekoIqFY+cZTnJcbuZ2hUgjEFXHBcgwk8RbneAyx
+        Wvs7/T732aV6s6BpgUraeFyky2wJW7NpgBBC+xldMkfcL8RRmq1pxKtcAZjF3BEVq0u
+        od5p+ie86iiikgOcON6jUzrQORv16H9sJSO1Uuk4=
+Received: from [192.168.166.138] (218.18.229.179 [218.18.229.179]) by mx.zoho.com.cn
+        with SMTPS id 1589864504994955.4663756637929; Tue, 19 May 2020 13:01:44 +0800 (CST)
+From:   cgxu <cgxu519@mykernel.net>
+Subject: Re: [RFC PATCH v3 0/9] Suppress negative dentry
+Reply-To: cgxu519@mykernel.net
+To:     Miklos Szeredi <miklos@szeredi.hu>
+Cc:     Amir Goldstein <amir73il@gmail.com>, Ian Kent <raven@themaw.net>,
+        Al Viro <viro@zeniv.linux.org.uk>,
+        linux-fsdevel <linux-fsdevel@vger.kernel.org>,
+        overlayfs <linux-unionfs@vger.kernel.org>
+Message-ID: <05e92557-055c-0dea-4fe4-0194606b6c77@mykernel.net>
+References: <20200515072047.31454-1-cgxu519@mykernel.net>
+ <e994d56ff1357013a85bde7be2e901476f743b83.camel@themaw.net>
+ <CAOQ4uxjT8DouPmf1mk1x24X8FcN5peYAqwdr362P4gcW+x15dw@mail.gmail.com>
+ <CAJfpegtpi1SVJRbQb8zM0t66WnrjKsPEGEN3qZKRzrZePP06dA@mail.gmail.com>
+Date:   Tue, 19 May 2020 13:01:44 +0800
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
+ Thunderbird/68.2.2
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <cover.1587555962.git.riteshh@linux.ibm.com>
+In-Reply-To: <CAJfpegtpi1SVJRbQb8zM0t66WnrjKsPEGEN3qZKRzrZePP06dA@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: quoted-printable
+X-ZohoCNMailClient: External
 Sender: linux-unionfs-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Thu, Apr 23, 2020 at 04:17:52PM +0530, Ritesh Harjani wrote:
-> Hello All,
-> 
-> Here are some changes, which as I understand, takes the right approach in fixing
-> the offset/length bounds check problem reported in threads [1]-[2].
-> These warnings in iomap_apply/ext4 path are reported after ext4_fiemap()
-> was moved to use iomap framework and when overlayfs is mounted on top of ext4.
-> Though the issues were identified after ext4 moved to iomap framework, but
-> these changes tries to fix the problem which are anyways present in current code
-> irrespective of ext4 using iomap framework for fiemap or not.
+  ---- =E5=9C=A8 =E6=98=9F=E6=9C=9F=E4=B8=80, 2020-05-18 15:52:48 Miklos Sz=
+eredi <miklos@szeredi.hu> =E6=92=B0=E5=86=99=20
+----
+  > On Mon, May 18, 2020 at 7:27 AM Amir Goldstein <amir73il@gmail.com>=20
+wrote:
+  > >
+  > > On Mon, May 18, 2020 at 3:53 AM Ian Kent <raven@themaw.net> wrote:
+  > > >
+  > > > On Fri, 2020-05-15 at 15:20 +0800, Chengguang Xu wrote:
+  > > > > This series adds a new lookup flag LOOKUP_DONTCACHE_NEGATIVE
+  > > > > to indicate to drop negative dentry in slow path of lookup.
+  > > > >
+  > > > > In overlayfs, negative dentries in upper/lower layers are useless
+  > > > > after construction of overlayfs' own dentry, so in order to
+  > > > > effectively reclaim those dentries, specify=20
+LOOKUP_DONTCACHE_NEGATIVE
+  > > > > flag when doing lookup in upper/lower layers.
+  > > >
+  > > > I've looked at this a couple of times now.
+  > > >
+  > > > I'm not at all sure of the wisdom of adding a flag to a VFS functio=
+n
+  > > > that allows circumventing what a file system chooses to do.
+  > >
+  > > But it is not really a conscious choice is it?
+  > > How exactly does a filesystem express its desire to cache a negative
+  > > dentry? The documentation of lookup() in vfs.rst makes it clear that
+  > > it is not up to the filesystem to make that decision.
+  > > The VFS needs to cache the negative dentry on lookup(), so
+  > > it can turn it positive on create().
+  > > Low level kernel modules that call the VFS lookup() might know
+  > > that caching the negative dentry is counter productive.
+  > >
+  > > >
+  > > > I also do really see the need for it because only hashed negative
+  > > > dentrys will be retained by the VFS so, if you see a hashed negativ=
+e
+  > > > dentry then you can cause it to be discarded on release of the last
+  > > > reference by dropping it.
+  > > >
+  > > > So what's different here, why is adding an argument to do that drop
+  > > > in the VFS itself needed instead of just doing it in overlayfs?
+  > >
+  > > That was v1 patch. It was dealing with the possible race of
+  > > returned negative dentry becoming positive before dropping it
+  > > in an intrusive manner.
+  > >
+  > > In retrospect, I think this race doesn't matter and there is no
+  > > harm in dropping a positive dentry in a race obviously caused by
+  > > accessing the underlying layer, which as documented results in
+  > > "undefined behavior".
+  > >
+  > > Miklos, am I missing something?
+  >  > Dropping a positive dentry is harmful in case there's a long term
+  > reference to the dentry (e.g. an open file) since it will look as if
+  > the file was deleted, when in fact it wasn't.
+  >  > It's possible to unhash a negative dentry in a safe way if we make
+  > sure it cannot become positive.  One way is to grab d_lock and remove
+  > it from the hash table only if count is one.
+  >  > So yes, we could have a helper to do that instead of the lookup flag=
+.
+  > The disadvantage being that we'd also be dropping negatives that did
+  > not enter the cache because of our lookup.
+  >
 
-Ping?
 
-> 
-> Patch 1 & 4 commit msg may give more details of the problem.
-> 
-> Tests done
-> ==========
-> 1. Tested xfstest-suite with "-g quick" & "-overlay -g quick" configuration
-> on a 4k blocksize on x86 & Power. There were no new failures reported
-> due to these changes.
-> 2. Tested syzcaller reported problem with this change. [1]
-> 3. Tested below change which was reported by Murphy. [2]
-> 	The minimal reproducer is:
-> 	-------------------------------------
-> 	fallocate -l 256M test.img
-> 	mkfs.ext4 -Fq -b 4096 -I 256 test.img
-> 	mkdir -p test
-> 	mount -o loop test.img test || exit
-> 	pushd test
-> 	rm -rf l u w m
-> 	mkdir -p l u w m
-> 	mount -t overlay -o lowerdir=l,upperdir=u,workdir=w overlay m || exit
-> 	xfs_io -f -c "pwrite 0 4096" -c "fiemap"  m/tf
-> 	umount m
-> 	rm -rf l u w m
-> 	popd
-> 	umount -d test
-> 	rm -rf test test.img
-> 	-------------------------------------
-> 
-> Comments/feedback are much welcome!!
-> 
-> References
-> ==========
-> [1]: https://lkml.org/lkml/2020/4/11/46
-> [2]: https://patchwork.ozlabs.org/project/linux-ext4/patch/20200418233231.z767yvfiupy7hwgp@xzhoux.usersys.redhat.com/ 
-> 
-> 
-> Ritesh Harjani (5):
->   ext4: Fix EXT4_MAX_LOGICAL_BLOCK macro
->   ext4: Rename fiemap_check_ranges() to make it ext4 specific
->   vfs: EXPORT_SYMBOL for fiemap_check_ranges()
->   overlayfs: Check for range bounds before calling i_op->fiemap()
->   ext4: Get rid of ext4_fiemap_check_ranges
-> 
->  fs/ext4/ext4.h       |  2 +-
->  fs/ext4/ioctl.c      | 23 -----------------------
->  fs/ioctl.c           |  5 +++--
->  fs/overlayfs/inode.c |  7 ++++++-
->  include/linux/fs.h   |  2 ++
->  5 files changed, 12 insertions(+), 27 deletions(-)
-> 
-> -- 
-> 2.21.0
-> 
+If we don't consider that only drop negative dentry of our lookup,
+it is possible to do like below, isn't it?
 
--- 
-Murphy
+
+
+diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
+index 723d17744758..fa339e23b0f8 100644
+--- a/fs/overlayfs/namei.c
++++ b/fs/overlayfs/namei.c
+@@ -200,7 +200,7 @@ static int ovl_lookup_single(struct dentry *base,=20
+struct ovl_lookup_data *d,
+         int err;
+         bool last_element =3D !post[0];
+
+-       this =3D lookup_positive_unlocked(name, base, namelen);
++       this =3D lookup_one_len_unlocked(name, base, namelen);
+         if (IS_ERR(this)) {
+                 err =3D PTR_ERR(this);
+                 this =3D NULL;
+@@ -209,6 +209,18 @@ static int ovl_lookup_single(struct dentry *base,=20
+struct ovl_lookup_data *d,
+                 goto out_err;
+         }
+
++       if (d_flags_negative(this->d_flags)) {
++               inode_lock_shared(base->d_inode);
++               if (d_flags_negative(this->d_flags))
++                       d_drop(this);
++               inode_unlock_shared(base->d_inode);
++
++               dput(this);
++               this =3D NULL;
++               err =3D -ENOENT;
++               goto out;
++       }
++
+         if (ovl_dentry_weird(this)) {
+                 /* Don't support traversing automounts and other=20
+weirdness */
+                 err =3D -EREMOTE;
+
+
+Thanks,
+cgxu
+
