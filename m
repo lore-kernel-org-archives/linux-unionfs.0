@@ -2,158 +2,100 @@ Return-Path: <SRS0=3eGR=7B=vger.kernel.org=linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.9 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DA31CC433E0
-	for <linux-unionfs@archiver.kernel.org>; Tue, 19 May 2020 08:09:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 98FC8C433DF
+	for <linux-unionfs@archiver.kernel.org>; Tue, 19 May 2020 08:21:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 76B56207D8
-	for <linux-unionfs@archiver.kernel.org>; Tue, 19 May 2020 08:09:55 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4F58220709
+	for <linux-unionfs@archiver.kernel.org>; Tue, 19 May 2020 08:21:17 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=mykernel.net header.i=cgxu519@mykernel.net header.b="EhMaellB"
+	dkim=fail reason="key not found in DNS" (0-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b="BFj23ItL"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728237AbgESIJz (ORCPT
+        id S1726717AbgESIVR (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Tue, 19 May 2020 04:09:55 -0400
-Received: from sender2-op-o12.zoho.com.cn ([163.53.93.243]:17109 "EHLO
-        sender2-op-o12.zoho.com.cn" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726943AbgESIJz (ORCPT
+        Tue, 19 May 2020 04:21:17 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55702 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726369AbgESIVQ (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 19 May 2020 04:09:55 -0400
-ARC-Seal: i=1; a=rsa-sha256; t=1589875785; cv=none; 
-        d=zoho.com.cn; s=zohoarc; 
-        b=TbDslXawFPlDrk7MfZ7kTHPNdLoWDSalin0O8GghG3/J94KLX+c6BJtJMDRa9/rOeebSuKDTz9ftCLs2tvYXgjhQ7/CGD5i1v9wPb4a+8qVk9Ruuh5Meyq+mMSvXvEz4aR0/bpOUD+8Nb0aWLJ56MWa4J+dzyz+nxCsIr2bPQDQ=
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=zoho.com.cn; s=zohoarc; 
-        t=1589875785; h=Content-Type:Content-Transfer-Encoding:Cc:Date:From:MIME-Version:Message-ID:Subject:To; 
-        bh=/grsoLC3wLMOVmOUeNiyU0jilmT1TITVnzWgH4P7dwg=; 
-        b=WnjMeRFULvHx7heON1ln2av5lBzYSjIQsXifs51TYkRe6oo9Ax11Tw+zXFYfTP5LAx6dfSDo6R/YVFymjb4SMcchHQIex48qJKzplfnUW+k6XX4opz5XrV2f/mtxMrZfDFfm+lM7jdxnPyj7vXe45/3TBwwSwE67xy6JGdgWEQk=
-ARC-Authentication-Results: i=1; mx.zoho.com.cn;
-        dkim=pass  header.i=mykernel.net;
-        spf=pass  smtp.mailfrom=cgxu519@mykernel.net;
-        dmarc=pass header.from=<cgxu519@mykernel.net> header.from=<cgxu519@mykernel.net>
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1589875785;
-        s=zohomail; d=mykernel.net; i=cgxu519@mykernel.net;
-        h=From:To:Cc:Message-ID:Subject:Date:MIME-Version:Content-Transfer-Encoding:Content-Type;
-        bh=/grsoLC3wLMOVmOUeNiyU0jilmT1TITVnzWgH4P7dwg=;
-        b=EhMaellBCgRMv92tcZJyQGKKfElBmfsi4NzJ7zrymSNATwPJrRKt9teaX61Q2gOd
-        uC/44D3RnTJUH7gTg9Oh5HvDEBcSxan7oD5cGdY95WSqr4DKjT0NRaWV3HsO0tlG/1k
-        csoSkGTIMUkRwxxs6NfjxLwvaTxaJtXBqmIDmtJA=
-Received: from localhost.localdomain (218.18.229.179 [218.18.229.179]) by mx.zoho.com.cn
-        with SMTPS id 1589875783960843.5830726554441; Tue, 19 May 2020 16:09:43 +0800 (CST)
-From:   Chengguang Xu <cgxu519@mykernel.net>
-To:     guaneryu@gmail.com
-Cc:     fstests@vger.kernel.org, linux-unionfs@vger.kernel.org,
-        Chengguang Xu <cgxu519@mykernel.net>
-Message-ID: <20200519080929.18030-1-cgxu519@mykernel.net>
-Subject: [PATCH v2] generic/597: test data integrity for rdonly remount
-Date:   Tue, 19 May 2020 16:09:29 +0800
-X-Mailer: git-send-email 2.20.1
+        Tue, 19 May 2020 04:21:16 -0400
+Received: from mail-ej1-x642.google.com (mail-ej1-x642.google.com [IPv6:2a00:1450:4864:20::642])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7EEC1C061A0C
+        for <linux-unionfs@vger.kernel.org>; Tue, 19 May 2020 01:21:16 -0700 (PDT)
+Received: by mail-ej1-x642.google.com with SMTP id s21so11054337ejd.2
+        for <linux-unionfs@vger.kernel.org>; Tue, 19 May 2020 01:21:16 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=szeredi.hu; s=google;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=Ccvp0UKA18YUUwbPrCJB74eAv5CbqESEGZXqss0korg=;
+        b=BFj23ItLM6qHv7UFGIw4Z1tHDlsRy0cE17vc8ryxdCY/TBV3EeSAzz2ARf17Z+2At1
+         UjMn6m4tGShREGUTMqco/W3LTIKTRO0BvxZKzJxP3TOy2qxYf/ojdFB/O2eVNeCHkrIe
+         XHjr9Z5fTPz/wtjbT/EHgGPHqmjTwag8yEcGI=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=Ccvp0UKA18YUUwbPrCJB74eAv5CbqESEGZXqss0korg=;
+        b=rkxiNJR6oO/Q+DHSSZxWr9IdFgr08Plt6ldOPQ/d2BqEz3ynbEAKtq6P3OCZKCwkCE
+         /4DGbWFpGvpFDs/Tke1UH0//vZiwgZqqgKNHV7pZlXoWZft4522yqbxvfhHwl5Me1ba0
+         WwT9uM02fWP3vmsEM8vHUTJAE72K24MsIV3pcFV7FQpdxivTnHZ542nb+zoY9hchk2oN
+         2v2klvBR4Sfzf/wDR+n2MoLjccY+jfvyoEyhl2ADYgteNB/3Fz8CwOGJzi9WMsdTNYma
+         9BqVhoM/FSov6MFP6+DNjdHUxZpKydMg/CZ3Moh00X8j3WyRd4e2rTjZZx/c+Fs9yyJ5
+         yXtQ==
+X-Gm-Message-State: AOAM531Fkp7YWPpJcORINlVc3pI8CfRa8hzrGHy1GOvKyYvDdS0tYvrj
+        nmT+pDmucVjtvuhP3aIdkTwxenEBc6TVZn+YiVqCXw==
+X-Google-Smtp-Source: ABdhPJxk6mvgGGPc6gMxqKBM2HwfSbIRkvpM0M4MWM0/H4pPLUHTRwKgzq9GqfYRDFAgyGefJw/gtu/j4UXcR9w8mjA=
+X-Received: by 2002:a17:906:f9d7:: with SMTP id lj23mr18927763ejb.218.1589876475234;
+ Tue, 19 May 2020 01:21:15 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-X-ZohoCNMailClient: External
-Content-Type: text/plain; charset=utf8
+References: <20200515072047.31454-1-cgxu519@mykernel.net> <e994d56ff1357013a85bde7be2e901476f743b83.camel@themaw.net>
+ <CAOQ4uxjT8DouPmf1mk1x24X8FcN5peYAqwdr362P4gcW+x15dw@mail.gmail.com>
+ <CAJfpegtpi1SVJRbQb8zM0t66WnrjKsPEGEN3qZKRzrZePP06dA@mail.gmail.com> <05e92557-055c-0dea-4fe4-0194606b6c77@mykernel.net>
+In-Reply-To: <05e92557-055c-0dea-4fe4-0194606b6c77@mykernel.net>
+From:   Miklos Szeredi <miklos@szeredi.hu>
+Date:   Tue, 19 May 2020 10:21:03 +0200
+Message-ID: <CAJfpegtyZw=6zqWQWm-fN0KpGEp9stcfvnbA7eh6E-7XHxaG=Q@mail.gmail.com>
+Subject: Re: [RFC PATCH v3 0/9] Suppress negative dentry
+To:     Chengguang Xu <cgxu519@mykernel.net>
+Cc:     Amir Goldstein <amir73il@gmail.com>, Ian Kent <raven@themaw.net>,
+        Al Viro <viro@zeniv.linux.org.uk>,
+        linux-fsdevel <linux-fsdevel@vger.kernel.org>,
+        overlayfs <linux-unionfs@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-unionfs-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-This test checks data integrity when remounting from
-rw to ro mode.
+On Tue, May 19, 2020 at 7:02 AM cgxu <cgxu519@mykernel.net> wrote:
 
-Signed-off-by: Chengguang Xu <cgxu519@mykernel.net>
----
-v1->v2:
-- Add to shutdown greoup.
-- Change case number to 597
+> If we don't consider that only drop negative dentry of our lookup,
+> it is possible to do like below, isn't it?
 
- tests/generic/597     | 54 +++++++++++++++++++++++++++++++++++++++++++
- tests/generic/597.out |  2 ++
- tests/generic/group   |  1 +
- 3 files changed, 57 insertions(+)
- create mode 100755 tests/generic/597
- create mode 100644 tests/generic/597.out
+Yes, the code looks good, though I'd consider using d_lock on dentry
+instead if i_lock on parent, something like this:
 
-diff --git a/tests/generic/597 b/tests/generic/597
-new file mode 100755
-index 00000000..d96e750b
---- /dev/null
-+++ b/tests/generic/597
-@@ -0,0 +1,54 @@
-+#! /bin/bash
-+# SPDX-License-Identifier: GPL-2.0
-+# Copyright (c) 2020 Chengguang Xu <cgxu519@mykernel.net>.
-+# All Rights Reserved.
-+#
-+# FS QA Test 597
-+#
-+# Test data integrity for ro remount.
-+#
-+seq=3D`basename $0`
-+seqres=3D$RESULT_DIR/$seq
-+echo "QA output created by $seq"
-+
-+here=3D`pwd`
-+tmp=3D/tmp/$$
-+status=3D0
-+trap "_cleanup; exit \$status" 0 1 2 3 15
-+
-+_cleanup()
-+{
-+=09cd /
-+=09rm -f $tmp.*
-+}
-+
-+# get standard environment, filters and checks
-+. ./common/rc
-+. ./common/filter
-+
-+# remove previous $seqres.full before test
-+rm -f $seqres.full
-+
-+# real QA test starts here
-+_supported_fs generic
-+_supported_os Linux
-+_require_fssum
-+_require_scratch
-+_require_scratch_shutdown
-+
-+_scratch_mkfs &>/dev/null
-+_scratch_mount
-+
-+localdir=3D$SCRATCH_MNT/dir
-+mkdir $localdir
-+sync
-+
-+# fssum used for comparing checksum of test file(data & metedata),
-+# exclude checking about atime, block structure, open error.
-+$FSSUM_PROG -ugomAcdES -f -w $tmp.fssum $localdir
-+_scratch_remount ro
-+_scratch_shutdown
-+_scratch_cycle_mount
-+$FSSUM_PROG -r $tmp.fssum $localdir
-+
-+exit
-diff --git a/tests/generic/597.out b/tests/generic/597.out
-new file mode 100644
-index 00000000..a847cfe2
---- /dev/null
-+++ b/tests/generic/597.out
-@@ -0,0 +1,2 @@
-+QA output created by 597
-+OK
-diff --git a/tests/generic/group b/tests/generic/group
-index e82004e8..d68fee9a 100644
---- a/tests/generic/group
-+++ b/tests/generic/group
-@@ -599,3 +599,4 @@
- 594 auto quick quota
- 595 auto quick encrypt
- 596 auto quick
-+597 auto quick remount shutdown
---=20
-2.20.1
+if (d_is_negative(dentry) && dentry->d_lockref.count == 1) {
+    spin_lock(&dentry->d_lock);
+    /* Recheck condition under lock */
+    if (d_is_negative(dentry) && dentry->d_lockref.count == 1)
+        __d_drop(dentry)
+    spin_unlock(&dentry->d_lock);
+}
 
+But as Amir noted, we do need to take into account the case where
+lower layers are shared by multiple overlays, in which case dropping
+the negative dentries could result in a performance regression.
+Have you looked at that case, and the effect of this patch on negative
+dentry lookup performance?
 
+Upper layer negative dentries don't have this issue, since they are
+never shared, so I think it would be safe to drop them
+unconditionally.
+
+Thanks,
+Miklos
