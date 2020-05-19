@@ -2,100 +2,114 @@ Return-Path: <SRS0=3eGR=7B=vger.kernel.org=linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.4 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 98FC8C433DF
-	for <linux-unionfs@archiver.kernel.org>; Tue, 19 May 2020 08:21:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3D537C433DF
+	for <linux-unionfs@archiver.kernel.org>; Tue, 19 May 2020 09:24:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4F58220709
-	for <linux-unionfs@archiver.kernel.org>; Tue, 19 May 2020 08:21:17 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D9433207D3
+	for <linux-unionfs@archiver.kernel.org>; Tue, 19 May 2020 09:24:51 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="key not found in DNS" (0-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b="BFj23ItL"
+	dkim=pass (1024-bit key) header.d=mykernel.net header.i=cgxu519@mykernel.net header.b="PknJ7I0Z"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726717AbgESIVR (ORCPT
+        id S1726494AbgESJYv (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Tue, 19 May 2020 04:21:17 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55702 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726369AbgESIVQ (ORCPT
+        Tue, 19 May 2020 05:24:51 -0400
+Received: from sender2-op-o12.zoho.com.cn ([163.53.93.243]:17131 "EHLO
+        sender2-op-o12.zoho.com.cn" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726358AbgESJYv (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 19 May 2020 04:21:16 -0400
-Received: from mail-ej1-x642.google.com (mail-ej1-x642.google.com [IPv6:2a00:1450:4864:20::642])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7EEC1C061A0C
-        for <linux-unionfs@vger.kernel.org>; Tue, 19 May 2020 01:21:16 -0700 (PDT)
-Received: by mail-ej1-x642.google.com with SMTP id s21so11054337ejd.2
-        for <linux-unionfs@vger.kernel.org>; Tue, 19 May 2020 01:21:16 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=szeredi.hu; s=google;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=Ccvp0UKA18YUUwbPrCJB74eAv5CbqESEGZXqss0korg=;
-        b=BFj23ItLM6qHv7UFGIw4Z1tHDlsRy0cE17vc8ryxdCY/TBV3EeSAzz2ARf17Z+2At1
-         UjMn6m4tGShREGUTMqco/W3LTIKTRO0BvxZKzJxP3TOy2qxYf/ojdFB/O2eVNeCHkrIe
-         XHjr9Z5fTPz/wtjbT/EHgGPHqmjTwag8yEcGI=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=Ccvp0UKA18YUUwbPrCJB74eAv5CbqESEGZXqss0korg=;
-        b=rkxiNJR6oO/Q+DHSSZxWr9IdFgr08Plt6ldOPQ/d2BqEz3ynbEAKtq6P3OCZKCwkCE
-         /4DGbWFpGvpFDs/Tke1UH0//vZiwgZqqgKNHV7pZlXoWZft4522yqbxvfhHwl5Me1ba0
-         WwT9uM02fWP3vmsEM8vHUTJAE72K24MsIV3pcFV7FQpdxivTnHZ542nb+zoY9hchk2oN
-         2v2klvBR4Sfzf/wDR+n2MoLjccY+jfvyoEyhl2ADYgteNB/3Fz8CwOGJzi9WMsdTNYma
-         9BqVhoM/FSov6MFP6+DNjdHUxZpKydMg/CZ3Moh00X8j3WyRd4e2rTjZZx/c+Fs9yyJ5
-         yXtQ==
-X-Gm-Message-State: AOAM531Fkp7YWPpJcORINlVc3pI8CfRa8hzrGHy1GOvKyYvDdS0tYvrj
-        nmT+pDmucVjtvuhP3aIdkTwxenEBc6TVZn+YiVqCXw==
-X-Google-Smtp-Source: ABdhPJxk6mvgGGPc6gMxqKBM2HwfSbIRkvpM0M4MWM0/H4pPLUHTRwKgzq9GqfYRDFAgyGefJw/gtu/j4UXcR9w8mjA=
-X-Received: by 2002:a17:906:f9d7:: with SMTP id lj23mr18927763ejb.218.1589876475234;
- Tue, 19 May 2020 01:21:15 -0700 (PDT)
-MIME-Version: 1.0
-References: <20200515072047.31454-1-cgxu519@mykernel.net> <e994d56ff1357013a85bde7be2e901476f743b83.camel@themaw.net>
- <CAOQ4uxjT8DouPmf1mk1x24X8FcN5peYAqwdr362P4gcW+x15dw@mail.gmail.com>
- <CAJfpegtpi1SVJRbQb8zM0t66WnrjKsPEGEN3qZKRzrZePP06dA@mail.gmail.com> <05e92557-055c-0dea-4fe4-0194606b6c77@mykernel.net>
-In-Reply-To: <05e92557-055c-0dea-4fe4-0194606b6c77@mykernel.net>
-From:   Miklos Szeredi <miklos@szeredi.hu>
-Date:   Tue, 19 May 2020 10:21:03 +0200
-Message-ID: <CAJfpegtyZw=6zqWQWm-fN0KpGEp9stcfvnbA7eh6E-7XHxaG=Q@mail.gmail.com>
+        Tue, 19 May 2020 05:24:51 -0400
+ARC-Seal: i=1; a=rsa-sha256; t=1589880226; cv=none; 
+        d=zoho.com.cn; s=zohoarc; 
+        b=rPLf6BZXNRwRygrVTWWcl6Kh4ruisNl/lO5H0X5Eiz2p+OWd/AFJblw8f5TMl6R1SJ0lK79wpR6ezeoNc3Ai60JJWVzlSetQiLGl3vZtGR6VMsjxxa3hbZ2l8nRwnmvSp26rPFWz9NwZZvvAhmWmii5yjCcNDtrTsW5g2IYN98g=
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=zoho.com.cn; s=zohoarc; 
+        t=1589880226; h=Content-Type:Content-Transfer-Encoding:Cc:Date:From:In-Reply-To:MIME-Version:Message-ID:References:Subject:To; 
+        bh=faHruH5bAhzKqF04LUNXHwbBbdcKtjl3CA/Wbrii4WM=; 
+        b=Nffl1eSaHxy2f77jcpp7juf9s74aUFcEACidQnFVVwaOll6cqccE4fEWA/3NUyVVcZKnCDIO+N2goaTzK3Zb9T/Ns7JGiucqv4pIGRTzu1iOIY4LolyYfC0P4KicLHCbXBzb7/khSgJe/oy0tcc1wnw9pZ+u2krXp7v6aUQcnRw=
+ARC-Authentication-Results: i=1; mx.zoho.com.cn;
+        dkim=pass  header.i=mykernel.net;
+        spf=pass  smtp.mailfrom=cgxu519@mykernel.net;
+        dmarc=pass header.from=<cgxu519@mykernel.net> header.from=<cgxu519@mykernel.net>
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1589880226;
+        s=zohomail; d=mykernel.net; i=cgxu519@mykernel.net;
+        h=Subject:To:Cc:References:From:Message-ID:Date:MIME-Version:In-Reply-To:Content-Type:Content-Transfer-Encoding;
+        bh=faHruH5bAhzKqF04LUNXHwbBbdcKtjl3CA/Wbrii4WM=;
+        b=PknJ7I0Zh8bKBxWKec2ABB9yN4qQ9bAeJDP6NRXDeK6u/ey0cPTeMqGeY6WhxZE2
+        lCDVGFOI2DfkPtHNnAZxQ3c3uKxGanYhNTh1tApreN+YhjrQFOovX0TX+QL0bzmTiJj
+        2wr49+bP+srs6IURuZND61M9TgjOioajRaxjbwsc=
+Received: from [192.168.166.138] (218.18.229.179 [218.18.229.179]) by mx.zoho.com.cn
+        with SMTPS id 158988022399284.96793522637824; Tue, 19 May 2020 17:23:43 +0800 (CST)
 Subject: Re: [RFC PATCH v3 0/9] Suppress negative dentry
-To:     Chengguang Xu <cgxu519@mykernel.net>
+To:     Miklos Szeredi <miklos@szeredi.hu>
 Cc:     Amir Goldstein <amir73il@gmail.com>, Ian Kent <raven@themaw.net>,
         Al Viro <viro@zeniv.linux.org.uk>,
         linux-fsdevel <linux-fsdevel@vger.kernel.org>,
         overlayfs <linux-unionfs@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+References: <20200515072047.31454-1-cgxu519@mykernel.net>
+ <e994d56ff1357013a85bde7be2e901476f743b83.camel@themaw.net>
+ <CAOQ4uxjT8DouPmf1mk1x24X8FcN5peYAqwdr362P4gcW+x15dw@mail.gmail.com>
+ <CAJfpegtpi1SVJRbQb8zM0t66WnrjKsPEGEN3qZKRzrZePP06dA@mail.gmail.com>
+ <05e92557-055c-0dea-4fe4-0194606b6c77@mykernel.net>
+ <CAJfpegtyZw=6zqWQWm-fN0KpGEp9stcfvnbA7eh6E-7XHxaG=Q@mail.gmail.com>
+From:   cgxu <cgxu519@mykernel.net>
+Message-ID: <7fcb778f-ba80-8095-4d48-20682f5242a9@mykernel.net>
+Date:   Tue, 19 May 2020 17:23:43 +0800
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
+ Thunderbird/68.2.2
+MIME-Version: 1.0
+In-Reply-To: <CAJfpegtyZw=6zqWQWm-fN0KpGEp9stcfvnbA7eh6E-7XHxaG=Q@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Content-Language: en-US
+X-ZohoCNMailClient: External
 Sender: linux-unionfs-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Tue, May 19, 2020 at 7:02 AM cgxu <cgxu519@mykernel.net> wrote:
+On 5/19/20 4:21 PM, Miklos Szeredi wrote:
+> On Tue, May 19, 2020 at 7:02 AM cgxu <cgxu519@mykernel.net> wrote:
+>
+>> If we don't consider that only drop negative dentry of our lookup,
+>> it is possible to do like below, isn't it?
+> Yes, the code looks good, though I'd consider using d_lock on dentry
+> instead if i_lock on parent, something like this:
+>
+> if (d_is_negative(dentry) && dentry->d_lockref.count == 1) {
+>      spin_lock(&dentry->d_lock);
+>      /* Recheck condition under lock */
+>      if (d_is_negative(dentry) && dentry->d_lockref.count == 1)
+>          __d_drop(dentry)
+>      spin_unlock(&dentry->d_lock);
 
-> If we don't consider that only drop negative dentry of our lookup,
-> it is possible to do like below, isn't it?
+And after this we will still treat 'dentry' as negative dentry and dput it
+regardless of the second check result of d_is_negative(dentry), right?
 
-Yes, the code looks good, though I'd consider using d_lock on dentry
-instead if i_lock on parent, something like this:
 
-if (d_is_negative(dentry) && dentry->d_lockref.count == 1) {
-    spin_lock(&dentry->d_lock);
-    /* Recheck condition under lock */
-    if (d_is_negative(dentry) && dentry->d_lockref.count == 1)
-        __d_drop(dentry)
-    spin_unlock(&dentry->d_lock);
-}
+> }
+>
+> But as Amir noted, we do need to take into account the case where
+> lower layers are shared by multiple overlays, in which case dropping
+> the negative dentries could result in a performance regression.
+> Have you looked at that case, and the effect of this patch on negative
+> dentry lookup performance?
 
-But as Amir noted, we do need to take into account the case where
-lower layers are shared by multiple overlays, in which case dropping
-the negative dentries could result in a performance regression.
-Have you looked at that case, and the effect of this patch on negative
-dentry lookup performance?
+The container which is affected by this feature is just take advantage
+of previous another container but we could not guarantee that always
+happening. I think there no way for best of both worlds, consider that
+some malicious containers continuously make negative dentries by
+searching non-exist files, so that page cache of clean data, clean
+inodes/dentries will be freed by memory reclaim. All of those
+behaviors will impact the performance of other container instances.
 
-Upper layer negative dentries don't have this issue, since they are
-never shared, so I think it would be safe to drop them
-unconditionally.
+On the other hand, if this feature significantly affects particular 
+container,
+doesn't that mean the container is noisy neighbor and should be restricted
+in some way?
 
 Thanks,
-Miklos
+cgxu
+
