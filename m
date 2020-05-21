@@ -1,70 +1,110 @@
-Return-Path: <SRS0=Uqc0=7C=vger.kernel.org=linux-unionfs-owner@kernel.org>
+Return-Path: <SRS0=4V87=7D=vger.kernel.org=linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
-	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.7 required=3.0 tests=FORGED_MUA_MOZILLA,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 47C19C433DF
-	for <linux-unionfs@archiver.kernel.org>; Wed, 20 May 2020 19:30:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DE567C433DF
+	for <linux-unionfs@archiver.kernel.org>; Thu, 21 May 2020 06:09:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2637D20709
-	for <linux-unionfs@archiver.kernel.org>; Wed, 20 May 2020 19:30:03 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1590003003;
-	bh=L28mxoLEiKKvTNlDautC1Ytl5LwVJQDq1/2fiDMtl64=;
-	h=Subject:From:In-Reply-To:References:Date:To:Cc:List-ID:From;
-	b=m3o4XyGqnk282hODeV5t/CX36UiqZoz+xmyR6IQ5ACFHd3Lx5JTXDyQTf6JyIuM+v
-	 CcFvrni3c5oROQx77rKGG0tDDz27fFL+GrhSFKOnsE+PZD+waI9zWWU6p2zIWXqFeQ
-	 VMsBtojDc+TNCohhkpXTw6Q/Jz5ZkqAaOUVmd8xw=
+	by mail.kernel.org (Postfix) with ESMTP id B9AA4204EC
+	for <linux-unionfs@archiver.kernel.org>; Thu, 21 May 2020 06:09:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726748AbgETTaD (ORCPT
+        id S1728002AbgEUGJ0 (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Wed, 20 May 2020 15:30:03 -0400
-Received: from mail.kernel.org ([198.145.29.99]:40536 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726548AbgETTaC (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 20 May 2020 15:30:02 -0400
-Subject: Re: [GIT PULL] overlayfs fixes for 5.7-rc7
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1590003002;
-        bh=L28mxoLEiKKvTNlDautC1Ytl5LwVJQDq1/2fiDMtl64=;
-        h=From:In-Reply-To:References:Date:To:Cc:From;
-        b=bB7C4iekUxPfRxttYqQZmJ3enjc0cKOCSNoHhPx9nN6GoaDA7+O9NiVXyitBQqhIa
-         JiNqpI2Nw2n7zOjBj/eOfSWqA0pMAoA+Rvz32HgCVRL9vDGovr+VEON0mU6xH5yxbe
-         Sxg7RnvidWwkEE1WNgw8T6h9wsjqsDJenX8uL2vM=
-From:   pr-tracker-bot@kernel.org
-In-Reply-To: <20200520142537.GD13131@miu.piliscsaba.redhat.com>
-References: <20200520142537.GD13131@miu.piliscsaba.redhat.com>
-X-PR-Tracked-List-Id: <linux-fsdevel.vger.kernel.org>
-X-PR-Tracked-Message-Id: <20200520142537.GD13131@miu.piliscsaba.redhat.com>
-X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/mszeredi/vfs.git
- tags/ovl-fixes-5.7-rc7
-X-PR-Tracked-Commit-Id: 9aafc1b0187322fa4fd4eb905d0903172237206c
-X-PR-Merge-Tree: torvalds/linux.git
-X-PR-Merge-Refname: refs/heads/master
-X-PR-Merge-Commit-Id: 8e2b7f634a851fb711a7e693e00905fc6c05b74b
-Message-Id: <159000300246.7201.15233334499752091112.pr-tracker-bot@kernel.org>
-Date:   Wed, 20 May 2020 19:30:02 +0000
-To:     Miklos Szeredi <miklos@szeredi.hu>
-Cc:     Linus Torvalds <torvalds@linux-foundation.org>,
-        linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org,
-        linux-unionfs@vger.kernel.org
+        Thu, 21 May 2020 02:09:26 -0400
+Received: from mx0a-001b2d01.pphosted.com ([148.163.156.1]:59254 "EHLO
+        mx0a-001b2d01.pphosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726984AbgEUGJZ (ORCPT
+        <rfc822;linux-unionfs@vger.kernel.org>);
+        Thu, 21 May 2020 02:09:25 -0400
+Received: from pps.filterd (m0098399.ppops.net [127.0.0.1])
+        by mx0a-001b2d01.pphosted.com (8.16.0.42/8.16.0.42) with SMTP id 04L61wef066528;
+        Thu, 21 May 2020 02:08:43 -0400
+Received: from pps.reinject (localhost [127.0.0.1])
+        by mx0a-001b2d01.pphosted.com with ESMTP id 312cb2g1v2-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+        Thu, 21 May 2020 02:08:43 -0400
+Received: from m0098399.ppops.net (m0098399.ppops.net [127.0.0.1])
+        by pps.reinject (8.16.0.36/8.16.0.36) with SMTP id 04L62LtU067906;
+        Thu, 21 May 2020 02:08:42 -0400
+Received: from ppma04fra.de.ibm.com (6a.4a.5195.ip4.static.sl-reverse.com [149.81.74.106])
+        by mx0a-001b2d01.pphosted.com with ESMTP id 312cb2g1u3-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+        Thu, 21 May 2020 02:08:42 -0400
+Received: from pps.filterd (ppma04fra.de.ibm.com [127.0.0.1])
+        by ppma04fra.de.ibm.com (8.16.0.42/8.16.0.42) with SMTP id 04L65BHP001836;
+        Thu, 21 May 2020 06:08:39 GMT
+Received: from b06cxnps4076.portsmouth.uk.ibm.com (d06relay13.portsmouth.uk.ibm.com [9.149.109.198])
+        by ppma04fra.de.ibm.com with ESMTP id 313wne24am-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+        Thu, 21 May 2020 06:08:39 +0000
+Received: from d06av21.portsmouth.uk.ibm.com (d06av21.portsmouth.uk.ibm.com [9.149.105.232])
+        by b06cxnps4076.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 04L68b9L60358742
+        (version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Thu, 21 May 2020 06:08:37 GMT
+Received: from d06av21.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+        by IMSVA (Postfix) with ESMTP id 8D28652050;
+        Thu, 21 May 2020 06:08:37 +0000 (GMT)
+Received: from localhost.localdomain (unknown [9.199.40.126])
+        by d06av21.portsmouth.uk.ibm.com (Postfix) with ESMTP id 855415204F;
+        Thu, 21 May 2020 06:08:33 +0000 (GMT)
+Subject: Re: [PATCH 0/5] ext4/overlayfs: fiemap related fixes
+To:     Murphy Zhou <jencce.kernel@gmail.com>
+Cc:     linux-ext4@vger.kernel.org, jack@suse.cz, tytso@mit.edu,
+        adilger@dilger.ca, darrick.wong@oracle.com, hch@infradead.org,
+        Alexander Viro <viro@zeniv.linux.org.uk>,
+        Dan Carpenter <dan.carpenter@oracle.com>,
+        "Aneesh Kumar K . V" <aneesh.kumar@linux.ibm.com>,
+        Miklos Szeredi <miklos@szeredi.hu>,
+        Amir Goldstein <amir73il@gmail.com>,
+        linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org
+References: <cover.1587555962.git.riteshh@linux.ibm.com>
+ <20200519024311.7bkxi2fkxboon2ig@xzhoux.usersys.redhat.com>
+From:   Ritesh Harjani <riteshh@linux.ibm.com>
+Date:   Thu, 21 May 2020 11:38:32 +0530
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
+ Thunderbird/60.7.2
+MIME-Version: 1.0
+In-Reply-To: <20200519024311.7bkxi2fkxboon2ig@xzhoux.usersys.redhat.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+Message-Id: <20200521060833.855415204F@d06av21.portsmouth.uk.ibm.com>
+X-TM-AS-GCONF: 00
+X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.216,18.0.676
+ definitions=2020-05-21_02:2020-05-20,2020-05-21 signatures=0
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 phishscore=0
+ lowpriorityscore=0 mlxscore=0 suspectscore=0 spamscore=0 impostorscore=0
+ malwarescore=0 adultscore=0 bulkscore=0 clxscore=1015 mlxlogscore=999
+ priorityscore=1501 cotscore=-2147483648 classifier=spam adjust=0
+ reason=mlx scancount=1 engine=8.12.0-2004280000
+ definitions=main-2005210035
 Sender: linux-unionfs-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-The pull request you sent on Wed, 20 May 2020 16:25:37 +0200:
+Hello Murphy,
 
-> git://git.kernel.org/pub/scm/linux/kernel/git/mszeredi/vfs.git tags/ovl-fixes-5.7-rc7
+On 5/19/20 8:13 AM, Murphy Zhou wrote:
+> On Thu, Apr 23, 2020 at 04:17:52PM +0530, Ritesh Harjani wrote:
+>> Hello All,
+>>
+>> Here are some changes, which as I understand, takes the right approach in fixing
+>> the offset/length bounds check problem reported in threads [1]-[2].
+>> These warnings in iomap_apply/ext4 path are reported after ext4_fiemap()
+>> was moved to use iomap framework and when overlayfs is mounted on top of ext4.
+>> Though the issues were identified after ext4 moved to iomap framework, but
+>> these changes tries to fix the problem which are anyways present in current code
+>> irrespective of ext4 using iomap framework for fiemap or not.
+> 
+> Ping?
 
-has been merged into torvalds/linux.git:
-https://git.kernel.org/torvalds/c/8e2b7f634a851fb711a7e693e00905fc6c05b74b
+It's superseded by below mentioned patch series.
+Please follow below thread.
+https://lore.kernel.org/linux-ext4/20200520032837.GA2744481@mit.edu/T/#t
 
-Thank you!
-
--- 
-Deet-doot-dot, I am a bot.
-https://korg.wiki.kernel.org/userdoc/prtracker
+-ritesh
