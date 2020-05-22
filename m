@@ -2,149 +2,131 @@ Return-Path: <SRS0=2h5r=7E=vger.kernel.org=linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3045AC433E0
-	for <linux-unionfs@archiver.kernel.org>; Fri, 22 May 2020 10:05:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F1580C433E0
+	for <linux-unionfs@archiver.kernel.org>; Fri, 22 May 2020 13:44:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0418A205CB
-	for <linux-unionfs@archiver.kernel.org>; Fri, 22 May 2020 10:05:58 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CB427207D8
+	for <linux-unionfs@archiver.kernel.org>; Fri, 22 May 2020 13:44:56 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="key not found in DNS" (0-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b="jw5fHtL/"
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="CHLJoqha"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728443AbgEVKF6 (ORCPT
+        id S1729918AbgEVNo4 (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Fri, 22 May 2020 06:05:58 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40958 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726578AbgEVKF5 (ORCPT
+        Fri, 22 May 2020 09:44:56 -0400
+Received: from us-smtp-2.mimecast.com ([205.139.110.61]:59497 "EHLO
+        us-smtp-delivery-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1729399AbgEVNo4 (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 22 May 2020 06:05:57 -0400
-Received: from mail-ed1-x543.google.com (mail-ed1-x543.google.com [IPv6:2a00:1450:4864:20::543])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 74D32C061A0E
-        for <linux-unionfs@vger.kernel.org>; Fri, 22 May 2020 03:05:57 -0700 (PDT)
-Received: by mail-ed1-x543.google.com with SMTP id e10so8893031edq.0
-        for <linux-unionfs@vger.kernel.org>; Fri, 22 May 2020 03:05:57 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=szeredi.hu; s=google;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:in-reply-to;
-        bh=DtZfx2mo8Milc18ngyMfW1PIcYKBj/EvVpvJqR76B+Y=;
-        b=jw5fHtL/RIM8xz3E7sdN0sc8voc91MwoIIXai4ooDW3LkOeQGwMZMR5x4k7IoykRVw
-         nceGbEdL8kBLjrHQGcoqPbP3QWGcrvwJlGepODGT+tTiexRgI7/fxoU9Dg/0t/nOj0Ax
-         W8a0S8U1i4xN8yv0ngkz1Mjhi30imTAiGDmW0=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to;
-        bh=DtZfx2mo8Milc18ngyMfW1PIcYKBj/EvVpvJqR76B+Y=;
-        b=DrnOe3NvkKg22DbKGvLlEbfo1pc9qPEJwTJARE0DlBKKm1S7XxeyBwPg6gkFFdNFYi
-         b48c77ykSi7I9uX5VsGiQeoO9uV/pi6jKqsLJKk9OY19iN9YdNl8XYErmqYHriO24f8s
-         p1PxldD44Usaxmm+Neh4mIAuys2AIB0EW0+EUOuclaTQRrQ5PvNpxVJiFSDJ0kfGwTg6
-         WgtaUl8jjdNb0FmY4CGLyVGMWRZlzLEBVF1UuJ/kJn1DRv4rEX1HaAZbz50ipe+AVvYs
-         yQrF9aSczRD3/Bp0IxcK5wL/I4seUKYocpfgLBZMk9EeUqkHSI5hT0Sr/AagysoVUmlx
-         1Bnw==
-X-Gm-Message-State: AOAM530xFLWE7/S6QI3VBqeH+2Q+2GaFMtM5AAPn2/R2LRLXqTPYCf0M
-        Pj2xDGrjv/uoXYOXWxgHlvGzuw==
-X-Google-Smtp-Source: ABdhPJxesQBnmboD62I4SZU4WGLsBVnkI5YIilNVuotJbFhyVWl5+N/8HBerDSceQ46v2AtGVAVygQ==
-X-Received: by 2002:a50:dac4:: with SMTP id s4mr2416371edj.84.1590141956086;
-        Fri, 22 May 2020 03:05:56 -0700 (PDT)
-Received: from miu.piliscsaba.redhat.com (catv-212-96-48-140.catv.broadband.hu. [212.96.48.140])
-        by smtp.gmail.com with ESMTPSA id s17sm7132537edr.84.2020.05.22.03.05.54
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 22 May 2020 03:05:55 -0700 (PDT)
-Date:   Fri, 22 May 2020 12:05:53 +0200
-From:   Miklos Szeredi <miklos@szeredi.hu>
-To:     Mike Kravetz <mike.kravetz@oracle.com>
-Cc:     Colin Walters <walters@verbum.org>,
-        syzbot <syzbot+d6ec23007e951dadf3de@syzkaller.appspotmail.com>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-mm <linux-mm@kvack.org>,
-        Miklos Szeredi <mszeredi@redhat.com>,
-        syzkaller-bugs <syzkaller-bugs@googlegroups.com>,
-        Al Viro <viro@zeniv.linux.org.uk>,
-        linux-unionfs@vger.kernel.org
-Subject: Re: kernel BUG at mm/hugetlb.c:LINE!
-Message-ID: <20200522100553.GE13131@miu.piliscsaba.redhat.com>
-References: <000000000000b4684e05a2968ca6@google.com>
- <aa7812b8-60ae-8578-40db-e71ad766b4d3@oracle.com>
- <CAJfpegtVca6H1JPW00OF-7sCwpomMCo=A2qr5K=9uGKEGjEp3w@mail.gmail.com>
- <bb232cfa-5965-42d0-88cf-46d13f7ebda3@www.fastmail.com>
- <9a56a79a-88ed-9ff4-115e-ec169cba5c0b@oracle.com>
- <CAJfpegsNVB12MQ-Jgbb-f=+i3g0Xy52miT3TmUAYL951HVQS_w@mail.gmail.com>
- <78313ae9-8596-9cbe-f648-3152660be9b3@oracle.com>
+        Fri, 22 May 2020 09:44:56 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1590155094;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         in-reply-to:in-reply-to:references:references;
+        bh=2oGaCksTm1sNXR2ILEe7m/Zu+7nI6ZhSmGmUuWgmDS8=;
+        b=CHLJoqhaynY/6JZwNbytt5z/2oadP3UVwA0Ru1gVwXt1ThhjR1lNOYySu7c3P++oJ3IYcq
+        Ie5aG2d1ClRTuQjReq/xTO7NQIQ8N+Oht66TTZd4rhbMPP5Kehkq8l2tpvDberIMG169h+
+        KlZ+a/flXJTXnlmE7HK0Xb3qDTIyBn8=
+Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
+ [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-102-hFDGfpNlO52Ll2FyAqOegA-1; Fri, 22 May 2020 09:44:51 -0400
+X-MC-Unique: hFDGfpNlO52Ll2FyAqOegA-1
+Received: from smtp.corp.redhat.com (int-mx03.intmail.prod.int.phx2.redhat.com [10.5.11.13])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id BE53D19057A1;
+        Fri, 22 May 2020 13:44:49 +0000 (UTC)
+Received: from horse.redhat.com (ovpn-115-124.rdu2.redhat.com [10.10.115.124])
+        by smtp.corp.redhat.com (Postfix) with ESMTP id 3C729707BA;
+        Fri, 22 May 2020 13:44:48 +0000 (UTC)
+Received: by horse.redhat.com (Postfix, from userid 10451)
+        id B804B22036E; Fri, 22 May 2020 09:44:47 -0400 (EDT)
+Date:   Fri, 22 May 2020 09:44:47 -0400
+From:   Vivek Goyal <vgoyal@redhat.com>
+To:     Miklos Szeredi <miklos@szeredi.hu>
+Cc:     Amir Goldstein <amir73il@gmail.com>, cgxu <cgxu519@mykernel.net>,
+        Jan Kara <jack@suse.cz>,
+        overlayfs <linux-unionfs@vger.kernel.org>,
+        Sargun Dhillon <sargun@sargun.me>,
+        Daniel J Walsh <dwalsh@redhat.com>, gscrivan@redhat.com
+Subject: Re: [PATCH v12] ovl: improve syncfs efficiency
+Message-ID: <20200522134447.GA58162@redhat.com>
+References: <20200506095307.23742-1-cgxu519@mykernel.net>
+ <4bc73729-5d85-36b7-0768-ae5952ae05e9@mykernel.net>
+ <CAOQ4uxi4coKOoYar7Y==i=P21j5r8fi_0op+BZR-VQ1w5CMUew@mail.gmail.com>
+ <CAJfpeguyg0e-mE5N=1VKkHWTDJKKhf-Ka6vZ02sQCFeiqRD-aQ@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <78313ae9-8596-9cbe-f648-3152660be9b3@oracle.com>
+In-Reply-To: <CAJfpeguyg0e-mE5N=1VKkHWTDJKKhf-Ka6vZ02sQCFeiqRD-aQ@mail.gmail.com>
+X-Scanned-By: MIMEDefang 2.79 on 10.5.11.13
 Sender: linux-unionfs-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Wed, May 20, 2020 at 10:27:15AM -0700, Mike Kravetz wrote:
-
-> I am fairly confident it is all about checking limits and alignment.  The
-> filesystem knows if it can/should align to base or huge page size. DAX has
-> some interesting additional restrictions, and several 'traditional' filesystems
-> check if they are 'on DAX'.
-
-
-Okay, I haven't looked at DAX vs. overlay.  I'm sure it's going to come up at
-some point, if it hasn't already.
-
+On Fri, May 22, 2020 at 11:31:41AM +0200, Miklos Szeredi wrote:
+> On Wed, May 20, 2020 at 9:24 AM Amir Goldstein <amir73il@gmail.com> wrote:
+> >
+> > On Wed, May 20, 2020 at 4:02 AM cgxu <cgxu519@mykernel.net> wrote:
+> > >
+> > > On 5/6/20 5:53 PM, Chengguang Xu wrote:
+> > > > Current syncfs(2) syscall on overlayfs just calls sync_filesystem()
+> > > > on upper_sb to synchronize whole dirty inodes in upper filesystem
+> > > > regardless of the overlay ownership of the inode. In the use case of
+> > > > container, when multiple containers using the same underlying upper
+> > > > filesystem, it has some shortcomings as below.
+> > > >
+> > > > (1) Performance
+> > > > Synchronization is probably heavy because it actually syncs unnecessary
+> > > > inodes for target overlayfs.
+> > > >
+> > > > (2) Interference
+> > > > Unplanned synchronization will probably impact IO performance of
+> > > > unrelated container processes on the other overlayfs.
+> > > >
+> > > > This patch tries to only sync target dirty upper inodes which are belong
+> > > > to specific overlayfs instance and wait for completion. By doing this,
+> > > > it is able to reduce cost of synchronization and will not seriously impact
+> > > > IO performance of unrelated processes.
+> > > >
+> > > > Signed-off-by: Chengguang Xu <cgxu519@mykernel.net>
+> > >
+> > > Except explicit sycnfs is triggered by user process, there is also implicit
+> > > syncfs during umount process of overlayfs instance. Every syncfs will
+> > > deliver to upper fs and whole dirty data of upper fs syncs to persistent
+> > > device at same time.
+> > >
+> > > In high density container environment, especially for temporary jobs,
+> > > this is quite unwilling  behavior. Should we provide an option to
+> > > mitigate this effect for containers which don't care about dirty data?
 > 
-> In a previous e-mail, you suggested hugetlb_get_unmapped_area could do the
-> length adjustment in hugetlb_get_unmapped_area (generic and arch specific).
-> I agree, although there may be the need to add length overflow checks in
-> these routines (after round up) as this is done in core code now.  However,
-> this can be done as a separate cleanup patch.
-> 
-> In any case, we need to get the core mmap code to call filesystem specific
-> get_unmapped_area if on a union/overlay.  The patch I suggested does this
-> by simply calling real_file to determine if there is a filesystem specific
-> get_unmapped_area.  The other approach would be to provide an overlayfs
-> get_unmapped_area that calls the underlying filesystem get_unmapped_area.
+> If containers don't care about dirty data, why go to great lengths to
+> make sure that syncfs() works?  Can't we just have an option to turn
+> off syncing completely, for fsync, for syncfs, for shutdown, for
+> everything?  That would be orders of magnitude simpler than the patch
+> you posted.
 
-That latter is what's done for all other stacked operations in overlayfs.
+We definitely have this use case where certain class of contaienrs
+don't want to actually sync data back to disk. It slows them down
+significantly. For example, containers used for building images
+and they use "dnf" which issues bunch of sync and hence slowing
+down build process.
 
-Untested patch below.
+These build containers don't care about system crashes. They will
+restart the build process if such an event were to happen.
 
-Thanks,
-Miklos
+They are not in a position to modify "dnf" and other applications
+to not issue sync. So they will like to have a mount option say
+"nosync" where sync will be ignored by filesystem instance. This
+expedites their build process. Copying Dan Walsh and Gisueppe who
+were looking for such an option.
 
----
- fs/overlayfs/file.c |   12 ++++++++++++
- 1 file changed, 12 insertions(+)
+Thanks
+Vivek
 
---- a/fs/overlayfs/file.c
-+++ b/fs/overlayfs/file.c
-@@ -757,6 +757,17 @@ static loff_t ovl_remap_file_range(struc
- 			    remap_flags, op);
- }
- 
-+static unsigned long ovl_get_unmapped_area(struct file *file,
-+				unsigned long uaddr, unsigned long len,
-+				unsigned long pgoff, unsigned long flags)
-+{
-+	struct file *realfile = file->private_data;
-+
-+	return (realfile->f_op->get_unmapped_area ?:
-+		current->mm->get_unmapped_area)(realfile,
-+						uaddr, len, pgoff, flags);
-+}
-+
- const struct file_operations ovl_file_operations = {
- 	.open		= ovl_open,
- 	.release	= ovl_release,
-@@ -774,6 +785,7 @@ const struct file_operations ovl_file_op
- 
- 	.copy_file_range	= ovl_copy_file_range,
- 	.remap_file_range	= ovl_remap_file_range,
-+	.get_unmapped_area	= ovl_get_unmapped_area,
- };
- 
- int __init ovl_aio_request_cache_init(void)
