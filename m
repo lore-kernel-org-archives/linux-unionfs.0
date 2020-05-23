@@ -2,102 +2,80 @@ Return-Path: <SRS0=PFgV=7F=vger.kernel.org=linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.5 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2E3ECC433DF
-	for <linux-unionfs@archiver.kernel.org>; Sat, 23 May 2020 04:07:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5C393C433E0
+	for <linux-unionfs@archiver.kernel.org>; Sat, 23 May 2020 07:30:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 046EB206F6
-	for <linux-unionfs@archiver.kernel.org>; Sat, 23 May 2020 04:07:44 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2866B20723
+	for <linux-unionfs@archiver.kernel.org>; Sat, 23 May 2020 07:30:22 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="FXRVNUAT"
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="mBllieRz"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725908AbgEWEHn (ORCPT
+        id S2387692AbgEWHaV (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Sat, 23 May 2020 00:07:43 -0400
-Received: from us-smtp-1.mimecast.com ([207.211.31.81]:50759 "EHLO
-        us-smtp-delivery-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1725294AbgEWEHn (ORCPT
+        Sat, 23 May 2020 03:30:21 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42530 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2387627AbgEWHaV (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Sat, 23 May 2020 00:07:43 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1590206862;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         in-reply-to:in-reply-to:references:references;
-        bh=F1bhCGQtRl8cBs0zYrkz/5FLXJrqBYq5wZlx9jEG8Uc=;
-        b=FXRVNUATXU7qldY+kE6Q9/P2oonvJJuAlXdTyJwrW4bDkTTa9k2J8YjH15F4nlesr9Q/J3
-        TrN6QwoLqB9XBz0YOq0KNkLG+X5Q0d03T3pEIf/E4USn5mwMNimpFdP2n5NTQz1NwJrKQI
-        JbIYJ/8bJ7Xkj2CI2HUnk0aRb/Xdmjk=
-Received: from mail-qk1-f199.google.com (mail-qk1-f199.google.com
- [209.85.222.199]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-423-KAH-sqRiPaimBK6p4_Hw7A-1; Sat, 23 May 2020 00:07:40 -0400
-X-MC-Unique: KAH-sqRiPaimBK6p4_Hw7A-1
-Received: by mail-qk1-f199.google.com with SMTP id r124so13179888qkf.1
-        for <linux-unionfs@vger.kernel.org>; Fri, 22 May 2020 21:07:40 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=F1bhCGQtRl8cBs0zYrkz/5FLXJrqBYq5wZlx9jEG8Uc=;
-        b=hE842uknelkzJHFT2183rGFA4c7h8HMLXyZ4DHtS3mnbr99srTG1OKixgFzjIydqlb
-         1cBEgLbQxcq0gPSU3yx4B2LcDpmjs+ASytYZVZd3T7hrHRRfxwIkcNQfWSDPXr60Xg59
-         9CiRr1n91RXCnQMWZ1LEiLLCNW55e1O7zIrnKKIL1U2FAQ3feJhlmiw1BN4kk2H4ieBI
-         luYvMrSmR8F5LhVBoIEhG1s9mN0s33Os0Fwqhjui2hpS0WbHZsEg28lpuQpG6MUhy7nz
-         agkSn8oEDVqAFhtQ3nkVhNp2IFIbb0lYia87cypWzuxuz9yjSBHjy/+kQPbyOF8sBqeL
-         nRCw==
-X-Gm-Message-State: AOAM530CajC+Z0P4jfKHke6jGIvTAoV/ttorvejZGUPEcAQxiIGmr+WC
-        8NC/+L6A9QTuR2XdWCGQamjAzIN/TrrDx+RnJh/k/xJ58lgzJwc0fpjf3Pqye2e3cpliLczPBP9
-        AmftwUVbLXWrI7MeOcvqXwRYTB1x0+iX5KXmZ+jfV8A==
-X-Received: by 2002:a37:270a:: with SMTP id n10mr17623766qkn.288.1590206860003;
-        Fri, 22 May 2020 21:07:40 -0700 (PDT)
-X-Google-Smtp-Source: ABdhPJxqucE/BLDWAWbsUb5BS4pFv+/cIpYb0lPmqP/rcpvyVgWQsH8wbXFsAUfUqER06Q9HPajqCxqlT56dHPAxYvs=
-X-Received: by 2002:a37:270a:: with SMTP id n10mr17623751qkn.288.1590206859751;
- Fri, 22 May 2020 21:07:39 -0700 (PDT)
+        Sat, 23 May 2020 03:30:21 -0400
+Received: from bombadil.infradead.org (bombadil.infradead.org [IPv6:2607:7c80:54:e::133])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5E29DC061A0E;
+        Sat, 23 May 2020 00:30:21 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=infradead.org; s=bombadil.20170209; h=Content-Transfer-Encoding:
+        MIME-Version:Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:
+        Content-ID:Content-Description:In-Reply-To:References;
+        bh=DzRxzluDDsZ20LRGt6NXZ0iLeHiTMHBFOjqtJkPHPXk=; b=mBllieRzoHCY0nwUHk45Tl+HRG
+        FQ8i5BHRRDEAj7/ODzbsfxnmCTt1KnzeVdKdopHKKN9prz5SFJMcmzHS7M1/fPM//NBMlI02hnms6
+        Q6xNRFxnflsGOrWYhD2cU+yD7HdWl3LudSsRFHqSidQuujjEhObdCwuI6e8DI6HSeXyP9TV6Ps6xd
+        Y/kVBSy0GEjGD0c2PR7IP0kTpfNyiR4+C2iFiwIo2ooy74Edj4/FOKf41ZuPh1vaoEwauv82tskme
+        euQ1f3JHVtahvYzw7njrXeGpFedm7BvzCCksoY8RBXQtU6ldPSe3ql+pJcK6ut30XDZbPftjI00D/
+        nwfEbrGg==;
+Received: from [2001:4bb8:18c:5da7:c70:4a89:bc61:2] (helo=localhost)
+        by bombadil.infradead.org with esmtpsa (Exim 4.92.3 #3 (Red Hat Linux))
+        id 1jcObr-0007pt-Hh; Sat, 23 May 2020 07:30:19 +0000
+From:   Christoph Hellwig <hch@lst.de>
+To:     linux-ext4@vger.kernel.org, viro@zeniv.linux.org.uk
+Cc:     jack@suse.cz, tytso@mit.edu, adilger@dilger.ca,
+        riteshh@linux.ibm.com, amir73il@gmail.com,
+        linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org
+Subject: fiemap cleanups v4
+Date:   Sat, 23 May 2020 09:30:07 +0200
+Message-Id: <20200523073016.2944131-1-hch@lst.de>
+X-Mailer: git-send-email 2.26.2
 MIME-Version: 1.0
-References: <20200522085723.29007-1-mszeredi@redhat.com> <20200522160815.GT23230@ZenIV.linux.org.uk>
- <CAOssrKcpQwYh39JpcNmV3JiuH2aPDJxgT5MADQ9cZMboPa9QaQ@mail.gmail.com>
- <CAOQ4uxi80CFLgeTYbnHvD7GbY_01z0uywP1jF8gZe76_EZYiug@mail.gmail.com>
- <CAOssrKfXgpRykVN94EiEy8xT4j+HCedN96i31j9iHomtavFaLA@mail.gmail.com> <20200522195626.GV23230@ZenIV.linux.org.uk>
-In-Reply-To: <20200522195626.GV23230@ZenIV.linux.org.uk>
-From:   Miklos Szeredi <mszeredi@redhat.com>
-Date:   Sat, 23 May 2020 06:07:28 +0200
-Message-ID: <CAOssrKcpWj=ACbNfy0iBjGDRogouDZAv-LT3P91XaXY3HD=jBA@mail.gmail.com>
-Subject: Re: [PATCH] ovl: make private mounts longterm
-To:     Al Viro <viro@zeniv.linux.org.uk>
-Cc:     Amir Goldstein <amir73il@gmail.com>,
-        overlayfs <linux-unionfs@vger.kernel.org>,
-        linux-fsdevel <linux-fsdevel@vger.kernel.org>,
-        lkml <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+X-SRS-Rewrite: SMTP reverse-path rewritten from <hch@infradead.org> by bombadil.infradead.org. See http://www.infradead.org/rpr.html
 Sender: linux-unionfs-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Fri, May 22, 2020 at 9:56 PM Al Viro <viro@zeniv.linux.org.uk> wrote:
->
-> On Fri, May 22, 2020 at 08:53:49PM +0200, Miklos Szeredi wrote:
+Hi all,
 
-> > Right, we should just get rid of ofs->upper_mnt and ofs->upperdir_trap
-> > and use ofs->layers[0] to store those.
->
-> For that you'd need to allocate ->layers before you get to ovl_get_upper(),
-> though.  I'm not saying it's a bad idea - doing plain memory allocations
-> before anything else tends to make failure exits cleaner; it's just that
-> it'll take some massage.  Basically, do ovl_split_lowerdirs() early,
-> then allocate everything you need, then do lookups, etc., filling that
-> stuff.
+This series cleans up the fiemap support in ext4 and in general.
 
-That was exactly the plan I set out.
+Ted or Al, can one of you pick this up?  It touches both ext4 and core
+code, so either tree could work.
 
-> Regarding this series - the points regarding the name choice and the
-> need to document the calling conventions change still remain.
 
-Agreed.
+Changes since v3:
+ - dropped the fixes that have been merged int mainline
 
-Thanks,
-Miklos
+Changes since v2:
+ - commit message typo
+ - doc updates
+ - use d_inode in cifs
+ - add a missing return statement in cifs
+ - remove the filemap_write_and_wait call from ext4_ioctl_get_es_cache
 
+Changes since v1:
+ - rename fiemap_validate to fiemap_prep
+ - lift FIEMAP_FLAG_SYNC handling to common code
+ - add a new linux/fiemap.h header
+ - remove __generic_block_fiemap
+ - remove access_ok calls from fiemap and ext4
