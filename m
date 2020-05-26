@@ -2,95 +2,126 @@ Return-Path: <SRS0=uZ0x=7I=vger.kernel.org=linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8D20DC433E0
-	for <linux-unionfs@archiver.kernel.org>; Tue, 26 May 2020 08:25:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 489B9C433DF
+	for <linux-unionfs@archiver.kernel.org>; Tue, 26 May 2020 12:54:09 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5A9E32071A
-	for <linux-unionfs@archiver.kernel.org>; Tue, 26 May 2020 08:25:59 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1D20D20787
+	for <linux-unionfs@archiver.kernel.org>; Tue, 26 May 2020 12:54:09 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="onKGObla"
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="PHM3GXyS"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728400AbgEZIZ7 (ORCPT
+        id S1729123AbgEZMyI (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Tue, 26 May 2020 04:25:59 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46622 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728248AbgEZIZ6 (ORCPT
+        Tue, 26 May 2020 08:54:08 -0400
+Received: from us-smtp-delivery-1.mimecast.com ([205.139.110.120]:26019 "EHLO
+        us-smtp-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1729016AbgEZMyI (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 26 May 2020 04:25:58 -0400
-Received: from mail-il1-x142.google.com (mail-il1-x142.google.com [IPv6:2607:f8b0:4864:20::142])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C41F6C03E97E
-        for <linux-unionfs@vger.kernel.org>; Tue, 26 May 2020 01:25:58 -0700 (PDT)
-Received: by mail-il1-x142.google.com with SMTP id b71so19486139ilg.8
-        for <linux-unionfs@vger.kernel.org>; Tue, 26 May 2020 01:25:58 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=CCoQRlTB5BX4UETF4wINpGrqmx2niEKXBsxk7b5UPpU=;
-        b=onKGOblaZDWH92975QhuSdU2M2wO+CkJVHGIjLR5RGVI1W9vk8r/OmEW4fEPeI6OOl
-         wj+oskWtheM0scBexL6bzk1Jz6TOptb5IolG+8kjioZHT/845xh5/J6oaESeHIyZyaLB
-         wJBcFKPH3yyCldm/YzI9t22QTGCUW14Llyz4yeGTgUeN95feZ1j6awxOBvGa4xRoitaW
-         M+LFQ5R/+BDD9xSEnFIqCNg4qoLmilFAc3loEhRPDcf35grZgiJER+7qW78Ww+68/aih
-         ZpigAXEHy3FzeZcIRZveUpQtPZ1CllrtTo5wE2iGr9Xag0PYcbsODmUqSfuqwA4dMAUl
-         LhKQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=CCoQRlTB5BX4UETF4wINpGrqmx2niEKXBsxk7b5UPpU=;
-        b=iUyg0zm9l92PnGF1+v/A5b3WZz6oyB3okKfwif0GclDUAhOwX2IO8/aoZNvzuQEvlG
-         aAVmYtuHcEvnBy7isfSVYAHTJ0jxUhs6kwlKFIVIvRX76pUp5/9NLUgsr6E3X5LQqgHP
-         7Q0Y/GqOaeDuosGnM1umtJl9VCVcPUkmI2W/KFmoS/08K4H35QghbOzzAlXhynI/vA3c
-         bG2Stpeo4/ChZZ/kl8lT/M+iJneBGs5idsnayt+vMSx9B14nsNFDx9yzxqj5US6ZFw5n
-         2tTwYUTXraDt6BmPsVpWKEf86eaO12JA6CJJW7esW3eKKouMgSOpBweIcMbkhiVXG7Ob
-         UrAA==
-X-Gm-Message-State: AOAM533aN2duEutWcL6KzJ6v1Do2ASIxDLRcAtgnXkMIaU1quhfDCaeC
-        VLrWoTZia6Lchop+d1XEx3BAUAtAPEIFl3nJdg64BhnK
-X-Google-Smtp-Source: ABdhPJyYS62oj1TULUv3Hx1B3YSK/4f+QbM+oDCy7f3m3G66aOtIbupyq1VRGxqB2A5vdxSc4LQUoRW9N2NlGPiny3Y=
-X-Received: by 2002:a92:4015:: with SMTP id n21mr82556ila.137.1590481558148;
- Tue, 26 May 2020 01:25:58 -0700 (PDT)
+        Tue, 26 May 2020 08:54:08 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1590497647;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         in-reply-to:in-reply-to:references:references;
+        bh=nZg/ji17BvSzlCNz1HhexNAbhuZqvtbxh/CfeBU6veA=;
+        b=PHM3GXySGQmlxODRDgFtn5qhwUpc02Ei6bJVXG4Uwj7gHD3LvAVLpGlRKwLEmN96EJyRAV
+        5aTs8Lo7vq1ZUMOgoE27wehNhOFWgubMrUEt99H2O2DNPhiv4WAId1AIGFrd9tZHq/Dp41
+        Pf3rPuMyiV8CbDIA7b6Nt328PzU2b/E=
+Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
+ [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-216-Lnmh86zXPh2Vzohz67xDxQ-1; Tue, 26 May 2020 08:54:05 -0400
+X-MC-Unique: Lnmh86zXPh2Vzohz67xDxQ-1
+Received: from smtp.corp.redhat.com (int-mx08.intmail.prod.int.phx2.redhat.com [10.5.11.23])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 6B33E108C30D;
+        Tue, 26 May 2020 12:54:04 +0000 (UTC)
+Received: from horse.redhat.com (ovpn-115-102.rdu2.redhat.com [10.10.115.102])
+        by smtp.corp.redhat.com (Postfix) with ESMTP id 496C519D61;
+        Tue, 26 May 2020 12:54:04 +0000 (UTC)
+Received: by horse.redhat.com (Postfix, from userid 10451)
+        id 7F65222036E; Tue, 26 May 2020 08:54:03 -0400 (EDT)
+Date:   Tue, 26 May 2020 08:54:03 -0400
+From:   Vivek Goyal <vgoyal@redhat.com>
+To:     Amir Goldstein <amir73il@gmail.com>
+Cc:     Giuseppe Scrivano <gscrivan@redhat.com>,
+        Miklos Szeredi <miklos@szeredi.hu>,
+        overlayfs <linux-unionfs@vger.kernel.org>
+Subject: Re: [PATCH 2/2] Configure custom layers via environment variables
+Message-ID: <20200526125403.GC108774@redhat.com>
+References: <CAOQ4uxjZ4Yd3ZWi+Fe64fVkrD=XMDjF1=C=XN_PNdywbGx_gzQ@mail.gmail.com>
+ <20200416125807.GB276932@redhat.com>
+ <CAOQ4uxi=mT2JYGSXro5YW8gTE5256cxauBddYe2HXM=ZfZ=+ZA@mail.gmail.com>
+ <CAOQ4uxjvtGLn=SvLXy3KU6uKbonBUznL==OjdVVjjB6sM=-mgg@mail.gmail.com>
+ <20200420191453.GA21057@redhat.com>
+ <CAOQ4uxjVU6gcQMmyMiBsVV73gik931-7QjAO9TCu+N2ik6109w@mail.gmail.com>
+ <CAOQ4uxgVnT3ZXZZa4-YktZaRDpU1hHujPoEtZ2vdFmsGxj=66A@mail.gmail.com>
+ <20200522143606.GB58162@redhat.com>
+ <CAOQ4uxj8Qhw-r8E+Fb-YYnMwmApkCPXD1136CA=oNo-81rzdVQ@mail.gmail.com>
+ <CAOQ4uxgnRFZ8uTWV1_woCFutACc193X9eTzTOn4wzDkE8-huDQ@mail.gmail.com>
 MIME-Version: 1.0
-References: <20200506095307.23742-1-cgxu519@mykernel.net> <4bc73729-5d85-36b7-0768-ae5952ae05e9@mykernel.net>
- <CAOQ4uxi4coKOoYar7Y==i=P21j5r8fi_0op+BZR-VQ1w5CMUew@mail.gmail.com> <6bce615e-b8ef-e63f-3829-e2b785a02f5d@mykernel.net>
-In-Reply-To: <6bce615e-b8ef-e63f-3829-e2b785a02f5d@mykernel.net>
-From:   Amir Goldstein <amir73il@gmail.com>
-Date:   Tue, 26 May 2020 11:25:47 +0300
-Message-ID: <CAOQ4uxig6SXJnMKPbA95_JkWnWLU_tY_yKn9vW4mvGqw=qKuzg@mail.gmail.com>
-Subject: Re: [PATCH v12] ovl: improve syncfs efficiency
-To:     cgxu <cgxu519@mykernel.net>
-Cc:     Jan Kara <jack@suse.cz>, Miklos Szeredi <miklos@szeredi.hu>,
-        overlayfs <linux-unionfs@vger.kernel.org>,
-        Sargun Dhillon <sargun@sargun.me>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAOQ4uxgnRFZ8uTWV1_woCFutACc193X9eTzTOn4wzDkE8-huDQ@mail.gmail.com>
+X-Scanned-By: MIMEDefang 2.84 on 10.5.11.23
 Sender: linux-unionfs-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-> >> In high density container environment, especially for temporary jobs,
-> >> this is quite unwilling  behavior. Should we provide an option to
-> >> mitigate this effect for containers which don't care about dirty data?
-> >>
+On Sun, May 24, 2020 at 01:28:44PM +0300, Amir Goldstein wrote:
+> > > Hi Amir,
+> > >
+> > > Do you want to mention a word upper dir also when UNIONMOUNT_BASEDIR. That
+> > > is upperdir is also created under UNIONMOUNT_BASEDIR. IOW, all directories
+> > > lower, upper and mount point are under UNIONMOUNT_BASEDIR (until and
+> > > unless overridden by other environment variables).
 > >
-> > This is not the first time this sort of suggestion has been made:
-> > https://lore.kernel.org/linux-unionfs/4bc73729-5d85-36b7-0768-ae5952ae05e9@mykernel.net/T/#md5fc5d51852016da7e042f5d9e5ef7a6d21ea822
->
-> The link above seems just my mail thread in mail list.
->
+> 
+> Hi Vivek,
+> 
+> Please approve this text before I update master.
+> Pushed this work to branch 'envvars'
 
-Heh sorry. Wrong link. Here it is:
+Hi Amir,
 
-https://lore.kernel.org/linux-unionfs/CAMp4zn9NsrdByVzWbThBd7Y0DsufJnqp=LdbDscbtyZx82E0Ug@mail.gmail.com/
+This looks good to me. Thank you for providing these environment
+variables. Helps me run these tests on top of virtiofs now.
 
-Sargun, do you have anything to contribute to this discussion from
-your experience?
-Are you using Ephemeral containers?
+Vivek
 
-Thanks,
-Amir.
+> 
+> Thanks,
+> Amir.
+> 
+> -----
+> The following environment variables are supported:
+> 
+>      UNIONMOUNT_BASEDIR  - parent dir of all samefs layers (default: /base)
+>      UNIONMOUNT_LOWERDIR - lower layer path for non samefs (default: /lower)
+>      UNIONMOUNT_MNTPOINT - mount point for executing tests (default: /mnt)
+> 
+>      When user provides UNIONMOUNT_LOWERDIR:
+> 
+>      1) Path should be an existing directory whose content will be deleted.
+>      2) Path is assumed to be on a different filesystem than base dir, so
+>         --samefs setup is not supported.
+> 
+>      When user provides UNIONMOUNT_BASEDIR:
+> 
+>      1) Path should be an existing directory whose content will be deleted.
+>      2) Upper layer and middle layers will be created under base dir.
+>      3) If UNIONMOUNT_MNTPOINT is not provided, the overlay mount point will
+>         be created under base dir.
+>      4) If UNIONMOUNT_LOWERDIR is not provided, the lower layer dir will be
+>         created under base dir.
+>      5) If UNIONMOUNT_LOWERDIR is not provided, the test setup defaults to
+>         --samefs (i.e. lower and upper layers are on the same base fs).
+>         However, if --maxfs=<M> is specified, a tmpfs instance will be mounted
+>         on the lower layer dir that was created under base dir.
+> 
+
