@@ -2,160 +2,347 @@ Return-Path: <SRS0=6v4H=7K=vger.kernel.org=linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.3 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
+	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1C191C433DF
-	for <linux-unionfs@archiver.kernel.org>; Thu, 28 May 2020 21:02:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 40566C433E0
+	for <linux-unionfs@archiver.kernel.org>; Thu, 28 May 2020 21:08:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id EC0DF2075F
-	for <linux-unionfs@archiver.kernel.org>; Thu, 28 May 2020 21:02:04 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 111B2207BC
+	for <linux-unionfs@archiver.kernel.org>; Thu, 28 May 2020 21:08:00 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="Nq8f2RZF"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="crAtnthT"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2407440AbgE1VBy (ORCPT
+        id S2407509AbgE1VH7 (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Thu, 28 May 2020 17:01:54 -0400
-Received: from userp2130.oracle.com ([156.151.31.86]:53682 "EHLO
-        userp2130.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2407471AbgE1VBq (ORCPT
+        Thu, 28 May 2020 17:07:59 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47904 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2407484AbgE1VH5 (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 28 May 2020 17:01:46 -0400
-Received: from pps.filterd (userp2130.oracle.com [127.0.0.1])
-        by userp2130.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 04SKBfKY120264;
-        Thu, 28 May 2020 21:01:31 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=subject : to : cc :
- references : from : message-id : date : mime-version : in-reply-to :
- content-type : content-transfer-encoding; s=corp-2020-01-29;
- bh=6o6IG4PaUZVYP05KoABvyzMEsMWMZIDBFpnDQktXQQg=;
- b=Nq8f2RZF+94ho8W4EH/YHSsyAfGdzMRljWNJycQ6LyaIhRsqlCLtPQ+W+ZipiaNwu8lf
- Kto1R7tGS+X7Rb7nMzY43E8y6Ci2viK0F3NjfWxSi5/rbu8fhGgcjSoDoj7RD8Hitdjm
- npnhplBqCoC6e/2fauxyzA9kSRIMGwi/ky+mzm9lAJdmeEYXdZb9qJwT89CZ3wlb4Lxs
- iUlFvJQ/bBmNk7d9MX80KPLi5ufNC05dFho9+jr+KMmfLAKPljRTkmuyt7Y1fg5ylVTK
- +QWuqMq77gINHfJL70aahnX2RUe1H1OG7dFjC7GKx/rRv16w5Zsqqoht5ns5juh4ASkc TA== 
-Received: from userp3030.oracle.com (userp3030.oracle.com [156.151.31.80])
-        by userp2130.oracle.com with ESMTP id 316u8r792v-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Thu, 28 May 2020 21:01:31 +0000
-Received: from pps.filterd (userp3030.oracle.com [127.0.0.1])
-        by userp3030.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 04SK8w9n177071;
-        Thu, 28 May 2020 21:01:31 GMT
-Received: from userv0121.oracle.com (userv0121.oracle.com [156.151.31.72])
-        by userp3030.oracle.com with ESMTP id 317ds38qex-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Thu, 28 May 2020 21:01:30 +0000
-Received: from abhmp0004.oracle.com (abhmp0004.oracle.com [141.146.116.10])
-        by userv0121.oracle.com (8.14.4/8.13.8) with ESMTP id 04SL1Rwl012580;
-        Thu, 28 May 2020 21:01:28 GMT
-Received: from [192.168.2.112] (/50.38.35.18)
-        by default (Oracle Beehive Gateway v4.0)
-        with ESMTP ; Thu, 28 May 2020 14:01:27 -0700
-Subject: Re: [PATCH v2] ovl: provide real_file() and overlayfs
- get_unmapped_area()
-To:     kbuild test robot <lkp@intel.com>,
-        Miklos Szeredi <miklos@szeredi.hu>
-Cc:     kbuild-all@lists.01.org, Colin Walters <walters@verbum.org>,
-        syzbot <syzbot+d6ec23007e951dadf3de@syzkaller.appspotmail.com>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Linux Memory Management List <linux-mm@kvack.org>,
-        linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org,
-        syzkaller-bugs <syzkaller-bugs@googlegroups.com>,
-        Al Viro <viro@zeniv.linux.org.uk>,
-        linux-unionfs@vger.kernel.org
-References: <4ebd0429-f715-d523-4c09-43fa2c3bc338@oracle.com>
- <202005281652.QNakLkW3%lkp@intel.com>
-From:   Mike Kravetz <mike.kravetz@oracle.com>
-Message-ID: <365d83b8-3af7-2113-3a20-2aed51d9de91@oracle.com>
-Date:   Thu, 28 May 2020 14:01:26 -0700
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
- Thunderbird/68.8.0
+        Thu, 28 May 2020 17:07:57 -0400
+Received: from mail-il1-x143.google.com (mail-il1-x143.google.com [IPv6:2607:f8b0:4864:20::143])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9C807C08C5C6
+        for <linux-unionfs@vger.kernel.org>; Thu, 28 May 2020 14:07:57 -0700 (PDT)
+Received: by mail-il1-x143.google.com with SMTP id v11so410903ilh.1
+        for <linux-unionfs@vger.kernel.org>; Thu, 28 May 2020 14:07:57 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=roPjiFSY/Ri+KgLu9HJ8VghNLTiI/qSMqKtMbIHsGeo=;
+        b=crAtnthTrEi0T/Vn44JK18AZF9nJybMIoHCldeHZzkMRHDlc3ed2MEK2eKROiflQlx
+         pdNIaUUVdJOXmHrTFlI6ltUiAMN+4VAXMUO1uKYVg7n3rW/audG+GxrqHQPlmArB1WtK
+         wnUKw3fM8jpnLsrjUqSP8ptKrlXjuboIK9R8NjeHKWb4AFIhDz4+n9Vl+Hz0P04V5zLj
+         A8hErzM9LW40Uj9sB/TwPvNVzPjbJueNp7NwAjcnabFj9+0UU5lNkIVgxR/SQljYxQbV
+         8xhU8wwhPanr2RIrXJd68lelkuW6nRSxaTTCq25y+aKckETi8lLlu1QXOiFLZhNpW744
+         hl3g==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=roPjiFSY/Ri+KgLu9HJ8VghNLTiI/qSMqKtMbIHsGeo=;
+        b=uSYjvc0Zgj1PyLkbf/hvV8H/35Fc3ZP/fUZKRo22HnasvoKpVzfHX9r6n7+KP17L4a
+         Y5CiCN4eHWocMbhcpB/GDgJGXQqpOELty2hxztH+W0aqYxQOpU0qBQ8YJAv62c4dcsDX
+         +uS2gps2ms8mSTdbzVTZwnbQU58804mN0YrpUauJc3sERTOcP/035pdTWup2cVFrYNmR
+         r8yonFIoJSshWSz4YgNSehb6M/j4+v+c1wYPP+t+vj1ZV7400XYXfzmlQ4F1SYJOhY/j
+         0wDX/SMr8KF/CrWS8STpJ3nFnhE2P7Exfn03NaHLy6O0F+0U/1xPO+KnR9ZZ0J+rOoFv
+         7MKA==
+X-Gm-Message-State: AOAM531Q52uVisEvYGJXbapI3TmDwCOsX+g1p7r2iOtDclXSyesS9Ym+
+        tvExNAGDxl29sUNvKifI9mHdSGMcseOvgFmA/BY=
+X-Google-Smtp-Source: ABdhPJxzqYLMkaRmbAYDYkttHd/7391O0+FXlxtngx/tQe9aKpXXts5Q74PT9HBAychZ8dvtGOYUJ1cCRz+uSIoCrHg=
+X-Received: by 2002:a92:db12:: with SMTP id b18mr4605043iln.250.1590700076886;
+ Thu, 28 May 2020 14:07:56 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <202005281652.QNakLkW3%lkp@intel.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
-X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9635 signatures=668686
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 spamscore=0 phishscore=0 malwarescore=0
- mlxlogscore=999 adultscore=0 suspectscore=0 bulkscore=0 mlxscore=0
- classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2004280000
- definitions=main-2005280132
-X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9635 signatures=668686
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 malwarescore=0 mlxscore=0
- priorityscore=1501 spamscore=0 cotscore=-2147483648 suspectscore=0
- phishscore=0 clxscore=1011 mlxlogscore=999 bulkscore=0 adultscore=0
- lowpriorityscore=0 impostorscore=0 classifier=spam adjust=0 reason=mlx
- scancount=1 engine=8.12.0-2004280000 definitions=main-2005280132
+References: <20200527041711.60219-1-yangerkun@huawei.com> <CAOQ4uxjjUjEzvy=b96FZPGt4nhOfwFk1_XE2Po9scYDiPPkJgQ@mail.gmail.com>
+ <20200527194925.GD140950@redhat.com> <CAOQ4uxis2fgf_c02q=Fy2h=C0U+_zrfUmxW1HQOJ0A7KaKqWgg@mail.gmail.com>
+ <20200528173512.GA167257@redhat.com>
+In-Reply-To: <20200528173512.GA167257@redhat.com>
+From:   Amir Goldstein <amir73il@gmail.com>
+Date:   Fri, 29 May 2020 00:07:45 +0300
+Message-ID: <CAOQ4uxhnsc8AHfeQJ-eHFEjyONRF5bXBvRd-D29Nao4Bz8EM0g@mail.gmail.com>
+Subject: Re: [PATCH] ovl: fix some bug exist in ovl_get_inode
+To:     Vivek Goyal <vgoyal@redhat.com>
+Cc:     Miklos Szeredi <miklos@szeredi.hu>,
+        yangerkun <yangerkun@huawei.com>,
+        overlayfs <linux-unionfs@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-unionfs-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On 5/28/20 1:37 AM, kbuild test robot wrote:
-> Hi Mike,
-> 
-> I love your patch! Yet something to improve:
-> 
-> [auto build test ERROR on miklos-vfs/overlayfs-next]
-> [also build test ERROR on linus/master v5.7-rc7]
-> [cannot apply to linux/master next-20200526]
-> [if your patch is applied to the wrong git tree, please drop us a note to help
-> improve the system. BTW, we also suggest to use '--base' option to specify the
-> base tree in git format-patch, please see https://stackoverflow.com/a/37406982]
-> 
-> url:    https://github.com/0day-ci/linux/commits/Mike-Kravetz/ovl-provide-real_file-and-overlayfs-get_unmapped_area/20200528-080533
-> base:   https://git.kernel.org/pub/scm/linux/kernel/git/mszeredi/vfs.git overlayfs-next
-> config: h8300-randconfig-r036-20200528 (attached as .config)
-> compiler: h8300-linux-gcc (GCC) 9.3.0
-> reproduce (this is a W=1 build):
->         wget https://raw.githubusercontent.com/intel/lkp-tests/master/sbin/make.cross -O ~/bin/make.cross
->         chmod +x ~/bin/make.cross
->         # save the attached .config to linux build tree
->         COMPILER_INSTALL_PATH=$HOME/0day COMPILER=gcc-9.3.0 make.cross ARCH=h8300 
-> 
-> If you fix the issue, kindly add following tag as appropriate
-> Reported-by: kbuild test robot <lkp@intel.com>
-> 
-> All error/warnings (new ones prefixed by >>, old ones prefixed by <<):
-> 
-> fs/overlayfs/file.c: In function 'ovl_get_unmapped_area':
->>> fs/overlayfs/file.c:768:14: error: 'struct mm_struct' has no member named 'get_unmapped_area'
-> 768 |   current->mm->get_unmapped_area)(realfile,
-> |              ^~
->>> fs/overlayfs/file.c:770:1: warning: control reaches end of non-void function [-Wreturn-type]
-> 770 | }
-> | ^
-> 
-> vim +768 fs/overlayfs/file.c
-> 
->    760	
->    761	static unsigned long ovl_get_unmapped_area(struct file *file,
->    762					unsigned long uaddr, unsigned long len,
->    763					unsigned long pgoff, unsigned long flags)
->    764	{
->    765		struct file *realfile = real_file(file);
->    766	
->    767		return (realfile->f_op->get_unmapped_area ?:
->  > 768			current->mm->get_unmapped_area)(realfile,
->    769							uaddr, len, pgoff, flags);
->  > 770	}
->    771	
-> 
+On Thu, May 28, 2020 at 8:35 PM Vivek Goyal <vgoyal@redhat.com> wrote:
+>
+> On Wed, May 27, 2020 at 11:11:38PM +0300, Amir Goldstein wrote:
+>
+> [..]
+> > > > OR we don't check metacopy xattr in ovl_get_inode().
+> > > >
+> > > > In ovl_lookup() we already checked metacopy xattr.
+> > > > No reason to check it again in this subtle context.
+> > > >
+> > > > In ovl_lookup() can store value of upper metacopy and after we get
+> > > > the inode, set the OVL_UPPERDATA inode flag according to
+> > > > upperdentry && !uppermetacopy.
+> > > >
+> > > > That would be consistent with ovl_obtain_alias() which sets the
+> > > > OVL_UPPERDATA inode flag after getting the inode.
+> > >
+> > > Hi Amir,
+> > >
+> > > This patch implements what you are suggesting. Compile tested only.
+> > > Does this look ok?
+> > >
+> >
+> > It looks correct.
+> >
+> > > May be I don't need to split it up in lmetacopy and umetacopy. Ideally,
+> > > lookup in lower layers should stop if an upper regular file is not
+> > > metacopy. IOW, (upperdentry && !metacopy) might be sufficient check.
+> > > Will look closely if this patch looks fine.
+> > >
+> >
+> > I would stick uppermetacopy much like upperredirect and upperopaque.
+>
+> Ok, I introduced uppermetacopy and lowermetacopy. I need to make
+> sure that I don't following metacopy file to lower layer if
+> metacopy feature is off. This check should be done both for upper
+> and lower metcopy files.
+
+You don't need lowermetacopy for that. you can check d.metacopy
+directly.
+
+>
+> >
+> > This test:
+> >
+> >         if (metacopy) {
+> >                 /*
+> >                  * Found a metacopy dentry but did not find corresponding
+> >                  * data dentry
+> >                  */
+> >                 if (d.metacopy) {
+> >
+> > Is equivalent to if (d.metacopy) {
+>
+> Agreed. Updated the patch.
+>
+> >
+> > I am not sure about:
+> >         if (ctr && (!upperdentry || (!d.is_dir && !metacopy)))
+> >                 origin = stack[0].dentry;
+> >
+> > I will let you figure it out, but it feels like it is actually testing
+> > !uppermetacopy
+>
+> Yes this is testing !uppermetacopy. I really want to simplify it a bit
+> or atleast document it a bit that why metacopy case is different. Upper,
+> regular files done't go through lower layer loop but upper metacopy
+> files do. That's one difference which introduces some interesting
+> code changes.
+>
+> - lower layer lookup loop already sets "origin" for metacopy files if
+>   indexing is on. This does not happen for regular non-metacopy files
+>   so they need to set origin here explicitly.
+>
+>   if index feature is off, then we will not set "origin" for metacopy
+>   files in lower layer loop. But do we really need to set it given
+>   index is off and we don't want to lookup index.
+>
+> - We don't want to set origin if upper never had xattr ORIGIN. For
+>   regular files, ctr will be 0 or 1 if ORIGIN xattr was found on
+>   upper. But for metacopy upper files, ctr can be non-zero even
+>   if ORGIN xattr was not found. So that's another reason that
+>   we check for upper metacopy here.
+>
+> Difference between the case of regular and metacopy is subtle and
+> I think this should be simplified otherwise its very easy to break
+> it.
+>
+> I will spend some time on this after fixing the issue at hand. /me
+> always gets lost in the mage of index and origin. There seem to
+> be so many permutation and combination and its not clear to me
+> when metacopy file is different than regular file w.r.t origin
+> and index. It will be nice if we can minimize this difference and
+> document it well so that future modifications are easy.
+
+I agree it should be simplified.
+If you cannot figure out how, let me know and I will try.
+
+
+>
+> Here is V2 of the patch. I added changelog. Also updated it to
+> set OVL_UPPERDATA in ovl_instantiate(). This is creating a new
+> file, so it can't be metacopy and should set OVL_UPPERDATA.
+>
+> Miklos and Amir, please let me know what do you think about this
+> patch. I ran xfstetests overlay tests and these pass (except two
+> which fail even without the patch and are meant to fail.).
+>
+> Thanks
+> Vivek
+>
+>
+> Subject: overlayfs: Initialize OVL_UPPERDATA in ovl_lookup()
+>
+> Currently ovl_get_inode() initializes OVL_UPPERDATA flag and for that it
+> has to call ovl_check_metacopy_xattr() and check if metacopy xattr is
+> present or not.
+>
+> yangerkun reported sometimes underlying filesystem might return -EIO
+> and in that case error handling path does not cleanup properly leading
+> to various warnings.
+>
+> Run generic/461 with ext4 upper/lower layer sometimes may trigger the
+> bug as below(linux 4.19):
+>
+> [  551.001349] overlayfs: failed to get metacopy (-5)
+> [  551.003464] overlayfs: failed to get inode (-5)
+> [  551.004243] overlayfs: cleanup of 'd44/fd51' failed (-5)
+> [  551.004941] overlayfs: failed to get origin (-5)
+> [  551.005199] ------------[ cut here ]------------
+> [  551.006697] WARNING: CPU: 3 PID: 24674 at fs/inode.c:1528 iput+0x33b/0x400
+> ...
+> [  551.027219] Call Trace:
+> [  551.027623]  ovl_create_object+0x13f/0x170
+> [  551.028268]  ovl_create+0x27/0x30
+> [  551.028799]  path_openat+0x1a35/0x1ea0
+> [  551.029377]  do_filp_open+0xad/0x160
+> [  551.029944]  ? vfs_writev+0xe9/0x170
+> [  551.030499]  ? page_counter_try_charge+0x77/0x120
+> [  551.031245]  ? __alloc_fd+0x160/0x2a0
+> [  551.031832]  ? do_sys_open+0x189/0x340
+> [  551.032417]  ? get_unused_fd_flags+0x34/0x40
+> [  551.033081]  do_sys_open+0x189/0x340
+> [  551.033632]  __x64_sys_creat+0x24/0x30
+> [  551.034219]  do_syscall_64+0xd5/0x430
+> [  551.034800]  entry_SYSCALL_64_after_hwframe+0x44/0xa9
+>
+> One solution is to improve error handling and call iget_failed() if error
+> is encountered. Amir thinks that this path is little intricate and there
+> is not real need to check and initialize OVL_UPPERDATA in ovl_get_inode().
+> Instead caller of ovl_get_inode() can initialize this state. And this
+> will avoid double checking of metacopy xattr lookup in ovl_lookup()
+> and ovl_get_inode().
+>
+> OVL_UPPERDATA is inode flag. So I was little concerned that initializing
+> it outside ovl_get_inode() might have some races. But this is one way
+> transition. That is once a file has been fully copied up, it can't go
+> back to metacopy file again. And that seems to help avoid races. So
+> as of now I can't see any races w.r.t OVL_UPPERDATA being set wrongly. So
+> move settingof OVL_UPPERDATA inside the callers of ovl_get_inode().
+> ovl_obtain_alias() already does it. So only two callers now left
+> are ovl_lookup() and ovl_instantiate().
+>
+> metacopy variable has been split into two variables, lowermetacopy
+> and uppermetacopy. It just makes it easier to understand whether
+> metacopy if set on lower or upper. We need to set OVL_UPPERDATA
+> only in case of uppermetacopy.
+>
+> Reported-by: yangerkun <yangerkun@huawei.com>
+> Suggested-by: Amir Goldstein <amir73il@gmail.com>
+> Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
 > ---
-> 0-DAY CI Kernel Test Service, Intel Corporation
-> https://lists.01.org/hyperkitty/list/kbuild-all@lists.01.org
-> 
+>  fs/overlayfs/dir.c   |    2 ++
+>  fs/overlayfs/inode.c |   11 +----------
+>  fs/overlayfs/namei.c |   25 ++++++++++++-------------
+>  3 files changed, 15 insertions(+), 23 deletions(-)
+>
+> Index: redhat-linux/fs/overlayfs/namei.c
+> ===================================================================
+> --- redhat-linux.orig/fs/overlayfs/namei.c      2020-05-28 10:51:57.838556592 -0400
+> +++ redhat-linux/fs/overlayfs/namei.c   2020-05-28 12:11:36.876964037 -0400
+> @@ -823,7 +823,7 @@ struct dentry *ovl_lookup(struct inode *
+>         struct dentry *this;
+>         unsigned int i;
+>         int err;
+> -       bool metacopy = false;
+> +       bool uppermetacopy=false, lowermetacopy=false;
 
-Well yuck!  get_unmapped_area is not part of mm_struct if !CONFIG_MMU.
+spaces around = and no need for lowermetacopy
 
-Miklos, would adding '#ifdef CONFIG_MMU' around the overlayfs code be too
-ugly for you?  Another option is to use real_file() in the mmap code as
-done in [1].
+>         struct ovl_lookup_data d = {
+>                 .sb = dentry->d_sb,
+>                 .name = dentry->d_name,
+> @@ -869,7 +869,7 @@ struct dentry *ovl_lookup(struct inode *
+>                                 goto out_put_upper;
+>
+>                         if (d.metacopy)
+> -                               metacopy = true;
+> +                               uppermetacopy = true;
+>                 }
+>
+>                 if (d.redirect) {
+> @@ -941,7 +941,7 @@ struct dentry *ovl_lookup(struct inode *
+>                 }
+>
+>                 if (d.metacopy)
+> -                       metacopy = true;
+> +                       lowermetacopy = true;
+>                 /*
+>                  * Do not store intermediate metacopy dentries in chain,
+>                  * except top most lower metacopy dentry
+> @@ -982,16 +982,13 @@ struct dentry *ovl_lookup(struct inode *
+>                 }
+>         }
+>
+> -       if (metacopy) {
+> -               /*
+> -                * Found a metacopy dentry but did not find corresponding
+> -                * data dentry
+> -                */
+> -               if (d.metacopy) {
+> -                       err = -EIO;
+> -                       goto out_put;
+> -               }
+> +       /* Found a metacopy dentry but did not find corresponding data dentry */
+> +       if (d.metacopy) {
+> +               err = -EIO;
+> +               goto out_put;
+> +       }
+>
+> +       if (lowermetacopy || uppermetacopy) {
+>                 err = -EPERM;
+>                 if (!ofs->config.metacopy) {
+>                         pr_warn_ratelimited("refusing to follow metacopy origin for (%pd2)\n",
 
-Sorry for all the questions.  However, I want to make sure you are happy
-with any overlayfs changes.
+Move that test up to where setting metacopy = true for lower layers
+similar to "refusing to follow redirect" and make it:
+       if (uppermetacopy || d.metacopy) {
 
-[1] https://lore.kernel.org/linux-mm/04a00e3b-539c-236f-e43b-0024ef94b7cb@oracle.com/
--- 
-Mike Kravetz
+Then you got rid of lowermetacopy.
+
+> @@ -1023,7 +1020,7 @@ struct dentry *ovl_lookup(struct inode *
+>          *
+>          * Always lookup index of non-dir non-metacopy and non-upper.
+>          */
+> -       if (ctr && (!upperdentry || (!d.is_dir && !metacopy)))
+> +       if (ctr && (!upperdentry || (!d.is_dir && !uppermetacopy)))
+>                 origin = stack[0].dentry;
+>
+
+I think this should be:
+
+          * Always lookup index of non-dir and non-upper.
+          */
+          if (!origin && ctr && (!upperdentry || !d.is_dir))
+                 origin = stack[0].dentry;
+
+uppermetacopy is guaranteed to either have origin already set or
+exit with an an error for ovl_verify_origin().
+
+HOWEVER, if we set origin to lower, which turns out to be a lower
+metacopy, we then skip this layer to the next one, but origin remains
+set on the skipped layer dentry, which we had already dput().
+Ay ay ay!
+
+I think it would be best to move the check
+                 * Do not store intermediate metacopy dentries in chain,
+to right after ovl_lookup_layer(), before the ovl_fix_origin() and
+ovl_verify_origin() checks.
+
+Thanks,
+Amir.
