@@ -1,182 +1,267 @@
-Return-Path: <SRS0=jndh=7J=vger.kernel.org=linux-unionfs-owner@kernel.org>
+Return-Path: <SRS0=6v4H=7K=vger.kernel.org=linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.3 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A0001C433DF
-	for <linux-unionfs@archiver.kernel.org>; Wed, 27 May 2020 20:11:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6E5BBC433E1
+	for <linux-unionfs@archiver.kernel.org>; Thu, 28 May 2020 00:01:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E11CB2073B
-	for <linux-unionfs@archiver.kernel.org>; Wed, 27 May 2020 20:11:50 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 48BF7207D3
+	for <linux-unionfs@archiver.kernel.org>; Thu, 28 May 2020 00:01:45 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="JWCXOmyR"
+	dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="q//hMjAV"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728717AbgE0ULu (ORCPT
+        id S1725780AbgE1ABm (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Wed, 27 May 2020 16:11:50 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41496 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728571AbgE0ULu (ORCPT
+        Wed, 27 May 2020 20:01:42 -0400
+Received: from userp2130.oracle.com ([156.151.31.86]:36206 "EHLO
+        userp2130.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725294AbgE1ABl (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 27 May 2020 16:11:50 -0400
-Received: from mail-il1-x144.google.com (mail-il1-x144.google.com [IPv6:2607:f8b0:4864:20::144])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 033DFC05BD1E
-        for <linux-unionfs@vger.kernel.org>; Wed, 27 May 2020 13:11:50 -0700 (PDT)
-Received: by mail-il1-x144.google.com with SMTP id a18so8128437ilp.7
-        for <linux-unionfs@vger.kernel.org>; Wed, 27 May 2020 13:11:49 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=ZLkOkeqK5sshH42PrM7QypijMzjKr2Z6NTHEtHRAuBk=;
-        b=JWCXOmyRewDz4WeYujfdCxklgHYfsdwaazCLMmcxMA9IP+b5rYvtes+teAL8HTsKCf
-         ixYrs46kvE2EkFcCvddaVx7Z1fdvimBHSZ0h7JOtCHsaQR4Hq8wLHIwOXRT1n+Qhfwyk
-         WyQvufwolzCcXCrqMktJxg2O9kDpw2qa8Sg/j+aHEyfz0uCnVMmd8/lOjuh5z9cN9mGx
-         NhJS43/qAwuW3+9kG3KDnJtGt83uy9yYcEl3jykZ7tiovcJirVPfVWSPiODr6MIo7HK8
-         kYMxqbAR3/KK3ZfjbaNz7S1cs83OM/D4l4E5BX1x63tbOKlM5fdw+2fKMsRcps+JaAJX
-         j1Lg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=ZLkOkeqK5sshH42PrM7QypijMzjKr2Z6NTHEtHRAuBk=;
-        b=UBpleX68Y9ce2cBBynpDAjEiwYyf2rrCa39EJCjwYVL5mNrUTonQk0MWH/isRVXjic
-         CJS9Da+ND/D96quRa5GbwaveTXOsNwQ2+jxRdNQaEtFML5BZMfQ6zZ7XXRWSnIrSzGjI
-         fI6nHEZm0NevgcDB2z4kx9xs4Y09+AiQ8KmdBn96/8lzz5g30YMun15GPjeFIwuXQ/SD
-         e6st280A+Lq4dzlkCcaDSXTJKNjt96zYOPMVQTOxSa4L7aBLswEwFhxMAvBxgHpQlGlu
-         JMNTMU3L1jUQG9gS4lBSWLrTvA5TyC+9EVASwTAnno/GkSr6EenHzZobJQUlYp1lc1Mf
-         27cQ==
-X-Gm-Message-State: AOAM533c2ctb+/sXbz4ITD5Ze1avyVPO61drn/XufKe19d4xquwZy/bP
-        Zw9Nahd9g4OggaUcgepVV3vDTnIByOnpO3rbWGM=
-X-Google-Smtp-Source: ABdhPJwOjdUJRLHdTuJFgD59UIWJPqKJiNqlLOXpNqh9Gb/WtsonCO8GUvRevOSGsawFU2w5opfhvnknZ7MIf6yRCok=
-X-Received: by 2002:a92:4015:: with SMTP id n21mr7526774ila.137.1590610309286;
- Wed, 27 May 2020 13:11:49 -0700 (PDT)
+        Wed, 27 May 2020 20:01:41 -0400
+Received: from pps.filterd (userp2130.oracle.com [127.0.0.1])
+        by userp2130.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 04RNvdea188654;
+        Thu, 28 May 2020 00:01:29 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=subject : to : cc :
+ references : from : message-id : date : mime-version : in-reply-to :
+ content-type : content-transfer-encoding; s=corp-2020-01-29;
+ bh=1u3KnY7wsn8eqS5LxH5DG3FtH5UMSs7unlE6FhJcW6A=;
+ b=q//hMjAVRFCgFyxmIxFf/zWdcT7o6cFAZeSYEKSslEFYMehBIducY0I60EPGzhnIj0HE
+ xM2TO3v5Zzs198xwSPjULYUrRUPk3Zc6t59pE6K8Beat1djjfWZKAUJ7/wKremLa/b0G
+ NSUBU/chouDa4Y6kDe+AMjwm+xTRqbZytGf37p2l/tql5RxJqMZMHgvxhuoMI0QnT9nn
+ lIurwPMiHk0h/fegYIl4qHXMV48WP+b3l8I1uksR5DW1R+3cCMzoR74pTElGumXYWT3N
+ GgYiLFd/b9+bSr2YwY6FN8lonz/9Wttl+N8SZz5MxVIWCKlt6ezsVs97wGkq0NU+BfXx 3A== 
+Received: from aserp3020.oracle.com (aserp3020.oracle.com [141.146.126.70])
+        by userp2130.oracle.com with ESMTP id 316u8r27w1-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=FAIL);
+        Thu, 28 May 2020 00:01:29 +0000
+Received: from pps.filterd (aserp3020.oracle.com [127.0.0.1])
+        by aserp3020.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 04RNvaGf155723;
+        Thu, 28 May 2020 00:01:28 GMT
+Received: from userv0122.oracle.com (userv0122.oracle.com [156.151.31.75])
+        by aserp3020.oracle.com with ESMTP id 317j5td1ce-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Thu, 28 May 2020 00:01:28 +0000
+Received: from abhmp0007.oracle.com (abhmp0007.oracle.com [141.146.116.13])
+        by userv0122.oracle.com (8.14.4/8.14.4) with ESMTP id 04S01PV0024374;
+        Thu, 28 May 2020 00:01:26 GMT
+Received: from [192.168.2.112] (/50.38.35.18)
+        by default (Oracle Beehive Gateway v4.0)
+        with ESMTP ; Wed, 27 May 2020 17:01:25 -0700
+Subject: Re: kernel BUG at mm/hugetlb.c:LINE!
+To:     Miklos Szeredi <miklos@szeredi.hu>
+Cc:     Colin Walters <walters@verbum.org>,
+        syzbot <syzbot+d6ec23007e951dadf3de@syzkaller.appspotmail.com>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-mm <linux-mm@kvack.org>,
+        Miklos Szeredi <mszeredi@redhat.com>,
+        syzkaller-bugs <syzkaller-bugs@googlegroups.com>,
+        Al Viro <viro@zeniv.linux.org.uk>,
+        linux-unionfs@vger.kernel.org
+References: <000000000000b4684e05a2968ca6@google.com>
+ <aa7812b8-60ae-8578-40db-e71ad766b4d3@oracle.com>
+ <CAJfpegtVca6H1JPW00OF-7sCwpomMCo=A2qr5K=9uGKEGjEp3w@mail.gmail.com>
+ <bb232cfa-5965-42d0-88cf-46d13f7ebda3@www.fastmail.com>
+ <9a56a79a-88ed-9ff4-115e-ec169cba5c0b@oracle.com>
+ <CAJfpegsNVB12MQ-Jgbb-f=+i3g0Xy52miT3TmUAYL951HVQS_w@mail.gmail.com>
+ <78313ae9-8596-9cbe-f648-3152660be9b3@oracle.com>
+ <20200522100553.GE13131@miu.piliscsaba.redhat.com>
+From:   Mike Kravetz <mike.kravetz@oracle.com>
+Message-ID: <4ebd0429-f715-d523-4c09-43fa2c3bc338@oracle.com>
+Date:   Wed, 27 May 2020 17:01:23 -0700
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
+ Thunderbird/68.8.0
 MIME-Version: 1.0
-References: <20200527041711.60219-1-yangerkun@huawei.com> <CAOQ4uxjjUjEzvy=b96FZPGt4nhOfwFk1_XE2Po9scYDiPPkJgQ@mail.gmail.com>
- <20200527194925.GD140950@redhat.com>
-In-Reply-To: <20200527194925.GD140950@redhat.com>
-From:   Amir Goldstein <amir73il@gmail.com>
-Date:   Wed, 27 May 2020 23:11:38 +0300
-Message-ID: <CAOQ4uxis2fgf_c02q=Fy2h=C0U+_zrfUmxW1HQOJ0A7KaKqWgg@mail.gmail.com>
-Subject: Re: [PATCH] ovl: fix some bug exist in ovl_get_inode
-To:     Vivek Goyal <vgoyal@redhat.com>
-Cc:     yangerkun <yangerkun@huawei.com>,
-        Miklos Szeredi <miklos@szeredi.hu>,
-        overlayfs <linux-unionfs@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+In-Reply-To: <20200522100553.GE13131@miu.piliscsaba.redhat.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9634 signatures=668686
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 bulkscore=0 spamscore=0 suspectscore=0
+ mlxlogscore=999 mlxscore=0 adultscore=0 phishscore=0 malwarescore=0
+ classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2004280000
+ definitions=main-2005270177
+X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9634 signatures=668686
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 malwarescore=0 mlxscore=0
+ priorityscore=1501 spamscore=0 cotscore=-2147483648 suspectscore=0
+ phishscore=0 clxscore=1011 mlxlogscore=999 bulkscore=0 adultscore=0
+ lowpriorityscore=0 impostorscore=0 classifier=spam adjust=0 reason=mlx
+ scancount=1 engine=8.12.0-2004280000 definitions=main-2005270177
 Sender: linux-unionfs-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Wed, May 27, 2020 at 10:49 PM Vivek Goyal <vgoyal@redhat.com> wrote:
->
-> On Wed, May 27, 2020 at 02:16:00PM +0300, Amir Goldstein wrote:
-> > On Wed, May 27, 2020 at 6:45 AM yangerkun <yangerkun@huawei.com> wrote:
-> > >
-> > > Run generic/461 with ext4 upper/lower layer sometimes may trigger the
-> > > bug as below(linux 4.19):
-> > >
-> > > [  551.001349] overlayfs: failed to get metacopy (-5)
-> > > [  551.003464] overlayfs: failed to get inode (-5)
-> > > [  551.004243] overlayfs: cleanup of 'd44/fd51' failed (-5)
-> > > [  551.004941] overlayfs: failed to get origin (-5)
-> > > [  551.005199] ------------[ cut here ]------------
-> > > [  551.006697] WARNING: CPU: 3 PID: 24674 at fs/inode.c:1528 iput+0x33b/0x400
-> > > ...
-> > > [  551.027219] Call Trace:
-> > > [  551.027623]  ovl_create_object+0x13f/0x170
-> > > [  551.028268]  ovl_create+0x27/0x30
-> > > [  551.028799]  path_openat+0x1a35/0x1ea0
-> > > [  551.029377]  do_filp_open+0xad/0x160
-> > > [  551.029944]  ? vfs_writev+0xe9/0x170
-> > > [  551.030499]  ? page_counter_try_charge+0x77/0x120
-> > > [  551.031245]  ? __alloc_fd+0x160/0x2a0
-> > > [  551.031832]  ? do_sys_open+0x189/0x340
-> > > [  551.032417]  ? get_unused_fd_flags+0x34/0x40
-> > > [  551.033081]  do_sys_open+0x189/0x340
-> > > [  551.033632]  __x64_sys_creat+0x24/0x30
-> > > [  551.034219]  do_syscall_64+0xd5/0x430
-> > > [  551.034800]  entry_SYSCALL_64_after_hwframe+0x44/0xa9
-> > > ...
-> > > [  556.107515] BUG: Dentry 000000006bc1d73f{i=4129c,n=fd51}  still in use (-1) [unmount of ext4 sdb]
-> > > [  556.108946] ------------[ cut here ]------------
-> > > [  556.109686] WARNING: CPU: 1 PID: 24682 at fs/dcache.c:1557 umount_check+0x95/0xc0
-> > > [  556.130343]  d_walk+0x10d/0x430
-> > > [  556.130832]  do_one_tree+0x30/0x60
-> > > [  556.131365]  shrink_dcache_for_umount+0x38/0xe0
-> > > [  556.132063]  generic_shutdown_super+0x2e/0x1c0
-> > > [  556.132747]  kill_block_super+0x29/0x80
-> > > [  556.133338]  deactivate_locked_super+0x7a/0x100
-> > > [  556.134034]  deactivate_super+0x9d/0xb0
-> > > [  556.134627]  cleanup_mnt+0x67/0x100
-> > > [  556.135173]  __cleanup_mnt+0x16/0x20
-> > > [  556.135731]  task_work_run+0xdb/0x110
-> > > [  556.136306]  exit_to_usermode_loop+0x197/0x1b0
-> > > [  556.136991]  do_syscall_64+0x3ce/0x430
-> > > [  556.137571]  entry_SYSCALL_64_after_hwframe+0x44/0xa9
-> > > ...
-> > > [  556.378140] VFS: Busy inodes after unmount of sdb. Self-destruct in 5 seconds.  Have a nice day...
-> > >
-> > > After check the code, there may some bug need to fix:
-> > > 1. We need to call iput once ovl_check_metacopy_xattr fail.
-> > > 2. We need to call unlock_new_inode or the above iput(also with iput in
-> > >    ovl_create_object) will trigger the a WARN_ON since  the I_NEW still
-> > >    exists.
-> > > 3. We should move the init for upperdentry to the place below
-> > >    ovl_check_metacopy_xattr. Or the dentry reference will decrease to
-> > >    -1(error path in ovl_create_upper will inc, ovl_destroy_inode too).
-> > >
-> >
-> > OR we don't check metacopy xattr in ovl_get_inode().
-> >
-> > In ovl_lookup() we already checked metacopy xattr.
-> > No reason to check it again in this subtle context.
-> >
-> > In ovl_lookup() can store value of upper metacopy and after we get
-> > the inode, set the OVL_UPPERDATA inode flag according to
-> > upperdentry && !uppermetacopy.
-> >
-> > That would be consistent with ovl_obtain_alias() which sets the
-> > OVL_UPPERDATA inode flag after getting the inode.
->
-> Hi Amir,
->
-> This patch implements what you are suggesting. Compile tested only.
-> Does this look ok?
->
+On 5/22/20 3:05 AM, Miklos Szeredi wrote:
+> On Wed, May 20, 2020 at 10:27:15AM -0700, Mike Kravetz wrote:
+> 
+>> I am fairly confident it is all about checking limits and alignment.  The
+>> filesystem knows if it can/should align to base or huge page size. DAX has
+>> some interesting additional restrictions, and several 'traditional' filesystems
+>> check if they are 'on DAX'.
+> 
+> 
+> Okay, I haven't looked at DAX vs. overlay.  I'm sure it's going to come up at
+> some point, if it hasn't already.
+> 
+>>
+>> In a previous e-mail, you suggested hugetlb_get_unmapped_area could do the
+>> length adjustment in hugetlb_get_unmapped_area (generic and arch specific).
+>> I agree, although there may be the need to add length overflow checks in
+>> these routines (after round up) as this is done in core code now.  However,
+>> this can be done as a separate cleanup patch.
+>>
+>> In any case, we need to get the core mmap code to call filesystem specific
+>> get_unmapped_area if on a union/overlay.  The patch I suggested does this
+>> by simply calling real_file to determine if there is a filesystem specific
+>> get_unmapped_area.  The other approach would be to provide an overlayfs
+>> get_unmapped_area that calls the underlying filesystem get_unmapped_area.
+> 
+> That latter is what's done for all other stacked operations in overlayfs.
+> 
+> Untested patch below.
+> 
 
-It looks correct.
+Thanks Miklos!
 
-> May be I don't need to split it up in lmetacopy and umetacopy. Ideally,
-> lookup in lower layers should stop if an upper regular file is not
-> metacopy. IOW, (upperdentry && !metacopy) might be sufficient check.
-> Will look closely if this patch looks fine.
->
+We still need the 'real_file()' routine for is_file_hugepages.  So combining
+these, I propose the following patch.  It addresses the known issue as well
+as potential issues with is_file_hugepages returning incorrect information.
+I don't really like a separate header file for real_file, but I can not
+think of any good place to put it.
 
-I would stick uppermetacopy much like upperredirect and upperopaque.
+Let me know what you think,
 
-This test:
+From 33f6bbd19406108b61a4113b1ec8e4e6888cd482 Mon Sep 17 00:00:00 2001
+From: Mike Kravetz <mike.kravetz@oracle.com>
+Date: Wed, 27 May 2020 16:58:58 -0700
+Subject: [PATCH v2] ovl: provide real_file() and overlayfs get_unmapped_area()
 
-        if (metacopy) {
-                /*
-                 * Found a metacopy dentry but did not find corresponding
-                 * data dentry
-                 */
-                if (d.metacopy) {
+If a file is on a union/overlay, then the 'struct file *' will have
+overlayfs file operations.  The routine is_file_hugepages() compares
+f->f_op to hugetlbfs_file_operations to determine if it is a hugetlbfs
+file.  If a hugetlbfs file is on a union/overlay, this comparison is
+false and is_file_hugepages() incorrectly indicates the underlying
+file is not hugetlbfs.  One result of this is a BUG as shown in [1].
 
-Is equivalent to if (d.metacopy) {
+mmap uses is_file_hugepages() because hugetlbfs files have different
+alignment restrictions.  In addition, mmap code would like to use the
+filesystem specific get_unmapped_area() routine if one is defined.
 
-I am not sure about:
-        if (ctr && (!upperdentry || (!d.is_dir && !metacopy)))
-                origin = stack[0].dentry;
+To address this issue,
+- Add a new routine real_file() which will return the underlying file.
+- Update is_file_hugepages to get the real file.
+- Add get_unmapped_area f_op to oerrlayfs to call underlying routine.
 
-I will let you figure it out, but it feels like it is actually testing
-!uppermetacopy
+[1] https://lore.kernel.org/linux-mm/000000000000b4684e05a2968ca6@google.com/
 
-Thanks,
-Amir.
+Reported-by: syzbot+d6ec23007e951dadf3de@syzkaller.appspotmail.com
+Signed-off-by: Miklos Szeredi <miklos@szeredi.hu>
+Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
+---
+ fs/overlayfs/file.c       | 13 +++++++++++++
+ include/linux/hugetlb.h   |  3 +++
+ include/linux/overlayfs.h | 27 +++++++++++++++++++++++++++
+ 3 files changed, 43 insertions(+)
+ create mode 100644 include/linux/overlayfs.h
+
+diff --git a/fs/overlayfs/file.c b/fs/overlayfs/file.c
+index 87c362f65448..cc020e1c72d5 100644
+--- a/fs/overlayfs/file.c
++++ b/fs/overlayfs/file.c
+@@ -12,6 +12,7 @@
+ #include <linux/splice.h>
+ #include <linux/mm.h>
+ #include <linux/fs.h>
++#include <linux/overlayfs.h>
+ #include "overlayfs.h"
+ 
+ struct ovl_aio_req {
+@@ -757,6 +758,17 @@ static loff_t ovl_remap_file_range(struct file *file_in, loff_t pos_in,
+ 			    remap_flags, op);
+ }
+ 
++static unsigned long ovl_get_unmapped_area(struct file *file,
++				unsigned long uaddr, unsigned long len,
++				unsigned long pgoff, unsigned long flags)
++{
++	struct file *realfile = real_file(file);
++
++	return (realfile->f_op->get_unmapped_area ?:
++		current->mm->get_unmapped_area)(realfile,
++						uaddr, len, pgoff, flags);
++}
++
+ const struct file_operations ovl_file_operations = {
+ 	.open		= ovl_open,
+ 	.release	= ovl_release,
+@@ -774,6 +786,7 @@ const struct file_operations ovl_file_operations = {
+ 
+ 	.copy_file_range	= ovl_copy_file_range,
+ 	.remap_file_range	= ovl_remap_file_range,
++	.get_unmapped_area	= ovl_get_unmapped_area,
+ };
+ 
+ int __init ovl_aio_request_cache_init(void)
+diff --git a/include/linux/hugetlb.h b/include/linux/hugetlb.h
+index 43a1cef8f0f1..fb22c0a7474a 100644
+--- a/include/linux/hugetlb.h
++++ b/include/linux/hugetlb.h
+@@ -9,6 +9,7 @@
+ #include <linux/cgroup.h>
+ #include <linux/list.h>
+ #include <linux/kref.h>
++#include <linux/overlayfs.h>
+ #include <asm/pgtable.h>
+ 
+ struct ctl_table;
+@@ -437,6 +438,8 @@ struct file *hugetlb_file_setup(const char *name, size_t size, vm_flags_t acct,
+ 
+ static inline bool is_file_hugepages(struct file *file)
+ {
++	file = real_file(file);
++
+ 	if (file->f_op == &hugetlbfs_file_operations)
+ 		return true;
+ 
+diff --git a/include/linux/overlayfs.h b/include/linux/overlayfs.h
+new file mode 100644
+index 000000000000..eecdfda0286f
+--- /dev/null
++++ b/include/linux/overlayfs.h
+@@ -0,0 +1,27 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++#ifndef _LINUX_OVERLAYFS_H
++#define _LINUX_OVERLAYFS_H
++
++#include <linux/fs.h>
++
++extern const struct file_operations ovl_file_operations;
++
++#ifdef CONFIG_OVERLAY_FS
++/*
++ * If file is on a union/overlay, then return the underlying real file.
++ * Otherwise return the file itself.
++ */
++static inline struct file *real_file(struct file *file)
++{
++	while (unlikely(file->f_op == &ovl_file_operations))
++		file = file->private_data;
++	return file;
++}
++#else
++static inline struct file *real_file(struct file *file)
++{
++	return file;
++}
++#endif
++
++#endif /* _LINUX_OVERLAYFS_H */
+-- 
+2.25.4
+
