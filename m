@@ -7,61 +7,61 @@ X-Spam-Status: No, score=-6.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
 	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BCDF1C433E0
-	for <linux-unionfs@archiver.kernel.org>; Sat, 30 May 2020 10:37:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0524EC433DF
+	for <linux-unionfs@archiver.kernel.org>; Sat, 30 May 2020 11:01:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 95EF520842
-	for <linux-unionfs@archiver.kernel.org>; Sat, 30 May 2020 10:37:50 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C36EA2073B
+	for <linux-unionfs@archiver.kernel.org>; Sat, 30 May 2020 11:01:42 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="ewV+V3qS"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Y0mV1Abx"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727964AbgE3Khu (ORCPT
+        id S1727947AbgE3LBm (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Sat, 30 May 2020 06:37:50 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59214 "EHLO
+        Sat, 30 May 2020 07:01:42 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34660 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725813AbgE3Kht (ORCPT
+        with ESMTP id S1725813AbgE3LBk (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Sat, 30 May 2020 06:37:49 -0400
-Received: from mail-io1-xd42.google.com (mail-io1-xd42.google.com [IPv6:2607:f8b0:4864:20::d42])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 51401C03E969
-        for <linux-unionfs@vger.kernel.org>; Sat, 30 May 2020 03:37:49 -0700 (PDT)
-Received: by mail-io1-xd42.google.com with SMTP id c8so2032707iob.6
-        for <linux-unionfs@vger.kernel.org>; Sat, 30 May 2020 03:37:49 -0700 (PDT)
+        Sat, 30 May 2020 07:01:40 -0400
+Received: from mail-il1-x144.google.com (mail-il1-x144.google.com [IPv6:2607:f8b0:4864:20::144])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BBB63C03E969
+        for <linux-unionfs@vger.kernel.org>; Sat, 30 May 2020 04:01:40 -0700 (PDT)
+Received: by mail-il1-x144.google.com with SMTP id 18so4956715iln.9
+        for <linux-unionfs@vger.kernel.org>; Sat, 30 May 2020 04:01:40 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=FY+5CqibrIfANGAtXP6xlwb6R5EGunBNtN9bEXg8q6g=;
-        b=ewV+V3qSwgE0cl/ig7xSviAevBcIqdozqO8IfOWT9Vgn8OjIpESSrlvRlfwsdqPUad
-         EEzFcq1tKNAnuJCH/IahLjS2Y9G6vEBpQaVIe/4TsMpul9gRvPdj9ywz5dLlAfBIptCM
-         oVf6f/FCntJjFPHzaaLC3a4d2EkBcWbHd3nYCW9QikISVT2nRXK21L6+wIz4AT/vDjLB
-         aJTESYWsGeEDkO/oJV6J33mNb3hNFShd0Z6AeMBZ3Vsuk0ScU/sau3rX2RkuAkQ9msGe
-         wd2IG/gHWFNuBGLKDWDjZCWCpjN/QvSz3rIJB2VKz2goS8jIahfw1a7IyAn1Jp0VuU0K
-         W7zw==
+        bh=mOb2ILxo0kNUO1wdLbFroPyy/0wn4wnDw/Jn6RtH+6s=;
+        b=Y0mV1AbxveHifMq1aKxYEjz8SraBQa7RGFCgKUc0+VqpsL341t5x77dEHy1/LPR8Tp
+         vZVTGFLEodRqUPL+fCtonHJXnOQjqL0e146UYrzcikdyH+uxx8r4oqEOIc45RtkyMTbl
+         FGuMt1pkkdA82uB7v6cq3FydhtEqBi0ivENHk45PavD2sOtVfih8OVVdD2V6C3a4wwQ9
+         ZEi5Qmj8f4evreV7PSpnVcukq79MZRKlLUlqQKHvkEVMX9V4kpG7oHuIEIb+5GsXTXMx
+         vy18vDB1yHHqmUkq72z/XvGEKO3BU3WwK8s5IKsq8pQVexIRpy0ITcjidPfV/clefy/r
+         JCVQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=FY+5CqibrIfANGAtXP6xlwb6R5EGunBNtN9bEXg8q6g=;
-        b=VuX2TRp1vIPBbcY8XcL/qr2JEcE/eiPywkNtF3i7glcWaUw9l5Da5hqSxwYy43Um3T
-         vvsRUi7dTmOIjVz6Aw8iRbAJZfI99gl3Ve3tseqHQURFO00c/gRhlW4jxm8B/PcybrpU
-         cP5Rd6nwxLXSbNtd5ZozN++RZoTgF8wH5KQiTR/PwQWHvU/DfMZkwpHUxcmScPqb+tsh
-         9urgGRIkxof79kj13uuNjGIO5V5tytWOQJBGD01TLCjcM98Ibl+C5b3rqVRYqkXub3cb
-         uUivIKrx3xdyDm7JZ1zOcaYwqVVGmKTsfB0BjFNRi4yTJTvG+eDNSSjegpO9IZTdt+ne
-         NmcQ==
-X-Gm-Message-State: AOAM533790r8X0jqY3M45IpE+d3Jbgl+7tQwXACKt3IpL8Ok1nBRym6p
-        UG62ZOF2tno+jjAz1tEZRABO2cGY8BxXX8WX7sfMJeYX
-X-Google-Smtp-Source: ABdhPJz/hqD6ng3MLQ8+PQLFrUVO775cvZBsgNDr0XDwAaB/dmA3WfeVAT+o48Hg7S/GK3zBHGBUavQTCBrNrp/Sx0Y=
-X-Received: by 2002:a02:270d:: with SMTP id g13mr5954173jaa.93.1590835068584;
- Sat, 30 May 2020 03:37:48 -0700 (PDT)
+        bh=mOb2ILxo0kNUO1wdLbFroPyy/0wn4wnDw/Jn6RtH+6s=;
+        b=L9C1SliLrCilZ2WP3+8WkQ4DkS25tdCHmKy9PywqMFH8oQ+QKqww1WuF5W9xkDuFU+
+         Vyd9fwuibKvaXLGrmCcd1wUHB5Ge6+n4AdP9kA1V9I1Lq1naAV+k8tF5cc/zRBHddYFt
+         gkRg9qox2mE0nbxq1//6u0nkVQ/+kJtkPTrHfkAjQsqe+uti+bNghlAMRbfChjYBxCQU
+         3zC8TV5vJ6e8uUqV7TGgagPf+WPoSg7F9NGfWdN6NpndV3Qeyj4NtZ3ibN/904kCZwxa
+         /1hlS+S744/wRYFbWmXhWn9DlcQ52T14/PDIBxrkSge9nHBwU1WQigenLAwsrFSaBKTl
+         BKzA==
+X-Gm-Message-State: AOAM533kLyrQMxCDhuZsYq0ec43dKHSU5ByrT4Jf6gEk9MhkKennRTLx
+        uKh6g+pJlTvAmhmh/ItIOuVVq/2wJwfm/s3X/s1j98VT
+X-Google-Smtp-Source: ABdhPJzkXwNs+jV9qUaTKzb74x9+y4pnPXrhvQHj+hjEMJVe7goIdwrDNM2tKHZOwwjuPLDsqF/jeovmPdUctx5sSXw=
+X-Received: by 2002:a92:c9ce:: with SMTP id k14mr5274134ilq.250.1590836500013;
+ Sat, 30 May 2020 04:01:40 -0700 (PDT)
 MIME-Version: 1.0
-References: <20200529212952.214175-1-vgoyal@redhat.com> <20200529212952.214175-2-vgoyal@redhat.com>
-In-Reply-To: <20200529212952.214175-2-vgoyal@redhat.com>
+References: <20200529212952.214175-1-vgoyal@redhat.com> <20200529212952.214175-3-vgoyal@redhat.com>
+In-Reply-To: <20200529212952.214175-3-vgoyal@redhat.com>
 From:   Amir Goldstein <amir73il@gmail.com>
-Date:   Sat, 30 May 2020 13:37:37 +0300
-Message-ID: <CAOQ4uxj=MoKfo32tz8zmxf13gheDt+y1DZ3-oznY9YX=DhWiFg@mail.gmail.com>
-Subject: Re: [PATCH 1/3] overlayfs: Simplify setting of origin for index lookup
+Date:   Sat, 30 May 2020 14:01:28 +0300
+Message-ID: <CAOQ4uxi08jyGa_aPBLxWoF1649+6CzZ6iJtiz76cKUvWRnpVvA@mail.gmail.com>
+Subject: Re: [PATCH 2/3] overlayfs: ovl_lookup(): Use only uppermetacopy state
 To:     Vivek Goyal <vgoyal@redhat.com>
 Cc:     Miklos Szeredi <miklos@szeredi.hu>,
         yangerkun <yangerkun@huawei.com>,
@@ -74,103 +74,129 @@ X-Mailing-List: linux-unionfs@vger.kernel.org
 
 On Sat, May 30, 2020 at 12:30 AM Vivek Goyal <vgoyal@redhat.com> wrote:
 >
-> overlayfs can keep index of copied up files and directories and it
-> seems to serve two primary puroposes. For regular files, it avoids
-> breaking lower hardlinks over copy up. For directories it seems to
-> be used for various error checks.
+> Currently we use a variable "metacopy" which signifies that dentry
+> could be either uppermetacopy or lowermetacopy. Amir suggested that
+> we can move code around and use d.metacopy in such a way that we
+> don't need lowermetacopy and just can do away with uppermetacopy.
 >
-> During ovl_lookup(), we lookup for index using lower dentry in many
-> a cases. That lower dentry is called "origin" and following is a summary
-> of current logic.
+> So this patch replaces "metacopy" with "uppermetacopy".
 >
-> If there is no upperdentry, always lookup for index using lower dentry.
-> For regular files it helps avoiding breaking hard links over copyup
-> and for directories it seems to be just error checks.
+> It also moves some code little higher to keep reading little simpler.
 >
-> If there is an upperdentry, then there are 3 possible cases.
->
-> - For directories, lower dentry is found using two ways. One is regular
->   path based lookup in lower layers and second is using ORIGIN xattr
->   on upper dentry. First verify that path based lookup lower dentry
->   matches the one pointed by upper ORIGIN xattr. If yes, use this
->   verified origin for index lookup.
->
-> - For regular files (non-metacopy), there is no path based lookup in
->   lower layers as lookup stops once we find upper dentry. So there
->   is no origin verification. If there is ORIGIN xattr present on upper,
->   use that to lookup index otherwise don't.
->
-> - For regular metacopy files, again lower dentry is found using
->   path based lookup as well as ORIGIN xattr on upper. Path based lookup
->   is continued in this case to find lower data dentry for metacopy
->   upper. So like directories we only use verified origin. If ORIGIN
->   xattr is not present (Either because lower did not support file
->   handles or because this is hardlink copied up with index=off), then
->   don't use path lookup based lower dentry as origin. This is same
->   as regular non-metacopy file case.
->
-
-Very good summary.
-You may add:
-Reviewed-by: Amir Goldstein <amir73il@gmail.com>
-
-But see one improvement below.
-Also, please make sure to run unionmount setups:
-
-./run --ov=10 --verify
-./run --ov=10 --meta --verify
-
---verify will enable index and check st_dev;st_ino are not broken
-on copy up. --ov=10 will cause lower hardlink copy up, because
-after hardlink is creates by some test, upper is rotated to mid layer
-and next modifying operation will trigger the hardlink copy up.
-
 > Suggested-by: Amir Goldstein <amir73il@gmail.com>
 > Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
 > ---
->  fs/overlayfs/namei.c | 29 +++++++++++++++++------------
->  1 file changed, 17 insertions(+), 12 deletions(-)
+>  fs/overlayfs/namei.c | 57 ++++++++++++++++++++++----------------------
+>  1 file changed, 28 insertions(+), 29 deletions(-)
 >
 > diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
-> index 0db23baf98e7..5d80d8cc0063 100644
+> index 5d80d8cc0063..a1889a160708 100644
 > --- a/fs/overlayfs/namei.c
 > +++ b/fs/overlayfs/namei.c
-> @@ -1005,25 +1005,30 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
+> @@ -823,7 +823,7 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
+>         struct dentry *this;
+>         unsigned int i;
+>         int err;
+> -       bool metacopy = false;
+> +       bool uppermetacopy = false;
+>         struct ovl_lookup_data d = {
+>                 .sb = dentry->d_sb,
+>                 .name = dentry->d_name,
+> @@ -869,7 +869,7 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
+>                                 goto out_put_upper;
+>
+>                         if (d.metacopy)
+> -                               metacopy = true;
+> +                               uppermetacopy = true;
 >                 }
->                 stack = origin_path;
->                 ctr = 1;
-> +               origin = origin_path->dentry;
->                 origin_path = NULL;
+>
+>                 if (d.redirect) {
+> @@ -906,6 +906,22 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
+>                 if (!this)
+>                         continue;
+>
+> +               if ((uppermetacopy || d.metacopy) && !ofs->config.metacopy) {
+> +                       err = -EPERM;
+> +                       pr_warn_ratelimited("refusing to follow metacopy origin"
+> +                                           " for (%pd2)\n", dentry);
+> +                       goto out_put;
+> +               }
+> +
+> +               /*
+> +                * Do not store intermediate metacopy dentries in chain,
+> +                * except top most lower metacopy dentry
+> +                */
+> +               if (d.metacopy && ctr) {
+> +                       dput(this);
+> +                       continue;
+> +               }
+> +
+>                 /*
+>                  * If no origin fh is stored in upper of a merge dir, store fh
+>                  * of lower dir and set upper parent "impure".
+> @@ -940,17 +956,6 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
+>                         origin = this;
+>                 }
+>
+> -               if (d.metacopy)
+> -                       metacopy = true;
+> -               /*
+> -                * Do not store intermediate metacopy dentries in chain,
+> -                * except top most lower metacopy dentry
+> -                */
+> -               if (d.metacopy && ctr) {
+> -                       dput(this);
+> -                       continue;
+> -               }
+> -
+>                 stack[ctr].dentry = this;
+>                 stack[ctr].layer = lower.layer;
+>                 ctr++;
+> @@ -982,23 +987,17 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
+>                 }
 >         }
 >
-[...]
-> -       if (ctr && (!upperdentry || (!d.is_dir && !metacopy)))
-> +       if (!origin && ctr && !upperdentry)
->                 origin = stack[0].dentry;
+> -       if (metacopy) {
+> -               /*
+> -                * Found a metacopy dentry but did not find corresponding
+> -                * data dentry
+> -                */
+> -               if (d.metacopy) {
+> -                       err = -EIO;
+> -                       goto out_put;
+> -               }
+> +       /* Found a metacopy dentry but did not find corresponding data dentry */
+> +       if (d.metacopy) {
+
+I suggested this change and I think it is correct, but it is correct for a bit
+of a subtle reason.
+It is correct because ovl_lookup_layer() (currently) cannot return NULL
+and set d.metacopy to false.
+So I suggest to be a bit more defensive and write this condition as:
+
+       if (d.metacopy || (uppermetacopy && !ctr)) {
+
+> +               err = -EIO;
+> +               goto out_put;
+> +       }
 >
+> -               err = -EPERM;
+> -               if (!ofs->config.metacopy) {
+> -                       pr_warn_ratelimited("refusing to follow metacopy origin for (%pd2)\n",
+> -                                           dentry);
+> -                       goto out_put;
+> -               }
+> -       } else if (!d.is_dir && upperdentry && !ctr && origin_path) {
+> +       /* For regular non-metacopy upper dentries, there is no lower
+> +        * path based lookup, hence ctr will be zero. dentry found using
+> +        * ORIGIN xattr on upper, install it in stack.
+> +        */
+> +       if (!d.is_dir && upperdentry && !ctr && origin_path) {
 
-No need to understand the long story to verify this change is correct.
-This is true simply because the conditions to set stack = origin_path are:
-
-       if (!metacopy && !d.is_dir && upperdentry && !ctr && origin_path)
-
-And after getting there and setting ctr = 1, the complex conditions to
-setting origin are met for certain:
-
-        if (ctr && (!upperdentry || (!d.is_dir && !metacopy)))
-
-Therefore, it is logically equivalent (and makes much more sense)
-to assign origin near stack = origin_path.
-
-Further, thanks to Vivek's explanation, it is now clear to me that after
-setting origin above, all that is left to do here is:
-
-         /* Always lookup index of non-upper */
-        if (!upperdentry)
-                origin = stack[0].dentry;
-
-All the upperdentry cases described in the commit message have already
-been dealt with by the time we get here.
+I don't like this comment style for multi line comment and I don't
+like that you detached this if statement from else if.
+I think it made more sense with the else because this is (as you write)
+the non-metacopy case.
 
 Thanks,
 Amir.
