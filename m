@@ -2,71 +2,71 @@ Return-Path: <SRS0=LZCd=7N=vger.kernel.org=linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-14.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+X-Spam-Status: No, score=-9.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DC484C433DF
-	for <linux-unionfs@archiver.kernel.org>; Sun, 31 May 2020 11:02:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 01111C433E3
+	for <linux-unionfs@archiver.kernel.org>; Sun, 31 May 2020 11:02:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id AEBF420671
-	for <linux-unionfs@archiver.kernel.org>; Sun, 31 May 2020 11:02:16 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D603D20671
+	for <linux-unionfs@archiver.kernel.org>; Sun, 31 May 2020 11:02:17 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="aK3zD/Is"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="J7MZzG7s"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727924AbgEaLCL (ORCPT
+        id S1727119AbgEaLCR (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Sun, 31 May 2020 07:02:11 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59944 "EHLO
+        Sun, 31 May 2020 07:02:17 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59950 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726020AbgEaLCG (ORCPT
+        with ESMTP id S1728277AbgEaLCI (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Sun, 31 May 2020 07:02:06 -0400
-Received: from mail-wr1-x430.google.com (mail-wr1-x430.google.com [IPv6:2a00:1450:4864:20::430])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2D582C061A0E;
-        Sun, 31 May 2020 04:02:06 -0700 (PDT)
-Received: by mail-wr1-x430.google.com with SMTP id l11so8638564wru.0;
-        Sun, 31 May 2020 04:02:06 -0700 (PDT)
+        Sun, 31 May 2020 07:02:08 -0400
+Received: from mail-wm1-x341.google.com (mail-wm1-x341.google.com [IPv6:2a00:1450:4864:20::341])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A2B44C05BD43;
+        Sun, 31 May 2020 04:02:07 -0700 (PDT)
+Received: by mail-wm1-x341.google.com with SMTP id f185so8557521wmf.3;
+        Sun, 31 May 2020 04:02:07 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=from:to:cc:subject:date:message-id:in-reply-to:references;
-        bh=n32a/poMcKnM2/4gUcrU/a+tbrotBbiPg7VuMcoStXE=;
-        b=aK3zD/IsSoutuN2lGFOpFWwF2KU3UfasEPD1qS6XKO5GlWgap96h3OWKa8OGZDkM9T
-         JzzorBaqdiqyKxpRTRjzha1qdEwTNRkbG2d9vBxUgIvfkG+PjMknwyX2QJndLA4tw8C3
-         MaMT7MJIPKBbiTp1ovLRg7rAIjZ5Mj+/7cOvFqK+bXVHuz3ZM3UDpPb600q8PbcLVXQ+
-         B/un6RVSDWZZ+4bfFUJRaA0gyuAN8FJTYwwwQO5pedXds9ZNI8XlgqjmsciRUTFetfvM
-         GpL39IYx9y1cR0IaWZ9O8B1IuQBarkt58uuIApBjr1qHF5DYBX94L9c8ELqgDHgQY486
-         V18Q==
+        bh=6y6ybSFvJzj8la441aFZb6Q4CuXXKgdXsZPwGPiuBEA=;
+        b=J7MZzG7sxeToKzXANPZ9hVDL/o2Sij/z2BRXjSJJbustIq51hNUuYSzsl4gQW9zhYc
+         ce9mz8n+ixjSQQi+M/PM6eM8Eflr2nZZDAnLjnJbwOA6SnkY2QNFsd6X/WtnJAJRhl1P
+         UbbcNSo72q8zvECLEN/mnO+1yxP69OAOEzQx7qnXh97yQ0XdwYcXNEw8jS5+W3l6JwWt
+         WUVVPOuBGEw++ZxaBWf0urvuNHy58QNJLH+3UzSirlBqdF9F9rRlXODdjKKTz02PX43G
+         NhbeM4pw8vlLVXz3DZBi3z0oLigamy+NQNQDcViF/QBLlXa3bVabM5oIAXAOlrecAU2b
+         GIUg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references;
-        bh=n32a/poMcKnM2/4gUcrU/a+tbrotBbiPg7VuMcoStXE=;
-        b=q4hDODlEbD+vVrGgsJEDV9tA1gciLwGK146WlSkMaw1jpm9utaDIVcgsf+N2qC9CoT
-         e8hTBp18X0KbpxJskfwaJQdptDNqG81UhMCK8G0yKhpLIR15UvUSwC6qWRpn1IzmHCSa
-         +0sxr/Y0mBkaIgjNzZA+JMQKqNqbbL3+X+IPP+DzqeCjTJkbK69d0+V4Mgxf9yea8MlR
-         vzSeDqXGwDoS4HBJS6pfU2amazji2XYMl3XntdmBkR8kM9vp/N/W8K98/Eg8AZ8SQ30I
-         95I6HW7/rc9DO641VBU829l2fm8uD/notZTX9U8JyvVxSSadaKTos920hN1AdKClGjxa
-         KVFg==
-X-Gm-Message-State: AOAM5323ZC8BDpMb024y6FVVJwFj8LUO7IupXZe5T/EqD9wmQTAVwow+
-        WeOXXNg3WWrcUt6w8Q5deJM=
-X-Google-Smtp-Source: ABdhPJzz+tiWrVnrBb+9fr5Ljfzn8FODYVr1Bk/fTWpdX2qT6mvAbRDm+V6Vlhb1EtqqFAINZV3++g==
-X-Received: by 2002:a5d:4dc9:: with SMTP id f9mr16687855wru.407.1590922924685;
-        Sun, 31 May 2020 04:02:04 -0700 (PDT)
+        bh=6y6ybSFvJzj8la441aFZb6Q4CuXXKgdXsZPwGPiuBEA=;
+        b=Hct5/tRHyRclpSPvCp2fcORxBw0d/xJmTOqK+t3slQjCZhiOoMuoPMSDF9HPOsE27L
+         EIeMvPZpW5j0SQ9oyKJCaJBLFMkNgwFUYtSSwNyrggDdr164YUuDqNxhs4TqUPXfYfV8
+         EzJZoyhTeOZY2o7TnNUpmkMIKgm175HeZGLOcZaBpTnKyVJ04fWTs2lRkgoc6jbGSO7R
+         PERZC2TM81nM3pDsgnEa3i5MyxIysR2yx4yodjZ7y/j1IkWQyb8S3jC2ixq69ysJoKbY
+         JFXykXySgb38bwywiZBEaxNfSROZbLH8Wkhgs9n2TiS2eP0/SfDO9IMDgVSsTRMtr9nr
+         dXEw==
+X-Gm-Message-State: AOAM532+jdALjGwMSgHwNstPPf88vVkuupzTPd4zzYn4OQig6rsyJTlK
+        TN3iLhGJIkixye/AHhJ1Goo=
+X-Google-Smtp-Source: ABdhPJyfWfMF2AlGIFcGe6qswDUlvvFIyuDWJ36NsBbZX0SekQirBCb8CxWAK8II68pVMRj7qgSghg==
+X-Received: by 2002:a1c:7e52:: with SMTP id z79mr17689605wmc.104.1590922926213;
+        Sun, 31 May 2020 04:02:06 -0700 (PDT)
 Received: from localhost.localdomain ([141.226.12.123])
-        by smtp.gmail.com with ESMTPSA id j190sm7846430wmb.33.2020.05.31.04.02.03
+        by smtp.gmail.com with ESMTPSA id j190sm7846430wmb.33.2020.05.31.04.02.04
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 31 May 2020 04:02:04 -0700 (PDT)
+        Sun, 31 May 2020 04:02:05 -0700 (PDT)
 From:   Amir Goldstein <amir73il@gmail.com>
 To:     Eryu Guan <guaneryu@gmail.com>
 Cc:     Miklos Szeredi <miklos@szeredi.hu>,
         Vivek Goyal <vgoyal@redhat.com>, linux-unionfs@vger.kernel.org,
         fstests@vger.kernel.org
-Subject: [PATCH 1/3] overlay: run unionmount testsuite test cases
-Date:   Sun, 31 May 2020 14:01:54 +0300
-Message-Id: <20200531110156.6613-2-amir73il@gmail.com>
+Subject: [PATCH 2/3] overlay: add unionmount tests with multi lower layers
+Date:   Sun, 31 May 2020 14:01:55 +0300
+Message-Id: <20200531110156.6613-3-amir73il@gmail.com>
 X-Mailer: git-send-email 2.17.1
 In-Reply-To: <20200531110156.6613-1-amir73il@gmail.com>
 References: <20200531110156.6613-1-amir73il@gmail.com>
@@ -75,153 +75,65 @@ Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-Add support for running unionmount-testsuite from xfstests.
-This requires that unionmount-testsuite is installed under src dir or
-that UNIONMOUNT_TESTSUITE variable points to the location of the
-testsuite.  It also requires a recent version of unionmount-testsuite
-that supports setting basedir path via UNIONMOUNT_* environment variables.
+The tests with multi lower layers rotate the upper layer into a lower
+layer on specific operations such as mkdir, rename and link.
+That provides test coverage for redirect_dir and index features.
 
-Add tests for three basic configurations:
-1. overlay with upper/lower on same fs
-2. overlay with upper/lower not on same fs without xino
-3. overlay with upper/lower not on same fs with xino
-
-The samefs test uses scratch partition for lower/upper layers.
-The non samefs tests use the scratch partition for upper layer and the
-test partition for lower layer.
+The following variations are covered:
+1. All layers all on scratch fs (--ov=10 --samefs)
+2. All layers on scratch fs expect for lowermost on test fs (--ov=10)
+3. Lowermost layer on test fs, one layer on tmpfs and the rest
+   on sratch fs (--ov=10 --maxfs=1)
+4. Lowermost layer on test fs, one layer on scratch fs and the rest
+   are unique tmpfs instances (--ov=10 --maxfs=10)
 
 Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- README.overlay        | 15 ++++++++++++
- common/config         |  2 ++
- common/overlay        | 54 +++++++++++++++++++++++++++++++++++++++++++
- tests/overlay/100     | 38 ++++++++++++++++++++++++++++++
- tests/overlay/100.out |  2 ++
- tests/overlay/101     | 39 +++++++++++++++++++++++++++++++
- tests/overlay/101.out |  2 ++
- tests/overlay/102     | 40 ++++++++++++++++++++++++++++++++
- tests/overlay/102.out |  2 ++
- tests/overlay/group   |  3 +++
- 10 files changed, 197 insertions(+)
- create mode 100755 tests/overlay/100
- create mode 100644 tests/overlay/100.out
- create mode 100755 tests/overlay/101
- create mode 100644 tests/overlay/101.out
- create mode 100755 tests/overlay/102
- create mode 100644 tests/overlay/102.out
+ tests/overlay/103     | 38 ++++++++++++++++++++++++++++++++++++++
+ tests/overlay/103.out |  2 ++
+ tests/overlay/104     | 39 +++++++++++++++++++++++++++++++++++++++
+ tests/overlay/104.out |  2 ++
+ tests/overlay/105     | 40 ++++++++++++++++++++++++++++++++++++++++
+ tests/overlay/105.out |  2 ++
+ tests/overlay/106     | 41 +++++++++++++++++++++++++++++++++++++++++
+ tests/overlay/106.out |  2 ++
+ tests/overlay/107     | 41 +++++++++++++++++++++++++++++++++++++++++
+ tests/overlay/107.out |  2 ++
+ tests/overlay/108     | 41 +++++++++++++++++++++++++++++++++++++++++
+ tests/overlay/108.out |  2 ++
+ tests/overlay/109     | 41 +++++++++++++++++++++++++++++++++++++++++
+ tests/overlay/109.out |  2 ++
+ tests/overlay/group   |  7 +++++++
+ 15 files changed, 302 insertions(+)
+ create mode 100755 tests/overlay/103
+ create mode 100644 tests/overlay/103.out
+ create mode 100755 tests/overlay/104
+ create mode 100644 tests/overlay/104.out
+ create mode 100755 tests/overlay/105
+ create mode 100644 tests/overlay/105.out
+ create mode 100755 tests/overlay/106
+ create mode 100644 tests/overlay/106.out
+ create mode 100755 tests/overlay/107
+ create mode 100644 tests/overlay/107.out
+ create mode 100755 tests/overlay/108
+ create mode 100644 tests/overlay/108.out
+ create mode 100755 tests/overlay/109
+ create mode 100644 tests/overlay/109.out
 
-diff --git a/README.overlay b/README.overlay
-index 30b5ddb2..39e25ada 100644
---- a/README.overlay
-+++ b/README.overlay
-@@ -50,3 +50,18 @@ In the example above, MOUNT_OPTIONS will be used to mount the base scratch fs,
- TEST_FS_MOUNT_OPTS will be used to mount the base test fs,
- OVERLAY_MOUNT_OPTIONS will be used to mount both test and scratch overlay and
- OVERLAY_FSCK_OPTIONS will be used to check both test and scratch overlay.
-+
-+
-+Unionmount Testsuite
-+====================
-+
-+xfstests can be used as a test harness to run unionmount testsuite test cases
-+and provide extended test coverage for overlayfs.
-+
-+To enable running unionmount testsuite, clone the git repository from:
-+  https://github.com/amir73il/unionmount-testsuite.git
-+under the xfstests src directory, or set the environment variable
-+UNIONMOUNT_TESTSUITE to the local path where the repository was cloned.
-+
-+Run './check -overlay -g overlay/union' to execute all the unionmount testsuite
-+test cases.
-diff --git a/common/config b/common/config
-index 8023273d..e356bcda 100644
---- a/common/config
-+++ b/common/config
-@@ -71,6 +71,8 @@ export OVL_LOWER="ovl-lower"
- export OVL_WORK="ovl-work"
- # overlay mount point parent must be the base fs root
- export OVL_MNT="ovl-mnt"
-+# By default unionmount-testsuite is expected under src
-+export UNIONMOUNT_TESTSUITE=${UNIONMOUNT_TESTSUITE:=$here/src/unionmount-testsuite}
- 
- # From e2fsprogs/e2fsck/e2fsck.h:
- # Exit code used by fsck-type programs
-diff --git a/common/overlay b/common/overlay
-index f8e1e27f..5e6a7e0f 100644
---- a/common/overlay
-+++ b/common/overlay
-@@ -363,3 +363,57 @@ _repair_overlay_scratch_fs()
- 	esac
- 	return $res
- }
-+
-+# This test requires that unionmount testsuite is installed at
-+# $UNIONMOUNT_TESTSUITE and that it supports configuring layers and overlay
-+# mount paths via UNIONMOUNT_* environment variables.
-+_require_unionmount_testsuite()
-+{
-+	[ -x "$UNIONMOUNT_TESTSUITE/run" ] || \
-+		_notrun "unionmount testsuite required."
-+
-+	# Verify that UNIONMOUNT_* vars are supported
-+	local usage=`UNIONMOUNT_BASEDIR=_ "$UNIONMOUNT_TESTSUITE/run" 2>&1`
-+	echo $usage | grep -wq "UNIONMOUNT_BASEDIR" || \
-+		_notrun "newer version of unionmount testsuite required."
-+}
-+
-+_unionmount_testsuite_run()
-+{
-+	[ "$FSTYP" = overlay ] || \
-+		_notrun "Filesystem $FSTYP not supported with unionmount testsuite."
-+
-+	# Provide the mounted base fs for upper and lower dirs and the
-+	# overlay mount point.
-+	# unionmount testsuite will perform the overlay mount.
-+	# test fs is used for lower layer in non-samefs runs.
-+	# scratch fs is used for upper layer in non-samefs runs and
-+	# for both layers in samefs runs.
-+	if (echo $* | grep -qv samefs) ; then
-+		_overlay_base_test_mount
-+		export UNIONMOUNT_LOWERDIR=$OVL_BASE_TEST_DIR/union
-+	fi
-+	export UNIONMOUNT_BASEDIR=$OVL_BASE_SCRATCH_MNT/union
-+
-+	_scratch_mkfs
-+	rm -rf $UNIONMOUNT_BASEDIR $UNIONMOUNT_LOWERDIR
-+	mkdir -p $UNIONMOUNT_BASEDIR $UNIONMOUNT_LOWERDIR
-+
-+	cd $UNIONMOUNT_TESTSUITE
-+	echo "run $* ..." > $seqres.full
-+	./run $* >> $seqres.full || \
-+		echo "unionmount testsuite failed! see $seqres.full for details."
-+}
-+
-+_unionmount_testsuite_cleanup()
-+{
-+	cd /
-+	rm -f $tmp.*
-+
-+	[ -n "$UNIONMOUNT_BASEDIR" ] || return 0
-+
-+	# Cleanup overlay mount after unionmount testsuite run
-+	cd $UNIONMOUNT_TESTSUITE
-+	echo "run --clean-up ..." >> $seqres.full
-+	./run --clean-up >> $seqres.full 2>&1
-+}
-diff --git a/tests/overlay/100 b/tests/overlay/100
+diff --git a/tests/overlay/103 b/tests/overlay/103
 new file mode 100755
-index 00000000..a2e82dfa
+index 00000000..fb7fce0c
 --- /dev/null
-+++ b/tests/overlay/100
++++ b/tests/overlay/103
 @@ -0,0 +1,38 @@
 +#! /bin/bash
 +# SPDX-License-Identifier: GPL-2.0
 +# Copyright (C) 2020 CTERA Networks. All Rights Reserved.
 +#
-+# FS QA Test 100
++# FS QA Test 103
 +#
 +# Run unionmount testsuite to verify correctness
-+# with single lower layer on same fs as upper
++# with multi lower layers on same fs as upper
 +#
 +seq=`basename $0`
 +seqres=$RESULT_DIR/$seq
@@ -246,34 +158,34 @@ index 00000000..a2e82dfa
 +_require_scratch
 +_require_unionmount_testsuite
 +
-+_unionmount_testsuite_run --ov --samefs --verify
++_unionmount_testsuite_run --ov=10 --samefs --verify
 +
 +# success, all done
 +echo "Silence is golden"
 +status=0
 +exit
-diff --git a/tests/overlay/100.out b/tests/overlay/100.out
+diff --git a/tests/overlay/103.out b/tests/overlay/103.out
 new file mode 100644
-index 00000000..798c0136
+index 00000000..78212a3d
 --- /dev/null
-+++ b/tests/overlay/100.out
++++ b/tests/overlay/103.out
 @@ -0,0 +1,2 @@
-+QA output created by 100
++QA output created by 103
 +Silence is golden
-diff --git a/tests/overlay/101 b/tests/overlay/101
+diff --git a/tests/overlay/104 b/tests/overlay/104
 new file mode 100755
-index 00000000..2b3a75d4
+index 00000000..f867f345
 --- /dev/null
-+++ b/tests/overlay/101
++++ b/tests/overlay/104
 @@ -0,0 +1,39 @@
 +#! /bin/bash
 +# SPDX-License-Identifier: GPL-2.0
 +# Copyright (C) 2020 CTERA Networks. All Rights Reserved.
 +#
-+# FS QA Test 101
++# FS QA Test 104
 +#
 +# Run unionmount testsuite to verify correctness
-+# with single lower layer not on same fs as upper
++# with multi lower layers, lowermost on unique fs
 +#
 +seq=`basename $0`
 +seqres=$RESULT_DIR/$seq
@@ -299,34 +211,34 @@ index 00000000..2b3a75d4
 +_require_scratch
 +_require_unionmount_testsuite
 +
-+_unionmount_testsuite_run --ov --verify
++_unionmount_testsuite_run --ov=10 --verify
 +
 +# success, all done
 +echo "Silence is golden"
 +status=0
 +exit
-diff --git a/tests/overlay/101.out b/tests/overlay/101.out
+diff --git a/tests/overlay/104.out b/tests/overlay/104.out
 new file mode 100644
-index 00000000..e651a915
+index 00000000..3f3bd2e8
 --- /dev/null
-+++ b/tests/overlay/101.out
++++ b/tests/overlay/104.out
 @@ -0,0 +1,2 @@
-+QA output created by 101
++QA output created by 104
 +Silence is golden
-diff --git a/tests/overlay/102 b/tests/overlay/102
+diff --git a/tests/overlay/105 b/tests/overlay/105
 new file mode 100755
-index 00000000..2dddbe50
+index 00000000..f964c58e
 --- /dev/null
-+++ b/tests/overlay/102
++++ b/tests/overlay/105
 @@ -0,0 +1,40 @@
 +#! /bin/bash
 +# SPDX-License-Identifier: GPL-2.0
 +# Copyright (C) 2020 CTERA Networks. All Rights Reserved.
 +#
-+# FS QA Test 102
++# FS QA Test 105
 +#
 +# Run unionmount testsuite to verify correctness
-+# with single lower layer not on same fs as upper
++# with multi lower layers, lowermost on unique fs,
 +# with xino enabled
 +#
 +seq=`basename $0`
@@ -353,31 +265,255 @@ index 00000000..2dddbe50
 +_require_scratch
 +_require_unionmount_testsuite
 +
-+_unionmount_testsuite_run --ov --xino --verify
++_unionmount_testsuite_run --ov=10 --xino --verify
 +
 +# success, all done
 +echo "Silence is golden"
 +status=0
 +exit
-diff --git a/tests/overlay/102.out b/tests/overlay/102.out
+diff --git a/tests/overlay/105.out b/tests/overlay/105.out
 new file mode 100644
-index 00000000..86dd1f96
+index 00000000..edaafd46
 --- /dev/null
-+++ b/tests/overlay/102.out
++++ b/tests/overlay/105.out
 @@ -0,0 +1,2 @@
-+QA output created by 102
++QA output created by 105
++Silence is golden
+diff --git a/tests/overlay/106 b/tests/overlay/106
+new file mode 100755
+index 00000000..52d6c7d0
+--- /dev/null
++++ b/tests/overlay/106
+@@ -0,0 +1,41 @@
++#! /bin/bash
++# SPDX-License-Identifier: GPL-2.0
++# Copyright (C) 2020 CTERA Networks. All Rights Reserved.
++#
++# FS QA Test 106
++#
++# Run unionmount testsuite to verify correctness
++# with multi lower layers, some layers on unique fs,
++# one layer is on tmpfs.
++#
++seq=`basename $0`
++seqres=$RESULT_DIR/$seq
++echo "QA output created by $seq"
++
++here=`pwd`
++tmp=/tmp/$$
++status=1	# failure is the default!
++trap "_unionmount_testsuite_cleanup; exit \$status" 0 1 2 3 15
++
++# get standard environment, filters and checks
++. ./common/rc
++. ./common/filter
++
++# remove previous $seqres.full before test
++rm -f $seqres.full
++
++# real QA test starts here
++
++_supported_fs overlay
++_supported_os Linux
++_require_tmpfs
++_require_test
++_require_scratch
++_require_unionmount_testsuite
++
++_unionmount_testsuite_run --ov=10 --maxfs=1 --verify
++
++# success, all done
++echo "Silence is golden"
++status=0
++exit
+diff --git a/tests/overlay/106.out b/tests/overlay/106.out
+new file mode 100644
+index 00000000..85af05d8
+--- /dev/null
++++ b/tests/overlay/106.out
+@@ -0,0 +1,2 @@
++QA output created by 106
++Silence is golden
+diff --git a/tests/overlay/107 b/tests/overlay/107
+new file mode 100755
+index 00000000..abcde30c
+--- /dev/null
++++ b/tests/overlay/107
+@@ -0,0 +1,41 @@
++#! /bin/bash
++# SPDX-License-Identifier: GPL-2.0
++# Copyright (C) 2020 CTERA Networks. All Rights Reserved.
++#
++# FS QA Test 107
++#
++# Run unionmount testsuite to verify correctness
++# with multi lower layers, some layers on unique fs,
++# one layer is on tmpfs with xino enabled.
++#
++seq=`basename $0`
++seqres=$RESULT_DIR/$seq
++echo "QA output created by $seq"
++
++here=`pwd`
++tmp=/tmp/$$
++status=1	# failure is the default!
++trap "_unionmount_testsuite_cleanup; exit \$status" 0 1 2 3 15
++
++# get standard environment, filters and checks
++. ./common/rc
++. ./common/filter
++
++# remove previous $seqres.full before test
++rm -f $seqres.full
++
++# real QA test starts here
++
++_supported_fs overlay
++_supported_os Linux
++_require_tmpfs
++_require_test
++_require_scratch
++_require_unionmount_testsuite
++
++_unionmount_testsuite_run --ov=10 --maxfs=1 --xino --verify
++
++# success, all done
++echo "Silence is golden"
++status=0
++exit
+diff --git a/tests/overlay/107.out b/tests/overlay/107.out
+new file mode 100644
+index 00000000..862bdfbd
+--- /dev/null
++++ b/tests/overlay/107.out
+@@ -0,0 +1,2 @@
++QA output created by 107
++Silence is golden
+diff --git a/tests/overlay/108 b/tests/overlay/108
+new file mode 100755
+index 00000000..d4e9b570
+--- /dev/null
++++ b/tests/overlay/108
+@@ -0,0 +1,41 @@
++#! /bin/bash
++# SPDX-License-Identifier: GPL-2.0
++# Copyright (C) 2020 CTERA Networks. All Rights Reserved.
++#
++# FS QA Test 108
++#
++# Run unionmount testsuite to verify correctness
++# with multi lower layers, all layers on unique fs,
++# some layers are on tmpfs.
++#
++seq=`basename $0`
++seqres=$RESULT_DIR/$seq
++echo "QA output created by $seq"
++
++here=`pwd`
++tmp=/tmp/$$
++status=1	# failure is the default!
++trap "_unionmount_testsuite_cleanup; exit \$status" 0 1 2 3 15
++
++# get standard environment, filters and checks
++. ./common/rc
++. ./common/filter
++
++# remove previous $seqres.full before test
++rm -f $seqres.full
++
++# real QA test starts here
++
++_supported_fs overlay
++_supported_os Linux
++_require_tmpfs
++_require_test
++_require_scratch
++_require_unionmount_testsuite
++
++_unionmount_testsuite_run --ov=10 --maxfs=10 --verify
++
++# success, all done
++echo "Silence is golden"
++status=0
++exit
+diff --git a/tests/overlay/108.out b/tests/overlay/108.out
+new file mode 100644
+index 00000000..326ffa96
+--- /dev/null
++++ b/tests/overlay/108.out
+@@ -0,0 +1,2 @@
++QA output created by 108
++Silence is golden
+diff --git a/tests/overlay/109 b/tests/overlay/109
+new file mode 100755
+index 00000000..71072982
+--- /dev/null
++++ b/tests/overlay/109
+@@ -0,0 +1,41 @@
++#! /bin/bash
++# SPDX-License-Identifier: GPL-2.0
++# Copyright (C) 2020 CTERA Networks. All Rights Reserved.
++#
++# FS QA Test 109
++#
++# Run unionmount testsuite to verify correctness
++# with multi lower layers, all layers on unique fs,
++# some layers are on tmpfs with xino enabled.
++#
++seq=`basename $0`
++seqres=$RESULT_DIR/$seq
++echo "QA output created by $seq"
++
++here=`pwd`
++tmp=/tmp/$$
++status=1	# failure is the default!
++trap "_unionmount_testsuite_cleanup; exit \$status" 0 1 2 3 15
++
++# get standard environment, filters and checks
++. ./common/rc
++. ./common/filter
++
++# remove previous $seqres.full before test
++rm -f $seqres.full
++
++# real QA test starts here
++
++_supported_fs overlay
++_supported_os Linux
++_require_tmpfs
++_require_test
++_require_scratch
++_require_unionmount_testsuite
++
++_unionmount_testsuite_run --ov=10 --maxfs=10 --xino --verify
++
++# success, all done
++echo "Silence is golden"
++status=0
++exit
+diff --git a/tests/overlay/109.out b/tests/overlay/109.out
+new file mode 100644
+index 00000000..8356befa
+--- /dev/null
++++ b/tests/overlay/109.out
+@@ -0,0 +1,2 @@
++QA output created by 109
 +Silence is golden
 diff --git a/tests/overlay/group b/tests/overlay/group
-index 0cebcad0..267161f4 100644
+index 267161f4..079ff0af 100644
 --- a/tests/overlay/group
 +++ b/tests/overlay/group
-@@ -77,3 +77,6 @@
- 072 auto quick copyup hardlink
- 073 auto quick whiteout
- 074 auto quick exportfs dangerous
-+100 auto quick union samefs
-+101 auto quick union nonsamefs
-+102 auto quick union nonsamefs xino
+@@ -80,3 +80,10 @@
+ 100 auto quick union samefs
+ 101 auto quick union nonsamefs
+ 102 auto quick union nonsamefs xino
++103 auto union rotate samefs
++104 auto union rotate nonsamefs
++105 auto union rotate nonsamefs xino
++106 auto union rotate nonsamefs
++107 auto union rotate nonsamefs xino
++108 auto union rotate nonsamefs
++109 auto union rotate nonsamefs xino
 -- 
 2.17.1
 
