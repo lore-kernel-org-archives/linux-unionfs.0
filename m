@@ -2,182 +2,193 @@ Return-Path: <SRS0=DrFc=7O=vger.kernel.org=linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B69B1C433E1
-	for <linux-unionfs@archiver.kernel.org>; Mon,  1 Jun 2020 15:57:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 71AC6C433E0
+	for <linux-unionfs@archiver.kernel.org>; Mon,  1 Jun 2020 16:26:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 91CE520734
-	for <linux-unionfs@archiver.kernel.org>; Mon,  1 Jun 2020 15:57:14 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4D75C2073B
+	for <linux-unionfs@archiver.kernel.org>; Mon,  1 Jun 2020 16:26:02 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="cYiJ/BPX"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="OEH9PIYX"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726128AbgFAP5O (ORCPT
+        id S1726124AbgFAQ0C (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Mon, 1 Jun 2020 11:57:14 -0400
-Received: from us-smtp-delivery-1.mimecast.com ([207.211.31.120]:47931 "EHLO
-        us-smtp-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1726110AbgFAP5O (ORCPT
+        Mon, 1 Jun 2020 12:26:02 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50154 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726067AbgFAQ0C (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 1 Jun 2020 11:57:14 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1591027032;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=AWFEM+ST5MEAYnS0REeF9eoonAKtZgZJzVw3uhUsssM=;
-        b=cYiJ/BPXAxjmfsM1KQFcTq1KsfJPEWioXk+/+9G8OiQlzgUavHrlZOc+XJ+ppgCUNSYDhx
-        ShSPwlqvX5AZZHVApin/XfMsYkqzitVlNeom2Z6+QDA/zrENJ5Po2/DGVYyKO0COr5JGke
-        ZBVpwodltBykdU2Zdri/6htpJY34hIc=
-Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
- [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-313-LfoShEUcNJSQI3b7N37WVA-1; Mon, 01 Jun 2020 11:57:07 -0400
-X-MC-Unique: LfoShEUcNJSQI3b7N37WVA-1
-Received: from smtp.corp.redhat.com (int-mx08.intmail.prod.int.phx2.redhat.com [10.5.11.23])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 74AAD18A8221;
-        Mon,  1 Jun 2020 15:57:06 +0000 (UTC)
-Received: from horse.redhat.com (ovpn-115-117.rdu2.redhat.com [10.10.115.117])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id 429C92DE80;
-        Mon,  1 Jun 2020 15:57:06 +0000 (UTC)
-Received: by horse.redhat.com (Postfix, from userid 10451)
-        id B988C220B2D; Mon,  1 Jun 2020 11:57:05 -0400 (EDT)
-From:   Vivek Goyal <vgoyal@redhat.com>
-To:     amir73il@gmail.com, miklos@szeredi.hu
-Cc:     linux-unionfs@vger.kernel.org, yangerkun@huawei.com,
-        vgoyal@redhat.com
-Subject: [PATCH v2 3/3] overlayfs: Initialize OVL_UPPERDATA in ovl_lookup()
-Date:   Mon,  1 Jun 2020 11:56:52 -0400
-Message-Id: <20200601155652.17486-4-vgoyal@redhat.com>
-In-Reply-To: <20200601155652.17486-1-vgoyal@redhat.com>
-References: <20200601155652.17486-1-vgoyal@redhat.com>
+        Mon, 1 Jun 2020 12:26:02 -0400
+Received: from mail-il1-x142.google.com (mail-il1-x142.google.com [IPv6:2607:f8b0:4864:20::142])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B60EEC05BD43
+        for <linux-unionfs@vger.kernel.org>; Mon,  1 Jun 2020 09:26:01 -0700 (PDT)
+Received: by mail-il1-x142.google.com with SMTP id v11so9964442ilh.1
+        for <linux-unionfs@vger.kernel.org>; Mon, 01 Jun 2020 09:26:01 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=sZWndUQ++iSHJ90S3c0JoEgA4UR9I0JvfA05GX1oan0=;
+        b=OEH9PIYXOSsh2gTIaViRPulzO3z/rSbp4DVanhVECTJsbR06ArS6fdsFRtqqY3M5HQ
+         i9LDQ3a0tc6EzRiBsAhTY1pgWlJN8Vf9PgSUw8OKT6N9Dxqr8jpj9zgnTjoNUNOSeAFn
+         6UGTpKBWdHkBSDrfHOzXHxpSpp9q84gkzt+hkZJLL/kt6JHMHoCEn8LHKv+uB2FEObG1
+         DJDmqZ5f+PJSqcL8c7P6Txgc2+VEED5KXcxIXylz3EXGh3KbLZZjJKhE999O3I3m5mjE
+         kRcTuwLmArjc+ColIValahVwxOtQPzQrc8bUCbzLl2+dBhusacpn9NdwYiueSVtxXeEW
+         fRHA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=sZWndUQ++iSHJ90S3c0JoEgA4UR9I0JvfA05GX1oan0=;
+        b=Z9KhNXVabIugUDYWcCjqW58/SOJnWvL3LUKwAMTnQhQsRvZlIwDfWhOnn2kSVgNrO1
+         AkgiZwVSXQiNzbh5rJuLiUXUvgepytWrzwDKbTkHGW6iHQ5naWQVMGyC2ir3mYk1w3DO
+         cuyIepjyaYjGLCmPzI93+3fASmvXFKsCmY8u17AcIOkCJWTLxGIQpOsS4E+V5yBvhItl
+         WpSsSp3IbX1yyba37NRMeYZccwt+xEDIYnRwqEGB8kM3jB1naP1YMOLF0fwbJEqMF3cf
+         F72ZkIwjAfNGEmU9yzo848t1wD0Ds9h33Ed+RCSipTH+Dsx4uwFPTRXZUL3g2pem/UF4
+         y5vw==
+X-Gm-Message-State: AOAM531wwxWYK9OUW4VibalA6MFQGv7t6n2jUfUkgR6ghTLFypYKCH5E
+        BCIKtS97tHF5EPQfy7EAy/1JQY6d/FwjOysob+U=
+X-Google-Smtp-Source: ABdhPJydyrgTmAEXR8tFB+J42LqJsc7SCiHOAu9Z2SgT/ZrrtOOE3mf7ee+NH5m0NgTDorWPeA1SO9zHYNHCi6AcCwE=
+X-Received: by 2002:a92:5c08:: with SMTP id q8mr14058029ilb.275.1591028760960;
+ Mon, 01 Jun 2020 09:26:00 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Scanned-By: MIMEDefang 2.84 on 10.5.11.23
+References: <20200601155652.17486-1-vgoyal@redhat.com> <20200601155652.17486-3-vgoyal@redhat.com>
+In-Reply-To: <20200601155652.17486-3-vgoyal@redhat.com>
+From:   Amir Goldstein <amir73il@gmail.com>
+Date:   Mon, 1 Jun 2020 19:25:49 +0300
+Message-ID: <CAOQ4uxiNNBibgWE9RGYSynvesz-0u9kp+x2JpxevDnSFqxUQYA@mail.gmail.com>
+Subject: Re: [PATCH v2 2/3] overlayfs: ovl_lookup(): Use only uppermetacopy state
+To:     Vivek Goyal <vgoyal@redhat.com>
+Cc:     Miklos Szeredi <miklos@szeredi.hu>,
+        overlayfs <linux-unionfs@vger.kernel.org>,
+        yangerkun <yangerkun@huawei.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-unionfs-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-Currently ovl_get_inode() initializes OVL_UPPERDATA flag and for that it
-has to call ovl_check_metacopy_xattr() and check if metacopy xattr is
-present or not.
+On Mon, Jun 1, 2020 at 6:57 PM Vivek Goyal <vgoyal@redhat.com> wrote:
+>
+> Currently we use a variable "metacopy" which signifies that dentry
+> could be either uppermetacopy or lowermetacopy. Amir suggested that
+> we can move code around and use d.metacopy in such a way that we
+> don't need lowermetacopy and just can do away with uppermetacopy.
+>
+> So this patch replaces "metacopy" with "uppermetacopy".
+>
+> It also moves some code little higher to keep reading little simpler.
+>
+> Suggested-by: Amir Goldstein <amir73il@gmail.com>
+> Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
 
-yangerkun reported sometimes underlying filesystem might return -EIO
-and in that case error handling path does not cleanup properly leading
-to various warnings.
-
-Run generic/461 with ext4 upper/lower layer sometimes may trigger the
-bug as below(linux 4.19):
-
-[  551.001349] overlayfs: failed to get metacopy (-5)
-[  551.003464] overlayfs: failed to get inode (-5)
-[  551.004243] overlayfs: cleanup of 'd44/fd51' failed (-5)
-[  551.004941] overlayfs: failed to get origin (-5)
-[  551.005199] ------------[ cut here ]------------
-[  551.006697] WARNING: CPU: 3 PID: 24674 at fs/inode.c:1528 iput+0x33b/0x400
-...
-[  551.027219] Call Trace:
-[  551.027623]  ovl_create_object+0x13f/0x170
-[  551.028268]  ovl_create+0x27/0x30
-[  551.028799]  path_openat+0x1a35/0x1ea0
-[  551.029377]  do_filp_open+0xad/0x160
-[  551.029944]  ? vfs_writev+0xe9/0x170
-[  551.030499]  ? page_counter_try_charge+0x77/0x120
-[  551.031245]  ? __alloc_fd+0x160/0x2a0
-[  551.031832]  ? do_sys_open+0x189/0x340
-[  551.032417]  ? get_unused_fd_flags+0x34/0x40
-[  551.033081]  do_sys_open+0x189/0x340
-[  551.033632]  __x64_sys_creat+0x24/0x30
-[  551.034219]  do_syscall_64+0xd5/0x430
-[  551.034800]  entry_SYSCALL_64_after_hwframe+0x44/0xa9
-
-One solution is to improve error handling and call iget_failed() if error
-is encountered. Amir thinks that this path is little intricate and there
-is not real need to check and initialize OVL_UPPERDATA in ovl_get_inode().
-Instead caller of ovl_get_inode() can initialize this state. And this
-will avoid double checking of metacopy xattr lookup in ovl_lookup()
-and ovl_get_inode().
-
-OVL_UPPERDATA is inode flag. So I was little concerned that initializing
-it outside ovl_get_inode() might have some races. But this is one way
-transition. That is once a file has been fully copied up, it can't go
-back to metacopy file again. And that seems to help avoid races. So
-as of now I can't see any races w.r.t OVL_UPPERDATA being set wrongly. So
-move settingof OVL_UPPERDATA inside the callers of ovl_get_inode().
-ovl_obtain_alias() already does it. So only two callers now left
-are ovl_lookup() and ovl_instantiate().
-
-Reported-by: yangerkun <yangerkun@huawei.com>
-Suggested-by: Amir Goldstein <amir73il@gmail.com>
-Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
 Reviewed-by: Amir Goldstein <amir73il@gmail.com>
----
- fs/overlayfs/dir.c   |  2 ++
- fs/overlayfs/inode.c | 11 +----------
- fs/overlayfs/namei.c |  2 ++
- 3 files changed, 5 insertions(+), 10 deletions(-)
 
-diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
-index 279009dee366..a7cac2ce0fad 100644
---- a/fs/overlayfs/dir.c
-+++ b/fs/overlayfs/dir.c
-@@ -262,6 +262,8 @@ static int ovl_instantiate(struct dentry *dentry, struct inode *inode,
- 		inode = ovl_get_inode(dentry->d_sb, &oip);
- 		if (IS_ERR(inode))
- 			return PTR_ERR(inode);
-+		if (inode == oip.newinode)
-+			ovl_set_flag(OVL_UPPERDATA, inode);
- 	} else {
- 		WARN_ON(ovl_inode_real(inode) != d_inode(newdentry));
- 		dput(newdentry);
-diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
-index 981f11ec51bc..f2aaf00821c0 100644
---- a/fs/overlayfs/inode.c
-+++ b/fs/overlayfs/inode.c
-@@ -957,7 +957,7 @@ struct inode *ovl_get_inode(struct super_block *sb,
- 	bool bylower = ovl_hash_bylower(sb, upperdentry, lowerdentry,
- 					oip->index);
- 	int fsid = bylower ? lowerpath->layer->fsid : 0;
--	bool is_dir, metacopy = false;
-+	bool is_dir;
- 	unsigned long ino = 0;
- 	int err = oip->newinode ? -EEXIST : -ENOMEM;
- 
-@@ -1018,15 +1018,6 @@ struct inode *ovl_get_inode(struct super_block *sb,
- 	if (oip->index)
- 		ovl_set_flag(OVL_INDEX, inode);
- 
--	if (upperdentry) {
--		err = ovl_check_metacopy_xattr(upperdentry);
--		if (err < 0)
--			goto out_err;
--		metacopy = err;
--		if (!metacopy)
--			ovl_set_flag(OVL_UPPERDATA, inode);
--	}
--
- 	OVL_I(inode)->redirect = oip->redirect;
- 
- 	if (bylower)
-diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
-index 3625d6633f50..da05e33db9ce 100644
---- a/fs/overlayfs/namei.c
-+++ b/fs/overlayfs/namei.c
-@@ -1079,6 +1079,8 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
- 		err = PTR_ERR(inode);
- 		if (IS_ERR(inode))
- 			goto out_free_oe;
-+		if (upperdentry && !uppermetacopy)
-+			ovl_set_flag(OVL_UPPERDATA, inode);
- 	}
- 
- 	ovl_dentry_update_reval(dentry, upperdentry,
--- 
-2.25.4
-
+> ---
+>  fs/overlayfs/namei.c | 58 ++++++++++++++++++++++----------------------
+>  1 file changed, 29 insertions(+), 29 deletions(-)
+>
+> diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
+> index c6208f84129f..3625d6633f50 100644
+> --- a/fs/overlayfs/namei.c
+> +++ b/fs/overlayfs/namei.c
+> @@ -823,7 +823,7 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
+>         struct dentry *this;
+>         unsigned int i;
+>         int err;
+> -       bool metacopy = false;
+> +       bool uppermetacopy = false;
+>         struct ovl_lookup_data d = {
+>                 .sb = dentry->d_sb,
+>                 .name = dentry->d_name,
+> @@ -869,7 +869,7 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
+>                                 goto out_put_upper;
+>
+>                         if (d.metacopy)
+> -                               metacopy = true;
+> +                               uppermetacopy = true;
+>                 }
+>
+>                 if (d.redirect) {
+> @@ -906,6 +906,22 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
+>                 if (!this)
+>                         continue;
+>
+> +               if ((uppermetacopy || d.metacopy) && !ofs->config.metacopy) {
+> +                       err = -EPERM;
+> +                       pr_warn_ratelimited("refusing to follow metacopy origin"
+> +                                           " for (%pd2)\n", dentry);
+> +                       goto out_put;
+> +               }
+> +
+> +               /*
+> +                * Do not store intermediate metacopy dentries in chain,
+> +                * except top most lower metacopy dentry
+> +                */
+> +               if (d.metacopy && ctr) {
+> +                       dput(this);
+> +                       continue;
+> +               }
+> +
+>                 /*
+>                  * If no origin fh is stored in upper of a merge dir, store fh
+>                  * of lower dir and set upper parent "impure".
+> @@ -940,17 +956,6 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
+>                         origin = this;
+>                 }
+>
+> -               if (d.metacopy)
+> -                       metacopy = true;
+> -               /*
+> -                * Do not store intermediate metacopy dentries in chain,
+> -                * except top most lower metacopy dentry
+> -                */
+> -               if (d.metacopy && ctr) {
+> -                       dput(this);
+> -                       continue;
+> -               }
+> -
+>                 stack[ctr].dentry = this;
+>                 stack[ctr].layer = lower.layer;
+>                 ctr++;
+> @@ -982,22 +987,17 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
+>                 }
+>         }
+>
+> -       if (metacopy) {
+> -               /*
+> -                * Found a metacopy dentry but did not find corresponding
+> -                * data dentry
+> -                */
+> -               if (d.metacopy) {
+> -                       err = -EIO;
+> -                       goto out_put;
+> -               }
+> -
+> -               err = -EPERM;
+> -               if (!ofs->config.metacopy) {
+> -                       pr_warn_ratelimited("refusing to follow metacopy origin for (%pd2)\n",
+> -                                           dentry);
+> -                       goto out_put;
+> -               }
+> +       /*
+> +        * For regular non-metacopy upper dentries, there is no lower
+> +        * path based lookup, hence ctr will be zero. If a dentry is found
+> +        * using ORIGIN xattr on upper, install it in stack.
+> +        *
+> +        * For metacopy dentry, path based lookup will find lower dentries.
+> +        * Just make sure a corresponding data dentry has been found.
+> +        */
+> +       if (d.metacopy || (uppermetacopy && !ctr)) {
+> +               err = -EIO;
+> +               goto out_put;
+>         } else if (!d.is_dir && upperdentry && !ctr && origin_path) {
+>                 if (WARN_ON(stack != NULL)) {
+>                         err = -EIO;
+> --
+> 2.25.4
+>
