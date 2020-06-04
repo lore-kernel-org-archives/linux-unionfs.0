@@ -2,126 +2,79 @@ Return-Path: <SRS0=s+il=7R=vger.kernel.org=linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
+X-Spam-Status: No, score=-3.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 28151C433E0
-	for <linux-unionfs@archiver.kernel.org>; Thu,  4 Jun 2020 16:00:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 20ADFC433DF
+	for <linux-unionfs@archiver.kernel.org>; Thu,  4 Jun 2020 16:12:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id F10602053B
-	for <linux-unionfs@archiver.kernel.org>; Thu,  4 Jun 2020 16:00:40 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b="mLy/HvzH"
+	by mail.kernel.org (Postfix) with ESMTP id EF14C20738
+	for <linux-unionfs@archiver.kernel.org>; Thu,  4 Jun 2020 16:12:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729649AbgFDQAk (ORCPT
+        id S1729696AbgFDQMz (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Thu, 4 Jun 2020 12:00:40 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39384 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729216AbgFDQAk (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 4 Jun 2020 12:00:40 -0400
-Received: from mail-pg1-x541.google.com (mail-pg1-x541.google.com [IPv6:2607:f8b0:4864:20::541])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 477CBC08C5C0
-        for <linux-unionfs@vger.kernel.org>; Thu,  4 Jun 2020 09:00:40 -0700 (PDT)
-Received: by mail-pg1-x541.google.com with SMTP id o8so3641760pgm.7
-        for <linux-unionfs@vger.kernel.org>; Thu, 04 Jun 2020 09:00:40 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=chromium.org; s=google;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:in-reply-to;
-        bh=gSE6BdE4/VFzX3t/Cxitf0IUrhF90wQNUXw+URqjRrk=;
-        b=mLy/HvzHev9qn2v1D69VG573ZlAmuwdGrUAVyFRAlQGYhXDAB4eRmdrAwXHU8suvZl
-         vr1IG9/sDG1dSwSMCOeVIzqK9QUy6EZ0bxxEpLsnbPNzaP75fa/Q5Fv8/tWV7wSoqcI8
-         pZcmZvYpvkkbnCEqDbzFQNJI61Y5loWolvvCs=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to;
-        bh=gSE6BdE4/VFzX3t/Cxitf0IUrhF90wQNUXw+URqjRrk=;
-        b=XpjtjXwBEwNI6AdI2FaM/oaMj7HD5nHm1l3zCRNpjHAuB9h4gftO6J3n4xkxDjBKKb
-         T7hPrnVpH38EZX8tB1BsaSjmzbfB9v5YU9CCuKxDJ6+LKcEqStP0xuxkrZjdgDhzozAi
-         50dsxsZ0wQ+ISmlvPItCB2eUuPPrHzZjX9U55YWX8afgQyBgUz3i5FIMKHEp4w1m7DhC
-         HO2qin/A5Md8rkhQQBUN75tdiRtjU+zlp4SdA/kEMBZk46xD5lnf/1BYDURp38V4JDda
-         hI4USQY/jjZSdF3r16WXzydR2ChMsSuevtoLj/KiFmqqnGSoeNDBRv1O+O3Tw5sFL1JL
-         UKfg==
-X-Gm-Message-State: AOAM532MOnd59KhXOisptU2kdKaxQoEiPnuHrKKVVGwCyifxeSohPwn9
-        S0YHTv4rbDyk78Ah2jdWRw08AQ==
-X-Google-Smtp-Source: ABdhPJwq+768JHUPs48Z0J9vaqFr0+IpTTbagVhAnL/NiO8TC7cwHwnRZXvfLQn2ETnbbnh0dzzl3w==
-X-Received: by 2002:a63:5054:: with SMTP id q20mr5083098pgl.117.1591286439853;
-        Thu, 04 Jun 2020 09:00:39 -0700 (PDT)
-Received: from www.outflux.net (smtp.outflux.net. [198.145.64.163])
-        by smtp.gmail.com with ESMTPSA id w206sm5098711pfc.28.2020.06.04.09.00.38
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 04 Jun 2020 09:00:38 -0700 (PDT)
-Date:   Thu, 4 Jun 2020 09:00:37 -0700
-From:   Kees Cook <keescook@chromium.org>
-To:     Miklos Szeredi <miklos@szeredi.hu>
-Cc:     Alexander Potapenko <glider@google.com>,
-        Vivek Goyal <vgoyal@redhat.com>,
-        overlayfs <linux-unionfs@vger.kernel.org>,
-        linux-kernel@vger.kernel.org, royyang@google.com,
-        stable <stable@vger.kernel.org>
-Subject: Re: [PATCH] ovl: explicitly initialize error in ovl_copy_xattr()
-Message-ID: <202006040858.3BF48FCF63@keescook>
-References: <20200604084245.161480-1-glider@google.com>
- <CAJfpegv5W9BnCFGc2jWxCGS_RcqT0LFxw5ke2Z2XbCotokdUWw@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAJfpegv5W9BnCFGc2jWxCGS_RcqT0LFxw5ke2Z2XbCotokdUWw@mail.gmail.com>
+        Thu, 4 Jun 2020 12:12:55 -0400
+Received: from relay.sw.ru ([185.231.240.75]:35370 "EHLO relay3.sw.ru"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1729678AbgFDQMz (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Thu, 4 Jun 2020 12:12:55 -0400
+Received: from [172.16.25.93] (helo=amikhalitsyn-pc0.sw.ru)
+        by relay3.sw.ru with esmtp (Exim 4.93)
+        (envelope-from <alexander.mikhalitsyn@virtuozzo.com>)
+        id 1jgsU3-0003Zt-83; Thu, 04 Jun 2020 19:12:47 +0300
+From:   Alexander Mikhalitsyn <alexander.mikhalitsyn@virtuozzo.com>
+To:     miklos@szeredi.hu
+Cc:     avagin@openvz.org, ptikhomirov@virtuozzo.com,
+        khorenko@virtuozzo.com, vvs@virtuozzo.com, ktkhai@virtuozzo.com,
+        Alexander Mikhalitsyn <alexander.mikhalitsyn@virtuozzo.com>,
+        linux-unionfs@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH 0/2] overlayfs: C/R enhancements
+Date:   Thu,  4 Jun 2020 19:11:31 +0300
+Message-Id: <20200604161133.20949-1-alexander.mikhalitsyn@virtuozzo.com>
+X-Mailer: git-send-email 2.17.1
 Sender: linux-unionfs-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Thu, Jun 04, 2020 at 10:57:24AM +0200, Miklos Szeredi wrote:
-> On Thu, Jun 4, 2020 at 10:43 AM <glider@google.com> wrote:
-> >
-> > Under certain circumstances (we found this out running Docker on a
-> > Clang-built kernel with CONFIG_INIT_STACK_ALL) ovl_copy_xattr() may
-> > return uninitialized value of |error| from ovl_copy_xattr().
-> > It is then returned by ovl_create() to lookup_open(), which casts it to
-> > an invalid dentry pointer, that can be further read or written by the
-> > lookup_open() callers.
-> >
-> > The uninitialized value is returned when all the xattr on the file
-> > are ovl_is_private_xattr(), which is actually a successful case,
-> > therefore we initialize |error| with 0.
-> >
-> > Signed-off-by: Alexander Potapenko <glider@google.com>
-> > Cc: Kees Cook <keescook@chromium.org>
-> > Cc: Roy Yang <royyang@google.com>
-> > Cc: <stable@vger.kernel.org> # 4.1
-> >
-> > ---
-> >
-> > The bug seem to date back to at least v4.1 where the annotation has been
-> > introduced (i.e. the compilers started noticing error could be used
-> > before being initialized). I hovever didn't try to prove that the
-> > problem is actually reproducible on such ancient kernels. We've seen it
-> > on a real machine running v4.4 as well.
-> >
-> > v2:
-> >  -- Per Vivek Goyal's suggestion, changed |error| to be 0
-> 
-> Thanks, applied patch posted here (with your signed-off as well, since
-> the patch is the same...):
-> 
-> https://lore.kernel.org/linux-unionfs/874ks212uj.fsf@m5Zedd9JOGzJrf0/
+This patchset aimed to make C/R of overlayfs mounts with CRIU possible.
+We introduce two new overlayfs module options -- dyn_path_opts and
+mnt_id_path_opts. If enabled this options allows to see real *full* paths
+in lowerdir, workdir, upperdir options, and also mnt_ids for corresponding
+paths.
 
-Can you please add:
+This changes should not break anything because for showing mnt_ids we simply
+introduce new show-time mount options. And for paths we simply *always*
+provide *full paths* instead of relative path on mountinfo.
 
-Link: https://bugs.chromium.org/p/chromium/issues/detail?id=1050405
-Fixes: e4ad29fa0d22 ("ovl: use a minimal buffer in ovl_copy_xattr")
-Reviewed-by: Kees Cook <keescook@chromium.org>
+BEFORE
 
-(and adjust the CC field to drop the "# 4.1" so tools can figure it
-out?)
+overlay on /var/lib/docker/overlay2/XYZ/merged type overlay (rw,relatime,
+lowerdir=/var/lib/docker/overlay2/XYZ-init/diff:/var/lib/docker/overlay2/
+ABC/diff,upperdir=/var/lib/docker/overlay2/XYZ/diff,workdir=/var/lib/docker
+/overlay2/XYZ/work)
+none on /sys type sysfs (rw,relatime)
 
-Thanks!
+AFTER
+
+overlay on /var/lib/docker/overlay2/XYZ/merged type overlay (rw,relatime,
+lowerdir=/var/lib/docker/overlay2/XYZ-init/diff:/var/lib/docker/overlay2/
+ABC/diff,upperdir=/var/lib/docker/overlay2/XYZ/diff,workdir=/var/lib/docker
+/overlay2/XYZ/work,lowerdir_mnt_id=175:175,upperdir_mnt_id=175)
+none on /sys type sysfs (rw,relatime)
+
+Alexander Mikhalitsyn (2):
+  overlayfs: add dynamic path resolving in mount options
+  overlayfs: add mnt_id paths options
+
+ fs/overlayfs/Kconfig     |  57 ++++++++++++++++++++++
+ fs/overlayfs/overlayfs.h |   7 +++
+ fs/overlayfs/ovl_entry.h |   6 ++-
+ fs/overlayfs/super.c     | 103 ++++++++++++++++++++++++---------------
+ fs/overlayfs/util.c      |  42 ++++++++++++++++
+ 5 files changed, 174 insertions(+), 41 deletions(-)
 
 -- 
-Kees Cook
+2.17.1
+
