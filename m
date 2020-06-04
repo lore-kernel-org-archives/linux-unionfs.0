@@ -1,126 +1,108 @@
-Return-Path: <SRS0=ksQV=7Q=vger.kernel.org=linux-unionfs-owner@kernel.org>
+Return-Path: <SRS0=s+il=7R=vger.kernel.org=linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.5 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
+	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DA76CC433DF
-	for <linux-unionfs@archiver.kernel.org>; Wed,  3 Jun 2020 21:46:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 895B7C433E0
+	for <linux-unionfs@archiver.kernel.org>; Thu,  4 Jun 2020 07:25:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id AA4852077D
-	for <linux-unionfs@archiver.kernel.org>; Wed,  3 Jun 2020 21:46:40 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1B879204EF
+	for <linux-unionfs@archiver.kernel.org>; Thu,  4 Jun 2020 07:25:18 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="HTiqvSSY"
+	dkim=fail reason="key not found in DNS" (0-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b="mAa1rRBA"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726303AbgFCVqk (ORCPT
+        id S1727004AbgFDHZR (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Wed, 3 Jun 2020 17:46:40 -0400
-Received: from us-smtp-1.mimecast.com ([207.211.31.81]:52720 "EHLO
-        us-smtp-delivery-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1725922AbgFCVqk (ORCPT
+        Thu, 4 Jun 2020 03:25:17 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44034 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726246AbgFDHZR (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 3 Jun 2020 17:46:40 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1591220798;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         in-reply-to:in-reply-to:references:references;
-        bh=j8irI2YP3QxKXjo5qFTtbAZdDKv971AUeB+9+HvcfEc=;
-        b=HTiqvSSYGJADts/qv5b5rstK9QUVHZ1bWPSz+RXqgAkhHruXWufmnSkICpY/hlP3eDWLLH
-        j8sLH/RRC+gJ2hcn2QdXC5z8jwZycaUaBhOwhmT/kS4mh2X6ZOZlI/wylyXqhAktm1tnCz
-        UEBeqiiq5F7vNPrwODY2c+P7Sthw8zQ=
-Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
- [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-177-QvVLwQMmN6OODyKajwOZpA-1; Wed, 03 Jun 2020 17:46:36 -0400
-X-MC-Unique: QvVLwQMmN6OODyKajwOZpA-1
-Received: from smtp.corp.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id A84A91B18BC3;
-        Wed,  3 Jun 2020 21:46:34 +0000 (UTC)
-Received: from horse.redhat.com (ovpn-118-25.rdu2.redhat.com [10.10.118.25])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id 5327B60BE1;
-        Wed,  3 Jun 2020 21:46:34 +0000 (UTC)
-Received: by horse.redhat.com (Postfix, from userid 10451)
-        id D1478220C5A; Wed,  3 Jun 2020 17:46:33 -0400 (EDT)
-Date:   Wed, 3 Jun 2020 17:46:33 -0400
-From:   Vivek Goyal <vgoyal@redhat.com>
-To:     glider@google.com
-Cc:     miklos@szeredi.hu, linux-unionfs@vger.kernel.org,
-        linux-kernel@vger.kernel.org, keescook@chromium.org,
-        royyang@google.com, stable@vger.kernel.org
-Subject: Re: [PATCH] ovl: explicitly initialize error in ovl_copy_xattr()
-Message-ID: <20200603214633.GF48122@redhat.com>
-References: <20200603174714.192027-1-glider@google.com>
+        Thu, 4 Jun 2020 03:25:17 -0400
+Received: from mail-ed1-x543.google.com (mail-ed1-x543.google.com [IPv6:2a00:1450:4864:20::543])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4F0FCC05BD1E
+        for <linux-unionfs@vger.kernel.org>; Thu,  4 Jun 2020 00:25:17 -0700 (PDT)
+Received: by mail-ed1-x543.google.com with SMTP id m21so3803674eds.13
+        for <linux-unionfs@vger.kernel.org>; Thu, 04 Jun 2020 00:25:17 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=szeredi.hu; s=google;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=miIndVNlOTPdeJt8s3Y3ldTQotNreZeR3Q0h4ZepU7U=;
+        b=mAa1rRBAoldVCWaTSzF06cV+P3hcLCX8KkHP3QFGSHokDRK+TWNz503qMs8eIy8HRl
+         fcydqW7L8p18rL7w0cBoRhxAq/91+E7ZrXGdqE3h1j3gPL9/MdeL4GkmdDmUPSYbv+aw
+         X8jV72IxQ8hMTqSjiFzI50i+CK6/VqJxNN3AI=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=miIndVNlOTPdeJt8s3Y3ldTQotNreZeR3Q0h4ZepU7U=;
+        b=ar615ixYXXDFmIZtqFvkgHCki1yzomKm72y+a4MM52QfKRBtb45cggAPt2Iscf5abM
+         EwdLUoO1p5yYCtETAhU3hwf0R9Ytz6jrVsxnC6HMES9CXymha4OzepC1N2XadkNgxtiq
+         +ElLdqD5A7niguSlwdybnvDtJDbmpJ4RaQMBTEEOZinfi/R5P6cxGsDQItCrwubjcRx1
+         KQYjZTgnaFrHwynIQONqkzhT3QfB3T4yC0kMh/2kkuN620kpom+cWIG0guOwbkCO5Ic2
+         aEXOmeXKjk6Fbyz/iDXaqefwbxdrYyv4lml0MP6vKKnHW7ImZpD+CWprWHUdmXm6xNTb
+         xDSA==
+X-Gm-Message-State: AOAM5326PP5xfG/dxB1fCg1VHmppxgQrGVik5oTVg7L9a+H4GI1A91xc
+        m7dDs4tpkqr6c+kROUuukCUQEcaB0WLC6M7COxEh6g==
+X-Google-Smtp-Source: ABdhPJy196feg+e19ifx4UwsjmKKOofjRgAL7oGRoAPn8XgKYTEE6MUuhlg0mZVqYI0t7eU13zZC37ZwyECruh3x8Cc=
+X-Received: by 2002:a50:d499:: with SMTP id s25mr3137029edi.161.1591255516019;
+ Thu, 04 Jun 2020 00:25:16 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20200603174714.192027-1-glider@google.com>
-X-Scanned-By: MIMEDefang 2.79 on 10.5.11.12
+References: <20200603154559.140418-1-colin.king@canonical.com>
+ <CAOQ4uxhLW=MSk=RhUi51EdOticfk1i_pku6qjCp2QpwnpyL5sw@mail.gmail.com> <1edc291d-6e63-89d8-d48c-443908ddc0e8@canonical.com>
+In-Reply-To: <1edc291d-6e63-89d8-d48c-443908ddc0e8@canonical.com>
+From:   Miklos Szeredi <miklos@szeredi.hu>
+Date:   Thu, 4 Jun 2020 09:25:04 +0200
+Message-ID: <CAJfpegsyGmJYHJr8rmRTxScYGyNQ1ZdPMxprW1zoQmGhXg1wuA@mail.gmail.com>
+Subject: Re: [PATCH][next] ovl: fix null pointer dereference on null stack
+ pointer on error return
+To:     Colin Ian King <colin.king@canonical.com>
+Cc:     Amir Goldstein <amir73il@gmail.com>,
+        overlayfs <linux-unionfs@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org,
+        linux-kernel <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-unionfs-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Wed, Jun 03, 2020 at 07:47:14PM +0200, glider@google.com wrote:
-> Under certain circumstances (we found this out running Docker on a
-> Clang-built kernel with CONFIG_INIT_STACK_ALL) ovl_copy_xattr() may
-> return uninitialized value of |error| from ovl_copy_xattr().
+On Wed, Jun 3, 2020 at 6:15 PM Colin Ian King <colin.king@canonical.com> wrote:
+>
+> On 03/06/2020 17:11, Amir Goldstein wrote:
+> > On Wed, Jun 3, 2020 at 6:46 PM Colin King <colin.king@canonical.com> wrote:
+> >>
+> >> From: Colin Ian King <colin.king@canonical.com>
+> >>
+> >> There are two error return paths where the call to path_put is
+> >> dereferencing the null pointer 'stack'.  Fix this by avoiding the
+> >> error exit path via label 'out_err' that will lead to the path_put
+> >> calls and instead just return the error code directly.
+> >>
+> >> Addresses-Coverity: ("Dereference after null check)"
+> >> Fixes: 4155c10a0309 ("ovl: clean up getting lower layers")
+> >> Signed-off-by: Colin Ian King <colin.king@canonical.com>
+> >
+> >
+> > Which branch is that based on?
+> > Doesn't seem to apply to master nor next
+>
+> It was based on today's linux-next
 
-If we are returning uninitialized value of error, doesn't that mean
-that somewhere in the function we are returning without setting error.
-And that probably means that's a bug and we should fix it?
+Yeah, it's actually
 
-I am wondering if this is triggered by loop finishing because all
-the xattr on the file are ovl_is_private_xattr(). In that case, we
-will come out of the loop without setting error. This is in fact
-success and we should return 0 instead of some random error?
+Fixes: 73819e26c0f0 ("ovl: get rid of redundant members in struct ovl_fs")
 
-Thanks
-Vivek
+So I'll just fold your patch.  There's still a change in the loop
+count for later errors, but that's okay, since
+ovl_lower_dir()/ovl_mount_dir_noesc() use the path_put_init() variant.
+Actually ovl_lower_dir() can get rid of that path_put_init()
+completely, since now the only caller will take care of that...
 
+Thanks for reporting!
 
-> It is then returned by ovl_create() to lookup_open(), which casts it to
-> an invalid dentry pointer, that can be further read or written by the
-> lookup_open() callers.
-> 
-> Signed-off-by: Alexander Potapenko <glider@google.com>
-> Cc: Kees Cook <keescook@chromium.org>
-> Cc: Roy Yang <royyang@google.com>
-> Cc: <stable@vger.kernel.org> # 4.1
-> 
-> ---
-> 
-> It's unclear to me whether error should be initially 0 or some error
-> code (both seem to work), but I thought returning an error makes sense,
-> as the situation wasn't anticipated by the code authors.
-> 
-> The bug seem to date back to at least v4.1 where the annotation has been
-> introduced (i.e. the compilers started noticing error could be used
-> before being initialized). I hovever didn't try to prove that the
-> problem is actually reproducible on such ancient kernels. We've seen it
-> on a real machine running v4.4 as well.
-> ---
->  fs/overlayfs/copy_up.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
-> index 9709cf22cab3..428d43e2d016 100644
-> --- a/fs/overlayfs/copy_up.c
-> +++ b/fs/overlayfs/copy_up.c
-> @@ -47,7 +47,7 @@ int ovl_copy_xattr(struct dentry *old, struct dentry *new)
->  {
->  	ssize_t list_size, size, value_size = 0;
->  	char *buf, *name, *value = NULL;
-> -	int uninitialized_var(error);
-> +	int error = -EINVAL;
->  	size_t slen;
->  
->  	if (!(old->d_inode->i_opflags & IOP_XATTR) ||
-> -- 
-> 2.27.0.rc2.251.g90737beb825-goog
-> 
-
+Miklos
