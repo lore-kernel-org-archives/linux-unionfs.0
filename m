@@ -2,180 +2,119 @@ Return-Path: <SRS0=s+il=7R=vger.kernel.org=linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-0.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0D1A1C433DF
-	for <linux-unionfs@archiver.kernel.org>; Thu,  4 Jun 2020 16:13:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A385DC433DF
+	for <linux-unionfs@archiver.kernel.org>; Thu,  4 Jun 2020 18:05:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E73E720738
-	for <linux-unionfs@archiver.kernel.org>; Thu,  4 Jun 2020 16:13:09 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 84D3D206C3
+	for <linux-unionfs@archiver.kernel.org>; Thu,  4 Jun 2020 18:05:11 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="LxwDsfhG"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729678AbgFDQNH (ORCPT
+        id S1730174AbgFDSFL (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Thu, 4 Jun 2020 12:13:07 -0400
-Received: from relay.sw.ru ([185.231.240.75]:35432 "EHLO relay3.sw.ru"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1729745AbgFDQNF (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 4 Jun 2020 12:13:05 -0400
-Received: from [172.16.25.93] (helo=amikhalitsyn-pc0.sw.ru)
-        by relay3.sw.ru with esmtp (Exim 4.93)
-        (envelope-from <alexander.mikhalitsyn@virtuozzo.com>)
-        id 1jgsUC-0003Zt-U1; Thu, 04 Jun 2020 19:12:56 +0300
-From:   Alexander Mikhalitsyn <alexander.mikhalitsyn@virtuozzo.com>
-To:     miklos@szeredi.hu
-Cc:     avagin@openvz.org, ptikhomirov@virtuozzo.com,
-        khorenko@virtuozzo.com, vvs@virtuozzo.com, ktkhai@virtuozzo.com,
-        Alexander Mikhalitsyn <alexander.mikhalitsyn@virtuozzo.com>,
-        linux-unionfs@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH 2/2] overlayfs: add mnt_id paths options
-Date:   Thu,  4 Jun 2020 19:11:33 +0300
-Message-Id: <20200604161133.20949-3-alexander.mikhalitsyn@virtuozzo.com>
-X-Mailer: git-send-email 2.17.1
-In-Reply-To: <20200604161133.20949-1-alexander.mikhalitsyn@virtuozzo.com>
+        Thu, 4 Jun 2020 14:05:11 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58706 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1730008AbgFDSFK (ORCPT
+        <rfc822;linux-unionfs@vger.kernel.org>);
+        Thu, 4 Jun 2020 14:05:10 -0400
+Received: from mail-il1-x142.google.com (mail-il1-x142.google.com [IPv6:2607:f8b0:4864:20::142])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DD1B0C08C5C0;
+        Thu,  4 Jun 2020 11:05:10 -0700 (PDT)
+Received: by mail-il1-x142.google.com with SMTP id p5so6988453ile.6;
+        Thu, 04 Jun 2020 11:05:10 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=X1b4BEr/DHZQvQyvdQ9WJt5QLV82BJBnaAPWqeJ7CbY=;
+        b=LxwDsfhGYIoloqCEYEN6havWe+hHDiiiSWB2lxrkhSlWYqlgCcvvGfQ1EO9CnzqRYI
+         tbcjhekFwcQV4EBwzr7ciUqScRgSLunqVWtr1mPUV3+GN743iaG1qXVyedYo125GtheB
+         R3U68HkD01CC64FEYjv4CjsXpvrOeeNnaSw87DL1Gu4REtV3Jx/Nw4I8bR4lt+MuFRl8
+         TbQgGqxR2cZZuWtK20hJjl9dRQYr9Mhug3Yp+lbxAGz0i94B22hNSRSqn2otStGbfgMI
+         cTb/yQ9TUpRc74y1Af2O3TJGgGDed2kMkNCNdF1Dk3rxaXggM0i/Zj9lWoEyF6em/PRW
+         eZGQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=X1b4BEr/DHZQvQyvdQ9WJt5QLV82BJBnaAPWqeJ7CbY=;
+        b=Y214IBXDtetwtXFDL2gYUTH9ydfTNxmcgX/wWMiWzPqH0veW0xcdtSGm1W2vzE5VsV
+         bMhzzh0j99G0UVpk0dAIEW1fjpFNhTjBKdAonv3aIQ3zWor9NpxZgJJXEaIdqG6cojAA
+         CPgpYjc+DLSydwguqfD2e5k5hJbEKIqSlnPbFEfvW0fBgBJwMkGVojf/uuH07qzV+L39
+         ZFckNeTiu3oBUgis8tkqO5wec0iECtgaC1+mdY2v1vAdMDWyuer/azytYVh3zoI57XBh
+         f5D22njRBzeUJ1KoXN/Cr1uJAEXD1VtBdJy7QudD6lBvr8klxFfc7H/HwWTikQt56QBS
+         ojOg==
+X-Gm-Message-State: AOAM531s8QDn5x0GcNUnEBndX+Sp133jA3gZV7IxSAPPuu9QyCbqENwx
+        8FIXMLJI8Cv2J6HFYvPui+8siLSrX3I+TX9D4ENLPA==
+X-Google-Smtp-Source: ABdhPJwTGNq+lts75fMK6GZCnI9DekzO33pOxX+DxEM9Hqbj/tJNJuBrTQOnBrFuXCIXjdDRGFoD+++N8JKDhvPn9PI=
+X-Received: by 2002:a92:c9ce:: with SMTP id k14mr5108937ilq.250.1591293910251;
+ Thu, 04 Jun 2020 11:05:10 -0700 (PDT)
+MIME-Version: 1.0
 References: <20200604161133.20949-1-alexander.mikhalitsyn@virtuozzo.com>
+In-Reply-To: <20200604161133.20949-1-alexander.mikhalitsyn@virtuozzo.com>
+From:   Amir Goldstein <amir73il@gmail.com>
+Date:   Thu, 4 Jun 2020 21:04:58 +0300
+Message-ID: <CAOQ4uxhGswjxZjc3mN7K99pPrDgMV9_194U46b2MgszZnq1SDw@mail.gmail.com>
+Subject: Re: [PATCH 0/2] overlayfs: C/R enhancements
+To:     Alexander Mikhalitsyn <alexander.mikhalitsyn@virtuozzo.com>
+Cc:     Miklos Szeredi <miklos@szeredi.hu>,
+        Andrei Vagin <avagin@openvz.org>, ptikhomirov@virtuozzo.com,
+        khorenko@virtuozzo.com, vvs@virtuozzo.com, ktkhai@virtuozzo.com,
+        overlayfs <linux-unionfs@vger.kernel.org>,
+        linux-kernel <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-unionfs-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-This patch adds config OVERLAY_FS_PATH_OPTIONS_MNT_ID
-compile-time option, and "mnt_id_path_opts" runtime module option.
-If enabled, user may see mnt_ids for lowerdir, upperdir paths
-in mountinfo in separate lowerdir_mnt_id/upperdir_mnt_id options.
+On Thu, Jun 4, 2020 at 7:13 PM Alexander Mikhalitsyn
+<alexander.mikhalitsyn@virtuozzo.com> wrote:
+>
+> This patchset aimed to make C/R of overlayfs mounts with CRIU possible.
+> We introduce two new overlayfs module options -- dyn_path_opts and
+> mnt_id_path_opts. If enabled this options allows to see real *full* paths
+> in lowerdir, workdir, upperdir options, and also mnt_ids for corresponding
+> paths.
+>
+> This changes should not break anything because for showing mnt_ids we simply
+> introduce new show-time mount options. And for paths we simply *always*
+> provide *full paths* instead of relative path on mountinfo.
+>
+> BEFORE
+>
+> overlay on /var/lib/docker/overlay2/XYZ/merged type overlay (rw,relatime,
+> lowerdir=/var/lib/docker/overlay2/XYZ-init/diff:/var/lib/docker/overlay2/
+> ABC/diff,upperdir=/var/lib/docker/overlay2/XYZ/diff,workdir=/var/lib/docker
+> /overlay2/XYZ/work)
+> none on /sys type sysfs (rw,relatime)
+>
+> AFTER
+>
+> overlay on /var/lib/docker/overlay2/XYZ/merged type overlay (rw,relatime,
+> lowerdir=/var/lib/docker/overlay2/XYZ-init/diff:/var/lib/docker/overlay2/
+> ABC/diff,upperdir=/var/lib/docker/overlay2/XYZ/diff,workdir=/var/lib/docker
+> /overlay2/XYZ/work,lowerdir_mnt_id=175:175,upperdir_mnt_id=175)
+> none on /sys type sysfs (rw,relatime)
+>
 
-This patch is very helpful to checkpoint/restore functionality
-of overlayfs mounts in case when we have overmounts on
-lowerdir, workdir, upperdir paths.
+But overlayfs won't accept these "output only" options as input args,
+which is a problem.
 
-Signed-off-by: Alexander Mikhalitsyn <alexander.mikhalitsyn@virtuozzo.com>
----
- fs/overlayfs/Kconfig     | 26 ++++++++++++++++++++++++++
- fs/overlayfs/overlayfs.h |  2 ++
- fs/overlayfs/super.c     | 15 +++++++++++++++
- fs/overlayfs/util.c      | 21 +++++++++++++++++++++
- 4 files changed, 64 insertions(+)
+Wouldn't it be better for C/R to implement mount options
+that overlayfs can parse and pass it mntid and fhandle instead
+of paths?
+I believe C/R is using a similar method to export inotify/fanotify
+marks.
 
-diff --git a/fs/overlayfs/Kconfig b/fs/overlayfs/Kconfig
-index c24988527ef3..2797869c8d16 100644
---- a/fs/overlayfs/Kconfig
-+++ b/fs/overlayfs/Kconfig
-@@ -154,4 +154,30 @@ config OVERLAY_FS_DYNAMIC_RESOLVE_PATH_OPTIONS
- 
- 	  For more information, see Documentation/filesystems/overlayfs.txt
- 
-+	  If unsure, say N.
-+
-+config OVERLAY_FS_PATH_OPTIONS_MNT_ID
-+	bool "Overlayfs: show mnt_id for all mount paths options"
-+	default y
-+	depends on OVERLAY_FS
-+	help
-+	  This option helps checkpoint/restore of overlayfs mounts.
-+	  If N selected, old behavior is saved.
-+
-+	  If this config option is enabled then in overlay filesystems mount
-+	  options you will be able to see additional parameters lowerdir_mnt_id/
-+	  upperdir_mnt_id with corresponding mnt_ids.
-+
-+	  It's also possible to change this behavior on overlayfs module loading or
-+	  through sysfs (mnt_id_path_opts parameter).
-+
-+	  Disable this to get a backward compatible with previous kernels configuration,
-+	  but in this case checkpoint/restore functionality for overlayfs mounts
-+	  may not fully work.
-+
-+	  If backward compatibility is not an issue, then it is safe and
-+	  recommended to say Y here.
-+
-+	  For more information, see Documentation/filesystems/overlayfs.txt
-+
- 	  If unsure, say N.
-\ No newline at end of file
-diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-index 8722ed556e11..980fe06d15b5 100644
---- a/fs/overlayfs/overlayfs.h
-+++ b/fs/overlayfs/overlayfs.h
-@@ -305,6 +305,8 @@ ssize_t ovl_getxattr(struct dentry *dentry, char *name, char **value,
- void print_path_option(struct seq_file *m, const char *name, struct path *path);
- void print_paths_option(struct seq_file *m, const char *name,
- 			struct path *paths, unsigned int num);
-+void print_mnt_id_option(struct seq_file *m, const char *name, struct path *path);
-+void print_mnt_ids_option(struct seq_file *m, const char *name,
- 			struct path *paths, unsigned int num);
- 
- static inline bool ovl_is_impuredir(struct dentry *dentry)
-diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-index a449b6bb4b20..ee2ed125341c 100644
---- a/fs/overlayfs/super.c
-+++ b/fs/overlayfs/super.c
-@@ -57,6 +57,10 @@ static bool ovl_dyn_path_opts = IS_ENABLED(CONFIG_OVERLAY_FS_DYNAMIC_RESOLVE_PAT
- module_param_named(dyn_path_opts, ovl_dyn_path_opts, bool, 0644);
- MODULE_PARM_DESC(dyn_path_opts, "dyn_path_opts feature enabled");
- 
-+static bool ovl_mnt_id_path_opts = IS_ENABLED(OVERLAY_FS_PATH_OPTIONS_MNT_ID);
-+module_param_named(mnt_id_path_opts, ovl_mnt_id_path_opts, bool, 0644);
-+MODULE_PARM_DESC(mnt_id_path_opts, "mnt_id_path_opts feature enabled");
-+
- static void ovl_entry_stack_free(struct ovl_entry *oe)
- {
- 	unsigned int i;
-@@ -362,6 +366,17 @@ static int ovl_show_options(struct seq_file *m, struct dentry *dentry)
- 			seq_show_option(m, "workdir", ofs->config.workdir);
- 		}
- 	}
-+
-+	if (ovl_mnt_id_path_opts) {
-+		print_mnt_ids_option(m, "lowerdir_mnt_id", ofs->lowerpaths, ofs->numlayer);
-+		/*
-+		 * We don't need to show mnt_id for workdir because it
-+		 * on the same mount as upperdir.
-+		 */
-+		if (ofs->config.upperdir)
-+			print_mnt_id_option(m, "upperdir_mnt_id", &ofs->upperpath);
-+	}
-+
- 	if (ofs->config.default_permissions)
- 		seq_puts(m, ",default_permissions");
- 	if (strcmp(ofs->config.redirect_mode, ovl_redirect_mode_def()) != 0)
-diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
-index 36bb98c14d35..85106b2ed00a 100644
---- a/fs/overlayfs/util.c
-+++ b/fs/overlayfs/util.c
-@@ -14,6 +14,7 @@
- #include <linux/namei.h>
- #include <linux/ratelimit.h>
- #include <linux/seq_file.h>
-+#include "../mount.h"
- #include "overlayfs.h"
- 
- int ovl_want_write(struct dentry *dentry)
-@@ -941,3 +942,23 @@ void print_paths_option(struct seq_file *m, const char *name,
- 		seq_path(m, &paths[i], ", \t\n\\");
- 	}
- }
-+
-+void print_mnt_id_option(struct seq_file *m, const char *name, struct path *path)
-+{
-+	seq_show_option(m, name, "");
-+	seq_printf(m, "%i", real_mount(path->mnt)->mnt_id);
-+}
-+
-+void print_mnt_ids_option(struct seq_file *m, const char *name,
-+			struct path *paths, unsigned int num)
-+{
-+	int i;
-+
-+	seq_show_option(m, name, "");
-+
-+	for (i = 0; i < num; i++) {
-+		if (i)
-+			seq_putc(m, ':');
-+		seq_printf(m, "%i", real_mount(paths[i].mnt)->mnt_id);
-+	}
-+}
--- 
-2.17.1
+FWIW overlayfs already has utilities that encode filehandle to
+text and back, see  ovl_get_index_name().
 
+Thanks,
+Amir.
