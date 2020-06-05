@@ -2,141 +2,161 @@ Return-Path: <SRS0=dsgN=7S=vger.kernel.org=linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-5.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DBD98C433E0
-	for <linux-unionfs@archiver.kernel.org>; Fri,  5 Jun 2020 14:57:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C22D8C433E0
+	for <linux-unionfs@archiver.kernel.org>; Fri,  5 Jun 2020 15:13:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C0DF22065C
-	for <linux-unionfs@archiver.kernel.org>; Fri,  5 Jun 2020 14:57:06 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id ACFCD206DB
+	for <linux-unionfs@archiver.kernel.org>; Fri,  5 Jun 2020 15:13:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727826AbgFEO5G (ORCPT
+        id S1728094AbgFEPNL (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Fri, 5 Jun 2020 10:57:06 -0400
-Received: from relay.sw.ru ([185.231.240.75]:33218 "EHLO relay3.sw.ru"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1727114AbgFEO5G (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 5 Jun 2020 10:57:06 -0400
-Received: from [192.168.15.111] (helo=alex-laptop)
-        by relay3.sw.ru with smtp (Exim 4.93)
-        (envelope-from <alexander.mikhalitsyn@virtuozzo.com>)
-        id 1jhDmB-0002Ls-6G; Fri, 05 Jun 2020 17:56:55 +0300
-Date:   Fri, 5 Jun 2020 17:56:58 +0300
-From:   Alexander Mikhalitsyn <alexander.mikhalitsyn@virtuozzo.com>
+        Fri, 5 Jun 2020 11:13:11 -0400
+Received: from youngberry.canonical.com ([91.189.89.112]:55519 "EHLO
+        youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726601AbgFEPNL (ORCPT
+        <rfc822;linux-unionfs@vger.kernel.org>);
+        Fri, 5 Jun 2020 11:13:11 -0400
+Received: from ip5f5af183.dynamic.kabel-deutschland.de ([95.90.241.131] helo=wittgenstein)
+        by youngberry.canonical.com with esmtpsa (TLS1.2:ECDHE_RSA_AES_128_GCM_SHA256:128)
+        (Exim 4.86_2)
+        (envelope-from <christian.brauner@ubuntu.com>)
+        id 1jhE1o-0001Y5-OX; Fri, 05 Jun 2020 15:13:04 +0000
+Date:   Fri, 5 Jun 2020 17:13:03 +0200
+From:   Christian Brauner <christian.brauner@ubuntu.com>
 To:     Amir Goldstein <amir73il@gmail.com>
-Cc:     Pavel Tikhomirov <ptikhomirov@virtuozzo.com>,
-        Miklos Szeredi <miklos@szeredi.hu>,
-        Andrey Vagin <avagin@virtuozzo.com>,
-        Konstantin Khorenko <khorenko@virtuozzo.com>,
-        Vasiliy Averin <vvs@virtuozzo.com>,
-        Kirill Tkhai <ktkhai@virtuozzo.com>,
+Cc:     Vivek Goyal <vgoyal@redhat.com>,
         overlayfs <linux-unionfs@vger.kernel.org>,
-        linux-kernel <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH 0/2] overlayfs: C/R enhancements
-Message-Id: <20200605175658.99b977a202d0ffb6c7cf5a04@virtuozzo.com>
-In-Reply-To: <CAOQ4uxhkaGJf=duHO-k7UxTKJmGjFpQnfnn8-tRdG2cQZaLq3A@mail.gmail.com>
-References: <20200604161133.20949-1-alexander.mikhalitsyn@virtuozzo.com>
-        <CAOQ4uxhGswjxZjc3mN7K99pPrDgMV9_194U46b2MgszZnq1SDw@mail.gmail.com>
-        <AM6PR08MB36394A00DC129791CC89296AE8890@AM6PR08MB3639.eurprd08.prod.outlook.com>
-        <CAOQ4uxisdLt-0eT1R=V1ihagMoNfjiTrUdcdF2yDgD4O94Zjcw@mail.gmail.com>
-        <fb79be2c-4fc8-5a9d-9b07-e0464fca9c3f@virtuozzo.com>
-        <CAOQ4uxhhNx0VxJB=eLoPX+wt15tH3-KLjGuQem4h_R=0nfkAiA@mail.gmail.com>
-        <20200605154438.408e5dc5522170c50463bbec@virtuozzo.com>
-        <CAOQ4uxhkaGJf=duHO-k7UxTKJmGjFpQnfnn8-tRdG2cQZaLq3A@mail.gmail.com>
-X-Mailer: Sylpheed 3.5.1 (GTK+ 2.24.32; x86_64-pc-linux-gnu)
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+        StuartIanNaylor <rolyantrauts@gmail.com>,
+        Linux Containers <containers@lists.linux-foundation.org>,
+        kmxz <kxzkxz7139@gmail.com>, "zhangyi (F)" <yi.zhang@huawei.com>,
+        Miklos Szeredi <miklos@szeredi.hu>
+Subject: Re: OverlaysFS offline tools
+Message-ID: <20200605151303.d77nlr7ewmxx6tp3@wittgenstein>
+References: <CAOQ4uxjFC81hikgg0WaF0Z3Mxkk3iDakKx2Ttuhp_L_2Tnc6xQ@mail.gmail.com>
+ <20200108140611.GA1995@redhat.com>
+ <CAOQ4uxiUXk-=RV+cCXvE_0KMjW-3xqFFVkhNx7TmnbtMySh7Gw@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <CAOQ4uxiUXk-=RV+cCXvE_0KMjW-3xqFFVkhNx7TmnbtMySh7Gw@mail.gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Fri, 5 Jun 2020 17:36:10 +0300
-Amir Goldstein <amir73il@gmail.com> wrote:
-
-> > > While at it, you copy pasted the text:
-> > >           For more information, see Documentation/filesystems/overlayfs.txt
-> > > but there is no more information to be found.
+On Fri, Jun 05, 2020 at 08:33:08AM +0300, Amir Goldstein wrote:
+> On Wed, Jan 8, 2020 at 4:06 PM Vivek Goyal <vgoyal@redhat.com> wrote:
 > >
-> > As far as I know documentation patches must be send to another mailing list.
-> > Of course I have plan to add information to overlayfs documentation about new feature.
-> >
-> 
-> Please send documentation patch together with the series
-> to this list. its fine to wait with that until the concept is approved though.
-> 
-
-Yep, I will prepare patch and send.
-
-> 
-> > > > > And if this works for you, you don't have to export the layers ovl_fh in
-> > > > > /proc/mounts, you can export them in numerous other ways.
-> > > > > One way from the top of my head, getxattr on overlay root dir.
-> > > > > "trusted.overlay" xattr is anyway a reserved prefix, so "trusted.overlay.layers"
-> > > > > for example could work.
+> > On Wed, Jan 08, 2020 at 09:27:12AM +0200, Amir Goldstein wrote:
+> > > [-fsdevel,+containers]
+> > >
+> > > > On Thu, Apr 18, 2019 at 1:58 PM StuartIanNaylor <rolyantrauts@gmail.com> wrote:
+> > > > >
+> > > > > Apols to ask here but are there any tools for overlayFS?
+> > > > >
+> > > > > https://github.com/kmxz/overlayfs-tools is just about the only thing I
+> > > > > can find.
 > > > >
-> > > > Thanks xattr might be a good option, but still don't forget about (a)
-> > > > and (b), users like to know all information about mount from
-> > > > /proc/pid/mountinfo.
+> > > > There is also https://github.com/hisilicon/overlayfs-progs which
+> > > > can check and fix overlay layers, but it hasn't been updated in a while.
 > > > >
 > > >
-> > > Let's stick to your use cases requirements. If you have other use cases
-> > > for this functionality lay them out explicitly.
+> > > Hi Vivek (and containers folks),
+> > >
+> > > Stuart has pinged me on https://github.com/StuartIanNaylor/zram-config/issues/4
+> > > to ask about the status of overlayfs offline tools.
+> > >
+> > > Quoting my answer here for visibility to more container developers:
+> > >
+> > > I have been involved with implementing many overlayfs features in the
+> > > kernel in the
+> > > past couple of years (redirect_dir,index,nfs_export,xino,metacopy).
+> > > All of these features bring benefits to end users, but AFAIK, they are
+> > > all still disabled
+> > > by default in containers runtimes (?) because lack of tools support
+> > > (e.g. migration
+> > > /import/export). I cannot force anyone to use the new overlayfs
+> > > features nor to write
+> > > offline tools support for them.
+> > >
+> > > So how can we improve this situation?
+> > >
+> > > If the problem is development resources then I've had great experience
+> > > in the past
+> > > with OSS internship programs like Google summer of code (GSoC):
+> > > Organizations, such as Redhat or mobyproject.org, can participate in the program
+> > > by posting proposals for open source projects.
+> > > Developers, such as myself, volunteer to mentors projects and students apply
+> > > to work on them.
+> > >
+> > > IIRC, the timeline for GSoC for project proposals in around April. Applying as
+> > > an organization could be before that.
+> > >
+> > > Vivek, since you are the only developer I know involved in containers runtime
+> > > projects I am asking you, but really its a question for all container developers
+> > > out there.
+> > >
+> > > Are you aware of missing features in containers that could be met by filling the
+> > > gaps with overlayfs offline tools?
 > >
-> > Requirements is very simple, at "dump stage" we need to save all overlayfs mount options
-> > sufficient to fully reconstruct overlayfs mount state on "restore stage". We already
-> > have proof of concept implementation of Docker overlayfs mounts when docker is running in
-> > OpenVZ container. In this case we fully dump all tree of mounts and all mount namespaces.
-> > CRIU mounts restore procedure at first reconstruct mount tree in special separate subtrees
-> > called "yards", then when all mounts is reconstructed we do "pivot_root" syscall. And
-> > with overlayfs it was a problem, because we mounted overlayfs with lowerdir,workdir,upperdir
-> > paths with mount namespace "yard" path prefix, and after restore in mount options user may see
-> > that lowerdir,workdir,upperdir paths were changed... It's a problem. Also it makes second C/R
-> > procedure is impossible, because after first C/R lowerdir,workdir,upperdir paths is invalidated
-> > after pivot_root.
+> > CCing Dan Walsh as he is taking care of podman and often I hear some of
+> > the the complaints from him w.r.t what he thinks is missing. This is
+> > not necessarily related to overlayfs offline tools.
 > >
-> > Example for Docker (after first C/R procedure):
+> > - Unpriviliged mounting of overlayfs.
 > >
-> > options lowerdir=/tmp/.criu.mntns.owMo9C/9-0000000000//var/lib/docker/overlay2/l/4BLZ4WH6GZIVKJE5QF62QUUKVZ:/var/lib/docker/overlay2/l/7FYRGAXT35JMKTXCHDNCQO3HKT,upperdir=/tmp/.criu.mntns.owMo9C/9-0000000000//var/lib/docker/overlay2/30aa26fb5e5671fc0126f2fc0e84cc740ce6bf06ca6ad4ac877a3c60f5aceaf1/diff,workdir=/tmp/.criu.mntns.owMo9C/9-0000000000//var/lib/docker/overlay2/30aa26fb5e5671fc0126f2fc0e84cc740ce6bf06ca6ad4ac877a3c60f5aceaf1/work
+> >   He wants to launch containers unpriviliged and hence wants to be able
+> >   to mount overlayfs without being root in init_user_ns. I think Miklos
+> >   posted some patches for that but not much progress after that.
+> >
+> >   https://patchwork.kernel.org/cover/11212091/
+> >
+> > - shiftfs
+> >
+> >   As of now they are relying on doing chown of the image but will really
+> >   like to see the ability to shift uid/gids using shiftfs or using
+> >   VFS layer solution.
+> >
+> > - Overlayfs redirect_dir is not compatible with image building
+> >
+> >   redirect_dir is not compatible with image building and I think that's
+> >   one reason that its not used by default. And as metacopy is dependent
+> >   on redirect_dir, its not used by default as well. It can be used for
+> >   running containers though, but one needs to know that in advacnce.
+> >
+> >   So it will be good if that's fixed with redirect_dir and metacopy
+> >   features and then there is higher chance that these features are
+> >   enabled by default.
+> >
+> >   Miklos had some ides on how to tackle the issue of getting diff
+> >   correctly with redirect_dir enabled.
+> >
+> >   https://www.spinics.net/lists/linux-unionfs/msg06969.html
 > >
 > 
-> That reminds me.
-> I've read somewhere that thoses symlinks l/4BLZ4WH6GZIVKJE5QF62QUUKVZ
-> are meant to shorten the mount option string, because the mount
-> options are limited by
-> page size and with many lower layers limitation can reach.
+> FYI, I have been playing with kmxz's overlay (offline tools).
+> It's a nice little tool :)
+> Adding "awareness" to redirect and metacopy was easy [1].
 > 
-> That is one of the reasons that new mount API was created for (i.e. fsconfig()).
-> I wonder if /proc/mounts also has a similar limitation on options size.
-> I also wonder why docker doesn't chdir into /var/lib/docker/overlay2/
-> before mounting overlay and use relative paths, though that would have
-> been worse for CRIU.
+> It should be easy to add support for command "export"
+> that does what Miklos suggested in order to migrate an image with
+> metacopy/redirect.
 > 
-> So at least for the docker use case CRIU knows very well where the
-> underlying filesytem is mounted (/var/lib/docker/overlay2/ or above).
-> So if you got any API from overlayfs something like:
-> getxattr("/var/lib/docker/overlay2/XYZ/merged",
-> "trusted.overlay.layers.0.fh",..)
-> which reads the ovl_fh encoding of layer 0 (upper) rootdir, CRIU
-> can verify that uuid matches the filesystem mounted at /var/vol/docker/overlay2/
-> and then call open_by_handle_at() to open fd and resolve it to a path
-> under /var/vol/docker/overlay2.
+> As a first step, command "vacuum" (or a new one) could be run
+> on layers to check if layers are already portable and then the
+> heavy weight "export" is not needed.
 > 
-> I don't know if that provides what CRIU needs, but it would be no more
-> than a few lines of code in overlayfs:
+> >   Having said that, I think Dan Walsh has enabled metacopy by default
+> >   in podman in certain configurations (for running containers and not
+> >   for building images).
+> >
 > 
-> if (i < ofs->numlayer)
->     fh = ovl_encode_real_fh(ofs->layers[i].mnt->mnt_root, ...
-> 
+> I submitted a talk proposal to plumbers containers track about
+> enabling overlayfs features in container runtimes [2].
 
-I will try to experiment with that. Thank you!
-
-> Thanks,
-> Amir.
-
--- 
-Regards,
-Alex.
+Amir, excellent! Looking forward to this!
+Christian
