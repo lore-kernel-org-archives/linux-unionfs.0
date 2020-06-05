@@ -2,110 +2,141 @@ Return-Path: <SRS0=dsgN=7S=vger.kernel.org=linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 645C2C433E0
-	for <linux-unionfs@archiver.kernel.org>; Fri,  5 Jun 2020 14:38:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DBD98C433E0
+	for <linux-unionfs@archiver.kernel.org>; Fri,  5 Jun 2020 14:57:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3F0C1206DC
-	for <linux-unionfs@archiver.kernel.org>; Fri,  5 Jun 2020 14:38:52 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="DBdT7N1A"
+	by mail.kernel.org (Postfix) with ESMTP id C0DF22065C
+	for <linux-unionfs@archiver.kernel.org>; Fri,  5 Jun 2020 14:57:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727113AbgFEOiw (ORCPT
+        id S1727826AbgFEO5G (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Fri, 5 Jun 2020 10:38:52 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52208 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726553AbgFEOiw (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 5 Jun 2020 10:38:52 -0400
-Received: from mail-il1-x12b.google.com (mail-il1-x12b.google.com [IPv6:2607:f8b0:4864:20::12b])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B2724C08C5C2
-        for <linux-unionfs@vger.kernel.org>; Fri,  5 Jun 2020 07:38:51 -0700 (PDT)
-Received: by mail-il1-x12b.google.com with SMTP id l6so9828258ilo.2
-        for <linux-unionfs@vger.kernel.org>; Fri, 05 Jun 2020 07:38:51 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=nToWhQNJiBLpDXTJedlK0vJoOavtrOjmBi34kXhGKIo=;
-        b=DBdT7N1AFbSrh37ikjRgrcSMVn3rlXeS5hlyXSaynFJXmmgE2dXw/6KQkby3PNrmAJ
-         IWdf3AYPatA8+WJgeO/sK8+tkp+6642yvVbKi3rT76GHg7iWaOVFFonRAyVZr9V3UpT+
-         nRq7L9KaolTVLjmJRrXvf+6Dx4oQpNeZgwCH/TsDrnmJVGA4I6eJVWNL7/0tzPwK+/La
-         6rfhdz5V1gDB+svRIOh+RyMusBtr5cbNsXnjjfs4EWY8r6MjUczBrM44+H2WbRNjikoK
-         BQiaWmpra3+FpjZw669Wi+A5vhHQ1JY4gtops+ZbmuDo/me1OW8MPvm9bcDXYFuCw+l+
-         QjYQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=nToWhQNJiBLpDXTJedlK0vJoOavtrOjmBi34kXhGKIo=;
-        b=Lx0ha8BsYFMpp0LGT+L4hiKV0PmIaTF+jDQtKmeqrw+CWl/4ahzMz2tje5Ugu/ZlDV
-         Ngi5Dd4/fDHYQjPCnqD213gBC4q0SRc7u8TlVsKTZZRytq0ED6sQ30cqgiJNmLmooBNQ
-         W/xEEl2cxPxR+c/Cms7IddHpvPY93/aefv6iDl5WU6pA42cYtuTNbzOKdNLLDvxTeMsK
-         +QPnplroEOYs/qjEZ6H28cvqQ+TrTg0+tR/yxbVHHVdJM+8G4owShchJ+9EPARXXyYXG
-         cls0SvWDy4RHJ2fuAOpteU6/P8HSqCM/zXX8z6sCjMVKUcO2rN5vmlHta3fHCSMJSSZF
-         p4/Q==
-X-Gm-Message-State: AOAM532e7wQ2IG/iymUuN+lRLh96BAIrXEa+X7Xq7zxCD6H1bee/tQ+p
-        7nQ7IyoemwCLv36JuZ9FfTHXYXtNP2QfWFoZrUg=
-X-Google-Smtp-Source: ABdhPJwzBkD8WEBSypnxHFXlXGO2H0VLQ0XtC0VXaYWwgAEh6xdM5lo9+V8cBVfycVgRToh/57vD1Gu+Ogl31Vbm0F8=
-X-Received: by 2002:a92:2a0c:: with SMTP id r12mr8549234ile.275.1591367931071;
- Fri, 05 Jun 2020 07:38:51 -0700 (PDT)
-MIME-Version: 1.0
-References: <CAOQ4uxjFC81hikgg0WaF0Z3Mxkk3iDakKx2Ttuhp_L_2Tnc6xQ@mail.gmail.com>
- <20200108140611.GA1995@redhat.com> <CAOQ4uxiUXk-=RV+cCXvE_0KMjW-3xqFFVkhNx7TmnbtMySh7Gw@mail.gmail.com>
- <20200605143217.GB123988@redhat.com>
-In-Reply-To: <20200605143217.GB123988@redhat.com>
-From:   Amir Goldstein <amir73il@gmail.com>
-Date:   Fri, 5 Jun 2020 17:38:40 +0300
-Message-ID: <CAOQ4uxhP0VPMUSrPReKVaWLzyGkr1CFqiWNtGWOA29uLb0NEhg@mail.gmail.com>
-Subject: Re: OverlaysFS offline tools
-To:     Vivek Goyal <vgoyal@redhat.com>
-Cc:     overlayfs <linux-unionfs@vger.kernel.org>,
-        StuartIanNaylor <rolyantrauts@gmail.com>,
-        Linux Containers <containers@lists.linux-foundation.org>,
-        kmxz <kxzkxz7139@gmail.com>, "zhangyi (F)" <yi.zhang@huawei.com>,
+        Fri, 5 Jun 2020 10:57:06 -0400
+Received: from relay.sw.ru ([185.231.240.75]:33218 "EHLO relay3.sw.ru"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1727114AbgFEO5G (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Fri, 5 Jun 2020 10:57:06 -0400
+Received: from [192.168.15.111] (helo=alex-laptop)
+        by relay3.sw.ru with smtp (Exim 4.93)
+        (envelope-from <alexander.mikhalitsyn@virtuozzo.com>)
+        id 1jhDmB-0002Ls-6G; Fri, 05 Jun 2020 17:56:55 +0300
+Date:   Fri, 5 Jun 2020 17:56:58 +0300
+From:   Alexander Mikhalitsyn <alexander.mikhalitsyn@virtuozzo.com>
+To:     Amir Goldstein <amir73il@gmail.com>
+Cc:     Pavel Tikhomirov <ptikhomirov@virtuozzo.com>,
         Miklos Szeredi <miklos@szeredi.hu>,
-        Christian Brauner <christian.brauner@ubuntu.com>
-Content-Type: text/plain; charset="UTF-8"
+        Andrey Vagin <avagin@virtuozzo.com>,
+        Konstantin Khorenko <khorenko@virtuozzo.com>,
+        Vasiliy Averin <vvs@virtuozzo.com>,
+        Kirill Tkhai <ktkhai@virtuozzo.com>,
+        overlayfs <linux-unionfs@vger.kernel.org>,
+        linux-kernel <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH 0/2] overlayfs: C/R enhancements
+Message-Id: <20200605175658.99b977a202d0ffb6c7cf5a04@virtuozzo.com>
+In-Reply-To: <CAOQ4uxhkaGJf=duHO-k7UxTKJmGjFpQnfnn8-tRdG2cQZaLq3A@mail.gmail.com>
+References: <20200604161133.20949-1-alexander.mikhalitsyn@virtuozzo.com>
+        <CAOQ4uxhGswjxZjc3mN7K99pPrDgMV9_194U46b2MgszZnq1SDw@mail.gmail.com>
+        <AM6PR08MB36394A00DC129791CC89296AE8890@AM6PR08MB3639.eurprd08.prod.outlook.com>
+        <CAOQ4uxisdLt-0eT1R=V1ihagMoNfjiTrUdcdF2yDgD4O94Zjcw@mail.gmail.com>
+        <fb79be2c-4fc8-5a9d-9b07-e0464fca9c3f@virtuozzo.com>
+        <CAOQ4uxhhNx0VxJB=eLoPX+wt15tH3-KLjGuQem4h_R=0nfkAiA@mail.gmail.com>
+        <20200605154438.408e5dc5522170c50463bbec@virtuozzo.com>
+        <CAOQ4uxhkaGJf=duHO-k7UxTKJmGjFpQnfnn8-tRdG2cQZaLq3A@mail.gmail.com>
+X-Mailer: Sylpheed 3.5.1 (GTK+ 2.24.32; x86_64-pc-linux-gnu)
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-unionfs-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-> Hi Amir,
->
-> I can't seem to access this abstract proposal (Despite the fact I
-> created a new login id).
->
+On Fri, 5 Jun 2020 17:36:10 +0300
+Amir Goldstein <amir73il@gmail.com> wrote:
 
-Maybe it needs to be accepted to become public, anyway:
+> > > While at it, you copy pasted the text:
+> > >           For more information, see Documentation/filesystems/overlayfs.txt
+> > > but there is no more information to be found.
+> >
+> > As far as I know documentation patches must be send to another mailing list.
+> > Of course I have plan to add information to overlayfs documentation about new feature.
+> >
+> 
+> Please send documentation patch together with the series
+> to this list. its fine to wait with that until the concept is approved though.
+> 
 
-Containers are by far the biggest use case for overlayfs.
-Yet, there seems to be very little cross talk between overlayfs and
-containers mailing lists.
+Yep, I will prepare patch and send.
 
-This talk is going to present some opt-in overlayfs features that were
-added in recent years (redirect_dir, index, nfs_export, xino,
-metacopy).
+> 
+> > > > > And if this works for you, you don't have to export the layers ovl_fh in
+> > > > > /proc/mounts, you can export them in numerous other ways.
+> > > > > One way from the top of my head, getxattr on overlay root dir.
+> > > > > "trusted.overlay" xattr is anyway a reserved prefix, so "trusted.overlay.layers"
+> > > > > for example could work.
+> > > >
+> > > > Thanks xattr might be a good option, but still don't forget about (a)
+> > > > and (b), users like to know all information about mount from
+> > > > /proc/pid/mountinfo.
+> > > >
+> > >
+> > > Let's stick to your use cases requirements. If you have other use cases
+> > > for this functionality lay them out explicitly.
+> >
+> > Requirements is very simple, at "dump stage" we need to save all overlayfs mount options
+> > sufficient to fully reconstruct overlayfs mount state on "restore stage". We already
+> > have proof of concept implementation of Docker overlayfs mounts when docker is running in
+> > OpenVZ container. In this case we fully dump all tree of mounts and all mount namespaces.
+> > CRIU mounts restore procedure at first reconstruct mount tree in special separate subtrees
+> > called "yards", then when all mounts is reconstructed we do "pivot_root" syscall. And
+> > with overlayfs it was a problem, because we mounted overlayfs with lowerdir,workdir,upperdir
+> > paths with mount namespace "yard" path prefix, and after restore in mount options user may see
+> > that lowerdir,workdir,upperdir paths were changed... It's a problem. Also it makes second C/R
+> > procedure is impossible, because after first C/R lowerdir,workdir,upperdir paths is invalidated
+> > after pivot_root.
+> >
+> > Example for Docker (after first C/R procedure):
+> >
+> > options lowerdir=/tmp/.criu.mntns.owMo9C/9-0000000000//var/lib/docker/overlay2/l/4BLZ4WH6GZIVKJE5QF62QUUKVZ:/var/lib/docker/overlay2/l/7FYRGAXT35JMKTXCHDNCQO3HKT,upperdir=/tmp/.criu.mntns.owMo9C/9-0000000000//var/lib/docker/overlay2/30aa26fb5e5671fc0126f2fc0e84cc740ce6bf06ca6ad4ac877a3c60f5aceaf1/diff,workdir=/tmp/.criu.mntns.owMo9C/9-0000000000//var/lib/docker/overlay2/30aa26fb5e5671fc0126f2fc0e84cc740ce6bf06ca6ad4ac877a3c60f5aceaf1/work
+> >
+> 
+> That reminds me.
+> I've read somewhere that thoses symlinks l/4BLZ4WH6GZIVKJE5QF62QUUKVZ
+> are meant to shorten the mount option string, because the mount
+> options are limited by
+> page size and with many lower layers limitation can reach.
+> 
+> That is one of the reasons that new mount API was created for (i.e. fsconfig()).
+> I wonder if /proc/mounts also has a similar limitation on options size.
+> I also wonder why docker doesn't chdir into /var/lib/docker/overlay2/
+> before mounting overlay and use relative paths, though that would have
+> been worse for CRIU.
+> 
+> So at least for the docker use case CRIU knows very well where the
+> underlying filesytem is mounted (/var/lib/docker/overlay2/ or above).
+> So if you got any API from overlayfs something like:
+> getxattr("/var/lib/docker/overlay2/XYZ/merged",
+> "trusted.overlay.layers.0.fh",..)
+> which reads the ovl_fh encoding of layer 0 (upper) rootdir, CRIU
+> can verify that uuid matches the filesystem mounted at /var/vol/docker/overlay2/
+> and then call open_by_handle_at() to open fd and resolve it to a path
+> under /var/vol/docker/overlay2.
+> 
+> I don't know if that provides what CRIU needs, but it would be no more
+> than a few lines of code in overlayfs:
+> 
+> if (i < ofs->numlayer)
+>     fh = ovl_encode_real_fh(ofs->layers[i].mnt->mnt_root, ...
+> 
 
-Most of those features have not been enabled by most container
-runtimes, because of various reasons:
+I will try to experiment with that. Thank you!
 
-* Requires more development in userspace (image migration)
-* Unrelated runtime bugs (mount leaks)
-* Mismatch for containers needs
-* Lack of promotion
+> Thanks,
+> Amir.
 
-This talk is about giving the opportunity to container runtime
-developers to better understand what they may get from overlayfs.
-
-This talk is not about containers wish list from overlayfs, because
-userns overlayfs mount needs 45 minutes on its own...
-
-Thanks,
-Amir.
+-- 
+Regards,
+Alex.
