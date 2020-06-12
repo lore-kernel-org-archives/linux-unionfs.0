@@ -2,74 +2,81 @@ Return-Path: <SRS0=WbPP=7Z=vger.kernel.org=linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-8.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C5CA0C433DF
-	for <linux-unionfs@archiver.kernel.org>; Fri, 12 Jun 2020 01:58:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EE530C433DF
+	for <linux-unionfs@archiver.kernel.org>; Fri, 12 Jun 2020 06:29:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A5549206DC
-	for <linux-unionfs@archiver.kernel.org>; Fri, 12 Jun 2020 01:58:53 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C3C42207D8
+	for <linux-unionfs@archiver.kernel.org>; Fri, 12 Jun 2020 06:29:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726306AbgFLB6x (ORCPT
+        id S1726414AbgFLG3S (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Thu, 11 Jun 2020 21:58:53 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53306 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725796AbgFLB6x (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 11 Jun 2020 21:58:53 -0400
-Received: from ZenIV.linux.org.uk (zeniv.linux.org.uk [IPv6:2002:c35c:fd02::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 03143C03E96F;
-        Thu, 11 Jun 2020 18:58:52 -0700 (PDT)
-Received: from viro by ZenIV.linux.org.uk with local (Exim 4.93 #3 (Red Hat Linux))
-        id 1jjYxu-007MwO-TA; Fri, 12 Jun 2020 01:58:42 +0000
-Date:   Fri, 12 Jun 2020 02:58:42 +0100
-From:   Al Viro <viro@zeniv.linux.org.uk>
-To:     Mike Kravetz <mike.kravetz@oracle.com>
-Cc:     linux-mm@kvack.org, linux-fsdevel@vger.kernel.org,
+        Fri, 12 Jun 2020 02:29:18 -0400
+Received: from mga03.intel.com ([134.134.136.65]:53559 "EHLO mga03.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726403AbgFLG3S (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Fri, 12 Jun 2020 02:29:18 -0400
+IronPort-SDR: 239C5Koa8YcKXBn6qRcIcBVu/y8VS8iPKgcv1HvbBe0n+NbApaEG4MqFkOnTX7el80OHQ5b3Z/
+ XdfL8VG4SvcA==
+X-Amp-Result: SKIPPED(no attachment in message)
+X-Amp-File-Uploaded: False
+Received: from fmsmga005.fm.intel.com ([10.253.24.32])
+  by orsmga103.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 11 Jun 2020 23:29:17 -0700
+IronPort-SDR: GMfc7prak4JwHsRsrqnpLwU0QAgkwC1yomNRqgj1goocw8fVEm5urgtPANX4VNrH87aLMEiGjP
+ fuQbXW5gN5pA==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.73,502,1583222400"; 
+   d="scan'208";a="474098231"
+Received: from lkp-server01.sh.intel.com (HELO b6eec31c25be) ([10.239.97.150])
+  by fmsmga005.fm.intel.com with ESMTP; 11 Jun 2020 23:29:14 -0700
+Received: from kbuild by b6eec31c25be with local (Exim 4.92)
+        (envelope-from <lkp@intel.com>)
+        id 1jjdBh-0000ZX-Qb; Fri, 12 Jun 2020 06:29:13 +0000
+Date:   Fri, 12 Jun 2020 14:28:54 +0800
+From:   kernel test robot <lkp@intel.com>
+To:     Mike Kravetz <mike.kravetz@oracle.com>, linux-mm@kvack.org,
+        linux-fsdevel@vger.kernel.org,
         overlayfs <linux-unionfs@vger.kernel.org>,
-        linux-kernel@vger.kernel.org, Miklos Szeredi <miklos@szeredi.hu>,
+        linux-kernel@vger.kernel.org
+Cc:     kbuild-all@lists.01.org, Al Viro <viro@zeniv.linux.org.uk>,
+        Miklos Szeredi <miklos@szeredi.hu>,
         Matthew Wilcox <willy@infradead.org>,
         Colin Walters <walters@verbum.org>,
         Andrew Morton <akpm@linux-foundation.org>,
-        syzbot <syzbot+d6ec23007e951dadf3de@syzkaller.appspotmail.com>,
-        syzkaller-bugs <syzkaller-bugs@googlegroups.com>
-Subject: Re: [PATCH v4 1/2] hugetlb: use f_mode & FMODE_HUGETLBFS to identify
- hugetlbfs files
-Message-ID: <20200612015842.GC23230@ZenIV.linux.org.uk>
+        Linux Memory Management List <linux-mm@kvack.org>
+Subject: [RFC PATCH] hugetlb: hugetlbfs_file_operations can be static
+Message-ID: <20200612062853.GA35019@0619708f5df1>
 References: <20200612004644.255692-1-mike.kravetz@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 In-Reply-To: <20200612004644.255692-1-mike.kravetz@oracle.com>
+X-Patchwork-Hint: ignore
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: linux-unionfs-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Thu, Jun 11, 2020 at 05:46:43PM -0700, Mike Kravetz wrote:
-> The routine is_file_hugepages() checks f_op == hugetlbfs_file_operations
-> to determine if the file resides in hugetlbfs.  This is problematic when
-> the file is on a union or overlay.  Instead, define a new file mode
-> FMODE_HUGETLBFS which is set when a hugetlbfs file is opened.  The mode
-> can easily be copied to other 'files' derived from the original hugetlbfs
-> file.
-> 
-> With this change hugetlbfs_file_operations can be static as it should be.
-> 
-> There is also a (duplicate) set of shm file operations used for the routine
-> is_file_shm_hugepages().  Instead of setting/using special f_op's, just
-> propagate the FMODE_HUGETLBFS mode.  This means is_file_shm_hugepages() and
-> the duplicate f_ops can be removed.
 
-s/HUGETLBFS/HUGEPAGES/, please.
+Signed-off-by: kernel test robot <lkp@intel.com>
+---
+ inode.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-> While cleaning things up, change the name of is_file_hugepages() to
-> is_file_hugetlbfs().  The term hugepages is a bit ambiguous.
-
-Don't, especially since the very next patch adds such on overlayfs...
-
-Incidentally, can a hugetlbfs be a lower layer, while the upper one
-is a normal filesystem?  What should happen on copyup?
+diff --git a/fs/hugetlbfs/inode.c b/fs/hugetlbfs/inode.c
+index 5c0c50a88c84b..98d044be8a5cf 100644
+--- a/fs/hugetlbfs/inode.c
++++ b/fs/hugetlbfs/inode.c
+@@ -41,7 +41,7 @@
+ 
+ static const struct super_operations hugetlbfs_ops;
+ static const struct address_space_operations hugetlbfs_aops;
+-const struct file_operations hugetlbfs_file_operations;
++static const struct file_operations hugetlbfs_file_operations;
+ static const struct inode_operations hugetlbfs_dir_inode_operations;
+ static const struct inode_operations hugetlbfs_inode_operations;
+ 
