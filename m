@@ -1,146 +1,147 @@
-Return-Path: <SRS0=WbPP=7Z=vger.kernel.org=linux-unionfs-owner@kernel.org>
+Return-Path: <SRS0=wnY6=72=vger.kernel.org=linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.4 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-0.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5EB8DC433E0
-	for <linux-unionfs@archiver.kernel.org>; Fri, 12 Jun 2020 21:52:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 504A5C433E0
+	for <linux-unionfs@archiver.kernel.org>; Sat, 13 Jun 2020 06:53:37 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 39B6B206B7
-	for <linux-unionfs@archiver.kernel.org>; Fri, 12 Jun 2020 21:52:25 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2472B2071A
+	for <linux-unionfs@archiver.kernel.org>; Sat, 13 Jun 2020 06:53:37 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="UPZKr/2f"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="jwtT8ipp"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726310AbgFLVwW (ORCPT
+        id S1725829AbgFMGxg (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Fri, 12 Jun 2020 17:52:22 -0400
-Received: from userp2120.oracle.com ([156.151.31.85]:33468 "EHLO
-        userp2120.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726307AbgFLVwV (ORCPT
+        Sat, 13 Jun 2020 02:53:36 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36662 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725783AbgFMGxg (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 12 Jun 2020 17:52:21 -0400
-Received: from pps.filterd (userp2120.oracle.com [127.0.0.1])
-        by userp2120.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 05CLgd5l100541;
-        Fri, 12 Jun 2020 21:52:00 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=subject : to : cc :
- references : from : message-id : date : mime-version : in-reply-to :
- content-type : content-transfer-encoding; s=corp-2020-01-29;
- bh=YQwZ2qMk30v0exHQjGmX0+vXcO88dA/fx1P1NvxubDQ=;
- b=UPZKr/2fEBkNdNTvh4NhEAMMDWuBjbp6T0NunroaheeFbC0Ej9GCwKmsEJqWc55m9KKV
- SI/Fq9K3/J3bCDkLcgP4AK4OISAkllz9GDCTK8uNYXLrirhxWzH5hKQFjgTbrdeolBnC
- UoxYH/IuDfDnnUeRH9WIKG16Zx8RPj0TSqVoszGEEdw4Kec9CNta7DB39IMKVG1lSmYm
- VkGRXR+1SFC5SL3J8gSNr7E1lf+ZBZqW/oq/mVDC2B7zavh93Lg6Yh+20lgPhlpAi080
- wTsfWSXvTIUSmIssVM80Rn/q+FH1DNC70GNy6v4pxBc1a5YUeitKG6tOMJxM0FHt1suv 2g== 
-Received: from aserp3020.oracle.com (aserp3020.oracle.com [141.146.126.70])
-        by userp2120.oracle.com with ESMTP id 31g3snf3q4-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Fri, 12 Jun 2020 21:52:00 +0000
-Received: from pps.filterd (aserp3020.oracle.com [127.0.0.1])
-        by aserp3020.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 05CLluQB031217;
-        Fri, 12 Jun 2020 21:52:00 GMT
-Received: from userv0122.oracle.com (userv0122.oracle.com [156.151.31.75])
-        by aserp3020.oracle.com with ESMTP id 31mhgjtbjn-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Fri, 12 Jun 2020 21:51:59 +0000
-Received: from abhmp0007.oracle.com (abhmp0007.oracle.com [141.146.116.13])
-        by userv0122.oracle.com (8.14.4/8.14.4) with ESMTP id 05CLptEw025958;
-        Fri, 12 Jun 2020 21:51:57 GMT
-Received: from [192.168.2.112] (/50.38.35.18)
-        by default (Oracle Beehive Gateway v4.0)
-        with ESMTP ; Fri, 12 Jun 2020 14:51:55 -0700
+        Sat, 13 Jun 2020 02:53:36 -0400
+Received: from mail-il1-x144.google.com (mail-il1-x144.google.com [IPv6:2607:f8b0:4864:20::144])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5908DC03E96F;
+        Fri, 12 Jun 2020 23:53:36 -0700 (PDT)
+Received: by mail-il1-x144.google.com with SMTP id 9so10771938ilg.12;
+        Fri, 12 Jun 2020 23:53:36 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=wZmV14aQSRUcm2y4A/e4BOaEXbeaA7HzwVKU8FNN/60=;
+        b=jwtT8ipprgd7AseQDAlUj4ZfF3NouX0BU4A5re2DoqkBdfJjM/bk+kna0bDAfV0az5
+         rDb+u/x7w5bSaxpv+6VWq4kIGtl+TSOBm4aulgnrtaJ8SLZxpIwhxOsI9seg0IlOmmQG
+         8QdLPClwcY7izTJgguw9P/PM4jpvreziT3aTrpz6+zpFxgNr7PR5sMHh3FqucWU2ljLz
+         qa6R8eR3hvCk4Sz7GQmxtqBWaEVU7hzMGwM77W4+Kh/Q8iNvzmCb72eepE94GD//g9GN
+         iE6S5wF8FTYS/k7OoO+FM8rOI0yiMVs7cY8+HJeExH/aZ+Iwym80hrTahFTrOM6cg+lu
+         9lnw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=wZmV14aQSRUcm2y4A/e4BOaEXbeaA7HzwVKU8FNN/60=;
+        b=f+MpczMiTkl5/a3li+aWZI/mRMp9IXia4+mFV5Sn3zyc2O3RC1u/N/YZZZjMAX5FyW
+         xmKt2lp7nZgy7hl6FME67Q0VAEGHJj9u+yh0KUaAHjUioulWf/GViqG62sFeWhz2Vx3C
+         bRA82Wu3F3ZtygQZ6hDC0gXtlJY8MWBXtc4sB2l5Zn53s/F3UmXDuKs4DZk5K6bz0KSx
+         1Qaw5B1l1iY0dGLxAuV3qJjHKpmbD4jI0M2B8UKhimcgcmNsOJ+IL/xnN6Vo1JXSE8l5
+         d5bqM1blNXa7Yj/JMR7qzLmlyYWhKnCbtzDRGl7/PgOncFFwPfT/h7UYhfeHwrpKVcUs
+         /n1w==
+X-Gm-Message-State: AOAM533Gg8CJUR+HNU8s7LEfti6RNenEPSjSVjDJQJ0GY9P22vLQKhpU
+        h3h8J1MjwzMV9vOd13ldR2hm6TrIc9qn4DYSDhs=
+X-Google-Smtp-Source: ABdhPJxu1Fv5oTvN89HALcUnUPQVdWi2LFb8XAUkbJWwKm+5/Yp5FN9BEbw21Rp0AJk/9bkPJUlS9zPyfoQAKZ1Rb18=
+X-Received: by 2002:a92:2a0c:: with SMTP id r12mr16271149ile.275.1592031215605;
+ Fri, 12 Jun 2020 23:53:35 -0700 (PDT)
+MIME-Version: 1.0
+References: <20200612004644.255692-1-mike.kravetz@oracle.com>
+ <20200612015842.GC23230@ZenIV.linux.org.uk> <b1756da5-4e91-298f-32f1-e5642a680cbf@oracle.com>
+In-Reply-To: <b1756da5-4e91-298f-32f1-e5642a680cbf@oracle.com>
+From:   Amir Goldstein <amir73il@gmail.com>
+Date:   Sat, 13 Jun 2020 09:53:24 +0300
+Message-ID: <CAOQ4uxg=o2SVbfUiz0nOg-XHG8irvAsnXzFWjExjubk2v_6c_A@mail.gmail.com>
 Subject: Re: [PATCH v4 1/2] hugetlb: use f_mode & FMODE_HUGETLBFS to identify
  hugetlbfs files
-To:     Al Viro <viro@zeniv.linux.org.uk>
-Cc:     linux-mm@kvack.org, linux-fsdevel@vger.kernel.org,
+To:     Mike Kravetz <mike.kravetz@oracle.com>
+Cc:     Al Viro <viro@zeniv.linux.org.uk>, Linux MM <linux-mm@kvack.org>,
+        linux-fsdevel <linux-fsdevel@vger.kernel.org>,
         overlayfs <linux-unionfs@vger.kernel.org>,
-        linux-kernel@vger.kernel.org, Miklos Szeredi <miklos@szeredi.hu>,
+        linux-kernel <linux-kernel@vger.kernel.org>,
+        Miklos Szeredi <miklos@szeredi.hu>,
         Matthew Wilcox <willy@infradead.org>,
         Colin Walters <walters@verbum.org>,
         Andrew Morton <akpm@linux-foundation.org>,
         syzbot <syzbot+d6ec23007e951dadf3de@syzkaller.appspotmail.com>,
         syzkaller-bugs <syzkaller-bugs@googlegroups.com>
-References: <20200612004644.255692-1-mike.kravetz@oracle.com>
- <20200612015842.GC23230@ZenIV.linux.org.uk>
-From:   Mike Kravetz <mike.kravetz@oracle.com>
-Message-ID: <b1756da5-4e91-298f-32f1-e5642a680cbf@oracle.com>
-Date:   Fri, 12 Jun 2020 14:51:54 -0700
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
- Thunderbird/68.8.0
-MIME-Version: 1.0
-In-Reply-To: <20200612015842.GC23230@ZenIV.linux.org.uk>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
-X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9650 signatures=668680
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 suspectscore=0 mlxlogscore=999
- adultscore=0 phishscore=0 malwarescore=0 mlxscore=0 spamscore=0
- bulkscore=0 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.12.0-2004280000 definitions=main-2006120161
-X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9650 signatures=668680
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 adultscore=0 priorityscore=1501
- lowpriorityscore=0 impostorscore=0 cotscore=-2147483648 suspectscore=0
- spamscore=0 bulkscore=0 malwarescore=0 phishscore=0 mlxscore=0
- mlxlogscore=999 clxscore=1015 classifier=spam adjust=0 reason=mlx
- scancount=1 engine=8.12.0-2004280000 definitions=main-2006120160
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-unionfs-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On 6/11/20 6:58 PM, Al Viro wrote:
-> On Thu, Jun 11, 2020 at 05:46:43PM -0700, Mike Kravetz wrote:
->> The routine is_file_hugepages() checks f_op == hugetlbfs_file_operations
->> to determine if the file resides in hugetlbfs.  This is problematic when
->> the file is on a union or overlay.  Instead, define a new file mode
->> FMODE_HUGETLBFS which is set when a hugetlbfs file is opened.  The mode
->> can easily be copied to other 'files' derived from the original hugetlbfs
->> file.
->>
->> With this change hugetlbfs_file_operations can be static as it should be.
->>
->> There is also a (duplicate) set of shm file operations used for the routine
->> is_file_shm_hugepages().  Instead of setting/using special f_op's, just
->> propagate the FMODE_HUGETLBFS mode.  This means is_file_shm_hugepages() and
->> the duplicate f_ops can be removed.
-> 
-> s/HUGETLBFS/HUGEPAGES/, please.
-> 
->> While cleaning things up, change the name of is_file_hugepages() to
->> is_file_hugetlbfs().  The term hugepages is a bit ambiguous.
-> 
-> Don't, especially since the very next patch adds such on overlayfs...
+> > Incidentally, can a hugetlbfs be a lower layer, while the upper one
+> > is a normal filesystem?  What should happen on copyup?
+>
+> Yes, that seems to work as expected.  When accessed for write the hugetlb
+> file is copied to the normal filesystem.
+>
+> The BUG found by syzbot actually has a single hugetlbfs as both lower and
+> upper.  With the BUG 'fixed', I am not exactly sure what the expected
+> behavior is in this case.  I may be wrong, but I would expect any operations
+> that can be performed on a stand alone hugetlbfs to also be performed on
+> the overlay.  However, mmap() still fails.  I will look into it.
+>
+> I also looked at normal filesystem lower and hugetlbfs upper.  Yes, overlayfs
+> allows this.  This is somewhat 'interesting' as write() is not supported in
+> hugetlbfs.  Writing to files in the overlay actually ended up writing to
+> files in the lower filesystem.  That seems wrong, but overlayfs is new to me.
+>
 
-Ok. This is just something I thought might clarify things.  I seem to
-recall questions about 'huge page' routines such as "is that for THP or
-hugetlb huge pages"?  That was my motivation for the change.  Since this
-is only about hugetlbfs, make it explicit.
+I am not sure how that happened, but I think that ovl_open_realfile()
+needs to fixup f_mode flags FMODE_CAN_WRITE | FMODE_CAN_READ
+after open_with_fake_path().
 
-> Incidentally, can a hugetlbfs be a lower layer, while the upper one
-> is a normal filesystem?  What should happen on copyup?
+> Earlier in the discussion of these issues, Colin Walters asked "Is there any
+> actual valid use case for mounting an overlayfs on top of hugetlbfs?"  I can
+> not think of one.  Perhaps we should consider limiting the ways in which
+> hugetlbfs can be used in overlayfs?  Preventing it from being an upper
+> filesystem might be a good start?  Or, do people think making hugetlbfs and
+> overlayfs play nice together is useful?
 
-Yes, that seems to work as expected.  When accessed for write the hugetlb
-file is copied to the normal filesystem.
+If people think that making hugetlbfs and overlayfs play nice together maybe
+they should work on this problem. It doesn't look like either
+hugetlbfs developers
+nor overlayfs developers care much about the combination.
+Your concern, I assume, is fixing the syzbot issue.
 
-The BUG found by syzbot actually has a single hugetlbfs as both lower and
-upper.  With the BUG 'fixed', I am not exactly sure what the expected
-behavior is in this case.  I may be wrong, but I would expect any operations
-that can be performed on a stand alone hugetlbfs to also be performed on
-the overlay.  However, mmap() still fails.  I will look into it.
+I agree with Colin's remark about adding limitations, but it would be a shame
+if overlay had to special case hugetlbfs. It would have been better if we could
+find a property of hugetlbfs that makes it inapplicable for overlayfs
+upper/lower
+or stacking fs in general.
 
-I also looked at normal filesystem lower and hugetlbfs upper.  Yes, overlayfs
-allows this.  This is somewhat 'interesting' as write() is not supported in
-hugetlbfs.  Writing to files in the overlay actually ended up writing to
-files in the lower filesystem.  That seems wrong, but overlayfs is new to me.
+The simplest thing for you to do in order to shush syzbot is what procfs does:
+        /*
+         * procfs isn't actually a stacking filesystem; however, there is
+         * too much magic going on inside it to permit stacking things on
+         * top of it
+         */
+        s->s_stack_depth = FILESYSTEM_MAX_STACK_DEPTH;
 
-Earlier in the discussion of these issues, Colin Walters asked "Is there any
-actual valid use case for mounting an overlayfs on top of hugetlbfs?"  I can
-not think of one.  Perhaps we should consider limiting the ways in which
-hugetlbfs can be used in overlayfs?  Preventing it from being an upper
-filesystem might be a good start?  Or, do people think making hugetlbfs and
-overlayfs play nice together is useful?
--- 
-Mike Kravetz
+Currently, the only in-tree stacking fs are overlayfs and ecryptfs, but there
+are some out of tree implementations as well (shiftfs).
+So you may only take that option if you do not care about the combination
+of hugetlbfs with any of the above.
+
+overlayfs support of mmap is not as good as one might hope.
+overlayfs.rst says:
+"If a file residing on a lower layer is opened for read-only and then
+ memory mapped with MAP_SHARED, then subsequent changes to
+ the file are not reflected in the memory mapping."
+
+So if I were you, I wouldn't go trying to fix overlayfs-huguetlb interop...
+
+Thanks,
+Amir.
