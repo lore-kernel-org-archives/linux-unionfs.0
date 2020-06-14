@@ -8,64 +8,64 @@ X-Spam-Status: No, score=-9.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 10B46C433E1
-	for <linux-unionfs@archiver.kernel.org>; Sun, 14 Jun 2020 13:09:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 50319C433E0
+	for <linux-unionfs@archiver.kernel.org>; Sun, 14 Jun 2020 13:09:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E579E206D7
-	for <linux-unionfs@archiver.kernel.org>; Sun, 14 Jun 2020 13:09:49 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2E805206D7
+	for <linux-unionfs@archiver.kernel.org>; Sun, 14 Jun 2020 13:09:51 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Rp9C+vSn"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Ezvlyyae"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727027AbgFNNJt (ORCPT
+        id S1727044AbgFNNJv (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Sun, 14 Jun 2020 09:09:49 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59276 "EHLO
+        Sun, 14 Jun 2020 09:09:51 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59280 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726939AbgFNNJt (ORCPT
+        with ESMTP id S1727043AbgFNNJu (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Sun, 14 Jun 2020 09:09:49 -0400
+        Sun, 14 Jun 2020 09:09:50 -0400
 Received: from mail-wr1-x442.google.com (mail-wr1-x442.google.com [IPv6:2a00:1450:4864:20::442])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EE73DC05BD43
-        for <linux-unionfs@vger.kernel.org>; Sun, 14 Jun 2020 06:09:48 -0700 (PDT)
-Received: by mail-wr1-x442.google.com with SMTP id y17so14343564wrn.11
-        for <linux-unionfs@vger.kernel.org>; Sun, 14 Jun 2020 06:09:48 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 28C56C05BD43
+        for <linux-unionfs@vger.kernel.org>; Sun, 14 Jun 2020 06:09:50 -0700 (PDT)
+Received: by mail-wr1-x442.google.com with SMTP id t18so14380249wru.6
+        for <linux-unionfs@vger.kernel.org>; Sun, 14 Jun 2020 06:09:50 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=from:to:cc:subject:date:message-id:in-reply-to:references;
-        bh=P53JMy8twlEpPLdOX1t3tSvEfEl4JB8JE7mxEOOKsqc=;
-        b=Rp9C+vSnypD4QeCbhTwuQHBovCw8KWPqJzDLbIDirv9QMxqyFUjiscbz6VgOeV4E5r
-         8nF7z6EU4n+gouFMbpYjw4CLFjITt5LJJ1BHRmOO9fdYSNr+kXi5NpBOigKKVId7X9nu
-         6Wtm+341XZvmu/L0H8fEoCmAZ8FLp0eZC9qAy9UZjbMpwKUBBJgYa8dfjZmdMF8fyFFQ
-         ls9sboMKErTR/+uyy11RKgA7/4S66CZ2aRcuoEAKCf7RVlpTd44HSBcS7qYiqAqzs0o6
-         eR4d6rS1iX4gghA3SaqN+2KxML2tQ1ke1C/g1RhwB3OXA7tUY2r8YHUVQGttUkhrsxpq
-         M1WQ==
+        bh=sEPFin1V4gJKG4fH9IlcZTt9ccKEZh1H3KYCW8E4crc=;
+        b=EzvlyyaetV2EIyIbMf4XTkYPmZzqtk9FdKzvS1Qx13mZYdDO3PKKJWovQItlavQ1EC
+         jW3q13DieebUJCGIkV9BECtzAbfBTWWxXAiL9h3Rsu21Ghpj4+6YjVuSccGxdUPj7RZd
+         nbk7qgbmSE7LSr+/z+UwKeqm0Nrc8l3O52DU3ERhHUlHXv8GHdA18H6wkViTNWMqceEq
+         /VSEWhaXJuSXCQJ5QnLBdkt36XD6FejuCOJktkF/77nCpCRi4wspYxP8iaBX3UrYl8ug
+         CweVYk0235aqOf0mVvnju9V0waTbQRaOK3es6xCKOXbH5oJFEkwDOfhgdsci1zrJ9Sot
+         1Mxg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references;
-        bh=P53JMy8twlEpPLdOX1t3tSvEfEl4JB8JE7mxEOOKsqc=;
-        b=SdaQWwh6yqrarJQYD0F+DubkKNyJxkGur4EW+4lLYFVqW35oob/wreWUU2S32TqiP4
-         8LhVs/k6dOkuxiQttJagCqsfPFYRbjik9gHXYFEd30Km0zfvqIiUWvII077IanlSvr/y
-         W481RkZfZkQgbADz0GJBWkMoAT076MvR0E7HA5xQFdJGUgcc3SRK0NrczJPH4yDTCU5j
-         bk6XUc1e4TRpDc5BWqNkKb0G6S2niW1d8JS7zP37/WVZnpAw7Yj8AVyxddXTkWZkdpP1
-         AfTmExciI+edd2tTgWN3/5UzLV7tfhYjwYr2fTiaciyzG29/efCNRmboImb9Rv/6NB+Z
-         8pvw==
-X-Gm-Message-State: AOAM531Cnz2RZESEqoTbNJF088Wt18g85FGAZftjMTLk2yP0HtwJQtAL
-        GGgNCdHUCjP73MebbBJl/oTYj0E9
-X-Google-Smtp-Source: ABdhPJyeqvTXNI4jCXVBeQIjA7b/ibe/MLIRZQ6xeCD8JxU/i+V/f+m/ytBVmcB4zQmTzvfNFcWskw==
-X-Received: by 2002:a5d:4a43:: with SMTP id v3mr25438153wrs.115.1592140187665;
-        Sun, 14 Jun 2020 06:09:47 -0700 (PDT)
+        bh=sEPFin1V4gJKG4fH9IlcZTt9ccKEZh1H3KYCW8E4crc=;
+        b=PMSsBOeT50hnKys0wPOMnMlucnup6PpfkSBJN7PxaN3dZ5Qd7Yg7glqth5/HVkN38w
+         I/ycx2QBcO/8WsglJa4RcfoBvn+H/dBLby9NTebmcBXfd15bNMUb94UFrDak6pwUyipV
+         NikLjz0Zs5rKHnc0urBUQBYv4oifmI96Ai92uqWkBLkMhCgWJsYVa8zB0U6CQOHQKKim
+         5fV36dRkczltmqEbO7Wu1+Q2p1i+/3z6J1lDcbf51HzeSnvlbiks9tdaKLKpf8JbAacG
+         mElFG7Pw4ZNJ/uAgJ8Qr2blXAX8pkXGA++xS/vbcHZya1IQ6eGjKkJ13bcI7ERUeL5Qt
+         rCDQ==
+X-Gm-Message-State: AOAM532zJB23Clc+an8GjXUs6vuC14/p8QFAHKw+bmwrviugghHsurQK
+        edU9YHFXA8TSGuG4ef1o1O5Pn6IX
+X-Google-Smtp-Source: ABdhPJxnGjldyQq/rHwS/LpfMLL+tYQusHZdfUwt0WeB/z3bpgfsn/TBnb46vHwoJM/QjJThuGxnpA==
+X-Received: by 2002:adf:9c12:: with SMTP id f18mr25992567wrc.105.1592140188926;
+        Sun, 14 Jun 2020 06:09:48 -0700 (PDT)
 Received: from localhost.localdomain ([5.102.204.95])
-        by smtp.gmail.com with ESMTPSA id g82sm18458283wmf.1.2020.06.14.06.09.46
+        by smtp.gmail.com with ESMTPSA id g82sm18458283wmf.1.2020.06.14.06.09.47
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 14 Jun 2020 06:09:47 -0700 (PDT)
+        Sun, 14 Jun 2020 06:09:48 -0700 (PDT)
 From:   Amir Goldstein <amir73il@gmail.com>
 To:     Miklos Szeredi <miklos@szeredi.hu>
 Cc:     Mike Kravetz <mike.kravetz@oracle.com>,
         linux-unionfs@vger.kernel.org
-Subject: [PATCH 1/2] ovl: inherit supported ops f_mode flags from final real file
-Date:   Sun, 14 Jun 2020 16:09:38 +0300
-Message-Id: <20200614130939.7702-2-amir73il@gmail.com>
+Subject: [PATCH 2/2] ovl: warn about unsupported file operations on upper fs
+Date:   Sun, 14 Jun 2020 16:09:39 +0300
+Message-Id: <20200614130939.7702-3-amir73il@gmail.com>
 X-Mailer: git-send-email 2.17.1
 In-Reply-To: <20200614130939.7702-1-amir73il@gmail.com>
 References: <20200614130939.7702-1-amir73il@gmail.com>
@@ -74,94 +74,157 @@ Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-Mike Kravetz reported that when hugetlbfs is used as overlayfs upper
-layer, writes do not fail, but result in writing to lower layer.
+syzbot has reported a crash in a test case where overlayfs uses
+hugetlbfs as upper fs.
 
-This is surprising because hugeltbfs file does not have write() nor
-write_iter() method.
+Since hugetlbfs has no write() nor write_iter() file ops, there seems
+to be little value in supporting this configuration, however, we do not
+want to regress strange use cases that me be using such configuration.
 
-Regardless of the question whether or not this type of filesystem should
-be allowed as overlayfs upper layer, overlayfs file should emulate the
-supported ops of the underlying files, so at least in the case where
-underlying file ops cannot change as result of copy up, the overlayfs
-file should inherit the f_mode flags indicating the supported ops of
-the underlying file.
+As a minimum, check for this case and warn about it on mount time as
+well as adding this check for the strict requirements set of remote
+upper fs.
 
-Reported-by: Mike Kravetz <mike.kravetz@oracle.com>
 Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- fs/overlayfs/copy_up.c   | 11 +++++++++++
- fs/overlayfs/file.c      | 11 +++++++++++
- fs/overlayfs/overlayfs.h |  5 +++++
- 3 files changed, 27 insertions(+)
+ fs/overlayfs/super.c | 60 ++++++++++++++++++++++++++++----------------
+ 1 file changed, 39 insertions(+), 21 deletions(-)
 
-diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
-index 79dd052c7dbf..424f2a170f11 100644
---- a/fs/overlayfs/copy_up.c
-+++ b/fs/overlayfs/copy_up.c
-@@ -953,6 +953,17 @@ static bool ovl_open_need_copy_up(struct dentry *dentry, int flags)
- 	return true;
+diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+index 91476bc422f9..5bee70eb8f64 100644
+--- a/fs/overlayfs/super.c
++++ b/fs/overlayfs/super.c
+@@ -6,6 +6,7 @@
+ 
+ #include <uapi/linux/magic.h>
+ #include <linux/fs.h>
++#include <linux/file.h>
+ #include <linux/namei.h>
+ #include <linux/xattr.h>
+ #include <linux/mount.h>
+@@ -1131,42 +1132,61 @@ static int ovl_get_upper(struct super_block *sb, struct ovl_fs *ofs,
  }
  
-+/* May need copy up in the future? */
-+bool ovl_may_need_copy_up(struct dentry *dentry)
-+{
-+	int flags = O_RDONLY;
-+
-+	if (ovl_upper_mnt(OVL_FS(dentry->d_sb)))
-+		flags = O_RDWR;
-+
-+	return ovl_open_need_copy_up(dentry, flags);
-+}
-+
- int ovl_maybe_copy_up(struct dentry *dentry, int flags)
+ /*
+- * Returns 1 if RENAME_WHITEOUT is supported, 0 if not supported and
++ * Returns 1 if required ops are supported, 0 if not supported and
+  * negative values if error is encountered.
+  */
+-static int ovl_check_rename_whiteout(struct dentry *workdir)
++static int ovl_check_supported_ops(struct ovl_fs *ofs)
  {
- 	int err = 0;
-diff --git a/fs/overlayfs/file.c b/fs/overlayfs/file.c
-index 01820e654a21..01dd3ed723df 100644
---- a/fs/overlayfs/file.c
-+++ b/fs/overlayfs/file.c
-@@ -153,6 +153,17 @@ static int ovl_open(struct inode *inode, struct file *file)
- 	if (IS_ERR(realfile))
- 		return PTR_ERR(realfile);
+-	struct inode *dir = d_inode(workdir);
+-	struct dentry *temp;
++	struct inode *dir = d_inode(ofs->workdir);
++	struct dentry *temp = NULL;
+ 	struct dentry *dest;
+ 	struct dentry *whiteout;
+ 	struct name_snapshot name;
++	struct path path;
++	struct file *file;
++	unsigned int unsupported;
+ 	int err;
  
-+	/*
-+	 * Overlay file supported ops are a super set of the underlying file
-+	 * supported ops and we do not change them when file is copied up.
-+	 * But if file cannot be copied up, then there is no need to advertize
-+	 * more supported ops than underlying file actually has.
-+	 */
-+	if (!ovl_may_need_copy_up(file_dentry(file))) {
-+		file->f_mode &= ~OVL_UPPER_FMODE_MASK;
-+		file->f_mode |= realfile->f_mode & OVL_UPPER_FMODE_MASK;
-+	}
+ 	inode_lock_nested(dir, I_MUTEX_PARENT);
+ 
+-	temp = ovl_create_temp(workdir, OVL_CATTR(S_IFREG | 0));
+-	err = PTR_ERR(temp);
+-	if (IS_ERR(temp))
++	path.mnt = ovl_upper_mnt(ofs);
++	path.dentry = ovl_create_temp(ofs->workdir, OVL_CATTR(S_IFREG | 0));
++	err = PTR_ERR(path.dentry);
++	if (IS_ERR(path.dentry))
+ 		goto out_unlock;
+ 
+-	dest = ovl_lookup_temp(workdir);
+-	err = PTR_ERR(dest);
+-	if (IS_ERR(dest)) {
+-		dput(temp);
++	temp = path.dentry;
++	file = dentry_open(&path, O_RDWR, current_cred());
++	err = PTR_ERR(file);
++	if (IS_ERR(file))
++		goto out_unlock;
 +
- 	file->private_data = realfile;
++	unsupported = OVL_UPPER_FMODE_MASK & ~file->f_mode;
++	fput(file);
++	if (unsupported) {
++		err = 0;
++		pr_warn("upper fs does not support required file operations (%x).\n",
++			unsupported);
+ 		goto out_unlock;
+ 	}
  
- 	return 0;
-diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-index b725c7f15ff4..6748c28ff477 100644
---- a/fs/overlayfs/overlayfs.h
-+++ b/fs/overlayfs/overlayfs.h
-@@ -110,6 +110,10 @@ struct ovl_fh {
- #define OVL_FH_FID_OFFSET	(OVL_FH_WIRE_OFFSET + \
- 				 offsetof(struct ovl_fb, fid))
- 
-+/* f_mode bits expected to be set on an upper file */
-+#define OVL_UPPER_FMODE_MASK (FMODE_CAN_READ | FMODE_CAN_WRITE | \
-+			      FMODE_LSEEK | FMODE_PREAD | FMODE_PWRITE)
++	dest = ovl_lookup_temp(ofs->workdir);
++	err = PTR_ERR(dest);
++	if (IS_ERR(dest))
++		goto out_unlock;
 +
- static inline int ovl_do_rmdir(struct inode *dir, struct dentry *dentry)
+ 	/* Name is inline and stable - using snapshot as a copy helper */
+ 	take_dentry_name_snapshot(&name, temp);
+ 	err = ovl_do_rename(dir, temp, dir, dest, RENAME_WHITEOUT);
+ 	if (err) {
+-		if (err == -EINVAL)
++		if (err == -EINVAL) {
+ 			err = 0;
++			pr_warn("upper fs does not support RENAME_WHITEOUT.\n");
++		}
+ 		goto cleanup_temp;
+ 	}
+ 
+-	whiteout = lookup_one_len(name.name.name, workdir, name.name.len);
++	whiteout = lookup_one_len(name.name.name, ofs->workdir, name.name.len);
+ 	err = PTR_ERR(whiteout);
+ 	if (IS_ERR(whiteout))
+ 		goto cleanup_temp;
+@@ -1181,10 +1201,10 @@ static int ovl_check_rename_whiteout(struct dentry *workdir)
+ cleanup_temp:
+ 	ovl_cleanup(dir, temp);
+ 	release_dentry_name_snapshot(&name);
+-	dput(temp);
+ 	dput(dest);
+ 
+ out_unlock:
++	dput(temp);
+ 	inode_unlock(dir);
+ 
+ 	return err;
+@@ -1195,7 +1215,7 @@ static int ovl_make_workdir(struct super_block *sb, struct ovl_fs *ofs,
  {
- 	int err = vfs_rmdir(dir, dentry);
-@@ -485,6 +489,7 @@ int ovl_copy_up(struct dentry *dentry);
- int ovl_copy_up_with_data(struct dentry *dentry);
- int ovl_copy_up_flags(struct dentry *dentry, int flags);
- int ovl_maybe_copy_up(struct dentry *dentry, int flags);
-+bool ovl_may_need_copy_up(struct dentry *dentry);
- int ovl_copy_xattr(struct dentry *old, struct dentry *new);
- int ovl_set_attr(struct dentry *upper, struct kstat *stat);
- struct ovl_fh *ovl_encode_real_fh(struct dentry *real, bool is_upper);
+ 	struct vfsmount *mnt = ovl_upper_mnt(ofs);
+ 	struct dentry *temp;
+-	bool rename_whiteout;
++	bool supported_ops;
+ 	bool d_type;
+ 	int fh_type;
+ 	int err;
+@@ -1235,14 +1255,12 @@ static int ovl_make_workdir(struct super_block *sb, struct ovl_fs *ofs,
+ 		pr_warn("upper fs does not support tmpfile.\n");
+ 
+ 
+-	/* Check if upper/work fs supports RENAME_WHITEOUT */
+-	err = ovl_check_rename_whiteout(ofs->workdir);
++	/* Check if upper/work fs supports required ops */
++	err = ovl_check_supported_ops(ofs);
+ 	if (err < 0)
+ 		goto out;
+ 
+-	rename_whiteout = err;
+-	if (!rename_whiteout)
+-		pr_warn("upper fs does not support RENAME_WHITEOUT.\n");
++	supported_ops = err;
+ 
+ 	/*
+ 	 * Check if upper/work fs supports trusted.overlay.* xattr
+@@ -1264,7 +1282,7 @@ static int ovl_make_workdir(struct super_block *sb, struct ovl_fs *ofs,
+ 	 * we can enforce strict requirements for remote upper fs.
+ 	 */
+ 	if (ovl_dentry_remote(ofs->workdir) &&
+-	    (!d_type || !rename_whiteout || ofs->noxattr)) {
++	    (!d_type || !supported_ops || ofs->noxattr)) {
+ 		pr_err("upper fs missing required features.\n");
+ 		err = -EINVAL;
+ 		goto out;
 -- 
 2.17.1
 
