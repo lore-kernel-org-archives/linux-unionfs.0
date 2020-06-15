@@ -2,118 +2,121 @@ Return-Path: <SRS0=WKmv=74=vger.kernel.org=linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.4 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1BB76C433DF
-	for <linux-unionfs@archiver.kernel.org>; Mon, 15 Jun 2020 16:46:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3A4B4C433DF
+	for <linux-unionfs@archiver.kernel.org>; Mon, 15 Jun 2020 17:48:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E651D2067B
-	for <linux-unionfs@archiver.kernel.org>; Mon, 15 Jun 2020 16:46:09 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 184B52080D
+	for <linux-unionfs@archiver.kernel.org>; Mon, 15 Jun 2020 17:48:41 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="KJNnBVNn"
+	dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="UYLm0d99"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730135AbgFOQqJ (ORCPT
+        id S1731197AbgFORsk (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Mon, 15 Jun 2020 12:46:09 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59244 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728585AbgFOQqJ (ORCPT
+        Mon, 15 Jun 2020 13:48:40 -0400
+Received: from userp2130.oracle.com ([156.151.31.86]:40150 "EHLO
+        userp2130.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728585AbgFORsk (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 15 Jun 2020 12:46:09 -0400
-Received: from mail-il1-x143.google.com (mail-il1-x143.google.com [IPv6:2607:f8b0:4864:20::143])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 51490C061A0E;
-        Mon, 15 Jun 2020 09:46:09 -0700 (PDT)
-Received: by mail-il1-x143.google.com with SMTP id b5so15948022iln.5;
-        Mon, 15 Jun 2020 09:46:09 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=k22YkrargwJPaS8/mNJZ89+4ClDb+tPOx9dTghtqjUw=;
-        b=KJNnBVNnv9TaqVpNYYPmu9/RPpFY9JRUnu304GQ5sIXX0pQTGk8V8FPCOpIVnKNqc1
-         XQZCuODtOuiK+wZdgCy4eMyQ/+16X1tcfQEViRwPNvk25SVOcD66rvKBNyNciR3OIHRh
-         yESiYcUSxlbIhKf/8x4KJq5L7Vwnclczpqpa3NL8NAbJuJztW1W7PSDJQNMnefNd4GcM
-         9eEU/OhoQaw7oZRepCoCYPxAxEy+8GFKOJA60GuspfKof1qkc7+zFcmXd6li5scjL86b
-         nIekirqUYyjkt5RQ/MszxMlcqVhnUF7lbd890D0co9L7XhXOflP0TZhS1C6/B/Vvr32M
-         895Q==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=k22YkrargwJPaS8/mNJZ89+4ClDb+tPOx9dTghtqjUw=;
-        b=ssX39uJjp4SShuUvr+FkfdBy4uolG+MjpSM4iCwBOw99y6cX7f9yZkSMVZXm532D/W
-         naTip1/SGErsZI64XRnwIFykoEBcZK02QYKBHA5EZqNGHQVmN6SO9lKN2PBX6AZepLW0
-         GjAXfZ9kRthwg6ZRFhRSShArTEMtcO8ocJcH2CFGUoaA6mhUs4JmoPtfPmv2JNWFXisX
-         5Wqzmt8SC3V3m28efjAgBiQBwEKp/jVDcIifOyouiDEu/TxEzooMllyCpOvHWJQ4zfBz
-         DXDFWQ8hDyTIpzAFbJekNE+bnF0xJLeIZc2HLuidNXUfZ2j0DJ6JTOj4/LuPYqWDz5qQ
-         qCFw==
-X-Gm-Message-State: AOAM532ls+rL1Ix5mtdMcPeXI96NNURhMyssf/C2gNwhvpaBTzFqr0Ob
-        HTX4/wh//X7n5XmlJmbrrezF6B2R2CJ+h9q/enKveiyM
-X-Google-Smtp-Source: ABdhPJxVph+Fy/dXvind+PF1wbE545q3wtZp2SGbYL3STvGlhHw+edqYspZuYjibXZlp6BBO6Mum83mcN+5appTwpII=
-X-Received: by 2002:a92:5856:: with SMTP id m83mr27520452ilb.72.1592239568696;
- Mon, 15 Jun 2020 09:46:08 -0700 (PDT)
-MIME-Version: 1.0
-References: <20200615155645.32939-1-her0gyugyu@gmail.com>
-In-Reply-To: <20200615155645.32939-1-her0gyugyu@gmail.com>
-From:   Amir Goldstein <amir73il@gmail.com>
-Date:   Mon, 15 Jun 2020 19:45:57 +0300
-Message-ID: <CAOQ4uxgj9L4oiPtnBArmy_VpvRwJ2OoO+7hxDpD=07xxxA+Mow@mail.gmail.com>
-Subject: Re: [PATCH] ovl: inode reference leak in "ovl_is_inuse" true case.
-To:     youngjun <her0gyugyu@gmail.com>
-Cc:     Miklos Szeredi <miklos@szeredi.hu>,
+        Mon, 15 Jun 2020 13:48:40 -0400
+Received: from pps.filterd (userp2130.oracle.com [127.0.0.1])
+        by userp2130.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 05FHleik178201;
+        Mon, 15 Jun 2020 17:48:17 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=subject : to : cc :
+ references : from : message-id : date : mime-version : in-reply-to :
+ content-type : content-transfer-encoding; s=corp-2020-01-29;
+ bh=8/GvKgnXyWMqWG4x04LszNrZLOvvW4SLPdr9wifArpI=;
+ b=UYLm0d99pVRGz58KNwBO6kwXK5xvC7/oZKu4Ga8N5ovM+yKoJI6S4MLKgsLioIDG3Rux
+ ITwnG65Lcm5yJFg41TeTO1K2KPd6gVj1LZb2U/J7woNHPDDKC6ZZgFpkyhhdEyIZKAMv
+ kFAq14NhDnxrYVPlR9K9byaU9OgQW/wjkPAI3EsfwnLq/YEkXrVpxg8Mzi1oSaLjjIoB
+ TVH7BlYsVio9DWXVtbqBrI/Z9Jf8nd+XlAaNGc/4Ds4FyfnPiiDDTys0qI/e3qo/2XiF
+ zOsUCAdorEVKgQRIwNVEmepbX390xaexjxcqcbvPn1jbEDh4OIXpzh4bXv9nCdfqMcAA kg== 
+Received: from userp3030.oracle.com (userp3030.oracle.com [156.151.31.80])
+        by userp2130.oracle.com with ESMTP id 31p6s229je-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=FAIL);
+        Mon, 15 Jun 2020 17:48:17 +0000
+Received: from pps.filterd (userp3030.oracle.com [127.0.0.1])
+        by userp3030.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 05FHm5YV147592;
+        Mon, 15 Jun 2020 17:48:17 GMT
+Received: from userv0121.oracle.com (userv0121.oracle.com [156.151.31.72])
+        by userp3030.oracle.com with ESMTP id 31p6s5sj6d-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Mon, 15 Jun 2020 17:48:17 +0000
+Received: from abhmp0008.oracle.com (abhmp0008.oracle.com [141.146.116.14])
+        by userv0121.oracle.com (8.14.4/8.13.8) with ESMTP id 05FHmDcM028323;
+        Mon, 15 Jun 2020 17:48:13 GMT
+Received: from [192.168.2.112] (/50.38.35.18)
+        by default (Oracle Beehive Gateway v4.0)
+        with ESMTP ; Mon, 15 Jun 2020 10:48:13 -0700
+Subject: Re: [PATCH v4 1/2] hugetlb: use f_mode & FMODE_HUGETLBFS to identify
+ hugetlbfs files
+To:     Miklos Szeredi <miklos@szeredi.hu>,
+        Amir Goldstein <amir73il@gmail.com>
+Cc:     Al Viro <viro@zeniv.linux.org.uk>, Linux MM <linux-mm@kvack.org>,
+        linux-fsdevel <linux-fsdevel@vger.kernel.org>,
         overlayfs <linux-unionfs@vger.kernel.org>,
-        linux-kernel <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+        linux-kernel <linux-kernel@vger.kernel.org>,
+        Matthew Wilcox <willy@infradead.org>,
+        Colin Walters <walters@verbum.org>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        syzbot <syzbot+d6ec23007e951dadf3de@syzkaller.appspotmail.com>,
+        syzkaller-bugs <syzkaller-bugs@googlegroups.com>
+References: <20200612004644.255692-1-mike.kravetz@oracle.com>
+ <20200612015842.GC23230@ZenIV.linux.org.uk>
+ <b1756da5-4e91-298f-32f1-e5642a680cbf@oracle.com>
+ <CAOQ4uxg=o2SVbfUiz0nOg-XHG8irvAsnXzFWjExjubk2v_6c_A@mail.gmail.com>
+ <CAJfpegv28Z2aECcb+Yfqum54zfwV=k1G1n_o3o6O-QTWOy3T4Q@mail.gmail.com>
+From:   Mike Kravetz <mike.kravetz@oracle.com>
+Message-ID: <33cbc2b6-a37a-8bd1-d896-f4318a61b8ca@oracle.com>
+Date:   Mon, 15 Jun 2020 10:48:11 -0700
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
+ Thunderbird/68.8.0
+MIME-Version: 1.0
+In-Reply-To: <CAJfpegv28Z2aECcb+Yfqum54zfwV=k1G1n_o3o6O-QTWOy3T4Q@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9653 signatures=668680
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 malwarescore=0 suspectscore=0
+ mlxlogscore=919 adultscore=0 phishscore=0 bulkscore=0 spamscore=0
+ mlxscore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.12.0-2004280000 definitions=main-2006150132
+X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9653 signatures=668680
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 lowpriorityscore=0 impostorscore=0
+ clxscore=1015 mlxscore=0 mlxlogscore=933 priorityscore=1501 phishscore=0
+ malwarescore=0 suspectscore=0 spamscore=0 cotscore=-2147483648 bulkscore=0
+ adultscore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.12.0-2004280000 definitions=main-2006150132
 Sender: linux-unionfs-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Mon, Jun 15, 2020 at 6:57 PM youngjun <her0gyugyu@gmail.com> wrote:
->
-> When "ovl_is_inuse" true case, trap inode reference not put.
->
-> Signed-off-by: youngjun <her0gyugyu@gmail.com>
+On 6/15/20 1:24 AM, Miklos Szeredi wrote:
+> On Sat, Jun 13, 2020 at 8:53 AM Amir Goldstein <amir73il@gmail.com> wrote:
+> 
+>>> I also looked at normal filesystem lower and hugetlbfs upper.  Yes, overlayfs
+>>> allows this.  This is somewhat 'interesting' as write() is not supported in
+>>> hugetlbfs.  Writing to files in the overlay actually ended up writing to
+>>> files in the lower filesystem.  That seems wrong, but overlayfs is new to me.
+> 
+> Yes, this very definitely should not happen.
+> 
+>> I am not sure how that happened, but I think that ovl_open_realfile()
+>> needs to fixup f_mode flags FMODE_CAN_WRITE | FMODE_CAN_READ
+>> after open_with_fake_path().
+> 
+> Okay, but how did the write actually get to the lower layer?
+> 
+> I failed to reproduce this.  Mike, how did you trigger this?
 
-Fixes: 0be0bfd2de9d ("ovl: fix regression caused by overlapping layers
-detection")
-Cc: <stable@vger.kernel.org> # v4.19+
-Reviewed-by: Amir Goldstein <amir73il@gmail.com>
+My apologies!!!
 
-
-> ---
->  fs/overlayfs/super.c | 4 +++-
->  1 file changed, 3 insertions(+), 1 deletion(-)
->
-> diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-> index 91476bc422f9..8837fc1ec3be 100644
-> --- a/fs/overlayfs/super.c
-> +++ b/fs/overlayfs/super.c
-> @@ -1499,8 +1499,10 @@ static int ovl_get_layers(struct super_block *sb, struct ovl_fs *ofs,
->
->                 if (ovl_is_inuse(stack[i].dentry)) {
->                         err = ovl_report_in_use(ofs, "lowerdir");
-> -                       if (err)
-> +                       if (err) {
-> +                               iput(trap);
->                                 goto out;
-> +                       }
->                 }
->
-
-Urgh! I moved this ovl_is_inuse() after ovl_setup_trap() for a reason, but I did
-not explain why. While we are fixing the bug, it would be nice to add a comment
-above ovl_setup_trap():
-
-/*
- * Check if lower root conflicts with this overlay layers before checking
- * if it is in-use as upperdir/workdir of "another" mount, because we do
- * not bother to check in ovl_is_inuse() if the upperdir/workdir is in fact
- * in-use by our upperdir/workdir.
- */
-
-Thanks,
-Amir.
+I reviewed my testing and found that it was incorrectly writing to the
+lower filesystem.  Writing to any file in the union will fail.
+-- 
+Mike Kravetz
