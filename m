@@ -2,169 +2,120 @@ Return-Path: <SRS0=94B3=75=vger.kernel.org=linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+X-Spam-Status: No, score=-9.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 20E02C433E1
-	for <linux-unionfs@archiver.kernel.org>; Tue, 16 Jun 2020 07:11:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 26119C433DF
+	for <linux-unionfs@archiver.kernel.org>; Tue, 16 Jun 2020 08:30:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id F17632074D
-	for <linux-unionfs@archiver.kernel.org>; Tue, 16 Jun 2020 07:11:14 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0164D20767
+	for <linux-unionfs@archiver.kernel.org>; Tue, 16 Jun 2020 08:30:53 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="sZ5eQQc9"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="WVYrFkdC"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727819AbgFPHLO (ORCPT
+        id S1726496AbgFPIaw (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Tue, 16 Jun 2020 03:11:14 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51070 "EHLO
+        Tue, 16 Jun 2020 04:30:52 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35154 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726506AbgFPHLM (ORCPT
+        with ESMTP id S1726112AbgFPIav (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 16 Jun 2020 03:11:12 -0400
-Received: from mail-io1-xd44.google.com (mail-io1-xd44.google.com [IPv6:2607:f8b0:4864:20::d44])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 967A7C05BD43;
-        Tue, 16 Jun 2020 00:11:12 -0700 (PDT)
-Received: by mail-io1-xd44.google.com with SMTP id u13so922798iol.10;
-        Tue, 16 Jun 2020 00:11:12 -0700 (PDT)
+        Tue, 16 Jun 2020 04:30:51 -0400
+Received: from mail-pl1-x642.google.com (mail-pl1-x642.google.com [IPv6:2607:f8b0:4864:20::642])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B8771C05BD43;
+        Tue, 16 Jun 2020 01:30:51 -0700 (PDT)
+Received: by mail-pl1-x642.google.com with SMTP id d8so8056329plo.12;
+        Tue, 16 Jun 2020 01:30:51 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=i30R2gb7VFC5GY598W1328mU3EuYEUbcEkxEVTPlhpA=;
-        b=sZ5eQQc9TzLRPIAhw+1+gfHKY7bGsqZvGGs58V1tT7vPShwA154iW82D2YO+uj4tTL
-         Q/C6frLxEL2g/6KA+ouZjsMukCjJF4NH5k/LQjzRBnaiDaKqpYuGLcA220ERHpP0jEyS
-         A9cqzhuhm9LA75XctUeLbllKvsLgg+zs6zphWTZMSXLGp+obkLaau8KtBBXUP3NXGGRt
-         eAAfwuQXblxxiynDY57oeTQBPA+htOKmfzTZweUsM/pLcUhjRcpFoTN/0wop+9bnRlT+
-         ekrgwx7nAeH3BMuh28eeBthuz8Uqmunc6GX2tHaSGmJgkmBuXVsXMKFeJXSsM6A2j7Xr
-         +A/w==
+        h=from:to:cc:subject:date:message-id:in-reply-to:references;
+        bh=7tdeRgfUrKswh73pt/8hvKWXrWSAEqX+hL5gmVdJslc=;
+        b=WVYrFkdChaW6wX4uUhe2YweAwSrPz7Ai2FglsfN4vM9JqzkIUhxL8tdIguA+kyo92M
+         pzd06rF8By4xTOcy90xrua9jbVSh/Ta8i3cutZ/CiGnTdpDjIljhx+fZV/fmIEFWmAED
+         zuKRhYegPmJluLJSZ7tscVzl5InhIAaUuqQE98vEUN/y1tnhxTS6eucHCbYUuYPRyrsA
+         2Cqm9vSbtzPdnkmJ9S8/LwkDEu1SBeVv/kVYXw8yT/fPPyMkihgXeYX4qwRQMMM3oFtD
+         Eu0NNxNawF2sNbhtXwB9160R1WtK0pwhDhhHXLjImap7l/DEw9bOvqVuGlHW137Gpp5O
+         nk6w==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=i30R2gb7VFC5GY598W1328mU3EuYEUbcEkxEVTPlhpA=;
-        b=Y+f/VgxrMAE/i4KnNO0zJ8N+fS6rYn5vaugAWsayOg95i9sy6nP9H/Le1bWhjEwFxi
-         8v8Fj7Hp5vSrVoSszZaeENOCGcteUqtjDAF+ncjPgfCERmMEVR4oltbKcEPAJShwdKZw
-         38lCYce8/O5DNAANnDbPrqABgJpDbnmx7mhujx5B9ITlBh6r5f+7ZfRYWuVTJBlJ5s3B
-         24W83kzy1B8yLhYqNhi+NYd4JjQ6zHsPDYo/o0no1Ag9e6kLKx0cemRaly5RiDI2XBJF
-         4R6fKcSEfFrjFB71cvaberVTLg0VGyIsISHTtJ/HbWPLrJb4D+uAHLrSYSb2g1zrgGz/
-         JuVA==
-X-Gm-Message-State: AOAM530LKHR1B4J4N4wsYaGiabn9jGjtpokrb2JGeosh/0Elz/m3+YFs
-        0u3UB4KufLE1fMnN/yHaS11hJL83agZ5E0EHMa8=
-X-Google-Smtp-Source: ABdhPJwGXwjzhSKRv5i9B49EcefFNKYf+uc0kikCPGbkVhSBHbN5b+/3wNIG1Oh0IEs7qJlRglgRKq9t0cRgGToY7JM=
-X-Received: by 2002:a02:270d:: with SMTP id g13mr23601950jaa.93.1592291471826;
- Tue, 16 Jun 2020 00:11:11 -0700 (PDT)
-MIME-Version: 1.0
-References: <20200615155645.32939-1-her0gyugyu@gmail.com> <20200616065756.20140-1-her0gyugyu@gmail.com>
-In-Reply-To: <20200616065756.20140-1-her0gyugyu@gmail.com>
-From:   Amir Goldstein <amir73il@gmail.com>
-Date:   Tue, 16 Jun 2020 10:11:00 +0300
-Message-ID: <CAOQ4uxh47beMet1QO+uT6TdYHJVBJDpOr4G+_0stUMYtURymuQ@mail.gmail.com>
-Subject: Re: [PATCH v3] ovl: inode reference leak in ovl_is_inuse true case.
-To:     youngjun <her0gyugyu@gmail.com>
-Cc:     overlayfs <linux-unionfs@vger.kernel.org>,
-        stable <stable@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
+         :references;
+        bh=7tdeRgfUrKswh73pt/8hvKWXrWSAEqX+hL5gmVdJslc=;
+        b=Y36N7at1iWBTPO6mftNAIS+y6q4n870e1x4BXDg+rPejnEVXX8Z+DcevvYGirla5Yx
+         XKqrZFzSad3p0LPctWEy2NyKjQh5b8Tuxy0bwQgMlefz2IsxeTDwNa4/gQz1pTsAyMK/
+         vRAS9bcOyE4AM8xxlzBK60P+whUjhZ0f71szXqU9xFxIG6+VRTPRyVG+26hqUgp64mec
+         TixL4rlOGMQQ+rsWZ1pYqJN8my8AfnHPJYMdRo71Ml0c57CpVxZUhCKLP8GqyF84xP05
+         NBRKULmkn3Xoz5qLOQkVuhEpc8X25SpZ5CxCpxc46FFwQfYYrEgxMdNp3cU8Assu27nZ
+         pQOQ==
+X-Gm-Message-State: AOAM530cB7aWLTnuN/QtihDDIaP4myrxzGLz1jXzFljcFMnU+WSSMCUf
+        TUGqf2mInP+Jw5fqDIyijVM=
+X-Google-Smtp-Source: ABdhPJw+vUuXBVXdxdPixEUWBdl54jeSPXqhfAAHT+DZOu2pszxCarRdjr28KdBCHVyVHNgAtljEKg==
+X-Received: by 2002:a17:90b:3d7:: with SMTP id go23mr1692308pjb.157.1592296251224;
+        Tue, 16 Jun 2020 01:30:51 -0700 (PDT)
+Received: from her0gyu-virtual-machine.localdomain ([1.221.137.163])
+        by smtp.gmail.com with ESMTPSA id u20sm17304847pfk.91.2020.06.16.01.30.49
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 16 Jun 2020 01:30:50 -0700 (PDT)
+From:   youngjun <her0gyugyu@gmail.com>
+To:     amir73il@gmail.com
+Cc:     linux-unionfs@vger.kernel.org, youngjun <her0gyugyu@gmail.com>,
+        stable@vger.kernel.org
+Subject: [PATCH 4/4] ovl: inode reference leak in ovl_is_inuse true case.
+Date:   Tue, 16 Jun 2020 17:30:43 +0900
+Message-Id: <20200616083043.25801-1-her0gyugyu@gmail.com>
+X-Mailer: git-send-email 2.17.1
+In-Reply-To: <20200615155645.32939-1-her0gyugyu@gmail.com>
+References: <20200615155645.32939-1-her0gyugyu@gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Tue, Jun 16, 2020 at 9:58 AM youngjun <her0gyugyu@gmail.com> wrote:
->
-> When "ovl_is_inuse" true case, trap inode reference not put.
-> plus adding the comment explaining sequence of
-> ovl_is_inuse after ovl_setup_trap.
->
-> Fixes: 0be0bfd2de9d ("ovl: fix regression caused by overlapping layers..")
-> Cc: <stable@vger.kernel.org> # v4.19+
-> Reviewed-by: Amir Goldstein <amir73il@gmail.com>
-> > Signed-off-by: youngjun <her0gyugyu@gmail.com>
-> > ---
-> >  fs/overlayfs/super.c | 10 +++++++++-
-> >  1 file changed, 9 insertions(+), 1 deletion(-)
-> >
-> > diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-> > index 91476bc422f9..0396793dadb8 100644
-> > --- a/fs/overlayfs/super.c
-> > +++ b/fs/overlayfs/super.c
-> > @@ -1029,6 +1029,12 @@ static const struct xattr_handler *ovl_xattr_handlers[] = {
-> >         NULL
-> >  };
-> >
-> > +/*
-> > + * Check if lower root conflicts with this overlay layers before checking
-> > + * if it is in-use as upperdir/workdir of "another" mount, because we do
-> > + * not bother to check in ovl_is_inuse() if the upperdir/workdir is in fact
-> > + * in-use by our upperdir/workdir.
-> > + */
->
-> Signed-off-by: youngjun <her0gyugyu@gmail.com>
-> ---
->  fs/overlayfs/super.c | 10 +++++++++-
->  1 file changed, 9 insertions(+), 1 deletion(-)
->
-> diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-> index 91476bc422f9..3097142b1e23 100644
-> --- a/fs/overlayfs/super.c
-> +++ b/fs/overlayfs/super.c
-> @@ -1493,14 +1493,22 @@ static int ovl_get_layers(struct super_block *sb, struct ovl_fs *ofs,
->                 if (err < 0)
->                         goto out;
->
-> +               /*
-> +                * Check if lower root conflicts with this overlay layers before checking
-> +                * if it is in-use as upperdir/workdir of "another" mount, because we do
-> +                * not bother to check in ovl_is_inuse() if the upperdir/workdir is in fact
-> +                * in-use by our upperdir/workdir.
-> +                */
->                 err = ovl_setup_trap(sb, stack[i].dentry, &trap, "lowerdir");
->                 if (err)
->                         goto out;
->
->                 if (ovl_is_inuse(stack[i].dentry)) {
->                         err = ovl_report_in_use(ofs, "lowerdir");
-> -                       if (err)
-> +                       if (err) {
-> +                               iput(trap);
->                                 goto out;
-> +                       }
->                 }
->
->                 mnt = clone_private_mount(&stack[i]);
-> --
-> 2.17.1
->
-> Great thanks Amir. guidance to me really helpful.
-> As you comment, I modified my patch.
->
-> 1) I revised three patch so version is 3.
+When "ovl_is_inuse" true case, trap inode reference not put.
+plus adding the comment explaining sequence of
+ovl_is_inuse after ovl_setup_trap.
 
-Thanks good, but you should not reply to v2, you should post
-a clean new patch, with revised commit message and change.
+Fixes: 0be0bfd2de9d ("ovl: fix regression caused by overlapping layers..")
+Cc: <stable@vger.kernel.org> # v4.19+
+Reviewed-by: Amir Goldstein <amir73il@gmail.com>
+Signed-off-by: youngjun <her0gyugyu@gmail.com>
+---
+ fs/overlayfs/super.c | 10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)
 
-> 2) I misunderstood your comment(adding annotation) firstly.
-> But, I clearly know at now and modified it.
-> the annotation before "ovl_setup_trap" is clearly understood as I see.
->
-> And I have some questions.
->
-> 1) As I understand, The CC you said valid is 'linux-unionfs'?
+diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+index 91476bc422f9..3097142b1e23 100644
+--- a/fs/overlayfs/super.c
++++ b/fs/overlayfs/super.c
+@@ -1493,14 +1493,22 @@ static int ovl_get_layers(struct super_block *sb, struct ovl_fs *ofs,
+ 		if (err < 0)
+ 			goto out;
+ 
++		/*
++		 * Check if lower root conflicts with this overlay layers before checking
++		 * if it is in-use as upperdir/workdir of "another" mount, because we do
++		 * not bother to check in ovl_is_inuse() if the upperdir/workdir is in fact
++		 * in-use by our upperdir/workdir.
++		 */
+ 		err = ovl_setup_trap(sb, stack[i].dentry, &trap, "lowerdir");
+ 		if (err)
+ 			goto out;
+ 
+ 		if (ovl_is_inuse(stack[i].dentry)) {
+ 			err = ovl_report_in_use(ofs, "lowerdir");
+-			if (err)
++			if (err) {
++				iput(trap);
+ 				goto out;
++			}
+ 		}
+ 
+ 		mnt = clone_private_mount(&stack[i]);
+-- 
+2.17.1
 
-Yes.
-And as I understand there is no need actually CC the patch to
-stable <stable@vger.kernel.org>, the text in commit message
-is enough for their tools to pickup the patch  whenever it
-gets merged.
+Again, Great thanks Amir. I revise my patch through your kind guidance.
 
-> 2) The comment "Please add these lines to the bottom of commit message..."
->    Is it needed manually when I revised patch?
-
-Yes, these lines are supposed to be there in the final merged commit.
-Maintainers can add them, but it's nice to make life easier for busy
-maintainers and add those line when you re-post the patch,
-so the maintainer doesn't need to look it back in emails.
-
-Thanks,
-Amir.
