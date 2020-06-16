@@ -1,184 +1,118 @@
-Return-Path: <SRS0=WKmv=74=vger.kernel.org=linux-unionfs-owner@kernel.org>
+Return-Path: <SRS0=94B3=75=vger.kernel.org=linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.4 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 836BDC433E1
-	for <linux-unionfs@archiver.kernel.org>; Mon, 15 Jun 2020 23:45:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B7027C433DF
+	for <linux-unionfs@archiver.kernel.org>; Tue, 16 Jun 2020 04:46:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 61FD3206DB
-	for <linux-unionfs@archiver.kernel.org>; Mon, 15 Jun 2020 23:45:35 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 903A7206DB
+	for <linux-unionfs@archiver.kernel.org>; Tue, 16 Jun 2020 04:46:58 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="PJPj0mok"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="TmGPjEeQ"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726653AbgFOXpc (ORCPT
+        id S1726569AbgFPEq6 (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Mon, 15 Jun 2020 19:45:32 -0400
-Received: from userp2120.oracle.com ([156.151.31.85]:49536 "EHLO
-        userp2120.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725960AbgFOXpb (ORCPT
+        Tue, 16 Jun 2020 00:46:58 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57112 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725306AbgFPEq5 (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 15 Jun 2020 19:45:31 -0400
-Received: from pps.filterd (userp2120.oracle.com [127.0.0.1])
-        by userp2120.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 05FNbKsh195782;
-        Mon, 15 Jun 2020 23:45:14 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=subject : to : cc :
- references : from : message-id : date : mime-version : in-reply-to :
- content-type : content-transfer-encoding; s=corp-2020-01-29;
- bh=fw2YQNRsCXZ/+0DlDkdWyVER1owgVj4DgmgamWytQwU=;
- b=PJPj0mokQoAcHv/verR3n7AJYAuvim9atucaoTzp4yt27Vrnpu0wlkq4brbF1ULP++aE
- NXwVAtw1XjeJpOEQW3jtn1fqtrFqQ31mTW8/qFuE2qFu7p6wmlknF0KiRZLLwFuxzg06
- WMvlZBsUMTNX9RKGyDCUBdVg5EZ6l+yWSA93QGD4gqBfqVoQBU1A+6ulmRbDGKsZUP2U
- 5E2o68d97UCOZfQn83nrCngjmrDrE8OM0bM+pYB48LmZUxg6TmDb+I6oAwaqUQkBaLuw
- Q27VHNItk8sxz+B+ZzMRalD3T8uJ8bpstNe331C5L8oGeHUQnBUG6Ru9O1QHrWGSkKcK jQ== 
-Received: from userp3020.oracle.com (userp3020.oracle.com [156.151.31.79])
-        by userp2120.oracle.com with ESMTP id 31p6e5uqmm-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Mon, 15 Jun 2020 23:45:14 +0000
-Received: from pps.filterd (userp3020.oracle.com [127.0.0.1])
-        by userp3020.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 05FNdMiX122398;
-        Mon, 15 Jun 2020 23:45:14 GMT
-Received: from userv0121.oracle.com (userv0121.oracle.com [156.151.31.72])
-        by userp3020.oracle.com with ESMTP id 31p6dby30x-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Mon, 15 Jun 2020 23:45:14 +0000
-Received: from abhmp0010.oracle.com (abhmp0010.oracle.com [141.146.116.16])
-        by userv0121.oracle.com (8.14.4/8.13.8) with ESMTP id 05FNjB2l026727;
-        Mon, 15 Jun 2020 23:45:12 GMT
-Received: from [192.168.2.112] (/50.38.35.18)
-        by default (Oracle Beehive Gateway v4.0)
-        with ESMTP ; Mon, 15 Jun 2020 16:45:10 -0700
-Subject: Re: [PATCH v4 1/2] hugetlb: use f_mode & FMODE_HUGETLBFS to identify
- hugetlbfs files
-To:     Miklos Szeredi <miklos@szeredi.hu>
-Cc:     Amir Goldstein <amir73il@gmail.com>,
-        Al Viro <viro@zeniv.linux.org.uk>,
-        Linux MM <linux-mm@kvack.org>,
-        linux-fsdevel <linux-fsdevel@vger.kernel.org>,
-        overlayfs <linux-unionfs@vger.kernel.org>,
-        linux-kernel <linux-kernel@vger.kernel.org>,
-        Matthew Wilcox <willy@infradead.org>,
-        Colin Walters <walters@verbum.org>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        syzbot <syzbot+d6ec23007e951dadf3de@syzkaller.appspotmail.com>,
-        syzkaller-bugs <syzkaller-bugs@googlegroups.com>
-References: <20200612004644.255692-1-mike.kravetz@oracle.com>
- <20200612015842.GC23230@ZenIV.linux.org.uk>
- <b1756da5-4e91-298f-32f1-e5642a680cbf@oracle.com>
- <CAOQ4uxg=o2SVbfUiz0nOg-XHG8irvAsnXzFWjExjubk2v_6c_A@mail.gmail.com>
- <6e8924b0-bfc4-eaf5-1775-54f506cdf623@oracle.com>
- <CAJfpegsugobr8LnJ7e3D1+QFHCdYkW1swtSZ_hKouf_uhZreMg@mail.gmail.com>
-From:   Mike Kravetz <mike.kravetz@oracle.com>
-Message-ID: <80f869aa-810d-ef6c-8888-b46cee135907@oracle.com>
-Date:   Mon, 15 Jun 2020 16:45:09 -0700
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
- Thunderbird/68.8.0
-MIME-Version: 1.0
-In-Reply-To: <CAJfpegsugobr8LnJ7e3D1+QFHCdYkW1swtSZ_hKouf_uhZreMg@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
-X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9653 signatures=668680
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 spamscore=0 adultscore=0 suspectscore=0
- mlxlogscore=999 mlxscore=0 phishscore=0 bulkscore=0 malwarescore=0
- classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2004280000
- definitions=main-2006150169
-X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9653 signatures=668680
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 priorityscore=1501 adultscore=0
- mlxscore=0 phishscore=0 mlxlogscore=999 lowpriorityscore=0 clxscore=1015
- suspectscore=0 spamscore=0 bulkscore=0 malwarescore=0 impostorscore=0
- cotscore=-2147483648 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.12.0-2004280000 definitions=main-2006150169
+        Tue, 16 Jun 2020 00:46:57 -0400
+Received: from mail-pf1-x443.google.com (mail-pf1-x443.google.com [IPv6:2607:f8b0:4864:20::443])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6AA19C05BD43;
+        Mon, 15 Jun 2020 21:46:56 -0700 (PDT)
+Received: by mail-pf1-x443.google.com with SMTP id x22so8921308pfn.3;
+        Mon, 15 Jun 2020 21:46:56 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=from:to:cc:subject:date:message-id:in-reply-to:references;
+        bh=gdcznPwXSPEx/HPzlO737tmp5HWnzdWQfrFQbb2WQrE=;
+        b=TmGPjEeQEK8OlP+IhxvuorrgBcx/nT4tEIRaWNNOoPUdzClokNJjqfcY2P/CbwbAmV
+         EWa6Sl4uPfzj9cT2EC5pTo6ftRJCs8cM4PbpgV4xhuyksDh1i38KGe0hpJTI5ml+eozi
+         FnUj0auXzF4z+W1ZMOrQQW5j6OWfoqjdwW9yqcx1U+EzRPT3WynSB3cB8H+Qths+mGXY
+         6teOIzmvUbZ7UgPopDRNrZn4uYyzk8s9Fj66tkJ1+bnV0yS7rlT7XvOghcpHUI0KGDvw
+         +rIqujybHWmNZk3TECQpBt2BeknLsDEuQvfKkOIyvd0/S4DanIUYLaSBzPMbQVPJ0gk1
+         Y4lA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
+         :references;
+        bh=gdcznPwXSPEx/HPzlO737tmp5HWnzdWQfrFQbb2WQrE=;
+        b=qeWtDqoJCNQVQOggV6qGMWN77AU4AVcJ3ADkyRnXVxe0VasvUMcVboVHoia+ZRA56Q
+         MK1z/FHkmOSkluSVvNjf+oGKJArW0szTl/+1EB4S8J063ruSBXroxq/MrGxbUQYaSBaQ
+         qs0fMCa88YO1elXr8LF2UVKkyV+kQ7jA4esgwX39rfGQY5vm4eGm8wtJqmbUiet+nxB9
+         OjnWU36mpwNOn02Dj0SvzYYcR0pHE1Raqdd8m6kzsVjUVqOa4Sw6HFX6tTZFMeHS8Jb3
+         rzUGBjCY6rVUGV0ul/ag+l6spmGa/94qxn8fUhhy7avza7LpX/izKL0nVo34sQS/bV9R
+         LrEg==
+X-Gm-Message-State: AOAM532YpfFhLoY43ZIwO9WmaUHG5/eJ92YKeIcHbj3MVGgAGUxYHfbi
+        Ui+D8iFmcQZePBZ/F4jfsRUg+FJn
+X-Google-Smtp-Source: ABdhPJy1bxACh1qEidxIOmibj9dy+gaDFb4RY6RzvOki3sSU4MsmJhtAcwFjyk2bC9JS4fctLVbTBw==
+X-Received: by 2002:a63:d652:: with SMTP id d18mr765120pgj.164.1592282815973;
+        Mon, 15 Jun 2020 21:46:55 -0700 (PDT)
+Received: from her0gyu-virtual-machine.localdomain ([1.221.137.163])
+        by smtp.gmail.com with ESMTPSA id z140sm16084374pfc.135.2020.06.15.21.46.53
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 15 Jun 2020 21:46:55 -0700 (PDT)
+From:   youngjun <her0gyugyu@gmail.com>
+To:     amir73il@gmail.com
+Cc:     Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org,
+        linux-kernel@vger.kernel.org, youngjun <her0gyugyu@gmail.com>
+Subject: [PATCH] ovl: inode reference leak in ovl_is_inuse true case.
+Date:   Tue, 16 Jun 2020 13:46:47 +0900
+Message-Id: <20200616044647.19071-1-her0gyugyu@gmail.com>
+X-Mailer: git-send-email 2.17.1
+In-Reply-To: <20200615155645.32939-1-her0gyugyu@gmail.com>
+References: <20200615155645.32939-1-her0gyugyu@gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On 6/15/20 12:53 AM, Miklos Szeredi wrote:
-> On Sat, Jun 13, 2020 at 9:12 PM Mike Kravetz <mike.kravetz@oracle.com> wrote:
->> On 6/12/20 11:53 PM, Amir Goldstein wrote:
->>>
->>> The simplest thing for you to do in order to shush syzbot is what procfs does:
->>>         /*
->>>          * procfs isn't actually a stacking filesystem; however, there is
->>>          * too much magic going on inside it to permit stacking things on
->>>          * top of it
->>>          */
->>>         s->s_stack_depth = FILESYSTEM_MAX_STACK_DEPTH;
->>>
->>> Currently, the only in-tree stacking fs are overlayfs and ecryptfs, but there
->>> are some out of tree implementations as well (shiftfs).
->>> So you may only take that option if you do not care about the combination
->>> of hugetlbfs with any of the above.
->>>
->>> overlayfs support of mmap is not as good as one might hope.
->>> overlayfs.rst says:
->>> "If a file residing on a lower layer is opened for read-only and then
->>>  memory mapped with MAP_SHARED, then subsequent changes to
->>>  the file are not reflected in the memory mapping."
->>>
->>> So if I were you, I wouldn't go trying to fix overlayfs-huguetlb interop...
->>
->> Thanks again,
->>
->> I'll look at something as simple as s_stack_depth.
-> 
-> Agree.
+When "ovl_is_inuse" true case, trap inode reference not put.
+plus adding the comment explaining sequence of
+ovl_is_inuse after ovl_setup_trap.
 
-Apologies again for in the incorrect information about writing to lower
-filesystem.
-
-Stacking ecryptfs on hugetlbfs does not work either.  Here is what happens
-when trying to create a new file.
-
-[ 1188.863425] ecryptfs_write_metadata_to_contents: Error attempting to write header information to lower file; rc = [-22]
-[ 1188.865469] ecryptfs_write_metadata: Error writing metadata out to lower file; rc = [-22]
-[ 1188.867022] Error writing headers; rc = [-22]
-
-I like Amir's idea of just setting s_stack_depth in hugetlbfs to prevent
-stacking.
-
-From 0fbed66b37c18919ea7edd47b113c97644f49362 Mon Sep 17 00:00:00 2001
-From: Mike Kravetz <mike.kravetz@oracle.com>
-Date: Mon, 15 Jun 2020 14:37:52 -0700
-Subject: [PATCH] hugetlbfs: prevent filesystem stacking of hugetlbfs
-
-syzbot found issues with having hugetlbfs on a union/overlay as reported
-in [1].  Due to the limitations (no write) and special functionality of
-hugetlbfs, it does not work well in filesystem stacking.  There are no
-know use cases for hugetlbfs stacking.  Rather than making modifications
-to get hugetlbfs working in such environments, simply prevent stacking.
-
-[1] https://lore.kernel.org/linux-mm/000000000000b4684e05a2968ca6@google.com/
-
-Reported-by: syzbot+d6ec23007e951dadf3de@syzkaller.appspotmail.com
-Suggested-by: Amir Goldstein <amir73il@gmail.com>
-Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
+Signed-off-by: youngjun <her0gyugyu@gmail.com>
 ---
- fs/hugetlbfs/inode.c | 6 ++++++
- 1 file changed, 6 insertions(+)
+ fs/overlayfs/super.c | 10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)
 
-diff --git a/fs/hugetlbfs/inode.c b/fs/hugetlbfs/inode.c
-index 991c60c7ffe0..f32759c8e84d 100644
---- a/fs/hugetlbfs/inode.c
-+++ b/fs/hugetlbfs/inode.c
-@@ -1313,6 +1313,12 @@ hugetlbfs_fill_super(struct super_block *sb, struct fs_context *fc)
- 	sb->s_magic = HUGETLBFS_MAGIC;
- 	sb->s_op = &hugetlbfs_ops;
- 	sb->s_time_gran = 1;
-+
-+	/*
-+	 * Due to the special and limited functionality of hugetlbfs, it does
-+	 * not work well as a stacking filesystem.
-+	 */
-+	sb->s_stack_depth = FILESYSTEM_MAX_STACK_DEPTH;
- 	sb->s_root = d_make_root(hugetlbfs_get_root(sb, ctx));
- 	if (!sb->s_root)
- 		goto out_free;
+diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+index 91476bc422f9..0396793dadb8 100644
+--- a/fs/overlayfs/super.c
++++ b/fs/overlayfs/super.c
+@@ -1029,6 +1029,12 @@ static const struct xattr_handler *ovl_xattr_handlers[] = {
+ 	NULL
+ };
+ 
++/*
++ * Check if lower root conflicts with this overlay layers before checking
++ * if it is in-use as upperdir/workdir of "another" mount, because we do
++ * not bother to check in ovl_is_inuse() if the upperdir/workdir is in fact
++ * in-use by our upperdir/workdir.
++ */
+ static int ovl_setup_trap(struct super_block *sb, struct dentry *dir,
+ 			  struct inode **ptrap, const char *name)
+ {
+@@ -1499,8 +1505,10 @@ static int ovl_get_layers(struct super_block *sb, struct ovl_fs *ofs,
+ 
+ 		if (ovl_is_inuse(stack[i].dentry)) {
+ 			err = ovl_report_in_use(ofs, "lowerdir");
+-			if (err)
++			if (err) {
++				iput(trap);
+ 				goto out;
++			}
+ 		}
+ 
+ 		mnt = clone_private_mount(&stack[i]);
 -- 
-2.25.4
+2.17.1
 
+Thank you for comment Amir. I modified patch as you said.
