@@ -1,150 +1,130 @@
-Return-Path: <SRS0=94B3=75=vger.kernel.org=linux-unionfs-owner@kernel.org>
+Return-Path: <SRS0=+IUt=76=vger.kernel.org=linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.5 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1F249C433E0
-	for <linux-unionfs@archiver.kernel.org>; Tue, 16 Jun 2020 09:01:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 80A78C433E0
+	for <linux-unionfs@archiver.kernel.org>; Wed, 17 Jun 2020 06:57:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 985692074D
-	for <linux-unionfs@archiver.kernel.org>; Tue, 16 Jun 2020 09:01:29 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 58291208D5
+	for <linux-unionfs@archiver.kernel.org>; Wed, 17 Jun 2020 06:57:24 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="key not found in DNS" (0-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b="bxLzhhZK"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="sc2+pfgX"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726805AbgFPJB2 (ORCPT
+        id S1725860AbgFQG5X (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Tue, 16 Jun 2020 05:01:28 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39874 "EHLO
+        Wed, 17 Jun 2020 02:57:23 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45578 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725896AbgFPJB1 (ORCPT
+        with ESMTP id S1726825AbgFQG5U (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 16 Jun 2020 05:01:27 -0400
-Received: from mail-ed1-x542.google.com (mail-ed1-x542.google.com [IPv6:2a00:1450:4864:20::542])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C099FC05BD43
-        for <linux-unionfs@vger.kernel.org>; Tue, 16 Jun 2020 02:01:26 -0700 (PDT)
-Received: by mail-ed1-x542.google.com with SMTP id t21so13656757edr.12
-        for <linux-unionfs@vger.kernel.org>; Tue, 16 Jun 2020 02:01:26 -0700 (PDT)
+        Wed, 17 Jun 2020 02:57:20 -0400
+Received: from mail-wr1-x441.google.com (mail-wr1-x441.google.com [IPv6:2a00:1450:4864:20::441])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D598FC061573
+        for <linux-unionfs@vger.kernel.org>; Tue, 16 Jun 2020 23:57:18 -0700 (PDT)
+Received: by mail-wr1-x441.google.com with SMTP id x13so1077274wrv.4
+        for <linux-unionfs@vger.kernel.org>; Tue, 16 Jun 2020 23:57:18 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=szeredi.hu; s=google;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=IXqJ+RQf+2HxRMU1JHbm735Et9Rb/a777XiyMXnrkuA=;
-        b=bxLzhhZKjFFEansW2CGWHfG43cgQwpbnzVH6qLEiCQ6gnKC8IHUTIhAz5n77Wm/Pml
-         vWSTFMw+eyqstHjZVU9rHtwv+RLIFJZ0lHZc4ybESxoAFssGZ2LqrEPRKi83kpCIP8FU
-         MXSgw6fwsQP4d6rGNtDVWkB2gncPjCUybm6Yk=
+        d=gmail.com; s=20161025;
+        h=from:to:cc:subject:date:message-id;
+        bh=nhV5DPnGBT0UXlVanrTn3Pr8CjGMBQckzJeOpEG0rAU=;
+        b=sc2+pfgXFYzHI77lT8WMHMJt2c3+rjNkKEbRG+776Rs+B0ilgLsmE5haIs/ys5tghA
+         eHtNLzNJawLXI5VNDd2hVXeVtp0+XQ+KV2Ecb+WVW++m1f5Ut+W1lgfnI3MHC9FWQUg+
+         gLsVQ3D19R/BybJOvt/ZZwZcYBZ5oxt6k5ydBG54sXFB0ZGu/qas0XVfAWBPsutfc3yv
+         OuRbQqtoxUhP7/4Pwmng9E7AnjaDIHq+u5ix8NbyhswirDoS0aqVyxfnJwnov1+ejTUB
+         oDP1+W6nqzkTdTL7iXYRK8hmJN1b+Bp787WJhDNWa/dX1lY+xrFxKNwq6IVKHwEjCzeS
+         blWg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=IXqJ+RQf+2HxRMU1JHbm735Et9Rb/a777XiyMXnrkuA=;
-        b=H1saFEC/K/wswdQmIciAhESIUf8tiE8P8dRwMgZ+LYouJD5BiOPrEMo5g71JWVN/sf
-         5b3px+OmPoU5ZB2tqt+V0uNniXJOCpn81tlFCjWvKAbOf0xKzbg7qn3lG/ZFAzg06r8d
-         G7AxmK9ymBsz6f2i5Y541orQ5SXVFh9+M0tEsx5PXeCbeItVSA7XnS4t21T0V9sj/Gye
-         /mWlC9Lee37kzjnqhj0TFCXosIbv63rzIeGzyPJPddS2Lv2x+BCQNaHq456ClmPSkgJe
-         baQR6vTWlTR9cgthNzPacBHH1o7QqrPOVzXCv5OfJhygHPORkNoaHLHvX8VvksaWII+b
-         IDyQ==
-X-Gm-Message-State: AOAM530k9OPAK1RJJuWrhgNeyZzC/nIz8mZCN6003bhuj8x8g08Q03Ki
-        vFVFaY6DKbrSTFm5XGDCe3kxzonN/ogPX8H54BqWAg==
-X-Google-Smtp-Source: ABdhPJxNZWipYKKlR5OtEfpmzoc47S3PROSEQ+F2abrhpsMM+Wm0j4MqqdQ3IOWc1jhXe+AWNF/jZwF6otlN3W9Mtwg=
-X-Received: by 2002:aa7:d9d3:: with SMTP id v19mr1550941eds.364.1592298084726;
- Tue, 16 Jun 2020 02:01:24 -0700 (PDT)
-MIME-Version: 1.0
-References: <20200612004644.255692-1-mike.kravetz@oracle.com>
- <20200612015842.GC23230@ZenIV.linux.org.uk> <b1756da5-4e91-298f-32f1-e5642a680cbf@oracle.com>
- <CAOQ4uxg=o2SVbfUiz0nOg-XHG8irvAsnXzFWjExjubk2v_6c_A@mail.gmail.com>
- <6e8924b0-bfc4-eaf5-1775-54f506cdf623@oracle.com> <CAJfpegsugobr8LnJ7e3D1+QFHCdYkW1swtSZ_hKouf_uhZreMg@mail.gmail.com>
- <80f869aa-810d-ef6c-8888-b46cee135907@oracle.com>
-In-Reply-To: <80f869aa-810d-ef6c-8888-b46cee135907@oracle.com>
-From:   Miklos Szeredi <miklos@szeredi.hu>
-Date:   Tue, 16 Jun 2020 11:01:13 +0200
-Message-ID: <CAJfpeguTnVOTq4u_E=wDPcJ7vJE_jsAOi_ztm0Pt=X1qtC8ObA@mail.gmail.com>
-Subject: Re: [PATCH v4 1/2] hugetlb: use f_mode & FMODE_HUGETLBFS to identify
- hugetlbfs files
-To:     Mike Kravetz <mike.kravetz@oracle.com>
-Cc:     Amir Goldstein <amir73il@gmail.com>,
-        Al Viro <viro@zeniv.linux.org.uk>,
-        Linux MM <linux-mm@kvack.org>,
-        linux-fsdevel <linux-fsdevel@vger.kernel.org>,
-        overlayfs <linux-unionfs@vger.kernel.org>,
-        linux-kernel <linux-kernel@vger.kernel.org>,
-        Matthew Wilcox <willy@infradead.org>,
-        Colin Walters <walters@verbum.org>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        syzbot <syzbot+d6ec23007e951dadf3de@syzkaller.appspotmail.com>,
-        syzkaller-bugs <syzkaller-bugs@googlegroups.com>
-Content-Type: text/plain; charset="UTF-8"
+        h=x-gm-message-state:from:to:cc:subject:date:message-id;
+        bh=nhV5DPnGBT0UXlVanrTn3Pr8CjGMBQckzJeOpEG0rAU=;
+        b=bk5iukwivXrVvvCERygMSS/oiGMUkH2h+mwWJhLlHHcZcKZyERoIq9UswDSCEYrdTW
+         5SvrHmdSM7ZyKJEJq57zi1nqZNSgIku26ekva/BZs0FH4vijVIIxUYupnx1WfIstXBxj
+         n/pm2zkM2VNj/bGjBRXp8ZIfd9eWFUd2RyuvkatazyQ3/e3vcvoFB0qvbDVYvS+6C/j1
+         YcNhxMx2Ze0zcT1yZ3pMVT4lugxQ20D2eDFg4Eza1gtAPTRUGP6w7TpWUso5QlE0jtj6
+         tD+r35AJqPc+QGcdL2MwWBGpjSeaYc8nSwoL8owhmyEPd2lcq0Jusrh7Yo/+AAWRjJEK
+         mDGg==
+X-Gm-Message-State: AOAM533ndUWpIc+jbGSM4DGJWWJFfAkl6lz5Fli/f857BeFVYcVxRab9
+        NzvIAykTKjiIIb3EsxPR+ck=
+X-Google-Smtp-Source: ABdhPJytJJCECiTFTNYZZz17S1xjXhF3I21arO48qzf3bFe7ppD2Rq/H3ONd+VirxE9gGA+zsJRrFQ==
+X-Received: by 2002:adf:ecc8:: with SMTP id s8mr3597498wro.317.1592377037571;
+        Tue, 16 Jun 2020 23:57:17 -0700 (PDT)
+Received: from localhost.localdomain ([94.230.83.8])
+        by smtp.gmail.com with ESMTPSA id 5sm42424305wrr.5.2020.06.16.23.57.16
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 16 Jun 2020 23:57:16 -0700 (PDT)
+From:   Amir Goldstein <amir73il@gmail.com>
+To:     Miklos Szeredi <miklos@szeredi.hu>
+Cc:     linux-unionfs@vger.kernel.org
+Subject: [PATCH] ovl: relax WARN_ON() when decoding lower directory file handle
+Date:   Wed, 17 Jun 2020 09:57:11 +0300
+Message-Id: <20200617065711.3784-1-amir73il@gmail.com>
+X-Mailer: git-send-email 2.17.1
 Sender: linux-unionfs-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Tue, Jun 16, 2020 at 1:45 AM Mike Kravetz <mike.kravetz@oracle.com> wrote:
->
-> On 6/15/20 12:53 AM, Miklos Szeredi wrote:
-> > On Sat, Jun 13, 2020 at 9:12 PM Mike Kravetz <mike.kravetz@oracle.com> wrote:
-> >> On 6/12/20 11:53 PM, Amir Goldstein wrote:
-> >>>
-> >>> The simplest thing for you to do in order to shush syzbot is what procfs does:
-> >>>         /*
-> >>>          * procfs isn't actually a stacking filesystem; however, there is
-> >>>          * too much magic going on inside it to permit stacking things on
-> >>>          * top of it
-> >>>          */
-> >>>         s->s_stack_depth = FILESYSTEM_MAX_STACK_DEPTH;
-> >>>
-> >>> Currently, the only in-tree stacking fs are overlayfs and ecryptfs, but there
-> >>> are some out of tree implementations as well (shiftfs).
-> >>> So you may only take that option if you do not care about the combination
-> >>> of hugetlbfs with any of the above.
-> >>>
-> >>> overlayfs support of mmap is not as good as one might hope.
-> >>> overlayfs.rst says:
-> >>> "If a file residing on a lower layer is opened for read-only and then
-> >>>  memory mapped with MAP_SHARED, then subsequent changes to
-> >>>  the file are not reflected in the memory mapping."
-> >>>
-> >>> So if I were you, I wouldn't go trying to fix overlayfs-huguetlb interop...
-> >>
-> >> Thanks again,
-> >>
-> >> I'll look at something as simple as s_stack_depth.
-> >
-> > Agree.
->
-> Apologies again for in the incorrect information about writing to lower
-> filesystem.
->
-> Stacking ecryptfs on hugetlbfs does not work either.  Here is what happens
-> when trying to create a new file.
->
-> [ 1188.863425] ecryptfs_write_metadata_to_contents: Error attempting to write header information to lower file; rc = [-22]
-> [ 1188.865469] ecryptfs_write_metadata: Error writing metadata out to lower file; rc = [-22]
-> [ 1188.867022] Error writing headers; rc = [-22]
->
-> I like Amir's idea of just setting s_stack_depth in hugetlbfs to prevent
-> stacking.
->
-> From 0fbed66b37c18919ea7edd47b113c97644f49362 Mon Sep 17 00:00:00 2001
-> From: Mike Kravetz <mike.kravetz@oracle.com>
-> Date: Mon, 15 Jun 2020 14:37:52 -0700
-> Subject: [PATCH] hugetlbfs: prevent filesystem stacking of hugetlbfs
->
-> syzbot found issues with having hugetlbfs on a union/overlay as reported
-> in [1].  Due to the limitations (no write) and special functionality of
-> hugetlbfs, it does not work well in filesystem stacking.  There are no
-> know use cases for hugetlbfs stacking.  Rather than making modifications
-> to get hugetlbfs working in such environments, simply prevent stacking.
->
-> [1] https://lore.kernel.org/linux-mm/000000000000b4684e05a2968ca6@google.com/
->
-> Reported-by: syzbot+d6ec23007e951dadf3de@syzkaller.appspotmail.com
-> Suggested-by: Amir Goldstein <amir73il@gmail.com>
-> Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
+Decoding a lower directory file handle to overlay path with cold
+inode/dentry cache may go as follows:
 
-Acked-by: Miklos Szeredi <mszeredi@redhat.com>
+1. Decode real lower file handle to lower dir path
+2. Check if lower dir is indexed (was copied up)
+3. If indexed, get the upper dir path from index
+4. Lookup upper dir path in overlay
+5. If overlay path found, verify that overlay lower is the lower dir
+   from step 1
 
-Thanks,
-Miklos
+On failure to verify step 5 above, user will get an ESTALE error and
+a WARN_ON will be printed.
+
+A mismatch in step 5 could be a result of lower directory that was renamed
+while overlay was offline, after that lower directory has been copied
+up and indexed.
+
+This is a scripted reproducer based on xfstest overlay/052:
+
+  # Create lower subdir
+  create_dirs
+  create_test_files $lower/lowertestdir/subdir
+  mount_dirs
+  # Copy up lower dir and encode lower subdir file handle
+  touch $SCRATCH_MNT/lowertestdir
+  test_file_handles $SCRATCH_MNT/lowertestdir/subdir -p -o $tmp.fhandle
+  # Rename lower dir offline
+  unmount_dirs
+  mv $lower/lowertestdir $lower/lowertestdir.new/
+  mount_dirs
+  # Attempt to decode lower subdir file handle
+  test_file_handles $SCRATCH_MNT -p -i $tmp.fhandle
+
+Since this WARN_ON() can be triggered by user we need to relax it.
+
+Fixes: 4b91c30a5a19 ("ovl: lookup connected ancestor of dir in inode...")
+Cc: <stable@vger.kernel.org> # v4.16+
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+---
+ fs/overlayfs/export.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/fs/overlayfs/export.c b/fs/overlayfs/export.c
+index 8f4286450f92..0e696f72cf65 100644
+--- a/fs/overlayfs/export.c
++++ b/fs/overlayfs/export.c
+@@ -476,7 +476,7 @@ static struct dentry *ovl_lookup_real_inode(struct super_block *sb,
+ 	if (IS_ERR_OR_NULL(this))
+ 		return this;
+ 
+-	if (WARN_ON(ovl_dentry_real_at(this, layer->idx) != real)) {
++	if (ovl_dentry_real_at(this, layer->idx) != real) {
+ 		dput(this);
+ 		this = ERR_PTR(-EIO);
+ 	}
+-- 
+2.17.1
+
