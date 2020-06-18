@@ -7,48 +7,48 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 28DD4C433E1
-	for <linux-unionfs@archiver.kernel.org>; Thu, 18 Jun 2020 01:57:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A5697C433E0
+	for <linux-unionfs@archiver.kernel.org>; Thu, 18 Jun 2020 02:12:55 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0103A21924
-	for <linux-unionfs@archiver.kernel.org>; Thu, 18 Jun 2020 01:57:04 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 78EEA20853
+	for <linux-unionfs@archiver.kernel.org>; Thu, 18 Jun 2020 02:12:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1592445424;
-	bh=QgJqeKVZ+fjCXw8+dUiiojzmxkkV0/sy5VDLp1bn+Sg=;
+	s=default; t=1592446375;
+	bh=woGERwUh9I+hVoi3TKEyzY8XlN7yhCWfNg4pXooHkjY=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=hAI3l+M+GjVtaBDzHodKXaTdKQJhqkubrs4DNzne7IVz2gXh52DvcuGiOeGA764Dw
-	 M2CPBVo7fAdSzpYzIvCd0E0ezoc8KHqF+Kyo587Vp4oQCd3v0CfUGTrArCJ6nU+9oH
-	 GcFfx6kWHK0cMzUaBf3mtWpP9aNXOkEgvShLO888=
+	b=olinUoshpCfHEUHx7xWlvQCkm4wh4WsKFfSE9hPcFwA+tk4xFZX0dplpRbqqn8iaA
+	 FqJnuhGg4lvfxrV0kCH32AGUItsqgKq22ZCjDcFTJtOdFFyhNGeiwYs+i0OlfEiSH9
+	 t9wShrkMjwRPE9bfT57668j2FgSwUSiUuXzt6T24=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731388AbgFRBZP (ORCPT
+        id S1730084AbgFRBVQ (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Wed, 17 Jun 2020 21:25:15 -0400
-Received: from mail.kernel.org ([198.145.29.99]:60342 "EHLO mail.kernel.org"
+        Wed, 17 Jun 2020 21:21:16 -0400
+Received: from mail.kernel.org ([198.145.29.99]:53536 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1731381AbgFRBZO (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 17 Jun 2020 21:25:14 -0400
+        id S1730075AbgFRBVO (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Wed, 17 Jun 2020 21:21:14 -0400
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id AFEEC21D80;
-        Thu, 18 Jun 2020 01:25:13 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 627F3221EC;
+        Thu, 18 Jun 2020 01:21:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1592443514;
-        bh=QgJqeKVZ+fjCXw8+dUiiojzmxkkV0/sy5VDLp1bn+Sg=;
+        s=default; t=1592443274;
+        bh=woGERwUh9I+hVoi3TKEyzY8XlN7yhCWfNg4pXooHkjY=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=t21GHi9/J5gRnmGqOd7HQHQGAkBuL9m4SVGj31NA/Qg0C/46xlTb4P3u8T4k/PI+I
-         TWHv7OYskbfcbkFg9frzz2ZkUbJ5HG/2Y2M485KuS9HVWh9ytlCdyOamUYwaF7R+zP
-         4qb6fu7yBpOYbD98XCcRVtXlN6ov86nubsw1F/qk=
+        b=kOKBQe1ksidlsbJBMOszixilbjnXLBpVDYfL9YWK3ROWtdX0QtioK0VpxsNbW/mcp
+         6Pr9lUpfk0OePQ3ps65IbXIkwJbhwSpChnea4ZOn6yDKDxrv47yRhBcoyIRismdWso
+         oh70ph0NN92BgtRrwfh9pYvAJVE/tgQZUV35W4B0=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Miklos Szeredi <mszeredi@redhat.com>,
         Sasha Levin <sashal@kernel.org>, linux-unionfs@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.19 138/172] ovl: verify permissions in ovl_path_open()
-Date:   Wed, 17 Jun 2020 21:21:44 -0400
-Message-Id: <20200618012218.607130-138-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.4 219/266] ovl: verify permissions in ovl_path_open()
+Date:   Wed, 17 Jun 2020 21:15:44 -0400
+Message-Id: <20200618011631.604574-219-sashal@kernel.org>
 X-Mailer: git-send-email 2.25.1
-In-Reply-To: <20200618012218.607130-1-sashal@kernel.org>
-References: <20200618012218.607130-1-sashal@kernel.org>
+In-Reply-To: <20200618011631.604574-1-sashal@kernel.org>
+References: <20200618011631.604574-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -85,10 +85,10 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 26 insertions(+), 1 deletion(-)
 
 diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
-index db8bdb29b320..afbc6a97da2a 100644
+index f5678a3f8350..eb325322a893 100644
 --- a/fs/overlayfs/util.c
 +++ b/fs/overlayfs/util.c
-@@ -479,7 +479,32 @@ bool ovl_is_whiteout(struct dentry *dentry)
+@@ -475,7 +475,32 @@ bool ovl_is_whiteout(struct dentry *dentry)
  
  struct file *ovl_path_open(struct path *path, int flags)
  {
