@@ -7,64 +7,65 @@ X-Spam-Status: No, score=-6.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
 	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C903DC433E0
-	for <linux-unionfs@archiver.kernel.org>; Sat, 20 Jun 2020 10:18:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F36CDC433DF
+	for <linux-unionfs@archiver.kernel.org>; Sat, 20 Jun 2020 13:28:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9D40C23AFD
-	for <linux-unionfs@archiver.kernel.org>; Sat, 20 Jun 2020 10:18:18 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C585523BA6
+	for <linux-unionfs@archiver.kernel.org>; Sat, 20 Jun 2020 13:28:56 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="qFnbMklf"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="XO8W5al1"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727961AbgFTKSS (ORCPT
+        id S1728151AbgFTN24 (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Sat, 20 Jun 2020 06:18:18 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35720 "EHLO
+        Sat, 20 Jun 2020 09:28:56 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36450 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725298AbgFTKSR (ORCPT
+        with ESMTP id S1727787AbgFTN2z (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Sat, 20 Jun 2020 06:18:17 -0400
-Received: from mail-pl1-x642.google.com (mail-pl1-x642.google.com [IPv6:2607:f8b0:4864:20::642])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3610CC06174E
-        for <linux-unionfs@vger.kernel.org>; Sat, 20 Jun 2020 03:18:16 -0700 (PDT)
-Received: by mail-pl1-x642.google.com with SMTP id s14so1007608plq.6
-        for <linux-unionfs@vger.kernel.org>; Sat, 20 Jun 2020 03:18:16 -0700 (PDT)
+        Sat, 20 Jun 2020 09:28:55 -0400
+Received: from mail-pf1-x442.google.com (mail-pf1-x442.google.com [IPv6:2607:f8b0:4864:20::442])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9071CC06174E
+        for <linux-unionfs@vger.kernel.org>; Sat, 20 Jun 2020 06:28:54 -0700 (PDT)
+Received: by mail-pf1-x442.google.com with SMTP id j12so3632167pfn.10
+        for <linux-unionfs@vger.kernel.org>; Sat, 20 Jun 2020 06:28:54 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=date:from:to:cc:subject:message-id:mime-version:content-disposition;
-        bh=k50bi3lqzAflV+ZooVbSg7qNrWxso0l2TMTlmOq8VM4=;
-        b=qFnbMklf4ZUDwktgf+2qWsxj8XnLTshIJpj+l9NO0VzbrO4PzudzIOa3IqUUy1udpI
-         ql+vx0kZyLoAPEa9/le/vPBAbVSakeclkXP+cR+RFOpQU0Nyk9Csof/6oxhzRhQsiJLq
-         Ernr315+G/uep5IIMAf9rf5Jy7B1JBQ8+vvbsRkHkWQ65AEd34fUAqZqp1Vcw1TsnopC
-         mHPYuOHzE6D95bSuEDEbPmRcX93T1EOy8HUr7BpfJ5McsTCdoiATm+lY0fEvq6JJcDpR
-         EaiwCcIFBcuawjkqkq6HW6pn5xbibg1j5uBRZoyo+/sZOoScBhRthY/F65j+RV+k9MLI
-         F94w==
+        bh=YUXTl7x/zTNO8GgoDgMk3FSKP+3Eoni98RQyX1MytqM=;
+        b=XO8W5al1vwfOCayIJEt8yk5Peg+XnBDQlNWDrJ0O5Y+F6teXmpYoxpCiQSx+ls33FZ
+         hGEHD6XvTIRhMCLUO+XH92kBQgs+GSUXjly6PiueRQnvL2eSCh4JgQ1aFWQ4rV4mVM1c
+         2d84enGJocg4gbNsGQ2NxgZ4wjYQIHusNuBszxb7tTXFgmrxmTsz2TRLjQKqaysu5AAB
+         pgdafMguqGI8tiEmtsz6gQEG4HXRvhieuBlqyRScbfLb4Y2UwqOylXeiO0lepfnojniV
+         raFmybcGTpqtPmiNQQPh8XkvPMrnHF8B0hytK5MZ/I5XxcRmX/I+2uo3k5xJ/JQnE5yQ
+         xxHw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:date:from:to:cc:subject:message-id:mime-version
          :content-disposition;
-        bh=k50bi3lqzAflV+ZooVbSg7qNrWxso0l2TMTlmOq8VM4=;
-        b=cPtxW9piqk3BqeCPCpPAyarZi/9khxVVFZ4PEwTeW8Y4gQB0QzQzVgp9+RS20ckxAp
-         Q1pLy81Omga1wbbNWJXYI9N/EF079WtEorv4ZUvp7hEzrOu1VODUjqH/heMy7FPwmL16
-         Z6dQjEf2wuQkS5jBiaQRsZuOldfpzm3nP4RoyH1bF4xnsbitAcINb77tteYHYyB4hRWV
-         MCaL9BUK8snrNfE/MdZP94t4r8d++EalPoCIRfgPMH3e5zmqicoVqys9VT9EXkeOvmPs
-         Df7bgq/0RjpYwWt4Hq4+Z3AlWZQoEuwpGoxG2kpeFjfQ7ezYMg6TFQlLn1y9YMhb4O8I
-         uNJg==
-X-Gm-Message-State: AOAM533+ywDPWdzCj+UAUMNqJa625A/iKSOIOBhTp2fGdWjA1KLBcSHx
-        UEdavxw5WNHvMMS17knP+68=
-X-Google-Smtp-Source: ABdhPJwnEyFVxzzLxc3X4o1FKdAa108zdWN3Hx9nPTiA2lInaPJm54hqQKjHuOD9asFHzYKBxfri7g==
-X-Received: by 2002:a17:90a:8c14:: with SMTP id a20mr7872667pjo.83.1592648296041;
-        Sat, 20 Jun 2020 03:18:16 -0700 (PDT)
+        bh=YUXTl7x/zTNO8GgoDgMk3FSKP+3Eoni98RQyX1MytqM=;
+        b=MAsNmheq0eM5I07INTMqLdZXehFmgSTuvAdsVSg4o6Y/22tTFi8LJlvHpm0u0AXky8
+         xuFHksHlYWQsuk2OAi2GgjYgMcmOWaVKILiCu061fsZrYH9tCszKvhQivsxWt6u14uSy
+         b0cfF1FmuQZ762RE34nHTXwktpcIFak/qqFEJsQ6EaTci7wdx5jm/BxQqXj3lzZqhW6i
+         Squr4otIAWi2wWQOQhgisgrxT4J/4uRcN4mHmBC6u+3gMXjqrsScsqCSv5N3ZsFzq1i5
+         lxBVKY8EmunJ4G5xDk0Dzo+fquz2eHuljdv68ePJ5z0JzuJROvyNO0oBNxPhzowIdg3y
+         RFdA==
+X-Gm-Message-State: AOAM531pdwz6eKbK40dA3Tp2h+MheF5mokPE7ukLMI7oUwEFWBS32Sqn
+        +w6zsDKyKSmwMdrleBkXa68=
+X-Google-Smtp-Source: ABdhPJx+hKpTKotbCcZM4ofByoPWa7a7VawZRN/ciLjLWZdqxB1lINsN7MwuKsMWOusK8S5CMRExIw==
+X-Received: by 2002:a63:724a:: with SMTP id c10mr6490997pgn.130.1592659733951;
+        Sat, 20 Jun 2020 06:28:53 -0700 (PDT)
 Received: from localhost ([209.132.188.80])
-        by smtp.gmail.com with ESMTPSA id u14sm9153758pfk.211.2020.06.20.03.18.14
+        by smtp.gmail.com with ESMTPSA id d5sm7843355pjo.20.2020.06.20.06.28.52
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sat, 20 Jun 2020 03:18:15 -0700 (PDT)
-Date:   Sat, 20 Jun 2020 18:18:07 +0800
+        Sat, 20 Jun 2020 06:28:53 -0700 (PDT)
+Date:   Sat, 20 Jun 2020 21:28:45 +0800
 From:   Murphy Zhou <jencce.kernel@gmail.com>
-To:     miklos@szeredi.hu, linux-unionfs@vger.kernel.org
-Cc:     amir73il@gmail.com, cgxu519@mykernel.net, mszeredi@redhat.com
-Subject: [PATCH] ovl: fix NULL ref while cleanup index when mount with
+To:     miklos@szeredi.hu, linux-unionfs@vger.kernel.org,
+        amir73il@gmail.com
+Cc:     cgxu519@mykernel.net, mszeredi@redhat.com
+Subject: [PATCH v2] ovl: fix NULL ref while cleanup index when mount with
  nfs_export
-Message-ID: <20200620101807.hixlsktuax4xls2h@xzhoux.usersys.redhat.com>
+Message-ID: <20200620132845.w34h6y2p5txrsd73@xzhoux.usersys.redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
@@ -136,10 +137,8 @@ mkdir -p l u w m
 mkdir -p l/testdir
 touch l/testdir/testfile
 mount -t overlay -o lowerdir=l,upperdir=u,workdir=w,nfs_export=on overlay m
-# copy up dir and index it
 echo 1 > m/testdir/testfile
 umount m
-# remove dir in upper, mount again and panic
 rm -rf u/testdir
 mount -t overlay -o lowerdir=l,upperdir=u,workdir=w,nfs_export=on overlay m
 umount m
@@ -151,61 +150,111 @@ in which we should clean indexdir rather than workdir. We start to use
 ofs structure and only clean workdir since commit c21c839b8448
 ("ovl: whiteout inode sharing"), breaking the nfs_export code path.
 
-Fixing this by checking the availability of workdir of ofs first, then
-indexdir. If the anyone is available, use it. This patch has been tested
-by LTP/xfstests on overlayfs based on ext4 or xfs.
+Fixing this by passing additional explicit workdir argument to the cleanup
+helper and passing indexdir as workdir argument in ovl_indexdir_cleanup and
+ovl_cleanup_index.
 
+Suggested-by: Amir Goldstein <amir73il@gmail.com>
 Signed-off-by: Murphy Zhou <jencce.kernel@gmail.com>
 ---
- fs/overlayfs/dir.c | 24 +++++++++++++++++++++---
- 1 file changed, 21 insertions(+), 3 deletions(-)
+v2:
+    Pass workdir as argument along with ofs to the helper instead of
+checking availability of the dirs.
+    Pass indexdir in ovl_indexdir_cleanup and ovl_cleanup_index.
+
+ fs/overlayfs/dir.c       | 13 ++++++-------
+ fs/overlayfs/overlayfs.h |  4 ++--
+ fs/overlayfs/readdir.c   |  2 +-
+ fs/overlayfs/util.c      |  2 +-
+ 4 files changed, 10 insertions(+), 11 deletions(-)
 
 diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
-index 1bba4813f9cb..99bf1f698abb 100644
+index 1bba4813f9cb..f83d28a37bc3 100644
 --- a/fs/overlayfs/dir.c
 +++ b/fs/overlayfs/dir.c
-@@ -66,8 +66,18 @@ static struct dentry *ovl_whiteout(struct ovl_fs *ofs)
+@@ -62,11 +62,10 @@ struct dentry *ovl_lookup_temp(struct dentry *workdir)
+ }
+ 
+ /* caller holds i_mutex on workdir */
+-static struct dentry *ovl_whiteout(struct ovl_fs *ofs)
++static struct dentry *ovl_whiteout(struct ovl_fs *ofs, struct dentry *workdir)
  {
  	int err;
  	struct dentry *whiteout;
 -	struct dentry *workdir = ofs->workdir;
--	struct inode *wdir = workdir->d_inode;
-+	struct dentry *workdir = NULL;
-+	struct inode *wdir;
-+
-+	if (ofs->workdir)
-+		workdir = ofs->workdir;
-+	else if (ofs->indexdir)
-+		workdir = ofs->indexdir;
-+
-+	if (!workdir)
-+		return -EINVAL;
-+
-+	wdir = workdir->d_inode;
+ 	struct inode *wdir = workdir->d_inode;
  
  	if (!ofs->whiteout) {
- 		whiteout = ovl_lookup_temp(workdir);
-@@ -109,11 +119,19 @@ static struct dentry *ovl_whiteout(struct ovl_fs *ofs)
- int ovl_cleanup_and_whiteout(struct ovl_fs *ofs, struct inode *dir,
- 			     struct dentry *dentry)
+@@ -106,15 +105,15 @@ static struct dentry *ovl_whiteout(struct ovl_fs *ofs)
+ }
+ 
+ /* Caller must hold i_mutex on both workdir and dir */
+-int ovl_cleanup_and_whiteout(struct ovl_fs *ofs, struct inode *dir,
+-			     struct dentry *dentry)
++int ovl_cleanup_and_whiteout(struct ovl_fs *ofs, struct dentry *workdir,
++			     struct inode *dir, struct dentry *dentry)
  {
 -	struct inode *wdir = ofs->workdir->d_inode;
-+	struct inode *wdir = NULL;
++	struct inode *wdir = workdir->d_inode;
  	struct dentry *whiteout;
  	int err;
  	int flags = 0;
  
-+	if (ofs->workdir)
-+		wdir = ofs->workdir->d_inode;
-+	else if (ofs->indexdir)
-+		wdir = ofs->indexdir->d_inode;
-+
-+	if (!wdir)
-+		return -EINVAL;
-+
- 	whiteout = ovl_whiteout(ofs);
+-	whiteout = ovl_whiteout(ofs);
++	whiteout = ovl_whiteout(ofs, workdir);
  	err = PTR_ERR(whiteout);
  	if (IS_ERR(whiteout))
+ 		return err;
+@@ -775,7 +774,7 @@ static int ovl_remove_and_whiteout(struct dentry *dentry,
+ 		goto out_dput_upper;
+ 	}
+ 
+-	err = ovl_cleanup_and_whiteout(ofs, d_inode(upperdir), upper);
++	err = ovl_cleanup_and_whiteout(ofs, workdir, d_inode(upperdir), upper);
+ 	if (err)
+ 		goto out_d_drop;
+ 
+diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
+index b725c7f15ff4..4421299bec67 100644
+--- a/fs/overlayfs/overlayfs.h
++++ b/fs/overlayfs/overlayfs.h
+@@ -458,8 +458,8 @@ static inline void ovl_copyflags(struct inode *from, struct inode *to)
+ 
+ /* dir.c */
+ extern const struct inode_operations ovl_dir_inode_operations;
+-int ovl_cleanup_and_whiteout(struct ovl_fs *ofs, struct inode *dir,
+-			     struct dentry *dentry);
++int ovl_cleanup_and_whiteout(struct ovl_fs *ofs, struct dentry *workdir,
++			     struct inode *dir, struct dentry *dentry);
+ struct ovl_cattr {
+ 	dev_t rdev;
+ 	umode_t mode;
+diff --git a/fs/overlayfs/readdir.c b/fs/overlayfs/readdir.c
+index 6918b98faeb6..7501441a9d52 100644
+--- a/fs/overlayfs/readdir.c
++++ b/fs/overlayfs/readdir.c
+@@ -1175,7 +1175,7 @@ int ovl_indexdir_cleanup(struct ovl_fs *ofs)
+ 			 * Whiteout orphan index to block future open by
+ 			 * handle after overlay nlink dropped to zero.
+ 			 */
+-			err = ovl_cleanup_and_whiteout(ofs, dir, index);
++			err = ovl_cleanup_and_whiteout(ofs, indexdir, dir, index);
+ 		} else {
+ 			/* Cleanup orphan index entries */
+ 			err = ovl_cleanup(dir, index);
+diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
+index 56c1f89f20c9..bda40c73c1c7 100644
+--- a/fs/overlayfs/util.c
++++ b/fs/overlayfs/util.c
+@@ -733,7 +733,7 @@ static void ovl_cleanup_index(struct dentry *dentry)
+ 	} else if (ovl_index_all(dentry->d_sb)) {
+ 		/* Whiteout orphan index to block future open by handle */
+ 		err = ovl_cleanup_and_whiteout(OVL_FS(dentry->d_sb),
+-					       dir, index);
++					       indexdir, dir, index);
+ 	} else {
+ 		/* Cleanup orphan index entries */
+ 		err = ovl_cleanup(dir, index);
 -- 
 2.18.1
 
