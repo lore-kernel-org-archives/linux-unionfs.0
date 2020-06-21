@@ -1,4 +1,4 @@
-Return-Path: <SRS0=Xlr+=AB=vger.kernel.org=linux-unionfs-owner@kernel.org>
+Return-Path: <SRS0=6Laf=AC=vger.kernel.org=linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
@@ -7,56 +7,59 @@ X-Spam-Status: No, score=-6.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
 	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 210E6C433E0
-	for <linux-unionfs@archiver.kernel.org>; Sat, 20 Jun 2020 17:14:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 883D1C433DF
+	for <linux-unionfs@archiver.kernel.org>; Sun, 21 Jun 2020 01:47:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E67F124051
-	for <linux-unionfs@archiver.kernel.org>; Sat, 20 Jun 2020 17:14:01 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4B80C24797
+	for <linux-unionfs@archiver.kernel.org>; Sun, 21 Jun 2020 01:47:45 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="TD91KHoC"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="DIxaz72Z"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727866AbgFTROB (ORCPT
+        id S1728994AbgFUBrp (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Sat, 20 Jun 2020 13:14:01 -0400
-Received: from mail-pj1-f67.google.com ([209.85.216.67]:50727 "EHLO
-        mail-pj1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725290AbgFTROB (ORCPT
+        Sat, 20 Jun 2020 21:47:45 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58208 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728992AbgFUBro (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Sat, 20 Jun 2020 13:14:01 -0400
-Received: by mail-pj1-f67.google.com with SMTP id jz3so5737894pjb.0
-        for <linux-unionfs@vger.kernel.org>; Sat, 20 Jun 2020 10:14:00 -0700 (PDT)
+        Sat, 20 Jun 2020 21:47:44 -0400
+Received: from mail-pg1-x541.google.com (mail-pg1-x541.google.com [IPv6:2607:f8b0:4864:20::541])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 66D8FC061794
+        for <linux-unionfs@vger.kernel.org>; Sat, 20 Jun 2020 18:47:44 -0700 (PDT)
+Received: by mail-pg1-x541.google.com with SMTP id u128so6421470pgu.13
+        for <linux-unionfs@vger.kernel.org>; Sat, 20 Jun 2020 18:47:44 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=date:from:to:cc:subject:message-id:references:mime-version
          :content-disposition:in-reply-to;
-        bh=dsIbqeFSwV25KAPM0sIkenvbQAR8H9io+QwasfROH0Q=;
-        b=TD91KHoC78IoyMTdN9mn9dEj1O0j8WSi7EVqZyrQ1xC0k/AuGz63uiY6CIWoYB510v
-         zLwjZ6PjpwmT8ZWj0AwF67yErThjQVRhFd9uUHBI3yRy990SDDkX1vwZu2ERyDZ/hg/O
-         R8jr/whbDaWx1do88FkJt7Dy7Vh5X4t1ut159heDIqi3mS9CjN63nddKMagknVnQTOtW
-         r4WL5KJjXOugxHONFyWXxD8Eh9hh3yNfv9DrE0l7N1/w1QGXy9347NdKxPInG6BzPaai
-         /KgjspEOY6lN8gURGl+MXvFSxsXFNr3Cyq5CF3a8cq5e+ZVOQJc+8m2LxWLT8pX/QvF7
-         3V0g==
+        bh=xeEqTBfhkj82v2X/d3ZWYRBtOATR6H1lOilcdgqboOM=;
+        b=DIxaz72ZHDNanXER+L99CQyvYax5mUljH91GTwWAEXgalt6DG3hS3v5R0apnXiHBbC
+         hhVNBVB8Hbk6u/oN+pmceB2F7jnb2BgqqkWIWedIUmF5L+7SgY26hZHykzuApbs5jm5W
+         xtIZYey6wTaXtcA7KI+aU1UmEyV3aT3svJDkmuJ8dIKgX4VJeMs4oB2NxJZRXApAmYJe
+         2a+VwT9zLzEG4YHE00WTVf4cCarBRuAlwHjT1JMLPPPjWvC5Axq8+CQdL+Br2YCm6249
+         Bk24eAFiO0u5Gf9lfgcvecPfxPMKEiHubnEsz3pGg7KlYrLsQ5A+F5FqPngBNLGfcnt9
+         CVjw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:date:from:to:cc:subject:message-id:references
          :mime-version:content-disposition:in-reply-to;
-        bh=dsIbqeFSwV25KAPM0sIkenvbQAR8H9io+QwasfROH0Q=;
-        b=L7qkSRVL8WU47OglGHfV1KdNrSETac78RDXaUqeWvBL/kbjpQneQuYEWoGS4rYpR2c
-         dvlye4M6G+5PgjMB2ANkRQvMb3GIfA8fyOw93rzpUvdgRP6N7xANL0eELvIb7UaZGETT
-         tltYeNDsTaVVD2SaPm+90CiJ+ZSovSMueEvhDXRTIj4xetZSpf3KG6N0V3Fwqmz99RkD
-         yerEh98hB07gboBpldj4hhStNu/7VPLI1Ei75LK8Cw0ef4rUX4Gk6bWLLinsxColF2ft
-         5V6wx9lenTmqTLYUruq/Jb8woK4RFO6Fe8LNEgeeSnw4xoiKZdvbbEY0OYaNdhIrjgkb
-         T8/w==
-X-Gm-Message-State: AOAM531KRqpgFYdzAGomPHalXAysWWrK8J1RrIIpv48+tiXTUmfCMN+J
-        XUulD20/IUMbND1j5OwTkFk=
-X-Google-Smtp-Source: ABdhPJy8IX0ER9nYA60qDM5fFoxwpIy/sZ+galAxD2WD5yf2HU0TDyyGK9eHwD50Wwoy26t/FZYSkQ==
-X-Received: by 2002:a17:90a:3749:: with SMTP id u67mr9113668pjb.129.1592673179708;
-        Sat, 20 Jun 2020 10:12:59 -0700 (PDT)
+        bh=xeEqTBfhkj82v2X/d3ZWYRBtOATR6H1lOilcdgqboOM=;
+        b=OFG1HldHVtxhbKaHpQjW7VHzX6Eon/iYw3CIA4WgCnGa5ccg9rZL+4cv/WaB+9NUK7
+         sL2WeShKhkWrQhW5CsygXNd6lYbgZMeJe3MLWkWok2BgFxLgincPZHrXstdoNDUh2lVt
+         WJvbRJVS9mIDr7R1A28KrNRRf+LBh/JVCvOHatZKznlzIxDjEEds8cn8T6L+R8NL0eQV
+         S3F0W/XIcijakU3wiogZxvmnLPuEvCtgJA23IKMS7zt6gpG3YR6Ubkee5trnj1+J+Gro
+         WX7koVD37g5ddJnsyG5qjL7lxvAEfalc3iBDRPl72h95u7R99I3tedKDq2yqtqLSdm+2
+         5xDA==
+X-Gm-Message-State: AOAM533gWA0BDAc5M8cXnzoF6GTNW6EazUpiiJzQ1lEU8fy4xoxtzF0j
+        FsH2kdcjVSBemHQEbG8wviBM1FCh
+X-Google-Smtp-Source: ABdhPJw4G1wvQtjydMiK/8B+t1bHw+9NK78dnVY+JGHIMaZoFa9jM3BT/Bcziwlxfpzvdr6NtJDlZg==
+X-Received: by 2002:a62:5247:: with SMTP id g68mr15162189pfb.244.1592704063714;
+        Sat, 20 Jun 2020 18:47:43 -0700 (PDT)
 Received: from localhost ([209.132.188.80])
-        by smtp.gmail.com with ESMTPSA id p186sm9292565pfg.107.2020.06.20.10.12.58
+        by smtp.gmail.com with ESMTPSA id j17sm9300257pjy.22.2020.06.20.18.47.42
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sat, 20 Jun 2020 10:12:59 -0700 (PDT)
-Date:   Sun, 21 Jun 2020 01:12:51 +0800
+        Sat, 20 Jun 2020 18:47:43 -0700 (PDT)
+Date:   Sun, 21 Jun 2020 09:47:35 +0800
 From:   Murphy Zhou <jencce.kernel@gmail.com>
 To:     Amir Goldstein <amir73il@gmail.com>
 Cc:     Murphy Zhou <jencce.kernel@gmail.com>,
@@ -66,7 +69,7 @@ Cc:     Murphy Zhou <jencce.kernel@gmail.com>,
         Miklos Szeredi <mszeredi@redhat.com>
 Subject: Re: [PATCH v2] ovl: fix NULL ref while cleanup index when mount with
  nfs_export
-Message-ID: <20200620171251.2rl2fwnsyazj4dz7@xzhoux.usersys.redhat.com>
+Message-ID: <20200621014735.x3ixdiqyu6e6vtui@xzhoux.usersys.redhat.com>
 References: <20200620132845.w34h6y2p5txrsd73@xzhoux.usersys.redhat.com>
  <CAOQ4uxiZ=JmSzDQ-05EJyPr4iRtDsXYyNSpqh8iaiDxcO-paZw@mail.gmail.com>
 MIME-Version: 1.0
@@ -178,15 +181,9 @@ On Sat, Jun 20, 2020 at 07:14:02PM +0300, Amir Goldstein wrote:
 > it too late for ovl_indexdir_cleanup().
 > No reason not to do it sooner, because once we get success from
 > ofs->indexdir = ovl_workdir_create(... there is no turning back.
-
-hmm.. this is smarter.
 > 
 > Feel free to re-post this with proper commit message after testing and
 > verifying that moving the code didn't break any other error path.
-
-It's your patch :) I'll test and report back. You post it.
-
-Thanks!
 > 
 > Thanks,
 > Amir.
@@ -196,6 +193,10 @@ Thanks!
 > Date: Sat, 20 Jun 2020 19:04:35 +0300
 > Subject: [PATCH] ovl: fix NULL ref while cleanup index when mount with
 >  nfs_export
+
+Test result looks good to go.
+
+Thanks for the fix!
 > 
 > ...
 > 
