@@ -8,91 +8,77 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7C714C433DF
-	for <linux-unionfs@archiver.kernel.org>; Sun, 21 Jun 2020 12:44:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AE83FC433E0
+	for <linux-unionfs@archiver.kernel.org>; Sun, 21 Jun 2020 12:50:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 55D3D248E7
-	for <linux-unionfs@archiver.kernel.org>; Sun, 21 Jun 2020 12:44:23 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8B1D3248EB
+	for <linux-unionfs@archiver.kernel.org>; Sun, 21 Jun 2020 12:50:08 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="HXB3+P/L"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="hPbiKlCb"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730051AbgFUMoX (ORCPT
+        id S1730000AbgFUMuI (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Sun, 21 Jun 2020 08:44:23 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45416 "EHLO
+        Sun, 21 Jun 2020 08:50:08 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46284 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1730002AbgFUMoW (ORCPT
+        with ESMTP id S1729967AbgFUMuI (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Sun, 21 Jun 2020 08:44:22 -0400
-Received: from mail-pg1-x541.google.com (mail-pg1-x541.google.com [IPv6:2607:f8b0:4864:20::541])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B1DBDC061794
-        for <linux-unionfs@vger.kernel.org>; Sun, 21 Jun 2020 05:44:22 -0700 (PDT)
-Received: by mail-pg1-x541.google.com with SMTP id b5so6828408pgm.8
-        for <linux-unionfs@vger.kernel.org>; Sun, 21 Jun 2020 05:44:22 -0700 (PDT)
+        Sun, 21 Jun 2020 08:50:08 -0400
+Received: from mail-pl1-x642.google.com (mail-pl1-x642.google.com [IPv6:2607:f8b0:4864:20::642])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E1EE7C061794
+        for <linux-unionfs@vger.kernel.org>; Sun, 21 Jun 2020 05:50:07 -0700 (PDT)
+Received: by mail-pl1-x642.google.com with SMTP id s14so2195722plq.6
+        for <linux-unionfs@vger.kernel.org>; Sun, 21 Jun 2020 05:50:07 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=from:to:cc:subject:date:message-id;
-        bh=cOBY4MUe2lmuHdONEQBchXq7e9NNsB/CPSaxdVDn8KQ=;
-        b=HXB3+P/LdxAQzlkQWISBSrLlWxW3QLrmVEV0bo8XdFb5d4PlnulhiIjEnmh0scG0mK
-         Dg3MSFebH8wkVoElSCUGdHXHu0Lx2/JWUJiPlytSdo4fNafowai5sfS4XWHydok7yjH6
-         YuiPJMmjoR5VE3K4WyU0aZaUaFzNdVag5GGduUzcBHmQEACIipbys0JkL+lAZ4gTF71B
-         eKi6GNoHU1MTn+6AomAYiQGXh9kJxIIddT5ymaqSqrwG/MvEsb6iu1yvfhMWsbtJawxZ
-         W0tUe2ajjS5hdkXHNaeA5w7b6NQR/GKq7kSboDES4+7P5Dq1qFFIFfi1o6BMjjpHw+I1
-         chJg==
+        bh=RlJ8ftXRO7FgO7gmzZy1QLpHLSNTr6nrralYNH4Uixo=;
+        b=hPbiKlCbCljMGTJTlWBxSxlpXgMrwkIrV/e72AmW6oCDpMGm74O1YbeLO3wKl08CmH
+         IJp6hS2NMC/VOFyvh8Yw2t41fcSPB5V+N0xIspaJQBgIwfmcB5Oja3nQ2s1cuwUaD0nH
+         zKhnwtoqvQYgYYPnO5HriOePJdBxHDd2jh335Qsac3YvYj/DYcO1/C7Bx3aKJ0aImKEM
+         LeCxbl/q8zQoNhE+vO/pf2v73wc3iefT1WVxLZI5tRDdcnO1xoGH0JmwZyXP3s6CFnY9
+         kc62BkmjS5UMmUpOFp8zwQ4YHMSjl+r/omWv8S9EAZb94y6PZYuqDKV8OeloZsqPWPkO
+         s8MQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id;
-        bh=cOBY4MUe2lmuHdONEQBchXq7e9NNsB/CPSaxdVDn8KQ=;
-        b=T8VVvnd1VrOOhWmb+rqa9cCEJSPQDTg69sXhP5lvIOKkYsRdj92kTHpBgrQT6qu0iS
-         BSMvlffU/bVg11ul/gg6Vy0v1pVwICPugHnaKN8UGocJNtD/X5WvCqM58G6k8bDmnrqd
-         KB5y9prKiVefxNfVaMIlolf2sKY5qA9NW83k5htIqmDDrSmlM5oNQXalI9Ex9aOcDsmm
-         qAvnkA4M80uYH4qJrZDmSFWiuyH2xUMLKphI8dg6dBBfSupVvIZi3PoOc0RVYg0PMPI/
-         GAAL4tc3vTAzAoT0DkZZQE1FIfKaaj4TFt7AAf2Lg2zynBziZmxAZPNQgWtcSMZ5FVoS
-         vGrw==
-X-Gm-Message-State: AOAM5324QNQlllqm+14TDptYFgkb5ob1BQ4xtfSMMfYQC+1kMvDGXxNU
-        fvZnalnpUi9zP4eFqT5epcM=
-X-Google-Smtp-Source: ABdhPJyNfoEiFodsqRJNBKZE5ZZw7BRdq73JBRlKnesV7x+p1Oncf9TXiqs628eJXgs1lypckZ35nw==
-X-Received: by 2002:a63:e54d:: with SMTP id z13mr9031932pgj.78.1592743462328;
-        Sun, 21 Jun 2020 05:44:22 -0700 (PDT)
+        bh=RlJ8ftXRO7FgO7gmzZy1QLpHLSNTr6nrralYNH4Uixo=;
+        b=Qer4vVsP7R+OGDJYFfSrVFuwLf6wV/JDA8y8eXxg1TAlHUN3fYgGopZwfLTTAh24DY
+         T4ewQccZDGjGp3CaY0vkIIecv1WaLOpPySlOs+c3J03S28Npo1IIsHR38kd0Ms5uqiaj
+         DNvhXy/Jl0fZOH0nfkGNqPZzFKZZgRYMH12gcME7wprhixUtgHide570UaKbKDMm6rhP
+         hATcsPUxmnKAN4WDajd2H3LIl35q/BEKZiuD/kaqg8EMuUFLB6pwQ+qdy9tA4e99Fx13
+         B9LH5nZv7Asye1FV5RfdzJOWMPFXzl4md1yjTTy5Lcl+TS1+N36Kn2EXOuuwl1Mht/80
+         BRxA==
+X-Gm-Message-State: AOAM531xO5oXi7a2bjG1xkaqllXtwv2xyLVOWQjMm11vyUI1tq+1DCLQ
+        OT2eRZnfrttmnyABjv0ez2A=
+X-Google-Smtp-Source: ABdhPJwOCRki4auf4EuvN7JATJgyOTT5yTV/wlHQAp32c1bmoZ1ESmOyio3VxHv2X/1JP8K2TfTr2w==
+X-Received: by 2002:a17:90a:b25:: with SMTP id 34mr12338341pjq.220.1592743807349;
+        Sun, 21 Jun 2020 05:50:07 -0700 (PDT)
 Received: from ubuntu.localdomain ([220.116.27.194])
-        by smtp.gmail.com with ESMTPSA id f131sm7165929pgc.14.2020.06.21.05.44.20
+        by smtp.gmail.com with ESMTPSA id z85sm11396420pfc.66.2020.06.21.05.50.05
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 21 Jun 2020 05:44:21 -0700 (PDT)
+        Sun, 21 Jun 2020 05:50:06 -0700 (PDT)
 From:   youngjun <her0gyugyu@gmail.com>
 To:     Miklos Szeredi <miklos@szeredi.hu>
 Cc:     linux-unionfs@vger.kernel.org, youngjun <her0gyugyu@gmail.com>
-Subject: [PATCH] ovl: change "ovl_copy_up_flags" static
-Date:   Sun, 21 Jun 2020 05:44:15 -0700
-Message-Id: <20200621124415.65064-1-her0gyugyu@gmail.com>
+Subject: [PATCH] ovl: remove not used argument in ovl_check_origin
+Date:   Sun, 21 Jun 2020 05:50:01 -0700
+Message-Id: <20200621125001.65428-1-her0gyugyu@gmail.com>
 X-Mailer: git-send-email 2.17.1
 Sender: linux-unionfs-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-"ovl_copy_up_flags" is used in copy_up.c.
-So, change it static.
+ovl_check_origin outparam 'ctrp' argument
+not used by caller. So, remove this argument
+from ovl_check_origin.
 
 Signed-off-by: youngjun <her0gyugyu@gmail.com>
 ---
- fs/overlayfs/copy_up.c   |  2 +-
- fs/overlayfs/namei.c     | 11 ++---------
- fs/overlayfs/overlayfs.h |  1 -
- 3 files changed, 3 insertions(+), 11 deletions(-)
+ fs/overlayfs/namei.c | 11 ++---------
+ 1 file changed, 2 insertions(+), 9 deletions(-)
 
-diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
-index 79dd052c7dbf..5e0cde85bd6b 100644
---- a/fs/overlayfs/copy_up.c
-+++ b/fs/overlayfs/copy_up.c
-@@ -895,7 +895,7 @@ static int ovl_copy_up_one(struct dentry *parent, struct dentry *dentry,
- 	return err;
- }
- 
--int ovl_copy_up_flags(struct dentry *dentry, int flags)
-+static int ovl_copy_up_flags(struct dentry *dentry, int flags)
- {
- 	int err = 0;
- 	const struct cred *old_cred = ovl_override_creds(dentry->d_sb);
 diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
 index 3566282a9199..3cad68c3efb2 100644
 --- a/fs/overlayfs/namei.c
@@ -136,18 +122,6 @@ index 3566282a9199..3cad68c3efb2 100644
  			if (err)
  				goto out_put_upper;
  
-diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-index b725c7f15ff4..29bc1ec699e7 100644
---- a/fs/overlayfs/overlayfs.h
-+++ b/fs/overlayfs/overlayfs.h
-@@ -483,7 +483,6 @@ void ovl_aio_request_cache_destroy(void);
- /* copy_up.c */
- int ovl_copy_up(struct dentry *dentry);
- int ovl_copy_up_with_data(struct dentry *dentry);
--int ovl_copy_up_flags(struct dentry *dentry, int flags);
- int ovl_maybe_copy_up(struct dentry *dentry, int flags);
- int ovl_copy_xattr(struct dentry *old, struct dentry *new);
- int ovl_set_attr(struct dentry *upper, struct kstat *stat);
 -- 
 2.17.1
 
