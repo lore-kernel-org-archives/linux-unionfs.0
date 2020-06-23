@@ -2,78 +2,80 @@ Return-Path: <SRS0=DVGR=AE=vger.kernel.org=linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+X-Spam-Status: No, score=-12.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
+	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2D3BFC433DF
-	for <linux-unionfs@archiver.kernel.org>; Tue, 23 Jun 2020 15:30:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 43CD1C433DF
+	for <linux-unionfs@archiver.kernel.org>; Tue, 23 Jun 2020 15:35:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 082F42070E
-	for <linux-unionfs@archiver.kernel.org>; Tue, 23 Jun 2020 15:30:16 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 17D8B20774
+	for <linux-unionfs@archiver.kernel.org>; Tue, 23 Jun 2020 15:35:52 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b="vwDdPU+4"
+	dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b="GN+CiqZB"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1732985AbgFWPaP (ORCPT
+        id S1732935AbgFWPfv (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Tue, 23 Jun 2020 11:30:15 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35720 "EHLO
+        Tue, 23 Jun 2020 11:35:51 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36594 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1732976AbgFWPaP (ORCPT
+        with ESMTP id S1732738AbgFWPfv (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 23 Jun 2020 11:30:15 -0400
-Received: from mail-lj1-x243.google.com (mail-lj1-x243.google.com [IPv6:2a00:1450:4864:20::243])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7E6D2C061795
-        for <linux-unionfs@vger.kernel.org>; Tue, 23 Jun 2020 08:30:14 -0700 (PDT)
-Received: by mail-lj1-x243.google.com with SMTP id i27so23892451ljb.12
-        for <linux-unionfs@vger.kernel.org>; Tue, 23 Jun 2020 08:30:14 -0700 (PDT)
+        Tue, 23 Jun 2020 11:35:51 -0400
+Received: from mail-lj1-x244.google.com (mail-lj1-x244.google.com [IPv6:2a00:1450:4864:20::244])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E2996C061573
+        for <linux-unionfs@vger.kernel.org>; Tue, 23 Jun 2020 08:35:50 -0700 (PDT)
+Received: by mail-lj1-x244.google.com with SMTP id y11so23959001ljm.9
+        for <linux-unionfs@vger.kernel.org>; Tue, 23 Jun 2020 08:35:50 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=linaro.org; s=google;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=PqiVaw4jPZjubgC0DDl3A4Ud4fHqWecWUNTmHcI7wYY=;
-        b=vwDdPU+4V/Jx8jj9smtJimFMCc+ZOTd7pnL8N1BZ9MnqEhrJ+Irm8zQNShJvIiiwAk
-         +QkqKxAFa1Fvv5xfyEwYmh3RExQJs+utDDpimk8cEUmjz85gDab5zvnMBa6iaViYEaM7
-         sUwGOJKbscWhH2OVdyHVgvclyNNAuknqNP9CF6xcEty3RtWUdTqijXt2OYhaetQfyIkl
-         rI+XYhgMLyfFhro1zF5/ohzy+RyqoyTzf0YjB+/l0SDx+jb3SseTDTM+8SFV2P0qZ936
-         Tu+73A6r8fC4hPBQ/syVbXjydP6M9anvWDb9mcXa+8JMQ0GaZ1uqWeVdEW5TqkzgkSn9
-         mBKw==
+        bh=0/mLCcTfl2C8WRN+Q51KcaPky/CCITIn3lw5Vjl08bE=;
+        b=GN+CiqZBzT/XXrTdx+f07bZ4w5r9Lhz7S9XxNd9DiDN1JXwlAEbDfG2xtMojxSIqX2
+         8ZLRa6c0d7IzpkEtyGimRSJyQhQYKOkAcNwRuNvgHkwPyCKuJu0iWI5V3tK9pLtEl7c3
+         rkmmzXMP/vrbm1ChVi/wGu12+M/DlsGfQSb+5mYxJM6JQQZ0qvI65WW5r//dQVI+mhIX
+         AGNa7EfrQuES/oDnsG/rmnaak7zmNUbmffylOOsaynTc8fJbv1Xo0sCemQEj3KasX3cm
+         t7lUNVH6QTgIEFdE8DHweMzigYYTqV4NHiMKk/TfRlE5U9B80HGFen5ExzLCPMzSPpEO
+         tr7g==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=PqiVaw4jPZjubgC0DDl3A4Ud4fHqWecWUNTmHcI7wYY=;
-        b=f1H9G5vQX8KRXAfNk3WDdybb1vNRmpq4otEpnPkZV3r4gpn7x5GOwsYCC+Ci2xQvoF
-         TDRE3Ya6GEAtgDfLE4I8ClG6m876y2zFQzBaEs65AVE6RQgsuQLRcbD8WTGrRBEkR4rP
-         sAHKnMM6OcQu0htdJeDRquRly4WQeYlzzKlTNSSYF2v8aJXTyMpYtTyo8kO+ChX91g1b
-         d6uO+JtgvXjeYyugfl6W7ax/SVDgp3JGiqXpWlwkmTTXmMxOnfhNGeaLr8qmLu+6uaKo
-         p2ri9TVQaNLGtEFZtcyoTCUMYJdZkJRV3dbomE+RiUZrgX5BbEiZ7Cfay65nifTxmvls
-         fw3g==
-X-Gm-Message-State: AOAM530t4LEJ88gkaWb99+9TdKrDsVHVCUNLZNU++hkAKoIQPGSqmCHg
-        Ff9qTpH7jusRo24hStvCtAXufLDj5qh2Emg5s8sMpg==
-X-Google-Smtp-Source: ABdhPJwHuGnHF3srvzs44T4PM1YgndBxneWCi01kR9Fc5pSBEwosEz8LXCzqUBO8iJnCeYTpPAkS8RGGDwm0EOODi6k=
-X-Received: by 2002:a05:651c:318:: with SMTP id a24mr11022427ljp.55.1592926212549;
- Tue, 23 Jun 2020 08:30:12 -0700 (PDT)
+        bh=0/mLCcTfl2C8WRN+Q51KcaPky/CCITIn3lw5Vjl08bE=;
+        b=QdAlhLURh0FPE5EEkeYSZQOzdRoVmBfhucIjSBF2x0Ff2qjogUehTnZKe8NRU+Qlaf
+         qrVvw5RXiHbLgRqsleGd9xiQ8JXu5E/W8hXrd+0+T0TD/mxeFHaS/yXMu9aS8KtLb/Ic
+         thMO34v7WfhGIE7uwFI6MhK1X7uO6UJM674L/6wfMAqgI/JAxUq7KZrUGdgmkx8KHjiH
+         cxDwswLp22WPhCNReIjsvKEOTEiinmyPx2QFmz0Vc+yqIWDHNS2fRSB3Ec8AzX5NPtbC
+         lDPo6aBS4wI+08kAsX1qv3wmTeUT2/a+Vfk/1nTPP/XHw986UPAwFSAYr5RWI9rh5xyN
+         Akkg==
+X-Gm-Message-State: AOAM532rAPChRNE29oNjCxFrZEa5+/S0vjyXUhQ6lOBD3OZvJ0u7RkHG
+        msEm3y42GSS8YmecgdsisR6lnmxGBheLXmYvP+2B1Q==
+X-Google-Smtp-Source: ABdhPJyAMtIm5BHZDPb9F7Cryoq4V6/ui8e9lQOZjJ50oKuXcZPgDd5ftfrsCRbAJhiuyGwN+xd8FkkNQ+dQQ3QXtvI=
+X-Received: by 2002:a2e:911:: with SMTP id 17mr12058746ljj.411.1592926548950;
+ Tue, 23 Jun 2020 08:35:48 -0700 (PDT)
 MIME-Version: 1.0
-References: <20200618010805.600873-1-sashal@kernel.org> <20200618010805.600873-319-sashal@kernel.org>
-In-Reply-To: <20200618010805.600873-319-sashal@kernel.org>
+References: <20200618012218.607130-1-sashal@kernel.org> <20200618012218.607130-138-sashal@kernel.org>
+In-Reply-To: <20200618012218.607130-138-sashal@kernel.org>
 From:   Naresh Kamboju <naresh.kamboju@linaro.org>
-Date:   Tue, 23 Jun 2020 21:00:01 +0530
-Message-ID: <CA+G9fYski0D9pPXmWr6CorrKATZkQLz_k1w_5bVmO-dU+_ROTQ@mail.gmail.com>
-Subject: Re: [PATCH AUTOSEL 5.7 319/388] ovl: verify permissions in ovl_path_open()
-To:     Sasha Levin <sashal@kernel.org>
+Date:   Tue, 23 Jun 2020 21:05:37 +0530
+Message-ID: <CA+G9fYuD_N8jfT3ai0PyS9evumOAY8YNzcjKhqATH3QPVawHdA@mail.gmail.com>
+Subject: Re: [PATCH AUTOSEL 4.19 138/172] ovl: verify permissions in ovl_path_open()
+To:     Sasha Levin <sashal@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Cc:     open list <linux-kernel@vger.kernel.org>,
         linux- stable <stable@vger.kernel.org>,
         Miklos Szeredi <mszeredi@redhat.com>,
-        linux-unionfs@vger.kernel.org
+        linux-unionfs@vger.kernel.org, lkft-triage@lists.linaro.org,
+        LTP List <ltp@lists.linux.it>
 Content-Type: text/plain; charset="UTF-8"
 Sender: linux-unionfs-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Thu, 18 Jun 2020 at 08:03, Sasha Levin <sashal@kernel.org> wrote:
+On Thu, 18 Jun 2020 at 07:16, Sasha Levin <sashal@kernel.org> wrote:
 >
 > From: Miklos Szeredi <mszeredi@redhat.com>
 >
@@ -102,10 +104,10 @@ On Thu, 18 Jun 2020 at 08:03, Sasha Levin <sashal@kernel.org> wrote:
 >  1 file changed, 26 insertions(+), 1 deletion(-)
 >
 > diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
-> index 36b60788ee47..a0878039332a 100644
+> index db8bdb29b320..afbc6a97da2a 100644
 > --- a/fs/overlayfs/util.c
 > +++ b/fs/overlayfs/util.c
-> @@ -459,7 +459,32 @@ bool ovl_is_whiteout(struct dentry *dentry)
+> @@ -479,7 +479,32 @@ bool ovl_is_whiteout(struct dentry *dentry)
 >
 >  struct file *ovl_path_open(struct path *path, int flags)
 >  {
@@ -122,91 +124,64 @@ steps to reproduce:
           - cd /opt/ltp
           - ./runltp -s execveat03
 
-[  564.915016] ------------[ cut here ]------------
-[  564.919654] kernel BUG at fs/overlayfs/util.c:466!
-[  564.924458] Internal error: Oops - BUG: 0 [#1] PREEMPT SMP
-[  564.929954] Modules linked in: overlay rfkill tda998x cec
-drm_kms_helper drm crct10dif_ce fuse
-[  564.938617] CPU: 1 PID: 15054 Comm: execveat03 Not tainted
-5.7.6-rc1-00793-gccc085714c08 #1
-[  564.946987] Hardware name: ARM Juno development board (r2) (DT)
-[  564.952921] pstate: 60000005 (nZCv daif -PAN -UAO)
-[  564.957786] pc : ovl_path_open+0xd0/0xd8 [overlay]
-[  564.962642] lr : ovl_path_open+0x30/0xd8 [overlay]
-[  564.967443] sp : ffff00090a65f740
-[  564.970763] x29: ffff00090a65f740 x28: 0000000000000000
-[  564.976091] x27: ffff00090a65f950 x26: ffffa000097506c0
-[  564.981419] x25: ffff00090388f000 x24: ffff000912b39a28
-[  564.986746] x23: ffff00090a65f950 x22: ffff00090b45e580
-[  564.992072] x21: ffff00090a65f950 x20: ffff0008dddbcb10
-[  564.997398] x19: 0000000000004000 x18: 0000000000000000
-[  565.002723] x17: 0000000000000000 x16: 0000000000000000
-[  565.008048] x15: 0000000000000000 x14: ffffa000103c0898
-[  565.013374] x13: ffffa00010382fec x12: ffff80011bd530dc
-[  565.018700] x11: 1fffe0011bd530db x10: ffff80011bd530db
-[  565.024026] x9 : dfffa00000000000 x8 : ffff0008dea986d8
-[  565.029351] x7 : 0000000000000001 x6 : 00000000f1f1f1f1
-[  565.034677] x5 : 00000000f3000000 x4 : dfffa00000000000
-[  565.040003] x3 : ffffa0000973f950 x2 : 0000000000000007
-[  565.045328] x1 : 0000000000004000 x0 : ffff00090f79c930
-[  565.050653] Call trace:
-[  565.053162]  ovl_path_open+0xd0/0xd8 [overlay]
-[  565.057670]  ovl_check_d_type_supported+0x9c/0x180 [overlay]
-[  565.063396]  ovl_get_workdir.isra.0+0x238/0x5e0 [overlay]
-[  565.068861]  ovl_fill_super+0x800/0x1a48 [overlay]
-[  565.073673]  mount_nodev+0x50/0xc0
-[  565.077135]  ovl_mount+0x1c/0x28 [overlay]
-[  565.081245]  legacy_get_tree+0x74/0xc0
-[  565.085005]  vfs_get_tree+0x4c/0x160
-[  565.088589]  do_mount+0x700/0xb90
-[  565.091913]  __arm64_sys_mount+0xc0/0x110
-[  565.095938]  el0_svc_common.constprop.0+0xa4/0x1e0
-[  565.100742]  do_el0_svc+0x38/0xa0
-[  565.104068]  el0_sync_handler+0x11c/0x190
-[  565.108087]  el0_sync+0x158/0x180
-[  565.111419] Code: a8c37bfd d50323bf d65f03c0 d4210000 (d4210000)
-[  565.117529] ---[ end trace 357a3872beec6c53 ]---
-[  565.122157] note: execveat03[15054] exited with preempt_count 1
-[  565.129476] ------------[ cut here ]------------
-[  565.134122] WARNING: CPU: 1 PID: 0 at kernel/rcu/tree.c:569
-rcu_idle_enter+0xd0/0xd8
-[  565.141879] Modules linked in: overlay rfkill tda998x cec
-drm_kms_helper drm crct10dif_ce fuse
-[  565.150539] CPU: 1 PID: 0 Comm: swapper/1 Tainted: G      D
-  5.7.6-rc1-00793-gccc085714c08 #1
-[  565.159866] Hardware name: ARM Juno development board (r2) (DT)
-[  565.165799] pstate: 200003c5 (nzCv DAIF -PAN -UAO)
-[  565.170603] pc : rcu_idle_enter+0xd0/0xd8
-[  565.174623] lr : rcu_idle_enter+0x34/0xd8
-[  565.178639] sp : ffff000935577ea0
-[  565.181958] x29: ffff000935577ea0 x28: 0000000000000000
-[  565.187285] x27: ffff000912d83000 x26: ffffa0001359e2c0
- [  565.192611] x25: ffff000935552b80 x24: 1fffe00126aaefe6
-[  565.198098] x23: ffffa000125abff8 x22: ffffa0001359e298
-[  565.203424] x21: ffff000936606fd0 x20: ffffa000125b5f00
-[  565.208909] x19: ffff000936606f00 x18: 0000000000000000
-Broadcast message from systemd-jo[  565.214234] x17: 0000000000000000
-x16: 0000000000000000
-urnald@juno (Mon 2020-06-22 19:5[  565.222417] x15: 0000000000000000
-x14: ffffa000103c1370
-9:27 UTC):
-[  565.230517] x13: ffffa000103c0898 x12: ffff800126cc0d8c
-[  565.236959] x11: 1fffe00126cc0d8b x10: ffff800126cc0d8b
-[  565.242285] x9 : dfffa00000000000 x8 : ffff000936606c5b
-[  565.247683] x7 : 0000000000000001 x6 : ffff000936606c58
-[  565.253009] x5 : 00007ffed933f275 x4 : dfffa00000000000
-[  565.258493] x3 : ffffa000101d48e4 x2 : 0000000000000007
-kernel[300]: [  564.924458] Inter[  565.263819] x1 : 4000000000000002
-x0 : 4000000000000000
-nal error: Oops - BUG: 0 [#1] PR[  565.272001] Call trace:
-EEMPT SMP
-[  565.277235]  rcu_idle_enter+0xd0/0xd8
-[  565.281938]  do_idle+0x288/0x328
-[  565.285176]  cpu_startup_entry+0x28/0x48
-[  565.289182]  secondary_start_kernel+0x248/0x2b0
-[  565.293721] ---[ end trace 357a3872beec6c54 ]---
+tst_device.c:262: INFO: Using test device LTP_DEV='/dev/loop0'
+tst_mkfs.c:90: INFO: Formatting /dev/loop0 with ext2 opts='' extra opts=''
+mke2fs 1.43.8 (1-Jan-2018)
+[  407.103235] ------------[ cut here ]------------
+[  407.107890] kernel BUG at fs/overlayfs/util.c:486!
+[  407.112704] Internal error: Oops - BUG: 0 [#1] PREEMPT SMP
+[  407.118209] Modules linked in: overlay rfkill crc32_ce crct10dif_ce fuse
+[  407.124965] Process execveat03 (pid: 17583, stack limit = 0x0000000043f145d5)
+[  407.132136] CPU: 5 PID: 17583 Comm: execveat03 Not tainted
+4.19.130-rc1-00442-g6c3e013be752 #1
+[  407.140774] Hardware name: ARM Juno development board (r2) (DT)
+[  407.146718] pstate: 60000005 (nZCv daif -PAN -UAO)
+[  407.151634] pc : ovl_path_open+0xc4/0xc8 [overlay]
+[  407.156537] lr : ovl_path_open+0x2c/0xc8 [overlay]
+[  407.161345] sp : ffff800909eaf8c0
+[  407.164673] x29: ffff800909eaf8c0 x28: ffff800909eafb40
+[  407.170011] x27: 0000000000000000 x26: ffff2000012de1c0
+[  407.175349] x25: ffff800909785e6c x24: ffff8009042073f0
+[  407.180687] x23: ffff800909eafb40 x22: ffff200009d4d8c8
+[  407.186026] x21: ffff800909eafb40 x20: ffff8008e4e25238
+[  407.191364] x19: 0000000000004000 x18: 0000000000000000
+[  407.196700] x17: 0000000000000000 x16: 0000000000000000
+[  407.202037] x15: 0000000000000000 x14: ffff200008340864
+[  407.207375] x13: ffff20000833f61c x12: ffff20000833b7bc
+[  407.212714] x11: ffff20000830c52c x10: ffff2000012c8158
+[  407.218052] x9 : ffff20000830b12c x8 : ffff200008084788
+[  407.223390] x7 : 0000000041b58ab3 x6 : 00000000f1f1f1f1
+[  407.228726] x5 : 00000000f3000000 x4 : dfff200000000000
+[  407.234064] x3 : dfff200000000000 x2 : 0000000000000007
+[  407.239401] x1 : 0000000000004000 x0 : 0000000000000000
+[  407.244736] Call trace:
+[  407.247289]  ovl_path_open+0xc4/0xc8 [overlay]
+[  407.251846]  ovl_check_d_type_supported+0x9c/0x178 [overlay]
+[  407.257616]  ovl_fill_super+0x8d4/0x1ad8 [overlay]
+[  407.262437]  mount_nodev+0x4c/0xb8
+[  407.265942]  ovl_mount+0x18/0x20 [overlay]
+[  407.270060]  mount_fs+0x64/0x1d8
+[  407.273314]  vfs_kern_mount.part.0+0x4c/0x1a0
+[  407.277696]  do_mount+0x27c/0x1080
+[  407.281121]  ksys_mount+0x8c/0xe8
+[  407.284459]  __arm64_sys_mount+0x64/0x80
+[  407.288409]  el0_svc_common+0xac/0x1e8
+[  407.292182]  el0_svc_handler+0x38/0x80
+[  407.295951]  el0_svc+0x8/0xc
+[  407.298859] Code: f94013f5 a8c37bfd d65f03c0 d4210000 (d4210000)
+[  407.304977] ---[ end trace 50a1985db0cfa610 ]---
 
-https://lkft.validation.linaro.org/scheduler/job/1515478#L3876
+https://lkft.validation.linaro.org/scheduler/job/1515127#L3772
+
+metadata:
+  git branch: linux-4.19.y
+  git repo: https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable-rc.git
+  git commit: 6c3e013be752bf70e7321d7c813d68eac8ac36b0
+  git describe: v4.19.128-442-g6c3e013be752
+  make_kernelversion: 4.19.130-rc1
+  kernel-config:
+https://builds.tuxbuild.com/xGjDe8DWEXpxwsygVrqa6Q/kernel.config
+  build-url: https://gitlab.com/Linaro/lkft/kernel-runs/-/pipelines/158883698
 
 -- 
 Linaro LKFT
