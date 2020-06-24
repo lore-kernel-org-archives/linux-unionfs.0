@@ -1,165 +1,88 @@
-Return-Path: <SRS0=DVGR=AE=vger.kernel.org=linux-unionfs-owner@kernel.org>
+Return-Path: <SRS0=PZEe=AF=vger.kernel.org=linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 987B2C433E0
-	for <linux-unionfs@archiver.kernel.org>; Tue, 23 Jun 2020 19:00:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3BF03C433E1
+	for <linux-unionfs@archiver.kernel.org>; Wed, 24 Jun 2020 10:21:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7944F207F9
-	for <linux-unionfs@archiver.kernel.org>; Tue, 23 Jun 2020 19:00:11 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D9D6D20706
+	for <linux-unionfs@archiver.kernel.org>; Wed, 24 Jun 2020 10:21:11 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="HcSZen6N"
+	dkim=pass (1024-bit key) header.d=mykernel.net header.i=cgxu519@mykernel.net header.b="Jrv7hKGp"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2387421AbgFWTAE (ORCPT
+        id S2390281AbgFXKUt (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Tue, 23 Jun 2020 15:00:04 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39920 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1733138AbgFWTAB (ORCPT
+        Wed, 24 Jun 2020 06:20:49 -0400
+Received: from sender2-op-o12.zoho.com.cn ([163.53.93.243]:17121 "EHLO
+        sender2-op-o12.zoho.com.cn" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S2390119AbgFXKUj (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 23 Jun 2020 15:00:01 -0400
-Received: from mail-io1-xd41.google.com (mail-io1-xd41.google.com [IPv6:2607:f8b0:4864:20::d41])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0920BC061573;
-        Tue, 23 Jun 2020 12:00:00 -0700 (PDT)
-Received: by mail-io1-xd41.google.com with SMTP id s18so25081375ioe.2;
-        Tue, 23 Jun 2020 12:00:00 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=aGUbgEtgaxHsjcsrQ07UW1rqk8aoviYgJaSln1LGDd0=;
-        b=HcSZen6NZMo6UPk9m4aZ+F0OquDp5o5fonlig3Y+Iisv31CZGb5X3JWXUoNMdREqXH
-         5TrcZ8PrlMwTz79F2u/OYjsF3cghwU4+zC7hbTjGBDJfN4cI4FFkBvAvYt4WjieY5xmA
-         qwdQu1DeyFQxZI5lyKJVAYoEK26G7otKLvm8kJ9cEUhWOf5FuFdVl+9Elmvf/+xZco2D
-         frh5UCjiZx3tYi+/mptW0vOFJm62yCZe+kipnlLVEGctF28A/tBi1OJib084pSUbFmcH
-         gxKYmD6SX+u24fQciOegp4Q1zGyuwh6huBJphVPQm6R22u3xye4bnilKCO8u5dz1RhSS
-         ZYWA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=aGUbgEtgaxHsjcsrQ07UW1rqk8aoviYgJaSln1LGDd0=;
-        b=jmqQeXeL/xgDLrBtVpDDKpvGPmb1vayVbLR1FYtsvVbY6OT3KqEFbEVd9B44YjVdLP
-         Hw0sr4CGxUStgv/w++nTft1zYEM7L3ZhRvHJiaMhP3e2qGTegxYB5sYk0CMfhToeLJkA
-         R9HVbhbCy6PaoXZiAZ6fYzEZWdhobGrjbugXcmJar6eGT91mcXTIY8M9UUOybH3O2vkm
-         HdPGijzwdHXvjVRUIlLgTgrpWqV2uDRmWMF0NP6gTpXycxPc8t3DDVhux1dxLC1sZCcM
-         TU/DN7HUXje2b+ZIzpOy6xuO91Q+vQ6ZNnFKgZmENo9SHI3BkKPl+SMLUomkSjtTjW+O
-         QlgA==
-X-Gm-Message-State: AOAM533DzobI8q/RwScp9pJJ+guoRD7eCBydvAbhWLeT6TFcT9/bk18Y
-        6N/5BcqHqsHosVigKuVTwSRhsSP0uEBoaEka5vM=
-X-Google-Smtp-Source: ABdhPJwL5VLoYwmYCAC+c5kK726ih+QDfSbJxYCpUWbnFr4YW1zruh8hdkUj3rA+fuaf6zfn9dm7HYnWLxMdid4t0LM=
-X-Received: by 2002:a05:6602:14d0:: with SMTP id b16mr27168111iow.5.1592938799295;
- Tue, 23 Jun 2020 11:59:59 -0700 (PDT)
+        Wed, 24 Jun 2020 06:20:39 -0400
+ARC-Seal: i=1; a=rsa-sha256; t=1592994024; cv=none; 
+        d=zoho.com.cn; s=zohoarc; 
+        b=IqN2qZZFWCWXx7ZbgnUguHUEiyf+iZSXuhycRXu3EUpBcbpgC60lopEp+F7y4l3xGju6H8csVIEfL4s4TkUPa7KtmlUzysTLSliYT1Tqcy0JqMe16UFsTq08pJ48ZAb65KT4lhrz+HBvR+qD5DWneim10buRhG8g2zWktIX81rQ=
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=zoho.com.cn; s=zohoarc; 
+        t=1592994024; h=Content-Type:Content-Transfer-Encoding:Cc:Date:From:MIME-Version:Message-ID:Subject:To; 
+        bh=PKCfyGEEjSlRJRyjrJZ+V4F7+BsUscDEqIXVbuYd0hw=; 
+        b=UEA4NS0hsekmv3TEmyLFaLoh7zU+E71TMq3BepASP80qwX9dBv0d1sn2oX7NvvB05063IKvRZEkTSAu2cv7P+Trh19ZKGESidY+n2DpxJbyThqPsQadLdeRP6Y80E1Je+tqlA6RO+eM2ahqnTCsEBjtyxGR7ewTZJbcjaJDp1nY=
+ARC-Authentication-Results: i=1; mx.zoho.com.cn;
+        dkim=pass  header.i=mykernel.net;
+        spf=pass  smtp.mailfrom=cgxu519@mykernel.net;
+        dmarc=pass header.from=<cgxu519@mykernel.net> header.from=<cgxu519@mykernel.net>
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1592994024;
+        s=zohomail; d=mykernel.net; i=cgxu519@mykernel.net;
+        h=From:To:Cc:Message-ID:Subject:Date:MIME-Version:Content-Transfer-Encoding:Content-Type;
+        bh=PKCfyGEEjSlRJRyjrJZ+V4F7+BsUscDEqIXVbuYd0hw=;
+        b=Jrv7hKGp4F8ZA9hoYhj9mCT9MV7lwwvv9uZ5NFCqodRcNojvys170OcWkspzYEYO
+        4QAWvE9uXorpiq77bUrRaFJ3kvnfieKIyzjCWnpvrtCtOQpc7BJ3NK5u9v6vnKXrk5E
+        fwg2C2H1zNyFXihmgWNNnhTM4feyUnqtGHlc376o=
+Received: from localhost.localdomain (218.18.229.179 [218.18.229.179]) by mx.zoho.com.cn
+        with SMTPS id 1592994021027332.3870125354415; Wed, 24 Jun 2020 18:20:21 +0800 (CST)
+From:   Chengguang Xu <cgxu519@mykernel.net>
+To:     miklos@szeredi.hu
+Cc:     linux-unionfs@vger.kernel.org, Chengguang Xu <cgxu519@mykernel.net>
+Message-ID: <20200624102011.4861-1-cgxu519@mykernel.net>
+Subject: [PATCH] ovl: fix incorrect extent info in metacopy case
+Date:   Wed, 24 Jun 2020 18:20:11 +0800
+X-Mailer: git-send-email 2.20.1
 MIME-Version: 1.0
-References: <20200618012600.608744-1-sashal@kernel.org> <20200618012600.608744-90-sashal@kernel.org>
- <CA+G9fYuBGRz9=Q5KyCat0qk_8aiGvNsreY05rcGSjMZpvM1FJg@mail.gmail.com>
- <20200623171613.GB1931@sasha-vm> <CA+G9fYsqV9+QaBgWrJEf8QDT4LobO5vuA0i+AB0h6SyiCGmwhw@mail.gmail.com>
-In-Reply-To: <CA+G9fYsqV9+QaBgWrJEf8QDT4LobO5vuA0i+AB0h6SyiCGmwhw@mail.gmail.com>
-From:   Amir Goldstein <amir73il@gmail.com>
-Date:   Tue, 23 Jun 2020 21:59:48 +0300
-Message-ID: <CAOQ4uxh9q_yQm9La2b3xYPqD9GPCHm8Gd+Ldi5HjVVD4NTOttA@mail.gmail.com>
-Subject: Re: [PATCH AUTOSEL 4.14 090/108] ovl: verify permissions in ovl_path_open()
-To:     Naresh Kamboju <naresh.kamboju@linaro.org>
-Cc:     Sasha Levin <sashal@kernel.org>,
-        open list <linux-kernel@vger.kernel.org>,
-        linux- stable <stable@vger.kernel.org>,
-        Miklos Szeredi <mszeredi@redhat.com>,
-        overlayfs <linux-unionfs@vger.kernel.org>,
-        lkft-triage@lists.linaro.org
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+X-ZohoCNMailClient: External
+Content-Type: text/plain; charset=utf8
 Sender: linux-unionfs-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Tue, Jun 23, 2020 at 9:28 PM Naresh Kamboju
-<naresh.kamboju@linaro.org> wrote:
->
-> On Tue, 23 Jun 2020 at 22:46, Sasha Levin <sashal@kernel.org> wrote:
-> >
-> > On Tue, Jun 23, 2020 at 08:55:38PM +0530, Naresh Kamboju wrote:
-> > >On Thu, 18 Jun 2020 at 07:18, Sasha Levin <sashal@kernel.org> wrote:
-> > >>
-> > >> From: Miklos Szeredi <mszeredi@redhat.com>
-> > >>
-> > >> [ Upstream commit 56230d956739b9cb1cbde439d76227d77979a04d ]
-> > >>
-> > >> Check permission before opening a real file.
-> > >>
-> > >> ovl_path_open() is used by readdir and copy-up routines.
-> > >>
-> > >> ovl_permission() theoretically already checked copy up permissions, but it
-> > >> doesn't hurt to re-do these checks during the actual copy-up.
-> > >>
-> > >> For directory reading ovl_permission() only checks access to topmost
-> > >> underlying layer.  Readdir on a merged directory accesses layers below the
-> > >> topmost one as well.  Permission wasn't checked for these layers.
-> > >>
-> > >> Note: modifying ovl_permission() to perform this check would be far more
-> > >> complex and hence more bug prone.  The result is less precise permissions
-> > >> returned in access(2).  If this turns out to be an issue, we can revisit
-> > >> this bug.
-> > >>
-> > >> Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
-> > >> Signed-off-by: Sasha Levin <sashal@kernel.org>
-> > >> ---
-> > >>  fs/overlayfs/util.c | 27 ++++++++++++++++++++++++++-
-> > >>  1 file changed, 26 insertions(+), 1 deletion(-)
-> > >>
-> > >> diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
-> > >> index afdc2533ce74..76d6610767f6 100644
-> > >> --- a/fs/overlayfs/util.c
-> > >> +++ b/fs/overlayfs/util.c
-> > >> @@ -307,7 +307,32 @@ bool ovl_is_whiteout(struct dentry *dentry)
-> > >>
-> > >>  struct file *ovl_path_open(struct path *path, int flags)
-> > >>  {
-> > >> -       return dentry_open(path, flags | O_NOATIME, current_cred());
-> > >> +       struct inode *inode = d_inode(path->dentry);
-> > >> +       int err, acc_mode;
-> > >> +
-> > >> +       if (flags & ~(O_ACCMODE | O_LARGEFILE))
-> > >> +               BUG();
-> > >> +
-> > >> +       switch (flags & O_ACCMODE) {
-> > >> +       case O_RDONLY:
-> > >> +               acc_mode = MAY_READ;
-> > >> +               break;
-> > >> +       case O_WRONLY:
-> > >> +               acc_mode = MAY_WRITE;
-> > >> +               break;
-> > >> +       default:
-> > >> +               BUG();
-> > >
-> > >This BUG: triggered on stable-rc 5.7, 5.4, 4.19 and 4.14.
-> > >
-> > >steps to reproduce:
-> > >          - cd /opt/ltp
-> > >          - ./runltp -s execveat03
-> >
-> > Yup, that patch has been dropped, thanks for testing!
->
-> After reverting this patch I see these messages while testing LTP execveat03.
-> [ 87.931537] overlayfs: upper fs does not support RENAME_WHITEOUT.
+In metacopy case, we should use ovl_inode_realdata() instead of
+ovl_inode_real() to get real inode which has data, so that
+we can get correct information of extentes in ->fiemap operation.
 
-This warning is new.
+Signed-off-by: Chengguang Xu <cgxu519@mykernel.net>
+---
+ fs/overlayfs/inode.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-> [ 87.937693] overlayfs: upper fs does not support xattr, falling back
-> to index=off and metacopy=off.>
+diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
+index 981f11ec51bc..a524af04b71d 100644
+--- a/fs/overlayfs/inode.c
++++ b/fs/overlayfs/inode.c
+@@ -472,7 +472,7 @@ static int ovl_fiemap(struct inode *inode, struct fiema=
+p_extent_info *fieinfo,
+ =09=09      u64 start, u64 len)
+ {
+ =09int err;
+-=09struct inode *realinode =3D ovl_inode_real(inode);
++=09struct inode *realinode =3D ovl_inode_realdata(inode);
+ =09const struct cred *old_cred;
+=20
+ =09if (!realinode->i_op->fiemap)
+--=20
+2.20.1
 
-This one is pretty old.
 
-They will show up when testing with a filesystem that is suboptimal
-for upper fs.
-
-The warning is stating a fact. The suboptimal behavior with those
-filesystems has been there since the beginning.
-
-Thanks,
-Amir.
