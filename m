@@ -1,107 +1,103 @@
-Return-Path: <SRS0=PZEe=AF=vger.kernel.org=linux-unionfs-owner@kernel.org>
+Return-Path: <SRS0=Y/ci=AG=vger.kernel.org=linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+X-Spam-Status: No, score=-4.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
-	version=3.4.0
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
+	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D5555C433DF
-	for <linux-unionfs@archiver.kernel.org>; Wed, 24 Jun 2020 12:53:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0A336C433E0
+	for <linux-unionfs@archiver.kernel.org>; Thu, 25 Jun 2020 08:35:30 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B6FAC20663
-	for <linux-unionfs@archiver.kernel.org>; Wed, 24 Jun 2020 12:53:41 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CA4CF20789
+	for <linux-unionfs@archiver.kernel.org>; Thu, 25 Jun 2020 08:35:29 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="kuSdTrDs"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="WBDzHrzo"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2389575AbgFXMxl (ORCPT
+        id S2389894AbgFYIf3 (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Wed, 24 Jun 2020 08:53:41 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35638 "EHLO
+        Thu, 25 Jun 2020 04:35:29 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48558 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2388942AbgFXMxl (ORCPT
+        with ESMTP id S2389497AbgFYIf3 (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 24 Jun 2020 08:53:41 -0400
-Received: from mail-il1-x141.google.com (mail-il1-x141.google.com [IPv6:2607:f8b0:4864:20::141])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 31D1BC061573
-        for <linux-unionfs@vger.kernel.org>; Wed, 24 Jun 2020 05:53:41 -0700 (PDT)
-Received: by mail-il1-x141.google.com with SMTP id i18so1912191ilk.10
-        for <linux-unionfs@vger.kernel.org>; Wed, 24 Jun 2020 05:53:41 -0700 (PDT)
+        Thu, 25 Jun 2020 04:35:29 -0400
+Received: from mail-il1-x144.google.com (mail-il1-x144.google.com [IPv6:2607:f8b0:4864:20::144])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0857CC061573
+        for <linux-unionfs@vger.kernel.org>; Thu, 25 Jun 2020 01:35:28 -0700 (PDT)
+Received: by mail-il1-x144.google.com with SMTP id k1so3416411ils.2
+        for <linux-unionfs@vger.kernel.org>; Thu, 25 Jun 2020 01:35:28 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=V9/0KcLbeE0Tys6zs9Ofj+s1n1aaghvI1RBVd8Fhhxg=;
-        b=kuSdTrDs7NdpqgbSFpsLKSUFGW4Udipx/oJR+HyxufEx4mlZNIBqaLvHjNNqUSQKLi
-         0kPEtUCsIRsSv+V67/VoTtTVb0p6hZr/9iytDXvrtakpy5JUa4Y3r++bYnhmIwCbaRcg
-         Hb7WKnAG7oqElcC1Npdq5/rt/o5LePugdDKMmFFOGzxb/tiszBHoZ34C88BHMay5qtac
-         J8OcvqdEdR60cvyIPK92WpDLfzuFqaAFkxO2AT0AlqHy0hozFq4Lm4kz/pVSjx1cE9MK
-         mULSqK6VIoNjlNE0mvM90TjPa9JoS1WfZaDEAYui8nsTdDeVCYzfNdTRwolepW60yHi6
-         yg1Q==
+        bh=Po3yu/LP0JAh5uC4zUBtFBbOcS+lpt4fOm5gs6YNEk8=;
+        b=WBDzHrzoKIIm0XdSSH/bhbOEpVvipf0v5+kx4XPFvf3ebVkZgWrtHWFTbHr4NnnrPp
+         Rpw21KyhDHG0mD4igltb/vArBItOm1Rvd760RijjkByGzRg0dP1YMDNqJi9+J3BBOJ3q
+         vbFyaUNMIqKDSTIOt8Cm5N6RvWXeHEitfv10t7JHPwHa9CpdsvXyOWJdWqWoFlS5XDvC
+         7LhbU2SEWrsROnLgZ9bmJlKBCTutd57smxvN7hfx0SBhCM7sFecnRlgWkXSDBZ/yau2k
+         rEoz/J4YeztWh1V/V0gBcPMcxU1sZwyWgm6jWEVnG4xDoReDcc29cbTs8TAkER7crcHD
+         StBA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=V9/0KcLbeE0Tys6zs9Ofj+s1n1aaghvI1RBVd8Fhhxg=;
-        b=jg7FIp7dyvu1/Sek91t+5bX5mgBG8TDbYdN1toT+nCOUdO70+RV0Uj83t+Pt3/2WP1
-         WEwvUJIq16y5LXsOzoJEgyBJJFOI6dBxDen3gDIpJC2dv5l+qijqgcbtbkjipS5X0m7d
-         YrT4koyKC0TsgD4nPJ85nVHPfX7WjrGXE3DubyK9YYdGZn6DBlRoU8SdWy9fbund9quA
-         IbBzEMUV3Vqz3BXTJZ9LhI2dYqighAaR3vhEej9iVNPRFjjJe6VgZ21AaOqGtYtZKayL
-         Wl+fYzwOetpwIjzw+0nohcuxzEftoDecgJDE0PIz216JxRhtuu8YVfga9Tba7tu2b6bm
-         P9Bg==
-X-Gm-Message-State: AOAM530tr2O2S2uO0TOnVuofHxLHj2om01lVNgyKeKQ/NiIGPFCblxPp
-        YrEc1rozssc0rUChExdswbGFh6v6gyucTsoyUGmvMtbG
-X-Google-Smtp-Source: ABdhPJwBiUsvy3ux1HmVDiOpnQTtlu+eByvOg68tHt7DgeQ1a09B8QPum8ra99kTFeIP7Q+SSDSeeNecX9QVddQaHPs=
-X-Received: by 2002:a92:b6d4:: with SMTP id m81mr4981508ill.72.1593003219871;
- Wed, 24 Jun 2020 05:53:39 -0700 (PDT)
+        bh=Po3yu/LP0JAh5uC4zUBtFBbOcS+lpt4fOm5gs6YNEk8=;
+        b=Lu8lFKYi7kWS9XJvCSls1da0WEz2nDg+V3uqNdb6O2cxApx0FEWyLAc/oRg9jPZvl8
+         ohm10SWZq9pO8VaLE/hXeaAoIbRR0EagRYc/KGk6VGcM4qdC83rqHqcPL0AjsJj0TR4D
+         Ks1Y/obt4zuOqW0rQm4k5rW9xeecOCbCrCPbbYpkUJsI+3t8q0p45D0fpGt/WIVNcNZK
+         Ic2364/11He9vTuTtMvtZccnj7Heot+LKlJUCXPrs4GTY0rwnbvmoi2cdPIwNlmchMtX
+         9/GbL+aNEGYkBAG5A6OqCgIkSJCwDKfNSubfKvkVIOtbohuOrOQzES15UPkJgq0YiumY
+         6KpA==
+X-Gm-Message-State: AOAM530u29+2Yc7ZlxlkRIsf2+hymb6b9RDvZsl4HAKfZ81hzi7F8Vzz
+        ybNgyRSLEwzEIVD3uHqaMkySQnwR0YymALnQorW4GU5N
+X-Google-Smtp-Source: ABdhPJw3DMq32ZUW/b9Qfwcq/AQvSAiLPU6k0zIFenxV/FQW6KaE0+kHqU7w52CqrXD3W0WqBLFf0tLYw4fEkUhqutU=
+X-Received: by 2002:a92:2a0c:: with SMTP id r12mr31845900ile.275.1593074128265;
+ Thu, 25 Jun 2020 01:35:28 -0700 (PDT)
 MIME-Version: 1.0
-References: <20200624102011.4861-1-cgxu519@mykernel.net>
-In-Reply-To: <20200624102011.4861-1-cgxu519@mykernel.net>
+References: <20200624102011.4861-1-cgxu519@mykernel.net> <CAOQ4uxi53CzBwXxygKMhDDSaGpX0CcfV6jiaKRFVbrFHW7PbxA@mail.gmail.com>
+In-Reply-To: <CAOQ4uxi53CzBwXxygKMhDDSaGpX0CcfV6jiaKRFVbrFHW7PbxA@mail.gmail.com>
 From:   Amir Goldstein <amir73il@gmail.com>
-Date:   Wed, 24 Jun 2020 15:53:28 +0300
-Message-ID: <CAOQ4uxi53CzBwXxygKMhDDSaGpX0CcfV6jiaKRFVbrFHW7PbxA@mail.gmail.com>
+Date:   Thu, 25 Jun 2020 11:35:17 +0300
+Message-ID: <CAOQ4uxh9gzdRJp4g1yjQy9nDMASdsdvkzBGhGL2_+3rOBJZFAw@mail.gmail.com>
 Subject: Re: [PATCH] ovl: fix incorrect extent info in metacopy case
-To:     Chengguang Xu <cgxu519@mykernel.net>
-Cc:     Miklos Szeredi <miklos@szeredi.hu>,
-        overlayfs <linux-unionfs@vger.kernel.org>
+To:     Chengguang Xu <cgxu519@mykernel.net>,
+        Miklos Szeredi <miklos@szeredi.hu>
+Cc:     overlayfs <linux-unionfs@vger.kernel.org>
 Content-Type: text/plain; charset="UTF-8"
 Sender: linux-unionfs-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Wed, Jun 24, 2020 at 1:23 PM Chengguang Xu <cgxu519@mykernel.net> wrote:
+On Wed, Jun 24, 2020 at 3:53 PM Amir Goldstein <amir73il@gmail.com> wrote:
 >
-> In metacopy case, we should use ovl_inode_realdata() instead of
-> ovl_inode_real() to get real inode which has data, so that
-> we can get correct information of extentes in ->fiemap operation.
+> On Wed, Jun 24, 2020 at 1:23 PM Chengguang Xu <cgxu519@mykernel.net> wrote:
+> >
+> > In metacopy case, we should use ovl_inode_realdata() instead of
+> > ovl_inode_real() to get real inode which has data, so that
+> > we can get correct information of extentes in ->fiemap operation.
+> >
+> > Signed-off-by: Chengguang Xu <cgxu519@mykernel.net>
 >
-> Signed-off-by: Chengguang Xu <cgxu519@mykernel.net>
+> looks right
 
-looks right
+Miklos,
 
-Reviewed-by: Amir Goldstein <amir73il@gmail.com>
+Not related to this patch, I noticed something that could be odd with
+ovl_fiemap().
 
-> ---
->  fs/overlayfs/inode.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
->
-> diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
-> index 981f11ec51bc..a524af04b71d 100644
-> --- a/fs/overlayfs/inode.c
-> +++ b/fs/overlayfs/inode.c
-> @@ -472,7 +472,7 @@ static int ovl_fiemap(struct inode *inode, struct fiemap_extent_info *fieinfo,
->                       u64 start, u64 len)
->  {
->         int err;
-> -       struct inode *realinode = ovl_inode_real(inode);
-> +       struct inode *realinode = ovl_inode_realdata(inode);
->         const struct cred *old_cred;
->
->         if (!realinode->i_op->fiemap)
-> --
-> 2.20.1
->
->
+When passed the flag FIEMAP_FLAG_SYNC, ->fiemap() will trigger writeback
+of lower inode pages.
+
+This behavior is border line for overlayfs.
+I did not check if filemap_write_and_wait() ends up being a noop on read-only
+fs or if it can return an error.
+Following ovl_fsync() practice, we may want to silently drop the
+FIEMAP_FLAG_SYNC flag? but that could result in unexpected results.
+
+Am I overthinking this?
+
+Thanks,
+Amir.
