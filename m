@@ -2,138 +2,94 @@ Return-Path: <SRS0=HCnm=AO=vger.kernel.org=linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.5 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AE0C2C433DF
-	for <linux-unionfs@archiver.kernel.org>; Fri,  3 Jul 2020 13:38:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 27AFAC433DF
+	for <linux-unionfs@archiver.kernel.org>; Fri,  3 Jul 2020 21:43:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 99157206A1
-	for <linux-unionfs@archiver.kernel.org>; Fri,  3 Jul 2020 13:38:39 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0549C20890
+	for <linux-unionfs@archiver.kernel.org>; Fri,  3 Jul 2020 21:43:39 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="Xd2zq2Hk"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726276AbgGCNij (ORCPT
+        id S1726989AbgGCVni (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Fri, 3 Jul 2020 09:38:39 -0400
-Received: from mx2.suse.de ([195.135.220.15]:53344 "EHLO mx2.suse.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726022AbgGCNij (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 3 Jul 2020 09:38:39 -0400
-X-Virus-Scanned: by amavisd-new at test-mx.suse.de
-Received: from relay2.suse.de (unknown [195.135.221.27])
-        by mx2.suse.de (Postfix) with ESMTP id CE505AEE4;
-        Fri,  3 Jul 2020 13:38:36 +0000 (UTC)
-Received: by quack2.suse.cz (Postfix, from userid 1000)
-        id 369EB1E12EB; Fri,  3 Jul 2020 15:38:36 +0200 (CEST)
-Date:   Fri, 3 Jul 2020 15:38:36 +0200
-From:   Jan Kara <jack@suse.cz>
-To:     Amir Goldstein <amir73il@gmail.com>
-Cc:     Jan Kara <jack@suse.cz>,
-        linux-fsdevel <linux-fsdevel@vger.kernel.org>,
-        Al Viro <viro@zeniv.linux.org.uk>,
+        Fri, 3 Jul 2020 17:43:38 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53304 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726379AbgGCVni (ORCPT
+        <rfc822;linux-unionfs@vger.kernel.org>);
+        Fri, 3 Jul 2020 17:43:38 -0400
+Received: from merlin.infradead.org (merlin.infradead.org [IPv6:2001:8b0:10b:1231::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D521AC061794;
+        Fri,  3 Jul 2020 14:43:37 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=infradead.org; s=merlin.20170209; h=Content-Transfer-Encoding:MIME-Version:
+        Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:
+        Content-Description:In-Reply-To:References;
+        bh=DSkLdwA8XxSZdlvPiriZ+UIh2jMZmNiuIw4Gi/uxGAg=; b=Xd2zq2HkI3a0FU1VBBjtPJvqTX
+        CGXLZmLSDI3L5qG/DVedVDS5awYqCdV1BFqob+4VuvTrTnrUkb0EXjDT64f27cLBrSSCioggLdi3A
+        SSaCaup+QndnrggX7aX3O/n6wXHjDe4GAXQWqwduGnAEsJRbhHjtYCo+PErhJukhbXxlgA+uA/tAN
+        4NAM3YHXlgfQ7lhOGj0Y7+x2iXQE+CVqXFoDWbfBZeUekvHMK4fMsHG861Tz6daghBjgf8IzcwDJ6
+        lLvzSkJTgJEEdKOMP5wAhkXr1GHC1GpjcTM54CtMm0KALo+ln3Y4Tw7A0HwryPVWrfKLvsFgPUrtY
+        ZhXUP3TA==;
+Received: from [2601:1c0:6280:3f0::19c2] (helo=smtpauth.infradead.org)
+        by merlin.infradead.org with esmtpsa (Exim 4.92.3 #3 (Red Hat Linux))
+        id 1jrTT2-0006uZ-8p; Fri, 03 Jul 2020 21:43:32 +0000
+From:   Randy Dunlap <rdunlap@infradead.org>
+To:     linux-kernel@vger.kernel.org
+Cc:     Randy Dunlap <rdunlap@infradead.org>,
+        Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org,
+        Ian Kent <raven@themaw.net>, autofs@vger.kernel.org,
+        David Howells <dhowells@redhat.com>, linux-cachefs@redhat.com,
+        Joel Becker <jlbec@evilplan.org>,
+        Christoph Hellwig <hch@lst.de>,
+        Alexander Viro <viro@zeniv.linux.org.uk>,
+        linux-fsdevel@vger.kernel.org, Eric Biggers <ebiggers@kernel.org>,
+        "Theodore Y . Ts'o" <tytso@mit.edu>, linux-fscrypt@vger.kernel.org,
         Miklos Szeredi <miklos@szeredi.hu>,
-        Matthew Bobrowski <mbobrowski@mbobrowski.org>,
-        overlayfs <linux-unionfs@vger.kernel.org>,
-        Mel Gorman <mgorman@techsingularity.net>
-Subject: Re: fsnotify pre-modify VFS hooks (Was: fanotify and LSM path hooks)
-Message-ID: <20200703133836.GB21364@quack2.suse.cz>
-References: <CAOQ4uxgn=YNj8cJuccx2KqxEVGZy1z3DBVYXrD=Mc7Dc=Je+-w@mail.gmail.com>
- <20190416154513.GB13422@quack2.suse.cz>
- <CAOQ4uxh66kAozqseiEokqM3wDJws7=cnY-aFXH_0515nvsi2-A@mail.gmail.com>
- <20190417113012.GC26435@quack2.suse.cz>
- <CAOQ4uxgsJ7NRtFbRYyBj_RW-trysOrUTKUnkYKYR5OMyq-+HXQ@mail.gmail.com>
- <20200630092042.GL26507@quack2.suse.cz>
- <CAOQ4uxjO6Y6js-txx+_tuCx50cDobQpGMHnBe6R5fBA09-4yDA@mail.gmail.com>
+        linux-unionfs@vger.kernel.org
+Subject: [PATCH 00/10] Documentation: filesystems: eliminate duplicated words
+Date:   Fri,  3 Jul 2020 14:43:15 -0700
+Message-Id: <20200703214325.31036-1-rdunlap@infradead.org>
+X-Mailer: git-send-email 2.26.2
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAOQ4uxjO6Y6js-txx+_tuCx50cDobQpGMHnBe6R5fBA09-4yDA@mail.gmail.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Transfer-Encoding: 8bit
 Sender: linux-unionfs-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Tue 30-06-20 17:28:10, Amir Goldstein wrote:
-> On Tue, Jun 30, 2020 at 12:20 PM Jan Kara <jack@suse.cz> wrote:
-> > the number of variants you have to introduce and then pass NULL in some
-> > places because you don't have the info available and then it's not
-> > immediately clear what semantics the event consumers can expect... That
-> > would be good to define and then verify in the code.
-> >
-> 
-> I am not sure I understand what you mean.
-> Did you mean that mnt_want_write_at() mnt_want_write_path() should be
-> actual functions instead of inline wrappers or something else?
+Fix doubled words in filesystems files.
 
-Now looking at it, I find mnt_want_write_at2() the most confusing one. Also
-the distinction between mnt_want_write_at() and mnt_want_write_path() seems
-somewhat arbitrary at the first sight (how do you decide where to use
-what?) but there I guess I see where you are coming from...
 
-> > Also given you have the requirement "no fs locks on event generation", I'm
-> > not sure how reliable this can be. If you don't hold fs locks when
-> > generating event, cannot it happen that actually modified object is
-> > different from the reported one because we raced with some other fs
-> > operations? And can we prove that? So what exactly is the usecase and
-> > guarantees the event needs to provide?
-> 
-> That's a good question. Answer is not trivial.
-> The use case is "persistent change tracking snapshot".
-> "snapshot" because it tracks ALL changes since a point in time -
-> there is no concept of "consuming" events.
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: linux-doc@vger.kernel.org
+Cc: Ian Kent <raven@themaw.net>
+Cc: autofs@vger.kernel.org
+Cc: David Howells <dhowells@redhat.com>
+Cc: linux-cachefs@redhat.com
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: linux-fsdevel@vger.kernel.org
+Cc: Eric Biggers <ebiggers@kernel.org>
+Cc: Theodore Y. Ts'o <tytso@mit.edu>
+Cc: linux-fscrypt@vger.kernel.org
+Cc: Miklos Szeredi <miklos@szeredi.hu>
+Cc: linux-unionfs@vger.kernel.org
 
-So you want to answer question like: "Which paths changed since given point
-in time?" 100% reliably (no false negatives) in a powerfail safe manner? So
-effectively something like btrfs send-receive?
 
-> It is important to note that this is complementary to real time fs events.
-> A user library may combine the two mechanisms to a stream of changes
-> (either recorded or live), but that is out of scope for this effort.
-> Also, userspace would likely create periodic snapshots, so that e.g.
-> current snapshot records changes, while previous snapshot recorded
-> changes are being scanned.
-> 
-> The concept is to record every dir fid *before* an immediate child or directory
-> metadata itself may change, so that after a crash, all recorded dir fids
-> may be scanned to search for possibly missed changes.
-> 
-> The dir fid is stable, so races are not an issue in that respect.
-> When name is recorded, change tracking never examines the object at that
-> name, it just records the fact that there has been a change at [dir fid;name].
-> This is mostly needed to track creates.
-
-You're right that by only tracking dir fids where something changed you've
-elliminated most of problems since once we lookup a path, the change is
-definitely going to happen in the dir we've looked up. If it really happens
-or on which inode in the dir is not determined yet but the dir fid is. I'm
-not yet 100% sure how you'll link the dir fids to actual paths on query or
-how the handling of leaf dir entries is going to work but it seems possible
-:)
-
-> Other than that, races should be handled by the backend itself, so proof is
-> pending the completion of the backend POC, but in hand waving:
-> - All name changes in the filesystem call the backend before the change
->   (because backend marks sb) and backend is responsible for locking
-> against races
-> - My current implementation uses overlayfs upper/index as the change
->   track storage, which has the benefit that the test "is change recorded"
->   is implemented by decode_fh and/or name lookup, so it is already very much
->   optimized by inode and dentry cache and shouldn't need any locking for
->   most  pre_modify calls
-> - It is also not a coincidence that overlayfs changes to upper fs do not
->   trigger pre_modify hooks because that prevents the feedback loop.
->   I wrote in commit message that "is consistent with the fact that overlayfs
->   sets the FMODE_NONOTIFY flag on underlying open files" - that is needed
->   because the path in underlying files is "fake" (open_with_fake_path()).
-> 
-> If any of this hand waving sounds terribly wrong please let me know.
-> Otherwise I will report back after POC is complete with a example backend.
-
-It sounds like it could work :).
-
-								Honza
-
--- 
-Jan Kara <jack@suse.com>
-SUSE Labs, CR
+ Documentation/filesystems/autofs-mount-control.rst |    6 +++---
+ Documentation/filesystems/caching/operations.rst   |    2 +-
+ Documentation/filesystems/configfs.rst             |    2 +-
+ Documentation/filesystems/directory-locking.rst    |    4 ++--
+ Documentation/filesystems/fsverity.rst             |    2 +-
+ Documentation/filesystems/mount_api.rst            |    4 ++--
+ Documentation/filesystems/overlayfs.rst            |    2 +-
+ Documentation/filesystems/path-lookup.rst          |    2 +-
+ Documentation/filesystems/sysfs-tagging.rst        |    2 +-
+ Documentation/filesystems/vfs.rst                  |    4 ++--
+ 10 files changed, 15 insertions(+), 15 deletions(-)
